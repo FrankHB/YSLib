@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2018 年度。
-\version r407
+\version r427
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2018-02-27 22:36:36 +0800
 \par 修改时间:
-	2018-09-26 23:31 +0800
+	2018-10-07 05:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,7 +93,24 @@ Several DS buidling problem concerned with compatibility issues in devkitPro has
 $2018-06:
 
 $report.impl:
-TCO algorithm in NPLA1 has been carefully revised and further enhanced.
+TCO (tail call optimization) algorithm in NPLA1 to support PTC (proper tail call) has been carefully revised and further enhanced.
+	As the host language (C++) as the source language is not supporting PTC, TCO is necessary anyway to support of PTC.
+		Although it is optionally enabled in the current source by conditional inclusion, the object language NPLA1 mandates it in conforming implementations.
+			So this is the default configuration. Other configurations are not always tested and not guaranteed to work.
+	The call here can be an ordinary function call or an underlying evaluation in 'eval' form.
+		As usual, calls are not interleave, to avoid introduce of parallelism in simplest cases of design.
+			This also means in users' view there is only one call being active simultaneously.
+		This design supports mixture of asynchronous and ordinary synchronous handlers of calls once the asynchronous calls are properly guarded by some synchronization mechanism.
+			The abstraction of such handlers are called as actions.
+		In TCO, the calls happen as a sequence implemented using a asynchronous style in the source language.
+			This works like CPS (continuation passing style), except the continuation is stored in the context, rather than being passed by parameters in the source language.
+			A asynchronous handler stored in the context ('NPL::ContextNode') is a reducer (of the type 'NPL::Reducer').
+				A reducer represents an internal continuation being executed in the context.
+					The continuation is used with some other states in the context, like 'SkipToNextEvaluation'.
+					This is to be extended to implement continuations in the object language (NPLA1) accepting parameters not in the 'Reducer' type.
+		Other kinds of calls may be introduced by derived implementations.
+			This design does not include them.
+			Modification may be necessary.
 	TCO operates on potentially active record frames.
 		A record frame consists of an environment and optional other components.
 		The active frame is the frame whose environment is introduced by active call (i.e. the call still not returned).
@@ -105,8 +122,8 @@ TCO algorithm in NPLA1 has been carefully revised and further enhanced.
 				Similarly, the operand has to be saved to avoid dangling references binding to it.
 					The difference to the function prvalue is it would be added immediately after the frame switch and before the next action of actual function call.
 					The operand is transferred in the form of environment object so it can be collected, see below.
-		Other frames are owned by the TCO action, which are inactive.
-			The frames are basically introced by other formerly active calls.
+		Other frames are owned by the TCO action, which is a special kind of action to handle the probably optimizable tail call specifically.
+			They are inactive and basically introduced by other formerly active calls.
 				Some of them are definitely inactive, and they are the targets to be safely removed during TCO.
 			However, some frames can own objects referenced by the active frame so they cannot be definitely inactive.
 				They have to be preserved to keep the memory safety.

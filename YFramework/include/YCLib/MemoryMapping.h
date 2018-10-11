@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.h
 \ingroup YCLib
 \brief 内存映射文件。
-\version r333
+\version r343
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:48:15 +0800
 \par 修改时间:
-	2016-08-27 00:47 +0800
+	2018-10-02 15:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,9 +90,12 @@ public:
 	//! \since build 711
 	using default_delete<byte[]>::operator();
 #else
-	//! \since build 671
+	/*!
+	\pre 断言：参数非空。
+	\since build 840
+	*/
 	void
-	operator()(pointer) const ynothrow;
+	operator()(pointer) const ynothrowv;
 #endif
 
 	//! \since build 711
@@ -120,7 +123,7 @@ private:
 
 public:
 	/*!
-	\brief 无参数构造：空状态。
+	\brief 无参数构造：具有大小等于 0 的空状态。
 	\since build 712
 	*/
 	DefDeCtor(MappedFile)
@@ -132,11 +135,13 @@ public:
 	\throw std::system_error 文件打开失败。
 	\note 非宿主平台：忽略第三参数。
 	\note DS 平台：使用文件 IO 模拟。
+	\note Win32 平台：远程文件不保证冲突的写操作结果的一致性。
 	\since build 711
 
 	创建映射到已存在的文件上的映射。
 	若键非空且不使用写时复制选项，创建全局可见的共享映射；
 	否则创建修改仅在进程内可见的映射。
+	若文件为空，则创建的映射具有和无参数构造相同的空状态。
 	*/
 	//@{
 	//! \pre 文件可读；使用可写映射时文件可写；文件长度非零。
@@ -187,7 +192,7 @@ public:
 	//! \since build 712
 	DefDeMoveCtor(MappedFile)
 	/*!
-	\brief 析构：刷新并捕获所有错误，然后释放资源。
+	\brief 析构：映射区域大小非零时刷新并捕获所有错误；然后释放资源。
 	\sa Flush
 	\since build 711
 	*/

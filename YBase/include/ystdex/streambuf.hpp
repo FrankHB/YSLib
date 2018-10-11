@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2017 FrankHB.
+	© 2015-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file streambuf.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准库标准流缓冲扩展。
-\version r146
+\version r156
 \author FrankHB <frankhb1989@gmail.com>
 \since build 636
 \par 创建时间:
 	2015-09-22 11:19:27 +0800
 \par 修改时间:
-	2017-09-26 00:17 +0800
+	2018-10-03 10:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,14 +69,18 @@ public:
 	using off_type = typename _tTraits::off_type;
 	using traits_type = _tTraits;
 
-	YB_NONNULL(2)
+	//! \pre 断言：参数指针非空或指定的大小为 0 。
 	basic_membuf(const char_type* buf, size_t size)
 	{
-		yconstraint(buf);
-		// NOTE: This should be safe since get area is not used to be written.
-		const auto p(const_cast<char_type*>(buf));
+		yconstraint(buf || size == 0);
+		if(buf)
+		{
+			// NOTE: This should be safe since get area is not used to be
+			//	written.
+			const auto p(const_cast<char_type*>(buf));
 
-		this->setg(p, p, p + size);
+			this->setg(p, p, p + size);
+		}
 	}
 
 	//! \since build 805

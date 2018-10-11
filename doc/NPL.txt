@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r5740
+\version r5790
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2018-09-29 12:32 +0800
+	2018-10-12 00:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1148,7 +1148,7 @@ ValueObject 、 ValueNode 、 observer_ptr 和 LoggedEvent 。
 关于这些类型，另见 [Documentation::YSLib @@3.16] 和 [Documentation::YSLib @@3.2] 。
 语法分析也提供了 TermNode 类型及其操作。
 
-@5.4 NPLA 公共实现：
+@5.4 NPLA 公共语言实现的整体设计：
 本节以外其它 NPLA 实现使用的接口详见模块 NPLA 和以下章节(@5.5) 。
 本节中除之前在 @5.3.1 和 @5.3.2 中出现的名称及 @5.4 中引入的类型名称（都在命名空间 NPL 中）外，其余 C++ 名称使用限定名称以避免混淆。
 本节中的 API 都位于模块 NPLA ，详见 @5.5 。
@@ -1275,7 +1275,7 @@ TokenValue 称为记号值类型。
 和 Kernel 语言类似， NPL 设计强调区分程序是否被求值的差异。符号是引入和表示为自求值项(@4.4.3) 的其它表达式的关键数据类型。
 符号可能有外部表示。以未求值的记号值作为符号是其和外部表示关联的设计。由于外部表示未指定，这种关联是有限的。记号值蕴含了词素和符号的映射关系，即源代码文本；其余关系（包括源代码支持的文本编码）由派生实现指定。
 记号值的相等性由等价于其对应的词素的相等性。
-记号值可出现在词法分析(@5.3.1) 阶段，由单独的规约过程(@5.5.4.3) 通过调用 NPL::TokenizeTerm 转换词素得到。
+记号值可出现在词法分析(@5.3.1) 阶段，由单独的规约过程(@5.5.4.3) 通过调用 NPL::TokenizeTerm(@5.5.3.3) 转换词素得到。
 记号值相关 API 参见 @5.5.3.2 。
 
 @5.4.6.2 延迟求值项：
@@ -1294,11 +1294,7 @@ TermReference 初始化时，保存是否由引用值初始化作为状态，之
 和 ISO C++ 类似，引用值在 NPLA 中默认不被继续引用，使用引用初始化引用会引用到被引用对象(@4.1.5.2) 上，即引用折叠(collapse) 。
 内部表示可支持间接的引用。 NPLA 不限制派生实现利用非折叠的引用，但 NPLA 的其它接口不和其与其它值区分。
 TermReference 也可选地储存引用锚对象附加的引用计数，详见 @5.5.8.2 。
-对 TermReference 相关操作包括以下 API ：
-NPL::Collapse 进行引用折叠操作。提供可选的环境参数以允许关联锚对象(@5.5.8.2) 。返回值中包含是否为引用的结果。
-NPL::ReferenceTerm 访问项并取解析 TermReference 间接值后的引用。
-NPL::AccessTerm 和 YSLib::Access 访问 TermNode 类似，但先解析引用重定向到目标。
-NPL::AccessTermPtr 和 YSLib::AccessPtr 访问 TermNode 类似，但先解析引用重定向到目标。
+对 TermReference 相关操作详见 @5.5.3.4 。
 
 @5.4.6.4 扩展中间值(extended thunk) ：
 扩展中间值是其它由派生实现定义的其它中间值。
@@ -1345,7 +1341,7 @@ NPLA 提供引入间接值的 API ，参见 @5.5.5.2 。
 @5.4.7.4.1 引用值(@5.4.6.3) 作为间接值：
 由于左值(@5.4.5.1) 的项对象被环境所有(@5.4.7.3) ，在项上的求值需要其它项对象作为中间值。
 这种中间值通过间接引用左值以确保左值标识的对象可作为一等对象(@4.1) 使用，也是一种间接值，即引用值(@5.4.6.3) ，是引用(@4.1.5.2) 的实例。
-TermReference(@5.4.6.3) 类型作为左值的引用的内部表示。对应地，基于左值引用的左值到右值转换可通过 NPL::ReferenceTerm(@5.4.6.3) 实现。
+TermReference(@5.4.6.3) 类型作为左值的引用的内部表示。对应地，基于左值引用的左值到右值转换可通过 NPL::ReferenceTerm(@5.5.3.4) 实现。
 TermReference 是否使用引用值初始化(@5.4.6.3) 决定对象语言中的左值引用(lvalue reference) 和右值引用(rvalue reference) 。这类似 ISO C++ 的对象类型的左值引用和右值引用的差异；但当前不普遍支持和对应的消亡值(6.2.7.2) 。
 和宿主语言的涉及成员访问的表达式类似，直接使用标识符进行名称查找得到的表达式是左值或消亡值。在此环境总是被视为左值，所以结果由环境中的对象类型确定：当且仅当对象是左值时，结果是左值引用；否则是右值引用。
 和宿主语言类似，右值引用类型的表达式可作为左值使用。在 NPLA1 中，类型总是被保留在项中，仅在绑定时（如 @6.8.3 ）需要对被处理的右值引用作为左值引用相同的方式处理，其中可涉及 NPL::TermReference 值的重新构造。这称为左值提升(lvalue promotion) 。
@@ -1366,7 +1362,7 @@ TermReference 是否使用引用值初始化(@5.4.6.3) 决定对象语言中的�
 用于按值传递参数时，一般使用 NPL::LiftTermRefToSelf 和 NPL::LiftTermIndirection(@5.5.5.2) 实现；前者取非引用类型的右值(@5.4.5.1) ，后者提升间接值确保结果不是中间值。
 用于按值传递返回值时，类似按值传递参数，使用 NPL::ReduceForClosureResult(@5.5.6) 。
 
-@5.5 NPLA 公共接口：
+@5.5 NPLA 公共语言实现接口：
 部分实现的功能由公共 API 的形式提供，以便派生实现复用。
 
 @5.5.1 节点(node) 操作：
@@ -1384,6 +1380,7 @@ ContextNode 作为上下文的实现，其中包含的部分数据成员是环�
 列表节点(list node) 是枝节点或空节点。
 可按照子节点数（使用 TermNode 的 size() 结果判断）进行扩展的扩展分类。
 判断项节点基本分类的 API 在模块 NPL::SContext 提供：使用 IsBranch 、 IsEmpty 、 IsLeaf 和 IsList 分别判断是否为枝节点、空节点、叶节点和列表节点。
+作为列表节点的 TermNode 是对象语言中列表类型的宿主类型(@5.2.1) 。
 NPL::AssertBranch 断言项是枝节点。
 考虑 TermNode 的 Value 数据成员是否为空及其实际持有对象的动态类型等，具体实现 API 可约定使用不同的具体结构分类。
 因为次级分类不一定是互斥的，所以可能需要约定对节点的操作顺序以确保结果一致，典型地可能有以下几种情形：
@@ -1399,9 +1396,9 @@ SXML(@5.8) 依赖这些 API 。
 @5.5.2 异常处理：
 NPL::NPLException 是 NPL 实现的异常基类。
 其它 NPL 异常都从此类直接或间接派生，包括：
-NPL::TypeError 类型错误。
+NPL::TypeError 类型错误：类型不匹配。
 NPL::ValueCategoryMismatch 值类别不匹配。
-NPL::ListTypeError 列表类型错误。
+NPL::ListTypeError 列表类型错误：列表类型或非列表类型不匹配。
 NPL::ListReductionFailure 列表规约失败。
 NPL::InvalidSyntax 语法错误。
 NPL::ParameterMismatch 参数不匹配。
@@ -1424,6 +1421,26 @@ NPL::IsNPLASymbol 判断字符串是否为 NPLA 支持的符号。
 @5.5.3.2 记号值：
 基本概念参见 @5.4.6.1 。
 调用 NPL::TermToName 访问具有记号值的名称节点对应的字符串。
+
+@5.5.3.3 项访问操作：
+NPLA 提供访问若干访问 TermNode 的便利接口。
+NPL::TermToNamePtr 访问项的值作为记号。
+NPL::TermToString 访问项的值并转换为字符串形式的外部表示。
+NPL::TermToStringWithReferenceMark 访问项的值并转换为可选带有引用标记的字符串形式。
+NPL::TokenizeTerm 标记记号节点。
+NPL::ThrowListTypeErrorForInvalidType 对列表项抛出指定预期访问值的类型的异常。
+
+@5.5.3.4 项引用操作：
+对 TermReference(@5.4.6.3) 相关操作包括以下 API ：
+NPL::IsReference 判断项是否为引用项。
+NPL::IsLValueTerm 判断项是否表示左值引用。
+NPL::Collapse 进行引用折叠操作。提供可选的环境参数以允许关联锚对象(@5.5.8.2) 。返回值中包含是否为引用的结果。
+NPL::ReferenceTerm 访问项并取解析 TermReference 间接值后的引用。
+NPL::ResolveTerm 解析并间接引用处理可能是引用值的项。
+NPL::AccessTerm 和 YSLib::Access 访问 TermNode 类似，但先解析引用重定向到目标，且首先对列表项检查，使用 NPL::ThrowListTypeErrorForInvalidType 抛出异常。
+NPL::AccessTermPtr 和 YSLib::AccessPtr 访问 TermNode 类似，但先解析引用重定向到目标。
+NPL::ReferenceTermOp 引用项操作。
+NPL::ComposeReferencedTermOp 包装一个非引用项的操作为 NPL::ReferenceTermOp 以支持项引用。
 
 @5.5.4 规约 API ：
 NPLA 规约 API 约定默认使用 TermNode 和 ContextNode 类型的引用作为参数类型，参数分别表示被规约的节点和使用的上下文(@4.6.1) 。
@@ -1486,6 +1503,8 @@ NPLA 提供以下等价的方式判断规约迭代后是否在 TermNode 得到�
 除非另行指定， NPLA 实现应保证规约过程中出现的表示满足以下基本性质：
 任一遍规约中，非正规表示应保证可被（此次规约中剩余的操作）安全忽略而不改变规约的语义。
 规约表示基本性质允许在已知 TermNode 得到范式时通过直接判断项的节点结构(@5.5.1.1) 是否存在子项代替推断此次规约中之前的规约结果。
+在对象语言输入可保证不存在非正规表示的前提下，这样的设计满足原则 @1.4.1.1.1 和 @1.4.1.2.2 。
+若不能保证不引入非正规表示，实现可通过正规化操作(@5.5.4.4.2) 约束规约的接口行为。
 NPL::CheckNorm(@5.5.4.3) 通过范式节点结构提取规约结果，是这种方法的直接的实现。
 
 @5.5.4.4.2 正规化(regularization) 操作：
@@ -1628,7 +1647,7 @@ NPL::EnvironmentSwitcher 类型用于切换上下文(@5.5.8.2) 中的当前环�
 数据成员 LastStatus 保存最后一次规约状态。
 Current 、 SkipToNextEvaluation 和 LastStatus 共同表示当前续延。
 函数 Anchor 和 IsOrphan 维护内部保存的锚对象关联的附加的引用计数用于辅助跟踪不直接在内部维护生存期的非安全对象。
-函数 ApplyTail 转移并应用作为尾动作(@5.4.4) 的当前动作，并设置 LastStatus 。
+函数 ApplyTail 转移并应用作为尾动作的当前动作，并设置 LastStatus 。
 函数 Pop 和 Push 维护动作的迁移，在 Current 和 Delimited 之间转移动作。
 函数 Rewrite 和 RewriteGuarded 以 Current 为条件的循环调用 ApplyTail ，用于实现一般规约重写。因为先设置当前动作，所以也有 Current 为空的前置条件。两者的区别是后者首先调用成员 Guard 动作。
 函数模板 SetupTail 设置 Current 。前置条件是 Current 为空以避免重复设置覆盖当前动作的原始状态。
@@ -2164,9 +2183,17 @@ https://www.akalin.com/evlis-tail-recursion
 主规约函数（跳板(@6.6.1) ）保证调用的异步的重规约可以支持 PTC(@5.2.4) 。
 异步重规约不是 TCO ，实现直接操作上下文(@5.4.4) 中的状态，不需要依赖 TCO 动作(@6.7.2) 。
 但是异步重规约和 TCO 不直接兼容。不维护 TCO 动作的异步重规约可导致之后紧随的 TCO 动作无法进行操作压缩(@6.7.2.2) 而无法支持 PTC 。
-同时，当前异步重规约的设计不支持 PTC ，以避免上下文中的专用的异步规约状态过于复杂。
+同时，当前一般异步重规约的设计不直接支持 PTC ，以避免上下文中的专用的异步规约状态过于复杂。
 使特定异步重规约操作感知 TCO 动作，允许和 TCO 操作序列 @6.7.2.1 中的操作兼容且非决定性有序(@4.4.1) 地组合以支持 PTC 。
-当前异步重规约的 TCO 互操作由 A1::ReduceAgain(@6.2.6) 实现。
+当前异步重规约的 TCO 互操作由 A1::ReduceAgain(@6.2.6) 实现。另见 @6.7.4 。
+
+@6.7.4 动作内联(inlining) ：
+特定的异步规约实现可能要求引入的操作总是尾动作(@5.4.4)，否则行为未定义。
+这允许直接使用同步动作代替异步动作调用，即动作内联。
+动作内联可减少操作 ContextNode::Current(@5.5.8.2) 的开销。
+注意这项要求具有传递性，即在宿主语言中直接或间接同步调用的操作也应满足要求的条件。
+因此，除非能确保不限制接口语义，当前 NPLA1 不使用这样的实现方式。
+派生实现应明确指定影响接口语义的动作内联的使用。
 
 @6.8 语法形式对应功能的实现：
 命名空间 A1::Forms 的 API 专用于实现语法形式对应的功能而不是 NPLA1 的一般机制。
@@ -2375,8 +2402,9 @@ NPLA1 和 Kernel 语言（参见 Revised Report on the Kernel Programming Langua
 <list> ：列表。参见 @7.3.4.2 。
 <bool> ：布尔值，值为 #t 或 #f 的集合。
 <symbol> ：符号。基于 @5.4.6.1 ，使用和 <string>(@7.2.3) 相同的表示，不提供符号和外部表示的其它映射关系。
+<eformal> ：表示可选提供的环境名称或 #ignore 的符号。使用和 <symbol> 相同的表示。通常为动态环境。
 <expression> ：待求值的表达式。
-<expressions> ：待求值的形式上为一个或多个表达式。求值时首先组合为单一表达式。可以是一个 <expression> 。使用 <expressions> 代替 <expression> 可避免过多的括号及 eval 形式中的 list 。
+<expressions> ：形式为 <expression>... 的待求值形式。求值时被作为单一表达式（即视为 (<expression>...） ），代替 <expression> 可避免过多的括号及 eval 形式中的 list 。
 <binding> ：绑定列表，形式为 <symbol> <expressions> ，用于指定被求值的表达式和绑定参数的符号。和 Kernel 不同， <symbol> 后不要求是整个 <expression> 。
 <bindings> ：元素为 <binding> 的列表，形式为 (<binding>...) 。
 <body> ：出现在形式的末尾 <expressions>? 形式，用于函数体(@6.8.6) 等替换求值的目标。
@@ -2667,9 +2695,12 @@ accr
 foldr1
 map1
 $let
+$let/d
+$let/e
 $let*
 $letrec
 $provide!
+$provide/d!
 
 @7.4.4.2.3 返回列表但保留元素的操作：
 作为临时对象返回的列表总是按值传递，实质上是列表构造器。
@@ -2872,6 +2903,9 @@ map1 <applicative> <list> ：单列表映射操作，使用指定应用子对列
 $let <bindings> <body> ：局部绑定求值。
 类似 Kernel 的同名操作，但使用 $lambda% 而不是 $lambda 实现，以允许传递引用值（在 Kernel 中不区分两者）
 注意 <body> 形式和 Kernel 不同。
+$let/d <bindings> <eformal> <body> ：提供动态环境变量的局部绑定求值。
+类似 $let ，但在 <body> 的求值前引入绑定到动态环境的变量 <eformal> 。
+若 <eformal> 为 #ignore ，作用同 $let 。
 $let/e <environment> <bindings> <body> ：指定静态环境并局部绑定求值。
 类似 Kernel 的 $let-redirect ，但使用 $lambda/e% 而不是 eval 和 $lambda 实现。
 这允许传递引用值并保证环境的宿主值类型（包含所有权）被正确传递作为求值的父环境，而无需支持扩展 <environment> 为右值时其中的环境临时对象的生存期。
@@ -2889,6 +2923,9 @@ $bindings->environment <binding>... ：转换绑定列表为环境。
 $provide! <symbols> <body> ：求值并绑定符号。
 类似 Kernel 的同名操作，但返回创建的局部环境的强引用。
 绑定后的符号可通过作为 vau 抽象的父环境(@7.3.2.3) 等形式依赖这个环境，因此用户需适当保存返回值使其生存期(@7.3.2.3) 覆盖在被使用的绑定符号指称的对象生存期。
+$provide/d! <symbols> <eformal> <body> ：提供动态环境变量的求值并绑定符号。
+类似 $provide! ，但在 <body> 的求值前引入绑定到动态环境的变量 <eformal> 。
+若 <eformal> 为 #ignore ，作用同 $provide! 。
 $import! <environment> <symbols> ：从环境导入符号。
 同 Kernel 的同名操作。
 unfoldable? <list> ：判断参数是否可被映射。映射类似 Kernel map 操作可接受的列表参数。

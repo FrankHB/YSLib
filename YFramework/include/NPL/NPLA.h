@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3908
+\version r4088
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-09-25 08:29 +0800
+	2018-10-08 02:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -744,16 +744,39 @@ YF_API observer_ptr<const TokenValue>
 TermToNamePtr(const TermNode&);
 
 /*!
-\brief 访问项的值并转换为字符串形式的外部表示。
 \return 转换得到的字符串。
-\sa TermToNamePtr
-\since build 801
+\sa TermToString
 
 访问项的值作为名称转换为字符串，若失败则提取值的类型和子项数作为构成值的表示。
 除名称外的外部表示方法未指定；结果可能随实现变化。
 */
+//@{
+/*!
+\brief 访问项的值并转换为字符串形式的外部表示。
+\since build 801
+*/
 YF_API string
 TermToString(const TermNode&);
+
+/*!
+\brief 访问项的值并转换为可选带有引用标记的字符串形式。
+\note 当前使用前缀 [*] 和空格表示引用项。
+\sa TermToString
+\since build 840
+*/
+YF_API string
+TermToStringWithReferenceMark(const TermNode&, bool);
+//@}
+
+/*!
+\brief 对列表项抛出指定预期访问值的类型的异常。
+\throw ListTypeError 消息中包含由参数指定的预期访问值的类型的异常。
+\sa IsReferenceTerm
+\sa TermToStringWithReferenceMark
+\since build 840
+*/
+YB_NORETURN YF_API void
+ThrowListTypeErrorForInvalidType(const ystdex::type_info&, const TermNode&);
 
 /*!
 \brief 标记记号节点：递归变换节点，转换其中的词素为记号值。
@@ -794,6 +817,10 @@ enum class ReductionStatus : yimpl(size_t)
 using DelayedTerm = ystdex::derived_entity<TermNode, NPLATag>;
 
 
+//! \since build 840
+class Environment;
+
+
 //! \since build 828
 //@{
 //! \brief 判断项是否为引用项。
@@ -803,6 +830,103 @@ IsReferenceTerm(const TermNode&) ynothrow;
 //! \brief 判断项是否表示左值引用。
 YF_API bool
 IsLValueTerm(const TermNode&) ynothrow;
+//@}
+
+
+/*!
+\ingroup ThunkType
+\brief 项引用。
+\warning 非虚析构。
+\since build 800
+
+表示列表项的引用的中间求值结果的项。
+*/
+class YF_API TermReference
+{
+private:
+	ystdex::lref<TermNode> term_ref;
+	/*!
+	\brief 指定是否以引用值初始化。
+	\since build 828
+	*/
+	bool is_ref;
+	/*!
+	\brief 引用的锚对象指针。
+	\since build 823
+	*/
+	shared_ptr<const void> p_anchor{};
+
+public:
+	//! \brief 构造：使用参数指定的引用和空锚对象并自动判断是否使用引用值初始化。
+	TermReference(TermNode& term)
+		: TermReference(IsReferenceTerm(term), term)
+	{}
+	/*!
+	\brief 构造：使用参数指定的引用和锚对象并自动判断是否使用引用值初始化。
+	\since build 821
+	*/
+	template<typename _tParam, typename... _tParams>
+	TermReference(TermNode& term, _tParam&& arg, _tParams&&... args)
+		: TermReference(IsReferenceTerm(term), term, yforward(arg),
+		yforward(args)...)
+	{}
+	//! \since build 828
+	//@{
+	//! \brief 构造：使用参数指定的是否使用引用值初始化的标记及指定引用和空锚对象。
+	TermReference(bool r, TermNode& term)
+		: term_ref(term), is_ref(r)
+	{}
+	//! \brief 构造：使用参数指定的是否使用引用值初始化的标记及指定引用和指定锚对象。
+	template<typename _tParam, typename... _tParams>
+	TermReference(bool r, TermNode& term, _tParam&& arg, _tParams&&... args)
+		: term_ref(term), is_ref(r),
+		p_anchor(yforward(arg), yforward(args)...)
+	{}
+	//! \brief 构造：使用参数指定的是否使用引用值初始化的标记及现有的项引用。
+	TermReference(bool r, TermReference t_ref)
+		: term_ref(t_ref.term_ref), is_ref(r), p_anchor(t_ref.p_anchor)
+	{}
+	//@}
+	DefDeCopyCtor(TermReference)
+
+	DefDeCopyAssignment(TermReference)
+
+	//! \brief 等于：当且仅当引用的项同一时相等。
+	friend PDefHOp(bool, ==, const TermReference& x, const TermReference& y)
+		ImplRet(ystdex::get_equal_to<>()(x.term_ref, y.term_ref))
+
+	/*!
+	\brief 判断被引用项在初始化时是否表示引用值。
+	\since build 828
+	*/
+	DefPred(const ynothrow, TermReferenced, is_ref)
+
+	explicit DefCvtMem(const ynothrow, TermNode&, term_ref)
+
+	//! \since build 823
+	DefGetter(const ynothrow, const shared_ptr<const void>&, AnchorPtr,
+		p_anchor)
+
+	PDefH(TermNode&, get, ) const ynothrow
+		ImplRet(term_ref.get())
+};
+
+/*!
+\brief 折叠项引用。
+\return 引用值及初始化时是否表示引用值。
+\note 可选提供环境关联锚对象指针。
+\relates TermReference
+\since build 829
+
+返回引用由以下方式确定：
+当参数的 Value 表示项引用时，返回值；否则为通过参数初始化的项引用。
+这种方式避免初始化引用的引用。
+*/
+//@{
+YF_API pair<TermReference, bool>
+Collapse(TermNode&);
+YF_API pair<TermReference, bool>
+Collapse(TermNode&, const Environment&);
 //@}
 
 //! \since build 800
@@ -818,21 +942,61 @@ YF_API const TermNode&
 ReferenceTerm(const TermNode&);
 
 /*!
-\brief 访问解析 TermReference 后的项的指定类型对象。
-\exception std::bad_cast 异常中立：空实例或类型检查失败。
+\brief 解析并间接引用处理可能是引用值的项。
+\note 假定项符合正规表示，不需要对间接值检查 IsLeaf 。
+\since build 840
 */
+//@{
+template<typename _func>
+auto
+ResolveTerm(_func do_resolve, TermNode& term)
+	-> decltype(do_resolve(term, bool()))
+{
+	// XXX: Assume value representation of %term is regular.
+	if(const auto p = YSLib::AccessPtr<const TermReference>(term))
+		return do_resolve(p->get(), true);
+	return do_resolve(term, {});
+}
+template<typename _func>
+auto
+ResolveTerm(_func do_resolve, const TermNode& term)
+	-> decltype(do_resolve(term, bool()))
+{
+	// XXX: Assume value representation of %term is regular.
+	if(const auto p = YSLib::AccessPtr<const TermReference>(term))
+		return do_resolve(p->get(), true);
+	return do_resolve(term, {});
+}
+//@}
+
+/*!
+\brief 访问解析 TermReference 后的项的指定类型对象。
+\exception ListTypeError 异常中立：项为列表项。
+\exception std::bad_cast 异常中立：非列表项类型检查失败。
+\sa ThrowListTypeErrorForInvalidType
+*/
+//@{
 template<typename _type>
-inline _type&
+_type&
 AccessTerm(TermNode& term)
 {
-	return ReferenceTerm(term).Value.Access<_type>();
+	auto& tm(ReferenceTerm(term));
+
+	if(!IsList(tm))
+		return tm.Value.Access<_type>();
+	ThrowListTypeErrorForInvalidType(ystdex::type_id<_type>(), term);
 }
 template<typename _type>
-inline const _type&
+const _type&
 AccessTerm(const TermNode& term)
 {
-	return ReferenceTerm(term).Value.Access<_type>();
+	const auto& tm(ReferenceTerm(term));
+
+	if(!IsList(tm))
+		return tm.Value.Access<_type>();
+	ThrowListTypeErrorForInvalidType(ystdex::type_id<_type>(), term);
 }
+//@}
 
 //! \brief 访问解析 TermReference 后的项的指定类型对象指针。
 //@{
@@ -866,6 +1030,7 @@ struct ReferenceTermOp
 };
 
 /*!
+\brief 包装一个非引用项的操作为 NPL::ReferenceTermOp 以支持项引用。
 \relates ReferenceTermOp
 \since build 802
 */
@@ -1488,9 +1653,8 @@ public:
 
 	/*!
 	\brief 对不符合环境要求的类型抛出异常。
-	\throw NPLException 环境类型检查失败。
+	\throw TypeError 环境类型检查失败。
 	\since build 799
-	\todo 使用专用的异常类型。
 	*/
 	YB_NORETURN static void
 	ThrowForInvalidType(const ystdex::type_info&);
@@ -1535,103 +1699,6 @@ public:
 		const EnvironmentReference& y) ynothrow
 		ImplRet(x.p_weak.lock() == y.p_weak.lock())
 };
-
-
-/*!
-\ingroup ThunkType
-\brief 项引用。
-\warning 非虚析构。
-\since build 800
-
-表示列表项的引用的中间求值结果的项。
-*/
-class YF_API TermReference
-{
-private:
-	ystdex::lref<TermNode> term_ref;
-	/*!
-	\brief 指定是否以引用值初始化。
-	\since build 828
-	*/
-	bool is_ref;
-	/*!
-	\brief 引用的锚对象指针。
-	\since build 823
-	*/
-	shared_ptr<const void> p_anchor{};
-
-public:
-	//! \brief 构造：使用参数指定的引用和空锚对象并自动判断是否使用引用值初始化。
-	TermReference(TermNode& term)
-		: TermReference(IsReferenceTerm(term), term)
-	{}
-	/*!
-	\brief 构造：使用参数指定的引用和锚对象并自动判断是否使用引用值初始化。
-	\since build 821
-	*/
-	template<typename _tParam, typename... _tParams>
-	TermReference(TermNode& term, _tParam&& arg, _tParams&&... args)
-		: TermReference(IsReferenceTerm(term), term, yforward(arg),
-		yforward(args)...)
-	{}
-	//! \since build 828
-	//@{
-	//! \brief 构造：使用参数指定的是否使用引用值初始化的标记及指定引用和空锚对象。
-	TermReference(bool r, TermNode& term)
-		: term_ref(term), is_ref(r)
-	{}
-	//! \brief 构造：使用参数指定的是否使用引用值初始化的标记及指定引用和指定锚对象。
-	template<typename _tParam, typename... _tParams>
-	TermReference(bool r, TermNode& term, _tParam&& arg, _tParams&&... args)
-		: term_ref(term), is_ref(r),
-		p_anchor(yforward(arg), yforward(args)...)
-	{}
-	//! \brief 构造：使用参数指定的是否使用引用值初始化的标记及现有的项引用。
-	TermReference(bool r, TermReference t_ref)
-		: term_ref(t_ref.term_ref), is_ref(r), p_anchor(t_ref.p_anchor)
-	{}
-	//@}
-	DefDeCopyCtor(TermReference)
-
-	DefDeCopyAssignment(TermReference)
-
-	//! \brief 等于：当且仅当引用的项同一时相等。
-	friend PDefHOp(bool, ==, const TermReference& x, const TermReference& y)
-		ImplRet(ystdex::get_equal_to<>()(x.term_ref, y.term_ref))
-
-	/*!
-	\brief 判断被引用项在初始化时是否表示引用值。
-	\since build 828
-	*/
-	DefPred(const ynothrow, TermReferenced, is_ref)
-
-	explicit DefCvtMem(const ynothrow, TermNode&, term_ref)
-
-	//! \since build 823
-	DefGetter(const ynothrow, const shared_ptr<const void>&, AnchorPtr,
-		p_anchor)
-
-	PDefH(TermNode&, get, ) const ynothrow
-		ImplRet(term_ref.get())
-};
-
-/*!
-\brief 折叠项引用。
-\return 引用值及初始化时是否表示引用值。
-\note 可选提供环境关联锚对象指针。
-\relates TermReference
-\since build 829
-
-返回引用由以下方式确定：
-当参数的 Value 表示项引用时，返回值；否则为通过参数初始化的项引用。
-这种方式避免初始化引用的引用。
-*/
-//@{
-YF_API pair<TermReference, bool>
-Collapse(TermNode&);
-YF_API pair<TermReference, bool>
-Collapse(TermNode&, const Environment&);
-//@}
 
 
 /*!
@@ -1989,10 +2056,14 @@ ResolveIdentifier(const ContextNode&, string_view);
 //! \since build 830
 YF_API pair<shared_ptr<Environment>, bool>
 ResolveEnvironment(const ValueObject&);
-//! \since build 800
-inline PDefH(pair<shared_ptr<Environment> YPP_Comma bool>, ResolveEnvironment,
-	TermNode& term)
-	ImplRet(ResolveEnvironment(ReferenceTerm(term).Value))
+/*!
+\throw ListTypeError 参数是列表节点。
+\note 当前使用和 TermToStringWithReferenceMark 相同的方式在异常消息中表示引用项。
+\sa TermToStringWithReferenceMark
+\since build 840
+*/
+YF_API pair<shared_ptr<Environment>, bool>
+ResolveEnvironment(const TermNode& term);
 //@}
 
 

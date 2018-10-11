@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4006
+\version r4024
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2018-09-12 20:20 +0800
+	2018-10-12 03:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -200,9 +200,9 @@ Reduce(TermNode&, ContextNode&);
 
 /*!
 \brief 再次规约。
-\sa ContextNode::SetupTail
 \sa ReduceOnce
 \sa RelayNext
+\sa RelaySwitchedUnchecked
 \return ReductionStatus::Retrying
 \since build 807
 
@@ -1378,7 +1378,7 @@ RegisterStrictBinary(_tTarget& target, string_view name, _func f)
 \throw InvalidSyntax 绑定的源为空。
 \sa BindParameter
 \sa Vau
-\since build 780
+\since build 840
 
 实现修改环境的特殊形式。
 使用 <definiend> 指定绑定目标，和 Vau 的 <formals> 格式相同。
@@ -1394,7 +1394,7 @@ RegisterStrictBinary(_tTarget& target, string_view name, _func f)
 参考调用文法：
 $deflazy! <definiend> <expressions>
 */
-YF_API void
+YF_API ReductionStatus
 DefineLazy(TermNode&, ContextNode&);
 
 /*!
@@ -1404,7 +1404,7 @@ DefineLazy(TermNode&, ContextNode&);
 参考调用文法：
 $def! <definiend> <expressions>
 */
-YF_API void
+YF_API ReductionStatus
 DefineWithNoRecursion(TermNode&, ContextNode&);
 
 /*!
@@ -1415,7 +1415,7 @@ DefineWithNoRecursion(TermNode&, ContextNode&);
 循环引用以此引入的名称可能抛出 InvalidReference 异常。
 $defrec! <definiend> <expressions>
 */
-YF_API void
+YF_API ReductionStatus
 DefineWithRecursion(TermNode&, ContextNode&);
 //@}
 
@@ -1459,6 +1459,7 @@ If(TermNode&, ContextNode&);
 \sa ExtractParameters
 \sa MatchParameter
 \warning 返回闭包调用引用变量超出绑定目标的生存期引起未定义行为。
+\since build 840
 \todo 优化捕获开销。
 
 使用 ExtractParameters 检查参数列表并捕获和绑定变量，
@@ -1476,23 +1477,19 @@ If(TermNode&, ContextNode&);
 */
 //@{
 /*!
-\since build 735
-
 按值传递返回值：提升项以避免返回引用造成内存安全问题。
 参考调用文法：
 $lambda <formals> <body>
 */
-YF_API void
+YF_API ReductionStatus
 Lambda(TermNode&, ContextNode&);
 
 /*!
-\since build 822
-
 在返回时不提升项，允许返回引用。
 参考调用文法：
 $lambda& <formals> <body>
 */
-YF_API void
+YF_API ReductionStatus
 LambdaRef(TermNode&, ContextNode&);
 //@}
 
@@ -1502,7 +1499,6 @@ LambdaRef(TermNode&, ContextNode&);
 \note 引入的处理器的 operator() 支持保存当前动作。
 \throw InvalidSyntax <eformal> 不符合要求。
 \sa ReduceCheckedClosure
-\since build 790
 
 上下文中环境以外的数据成员总是被复制而不被转移，
 	以避免求值过程中继续访问这些成员引起未定义行为。
@@ -1520,7 +1516,7 @@ LambdaRef(TermNode&, ContextNode&);
 参考调用文法：
 $vau <formals> <eformal> <body>
 */
-YF_API void
+YF_API ReductionStatus
 Vau(TermNode&, ContextNode&);
 
 /*!
@@ -1530,7 +1526,7 @@ Vau(TermNode&, ContextNode&);
 参考调用文法：
 $vau& <formals> <eformal> <body>
 */
-YF_API void
+YF_API ReductionStatus
 VauRef(TermNode&, ContextNode&);
 //@}
 
@@ -1548,17 +1544,15 @@ VauRef(TermNode&, ContextNode&);
 参考调用文法：
 $vaue <env> <formals> <eformal> <body>
 */
-YF_API void
+YF_API ReductionStatus
 VauWithEnvironment(TermNode&, ContextNode&);
 
 /*!
-\since build 822
-
 在返回时不提升项，允许返回引用。
 参考调用文法：
 $vaue& <env> <formals> <eformal> <body>
 */
-YF_API void
+YF_API ReductionStatus
 VauWithEnvironmentRef(TermNode&, ContextNode&);
 //@}
 //@}
@@ -1896,7 +1890,7 @@ wrap <combiner>
 YF_API ContextHandler
 Wrap(const ContextHandler&);
 
-//! \exception NPLException 类型不符合要求。
+//! \exception TypeError 应用子参数的类型不符合要求。
 //@{
 /*!
 \brief 包装操作子为应用子。

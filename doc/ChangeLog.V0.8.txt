@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r6354
+\version r6577
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-09-29 13:26 +0800
+	2018-10-12 03:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,223 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ $impl "tree private functions" %Tree $=
+		(
+			* DLD "minor spelling error" @ "internal functions" $since b830,
+			* "leaked node in equal range insertion when the key comparation \
+				throws" $since b830
+				// This only effects containers with multiple equivalent keys, \
+					which is not implemented in %YBase.YStandard yet.
+		),
+		/ "allowed empty buffer pointer when the length is zero"
+			@ "constructor %membuf" @ %StreamBuffer
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib.MemoryMapping $=
+		(
+			/ $lib "destructor %UnmapDelete" @ !"platform %DS"
+				@ "class %UnmapDelete" $=
+			(
+				/ "exception specification 'ynothrow'" -> 'ynothrowv';
+				+ "assertion to ensure nonnull parameter value"
+			),
+			/ @ "class %MappedFile" $=
+			(
+				/ DLDI @ "platform %Win32" @ "constructor" ^ 'CreateFileMappingW'
+					~ 'CreateFileMappign',
+				(
+				/ "supported empty file" @ "constructors";
+					// Although for non Windows or POSIX configurations like \
+						platform %DS there is nothing particular to support \
+						for a zero-sezed 'new[]', identifying zero length \
+						would likely be more efficient by less allocation.
+				/ $comp DLI "optimized destructor by avoiding flush on empty \
+					files"
+					// It would be more efficient when the length is zero to \
+						omit deallocation and flush before deallocation.
+				)
+			)
+		),
+		* $comp "missing empty file support"
+			@ "class %SharedInputMappedFileStream" @ %YSLib.Service.File $since
+			b724 $dep_from ("class %MappedFile" @ %YCLib.MemoryMapping),
+		/ %NPL $=
+		(
+			/ @ "namespace %NPL::A1" %Dependency $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					/ "loaded derived functions" @ "function %LoadGroundContext"
+						$= (+ "operatives ('$let/d'; '$provide/d!')",),
+					/ DLDI "renamed dynamic environment parameters to 'd'"
+						$effective @ (("alternative derivation of operatives \
+						('$vau', '$vau%', '$lambda', '$lambda%')", \
+						"alternative derivations of applicatives \
+						'get-current-environment', \
+						'lock-current-environment'", "derivation of operatives \
+						('$sequence', '$set!', '$defv!', '$defv%!', \
+						'$defv/e!', '$defv/e%!', '$setrec!', '$defl!', \
+						'$defl%!', '$defw!', '$defw%!', '$defw/e!', \
+						'$defw/e%!', '$lambda/e', '$lambda/e%', '$defl/e!', \
+						'$defl/e%', '$cond', '$when', '$unless', '$let', \
+						'$let/e', '$let*', '$letrec', '$provide!', '$import!')",
+						"derivation of applicatives (%map1, 'map-reverse')")
+						@ "function %LoadGroundContext",
+						"derivation of operative '$binds1?'"
+						@ "function %LoadModule_std_environments")
+						// This is consistent with '$remote-eval' in Kernel, \
+							which has been added later than other RnRK report \
+							draft. It is better to differentiate '/e' (with to \
+							be evaluated <environment>) and '/d' (with \
+							<eformal>) variants of functions here. Since the \
+							old name is 'env' in most cases, 'd' also saves \
+							space. 
+				),
+				* $comp "threw on opening empty file" @ "function %OpenFile"
+					$since b839 $dep_from
+					%(YSLib.Service.File, YBase.YStandard.StreamBuf)
+			),
+			/ %NPLA $=
+			(
+				/ "threw exception type" -> "%TypeError" ~ "%NPLException"
+					@ "static member function \
+					%Environment::ThrowForInvalidType",
+				+ "functions %(TermToStringWithReferenceMark, \
+					ThrowListTypeErrorForInvalidType), 2 function \
+					templates %ResolveTerm",
+				/ "function %ResolveEnvironment#2" $=
+				(
+					/ "threw %ListTypeError for parameter of a list" ^ $dep_from
+						"%(ResolveTerm, TermToStringWithReferenceMark)",
+						// This improve accuracy of message as it does not \
+							treat a list as an empty object.
+					+ 'const' @ "parameter type"
+				),
+				/ "all 2 function templates %AccessTerm threw %ListTypeError \
+					for list terms" ^ $dep_from
+					"%ThrowListTypeErrorForInvalidType"
+			),
+			/ %NPLA1 $=
+			(
+				/ @ "functions %(ReduceCombiner, Forms::MatchParameter)" $=
+				(
+					/ "simplified exception message"
+						^ ("function %TermToString" @ %NPLA),
+					/ "distinguished referenced terms" @ "exception messages"
+						^ $dep_from ("%(ResolveTerm, \
+						TermToStringWithReferenceMark)" @ %NPLA)
+				),
+				/ @ "namespace %Forms" $=
+				(
+					/ "minor exception messages tweaks"
+						@ "function %MatchParameter",
+						// To get more consistent displayed order.
+					/ "threw %TypeError on invalid type"
+						@ "functions %(WrapOnce, Unwrap)" ~ "%NPLException",
+					/ @ "functions %(Cons, ConsRef, SetFirst, SetFirstRef, \
+						SetRest, SetRestRef)" $=
+					(
+						/ "improved %ListTypeError exception messages"
+							^ $dep_from
+							("%TermToStringWithReferenceMark" @ %NPLA),
+						/ "simplified" ^ $dep_from ("%ResolveTerm" @ %NPLA)
+					),
+					/ @ "functions %(SetFirst, SetFirstRef, SetRest, \
+						SetRestRef)" %=
+					(
+						/ "improved %ValueCategoryMismatch exception messages"
+							^ ("%TermToString" @ %NPLA),
+						/ DLDI "simplified" ^ "%IsBranch"
+					),
+					/ DLDI "simplified functions %(Lambda, LambdaRef, Vau, \
+						VauRef, VauWithEnvironment, VauWithEnvironmentRef, If)",
+					(
+					/ "return type %void" @ "functions %(Lambda, LambdaRef, \
+						Vau, VauRef, VauWithEnvironment, \
+						VauWithEnvironmentRef, DefLazy, DefineWithNoRecursion, \
+						DefineWithRecursion)"-> "%ReductionStatus";
+						// To be consistent and with less overhead of \
+							%WrappedContextHandler, functions not relying on \
+							asynchronous reductions are also changed.
+					/ $lib "supported thunked call for environment argument"
+						@ "functions %(VauWithEnvironment, \
+						VauWithEnvironmentRef)"
+					)
+				),
+				/ DLDI "simplified function %(ReduceCombined, ReduceAgain)"
+			),
+			/ $comp "improved list type check by throwing %ListTypeError on \
+				unexpected list arguments" $effective @ ("functions \
+				%(Undefine, EvalString, EvalStringRef, MakeEncapsulationType), \
+				(function templates %(CallUnaryAs, CallBinaryAs, \
+				CallBinaryFold); class templates %(UnaryAsExpasion, \
+				BinaryAsExpansion))" @ "namespace %Forms" @ %NPLA1, \
+				("applicatives ('string<-', 'regex-match?')" @ "function \
+				%LoadModule_std_strings"; "applicative 'system-get'"
+				@ "function %LoadModule_std_system") @ %Dependency) $dep_from
+				("%AccessTerm" @ %NPLA),
+			/ $impl %Lexical $=
+			(
+				* "wrong use of %string_view" @ "function %Decompose" $since
+					b659,
+					// This only would work when %string_view::const_iterator \
+						is equivalent to the %string_view::const_pointer.
+				* $re_add(b838) "missing explicit cast to %YSLib::octet from \
+					%byte" @ "member function %LexicalAnalyzer::CheckEscape"
+					$since b545
+					// This would not work when %byte is %std::byte.
+			)
+		)
+	),
+	/ %Tools.Scripts $=
+	(
+		/ @ "%SHBuild-YSLib-common.txt" $=
+		(
+			+ "applicatives ('safeenv-get', 'safeenv-set'; 'safeenv-empty?', \
+				'safeenv-restore') to cache and guard environment variables \
+				defined externally based on environment variable setting \
+				%SS_DebugEnv" $dep_to "safe environment interops",
+				// This relies on encapsulation of SHBuild environment, \
+					otherwise call of hooked applicatives would be infinitely \
+					recursive.
+			+ "aplicative 'ss-verbose-puts' to print message only enabled \
+				verbose mode based on environment variable %SS_Verbose"
+		),
+		/ "optimized environment variables saving and restoring"
+			@ ("%SHBuild-YSLib-common.txt", "%SHBuild-YSLib-build.txt")
+			$dep_from "safe environment interops" $=
+		(
+			/ "cached and guarded environment variables" ^ 'safeenv-*'
+				~ "environment variable saving";
+			/ $comp "allowed debug environment setting with nonempty variable \
+				%SS_DebugEnv",
+			* $comp "externally set %INCLUDES not effective"
+				@ "stage 2 building" $since b838
+		),
+		/ "applicative 'ld-ext-adjust_win32_subsystem_' printed message of \
+			'-mwindows' for Windows GUI programs only when specified verbose \
+			mode" ^ $dep_from 'ss-verbose-puts' ~ 'puts'
+	),
+	/ %YDE $=
+	(
+		/ @ "%build-all.sh" $=
+		(
+			/ "required 'SHBuild-common.sh' in %PATH";
+			* "wrong default output path caused by ineffective default value \
+				of variable %SHBuild_BuildPrefix" $since b741
+		),
+		* "missing initialization of current time" @ "main function"
+			@ %Clock.Main $since b561
+			// This would make the clock arms start from zero position. The \
+				effect would be easier realized in %release configurations.
+	)
+),
+
+b840
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -542,6 +759,9 @@ b838
 				/ "proteced user environment variables %(INCLUDES, LIBS, \
 					LIBS_RPATH) at first" $dep_to
 					"proteced user environment variables",
+				+ "variables (%SHBuild_Host_Platform; 'env-host-lib')",
+				+ "rest command arguments as variable 'extra-opts'",
+					// For stage 2 building.
 				/ "improved quotes" $dep_from
 					"added applicative for protected quotes"
 			),
@@ -926,7 +1146,10 @@ b837
 					@ "%SHBuild-YSLib-common.txt";
 				* $revert_ex(b805) "wrong 'system-quote' call on \
 					%SHBuild environment variable" $since b805
-				)
+				),
+				+ $dev "lifted global variables ('env-os', 'env-arch') as \
+					whole script varabiles"
+					// These variables are public to be loaded.
 			)
 		),
 		/ @ "%install-sysroot.sh" $=

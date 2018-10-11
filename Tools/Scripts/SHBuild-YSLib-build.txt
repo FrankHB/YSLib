@@ -3,21 +3,9 @@
 
 $import! std.strings ++ string->symbol string-empty?,
 $import! std.io load puts,
-$import! std.system env-get env-set system-quote env-empty? cmd-get-args,
+$import! std.system system-quote cmd-get-args,
 $import! env_SHBuild_ SHBuild_EnsureDirectory_ SHBuild_TrimOptions_
 	SHBuild_EchoVar SHBuild_SDot_;
-
-"NOTE", "Saving environments at first to avoid being overriden unexpectedly.",
-	"Some would not be set yet: INCLUDES, LIBS_RPATH.",
-	"Stage 1 does not use these variables.";
-$def! saved_INCLUDES_ env-get "INCLUDES";
-$def! saved_LDFLAGS_ env-get "LDFLAGS";
-$def! saved_LIBS_ env-get "LIBS";
-$def! saved_LIBS_RPATH_ env-get "LIBS_RPATH";
-env-set "INCLUDES" "";
-env-set "LDFLAGS" "";
-env-set "LIBS" "";
-env-set "LIBS_RPATH" "";
 
 "XXX", "'SHBuild_2*' depend on 'cygpath' optionally.";
 $def! env_SHBuild_Common_ $provide! (
@@ -33,15 +21,19 @@ $def! env_SHBuild_Common_ $provide! (
 	cons-cmd
 	get_env_SHB_
 	ld-ext-noadjust_
+	safeenv-empty?
+	safeenv-get
+	safeenv-restore
+	safeenv-set
 	system-check
 	system-or-puts
 	putss
 	win32?
-) load (env-get "SHBuild_Common");
+) load ($let () ($import! std.system env-get; env-get "SHBuild_Common"));
 
-$def! SHBuild_ToolDir env-get "SHBuild_ToolDir";
+$def! SHBuild_ToolDir safeenv-get "SHBuild_ToolDir";
 $assert-absolute-path SHBuild_ToolDir;
-$def! YSLib_BaseDir env-get "YSLib_BaseDir";
+$def! YSLib_BaseDir safeenv-get "YSLib_BaseDir";
 $assert-absolute-path YSLib_BaseDir;
 
 "NOTE", "Following variables can be specified by user.";
@@ -50,7 +42,7 @@ $env-de! SHBuild_SysRoot ++ YSLib_BaseDir "/" "sysroot";
 
 $assert-absolute-path SHBuild_BaseDir, $assert-absolute-path SHBuild_SysRoot;
 
-$def! YSLib_BuildDir env-get "YSLib_BuildDir";
+$def! YSLib_BuildDir safeenv-get "YSLib_BuildDir";
 $assert-absolute-path YSLib_BuildDir;
 
 "#", "Utility functions.";
@@ -58,6 +50,7 @@ $defl! SHBuild_EchoVar_E (env var) SHBuild_EchoVar var
 	(eval (string->symbol (SHBuild_SDot_ var)) env);
 
 "#", "Whole script variables.";
+$def! extra-opts (rest (() cmd-get-args));
 $def! (env-os env-arch) () SHBuild_GetPlatformStrings;
 $assert-nonempty env-os, $assert-nonempty env-arch;
 $def! SHBuild_Host_Platform $if (win32? env-os) "MinGW32" env-os;
@@ -78,11 +71,11 @@ $def! BD_3rdparty_ ++ YSLib_BaseDir "/3rdparty";
 $def! BD_3rdparty_freetype_inc_ ++ BD_3rdparty_ "/freetype/include";
 $def! BD_YFramework_ ++ YSLib_BaseDir "/YFramework";
 
-"NOTE", "This is explicit different to %SHBuild-BuildApp.sh where header",
+"NOTE", "This is explicitly different to %SHBuild-BuildApp.sh where header",
 	" directories of the dependency need not to be used saparatedly for",
 	" 'INCLUDES_*'. Also note no flag like '-D' is needed for use of freetype2",
-	" (unless it is been built, where 'module.cfg' is used instead) normally,",
-	" so it is safe here.";
+	" (unless it is been built, where 'module.cfg' copied to its source tree",
+	" is used instead) normally, so it is safe here.";
 $if (win32? env-os)
 (
 	$env-de! INCLUDES_freetype ++ "-I"
@@ -135,7 +128,7 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 				"-xid,alternative -xid,data -xid,include -xid,Android" #f
 				ld-ext-noadjust_ ($lambda (CXX CXXFLAGS SHBOPT LIBPFX)
 				(
-					$if (env-empty? "SHBuild_NoPCH")
+					$if (safeenv-empty? "SHBuild_NoPCH")
 					(
 						BuildGCH_ (++ repo-base "/YBase/include/stdinc.h")
 							(++ outdir "/stdinc.h") CXX
@@ -155,7 +148,7 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 						(() cmd-get-args)) (list (++ repo-base "/" lib-name)
 						CXXFLAGS) opt-list inc-pch));
 					build-lib "YBase" (list DFLAG_B_YB INCLUDES_YBase);
-					$if dynamic (env-set "LIBS" (cons-cmd (++ "-L" outdir)
+					$if dynamic (safeenv-set "LIBS" (cons-cmd (++ "-L" outdir)
 						(++ "-l" (libdname "YBase")) LIBS_YFramework));
 					build-lib "YFramework"
 						(list ($if debug ($if dynamic "-DYB_DLL" "") DFLAG_B_YB)
@@ -172,13 +165,13 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 
 puts "Building YSLib libraries ...";
 $let (
-	(has-static env-empty? "SHBuild_NoStatic")
-	(has-dynamic env-empty? "SHBuild_NoDynamic")
+	(has-static safeenv-empty? "SHBuild_NoStatic")
+	(has-dynamic safeenv-empty? "SHBuild_NoDynamic")
 ) $let ((
 		build-conf $lambda (debug)
 		(
 			$def! conf-name $if debug "debug" "release";
-			$if (env-empty? ($if debug "SHBuild_UseDebug" "SHBuild_UseRelease"))
+			$if (safeenv-empty? ($if debug "SHBuild_UseDebug" "SHBuild_UseRelease"))
 			(putss "Skipped building " conf-name " libraries.")
 			(
 				putss "Building " conf-name " libraries ...";
@@ -210,7 +203,7 @@ $let ()
 	for-each-ltr SHBuild_EnsureDirectory_
 		(list SR_Bin_ SR_Include_ SR_Lib_ SR_Share_);
 
-	$if (env-empty? "SHBuild_No3rd")
+	$if (safeenv-empty? "SHBuild_No3rd")
 	(
 		$unless (string-empty? INCLUDES_freetype)
 			SHB_InstInc (++ BD_3rdparty_freetype_inc_ "/");
@@ -225,32 +218,32 @@ $let ()
 	$def! SR_S1_SHBuild_DLL ++ YSLib_BuildDir "/.shbuild-dll";
 	$def! SR_S1_SHBuild_DLL_debug ++ YSLib_BuildDir "/.shbuild-dll-debug";
 
-	$if (env-empty? "SHBuild_UseDebug")
+	$if (safeenv-empty? "SHBuild_UseDebug")
 		(puts "Skipped installing debug libraries.")
 	(
-		$if (env-empty? "SHBuild_NoStatic")
+		$if (safeenv-empty? "SHBuild_NoStatic")
 		(
 			InstLibS SR_S1_SHBuild_debug SR_Lib_ "YBased";
 			InstLibS SR_S1_SHBuild_debug SR_Lib_ "YFrameworkd"
 		)
 		(puts "Skipped installing debug static libraries.");
-		$if (env-empty? "SHBuild_NoDynamic")
+		$if (safeenv-empty? "SHBuild_NoDynamic")
 		(
 			SHB_InstLibD SR_S1_SHBuild_DLL_debug "YBased";
 			SHB_InstLibD SR_S1_SHBuild_DLL_debug "YFrameworkd"
 		)
 		(puts "Skipped installing debug static libraries.");
 	);
-	$if (env-empty? "SHBuild_UseRelease")
+	$if (safeenv-empty? "SHBuild_UseRelease")
 		(puts "Skipped installing release libraries.")
 	(
-		$if (env-empty? "SHBuild_NoStatic")
+		$if (safeenv-empty? "SHBuild_NoStatic")
 		(
 			InstLibS SR_S1_SHBuild SR_Lib_ "YBase";
 			InstLibS SR_S1_SHBuild SR_Lib_ "YFramework"
 		)
 		(puts "Skipped installing release static libraries.");
-		$if (env-empty? "SHBuild_NoDynamic")
+		$if (safeenv-empty? "SHBuild_NoDynamic")
 		(
 			SHB_InstLibD SR_S1_SHBuild_DLL "YBase";
 			SHB_InstLibD SR_S1_SHBuild_DLL "YFramework"
@@ -258,7 +251,7 @@ $let ()
 		(puts "Skipped installing release static libraries.");
 	);
 
-	$if (env-empty? "SHBuild_No3rd")
+	$if (safeenv-empty? "SHBuild_No3rd")
 	(
 		$let ((InstLib_YF_ $lambda (name) InstSHBuild "HardLink"
 			(++ SR_Lib_ "/" name) (++ BD_YFramework_ "/" env-host-lib "/" name)))
@@ -276,17 +269,14 @@ $let ()
 );
 
 "NOTE", "Following settings are shared by stage 2 builds.",
-	"Accepted external varialbes: INCLUDES, LIBS, LIBS_RPATH.";
-env-set "LDFLAGS" saved_LDFLAGS_;
-env-set "LIBS" (SHBuild_TrimOptions_ (++ saved_LIBS_ " " saved_LIBS_RPATH_ " -L"
-	(system-quote (SHBuild_2w env-os SR_Lib_)) " -lYFramework -lYBase"));	
-env-set "LIBS_RPATH" saved_LIBS_RPATH_;
-
-"TODO", "Remove 'saved_INCLUDES_' hack.";
-$def! saved_INCLUDES_ "";
-$def! INCLUDES_ ++ saved_INCLUDES_ " -I"
+	"See https://bitbucket.org/FrankHB/yslib/wiki/Tools/Scripts.zh-CN.md.",
+	"Only SHBuild environment variables not otherwise set need to be restored.";
+safeenv-restore "LDFLAGS";
+safeenv-set "LIBS" (SHBuild_TrimOptions_ (++ (safeenv-get "LIBS") " "
+	(safeenv-get "LIBS_RPATH") " -L" (system-quote (SHBuild_2w env-os SR_Lib_))
+	" -lYFramework -lYBase"));
+$def! INCLUDES_ ++ (safeenv-get "INCLUDES") " -I"
 	(system-quote (SHBuild_2m env-os SR_Include_));
-$def! extra-opts (rest (() cmd-get-args));
 
 $let ((target-name "Stage 2 SHBuild"))
 (
@@ -316,7 +306,7 @@ $let ((target-name "Stage 2 SHBuild"))
 	putss "Finished installing " target-name "."
 );
 
-$if (env-empty? "SHBuild_NoDev")
+$if (safeenv-empty? "SHBuild_NoDev")
 (
 	puts "Building other development tools using stage2 SHBuild ...";
 	$def! e_S2_SHBuild_ system-quote (++ SR_Bin_ "/SHBuild");

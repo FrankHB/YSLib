@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2022
+\version r2068
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2018-09-25 08:31 +0800
+	2018-10-08 02:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLA // for ystdex::value_or, ystdex::write,
 //	ystdex::bad_any_cast, ystdex::unimplemented, ystdex::type_id, ystdex::quote,
-//	ystdex::call_value_or, ystdex::begins_with, ystdex::sfmt, ystdex::ref,
+//	ystdex::call_value_or, ystdex::begins_with, ystdex::sfmt, sfmt, ystdex::ref,
 //	ystdex::retry_on_cond, ystdex::type_info, pair;
 #include YFM_NPL_SContext
 
@@ -490,6 +490,23 @@ TermToString(const TermNode& term)
 	return sfmt("#<unknown{%zu}:%s>", term.size(), term.Value.type().name());
 }
 
+string
+TermToStringWithReferenceMark(const TermNode& term, bool has_ref)
+{
+	auto term_str(TermToString(term));
+
+	return has_ref ? "[*] " + std::move(term_str) : std::move(term_str);
+}
+
+void
+ThrowListTypeErrorForInvalidType(const ystdex::type_info& tp,
+	const TermNode& term)
+{
+	throw ListTypeError(ystdex::sfmt("Expected a value of type '%s', got a list"
+		" '%s'.", tp.name(), 
+		TermToStringWithReferenceMark(term, IsReferenceTerm(term)).c_str()));
+}
+
 void
 TokenizeTerm(TermNode& term)
 {
@@ -511,6 +528,22 @@ IsLValueTerm(const TermNode& term) ynothrow
 {
 	return ystdex::call_value_or(std::mem_fn(&TermReference::IsTermReferenced),
 		AccessPtr<const TermReference>(term));
+}
+
+
+pair<TermReference, bool>
+Collapse(TermNode& node)
+{
+	if(const auto p_tref = AccessPtr<const TermReference>(node))
+		return {*p_tref, true};
+	return {node, {}};
+}
+pair<TermReference, bool>
+Collapse(TermNode& node, const Environment& env)
+{
+	if(const auto p_tref = AccessPtr<const TermReference>(node))
+		return {*p_tref, true};
+	return {{node, env.Anchor()}, {}};
 }
 
 TermNode&
@@ -766,7 +799,7 @@ Environment::Remove(string_view id, bool forced)
 void
 Environment::ThrowForInvalidType(const ystdex::type_info& tp)
 {
-	throw NPLException(ystdex::sfmt("Invalid environment type '%s' found.",
+	throw TypeError(ystdex::sfmt("Invalid environment type '%s' found.",
 		tp.name()));
 }
 
@@ -775,22 +808,6 @@ EnvironmentReference::EnvironmentReference(const shared_ptr<Environment>& p_env)
 	// TODO: Blocked. Use C++1z %weak_from_this and throw-expression?
 	: EnvironmentReference(p_env, p_env ? p_env->Anchor() : nullptr)
 {}
-
-
-pair<TermReference, bool>
-Collapse(TermNode& node)
-{
-	if(const auto p_tref = AccessPtr<const TermReference>(node))
-		return {*p_tref, true};
-	return {node, {}};
-}
-pair<TermReference, bool>
-Collapse(TermNode& node, const Environment& env)
-{
-	if(const auto p_tref = AccessPtr<const TermReference>(node))
-		return {*p_tref, true};
-	return {{node, env.Anchor()}, {}};
-}
 
 
 ContextNode::ContextNode(const ContextNode& ctx,
@@ -914,7 +931,17 @@ ResolveEnvironment(const ValueObject& vo)
 	// TODO: Merge with %Environment::CheckParent?
 	Environment::ThrowForInvalidType(vo.type());
 }
-
+pair<shared_ptr<Environment>, bool>
+ResolveEnvironment(const TermNode& term)
+{
+	return ResolveTerm([&](const TermNode& nd, bool has_ref){
+		if(!IsList(nd))
+			return ResolveEnvironment(nd.Value);
+		throw ListTypeError(
+			ystdex::sfmt("Invalid environment formed from list '%s' found.",
+			TermToStringWithReferenceMark(nd, has_ref).c_str()));
+	}, term);
+}
 
 
 Reducer

@@ -8,7 +8,7 @@ $import! std.strings regex-match? string->regex ++ symbol->string string-empty?
 	string<- string-contains-ci?,
 $import! std.environments $binds1? value-of,
 $import! std.io puts,
-$import! std.system system env-get system-get system-quote env-set env-empty?,
+$import! std.system system system-get system-quote,
 $import! env_SHBuild_ SHBuild_String_absolute_path?_ SHBuild_QuoteS_
 	SHBuild_RaiseError_ SHBuild_EchoVar SHBuild_SDot_ SHBuild_BuildGCH_existed_
 	SHBuild_BuildGCH_mkpdirp_;
@@ -22,8 +22,46 @@ $defl! system-check (cmd)
 	$unless (system-ok cmd) (SHBuild_RaiseError_ (cmd-error-msg_ cmd));
 $defv! $set-if-empty! (var .vexpr) env $if (string-empty? (eval var env))
 	(eval (list $set! env var vexpr) env);
+
+"NOTE", "Saving environments at first to avoid being overriden unexpectedly.";
+$provide/d! (safeenv-get safeenv-set ss-verbose-puts) ext-env
+(
+	$import! std.system env-empty?;
+
+	"NOTE", "Nonempty environment variable 'SS_*' would enable specific.",
+		"See https://bitbucket.org/FrankHB/yslib/wiki/Tools/Scripts.zh-CN.md.";
+	$def! SS_DebugEnv env-empty? "SS_DebugEnv",
+	$def! SS_Verbose env-empty? "SS_Verbose";
+	$def! mods $bindings/p->environment
+		(std.environments std.strings std.system std.io)
+		(emap () make-environment)
+		(SS_DebugEnv SS_DebugEnv)
+		(log-set $if SS_DebugEnv ($lambda .)
+			($lambda/e ext-env (name value)
+				(puts "SS_DebugEnv: "; SHBuild_EchoVar name value)));
+
+	"TODO", "Optimize with continuations.";
+	$defl/e! safeenv-get mods (name)
+		$letrec ((sym string->symbol name) (denv () get-current-environment))
+			$if (eval (list $binds1? emap sym) denv)
+				(eval (list sym) emap)
+				($def! v env-get name; eval (list $set! emap sym v) denv; v),
+	$defl/e! safeenv-set mods (name val)
+	(
+		$letrec ((sym string->symbol name) (denv () get-current-environment))
+			$unless (eval (list $binds1? emap sym) denv)
+				eval (list $set! emap sym (env-get name)) denv;
+		log-set name val;
+		env-set name val
+	),
+	$defl/e! ss-verbose-puts mods (str)
+		($if SS_Verbose (puts str))
+);
+$defl! safeenv-empty? (&n) string-empty? (safeenv-get n);
+$defl! safeenv-restore (&n) safeenv-set n (safeenv-get n);
+
 $defv! $env-de! (var .vexpr) env
-	$let ((t env-get (symbol->string var)))
+	$let ((t safeenv-get (symbol->string var)))
 		eval (list $def! var
 			($if (string-empty? t) (list (unwrap eval) vexpr env) t)) env;
 $defv! $set-system-var! (var arg) env $unless (eval (list $binds1? env var) env)
@@ -54,12 +92,12 @@ $defl! SHBuild_CheckUNameM_Case_ (x) $cond
 	(#t "unknown");
 $defl! SHBuild_GetLangFlags_
 	(var flags-pic flags-common flags-impl flags-dbg)
-	$let ((val env-get var))
+	$let ((val safeenv-get var))
 		SHBuild_TrimOptions_ ($if (string-empty? val)
 			(cons-cmd flags-pic flags-common flags-impl flags-dbg) val);
 $defl! compile-ok (src compile out opt err-out)
 (
-	$unless (string-empty? (env-get "SHELL"))
+	$unless (safeenv-empty? "SHELL")
 		(string<- src (system-quote src));
 	system-ok (cons-cmd "echo" src "|" (system-quote compile) "-xc++" "-o"
 		(system-quote out) opt "- 2>" err-out)
@@ -93,9 +131,9 @@ $defl! get-SHBOPT_ (outdir shbopt-ext use-ld)
 );
 $defl! SHB_SetupPlatformVars_ (e env-os)
 (
-	$def! LIBPFX env-get "LIBPFX";
-	$def! DSOSFX env-get "DSOSFX";
-	$def! EXESFX env-get "EXESFX";
+	$def! LIBPFX safeenv-get "LIBPFX";
+	$def! DSOSFX safeenv-get "DSOSFX";
+	$def! EXESFX safeenv-get "EXESFX";
 	$if (win32? env-os)
 	(
 		$set-if-empty! DSOSFX ".dll";
@@ -110,10 +148,9 @@ $defl! SHB_SetupPlatformVars_ (e env-os)
 $defl! ld-ext-noadjust_ #ignore "";
 $defl! ld-ext-adjust_win32_subsystem_ (env-os)
 (
-	"TODO", "Allow disabling 'puts' output.";
 	$if ($and? (win32? env-os)
-		(string-empty? (env-get "SHBuild_NoAdjustSubsystem")))
-		(puts "Added \"-mwindows\" to LDFLAGS."; "-mwindows")
+		(string-empty? (safeenv-get "SHBuild_NoAdjustSubsystem")))
+		(ss-verbose-puts "Added \"-mwindows\" to LDFLAGS."; "-mwindows")
 		""
 );
 $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
@@ -121,10 +158,10 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 (
 	$def! CXXFLAGS_OPT_DBG
 		$if debug ("-O0 -g -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC") "";
-	($env-de! CXX "g++"; env-set "CXX" CXX),
-	($env-de! AR "ar"; env-set "AR" AR),
-	($env-de! ARFLAGS "rcs"; env-set "ARFLAGS" ARFLAGS),
-	($env-de! LD "g++"; env-set "LD" LD);
+	($env-de! CXX "g++"; safeenv-set "CXX" CXX),
+	($env-de! AR "ar"; safeenv-set "AR" AR),
+	($env-de! ARFLAGS "rcs"; safeenv-set "ARFLAGS" ARFLAGS),
+	($env-de! LD "g++"; safeenv-set "LD" LD);
 	"TODO", "Add sanity checks.";
 	$env-de! C_CXXFLAGS_GC "-fdata-sections -ffunction-sections";
 	$env-de! LDFLAGS_GC
@@ -140,7 +177,7 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 	);
 	$env-de! C_CXXFLAGS_PIC $if (win32? env-os) "" "-fPIC";
 	$env-de! C_CXXFLAGS_COMMON cons-cmd "-pipe" C_CXXFLAGS_GC C_CXXFLAGS_STRIP
-		(env-get "C_CXXFLAGS_ARCH") "-pedantic-errors";
+		(safeenv-get "C_CXXFLAGS_ARCH") "-pedantic-errors";
 	$env-de! C_CXXFLAGS_OPT_LV "-O3";
 	$env-de! C_CXXFLAGS_WARNING cons-cmd "-Wall" "-Wcast-align" "-Wdeprecated"
 		"-Wdeprecated-declarations" "-Wextra" "-Wfloat-equal" "-Wformat=2"
@@ -185,7 +222,7 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 	$env-de! CXXFLAGS_COMMON cons-cmd CXXFLAGS_STD
 		C_CXXFLAGS_COMMON CXXFLAGS_WARNING CXXFLAGS_IMPL_COMMON;
 	$set-if-empty! CXXFLAGS_OPT_DBG cons-cmd C_CXXFLAGS_OPT_LV
-		($if (env-empty? "CXXFLAGS_OPT_UseAssert") "-DNDEBUG" "")
+		($if (safeenv-empty? "CXXFLAGS_OPT_UseAssert") "-DNDEBUG" "")
 		CXXFLAGS_IMPL_OPT "-fomit-frame-pointer";
 	"XXX", "Rename %CXXFLAGS_OPT_DBG -> CFLAGS_OPT_DBG/C_CXXFLAGS_OPT_DBG?";
 	$defl! get-lang-flags (var flags-common)
@@ -194,8 +231,8 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 	$def! CFLAGS get-lang-flags "CFLAGS" CFLAGS_COMMON;
 	$def! CXXFLAGS get-lang-flags "CXXFLAGS" CXXFLAGS_COMMON;
 	$env-de! LDFLAGS_OPT_DBG cons-cmd LDFLAGS_STRIP LDFLAGS_IMPL_OPT LDFLAGS_GC;
-	$def! LDFLAGS_DYN_BASE env-get "LDFLAGS_DYN_BASE";
-	$def! LIBS_RPATH env-get "LIBS_RPATH";
+	$def! LDFLAGS_DYN_BASE safeenv-get "LDFLAGS_DYN_BASE";
+	$def! LIBS_RPATH safeenv-get "LIBS_RPATH";
 	$if (win32? env-os) ($set-if-empty! LDFLAGS_DYN_BASE "-shared -Wl,--dll")
 	(
 		$set-if-empty! LDFLAGS_DYN_BASE "-shared";
@@ -214,7 +251,7 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 	$redef! LDFLAGS SHBuild_TrimOptions_ (cons-cmd
 		(SHBuild_TrimOptions_ LDFLAGS) ($if app (do-ld-ext env-os)
 		($if dynamic LDFLAGS_DYN "-Wl,--dn")));
-	env-set "LDFLAGS" LDFLAGS;
+	safeenv-set "LDFLAGS" LDFLAGS;
 	$def! SHBOPT get-SHBOPT_ outdir shbopt-ext ($or? dynamic app);
 	$defl! echo-var (var) SHBuild_EchoVar var (value-of var);
 	echo-var "CXXFLAGS";
@@ -223,7 +260,7 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 	do-build CXX CXXFLAGS SHBOPT LIBPFX
 );
 $defl! SHBuild_EchoVar_N (var) SHBuild_EchoVar var
-	(env-get (SHBuild_SDot_ var));
+	(safeenv-get (SHBuild_SDot_ var));
 $defl! SHBuild_GetPlatformStrings ()
 (
 	"XXX", "'SHBuild_CheckUName_*' depend on 'uname'";
@@ -241,7 +278,7 @@ $defl! get_env_SHB_ (env-os)
 	$def! cmd_noerr_ ++ "2>" (get-nul-dev env-os);
 	"#", "Following private environment variables are used: SHBuild.",
 		" This is expected to be stage 1";
-	$def! e_S1_SHBuild_ () system-quote (env-get "SHBuild");
+	$def! e_S1_SHBuild_ () system-quote (safeenv-get "SHBuild");
 	$defl! e_rm_ (pth)
 	(
 		"TODO", "Avoid deletion if possible?";
