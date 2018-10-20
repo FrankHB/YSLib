@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3330
+\version r3339
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2018-09-03 17:11 +0800
+	2018-10-19 03:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,9 +110,13 @@
 
 #if YB_IMPL_MSCPP >= 1400
 //! \since build 454
-#	define _CRT_SECURE_NO_WARNINGS
+#	ifndef _CRT_SECURE_NO_WARNINGS
+#		define _CRT_SECURE_NO_WARNINGS
+#	endif
 //! \since build 835
-#	define _SCL_SECURE_NO_WARNINGS
+#	ifndef _SCL_SECURE_NO_WARNINGS
+#		define _SCL_SECURE_NO_WARNINGS
+#	endif
 #endif
 //@}
 
@@ -550,7 +554,9 @@
 \see https://clang.llvm.org/docs/AttributeReference.html#nodiscard-warn-unused-result-clang-warn-unused-result-gnu-warn-unused-result 。
 \see https://gcc.gnu.org/projects/cxx-status.html 。
 */
-#if __has_cpp_attribute(nodiscard)
+#if __has_cpp_attribute(nodiscard) \
+	&& (!YB_IMPL_CLANGPP || __cplusplus >= 201703L)
+// XXX: This is ruled out for [-Wc++17-extensions] in Clang++.
 #	define YB_ATTR_nodiscard YB_ATTR_STD(nodiscard)
 #elif __has_cpp_attribute(clang::warn_unused_result)
 #	define YB_ATTR_nodiscard YB_ATTR_STD(clang::warn_unused_result)

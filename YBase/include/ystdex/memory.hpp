@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r2758
+\version r2789
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2018-08-26 22:30 +0800
+	2018-10-12 12:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1142,10 +1142,9 @@ make_unique_with(_tDeleter&&, _tParams&&...) = delete;
 //@}
 //@}
 
-/*!
-\ingroup helper_functions
-\tparam _type 被指向类型。
-*/
+//! \ingroup helper_functions
+//@{
+//! \tparam _type 被指向类型。
 //@{
 /*!
 \brief 使用指定类型的初始化列表构造指定类型的 std::shared_ptr 对象。
@@ -1206,6 +1205,37 @@ share_move(_tValue&& v)
 
 	return make_shared<decay_t<_type>>(std::move(v));
 }
+//@}
+
+/*!
+\note 使用 ADL make_unique 。
+\since build 841
+*/
+//@{
+//! \brief 复制值创建对应的 std::unique_ptr 实例的对象。
+template<typename _tValue, typename _type = _tValue>
+yconstfn std::unique_ptr<decay_t<_type>>
+unique_copy(const _tValue& v)
+{
+	return make_unique<decay_t<_type>>(yforward(v));
+}
+
+//! \brief 传递值创建对应的 std::unique_ptr 实例的对象。
+template<typename _tValue, typename _type = _tValue>
+yconstfn std::unique_ptr<decay_t<_type>>
+unique_forward(_tValue&& v)
+{
+	return make_unique<decay_t<_type>>(yforward(v));
+}
+
+//! \brief 转移值创建对应的 std::unique_ptr 实例的对象。
+template<typename _tValue, typename _type = _tValue>
+yconstfn std::unique_ptr<decay_t<_type>>
+unique_move(_tValue&& v)
+{
+	return make_unique<decay_t<_type>>(std::move(v));
+}
+//@}
 //@}
 
 

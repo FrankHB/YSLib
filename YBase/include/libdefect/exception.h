@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015, 2017 FrankHB.
+	© 2014-2015, 2017-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup LibDefect
 \brief 标准库实现 \c \<exception\> 修正。
-\version r378
+\version r385
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-01 00:13:53 +0800
 \par 修改时间:
-	2017-08-06 18:54 +0800
+	2018-10-19 03:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,9 +51,10 @@
 //	function declarator for. [[noreturn]] does not work on G++ earlier than 4.8.
 //	For compatibility reason this is not used.
 
+// XXX: What is the exact Clang++ version?
 #if defined(__GLIBCXX__) \
 	&& (defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L) \
-	&& __GNUC__ * 100 + __GNUC_MINOR__ < 409
+	&& __GNUC__ * 100 + __GNUC_MINOR__ < 409 && !defined(__clang__)
 
 #	pragma GCC visibility push(default)
 
@@ -72,7 +73,10 @@ get_unexpected() noexcept;
 
 #endif
 
-#if defined(__GLIBCXX__) \
+// NOTE: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58938.
+// XXX: The version is significant since Clang++ does not following the
+//	version number of GCC reliably.
+#if defined(__GLIBCXX__) && __GLIBCXX__ < 20170718 \
 	&& (defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L) \
 	&& (ATOMIC_INT_LOCK_FREE < 2 && __GNUC__ < 7)
 

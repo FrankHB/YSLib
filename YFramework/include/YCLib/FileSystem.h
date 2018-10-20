@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3777
+\version r3779
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2018-08-24 23:51 +0800
+	2018-10-19 03:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -199,7 +199,7 @@ YCL_DefPlatformFwdTmpl(IsAbsolute, IsAbsolute_P)
 //@{
 template<typename _tChar>
 YB_ATTR_returns_nonnull YB_NONNULL(2) inline const _tChar*
-FetchRootNameEnd_P(IDTag<YF_Platform_DS> tag, const _tChar* path) ynothrowv
+FetchRootNameEnd_P(IDTag<YF_Platform_DS>, const _tChar* path) ynothrowv
 {
 	const auto p(platform::FindColon(path));
 
@@ -567,7 +567,7 @@ CreateHardLink(const char16_t*, const char16_t*);
 /*!
 \brief 创建符号链接。
 \note 第三参数指定是否创建目录链接。
-\note Win32 平台：成功调用需要操作系统和权限（或组策略）支持。
+\note Win32 平台：成功调用需要操作系统、文件系统和权限（或组策略）支持。
 \note 非 Win32 平台：忽略第三参数。
 \since build 651
 */

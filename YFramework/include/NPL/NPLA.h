@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4088
+\version r4235
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-10-08 02:07 +0800
+	2018-10-19 02:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -793,15 +793,27 @@ TokenizeTerm(TermNode& term);
 */
 enum class ReductionStatus : yimpl(size_t)
 {
-	//! \since build 757
-	//@{
-	//! \brief 规约成功终止且不需要保留子项。
-	Clean = 0,
-	//! \brief 规约成功但需要保留子项。
+	/*!
+	\brief 部分规约：需要继续进行规约。
+	\note 一般仅用于异步规约。
+	\since build 841
+	*/
+	Partial,
+	/*!
+	\brief 规约成功终止且不需要保留子项。
+	\since build 841
+	*/
+	Clean,
+	/*!
+	\brief 规约成功但需要保留子项。
+	\since build 757
+	*/
 	Retained,
-	//! \brief 需要重规约。
-	Retrying
-	//@}
+	/*!
+	\brief 需要重规约。
+	\since build 757
+	*/
+	Retrying,
 };
 
 
@@ -1053,12 +1065,13 @@ inline PDefH(ReductionStatus, CheckNorm, const TermNode& term) ynothrow
 
 /*!
 \brief 根据规约状态检查是否可继续规约。
-\see YTraceDe
+\sa ReductionStatus::Partial
+\sa ReductionStatus::Retrying
+\sa YTraceDe
 \since build 734
 
 只根据输入状态确定结果。当且仅当规约成功时不视为继续规约。
 若发现不支持的状态视为不成功，输出警告。
-不直接和 ReductionStatus::Retrying 比较以分离依赖 ReductionStatus 的具体值的实现。
 派生实现可使用类似的接口指定多个不同的状态。
 */
 YF_API YB_PURE bool
@@ -1066,22 +1079,23 @@ CheckReducible(ReductionStatus);
 
 /*!
 \sa CheckReducible
-\since build 735
+\since build 841
 */
 template<typename _func, typename... _tParams>
-void
+auto
 CheckedReduceWith(_func f, _tParams&&... args)
+	-> decltype(ystdex::retry_on_cond(CheckReducible, f, yforward(args)...))
 {
-	ystdex::retry_on_cond(CheckReducible, f, yforward(args)...);
+	return ystdex::retry_on_cond(CheckReducible, f, yforward(args)...);
 }
 
 /*!
 \brief 按规约结果正规化项。
 \return 第二参数。
-\since build 828
+\since build 841
 */
 YF_API ReductionStatus
-RegularizeTerm(TermNode&, ReductionStatus);
+RegularizeTerm(TermNode&, ReductionStatus) ynothrow;
 
 
 /*!
@@ -1364,15 +1378,15 @@ class ContextNode;
 \sa CheckNorm
 \sa LiftToReturn
 \sa RegularizeTerm
-\since build 828
+\since build 841
 
 对规约闭包结果进行处理，依次进行以下操作：
-调用 RegularizeTerm 根据当前上下文保存的规约结果对项进行正规化；
+调用 RegularizeTerm 根据第二参数指定的规约结果对项进行正规化；
 调用 LiftToReturn 提升最外一级的引用项后递归提升间接值；
 最后调用 CheckNorm 确定返回值。
 */
 YF_API ReductionStatus
-ReduceForClosureResult(TermNode&, const ContextNode&);
+ReduceForClosureResult(TermNode&, ReductionStatus);
 
 
 /*!
@@ -1704,9 +1718,35 @@ public:
 /*!
 \brief 规约函数类型：和绑定所有参数的求值遍的处理器等价。
 \warning 假定转移不抛出异常。
-\since build 806
+\warning 非虚析构。
+\since build 841
 */
-using Reducer = YSLib::GHEvent<ReductionStatus()>;
+class YF_API Reducer : private YSLib::GHEvent<ReductionStatus()>
+{
+public:
+	using BaseType = YSLib::GHEvent<ReductionStatus()>;
+
+	DefDeCtor(Reducer)
+	using BaseType::BaseType;
+	DefDeCopyMoveCtorAssignment(Reducer)
+
+	DefGetter(const ynothrow, const BaseType&, Base, *this)
+	DefGetter(ynothrow, BaseType&, BaseRef, *this)
+
+	using BaseType::operator bool;
+
+	friend PDefHOp(bool, ==, const Reducer& x, const Reducer& y) ynothrow
+		ImplRet(ystdex::ref_eq<>()(x, y))
+
+	using BaseType::operator();
+
+	friend DefSwap(ynothrow, Reducer,
+		ystdex::swap_dependent(_x.GetBaseRef(), _y.GetBaseRef()))
+
+	using BaseType::target;
+
+	using BaseType::target_type;
+};
 
 
 /*!
@@ -1736,14 +1776,6 @@ public:
 	\since build 806
 	*/
 	Reducer Current{};
-	/*!
-	\brief 跳过表达式求值标记。
-	\since build 814
-
-	不影响 Current 状态而直接支持取消特定求值规约的共享标记。
-	用于派生实现在单一表达式内的逃逸控制流。
-	*/
-	bool SkipToNextEvaluation{};
 	/*!
 	\brief 定界动作：边界外的剩余动作。
 	\since build 810
@@ -1784,8 +1816,8 @@ public:
 	DefGetter(const ynothrow, Environment&, RecordRef, *p_record)
 
 	/*!
-	\brief 转移并应用尾调用，更新规约状态。
-	\note 调用前脱离 Current 以允许调用 SetupTail 设置新的尾调用。
+	\brief 转移并应用尾调用。
+	\note 调用前切换 Current 以允许调用 SetupTail 设置新的尾调用。
 	\pre 断言： \c Current 。
 	\sa LastStatus
 	\since build 810
@@ -2095,6 +2127,46 @@ struct EnvironmentSwitcher
 
 
 /*!
+\brief 组合动作。
+\note 不直接使用 lambda 表达式，以避免对捕获的动作的未指定的析构顺序。
+\note 相对 pair 值作为捕获的 lambda 表达式预期有更好的翻译性能。
+\since build 841
+*/
+template<typename _fCurrent, typename _fNext>
+struct GComposedAction final
+{
+	// NOTE: Lambda is not used to avoid unspecified destruction order of
+	//	captured component and better performance (compared to the case of
+	//	%pair used to keep the order).
+	YSLib::lref<ContextNode> Context;
+	// NOTE: The destruction order of captured component is significant.
+	//! \since build 821
+	//@{
+	mutable _fNext Next;
+	// XXX: To support function objects like %std::bind result with mutable
+	//	bound parameters.
+	mutable _fCurrent Current;
+
+	template<typename _tParam1, typename _tParam2>
+	GComposedAction(ContextNode& ctx, _tParam1&& cur, _tParam2&& next)
+		: Context(ctx), Next(yforward(next)), Current(yforward(cur))
+	{}
+	//@}
+	// XXX: Copy is not intended used directly, but for well-formness.
+	DefDeCopyMoveCtor(GComposedAction)
+
+	DefDeMoveAssignment(GComposedAction)
+
+	ReductionStatus
+	operator()() const
+	{
+		RelaySwitched(Context, std::move(Next));
+		return Current();
+	}
+};
+
+
+/*!
 \note 参数分别为上下文、捕获的当前动作和捕获的后继动作。
 \note 以参数声明的相反顺序捕获参数作为动作，结果以参数声明的顺序析构捕获的动作。
 */
@@ -2102,40 +2174,72 @@ struct EnvironmentSwitcher
 /*!
 \brief 组合规约动作：创建指定上下文中的连续异步规约当前和后继动作的规约动作。
 \note 若当前动作为空，则直接使用后继动作作为结果。
-\since build 838
+\sa GComposedAction
+\since build 841
 */
-YF_API Reducer
-ComposeActions(ContextNode&, Reducer&&, Reducer&&);
+//@{
+template<typename _fCurrent, typename _fNext>
+inline yimpl(ystdex::enable_if_t)<ystdex::is_decayed<_fCurrent, Reducer>::value,
+	Reducer>
+ComposeActions(ContextNode& ctx, _fCurrent&& cur, _fNext&& next)
+{
+	return cur ? GComposedAction<ystdex::remove_cvref_t<_fCurrent>,
+		ystdex::remove_cvref_t<_fNext>>(ctx, yforward(cur), yforward(next))
+		: std::move(next);
+}
+template<typename _fCurrent, typename _fNext, yimpl(typename
+	= ystdex::enable_if_t<!ystdex::is_decayed<_fCurrent, Reducer>::value>)>
+inline Reducer
+ComposeActions(ContextNode& ctx, _fCurrent&& cur, _fNext&& next)
+{
+	return GComposedAction<ystdex::remove_cvref_t<_fCurrent>,
+		ystdex::remove_cvref_t<_fNext>>(ctx, yforward(cur), yforward(next));
+}
+//@}
 
-//! \return ReductionStatus::Retrying 。
+/*!
+\return ReductionStatus::Partial 。
+\since build 841
+*/
 //@{
 /*!
 \brief 异步规约当前和后继动作。
 \sa ComposeActions
-\since build 821
 */
-YF_API ReductionStatus
-RelayNext(ContextNode&, Reducer&&, Reducer&&);
-//@}
+template<typename _fCurrent, typename _fNext>
+ReductionStatus
+RelayNext(ContextNode& ctx, _fCurrent&& cur, _fNext&& next)
+{
+	ctx.SetupTail(ComposeActions(ctx, yforward(cur), yforward(next)));
+	return ReductionStatus::Partial;
+}
 
 /*!
 \brief 异步规约指定动作和非空的当前动作。
-\since build 823
 \pre 断言： \tt ctx.Current 。
 */
-inline PDefH(ReductionStatus, RelaySwitchedUnchecked, ContextNode& ctx,
-	Reducer&& cur)
-	ImplRet(YAssert(ctx.Current, "No action found to be the next action."),
-		RelayNext(ctx, std::move(cur), ctx.Switch()))
+template<typename _fCurrent>
+inline ReductionStatus
+RelaySwitchedUnchecked(ContextNode& ctx, _fCurrent&& cur)
+{
+	YAssert(ctx.Current, "No action found to be the next action.");
+	return RelayNext(ctx, yforward(cur), ctx.Switch());
+}
 
 /*!
 \brief 异步规约指定动作和当前动作。
 \sa RelaySwitchedUnchecked
-\since build 821
 */
-inline PDefH(ReductionStatus, RelaySwitched, ContextNode& ctx, Reducer&& cur)
-	ImplRet(ctx.Current ? RelaySwitchedUnchecked(ctx, std::move(cur))
-		: (ctx.SetupTail(std::move(cur)), ReductionStatus::Retrying))
+template<typename _fCurrent>
+inline ReductionStatus
+RelaySwitched(ContextNode& ctx, _fCurrent&& cur)
+{
+	if(ctx.Current)
+		return RelaySwitchedUnchecked(ctx, yforward(cur));
+	ctx.SetupTail(yforward(cur));
+	return ReductionStatus::Partial;
+}
+//@}
 //@}
 
 /*!

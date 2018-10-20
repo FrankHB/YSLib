@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2044
+\version r2051
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2018-09-20 11:17 +0800
+	2018-10-12 12:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -205,10 +205,16 @@ using platform::share_move;
 using platform::share_raw;
 using platform::shared_ptr;
 using platform::static_pointer_cast;
-using platform::unique_raw;
+//! \since build 841
+//@{
+using platform::unique_copy;
+using platform::unique_forward;
+using platform::unique_move;
+//@}
 using platform::unique_ptr;
 //! \since build 671
 using platform::unique_ptr_from;
+using platform::unique_raw;
 using platform::weak_ptr;
 
 using platform::lref;

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2017 FrankHB.
+	© 2014-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file exception.cpp
 \ingroup LibDefect
 \brief 标准库实现 \c \<exception\> 修正。
-\version r626
+\version r632
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-01 11:00:14 +0800
 \par 修改时间:
-	2017-08-06 18:54 +0800
+	2018-10-19 03:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #include <cstddef> // for std::size_t and <bits/c++config.h> if using libstdc++.
 #include <atomic> // for <bits/atomic_lockfree_defines.h> if using libstdc++.
 
-#if defined(__GLIBCXX__) \
+// NOTE: See header <libdefect/exception.h>.
+#if defined(__GLIBCXX__) && __GLIBCXX__ < 20170718 \
 	&& (defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L) \
 	&& (ATOMIC_INT_LOCK_FREE < 2 && __GNUC__ < 7)
 
@@ -502,9 +503,10 @@ rethrow_exception(exception_ptr ep)
 
 #endif
 
+// NOTE: See header <libdefect/exception.h>.
 #if defined(__GLIBCXX__) \
-	&&(defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L) \
-	&& __GNUC__ * 100 + __GNUC_MINOR__ < 409
+	&& (defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L) \
+	&& __GNUC__ * 100 + __GNUC_MINOR__ < 409 && !defined(__clang__)
 
 #	include <exception>
 #	if ATOMIC_POINTER_LOCK_FREE < 2
