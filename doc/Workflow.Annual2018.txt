@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2018 年度。
-\version r427
+\version r434
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2018-02-27 22:36:36 +0800
 \par 修改时间:
-	2018-10-07 05:13 +0800
+	2018-10-16 05:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -403,6 +403,15 @@ PTC implementation in NPLA1 has been revisited.
 	Now hack of prvalue function collection is also removed.
 		It seems at current it does not effect PTC typically.
 		See $2018-06 for descriptions of original design.
+
+$2018-10:
+
+Last reduction status interaction has been simplified in thunked code of NPLA and NPLA1 implementation.
+	The status shared in evalation passes of a single evaluation now is placed as the last status in the context.
+		This avoid additional allocation with 'shared_ptr<ReductionStatus>'.
+	Note rewriting last status is unavoidable for thunked code even the reducer does not always relies on the result.
+		Because there is no simple way to know what is the last status when it is needed in an asynchronous action, the last status has to be always kept and updated in time.
+		This is true even when it can be predicated statically about which of the asynchronous actions need to use the previous status.
 
 ////
 

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r6577
+\version r6773
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-10-12 03:29 +0800
+	2018-10-20 16:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,203 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			/ %Memory $=
+			(
+				/ DD "function templates %(share_copy, share_forward, \
+					share_move)" >> "Doxygen groups %helper_funtions",
+				+ $re_add(b783) "function templates %(unique_copy, \
+					unique_forward, unique_move)"
+			),
+			/ %Functor $=
+			(
+				+ 'ynothrow' @ "%operator()"
+					@ "instances of functors %(first_of, second_of, ref_eq)",
+				+ 'yimpl(ynothrow)' @ "all functors with pointer type \
+					specificiations"
+					$effective @ "%(greater, less, greater_equal, less_equal)"
+					// This is now allowed by [res.on.exception.handling] \
+						since ISO C++11 even though ISO C++17 makes it a type \
+						and thus it would be a change of ABI (but it is still \
+						allowed).
+			),
+			+ "2nd parameter with default argument" @ "type trait %is_decayed"
+				@ %Meta,
+			+ $re_add(b586) $dev "explicitly defaulted copy constructor \
+				%bad_optional_access" @ %Optional
+				// To eliminate Clang++ warning: [-Wdeprecated] due to \
+					user-provided destructor declared..
+		),
+		/ %YDefinition $=
+		(
+			/ "used stricter condition \
+				'(!YB_IMPL_CLANGPP || __cplusplus >= 201703L)'"
+				@ "macro %YB_ATTR_nodiscard"
+				// To eliminate error: [-Werror,-Wc++17-extensions].
+			/ $dev "avoided possible redefition of macros \
+				%(_CRT_SECURE_NO_WARNINGS, _SCL_SECURE_NO_WARNINGS)"
+				@ 'YB_IMPL_MSCPP >= 1400'
+				$= (+ "'#ifndef' checks")
+		),
+		/ $dev "improved Clang++ support" @ %LibDefect.Exception $=
+		(
+			/ "avoided redefinition concerned with %std::exception_ptr"
+				$= (+ "'__GLIBCXX__ < 20170718'" @ "condition")
+			/ $dev "avoided possible missing definitions of handler functions"
+				$= (+ "!defined(__clang__)" @ "conditions")
+		)
+	),
+	/ %YFramework $=
+	(
+		+ $re_add(b783) ('using ystdex::unique_copy;', \
+			'using ystdex::unique_forward;',
+			'using ystdex::unique_move;') @ "inline namespace %references"
+			@ %YCLib.Reference $dep_from %YBase.YStandardEx.Memory,
+		/ $re_add(b783) @ "namespace %YSLib" @ %Adaptor.YAdaptor $=
+		(
+			+ 'using platform::owns_unique;',
+			+ 'using platform::owns_unique_nonnull;',
+			+ ('using platform::unique_copy;',
+				'using platform::unique_forward;',
+				'using platform::share_move;') $dep_from %YCLib.Reference
+		),
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				+ 'ynothrow' @ "function %RegularizeTerm",
+				/ @ "function %ReduceForClosureResult" $=
+				(
+					/ "2nd parameter type" -> "%ReductionStatus"
+						~ 'const ContextNode&';
+					/ $forced "regularized term" ^ "2nd parameter"
+						~ "%ContextNode::LastStatus"
+				),
+				+ "deduced return type"
+					@ "function template %CheckedReduceWith",
+				(
+				/ "alias declaration %Reducer" -> "class";
+				/ $comp "equality of %Reducer based on %ystdex::ref_eq",
+					// This is consistent to equivalence between result of \
+						'eq?' and 'eqv?' for continuation type in the object \
+						language, which is derived from Kernel 'eq?' vs. \
+						'equal?' for continuation.
+				),
+				/ @ "enum class %ReductionStatus" $=
+				(
+					+ "1st enumerator %Partial" $dep_to
+						"specific partial reduction status",
+					- "specified value for %Clean"
+				),
+				(
+				/ "functions %(RelayNext; RelaySwitchedUnchecked; \
+					RelaySwitched) returned %ReductionStatus::Partial"
+					~ "%Reduction::Retrying";
+				/ $forced "returned %true for %ReductionStatus::Partial"
+					@ "function %CheckReducible"
+				),
+				- $revert(b814) "data member %ContextNode::SkipToNextEvaluation"
+					$dep_from ("%Reduce" @ %NPLA1),
+				/ "enabled check for valid status only in %debug configurations"
+					@ "function %CheckReducible",
+					// For better performance in other configurations.
+				(
+					/ "function %ComposeActions" -> "class template \
+						%GComposedAction; 2 function template %ComposeActions"
+						^ $dep_from ("%is_decayed" @ %YBase.YStandardEx.Meta);
+						// This would be slightly inefficient if solely used.
+					/ "functions %(RelayNext; RelaySwitchedUnchecked; \
+						RelaySwitched)" -> "function template"
+						// For better performance (improve can be more than \
+							10% in instruction counts tested by callgrind with \
+							a heavily recursed program).
+				)
+			),
+			/ %NPLA1 $=
+			(
+				* "undefined behavior cuased by invalid access in asynchrnous \
+					action call" @ "functions %Forms::(VauWithEnvironment, \
+					VauWithEnvironmentRef)" $since b840,
+				/ $lib "supported thunked call for expressions to be evaluated"
+					@ "functions %(DefineWithNoRecursion, DefineWithRecursion)",
+				(
+					+ "class %Continuation";
+						// This still does not support first-class \
+							continuations. However, this is needed sooner or \
+							later.
+					/ DLI "asynchronous calls" ^ "%Continuation"
+						// Consedered modification to %NPLA and %NPLA1 \
+							asynchronous call APIs, it is better to fix to a \
+							named type to get more accurate baseline for \
+							performance.
+				),
+				* "missing thunked calls" @ "member function \
+					%FormContextHandler::operator()" $since b811,
+					// %StrictContextHandler::operator() should work with it \
+						together.
+				/ 
+					@ "member function %StrictContextHandler::operator()" $=
+				(
+					- "assertion with %AssertBranch";
+						// Let underlying form context handler checker to check.
+					(
+					/ "simplified thunked calls";
+					* $comp "multiple wrapped handlers are not sufficiently \
+						thunked" $since b811
+					)
+				),
+				(
+				/ $forced DLDI "function %ReduceCheckedClosure, TCO action"
+					$dep_from ("%ReduceForClosureResult" @ %NPLA);
+				/ @ "function %ReduceCheckedClosure" $=
+				(
+					/ "simplified non-thunked code"
+						!^ "%ContextNode::LastStatus" ^ $dep_from
+						("%CheckedReduceWith" @ %NPLA),
+					/ "set %ContextNode::LastStatus explicitly as asynchrnous \
+						call result" @ "thunked non-TCO and TCO code"
+				)
+				),
+				(
+				/ $comp "internal thunked functions returned \
+					%ReductionStatus::Partial" ~ "%Reduction::Retrying"
+					$effecitve @ "functions %(ReduceAgain, ReduceChecked, \
+					ReduceTail, EvaluateDelayed#2, EvaluateLeafToken)" $dep_from
+					("%(RelayNext, RelaySwitched, RelaySwitchedUnchecked, \
+					EvaluateDelayed)" @ %NPLA);
+				(
+				/ DLI "simplified reduction result saving for evaluation passes"
+					@ "function %ReduceOnce" ^ "%ContextNode::LastStatus"
+					~ "private shared status and \
+					%ContextNode::SkipToNextEvaluation";
+					// See $2018-10 @ %Documentation::Workflow::Annual2018.
+				/ DLDI "simplified function %Reduce for thunked code"
+					!^ "%ContextNode::SkipToNextEvaluation",
+				* $comp "wrong status setting in distributing thunked \
+					evaluation passes" $since b814
+					// This is not only redundant, but also wrong for \
+						interoperations.
+				)
+				),
+				/ DLDI "optimized TCO action access",
+				/ DLDI "simplified internal asynchronous calls and function \
+					%ReduceChecked"
+					// For performace, partially similar to 'Relay*' templates \
+						modification in %NPLA, with about additional 3% \
+						improvement.
+			)
+		),
+		- $dev "unused parameter name %tag" @ "function %FetchRootNameEnd_P \
+			with %IDTag<YF_Platform_DS> parameter" @ %YCLib.FileSystem
+			// To eliminate Clang++ warning: [-Wunused-parameter].
+	)
+),
+
+b840
 (
 	/ %YBase.YStandardEx $=
 	(

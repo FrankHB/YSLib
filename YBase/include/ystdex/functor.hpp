@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r914
+\version r941
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2018-08-17 03:53 +0800
+	2018-10-13 17:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -240,7 +240,7 @@ struct is_equal
 
 // NOTE: There is no 'constexpr' in WG21 N3936; but it is in ISO/IEC 14882:2014
 //	and drafts later.
-#define YB_Impl_Functor_Ops_Primary(_n, _tRet, _using_stmt, _expr, ...) \
+#define YB_Impl_Functor_Ops_Primary(_q, _n, _tRet, _using_stmt, _expr, ...) \
 	template<typename _type = void> \
 	struct _n \
 	{ \
@@ -249,13 +249,13 @@ struct is_equal
 		using result_type = _tRet; \
 		\
 		yconstfn _tRet \
-		operator()(__VA_ARGS__) const \
+		operator()(__VA_ARGS__) const _q \
 		{ \
 			return _expr; \
 		} \
 	};
 
-#define YB_Impl_Functor_Ops_Spec(_n, _tparams, _params, _expr) \
+#define YB_Impl_Functor_Ops_Spec(_q, _n, _tparams, _params, _expr) \
 	template<> \
 	struct _n<void> \
 	{ \
@@ -263,12 +263,16 @@ struct is_equal
 		\
 		template<_tparams> \
 		yconstfn auto \
-		operator()(_params) const -> decltype(_expr) \
+		operator()(_params) const _q -> decltype(_expr) \
 		{ \
 			return _expr; \
 		} \
 	};
 
+// NOTE: Since ISO C++11, the standard does allow change to a stricter
+//	noexcept-specification, see [res.on.exception.handling]. Also note WG21
+//	P0509R1 accepted by WG21 N4664 to resolve GB 41 changes the order of
+//	paragraphs, but not the relevant rule.
 #define YB_Impl_Functor_Ops_Spec_Ptr(_n) \
 	template<typename _type> \
 	struct _n<_type*> \
@@ -278,7 +282,7 @@ struct is_equal
 		using result_type = bool; \
 		\
 		yconstfn bool \
-		operator()(_type* x, _type* y) const \
+		operator()(_type* x, _type* y) const yimpl(ynothrow) \
 		{ \
 			return std::_n<_type*>()(x, y); \
 		} \
@@ -287,15 +291,15 @@ struct is_equal
 #define YB_Impl_Functor_Ops_using(_type2) using second_argument_type = _type2;
 
 #define YB_Impl_Functor_Ops1(_n, _op, _tRet) \
-	YB_Impl_Functor_Ops_Primary(_n, _tRet, , _op x, const _type& x) \
+	YB_Impl_Functor_Ops_Primary(, _n, _tRet, , _op x, const _type& x) \
 	\
-	YB_Impl_Functor_Ops_Spec(_n, typename _type, _type&& x, _op yforward(x))
+	YB_Impl_Functor_Ops_Spec(, _n, typename _type, _type&& x, _op yforward(x))
 
 #define YB_Impl_Functor_Ops2(_n, _op, _tRet) \
-	YB_Impl_Functor_Ops_Primary(_n, _tRet, YB_Impl_Functor_Ops_using(_type), \
+	YB_Impl_Functor_Ops_Primary(, _n, _tRet, YB_Impl_Functor_Ops_using(_type), \
 		x _op y, const _type& x, const _type& y) \
 	\
-	YB_Impl_Functor_Ops_Spec(_n, typename _type1 YPP_Comma typename \
+	YB_Impl_Functor_Ops_Spec(, _n, typename _type1 YPP_Comma typename \
 		_type2, _type1&& x YPP_Comma _type2&& y, yforward(x) _op yforward(y))
 
 #define YB_Impl_Functor_Binary(_n, _op) \
@@ -431,31 +435,32 @@ YB_Impl_Functor_Ops1(indirect, *, indirect_t<const _type&>)
 
 //! \brief 引用等价关系仿函数。
 //@{
-YB_Impl_Functor_Ops_Primary(ref_eq, bool, YB_Impl_Functor_Ops_using(_type), \
-	ystdex::addressof(x) == ystdex::addressof(y), \
-	const _type& x, const _type& y)
+YB_Impl_Functor_Ops_Primary(ynothrow, ref_eq, bool,
+	YB_Impl_Functor_Ops_using(_type), ystdex::addressof(x)
+	== ystdex::addressof(y), const _type& x, const _type& y)
 
 ///! \since build 824
-YB_Impl_Functor_Ops_Spec(ref_eq, typename _type1 YPP_Comma typename \
-	_type2, _type1&& x YPP_Comma _type2&& y, \
-	ystdex::addressof(yforward(x)) \
-	== ystdex::addressof(yforward(y)))
-//@}
+YB_Impl_Functor_Ops_Spec(ynothrow, ref_eq,
+	typename _type1 YPP_Comma typename _type2, _type1&& x YPP_Comma _type2&& y,
+	ystdex::addressof(yforward(x)) == ystdex::addressof(yforward(y)))
 //@}
 
 //! \since build 830
 //@{
-YB_Impl_Functor_Ops_Primary(first_of, first_t<_type&>, , x.first, _type& x)
+YB_Impl_Functor_Ops_Primary(ynothrow, first_of, first_t<_type&>, , x.first,
+	_type& x)
 
 // NOTE: More parentheses are needed to keep the correct value category.
-YB_Impl_Functor_Ops_Spec(first_of, typename _type, _type&& x,
+YB_Impl_Functor_Ops_Spec(ynothrow, first_of, typename _type, _type&& x,
 	yforward((x.first)))
 
-YB_Impl_Functor_Ops_Primary(second_of, second_t<_type&>, , x.second, _type& x)
+YB_Impl_Functor_Ops_Primary(ynothrow, second_of, second_t<_type&>, , x.second,
+	_type& x)
 
 // NOTE: More parentheses are needed to keep the correct value category.
-YB_Impl_Functor_Ops_Spec(second_of, typename _type, _type&& x,
+YB_Impl_Functor_Ops_Spec(ynothrow, second_of, typename _type, _type&& x,
 	yforward((x.second)))
+//@}
 //@}
 
 #undef YB_Impl_Functor_bool_Ordered

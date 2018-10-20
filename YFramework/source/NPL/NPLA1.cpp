@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8536
+\version r8735
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-10-12 03:24 +0800
+	2018-10-19 20:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,10 +29,10 @@
 #include YFM_NPL_NPLA1 // for YSLib, ystdex::bind1, std::make_move_iterator,
 //	ystdex::value_or, shared_ptr, tuple, list, lref, vector, observer_ptr, set,
 //	owner_less, ystdex::erase_all, ystdex::as_const, std::find_if,
-//	unordered_map, deque, ystdex::id, ystdex::cast_mutable, pair,
-//	ystdex::equality_comparable, ystdex::exchange, ystdex::ref_eq,
-//	NPL::SwitchToFreshEnvironment, ystdex::make_transform,
-//	ystdex::call_value_or;
+//	unordered_map, ystdex::id, ystdex::cast_mutable, pair,
+//	ystdex::equality_comparable, ystdex::exchange, share_move, ystdex::ref_eq,
+//	NPL::SwitchToFreshEnvironment, ystdex::call_value_or,
+//	ystdex::make_transform;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard, ystdex::swap_guard,
 //	ystdex::unique_guard;
 #include YFM_NPL_SContext // for Session;
@@ -255,7 +255,7 @@ using EnvironmentGuard = ystdex::guard<EnvironmentSwitcher>;
 
 #if YF_Impl_NPLA1_Enable_Thunked
 //! \since build 821
-inline /*[[nodiscard]]*/
+YB_ATTR_nodiscard inline
 #	if true
 PDefH(ReductionStatus, RelayTail, ContextNode& ctx, Reducer& cur)
 	ImplRet(RelaySwitched(ctx, std::move(cur)))
@@ -266,13 +266,12 @@ PDefH(ReductionStatus, RelayTail, ContextNode&, const Reducer& cur)
 	ImplRet(cur())
 #	endif
 
-//! \since build 814
+//! \since build 841
 void
 PushActionsRange(EvaluationPasses::const_iterator first,
-	EvaluationPasses::const_iterator last, TermNode& term, ContextNode& ctx,
-	shared_ptr<ReductionStatus> p_res)
+	EvaluationPasses::const_iterator last, TermNode& term, ContextNode& ctx)
 {
-	if(first != last && !ctx.SkipToNextEvaluation)
+	if(first != last && ctx.LastStatus != ReductionStatus::Retrying)
 	{
 		const auto& f(first->second);
 
@@ -290,19 +289,24 @@ PushActionsRange(EvaluationPasses::const_iterator first,
 		//	be treated as attempt to switch to new action, which should be
 		//	in turn already properly set or cleared as the current action.
 		RelaySwitched(ctx, [=, &f, &term, &ctx]{
-			PushActionsRange(first, last, term, ctx, p_res);
+			PushActionsRange(first, last, term, ctx);
+
+			const auto res(f(term, ctx));
+
 			// NOTE: If reducible, the current action should have been properly
 			//	set or cleared. It cannot be cleared here because there is no
 			//	simple way to guarantee the action is the last one for
 			//	evaluation of specified term merely by last reduction status,
 			//	and %ContextNode::Current needs to be exposed to allow capture
 			//	of current continuation.
-			return *p_res
-				= CombineSequenceReductionResult(*p_res, f(term, ctx));
+			if(res != ReductionStatus::Partial)
+				ctx.LastStatus
+					= CombineSequenceReductionResult(ctx.LastStatus, res);
+			return ctx.LastStatus;
 		});
 	}
 	else
-		ctx.SkipToNextEvaluation = {};
+		ctx.LastStatus = ReductionStatus::Retained;
 }
 
 //! \since build 812
@@ -318,10 +322,16 @@ DelimitActions(const EvaluationPasses& passes, TermNode& term, ContextNode& ctx)
 	//	the necessity of delimited frame marks and frame walking in delimieted
 	//	actions. (But be cautious with overflow risks in call of
 	//	%ContextNode::ApplyTail.)
-	ctx.SkipToNextEvaluation = {};
-	PushActionsRange(passes.cbegin(), passes.cend(), term, ctx,
-		make_shared<ReductionStatus>(ReductionStatus::Clean));
-	return ReductionStatus::Retrying;
+	ctx.LastStatus = ReductionStatus::Clean;
+	PushActionsRange(passes.cbegin(), passes.cend(), term, ctx);
+	return ReductionStatus::Partial;
+}
+
+//! \since build 841
+ReductionStatus
+ReduceForClosureResultInContext(TermNode& term, const ContextNode& ctx)
+{
+	return ReduceForClosureResult(term, ctx.LastStatus);
 }
 
 #	if YF_Impl_NPLA1_Enable_TCO
@@ -391,8 +401,8 @@ public:
 
 		// NOTE: Lifting is optional. See also $2018-02
 		//	@ %Documentation::Workflow::Annual2018.
-		const auto res(LiftCallResult ? ReduceForClosureResult(Term, ctx)
-			: ctx.LastStatus);
+		const auto res(LiftCallResult
+			? ReduceForClosureResultInContext(Term, ctx) : ctx.LastStatus);
 
 		// NOTE: The order here is significant. The environment in the guards
 		//	should be hold until lifting is completed.
@@ -405,9 +415,7 @@ public:
 			xgds.pop_back();
 		if(ReduceCombined)
 			RegularizeTerm(Term, res);
-		if(ReduceNestedAsync)
-			ctx.SkipToNextEvaluation = true;
-		return res;
+		return ReduceNestedAsync ? ReductionStatus::Clean : res;
 	}
 
 	//! \since build 825
@@ -465,29 +473,16 @@ SetupTailAction(ContextNode& ctx, _func&& act)
 TCOAction&
 EnsureTCOAction(ContextNode& ctx, TermNode& term)
 {
-	if(!AccessTCOAction(ctx))
+	auto p(AccessTCOAction(ctx));
+
+	if(!p)
+	{
 		SetupTailAction(ctx, TCOAction(ctx, term, {}));
-	return Deref(AccessTCOAction(ctx));
+		p = AccessTCOAction(ctx);
+	}
+	return Deref(p);
 }
 #	endif
-
-//! \since build 817
-ReductionStatus
-ReduceCheckedAsync(TermNode& term, ContextNode& ctx)
-{
-	// XXX: Assume it is always reducing the same term and the next actions are
-	//	safe to be dropped.
-	ctx.LastStatus = ReductionStatus::Retrying;
-	return RelaySwitched(ctx, [&]{
-		if(CheckReducible(ctx.LastStatus))
-		{
-			RelaySwitched(ctx, std::bind(ReduceOnce, std::ref(term),
-				std::ref(ctx)));
-			ctx.SkipToNextEvaluation = true;
-		}
-		return ctx.LastStatus;
-	});
-}
 
 //! \since build 810
 ReductionStatus
@@ -501,27 +496,28 @@ ReduceChildrenOrderedAsync(TNIter first, TNIter last, ContextNode& ctx)
 		return RelaySwitched(ctx, [&, first, last]{
 			RelaySwitched(ctx, std::bind(ReduceChildrenOrderedAsync, first,
 				last, std::ref(ctx)));
-			return ReduceCheckedAsync(subterm, ctx);
+			return ReduceChecked(subterm, ctx);
 		});
 	}
 	return ReductionStatus::Clean;
 }
-#endif
-
-//! \since build 817
-void
+#else
+//! \since build 841
+ReductionStatus
 ReduceCheckedSync(TermNode& term, ContextNode& ctx)
 {
-	CheckedReduceWith(Reduce, term, ctx);
+	return CheckedReduceWith(Reduce, term, ctx);
 }
+#endif
 
 //! \since build 821
+template<typename _fCurrent>
 ReductionStatus
-ReduceSubsequent(TermNode& term, ContextNode& ctx, Reducer&& next)
+ReduceSubsequent(TermNode& term, ContextNode& ctx, _fCurrent&& next)
 {
 #if YF_Impl_NPLA1_Enable_Thunked
-	return RelayNext(ctx, std::bind(ReduceCheckedAsync, std::ref(term),
-		std::ref(ctx)), ComposeActions(ctx, std::move(next), ctx.Switch()));
+	return RelayNext(ctx, Continuation(ReduceChecked, term, ctx),
+		ComposeActions(ctx, yforward(next), ctx.Switch()));
 #else
 	// NOTE: This does not support PTC.
 	ReduceCheckedSync(term, ctx);
@@ -613,7 +609,6 @@ EqualTermReference(TermNode& term, _func f)
 
 //! \since build 782
 class RecursiveThunk final
-	: private yimpl(noncopyable), private yimpl(nonmovable)
 {
 private:
 	//! \since build 784
@@ -625,10 +620,10 @@ private:
 	//@}
 
 public:
-	//! \since build 787
-	Environment& Record;
-	//! \since build 780
-	const TermNode& Term;
+	//! \since build 840
+	lref<Environment> Record;
+	//! \since build 840
+	lref<const TermNode> Term;
 
 	//! \since build 787
 	//@{
@@ -637,6 +632,11 @@ public:
 	{
 		Fix(Record, Term, p_defualt);
 	}
+	//! \since build 841
+	DefDeMoveCtor(RecursiveThunk)
+
+	//! \since build 841
+	DefDeMoveAssignment(RecursiveThunk)
 
 private:
 	void
@@ -698,9 +698,9 @@ public:
 };
 
 
-//! \since build 840
+//! \since build 841
 template<typename _func>
-ReductionStatus
+void
 DoDefine(TermNode& term, _func f)
 {
 	Forms::Retain(term);
@@ -716,6 +716,12 @@ DoDefine(TermNode& term, _func f)
 	}
 	else
 		throw InvalidSyntax("Insufficient terms in definition.");
+}
+
+//! \since build 841
+ReductionStatus
+DoDefineReturn(TermNode& term) ynothrow
+{
 	term.Value = ValueToken::Unspecified;
 	return ReductionStatus::Clean;
 }
@@ -950,8 +956,9 @@ RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
 	// NOTE: The subterms in the term should have been bound if necessary when
 	//	the next action is called. It is then safe to be cleared and replaced by
 	//	the next term being evaluated.
-	auto next_action(std::bind(ReduceCheckedClosure, std::ref(term),
-		std::ref(ctx), move, std::ref(closure), !no_lift));
+	using namespace std::placeholders;
+	Continuation next_action(std::bind(ReduceCheckedClosure, _1, _2, move,
+		std::ref(closure), !no_lift), term, ctx);
 #if YF_Impl_NPLA1_Enable_TCO
 	// NOTE: See $2018-06 @ %Documentation::Workflow::Annual2018 for details.
 	const auto update_fused_act([&](TCOAction& fused_act){
@@ -1340,11 +1347,11 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	yunseq(0, (lf = make_observer(
 		&fused_act.AttachFunction(std::forward<_tParams>(args)).get()), 0)...);
 	fused_act.ReduceCombined = true;
-	return RelaySwitchedUnchecked(ctx, std::bind(std::ref(lf ? *lf : h),
-		std::ref(term), std::ref(ctx)));
+	return RelaySwitchedUnchecked(ctx,
+		Continuation(std::ref(lf ? *lf : h), term, ctx));
 #	else
 	// TODO: Blocked. Use C++14 lambda initializers to simplify implementation.
-	return RelayNext(ctx, std::bind(std::ref(h), std::ref(term), std::ref(ctx)),
+	return RelayNext(ctx, Continuation(std::ref(h), term, ctx),
 		std::bind([&](Reducer& act, const _tParams&...){
 		// NOTE: Captured argument pack is only needed when %h actually shares.
 		RelaySwitched(ctx, std::move(act));
@@ -1551,9 +1558,9 @@ VauWithEnvironmentImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 		auto i(term.begin());
 		auto& t(Deref(++i));
 
-		return ReduceSubsequent(t, ctx, [&, i]{
+		return ReduceSubsequent(t, ctx, [&, i, no_lift]{
 			// XXX: List components are ignored.
-			auto p_env_pr(ResolveEnvironment(Deref(i)));
+			auto p_env_pr(ResolveEnvironment(t));
 
 			term.Value = CreateVau(term, ctx, no_lift, i,
 				std::move(p_env_pr.first), p_env_pr.second);
@@ -1738,26 +1745,24 @@ Reduce(TermNode& term, ContextNode& ctx)
 #if YF_Impl_NPLA1_Enable_Thunked
 	// TODO: Support other states?
 	ystdex::swap_guard<Reducer> gd(true, ctx.Current);
-	ystdex::swap_guard<bool> gd_skip(true, ctx.SkipToNextEvaluation);
 
 #endif
-	return ctx.RewriteGuarded(term,
-		std::bind(ReduceOnce, std::ref(term), std::ref(ctx)));
+	return ctx.RewriteGuarded(term, Continuation(ReduceOnce, term, ctx));
 }
 
 ReductionStatus
 ReduceAgain(TermNode& term, ContextNode& ctx)
 {
 #if YF_Impl_NPLA1_Enable_Thunked
-	auto reduce_again(std::bind(ReduceOnce, std::ref(term), std::ref(ctx)));
+	Continuation reduce_again(ReduceOnce, term, ctx);
 
 #	if YF_Impl_NPLA1_Enable_TCO
 	EnsureTCOAction(ctx, term).ReduceNestedAsync = true;
 	return RelaySwitchedUnchecked(ctx, std::move(reduce_again));
 #	else
-	return RelayNext(ctx, std::move(reduce_again), ComposeActions(ctx, [&]{
-		ctx.SkipToNextEvaluation = true;
-		return ctx.LastStatus;
+	return RelayNext(ctx, std::move(reduce_again),
+		ComposeActions(ctx, []() ynothrow{
+		return ReductionStatus::Retrying;
 	}, ctx.Switch()));
 #	endif
 #else
@@ -1781,7 +1786,13 @@ ReductionStatus
 ReduceChecked(TermNode& term, ContextNode& ctx)
 {
 #if YF_Impl_NPLA1_Enable_Thunked
-	return ReduceCheckedAsync(term, ctx);
+	// XXX: Assume it is always reducing the same term and the next actions are
+	//	safe to be dropped.
+	return RelayNext(ctx, Continuation(ReduceOnce, term, ctx),
+		std::bind([&](Reducer& act){
+		RelaySwitched(ctx, std::move(act));
+		return ReductionStatus::Retrying;
+	}, ctx.Switch()));
 #else
 	// NOTE: This does not support PTC.
 	ReduceCheckedSync(term, ctx);
@@ -1797,33 +1808,38 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 		LiftTerm(term, closure);
 	else
 		term.SetContent(closure);
+
 	// XXX: Term reused.
-#if YF_Impl_NPLA1_Enable_TCO
+#if YF_Impl_NPLA1_Enable_Thunked
+	Continuation next(ReduceChecked, term, ctx);
 
-	Reducer next(std::bind(ReduceCheckedAsync, std::ref(term), std::ref(ctx)));
-
+#	if YF_Impl_NPLA1_Enable_TCO
 	if(const auto p = AccessTCOAction(ctx))
 	{
 		if(lift_result)
 		{
+			using namespace std::placeholders;
+
 			if(p->LiftCallResult)
-				next = std::bind([&, p](const Reducer& act){
-					ReduceForClosureResult(term, ctx);
-					return act();
-				}, std::move(next));
+				next = Continuation([&, p](TermNode& t, ContextNode& c){
+					ReduceForClosureResultInContext(t, c);
+					return ReduceChecked(t, c);
+				}, term, ctx);
 			else
 				p->LiftCallResult = true;
 		}
 		return RelaySwitchedUnchecked(ctx, std::move(next));
 	}
 	return RelayNext(ctx, std::move(next), TCOAction(ctx, term, lift_result));
+#	else
+	return lift_result ? RelayNext(ctx, std::move(next), ComposeActions(ctx,
+		Continuation(ReduceForClosureResultInContext, term, ctx), ctx.Switch()))
+		: RelaySwitched(ctx, std::move(next));
+#	endif
 #else
-	if(lift_result)
-		return ReduceSubsequent(term, ctx,
-			std::bind(ReduceForClosureResult, std::ref(term), std::ref(ctx)));
-	return ReduceSubsequent(term, ctx, [&]{
-		return ctx.LastStatus;
-	});
+	const auto res(ReduceCheckedSync(term, ctx));
+
+	return lift_result ? ReduceForClosureResult(term, res) : res;
 #endif
 }
 
@@ -1922,9 +1938,9 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 	return ReductionStatus::Retained;
 #	else
 	// TODO: Blocked. Use C++14 lambda initializers to simplify implementation.
-	return RelayNext(ctx, [&]{
-		return ReduceChildrenOrdered(term, ctx);
-	}, std::bind([&](Reducer& act){
+	return RelayNext(ctx, Continuation(static_cast<ReductionStatus(&)(TermNode&,
+		ContextNode&)>(ReduceChildrenOrdered), term, ctx),
+		std::bind([&](Reducer& act){
 		RelaySwitched(ctx, std::move(act));
 		if(!term.empty())
 			LiftTerm(term, *term.rbegin());
@@ -2018,23 +2034,32 @@ ReplaceSeparatedChildren(TermNode& term, const ValueObject& pfx,
 ReductionStatus
 FormContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 {
-	// XXX: Is it worth matching specific builtin special forms here?
-	// FIXME: Exception filtering does not work well with thunks.
-	try
-	{
-		if(!Check || Check(term))
-			return Handler(term, ctx);
-		// XXX: Use more specific exception type?
-		throw std::invalid_argument("Term check failed.");
-	}
-	CatchExpr(NPLException&, throw)
-	// TODO: Use semantic exceptions.
-	CatchThrow(ystdex::bad_any_cast& e, LoggedEvent(ystdex::sfmt(
-		"Mismatched types ('%s', '%s') found.", e.from(), e.to()), Warning))
-	// TODO: Use nested exceptions?
-	CatchThrow(std::exception& e, LoggedEvent(e.what(), Err))
-	// XXX: Use distinct status for failure?
-	return ReductionStatus::Clean;
+	auto cont([this](TermNode& t, ContextNode& c) -> ReductionStatus{
+		// XXX: Is it worth matching specific builtin special forms here?
+		// FIXME: Exception filtering does not work well with thunks.
+		try
+		{
+			if(!Check || Check(t))
+				return Handler(t, c);
+			// XXX: Use more specific exception type?
+			throw std::invalid_argument("Term check failed.");
+		}
+		CatchExpr(NPLException&, throw)
+		// TODO: Use semantic exceptions.
+		CatchThrow(ystdex::bad_any_cast& e, LoggedEvent(ystdex::sfmt(
+			"Mismatched types ('%s', '%s') found.", e.from(), e.to()), Warning))
+		// TODO: Use nested exceptions?
+		CatchThrow(std::exception& e, LoggedEvent(e.what(), Err))
+		// XXX: Use distinct status for failure?
+		return ReductionStatus::Clean;
+	});
+
+#if YF_Impl_NPLA1_Enable_Thunked
+	return RelaySwitched(ctx, Continuation(cont, term, ctx));
+#else
+	// NOTE: This does not support PTC.
+	return cont(term, ctx);
+#endif
 }
 
 
@@ -2044,21 +2069,14 @@ StrictContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 	// NOTE: This implementes arguments evaluation in applicative order.
 #if YF_Impl_NPLA1_Enable_Thunked
 	// TODO: Blocked. Use C++14 lambda initializers to simplify implementation.
-	return RelayNext(ctx, [&]{
-		ReduceArguments(term, ctx);
-		return ReductionStatus::Retrying;
-	}, std::bind([&](Reducer& act){
-		RelaySwitched(ctx, std::move(act));
-		AssertBranch(term, "Invalid state found.");
-		// NOTE: Matching function calls.
-		// FIXME: Multiple wrapped handlers are not sufficiently thunked.
-		return Handler(term, ctx);
-	}, ctx.Switch()));
+	return RelayNext(ctx, Continuation([&](TermNode& t, ContextNode& c){
+		ReduceArguments(t, c);
+		return ReductionStatus::Partial;
+	}, term, ctx), ComposeActions(ctx,
+		Continuation(std::ref(Handler), term, ctx), ctx.Switch()));
 #else
 	// NOTE: This does not support PTC.
 	ReduceArguments(term, ctx);
-	AssertBranch(term, "Invalid state found.");
-	// NOTE: Matching function calls.
 	return Handler(term, ctx);
 #endif
 }
@@ -2089,7 +2107,7 @@ EvaluateDelayed(TermNode& term, DelayedTerm& delayed)
 	//	guaranteed by the evaluated parent term.
 	LiftDelayed(term, delayed);
 	// NOTE: To make it work with %DetectReducible.
-	return ReductionStatus::Retrying;
+	return ReductionStatus::Partial;
 }
 
 ReductionStatus
@@ -2126,7 +2144,7 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 	{
 		// NOTE: The term would be normalized by %ReduceCombined.
 		//	If necessary, there can be inserted some additional cleanup to
-		//	remove empty tokens, returning %ReductionStatus::Retrying.
+		//	remove empty tokens, returning %ReductionStatus::Partial.
 		//	Separators should have been handled in appropriate preprocessing
 		//	passes.
 		const auto lcat(CategorizeBasicLexeme(id));
@@ -2141,6 +2159,7 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 			YB_ATTR_fallthrough;
 		case LexemeCategory::Symbol:
 			YAssertNonnull(id.data());
+			// XXX: Asynchronous reduction is currently not supported.
 			return CheckReducible(ctx.EvaluateLiteral(term, ctx, id))
 				? EvaluateIdentifier(term, ctx, id) : ReductionStatus::Clean;
 			// XXX: Empty token is ignored.
@@ -2495,38 +2514,75 @@ MatchParameter(const TermNode& t, TermNode& o, std::function<void(TNIter,
 ReductionStatus
 DefineLazy(TermNode& term, ContextNode& ctx)
 {
-	return DoDefine(term, [&](TermNode& formals){
+	DoDefine(term, [&](TermNode& formals){
 		BindParameter(ctx, formals, term);
 		return ReductionStatus::Clean;
 	});
+	return DoDefineReturn(term);
 }
 
 ReductionStatus
 DefineWithNoRecursion(TermNode& term, ContextNode& ctx)
 {
-	return DoDefine(term, [&](TermNode& formals){
+	// XXX: Terms shall be moved and saved into the actions for thunked code.
+#if YF_Impl_NPLA1_Enable_Thunked
+	DoDefine(term, [&](TermNode& formals){
+		// TODO: Blocked. Use C++14 lambda initializers to simplify
+		//	implementation.
+		return ReduceSubsequent(term, ctx, std::bind([&](const TermNode& saved){
+			// NOTE: This does not support PTC.
+			BindParameter(ctx, saved, term);
+			return DoDefineReturn(term);
+		}, std::move(formals)));
+	});
+	return ReductionStatus::Partial;
+#else
+	DoDefine(term, [&](const TermNode& formals){
 		ReduceCheckedSync(term, ctx);
 		// NOTE: This does not support PTC.
 		BindParameter(ctx, formals, term);
-		return ReductionStatus::Clean;
 	});
+	return DoDefineReturn(term);
+#endif
 }
 
 ReductionStatus
 DefineWithRecursion(TermNode& term, ContextNode& ctx)
 {
-	return DoDefine(term, [&](TermNode& formals){
+	// XXX: Terms shall be moved and saved into the actions for thunked code.
+#if YF_Impl_NPLA1_Enable_Thunked
+	DoDefine(term, [&](TermNode& formals){
+		auto p_saved(share_move(formals));
+		// TODO: Avoid %shared_ptr.
+		auto p_thunk(make_shared<RecursiveThunk>(ctx.GetRecordRef(), *p_saved));
+
+		// TODO: Blocked. Use C++14 lambda initializers to simplify
+		//	implementation.
+		return ReduceSubsequent(term, ctx, std::bind([&](const
+			shared_ptr<TermNode>&, const shared_ptr<RecursiveThunk>& p_gd){
+			// NOTE: This does not support PTC.
+			BindParameter(ctx, p_gd->Term, term);
+			// NOTE: This cannot support PTC because only the implicit commit
+			//	operation is in the tail context.
+			p_gd->Commit();
+			return DoDefineReturn(term);
+		}, std::move(p_saved),
+			make_shared<RecursiveThunk>(ctx.GetRecordRef(), *p_saved)));
+	});
+	return ReductionStatus::Partial;
+#else
+	DoDefine(term, [&](const TermNode& formals){
+		// NOTE: This does not support PTC.
 		RecursiveThunk gd(ctx.GetRecordRef(), formals);
 
-		// NOTE: This does not support PTC.
 		ReduceCheckedSync(term, ctx);
-		// NOTE: This does not support PTC.
 		BindParameter(ctx, formals, term);
 		// NOTE: This cannot support PTC because only the implicit commit
 		//	operation is in the tail context.
 		gd.Commit();
-		return ReductionStatus::Clean;
 	});
+	return DoDefineReturn(term);
+#endif
 }
 
 void

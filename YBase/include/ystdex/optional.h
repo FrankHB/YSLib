@@ -11,13 +11,13 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r1295
+\version r1297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2018-09-05 16:29 +0800
+	2018-10-19 03:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -319,7 +319,8 @@ public:
 	bad_optional_access()
 		: exception()
 	{}
-
+	//! \since build 841
+	bad_optional_access(const bad_optional_access&) = default;
 	~bad_optional_access() override;
 
 	/*!

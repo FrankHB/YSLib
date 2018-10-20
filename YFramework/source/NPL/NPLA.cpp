@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2068
+\version r2117
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2018-10-08 02:05 +0800
+	2018-10-18 19:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,12 @@ using namespace YSLib;
 
 namespace NPL
 {
+
+#ifndef NDEBUG
+#	define YF_Impl_NPLA_CheckStatus true
+#else
+#	define YF_Impl_NPLA_CheckStatus false
+#endif
 
 ValueNode
 MapNPLALeafNode(const TermNode& term)
@@ -569,13 +575,17 @@ CheckReducible(ReductionStatus status)
 {
 	if(status == ReductionStatus::Clean || status == ReductionStatus::Retained)
 		return {};
-	if(YB_UNLIKELY(status != ReductionStatus::Retrying))
+#if YF_Impl_NPLA_CheckStatus
+	// NOTE: Keep away assertions so client code can be diagnosed.
+	if(YB_UNLIKELY(status != ReductionStatus::Partial
+		&& status != ReductionStatus::Retrying))
 		YTraceDe(Warning, "Unexpected status found.");
+#endif
 	return true;
 }
 
 ReductionStatus
-RegularizeTerm(TermNode& term, ReductionStatus res)
+RegularizeTerm(TermNode& term, ReductionStatus res) ynothrow
 {
 	// NOTE: Cleanup if and only if necessary.
 	if(res == ReductionStatus::Clean)
@@ -692,9 +702,9 @@ ReduceToListValue(TermNode& term) ynothrow
 
 
 ReductionStatus
-ReduceForClosureResult(TermNode& term, const ContextNode& ctx)
+ReduceForClosureResult(TermNode& term, ReductionStatus res)
 {
-	RegularizeTerm(term, ctx.LastStatus);
+	RegularizeTerm(term, res);
 	LiftToReturn(term);
 	return CheckNorm(term);
 }
@@ -941,49 +951,6 @@ ResolveEnvironment(const TermNode& term)
 			ystdex::sfmt("Invalid environment formed from list '%s' found.",
 			TermToStringWithReferenceMark(nd, has_ref).c_str()));
 	}, term);
-}
-
-
-Reducer
-ComposeActions(ContextNode& ctx, Reducer&& cur, Reducer&& next)
-{
-	// NOTE: Lambda is not used to avoid unspecified destruction order of
-	//	captured component and better performance (compared to the case of
-	//	%pair used to keep the order).
-	struct Action final
-	{
-		lref<ContextNode> Context;
-		// NOTE: The destruction order of captured component is significant.
-		//! \since build 821
-		//@{
-		mutable Reducer Next;
-		Reducer Current;
-
-		Action(ContextNode& ctx, Reducer& cur, Reducer& next)
-			: Context(ctx), Next(std::move(next)), Current(std::move(cur))
-		{}
-		//@}
-		// XXX: Copy is not intended used directly, but for well-formness.
-		DefDeCopyMoveCtor(Action)
-
-		DefDeMoveAssignment(Action)
-
-		ReductionStatus
-		operator()() const
-		{
-			RelaySwitched(Context, std::move(Next));
-			return Current();
-		}
-	};
-
-	return cur ? Action(ctx, cur, next) : std::move(next);
-}
-
-ReductionStatus
-RelayNext(ContextNode& ctx, Reducer&& cur, Reducer&& next)
-{
-	ctx.SetupTail(ComposeActions(ctx, std::move(cur), std::move(next)));
-	return ReductionStatus::Retrying;
 }
 
 } // namespace NPL;

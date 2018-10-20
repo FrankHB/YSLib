@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4024
+\version r4055
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2018-10-12 03:04 +0800
+	2018-10-20 15:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -200,10 +200,10 @@ Reduce(TermNode&, ContextNode&);
 
 /*!
 \brief 再次规约。
+\return ReductionStatus::Partial 。
 \sa ReduceOnce
 \sa RelayNext
 \sa RelaySwitchedUnchecked
-\return ReductionStatus::Retrying
 \since build 807
 
 确保再次 Reduce 调用并返回要求重规约的结果。
@@ -242,7 +242,7 @@ inline PDefH(void, ReduceArguments, TermNode& term, ContextNode& ctx)
 /*!
 \brief 规约并检查成功：等效调用 Reduce 并检查结果直至不需重规约。
 \note 支持尾调用优化，不直接使用 CheckedReduceWith 和 Reduce 。
-\return ReductionStatus::Retrying 。
+\return ReductionStatus::Partial 。
 \sa CheckedReduceWith
 \sa Reduce
 \since build 817
@@ -354,7 +354,7 @@ ReduceOrdered(TermNode&, ContextNode&);
 /*!
 \brief 移除容器第一个子项到指定迭代器的项后规约。
 \pre 断言：参数指定的上下文中的尾动作为空。
-\return ReductionStatus::Retrying
+\return ReductionStatus::Partial 。
 \note 按语言规范，子项规约顺序未指定。
 \sa ReduceAgain
 \since build 733
@@ -420,6 +420,38 @@ TransformForSeparatorRecursive(TermNode&&, const ValueObject&,
 YF_API ReductionStatus
 ReplaceSeparatedChildren(TermNode&, const ValueObject&, const ValueObject&);
 //@}
+
+
+/*!
+\brief 续延。
+\warning 非虚析构。
+\since build 841
+\todo 支持一等续延捕获。
+*/
+class YF_API Continuation
+{
+public:
+	ContextHandler Handler;
+	YSLib::lref<TermNode> Term;
+	YSLib::lref<ContextNode> Context;
+
+	template<typename _func>
+	Continuation(_func&& handler, TermNode& term, ContextNode& ctx)
+		: Handler(yforward(handler)), Term(term), Context(ctx)
+	{}
+
+	DefDeCopyMoveCtorAssignment(Continuation)
+
+	friend PDefHOp(bool, ==, const Continuation& x, const Continuation& y)
+		ynothrow
+		ImplRet(ystdex::ref_eq<>()(x, y))
+
+	PDefHOp(ReductionStatus, (), ) const
+		ImplRet(Handler(Term, Context))
+
+	friend DefSwap(ynothrow, Continuation, swap(_x.Handler, _y.Handler),
+		ystdex::swap_dependent(_x.Context, _y.Context))
+};
 
 
 //! \since build 751
@@ -687,7 +719,7 @@ YF_API ReductionStatus
 EvaluateDelayed(TermNode&);
 /*!
 \brief 求值指定的延迟求值项。
-\return ReductionStatus::Retrying 。
+\return ReductionStatus::Partial 。
 \since build 761
 
 提升指定的延迟求值项并规约。
@@ -943,6 +975,7 @@ TryLoadSource(REPLContext& context, const char* name, _tParams&&... args)
 /*!
 \brief NPLA1 语法形式对应的功能实现。
 \pre 除非另行指定支持保存当前动作，若存在子项，关联的上下文中的尾动作为空。
+\note 提供的操作用于实现操作子或应用子底层的操作子。
 \since build 732
 */
 namespace Forms

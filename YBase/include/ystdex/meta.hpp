@@ -11,13 +11,13 @@
 /*!	\file meta.hpp
 \ingroup YStandardEx
 \brief 通用元编程设施。
-\version r1577
+\version r1581
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:28 +0800
 \par 修改时间:
-	2018-08-17 03:55 +0800
+	2018-10-18 19:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -602,11 +602,11 @@ struct is_decomposable<_gOp<_types...>> : true_
 
 
 /*!
-\brief 判断指定类型是否已退化。
-\since build 529
+\brief 判断指定类型是否已退化为指定类型。
+\since build 841
 */
-template<typename _type>
-struct is_decayed : is_same<decay_t<_type>, _type>
+template<typename _type, typename _tTo = _type>
+struct is_decayed : is_same<decay_t<_type>, _tTo>
 {};
 
 
