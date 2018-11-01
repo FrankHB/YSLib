@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2018 年度。
-\version r434
+\version r499
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2018-02-27 22:36:36 +0800
 \par 修改时间:
-	2018-10-16 05:31 +0800
+	2018-10-28 18:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -412,6 +412,71 @@ Last reduction status interaction has been simplified in thunked code of NPLA an
 	Note rewriting last status is unavoidable for thunked code even the reducer does not always relies on the result.
 		Because there is no simple way to know what is the last status when it is needed in an asynchronous action, the last status has to be always kept and updated in time.
 		This is true even when it can be predicated statically about which of the asynchronous actions need to use the previous status.
+Retionale of reductions in NPLA1 (esp. implementation of 'A1::ReduceOnce') is restated here for clarity.
+	Reductions implements evaluations.
+		Some are underlying reductions for evaluation in one-to-one mapping style, with a spicific term.
+		Others are hidden from evaluations, namely so-called "admistrative", provided by actions, i.e. reducers in NPLA.
+			Reducers can be formed by evaluation passes provided in NPLA1 and hidden terms.
+			Reducers can be formed from handlers not related to any concrete evaluations in the sense of the object language.
+		Since an evaluation reduction sticks on the same term so when retried, so it is safe to skip remained administrative reductions.
+	If reducible, the current action should have been properly set or cleared.
+	In general, the reduction status cannot be cleared immediately because no simple way to guarantee the current action is the last one for an evaluation rather of administrative merely by the status.
+	'ContextNode::Current' needs to be exposed to allow capture of current continuation.
+	The status as a returning value of an action would inform propably existed enclosing invoker to retry a new turn of evaluation reductions if the current action is cleared.
+		Otherwise it is to be ignored as per the condition of enclosing rewriting loop.
+			Typically the loop is provided by a trampoline of synchronous caller, or top-level enclosing loop in NPLA context.
+		The invoker of the action is either synchrnous or asynchrnous, either in evaluation or of admistrative.
+	The returning value cannot be handled just (as the enclosed operation) by unconditionally retrying some specific operation, thus it reflects the control of administrative reductions.
+	The status 'ReductionStatus::Retrying' indicates a request to skip the all remained administrative reductions.
+		The skip is treated as attempt to switch to a new action, which should be in turn already properly set or cleared as the current action.
+		'ReductionStatus::Retrying' can be the result of the last reduction derived from a call of 'A1::ReduceAgain'.
+	For thunked (asynchronous) calls, both evaluation and admistrative reductions need to support continuation capture.
+		There are several differences.
+			As mentioned, the continuation for evaluations are directly capturable via the current action (i.e. 'ContextNode::Current'), but administrative ones are not.
+			The continuation of an administrative reduction does not always expose a parmeter to be passed to support first-class continuation invocation.
+			The boundary of actions is implied differently.
+				In the evaluation case, it is addressed by the separation of current action and delimited actions in the context.
+			The implementation of 'A1::ReduceOnce' does not use deleimited actions.
+				The purpose is to avoid need of unwinding which introduce the necessity of delimited frame marks and frame walking in delimieted actions.
+					Even this may be faster when properly implemented.
+			Delimited actions are reserved to control primitives the in object language.
+				For instance, "shift" and "reset" operations. See http://hjemmesider.diku.dk/~andrzej/papers/AC.ps.gz.
+				They are not implemented yet.
+Options of "strip" operation for linking has been modified to be saner.
+	The command line option "-s" is only effective in linking stage of both G++ and Clang++.
+		See https://gcc.gnu.org/onlinedocs/gcc/Link-Options.html#Link-Options.
+		See also https://clang.llvm.org/docs/ClangCommandLineReference.html#linker-flags.
+	When command line option "-c" exists, the compiler driver does not link.
+		See https://gcc.gnu.org/onlinedocs/gcc/Overall-Options.html#Overall-Options.
+		See also https://clang.llvm.org/docs/ClangCommandLineReference.html.
+		G++ silently accepts "-s" as a compiler option Clang++ complains with warning [-Wunused-command-line-argument] if '-s' is specified in this case.
+		To eliminate the warning, "-s" is not used for compiler option now.
+			This seems also better for logical reasons.
+		The command line option "-Wl,-s" is also valid for linking stage.
+		The command line option "-s" is suspected to suppress relocation tables and it would interfere ASLR, but this does not matter currently.
+			See https://stackoverflow.com/questions/14175040/effects-of-removing-all-symbol-table-and-relocation-information-from-an-executab.
+			Support of additional command line options for ASLR ("-fpie", "-pie", etc.) are not provided by the scripts yet and they would not be rely on existence of "-s".
+		So now strip command line option for compiler (defaulted as "-s") is removed from the build scripts.
+			The linker command line option is preserved.
+Context type of NPLA has been modified.
+	'ContextNode' is now a polymorphic base class.
+		'A1::ContextState' derived from it is for NPLA1.
+			Passes previously in 'ContextNode' are also moved to 'A1::ContextState'.
+		The separation serves better in SoC(Separation of Concers), and with 'ystdex::polymorphic_downcast' this actually perform better.
+	New current state of next to-be-called term reference is provided in 'A1::ContextState', to have better support of first-class continuations.
+		'ContextState::SetNextTermRef' is required be called in one of following cases:
+			It is before list or leaf passes (in 'A1::ReduceOnce').
+			It is before some other evaluation of subexpressions changing the active term being evaluated and the evaluation is allowed to be captured as a continuation in the object language.
+			It is immediately after all actions of a non-tail evaluation.
+				When following a tail call immediately, it can omit the operation since the reference is always overwritten later, if used.
+		Then the called 'A1::Continuation::operator()' can read saved active term reference by calling 'ContextState::GetNextTermRef'.
+The MSVC-specific attribute '__declspec(novtable)' has been supported in 'ydef.h' as 'YB_ATTR_novtable'.
+	See $2013-09 report.impl for previous analysis.
+		The requirements has been loosed to be more accurate on behavior.
+	This is also supported in Clang++ since version 3.7, see http://releases.llvm.org/3.7.0/tools/clang/docs/AttributeReference.html.
+		Now this would be ignored if for non-Microsoft ABI, see http://lists.llvm.org/pipermail/cfe-commits/Week-of-Mon-20150720/133747.html.
+	It is considered that there can be a better name to 'vtable' in 'YB_ATTR_novtable' as it has been exposed too much implementation details, but nothing clearer is found yet.
+	Use of the attribute will be adopted in future in YSLib code, notably, for YBase base classes and YFramework interface types.
 
 ////
 

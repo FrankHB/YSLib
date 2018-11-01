@@ -11,13 +11,13 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r770
+\version r783
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2018-08-27 05:24 +0800
+	2018-10-27 20:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,6 +67,20 @@
 #		define YB_Has_optional 2
 #	endif
 #endif
+
+/*!
+\brief \<optional\> 特性测试宏。
+\see WG21 P0941R2 2.2 。
+\see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
+\since build 842
+*/
+//@{
+#ifndef __cpp_lib_optional
+#	if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201606) || __cplusplus >= 201606L
+#		define __cpp_lib_optional 201606L
+#	endif
+#endif
+//@}
 
 namespace ystdex
 {

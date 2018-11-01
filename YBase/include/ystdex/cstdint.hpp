@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型和相关扩展操作。
-\version r419
+\version r587
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2018-09-03 18:38 +0800
+	2018-10-30 12:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_cstdint_hpp_
 #define YB_INC_ystdex_cstdint_hpp_ 1
 
-#include "iterator_op.hpp" // for CHAR_BIT, size_t_, size_t, make_signed_t,
-//	make_unsigned_t, std::int64_t, std::uint64_t, is_signed, _t, common_type,
+#include "iterator_op.hpp" // for CHAR_BIT, size_t_, make_signed, make_unsigned,
+//	size_t, std::int64_t, std::uint64_t, is_signed, _t, common_type,
 //	cond_t, and_, is_unsigned, bool_, yconstraint, is_undereferenceable,
 //	ystdex::make_reverse_iterator;
 #include <limits>
@@ -256,10 +256,193 @@ struct modular_arithmetic
 \since build 440
 */
 template<typename _type1, typename _type2>
-struct have_same_modulo : bool_<uintmax_t(modular_arithmetic<
-	_type1>::value) != 0 && uintmax_t(modular_arithmetic<_type1>::value)
-	== uintmax_t(modular_arithmetic<_type2>::value)>
+struct have_same_modulo : bool_<std::uintmax_t(modular_arithmetic<
+	_type1>::value) != 0 && std::uintmax_t(modular_arithmetic<_type1>::value)
+	== std::uintmax_t(modular_arithmetic<_type2>::value)>
 {};
+
+
+//! \since build 842
+//@{
+//! \brief 判断无符号整数是否为 2 的幂。
+YB_ATTR_nodiscard yconstfn bool
+is_power_of_2(std::uintmax_t n) ynothrow
+{
+	return n != 0 && (n & (n - 1)) == 0;
+}
+
+//! \since build 842
+namespace details
+{
+
+YB_ATTR_nodiscard YB_ATTR(always_inline) inline std::uintmax_t
+floor_lb_shift(std::uintmax_t n, true_) ynothrow
+{
+	return n >> 1;
+}
+YB_ATTR_nodiscard YB_ATTR(always_inline) inline std::uintmax_t
+floor_lb_shift(std::uintmax_t n, false_) ynothrow
+{
+	return (n >> 1) + (n & 1 & std::uintmax_t(n != 1));
+}
+
+template<size_t _vN, typename = enable_if_t<_vN != 32 && _vN != 64>>
+YB_ATTR_nodiscard inline size_t
+floor_lb_w(std::uintmax_t n, size_t_<_vN>) ynothrow
+{
+	yconstraint(n != 0);
+
+	// NOTE: This is like %is_power_of_2, but 0 is already excluded.
+	yconstexpr const bool is_pow_2((_vN & (_vN - 1)) == 0);
+
+	size_t res(0);
+	std::uintmax_t shifted(floor_lb_shift(_vN, bool_<is_pow_2>()));
+
+	while(shifted != 0)
+	{
+		const size_t tmp(n >> shifted);
+
+		if(tmp != 0)
+			yunseq(res += shifted, n = tmp);
+		shifted = floor_lb_shift(shifted, bool_<is_pow_2>());
+	}
+	return res;
+}
+// NOTE: See http://stackoverflow.com/questions/11376288/fast-computing-of-log2-for-64-bit-integers.
+//! \pre <tt>n != 0</tt> 。
+YB_ATTR_nodiscard inline size_t
+floor_lb_w(std::uint32_t n, size_t_<32>) ynothrow
+{
+	static yconstexpr const size_t deBruijn_bit_pos[32]{
+		0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30,
+		8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31};
+
+	n |= n >> 1;
+	n |= n >> 2;
+	n |= n >> 4;
+	n |= n >> 8;
+	n |= n >> 16;
+	return deBruijn_bit_pos[std::uint32_t(n * 0x07C4ACDDU) >> 27];
+}
+//! \pre <tt>n != 0</tt> 。
+YB_ATTR_nodiscard inline size_t
+floor_lb_w(std::uint64_t n, size_t_<64>) ynothrow
+{
+	static yconstexpr const size_t deBruijn_bit_pos[64]{
+		63,  0, 58,  1, 59, 47, 53,  2,
+		60, 39, 48, 27, 54, 33, 42,  3,
+		61, 51, 37, 40, 49, 18, 28, 20,
+		55, 30, 34, 11, 43, 14, 22,  4,
+		62, 57, 46, 52, 38, 26, 32, 41,
+		50, 36, 17, 19, 29, 10, 13, 21,
+		56, 45, 25, 31, 35, 16,  9, 12,
+		44, 24, 15,  8, 23,  7,  6,  5};
+
+    n |= n >> 1;
+    n |= n >> 2;
+    n |= n >> 4;
+    n |= n >> 8;
+    n |= n >> 16;
+    n |= n >> 32;
+	return deBruijn_bit_pos[std::uint64_t((n - (n >> 1))
+		* 0x07EDD5E59A4E28C2ULL) >> 58];
+}
+
+#if YB_IMPL_GNUCPP >= 30400 || (__has_builtin(__builtin_clz) \
+	&& __has_builtin(__builtin_clzl) && __has_builtin(__builtin_clzll))
+#	define YB_Impl_has_builtin_clz true
+// TODO: Extract %builtin_ciz_dispatch to some public header.
+template<typename _type>
+struct builtin_clz_dispatch
+{
+	static_assert(is_unsigned<_type>(), "Unsupport type found.");
+
+	static inline size_t
+	call(_type n) ynothrowv
+	{
+		yconstraint(n != 0);
+		details::floor_lb_w(n, size_t_<sizeof(_type) * CHAR_BIT>());
+	}
+};
+
+template<>
+struct builtin_clz_dispatch<unsigned long long>
+{
+	//! \pre <tt>n != 0</tt> 。
+	YB_ATTR_nodiscard YB_ATTR(always_inline) static inline size_t
+	call(unsigned long long n) ynothrow
+	{
+		yconstraint(n != 0);
+		return size_t(__builtin_clzll(n));
+	}
+};
+
+template<>
+struct builtin_clz_dispatch<unsigned long>
+{
+	//! \pre <tt>n != 0</tt> 。
+	YB_ATTR_nodiscard YB_ATTR(always_inline) static inline size_t
+	call(unsigned long n) ynothrow
+	{
+		yconstraint(n != 0);
+		return size_t(__builtin_clzl(n));
+	}
+};
+
+template<>
+struct builtin_clz_dispatch<unsigned>
+{
+	//! \pre <tt>n != 0</tt> 。
+	YB_ATTR_nodiscard YB_ATTR(always_inline) static inline size_t
+	call(unsigned n) ynothrow
+	{
+		yconstraint(n != 0);
+		return size_t(__builtin_clz(n));
+	}
+};
+#endif
+
+//! \pre <tt>n != 0</tt> 。
+YB_ATTR_nodiscard inline size_t
+floor_lb(std::uintmax_t n) ynothrow
+{
+#if YB_Impl_has_builtin_clz
+	return sizeof(n) * CHAR_BIT - 1
+		- builtin_clz_dispatch<std::uintmax_t>::call(n);
+#else
+	return floor_lb_w(n, size_t_<sizeof(n * CHAR_BIT)>());
+	// NOTE: Intrinsics provided by implementation is not allowed in YStandard
+	//	yet. Hopefully this can be recognized as a common pattern and optimized.
+	// TODO: Detect intrinsics without machine-dependent macros for Microsoft
+	//	VC++?
+	// TODO: Optimize without builtins.
+#endif
+}
+//@}
+#undef YB_Impl_has_builtin_clz
+
+} // namespace details;
+
+/*!
+\brief 计算 2 为底数的无符号整数的向下取整的对数值。
+\pre <tt>n != 0</tt> 。
+*/
+YB_ATTR_nodiscard inline size_t
+floor_lb(std::uintmax_t n) ynothrow
+{
+	return details::floor_lb(n);
+}
+
+/*!
+\brief 计算 2 为底数的无符号整数向上取整的的对数值。
+\pre <tt>n > 1</tt> 。
+*/
+YB_ATTR_nodiscard inline size_t
+ceiling_lb(std::uintmax_t n) ynothrow
+{
+	return 1 + details::floor_lb(n - 1);
+}
+//@}
 
 
 //! \pre 静态断言：整数宽度非零且为 byte 类型宽度的整数倍。

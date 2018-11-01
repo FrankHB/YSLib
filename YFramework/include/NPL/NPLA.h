@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4235
+\version r4317
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-10-19 02:36 +0800
+	2018-10-25 14:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,9 @@
 
 #include "YModules.h"
 #include YFM_NPL_SContext // for NPLTag, ValueNode, TermNode, string,
-//	LoggedEvent, ystdex::isdigit, ystdex::equality_comparable, ystdex::lref,
-//	shared_ptr, ystdex::type_info, weak_ptr, ystdex::get_equal_to,
-//	ystdex::exchange;
+//	LoggedEvent, ystdex::isdigit, YSLib::lref, ystdex::any,
+//	ystdex::equality_comparable, shared_ptr, ystdex::type_info, weak_ptr,
+//	ystdex::get_equal_to, ystdex::exchange;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include YFM_YSLib_Core_YEvent // for ystdex::indirect, ystdex::fast_any_of,
 //	YSLib::GHEvent, YSLib::GEvent, YSLib::GCombinerInvoker,
@@ -59,6 +59,8 @@ using YSLib::NodeLiteral;
 //! \since build 788
 //@{
 using YSLib::enable_shared_from_this;
+//! \since build 842
+using YSLib::lref;
 using YSLib::make_shared;
 using YSLib::make_weak;
 using YSLib::observer_ptr;
@@ -856,7 +858,8 @@ IsLValueTerm(const TermNode&) ynothrow;
 class YF_API TermReference
 {
 private:
-	ystdex::lref<TermNode> term_ref;
+	//! \since build 842
+	lref<TermNode> term_ref;
 	/*!
 	\brief 指定是否以引用值初始化。
 	\since build 828
@@ -1249,14 +1252,14 @@ inline PDefH(void, LiftDelayed, TermNode& term, DelayedTerm& tm)
 \since build 685
 */
 inline PDefH(void, LiftFirst, TermNode& term)
-	ImplExpr(IsBranch(term), LiftTerm(term, Deref(term.begin())))
+	ImplExpr(AssertBranch(term), LiftTerm(term, Deref(term.begin())))
 
 /*!
 \brief 提升末项：使用最后一个子项替换项的内容。
 \since build 696
 */
 inline PDefH(void, LiftLast, TermNode& term)
-	ImplExpr(IsBranch(term), LiftTerm(term, Deref(term.rbegin())))
+	ImplExpr(AssertBranch(term), LiftTerm(term, Deref(term.rbegin())))
 //@}
 
 
@@ -1314,6 +1317,23 @@ ReduceToListValue(TermNode&) ynothrow;
 
 
 /*!
+\brief 规约闭包结果处理：提升结果。
+\return 根据规约后剩余项确定的规约结果。
+\sa CheckNorm
+\sa LiftToReturn
+\sa RegularizeTerm
+\since build 841
+
+对规约闭包结果进行处理，依次进行以下操作：
+调用 RegularizeTerm 根据第二参数指定的规约结果对项进行正规化；
+调用 LiftToReturn 提升最外一级的引用项后递归提升间接值；
+最后调用 CheckNorm 确定返回值。
+*/
+YF_API ReductionStatus
+ReduceForClosureResult(TermNode&, ReductionStatus);
+
+
+/*!
 \since build 807
 \note 一般第一参数用于指定被合并的之前的规约结果，第二参数指定用于合并的结果。
 \return 合并后的规约结果。
@@ -1368,60 +1388,6 @@ struct PassesCombiner
 };
 
 
-//! \since build 782
-class ContextNode;
-
-
-/*!
-\brief 规约闭包结果处理：提升结果。
-\return 根据规约后剩余项确定的规约结果。
-\sa CheckNorm
-\sa LiftToReturn
-\sa RegularizeTerm
-\since build 841
-
-对规约闭包结果进行处理，依次进行以下操作：
-调用 RegularizeTerm 根据第二参数指定的规约结果对项进行正规化；
-调用 LiftToReturn 提升最外一级的引用项后递归提升间接值；
-最后调用 CheckNorm 确定返回值。
-*/
-YF_API ReductionStatus
-ReduceForClosureResult(TermNode&, ReductionStatus);
-
-
-/*!
-\note 结果表示判断是否应继续规约。
-\sa PassesCombiner
-*/
-//@{
-//! \brief 一般合并遍。
-template<typename... _tParams>
-using GPasses = YSLib::GEvent<ReductionStatus(_tParams...),
-	YSLib::GCombinerInvoker<ReductionStatus, PassesCombiner>>;
-//! \brief 项合并遍。
-using TermPasses = GPasses<TermNode&>;
-//! \brief 求值合并遍。
-using EvaluationPasses = GPasses<TermNode&, ContextNode&>;
-/*!
-\brief 字面量合并遍。
-\pre 字符串参数的数据指针非空。
-\since build 738
-*/
-using LiteralPasses = GPasses<TermNode&, ContextNode&, string_view>;
-//@}
-
-
-//! \brief 作用域守卫类型。
-using Guard = ystdex::any;
-/*!
-\brief 作用域守卫遍：用于需在规约例程的入口和出口关联执行的操作。
-\todo 支持迭代使用旧值。
-*/
-using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
-	YSLib::GDefaultLastValueInvoker<Guard>>;
-//@}
-
-
 /*!
 \brief 环境列表。
 \since build 798
@@ -1450,7 +1416,7 @@ public:
 	名称解析的返回结果是环境中的绑定目标的对象指针和直接保存绑定目标的环境的引用。
 	*/
 	using NameResolution
-		= pair<observer_ptr<ValueNode>, ystdex::lref<const Environment>>;
+		= pair<observer_ptr<ValueNode>, lref<const Environment>>;
 
 private:
 	/*!
@@ -1751,7 +1717,6 @@ public:
 
 /*!
 \brief 上下文节点。
-\warning 非虚析构。
 \since build 782
 */
 class YF_API ContextNode
@@ -1765,10 +1730,6 @@ private:
 	shared_ptr<Environment> p_record{make_shared<Environment>()};
 
 public:
-	EvaluationPasses EvaluateLeaf{};
-	EvaluationPasses EvaluateList{};
-	LiteralPasses EvaluateLiteral{};
-	GuardPasses Guard{};
 	/*!
 	\brief 当前动作。
 	\note 为便于确保资源释放和异常安全，不使用 ystdex::one_shot 。
@@ -1807,6 +1768,13 @@ public:
 	\since build 811
 	*/
 	ContextNode(ContextNode&&) ynothrow;
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 842
+	*/
+	virtual
+	~ContextNode();
+
 	DefDeCopyMoveAssignment(ContextNode)
 
 	//! \since build 788
@@ -1881,19 +1849,6 @@ public:
 	*/
 	ReductionStatus
 	Rewrite(Reducer);
-
-	/*!
-	\brief 构造作用域守卫并重写项。
-	\sa Guard
-	\sa Rewrite
-	\since build 806
-
-	重写逻辑包括以下顺序的步骤：
-	调用 ContextNode::Guard 进行必要的上下文重置；
-	调用 Rewrite 。
-	*/
-	ReductionStatus
-	RewriteGuarded(TermNode&, Reducer);
 	//@}
 
 	/*!
@@ -1963,10 +1918,7 @@ public:
 		ImplRet(ShareRecord())
 
 	friend PDefH(void, swap, ContextNode& x, ContextNode& y) ynothrow
-		ImplExpr(swap(x.p_record, y.p_record), swap(x.EvaluateLeaf,
-			y.EvaluateLeaf), swap(x.EvaluateList, y.EvaluateList),
-			swap(x.EvaluateLiteral, y.EvaluateLiteral), swap(x.Guard, y.Guard),
-			swap(x.Trace, y.Trace))
+		ImplExpr(swap(x.p_record, y.p_record), swap(x.Trace, y.Trace))
 	//@}
 };
 
@@ -2106,7 +2058,8 @@ ResolveEnvironment(const TermNode& term);
 */
 struct EnvironmentSwitcher
 {
-	ystdex::lref<ContextNode> Context;
+	//! \since build 842
+	lref<ContextNode> Context;
 	mutable shared_ptr<Environment> SavedPtr;
 
 	EnvironmentSwitcher(ContextNode& ctx,
@@ -2138,7 +2091,7 @@ struct GComposedAction final
 	// NOTE: Lambda is not used to avoid unspecified destruction order of
 	//	captured component and better performance (compared to the case of
 	//	%pair used to keep the order).
-	YSLib::lref<ContextNode> Context;
+	lref<ContextNode> Context;
 	// NOTE: The destruction order of captured component is significant.
 	//! \since build 821
 	//@{

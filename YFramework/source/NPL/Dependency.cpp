@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2112
+\version r2116
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2018-09-30 12:43 +0800
+	2018-10-25 13:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -271,10 +271,9 @@ CopyEnvironment(TermNode& term, ContextNode& ctx)
 }
 //@}
 
-//! \since build 834
-//@{
+//! \since build 842
 void
-LoadBasicProcessing(ContextNode& ctx)
+LoadBasicProcessing(ContextState& ctx)
 {
 	ctx.EvaluateLiteral
 		= [](TermNode& term, ContextNode&, string_view id) -> ReductionStatus{
@@ -323,6 +322,8 @@ LoadBasicProcessing(ContextNode& ctx)
 	};
 }
 
+//! \since build 834
+//@{
 namespace Ground
 {
 

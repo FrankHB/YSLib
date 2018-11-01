@@ -166,7 +166,8 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 	$env-de! C_CXXFLAGS_GC "-fdata-sections -ffunction-sections";
 	$env-de! LDFLAGS_GC
 		($if (eqv? env-os "OS_X") "-Wl,--dead-strip" "-Wl,--gc-sections");
-	$env-de! C_CXXFLAGS_STRIP "-s";
+	"NOTE", "See https://gcc.gnu.org/onlinedocs/gcc/Link-Options.html#Link-Options,",
+		"also https://clang.llvm.org/docs/ClangCommandLineReference.html#linker-flags.";
 	$env-de! LDFLAGS_STRIP "-s";
 	"#", "-Wl,--print-gc-sections";
 	$unless (compile-ok-silent env-os "int main(){}" CXX
@@ -176,7 +177,7 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 		$redef! LDFLAGS_GC ""
 	);
 	$env-de! C_CXXFLAGS_PIC $if (win32? env-os) "" "-fPIC";
-	$env-de! C_CXXFLAGS_COMMON cons-cmd "-pipe" C_CXXFLAGS_GC C_CXXFLAGS_STRIP
+	$env-de! C_CXXFLAGS_COMMON cons-cmd "-pipe" C_CXXFLAGS_GC
 		(safeenv-get "C_CXXFLAGS_ARCH") "-pedantic-errors";
 	$env-de! C_CXXFLAGS_OPT_LV "-O3";
 	$env-de! C_CXXFLAGS_WARNING cons-cmd "-Wall" "-Wcast-align" "-Wdeprecated"

@@ -54,6 +54,7 @@
     <ClInclude Include="include\ystdex\iterator_trait.hpp" />
     <ClInclude Include="include\ystdex\map.hpp" />
     <ClInclude Include="include\ystdex\memory.hpp" />
+    <ClInclude Include="include\ystdex\memory_resource.h" />
     <ClInclude Include="include\ystdex\meta.hpp" />
     <ClInclude Include="include\ystdex\mixin.hpp" />
     <ClInclude Include="include\ystdex\operators.hpp" />
@@ -96,13 +97,13 @@
     <ClCompile Include="source\ystdex\cstring.cpp" />
     <ClCompile Include="source\ystdex\cwctype.cpp" />
     <ClCompile Include="source\ystdex\exception.cpp" />
+    <ClCompile Include="source\ystdex\memory_resource.cpp" />
     <ClCompile Include="source\ystdex\optional.cpp" />
     <ClCompile Include="source\ystdex\tree.cpp" />
     <ClCompile Include="source\ytest\test.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0D1961C7-0E8F-47CD-A2FB-D7920A469E51}</ProjectGuid>
-    <Keyword>MakeFileProj</Keyword>
     <ProjectName>YBase</ProjectName>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -130,26 +131,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">
-    <NMakePreprocessorDefinitions>__COUNTER__;__GNUC__;__GNUC_MINOR__;__GNUC_PATCHLEVEL__;__GNUG__;__STRICT_ANSI__;__BASE_FILE__;__INCLUDE_LEVEL__;__ELF__;__VERSION__;__NO_INLINE__;__GNUC_STDC_INLINE__;__CHAR_UNSIGNED__;__WCHAR_UNSIGNED__;__REGISTER_PREFIX__;__USER_LABEL_PREFIX__;__SIZE_TYPE__;__PTRDIFF_TYPE__;__WCHAR_TYPE__;__WINT_TYPE__;__INTMAX_TYPE__;__UINTMAX_TYPE__;__SIG_ATOMIC_TYPE__;__INT8_TYPE__;__INT16_TYPE__;__INT32_TYPE__;__INT64_TYPE__;__UINT8_TYPE__;__UINT16_TYPE__;__UINT32_TYPE__;__UINT64_TYPE__;__INT_LEAST8_TYPE__;__INT_LEAST16_TYPE__;__INT_LEAST32_TYPE__;__INT_LEAST64_TYPE__;__UINT_LEAST8_TYPE__;__UINT_LEAST16_TYPE__;__UINT_LEAST32_TYPE__;__UINT_LEAST64_TYPE__;__INT_FAST8_TYPE__;__INT_FAST16_TYPE__;__INT_FAST32_TYPE__;__INT_FAST64_TYPE__;__UINT_FAST8_TYPE__;__UINT_FAST16_TYPE__;__UINT_FAST32_TYPE__;__UINT_FAST64_TYPE__;__INTPTR_TYPE__;__UINTPTR_TYPE__;__CHAR_BIT__;__SCHAR_MAX__;__WCHAR_MAX__;__SHRT_MAX__;__INT_MAX__;__LONG_MAX__;__LONG_LONG_MAX__;__WINT_MAX__;__SIZE_MAX__;__PTRDIFF_MAX__;__INTMAX_MAX__;__UINTMAX_MAX__;__SIG_ATOMIC_MAX__;__INT8_MAX__;__INT16_MAX__;__INT32_MAX__;__INT64_MAX__;__UINT8_MAX__;__UINT16_MAX__;__UINT32_MAX__;__UINT64_MAX__;__INT_LEAST8_MAX__;__INT_LEAST16_MAX__;__INT_LEAST32_MAX__;__INT_LEAST64_MAX__;__UINT_LEAST8_MAX__;__UINT_LEAST16_MAX__;__UINT_LEAST32_MAX__;__UINT_LEAST64_MAX__;__INT_FAST8_MAX__;__INT_FAST16_MAX__;__INT_FAST32_MAX__;__INT_FAST64_MAX__;__UINT_FAST8_MAX__;__UINT_FAST16_MAX__;__UINT_FAST32_MAX__;__UINT_FAST64_MAX__;__INTPTR_MAX__;__UINTPTR_MAX__;__WCHAR_MIN__;__WINT_MIN__;__SIG_ATOMIC_MIN__;__INT8_C;__INT16_C;__INT32_C;__INT64_C;__UINT8_C;__UINT16_C;__UINT32_C;__UINT64_C;__INTMAX_C;__UINTMAX_C;__SIZEOF_INT__;__SIZEOF_LONG__;__SIZEOF_LONG_LONG__;__SIZEOF_SHORT__;__SIZEOF_POINTER__;__SIZEOF_FLOAT__;__SIZEOF_DOUBLE__;__SIZEOF_LONG_DOUBLE__;__SIZEOF_SIZE_T__;__SIZEOF_WCHAR_T__;__SIZEOF_WINT_T__;__SIZEOF_PTRDIFF_T__;__BYTE_ORDER__;__ORDER_LITTLE_ENDIAN__;__ORDER_BIG_ENDIAN__;__ORDER_PDP_ENDIAN__;__FLOAT_WORD_ORDER__;__DEPRECATED;__EXCEPTIONS;__GXX_RTTI;__GXX_EXPERIMENTAL_CXX0X__;__GXX_WEAK__;__TIMESTAMP__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath>$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.9.2\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.9.2;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.9.2\arm-none-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
-    <NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
-    <NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
-    <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
-    <NMakeBuildCommandLine>make -j -r BUILD=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make -j -r BUILD=$(Configuration) rebuild 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make -j -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
     <IncludePath>$(ProjectDir)include;$(IncludePath)</IncludePath>
     <IntDir>$(SolutionDir)build\Win32\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
-    <NMakePreprocessorDefinitions>NDEBUG;__COUNTER__;__GNUC__;__GNUC_MINOR__;__GNUC_PATCHLEVEL__;__GNUG__;__STRICT_ANSI__;__BASE_FILE__;__INCLUDE_LEVEL__;__ELF__;__VERSION__;__OPTIMIZE__;__GNUC_STDC_INLINE__;__CHAR_UNSIGNED__;__WCHAR_UNSIGNED__;__REGISTER_PREFIX__;__USER_LABEL_PREFIX__;__SIZE_TYPE__;__PTRDIFF_TYPE__;__WCHAR_TYPE__;__WINT_TYPE__;__INTMAX_TYPE__;__UINTMAX_TYPE__;__SIG_ATOMIC_TYPE__;__INT8_TYPE__;__INT16_TYPE__;__INT32_TYPE__;__INT64_TYPE__;__UINT8_TYPE__;__UINT16_TYPE__;__UINT32_TYPE__;__UINT64_TYPE__;__INT_LEAST8_TYPE__;__INT_LEAST16_TYPE__;__INT_LEAST32_TYPE__;__INT_LEAST64_TYPE__;__UINT_LEAST8_TYPE__;__UINT_LEAST16_TYPE__;__UINT_LEAST32_TYPE__;__UINT_LEAST64_TYPE__;__INT_FAST8_TYPE__;__INT_FAST16_TYPE__;__INT_FAST32_TYPE__;__INT_FAST64_TYPE__;__UINT_FAST8_TYPE__;__UINT_FAST16_TYPE__;__UINT_FAST32_TYPE__;__UINT_FAST64_TYPE__;__INTPTR_TYPE__;__UINTPTR_TYPE__;__CHAR_BIT__;__SCHAR_MAX__;__WCHAR_MAX__;__SHRT_MAX__;__INT_MAX__;__LONG_MAX__;__LONG_LONG_MAX__;__WINT_MAX__;__SIZE_MAX__;__PTRDIFF_MAX__;__INTMAX_MAX__;__UINTMAX_MAX__;__SIG_ATOMIC_MAX__;__INT8_MAX__;__INT16_MAX__;__INT32_MAX__;__INT64_MAX__;__UINT8_MAX__;__UINT16_MAX__;__UINT32_MAX__;__UINT64_MAX__;__INT_LEAST8_MAX__;__INT_LEAST16_MAX__;__INT_LEAST32_MAX__;__INT_LEAST64_MAX__;__UINT_LEAST8_MAX__;__UINT_LEAST16_MAX__;__UINT_LEAST32_MAX__;__UINT_LEAST64_MAX__;__INT_FAST8_MAX__;__INT_FAST16_MAX__;__INT_FAST32_MAX__;__INT_FAST64_MAX__;__UINT_FAST8_MAX__;__UINT_FAST16_MAX__;__UINT_FAST32_MAX__;__UINT_FAST64_MAX__;__INTPTR_MAX__;__UINTPTR_MAX__;__WCHAR_MIN__;__WINT_MIN__;__SIG_ATOMIC_MIN__;__INT8_C;__INT16_C;__INT32_C;__INT64_C;__UINT8_C;__UINT16_C;__UINT32_C;__UINT64_C;__INTMAX_C;__UINTMAX_C;__SIZEOF_INT__;__SIZEOF_LONG__;__SIZEOF_LONG_LONG__;__SIZEOF_SHORT__;__SIZEOF_POINTER__;__SIZEOF_FLOAT__;__SIZEOF_DOUBLE__;__SIZEOF_LONG_DOUBLE__;__SIZEOF_SIZE_T__;__SIZEOF_WCHAR_T__;__SIZEOF_WINT_T__;__SIZEOF_PTRDIFF_T__;__BYTE_ORDER__;__ORDER_LITTLE_ENDIAN__;__ORDER_BIG_ENDIAN__;__ORDER_PDP_ENDIAN__;__FLOAT_WORD_ORDER__;__DEPRECATED;__EXCEPTIONS;__GXX_RTTI;__GXX_EXPERIMENTAL_CXX0X__;__GXX_WEAK__;__TIMESTAMP__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath>$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.9.2\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.9.2;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.9.2\arm-none-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
-    <NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
-    <NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
-    <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
-    <NMakeBuildCommandLine>make -j -r BUILD=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make -j -r BUILD=$(Configuration) rebuild 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make -j -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
     <IncludePath>$(ProjectDir)include;$(IncludePath)</IncludePath>
     <IntDir>$(SolutionDir)build\Win32\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
@@ -161,13 +146,8 @@
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
-    <BuildLog>
-      <Path>$(SolutionDir)build\Win32\$(ProjectName)\$(Configuration)\$(MSBuildProjectName).log</Path>
-    </BuildLog>
-    <Lib>
-      <AdditionalOptions>/ignore:4006</AdditionalOptions>
-    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
     <ClCompile>
@@ -177,13 +157,8 @@
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
-    <BuildLog>
-      <Path>$(SolutionDir)build\Win32\$(ProjectName)\$(Configuration)\$(MSBuildProjectName).log</Path>
-    </BuildLog>
-    <Lib>
-      <AdditionalOptions>/ignore:4006</AdditionalOptions>
-    </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
