@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14050
+\version r14176
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2018-08-26 22:38 +0800
+	2018-11-02 03:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,6 +78,8 @@ YB_IMPL_GNUC
 YB_IMPL_MSCPP
 YB_IMPL_GNUCPP
 YB_IMPL_CLANGPP
+#_CRT_SECURE_NO_WARNINGS
+#_SCL_SECURE_NO_WARNINGS
 #__has_attribute(...)
 #__has_builtin(...)
 #__has_cpp_attribute(...)
@@ -114,6 +116,9 @@ YB_ATTR(...)
 YB_ATTR_STD(...)
 YB_ATTR_fallthrough
 YB_ATTR_gnu_printf(...)
+YB_ATTR_maybe_unused
+YB_ATTR_nodiscard
+YB_ATTR_novtable
 YB_ATTR_returns_nonnull
 YB_ALLOCATOR
 YB_ASSUME
@@ -168,6 +173,7 @@ $header Range
 $header Placement
 {
 #YB_Has_optional
+#__cpp_lib_string_view
 }
 $header TypeInfo
 {
@@ -187,6 +193,11 @@ $header Memory
 {
 #__cpp_lib_allocator_traits_is_always_equal
 #__cpp_lib_make_unique
+}
+$header MemoryResource
+{
+#YB_Has_memory_resource
+#__cpp_lib_memory_resource
 }
 $header Functor
 {
@@ -249,6 +260,7 @@ YCL_MinGW32
 $header YCommon
 {
 YCL_Tag_constfn
+YCL_DefPlatformFwdTmpl(_n, _fn)
 YCL_CheckDecl_t(_fn)
 YCL_DeclCheck_t(_fn, _call)
 }
@@ -478,34 +490,34 @@ $dir YBase::YStandardEx
 
 $header Utilities
 {
-	template<typename _type, typename, typename...>
-	inline _type&
-	parameterize_static_object()
-	{
-		static _type obj;
-	}
+template<typename _type, typename, typename...>
+inline _type&
+parameterize_static_object()
+{
+	static _type obj;
+}
 
-	template<typename _type, typename, size_t...>
-	inline _type&
-	parameterize_static_object()
-	{
-		static _type obj;
-	}
+template<typename _type, typename, size_t...>
+inline _type&
+parameterize_static_object()
+{
+	static _type obj;
+}
 
-	class template nifty_counter
+class template nifty_counter
+{
+private:
+	static size_t&
+	get_count() ynothrow
 	{
-	private:
-		static size_t&
-		get_count() ynothrow
-		{
-			ythread size_t count;
-		}
-		static object_type*&
-		get_object_ptr() ynothrow
-		{
-			ythread object_type* ptr;
-		}
-	};
+		ythread size_t count;
+	}
+	static object_type*&
+	get_object_ptr() ynothrow
+	{
+		ythread object_type* ptr;
+	}
+};
 }
 
 } // $dir YBase::YStandardEx;
@@ -519,34 +531,34 @@ $dir YCLib
 $unit YCommon
 {
 #if YCL_DS
-	bool
-	platform_ex::AllowSleep(bool)
-	{
-		static bool bSleepEnabled;
-	}
+bool
+platform_ex::AllowSleep(bool)
+{
+	static bool bSleepEnabled;
+}
 #endif
 }
 
 $unit JNI
 {
-	void
-	JNIBase::EnsureDetachJNIAtThreadExit(::JavaVM&, ::JNIEnv&)
-	{
+void
+JNIBase::EnsureDetachJNIAtThreadExit(::JavaVM&, ::JNIEnv&)
+{
 #if YB_HAS_THREAD_LOCAL
-		ythread JNIBase guard;
+	ythread JNIBase guard;
 #elif YF_Use_POSIXThread
-		static TLSKey key;
+	static TLSKey key;
 #endif
-	}
+}
 }
 $unit XCB
 {
 $unit.impl:
-	shared_ptr<GlobalTable>
-	FetchGlobalTablePtr()
-	{
-		static auto p(make_shared<GlobalTable>());
-	}
+shared_ptr<GlobalTable>
+FetchGlobalTablePtr()
+{
+	static auto p(make_shared<GlobalTable>());
+}
 } // $unit XCB;
 
 } // $dir YCLib;
@@ -559,20 +571,20 @@ $dir Adaptor
 
 $unit YNew
 {
-	MemoryList&
-	GetDebugMemoryList()
-	{
-		static recursive_mutex mtx;
-	}
+MemoryList&
+GetDebugMemoryList()
+{
+	static recursive_mutex mtx;
+}
 }
 
 $unit Image
 {
-	string
-	to_string(const ImageTag&, ImageMetadataModel)
-	{
-		static mutex mtx;
-	}
+string
+to_string(const ImageTag&, ImageMetadataModel)
+{
+	static mutex mtx;
+}
 }
 
 } // $dir Adaptor;
@@ -582,15 +594,32 @@ $dir Core
 
 $header YStorage
 {
-	class template GLocalStaticCache
+class template GLocalStaticCache
+{
+private:
+	static PointerType&
+	GetStaticPtrRef() ynothrow
 	{
-	private:
-		static PointerType&
-		GetStaticPtrRef() ynothrow
-		{
-			static PointerType ptr;
-		}
-	};
+		static PointerType ptr;
+	}
+};
+}
+
+$unit YCoreUtilities
+{
+locked_ptr<ArgumentsVector, recursive_mutex>
+LockCommandArguments()
+{
+	static ArgumentsVector vec;
+	static recursive_mutex mtx;
+}
+
+locked_ptr<CommandCache>
+LockCommandCache()
+{
+	static CommandCache cache;
+	static mutex mtx;
+}
 }
 
 } // $dir Core;
@@ -600,12 +629,12 @@ $dir Service
 
 $header YTimer
 {
-	template<class _tClock = HighResolutionClock>
-	inline typename _tClock::time_point
-	FetchEpoch()
-	{
-		static auto start_time(_tClock::now());
-	}
+template<class _tClock = HighResolutionClock>
+inline typename _tClock::time_point
+FetchEpoch()
+{
+	static auto start_time(_tClock::now());
+}
 }
 
 } // $dir Service;
@@ -615,17 +644,17 @@ $dir UI
 
 $unit YGUI
 {
-	GUIState&
-	FetchGUIState() ynothrow
-	{
-		static GUIState state;
-	}
+GUIState&
+FetchGUIState() ynothrow
+{
+	static GUIState state;
+}
 
-	GUIConfiguration&
-	FetchGUIConfiguration()
-	{
-		static GUIConfiguration conf;
-	}
+GUIConfiguration&
+FetchGUIConfiguration()
+{
+	static GUIConfiguration conf;
+}
 }
 
 } // $dir UI;
@@ -649,9 +678,14 @@ namespace platform
 {
 #if YCL_DS
 $unit.impl:
-	bool bUninitializedTimers;
-	volatile std::uint32_t system_tick;
+bool bUninitializedTimers;
+volatile std::uint32_t system_tick;
 #endif
+Logger&
+FetchCommonLogger()
+{
+	static Logger logger;
+}
 }
 }
 
@@ -719,10 +753,10 @@ class Rect
 
 $header YStorage
 {
-	class template GStaticCache
-	{
-		static PointerType _ptr;
-	};
+class template GStaticCache
+{
+	static PointerType _ptr;
+};
 }
 
 } // $dir Core;
@@ -736,7 +770,7 @@ namespace Timers
 {
 namespace
 {
-	bool NotInitialized;
+bool NotInitialized;
 }
 }
 }
@@ -748,7 +782,7 @@ $dir UI
 
 $header Caret
 {
-	$impl Caret::caret_animation;
+$impl Caret::caret_animation;
 } // $header Caret;
 
 } // $dir UI;
@@ -763,9 +797,13 @@ $header Caret
 // The following indentifier used in arguments of macro 'YB_ATTR' shall not be defined as macros.
 $attr $=
 (
+	always_inline,
 	noreturn,
+	novtable,
 	packed,
-	returns_nonnull
+	returns_nonnull,
+	unused,
+	warn_unused_result
 );
 
 ///

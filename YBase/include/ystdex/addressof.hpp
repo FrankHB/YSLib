@@ -11,13 +11,13 @@
 /*!	\file addressof.hpp
 \ingroup YStandardEx
 \brief 一元操作符 & 和取指针的相关接口。
-\version r198
+\version r199
 \author FrankHB <frankhb1989@gmail.com>
 \since build 660
 \par 创建时间:
 	2015-12-17 10:07:56 +0800
 \par 修改时间:
-	2018-08-17 03:52 +0800
+	2018-10-29 11:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,7 +97,7 @@ Microsoft VC++ 15.7.5 也使用 [[nodiscard]] 。
 #if __cpp_lib_addressof_constexpr >= 201606L
 using std::addressof;
 #else
-#	if __has_builtin(addressof)
+#	if __has_builtin(__builtin_addressof)
 //! \since build 833
 template<typename _type>
 YB_ATTR_nodiscard yconstfn _type*

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r6773
+\version r6942
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-10-20 16:05 +0800
+	2018-11-02 04:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,173 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YDefinition $=
+		(
+			+ "macro %YB_ATTR_novtable",
+			/ "improved macro %YB_ALLOCATOR" $=
+			(
+				+ 'YB_ATTR_nodiscard',
+				+ 'YB_ATTR(restrict)' @ 'YB_IMPL_MSVC >= 1900',
+				/ $doc "clarified intention as per updated GCC documentation"
+					// It should be known '__attribute__((__malloc__))' is \
+						more restrictive than '__declspec(restrict)' since \
+						this also affects contents of storage returned by \
+						design.
+			),
+			/ DLDI "macro %YB_NONNULL" ^ 'YB_ATTR' ~ '__attribute__'
+		),
+		/ %YStandardEx $=
+		(
+			+ "conditionally defined macro %__cpp_lib_optional" @ %Placement,
+				// To be consistent with %__cpp_lib_string_view, this \
+					feature-testing macro is defined even if the header would \
+					be introduced previously.
+			/ %Any $=
+			(
+				(
+				+ $lib $dep_from ("%YB_ATTR_novtable" @ %YDefinition)
+					@ "class %any_ops::holder",
+				/ DLDI "placed 'YB_ATTR(always_inline)' before 'static'"
+					// This is consistent to currently documented rules in \
+						%Documentation.LanguageConvention.
+				),
+				+ "struct %pool_options"
+			),
+			/ %CStandardInteger $=
+			(
+				* $impl "missing 'std::' before 'uintmax_t'"
+					@ "binary type trait %have_same_modulo" $since b440,
+				+ "functions %(is_power_of_2, floor_lb, ceil_lb)"
+			),
+			* $dev "wrong %__has_builtin check for %addressof" @ %AddressOf
+				$since b833,
+			+ %MemoryResource $=
+			(
+				+ "inclusion to using implementation of %std::pmr interface \
+					from Microsoft VC++ 15.8.2",
+				+ "macro %YB_Has_memory_resource";
+				+ "namespace %pmr" $=
+				(
+					+ "inline namespace %cpp2017"
+						@ 'YB_Has_memory_resource == 1'
+						$= (+ "aliases of interface from %std::pmr"),
+					/ @ 'YB_Has_memory_resource != 1' $=
+					(
+						(
+						+ "class %memory_resource" ^ $dep_from
+							("%YB_ATTR_novtable" @ %YDefinition,
+							"%is_power_of_2" @ %CStandardInteger);
+						+ "class template %polymorphic_allocator",
+						+ "functions %(new_delete_resource, \
+							null_memory_resource, set_default_resource, \
+							get_default_resource)"
+						),
+						+ "struct %pool_options"
+					)
+				)
+			)
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				* "assertions not effective" @ "functions %(LiftFirst, \
+					LiftLast)" @ $since b733
+					$= (/ $impl ^ "%AssertBranch" ~ "%IsBranch"),
+				/ @ "class %ContextNode" $=
+				(
+					// See $2018-10 @ %Documentation::Workflow::Annual2018.
+					+ "virtual destructor",
+					(
+					/ "data member %(EvaluateLeaf, EvaluateList, \
+						EvaluateLiteral, Guard), function %RewriteGuarded"
+						>> ("%ContextState" @ %NPLA1);
+					/ $forced "friend function %swap"
+					)
+				),
+				+ 'using YSLib::lref;',
+				(
+				/ "aliases %((TermPasses, EvaluationPasses, LiteralPasses; \
+					GPasses), (GuardPasses; Guard))" >> "namespace %NPL::A1"
+					@ %NPLA1;
+				- $revert(b782) $dev "class name declaration %ContextNode"
+				)
+			),
+			/ %NPLA1 $=
+			(
+				/ DLI "avoided redundant access of last status in the 1st \
+					reduction passes for thunked code",
+				(
+				+ "class %ContextState" $dep_from "%ContextNode::~ContextNode";
+				/ "type" @ "%Root" @ "class %REPLContext" -> "%ContextState"
+					~ "%ContextNode";
+				/ "class %Continuation" $=
+				(
+					/ "%operator()" ^ $dep_from "%ContextState"
+						~ "data member %Term";
+					/ "data member %Term";
+					- $forced "term paramter" @ "constructor"
+				);
+				/ $forced "supported continuation capture" @ "thunked code"
+					^ "%ContextState" $effective @ ("functions %(Reduce, \
+					ReduceAgain, ReduceOnce, Forms::(Eval, EvalRef), \
+					ReduceCheckedClosure, ReduceOrdered, (FormContextHandler, \
+					StrictContextHandler)::operator())",
+					"%operator()" @ "vau handler")
+				),
+				/ "TCO" $=
+				(
+					/ DLDI "refactored TCO compression",
+					* "TCO invalidated by %ReduceChecked" $since b841,
+					(
+					/ "supported temporary cleanup" @ "function %ReduceAgain";
+					* "temporary lifetime" @ "function %ReduceOrdered" $since
+						b823
+					)
+				),
+				/ DLI "optimized away unused internal context object"
+					@ "vau handlers",
+					// The copy of context was unused since b815.
+				/ $forced $dep_from "%ContextNode::(EvaluateLeaf, EvaluateList)"
+					$=
+				(
+					/ DLDI "function %ReduceOnce",
+					/ "parameter type 'ContextNode&'" @ "function \
+						%SetupDefaultInterpretation" -> 'ContextState&'
+				),
+				/ $forced $dep_from "%ContextNode::(Guard, RewriteGuarded)" $=
+				(
+					/ DLDI "function %Reduce",
+					/ "parameter type 'ContextNode&'"
+						@ "function %SetupTraceDepth" -> 'ContextState&'
+				),
+				/ $forced DLDI "function %EvaluateLeafToken" $dep_from
+					"%ContextNode::EvaluateLiteral"
+			),
+			/ DLDI ^ $dep_from ("%lref" @ %NPLA) ~ "%ystdex::lref" $effective
+				@ ("%(TermReference, Environment::NameResolution, \
+				EnvironmentSwitcher, GComposedAction)" @ %NPLA,
+				"%Continuation::Context" @ %NPLA1),
+			/ $forced DLDI "function LoadGroundContext" @ %Dependency
+				$dep_from "%ContextNode::EvaluateLiteral"
+				$= (/ $impl $dep_from "%REPLContext::Root")
+		),
+	),
+	* "bogus '-s' option for strip in compiler options for C++"
+		@ "%SHBuild-YSLib-common.(txt, sh)" @ %Tools.Scripts $since b839
+		$= (- "variable %C_CXXFLAGS_STRIP"),
+		// See $2018-10 @ %Documentation::Workflow::Annual2018.
+	- $dev "redundant NMake properties" @ "project %YBase"
+		@ "Microsoft VC++ projects"
+),
+
+b841
 (
 	/ %YBase $=
 	(
@@ -1044,8 +1211,8 @@ b837
 					// For %YB_Has_optional.
 					* "missing check of %_MSVC_LANG" @ 'YB_IMPL_MSCPP >= 1910'
 						$since b835,
-					* "over-strict value of '__cpp_lib_string_view >= 201603L'"
-						$since b831,
+					* "over-strict value of macro %__cpp_lib_string_view"
+						@ "conditon" $since b831,
 						// This is particular significant since P0032R3 is \
 							explicitly avoided, see https://bitbucket.org/FrankHB/yslib/wiki/StandardUsing.en-US.md.
 						$= (/ '201606L' -> '201603L'),
@@ -1251,7 +1418,7 @@ b837
 			@ %YFramework.YSLib.FileSystem) $since b836,
 		/ %YCLib $=
 		(
-			+ "function %uspawn" @ %.YCommon,
+			+ "function %uspawn" @ %YCommon,
 			* $comp "missing explicit cast to integer type from %byte or other \
 				incompatible operations with %byte by missing guaranteed as \
 				integer types with capabilities of arithmetic operations"

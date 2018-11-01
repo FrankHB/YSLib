@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3339
+\version r3377
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2018-10-19 03:06 +0800
+	2018-10-29 15:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -569,6 +569,35 @@
 #endif
 
 /*!
+\brief 修饰类定义要求实现不生成初始化动态类型信息。
+\note 只适用于定义不在初始化派生类对象时的动态类型的类，否则行为未定义。
+\see https://docs.microsoft.com/en-us/cpp/cpp/novtable 。
+\see http://releases.llvm.org/3.7.0/tools/clang/docs/AttributeReference.html 。
+\see https://clang.llvm.org/docs/AttributeReference.html#novtable 。
+\see http://lists.llvm.org/pipermail/cfe-commits/Week-of-Mon-20150720/133747.html 。
+\since build 842
+\todo 确认可忽略不支持情形的 Clang++ 最近可用的版本。
+
+修饰类定义，允许实现省略若干在初始化类的对象时的隐含初始化。
+这些初始化通常用于保证派生类的动态类型正确实现 ISO C++ 调用基类虚函数的语义。
+只适用于定义不在初始化对象时调用基类虚函数和使用 RTTI
+	（作为操作数使用 dynamic_cast 或 typeid ）的类，否则行为未定义。
+一般用于只有纯虚函数（除析构函数是非纯的虚函数）的基类。
+派生类的构造函数使用这些依赖其动态类型的操作已引起未定义行为，
+	参见 ISO C++ [abstract.class]/6 ；
+	因此当基类只有纯虚函数时，不改变程序的预期语义，而仅用于优化。
+其它情形派生类需要排除更多的限制。
+当前 Microsoft VC++ 或 Clang++ （使用 Microsoft ABI ）支持这项特性。
+对不支持的情形，近期版本 Clang++ 可直接忽略。
+*/
+#if __has_cpp_attribute(novtable) || YB_IMPL_MSVC >= 1100 \
+	|| YB_IMPL_CLANGPP >= 30700
+#	define YB_ATTR_novtable YB_ATTR(novtable)
+#else
+#	define YB_ATTR_novtable
+#endif
+
+/*!
 \def YB_ATTR_returns_nonnull
 \brief 指示返回非空属性。
 \since build 676
@@ -585,21 +614,25 @@
 
 /*!
 \def YB_ALLOCATOR
-\brief 指示修饰的是分配器，或返回分配器调用的函数或函数模板。
+\brief 指示返回指针的函数或函数模板若为非空值则对应的存储不和其它对象指针共享别名。
 \note 指示行为类似 std::malloc 或 std::calloc 等的函数。
 \warning 要求满足指示的假定，否则行为未定义。
-\sa https://blogs.msdn.microsoft.com/vcblog/2015/10/21/memory-profiling-in-visual-c-2015/
+\see https://docs.microsoft.com/en-us/cpp/cpp/restrict?view=vs-2017 。
+\see https://blogs.msdn.microsoft.com/vcblog/2015/10/21/memory-profiling-in-visual-c-2015/ 。
+\see https://gitlab.gnome.org/GNOME/glib/issues/1465 。
 \since build 373
 
-指示函数若返回非空指针，返回的指针不是其它任何有效指针的别名，
+指示函数若返回非空指针，返回的指针指向的存储中的指针不是其它任何有效对象指针的别名，
 且指针指向的存储内容不由其它存储决定。
 */
 #if YB_IMPL_MSCPP >= 1900 && !defined(__EDG__) && !defined _CORECRT_BUILD
-#	define YB_ALLOCATOR __declspec(allocator)
+#	define YB_ALLOCATOR_EVENT YB_ATTR(allocator) YB_ATTR(restrict)
+#elif YB_IMPL_MSCPP >= 1400
+#	define YB_ALLOCATOR YB_ATTR_nodiscard YB_ATTR(restrict)
 #elif __has_attribute(__malloc__) || YB_IMPL_GNUCPP >= 20296
-#	define YB_ALLOCATOR YB_ATTR(__malloc__)
+#	define YB_ALLOCATOR YB_ATTR_nodiscard YB_ATTR(__malloc__)
 #else
-#	define YB_ALLOCATOR
+#	define YB_ALLOCATOR YB_ATTR_nodiscard
 #endif
 
 /*!
@@ -654,7 +687,7 @@
 \since build 524
 */
 #if YB_IMPL_GNUCPP >= 30300
-#	define YB_NONNULL(...) __attribute__((__nonnull__(__VA_ARGS__)))
+#	define YB_NONNULL(...) YB_ATTR(__nonnull__(__VA_ARGS__))
 #else
 #	define YB_NONNULL(...)
 #endif

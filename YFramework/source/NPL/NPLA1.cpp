@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8734
+\version r9195
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-10-19 20:54 +0800
+	2018-11-01 02:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -242,16 +242,23 @@ TransformForSeparatorRecursiveTmpl(_tTerm&& term, const ValueObject& pfx,
 }
 //@}
 
-//! \since build 808
-bool
-ExtractBool(TermNode& term, bool is_and) ynothrow
+
+//! \since build 842
+void
+SetupNextTerm(ContextNode& ctx, TermNode& term)
 {
-	return ystdex::value_or(AccessTermPtr<bool>(ReferenceTerm(term)), is_and)
-		== is_and;
+	ContextState::Access(ctx).SetNextTermRef(term);
 }
 
 //! \since build 820
 using EnvironmentGuard = ystdex::guard<EnvironmentSwitcher>;
+
+// NOTE: See $2018-09 @ %Documentation::Workflow::Annual2018 for rationale of
+//	implementation.
+// XXX: First-class continuations are not implemented yet, due to lack of term
+//	replacement mechanism in captured continuation. Kernel-style continuation
+//	interception is also unsupported because no parantage is maintained in the
+//	continuation object now.
 
 #if YF_Impl_NPLA1_Enable_Thunked
 //! \since build 821
@@ -266,63 +273,53 @@ PDefH(ReductionStatus, RelayTail, ContextNode&, const Reducer& cur)
 	ImplRet(cur())
 #	endif
 
+// NOTE: For continuation not capturable in the object language, it does not
+//	have to be of a %Continuation.
+//! \since build 842
+ReductionStatus
+RecoverNextTerm(TermNode& term, ContextNode& ctx)
+{
+	SetupNextTerm(ctx, term);
+	return ctx.LastStatus;
+}
+
 //! \since build 841
 void
 PushActionsRange(EvaluationPasses::const_iterator first,
 	EvaluationPasses::const_iterator last, TermNode& term, ContextNode& ctx)
 {
-	if(first != last && ctx.LastStatus != ReductionStatus::Retrying)
+	if(first != last)
 	{
 		const auto& f(first->second);
 
 		++first;
-		// NOTE: The returning value would inform propably existed enclosing
-		//	caller to retry a new turn of reduction if the current action is
-		//	cleared, otherwise it is to be ignored as per the condition of
-		//	enclosing rewriting loop. Like synchronous case, the returning
-		//	value cannot be handled just (as the enclosed operation) by
-		//	unconditionally retrying some specific operation.
-		// NOTE: The skip mark is requested by some other action, e.g. in
-		//	%ReduceAgain. The next tail actions would be dropped by reducer
-		//	which requests retrying, which assumes it is always reducing the
-		//	same term and the next actions are safe to be dropped. It should
-		//	be treated as attempt to switch to new action, which should be
-		//	in turn already properly set or cleared as the current action.
-		RelaySwitched(ctx, [=, &f, &term, &ctx]{
-			PushActionsRange(first, last, term, ctx);
+		// NOTE: Retrying is recognized from the result since 1st administrative
+		//	pass is reduced. The non-skipped administractive reductions are
+		//	reduced in the tail context, otherwise they are dropped by no-op.
+		if(ctx.LastStatus != ReductionStatus::Retrying)
+			RelaySwitched(ctx, [=, &f, &term, &ctx]{
+				PushActionsRange(first, last, term, ctx);
 
-			const auto res(f(term, ctx));
+				const auto res(f(term, ctx));
 
-			// NOTE: If reducible, the current action should have been properly
-			//	set or cleared. It cannot be cleared here because there is no
-			//	simple way to guarantee the action is the last one for
-			//	evaluation of specified term merely by last reduction status,
-			//	and %ContextNode::Current needs to be exposed to allow capture
-			//	of current continuation.
-			if(res != ReductionStatus::Partial)
-				ctx.LastStatus
-					= CombineSequenceReductionResult(ctx.LastStatus, res);
-			return ctx.LastStatus;
-		});
+				if(res != ReductionStatus::Partial)
+					ctx.LastStatus
+						= CombineSequenceReductionResult(ctx.LastStatus, res);
+				return ctx.LastStatus;
+			});
 	}
 	else
 		ctx.LastStatus = ReductionStatus::Retained;
 }
 
-//! \since build 812
+//! \since build 842
 ReductionStatus
-DelimitActions(const EvaluationPasses& passes, TermNode& term, ContextNode& ctx)
+ExtractAdministratives(const EvaluationPasses& passes, TermNode& term,
+	ContextNode& ctx)
 {
-	// NOTE: Now both outermost call and inner ones need to support continuation
-	//	capture. The difference is that the boundary is implied in the outermost
-	//	case, which is addressed by the separation of current action and
-	//	delimited actions in the context. The implementation here does not use
-	//	deleimited actions and they are reserved to external control primitive
-	//	like shift/reset operations, to avoid need of unwinding which introduce
-	//	the necessity of delimited frame marks and frame walking in delimieted
-	//	actions. (But be cautious with overflow risks in call of
-	//	%ContextNode::ApplyTail.)
-	ctx.LastStatus = ReductionStatus::Clean;
+	SetupNextTerm(ctx, term);
+	// XXX: Be cautious with overflow risks in call of %ContextNode::ApplyTail
+	//	when TCO is not enabled.
 	PushActionsRange(passes.cbegin(), passes.cend(), term, ctx);
 	return ReductionStatus::Partial;
 }
@@ -335,9 +332,33 @@ ReduceForClosureResultInContext(TermNode& term, const ContextNode& ctx)
 }
 
 #	if YF_Impl_NPLA1_Enable_TCO
-//! \since build 827
-using FrameRecordList = list<tuple<ContextHandler, shared_ptr<Environment>,
-	shared_ptr<Environment>>>;
+/*!
+\brief 帧记录索引。
+\note 顺序和的
+\since build 842
+*/
+enum RecordFrameIndex : size_t
+{
+	ActiveCombiner,
+	ActiveEnvironmentPtr,
+	TemporaryEnvironmentPtr
+};
+
+/*!
+\brief 帧记录。
+\note 成员顺序和 RecordFrameIndex 中的项对应。
+\since build 842
+\sa RecordFrameIndex
+*/
+using FrameRecord = tuple<ContextHandler, shared_ptr<Environment>,
+	shared_ptr<Environment>>;
+
+/*!
+\brief 帧记录列表。
+\sa FrameRecord
+\since build 827
+*/
+using FrameRecordList = yimpl(list)<FrameRecord>;
 
 // NOTE: The concrete name is insignificant here.
 //! \since build 829
@@ -433,6 +454,21 @@ public:
 		return ystdex::as_const(xgds.back());
 	}
 
+	//! \since build 842
+	void
+	CleanupOrphanTemporary()
+	{
+		if(!RecordList.empty())
+		{
+			auto& frame(RecordList.front());
+			auto& p_temp_env(get<TemporaryEnvironmentPtr>(frame));
+
+			if(p_temp_env.use_count() == 1)
+				p_temp_env = {};
+		//	get<ActiveCombiner>(frame) = ContextHandler();
+		}
+	}
+
 	//! \since build 825
 	ContextHandler
 	MoveFunction()
@@ -450,6 +486,15 @@ public:
 		}
 		LastFunction = {};
 		return res;
+	}
+
+	//! \since build 842
+	void
+	UpdateTemporaryPtr(TermNode& term)
+	{
+		// XXX: Temporary pointer would get lost if it is not null.
+		(TemporaryPtr = make_shared<Environment>())
+			->Bindings[OperandName].SetContent(std::move(term));
 	}
 };
 
@@ -481,6 +526,16 @@ EnsureTCOAction(ContextNode& ctx, TermNode& term)
 		p = AccessTCOAction(ctx);
 	}
 	return Deref(p);
+}
+
+//! \since build 842
+shared_ptr<Environment>
+MoveTCOTemporary(ContextNode& ctx, TermNode& term)
+{
+	return ystdex::call_value_or([&](TCOAction& act){
+		act.UpdateTemporaryPtr(term);
+		return act.TemporaryPtr;
+	}, AccessTCOAction(ctx));
 }
 #	endif
 
@@ -516,7 +571,8 @@ ReductionStatus
 ReduceSubsequent(TermNode& term, ContextNode& ctx, _fCurrent&& next)
 {
 #if YF_Impl_NPLA1_Enable_Thunked
-	return RelayNext(ctx, Continuation(ReduceChecked, term, ctx),
+	SetupNextTerm(ctx, term);
+	return RelayNext(ctx, Continuation(ReduceChecked, ctx),
 		ComposeActions(ctx, yforward(next), ctx.Switch()));
 #else
 	// NOTE: This does not support PTC.
@@ -542,12 +598,26 @@ ReduceSequenceOrderedAsync(TermNode& term, ContextNode& ctx, TNIter i)
 	YAssert(i != term.end(), "Invalid iterator found for sequence reduction.");
 	return std::next(i) == term.end() ? ReduceAgainLifted(term, ctx, *i)
 		: ReduceSubsequent(*i, ctx, [&, i]{
+		auto& act(EnsureTCOAction(ctx, term));
+
+		act.UpdateTemporaryPtr(*i);
+		// NOTE: The sequence combiner is permanent and not stateful.
+		act.RecordList.emplace_front(ContextHandler(),
+			shared_ptr<Environment>(), std::move(act.TemporaryPtr));
 		return ReduceSequenceOrderedAsync(term, ctx, term.erase(i));
 	});
 }
 #	endif
 #endif
 
+
+//! \since build 808
+bool
+ExtractBool(TermNode& term, bool is_and) ynothrow
+{
+	return ystdex::value_or(AccessTermPtr<bool>(ReferenceTerm(term)), is_and)
+		== is_and;
+}
 
 //! \since build 753
 ReductionStatus
@@ -947,6 +1017,125 @@ struct RecordCompressor final
 		}
 	}
 };
+
+// NOTE: See $2018-06 @ %Documentation::Workflow::Annual2018 for details.
+//! \since build 842
+//@{
+void
+UpdateFusedAction(TCOAction& fused_act, EnvironmentGuard& gd)
+{
+	fused_act.EnvGuard = std::move(gd);
+}
+
+void
+CompressTCOFramesForSavedEnvironment(ContextNode& ctx, TCOAction& act,
+	Environment& saved)
+{
+	auto& record_list(act.RecordList);
+	auto i(record_list.cbegin());
+	const auto erase_frame([&]{
+		i = record_list.erase(i);
+	});
+	RecordCompressor compressor(ctx.GetRecordRef());
+
+	compressor.AddForRoot(ctx.GetRecordRef());
+	compressor.Add(saved);
+	// XXX: This is usually not empty.
+	if(act.TemporaryPtr)
+		compressor.Add(*act.TemporaryPtr);
+#	if YF_Impl_NPLA1_Enable_WeakExternalRoots
+	for(const auto& p_weak : act.WeakEnvs)
+		compressor.AddWeakRoot(p_weak);
+#	endif
+	// NOTE: This does not support PTC currently.
+	ystdex::retry_on_cond(ystdex::id<>(), [&]() -> bool{
+		const auto orig_size(record_list.size());
+
+		// NOTE: The following code searches the frames to be removed, in the
+		//	order from new to old. After merging, the guard slot %EnvGuard owns
+		//	the resources of the expression (and its enclosed subexpressions)
+		//	being TCO'd.
+		i = record_list.cbegin();
+		while(i != record_list.cend())
+		{
+			auto& p_frame_env_ref(get<ActiveEnvironmentPtr>(
+				*ystdex::cast_mutable(record_list, i)));
+
+			if(p_frame_env_ref.use_count() != 1)
+			{
+				const auto& p_frame_operand(get<TemporaryEnvironmentPtr>(*i));
+
+				if(p_frame_operand.use_count() != 1)
+					// NOTE: The whole frame is to be removed. The function
+					//	prvalue is expected to live only in the subexpression
+					//	evaluation. This has equivalent effects of evlis tail
+					//	recursion.
+					erase_frame();
+				else
+				{
+					// NOTE: The frame is alive to ensure proper lifetime of
+					//	the operand, but the frame environment should be
+					//	compressed away.
+					p_frame_env_ref.reset();
+					++i;
+				}
+			}
+			else
+			{
+				auto& frame_env(Deref(p_frame_env_ref));
+
+				if(frame_env.IsOrphan())
+					erase_frame();
+				else
+				{
+					compressor.Add(frame_env);
+					// XXX: This does not fit for the situation that the same
+					//	parent is referenced in multiple inactive frames.
+					//	However, they should be already compressed.
+					if(frame_env.GetAnchorPtr().use_count() == 2
+						&& [](Environment& dst, const Environment& src) -> bool{
+						if(const auto p_env
+							= AccessPtr<EnvironmentReference>(dst.Parent))
+							return p_env->Lock().get() == &src
+								&& DeduplicateBindings(dst, src);
+						return {};
+					}(frame_env, saved))
+					{
+						saved.Parent = std::move(frame_env.Parent);
+						erase_frame();
+					}
+					else
+						++i;
+				}
+			}
+		}
+		return record_list.size() != orig_size;
+	});
+	act.CleanupOrphanTemporary();
+	compressor.Compress();
+}
+
+bool
+CompressTCOFrames(ContextNode& ctx, EnvironmentGuard& gd)
+{
+	if(const auto p = AccessTCOAction(ctx))
+	{
+		if(p->EnvGuard.func.SavedPtr)
+		{
+			if(auto& p_saved = gd.func.SavedPtr)
+			{
+				CompressTCOFramesForSavedEnvironment(ctx, *p, *p_saved);
+				p->RecordList.emplace_front(p->MoveFunction(),
+					std::move(p_saved), std::move(p->TemporaryPtr));
+			}
+		}
+		else
+			UpdateFusedAction(*p, gd);
+		return true;
+	}
+	return {};
+}
+//@}
 #endif
 
 ReductionStatus
@@ -958,128 +1147,19 @@ RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
 	//	the next term being evaluated.
 	using namespace std::placeholders;
 	Continuation next_action(std::bind(ReduceCheckedClosure, _1, _2, move,
-		std::ref(closure), !no_lift), term, ctx);
+		std::ref(closure), !no_lift), ctx);
 #if YF_Impl_NPLA1_Enable_TCO
-	// NOTE: See $2018-06 @ %Documentation::Workflow::Annual2018 for details.
-	const auto update_fused_act([&](TCOAction& fused_act){
-		fused_act.EnvGuard = std::move(gd);
-	});
-
-	if(const auto p = AccessTCOAction(ctx))
+	if(CompressTCOFrames(ctx, gd))
 	{
-		if(p->EnvGuard.func.SavedPtr)
-		{
-			auto& p_saved(gd.func.SavedPtr);
-
-			if(p_saved)
-			{
-				auto& record_list(p->RecordList);
-				auto i(record_list.cbegin());
-				const auto erase_frame([&]{
-					i = record_list.erase(i);
-				});
-				RecordCompressor compressor(ctx.GetRecordRef());
-
-				compressor.AddForRoot(ctx.GetRecordRef());
-				compressor.Add(*p_saved);
-				// XXX: This is usually not empty.
-				if(p->TemporaryPtr)
-					compressor.Add(*p->TemporaryPtr);
-#	if YF_Impl_NPLA1_Enable_WeakExternalRoots
-				for(const auto& p_weak : p->WeakEnvs)
-					compressor.AddWeakRoot(p_weak);
-#	endif
-				// NOTE: This does not support PTC currently.
-				ystdex::retry_on_cond(ystdex::id<>(), [&]() -> bool{
-					const auto orig_size(record_list.size());
-
-					// NOTE: The following code searches the frames to be
-					//	removed, in the order from new to old. After merging,
-					//	the guard slot %EnvGuard owns the resources of the
-					//	expression (and its enclosed subexpressions) being
-					//	TCO'd.
-					i = record_list.cbegin();
-					while(i != record_list.cend())
-					{
-						auto& p_frame_env_ref(
-							get<1>(*ystdex::cast_mutable(record_list, i)));
-
-						if(p_frame_env_ref.use_count() != 1)
-						{
-							const auto& p_frame_operand(get<2>(*i));
-
-							if(p_frame_operand.use_count() != 1)
-								// NOTE: The whole frame is to be removed. The
-								//	prvalue function is expected to live only in
-								//	the subexpression evaluation. This has
-								//	equivalent effects of evlis tail recursion.
-								erase_frame();
-							else
-							{
-								// NOTE: The frame is alive to ensure proper
-								//	lifetime of operand, but the frame
-								//	environment should be compressed away.
-								p_frame_env_ref.reset();
-								++i;
-							}
-						}
-						else
-						{
-							auto& frame_env(Deref(p_frame_env_ref));
-
-							if(frame_env.IsOrphan())
-								erase_frame();
-							else
-							{
-								compressor.Add(frame_env);
-								// XXX: This does not fit for the situation that
-								//	the same parent is referenced in multiple
-								//	inactive frames. However, they should be
-								//	already compressed.
-								if(frame_env.GetAnchorPtr().use_count() == 2
-									&& [](Environment& dst,
-									const Environment& src) -> bool{
-									if(const auto p_env = AccessPtr<
-										EnvironmentReference>(dst.Parent))
-										return p_env->Lock().get() == &src
-											&& DeduplicateBindings(dst, src);
-									return {};
-								}(frame_env, *p_saved))
-								{
-									p_saved->Parent
-										= std::move(frame_env.Parent);
-									erase_frame();
-								}
-								else
-									++i;
-							}
-						}
-					}
-					return record_list.size() != orig_size;
-				});
-				if(!record_list.empty())
-				{
-					auto& frame(record_list.front());
-					auto& temporary_ptr(get<2>(frame));
-
-					if(temporary_ptr.use_count() == 1)
-						temporary_ptr = {};
-				//	get<0>(frame) = {};
-				}
-				compressor.Compress();
-				record_list.emplace_front(p->MoveFunction(),
-					std::move(p_saved), std::move(p->TemporaryPtr));
-			}
-		}
-		else
-			update_fused_act(*p);
+		SetupNextTerm(ctx, term);
 		return RelaySwitchedUnchecked(ctx, std::move(next_action));
 	}
 
-	TCOAction fused_act(ctx, term, {});
+	TCOAction act(ctx, term, {});
 
-	update_fused_act(fused_act);
-	return RelayNext(ctx, std::move(next_action), std::move(fused_act));
+	UpdateFusedAction(act, gd);
+	SetupNextTerm(ctx, term);
+	return RelayNext(ctx, std::move(next_action), std::move(act));
 #elif YF_Impl_NPLA1_Enable_Thunked
 	// NOTE: Lambda is not used to avoid unspecified destruction order of
 	//	captured component and better performance (compared to the case of
@@ -1120,6 +1200,7 @@ RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
 		}
 	};
 
+	SetupNextTerm(ctx, term);
 	return RelayNext(ctx, std::move(next_action), Action(term, ctx, gd));
 #else
 	// NOTE: It is necessary to keep the operand alive.
@@ -1128,6 +1209,9 @@ RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
 
 	yunused(gd);
 	// NOTE: This does not support PTC.
+	SetupNextTerm(ctx, term);
+	// NOTE: The variable %term would be set by the closure argument provided in
+	//	%next_action.
 	return next_action();
 #endif
 }
@@ -1190,11 +1274,6 @@ private:
 	*/
 	shared_ptr<TermNode> p_formals;
 	/*!
-	\brief 局部上下文原型。
-	\since build 790
-	*/
-	ContextNode local_prototype;
-	/*!
 	\note 共享所有权用于检查循环引用。
 	\since build 823
 	*/
@@ -1214,16 +1293,14 @@ public:
 
 	/*!
 	\pre 形式参数对象指针非空。
-	\since build 822
+	\since build 842
 	*/
 	VauHandler(string&& ename, shared_ptr<TermNode>&& p_fm,
-		shared_ptr<Environment>&& p_env, bool owning,
-		const ContextNode& ctx, TermNode& term, bool no_lift)
+		shared_ptr<Environment>&& p_env, bool owning, TermNode& term,
+		bool no_lift)
 		: eformal(std::move(ename)), p_formals((LiftToSelf(Deref(p_fm)),
-		std::move(p_fm))),
-		// XXX: Optimze by removing away unused objects?
+		std::move(p_fm))), parent(p_env),
 		// XXX: Optimize with region inference?
-		local_prototype(ctx, make_shared<Environment>()), parent(p_env),
 		owning_static(owning), p_static(owning ? std::move(p_env)
 		: nullptr), p_closure(share_move(ystdex::exchange(term,
 		TermNode(NoContainer, term.GetName())))), NoLifting(no_lift)
@@ -1236,7 +1313,6 @@ public:
 	operator==(const VauHandler& x, const VauHandler& y)
 	{
 		return x.eformal == y.eformal && x.p_formals == y.p_formals
-			&& ystdex::ref_eq<>()(x.local_prototype, y.local_prototype)
 			&& x.parent == y.parent && x.owning_static == y.owning_static
 			&& x.p_static == y.p_static && x.NoLifting == y.NoLifting;
 	}
@@ -1248,12 +1324,8 @@ public:
 		if(IsBranch(term))
 		{
 			using namespace Forms;
-			// NOTE: Local context: activation record frame with outer scope
-			//	bindings.
-			// XXX: Referencing escaped variables (now only parameters need to
-			//	be cared) form the context would cause undefined behavior (e.g.
-			//	returning a reference to automatic object in the host language).
-			//	See %BindParameter.
+			// NOTE: Evaluation in the local context: using the activation
+			//	record frame with outer scope bindings.
 			auto wenv(ctx.WeakenRecord());
 			// XXX: Reuse of frame cannot be done here unless it can be proved
 			//	all bindings would behave as in the old environment, which is
@@ -1261,6 +1333,10 @@ public:
 			//	environments.
 			EnvironmentGuard gd(ctx, NPL::SwitchToFreshEnvironment(ctx));
 
+			// XXX: Referencing escaped variables (now only parameters need to
+			//	be cared) form the context would cause undefined behavior (e.g.
+			//	returning a reference to automatic object in the host language).
+			//	See %BindParameter.
 			// NOTE: Bound dynamic environment.
 			if(!eformal.empty())
  				ctx.GetBindingsRef().AddValue(eformal,
@@ -1275,17 +1351,10 @@ public:
 			//	substitute them as arguments for later closure reducation.
 			// XXX: Do not lift terms if provable to be safe?
 #if YF_Impl_NPLA1_Enable_TCO
-			// NOTE: The arguments have be saved for extension of lifetime of
+			// NOTE: The arguments have to be saved for extension of lifetime of
 			//	bound reference parameters. An environment object is introduced
 			//	to make it collectable.
-			if(const auto& p_env_operand
-				= ystdex::call_value_or([&](TCOAction& a){
-				auto& p_env_t(a.TemporaryPtr);
-
-				(p_env_t = make_shared<Environment>())
-					->Bindings[OperandName].SetContent(std::move(term));
-				return p_env_t;
-			}, AccessTCOAction(ctx)))
+			if(const auto& p_env_operand = MoveTCOTemporary(ctx, term))
 				BindParameter(ctx, Deref(p_formals),
 					p_env_operand->Bindings[OperandName]);
 			else
@@ -1347,11 +1416,13 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	yunseq(0, (lf = make_observer(
 		&fused_act.AttachFunction(std::forward<_tParams>(args)).get()), 0)...);
 	fused_act.ReduceCombined = true;
+	SetupNextTerm(ctx, term);
 	return RelaySwitchedUnchecked(ctx,
-		Continuation(std::ref(lf ? *lf : h), term, ctx));
+		Continuation(std::ref(lf ? *lf : h), ctx));
 #	else
+	SetupNextTerm(ctx, term);
 	// TODO: Blocked. Use C++14 lambda initializers to simplify implementation.
-	return RelayNext(ctx, Continuation(std::ref(h), term, ctx),
+	return RelayNext(ctx, Continuation(std::ref(h), ctx),
 		std::bind([&](Reducer& act, const _tParams&...){
 		// NOTE: Captured argument pack is only needed when %h actually shares.
 		RelaySwitched(ctx, std::move(act));
@@ -1524,29 +1595,30 @@ LambdaImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 		// NOTE: %StrictContextHandler implies strict evaluation of arguments in
 		//	%StrictContextHandler::operator().
 		term.Value = ContextHandler(StrictContextHandler(VauHandler({},
-			std::move(formals), std::move(p_env), {}, ctx, term, no_lift)));
+			std::move(formals), std::move(p_env), {}, term, no_lift)));
 		return ReductionStatus::Clean;
 	}, 1);
 }
 
+//! \since build 842
 ContextHandler
-CreateVau(TermNode& term, ContextNode& ctx, bool no_lift,
-	TermNode::iterator i, shared_ptr<Environment>&& p_env, bool owning)
+CreateVau(TermNode& term, bool no_lift, TermNode::iterator i,
+	shared_ptr<Environment>&& p_env, bool owning)
 {
 	auto formals(share_move(Deref(++i)));
 	auto eformal(CheckEnvFormal(Deref(++i)));
 
 	term.erase(term.begin(), ++i);
 	return FormContextHandler(VauHandler(std::move(eformal), std::move(formals),
-		std::move(p_env), owning, ctx, term, no_lift));
+		std::move(p_env), owning, term, no_lift));
 }
 
 ReductionStatus
 VauImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 {
 	return CreateFunction(term, [&, no_lift]{
-		term.Value = CreateVau(term, ctx, no_lift, term.begin(),
-			ctx.ShareRecord(), {});
+		term.Value = CreateVau(term, no_lift, term.begin(), ctx.ShareRecord(),
+			{});
 		return ReductionStatus::Clean;
 	}, 2);
 }
@@ -1562,7 +1634,7 @@ VauWithEnvironmentImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 			// XXX: List components are ignored.
 			auto p_env_pr(ResolveEnvironment(t));
 
-			term.Value = CreateVau(term, ctx, no_lift, i,
+			term.Value = CreateVau(term, no_lift, i,
 				std::move(p_env_pr.first), p_env_pr.second);
 			return ReductionStatus::Clean;
 		});
@@ -1739,6 +1811,45 @@ public:
 } // unnamed namespace;
 
 
+ContextState::ContextState(const ContextState& ctx)
+	: ContextNode(ctx),
+	EvaluateLeaf(ctx.EvaluateLeaf), EvaluateList(ctx.EvaluateList),
+	EvaluateLiteral(ctx.EvaluateLiteral), Guard(ctx.Guard)
+{}
+ContextState::ContextState(ContextState&& ctx)
+	: ContextNode(std::move(ctx)),
+	EvaluateLeaf(ctx.EvaluateLeaf), EvaluateList(ctx.EvaluateList),
+	EvaluateLiteral(ctx.EvaluateLiteral), Guard(ctx.Guard)
+{
+	swap(next_term_ptr, ctx.next_term_ptr);
+}
+ContextState::ImplDeDtor(ContextState)
+
+TermNode&
+ContextState::GetNextTermRef() const
+{
+	if(const auto p = next_term_ptr)
+		return *p;
+	// NOTE: This should not occur unless there exists some invalid low-level
+	//	interoperations on the next term pointer in the context.
+	throw NPLException("No next term found to evaluation.");
+}
+
+void
+ContextState::SetNextTermRef(TermNode& term)
+{
+	next_term_ptr = YSLib::make_observer(&term);
+}
+
+ReductionStatus
+ContextState::RewriteGuarded(TermNode& term, Reducer reduce)
+{
+	const auto gd(Guard(term, *this));
+
+	return Rewrite(reduce);
+}
+
+
 ReductionStatus
 Reduce(TermNode& term, ContextNode& ctx)
 {
@@ -1747,17 +1858,24 @@ Reduce(TermNode& term, ContextNode& ctx)
 	ystdex::swap_guard<Reducer> gd(true, ctx.Current);
 
 #endif
-	return ctx.RewriteGuarded(term, Continuation(ReduceOnce, term, ctx));
+	SetupNextTerm(ctx, term);
+	return ystdex::polymorphic_downcast<ContextState&>(ctx).RewriteGuarded(term,
+		Continuation(ReduceOnce, ctx));
 }
 
 ReductionStatus
 ReduceAgain(TermNode& term, ContextNode& ctx)
 {
 #if YF_Impl_NPLA1_Enable_Thunked
-	Continuation reduce_again(ReduceOnce, term, ctx);
+	Continuation reduce_again(ReduceOnce, ctx);
 
+	SetupNextTerm(ctx, term);
 #	if YF_Impl_NPLA1_Enable_TCO
-	EnsureTCOAction(ctx, term).ReduceNestedAsync = true;
+
+	auto& act(EnsureTCOAction(ctx, term));
+
+	act.ReduceNestedAsync = true,
+	act.CleanupOrphanTemporary();
 	return RelaySwitchedUnchecked(ctx, std::move(reduce_again));
 #	else
 	return RelayNext(ctx, std::move(reduce_again),
@@ -1788,11 +1906,24 @@ ReduceChecked(TermNode& term, ContextNode& ctx)
 #if YF_Impl_NPLA1_Enable_Thunked
 	// XXX: Assume it is always reducing the same term and the next actions are
 	//	safe to be dropped.
-	return RelayNext(ctx, Continuation(ReduceOnce, term, ctx),
+#	if YF_Impl_NPLA1_Enable_TCO
+	RelaySwitched(ctx, [&]{
+		if(ctx.LastStatus == ReductionStatus::Retrying)
+		{
+			SetupNextTerm(ctx, term);
+			return RelaySwitched(ctx, Continuation(ReduceOnce, ctx));
+		}
+		return ctx.LastStatus;
+	});
+	return ReductionStatus::Retrying;
+#	else
+	SetupNextTerm(ctx, term);
+	return RelayNext(ctx, Continuation(ReduceOnce, ctx),
 		std::bind([&](Reducer& act){
 		RelaySwitched(ctx, std::move(act));
 		return ReductionStatus::Retrying;
 	}, ctx.Switch()));
+#	endif
 #else
 	// NOTE: This does not support PTC.
 	ReduceCheckedSync(term, ctx);
@@ -1811,7 +1942,7 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 
 	// XXX: Term reused.
 #if YF_Impl_NPLA1_Enable_Thunked
-	Continuation next(ReduceChecked, term, ctx);
+	Continuation next(ReduceChecked, ctx);
 
 #	if YF_Impl_NPLA1_Enable_TCO
 	if(const auto p = AccessTCOAction(ctx))
@@ -1824,16 +1955,23 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 				next = Continuation([&, p](TermNode& t, ContextNode& c){
 					ReduceForClosureResultInContext(t, c);
 					return ReduceChecked(t, c);
-				}, term, ctx);
+				}, ctx);
 			else
 				p->LiftCallResult = true;
 		}
 		return RelaySwitchedUnchecked(ctx, std::move(next));
 	}
+	SetupNextTerm(ctx, term);
 	return RelayNext(ctx, std::move(next), TCOAction(ctx, term, lift_result));
 #	else
+	SetupNextTerm(ctx, term);
 	return lift_result ? RelayNext(ctx, std::move(next), ComposeActions(ctx,
-		Continuation(ReduceForClosureResultInContext, term, ctx), ctx.Switch()))
+		// NOTE: Call of %RecoverNextTerm can also be composed here, however it
+		//	is inefficient.
+		Continuation([&](TermNode&, ContextNode& c){
+			RecoverNextTerm(term, ctx);
+			return ReduceForClosureResultInContext(term, c);
+		}, ctx), ctx.Switch()))
 		: RelaySwitched(ctx, std::move(next));
 #	endif
 #else
@@ -1889,8 +2027,10 @@ ReduceFirst(TermNode& term, ContextNode& ctx)
 }
 
 ReductionStatus
-ReduceOnce(TermNode& term, ContextNode& ctx)
+ReduceOnce(TermNode& term, ContextNode& cb)
 {
+	auto& ctx(ystdex::polymorphic_downcast<ContextState&>(cb));
+
 	if(IsBranch(term))
 	{
 		YAssert(term.size() != 0, "Invalid node found.");
@@ -1898,7 +2038,7 @@ ReduceOnce(TermNode& term, ContextNode& ctx)
 		{
 			// NOTE: List evaluation.
 #if YF_Impl_NPLA1_Enable_Thunked
-			return DelimitActions(ctx.EvaluateList, term, ctx);
+			return ExtractAdministratives(ctx.EvaluateList, term, ctx);
 #else
 			return ctx.EvaluateList(term, ctx);
 #endif
@@ -1919,7 +2059,7 @@ ReduceOnce(TermNode& term, ContextNode& ctx)
 #if YF_Impl_NPLA1_Enable_Thunked
 	// NOTE: The reduction relies on proper handling of reduction status.
 	return tp != ystdex::type_id<void>() && tp != ystdex::type_id<ValueToken>()
-		? DelimitActions(ctx.EvaluateLeaf, term, ctx) : ReductionStatus::Clean;
+		? ExtractAdministratives(ctx.EvaluateLeaf, term, ctx) : ReductionStatus::Clean;
 #else
 	// NOTE: The reduction relies on proper tail action.
 	return tp != ystdex::type_id<void>() && tp != ystdex::type_id<ValueToken>()
@@ -1937,9 +2077,10 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 	term.Value = ValueToken::Unspecified;
 	return ReductionStatus::Retained;
 #	else
+	SetupNextTerm(ctx, term);
 	// TODO: Blocked. Use C++14 lambda initializers to simplify implementation.
 	return RelayNext(ctx, Continuation(static_cast<ReductionStatus(&)(TermNode&,
-		ContextNode&)>(ReduceChildrenOrdered), term, ctx),
+		ContextNode&)>(ReduceChildrenOrdered), ctx),
 		std::bind([&](Reducer& act){
 		RelaySwitched(ctx, std::move(act));
 		if(!term.empty())
@@ -1973,7 +2114,7 @@ ReduceTail(TermNode& term, ContextNode& ctx, TNIter i)
 
 
 void
-SetupTraceDepth(ContextNode& root, const string& name)
+SetupTraceDepth(ContextState& root, const string& name)
 {
 	yunseq(
 	root.GetBindingsRef().Place<size_t>(name),
@@ -2055,7 +2196,8 @@ FormContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 	});
 
 #if YF_Impl_NPLA1_Enable_Thunked
-	return RelaySwitched(ctx, Continuation(cont, term, ctx));
+	SetupNextTerm(ctx, term);
+	return RelaySwitched(ctx, Continuation(cont, ctx));
 #else
 	// NOTE: This does not support PTC.
 	return cont(term, ctx);
@@ -2068,12 +2210,19 @@ StrictContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 {
 	// NOTE: This implementes arguments evaluation in applicative order.
 #if YF_Impl_NPLA1_Enable_Thunked
+	// TODO: Optimize for cases with no argument.
+	SetupNextTerm(ctx, term);
 	// TODO: Blocked. Use C++14 lambda initializers to simplify implementation.
 	return RelayNext(ctx, Continuation([&](TermNode& t, ContextNode& c){
 		ReduceArguments(t, c);
 		return ReductionStatus::Partial;
-	}, term, ctx), ComposeActions(ctx,
-		Continuation(std::ref(Handler), term, ctx), ctx.Switch()));
+	}, ctx), ComposeActions(ctx,
+		// NOTE: Call of %RecoverNextTerm can also be composed here, however it
+		//	is inefficient.
+		Continuation([&](TermNode&, ContextNode& c){
+		RecoverNextTerm(term, ctx);
+		return Handler(term, c);
+	}, ctx), ctx.Switch()));
 #else
 	// NOTE: This does not support PTC.
 	ReduceArguments(term, ctx);
@@ -2136,8 +2285,10 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 }
 
 ReductionStatus
-EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
+EvaluateLeafToken(TermNode& term, ContextNode& cb, string_view id)
 {
+	auto& ctx(ystdex::polymorphic_downcast<ContextState&>(cb));
+
 	YAssertNonnull(id.data());
 	// NOTE: Only string node of identifier is tested.
 	if(!id.empty())
@@ -2234,7 +2385,7 @@ ReduceLeafToken(TermNode& term, ContextNode& ctx)
 
 
 void
-SetupDefaultInterpretation(ContextNode& root, EvaluationPasses passes)
+SetupDefaultInterpretation(ContextState& root, EvaluationPasses passes)
 {
 	passes += ReduceHeadEmptyList;
 	passes += ReduceFirst;

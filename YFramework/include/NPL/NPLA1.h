@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4055
+\version r4177
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2018-10-20 15:51 +0800
+	2018-10-26 02:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,7 @@
 //	ystdex::make_expanded, ystdex::invoke_nonvoid, ystdex::make_transform,
 //	std::accumulate, ystdex::bind1, std::placeholders::_2,
 //	ystdex::examiners::equal_examiner;
+#include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 
 namespace NPL
 {
@@ -187,13 +188,131 @@ LoadNodeSequence(_type&& tree, _tParams&&... args)
 
 
 /*!
+\note 结果表示判断是否应继续规约。
+\sa PassesCombiner
+*/
+//@{
+//! \brief 一般合并遍。
+template<typename... _tParams>
+using GPasses = YSLib::GEvent<ReductionStatus(_tParams...),
+	YSLib::GCombinerInvoker<ReductionStatus, PassesCombiner>>;
+//! \brief 项合并遍。
+using TermPasses = GPasses<TermNode&>;
+//! \brief 求值合并遍。
+using EvaluationPasses = GPasses<TermNode&, ContextNode&>;
+/*!
+\brief 字面量合并遍。
+\pre 字符串参数的数据指针非空。
+\since build 738
+*/
+using LiteralPasses = GPasses<TermNode&, ContextNode&, string_view>;
+//@}
+
+
+//! \brief 作用域守卫类型。
+using Guard = ystdex::any;
+/*!
+\brief 作用域守卫遍：用于需在规约例程的入口和出口关联执行的操作。
+\todo 支持迭代使用旧值。
+*/
+using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
+	YSLib::GDefaultLastValueInvoker<Guard>>;
+//@}
+
+
+/*!
+\brief NPLA1 上下文状态。
+\note 扩展 ContextNode 。
+\sa ContextNode::Derivation
+\since build 842
+
+NPLA1 上下文状态扩展 NPLA 上下文。
+*/
+class YF_API ContextState : public ContextNode
+{
+public:
+	EvaluationPasses EvaluateLeaf{};
+	EvaluationPasses EvaluateList{};
+	LiteralPasses EvaluateLiteral{};
+	GuardPasses Guard{};
+
+private:
+	/*!
+	\brief 待求值的下一项的指针。
+	\note 可被续延访问。
+	*/
+	observer_ptr<TermNode> next_term_ptr{};
+
+public:
+	DefDeCtor(ContextState)
+	ContextState(const ContextState&);
+	ContextState(ContextState&&);
+	//! \brief 虚析构：类定义外默认实现。
+	~ContextState() override;
+
+	DefDeCopyMoveAssignment(ContextState)
+
+	/*!
+	\brief 访问实例。
+	\pre 参数指定对象是 NPLA1 上下文状态或 public 继承的派生类。
+	\warning 若不满足要求，行为未定义。
+	*/
+	//@{
+	static PDefH(ContextState&, Access, ContextNode& ctx) ynothrowv
+		ImplRet(ystdex::polymorphic_downcast<ContextState&>(ctx))
+	static PDefH(const ContextState&, Access, const ContextNode& ctx) ynothrowv
+		ImplRet(ystdex::polymorphic_downcast<const ContextState&>(ctx))
+	//@}
+
+	/*!
+	\brief 取下一求值项的引用。
+	\throw NPLException 下一求值项的指针为空。
+	\sa next_term_ptr
+	*/
+	TermNode&
+	GetNextTermRef() const;
+
+ 	/*!
+	\brief 设置下一求值项的引用。
+	\throw NPLException 下一项指针为空。
+	\sa next_term_ptr
+	*/
+	void
+	SetNextTermRef(TermNode&);
+
+	//! \brief 清除下一项指针。
+	PDefH(void, ClearNextTerm, ) ynothrow
+		ImplExpr(next_term_ptr = {})
+
+	/*!
+	\brief 构造作用域守卫并重写项。
+	\sa Guard
+	\sa ContextNode::Rewrite
+
+	重写逻辑包括以下顺序的步骤：
+	调用 Guard 进行必要的上下文重置；
+	调用 ContextNode::Rewrite 。
+	*/
+	ReductionStatus
+	RewriteGuarded(TermNode&, Reducer);
+
+	friend PDefH(void, swap, ContextState& x, ContextState& y) ynothrow
+		ImplExpr(swap(static_cast<ContextNode&>(x),
+			static_cast<ContextNode&>(y)), swap(x.next_term_ptr,
+			y.next_term_ptr), swap(x.EvaluateLeaf, y.EvaluateLeaf),
+			swap(x.EvaluateList, y.EvaluateList),
+			swap(x.EvaluateLiteral, y.EvaluateLiteral), swap(x.Guard, y.Guard))
+};
+
+
+/*!
 \brief NPLA1 表达式节点规约：调用至少一次求值例程规约子表达式。
 \return 规约状态。
-\sa ContextNode::RewriteGuarded
+\sa ContextState::RewriteGuarded
 \sa ReduceOnce
 \since build 730
 
-以第一参数为项，以 ReduceOnce 为规约函数调用 ContextNode::RewriteGuarded 。
+以第一参数为项，以 ReduceOnce 为规约函数调用 ContextState::RewriteGuarded 。
 */
 YF_API ReductionStatus
 Reduce(TermNode&, ContextNode&);
@@ -367,11 +486,11 @@ ReduceTail(TermNode&, ContextNode&, TNIter);
 /*!
 \brief 设置跟踪深度节点：调用规约时显示深度和上下文等信息。
 \note 主要用于调试。
-\sa ContextNode::Guard
-\since build 685
+\sa ContextState::Guard
+\since build 842
 */
 YF_API void
-SetupTraceDepth(ContextNode& ctx, const string& name = yimpl("$__depth"));
+SetupTraceDepth(ContextState&, const string& = yimpl("$__depth"));
 
 
 //! \note ValueObject 参数分别指定替换添加的前缀和被替换的分隔符的值。
@@ -432,12 +551,13 @@ class YF_API Continuation
 {
 public:
 	ContextHandler Handler;
-	YSLib::lref<TermNode> Term;
-	YSLib::lref<ContextNode> Context;
+	// \since build 842
+	lref<ContextNode> Context;
 
+	//! \since build 842
 	template<typename _func>
-	Continuation(_func&& handler, TermNode& term, ContextNode& ctx)
-		: Handler(yforward(handler)), Term(term), Context(ctx)
+	Continuation(_func&& handler, ContextNode& ctx)
+		: Handler(yforward(handler)), Context(ctx)
 	{}
 
 	DefDeCopyMoveCtorAssignment(Continuation)
@@ -447,7 +567,8 @@ public:
 		ImplRet(ystdex::ref_eq<>()(x, y))
 
 	PDefHOp(ReductionStatus, (), ) const
-		ImplRet(Handler(Term, Context))
+		ImplRet(Handler(ContextState::Access(Context).GetNextTermRef(),
+			Context))
 
 	friend DefSwap(ynothrow, Continuation, swap(_x.Handler, _y.Handler),
 		ystdex::swap_dependent(_x.Context, _y.Context))
@@ -817,10 +938,10 @@ ReduceLeafToken(TermNode&, ContextNode&);
 \sa ReduceFirst
 \sa ReduceHeadEmptyList
 \sa ReduceLeafToken
-\since build 736
+\since build 842
 */
 YF_API void
-SetupDefaultInterpretation(ContextNode&, EvaluationPasses);
+SetupDefaultInterpretation(ContextState&, EvaluationPasses);
 
 
 /*
@@ -835,8 +956,11 @@ REPL 表示读取-求值-输出循环。
 class YF_API REPLContext
 {
 public:
-	//! \brief 上下文根节点。
-	ContextNode Root{};
+	/*!
+	\brief 上下文根节点。
+	\since build 842
+	*/
+	ContextState Root{};
 	//! \brief 预处理节点：每次翻译时预先处理调用的公共例程。
 	TermPasses Preprocess{};
 	//! \brief 表项处理例程：每次翻译中规约回调处理调用的公共例程。
@@ -1527,7 +1651,7 @@ LambdaRef(TermNode&, ContextNode&);
 //@}
 
 /*!
-\note 动态环境的上下文参数被捕获为一个 ystdex::ref<ContextNode> 对象。
+\note 动态环境的上下文参数被捕获为一个 lref<ContextNode> 对象。
 \note 初始化的 <eformal> 表示动态环境的上下文参数，应为一个符号或 #ignore 。
 \note 引入的处理器的 operator() 支持保存当前动作。
 \throw InvalidSyntax <eformal> 不符合要求。

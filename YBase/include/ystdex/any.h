@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r3103
+\version r3108
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2018-09-03 22:42 +0800
+	2018-10-29 15:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,7 +65,7 @@ struct with_handler_t
 \brief 抽象动态泛型持有者接口。
 \since build 454
 */
-class YB_API holder
+class YB_API YB_ATTR_novtable holder
 {
 public:
 	//! \since build 586
@@ -409,14 +409,14 @@ public:
 private:
 	//! \since build 729
 	template<typename... _tParams>
-	static YB_ATTR(always_inline) void
+	YB_ATTR(always_inline) static void
 	init_impl(false_, any_storage& d, _tParams&&... args)
 	{
 		d.construct<value_type*>(new value_type(yforward(args)...));
 	}
 	//! \since build 729
 	template<typename... _tParams>
-	static YB_ATTR(always_inline) void
+	YB_ATTR(always_inline) static void
 	init_impl(true_, any_storage& d, _tParams&&... args)
 	{
 		d.construct<value_type>(yforward(args)...);
@@ -452,14 +452,14 @@ public:
 private:
 	//! \since build 729
 	template<typename... _tParams>
-	YB_NORETURN static YB_ATTR(always_inline) void
+	YB_NORETURN YB_ATTR(always_inline) static void
 	try_init(false_, _tParams&&...)
 	{
 		throw_invalid_construction();
 	}
 	//! \since build 729
 	template<class _bInPlace, typename... _tParams>
-	static YB_ATTR(always_inline) void
+	YB_ATTR(always_inline) static void
 	try_init(true_, _bInPlace b, any_storage& d, _tParams&&... args)
 	{
 		init_impl(b, d, yforward(args)...);

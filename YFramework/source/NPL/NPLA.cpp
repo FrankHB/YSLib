@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2117
+\version r2126
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2018-10-18 19:44 +0800
+	2018-10-25 14:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -827,14 +827,14 @@ ContextNode::ContextNode(const ContextNode& ctx,
 			return std::move(p_rec);
 		ThrowInvalidEnvironment();
 	}()),
-	EvaluateLeaf(ctx.EvaluateLeaf), EvaluateList(ctx.EvaluateList),
-	EvaluateLiteral(ctx.EvaluateLiteral), Trace(ctx.Trace)
+	Trace(ctx.Trace)
 {}
 ContextNode::ContextNode(ContextNode&& ctx) ynothrow
 	: ContextNode()
 {
 	swap(ctx, *this);
 }
+ContextNode::ImplDeDtor(ContextNode)
 
 ReductionStatus
 ContextNode::ApplyTail()
@@ -875,14 +875,6 @@ ContextNode::Rewrite(Reducer reduce)
 	return ystdex::retry_on_cond(std::bind(&ContextNode::Transit, this), [&]{
 		return ApplyTail();
 	});
-}
-
-ReductionStatus
-ContextNode::RewriteGuarded(TermNode& term, Reducer reduce)
-{
-	const auto gd(Guard(term, *this));
-
-	return Rewrite(reduce);
 }
 
 shared_ptr<Environment>

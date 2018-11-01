@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2017 FrankHB.
+	© 2013-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1615
+\version r1624
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2017-04-11 09:42 +0800
+	2018-10-28 03:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,9 +109,10 @@ category of not requiring the user code to be modified.
 $dev; // issues concerned by developers, which end-users of the product can \
 	observe no behavior change as long as the contracts of the code are not \
 	violated;
-$lib; // issues only concerned with library, without interface changes or \
-	deletion unless providing some backward compatible replacements as long as \
-	the correct behavior can be expected;
+$lib; // issues only concerned with library, without interface modification \
+	(also including deletion, but not addition) potentially requiring user \
+	code modification by providing some backward-compatible replacements as \
+	long as there is no undefined behavior;
 $design; // features changing probably only made sense to who needs to \
 	reference or modify the implementation;
 $src; // issues known to break public ABI but remain source compatibility;
@@ -126,6 +127,7 @@ $debug; // issues on debugging;
 $comp; // features consist of dependencies with no additional work;
 $doc; // for documentation target;
 $fmt; // for coding format;
+$mismatch; // for inconsistency between design and specs around the interface;
 $mismatch($spec_list...); // for inconsistency between design and specs;
 $impl; // for being used as placeholder of implementation parts, \
 	which may not be observer behavior or features exposed by interface by \
@@ -344,9 +346,6 @@ todo.deferred:
 Handling FreeType error 0x26: "no charmap" and 0x40: "out of memory"(descriptions from "fterrdef.h").
 Ability for selecting specific typefaces with such glyphs.
 Native exceptions should be caught at proper boundary.
-// $2013-09.
-todo.deferred:
-Wrapping '__declspec(novtable)' when '_MSC_VER >= 1100'.
 
 todo.designated:
 // $2013-04.

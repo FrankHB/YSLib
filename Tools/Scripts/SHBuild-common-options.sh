@@ -28,10 +28,11 @@ if [[ "$SHBuild_Env_OS" != 'Win32' ]]; then
 	: ${C_CXXFLAGS_PIC:='-fPIC'}
 fi
 
-: ${C_CXXFLAGS_STRIP:='-s'}
+# NOTE: See https://gcc.gnu.org/onlinedocs/gcc/Link-Options.html#Link-Options,
+#	also https://clang.llvm.org/docs/ClangCommandLineReference.html#linker-flags.
 : ${LDFLAGS_STRIP:='-s'}
 
-: ${C_CXXFLAGS_COMMON:="-pipe $C_CXXFLAGS_GC $C_CXXFLAGS_STRIP $C_CXXFLAGS_ARCH -pedantic-errors"}
+: ${C_CXXFLAGS_COMMON:="-pipe $C_CXXFLAGS_GC $C_CXXFLAGS_ARCH -pedantic-errors"}
 : ${C_CXXFLAGS_OPT_LV:='-O3'}
 : ${C_CXXFLAGS_WARNING:=" \
 	-Wall \
@@ -84,8 +85,8 @@ elif SHBuild_Put "$CXX" | grep g++ > /dev/null; then
 		-Wstrict-null-sentinel \
 		-Wzero-as-null-pointer-constant \
 		"}
-	: ${CXXFLAGS_IMPL_OPT:="-fexpensive-optimizations -flto=jobserver"}
-	: ${LDFLAGS_IMPL_OPT:="-fexpensive-optimizations -flto"}
+	: ${CXXFLAGS_IMPL_OPT:='-fexpensive-optimizations -flto=jobserver'}
+	: ${LDFLAGS_IMPL_OPT:='-fexpensive-optimizations -flto'}
 fi
 
 : ${CFLAGS_STD:='-std=c11'}
