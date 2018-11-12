@@ -11,13 +11,13 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r783
+\version r814
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2018-10-27 20:20 +0800
+	2018-11-04 16:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,14 +30,13 @@
 #ifndef YB_INC_ystdex_placement_hpp_
 #define YB_INC_ystdex_placement_hpp_ 1
 
-#include "addressof.hpp" // for "addressof.hpp", empty_base, size_t_,
-//	YB_ASSUME, ystdex::addressof, is_lvalue_reference, std::pair,
-//	std::allocator, std::allocator_traits, enable_if_convertible_t,
-//	std::unique_ptr;
+#include "addressof.hpp" // for "addressof.hpp", cond_t, is_void, _t, vdefer,
+//	std::align, sizeof_t, size_t_, identity, empty_base, YB_ASSUME,
+//	ystdex::addressof, is_lvalue_reference, std::pair, std::allocator,
+//	std::allocator_traits, enable_if_convertible_t, std::unique_ptr;
+#include "cstdint.hpp" // for is_power_of_2, is_undereferenceable,
+//	std::iterator_traits, yconstraint;
 #include <new> // for placement ::operator new from standard library;
-#include <iterator> // for std::iterator_traits;
-#include "deref_op.hpp" // for is_undereferenceable;
-#include "cassert.h" // for yconstraint;
 // NOTE: The following code is necessary to check for <optional> header to
 //	ensure it have %in_place_t consistently. Other implementation is in
 //	"optional.h". 
@@ -84,6 +83,31 @@
 
 namespace ystdex
 {
+
+/*!
+\brief 返回参数指定的指针值对齐到指定的对齐值。
+\pre 断言：指针非空。
+\pre 断言：对齐值是 2 的整数次幂。
+\pre 指针指向对象。
+\since build 843
+*/
+template<typename _type>
+inline bool
+is_aligned_ptr(_type* p, size_t alignment
+	= yalignof(cond_t<is_void<_type>, std::max_align_t, _type>)) ynothrow
+{
+	yconstraint(p);
+	yconstraint(is_power_of_2(alignment));
+
+	// XXX: This can be bit and of 'reinterpret_cast<std::uintptr_t>(ptr)' and
+	//	'alignment - 1'. However, for portability, %std::align is used instead,
+	//	even inefficient in general.
+	void* ptr(p);
+	size_t space(_t<cond_t<is_void<_type>, identity<size_t_<1>>,
+		vdefer<sizeof_t, _type>>>::value);
+
+	return bool(std::align(alignment, space, ptr, space));
+}
 
 /*!
 \brief 默认初始化标记。

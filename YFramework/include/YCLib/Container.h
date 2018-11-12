@@ -11,13 +11,13 @@
 /*!	\file Container.h
 \ingroup YCLib
 \brief 容器、拟容器和适配器。
-\version r844
+\version r924
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2018-08-23 10:34 +0800
+	2018-11-06 11:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,8 @@
 
 #include "YModules.h"
 #include YFM_YCLib_YCommon
+#include <ystdex/memory_resource.h> // for ystdex::pmr;
+#include <ystdex/functor.hpp> // for ystdex::less, ystdex::equal_to;
 //#include <ext/vstring.h>
 #include <ystdex/tstring_view.hpp>
 #include <ystdex/string.hpp>
@@ -38,7 +40,7 @@
 #include <forward_list>
 #include <list>
 #include <vector>
-#include <ystdex/map.hpp>
+#include <ystdex/map.hpp> // for ystdex::map;
 #include <set>
 #include <unordered_set>
 #include <unordered_map>
@@ -48,8 +50,11 @@
 namespace platform
 {
 
-//! \since build 593
-inline namespace containers
+//! \since build 843
+namespace pmr = ystdex::pmr;
+
+//! \since build 843
+inline namespace basic_utilities
 {
 
 using std::forward_as_tuple;
@@ -67,32 +72,93 @@ using std::begin;
 //! \since build 546
 using std::end;
 
+//! \since build 664
+using ystdex::size;
+
+} // inline namespace utilities;
+
+//! \since build 593
+inline namespace containers
+{
+
 using std::array;
-using std::deque;
-using std::forward_list;
-using std::list;
-using std::vector;
+//! \since build 843
+//@{
+template<typename _type, class _tAlloc = pmr::polymorphic_allocator<_type>>
+using deque = std::deque<_type, _tAlloc>;
+
+template<typename _type, class _tAlloc = pmr::polymorphic_allocator<_type>>
+using forward_list = std::forward_list<_type, _tAlloc>;
+
+template<typename _type, class _tAlloc = pmr::polymorphic_allocator<_type>>
+using list = std::list<_type, _tAlloc>;
+
+template<typename _type, class _tAlloc = pmr::polymorphic_allocator<_type>>
+using vector = std::vector<_type, _tAlloc>;
+
 
 // NOTE: Since ISO C++17 node extraction of standard containers is not otherwise
 //	supported, solely using of %ystdex::map does not lead to troubles about
 //	extracted node handle incompatibilities. This also makes less templates need
 //	to be instantiated, in the expense of no debug support in libstdc++, which
 //	is an implementation detail.
-using ystdex::map;
-using std::multimap;
-using std::multiset;
-using std::set;
+template<typename _tKey, typename _tMapped, typename _fComp
+	= ystdex::less<_tKey>, class _tAlloc
+	= pmr::polymorphic_allocator<std::pair<const _tKey, _tMapped>>>
+using map = ystdex::map<_tKey, _tMapped, _fComp, _tAlloc>;
 
-using std::unordered_map;
-//! \since build 461
-using std::unordered_multimap;
-//! \since build 461
-using std::unordered_multiset;
-using std::unordered_set;
+template<typename _tKey, typename _tMapped, typename _fComp
+	= ystdex::less<_tKey>, class _tAlloc
+	= pmr::polymorphic_allocator<std::pair<const _tKey, _tMapped>>>
+using multimap = std::multimap<_tKey, _tMapped, _fComp, _tAlloc>;
 
-using std::stack;
-using std::priority_queue;
-using std::queue;
+template<typename _tKey, typename _fComp = ystdex::less<_tKey>,
+	class _tAlloc = pmr::polymorphic_allocator<_tKey>>
+using multiset = std::multiset<_tKey, _fComp, _tAlloc>;
+
+template<typename _tKey, typename _fComp = ystdex::less<_tKey>,
+	class _tAlloc = pmr::polymorphic_allocator<_tKey>>
+using set = std::set<_tKey, _fComp, _tAlloc>;
+
+
+template<typename _tKey, typename _tMapped, typename _fHash = std::hash<_tKey>,
+	typename _fEqual = ystdex::equal_to<_tKey>, class _tAlloc
+	= pmr::polymorphic_allocator<std::pair<const _tKey, _tMapped>>>
+using unordered_map
+	= std::unordered_map<_tKey, _tMapped, _fHash, _fEqual, _tAlloc>;
+
+template<typename _tKey, typename _tMapped, typename _fHash = std::hash<_tKey>,
+	typename _fEqual = ystdex::equal_to<_tKey>, class _tAlloc
+	= pmr::polymorphic_allocator<std::pair<const _tKey, _tMapped>>>
+using unordered_multimap
+	= std::unordered_multimap<_tKey, _tMapped, _fHash, _fEqual, _tAlloc>;
+
+template<typename _tKey, typename _fHash = std::hash<_tKey>,
+	typename _fEqual = ystdex::equal_to<_tKey>,
+	class _tAlloc = pmr::polymorphic_allocator<_tKey>>
+using unordered_multiset
+	= std::unordered_multiset<_tKey, _fHash, _fEqual, _tAlloc>;
+
+template<typename _tKey, typename _fHash = std::hash<_tKey>,
+	typename _fEqual = ystdex::equal_to<_tKey>,
+	class _tAlloc = pmr::polymorphic_allocator<_tKey>>
+using unordered_set = std::unordered_set<_tKey, _fHash, _fEqual, _tAlloc>;
+
+template<typename _type, class _tSeqCon = deque<_type>>
+using stack = std::stack<_type, _tSeqCon>;
+
+template<typename _tKey, class _tSeqCon = vector<_tKey>,
+	class _fComp = ystdex::less<_tKey>>
+using priority_queue = std::priority_queue<_tKey, _tSeqCon, _fComp>;
+
+template<typename _type, class _tSeqCon = deque<_type>>
+using queue = std::queue<_type, _tSeqCon>;
+//@}
+
+} // inline namespace containers;
+
+inline namespace strings
+{
 
 /*!
 \brief 满足 ISO C++03 std::basic_string 但不保证满足 ISO C++11 的实现。
@@ -102,7 +168,7 @@ using std::queue;
 template<typename _tChar, typename _tTraits = std::char_traits<_tChar>,
 	class _tAlloc = std::allocator<_tChar>>
 using basic_string = ystdex::basic_string<_tChar, _tTraits, _tAlloc>;
-// using versa_string = __gnu_cxx::__versa_string<_tChar>;
+//	using versa_string = __gnu_cxx::__versa_string<_tChar>;
 
 using string = basic_string<char>;
 //! \since build 608
@@ -110,7 +176,6 @@ using u16string = basic_string<char16_t>;
 //! \since build 608
 using u32string = basic_string<char32_t>;
 //! \since build 593
-//@{
 using wstring = basic_string<wchar_t>;
 
 //! \since build 640
@@ -131,34 +196,36 @@ using ystdex::wtstring_view;
 //@}
 
 //! \since build 833
+//@{
 static_assert(ystdex::is_implicitly_nothrow_constructible<const std::string&,
 	const string&>(), "Invalid string type (which is incompatible to exception"
 	" the standard string type in exception types) found.");
-//! \since build 833
 static_assert(ystdex::is_implicitly_nothrow_constructible<string_view,
 	string>(), "Invalid string view type found.");
 
-
+//! \since build 593
 using ystdex::sfmt;
+//! \since build 593
 using ystdex::vsfmt;
-//@}
 
-//! \since build 664
-using ystdex::size;
 //! \since build 308
 using ystdex::to_string;
-//! \since build 833
 using ystdex::to_wstring;
+//@}
 
-} // inline namespace containers;
+} // inline namespace strings;
 
 } // namespace platform;
 
 namespace platform_ex
 {
 
+//! \since build 843
+using namespace platform::basic_utilities;
 //! \since build 593
 using namespace platform::containers;
+//! \since build 843
+using namespace platform::strings;
 
 } // namespace platform_ex;
 

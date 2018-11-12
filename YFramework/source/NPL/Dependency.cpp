@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2116
+\version r2120
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2018-10-25 13:18 +0800
+	2018-11-10 22:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "NPL/YModules.h"
 #include YFM_NPL_Dependency // for ystdex::isspace, std::istream,
 //	YSLib::unique_ptr, ystdex::isdigit, ystdex::bind1, std::placeholders,
-//	ystdex::tolower;
+//	ystdex::tolower, ystdex::swap_dependent;
 #include YFM_NPL_SContext
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
@@ -900,9 +900,8 @@ LoadModule_std_system(REPLContext& context)
 
 			TermNode::AddValueTo(con, MakeIndex(0),
 				ystdex::trim(std::move(res.first)));
-			TermNode::AddValueTo(con, MakeIndex(1),
-				res.second);
-			swap(con, term.GetContainerRef());
+			TermNode::AddValueTo(con, MakeIndex(1), res.second);
+			ystdex::swap_dependent(con, term.GetContainerRef());
 		}, term);
 		return ReductionStatus::Retained;
 	});

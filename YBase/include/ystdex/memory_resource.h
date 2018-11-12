@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r497
+\version r655
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2018-11-02 03:45 +0800
+	2018-11-10 12:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 和原始的 std::experimental::pmr 中提供的接口及其实现有以下不同：
 LWG 2724 ：纯虚函数为 private 而不是 protected 。
 LWG 2843 ：成员 do_allocate 对不支持的对齐值直接抛出异常而非回退 std::max_align 。
+WG21 P0337R0 ：polymorphic_allocator 的默认 operator= 定义为 = delete 。 
 包括以下已有其它实现支持的 ISO C++17 后的修改：
 LWG 2961 ：不需要考虑无法实现的后置条件。
 LWG 2969 ：明确 polymorphic_allocator 的 construct 函数模板使用 *this 而不是
@@ -76,6 +77,9 @@ LWG 3113 ：明确 polymorphic_allocator 的 construct 函数模板转移构造�
 #endif
 #include "base.h" // for noncopyable, nonmovable;
 #include "cstdint.hpp" // for is_power_of_2;
+#include <vector> // for std::vector;
+#include <unordered_map> // for std::hash, std::unordered_map;
+#include <functional> // for std::equal_to;
 
 /*!
 \brief \<memory_resource\> 特性测试宏。
@@ -103,27 +107,14 @@ namespace details
 //	interface.
 
 template<class _tAlloc>
-struct piecewise_args
+class piecewise_args
 {
-	template<typename _type, typename... _tParams>
-	YB_ATTR(always_inline) inline auto
-	concat(true_, _tAlloc& a, std::tuple<_tParams...>&& tp)
-		-> decltype(dispatch2(is_constructible<_type, std::allocator_arg_t,
-		_tAlloc&, _tParams...>(), a, std::move(tp)))
-	{
-		return concat2(is_constructible<_type, std::allocator_arg_t,
-			_tAlloc&, _tParams...>(), a, std::move(tp));
-	}
-	template<class, typename... _tParams>
-	YB_ATTR(always_inline) inline std::tuple<_tParams...>&&
-	concat(false_, _tAlloc&, std::tuple<_tParams...>&& tp)
-	{
-		return std::move(tp);
-	}
-
+	//! \since build 843
+	//@{
+private:
 	template<typename... _tParams>
-	YB_ATTR(always_inline) inline auto
-	concat2(true_, _tAlloc& a, std::tuple<_tParams...>&& tp)
+	YB_ATTR(always_inline) static inline auto
+	alloc_concat(true_, _tAlloc& a, std::tuple<_tParams...>&& tp)
 		-> decltype(std::tuple_cat(std::tuple<std::allocator_arg_t, _tAlloc&>(
 		std::allocator_arg, a), std::move(tp)))
 	{
@@ -131,12 +122,30 @@ struct piecewise_args
 			std::allocator_arg, a), std::move(tp));
 	}
 	template<typename... _tParams>
-	YB_ATTR(always_inline) inline auto
-	concat2(false_, _tAlloc& a, std::tuple<_tParams...>&& tp)
+	YB_ATTR(always_inline) static inline auto
+	alloc_concat(false_, _tAlloc& a, std::tuple<_tParams...>&& tp)
 		-> decltype(std::tuple_cat(std::move(tp), std::tuple<_tAlloc&>(a)))
 	{
 		return std::tuple_cat(std::move(tp), std::tuple<_tAlloc&>(a));
 	}
+
+public:
+	template<typename _type, typename... _tParams>
+	YB_ATTR(always_inline) static inline auto
+	concat(true_, _tAlloc& a, std::tuple<_tParams...>&& tp)
+		-> decltype(alloc_concat(is_constructible<_type, std::allocator_arg_t,
+		_tAlloc&, _tParams...>(), a, std::move(tp)))
+	{
+		return alloc_concat(is_constructible<_type, std::allocator_arg_t,
+			_tAlloc&, _tParams...>(), a, std::move(tp));
+	}
+	template<class, typename... _tParams>
+	YB_ATTR(always_inline) static inline std::tuple<_tParams...>&&
+	concat(false_, _tAlloc&, std::tuple<_tParams...>&& tp)
+	{
+		return std::move(tp);
+	}
+	//@}
 };
 
 template<class _tAllocOuter, class _tAllocInner>
@@ -153,6 +162,26 @@ public:
 	{}
 
 private:
+	//! \since build 843
+	template<typename _type, typename... _tParams>
+	YB_ATTR(always_inline) inline void
+	alloc_dispatch(true_, _type* p, _tParams&&... args)
+	{
+		allocator_traits<_tAllocOuter>::construct(outer, p,
+			std::allocator_arg, inner, yforward(args)...);
+	}
+	//! \since build 843
+	template<typename _type, typename... _tParams>
+	YB_ATTR(always_inline) inline void
+	alloc_dispatch(false_, _type* p, _tParams&&... args)
+	{
+		static_assert(is_constructible<_type, _tParams..., _tAllocInner&>(),
+			"Failed to meet requirement from [allocator.uses.construction]/1.");
+
+		allocator_traits<_tAllocOuter>::construct(outer, p, yforward(args)...,
+			inner);
+	}
+
 	template<typename _type, typename... _types>
 	YB_ATTR(always_inline) inline auto
 	compcat(std::tuple<_types...>&& val)
@@ -168,40 +197,19 @@ public:
 	YB_ATTR(always_inline) inline void
 	dispatch(true_, _type* p, _tParams&&... args)
 	{
-		dispatch2(typename is_constructible<_type, std::allocator_arg_t,
+		alloc_dispatch(typename is_constructible<_type, std::allocator_arg_t,
 			_tAllocInner&, _tParams...>::type(), p, yforward(args)...);
 	}
 	template<typename _type, typename... _tParams>
 	YB_ATTR(always_inline) inline void
 	dispatch(false_, _type* p, _tParams&&... args)
 	{
-		static_assert(is_constructible<_type, _tParams...>::value,
+		static_assert(is_constructible<_type, _tParams...>(),
 			"Failed to meet requirement from [allocator.uses.construction]/1.");
 
 		allocator_traits<_tAllocOuter>::construct(outer, p, yforward(args)...);
 	}
 
-private:
-	template<typename _type, typename... _tParams>
-	YB_ATTR(always_inline) inline void
-	dispatch2(true_, _type* p, _tParams&&... args)
-	{
-		allocator_traits<_tAllocOuter>::construct(outer, p,
-			std::allocator_arg, inner, yforward(args)...);
-	}
-	template<typename _type, typename... _tParams>
-	YB_ATTR(always_inline) inline void
-	dispatch2(false_, _type* p, _tParams&&... args)
-	{
-		static_assert(is_constructible<_type, _tParams...,
-			_tAllocInner&>::value,
-			"Failed to meet requirement from [allocator.uses.construction]/1.");
-
-		allocator_traits<_tAllocOuter>::construct(outer, p, yforward(args)...,
-			inner);
-	}
-
-public:
 	template<typename _type1, typename _type2, typename... _types1,
 		typename... _types2>
 	YB_ATTR(always_inline) inline void
@@ -280,6 +288,10 @@ public:
 		return &a == &b || a.is_equal(b);
 	}
 
+	/*!
+	\pre 断言：对齐值是 2 的整数次幂。
+	\post 断言：返回值符合参数指定的对齐值要求。
+	*/
 	YB_ALLOCATOR void*
 	allocate(size_t bytes, size_t alignment = max_align)
 	{
@@ -290,7 +302,11 @@ public:
 		//	does silently round up the alignment value which is always the
 		//	maximul alignment in its %__resource_adaptor_imp::do_allocate.
 		yconstraint(is_power_of_2(alignment));
-		return do_allocate(bytes, alignment);
+
+		const auto p(do_allocate(bytes, alignment));
+
+		yassume(is_aligned_ptr(p, alignment));
+		return p;
 	}
 
 	void
@@ -368,8 +384,9 @@ public:
 		: memory_rsrc(other.resource())
 	{}
 
+	//! \since build 843
 	polymorphic_allocator&
-	operator=(const polymorphic_allocator&) = default;
+	operator=(const polymorphic_allocator&) = delete;
 
 	//! \see LWG 3038 。
 	YB_ALLOCATOR _type*
@@ -386,10 +403,10 @@ public:
 			yalignof(_type));
 	}
 
-	template<typename _type1, typename... _tParams>
+	template<typename _tObj, typename... _tParams>
 	YB_NONNULL(2) yimpl(enable_if_t<!std::is_same<vseq::_a<std::pair>,
-		vdefer<vseq::ctor_of_t, _type>>::value>)
-	construct(_type1* p, _tParams&&... args)
+		vdefer<vseq::ctor_of_t, _tObj>>::value>)
+	construct(_tObj* p, _tParams&&... args)
 	{
 		fallback_alloc_t a;
 
@@ -486,6 +503,105 @@ struct YB_API pool_options
 	size_t max_blocks_per_chunk = 0;
 	size_t largest_required_pool_block = 0;
 };
+#endif
+
+} // inline namespace cpp2017;
+
+/*!
+\brief 池资源。
+\ingroup YBase_replacement_extensions
+\since build 843
+
+接口同 ISO C++17 的 std::pmr::unsynchronized_pool_resource ，
+	但保证能在上游的分配器分配的区块为空时去配。
+*/
+class YB_API pool_resource : public memory_resource,
+	private yimpl(noncopyable), private yimpl(nonmovable)
+{
+private:
+	class pool_t;
+	using pools_t = std::vector<pool_t, polymorphic_allocator<pool_t>>;
+	using oversized_data_t = std::pair<size_t, size_t>;
+	pool_options saved_options;
+	std::unordered_map<void*, oversized_data_t, std::hash<void*>, std::equal_to<
+		void*>, polymorphic_allocator<std::pair<void* const, oversized_data_t>>>
+		oversized{};
+	pools_t pools;
+
+public:
+	pool_resource() ynothrow
+		: pool_resource(pool_options(), get_default_resource())
+	{}
+	//! \pre 断言：指针参数非空。
+	YB_NONNULL(3)
+	pool_resource(const pool_options&, memory_resource*)
+		ynothrow;
+	//! \pre 间接断言：指针参数非空。
+	explicit
+	pool_resource(memory_resource* upstream)
+		: pool_resource(pool_options(), upstream)
+	{}
+	explicit
+	pool_resource(const pool_options& opts)
+		: pool_resource(opts, get_default_resource())
+	{}
+	virtual
+	~pool_resource() override;
+
+	void
+	release() yimpl(ynothrow);
+
+	YB_ATTR_returns_nonnull memory_resource*
+	upstream_resource() const yimpl(ynothrow)
+	{
+		return pools.get_allocator().resource();
+	}
+
+	pool_options
+	options() const yimpl(ynothrow)
+	{
+		return saved_options;
+	}
+
+protected:
+	YB_ALLOCATOR void*
+	do_allocate(size_t, size_t) override;
+
+	void
+	do_deallocate(void*, size_t, size_t) yimpl(ynothrowv) override;
+
+	bool
+	do_is_equal(const memory_resource&) const ynothrow override;
+
+private:
+	std::pair<pools_t::iterator, size_t>
+	find_pool(size_t, size_t) ynothrow;
+
+	bool
+	pool_exists(const std::pair<pools_t::iterator, size_t>&) ynothrow;
+
+	void
+	release_oversized() ynothrow;
+
+	memory_resource&
+	upstream() ynothrowv
+	{
+		const auto p_upstream(upstream_resource());
+
+		yassume(p_upstream);
+		return *p_upstream;
+	}
+};
+
+inline namespace cpp2017
+{
+
+#if YB_Has_memory_resource == 1
+using std::pmr::synchronized_pool_resource;
+using std::pmr::unsynchronized_pool_resource;
+using std::pmr::monotonic_buffer_resource;
+#else
+using unsynchronized_pool_resource = pool_resource;
 #endif
 
 } // inline namespace cpp2017;

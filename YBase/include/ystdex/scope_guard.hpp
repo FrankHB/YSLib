@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守卫。
-\version r560
+\version r566
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2018-03-15 20:15 +0800
+	2018-10-30 17:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,11 +30,10 @@
 #ifndef YB_INC_ystdex_scope_guard_hpp_
 #define YB_INC_ystdex_scope_guard_hpp_ 1
 
-#include "utility.hpp" // for exclude_self_t, is_nothrow_constructible,
-//	is_reference, is_nothrow_swappable, ystdex::vswap, std::declval,
+#include "utility.hpp" // for exclude_self_t, is_nothrow_constructible, decay_t,
+//	is_reference, ystdex::vswap, tagged_value, noncopyable, std::declval,
 //	is_nothrow_copyable;
-#include "base.h" // for noncopyable;
-#include "placement.hpp" // for tagged_value;
+#include "functional.hpp" // for one_shot;
 
 namespace ystdex
 {
@@ -167,8 +166,7 @@ namespace details
 
 //! \since build 569
 //@{
-template<typename _type, typename _tToken,
-	bool _bRef = is_reference<_tToken>::value>
+template<typename _type, typename _tToken, bool = is_reference<_tToken>::value>
 struct state_guard_traits
 {
 	//! \since build 586

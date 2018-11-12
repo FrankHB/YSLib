@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2015, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YStyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r840
+\version r845
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2015-04-24 04:09 +0800
+	2018-11-05 07:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include YFM_YSLib_UI_YComponent
 #include YFM_YSLib_Service_YDraw
 #include <ystdex/rational.hpp>
-#include <typeindex>
+#include <typeindex> // for mandated header;
 #include <ystdex/hash.hpp> // for ystdex::combined_hash;
 
 namespace YSLib
@@ -390,7 +390,7 @@ using VisualStyle = pair<string, HandlerTable>;
 \ingroup helper_functions
 \brief 向样式处理器表添加指定类型的处理器。
 \note 被添加的值需能表示为 StyleItem 和 Handler 的有序对，
-	使用 ADL <tt>get<0U></tt> 和 <tt>get<1U></tt> 实现访问其中的成员。
+	使用 ADL \c get\<0U\> 和 \c get\<1U\> 实现访问其中的成员。
 \since build 469
 */
 //@{
@@ -421,7 +421,7 @@ AddHandlers(HandlerTable& table,
 {
 	Styles::AddHandlers(table, typeid(_type), il);
 }
-//! \note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
+//! \note 使用 ADL begin 和 end 指定范围迭代器。
 //@{
 template<typename _tRange>
 inline void
@@ -479,7 +479,7 @@ public:
 class YF_API StyleMap : private noncopyable, private map<string, HandlerTable>
 {
 public:
-	using MapType = map<string, HandlerTable>;
+	using MapType = YSLib::map<string, HandlerTable>;
 	using MapType::const_iterator;
 	using MapType::iterator;
 

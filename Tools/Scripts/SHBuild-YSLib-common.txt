@@ -238,7 +238,7 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 	(
 		$set-if-empty! LDFLAGS_DYN_BASE "-shared";
 		$set-if-empty! LIBS_RPATH ++ "-Wl,-rpath,"
-			(SHBuild_QuoteS_ "\\$ORIGIN:\\$ORIGIN/../lib")
+			(SHBuild_QuoteS_ "$ORIGIN:$ORIGIN/../lib")
 	);
 	SHB_SetupPlatformVars_ (() get-current-environment) env-os;
 	$env-de! LDFLAGS_DYN_EXTRA cons-cmd "-Wl,--no-undefined"
@@ -249,9 +249,9 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 	$def! LDFLAGS $if debug
 		(cons-cmd C_CXXFLAGS_PIC cxxflags_impl_common_thrd_)
 		(cons-cmd C_CXXFLAGS_PIC cxxflags_impl_common_thrd_ LDFLAGS_OPT_DBG);
-	$redef! LDFLAGS SHBuild_TrimOptions_ (cons-cmd
-		(SHBuild_TrimOptions_ LDFLAGS) ($if app (do-ld-ext env-os)
-		($if dynamic LDFLAGS_DYN "-Wl,--dn")));
+	$redef! LDFLAGS SHBuild_TrimOptions_ (cons-cmd (SHBuild_TrimOptions_
+		LDFLAGS) ($if app (cons-cmd ($if dynamic LIBS_RPATH "")
+		(do-ld-ext env-os)) ($if dynamic (cons-cmd LDFLAGS_DYN) "-Wl,--dn")));
 	safeenv-set "LDFLAGS" LDFLAGS;
 	$def! SHBOPT get-SHBOPT_ outdir shbopt-ext ($or? dynamic app);
 	$defl! echo-var (var) SHBuild_EchoVar var (value-of var);

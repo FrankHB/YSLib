@@ -11,13 +11,13 @@
 /*!	\file map.hpp
 \ingroup YStandardEx
 \brief 映射容器。
-\version r810
+\version r929
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:12:51 +0800
 \par 修改时间:
-	2018-08-17 03:54 +0800
+	2018-11-11 23:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,8 @@
 //	enable_if_t, ystdex::swap_dependent;
 #include <map> // for <map>, std::initializer_list;
 #include <tuple> // for std::piecewise_construct, std::tuple;
+#include "container.hpp" // for ystdex::try_emplace, ystdex::insert_or_assign,
+//	ystdex::emplace_hint_in_place;
 
 namespace ystdex
 {
@@ -47,7 +49,7 @@ namespace ystdex
 #if (__cpp_lib_generic_associative_lookup >= 201304L || __cplusplus >= 201402L) \
 	&& ((__cpp_lib_allocator_traits_is_always_equal >= 201411L \
 	&& __cpp_lib_map_try_emplace >= 201411L \
-	&& __cpp_lib_node_extract >= 201606L) || __cplusplus >= 201703L)
+	&& __cpp_lib_node_extract >= 201606L) || __cplusplus >= 201606L)
 #	define YB_Has_Cpp17_map true
 #else
 #	define YB_Has_Cpp17_map false
@@ -64,24 +66,24 @@ class multimap;
 \note 和 ISO C++ 的 std::map 类似，但支持不完整类型。
 \warning 非虚析构。
 */
-template<typename _tKey, typename _type, typename _fComp = less<_tKey>,
-	class _tAlloc = std::allocator<std::pair<const _tKey, _type>>>
-class map : private totally_ordered<map<_tKey, _type, _fComp, _tAlloc>>
+template<typename _tKey, typename _tMapped, typename _fComp = less<_tKey>,
+	class _tAlloc = std::allocator<std::pair<const _tKey, _tMapped>>>
+class map : private totally_ordered<map<_tKey, _tMapped, _fComp, _tAlloc>>
 {
 	template<typename, typename>
 	friend struct details::rb_tree::tree_merge_helper;
 
 public:
 	using key_type = _tKey;
-	using mapped_type = _type;
-	using value_type = std::pair<const _tKey, _type>;
+	using mapped_type = _tMapped;
+	using value_type = std::pair<const _tKey, _tMapped>;
 	static_assert(std::is_same<typename allocator_traits<_tAlloc>::value_type,
 		value_type>(), "Value type mismatched to the allocator found.");
 	using key_compare = _fComp;
 	using allocator_type = _tAlloc;
 	class value_compare
 	{
-		friend class map<_tKey, _type, _fComp, _tAlloc>;
+		friend class map<_tKey, _tMapped, _fComp, _tAlloc>;
 
 	protected:
 		_fComp comp;
@@ -362,90 +364,76 @@ public:
 
 	template<typename _tCon2>
 	void
-	merge(map<_tKey, _type, _tCon2, _tAlloc>& src)
+	merge(map<_tKey, _tMapped, _tCon2, _tAlloc>& src)
 	{
 		tree.merge_unique(
 			details::rb_tree::tree_merge_helper<map, _tCon2>::get_tree(src));
 	}
 	template<typename _tCon2>
 	void
-	merge(map<_tKey, _type, _tCon2, _tAlloc>&& src)
+	merge(map<_tKey, _tMapped, _tCon2, _tAlloc>&& src)
 	{
 		merge(src);
 	}
 	template<typename _tCon2>
 	void
-	merge(multimap<_tKey, _type, _tCon2, _tAlloc>& src)
+	merge(multimap<_tKey, _tMapped, _tCon2, _tAlloc>& src)
 	{
 		tree.merge_unique(
 			details::rb_tree::tree_merge_helper<map, _tCon2>::get_tree(src));
 	}
 	template<typename _tCon2>
 	void
-	merge(multimap<_tKey, _type, _tCon2, _tAlloc>&& src)
+	merge(multimap<_tKey, _tMapped, _tCon2, _tAlloc>&& src)
 	{
 		merge(src);
 	}
 
 	template<typename... _tParams>
-	std::pair<iterator, bool>
+	inline std::pair<iterator, bool>
 	try_emplace(const key_type& k, _tParams&&... args)
 	{
-		const auto i(lower_bound(k));
-
-		if(i == end() || key_comp()(k, (*i).first))
-		{
-			i = emplace_hint(i, std::piecewise_construct, std::forward_as_tuple(
-				k), std::forward_as_tuple(yforward(args)...));
-			return {i, true};
-		}
-		return {i, {}};
+		return ystdex::try_emplace(*this, k, yforward(args)...);
 	}
 	template<typename... _tParams>
-	std::pair<iterator, bool>
+	inline std::pair<iterator, bool>
 	try_emplace(key_type&& k, _tParams&&... args)
 	{
-		const auto i(lower_bound(k));
-
-		if(i == end() || key_comp()(k, (*i).first))
-		{
-			i = emplace_hint(i, std::piecewise_construct, std::forward_as_tuple(
-				std::move(k)), std::forward_as_tuple(yforward(args)...));
-			return {i, true};
-		}
-		return {i, {}};
+		return ystdex::try_emplace(*this, k, yforward(args)...);
 	}
-
 	template<typename... _tParams>
-	iterator
+	inline iterator
 	try_emplace(const_iterator hint, const key_type& k, _tParams&&... args)
 	{
-		iterator i;
-		auto true_hint = tree.get_insert_hint_unique_pos(hint, k);
-		if(true_hint.second)
-			i = emplace_hint(iterator(true_hint.second),
-				std::piecewise_construct,
-				std::forward_as_tuple(k),
-				std::forward_as_tuple(yforward(args)...));
-		else
-			i = iterator(true_hint.first);
-		return i;
+		return try_emplace_hint_impl(hint, k, yforward(args)...);
 	}
 	template<typename... _tParams>
-	iterator
+	inline iterator
 	try_emplace(const_iterator hint, key_type&& k, _tParams&&... args)
 	{
-		iterator i;
-		auto true_hint = tree.get_insert_hint_unique_pos(hint, k);
-		if(true_hint.second)
-			i = emplace_hint(iterator(true_hint.second),
-				std::piecewise_construct, std::forward_as_tuple(std::move(k)),
-				std::forward_as_tuple(yforward(args)...));
-		else
-			i = iterator(true_hint.first);
-		return i;
+		return try_emplace_hint_impl(hint, std::move(k), yforward(args)...);
 	}
 
+private:
+	//! \since build 843
+	template<typename _tParam, typename... _tParams>
+	iterator
+	try_emplace_hint_impl(const_iterator hint, _tParam&& k, _tParams&&... args)
+	{
+		// NOTE: Following code with %ystdex::try_emplace_hint is not used
+		//	because there is more specific internal method to deal with internal
+		//	knowledge of node pointers of underlying tree and case for %end().
+	//	return ystdex::try_emplace_hint(*this, hint, k,
+	//	yforward(args)...).first;
+		const auto pr(tree.get_insert_hint_unique_pos(hint, k));
+
+		return pr.second ? emplace_hint(iterator(pr.second),
+			std::piecewise_construct, std::forward_as_tuple(yforward(k)),
+			std::forward_as_tuple(yforward(args)...))
+			: iterator(pr.first);
+	}
+
+public:
 	std::pair<iterator, bool>
 	insert(const value_type& x)
 	{
@@ -480,7 +468,6 @@ public:
 	{
 		return tree.insert_hint_unique(position, std::move(x));
 	}
-
 	template<typename _tPair,
 		typename = enable_if_t<is_constructible<value_type, _tPair&&>::value>>
 	iterator
@@ -488,7 +475,6 @@ public:
 	{
 		return tree.insert_hint_unique(position, std::forward<_tPair>(x));
 	}
-
 	template<typename _tIn>
 	void
 	insert(_tIn first, _tIn last)
@@ -500,73 +486,47 @@ public:
 	std::pair<iterator, bool>
 	insert_or_assign(const key_type& k, _tObj&& obj)
 	{
-		iterator i = lower_bound(k);
-		if(i == end() || key_comp()(k, (*i).first))
-		{
-			i = emplace_hint(i,
-				std::piecewise_construct,
-				std::forward_as_tuple(k),
-				std::forward_as_tuple(std::forward<_tObj>(obj)));
-			return {i, true};
-		}
-		(*i).second = std::forward<_tObj>(obj);
-		return {i, {}};
+		return ystdex::insert_or_assign(*this, k, yforward(obj));
 	}
-
 	template<typename _tObj>
 	std::pair<iterator, bool>
 	insert_or_assign(key_type&& k, _tObj&& obj)
 	{
-		iterator i = lower_bound(k);
-		if(i == end() || key_comp()(k, (*i).first))
-		{
-			i = emplace_hint(i,
-				std::piecewise_construct,
-				std::forward_as_tuple(std::move(k)),
-				std::forward_as_tuple(std::forward<_tObj>(obj)));
-			return {i, true};
-		}
-		(*i).second = std::forward<_tObj>(obj);
-		return {i, {}};
+		return ystdex::insert_or_assign(*this, std::move(k), yforward(obj));
 	}
-
 	template<typename _tObj>
 	iterator
 	insert_or_assign(const_iterator hint, const key_type& k, _tObj&& obj)
 	{
-		iterator i;
-		const auto true_hint(tree.get_insert_hint_unique_pos(hint, k));
-
-		if(true_hint.second)
-		{
-			return emplace_hint(iterator(true_hint.second),
-				std::piecewise_construct,
-				std::forward_as_tuple(k),
-				std::forward_as_tuple(std::forward<_tObj>(obj)));
-		}
-		i = iterator(true_hint.first);
-		(*i).second = std::forward<_tObj>(obj);
-		return i;
+		return insert_or_assign_hint_impl(hint, k, yforward(obj));
 	}
 	template<typename _tObj>
 	iterator
 	insert_or_assign(const_iterator hint, key_type&& k, _tObj&& obj)
 	{
-		iterator i;
-		auto true_hint(tree.get_insert_hint_unique_pos(hint, k));
+		return insert_or_assign_hint_impl(hint, std::move(k), yforward(obj));
+	}
 
-		if(true_hint.second)
-		{
-			return emplace_hint(iterator(true_hint.second),
-				std::piecewise_construct,
-				std::forward_as_tuple(std::move(k)),
-				std::forward_as_tuple(std::forward<_tObj>(obj)));
-		}
-		i = iterator(true_hint.first);
+private:
+	//! \since build 843
+	template<typename _tParam, typename _tObj>
+	iterator
+	insert_or_assign_hint_impl(const_iterator hint, _tParam&& k, _tObj&& obj)
+	{
+		// NOTE: Similar to %try_emplace_hint_impl.
+		const auto pr(tree.get_insert_hint_unique_pos(hint, k));
+
+		if(pr.second)
+			return ystdex::emplace_hint_in_place(*this, iterator(pr.second),
+				yforward(k), yforward(obj));
+
+		const iterator i(pr.first);
+
 		(*i).second = std::forward<_tObj>(obj);
 		return i;
 	}
 
+public:
 	//! \see LWG 2059 。
 	iterator
 	erase(iterator position)
@@ -618,20 +578,17 @@ public:
 	{
 		return tree.find(x);
 	}
-
 	template<typename _tTransKey>
 	auto
 	find(const _tTransKey& x) -> decltype(tree.find_tr(x))
 	{
 		return tree.find_tr(x);
 	}
-
 	const_iterator
 	find(const key_type& x) const
 	{
 		return tree.find(x);
 	}
-
 	template<typename _tTransKey>
 	auto
 	find(const _tTransKey& x) const -> decltype(tree.find_tr(x))
@@ -663,7 +620,6 @@ public:
 	{
 		return iterator(tree.lower_bound_tr(x));
 	}
-
 	const_iterator
 	lower_bound(const key_type& x) const
 	{
@@ -689,13 +645,11 @@ public:
 	{
 		return iterator(tree.upper_bound_tr(x));
 	}
-
 	const_iterator
 	upper_bound(const key_type& x) const
 	{
 		return tree.upper_bound(x);
 	}
-
 	template<typename _tTransKey>
 	auto
 	upper_bound(const _tTransKey& x) const
@@ -744,10 +698,10 @@ public:
 };
 
 //! \relates map
-template<typename _tKey, typename _type, typename _fComp, typename _tAlloc>
+template<typename _tKey, typename _tMapped, typename _fComp, typename _tAlloc>
 inline void
-swap(map<_tKey, _type, _fComp, _tAlloc>& x,
-	map<_tKey, _type, _fComp, _tAlloc>& y) ynoexcept_spec(noexcept(x.swap(y)))
+swap(map<_tKey, _tMapped, _fComp, _tAlloc>& x,
+	map<_tKey, _tMapped, _fComp, _tAlloc>& y) ynoexcept_spec(noexcept(x.swap(y)))
 {
 	x.swap(y);
 }
@@ -759,21 +713,21 @@ inline namespace rb_tree
 {
 
 //! \relates map
-template<typename _tKey, typename _type, typename _fComp1, typename _tAlloc,
+template<typename _tKey, typename _tMapped, typename _fComp1, typename _tAlloc,
 	typename _fComp2>
-struct tree_merge_helper<ystdex::map<_tKey, _type, _fComp1, _tAlloc>, _fComp2>
+struct tree_merge_helper<ystdex::map<_tKey, _tMapped, _fComp1, _tAlloc>, _fComp2>
 {
 private:
-	friend class ystdex::map<_tKey, _type, _fComp1, _tAlloc>;
+	friend class ystdex::map<_tKey, _tMapped, _fComp1, _tAlloc>;
 
 	static auto
-	get_tree(ystdex::map<_tKey, _type, _fComp2, _tAlloc>& m)
+	get_tree(ystdex::map<_tKey, _tMapped, _fComp2, _tAlloc>& m)
 		-> decltype((m.tree))
 	{
 		return m.tree;
 	}
 	static auto
-	get_tree(ystdex::multimap<_tKey, _type, _fComp2, _tAlloc>& m)
+	get_tree(ystdex::multimap<_tKey, _tMapped, _fComp2, _tAlloc>& m)
 		-> decltype((m.tree))
 	{
 		return m.tree;

@@ -11,13 +11,13 @@
 /*!	\file meta.hpp
 \ingroup YStandardEx
 \brief 通用元编程设施。
-\version r1581
+\version r1584
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:28 +0800
 \par 修改时间:
-	2018-10-18 19:44 +0800
+	2018-11-03 03:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -750,6 +750,11 @@ struct identity
 template<typename _type>
 using identity_t = _t<identity<_type>>;
 //@}
+
+
+//! \since build 843
+template<typename _type>
+using sizeof_t = size_t_<sizeof(_type)>;
 
 
 /*!

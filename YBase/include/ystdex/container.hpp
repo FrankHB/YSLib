@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r2044
+\version r2046
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2018-08-13 10:04 +0800
+	2018-11-12 15:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1143,9 +1143,9 @@ search_map(const _tAssocCon& con, typename _tAssocCon::const_iterator hint,
 	{
 		const auto& comp(con.key_comp());
 		const bool fit_before(hint == ystdex::cbegin(con)
-			|| bool(comp(extract_key(*std::prev(hint)), k))),
+			|| bool(comp(extract_key<_tAssocCon>(*std::prev(hint)), k))),
 			fit_after(hint == ystdex::cend(con)
-			|| bool(comp(k, extract_key(*std::next(hint)))));
+			|| bool(comp(k, extract_key<_tAssocCon>(*std::next(hint)))));
 
 		if(fit_before == fit_after)
 			return {hint, fit_before && fit_after};

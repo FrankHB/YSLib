@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r1113
+\version r1134
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2018-08-17 03:56 +0800
+	2018-11-12 15:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,8 +74,10 @@ template<typename _tWrappedKey, typename _fComp,
 	bool = has_mem_is_transparent<_fComp>::value>
 struct tcompare
 {
-	_fComp comp;
+	_fComp comp{};
 
+	//! \since build 843
+	tcompare() = default;
 	tcompare(_fComp c)
 		: comp(std::move(c))
 	{}
@@ -197,8 +199,9 @@ public:
 	using const_reverse_iterator = ystdex::reverse_iterator<const_iterator>;
 
 private:
-	// XXX: It is undefined behavior when %value_type is incomplete, however
-	//	some implementations actually support this.
+	// XXX: It is undefined behavior when %value_type is incomplete if it is of
+	//	an instance of %std::map, however some implementations actually support
+	//	this.
 	umap_type m_map;
 
 public:
@@ -260,8 +263,9 @@ public:
 	mapped_set&
 	operator=(const mapped_set& s)
 	{
-		// NOTE: The underlying implementation may reuse node, e.g. libstdc++.
-		//	So it is preferred to directly move and then to fix references.
+		// NOTE: The underlying implementation of %std::map may reuse node, e.g.
+		//	in libstdc++. So it is preferred to directly move and then to fix
+		//	references.
 		m_map = s.m_map;
 		amend_all();
 		return *this;
@@ -455,7 +459,6 @@ public:
 	{
 		m_map.insert(ystdex::make_transform(first, iter_trans<_tIn>),
 			ystdex::make_transform(last, iter_trans<_tIn>));
-		// XXX: Time complexity.
 		amend_all();
 	}
 	void
@@ -696,6 +699,18 @@ private:
 		return {mapped_key_type(*i), *i};
 	}
 };
+
+/*!
+\relates mapped_set
+\since build 843
+*/
+template<typename _type, typename _fComp, class _tAlloc>
+inline void
+swap(mapped_set<_type, _fComp, _tAlloc>& x,
+	mapped_set<_type, _fComp, _tAlloc>& y) ynoexcept_spec(noexcept(x.swap(y)))
+{
+	x.swap(y);
+}
 
 #undef YB_Impl_Set_UseGenericLookup
 

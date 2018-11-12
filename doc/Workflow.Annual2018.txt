@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2018 年度。
-\version r499
+\version r527
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2018-02-27 22:36:36 +0800
 \par 修改时间:
-	2018-10-28 18:58 +0800
+	2018-11-04 12:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -360,6 +360,7 @@ Use of inherited constructors are rechecked to interact without resolution from 
 
 $2018-08:
 
+$report.impl:
 Type of feature testing macro values are adjusted as WG21 P0941R2.
 	This is more consistent with '__cplusplus'.
 		Now it also supports implementations where the range of 'int' is not large enough to represent the values with a steady type ('long') instead of unspecified one of 'int' and 'long'.
@@ -389,6 +390,7 @@ UNC (universal name convention) paths support is reconsidered.
 
 $2018-09:
 
+$report.impl:
 Functions to introduce abstraction forms in NPLA1 have been revised.
 	The variants of "with environment" (or "with static environment" where "static" is always inferrable) are renamed.
 		The new '/e' postfix is clearer to the previously used 'e' due to more explicit boundary with the word it follows.
@@ -406,6 +408,7 @@ PTC implementation in NPLA1 has been revisited.
 
 $2018-10:
 
+$report.impl:
 Last reduction status interaction has been simplified in thunked code of NPLA and NPLA1 implementation.
 	The status shared in evalation passes of a single evaluation now is placed as the last status in the context.
 		This avoid additional allocation with 'shared_ptr<ReductionStatus>'.
@@ -477,6 +480,33 @@ The MSVC-specific attribute '__declspec(novtable)' has been supported in 'ydef.h
 		Now this would be ignored if for non-Microsoft ABI, see http://lists.llvm.org/pipermail/cfe-commits/Week-of-Mon-20150720/133747.html.
 	It is considered that there can be a better name to 'vtable' in 'YB_ATTR_novtable' as it has been exposed too much implementation details, but nothing clearer is found yet.
 	Use of the attribute will be adopted in future in YSLib code, notably, for YBase base classes and YFramework interface types.
+
+$2018-10:
+
+$report.impl:
+Pool allocation has been implemented.
+	The base implementation now is in "ystdex/memory_resource.h", which replaces and extends ISO C++17's <memory_resource> interface in a compatible manner.
+	There are a few out-of-box implementations for reference.
+		Microsoft VC++ 15.8.2 has provided the full implementation of ISO C++17 <memory_resource> with some LWG DR resolutions while libstdc++ and libc++ not (only with library fundamental TS interface).
+		Boost.Container has another implementation (probably targetting library fundundamental TS currently), with some extensions.
+		Some post-C++17 LWG issues define further interface change, e.g. LWG 3038. They are also implemented in Microsoft's implementation.
+	Supported LWG resoultions are documented in the header file.
+	The pool has a separated type, in spite of there are "std::unsynchronized_pool_resource" and "std::synchrnoized_pool_resource".
+		The pool types are not guaranteed to deallocate upstream resource unless totally released.
+			This is bad for long-running programs since it would likely lead to definitely memory leaks because the pools never shrink.
+				On systems having virtual memory, it would like waste swap space; otherwise it would waste RAM a lot.
+			Microsoft's implementation does not suffers from this, but it is not guaranteed portable.
+			See also https://groups.google.com/a/isocpp.org/forum/#!topic/std-discussion/MKBWu8yzTOA.
+		The latter is inheriting the former publicly in Microsoft's implementation. This might be promatic.
+		So anyway, a new type seems necessary. This is done separatedly even when Microsoft's implementation is available.
+	Some implementation techniques not specified by the interface are used to improve performance for average cases.
+		A stashed chunk pointer is used to avoid most cases of O(n) search of candidated chunks in allocation.
+		An empty chunk pointer is used to cache the empty chunk, thus it avoids some unnecessary immediately reallocations when there is a chunk with all blocks deallcated recently.
+		The heuristic strategy is used in the pool chunks.
+			The growth factor is 2 is choosed mainly for simplicity.
+				Not same to 'std::vector', since the chunks are not inteneded to be reused (like reallocation in 'std::vector'), 2 does not suffer from cache missing issues.
+				See https://www.reddit.com/r/cpp/comments/2ezwee/stdvector_optimization_by_facebook/ about issues of vector reallocation.
+		All of the above implementation details are similar or same to Microsoft's current implementation but different to Boost.Container's.
 
 ////
 
