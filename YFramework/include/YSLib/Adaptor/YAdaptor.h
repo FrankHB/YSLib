@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2051
+\version r2146
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2018-10-12 12:30 +0800
+	2018-11-05 11:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,15 +39,15 @@
 #include YFM_YCLib_Keys // for platform::basic_types, <bitset>,
 //	YCLib key space;
 #include YFM_YCLib_Timer
-#include YFM_YCLib_Mutex // for ystdex::noncopyable, ystdex::nonmovable,
-//	Threading, Concurrency;
+#include YFM_YCLib_Mutex // for YFM_YCLib_Mutex ystdex::noncopyable,
+//	ystdex::nonmovable, Threading, Concurrency;
 #include YFM_YCLib_FileIO // for <array>, <deque>, <forward_list>, <istream>,
 //	<ostream>, <queue>, <set>, <stack>, <unordered_map>, <unordered_set>,
 //	YFM_YCLib_Container, <vector>, forward_as_tuple, '*string_view', get,
 //	ignore, make_pair, make_tuple, pair, tie, tuple, tuple_cat, size, uopen,
 //	'uf*', 'up*', etc;
-#include YFM_YCLib_Reference // for <memory>, '*_ptr', 'make*_ptr',
-//	lref;
+#include YFM_YCLib_Reference // for YFM_YCLib_Reference, <memory>, '*_ptr',
+//	'make*_ptr', lref;
 #include YFM_YCLib_FileSystem
 #include YFM_YCLib_MemoryMapping // for MappedFile;
 #include YFM_YCLib_Video // for MonoType, AlphaType, Color;
@@ -107,47 +107,18 @@ using ystdex::max;
 //@}
 //@}
 
+//! \since build 843
+//@{
+namespace pmr = platform::pmr;
+
+using namespace platform::basic_utilities;
+using namespace platform::containers;
+
+using namespace platform::references;
+//@}
 
 //! \since build 593
 //@{
-using platform::forward_as_tuple;
-using platform::get;
-using platform::ignore;
-using platform::make_pair;
-using platform::make_tuple;
-using platform::pair;
-using platform::tie;
-using platform::tuple;
-using platform::tuple_cat;
-
-//! \since build 546
-using platform::begin;
-//! \since build 546
-using platform::end;
-
-using platform::array;
-using platform::deque;
-using platform::forward_list;
-using platform::list;
-using platform::vector;
-
-using platform::map;
-using platform::multimap;
-using platform::multiset;
-using platform::set;
-
-using platform::unordered_map;
-using platform::unordered_multimap;
-using platform::unordered_multiset;
-using platform::unordered_set;
-
-using platform::stack;
-using platform::priority_queue;
-using platform::queue;
-
-//! \since build 664
-using platform::size;
-
 //! \since build 597
 using platform::basic_string;
 
@@ -158,8 +129,9 @@ using platform::vsfmt;
 
 using platform::to_string;
 using platform::to_wstring;
+//@}
 
-//! \since build 640
+//! \since build 644
 //@{
 using platform::basic_string_view;
 using platform::string_view;
@@ -170,62 +142,12 @@ using platform::wstring_view;
 //! \since build 836
 using platform::string_view_t;
 
-using platform::bad_weak_ptr;
-using platform::const_pointer_cast;
-using platform::dynamic_pointer_cast;
-using platform::enable_shared_from_this;
-using platform::get_deleter;
-using platform::get_raw;
-//! \since build 670
-using platform::make_observer;
-using platform::make_shared;
-using platform::make_unique;
-//! \since build 602
-using platform::make_unique_default_init;
-//! \since build 779
-using platform::make_weak;
-//! \since build 670
-using platform::observer_ptr;
-using platform::owner_less;
-//! \since build 784
-using platform::owns_any;
-//! \since build 784
-using platform::owns_nonnull;
-//! \since build 783
-using platform::owns_unique;
-//! \since build 783
-using platform::owns_unique_nonnull;
+// XXX: Some declarations of overloads would defined elsewhere, so the following
+//	declarations is still needed, even though there are also introduced from the
+//	%platform namespace or a subnamespace thereby.
+//! \since build 593
 using platform::reset;
-//! \since build 783
-//@{
-using platform::share_copy;
-using platform::share_forward;
-using platform::share_move;
-//@}
-using platform::share_raw;
-using platform::shared_ptr;
-using platform::static_pointer_cast;
-//! \since build 841
-//@{
-using platform::unique_copy;
-using platform::unique_forward;
-using platform::unique_move;
-//@}
-using platform::unique_ptr;
-//! \since build 671
-using platform::unique_ptr_from;
-using platform::unique_raw;
-using platform::weak_ptr;
 
-using platform::lref;
-//@}
-
-//! \since build 670
-//@{
-using platform::nptr;
-using platform::tidy_ptr;
-using platform::pointer_iterator;
-//@}
 
 /*!
 \brief 解锁删除器：使用线程模型对应的互斥量和锁。

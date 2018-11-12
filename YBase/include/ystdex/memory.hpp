@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r2789
+\version r2837
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2018-10-12 12:27 +0800
+	2018-11-10 21:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -130,39 +130,43 @@ using mem_delete_t
 template<typename _type, typename... _tParams>
 using mem_is_always_equal_t = typename _type::is_always_equal;
 #endif
+//@}
 
 
+//! \since build 843
+//@{
 template<typename _tAlloc>
 inline void
-do_alloc_on_copy(_tAlloc& x, const _tAlloc& y, true_)
+do_alloc_on_copy(_tAlloc& x, const _tAlloc& y, true_) ynoexcept_spec(x = y)
 {
 	x = y;
 }
 template<typename _tAlloc>
 inline void
-do_alloc_on_copy(_tAlloc&, const _tAlloc&, false_)
+do_alloc_on_copy(_tAlloc&, const _tAlloc&, false_) ynothrow
 {}
 
 template<typename _tAlloc>
 inline void
-do_alloc_on_move(_tAlloc& x, _tAlloc& y, true_)
+do_alloc_on_move(_tAlloc& x, _tAlloc& y, true_) ynoexcept_spec(x = std::move(y))
 {
 	x = std::move(y);
 }
 template<typename _tAlloc>
 inline void
-do_alloc_on_move(_tAlloc&, _tAlloc&, false_)
+do_alloc_on_move(_tAlloc&, _tAlloc&, false_) ynothrow
 {}
 
 template<typename _tAlloc>
 inline void
 do_alloc_on_swap(_tAlloc& x, _tAlloc& y, true_)
+	ynoexcept_spec(ystdex::swap_dependent(x, y))
 {
 	ystdex::swap_dependent(x, y);
 }
 template<typename _tAlloc>
 inline void
-do_alloc_on_swap(_tAlloc&, _tAlloc&, false_)
+do_alloc_on_swap(_tAlloc&, _tAlloc&, false_) ynothrow
 {}
 //@}
 
@@ -247,28 +251,48 @@ public:
 	using size_type = typename traits::size_type;
 
 private:
-	_tAlloc& alloc_ref;
-	size_type size;
+	//! \since build 843
+	mutable _tAlloc alloc;
+	//! \since build 843
+	size_type count;
 
 public:
-	allocator_delete(_tAlloc& alloc, size_type s)
-		: alloc_ref(alloc), size(s)
+	//! \since build 843
+	//@{
+	allocator_delete(_tAlloc a, size_type n = 1)
+		: alloc(std::move(a)), count(n)
 	{}
+	allocator_delete(const allocator_delete&) = default;
+	allocator_delete(allocator_delete&&) = default;
+
+	allocator_delete&
+	operator=(const allocator_delete&) = default;
+	allocator_delete&
+	operator=(allocator_delete&&) = default;
+	//@}
 
 	void
 	operator()(pointer p) const ynothrowv
 	{
-		traits::deallocate(alloc_ref, p, size);
+		traits::deallocate(alloc, p, count);
 	}
 };
 
 
 /*!
-\brief 构造分配器守卫。
-\since build 595
+\brief 分配器守卫。
+\since build 843
 */
-template<typename _tAlloc>
-std::unique_ptr<_tAlloc, allocator_delete<_tAlloc>>
+template<class _tAlloc>
+using allocator_guard = std::unique_ptr<_tAlloc, allocator_delete<_tAlloc>>;
+
+
+/*!
+\brief 构造分配器守卫。
+\since build 843
+*/
+template<class _tAlloc>
+allocator_guard<_tAlloc>
 make_allocator_guard(_tAlloc& a,
 	typename std::allocator_traits<_tAlloc>::size_type n = 1)
 {
@@ -503,13 +527,13 @@ struct is_sharing<std::weak_ptr<_type>> : true_
 /*!
 \brief 使用显式析构函数调用和 std::free 的删除器。
 \note 数组类型的特化无定义。
+\warning 非虚析构。
 \since build 561
 
 除使用 std::free 代替 \c ::operator delete，和 std::default_deleter
 的非数组类型相同。注意和直接使用 std::free 不同，会调用析构函数且不适用于数组。
 */
 //@{
-//! \warning 非虚析构。
 template<typename _type>
 struct free_delete
 {
@@ -613,8 +637,8 @@ get_temporary_buffer(ptrdiff_t n) ynothrow
 {
 	const ptrdiff_t m(std::numeric_limits<ptrdiff_t>::max() / sizeof(_type));
 
-	// NOTE: Like libstdc++ but not Microsoft VC++ 2017, this does not fail
-	//	fast.
+	// NOTE: Like libstdc++ and libc++ but not Microsoft VC++ 2017, this does
+	//	not fail fast.
 	if(n > m)
 		n = m;
 	while(n > 0)
@@ -644,6 +668,7 @@ using std::return_temporary_buffer;
 /*!
 \brief 使用显式 ystdex::return_temporary_buffer 调用释放存储的删除器。
 \note 非数组类型的特化无定义。
+\warning 非虚析构。
 \since build 627
 */
 //@{
@@ -666,6 +691,7 @@ struct temporary_buffer_delete<_type[]>
 
 /*!
 \brief 临时缓冲区。
+\warning 非虚析构。
 \since build 627
 */
 //@{
@@ -1122,11 +1148,14 @@ make_unique(std::initializer_list<_tElem> il)
 \since build 562
 */
 //@{
+//! \since build 843
 template<typename _type, typename _tDeleter, typename... _tParams>
-yconstfn yimpl(enable_if_t<!is_array<_type>::value, std::unique_ptr<_type>>)
-make_unique_with(_tDeleter&& d)
+yconstfn yimpl(enable_if_t<!is_array<_type>::value,
+	std::unique_ptr<_type, _tDeleter>>)
+make_unique_with(_tDeleter&& d, _tParams&&... args)
 {
-	return std::unique_ptr<_type, _tDeleter>(new _type, yforward(d));
+	return std::unique_ptr<_type, _tDeleter>(new _type(yforward(args)...),
+		yforward(d));
 }
 template<typename _type, typename _tDeleter, typename... _tParams>
 yconstfn yimpl(enable_if_t<is_array<_type>::value && extent<_type>::value == 0,
@@ -1137,7 +1166,7 @@ make_unique_with(_tDeleter&& d, size_t size)
 		yforward(d));
 }
 template<typename _type, typename _tDeleter, typename... _tParams>
-yimpl(enable_if_t<extent<_type>::value != 0>)
+yimpl(enable_if_t<is_array<_type>::value && extent<_type>::value != 0>)
 make_unique_with(_tDeleter&&, _tParams&&...) = delete;
 //@}
 //@}

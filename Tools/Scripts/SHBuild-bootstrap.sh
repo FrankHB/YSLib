@@ -32,7 +32,7 @@ INCLUDES=" \
 	-I$YSLib_BaseDir/YBase/include \
 	"
 
-# Coordinated at build 830.
+# Coordinated at build 843.
 LIBS=" \
 	$YSLib_BaseDir/YBase/source/ystdex/cassert.cpp \
 	$YSLib_BaseDir/YBase/source/ystdex/cstdio.cpp \
@@ -41,6 +41,7 @@ LIBS=" \
 	$YSLib_BaseDir/YBase/source/ystdex/any.cpp \
 	$YSLib_BaseDir/YBase/source/ystdex/concurrency.cpp \
 	$YSLib_BaseDir/YBase/source/ystdex/tree.cpp \
+	$YSLib_BaseDir/YBase/source/ystdex/memory_resource.cpp \
 	$YSLib_BaseDir/YFramework/source/CHRLib/chrmap.cpp \
 	$YSLib_BaseDir/YFramework/source/CHRLib/CharacterProcessing.cpp \
 	$YSLib_BaseDir/YFramework/source/CHRLib/MappingEx.cpp \

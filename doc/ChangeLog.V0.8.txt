@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r6941
+\version r7156
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-11-02 04:55 +0800
+	2018-11-12 16:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,221 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			(
+			+ "transformation trait %sizeof_t" @ %Meta;
+			+ "function template %is_aligned_ptr" @ %Placement
+				^ ("%sizeof_t" @ %Meta)
+			),
+			/ %Memory $=
+			(
+				(
+				+ "alias template %allocator_guard";
+				/ $lib "simplified return type"
+					@ "function template %make_allocator_guard"
+					^ "%allocator_guard"
+				),
+				/ @ "class template %allocator_delete" $=
+				(
+					/ DLDI "private data member name",
+						// To get it clearer.
+					/ "made stored allocator as mutable allocator data object"
+						~ "allocator reference data member",
+					/ @ "constructor" $=
+					(
+						/ "passed allocator by value",
+						+ "'1' as 2nd default parameter"
+					),
+					+ "defaulted (copy, move) (constructor, %operaotr=)"
+				),
+				/ @ "function templates %make_unique_with" $=
+				(
+					* "missing variadic function parameters for non-array \
+						overload" $since b562,
+					* "missing deleter" @ "return type" @ "non-array overload"
+						$since b562
+				),
+				* "missing inclusion %YBase.YStandardEx.Functional"
+					@ %ScopeGuard $since b686,
+					// For %one_shot.
+				/ DLI "internal" @ "function templates %(alloc_on_copy, \
+					alloc_on_move, alloc_on_swap)" ^ "exception specifications"
+			),
+			* "always wrong result" @ "function %operator!"
+				@ "class template %nptr" @ %Pointer $orig
+				(@ %Utilities $since b560),
+			/ @ "namespace %pmr" @ %MemoryResource $=
+			(
+				/ @ "member function %memory_resource::allocate" $=
+				(
+					+ $dev "assertion for post condition" ^ $dep_from
+						("%is_aligned_ptr" @ %Placement);
+					+ DD "('\pre', '\post') commands" @ "Doxygen comment"
+				),
+				/ DLDI "%do_is_equal used expressions same to the literal \
+					standard text" $effective
+					@ "functions %(new_delete_resource, null_memory_resource)",
+					// All have used 'this == &other' for consistency.
+				(
+				/ @ "function templates %construct"
+					@ "class template %polymorphic_allocator" $=
+				(
+					* "ill-formed for dispatching pair" $since b842,
+					* "wrongly checked type of value instead of type of \
+						constructed object for non-pair overload" $since b842
+				),
+				* "aligned allocation" @ "function %new_delete_resource" $since
+					b842;
+				+ "class %pool_resource" ^ $dep_from ("%(allocator_delete, \
+					make_unique_with)" @ %Memory, "%nptr" @ %Pointer)
+				),
+				* "wrongly defaulted instead of deleted %operator="
+					@ "class template %polymorphic_allocator" $since b842
+			),
+			/ DLDI %Map $=
+			(
+				/ "template parameter %_type" %Map => "%_tMapped",
+				/ @ "class template %map" $=
+				(
+					/ "simlified all 2 function templates %try_emplace without \
+						hint" ^ "%ysdex::try_emplace",
+						// The logic is exactly the same.
+					/ "simlified all 2 function templates %try_emplace with \
+						hint",
+						// However, hinted overloads do have internal \
+							knowledge of node pointers of underlying tree and \
+							case for %end(), so %ystdex::try_emplace_hint is \
+							not used here. They are extract to common \
+							private implementation.
+					/ "simlified all 2 function templates %insert_or_assign \
+						without hint" ^ "%ysdex::insert_or_assign",
+						// The logic is exactly the same.
+					/ "simlified all 2 function templates %insert_or_assign \
+						with hint" ^ "%ystdex::emplace_hint_in_place",
+						// Similar to %try_emplace, \
+							%ystdex::insert_or_assign_hint is not used.
+				)
+			),
+			* "missing template argument for ADL %extract_key"
+				@ "function template %search_map with hint parameter"
+				@ %Container $since b680,
+			/ %Set $=
+			(
+				* "missing function template %swap for %mapped_set instances"
+					$since b665,
+					// This is an oversight.
+				* "missing defaulted default constructor" @ "internal key \
+					compare functor" @ "class template %mapped_set" $since b665
+					// This would make it unconditionally ill-formed when \
+						%key_compare or %value_compare is \
+						value-initialized, e.g. in the %mapped_set \
+						constructor with a sole allocator parameter.
+			)
+		)
+	),
+	/ %YFramework $=
+	(
+		/ @ "namespace %platform" @ %YCLib.Container $=
+		(
+			+ 'namespace pmr = ystdex::pmr;';
+			/ "all allocator-awared containers and container adaptors \
+				using-declarations" -> "alias templates" ^ ($dep_from
+				"%polymorphic_allocator" @ %YBase.YStandardEx.MemoryResource)
+				$dep_from %YSLib.(Core.YMessage, UI.YStyle),
+				// This does not depends on %std::pmr declarations in ISO \
+					C++17 standard container headers, as well as with \
+					additional %pmr container adaptors not in the standard.
+			// NOTE: Allocator default template argument in %basic_string is \
+				not changed to avoid %string does not nonthrowing convertible \
+				to %std::string.
+			(
+			+ "inline namespace %basic_utilities";
+			/ "declarations of names %(forward_as_tuple, get, ignore, \
+				make_pair, make_tuple, pair, tie, tuple, tuple_cat, begin, \
+				end, size)" @ "inline namespace %containers"
+				>> "inline namespace %basic_utilities"
+			),
+			(
+			+ "inline namespace %strings";
+			/ "declarations of names %(basic_string, string, u16string, \
+				u32string, wstring, basic_string_view, string_view, \
+				u16string_view, wstring_view, string_view_t, \
+				basic_tstring_view, tstring_view, u16tstring-view, \
+				wtstring_view, sfmt, vsfmt, to_string, to_wstring), all 2 \
+				static assertions" @ "inline namespace %containers"
+				>> "inline namespace %strings"
+			);
+			+ $forced ('using namespace platform::basic_utilities;',
+				'using namespace platform::strings;') @ "namespace %platform_ex"
+			)
+		),
+		/ %YSLib $=
+		(
+			* $dev "missing protected %BaseType from ADL argument of \
+				%std::greater instance" @ "class %MessageQueue" @ %Core.YMessage
+				$since b449,
+				// The header name was 'ymsg.h'.
+			* $dev "missing protected %MapType from ADL argument of \
+				%HandlerTable (alias of %unordered_map instance which \
+				currently introduce %std name)" @ "class %StyleMap" @ %UI.YStyle
+				$since b468,
+				// The header name was 'ystyle.h'.
+			/ @ "namespace %YSLib" %YAdaptor.Adaptor $=
+			(
+				/ "all declarations of names from %platform \
+					and existed in inline namespaces \
+					%platform::(basic_utilities, containers)"
+					-> ('using namespace platform::basic_utilities;'
+					'using namespace platform::containers;')
+					$dep_from ("inline namespaces %platform::(basic_utilities, \
+					containers)" @ %YCLib.Container),
+				+ 'namespace pmr = platform::pmr;' $dep_from
+					("namespace %platform::pmr" @ %YCLib.Container),
+				(
+				/ "all declarations of names except %reset from %platform and \
+					existed in inline namespace %platform::references"
+					-> 'using namespace platform::references;';
+				+ $comp "name %default_delete from %platform via inline \
+					namespace %references"
+				)
+			)
+		),
+		* "improper unqualified %swap" @ "derivation of applicative \
+			'system-get'" @ "function %LoadModule_std_system"
+			@ %NPL.Dependency $since b839,
+			// It would be ill-formed when %TermNode::Container does \
+				not have names to make %std::swap find by ADL and it \
+				does not have specific %swap overload. Actually it is \
+				the case when %ValueNode::Container is changed to use \
+				custom %pmr::polymorphic_allocator not provided by \
+				%std (either no candidate for unqualified %swap, or \
+				ambiguity when %ystdex::swap_dependent is called).
+			/ $= (/ $impl ^ "%ystdex::swap_dependent" ~ "%swap"
+				$dep_from ("%swap" @ %YBase.YStandardEx.Set))
+	),
+	/ %Tools.Scripts $=
+	(
+		/ $forced "updated %LIBS for %YBase.YStandardEx.MemoryResource"
+			$dep_from %YFramework.YCLib.Container @ "%SHBuild-bootstrap.sh",
+		* "redundant escape '\' for default variable value %LIBS_RPATH \
+			quoted by %SHBuild_QuoteS_" @ "%SHBuild-YSLib-common.txt"
+			@ %Scripts $since b797,
+			// This was buggy for a long time, but since b838 it was used.
+		(
+		/ "attached value of variable %LIBS_RPATH to %LDFLAGS when \
+			building dynamic targets" @ "applicative 'build-with-conf-opt'"
+			@ "%SHBuild-YSLib-common.txt";
+		* $comp "variable %LIBS_RPATH not effective" $since b838,
+		/ $lib $impl "simplified %LIBS" @ "%SHBuild-YSLib-build.txt"
+		)
+	)
+),
+
+b843
 (
 	/ %YBase $=
 	(
@@ -807,7 +1022,7 @@ b840
 					// To eliminate Microsoft VC++ 2017 warning: C4244.
 				* $re_add(b691) DD "missing '!'" @ "end of '/*'"
 					@ "multiline Doxygen comment" $orig
-					(@ "function templates %Blend" $since b561
+					(@ "function templates %Blend" $since b561)
 			),
 			+ "function %LockCommandArguments" @ %Core.YCoreUtilities
 				$dep_from ("%CommandArguments" @ %YCLib.Host)

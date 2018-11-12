@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r507
+\version r508
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2018-08-03 00:51 +0800
+	2018-11-08 16:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,7 +104,7 @@ public:
 	yconstfn bool
 	operator!() const ynothrow
 	{
-		return bool(*this);
+		return !bool(*this);
 	}
 
 	//! \since build 613

@@ -272,9 +272,8 @@ $let ()
 	"See https://bitbucket.org/FrankHB/yslib/wiki/Tools/Scripts.zh-CN.md.",
 	"Only SHBuild environment variables not otherwise set need to be restored.";
 safeenv-restore "LDFLAGS";
-safeenv-set "LIBS" (SHBuild_TrimOptions_ (++ (safeenv-get "LIBS") " "
-	(safeenv-get "LIBS_RPATH") " -L" (system-quote (SHBuild_2w env-os SR_Lib_))
-	" -lYFramework -lYBase"));
+safeenv-set "LIBS" (SHBuild_TrimOptions_ (cons-cmd (safeenv-get "LIBS") "-L"
+	(system-quote (SHBuild_2w env-os SR_Lib_)) "-lYFramework -lYBase"));
 $def! INCLUDES_ ++ (safeenv-get "INCLUDES") " -I"
 	(system-quote (SHBuild_2m env-os SR_Include_));
 
