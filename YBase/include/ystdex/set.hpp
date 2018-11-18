@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r1134
+\version r1235
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2018-11-12 15:26 +0800
+	2018-11-18 13:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,25 +33,14 @@
 //	std::count, std::lower_bound, std::upper_bound, std::equal_range;
 #include "iterator.hpp" // for transformed_iterator,
 //	iterator_transformation::second, ystdex::reverse_iterator,
-//	ystdex::make_transform, std::forward_as_tuple;
+//	ystdex::make_transform, std::tuple, std::forward_as_tuple, index_sequence,
+//	std::get;
 #include "map.hpp" // for "tree.hpp" (implying "range.hpp"), map,
-//	std::initializer_list;
+//	std::initializer_list, ystdex::search_map_by, ystdex::emplace_hint_in_place,
+//	ystdex::as_const;
 
 namespace ystdex
 {
-
-/*!
-\brief 转移集合元素。
-\post 转移后元素和参数比较相等。
-\since build 673
-*/
-template<typename _type>
-yconstfn const _type&
-set_value_move(const _type& x) ynothrow
-{
-	return x;
-}
-
 
 // NOTE: This is always true now since %ystdex::map is used.
 // XXX: G++ 5.2.0 rejects generic associative lookup in debug mode of %std::map.
@@ -155,18 +144,84 @@ public:
 
 } // namespace details;
 
+
+/*!
+\brief 映射值集合特征。
+\since build 844
+
+集合类型底层使用 map 容器，并在修改容器时同时修改键但始终保持键的等价关系。
+为有效使用这些操作而不受 const 键的限制，使用特征扩展部分操作。
+用于 emplace 和 emplace_hint 的合式要求和作用包括：
+	<tt>get_value_key<key_type>(yforward(args)...)</tt> 合式，
+		其结果作为用于插入的键，是新创建的值或已有值的引用 \c k 。
+	若需以键 \c k 插入值， <tt>extend_key(yforward(k), *this)</tt> 合式。
+	对 key_type 类型的 get_value_key 实现应支持任意能被 emplace
+		和 emplace_hint 的参数组合，并返回适当的蕴含 key_type 比较的类型。
+用于 \c insert 的 ADL 的合式要求和作用包括：
+	对被插入的元素 \c v ， <tt>set_value_move(v)</tt> 合式，
+		以保持键等价关系的方式转移资源。
+*/
+template<typename _type>
+struct mapped_set_traits
+{
+	//! \note 覆盖实现可直接返回右值。
+	//@{
+	/*!
+	\brief 从参数指定的透明比较的键转换为用于插入容器值的键的值。
+	\return 键的引用。
+	*/
+	template<typename _tKey, class _tCon>
+	static yconstfn _tKey&&
+	extend_key(_tKey&& k, _tCon&&) ynothrow
+	{
+		return yforward(k);
+	}
+
+	//! \brief 从可选的参数中取键的值。
+	//@{
+	static yconstfn auto
+	get_value_key() ynothrow -> decltype(_type())
+	{
+		return _type();
+	}
+	template<typename _tParam, typename... _tParams>
+	static yconstfn const _tParam&
+	get_value_key(const _tParam& x, _tParams&&...) ynothrow
+	{
+		return x;
+	}
+	//@}
+	//@}
+
+	/*!
+	\brief 转移集合元素。
+	\post 转移后元素和参数比较相等。
+	*/
+	template<typename _tParam>
+	static yconstfn const _tParam&
+	set_value_move(const _tParam& x) ynothrow
+	{
+		return x;
+	}
+};
+
+
 /*!
 \brief 允许指定不同于值类型的键的集合。
 \note 和 std::set 类似，但迭代器可修改，且插入操作要求参数满足 CopyInsertable 。
 \note 基于 ystdex::map ，支持不完整类型的键。
+\sa mapped_set_traits
 \see WG21 N3456 23.2.4 [associative.reqmts] 。
-\since build 665
+\since build 844
 */
-template<typename _type, typename _fComp = less<_type>,
-	class _tAlloc = std::allocator<_type>>
+template<typename _type, typename _fComp = less<_type>, class _tTraits
+	= mapped_set_traits<_type>, class _tAlloc = std::allocator<_type>>
 class mapped_set
 {
 public:
+	using traits_type = _tTraits;
+	//! \since build 665
+	//@{
 	using key_type = _type;
 	using value_type = _type;
 	using key_compare = _fComp;
@@ -378,6 +433,15 @@ public:
 		return m_map.max_size();
 	}
 
+	/*!
+	\pre 满足 ADL 合式要求。
+	\note 使用 ADL get_value_key 取键的值。
+	\note 使用 ADL extend_key 作为内部的键，仅在插入值时使用，可能被参数之一所有。
+	\note 使用 ADL recover_key 恢复 extend_key 的键的值到构造后的元素。
+
+	使用指定参数构造元素插入容器。
+	*/
+	//@{
 	template<typename... _tParams>
 	std::pair<iterator, bool>
 	emplace(_tParams&&... args)
@@ -387,7 +451,6 @@ public:
 		return insert(value_type(yforward(args)...));
 	}
 
-	//! \note 使用 ADL set_value_move 转移元素。
 	template<typename... _tParams>
 	iterator
 	emplace_hint(const_iterator position, _tParams&&... args)
@@ -396,6 +459,7 @@ public:
 		//	EmplaceInsertable.
 		return insert(position, value_type(yforward(args)...));
 	}
+	//@}
 
 	std::pair<iterator, bool>
 	insert(const value_type& x)
@@ -408,11 +472,11 @@ public:
 			std::forward_as_tuple(mapped_key_type(x)),
 			std::forward_as_tuple(x)));
 
+		// TODO: Blocked. Use %try_emplace result?
 		if(res.second)
 			amend_pair(*res.first);
 		return {iterator(res.first), res.second};
 	}
-	//! \note 使用 ADL set_value_move 转移元素。
 	std::pair<iterator, bool>
 	insert(value_type&& x)
 	{
@@ -420,7 +484,7 @@ public:
 		//	EmplaceConstructible into %umap_type.
 		const auto res(m_map.emplace(std::piecewise_construct,
 			std::forward_as_tuple(mapped_key_type(x)),
-			std::forward_as_tuple(set_value_move(x))));
+			std::forward_as_tuple(traits_type::set_value_move(x))));
 
 		if(res.second)
 			amend_pair(*res.first);
@@ -439,7 +503,6 @@ public:
 		amend_pair(*res);
 		return iterator(res);
 	}
-	//! \note 使用 ADL set_value_move 转移元素。
 	iterator
 	insert(const_iterator position, value_type&& x)
 	{
@@ -447,7 +510,7 @@ public:
 		//	EmplaceConstructible into %umap_type.
 		const auto res(m_map.emplace_hint(position.get(),
 			std::piecewise_construct, std::forward_as_tuple(mapped_key_type(x)),
-			std::forward_as_tuple(set_value_move(x))));
+			std::forward_as_tuple(traits_type::set_value_move(x))));
 
 		// TODO: Blocked. Use C++1z %try_emplace result.
 		amend_pair(*res);
@@ -698,19 +761,15 @@ private:
 	{
 		return {mapped_key_type(*i), *i};
 	}
-};
+	//@}
 
-/*!
-\relates mapped_set
-\since build 843
-*/
-template<typename _type, typename _fComp, class _tAlloc>
-inline void
-swap(mapped_set<_type, _fComp, _tAlloc>& x,
-	mapped_set<_type, _fComp, _tAlloc>& y) ynoexcept_spec(noexcept(x.swap(y)))
-{
-	x.swap(y);
-}
+	//! \since build 844
+	friend inline void
+	swap(mapped_set& x, mapped_set& y) ynoexcept_spec(x.swap(y))
+	{
+		x.swap(y);
+	}
+};
 
 #undef YB_Impl_Set_UseGenericLookup
 

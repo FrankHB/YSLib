@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3779
+\version r3793
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2018-10-19 03:40 +0800
+	2018-11-16 18:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,6 +39,7 @@
 #include <ystdex/iterator.hpp> // for ystdex::indirect_input_iterator;
 #include <ctime> // for std::time_t;
 #include YFM_YCLib_Debug // for Nonnull, Deref;
+#include <ystdex/type_pun.hpp> // for ystdex::is_trivially_replaceable;
 #include <ystdex/cstdint.hpp> // for ystdex::read_uint_le;
 
 #if !YCL_Win32 && !YCL_API_POSIXFileSystem
@@ -865,8 +866,12 @@ enum class FileSystemType
 namespace FAT
 {
 
-using EntryDataUnit = std::uint8_t;
+using EntryDataUnit = byte;
 using ClusterIndex = std::uint32_t;
+
+//! \since build 844
+static_assert(ystdex::is_trivially_replaceable<EntryDataUnit, std::uint8_t>(),
+	"Invalid type found.");
 
 //! \since build 608
 //@{
@@ -979,7 +984,7 @@ yconstexpr const std::uint32_t FSI_LeadSig_Value(0x41615252),
 \brief 文件属性。
 \see Microsoft FAT specification Section 6 。
 */
-enum class Attribute : EntryDataUnit
+enum class Attribute : octet
 {
 	ReadOnly = 0x01,
 	Hidden = 0x02,
@@ -1124,7 +1129,7 @@ enum : size_t
 	MaxNumericTail = 999999
 };
 
-enum EntryValues : EntryDataUnit
+enum EntryValues : octet
 {
 	//! \brief WinNT 小写文件名。
 	CaseLowerBasename = 0x08,
@@ -1151,7 +1156,7 @@ ConvertToAlias(const u16string&);
 
 //! \brief 按指定序数取长文件名偏移。
 inline PDefH(size_t, FetchLongNameOffset, EntryDataUnit ord) ynothrow
-	ImplRet((size_t(ord & ~LastLongEntry) - 1U) * EntryLength)
+	ImplRet((size_t(std::uint8_t(ord) & ~LastLongEntry) - 1U) * EntryLength)
 //@}
 
 /*!
@@ -1222,7 +1227,7 @@ public:
 		FileSize = 0x1C
 	};
 	//! \see Microsoft FAT specification Section 6.1 。
-	enum : EntryDataUnit
+	enum : octet
 	{
 		Last = 0x00,
 		Free = 0xE5,
@@ -1244,13 +1249,14 @@ public:
 		ImplExpr((*this)[Attributes] = EntryDataUnit(Attribute::Directory))
 	PDefH(void, SetDot, size_t n) ynothrowv
 		ImplExpr(YAssert(n < EntryDataSize, "Invalid argument found."),
-			(*this)[n] = '.')
+			(*this)[n] = EntryDataUnit('.'))
 
 	PDefH(void, Clear, ) ynothrow
 		ImplExpr(ystdex::trivially_fill_n(static_cast<Base*>(this)))
 
 	PDefH(void, ClearAlias, ) ynothrow
-		ImplExpr(ystdex::trivially_fill_n(data(), LFN::AliasEntryLength, ' '))
+		ImplExpr(ystdex::trivially_fill_n(data(), LFN::AliasEntryLength,
+			EntryDataUnit(' ')))
 
 	/*!
 	\brief 复制长文件名列表项数据到参数指定的缓冲区的对应位置。
@@ -1260,7 +1266,8 @@ public:
 	CopyLFN(char16_t*) const ynothrowv;
 
 	PDefH(void, FillLast, ) ynothrow
-		ImplExpr(ystdex::trivially_fill_n(static_cast<Base*>(this), 1, Last))
+		ImplExpr(ystdex::trivially_fill_n(static_cast<Base*>(this), 1,
+			EntryDataUnit(Last)))
 
 	/*!
 	\brief 为添加的项填充名称数据，按需生成短名称后缀。

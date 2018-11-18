@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r4365
+\version r4367
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2018-07-31 00:26 +0800
+	2018-11-16 23:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -228,7 +228,7 @@ ReadLEVal(SectorCache& cache, std::uint32_t& value, ::sec_t sec, size_t offset)
 	ynothrow
 {
 	static yconstexpr const size_t
-		n(_vWidth / std::numeric_limits<byte>::digits);
+		n(_vWidth / std::numeric_limits<unsigned char>::digits);
 	byte buf[n];
 
 	if(cache.ReadPartialSector(buf, sec, offset, n))
@@ -245,7 +245,7 @@ WriteLEVal(SectorCache& cache, std::uint32_t value, ::sec_t sec, size_t offset)
 	ynothrow
 {
 	static yconstexpr const size_t
-		n(_vWidth / std::numeric_limits<byte>::digits);
+		n(_vWidth / std::numeric_limits<unsigned char>::digits);
 	byte buf[n]{};
 
 	write_uint_le<_vWidth>(buf, value);

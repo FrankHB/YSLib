@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r655
+\version r658
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2018-11-10 12:02 +0800
+	2018-11-17 17:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -342,7 +342,7 @@ private:
 };
 
 
-YB_API YB_ATTR_nodiscard YB_ATTR_returns_nonnull memory_resource*
+YB_ATTR_nodiscard YB_API YB_ATTR_returns_nonnull memory_resource*
 get_default_resource() ynothrow;
 
 
@@ -487,10 +487,10 @@ operator!=(const polymorphic_allocator<_type1>& a,
 	return !(a == b);
 }
 
-YB_API YB_ATTR_nodiscard memory_resource*
+YB_ATTR_nodiscard YB_API memory_resource*
 new_delete_resource() ynothrow;
 
-YB_API YB_ATTR_nodiscard memory_resource*
+YB_ATTR_nodiscard YB_API memory_resource*
 null_memory_resource() ynothrow;
 
 //! \see LWG 2961 。

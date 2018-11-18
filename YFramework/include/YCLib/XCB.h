@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2015, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief XCB GUI 接口。
-\version r383
+\version r390
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2014-12-14 14:40:34 +0800
 \par 修改时间:
-	2015-12-11 22:23 +0800
+	2018-11-17 00:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,6 +88,11 @@ public:
 		std::uint32_t, std::uint16_t, std::uint8_t, std::uint32_t,
 		YSLib::RecordLevel = YSLib::Emergent);
 	//@}
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 844
+	*/
+	~XCBException() override;
 
 	//! \since build 561
 	//@{
@@ -300,7 +305,7 @@ public:
 	YSLib::Drawing::Rect
 	GetBounds() const;
 	DefGetter(const, YSLib::Drawing::Point, Location, GetBounds().GetPoint())
-	DefGetter(const, YSLib::Drawing::Size, Size, GetSize())
+	DefGetter(const, YSLib::Drawing::Size, Size, GetBounds().GetSize())
 
 	void
 	SetBounds(const YSLib::Drawing::Rect&);

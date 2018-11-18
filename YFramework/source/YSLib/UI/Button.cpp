@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2015, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3304
+\version r3309
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2015-03-29 01:01 +0800
+	2018-11-18 05:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,7 +69,7 @@ Thumb::Thumb(const Rect& r, Hue h)
 	: Thumb(r, ystdex::raw_tag())
 {
 	using namespace Styles;
-	static struct Init
+	static const struct Init
 	{
 		Init()
 		{
@@ -130,8 +130,8 @@ DecorateAsCloseButton(Thumb& tmb)
 	yunseq(
 	FetchEvent<Click>(tmb) += [&](CursorEventArgs&&)
 	{
-		if(const auto pCon = FetchContainerPtr(tmb))
-			Close(*pCon);
+		if(const auto p_con = FetchContainerPtr(tmb))
+			Close(*p_con);
 	},
 	FetchEvent<Paint>(tmb) += [&](PaintEventArgs&& e){
 		DrawCross(e.Target, e.ClipArea, {e.Location, GetSizeOf(tmb)},
@@ -154,7 +154,7 @@ Button::Button(const Rect& r, Hue h, const Drawing::Font& fnt, Color c,
 void
 Button::Refresh(PaintEventArgs&& e)
 {
-	ystdex::swap_guard<Color> guard(!IsEnabled(*this), ForeColor, [this]{
+	ystdex::swap_guard<Color> gd(!IsEnabled(*this), ForeColor, []{
 		return FetchGUIConfiguration().Colors[Styles::Workspace];
 	}());
 

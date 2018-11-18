@@ -11,13 +11,13 @@
 /*!	\file tree.h
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r2411
+\version r2453
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2018-10-01 16:21 +0800
+	2018-11-17 00:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,9 +49,8 @@
 //	ystdex::alloc_on_move;
 #include "optional.h" // for optional, bidirectional_iteratable,
 //	equality_comparable, totally_ordered, has_mem_is_transparent,
-//	ystdex::as_const, std::equal, std::lexicographical_compare;
-#include "base.h" // for noncopyable;
-#include "utility.hpp" // for ystdex::as_const;
+//	std::equal, std::lexicographical_compare;
+#include "utility.hpp" // for noncopyable, ystdex::as_const;
 
 namespace ystdex
 {
@@ -685,8 +684,8 @@ private:
 	using node_allocator = typename allocator_traits<_tAlloc>::template
 		rebind_alloc<tree_node<_type>>;
 	using alloc_traits = allocator_traits<node_allocator>;
-	//! \since build 834
-	using equal_alloc_or
+	//! \since build 844
+	using alloc_move_nothrow
 		= or_<typename alloc_traits::propagate_on_container_move_assignment,
 		typename alloc_traits::is_always_equal>;
 	struct alloc_node
@@ -779,7 +778,7 @@ protected:
 	struct components : public node_allocator,
 		public tree_key_compare<_tKeyComp>, public tree_header
 	{
-		using base_key_compare = tree_key_compare<_tKeyComp> ;
+		using base_key_compare = tree_key_compare<_tKeyComp>;
 
 		components() ynoexcept_spec(
 			and_<is_nothrow_default_constructible<node_allocator>,
@@ -872,10 +871,10 @@ public:
 	}
 	tree&
 	operator=(tree&& x) ynoexcept_spec(
-		and_<equal_alloc_or, is_nothrow_move_assignable<_fComp>>::value)
+		and_<alloc_move_nothrow, is_nothrow_move_assignable<_fComp>>::value)
 	{
 		objects.key_compare = std::move(x.objects.key_compare);
-		move_assign_elements(x, equal_alloc_or());
+		move_assign_elements(x, alloc_move_nothrow());
 		return *this;
 	}
 
@@ -954,8 +953,7 @@ public:
 	}
 
 	friend void
-	swap(tree& x, tree& y)
-		ynoexcept_spec(is_nothrow_swappable<_fComp>::value)
+	swap(tree& x, tree& y) ynoexcept_spec(is_nothrow_swappable<_fComp>::value)
 	{
 		if(!x.root())
 		{
@@ -1225,7 +1223,8 @@ private:
 	iterator
 	insert_equal_lower(_tParam&& v)
 	{
-		auto x(node_begin()), y(node_end());
+		auto x(node_begin());
+		auto y(node_end());
 
 		while(x)
 		{
@@ -1249,7 +1248,8 @@ private:
 	iterator
 	insert_equal_lower_node(link_type nd)
 	{
-		auto x(node_begin()), y(node_end());
+		auto x(node_begin());
+		auto y(node_end());
 
 		while(x)
 		{
@@ -1476,7 +1476,8 @@ public:
 	std::pair<base_ptr, base_ptr>
 	get_insert_equal_pos(const key_type& k)
 	{
-		auto x(node_begin()), y(node_end());
+		auto x(node_begin());
+		auto y(node_end());
 
 		while(x)
 		{
@@ -1590,7 +1591,7 @@ public:
 			return res_t(insert_with(res.first, res.second, yforward(v), an),
 				true);
 		}
-		return res_t(iterator(res.first), false);
+		return res_t(iterator(res.first), {});
 	}
 
 	template<typename _tParam>
@@ -1656,7 +1657,6 @@ public:
 	
 			if(pr.second)
 				return res_t(insert_node(pr.first, pr.second, nd), true);
-
 			drop_node(nd);
 			return res_t(iterator(pr.first), {});
 		}
@@ -1875,16 +1875,17 @@ public:
 		return equal_range_impl<iterator>(*this, k);
 	}
 
-	template<typename _tTransKey,
-		typename = enable_if_t<has_mem_is_transparent<_fComp>::value>>
+	//! \since build 844
+	//@{
+	template<typename _tTransKey, typename
+		= enable_if_t<has_mem_is_transparent<_fComp, _tTransKey>::value>>
 	iterator
 	find_tr(const _tTransKey& k)
 	{
 		return ystdex::as_const(*this).find_tr(k).cast_mutable();
 	}
-
-	template<typename _tTransKey,
-		typename = enable_if_t<has_mem_is_transparent<_fComp>::value>>
+	template<typename _tTransKey, typename
+		= enable_if_t<has_mem_is_transparent<_fComp, _tTransKey>::value>>
 	const_iterator
 	find_tr(const _tTransKey& k) const
 	{
@@ -1894,8 +1895,8 @@ public:
 			? end() : j;
 	}
 
-	template<typename _tTransKey,
-		typename = enable_if_t<has_mem_is_transparent<_fComp>::value>>
+	template<typename _tTransKey, typename
+		= enable_if_t<has_mem_is_transparent<_fComp, _tTransKey>::value>>
 	size_type
 	count_tr(const _tTransKey& k) const
 	{
@@ -1904,19 +1905,20 @@ public:
 		return std::distance(pr.first, pr.second);
 	}
 
-	template<typename _tTransKey,
-		typename = enable_if_t<has_mem_is_transparent<_fComp>::value>>
+	template<typename _tTransKey, typename
+		= enable_if_t<has_mem_is_transparent<_fComp, _tTransKey>::value>>
 	iterator
 	lower_bound_tr(const _tTransKey& k)
 	{
 		return ystdex::as_const(*this).lower_bound_tr(k).cast_mutable();
 	}
-	template<typename _tTransKey,
-		typename = enable_if_t<has_mem_is_transparent<_fComp>::value>>
+	template<typename _tTransKey, typename
+		= enable_if_t<has_mem_is_transparent<_fComp, _tTransKey>::value>>
 	const_iterator
 	lower_bound_tr(const _tTransKey& k) const
 	{
-		auto x(node_begin()), y(node_end());
+		auto x(node_begin());
+		auto y(node_end());
 
 		while(x)
 			if(!objects.key_compare(select_key(x), k))
@@ -1929,15 +1931,15 @@ public:
 		return const_iterator(y);
 	}
 
-	template<typename _tTransKey,
-		typename = enable_if_t<has_mem_is_transparent<_fComp>::value>>
+	template<typename _tTransKey, typename
+		= enable_if_t<has_mem_is_transparent<_fComp, _tTransKey>::value>>
 	iterator
 	upper_bound_tr(const _tTransKey& k)
 	{
 		return ystdex::as_const(*this).upper_bound_tr(k).cast_mutable();
 	}
-	template<typename _tTransKey,
-		typename = enable_if_t<has_mem_is_transparent<_fComp>::value>>
+	template<typename _tTransKey, typename
+		= enable_if_t<has_mem_is_transparent<_fComp, _tTransKey>::value>>
 	const_iterator
 	upper_bound_tr(const _tTransKey& k) const
 	{
@@ -1955,8 +1957,8 @@ public:
 		return const_iterator(y);
 	}
 
-	template<typename _tTransKey,
-		typename = enable_if_t<has_mem_is_transparent<_fComp>::value>>
+	template<typename _tTransKey, typename
+		= enable_if_t<has_mem_is_transparent<_fComp, _tTransKey>::value>>
 	std::pair<iterator, iterator>
 	equal_range_tr(const _tTransKey& k)
 	{
@@ -1964,9 +1966,8 @@ public:
 
 		return {pr.first.cast_mutable(), pr.second.cast_mutable()};
 	}
-
-	template<typename _tTransKey,
-		typename = enable_if_t<has_mem_is_transparent<_fComp>::value>>
+	template<typename _tTransKey, typename
+		= enable_if_t<has_mem_is_transparent<_fComp, _tTransKey>::value>>
 	std::pair<const_iterator, const_iterator>
 	equal_range_tr(const _tTransKey& k) const
 	{
@@ -1978,6 +1979,7 @@ public:
 			++high;
 		return {low, high};
 	}
+	//@}
 
 	/*!
 	\brief 验证红黑树满足约束。
@@ -2077,13 +2079,13 @@ private:
 	}
 	/*!
 	\brief 转移赋值可能不相等分配器的容器元素。
-	\note 从不相等分配器转移元素结果是复制而不是转移对象。
+	\note 从不相等分配器转移元素结果是可能是复制而不是转移对象。
 	*/
 	void
 	move_assign_elements(tree& x, false_)
 	{
 		if(get_node_allocator() == x.get_node_allocator())
-			return move_assign_elements(x, true_{});
+			return move_assign_elements(x, true_());
 
 		// NOTE: Try to move reusing existing nodes.
 		reuse_or_alloc_node roan(*this);

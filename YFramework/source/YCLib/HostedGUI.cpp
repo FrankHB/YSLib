@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2017 FrankHB.
+	© 2013-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1943
+\version r1951
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2017-08-11 01:29 +0800
+	2018-11-17 11:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -291,7 +291,7 @@ WindowReference::GetLocation() const
 YSLib::Drawing::AlphaType
 WindowReference::GetOpacity() const
 {
-	byte a;
+	unsigned char a;
 
 	YCL_CallF_Win32(GetLayeredWindowAttributes, GetNativeHandle(), {}, &a, {});
 	return a;
@@ -483,6 +483,11 @@ class ScreenBufferData : public CompactPixmap
 {
 public:
 	ScreenBufferData(const Size&, SDst);
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 844
+	*/
+	~ScreenBufferData() override;
 
 	DefDeMoveCtor(ScreenBufferData)
 };
@@ -490,6 +495,7 @@ public:
 ScreenBufferData::ScreenBufferData(const Size& s, SDst buf_stride)
 	: CompactPixmap({}, CheckStride(buf_stride, s.Width), s.Height)
 {}
+ImplDeDtor(ScreenBufferData)
 #	endif
 
 

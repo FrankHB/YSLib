@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9196
+\version r9207
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-11-01 02:18 +0800
+	2018-11-17 12:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -261,16 +261,18 @@ using EnvironmentGuard = ystdex::guard<EnvironmentSwitcher>;
 //	continuation object now.
 
 #if YF_Impl_NPLA1_Enable_Thunked
+#	if false
 //! \since build 821
 YB_ATTR_nodiscard inline
-#	if true
+#		if true
 PDefH(ReductionStatus, RelayTail, ContextNode& ctx, Reducer& cur)
 	ImplRet(RelaySwitched(ctx, std::move(cur)))
-#	else
+#		else
 // NOTE: For exposition only. This does not hold guarantee of TCO in unbounded
 //	recursive cases.
 PDefH(ReductionStatus, RelayTail, ContextNode&, const Reducer& cur)
 	ImplRet(cur())
+#		endif
 #	endif
 
 // NOTE: For continuation not capturable in the object language, it does not
@@ -1702,8 +1704,6 @@ public:
 	DefGetter(const ynothrow, const EncapsulationBase&, , *this)
 	DefGetter(ynothrow, EncapsulationBase&, Ref, *this)
 	DefGetter(const ynothrow, const shared_ptr<void>&, Type, p_type)
-
-	friend DefSwap(ynothrow, EncapsulationBase, swap(_x.p_type, _y.p_type))
 };
 
 
@@ -1723,8 +1723,6 @@ public:
 
 	using EncapsulationBase::Get;
 	using EncapsulationBase::GetType;
-
-	friend DefSwap(ynothrow, Encapsulation, swap(_x.GetRef(), _y.GetRef()))
 };
 
 
@@ -1750,8 +1748,6 @@ public:
 			return Encapsulation(GetType(), std::move(tm));
 		}, term);
 	}
-
-	friend DefSwap(ynothrow, Encapsulate, swap(_x.GetRef(), _y.GetRef()))
 };
 
 
@@ -1777,8 +1773,6 @@ public:
 			}, AccessTermPtr<Encapsulation>(tm));
 		}, term);
 	}
-
-	friend DefSwap(ynothrow, Encapsulated, swap(_x.GetRef(), _y.GetRef()))
 };
 
 
@@ -1798,13 +1792,11 @@ public:
 	operator()(TermNode& term) const
 	{
 		Forms::CallUnaryAs<const Encapsulation>(
-			[this](const Encapsulation& enc){
+			[](const Encapsulation& enc){
 			// XXX: No environment is captured as the owner is shared.
 			return TermReference(enc.Term);
 		}, term);
 	}
-
-	friend DefSwap(ynothrow, Decapsulate, swap(_x.GetRef(), _y.GetRef()))
 };
 //@}
 
@@ -1952,7 +1944,7 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 			using namespace std::placeholders;
 
 			if(p->LiftCallResult)
-				next = Continuation([&, p](TermNode& t, ContextNode& c){
+				next = Continuation([&](TermNode& t, ContextNode& c){
 					ReduceForClosureResultInContext(t, c);
 					return ReduceChecked(t, c);
 				}, ctx);

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4310
+\version r4333
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2018-08-07 07:11 +0800
+	2018-11-16 18:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,9 +26,10 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_FileSystem // for basic_string, default_delete, make_observer, std::min,
-//	std::accumulate, std::tm, ystdex::read_uint_le, YAssertNonnull, ystdex::write_uint_le,
-//	std::bind, std::ref, ystdex::retry_on_cond;
+#include YFM_YCLib_FileSystem // for basic_string, default_delete,
+//	make_observer, std::min, std::accumulate, std::tm, ystdex::read_uint_le,
+//	YAssertNonnull, ystdex::write_uint_le, std::bind, std::ref,
+//	ystdex::retry_on_cond;
 #include YFM_YCLib_FileIO // for platform_ex::MakePathStringW,
 //	platform_Ex::MakePathStringU, MakePathString, Deref, ystdex::throw_error,
 //	std::invalid_argument, std::errc::function_not_supported, YCL_CallF_CAPI,
@@ -574,14 +575,15 @@ ConvertToMBCS(const char16_t* path)
 EntryDataUnit
 GenerateAliasChecksum(const EntryDataUnit* p) ynothrowv
 {
-	static_assert(std::is_same<EntryDataUnit, unsigned char>::value,
+	static_assert(std::is_same<EntryDataUnit, byte>::value,
 		"Only unsigned char as byte is supported by checksum generation.");
 
 	YAssertNonnull(p);
 	// NOTE: The operation is an unsigned char rotate right.
-	return std::accumulate(p, p + AliasEntryLength, 0,
-		[](EntryDataUnit v, EntryDataUnit b){
-			return ((v & 1) != 0 ? 0x80 : 0) + (v >> 1) + b;
+	return std::accumulate(p, p + AliasEntryLength, EntryDataUnit(),
+		[](EntryDataUnit v, EntryDataUnit b) ynothrow{
+			return EntryDataUnit(((octet(v) & 1) != 0 ? 0x80 : 0)
+				+ (octet(v) >> 1) + octet(b));
 		});
 }
 
@@ -676,7 +678,7 @@ EntryData::FillNewName(string_view name,
 	YAssertNonnull(name.data()),
 	YAssertNonnull(verify);
 
-	EntryDataUnit alias_check_sum(0);
+	EntryDataUnit alias_check_sum{};
 	size_t entry_size;
 
 	ClearAlias();
@@ -748,30 +750,32 @@ EntryData::FindAlias(string_view name) const
 string
 EntryData::GenerateAlias() const
 {
-	if((*this)[0] != Free)
+	if((*this)[0] != EntryDataUnit(Free))
 	{
-		if((*this)[0] == '.')
-			return (*this)[1] == '.' ? ".." : ".";
+		if((*this)[0] == EntryDataUnit('.'))
+			return (*this)[1] == EntryDataUnit('.') ? ".." : ".";
 
 		// NOTE: Copy the base filename.
-		bool case_info(((*this)[CaseInfo] & LFN::CaseLowerBasename) != 0);
+		bool
+			case_info((octet((*this)[CaseInfo]) & LFN::CaseLowerBasename) != 0);
 		const auto conv([&](size_t i){
 			const auto c((*this)[i]);
 
-			return char(case_info ? EntryDataUnit(std::tolower(c)) : c);
+			return char(case_info ? EntryDataUnit(std::tolower(int(c))) : c);
 		});
 		string res;
 
 		res.reserve(LFN::MaxAliasLength - 1);
 		for(size_t i(0); i < LFN::MaxAliasMainPartLength
-			&& (*this)[Name + i] != ' '; ++i)
+			&& (*this)[Name + i] != EntryDataUnit(' '); ++i)
 			res += conv(Name + i);
-		if((*this)[Extension] != ' ')
+		if((*this)[Extension] != EntryDataUnit(' '))
 		{
 			res += '.';
-			case_info = ((*this)[CaseInfo] & LFN::CaseLowerExtension) != 0;
+			case_info
+				= (octet((*this)[CaseInfo]) & LFN::CaseLowerExtension) != 0;
 			for(size_t i(0); i < LFN::MaxAliasExtensionLength
-				&& (*this)[Extension + i] != ' '; ++i)
+				&& (*this)[Extension + i] != EntryDataUnit(' '); ++i)
 				res += conv(Extension + i);
 		}
 		return res;
@@ -808,7 +812,7 @@ EntryData::WriteAlias(const string& alias) ynothrow
 		(*this)[j] = EntryDataUnit(alias[i]);
 	while(j < LFN::MaxAliasMainPartLength)
 	{
-		(*this)[j] = ' ';
+		(*this)[j] = EntryDataUnit(' ');
 		++j;
 	}
 	if(alias[i] == '.')
@@ -816,7 +820,7 @@ EntryData::WriteAlias(const string& alias) ynothrow
 			yunseq(++i, ++j))
 			(*this)[j] = EntryDataUnit(alias[i]);
 	for(; j < LFN::AliasEntryLength; ++j)
-		(*this)[j] = ' ';
+		(*this)[j] = EntryDataUnit(' ');
 }
 
 void

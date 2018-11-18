@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r739
+\version r742
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2016-06-20 12:15 +0800
+	2018-11-17 12:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,7 +57,7 @@ Caret::Caret(IWidget& wgt, HBrush caret_brush,
 		FetchGUIState().ExternalTextInputFocusPtr = make_observer(&wgt);
 		Restart(caret_animation, wgt, CursorInvalidator);
 	},
-	FetchEvent<LostFocus>(wgt) += [this]{
+	FetchEvent<LostFocus>(wgt) += []() ynothrow{
 		Stop();
 	}
 	);
@@ -381,7 +381,7 @@ TextBox::UpdateTextBoxClippedText(const PaintContext& pc, TextState& ts)
 		if(x2 < x1)
 			std::swap(x1, x2);
 
-		// TODO: Blocked. Use ISO C++14 lambda initializers to simplify
+		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
 		auto p(&Text[0]);
 		const auto q1(p + x1), q2(p + x2);

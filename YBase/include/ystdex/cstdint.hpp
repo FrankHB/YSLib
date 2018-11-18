@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型和相关扩展操作。
-\version r587
+\version r605
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2018-10-30 12:10 +0800
+	2018-11-16 23:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,8 +72,9 @@ union byte_order_tester
 
 } // namespace details;
 
+// XXX: This cannot be 'constexpr'.
 //! \brief 测试本机字节序。
-YB_STATELESS yconstfn_relaxed byte_order
+YB_STATELESS inline byte_order
 native_byte_order()
 {
 	yconstexpr const details::byte_order_tester x = {0x01020304};
@@ -264,7 +265,7 @@ struct have_same_modulo : bool_<std::uintmax_t(modular_arithmetic<
 
 //! \since build 842
 //@{
-//! \brief 判断无符号整数是否为 2 的幂。
+//! \brief 判断无符号整数是否为 2 的整数次幂。
 YB_ATTR_nodiscard yconstfn bool
 is_power_of_2(std::uintmax_t n) ynothrow
 {
@@ -456,13 +457,15 @@ template<size_t _vWidth, typename _tIn>
 typename make_width_int<_vWidth>::unsigned_type
 pack_uint(_tIn first, _tIn last) ynothrowv
 {
-	static_assert(_vWidth != 0 && _vWidth % std::numeric_limits<byte>::digits
-		== 0, "Invalid integer width found.");
+	static_assert(_vWidth != 0 && _vWidth
+		% std::numeric_limits<unsigned char>::digits == 0,
+		"Invalid integer width found.");
 	using utype = typename make_width_int<_vWidth>::unsigned_type;
 
 	yconstraint(!is_undereferenceable(first));
 	return std::accumulate(first, last, utype(), [](utype x, byte y){
-		return utype(x << std::numeric_limits<byte>::digits | utype(y));
+		return utype(x << std::numeric_limits<unsigned char>::digits
+			| utype(y));
 	});
 }
 
@@ -476,11 +479,11 @@ void
 unpack_uint(typename ystdex::make_width_int<_vWidth>::unsigned_type value,
 	_tOut result) ynothrow
 {
-	static_assert(_vWidth != 0 && _vWidth % std::numeric_limits<byte>::digits
-		== 0, "Invalid integer width found.");
+	static_assert(_vWidth != 0 && _vWidth % std::numeric_limits<
+		unsigned char>::digits == 0, "Invalid integer width found.");
 	auto n(_vWidth);
 
-	while(!(_vWidth < (n -= std::numeric_limits<byte>::digits)))
+	while(!(_vWidth < (n -= std::numeric_limits<unsigned char>::digits)))
 	{
 		yconstraint(!is_undereferenceable(result));
 		*result = byte(value >> n);
@@ -501,7 +504,7 @@ read_uint_be(const byte* buf) ynothrowv
 {
 	yconstraint(buf);
 	return ystdex::pack_uint<_vWidth>(buf,
-		buf + _vWidth / std::numeric_limits<byte>::digits);
+		buf + _vWidth / std::numeric_limits<unsigned char>::digits);
 }
 
 //! \since build 608
@@ -513,7 +516,7 @@ read_uint_le(const byte* buf) ynothrowv
 {
 	yconstraint(buf);
 	return ystdex::pack_uint<_vWidth>(ystdex::make_reverse_iterator(
-		buf + _vWidth / std::numeric_limits<byte>::digits),
+		buf + _vWidth / std::numeric_limits<unsigned char>::digits),
 		ystdex::make_reverse_iterator(buf));
 }
 
@@ -523,8 +526,8 @@ read_uint_le(const byte* buf) ynothrowv
 */
 template<size_t _vWidth>
 YB_NONNULL(1) inline void
-write_uint_be(byte* buf, typename make_width_int<_vWidth>::unsigned_type
-	val) ynothrowv
+write_uint_be(byte* buf,
+	typename make_width_int<_vWidth>::unsigned_type val) ynothrowv
 {
 	yconstraint(buf);
 	ystdex::unpack_uint<_vWidth>(val, buf);
@@ -533,12 +536,12 @@ write_uint_be(byte* buf, typename make_width_int<_vWidth>::unsigned_type
 //! \brief 向字节缓冲区写入指定宽的小端序无符号整数。
 template<size_t _vWidth>
 YB_NONNULL(1) inline void
-write_uint_le(byte* buf, typename make_width_int<_vWidth>::unsigned_type
-	val) ynothrowv
+write_uint_le(byte* buf,
+	typename make_width_int<_vWidth>::unsigned_type val) ynothrowv
 {
 	yconstraint(buf);
 	ystdex::unpack_uint<_vWidth>(val, ystdex::make_reverse_iterator(buf
-		+ _vWidth / std::numeric_limits<byte>::digits));
+		+ _vWidth / std::numeric_limits<unsigned char>::digits));
 }
 //@}
 //@}
