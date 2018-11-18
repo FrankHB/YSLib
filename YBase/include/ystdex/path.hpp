@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r1392
+\version r1478
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2018-09-06 15:48 +0800
+	2018-11-18 14:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,9 +52,10 @@
 #ifndef YB_INC_ystdex_path_hpp_
 #define YB_INC_ystdex_path_hpp_ 1
 
-#include "string.hpp" // for basic_string, string_view,
-//	sequence_container_adaptor, dividable, totally_ordered,
-//	ystdex::erase_all_if, to_array, string_traits;
+#include "string.hpp" // for basic_string, string_view, nested_allocator_base,
+//	enable_if_t, ystdex::erase_all_if, to_array, string_traits;
+#include "operators.hpp" // for dividable, totally_ordered;
+#include "type_op.hpp" // for cond_or_t;
 
 namespace ystdex
 {
@@ -256,7 +257,7 @@ classify_path(const _tString& name) ynothrow
 */
 template<class _tSeqCon,
 	class _tTraits = path_traits<typename _tSeqCon::value_type>>
-class path : private sequence_container_adaptor<_tSeqCon>,
+class path : private _tSeqCon, yimpl(public) nested_allocator_base<_tSeqCon>,
 	private dividable<path<_tSeqCon, _tTraits>, typename _tSeqCon::value_type>,
 	private totally_ordered<path<_tSeqCon, _tTraits>>,
 	private dividable<path<_tSeqCon, _tTraits>>
@@ -264,9 +265,11 @@ class path : private sequence_container_adaptor<_tSeqCon>,
 private:
 	//! \since build 473
 	//@{
-	using base = sequence_container_adaptor<_tSeqCon>;
+	using base = _tSeqCon;
 
 public:
+	//! \since build 844
+	using container_type = _tSeqCon;
 	using value_type = typename _tSeqCon::value_type;
 	//! \since build 647
 	using traits_type = _tTraits;
@@ -276,14 +279,43 @@ public:
 	using difference_type = typename base::difference_type;
 	using iterator = typename base::iterator;
 	using const_iterator = typename base::const_iterator;
-	using reverse_iterator = typename base::container_type::reverse_iterator;
-	using const_reverse_iterator
-		= typename base::container_type::const_reverse_iterator;
+	using reverse_iterator = typename base::reverse_iterator;
+	using const_reverse_iterator = typename base::const_reverse_iterator;
 
 	//! \since build 647
 	path() = default;
-	//! \since build 647
-	using base::base;
+	//! \since build 844
+	//@{
+	template<typename _tParam, yimpl(typename
+		= enable_if_t<is_constructible<base, const base&, _tParam&&>::value>)>
+	path(const path& pth, _tParam&& arg)
+		: base(pth, yforward(arg))
+	{}
+	template<typename _tParam, yimpl(typename
+		= enable_if_t<is_constructible<base, base&&, _tParam&&>::value>)>
+	path(path&& pth, _tParam&& arg)
+		: base(std::move(pth), yforward(arg))
+	{}
+	path(std::initializer_list<value_type> il)
+		: base(il)
+	{}
+	template<typename... _tParams, yimpl(typename
+		= enable_if_t<sizeof...(_tParams) != 0 && is_constructible<base,
+		std::initializer_list<value_type>, _tParams&&...>::value>)>
+	path(std::initializer_list<value_type> il, _tParams&&... args)
+		: base(il, yforward(args)...)
+	{}
+	template<typename... _tParams, yimpl(typename
+		= enable_if_t<is_constructible<base, _tParams&&...>::value>)>
+	path(_tParams&&... args)
+		: base(yforward(args)...)
+	{}
+	template<class _tAlloc, typename... _tParams, yimpl(typename = enable_if_t<
+		is_constructible<base, _tParams&&..., const _tAlloc&>::value>)>
+	path(std::allocator_arg_t, const _tAlloc& a, _tParams&&... args)
+		: base(yforward(args)..., a)
+	{}
+	//@}
 	path(const path&) = default;
 	path(path&&) = default;
 
@@ -419,13 +451,16 @@ public:
 
 	using base::cend;
 
-	using base::container_type::rbegin;
+	//! \since build 844
+	//@{
+	using base::rbegin;
 
-	using base::container_type::rend;
+	using base::rend;
 
-	using base::container_type::crbegin;
+	using base::crbegin;
 
-	using base::container_type::crend;
+	using base::crend;
+	//@}
 
 	using base::size;
 
@@ -453,8 +488,18 @@ public:
 
 	using base::assign;
 
-	//! \since build 559
-	using base::get_container;
+	//! \since build 844
+	container_type&
+	get_container() ynothrow
+	{
+		return *this;
+	}
+	//! \since build 844
+	const container_type&
+	get_container() const ynothrow
+	{
+		return *this;
+	}
 
 	//! \since build 732
 	void
@@ -597,6 +642,15 @@ public:
 		base::swap(static_cast<base&>(pth));
 	}
 	//@}
+	/*!
+	\brief 交换。
+	\since build 844
+	*/
+	friend inline void
+	swap(path& x, path& y) ynothrow
+	{
+		x.swap(y);
+	}
 };
 //@}
 
@@ -611,14 +665,6 @@ inline void
 normalize(path<_tSeqCon, _tTraits>& pth)
 {
 	pth.filter_self(), pth.merge_parents();
-}
-
-//! \brief 交换。
-template<class _tSeqCon, class _tTraits>
-inline void
-swap(path<_tSeqCon, _tTraits>& x, path<_tSeqCon, _tTraits>& y)
-{
-	x.swap(y);
 }
 
 //! \brief 取字符串表示。
@@ -678,6 +724,18 @@ to_string_d(const path<_tSeqCon, _tTraits>& pth, typename string_traits<typename
 //@}
 
 } // namespace ystdex;
+
+//! \since build 844
+namespace std
+{
+
+//! \brief 特化 uses-allcator 构造。
+template<class _tSeqCon, class _tTraits, class _tAlloc>
+struct uses_allocator<ystdex::path<_tSeqCon, _tTraits>, _tAlloc>
+	: public uses_allocator<_tSeqCon, _tAlloc>
+{};
+
+} // namespace std;
 
 #endif
 

@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r2837
+\version r2852
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2018-11-10 21:23 +0800
+	2018-11-17 19:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -232,6 +232,24 @@ struct has_nested_allocator
 template<typename _type, class _tDefault = std::allocator<_type>>
 struct nested_allocator : conditional<has_nested_allocator<_type>::value,
 	detected_t<details::nested_allocator_t, _type>, _tDefault>
+{};
+//@}
+
+
+/*!
+\brief 启用 allocator_type 的基类。
+\warning 非虚析构。
+\since build 844
+*/
+//@{
+template<class _tCon, bool = has_nested_allocator<_tCon>::value>
+struct nested_allocator_base
+{
+	using allocator_type = typename _tCon::allocator_type;
+};
+
+template<class _tCon>
+struct nested_allocator_base<_tCon, false>
 {};
 //@}
 

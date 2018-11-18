@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file mixin.hpp
 \ingroup YStandardEx
 \brief 基于类继承的混入接口。
-\version r189
+\version r209
 \author FrankHB <frankhb1989@gmail.com>
 \since build 477
 \par 创建时间:
 	2014-02-17 00:07:20 +0800
 \par 修改时间:
-	2016-07-11 10:31 +0800
+	2018-11-18 11:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,28 +61,16 @@ public:
 		: mixin(std::forward_as_tuple(yforward(arg1), yforward(arg2),
 		yforward(args)...))
 	{}
-	template<typename... _tParams>
+	template<typename... _tParams, yimpl(typename
+		= enable_if_t<(sizeof...(_tBases) == sizeof...(_tParams))>)>
 	yconstfn
-	mixin(const std::tuple<_tParams...>& tp,
-		yimpl(enable_if_t<(sizeof...(_tBases) == 1)>* = {}))
-		: mixin(std::get<0>(tp))
-	{}
-	template<typename... _tParams>
-	yconstfn
-	mixin(std::tuple<_tParams...>&& tp,
-		yimpl(enable_if_t<(sizeof...(_tBases) == 1)>* = {}))
-		: mixin(std::get<0>(std::move(tp)))
-	{}
-	template<typename... _tParams>
-	yconstfn
-	mixin(const std::tuple<_tParams...>& tp,
-		yimpl(enable_if_t<(sizeof...(_tBases) > 1)>* = {}))
+	mixin(const std::tuple<_tParams...>& tp)
 		: mixin(index_sequence_for<_tParams...>(), tp)
 	{}
-	template<typename... _tParams>
+	template<typename... _tParams, yimpl(typename
+		= enable_if_t<(sizeof...(_tBases) == sizeof...(_tParams))>)>
 	yconstfn
-	mixin(std::tuple<_tParams...>&& tp,
-		yimpl(enable_if_t<(sizeof...(_tBases) > 1)>* = {}))
+	mixin(std::tuple<_tParams...>&& tp)
 		: mixin(index_sequence_for<_tParams...>(), std::move(tp))
 	{}
 	template<size_t... _vSeq, typename... _tParams>

@@ -11,13 +11,13 @@
 /*!	\file range.hpp
 \ingroup YStandardEx
 \brief 范围操作。
-\version r906
+\version r925
 \author FrankHB <frankhb1989@gmail.com>
 \since build 624
 \par 创建时间:
 	2015-08-18 22:33:54 +0800
 \par 修改时间:
-	2018-08-17 03:51 +0800
+	2018-11-16 18:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -291,20 +291,24 @@ public:
 	}
 	//@}
 
-	template<typename _tIter2>
-	YB_ATTR_nodiscard friend auto
-	operator-(const reverse_iterator& x, const reverse_iterator<_tIter2>& y)
-		-> decltype(y.base() - x.base())
-	{
-		return y.current - x.current;
-	}
-
-	YB_ATTR_nodiscard friend reverse_iterator
+	YB_ATTR_nodiscard friend yconstfn reverse_iterator
 	operator+(difference_type n, const reverse_iterator& x)
 	{
 		return reverse_iterator(x.current - n);
 	}
 };
+
+/*!
+\relates reverse_iterator
+\since build 844
+*/
+template<typename _tIter, typename _tIter2>
+YB_ATTR_nodiscard yconstfn auto
+operator-(const reverse_iterator<_tIter>& x, const reverse_iterator<_tIter2>& y)
+	-> decltype(y.base() - x.base())
+{
+	return y.base() - x.base();
+}
 #endif
 
 

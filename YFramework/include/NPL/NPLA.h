@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4317
+\version r4326
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-10-25 14:32 +0800
+	2018-11-18 12:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -477,7 +477,11 @@ public:
 	NPLException(const string_view sv, YSLib::RecordLevel lv = YSLib::Err)
 		: LoggedEvent(sv, lv)
 	{}
-	DefDeCtor(NPLException)
+	//! \since build 844
+	DefDeCopyCtor(NPLException)
+
+	//! \since build 844
+	DefDeCopyAssignment(NPLException)
 
 	//! \brief 虚析构：类定义外默认实现。
 	~NPLException() override;
@@ -1106,8 +1110,11 @@ RegularizeTerm(TermNode&, ReductionStatus) ynothrow;
 \since build 805
 */
 //@{
-//! \note 参数相同时作用为空，但可能有额外开销。
-inline PDefH(void, LiftTerm, TermNode& term, TermNode& tm) ynothrow
+/*!
+\note 参数相同时作用为空，但可能有额外开销。
+\since build 844
+*/
+inline PDefH(void, LiftTerm, TermNode& term, TermNode& tm)
 	ImplExpr(term.MoveContent(std::move(tm)))
 inline PDefH(void, LiftTerm, ValueObject& term_v, ValueObject& vo) ynothrow
 	ImplExpr(term_v = std::move(vo))

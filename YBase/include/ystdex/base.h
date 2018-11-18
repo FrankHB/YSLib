@@ -11,13 +11,13 @@
 /*!	\file base.h
 \ingroup YStandardEx
 \brief 基类实用设施。
-\version r236
+\version r240
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2014-11-28 11:59:15 +0800
 \par 修改时间:
-	2018-08-02 18:58 +0800
+	2018-11-16 00:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,7 +122,7 @@ public:
 \brief 可动态复制的抽象基类。
 \since build 475
 */
-class YB_API cloneable
+class YB_API YB_ATTR_novtable cloneable
 {
 public:
 	//! \since build 503
@@ -132,6 +132,10 @@ public:
 	//! \brief 虚析构：类定义外默认实现。
 	virtual
 	~cloneable();
+
+	//! \since build 844
+	cloneable&
+	operator=(const cloneable&) = default;
 
 	virtual cloneable*
 	clone() const = 0;

@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r769
+\version r772
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2018-08-01 03:52 +0800
+	2018-11-12 17:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,7 @@ ValueNode::CreateRecursively(const Container& con, IValueHolder::Creation c)
 }
 
 void
-ValueNode::MoveContent(ValueNode&& node) ynothrow
+ValueNode::MoveContent(ValueNode&& node)
 {
 	// NOTE: This is required to avoid cyclic reference when the object
 	//	referenced by the 2nd parameter is owned by the object referenced by the
@@ -62,7 +62,7 @@ ValueNode::MoveContent(ValueNode&& node) ynothrow
 }
 
 void
-ValueNode::SwapContent(ValueNode& node) ynothrow
+ValueNode::SwapContent(ValueNode& node) ynothrowv
 {
 	SwapContainer(node),
 	swap(Value, node.Value);
@@ -81,7 +81,7 @@ ValueNode::ThrowWrongNameFound()
 }
 
 void
-swap(ValueNode& x, ValueNode& y) ynothrow
+swap(ValueNode& x, ValueNode& y) ynothrowv
 {
 	std::swap(x.name, y.name),
 	x.SwapContent(y);

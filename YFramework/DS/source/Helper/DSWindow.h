@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 宿主窗口。
-\version r130
+\version r136
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:32:56 +0800
 \par 修改时间:
-	2016-06-19 00:48 +0800
+	2018-11-16 23:25 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -56,6 +56,11 @@ public:
 	//! \since build 689
 	DSWindow(NativeWindowHandle, Devices::DSScreen&, Devices::DSScreen&,
 		GUIHost&);
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 844
+	*/
+	~DSWindow() override;
 
 	//! \since build 562
 	DefGetter(ynothrow, Devices::DSScreen&, ScreenUpRef, scr_up)

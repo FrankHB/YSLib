@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief XCB GUI 接口。
-\version r542
+\version r551
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2014-12-14 14:14:31 +0800
 \par 修改时间:
-	2016-11-14 23:11 +0800
+	2018-11-17 12:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,8 +31,9 @@
 #if YF_Use_XCB
 #	include YFM_YCLib_XCB
 #	include YFM_YCLib_Mutex
-#	include <xcb/xcb.h>
+#	include <xcb/xcb.h> // for ::uint32_t, ::uint8_t;
 #	include <ystdex/addressof.hpp> // for ystdex::pvoid;
+#	include <ystdex/type_pun.hpp> // for ystdex::aligned_store_cast;
 
 using namespace YSLib;
 using namespace Drawing;
@@ -219,7 +220,8 @@ CheckRequest(::xcb_connection_t& c_ref, ::xcb_void_cookie_t cookie,
 			p->full_sequence, lv);
 }
 
-unique_ptr<::xcb_get_geometry_reply_t, void(&)(void*)>
+//! \since build 844
+unique_ptr<::xcb_get_geometry_reply_t, decltype(std::free)&>
 FetchGeometry(::xcb_connection_t& c_ref, ::xcb_drawable_t id,
 	RecordLevel lv = Err)
 {
@@ -255,6 +257,7 @@ XCBException::XCBException(string_view msg, std::uint8_t resp,
 	error_code(ec), sequence(seq), resource_id(rid), minor_code(minor),
 	major_code(major), full_sequence(full_seq)
 {}
+ImplDeDtor(XCBException)
 
 
 int
@@ -357,7 +360,7 @@ LookupAtom(::xcb_connection_t& c_ref, const string& name)
 
 
 WindowData::WindowData(::xcb_connection_t& c_ref, const Rect& r)
-	: WindowData(c_ref, r, [this, &c_ref]{
+	: WindowData(c_ref, r, [&c_ref]{
 		if(const auto p = ::xcb_setup_roots_iterator(
 			&ConnectionReference(&c_ref).GetSetup()).data)
 			return *p;
@@ -475,8 +478,8 @@ UpdatePixmapBuffer(WindowData& wnd, const YSLib::Drawing::Rect& r,
 
 	CheckRequest(c_ref, ::xcb_put_image_checked(&c_ref,
 		XCB_IMAGE_FORMAT_Z_PIXMAP, wnd.GetID(), gc.GetID(), r.Width, r.Height,
-		r.X, r.Y, 0, Pixel::Traits::XYZBitsN, g.GetSizeOfBuffer(),
-		reinterpret_cast<const byte*>(g.GetBufferPtr())));
+		r.X, r.Y, 0, Pixel::Traits::XYZBitsN, ::uint32_t(g.GetSizeOfBuffer()),
+		ystdex::aligned_store_cast<const ::uint8_t*>(g.GetBufferPtr())));
 }
 
 } // namespace XCB;
