@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief XCB GUI 接口。
-\version r390
+\version r407
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2014-12-14 14:40:34 +0800
 \par 修改时间:
-	2018-11-17 00:46 +0800
+	2018-11-26 06:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,11 +88,16 @@ public:
 		std::uint32_t, std::uint16_t, std::uint8_t, std::uint32_t,
 		YSLib::RecordLevel = YSLib::Emergent);
 	//@}
+	//! \since build 845
+	DefDeCopyCtor(XCBException)
 	/*!
 	\brief 虚析构：类定义外默认实现。
 	\since build 844
 	*/
 	~XCBException() override;
+
+	//! \since build 845
+	DefDeCopyAssignment(XCBException)
 
 	//! \since build 561
 	//@{
@@ -112,13 +117,13 @@ public:
 \brief 连接引用。
 \warning 非虚析构。
 */
-class YF_API ConnectionReference
-	: private ystdex::nptr<::xcb_connection_t*>
+class YF_API ConnectionReference : private tidy_ptr<::xcb_connection_t>
 {
 public:
-	using NativeHandle = ::xcb_connection_t*;
+	using NativeHandle = typename tidy_ptr<::xcb_connection_t>::pointer;
 
-	using nptr::nptr;
+	//! \since build 845
+	using tidy_ptr<::xcb_connection_t>::tidy_ptr;
 	DefDeCopyMoveCtorAssignment(ConnectionReference)
 
 	//! \pre 间接断言： \c bool(*this) 。
@@ -156,8 +161,8 @@ public:
 	GenerateID() const ynothrow;
 	//@}
 
-	//! \since build 562
-	using nptr::get;
+	//! \since build 845
+	using tidy_ptr<::xcb_connection_t>::get;
 };
 
 
@@ -265,7 +270,7 @@ private:
 
 protected:
 	Drawable(::xcb_connection_t& c_ref) ynothrow
-		: conn_ref(&c_ref), id(conn_ref.GenerateID())
+		: conn_ref(make_observer(&c_ref)), id(conn_ref.GenerateID())
 	{}
 	DefDeDtor(Drawable)
 
@@ -299,6 +304,11 @@ public:
 	//! \brief 使用指定连接、边界矩形和父窗口 ID 。
 	WindowData(::xcb_connection_t&, const YSLib::Drawing::Rect&, ID);
 	//@}
+	/*!
+	\brief 析构：销毁窗口。
+	\since build 845
+	*/
+	~WindowData();
 
 	//! \since build 562
 	//@{

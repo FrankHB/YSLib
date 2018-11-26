@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r2046
+\version r2242
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2018-11-12 15:43 +0800
+	2018-11-21 04:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,239 +33,12 @@
 //	is_detected_convertible, std::distance, std::make_move_iterator,
 //	ystdex::cbegin, ystdex::cend, std::piecewise_construct_t,
 //	std::piecewise_construct, enable_if_convertible_t;
-#include "functional.hpp" // for ystdex::seq_apply;
 #include "algorithm.hpp" // for is_undereferenceable, sort_unique;
+#include "functional.hpp" // for ystdex::seq_apply;
 #include "utility.hpp" // for ystdex::as_const;
 
 namespace ystdex
 {
-
-/*!
-\brief 容器适配器。
-\note 满足容器要求（但不是 ISO C++ 要求的序列容器要求）。
-\note 使用 ISO C++11 容器要求指定的成员顺序声明。
-\warning 非虚析构。
-\see ISO C++11 23.6 [container.adaptors],
-	23.2.1 [container.requirements.general] 。
-\since build 408
-*/
-template<class _tSeqCon>
-class container_adaptor : protected _tSeqCon
-{
-protected:
-	using container_type = _tSeqCon;
-
-private:
-	using base = container_type;
-
-public:
-	//! \brief 满足容器要求。
-	//@{
-	using value_type = typename container_type::value_type;
-	using reference = typename container_type::reference;
-	using const_reference = typename container_type::const_reference;
-	using iterator = typename container_type::iterator;
-	using const_iterator = typename container_type::const_iterator;
-	using difference_type = typename container_type::difference_type;
-	using size_type = typename container_type::size_type;
-
-	container_adaptor() = default;
-	explicit
-	container_adaptor(size_type n)
-		: base(n)
-	{}
-	container_adaptor(size_type n, const value_type& value)
-		: base(n, value)
-	{}
-	template<class _tIn>
-	container_adaptor(_tIn first, _tIn last)
-		: base(std::move(first), std::move(last))
-	{}
-	container_adaptor(const container_adaptor&) = default;
-	container_adaptor(container_adaptor&&) = default;
-	//@}
-	container_adaptor(std::initializer_list<value_type> il)
-		: base(il)
-	{}
-
-	//! \brief 满足容器要求。
-	//@{
-	container_adaptor&
-	operator=(const container_adaptor&) = default;
-	container_adaptor&
-	operator=(container_adaptor&&) = default;
-	//@}
-	container_adaptor&
-	operator=(std::initializer_list<value_type> il)
-	{
-		base::operator=(il);
-	}
-
-	//! \brief 满足容器要求。
-	friend bool
-	operator==(const container_adaptor& x, const container_adaptor& y)
-	{
-		return static_cast<const container_type&>(x)
-			== static_cast<const container_type&>(y);
-	}
-
-	//! \brief 满足容器要求。
-	//@{
-	using container_type::begin;
-
-	using container_type::end;
-
-	using container_type::cbegin;
-
-	using container_type::cend;
-
-	//! \since build 559
-	container_type&
-	get_container() ynothrow
-	{
-		return *this;
-	}
-
-	//! \since build 559
-	const container_type&
-	get_container() const ynothrow
-	{
-		return *this;
-	}
-
-	void
-	swap(container_adaptor& con) ynothrow
-	{
-		return base::swap(static_cast<container_type&>(con));
-	}
-
-	using base::size;
-
-	using base::max_size;
-
-	using base::empty;
-	//@}
-};
-
-/*!
-\brief 满足容器要求。
-\since build 408
-*/
-//@{
-template<class _tSeqCon>
-inline bool
-operator!=(const container_adaptor<_tSeqCon>& x,
-	const container_adaptor<_tSeqCon>& y)
-{
-	return !(x == y);
-}
-
-template<class _tSeqCon>
-void
-swap(container_adaptor<_tSeqCon>& x,
-	container_adaptor<_tSeqCon>& y) ynothrow
-{
-	x.swap(y);
-}
-//@}
-
-
-/*!
-\brief 序列容器适配器。
-\note 满足序列要求（但不是 ISO C++ 要求的序列容器要求）。
-\note 使用 ISO C++11 容器要求指定的成员顺序声明。
-\warning 非虚析构。
-\see ISO C++11 23.6 [container.adaptors],
-	23.2.1 [container.requirements.general], 23.2.3 [sequence.reqmts] 。
-\since build 408
-*/
-template<class _tSeqCon>
-class sequence_container_adaptor : protected container_adaptor<_tSeqCon>
-{
-private:
-	using base = container_adaptor<_tSeqCon>;
-
-public:
-	using container_type = typename base::container_type;
-	using value_type = typename container_type::value_type;
-	using size_type = typename container_type::size_type;
-
-	//! \brief 满足序列容器要求。
-	//@{
-	sequence_container_adaptor() = default;
-	explicit
-	sequence_container_adaptor(size_type n)
-		: base(n)
-	{}
-	sequence_container_adaptor(size_type n, const value_type& value)
-		: base(n, value)
-	{}
-	template<class _tIn>
-	sequence_container_adaptor(_tIn first, _tIn last)
-		: base(std::move(first), std::move(last))
-	{}
-	sequence_container_adaptor(const sequence_container_adaptor&) = default;
-	sequence_container_adaptor(sequence_container_adaptor&&) = default;
-	sequence_container_adaptor(std::initializer_list<value_type> il)
-		: base(il)
-	{}
-
-	sequence_container_adaptor&
-	operator=(const sequence_container_adaptor&) = default;
-	sequence_container_adaptor&
-	operator=(sequence_container_adaptor&&) = default;
-	sequence_container_adaptor&
-	operator=(std::initializer_list<value_type> il)
-	{
-		base::operator=(il);
-	}
-
-	//! \brief 满足容器要求。
-	friend bool
-	operator==(const sequence_container_adaptor& x,
-		const sequence_container_adaptor& y)
-	{
-		return static_cast<const container_type&>(x)
-			== static_cast<const container_type&>(y);
-	}
-
-//	using container_type::emplace;
-
-	using container_type::insert;
-
-	using container_type::erase;
-
-	using container_type::clear;
-
-	using container_type::assign;
-	//@}
-
-	//! \since build 559
-	using base::get_container;
-};
-
-/*!
-\brief 满足容器要求。
-\since build 408
-*/
-//@{
-template<class _tSeqCon>
-inline bool
-operator!=(const sequence_container_adaptor<_tSeqCon>& x,
-	const sequence_container_adaptor<_tSeqCon>& y)
-{
-	return !(x == y);
-}
-
-template<class _tSeqCon>
-void
-swap(sequence_container_adaptor<_tSeqCon>& x,
-	sequence_container_adaptor<_tSeqCon>& y) ynothrow
-{
-	x.swap(y);
-}
-//@}
-
 
 /*!
 \ingroup helper_functions
@@ -1145,7 +918,7 @@ search_map(const _tAssocCon& con, typename _tAssocCon::const_iterator hint,
 		const bool fit_before(hint == ystdex::cbegin(con)
 			|| bool(comp(extract_key<_tAssocCon>(*std::prev(hint)), k))),
 			fit_after(hint == ystdex::cend(con)
-			|| bool(comp(k, extract_key<_tAssocCon>(*std::next(hint)))));
+			|| bool(comp(k, extract_key<_tAssocCon>(*hint))));
 
 		if(fit_before == fit_after)
 			return {hint, fit_before && fit_after};

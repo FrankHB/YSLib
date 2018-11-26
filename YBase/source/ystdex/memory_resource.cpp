@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r657
+\version r885
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2018-11-09 12:09 +0800
+	2018-11-26 19:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 #	include "ystdex/pointer.hpp" // for tidy_ptr;
 #	include <algorithm> // for std::max, std::min, std::lower_bound;
 #	include "ystdex/functional.hpp" // for ystdex::logical_not, retry_on_cond;
-#	include "ystdex/scope_guard.hpp" // for make_guard;
+#	include "ystdex/scope_guard.hpp" // for unique_guard, ystdex::dismiss;
 #endif
 
 namespace ystdex
@@ -48,6 +48,14 @@ inline namespace cpp2017
 {
 
 #if YB_Has_memory_resource != 1
+
+#	define YB_Impl_do_is_equal(_virt, _ns_pfx) \
+	bool \
+	_ns_pfx do_is_equal(const memory_resource& other) const ynothrow _virt \
+	{ \
+		return this == &other; \
+	}
+
 memory_resource::~memory_resource() = default;
 
 
@@ -59,6 +67,19 @@ new_delete_resource() ynothrow
 #if __cpp_aligned_new >= 201606L
 #	define YB_Impl_aligned_new true
 #endif
+#if !YB_Impl_aligned_new
+		//! \since build 845
+		struct hdr_t
+		{
+			// NOTE: The types shall be decayed to avoid need of call to
+			//	%std::launder.
+			void* p_block;
+		};
+		static_assert(is_trivial<hdr_t>(), "Invalid type found.");
+		//! \since build 845
+		using offset_n_t = size_t_<ystdex::max(sizeof(hdr_t), yalignof(hdr_t))>;
+#endif
+
 		YB_ALLOCATOR void*
 		do_allocate(size_t bytes, size_t alignment) override
 		{
@@ -71,15 +92,19 @@ new_delete_resource() ynothrow
 			{
 				// TODO: Record sizeof debugging?
 				// TODO: Extract as %::operator new with extended alignment?
-				using hdr_t = void*;
-				auto space(sizeof(hdr_t) + bytes + alignment);
-				const auto ptr(::operator new(space));
-				void* p(static_cast<byte*>(ptr) + sizeof(hdr_t));
+				auto space(offset_n_t::value + bytes + alignment);
+				auto ptr(make_unique_default_init<byte[]>(space));
+				void* p(&ptr[offset_n_t::value]);
 
 				if(std::align(alignment, bytes, p, space))
 				{
 					yassume(p);
-					::new(static_cast<byte*>(p) - sizeof(hdr_t)) hdr_t(ptr);
+
+					const auto p_hdr(::new(static_cast<byte*>(p)
+						- offset_n_t::value) hdr_t);
+
+					p_hdr->p_block = ptr.get();
+					ptr.release();
 					return p;
 				}
 				throw std::bad_alloc();
@@ -107,13 +132,21 @@ new_delete_resource() ynothrow
 
 			if(alignment > 1)
 			{
-				using hdr_t = void*;
-				const auto p_ptr(reinterpret_cast<hdr_t*>(static_cast<byte*>(p)
-					- sizeof(hdr_t)));
+				yconstraint(is_aligned_ptr(p, alignment));
 
-				yassume(p_ptr);
-				::operator delete(*p_ptr);
-				p_ptr->~hdr_t();
+				// TODO: Blocked. Use [[assume_aligned]]? See WG21 P0886R0.
+				const auto p_hdr(static_cast<hdr_t*>(static_cast<void*>(
+					static_cast<byte*>(p) - offset_n_t::value)));
+
+				yassume(p_hdr);
+
+				const auto p_block(p_hdr->p_block);
+
+				yassume(p_block);
+
+				std::unique_ptr<byte[]> ptr(static_cast<byte*>(p_block));
+
+				p_hdr->~hdr_t();
 			}
 			else
 				::operator delete(p);
@@ -121,11 +154,7 @@ new_delete_resource() ynothrow
 		}
 #undef YB_Impl_aligned_new
 
-		bool
-		do_is_equal(const memory_resource& other) const ynothrow override
-		{
-			return this == &other;
-		}
+		YB_Impl_do_is_equal(override, )
 	} r;
 
 	return &r;
@@ -146,13 +175,9 @@ null_memory_resource() ynothrow
 		do_deallocate(void*, size_t, size_t) ynothrow override
 		{}
 
-		bool
-		do_is_equal(const memory_resource& other) const ynothrow override
-		{
-			// NOTE: This is required even it can be singleton. See ISO C++
-			//	[mem.res.global]/2.
-			return this == &other;
-		}
+		// NOTE: This is required even it can be singleton. See ISO C++
+		//	[mem.res.global]/2.
+		YB_Impl_do_is_equal(override, )
 	} r;
 
 	return &r;
@@ -262,6 +287,43 @@ struct intrusive_stack
 	}
 };
 
+//! \since build 845
+//@{
+struct monobuf_header final : slink
+{
+	size_t size;
+	size_t alignment;
+
+	monobuf_header(size_t s, size_t a)
+		: size(s), alignment(a)
+	{}
+};
+
+enum : size_t
+{
+	mono_alloc_min = 2 * sizeof(monobuf_header),
+	mono_alloc_max = 0 - yalignof(monobuf_header),
+	mono_scale = 2,
+	mono_scale_div = 1
+};
+
+static yconstfn size_t
+monobuf_scale(size_t size, size_t max_size) ynothrow
+{
+	// NOTE: Scale size to %max_size, rounding up to a multiple of alignment of
+	//	header, saturation to %mono_alloc_max.
+	// XXX: This should be round up when 'mono_scale % mono_scale_div != 0'.
+	return size >= max_size ? mono_alloc_max : ((size * mono_scale
+		/ mono_scale_div + yalignof(monobuf_header) - 1) & mono_alloc_max);
+}
+static yconstfn size_t
+monobuf_scale(size_t size) ynothrow
+{
+	// NOTE: Scale size by 'mono_scale / mono_scale_div'.
+	return monobuf_scale(size, (mono_alloc_max - yalignof(monobuf_header) + 1)
+		/ mono_scale * mono_scale_div);
+}
+//@}
 
 } // unnamed namespace;
 
@@ -273,10 +335,14 @@ private:
 	class chunk_t final
 	{
 	private:
-		lref<pool_t> pool;
+		//! \since build 845
+		lref<memory_resource> mem_rsrc;
+		size_t block_size;
 		intrusive_stack<slink> free_blocks{};
 		size_t free_count;
 		size_t capacity;
+		//! \since build 845
+		size_t size_for_cap;
 		byte* base;
 		size_t next_available = 0;
 
@@ -325,7 +391,8 @@ private:
 	//! \brief 保存在块末尾的元数据类型。
 	struct block_meta_t
 	{
-		// The types shall be decayed to avoid need of call to %std::launder.
+		// NOTE: The types shall be decayed to avoid need of call to
+		//	%std::launder.
 		id_t id;
 		//! \invariant \c p_chunk 。
 		chunk_t* p_chunk;
@@ -369,9 +436,6 @@ public:
 	deallocate(void*) ynothrowv;
 
 private:
-	YB_NONNULL(2) void
-	deallocate_chunk(void*, size_t) ynothrow;
-
 	tidy_ptr<chunk_pr_t>
 	find_chunk_pr_ptr(id_t id) ynothrowv
 	{
@@ -388,11 +452,18 @@ public:
 	{
 		yconstraint(p);
 
-		const auto p_meta(reinterpret_cast<block_meta_t*>(
-			static_cast<byte*>(p) + block_size - sizeof(block_meta_t)));
+		const auto p_meta(static_cast<block_meta_t*>(static_cast<void*>(
+			static_cast<byte*>(p) + block_size - sizeof(block_meta_t))));
 
 		yassume(is_aligned_ptr(p_meta));
 		return *p_meta;
+	}
+
+	//! \since build 845
+	size_t
+	get_block_size() const ynothrow
+	{
+		return block_size;
 	}
 
 	size_t
@@ -415,11 +486,14 @@ public:
 };
 
 pool_resource::pool_t::chunk_t::chunk_t(pool_t& pl, void* b, size_t c) ynothrow
-	: pool(pl), free_count(c), capacity(c), base(static_cast<byte*>(b))
+	: mem_rsrc(pl.upstream()), block_size(pl.get_block_size()), free_count(c),
+	capacity(c), size_for_cap(pl.size_for_capacity(c)),
+	base(static_cast<byte*>(b))
 {}
 pool_resource::pool_t::chunk_t::chunk_t(chunk_t&& cnk)
-	: pool(cnk.pool), free_blocks(std::move(cnk.free_blocks)),
-	free_count(cnk.free_count), capacity(cnk.capacity), base(cnk.base),
+	: mem_rsrc(cnk.mem_rsrc), block_size(cnk.block_size),
+	free_blocks(std::move(cnk.free_blocks)), free_count(cnk.free_count),
+	capacity(cnk.capacity), size_for_cap(cnk.size_for_cap), base(cnk.base),
 	next_available(cnk.next_available)
 {
 	cnk.base = {};
@@ -427,7 +501,7 @@ pool_resource::pool_t::chunk_t::chunk_t(chunk_t&& cnk)
 pool_resource::pool_t::chunk_t::~chunk_t()
 {
 	if(base)
-		pool.get().deallocate_chunk(base, capacity);
+		mem_rsrc.get().deallocate(base, size_for_cap, block_size);
 }
 
 pool_resource::pool_t::chunk_t&
@@ -435,10 +509,12 @@ pool_resource::pool_t::chunk_t::operator=(chunk_t&& cnk) ynothrow
 {
 	std::swap(base, cnk.base),
 	yunseq(
-	pool = cnk.pool,
+	mem_rsrc = cnk.mem_rsrc,
+	block_size = cnk.block_size,
 	free_blocks = std::move(cnk.free_blocks),
 	free_count = cnk.free_count,
 	capacity = cnk.capacity,
+	size_for_cap = cnk.size_for_cap,
 	next_available = cnk.next_available
 	);
 	return *this;
@@ -506,13 +582,6 @@ pool_resource::pool_t::operator=(pool_t&& pool) ynothrow
 	return *this;
 }
 
-void
-pool_resource::pool_t::deallocate_chunk(void* base, size_t capacity) ynothrow
-{
-	yconstraint(base);
-	upstream().deallocate(base, size_for_capacity(capacity), block_size);
-}
-
 pool_resource::pool_resource(
 	const pool_options& opts, memory_resource* p_up) ynothrow
 	: saved_options(opts), pools((yconstraint(p_up), p_up))
@@ -557,8 +626,8 @@ pool_resource::pool_t::allocate()
 				next_capacity), block_size), next_capacity)));
 			p_empty = p_stashed;
 			// NOTE: See $2018-11 @ %Documentation::Workflow::Annual2018.
-			next_capacity = std::min(next_capacity << 1, std::min(size_t(
-				PTRDIFF_MAX >> lb_size),
+			next_capacity = std::min(next_capacity << 1,
+				std::min(size_t(PTRDIFF_MAX >> lb_size),
 				pool_rsrc_ref.get().saved_options.max_blocks_per_chunk));
 		}
 		else
@@ -593,8 +662,9 @@ pool_resource::pool_t::allocate()
 void
 pool_resource::pool_t::deallocate(void* p) ynothrowv
 {
-	auto& meta(access_meta(p));
+	const auto& meta(access_meta(p));
 	const auto p_cnk(meta.p_chunk);
+	const auto mid(meta.id);
 
 	yassume(p_cnk);
 
@@ -603,15 +673,25 @@ pool_resource::pool_t::deallocate(void* p) ynothrowv
 	p_cnk->add_free(p);
 	if(full)
 	{
-		if(!p_stashed || p_stashed->first < meta.id)
-			p_stashed = find_chunk_pr_ptr(meta.id);
+		if(!p_stashed || p_stashed->first < mid)
+			p_stashed = find_chunk_pr_ptr(mid);
 	}
 	else if(p_cnk->is_empty())
 	{
 		if(!p_empty)
-			p_empty = find_chunk_pr_ptr(meta.id);
+			p_empty = find_chunk_pr_ptr(mid);
 		else
-			chunks.erase(std::min(p_empty->first, meta.id));
+		{
+			const auto eid(p_empty->first);
+
+			if(eid < mid)
+			{
+				chunks.erase(eid);
+				p_empty = find_chunk_pr_ptr(mid);
+			}
+			else
+				chunks.erase(mid);
+		}
 	}
 }
 
@@ -642,11 +722,12 @@ pool_resource::do_allocate(size_t bytes, size_t alignment)
 
 	auto& upstream_ref(upstream());
 	const auto p(upstream_ref.allocate(bytes, alignment));
-	const auto gd(make_guard([&]() ynothrow{
+	auto gd(unique_guard([&]() ynothrow{
 		upstream_ref.deallocate(p, bytes, alignment);
 	}));
 
 	oversized.emplace(p, oversized_data_t(bytes, alignment));
+	ystdex::dismiss(gd);
 	return p;
 }
 
@@ -667,21 +748,13 @@ pool_resource::do_deallocate(void* p, size_t bytes, size_t alignment)
 	{
 		const auto i(oversized.find(p));
 
-		if(i != oversized.cend())
-		{
-			upstream().deallocate(i->first, i->second.first, i->second.second);
-			oversized.erase(i);
-		}
-		else
-			yassume(false);
+		yassume(i != oversized.cend());
+		upstream().deallocate(i->first, i->second.first, i->second.second);
+		oversized.erase(i);
 	}
 }
 
-bool
-pool_resource::do_is_equal(const memory_resource& other) const ynothrow
-{
-	return this == &other;
-}
+YB_Impl_do_is_equal(, pool_resource::)
 
 std::pair<pool_resource::pools_t::iterator, size_t>
 pool_resource::find_pool(size_t bytes, size_t alignment) ynothrow
@@ -710,6 +783,111 @@ pool_resource::release_oversized() ynothrow
 		upstream_ref.deallocate(pr.first, pr.second.first, pr.second.second);
 	oversized.clear();
 }
+
+#if YB_Has_memory_resource != 1
+inline namespace cpp2017
+{
+
+synchronized_pool_resource::~synchronized_pool_resource() = yimpl(default);
+
+
+struct monotonic_buffer_resource::chunks_t
+{
+	intrusive_stack<monobuf_header> chunks{};
+};
+
+monotonic_buffer_resource::monotonic_buffer_resource(memory_resource* upstream)
+	yimpl(ynothrow)
+	: upstream_rsrc(upstream), next_buffer_size(mono_alloc_min),
+	pun(&chunks_data)
+{}
+monotonic_buffer_resource::monotonic_buffer_resource(size_t initial_size,
+	memory_resource* upstream) yimpl(ynothrow)
+	: upstream_rsrc(upstream), next_buffer_size([](size_t size) ynothrow{
+		// NOTE: Since 'mono_alloc_max == -yalignof(monobuf_header)',
+		//	'size < mono_alloc_max' implies that
+		//	'size + yalignof(monobuf_header) - 1' does not overflow.
+		return size < mono_alloc_min ? mono_alloc_min : (size >= mono_alloc_max
+			? mono_alloc_max : ((size + yalignof(monobuf_header) - 1)
+			& mono_alloc_max));
+	}(initial_size)), pun(&chunks_data)
+{}
+monotonic_buffer_resource::monotonic_buffer_resource(void* buffer,
+	size_t buffer_size, memory_resource* const upstream) yimpl(ynothrow)
+	: upstream_rsrc(upstream), current_buffer(buffer),
+	next_buffer_size(buffer_size ? monobuf_scale(buffer_size)
+	: mono_alloc_min), space_available(buffer_size), pun(&chunks_data)
+{}
+monotonic_buffer_resource::~monotonic_buffer_resource()
+{
+	release();
+}
+
+void
+monotonic_buffer_resource::release() yimpl(ynothrow)
+{
+	intrusive_stack<monobuf_header> tmp{};
+
+	std::swap(tmp, pun.get().chunks);
+	while(const auto p = tmp.top().get().get())
+	{
+		tmp.pop();
+		// NOTE: Header is stored at the end of the allocated memory block.
+		upstream_rsrc->deallocate(const_cast<char*>(reinterpret_cast<
+			const char*>(p + 1) - p->size), p->size, p->alignment);
+	}
+}
+
+void*
+monotonic_buffer_resource::do_allocate(const size_t bytes,
+	const size_t alignment)
+{
+	if(!std::align(alignment, bytes, current_buffer, space_available))
+	{
+		// XXX: ISO C++ [mem.res.monotonic.buffer.mem]/6 does not allow
+		//	throwing here, but it seems a defect that impossible to implement.
+		//	Go along with Microsoft VC++ 15.8.2.
+		if(bytes <= mono_alloc_max - sizeof(monobuf_header))
+		{
+			auto new_size(next_buffer_size);
+			const auto new_size_req(bytes + sizeof(monobuf_header));
+
+			if(new_size < new_size_req)
+			{
+				new_size = (new_size_req + yalignof(monobuf_header) - 1)
+					& mono_alloc_max;
+			}
+
+			const auto new_align(std::max(yalignof(monobuf_header), alignment));
+			auto new_buffer(upstream_rsrc->allocate(new_size, new_align));
+
+			current_buffer = new_buffer;
+			space_available = new_size - sizeof(monobuf_header);
+			new_buffer = static_cast<char*>(new_buffer) + space_available;
+			pun.get().chunks.push(make_observer(::new(new_buffer)
+				monobuf_header(new_size, new_align)));
+			next_buffer_size = monobuf_scale(new_size);
+		}
+		else
+			throw std::bad_alloc();
+	}
+
+	const auto res(current_buffer);
+
+	yunseq(
+	current_buffer = static_cast<char*>(current_buffer) + bytes,
+	space_available -= bytes
+	);
+	return res;
+}
+
+YB_Impl_do_is_equal(, monotonic_buffer_resource::)
+
+} // inline namespace cpp2017;
+
+#	undef YB_Impl_do_is_equal
+
+#endif
 
 } // namespace pmr;
 

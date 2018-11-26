@@ -231,7 +231,10 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 				C_CXXFLAGS_COMMON_IMPL_ CXXFLAGS_OPT_DBG);
 	$def! CFLAGS get-lang-flags "CFLAGS" CFLAGS_COMMON;
 	$def! CXXFLAGS get-lang-flags "CXXFLAGS" CXXFLAGS_COMMON;
-	$env-de! LDFLAGS_OPT_DBG cons-cmd LDFLAGS_STRIP LDFLAGS_IMPL_OPT LDFLAGS_GC;
+	"#", "%LDFLAGS_OPT_DBG is always set despite %debug configuration in",
+		" %SHBuild-BuildApp.sh.";
+	$env-de! LDFLAGS_OPT_DBG $if debug ""
+		(cons-cmd LDFLAGS_STRIP LDFLAGS_IMPL_OPT LDFLAGS_GC);
 	$def! LDFLAGS_DYN_BASE safeenv-get "LDFLAGS_DYN_BASE";
 	$def! LIBS_RPATH safeenv-get "LIBS_RPATH";
 	$if (win32? env-os) ($set-if-empty! LDFLAGS_DYN_BASE "-shared -Wl,--dll")
@@ -246,9 +249,10 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 		"--dynamic-list-cpp-typeinfo");
 	$env-de! LDFLAGS_DYN cons-cmd LDFLAGS_DYN_BASE LDFLAGS_DYN_EXTRA;
 	"#", "Forced setting %LDFLAGS for debug configurations?";
-	$def! LDFLAGS $if debug
-		(cons-cmd C_CXXFLAGS_PIC cxxflags_impl_common_thrd_)
-		(cons-cmd C_CXXFLAGS_PIC cxxflags_impl_common_thrd_ LDFLAGS_OPT_DBG);
+	$def! LDFLAGS cons-cmd C_CXXFLAGS_PIC cxxflags_impl_common_thrd_
+		LDFLAGS_OPT_DBG;
+	"#", "%LDFLAGS_OPT_DBG is set to ' ' in %SHBuild-BuildApp.sh.";
+	"#", "Following settings are not in %SHBuild-common-options.sh.";
 	$redef! LDFLAGS SHBuild_TrimOptions_ (cons-cmd (SHBuild_TrimOptions_
 		LDFLAGS) ($if app (cons-cmd ($if dynamic LIBS_RPATH "")
 		(do-ld-ext env-os)) ($if dynamic (cons-cmd LDFLAGS_DYN) "-Wl,--dn")));

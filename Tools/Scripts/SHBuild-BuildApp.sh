@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# (C) 2014-2017 FrankHB.
+# (C) 2014-2018 FrankHB.
 # Script for build YSLib applications using SHBuild.
 
 : ${SHBuild_Bin:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
 : ${SHBuild_AppBaseDir=$(cd `dirname "$0"`; pwd)}
-: ${SHBuild:="SHBuild"}
+: ${SHBuild:="$SHBuild_Bin/SHBuild"}
 . $SHBuild_Bin/SHBuild-common.sh
 
 SHBuild_PrintUsage()

@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r1362
+\version r1408
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2018-11-02 03:48 +0800
+	2018-11-24 01:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,27 +55,19 @@ YBase 是 YSLib(the YSLib project) 的顶级子项目([ProjectRules @@1.3]) ，�
 @2 约束、组成和架构：
 YBase 包括 YDefinition(@2.4) 、YStandardEx(@2.5) 、LibDefect(@2.6) 和 Test(@2.7) 模块。
 
-@2.1 LibDefect 以外的设计和实现原则：
-除标准库中依赖多线程环境的接口外， YBase 严格不依赖运行时具有的多线程执行环境。
+@2.1 LibDefect 以外的设计和实现规则：
+本节指定 YBase 主要部分遵循的整体规则。
+除明确被指定适用 YBase 的规则外，也可能被作为本项目内其它子项目的基本规范。
 
-@2.1.1 安全性：
-基本内容参见 [Documentation::CommonRules @@3.11] 。
-除非另行指定， YBase 中 LibDefect 以外的接口仅保证非成员或静态成员函数的可重入性和线程安全性。
-除非有显著性能问题，否则非成员或静态成员接口应保证线程安全性。
-其它情形同 ISO C++ [res.on.data.races] 的约定避免数据竞争。
-实现可能访问外部库提供的外部状态。除非指定实现使用外部库（包括标准库）中明确定义的行为或另行指定，假定这些状态不被并发访问（如使用线程局部存储实现）。
-除非另行指定，所有不提供无异常抛出保证的公开接口不直接设置外部库提供的外部可见状态。此处直接指操作的唯一目的是设置状态的副作用，如对 errno 的赋值和 Win32 下调用 ::SetLastError ；另见 @3.6.4.1 。注意实现明确地间接调用公开接口仍然可能设置这些状态。
-不依赖异步安全性，不在任何实现中直接调用终止程序或对应注册回调的函数([Documenation::LanguageConvention @@6.3.4]) 。
-不降低性能时尽可能保证可重入性。
-除非文档说明，库的实现不直接使用 thread_local 或其它实现相关的线程局部存储机制。（注意某些实现如 MinGW 存在静态释放可能失败等缺陷。）
-
-@2.1.2 语言规范：
+@2.1.1 语言规范：
 遵守的具体标准规范及替代和扩展接口约定参见 https://bitbucket.org/FrankHB/yslib/wiki/StandardUsing.en-US.md 。
 尽可能严格遵守 ISO C++ ，涉及未指定行为和实现定义的行为时应由文档说明。
 默认使用 ISO C++11 的一个严格子集，基本内容参见 [Documentation::ProjectRules @@1.2.1] ，不符合此规则的例外由本节指定或文档另行指定。
 在 YDefinition 和 YStandardEx 实现标准库替代时，视接口和实现的语义，在被 ISO C++ 允许（这是一般情形）的前提下可提供更多的 [[nodiscard]] （以 YB_ATTR_nodiscard 的形式）和 noexcept （以 ynothrow 的形式）异常规范
+除标准库中依赖多线程环境的接口外， YBase 严格不依赖运行时具有的多线程执行环境。
+关于对语言的使用，另见 [Documentation::LanguageConvention @@5] 和 [Documentation::LanguageConvention @@6] 。
 
-@2.1.2.1 预处理指令：
+@2.1.1.1 预处理指令：
 允许在预处理指令中使用特定实现的宏检查支持的特性作为变通。正式的变通使用的宏仅限公开支持的宏或者 YDefinition 提供的宏。
 其中，在条件包含中可使用除符合 ISO C++ 当前草案的 __has_cpp_attribute 和 __has_include 外，还可使用由 https://clang.llvm.org/docs/LanguageExtensions.html 约定含义的以下特性检查扩展：
 __has_attribute
@@ -85,7 +77,7 @@ __has_feature
 且实现应在这些标识符没有作为宏定义时替换为不影响预处理器特性判断的 0 值。
 另见 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66970 。
 
-@2.1.2.2 内建特性：
+@2.1.1.2 内建特性：
 若内建特性在 YDefinition 提供宏支持且可用，以 YDefinition 宏替代直接的使用。
 使用 __has_builtin 进行内建特性检查时若返回为 true ，假定支持以下特性（除非另行指定，按 https://clang.llvm.org/docs/LanguageExtensions.html 约定含义 ）：
 __builtin_addressof
@@ -100,10 +92,51 @@ https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
 https://releases.llvm.org/1.5/docs/ReleaseNotes.html#whatsnew
 http://lists.llvm.org/pipermail/cfe-commits/Week-of-Mon-20130708/083439.html
 
-@2.1.2.3 扩展属性：
+@2.1.1.3 扩展属性：
 使用扩展属性（以宏 YDefinition 定义的 YB_ATTR 的形式调用）时若不支持，应被忽略。其中的标识符应保证不被替换，清单参见 [Documentation::Definitions] 中的 $attr 列表。
 允许使用去除后不影响语义正确性和可观察行为的扩展。
 除以上或另行指定（参见 @2.4 、 @2.5 和 @2.6），不使用不向后兼容 ISO C++11 或更新版本的语言特性，或依赖特定平台实现的接口。
+
+@2.1.1.4 向后兼容特性约定：
+除非文档另行指定，不论实际使用何种实现模式，使用以下能在指定情形下和较新版本 ISO C++ 兼容特性的约定。
+在正式要求或支持本项目的部分组件要求较新版本的 ISO C++ 前，仅兼容旧版本 ISO C++ 的实现不视为缺陷。
+
+@2.1.1.4.1 noexcept 类型：
+使用 noexcept 可能影响函数的类型。
+实现应确保对不同函数类型的覆盖。
+
+@2.1.1.4.2 constexpr static 数据成员：
+使用 constexpr static 数据成员时兼容 WG21 P0386 隐含 inline 的假定，即便不支持 inline 变量。
+此时，声明的变量不保证支持被 odr-used （如不应被作为左值初始化引用）。这允许实现不提供类外的冗余定义。
+这也意味着类类型的 constexpr 成员一般应由 static constexpr 函数取代，因为复制初始化通常会导致 odr-used 。
+在 ISO C++17 前，这样的变量若缺少定义，程序不合式且没有要求诊断消息，在一般实现会链接失败。
+
+@2.1.2 安全性：
+基本内容参见 [Documentation::CommonRules @@3.11] 。另见 @2.1.1 。
+除非另行指定， YBase 中 LibDefect 以外的接口仅保证非成员或静态成员函数的可重入性和线程安全性。
+除非有显著性能问题，否则非成员或静态成员接口应保证线程安全性。
+其它情形同 ISO C++ [res.on.data.races] 的约定避免数据竞争。
+实现可能访问外部库提供的外部状态。除非指定实现使用外部库（包括标准库）中明确定义的行为或另行指定，假定这些状态不被并发访问（如使用线程局部存储实现）。
+除非另行指定，所有不提供无异常抛出保证的公开接口不直接设置外部库提供的外部可见状态。此处直接指操作的唯一目的是设置状态的副作用，如对 errno 的赋值和 Win32 下调用 ::SetLastError ；另见 @3.6.4.1 。注意实现明确地间接调用公开接口仍然可能设置这些状态。
+不依赖异步安全性，不在任何实现中直接调用终止程序或对应注册回调的函数([Documenation::LanguageConvention @@6.3.4]) 。
+不降低性能时尽可能保证可重入性。
+除非文档说明，库的实现不直接使用 thread_local 或其它实现相关的线程局部存储机制。（注意某些实现如 MinGW 存在静态释放可能失败等缺陷。）
+
+@2.1.3 对程序的其它约束：
+设计库的接口及其使用时，对程序的要求的基本规则同 [Documentation::LanguageConvention @@6] 。
+存在文档说明的前提下，部分 API 可调整关于 ISO C++ [res.on.arguments] 和 [lib.types.movedfrom] 相关的规则，但 YBase 只允许更严格的要求（如 @2.1.4.1 ）。
+
+@2.1.4 接口设计保证：
+YBase 不使用 [Documentation::LanguageConvention @@5.12.2.3.1] 的例外。
+
+@2.1.4.1 模板参数：
+模板参数是不完整类型时，仅在需要实例化完整类型的操作时，要求类型完整。
+
+@2.1.4.2 容器操作：
+当不完整类型作为容器的析构函数满足 ISO C++ [reentrancy] 以外的可重入要求，但允许的递归深度依赖具体语言实现。
+容器操作中被转移的参数类型若为容器的实例，则满足 [res.on.arguments] 外，要求被转移的值不能直接或间接引用被转移的容器（例如通过允许不完整类型元素的递归容器的转移赋值），否则行为未指定；视被转移的对象的生存期，可能引起未定义行为。
+上述容器应提供能代替这样的转移操作的交换(swap) 操作。
+和 ISO C++ 一致的容器对迭代器和对象引用有效性的保证同对应版本的。若容器是关联容器，附加 [LWG 2321] 建议的解，即被复制和转移的元素引用和迭代器不失效。
 
 @2.2 文件依赖性：
 以下为基本代码依赖性规则按（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
@@ -146,7 +179,7 @@ ytest ：测试框架设施 YTest 。
 模块 YBase::YDefinition ，文件名 ydef.h ，是其它 YBase 头文件的公共依赖项。
 若其它文件不依赖此文件，则也不依赖其它 YBase 文件。
 YDefinition 实现及判断语言特性的接口可能依赖具体语言实现的特性限制，允许在预处理指令中使用特定实现的宏检查支持的特性。
-YDefinition 在 @2.1.2 的基础上支持更多实现，且提供特定 ISO C++11 关键字的替代。
+YDefinition 在 @2.1.1 的基础上支持更多实现，且提供特定 ISO C++11 关键字的替代。
 YDefinition 中的特性应保证在被替代的关键字不被支持时仍可以被实现接受。
 文件內容为系统环境和公用类型和宏的基础定义，包括对实现环境的检测、实现特性的封装、部分未被实现关键字替代以及一些语言层次上的公共基础设施。
 以下名称以 y 起始的宏是表达式宏([Documentation::CommonRules @@5.10]) 或替代关键字(@2.4.7) 。
@@ -309,7 +342,7 @@ std 的成员对 ystdex 命名空间中的类模板可能存在对应特化。�
 std::tuple （使用 "tuple.hpp" 代替 <tuple> ）。
 
 @2.5.3 标准库兼容接口：
-YStandard 的一些公开接口实体和标准库命名空间 std 或 TS （技术规范）命名空间中 std::expermental 的实体声明基本一致，以提供代码迁移的便利。
+YStandardEx 的一些公开接口实体和标准库命名空间 std 或 TS （技术规范）命名空间中 std::expermental 的实体声明基本一致，以提供代码迁移的便利。
 注意这些接口不保证和标准库扩展的头文件(@2.5.1.1) 对应。
 这类接口根据声明的实体和标准库提供的一致性分为两类：
 可能直接使用命名空间别名或别名声明，此时实体一致；

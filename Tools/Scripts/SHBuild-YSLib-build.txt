@@ -14,7 +14,6 @@ $def! env_SHBuild_Common_ $provide! (
 	$env-de!
 	$redef!
 	SHBuild_2m
-	SHBuild_2w
 	SHBuild_EchoVar_N
 	SHBuild_GetPlatformStrings
 	build-with-conf-opt
@@ -79,7 +78,7 @@ $def! BD_YFramework_ ++ YSLib_BaseDir "/YFramework";
 $if (win32? env-os)
 (
 	$env-de! INCLUDES_freetype ++ "-I"
-		(system-quote (SHBuild_2w env-os BD_3rdparty_freetype_inc_));
+		(system-quote (SHBuild_2m env-os BD_3rdparty_freetype_inc_));
 	$def! CFLAGS_freetype_other ""
 )
 (
@@ -273,7 +272,7 @@ $let ()
 	"Only SHBuild environment variables not otherwise set need to be restored.";
 safeenv-restore "LDFLAGS";
 safeenv-set "LIBS" (SHBuild_TrimOptions_ (cons-cmd (safeenv-get "LIBS") "-L"
-	(system-quote (SHBuild_2w env-os SR_Lib_)) "-lYFramework -lYBase"));
+	(system-quote (SHBuild_2m env-os SR_Lib_)) "-lYFramework -lYBase"));
 $def! INCLUDES_ ++ (safeenv-get "INCLUDES") " -I"
 	(system-quote (SHBuild_2m env-os SR_Include_));
 

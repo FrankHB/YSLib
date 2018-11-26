@@ -20,7 +20,8 @@ export YSLib_BaseDir=$(cd $YSLib_BaseDir; pwd)
 SHBuild_CheckHostPlatform
 # This directory will be created if not existed by following stage 1 process
 #	or by %SHBuild-YSLib-build.txt.
-export YSLib_BuildDir="$YSLib_BaseDir/build/$SHBuild_Host_Platform"
+: ${SHBuild_BuildDir:="$YSLib_BaseDir/build/$SHBuild_Host_Platform"}
+export YSLib_BuildDir="$SHBuild_BuildDir"
 SHBuild_Puts Build directory is \"$YSLib_BuildDir\".
 SHBuild_CheckUName
 : ${AR:="gcc-ar"}

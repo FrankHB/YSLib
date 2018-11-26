@@ -5,6 +5,8 @@
 set -e
 : ${SHBuild_ToolDir:=$(cd `dirname "$0"`; pwd)}
 : ${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}
+# XXX: Some options for stage 1 SHBuild are fixed. Provide more separated
+#	options in future?
 CXXFLAGS_OPT_UseAssert=true
 C_CXXFLAGS_GC=''
 LD_CXXFLAGS_GC=''
@@ -21,7 +23,11 @@ cd $SHBuild_BaseDir
 
 SHBuild_Puts Building ...
 
-SHBuild_CheckPCH "$INCLUDE_PCH" "$SHBuild_PCH_stdinc_h"
+# Precompiled header is not used here because it does not work well with
+#	external %CXXFLAGS_OPT_DBG. It is also not used frequently like in stage 2.
+#	Even it is needed, it should be better separated with the stage 2 option.
+#	When needed, uncomment the following command.
+#	SHBuild_CheckPCH "$INCLUDE_PCH" "$SHBuild_PCH_stdinc_h"
 
 # Note '-fwhole-program' should not be used because there
 #	do exist multiple translation units when linking with YSLib source,

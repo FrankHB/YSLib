@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r3589
+\version r3825
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2018-11-17 00:37 +0800
+	2018-11-26 17:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,12 +30,14 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YObject // for pmr, ystdex::invoke,
-//	ystdex::is_interoperable, ystdex::enable_if_t, ystdex::and_, ystdex::not_;
+//	ystdex::is_interoperable, ystdex::enable_if_t, ystdex::and_, ystdex::not_,
+//	ystdex::remove_cvref_t;
 #include <ystdex/operators.hpp> // for ystdex::totally_ordered;
 #include <ystdex/set.hpp> // for ystdex::mapped_set;
 #include <ystdex/variadic.hpp> // for ystdex::vseq;
 #include <ystdex/tuple.hpp> // for ystdex::make_from_tuple;
 #include <ystdex/path.hpp> // for ystdex::path;
+#include <ystdex/utility.hpp> // for ystdex::forward_like;
 #include <numeric> // for std::accumulate;
 
 namespace YSLib
@@ -77,7 +79,25 @@ public:
 	//@}
 
 private:
-	//! \sa ystdex::mapped_set
+	//! \since build 844
+	//@{
+	template<typename... _tParam>
+	using enable_uses_alloc_trail = ystdex::enable_if_t<
+		std::is_constructible<ValueNode, _tParam..., allocator_type>::value>;
+	template<typename... _tParams>
+	using enable_value_constructible_t = ystdex::enable_if_t<
+		std::is_constructible<ValueObject, _tParams...>::value>;
+	template<size_t _vN, template<typename...> class _gOp, typename... _tParams>
+	using more_args_or_t = ystdex::cond_or_t<ystdex::bool_<
+		(sizeof...(_tParams) >= _vN)>, ystdex::true_, _gOp, _tParams...>;
+	template<typename _tParam, typename...>
+	using non_alloc_arg_t = ystdex::not_<std::is_convertible<_tParam,
+		std::allocator_arg_t>>;
+	//@}
+	/*!
+	\sa ystdex::mapped_set
+	\since build 844
+	*/
 	struct YF_API cont_traits
 	{
 		template<typename _tKey, class _tCon>
@@ -94,55 +114,92 @@ private:
 		//@{
 		static inline PDefH(string, get_value_key, allocator_type = {}) ynothrow
 			ImplRet({})
-		static inline PDefH(const string&, get_value_key, const ValueNode& nd,
+		//! \since build 845
+		static PDefH(string, get_value_key, std::allocator_arg_t,
+			allocator_type) ynothrow
+			ImplRet({})
+		static PDefH(const string&, get_value_key, const ValueNode& nd,
 			allocator_type = {}) ynothrow
 			ImplRet(nd.name)
-		static inline PDefH(string&&, get_value_key, ValueNode&& nd,
+		static PDefH(string&&, get_value_key, ValueNode&& nd,
 			allocator_type = {}) ynothrow
 			ImplRet(std::move(nd.name))
-		template<typename _tParam, typename _tKey, typename... _tParams,
-			yimpl(typename = enable_if_key_t<_tKey>)>
-		static inline _tKey&&
-		get_value_key(_tParam&&, _tKey&& k, _tParams&&...) ynothrow
-		{
-			return yforward(k);
-		}
+		//! \since build 845
+		//@{
 		template<typename _tParam, typename _tOther, typename... _tParams,
-			yimpl(typename = enable_not_key_t<_tOther>, typename
-			= ystdex::enable_if_t<!std::is_same<ystdex::vseq::_a<tuple>,
-			ystdex::vdefer<ystdex::vseq::ctor_of_t, _tOther>>::value>)>
+			yimpl(typename = enable_not_key_t<_tOther>)>
+		static PDefH(string, get_value_key, _tOther&&, allocator_type = {})
+			ynothrow
+			ImplRet({})
+		template<typename _tString, typename _tOther, typename... _tParams,
+			yimpl(typename = enable_value_constructible_t<_tParams&&...>),
+			yimpl(typename = enable_not_key_t<_tOther>)>
+		static inline _tString&&
+		get_value_key(_tOther&&, _tString&& str, _tParams&&...)
+		{
+			return yforward(str);
+		}
+		template<typename _tString, typename _tOther, typename... _tParams,
+			yimpl(typename = enable_value_constructible_t<_tParams&&...>),
+			yimpl(typename = enable_not_key_t<_tOther>)>
+		static inline _tString&&
+		get_value_key(std::allocator_arg_t, allocator_type, _tOther&&,
+			_tString&& str, _tParams&&...)
+		{
+			return yforward(str);
+		}
+		template<typename _tIn>
 		static inline string
-		get_value_key(_tParam&&, _tOther&&, _tParams&&...) ynothrow
+		get_value_key(const pair<_tIn, _tIn>&, allocator_type = {})
 		{
 			return {};
 		}
-		template<typename _tParam, typename _tKey, typename... _tParams,
-			yimpl(typename = enable_if_key_t<_tKey>)>
-		static inline _tKey&&
-		get_value_key(std::allocator_arg_t, allocator_type, _tParam&&,
-			_tKey&& k, _tParams&&...) ynothrow
+		template<typename _tIn, typename _tString>
+		static inline _tString&&
+		get_value_key(const pair<_tIn, _tIn>&, _tString&& str,
+			allocator_type = {})
 		{
-			return yforward(k);
+			return yforward(str);
 		}
-		template<typename _tParam, typename _tOther, typename... _tParams,
-			yimpl(typename = enable_not_key_t<_tOther>, typename
-			= ystdex::enable_if_t<!std::is_same<ystdex::vseq::_a<tuple>,
-			ystdex::vdefer<ystdex::vseq::ctor_of_t, _tOther>>::value>)>
+		template<typename... _tParams1>
 		static inline string
-		get_value_key(std::allocator_arg_t, allocator_type, _tParam&&,
-			_tOther&&, _tParams&&...) ynothrow
+		get_value_key(tuple<_tParams1...>, allocator_type = {})
 		{
 			return {};
 		}
-		template<typename... _tParams1, typename... _tParams2,
-			typename... _tParams>
+		template<typename... _tParams1, typename... _tParams2>
 		static inline string
 		get_value_key(tuple<_tParams1...>, tuple<_tParams2...> args2,
-			_tParams&&...)
+			allocator_type = {})
 		{
 			return ystdex::make_from_tuple<string>(args2);
 		}
+		template<typename... _tParams1, typename... _tParams2,
+			typename... _tParams3>
+		static inline string
+		get_value_key(tuple<_tParams1...>, tuple<_tParams2...> args2,
+			tuple<_tParams3...>, allocator_type = {})
+		{
+			return ystdex::make_from_tuple<string>(args2);
+		}
+		template<typename... _tParams, yimpl(typename = enable_uses_alloc_trail<
+			_tParams&&...>, typename = ystdex::enable_if_t<
+			more_args_or_t<1, non_alloc_arg_t, _tParams&&...>::value>)>
+		static inline auto
+		get_value_key(std::allocator_arg_t, allocator_type, _tParams&&... args)
+			-> decltype(get_value_key(yforward(args)...))
+		{
+			return get_value_key(yforward(args)...);
+		}
 		//@}
+		//@}
+
+		/*!
+		\sa ystdex::restore_key
+		\since build 845
+		*/
+		static PDefH(void, restore_key, ValueNode& node, ValueNode&& ek)
+			ImplExpr(node.name = std::move(ek.name))
 
 		//! \sa ystdex::set_value_move
 		static PDefH(ValueNode, set_value_move, ValueNode& node)
@@ -165,22 +222,6 @@ public:
 	using const_reverse_iterator = Container::const_reverse_iterator;
 
 private:
-	//! \since build 844
-	//@{
-	template<typename... _tParam>
-	using enable_uses_alloc_trail = ystdex::enable_if_t<
-		std::is_constructible<ValueNode, _tParam..., allocator_type>::value>;
-	template<typename... _tParams>
-	using enable_value_constructible_t = ystdex::enable_if_t<
-		std::is_constructible<ValueObject, _tParams...>::value>;
-	template<size_t _vN, template<typename...> class _gOp, typename... _tParams>
-	using more_args_or_t = ystdex::cond_or_t<ystdex::bool_<
-		(sizeof...(_tParams) >= _vN)>, ystdex::true_, _gOp, _tParams...>;
-	template<typename _tParam, typename...>
-	using non_alloc_arg_t = ystdex::not_<std::is_convertible<_tParam,
-		std::allocator_arg_t>>;
-	//@}
-
 	string name{};
 	/*!
 	\brief 子节点容器。
@@ -206,12 +247,24 @@ public:
 		: ValueNode(a)
 	{}
 	//@}
-	//! \brief 构造：使用容器对象引用和可选的分配器。
+	/*!
+	\brief 构造：使用容器对象引用和可选的分配器。
+	\since build 845
+
+	复制或转移第一参数指定的容器对象作为节点的内容。
+	若指定了分配器参数，使用指定的分配器；否则，复制或转移容器中的分配器。
+	*/
 	//@{
-	ValueNode(const Container& con, allocator_type a = {})
+	ValueNode(const Container& con)
+		: container(con)
+	{}
+	ValueNode(const Container& con, allocator_type a)
 		: container(con, a)
 	{}
-	ValueNode(Container&& con, allocator_type a = {})
+	ValueNode(Container&& con)
+		: container(std::move(con))
+	{}
+	ValueNode(Container&& con, allocator_type a)
 		: container(std::move(con), a)
 	{}
 	//@}
@@ -327,9 +380,12 @@ public:
 
 	//! \since build 768
 	//@{
-	//! \brief 复制赋值：使用复制和交换。
+	//! \brief 复制赋值：使用以参数的分配器构造的副本和交换操作。
 	PDefHOp(ValueNode&, =, const ValueNode& node)
-		ImplRet(ystdex::copy_and_swap(*this, node))
+		// XXX: A simple %ystdex::copy_and_swap call would not work because the
+		//	 allocator would not propagate.
+		ImplRet(ystdex::move_and_swap(*this, ValueNode(node,
+			node.get_allocator())))
 	/*!
 	\pre 被转移的参数不是被子节点容器直接或间接所有的其它节点。
 	\warning 违反前置条件的转移可能引起循环引用。
@@ -383,9 +439,9 @@ public:
 	//! \since build 730
 	template<typename _tKey>
 	friend bool
-	operator==(const ValueNode& x, const _tKey& str) ynothrow
+	operator==(const ValueNode& x, const _tKey& k) ynothrow
 	{
-		return x.name == str;
+		return x.name == k;
 	}
 
 	//! \since build 673
@@ -397,16 +453,16 @@ public:
 	//! \since build 730
 	template<typename _tKey>
 	friend bool
-	operator<(const ValueNode& x, const _tKey& str) ynothrow
+	operator<(const ValueNode& x, const _tKey& k) ynothrow
 	{
-		return x.name < str;
+		return x.name < k;
 	}
 	//! \since build 730
 	template<typename _tKey>
 	friend bool
-	operator<(const _tKey& str, const ValueNode& y) ynothrow
+	operator<(const _tKey& k, const ValueNode& y) ynothrow
 	{
-		return str < y.name;
+		return k < y.name;
 	}
 	//! \since build 679
 	friend PDefHOp(bool, >, const ValueNode& x, const string& str) ynothrow
@@ -414,25 +470,24 @@ public:
 	//! \since build 730
 	template<typename _tKey>
 	friend bool
-	operator>(const ValueNode& x, const _tKey& str) ynothrow
+	operator>(const ValueNode& x, const _tKey& k) ynothrow
 	{
-		return x.name > str;
+		return x.name > k;
 	}
 	//! \since build 730
 	template<typename _tKey>
 	friend bool
-	operator>(const _tKey& str, const ValueNode& y) ynothrow
+	operator>(const _tKey& k, const ValueNode& y) ynothrow
 	{
-		return str > y.name;
+		return k > y.name;
 	}
 
 	//! \since build 680
-	template<typename _tString>
+	template<typename _tKey>
 	ValueNode&
-	operator[](_tString&& str)
+	operator[](_tKey&& k)
 	{
-		return *ystdex::try_emplace(container, str, NoContainer, yforward(str))
-			.first;
+		return Deref(try_emplace(k, NoContainer, yforward(k)).first);
 	}
 	//! \since build 792
 	template<class _tCon>
@@ -512,80 +567,80 @@ public:
 
 	/*!
 	\brief 添加参数节点指定容器和值的子节点。
-	\since build 775
+	\since build 845
 	*/
 	//@{
-	//! \sa try_emplace
+	//! \sa ystdex::try_emplace
+	template<typename _tKey, typename _tNode,
+		yimpl(typename = ystdex::enable_if_t<
+		std::is_same<ValueNode&, ystdex::remove_cvref_t<_tNode>&>::value>)>
+	yimpl(ystdex::enable_if_inconvertible_t)<_tKey&&, const_iterator, bool>
+	AddChild(_tKey&& k, _tNode&& node)
+	{
+		return try_emplace(k, yforward(node).container, yforward(k),
+			yforward(node).Value).second;
+	}
+	//! \sa ystdex::try_emplace_hint
 	//@{
-	template<typename _tKey>
+	template<typename _tKey, typename _tNode,
+		yimpl(typename = ystdex::enable_if_t<
+		std::is_same<ValueNode&, ystdex::remove_cvref_t<_tNode>&>::value>)>
 	bool
-	AddChild(_tKey&& k, const ValueNode& node)
+	AddChild(const_iterator hint, _tKey&& k, _tNode&& node)
 	{
-		return
-			try_emplace(k, node.GetContainer(), yforward(k), node.Value).second;
-	}
-	template<typename _tKey>
-	bool
-	AddChild(_tKey&& k, ValueNode&& node)
-	{
-		return try_emplace(k, std::move(node.GetContainerRef()), yforward(k),
-			std::move(node.Value)).second;
-	}
-	//@}
-	//! \sa try_emplace_hint
-	//@{
-	template<typename _tKey>
-	void
-	AddChild(const_iterator hint, _tKey&& k, const ValueNode& node)
-	{
-		return try_emplace_hint(hint, k, node.GetContainer(), yforward(k),
-			node.Value);
-	}
-	template<typename _tKey>
-	void
-	AddChild(const_iterator hint, _tKey&& k, ValueNode&& node)
-	{
-		return try_emplace_hint(hint, k, std::move(node.GetContainerRef()),
-			yforward(k), std::move(node.Value));
+		return try_emplace_hint(hint, k, yforward(node).container, yforward(k),
+			yforward(node).Value);
 	}
 	//@}
 	//@}
 
 	/*!
 	\brief 添加参数指定值的子节点。
+	\sa AddValueTo
 	\since build 757
 	*/
 	//@{
-	//! \sa try_emplace
 	template<typename _tKey, typename... _tParams>
-	inline bool
+	inline
+		yimpl(ystdex::enable_if_inconvertible_t)<_tKey&&, const_iterator, bool>
 	AddValue(_tKey&& k, _tParams&&... args)
 	{
-		return
-			try_emplace(k, NoContainer, yforward(k), yforward(args)...).second;
+		return AddValueTo(container, k, yforward(args)...);
 	}
-	//! \sa try_emplace_hint
 	template<typename _tKey, typename... _tParams>
 	inline bool
 	AddValue(const_iterator hint, _tKey&& k, _tParams&&... args)
 	{
-		return try_emplace_hint(hint, k, NoContainer, yforward(k),
-			yforward(args)...).second;
+		return AddValueTo(hint, container, k, yforward(args)...);
 	}
 	//@}
 
+	//! \brief 向容器添加参数指定值的子节点。
+	//@{
 	/*!
-	\brief 向容器添加参数指定值的子节点。
-	\sa emplace_hint
+	\sa ystdex::try_emplace
 	\since build 674
 	*/
 	template<typename _tKey, typename... _tParams>
-	static bool
+	static inline bool
 	AddValueTo(Container& con, _tKey&& k, _tParams&&... args)
 	{
 		return ystdex::try_emplace(con, k, NoContainer, yforward(k),
 			yforward(args)...).second;
 	}
+	/*!
+	\sa ystdex::try_emplace_hint
+	\since build 845
+	*/
+	template<typename _tKey, typename... _tParams>
+	static inline bool
+	AddValueTo(const_iterator hint, Container& con, _tKey&& k,
+		_tParams&&... args)
+	{
+		return ystdex::try_emplace_hint(con, hint, k, NoContainer, yforward(k),
+			yforward(args)...).second;
+	}
+	//@}
 
 	//! \note 清理容器和修改值的操作之间的顺序未指定。
 	//@{
@@ -622,54 +677,19 @@ public:
 	//! \since build 767
 	static Container
 	CreateRecursively(const Container&, IValueHolder::Creation);
-	//! \since build 787
-	template<typename _fCallable>
+	//! \since build 845
+	template<class _tCon, typename _fCallable,
+		yimpl(typename = ystdex::enable_if_t<
+		std::is_same<Container&, ystdex::remove_cvref_t<_tCon>&>::value>)>
 	static Container
-	CreateRecursively(Container& con, _fCallable f)
+	CreateRecursively(_tCon&& con, _fCallable f)
 	{
 		Container res(con.get_allocator());
 
-		for(auto& tm : con)
-			res.emplace(CreateRecursively(tm.GetContainerRef(), f),
-				tm.GetName(), ystdex::invoke(f, tm.Value));
-		return res;
-	}
-	//! \since build 785
-	template<typename _fCallable>
-	static Container
-	CreateRecursively(const Container& con, _fCallable f)
-	{
-		Container res(con.get_allocator());
-
-		for(auto& tm : con)
-			res.emplace(CreateRecursively(tm.GetContainer(), f), tm.GetName(),
-				ystdex::invoke(f, tm.Value));
-		return res;
-	}
-	//! \since build 834
-	template<typename _fCallable>
-	static Container
-	CreateRecursively(Container&& con, _fCallable f)
-	{
-		Container res(con.get_allocator());
-
-		for(auto& tm : con)
-			res.emplace(CreateRecursively(std::move(tm.GetContainerRef()), f),
-				std::move(tm.GetName()),
-				ystdex::invoke(f, std::move(tm.Value)));
-		return res;
-	}
-	//! \since build 834
-	template<typename _fCallable>
-	static Container
-	CreateRecursively(const Container&& con, _fCallable f)
-	{
-		Container res(con.get_allocator());
-
-		for(auto& tm : con)
-			res.emplace(CreateRecursively(std::move(tm.GetContainer()), f),
-				std::move(tm.GetName()),
-				ystdex::invoke(f, std::move(tm.Value)));
+		for(auto&& tm : con)
+			res.emplace(CreateRecursively(ystdex::forward_like<_tCon>(
+				tm.container), f), tm.GetName(),
+				ystdex::invoke(f, ystdex::forward_like<_tCon>(tm.Value)));
 		return res;
 	}
 
@@ -707,9 +727,10 @@ public:
 
 	/*!
 	\brief 转移参数内容。
-	\pre 断言：分配器相等。
-	\note 允许被转移的参数是被子节点容器直接或间接所有的其它节点。
 	\since build 844
+
+	转移参数指定的节点的内容到对象。转移后的节点内容是转移前的参数内容。
+	允许被转移的参数直接或间接地被容器引用。
 	*/
 	void
 	MoveContent(ValueNode&&);
@@ -883,6 +904,7 @@ public:
 		std::pair<iterator, bool>>
 	insert_or_assign(_tKey&& k, _tParam&& arg)
 	{
+		// NOTE: See comments in %try_emplace.
 		return ystdex::insert_or_assign(container, yforward(k), yforward(arg));
 	}
 	template<typename _tKey, class _tParam>
@@ -925,6 +947,14 @@ public:
 		std::pair<iterator, bool>>
 	try_emplace(_tKey&& k, _tParams&&... args)
 	{
+		// NOTE: This is not efficient as a single %emplace when %k is not
+		//	equivalent to %cont_traits::get_value_key(yforward(args)...), as
+		//	per the notes in %ystdex::mapped. However, this function is needed
+		//	as a convenient base to other operations and there is in general
+		//	no superior alternatives (when it is needed to decide to insert on
+		//	two different keys). Thus, it is kept as a public function. All
+		//	other functions using this one would keep the equivalence, so they
+		//	are preferred unless the difference of keys is intended, though.
 		return ystdex::try_emplace(container, yforward(k), yforward(args)...);
 	}
 

@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1424
+\version r1447
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2018-07-23 20:38 +0800
+	2018-11-23 18:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,7 @@
 本文档适用于 YFramework 。
 除非另行指定， 其它未指定单独文档的目标为程序库和应用的 YSLib 顶级子项目([Documentation::Projects @@1.3]) 也适用本文档。
 部分编码细节和其它规范和 YBase 共享，参见 [Documentation::Designation] 。
+除非另行指定， [Documentation::YBase @@2.1] 被作为基本规则。
 
 @1 整体设计：
 基本内容参见 [Documentation::Designation @@2] 。
@@ -53,7 +54,7 @@ YSLib 项目的框架容器。
 @1.4.1 运行时程序模型：
 除以下部分外由具体派生项目定义。
 YFramework 对多线程环境的依赖和平台相关，参见 https://bitbucket.org/FrankHB/yslib/wiki/Prerequisitions.zh-CN.md 。
-除非[Documentation] 中具体库的文档或具体 API 的文档指定，库中平台中立的部分(@2.1.3) 不依赖多线程环境。
+除非 [Documentation] 中具体库的文档或具体 API 的文档指定，库中平台中立的部分(@2.1.3) 不依赖多线程环境。
 
 @1.4.1.1 运行时程序结构和部署模型：
 YSLib 中讨论可部署的程序的基本单位是 Shell(@1.4.4.2) 。
@@ -78,7 +79,7 @@ YSLib 的消息被用于在 Shell 之间传递状态，称为 Shell 消息。
 按 [Documenation::LanguageConvention @@6.3.4] 不依赖异步安全性，不在 YFramework 的任何实现中直接调用 std::exit 退出函数，不直接调用 std::atexit 注册回调，直接调用或使用 YFramework 中的接口导致退出函数或对应终止程序或对应注册回调的函数被调用时需给出文档说明。
 除本条外， YSLib 及其部分依赖项的可重入性和线程安全性参见 @2.8 、 [Documentation::YSLib @@1.3] 、 [Documentation::CHRLib] 和 [Documentation::YCLib @@1.3] 。
 除非另行指定，仅保证非成员或静态成员函数的线程安全性。
-外部可见状态、 thread_local 和线程局部存储使用限制同 [Documentation::YBase @@2.1.1] 。
+外部可见状态、 thread_local 和线程局部存储使用限制同 [Documentation::YBase @@2.1.2] 。
 除非另行指定，在使用 POSIX 线程的实现上，主线程（创建进程时的线程，不一定是 UI 线程）应保证不退出（如调用 pthread_exit ），否则可能引起未定义行为。注意一些宿主环境的系统资源（如 Linux 中 /proc/self 下的内容）在不满足此条件下不可用。
 
 @1.4.1.4.1 例程和包含的可调用对象(callable object) 的调用：
@@ -231,7 +232,7 @@ Shell 可以是会话(@1.4.5) 。
 
 @1.6.2 GUI（Graphical UI ，图形用户界面）设计概述：
 界面实现使用称为 Shell-Widget 的模式，是精简的主动模型-视图-控制器模式的变体，参照窗体-控件模式。但架构模式无本质变化。
-界面实现解决的三个问题：安排状态(state) 、逻辑(logic) 和同步(synchronization) ，都可以在运行期配置。
+界面实现解决的三个问题：安排状态(state) 、逻辑(logic) 和同步(synchronization) ，都可以在运行时配置。
 为了方便复用，这些属性有如下分类：
 根据是否依赖具体的 Widget 实例分为实例的和公共的；
 根据是否能被所有 Widget 类共用分为公用的和专用的。
@@ -333,7 +334,8 @@ YSLib 本身不提供大量成熟的控件，而是着重提供可供组装为�
 对视图树而言，通过迭代访问焦点对象可以得到唯一的路径，称为焦点活动路径；其中的焦点称为活动路径焦点。末端的活动路径焦点称为活动焦点，在确定状态下若存在，则是唯一的。
 
 @2 框架概览：
-本章描述 YSLib 项目中的 YFramework 框架库。外部依赖项和 YSLib 项目整体配置参见 [Documentation::Designation @@5] 。
+本章描述 YSLib 项目中的 YFramework 框架库。
+外部依赖项和 YSLib 项目整体配置参见 [Documentation::Designation @@5] 。
 模块化设计原则参见 [Documentation::CommonRules @@3.7.1] 。
 一个模块目录([Documentation::ProjectRules @@3.2]) 中的模块组成一个系统。
 名称使用前提约束：参见 [Documentation::CommonRules @@7.2] 。
@@ -358,42 +360,43 @@ YFramework 集成的第三方库([Documentation::Designation @@5]) ，位于 "/3
 关于 YFramework 依赖的外部项目（包括平台支持和基础库 YBase([Documentation::YBase]) ）的关联和配置参见 [Documentation::Designation @@5] 。
 
 @2.1.2 附加库：
-除了 YSLib 和第三方库， YFramework 也集成了一些附加的库作为非第三方次级子项目。
+除 YSLib 和第三方库， YFramework 也集成了一些附加的库作为次级子项目。
+附加库分为基础附加库和扩展附加库，参见 @2.1.2.1 。
 
 @2.1.2.1 依赖性概览：
 其中一部分除了平台扩展([ProjectRules @@3.3]) 外不依赖 YSLib ，称为基础附加库，包括 CHRLib(@2.7) 和 YCLib([Documentation::YCLib]) 。
-另一部分总是依赖 YSLib 库，包括 NPL(@2.9) 和 Helper(@2.8) 。其它具体说明参见 [Documentation::Designation @@5] 。
+其它附加库总是允许依赖 YSLib 库，称为扩展附加库，包括 NPL(@2.9) 和 Helper(@2.8) 。其它具体说明参见 [Documentation::Designation @@5] 。
 基础附加库被 YSLib 库的 Adaptor 直接依赖，其它附加库不应被这些组件依赖。
 每个附加库都有相对独立的功能，且与框架程序实现相关但相对独立，因此不作为 YSLib 库(@2.1.1) 的组成部分。
-YCLib 除平台扩展的接口和实现以及限定平台集合支持模块(@2.1.4) 的实现(@2.2.5) 外，不依赖 YSLib ，被作为 YSLib 平台中立([Documentation::CommonRules @@2.2.2]) 接口和实现的基础适配层； Helper 依赖 YSLib 。
+YCLib 除平台扩展以及限定平台集合支持模块(@2.1.4) 的接口和实现有限地依赖 YSLib 的一个真子集(@2.2.5) 外，不依赖 YSLib ，被作为 YSLib 平台中立([Documentation::CommonRules @@2.2.2]) 接口和实现的基础适配层； Helper 依赖 YSLib 。
 其它附加库没有平台扩展且只依赖 YSLib 库的 Core 和 Service ，但当前不确定适合作为框架实现。（以后可能被合并至 YSLib 库中或独立至 YFramework 外）。
 注意平台中立文件不一定只包括接口，可能通过条件包含等方式包含了非平台中立的非公开接口。
 
 @2.1.2.2 命名空间规则：
-除了 Helper ，这些库不直接在 YSLib 命名空间中添加声明。
+除 Helper 的附加库不直接在 YSLib 命名空间中添加声明。
 关于引入的命名空间，参见 @2.3.2 。
 
 @2.1.3 平台相关性：
 综上所述， YFramework 有以下非第三方次级子项目： CHRLib 、 YCLib 、 YSLib 、 NPL 和 Helper 。
 只有 YCLib 和 Helper 存在平台扩展，不保证接口或实现平台中立；另见 @2.1.4 。
-除了上述接口， YFramework 公开接口是平台中立的：其它组件（附加库和 YSLib 库）没有平台扩展，公开接口保证平台中立，特定具体平台的功能扩展由 Helper 提供。
+除次级子项目的接口， YFramework 公开接口是平台中立的：其它组件（附加库(@2.1.2) 和 YSLib 库）没有平台扩展，公开接口保证平台中立，特定具体平台的功能扩展由 Helper 提供。
 平台扩展一般直接作为目标平台的接口，但也可以包括专用于模拟目标平台([Documentation::Designation @@2.3.1.2]) 的接口。
 使用 YCLib::Platform 中定义的平台宏([Documentation::YCLib @@5.1]) 确定程序实际运行的目标平台。
 
-@2.1.3.1 接口使用限制：
+@2.1.3.1 外部接口使用限制：
 在 Win32 上 YFramework 不直接静态依赖 COM ，不链接实现 COM 的库。
 除非另行指定， YFramework 的实现不使用可能要求 COM 已被初始化的接口。
 Helper 不引入 YCLib 和语言运行时以外的动态库直接依赖。
 其它限制参见 [Documentation::YCLib] 。
 
 @2.1.4 YCLib 限定平台集合支持模块：
-YCLib 支持限定特定平台集合支持的非平台扩展：使用特定的宏整体启用支持或不支持。当启用支持时接口平台中立，因此不是平台扩展。
+YCLib 支持限定特定平台集合支持的非平台扩展：使用特定的和平台配置关联的宏，通过条件包含整体启用或不启用特定的 API 。
+当启用支持时接口平台中立，因此不是平台扩展。
 包括以下单元：
 YCLib::Host ：限定宿主实现环境。
-YCLib::POSIXThread ：限定支持 POSIX 线程实现。
-YCLib::JNI ：限定支持 Java 本机接口。
-除了 YCLib::Host ，控制是否启用支持的宏可以单独配置，是可选的；默认在 YCLib::Platform 中提供定义。
-可选单元启用配置时仍然保证不出现符号冲突，但为了兼容性，一般应单独构建库文件。
+限定平台集合支持模块也包括其它的若干可选单元，详见 [Documentation::YCLib] 。
+可选单元控制是否启用支持的宏可以单独配置；默认在 YCLib::Platform 中提供定义。
+可选单元启用配置时仍然保证不出现符号冲突；为了兼容性，可单独构建库文件。
 
 @2.1.5 YSLib Adaptor 和本体：
 YSLib 库中，模块目录 YSLib::Adaptor([Documentation::YSLib @@2]) 以外其它部分总称为本体。
@@ -417,8 +420,9 @@ YSLib 和 Helper(@2.8) 文件中，文件名以 y 或 Y 起始且非限定模块
 存在平台扩展的次级子项目（即 YCLib 和 Helper ）的实现可依赖具体平台相关的外部依赖项以及次级子项目的对应平台扩展。
 
 @2.2.2 YModules 包含规则：
-YModules.h 只包含不同的 YModules.h 文件。
-下层的 <YModules.h> 包含 "../YModules.h" 。除此之外，以下包含关系是确定的：
+YModules.h 只包含（来自不同库的） YModules.h 文件。
+以下包含关系是确定的：
+子目录中的 <YModules.h> 包含 "../YModules.h" ；
 <CHRLib/YModules.h> 包含 "../YCLib/YModules.h" ；
 <YSLib/Core/YModules.h> 包含 "../Adaptor/YModules.h" ；
 <YSLib/Service/YModules.h> 包含 "../Core/YModules.h" ；
@@ -593,7 +597,7 @@ YFramework 直接通用基础设施 YBaseMacro ：定义了各种基础平台无
 位于 "/CHRLib" 。非外部依赖项。
 支持字符相关构造（编码和字符集等）的抽象。
 支持特定编码字符串的转换。
-参见 [Documentation::CHRLib] 。
+详见 [Documentation::CHRLib] 。
 
 @2.8 助手(Helper) 库：
 位于 "/Helper" 。非外部依赖项。

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2015, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Hover.cpp
 \ingroup UI
 \brief 样式无关的指针设备悬停相关功能。
-\version r109
+\version r112
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-09-28 12:52:39 +0800
 \par 修改时间:
-	2015-05-29 19:39 +0800
+	2018-11-20 19:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,14 +45,12 @@ HoverUpdater::HoverUpdater(IWidget& wgt)
 		Invalidate(Widget);
 	},
 	FetchEvent<Leave>(wgt) += [this]{
-		entered = false,
+		entered = {},
 		Invalidate(Widget);
 	}
 	);
 }
 
-
-yconstexpr const Timers::Duration TimedHoverState::DefaultDuration;
 
 bool
 TimedHoverState::Check() ynothrow

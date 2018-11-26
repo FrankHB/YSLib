@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGUI.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4411
+\version r4413
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-02-13 15:26 +0800
+	2018-11-20 19:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,8 +63,6 @@ inline PDefH(bool, IsVisibleEnabled, IWidget& wgt)
 
 } // unnamed namespace;
 
-
-yconstexpr const InputTimer::Duration InputTimer::DefaultDuration;
 
 InputTimer::InputTimer(Duration d) ynothrow
 	: Timer(d)

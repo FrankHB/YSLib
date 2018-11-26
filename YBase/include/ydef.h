@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3377
+\version r3475
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2018-10-29 15:41 +0800
+	2018-11-25 22:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -154,6 +154,8 @@
 #endif
 //@}
 
+//! \see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
+//@{
 /*!
 \brief \c constexpr 特性测试宏。
 \see WG21 P0941R2 2.2 。
@@ -175,7 +177,6 @@
 \see P0136R1 。
 \see https://clang.llvm.org/docs/LanguageExtensions.html 。
 \see https://gcc.gnu.org/projects/cxx-status.html 。
-\see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
 \see https://msdn.microsoft.com/en-us/library/hh409293.aspx 。
 */
 //@{
@@ -189,13 +190,11 @@
 #endif
 //@}
 /*!
-\since build 831
 \see https://reviews.llvm.org/D32950 。
-\see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
 \see https://blogs.msdn.microsoft.com/vcblog/2018/04/09/msvc-now-correctly-reports-__cplusplus/ 。
+\since build 831
 */
 //@{
-// NOTE: See https://reviews.llvm.org/D32950.
 // NOTE: Microsoft VC++ compiler has support the feature since version 15.5.
 //	However,  the %__cplusplus can only work after 15.7 Preview 3 with
 //	additional option It can be more precise when %_MSC_FULL_VER is
@@ -208,6 +207,22 @@
 #		define __cpp_inline_variables 201606L
 #	endif
 #endif
+//@}
+/*!
+\see WG21 P0012R1 。
+\see https://blogs.msdn.microsoft.com/vcblog/2018/04/09/msvc-now-correctly-reports-__cplusplus/ 。
+\since build 845
+*/
+//@{
+// NOTE: Ditto about Microsoft VC++ support as %__cpp_inline_variables.
+#ifndef __cpp_noexcept_function_type
+#	if __has_feature(cxx_noexcept_function_type) \
+	|| __has_extension(cxx_noexcept_function_type) || YB_IMPL_MSCPP > 1912 \
+	|| __cplusplus >= 201510L
+#		define __cpp_noexcept_function_type 201510L
+#	endif
+#endif
+//@}
 //@}
 
 #include <cstddef> // for __cpp_lib_byte, std::byte, std::nullptr_t,
@@ -378,11 +393,17 @@
 /*!	\defgroup YBase_replacement_features YBase Replacement features
 \brief YBase 替代特性。
 \since build 837
+
+YBase 提供的替代 ISO C++ 特性的接口。
+若接口是类或类模板，可能具有扩展特性的成员以及与使用相关类型作为参数的函数或函数模板。
 */
 
 /*!	\defgroup YBase_replacement_extensions YBase Replacement extensions
 \brief YBase 替代扩展。
 \since build 837
+
+YBase 提供的替代 ISO C++ 扩展特性的接口。
+不是原始的被替代的接口但在包含其规格（如标准库头）内的接口。
 */
 
 /*!	\defgroup lang_impl_features Language Implementation Features
@@ -501,7 +522,9 @@
 \since build 793
 \see WG21 P0188R1 。
 */
-#if __has_cpp_attribute(fallthrough)
+#if __has_cpp_attribute(fallthrough) \
+	&& (!YB_IMPL_CLANGPP || __cplusplus >= 201703L)
+// XXX: This is ruled out for [-Wc++17-extensions] in Clang++.
 #	define YB_ATTR_fallthrough YB_ATTR_STD(fallthrough)
 #elif __has_cpp_attribute(clang::fallthrough)
 #	define YB_ATTR_fallthrough YB_ATTR_STD(clang::fallthrough)
@@ -972,6 +995,34 @@
 #endif
 
 /*!
+\def ynoexcept_param
+\brief 影响函数类型的 noexcept 限定符参数。
+\since build 845
+*/
+/*!
+\def ynoexcept_qual
+\brief 影响函数类型的 noexcept 限定符表达式。
+\since build 845
+*/
+#if __cpp_noexcept_function_type >= 201510L
+#	if !YB_HAS_NOEXCEPT
+#		error "Invalid language implementation found."
+#	endif
+#	define ynoexcept_param(_n) , bool _n
+#	define ynoexcept_qual(...) noexcept(__VA_ARGS__)
+#else
+#	define ynoexcept_param(_n)
+#	define ynoexcept_qual(...)
+#endif
+
+/*!
+\def ynoexcept_spec
+\brief 表达式 \c noexcept 异常规范。
+\since build 586
+*/
+#define ynoexcept_spec(...) ynoexcept(noexcept(__VA_ARGS__))
+
+/*!
 \def ynothrow
 \brief YSLib 无异常抛出保证：若支持 noexcept 关键字，
 	指定特定的 noexcept 异常规范。
@@ -1009,13 +1060,6 @@
 #else
 #	define ynothrowv
 #endif
-
-/*!
-\def ynoexcept_spec
-\brief 表达式 \c noexcept 异常规范。
-\since build 586
-*/
-#define ynoexcept_spec(...) ynoexcept(noexcept(__VA_ARGS__))
 
 /*!
 \def ythread
@@ -1153,6 +1197,46 @@ operator!=(const _type& lhs, nullptr_t rhs)
 #endif
 
 
+/*!	\defgroup customization Customization
+\brief 定制化接口。
+
+用于用户代码定制的接口。
+*/
+
+/*!	\defgroup customization_points Customization Points
+\ingroup customization
+\brief 定制点。
+\see WG21 N4381 。
+\see WG21 N4778 [namespace.std] 。
+\since build 845
+
+用于用户代码定制的调用接口。
+和标准库的概念类似，但适用于 ystdex 和相关的命名空间；
+	且外延除函数模板外，还包含类模板。
+*/
+
+/*!	\defgroup helper_functions Helper Functions
+\brief 助手功能。
+\since build 243
+
+仅帮助简化编码形式或确定接口，并不包含编译期之后逻辑功能实现的代码设施。
+*/
+
+/*!	\defgroup tags Tags
+\brief 标签。
+\note 可能是类型或元类型。
+\since build 447
+
+用于标记重载或其它类型接口的类型或模板。
+*/
+
+/*!	\defgroup traits Traits
+\brief 特征。
+\since build 845
+
+具有特定成员，提供翻译时确定的信息的类型或木板。
+*/
+
 /*!
 \brief 空基类模板。
 \since build 260
@@ -1162,19 +1246,13 @@ struct empty_base
 {};
 
 /*!
+\ingroup tags
 \brief 直接构造类型（直接构造重载用）。
 \since build 520
 */
 struct raw_tag
 {};
 
-
-/*!	\defgroup helper_functions Helper Functions
-\brief 助手功能。
-\since build 243
-
-仅帮助简化编码形式或确定接口，并不包含编译期之后逻辑功能实现的代码设施。
-*/
 
 /*!
 \brief 成员偏移计算静态类型检查。
@@ -1223,8 +1301,16 @@ class offsetof_check
 当表达式类型为函数或函数引用类型时，结果为左值(lvalue) ，否则：
 当且仅当左值引用类型时结果为左值（此时类型不变）；
 否则结果为对应的右值引用类型的消亡值(xvalue) 。
-因为允许使用右值对象引用类型的左值作为参数，此时直接用函数模板的参数匹配无法区分实际
-参数的类型而错误地转移为左值，因此不能通过函数模板直接匹配不同的引用实现。
+按类型传递不能直接通过函数模板匹配不同的引用传递至 std::forward 实现。
+因为函数模板的传递形式参数无法完全保留函数的实际参数的类型，
+	不根据实际参数的类型而是根据实际参数的值类别决定形式参数是左值或右值引用类型，
+	导致 std::forward 的实际参数类型不保证和作为函数实际参数的表达式类型相同，
+	而使传递的值类别和表达式可能具有的引用类型不一致：
+使用包含以 && 为类型声明符的模板参数的传递参数时，由于 std::forward 传递的是
+	函数模板实例中和函数参数一致（可能是左值引用或右值引用的类型）的形式参数，
+	使用宏或函数模板都能传递对象左值引用表达式为左值，对象右值引用表达式为右值；
+而使传递对象右值引用类型的左值表达式，如对象右值引用声明的变量的 id-expression 时，
+	结果总被传递为和表达式类型无关的左值。
 */
 #define yforward(_expr) std::forward<decltype(_expr)>(_expr)
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2126
+\version r2139
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2018-10-25 14:25 +0800
+	2018-11-23 00:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,10 +26,10 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA // for ystdex::value_or, ystdex::write,
-//	ystdex::bad_any_cast, ystdex::unimplemented, ystdex::type_id, ystdex::quote,
-//	ystdex::call_value_or, ystdex::begins_with, ystdex::sfmt, sfmt, ystdex::ref,
-//	ystdex::retry_on_cond, ystdex::type_info, pair;
+#include YFM_NPL_NPLA // for std::allocator_arg, ystdex::value_or,
+//	ystdex::write, ystdex::bad_any_cast, ystdex::unimplemented, ystdex::type_id,
+//	ystdex::quote, ystdex::call_value_or, ystdex::begins_with, ystdex::sfmt,
+//	sfmt, ystdex::ref, ystdex::retry_on_cond, ystdex::type_info, pair;
 #include YFM_NPL_SContext
 
 using namespace YSLib;
@@ -46,14 +46,15 @@ namespace NPL
 ValueNode
 MapNPLALeafNode(const TermNode& term)
 {
-	return AsNode(string(),
+	return AsNode(term.get_allocator(), string(),
 		string(Deliteralize(ParseNPLANodeString(MapToValueNode(term)))));
 }
 
 ValueNode
 TransformToSyntaxNode(const ValueNode& node, const string& name)
 {
-	ValueNode::Container con{AsIndexNode(size_t(), node.GetName())};
+	ValueNode::Container con{AsIndexNode(node.get_allocator(), size_t(),
+		node.GetName())};
 	const auto nested_call([&](const ValueNode& nd){
 		con.emplace(TransformToSyntaxNode(nd, MakeIndex(con)));
 	});
@@ -70,7 +71,7 @@ TransformToSyntaxNode(const ValueNode& node, const string& name)
 	else
 		for(auto& nd : node)
 			nested_call(nd);
-	return {std::move(con), name};
+	return {std::allocator_arg, node.get_allocator(), std::move(con), name};
 }
 
 string
@@ -820,9 +821,12 @@ EnvironmentReference::EnvironmentReference(const shared_ptr<Environment>& p_env)
 {}
 
 
+ContextNode::ContextNode(YSLib::pmr::memory_resource& rsrc)
+	: memory_rsrc(rsrc)
+{}
 ContextNode::ContextNode(const ContextNode& ctx,
 	shared_ptr<Environment>&& p_rec)
-	: p_record([&]{
+	: memory_rsrc(ctx.memory_rsrc), p_record([&]{
 		if(p_rec)
 			return std::move(p_rec);
 		ThrowInvalidEnvironment();
@@ -830,7 +834,7 @@ ContextNode::ContextNode(const ContextNode& ctx,
 	Trace(ctx.Trace)
 {}
 ContextNode::ContextNode(ContextNode&& ctx) ynothrow
-	: ContextNode()
+	: ContextNode(ctx.memory_rsrc)
 {
 	swap(ctx, *this);
 }

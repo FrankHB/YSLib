@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14176
+\version r14179
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2018-11-02 03:02 +0800
+	2018-11-20 18:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,6 +100,7 @@ YB_IMPL_CLANGPP
 #__cpp_lib_exchange_function
 #__cpp_lib_integer_sequence
 #__cpp_lib_tuple_element_t
+#__cpp_noexcept_function_type
 YPP_Args
 YPP_Empty
 YPP_Comma
@@ -146,6 +147,8 @@ yfsig
 ynothrow
 ynoexcept(*)?
 ynoexcept_assert(_msg, *)?
+ynoexcept_param(_n)?
+ynoexcept_qual(*)?
 ynoexcept_spec(*)
 yconstraint(_expr)
 ythrow(*)?

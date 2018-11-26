@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r7498
+\version r8150
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-11-18 14:07 +0800
+	2018-11-26 19:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,145 +32,613 @@ $import $HISTORY;
 
 $now
 (
+	/ %Tools $=
+	(
+		+ $build "configurable variable %SHBuild_BuildDir to specify build path"
+			@ "install-sysroot.sh",
+		/ %Script $=
+		(
+			/ $deploy "discard error messages from 'ln' command"
+				@ "function %SHBuild_Install_HardLink" @ "%SHBuild-common.sh"
+				// If it fails, the fallback is called. The error is then \
+					ignored. The error can be caused by unsupported file \
+					system or trying to link across file systems.
+			/ @ "%SHBuild-YSLib-common.txt" $=
+			(
+				(
+				/ ("normailized paths" ^ "SHBuild_2m" ~ "%SHBuild_2w")
+					$effective @ "variables %(INCLUDES_freetype, LIBS)";
+					// Using '/' is more consistent and better compatible with \
+						various shells and terminals (cmd, mintty, etc).
+				- $dev "importing %SHBuild_2w"
+					@ "'$provide!' expression for internal environment",
+				),
+				* "missing %LDFLAGS_OPT_DBG" @ "default value"
+					@ "basic %LDFLAGS" @ "%SHBuild-YSLib-common.txt" $since b796
+					// This would make it inconsistent to \
+						%SHBuild-common-options.sh.
+			),
+			/ "disabled precompiled header" @ "%SHBuild-build.sh"
+		)
+	),
 	/ %YBase $=
 	(
+		/ %YDefinition $=
+		(
+			/ $re_add(b841) "used stricter condition \
+				'(!YB_IMPL_CLANGPP || __cplusplus >= 201703L)'"
+				@ "macro %YB_ATTR_fallthrough",
+				// To eliminate error: [-Werror,-Wc++17-extensions].
+			(
+			+ $re_add(b835) "conditionally-defined macro \
+				%__cpp_noexcept_function_type";
+			+ "macros %(ynoexcept_param, ynoexcept_qual)"
+				// Like libstdc++'s %_GLIBCXX_NOEXCEPT_PARM and \
+					%_GLIBCXX_NOEXCEPT_QUAL respectively. The differences are \
+					macro arguments. Explicitly specified arguments allows \
+					multiple instances to be used in a single template \
+					specification.
+			),
+			+ DD "Doxygen groups %((customization; customization_points), \
+				traits)",
+			+ DD '\ingroup tags' @ "Doxygen comment" @ "class %raw_tag"
+				$dep_from ("Doxygen group %tags" @ %TypeOperation)
+		),
 		/ %YStandardEx $=
 		(
-			/ %Set $=
+			* "%invoke_result might cause ill-formed template specialization \
+				redefinition" @ %Invoke $since b832,
+			/ %Swap $=
 			(
+				/ @ "namespace %ystdex_swap" $=
 				(
-				+ "traits template %mapped_set_traits";
-				/ @ "class template %mapped_set" $=
-				(
-					+ "3rd template paramter with default argument \
-						%mapped_set_traits<_type>";
-					+ "alias %traits";
-					/ "all 2 function templates %insert with 'value_type&&' \
-						parameter" ^ "%traits::set_value_move"
-						~ "unqualified %set_value_move";
-					* $comp $revert(b834) "%set_value_move for %ValueNode"
-						$since b834 $dep_to "preserved node key",
-					/ "all 2 functions %insert with 'value_type&&' parameter"
-						^ "%traits_type::set_value_move" ~ "ADL %set_value_move"
+					/ DLDI "function templates %swap" 
+						$=
+					(
+						/ "reordered overloads declarations";
+						- "redundant declarations"
+					),
+					+ "metafunctions %(swap_t; well_fromed_swap)"
+						@ "namespace %dep_swap",
+					- $revert(b837) "%swap overload for %byte" $dep_from
+						"%ystdex::swap_dependent",
+						// Now the fallback shall work.
+					+ DD ('\ingroup YBase_replacement_features',
+						'\ingroup customization_points') @ "Doxygen comment"
+						@ "function templates %swap",
+					(
+					+ "function template %(iter_swap; swap_ranges)";
+					/ "function template %swap for arrays" ^ "%swap_ranges"
+						// Now elements swapping is more consistent.
+					)
 				),
-				- "function template %set_value_move" $dep_from "%insert"
-					@ "%mapped_set"
-				),
-				/ "binary %swap for %mapped_set instances" $=
+				/ @ "namespace %ystdex" $=
 				(
-					* "wrong noexcept-specification" $since b843,
-					* "missing association to %ystdex when no template \
-						argument in %ystdex is used" $since b843
-						$= (/ $revert_ex(b843) "out-of-class non-member \
-							function template"
-							-> "in-calss friend function defenition");
-							// Non-friend overload would not work for \
-								%ystdex::swap_dependent because primary \
-								template namespace %ystdex is not in the set \
-								of ADL associated namespace, although it would \
-								be accepted with template argument like \
-								%ystdex::less<>.
-					* $comp "missing ADL %swap support" $since b665
-				),
-				/ "constructor overloads with parmaeter of tuple but no index \
-					sequence" @ "class template %mixin" $=
-				(
-					* "ill-formed code cuased by wrong SFINAE code out of \
-						unevaluated contexts" $since b477
-						// G++ accepts but Microsoft VC++ and Clang++ complain.
-						$= (/ $impl ^ "template default argument"
-							~ "function defualt argument"),
-							// Making unevaluated contexts in function \
-								arguments is more verbose.
-					* "duplicate overloads" $since b477
-						$= (/ $impl "merged overloads");
-					/ "restricted enabled only when the size of tuple \
-						elements equals to the size of bases",
-					/ "allowed zero-sized tuple"
+					/ "supported resolution amibiguity from %std::swap \
+						introduced by ADL" @ "function template %swap_dependent"
+						^ $dep_from "%ystdex_swap::dep_swap::(swap_t, \
+						well_fromed_swap)";
+					+ DD '\ingroup YBase_replacement_features' @ "Doxygen \
+						comment" @ "traits %(is_swappable_with, is_swappable, \
+						is_nothrow_swappable_with, is_nothrow_swappable)"
 				)
 			),
-			* "invalid constexpr function" @ "function %native_byte_order"
-				@ %CStandardInteger $since b695,
-				$= (/ ^ 'inline' ~ 'yconstfn_relaxed'),
-			* "invalid 'YB_API YB_ATTR_nodiscard'" $effective
-				@ "functions %(get_default_resource, new_delete_resource, \
-				null_memory_resource)" @ %MemoryResource $since b842
-				$= (/ $impl 'YB_API YB_ATTR_nodiscard'
-					-> 'YB_ATTR_nodiscard YB_API'),
-				// To eliminate Clang++ error: 'nodiscard' attribute cannot be \
-					applied to types. Note this is OK with G++.
-			* "%operator- for %reverse_iterator used incomplete type" @ %Range
-				$since b833,
-				// G++ 7.1 and 8.2.1 accept it but Clang++ 7.0.0 does not. \
-					This involves CWG 287 which is not resolved yet. Ideally \
-					this should be allowed (as per the proposed resolution), \
-					but for now it is better to follow the common practice.
-				$= (/ "friend function template %operator-"
-					-> "non-member function template"),
-			* "missing inclusion %YBase.YStandardEx.CString"
-				@ 'YB_Has_string_view == 1' @ %(TStringView, Path) $since b837,
-			* $impl "missing dependent key type for %enable_if test"
-				@ "function templates for transparent key types" $effective
-				@ (%Tree; $comp %Map) $since b830,
-				// This would fail in C++, albeit accepted by G++. Code in \
-					%Set has no such bug.
-			/ %Tree $=
+			* $comp "ambiguity %swap when ADL result from %std is effective by \
+				calling %ystdex::swap_dependent" @ "%swap"
+				@ "class template %map" @ %Map $since b830 $dep_from
+				("%ystdex::swap_dependent" @ %Swap),
+				// This would have been ill-formed if any %std component \
+					without overloaded specialized %swap is looked up, e.g. \
+					%std::less instance used by default when \
+					'__cpp_lib_transparent_operators >= 201210L'.
+			/ %Meta $=
 			(
-				/ DLDI "minor local changes",
-					// For readability and consistency.
-				* $revert(b840) "ill-formed local declarations caused by \
-					conflict deduced type for 'auto'" @ "tree private functions"
-					$since b840
+				/ "supported ISO C++17 'noexcept' type qualifiers"
+					@ "trait %is_referenceable_function" ^ $dep_from
+					("%(ynoexcept_param, ynoexcept_qual)" @ %YDefinition),
+					// This is similar to libstdc++'s solution. Although \
+						libc++ has a permissive (even compatible to ISO \
+						C++98/03) implementation neutral to the existence of \
+						support of WG21 P0012R1, this approach seems more \
+						direct.
+				+ DD "%tags" @ "'\ingroup' command"
+					@ "Doxygen group %type_traits_operations",
+				+ DD '\ingroup YBase_replacement_features' @ "Doxygen comment"
+					@ "alias templates %(void_t, detected_t, detected_or, \
+					detected_or_t, is_detected_exact, is_detected_convertible)"								
 			),
-			+ "%YB_ATTR_novtable" @ "class %cloneable" @ %Base,
-			+ "class template %nested_allocator_base" @ %Memory,
-			/ %Path $=
+			/ %Container $=
 			(
-				/ @ "class template %path" $=
+				* "out-of-bound access in trying upper boundary of hint"
+					@ "function template %search_map with hint parameter"
+					@ %Container $since b680,
 				(
-					/ DLDI "members %(reverse_iterator, \
-						const_reverse_iterator, rbegin, rend, crbegin, crend)"
-						^ "%_tSeqCon" ~ "private base type",
-					(
-						+ "type %container_type";
-						/ $lib 'using base::get_container;'
-							-> "2 functions %get_container",
-						(
-						+ "3 constructor templates",
-						+ "constructor template with %path reference and \
-							additional parameter";
-							// Probably they are the path and trailing \
-								allocator parameters.
-						- 'using base::base;',
-							// Inherited constructor with base class parameter \
-								would be ambiguous for inaccessible private \
-								class.
-						)
-					);
-					/ DLDI "private base type" ^ "%_tSeqCon"
-						~ "%sequence_container_adaptor<_tSeqCon>";
-					/ "base class" ^ ("%_tSeqCon",
-						"%nested_allocator_base<_tSeqCon>" $dep_from %Memory)
-						~ "%sequence_container_adaptor<_tSeqCon>" $dep_to
-						"removal of use of sequence adaptor base"
-					/ $comp "constructors supported uses-allocator construction"
-				),
-				(
-				+ "specializations of %std::uses_allocator for %ystdex::path \
-					instances";
-				/ $comp "supported uses-allocator construction for \
-					%ystdex::path instances" $dep_from
-					"removal of use of sequence adaptor base"
-				),
-				(
+				- $revert(b408) "class templates %(sequence_container_adaptor; \
+					container_adaptor);" $dep_from
+					"removal of use of sequence adaptor base";
+				* $comp DD "template parameter name" @ "class template \
+					%container_adaptor" $mismatch(Documentation.Designation)
+					$since b560
+					$= (/ DLDI "template parameter %_tSeqCon" => "%_tCon"),
+				* $comp "missing association to %ystdex when no template \
+					argument in %ystdex is used" $since b843
+				* $comp "missing association of %operator!= to %ystdex when no \
+					template argument in %ystdex is used" $since b408
 				* $comp "missing association to %ystdex of %swap when no \
 					template argument in %ystdex is used" $since b408
 					// Similar to %mapped_set.
 					$= (/ "out-of-class function template %swap"
-						-> "in-class friend function definition");
-				+ $comp 'ynothrow' @ "binary %swap for %path instances"
+						-> "in-class friend function definition")
 				)
 			),
+			/ %Set $=
+			(
+				+ "function template %restore_key"
+					@ "class template %mapped_set_traits",
+				/ @ "class template %mapped_set" $=
+				(
+					/ $impl
+						"all 4 function templates %insert for single element" $=
+					(
+						^ "%ystdex::search_map_by" $dep_from
+							("%ystdex::search_map" @ %Container);
+						/ $comp $dev $lib "avoided emplacement if detected no \
+							need to insert",
+							// This avoids allocation when the value is \
+								already existed. On the contrast, %ystdex::map \
+								(as well as libstdc++'s %std::map) does not \
+								prevent this when insertion (by "emplace") \
+								unique value.
+						/ $comp $dev $lib "avoided key move from \
+							'value_type&&' parameter if detected no need to \
+							insert"
+					),
+					/ "function templates %(emplace, emplace_hint)" $=
+					(
+						/ "saved and transferred key" ^ "%traits_type::( \
+							get_value_key, extend_key, recover_key)" $dep_from
+							("%recover_key", "%ystdex::search_map"
+							@ %Container);
+						/ $comp DLI "avoided construction of value pair when \
+							there is no need to insert the element",
+						/ $comp "requirments on emplace parameter types",
+						* $comp "missing uses-allocator construction support"
+							$since b665
+					),
+					* "%operator= with std::initializer_list instance \
+						parameter wrongly depended on swap propagation" $since
+						b665 $= (/ $impl ^ "move %operator=" ~ "%swap")
+					* "move constructor wrongly depended on swap propagation"
+						$since b665
+						$= (/ $impl "move constructor" ^ 'yimpl(= default)'
+							$dep_from "fixed move node container")
+				),
+				+ DD '\ingroup customization traits' @ "Doxygen comment"
+					@ "class template %mapped_set_traits" $dep_from
+					("Doxygen groups %(customization, traits)" @ %YDefinition)
+			),
+			/ %MemoryResource $=
+			(
+				/ "class %pool_resource" $=
+				(
+					/ DLDI "simplified oversized block deallocation"
+						@ "function %do_deallocate",
+					* "uncoditionally deallcated after oversized block \
+						allocation" @ "function %do_allocate" $since b843
+						$= (/ $impl ^ "%(unique_guard, ystdex::dismiss)"
+							~ "%make_guard"),
+					/ @ "function %do_deallocation" $=
+					(
+						* "dangling pool access after a new pool is emplaced \
+							into the pool vector" @ "chunk deallocation" $since
+							b843,
+						* "danling chunk access after an empty chunk which is \
+							previously cached as an empty chunk is deallocated"
+							$since b843
+					),
+					- DLDI 'virtual' @ "destructor",
+					/ DLDI "metadata allocation" ^ 'static_cast'
+						~ 'reinterpret_cast'
+						// To eliminate G++ warning on platform %DS: \
+							[-Wcast-align].
+				),
+				/ @ !'YB_Has_memory_resource == 1' @ "inline namespace %cpp2017"
+					$=
+				(
+					/ DLDI "simplified various %do_is_equal",
+					+ DD '\ingroup YBase_replacement_features'
+						@ "Doxygen comment" @ "all declarations",
+					+ "classes %(synchronized_pool_resource, monotonic_buffer)",
+					/ "%memory_resource implementation class"
+						@ '!YB_Impl_aligned_new'
+						@ "function %new_delete_resource" $=
+					(
+						* "leaks on alignment adjust failure" @ "function \
+							%do_allocate" $since b843
+							^ "%make_unique_default_init",
+						/ @ "function %do_deallocate" $=
+						(
+							/ "asserted for aligned pointer to specific \
+								alignment specified by the parameter when \
+								'alignment > 1'",
+							/ "block pointer adjustment" ^ 'static_cast'
+								~ 'reinterpret_cast'
+								// To eliminate G++ warning on platform %DS: \
+									[-Wcast-align].
+						)
+					)
+				)
+			),
+			/ DD %TypeOperation $=
+			(
+				/ "Doxygen group %tags" -> "group without '\ingroup' command"
+					@ %YDefinition,
+				+ "%tags" @ "'\ingroup' command" @ "Doxygen comment"
+					@ "meta type %n_tag"
+			),
+			+ "alias template %forward_like_t; function template %forward_like"
+				@ %Utilities,
+			* "ill-formed pointer composite type and functor call"
+				@ "%operator< for %observer_ptr instances" @ %Pointer $orig
+				(@ %Memory $since b669),
+			* "missing inclusion %YBase.YStandardEx.TypeOperation" @ %Array
+				$since b630
+		)
+	),
+	/ %YFramework $=
+	(
+		/ @ "class %ValueNode" @ %YSLib.Core.ValueNode $=
+		(
+			/ "insertion" @ $dep_from ("%emplace, emplace_hint)"
+				@ "%ystdex::mapped_set" @ %YBase.YStandardEx.Set) $=
+			(
+				* $forced DLDI "possible wrong result" @ "%get_value_key \
+					overloads" @ "%Container traits" $since b845,
+				* $comp "missing implicit %std::allocator_arg and allocator \
+					parameter when insertion subnodes" $since b844
+			),
+			(
+			/ "constructors with container parameter and optional allocator \
+				parameter with default-initialized allocator default argument"
+				-> "constructors with only container parameter, containers \
+				with both container parameter and allocator parameter";
+			* $comp "constructed with single container argument unexpectedly \
+				used default allocator" $since b844
+				// The allocator should be used according to propagation \
+					property in traits.
+			),
+			/ @ "function %MoveContent" $=
+			(
+				* $impl "wrongly relied on moved-to content perservation \
+					behavior %Container move %operator=" $since b806
+					$dep_to "fixed move node container",
+				* $revert(b844) DD "redundant '\pre' command"
+					@ "Doxygen comment" $mismatch $since b844
+			),
+			* "%ValueObject copy %operator= did not respect to allocator \
+				equality" $since b844
+				// See also WG21 P0208R1. This bug is not effective because \
+					direct copying is rarely used.
+				$= (/ $impl ^ "%(get_allocator, ystdex::move_and_swap)"
+					~ "%ystdex::copy_and_swap"),
+			/ "simplified all 4 function template %CreateRecursively"
+				-> "1 function template" ^ $dep_from
+				("%ystdex::forward_like" @ %YBase.YStandardEx.Utilities),
+			/ DLDI "simplified function %operator[]" ^ "%try_emplace"
+				~ "%ystdex::try_emplace",
+			(
+			+ "static function template %AddValueTo with hint parameter";
+			/ DLDI "simplified function templates %AddValue with hint parameter"
+				^ "%AddValueTo" ~ "%try_emplace_hint"
+			),
+			/ "disabled function template %AddValue#1 when 1st argument is \
+				convertible to %const_iterator",
+				// To be consistent with other functions.
+			(
+			/ "simplified all 4 function template %AddChild"
+				-> "2 function templateds";
+			/ $comp "all 2 function templates %AddChild with hint parameter \
+				returned %bool result" ~ "%void"
+			),
+			(
+			/ DLDI "all key parameter not used to construction '_tString'"
+				-> '_tKey' $effective @ "function %operator[]";
+			/ DLDI "all parameter %str with '_tKey&&' type" => "%k"
+			)
+		),
+		/ %NPL $=
+		(
+			/ %SContext $=
+			(
+				+ $lib "allocator parameter with default-initialized default \
+					argument" @ "function template %Analyze",
+				/ "supported %TermNode allocator" @ "function %Reduce"
+			),
+			/ %NPLA $=
+			(
+				* $re_add(b844) "missing copy constructor" @ "classes \
+					%(TypeError, ValueCategoryMismatch, ListTypeError, \
+					ListReductionFailure, InvalidSyntax, ParameterMismatch, \
+					ArityMismatch, BadIdentifier, InvalidReference)" $since b691
+					$=
+				(
+					// To eliminate Clang++ warning: [-Wdeprecated].
+					/ $impl 'DefDeCtor' -> 'DefDeCopyCtor'
+					+ $dev $lib "defaulted copy %operator= for class with a \
+						user-declared destructor" ^ "%DefDeCopyAssignment"
+				),
+				/ "functions %(MapNPLALeafNode, TransformToSyntaxNode) \
+					supported %TermNode allocator" ^
+					("%(AsIndexNode, AsNode, ValueNode::get_allocator)"
+					@ %YSLib.Core.ValueNode),
+				(
+				/ @ "class %ContextNode" $=
+				(
+					+ $impl "private memory resource reference",
+					/ "default constructor"
+						-> "constructor with memory resource reference",
+					+ "function %GetMemoryResourceRef"
+				);
+				/ $forced $impl "function %SwitchToFreshEnvironment supported \
+					memory resource"
+					/ $= (/ $impl ^ $dep_from
+						"%ContextNode::GetMemoryResourceRef")
+				),
+				/ "supported %TermNode allocator"
+					@ "function template %EmplaceLeaf" ^ $dep_from
+					("%ValueNode::get_allocator" @ %YSLib.Core.ValueNode),
+				/ @ "class %Environment" $dep_from
+					("supported uses-allocator construction"
+					@ "%ValueNode" @ %YSLib.Core.ValueNode) $=
+				(
+					(
+					/ $impl "private data member initialization";
+					/ "default constructor, 2 constructors with value objects"
+						-> "6 constructors with allocator or memory resource \
+						reference"
+					),
+					* "constructor with parameter 'const BindingMap&&'" $since
+						b788
+						$= (/ "parameter type" -> 'const BindingMap&')
+				)
+			),
+			/ $forced "supported %Environment::BindingMap allocator"
+				@ "derivation of applicative 'copy-environment'"
+				@ "function %LoadGroundContext" @ %Dependency ^ $dep_from
+				("%ContextNode" @ %NPLA),
+			/ %NPLA1 $=
+			(
+				/ "functions %(InsertChild, TransformNode, \
+					TransformNodeSequence)" ^ ("%(AsNode, \
+					ValueNode::get_allocator)" @ %YSLib.Core.ValueNode),
+				/ $forced "default constructor %ContextState"
+					-> "constructor with memory resource reference" $dep_from
+					("%ContextNode" @ %NPLA),
+				/ @ "namespace %Forms" $=
+				(
+					/ $forced "functions %(SetRest, SetRestRef)"
+						^ "%TermNode::get_allocator" $dep_from
+						("%ValueNode constructors" @ %YSLib.Core.ValueNode)
+						$dep_to "forms allocator support",
+					/ $forced "functions %(EvalString, EvalStringRef)"
+						^ "%TermNode::get_allocator" $dep_from ("%Analyze"
+						@ %SContext) $dep_to "forms allocator support",
+					/ "functions %(SetFirst, SetFirstRef, BindParameter), vau \
+						handler constructor" ^ "%TermNode::get_allocator"
+						$dep_to "forms allocator support",
+						// The %TermNode::SetContent should be optimal as \
+							before when the allocator compares equal. However, \
+							it would be degraded otherwise. The nonthrowing \
+							exception specification would also be dropped for \
+							the latter case.
+					/ $forced "supported %Environment::BindingMap allocator"
+						@ "TCO action internal temporary pointer update, \
+						function %MakeEnvironment" ^ $dep_from ("%ContextNode" \
+						@ %NPLA) $dep_to "forms allocator support",
+					/ $forced DLDI "%operator()" @ "vau handler" $dep_from
+						("%ContextNode" @ %NPLA),
+					/ $impl "TCO compressor" ^ $dep_from
+						("%ContextNode::GetMemoryResourceRef" @ %NPLA)
+						$dep_to "forms allocator support"
+				),
+				+ DD "'\pre' command to exclude support of cases where closure \
+					is an ancestor of the term" @ "Doxygen comment"
+					@ "function %ReduceCheckedClosure",
+				/ "all 2 functions %(TransformForSeparator, \
+					TransformForSeparatorRecursive) supported %TermNode \
+					allocator" ^ ("%(AsNode, AsIndexNode, \
+					ValueNode::get_allocator)" @ %YSLib.Core.ValueNode),
+				/ @ "class %REPLContext" $=
+				(
+					+ $forced "2nd constructor parameter with memory resource \
+						reference type and default argument" $dep_from
+						"%ContextState";
+					+ "data member %Allocator";
+					^ "allocator argument for tokenizing" $dep_all_from
+						"forms allocator support" $dep_from ("function \
+						template %EmplaceLeaf", "constructors %(Environment, \
+						ContextNode)" @ %NPLA)
+						$= (/ "function %Prepare#3" ^ "%TermNode allocator"
+							$dep_from ("%Analyze" @ %SContext))
+				)
+			)
+		),
+		/ %YCLib $=
+		(
+			/ %XCB $=
+			(
+				+ $re_add(b844) $dev $lib "explicitly defaulted defaulted copy \
+					(constructor, %operator=) for class with a user-declared \
+					destructor to avoid ISO C++11 deprecation"
+					@ "class %XCBException",
+					// To eliminate Clang++ warning: [-Wdeprecated].
+				/ "class %ConnectionReference" ^ "%tidy_ptr" ~ "%ystdex::nptr"
+					$=
+				(
+					/ "base class, constructors, type %NativeHandle, \
+						function %get";
+					/ $forced DLDI "functions %(GetError, GetFileDescriptor, \
+						GetSetup, GenerateID)"
+				),
+				/ $forced DLDI ("constructors %(Drawable, Connection#(2,3), \
+					WindowData#1)", "destructor %Connection") $dep_from
+					"%ConnectionReference constructors",
+				/ $forced DLDI "internal global table" ^ $dep_from
+					"%ConnectionReference::NativeHandle" $dep_from
+					%YBase.YStandardEx.Pointer,
+				/ DLDI ^ "%(platform::(string, string_view, Deref, Nonnull), \
+					YSLib::(RecordLevel, Err, Informative)), namespace \
+					%platform::Threading" ~ "namespace %YSLib",
+				* "missing destructor %WindowData to destroy window" $since b563
+			)
+		)
+	),
+	/ "classes with class type of static %yconstexpr class data members"
+		$effecitve @ %YFramework.YSLib.UI.(YGUI, Hover) $=
+	(
+		// See %Documentation::YBase @2.1.2.4.2.
+		/ "data member %DefaultDuration" -> "%GetDefaultDuration";
+		/ $forced $lib "default argument" @ "constructor",
+		- $dev "redundant definitions of static %yconstexpr class data members"
+			// See WG21 P0386R2. To eliminate Clang++ warning: [-Wdeprecated].
+	)
+),
+
+b844
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Set $=
+		(
+			(
+			+ "traits template %mapped_set_traits";
+			/ @ "class template %mapped_set" $=
+			(
+				+ "3rd template paramter with default argument \
+					%mapped_set_traits<_type>";
+				+ "alias %traits";
+				/ "all 2 function templates %insert with 'value_type&&' \
+					parameter" ^ "%traits::set_value_move"
+					~ "unqualified %set_value_move";
+				* $comp $revert(b834) "%set_value_move for %ValueNode"
+					$since b834 $dep_to "preserved node key",
+				/ "all 2 functions %insert with 'value_type&&' parameter"
+					^ "%traits_type::set_value_move" ~ "ADL %set_value_move"
+			),
+			- "function template %set_value_move" $dep_from "%insert"
+				@ "%mapped_set"
+			),
+			/ "binary %swap for %mapped_set instances" $=
+			(
+				* "wrong noexcept-specification" $since b843,
+				* "missing association to %ystdex when no template argument in \
+					%ystdex is used" $since b843
+					$= (/ $revert_ex(b843) "out-of-class non-member \
+						function template"
+						-> "in-calss friend function defenition");
+						// Non-friend overload would not work for \
+							%ystdex::swap_dependent because primary \
+							template namespace %ystdex is not in the set \
+							of ADL associated namespace, although it would \
+							be accepted with template argument like \
+							%ystdex::less<>.
+				* $comp "missing ADL %swap support" $since b665
+			),
+			/ "constructor overloads with parmaeter of tuple but no index \
+				sequence" @ "class template %mixin" $=
+			(
+				* "ill-formed code cuased by wrong SFINAE code out of \
+					unevaluated contexts" $since b477
+					// G++ accepts but Microsoft VC++ and Clang++ complain.
+					$= (/ $impl ^ "template default argument"
+						~ "function defualt argument"),
+						// Making unevaluated contexts in function arguments \
+							is more verbose.
+				* "duplicate overloads" $since b477
+					$= (/ $impl "merged overloads");
+				/ "restricted enabled only when the size of tuple \
+					elements equals to the size of bases",
+				/ "allowed zero-sized tuple"
+			)
+		),
+		* "invalid constexpr function" @ "function %native_byte_order"
+			@ %CStandardInteger $since b695,
+			$= (/ ^ 'inline' ~ 'yconstfn_relaxed'),
+		* "invalid 'YB_API YB_ATTR_nodiscard'" $effective
+			@ "functions %(get_default_resource, new_delete_resource, \
+			null_memory_resource)" @ %MemoryResource $since b842
+			$= (/ $impl 'YB_API YB_ATTR_nodiscard'
+				-> 'YB_ATTR_nodiscard YB_API'),
+			// To eliminate Clang++ error: 'nodiscard' attribute cannot be \
+				applied to types. Note this is OK with G++.
+		* "%operator- for %reverse_iterator used incomplete type" @ %Range
+			$since b833,
+			// G++ 7.1 and 8.2.1 accept it but Clang++ 7.0.0 does not. This \
+				involves CWG 287 which is not resolved yet. Ideally this \
+				should be allowed (as per the proposed resolution), but for \
+				now it is better to follow the common practice.
+			$= (/ "friend function template %operator-"
+				-> "non-member function template"),
+		* "missing inclusion %YBase.YStandardEx.CString"
+			@ 'YB_Has_string_view == 1' @ %(TStringView, Path) $since b837,
+		* $impl "missing dependent key type for %enable_if test"
+			@ "function templates for transparent key types" $effective
+			@ (%Tree; $comp %Map) $since b830,
+			// This would fail in C++, albeit accepted by G++. Code in %Set \
+				has no such bug.
+		/ %Tree $=
+		(
+			/ DLDI "minor local changes",
+				// For readability and consistency.
+			* $revert(b840) "ill-formed local declarations caused by conflict \
+				deduced type for 'auto'" @ "tree private functions" $since b840
+		),
+		+ "%YB_ATTR_novtable" @ "class %cloneable" @ %Base,
+		+ "class template %nested_allocator_base" @ %Memory,
+		/ %Path $=
+		(
+			/ @ "class template %path" $=
+			(
+				/ DLDI "members %(reverse_iterator, const_reverse_iterator, \
+					rbegin, rend, crbegin, crend)" ^ "%_tSeqCon"
+					~ "private base type",
+				(
+					+ "type %container_type";
+					/ $lib 'using base::get_container;'
+						-> "2 functions %get_container",
+					(
+					+ "3 constructor templates",
+					+ "constructor template with %path reference and \
+						additional parameter";
+						// Probably they are the path and trailing allocator \
+							parameters.
+					- 'using base::base;',
+						// Inherited constructor with base class parameter \
+							would be ambiguous for inaccessible private class.
+					)
+				);
+				/ DLDI "private base type" ^ "%_tSeqCon"
+					~ "%sequence_container_adaptor<_tSeqCon>";
+				/ "base class" ^ ("%_tSeqCon",
+					"%nested_allocator_base<_tSeqCon>" $dep_from %Memory)
+					~ "%sequence_container_adaptor<_tSeqCon>" $dep_to
+					"removal of use of sequence adaptor base"
+				/ $comp "constructors supported uses-allocator construction"
+			),
+			(
+			+ "specializations of %std::uses_allocator for %ystdex::path \
+				instances";
+			/ $comp "supported uses-allocator construction for %ystdex::path \
+				instances" $dep_from "removal of use of sequence adaptor base"
+			),
+			(
+			* $comp "missing association to %ystdex of %swap when no template \
+				argument in %ystdex is used" $since b408
+				// Similar to %mapped_set.
+				$= (/ "out-of-class function template %swap"
+					-> "in-class friend function definition");
+			+ $comp 'ynothrow' @ "binary %swap for %path instances"
+			)
 		)
 	),
 	/ %YFramework $=
@@ -337,12 +805,17 @@ $now
 			(
 				- $forced 'ynothrow' @ "function %LiftTerm#1" $dep_from
 					("%ValueNode::MoveContent" @ %YSLib.Core.ValueNode),
-				* "missing copy constructor" @ "class NPLException" $since b691
-					$= (/ $impl 'DefDeCtor' -> 'DefDeCopyCtor')
-					// Also to eliminate Clang++ warning: [-Wdeprecated].
+				* "missing copy constructor" @ "class %NPLException" $since b691
+					$=
+				(
+					// To eliminate Clang++ warning: [-Wdeprecated].
+					/ $impl 'DefDeCtor' -> 'DefDeCopyCtor',
+					+ $dev $lib "defaulted copy %operator= for class with a \
+						user-declared destructor" ^ "%DefDeCopyAssignment"
+				)
 			),
 			/ DLDI "removed %swap for internal types"
-				@ "function %Forms::MakeEncapsulationType"
+				@ "function %Forms::MakeEncapsulationType" @ %NPLA1
 				// To eliminate Clang++ warning: [-Wunused-function].
 		)
 	),

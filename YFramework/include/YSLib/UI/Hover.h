@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2017 FrankHB.
+	© 2013-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Hover.h
 \ingroup UI
 \brief 样式无关的指针设备悬停相关功能。
-\version r193
+\version r200
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-09-28 12:50:42 +0800
 \par 修改时间:
-	2017-02-02 17:48 +0800
+	2018-11-20 19:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,8 +113,6 @@ public:
 	*/
 	using Locator = std::function<Point(const CursorEventArgs&)>;
 
-	static yconstexpr const Timers::Duration
-		DefaultDuration{Timers::TimeSpan(400U)};
 	Locator Locate{DefaultLocate};
 
 private:
@@ -125,7 +123,7 @@ public:
 	Point Position{Point::Invalid};
 
 	TimedHoverState(Locator loc = DefaultLocate,
-		Timers::Duration d = DefaultDuration)
+		Timers::Duration d = GetDefaultDuration())
 		: Locate(loc), tmr(d, {})
 	{}
 
@@ -133,6 +131,10 @@ public:
 
 	bool
 	Check() ynothrow;
+
+	//! \brief 默认延迟。
+	static yconstfn DefGetter(ynothrow, Timers::Duration, DefaultDuration,
+		Timers::TimeSpan(yimpl(400U)))
 
 	/*!
 	\brief 默认定位映射：恒等映射。

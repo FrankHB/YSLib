@@ -11,13 +11,13 @@
 /*!	\file invoke.hpp
 \ingroup YStandardEx
 \brief 可调用对象和调用包装接口。
-\version r4499
+\version r4560
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-24 05:03:12 +0800
 \par 修改时间:
-	2018-08-17 03:54 +0800
+	2018-11-20 03:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,9 @@
 #define YB_INC_ystdex_invoke_hpp_ 1
 
 #include "meta.hpp" // for "meta.hpp", <type_traits>, std::declval,
-//	__cpp_lib_is_invocable, void_t, false_, or_, is_void, is_convertible,
-//	is_implicitly_nothrow_constructible, __cpp_lib_invoke, and_;
+//	__cpp_lib_is_invocable, void_t, false_, true_, remove_cvref, is_base_of, or_, is_void,
+//	is_convertible, is_implicitly_nothrow_constructible, __cpp_lib_invoke, and_;
+#include "variadic.hpp" // for vseq::apply_t, vseq::_a, conditional_t;
 #include <functional> // for <functional>, std::reference_wrapper;
 #include "cassert.h" // for yconstraint;
 
@@ -200,50 +201,63 @@ template<typename _type>
 using inv_unwrap_t = _t<inv_unwrap<_type>>;
 
 
-template<typename, typename = void>
-struct inv_mem_fn
+// XXX: The 'ref' and 'deref' variants of tempaltes cannot be combined because
+//	it might cause redefinitions of specializations. Note the bug can be hardly
+//	detected, however 'clang++-7 -std=gnu++11' (not '-std=c++11') complaints
+//	this even when not collided anyway, perhaps due to missing of resolution of
+//	CWG 1558.
+//! \since build 845
+//@{
+template<typename, typename>
+struct inv_is_mem_ref;
+
+template<typename _tRet, class _tClass, typename _tParam>
+struct inv_is_mem_ref<_tRet _tClass::*, _tParam>
+	: is_base_of<_tClass, remove_cvref_t<_tParam>>
 {};
 
-template<typename _fCallable, typename _type, typename... _tParams>
-struct inv_mem_fn<_fCallable(_type, _tParams...),
-	void_t<invoke_mem_fn_ref_t<_fCallable, _type, _tParams...>>>
-	: identity<invoke_mem_fn_ref_t<_fCallable, _type, _tParams...>>
+
+template<typename, bool, bool, typename = void>
+struct inv_mem_ptr
+{};
+
+template<typename _tMemPtr, typename _type, typename... _tParams>
+struct inv_mem_ptr<_tMemPtr(_type, _tParams...), true, true,
+	void_t<invoke_mem_fn_ref_t<_tMemPtr, _type, _tParams...>>>
+	: identity<invoke_mem_fn_ref_t<_tMemPtr, _type, _tParams...>>
 {
 	static const yconstexpr bool noexcept_v = ynoexcept((std::declval<
-		inv_unwrap_t<_type>>().*std::declval<_fCallable>())(
+		inv_unwrap_t<_type>>().*std::declval<_tMemPtr>())(
 		std::declval<_tParams>()...));
 };
 
-template<typename _fCallable, typename _type, typename... _tParams>
-struct inv_mem_fn<_fCallable(_type, _tParams...),
-	void_t<invoke_mem_fn_deref_t<_fCallable, _type, _tParams...>>>
-	: identity<invoke_mem_fn_deref_t<_fCallable, _type, _tParams...>>
+template<typename _tMemPtr, typename _type, typename... _tParams>
+struct inv_mem_ptr<_tMemPtr(_type, _tParams...), true, false,
+	void_t<invoke_mem_fn_deref_t<_tMemPtr, _type, _tParams...>>>
+	: identity<invoke_mem_fn_deref_t<_tMemPtr, _type, _tParams...>>
 {
 	static const yconstexpr bool noexcept_v = ynoexcept(((*std::declval<
-		_type>()).*std::declval<_fCallable>())(std::declval<_tParams>()...));
+		_type>()).*std::declval<_tMemPtr>())(std::declval<_tParams>()...));
 };
 
-template<typename, typename = void>
-struct inv_mem_obj
-{};
-
-template<typename _fCallable, typename _type>
-struct inv_mem_obj<_fCallable(_type),
-	void_t<invoke_mem_obj_ref_t<_fCallable, _type>>>
-	: identity<invoke_mem_obj_ref_t<_fCallable, _type>>
+template<typename _tMemPtr, typename _type>
+struct inv_mem_ptr<_tMemPtr(_type), false, true,
+	void_t<invoke_mem_obj_ref_t<_tMemPtr, _type>>>
+	: identity<invoke_mem_obj_ref_t<_tMemPtr, _type>>
 {
 	static const yconstexpr bool noexcept_v = ynoexcept(
-		std::declval<inv_unwrap_t<_type>>().*std::declval<_fCallable>());
+		std::declval<inv_unwrap_t<_type>>().*std::declval<_tMemPtr>());
 };
 
-template<typename _fCallable, typename _type>
-struct inv_mem_obj<_fCallable(_type),
-	void_t<invoke_mem_obj_deref_t<_fCallable, _type>>>
-	: identity<invoke_mem_obj_deref_t<_fCallable, _type>>
+template<typename _tMemPtr, typename _type>
+struct inv_mem_ptr<_tMemPtr(_type), false, false,
+	void_t<invoke_mem_obj_deref_t<_tMemPtr, _type>>>
+	: identity<invoke_mem_obj_deref_t<_tMemPtr, _type>>
 {
 	static const yconstexpr bool noexcept_v
-		= ynoexcept((*std::declval<_type>()).*std::declval<_fCallable>());
+		= ynoexcept((*std::declval<_type>()).*std::declval<_tMemPtr>());
 };
+//@}
 
 template<typename, typename = void>
 struct inv_other
@@ -259,31 +273,34 @@ struct inv_other<_fCallable(_tParams...),
 };
 
 
-template<bool, bool, typename, typename...>
+//! \since build 845
+//@{
+template<typename _tMemPtr, typename _tParam, typename... _tParams>
+struct inv_mem : inv_mem_ptr<_tMemPtr(inv_unwrap_t<_tParam>, _tParams...),
+	is_member_function_pointer<_tMemPtr>::value,
+	inv_is_mem_ref<_tMemPtr, _tParam>::value>
+{};
+
+
+template<bool, typename, typename...>
 struct inv_test
 {};
 
-template<typename _tMemPtr, typename _tParam>
-struct inv_test<true, false, _tMemPtr, _tParam>
-	: inv_mem_obj<decay_t<_tMemPtr>(inv_unwrap_t<_tParam>)>
-{};
-
-template<typename _tMemPtr, typename _tParam, typename... _tParams>
-struct inv_test<false, true, _tMemPtr, _tParam, _tParams...>
-	: inv_mem_fn<decay_t<_tMemPtr>(inv_unwrap_t<_tParam>, _tParams...)>
+template<typename _fCallable, typename _tParam, typename... _tParams>
+struct inv_test<true, _fCallable, _tParam, _tParams...>
+	: inv_mem<decay_t<_fCallable>, _tParam, _tParams...>
 {};
 
 template<typename _fCallable, typename... _tParams>
-struct inv_test<false, false, _fCallable, _tParams...>
+struct inv_test<false, _fCallable, _tParams...>
 	: inv_other<_fCallable(_tParams...)>
 {};
+//@}
 
 
 template<typename _fCallable, typename... _tParams>
-using inv_result = inv_test<
-	is_member_object_pointer<remove_reference_t<_fCallable>>::value,
-	is_member_function_pointer<remove_reference_t<_fCallable>>::value,
-	_fCallable, _tParams...>;
+using inv_result = inv_test<is_member_pointer<
+	remove_reference_t<_fCallable>>::value, _fCallable, _tParams...>;
 
 template<typename _fCallable, typename... _tParams>
 using inv_result_t = _t<inv_result<_fCallable, _tParams...>>;
