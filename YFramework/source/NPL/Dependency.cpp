@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2120
+\version r2127
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2018-11-10 22:16 +0800
+	2018-11-23 00:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -223,9 +223,12 @@ LoadSequenceSeparators(EvaluationPasses& passes)
 void
 CopyEnvironmentDFS(Environment& d, const Environment& e)
 {
+	auto& m(d.GetMapRef());
+	// TODO: Check environments allocator equality.
+	const auto a(m.get_allocator());
 	// TODO: Support more implementations?
 	const auto copy_parent([&](Environment& dst, const Environment& parent){
-		auto p_env(make_shared<Environment>());
+		auto p_env(make_shared<Environment>(a));
 
 		CopyEnvironmentDFS(*p_env, parent);
 		dst.Parent = std::move(p_env);
@@ -248,12 +251,11 @@ CopyEnvironmentDFS(Environment& d, const Environment& e)
 		}
 		return {};
 	});
-	auto& m(d.GetMapRef());
 
 	copy_parent_ptr(d, e.Parent);
 	for(const auto& b : e.GetMapRef())
 		m.emplace(b.CreateWith([&](const ValueObject& vo) -> ValueObject{
-			Environment dst;
+			Environment dst(a);
 
 			if(copy_parent_ptr(dst, vo))
 				return ValueObject(std::move(dst));
@@ -264,7 +266,8 @@ CopyEnvironmentDFS(Environment& d, const Environment& e)
 void
 CopyEnvironment(TermNode& term, ContextNode& ctx)
 {
-	auto p_env(make_shared<NPL::Environment>());
+	// TODO: Check term and context allocator equality.
+	auto p_env(make_shared<NPL::Environment>(ctx.GetMemoryResourceRef()));
 
 	CopyEnvironmentDFS(*p_env, ctx.GetRecordRef());
 	term.Value = ValueObject(std::move(p_env));

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2017 FrankHB.
+	© 2012-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1551
+\version r1555
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2017-04-02 01:51 +0800
+	2018-11-22 17:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,12 +70,14 @@ Validate(TLCIter b, TLCIter e)
 TLCIter
 Reduce(TermNode& term, TLCIter b, TLCIter e)
 {
+	const auto a(term.get_allocator());
+
 	while(b != e && *b != ")")
 		if(*b == "(")
 		{
 			// FIXME: Potential overflow.
 			// NOTE: Explicit type 'TermNode' is intended.
-			TermNode tm(AsIndexNode(term));
+			TermNode tm(AsIndexNode(a, term));
 			auto res(Reduce(tm, ++b, e));
 
 			if(res == e || *res != ")")
@@ -84,7 +86,7 @@ Reduce(TermNode& term, TLCIter b, TLCIter e)
 			b = ++res;
 		}
 		else
-			term += AsIndexNode(term, *b++);
+			term += AsIndexNode(a, term, *b++);
 	return b;
 }
 

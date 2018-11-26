@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief XCB GUI 接口。
-\version r551
+\version r595
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2014-12-14 14:14:31 +0800
 \par 修改时间:
-	2018-11-17 12:07 +0800
+	2018-11-26 14:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,22 +27,30 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_Platform
+#include YFM_YCLib_Platform // for YSLib::Drawing, YSLib::RecordLevel,
+//	YSLib::Err, YSLib::Informative, platform::Deref, platform::Nonnull,
+//	YTraceDe;
 #if YF_Use_XCB
-#	include YFM_YCLib_XCB
-#	include YFM_YCLib_Mutex
+#	include <ystdex/array.hpp> // for ystdex::cast_array;
+#	include YFM_YCLib_XCB // for YSLib::FilterExceptions;
+#	include YFM_YCLib_Mutex // for platform::Concurrency, platform::Threading;
 #	include <xcb/xcb.h> // for ::uint32_t, ::uint8_t;
 #	include <ystdex/addressof.hpp> // for ystdex::pvoid;
 #	include <ystdex/type_pun.hpp> // for ystdex::aligned_store_cast;
 
-using namespace YSLib;
-using namespace Drawing;
+using namespace YSLib::Drawing;
+//! \since build 845
+//@{
+using YSLib::RecordLevel;
+using YSLib::Err;
+using YSLib::Informative;
+using platform::Deref;
+using platform::Nonnull;
+//@}
 using namespace platform::Concurrency;
+//! \since build 845
+using namespace platform::Threading;
 using ystdex::cast_array;
-//! \since build 659
-using YSLib::string;
-//! \since build 659
-using YSLib::string_view;
 
 namespace platform_ex
 {
@@ -63,7 +71,7 @@ namespace
 {
 
 //! \since build 565
-using GlobalTable = map<::xcb_connection_t*, map<string, Atom>>;
+using GlobalTable = map<ConnectionReference::NativeHandle, map<string, Atom>>;
 
 //! \since build 565
 shared_ptr<GlobalTable>
@@ -95,7 +103,7 @@ MakeAtomPair(::xcb_connection_t& c_ref, string_view name, bool e) ynothrowv
 locked_ptr<map<string, Atom>>
 LockAtoms(::xcb_connection_t& c_ref)
 {
-	return {&FetchGlobalTableRef().at(&c_ref), TableMutex};
+	return {&FetchGlobalTableRef().at(make_observer(&c_ref)), TableMutex};
 }
 //@}
 
@@ -107,6 +115,7 @@ class XCBConnectionErrorCategory : public std::error_category
 public:
 	PDefH(const char*, name, ) const ynothrow override
 		ImplRet("XCBConnectionError")
+
 	std::string
 	message(int) const override;
 };
@@ -143,6 +152,7 @@ class XCBErrorCategory : public std::error_category
 public:
 	PDefH(const char*, name, ) const ynothrow override
 		ImplRet("XCBError")
+
 	//! \since build 564
 	std::string
 	message(int) const override;
@@ -263,7 +273,7 @@ ImplDeDtor(XCBException)
 int
 ConnectionReference::GetError() const ynothrow
 {
-	return ::xcb_connection_has_error(Nonnull(get())) != 0;
+	return ::xcb_connection_has_error(Nonnull(get()).get()) != 0;
 }
 void
 ConnectionReference::Check() const
@@ -278,14 +288,14 @@ ConnectionReference::Check() const
 int
 ConnectionReference::GetFileDescriptor() const ynothrow
 {
-	return ::xcb_get_file_descriptor(Nonnull(get()));
+	return ::xcb_get_file_descriptor(Nonnull(get()).get());
 }
 const ::xcb_setup_t&
 ConnectionReference::GetSetup() const
 {
 	if(const auto p = get())
 	{
-		if(const auto p_setup = ::xcb_get_setup(p))
+		if(const auto p_setup = ::xcb_get_setup(p.get()))
 			return *p_setup;
 		ThrowGeneralXCBException("Getting XCB setup failed.");
 	}
@@ -295,7 +305,7 @@ ConnectionReference::GetSetup() const
 std::uint32_t
 ConnectionReference::GenerateID() const ynothrow
 {
-	return ::xcb_generate_id(Nonnull(get()));
+	return ::xcb_generate_id(Nonnull(get()).get());
 }
 
 
@@ -307,15 +317,17 @@ Connection::Connection(::xcb_auth_info_t* p_auth, const char* disp_name,
 	: Connection((YTraceDe(Informative, "Creating XCB connection"
 	" with authorization information pointer = %p, display name = '%s',"
 	" screen number = '%s'", ystdex::pvoid(p_auth), disp_name ? disp_name
-	: "[NULL]", p_scr ? to_string(*p_scr).c_str() : "[NULL]"),
-	::xcb_connect_to_display_with_auth_info(disp_name, p_auth, p_scr)))
+	: "[NULL]", p_scr ? to_string(*p_scr).c_str() : "[NULL]"), make_observer(
+	::xcb_connect_to_display_with_auth_info(disp_name, p_auth, p_scr))))
 {}
 Connection::Connection(ConnectionReference conn_ref)
 	: ConnectionReference(conn_ref),
 	p_shared([this]{
-		if(!get() || IsOnError())
+		const auto p_conn(get());
+
+		if(!p_conn || IsOnError())
 			ThrowGeneralXCBException("XCB connection failed.",
-				Deref(reinterpret_cast<int*>(get())),
+				Deref(reinterpret_cast<int*>(p_conn.get())),
 				FetchXCBConnectionErrorCategory());
 		return FetchGlobalTablePtr();
 	}())
@@ -323,7 +335,7 @@ Connection::Connection(ConnectionReference conn_ref)
 	auto& c_ref(Deref(get()));
 	lock_guard<mutex> lck(TableMutex);
 
-	Deref(static_cast<GlobalTable*>(p_shared.get()))[&c_ref]
+	Deref(static_cast<GlobalTable*>(p_shared.get()))[make_observer(&c_ref)]
 		= {MakeAtomPair(c_ref, "WM_PROTOCOLS", true),
 		MakeAtomPair(c_ref, "WM_DELETE_WINDOW", {})};
 }
@@ -334,7 +346,7 @@ Connection::~Connection()
 
 		FetchGlobalTableRef().erase(get());
 	}
-	::xcb_disconnect(Nonnull(get()));
+	::xcb_disconnect(Nonnull(get()).get());
 }
 
 
@@ -362,7 +374,7 @@ LookupAtom(::xcb_connection_t& c_ref, const string& name)
 WindowData::WindowData(::xcb_connection_t& c_ref, const Rect& r)
 	: WindowData(c_ref, r, [&c_ref]{
 		if(const auto p = ::xcb_setup_roots_iterator(
-			&ConnectionReference(&c_ref).GetSetup()).data)
+			&ConnectionReference(make_observer(&c_ref)).GetSetup()).data)
 			return *p;
 		ThrowGeneralXCBException("No XCB screen found.");
 	}())
@@ -378,6 +390,14 @@ WindowData::WindowData(::xcb_connection_t& c_ref, const Rect& r,
 	CheckRequest(c_ref, ::xcb_create_window_checked(&c_ref,
 		XCB_COPY_FROM_PARENT, GetID(), parent, r.X, r.Y, r.Width, r.Height, 0,
 		XCB_WINDOW_CLASS_INPUT_OUTPUT, XCB_COPY_FROM_PARENT, 0, {}));
+}
+WindowData::~WindowData()
+{
+	auto& c_ref(DerefConn());
+
+	YSLib::FilterExceptions([&]{
+		CheckRequest(c_ref, ::xcb_destroy_window_checked(&c_ref, GetID()));
+	});
 }
 
 Rect
@@ -470,8 +490,7 @@ GContext::~GContext()
 
 
 void
-UpdatePixmapBuffer(WindowData& wnd, const YSLib::Drawing::Rect& r,
-	const ConstGraphics& g)
+UpdatePixmapBuffer(WindowData& wnd, const Rect& r, const ConstGraphics& g)
 {
 	auto& c_ref(wnd.DerefConn());
 	GContext gc(c_ref);

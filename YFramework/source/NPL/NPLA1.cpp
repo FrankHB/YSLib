@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9207
+\version r9258
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-11-17 12:46 +0800
+	2018-11-24 03:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,9 @@
 //	ystdex::value_or, shared_ptr, tuple, list, lref, vector, observer_ptr, set,
 //	owner_less, ystdex::erase_all, ystdex::as_const, std::find_if,
 //	unordered_map, ystdex::id, ystdex::cast_mutable, pair,
-//	ystdex::equality_comparable, ystdex::exchange, share_move, ystdex::ref_eq,
-//	NPL::SwitchToFreshEnvironment, ystdex::call_value_or,
-//	ystdex::make_transform;
+//	ystdex::equality_comparable, std::allocator_arg, NoContainer,
+//	ystdex::exchange, share_move, ystdex::ref_eq, NPL::SwitchToFreshEnvironment,
+//	ystdex::call_value_or, ystdex::make_transform;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard, ystdex::swap_guard,
 //	ystdex::unique_guard;
 #include YFM_NPL_SContext // for Session;
@@ -85,8 +85,9 @@ to_string(ValueToken vt)
 void
 InsertChild(TermNode&& term, TermNode::Container& con)
 {
-	con.insert(term.GetName().empty() ? AsNode('$' + MakeIndex(con),
-		std::move(term.Value)) : std::move(MapToValueNode(term)));
+	con.insert(term.GetName().empty() ? AsNode(term.get_allocator(),
+		'$' + MakeIndex(con), std::move(term.Value))
+		: std::move(MapToValueNode(term)));
 }
 
 void
@@ -120,8 +121,9 @@ TransformNode(const TermNode& term, NodeMapper mapper, NodeMapper map_leaf_node,
 		auto&& nd(nested_call(*i));
 
 		if(nd.GetName().empty())
-			return AsNode(name, std::move(nd.Value));
-		return {ValueNode::Container{std::move(nd)}, name};
+			return AsNode(term.get_allocator(), name, std::move(nd.Value));
+		return
+			{ValueNode::Container({std::move(nd)}, term.get_allocator()), name};
 	}
 
 	ValueNode::Container node_con;
@@ -129,7 +131,8 @@ TransformNode(const TermNode& term, NodeMapper mapper, NodeMapper map_leaf_node,
 	std::for_each(i, term.end(), [&](const TermNode& tm){
 		insert_child(mapper ? mapper(tm) : nested_call(tm), node_con);
 	});
-	return {std::move(node_con), name};
+	return {std::allocator_arg, term.get_allocator(), std::move(node_con),
+		name};
 }
 
 ValueNode
@@ -156,8 +159,8 @@ TransformNodeSequence(const TermNode& term, NodeMapper mapper, NodeMapper
 	{
 		auto&& n(nested_call(*i));
 
-		return AsNode(name, n.GetName().empty() ? std::move(n.Value)
-			: ValueObject(NodeSequence{std::move(n)}));
+		return AsNode(term.get_allocator(), name, n.GetName().empty()
+			? std::move(n.Value) : ValueObject(NodeSequence{std::move(n)}));
 	}
 
 	NodeSequence node_con;
@@ -165,7 +168,7 @@ TransformNodeSequence(const TermNode& term, NodeMapper mapper, NodeMapper
 	std::for_each(i, term.end(), [&](const TermNode& tm){
 		insert_child(mapper ? mapper(tm) : nested_call(tm), node_con);
 	});
-	return AsNode(name, std::move(node_con));
+	return AsNode(term.get_allocator(), name, std::move(node_con));
 }
 
 
@@ -183,12 +186,12 @@ TransformForSeparatorCore(_func trans, _tTerm&& term, const ValueObject& pfx,
 	using namespace std::placeholders;
 	using it_t = decltype(std::make_move_iterator(term.end()));
 	// NOTE: Explicit type 'TermNode' is intended.
-	TermNode res(AsNode(name, yforward(term).Value));
+	TermNode res(AsNode(term.get_allocator(), name, yforward(term).Value));
 
 	if(IsBranch(term))
 	{
 		// NOTE: Explicit type 'TermNode' is intended.
-		res += TermNode(AsIndexNode(res, pfx));
+		res += TermNode(AsIndexNode(term.get_allocator(), res, pfx));
 		ystdex::split(std::make_move_iterator(term.begin()),
 			std::make_move_iterator(term.end()), ystdex::bind1(
 			HasValue<ValueObject>, std::ref(delim)), [&](it_t b, it_t e){
@@ -210,7 +213,7 @@ TransformForSeparatorCore(_func trans, _tTerm&& term, const ValueObject& pfx,
 				else
 				{
 					// NOTE: Explicit type 'TermNode' is intended.
-					TermNode child(AsIndexNode(res));
+					TermNode child(AsIndexNode(res.get_allocator(), res));
 
 					while(b != e)
 						add(child, b++);
@@ -389,7 +392,7 @@ public:
 	mutable shared_ptr<Environment> TemporaryPtr{};
 	mutable EnvironmentGuard EnvGuard;
 	//! \since build 825
-	mutable FrameRecordList RecordList{};
+	mutable FrameRecordList RecordList;
 	bool ReduceCombined = {};
 	//@}
 #		if YF_Impl_NPLA1_Enable_WeakExternalRoots
@@ -400,7 +403,8 @@ public:
  
 	//! \since build 819
 	TCOAction(ContextNode& ctx, TermNode& term, bool lift)
-		: Term(term), Next(ctx.Switch()), LiftCallResult(lift), EnvGuard(ctx)
+		: Term(term), Next(ctx.Switch()), LiftCallResult(lift), EnvGuard(ctx),
+		RecordList(FrameRecordList::allocator_type(&ctx.GetMemoryResourceRef()))
 	{}
 	// XXX: Not used, but provided for well-formness.
 	//! \since build 819
@@ -490,12 +494,13 @@ public:
 		return res;
 	}
 
-	//! \since build 842
+	//! \since build 844
 	void
-	UpdateTemporaryPtr(TermNode& term)
+	UpdateTemporaryPtr(TermNode& term, ContextNode& ctx)
 	{
 		// XXX: Temporary pointer would get lost if it is not null.
-		(TemporaryPtr = make_shared<Environment>())
+		// TODO: Check term and context allocator equality.
+		(TemporaryPtr = make_shared<Environment>(ctx.GetMemoryResourceRef()))
 			->Bindings[OperandName].SetContent(std::move(term));
 	}
 };
@@ -535,7 +540,7 @@ shared_ptr<Environment>
 MoveTCOTemporary(ContextNode& ctx, TermNode& term)
 {
 	return ystdex::call_value_or([&](TCOAction& act){
-		act.UpdateTemporaryPtr(term);
+		act.UpdateTemporaryPtr(term, ctx);
 		return act.TemporaryPtr;
 	}, AccessTCOAction(ctx));
 }
@@ -602,7 +607,7 @@ ReduceSequenceOrderedAsync(TermNode& term, ContextNode& ctx, TNIter i)
 		: ReduceSubsequent(*i, ctx, [&, i]{
 		auto& act(EnsureTCOAction(ctx, term));
 
-		act.UpdateTemporaryPtr(*i);
+		act.UpdateTemporaryPtr(*i, ctx);
 		// NOTE: The sequence combiner is permanent and not stateful.
 		act.RecordList.emplace_front(ContextHandler(),
 			shared_ptr<Environment>(), std::move(act.TemporaryPtr));
@@ -724,8 +729,8 @@ private:
 			// XXX: This is served as addtional static environment.
 			Forms::CheckParameterLeafToken(n, [&]{
 				// XXX: The symbol can be rebound.
-				env.GetMapRef()[n].SetContent(TermNode::Container(),
-					ValueObject(ystdex::any_ops::use_holder,
+				env.GetMapRef()[n].SetContent(TermNode::Container(
+					t.get_allocator()), ValueObject(ystdex::any_ops::use_holder,
 					ystdex::in_place_type<HolderFromPointer<weak_ptr<
 					ContextHandler>>>, store[n] = p_d));
 			});
@@ -1253,7 +1258,8 @@ EvalStringImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 	Forms::RetainN(term, 2);
 
 	auto& expr(Deref(std::next(term.begin())));
-	auto unit(SContext::Analyze(Session(AccessTerm<const string>(expr))));
+	auto unit(SContext::Analyze(Session(AccessTerm<const string>(expr)),
+		term.get_allocator()));
 
 	unit.SwapContainer(expr);
 	return EvalImplUnchecked(term, ctx, no_lift);
@@ -1305,7 +1311,8 @@ public:
 		// XXX: Optimize with region inference?
 		owning_static(owning), p_static(owning ? std::move(p_env)
 		: nullptr), p_closure(share_move(ystdex::exchange(term,
-		TermNode(NoContainer, term.GetName())))), NoLifting(no_lift)
+		TermNode(std::allocator_arg, term.get_allocator(), NoContainer,
+		term.GetName())))), NoLifting(no_lift)
 	{
 		CheckParameterTree(*p_formals);
 	}
@@ -1531,7 +1538,8 @@ SetFirstImpl(TermNode& term, bool by_val)
 					head.SetContent(p->get());
 				else
 					// XXX: No cyclic reference check.
-					head.SetContent(TermNode::Container(), *p);
+					head.SetContent(TermNode::Container(head.get_allocator()),
+						*p);
 				return {};
 			}
 			return true;
@@ -1548,7 +1556,9 @@ SetRestImpl(TermNode& term, bool by_val)
 			// XXX: How to simplify? Merge with %BindParameterObject?
 			if(IsList(nd))
 			{
-				TermNode nd_new({TermNode()}, node.GetName());
+				const auto a(node.get_allocator());
+				TermNode nd_new(std::allocator_arg, a, {TermNode(a)},
+					node.GetName());
 				size_t idx(0);
 
 				if(has_ref)
@@ -1664,14 +1674,15 @@ struct BindParameterObject
 				//	lifting cannot be used.
 				cp(p->get().GetContainer(), p->get().Value);
 			else
-				mv(TermNode::Container(), *p);
+				mv(TermNode::Container(b.get_allocator()), *p);
 		}
 		else if(copy)
 		{
 			// NOTE: Binding on list rvalue is always unsafe.
 			if(sigil == '&' && !IsList(b))
 				// XXX: Always move because the value object is newly created.
-				mv(TermNode::Container(), TermReference({}, b, p_anchor));
+				mv(TermNode::Container(b.get_allocator()),
+					TermReference({}, b, p_anchor));
 			else
 				cp(b.GetContainer(), b.Value);
 		}
@@ -1803,6 +1814,9 @@ public:
 } // unnamed namespace;
 
 
+ContextState::ContextState(YSLib::pmr::memory_resource& rsrc)
+	: ContextNode(rsrc)
+{}
 ContextState::ContextState(const ContextState& ctx)
 	: ContextNode(ctx),
 	EvaluateLeaf(ctx.EvaluateLeaf), EvaluateList(ctx.EvaluateList),
@@ -2390,7 +2404,8 @@ SetupDefaultInterpretation(ContextState& root, EvaluationPasses passes)
 }
 
 
-REPLContext::REPLContext(bool trace)
+REPLContext::REPLContext(bool trace, YSLib::pmr::memory_resource& rsrc)
+	: Allocator(&rsrc), Root(rsrc)
 {
 	using namespace std::placeholders;
 
@@ -2426,7 +2441,7 @@ REPLContext::Prepare(const TokenList& token_list) const
 TermNode
 REPLContext::Prepare(const Session& session) const
 {
-	auto term(SContext::Analyze(session));
+	auto term(SContext::Analyze(session, Allocator));
 
 	Prepare(term);
 	return term;
@@ -2530,7 +2545,7 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 
 			if(!id.empty())
 			{
-				TermNode::Container con;
+				TermNode::Container con(t.get_allocator());
 
 				for(; first != last; ++first)
 					BindParameterObject()(sigil, copy, Deref(first), [&](const
@@ -2973,6 +2988,9 @@ void
 MakeEnvironment(TermNode& term)
 {
 	Retain(term);
+
+	const auto a(term.get_allocator());
+
 	if(term.size() > 1)
 	{
 		ValueObject parent;
@@ -2983,11 +3001,11 @@ MakeEnvironment(TermNode& term)
 		});
 
 		parent.emplace<EnvironmentList>(tr(std::next(term.begin())),
-			tr(term.end()));
-		term.Value = make_shared<Environment>(std::move(parent));
+			tr(term.end()), a);
+		term.Value = make_shared<Environment>(a, std::move(parent));
 	}
 	else
-		term.Value = make_shared<Environment>();
+		term.Value = make_shared<Environment>(a);
 }
 
 ReductionStatus

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4177
+\version r4193
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2018-10-26 02:48 +0800
+	2018-11-24 03:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -244,7 +244,11 @@ private:
 	observer_ptr<TermNode> next_term_ptr{};
 
 public:
-	DefDeCtor(ContextState)
+	/*!
+	\brief 构造：使用指定的存储资源。
+	\since build 845
+	*/
+	ContextState(YSLib::pmr::memory_resource&);
 	ContextState(const ContextState&);
 	ContextState(ContextState&&);
 	//! \brief 虚析构：类定义外默认实现。
@@ -371,6 +375,7 @@ ReduceChecked(TermNode&, ContextNode&);
 
 /*!
 \brief 规约闭包。
+\pre 第一参数指定的项不是第四参数且不是第四参数的直接或间接子节点。
 \return 根据规约后剩余项确定的规约结果。
 \sa CheckNorm
 \sa ReduceChecked
@@ -957,23 +962,30 @@ class YF_API REPLContext
 {
 public:
 	/*!
+	\brief 节点分配器。
+	\since build 845
+	*/
+	TermNode::allocator_type Allocator;
+	/*!
 	\brief 上下文根节点。
 	\since build 842
 	*/
-	ContextState Root{};
+	ContextState Root;
 	//! \brief 预处理节点：每次翻译时预先处理调用的公共例程。
 	TermPasses Preprocess{};
 	//! \brief 表项处理例程：每次翻译中规约回调处理调用的公共例程。
 	EvaluationPasses ListTermPreprocess{};
 
 	/*!
-	\brief 构造：使用默认的解释。
+	\brief 构造：使用默认的解释和指定的存储资源。
 	\note 参数指定是否启用对规约深度进行跟踪。
 	\sa ListTermPreprocess
 	\sa SetupDefaultInterpretation
 	\sa SetupTraceDepth
+	\since build 845
 	*/
-	REPLContext(bool = {});
+	REPLContext(bool = {}, YSLib::pmr::memory_resource&
+		= YSLib::Deref(YSLib::pmr::new_delete_resource()));
 
 	/*!
 	\brief 加载：从指定参数指定的来源读取并处理源代码。

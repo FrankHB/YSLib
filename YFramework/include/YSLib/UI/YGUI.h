@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGUI.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2454
+\version r2463
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-02-12 02:36 +0800
+	2018-11-20 19:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,11 +60,8 @@ public:
 		Held = 2
 	};
 
-	//! \since build 555
-	static yconstexpr const Duration DefaultDuration{Timers::TimeSpan(1000U)};
-
 	//! \since build 572
-	InputTimer(Duration = DefaultDuration) ynothrow;
+	InputTimer(Duration = GetDefaultDuration()) ynothrow;
 	//! \since build 586
 	DefDeCopyCtor(InputTimer)
 	/*!
@@ -72,6 +69,10 @@ public:
 	\since build 586
 	*/
 	virtual ~InputTimer();
+
+	//! \brief 默认延迟。
+	static yconstfn DefGetter(ynothrow, Duration, DefaultDuration,
+		Timers::TimeSpan(yimpl(1000U)))
 
 	/*!
 	\brief 重复检测输入接触保持状态。
@@ -91,9 +92,9 @@ public:
 
 	/*!
 	\brief 复位输入计时状态。
-	\since build 572
+	\since build 845
 	*/
-	PDefH(void, ResetInput, Duration d = DefaultDuration)
+	PDefH(void, ResetInput, Duration d = GetDefaultDuration())
 		ImplExpr(Interval = d)
 };
 

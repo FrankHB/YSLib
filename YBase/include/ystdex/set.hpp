@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r1235
+\version r1389
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2018-11-18 13:21 +0800
+	2018-11-24 15:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 //	std::count, std::lower_bound, std::upper_bound, std::equal_range;
 #include "iterator.hpp" // for transformed_iterator,
 //	iterator_transformation::second, ystdex::reverse_iterator,
-//	ystdex::make_transform, std::tuple, std::forward_as_tuple, index_sequence,
+//	ystdex::make_transform, index_sequence, std::tuple, std::forward_as_tuple,
 //	std::get;
 #include "map.hpp" // for "tree.hpp" (implying "range.hpp"), map,
 //	std::initializer_list, ystdex::search_map_by, ystdex::emplace_hint_in_place,
@@ -146,6 +146,7 @@ public:
 
 
 /*!
+\ingroup customization traits
 \brief 映射值集合特征。
 \since build 844
 
@@ -184,14 +185,23 @@ struct mapped_set_traits
 	{
 		return _type();
 	}
-	template<typename _tParam, typename... _tParams>
-	static yconstfn const _tParam&
-	get_value_key(const _tParam& x, _tParams&&...) ynothrow
+	template<typename _tKey, typename... _tParams>
+	static yconstfn const _tKey&
+	get_value_key(const _tKey& x, _tParams&&...) ynothrow
 	{
 		return x;
 	}
 	//@}
 	//@}
+
+	/*!
+	\brief 恢复元素的键。
+	\since build 845
+	*/
+	template<typename _tParam>
+	static yconstfn_relaxed void
+	restore_key(_type&, _tParam&&) ynothrow
+	{}
 
 	/*!
 	\brief 转移集合元素。
@@ -208,11 +218,21 @@ struct mapped_set_traits
 
 /*!
 \brief 允许指定不同于值类型的键的集合。
-\note 和 std::set 类似，但迭代器可修改，且插入操作要求参数满足 CopyInsertable 。
-\note 基于 ystdex::map ，支持不完整类型的键。
+\warning 若修改的值使键不等价，行为未定义。
 \sa mapped_set_traits
+\sa ystdex::try_emplace
 \see WG21 N3456 23.2.4 [associative.reqmts] 。
+\see Documentation::YBase @2.1.4.1 。
+\see Documentation::YBase @2.1.4.2 。
 \since build 844
+
+类似 ISO C++ 的 std::set 的容器，但基于 ystdex::map ，元素和指向元素的迭代器可修改。
+容器的 emplace 操作和 insert 操作基于不同的 mapped_set_traits 操作。
+容器的 emplace 操作提供比标准库容器更多的保证，而不依赖 LWG 2362 的解决。
+因为接口类似 std::set 而不是 std::map ，也不存在一般地更高效的其它选项，
+	不提供 try_emplace 和 insert_or_move 操作。基于 ystdex::try_emplace
+	和 ystdex::insert_or_move 插入元素可提供相对标准库容器更多的不同的（透明）键类型
+	的类似操作，但仍不避免键可能被至少查找两次。
 */
 template<typename _type, typename _fComp = less<_type>, class _tTraits
 	= mapped_set_traits<_type>, class _tAlloc = std::allocator<_type>>
@@ -325,20 +345,18 @@ public:
 		amend_all();
 		return *this;
 	}
+	// NOTE: Since the resolution of LWG 2321 is respected in the underlying
+	//	container, no %amend_all call is needed.
 	//! \since build 830
 	mapped_set&
 	operator=(mapped_set&& s)
 		ynoexcept_spec(and_<typename allocator_traits<_tAlloc>::is_always_equal,
-		is_nothrow_move_assignable<_fComp>>::value)
-	{
-		s.swap(*this);
-		return *this;
-	}
+		is_nothrow_move_assignable<_fComp>>::value) yimpl(= default);
+
 	mapped_set&
 	operator=(std::initializer_list<value_type> il)
 	{
-		mapped_set(il).swap(*this);
-		return *this;
+		return *this = mapped_set(il);
 	}
 
 	allocator_type
@@ -438,83 +456,92 @@ public:
 	\note 使用 ADL get_value_key 取键的值。
 	\note 使用 ADL extend_key 作为内部的键，仅在插入值时使用，可能被参数之一所有。
 	\note 使用 ADL recover_key 恢复 extend_key 的键的值到构造后的元素。
+	\note 保证当存在等价的键的值而不需要插入时，不复制和转移用于构造值的参数。
+	\see LWG 2362 。
 
 	使用指定参数构造元素插入容器。
 	*/
 	//@{
 	template<typename... _tParams>
-	std::pair<iterator, bool>
+	inline std::pair<iterator, bool>
 	emplace(_tParams&&... args)
 	{
-		// XXX: %value_type needs to be MoveConstructible, not
-		//	EmplaceInsertable.
-		return insert(value_type(yforward(args)...));
+		return emplace_hint_impl(index_sequence<>(), std::tuple<>(),
+			yforward(args)...);
 	}
 
 	template<typename... _tParams>
-	iterator
+	inline iterator
 	emplace_hint(const_iterator position, _tParams&&... args)
 	{
-		// XXX: %value_type needs to be MoveConstructible, not
-		//	EmplaceInsertable.
-		return insert(position, value_type(yforward(args)...));
+		return emplace_hint_impl(index_sequence<0>(),
+			std::forward_as_tuple(position.get()), yforward(args)...).first;
+	}
+
+private:
+	//! \since build 845
+	template<size_t... _vSeq, typename... _tSeq, typename... _tParams>
+	std::pair<iterator, bool>
+	emplace_hint_impl(index_sequence<_vSeq...> seq, std::tuple<_tSeq...> pos,
+		_tParams&&... args)
+	{
+		auto&& k(traits_type::get_value_key(yforward(args)...));
+
+		return emplace_res_conv(emplace_search(
+			[&](typename umap_type::const_iterator i){
+			auto&& ek(traits_type::extend_key(std::move(k), *this));
+			const auto j(ystdex::emplace_hint_in_place(m_map, i,
+				mapped_key_type(ystdex::as_const(ek)), yforward(args)...));
+
+			traits_type::restore_key(j->second, std::move(ek));
+			return j;
+		}, ystdex::as_const(k), seq, pos));
 	}
 	//@}
 
+	//! \since build 845
+	template<typename _func, typename _tKey, size_t... _vSeq, typename... _tSeq,
+		typename... _tParams>
+	std::pair<typename umap_type::iterator, bool>
+	emplace_search(_func f, const _tKey& k, index_sequence<_vSeq...>,
+		std::tuple<_tSeq...> pos)
+	{
+		yunused(pos);
+		return ystdex::search_map_by([&](typename umap_type::const_iterator i){
+			const auto j(f(i));
+
+			amend_pair(*j);
+			return j;
+		}, m_map, std::get<_vSeq>(pos)..., k);
+	}
+
+	//! \since build 845
+	static std::pair<iterator, bool>
+	emplace_res_conv(const std::pair<typename umap_type::iterator, bool>& res)
+	{
+		return {iterator(res.first), res.second};
+	}
+
+public:
 	std::pair<iterator, bool>
 	insert(const value_type& x)
 	{
-		// XXX: %value_type needs to be CopyConstructible rather than
-		//	CopyInsertable into %mapped_set.
-		// XXX: %mapped_key_type and %value_type need to be EmplaceConstructible
-		//	into %umap_type.
-		const auto res(m_map.emplace(std::piecewise_construct,
-			std::forward_as_tuple(mapped_key_type(x)),
-			std::forward_as_tuple(x)));
-
-		// TODO: Blocked. Use %try_emplace result?
-		if(res.second)
-			amend_pair(*res.first);
-		return {iterator(res.first), res.second};
+		return insert_unique(x);
 	}
 	std::pair<iterator, bool>
 	insert(value_type&& x)
 	{
-		// XXX: %mapped_key_type and moved %value_type need to be
-		//	EmplaceConstructible into %umap_type.
-		const auto res(m_map.emplace(std::piecewise_construct,
-			std::forward_as_tuple(mapped_key_type(x)),
-			std::forward_as_tuple(traits_type::set_value_move(x))));
-
-		if(res.second)
-			amend_pair(*res.first);
-		return {iterator(res.first), res.second};
+		return insert_unique(std::move(x));
 	}
 	iterator
 	insert(const_iterator position, const value_type& x)
 	{
-		// XXX: %mapped_key_type and %value_type need to be EmplaceConstructible
-		//	into %umap_type.
-		const auto res(m_map.emplace_hint(position.get(),
-			std::piecewise_construct, std::forward_as_tuple(mapped_key_type(x)),
-			std::forward_as_tuple(x)));
-
-		// TODO: Blocked. Use C++1z %try_emplace result.
-		amend_pair(*res);
-		return iterator(res);
+		return insert_unique_hint(position, x);
 	}
 	iterator
 	insert(const_iterator position, value_type&& x)
 	{
-		// XXX: %mapped_key_type and moved %value_type need to be
-		//	EmplaceConstructible into %umap_type.
-		const auto res(m_map.emplace_hint(position.get(),
-			std::piecewise_construct, std::forward_as_tuple(mapped_key_type(x)),
-			std::forward_as_tuple(traits_type::set_value_move(x))));
-
-		// TODO: Blocked. Use C++1z %try_emplace result.
-		amend_pair(*res);
-		return iterator(res);
+		return insert_unique_hint(position, std::move(x));
 	}
 	template<typename _tIn>
 	void
@@ -530,6 +557,51 @@ public:
 		insert(il.begin(), il.end());
 	}
 
+private:
+	//! \since build 845
+	//@{
+	static value_type
+	insert_forward(value_type& x)
+	{
+		return traits_type::set_value_move(x);
+	}
+	static const value_type&
+	insert_forward(const value_type& x)
+	{
+		return x;
+	}
+
+	template<typename _tParam>
+	inline std::pair<iterator, bool>
+	insert_unique(_tParam&& x)
+	{
+		return emplace_res_conv(insert_unique_impl(index_sequence<>(),
+			std::tuple<>(), yforward(x)));
+	}
+
+	template<typename _tParam>
+	inline iterator
+	insert_unique_hint(iterator position, _tParam&& x)
+	{
+		return iterator(insert_unique_impl(index_sequence<0>(),
+			std::forward_as_tuple(position.get()), yforward(x)).first);
+	}
+
+	template<size_t... _vSeq, typename... _tSeq, typename _tParam>
+	std::pair<typename umap_type::iterator, bool>
+	insert_unique_impl(index_sequence<_vSeq...> seq, std::tuple<_tSeq...> pos,
+		_tParam&& x)
+	{
+		return emplace_search([&](typename umap_type::const_iterator i){
+			// XXX: Result of %traits_type::set_value_move call need to be
+			//	EmplaceConstructible into %mapped_type.
+			return ystdex::emplace_hint_in_place(m_map, i, mapped_key_type(x),
+				insert_forward(x));
+		}, x, seq, pos);
+	}
+	//@}
+
+public:
 	iterator
 	erase(iterator position)
 	{

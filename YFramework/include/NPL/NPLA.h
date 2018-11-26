@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4326
+\version r4409
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-11-18 12:44 +0800
+	2018-11-23 00:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -479,12 +479,11 @@ public:
 	{}
 	//! \since build 844
 	DefDeCopyCtor(NPLException)
+	//! \brief 虚析构：类定义外默认实现。
+	~NPLException() override;
 
 	//! \since build 844
 	DefDeCopyAssignment(NPLException)
-
-	//! \brief 虚析构：类定义外默认实现。
-	~NPLException() override;
 };
 
 
@@ -499,10 +498,13 @@ class YF_API TypeError : public NPLException
 public:
 	//! \since build 692
 	using NPLException::NPLException;
-	DefDeCtor(TypeError)
-
+	//! \since build 845
+	DefDeCopyCtor(TypeError)
 	//! \brief 虚析构：类定义外默认实现。
 	~TypeError() override;
+
+	//! \since build 845
+	DefDeCopyAssignment(TypeError)
 };
 
 
@@ -515,10 +517,13 @@ class YF_API ValueCategoryMismatch : public TypeError
 public:
 	//! \since build 834
 	using TypeError::TypeError;
-	DefDeCtor(ValueCategoryMismatch)
-
+	//! \since build 845
+	DefDeCopyCtor(ValueCategoryMismatch)
 	//! \brief 虚析构：类定义外默认实现。
 	~ValueCategoryMismatch() override;
+
+	//! \since build 845
+	DefDeCopyAssignment(ValueCategoryMismatch)
 };
 
 
@@ -531,10 +536,13 @@ class YF_API ListTypeError : public TypeError
 public:
 	//! \since build 834
 	using TypeError::TypeError;
-	DefDeCtor(ListTypeError)
-
+	//! \since build 845
+	DefDeCopyCtor(ListTypeError)
 	//! \brief 虚析构：类定义外默认实现。
 	~ListTypeError() override;
+
+	//! \since build 845
+	DefDeCopyAssignment(ListTypeError)
 };
 //@}
 
@@ -550,10 +558,13 @@ class YF_API ListReductionFailure : public TypeError
 public:
 	//! \since build 834
 	using TypeError::TypeError;
-	DefDeCtor(ListReductionFailure)
-
+	//! \since build 845
+	DefDeCopyCtor(ListReductionFailure)
 	//! \brief 虚析构：类定义外默认实现。
 	~ListReductionFailure() override;
+
+	//! \since build 845
+	DefDeCopyAssignment(ListReductionFailure)
 };
 
 
@@ -562,10 +573,13 @@ class YF_API InvalidSyntax : public NPLException
 {
 public:
 	using NPLException::NPLException;
-	DefDeCtor(InvalidSyntax)
-
+	//! \since build 845
+	DefDeCopyCtor(InvalidSyntax)
 	//! \brief 虚析构：类定义外默认实现。
 	~InvalidSyntax() override;
+
+	//! \since build 845
+	DefDeCopyAssignment(InvalidSyntax)
 };
 
 
@@ -577,10 +591,13 @@ class YF_API ParameterMismatch : public InvalidSyntax
 {
 public:
 	using InvalidSyntax::InvalidSyntax;
-	DefDeCtor(ParameterMismatch)
-
+	//! \since build 845
+	DefDeCopyCtor(ParameterMismatch)
 	//! \brief 虚析构：类定义外默认实现。
 	~ParameterMismatch() override;
+
+	//! \since build 845
+	DefDeCopyAssignment(ParameterMismatch)
 };
 
 
@@ -601,9 +618,13 @@ public:
 	\since build 726
 	*/
 	ArityMismatch(size_t, size_t, YSLib::RecordLevel = YSLib::Err);
-
+	//! \since build 845
+	DefDeCopyCtor(ArityMismatch)
 	//! \brief 虚析构：类定义外默认实现。
 	~ArityMismatch() override;
+
+	//! \since build 845
+	DefDeCopyAssignment(ArityMismatch)
 
 	DefGetter(const ynothrow, size_t, Expected, expected)
 	DefGetter(const ynothrow, size_t, Received, received)
@@ -633,10 +654,13 @@ public:
 	YB_NONNULL(2)
 	BadIdentifier(const char*, size_t = 0, YSLib::RecordLevel = YSLib::Err);
 	BadIdentifier(string_view, size_t = 0, YSLib::RecordLevel = YSLib::Err);
-	DefDeCtor(BadIdentifier)
-
+	//! \since build 845
+	DefDeCopyCtor(BadIdentifier)
 	//! \brief 虚析构：类定义外默认实现。
 	~BadIdentifier() override;
+
+	//! \since build 845
+	DefDeCopyAssignment(BadIdentifier)
 
 	DefGetter(const ynothrow, const string&, Identifier,
 		YSLib::Deref(p_identifier))
@@ -651,10 +675,13 @@ class YF_API InvalidReference : public NPLException
 {
 public:
 	using NPLException::NPLException;
-	DefDeCtor(InvalidReference)
-
+	//! \since build 845
+	DefDeCopyCtor(InvalidReference)
 	//! \brief 虚析构：类定义外默认实现。
 	~InvalidReference() override;
+
+	//! \since build 845
+	DefDeCopyAssignment(InvalidReference)
 };
 //@}
 
@@ -1453,7 +1480,7 @@ private:
 
 public:
 	//! \since build 788
-	mutable BindingMap Bindings{};
+	mutable BindingMap Bindings;
 	/*!
 	\brief 解析名称：处理保留名称并查找名称。
 	\return 查找到的名称，或查找失败时的空值。
@@ -1495,15 +1522,25 @@ private:
 	SharedAnchor anchor{};
 
 public:
-	//! \brief 无参数构造：初始化空环境。
-	DefDeCtor(Environment)
+	//! \since build 845
+	//@{
+	//! \brief 构造：使用指定的绑定映射分配器初始化空环境。
+	Environment(BindingMap::allocator_type a)
+		: Bindings(a)
+	{}
+	//! \brief 构造：使用指定的存储资源构造的绑定映射分配器初始化空环境。
+	Environment(YSLib::pmr::memory_resource& rsrc)
+		: Environment(BindingMap::allocator_type(&rsrc))
+	{}
+	//@}
 	/*!
 	\brief 构造：使用包含绑定节点的指针。
 	\note 不检查绑定的名称。
 	*/
 	//@{
+	//! \since build 845
 	explicit
-	Environment(const BindingMap&& m)
+	Environment(const BindingMap& m)
 		: Bindings(m)
 	{}
 	explicit
@@ -1514,16 +1551,21 @@ public:
 	/*!
 	\brief 构造：使用父环境。
 	\exception NPLException 异常中立：由 CheckParent 抛出。
+	\since build 845
 	\todo 使用专用的异常类型。
 	*/
 	//@{
-	explicit
-	Environment(const ValueObject& vo)
-		: Parent((CheckParent(vo), vo))
+	Environment(BindingMap::allocator_type a, const ValueObject& vo)
+		: Bindings(a), Parent((CheckParent(vo), vo))
 	{}
-	explicit
-	Environment(ValueObject&& vo)
-		: Parent((CheckParent(vo), std::move(vo)))
+	Environment(BindingMap::allocator_type a, ValueObject&& vo)
+		: Bindings(a), Parent((CheckParent(vo), std::move(vo)))
+	{}
+	Environment(YSLib::pmr::memory_resource& rsrc, const ValueObject& vo)
+		: Environment(BindingMap::allocator_type(&rsrc), vo)
+	{}
+	Environment(YSLib::pmr::memory_resource& rsrc, ValueObject&& vo)
+		: Environment(BindingMap::allocator_type(&rsrc), std::move(vo))
 	{}
 	//@}
 	DefDeCopyMoveCtorAssignment(Environment)
@@ -1730,11 +1772,16 @@ class YF_API ContextNode
 {
 private:
 	/*!
+	\brief 内部存储资源。
+	\since build 845
+	*/
+	lref<YSLib::pmr::memory_resource> memory_rsrc;
+	/*!
 	\brief 环境记录指针。
 	\invariant p_record 。
 	\since build 788
 	*/
-	shared_ptr<Environment> p_record{make_shared<Environment>()};
+	shared_ptr<Environment> p_record{make_shared<Environment>(memory_rsrc)};
 
 public:
 	/*!
@@ -1761,7 +1808,11 @@ public:
 	*/
 	YSLib::Logger Trace{};
 
-	DefDeCtor(ContextNode)
+	/*!
+	\brief 构造：使用指定的存储资源。
+	\since build 845
+	*/
+	ContextNode(YSLib::pmr::memory_resource&);
 	/*!
 	\throw std::invalid_argument 参数指针为空。
 	\note 遍和日志追踪对象被复制。
@@ -1789,6 +1840,9 @@ public:
 		GetRecordRef().GetMapRef())
 	//! \since build 788
 	DefGetter(const ynothrow, Environment&, RecordRef, *p_record)
+	//! \since build 845
+	DefGetter(const ynothrow, YSLib::pmr::memory_resource&, MemoryResourceRef,
+		memory_rsrc)
 
 	/*!
 	\brief 转移并应用尾调用。
@@ -1938,8 +1992,8 @@ template<typename... _tParams>
 inline shared_ptr<Environment>
 SwitchToFreshEnvironment(ContextNode& ctx, _tParams&&... args) ynothrow
 {
-	return ctx.SwitchEnvironmentUnchecked(
-		make_shared<Environment>(yforward(args)...));
+	return ctx.SwitchEnvironmentUnchecked(make_shared<Environment>(
+		ctx.GetMemoryResourceRef(), yforward(args)...));
 }
 
 
@@ -1955,7 +2009,10 @@ inline bool
 EmplaceLeaf(Environment::BindingMap& m, string_view name, _tParams&&... args)
 {
 	YAssertNonnull(name.data());
-	return m.insert_or_assign(name, TermNode(YSLib::NoContainer, name,
+	// XXX: The implementation is depended on the fact that %TermNode is simply
+	//	an alias of %ValueNode and it is same to %BindingMap currently.
+	return m.insert_or_assign(name, TermNode(std::allocator_arg,
+		m.get_allocator(), YSLib::NoContainer, name,
 		ystdex::in_place_type<_type>, yforward(args)...)).second;
 	// NOTE: The following code is incorrect because the subterms are not
 	//	cleared, as well as lacking of %bool return value of insertion result.

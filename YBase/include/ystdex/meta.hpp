@@ -11,13 +11,13 @@
 /*!	\file meta.hpp
 \ingroup YStandardEx
 \brief 通用元编程设施。
-\version r1584
+\version r1594
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:28 +0800
 \par 修改时间:
-	2018-11-03 03:34 +0800
+	2018-11-20 17:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@ namespace ystdex
 {
 
 /*!	\defgroup type_traits_operations Type Traits Operations
-\ingroup metafunctions
+\ingroup metafunctions traits
 \brief 类型特征操作。
 \since build 306
 */
@@ -309,6 +309,7 @@ inline namespace cpp2017
 #if __cpp_lib_void_t >= 201411L
 using std::void_t;
 #else
+//! \ingroup YBase_replacement_features
 template<typename... _types>
 using void_t = well_formed_t<void, _types...>;
 #endif
@@ -397,6 +398,8 @@ struct detector<_tDefault, void_t<_gOp<_tParams...>>, _gOp, _tParams...>
 
 } // namespace details;
 
+//! \ingroup YBase_replacement_features
+//@{
 template<template<typename...> class _gOp, typename... _tParams>
 using is_detected
 	= typename details::detector<nonesuch, void, _gOp, _tParams...>::value_t;
@@ -419,6 +422,7 @@ using is_detected_exact = is_same<_tExpected, detected_t<_gOp, _tParams...>>;
 template<typename _tTo, template<typename...> class _gOp, typename... _tParams>
 using is_detected_convertible
 	= is_convertible<detected_t<_gOp, _tParams...>, _tTo>;
+//@}
 //@}
 
 
@@ -456,12 +460,13 @@ template<typename _type>
 struct is_referenceable_function : false_
 {};
 
-template<typename _tRes, typename... _tParams>
-struct is_referenceable_function<_tRes(_tParams...)> : true_
+template<typename _tRes, typename... _tParams ynoexcept_param(ne)>
+struct is_referenceable_function<_tRes(_tParams...) ynoexcept_qual(ne)> : true_
 {};
 
-template<typename _tRes, typename... _tParams>
-struct is_referenceable_function<_tRes(_tParams..., ...)> : true_
+template<typename _tRes, typename... _tParams ynoexcept_param(ne)>
+struct is_referenceable_function<_tRes(_tParams..., ...) ynoexcept_qual(ne)>
+	: true_
 {};
 
 } // namespace details;

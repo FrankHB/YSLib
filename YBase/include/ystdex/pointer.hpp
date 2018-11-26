@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r508
+\version r509
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2018-11-08 16:36 +0800
+	2018-11-26 06:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -313,7 +313,7 @@ template<typename _type1, typename _type2>
 yconstfn bool
 operator<(observer_ptr<_type1> p1, observer_ptr<_type2> p2) ynothrowv
 {
-	return std::less<common_type_t<_type1, _type2>>(p1.get(), p2.get());
+	return std::less<common_type_t<_type1*, _type2*>>()(p1.get(), p2.get());
 }
 //@}
 

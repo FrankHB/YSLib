@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r658
+\version r771
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2018-11-17 17:45 +0800
+	2018-11-26 04:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,6 +80,23 @@ LWG 3113 ：明确 polymorphic_allocator 的 construct 函数模板转移构造�
 #include <vector> // for std::vector;
 #include <unordered_map> // for std::hash, std::unordered_map;
 #include <functional> // for std::equal_to;
+#if YB_Has_memory_resource != 1
+#	if (defined(__GLIBCXX__) && !(defined(_GLIBCXX_USE_C99_STDINT_TR1) \
+	&& defined(_GLIBCXX_HAS_GTHREADS))) \
+	|| (defined(_LIBCPP_VERSION) && defined(_LIBCPP_HAS_NO_THREADS))
+// XXX: The synchonization does not work. However, this still makes
+//	%synchronized_pool_resource different than %unsynchronized_pool_resource in
+//	%ystdex::pmr. Preserving %ystdex::single_thread pseudo implementation
+//	introduces some basic checks of sanity on mutex types.
+#		include "pseudo_mutex.h" // for ystdex::single_thread::mutex,
+#		define YB_Impl_mutex_ns ystdex::single_thread
+//	ystdex::single_thread::lock_guard;
+#	else
+#		include <mutex> // for std::mutex, std::lock_guard;
+#		define YB_Impl_mutex_ns std
+#	endif
+#	include "type_pun.hpp" // for pun_ref;
+#endif
 
 /*!
 \brief \<memory_resource\> 特性测试宏。
@@ -267,6 +284,8 @@ using std::pmr::pool_options;
 //	only provide %std::experimental::fundamentals_v2 version, although some
 //	resoultions have applied on libc++.
 
+//! \ingroup YBase_replacement_features
+//@{
 //! \see LWG 2724 。
 class YB_API YB_ATTR_novtable memory_resource
 	: private equality_comparable<memory_resource>
@@ -503,6 +522,7 @@ struct YB_API pool_options
 	size_t max_blocks_per_chunk = 0;
 	size_t largest_required_pool_block = 0;
 };
+//@}
 #endif
 
 } // inline namespace cpp2017;
@@ -545,7 +565,6 @@ public:
 	pool_resource(const pool_options& opts)
 		: pool_resource(opts, get_default_resource())
 	{}
-	virtual
 	~pool_resource() override;
 
 	void
@@ -596,12 +615,124 @@ private:
 inline namespace cpp2017
 {
 
+// XXX: %std::pmr::synchronized_pool_resource and
+//	%std::pmr::unsynchronized_pool_resource can be monotonic until %release or
+//	destruction. Although they are not both in %std implementation of Microsoft
+//	VC++ 15.8.2 and in %ystdex where both implement deallocation of upstream
+//	blocks in %do_deallocate, this is not specified by ISO C++.
+
 #if YB_Has_memory_resource == 1
 using std::pmr::synchronized_pool_resource;
 using std::pmr::unsynchronized_pool_resource;
 using std::pmr::monotonic_buffer_resource;
 #else
-using unsynchronized_pool_resource = pool_resource;
+//! \ingroup YBase_replacement_features
+//@{
+//! \since build 845
+class YB_API synchronized_pool_resource : yimpl(public pool_resource)
+{
+private:
+	using mutex = YB_Impl_mutex_ns::mutex;
+	template<typename _tMutex>
+	using lock_guard = YB_Impl_mutex_ns::lock_guard<_tMutex>;
+
+	mutable mutex mtx{};
+
+public:
+	yimpl(using) pool_resource::pool_resource;
+	//! \brief 虚析构：类定义外默认实现。
+	~synchronized_pool_resource() override;
+
+	void
+	release() yimpl(ynothrow)
+	{
+		lock_guard<mutex> gd(mtx);
+
+		pool_resource::release();
+	}
+
+protected:
+	YB_ALLOCATOR void*
+	do_allocate(size_t bytes, size_t alignment) override
+	{
+		lock_guard<mutex> gd(mtx);
+
+		return pool_resource::do_allocate(bytes, alignment);
+	}
+
+	void
+	do_deallocate(void* p, size_t bytes, size_t alignment) yimpl(ynothrowv)
+		override
+	{
+		lock_guard<mutex> gd(mtx);
+
+		pool_resource::do_deallocate(p, bytes, alignment);
+	}
+};
+
+
+yimpl(using) unsynchronized_pool_resource = pool_resource;
+
+
+//! \since build 845
+class YB_API monotonic_buffer_resource : public memory_resource,
+	private yimpl(noncopyable), private yimpl(nonmovable)
+{
+private:
+	struct chunks_t;
+	memory_resource* upstream_rsrc;
+	void* current_buffer = {};
+	size_t next_buffer_size;
+	size_t space_available = 0;
+	ystdex::aligned_storage_t<16> chunks_data{};
+	//! \invariant <tt>&pun.get() == &chunks_data</tt>
+	pun_ref<chunks_t> pun;
+
+public:
+	//! \note 实现定义：未指定时，初始大小为不小于 4 * sizeof(size_t) 的定值。
+	//@{
+	monotonic_buffer_resource()
+		: monotonic_buffer_resource(get_default_resource())
+	{}
+	explicit
+	monotonic_buffer_resource(memory_resource*) yimpl(ynothrow);
+	monotonic_buffer_resource(size_t, memory_resource*) yimpl(ynothrow);
+	monotonic_buffer_resource(void*, size_t, memory_resource*) yimpl(ynothrow);
+	explicit
+	monotonic_buffer_resource(size_t initial_size) yimpl(ynothrow)
+		: monotonic_buffer_resource(initial_size, get_default_resource())
+	{}
+	monotonic_buffer_resource(void* buffer, size_t buffer_size) yimpl(ynothrow)
+		: monotonic_buffer_resource(buffer, buffer_size, get_default_resource())
+	{}
+	//@}
+	~monotonic_buffer_resource() override;
+
+	void
+	release() yimpl(ynothrow);
+
+	YB_ATTR_returns_nonnull memory_resource*
+	upstream_resource() const yimpl(ynothrow)
+	{
+		return upstream_rsrc;
+	}
+
+protected:
+	YB_ALLOCATOR void*
+	do_allocate(size_t, size_t) override;
+
+	//! \note 实现定义：增长因子为 2 。
+	void
+	do_deallocate(void*, size_t, size_t) override
+	{}
+
+	bool
+	do_is_equal(const memory_resource&) const ynothrow override;
+};
+//@}
+
+#	undef YB_Impl_mutex_ns
+
 #endif
 
 } // inline namespace cpp2017;

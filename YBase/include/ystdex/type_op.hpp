@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r2812
+\version r2819
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2018-08-19 13:31 +0800
+	2018-11-24 15:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -297,15 +297,8 @@ template<typename... _types>
 using common_underlying_t = common_type_t<underlying_cond_type_t<_types>...>;
 
 
-/*!	\defgroup tags Tags
-\ingroup meta
-\brief 标记。
-\note 可能是类型或元类型。
-\since build 447
-*/
-
 /*!
-\ingroup meta_types
+\ingroup meta_types tags
 \brief 自然数标记。
 */
 //@{

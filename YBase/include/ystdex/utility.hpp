@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3478
+\version r3497
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2018-08-17 03:57 +0800
+	2018-11-25 22:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YB_INC_ystdex_utility_hpp_
 #define YB_INC_ystdex_utility_hpp_ 1
 
-#include "swap.hpp" // for "swap.hpp", add_const_t, std::move,
+#include "swap.hpp" // for "swap.hpp", is_lvalue_reference, conditional_t,
+//	remove_reference_t, std::forward, add_const_t, std::move,
 //	enable_if_convertible_t, is_nothrow_constructible, exclude_self_t;
 #include <functional> // for std::bind, std::ref
 #include "placement.hpp" // for yassume, ystdex::construct_in,
@@ -37,6 +38,25 @@
 
 namespace ystdex
 {
+
+/*!
+\see https://stackoverflow.com/questions/46171843/moving-in-range-based-loop-in-generic-c-code 。
+\since build 845
+*/
+//@{
+//! \brief 按指定类型蕴含的值类别传递参数的结果类型。
+template<typename _type, typename _type2>
+using forward_like_t = conditional_t<is_lvalue_reference<_type>::value,
+    remove_reference_t<_type2>&, remove_reference_t<_type2>&&>;
+
+//! \brief 按第一模板参数指定类型蕴含的值类别传递参数。
+template<typename _type, typename _type2>
+forward_like_t<_type, _type2>
+forward_like(_type2&& x)
+{
+	return std::forward<forward_like_t<_type, _type2>>(yforward(x));
+}
+//@}
 
 inline namespace cpp2017
 {

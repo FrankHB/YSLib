@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r772
+\version r784
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2018-11-12 17:24 +0800
+	2018-11-12 02:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,12 +53,19 @@ ValueNode::CreateRecursively(const Container& con, IValueHolder::Creation c)
 void
 ValueNode::MoveContent(ValueNode&& node)
 {
-	// NOTE: This is required to avoid cyclic reference when the object
-	//	referenced by the 2nd parameter is owned by the object referenced by the
-	//	1st parameter.
-	auto t(std::move(node.GetContainerRef()));
+	// NOTE: This is required for the case when the moved-to object (referenced
+	//	by '*this') is an ancestor of the moved-from node (referenced by the
+	//	parameter). In such cases, an object moved from the moved-to object
+	//	container is needed to preserve the content of the moved-from node
+	//	living sufficient long, since the move %operator= of %Container does not
+	//	guarantee the old content of the container (as it can clear the old
+	//	content in the container before moving elements). This also avoids
+	//	cyclic references even when the move %operator= of %Container does
+	//	preserved the old content of the container longer (e.g. by copy and
+	//	swap), which would leak resources instead of d.
+	const auto t(std::move(GetContainerRef()));
 
-	SetContent(std::move(t), std::move(node.Value));
+	SetContent(std::move(node));
 }
 
 void

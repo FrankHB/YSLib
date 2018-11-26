@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2017 FrankHB.
+# (C) 2014-2018 FrankHB.
 # Common source script.
 
 [[ "$INC_SHBuild_common" == '' ]] && INC_SHBuild_common=1 || return 0
@@ -147,7 +147,8 @@ SHBuild_Install_HardLink()
 {
 	(rm -f "$2" || true) && \
 		($SHBuild_CMD //c "mklink /H `SHBuild_2w "$2"` `SHBuild_2w "$1"`" > \
-		/dev/null 2>& 1 || ln -T "$1" "$2" || SHBuild_Install "$1" "$2")
+		/dev/null 2>& 1 || ln -T "$1" "$2" > /dev/null 2>& 1 \
+		|| SHBuild_Install "$1" "$2")
 }
 
 SHBuild_Install_HardLink_Exe()

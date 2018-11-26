@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1548
+\version r1554
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2018-08-01 03:48 +0800
+	2018-11-22 17:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -201,12 +201,15 @@ Analyze(TermNode&, const TokenList&);
 YF_API void
 Analyze(TermNode&, const Session&);
 //@}
-//! \note 调用 ADL Analyze 分析节点。
+/*!
+\note 调用 ADL Analyze 分析节点。
+\since build 844
+*/
 template<typename _type>
 TermNode
-Analyze(const _type& arg)
+Analyze(const _type& arg, TermNode::allocator_type a = {})
 {
-	TermNode root;
+	TermNode root(a);
 
 	Analyze(root, arg);
 	return root;
