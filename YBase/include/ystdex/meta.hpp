@@ -715,7 +715,7 @@ struct are_same : and_<is_same<_type, _types>...>
 
 //! \brief 判断第一个参数在之后参数指定的类型中出现。
 template<typename _type, typename... _types>
-struct is_in_types : or_<is_same<_type, _types...>>
+struct is_in_types : or_<is_same<_type, _types>...>
 {};
 //@}
 
