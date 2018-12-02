@@ -11,13 +11,13 @@
 /*!	\file meta.hpp
 \ingroup YStandardEx
 \brief 通用元编程设施。
-\version r1594
+\version r1608
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:28 +0800
 \par 修改时间:
-	2018-11-20 17:48 +0800
+	2018-12-02 01:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -708,14 +708,14 @@ struct is_implicitly_nothrow_constructible : and_<is_nothrow_constructible<
 \since build 671
 */
 //@{
-//! \brief 判断第一个参数和之后的参数指定的类型相同。
+//! \brief 判断第一参数和之后的参数指定的类型相同。
 template<typename _type, typename... _types>
 struct are_same : and_<is_same<_type, _types>...>
 {};
 
-//! \brief 判断第一个参数在之后参数指定的类型中出现。
+//! \brief 判断第一参数在之后参数指定的类型中出现。
 template<typename _type, typename... _types>
-struct is_in_types : or_<is_same<_type, _types...>>
+struct is_in_types : or_<is_same<_type, _types>...>
 {};
 //@}
 
@@ -723,11 +723,22 @@ struct is_in_types : or_<is_same<_type, _types...>>
 /*!
 \ingroup metafunctions
 \brief 条件判断。
+*/
+//@{
+/*!
+\sa conditional
+\since build 846
+*/
+template<typename _tCond, typename _tThen = true_, typename _tElse = false_>
+using cond = conditional<_tCond::value, _tThen, _tElse>;
+
+/*!
 \sa conditional_t
 \since build 730
 */
 template<typename _tCond, typename _tThen = true_, typename _tElse = false_>
-using cond_t = conditional_t<_tCond::value, _tThen, _tElse>;
+using cond_t = _t<cond<_tCond, _tThen, _tElse>>;
+//@}
 
 //! \ingroup transformation_traits
 //@{

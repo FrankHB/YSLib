@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r8150
+\version r8471
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-11-26 19:32 +0800
+	2018-12-02 17:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,327 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			/ DD %MemoryResource $=
+			(
+				(
+				+ "'\note' commands" @ "Doxygen comment"
+					@ "class %pool_resource";
+				* "missing implementation-defined notices for pools" $since b842
+					// See WG21 N4778 [mem.res.pool.options].
+					$= (+ "'\note' command" @ "Doxygen comment"
+						@ "struct %pool_options")
+				),
+				+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+					@ "functions and function templates with specified glob \
+					name patterns or names" $=
+					("%find_pool", "%get_size_of_n", "%options", "%pool_exists",
+						'upstream*'),
+				+ $dev $lib 'YB_ATTR_nodiscard'
+					@ "functions with name %do_is_equal",
+				+ $dev $lib 'yimpl(YB_PURE)' @ "function %do_is_equal"
+					@ "classes %(pool_resource, monotonic_buffer_resource)"
+			),
+			+ $re_add(b845) DD '\ingroup YBase_replacement_features'
+				@ "Doxygen comment" @ ("class template %basic_string" @ %String,
+				"class template %map, function template %swap for %map \
+				instances" @ %Map),
+			/ %Meta $=
+			(
+				* "ill-formed instantiation of %is_char_specialized_in_std when \
+					there are more than 2 parameters in the template parameter \
+					pack" $since b671,
+					// See also https://github.com/FrankHB/YSLib/pull/1.
+				(
+				+ "metafunction %cond";
+				/ DLDI "simplified metafunction %cond_t" ^ "%cond"
+					~ "%conditonal_t"
+				)
+			),
+			/ %Pointer $=
+			(
+				/ @ "namespace %ystdex" $=
+				(
+					+ "2 function templates %to_address",
+						// See WG21 P0653R2.
+					+ $dev 'YB_ATTR_nodiscard YB_PURE' @ "functions and \
+						function templates with names %(get, get_ref, \
+						make_observer, operator(!, *, ->, ==, !=, <, bool, \
+						pointer)) except overloads with pointer parameter or \
+						with %(observer_ptr, pointer_iterator) instances",
+						// With some restrictions added to %nptr parameer type.
+					+ $dev $lib 'YB_ATTR_nodiscard YB_STATELESS'
+						@ "function templates %(get, make_observer, \
+						operator(*, ->, ==, !=, <, bool, pointer)) with \
+						pointer parameter or with %(observer_ptr, \
+						pointer_iterator) instances" $effective "%make_observer"
+				),
+				+ $dev $lib 'YB_ATTR_nodiscard YB_STATELESS'
+					@ "function %operator()" @ "explicit specialization of \
+					class template %std::hash for %observer_ptr"
+					$dep_from ("%std" @ %Memory)
+			),
+			/ %Memory $=
+			(
+				/ @ "namespace %ystdex" $=
+				(
+					+ "function template %try_create",
+					+ $dev $lib 'YB_ATTR_nodiscard YB_PURE' @ "non-deleted \
+						functions and function templates without %YB_NORETURN \
+						and with specified glob name patterns or names"
+						$= ('*_pointer_cast', "'get*' except \
+							%get_temporary_buffer or %get_raw with pointer \
+							type parameter", "'owns_*' except %owns_any with \
+							pointer type parameter", "%operator const \
+							pack_type&", "%operator pack_type&", "%size"),
+					+ $dev $lib 'YB_ATTR_nodiscard YB_STATELESS'
+						@ "function templates for pointer type parameter"
+						$effective @ "%(get_raw, 'owns_*')",
+					+ $dev $lib 'YB_ATTR_nodiscard' @ "non-deleted functions \
+						and function templates without %YB_NORETURN and with \
+						specified glob name patterns or names"
+						$= ('clone_*_ptr', "%get_temporary_buffer", 'make_*',
+							'pack*', 'share_*', 'try_*', 'unique_*'),
+					/ 'YB_ATTR_nodiscard' @ "function templates implemented by \
+						calling %::operator new" $effective ("templates \
+						%new_aligned", "function %allocate")
+						@ "class template %class_allocator" -> 'YB_ALLOCATOR',
+				(
+				/ @ "class template %allocator_delete" -> "class templates \
+					%(allocator_delete, allocator_guard_delete)" $=
+				(
+					// See $2018-12 @ %Documentation::Workflow::Annual2018.
+					+ "class template %allocator_guard_delete";
+						// As old %allocator_delete.
+					/ @ "class template %allocator_delete" $=
+					(
+						// Like WG21 P0316R0, with merged template \
+							specializations and 'const' preserved.
+						+ "constructor with default count parameter"
+							-> "constructor without count parameter but with \
+							'ynothrow'",
+						+ "constructor template",
+						/ "destroyed object before deallocation" @ "%operator()"
+							^ $dep_from ("%ystdex::to_address" @ %Pointer)
+					),
+					+ "function %get_count"
+						@ "class template %allocator_guard_delete"
+				);
+				/ $forced DLDI "alias template %allocator_guard, function \
+					template %make_allocator_guard" ^ "%allocator_guard_delete"
+					~ "%allocator_delete"
+				),
+				/ DLDI "simplified metafunction %nested_allocator" ^ $dep_from
+					("%cond" @ %Meta) ~ "%conditional"
+				),
+				/ "namespace %std" >> %Pointer
+			),
+			/ $re_add(b836) $dev $lib %String $=
+			(
+				+ 'YB_ATTR_nodiscard' @ "functions and function templates \
+					with specified glob name patterns or names"
+					$= ('*substr', '*prefix', '*to_*string', "%alph",
+						"%begins_with", "%cast", "%compare", 'ends_*', 'find_*',
+						"%exists_substr", 'get_*', "%operator+",
+						"%operator sv_type", "%quote", "%ston", "%string_begin",
+						"%string_end", "%vsfmt");
+					// Note %sfmt is ruled out as no [[nodiscard]] is allowed here \
+						by ISO C++. See https://groups.google.com/a/isocpp.org/forum/#!topic/std-discussion/dbxwk5yeCv8.
+				+ 'YB_PURE' @ "member functions marked 'YB_ATTR_nodiscard'"
+			),
+			+ $dev $lib 'YB_ATTR_nodiscard YB_PURE' @ "functions and function \
+				templates with specified glob name patterns or names" @ %Map
+				$= ('*_bound', '*_comp', '*begin', '*end', '*size', 'at*',
+					"%equal_range", "%extract", "%find", 'get_*',
+					"%operator(==, <, ())")
+		),
+		/ DLDI ^ "%allocator_traits" ~ "%std::allocator_tratis"
+			$effective @ (("function templates %(make_allocator_guard, \
+			create_with_allocator, alloc_on_copy, alloc_on_move, \
+			alloc_on_swap)", "internal allocator traits" @ "class template \
+			%allocator_delete") @ %Memory, "class template %string_traits"
+			@ %String),
+			// Though the new members of ISO C++ 17 are not used, the \
+				namespace prefix is better to be ellisped as most type tratis.
+		+ $re_add(b845) DD '\ingroup traits' @ "Doxygen comment"
+			@ "class template %string_traits" @ %String,
+		* "macro %YB_ALLOCATOR wrongly defined as %YB_ALLOCATOR_EVENT"
+			@ 'YB_IMPL_MSCPP >= 1900 && !defined(__EDG__) \
+			&& !defined _CORECRT_BUILD' @ %YDefinition $since b842,
+		* "ambiguity of %swap caused by order of internal specialiations"
+			@ "traits %(is_swappable_with, is_swappable, \
+			is_nothrow_swappable_with, is_nothrow_swappable)"
+			$since b845
+	),
+	/ %YFramework $=
+	(
+		/ DD "group %type_traits_operations" @ "'\ingroup' command"
+			@ "Doxygen comment for traits class templates" -> "%traits"
+			$effective @ ("%PointerHolderTraits" @ %YSLib.Core.YObject,
+			"%AXYZValueTraits" @ %YCLib.Video),
+		/ %YCLib $=
+		(
+			/ %Video $=
+			(
+				/ @ "class template %PixelQuadruple" $=
+				(
+					+ "aliases %(AWidth, BWidth, GWidth, RWidth)",
+					/ "function template %GetStoredComponent"
+				),
+				/ "functions %FetchOpaque for different platforms"
+					-> ("function" @ "namespace %YSLib::Drawing"
+					@ %YSLib.Core.YGDIBase),
+				(
+				/ "functions %(PixelToAlpha, PixelToBlue, PixelToGreen, \
+					PixelToRed)" -> ("functions" @ "namespace %YSLib::Drawing"
+					^ $dep_from "%ComponentTratis") @ %YSLib.Core.YGDIBase
+					^ $dep_from
+					"%PixelQuadruple::(AWidth, BWidth, GWidth, RWidth)",
+				- ("functions %FetchAlpha for different platforms",
+					"functions %(ColorComponentsToPixel; FetchPixel)") $dep_from
+					("aliases %(FetchAlpha, ColorComponentsToPixel)"
+					@ %YSLib.Adaptor.YAdaptor);
+				/ "aliases %(MonoType, AlphaType)"
+					>> ("namespace %YSLib::Drawing" @ %YSLib.Core.YGDIBase)
+				),
+				/ @ "function %InitVideo" $=
+				(
+					/ "return type" -> "%void" ~ "%bool",
+					+ 'yimpl(ynothrow)'
+				)
+			),
+			/ %FileIO $=
+			(
+				+ $dev $lib 'YB_ATTR_nodiscard' @ "functions and function \
+					templates with specified glob name patterns or names" 
+					// 'Set*locking' is allowed to ignore the result.
+					$= ("%CategorizeNode", "%DefaultPMode", "Fetch*', 'Get*',
+						"%HaveSameContents", "%IsNodeShared", 'MakePathString*',
+						"%SetSize", "%is_open", 'omode_conv*', "%open_check",
+						"%operator(*, ->, ==, !=, <)", 'u*'),
+				* "missing 'YF_API" @ ("all 2 functions %FetchNumberOfLinks"
+					$since b719, "function %IsNodeShared#4" $since b638)
+			)
+		),
+		/ %YSLib $=
+		(
+			/ %Core $=
+			(
+				/ %YObject $=
+				(
+					+ '\ingroup tags' @ "Doxygen comment"
+						@ "classes %(OwnershipTag, MoveTag, PointerTag)",
+					(
+					/ "2 function templates %CreateHolderInPlace"
+						-> "%TryCreateHolder" ^ $dep_from ("%ystdex::try_create"
+						@ %YBase.YStandardEx.Memory);
+					/ $forced DLDI ("static member function template \
+						%IValueHolder::CreateHolder",
+						"function %Create" @ "class template %PointerHolder")
+					),
+					/ DD "group %type_traits_operations" @ "'\ingroup' command"
+						@ "Doxygen comment"
+						@ "class template %PointerHolderTraits" -> "%traits",
+					+ $dev 'YB_ATTR_nodiscard YB_PURE' @ "functions and \
+						function templates with specified glob name patterns \
+						or names"
+						// With some restrictions added to virtual functions \
+							and template tppe on %AreEqualHeld.
+						$= ('*_owner', 'Access*', "%AreEqualHeld", 'Equals*',
+							'Get*', "%HoldSame", 'Owns*', "%Ref", "%are_equal",
+							"%get", "%operator(==, !=)", "%type"),
+					+ $dev $lib 'YB_ATTR_nodiscard' @ "functions and function \
+						templates with specified glob name patterns or names"
+						$= ('Create*', "%CopyMove", "%EmplaceIfEmpty", 'Make*')
+				),
+				/ "namespace %Drawing" @ %YGDIBase $=
+				(
+					+ "class template %ComponentTratis",
+					(
+					+ "function template %CompositePixelByCMapIndex";
+						// This is not fit as a member for 'yconstfn' is \
+							needed. In particular, if it defines later than \
+							the use position, it would reject by Clang++ 7 \
+							(although accepted by G++ 7.1). See also https://stackoverflow.com/questions/29551223/static-constexpr-function-called-in-a-constant-expression-is-an-error.
+					/ "member function %Color::operator Pixel" ^ "%DefCvt"
+						~ "%ColorComponentsToPixel"
+					),
+					+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+						@ "functions and function templates with specified \
+						glob name patterns or names"
+					$= ('*Center', 'Contains*', 'Get*', "%MakeRect",
+						"%ScaleMin", 'Transpose*', "%get",
+						"%operator (==, +, -, *, &, |, Pixel)", "%to_string"),
+					+ $dev $lib 'YB_ATTR_nodiscard YB_STATELESS' @ "functions \
+						with specified glob name patterns or names ("%Flip",
+						'Rotate*')"
+				)
+			),
+			/ %Adaptor.YAdaptor $=
+			(
+				(
+				- $revert(b839) $forced "aliases %(PixelToAlpha, PixelToBlue, \
+					PixelToGreen, PixelToRed)",
+				- $revert(b297) $forced "alias %FetchOpaque",
+				- $revert(b417) $forced "alias %(MonoType, AlphaType)"
+				) $dep_from %YCLib.Video,
+				- $revert(b297) "alias %FetchAlpha" $dep_from %Service.YBlend,
+				- $revert(b839) "alias %ColorComponentsToPixel" $dep_from
+					"%Color::operator Pixel" @ %Core.YGDIBase
+			),
+			/ %Service $=
+			(
+				/ DLDI "functor %BlitTransparentPoint" @ %YBlend
+					^ ("%PixelToAlpha" $dep_from %Core.YGDIBase) ~ "%FetchAlpha"
+				+ $dev $lib 'YB_ATTR_nodiscard' @ "functions and function \
+					templates with name prefixes 'Blend' or 'Composite'"
+					@ %YPixel
+				/ $dev $lib %Pixel $=
+				(
+					+ 'YB_ATTR_nodiscard YB_STATELESS' @ "function templates \
+						names %(CompositeAlphaOver, CompositeComponentOver, \
+						BlendComponent, CompositeComponent, BlendCore)",
+					+ 'YB_ATTR_nodiscard YB_PURE' @ "function templates \
+						names %(Blend, BlendAlpha, Composite)"
+				)
+			)
+		),
+		/ "threw for error other than %ENOENT" @ "functions \
+			%(InstallHardLink, InstallSymbolicLink)" @ %NPL.Dependency
+			^ "%Remove" ~ "%uremove"
+			// Also to prevent warning: [-Wunused-result] after \
+				'YB_ATTR_nodiscard' added to %uremove.
+	),
+	/ "traits type names" $=
+	(
+		* "member %traits_type wrongly named %traits"
+			$effective "class template %basic_filebuf"
+			@ %YFramework.YCLib.FileIO $since b616,
+			// ISO C++ specify the name as public.
+		/ DLDI ("private %traits for %allocator_traits instance"
+			=> "names with postfix 'ator_traits'") $effective
+			@ ("class template %allcator_delete"
+			@ %Memory, "class template %map" @ %Map) @ %YBase.YStandardEx,
+			// To be consistent to ISO C++ style, e.g. in \
+				[container.node.overview]. And the name 'traits' is for \
+				template parameter, which %_tTraits in YSLib code.
+		(
+		/ "member type %Traits" => "%traits_type" $effective
+			@ "class template %PixelQuadruple" @ %YFramework.YCLib.Video;
+		/ $forced DLDI ("function %UpdatePixmapBuffer" @ %YCLib.XCB,
+			("struct %BlitAlphaPoint" @ %YBlend, "%MaskTrait" @ %YPixel)
+			@ %YSLib.Service) @ %YFramework
+		),
+		/ "member type %traits" => "%traits_type" $effective
+			@ "class template %PointerHolder" @ %YFramework.YSLib.Core.YObject
+	)
+),
+
+b845
 (
 	/ %Tools $=
 	(
@@ -2583,7 +2904,7 @@ b836
 		/ %String $=
 		(
 			+ "3 function templates %string_empty",
-			+ 'YB_ATTR_nodiscard YB_PURE'
+			+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
 				@ "all 3 function template overloads %string_length",
 			/ "exception specification 'ynothrow'"
 				@ "function template %string_length#1" -> 'ynothrowv'

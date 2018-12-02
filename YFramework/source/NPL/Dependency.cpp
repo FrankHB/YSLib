@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2127
+\version r2129
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2018-11-23 00:43 +0800
+	2018-12-02 02:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -172,7 +172,7 @@ InstallHardLink(const char* dst, const char* src)
 	if(VerifyDirectory(src))
 		throw std::invalid_argument("Source is a directory.");
 	else
-		uremove(dst);
+		Remove(dst);
 	TryExpr(CreateHardLink(dst, src))
 	CatchExpr(..., InstallFile(dst, src))
 }
@@ -182,7 +182,7 @@ InstallSymbolicLink(const char* dst, const char* src)
 {
 	using namespace YSLib::IO;
 
-	uremove(dst);
+	Remove(dst);
 	TryExpr(CreateSymbolicLink(dst, src))
 	CatchExpr(..., InstallFile(dst, src))
 }

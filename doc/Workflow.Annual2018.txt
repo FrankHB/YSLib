@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2018 年度。
-\version r527
+\version r552
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2018-02-27 22:36:36 +0800
 \par 修改时间:
-	2018-11-04 12:07 +0800
+	2018-12-02 01:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -481,7 +481,7 @@ The MSVC-specific attribute '__declspec(novtable)' has been supported in 'ydef.h
 	It is considered that there can be a better name to 'vtable' in 'YB_ATTR_novtable' as it has been exposed too much implementation details, but nothing clearer is found yet.
 	Use of the attribute will be adopted in future in YSLib code, notably, for YBase base classes and YFramework interface types.
 
-$2018-10:
+$2018-11:
 
 $report.impl:
 Pool allocation has been implemented.
@@ -507,6 +507,32 @@ Pool allocation has been implemented.
 				Not same to 'std::vector', since the chunks are not inteneded to be reused (like reallocation in 'std::vector'), 2 does not suffer from cache missing issues.
 				See https://www.reddit.com/r/cpp/comments/2ezwee/stdvector_optimization_by_facebook/ about issues of vector reallocation.
 		All of the above implementation details are similar or same to Microsoft's current implementation but different to Boost.Container's.
+
+$2018-12:
+
+$report.impl:
+Deleter types for allocators have been reviewed. The idea of deleters has been considered in different proposals.
+	See https://groups.google.com/a/isocpp.org/forum/#!topic/std-proposals/rx8k-q7qeyI for the discussion.
+		At least two of them are proposed to WG21, namely WG21 P0211 and WG21 P0316.
+		And there are also prior arts in existed libraries.
+		There are subtle differences among interface designs.
+			Partial specialization for reference allocator types is in WG21 P0316, but not in other designs.
+			The 'const' qualification changes among revisions of WG21 P0211.
+			There is allocator access support (by 'get_allocator') in various designs, but not in WG21 P0211.
+	The interface provided as 'ystdex::allocate_delete' in "ystdex/memory.hpp" has done different to these proposals.
+		It actually is in line with libc++'s internal 'std::__allocator_destructor', which deallocates but not destroys objects allocated previously.
+			This is actually indirectly mentioned in WG21 P0316 as internal details.
+		The equivalent functionality to the 'std::unique_ptr' combined with and the deleter are proveded by guard pointer template 'std::__allocated_ptr' in libstdc++.
+			As it is too specific for internal use, it is not adopted in 'ystdex'.
+	The interface in 'ystdex' is now changed, but still not same to the existed designs.
+		The old interface is renamed to 'ystdex::allocator_guard_deleter'. The old name 'ystdex::allocator_delete' is then used by new a class template with object destroying.
+			To be consistent with other uses, the changed name proposed in WG21 P0211 is not adopted yet.
+				This might change later if it is adopted in the standard draft.
+			As the internal count is not in the 'ystdex::allocator_delete', they are separatedly implemented (without inheritance).
+		Qualification and internal 'mutable' is preserved.
+		Referenced allocator support is added, but without a partial specialization.
+		Allocator access is preserved. Additional 'count' access is added for 'ystdex::allocator_guard_deleter'.
+	Remained interface in the proposals like 'allocate_unique' is to be added in future.
 
 ////
 

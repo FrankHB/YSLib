@@ -11,13 +11,13 @@
 /*!	\file swap.hpp
 \ingroup YStandardEx
 \brief 交换操作。
-\version r566
+\version r584
 \author FrankHB <frankhb1989@gmail.com>
 \since build 831
 \par 创建时间:
 	2018-07-12 16:38:36 +0800
 \par 修改时间:
-	2018-11-26 04:09 +0800
+	2018-12-02 06:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -204,9 +204,28 @@ struct well_formed_swap<_type, _type2, ystdex::void_t<swap_t<_type, _type2>>>
 {};
 //@}
 
+// XXX: The order of instantiation is significant. Whether in the primary
+//	template or in an additional explicit specialziation, the fallback one has
+//	to be the first, because the template is instantiated in the call sites need
+//	to see the fallback before failed in a non-immediate context (that is, the
+//	class-body here). The wrong order can actually cause ambiguity with G++ 8
+//	'-std=c++14' (tested for 'ystdex' container with 'std::less'), while Clang++
+//	7 is permissive.
 template<typename _type, typename _type2,
 	bool = well_formed_swap<_type, _type2>::value>
 struct yimpl(helper)
+{
+	static yconstexpr const bool value = !is_same<decltype(
+		ystdex_swap::swap(std::declval<_type>(), std::declval<_type2>())),
+		nonesuch>::value;
+
+	helper() ynoexcept_spec(ystdex_swap::swap(std::declval<_type>(),
+		std::declval<_type2>()))
+	{}
+};
+
+template<typename _type, typename _type2>
+struct yimpl(helper)<_type, _type2, true>
 {
 	//! \since build 586
 	static yconstexpr const bool value
@@ -215,18 +234,6 @@ struct yimpl(helper)
 	//! \since build 694
 	helper()
 		ynoexcept_spec(swap(std::declval<_type>(), std::declval<_type2>()))
-	{}
-};
-
-template<typename _type, typename _type2>
-struct yimpl(helper)<_type, _type2, false>
-{
-	static yconstexpr const bool value = !is_same<decltype(
-		ystdex_swap::swap(std::declval<_type>(), std::declval<_type2>())),
-		nonesuch>::value;
-
-	helper() ynoexcept_spec(ystdex_swap::swap(std::declval<_type>(),
-		std::declval<_type2>()))
 	{}
 };
 //@}

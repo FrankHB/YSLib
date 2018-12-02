@@ -11,13 +11,13 @@
 /*!	\file map.hpp
 \ingroup YStandardEx
 \brief 映射容器。
-\version r929
+\version r988
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:12:51 +0800
 \par 修改时间:
-	2018-11-11 23:09 +0800
+	2018-12-02 16:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,9 +62,14 @@ template<typename, typename, typename, class>
 class multimap;
 
 /*!
+\ingroup YBase_replacement_features
 \brief 映射容器。
 \note 和 ISO C++ 的 std::map 类似，但支持不完整类型。
 \warning 非虚析构。
+\see Documentation::YBase @2.1.4.1 。
+\see Documentation::YBase @2.1.4.2 。
+
+类似 ISO C++ 的 std::map 的容器，但支持不完整类型作为键和值类型。
 */
 template<typename _tKey, typename _tMapped, typename _fComp = less<_tKey>,
 	class _tAlloc = std::allocator<std::pair<const _tKey, _tMapped>>>
@@ -92,7 +97,7 @@ public:
 		{}
 
 	public:
-		bool
+		YB_ATTR_nodiscard YB_PURE bool
 		operator()(const value_type& x, const value_type& y) const
 		{
 			return comp(x.first, y.first);
@@ -102,15 +107,16 @@ public:
 private:
 	using pair_alloc_type = typename allocator_traits<_tAlloc>::template
 		rebind_alloc<value_type>;
-	using alloc_traits = allocator_traits<pair_alloc_type>;
+	//! \since build 846
+	using pair_ator_traits = allocator_traits<pair_alloc_type>;
 	using rep_type = details::rb_tree::tree<key_type, value_type, first_of<>,
 		key_compare, pair_alloc_type>;
 
 	rep_type tree;
 
 public:
-	using pointer = typename alloc_traits::pointer;
-	using const_pointer = typename alloc_traits::const_pointer;
+	using pointer = typename pair_ator_traits::pointer;
+	using const_pointer = typename pair_ator_traits::const_pointer;
 	using reference = value_type&;
 	using const_reference = const value_type&;
 	using iterator = typename rep_type::iterator;
@@ -168,7 +174,7 @@ public:
 	map(map&&) = default;
 	map(map&& m, const allocator_type& a)
 		ynoexcept_spec(and_<is_nothrow_copy_constructible<_fComp>,
-		typename alloc_traits::is_always_equal>::value)
+		typename pair_ator_traits::is_always_equal>::value)
 		: tree(std::move(m.tree), pair_alloc_type(a))
 	{}
 	~map() = default;
@@ -184,97 +190,92 @@ public:
 		return *this;
 	}
 
-	allocator_type
+	YB_ATTR_nodiscard YB_PURE allocator_type
 	get_allocator() const ynothrow
 	{
 		return allocator_type(tree.get_allocator());
 	}
 
-	iterator
+	YB_ATTR_nodiscard YB_PURE iterator
 	begin() ynothrow
 	{
 		return tree.begin();
 	}
-
-	const_iterator
+	YB_ATTR_nodiscard YB_PURE const_iterator
 	begin() const ynothrow
 	{
 		return tree.begin();
 	}
 
-	iterator
+	YB_ATTR_nodiscard YB_PURE iterator
 	end() ynothrow
 	{
 		return tree.end();
 	}
-
-	const_iterator
+	YB_ATTR_nodiscard YB_PURE const_iterator
 	end() const ynothrow
 	{
 		return tree.end();
 	}
 
-	reverse_iterator
+	YB_ATTR_nodiscard YB_PURE reverse_iterator
 	rbegin() ynothrow
 	{
 		return tree.rbegin();
 	}
-
-	const_reverse_iterator
+	YB_ATTR_nodiscard YB_PURE const_reverse_iterator
 	rbegin() const ynothrow
 	{
 		return tree.rbegin();
 	}
 
-	reverse_iterator
+	YB_ATTR_nodiscard YB_PURE reverse_iterator
 	rend() ynothrow
 	{
 		return tree.rend();
 	}
-
-	const_reverse_iterator
+	YB_ATTR_nodiscard YB_PURE const_reverse_iterator
 	rend() const ynothrow
 	{
 		return tree.rend();
 	}
 
-	const_iterator
+	YB_ATTR_nodiscard YB_PURE const_iterator
 	cbegin() const noexcept
 	{
 		return tree.begin();
 	}
-
-	const_iterator
+	YB_ATTR_nodiscard YB_PURE const_iterator
 	cend() const noexcept
 	{
 		return tree.end();
 	}
 
-	const_reverse_iterator
+	YB_ATTR_nodiscard YB_PURE const_reverse_iterator
 	crbegin() const noexcept
 	{
 		return tree.rbegin();
 	}
 
-	const_reverse_iterator
+	YB_ATTR_nodiscard YB_PURE const_reverse_iterator
 	crend() const noexcept
 	{
 		return tree.rend();
 	}
 
-	YB_ATTR_nodiscard bool
+	YB_ATTR_nodiscard YB_PURE bool
 	empty() const ynothrow
 	{
 		return tree.empty();
 	}
 
-	size_type
+	YB_ATTR_nodiscard YB_PURE size_type
 	size() const ynothrow
 	{
 		return tree.size();
 	}
 
-	size_type
+	YB_ATTR_nodiscard YB_PURE size_type
 	max_size() const ynothrow
 	{
 		return tree.max_size();
@@ -290,7 +291,6 @@ public:
 				std::tuple<const key_type&>(k), std::tuple<>());
 		return (*i).second;
 	}
-
 	mapped_type&
 	operator[](key_type&& k)
 	{
@@ -302,12 +302,12 @@ public:
 		return (*i).second;
 	}
 
-	mapped_type&
+	YB_ATTR_nodiscard YB_PURE mapped_type&
 	at(const key_type& k)
 	{
 		return at_impl(*this, k, lower_bound(k));
 	}
-	const mapped_type&
+	YB_ATTR_nodiscard YB_PURE const mapped_type&
 	at(const key_type& k) const
 	{
 		return at_impl(*this, k, lower_bound(k));
@@ -315,7 +315,7 @@ public:
 
 private:
 	template<class _tClass, typename _tFwd>
-	static auto
+	YB_ATTR_nodiscard YB_PURE static auto
 	at_impl(_tClass&& m, const key_type& k, _tFwd i) -> decltype(((*i).second))
 	{
 		if(i == m.end() || m.key_comp()(k, (*i).first))
@@ -339,13 +339,13 @@ public:
 		return tree.emplace_hint_unique(position, yforward(args)...);
 	}
 
-	node_type
+	YB_ATTR_nodiscard YB_PURE node_type
 	extract(const_iterator pos)
 	{
 		yassume(pos != end());
 		return tree.extract(pos);
 	}
-	node_type
+	YB_ATTR_nodiscard YB_PURE node_type
 	extract(const key_type& x)
 	{
 		return tree.extract(x);
@@ -561,122 +561,122 @@ public:
 		tree.clear();
 	}
 
-	key_compare
+	YB_ATTR_nodiscard YB_PURE key_compare
 	key_comp() const
 	{
 		return tree.key_comp();
 	}
 
-	value_compare
+	YB_ATTR_nodiscard YB_PURE value_compare
 	value_comp() const
 	{
 		return value_compare(tree.key_comp());
 	}
 
-	iterator
+	YB_ATTR_nodiscard YB_PURE iterator
 	find(const key_type& x)
 	{
 		return tree.find(x);
 	}
 	template<typename _tTransKey>
-	auto
+	YB_ATTR_nodiscard YB_PURE auto
 	find(const _tTransKey& x) -> decltype(tree.find_tr(x))
 	{
 		return tree.find_tr(x);
 	}
-	const_iterator
+	YB_ATTR_nodiscard YB_PURE const_iterator
 	find(const key_type& x) const
 	{
 		return tree.find(x);
 	}
 	template<typename _tTransKey>
-	auto
+	YB_ATTR_nodiscard YB_PURE auto
 	find(const _tTransKey& x) const -> decltype(tree.find_tr(x))
 	{
 		return tree.find_tr(x);
 	}
 
-	size_type
+	YB_ATTR_nodiscard YB_PURE size_type
 	count(const key_type& x) const
 	{
 		return tree.find(x) == tree.end() ? 0 : 1;
 	}
 	template<typename _tTransKey>
-	auto
+	YB_ATTR_nodiscard YB_PURE auto
 	count(const _tTransKey& x) const -> decltype(tree.count_tr(x))
 	{
 		return tree.count_tr(x);
 	}
 
-	iterator
+	YB_ATTR_nodiscard YB_PURE iterator
 	lower_bound(const key_type& x)
 	{
 		return tree.lower_bound(x);
 	}
 	template<typename _tTransKey>
-	auto
+	YB_ATTR_nodiscard YB_PURE auto
 	lower_bound(const _tTransKey& x)
 		-> decltype(iterator(tree.lower_bound_tr(x)))
 	{
 		return iterator(tree.lower_bound_tr(x));
 	}
-	const_iterator
+	YB_ATTR_nodiscard YB_PURE const_iterator
 	lower_bound(const key_type& x) const
 	{
 		return tree.lower_bound(x);
 	}
 	template<typename _tTransKey>
-	auto
+	YB_ATTR_nodiscard YB_PURE auto
 	lower_bound(const _tTransKey& x) const
 		-> decltype(const_iterator(tree.lower_bound_tr(x)))
 	{
 		return const_iterator(tree.lower_bound_tr(x));
 	}
 
-	iterator
+	YB_ATTR_nodiscard YB_PURE iterator
 	upper_bound(const key_type& x)
 	{
 		return tree.upper_bound(x);
 	}
 	template<typename _tTransKey>
-	auto
+	YB_ATTR_nodiscard YB_PURE auto
 	upper_bound(const _tTransKey& x)
 		-> decltype(iterator(tree.upper_bound_tr(x)))
 	{
 		return iterator(tree.upper_bound_tr(x));
 	}
-	const_iterator
+	YB_ATTR_nodiscard YB_PURE const_iterator
 	upper_bound(const key_type& x) const
 	{
 		return tree.upper_bound(x);
 	}
 	template<typename _tTransKey>
-	auto
+	YB_ATTR_nodiscard YB_PURE auto
 	upper_bound(const _tTransKey& x) const
 		-> decltype(const_iterator(tree.upper_bound_tr(x)))
 	{
 		return const_iterator(tree.upper_bound_tr(x));
 	}
 
-	std::pair<iterator, iterator>
+	YB_ATTR_nodiscard YB_PURE std::pair<iterator, iterator>
 	equal_range(const key_type& x)
 	{
 		return tree.equal_range(x);
 	}
 	template<typename _tTransKey>
-	auto
+	YB_ATTR_nodiscard YB_PURE auto
 	equal_range(const _tTransKey& x)
 		-> decltype(std::pair<iterator, iterator>(tree.equal_range_tr(x)))
 	{
 		return std::pair<iterator, iterator>(tree.equal_range_tr(x));
 	}
-	std::pair<const_iterator, const_iterator>
+	YB_ATTR_nodiscard YB_PURE std::pair<const_iterator, const_iterator>
 	equal_range(const key_type& x) const
 	{
 		return tree.equal_range(x);
 	}
 	template<typename _tTransKey>
-	auto
+	YB_ATTR_nodiscard YB_PURE auto
 	equal_range(const _tTransKey& x) const -> decltype(
 		std::pair<const_iterator, const_iterator>(tree.equal_range_tr(x)))
 	{
@@ -684,20 +684,23 @@ public:
 			tree.equal_range_tr(x));
 	}
 
-	friend bool
+	YB_ATTR_nodiscard YB_PURE friend bool
 	operator==(const map& x, const map& y)
 	{
 		return x.tree == y.tree;
 	}
 
-	friend bool
+	YB_ATTR_nodiscard YB_PURE friend bool
 	operator<(const map& x, const map& y)
 	{
 		return x.tree < y.tree;
 	}
 };
 
-//! \relates map
+/*!
+\ingroup YBase_replacement_features
+\relates map
+*/
 template<typename _tKey, typename _tMapped, typename _fComp, typename _tAlloc>
 inline void
 swap(map<_tKey, _tMapped, _fComp, _tAlloc>& x,
@@ -720,13 +723,13 @@ struct tree_merge_helper<ystdex::map<_tKey, _tMapped, _fComp1, _tAlloc>, _fComp2
 private:
 	friend class ystdex::map<_tKey, _tMapped, _fComp1, _tAlloc>;
 
-	static auto
+	YB_ATTR_nodiscard YB_PURE static auto
 	get_tree(ystdex::map<_tKey, _tMapped, _fComp2, _tAlloc>& m)
 		-> decltype((m.tree))
 	{
 		return m.tree;
 	}
-	static auto
+	YB_ATTR_nodiscard YB_PURE static auto
 	get_tree(ystdex::multimap<_tKey, _tMapped, _fComp2, _tAlloc>& m)
 		-> decltype((m.tree))
 	{

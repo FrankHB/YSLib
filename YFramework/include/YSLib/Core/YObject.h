@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4953
+\version r5057
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2018-08-27 04:35 +0800
+	2018-11-29 06:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_Core_yobject_h_
-#define YSL_INC_Core_yobject_h_ 1
+#ifndef YSL_INC_Core_YObject_h_
+#define YSL_INC_Core_YObject_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YCoreUtilities // for ystdex::copy_or_move;
@@ -42,6 +42,8 @@ namespace YSLib
 using ystdex::type_info;
 
 
+//! \ingroup tags
+//@{
 /*!
 \brief 指定对参数指定类型的成员具有所有权的标签。
 \note 约定参数 void 表示无所有权。
@@ -66,6 +68,7 @@ struct MoveTag
 */
 struct PointerTag
 {};
+//@}
 
 
 /*!
@@ -78,12 +81,12 @@ struct HasOwnershipOf : std::is_base_of<OwnershipTag<_type>, _tOwner>
 
 
 /*!
-\brief 第一个参数指定的选项创建擦除类型的持有者或抛出异常。
+\note 第一参数指定的选项创建擦除类型的持有者或抛出异常。
 \since build 764
 */
 //@{
 template<class _tHolder, typename... _tParams>
-ystdex::any
+YB_ATTR_nodiscard ystdex::any
 CreateHolderInPlace(ystdex::true_, _tParams&&... args)
 {
 	return ystdex::any(ystdex::any_ops::use_holder,
@@ -91,7 +94,7 @@ CreateHolderInPlace(ystdex::true_, _tParams&&... args)
 }
 //! \exception ystdex::invalid_construction 参数类型无法用于初始化持有者。
 template<class _tHolder, typename... _tParams>
-YB_NORETURN ystdex::any
+YB_ATTR_nodiscard YB_NORETURN ystdex::any
 CreateHolderInPlace(ystdex::false_, _tParams&&...)
 {
 	ystdex::throw_invalid_construction();
@@ -147,12 +150,12 @@ DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
 	比较参数和持有的对象。
 	派生实现应保证返回的值满足 EqualityComparable 中对 == 操作的要求。
 	*/
-	DeclIEntry(bool Equals(const void*) const)
+	YB_ATTR_nodiscard YB_PURE DeclIEntry(bool Equals(const void*) const)
 	/*!
 	\brief 取被持有对象的共享所有者总数。
 	\since build 786
 	*/
-	DeclIEntry(size_t OwnsCount() const ynothrow)
+	YB_ATTR_nodiscard YB_PURE DeclIEntry(size_t OwnsCount() const ynothrow)
 	/*!
 	\sa Creation
 	\since build 761
@@ -169,14 +172,14 @@ DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
 	派生实现应保证返回的值满足选项指定的条件，且变换不改变当前逻辑状态，
 	除 mutable 的数据成员可被转移；否则，应抛出异常。
 	*/
-	DeclIEntry(ystdex::any Create(Creation) const)
+	YB_ATTR_nodiscard DeclIEntry(ystdex::any Create(Creation) const)
 
 	/*!
 	\brief 提供创建持有者的默认实现。
 	\sa Create
 	*/
 	template<typename _type>
-	static ystdex::any
+	YB_ATTR_nodiscard static ystdex::any
 	CreateHolder(Creation, _type&);
 	//@}
 EndDecl
@@ -198,7 +201,7 @@ struct HeldEqual : private ystdex::examiners::equal_examiner
 template<typename _type1, typename _type2>
 struct HeldEqual<weak_ptr<_type1>, weak_ptr<_type2>>
 {
-	static bool
+	YB_ATTR_nodiscard YB_PURE static bool
 	are_equal(const weak_ptr<_type1>& x, const weak_ptr<_type2>& y)
 	{
 		return x == y;
@@ -208,7 +211,7 @@ struct HeldEqual<weak_ptr<_type1>, weak_ptr<_type2>>
 template<typename _type1, typename _type2, typename _type3, typename _type4>
 struct HeldEqual<pair<_type1, _type2>, pair<_type3, _type4>>
 {
-	static yconstfn bool
+	YB_ATTR_nodiscard YB_PURE static yconstfn bool
 	are_equal(const pair<_type1, _type2>& x, const pair<_type3, _type4>& y)
 	{
 		return x.first == y.first && x.second == y.second;
@@ -224,7 +227,7 @@ struct HeldEqual<pair<_type1, _type2>, pair<_type3, _type4>>
 \since build 454
 */
 template<typename _type1, typename _type2>
-yconstfn bool
+YB_ATTR_nodiscard YB_PURE yconstfn bool
 AreEqualHeld(const _type1& x, const _type2& y)
 {
 	return HeldEqual<_type1, _type2>::are_equal(x, y);
@@ -269,73 +272,81 @@ public:
 	DefDeCopyMoveCtorAssignment(ValueHolder)
 
 	//! \since build 761
-	PDefH(ystdex::any, Create, Creation c) const ImplI(IValueHolder)
+	YB_ATTR_nodiscard PDefH(ystdex::any, Create, Creation c) const
+		ImplI(IValueHolder)
 		ImplRet(CreateHolder(c, this->value))
 
 	//! \since build 752
-	PDefH(bool, Equals, const void* p) const ImplI(IValueHolder)
+	YB_ATTR_nodiscard YB_PURE PDefH(bool, Equals, const void* p) const
+		ImplI(IValueHolder)
 		ImplRet(bool(p) && AreEqualHeld(this->value,
 			Deref(static_cast<const value_type*>(p))))
 
 	//! \since build 786
-	PDefH(size_t, OwnsCount, ) const ynothrow ImplI(IValueHolder)
+	YB_ATTR_nodiscard YB_PURE PDefH(size_t, OwnsCount, ) const ynothrow
+		ImplI(IValueHolder)
 		ImplRet(1)
 
 	//! \since build 348
-	PDefH(void*, get, ) const ImplI(IValueHolder)
+	YB_ATTR_nodiscard YB_PURE PDefH(void*, get, ) const ImplI(IValueHolder)
 		ImplRet(std::addressof(this->value))
 
 	//! \since build 683
-	PDefH(const type_info&, type, ) const ynothrow ImplI(IValueHolder)
+	YB_ATTR_nodiscard YB_PURE PDefH(const type_info&, type, ) const ynothrow
+		ImplI(IValueHolder)
 		ImplRet(ystdex::type_id<_type>())
 };
 
 
 /*!
-\ingroup type_traits_operations
+\ingroup traits
 \brief 指针持有者特征。
 \since build 784
 */
 template<typename _tPointer>
 struct PointerHolderTraits : std::pointer_traits<_tPointer>
 {
+public:
 	using holder_pointer = _tPointer;
 	using shared = ystdex::is_sharing<holder_pointer>;
 
 	//! \since build 786
 	//@{
-	static PDefH(size_t, count_owner, const holder_pointer& p_held) ynothrow
+	YB_ATTR_nodiscard YB_PURE static PDefH(size_t, count_owner,
+		const holder_pointer& p_held) ynothrow
 		ImplRet(count_owner(shared(), p_held))
 
 private:
-	static PDefH(size_t, count_owner, ystdex::false_,
+	YB_ATTR_nodiscard YB_PURE static PDefH(size_t, count_owner, ystdex::false_,
 		const holder_pointer& p_held) ynothrow
 		ImplRet(is_owner(p_held) ? 1 : 0)
-	static PDefH(size_t, count_owner, ystdex::true_,
+	YB_ATTR_nodiscard YB_PURE static PDefH(size_t, count_owner, ystdex::true_,
 		const holder_pointer& p_held) ynothrow
 		ImplRet(size_t(p_held.use_count()))
 	//@}
 
 public:
 	//! \note 使用 ADL get_raw 。
-	static PDefH(auto, get, const holder_pointer& p_held)
-		ynoexcept_spec(get_raw(p_held)) -> decltype(get_raw(p_held))
+	YB_ATTR_nodiscard YB_PURE static PDefH(auto, get, const holder_pointer&
+		p_held) ynoexcept_spec(get_raw(p_held)) -> decltype(get_raw(p_held))
 		ImplRet(get_raw(p_held))
 
 	//! \note 使用 ADL owns_unique 。
-	static PDefH(bool, is_unique_owner, const holder_pointer& p_held) ynothrow
+	YB_ATTR_nodiscard YB_PURE static PDefH(bool, is_unique_owner,
+		const holder_pointer& p_held) ynothrow
 		ImplRet(owns_unique(p_held))
 
 	//! \note 对非内建指针使用 ADL owns_nonnull 。
-	static PDefH(bool, is_owner, const holder_pointer& p_held) ynothrow
+	YB_ATTR_nodiscard YB_PURE static PDefH(bool, is_owner,
+		const holder_pointer& p_held) ynothrow
 		ImplRet(is_owner(std::is_pointer<holder_pointer>(), p_held))
 
 private:
-	static PDefH(bool, is_owner, ystdex::false_, const holder_pointer& p_held)
-		ynothrow
+	YB_ATTR_nodiscard YB_PURE static PDefH(bool, is_owner, ystdex::false_,
+		const holder_pointer& p_held) ynothrow
 		ImplRet(owns_nonnull(p_held))
-	static PDefH(bool, is_owner, ystdex::true_, const holder_pointer& p_held)
-		ynothrow
+	YB_ATTR_nodiscard YB_PURE static PDefH(bool, is_owner, ystdex::true_,
+		const holder_pointer& p_held) ynothrow
 		ImplRet(bool(p_held))
 };
 
@@ -360,13 +371,13 @@ class PointerHolder : implements IValueHolder
 public:
 	//! \since build 352
 	using value_type = _type;
-	//! \since build 784
-	using traits = _tTraits;
-	using holder_pointer = typename traits::holder_pointer;
+	//! \since build 846
+	using traits_type = _tTraits;
+	using holder_pointer = typename traits_type::holder_pointer;
 	using pointer
-		= decltype(traits::get(std::declval<const holder_pointer&>()));
+		= decltype(traits_type::get(std::declval<const holder_pointer&>()));
 	//! \since build 783
-	using shared = typename traits::shared;
+	using shared = typename traits_type::shared;
 
 protected:
 	holder_pointer p_held;
@@ -412,33 +423,37 @@ public:
 	DefGetter(ynothrow, const holder_pointer&, Held, p_held)
 
 	//! \since build 761
-	ystdex::any
+	YB_ATTR_nodiscard ystdex::any
 	Create(Creation c) const ImplI(IValueHolder)
 	{
+		// TODO: Blocked. Use C++17 'if constexpr' to simplify.
 		if(shared() && c == IValueHolder::Copy)
 			return CreateHolderInPlace<PointerHolder>(shared(), p_held);
-		if(const auto& p = traits::get(p_held))
+		if(const auto& p = traits_type::get(p_held))
 			return CreateHolder(c, *p);
 		ystdex::throw_invalid_construction();
 	}
 
 	//! \since build 752
-	PDefH(bool, Equals, const void* p) const ImplI(IValueHolder)
-		ImplRet(traits::is_owner(p_held) && p
-			? AreEqualHeld(Deref(traits::get(p_held)),
+	YB_ATTR_nodiscard YB_PURE PDefH(bool, Equals, const void* p) const
+		ImplI(IValueHolder)
+		ImplRet(traits_type::is_owner(p_held) && p
+			? AreEqualHeld(Deref(traits_type::get(p_held)),
 			Deref(static_cast<const value_type*>(p))) : !get())
 
 	//! \since build 786
-	PDefH(size_t, OwnsCount, ) const ynothrow ImplI(IValueHolder)
-		ImplRet(traits::count_owner(p_held))
+	YB_ATTR_nodiscard YB_PURE PDefH(size_t, OwnsCount, ) const ynothrow
+		ImplI(IValueHolder)
+		ImplRet(traits_type::count_owner(p_held))
 
 	//! \since build 348
-	PDefH(void*, get, ) const ImplI(IValueHolder)
-		ImplRet(traits::get(p_held))
+	YB_ATTR_nodiscard YB_PURE PDefH(void*, get, ) const ImplI(IValueHolder)
+		ImplRet(traits_type::get(p_held))
 
 	//! \since build 683
-	PDefH(const type_info&, type, ) const ynothrow ImplI(IValueHolder)
-		ImplRet(traits::is_owner(p_held)
+	YB_ATTR_nodiscard YB_PURE PDefH(const type_info&, type, ) const ynothrow
+		ImplI(IValueHolder)
+		ImplRet(traits_type::is_owner(p_held)
 			? ystdex::type_id<_type>() : ystdex::type_id<void>())
 };
 
@@ -483,28 +498,32 @@ public:
 	DefDeCopyMoveCtorAssignment(RefHolder)
 
 	//! \since build 761
-	PDefH(ystdex::any, Create, Creation c) const ImplI(IValueHolder)
+	YB_ATTR_nodiscard PDefH(ystdex::any, Create, Creation c) const
+		ImplI(IValueHolder)
 		ImplRet(CreateHolder(c, Ref()))
 
 	//! \since build 752
-	PDefH(bool, Equals, const void* p) const ImplI(IValueHolder)
+	YB_ATTR_nodiscard PDefH(bool, Equals, const void* p) const
+		ImplI(IValueHolder)
 		ImplRet(bool(p) && AreEqualHeld(Deref(static_cast<const value_type*>(
 			get())), Deref(static_cast<const value_type*>(p))))
 
 	//! \since build 786
-	PDefH(size_t, OwnsCount, ) const ynothrow ImplI(IValueHolder)
+	YB_ATTR_nodiscard YB_PURE PDefH(size_t, OwnsCount, ) const ynothrow
+		ImplI(IValueHolder)
 		ImplRet(0)
 
 private:
 	//! \since build 761
-	PDefH(value_type&, Ref, ) const
+	YB_ATTR_nodiscard YB_PURE PDefH(value_type&, Ref, ) const
 		ImplRet(Deref(static_cast<lref<value_type>*>(base.get())).get())
 
 public:
-	PDefH(void*, get, ) const ImplI(IValueHolder)
+	YB_ATTR_nodiscard YB_PURE PDefH(void*, get, ) const ImplI(IValueHolder)
 		ImplRet(ystdex::pvoid(std::addressof(Ref())))
 
-	PDefH(const type_info&, type, ) const ynothrow ImplI(IValueHolder)
+	YB_ATTR_nodiscard PDefH(const type_info&, type, ) const ynothrow
+		ImplI(IValueHolder)
 		ImplRet(ystdex::type_id<value_type>())
 };
 //@}
@@ -671,20 +690,21 @@ public:
 	\brief 比较相等：参数都为空或都非空且存储的对象相等。
 	\since build 673
 	*/
-	friend PDefHOp(bool, ==, const ValueObject& x, const ValueObject& y)
+	YB_ATTR_nodiscard YB_PURE friend
+		PDefHOp(bool, ==, const ValueObject& x, const ValueObject& y)
 		ImplRet(x.Equals(y))
 	//! \since build 753
 	//@{
 	//! \brief 比较相等：存储的对象值相等。
 	//@{
 	template<typename _type>
-	friend inline bool
+	YB_ATTR_nodiscard YB_PURE friend inline bool
 	operator==(const ValueObject& x, const _type& y)
 	{
 		return x.Equals(y);
 	}
 	template<typename _type>
-	friend inline bool
+	YB_ATTR_nodiscard YB_PURE friend inline bool
 	operator==(const _type& x, const ValueObject& y)
 	{
 		return y.Equals(x);
@@ -694,13 +714,13 @@ public:
 	//! \brief 比较不等：存储的对象值不等。
 	//@{
 	template<typename _type>
-	friend inline bool
+	YB_ATTR_nodiscard friend inline bool
 	operator!=(const ValueObject& x, const _type& y)
 	{
 		return !(x == y);
 	}
 	template<typename _type>
-	friend inline bool
+	YB_ATTR_nodiscard friend inline bool
 	operator!=(const _type& x, const ValueObject& y)
 	{
 		return !(x == y);
@@ -717,13 +737,13 @@ public:
 	//! \since build 752
 	//@{
 	//! \build 取持有者指针。
-	IValueHolder*
+	YB_ATTR_nodiscard YB_PURE IValueHolder*
 	GetHolderPtr() const;
 	/*!
 	\build 取持有者引用。
 	\pre 持有者指针非空。
 	*/
-	IValueHolder&
+	YB_ATTR_nodiscard YB_PURE IValueHolder&
 	GetHolderRef() const;
 	//@}
 	/*!
@@ -733,13 +753,13 @@ public:
 	*/
 	//@{
 	template<typename _type>
-	inline _type&
+	YB_ATTR_nodiscard YB_PURE inline _type&
 	GetObject() ynothrowv
 	{
 		return Deref(ystdex::unchecked_any_cast<_type>(&content));
 	}
 	template<typename _type>
-	inline const _type&
+	YB_ATTR_nodiscard YB_PURE inline const _type&
 	GetObject() const ynothrowv
 	{
 		return Deref(ystdex::unchecked_any_cast<const _type>(&content));
@@ -753,13 +773,13 @@ public:
 	*/
 	//@{
 	template<typename _type>
-	inline _type&
+	YB_ATTR_nodiscard YB_PURE inline _type&
 	Access()
 	{
 		return ystdex::any_cast<_type&>(content);
 	}
 	template<typename _type>
-	inline const _type&
+	YB_ATTR_nodiscard YB_PURE inline const _type&
 	Access() const
 	{
 		return ystdex::any_cast<const _type&>(content);
@@ -772,13 +792,13 @@ public:
 	*/
 	//@{
 	template<typename _type>
-	inline observer_ptr<_type>
+	YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
 	AccessPtr() ynothrow
 	{
 		return YSLib::make_observer(ystdex::any_cast<_type>(&content));
 	}
 	template<typename _type>
-	inline observer_ptr<const _type>
+	YB_ATTR_nodiscard YB_PURE inline observer_ptr<const _type>
 	AccessPtr() const ynothrow
 	{
 		return YSLib::make_observer(ystdex::any_cast<const _type>(&content));
@@ -797,14 +817,14 @@ public:
 	\brief 取自身的复制初始化转移结果：按是否具有唯一所有权选择转移或复制值对象。
 	\since build 787
 	*/
-	PDefH(ValueObject, CopyMove, )
+	YB_ATTR_nodiscard PDefH(ValueObject, CopyMove, )
 		ImplRet(ystdex::copy_or_move(!OwnsUnique(), *this))
 
 	/*!
 	\brief 取以指定持有者选项创建的副本。
 	\since build 761
 	*/
-	ValueObject
+	YB_ATTR_nodiscard ValueObject
 	Create(IValueHolder::Creation) const;
 
 	/*!
@@ -815,10 +835,10 @@ public:
 	比较参数和持有的对象。
 	*/
 	//@{
-	bool
+	YB_ATTR_nodiscard YB_PURE bool
 	Equals(const ValueObject&) const;
 	template<typename _type>
-	bool
+	YB_ATTR_nodiscard YB_PURE bool
 	Equals(const _type& x) const
 	{
 		if(const auto p_holder = content.get_holder())
@@ -828,14 +848,14 @@ public:
 	}
 
 	//! \pre 参数为空指针值或持有的对象去除 const 后具有和参数相同动态类型的对象。
-	bool
+	YB_ATTR_nodiscard YB_PURE bool
 	EqualsRaw(const void*) const;
 
 	/*!
 	\pre 间接断言：持有的对象非空。
 	\pre 持有的对象去除 const 后具有和参数相同动态类型的对象。
 	*/
-	bool
+	YB_ATTR_nodiscard YB_PURE bool
 	EqualsUnchecked(const void*) const;
 	//@}
 
@@ -843,42 +863,42 @@ public:
 	\brief 取引用的值对象的副本。
 	\since build 761
 	*/
-	PDefH(ValueObject, MakeCopy, ) const
+	YB_ATTR_nodiscard PDefH(ValueObject, MakeCopy, ) const
 		ImplRet(Create(IValueHolder::Copy))
 
 	/*!
 	\brief 取引用的值对象的转移副本。
 	\since build 761
 	*/
-	PDefH(ValueObject, MakeMove, ) const
+	YB_ATTR_nodiscard PDefH(ValueObject, MakeMove, ) const
 		ImplRet(Create(IValueHolder::Move))
 
 	/*!
 	\brief 取引用的值对象的初始化副本：按是否具有唯一所有权选择转移或复制对象副本。
 	\since build 764
 	*/
-	PDefH(ValueObject, MakeMoveCopy, ) const
+	YB_ATTR_nodiscard PDefH(ValueObject, MakeMoveCopy, ) const
 		ImplRet(Create(OwnsUnique() ? IValueHolder::Move : IValueHolder::Copy))
 
 	/*!
 	\brief 取间接引用的值对象。
 	\since build 747
 	*/
-	PDefH(ValueObject, MakeIndirect, ) const
+	YB_ATTR_nodiscard PDefH(ValueObject, MakeIndirect, ) const
 		ImplRet(Create(IValueHolder::Indirect))
 
 	/*!
 	\brief 取所有者持有的对象的共享所有者的总数。
 	\since build 786
 	*/
-	size_t
+	YB_ATTR_nodiscard YB_PURE size_t
 	OwnsCount() const ynothrow;
 
 	/*!
 	\brief 判断是否是持有的对象的唯一所有者。
 	\since build 759
 	*/
-	PDefH(bool, OwnsUnique, ) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(bool, OwnsUnique, ) const ynothrow
 		ImplRet(OwnsCount() == 1)
 
 	//! \since build 759
@@ -914,7 +934,7 @@ public:
 	\sa ystdex::any::type
 	\since build 799
 	*/
-	PDefH(const type_info&, type, ) const ynothrow
+	YB_ATTR_nodiscard PDefH(const type_info&, type, ) const ynothrow
 		ImplRet(content.type())
 };
 
@@ -926,13 +946,13 @@ public:
 //! \since build 749
 //@{
 template<typename _type>
-inline observer_ptr<_type>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
 AccessPtr(ValueObject& vo) ynothrow
 {
 	return vo.AccessPtr<_type>();
 }
 template<typename _type>
-inline observer_ptr<const _type>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<const _type>
 AccessPtr(const ValueObject& vo) ynothrow
 {
 	return vo.AccessPtr<_type>();
@@ -945,7 +965,7 @@ AccessPtr(const ValueObject& vo) ynothrow
 
 默认对 ValueObject 及引用值会被直接复制或转移赋值；
 其它情形调用 ValueObject::emplace 。
-使用第三和第四个参数分别指定非默认情形下不忽略值及使用赋值。
+使用第三和第四参数分别指定非默认情形下不忽略值及使用赋值。
 */
 //@{
 template<typename _type, typename... _tParams>
@@ -982,7 +1002,7 @@ EmplaceCallResult(ValueObject& vo, _type&& res)
 //@}
 
 template<typename _type, typename... _tParams>
-_type&
+YB_ATTR_nodiscard _type&
 EmplaceIfEmpty(ValueObject& vo, _tParams&&... args)
 {
 	if(!vo)
@@ -994,7 +1014,8 @@ EmplaceIfEmpty(ValueObject& vo, _tParams&&... args)
 }
 
 //! \brief 判断是否持有相同对象。
-inline PDefH(bool, HoldSame, const ValueObject& x, const ValueObject& y)
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, HoldSame, const ValueObject& x, const ValueObject& y)
 	ImplRet(ystdex::hold_same(x.GetContent(), y.GetContent()))
 //@}
 
@@ -1045,7 +1066,7 @@ public:
 	DefGetter(ynothrow, ReferenceType, NewRef, *GetCopyOnWritePtr())
 
 	//! \post 返回值非空。
-	PointerType
+	YB_ATTR_nodiscard PointerType
 	GetCopyOnWritePtr()
 	{
 		if(!ptr)

@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r509
+\version r594
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2018-11-26 06:39 +0800
+	2018-12-02 16:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,10 +30,11 @@
 #ifndef YB_INC_ystdex_pointer_hpp_
 #define YB_INC_ystdex_pointer_hpp_ 1
 
-#include "iterator_op.hpp" // for "iterator_op.hpp", bool_, true_,
-//	totally_ordered, nullptr_t, equality_comparable, yconstraint,
-//	iterator_operators_t, std::iterator_traits;
-#include <functional> // for std::equal_to, std::less;
+#include "iterator_op.hpp" // for "iterator_op.hpp", <memory>, pointer_traits,
+//	bool_, not_, is_function, true_, totally_ordered, nullptr_t,
+//	equality_comparable, yconstraint, iterator_operators_t,
+//	std::iterator_traits;
+#include <functional> // for std::equal_to, std::less, std::hash;
 #include "type_traits.hpp" // for add_ptr_t, add_ref_t, ystdex::swap_dependent;
 
 namespace ystdex
@@ -43,12 +44,56 @@ namespace ystdex
 namespace details
 {
 
+//! \since build 846
+//@{
+template<class _tPointer>
+YB_ATTR_nodiscard inline auto
+to_address(nullptr_t, const _tPointer& p)
+	-> decltype(std::pointer_traits<_tPointer>::to_address(p))
+{
+	return std::pointer_traits<_tPointer>::to_address(p);
+}
+template<class _tPointer>
+YB_ATTR_nodiscard inline auto
+to_address(void*, const _tPointer& p)
+	-> decltype(details::to_address(nullptr, p.operator->()))
+{
+	return details::to_address(nullptr, p.operator->());
+}
+//@}
+
 template<typename _type>
 using nptr_eq1 = bool_<_type() == _type()>;
 template<typename _type>
 using nptr_eq2 = bool_<_type(nullptr) == nullptr>;
 
 } // namespace details;
+
+
+/*!
+\ingroup YBase_replacement_features
+\brief 转换指针。
+\since build 846
+\see WG21 P0653R2 。
+*/
+//@{
+template<class _tPointer>
+YB_ATTR_nodiscard inline auto
+to_address(const _tPointer& p) ynothrow
+	-> yimpl(decltype(details::to_address(p)))
+{
+	return details::to_address(nullptr, p);
+}
+template<typename _type>
+YB_ATTR_nodiscard YB_STATELESS yconstfn _type*
+to_address(_type* p) ynothrow
+{
+	static_assert(not_<is_function<_type>>(), "Invalid type found.");
+
+	return p;
+}
+//@}
+
 
 //! \since build 560
 //@{
@@ -101,7 +146,7 @@ public:
 		return *this;
 	}
 
-	yconstfn bool
+	YB_ATTR_nodiscard YB_PURE yconstfn bool
 	operator!() const ynothrow
 	{
 		return !bool(*this);
@@ -111,24 +156,24 @@ public:
 	//@{
 	//! \pre 表达式 \c *ptr 合式。
 	//@{
-	yconstfn_relaxed auto
+	YB_ATTR_nodiscard YB_PURE yconstfn_relaxed auto
 	operator*() ynothrow -> decltype(*ptr)
 	{
 		return *ptr;
 	}
-	yconstfn auto
+	YB_ATTR_nodiscard YB_PURE yconstfn auto
 	operator*() const ynothrow -> decltype(*ptr)
 	{
 		return *ptr;
 	}
 	//@}
 
-	yconstfn_relaxed pointer&
+	YB_ATTR_nodiscard YB_PURE yconstfn_relaxed pointer&
 	operator->() ynothrow
 	{
 		return ptr;
 	}
-	yconstfn const pointer&
+	YB_ATTR_nodiscard YB_PURE yconstfn const pointer&
 	operator->() const ynothrow
 	{
 		return ptr;
@@ -136,34 +181,34 @@ public:
 	//@}
 
 	//! \since build 600
-	friend yconstfn bool
+	YB_ATTR_nodiscard YB_PURE friend yconstfn bool
 	operator==(const nptr& x, const nptr& y) ynothrow
 	{
 		return std::equal_to<pointer>()(x.ptr, y.ptr);
 	}
 
 	//! \since build 600
-	friend yconstfn bool
+	YB_ATTR_nodiscard YB_PURE friend yconstfn bool
 	operator<(const nptr& x, const nptr& y) ynothrow
 	{
 		return std::less<pointer>()(x.ptr, y.ptr);
 	}
 
 	//! \since build 628
-	explicit yconstfn
+	YB_ATTR_nodiscard YB_PURE explicit yconstfn
 	operator bool() const ynothrow
 	{
 		return bool(ptr);
 	}
 
 	//! \since build 566
-	yconstfn const pointer&
+	YB_ATTR_nodiscard YB_PURE yconstfn const pointer&
 	get() const ynothrow
 	{
 		return ptr;
 	}
 
-	yconstfn_relaxed pointer&
+	YB_ATTR_nodiscard YB_PURE yconstfn_relaxed pointer&
 	get_ref() ynothrow
 	{
 		return ptr;
@@ -232,38 +277,38 @@ public:
 	{}
 
 	//! \pre 断言： <tt>get() != nullptr</tt> 。
-	yconstfn reference
+	YB_ATTR_nodiscard YB_STATELESS yconstfn reference
 	operator*() const ynothrowv
 	{
 		return yconstraint(get() != nullptr), *ptr;
 	}
 
-	yconstfn pointer
+	YB_ATTR_nodiscard YB_STATELESS yconstfn pointer
 	operator->() const ynothrow
 	{
 		return ptr;
 	}
 
 	//! \since build 675
-	friend yconstfn bool
+	YB_ATTR_nodiscard YB_STATELESS friend yconstfn bool
 	operator==(observer_ptr p, nullptr_t) ynothrow
 	{
 		return !p.ptr;
 	}
 
-	explicit yconstfn
+	YB_ATTR_nodiscard YB_STATELESS explicit yconstfn
 	operator bool() const ynothrow
 	{
 		return ptr;
 	}
 
-	explicit yconstfn
+	YB_ATTR_nodiscard YB_STATELESS explicit yconstfn
 	operator pointer() const ynothrow
 	{
 		return ptr;
 	}
 
-	yconstfn pointer
+	YB_ATTR_nodiscard YB_STATELESS yconstfn pointer
 	get() const ynothrow
 	{
 		return ptr;
@@ -296,21 +341,21 @@ public:
 //! \since build 675
 //@{
 template<typename _type1, typename _type2>
-yconstfn bool
+YB_ATTR_nodiscard YB_STATELESS yconstfn bool
 operator==(observer_ptr<_type1> p1, observer_ptr<_type2> p2) ynothrowv
 {
 	return p1.get() == p2.get();
 }
 
 template<typename _type1, typename _type2>
-yconstfn bool
+YB_ATTR_nodiscard YB_STATELESS yconstfn bool
 operator!=(observer_ptr<_type1> p1, observer_ptr<_type2> p2) ynothrowv
 {
 	return !(p1 == p2);
 }
 
 template<typename _type1, typename _type2>
-yconstfn bool
+YB_ATTR_nodiscard YB_STATELESS yconstfn bool
 operator<(observer_ptr<_type1> p1, observer_ptr<_type2> p2) ynothrowv
 {
 	return std::less<common_type_t<_type1*, _type2*>>()(p1.get(), p2.get());
@@ -324,7 +369,7 @@ swap(observer_ptr<_type>& p1, observer_ptr<_type>& p2) ynothrow
 	p1.swap(p2);
 }
 template<typename _type>
-inline observer_ptr<_type>
+YB_ATTR_nodiscard YB_STATELESS inline observer_ptr<_type>
 make_observer(_type* p) ynothrow
 {
 	return observer_ptr<_type>(p);
@@ -399,7 +444,7 @@ public:
 	}
 
 	//! \since build 461
-	yconstfn reference
+	YB_ATTR_nodiscard YB_STATELESS yconstfn reference
 	operator*() const ynothrowv
 	{
 		return yconstraint(raw), *raw;
@@ -421,20 +466,20 @@ public:
 	}
 
 	//! \since build 600
-	friend yconstfn bool
+	YB_ATTR_nodiscard YB_STATELESS friend yconstfn bool
 	operator==(const pointer_iterator& x, const pointer_iterator& y) ynothrow
 	{
 		return x.raw == y.raw;
 	}
 
 	//! \since build 666
-	friend yconstfn bool
+	YB_ATTR_nodiscard YB_STATELESS friend yconstfn bool
 	operator<(const pointer_iterator& x, const pointer_iterator& y) ynothrow
 	{
 		return x.raw < y.raw;
 	}
 
-	yconstfn
+	YB_ATTR_nodiscard YB_STATELESS yconstfn
 	operator pointer() const ynothrow
 	{
 		return raw;
@@ -465,6 +510,26 @@ struct pointer_classify<_type*>
 //@}
 
 } // namespace ystdex;
+
+namespace std
+{
+
+/*!
+\brief ystdex::observer_ptr 散列支持。
+\see ISO WG21 N4529 8.12.7[memory.observer.ptr.hash] 。
+\since build 674
+*/
+template<typename _type>
+struct hash<ystdex::observer_ptr<_type>>
+{
+	YB_ATTR_nodiscard YB_STATELESS size_t
+	operator()(const ystdex::observer_ptr<_type>& p) const yimpl(ynothrow)
+	{
+		return hash<_type*>(p.get());
+	}
+};
+
+} // namespace std;
 
 #endif
 

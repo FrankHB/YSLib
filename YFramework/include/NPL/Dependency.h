@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r270
+\version r278
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2018-09-24 17:28 +0800
+	2018-12-01 15:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,6 +101,13 @@ YB_NONNULL(1, 2) inline PDefH(void, InstallDirectory, const char* dst,
 //@}
 
 /*!
+\note 在创建链接前首先删除文件。
+\exception std::system_error 由 IO::Remove 抛出的除文件不存在外的错误。
+\warning 非强异常安全：删除文件成功但创建链接失败时，不重新创建原有的链接。
+\see IO::Remove
+*/
+//@{
+/*!
 \brief 安装硬链接：创建硬链接，失败则安装文件。
 \throw std::invalid_argument 安装前发现源是有效的目录。
 */
@@ -119,6 +126,7 @@ YF_API YB_NONNULL(1, 2) void
 InstallSymbolicLink(const char*, const char*);
 inline PDefH(void, InstallSymbolicLink, const string& dst, const string& src)
 	ImplExpr(InstallSymbolicLink(dst.c_str(), src.c_str()))
+//@}
 //@}
 
 /*!

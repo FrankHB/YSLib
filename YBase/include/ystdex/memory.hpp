@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r2852
+\version r3188
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2018-11-17 19:06 +0800
+	2018-12-02 16:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,19 +30,19 @@
 #ifndef YB_INC_ystdex_memory_hpp_
 #define YB_INC_ystdex_memory_hpp_ 1
 
-#include "placement.hpp" // for internal "placement.hpp", <memory>, and_,
-//	is_copy_constructible, cond_t, is_detected, std::declval, detected_or_t,
-//	detected_t, conditional, enable_if_convertible_t, indirect_element_t,
-//	remove_reference_t, not_, is_void, remove_pointer_t, yconstraint,
-//	is_pointer, enable_if_t, is_array, extent, remove_extent_t,
-//	ystdex::construct_within, is_polymorphic;
-#include "integer_sequence.hpp" // for is_class_type, vdefer;
+#include "placement.hpp" // for internal "placement.hpp", <memory>,
+//	is_copy_constructible, is_class_type, and_, cond_t, vdefer, is_detected,
+//	std::declval, detected_or_t, detected_t, cond, is_lvalue_reference,
+//	exclude_self_t, ystdex::construct_within, enable_if_convertible_t,
+//	remove_reference_t, indirect_element_t, not_, is_void, remove_pointer_t,
+//	yconstraint, is_pointer, enable_if_t, is_array, extent, remove_extent_t,
+//	is_polymorphic;
 #include "type_op.hpp" // for has_mem_value_type, cond_or;
 #include "pointer.hpp" // for interal "pointer.hpp", "iterator_op.hpp",
-//	ystdex::swap_dependent;
+//	ystdex::swap_dependent, ystdex::to_address;
 #include <limits> // for std::numeric_limits;
 #include "exception.h" // for throw_invalid_construction;
-#include "ref.hpp" // for is_reference_wrapper, std::hash;
+#include "ref.hpp" // for is_reference_wrapper;
 
 /*!
 \brief \<memory\> 特性测试宏。
@@ -88,7 +88,6 @@ namespace ystdex
 #endif
 
 //! \since build 595
-//@{
 namespace details
 {
 
@@ -132,6 +131,125 @@ using mem_is_always_equal_t = typename _type::is_always_equal;
 #endif
 //@}
 
+} // namespace details;
+
+/*!
+\ingroup type_traits_operations
+\since build 746
+*/
+//@{
+template<typename _type, typename... _tParams>
+struct has_mem_new : is_detected<details::mem_new_t, _type, _tParams...>
+{};
+
+template<typename _type, typename... _tParams>
+struct has_mem_delete : is_detected<details::mem_delete_t, _type, _tParams...>
+{};
+//@}
+
+
+/*!
+\ingroup unary_type_traits
+\brief 判断类型是否符合分配器要求的目标类型。
+\since build 650
+*/
+template<typename _type>
+struct is_allocatable : is_nonconst_object<_type>
+{};
+
+//! \since build 595
+//@{
+inline namespace cpp2017
+{
+
+#if YB_Impl_Has_allocator_traits_is_always_equal
+using std::allocator_traits;
+#else
+template<class _tAlloc>
+struct allocator_traits : std::allocator_traits<_tAlloc>
+{
+	using is_always_equal = detected_or_t<is_empty<_tAlloc>,
+		details::mem_is_always_equal_t, _tAlloc>;
+};
+#endif
+
+} // inline namespace cpp2017;
+
+
+/*!
+\ingroup unary_type_traits
+\brief 判断类型具有嵌套的成员 allocator_type 指称一个可复制构造的类类型。
+*/
+template<typename _type>
+struct has_nested_allocator
+	: details::check_allocator<detected_t<details::nested_allocator_t, _type>>
+{};
+
+
+/*!
+\ingroup metafunctions
+\brief 取嵌套成员分配器类型，若不存在则使用第二模板参数指定的默认类型。
+*/
+template<typename _type, class _tDefault = std::allocator<_type>>
+struct nested_allocator : cond<has_nested_allocator<_type>,
+	detected_t<details::nested_allocator_t, _type>, _tDefault>
+{};
+//@}
+
+
+/*!
+\brief 启用 allocator_type 的基类。
+\warning 非虚析构。
+\since build 844
+*/
+//@{
+template<class _tCon, bool = has_nested_allocator<_tCon>::value>
+struct nested_allocator_base
+{
+	using allocator_type = typename _tCon::allocator_type;
+};
+
+template<class _tCon>
+struct nested_allocator_base<_tCon, false>
+{};
+//@}
+
+
+namespace details
+{
+
+//! \since build 846
+template<class _tAlloc>
+class allocator_delete_base
+{
+protected:
+	using ator_traits = allocator_traits<remove_cvref_t<_tAlloc>>;
+	using stored_ator_t
+		= cond_t<is_lvalue_reference<_tAlloc>, lref<_tAlloc>, _tAlloc>;
+
+	//! \since build 843
+	mutable stored_ator_t alloc;
+
+	template<class _tParam,
+		yimpl(typename = exclude_self_t<allocator_delete_base, _tParam>)>
+	allocator_delete_base(_tParam&& a) ynothrow
+		: alloc(yforward(a))
+	{}
+	allocator_delete_base(const allocator_delete_base&) = default;
+	allocator_delete_base(allocator_delete_base&&) = default;
+
+	allocator_delete_base&
+	operator=(const allocator_delete_base&) = default;
+	allocator_delete_base&
+	operator=(allocator_delete_base&&) = default;
+
+	YB_ATTR_nodiscard YB_PURE _tAlloc&
+	get_allocator() const
+	{
+		return alloc;
+	}
+};
+
 
 //! \since build 843
 //@{
@@ -174,112 +292,85 @@ do_alloc_on_swap(_tAlloc&, _tAlloc&, false_) ynothrow
 
 
 /*!
-\ingroup type_traits_operations
-\since build 746
+\note 模板参数可能是引用。
+\see $2018-12 @ %Documentation::Workflow::Annual2018.
 */
 //@{
-template<typename _type, typename... _tParams>
-struct has_mem_new : is_detected<details::mem_new_t, _type, _tParams...>
-{};
-
-template<typename _type, typename... _tParams>
-struct has_mem_delete : is_detected<details::mem_delete_t, _type, _tParams...>
-{};
-//@}
-
-
 /*!
-\ingroup unary_type_traits
-\brief 判断类型是否符合分配器要求的目标类型。
-\since build 650
-*/
-template<typename _type>
-struct is_allocatable : is_nonconst_object<_type>
-{};
-
-
-inline namespace cpp2017
-{
-
-#if YB_Impl_Has_allocator_traits_is_always_equal
-using std::allocator_traits;
-#else
-template<class _tAlloc>
-struct allocator_traits : std::allocator_traits<_tAlloc>
-{
-	using is_always_equal = detected_or_t<is_empty<_tAlloc>,
-		details::mem_is_always_equal_t, _tAlloc>;
-};
-#endif
-
-} // inline namespace cpp2017;
-
-
-/*!
-\ingroup unary_type_traits
-\brief 判断类型具有嵌套的成员 allocator_type 指称一个可复制构造的类类型。
-*/
-template<typename _type>
-struct has_nested_allocator
-	: details::check_allocator<detected_t<details::nested_allocator_t, _type>>
-{};
-
-
-/*!
-\ingroup metafunctions
-\brief 取嵌套成员分配器类型，若不存在则使用第二模板参数指定的默认类型。
-*/
-template<typename _type, class _tDefault = std::allocator<_type>>
-struct nested_allocator : conditional<has_nested_allocator<_type>::value,
-	detected_t<details::nested_allocator_t, _type>, _tDefault>
-{};
-//@}
-
-
-/*!
-\brief 启用 allocator_type 的基类。
-\warning 非虚析构。
-\since build 844
-*/
-//@{
-template<class _tCon, bool = has_nested_allocator<_tCon>::value>
-struct nested_allocator_base
-{
-	using allocator_type = typename _tCon::allocator_type;
-};
-
-template<class _tCon>
-struct nested_allocator_base<_tCon, false>
-{};
-//@}
-
-
-/*!
-\brief 释放分配器的删除器。
-\since build 595
+\brief 释放分配器分配的存储资源的删除器。
+\since build 846
 */
 template<class _tAlloc>
-class allocator_delete
+class allocator_guard_delete : private details::allocator_delete_base<_tAlloc>
 {
 private:
-	using traits = std::allocator_traits<_tAlloc>;
+	//! \since build 846
+	using base = details::allocator_delete_base<_tAlloc>;
+	//! \since build 846
+	using typename base::ator_traits;
 
 public:
-	using pointer = typename traits::pointer;
-	using size_type = typename traits::size_type;
+	//! \since build 595
+	using pointer = typename ator_traits::pointer;
+	//! \since build 595
+	using size_type = typename ator_traits::size_type;
 
 private:
-	//! \since build 843
-	mutable _tAlloc alloc;
 	//! \since build 843
 	size_type count;
 
 public:
 	//! \since build 843
-	//@{
-	allocator_delete(_tAlloc a, size_type n = 1)
-		: alloc(std::move(a)), count(n)
+	allocator_guard_delete(_tAlloc a, size_type n = 1) ynothrow
+		: base(yforward(a)), count(n)
 	{}
+	allocator_guard_delete(const allocator_guard_delete&) = default;
+	allocator_guard_delete(allocator_guard_delete&&) = default;
+
+	allocator_guard_delete&
+	operator=(const allocator_guard_delete&) = default;
+	allocator_guard_delete&
+	operator=(allocator_guard_delete&&) = default;
+
+	//! \since build 595
+	void
+	operator()(pointer p) const ynothrowv
+	{
+		ator_traits::deallocate(base::alloc, p, count);
+	}
+
+	//! \since build 846
+	yimpl(using) base::get_allocator;
+
+	YB_ATTR_nodiscard YB_PURE size_type
+	get_count() const
+	{
+		return count;
+	}
+};
+
+
+/*!
+\brief 释放分配器分配的对象的删除器。
+\since build 595
+*/
+template<class _tAlloc>
+class allocator_delete : private details::allocator_delete_base<_tAlloc>
+{
+private:
+	//! \since build 846
+	using base = details::allocator_delete_base<_tAlloc>;
+	//! \since build 846
+	using typename base::ator_traits;
+
+public:
+	//! \since build 595
+	using pointer = typename ator_traits::pointer;
+
+	//! \since build 846
+	yimpl(using) base::base;
+	//! \since build 843
+	//@{
 	allocator_delete(const allocator_delete&) = default;
 	allocator_delete(allocator_delete&&) = default;
 
@@ -292,9 +383,14 @@ public:
 	void
 	operator()(pointer p) const ynothrowv
 	{
-		traits::deallocate(alloc, p, count);
+		ator_traits::destroy(base::alloc, ystdex::to_address(p));
+		ator_traits::deallocate(base::alloc, p, 1);
 	}
+
+	//! \since build 846
+	yimpl(using) base::get_allocator;
 };
+//@}
 
 
 /*!
@@ -302,7 +398,8 @@ public:
 \since build 843
 */
 template<class _tAlloc>
-using allocator_guard = std::unique_ptr<_tAlloc, allocator_delete<_tAlloc>>;
+using allocator_guard
+	= std::unique_ptr<_tAlloc, allocator_guard_delete<_tAlloc>>;
 
 
 /*!
@@ -310,14 +407,14 @@ using allocator_guard = std::unique_ptr<_tAlloc, allocator_delete<_tAlloc>>;
 \since build 843
 */
 template<class _tAlloc>
-allocator_guard<_tAlloc>
+YB_ATTR_nodiscard inline allocator_guard<_tAlloc>
 make_allocator_guard(_tAlloc& a,
-	typename std::allocator_traits<_tAlloc>::size_type n = 1)
+	typename allocator_traits<_tAlloc>::size_type n = 1)
 {
-	using del_t = allocator_delete<_tAlloc>;
+	using del_t = allocator_guard_delete<_tAlloc>;
 
 	return std::unique_ptr<_tAlloc, del_t>(
-		std::allocator_traits<_tAlloc>::allocate(a, n), del_t(a, n));
+		allocator_traits<_tAlloc>::allocate(a, n), del_t(a, n));
 }
 
 
@@ -325,13 +422,13 @@ make_allocator_guard(_tAlloc& a,
 //@{
 //! \brief 使用分配器创建对象。
 template<typename _type, class _tAlloc, typename... _tParams>
-auto
+YB_ATTR_nodiscard auto
 create_with_allocator(_tAlloc&& a, _tParams&&... args)
 	-> decltype(ystdex::make_allocator_guard(a).release())
 {
 	auto gd(ystdex::make_allocator_guard(a));
 
-	ystdex::construct_within<typename std::allocator_traits<decay_t<_tAlloc>>
+	ystdex::construct_within<typename allocator_traits<decay_t<_tAlloc>>
 		::value_type>(*gd.get(), yforward(args)...);
 	return gd.release();
 }
@@ -352,7 +449,7 @@ struct class_allocator : std::allocator<_type>
 	using std::allocator<_type>::allocator;
 	class_allocator(const class_allocator&) = default;
 
-	YB_ATTR_nodiscard _type*
+	YB_ALLOCATOR _type*
 	allocate(size_t n)
 	{
 		return _type::operator new(n * sizeof(_type));
@@ -387,7 +484,7 @@ template<typename _tAlloc>
 inline void
 alloc_on_copy(_tAlloc& x, const _tAlloc& y)
 {
-	details::do_alloc_on_copy(x, y, typename std::allocator_traits<
+	details::do_alloc_on_copy(x, y, typename allocator_traits<
 		_tAlloc>::propagate_on_container_copy_assignment());
 }
 //! \brief 按分配器特征在传播容器时复制分配器。
@@ -395,8 +492,7 @@ template<typename _tAlloc>
 inline _tAlloc
 alloc_on_copy(const _tAlloc& a)
 {
-	return std::allocator_traits<
-		_tAlloc>::select_on_container_copy_construction(a);
+	return allocator_traits<_tAlloc>::select_on_container_copy_construction(a);
 }
 
 //! \brief 按分配器特征在传播容器时转移分配器。
@@ -404,8 +500,8 @@ template<typename _tAlloc>
 inline void
 alloc_on_move(_tAlloc& x, _tAlloc& y)
 {
-	details::do_alloc_on_move(x, y, typename std::allocator_traits<
-		_tAlloc>::propagate_on_container_move_assignment());
+	details::do_alloc_on_move(x, y, typename
+		allocator_traits<_tAlloc>::propagate_on_container_move_assignment());
 }
 
 //! \brief 按分配器特征在传播容器时交换分配器。
@@ -414,7 +510,7 @@ inline void
 alloc_on_swap(_tAlloc& x, _tAlloc& y)
 {
 	details::do_alloc_on_swap(x, y,
-		typename std::allocator_traits<_tAlloc>::propagate_on_container_swap());
+		typename allocator_traits<_tAlloc>::propagate_on_container_swap());
 }
 //@}
 
@@ -424,19 +520,37 @@ namespace details
 
 //! \since build 736
 template<typename _type, typename... _tParams>
-YB_NORETURN _type*
+YB_NORETURN inline _type*
 try_new_impl(void*, _tParams&&...)
 {
 	throw_invalid_construction();
 }
 //! \since build 736
 template<typename _type, typename... _tParams>
-auto
+YB_ATTR_nodiscard inline auto
 try_new_impl(nullptr_t,  _tParams&&... args)
 	-> decltype(new _type(yforward(args)...))
 {
 	return new _type(yforward(args)...);
 }
+
+//! \since build 846
+//@{
+template<typename _type, typename... _tParams>
+YB_NORETURN inline _type
+try_create_impl(void*, _tParams&&...)
+{
+	throw_invalid_construction();
+}
+//! \throw ystdex::invalid_construction 参数类型无法用于初始化持有者。
+template<typename _type, typename... _tParams>
+YB_ATTR_nodiscard inline auto
+try_create_impl(nullptr_t, _tParams&&... args)
+	-> decltype(_type(yforward(args)...))
+{
+	return _type(yforward(args)...);
+}
+//@}
 
 //! \since build 746
 template<typename _type, class _tAlloc, typename... _tParams>
@@ -447,7 +561,7 @@ try_create_with_allocator_impl(void*, _tAlloc&, _tParams&&...)
 }
 //! \since build 746
 template<typename _type, class _tAlloc, typename... _tParams>
-auto
+YB_ATTR_nodiscard inline auto
 try_create_with_allocator_impl(nullptr_t, _tAlloc& a, _tParams&&... args)
 	-> decltype(ystdex::create_with_allocator<_type>(a, yforward(args)...))
 {
@@ -460,7 +574,7 @@ template<typename _type>
 struct pack_obj_impl
 {
 	template<typename... _tParams>
-	static _type
+	YB_ATTR_nodiscard static _type
 	pack(_tParams&&... args)
 	{
 		return _type(yforward(args)...);
@@ -471,7 +585,7 @@ template<typename _type, class _tDeleter>
 struct pack_obj_impl<std::unique_ptr<_type, _tDeleter>>
 {
 	template<typename... _tParams>
-	static std::unique_ptr<_type>
+	YB_ATTR_nodiscard static std::unique_ptr<_type>
 	pack(_tParams&&... args)
 	{
 		return std::unique_ptr<_type>(yforward(args)...);
@@ -482,7 +596,7 @@ template<typename _type>
 struct pack_obj_impl<std::shared_ptr<_type>>
 {
 	template<typename... _tParams>
-	static std::shared_ptr<_type>
+	YB_ATTR_nodiscard static std::shared_ptr<_type>
 	pack(_tParams&&... args)
 	{
 		return std::shared_ptr<_type>(yforward(args)...);
@@ -493,17 +607,22 @@ struct pack_obj_impl<std::shared_ptr<_type>>
 } // namespace details;
 
 
-//! \throw invalid_construction 初始化非合式。
+/*!
+\throw invalid_construction 初始化非合式。
+\note 第一模板参数决定创建对象的类型。
+*/
 //@{
 /*!
-\brief 尝试调用 new 表达式创建对象。
-\since build 737
+\brief 尝试嗲用构造函数创建对象。
+\return 创建的对象。
+\throw ystdex::invalid_construction 参数类型无法用于初始化持有者。
+\since build 846
 */
 template<typename _type, typename... _tParams>
-_type*
-try_new(_tParams&&... args)
+YB_ATTR_nodiscard inline _type
+try_create(_tParams&&... args)
 {
-	return details::try_new_impl<_type>(nullptr, yforward(args)...);
+	return details::try_create_impl<_type>(nullptr, yforward(args)...);
 }
 
 /*!
@@ -511,11 +630,22 @@ try_new(_tParams&&... args)
 \since build 746
 */
 template<typename _type, class _tAlloc, typename... _tParams>
-_type*
+YB_ATTR_nodiscard _type*
 try_create_with_allocator(_tAlloc&& a, _tParams&&... args)
 {
 	return details::try_create_with_allocator_impl<_type>(nullptr, a,
 		yforward(args)...);
+}
+
+/*!
+\brief 尝试调用 new 表达式创建对象。
+\since build 737
+*/
+template<typename _type, typename... _tParams>
+YB_ATTR_nodiscard _type*
+try_new(_tParams&&... args)
+{
+	return details::try_new_impl<_type>(nullptr, yforward(args)...);
 }
 //@}
 
@@ -615,13 +745,13 @@ using over_aligned_t
 	= false_;
 #endif
 
-YB_ATTR_nodiscard inline void*
+YB_ALLOCATOR inline void*
 new_aligned(size_t size, size_t, false_) ynothrow
 {
 	return ::operator new(size, std::nothrow);
 }
 #if YB_Impl_aligned_new
-YB_ATTR_nodiscard inline void*
+YB_ALLOCATOR inline void*
 new_aligned(size_t size, size_t alignment, true_) ynothrow
 {
 	return ::operator new(size, std::align_val_t(alignment), std::nothrow);
@@ -650,7 +780,7 @@ delete_aligned(void* ptr, size_t alignment, true_) ynothrow
 	&& (__GLIBCXX__ <= 20150815 || YB_IMPL_GNUCPP < 90000)) \
 	|| __cplusplus >= 201611L
 template<typename _type>
-inline std::pair<_type*, ptrdiff_t>
+YB_ATTR_nodiscard inline std::pair<_type*, ptrdiff_t>
 get_temporary_buffer(ptrdiff_t n) ynothrow
 {
 	const ptrdiff_t m(std::numeric_limits<ptrdiff_t>::max() / sizeof(_type));
@@ -743,19 +873,19 @@ public:
 	operator=(temporary_buffer&&) = default;
 
 	//! \since build 634
-	yconstfn const pointer&
+	YB_ATTR_nodiscard yconstfn const pointer&
 	get() const ynothrow
 	{
 		return buf.first;
 	}
 
-	pointer&
+	YB_ATTR_nodiscard YB_PURE pointer&
 	get_pointer_ref() ynothrow
 	{
 		return buf.first;
 	}
 
-	size_t
+	YB_ATTR_nodiscard YB_PURE size_t
 	size() const ynothrow
 	{
 		return buf.second;
@@ -796,27 +926,27 @@ using defer_element = cond_or<not_<is_void<remove_pointer_t<_tPointer>>>,
 */
 //@{
 template<typename _type>
-yconstfn _type*
+YB_ATTR_nodiscard YB_STATELESS yconstfn _type*
 get_raw(_type* const& p) ynothrow
 {
 	return p;
 }
 //! \since build 550
 template<typename _type, typename _fDeleter>
-yconstfn auto
+YB_ATTR_nodiscard YB_PURE yconstfn auto
 get_raw(const std::unique_ptr<_type, _fDeleter>& p) ynothrow
 	-> decltype(p.get())
 {
 	return p.get();
 }
 template<typename _type>
-yconstfn _type*
+YB_ATTR_nodiscard YB_PURE yconstfn _type*
 get_raw(const std::shared_ptr<_type>& p) ynothrow
 {
 	return p.get();
 }
 template<typename _type>
-yconstfn _type*
+YB_ATTR_nodiscard YB_PURE yconstfn _type*
 get_raw(const std::weak_ptr<_type>& p) ynothrow
 {
 	return p.lock().get();
@@ -829,26 +959,26 @@ get_raw(const std::weak_ptr<_type>& p) ynothrow
 */
 //@{
 template<typename _type>
-yconstfn bool
+YB_ATTR_nodiscard YB_STATELESS yconstfn bool
 owns_any(_type* const&) ynothrow
 {
 	return {};
 }
 //! \since build 550
 template<typename _type, typename _fDeleter>
-yconstfn bool
+YB_ATTR_nodiscard YB_PURE yconstfn bool
 owns_any(const std::unique_ptr<_type, _fDeleter>& p) ynothrow
 {
 	return bool(p);
 }
 template<typename _type>
-yconstfn bool
+YB_ATTR_nodiscard YB_PURE yconstfn bool
 owns_any(const std::shared_ptr<_type>& p) ynothrow
 {
 	return p.use_count() > 0;
 }
 template<typename _type>
-yconstfn bool
+YB_ATTR_nodiscard YB_PURE yconstfn bool
 owns_any(const std::weak_ptr<_type>& p) ynothrow
 {
 	return !p.expired();
@@ -861,26 +991,26 @@ owns_any(const std::weak_ptr<_type>& p) ynothrow
 */
 //@{
 template<typename _type>
-yconstfn bool
+YB_ATTR_nodiscard YB_STATELESS yconstfn bool
 owns_nonnull(_type* const&) ynothrow
 {
 	return {};
 }
 //! \since build 550
 template<typename _type, typename _fDeleter>
-yconstfn bool
+YB_ATTR_nodiscard YB_PURE yconstfn bool
 owns_nonnull(const std::unique_ptr<_type, _fDeleter>& p) ynothrow
 {
 	return bool(p);
 }
 template<typename _type>
-yconstfn bool
+YB_ATTR_nodiscard YB_PURE yconstfn bool
 owns_nonnull(const std::shared_ptr<_type>& p) ynothrow
 {
 	return bool(p);
 }
 template<typename _type>
-yconstfn bool
+YB_ATTR_nodiscard YB_PURE yconstfn bool
 owns_nonnull(const std::weak_ptr<_type>& p) ynothrow
 {
 	return bool(p.lock());
@@ -893,34 +1023,34 @@ owns_nonnull(const std::weak_ptr<_type>& p) ynothrow
 */
 //@{
 template<typename _type>
-yconstfn bool
+YB_ATTR_nodiscard YB_STATELESS yconstfn bool
 owns_unique(const _type&) ynothrow
 {
 	return !is_reference_wrapper<_type>();
 }
 template<typename _type, class _tDeleter>
-inline bool
+YB_ATTR_nodiscard inline bool
 owns_unique(const std::unique_ptr<_type, _tDeleter>& p) ynothrow
 {
 	return bool(p);
 }
 //! \note 返回 true 不一定表示指针非空。
 template<typename _type>
-inline bool
+YB_ATTR_nodiscard YB_PURE inline bool
 owns_unique(const std::shared_ptr<_type>& p) ynothrow
 {
 	return p.unique();
 }
 //! \since build 784
 template<typename _type>
-inline bool
+YB_ATTR_nodiscard YB_PURE inline bool
 owns_unique(const std::weak_ptr<_type>& p) ynothrow
 {
 	return p.use_count() == 1;
 }
 
 template<typename _type>
-yconstfn bool
+YB_ATTR_nodiscard YB_STATELESS yconstfn bool
 owns_unique_nonnull(const _type&) ynothrow
 {
 	return !is_reference_wrapper<_type>();
@@ -928,14 +1058,14 @@ owns_unique_nonnull(const _type&) ynothrow
 //! \pre 参数非空。
 //@{
 template<typename _type, class _tDeleter>
-inline bool
+YB_ATTR_nodiscard YB_PURE inline bool
 owns_unique_nonnull(const std::unique_ptr<_type, _tDeleter>& p) ynothrow
 {
 	yconstraint(p);
 	return true;
 }
 template<typename _type>
-inline bool
+YB_ATTR_nodiscard YB_PURE inline bool
 owns_unique_nonnull(const std::shared_ptr<_type>& p) ynothrow
 {
 	yconstraint(p);
@@ -943,7 +1073,7 @@ owns_unique_nonnull(const std::shared_ptr<_type>& p) ynothrow
 }
 //! \since build 784
 template<typename _type>
-inline bool
+YB_ATTR_nodiscard YB_PURE inline bool
 owns_unique_nonnull(const std::weak_ptr<_type>& p) ynothrow
 {
 	yconstraint(!p.expired());
@@ -992,25 +1122,25 @@ reset(std::shared_ptr<_type>& p) ynothrow
 */
 //@{
 template<typename _type, typename _pSrc>
-yconstfn std::unique_ptr<_type>
+YB_ATTR_nodiscard yconstfn std::unique_ptr<_type>
 unique_raw(_pSrc* p) ynothrow
 {
 	return std::unique_ptr<_type>(p);
 }
 template<typename _type>
-yconstfn std::unique_ptr<_type>
+YB_ATTR_nodiscard yconstfn std::unique_ptr<_type>
 unique_raw(_type* p) ynothrow
 {
 	return std::unique_ptr<_type>(p);
 }
 template<typename _type, typename _tDeleter, typename _pSrc>
-yconstfn std::unique_ptr<_type, _tDeleter>
+YB_ATTR_nodiscard yconstfn std::unique_ptr<_type, _tDeleter>
 unique_raw(_pSrc* p, _tDeleter&& d) ynothrow
 {
 	return std::unique_ptr<_type, _tDeleter>(p, yforward(d));
 }
 template<typename _type, typename _tDeleter>
-yconstfn std::unique_ptr<_type, _tDeleter>
+YB_ATTR_nodiscard yconstfn std::unique_ptr<_type, _tDeleter>
 unique_raw(_type* p, _tDeleter&& d) ynothrow
 {
 	return std::unique_ptr<_type, _tDeleter>(p, yforward(d));
@@ -1020,7 +1150,7 @@ unique_raw(_type* p, _tDeleter&& d) ynothrow
 \since build 319
 */
 template<typename _type>
-yconstfn std::unique_ptr<_type>
+YB_ATTR_nodiscard yconstfn std::unique_ptr<_type>
 unique_raw(nullptr_t) ynothrow
 {
 	return std::unique_ptr<_type>();
@@ -1039,7 +1169,7 @@ unique_raw(nullptr_t) ynothrow
 //! \since build 627
 //@{
 template<typename _type, typename... _tParams>
-yconstfn std::shared_ptr<_type>
+YB_ATTR_nodiscard yconstfn std::shared_ptr<_type>
 share_raw(_type* p, _tParams&&... args)
 {
 	return std::shared_ptr<_type>(p, yforward(args)...);
@@ -1049,7 +1179,7 @@ share_raw(_type* p, _tParams&&... args)
 \pre 静态断言： remove_reference_t<_pSrc> 是内建指针。
 */
 template<typename _type, typename _pSrc, typename... _tParams>
-yconstfn std::shared_ptr<_type>
+YB_ATTR_nodiscard yconstfn std::shared_ptr<_type>
 share_raw(_pSrc&& p, _tParams&&... args)
 {
 	static_assert(is_pointer<remove_reference_t<_pSrc>>(),
@@ -1063,7 +1193,7 @@ share_raw(_pSrc&& p, _tParams&&... args)
 \since build 319
 */
 template<typename _type>
-yconstfn std::shared_ptr<_type>
+YB_ATTR_nodiscard yconstfn std::shared_ptr<_type>
 share_raw(nullptr_t) ynothrow
 {
 	return std::shared_ptr<_type>();
@@ -1074,7 +1204,8 @@ share_raw(nullptr_t) ynothrow
 \since build 627
 */
 template<typename _type, class... _tParams>
-yconstfn yimpl(enable_if_t)<sizeof...(_tParams) != 0, std::shared_ptr<_type>>
+YB_ATTR_nodiscard yconstfn
+	yimpl(enable_if_t)<sizeof...(_tParams) != 0, std::shared_ptr<_type>>
 share_raw(nullptr_t, _tParams&&... args) ynothrow
 {
 	return std::shared_ptr<_type>(nullptr, yforward(args)...);
@@ -1104,14 +1235,15 @@ using std::make_unique;
 */
 //@{
 template<typename _type, typename... _tParams>
-yconstfn yimpl(enable_if_t<!is_array<_type>::value, std::unique_ptr<_type>>)
+YB_ATTR_nodiscard yconstfn
+	yimpl(enable_if_t<!is_array<_type>::value, std::unique_ptr<_type>>)
 make_unique(_tParams&&... args)
 {
 	return std::unique_ptr<_type>(new _type(yforward(args)...));
 }
 template<typename _type, typename... _tParams>
-yconstfn yimpl(enable_if_t<is_array<_type>::value && extent<_type>::value == 0,
-	std::unique_ptr<_type>>)
+YB_ATTR_nodiscard yconstfn yimpl(enable_if_t<is_array<_type>::value
+	&& extent<_type>::value == 0, std::unique_ptr<_type>>)
 make_unique(size_t size)
 {
 	return std::unique_ptr<_type>(new remove_extent_t<_type>[size]());
@@ -1131,14 +1263,15 @@ make_unique(_tParams&&...) = delete;
 */
 //@{
 template<typename _type, typename... _tParams>
-yconstfn yimpl(enable_if_t<!is_array<_type>::value, std::unique_ptr<_type>>)
+YB_ATTR_nodiscard yconstfn
+	yimpl(enable_if_t<!is_array<_type>::value, std::unique_ptr<_type>>)
 make_unique_default_init()
 {
 	return std::unique_ptr<_type>(new _type);
 }
 template<typename _type, typename... _tParams>
-yconstfn yimpl(enable_if_t<is_array<_type>::value && extent<_type>::value == 0,
-	std::unique_ptr<_type>>)
+YB_ATTR_nodiscard yconstfn yimpl(enable_if_t<is_array<_type>::value
+	&& extent<_type>::value == 0, std::unique_ptr<_type>>)
 make_unique_default_init(size_t size)
 {
 	return std::unique_ptr<_type>(new remove_extent_t<_type>[size]);
@@ -1155,7 +1288,7 @@ make_unique_default_init(_tParams&&...) = delete;
 \since build 574
 */
 template<typename _type, typename _tElem>
-yconstfn std::unique_ptr<_type>
+YB_ATTR_nodiscard yconstfn std::unique_ptr<_type>
 make_unique(std::initializer_list<_tElem> il)
 {
 	return ystdex::make_unique<_type>(il);
@@ -1168,7 +1301,7 @@ make_unique(std::initializer_list<_tElem> il)
 //@{
 //! \since build 843
 template<typename _type, typename _tDeleter, typename... _tParams>
-yconstfn yimpl(enable_if_t<!is_array<_type>::value,
+YB_ATTR_nodiscard yconstfn yimpl(enable_if_t<!is_array<_type>::value,
 	std::unique_ptr<_type, _tDeleter>>)
 make_unique_with(_tDeleter&& d, _tParams&&... args)
 {
@@ -1176,8 +1309,8 @@ make_unique_with(_tDeleter&& d, _tParams&&... args)
 		yforward(d));
 }
 template<typename _type, typename _tDeleter, typename... _tParams>
-yconstfn yimpl(enable_if_t<is_array<_type>::value && extent<_type>::value == 0,
-	std::unique_ptr<_type>>)
+YB_ATTR_nodiscard yconstfn yimpl(enable_if_t<is_array<_type>::value
+	&& extent<_type>::value == 0, std::unique_ptr<_type>>)
 make_unique_with(_tDeleter&& d, size_t size)
 {
 	return std::unique_ptr<_type, _tDeleter>(new remove_extent_t<_type>[size],
@@ -1199,7 +1332,7 @@ make_unique_with(_tDeleter&&, _tParams&&...) = delete;
 \since build 529
 */
 template<typename _type, typename _tValue>
-yconstfn std::shared_ptr<_type>
+YB_ATTR_nodiscard yconstfn std::shared_ptr<_type>
 make_shared(std::initializer_list<_tValue> il)
 {
 	return std::make_shared<_type>(il);
@@ -1210,7 +1343,7 @@ make_shared(std::initializer_list<_tValue> il)
 \since build 779
 */
 template<typename _type>
-inline std::weak_ptr<_type>
+YB_ATTR_nodiscard inline std::weak_ptr<_type>
 make_weak(const std::shared_ptr<_type>& p) ynothrow
 {
 	return p;
@@ -1225,7 +1358,7 @@ make_weak(const std::shared_ptr<_type>& p) ynothrow
 //@{
 //! \brief 复制值创建对应的 std::shared_ptr 实例的对象。
 template<typename _tValue, typename _type = _tValue>
-yconstfn std::shared_ptr<decay_t<_type>>
+YB_ATTR_nodiscard yconstfn std::shared_ptr<decay_t<_type>>
 share_copy(const _tValue& v)
 {
 	using std::make_shared;
@@ -1235,7 +1368,7 @@ share_copy(const _tValue& v)
 
 //! \brief 传递值创建对应的 std::shared_ptr 实例的对象。
 template<typename _tValue, typename _type = _tValue>
-yconstfn std::shared_ptr<decay_t<_type>>
+YB_ATTR_nodiscard yconstfn std::shared_ptr<decay_t<_type>>
 share_forward(_tValue&& v)
 {
 	using std::make_shared;
@@ -1245,7 +1378,7 @@ share_forward(_tValue&& v)
 
 //! \brief 转移值创建对应的 std::shared_ptr 实例的对象。
 template<typename _tValue, typename _type = _tValue>
-yconstfn std::shared_ptr<decay_t<_type>>
+YB_ATTR_nodiscard yconstfn std::shared_ptr<decay_t<_type>>
 share_move(_tValue&& v)
 {
 	using std::make_shared;
@@ -1261,7 +1394,7 @@ share_move(_tValue&& v)
 //@{
 //! \brief 复制值创建对应的 std::unique_ptr 实例的对象。
 template<typename _tValue, typename _type = _tValue>
-yconstfn std::unique_ptr<decay_t<_type>>
+YB_ATTR_nodiscard yconstfn std::unique_ptr<decay_t<_type>>
 unique_copy(const _tValue& v)
 {
 	return make_unique<decay_t<_type>>(yforward(v));
@@ -1269,7 +1402,7 @@ unique_copy(const _tValue& v)
 
 //! \brief 传递值创建对应的 std::unique_ptr 实例的对象。
 template<typename _tValue, typename _type = _tValue>
-yconstfn std::unique_ptr<decay_t<_type>>
+YB_ATTR_nodiscard yconstfn std::unique_ptr<decay_t<_type>>
 unique_forward(_tValue&& v)
 {
 	return make_unique<decay_t<_type>>(yforward(v));
@@ -1277,7 +1410,7 @@ unique_forward(_tValue&& v)
 
 //! \brief 转移值创建对应的 std::unique_ptr 实例的对象。
 template<typename _tValue, typename _type = _tValue>
-yconstfn std::unique_ptr<decay_t<_type>>
+YB_ATTR_nodiscard yconstfn std::unique_ptr<decay_t<_type>>
 unique_move(_tValue&& v)
 {
 	return make_unique<decay_t<_type>>(std::move(v));
@@ -1292,13 +1425,13 @@ unique_move(_tValue&& v)
 */
 //@{
 template<typename _tDst, typename _type>
-std::unique_ptr<_tDst>
+YB_ATTR_nodiscard YB_PURE inline std::unique_ptr<_tDst>
 static_pointer_cast(std::unique_ptr<_type> p) ynothrow
 {
 	return std::unique_ptr<_tDst>(static_cast<_tDst*>(p.release()));
 }
 template<typename _tDst, typename _type, typename _tDeleter>
-std::unique_ptr<_tDst, _tDeleter>
+YB_ATTR_nodiscard YB_PURE inline std::unique_ptr<_tDst, _tDeleter>
 static_pointer_cast(std::unique_ptr<_type, _tDeleter> p) ynothrow
 {
 	return std::unique_ptr<_tDst, _tDeleter>(static_cast<_tDst*>(p.release()),
@@ -1306,7 +1439,7 @@ static_pointer_cast(std::unique_ptr<_type, _tDeleter> p) ynothrow
 }
 
 template<typename _tDst, typename _type>
-std::unique_ptr<_tDst>
+YB_ATTR_nodiscard YB_PURE std::unique_ptr<_tDst>
 dynamic_pointer_cast(std::unique_ptr<_type>& p) ynothrow
 {
 	if(auto p_res = dynamic_cast<_tDst*>(p.get()))
@@ -1317,13 +1450,13 @@ dynamic_pointer_cast(std::unique_ptr<_type>& p) ynothrow
 	return std::unique_ptr<_tDst>();
 }
 template<typename _tDst, typename _type>
-std::unique_ptr<_tDst>
+YB_ATTR_nodiscard YB_PURE inline std::unique_ptr<_tDst>
 dynamic_pointer_cast(std::unique_ptr<_type>&& p) ynothrow
 {
 	return ystdex::dynamic_pointer_cast<_tDst, _type>(p);
 }
 template<typename _tDst, typename _type, typename _tDeleter>
-std::unique_ptr<_tDst, _tDeleter>
+YB_ATTR_nodiscard YB_PURE std::unique_ptr<_tDst, _tDeleter>
 dynamic_pointer_cast(std::unique_ptr<_type, _tDeleter>& p) ynothrow
 {
 	if(auto p_res = dynamic_cast<_tDst*>(p.get()))
@@ -1334,20 +1467,20 @@ dynamic_pointer_cast(std::unique_ptr<_type, _tDeleter>& p) ynothrow
 	return std::unique_ptr<_tDst, _tDeleter>(nullptr);
 }
 template<typename _tDst, typename _type, typename _tDeleter>
-std::unique_ptr<_tDst, _tDeleter>
+YB_ATTR_nodiscard YB_PURE inline std::unique_ptr<_tDst, _tDeleter>
 dynamic_pointer_cast(std::unique_ptr<_type, _tDeleter>&& p) ynothrow
 {
 	return ystdex::dynamic_pointer_cast<_tDst, _type, _tDeleter>(p);
 }
 
 template<typename _tDst, typename _type>
-std::unique_ptr<_tDst>
+YB_ATTR_nodiscard std::unique_ptr<_tDst>
 const_pointer_cast(std::unique_ptr<_type> p) ynothrow
 {
 	return std::unique_ptr<_tDst>(const_cast<_tDst*>(p.release()));
 }
 template<typename _tDst, typename _type, typename _tDeleter>
-std::unique_ptr<_tDst, _tDeleter>
+YB_ATTR_nodiscard std::unique_ptr<_tDst, _tDeleter>
 const_pointer_cast(std::unique_ptr<_type, _tDeleter> p) ynothrow
 {
 	return std::unique_ptr<_tDst, _tDeleter>(const_cast<_tDst*>(p.release()),
@@ -1360,14 +1493,14 @@ const_pointer_cast(std::unique_ptr<_type, _tDeleter> p) ynothrow
 //@{
 //! \brief 使用 new 复制对象。
 template<typename _type>
-inline _type*
+YB_ATTR_nodiscard inline _type*
 clone_monomorphic(const _type& v)
 {
 	return new _type(v);
 }
 //! \brief 使用分配器复制对象。
 template<typename _type, class _tAlloc>
-inline auto
+YB_ATTR_nodiscard inline auto
 clone_monomorphic(const _type& v, _tAlloc&& a)
 	-> decltype(ystdex::create_with_allocator<_type>(yforward(a), v))
 {
@@ -1376,7 +1509,7 @@ clone_monomorphic(const _type& v, _tAlloc&& a)
 
 //! \brief 若指针非空，使用 new 复制指针指向的对象。
 template<typename _tPointer>
-inline auto
+YB_ATTR_nodiscard inline auto
 clone_monomorphic_ptr(const _tPointer& p)
 	-> decltype(ystdex::clone_monomorphic(*p))
 {
@@ -1386,7 +1519,7 @@ clone_monomorphic_ptr(const _tPointer& p)
 }
 //! \brief 若指针非空，使用分配器复制指针指向的对象。
 template<typename _tPointer, class _tAlloc>
-inline auto
+YB_ATTR_nodiscard inline auto
 clone_monomorphic_ptr(const _tPointer& p, _tAlloc&& a)
 	-> decltype(ystdex::clone_monomorphic(*p, yforward(a)))
 {
@@ -1400,7 +1533,7 @@ clone_monomorphic_ptr(const _tPointer& p, _tAlloc&& a)
 \pre 静态断言： <tt>is_polymorphic<decltype(v)>()</tt> 。
 */
 template<class _type>
-inline auto
+YB_ATTR_nodiscard inline auto
 clone_polymorphic(const _type& v) -> decltype(v.clone())
 {
 	static_assert(is_polymorphic<_type>(), "Non-polymorphic class type found.");
@@ -1410,7 +1543,7 @@ clone_polymorphic(const _type& v) -> decltype(v.clone())
 
 //! \brief 若指针非空，使用 \c clone 成员函数复制指针指向的多态类类型对象。
 template<class _tPointer>
-inline auto
+YB_ATTR_nodiscard inline auto
 clone_polymorphic_ptr(const _tPointer& p) -> decltype(clone_polymorphic(*p))
 {
 	return
@@ -1429,7 +1562,7 @@ clone_polymorphic_ptr(const _tPointer& p) -> decltype(clone_polymorphic(*p))
 和 std::make_shared 构造，否则直接使用参数构造。
 */
 template<typename _type, typename... _tParams>
-auto
+YB_ATTR_nodiscard auto
 pack_object(_tParams&&... args)
 	-> decltype(yimpl(details::pack_obj_impl<_type>::pack(yforward(args)...)))
 {
@@ -1455,10 +1588,12 @@ public:
 		: pack(pack_object<_tPack>(yforward(args)...))
 	{}
 
+	YB_ATTR_nodiscard YB_PURE
 	operator pack_type&() ynothrow
 	{
 		return pack;
 	}
+	YB_ATTR_nodiscard YB_PURE
 	operator const pack_type&() const ynothrow
 	{
 		return pack;
@@ -1469,27 +1604,6 @@ public:
 #undef YB_Impl_Has_allocator_traits_is_always_equal
 
 } // namespace ystdex;
-
-
-namespace std
-{
-
-/*!
-\brief ystdex::observer_ptr 散列支持。
-\see ISO WG21 N4529 8.12.7[memory.observer.ptr.hash] 。
-\since build 674
-*/
-template<typename _type>
-struct hash<ystdex::observer_ptr<_type>>
-{
-	size_t
-	operator()(const ystdex::observer_ptr<_type>& p) const yimpl(ynothrow)
-	{
-		return hash<_type*>(p.get());
-	}
-};
-
-} // namespace std;
 
 #endif
 

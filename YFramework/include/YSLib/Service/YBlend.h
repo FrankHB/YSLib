@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016 FrankHB.
+	© 2010-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBlend.h
 \ingroup Service
 \brief 平台中立的图像混合操作。
-\version r164
+\version r168
 \author FrankHB <frankhb1989@gmail.com>
 \since build 584
 \par 创建时间:
 	2015-03-17 06:17:06 +0800
 \par 修改时间:
-	2016-09-20 10:54 +0800
+	2018-11-29 01:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_Service_YBlend_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Service_YPixel
+#include YFM_YSLib_Service_YPixel // for PixelToAlpha;
 #include YFM_YSLib_Service_YBlit
 
 namespace YSLib
@@ -54,7 +54,7 @@ struct BlitTransparentPoint
 	inline void
 	operator()(_tOut dst_iter, _tIn src_iter)
 	{
-		if(FetchAlpha(*src_iter))
+		if(PixelToAlpha(*src_iter))
 			*dst_iter = *src_iter;
 	}
 	/*!
@@ -82,7 +82,7 @@ struct BlitAlphaPoint
 private:
 	//! \since build 729
 	template<typename _type>
-	using ABitTraits = typename ystdex::decay_t<_type>::Traits;
+	using ABitTraits = typename ystdex::decay_t<_type>::traits_type;
 
 public:
 	//! \since build 584

@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3475
+\version r3504
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2018-11-25 22:37 +0800
+	2018-12-02 16:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -649,7 +649,7 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 且指针指向的存储内容不由其它存储决定。
 */
 #if YB_IMPL_MSCPP >= 1900 && !defined(__EDG__) && !defined _CORECRT_BUILD
-#	define YB_ALLOCATOR_EVENT YB_ATTR(allocator) YB_ATTR(restrict)
+#	define YB_ALLOCATOR YB_ATTR(allocator) YB_ATTR(restrict)
 #elif YB_IMPL_MSCPP >= 1400
 #	define YB_ALLOCATOR YB_ATTR_nodiscard YB_ATTR(restrict)
 #elif __has_attribute(__malloc__) || YB_IMPL_GNUCPP >= 20296
@@ -741,20 +741,28 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 
 /*!
 \post 函数外可访问的存储保持不变。
-\note 假定函数保证可返回；返回类型 void 时无意义。
+\warning 用户应保证省略假定的等价副作用不影响程序的可观察行为，否则行为未定义。
+\warning 不同翻译单元内的函数应具有相同的指示，否则行为未定义。
+\note 假定函数保证至少有一条路径可返回；返回类型 void 时无意义。
 \note 假定函数无外部可见的副作用：局部记忆化合并重复调用后不改变可观察行为。
+\note 假定以外的等价的副作用可能按 as-if 规则被省略；指示可影响未指定的语义等价性。
+\note 被忽略的副作用可能是控制副作用，如依赖 C++ 语义下外部不可见状态的异常抛出。
+\note 无视 virtual 关键字，但修饰基类函数时也表示对覆盖版本的要求。
+\note 当前对 virtual 关键字的行为不是实现公开的接口，由分析具体实现保证。
+\see WG21 P0078R0 。
 */
 //@{
 /*!
 \def YB_PURE
 \brief 指示函数或函数模板实例为纯函数。
-\note 不修改函数外部的存储；不访问函数外部 volatile 存储；
-	通常不调用不可被 YB_PURE 安全指定的函数。
-\warning 要求满足指示的假定，否则行为未定义。
 \since build 373
 
 指示函数或函数模板的求值仅用于计算返回值，无影响其它顶层块作用域外存储的副作用，
 且返回值只依赖参数和/或编译时确定内存位置（如静态存储的对象的）存储的值。
+假定条件包括：
+不修改函数外部的存储；
+不访问函数外部 volatile 存储；
+不调用不可被 YB_PURE 安全指定的函数。
 */
 #if __has_attribute(__pure__) || YB_IMPL_GNUCPP >= 20296
 #	define YB_PURE YB_ATTR(__pure__)
@@ -765,17 +773,17 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 /*!
 \def YB_STATELESS
 \brief 指示函数或函数模板实例为无状态函数。
-\pre 若参数是对象指针或引用类型，必须保证指向或引用的对象是其它参数，或者不被使用。
-\note 假定函数调用的结果总是相同：返回值总是不可分辨的右值或指示同一个内存位置的
-	左值。任意以一次调用结果替代调用或合并重复调用时不改变可观察行为。
-\note 不访问函数外部的存储；通常不调用不可被 YB_STATELESS 安全指定的函数。
-\note 可被安全指定的函数或函数模板是 YB_PURE 限定的函数或函数模板的真子集。
-\warning 要求满足指示的假定，否则行为未定义。
-\see WG21 P0078R0 。
+\pre 若参数是对象指针或引用类型，应保证指向或引用的对象是其它参数，或者不被使用。
 \since build 373
 
 指示函数或函数模板的求值仅用于计算返回值，无影响其它顶层块作用域外存储的副作用，
+假定函数调用的结果总是相同：返回值总是不可分辨的右值或指示同一个内存位置的左值。
+	任意以一次调用结果替代调用或合并重复调用时不改变可观察行为。
 且返回值只依赖参数的值，和其它存储无关。
+假定条件包括：
+不访问函数外部的存储；
+不调用不可被 YB_STATELESS 安全指定的函数。
+可被安全指定的函数或函数模板是 YB_PURE 限定的函数或函数模板的真子集。
 */
 #if __has_attribute(__const__) || YB_IMPL_GNUCPP >= 20500
 #	define YB_STATELESS YB_ATTR(__const__)
@@ -1316,7 +1324,7 @@ class offsetof_check
 
 /*!
 \brief 无序列依赖表达式组求值实现。
-\return 第一个参数的引用。
+\return 第一参数的引用。
 \since build 594
 */
 template<typename _type, typename... _tParams>

@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2730
+\version r2824
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2018-09-26 22:34 +0800
+	2018-11-30 06:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,7 +42,6 @@
 #include <fstream> // for std::filebuf;
 #if __GLIBCXX__
 #	include <ext/stdio_filebuf.h> // for __gnu_cxx::stdio_filebuf;
-#	include <ystdex/utility.hpp> // for ystdex::swap_underlying,
 //	ystdex::exchange;
 #elif YB_IMPL_MSCPP
 #	include <ystdex/cstdio.h> // for ystdex::openmode_conv;
@@ -59,17 +58,18 @@ namespace platform
 */
 //@{
 //! \pre 间接断言：参数非空。
-YB_NONNULL(1) inline PDefH(string, MakePathString, const char* s)
+YB_ATTR_nodiscard YB_NONNULL(1) inline
+	PDefH(string, MakePathString, const char* s)
 	ImplRet(Nonnull(s))
-inline PDefH(const string&, MakePathString, const string& s)
+YB_ATTR_nodiscard inline PDefH(const string&, MakePathString, const string& s)
 	ImplRet(s)
 //! \pre Win32 平台：因实现不直接访问左值，字符的动态类型可为布局兼容的整数类型。
 //@{
 //! \pre 间接断言：参数非空。
-YF_API YB_NONNULL(1) string
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) string
 MakePathString(const char16_t*);
 //! \since build 658
-inline PDefH(string, MakePathString, u16string_view sv)
+YB_ATTR_nodiscard inline PDefH(string, MakePathString, u16string_view sv)
 	ImplRet(MakePathString(sv.data()))
 //@}
 //@}
@@ -91,9 +91,11 @@ using FileNodeID = pair<std::uint64_t, std::uint64_t>;
 \relates FileNodeID
 */
 //@{
-yconstfn PDefHOp(bool, ==, const FileNodeID& x, const FileNodeID& y)
+YB_ATTR_nodiscard yconstfn
+	PDefHOp(bool, ==, const FileNodeID& x, const FileNodeID& y)
 	ImplRet(x.first == y.first && x.second == y.second)
-yconstfn PDefHOp(bool, !=, const FileNodeID& x, const FileNodeID& y)
+YB_ATTR_nodiscard yconstfn
+	PDefHOp(bool, !=, const FileNodeID& x, const FileNodeID& y)
 	ImplRet(!(x == y))
 //@}
 //@}
@@ -127,7 +129,7 @@ enum class NodeCategory : std::uint_least32_t;
 \relates NodeCategory
 \since build 658
 */
-YF_API NodeCategory
+YB_ATTR_nodiscard YF_API NodeCategory
 CategorizeNode(mode_t) ynothrow;
 
 
@@ -185,26 +187,26 @@ public:
 	\note 和 operator-> 不一致，不返回引用，以避免生存期问题。
 	\since build 628
 	*/
-	PDefHOp(int, *, ) const ynothrow
+	YB_ATTR_nodiscard PDefHOp(int, *, ) const ynothrow
 		ImplRet(desc)
 
 	//! \since build 625
-	PDefHOp(FileDescriptor*, ->, ) ynothrow
+	YB_ATTR_nodiscard PDefHOp(FileDescriptor*, ->, ) ynothrow
 		ImplRet(this)
 	//! \since build 625
-	PDefHOp(const FileDescriptor*, ->, ) const ynothrow
+	YB_ATTR_nodiscard PDefHOp(const FileDescriptor*, ->, ) const ynothrow
 		ImplRet(this)
 
 	explicit DefCvt(const ynothrow, bool, desc != -1)
 
 	//! \since build 639
-	friend YB_PURE yconstfn PDefHOp(bool, ==, const FileDescriptor& x,
-		const FileDescriptor& y) ynothrow
+	YB_ATTR_nodiscard YB_PURE friend yconstfn PDefHOp(bool, ==,
+		const FileDescriptor& x, const FileDescriptor& y) ynothrow
 		ImplRet(x.desc == y.desc)
 
 	//! \since build 639
-	friend YB_PURE yconstfn PDefHOp(bool, <, const FileDescriptor& x,
-		const FileDescriptor& y) ynothrow
+	YB_ATTR_nodiscard YB_PURE friend yconstfn PDefHOp(bool, <,
+		const FileDescriptor& x, const FileDescriptor& y) ynothrow
 		ImplRet(x.desc < y.desc)
 
 	//! \exception std::system_error 参数无效或调用失败。
@@ -215,14 +217,14 @@ public:
 	\note 当前 Windows 使用 \c ::GetFileTime 实现，其它只保证最高精确到秒。
 	\since build 628
 	*/
-	FileTime
+	YB_ATTR_nodiscard FileTime
 	GetAccessTime() const;
 	/*!
 	\brief 取节点类别。
 	\return 失败时为 NodeCategory::Invalid ，否则为对应类别。
 	\since build 638
 	*/
-	NodeCategory
+	YB_ATTR_nodiscard NodeCategory
 	GetCategory() const ynothrow;
 	//! \since build 719
 	//@{
@@ -230,10 +232,10 @@ public:
 	\brief 取旗标。
 	\note 非 POSIX 平台：不支持操作。
 	*/
-	int
+	YB_ATTR_nodiscard int
 	GetFlags() const;
 	//! \brief 取模式。
-	mode_t
+	YB_ATTR_nodiscard mode_t
 	GetMode() const;
 	//@}
 	/*!
@@ -243,10 +245,10 @@ public:
 	*/
 	//@{
 	//! \brief 取修改时间。
-	FileTime
+	YB_ATTR_nodiscard FileTime
 	GetModificationTime() const;
 	//! \brief 取修改和访问时间。
-	array<FileTime, 2>
+	YB_ATTR_nodiscard array<FileTime, 2>
 	GetModificationAndAccessTime() const;
 	//@}
 	//@}
@@ -256,10 +258,10 @@ public:
 	*/
 	//@{
 	//! \brief 取文件系统节点标识。
-	FileNodeID
+	YB_ATTR_nodiscard FileNodeID
 	GetNodeID() const ynothrow;
 	//! \brief 取链接数。
-	size_t
+	YB_ATTR_nodiscard size_t
 	GetNumberOfLinks() const ynothrow;
 	//@}
 	/*!
@@ -270,7 +272,7 @@ public:
 	\note 非常规文件或文件系统实现可能出错。
 	\since build 628
 	*/
-	std::uint64_t
+	YB_ATTR_nodiscard std::uint64_t
 	GetSize() const;
 
 	/*!
@@ -331,11 +333,12 @@ public:
 	/*!
 	\brief 调整文件至指定长度。
 	\pre 指定文件需已经打开并可写。
+	\return 是否成功。
 	\note 不改变文件读写位置。
 
 	若文件不足指定长度，扩展并使用空字节填充；否则保留起始指定长度的字节。
 	*/
-	bool
+	YB_ATTR_nodiscard bool
 	SetSize(size_t) ynothrow;
 	/*!
 	\brief 设置翻译模式。
@@ -468,7 +471,7 @@ using UniqueFile = unique_ptr_from<FileDescriptor::Deleter>;
 \brief 取默认权限。
 \since build 638
 */
-YF_API YB_STATELESS mode_t
+YB_ATTR_nodiscard YF_API YB_STATELESS mode_t
 DefaultPMode() ynothrow;
 
 /*!
@@ -500,14 +503,14 @@ inline PDefH(void, SetupBinaryStdIO, std::FILE* in = stdin,
 */
 //@{
 //! \note 忽略二进制模式。
-YF_API YB_STATELESS int
+YB_ATTR_nodiscard YF_API YB_STATELESS int
 omode_conv(std::ios_base::openmode) ynothrow;
 
 /*!
 \note 扩展：不忽略二进制模式。
 \note POSIX 平台：同 omode_conv 。
 */
-YF_API YB_STATELESS int
+YB_ATTR_nodiscard YF_API YB_STATELESS int
 omode_convb(std::ios_base::openmode) ynothrow;
 //@}
 
@@ -524,9 +527,9 @@ omode_convb(std::ios_base::openmode) ynothrow;
 \note errno 在出错时会被设置，具体值由实现定义。
 */
 //@{
-YF_API YB_NONNULL(1) int
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) int
 uaccess(const char* path, int amode) ynothrowv;
-YF_API YB_NONNULL(1) int
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) int
 uaccess(const char16_t* path, int amode) ynothrowv;
 //@}
 
@@ -538,11 +541,11 @@ uaccess(const char16_t* path, int amode) ynothrowv;
 */
 //@{
 //! \brief 以 UTF-8 文件名无缓冲打开文件。
-YF_API YB_NONNULL(1) int
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) int
 uopen(const char* filename, int oflag, mode_t pmode = DefaultPMode())
 	ynothrowv;
 //! \brief 以 UCS-2 文件名无缓冲打开文件。
-YF_API YB_NONNULL(1) int
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) int
 uopen(const char16_t* filename, int oflag, mode_t pmode = DefaultPMode())
 	ynothrowv;
 //@}
@@ -558,29 +561,29 @@ uopen(const char16_t* filename, int oflag, mode_t pmode = DefaultPMode())
 */
 //@{
 //! \brief 以 UTF-8 文件名打开文件。
-YF_API YB_NONNULL(1, 2) std::FILE*
+YB_ATTR_nodiscard YF_API YB_NONNULL(1, 2) std::FILE*
 ufopen(const char* filename, const char* mode) ynothrowv;
 //! \brief 以 UCS-2 文件名打开文件。
-YF_API YB_NONNULL(1, 2) std::FILE*
+YB_ATTR_nodiscard YF_API YB_NONNULL(1, 2) std::FILE*
 ufopen(const char16_t* filename, const char16_t* mode) ynothrowv;
 //@}
 //! \param mode 打开模式，基本语义与 ISO C++11 对应，具体行为取决于实现。
 //@{
 //! \brief 以 UTF-8 文件名打开文件。
-YF_API YB_NONNULL(1) std::FILE*
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) std::FILE*
 ufopen(const char* filename, std::ios_base::openmode mode) ynothrowv;
 //! \brief 以 UCS-2 文件名打开文件。
-YF_API YB_NONNULL(1) std::FILE*
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) std::FILE*
 ufopen(const char16_t* filename, std::ios_base::openmode mode) ynothrowv;
 //@}
 
 //! \note 使用 ufopen 二进制只读模式打开测试实现。
 //@{
 //! \brief 判断指定 UTF-8 文件名的文件是否存在。
-YF_API YB_NONNULL(1) bool
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) bool
 ufexists(const char*) ynothrowv;
 //! \brief 判断指定 UCS-2 文件名的文件是否存在。
-YF_API YB_NONNULL(1) bool
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) bool
 ufexists(const char16_t*) ynothrowv;
 //@}
 
@@ -596,10 +599,10 @@ ufexists(const char16_t*) ynothrowv;
 */
 //@{
 //! \brief 以 UTF-8 文件名无缓冲打开管道流。
-YF_API YB_NONNULL(1, 2) std::FILE*
+YB_ATTR_nodiscard YF_API YB_NONNULL(1, 2) std::FILE*
 upopen(const char* filename, const char* mode) ynothrowv;
 //! \brief 以 UCS-2 文件名无缓冲打开管道流。
-YF_API YB_NONNULL(1, 2) std::FILE*
+YB_ATTR_nodiscard YF_API YB_NONNULL(1, 2) std::FILE*
 upopen(const char16_t* filename, const char16_t* mode) ynothrowv;
 //@}
 //@}
@@ -610,7 +613,7 @@ upopen(const char16_t* filename, const char16_t* mode) ynothrowv;
 \note 基本语义同 POSIX.1 2004 的 \c ::pclose ，具体行为取决于实现。
 \since build 566
 */
-YF_API YB_NONNULL(1) int
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) int
 upclose(std::FILE*) ynothrowv;
 
 /*!
@@ -625,10 +628,10 @@ upclose(std::FILE*) ynothrowv;
 */
 //@{
 //! \param buf UTF-8 缓冲区起始指针。
-YF_API YB_NONNULL(1) char*
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) char*
 ugetcwd(char* buf, size_t size) ynothrowv;
 //! \param buf UCS-2 缓冲区起始指针。
-YF_API YB_NONNULL(1) char16_t*
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) char16_t*
 ugetcwd(char16_t* buf, size_t size) ynothrowv;
 //@}
 
@@ -645,21 +648,21 @@ ugetcwd(char16_t* buf, size_t size) ynothrowv;
 \brief 切换当前工作路径至指定路径。
 \note POSIX 平台：除路径和返回值外语义同 \c ::chdir 。
 */
-YF_API YB_NONNULL(1) bool
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) bool
 uchdir(const char*) ynothrowv;
 
 /*!
 \brief 按路径以默认权限新建一个目录。
 \note 权限由实现定义： DS 使用最大权限； MinGW32 使用 \c ::_wmkdir 指定的默认权限。
 */
-YF_API YB_NONNULL(1) bool
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) bool
 umkdir(const char*) ynothrowv;
 
 /*!
 \brief 按路径删除一个空目录。
 \note POSIX 平台：除路径和返回值外语义同 \c ::rmdir 。
 */
-YF_API YB_NONNULL(1) bool
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) bool
 urmdir(const char*) ynothrowv;
 
 /*!
@@ -667,7 +670,7 @@ urmdir(const char*) ynothrowv;
 \note POSIX 平台：除路径和返回值外语义同 \c ::unlink 。
 \note Win32 平台：支持移除只读文件，但删除打开的文件总是失败。
 */
-YF_API YB_NONNULL(1) bool
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) bool
 uunlink(const char*) ynothrowv;
 
 /*!
@@ -676,7 +679,7 @@ uunlink(const char*) ynothrowv;
 \note Win32 平台：支持移除空目录和只读文件，但删除打开的文件总是失败。
 \see https://msdn.microsoft.com/en-us/library/kc07117k.aspx 。
 */
-YF_API YB_NONNULL(1) bool
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) bool
 uremove(const char*) ynothrowv;
 //@}
 //@}
@@ -724,7 +727,8 @@ public:
 	using int_type = typename _tTraits::int_type;
 	using pos_type = typename _tTraits::pos_type;
 	using off_type = typename _tTraits::off_type;
-	using traits = _tTraits;
+	//! \since build 846
+	using traits_type = _tTraits;
 
 	//! \since build 620
 	DefDeCtor(basic_filebuf)
@@ -797,7 +801,7 @@ public:
 private:
 #	if __GLIBCXX__
 	//! \since build 627
-	bool
+	YB_ATTR_nodiscard bool
 	open_check(std::ios_base::openmode mode)
 	{
 		if(this->is_open())
@@ -917,7 +921,7 @@ public:
 			this->setstate(std::ios_base::failbit);
 	}
 
-	bool
+	YB_ATTR_nodiscard bool
 	is_open() const
 	{
 		return fbuf.is_open();
@@ -1011,7 +1015,7 @@ public:
 			this->setstate(std::ios_base::failbit);
 	}
 
-	bool
+	YB_ATTR_nodiscard bool
 	is_open() const
 	{
 		return fbuf.is_open();
@@ -1104,7 +1108,7 @@ public:
 			this->setstate(std::ios_base::failbit);
 	}
 
-	bool
+	YB_ATTR_nodiscard bool
 	is_open() const
 	{
 		return fbuf.is_open();
@@ -1177,7 +1181,7 @@ using std::wfstream;
 \note 未指定结果是否以分隔符结束。
 */
 template<typename _tChar>
-basic_string<_tChar>
+YB_ATTR_nodiscard basic_string<_tChar>
 FetchCurrentWorkingDirectory(size_t init)
 {
 	return ystdex::retry_for_vector<basic_string<_tChar>>(init,
@@ -1201,10 +1205,10 @@ FetchCurrentWorkingDirectory(size_t init)
 //! \note 参数被忽略。
 //@{
 template<>
-YF_API string
+YB_ATTR_nodiscard YF_API string
 FetchCurrentWorkingDirectory(size_t);
 template<>
-YF_API u16string
+YB_ATTR_nodiscard YF_API u16string
 FetchCurrentWorkingDirectory(size_t);
 //@}
 #endif
@@ -1218,16 +1222,17 @@ FetchCurrentWorkingDirectory(size_t);
 \since build 631
 */
 //@{
-YB_NONNULL(1) inline PDefH(FileTime, GetFileAccessTimeOf, std::FILE* fp)
+YB_ATTR_nodiscard YB_NONNULL(1) inline
+	PDefH(FileTime, GetFileAccessTimeOf, std::FILE* fp)
 	ImplRet(FileDescriptor(fp).GetAccessTime())
 /*!
 \pre 断言：第一参数非空。
 \note 最后参数表示跟随连接：若文件系统支持，访问链接的文件而不是链接自身。
 */
 //@{
-YF_API YB_NONNULL(1) FileTime
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) FileTime
 GetFileAccessTimeOf(const char*, bool = {});
-YF_API YB_NONNULL(1) FileTime
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) FileTime
 GetFileAccessTimeOf(const char16_t*, bool = {});
 //@}
 //@}
@@ -1237,7 +1242,8 @@ GetFileAccessTimeOf(const char16_t*, bool = {});
 \since build 628
 */
 //@{
-YB_NONNULL(1) inline PDefH(FileTime, GetFileModificationTimeOf, std::FILE* fp)
+YB_ATTR_nodiscard YB_NONNULL(1) inline
+	PDefH(FileTime, GetFileModificationTimeOf, std::FILE* fp)
 	ImplRet(FileDescriptor(fp).GetModificationTime())
 
 /*!
@@ -1245,9 +1251,9 @@ YB_NONNULL(1) inline PDefH(FileTime, GetFileModificationTimeOf, std::FILE* fp)
 \note 最后参数表示跟随连接：若文件系统支持，访问链接的文件而不是链接自身。
 */
 //@{
-YF_API YB_NONNULL(1) FileTime
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) FileTime
 GetFileModificationTimeOf(const char*, bool = {});
-YF_API YB_NONNULL(1) FileTime
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) FileTime
 GetFileModificationTimeOf(const char16_t*, bool = {});
 //@}
 //@}
@@ -1257,7 +1263,7 @@ GetFileModificationTimeOf(const char16_t*, bool = {});
 \since build 631
 */
 //@{
-YB_NONNULL(1) inline PDefH(array<FileTime YPP_Comma 2>,
+YB_ATTR_nodiscard YB_NONNULL(1) inline PDefH(array<FileTime YPP_Comma 2>,
 	GetFileModificationAndAccessTimeOf, std::FILE* fp)
 	ImplRet(FileDescriptor(fp).GetModificationAndAccessTime())
 /*!
@@ -1265,9 +1271,9 @@ YB_NONNULL(1) inline PDefH(array<FileTime YPP_Comma 2>,
 \note 最后参数表示跟随连接：若文件系统支持，访问链接的文件而不是链接自身。
 */
 //@{
-YF_API YB_NONNULL(1) array<FileTime, 2>
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) array<FileTime, 2>
 GetFileModificationAndAccessTimeOf(const char*, bool = {});
-YF_API YB_NONNULL(1) array<FileTime, 2>
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) array<FileTime, 2>
 GetFileModificationAndAccessTimeOf(const char16_t*, bool = {});
 //@}
 //@}
@@ -1277,12 +1283,12 @@ GetFileModificationAndAccessTimeOf(const char16_t*, bool = {});
 \brief 取路径指定的文件链接数。
 \return 若成功为连接数，否则若文件不存在时为 0 。
 \note 最后参数表示跟随连接：若文件系统支持，访问链接的文件而不是链接自身。
-\since build 719
+\since build 846
 */
 //@{
-YB_NONNULL(1) size_t
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) size_t
 FetchNumberOfLinks(const char*, bool = {});
-YB_NONNULL(1) size_t
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) size_t
 FetchNumberOfLinks(const char16_t*, bool = {});
 //@}
 
@@ -1298,7 +1304,7 @@ FetchNumberOfLinks(const char16_t*, bool = {});
 \throw std::system_error 创建目标失败。
 \since build 639
 */
-YF_API YB_NONNULL(1) UniqueFile
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) UniqueFile
 EnsureUniqueFile(const char*, mode_t = DefaultPMode(), size_t = 1, bool = {});
 //@}
 
@@ -1314,10 +1320,10 @@ EnsureUniqueFile(const char*, mode_t = DefaultPMode(), size_t = 1, bool = {});
 //@{
 //! \note 间接断言：参数非空。
 //@{
-YF_API YB_NONNULL(1, 2) bool
+YB_ATTR_nodiscard YF_API YB_NONNULL(1, 2) bool
 HaveSameContents(const char*, const char*, mode_t = DefaultPMode());
 //! \since build 701
-YF_API YB_NONNULL(1, 2) bool
+YB_ATTR_nodiscard YF_API YB_NONNULL(1, 2) bool
 HaveSameContents(const char16_t*, const char16_t*, mode_t = DefaultPMode());
 //@}
 /*!
@@ -1326,7 +1332,7 @@ HaveSameContents(const char16_t*, const char16_t*, mode_t = DefaultPMode());
 \note 视文件起始于当前读位置。
 \since build 658
 */
-YF_API bool
+YB_ATTR_nodiscard YF_API bool
 HaveSameContents(UniqueFile, UniqueFile, const char*, const char*);
 //@}
 
@@ -1336,8 +1342,8 @@ HaveSameContents(UniqueFile, UniqueFile, const char*, const char*);
 \nsince build 638
 */
 //@{
-YB_PURE yconstfn PDefH(bool, IsNodeShared, const FileNodeID& x,
-	const FileNodeID& y) ynothrow
+YB_ATTR_nodiscard YB_PURE yconstfn
+	PDefH(bool, IsNodeShared, const FileNodeID& x, const FileNodeID& y) ynothrow
 	ImplRet(x != FileNodeID() && x == y)
 /*!
 \pre 间接断言：字符串参数非空。
@@ -1345,16 +1351,17 @@ YB_PURE yconstfn PDefH(bool, IsNodeShared, const FileNodeID& x,
 \since build 660
 */
 //@{
-YF_API YB_NONNULL(1, 2) bool
+YB_ATTR_nodiscard YF_API YB_NONNULL(1, 2) bool
 IsNodeShared(const char*, const char*, bool = true) ynothrowv;
-YF_API YB_NONNULL(1, 2) bool
+YB_ATTR_nodiscard YF_API YB_NONNULL(1, 2) bool
 IsNodeShared(const char16_t*, const char16_t*, bool = true) ynothrowv;
 //@}
 /*!
 \note 取节点失败视为不共享。
 \sa FileDescriptor::GetNodeID
+\since build 846
 */
-bool
+YB_ATTR_nodiscard YF_API bool
 IsNodeShared(FileDescriptor, FileDescriptor) ynothrow;
 //@}
 
@@ -1372,12 +1379,13 @@ namespace platform_ex
 */
 //@{
 //! \pre 间接断言：参数非空。
-YB_NONNULL(1) inline PDefH(wstring, MakePathStringW, const wchar_t* s)
+YB_ATTR_nodiscard YB_NONNULL(1) inline
+	PDefH(wstring, MakePathStringW, const wchar_t* s)
 	ImplRet(platform::Nonnull(s))
 inline PDefH(const wstring&, MakePathStringW, const wstring& s)
 	ImplRet(s)
 //! \pre 间接断言：参数非空。
-YF_API YB_NONNULL(1) wstring
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) wstring
 MakePathStringW(const char*);
 inline PDefH(wstring, MakePathStringW, string_view sv)
 	ImplRet(MakePathStringW(sv.data()))
@@ -1389,14 +1397,16 @@ inline PDefH(wstring, MakePathStringW, string_view sv)
 */
 //@{
 //! \pre 间接断言：参数非空。
-YB_NONNULL(1) inline PDefH(u16string, MakePathStringU, const char16_t* s)
+YB_ATTR_nodiscard YB_NONNULL(1) inline
+	PDefH(u16string, MakePathStringU, const char16_t* s)
 	ImplRet(platform::Nonnull(s))
-inline PDefH(const u16string&, MakePathStringU, const u16string& s)
+YB_ATTR_nodiscard inline
+	PDefH(const u16string&, MakePathStringU, const u16string& s)
 	ImplRet(s)
 //! \pre 间接断言：参数非空。
-YF_API YB_NONNULL(1) u16string
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) u16string
 MakePathStringU(const char*);
-inline PDefH(u16string, MakePathStringU, string_view sv)
+YB_ATTR_nodiscard inline PDefH(u16string, MakePathStringU, string_view sv)
 	ImplRet(MakePathStringU(sv.data()))
 //@}
 #endif

@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1789
+\version r1912
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2018-09-20 02:33 +0800
+	2018-11-29 21:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,7 +112,7 @@ enum ABGR : size_t
 
 //! \since build 729
 //@{
-//! \ingroup type_traits_operations
+//! \ingroup traits
 //@{
 /*!
 \breif 逻辑分量值特征。
@@ -182,20 +182,28 @@ template<class _tTraits, typename _tComponentMap, size_t _v1, size_t _v2,
 union YB_ATTR(packed) YB_ATTR(aligned(yalignof(typename _tTraits::integer)))
 	PixelQuadruple
 {
-	using Traits = _tTraits;
-	using StorageTraits = typename _tTraits::base;
+	//! \since build 846
+	using traits_type = _tTraits;
+	using StorageTraits = typename traits_type::base;
 	using ArrayType = typename StorageTraits::array;
-	using IntegerType = typename Traits::integer;
+	using IntegerType = typename traits_type::integer;
 	//! \brief 存储分量类型：值分量按参数列表出现顺序的索引的类型。
 	template<size_t _vIdx>
 	using StoredComponentType
 		= typename StorageTraits::template component_t<_vIdx>;
 	//! \brief 分量映射枚举：值分量 ABGR 分别映射为逻辑分量 AXYZ 之一。
 	using CMap = _tComponentMap;
-	using AType = typename Traits::template component_t<CMap::A>;
-	using BType = typename Traits::template component_t<CMap::B>;
-	using GType = typename Traits::template component_t<CMap::G>;
-	using RType = typename Traits::template component_t<CMap::R>;
+	using AType = typename traits_type::template component_t<CMap::A>;
+	using BType = typename traits_type::template component_t<CMap::B>;
+	using GType = typename traits_type::template component_t<CMap::G>;
+	using RType = typename traits_type::template component_t<CMap::R>;
+	//! \since build 846
+	//@{
+	using AWidth = typename traits_type::template component_width<CMap::A>;
+	using BWidth = typename traits_type::template component_width<CMap::B>;
+	using GWidth = typename traits_type::template component_width<CMap::G>;
+	using RWidth = typename traits_type::template component_width<CMap::R>;
+	//@}
 
 	ArrayType Bytes;
 	IntegerType Integer;
@@ -208,19 +216,19 @@ union YB_ATTR(packed) YB_ATTR(aligned(yalignof(typename _tTraits::integer)))
 	yconstfn
 	PixelQuadruple(StoredComponentType<0> v0, StoredComponentType<1> v1,
 		StoredComponentType<2> v2, StoredComponentType<3> v3) ynothrow
-		: Integer(Traits::base::pack(v0, v1, v2, v3))
+		: Integer(StorageTraits::pack(v0, v1, v2, v3))
 	{}
 
 	yconstfn DefCvt(const ynothrow, IntegerType, Integer)
 
 	yconstfn DefGetter(const ynothrow, AType, A,
-		Traits::template extract<CMap::A>(Integer))
+		traits_type::template extract<CMap::A>(Integer))
 	yconstfn DefGetter(const ynothrow, BType, B,
-		Traits::template extract<CMap::B>(Integer))
+		traits_type::template extract<CMap::B>(Integer))
 	yconstfn DefGetter(const ynothrow, GType, G,
-		Traits::template extract<CMap::G>(Integer))
+		traits_type::template extract<CMap::G>(Integer))
 	yconstfn DefGetter(const ynothrow, RType, R,
-		Traits::template extract<CMap::R>(Integer))
+		traits_type::template extract<CMap::R>(Integer))
 	//@}
 };
 
@@ -247,12 +255,6 @@ using ABGR = PixelQuadruple<AXYZTraits<_vA, _vB, _vG, _vR>, AXYZMapping::ABGR,
 //@}
 
 
-//! \since build 417
-//@{
-using MonoType = octet;
-using AlphaType = octet;
-//@}
-
 #if YCL_DS
 	/*!
 	\brief 标识 XYZ1555 像素格式。
@@ -267,29 +269,6 @@ using AlphaType = octet;
 \note 小端序整数表示 ABGR1555 。
 */
 using Pixel = RGBA<5, 5, 5, 1>;
-/*!
-\brief 取像素 Alpha 值。
-\relates Pixel
-\since build 417
-*/
-yconstfn PDefH(AlphaType, FetchAlpha, Pixel px) ynothrow
-	ImplRet(px.GetA() != 0 ? 0xFF : 0)
-
-/*!
-\brief 取不透明像素。
-\relates Pixel
-\since build 413
-*/
-yconstfn PDefH(Pixel, FetchOpaque, Pixel px) ynothrow
-	ImplRet(px.Integer | 1 << 15)
-
-/*!
-\brief 使用 8 位 RGB 构造 std::uint16_t 类型像素。
-\since build 441
-*/
-yconstfn PDefH(std::uint16_t, FetchPixel, MonoType r, MonoType g, MonoType b)
-	ynothrow
-	ImplRet(r >> 3 | std::uint16_t(g >> 3) << 5 | std::uint16_t(b >> 3) << 10)
 
 #elif YCL_Win32 || YCL_Android || YCL_Linux || YCL_OS_X
 // TODO: Real implementation for X11.
@@ -327,97 +306,19 @@ using Pixel = BGRA<8, 8, 8, 8>;
 */
 using Pixel = RGBA<8, 8, 8, 8>;
 #	endif
-
-/*!
-\brief 取像素 Alpha 值。
-\since build 417
-*/
-yconstfn PDefH(AlphaType, FetchAlpha, Pixel px) ynothrow
-	ImplRet(px.GetA())
-
-/*!
-\brief 取不透明像素。
-\relates Pixel
-\since build 413
-*/
-yconstfn PDefH(Pixel, FetchOpaque, Pixel px) ynothrow
-#	if YCL_Win32
-	ImplRet({px.GetB(), px.GetG(), px.GetR(), 0xFF})
-#	else
-	ImplRet({px.GetR(), px.GetG(), px.GetB(), 0xFF})
-#	endif
-
-/*!
-\brief 使用 8 位 RGB 构造 std::uint32_t 像素。
-\relates Pixel
-\since build 417
-*/
-yconstfn PDefH(std::uint32_t, FetchPixel, MonoType r, MonoType g, MonoType b)
-	ynothrow
-	ImplRet(std::uint32_t(r) | std::uint32_t(g) << 8 | std::uint32_t(b) << 16)
 #else
 #	error "Unsupported platform found."
 #endif
 
 
 /*!
-\brief 像素分量转换。
-\since build 839
-*/
-//@{
-yconstfn AlphaType
-PixelToAlpha(Pixel px) ynothrow
-{
-#if YCL_DS
-	return FetchAlpha(px) ? 0xFF : 0x00;
-#elif YCL_Win32 || YCL_Linux || YCL_OS_X
-	return px.GetA();
-#endif
-}
-
-#if YCL_DS
-#	define YCL_Impl_RGB_Shift << 3
-#elif YCL_Win32 || YCL_Linux || YCL_OS_X
-#	define YCL_Impl_RGB_Shift
-#endif
-yconstfn MonoType
-PixelToBlue(Pixel px) ynothrow
-{
-	return px.GetB() YCL_Impl_RGB_Shift;
-}
-
-yconstfn MonoType
-PixelToGreen(Pixel px) ynothrow
-{
-	return px.GetG() YCL_Impl_RGB_Shift;
-}
-
-yconstfn MonoType
-PixelToRed(Pixel px) ynothrow
-{
-	return px.GetR() YCL_Impl_RGB_Shift;
-}
-#undef YCL_Impl_RGB_Shift
-
-yconstfn Pixel
-ColorComponentsToPixel(MonoType r, MonoType g, MonoType b, AlphaType a) ynothrow
-{
-#if YCL_DS
-	return int(a != 0) << 15 | FetchPixel(r, g, b);
-#elif YCL_Win32
-	return {b, g, r, a};
-#elif YCL_Android || YCL_Linux || YCL_OS_X
-	return {r, g, b, a};
-#endif
-}
-//@}
-
-/*!
 \brief 初始化视频输出。
 \warning 不保证线程安全性。
+\note 当前除 DS 平台外实现为空。
+\since build 846
 */
-YF_API bool
-InitVideo();
+YF_API void
+InitVideo() yimpl(ynothrow);
 
 } // namespace platform;
 

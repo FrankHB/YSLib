@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r771
+\version r796
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2018-11-26 04:33 +0800
+	2018-12-02 16:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@ WG21 P0337R0 ：polymorphic_allocator 的默认 operator= 定义为 = delete 。
 LWG 2961 ：不需要考虑无法实现的后置条件。
 LWG 2969 ：明确 polymorphic_allocator 的 construct 函数模板使用 *this 而不是
 	memory_resource 进行构造。
-LWG 2975 ：明确 polymorphic_allocator 的 construct 函数模板排除对第一个参数为
+LWG 2975 ：明确 polymorphic_allocator 的 construct 函数模板排除对第一参数为
 	pair 实例的指针类型时的重载。
 LWG 3000 ：存储资源类的 do_is_equal 的实现没有冗余的 dynamic_cast 。
 LWG 3036 ：删除 polymorphic_allocator 的 destroy 函数模板，
@@ -240,18 +240,18 @@ public:
 };
 
 
-//! \note 和 Microsoft VC++ 实现中的 _Get_size_of_n 类似。
+//! \note 和 Microsoft VC++ 实现中的 %_Get_size_of_n 类似。
 //@{
 template<size_t _vSize>
-inline size_t
+YB_ATTR_nodiscard YB_PURE inline size_t
 get_size_of_n(size_t n)
 {
 	size_t res(n * _vSize);
 
 	return size_t(static_cast<size_t>(-1) / _vSize) < n ? size_t(-1) : res;
 }
-template<> inline
-size_t
+template<>
+YB_ATTR_nodiscard YB_PURE inline size_t
 get_size_of_n<1>(size_t n)
 {
 	return n;
@@ -356,7 +356,7 @@ private:
 	virtual void
 	do_deallocate(void*, size_t, size_t) = 0;
 
-	virtual bool
+	YB_ATTR_nodiscard virtual bool
 	do_is_equal(const memory_resource&) const ynothrow = 0;
 };
 
@@ -517,6 +517,10 @@ YB_API YB_ATTR_returns_nonnull memory_resource*
 set_default_resource(memory_resource*) ynothrow;
 
 
+/*!
+\note 实现定义：默认限制参见池的构造函数说明。
+\see WG21 N4778 [mem.res.pool.options] 。
+*/
 struct YB_API pool_options
 {
 	size_t max_blocks_per_chunk = 0;
@@ -549,6 +553,11 @@ private:
 	pools_t pools;
 
 public:
+	/*!
+	\note 实现定义：每区块最大块数限制为 \c size_t(PTRDIFF_MAX) 。
+	\note 实现定义：最大块分配大小限制为 \c size_t(PTRDIFF_MAX >> 8) + 1 。
+	*/
+	//@{
 	pool_resource() ynothrow
 		: pool_resource(pool_options(), get_default_resource())
 	{}
@@ -565,18 +574,19 @@ public:
 	pool_resource(const pool_options& opts)
 		: pool_resource(opts, get_default_resource())
 	{}
+	//@}
 	~pool_resource() override;
 
 	void
 	release() yimpl(ynothrow);
 
-	YB_ATTR_returns_nonnull memory_resource*
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE memory_resource*
 	upstream_resource() const yimpl(ynothrow)
 	{
 		return pools.get_allocator().resource();
 	}
 
-	pool_options
+	YB_ATTR_nodiscard YB_PURE pool_options
 	options() const yimpl(ynothrow)
 	{
 		return saved_options;
@@ -589,20 +599,20 @@ protected:
 	void
 	do_deallocate(void*, size_t, size_t) yimpl(ynothrowv) override;
 
-	bool
+	YB_ATTR_nodiscard yimpl(YB_PURE) bool
 	do_is_equal(const memory_resource&) const ynothrow override;
 
 private:
-	std::pair<pools_t::iterator, size_t>
+	YB_ATTR_nodiscard YB_PURE std::pair<pools_t::iterator, size_t>
 	find_pool(size_t, size_t) ynothrow;
 
-	bool
+	YB_ATTR_nodiscard YB_PURE bool
 	pool_exists(const std::pair<pools_t::iterator, size_t>&) ynothrow;
 
 	void
 	release_oversized() ynothrow;
 
-	memory_resource&
+	YB_ATTR_nodiscard YB_PURE memory_resource&
 	upstream() ynothrowv
 	{
 		const auto p_upstream(upstream_resource());
@@ -711,7 +721,7 @@ public:
 	void
 	release() yimpl(ynothrow);
 
-	YB_ATTR_returns_nonnull memory_resource*
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE memory_resource*
 	upstream_resource() const yimpl(ynothrow)
 	{
 		return upstream_rsrc;
@@ -726,7 +736,7 @@ protected:
 	do_deallocate(void*, size_t, size_t) override
 	{}
 
-	bool
+	YB_ATTR_nodiscard yimpl(YB_PURE) bool
 	do_is_equal(const memory_resource&) const ynothrow override;
 };
 //@}
@@ -739,7 +749,7 @@ protected:
 
 } // namespace pmr;
 
-} // namespace std;
+} // namespace ystdex;
 
 #endif
 

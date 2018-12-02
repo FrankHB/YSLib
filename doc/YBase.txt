@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r1408
+\version r1409
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2018-11-24 01:53 +0800
+	2018-11-29 17:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -410,7 +410,7 @@ ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证�
 扩展标准库头 <iterator> 中的部分接口。
 
 @2.5.5.15 通用指针 Pointer ：
-间接扩展标准库头 <iterator> ，提供指针的迭代器适配器包装及其它和指针类型相关的模板。
+间接扩展标准库头 <iterator> 和 <memory> ，提供指针的迭代器适配器包装及其它和指针类型相关的模板。
 
 @2.5.6 ISO C++ 语言支持库扩展：
 以下头文件扩展 ISO C++ 标准定义的语言支持库([support.general]) 中的至少一个并可能扩展其它标准库头，提供对应的相似接口，不依赖以上文件外的 YStandardEx 头文件。

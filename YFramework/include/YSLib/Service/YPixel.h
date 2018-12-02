@@ -11,13 +11,13 @@
 /*!	\file YPixel.h
 \ingroup Service
 \brief 体系结构中立的像素操作。
-\version r1192
+\version r1224
 \author FrankHB <frankhb1989@gmail.com>
 \since build 442
 \par 创建时间:
 	2013-09-02 00:46:13 +0800
 \par 修改时间:
-	2018-09-20 02:37 +0800
+	2018-12-02 17:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,7 +50,7 @@ namespace Drawing
 */
 //@{
 template<class _tPixel>
-using MaskTrait = typename _tPixel::Traits;
+using MaskTrait = typename _tPixel::traits_type;
 
 
 template<class _tPixel, class _tMask>
@@ -88,8 +88,8 @@ struct GPixelCompositor
 		= sa + da * (1 - sa)
 	*/
 	template<typename _tDstAlpha, typename _tSrcAlpha>
-	static yconstfn ystdex::conditional_t<(_vDstAlphaBits < _vSrcAlphaBits),
-		_tSrcAlpha, _tDstAlpha>
+	YB_ATTR_nodiscard YB_STATELESS static yconstfn ystdex::conditional_t<
+		(_vDstAlphaBits < _vSrcAlphaBits), _tSrcAlpha, _tDstAlpha>
 	CompositeAlphaOver(_tDstAlpha da, _tSrcAlpha sa)
 	{
 		static_assert(ystdex::is_normalizable<_tDstAlpha>(),
@@ -112,7 +112,7 @@ struct GPixelCompositor
 	*/
 	template<typename _tDst, typename _tSrc, typename _tSrcAlpha,
 		typename _tAlpha>
-	static yconstfn _tDst
+	YB_ATTR_nodiscard YB_STATELESS static yconstfn _tDst
 	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa, _tAlpha a)
 	{
 		static_assert(ystdex::is_normalizable<_tDst>(),
@@ -140,7 +140,7 @@ struct GPixelCompositor<_vDstAlphaBits, 1>
 		= sa != 0 ? 1 : da
 	*/
 	template<typename _tDstAlpha, typename _tSrcAlpha>
-	static yconstfn _tDstAlpha
+	YB_ATTR_nodiscard YB_STATELESS static yconstfn _tDstAlpha
 	CompositeAlphaOver(_tDstAlpha da, _tSrcAlpha sa)
 	{
 		static_assert(ystdex::is_normalizable<_tDstAlpha>(),
@@ -160,7 +160,7 @@ struct GPixelCompositor<_vDstAlphaBits, 1>
 	*/
 	template<typename _tDst, typename _tSrc, typename _tSrcAlpha,
 		typename _tAlpha>
-	static yconstfn _tDst
+	YB_ATTR_nodiscard YB_STATELESS static yconstfn _tDst
 	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa, _tAlpha a)
 	{
 		static_assert(ystdex::is_normalizable<_tDst>(),
@@ -190,7 +190,7 @@ struct GPixelCompositor<_vDstAlphaBits, 0>
 	*/
 	//@{
 	template<typename _tDstAlpha>
-	static yconstfn _tDstAlpha
+	YB_ATTR_nodiscard YB_STATELESS static yconstfn _tDstAlpha
 	CompositeAlphaOver(_tDstAlpha)
 	{
 		static_assert(ystdex::is_normalizable<_tDstAlpha>(),
@@ -199,7 +199,7 @@ struct GPixelCompositor<_vDstAlphaBits, 0>
 		return _tDstAlpha(1);
 	}
 	template<typename _tDstAlpha, typename _tSrcAlpha>
-	static yconstfn _tDstAlpha
+	YB_ATTR_nodiscard YB_STATELESS static yconstfn _tDstAlpha
 	CompositeAlphaOver(_tDstAlpha da, _tSrcAlpha)
 	{
 		static_assert(ystdex::is_normalizable<_tSrcAlpha>(),
@@ -221,7 +221,7 @@ struct GPixelCompositor<_vDstAlphaBits, 0>
 	//@{
 	//! \since build 442
 	template<typename _tSrc>
-	static yconstfn _tSrc
+	YB_ATTR_nodiscard YB_STATELESS static yconstfn _tSrc
 	CompositeComponentOver(_tSrc s)
 	{
 		static_assert(ystdex::is_normalizable<_tSrc>(),
@@ -231,7 +231,7 @@ struct GPixelCompositor<_vDstAlphaBits, 0>
 	}
 	template<typename _tDst, typename _tSrc, typename _tSrcAlpha,
 		typename _tAlpha>
-	static yconstfn _tSrc
+	YB_ATTR_nodiscard YB_STATELESS static yconstfn _tSrc
 	CompositeComponentOver(_tDst, _tSrc s, _tSrcAlpha, _tAlpha)
 	{
 		static_assert(ystdex::is_normalizable<_tSrc>(),
@@ -257,7 +257,7 @@ struct GPixelCompositor<1, _vSrcAlphaBits>
 		= da != 0 ? 1 : sa
 	*/
 	template<typename _tDstAlpha, typename _tSrcAlpha>
-	static yconstfn _tSrcAlpha
+	YB_ATTR_nodiscard YB_STATELESS static yconstfn _tSrcAlpha
 	CompositeAlphaOver(_tDstAlpha da, _tSrcAlpha sa)
 	{
 		static_assert(ystdex::is_normalizable<_tDstAlpha>(),
@@ -277,7 +277,7 @@ struct GPixelCompositor<1, _vSrcAlphaBits>
 	*/
 	template<typename _tDst, typename _tSrc, typename _tSrcAlpha,
 		typename _tAlpha>
-	static yconstfn _tDst
+	YB_ATTR_nodiscard YB_STATELESS static yconstfn _tDst
 	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa, _tAlpha a)
 	{
 		static_assert(ystdex::is_normalizable<_tDst>(),
@@ -318,7 +318,7 @@ struct GPixelCompositor<0, _vSrcAlphaBits> : private GPixelCompositor<2, 0>
 	*/
 	//@{
 	template<typename _tDst, typename _tSrc, typename _tSrcAlpha>
-	static yconstfn _tDst
+	YB_ATTR_nodiscard YB_STATELESS static yconstfn _tDst
 	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa)
 	{
 		static_assert(ystdex::is_normalizable<_tDst>(),
@@ -332,7 +332,7 @@ struct GPixelCompositor<0, _vSrcAlphaBits> : private GPixelCompositor<2, 0>
 	}
 	template<typename _tDst, typename _tSrc, typename _tSrcAlpha,
 		typename _tAlpha>
-	static yconstfn _tDst
+	YB_ATTR_nodiscard YB_STATELESS static yconstfn _tDst
 	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa, _tAlpha)
 	{
 		static_assert(ystdex::is_normalizable<_tAlpha>(),
@@ -360,7 +360,7 @@ struct GPixelCompositor<0, 1> : private GPixelCompositor<2, 0>
 	*/
 	//@{
 	template<typename _tDst, typename _tSrc, typename _tSrcAlpha>
-	static yconstfn _tDst
+	YB_ATTR_nodiscard YB_STATELESS static yconstfn _tDst
 	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa)
 	{
 		static_assert(ystdex::is_normalizable<_tDst>(),
@@ -374,7 +374,7 @@ struct GPixelCompositor<0, 1> : private GPixelCompositor<2, 0>
 	}
 	template<typename _tDst, typename _tSrc, typename _tSrcAlpha,
 		typename _tAlpha>
-	static yconstfn _tDst
+	YB_ATTR_nodiscard YB_STATELESS static yconstfn _tDst
 	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa, _tAlpha)
 	{
 		static_assert(ystdex::is_normalizable<_tAlpha>(),
@@ -404,7 +404,7 @@ struct GPixelCompositor<1, 1>
 		= sa != 0 || da != 0
 	*/
 	template<typename _tDstAlpha, typename _tSrcAlpha>
-	static yconstfn _tDstAlpha
+	YB_ATTR_nodiscard YB_STATELESS static yconstfn _tDstAlpha
 	CompositeAlphaOver(_tDstAlpha da, _tSrcAlpha sa)
 	{
 		static_assert(ystdex::is_normalizable<_tDstAlpha>(),
@@ -425,7 +425,7 @@ struct GPixelCompositor<1, 1>
 	*/
 	template<typename _tDst, typename _tSrc, typename _tSrcAlpha,
 		typename _tAlpha>
-	static yconstfn _tDst
+	YB_ATTR_nodiscard YB_STATELESS static yconstfn _tDst
 	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa, _tAlpha a)
 	{
 		static_assert(ystdex::is_normalizable<_tDst>(),
@@ -461,7 +461,7 @@ struct GPixelCompositor<0, 0> : private GPixelCompositor<2, 0>
 */
 template<size_t _vSrcAlphaBits, typename _tDstInt, typename _tSrcInt,
 	typename _tSrcAlphaInt>
-yconstfn _tDstInt
+YB_ATTR_nodiscard YB_STATELESS yconstfn _tDstInt
 BlendComponent(_tDstInt d, _tSrcInt s, _tSrcAlphaInt sa)
 {
 	using namespace ystdex;
@@ -487,7 +487,7 @@ BlendComponent(_tDstInt d, _tSrcInt s, _tSrcAlphaInt sa)
 */
 template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits, typename _tDstInt,
 	typename _tSrcInt, typename _tSrcAlphaInt, typename _tAlphaInt>
-yconstfn _tDstInt
+YB_ATTR_nodiscard YB_STATELESS yconstfn _tDstInt
 CompositeComponent(_tDstInt d, _tSrcInt s, _tSrcAlphaInt sa, _tAlphaInt a)
 {
 	using namespace ystdex;
@@ -530,7 +530,7 @@ CompositeComponent(_tDstInt d, _tSrcInt s, _tSrcAlphaInt sa, _tAlphaInt a)
 分解分量至 32 位寄存器以减少总指令数。
 */
 template<size_t _vAlphaBits>
-std::uint16_t
+YB_ATTR_nodiscard YB_STATELESS std::uint16_t
 BlendCore(std::uint32_t d, std::uint32_t s, std::uint8_t a)
 {
 	static_assert(_vAlphaBits > 0 && _vAlphaBits < 16 - 5,
@@ -579,7 +579,7 @@ struct GBlender<_tPixel, ystdex::when<_bCond>>
 	*/
 	//@{
 	template<size_t _vSrcAlphaBits, typename _tSrcAlphaInt>
-	static yconstfn _tPixel
+	YB_ATTR_nodiscard YB_PURE static yconstfn _tPixel
 	Blend(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa)
 	{
 		static_assert(std::is_integral<_tSrcAlphaInt>(),
@@ -594,7 +594,7 @@ struct GBlender<_tPixel, ystdex::when<_bCond>>
 
 	template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits,
 		typename _tSrcAlphaInt>
-	static yconstfn _tPixel
+	YB_ATTR_nodiscard YB_PURE static yconstfn _tPixel
 	BlendAlpha(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa)
 	{
 		static_assert(std::is_integral<_tSrcAlphaInt>(),
@@ -619,7 +619,7 @@ struct GBlender<_tPixel, ystdex::when<_bCond>>
 	*/
 	template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits,
 		typename _tSrcAlphaInt, typename _tAlphaInt>
-	static yconstfn _tPixel
+	YB_ATTR_nodiscard YB_PURE static yconstfn _tPixel
 	Composite(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa,
 		_tAlphaInt a)
 	{
@@ -650,7 +650,7 @@ struct GBlender<_tPixel, EnableForMask<_tPixel, XYZATraits<5, 5, 5, 1>>>
 #endif
 {
 	template<size_t _vSrcAlphaBits, typename _tSrcAlphaInt>
-	static yconstfn _tPixel
+	YB_ATTR_nodiscard YB_PURE static yconstfn _tPixel
 	Blend(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa)
 	{
 		static_assert(std::is_integral<_tSrcAlphaInt>(),
@@ -661,7 +661,7 @@ struct GBlender<_tPixel, EnableForMask<_tPixel, XYZATraits<5, 5, 5, 1>>>
 
 	template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits,
 		typename _tSrcAlphaInt>
-	static yconstfn _tPixel
+	YB_ATTR_nodiscard YB_PURE static yconstfn _tPixel
 	BlendAlpha(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa)
 	{
 		static_assert(std::is_integral<_tSrcAlphaInt>(),
@@ -677,7 +677,7 @@ struct GBlender<_tPixel, EnableForMask<_tPixel, XYZATraits<5, 5, 5, 1>>>
 
 	template<size_t, size_t _vSrcAlphaBits, typename _tSrcAlphaInt,
 		typename _tAlphaInt>
-	static yconstfn _tPixel
+	YB_ATTR_nodiscard YB_PURE static yconstfn _tPixel
 	Composite(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa,
 		_tAlphaInt a)
 	{
@@ -697,7 +697,7 @@ struct GBlender<_tPixel, EnableForMask<_tPixel, XYZATraits<5, 5, 5, 1>>>
 \sa GBlender::Blend
 */
 template<size_t _vSrcAlphaBits, typename _tPixel, typename _tSrcAlphaInt>
-yconstfn _tPixel
+YB_ATTR_nodiscard YB_PURE yconstfn _tPixel
 Blend(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa)
 {
 	return GBlender<_tPixel>::template Blend<_vSrcAlphaBits>(d, s, sa);
@@ -714,7 +714,7 @@ Blend(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa)
 */
 template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits, typename _tPixel,
 	typename _tSrcAlphaInt>
-yconstfn _tPixel
+YB_ATTR_nodiscard YB_PURE yconstfn _tPixel
 BlendAlpha(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa)
 {
 	return GBlender<_tPixel>::template BlendAlpha<_vDstAlphaBits,
@@ -727,7 +727,7 @@ BlendAlpha(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa)
 //! \brief 像素组合：使用指定的源 Alpha 和结果 Alpha 。
 template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits, typename _tPixel,
 	typename _tSrcAlphaInt, typename _tAlphaInt>
-yconstfn _tPixel
+YB_ATTR_nodiscard YB_PURE yconstfn _tPixel
 Composite(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa, _tAlphaInt a)
 {
 	return GBlender<_tPixel>::template Composite<_vDstAlphaBits,
@@ -738,14 +738,14 @@ Composite(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa, _tAlphaInt a)
 //! \brief 像素组合：使用指定的结果 Alpha 。
 template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits, typename _tPixel,
 	typename _tAlphaInt>
-yconstfn _tPixel
+YB_ATTR_nodiscard YB_PURE yconstfn _tPixel
 Composite(const _tPixel& d, const _tPixel& s, _tAlphaInt a)
 {
 	return Composite<_vDstAlphaBits, _vSrcAlphaBits>(d, s, s.GetA(), a);
 }
 //! \brief 像素组合。
 template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits, typename _tPixel>
-yconstfn _tPixel
+YB_ATTR_nodiscard YB_PURE yconstfn _tPixel
 Composite(const _tPixel& d, const _tPixel& s)
 {
 	using namespace ystdex;

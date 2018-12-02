@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2389
+\version r2537
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2018-08-20 02:33 +0800
+	2018-12-02 16:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,8 @@
 #define YSL_INC_Core_YGDIBase_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YCoreUtilities // for YSLib::GeneralEvent,
-//	YSLib::HalfDifference;
+#include YFM_YSLib_Core_YCoreUtilities // for octet, size_t, Pixel,
+//	YSLib::GeneralEvent, YSLib::HalfDifference;
 #include <limits>
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
 #include <ystdex/string.hpp> // for ystdex::quote;
@@ -41,6 +41,101 @@ namespace YSLib
 namespace Drawing
 {
 
+//! \since build 417
+//@{YB_PURE
+//! \brief 单色分量类型。
+using MonoType = octet;
+//! \brief Alpha 分量类型。
+using AlphaType = octet;
+//@}
+
+/*!
+\ingroup traits
+\brief 分量特征。
+\since build 846
+*/
+//@{
+template<size_t>
+struct ComponentTraits;
+
+template<>
+struct ComponentTraits<8>
+{
+	template<typename _type>
+	YB_ATTR_nodiscard YB_STATELESS static yconstfn _type
+	Saturate(_type v) ynothrow
+	{
+		return v;
+	}
+};
+
+template<>
+struct ComponentTraits<1>
+{
+	template<typename _type>
+	YB_ATTR_nodiscard YB_STATELESS static yconstfn _type
+	Saturate(_type v) ynothrow
+	{
+		return bool(v) ? 0xFF : 0x00;
+	}
+};
+//@}
+
+
+//! \relates Pixel
+//@{
+/*!
+\brief 取不透明像素。
+\since build 413
+*/
+YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(Pixel, FetchOpaque, Pixel px)
+	ynothrow
+	ImplRet(px.Integer | Pixel::traits_type::mask<Pixel::CMap::A>::value)
+
+/*!
+\brief 像素分量转换。
+\since build 839
+*/
+//@{
+YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(AlphaType, PixelToAlpha, Pixel px)
+	ynothrow
+	ImplRet(ComponentTraits<Pixel::AWidth::value>::Saturate(px))
+
+// TODO: RGB componenets are not saturated as A components for non 8-bit
+//	components. Consider make them consistent?
+YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(MonoType, PixelToBlue, Pixel px)
+	ynothrow
+	ImplRet(px.GetB() << (8 - Pixel::BWidth::value))
+
+YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(MonoType, PixelToGreen, Pixel px)
+	ynothrow
+	ImplRet(px.GetG() << (8 - Pixel::GWidth::value))
+
+YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(MonoType, PixelToRed, Pixel px)
+	ynothrow
+	ImplRet(px.GetR() << (8 - Pixel::RWidth::value))
+//@}
+
+/*!
+\brief 通过 Pixel::CMap 索引构造像素分量。
+\note 通常不直接调用，而通过 Pixel 使用。但因为不适合作为类成员，也直接公开。
+\see CWG 1255 和 CWG 1626 。
+\since build 846
+*/
+template<size_t _vCMapIndex>
+YB_ATTR_nodiscard YB_STATELESS yconstfn Pixel::IntegerType
+CompositePixelByCMapIndex(Pixel::IntegerType v) ynothrow
+{
+	using PixelTratis = Pixel::traits_type;
+
+	// XXX: Only alpha is saturated.
+	return v >> (_vCMapIndex == Pixel::CMap::A ? 0 : 8 - PixelTratis
+		::component_width<_vCMapIndex>::value)
+		<< PixelTratis::shift<_vCMapIndex>::value;
+}
+//@}
+
+
 /*!
 \brief 颜色。
 \since build 148
@@ -48,6 +143,10 @@ namespace Drawing
 class YF_API Color
 {
 private:
+	//! \since build 846
+	template<size_t _vCMapIndex>
+	using PixelShift = Pixel::traits_type::shift<_vCMapIndex>;
+
 	/*!
 	\brief RGB 分量。
 	\since build 276
@@ -109,11 +208,11 @@ public:
 	\brief 转换：本机颜色对象。
 	\since build 319
 	*/
-	yconstfn
-	operator Pixel() const ynothrow
-	{
-		return ColorComponentsToPixel(r, g, b, a);
-	}
+	yconstfn DefCvt(const ynothrow, Pixel,
+		CompositePixelByCMapIndex<Pixel::CMap::A>(a)
+		| CompositePixelByCMapIndex<Pixel::CMap::B>(b)
+		| CompositePixelByCMapIndex<Pixel::CMap::G>(g)
+		| CompositePixelByCMapIndex<Pixel::CMap::R>(r))
 
 	/*!
 	\brief 取 alpha 分量。
@@ -255,7 +354,7 @@ public:
 	\brief 负运算：取加法逆元。
 	\since build 319
 	*/
-	yconstfn PDefHOp(GBinaryGroup, -, ) const ynothrow
+	YB_ATTR_nodiscard YB_PURE yconstfn PDefHOp(GBinaryGroup, -, ) const ynothrow
 		ImplRet(GBinaryGroup(-X, -Y))
 
 	/*!
@@ -286,9 +385,9 @@ public:
 	\since build 319
 	*/
 	//@{
-	PDefH(_type&, GetRef, bool b = true) ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(_type&, GetRef, bool b = true) ynothrow
 		ImplRet(b ? X : Y)
-	PDefH(const _type&, GetRef, bool b = true) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(const _type&, GetRef, bool b = true) const ynothrow
 		ImplRet(b ? X : Y)
 	//@}
 };
@@ -304,7 +403,7 @@ const GBinaryGroup<_type> GBinaryGroup<_type>::Invalid{
 \since build 319
 */
 template<typename _type>
-yconstfn bool
+YB_ATTR_nodiscard YB_PURE yconstfn bool
 operator==(const GBinaryGroup<_type>& x, const GBinaryGroup<_type>& y) ynothrow
 {
 	return x.X == y.X && x.Y == y.Y;
@@ -315,7 +414,7 @@ operator==(const GBinaryGroup<_type>& x, const GBinaryGroup<_type>& y) ynothrow
 \since build 319
 */
 template<typename _type>
-yconstfn GBinaryGroup<_type>
+YB_ATTR_nodiscard YB_PURE yconstfn GBinaryGroup<_type>
 operator+(const GBinaryGroup<_type>& x, const GBinaryGroup<_type>& y) ynothrow
 {
 	return GBinaryGroup<_type>(x.X + y.X, x.Y + y.Y);
@@ -326,7 +425,7 @@ operator+(const GBinaryGroup<_type>& x, const GBinaryGroup<_type>& y) ynothrow
 \since build 319
 */
 template<typename _type>
-yconstfn GBinaryGroup<_type>
+YB_ATTR_nodiscard YB_PURE yconstfn GBinaryGroup<_type>
 operator-(const GBinaryGroup<_type>& x, const GBinaryGroup<_type>& y) ynothrow
 {
 	return GBinaryGroup<_type>(x.X - y.X, x.Y - y.Y);
@@ -337,7 +436,7 @@ operator-(const GBinaryGroup<_type>& x, const GBinaryGroup<_type>& y) ynothrow
 \since build 319
 */
 template<typename _type, typename _tScalar>
-yconstfn GBinaryGroup<_type>
+YB_ATTR_nodiscard YB_PURE yconstfn GBinaryGroup<_type>
 operator*(const GBinaryGroup<_type>& val, _tScalar l) ynothrow
 {
 	return GBinaryGroup<_type>(val.X * l, val.Y * l);
@@ -348,7 +447,7 @@ operator*(const GBinaryGroup<_type>& val, _tScalar l) ynothrow
 \since build 575
 */
 template<class _tBinary>
-yconstfn _tBinary
+YB_ATTR_nodiscard YB_PURE yconstfn _tBinary
 Transpose(const _tBinary& obj) ynothrow
 {
 	return _tBinary(obj.Y, obj.X);
@@ -358,7 +457,7 @@ Transpose(const _tBinary& obj) ynothrow
 //@{
 //! \brief 转置变换：逆时针旋转直角。
 template<typename _type>
-yconstfn GBinaryGroup<_type>
+YB_ATTR_nodiscard YB_PURE yconstfn GBinaryGroup<_type>
 TransposeCCW(const GBinaryGroup<_type>& val) ynothrow
 {
 	return GBinaryGroup<_type>(val.Y, -val.X);
@@ -366,7 +465,7 @@ TransposeCCW(const GBinaryGroup<_type>& val) ynothrow
 
 //! \brief 转置变换：顺时针旋转直角。
 template<typename _type>
-yconstfn GBinaryGroup<_type>
+YB_ATTR_nodiscard YB_PURE yconstfn GBinaryGroup<_type>
 TransposeCW(const GBinaryGroup<_type>& val) ynothrow
 {
 	return GBinaryGroup<_type>(-val.Y, val.X);
@@ -379,7 +478,7 @@ TransposeCW(const GBinaryGroup<_type>& val) ynothrow
 */
 //@{
 template<size_t _vIdx, typename _type>
-yconstfn _type&
+YB_ATTR_nodiscard YB_PURE yconstfn _type&
 get(GBinaryGroup<_type>& val)
 {
 	static_assert(_vIdx < 2, "Invalid index found.");
@@ -387,7 +486,7 @@ get(GBinaryGroup<_type>& val)
 	return _vIdx == 0 ? val.X : val.Y;
 }
 template<size_t _vIdx, typename _type>
-yconstfn const _type&
+YB_ATTR_nodiscard YB_PURE yconstfn const _type&
 get(const GBinaryGroup<_type>& val)
 {
 	static_assert(_vIdx < 2, "Invalid index found.");
@@ -402,7 +501,7 @@ get(const GBinaryGroup<_type>& val)
 \since build 308
 */
 template<typename _type>
-string
+YB_ATTR_nodiscard YB_PURE string
 to_string(const GBinaryGroup<_type>& val)
 {
 	using YSLib::to_string;
@@ -548,7 +647,8 @@ public:
 */
 //@{
 //! \brief 比较：屏幕区域大小相等关系。
-yconstfn PDefHOp(bool, ==, const Size& x, const Size& y) ynothrow
+YB_ATTR_nodiscard YB_PURE yconstfn PDefHOp(bool, ==, const Size& x, const Size& y)
+	ynothrow
 	ImplRet(x.Width == y.Width && x.Height == y.Height)
 
 /*!
@@ -556,7 +656,8 @@ yconstfn PDefHOp(bool, ==, const Size& x, const Size& y) ynothrow
 \sa Size::operator&=
 \since build 555
 */
-yconstfn PDefHOp(Size, &, const Size& x, const Size& y) ynothrow
+YB_ATTR_nodiscard YB_PURE yconstfn PDefHOp(Size, &, const Size& x, const Size& y)
+	ynothrow
 	ImplRet({min(x.Width, y.Width), min(x.Height, y.Height)})
 
 /*!
@@ -564,21 +665,23 @@ yconstfn PDefHOp(Size, &, const Size& x, const Size& y) ynothrow
 \sa Size::operator|=
 \since build 555
 */
-yconstfn PDefHOp(Size, |, const Size& x, const Size& y) ynothrow
+YB_ATTR_nodiscard YB_PURE yconstfn PDefHOp(Size, |, const Size& x, const Size& y)
+	ynothrow
 	ImplRet({max(x.Width, y.Width), max(x.Height, y.Height)})
 
 /*!
 \brief 取面积。
 \since build 601
 */
-yconstfn PDefH(size_t, GetAreaOf, const Size& s) ynothrow
+YB_ATTR_nodiscard YB_PURE yconstfn PDefH(size_t, GetAreaOf, const Size& s) ynothrow
 	ImplRet(size_t(s.Width * s.Height))
 
 /*!
 \brief 计算第一参数和第二参数为大小的矩形中心重合时左上角相对第一个矩形的位置。
 \since build 583
 */
-yconstfn PDefH(Point, LocateCenter, const Size& x, const Size& y)
+YB_ATTR_nodiscard YB_PURE yconstfn
+	PDefH(Point, LocateCenter, const Size& x, const Size& y)
 	// XXX: Conversion to 'SPos' might be implementation-defined.
 	ImplRet({HalfDifference(SPos(x.Width), SPos(y.Width)),
 		HalfDifference(SPos(x.Height), SPos(y.Height))})
@@ -587,7 +690,7 @@ yconstfn PDefH(Point, LocateCenter, const Size& x, const Size& y)
 \brief 计算按指定大小的矩形绕中心旋转一个直角后左上角的相对位置。
 \since build 578
 */
-yconstfn PDefH(Point, RotateCenter, const Size& s)
+YB_ATTR_nodiscard YB_PURE yconstfn PDefH(Point, RotateCenter, const Size& s)
 	// XXX: Conversion to 'SPos' might be implementation-defined.
 	ImplRet({HalfDifference(SPos(s.Width), SPos(s.Height)),
 		HalfDifference(SPos(s.Height), SPos(s.Width))})
@@ -598,7 +701,7 @@ yconstfn PDefH(Point, RotateCenter, const Size& s)
 */
 //@{
 template<size_t _vIdx>
-yconstfn SDst&
+YB_ATTR_nodiscard YB_PURE yconstfn SDst&
 get(Size& s)
 {
 	static_assert(_vIdx < 2, "Invalid index found.");
@@ -606,7 +709,7 @@ get(Size& s)
 	return _vIdx == 0 ? s.Width : s.Height;
 }
 template<size_t _vIdx>
-yconstfn const SDst&
+YB_ATTR_nodiscard YB_PURE yconstfn const SDst&
 get(const Size& s)
 {
 	static_assert(_vIdx < 2, "Invalid index found.");
@@ -620,7 +723,7 @@ get(const Size& s)
 \note 使用 ADL 。
 \since build 308
 */
-YF_API string
+YB_ATTR_nodiscard YB_PURE YF_API string
 to_string(const Size&);
 //@}
 
@@ -630,7 +733,7 @@ to_string(const Size&);
 \since build 319
 */
 template<typename _type>
-yconstfn GBinaryGroup<_type>
+YB_ATTR_nodiscard YB_PURE yconstfn GBinaryGroup<_type>
 operator+(GBinaryGroup<_type> val, const Size& s) ynothrow
 {
 	// XXX: Conversion to '_type' might be implementation-defined.
@@ -642,7 +745,7 @@ operator+(GBinaryGroup<_type> val, const Size& s) ynothrow
 \since build 577
 */
 template<typename _type>
-yconstfn GBinaryGroup<_type>
+YB_ATTR_nodiscard YB_PURE yconstfn GBinaryGroup<_type>
 operator-(GBinaryGroup<_type> val, const Size& s) ynothrow
 {
 	// XXX: Conversion to '_type' might be implementation-defined.
@@ -654,7 +757,7 @@ operator-(GBinaryGroup<_type> val, const Size& s) ynothrow
 \brief 转置。
 \since build 575
 */
-yconstfn PDefH(Size, Transpose, const Size& s) ynothrow
+YB_ATTR_nodiscard YB_PURE yconstfn PDefH(Size, Transpose, const Size& s) ynothrow
 	ImplRet({s.Height, s.Width})
 
 
@@ -663,7 +766,7 @@ yconstfn PDefH(Size, Transpose, const Size& s) ynothrow
 \since build 555
 */
 template<typename _tScalar = float>
-yconstfn _tScalar
+YB_ATTR_nodiscard YB_PURE yconstfn _tScalar
 ScaleMin(const Size& x, const Size& y, _tScalar threshold = 1.F)
 {
 	return YSLib::min({threshold,
@@ -823,39 +926,40 @@ public:
 	\brief 判断点 (px, py) 是否在矩形内或边上。
 	\since build 528
 	*/
-	bool
+	YB_ATTR_nodiscard YB_PURE bool
 	Contains(SPos px, SPos py) const ynothrow;
 	/*!
 	\brief 判断点 pt 是否在矩形内或边上。
 	\since build 319
 	*/
-	PDefH(bool, Contains, const Point& pt) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(bool, Contains, const Point& pt) const ynothrow
 		ImplRet(Contains(pt.X, pt.Y))
 	/*!
 	\brief 判断矩形是否在矩形内或边上。
 	\note 空矩形总是不被包含。
 	\since build 319
 	*/
-	bool
+	YB_ATTR_nodiscard YB_PURE bool
 	Contains(const Rect&) const ynothrow;
 	/*!
 	\brief 判断点 (px, py) 是否在矩形内。
 	\since build 528
 	*/
-	bool
+	YB_ATTR_nodiscard YB_PURE bool
 	ContainsStrict(SPos px, SPos py) const ynothrow;
 	/*!
 	\brief 判断点 pt 是否在矩形内。
 	\since build 319
 	*/
-	PDefH(bool, ContainsStrict, const Point& pt) const ynothrow
+	YB_ATTR_nodiscard YB_PURE
+		PDefH(bool, ContainsStrict, const Point& pt) const ynothrow
 		ImplRet(ContainsStrict(pt.X, pt.Y))
 	/*!
 	\brief 判断矩形是否在矩形内或边上。
 	\note 空矩形总是不被包含。
 	\since build 319
 	*/
-	bool
+	YB_ATTR_nodiscard YB_PURE bool
 	ContainsStrict(const Rect&) const ynothrow;
 	/*!
 	\brief 判断矩形是否为线段：长和宽中有且一个数值等于 0 。
@@ -912,21 +1016,24 @@ public:
 \brief 比较：屏幕标准矩形相等关系。
 \since build 319
 */
-yconstfn PDefHOp(bool, ==, const Rect& x, const Rect& y) ynothrow
+YB_ATTR_nodiscard YB_PURE yconstfn PDefHOp(bool, ==, const Rect& x, const Rect& y)
+	ynothrow
 	ImplRet(x.GetPoint() == y.GetPoint() && x.GetSize() == y.GetSize())
 
 /*!
 \brief 加法：使用标准矩形 r 和偏移向量 v 构造屏幕标准矩形。
 \since build 319
 */
-yconstfn PDefHOp(Rect, +, const Rect& r, const Vec& v) ynothrow
+YB_ATTR_nodiscard YB_PURE yconstfn PDefHOp(Rect, +, const Rect& r, const Vec& v)
+	ynothrow
 	ImplRet({r.GetPoint() + v, r.GetSize()})
 
 /*!
 \brief 减法：使用标准矩形 r 和偏移向量的加法逆元 v 构造屏幕标准矩形。
 \since build 319
 */
-yconstfn PDefHOp(Rect, -, const Rect& r, const Vec& v) ynothrow
+YB_ATTR_nodiscard YB_PURE yconstfn PDefHOp(Rect, -, const Rect& r, const Vec& v)
+	ynothrow
 	ImplRet({r.GetPoint() - v, r.GetSize()})
 
 /*!
@@ -934,7 +1041,8 @@ yconstfn PDefHOp(Rect, -, const Rect& r, const Vec& v) ynothrow
 \sa Rect::operator&=
 \since build 555
 */
-inline PDefHOp(Rect, &, const Rect& x, const Rect& y) ynothrow
+YB_ATTR_nodiscard YB_PURE inline PDefHOp(Rect, &, const Rect& x, const Rect& y)
+	ynothrow
 	ImplRet(Rect(x) &= y)
 
 /*!
@@ -942,7 +1050,7 @@ inline PDefHOp(Rect, &, const Rect& x, const Rect& y) ynothrow
 \sa Rect::operator|=
 \since build 555
 */
-inline PDefHOp(Rect, |, const Rect& x, const Rect& y) ynothrow
+YB_ATTR_nodiscard YB_PURE inline PDefHOp(Rect, |, const Rect& x, const Rect& y) ynothrow
 	ImplRet(Rect(x) |= y)
 
 /*!
@@ -966,18 +1074,19 @@ inline PDefH(void, Diminish, Rect& r, SDst off1 = 1, SDst off2 = 2)
 \todo 使用 ISO C++14 的带有 \c constexpr 的 std::min 和 std::max 。
 \todo 提取 abs 实现。
 */
-yconstfn PDefH(Rect, MakeRect, const Point& pt1, const Point& pt2) ynothrow
+YB_ATTR_nodiscard YB_PURE yconstfn
+	PDefH(Rect, MakeRect, const Point& pt1, const Point& pt2) ynothrow
 	ImplRet(Rect(min(pt1.X, pt2.X), min(pt1.Y, pt2.Y),
 		SDst(pt1.X < pt2.X ? pt2.X - pt1.X : pt1.X - pt2.X),
 		SDst(pt1.Y < pt2.Y ? pt2.Y - pt1.Y : pt1.Y - pt2.Y)))
 
 //! \brief 转置变换：逆时针旋转直角。
-yconstfn PDefH(Rect, TransposeCCW, const Rect& r) ynothrow
+YB_ATTR_nodiscard YB_PURE yconstfn PDefH(Rect, TransposeCCW, const Rect& r) ynothrow
 	ImplRet(MakeRect(TransposeCCW(Point(r.GetRight(), r.Y)),
 		TransposeCCW(Point(r.X, r.GetBottom()))))
 
 //! \brief 转置变换：顺时针旋转直角。
-yconstfn PDefH(Rect, TransposeCW, const Rect& r) ynothrow
+YB_ATTR_nodiscard YB_PURE yconstfn PDefH(Rect, TransposeCW, const Rect& r) ynothrow
 	ImplRet(MakeRect(TransposeCW(Point(r.GetRight(), r.Y)),
 		TransposeCW(Point(r.X, r.GetBottom()))))
 //@}
@@ -988,14 +1097,14 @@ yconstfn PDefH(Rect, TransposeCW, const Rect& r) ynothrow
 */
 //@{
 template<size_t _vIdx>
-yconstfn ystdex::conditional_t<_vIdx < 2, SPos, SDst>&
+YB_ATTR_nodiscard YB_PURE yconstfn ystdex::conditional_t<_vIdx < 2, SPos, SDst>&
 get(Rect& r)
 {
 	return get<_vIdx>(
 		tuple<SPos&, SPos&, SDst&, SDst&>(r.X, r.Y, r.Width, r.Height));
 }
 template<size_t _vIdx>
-yconstfn const ystdex::conditional_t<_vIdx < 2, SPos, SDst>&
+YB_ATTR_nodiscard YB_PURE yconstfn const ystdex::conditional_t<_vIdx < 2, SPos, SDst>&
 get(const Rect& r)
 {
 	return get<_vIdx>(tuple<const SPos&, const SPos&, const SDst&, const SDst&>(
@@ -1008,7 +1117,7 @@ get(const Rect& r)
 \note 使用 ADL 。
 \since build 308
 */
-YF_API string
+YB_ATTR_nodiscard YB_PURE YF_API string
 to_string(const Rect&);
 //@}
 
@@ -1023,9 +1132,6 @@ yconstfn
 Size::Size(const Rect& r) ynothrow
 	: Width(r.Width), Height(r.Height)
 {}
-
-
-
 
 
 /*!
@@ -1044,15 +1150,15 @@ enum Rotation : yimpl(size_t)
 //! \relates Roation
 //@{
 //! \since build 577
-yconstfn PDefH(Rotation, Flip, Rotation rot)
+YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(Rotation, Flip, Rotation rot)
 	ImplRet(Rotation((size_t(rot) + 2) % 4))
 
 //! \since build 575
-yconstfn PDefH(Rotation, RotateCCW, Rotation rot)
+YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(Rotation, RotateCCW, Rotation rot)
 	ImplRet(Rotation((size_t(rot) + 1) % 4))
 
 //! \since build 575
-yconstfn PDefH(Rotation, RotateCW, Rotation rot)
+YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(Rotation, RotateCW, Rotation rot)
 	ImplRet(Rotation((size_t(rot) - 1) % 4))
 //@}
 
