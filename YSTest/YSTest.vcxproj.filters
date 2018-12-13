@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\About.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\BookmarkUI.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ColorPicker.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DSReader.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HexBrowser.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ReaderSetting.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ReaderSettingUI.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ReadingList.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Shells.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ShlExplorer.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ShlReader.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\About.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\BookmarkUI.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ColorPicker.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\DSReader.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\HexBrowser.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Main.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ReaderSetting.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ReaderSettingUI.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ReadingList.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Shells.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ShlExplorer.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ShlReader.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

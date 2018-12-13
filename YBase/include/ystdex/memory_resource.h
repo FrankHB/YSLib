@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r796
+\version r799
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2018-12-02 16:20 +0800
+	2018-12-02 16:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -214,8 +214,8 @@ public:
 	YB_ATTR(always_inline) inline void
 	dispatch(true_, _type* p, _tParams&&... args)
 	{
-		alloc_dispatch(typename is_constructible<_type, std::allocator_arg_t,
-			_tAllocInner&, _tParams...>::type(), p, yforward(args)...);
+		alloc_dispatch(is_constructible<_type, std::allocator_arg_t,
+			_tAllocInner&, _tParams...>(), p, yforward(args)...);
 	}
 	template<typename _type, typename... _tParams>
 	YB_ATTR(always_inline) inline void
@@ -429,7 +429,7 @@ public:
 	{
 		fallback_alloc_t a;
 
-		nested_dispatcher(a, *this).dispatch(std::uses_allocator<_type,
+		nested_dispatcher(a, *this).dispatch(std::uses_allocator<_tObj,
 			polymorphic_allocator>(), p, yforward(args)...);
 	}
 	template<typename _type1, typename _type2, typename... _types1,

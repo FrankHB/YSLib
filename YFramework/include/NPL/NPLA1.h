@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4193
+\version r4256
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2018-11-24 03:51 +0800
+	2018-12-13 23:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,7 +94,7 @@ enum class ValueToken
 \relates ValueToken
 \since build 768
 */
-YF_API string
+YB_ATTR_nodiscard YF_API YB_PURE string
 to_string(ValueToken);
 
 
@@ -164,21 +164,20 @@ TransformNodeSequence(const TermNode&, NodeMapper = {},
 */
 //@{
 template<typename _type, typename... _tParams>
-ValueNode
+YB_ATTR_nodiscard ValueNode
 LoadNode(_type&& tree, _tParams&&... args)
 {
-	TryRet(A1::TransformNode(std::forward<TermNode&&>(tree),
-		yforward(args)...))
+	TryRet(A1::TransformNode(std::forward<TermNode>(tree), yforward(args)...))
 	CatchThrow(ystdex::bad_any_cast& e, LoggedEvent(YSLib::sfmt(
 		"Bad NPLA1 tree found: cast failed from [%s] to [%s] .", e.from(),
 		e.to()), YSLib::Warning))
 }
 
 template<typename _type, typename... _tParams>
-ValueNode
+YB_ATTR_nodiscard ValueNode
 LoadNodeSequence(_type&& tree, _tParams&&... args)
 {
-	TryRet(A1::TransformNodeSequence(std::forward<TermNode&&>(tree),
+	TryRet(A1::TransformNodeSequence(std::forward<TermNode>(tree),
 		yforward(args)...))
 	CatchThrow(ystdex::bad_any_cast& e, LoggedEvent(YSLib::sfmt(
 		"Bad NPLA1 tree found: cast failed from [%s] to [%s] .", e.from(),
@@ -273,7 +272,7 @@ public:
 	\throw NPLException 下一求值项的指针为空。
 	\sa next_term_ptr
 	*/
-	TermNode&
+	YB_ATTR_nodiscard YB_PURE TermNode&
 	GetNextTermRef() const;
 
  	/*!
@@ -498,12 +497,14 @@ YF_API void
 SetupTraceDepth(ContextState&, const string& = yimpl("$__depth"));
 
 
-//! \note ValueObject 参数分别指定替换添加的前缀和被替换的分隔符的值。
+/*!
+\note ValueObject 参数分别指定替换添加的前缀和被替换的分隔符的值。
+\since build 847
+*/
 //@{
 /*!
 \brief 变换分隔符中缀表达式为前缀表达式。
 \sa AsIndexNode
-\since build 753
 
 移除子项中值和指定分隔符指定的项，并以 AsIndexNode 添加指定前缀值作为子项。
 被添加的子项若是只有一个子项的列表项，该项被提升直接加入转换后的项作为子项。
@@ -512,24 +513,24 @@ SetupTraceDepth(ContextState&, const string& = yimpl("$__depth"));
 //@{
 //! \note 非递归变换。
 //@{
-YF_API TermNode
-TransformForSeparator(const TermNode&, const ValueObject&, const ValueObject&,
+YB_ATTR_nodiscard YF_API YB_PURE TermNode
+TransformForSeparator(const TermNode&, const ValueObject&, const TokenValue&,
 	const TokenValue& = {});
 //! \since build 824
-YF_API TermNode
-TransformForSeparator(TermNode&&, const ValueObject&, const ValueObject&,
+YB_ATTR_nodiscard YF_API YB_PURE TermNode
+TransformForSeparator(TermNode&&, const ValueObject&, const TokenValue&,
 	const TokenValue& = {});
 //@}
 
 //! \note 递归变换。
 //@{
-YF_API TermNode
+YB_ATTR_nodiscard YF_API YB_PURE TermNode
 TransformForSeparatorRecursive(const TermNode&, const ValueObject&,
-	const ValueObject&, const TokenValue& = {});
+	const TokenValue&, const TokenValue& = {});
 //! \since build 824
-YF_API TermNode
+YB_ATTR_nodiscard YF_API YB_PURE TermNode
 TransformForSeparatorRecursive(TermNode&&, const ValueObject&,
-	const ValueObject&, const TokenValue& = {});
+	const TokenValue&, const TokenValue& = {});
 //@}
 //@}
 
@@ -539,10 +540,9 @@ TransformForSeparatorRecursive(TermNode&&, const ValueObject&,
 \note 子项的内容在替换时被转移。
 \sa EvaluationPasses
 \sa TransformForSeparator
-\since build 730
 */
 YF_API ReductionStatus
-ReplaceSeparatedChildren(TermNode&, const ValueObject&, const ValueObject&);
+ReplaceSeparatedChildren(TermNode&, const ValueObject&, const TokenValue&);
 //@}
 
 
@@ -622,17 +622,17 @@ public:
 	\note 使用 YSLib::AreEqualHeld 。
 	\since build 756
 	*/
-	friend PDefHOp(bool, ==, const WrappedContextHandler& x,
-		const WrappedContextHandler& y)
+	YB_ATTR_nodiscard friend YB_PURE PDefHOp(bool, ==,
+		const WrappedContextHandler& x, const WrappedContextHandler& y)
 		ImplRet(YSLib::AreEqualHeld(x.Handler, y.Handler))
 
 	//! \since build 834
-	friend DefSwap(ynothrow, WrappedContextHandler,
-		swap(_x.Handler, _y.Handler))
+	friend
+		DefSwap(ynothrow, WrappedContextHandler, swap(_x.Handler, _y.Handler))
 };
 
 template<class _tDst, typename _func>
-inline _tDst
+YB_ATTR_nodiscard YB_PURE inline _tDst
 WrapContextHandler(_func&& h, ystdex::false_)
 {
 	return WrappedContextHandler<YSLib::GHEvent<ystdex::make_function_type_t<
@@ -640,13 +640,13 @@ WrapContextHandler(_func&& h, ystdex::false_)
 		yforward(h));
 }
 template<class, typename _func>
-inline _func
+YB_ATTR_nodiscard YB_PURE inline _func
 WrapContextHandler(_func&& h, ystdex::true_)
 {
 	return yforward(h);
 }
 template<class _tDst, typename _func>
-inline _tDst
+YB_ATTR_nodiscard YB_PURE inline _tDst
 WrapContextHandler(_func&& h)
 {
 	using BaseType = typename _tDst::BaseType;
@@ -702,8 +702,8 @@ public:
 	\note 忽略检查例程的等价性。
 	\since build 748
 	*/
-	friend PDefHOp(bool, ==, const FormContextHandler& x,
-		const FormContextHandler& y)
+	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
+		const FormContextHandler& x, const FormContextHandler& y)
 		ImplRet(x.Handler == y.Handler)
 
 	/*!
@@ -756,8 +756,8 @@ public:
 	DefDeCopyMoveCtorAssignment(StrictContextHandler)
 
 	//! \brief 比较上下文处理器相等。
-	friend PDefHOp(bool, ==, const StrictContextHandler& x,
-		const StrictContextHandler& y)
+	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
+		const StrictContextHandler& x, const StrictContextHandler& y)
 		ImplRet(x.Handler == y.Handler)
 
 	/*!
@@ -809,14 +809,14 @@ RegisterStrict(_tTarget& target, string_view name, _tParams&&... args)
 \sa ReduceChildren
 \sa ReduceOrdered
 \sa ReplaceSeparatedChildren
-\since build 823
+\since build 847
 
 变换带有中缀形式的分隔符记号的表达式为指定前缀对象并去除分隔符。
 最后一个参数指定是否有序，选择语法形式为 ReduceOrdered 或 ReduceChildren 之一。
 前缀名称不需要是记号支持的标识符。
 */
 YF_API void
-RegisterSequenceContextTransformer(EvaluationPasses&, const ValueObject&,
+RegisterSequenceContextTransformer(EvaluationPasses&, const TokenValue&,
 	bool = {});
 
 
@@ -826,7 +826,8 @@ RegisterSequenceContextTransformer(EvaluationPasses&, const ValueObject&,
 \return 项的参数个数。
 \since build 733
 */
-inline PDefH(size_t, FetchArgumentN, const TermNode& term) ynothrowv
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(size_t, FetchArgumentN, const TermNode& term) ynothrowv
 	ImplRet(AssertBranch(term), term.size() - 1)
 
 
@@ -1038,9 +1039,9 @@ public:
 	\sa SContext::Analyze
 	*/
 	//@{
-	TermNode
+	YB_ATTR_nodiscard TermNode
 	Prepare(const TokenList&) const;
-	TermNode
+	YB_ATTR_nodiscard TermNode
 	Prepare(const Session&) const;
 	//@}
 	//@}
@@ -1059,13 +1060,13 @@ public:
 	void
 	Process(TermNode&, ContextNode&) const;
 	template<class _type>
-	TermNode
+	YB_ATTR_nodiscard TermNode
 	Process(const _type& input)
 	{
 		return Process(input, Root);
 	}
 	template<class _type>
-	TermNode
+	YB_ATTR_nodiscard TermNode
 	Process(const _type& input, ContextNode& ctx) const
 	{
 		auto term(Prepare(input));
@@ -1084,9 +1085,9 @@ public:
 	*/
 	//@{
 	//! \throw std::invalid_argument 流状态错误或缓冲区不存在。
-	TermNode
+	YB_ATTR_nodiscard TermNode
 	ReadFrom(std::istream&) const;
-	TermNode
+	YB_ATTR_nodiscard TermNode
 	ReadFrom(std::streambuf&) const;
 	//@}
 };
@@ -1094,7 +1095,7 @@ public:
 /*!
 \brief 尝试加载源代码。
 \exception NPLException 嵌套异常：加载失败。
-\note 第二个参数表示来源，仅用于诊断消息。
+\note 第二参数表示来源，仅用于诊断消息。
 \relates REPLContext
 \since build 838
 */
@@ -1124,7 +1125,7 @@ namespace Forms
 
 symbol? <object>
 */
-YF_API bool
+YB_ATTR_nodiscard YF_API YB_PURE bool
 IsSymbol(const string&) ynothrow;
 
 //! \since build 786
@@ -1133,11 +1134,11 @@ IsSymbol(const string&) ynothrow;
 \brief 创建等于指定字符串值的记号值。
 \note 不检查值是否符合符号要求。
 */
-YF_API TokenValue
+YB_ATTR_nodiscard YF_API YB_PURE TokenValue
 StringToSymbol(const string&);
 
 //! \brief 取符号对应的名称字符串。
-YF_API const string&
+YB_ATTR_nodiscard YF_API YB_PURE const string&
 SymbolToString(const TokenValue&) ynothrow;
 //@}
 
@@ -1150,6 +1151,7 @@ SymbolToString(const TokenValue&) ynothrow;
 //@{
 /*!
 \note 保留求值留作保留用途，一般不需要被作为用户代码直接使用。
+\note 只用于检查项的个数时，可忽略返回值。
 \since build 765
 
 可使用 RegisterForm 注册上下文处理器，参考文法：
@@ -1275,7 +1277,7 @@ MatchParameter(const TermNode&, TermNode&,
 确定项具有一个实际参数后展开调用参数指定的函数。
 若被调用的函数返回类型非 void ，返回值作为项的值被构造。
 调用 YSLib::EmplaceCallResult 对 ValueObject 及引用值处理不同。
-若需以和其它类型的值类似的方式被包装，在第一个参数中构造 ValueObject 对象。
+若需以和其它类型的值类似的方式被包装，在第一参数中构造 ValueObject 对象。
 */
 //@{
 template<typename _func, typename... _tParams>
@@ -1296,7 +1298,7 @@ CallUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
 		//	error: Segmentation fault.
 		return ystdex::make_expanded<void(_type&, _tParams&&...)>(yforward(f))(
-			NPL::AccessTerm<_type>(node), std::forward<_tParams&&>(args)...);
+			NPL::AccessTerm<_type>(node), std::forward<_tParams>(args)...);
 	}, term);
 }
 //@}
@@ -1386,7 +1388,8 @@ struct UnaryExpansion
 	\brief 比较处理器相等。
 	\since build 773
 	*/
-	friend PDefHOp(bool, ==, const UnaryExpansion& x, const UnaryExpansion& y)
+	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==, const UnaryExpansion& x,
+		const UnaryExpansion& y)
 		ImplRet(ystdex::examiners::equal_examiner::are_equal(x.Function,
 			y.Function))
 
@@ -1416,8 +1419,8 @@ struct UnaryAsExpansion
 	\brief 比较处理器相等。
 	\since build 773
 	*/
-	friend PDefHOp(bool, ==, const UnaryAsExpansion& x,
-		const UnaryAsExpansion& y)
+	YB_ATTR_nodiscard YB_PURE friend
+		PDefHOp(bool, ==, const UnaryAsExpansion& x, const UnaryAsExpansion& y)
 		ImplRet(ystdex::examiners::equal_examiner::are_equal(x.Function,
 			y.Function))
 
@@ -1450,7 +1453,8 @@ struct BinaryExpansion
 	\brief 比较处理器相等。
 	\since build 773
 	*/
-	friend PDefHOp(bool, ==, const BinaryExpansion& x, const BinaryExpansion& y)
+	YB_ATTR_nodiscard YB_PURE friend
+		PDefHOp(bool, ==, const BinaryExpansion& x, const BinaryExpansion& y)
 		ImplRet(ystdex::examiners::equal_examiner::are_equal(x.Function,
 			y.Function))
 
@@ -1482,8 +1486,8 @@ struct BinaryAsExpansion : private
 	\brief 比较处理器相等。
 	\since build 773
 	*/
-	friend PDefHOp(bool, ==, const BinaryAsExpansion& x,
-		const BinaryAsExpansion& y)
+	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
+		const BinaryAsExpansion& x, const BinaryAsExpansion& y)
 		ImplRet(ystdex::examiners::equal_examiner::are_equal(x.Function,
 			y.Function))
 
@@ -1597,7 +1601,7 @@ DefineWithRecursion(TermNode&, ContextNode&);
 \since build 786
 
 移除名称和关联的值，返回是否被移除。
-第三个参数表示是否强制。若非强制，移除不存在的名称抛出异常。
+第三参数表示是否强制。若非强制，移除不存在的名称抛出异常。
 参考调用文法：
 $undef! <symbol>
 $undef-checked! <symbol>
@@ -1990,7 +1994,7 @@ MakeEnvironment(TermNode&);
 //! \brief 修改第一参数指定的列表以第二参数作为第一个元素。
 //@{
 /*!
-第二个参数转换为右值。
+第二参数转换为右值。
 参考调用文法：
 set-first! <list> <object>
 */
@@ -2000,7 +2004,7 @@ SetFirst(TermNode&);
 /*!
 \warning 不检查循环引用。
 
-保留第二个参数引用值。
+保留第二参数引用值。
 参考调用文法：
 set-first%! <list> <object>
 */
@@ -2014,7 +2018,7 @@ SetFirstRef(TermNode&);
 */
 //@{
 /*!
-第二个参数的元素转换为右值。
+第二参数的元素转换为右值。
 参考调用文法：
 set-rest! <list> <object>
 */
@@ -2024,7 +2028,7 @@ SetRest(TermNode&);
 /*!
 \warning 不检查循环引用。
 
-保留第二个参数元素中的引用值。
+保留第二参数元素中的引用值。
 参考调用文法：
 set-rest%! <list> <object>
 */

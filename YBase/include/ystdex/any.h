@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r3108
+\version r3221
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2018-10-29 15:12 +0800
+	2018-12-10 15:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,8 +37,8 @@
 #include "utility.hpp" // for internal "utility.hpp", boxed_value,
 //	std::addressof, std::unique_ptr, standard_layout_storage,
 //	aligned_storage_t, is_aligned_storable, ystdex::pvoid, default_init_t;
-#include "memory.hpp" // for ystdex::clone_monomorphic_ptr, in_place_type_t,
-//	in_place_type;
+#include "memory.hpp" // for ystdex::clone_monomorphic_ptr, std::allocator,
+//	allocator_delete, std::unique_ptr, in_place_type_t, in_place_type;
 #include "exception.h" // for throw_invalid_construction;
 #include "ref.hpp" // for is_reference_wrapper, unwrap_reference_t;
 #include <initializer_list> // for std::initializer_list;
@@ -47,8 +47,7 @@ namespace ystdex
 {
 
 /*!
-\brief any 操作的命名空间。
-\note YStandardEx 扩展。
+\ingroup YBase_replacement_extensions
 \sa any
 \since build 354
 */
@@ -78,11 +77,11 @@ public:
 	//@}
 
 	//! \since build 348
-	virtual void*
+	YB_ATTR_nodiscard YB_PURE virtual void*
 	get() const = 0;
 
 	//! \since build 683
-	virtual const type_info&
+	YB_ATTR_nodiscard YB_PURE virtual const type_info&
 	type() const ynothrow = 0;
 };
 
@@ -91,7 +90,7 @@ public:
 \relates holder
 \since build 748
 */
-inline bool
+YB_ATTR_nodiscard YB_PURE inline bool
 hold_same(const holder& x, const holder& y)
 {
 	return x.get() == y.get();
@@ -136,14 +135,14 @@ public:
 	//@}
 
 	//! \since build 348
-	void*
+	YB_ATTR_nodiscard void*
 	get() const override
 	{
 		return std::addressof(this->value);
 	}
 
 	//! \since build 683
-	const type_info&
+	YB_ATTR_nodiscard YB_PURE const type_info&
 	type() const ynothrow override
 	{
 		return ystdex::type_id<_type>();
@@ -193,14 +192,14 @@ public:
 	operator=(pointer_holder&&) = default;
 
 	//! \since build 348
-	void*
+	YB_ATTR_nodiscard void*
 	get() const override
 	{
 		return p_held.get();
 	}
 
 	//! \since build 683
-	const type_info&
+	YB_ATTR_nodiscard YB_PURE const type_info&
 	type() const ynothrow override
 	{
 		return p_held ? ystdex::type_id<_type>() : ystdex::type_id<void>();
@@ -245,8 +244,9 @@ enum base_op : op_code
 
 
 //! \since build 352
-using any_storage = standard_layout_storage<aligned_storage_t<sizeof(void*),
-	yalignof(void*)>>;
+using any_storage = standard_layout_storage<aligned_storage_t<
+	sizeof(std::unique_ptr<yimpl(int),
+	allocator_delete<yimpl(std::allocator<int>)>>), yalignof(void*)>>;
 //! \since build 352
 using any_manager = void(*)(any_storage&, any_storage&, op_code);
 
@@ -270,15 +270,31 @@ construct(any_storage& storage, _tParams&&... args)
 yconstexpr const struct use_holder_t{} use_holder{};
 
 
+/*!	\defgroup any_handlers Any Operation Handlers
+\brief 动态泛型对象操作处理器。
+\warning 其中的类类型通常不使用对象，一般可被继承但非虚析构。
+\since build 847
+*/
+//@{
 /*!
-\brief 动态泛型对象处理器。
+\brief 动态泛型对象值处理器。
+\sa any_storage
 \since build 671
+
+可选使用局部存储策略动态管理泛型对象的处理器。
+局部存储使用第二模板参数指定。
+使用 any_storage 提供对象存储：
+当使用局部存储时，作为原地存储；否则，存储 new/delete 管理的指针。
+作为基础存储策略的实现，不提供分配器或其它高级分配接口。
 */
 template<typename _type,
 	bool _bStoredLocally = and_<is_nothrow_move_constructible<_type>,
 	is_aligned_storable<any_storage, _type>>::value>
 class value_handler
 {
+	static_assert(!_bStoredLocally || and_<is_aligned_storable<any_storage,
+		_type>>(), "No enough space to store object locally.");
+
 public:
 	//! \since build 352
 	//@{
@@ -317,12 +333,12 @@ private:
 public:
 	//! \since build 692
 	//@{
-	static value_type*
+	YB_ATTR_nodiscard YB_PURE static value_type*
 	get_pointer(any_storage& s)
 	{
 		return get_pointer_impl(local_storage(), s);
 	}
-	static const value_type*
+	YB_ATTR_nodiscard YB_PURE static const value_type*
 	get_pointer(const any_storage& s)
 	{
 		return get_pointer_impl(local_storage(), s);
@@ -331,22 +347,22 @@ public:
 private:
 	//! \since build 729
 	//@{
-	static value_type*
+	YB_ATTR_nodiscard YB_PURE static value_type*
 	get_pointer_impl(false_, any_storage& s)
 	{
 		return s.access<value_type*>();
 	}
-	static const value_type*
+	YB_ATTR_nodiscard YB_PURE static const value_type*
 	get_pointer_impl(false_, const any_storage& s)
 	{
 		return s.access<const value_type*>();
 	}
-	static value_type*
+	YB_ATTR_nodiscard YB_PURE static value_type*
 	get_pointer_impl(true_, any_storage& s)
 	{
 		return std::addressof(get_reference_impl(true_(), s));
 	}
-	static const value_type*
+	YB_ATTR_nodiscard YB_PURE static const value_type*
 	get_pointer_impl(true_, const any_storage& s)
 	{
 		return std::addressof(get_reference_impl(true_(), s));
@@ -354,12 +370,12 @@ private:
 	//@}
 
 public:
-	static value_type&
+	YB_ATTR_nodiscard YB_PURE static value_type&
 	get_reference(any_storage& s)
 	{
 		return get_reference_impl(local_storage(), s);
 	}
-	static const value_type&
+	YB_ATTR_nodiscard YB_PURE static const value_type&
 	get_reference(const any_storage& s)
 	{
 		return get_reference_impl(local_storage(), s);
@@ -368,7 +384,7 @@ public:
 private:
 	//! \since build 729
 	//@{
-	static value_type&
+	YB_ATTR_nodiscard YB_PURE static value_type&
 	get_reference_impl(false_, any_storage& s)
 	{
 		const auto p(get_pointer_impl(false_(), s));
@@ -376,7 +392,7 @@ private:
 		yassume(p);
 		return *p;
 	}
-	static const value_type&
+	YB_ATTR_nodiscard YB_PURE static const value_type&
 	get_reference_impl(false_, const any_storage& s)
 	{
 		const auto p(get_pointer_impl(false_(), s));
@@ -384,12 +400,12 @@ private:
 		yassume(p);
 		return *p;
 	}
-	static value_type&
+	YB_ATTR_nodiscard YB_PURE static value_type&
 	get_reference_impl(true_, any_storage& s)
 	{
 		return s.access<value_type>();
 	}
-	static const value_type&
+	YB_ATTR_nodiscard YB_PURE static const value_type&
 	get_reference_impl(true_, const any_storage& s)
 	{
 		return s.access<const value_type>();
@@ -479,14 +495,14 @@ public:
 	using base = value_handler<value_type*>;
 
 	//! \since build 692
-	static value_type*
+	YB_ATTR_nodiscard YB_PURE static value_type*
 	get_pointer(any_storage& s)
 	{
 		return base::get_reference(s);
 	}
 
 	//! \since build 692
-	static value_type&
+	YB_ATTR_nodiscard YB_PURE static value_type&
 	get_reference(any_storage& s)
 	{
 		yassume(get_pointer(s));
@@ -523,8 +539,12 @@ public:
 
 
 /*!
-\brief 动态泛型持有者处理器。
+\brief 动态泛型对象持有者处理器。
+\sa value_handler
 \since build 352
+
+可定制分配行为的处理器。
+当满足，可选使用局部存储策略动态管理泛型对象的处理器
 */
 template<typename _tHolder>
 class holder_handler : public value_handler<_tHolder>
@@ -536,7 +556,7 @@ public:
 	using base = value_handler<_tHolder>;
 
 	//! \since build 595
-	static _tHolder*
+	YB_ATTR_nodiscard YB_PURE static _tHolder*
 	get_holder_pointer(any_storage& s)
 	{
 		return base::get_pointer(s);
@@ -589,6 +609,7 @@ public:
 		}
 	}
 };
+//@}
 
 
 /*!
@@ -608,9 +629,8 @@ struct wrap_handler
 
 
 /*!
-\ingroup unary_type_traits
+\ingroup YBase_replacement_extensions unary_type_traits
 \brief 判断类型是否可以作为 any 引用转换的目标。
-\note YStandardEx 扩展。
 \sa any_cast
 \since build 671
 */
@@ -653,23 +673,23 @@ public:
 	*/
 	~bad_any_cast() override;
 
-	//! \note YStandardEx 扩展。
+	//! \ingroup YBase_replacement_extensions
 	//@{
-	YB_ATTR_returns_nonnull const char*
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE const char*
 	from() const ynothrow;
 
 	//! \since build 683
-	const type_info&
+	YB_ATTR_nodiscard YB_PURE const type_info&
 	from_type() const ynothrow
 	{
 		return from_ti.get();
 	}
 
-	YB_ATTR_returns_nonnull const char*
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE const char*
 	to() const ynothrow;
 
 	//! \since build 683
-	const type_info&
+	YB_ATTR_nodiscard YB_PURE const type_info&
 	to_type() const ynothrow
 	{
 		return to_ti.get();
@@ -677,7 +697,7 @@ public:
 	//@}
 	//@}
 
-	virtual YB_ATTR_returns_nonnull const char*
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull yimpl(YB_PURE) virtual const char*
 	what() const ynothrow override;
 };
 
@@ -721,7 +741,7 @@ public:
 	destroy() ynothrowv;
 
 	//! \since build 717
-	bool
+	YB_ATTR_nodiscard YB_PURE bool
 	has_value() const ynothrow
 	{
 		return manager;
@@ -729,14 +749,14 @@ public:
 
 	//! \pre 断言：\c manager 。
 	//@{
-	YB_API void*
+	YB_ATTR_nodiscard YB_API YB_PURE void*
 	get() const ynothrowv;
 
-	YB_API any_ops::holder*
+	YB_ATTR_nodiscard YB_API YB_PURE any_ops::holder*
 	get_holder() const;
 
 	//! \since build 692
-	any_ops::any_storage&
+	YB_ATTR_nodiscard YB_PURE any_ops::any_storage&
 	get_storage() const
 	{
 		return storage;
@@ -746,26 +766,26 @@ public:
 	swap(any_base&) ynothrow;
 
 	template<typename _type>
-	_type*
+	YB_ATTR_nodiscard _type*
 	target() ynothrowv
 	{
 		return type() == ystdex::type_id<_type>() ? static_cast<_type*>(get())
 			: nullptr;
 	}
 	template<typename _type>
-	const _type*
+	YB_ATTR_nodiscard YB_PURE const _type*
 	target() const ynothrowv
 	{
 		return type() == ystdex::type_id<_type>()
 			? static_cast<const _type*>(get()) : nullptr;
 	}
 
-	YB_API const type_info&
+	YB_ATTR_nodiscard YB_API YB_PURE const type_info&
 	type() const ynothrowv;
 
 	//! \since build 717
 	template<typename _type, typename... _tParams>
-	inline _type
+	YB_ATTR_nodiscard YB_PURE inline _type
 	unchecked_access(any_ops::op_code op, _tParams&&... args) const
 	{
 		any_ops::any_storage t;
@@ -775,7 +795,7 @@ public:
 	}
 	//! \since build 717
 	template<typename _type>
-	inline _type
+	YB_ATTR_nodiscard YB_PURE inline _type
 	unchecked_access(default_init_t, any_ops::op_code op) const
 	{
 		any_ops::any_storage t;
@@ -785,7 +805,7 @@ public:
 	}
 	//! \since build 686
 	template<typename _type>
-	inline _type
+	YB_ATTR_nodiscard YB_PURE inline _type
 	unchecked_access(any_ops::any_storage& t, any_ops::op_code op) const
 	{
 		return call(t, op).access<_type>();
@@ -836,6 +856,7 @@ struct any_emplace
 
 
 /*!
+\ingroup YBase_replacement_features
 \brief 基于类型擦除的动态泛型对象。
 \note 值语义。基本接口和语义同 std::experimental::any 提议
 	和 boost::any （对应接口以前者为准）。
@@ -864,8 +885,6 @@ public:
 		: any(any_ops::with_handler_t<
 		_t<any_ops::wrap_handler<decay_t<_type>>>>(), yforward(x))
 	{}
-	//! \note YStandardEx 扩展。
-	//@{
 	//! \since build 717
 	template<typename _type, typename... _tParams>
 	inline
@@ -873,6 +892,8 @@ public:
 		: any(any_ops::with_handler_t<any_ops::value_handler<_type>>(),
 		yforward(args)...)
 	{}
+	//! \ingroup YBase_replacement_extensions
+	//@{
 	/*!
 	\brief 构造：使用指定持有者。
 	\since build 680
@@ -952,16 +973,16 @@ public:
 	//! \since build 717
 	using any_base::has_value;
 
-	//! \note YStandardEx 扩展。
+	//! \ingroup YBase_replacement_extensions
 	//@{
 	//! \since build 352
-	void*
+	YB_ATTR_nodiscard YB_PURE void*
 	get() const ynothrow
 	{
 		return manager ? unchecked_get() : nullptr;
 	}
 
-	any_ops::holder*
+	YB_ATTR_nodiscard YB_PURE any_ops::holder*
 	get_holder() const
 	{
 		return manager ? unchecked_get_holder() : nullptr;
@@ -970,13 +991,13 @@ public:
 
 protected:
 	/*!
-	\note YStandardEx 扩展。
+	\ingroup YBase_replacement_features
 	\since build 687
 	*/
 	//@{
-	using any_base::get_storage;
+	yimpl(using) any_base::get_storage;
 
-	using any_base::call;
+	yimpl(using) any_base::call;
 	//@}
 
 public:
@@ -984,15 +1005,14 @@ public:
 	void
 	reset() ynothrow;
 
+	//! \since build 687
+	yimpl(using) any_emplace<any>::emplace;
+
 	/*!
-	\note YStandardEx 扩展。
+	\ingroup YBase_replacement_features
 	\since build 687
 	*/
-	//@{
-	using any_emplace<any>::emplace;
-
-	using any_emplace<any>::emplace_with_handler;
-	//@}
+	yimpl(using) any_emplace<any>::emplace_with_handler;
 
 	void
 	swap(any& a) ynothrow
@@ -1001,20 +1021,20 @@ public:
 	}
 
 	/*!
+	\ingroup YBase_replacement_features
 	\brief 取目标指针。
 	\return 若存储目标类型和模板参数相同则为指向存储对象的指针值，否则为空指针值。
-	\note YStandardEx 扩展。
 	\since build 352
 	*/
 	//@{
 	template<typename _type>
-	_type*
+	YB_ATTR_nodiscard _type*
 	target() ynothrow
 	{
 		return manager ? any_base::template target<_type>() : nullptr;
 	}
 	template<typename _type>
-	const _type*
+	YB_ATTR_nodiscard YB_PURE const _type*
 	target() const ynothrow
 	{
 		return manager ? any_base::template target<_type>() : nullptr;
@@ -1022,32 +1042,32 @@ public:
 	//@}
 
 	//! \since build 683
-	const type_info&
+	YB_ATTR_nodiscard YB_PURE const type_info&
 	type() const ynothrow
 	{
 		return manager ? unchecked_type() : ystdex::type_id<void>();
 	}
 
 	/*!
-	\note YStandardEx 扩展。
+	\ingroup YBase_replacement_features
 	\pre 断言：\c has_value() 。
 	\since build 677
 	*/
 	//@{
 protected:
 	//! \since build 687
-	using any_base::unchecked_access;
+	yimpl(using) any_base::unchecked_access;
 
 public:
 	//! \brief 取包含对象的指针。
-	void*
+	YB_ATTR_nodiscard void*
 	unchecked_get() const ynothrowv
 	{
 		return any_base::get();
 	}
 
 	//! \brief 取持有者指针。
-	any_ops::holder*
+	YB_ATTR_nodiscard YB_PURE any_ops::holder*
 	unchecked_get_holder() const
 	{
 		return any_base::get_holder();
@@ -1057,7 +1077,7 @@ public:
 	\brief 取包含对象的类型。
 	\since build 683
 	*/
-	const type_info&
+	YB_ATTR_nodiscard YB_PURE const type_info&
 	unchecked_type() const ynothrowv
 	{
 		return any_base::type();
@@ -1066,6 +1086,8 @@ public:
 };
 
 //! \relates any
+//@{
+//! \ingroup YBase_replacement_features
 //@{
 //! \see WG21 N4606 20.8.4[any.nonmembers] 。
 //@{
@@ -1087,13 +1109,13 @@ swap(any& x, any& y) ynothrow
 */
 //@{
 template<typename _type, typename... _tParams>
-any
+YB_ATTR_nodiscard inline any
 make_any(_tParams&&... args)
 {
 	return any(in_place_type<_type>, yforward(args)...);
 }
 template<typename _type, typename _tOther, typename... _tParams>
-any
+YB_ATTR_nodiscard inline any
 make_any(std::initializer_list<_tOther> il, _tParams&&... args)
 {
 	return any(in_place_type<_type>, il, yforward(args)...);
@@ -1112,13 +1134,13 @@ make_any(std::initializer_list<_tOther> il, _tParams&&... args)
 //@{
 //@{
 template<typename _type>
-inline _type*
+YB_ATTR_nodiscard YB_PURE inline _type*
 any_cast(any* p) ynothrow
 {
 	return p ? p->target<_type>() : nullptr;
 }
 template<typename _type>
-inline const _type*
+YB_ATTR_nodiscard YB_PURE inline const _type*
 any_cast(const any* p) ynothrow
 {
 	return p ? p->target<_type>() : nullptr;
@@ -1130,7 +1152,7 @@ any_cast(const any* p) ynothrow
 */
 //@{
 template<typename _type>
-_type
+YB_ATTR_nodiscard YB_PURE _type
 any_cast(any& x)
 {
 	static_assert(is_any_cast_dest<_type>(),
@@ -1141,7 +1163,7 @@ any_cast(any& x)
 	throw bad_any_cast(x.type(), ystdex::type_id<_type>());
 }
 template<typename _type>
-_type
+YB_ATTR_nodiscard YB_PURE _type
 any_cast(const any& x)
 {
 	static_assert(is_any_cast_dest<_type>(),
@@ -1153,7 +1175,7 @@ any_cast(const any& x)
 }
 //! \since build 671
 template<typename _type>
-_type
+YB_ATTR_nodiscard YB_PURE _type
 any_cast(any&& x)
 {
 	static_assert(is_any_cast_dest<_type>(),
@@ -1167,13 +1189,13 @@ any_cast(any&& x)
 //@}
 //@}
 
-//! \note YSandardEx 扩展。
+//! \ingroup YBase_replacement_extensions
 //@{
 /*!
 \brief 判断是否持有相同对象。
 \since build 748
 */
-inline bool
+YB_ATTR_nodiscard YB_PURE inline bool
 hold_same(const any& x, const any& y)
 {
 	return x.get() == y.get();
@@ -1189,7 +1211,7 @@ hold_same(const any& x, const any& y)
 	&& p->unchecked_type() == ystdex::type_id<_type>()</tt> 。
 */
 template<typename _type>
-inline _type*
+YB_ATTR_nodiscard YB_PURE inline _type*
 unchecked_any_cast(any* p) ynothrowv
 {
 	yconstraint(p && p->has_value()
@@ -1202,7 +1224,7 @@ unchecked_any_cast(any* p) ynothrowv
 	&& p->unchecked_type() == ystdex::type_id<const _type>()</tt> 。
 */
 template<typename _type>
-inline const _type*
+YB_ATTR_nodiscard YB_PURE inline const _type*
 unchecked_any_cast(const any* p) ynothrowv
 {
 	yconstraint(p && p->has_value()
@@ -1219,7 +1241,7 @@ unchecked_any_cast(const any* p) ynothrowv
 //@{
 //! \pre 断言： <tt>p && p->type() == ystdex::type_id<_type>()</tt> 。
 template<typename _type>
-inline _type*
+YB_ATTR_nodiscard YB_PURE inline _type*
 unsafe_any_cast(any* p) ynothrowv
 {
 	yconstraint(p && p->type() == ystdex::type_id<_type>());
@@ -1228,7 +1250,7 @@ unsafe_any_cast(any* p) ynothrowv
 
 //! \pre 断言： <tt>p && p->type() == ystdex::type_id<const _type>()</tt> 。
 template<typename _type>
-inline const _type*
+YB_ATTR_nodiscard YB_PURE inline const _type*
 unsafe_any_cast(const any* p) ynothrowv
 {
 	yconstraint(p && p->type() == ystdex::type_id<const _type>());
@@ -1237,10 +1259,10 @@ unsafe_any_cast(const any* p) ynothrowv
 //@}
 //@}
 //@}
+//@}
 
 
 /*!
-\note YStandardEx 扩展。
 \sa void_ref
 \since build 743
 */
@@ -1279,11 +1301,12 @@ public:
 	//! \pre 间接断言：参数指定初始化对应的类型。
 	template<typename _type,
 		yimpl(typename = exclude_self_t<void_ref_any, _type>)>
-	YB_PURE
+	YB_ATTR_nodiscard YB_PURE
 	operator _type() const
 	{
 		if(data.type() == ystdex::type_id<void_ref>())
 			return *ystdex::unchecked_any_cast<void_ref>(&data);
+		// XXX: This is pure for emulated rvalues.
 		return std::move(*ystdex::unchecked_any_cast<_type>(&data));
 	}
 };

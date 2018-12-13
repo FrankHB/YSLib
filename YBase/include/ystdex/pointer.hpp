@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r594
+\version r618
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2018-12-02 16:25 +0800
+	2018-12-09 08:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,9 @@
 #define YB_INC_ystdex_pointer_hpp_ 1
 
 #include "iterator_op.hpp" // for "iterator_op.hpp", <memory>, pointer_traits,
-//	bool_, not_, is_function, true_, totally_ordered, nullptr_t,
-//	equality_comparable, yconstraint, iterator_operators_t,
-//	std::iterator_traits;
+//	nullptr_t, bool_, not_, is_function, true_, totally_ordered,
+//	equality_comparable, add_pointer_t, add_lvalue_reference_t, yconstraint,
+//	iterator_operators_t, std::iterator_traits;
 #include <functional> // for std::equal_to, std::less, std::hash;
 #include "type_traits.hpp" // for add_ptr_t, add_ref_t, ystdex::swap_dependent;
 
@@ -242,7 +242,7 @@ swap(nptr<_type>& x, nptr<_type>& y) ynothrow
 //@{
 /*!
 \brief 观察者指针：无所有权的智能指针。
-\see WG21 N4562 8.12[memory.observer.ptr] 。
+\see WG21 N4758 5.2[memory.observer.ptr] 。
 */
 template<typename _type>
 class observer_ptr : private totally_ordered<observer_ptr<_type>>,
@@ -250,8 +250,8 @@ class observer_ptr : private totally_ordered<observer_ptr<_type>>,
 {
 public:
 	using element_type = _type;
-	using pointer = yimpl(add_ptr_t<_type>);
-	using reference = yimpl(add_ref_t<_type>);
+	using pointer = add_pointer_t<_type>;
+	using reference = add_lvalue_reference_t<_type>;
 
 private:
 	_type* ptr{};
@@ -270,14 +270,16 @@ public:
 	observer_ptr(pointer p) ynothrow
 		: ptr(p)
 	{}
-	template<typename _tOther>
+	//! \since build 847
+	template<typename _tOther,
+		yimpl(typename = enable_if_convertible_t<_tOther*, _type*>)>
 	yconstfn
 	observer_ptr(observer_ptr<_tOther> other) ynothrow
 		: ptr(other.get())
 	{}
 
 	//! \pre 断言： <tt>get() != nullptr</tt> 。
-	YB_ATTR_nodiscard YB_STATELESS yconstfn reference
+	YB_ATTR_nodiscard YB_STATELESS yconstfn_relaxed reference
 	operator*() const ynothrowv
 	{
 		return yconstraint(get() != nullptr), *ptr;
@@ -513,6 +515,21 @@ struct pointer_classify<_type*>
 
 namespace std
 {
+
+/*!
+\brief ystdex::nptr 散列支持。
+\since build 847
+*/
+template<typename _type>
+struct hash<ystdex::nptr<_type>>
+{
+	YB_ATTR_nodiscard YB_STATELESS size_t
+	operator()(const ystdex::observer_ptr<_type>& p) const
+		ynoexcept_spec(hash<_type>(p.get()))
+	{
+		return hash<_type>(p.get());
+	}
+};
 
 /*!
 \brief ystdex::observer_ptr 散列支持。

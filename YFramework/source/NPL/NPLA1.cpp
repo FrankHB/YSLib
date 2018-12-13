@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9257
+\version r9436
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-11-24 03:52 +0800
+	2018-12-09 19:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,10 +29,11 @@
 #include YFM_NPL_NPLA1 // for YSLib, ystdex::bind1, std::make_move_iterator,
 //	ystdex::value_or, shared_ptr, tuple, list, lref, vector, observer_ptr, set,
 //	owner_less, ystdex::erase_all, ystdex::as_const, std::find_if,
-//	unordered_map, ystdex::id, ystdex::cast_mutable, pair,
-//	ystdex::equality_comparable, std::allocator_arg, NoContainer,
-//	ystdex::exchange, share_move, ystdex::ref_eq, NPL::SwitchToFreshEnvironment,
-//	ystdex::call_value_or, ystdex::make_transform;
+//	NPL::AllocateEnvironment, unordered_map, allocate_shared, ystdex::id,
+//	ystdex::cast_mutable, pair, ystdex::equality_comparable, std::allocator_arg,
+//	NoContainer, ystdex::exchange, share_move, ystdex::ref_eq,
+//	NPL::SwitchToFreshEnvironment, ystdex::call_value_or,
+//	ystdex::make_transform;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard, ystdex::swap_guard,
 //	ystdex::unique_guard;
 #include YFM_NPL_SContext // for Session;
@@ -176,12 +177,12 @@ TransformNodeSequence(const TermNode& term, NodeMapper mapper, NodeMapper
 namespace
 {
 
-//! \since build 824
+//! \since build 847
 //@{
 template<typename _func, class _tTerm>
 TermNode
 TransformForSeparatorCore(_func trans, _tTerm&& term, const ValueObject& pfx,
-	const ValueObject& delim, const string& name)
+	const TokenValue& delim, const string& name)
 {
 	using namespace std::placeholders;
 	using it_t = decltype(std::make_move_iterator(term.end()));
@@ -194,7 +195,7 @@ TransformForSeparatorCore(_func trans, _tTerm&& term, const ValueObject& pfx,
 		res += TermNode(AsIndexNode(term.get_allocator(), res, pfx));
 		ystdex::split(std::make_move_iterator(term.begin()),
 			std::make_move_iterator(term.end()), ystdex::bind1(
-			HasValue<ValueObject>, std::ref(delim)), [&](it_t b, it_t e){
+			HasValue<TokenValue>, std::ref(delim)), [&](it_t b, it_t e){
 				const auto add([&](TermNode& node, it_t i){
 					const auto& k(MakeIndex(node));
 
@@ -227,7 +228,7 @@ TransformForSeparatorCore(_func trans, _tTerm&& term, const ValueObject& pfx,
 template<class _tTerm>
 TermNode
 TransformForSeparatorTmpl(_tTerm&& term, const ValueObject& pfx,
-	const ValueObject& delim, const TokenValue& name)
+	const TokenValue& delim, const TokenValue& name)
 {
 	return TransformForSeparatorCore([&](_tTerm&& tm, const string&) ynothrow{
 		return yforward(tm);
@@ -237,7 +238,7 @@ TransformForSeparatorTmpl(_tTerm&& term, const ValueObject& pfx,
 template<class _tTerm>
 TermNode
 TransformForSeparatorRecursiveTmpl(_tTerm&& term, const ValueObject& pfx,
-	const ValueObject& delim, const TokenValue& name)
+	const TokenValue& delim, const TokenValue& name)
 {
 	return TransformForSeparatorCore([&](_tTerm&& tm, const string& k){
 		return TransformForSeparatorRecursiveTmpl(yforward(tm), pfx, delim, k);
@@ -499,8 +500,7 @@ public:
 	UpdateTemporaryPtr(TermNode& term, ContextNode& ctx)
 	{
 		// XXX: Temporary pointer would get lost if it is not null.
-		// TODO: Check term and context allocator equality.
-		(TemporaryPtr = make_shared<Environment>(ctx.GetMemoryResourceRef()))
+		(TemporaryPtr = AllocateEnvironment(term, ctx))
 			->Bindings[OperandName].SetContent(std::move(term));
 	}
 };
@@ -533,16 +533,6 @@ EnsureTCOAction(ContextNode& ctx, TermNode& term)
 		p = AccessTCOAction(ctx);
 	}
 	return Deref(p);
-}
-
-//! \since build 842
-shared_ptr<Environment>
-MoveTCOTemporary(ContextNode& ctx, TermNode& term)
-{
-	return ystdex::call_value_or([&](TCOAction& act){
-		act.UpdateTemporaryPtr(term, ctx);
-		return act.TemporaryPtr;
-	}, AccessTCOAction(ctx));
 }
 #	endif
 
@@ -692,8 +682,8 @@ private:
 	//@{
 	using shared_ptr_t = shared_ptr<ContextHandler>;
 	unordered_map<string, shared_ptr_t> store{};
-	shared_ptr_t
-		p_defualt{make_shared<ContextHandler>(ThrowInvalidCyclicReference)};
+	//! \since build 847
+	shared_ptr_t p_default;
 	//@}
 
 public:
@@ -705,9 +695,10 @@ public:
 	//! \since build 787
 	//@{
 	RecursiveThunk(Environment& env, const TermNode& t)
-		: Record(env), Term(t)
+		: p_default(allocate_shared<ContextHandler>(t.get_allocator(),
+		ThrowInvalidCyclicReference)), Record(env), Term(t)
 	{
-		Fix(Record, Term, p_defualt);
+		Fix(Record, Term, p_default);
 	}
 	//! \since build 841
 	DefDeMoveCtor(RecursiveThunk)
@@ -979,7 +970,7 @@ struct RecordCompressor final
 	static size_t
 	CountReferences(const Environment& e) ynothrowv
 	{
-		const long acnt(e.GetAnchorPtr().use_count());
+		const auto acnt(e.GetAnchorCount());
 
 		YAssert(acnt > 0, "Zero anchor count found for environment.");
 		// TODO: Use C++17 %weak_from_this to get more efficient
@@ -1099,7 +1090,7 @@ CompressTCOFramesForSavedEnvironment(ContextNode& ctx, TCOAction& act,
 					// XXX: This does not fit for the situation that the same
 					//	parent is referenced in multiple inactive frames.
 					//	However, they should be already compressed.
-					if(frame_env.GetAnchorPtr().use_count() == 2
+					if(frame_env.GetAnchorCount() == 2
 						&& [](Environment& dst, const Environment& src) -> bool{
 						if(const auto p_env
 							= AccessPtr<EnvironmentReference>(dst.Parent))
@@ -1294,6 +1285,11 @@ private:
 	//@}
 	//! \brief 闭包求值构造。
 	shared_ptr<TermNode> p_closure;
+	/*!
+	\brief 调用指针。
+	\since build 847
+	*/
+	ReductionStatus(VauHandler::*p_call)(TermNode&, ContextNode&) const;
 
 public:
 	//! \brief 返回时不提升项以允许返回引用。
@@ -1312,7 +1308,8 @@ public:
 		owning_static(owning), p_static(owning ? std::move(p_env)
 		: nullptr), p_closure(share_move(ystdex::exchange(term,
 		TermNode(std::allocator_arg, term.get_allocator(), NoContainer,
-		term.GetName())))), NoLifting(no_lift)
+		term.GetName())))), p_call(eformal.empty() ? &VauHandler::CallStatic
+		: &VauHandler::CallDynamic), NoLifting(no_lift)
 	{
 		CheckParameterTree(*p_formals);
 	}
@@ -1331,60 +1328,7 @@ public:
 	operator()(TermNode& term, ContextNode& ctx) const
 	{
 		if(IsBranch(term))
-		{
-			using namespace Forms;
-			// NOTE: Evaluation in the local context: using the activation
-			//	record frame with outer scope bindings.
-			auto wenv(ctx.WeakenRecord());
-			// XXX: Reuse of frame cannot be done here unless it can be proved
-			//	all bindings would behave as in the old environment, which is
-			//	too expensive for direct execution of programs with first-class
-			//	environments.
-			EnvironmentGuard gd(ctx, NPL::SwitchToFreshEnvironment(ctx));
-
-			// XXX: Referencing escaped variables (now only parameters need to
-			//	be cared) form the context would cause undefined behavior (e.g.
-			//	returning a reference to automatic object in the host language).
-			//	See %BindParameter.
-			// NOTE: Bound dynamic environment.
-			if(!eformal.empty())
- 				ctx.GetBindingsRef().AddValue(eformal,
- 					ValueObject(std::move(wenv)));
-			// NOTE: The dynamic environment is either out of TCO action or
-			//	referenced by other environments already in TCO action, so there
-			//	is no need to treat as root.
-			// NOTE: Since first term is expected to be saved (e.g. by
-			//	%ReduceCombined), it is safe to be removed directly.
-			RemoveHead(term);
-			// NOTE: Forming beta-reducible terms using parameter binding, to
-			//	substitute them as arguments for later closure reducation.
-			// XXX: Do not lift terms if provable to be safe?
-#if YF_Impl_NPLA1_Enable_TCO
-			// NOTE: The arguments have to be saved for extension of lifetime of
-			//	bound reference parameters. An environment object is introduced
-			//	to make it collectable.
-			if(const auto& p_env_operand = MoveTCOTemporary(ctx, term))
-				BindParameter(ctx, Deref(p_formals),
-					p_env_operand->Bindings[OperandName]);
-			else
-				BindParameter(ctx, Deref(p_formals), term);
-#else
-			BindParameter(ctx, Deref(p_formals), term);
-#endif
-			ctx.Trace.Log(Debug, [&]{
-				return sfmt("Function called, with %ld shared term(s), %ld"
-					" %s shared static environment(s), %zu parameter(s).",
-					p_closure.use_count(), parent.GetPtr().use_count(),
-					owning_static ? "owning" : "nonowning", p_formals->size());
-			});
-			// NOTE: Static environment is bound as base of local environment by
-			//	setting parent environment pointer.
-			ctx.GetRecordRef().Parent = parent;
-			// XXX: Implement accurate lifetime analysis depending on
-			//	'p_closure.unique()'?
-			return RelayOnNextEnvironment(ctx, term, {}, *p_closure,
-				std::move(gd), NoLifting);
-		}
+			return (this->*p_call)(term, ctx);
 		else
 			throw LoggedEvent("Invalid composition found.", Alert);
 	}
@@ -1403,6 +1347,91 @@ public:
 				ThrowInvalidSymbolType(term, "parameter tree node");
 		}
 	}
+
+private:
+	//! \since build 847
+	//@{
+	void
+	BindEnvironment(ContextNode& ctx, ValueObject&& vo) const
+	{
+		YAssert(!eformal.empty(), "Empty dynamic environment name found.");
+		// NOTE: Bound dynamic environment.
+ 		ctx.GetBindingsRef().AddValue(eformal, std::move(vo));
+		// NOTE: The dynamic environment is either out of TCO action or
+		//	referenced by other environments already in TCO action, so there
+		//	is no need to treat as root.
+	}
+
+	ReductionStatus
+	CallDynamic(TermNode& term, ContextNode& ctx) const
+	{
+		// NOTE: Evaluation in the local context: using the activation
+		//	record frame with outer scope bindings.
+		auto wenv(ctx.WeakenRecord());
+		// XXX: Reuse of frame cannot be done here unless it can be proved all
+		//	bindings would behave as in the old environment, which is too
+		//	expensive for direct execution of programs with first-class
+		//	environments.
+		EnvironmentGuard gd(ctx, NPL::SwitchToFreshEnvironment(ctx));
+
+		BindEnvironment(ctx, std::move(wenv));
+		// XXX: Referencing escaped variables (now only parameters need to be
+		//	cared) form the context would cause undefined behavior (e.g.
+		//	returning a reference to automatic object in the host language). The
+		//	lifting of call result is enabled to prevent this, unless
+		//	%NoLifting is %true. See also %Forms::BindParameter.
+		return DoCall(term, ctx, gd);
+	}
+
+	ReductionStatus
+	CallStatic(TermNode& term, ContextNode& ctx) const
+	{
+		// NOTE: See above.
+		EnvironmentGuard gd(ctx, NPL::SwitchToFreshEnvironment(ctx));
+
+		return DoCall(term, ctx, gd);
+	}
+
+	ReductionStatus
+	DoCall(TermNode& term, ContextNode& ctx, EnvironmentGuard& gd) const
+	{
+		// NOTE: Since first term is expected to be saved (e.g. by
+		//	%ReduceCombined), it is safe to be removed directly.
+		RemoveHead(term);
+		// NOTE: Forming beta-reducible terms using parameter binding, to
+		//	substitute them as arguments for later closure reduction.
+		// XXX: Do not lift terms if provable to be safe?
+		Forms::BindParameter(ctx, Deref(p_formals), [&]() -> TermNode&{
+#if YF_Impl_NPLA1_Enable_TCO
+			// NOTE: The arguments have to be saved for extension of lifetime of
+			//	bound reference parameters. An environment object is introduced
+			//	to make it collectable.
+			if(const auto& p_env_operand
+				= ystdex::call_value_or([&](TCOAction& act){
+				act.UpdateTemporaryPtr(term, ctx);
+				return act.TemporaryPtr;
+			}, AccessTCOAction(ctx)))
+				return p_env_operand->Bindings[OperandName];
+#endif
+			return term;
+		}());
+#ifndef NDEBUG
+		ctx.Trace.Log(Debug, [&]{
+			return sfmt("Function called, with %ld shared term(s), %ld"
+				" %s shared static environment(s), %zu parameter(s).",
+				p_closure.use_count(), parent.GetPtr().use_count(),
+				owning_static ? "owning" : "nonowning", p_formals->size());
+		});
+#endif
+		// NOTE: Static environment is bound as base of local environment by
+		//	setting parent environment pointer.
+		ctx.GetRecordRef().Parent = parent;
+		// XXX: Implement accurate lifetime analysis depending on
+		//	'p_closure.unique()'?
+		return RelayOnNextEnvironment(ctx, term, {}, *p_closure, std::move(gd),
+			NoLifting);
+	}
+	//@}
 };
 
 
@@ -1657,11 +1686,11 @@ VauWithEnvironmentImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 //! \since build 828
 struct BindParameterObject
 {
-	//! \since build 829
+	//! \since build 847
 	template<typename _fCopy, typename _fMove>
 	void
 	operator()(char sigil, bool copy, TermNode& b, _fCopy cp, _fMove mv,
-		const shared_ptr<const void>& p_anchor) const
+		const AnchorPtr& p_anchor) const
 	{
 		// NOTE: The operand should have been evaluated. Subnodes in arguments
 		//	retained are also transferred.
@@ -2141,26 +2170,26 @@ SetupTraceDepth(ContextState& root, const string& name)
 
 TermNode
 TransformForSeparator(const TermNode& term, const ValueObject& pfx,
-	const ValueObject& delim, const TokenValue& name)
+	const TokenValue& delim, const TokenValue& name)
 {
 	return TransformForSeparatorTmpl(term, pfx, delim, name);
 }
 TermNode
 TransformForSeparator(TermNode&& term, const ValueObject& pfx,
-	const ValueObject& delim, const TokenValue& name)
+	const TokenValue& delim, const TokenValue& name)
 {
 	return TransformForSeparatorTmpl(std::move(term), pfx, delim, name);
 }
 
 TermNode
 TransformForSeparatorRecursive(const TermNode& term, const ValueObject& pfx,
-	const ValueObject& delim, const TokenValue& name)
+	const TokenValue& delim, const TokenValue& name)
 {
 	return TransformForSeparatorRecursiveTmpl(term, pfx, delim, name);
 }
 TermNode
 TransformForSeparatorRecursive(TermNode&& term, const ValueObject& pfx,
-	const ValueObject& delim, const TokenValue& name)
+	const TokenValue& delim, const TokenValue& name)
 {
 	return
 		TransformForSeparatorRecursiveTmpl(std::move(term), pfx, delim, name);
@@ -2168,10 +2197,10 @@ TransformForSeparatorRecursive(TermNode&& term, const ValueObject& pfx,
 
 ReductionStatus
 ReplaceSeparatedChildren(TermNode& term, const ValueObject& pfx,
-	const ValueObject& delim)
+	const TokenValue& delim)
 {
 	if(std::find_if(term.begin(), term.end(),
-		ystdex::bind1(HasValue<ValueObject>, std::ref(delim))) != term.end())
+		ystdex::bind1(HasValue<TokenValue>, std::ref(delim))) != term.end())
 		term = TransformForSeparator(std::move(term), pfx, delim,
 			TokenValue(term.GetName()));
 	return ReductionStatus::Clean;
@@ -2239,7 +2268,7 @@ StrictContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 
 void
 RegisterSequenceContextTransformer(EvaluationPasses& passes,
-	const ValueObject& delim, bool ordered)
+	const TokenValue& delim, bool ordered)
 {
 	passes += ystdex::bind1(ReplaceSeparatedChildren,
 		ordered ? ContextHandler(Forms::Sequence)
@@ -2522,11 +2551,11 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 			id.remove_prefix(1);
 		return sigil;
 	});
-	const auto p_anchor([&]() -> shared_ptr<const void>{
+	const auto p_anchor([&]() -> AnchorPtr{
 #if YF_Impl_NPLA1_Enable_TCO
 		return ystdex::call_value_or([&](TCOAction& a){
 			return ystdex::call_value_or(
-				std::mem_fn(&Environment::GetAnchorPtr), a.TemporaryPtr);
+				std::mem_fn(&Environment::Anchor), a.TemporaryPtr);
 		}, AccessTCOAction(ctx));
 #endif
 		return {};
@@ -2712,7 +2741,8 @@ DefineWithRecursion(TermNode& term, ContextNode& ctx)
 	DoDefine(term, [&](TermNode& formals){
 		auto p_saved(share_move(formals));
 		// TODO: Avoid %shared_ptr.
-		auto p_thunk(make_shared<RecursiveThunk>(ctx.GetRecordRef(), *p_saved));
+		auto p_thunk(allocate_shared<RecursiveThunk>(term.get_allocator(),
+			ctx.GetRecordRef(), *p_saved));
 
 		// TODO: Blocked. Use C++14 lambda initializers to simplify
 		//	implementation.
@@ -2724,8 +2754,8 @@ DefineWithRecursion(TermNode& term, ContextNode& ctx)
 			//	operation is in the tail context.
 			p_gd->Commit();
 			return DoDefineReturn(term);
-		}, std::move(p_saved),
-			make_shared<RecursiveThunk>(ctx.GetRecordRef(), *p_saved)));
+		}, std::move(p_saved), allocate_shared<RecursiveThunk>(
+			term.get_allocator(), ctx.GetRecordRef(), *p_saved)));
 	});
 	return ReductionStatus::Partial;
 #else
@@ -3002,10 +3032,10 @@ MakeEnvironment(TermNode& term)
 
 		parent.emplace<EnvironmentList>(tr(std::next(term.begin())),
 			tr(term.end()), a);
-		term.Value = make_shared<Environment>(a, std::move(parent));
+		term.Value = NPL::AllocateEnvironment(a, std::move(parent));
 	}
 	else
-		term.Value = make_shared<Environment>(a);
+		term.Value = NPL::AllocateEnvironment(a);
 }
 
 ReductionStatus

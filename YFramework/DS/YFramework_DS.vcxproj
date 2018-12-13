@@ -78,14 +78,10 @@
     <IntDir>$(SolutionDir)build\DS\YFramework\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">
-    <BuildLog>
-      <Path>$(SolutionDir)build\DS\YFramework\$(Configuration)\$(MSBuildProjectName).log</Path>
-    </BuildLog>
+    <BuildLog />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|ARM'">
-    <BuildLog>
-      <Path>$(SolutionDir)build\DS\YFramework\$(Configuration)\$(MSBuildProjectName).log</Path>
-    </BuildLog>
+    <BuildLog />
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

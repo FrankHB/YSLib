@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2129
+\version r2134
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2018-12-02 02:07 +0800
+	2018-12-02 17:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,8 +27,8 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_Dependency // for ystdex::isspace, std::istream,
-//	YSLib::unique_ptr, ystdex::isdigit, ystdex::bind1, std::placeholders,
-//	ystdex::tolower, ystdex::swap_dependent;
+//	YSLib::unique_ptr, NPL::AllocateEnvironment, ystdex::isdigit, ystdex::bind1,
+//	std::placeholders, ystdex::tolower, ystdex::swap_dependent;
 #include YFM_NPL_SContext
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
@@ -228,7 +228,7 @@ CopyEnvironmentDFS(Environment& d, const Environment& e)
 	const auto a(m.get_allocator());
 	// TODO: Support more implementations?
 	const auto copy_parent([&](Environment& dst, const Environment& parent){
-		auto p_env(make_shared<Environment>(a));
+		auto p_env(NPL::AllocateEnvironment(a));
 
 		CopyEnvironmentDFS(*p_env, parent);
 		dst.Parent = std::move(p_env);
@@ -266,8 +266,7 @@ CopyEnvironmentDFS(Environment& d, const Environment& e)
 void
 CopyEnvironment(TermNode& term, ContextNode& ctx)
 {
-	// TODO: Check term and context allocator equality.
-	auto p_env(make_shared<NPL::Environment>(ctx.GetMemoryResourceRef()));
+	auto p_env(AllocateEnvironment(term, ctx));
 
 	CopyEnvironmentDFS(*p_env, ctx.GetRecordRef());
 	term.Value = ValueObject(std::move(p_env));

@@ -48,6 +48,7 @@
     <OutDir>$(SolutionDir)build\MinGW32\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)build\MinGW32\$(Configuration)\</IntDir>
     <NMakeIncludeSearchPath>$(ProjectDir)include;$(ProjectDir)..\include;$(ProjectDir)..\..\YBase\include;F:\msys\mingw\lib\gcc\i686-w64-mingw32\4.9.1\include;F:\msys\mingw\include;F:\msys\mingw\lib\gcc\i686-w64-mingw32\4.9.1\include-fixed;F:\msys\mingw\i686-w64-mingw32\include;F:\msys\mingw\include\c++\4.9.1;F:\msys\mingw\include\c++\4.9.1\i686-w64-mingw32;F:\msys\mingw\include\c++\4.9.1\backward</NMakeIncludeSearchPath>
+    <NMakeBuildCommandLine>@echo YFramework_MinGW32: The MinGW32 target is not supported in Microsoft Visual Studio project yet. Please use 'Tools/install-sysroot.sh' instead.</NMakeBuildCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
     <IncludePath>$(ProjectDir)include;$(ProjectDir)..\include;$(ProjectDir)..\..\YBase\include;F:\msys\mingw\lib\gcc\i686-w64-mingw32\4.9.1\include;F:\msys\mingw\include;F:\msys\mingw\lib\gcc\i686-w64-mingw32\4.9.1\include-fixed;F:\msys\mingw\i686-w64-mingw32\include;F:\msys\mingw\include\c++\4.9.1;F:\msys\mingw\include\c++\4.9.1\i686-w64-mingw32;F:\msys\mingw\include\c++\4.9.1\backward</IncludePath>
@@ -58,6 +59,7 @@
     <OutDir>$(SolutionDir)build\MinGW32\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)build\MinGW32\$(Configuration)\</IntDir>
     <NMakeIncludeSearchPath>$(ProjectDir)include;$(ProjectDir)..\include;$(ProjectDir)..\..\YBase\include;F:\msys\mingw\lib\gcc\i686-w64-mingw32\4.9.1\include;F:\msys\mingw\include;F:\msys\mingw\lib\gcc\i686-w64-mingw32\4.9.1\include-fixed;F:\msys\mingw\i686-w64-mingw32\include;F:\msys\mingw\include\c++\4.9.1;F:\msys\mingw\include\c++\4.9.1\i686-w64-mingw32;F:\msys\mingw\include\c++\4.9.1\backward</NMakeIncludeSearchPath>
+    <NMakeBuildCommandLine>@echo YFramework_MinGW32: The MinGW32 target is not supported in Microsoft Visual Studio project yet. Please use 'Tools/install-sysroot.sh' instead.</NMakeBuildCommandLine>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">
     <ClCompile>
@@ -68,9 +70,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
-    <BuildLog>
-      <Path>$(SolutionDir)build\MinGW32\$(Configuration)\$(MSBuildProjectName).log</Path>
-    </BuildLog>
+    <BuildLog />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
     <ClCompile>
@@ -85,9 +85,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
-    <BuildLog>
-      <Path>$(SolutionDir)build\MinGW32\$(Configuration)\$(MSBuildProjectName).log</Path>
-    </BuildLog>
+    <BuildLog />
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

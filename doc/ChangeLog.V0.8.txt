@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r8471
+\version r8780
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-12-02 17:22 +0800
+	2018-12-14 00:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,316 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Pointer $=
+		(
+			+ "explicit specialization of class template %std::hash for \
+				%ystdex::nptr",
+			/ @ "class template %observer_ptr" $=
+			(
+				/ $revert(b757) DLDI ^ "%add_pointer_t" ~ "%add_ptr_t",
+				* $revert(b757) "ill-formed when %void is used as \
+					template parameter" $since b629 $=
+				(
+					/ $impl ^ "%add_lvalue_reference_t" ~ "%add_ref_t",
+					/ "operator*" ^ 'yconstfn_relaxed' ~ 'yconstfn'
+				),
+				* "missing conversion detection on template paramete type"
+					@ "construtor template" $since b669;
+				/ $doc "updated reference LFTS v3" @ "Doxygen comment"
+			),
+			/ %Any $=
+			(
+				+ DD '\ingroup YBase_replacement_features' @ "Doxygen comment"
+					@ ("class %any", "function %swap for %any", "all function \
+					templates %(2 make_any, 5 any_cast)"),
+				+ DD '\ingroup YBase_replacement_extensions'
+					@ "Doxygen comment" @ ("namespace %any_ops",
+					"member functions %bad_any_cast::(from, from_type, to, \
+					to_type)", ("constructors with %any_ops::use_holder_t \
+					parameter", "functions %(get, get_holder, unchecked_get, \
+					unchecked_get_holder, unchecked_type)", "function \
+					template %(emplace_with_handler, all 2 target)",
+					"protected functions %(get_storage, call)", "protected \
+					function template %unchecked_access") @ "class %any",
+					"function templats %(hold_same, all 2 unchecked_any_cast, \
+					all 2 unsafe_any_cast)"),
+				+ "%YBase_replacement_extensions" @ "'\ingroup' command"
+					@ "Doxygen comment" @ "unary type trait %is_any_cast_dest",
+				+ $dev 'YB_ATTR_nodiscard YB_PURE' @ "functions and function \
+					templates with specified glob name patterns or names"
+					// With some restrictions added to virtual functions.
+				$= ('*access', '*target', '*type', "%any_cast", "%from",
+					"%has_value", "%hold_same", "%operator _type", "%to",
+					'un*_any_cast', 'un*_get*'),
+				+ $dev $lib 'YB_ATTR_nodiscard'
+					@ "all 2 function templates %make_any",
+				+ $dev $lib 'YB_ATTR_nodiscard yimpl(YB_PURE)'
+					@ "member function %bad_any_cast::what",
+				/ "enlarged %any_ops::any_storage size",
+				/ $dev @ "namespace %any_ops" $=
+				(
+					+ "static assertion to ensure enough space available when \
+						stored locally" @ "class template %value_handler",
+					(
+					+ $doc "Doxygen group %any_handlers";
+					/ $doc "class templates %(value_handlers, ref_handlers, \
+						holder_handlers)" >> "Doxygen group %any_handlers"
+					)
+				)
+			)
+		),
+		/ %Memory $=
+		(
+			(
+			* "constructor" @ "class template %allocator_delete" $since b846
+				$= (/ "inherited base constructor"
+					-> "constructor template excluding self type parameter");
+			+ "function template %allocate_unique",
+			),
+			/ "object creation function templates with glob 'try_*' pattern as \
+				names" @ %Memory => '*_or_throw' $effective @ "%try_new, \
+				try_create, try_create_with_allocator"
+				// To be more consistent to description of well-knowned use of \
+					'try_*' prefix in %Documentation.CommonRules.
+		),
+		/ @ "function template %construct#1" @ "class template \
+			%polymorphic_allocator" @ %MemoryResource $=
+		(
+			/ DLDI "simplified uses-allocator construction inner dispatch with \
+				allocator parameter at end",
+			* "allocator value type intefered construction due to wrong type \
+				used for %std::uses_allocator" $sicne b842 $dep_to
+				"fixed polymorphic allocated type"
+		),
+		(
+		+ %Function;
+		+ "inclusion %Function" @ %Functional
+		/ $lib "metafunctions %(is_covariant, is_contravariant, \
+			make_parameter_tuple, make_parameter_tuple_t, return_of, \
+			return_of_t, parameter_of, parameter_of_t, paramlist_size, \
+			make_function_type, make_function_type_t, id_func_t, \
+			id_func_clr_t, id_func_rr_t), function templates %(sizeof_params, \
+			varg, chain_apply, seq_apply, unseq_apply), class templates \
+			%(variadic_param, enable_fallback_t)" %Functional >> %Function;
+		/ %Function $=
+		(
+			/ DD '\ingroup metafunctions' -> '\ingroup transformation_traits'
+				@ "Doxygen comment" @ "all metafunctions",
+			+ DD '\ingroup transformation_traits' @ "Doxygen comment"
+				@ "metafunctions %(enable_fallback_t, id_func_t, \
+				id_func_clr_t, id_func_rr_t)",
+			/ @ "traits %(make_parameter_tuple, return_of)" $=
+			(
+				/ $revert_ex(b358, b675) $impl "simplified" ^ "%remove_cvref_t",
+				* $comp $re_add(b358) "missing cv-qualifier for non-member \
+					function types" $orig (@ %Functional $since
+					b333)
+				* $comp "missing cv-qualifier for %std::function instances"
+					$orig (@ %Functional $since b447),
+				/ $re_add(b845) "supported ISO C++17 'noexcept' type qualifiers"
+					$= (/ "specializations"
+						^ "%(ynoexcept_param, ynoexcept_qual)")
+			),
+			* $re_add(b675) "missing specialization for trailing '...' \
+				parameters as ignored" @ "trait %make_parameter_tuple" $since
+				b333
+		)
+		)
+	),
+	/ %YFramework $=
+	(
+		/ @ "inline namespace %references" @ "namespace %platform"
+			@ %YCLib.Reference $=
+		(
+			+ "alias %allocate_shared",
+			+ "alias %allocate_unique" $dep_from
+				("%allocate_unique" @ %YBase.YStandardEx.Memory),
+		),
+		/ %YSLib.Core.YObject $=
+		(
+			+ "class template %AllocatorHolder" $dep_from (%YCLib.Reference,
+				("any_ops::any_storage" @ %YBase.YStandardEx.Any));
+			/ @ "class %ValueObject" $=
+			(
+				+ "constructor %ValueObject with %std::allocator_arg_t, \
+					allocator and object parameters" ^ $dep_from
+					"%AllocatorHolder",
+				/ "excluded %std::allocator_arg_t parameter"
+					@ "constructor template with 1 parameter"
+			)
+		),
+		/ %NPL $=
+		(
+			/ "supported allocator" @ ("function %Reduce#1" @ %SContext,
+				"function %LoadGroundContext" @ %Dependency)
+				$dep_from %YSLib.Core.YObject,
+				// This is usually efficient here. Not applied elsewhere \
+					because it would not be necessarily efficient.
+			/ %NPLA $=
+			(
+				+ "alias %allocate_shared" $dep_from %YCLib.Reference,
+				+ "alias %AnchorPtr",
+				/ @ "class %Environment" $=
+				(
+					(
+					(
+					/ "initialized with allocator" @ "anchor";
+					/ $forced "defaulted copy constructor"
+						-> "user-defined providing allocator from %Bindings",
+					)
+					+ "friend function %swap";
+					/ "defaulted %operator=" -> "user-defined function"
+						^ "%ystdex::copy_and_swap"
+					- DLDI "copy" @ "anchor"
+					),
+					+ DLI 'ynothrow' @ "anchor move %operator=",
+					+ 'ynothrow' @ "function %Anchor",
+					(
+					/ DLDI ^ $dep_from "%AnchorPtr" ~ "%shared_ptr<void>";
+					/ "function %GetAnchorPtr" -> "%GetAnchorCount"
+					),
+					/ "allocatedd environemnt bindings map pointer" ^ $dep_from
+						"allocate_shared" ~ "%make_shared",
+					(
+					+ "uses-allocator construction support"
+						$dep_from ("constructor template with 1 parameter"
+						@ "class %ValueObject" @ %YSLib.Core.YObject) $=
+						// The constructors shall avoid %std::allocator_arg_t \
+							to be initalized as a parent environment object.
+					(
+						+ "alias %allocator_type",
+						/ "swapped parameter with 1st allocator type"
+							@ "constructors #(5, 6)",
+						/ $forced DLDI "constructors #(7, 8)"
+					);
+					/ $dev $lib "simplified allocator parameters"
+					)
+				),
+				/ DLI "intialization of environment"
+					@ "class %ContextNode" ^ $dep_from "%allocate_shared"
+					$dep_from "uses-allocator construction support""
+				(
+				+ "3 function templates %AllocateEnvironment" ^ $dep_from
+					"allocate_shared" $dep_from ("fixed polymorphic allocated \
+					type", "uses-allocator construction support"
+					@ "class %Environment");
+				/ DLI "function %SwitchToFreshEnvironment"
+					^ "%NPL::AllocateEnvironment"
+				),
+				+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+					@ "functions and function templates with specified glob \
+					name patterns or names except those defined by 'Def*'" $=
+					("%MapNPLALeafNode", "%TransformToSyntaxNode",
+						"%EscapeNodeLiteral", "%LiteralizeEscapeNodeLiteral",
+						"%ParseNPLANodeString", "%DefaultGenerateIndent",
+						"%ConvertAttributeNodeString", "%ConvertStringNode",
+						'Make*', 'Categorize*', 'Is*', 'TermTo*', "%operator==",
+						"%get", "%ReferenceTerm", 'AccessTerm*', "%CheckNorm",
+						'Combine*Result', "%PassCombiner::operator()",
+						"%LookupName", 'FetchValue*', "%ComposeActions"),
+				+ $dev $lib 'YB_ATTR_nodiscard'
+					@ "functions with names %(ConvertDocumentNode, Collapse, \
+					CheckReducible, Anchor, DefaultResolve, ComposeActions) or \
+					glob name pattern 'Resolve*'"
+			),
+			/ %NPLA1 $=
+			(
+				/ "delimiter parameter" @ "functions %(all 2 \
+					TransformForSeparator, all 2 \
+					TransformForSeparatorRecursive, \
+					ReplaceSeparatedChildren, \
+					RegisterSequenceContextTransformer)"
+					^ "%TokenValue" ~ "%ValueObject",
+					// With support of heterogeneous key lookup, this saves \
+						some %ValueObject objects being created.
+				/ $focred DLDI "TCO" $=
+				(
+					/ DLDI ^ $dep_from ("%AnchorPtr" @ %NPLA)
+						~ "%shared_ptr<void>",
+					/ $focred DLDI $dep_from
+						("%Environment::GetAnchorPtr" @ %NPLA),
+					/ @ "internal temporary maintainence" $=
+					(
+						/ DLI ^ $dep_from ("%AllocateEnvironment" @ %NPLA)
+							~ "%make_shared";
+						+ $comp $lib "assertion to ensure allocator equality"
+					)
+				),
+				/ DLI ("allocated environment" @ "function %MakeEnvironment",
+					"allocated recursion thunk and cyclic thunk handler"
+					@ "function %DefineWithRecursion") @ "namespace %Forms"
+					^ $dep_from ("%allocate_shared" @ %NPLA) ~ "%make_shared"
+					$dep_from "fixed polymorphic allocated type",
+
+				+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+					@ "functions and function templates with specified glob \
+					name patterns or names except those defined by 'Def*'" $=
+					("%to_string", "%GetNextTermRef", "%operator==", 'Wrap*',
+					'Transform*', "%FetchArgumentN", 'Is*', 'StringTo*'),
+					// Result of 'Retain*' is idiomatic to be optionally \
+						ignored.
+				+ $dev $lib 'YB_ATTR_nodiscard' @ "returing non-void functions \
+					or function templates with names %(Propress, Prepare, \
+					ReadFrom) or glob name pattern 'LoadNode*'",
+				/ DLI "optimized vau handler calls" $=
+				(
+					/ "handled dynamic environment name at construction"
+						~ "%operator()",
+					- "logging" @ 'defined(NDEBUG)'
+				),
+				/ DLDI "simplified all 2 function templates %LoadNode"
+					^ 'std::forward<TermNode>' ~ 'std::forward<TermNode&&>',
+				/ DLDI "simplified function template %CallUnaryAs"
+					^ 'std::forward<_tParmas>' ~ 'std::forward<_tParams&&>'
+			),
+			/ @ "derivation of applicative 'copy-environment'"
+				@ "function %LoadGroundContext" @ %Dependency $=
+			(
+				/ DLI ^ $dep_from ("%AllocateEnvironment" @ %NPLA)
+					~ "%make_shared";
+				+ $comp $lib "assertion to ensure allocator equality"
+			)
+		)
+	),
+	/ "Microsoft VC++ projects" $=
+	(
+		+ $build "'@echo' command to print notice" @ "NMake build command \
+			property 'NMakeBuildCommandLine'" @ "project %YFramework_MinGW32",
+			// To eliminate Microsoft VS 2017 warning from \
+				"Microsoft.MakeFile.Targets(43,5)": MSB8005.
+		- $dev "all items" @ "filters %(include, source)"
+			@ "project %YFramework_Android",
+			// The target files should not be in filters specific to the host.
+		(
+		+ "projects %(YSTest, Tools.SHBuild)" @ "platform %Win32";
+		/ "enabled multiprocessor compiler option '/MP'" @ "all projects"
+			@ "platform %Win32",
+		/ "setup project %YSTest as default project" ~ "%YFramework"
+			// This is not yet supported, but it should be runnable with \
+				patches (with package of FreeType2), even not working properly.
+		),
+		/ DLD "simplified all 'BuildLog' property using default value"
+			@ "all projects"
+		- $re_add(b842) $dev "all redundant NMake properties" $effective
+			@ "projects %(YBase, YFramework)",
+			// Now IntelliSense also does not use outdated settings from \
+				platform %DS.
+		- $build $lib '/ignore:4006' @ "additional options" @ "project %YBase",
+			// Warning LNK 4006 should not occur unless there are bugs of ODR, \
+				or there are bugs of compiler or linker (in previous versions \
+				of Microsoft VC++).
+		/ $dev $build "all configurations %(Debug, Release)"
+			=> "%(debug, release)",
+		/ $dev "excluded to build %doc/ex.cpp" @ "project %YFramework"
+			// This is only for historical notes and currently it is not in \
+				the build target.
+	)
+),
+
+b846
 (
 	/ %YBase $=
 	(
@@ -92,7 +402,7 @@ $now
 				),
 				+ $dev $lib 'YB_ATTR_nodiscard YB_STATELESS'
 					@ "function %operator()" @ "explicit specialization of \
-					class template %std::hash for %observer_ptr"
+					class template %std::hash for %ystdex::observer_ptr"
 					$dep_from ("%std" @ %Memory)
 			),
 			/ %Memory $=

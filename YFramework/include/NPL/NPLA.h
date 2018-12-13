@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4409
+\version r4591
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-11-23 00:41 +0800
+	2018-12-09 06:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,16 +29,19 @@
 #define NPL_INC_NPLA_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_SContext // for NPLTag, ValueNode, TermNode, string,
-//	LoggedEvent, ystdex::isdigit, YSLib::lref, ystdex::any,
-//	ystdex::equality_comparable, shared_ptr, ystdex::type_info, weak_ptr,
+#include YFM_NPL_SContext // for YSLib::MakeIndex, YSLib::NodeSequence,
+//	YSLib::NodeLiteral, YSLib::allocate_shared, YSLib::enable_shared_from_this,
+//	YSLib::lref, YSLib::make_shared, YSLib::make_weak, YSLib::observer_ptr,
+//	YSLib::pair, YSLib::to_string, YSLib::shared_ptr, YSLib::weak_ptr, NPLTag,
+//	ValueNode, TermNode, string, LoggedEvent, ystdex::isdigit,
+//	ystdex::equality_comparable, std::uintptr_t, ystdex::allocator_traits,
+//	ystdex::copy_and_swap, ystdex::move_and_swap, ystdex::type_info,
 //	ystdex::get_equal_to, ystdex::exchange;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include YFM_YSLib_Core_YEvent // for ystdex::indirect, ystdex::fast_any_of,
 //	YSLib::GHEvent, YSLib::GEvent, YSLib::GCombinerInvoker,
 //	YSLib::GDefaultLastValueInvoker;
 #include <algorithm> // for std::for_each;
-#include <ystdex/any.h> // for ystdex::any;
 
 namespace NPL
 {
@@ -56,6 +59,8 @@ using YSLib::MakeIndex;
 using YSLib::NodeSequence;
 //! \since build 600
 using YSLib::NodeLiteral;
+//! \since build 847
+using YSLib::allocate_shared;
 //! \since build 788
 //@{
 using YSLib::enable_shared_from_this;
@@ -135,7 +140,7 @@ using NodeSequenceInserter = GNodeInserter<NodeSequence>;
 
 创建新节点。若参数为空则返回值为空串的新节点；否则值以 ParseNPLANodeString 取得。
 */
-YF_API ValueNode
+YB_ATTR_nodiscard YF_API YB_PURE ValueNode
 MapNPLALeafNode(const TermNode&);
 
 /*!
@@ -143,7 +148,7 @@ MapNPLALeafNode(const TermNode&);
 \note 可选参数指定结果名称。
 \since build 598
 */
-YF_API ValueNode
+YB_ATTR_nodiscard YF_API YB_PURE ValueNode
 TransformToSyntaxNode(const ValueNode&, const string& = {});
 //@}
 
@@ -153,7 +158,7 @@ TransformToSyntaxNode(const ValueNode&, const string& = {});
 \exception ystdex::bad_any_cast 异常中立：由 Access 抛出。
 \since build 597
 */
-YF_API string
+YB_ATTR_nodiscard YF_API YB_PURE string
 EscapeNodeLiteral(const ValueNode&);
 
 /*!
@@ -163,7 +168,7 @@ EscapeNodeLiteral(const ValueNode&);
 \sa EscapeNodeLiteral
 \since build 598
 */
-YF_API string
+YB_ATTR_nodiscard YF_API YB_PURE string
 LiteralizeEscapeNodeLiteral(const ValueNode&);
 
 /*!
@@ -172,7 +177,7 @@ LiteralizeEscapeNodeLiteral(const ValueNode&);
 
 以 string 类型访问节点，若失败则结果为空串。
 */
-YF_API string
+YB_ATTR_nodiscard YF_API YB_PURE string
 ParseNPLANodeString(const ValueNode&);
 
 
@@ -213,7 +218,7 @@ InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, const NodeLiteral& nl)
 using IndentGenerator = std::function<string(size_t)>;
 
 //! \brief 生成水平制表符为单位的缩进。
-YF_API string
+YB_ATTR_nodiscard YF_API YB_PURE string
 DefaultGenerateIndent(size_t);
 
 //! \exception std::bad_function 异常中立：参数指定的处理器为空。
@@ -337,7 +342,7 @@ namespace SXML
 \throw LoggedEvent 没有子节点。
 \note 当前不支持 annotation ，在超过 2 个子节点时使用 YTraceDe 警告。
 */
-YF_API string
+YB_ATTR_nodiscard YF_API YB_PURE string
 ConvertAttributeNodeString(const TermNode&);
 
 /*!
@@ -352,7 +357,7 @@ ConvertAttributeNodeString(const TermNode&);
 尝试使用 ConvertStringNode 转换字符串节点，若失败作为非叶子节点递归转换。
 因为当前 SXML 规范未指定注解(annotation) ，所以直接忽略。
 */
-YF_API string
+YB_ATTR_nodiscard YF_API string
 ConvertDocumentNode(const TermNode&, IndentGenerator = DefaultGenerateIndent,
 	size_t = 0, ParseOption = ParseOption::Normal);
 
@@ -360,7 +365,7 @@ ConvertDocumentNode(const TermNode&, IndentGenerator = DefaultGenerateIndent,
 \brief 转换 SXML 节点为被转义的 XML 字符串。
 \sa EscapeXML
 */
-YF_API string
+YB_ATTR_nodiscard YF_API YB_PURE string
 ConvertStringNode(const TermNode&);
 
 /*!
@@ -382,23 +387,23 @@ PrintSyntaxNode(std::ostream& os, const TermNode&,
 //! \brief 构造 SXML 文档顶级节点。
 //@{
 template<typename... _tParams>
-ValueNode
+YB_ATTR_nodiscard YB_PURE ValueNode
 MakeTop(const string& name, _tParams&&... args)
 {
 	return YSLib::AsNodeLiteral(name,
 		{{MakeIndex(0), "*TOP*"}, NodeLiteral(yforward(args))...});
 }
-inline PDefH(ValueNode, MakeTop, )
+YB_ATTR_nodiscard YB_PURE inline PDefH(ValueNode, MakeTop, )
 	ImplRet(MakeTop({}))
 //@}
 
 /*!
 \brief 构造 SXML 文档 XML 声明节点。
-\note 第一个参数指定节点名称，其余参数指定节点中 XML 声明的值：版本、编码和独立性。
+\note 第一参数指定节点名称，其余参数指定节点中 XML 声明的值：版本、编码和独立性。
 \note 最后两个参数可选为空值，此时结果不包括对应的属性。
 \warning 不对参数合规性进行检查。
 */
-YF_API ValueNode
+YB_ATTR_nodiscard YF_API YB_PURE ValueNode
 MakeXMLDecl(const string& = {}, const string& = "1.0",
 	const string& = "UTF-8", const string& = {});
 
@@ -407,17 +412,17 @@ MakeXMLDecl(const string& = {}, const string& = "1.0",
 \sa MakeTop
 \sa MakeXMLDecl
 */
-YF_API ValueNode
+YB_ATTR_nodiscard YF_API YB_PURE ValueNode
 MakeXMLDoc(const string& = {}, const string& = "1.0",
 	const string& = "UTF-8", const string& = {});
 
 //! \brief 构造 SXML 属性标记字面量。
 //@{
-inline PDefH(NodeLiteral, MakeAttributeTagLiteral,
+YB_ATTR_nodiscard YB_PURE inline PDefH(NodeLiteral, MakeAttributeTagLiteral,
 	std::initializer_list<NodeLiteral> il)
 	ImplRet({"@", il})
 template<typename... _tParams>
-NodeLiteral
+YB_ATTR_nodiscard YB_PURE NodeLiteral
 MakeAttributeTagLiteral(_tParams&&... args)
 {
 	return SXML::MakeAttributeTagLiteral({NodeLiteral(yforward(args)...)});
@@ -426,11 +431,11 @@ MakeAttributeTagLiteral(_tParams&&... args)
 
 //! \brief 构造 XML 属性字面量。
 //@{
-inline PDefH(NodeLiteral, MakeAttributeLiteral, const string& name,
-	std::initializer_list<NodeLiteral> il)
+YB_ATTR_nodiscard YB_PURE inline PDefH(NodeLiteral, MakeAttributeLiteral,
+	const string& name, std::initializer_list<NodeLiteral> il)
 	ImplRet({name, {MakeAttributeTagLiteral(il)}})
 template<typename... _tParams>
-NodeLiteral
+YB_ATTR_nodiscard YB_PURE NodeLiteral
 MakeAttributeLiteral(const string& name, _tParams&&... args)
 {
 	return {name, {SXML::MakeAttributeTagLiteral(yforward(args)...)}};
@@ -716,14 +721,14 @@ enum class LexemeCategory
 \brief 对排除扩展字面量的词素分类。
 \note 空字符串和扩展字面量视为非字面量。
 */
-YF_API LexemeCategory
+YB_ATTR_nodiscard YF_API YB_PURE LexemeCategory
 CategorizeBasicLexeme(string_view) ynothrowv;
 
 /*!
 \brief 对词素分类。
 \sa CategorizeBasicLexeme
 */
-YF_API LexemeCategory
+YB_ATTR_nodiscard YF_API YB_PURE LexemeCategory
 CategorizeLexeme(string_view) ynothrowv;
 //@}
 
@@ -733,25 +738,28 @@ CategorizeLexeme(string_view) ynothrowv;
 \pre 词素不是代码字面量或数据字面量。
 \since build 771
 */
-YF_API bool
+YB_ATTR_nodiscard YF_API YB_PURE bool
 IsNPLAExtendedLiteral(string_view) ynothrowv;
 
 /*!
 \brief 判断字符是否为 NPLA 扩展字面量非数字前缀。
 \since build 771
 */
-yconstfn PDefH(bool, IsNPLAExtendedLiteralNonDigitPrefix, char c) ynothrow
+YB_ATTR_nodiscard YB_PURE yconstfn
+	PDefH(bool, IsNPLAExtendedLiteralNonDigitPrefix, char c) ynothrow
 	ImplRet(c == '#'|| c == '+' || c == '-')
 
 //! \brief 判断字符是否为 NPLA 扩展字面量前缀。
-inline PDefH(bool, IsNPLAExtendedLiteralPrefix, char c) ynothrow
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, IsNPLAExtendedLiteralPrefix, char c) ynothrow
 	ImplRet(ystdex::isdigit(c) || IsNPLAExtendedLiteralNonDigitPrefix(c))
 
 /*!
 \brief 判断词素是否为 NPLA 符号。
 \pre 间接断言：字符串参数的数据指针非空且字符串非空。
 */
-inline PDefH(bool, IsNPLASymbol, string_view id) ynothrowv
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, IsNPLASymbol, string_view id) ynothrowv
 	ImplRet(CategorizeLexeme(id) == LexemeCategory::Symbol)
 //@}
 //@}
@@ -773,7 +781,7 @@ using TokenValue = ystdex::derived_entity<string, NPLATag>;
 \return 通过访问项的值取得的记号的指针，或空指针表示无法取得名称。
 \since build 782
 */
-YF_API observer_ptr<const TokenValue>
+YB_ATTR_nodiscard YF_API YB_PURE observer_ptr<const TokenValue>
 TermToNamePtr(const TermNode&);
 
 /*!
@@ -788,7 +796,7 @@ TermToNamePtr(const TermNode&);
 \brief 访问项的值并转换为字符串形式的外部表示。
 \since build 801
 */
-YF_API string
+YB_ATTR_nodiscard YF_API YB_PURE string
 TermToString(const TermNode&);
 
 /*!
@@ -797,7 +805,7 @@ TermToString(const TermNode&);
 \sa TermToString
 \since build 840
 */
-YF_API string
+YB_ATTR_nodiscard YF_API YB_PURE string
 TermToStringWithReferenceMark(const TermNode&, bool);
 //@}
 
@@ -869,13 +877,17 @@ class Environment;
 //! \since build 828
 //@{
 //! \brief 判断项是否为引用项。
-YF_API bool
+YB_ATTR_nodiscard YF_API YB_PURE bool
 IsReferenceTerm(const TermNode&) ynothrow;
 
 //! \brief 判断项是否表示左值引用。
-YF_API bool
+YB_ATTR_nodiscard YF_API YB_PURE bool
 IsLValueTerm(const TermNode&) ynothrow;
 //@}
+
+
+//! \since build 847
+using AnchorPtr = yimpl(shared_ptr<const void>);
 
 
 /*!
@@ -898,9 +910,9 @@ private:
 	bool is_ref;
 	/*!
 	\brief 引用的锚对象指针。
-	\since build 823
+	\since build 847
 	*/
-	shared_ptr<const void> p_anchor{};
+	AnchorPtr p_anchor{};
 
 public:
 	//! \brief 构造：使用参数指定的引用和空锚对象并自动判断是否使用引用值初始化。
@@ -938,7 +950,8 @@ public:
 	DefDeCopyAssignment(TermReference)
 
 	//! \brief 等于：当且仅当引用的项同一时相等。
-	friend PDefHOp(bool, ==, const TermReference& x, const TermReference& y)
+	YB_ATTR_nodiscard YB_PURE friend
+		PDefHOp(bool, ==, const TermReference& x, const TermReference& y)
 		ImplRet(ystdex::get_equal_to<>()(x.term_ref, y.term_ref))
 
 	/*!
@@ -949,11 +962,10 @@ public:
 
 	explicit DefCvtMem(const ynothrow, TermNode&, term_ref)
 
-	//! \since build 823
-	DefGetter(const ynothrow, const shared_ptr<const void>&, AnchorPtr,
-		p_anchor)
+	//! \since build 847
+	DefGetter(const ynothrow, const AnchorPtr&, AnchorPtr, p_anchor)
 
-	PDefH(TermNode&, get, ) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(TermNode&, get, ) const ynothrow
 		ImplRet(term_ref.get())
 };
 
@@ -969,9 +981,9 @@ public:
 这种方式避免初始化引用的引用。
 */
 //@{
-YF_API pair<TermReference, bool>
+YB_ATTR_nodiscard YF_API pair<TermReference, bool>
 Collapse(TermNode&);
-YF_API pair<TermReference, bool>
+YB_ATTR_nodiscard YF_API pair<TermReference, bool>
 Collapse(TermNode&, const Environment&);
 //@}
 
@@ -982,9 +994,9 @@ Collapse(TermNode&, const Environment&);
 \return 若项的 Value 数据成员为 TermReference 则为其中的引用，否则为参数。
 \sa TermReference
 */
-YF_API TermNode&
+YB_ATTR_nodiscard YF_API YB_PURE TermNode&
 ReferenceTerm(TermNode&);
-YF_API const TermNode&
+YB_ATTR_nodiscard YF_API YB_PURE const TermNode&
 ReferenceTerm(const TermNode&);
 
 /*!
@@ -1023,7 +1035,7 @@ ResolveTerm(_func do_resolve, const TermNode& term)
 */
 //@{
 template<typename _type>
-_type&
+YB_ATTR_nodiscard YB_PURE _type&
 AccessTerm(TermNode& term)
 {
 	auto& tm(ReferenceTerm(term));
@@ -1033,7 +1045,7 @@ AccessTerm(TermNode& term)
 	ThrowListTypeErrorForInvalidType(ystdex::type_id<_type>(), term);
 }
 template<typename _type>
-const _type&
+YB_ATTR_nodiscard YB_PURE const _type&
 AccessTerm(const TermNode& term)
 {
 	const auto& tm(ReferenceTerm(term));
@@ -1047,13 +1059,13 @@ AccessTerm(const TermNode& term)
 //! \brief 访问解析 TermReference 后的项的指定类型对象指针。
 //@{
 template<typename _type>
-inline observer_ptr<_type>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
 AccessTermPtr(TermNode& term) ynothrow
 {
 	return ReferenceTerm(term).Value.AccessPtr<_type>();
 }
 template<typename _type>
-inline observer_ptr<const _type>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<const _type>
 AccessTermPtr(const TermNode& term) ynothrow
 {
 	return ReferenceTerm(term).Value.AccessPtr<_type>();
@@ -1094,7 +1106,8 @@ ComposeReferencedTermOp(_func f)
 \brief 检查视为范式的节点并提取规约状态。
 \since build 769
 */
-inline PDefH(ReductionStatus, CheckNorm, const TermNode& term) ynothrow
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(ReductionStatus, CheckNorm, const TermNode& term) ynothrow
 	ImplRet(IsBranch(term) ? ReductionStatus::Retained : ReductionStatus::Clean)
 
 /*!
@@ -1108,7 +1121,7 @@ inline PDefH(ReductionStatus, CheckNorm, const TermNode& term) ynothrow
 若发现不支持的状态视为不成功，输出警告。
 派生实现可使用类似的接口指定多个不同的状态。
 */
-YF_API YB_PURE bool
+YB_ATTR_nodiscard YF_API YB_PURE bool
 CheckReducible(ReductionStatus);
 
 /*!
@@ -1133,7 +1146,7 @@ RegularizeTerm(TermNode&, ReductionStatus) ynothrow;
 
 
 /*!
-\brief 提升项：使用第二个参数指定的项的内容替换第一个项的内容。
+\brief 提升项：使用第二参数指定的项的内容替换第一个项的内容。
 \since build 805
 */
 //@{
@@ -1193,7 +1206,7 @@ inline PDefH(bool, LiftTermRefToSelf, TermNode& term)
 //@}
 
 /*!
-\brief 提升项引用：使用第二个参数指定的项的内容引用替换第一个项的内容。
+\brief 提升项引用：使用第二参数指定的项的内容引用替换第一个项的内容。
 \sa ValueObject::MakeIndirect
 \since build 747
 */
@@ -1377,8 +1390,8 @@ ReduceForClosureResult(TermNode&, ReductionStatus);
 
 若第二参数指定保留项，则合并后的规约结果为第二参数；否则为第一参数。
 */
-yconstfn PDefH(ReductionStatus, CombineReductionResult, ReductionStatus res,
-	ReductionStatus r) ynothrow
+YB_ATTR_nodiscard yconstfn YB_PURE PDefH(ReductionStatus,
+	CombineReductionResult, ReductionStatus res, ReductionStatus r) ynothrow
 	ImplRet(r == ReductionStatus::Retained ? r : res)
 
 /*!
@@ -1390,8 +1403,9 @@ yconstfn PDefH(ReductionStatus, CombineReductionResult, ReductionStatus res,
 若可继续规约，则指定当前规约的项的规约已终止，不合并第一参数指定的结果。
 下一轮序列的规约可能使用或忽略合并后的结果。
 */
-inline PDefH(ReductionStatus, CombineSequenceReductionResult,
-	ReductionStatus res, ReductionStatus r) ynothrow
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(ReductionStatus, CombineSequenceReductionResult, ReductionStatus res,
+	ReductionStatus r) ynothrow
 	ImplRet(CheckReducible(r) ? r : CombineReductionResult(res, r))
 
 
@@ -1408,7 +1422,7 @@ struct PassesCombiner
 	\since build 764
 	*/
 	template<typename _tIn>
-	ReductionStatus
+	YB_ATTR_nodiscard YB_PURE ReductionStatus
 	operator()(_tIn first, _tIn last) const
 	{
 		auto res(ReductionStatus::Clean);
@@ -1451,6 +1465,12 @@ public:
 	*/
 	using NameResolution
 		= pair<observer_ptr<ValueNode>, lref<const Environment>>;
+	/*!
+	\brief 分配器类型。
+	\note 支持 uses-allocator 构造。
+	\since build 847
+	*/
+	using allocator_type = BindingMap::allocator_type;
 
 private:
 	/*!
@@ -1459,20 +1479,25 @@ private:
 	*/
 	struct SharedAnchor final
 	{
-		shared_ptr<const void> Ptr{make_shared<uintptr_t>()};
+		//! \since build 847
+		//@{
+		using value_type = yimpl(uintptr_t);
+		using allocator_type = ystdex::allocator_traits<
+			Environment::allocator_type>::rebind_alloc<value_type>;
 
-		DefDeCtor(SharedAnchor)
-		SharedAnchor(const SharedAnchor&) ynothrow
-			: SharedAnchor()
+		AnchorPtr Ptr;
+
+		SharedAnchor(allocator_type a)
+			: Ptr(allocate_shared<value_type>(a))
 		{}
-		SharedAnchor(SharedAnchor&& a) ynothrow
-			: Ptr(a.Ptr)
+		//@}
+		SharedAnchor(SharedAnchor&& anc) ynothrow
+			: Ptr(anc.Ptr)
 		{}
 
-		PDefHOp(SharedAnchor&, =, const SharedAnchor& a)
-			ImplRet(ystdex::copy_and_swap(*this, a))
-		PDefHOp(SharedAnchor&, =, SharedAnchor&& a)
-			ImplRet(ystdex::move_and_swap(*this, a))
+		//! \since build 847
+		PDefHOp(SharedAnchor&, =, SharedAnchor&& anc) ynothrow
+			ImplRet(ystdex::move_and_swap(*this, anc))
 
 		friend PDefH(void, swap, SharedAnchor& x, SharedAnchor& y) ynothrow
 			ImplRet(swap(x.Ptr, y.Ptr))
@@ -1519,18 +1544,18 @@ private:
 	\brief 锚对象指针：提供被引用计数。
 	\since build 821
 	*/
-	SharedAnchor anchor{};
+	SharedAnchor anchor{Bindings.get_allocator()};
 
 public:
 	//! \since build 845
 	//@{
 	//! \brief 构造：使用指定的绑定映射分配器初始化空环境。
-	Environment(BindingMap::allocator_type a)
+	Environment(allocator_type a)
 		: Bindings(a)
 	{}
 	//! \brief 构造：使用指定的存储资源构造的绑定映射分配器初始化空环境。
 	Environment(YSLib::pmr::memory_resource& rsrc)
-		: Environment(BindingMap::allocator_type(&rsrc))
+		: Environment(allocator_type(&rsrc))
 	{}
 	//@}
 	/*!
@@ -1555,23 +1580,38 @@ public:
 	\todo 使用专用的异常类型。
 	*/
 	//@{
-	Environment(BindingMap::allocator_type a, const ValueObject& vo)
+	//! \since build 847
+	//@{
+	Environment(const ValueObject& vo, allocator_type a)
 		: Bindings(a), Parent((CheckParent(vo), vo))
 	{}
-	Environment(BindingMap::allocator_type a, ValueObject&& vo)
+	Environment(ValueObject&& vo, allocator_type a)
 		: Bindings(a), Parent((CheckParent(vo), std::move(vo)))
 	{}
+	//@}
 	Environment(YSLib::pmr::memory_resource& rsrc, const ValueObject& vo)
-		: Environment(BindingMap::allocator_type(&rsrc), vo)
+		: Environment(vo, allocator_type(&rsrc))
 	{}
 	Environment(YSLib::pmr::memory_resource& rsrc, ValueObject&& vo)
-		: Environment(BindingMap::allocator_type(&rsrc), std::move(vo))
+		: Environment(std::move(vo), allocator_type(&rsrc))
 	{}
 	//@}
-	DefDeCopyMoveCtorAssignment(Environment)
+	//! \since build 847
+	//@{
+	Environment(const Environment& e)
+		: enable_shared_from_this<Environment>(e),
+		Bindings(e.Bindings), Resolve(e.Resolve), Parent(e.Parent)
+	{}
+	DefDeMoveCtor(Environment)
 
-	friend PDefHOp(bool, ==, const Environment& x, const Environment& y)
-		ynothrow
+	PDefHOp(Environment&, =, const Environment& e) ynothrow
+		ImplRet(ystdex::copy_and_swap(*this, e))
+
+	DefDeMoveAssignment(Environment)
+	//@}
+
+	YB_ATTR_nodiscard YB_PURE friend
+		PDefHOp(bool, ==, const Environment& x, const Environment& y) ynothrow
 		ImplRet(x.Bindings == y.Bindings)
 
 	/*!
@@ -1585,15 +1625,15 @@ public:
 	\since build 788
 	*/
 	DefGetter(const ynothrow, BindingMap&, MapRef, Bindings)
-	//! \since build 825
-	DefGetter(const ynothrow, const shared_ptr<const void>&, AnchorPtr,
-		anchor.Ptr)
+	//! \since build 847
+	DefGetter(const ynothrow, size_t, AnchorCount,
+		size_t(anchor.Ptr.use_count()))
 
 	/*!
 	\brief 引用锚对象。
-	\since build 821
+	\since build 847
 	*/
-	PDefH(shared_ptr<const void>, Anchor, ) const
+	YB_ATTR_nodiscard PDefH(AnchorPtr, Anchor, ) const ynothrow
 		ImplRet(anchor.Ptr)
 
 	//! \since build 798
@@ -1638,7 +1678,7 @@ public:
 	以上支持的宿主值类型被依次检查。若检查成功，则使用此宿主值类型访问环境。
 	对列表，使用 DFS （深度优先搜索）依次递归检查其元素。
 	*/
-	static NameResolution
+	YB_ATTR_nodiscard static NameResolution
 	DefaultResolve(const Environment&, string_view);
 	//@}
 
@@ -1662,7 +1702,7 @@ public:
 
 	在环境中查找名称。
 	*/
-	observer_ptr<ValueNode>
+	YB_ATTR_nodiscard YB_PURE observer_ptr<ValueNode>
 	LookupName(string_view) const;
 
 	//! \pre 间接断言：第一参数的数据指针非空。
@@ -1687,6 +1727,11 @@ public:
 	*/
 	YB_NORETURN static void
 	ThrowForInvalidType(const ystdex::type_info&);
+
+	//! \since build 746
+	friend PDefH(void, swap, Environment& x, Environment& y) ynothrow
+		ImplExpr(swap(x.Bindings, y.Bindings), swap(x.Resolve, y.Resolve),
+			swap(x.Parent, y.Parent), swap(x.anchor, y.anchor))
 };
 
 
@@ -1701,8 +1746,11 @@ class YF_API EnvironmentReference
 {
 private:
 	weak_ptr<Environment> p_weak;
-	//! \brief 引用的锚对象指针。
-	shared_ptr<const void> p_anchor;
+	/*!
+	\brief 引用的锚对象指针。
+	\since build 847
+	*/
+	AnchorPtr p_anchor;
 
 public:
 	//! \brief 构造：使用指定的环境指针和此环境的锚对象指针。
@@ -1717,15 +1765,15 @@ public:
 	DefDeCopyMoveCtorAssignment(EnvironmentReference)
 
 	DefGetter(const ynothrow, const weak_ptr<Environment>&, Ptr, p_weak)
-	DefGetter(const ynothrow, const shared_ptr<const void>&, AnchorPtr,
-		p_anchor)
+	//! \since build 847
+	DefGetter(const ynothrow, const AnchorPtr&, AnchorPtr, p_anchor)
 
 	PDefH(shared_ptr<Environment>, Lock, ) const ynothrow
 		ImplRet(p_weak.lock())
 
 	//! \since build 824
-	friend PDefHOp(bool, ==, const EnvironmentReference& x,
-		const EnvironmentReference& y) ynothrow
+	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
+		const EnvironmentReference& x, const EnvironmentReference& y) ynothrow
 		ImplRet(x.p_weak.lock() == y.p_weak.lock())
 };
 
@@ -1750,7 +1798,8 @@ public:
 
 	using BaseType::operator bool;
 
-	friend PDefHOp(bool, ==, const Reducer& x, const Reducer& y) ynothrow
+	YB_ATTR_nodiscard YB_PURE friend
+		PDefHOp(bool, ==, const Reducer& x, const Reducer& y) ynothrow
 		ImplRet(ystdex::ref_eq<>()(x, y))
 
 	using BaseType::operator();
@@ -1781,7 +1830,8 @@ private:
 	\invariant p_record 。
 	\since build 788
 	*/
-	shared_ptr<Environment> p_record{make_shared<Environment>(memory_rsrc)};
+	shared_ptr<Environment> p_record{allocate_shared<Environment>(
+		Environment::allocator_type(&memory_rsrc.get()))};
 
 public:
 	/*!
@@ -1983,6 +2033,38 @@ public:
 	//@}
 };
 
+
+/*!
+\brief 分配环境。
+\relates Environment
+\since build 847
+*/
+//@{
+template<typename... _tParams>
+inline shared_ptr<Environment>
+AllocateEnvironment(Environment::allocator_type a, _tParams&&... args)
+{
+	return allocate_shared<NPL::Environment>(a, yforward(args)...);
+}
+template<typename... _tParams>
+inline shared_ptr<Environment>
+AllocateEnvironment(ContextNode& ctx, _tParams&&... args)
+{
+	return AllocateEnvironment(ctx.GetBindingsRef().get_allocator(),
+		yforward(args)...);
+}
+template<typename... _tParams>
+inline shared_ptr<Environment>
+AllocateEnvironment(TermNode& term, ContextNode& ctx, _tParams&&... args)
+{
+	const auto a(ctx.GetBindingsRef().get_allocator());
+
+	YAssert(a == term.get_allocator(),
+		"Allocator mismatch between term and context.");
+	return NPL::AllocateEnvironment(a, yforward(args)...);
+}
+//@}
+
 /*!
 \brief 切换到参数指定的新创建的环境。
 \relates ContextNode
@@ -1992,8 +2074,8 @@ template<typename... _tParams>
 inline shared_ptr<Environment>
 SwitchToFreshEnvironment(ContextNode& ctx, _tParams&&... args) ynothrow
 {
-	return ctx.SwitchEnvironmentUnchecked(make_shared<Environment>(
-		ctx.GetMemoryResourceRef(), yforward(args)...));
+	return ctx.SwitchEnvironmentUnchecked(NPL::AllocateEnvironment(ctx,
+		yforward(args)...));
 }
 
 
@@ -2037,13 +2119,13 @@ EmplaceLeaf(ContextNode& ctx, string_view name, _tParams&&... args)
 //! \brief 从指定环境查找名称对应的节点。
 //@{
 template<typename _tKey>
-inline observer_ptr<ValueNode>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<ValueNode>
 LookupName(Environment& ctx, const _tKey& id) ynothrow
 {
 	return YSLib::AccessNodePtr(ctx.GetMapRef(), id);
 }
 template<typename _tKey>
-inline observer_ptr<const ValueNode>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<const ValueNode>
 LookupName(const Environment& ctx, const _tKey& id) ynothrow
 {
 	return YSLib::AccessNodePtr(ctx.GetMapRef(), id);
@@ -2052,7 +2134,7 @@ LookupName(const Environment& ctx, const _tKey& id) ynothrow
 
 //! \brief 从指定环境取指定名称指称的值。
 template<typename _tKey>
-ValueObject
+YB_ATTR_nodiscard YB_PURE ValueObject
 FetchValue(const Environment& env, const _tKey& name)
 {
 	return GetValueOf(NPL::LookupName(env, name));
@@ -2060,7 +2142,7 @@ FetchValue(const Environment& env, const _tKey& name)
 
 //! \brief 从指定上下文取指定名称指称的值的指针。
 template<typename _tKey>
-observer_ptr<const ValueObject>
+YB_ATTR_nodiscard YB_PURE observer_ptr<const ValueObject>
 FetchValuePtr(const Environment& env, const _tKey& name)
 {
 	return GetValuePtrOf(NPL::LookupName(env, name));
@@ -2077,7 +2159,7 @@ FetchValuePtr(const Environment& env, const _tKey& name)
 
 解析指定上下文中的名称。
 */
-YF_API Environment::NameResolution
+YB_ATTR_nodiscard YF_API Environment::NameResolution
 ResolveName(const ContextNode&, string_view);
 
 /*!
@@ -2091,7 +2173,7 @@ ResolveName(const ContextNode&, string_view);
 
 解析指定上下文中的标识符，若不存在绑定则抛出异常。
 */
-YF_API pair<TermReference, bool>
+YB_ATTR_nodiscard YF_API pair<TermReference, bool>
 ResolveIdentifier(const ContextNode&, string_view);
 //@}
 
@@ -2102,7 +2184,7 @@ ResolveIdentifier(const ContextNode&, string_view);
 */
 //@{
 //! \since build 830
-YF_API pair<shared_ptr<Environment>, bool>
+YB_ATTR_nodiscard YF_API pair<shared_ptr<Environment>, bool>
 ResolveEnvironment(const ValueObject&);
 /*!
 \throw ListTypeError 参数是列表节点。
@@ -2110,7 +2192,7 @@ ResolveEnvironment(const ValueObject&);
 \sa TermToStringWithReferenceMark
 \since build 840
 */
-YF_API pair<shared_ptr<Environment>, bool>
+YB_ATTR_nodiscard YF_API pair<shared_ptr<Environment>, bool>
 ResolveEnvironment(const TermNode& term);
 //@}
 
@@ -2196,8 +2278,8 @@ struct GComposedAction final
 */
 //@{
 template<typename _fCurrent, typename _fNext>
-inline yimpl(ystdex::enable_if_t)<ystdex::is_decayed<_fCurrent, Reducer>::value,
-	Reducer>
+YB_ATTR_nodiscard YB_PURE inline yimpl(ystdex::enable_if_t)<
+	ystdex::is_decayed<_fCurrent, Reducer>::value, Reducer>
 ComposeActions(ContextNode& ctx, _fCurrent&& cur, _fNext&& next)
 {
 	return cur ? GComposedAction<ystdex::remove_cvref_t<_fCurrent>,
@@ -2206,7 +2288,7 @@ ComposeActions(ContextNode& ctx, _fCurrent&& cur, _fNext&& next)
 }
 template<typename _fCurrent, typename _fNext, yimpl(typename
 	= ystdex::enable_if_t<!ystdex::is_decayed<_fCurrent, Reducer>::value>)>
-inline Reducer
+YB_ATTR_nodiscard YB_PURE inline Reducer
 ComposeActions(ContextNode& ctx, _fCurrent&& cur, _fNext&& next)
 {
 	return GComposedAction<ystdex::remove_cvref_t<_fCurrent>,

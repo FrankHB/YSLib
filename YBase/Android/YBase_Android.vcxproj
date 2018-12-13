@@ -75,14 +75,10 @@
     <NMakeIncludeSearchPath>$(ProjectDir)include;$(ProjectDir)..\include;$(NDK)\sources\cxx-stl\gnu-libstdc++\4.9\include;$(NDK)\sources\cxx-stl\gnu-libstdc++\4.9\libs\armeabi\include;$(NDK)\sources\cxx-stl\gnu-libstdc++\4.9\include\backward;$(NDK)\toolchains\arm-linux-androideabi-4.9\prebuilt\windows-x86_64\lib\gcc\arm-linux-androideabi\4.9\include;$(NDK)\toolchains\arm-linux-androideabi-4.9\prebuilt\windows-x86_64\lib\gcc\arm-linux-androideabi\4.9\include-fixed;$(NDK)\toolchains\arm-linux-androideabi-4.9\prebuilt\windows-x86_64\include;$(NDK)\platforms\android-9\arch-arm\usr\include</NMakeIncludeSearchPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">
-    <BuildLog>
-      <Path>$(SolutionDir)build\Android\YBase\$(Configuration)\$(MSBuildProjectName).log</Path>
-    </BuildLog>
+    <BuildLog />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|ARM'">
-    <BuildLog>
-      <Path>$(SolutionDir)build\Android\YBase\$(Configuration)\$(MSBuildProjectName).log</Path>
-    </BuildLog>
+    <BuildLog />
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

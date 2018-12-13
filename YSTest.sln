@@ -73,6 +73,20 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "YSTest_Android", "YSTest\An
 		{AB352E5D-D357-15A2-DE73-281508CBF341} = {AB352E5D-D357-15A2-DE73-281508CBF341}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "YReader", "YReader", "{EC4919CA-5AFA-4D99-9809-C142D031C5C3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "YSTest", "YSTest\YSTest.vcxproj", "{25A6895D-E8EF-4702-B76E-281223B06D43}"
+	ProjectSection(ProjectDependencies) = postProject
+		{305D480F-C3DC-4A3D-915A-88E9D2224742} = {305D480F-C3DC-4A3D-915A-88E9D2224742}
+		{0D1961C7-0E8F-47CD-A2FB-D7920A469E51} = {0D1961C7-0E8F-47CD-A2FB-D7920A469E51}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SHBuild", "Tools\SHBuild\SHBuild.vcxproj", "{E4C8A541-C613-4C78-BCD9-0BF052B9CCB2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{305D480F-C3DC-4A3D-915A-88E9D2224742} = {305D480F-C3DC-4A3D-915A-88E9D2224742}
+		{0D1961C7-0E8F-47CD-A2FB-D7920A469E51} = {0D1961C7-0E8F-47CD-A2FB-D7920A469E51}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		debug|Android = debug|Android
@@ -176,22 +190,22 @@ Global
 		{42310096-8CB9-462A-B097-CF4A682E2536}.release|Mixed Platforms.ActiveCfg = release|ARM
 		{42310096-8CB9-462A-B097-CF4A682E2536}.release|Mixed Platforms.Build.0 = release|ARM
 		{42310096-8CB9-462A-B097-CF4A682E2536}.release|Win32.ActiveCfg = release|ARM
-		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.debug|Android.ActiveCfg = Debug|Win32
-		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.debug|ARM.ActiveCfg = Debug|Win32
-		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.debug|DS.ActiveCfg = Debug|Win32
-		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.debug|MinGW32.ActiveCfg = Debug|Win32
-		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.debug|Mixed Platforms.Build.0 = Debug|Win32
-		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.debug|Win32.ActiveCfg = Debug|Win32
-		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.debug|Win32.Build.0 = Debug|Win32
-		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.release|Android.ActiveCfg = Release|Win32
-		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.release|ARM.ActiveCfg = Release|Win32
-		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.release|DS.ActiveCfg = Release|Win32
-		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.release|MinGW32.ActiveCfg = Release|Win32
-		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.release|Mixed Platforms.ActiveCfg = Release|Win32
-		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.release|Mixed Platforms.Build.0 = Release|Win32
-		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.release|Win32.ActiveCfg = Release|Win32
-		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.release|Win32.Build.0 = Release|Win32
+		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.debug|Android.ActiveCfg = debug|Win32
+		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.debug|ARM.ActiveCfg = debug|Win32
+		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.debug|DS.ActiveCfg = debug|Win32
+		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.debug|MinGW32.ActiveCfg = debug|Win32
+		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.debug|Mixed Platforms.ActiveCfg = debug|Win32
+		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.debug|Mixed Platforms.Build.0 = debug|Win32
+		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.debug|Win32.ActiveCfg = debug|Win32
+		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.debug|Win32.Build.0 = debug|Win32
+		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.release|Android.ActiveCfg = release|Win32
+		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.release|ARM.ActiveCfg = release|Win32
+		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.release|DS.ActiveCfg = release|Win32
+		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.release|MinGW32.ActiveCfg = release|Win32
+		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.release|Mixed Platforms.ActiveCfg = release|Win32
+		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.release|Mixed Platforms.Build.0 = release|Win32
+		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.release|Win32.ActiveCfg = release|Win32
+		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}.release|Win32.Build.0 = release|Win32
 		{C713494C-E435-4D29-B3B6-DFECD22DDCEC}.debug|Android.ActiveCfg = debug|ARM
 		{C713494C-E435-4D29-B3B6-DFECD22DDCEC}.debug|ARM.ActiveCfg = debug|ARM
 		{C713494C-E435-4D29-B3B6-DFECD22DDCEC}.debug|ARM.Build.0 = debug|ARM
@@ -228,14 +242,14 @@ Global
 		{CDF038BE-EAE7-43A3-AF79-9B0DD85714FB}.release|Mixed Platforms.ActiveCfg = release|ARM
 		{CDF038BE-EAE7-43A3-AF79-9B0DD85714FB}.release|Mixed Platforms.Build.0 = release|ARM
 		{CDF038BE-EAE7-43A3-AF79-9B0DD85714FB}.release|Win32.ActiveCfg = release|ARM
-		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|Android.ActiveCfg = Debug|Win32
-		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|ARM.ActiveCfg = Debug|Win32
-		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|DS.ActiveCfg = Debug|Win32
-		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|MinGW32.ActiveCfg = Debug|Win32
-		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|Mixed Platforms.Build.0 = Debug|Win32
-		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|Win32.ActiveCfg = Debug|Win32
-		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|Win32.Build.0 = Debug|Win32
+		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|Android.ActiveCfg = debug|Win32
+		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|ARM.ActiveCfg = debug|Win32
+		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|DS.ActiveCfg = debug|Win32
+		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|MinGW32.ActiveCfg = debug|Win32
+		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|Mixed Platforms.ActiveCfg = debug|Win32
+		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|Mixed Platforms.Build.0 = debug|Win32
+		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|Win32.ActiveCfg = debug|Win32
+		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|Win32.Build.0 = debug|Win32
 		{B429F839-AE23-4B3B-8F24-D91D31318373}.release|Android.ActiveCfg = release|Win32
 		{B429F839-AE23-4B3B-8F24-D91D31318373}.release|ARM.ActiveCfg = release|Win32
 		{B429F839-AE23-4B3B-8F24-D91D31318373}.release|DS.ActiveCfg = release|Win32
@@ -244,22 +258,22 @@ Global
 		{B429F839-AE23-4B3B-8F24-D91D31318373}.release|Mixed Platforms.Build.0 = release|Win32
 		{B429F839-AE23-4B3B-8F24-D91D31318373}.release|Win32.ActiveCfg = release|Win32
 		{B429F839-AE23-4B3B-8F24-D91D31318373}.release|Win32.Build.0 = release|Win32
-		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|Android.ActiveCfg = Debug|Win32
-		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|ARM.ActiveCfg = Debug|Win32
-		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|DS.ActiveCfg = Debug|Win32
-		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|MinGW32.ActiveCfg = Debug|Win32
-		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|Mixed Platforms.Build.0 = Debug|Win32
-		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|Win32.ActiveCfg = Debug|Win32
-		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|Win32.Build.0 = Debug|Win32
-		{49698256-F394-4C2A-AFAC-6879E4852890}.release|Android.ActiveCfg = Release|Win32
-		{49698256-F394-4C2A-AFAC-6879E4852890}.release|ARM.ActiveCfg = Release|Win32
-		{49698256-F394-4C2A-AFAC-6879E4852890}.release|DS.ActiveCfg = Release|Win32
-		{49698256-F394-4C2A-AFAC-6879E4852890}.release|MinGW32.ActiveCfg = Release|Win32
-		{49698256-F394-4C2A-AFAC-6879E4852890}.release|Mixed Platforms.ActiveCfg = Release|Win32
-		{49698256-F394-4C2A-AFAC-6879E4852890}.release|Mixed Platforms.Build.0 = Release|Win32
-		{49698256-F394-4C2A-AFAC-6879E4852890}.release|Win32.ActiveCfg = Release|Win32
-		{49698256-F394-4C2A-AFAC-6879E4852890}.release|Win32.Build.0 = Release|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|Android.ActiveCfg = debug|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|ARM.ActiveCfg = debug|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|DS.ActiveCfg = debug|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|MinGW32.ActiveCfg = debug|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|Mixed Platforms.ActiveCfg = debug|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|Mixed Platforms.Build.0 = debug|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|Win32.ActiveCfg = debug|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|Win32.Build.0 = debug|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.release|Android.ActiveCfg = release|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.release|ARM.ActiveCfg = release|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.release|DS.ActiveCfg = release|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.release|MinGW32.ActiveCfg = release|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.release|Mixed Platforms.ActiveCfg = release|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.release|Mixed Platforms.Build.0 = release|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.release|Win32.ActiveCfg = release|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.release|Win32.Build.0 = release|Win32
 		{C713494C-E435-4D29-B3B6-DFECD22EBAEC}.debug|Android.ActiveCfg = debug|ARM
 		{C713494C-E435-4D29-B3B6-DFECD22EBAEC}.debug|Android.Build.0 = debug|ARM
 		{C713494C-E435-4D29-B3B6-DFECD22EBAEC}.debug|ARM.ActiveCfg = debug|ARM
@@ -314,6 +328,38 @@ Global
 		{2834D625-9264-25B3-926A-D1B973515654}.release|Mixed Platforms.ActiveCfg = release|ARM
 		{2834D625-9264-25B3-926A-D1B973515654}.release|Mixed Platforms.Build.0 = release|ARM
 		{2834D625-9264-25B3-926A-D1B973515654}.release|Win32.ActiveCfg = release|ARM
+		{25A6895D-E8EF-4702-B76E-281223B06D43}.debug|Android.ActiveCfg = debug|Win32
+		{25A6895D-E8EF-4702-B76E-281223B06D43}.debug|ARM.ActiveCfg = debug|Win32
+		{25A6895D-E8EF-4702-B76E-281223B06D43}.debug|DS.ActiveCfg = debug|Win32
+		{25A6895D-E8EF-4702-B76E-281223B06D43}.debug|MinGW32.ActiveCfg = debug|Win32
+		{25A6895D-E8EF-4702-B76E-281223B06D43}.debug|Mixed Platforms.ActiveCfg = debug|Win32
+		{25A6895D-E8EF-4702-B76E-281223B06D43}.debug|Mixed Platforms.Build.0 = debug|Win32
+		{25A6895D-E8EF-4702-B76E-281223B06D43}.debug|Win32.ActiveCfg = debug|Win32
+		{25A6895D-E8EF-4702-B76E-281223B06D43}.debug|Win32.Build.0 = debug|Win32
+		{25A6895D-E8EF-4702-B76E-281223B06D43}.release|Android.ActiveCfg = release|Win32
+		{25A6895D-E8EF-4702-B76E-281223B06D43}.release|ARM.ActiveCfg = release|Win32
+		{25A6895D-E8EF-4702-B76E-281223B06D43}.release|DS.ActiveCfg = release|Win32
+		{25A6895D-E8EF-4702-B76E-281223B06D43}.release|MinGW32.ActiveCfg = release|Win32
+		{25A6895D-E8EF-4702-B76E-281223B06D43}.release|Mixed Platforms.ActiveCfg = release|Win32
+		{25A6895D-E8EF-4702-B76E-281223B06D43}.release|Mixed Platforms.Build.0 = release|Win32
+		{25A6895D-E8EF-4702-B76E-281223B06D43}.release|Win32.ActiveCfg = release|Win32
+		{25A6895D-E8EF-4702-B76E-281223B06D43}.release|Win32.Build.0 = release|Win32
+		{E4C8A541-C613-4C78-BCD9-0BF052B9CCB2}.debug|Android.ActiveCfg = debug|Win32
+		{E4C8A541-C613-4C78-BCD9-0BF052B9CCB2}.debug|ARM.ActiveCfg = debug|Win32
+		{E4C8A541-C613-4C78-BCD9-0BF052B9CCB2}.debug|DS.ActiveCfg = debug|Win32
+		{E4C8A541-C613-4C78-BCD9-0BF052B9CCB2}.debug|MinGW32.ActiveCfg = debug|Win32
+		{E4C8A541-C613-4C78-BCD9-0BF052B9CCB2}.debug|Mixed Platforms.ActiveCfg = debug|Win32
+		{E4C8A541-C613-4C78-BCD9-0BF052B9CCB2}.debug|Mixed Platforms.Build.0 = debug|Win32
+		{E4C8A541-C613-4C78-BCD9-0BF052B9CCB2}.debug|Win32.ActiveCfg = debug|Win32
+		{E4C8A541-C613-4C78-BCD9-0BF052B9CCB2}.debug|Win32.Build.0 = debug|Win32
+		{E4C8A541-C613-4C78-BCD9-0BF052B9CCB2}.release|Android.ActiveCfg = release|Win32
+		{E4C8A541-C613-4C78-BCD9-0BF052B9CCB2}.release|ARM.ActiveCfg = release|Win32
+		{E4C8A541-C613-4C78-BCD9-0BF052B9CCB2}.release|DS.ActiveCfg = release|Win32
+		{E4C8A541-C613-4C78-BCD9-0BF052B9CCB2}.release|MinGW32.ActiveCfg = release|Win32
+		{E4C8A541-C613-4C78-BCD9-0BF052B9CCB2}.release|Mixed Platforms.ActiveCfg = release|Win32
+		{E4C8A541-C613-4C78-BCD9-0BF052B9CCB2}.release|Mixed Platforms.Build.0 = release|Win32
+		{E4C8A541-C613-4C78-BCD9-0BF052B9CCB2}.release|Win32.ActiveCfg = release|Win32
+		{E4C8A541-C613-4C78-BCD9-0BF052B9CCB2}.release|Win32.Build.0 = release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -337,5 +383,10 @@ Global
 		{AB352E5D-D357-15A2-DE73-281508CBF341} = {5A6BECA6-7B36-49F3-93B4-142A757E2B2A}
 		{8EDC559F-9DC1-4BD7-8989-6CEF29692ABC} = {7518A37B-F465-4BF6-A9F8-9BC0E3FBC85A}
 		{2834D625-9264-25B3-926A-D1B973515654} = {8EDC559F-9DC1-4BD7-8989-6CEF29692ABC}
+		{25A6895D-E8EF-4702-B76E-281223B06D43} = {EC4919CA-5AFA-4D99-9809-C142D031C5C3}
+		{E4C8A541-C613-4C78-BCD9-0BF052B9CCB2} = {F3C15243-D0BB-46E9-8FAA-396334548304}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5D19E235-9409-4B7A-AE5C-4F248842CCAE}
 	EndGlobalSection
 EndGlobal

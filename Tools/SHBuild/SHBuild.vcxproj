@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="debug|Win32">
@@ -10,24 +10,29 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Main.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{39AA598C-244E-46AA-8CA5-55FBD4A3AACC}</ProjectGuid>
-    <Keyword>Win32Proj</Keyword>
-    <RootNamespace>PredefinedMacroDetector</RootNamespace>
+    <ProjectGuid>{E4C8A541-C613-4C78-BCD9-0BF052B9CCB2}</ProjectGuid>
+    <ProjectName>SHBuild</ProjectName>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
+    <OutDir>$(SolutionDir)build\Win32\$(ProjectName)\$(Configuration)\</OutDir>
     <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <OutDir>$(SolutionDir)build\Win32\$(ProjectName)\$(Configuration)\</OutDir>
     <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -40,55 +45,42 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">
-    <OutDir>$(SolutionDir)build\Win32\$(ProjectName)\$(Configuration)\</OutDir>
+    <IncludePath>$(ProjectDir)include;$(ProjectDir)..\..\YFramework\DS\include;$(ProjectDir)..\..\YFramework\Win32\include;$(ProjectDir)..\..\YFramework\Android\include;$(ProjectDir)..\..\YFramework\include;$(ProjectDir)..\..\3rdparty\include;$(ProjectDir)..\..\YBase\include;$(IncludePath)</IncludePath>
     <IntDir>$(SolutionDir)build\Win32\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
-    <OutDir>$(SolutionDir)build\Win32\$(ProjectName)\$(Configuration)\</OutDir>
+    <IncludePath>$(ProjectDir)include;$(ProjectDir)..\..\YFramework\DS\include;$(ProjectDir)..\..\YFramework\Win32\include;$(ProjectDir)..\..\YFramework\Android\include;$(ProjectDir)..\..\YFramework\include;$(ProjectDir)..\..\3rdparty\include;$(ProjectDir)..\..\YBase\include;$(IncludePath)</IncludePath>
     <IntDir>$(SolutionDir)build\Win32\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
-      <DisableLanguageExtensions>true</DisableLanguageExtensions>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>$(SolutionDir)build\Win32\YFramework\$(Configuration)\YFramework.lib;$(SolutionDir)build\Win32\YBase\$(Configuration)\YBase.lib;imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <BuildLog />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
-      <DisableLanguageExtensions>true</DisableLanguageExtensions>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>$(SolutionDir)build\Win32\YFramework\$(Configuration)\YFramework.lib;$(SolutionDir)build\Win32\YBase\$(Configuration)\YBase.lib;imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <BuildLog />
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="predefined-macro-detector.txt" />
-    <Text Include="Readme.en-US.txt" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

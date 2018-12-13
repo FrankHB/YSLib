@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r3188
+\version r3255
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2018-12-02 16:25 +0800
+	2018-12-11 01:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -367,8 +367,12 @@ public:
 	//! \since build 595
 	using pointer = typename ator_traits::pointer;
 
-	//! \since build 846
-	yimpl(using) base::base;
+	//! \since build 847
+	template<class _tParam,
+		yimpl(typename = exclude_self_t<allocator_delete, _tParam>)>
+	allocator_delete(_tParam&& a) ynothrow
+		: base(yforward(a))
+	{}
 	//! \since build 843
 	//@{
 	allocator_delete(const allocator_delete&) = default;
@@ -431,6 +435,27 @@ create_with_allocator(_tAlloc&& a, _tParams&&... args)
 	ystdex::construct_within<typename allocator_traits<decay_t<_tAlloc>>
 		::value_type>(*gd.get(), yforward(args)...);
 	return gd.release();
+}
+
+
+/*!
+\brief 使用分配器创建 unique_ptr 。
+\see WG21 P0316R0 。
+\since build 847
+*/
+template<typename _type, class _tAlloc, typename... _tParams>
+auto
+allocate_unique(const _tAlloc& alloc, _tParams&&... args)
+	-> std::unique_ptr<_type, allocator_delete<typename allocator_traits<
+	_tAlloc>::template rebind_alloc<_type>>>
+{
+	using ator_t
+		= typename allocator_traits<_tAlloc>::template rebind_alloc<_type>;
+	using ator_del_t = allocator_delete<ator_t>;
+	ator_t a(alloc);
+
+	return std::unique_ptr<_type, ator_del_t>(ystdex::create_with_allocator<
+		_type>(a, yforward(args)...), ator_del_t(a));
 }
 
 
@@ -518,55 +543,51 @@ alloc_on_swap(_tAlloc& x, _tAlloc& y)
 namespace details
 {
 
-//! \since build 736
-template<typename _type, typename... _tParams>
-YB_NORETURN inline _type*
-try_new_impl(void*, _tParams&&...)
-{
-	throw_invalid_construction();
-}
-//! \since build 736
-template<typename _type, typename... _tParams>
-YB_ATTR_nodiscard inline auto
-try_new_impl(nullptr_t,  _tParams&&... args)
-	-> decltype(new _type(yforward(args)...))
-{
-	return new _type(yforward(args)...);
-}
-
-//! \since build 846
+//! \since build 847
 //@{
 template<typename _type, typename... _tParams>
 YB_NORETURN inline _type
-try_create_impl(void*, _tParams&&...)
+create_or_throw_impl(void*, _tParams&&...)
 {
 	throw_invalid_construction();
 }
 //! \throw ystdex::invalid_construction 参数类型无法用于初始化持有者。
 template<typename _type, typename... _tParams>
 YB_ATTR_nodiscard inline auto
-try_create_impl(nullptr_t, _tParams&&... args)
+create_or_throw_impl(nullptr_t, _tParams&&... args)
 	-> decltype(_type(yforward(args)...))
 {
 	return _type(yforward(args)...);
 }
-//@}
 
-//! \since build 746
 template<typename _type, class _tAlloc, typename... _tParams>
 YB_NORETURN _type*
-try_create_with_allocator_impl(void*, _tAlloc&, _tParams&&...)
+create_or_throw_with_allocator_impl(void*, _tAlloc&, _tParams&&...)
 {
 	throw_invalid_construction();
 }
-//! \since build 746
 template<typename _type, class _tAlloc, typename... _tParams>
 YB_ATTR_nodiscard inline auto
-try_create_with_allocator_impl(nullptr_t, _tAlloc& a, _tParams&&... args)
+create_or_throw_with_allocator_impl(nullptr_t, _tAlloc& a, _tParams&&... args)
 	-> decltype(ystdex::create_with_allocator<_type>(a, yforward(args)...))
 {
 	return ystdex::create_with_allocator<_type>(a, yforward(args)...);
 }
+
+template<typename _type, typename... _tParams>
+YB_NORETURN inline _type*
+new_or_throw_impl(void*, _tParams&&...)
+{
+	throw_invalid_construction();
+}
+template<typename _type, typename... _tParams>
+YB_ATTR_nodiscard inline auto
+new_or_throw_impl(nullptr_t,  _tParams&&... args)
+	-> decltype(new _type(yforward(args)...))
+{
+	return new _type(yforward(args)...);
+}
+//@}
 
 //! \since build 617
 //@{
@@ -610,42 +631,36 @@ struct pack_obj_impl<std::shared_ptr<_type>>
 /*!
 \throw invalid_construction 初始化非合式。
 \note 第一模板参数决定创建对象的类型。
+\since build 847
 */
 //@{
 /*!
-\brief 尝试嗲用构造函数创建对象。
+\brief 调用构造函数创建对象或抛出异常。
 \return 创建的对象。
 \throw ystdex::invalid_construction 参数类型无法用于初始化持有者。
-\since build 846
 */
 template<typename _type, typename... _tParams>
 YB_ATTR_nodiscard inline _type
-try_create(_tParams&&... args)
+create_or_throw(_tParams&&... args)
 {
-	return details::try_create_impl<_type>(nullptr, yforward(args)...);
+	return details::create_or_throw_impl<_type>(nullptr, yforward(args)...);
 }
 
-/*!
-\brief 尝试调用 ystdex::create_with_allocator 表达式创建对象。
-\since build 746
-*/
+//! \brief 调用 ystdex::create_with_allocator 表达式创建对象或抛出异常。
 template<typename _type, class _tAlloc, typename... _tParams>
 YB_ATTR_nodiscard _type*
-try_create_with_allocator(_tAlloc&& a, _tParams&&... args)
+create_or_throw_with_allocator(_tAlloc&& a, _tParams&&... args)
 {
-	return details::try_create_with_allocator_impl<_type>(nullptr, a,
+	return details::create_or_throw_with_allocator_impl<_type>(nullptr, a,
 		yforward(args)...);
 }
 
-/*!
-\brief 尝试调用 new 表达式创建对象。
-\since build 737
-*/
+//! \brief 调用 new 表达式创建对象或抛出异常。
 template<typename _type, typename... _tParams>
 YB_ATTR_nodiscard _type*
-try_new(_tParams&&... args)
+new_or_throw(_tParams&&... args)
 {
-	return details::try_new_impl<_type>(nullptr, yforward(args)...);
+	return details::new_or_throw_impl<_type>(nullptr, yforward(args)...);
 }
 //@}
 

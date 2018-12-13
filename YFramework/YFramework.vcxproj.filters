@@ -171,6 +171,24 @@
     <Filter Include="DS\source\YCLib">
       <UniqueIdentifier>{4b8ca4d9-9290-40c6-bc9e-6072a99bd31f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Android\include">
+      <UniqueIdentifier>{6e4f5563-4827-4a9a-ac60-fadbbe504b44}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Android\include\YCLib">
+      <UniqueIdentifier>{fefd2901-81e5-41f1-9f72-076ffbc7b9de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Android\include\Helper">
+      <UniqueIdentifier>{1e08f79d-8727-4ec3-9b43-4ef3d3edc446}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Android\source">
+      <UniqueIdentifier>{a1127242-84e4-499e-8455-343ba40a17fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Android\source\YCLib">
+      <UniqueIdentifier>{947df5c7-1d85-4778-a716-5092ee31b2f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Android\source\Helper">
+      <UniqueIdentifier>{ed3f67d6-e107-421a-a09f-a1b654741dd0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\doc\CHRLib.txt">
@@ -697,6 +715,15 @@
     <ClInclude Include="include\NPL\NPLA.h">
       <Filter>include\NPL</Filter>
     </ClInclude>
+    <ClInclude Include="Android\include\YCLib\Android.h">
+      <Filter>Android\include\YCLib</Filter>
+    </ClInclude>
+    <ClInclude Include="Android\include\Helper\AndroidHost.h">
+      <Filter>Android\include\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="Android\source\Helper\AndroidScreen.h">
+      <Filter>Android\source\Helper</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\YNew.cpp">
@@ -1034,6 +1061,15 @@
     </ClCompile>
     <ClCompile Include="source\NPL\NPLA.cpp">
       <Filter>source\NPL</Filter>
+    </ClCompile>
+    <ClCompile Include="Android\source\YCLib\Android.cpp">
+      <Filter>Android\source\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="Android\source\Helper\AndroidHost.cpp">
+      <Filter>Android\source\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="Android\source\Helper\AndroidScreen.cpp">
+      <Filter>Android\source\Helper</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

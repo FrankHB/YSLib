@@ -40,6 +40,7 @@
     <ClInclude Include="include\ystdex\enum.hpp" />
     <ClInclude Include="include\ystdex\examiner.hpp" />
     <ClInclude Include="include\ystdex\exception.h" />
+    <ClInclude Include="include\ystdex\function.hpp" />
     <ClInclude Include="include\ystdex\functional.hpp" />
     <ClInclude Include="include\ystdex\functor.hpp" />
     <ClInclude Include="include\ystdex\future.hpp" />

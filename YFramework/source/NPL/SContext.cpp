@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1555
+\version r1558
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2018-11-22 17:23 +0800
+	2018-12-05 21:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_SContext
+#include YFM_NPL_SContext // for std::allocator_arg;
 
 using namespace YSLib;
 
@@ -86,7 +86,8 @@ Reduce(TermNode& term, TLCIter b, TLCIter e)
 			b = ++res;
 		}
 		else
-			term += AsIndexNode(a, term, *b++);
+			// TODO: More specific pool for %ValueObject?
+			term += AsIndexNode(a, term, std::allocator_arg, a, *b++);
 	return b;
 }
 

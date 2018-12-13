@@ -11,13 +11,13 @@
 /*!	\file Reference.h
 \ingroup YCLib
 \brief 指针和引用访问操作模块。
-\version r2838
+\version r2842
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-03-21 23:09:06 +0800
 \par 修改时间:
-	2018-10-12 12:29 +0800
+	2018-12-07 04:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,6 +40,10 @@ namespace platform
 inline namespace references
 {
 
+//! \since build 847
+using yimpl(std)::allocate_shared;
+//! \since build 847
+using ystdex::allocate_unique;
 using yimpl(std)::bad_weak_ptr;
 using yimpl(std)::const_pointer_cast;
 //! \since build 669
