@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r775
+\version r779
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2018-08-21 20:43 +0800
+	2018-12-24 12:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,8 @@
 #include YFM_YCLib_YCommon
 #include YFM_YCLib_Container // for string_view, string, std::ostream,
 //	platform::sfmt;
-#include YFM_YCLib_Mutex
+#include <ystdex/function.hpp> // for ystdex::function;
+#include YFM_YCLib_Mutex // for Concurrency;
 
 /*!	\defgroup diagnostic Diagnostic
 \brief 诊断设施。
@@ -95,9 +96,9 @@ class YF_API Logger
 {
 public:
 	using Level = Descriptions::RecordLevel;
-	using Filter = std::function<bool(Level, Logger&)>;
+	using Filter = ystdex::function<bool(Level, Logger&)>;
 	//! \note 传递的第三参数非空。
-	using Sender = std::function<void(Level, Logger&, const char*)>;
+	using Sender = ystdex::function<void(Level, Logger&, const char*)>;
 
 	//! \brief 过滤等级：可用于参照以决定是否过滤的阈值。
 #ifdef NDEBUG

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2017 FrankHB.
+	© 2013-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1529
+\version r1532
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2017-02-20 17:36 +0800
+	2018-12-14 08:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,7 +85,7 @@ namespace platform_ex
 
 #	if YCL_HostedUI_XCB
 //! \since build 562
-using NativeWindowHandle = nptr<XCB::WindowData*>;
+using NativeWindowHandle = XCB::WindowData*;
 #	elif YCL_Win32
 //! \since build 389
 using NativeWindowHandle = ::HWND;
@@ -682,7 +682,7 @@ private:
 #else
 	ystdex::aligned_storage_t<64, 4> ps;
 #endif
-	//! \invariant <tt>&pun.get() == &ps</tt>
+	//! \invariant <tt>ystdex::ref_eq()(pun.get(), ps)</tt>
 	ystdex::pun_ref<Data> pun;
 
 public:

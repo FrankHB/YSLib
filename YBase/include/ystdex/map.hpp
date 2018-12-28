@@ -11,13 +11,13 @@
 /*!	\file map.hpp
 \ingroup YStandardEx
 \brief 映射容器。
-\version r988
+\version r1021
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:12:51 +0800
 \par 修改时间:
-	2018-12-02 16:06 +0800
+	2018-12-26 19:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,9 @@
 #define YB_INC_ystdex_map_hpp_ 1
 
 #include "tree.h" // for "tree.hpp" (implying "range.hpp"), less, std::pair,
-//	std::allocator, std::pair, totally_ordered, std::is_same, allocator_traits,
-//	first_of, is_nothrow_copy_constructible, and_, is_constructible,
-//	enable_if_t, ystdex::swap_dependent;
+//	std::allocator, std::pair, totally_ordered, alloc_value_t, std::is_same,
+//	allocator_traits, rebind_alloc_t, first_of, is_nothrow_copy_constructible,
+//	and_, is_constructible, enable_if_t, ystdex::swap_dependent;
 #include <map> // for <map>, std::initializer_list;
 #include <tuple> // for std::piecewise_construct, std::tuple;
 #include "container.hpp" // for ystdex::try_emplace, ystdex::insert_or_assign,
@@ -82,8 +82,8 @@ public:
 	using key_type = _tKey;
 	using mapped_type = _tMapped;
 	using value_type = std::pair<const _tKey, _tMapped>;
-	static_assert(std::is_same<typename allocator_traits<_tAlloc>::value_type,
-		value_type>(), "Value type mismatched to the allocator found.");
+	static_assert(std::is_same<alloc_value_t<_tAlloc>, value_type>(),
+		"Value type mismatched to the allocator found.");
 	using key_compare = _fComp;
 	using allocator_type = _tAlloc;
 	class value_compare
@@ -105,8 +105,7 @@ public:
 	};
 
 private:
-	using pair_alloc_type = typename allocator_traits<_tAlloc>::template
-		rebind_alloc<value_type>;
+	using pair_alloc_type = rebind_alloc_t<_tAlloc, value_type>;
 	//! \since build 846
 	using pair_ator_traits = allocator_traits<pair_alloc_type>;
 	using rep_type = details::rb_tree::tree<key_type, value_type, first_of<>,
@@ -450,7 +449,7 @@ public:
 	std::pair<iterator, bool>
 	insert(_tPair&& x)
 	{
-		return tree.insert_unique(std::forward<_tPair>(x));
+		return tree.insert_unique(yforward(x));
 	}
 	void
 	insert(std::initializer_list<value_type> il)
@@ -473,7 +472,7 @@ public:
 	iterator
 	insert(const_iterator position, _tPair&& x)
 	{
-		return tree.insert_hint_unique(position, std::forward<_tPair>(x));
+		return tree.insert_hint_unique(position, yforward(x));
 	}
 	template<typename _tIn>
 	void
@@ -522,7 +521,7 @@ private:
 
 		const iterator i(pr.first);
 
-		(*i).second = std::forward<_tObj>(obj);
+		(*i).second = yforward(obj);
 		return i;
 	}
 
@@ -547,12 +546,6 @@ public:
 	erase(const_iterator first, const_iterator last)
 	{
 		return tree.erase(first, last);
-	}
-
-	void
-	swap(map& x) ynoexcept_spec(is_nothrow_swappable<_fComp>::value)
-	{
-		ystdex::swap_dependent(tree, x.tree);
 	}
 
 	void
@@ -695,19 +688,20 @@ public:
 	{
 		return x.tree < y.tree;
 	}
-};
 
-/*!
-\ingroup YBase_replacement_features
-\relates map
-*/
-template<typename _tKey, typename _tMapped, typename _fComp, typename _tAlloc>
-inline void
-swap(map<_tKey, _tMapped, _fComp, _tAlloc>& x,
-	map<_tKey, _tMapped, _fComp, _tAlloc>& y) ynoexcept_spec(noexcept(x.swap(y)))
-{
-	x.swap(y);
-}
+	void
+	swap(map& x) ynoexcept_spec(is_nothrow_swappable<_fComp>::value)
+	{
+		ystdex::swap_dependent(tree, x.tree);
+	}
+	//! \since build 848
+	friend void
+	swap(map<_tKey, _tMapped, _fComp, _tAlloc>& x, map<_tKey, _tMapped, _fComp,
+		_tAlloc>& y) ynoexcept_spec(noexcept(x.swap(y)))
+	{
+		x.swap(y);
+	}
+};
 
 namespace details
 {

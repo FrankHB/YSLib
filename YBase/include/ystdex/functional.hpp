@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r3865
+\version r3881
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2018-12-13 11:34 +0800
+	2018-12-26 19:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -149,7 +149,7 @@ struct composed_n
 
 /*!
 \brief 单一分派的多元函数复合。
-\note 第一个参数最后被调用，可以为多元函数；其它被复合的函数需要保证有一个参数。
+\note 第一参数最后被调用，可以为多元函数；其它被复合的函数需要保证有一个参数。
 \relates composed_n
 \return 单一分派的多元复合的可调用对象。
 */
@@ -428,7 +428,7 @@ invoke_for_value(false_, _type&&, _fCallable&& f, _tParams&&... args)
 } // unnamed namespace;
 
 /*!
-\brief 调用第二个参数起指定的函数对象，若返回空类型则使用第一个参数的值为返回值。
+\brief 调用第二参数起指定的函数对象，若返回空类型则使用第一参数的值为返回值。
 \since build 832
 */
 template<typename _type, typename _fCallable, typename... _tParams>
@@ -499,20 +499,16 @@ struct call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 //! \since build 448
 template<typename _tRet, typename... _tParams, size_t... _vSeq>
 struct call_projection<std::function<_tRet(_tParams...)>,
-	index_sequence<_vSeq...>> : private
-	call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
-{
-	//! \since build 810
-	using call_projection<_tRet(_tParams...),
-		index_sequence<_vSeq...>>::apply_call;
-	//! \since build 810
-	using call_projection<_tRet(_tParams...),
-		index_sequence<_vSeq...>>::apply_invoke;
-	//! \since build 589
-	using call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>::call;
-	//! \since build 634
-	using call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>::invoke;
-};
+	index_sequence<_vSeq...>>
+	: call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
+{};
+
+//! \since build 848
+template<typename _tRet, typename... _tParams, size_t... _vSeq>
+struct call_projection<function<_tRet(_tParams...)>,
+	index_sequence<_vSeq...>>
+	: call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
+{};
 
 /*!
 \note 不需要显式指定返回类型。

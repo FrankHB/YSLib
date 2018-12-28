@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1951
+\version r1957
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2018-11-17 11:35 +0800
+	2018-12-14 08:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,7 +69,7 @@ void
 HostWindowDelete::operator()(pointer p) const ynothrow
 {
 #	if YCL_HostedUI_XCB
-	default_delete<XCB::WindowData>()(p.get());
+	default_delete<XCB::WindowData>()(p);
 #	elif YCL_Win32
 	// NOTE: The window could be already destroyed in window procedure.
 	if(::IsWindow(p))
@@ -225,7 +225,7 @@ BindDefaultWindowProc(NativeWindowHandle h_wnd, MessageMap& m, unsigned msg,
 XCB::WindowData&
 WindowReference::Deref() const
 {
-	if(const auto h = GetNativeHandle().get())
+	if(const auto h = GetNativeHandle())
 		return *h;
 	throw std::runtime_error("Null window reference found.");
 }
@@ -413,7 +413,7 @@ WindowReference::GetHeight() const
 void
 UpdateContentTo(NativeWindowHandle h_wnd, const Rect& r, const ConstGraphics& g)
 {
-	XCB::UpdatePixmapBuffer(Deref(h_wnd.get()), r, g);
+	XCB::UpdatePixmapBuffer(Deref(h_wnd), r, g);
 }
 #	elif YCL_Win32
 YF_API ::HBITMAP
@@ -779,15 +779,15 @@ WindowClass::~WindowClass()
 HostWindow::HostWindow(NativeWindowHandle h)
 	: WindowReference(Nonnull(h))
 #	if YCL_HostedUI_XCB
-	, WM_PROTOCOLS(platform::Deref(h.get()).LookupAtom("WM_PROTOCOLS"))
-	, WM_DELETE_WINDOW(h.get()->LookupAtom("WM_DELETE_WINDOW"))
+	, WM_PROTOCOLS(platform::Deref(h).LookupAtom("WM_PROTOCOLS"))
+	, WM_DELETE_WINDOW(platform::Deref(h).LookupAtom("WM_DELETE_WINDOW"))
 #	endif
 #	if YCL_HostedUI_XCB || YCL_Win32
 	, MessageMap()
 #	endif
 {
 #	if YCL_HostedUI_XCB
-	h.get()->GetConnectionRef().Check();
+	platform::Deref(h).GetConnectionRef().Check();
 #	elif YCL_Win32
 	YAssert(::IsWindow(h), "Invalid window handle found.");
 	YAssert(::GetWindowThreadProcessId(h, {}) == ::GetCurrentThreadId(),

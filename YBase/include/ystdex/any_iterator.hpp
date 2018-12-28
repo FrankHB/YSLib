@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r1409
+\version r1435
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2016-11-26 12:27 +0800
+	2018-12-26 19:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,6 +88,7 @@ enum random_access_iteartor_op : op_code
 
 //! \since build 743
 //@{
+//! \note 迭代器引用可能是引用类型，函数类型或可能有 cv 限定符的对象类型。
 template<typename _type, typename _tReference>
 class iterator_handler : public wrap_handler<_type>::type
 {
@@ -113,12 +114,16 @@ public:
 			break;
 		case dereference:
 			{
-				using obj_t = cond_t<is_reference<_tReference>,
-					lref<decay_t<_tReference>>, _tReference>;
+				// XXX: The type %_tReference can be cv-qualified.
+				using val_t = cond_t<is_reference<_tReference>,
+					lref<remove_reference_t<_tReference>>,
+					remove_cv_t<_tReference>>;
 				auto& p(d.access<any*>());
 
 				yassume(p);
-				*p = obj_t(*get_reference(s));
+				// NOTE: This implies %val_t shall be a decayed type.
+				*p = any(any_ops::with_handler_t<_t<any_ops::wrap_handler<
+					val_t>>>(), val_t(*get_reference(s)));
 			}
 			break;
 		case increase:
@@ -140,6 +145,18 @@ public:
 	using base = iterator_handler<_type, _tReference>;
 	using value_type = typename base::value_type;
 
+private:
+	using iteratore_value_type
+		= typename std::iterator_traits<value_type>::value_type;
+	// XXX: The requirement on %reference is relaxed intentionally. See also https://stackoverflow.com/questions/53800391/iso-c-input-iterator-with-an-abstract-class-as-the-value-type.
+	//! \since build 848
+	static_assert(or_<and_<is_reference<_tReference>, or_<is_convertible<
+		_tReference, iteratore_value_type&>, is_convertible<_tReference,
+		iteratore_value_type&&>>>, is_convertible<_tReference,
+		iteratore_value_type>>(), "Invalid reference type not meeting relaxed"
+		" InputIterator requirements found.");
+
+public:
 	using base::get_reference;
 
 	using base::init;
@@ -312,14 +329,9 @@ public:
 	{
 		if(x.has_value() || y.has_value())
 		{
-			yassume(x.type() == y.type());
-
-			using any_ops::any_storage;
-			any_storage t;
-			const auto gd(t.pun<any_storage*>(&x.get_storage()));
-
-			return y.template
-				unchecked_access<any_storage*>(t, any_ops::equals);
+			yconstraint(x.type() == y.type());
+			return y.template unchecked_access<any_ops::any_storage*>(
+				any_ops::equals, &x.get_storage());
 		}
 		return true;
 	}

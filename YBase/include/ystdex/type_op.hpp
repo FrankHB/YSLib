@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r2819
+\version r2839
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2018-11-24 15:14 +0800
+	2018-12-25 13:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -148,8 +148,6 @@ using mem_value_type_t = typename _type::value_type;
 } // namespace details;
 
 
-//! \ingroup unary_type_traits
-//@{
 /*!
 \brief 判断 _type 是否包含可以指定参数应用得到类型的成员 apply 模板。
 \since build 683
@@ -159,6 +157,8 @@ struct has_mem_apply : is_detected<vseq::apply, _type, _tParams...>
 {};
 
 
+//! \ingroup unary_type_traits
+//@{
 /*!
 \brief 判断 _type 是否包含 type 类型成员。
 \since build 683
@@ -208,9 +208,11 @@ template<typename _type, typename _type2 = _type>
 struct has_equality_operator : is_detected_convertible<bool,
 	details::equality_operator_t, _type, _type2>
 {};
+//@}
 
 
 /*!
+\ingroup unary_type_traits
 \brief 判断指定类型是否有非空虚基类。
 \since build 175
 */
@@ -218,11 +220,10 @@ template<class _type>
 struct has_nonempty_virtual_base
 	: bool_<details::has_nonempty_virtual_base<_type>::value>
 {};
-//@}
 
 
 /*!
-\ingroup unary_type_traits
+\ingroup binary_type_traits
 \brief 判断指定的两个类类型是否不同且有公共非空虚基类。
 \pre 类可被继承。
 \since build 660
@@ -235,6 +236,7 @@ struct have_common_nonempty_virtual_base : bool_<!is_same<_type1, _type2>::value
 
 
 /*!
+\ingroup unary_type_traits
 \brief 移除指针和引用类型。
 \note 指针包括可能的 cv-qualifier 修饰。
 \since build 175
@@ -245,13 +247,13 @@ struct remove_rp : remove_pointer<remove_reference_t<_type>>
 
 
 /*!
+\ingroup unary_type_traits
 \brief 移除可能被 cv-qualifier 修饰的引用和指针类型。
 \since build 376
 */
 template<typename _type>
 struct remove_rpcv : remove_cv<_t<remove_rp<_type>>>
 {};
-//@}
 
 
 //! \ingroup metafunctions
@@ -295,6 +297,20 @@ using common_nonvoid_t
 */
 template<typename... _types>
 using common_underlying_t = common_type_t<underlying_cond_type_t<_types>...>;
+//@}
+
+
+/*!
+\ingroup transformation_traits
+\pre 第一参数为类类型。
+\brief 移除参数包中选择类类型的特定重载避免构造模板和复制/转移特殊成员函数冲突。
+\note 类似 exclude_self_t ，但支持参数包，而不支持指定结果类型。
+\since build 848
+*/
+template<class _tClass, typename... _tParams>
+using exclude_self_params_t
+	= enable_if_t<not_<cond_or_t<bool_<sizeof...(_tParams) == 1>,
+	false_, is_same, _tClass&, decay_t<_tParams>&...>>::value, yimpl(void)>;
 
 
 /*!

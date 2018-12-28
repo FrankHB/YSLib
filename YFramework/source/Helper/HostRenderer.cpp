@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r709
+\version r714
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2016-07-30 19:43 +0800
+	2018-12-14 08:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,7 +58,7 @@ RenderWindow::RenderWindow(HostRenderer& rd, NativeWindowHandle h)
 #	elif YCL_Win32
 	yunseq(
 	MessageMap[WM_ERASEBKGND]
-		+= [](::LPARAM, ::WPARAM, ::LRESULT& res) ynothrow{
+		+= [](::WPARAM, ::LPARAM, ::LRESULT& res) ynothrow{
 		res = 1;
 	},
 	MessageMap[WM_PAINT] += [this]{
@@ -145,8 +145,9 @@ WindowThread::WindowLoop(Window& wnd)
 #	if YCL_HostedUI_XCB
 	// XXX: Exit on I/O error occurred?
 	// TODO: Log I/O error.
+	// TODO: Extract the loop to module %YCLib::XCB?
 	while(const auto p_evt = unique_raw(::xcb_wait_for_event(
-		&Deref(wnd.GetNativeHandle().get()).DerefConn()), std::free))
+		&Deref(wnd.GetNativeHandle()).DerefConn()), std::free))
 	{
 	//	YSL_DEBUG_DECL_TIMER(tmr, to_string(msg));
 		auto& m(wnd.MessageMap);
@@ -351,6 +352,7 @@ HostRenderer::Wait()
 
 	// XXX: Busy wait.
 	while(!p_wnd)
+		// FIXME: This thread will hang if window pointer is always not ready.
 		p_wnd = GetWindowPtr();
 	return *p_wnd;
 }

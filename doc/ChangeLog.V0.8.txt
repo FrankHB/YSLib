@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r8780
+\version r9148
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-12-14 00:40 +0800
+	2018-12-28 14:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,372 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ DLI "removed redundant 'const' for %ystdex::type_id" $effective
+		@ "function templates %(unchecked_any_cast, unsafe_any_cast)"
+		@ %YBase.YStandardEx.Any,
+		// For %any, see also LWG 2769.
+	/ %YBase.YStandardEx $=
+	(
+		/ %AnyIterator $=
+		(
+			/ @ "case %dereference" @ "static function %manage"
+				@ "class template %iterator_handler" $=
+			(
+				* "missing support of cv-qualified object %reference type"
+					$since b743,
+				* "wrongly discarded cv-qualifier in referent of reference type"
+					$since b743,
+				/ DLDI ^ "%any_ops::(with_handler_t, wrap_handler)"
+					~ "wrapping implicitly implied by constructor %any"
+					$dep_to "avoided implicit wrapping of %any construction"
+			),
+			+ $dev $lib "static assertion to ensure valid reference type"
+				@ "class template %input_iterator_handler",
+				// The reference shall meet the requriements of ISO C++17 \
+					%InputIterator, or some relaxed variants when the \
+					%value_type is an abstract class.
+			/ @ "friend function %operator==" @ "class %any_input_iterator" $=
+			(
+				/ "assertion"  ^ "%yconstraint" ~ "%yassume",
+				/ DLDI "simplified" ^ "%any_storage::unchecked_access"
+					~ "%any_storage::pun"
+			)
+		),
+		/ %Memory $=
+		(
+			+ "unary type trait %alloc_value_t",
+			+ "binary type traits %(rebind_alloc_t, rebind_traits_t)",
+			/ DLDI "simplified function template %allocate_unique" ^ $dep_from
+				"%rebind_alloc_t"
+		),
+		/ %TypeOperation $=
+		(
+			+ "transformation trait %exclude_self_params_t",
+			/ DD "Doxygen groups"
+		),
+		+ ("class %allocator_mismatch_error"; "function \
+			%throw_allocator_mismatch_error") @ %Exception,
+		/ %Any $=
+		(
+			/ @ "namespace %any_ops" $=
+			(
+				+ $dev $lib "static assertion to constraint template parameter \
+					%_type" @ "class templates %(value_handler, wrap_handler)"
+					^ "%is_decayed",
+					// This will constrain various handlers to allocate only \
+						cv-unqualified non-array object types, include those \
+						in %AnyIterator. Note this only makes the constraint \
+						explicit without any incompatible change, since other \
+						types have never been supported by the semantics.
+				+ $dev $lib "static assertion to constraint resulted \
+					%value_type is an object type"
+					@ "class template %wrap_handler",
+					// Ditto.
+				/ @ "class template %ref_handler" $=
+				(
+					/ DLDI "class-key 'type'" @ "static function %init#1"
+						 -> 'class',
+					* "missing const stroage overloads for %(get_pointer, \
+						get_reference)" $since b692,
+					- "base class"
+				),
+				+ $re_add(b686) DLDI 'YB_ATTR(always_inline)'
+					@ "static function template %init"
+					@ "class templates %(ref_handler, holder_handler)",
+				(
+				+ "unions %(any_trivial_local_data; any_local_data)",
+				/ @ "alias %any_storage" ^ "%any_local_data" $=
+				(
+					/ $re_ex(b847) "enlarged %any_storage size to \
+						guarantee the local allocation support of object \
+						pointers, functions and member pointers",
+					/ $re_add(b847) "enlarged %any_storage alignment"
+				)
+				),
+				+ "unary type trait %check_holder_t",
+				+ "enumerators %(get_allocator_type, clone_with_allocator, \
+					transfer_with_allocator)" @ "enum %base_op",
+				/ DLDI @ "class template %value_handler" $=
+				(
+					/ $re_add(b847) "private %try_init" => "%init_or_throw",
+					/ "simplified %copy" !^ "explicit %local_storage",
+					/ DLDI "simplified non-local allocation and access"
+						^ ("%std::unique_ptr", "%exclude_self_params_t"
+						@ %TypeOperation),
+					/ $dev "strenthened static assertion" ^ $dep_from
+						"%check_holder_t",
+					+ "handling of %(get_allocator_type, compare_allocator)"
+						@ "%value_handler" $dep_from
+						"%get_allocator_type, compare_allocator"
+				),
+				+ "'ynothrow' or 'ynothrowv'" @ ("all static member \
+					%(get_pointer, get_reference) overloads" @ "class \
+					templates %(value_handler, ref_handler, holder_handler)",
+					"static member function %get_holder_pointer"
+					@ "class template %holder_handler"),
+				/ "base access-specifier" @ "value_handler inscances"
+					@ "class template %holder_handler" -> 'private' ~ 'public',
+				+ "alias %holder_type" @ "class template %holder_handler",
+				(
+				+ "class template %allocator_value_handler" ^ $dep_from
+					"%(get_allocator_type, clone_with_allocator, \
+					transfer_with_allocator)";
+				+ "binary type trait %allocator_value_handler_t"
+				),
+				(
+				+ "class template %allocator_holder_handler" ^ $dep_from
+					"%(check_holder_t, get_allocator_type, \
+					clone_with_allocator, transfer_with_allocator)";
+				+ "binary type trait %allocator_holder_handler_t"
+				),
+				(
+				+ "unary type trait %is_in_place_storable";
+				/ DLDI "simplified default template argument"
+					@ "class template %value_handler" ^ "%is_in_place_storable"
+				)
+			),
+			/ @ "class %any" $=
+			(
+				/ "preserved type of reference wrappers"
+					@ "constructor template %any with 1 parameter"
+					^ "%any_ops::value_handler" ~ "%any_ops::ref_hanlder"
+					$dep_from "avoided implicit wrapping of %any construction",
+					// See $2018-12 @ %Documentation::Workflow::Annual2018.
+				/ DD "updated descriptions on extensions and external \
+					references" @ "Doxygen comment",
+				* $revert(b847) "wrong 'YB_ATTR_noreturn YB_PURE'"
+					@ "functions named %unchecked_access, call" $since b847,
+				/ "access-specifier 'protected'" @ "members %(get_storage, \
+					call, unchecked_access)" -> 'public',
+				(
+				/ DLI "in-class storage initialization" -> "base class \
+					constructor with %default_init_t and default \
+					constructor with explicit 'yconstfn' and 'ynothrow'";
+				/ DLI "kept move constructor away from redundant storage swap",
+					// See $2018-12 @ %Documentation::Workflow::Annual2018.
+				+ "constructor with %default_init_t parameter"
+				),
+				/ DLDI "simplified base (copy, move) operations",
+				/ DLDI "object destroying and reset",
+					// They share implementations.
+				/ DLI "copy %operator=" ^ "move %operator=" ~ "%swap",
+				/ DLI "move %operator=" ^ "%reset" ~ "%swap",
+					// See $2018-12 @ %Documentation::Workflow::Annual2018.
+				/ DLDI "protected base constructions",
+				/ DLI "all out-of-line %any member function definitions and \
+					base cleanup member functions" -> "header",
+					// See $2018-12 @ %Documentation::Workflow::Annual2018.
+				(
+				+ "unary type trait %opt_in_place_t";
+				(
+				+ "8 constructor templates with %std::allocator_arg_t parameter"
+					^ $dep_from ("%any_ops::(allocator_value_handler_t, \
+					allocator_holder_handler_t, clone_with_allocator, \
+					transfer_with_allocator)", "%opt_in_place_t",
+					"%throw_allocator_mismatch_error" @ %Exception),
+					// Allocator holders are not used if object can be \
+						constructed in-place. There are 5 constructors to \
+						differentiate in-place constructions. The remained one \
+						is exceptional because of explicit use of the handler \
+						type.
+				+ "binary type traits %(allocated_value_handler_t, \
+					allocated_holder_handler_t)"
+				) ^ $dep_from "%rebind_alloc_t" @ %Memory
+				),
+				+ $dev 'explicit' @ "all 2 constructor templates with 1 \
+					non-pack parameter and parameter pack",
+				(
+				+ "2 constructor templates with %std::initializer_list \
+					instance";
+					// To be conforming to ISO C++17.
+				* "missing constructor template with %std::initializer_list \
+					instance" $mismatch $since b717
+					// WG21 N4582 does not have the constructor, but WG21 \
+						N4606 has.
+				),
+				/ "overloads return reference" @ "all 3 function templates \
+					%emplace",
+					// See LWG 2857. As an extension, the holder case is \
+						similar to the resolution.
+				/ DLI "optimized %emplace_with_handler to avoid redundant \
+					assignment in normal path" ^ "try-catch block"
+			),
+			/ "function %swap for %any" -> ("friend function" @ "class %any"),
+			/ "template function overloads %any_cast with reference parameter"
+				$=
+			(
+				// See LWG 2769.
+				/ $dev "static assertions" !^ "%is_any_cast_dest" $dep_to
+					"avoided any cast destination trait",
+				- DLI "redendant 'const'" @ "cast target"
+					@ "overload with const reference parameter",
+				* "missing 'std::move' for result before cast"
+					@ "overload for rvalue reference" $since b671
+			),
+			- $revert(b671) "trait %is_any_cast_dest" $dep_from
+				"avoided any cast destination trait"
+		),
+		/ %Function $=
+		(
+			* "ill-formed traits %(make_parameter_tuple, return_of)"
+				@ '__cpp_noexcept_function_type >= 201510L'
+				$since b847,
+			+ ("function templates %function_not_empty",
+				"class template %function" ^ "%any" $dep_from
+				("constuctors %any" @ %Any));
+			+ "class template specializations of %(make_parameter_tuple, \
+				return_of) for %function"
+		),
+		/ %Functional $=
+		(
+			/ $dev $impl "simplified class specialization %call_projection for \
+				%std::function" ^ "public base",
+			+ "class specialization %call_projection for %function"
+				$dep_from ("%function" @ %Function), ("%any::call" @ %Any)
+				// This is insufficient without the change of \
+					%any_ops::any_storage.
+		),
+		/ %Map $=
+		(
+			/ DLDI "simplified all parameter forwarding without variadic \
+				parameter in lambda-expressions" ^ "%yforward" ~ "%std::forward"
+				$effective @ "member functions %insert" @ "class template %map",
+			/ "function template %swap for %map instances" 
+				@ %Map -> ("friend function" @ "class template %map"),
+				// To be consistent with %(any, function).
+			/ DLDI "simplified class template %map" ^ $dep_from
+				"%(alloc_value_t, rebind_alloc_t)" ~ "%allocator_traits"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ @ 'YCL_HostedUI_XCB' @ %HostedGUI $=
+			(
+				/ "%platform_ex::NativeWindowHandle" !^ "%nptr";
+					// To simplify because similar handle in other platforms \
+						are all not wrapped by %nptr and it would be wrapped \
+						in %WindowReference. Note this implies ownership so it \
+						should not be merely an observer, so it also cannot be \
+						an instance of %tidy_ptr.
+				/ $forced DLDI "simplified (member functions \
+					%(HostWindowDelete::operator(), WindowReference::Deref), \
+					constructor %HostWindow)"
+			),
+			/ @ "class %Logger" @ %YCLib.Debug $=
+			(
+				/ "types %(Filter, Sender)" ^ ("%ystdex::function"
+					@ %YBase.YStandardEx.Function) ~ "%std::function",
+				- $revert(b804) $dev "implementation specific check for \
+					nonthrowing %std::function swap" @ "member function %swap"
+			)
+		)
+		/ %Helper.HostRenderer $=
+		(
+			/ $forced DLDI @ 'YCL_HostedUI_XCB' @ "static member function \
+				%WindowThread::WindowLoop" $dep_from %YCLib.HostedGUI
+			* $dev $lib "wrong parameter order" @ "%WM_ERASEBKGND handling"
+				@ "platform %Win32" @ "constructor %RenderWindow"
+				@ %Helper.HostRenderer
+				// The parameters are dummy so there was no effect. Also to \
+					eliminate G++ warning: [-Wsign-conversion] when even map \
+					underlying handler is not wrapper type introduced from \
+					system headers.
+		),
+		/ %YSLib $=
+		(
+			* $dev "missing 'const'" @ "member function \
+				%BorderBrush::operator()" @ %UI.Border $since b284;
+				// This is compatible with %GHEvent implemented by \
+					%std::function but not %ystdex::function.
+			/ %Core $=
+			(
+				/ @ "class template %GHEvent" @ %YEvent $=
+				(
+					/ ^ $dep_from ("%ystdex::function"
+						@ %YBase.YStandard.Function) ~ "%std::function"
+						$dep_from (("class template specialization \
+						%ystdex::make_parameter_tuple" @ %Function),
+						("class template specialization \
+						%ystdex::call_projection" @ %Functional)
+						@ %YBase.YStandard);
+						// The specialization of %ystdex::make_parameter_tuple \
+							is needed to keep %NPL.NPLA1 well-formed and \
+							the specialization of %ystdex::call_projection \
+							is needed for %YSLib.UI.
+					- $comp "permissive non-const %operator() target support",
+						// Now qualifiers of target %operator() shall be more \
+							strictly matched (see %UI.YBrush modification \
+							above for example).
+					- $revert(b806) $dev "implementation specific check for \
+						nonthrowing %std::function swap"
+						@ "member function %swap",
+					+ "5 constructor templates with %std::allocator_arg_t and \
+						allocator parameters"
+				),
+				/ %YObject $=
+				(
+					(
+					+ "2 function template %CreateHolderInPlace overloads with \
+						%std::allocator_arg_t and allocator parameters"
+						$dep_from ("constructor %any" @ %YBase.YStandardEx.Any),
+					/ @ "class template %AllocatorHolder" $=
+					(
+						- $doc "allow reference template parameter";
+						+ DLDI "stored allocator object as base class";
+						+ "function %get_allocator",
+						- $dev "static assertion",
+							// This is redundant since the base class shall be a
+							//	cv-unqualified class type.
+						(
+						// This is now similar to %ValueHolder except that it \
+							also has an allocator object initialized before \
+							the %value data member. The allocator-aware \
+							allocation is now expected to be managed by \
+							%ystdex::any_ops::holder_handler, to avoid \
+							excessive allocation due to the object not fit in \
+							%ystdex::any_ops::any_storage.
+						- $revert(b847) $dev "static assertion";
+						/ $revert_ex(b847) "stored without allocator deletion"
+							!^ "%unique_ptr";
+						/ "conditionally created object with allocator object \
+							for %(Copy, Move) operations" @ "function %Create"
+							^ $dep_from ("%CreateHolderInPlace",
+							("%ystdex::any_ops::is_in_place_storable"
+							@ %YBase.YStandardEx.Any)),
+						/ $dev "simplified constructors and %operator="
+							^ "%DefDeCopyMoveCtorAssignment",
+						(
+						- "null state";
+						+ 'YB_PURE' @ "functions %(OwnsCount, get, type)"
+						)
+						)
+					);
+					/ "constructor %ValueObject with allocator parameter" $=
+					(
+						/ $impl ^ $dep_from (("%ystdex::any constructor with \
+							allocator, %allocated_holder_handler_t" @ %Any,
+							"%ystdex::(alloc_value_t, rebind_alloc_t)"
+							@ %Memory) @ %YBase.YStandardEx);
+							// %AllocatorHolder is still used since \
+								%ValueHolder cannot create other object by \
+								%Create with the allocator and it is actually \
+								less efficient.
+						+ $dev "static assertion to ensure no non-local \
+							additional allocation performed"
+					)
+					),
+					+ $dev 'explicit' @ "the constructor template with 1 \
+						non-pack parameter and parameter pack"
+				)
+			)
+		)
+	)
+),
+
+b847
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -112,7 +478,7 @@ $now
 			/ DLDI "simplified uses-allocator construction inner dispatch with \
 				allocator parameter at end",
 			* "allocator value type intefered construction due to wrong type \
-				used for %std::uses_allocator" $sicne b842 $dep_to
+				used for %std::uses_allocator" $since b842 $dep_to
 				"fixed polymorphic allocated type"
 		),
 		(
@@ -1257,8 +1623,8 @@ b844
 				/ $comp "constructors supported uses-allocator construction"
 			),
 			(
-			+ "specializations of %std::uses_allocator for %ystdex::path \
-				instances";
+			+ "class template specialization of %std::uses_allocator for \
+				%ystdex::path instances";
 			/ $comp "supported uses-allocator construction for %ystdex::path \
 				instances" $dep_from "removal of use of sequence adaptor base"
 			),

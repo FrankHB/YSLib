@@ -1,5 +1,5 @@
 ﻿/*
-	© 2017 FrankHB.
+	© 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2018 年度。
-\version r552
+\version r824
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2018-02-27 22:36:36 +0800
 \par 修改时间:
-	2018-12-02 01:25 +0800
+	2018-12-26 19:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,35 +94,44 @@ $2018-06:
 
 $report.impl:
 TCO (tail call optimization) algorithm in NPLA1 to support PTC (proper tail call) has been carefully revised and further enhanced.
-	As the host language (C++) as the source language is not supporting PTC, TCO is necessary anyway to support of PTC.
+	Since the host language (C++) as the source language does not support PTC, TCO is necessary anyway to the support of PTC.
 		Although it is optionally enabled in the current source by conditional inclusion, the object language NPLA1 mandates it in conforming implementations.
-			So this is the default configuration. Other configurations are not always tested and not guaranteed to work.
-	The call here can be an ordinary function call or an underlying evaluation in 'eval' form.
-		As usual, calls are not interleave, to avoid introduce of parallelism in simplest cases of design.
+			So this is the default configuration.
+			Other configurations are not always tested and not guaranteed to work.
+	The call here can be an ordinary function call (a β-reduction of λ/vau-abstraction) or an underlying evaluation in 'eval' form.
+		As usual, calls do not interleave, to avoid introduce of parallelism in simplest cases of design.
 			This also means in users' view there is only one call being active simultaneously.
+			This also simplified the implementation to worry about concurrent access, although the design is actually able to be extended to support it.
+			If needed, parallelism can be added by threading and other means in future.
 		This design supports mixture of asynchronous and ordinary synchronous handlers of calls once the asynchronous calls are properly guarded by some synchronization mechanism.
 			The abstraction of such handlers are called as actions.
-		In TCO, the calls happen as a sequence implemented using a asynchronous style in the source language.
+			In a specific context for reduction, depending on the configuration, an action can be either synchronous, or asynchronous. 
+				Sometimes there has to be different implementations for synchronous and asynchronous uses of an action.
+			An action can be represented by various data structures.
+				A notable example is the data structure used as the handler in TCO, see below.
+		Within TCO, calls happen as a sequence implemented using an asynchronous style in the source language.
 			This works like CPS (continuation passing style), except the continuation is stored in the context, rather than being passed by parameters in the source language.
+				Note this does not imply a rewrite of CPS form which is used in various compilers of typical functional languages.
 			A asynchronous handler stored in the context ('NPL::ContextNode') is a reducer (of the type 'NPL::Reducer').
-				A reducer represents an internal continuation being executed in the context.
+				An action represented by the reducer implies an internal continuation being executed in the context.
 					The continuation is used with some other states in the context, like 'SkipToNextEvaluation'.
-					This is to be extended to implement continuations in the object language (NPLA1) accepting parameters not in the 'Reducer' type.
+					This is to be extended to implement first-class continuations in the object language (NPLA1) accepting parameters not in the 'Reducer' type.
 		Other kinds of calls may be introduced by derived implementations.
 			This design does not include them.
 			Modification may be necessary.
 	TCO operates on potentially active record frames.
 		A record frame consists of an environment and optional other components.
-		The active frame is the frame whose environment is introduced by active call (i.e. the call still not returned).
-			The environment component of the active frame is the emvironment object in the current context object.
+		The active frame is the frame whose environment is introduced by the active call (i.e. the call still not returned).
+			As parallelism is exluded in the discussion above, there is only one active call at any time.
+			The environment component of the active frame is the environment object in the current context object.
 			The optional components include the function prvalue (as the temporary object) and the additional environment holding the temporary operand object, which are saved in the TCO action.
-				The function prvalue is based on the function object determined by implementation of 'NPL::A1::ReduceCombined' and the guard object after the compression (see below).
+				The function prvalue is based on the function object determined by the implementation of 'NPL::A1::ReduceCombined' and the guard object after the compression (see below).
 					The function object here is the context handler representing the optional function prvalue of the combining form.
 					If the prvalue does not exist (when the function is a lvalue stored elsewhere), the context handler is empty.
 				Similarly, the operand has to be saved to avoid dangling references binding to it.
 					The difference to the function prvalue is it would be added immediately after the frame switch and before the next action of actual function call.
 					The operand is transferred in the form of environment object so it can be collected, see below.
-		Other frames are owned by the TCO action, which is a special kind of action to handle the probably optimizable tail call specifically.
+		Other frames are owned by the TCO action, which represents a special kind of actions to handle the probably optimizable tail call specifically.
 			They are inactive and basically introduced by other formerly active calls.
 				Some of them are definitely inactive, and they are the targets to be safely removed during TCO.
 			However, some frames can own objects referenced by the active frame so they cannot be definitely inactive.
@@ -533,6 +542,257 @@ Deleter types for allocators have been reviewed. The idea of deleters has been c
 		Referenced allocator support is added, but without a partial specialization.
 		Allocator access is preserved. Additional 'count' access is added for 'ystdex::allocator_guard_deleter'.
 	Remained interface in the proposals like 'allocate_unique' is to be added in future.
+The ABI concerned with 'std::aligned_storage' may differs in libstdc++ and other implementations on the same underlying platform (ISA).
+	See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61458.
+	This is perhaps better being done as well in YBase for the same reason to '__aligned_buffer' used internally in libstdc++.
+	Minimization may be implementable.
+		See https://github.com/WG21-SG14/SG14/commit/98baf1aeab for example.
+		However, this approach is not taken for various reasons.
+			As the result of the GCC issue, the current libstdc++ is still conforming and change is ABI-breaking.
+			Change of the default template argument 'ystdex::align_storage' is not allowed by the policy of YBase, so if needed, new traits should be introduced anyway.
+				This is disallowed because it does need implementation-specific knowledge. So it is essentially not portable out of a standard library implementation.
+				It is also not intended to make 'ystdex::aligned_storage_t' and 'std::aligned_storage_t' behave differently for a same platform configuration.
+			Any critical use of the buffer could use explcit alignment like '__aligned_buffer'.
+Special handling of reference wrappers in constructor template with 1 value parameter in 'ystdex::any' has been removed.
+	The removal of extension prevents the construction relying on concrete wrapper types by default.
+	It also makes 'ystdex::any' having more consistent behavior of general erased type wrappers like 'boost::any', 'std::any', 'std::function' and so on.
+	The behavior in 'any_ops::ref_handler' on copying is same to 'any_ops::value_handle' directly passing value.
+		The only difference is to keep the ownership in the object or not.
+		If external ownership is needed, 'any_ops::ref_handler' should be better explicitly used.
+	Since reference wrappers are first-class object simulation of raw reference types, it should not be implying value copying by default, which undermines generality of the constructor to handle first-class objects.
+		This is also problematic for mixture of use for different ownership schemes in single constructor signature.
+Several alternative designs and implementations of 'std::function' have been reviewed.
+	There are feature improvements and issues oncerned in current 'std::function'.
+		The main reason is that implemenations of 'std::function' are lacked of allocator support in general, so replacements are needed.
+			Allocator is planned to be used in NPL with 'YSLib::GHEvent', whose implementation is currently based on 'std::function'.
+			By altering the underlying implementation, issues can be resolved in a flexible way.
+				The impact of compatibility should be minimal.
+					Behavior relying on these features are planned but not yet used.
+					Use of 'function' is always qualified with 'std::' prefix in YSLib currently.
+		LEWG 34, including multiple issues on 'std::function', targets C++20.
+			Currently it is in the "DESIGN_REVIEW" status.
+			See https://issues.isocpp.org/show_bug.cgi?id=34.
+			WG21 N4348 proposes synchronization in interface.
+				This is not in favor of both LEWG 34 and YSLib for violation of principle of zero overhead abstraction (cf. ISO TR 18015).
+				See also discussions in WG21 P0045R0.
+		Multiple potential feature improvements on 'operator()' are considered.
+			Different qualification on 'operator()' is needed.
+				WG21 P0045 proposes change of 'const' and other qualifiers on 'operator()'.
+					This can be difficult due to ABI compatibility. It is not approved yet.
+				Here other qualifiers concerned are ref-qualifiers and the 'noexcept' specifier where ISO C++17 'noexcept' type is supported.
+			Narrow contracts on 'operator()' is needed.
+		Noncopying wrappers are needed.
+			WG21 P0288 proposes a replacement 'std::unqiue_function'.
+		WG21 P0770 restates the 'noexcept' requirement on move of 'std::function'.
+		Translation-time enhanced safety is appreciated.
+			WG21 P0932 proposes the additional constraint on 'std::function' return to capture specific danling referernce error during translation.
+	The reviewed replacements are needed to work around deprecation of allocation support of 'std::allocator' in WG21 P0302.
+		As stated in the paper, the feature have not been implemented at all in libstdc++ (with even no concerned signatures at all) and libc++, while Microsoft VC++ has only limited support.
+			And the support of Microsoft VC++ is to be removed, see https://github.com/aws/aws-sdk-cpp/issues/652.
+		Library fundamental TS v3 (WG21 N4758) has been drafted with a new 'std::experimental::function' interface with 'erased_type' allocator support.
+			This is mostly the right design.
+			However, this is does not planned to be compatible in source level in YBase.
+			As new 'function' is needed, there are other candidates to be analyzed.
+	There are several source of alternatives. They are listed here for reference.
+		WG21 P0288 mentions some implementation of 'unique_function'.
+		Document of 'fu2' (with 'unique_funtion') in turn mentions other implementations.
+			See https://github.com/Naios/function2.
+		Some multiple dispatched function wrappers are collectively benchmarked at https://github.com/FrankHB/nano-signal-slot/tree/master/benchmark.
+			They are mostly for multiple dispatching implementations and have been analyzed by this project previously.
+			However, the base implementations can still be referenced.
+			The upstream has migrated the benchmark to a new project, see https://github.com/NoAvailableAlias/signal-slot-benchmarks.
+		More candidates are collected in https://github.com/jamboree/CxxFunctionBenchmark.
+	For purpose of being the baseline of interface design and performance benchmark, 'std::function' implementations as well as ("preferred syntax") 'boost::function' should be considered.
+		See ISO C++17 and https://www.boost.org/doc/html/function.html.
+		They are mostly the same in the interface design.
+		As the baseline, the candidates should support most features in 'std::function'.
+			As the exception, the deprecated and unimplemented by most implementations allocator support in 'std::function' is not required.
+			As another exception, some WG21 P0288 'unique_function'-like interface may not support copying by design.
+				When not provided separatedly, it needs 'std::function'-like interface as the complement for need of copyable wrappers.
+	Several decisions are made to be noted.
+		The type erasure wrapper should be based on 'ystdex::any' for simplicity.
+			The size of 'ystdex::any_storage' should be carefully tuned for performance.
+		The interface like 'unique_function' is not separated in 'ystdex' because 'ystdex::any' can support noncopyable types.
+		Multiple overloads is not planned to be supported in 'ystdex' as the overhead is not ignorable.
+			The typical implementations use an overload table to support multiple overloads in type-erased wrappers.
+			Actually WG21 P0045R0 has the feature but WG21 P0045R1 drops it.
+			Examples are 'cxx_function::function' and 'fu2::function' (see below).
+		Throwing (like 'std::bad_any_cast' in 'std::function') is intentionally avoid.
+			For user code like 'YSLib::GHEvent', the exception is already handled.
+				This can be further optimized by removal of the whole exception handling code once all calls on empty wrapper have been avoided.
+			If needed, it can be added in user code.
+		The parameteric design like 'fu2::function_base' for 'fu2::function' (see below) is not supported.
+			So 'ystdex::function' will be a template simpler as specification of 'std::function'.
+			Since many features are filtered out, there have been no need to parameteric the configurations.
+		Wrapper view as 'std::function_ref' proposed by WG21 P0792 is not planned in near future.
+			Almost all function warppers used in the user code are owning, or they are not interested in external owners.
+				The view is not required currently.
+			If needed, it can be added later.
+	Candidates as primary references are listed.
+		1. 'cxx_function::function' and 'cxx_function::unique_funtion' from https://github.com/potswa/cxx_function as reference implementations in WG21 P0288.
+			Design in WG21 P0042 is not used.
+				In particular, 'ystdex::any' does not follow the scheme of 'ErasureClass' proposed by WG21 P0042.
+					'ErasureClass' is admitted "completely differerence" to 'std::experimental::any' implementation in libc++ and libstdc++.
+						The implementations in latters are in turn more like to the implementation of 'ystdex::any'.
+			Some designs in WG21 P0043 is concerned.
+				It proposes seperation of container as a new interface.
+					While sometimes useful, providing both interface does incur complexity of use.
+					As the container behavior is not used in YSLib (particularly, not in NPL), the design is not adopted currently.
+						The capability of interoperations between 'function' and 'function_container' in the underlying implemantion should still be considered.
+						This is also fit for 'ystdex::any' with upcoming allocator support to be the base of 'ystdex::function'.
+				The interface requirement about need of allocator stored in the function wrapper is reconsidered.
+			Deprecation is not needed in YSLib because no deprecated behavior is relied on.
+		2. 'fu2::function' and 'fu2::unique_function' from https://github.com/Naios/function2.
+			The design fits the needs in YSLib quite well.
+			Differentiating "weak destroy" from "destroy" in the implementation seems redundant.
+	Other mostly feature-complete candidates are also listed here.
+		1. 'func::function' from http://probablydance.com/2013/01/13/a-faster-implementation-of-stdfunction/.
+			See https://github.com/jamboree/CxxFunctionBenchmark/blob/master/function.h.
+			This implementation may have undefined behavior concerned with strict alising.
+			This implementation does not support move-only targets.
+			The implementation to wrap pointer to members using 'std::mem_fn'.
+				While conforming, this is usually inefficient with indirect wrappers.
+				It is unspecified the result type of 'std::mem_fn' call, so there is no guarantee to further enable the result with small object optimization.
+			When allocation is required, it unnecessarily forces using a copy of 'const' allocator object in the constructor.
+			The implementation allows opt-out of wide contract (throwing exception) in call of 'operator()'.
+			Calls in this implementation outperformed a lot in CxxFunctionBenchmark for calls.
+				The null state is inlined, so there is no need to check whether the underlying callable object is null.
+				The call table is directly weaved as function pointers, so there is less indirection and dispatching overhead.
+					However, the space efficiency is low. When used heavily, it might harm cache locality. This does not identified by the benchmark (note the size of the object does not show this problem).
+				Pointer to members are not benchmarked in CxxFunctionBenchmark so it is unknown the cost from 'std::mem_fn'.
+		2. 'bsl::function' from https://github.com/bloomberg/bde/blob/master/groups/bsl/bslstl/bslstl_function.h.
+			This implementation does not support different overloads of 'operator()'.
+			This implementation does not throw on 'operator()' only when exception is disabled.
+			This implementation support pre-C++11 language implementations.
+				It has optional rvalue reference support.
+				It simulates variadic template when it is not available (up to 13 arguments).
+			This implementation uses multiple pointer objects as representation. The memory footprint concerns are documented within the code.
+	Candidates lacking of required allocator support are listed here.
+		1. 'stdex::function'.
+			See https://github.com/jamboree/CxxFunctionBenchmark/blob/master/stdex.hpp.
+			This implementation does not support move-only targets.
+			Implementation of allocator usage does not support stateful allocators in 'stdex::function'.
+				The destruction uses allocator copy and the allocator object is not lived with the 'function' object in its lifetime.
+		2. 'generic::delegate' and 'gnr::forwarder' from https://github.com/user1095108/generic.
+			'generic::delegate', marked obsoleted, originates http://codereview.stackexchange.com/questions/14730/impossibly-fast-delegate-in-c11.
+				See https://github.com/user1095108/generic/blob/cd20bf0105735dede2f4542b71a6716b257d72f4/obsolete/delegate.hpp.
+				See https://github.com/jamboree/CxxFunctionBenchmark/blob/master/delegate.hpp.
+				This implementation has specialization of 'std::hash'.
+				This implementation does not support target access.
+			'gnr::forwarder' seems a recent replacement.
+				See https://github.com/user1095108/generic/blob/cd20bf0105735dede2f4542b71a6716b257d72f4/forwarder.hpp.
+				See https://github.com/jamboree/CxxFunctionBenchmark/blob/master/forwarder.hpp.
+				This implementation supports target access by 'target', but without 'target_type'.
+			Both implementations do not support allocators, move-only targets and different overloads of 'operator()'.
+		3. 'embxx::util::StaticFunction' from https://github.com/arobenko/embxx.
+			See https://github.com/jamboree/CxxFunctionBenchmark/blob/master/embxx/StaticFunction.h.
+			This implementation does not support allocators, move-only targets and different overloads of 'operator()'.
+			This implementation does not support target access and totally misses exception specifications.
+		4. 'Function' from https://github.com/rigtorp/Function.
+			See https://github.com/jamboree/CxxFunctionBenchmark/blob/master/Function-rigtorp.h.
+			This implementation does not support allocators, move-only targets and different overloads of 'operator()'.
+			The 'operator()' is not qualified by 'const'.
+	Candidates lacking of functionality of 'std::function' (other than exception of missing of copying) are listed here.
+		1. 'hpx::unique_function' from https://github.com/STEllAR-GROUP/hpx/blob/master/hpx/util/unique_function.hpp.
+				The 'target_type' is not support since https://github.com/STEllAR-GROUP/hpx/commit/655bac8440b2315882395a65a8c1741ddaa8de0c.
+					This does not fit for the need of 'YSLib::GHEvent', but other interface would still be useful to reference.
+				It also provides other metadata in https://github.com/STEllAR-GROUP/hpx/blob/master/hpx/util/detail/basic_function.hpp, but there is no allocator support.
+			The original link (in WG21 P0288) https://github.com/K-ballo/hpx/blob/master/hpx/util/detail/unique_function_template.hpp is dead.
+		2. 'move_only_function' from the answer of https://stackoverflow.com/questions/28179817/how-can-i-store-generic-packaged-tasks-in-a-container.
+			The implemantion includes common techniques used in implementing 'std::function' and other variants.
+				It is simplified since SFINAE-friendly 'std::result_of' (proposed by WG21 N3462) is accepted in ISO C++14 and superseded by 'std::invoke_result_t' in ISO C++17.
+			It also provides overloads of 'operator()' on 'const' and ref-qualifiers.
+			However, as only a demonstration of 'unique_function'-like interface, it does not qualify to be used in industrial cases.
+				It has no allocator support.
+				Nor does it have target access.
+				It does not support small object optimization and it also dispatches underlying operations inefficiently.
+				It also totally misses exception specifications.
+		3. 'fixed_size_function' from https://github.com/pmed/fixed_size_function.
+			This implementation demonstrates the small object optimization already used in most other implementations.
+			Otherwise, it does not qualify to be used in industrial cases.
+				It provides no allocator support or move-only targets support, nor different 'operator()' overloads.
+				Different to the 'std::function', its 'operator()' is not qualified at all.
+				It also totally misses exception specifications.
+		4. 'smallfun::SmallFun' from https://github.com/LoopPerfect/smallfunction.
+			This implementation has similar issues of 'fixed_size_function'.
+		5. 'fastdelegate::FastDelegate' from https://www.codeproject.com/Articles/7150/Member-Function-Pointers-and-the-Fastest-Possible.
+			See https://github.com/jamboree/CxxFunctionBenchmark/blob/master/clugston_styled/FastDelegate.h.
+			As analyzed previously for 'YSLib::GHEvent' underlying implementation, this one relied on ABI-specific knowledge like internal components layout of pointer to members, which renders it not fit the use in YSLib.
+				However, it should be considerably efficient for specifically targeted platforms.
+				In fact, as shown in https://github.com/FrankHB/nano-signal-slot/tree/master/benchmark, the multiple dispatching wrapper based on it was the only one having more efficient calls in general compared to 'YSLib::GHEvent'.
+					This would probably remain true for a long time.
+			This does not pace up to ISO C++11 features like '&&' and it does not replace 'std::function'.
+				CxxFunctionBenchmark does not include the test for it possibly for these reasons (as 'ssvu::FastFunc' below).
+		6. 'ssvu::FastFunc'.
+			See https://groups.google.com/a/isocpp.org/forum/#!topic/std-discussion/QgvHF7YMi3o.
+				It shows that the interface is not conforming as 'std::function' by missing well-formed constructions from target with convertible function signatures.
+			See https://gist.github.com/SuperV1234/6462221.
+			See https://github.com/jamboree/CxxFunctionBenchmark/blob/master/clugston_styled/FastFunc.hpp.
+		7. 'folly::Function' from https://github.com/facebook/folly/blob/master/folly/docs/Function.md.
+			See https://github.com/jamboree/CxxFunctionBenchmark/blob/master/folly/Function.h.
+			Like proposed 'unique_function' in WG21 P0288, it does supports copy interface. Copyable types need 'std::function'-like interface as the complement.
+			This implementation has overloads of qualified 'operator()' with 'noexcept' when supported, but otherwise all of the overloads are qualified as 'const'.
+			This implementation does not support allocators and target access.
+		8. 'stdext::inplace_function' from https://github.com/WG21-SG14/SG14/blob/master/Docs/Proposals/NonAllocatingStandardFunction.pdf.
+			This is a draft proposal, but never being released (as WG21 P0419).
+			See https://github.com/jamboree/CxxFunctionBenchmark/blob/master/inplace_function.h.
+			This design only support targets that do not need being allocated.
+			This design does not support target access.
+			The implementation has extra effort to minimize ABI difference caused by different implementation of 'std::aligned_storage_t'.
+		9. 'multifunction' as an example of Boost.TypeErasue, from http://www.boost.org/doc/html/boost_typeerasure/examples.html#boost_typeerasure.examples.multifunction.
+			This is promising about the way of conbination based on 'any', though it lacks most other interface from 'std::function' as well as specific resolutions of issues.
+			The resulted interface is actually quite different to 'std::function'. It is placed here for exposition-only use.
+Generic object type 'ystdex::any' has been optimized.
+	The constructor now avoids unnecessary initializations of unused storage data member.
+		The storage modifications are redundant when the constructors are correctly implemented.
+		This improves performance a bit.
+		Because 'constexpr' is needed for the default constructor, it has to be with explicitly initialized storage.
+	The assignment operators are changed.
+		They are specified in terms of 'swap' in ISO C++17 [any.assign], which is occasionally exactly the same (except the parameter name) to the old implementations.
+		However, implementions (at least libstdc++ and Microsoft VC++, but not libc++) may use reset and move instead, granted by the valid but unspecified move-from state rules stated.
+		Now assignment operators of 'ystdex::any' change similarly.
+		These changes improve performance in heavy use (NPLA1 interpretation) of 'ystdex::any' as well as 'ystdex::function' instances based on it.
+			Without the changes, use of 'ystdex::function' instead of 'std::function' in 'YSLib::GHEvent' is slow.
+				This can be no less than 10% mesuared by intrcution fetch in release configuration of x86-64 Linux built by GCC 8.2.1, at least in NPLA1 case with mostly object language applicative calls.
+					The used NPLA1 program is equivalent to '$defl! fib (&n) ($if (<=? n 1) 1 (+ (fib (- n 1)) (fib (- n 2)))); iput (fib 17); exit'.
+					The case is with 'int' arithmetic operations, applicatives 'iput' and 'exit' given by the implementation in the client code.
+					The environment initialization has also a few minor initialization and bookkeeping in NPLA1 and native code.
+				CxxFunctionBenchmark-derived tests (on 'function<int(int)>') does not find the differences.
+			The performance is now comparable to 'std::function' previously.
+	The underlying storage has been tuned.
+		To reduce overhead of indirect calling in DLL/DSO, more member functions of 'ystdex::any' is put in the header instead of the "any.cpp".
+			This is particular effective to be used as 'ystdex::function' base implementation.
+			To the test case above, it can reduce 102% cost to 90%, with 'std::function' in 'YSLib::GHEvent' as the base line.
+		The resulted storage is 2 words in typical implementations (e.g. 8 bytes in x86).
+			This is larger than 'std::experiment::any' in libstdc++, but less than several others like Microsoft VC++'s.
+			This is occasionally same to some other implementations, like https://github.com/emweb/wt/blob/master/src/Wt/cpp17/any/any.hpp.
+		Note small object optimization may harm to overall throughput if not used properly.
+			If the object is not small enough, it will have significant pressure on register files of the processor.
+			This implies the size should be reasonably small.
+			In fact, smaller size may perform better even it has addtional allocation cost.
+				 Notably, the size of 'sizeof(ystdex::function<...>)' is 16, which equals the sum of size of 'ystdex::any' and the invoker.
+				 As 'ystdex::any_storage' is 8 bytes, it is not engough to store a polymorphic holder with allocator pointer (which requires 12 bytes) in 'ystdex::any_storage'.
+					The polymorphic holder has at least an overhead of 4 bytes of the virtual table pointer in both Microsoft and Itanium C++ ABI.
+					The allocator pointer (an instance of 'std::unique_ptr') basically has 4 bytes for the pointer, and additional 4 bytes for the non-trivial allocator object (like a 'ystdex::polymorphic_allocator' instance used in 'YSLib::AllocatorHolder').
+				 'YSLib::AllocatorHolder' requires 12 bytes as the polymorphic holder so it also cannot be stored locally.
+				 However, even 'YSLib::YObject' has allocated more for 'YSLib::AllocatorHolder', it is still better because small 'ystdex::any_storage' benefits other cases.
+	Allocator support has been added.
+		The allocator design here also applies in implementing 'ystdex::function'.
+		This is not same to the allocator type-erased model in library fundamental TS v3 (WG21 N4758) or WG21 P0987.
+			It does not has 'allocator_type' nested type, and the member function 'swap' does not throw.
+		It is considered that separately erased allocators like WG21 N4758 'std::experimental::function' is harmful.
+			As 'ystdex::any' is used to implement 'ystdex::function', the concerns have been raised a while.
+			The point is similar to WG21 P0043, as the container semantics have incur performance and other subtle ease of using issues.
+			Some designs are different to WG21 P0043.
+				The default constructor does not specify the behavior equivalent to the default allocator.
+					It would be equivalent where the default allocator has same allocation behavior to 'new'.
+						Note the allocation in the default allocator does not guarantee it has a single 'operator new' call, neither would it interact with class-scope 'operator new'.
+				The copy of allocator object is required.
+		The default cases (without explicit allocator specified in construction) can use 'pmr::default_memory_source'.
+			It can actually be more efficient than raw 'new' in a sufficient long.
+				Though no definite determinism, his can be related to cache efficiency.
+			This is not applied because the cost in mandatory abstraction semantics is greater and this is not possible to optimized away because the memory resource can be set later.
+				If memory resource is really needed, it should be constructed with a 'ystdex::pmr::polymorphic' instance.
 
 ////
 

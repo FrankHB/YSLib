@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5383
+\version r5464
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2018-08-27 05:53 +0800
+	2018-12-26 20:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,13 +29,14 @@
 #define YSL_INC_Core_yevt_hpp_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YObject // for ystdex::examiners::equal_examiner;
+#include YFM_YSLib_Core_YObject // for ystdex::examiners::equal_examiner,
+//	std::allocator_arg_t, std::allocator_arg;
 #include YFM_YSLib_Core_YFunc
 #include <ystdex/iterator.hpp> // for ystdex::get_value;
 #include <ystdex/container.hpp> // for ystdex::erase_all_if;
 #include <ystdex/base.h> // for ystdex::cloneable;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
-#include <ystdex/functional.hpp> // for ystdex::make_expanded,
+#include <ystdex/functional.hpp> // for ystdex::function, ystdex::make_expanded,
 //	ystdex::default_last_value;
 #include <ystdex/swap.hpp> // for ystdex::swap_dependent;
 #include <ystdex/optional.h> // for ystdex::optional_last_value;
@@ -62,8 +63,9 @@ GIHEvent<_tParams...>::DefDeDtor(GIHEvent)
 /*!
 \brief 标准事件处理器模板。
 \note 若使用仿函数，可以不满足 \c EqualityComparable 的接口，即
-	可使用返回 \c bool 的 \c operator== ，但此模板类无法检查其语义正确性。
+	可使用返回 \c bool 的 \c operator== ，但此类模板不检查其语义。
 \since build 333
+\todo 允许使用特征定制目标的相等性。
 */
 //@{
 template<typename>
@@ -72,14 +74,14 @@ class GHEvent;
 //! \warning 非虚析构。
 template<typename _tRet, typename... _tParams>
 class GHEvent<_tRet(_tParams...)>
-	: protected std::function<_tRet(_tParams...)>,
+	: protected ystdex::function<_tRet(_tParams...)>,
 	private ystdex::equality_comparable<GHEvent<_tRet(_tParams...)>>,
 	private ystdex::equality_comparable<GHEvent<_tRet(_tParams...)>, nullptr_t>
 {
 public:
 	using TupleType = tuple<_tParams...>;
 	using FuncType = _tRet(_tParams...);
-	using BaseType = std::function<FuncType>;
+	using BaseType = ystdex::function<FuncType>;
 
 private:
 	//! \brief 比较函数类型。
@@ -113,9 +115,6 @@ private:
 				Deref(y.template target<Decayed>()));
 		}
 	};
-	// XXX: See below in constructor implementation.
-#define YSL_Impl_Wknd_GNU_LTO_GHEvent YB_IMPL_GNUCPP >= 45000
-#if YSL_Impl_Wknd_GNU_LTO_GHEvent
 	//! \since build 825
 	template<typename _fCallable>
 	struct GEqualityExpanded
@@ -124,6 +123,7 @@ private:
 		AreEqual(const GHEvent& x, const GHEvent& y) ynoexcept_spec(
 			ystdex::examiners::equal_examiner::are_equal(std::declval<const
 			_fCallable&>(), std::declval<const _fCallable&>()))
+			// TODO: Exception specification?
 		{
 			const auto get_ref([](const GHEvent& h) ynothrowv
 				-> const ystdex::decay_t<_fCallable>&{
@@ -135,7 +135,6 @@ private:
 				get_ref(y));
 		}
 	};
-#endif
 
 	/*!
 	\brief 比较函数：相等关系。
@@ -150,7 +149,17 @@ public:
 	*/
 	yconstfn
 	GHEvent(FuncType* f = {})
-		: BaseType(f), comp_eq(GEquality<ystdex::decay_t<FuncType>>::AreEqual)
+		: BaseType(f),
+		comp_eq(GEquality<ystdex::decay_t<FuncType>>::AreEqual)
+	{}
+	/*!
+	\brief 构造：使用分配器和函数指针。
+	\since build 848
+	*/
+	template<class _tAlloc>
+	GHEvent(std::allocator_arg_t, const _tAlloc& a, FuncType* f = {})
+		: BaseType(std::allocator_arg, a, f),
+		comp_eq(GEquality<ystdex::decay_t<FuncType>>::AreEqual)
 	{}
 	/*!
 	\brief 使用函数对象。
@@ -159,9 +168,22 @@ public:
 	template<class _fCallable,
 		yimpl(typename = ystdex::exclude_self_t<GHEvent, _fCallable>)>
 	yconstfn
-	GHEvent(_fCallable&& f, ystdex::enable_if_t<std::is_constructible<BaseType,
-		ystdex::decay_t<_fCallable>>::value, int> = 0)
+	GHEvent(_fCallable&& f, yimpl(ystdex::enable_if_t<std::is_constructible<
+		BaseType, ystdex::decay_t<_fCallable>>::value, int> = 0))
 		: BaseType(yforward(f)),
+		comp_eq(GEquality<ystdex::decay_t<_fCallable>>::AreEqual)
+	{}
+	/*!
+	\brief 使用分配器和函数对象。
+	\since build 848
+	*/
+	template<class _fCallable, class _tAlloc,
+		yimpl(typename = ystdex::exclude_self_t<GHEvent, _fCallable>)>
+	yconstfn
+	GHEvent(std::allocator_arg_t, const _tAlloc& a, _fCallable&& f,
+		yimpl(ystdex::enable_if_t<std::is_constructible<BaseType,
+		ystdex::decay_t<_fCallable>>::value, int> = 0))
+		: BaseType(std::allocator_arg, a, yforward(f)),
 		comp_eq(GEquality<ystdex::decay_t<_fCallable>>::AreEqual)
 	{}
 	/*!
@@ -170,32 +192,32 @@ public:
 	*/
 	template<class _fCallable>
 	yconstfn
-	GHEvent(_fCallable&& f, ystdex::enable_if_t<!std::is_constructible<BaseType,
-		ystdex::decay_t<_fCallable>>::value, int> = 0)
+	GHEvent(_fCallable&& f, yimpl(ystdex::enable_if_t<!std::is_constructible<
+		BaseType, ystdex::decay_t<_fCallable>>::value, int> = 0))
 		: BaseType(ystdex::make_expanded<FuncType>(yforward(f))),
-		// TODO: Exception specification.
-#if YSL_Impl_Wknd_GNU_LTO_GHEvent
+		// XXX: Here lambda-expression is buggy in G++ LTO.
 		comp_eq(GEqualityExpanded<ystdex::decay_t<_fCallable>>::AreEqual)
-#else
-		// XXX: Blocked. The following code caused LTO failure of multiple
-		//	definitions on G++ 7.1.0.
-		comp_eq([](const GHEvent& x, const GHEvent& y) ynoexcept_spec(
-			ystdex::examiners::equal_examiner::are_equal(f, f)){
-			const auto get_ref([](const GHEvent& h) ynothrowv
-				-> const ystdex::decay_t<_fCallable>&{
-				return Deref(h.template target<ystdex::expanded_caller<
-					FuncType, ystdex::decay_t<_fCallable>>>()).caller;
-			});
-
-			return ystdex::examiners::equal_examiner::are_equal(get_ref(x),
-				get_ref(y));
-		})
-#endif
+	{}
+	/*!
+	\brief 使用分配器和扩展函数对象。
+	\since build 848
+	*/
+	template<class _fCallable, class _tAlloc>
+	yconstfn
+	GHEvent(std::allocator_arg_t, const _tAlloc& a, _fCallable&& f,
+		yimpl(ystdex::enable_if_t<!std::is_constructible<
+		BaseType, ystdex::decay_t<_fCallable>>::value, int> = 0))
+		: BaseType(std::allocator_arg, a,
+		ystdex::make_expanded<FuncType>(yforward(f))),
+		// XXX: Here lambda-expression is buggy in G++ LTO.
+		comp_eq(GEqualityExpanded<ystdex::decay_t<_fCallable>>::AreEqual)
 	{}
 	/*!
 	\brief 构造：使用对象引用和成员函数指针。
 	\warning 使用空成员指针构造的函数对象调用引起未定义行为。
 	\since build 413
+	\todo 支持相等构造。
+	\todo 支持分配器构造。
 	*/
 	template<class _type>
 	yconstfn
@@ -206,6 +228,21 @@ public:
 			return (obj.*pm)(yforward(args)...);
 		})
 	{}
+	//! \throw allocator_mismatch_error 分配器不兼容。
+	//@{
+	//! \since build 848
+	template<class _tAlloc>
+	GHEvent(std::allocator_arg_t, const _tAlloc& a, const GHEvent& x)
+		: BaseType(std::allocator_arg, a, x),
+		comp_eq(x.comp_eq)
+	{}
+	//! \since build 848
+	template<class _tAlloc>
+	GHEvent(std::allocator_arg_t, const _tAlloc& a, GHEvent&& x)
+		: BaseType(std::allocator_arg, a, std::move(x)),
+		comp_eq(x.comp_eq)
+	{}
+	//@}
 	DefDeCopyMoveCtorAssignment(GHEvent)
 
 	//! \since build 520
@@ -228,18 +265,10 @@ public:
 	using BaseType::operator bool;
 
 	//! \since build 834
-	friend yconstfn_relaxed
-		DefSwap(ynothrow, Comparer, std::swap(_x, _y))
+	friend yconstfn_relaxed DefSwap(ynothrow, Comparer, std::swap(_x, _y))
 	friend void
 	swap(GHEvent& x, GHEvent& y) ynothrow
 	{
-	// TODO: Wait for C++17.
-	// XXX: See discussion in LWG 2062.
-#if !__GLIBCXX__
-		ynoexcept_assert("Unsupported luanguage implementation found.",
-			x.swap(y));
-#endif
-
 		ystdex::swap_dependent(static_cast<BaseType&>(x),
 			static_cast<BaseType&>(y));
 		swap(x.comp_eq, y.comp_eq);

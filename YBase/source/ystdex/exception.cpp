@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014, 2016 FrankHB.
+	© 2014, 2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file exception.cpp
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r49
+\version r59
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2014-11-28 12:15:16 +0800
 \par 修改时间:
-	2016-11-03 21:19 +0800
+	2018-12-26 19:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,6 +49,19 @@ void
 throw_invalid_construction()
 {
 	throw invalid_construction();
+}
+
+
+allocator_mismatch_error::allocator_mismatch_error()
+	: invalid_argument("Mismatched allocator found.")
+{}
+
+allocator_mismatch_error::~allocator_mismatch_error() = default;
+
+void
+throw_allocator_mismatch_error()
+{
+	throw allocator_mismatch_error();
 }
 
 } // namespace ystdex;

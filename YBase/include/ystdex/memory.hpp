@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r3255
+\version r3274
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2018-12-11 01:56 +0800
+	2018-12-26 09:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -175,6 +175,24 @@ struct allocator_traits : std::allocator_traits<_tAlloc>
 
 } // inline namespace cpp2017;
 
+
+//! \since build 848
+//@{
+//! \ingroup unary_type_traits
+template<class _tAlloc>
+using alloc_value_t = typename allocator_traits<_tAlloc>::value_type;
+
+//! \ingroup binary_type_traits
+//@{
+template<class _tAlloc, typename _type>
+using rebind_alloc_t
+	= typename allocator_traits<_tAlloc>::template rebind_alloc<_type>;
+
+template<class _tAlloc, typename _type>
+using rebind_traits_t
+	= typename allocator_traits<_tAlloc>::template rebind_traits<_type>;
+//@}
+//@}
 
 /*!
 \ingroup unary_type_traits
@@ -446,11 +464,9 @@ create_with_allocator(_tAlloc&& a, _tParams&&... args)
 template<typename _type, class _tAlloc, typename... _tParams>
 auto
 allocate_unique(const _tAlloc& alloc, _tParams&&... args)
-	-> std::unique_ptr<_type, allocator_delete<typename allocator_traits<
-	_tAlloc>::template rebind_alloc<_type>>>
+	-> std::unique_ptr<_type, allocator_delete<rebind_alloc_t<_tAlloc, _type>>>
 {
-	using ator_t
-		= typename allocator_traits<_tAlloc>::template rebind_alloc<_type>;
+	using ator_t = rebind_alloc_t<_tAlloc, _type>;
 	using ator_del_t = allocator_delete<ator_t>;
 	ator_t a(alloc);
 

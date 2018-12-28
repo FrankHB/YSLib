@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2017 FrankHB.
+	© 2014-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r299
+\version r331
 \author FrankHB <frankhb1989@gmail.com>
 \since build 522
 \par 创建时间:
 	2014-07-25 20:14:51 +0800
 \par 修改时间:
-	2017-12-09 11:59 +0800
+	2018-12-26 19:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -191,6 +191,42 @@ public:
 */
 YB_NORETURN YB_API void
 throw_invalid_construction();
+//@}
+
+
+//! \since build 848
+//@{
+/*!
+\brief 不满足分配器兼容性要求导致的异常。
+\sa alloc_rebind_t
+\see WG21 P0043R0 。
+
+兼容的分配器可重绑定不同的类型进行分配。
+分配器一致保证可替换。通常使用相等性检查一致性。
+一致性蕴含兼容性，即兼容性是一致性的必要非充分条件。
+若分配器类型动态确定（如持有具有目标类型擦除的类型），兼容性不适合使用
+	narrow contract 约束。此时适合使用异常代替。
+*/
+class YB_API allocator_mismatch_error : public std::invalid_argument
+{
+public:
+	allocator_mismatch_error();
+	allocator_mismatch_error(const allocator_mismatch_error&) = default;
+
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 689
+	*/
+	~allocator_mismatch_error() override;
+};
+
+/*!
+\brief 抛出 allocator_mismatch_error 异常。
+\throw allocator_mismatch_error
+\relates allocator_mismatch_error
+*/
+YB_NORETURN YB_API void
+throw_allocator_mismatch_error();
 //@}
 
 

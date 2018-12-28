@@ -11,13 +11,13 @@
 /*!	\file function.hpp
 \ingroup YStandardEx
 \brief 函数基本操作和调用包装对象。
-\version r4292
+\version r4541
 \author FrankHB <frankhb1989@gmail.com>
 \since build 847
 \par 创建时间:
 	2018-12-13 01:24:06 +0800
 \par 修改时间:
-	2018-12-14 00:19 +0800
+	2018-12-28 14:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,11 @@
 #include "type_op.hpp" // for internal "type_op.hpp", index_sequence, true_,
 //	std::tuple, is_convertible, vseq::at, bool_, index_sequence_for,
 //	remove_cvref_t, _t, std::tuple_element, std::tuple_size, size_t_,
-//	vseq::join_n_t, nullptr_t;
+//	enable_if_t, vseq::join_n_t, is_function, nullptr_t, is_trivially_copyable,
+//	exclude_self_t, std::reference_wrapper;
+#include "operators.hpp" // for operators::equality_comparable;
+#include "invoke.hpp" // for is_invocable_r, ystdex::invoke, yconstraint;
+#include "any.h" // for any, std::allocator_arg_t, std::allocator_arg;
 
 namespace ystdex
 {
@@ -73,7 +77,7 @@ template<typename>
 struct mk_ptuple;
 
 #define YB_Impl_Functional_ptuple_spec(_exp, _p, _e) \
-	template<typename _tRet, _exp typename... _tParams ynoexcept_qual(ne)> \
+	template<typename _tRet, _exp typename... _tParams ynoexcept_param(ne)> \
 	struct mk_ptuple<_tRet _p (_tParams... YPP_Args _e) ynoexcept_qual(ne)> \
 	{ \
 		using type = std::tuple<_tParams...>; \
@@ -95,7 +99,7 @@ template<typename>
 struct ret_of;
 
 #define YB_Impl_Functional_ret_spec(_exp, _p, _e) \
-	template<typename _tRet, _exp typename... _tParams ynoexcept_qual(ne)> \
+	template<typename _tRet, _exp typename... _tParams ynoexcept_param(ne)> \
 	struct ret_of<_tRet _p (_tParams... YPP_Args _e) ynoexcept_qual(ne)> \
 	{ \
 		using type = _tRet; \
@@ -234,7 +238,7 @@ struct variadic_param<0U>
 
 /*!
 \brief 取指定位置的变长参数。
-\tparam _vN 表示参数位置的非负数，从左开始计数，第一个参数为 0 。
+\tparam _vN 表示参数位置的非负数，从左开始计数，第一参数为 0 。
 */
 template<size_t _vN, typename... _tParams>
 yconstfn auto
@@ -395,6 +399,266 @@ using id_func_clr_t = id_func_t<_type, _vN, const _type&>;
 //! \brief 取指定维数和 const 右值引用参数类型的多元映射扩展恒等函数类型。
 template<typename _type, size_t _vN = 1>
 using id_func_rr_t = id_func_t<_type, _vN, _type&&>;
+//@}
+//@}
+
+
+//! \since build 848
+//@{
+/*!
+\brief 函数包装类模板。
+\see ISO C++17 [func.wrap.func] 。
+\see WG21 P0288 。
+*/
+template<typename>
+class function;
+
+
+/*!
+\brief 判断是否符合 std::function 实现初始化为空函数对象的条件。
+\note 同时支持对 std::function 和 ystdex 中的实现的判断。
+\see ISO C++17 [func.wrap.func.con]/9 。
+*/
+//@{
+template<typename _tSig>
+YB_ATTR_nodiscard YB_PURE static bool
+function_not_empty(const function<_tSig>& f) ynothrow
+{
+	return bool(f);
+}
+template<typename _tSig>
+YB_ATTR_nodiscard YB_PURE static bool
+function_not_empty(const std::function<_tSig>& f) ynothrow
+{
+	return bool(f);
+}
+template<typename _func,
+	yimpl(typename = enable_if_t<is_function<_func>::value>)>
+YB_ATTR_nodiscard YB_PURE static bool
+function_not_empty(_func* p) ynothrow
+{
+	return p;
+}
+template<typename _tRet, class _tClass>
+YB_ATTR_nodiscard YB_PURE static bool
+function_not_empty(_tRet _tClass::* p) ynothrow
+{
+	return p;
+}
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE yconstfn static bool
+function_not_empty(const _type&) ynothrow
+{
+	return true;
+}
+//@}
+
+
+/*!
+\brief 函数包装类模板特化。
+\sa any
+
+提供支持不同动态类型的调用包装。
+和 ISO C++17 std::function 特化对应的接口相同，除以下特性：
+允许不满足 CopyConstructible 的类型作为目标；
+复制不满足 CopyConstructible 的目标时抛出异常；
+调用没有目标的空对象不抛出异常，行为未定义；
+保证转移构造无异常抛出（参见 WG21 P0043R0 ）；
+构造函数支持分配器（类似 WG21 P0302R1 移除的接口；另见 WG21 P0043R0 ），
+	但没有使用构造器的初始化不保证等价使用默认构造器（和 any 设计的策略一致）。
+不提供 assign ；可直接使用构造后转移赋值代替。 
+*/
+template<typename _tRet, typename... _tParams>
+class function<_tRet(_tParams...)>
+	: private equality_comparable<function<_tRet(_tParams...)>, nullptr_t>
+{
+public:
+	using result_type = _tRet;
+
+private:
+	template<class _tHandler>
+	struct invoker
+	{
+		static _tRet
+		invoke(const any& a, _tParams... args)
+		// TODO: Exception specification?
+		{
+			return static_cast<_tRet>(ystdex::invoke(_tHandler::get_reference(
+				a.get_storage()), yforward(args)...));
+		}
+	};
+
+	// XXX: The empty state is solely determined by %content, having nothing to
+	//	do with %p_invoke.
+	any content{default_init};
+	// XXX: The invoker pointer outside %content would cause the %function
+	//	object not fit in %any, as well as cost of copy, move and swap. This
+	//	is reasonable at the cost for fast invocation in %operator().
+	_tRet(*p_invoke)(const any&, _tParams...);
+
+public:
+	function() ynothrow yimpl(= default);
+	//! \ingroup YBase_replacement_extensions
+	template<class _tAlloc>
+	function(std::allocator_arg_t, const _tAlloc&) ynothrow
+		: function()
+	{}
+	function(nullptr_t) ynothrow
+		: function()
+	{}
+	//! \ingroup YBase_replacement_extensions
+	template<class _tAlloc>
+	function(std::allocator_arg_t, const _tAlloc&, nullptr_t, const _tAlloc&)
+		ynothrow
+		: function()
+	{}
+	/*!
+	\see LWG 2781 。
+	\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66284 。
+	*/
+	template<typename _fCallable,
+		yimpl(typename = exclude_self_t<function, _fCallable>), yimpl(typename
+		= enable_if_t<is_invocable_r<_tRet, _fCallable&, _tParams...>::value>)>
+	function(_fCallable f)
+		: function()
+	{
+		if(ystdex::function_not_empty(f))
+			yunseq(content = any(std::move(f)),
+				// XXX: Here lambda-expression is buggy in G++ LTO.
+				p_invoke = invoker<any_ops::value_handler<_fCallable>>::invoke);
+	}
+	//! \ingroup YBase_replacement_extensions
+	template<typename _fCallable, class _tAlloc,
+		yimpl(typename = exclude_self_t<function, _fCallable>), yimpl(typename
+		= enable_if_t<is_invocable_r<_tRet, _fCallable&, _tParams...>::value>)>
+	function(std::allocator_arg_t, const _tAlloc& a, _fCallable f)
+		: function()
+	{
+		if(ystdex::function_not_empty(f))
+			yunseq(content = any(std::allocator_arg, a, std::move(f)),
+				// XXX: Here lambda-expression is buggy in G++ LTO.
+				p_invoke = invoker<any::allocated_value_handler_t<_tAlloc,
+				_fCallable>>::invoke);
+	}
+	function(const function&) = default;
+	/*!
+	\ingroup YBase_replacement_extensions
+	\throw allocator_mismatch_error 分配器不兼容。
+	*/
+	template<class _tAlloc>
+	function(std::allocator_arg_t, const _tAlloc& a, const function& x)
+		: content(std::allocator_arg, a, x), p_invoke(x.p_invoke)
+	{}
+	// NOTE: The 'ynothrow' is presented as a conforming extension to ISO C++17,
+	//	as well as a conforming extension of WG21 P0288.
+	// XXX: The moved-from value is valid but unspecified. It is empty here to
+	//	simplify the implementation (as libstdc++ does), which is still not
+	//	guaranteed by the interface.
+	function(function&&) yimpl(ynothrow) = default;
+	/*!
+	\ingroup YBase_replacement_extensions
+	\throw allocator_mismatch_error 分配器不兼容。
+	*/
+	template<class _tAlloc>
+	function(std::allocator_arg_t, const _tAlloc& a, function&& x)
+		: content(std::allocator_arg, a, std::move(x)), p_invoke(x.p_invoke)
+	{}
+
+	function&
+	operator=(nullptr_t) ynothrow
+	{
+		content = any();
+		return *this;
+	}
+	template<typename _fCallable,
+		yimpl(typename = exclude_self_t<function, _fCallable>), yimpl(typename
+		= enable_if_t<is_invocable_r<_tRet, _fCallable&, _tParams...>::value>)>
+	function&
+	operator=(_fCallable f)
+	{
+		// NOTE: Efficiency consideration is simliar to %any::operator=, as
+		//	construction of %p_invoke here is simple enough.
+		return *this = function(std::move(f));
+	}
+	template<typename _fCallable>
+	function&
+	operator=(std::reference_wrapper<_fCallable> f) ynothrow
+	{
+		// NOTE: Ditto.
+		return *this = function(f);
+	}
+	// NOTE: Ditto.
+	function&
+	operator=(const function&) yimpl(= default);
+	// NOTE: Ditto.
+	function&
+	operator=(function&& f) ynothrow yimpl(= default);
+
+	YB_ATTR_nodiscard YB_PURE friend bool
+	operator==(const function& f, nullptr_t) ynothrow
+	{
+		return !f;
+	}
+
+	//! \pre 断言： \c bool(*this) 。
+	_tRet
+	operator()(_tParams... args) const
+	{
+		yconstraint(bool(*this));
+		yassume(p_invoke);
+		return p_invoke(content, yforward(args)...);
+	}
+
+	YB_ATTR_nodiscard YB_PURE explicit
+	operator bool() const ynothrow
+	{
+		return content.has_value();
+	}
+
+	//! \see LWG 2062 。
+	void
+	swap(function& f) ynothrow
+	{
+		std::swap(p_invoke, f.p_invoke),
+		content.swap(f.content);
+	}
+	friend void
+	swap(function& x, function& y) ynothrow
+	{
+		return x.swap(y);
+	}
+
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE _type*
+	target() ynothrow
+	{
+		return content.template target<_type>();
+	}
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE const _type*
+	target() const ynothrow
+	{
+		return content.template target<_type>();
+	}
+
+	YB_ATTR_nodiscard YB_PURE const type_info&
+	target_type() const ynothrow
+	{
+		return content.type();
+	}
+};
+
+//! \relates function
+//@{
+template<typename _fCallable>
+struct make_parameter_tuple<function<_fCallable>>
+	: make_parameter_tuple<_fCallable>
+{};
+
+template<typename _fCallable>
+struct return_of<function<_fCallable>>
+	: return_of<_fCallable>
+{};
 //@}
 //@}
 
