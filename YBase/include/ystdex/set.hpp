@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r1389
+\version r1429
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2018-11-24 15:16 +0800
+	2018-12-31 11:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,15 +29,15 @@
 #define YB_INC_ystdex_set_hpp_ 1
 
 #include "functor.hpp" // for lref, std::move, less, std::allocator,
-//	std::allocator_traits, std::piecewise_construct, enable_if_transparent,
+//	std::piecewise_construct, enable_if_transparent,
 //	std::count, std::lower_bound, std::upper_bound, std::equal_range;
 #include "iterator.hpp" // for transformed_iterator,
 //	iterator_transformation::second, ystdex::reverse_iterator,
 //	ystdex::make_transform, index_sequence, std::tuple, std::forward_as_tuple,
 //	std::get;
 #include "map.hpp" // for "tree.hpp" (implying "range.hpp"), map,
-//	std::initializer_list, ystdex::search_map_by, ystdex::emplace_hint_in_place,
-//	ystdex::as_const;
+//	rebind_alloc_t, std::initializer_list, ystdex::search_map_by,
+//	ystdex::emplace_hint_in_place, ystdex::as_const;
 
 namespace ystdex
 {
@@ -255,7 +255,7 @@ private:
 	using mapped_key_compare = details::tcompare<mapped_key_type, _fComp>;
 	using umap_pair = std::pair<const mapped_key_type, value_type>;
 	using umap_type = map<mapped_key_type, value_type, mapped_key_compare,
-		typename allocator_traits<_tAlloc>::template rebind_alloc<umap_pair>>;
+		rebind_alloc_t<_tAlloc, umap_pair>>;
 	// NOTE: Here %get_second cannot be used directory due to possible
 	//	incomplete value type and requirement on conversion between
 	//	'const_iterator' and 'iterator'.
@@ -359,93 +359,93 @@ public:
 		return *this = mapped_set(il);
 	}
 
-	allocator_type
+	YB_ATTR_nodiscard YB_PURE allocator_type
 	get_allocator() const ynothrow
 	{
 		return m_map.get_allocator();
 	}
 
-	iterator
+	YB_ATTR_nodiscard YB_PURE iterator
 	begin() ynothrow
 	{
 		return iterator(m_map.begin());
 	}
-	const_iterator
+	YB_ATTR_nodiscard YB_PURE const_iterator
 	begin() const ynothrow
 	{
 		return const_iterator(m_map.begin());
 	}
 
-	iterator
+	YB_ATTR_nodiscard YB_PURE iterator
 	end() ynothrow
 	{
 		return iterator(m_map.end());
 	}
-	const_iterator
+	YB_ATTR_nodiscard YB_PURE const_iterator
 	end() const ynothrow
 	{
 		return const_iterator(m_map.end());
 	}
 
-	reverse_iterator
+	YB_ATTR_nodiscard YB_PURE reverse_iterator
 	rbegin() ynothrow
 	{
 		return reverse_iterator(end());
 	}
-	const_reverse_iterator
+	YB_ATTR_nodiscard YB_PURE const_reverse_iterator
 	rbegin() const ynothrow
 	{
 		return const_reverse_iterator(end());
 	}
 
-	reverse_iterator
+	YB_ATTR_nodiscard YB_PURE reverse_iterator
 	rend() ynothrow
 	{
 		return reverse_iterator(begin());
 	}
-	const_reverse_iterator
+	YB_ATTR_nodiscard YB_PURE const_reverse_iterator
 	rend() const ynothrow
 	{
 		return const_reverse_iterator(begin());
 	}
 
-	const_iterator
+	YB_ATTR_nodiscard YB_PURE const_iterator
 	cbegin() const ynothrow
 	{
 		return const_iterator(m_map.cbegin());
 	}
 
-	const_iterator
+	YB_ATTR_nodiscard YB_PURE const_iterator
 	cend() const ynothrow
 	{
 		return const_iterator(m_map.cend());
 	}
 
-	const_reverse_iterator
+	YB_ATTR_nodiscard YB_PURE const_reverse_iterator
 	crbegin() const ynothrow
 	{
 		return const_reverse_iterator(end());
 	}
 
-	const_reverse_iterator
+	YB_ATTR_nodiscard YB_PURE const_reverse_iterator
 	crend() const ynothrow
 	{
 		return const_reverse_iterator(begin());
 	}
 
-	YB_ATTR_nodiscard bool
+	YB_ATTR_nodiscard YB_PURE bool
 	empty() const ynothrow
 	{
 		return m_map.empty();
 	}
 
-	size_type
+	YB_ATTR_nodiscard YB_PURE size_type
 	size() const ynothrow
 	{
 		return m_map.size();
 	}
 
-	size_type
+	YB_ATTR_nodiscard YB_PURE size_type
 	max_size() const ynothrow
 	{
 		return m_map.max_size();
@@ -490,8 +490,11 @@ private:
 		return emplace_res_conv(emplace_search(
 			[&](typename umap_type::const_iterator i){
 			auto&& ek(traits_type::extend_key(std::move(k), *this));
+			// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
+			//	error: Segmentation fault.
 			const auto j(ystdex::emplace_hint_in_place(m_map, i,
-				mapped_key_type(ystdex::as_const(ek)), yforward(args)...));
+				mapped_key_type(ystdex::as_const(ek)),
+				std::forward<_tParams>(args)...));
 
 			traits_type::restore_key(j->second, std::move(ek));
 			return j;
@@ -499,9 +502,8 @@ private:
 	}
 	//@}
 
-	//! \since build 845
-	template<typename _func, typename _tKey, size_t... _vSeq, typename... _tSeq,
-		typename... _tParams>
+	//! \since build 849
+	template<typename _func, typename _tKey, size_t... _vSeq, typename... _tSeq>
 	std::pair<typename umap_type::iterator, bool>
 	emplace_search(_func f, const _tKey& k, index_sequence<_vSeq...>,
 		std::tuple<_tSeq...> pos)
@@ -638,13 +640,13 @@ public:
 		m_map.clear();
 	}
 
-	key_compare
+	YB_ATTR_nodiscard YB_PURE key_compare
 	key_comp() const
 	{
 		return m_map.key_comp().comp;
 	}
 
-	value_compare
+	YB_ATTR_nodiscard YB_PURE value_compare
 	value_comp() const
 	{
 		return m_map.key_comp().comp;
@@ -653,15 +655,15 @@ public:
 #define YB_Impl_Set_GenericLookupHead(_n, _r) \
 	template<typename _tTransKey, \
 		yimpl(typename = enable_if_transparent_t<_fComp, _tTransKey>)> \
-	_r \
+	YB_ATTR_nodiscard YB_PURE _r \
 	_n(const _tTransKey& x)
 
-	iterator
+	YB_ATTR_nodiscard YB_PURE iterator
 	find(const key_type& x)
 	{
 		return iterator(m_map.find(mapped_key_type(x)));
 	}
-	const_iterator
+	YB_ATTR_nodiscard YB_PURE const_iterator
 	find(const key_type& x) const
 	{
 		return const_iterator(m_map.find(mapped_key_type(x)));
@@ -689,7 +691,7 @@ public:
 #endif
 	}
 
-	size_type
+	YB_ATTR_nodiscard YB_PURE size_type
 	count(const key_type& x) const
 	{
 		return m_map.count(mapped_key_type(x));
@@ -705,12 +707,12 @@ public:
 #endif
 	}
 
-	iterator
+	YB_ATTR_nodiscard YB_PURE iterator
 	lower_bound(const key_type& x)
 	{
 		return iterator(m_map.lower_bound(mapped_key_type(x)));
 	}
-	const_iterator
+	YB_ATTR_nodiscard YB_PURE const_iterator
 	lower_bound(const key_type& x) const
 	{
 		return const_iterator(m_map.lower_bound(mapped_key_type(x)));
@@ -734,12 +736,12 @@ public:
 #endif
 	}
 
-	iterator
+	YB_ATTR_nodiscard YB_PURE iterator
 	upper_bound(const key_type& x)
 	{
 		return iterator(m_map.upper_bound(mapped_key_type(x)));
 	}
-	const_iterator
+	YB_ATTR_nodiscard YB_PURE const_iterator
 	upper_bound(const key_type& x) const
 	{
 		return const_iterator(m_map.upper_bound(mapped_key_type(x)));
@@ -763,14 +765,14 @@ public:
 #endif
 	}
 
-	std::pair<iterator, iterator>
+	YB_ATTR_nodiscard YB_PURE std::pair<iterator, iterator>
 	equal_range(const key_type& x)
 	{
 		const auto pr(m_map.equal_range(mapped_key_type(x)));
 
 		return {iterator(pr.first), iterator(pr.second)};
 	}
-	std::pair<const_iterator, const_iterator>
+	YB_ATTR_nodiscard YB_PURE std::pair<const_iterator, const_iterator>
 	equal_range(const key_type& x) const
 	{
 		const auto pr(m_map.equal_range(mapped_key_type(x)));
@@ -836,7 +838,7 @@ private:
 	//@}
 
 	//! \since build 844
-	friend inline void
+	friend void
 	swap(mapped_set& x, mapped_set& y) ynoexcept_spec(x.swap(y))
 	{
 		x.swap(y);

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2018 FrankHB.
+	© 2012-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r784
+\version r794
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2018-11-12 02:52 +0800
+	2019-01-01 10:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,15 +76,16 @@ ValueNode::SwapContent(ValueNode& node) ynothrowv
 }
 
 void
-ValueNode::ThrowIndexOutOfRange()
+ValueNode::ThrowIndexOutOfRange(size_t idx)
 {
-	throw std::out_of_range("Index is out of range.");
+	throw std::out_of_range(ystdex::sfmt("Index '%zu' is out of range.", idx));
 }
 
 void
-ValueNode::ThrowWrongNameFound()
+ValueNode::ThrowWrongNameFound(string_view name)
 {
-	throw std::out_of_range("Wrong name found.");
+	throw std::out_of_range(ystdex::sfmt("Wrong name '%s' found.",
+		Nonnull(name.data())));
 }
 
 void
@@ -99,14 +100,14 @@ AccessNode(ValueNode::Container* p_con, const string& name)
 {
 	if(const auto p = AccessNodePtr(p_con, name))
 		return *p;
-	ValueNode::ThrowWrongNameFound();
+	ValueNode::ThrowWrongNameFound(name);
 }
 const ValueNode&
 AccessNode(const ValueNode::Container* p_con, const string& name)
 {
 	if(const auto p = AccessNodePtr(p_con, name))
 		return *p;
-	ValueNode::ThrowWrongNameFound();
+	ValueNode::ThrowWrongNameFound(name);
 }
 ValueNode&
 AccessNode(ValueNode& node, size_t n)
@@ -115,7 +116,7 @@ AccessNode(ValueNode& node, size_t n)
 
 	if(p)
 		return *p;
-	ValueNode::ThrowIndexOutOfRange();
+	ValueNode::ThrowIndexOutOfRange(n);
 }
 const ValueNode&
 AccessNode(const ValueNode& node, size_t n)
@@ -124,7 +125,7 @@ AccessNode(const ValueNode& node, size_t n)
 
 	if(p)
 		return *p;
-	ValueNode::ThrowIndexOutOfRange();
+	ValueNode::ThrowIndexOutOfRange(n);
 }
 
 observer_ptr<ValueNode>

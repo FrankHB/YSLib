@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2018 FrankHB.
+	© 2012-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r2949
+\version r2954
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2018-12-02 16:20 +0800
+	2019-01-01 13:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -148,7 +148,8 @@ public:
 	basic_string(_tIn begin, _tIn end, const _tAlloc& a = _tAlloc())
 		: base(begin, end, a)
 	{}
-	basic_string(std::initializer_list<_tChar>, const _tAlloc& = _tAlloc())
+	basic_string(std::initializer_list<_tChar> il, const _tAlloc& a = _tAlloc())
+		: base(il, a)
 	{}
 	basic_string(const base& str, const _tAlloc& a)
 		: base(str, a)
@@ -687,12 +688,12 @@ public:
 	{
 		return std::move(lhs.append(rhs));
 	}
-	YB_ATTR_nodiscard YB_PURE YB_NONNULL(1) friend basic_string
+	YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE friend basic_string
 	operator+(const _tChar* lhs, const basic_string& rhs)
 	{
 		return basic_string(lhs) + rhs;
 	}
-	YB_ATTR_nodiscard YB_PURE YB_NONNULL(1) friend basic_string
+	YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE friend basic_string
 	operator+(const _tChar* lhs, basic_string&& rhs)
 	{
 		return std::move(rhs.insert(0, lhs));

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 注册表。
-\version r148
+\version r155
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2015-09-12 19:39:47 +0800
 \par 修改时间:
-	2016-07-30 19:43 +0800
+	2019-01-03 17:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 #include YFM_YCLib_Platform
 #if YCL_Win32
 #	include YFM_Win32_YCLib_Registry
+#	include <ystdex/type_pun.hpp> // for ystdex::replace_cast;
 #endif
 
 namespace platform_ex
@@ -57,8 +58,9 @@ RegistryKey::GetRawValue(const wchar_t* name, unsigned long type) const
 
 	vector<byte> res(size);
 
-	YCL_RaiseZ_Win32E(::RegQueryValueExW(h_key, name,
-		{}, &type, &res[0], &size), "RegQueryValueExW");
+	YCL_RaiseZ_Win32E(::RegQueryValueExW(h_key, name, {}, &type,
+		ystdex::replace_cast<unsigned char*>(&res[0]), &size),
+		"RegQueryValueExW");
 	return {type, std::move(res)};
 }
 size_t
@@ -78,7 +80,7 @@ RegistryKey::GetSubKeyNames() const
 
 	if(cnt > 0)
 	{
-		// NOTE: See http://msdn.microsoft.com/en-us/library/windows/desktop/ms724872(v=vs.85).aspx .
+		// NOTE: See http://msdn.microsoft.com/en-us/library/windows/desktop/ms724872(v=vs.85).aspx.
 		wchar_t name[256];
 
 		for(res.reserve(cnt); res.size() < cnt; res.emplace_back(name))
@@ -105,7 +107,7 @@ RegistryKey::GetValueNames() const
 
 	if(cnt > 0)
 	{
-		// NOTE: See http://msdn.microsoft.com/en-us/library/windows/desktop/ms724872(v=vs.85).aspx .
+		// NOTE: See http://msdn.microsoft.com/en-us/library/windows/desktop/ms724872(v=vs.85).aspx.
 		wchar_t name[16384];
 
 		for(res.reserve(cnt); res.size() < cnt; res.emplace_back(name))

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2018 FrankHB.
+	© 2011-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r4227
+\version r4259
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2018-12-27 15:51 +0800
+	2019-01-05 19:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,8 +40,8 @@
 //	is_aligned_storable, ystdex::pvoid, default_init_t, default_init;
 #include "memory.hpp" // for ystdex::clone_monomorphic_ptr, std::allocator,
 //	allocator_delete, exclude_self_params_t, alloc_value_t, rebind_alloc_t,
-//	allocator_traits, ystdex::allocate_unique, in_place_type_t, in_place_type,
-//	std::allocator_arg_t;
+//	allocator_traits, ystdex::allocate_unique, in_place_type_t,
+//	vseq::_a, is_instance_of, std::allocator_arg_t, in_place_type;
 #include "exception.h" // for throw_invalid_construction,
 //	throw_allocator_mismatch_error;
 #include "ref.hpp" // for is_reference_wrapper, unwrap_reference_t;
@@ -365,9 +365,13 @@ union any_trivial_local_data
 */
 union any_local_data
 {
+	//! \since build 849
+	using allocated_t = std::unique_ptr<yimpl(int),
+		allocator_delete<yimpl(std::allocator<int>)>>;
+
 	any_trivial_local_data trivial;
-	std::unique_ptr<yimpl(int), allocator_delete<yimpl(std::allocator<int>)>>
-		allocated;
+	//! \since build 849
+	aligned_storage_t<sizeof(allocated_t), yalignof(allocated_t)> allocated;
 };
 //@}
 
@@ -472,7 +476,7 @@ private:
 			: p_val(make_unique<value_type>(yforward(args)...))
 		{}
 		memory_thunk(const memory_thunk& mt)
-			: p_val(make_unique(*p_val))
+			: p_val(make_unique(*mt.p_val))
 		{}
 		memory_thunk(memory_thunk&& mt) = default;
 
@@ -1311,6 +1315,10 @@ class YB_API any : private details::any_base, private details::any_emplace<any>
 	friend details::any_emplace<any>;
 
 private:
+	//! \since build 849
+	template<typename _type>
+	using exclude_tag_t = enable_if_t<!is_instance_of<decay_t<_type>,
+		vseq::_a<in_place_type_t>>::value>;
 	//! \since build 848
 	//@{
 	template<bool _vInPlace = false>
@@ -1364,8 +1372,12 @@ public:
 		: any_base(default_init)
 	{}
 	//@}
-	//! \since build 448
-	template<typename _type, yimpl(typename = exclude_self_t<any, _type>)>
+	/*!
+	\note YStandardEx 扩展：允许不满足 CopyConstructible 的类型的值作为参数。
+	\since build 849
+	*/
+	template<typename _type, yimpl(typename = exclude_self_t<any, _type>,
+		typename = exclude_tag_t<_type>)>
 	inline
 	any(_type&& x)
 		: any(any_ops::with_handler_t<any_ops::value_handler<decay_t<_type>>>(),
@@ -1373,10 +1385,10 @@ public:
 	{}
 	/*!
 	\ingroup YBase_replacement_extensions
-	\since build 848
+	\since build 849
 	*/
-	template<typename _type, class _tAlloc,
-		yimpl(typename = exclude_self_t<any, _type>)>
+	template<typename _type, class _tAlloc, yimpl(
+		typename = exclude_self_t<any, _type>, typename = exclude_tag_t<_type>)>
 	inline
 	any(std::allocator_arg_t, const _tAlloc& a, _type&& x)
 		: any(opt_in_place_t<_type>(), a, yforward(x))
@@ -1398,7 +1410,10 @@ public:
 		: any(opt_in_place_t<_type>(), a, in_place_type<_type>,
 		yforward(args)...)
 	{}
-	template<typename _type, typename _type2, typename... _tParams>
+	//! \note YStandardEx 扩展：允许不满足 CopyConstructible 的类型的值作为参数。
+	template<typename _type, typename _type2, typename... _tParams,
+		yimpl(typename = enable_if_t<is_constructible<decay_t<_type>,
+		std::initializer_list<_type2>&, _tParams...>::value>)>
 	explicit inline
 	any(in_place_type_t<_type>, std::initializer_list<_type2> il,
 		_tParams&&... args)
@@ -1407,7 +1422,9 @@ public:
 	{}
 	//! \ingroup YBase_replacement_extensions
 	template<typename _type, typename _type2, class _tAlloc,
-		typename... _tParams>
+		typename... _tParams,
+		yimpl(typename = enable_if_t<is_constructible<decay_t<_type>,
+		std::initializer_list<_type2>&, _tParams...>::value>)>
 	inline
 	any(std::allocator_arg_t, const _tAlloc& a, in_place_type_t<_type>,
 		std::initializer_list<_type2> il, _tParams&&... args)
@@ -1569,8 +1586,9 @@ public:
 		checked_destroy();
 	}
 
-	//! \since build 687
-	template<typename _type, yimpl(typename = exclude_self_t<any, _type>)>
+	//! \since build 849
+	template<typename _type, yimpl(typename = exclude_self_t<any, _type>,
+		typename = exclude_tag_t<_type>)>
 	inline any&
 	operator=(_type&& x)
 	{

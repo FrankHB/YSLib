@@ -1,5 +1,5 @@
 ﻿/*
-	© 2017-2018 FrankHB.
+	© 2017-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r9148
+\version r9671
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-12-28 14:22 +0800
+	2019-01-06 18:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,508 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YDefinition $=
+		(
+			+ ('__cplusplus >= 201103L', 'YB_IMPL_MSCPP >= 1800')
+				@ "inclusion condition disjunction" @ "macro %YB_HAS_ALIGNAS",
+			+ '__has_feature(cxx_alignof) || __has_extension(cxx_alignof)',
+				'__cplusplus >= 201103L', 'YB_IMPL_MSCPP >= 1800'
+				@ "inclusion condition disjunction" @ "macro %YB_HAS_ALIGNOF"
+		),
+		/ %YStandardEx $=
+		(
+			+ "binary type trait %is_instance_of" @ %TypeOperation,
+			/ %MemoryResource $=
+			(
+				/ DLDI "fixed class-key for %pool_resource::pool_t" ^ 'class'
+					~ 'struct',
+					// To eliminate Microsoft VC++ warning: C4099.
+				* "ill-formed pool implementation due to conditional inclusion"
+					@ 'YB_Has_memory_resource != 1' $since b843,
+				+ $re_add(b847) DLDI 'YB_ATTR_nodiscard YB_PURE'
+					@ "internal functions",
+				/ @ "class template %polymorphic_allocator" $=
+				(
+					+ $workaround "pre-C++11 allocator members"
+						@ 'defined(__GLIBCXX__) && (__GLIBCXX__ <= 20150617 \
+						|| YB_IMPL_GNUCPP < 60000)' $dep_to
+						"G++ 5.3 workarounds",
+					/ DLDI "simplified function template %construct#1"
+						^ $dep_from ("%is_instance_of" @ %TypeOperation)
+						~ "%vseq::ctor_of_t"
+				)
+			),
+			/ %Set $=
+			(
+				/ @ "class template %mapped_set" $=
+				(
+					/ @ "private function templates to implement %(emplace, \
+						emplace_hint)" $=
+					(
+						* $dev "redundant parameter pack" @ %Set
+							$since b845,
+							// To eliminate Microsoft VC++ 15.9.4 error: \
+								C3547. This should be conforming but it was \
+								not intended.
+						+ $workaround ^ "%std::forward" ~ "%yforward" $dep_to
+							"G++ 5.3 workarounds"
+					),
+					/ $re_add(b848) DLDI "simplified private member type"
+						^ "%rebind_alloc_t" ~ "%allocator_traits",
+					+ $dev $lib 'YB_PURE' @ "function %empty",
+					- DLDI 'inline' @ "friend function %swap"
+				),
+				+ $re_ex(b847) $dev $lib 'YB_ATTR_nodiscard' @ "returning \
+					non-void functions or function templates with names \
+					%(get_allocator, find, count, equal_range) or name \
+					postfixes ('begin', 'end', 'size', 'comp', 'bound')"
+					$effective @ "class template %mapped_set"
+			),
+			/ %CStandardInteger $=
+			(
+				* "wrong range used for %floor_lb except for 32-bit or 64-bit \
+					integer pamaters" @ "'__builtin_clz*' is not used"
+					@ %CStandardInteger $since b842,
+					// Use of %std::uintmax_t could be wrongly truncated.
+				+ $dev 'YB_STATELESS' @ "functions %(floor_lb, ceiling_lb)",
+				+ $dev 'YB_ATTR_nodiscard YB_PURE' @ "function templates \
+					%(pack_uint, read_uint_be, read_uint_le)"
+			),
+			/ %Any $=
+			(
+				/ @ "union %any_ops::any_local_data" $=
+				(
+					+ "type %allocated_t";
+					/ "type" @ "%allocated" ^ "%aligned_storage_t";
+					/ $comp "made the destructor not defined as deleted"
+						// To eliminate Microsoft VC++ warning: C4624."
+				),
+				* "invalid copy" @ "internal thunk" @ "class template \
+					%value_handler" $since b848,
+				/ @ "class %any" $=
+				(
+					// It would also be nonconforming to ISO C++17.
+					* "missing exclusion of %in_place_type_t instance"
+						@ "%any constructors and %operator= with target \
+						parameter" $since b717 ^ $dep_from
+						("%is_instance_of" @ %TypeOperation),
+					* "missing exclusion of %std::initializer_list instance \
+						mismatching to value type" @ "%any constructors with \
+						parameter of %std::initializer_list instance" $since
+						b848
+				)
+			),
+			/ %Meta $=
+			(
+				/ "inclusion condition" @ "alias template %well_formed_t" @ $=
+				(
+					* "missing refinement of G++ version" $orig
+						(@ "alias template %void_t" @ %TypeTraits $since b653)
+						$= (/ $dev $revert_ex(b727) "refined inclusion \
+							condition 'YB_IMPL_GNUCPP' as \
+							'YB_IMPL_GNUCPP > 50000'"),
+						// The CWG issue resolution should be reflected even \
+							if the minimal revision is changed to guarantee \
+							all supported versions (currently documented in \
+							%Documentation.Dependencies) of the implementation \
+							can work, which is not obvious here. Note before \
+							this change, the development branch GCC 5 should \
+							still be supported, so it is a bug since before \
+							b727 till now.
+					+ "disjunction 'YB_IMPL_MSCPP >= 1900' as the condition",
+						// Also to eliminate Microsoft VC++ 15.9.4 error: \
+							C2794. Note the %void_t implementation in \
+							<type_traits> indicates CWG 1558 should be already \
+							resolved. There seems other bugs.
+					+ "disjunction '__cplusplus >= 201703L' as the condition",
+						// ISO C++17 contains the resolution.
+					+ "disjunction 'YB_IMPL_CLANGPP' as the condition"
+						// Nothing in https://clang.llvm.org/cxx_status.html \
+							mentions the status. It seems that resolution of \
+							CWG 1558 is always supported by Clang++, cf. https://github.com/ericniebler/range-v3/commit/07f46e32781ec8057aef1587508f762c1439b793#diff-89dffaa78208ff41cbaac3034d99a114R579.
+				)
+			),
+			/ DD "Doxygen groups %(type_traits_operations, unary_type_traits, \
+				binary_type_traits, transformation_traits)" >> %TypeInspection
+			/ %Memory $=
+			(
+				(
+				/ DLDI "simplified function templates %(make_allocator_guard, \
+					create_with_allocator)" ^ "%allocator_guard"
+					~ "%std::unique_ptr";
+				* "wrong value type" @ "alias template %allocator_guard" $since
+					b843
+				),
+				(
+				/ "function template %create_with_allocator" $=
+				(
+					/ "returned %std::unique_ptr instance" ~ "raw pointer",
+						// To avoid leaks too easy.
+					/ "%create_with_allocator supported uses-allocator \
+						construction" ^ "%allocator_traits constructor"
+				);
+				/ @ "function template %allocate_unique" $=
+				(
+					/ $forced DLDI "return",
+					* $comp "missing uses-construction support" $since b847
+				),
+				+ "function template or using-declaration %allocate_shared"
+				),
+				+ $dev 'YB_ATTR_nodiscard'
+					@ "function template %allocate_unique"
+			),
+			/ @ "unary type trait %is_null_ptr"
+				@ '__cpp_lib_is_null_pointer >= 201309L' @ %TypeInspection $=
+			(
+				+ DD '\ingroup YBase_replacement_features unary_type_traits'
+					@ "Doxygen comment",
+				* "undeclared %remove_cv_t" $since b832
+					$= (/ ^ "%std::remove_cv" ~ "%remove_cv_t",
+				* "redundant 'std::' before 'nullptr_t" $since b832
+			),
+			/ @ "class templates %basic_string" @ %String $=
+			(
+				* "wrongly initialized to empty string due to missing \
+					base-init-list" @ "constructor %basic_string with \
+					parameter of %std::initializer_list instance"
+					!@ '__cpp_inheriting_constructors >= 201511L' $since b838,
+				* "wrong order of 'YB_NONNULL(1)' and 'YB_PURE'"
+					@ "%operator+ overloads with pointer parameter"
+					$mismatch(Documentation.LanguageConvention) $since b846
+			),
+			/ %Function $=
+			(
+				+ "enum class %empty_function_policy";
+				+ "class template %function_traits";
+				/ $lib "function template %function"
+					-> "function template %function_base; alias template \
+					%function";
+				+ $comp "throwing %std::bad_function_call"
+					@ "%operator() call on empty targets" @ "%function",
+					// This is now similar to %std::function.
+				* $comp "missing '&&'" @ "parameter type" @ "%operator= for \
+					callable paramters"
+					@ "class template specicalization %function"
+					@ %Function $since b948,
+				/ $lib "extended %function specialization to %function_base"
+					@ "traits %(make_parameter_tuple, return_of)",
+				+ "alias templates %unchecked_function",
+					// This is similar to the old %ystdex::function.
+				+ "alias templates %optional_function"
+			),
+			/ %Functional $=
+			(
+				/ @ "class template %expanded_caller"
+					$def_from ("class templates %(CallUnary, CallUnaryAs, \
+					CallBinary, CallBinaryAs)" @ %YFramework.NPL.NPLA1) $=
+				(
+					/ DLDI "names of template parameters",
+						// To be consistent to %YSLib::GHEvent, etc.
+					+ "explicitly defaulted (default, copy, move) constructors, \
+						(copy, move) %operator=",
+					/ "constructor template" ^ "callable object"
+						~ "callable reference" !^ "%ystdex::decay_t"
+						// See $2019-01 @ %Documentation::Workflow::Annual2019.
+				),
+				/ "function template %make_expanded" $=
+				(
+					/ "parameter" -> "callable object" ~ "callable reference"
+						!^ "%ystdex::decay_t",
+						// Ditto.
+					* "ill-formed but no diagnostics required bogus \
+						'yconstfn'" $since b448
+						$= (/ 'yconstfn' -> 'inline')
+				),
+				+ $re_ex(b847) 'YB_ATTR_nodiscard YB_PURE' @ "function \
+					templates %(bind1, bind_forward, compose, make_expanded)",
+				+ $re_ex(b847) 'YB_ATTR_nodiscard'
+					@ "function template %invoke_for_value",
+				/ $lib "extended %function specialization to %function_base"
+					@ "traits %call_projection" $dep_from
+					("%function_base" @ %Function)
+			)
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %CHRLib $=
+		(
+			/ %CharacterProcessing $=
+			(
+				* "missing inclusion %YBase.YStandardEx.CString"
+					@ "<string_view> used" $since b831,
+				+ $re_add(b846) $dev $lib 'YB_ATTR_nodiscard YB_STATELESS'
+					@ "function templates %(IsASCII, ToASCII)",
+				+ $re_add(b847) $dev $lib 'YB_ATTR_nodiscard YB_PURE' 
+					@ "functions with name prefix 'Make'"
+			),
+			* "missing inclusion %YBase.YStandardEx.TypeTraits"
+				@ "<string_view> used" @ %MappingEx $since b831,
+			+ $re_add(b847) $dev $lib 'YB_ATTR_nodiscard'
+				@ "function templates with name %(Decode, Encode)"
+				@ %(StaticMapping, MappingEx),
+			+ $re_add(b846) $dev $lib 'YB_ATTR_nodiscard YB_STATELESS'
+				@ "static function with name postfix 'Invalid'"
+				@ "class template specialization %GUCSMapper<CharSet::UTF_8>"
+				@ %MappingEx
+			/ @ %StaticMapping $=
+			(
+				/ "distinguished %byte and other 1-byte integral"
+					@ "static assertion" @ "function template %CheckIterator",
+				+ $re_add(b846) $dev $lib 'YB_ATTR_nodiscard' @ "function \
+					templates with name prefix 'Fetch'",
+				/ DLI "avoided redundant %byte initialization"
+					@ "static function %Decode#2" @ "class template \
+					specialization %GUCSMapper<CharSet::UTF_8>"
+			)
+		),
+		/ "%allocate_shard" %YCLib.Reference
+			^ ($dep_from "%ystdex::allocate_shared" @ %YBase.YStandardEx.Memory)
+			~ "%std::allocate_shared" $dep_all_from "qualified allocate_shared",
+			// See https://developercommunity.visualstudio.com/content/problem/417142/lwg-2070p0674r1-stdallocate-shared-is-not-conformi.html, \
+				also https://developercommunity.visualstudio.com/content/problem/80724/allocate-shared-performane-issue.html.
+		/ %YSLib $=
+		(
+			/ %YSLib $=
+			(
+				/ %Adaptor $=
+				(
+					/ %Font $=
+					(
+						+ "debug logs"
+							@ "member function %FontCache::LoadTypefaces",
+						+ $dev 'YB_ATTR_returns_nonnull'
+							@ "function %FetchName",
+						+ $re_add(b847) $dev $lib 'YB_ATTR_nodiscard YB_PURE' 
+							@ "functions with name prefixes ('Fetch', 'Get', \
+							'Lookup')",
+						/ DLDI "member functions %Font::(GetAscender, \
+							GetDescender)"
+					),
+					/ %Image $=
+					(
+						/ "truncated 'unsigned'" ~ 'unsigned long'
+							$effective @ "%Image::(SetCount, SetLength), \
+							%ImageMemory constructor buffer size",
+							// Also to eliminate Clang++ warning: \
+								[-Wshorten-64-to-32].
+						+ $re_add(b847) $dev $lib 'YB_ATTR_nodiscard YB_PURE' 
+							@ "functions with name prefixes 'Get' or names \
+							%(operator*, operator CompactPixmap, Lock, begin, \
+							end, to_string, Load)", \
+						+ $re_add(b847) $dev $lib 'YB_ATTR_nodiscard' 
+							@ "functions and function templates with names \
+							%(Release, DetectFormat) or prefix 'LoadFor'",
+						+ $dev $lib 'YB_ATTR_returns_nonnull YB_PURE'
+							@ "member function %HBitmap::operator[]",
+						- $revert(b557) 'final'
+							@ "class %ImageMetadataFindData",
+						/ @ "class %HImageMetadata" $=
+						(
+							(
+							/ DLI ^ "private base" ~ "%unique_ptr" $dep_from
+								"%ImageMetadataFindData";
+							/ $forced DLDI "function %operator (bool, ++), \
+								constructor",
+							* "missing definition of function operator \
+								%ImageTag" $since b557 ^ "%DefCvt",
+							/ $forced $lib "function %Rewind"
+								-> 'using ImageMetadataFindData::Rewind;'
+							),
+							- $revert(b557) $dev $lib "redundant \
+								'friend deref_self<HImageMetadata>;'",
+							* $re_add(b820) "missing exclusion of self type"
+								@ "constructor template" $since b557,
+							(
+							/ "function %operator bool" -> "function operator \
+								%(!, bool)" ^ "%DefBoolNeg" ~ "%DefCvt";
+							+ $comp "function %operator!"
+							)
+						)
+					),
+					/ $re_add(b847) DLDI ^ 'YB_ATTR_nodiscard' @ %(Font, Image)
+				),
+				/ %Core $=
+				(
+					/ %ValueNode $=
+					(
+						/ @ "class %ValueNode" $=
+						(
+							- $revert(b844) "all 2 constructors with \
+								%allocator_arg_t and trailing parameters \
+								having equivalences with trailing allocator \
+								parameter"
+								// This was useful during transition. It is now \
+									redundant to the uses-allcator construction.
+							+ "parameter" @ "static functions \
+								%(ThrowIndexOutOfRange, ThrowWrongNameFound)",
+							+ $re_add(b847) $dev $lib 'YB_PURE'
+								@ "function %get_allocator"
+						),
+						/ $forced "recoded parameter on throw"
+							@ "(function, function templates) %AccessNode",
+						+ $re_add(b847) $dev $lib 'YB_ATTR_nodiscard YB_PURE' 
+							@ "functions with names %(extend_key, \
+							get_value_key, operator(==, <, >), \
+							size, IsPrefixedIndex), postfixes ('begin', 'end', \
+							'ToNode', 'Nodes') or prefixes ('Access', 'As', \
+							'Get', 'Make')"
+					),
+					/ %YEvent $=
+					(
+						/ @ "class template %GHEvent" $=
+						(
+							* "invalid 'yconstfn_relaxed'" @ "friend function %swap \
+								for %Comparer" $since b834
+								^ "%ystdex::swap_dependent" ~ "%std::swap",
+							/ "simplified constructors" $=
+							(
+								/ DLDI "all SIFNAE function parameter"
+									-> "template parameter",
+									// This gets all the 'yimpl' instances in \
+										each declaration together.
+								* "ill-formed but no diagnostics required \
+									bogus 'constexpr'" @ "constructors" $since
+									b246
+									$= (- 'yconstfn')
+							),
+							/ $revert_ex(b948) $comp "throwing behavior for \
+								empty targets" @ "%operator()" $dep_from
+								("%ystdex::function"
+								@ %YBase.YStandardEx.Function),
+								// This is actually not relied on, but anyway \
+									the performance impact should be evaluted \
+									later.
+						),
+						* "ill-formed but no diagnostics required bogus \
+							'yconstfn'" @ "default constructor %GEvent" $since
+							b246
+							$= (- 'yconstfn')
+						/ $revert_ex(b333, b448, b808) "constructor \
+							templates with callable reference parameter"
+							-> "constructor templates with callable \
+							object parameter" @ "class templates %(GHEvent, \
+							GEvent)" ^ "%std::move" ~ "%yforward"
+							!^ "ystdex::decay_t",
+							// Note %operator= or compound assignment \
+								operators are not applicable. See $2019-01 @ \
+								%Documentation::Workflow::Annual2019.
+						- "filtering %std::bad_function_call"
+							@ "function template %operator"
+							@ "struct %CountedHandlerInvoker" $dep_from
+							%YSLib.UI.YComponent
+							// This was actually never relied on except for \
+								%UI::HBrush.
+						- $revert(b494) "class template %GHandlerAdaptor"
+							$dep_from %UI.YWidgetEvent
+					)
+				),
+				/ $re_add(b847) DLDI ^ 'YB_ATTR_nodiscard'
+					@ %Service.CharRenderer,
+				/ %UI $=
+				(
+					/ "%HBrush" @ %YComponent $=
+					(
+						^ "%ystdex::optional_function" ~ "%std::function";
+						/ $comp "avoided throwing %std::bad_function_call for \
+							empty object on %operator() call"
+					),
+					(
+					/ DLDI "simplified member function %TabControl::Attach"
+						@ %TabControl !^ "%AddWidgetHandlerAdaptor";
+						// This is not a modification to the interface and the \
+							behavior is same because the identity of the \
+							handler is in the implementation details.
+					- $revert(b494) "function templates \
+						%AddWidgetHandlerAdaptor; MakeWidgetHandlerAdaptor; \
+						alias template %GWidgetHandlerAdaptor" @ %WidgetEvent
+					)
+				)
+			),
+			/ %NPL $=
+			(
+				/ %NPLA1 $=
+				(
+					// Microsoft VC++ 15.9.4 still has bug in instantiating \
+						%WrapContextHandler. See https://developercommunity.visualstudio.com/content/problem/279415/using-tuple-element-in-if-constexpr-yields-erroneo.html.
+					/ $re_add(b848) DLI "simplify constructor templates \
+						%WrappedContextHandler"
+						^ "%ystdex::exclude_self_params_t"
+						~ "%ystdex::exclude_self_t",
+					/ @ "namespace %Forms" $=
+					(
+						/ DLDI "function %DefineWithRecursion"
+							^ "%YSLib::allocate_shared" ~ "%allocate_shared"
+							$dep_to "qualified allocate_shared",
+						/ $dev "class templates %(CallUnary, CallUnaryAs, \
+							CallBinary, CallBinaryAs) avoided copy or move \
+							functions" ^ "%ystdex::lref" ~ 'yforward',
+						/ DLDI "function %MakeEncapsulationType"
+							^ "%ystdex::invoke_value_or"
+					),
+					/ DLDI ^ "%(YB_ATTR_nodiscard, YB_PURE, ynothrow)"
+				),
+				/ %NPLA $=
+				(
+					/ @ "function template %AllocateEnvironment" $=
+					(
+						/ DLDI ^ "%YSLib::allocate_shared" ~ "%allocate_shared"
+							$dep_to "qualified allocate_shared",
+						/ $comp $dev $lib
+							!^ "dependency on LWG 2070 of %std::allocate_shared"
+							$dep_from %YCLib.Reference,
+					),
+					/ DLDI ("braced-init-list" @ "private data member"
+						@ "class %ContextNode", "private class constructor"
+						@ "class %Environment") ^ "%YSLib::allocate_shared"
+						~ "%allocate_shared" $dep_to
+						"qualified allocate_shared",
+					* $re_add(b838) "ill-formed %Reducer constructors used"
+						!@ '__cpp_inheriting_constructors >= 201511L' $since
+						b841,
+					/ $re_add(b848) DLDI "simplified class %Environment \
+						private member" ^ "%rebind_alloc_t"
+						~ "%allocator_traits",
+					- $revert(b847) 'using YSLib::allocate_shared;'
+						$dep_all_from "qualified allocate_shared",
+					+ 'ynothrow'
+						@ "all 3 non-template constructor %TermReference"
+				),
+				* $comp "all delimiters are inserted as empty strings"
+					@ "platform %Android" @ "function %Decompose" @ %Lexical
+					$since b838 $dep_from %YBase.YStandardEx.String
+			)
+		)
+	),
+	* $re_add(b838) "missing explicit cast to integer type from %byte or other \
+		incompatible operations with %byte" $effecitve @ (((("wrong small \
+		bitmap internal types" @ "class %Typeface" $since b612,
+		"wrong aliased type" @ "%CharBitmap::(BufferType, ScaleType)" $since
+		b562) @ %Font, ("wrong cast destination type" @ "constructor \
+		%ImageMemory#3" $since b477, "constructor#2, operator \
+		%(CompactPixmap, []), %GetPixels" @ "class %HBitmap" $since b430)
+		@ %Image) @ %Adaptor, "functions %(RenderChar, RenderCharAlpha)"
+		@ %Service.CharRenderer $since b415) @ %YSLib, "member function \
+		%RegistryKey::GetRawValue" @ %'YCLib_(MinGW32)'.Registry $since b633,
+		("static member function template %GUCSMapper<CharSet::GBK>::Decode"
+		@ %MappingEx $orig (@ %StaticMapping $since b272), "static member \
+		functions %GUCSMapper<CharSet::UTF_8>::(Decode, Encode), \
+		%(GUCSMapper<CharSet::UTF_16BE>, GUCSMapper<CharSet::UTF_16LE>)::Decode"
+		$since b272 $dep_from "%CheckIterator" @ %StaticMapping) @ %CHRLib)
+		@ %YFramework ^ "%ystdex::(replace_cast, octet)",
+		// This would be ill-formed once the %byte is %std::byte or other \
+			types not implicitly convertible to %char.
+	* $re_add(b839) $comp "build failure" @ "platform %Android" $since b841
+		($dep_from ("%Reducer" @ %YFramework.NPL.NPLA), $dep_all_from
+		"G++ 5.3 workarounds"),
+	* $comp "configuration loading failure" @ "platform %Android" $since b838
+		$dep_from %YFramework.NPL.Lexical
+),
+
+b848
 (
 	/ DLI "removed redundant 'const' for %ystdex::type_id" $effective
 		@ "function templates %(unchecked_any_cast, unsafe_any_cast)"
@@ -165,8 +667,8 @@ $now
 					// See $2018-12 @ %Documentation::Workflow::Annual2018.
 				/ DD "updated descriptions on extensions and external \
 					references" @ "Doxygen comment",
-				* $revert(b847) "wrong 'YB_ATTR_noreturn YB_PURE'"
-					@ "functions named %unchecked_access, call" $since b847,
+				* $revert(b847) "wrong 'YB_ATTR_nodiscard YB_PURE'"
+					@ "functions named %(unchecked_access, call)" $since b847,
 				/ "access-specifier 'protected'" @ "members %(get_storage, \
 					call, unchecked_access)" -> 'public',
 				(
@@ -435,15 +937,16 @@ b847
 					all 2 unsafe_any_cast)"),
 				+ "%YBase_replacement_extensions" @ "'\ingroup' command"
 					@ "Doxygen comment" @ "unary type trait %is_any_cast_dest",
-				+ $dev 'YB_ATTR_nodiscard YB_PURE' @ "functions and function \
-					templates with specified glob name patterns or names"
+				+ $re_add(b846) $dev 'YB_ATTR_nodiscard YB_PURE'
+					@ "functions and function templates with specified glob \
+					name patterns or names"
 					// With some restrictions added to virtual functions.
 				$= ('*access', '*target', '*type', "%any_cast", "%from",
 					"%has_value", "%hold_same", "%operator _type", "%to",
 					'un*_any_cast', 'un*_get*'),
-				+ $dev $lib 'YB_ATTR_nodiscard'
+				+ $re_add(b846) $dev $lib 'YB_ATTR_nodiscard'
 					@ "all 2 function templates %make_any",
-				+ $dev $lib 'YB_ATTR_nodiscard yimpl(YB_PURE)'
+				+ $re_add(b846) $dev $lib 'YB_ATTR_nodiscard yimpl(YB_PURE)'
 					@ "member function %bad_any_cast::what",
 				/ "enlarged %any_ops::any_storage size",
 				/ $dev @ "namespace %any_ops" $=
@@ -640,17 +1143,17 @@ b847
 					@ "function %DefineWithRecursion") @ "namespace %Forms"
 					^ $dep_from ("%allocate_shared" @ %NPLA) ~ "%make_shared"
 					$dep_from "fixed polymorphic allocated type",
-
-				+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+				+ $re_add(b846) $dev $lib 'YB_ATTR_nodiscard YB_PURE'
 					@ "functions and function templates with specified glob \
 					name patterns or names except those defined by 'Def*'" $=
 					("%to_string", "%GetNextTermRef", "%operator==", 'Wrap*',
 					'Transform*', "%FetchArgumentN", 'Is*', 'StringTo*'),
 					// Result of 'Retain*' is idiomatic to be optionally \
 						ignored.
-				+ $dev $lib 'YB_ATTR_nodiscard' @ "returing non-void functions \
-					or function templates with names %(Propress, Prepare, \
-					ReadFrom) or glob name pattern 'LoadNode*'",
+				+ $re_add(b846) $dev $lib 'YB_ATTR_nodiscard' @ "returning \
+					non-void functions or function templates with names \
+					%(Propress, Prepare, ReadFrom) or glob name pattern \
+					'LoadNode*'",
 				/ DLI "optimized vau handler calls" $=
 				(
 					/ "handled dynamic environment name at construction"
@@ -1009,7 +1512,7 @@ b846
 			@ %YFramework.YCLib.FileIO $since b616,
 			// ISO C++ specify the name as public.
 		/ DLDI ("private %traits for %allocator_traits instance"
-			=> "names with postfix 'ator_traits'") $effective
+			=> "names with name postfix 'ator_traits'") $effective
 			@ ("class template %allcator_delete"
 			@ %Memory, "class template %map" @ %Map) @ %YBase.YStandardEx,
 			// To be consistent to ISO C++ style, e.g. in \
@@ -1764,8 +2267,8 @@ b844
 					+ "3 constructors with trailing %allocator_type \
 						parameter",
 					+ "4 non-templated constructors, 4 constructor templates \
-						with prefix %std::allocator_arg_t and %allocator_type \
-						parameters"
+						with name prefix %std::allocator_arg_t and \
+						%allocator_type parameters"
 					)
 					)
 					),
@@ -3386,7 +3889,7 @@ b837
 						// Empty list arguments as lvalues would be never \
 							matched without this fix. Some functions like \
 							derivation of '$provide!' rely on this fix.
-					* "missing excluding of empty list"
+					* "missing exclusion of empty list"
 						@ "ellipsed symbol check for last term" $since b777
 						// The last '()' parameter would always not work \
 							without this fix.
@@ -3507,7 +4010,7 @@ b837
 				(
 					// The command line is length and easily grow longer than \
 						8192 which is limited by 'cmd.exe' in platform %Win32.
-					/ "attached output path with prefix from environment \
+					/ "attached output path with name prefix from environment \
 						variable %YSLib_BuildDir";
 					/ "asserted for absolute paths of values" $effective
 						@ "variables %(YSLib_BaseDir, YSLib_BuildDir)"
@@ -6021,7 +6524,7 @@ b825
 			/ "loaded derived functions" $=
 			(
 				(
-				* $comp "operatives with prefixes ('$vau', '$lambda') \
+				* $comp "operatives with name prefixes ('$vau', '$lambda') \
 					constructed invalid term with no name" $since b769 $dep_from
 					("vau handler" @ %NPLA1);
 					// It can fail to be evaluated later, see below.
@@ -6503,9 +7006,9 @@ b820
 			/ "supported function and state arguments forwarding" @ "function \
 				templates %(unique_guard, unique_state_guard)" $dep_from
 				("%one_shot" @ %Functional),
-			/ @ "constructor template class templatee %guard" $=
+			/ @ "constructor template" @ "class templatee %guard" $=
 			(
-				* "missing exclusion of 'guard&'" $since b605
+				* $re_add(b717) "missing exclusion of self type" $since b605,
 				* "wrong exception-specification" $since b606
 					^ "%is_nothrow_constructible" ~ "%is_contructible"
 			)

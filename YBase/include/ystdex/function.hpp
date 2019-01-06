@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2018 FrankHB.
+	© 2012-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file function.hpp
 \ingroup YStandardEx
 \brief 函数基本操作和调用包装对象。
-\version r4541
+\version r4720
 \author FrankHB <frankhb1989@gmail.com>
 \since build 847
 \par 创建时间:
 	2018-12-13 01:24:06 +0800
 \par 修改时间:
-	2018-12-28 14:19 +0800
+	2019-01-06 13:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -124,8 +124,8 @@ YB_Impl_Functional_ret_spec_mf((, ...))
 
 #undef YB_Impl_Functional_ret_spec
 
-template<typename _tSig>
-struct ret_of<std::function<_tSig>> : ret_of<_tSig>
+template<typename _fSig>
+struct ret_of<std::function<_fSig>> : ret_of<_fSig>
 {};
 //@}
 
@@ -403,32 +403,131 @@ using id_func_rr_t = id_func_t<_type, _vN, _type&&>;
 //@}
 
 
+//! \since build 849
+//@{
+/*!
+\brief 空函数策略。
+*/
+enum class empty_function_policy
+{
+	//! \brief 调用空值行为未定义。
+	no_check,
+	//! \brief 调用空值无作用。
+	no_effect,
+	//! \brief 调用空值抛出 std::bad_function_call 。
+	throwing
+};
+
+
+/*!
+\brief 函数包装特征。
+
+用于定制函数包装模板实现的特征。
+当前由空函数特化。
+包含以下静态成员函数模板：
+init_empty ：初始化指定空函数对象，保证不抛出异常；
+call ：按策略调用函数。
+成员用于实现，不保证稳定。
+*/
+//@{
+template<typename, empty_function_policy>
+struct function_traits;
+
+template<typename _tRet, typename... _tParams>
+struct function_traits<_tRet(_tParams...), empty_function_policy::no_check>
+{
+	template<class _tContent, typename _fInvoke>
+	YB_ATTR(always_inline) static yconstfn_relaxed void
+	init_empty(const _tContent&, _fInvoke&) ynothrow
+	{}
+
+	template<class _tContent, typename _fInvoke>
+	YB_ATTR(always_inline) static _tRet
+	call(const _tContent& content, const _fInvoke& f, _tParams&&... args)
+	{
+		yconstraint(bool(content));
+		yassume(f);
+		return f(content, yforward(args)...);
+	}
+};
+
+template<typename _tRet, typename... _tParams>
+struct function_traits<_tRet(_tParams...), empty_function_policy::no_effect>
+{
+	template<class _tContent, typename _fInvoke>
+	YB_ATTR(always_inline) static yconstfn_relaxed void
+	init_empty(const _tContent&, _fInvoke& f) ynothrow
+	{
+		static_assert(is_nothrow_copy_assignable<_fInvoke>(),
+			"Invalid invoker type found.");
+
+		f = [](const _tContent&, _tParams...)
+			ynoexcept(is_nothrow_constructible<_tRet>()) -> _tRet{
+			return _tRet();
+		};
+	}
+
+	template<class _tContent, typename _fInvoke>
+	YB_ATTR(always_inline) static _tRet
+	call(const _tContent& content, const _fInvoke& f, _tParams&&... args)
+	{
+		yassume(f);
+		return f(content, yforward(args)...);
+	}
+};
+
+template<typename _tRet, typename... _tParams>
+struct function_traits<_tRet(_tParams...), empty_function_policy::throwing>
+{
+	template<class _tContent, typename _fInvoke>
+	YB_ATTR(always_inline) static yconstfn_relaxed void
+	init_empty(const _tContent&, _fInvoke& f)
+	{
+		f = [](const _tContent&, _tParams...) YB_ATTR(noreturn) -> _tRet{
+			// TODO: Use a function call to throw?
+			throw std::bad_function_call();
+		};
+	}
+
+	template<class _tContent, typename _fInvoke>
+	YB_ATTR(always_inline) static _tRet
+	call(const _tContent& content, const _fInvoke& f, _tParams&&... args)
+	{
+		yassume(f);
+		return f(content, yforward(args)...);
+	}
+};
+//@}
+//@}
+
+
 //! \since build 848
 //@{
 /*!
 \brief 函数包装类模板。
-\see ISO C++17 [func.wrap.func] 。
-\see WG21 P0288 。
+\since build 849
 */
-template<typename>
-class function;
+template<class, typename>
+class function_base;
 
 
 /*!
 \brief 判断是否符合 std::function 实现初始化为空函数对象的条件。
 \note 同时支持对 std::function 和 ystdex 中的实现的判断。
 \see ISO C++17 [func.wrap.func.con]/9 。
+\since build 848
 */
 //@{
-template<typename _tSig>
+template<typename _fSig>
 YB_ATTR_nodiscard YB_PURE static bool
-function_not_empty(const function<_tSig>& f) ynothrow
+function_not_empty(const std::function<_fSig>& f) ynothrow
 {
 	return bool(f);
 }
-template<typename _tSig>
+//! \since build 849
+template<class _tTraits, typename _fSig>
 YB_ATTR_nodiscard YB_PURE static bool
-function_not_empty(const std::function<_tSig>& f) ynothrow
+function_not_empty(const function_base<_tTraits, _fSig>& f) ynothrow
 {
 	return bool(f);
 }
@@ -462,17 +561,20 @@ function_not_empty(const _type&) ynothrow
 和 ISO C++17 std::function 特化对应的接口相同，除以下特性：
 允许不满足 CopyConstructible 的类型作为目标；
 复制不满足 CopyConstructible 的目标时抛出异常；
+模板参数中包含特化调用行为的特征。
 调用没有目标的空对象不抛出异常，行为未定义；
 保证转移构造无异常抛出（参见 WG21 P0043R0 ）；
 构造函数支持分配器（类似 WG21 P0302R1 移除的接口；另见 WG21 P0043R0 ），
 	但没有使用构造器的初始化不保证等价使用默认构造器（和 any 设计的策略一致）。
 不提供 assign ；可直接使用构造后转移赋值代替。 
 */
-template<typename _tRet, typename... _tParams>
-class function<_tRet(_tParams...)>
-	: private equality_comparable<function<_tRet(_tParams...)>, nullptr_t>
+template<class _tTraits, typename _tRet, typename... _tParams>
+class function_base<_tTraits, _tRet(_tParams...)> : private equality_comparable<
+	function_base<_tTraits, _tRet(_tParams...)>, nullptr_t>
 {
 public:
+	//! \since build 848
+	//@{
 	using result_type = _tRet;
 
 private:
@@ -497,56 +599,61 @@ private:
 	_tRet(*p_invoke)(const any&, _tParams...);
 
 public:
-	function() ynothrow yimpl(= default);
+	function_base() ynothrow
+	{
+		_tTraits::init_empty(content, p_invoke);
+	}
 	//! \ingroup YBase_replacement_extensions
 	template<class _tAlloc>
-	function(std::allocator_arg_t, const _tAlloc&) ynothrow
-		: function()
+	function_base(std::allocator_arg_t, const _tAlloc&) ynothrow
+		: function_base()
 	{}
-	function(nullptr_t) ynothrow
-		: function()
+	function_base(nullptr_t) ynothrow
+		: function_base()
 	{}
 	//! \ingroup YBase_replacement_extensions
 	template<class _tAlloc>
-	function(std::allocator_arg_t, const _tAlloc&, nullptr_t, const _tAlloc&)
-		ynothrow
-		: function()
+	function_base(std::allocator_arg_t, const _tAlloc&, nullptr_t,
+		const _tAlloc&) ynothrow
+		: function_base()
 	{}
 	/*!
 	\see LWG 2781 。
 	\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66284 。
 	*/
-	template<typename _fCallable,
-		yimpl(typename = exclude_self_t<function, _fCallable>), yimpl(typename
+	template<typename _fCallable, yimpl(typename
+		= exclude_self_t<function_base, _fCallable>), yimpl(typename
 		= enable_if_t<is_invocable_r<_tRet, _fCallable&, _tParams...>::value>)>
-	function(_fCallable f)
-		: function()
+	function_base(_fCallable f)
 	{
 		if(ystdex::function_not_empty(f))
 			yunseq(content = any(std::move(f)),
 				// XXX: Here lambda-expression is buggy in G++ LTO.
 				p_invoke = invoker<any_ops::value_handler<_fCallable>>::invoke);
+		else
+			_tTraits::init_empty(content, p_invoke);
 	}
 	//! \ingroup YBase_replacement_extensions
-	template<typename _fCallable, class _tAlloc,
-		yimpl(typename = exclude_self_t<function, _fCallable>), yimpl(typename
+	template<typename _fCallable, class _tAlloc, yimpl(typename
+		= exclude_self_t<function_base, _fCallable>), yimpl(typename
 		= enable_if_t<is_invocable_r<_tRet, _fCallable&, _tParams...>::value>)>
-	function(std::allocator_arg_t, const _tAlloc& a, _fCallable f)
-		: function()
+	function_base(std::allocator_arg_t, const _tAlloc& a, _fCallable f)
 	{
 		if(ystdex::function_not_empty(f))
 			yunseq(content = any(std::allocator_arg, a, std::move(f)),
 				// XXX: Here lambda-expression is buggy in G++ LTO.
 				p_invoke = invoker<any::allocated_value_handler_t<_tAlloc,
 				_fCallable>>::invoke);
+		else
+			_tTraits::init_empty(content, p_invoke);
 	}
-	function(const function&) = default;
+	function_base(const function_base&) = default;
 	/*!
 	\ingroup YBase_replacement_extensions
 	\throw allocator_mismatch_error 分配器不兼容。
 	*/
 	template<class _tAlloc>
-	function(std::allocator_arg_t, const _tAlloc& a, const function& x)
+	function_base(std::allocator_arg_t, const _tAlloc& a, const function_base& x)
 		: content(std::allocator_arg, a, x), p_invoke(x.p_invoke)
 	{}
 	// NOTE: The 'ynothrow' is presented as a conforming extension to ISO C++17,
@@ -554,59 +661,62 @@ public:
 	// XXX: The moved-from value is valid but unspecified. It is empty here to
 	//	simplify the implementation (as libstdc++ does), which is still not
 	//	guaranteed by the interface.
-	function(function&&) yimpl(ynothrow) = default;
+	function_base(function_base&&) yimpl(ynothrow) = default;
 	/*!
 	\ingroup YBase_replacement_extensions
 	\throw allocator_mismatch_error 分配器不兼容。
 	*/
 	template<class _tAlloc>
-	function(std::allocator_arg_t, const _tAlloc& a, function&& x)
+	function_base(std::allocator_arg_t, const _tAlloc& a, function_base&& x)
 		: content(std::allocator_arg, a, std::move(x)), p_invoke(x.p_invoke)
 	{}
 
-	function&
+	function_base&
 	operator=(nullptr_t) ynothrow
 	{
 		content = any();
+		_tTraits::init_empty(content, p_invoke);
 		return *this;
 	}
-	template<typename _fCallable,
-		yimpl(typename = exclude_self_t<function, _fCallable>), yimpl(typename
+	//! \since build 849
+	template<typename _fCallable, yimpl(typename
+		= exclude_self_t<function_base, _fCallable>), yimpl(typename
 		= enable_if_t<is_invocable_r<_tRet, _fCallable&, _tParams...>::value>)>
-	function&
-	operator=(_fCallable f)
+	function_base&
+	operator=(_fCallable&& f)
 	{
 		// NOTE: Efficiency consideration is simliar to %any::operator=, as
 		//	construction of %p_invoke here is simple enough.
-		return *this = function(std::move(f));
+		return *this = function_base(std::move(f));
 	}
 	template<typename _fCallable>
-	function&
+	function_base&
 	operator=(std::reference_wrapper<_fCallable> f) ynothrow
 	{
 		// NOTE: Ditto.
-		return *this = function(f);
+		return *this = function_base(f);
 	}
 	// NOTE: Ditto.
-	function&
-	operator=(const function&) yimpl(= default);
+	function_base&
+	operator=(const function_base&) yimpl(= default);
 	// NOTE: Ditto.
-	function&
-	operator=(function&& f) ynothrow yimpl(= default);
+	function_base&
+	operator=(function_base&& f) ynothrow yimpl(= default);
 
 	YB_ATTR_nodiscard YB_PURE friend bool
-	operator==(const function& f, nullptr_t) ynothrow
+	operator==(const function_base& f, nullptr_t) ynothrow
 	{
 		return !f;
 	}
 
-	//! \pre 断言： \c bool(*this) 。
+	/*!
+	\pre 策略指定不检查时断言： \c bool(*this) 。
+	\throw std::bad_function_call ：策略指定使用异常，且对象表示空函数。
+	*/
 	_tRet
 	operator()(_tParams... args) const
 	{
-		yconstraint(bool(*this));
-		yassume(p_invoke);
-		return p_invoke(content, yforward(args)...);
+		return _tTraits::call(content, p_invoke, yforward(args)...);
 	}
 
 	YB_ATTR_nodiscard YB_PURE explicit
@@ -617,13 +727,13 @@ public:
 
 	//! \see LWG 2062 。
 	void
-	swap(function& f) ynothrow
+	swap(function_base& f) ynothrow
 	{
 		std::swap(p_invoke, f.p_invoke),
 		content.swap(f.content);
 	}
 	friend void
-	swap(function& x, function& y) ynothrow
+	swap(function_base& x, function_base& y) ynothrow
 	{
 		return x.swap(y);
 	}
@@ -646,20 +756,41 @@ public:
 	{
 		return content.type();
 	}
+	//@}
 };
 
 //! \relates function
 //@{
-template<typename _fCallable>
-struct make_parameter_tuple<function<_fCallable>>
-	: make_parameter_tuple<_fCallable>
+template<class _tTraits, typename _fSig>
+struct make_parameter_tuple<function_base<_tTraits, _fSig>>
+	: make_parameter_tuple<_fSig>
 {};
 
-template<typename _fCallable>
-struct return_of<function<_fCallable>>
-	: return_of<_fCallable>
+template<class _tTraits, typename _fSig>
+struct return_of<function_base<_tTraits, _fSig>> : return_of<_fSig>
 {};
 //@}
+//@}
+
+
+//! \since build 849
+//@{
+template<typename _fSig>
+using unchecked_function = function_base<function_traits<_fSig,
+	empty_function_policy::no_check>, _fSig>;
+
+template<typename _fSig>
+using optional_function = function_base<function_traits<_fSig,
+	empty_function_policy::no_effect>, _fSig>;
+
+/*!
+\brief 函数包装类模板。
+\see ISO C++17 [func.wrap.func] 。
+\see WG21 P0288 。
+*/
+template<typename _fSig>
+using function = function_base<function_traits<_fSig,
+	empty_function_policy::throwing>, _fSig>;
 //@}
 
 } // namespace ystdex;

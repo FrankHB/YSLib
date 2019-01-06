@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2018 FrankHB.
+	© 2014-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4256
+\version r4288
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2018-12-13 23:32 +0800
+	2019-01-02 04:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,11 +29,13 @@
 #define NPL_INC_NPLA1_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_NPLA // for NPLATag, ValueNode, TermNode, YSLib::GHEvent,
-//	LoggedEvent, NPL::AccessTerm, ystdex::equality_comparable,
-//	ystdex::exclude_self_t, YSLib::AreEqualHeld, YSLib::GHEvent,
-//	ystdex::make_function_type_t, ystdex::make_parameter_tuple_t,
-//	ystdex::make_expanded, ystdex::invoke_nonvoid, ystdex::make_transform,
+#include YFM_NPL_NPLA // for NPLATag, TermNode, ValueNode, YSLib::GHEvent,
+//	LoggedEvent, ystdex::ref_eq, ystdex::equality_comparable,
+//	ystdex::exclude_self_params_t, YSLib::AreEqualHeld, std::is_constructible,
+//	ystdex::decay_t, ystdex::expanded_caller, ystdex::or_,
+//	ystdex::exclude_self_t, ystdex::make_function_type_t,
+//	ystdex::make_parameter_tuple_t, std::ref, ystdex::make_expanded,
+//	ystdex::invoke_nonvoid, NPL::AccessTerm, ystdex::make_transform,
 //	std::accumulate, ystdex::bind1, std::placeholders::_2,
 //	ystdex::examiners::equal_examiner;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
@@ -594,20 +596,14 @@ class WrappedContextHandler
 public:
 	_func Handler;
 
+	//! \since build 849
+	template<typename... _tParams, yimpl(typename
+		= ystdex::exclude_self_params_t<WrappedContextHandler, _tParams...>)>
+	WrappedContextHandler(_tParams&&... args)
+		: Handler(yforward(args)...)
+	{}
 	//! \since build 757
-	//@{
-	template<typename _tParam, yimpl(typename
-		= ystdex::exclude_self_t<WrappedContextHandler, _tParam>)>
-	WrappedContextHandler(_tParam&& arg)
-		: Handler(yforward(arg))
-	{}
-	template<typename _tParam1, typename _tParam2, typename... _tParams>
-	WrappedContextHandler(_tParam1&& arg1, _tParam2&& arg2, _tParams&&... args)
-		: Handler(yforward(arg1), yforward(arg2), yforward(args)...)
-	{}
-
 	DefDeCopyMoveCtorAssignment(WrappedContextHandler)
-	//@}
 
 	template<typename... _tParams>
 	ReductionStatus
@@ -1270,14 +1266,18 @@ MatchParameter(const TermNode&, TermNode&,
 
 
 /*!
-\brief 访问节点并调用一元函数。
-\sa YSLib::EmplaceCallResult
-\since build 756
-
 确定项具有一个实际参数后展开调用参数指定的函数。
 若被调用的函数返回类型非 void ，返回值作为项的值被构造。
 调用 YSLib::EmplaceCallResult 对 ValueObject 及引用值处理不同。
 若需以和其它类型的值类似的方式被包装，在第一参数中构造 ValueObject 对象。
+实现使用 ystdex::make_expanded 展开调用，但不复制或转移可调用对象，
+	因此使用 std::ref 包装第一参数。注意当前无条件视第一参数为 const 左值。
+*/
+//@{
+/*!
+\brief 访问节点并调用一元函数。
+\sa YSLib::EmplaceCallResult
+\since build 756
 */
 //@{
 template<typename _func, typename... _tParams>
@@ -1286,7 +1286,7 @@ CallUnary(_func&& f, TermNode& term, _tParams&&... args)
 {
 	RetainN(term);
 	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
-		ystdex::make_expanded<void(TermNode&, _tParams&&...)>(yforward(f)),
+		ystdex::make_expanded<void(TermNode&, _tParams&&...)>(std::ref(f)),
 		YSLib::Deref(std::next(term.begin())), yforward(args)...));
 }
 
@@ -1297,7 +1297,7 @@ CallUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 	Forms::CallUnary([&](TermNode& node){
 		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
 		//	error: Segmentation fault.
-		return ystdex::make_expanded<void(_type&, _tParams&&...)>(yforward(f))(
+		return ystdex::make_expanded<void(_type&, _tParams&&...)>(std::ref(f))(
 			NPL::AccessTerm<_type>(node), std::forward<_tParams>(args)...);
 	}, term);
 }
@@ -1319,7 +1319,7 @@ CallBinary(_func&& f, TermNode& term, _tParams&&... args)
 
 	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
 		ystdex::make_expanded<void(TermNode&, TermNode&, _tParams&&...)>(
-		yforward(f)), x, YSLib::Deref(++i), yforward(args)...));
+		std::ref(f)), x, YSLib::Deref(++i), yforward(args)...));
 }
 
 //! \since build 835
@@ -1334,9 +1334,10 @@ CallBinaryAs(_func&& f, TermNode& term, _tParams&&... args)
 
 	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
 		ystdex::make_expanded<void(_type&, _type2&, _tParams&&...)>(
-		yforward(f)), x, NPL::AccessTerm<_type2>(YSLib::Deref(++i)),
+		std::ref(f)), x, NPL::AccessTerm<_type2>(YSLib::Deref(++i)),
 		yforward(args)...));
 }
+//@}
 //@}
 
 /*!

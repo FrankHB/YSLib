@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2018 FrankHB.
+	© 2010-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r3881
+\version r3914
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2018-12-26 19:29 +0800
+	2019-01-06 13:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,7 @@ namespace ystdex
 //@{
 //! \since build 628
 template<typename _func, typename... _tParams>
-inline auto
+YB_ATTR_nodiscard YB_PURE inline auto
 bind1(_func&& f, _tParams&&... args) -> decltype(
 	std::bind(yforward(f), std::placeholders::_1, yforward(args)...))
 {
@@ -55,7 +55,7 @@ bind1(_func&& f, _tParams&&... args) -> decltype(
 }
 //! \since build 653
 template<typename _tRes, typename _func, typename... _tParams>
-inline auto
+YB_ATTR_nodiscard YB_PURE inline auto
 bind1(_func&& f, _tParams&&... args) -> decltype(
 	std::bind<_tRes>(yforward(f), std::placeholders::_1, yforward(args)...))
 {
@@ -71,7 +71,7 @@ bind1(_func&& f, _tParams&&... args) -> decltype(
 \since build 651
 */
 template<typename _func, typename _func2, typename... _tParams>
-inline auto
+YB_ATTR_nodiscard YB_PURE inline auto
 bind_forward(_func&& f, _func2&& f2, _tParams&&... args)
 	-> decltype(ystdex::bind1(yforward(f), std::bind(yforward(f2),
 	std::placeholders::_2, yforward(args)...)))
@@ -111,14 +111,14 @@ struct composed
 */
 //@{
 template<typename _func, typename _func2>
-yconstfn composed<_func, _func2>
+YB_ATTR_nodiscard YB_PURE yconstfn composed<_func, _func2>
 compose(_func f, _func2 g)
 {
 	return composed<_func, _func2>{f, g};
 }
 //! \since build 731
 template<typename _func, typename _func2, typename _func3, typename... _funcs>
-yconstfn auto
+YB_ATTR_nodiscard YB_PURE yconstfn auto
 compose(_func f, _func2 g, _func3 h, _funcs... args)
 	-> decltype(ystdex::compose(ystdex::compose(f, g), h, args...))
 {
@@ -409,7 +409,7 @@ namespace details
 
 //! \since build 832
 template<typename _type, typename _fCallable, typename... _tParams>
-_type
+YB_ATTR_nodiscard _type
 invoke_for_value(true_, _type&& val, _fCallable&& f, _tParams&&... args)
 {
 	ystdex::invoke(yforward(f), yforward(args)...);
@@ -418,7 +418,7 @@ invoke_for_value(true_, _type&& val, _fCallable&& f, _tParams&&... args)
 
 //! \since build 832
 template<typename _type, typename _fCallable, typename... _tParams>
-auto
+YB_ATTR_nodiscard auto
 invoke_for_value(false_, _type&&, _fCallable&& f, _tParams&&... args)
 	-> invoke_result_t<_fCallable, _tParams...>
 {
@@ -432,7 +432,7 @@ invoke_for_value(false_, _type&&, _fCallable&& f, _tParams&&... args)
 \since build 832
 */
 template<typename _type, typename _fCallable, typename... _tParams>
-auto
+YB_ATTR_nodiscard auto
 invoke_for_value(_type&& val, _fCallable&& f, _tParams&&... args)
 	-> common_nonvoid_t<invoke_result_t<_fCallable, _tParams...>, _type>
 {
@@ -503,9 +503,9 @@ struct call_projection<std::function<_tRet(_tParams...)>,
 	: call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 {};
 
-//! \since build 848
-template<typename _tRet, typename... _tParams, size_t... _vSeq>
-struct call_projection<function<_tRet(_tParams...)>,
+//! \since build 849
+template<class _tTraits, typename _tRet, typename... _tParams, size_t... _vSeq>
+struct call_projection<function_base<_tTraits, _tRet(_tParams...)>,
 	index_sequence<_vSeq...>>
 	: call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 {};
@@ -655,27 +655,37 @@ retry_on_cond(_fCond cond, _fCallable&& f, _tParams&&... args)
 /*!
 \brief 接受冗余参数的可调用对象。
 \since build 447
-\todo 支持 ref-qualifier 。
+\todo 支持 const 以外的限定符和 ref-qualifier 。
 */
-template<typename _fHandler, typename _fCallable>
+template<typename _fHandler, typename _fCaller>
 struct expanded_caller
 {
 	//! \since build 448
-	static_assert(is_object<_fCallable>(), "Callable object type is needed.");
+	static_assert(is_object<_fCaller>(), "Callable object type is needed.");
 
 	//! \since build 525
-	_fCallable caller;
+	_fCaller caller;
 
-	//! \since build 448
-	template<typename _fCaller,
+	//! \since build 849
+	//@{
+	expanded_caller() = default;
+	template<typename _func,
 		yimpl(typename = exclude_self_t<expanded_caller, _fCaller>)>
-	expanded_caller(_fCaller&& f)
+	expanded_caller(_func f)
 		: caller(yforward(f))
 	{}
+	expanded_caller(const expanded_caller&) = default;
+	expanded_caller(expanded_caller&&) = default;
+
+	expanded_caller&
+	operator=(const expanded_caller&) = default;
+	expanded_caller&
+	operator=(expanded_caller&&) = default;
+	//@}
 
 	//! \since build 640
 	template<typename... _tParams>
-	auto
+	inline auto
 	operator()(_tParams&&... args) const -> decltype(
 		expand_proxy<_fHandler>::call(caller, yforward(args)...))
 	{
@@ -687,13 +697,13 @@ struct expanded_caller
 \ingroup helper_functions
 \brief 构造接受冗余参数的可调用对象。
 \relates expanded_caller
-\since build 448
+\since build 849
 */
 template<typename _fHandler, typename _fCallable>
-yconstfn expanded_caller<_fHandler, decay_t<_fCallable>>
-make_expanded(_fCallable&& f)
+YB_ATTR_nodiscard YB_PURE inline expanded_caller<_fHandler, _fCallable>
+make_expanded(_fCallable f)
 {
-	return expanded_caller<_fHandler, decay_t<_fCallable>>(yforward(f));
+	return expanded_caller<_fHandler, _fCallable>(std::move(f));
 }
 
 

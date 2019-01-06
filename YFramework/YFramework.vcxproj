@@ -27,14 +27,15 @@
     <Text Include="..\doc\LanguageConvention.txt" />
     <None Include="..\doc\Meta.txt" />
     <Text Include="..\doc\NPL.txt" />
+    <None Include="..\doc\ProjectRules.txt" />
     <Text Include="..\doc\Test.txt" />
     <Text Include="..\doc\Workflow.Annual2013.txt" />
     <Text Include="..\doc\Workflow.Annual2014.txt" />
     <Text Include="..\doc\Workflow.Annual2015.txt" />
-    <None Include="..\doc\ProjectRules.txt" />
     <Text Include="..\doc\Workflow.Annual2016.txt" />
     <Text Include="..\doc\Workflow.Annual2017.txt" />
     <Text Include="..\doc\Workflow.Annual2018.txt" />
+    <Text Include="..\doc\Workflow.Annual2019.txt" />
     <Text Include="..\doc\YBase.txt" />
     <Text Include="..\doc\YCLib.txt" />
     <Text Include="..\doc\YFramework.txt" />

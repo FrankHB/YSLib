@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2018 FrankHB.
+	© 2014-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9436
+\version r9471
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-12-09 19:58 +0800
+	2019-01-04 06:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,11 +29,10 @@
 #include YFM_NPL_NPLA1 // for YSLib, ystdex::bind1, std::make_move_iterator,
 //	ystdex::value_or, shared_ptr, tuple, list, lref, vector, observer_ptr, set,
 //	owner_less, ystdex::erase_all, ystdex::as_const, std::find_if,
-//	NPL::AllocateEnvironment, unordered_map, allocate_shared, ystdex::id,
+//	NPL::AllocateEnvironment, unordered_map, YSLib::allocate_shared, ystdex::id,
 //	ystdex::cast_mutable, pair, ystdex::equality_comparable, std::allocator_arg,
-//	NoContainer, ystdex::exchange, share_move, ystdex::ref_eq,
-//	NPL::SwitchToFreshEnvironment, ystdex::call_value_or,
-//	ystdex::make_transform;
+//	NoContainer, ystdex::exchange, share_move, NPL::SwitchToFreshEnvironment,
+//	ystdex::call_value_or, ystdex::invoke_value_or, ystdex::make_transform;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard, ystdex::swap_guard,
 //	ystdex::unique_guard;
 #include YFM_NPL_SContext // for Session;
@@ -180,7 +179,7 @@ namespace
 //! \since build 847
 //@{
 template<typename _func, class _tTerm>
-TermNode
+YB_ATTR_nodiscard TermNode
 TransformForSeparatorCore(_func trans, _tTerm&& term, const ValueObject& pfx,
 	const TokenValue& delim, const string& name)
 {
@@ -226,7 +225,7 @@ TransformForSeparatorCore(_func trans, _tTerm&& term, const ValueObject& pfx,
 }
 
 template<class _tTerm>
-TermNode
+YB_ATTR_nodiscard TermNode
 TransformForSeparatorTmpl(_tTerm&& term, const ValueObject& pfx,
 	const TokenValue& delim, const TokenValue& name)
 {
@@ -236,7 +235,7 @@ TransformForSeparatorTmpl(_tTerm&& term, const ValueObject& pfx,
 }
 
 template<class _tTerm>
-TermNode
+YB_ATTR_nodiscard TermNode
 TransformForSeparatorRecursiveTmpl(_tTerm&& term, const ValueObject& pfx,
 	const TokenValue& delim, const TokenValue& name)
 {
@@ -447,7 +446,7 @@ public:
 	}
 
 	//! \since build 825
-	lref<const ContextHandler>
+	YB_ATTR_nodiscard lref<const ContextHandler>
 	AttachFunction(ContextHandler&& h)
 	{
 		// NOTE: This scans guards to hold function prvalues, which are safe to
@@ -477,7 +476,7 @@ public:
 	}
 
 	//! \since build 825
-	ContextHandler
+	YB_ATTR_nodiscard ContextHandler
 	MoveFunction()
 	{
 		ContextHandler res;
@@ -506,7 +505,8 @@ public:
 };
 
 //! \since build 830
-inline PDefH(TCOAction*, AccessTCOAction, ContextNode& ctx)
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(TCOAction*, AccessTCOAction, ContextNode& ctx)
 	ImplRet(ctx.Current.target<TCOAction>())
 // NOTE: There is no need to check term like 'if(&p->Term.get() == &term)'. It
 //	should be same to saved enclosing term currently.
@@ -522,7 +522,7 @@ SetupTailAction(ContextNode& ctx, _func&& act)
 }
 
 //! \since build 840
-TCOAction&
+YB_ATTR_nodiscard TCOAction&
 EnsureTCOAction(ContextNode& ctx, TermNode& term)
 {
 	auto p(AccessTCOAction(ctx));
@@ -609,7 +609,7 @@ ReduceSequenceOrderedAsync(TermNode& term, ContextNode& ctx, TNIter i)
 
 
 //! \since build 808
-bool
+YB_ATTR_nodiscard YB_PURE bool
 ExtractBool(TermNode& term, bool is_and) ynothrow
 {
 	return ystdex::value_or(AccessTermPtr<bool>(ReferenceTerm(term)), is_and)
@@ -695,7 +695,7 @@ public:
 	//! \since build 787
 	//@{
 	RecursiveThunk(Environment& env, const TermNode& t)
-		: p_default(allocate_shared<ContextHandler>(t.get_allocator(),
+		: p_default(YSLib::allocate_shared<ContextHandler>(t.get_allocator(),
 		ThrowInvalidCyclicReference)), Record(env), Term(t)
 	{
 		Fix(Record, Term, p_default);
@@ -813,7 +813,7 @@ ThrowInvalidSymbolType(const TermNode& term, const char* n)
 }
 
 //! \since build 781
-string
+YB_ATTR_nodiscard YB_PURE string
 CheckEnvFormal(const TermNode& eterm)
 {
 	const auto& term(ReferenceTerm(eterm));
@@ -1113,7 +1113,7 @@ CompressTCOFramesForSavedEnvironment(ContextNode& ctx, TCOAction& act,
 	compressor.Compress();
 }
 
-bool
+YB_ATTR_nodiscard bool
 CompressTCOFrames(ContextNode& ctx, EnvironmentGuard& gd)
 {
 	if(const auto p = AccessTCOAction(ctx))
@@ -1732,13 +1732,14 @@ private:
 	shared_ptr<void> p_type;
 
 public:
-	EncapsulationBase(shared_ptr<void> p)
+	//! \since build 849
+	EncapsulationBase(shared_ptr<void> p) ynothrow
 		: p_type(std::move(p))
 	{}
 	DefDeCopyMoveCtorAssignment(EncapsulationBase)
 
-	friend PDefHOp(bool, ==, const EncapsulationBase& x,
-		const EncapsulationBase& y) ynothrow
+	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
+		const EncapsulationBase& x, const EncapsulationBase& y) ynothrow
 		ImplRet(x.p_type == y.p_type)
 
 	DefGetter(const ynothrow, const EncapsulationBase&, , *this)
@@ -1781,11 +1782,10 @@ public:
 	void
 	operator()(TermNode& term) const
 	{
-		Forms::CallUnary([this](TermNode& tm) -> Encapsulation{
-
-			if(const auto p = AccessPtr<const TermReference>(tm))
-				return Encapsulation(GetType(), p->get());
-			return Encapsulation(GetType(), std::move(tm));
+		Forms::CallUnary([this](TermNode& tm) YB_PURE{
+			return Encapsulation(GetType(),
+				ystdex::invoke_value_or(&TermReference::get,
+				AccessTermPtr<const TermReference>(tm), std::move(tm)));
 		}, term);
 	}
 };
@@ -1799,16 +1799,16 @@ public:
 	{}
 	DefDeCopyMoveCtorAssignment(Encapsulated)
 
-	friend PDefHOp(bool, ==, const Encapsulated& x, const Encapsulated& y)
-		ynothrow
+	YB_ATTR_nodiscard YB_PURE friend
+		PDefHOp(bool, ==, const Encapsulated& x, const Encapsulated& y) ynothrow
 		ImplRet(x.Get() == y.Get())
 
 	void
 	operator()(TermNode& term) const
 	{
-		Forms::CallUnary([this](TermNode& tm) -> bool{
+		Forms::CallUnary([this](TermNode& tm) YB_PURE ynothrow -> bool{
 			return ystdex::call_value_or(
-				[this](const Encapsulation& enc) ynothrow{
+				[this](const Encapsulation& enc) YB_PURE ynothrow{
 				return Get() == enc.Get();
 			}, AccessTermPtr<Encapsulation>(tm));
 		}, term);
@@ -1824,15 +1824,15 @@ public:
 	{}
 	DefDeCopyMoveCtorAssignment(Decapsulate)
 
-	friend PDefHOp(bool, ==, const Decapsulate& x, const Decapsulate& y)
-		ynothrow
+	YB_ATTR_nodiscard YB_PURE friend
+		PDefHOp(bool, ==, const Decapsulate& x, const Decapsulate& y) ynothrow
 		ImplRet(x.Get() == y.Get())
 
 	void
 	operator()(TermNode& term) const
 	{
 		Forms::CallUnaryAs<const Encapsulation>(
-			[](const Encapsulation& enc){
+			[](const Encapsulation& enc) YB_PURE ynothrow{
 			// XXX: No environment is captured as the owner is shared.
 			return TermReference(enc.Term);
 		}, term);
@@ -2741,8 +2741,8 @@ DefineWithRecursion(TermNode& term, ContextNode& ctx)
 	DoDefine(term, [&](TermNode& formals){
 		auto p_saved(share_move(formals));
 		// TODO: Avoid %shared_ptr.
-		auto p_thunk(allocate_shared<RecursiveThunk>(term.get_allocator(),
-			ctx.GetRecordRef(), *p_saved));
+		auto p_thunk(YSLib::allocate_shared<RecursiveThunk>(
+			term.get_allocator(), ctx.GetRecordRef(), *p_saved));
 
 		// TODO: Blocked. Use C++14 lambda initializers to simplify
 		//	implementation.
@@ -2754,7 +2754,7 @@ DefineWithRecursion(TermNode& term, ContextNode& ctx)
 			//	operation is in the tail context.
 			p_gd->Commit();
 			return DoDefineReturn(term);
-		}, std::move(p_saved), allocate_shared<RecursiveThunk>(
+		}, std::move(p_saved), YSLib::allocate_shared<RecursiveThunk>(
 			term.get_allocator(), ctx.GetRecordRef(), *p_saved)));
 	});
 	return ReductionStatus::Partial;

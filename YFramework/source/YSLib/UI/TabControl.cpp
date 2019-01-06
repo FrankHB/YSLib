@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TabControl.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面标签页控件。
-\version r304
+\version r307
 \author FrankHB <frankhb1989@gmail.com>
 \since build 494
 \par 创建时间:
 	2014-04-19 11:21:05 +0800
 \par 修改时间:
-	2016-02-12 22:33 +0800
+	2019-01-06 15:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -142,10 +142,10 @@ TabControl::operator+=(IWidget& wgt)
 void
 TabControl::Attach(Control& ctl)
 {
-	AddWidgetHandlerAdaptor<TouchDown>(ctl, *this, [&]{
+	FetchEvent<TouchDown>(ctl) += [&]{
 		if(SwitchTab(ctl))
 			Invalidate(*this);
-	});
+	};
 }
 
 Rect

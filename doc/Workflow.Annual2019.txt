@@ -1,0 +1,60 @@
+﻿/*
+	© 2019 FrankHB.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file Workflow.Annual2018.txt
+\ingroup Documentation
+\brief 工作流汇总报告 - 2019 年度。
+\version r59
+\author FrankHB <frankhb1989@gmail.com>
+\since build 818
+\par 创建时间:
+	2019-01-02 01:00:32 +0800
+\par 修改时间:
+	2019-01-02 01:53 +0800
+\par 文本编码:
+	UTF-8
+\par 模块名称:
+	Documentation::Workflow::Annual2019
+*/
+
+// See "Meta.cpp" for meta descriptions.
+
+$import $WORKFLOW;
+$LINE-WIDTH-RESTRICT 0;
+
+$WORKFLOW:
+// Following lines are only for logging informal project information.
+// See Meta.txt for formal project information.
+// See ChangeLog.*.txt for accepted contents.
+
+$2019-01:
+
+report.impl:
+Unifying parameter type has been reviewd.
+	This basically judges whether a forwarding reference parameter or a non-reference (object) parameter used in a specific context.
+	The rationale is previously published as an answer at https://stackoverflow.com/questions/21035417/is-the-pass-by-value-and-then-move-construct-a-bad-idiom/53825424#53825424.
+		A core notion of judgement for whether style used is "ignorable" of the cost, to ensure there is no unacceptable overhead while having the pros of non-reference parameters.
+		If and only if the ignorable condition is true in the context, unifying (non-reference parameter) is preferred.
+	The non-reference (object) types are applied to callable parameters in operations concerned with callable wrappers.
+		This is consistent to 'std::function', 'ystdex::function' and similar types.
+		Class templates like 'ystdex::expanded_caller', 'YSLib::GHEvent', 'YSLib::GEvent' and their helpers like 'ystdex::make_expanded' have been adjust consistent with this style.
+			Previously, the constructors of the instantiated classes might have different styles used. The inconsistecy has now been fixed.
+			It also saves several 'ystdex::decay_t' template instantation and it further reduces bloat of internal templated code using such types before decaying.
+				For 'YSLib::GHEvent', this also makes internal operations for equality have more consistent types in different cases.
+			For caller sites passing values to such operations, the forwarding calls have to been modified for efficiency and avoidance of unexpected copies of arguments being passed.
+				This is mostly by changing 'yforward' to 'std::move'.
+				Note 'ystdex::expanded_caller' is special in some cases, as it does not necessarily used as a holder-like wrapper.
+					For caller site in NPLA1, this is better changed to 'ystdex::lref'. However, 'ystdex::expanded_caller' currently does not support qualifiers other than 'const'.
+						So 'ref-qualifiers' are not respected in the calls.
+						This is known and documented in the comments.
+	Note constructors of 'ystdex::any' are not the same, as it does not assume the parameter object having ignorable cost during passing like the wrappers above.
+
+////
+

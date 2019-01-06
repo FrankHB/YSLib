@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2017 FrankHB.
+	© 2013-2017, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1457
+\version r1512
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2017-02-20 17:51 +0800
+	2019-01-04 15:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,7 @@
 //	ystdex::copy_and_swap;
 #include YFM_YSLib_Core_YClock // for TimeSpan;
 //#include <FreeImage.h>
+#include <ystdex/type_op.hpp> // for ystdex::exclude_self_params_t;
 
 //! \since build 402
 struct FIBITMAP;
@@ -253,6 +254,7 @@ public:
 	\throw GeneralEvent 图像为空。
 	\throw GeneralEvent 图像保存到缓冲区失败。
 	\throw UnknownImageFormat 未知图像格式。
+	\warning 内部缓冲区大小截断至 <tt>unsigned</tt> 。
 	*/
 	explicit
 	ImageMemory(const HBitmap&, ImageFormat = ImageFormat::BMP,
@@ -447,7 +449,7 @@ public:
 	\note 扫描线宽为跨距。
 	\since build 566
 	*/
-	byte*
+	YB_ATTR_returns_nonnull YB_PURE byte*
 	operator[](size_t) const ynothrowv;
 	//@}
 
@@ -455,18 +457,19 @@ public:
 	\brief 转换为标准矩形像素图缓冲区。
 	\since build 471
 	*/
+	YB_ATTR_nodiscard YB_PURE
 	operator CompactPixmap() const;
 
-	BitPerPixel
+	YB_ATTR_nodiscard YB_PURE BitPerPixel
 	GetBPP() const ynothrow;
 	//! \since build 417
 	DefGetter(const ynothrow, DataPtr, DataPtr, make_observer(p_bitmap.get()))
-	SDst
+	YB_ATTR_nodiscard YB_PURE SDst
 	GetHeight() const ynothrow;
 	//! \since build 417
 	DefGetter(const ynothrow, Size, Size, {GetWidth(), GetHeight()})
 	//! \since build 417
-	SDst
+	YB_ATTR_nodiscard YB_PURE SDst
 	GetPitch() const ynothrow;
 	/*!
 	\brief 取像素数据。
@@ -474,7 +477,7 @@ public:
 	\note 像素数据由连续的扫面线数据构成，数量等于高度值。
 	\since build 471
 	*/
-	byte*
+	YB_ATTR_nodiscard YB_PURE byte*
 	GetPixels() const ynothrow;
 	/*!
 	\brief 取扫描线数据。
@@ -484,9 +487,10 @@ public:
 	\sa operator[]
 	\since build 471
 	*/
-	PDefH(byte*, GetScanLine, size_t idx) const ynothrow
+	YB_ATTR_nodiscard YB_PURE
+		PDefH(byte*, GetScanLine, size_t idx) const ynothrow
 		ImplRet(p_bitmap ? (*this)[idx] : nullptr)
-	SDst
+	YB_ATTR_nodiscard YB_PURE SDst
 	GetWidth() const ynothrow;
 
 	/*!
@@ -494,7 +498,7 @@ public:
 	\post <tt>!*this</tt>
 	\since build 671
 	*/
-	Deleter::pointer
+	YB_ATTR_nodiscard Deleter::pointer
 	Release() ynothrow;
 
 	/*!
@@ -549,7 +553,7 @@ public:
 \exception LoggedEvent 数据小于 0 。
 \since build 584
 */
-YF_API Timers::TimeSpan
+YB_ATTR_nodiscard YF_API YB_PURE Timers::TimeSpan
 GetFrameTimeOf(const HBitmap&);
 
 /*!
@@ -560,7 +564,7 @@ GetFrameTimeOf(const HBitmap&);
 \note 当前只支持 ImageMetadataModel::Animation 模型。
 \since build 557
 */
-YF_API Size
+YB_ATTR_nodiscard YF_API YB_PURE Size
 GetLogicalSizeOf(const HBitmap&);
 //@}
 
@@ -652,10 +656,10 @@ public:
 	PDefHOp(HBitmap, [], size_t idx) const ynothrowv
 		ImplRet(Lock(idx))
 
-	size_t
+	YB_ATTR_nodiscard YB_PURE size_t
 	GetPageCount() const ynothrow;
 
-	HBitmap
+	YB_ATTR_nodiscard YB_PURE HBitmap
 	Lock(size_t = 0) const ynothrowv;
 
 	/*!
@@ -667,10 +671,10 @@ public:
 
 	//! \since build 461
 	//@{
-	PDefH(iterator, begin, ) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(iterator, begin, ) const ynothrow
 		ImplRet(HMultiBitmap::iterator(*this, 0))
 
-	PDefH(iterator, end, ) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(iterator, end, ) const ynothrow
 		ImplRet(HMultiBitmap::iterator(*this, GetPageCount()))
 	//@}
 };
@@ -766,19 +770,19 @@ public:
 
 	DefBoolNeg(explicit, p_tag)
 
-	size_t
+	YB_ATTR_nodiscard YB_PURE size_t
 	GetCount() const ynothrow;
 	//! \since build 557
 	DefGetter(const ynothrow, DataPtr, DataPtr, p_tag)
-	const char*
+	YB_ATTR_nodiscard YB_PURE const char*
 	GetDescription() const ynothrow;
-	ID
+	YB_ATTR_nodiscard YB_PURE ID
 	GetID() const ynothrow;
-	const char*
+	YB_ATTR_nodiscard YB_PURE const char*
 	GetKey() const ynothrow;
-	size_t
+	YB_ATTR_nodiscard YB_PURE size_t
 	GetLength() const ynothrow;
-	Type
+	YB_ATTR_nodiscard YB_PURE Type
 	GetType() const ynothrow;
 	/*!
 	\brief 取指定类型的标签值。
@@ -786,7 +790,7 @@ public:
 	\since build 713
 	*/
 	template<typename _type>
-	const _type&
+	YB_ATTR_nodiscard YB_PURE const _type&
 	GetValue() const ythrow(GeneralEvent)
 	{
 		if(const auto p = GetValuePtr())
@@ -797,7 +801,7 @@ public:
 	const void*
 	GetValuePtr() const ynothrow;
 
-	//! \warning 参数截断至 <tt>unsigned long</tt> 。
+	//! \warning 参数截断至 <tt>unsigned</tt> 。
 	bool
 	SetCount(size_t) const ynothrow;
 	bool
@@ -806,7 +810,7 @@ public:
 	SetID(ID) const ynothrow;
 	bool
 	SetKey(const char*) const ynothrow;
-	//! \warning 参数截断至 <tt>unsigned long</tt> 。
+	//! \warning 参数截断至 <tt>unsigned</tt> 。
 	bool
 	SetLength(size_t) const ynothrow;
 	bool
@@ -818,7 +822,7 @@ public:
 	\brief 释放所有权。
 	\post \c !*this 。
 	*/
-	DataPtr
+	YB_ATTR_nodiscard DataPtr
 	Release() ynothrow;
 };
 
@@ -828,7 +832,7 @@ public:
 \relates ImageTag
 \since build 557
 */
-YF_API string
+YB_ATTR_nodiscard YF_API YB_PURE string
 to_string(const ImageTag&, ImageMetadataModel);
 
 
@@ -838,7 +842,7 @@ to_string(const ImageTag&, ImageMetadataModel);
 \warning 非虚析构。
 \since build 557
 */
-class YF_API ImageMetadataFindData final : private noncopyable
+class YF_API ImageMetadataFindData : private noncopyable
 {
 public:
 	using DataPtr = ::FIMETADATA*;
@@ -887,18 +891,16 @@ public:
 \warning 若参与构造的图像被释放则继续操作的行为未定义。
 \since build 557
 */
-class YF_API HImageMetadata final : private ystdex::deref_self<HImageMetadata>
+class YF_API HImageMetadata final : private ImageMetadataFindData,
+	private ystdex::deref_self<HImageMetadata>
 {
-	friend deref_self<HImageMetadata>;
-
-private:
-	unique_ptr<ImageMetadataFindData> p_data;
-
 public:
-	template<typename... _tParams>
+	//! \since build 849
+	template<typename... _tParams, yimpl(typename
+		= ystdex::exclude_self_params_t<HImageMetadata, _tParams...>)>
 	explicit
 	HImageMetadata(_tParams&&... args)
-		: p_data(new ImageMetadataFindData(yforward(args)...))
+		: ImageMetadataFindData(yforward(args)...)
 	{}
 	DefDeMoveCtor(HImageMetadata)
 
@@ -912,15 +914,16 @@ public:
 
 	//! \brief 迭代：向后遍历。
 	PDefHOp(HImageMetadata&, ++, ) ynothrow
-		ImplRet(Deref(p_data).Read(), *this)
+		ImplRet(Read(), *this)
 
-	explicit DefCvt(const ynothrow, bool, bool(p_data))
+	//! \since build 849
+	DefBoolNeg(explicit, bool(static_cast<const ImageMetadataFindData&>(*this)))
 
-	//! \brief 间接操作：取图像标签。
-	operator ImageTag() const;
+	//! \brief 转换：取图像标签。
+	DefCvt(const, ImageTag, GetTag())
 
-	PDefH(void, Rewind, )
-		ImplRet(Deref(p_data).Rewind())
+	//! \since build 849
+	using ImageMetadataFindData::Rewind;
 };
 
 
@@ -950,18 +953,18 @@ public:
 	\note 使用图像内存的本机句柄和大小。
 	\warning 参数截断至 <tt>unsigned long</tt> 。
 	*/
-	static ImageFormat
+	YB_ATTR_nodiscard static ImageFormat
 	DetectFormat(ImageMemory::NativeHandle, size_t);
 	//! \note 使用指定 UTF-8 文件名。
-	static ImageFormat
+	YB_ATTR_nodiscard static ImageFormat
 	DetectFormat(const char*);
 	//! \note 使用指定 UCS-2 文件名。
-	static ImageFormat
+	YB_ATTR_nodiscard static ImageFormat
 	DetectFormat(const char16_t*);
 	//@}
 
 	//! \since build 470
-	static CompactPixmap
+	YB_ATTR_nodiscard YB_PURE static CompactPixmap
 	Load(ImageMemory::Buffer);
 
 	/*!
@@ -972,10 +975,10 @@ public:
 	*/
 	//@{
 	//! \note 使用指定 UTF-8 文件名。
-	static HMultiBitmap
+	YB_ATTR_nodiscard static HMultiBitmap
 	LoadForPlaying(const char*);
 	//! \note 使用指定 UCS-2 文件名。
-	static HMultiBitmap
+	YB_ATTR_nodiscard static HMultiBitmap
 	LoadForPlaying(const char16_t*);
 	/*!
 	\brief 构造：使用指定字符串文件名。
@@ -983,7 +986,7 @@ public:
 	*/
 	template<class _tString,
 		yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
-	static HMultiBitmap
+	YB_ATTR_nodiscard static HMultiBitmap
 	LoadForPlaying(const _tString& filename)
 	{
 		return LoadForPlaying(&filename[0]);
@@ -997,7 +1000,7 @@ public:
 	\since build 461
 	*/
 	template<class _tSeqCon, typename _type>
-	static _tSeqCon
+	YB_ATTR_nodiscard static _tSeqCon
 	LoadSequence(const _type& path)
 	{
 		const auto multi_bitmap(LoadForPlaying(path));

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YComponent.h
 \ingroup UI
 \brief 平台中立的 UI 组件。
-\version r2421
+\version r2424
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2010-03-19 20:05:08 +0800
 \par 修改时间:
-	2016-04-27 23:55 +0800
+	2019-01-06 14:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_UI_YComponent_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YGraphics
+#include YFM_YSLib_Core_YGraphics // for ystdex::optional_function;
 #include YFM_YSLib_Core_YFunc
 #include YFM_YSLib_Core_YMessageDefinition
 #include <typeinfo> // for mandated header;
@@ -78,7 +78,7 @@ class Panel;
 \brief 画刷回调函数。
 \since build 293
 */
-using HBrush = std::function<void(PaintEventArgs&&)>;
+using HBrush = ystdex::optional_function<void(PaintEventArgs&&)>;
 
 
 //! \since build 559

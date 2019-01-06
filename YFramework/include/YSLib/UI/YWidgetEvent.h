@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YWidgetEvent.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1762
+\version r1783
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2016-05-09 13:27 +0800
+	2019-01-06 15:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -660,29 +660,6 @@ FetchEvent(AController& controller)
 	return dynamic_cast<GEvent<typename EventTypeMapping<_vID>::HandlerType
 		::FuncType>&>(controller.GetItemRef(_vID, NewEvent<_vID>));
 }
-
-//! \since build 494
-//@{
-template<class _tWidget, VisualEvent _vID>
-using GWidgetHandlerAdaptor = GHandlerAdaptor<_tWidget,
-	typename EventTypeMapping<_vID>::HandlerType::BaseType>;
-
-template<VisualEvent _vID, class _tWidget, typename _func>
-GWidgetHandlerAdaptor<_tWidget, _vID>
-MakeWidgetHandlerAdaptor(_tWidget& wgt, _func&& f)
-{
-	return GWidgetHandlerAdaptor<_tWidget, _vID>(wgt, yforward(f));
-}
-
-//! \since build 572
-template<VisualEvent _vID, class _tTarget, class _tWidget, typename _func>
-GEvent<typename EventTypeMapping<_vID>::HandlerType::FuncType>&
-AddWidgetHandlerAdaptor(_tTarget&& target, _tWidget& wgt, _func&& f)
-{
-	return FetchEvent<_vID>(yforward(target))
-		+= GWidgetHandlerAdaptor<_tWidget, _vID>(wgt, yforward(f));
-}
-//@}
 
 
 /*!

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018 FrankHB.
+	© 2013-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1228
+\version r1252
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2018-05-18 15:31 +0800
+	2019-01-03 18:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "YSLib/Service/YModules.h"
 #include "CHRLib/YModules.h"
 #include YFM_YSLib_Adaptor_Image // for Timers::TimeSpan,
-//	ystdex::aligned_store_cast;
+//	ystdex::aligned_store_cast, ystdex::replace_cast;
 #include <FreeImage.h>
 #include YFM_YSLib_Service_YBlit
 #include YFM_YSLib_Service_YGDI
@@ -86,7 +86,7 @@ FI_OutputMessage(::FREE_IMAGE_FORMAT fif, const char* msg)
 
 //! \since build 556
 //@{
-::FIBITMAP*
+YB_ATTR_nodiscard ::FIBITMAP*
 LoadImage(ImageFormat fmt, std::FILE* fp, ImageDecoderFlags flags)
 {
 	if(fp)
@@ -101,12 +101,12 @@ LoadImage(ImageFormat fmt, std::FILE* fp, ImageDecoderFlags flags)
 	}
 	throw std::invalid_argument("Invalid file found on loading image.");
 }
-::FIBITMAP*
+YB_ATTR_nodiscard ::FIBITMAP*
 LoadImage(ImageFormat fmt, const char* filename, ImageDecoderFlags flags)
 {
 	return LoadImage(fmt, ufopen(filename, "rb"), flags);
 }
-::FIBITMAP*
+YB_ATTR_nodiscard ::FIBITMAP*
 LoadImage(ImageFormat fmt, const char16_t* filename, ImageDecoderFlags flags)
 {
 	return LoadImage(fmt, ufopen(filename, u"rb"), flags);
@@ -146,7 +146,7 @@ SaveImage(ImageFormat fmt, ::FIBITMAP* dib, const char16_t* filename,
 
 //! \since build 457
 //@{
-ImageFormat
+YB_ATTR_nodiscard ImageFormat
 GetFileType(std::FILE* fp)
 {
 	if(fp)
@@ -159,19 +159,19 @@ GetFileType(std::FILE* fp)
 	}
 	return ImageFormat::Unknown;
 }
-ImageFormat
+YB_ATTR_nodiscard ImageFormat
 GetFileType(const char* filename)
 {
 	return GetFileType(ufopen(filename, "rb"));
 }
-ImageFormat
+YB_ATTR_nodiscard ImageFormat
 GetFileType(const char16_t* filename)
 {
 	return GetFileType(ufopen(filename, u"rb"));
 }
 //@}
 
-ImageFormat
+YB_ATTR_nodiscard ImageFormat
 GetFormatFromFilename(const char16_t* filename)
 {
 	const auto len(ystdex::ntctslen(filename));
@@ -184,7 +184,7 @@ GetFormatFromFilename(const char16_t* filename)
 	return ImageFormat(::FreeImage_GetFIFFromFilename(str));
 }
 
-::FI_PluginRec&
+YB_ATTR_nodiscard ::FI_PluginRec&
 LookupPlugin(::FREE_IMAGE_FORMAT fif)
 {
 	if(const auto p_node = ::FreeImageEx_GetPluginNodeFromFIF(fif))
@@ -273,8 +273,8 @@ ImageMemory::ImageMemory(Buffer buf, ImageFormat fmt)
 			throw GeneralEvent("Null buffer found.");
 		return std::move(buf);
 	}()), format(fmt),
-	p_memory(::FreeImage_OpenMemory(static_cast<byte*>(buffer.data()),
-	static_cast<unsigned long>(buffer.size())))
+	p_memory(::FreeImage_OpenMemory(static_cast<octet*>(buffer.data()),
+		unsigned(buffer.size())))
 {
 	if(!p_memory)
 		throw GeneralEvent("Opening image memory failed.");
@@ -297,10 +297,10 @@ HBitmap::HBitmap(const Size& s, BitPerPixel bpp)
 }
 HBitmap::HBitmap(BitmapPtr src, const Size& s, size_t pitch_delta)
 	: p_bitmap([&]{
-		return ::FreeImage_ConvertFromRawBits(ystdex::aligned_store_cast<byte*>(
-			Nonnull(src)), CheckArithmetic<int>(s.Width),
-			CheckArithmetic<int>(s.Height), CheckArithmetic<int>(
-			s.Width * sizeof(Pixel) + pitch_delta), YF_PixConvSpec, true);
+		return ::FreeImage_ConvertFromRawBits(ystdex::aligned_store_cast<octet*>
+			(Nonnull(src)), CheckArithmetic<int>(s.Width),
+			CheckArithmetic<int>(s.Height), CheckArithmetic<int>(s.Width
+			* sizeof(Pixel) + pitch_delta), YF_PixConvSpec, true);
 	}())
 {
 	if(!p_bitmap)
@@ -371,7 +371,10 @@ HBitmap::operator[](size_t idx) const ynothrowv
 {
 	YAssertNonnull(*this);
 	YAssert(idx < GetHeight(), "Index is out of range.");
-	return ::FreeImage_GetScanLine(Nonnull(p_bitmap.get()), int(idx));
+	// NOTE: The document of %::FreeImage_GetScanLine implies it returns nonnull
+	//	pointer when the bitmap is existed, which has been asserted.
+	return ystdex::replace_cast<byte*>(::FreeImage_GetScanLine(
+		Nonnull(p_bitmap.get()), int(idx)));
 }
 
 HBitmap::operator CompactPixmap() const
@@ -380,7 +383,7 @@ HBitmap::operator CompactPixmap() const
 	// XXX: Depends right behavior on external API.
 	auto pixels(make_unique_default_init<Pixel[]>(size_t(GetAreaOf(s))));
 
-	::FreeImage_ConvertToRawBits(ystdex::aligned_store_cast<byte*>(&pixels[0]),
+	::FreeImage_ConvertToRawBits(ystdex::aligned_store_cast<octet*>(&pixels[0]),
 		GetDataPtr().get(), CheckArithmetic<int>(s.Width * sizeof(Pixel)),
 		YF_PixConvSpec, true);
 	return CompactPixmap(std::move(pixels), s);
@@ -404,7 +407,7 @@ HBitmap::GetPitch() const ynothrow
 byte*
 HBitmap::GetPixels() const ynothrow
 {
-	return ::FreeImage_GetBits(p_bitmap.get());
+	return ystdex::replace_cast<byte*>(::FreeImage_GetBits(p_bitmap.get()));
 }
 SDst
 HBitmap::GetWidth() const ynothrow
@@ -656,7 +659,7 @@ ImageTag::GetValuePtr() const ynothrow
 bool
 ImageTag::SetCount(size_t count) const ynothrow
 {
-	return ::FreeImage_SetTagCount(p_tag, static_cast<unsigned long>(count));
+	return ::FreeImage_SetTagCount(p_tag, unsigned(count));
 }
 bool
 ImageTag::SetDescription(const char* desc) const ynothrow
@@ -676,7 +679,7 @@ ImageTag::SetKey(const char* key) const ynothrow
 bool
 ImageTag::SetLength(size_t len) const ynothrow
 {
-	return ::FreeImage_SetTagLength(p_tag, static_cast<unsigned long>(len));
+	return ::FreeImage_SetTagLength(p_tag, unsigned(len));
 }
 bool
 ImageTag::SetType(ImageTag::Type type) const ynothrow

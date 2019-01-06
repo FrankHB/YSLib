@@ -11,13 +11,13 @@
 /*!	\file meta.hpp
 \ingroup YStandardEx
 \brief 通用元编程设施。
-\version r1608
+\version r1637
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:28 +0800
 \par 修改时间:
-	2018-12-02 01:02 +0800
+	2018-12-31 04:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,34 +34,6 @@
 
 namespace ystdex
 {
-
-/*!	\defgroup type_traits_operations Type Traits Operations
-\ingroup metafunctions traits
-\brief 类型特征操作。
-\since build 306
-*/
-
-/*!	\defgroup unary_type_traits Unary Type Traits
-\ingroup type_traits_operations
-\brief 一元类型特征。
-\see ISO C++11 20.9.1 [meta.rqmts] 。
-\since build 306
-*/
-
-/*!	\defgroup binary_type_traits Binary Type Traits
-\ingroup type_traits_operations
-\brief 二元类型特征。
-\see ISO C++11 20.9.1 [meta.rqmts] 。
-\since build 306
-*/
-
-/*!	\defgroup transformation_traits Transformation Traits
-\ingroup type_traits_operations
-\brief 变换类型特征。
-\see ISO C++11 20.9.1 [meta.rqmts] 。
-\since build 590
-*/
-
 
 /*!
 \ingroup metafunctions
@@ -100,6 +72,8 @@ using std::remove_all_extents;
 using std::remove_pointer;
 using std::add_pointer;
 
+// XXX: See $2018-12 @ %Documentation::Workflow::Annual2018.
+//! \see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61458 。
 using std::aligned_storage;
 //! \since build 595
 using std::aligned_union;
@@ -285,11 +259,13 @@ public:
 
 /*!
 \brief void_t 的一般化，可指定别名类型。
-\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59204 。
 \see CWG 1558 。
+\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59204 。
+\see https://stackoverflow.com/questions/31907885/void-t-fails-on-visual-studio-2015 。
 \since build 688
 */
-#if YB_IMPL_GNUCPP
+#if YB_IMPL_MSCPP >= 1900 || YB_IMPL_GNUCPP > 50000 || YB_IMPL_CLANGPP \
+	|| __cplusplus >= 201703L
 template<typename _type, typename...>
 using well_formed_t = _type;
 #else

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018 FrankHB.
+	© 2011-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r2839
+\version r2849
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2018-12-25 13:03 +0800
+	2019-01-05 16:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -233,6 +233,17 @@ template<class _type1, class _type2>
 struct have_common_nonempty_virtual_base : bool_<!is_same<_type1, _type2>::value
 	&& details::have_common_nonempty_virtual_base<_type1, _type2>::value>
 {};
+
+
+/*!
+\ingroup binary_type_traits
+\brief 判断类型是否是指定类型构造器的实例。
+\note 和 vseq::is_instance 不同，只根据类型构造器判断，无视类型参数。
+\sa vseq::_a
+\since build 849
+*/
+template<typename _type, class _tCtor>
+using is_instance_of = is_same<vdefer<vseq::ctor_of_t, _type>, _tCtor>;
 
 
 /*!

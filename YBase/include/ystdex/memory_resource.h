@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018 FrankHB.
+	© 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r799
+\version r829
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2018-12-02 16:49 +0800
+	2019-01-05 16:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,7 +53,7 @@ LWG 3113 ：明确 polymorphic_allocator 的 construct 函数模板转移构造�
 #include "memory.hpp" // for internal "memory.hpp", is_constructible,
 //	std::allocator_arg_t, std::allocator_arg, std::uses_allocator, yforward,
 //	allocator_traits, std::pair, std::piecewise_construct, size_t, yalignof,
-//	yconstraint, enable_if_t, vdefer, vseq::ctor_of_t, vseq::_a,
+//	yconstraint, enable_if_t, vdefer, vseq::_a, is_instance_of,
 //	std::piecewise_construct_t;
 // NOTE: See "placement.hpp" for comments on inclusion conditions.
 #if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603) \
@@ -370,6 +370,33 @@ class polymorphic_allocator
 {
 public:
 	using value_type = _type;
+#if defined(__GLIBCXX__) && (__GLIBCXX__ <= 20150617 || YB_IMPL_GNUCPP < 60000)
+// NOTE: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=55409.
+// XXX: Blocked. This is a workaround for old toolchain, although this is not
+//	support at the library (YBase) level, it is still supported for Android
+//	platform configurations in YBase (with '__GLIBCXX__' 20151204). Also note
+//	%std::allocator as a base is not
+//	guaranteed to work as it could have been already simplified as ISO C++11
+//	without %rebind, etc.
+	//! \since build 849
+	//@{
+	using pointer = _type*;
+	using const_pointer = const _type*;
+	using reference = _type&;
+	using const_reference = const _type&;
+	template<typename _tOther>
+	struct rebind
+	{
+		using other = polymorphic_allocator<_tOther>;
+	};
+
+	void
+	destroy(pointer p) ynothrow
+	{
+		p->~_type();
+	}
+	//@}
+#endif
 
 private:
 	// NOTE: The defualt allocator would serve to construct object without
@@ -423,8 +450,8 @@ public:
 	}
 
 	template<typename _tObj, typename... _tParams>
-	YB_NONNULL(2) yimpl(enable_if_t<!std::is_same<vseq::_a<std::pair>,
-		vdefer<vseq::ctor_of_t, _tObj>>::value>)
+	YB_NONNULL(2)
+		yimpl(enable_if_t<!is_instance_of<_tObj, vseq::_a<std::pair>>::value>)
 	construct(_tObj* p, _tParams&&... args)
 	{
 		fallback_alloc_t a;

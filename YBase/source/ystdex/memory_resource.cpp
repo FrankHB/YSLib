@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r885
+\version r903
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2018-11-26 19:31 +0800
+	2018-12-29 16:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,12 +31,12 @@
 //	yconstraint, PTRDIFF_MAX, ceiling_lb;
 #if YB_Has_memory_resource != 1
 #	include <atomic> // for std::atomic;
-#	include "ystdex/map.hpp" // for map, greater;
-#	include "ystdex/pointer.hpp" // for tidy_ptr;
-#	include <algorithm> // for std::max, std::min, std::lower_bound;
-#	include "ystdex/functional.hpp" // for ystdex::logical_not, retry_on_cond;
-#	include "ystdex/scope_guard.hpp" // for unique_guard, ystdex::dismiss;
 #endif
+#include "ystdex/map.hpp" // for map, greater;
+#include "ystdex/pointer.hpp" // for tidy_ptr;
+#include <algorithm> // for std::max, std::min, std::lower_bound;
+#include "ystdex/functional.hpp" // for ystdex::logical_not, retry_on_cond;
+#include "ystdex/scope_guard.hpp" // for unique_guard, ystdex::dismiss;
 
 namespace ystdex
 {
@@ -47,15 +47,14 @@ namespace pmr
 inline namespace cpp2017
 {
 
-#if YB_Has_memory_resource != 1
-
-#	define YB_Impl_do_is_equal(_virt, _ns_pfx) \
-	bool \
+#define YB_Impl_do_is_equal(_virt, _ns_pfx) \
+	YB_ATTR_nodiscard yimpl(YB_PURE) bool \
 	_ns_pfx do_is_equal(const memory_resource& other) const ynothrow _virt \
 	{ \
 		return this == &other; \
 	}
 
+#if YB_Has_memory_resource != 1
 memory_resource::~memory_resource() = default;
 
 
@@ -328,7 +327,7 @@ monobuf_scale(size_t size) ynothrow
 } // unnamed namespace;
 
 //! \brief 池类型。
-struct pool_resource::pool_t final
+class pool_resource::pool_t final
 {
 private:
 	//! \brief 区块类型。
@@ -426,7 +425,7 @@ public:
 	YB_ALLOCATOR void*
 	allocate();
 
-	static size_t
+	YB_ATTR_nodiscard YB_PURE static size_t
 	adjust_size(size_t bytes, size_t alignment) ynothrow
 	{
 		return std::max(bytes + sizeof(block_meta_t), alignment);
@@ -885,9 +884,9 @@ YB_Impl_do_is_equal(, monotonic_buffer_resource::)
 
 } // inline namespace cpp2017;
 
-#	undef YB_Impl_do_is_equal
-
 #endif
+
+#undef YB_Impl_do_is_equal
 
 } // namespace pmr;
 

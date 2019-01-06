@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2018 FrankHB.
+	© 2010-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5464
+\version r5613
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2018-12-26 20:11 +0800
+	2019-01-05 19:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,8 @@
 #define YSL_INC_Core_yevt_hpp_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YObject // for ystdex::examiners::equal_examiner,
-//	std::allocator_arg_t, std::allocator_arg;
+#include YFM_YSLib_Core_YObject // for ystdex::is_decayed,
+//	ystdex::examiners::equal_examiner, std::allocator_arg_t, std::allocator_arg;
 #include YFM_YSLib_Core_YFunc
 #include <ystdex/iterator.hpp> // for ystdex::get_value;
 #include <ystdex/container.hpp> // for ystdex::erase_all_if;
@@ -86,14 +86,12 @@ public:
 private:
 	//! \brief 比较函数类型。
 	using Comparer = bool(*)(const GHEvent&, const GHEvent&);
-	template<class _tFunctor>
+	template<typename _fCallable>
 	struct GEquality
 	{
 		//! \since build 825
-		static_assert(ystdex::is_decayed<_tFunctor>(), 
+		static_assert(ystdex::is_decayed<_fCallable>(), 
 			"Decayed functor expected.");
-		//! \since build 748
-		using Decayed = _tFunctor;
 
 		/*!
 		\pre 参数储存的对象为 Decayed 类型。
@@ -105,20 +103,23 @@ private:
 			//	1330 is in the working draft N4659, it likes to be. See also
 			//	https://stackoverflow.com/questions/35790350/noexcept-inheriting-constructors-and-the-invalid-use-of-an-incomplete-type-that.
 #if !(YB_IMPL_GNUC >= 70000)
-			ynoexcept_spec(
-			ystdex::examiners::equal_examiner::are_equal(Deref(
-			x.template target<Decayed>()), Deref(y.template target<Decayed>())))
+			ynoexcept_spec(ystdex::examiners::equal_examiner::are_equal(Deref(
+			x.template target<_fCallable>()),
+			Deref(y.template target<_fCallable>())))
 #endif
 		{
 			return ystdex::examiners::equal_examiner::are_equal(
-				Deref(x.template target<Decayed>()),
-				Deref(y.template target<Decayed>()));
+				Deref(x.template target<_fCallable>()),
+				Deref(y.template target<_fCallable>()));
 		}
 	};
 	//! \since build 825
 	template<typename _fCallable>
 	struct GEqualityExpanded
 	{
+		//! \since build 849
+		static_assert(ystdex::is_decayed<_fCallable>(), "Invalid type found.");
+
 		static bool
 		AreEqual(const GHEvent& x, const GHEvent& y) ynoexcept_spec(
 			ystdex::examiners::equal_examiner::are_equal(std::declval<const
@@ -126,9 +127,9 @@ private:
 			// TODO: Exception specification?
 		{
 			const auto get_ref([](const GHEvent& h) ynothrowv
-				-> const ystdex::decay_t<_fCallable>&{
+				-> const _fCallable&{
 				return Deref(h.template target<ystdex::expanded_caller<
-					FuncType, ystdex::decay_t<_fCallable>>>()).caller;
+					FuncType, _fCallable>>()).caller;
 			});
 
 			return ystdex::examiners::equal_examiner::are_equal(get_ref(x),
@@ -143,11 +144,12 @@ private:
 	Comparer comp_eq;
 
 public:
+	//! \note 对函数指针为参数的初始化允许区分重载函数。
+	//@{
 	/*!
 	\brief 构造：使用函数指针。
 	\since build 516
 	*/
-	yconstfn
 	GHEvent(FuncType* f = {})
 		: BaseType(f),
 		comp_eq(GEquality<ystdex::decay_t<FuncType>>::AreEqual)
@@ -161,57 +163,45 @@ public:
 		: BaseType(std::allocator_arg, a, f),
 		comp_eq(GEquality<ystdex::decay_t<FuncType>>::AreEqual)
 	{}
-	/*!
-	\brief 使用函数对象。
-	\since build 808
-	*/
-	template<class _fCallable,
-		yimpl(typename = ystdex::exclude_self_t<GHEvent, _fCallable>)>
-	yconstfn
-	GHEvent(_fCallable&& f, yimpl(ystdex::enable_if_t<std::is_constructible<
-		BaseType, ystdex::decay_t<_fCallable>>::value, int> = 0))
+	//@}
+	//! \since build 849
+	//@{
+	//! \brief 使用函数对象。
+	template<class _fCallable, yimpl(typename = ystdex::exclude_self_t<GHEvent,
+		_fCallable>, typename = ystdex::enable_if_t<std::is_constructible<
+		BaseType, _fCallable>::value>)>
+	GHEvent(_fCallable f)
 		: BaseType(yforward(f)),
-		comp_eq(GEquality<ystdex::decay_t<_fCallable>>::AreEqual)
+		comp_eq(GEquality<_fCallable>::AreEqual)
 	{}
-	/*!
-	\brief 使用分配器和函数对象。
-	\since build 848
-	*/
+	//! \brief 使用分配器和函数对象。
 	template<class _fCallable, class _tAlloc,
-		yimpl(typename = ystdex::exclude_self_t<GHEvent, _fCallable>)>
-	yconstfn
-	GHEvent(std::allocator_arg_t, const _tAlloc& a, _fCallable&& f,
-		yimpl(ystdex::enable_if_t<std::is_constructible<BaseType,
-		ystdex::decay_t<_fCallable>>::value, int> = 0))
+		yimpl(typename = ystdex::exclude_self_t<GHEvent, _fCallable>,
+		typename = ystdex::enable_if_t<
+		std::is_constructible<BaseType, _fCallable>::value>)>
+	GHEvent(std::allocator_arg_t, const _tAlloc& a, _fCallable&& f)
 		: BaseType(std::allocator_arg, a, yforward(f)),
-		comp_eq(GEquality<ystdex::decay_t<_fCallable>>::AreEqual)
+		comp_eq(GEquality<_fCallable>::AreEqual)
 	{}
-	/*!
-	\brief 使用扩展函数对象。
-	\since build 808
-	*/
-	template<class _fCallable>
-	yconstfn
-	GHEvent(_fCallable&& f, yimpl(ystdex::enable_if_t<!std::is_constructible<
-		BaseType, ystdex::decay_t<_fCallable>>::value, int> = 0))
-		: BaseType(ystdex::make_expanded<FuncType>(yforward(f))),
+	//! \brief 使用扩展函数对象。
+	template<typename _fCallable, yimpl(typename = ystdex::enable_if_t<
+		!std::is_constructible<BaseType, _fCallable>::value>)>
+	GHEvent(_fCallable f)
+		: BaseType(ystdex::make_expanded<FuncType>(std::move(f))),
 		// XXX: Here lambda-expression is buggy in G++ LTO.
-		comp_eq(GEqualityExpanded<ystdex::decay_t<_fCallable>>::AreEqual)
+		comp_eq(GEqualityExpanded<_fCallable>::AreEqual)
 	{}
-	/*!
-	\brief 使用分配器和扩展函数对象。
-	\since build 848
-	*/
-	template<class _fCallable, class _tAlloc>
-	yconstfn
-	GHEvent(std::allocator_arg_t, const _tAlloc& a, _fCallable&& f,
-		yimpl(ystdex::enable_if_t<!std::is_constructible<
-		BaseType, ystdex::decay_t<_fCallable>>::value, int> = 0))
+	//! \brief 使用分配器和扩展函数对象。
+	template<typename _fCallable, class _tAlloc,
+		yimpl(typename = ystdex::enable_if_t<!std::is_constructible<
+		BaseType, _fCallable>::value>)>
+	GHEvent(std::allocator_arg_t, const _tAlloc& a, _fCallable f)
 		: BaseType(std::allocator_arg, a,
-		ystdex::make_expanded<FuncType>(yforward(f))),
+		ystdex::make_expanded<FuncType>(std::move(f))),
 		// XXX: Here lambda-expression is buggy in G++ LTO.
-		comp_eq(GEqualityExpanded<ystdex::decay_t<_fCallable>>::AreEqual)
+		comp_eq(GEqualityExpanded<_fCallable>::AreEqual)
 	{}
+	//@}
 	/*!
 	\brief 构造：使用对象引用和成员函数指针。
 	\warning 使用空成员指针构造的函数对象调用引起未定义行为。
@@ -265,7 +255,8 @@ public:
 	using BaseType::operator bool;
 
 	//! \since build 834
-	friend yconstfn_relaxed DefSwap(ynothrow, Comparer, std::swap(_x, _y))
+	friend yconstfn_relaxed
+		DefSwap(ynothrow, Comparer, ystdex::swap_dependent(_x, _y))
 	friend void
 	swap(GHEvent& x, GHEvent& y) ynothrow
 	{
@@ -313,10 +304,7 @@ yconstexpr const EventPriority DefaultEventPriority(0x80);
 //! \brief 计数调用器：调用事件处理器并计数。
 struct CountedHandlerInvoker
 {
-	/*!
-	\exception std::bad_function_call 以外异常中立。
-	\return 成功调用的事件处理器个数。
-	*/
+	//! \return 成功调用的事件处理器个数。
 	template<typename _tIn, typename... _tParams>
 	size_t
 	operator()(_tIn first, _tIn last, _tParams&&... args) const
@@ -325,8 +313,7 @@ struct CountedHandlerInvoker
 
 		while(first != last)
 		{
-			TryExpr((*first)(yforward(args)...))
-			CatchIgnore(std::bad_function_call&)
+			(*first)(yforward(args)...);
 			yunseq(++n, ++first);
 		}
 		return n;
@@ -450,10 +437,9 @@ private:
 public:
 	/*!
 	\brief 无参数构造：默认实现。
-	\note 得到空实例。
 	\since build 333
 	*/
-	yconstfn DefDeCtor(GEvent)
+	DefDeCtor(GEvent)
 	/*!
 	\brief 构造：使用指定调用器。
 	\since build 677
@@ -463,14 +449,14 @@ public:
 	{}
 	/*!
 	\brief 构造：使用指定调用器并添加事件处理器。
-	\since build 598
+	\since build 849
 	*/
 	template<typename _tHandler,
 		yimpl(typename = ystdex::exclude_self_t<GEvent, _tHandler>)>
-	GEvent(_tHandler&& h, InvokerType ivk = {})
+	GEvent(_tHandler h, InvokerType ivk = {})
 		: Invoker(std::move(ivk))
 	{
-		Add(yforward(h));
+		Add(std::move(h));
 	}
 	//! \since build 333
 	DefDeCopyMoveCtorAssignment(GEvent)
@@ -883,95 +869,6 @@ struct EventArgsHead
 template<typename... _tParams>
 struct EventArgsHead<tuple<_tParams...>> : EventArgsHead<_tParams...>
 {};
-
-
-/*!
-\brief 事件处理器适配器模板。
-\warning 非虚析构。
-\since build 494
-*/
-//@{
-template<typename _type, typename _func = std::function<void(_type&)>>
-class GHandlerAdaptor : private GHandlerAdaptor<void, _func>
-{
-private:
-	//! \since build 537
-	using Base = GHandlerAdaptor<void, _func>;
-
-public:
-	//! \since build 537
-	using typename Base::CallerType;
-
-	//! \since build 537
-	using Base::Caller;
-	//! \since build 554
-	lref<_type> ObjectRef;
-
-	GHandlerAdaptor(_type& obj, CallerType f)
-		: Base(f), ObjectRef(obj)
-	{}
-	template<typename _fCaller>
-	GHandlerAdaptor(_type& obj, _fCaller&& f)
-		: Base(ystdex::make_expanded<CallerType>(yforward(f))), ObjectRef(obj)
-	{}
-	//! \since build 537
-	//@{
-	DefDeCopyMoveCtorAssignment(GHandlerAdaptor)
-
-	using Base::operator();
-	//@}
-
-	/*!
-	\since build 673
-	\todo 实现比较 Function 相等。
-	*/
-	friend PDefHOp(bool, ==, const GHandlerAdaptor& x, const GHandlerAdaptor& y)
-		ynothrow
-		ImplRet(std::addressof(x.ObjectRef.get())
-			== std::addressof(y.ObjectRef.get()))
-};
-
-//! \since build 537
-template<typename _func>
-class GHandlerAdaptor<void, _func>
-{
-public:
-	using CallerType = ystdex::decay_t<_func>;
-
-	CallerType Caller;
-
-	GHandlerAdaptor(CallerType f)
-		: Caller(f)
-	{}
-	template<typename _fCaller, yimpl(
-		typename = ystdex::exclude_self_t<GHandlerAdaptor, _fCaller>)>
-	GHandlerAdaptor(_fCaller&& f)
-		: Caller(ystdex::make_expanded<CallerType>(yforward(f)))
-	{}
-	DefDeCopyCtor(GHandlerAdaptor)
-	DefDeMoveCtor(GHandlerAdaptor)
-
-	DefDeCopyAssignment(GHandlerAdaptor)
-	DefDeMoveAssignment(GHandlerAdaptor)
-
-	//! \todo 使用 <tt>noexpcept</tt> 。
-	template<typename... _tParams>
-	void
-	operator()(_tParams&&... args) const
-	{
-		TryExpr(Caller(yforward(args)...))
-		CatchIgnore(std::bad_function_call&)
-	}
-
-	/*!
-	\since build 673
-	\todo 实现比较 Function 相等。
-	*/
-	friend PDefHOp(bool, ==, const GHandlerAdaptor& x, const GHandlerAdaptor& y)
-		ynothrow
-		ImplRet(&x == &y)
-};
-//@}
 
 
 /*!

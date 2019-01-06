@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013, 2015-2016, 2018 FrankHB.
+	© 2012-2013, 2015-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型和相关扩展操作。
-\version r605
+\version r631
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2018-11-16 23:32 +0800
+	2019-01-03 02:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -276,42 +276,43 @@ is_power_of_2(std::uintmax_t n) ynothrow
 namespace details
 {
 
-YB_ATTR_nodiscard YB_ATTR(always_inline) inline std::uintmax_t
-floor_lb_shift(std::uintmax_t n, true_) ynothrow
+//! \since build 849
+YB_ATTR_nodiscard YB_ATTR(always_inline) YB_STATELESS inline size_t
+floor_lb_shift(size_t n, true_) ynothrow
 {
 	return n >> 1;
 }
-YB_ATTR_nodiscard YB_ATTR(always_inline) inline std::uintmax_t
-floor_lb_shift(std::uintmax_t n, false_) ynothrow
+//! \since build 849
+YB_ATTR_nodiscard YB_ATTR(always_inline) YB_STATELESS inline size_t
+floor_lb_shift(size_t n, false_) ynothrow
 {
-	return (n >> 1) + (n & 1 & std::uintmax_t(n != 1));
+	return (n >> 1) + (n & 1 & size_t(n != 1));
 }
 
 template<size_t _vN, typename = enable_if_t<_vN != 32 && _vN != 64>>
-YB_ATTR_nodiscard inline size_t
+YB_ATTR_nodiscard YB_STATELESS inline size_t
 floor_lb_w(std::uintmax_t n, size_t_<_vN>) ynothrow
 {
 	yconstraint(n != 0);
 
 	// NOTE: This is like %is_power_of_2, but 0 is already excluded.
-	yconstexpr const bool is_pow_2((_vN & (_vN - 1)) == 0);
-
+	using is_pow_2_t = bool_<(_vN & (_vN - 1)) == 0>;
 	size_t res(0);
-	std::uintmax_t shifted(floor_lb_shift(_vN, bool_<is_pow_2>()));
+	auto shifted(floor_lb_shift(_vN, is_pow_2_t()));
 
 	while(shifted != 0)
 	{
-		const size_t tmp(n >> shifted);
+		const auto tmp(n >> shifted);
 
 		if(tmp != 0)
 			yunseq(res += shifted, n = tmp);
-		shifted = floor_lb_shift(shifted, bool_<is_pow_2>());
+		shifted = floor_lb_shift(shifted, is_pow_2_t());
 	}
 	return res;
 }
 // NOTE: See http://stackoverflow.com/questions/11376288/fast-computing-of-log2-for-64-bit-integers.
 //! \pre <tt>n != 0</tt> 。
-YB_ATTR_nodiscard inline size_t
+YB_ATTR_nodiscard YB_STATELESS inline size_t
 floor_lb_w(std::uint32_t n, size_t_<32>) ynothrow
 {
 	static yconstexpr const size_t deBruijn_bit_pos[32]{
@@ -326,7 +327,7 @@ floor_lb_w(std::uint32_t n, size_t_<32>) ynothrow
 	return deBruijn_bit_pos[std::uint32_t(n * 0x07C4ACDDU) >> 27];
 }
 //! \pre <tt>n != 0</tt> 。
-YB_ATTR_nodiscard inline size_t
+YB_ATTR_nodiscard YB_STATELESS inline size_t
 floor_lb_w(std::uint64_t n, size_t_<64>) ynothrow
 {
 	static yconstexpr const size_t deBruijn_bit_pos[64]{
@@ -358,7 +359,7 @@ struct builtin_clz_dispatch
 {
 	static_assert(is_unsigned<_type>(), "Unsupport type found.");
 
-	static inline size_t
+	YB_ATTR_nodiscard YB_STATELESS static inline size_t
 	call(_type n) ynothrowv
 	{
 		yconstraint(n != 0);
@@ -370,7 +371,7 @@ template<>
 struct builtin_clz_dispatch<unsigned long long>
 {
 	//! \pre <tt>n != 0</tt> 。
-	YB_ATTR_nodiscard YB_ATTR(always_inline) static inline size_t
+	YB_ATTR_nodiscard YB_ATTR(always_inline) YB_STATELESS static inline size_t
 	call(unsigned long long n) ynothrow
 	{
 		yconstraint(n != 0);
@@ -382,7 +383,7 @@ template<>
 struct builtin_clz_dispatch<unsigned long>
 {
 	//! \pre <tt>n != 0</tt> 。
-	YB_ATTR_nodiscard YB_ATTR(always_inline) static inline size_t
+	YB_ATTR_nodiscard YB_ATTR(always_inline) YB_STATELESS static inline size_t
 	call(unsigned long n) ynothrow
 	{
 		yconstraint(n != 0);
@@ -404,7 +405,7 @@ struct builtin_clz_dispatch<unsigned>
 #endif
 
 //! \pre <tt>n != 0</tt> 。
-YB_ATTR_nodiscard inline size_t
+YB_ATTR_nodiscard YB_STATELESS inline size_t
 floor_lb(std::uintmax_t n) ynothrow
 {
 #if YB_Impl_has_builtin_clz
@@ -428,7 +429,7 @@ floor_lb(std::uintmax_t n) ynothrow
 \brief 计算 2 为底数的无符号整数的向下取整的对数值。
 \pre <tt>n != 0</tt> 。
 */
-YB_ATTR_nodiscard inline size_t
+YB_ATTR_nodiscard YB_STATELESS inline size_t
 floor_lb(std::uintmax_t n) ynothrow
 {
 	return details::floor_lb(n);
@@ -438,7 +439,7 @@ floor_lb(std::uintmax_t n) ynothrow
 \brief 计算 2 为底数的无符号整数向上取整的的对数值。
 \pre <tt>n > 1</tt> 。
 */
-YB_ATTR_nodiscard inline size_t
+YB_ATTR_nodiscard YB_STATELESS inline size_t
 ceiling_lb(std::uintmax_t n) ynothrow
 {
 	return 1 + details::floor_lb(n - 1);
@@ -454,7 +455,7 @@ ceiling_lb(std::uintmax_t n) ynothrow
 \since build 603
 */
 template<size_t _vWidth, typename _tIn>
-typename make_width_int<_vWidth>::unsigned_type
+YB_ATTR_nodiscard YB_PURE typename make_width_int<_vWidth>::unsigned_type
 pack_uint(_tIn first, _tIn last) ynothrowv
 {
 	static_assert(_vWidth != 0 && _vWidth
@@ -499,7 +500,8 @@ unpack_uint(typename ystdex::make_width_int<_vWidth>::unsigned_type value,
 \since build 623
 */
 template<size_t _vWidth>
-YB_NONNULL(1) inline typename make_width_int<_vWidth>::unsigned_type
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE inline
+	typename make_width_int<_vWidth>::unsigned_type
 read_uint_be(const byte* buf) ynothrowv
 {
 	yconstraint(buf);
@@ -511,7 +513,8 @@ read_uint_be(const byte* buf) ynothrowv
 //@{
 //! \brief 从字节缓冲区读取指定宽的小端序无符号整数。
 template<size_t _vWidth>
-YB_NONNULL(1) inline typename make_width_int<_vWidth>::unsigned_type
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE inline
+	typename make_width_int<_vWidth>::unsigned_type
 read_uint_le(const byte* buf) ynothrowv
 {
 	yconstraint(buf);

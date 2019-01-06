@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2018 FrankHB.
+	© 2009-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3504
+\version r3518
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2018-12-02 16:29 +0800
+	2019-01-03 19:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -174,7 +174,7 @@
 //@}
 /*!
 \since build 833
-\see P0136R1 。
+\see WG21 P0136R1 。
 \see https://clang.llvm.org/docs/LanguageExtensions.html 。
 \see https://gcc.gnu.org/projects/cxx-status.html 。
 \see https://msdn.microsoft.com/en-us/library/hh409293.aspx 。
@@ -408,6 +408,8 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 
 /*!	\defgroup lang_impl_features Language Implementation Features
 \brief 语言实现的特性。
+\see https://blogs.msdn.microsoft.com/vcblog/2015/06/19/c111417-features-in-vs-2015-rtm/ 。
+\see http://clang.llvm.org/docs/LanguageExtensions.html 。
 \since build 294
 */
 //@{
@@ -417,17 +419,20 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 \since build 389
 */
 #undef YB_HAS_ALIGNAS
-#define YB_HAS_ALIGNAS \
-	(__has_feature(cxx_alignas) || __has_extension(cxx_alignas) \
-		|| YB_IMPL_GNUCPP >= 40800)
+#define YB_HAS_ALIGNAS (__has_feature(cxx_alignas) \
+	|| __has_extension(cxx_alignas) || __cplusplus >= 201103L \
+	|| YB_IMPL_GNUCPP >= 40800 || YB_IMPL_MSCPP >= 1800)
 
 /*!
 \def YB_HAS_ALIGNOF
 \brief 内建 alignof 支持。
+\see https://blogs.msdn.microsoft.com/vcblog/2015/06/19/c111417-features-in-vs-2015-rtm/ 。
 \since build 315
 */
 #undef YB_HAS_ALIGNOF
-#define YB_HAS_ALIGNOF (__cplusplus >= 201103L || YB_IMPL_GNUCPP >= 40500)
+#define YB_HAS_ALIGNOF (__has_feature(cxx_alignof) \
+	|| __has_extension(cxx_alignof) || __cplusplus >= 201103L \
+	|| YB_IMPL_GNUCPP >= 40500 || YB_IMPL_MSCPP >= 1800)
 
 /*!
 \def YB_HAS_BUILTIN_NULLPTR
@@ -642,6 +647,7 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 \warning 要求满足指示的假定，否则行为未定义。
 \see https://docs.microsoft.com/en-us/cpp/cpp/restrict?view=vs-2017 。
 \see https://blogs.msdn.microsoft.com/vcblog/2015/10/21/memory-profiling-in-visual-c-2015/ 。
+\see https://blogs.msdn.microsoft.com/vcblog/2016/05/25/tracking-custom-memory-allocations-with-visual-studio-15-preview-2/ 。
 \see https://gitlab.gnome.org/GNOME/glib/issues/1465 。
 \since build 373
 
@@ -762,7 +768,7 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 假定条件包括：
 不修改函数外部的存储；
 不访问函数外部 volatile 存储；
-不调用不可被 YB_PURE 安全指定的函数。
+不调用具有不可忽略副作用而不可被 YB_PURE 安全指定的函数。
 */
 #if __has_attribute(__pure__) || YB_IMPL_GNUCPP >= 20296
 #	define YB_PURE YB_ATTR(__pure__)
@@ -782,7 +788,7 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 且返回值只依赖参数的值，和其它存储无关。
 假定条件包括：
 不访问函数外部的存储；
-不调用不可被 YB_STATELESS 安全指定的函数。
+不调用具有不可忽略副作用而不可被 YB_STATELESS 安全指定的函数。
 可被安全指定的函数或函数模板是 YB_PURE 限定的函数或函数模板的真子集。
 */
 #if __has_attribute(__const__) || YB_IMPL_GNUCPP >= 20500

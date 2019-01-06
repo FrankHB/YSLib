@@ -11,13 +11,13 @@
 /*!	\file type_inspection.hpp
 \ingroup YStandardEx
 \brief 类型检查元编程设施。
-\version r1936
+\version r1963
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:54:58 +0800
 \par 修改时间:
-	2018-08-17 03:57 +0800
+	2018-12-31 04:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,38 @@
 #ifndef YB_INC_ystdex_type_inspection_hpp_
 #define YB_INC_ystdex_type_inspection_hpp_ 1
 
-#include "../ydef.h" // for <type_traits>;
+#include "../ydef.h" // for <type_traits>, std::remove_cv_t, nullptr_t;
 
 namespace ystdex
 {
+
+/*!	\defgroup type_traits_operations Type Traits Operations
+\ingroup metafunctions traits
+\brief 类型特征操作。
+\since build 306
+*/
+
+/*!	\defgroup unary_type_traits Unary Type Traits
+\ingroup type_traits_operations
+\brief 一元类型特征。
+\see ISO C++11 20.9.1 [meta.rqmts] 。
+\since build 306
+*/
+
+/*!	\defgroup binary_type_traits Binary Type Traits
+\ingroup type_traits_operations
+\brief 二元类型特征。
+\see ISO C++11 20.9.1 [meta.rqmts] 。
+\since build 306
+*/
+
+/*!	\defgroup transformation_traits Transformation Traits
+\ingroup type_traits_operations
+\brief 变换类型特征。
+\see ISO C++11 20.9.1 [meta.rqmts] 。
+\since build 590
+*/
+
 
 /*!
 \brief 包含 ISO C++ 2011 引入的名称的命名空间。
@@ -144,8 +172,10 @@ inline namespace cpp2014
 #if __cpp_lib_is_null_pointer >= 201309L
 using std::is_null_pointer;
 #else
+//! \ingroup YBase_replacement_features unary_type_traits
 template<typename _type>
-struct is_null_pointer : is_same<remove_cv_t<_type>, std::nullptr_t>
+struct is_null_pointer
+	: is_same<typename std::remove_cv<_type>::type, nullptr_t>
 {};
 #endif
 

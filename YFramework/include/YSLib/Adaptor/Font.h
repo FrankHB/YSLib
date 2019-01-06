@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2018 FrankHB.
+	© 2009-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3511
+\version r3540
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2018-07-30 00:30 +0800
+	2019-01-03 17:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,7 +113,8 @@ DefBitmaskEnum(FontStyle)
 \return 非空结果。
 \since build 277
 */
-yconstfn PDefH(const char*, FetchName, FontStyle style) ynothrow
+YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE yconstfn
+	PDefH(const char*, FetchName, FontStyle style) ynothrow
 	ImplRet(style == FontStyle::Bold ? "Bold" : (style == FontStyle::Italic
 		? "Italic" : (style == FontStyle::Underline ? "Underline" : (style
 		== FontStyle::Strikeout ? "Strikeout" : "Regular"))))
@@ -166,7 +167,7 @@ public:
 	//! \since build 461
 	~NativeFontSize();
 
-	::FT_SizeRec&
+	YB_ATTR_nodiscard YB_PURE ::FT_SizeRec&
 	GetSizeRec() const;
 
 	/*!
@@ -223,17 +224,17 @@ public:
 	\brief 取指定样式的字型指针。
 	\note 若非 Regular 样式失败则尝试取 Regular 样式的字型指针。
 	*/
-	observer_ptr<Typeface>
+	YB_ATTR_nodiscard YB_PURE observer_ptr<Typeface>
 	GetTypefacePtr(FontStyle) const;
 	//! \brief 取指定样式名称的字型指针。
-	observer_ptr<Typeface>
+	YB_ATTR_nodiscard YB_PURE observer_ptr<Typeface>
 	GetTypefacePtr(const StyleName&) const;
 	//@}
 	//! \since build 419
-	Typeface&
+	YB_ATTR_nodiscard YB_PURE Typeface&
 	GetTypefaceRef(FontStyle) const;
 	//! \since build 419
-	Typeface&
+	YB_ATTR_nodiscard YB_PURE Typeface&
 	GetTypefaceRef(const StyleName&) const;
 };
 
@@ -286,12 +287,15 @@ private:
 		\since build 612
 		*/
 		//@{
-		byte width = 255, height = 0;
+		//! \since build 849
+		std::uint8_t width = 255, height = 0;
 		signed char left = 0, top = 0;
-		byte format = 0, max_grays = 0;
+		//! \since build 849
+		std::uint8_t format = 0, max_grays = 0;
 		short pitch = 0;
 		signed char xadvance = 0, yadvance = 0;
-		byte* buffer = {};
+		//! \since build 849
+		std::uint8_t* buffer = {};
 		//@}
 
 	public:
@@ -346,11 +350,11 @@ private:
 	LookupBitmap(const BitmapKey&) const;
 
 	//! \since build 641
-	unsigned
+	YB_ATTR_nodiscard unsigned
 	LookupGlyphIndex(char32_t) const;
 
 	//! since build 420
-	NativeFontSize&
+	YB_ATTR_nodiscard NativeFontSize&
 	LookupSize(FontSize) const;
 
 public:
@@ -372,7 +376,7 @@ public:
 \throw LoggedEvent 严重：异常事件。
 \since build 425
 */
-YF_API const Typeface&
+YB_ATTR_nodiscard YF_API const Typeface&
 FetchDefaultTypeface();
 
 
@@ -385,7 +389,7 @@ class YF_API CharBitmap final
 {
 public:
 	//! \note 和 \c ::FT_Byte* 一致。
-	using BufferType = byte*;
+	using BufferType = std::uint8_t*;
 	/*!
 	\note 值兼容于 \c ::FT_Pixel_Mode 。
 	\since build 415
@@ -408,7 +412,7 @@ public:
 	*/
 	using PitchType = short;
 	//! \note 和 \c ::FT_Byte 一致。
-	using ScaleType = byte;
+	using ScaleType = std::uint8_t;
 	//! \note 和 \c ::FT_Char 一致。
 	using SignedScaleType = signed char;
 
@@ -531,16 +535,16 @@ public:
 	//! \since build 671
 	//@{
 	//! \brief 取指定名称的字型家族指针。
-	observer_ptr<const FontFamily>
+	YB_ATTR_nodiscard YB_PURE observer_ptr<const FontFamily>
 	GetFontFamilyPtr(const FamilyName&) const;
 	/*!
 	\brief 取默认字型指针。
 	\exception LoggedEvent 异常中立：初始化时发生的异常。
 	*/
-	observer_ptr<const Typeface>
+	YB_ATTR_nodiscard YB_PURE observer_ptr<const Typeface>
 	GetDefaultTypefacePtr() const;
 	//! \brief 取指定名称的字型指针。
-	observer_ptr<const Typeface>
+	YB_ATTR_nodiscard YB_PURE observer_ptr<const Typeface>
 	GetTypefacePtr(const FamilyName&, const StyleName&) const;
 	//@}
 
@@ -566,7 +570,7 @@ public:
 	\note 若索引中不存在，先初始化。
 	\since build 660
 	*/
-	FontFamily&
+	YB_ATTR_nodiscard YB_PURE FontFamily&
 	LookupFamily(const FamilyName&);
 
 	/*!
@@ -623,19 +627,19 @@ public:
 	\brief 取跨距。
 	\since build 641
 	*/
-	std::int8_t
+	YB_ATTR_nodiscard YB_PURE std::int8_t
 	GetAdvance(char32_t, CharBitmap = {}) const;
 	/*!
 	\brief 取升部。
 	\since build 280
 	*/
-	std::int8_t
+	YB_ATTR_nodiscard YB_PURE std::int8_t
 	GetAscender() const;
 	/*!
 	\brief 取降部。
 	\since build 280
 	*/
-	std::int8_t
+	YB_ATTR_nodiscard YB_PURE std::int8_t
 	GetDescender() const;
 	DefGetterMem(const ynothrow, const FamilyName&, FamilyName,
 		GetFontFamily())
@@ -652,13 +656,13 @@ public:
 	\warning flags 可能被移除，应仅用于内部实现。
 	\since build 641
 	*/
-	CharBitmap
+	YB_ATTR_nodiscard YB_PURE CharBitmap
 	GetGlyph(char32_t c, yimpl(unsigned flags = 4U)) const;
 	/*!
 	\brief 取字体对应的字符高度。
 	\since build 280
 	*/
-	FontSize
+	YB_ATTR_nodiscard YB_PURE FontSize
 	GetHeight() const ynothrow;
 	//! \since build 628
 	DefGetter(const, StyleName, StyleName, FetchName(style))
@@ -668,7 +672,7 @@ private:
 	\brief 取内部信息。
 	\since build 419
 	*/
-	::FT_Size_Metrics
+	YB_ATTR_nodiscard YB_PURE ::FT_Size_Metrics
 	GetInternalInfo() const;
 
 public:

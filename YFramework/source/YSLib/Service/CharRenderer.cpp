@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2015, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r3328
+\version r3338
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-10-02 19:27 +0800
+	2019-01-03 17:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #include YFM_YSLib_Service_CharRenderer
 #include YFM_YSLib_Service_YBlend // for Drawing::Shaders::BlitAlphaPoint;
 #include <ystdex/bitseg.hpp> // for ystdex::bitseg_iterator;
+#include <ystdex/type_pun.hpp> // for ystdex::replace_cast;
 
 using namespace ystdex;
 
@@ -62,8 +63,8 @@ struct BlitTextPoint
 	void
 	operator()(_tOut dst_iter, _tIn src_iter) const
 	{
-		if(*src_iter >= BLT_TEXT_ALPHA_THRESHOLD)
-			yunseq(*get<1>(dst_iter.base()) = *src_iter,
+		if(AlphaType(*src_iter) >= BLT_TEXT_ALPHA_THRESHOLD)
+			yunseq(*get<1>(dst_iter.base()) = AlphaType(*src_iter),
 				*dst_iter = Color);
 	}
 };
@@ -94,12 +95,14 @@ template<size_t _vBit>
 using MonoItPairN = pair_iterator<PixelIt,
 	transformed_iterator<bitseg_iterator<_vBit, true>, tr_seg<_vBit>>>;
 
+//! \since build 844
 template<unsigned char _vN>
-auto
-tr_buf(byte* p)
-	-> decltype(make_transform(bitseg_iterator<_vN, true>(p), tr_seg<_vN>()))
+YB_ATTR_nodiscard auto
+tr_buf(std::uint8_t* p) -> decltype(make_transform(
+	bitseg_iterator<_vN, true>(ystdex::replace_cast<byte*>(p)), tr_seg<_vN>()))
 {
-	return make_transform(bitseg_iterator<_vN, true>(p), tr_seg<_vN>());
+	return make_transform(bitseg_iterator<_vN, true>(
+		ystdex::replace_cast<byte*>(p)), tr_seg<_vN>());
 }
 //@}
 

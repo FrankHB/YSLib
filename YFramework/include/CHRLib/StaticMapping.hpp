@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2017 FrankHB.
+	© 2009-2017, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file StaticMapping.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2565
+\version r2608
 \author FrankHB <frankhb1989@gmail.com>
 \since build 587
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2017-06-05 01:37 +0800
+	2019-01-04 11:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,9 @@
 #define INC_CHRLib_StaticMapping_hpp_ 1
 
 #include "YModules.h"
-#include YFM_CHRLib_CharacterMapping // for std::is_constructible,
-//	ystdex::is_undereferenceable, ystdex::remove_reference_t,
+#include YFM_CHRLib_CharacterMapping // for ystdex::remove_cvref_t, byte,
+//	std::is_convertible, std::is_integral, ystdex::bool_, ystdex::or_,
+//	ystdex::is_undereferenceable, ystdex::remove_reference_t, octet,
 //	ystdex::pseudo_output, yconstraint;
 #include <ystdex/cast.hpp> // for ystdex::not_widen_cast;
 
@@ -47,8 +48,10 @@ template<typename _tIn>
 inline bool
 CheckIterator(_tIn& i) ynothrow
 {
-	static_assert(std::is_constructible<const byte, decltype(*i)>(),
-		"Invalid mapping source type found.");
+	using value_t = ystdex::remove_cvref_t<decltype(*i)>;
+	static_assert(ystdex::or_<std::is_convertible<value_t, byte>,
+		ystdex::bool_<std::is_integral<value_t>::value
+		&& sizeof(value_t) == 1>>(), "Invalid mapping source type found.");
 	using ystdex::is_undereferenceable;
 
 	return !is_undereferenceable(i);
@@ -215,7 +218,7 @@ private:
 			| (char32_t(seq[1] & 0x3U) << 6U) | char32_t(seq[2] & 0x3FU));
 	}
 
-	static yconstfn bool
+	YB_ATTR_nodiscard YB_STATELESS static yconstfn bool
 	CheckInvalid(octet x, octet y = 0x80) ynothrow
 	{
 		return IsInvalid(x) || ((x & 0xC0) != y);
@@ -226,7 +229,7 @@ public:
 	\brief 检查 UTF-8 文本序列中非法字节。
 	\note 包括： C0 、 C1 、 F5 至 FF 。
 	*/
-	static yconstfn bool
+	YB_ATTR_nodiscard YB_STATELESS static yconstfn bool
 	IsInvalid(octet x) ynothrow
 	{
 		return x == 0xC0 || x == 0xC1 || x > 0xF4;
@@ -237,7 +240,7 @@ public:
 	\since build 599
 	*/
 	template<typename _tObj, typename _tIn, typename _tState>
-	static ConversionResult
+	YB_ATTR_nodiscard static ConversionResult
 	Decode(_tObj&& uc, _tIn&& i, _tState&& st)
 		ynoexcept(noexcept(GetSequenceOf(st)) && noexcept(GetIndexOf(st))
 		&& noexcept(!FillByte(i, st)))
@@ -302,19 +305,19 @@ public:
 	*/
 	//@{
 	template<typename _tObj, typename _tIn>
-	static ConversionResult
+	YB_ATTR_nodiscard static ConversionResult
 	Decode(_tObj&& uc, _tIn&& i, ConversionState& st)
 		ynoexcept_spec(!FillByte(i, st))
 	{
-		byte b(0);
+		byte b;
 
 		if(YB_UNLIKELY(!FillByte(i, b)))
 			return ConversionResult::BadSource;
-		if((b & 0x80U) == 0)
+		if((b & byte(0x80U)) == byte(0))
 		{
 			if(st.Index == 0)
 			{
-				uc = b;
+				uc = octet(b);
 				return ConversionResult::OK;
 			}
 			return ConversionResult::Invalid;
@@ -332,7 +335,7 @@ public:
 #define CHRLib_Impl_UTF8_Decode_Fill \
 	if(YB_UNLIKELY(!FillByte(i, b))) \
 		return ConversionResult::BadSource; \
-	code = (code << 6U) | (b & 0x3FU)
+	code = (code << 6U) | char32_t(b & byte(0x3FU))
 #define CHRLib_Impl_UTF8_Decode_Tail \
 	CHRLib_Impl_UTF8_Decode_Fill; \
 	trans(0x70U)
@@ -341,18 +344,18 @@ public:
 	trans(_mask); \
 	CHRLib_Impl_UTF8_Decode_Tail;
 		bool res(true);
-		auto trans([&](unsigned mask){
-			res &= (b & 0xC0U) == 0x80U
-				&& (t_data_2[byte(b >> 4U) & 0x3U] & byte(mask)) != 0;
+		auto trans([&](unsigned mask) ynothrow{
+			res &= (b & byte(0xC0U)) == byte(0x80U)
+				&& (t_data_2[size_t(b) >> 4U & 0x3U] & mask) != 0;
 		});
 		auto& type(st.Index);
 
 		if(type == 0)
 		{
-			if((b & 0xC0U) != 0)
+			if((b & byte(0xC0U)) != byte(0))
 			{
-				type = state_t(t_data_1[b & 0x3FU]);
-				code = (0xFFU >> type) & byte(b);
+				type = t_data_1[size_t(b) & 0x3FU];
+				code = char32_t((byte(0xFFU) >> type) & b);
 			}
 			else
 				return ConversionResult::Invalid;
@@ -394,7 +397,7 @@ public:
 #undef CHRLib_Impl_UTF8_Decode_Fill
 	}
 	template<typename _tObj, typename _tIn>
-	static ConversionResult
+	YB_ATTR_nodiscard static ConversionResult
 	Decode(_tObj&& uc, _tIn&& i, ConversionState&& st)
 		ynoexcept_spec(Decode(uc, yforward(i), st))
 	{
@@ -404,7 +407,7 @@ public:
 
 	//! \since build 641
 	template<typename _tOut>
-	static size_t
+	YB_ATTR_nodiscard static size_t
 	Encode(_tOut d, char32_t c) ynothrow
 	{
 		using ystdex::is_undereferenceable;
@@ -420,13 +423,13 @@ public:
 			l = 2;
 		else
 		{
-			EncodeChar(d, byte(0xE0U | c >> 12U));
+			EncodeChar(d, octet(0xE0U | c >> 12U));
 			++d;
 			l = 3;
 		}
-		EncodeChar(d, byte(0x80U | (c >> 6U & 0x3FU)));
+		EncodeChar(d, octet(0x80U | (c >> 6U & 0x3FU)));
 		++d;
-		EncodeChar(d, byte(0x80U | (c & 0x3FU)));
+		EncodeChar(d, octet(0x80U | (c & 0x3FU)));
 		return l;
 	}
 };
@@ -442,7 +445,7 @@ struct GUCSMapper<CharSet::UTF_16BE> : UCSMapperBase
 	\since build 599
 	*/
 	template<typename _tObj, typename _tIn, typename _tState>
-	static ConversionResult
+	YB_ATTR_nodiscard static ConversionResult
 	Decode(_tObj&& uc, _tIn&& i, _tState&& st)
 		ynoexcept(noexcept(GetSequenceOf(st))
 		&& noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
@@ -458,9 +461,9 @@ struct GUCSMapper<CharSet::UTF_16BE> : UCSMapperBase
 		case 1:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
-			if(YB_UNLIKELY(CHRLib::IsSurrogateHead(seq[0])))
+			if(YB_UNLIKELY(CHRLib::IsSurrogateHead(octet(seq[0]))))
 			{
-				if(YB_UNLIKELY(!CHRLib::IsValidSurrogateHead(seq[0])))
+				if(YB_UNLIKELY(!CHRLib::IsValidSurrogateHead(octet(seq[0]))))
 					return ConversionResult::Invalid;
 				YB_ATTR_fallthrough;
 			}
@@ -476,10 +479,11 @@ struct GUCSMapper<CharSet::UTF_16BE> : UCSMapperBase
 		case 3:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
-			if(YB_UNLIKELY(!CHRLib::IsValidSurrogateTail(seq[2])))
+			if(YB_UNLIKELY(!CHRLib::IsValidSurrogateTail(octet(seq[2]))))
 				return ConversionResult::Invalid;
-			Assign(uc, char32_t(seq[0] & 0x03U) << 18U | char32_t(seq[1]) << 10U
-				| char32_t(seq[2] & 0x03U) << 8U | char32_t(seq[3]));
+			Assign(uc, char32_t(seq[0] & byte(0x03U)) << 18U
+				| char32_t(seq[1]) << 10U
+				| char32_t(seq[2] & byte(0x03U)) << 8U | char32_t(seq[3]));
 			break;
 		default:
 			return ConversionResult::BadState;
@@ -499,7 +503,7 @@ struct GUCSMapper<CharSet::UTF_16LE> : UCSMapperBase
 	\since build 599
 	*/
 	template<typename _tObj, typename _tIn, typename _tState>
-	static ConversionResult
+	YB_ATTR_nodiscard static ConversionResult
 	Decode(_tObj&& uc, _tIn&& i, _tState&& st)
 		ynoexcept(noexcept(GetSequenceOf(st))
 		&& noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
@@ -515,9 +519,9 @@ struct GUCSMapper<CharSet::UTF_16LE> : UCSMapperBase
 		case 1:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
-			if(YB_UNLIKELY(CHRLib::IsSurrogateHead(seq[1])))
+			if(YB_UNLIKELY(CHRLib::IsSurrogateHead(octet(seq[1]))))
 			{
-				if(YB_UNLIKELY(!CHRLib::IsValidSurrogateHead(seq[1])))
+				if(YB_UNLIKELY(!CHRLib::IsValidSurrogateHead(octet(seq[1]))))
 					return ConversionResult::Invalid;
 				YB_ATTR_fallthrough;
 			}
@@ -533,10 +537,11 @@ struct GUCSMapper<CharSet::UTF_16LE> : UCSMapperBase
 		case 3:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
-			if(YB_UNLIKELY(!CHRLib::IsValidSurrogateTail(seq[3])))
+			if(YB_UNLIKELY(!CHRLib::IsValidSurrogateTail(octet(seq[3]))))
 				return ConversionResult::Invalid;
-			Assign(uc, char32_t(seq[0] << 10U) | char32_t(seq[1] & 0x03U) << 18U
-				| char32_t(seq[2]) | char32_t(seq[3] & 0x03U) << 8U);
+			Assign(uc, char32_t(seq[0] << 10U)
+				| char32_t(seq[1] & byte(0x03U)) << 18U
+				| char32_t(seq[2]) | char32_t(seq[3] & byte(0x03U)) << 8U);
 			break;
 		default:
 			return ConversionResult::BadState;
@@ -556,7 +561,7 @@ struct GUCSMapper<CharSet::UTF_32BE> : UCSMapperBase
 	\since build 599
 	*/
 	template<typename _tObj, typename _tIn, typename _tState>
-	static ConversionResult
+	YB_ATTR_nodiscard static ConversionResult
 	Decode(_tObj&& uc, _tIn&& i, _tState&& st)
 		ynoexcept(noexcept(GetSequenceOf(st))
 		&& noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
@@ -601,7 +606,7 @@ struct GUCSMapper<CharSet::UTF_32LE> : UCSMapperBase
 	\since build 599
 	*/
 	template<typename _tObj, typename _tIn, typename _tState>
-	static ConversionResult
+	YB_ATTR_nodiscard static ConversionResult
 	Decode(_tObj&& uc, _tIn&& i, _tState&& st)
 		ynoexcept(noexcept(GetSequenceOf(st))
 		&& noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))

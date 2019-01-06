@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r3274
+\version r3323
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2018-12-26 09:00 +0800
+	2018-12-31 20:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -421,7 +421,7 @@ public:
 */
 template<class _tAlloc>
 using allocator_guard
-	= std::unique_ptr<_tAlloc, allocator_guard_delete<_tAlloc>>;
+	= std::unique_ptr<alloc_value_t<_tAlloc>, allocator_guard_delete<_tAlloc>>;
 
 
 /*!
@@ -433,49 +433,78 @@ YB_ATTR_nodiscard inline allocator_guard<_tAlloc>
 make_allocator_guard(_tAlloc& a,
 	typename allocator_traits<_tAlloc>::size_type n = 1)
 {
-	using del_t = allocator_guard_delete<_tAlloc>;
+	static_assert(is_decayed<_tAlloc>::value, "Invalid type found.");
 
-	return std::unique_ptr<_tAlloc, del_t>(
-		allocator_traits<_tAlloc>::allocate(a, n), del_t(a, n));
-}
-
-
-//! \since build 746
-//@{
-//! \brief 使用分配器创建对象。
-template<typename _type, class _tAlloc, typename... _tParams>
-YB_ATTR_nodiscard auto
-create_with_allocator(_tAlloc&& a, _tParams&&... args)
-	-> decltype(ystdex::make_allocator_guard(a).release())
-{
-	auto gd(ystdex::make_allocator_guard(a));
-
-	ystdex::construct_within<typename allocator_traits<decay_t<_tAlloc>>
-		::value_type>(*gd.get(), yforward(args)...);
-	return gd.release();
+	return allocator_guard<_tAlloc>(allocator_traits<_tAlloc>::allocate(a, n),
+		allocator_guard_delete<_tAlloc>(a, n));
 }
 
 
 /*!
-\brief 使用分配器创建 unique_ptr 。
+\brief 使用分配器创建对象。
+\return 分配的对象指针。
+\since build 849
+*/
+template<typename _type, class _tAlloc, typename... _tParams>
+YB_ATTR_nodiscard auto
+create_with_allocator(_tAlloc&& a, _tParams&&... args)
+	-> std::unique_ptr<_type, allocator_delete<rebind_alloc_t<decay_t<_tAlloc>,
+	_type>>>
+{
+	using ator_t = decay_t<_tAlloc>;
+	using ator_del_t = allocator_delete<ator_t>;
+	auto gd(ystdex::make_allocator_guard(a));
+
+	allocator_traits<ator_t>::construct(a, gd.get(), yforward(args)...);
+	return std::unique_ptr<_type, ator_del_t>(gd.release(), ator_del_t(a));
+}
+
+
+/*!
+\brief 使用分配器创建 std::unique_ptr 。
 \see WG21 P0316R0 。
 \since build 847
 */
 template<typename _type, class _tAlloc, typename... _tParams>
-auto
+YB_ATTR_nodiscard auto
 allocate_unique(const _tAlloc& alloc, _tParams&&... args)
 	-> std::unique_ptr<_type, allocator_delete<rebind_alloc_t<_tAlloc, _type>>>
 {
-	using ator_t = rebind_alloc_t<_tAlloc, _type>;
-	using ator_del_t = allocator_delete<ator_t>;
-	ator_t a(alloc);
+	rebind_alloc_t<_tAlloc, _type> a(alloc);
 
-	return std::unique_ptr<_type, ator_del_t>(ystdex::create_with_allocator<
-		_type>(a, yforward(args)...), ator_del_t(a));
+	return ystdex::create_with_allocator<_type>(a, yforward(args)...);
 }
 
 
-//! \ingroup allocators
+/*!
+\brief 使用分配器创建 std::shared_ptr 。
+\note 仅实现 WG21 P0674R1 和 ISO C++17 的交集，类似 libstdc++ 。
+\see LWG 2070 。
+\see https://developercommunity.visualstudio.com/content/problem/417142/lwg-2070p0674r1-stdallocate-shared-is-not-conformi.html
+\since build 849
+\todo 实现 WG21 P0674R1 。
+*/
+#if __cplusplus >= 201703L || (__GLIBCXX__ && !(__GLIBCXX__ <= 20111108))
+// NOTE: See https://gcc.gnu.org/viewcvs/gcc/trunk/libstdc++-v3/include/bits/shared_ptr_base.h?r1=181171&r2=181170&pathrev=181171.
+// NOTE: LWG 2070 is not implemented by libc++ yet.
+using std::allocate_shared;
+#else
+template<typename _type, class _tAlloc, typename... _tParams>
+YB_ATTR_nodiscard std::shared_ptr<_type>
+allocate_shared(const _tAlloc& alloc, _tParams&&... args)
+{
+	rebind_alloc_t<_tAlloc, _type> a(alloc);
+
+	return std::shared_ptr<_type>(ystdex::create_with_allocator<_type>(a,
+		yforward(args)...));
+}
+#endif
+
+
+/*!
+\ingroup allocators
+\since build 746
+*/
 //@{
 /*!
 \brief 类分配器。
@@ -514,7 +543,6 @@ struct class_allocator : std::allocator<_type>
 template<typename _type>
 using local_allocator = cond_t<and_<has_mem_new<_type, size_t>,
 	has_mem_delete<_type*>>, class_allocator<_type>, std::allocator<_type>>;
-//@}
 //@}
 
 

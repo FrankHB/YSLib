@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2018 FrankHB.
+	© 2014-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4591
+\version r4622
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-12-09 06:27 +0800
+	2019-01-05 03:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,13 +30,13 @@
 
 #include "YModules.h"
 #include YFM_NPL_SContext // for YSLib::MakeIndex, YSLib::NodeSequence,
-//	YSLib::NodeLiteral, YSLib::allocate_shared, YSLib::enable_shared_from_this,
+//	YSLib::NodeLiteral, YSLib::enable_shared_from_this,
 //	YSLib::lref, YSLib::make_shared, YSLib::make_weak, YSLib::observer_ptr,
 //	YSLib::pair, YSLib::to_string, YSLib::shared_ptr, YSLib::weak_ptr, NPLTag,
 //	ValueNode, TermNode, string, LoggedEvent, ystdex::isdigit,
-//	ystdex::equality_comparable, std::uintptr_t, ystdex::allocator_traits,
-//	ystdex::copy_and_swap, ystdex::move_and_swap, ystdex::type_info,
-//	ystdex::get_equal_to, ystdex::exchange;
+//	ystdex::equality_comparable, YSLib::allocate_shared, std::uintptr_t,
+//	ystdex::allocator_traits, ystdex::copy_and_swap, ystdex::move_and_swap,
+//	ystdex::type_info, ystdex::get_equal_to, ystdex::exchange;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include YFM_YSLib_Core_YEvent // for ystdex::indirect, ystdex::fast_any_of,
 //	YSLib::GHEvent, YSLib::GEvent, YSLib::GCombinerInvoker,
@@ -59,8 +59,6 @@ using YSLib::MakeIndex;
 using YSLib::NodeSequence;
 //! \since build 600
 using YSLib::NodeLiteral;
-//! \since build 847
-using YSLib::allocate_shared;
 //! \since build 788
 //@{
 using YSLib::enable_shared_from_this;
@@ -915,8 +913,10 @@ private:
 	AnchorPtr p_anchor{};
 
 public:
+	//! \since build 849
+	//@{
 	//! \brief 构造：使用参数指定的引用和空锚对象并自动判断是否使用引用值初始化。
-	TermReference(TermNode& term)
+	TermReference(TermNode& term) ynothrow
 		: TermReference(IsReferenceTerm(term), term)
 	{}
 	/*!
@@ -928,20 +928,21 @@ public:
 		: TermReference(IsReferenceTerm(term), term, yforward(arg),
 		yforward(args)...)
 	{}
-	//! \since build 828
-	//@{
 	//! \brief 构造：使用参数指定的是否使用引用值初始化的标记及指定引用和空锚对象。
-	TermReference(bool r, TermNode& term)
+	TermReference(bool r, TermNode& term) ynothrow
 		: term_ref(term), is_ref(r)
 	{}
-	//! \brief 构造：使用参数指定的是否使用引用值初始化的标记及指定引用和指定锚对象。
+	/*!
+	\brief 构造：使用参数指定的是否使用引用值初始化的标记及指定引用和指定锚对象。
+	\since build 828
+	*/
 	template<typename _tParam, typename... _tParams>
 	TermReference(bool r, TermNode& term, _tParam&& arg, _tParams&&... args)
 		: term_ref(term), is_ref(r),
 		p_anchor(yforward(arg), yforward(args)...)
 	{}
 	//! \brief 构造：使用参数指定的是否使用引用值初始化的标记及现有的项引用。
-	TermReference(bool r, TermReference t_ref)
+	TermReference(bool r, TermReference t_ref) ynothrow
 		: term_ref(t_ref.term_ref), is_ref(r), p_anchor(t_ref.p_anchor)
 	{}
 	//@}
@@ -1482,13 +1483,13 @@ private:
 		//! \since build 847
 		//@{
 		using value_type = yimpl(uintptr_t);
-		using allocator_type = ystdex::allocator_traits<
-			Environment::allocator_type>::rebind_alloc<value_type>;
+		using allocator_type
+			= ystdex::rebind_alloc_t<Environment::allocator_type, value_type>;
 
 		AnchorPtr Ptr;
 
 		SharedAnchor(allocator_type a)
-			: Ptr(allocate_shared<value_type>(a))
+			: Ptr(YSLib::allocate_shared<value_type>(a))
 		{}
 		//@}
 		SharedAnchor(SharedAnchor&& anc) ynothrow
@@ -1790,7 +1791,16 @@ public:
 	using BaseType = YSLib::GHEvent<ReductionStatus()>;
 
 	DefDeCtor(Reducer)
+#if __cpp_inheriting_constructors >= 201511L
 	using BaseType::BaseType;
+#else
+	//! \since build 849
+	template<typename... _tParams, yimpl(typename
+		= ystdex::exclude_self_params_t<Reducer, _tParams...>)>
+	Reducer(_tParams&&... args)
+		: BaseType(yforward(args)...)
+	{}
+#endif
 	DefDeCopyMoveCtorAssignment(Reducer)
 
 	DefGetter(const ynothrow, const BaseType&, Base, *this)
@@ -1830,7 +1840,7 @@ private:
 	\invariant p_record 。
 	\since build 788
 	*/
-	shared_ptr<Environment> p_record{allocate_shared<Environment>(
+	shared_ptr<Environment> p_record{YSLib::allocate_shared<Environment>(
 		Environment::allocator_type(&memory_rsrc.get()))};
 
 public:
@@ -2044,7 +2054,7 @@ template<typename... _tParams>
 inline shared_ptr<Environment>
 AllocateEnvironment(Environment::allocator_type a, _tParams&&... args)
 {
-	return allocate_shared<NPL::Environment>(a, yforward(args)...);
+	return YSLib::allocate_shared<NPL::Environment>(a, yforward(args)...);
 }
 template<typename... _tParams>
 inline shared_ptr<Environment>

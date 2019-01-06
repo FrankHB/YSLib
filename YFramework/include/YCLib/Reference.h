@@ -11,13 +11,13 @@
 /*!	\file Reference.h
 \ingroup YCLib
 \brief 指针和引用访问操作模块。
-\version r2842
+\version r2847
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-03-21 23:09:06 +0800
 \par 修改时间:
-	2018-12-07 04:28 +0800
+	2018-12-30 22:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,8 +40,11 @@ namespace platform
 inline namespace references
 {
 
-//! \since build 847
-using yimpl(std)::allocate_shared;
+/*!
+\note 支持 WG21 P0674R1 对 LWG 2070 的解。
+\since build 847
+*/
+using yimpl(ystdex)::allocate_shared;
 //! \since build 847
 using ystdex::allocate_unique;
 using yimpl(std)::bad_weak_ptr;

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2017 FrankHB.
+	© 2015-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r531
+\version r534
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2015-01-02 09:40:31 +0800
 \par 修改时间:
-	2017-04-06 23:40 +0800
+	2018-12-30 16:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -209,7 +209,7 @@ ISO C++14 does not allowed arbitiary expressions for template non-type arguments
 		Only certain expression related with 'std::integral_constant' should be considered for refactoring.
 		For example, those 'seq_size' call in YBase.YStandardEx.Variadic and implementations of 'and_', 'or_', and 'not_' in YBase.YStandardEx.TypeOperation would not be touched even C++1z is accepted.
 Copy constructor of exception classes is reviewed.
-	See $2014-02 report.impl of basic rules.
+	See $2014-02 report.impl for basic rules.
 	The standard don't restrict the stored subobjets of standard exception classes to allow optimization.
 		See LWG 254.
 		However, actual implementations may directly use reference-counted strings.
@@ -452,6 +452,7 @@ The 'what()' in classes derived from 'std::exception' shall always returns a non
 
 $2015-12:
 
+report.impl:
 GCC now emits additional code for block scope static variable initialization to ensure conforming to the standard (e.g. ISO C++11).
 	The thread-safe initialization is controlled by 'flag_threadsafe_statics' in static function 'expand_static_init' in source file 'gcc/gcc/cp/decl.c'.
 	It is toggled by '-fthreadsafe-statics' of the driver, which is enabled by default.

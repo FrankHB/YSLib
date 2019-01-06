@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2018 FrankHB.
+	© 2012-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file MappingEx.h
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r425
+\version r436
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-09 09:04:36 +0800
 \par 修改时间:
-	2018-07-30 06:05 +0800
+	2019-01-04 10:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 
 #include "YModules.h"
 #include YFM_CHRLib_StaticMapping
+#include <ystdex/type_traits.hpp> // for ystdex::add_ptr_t;
 
 namespace CHRLib
 {
@@ -93,7 +94,7 @@ struct GUCSMapper<CharSet::SHIFT_JIS> : UCSMapperBase
 
 #if 0
 	template<typename _tObj, typename _tIn, typename _tState>
-	static byte
+	YB_ATTR_nodiscard static byte
 	Decode(_tObj&& uc, _tIn&& i, _tState&& st) ynoexcept(noexcept(GetSequenceOf(
 		st)) && noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
 	{
@@ -144,7 +145,7 @@ struct GUCSMapper<CharSet::GBK> : UCSMapperBase
 	\since build 599
 	*/
 	template<typename _tObj, typename _tIn, typename _tState>
-	static ConversionResult
+	YB_ATTR_nodiscard static ConversionResult
 	Decode(_tObj&& uc, _tIn&& i, _tState&& st) ynoexcept(noexcept(GetSequenceOf(
 		st)) && noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
 	{
@@ -157,9 +158,9 @@ struct GUCSMapper<CharSet::GBK> : UCSMapperBase
 		case 0:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
-			if(seq[0] < 0x80)
+			if(char32_t(seq[0]) < 0x80)
 			{
-				Assign(uc, seq[0]);
+				Assign(uc, char32_t(seq[0]));
 				break;
 			}
 			YB_ATTR_fallthrough;
@@ -190,7 +191,7 @@ struct GUCSMapper<CharSet::Big5> : UCSMapperBase
 
 #if 0
 	template<typename _tObj, typename _tIn, typename _tState>
-	static byte
+	YB_ATTR_nodiscard static size_t
 	Decode(_tObj&& uc, _tIn&& i, _tState&& st) ynoexcept(noexcept(GetSequenceOf(
 		st)) && noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
 	{
@@ -273,15 +274,16 @@ FetchMapperPtr_TryUCSMapper(yimpl(ystdex::enable_if_convertible_t<
 #endif
 
 template<typename _tRet, typename... _tParams>
-YB_STATELESS yconstfn ystdex::add_ref_t<_tRet(_tParams...)>
+YB_ATTR_nodiscard YB_STATELESS yconstfn ystdex::add_ref_t<_tRet(_tParams...)>
 FetchMapper_Default() ynothrow
 {
-	return *FetchMapperPtr_TryUCSMapper<CS_Default, _tRet, _tParams...>(nullptr);
+	return
+		*FetchMapperPtr_TryUCSMapper<CS_Default, _tRet, _tParams...>(nullptr);
 }
 
 //! \brief 取指定编码映射的转换函数指针。
 template<typename _tRet, typename... _tParams>
-yconstfn_relaxed ystdex::add_ptr_t<_tRet(_tParams...)>
+YB_ATTR_nodiscard yconstfn_relaxed ystdex::add_ptr_t<_tRet(_tParams...)>
 FetchMapperPtr(Encoding enc)
 {
 	using namespace CharSet;

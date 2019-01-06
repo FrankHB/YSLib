@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3650
+\version r3675
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2016-12-10 01:05 +0800
+	2019-01-04 11:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,7 +42,7 @@
 //#include FT_SYNTHESIS_H
 #if defined(FT_CONFIG_OPTION_OLD_INTERNALS) \
 	&& (FREETYPE_MAJOR * 10000 + FREETYPE_MINOR * 100 + FREETYPE_PATCH >= 20500)
-#	define YF_Impl_Use_FT_Internal 1
+#	define YF_Impl_Use_FT_Internal true
 #	include <freetype/internal/internal.h> // for FreeType internal macros;
 #	include FT_INTERNAL_TRUETYPE_TYPES_H // for TT_Face, TT_FaceRec_;
 #endif
@@ -85,13 +85,23 @@ namespace
 {
 
 //! \brief 替代 ::FT_Set_Pixel_Sizes 。
-::FT_Error
+YB_ATTR_nodiscard ::FT_Error
 N_SetPixelSizes(::FT_FaceRec& face, ::FT_UInt s) ynothrow
 {
 	::FT_Size_RequestRec req{FT_SIZE_REQUEST_TYPE_NOMINAL, ::FT_Long(s << 6),
 		::FT_Long(s << 6), 0, 0};
 
 	return ::FT_Request_Size(&face, &req);
+}
+
+//! \since build 849
+YB_ATTR_nodiscard YB_STATELESS std::int8_t
+CvtFixed26_6ToI8(::FT_Pos v)
+{
+	// XXX: The internal value is is in 26.6 format in FreeType2.
+	// FIXME: Possible truncation?
+	// XXX: No exception specification is specified here currently.
+	return v >> 6;
 }
 
 /*!
@@ -233,12 +243,12 @@ Typeface::SmallBitmapData::SmallBitmapData(::FT_GlyphSlot slot, FontStyle style)
 			&& YSL_Impl_SB_CheckChar(xadv) && YSL_Impl_SB_CheckChar(yadv))
 		{
 			yunseq(
-			width = byte(bitmap.width),
-			height = byte(bitmap.rows),
+			width = std::uint8_t(bitmap.width),
+			height = std::uint8_t(bitmap.rows),
 			left = static_cast<signed char>(slot->bitmap_left),
 			top = static_cast<signed char>(slot->bitmap_top),
-			format = byte(bitmap.pixel_mode),
-			max_grays = byte(bitmap.num_grays - 1),
+			format = std::uint8_t(bitmap.pixel_mode),
+			max_grays = std::uint8_t(bitmap.num_grays - 1),
 			pitch = static_cast<signed char>(bitmap.pitch),
 			xadvance = static_cast<signed char>(xadv),
 			yadvance = static_cast<signed char>(yadv),
@@ -446,9 +456,14 @@ FontCache::LoadTypefaces(const FontPath& path)
 	{
 		::FT_Face face(nullptr);
 
-		// TODO: Log.
+		YTraceDe(Debug, "Trying loading font path using ::FT_New_Face: %s.",
+			path.c_str());
+		// TODO: Filter out more files earilier?
 		if(::FT_New_Face(library, path.c_str(), -1, &face) != 0)
+		{
+			YTraceDe(Debug, "Failed loading font path: %s.", path.c_str());
 			return 0;
+		}
 
 		const auto face_num(face->num_faces);
 
@@ -505,12 +520,12 @@ Font::GetAdvance(char32_t c, CharBitmap sbit) const
 std::int8_t
 Font::GetAscender() const
 {
-	return GetInternalInfo().ascender >> 6;
+	return CvtFixed26_6ToI8(GetInternalInfo().ascender);
 }
 std::int8_t
 Font::GetDescender() const
 {
-	return GetInternalInfo().descender >> 6;
+	return CvtFixed26_6ToI8(GetInternalInfo().descender);
 }
 CharBitmap
 Font::GetGlyph(char32_t c, unsigned flags) const
@@ -530,6 +545,7 @@ Font::GetHeight() const ynothrow
 ::FT_Size_Metrics
 Font::GetInternalInfo() const
 {
+	// XXX: Similar to %CvtFixed26_6ToI8.
 	return GetTypeface().LookupSize(GetSize()).GetSizeRec().metrics;
 }
 

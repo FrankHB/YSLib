@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015, 2018 FrankHB.
+	© 2009-2015, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CharacterProcessing.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r2227
+\version r2243
 \author FrankHB <frankhb1989@gmail.com>
 \since build 565
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2018-07-28 11:34 +0800
+	2019-01-03 20:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 
 #include "YModules.h"
 #include YFM_CHRLib_CharacterMapping
+#include <ystdex/cstring.h> // for ystdex::uchar_t;
 #include <ystdex/string.hpp> // for ystdex::is_null, ystdex::ntctslen,
 //	ystdex::string_traits;
 #include <cstdio> // for std::FILE;
@@ -47,7 +48,7 @@ using ystdex::uchar_t;
 \note 截取低 7 位。
 */
 template<typename _tChar>
-yconstfn bool
+YB_ATTR_nodiscard YB_STATELESS yconstfn bool
 IsASCII(_tChar c)
 {
 	return !(c & ~0x7F);
@@ -58,7 +59,7 @@ IsASCII(_tChar c)
 \note 截取低 7 位。
 */
 template<typename _tChar>
-yconstfn char
+YB_ATTR_nodiscard YB_STATELESS yconstfn char
 ToASCII(_tChar c)
 {
 	static_assert(std::is_integral<_tChar>(), "Invalid type found.");
@@ -415,7 +416,7 @@ template<Encoding _vFrom, Encoding _vTo,
 struct Transcoding
 {
 	template<typename _tDst, typename _tChar, typename... _tParams>
-	static _tDst
+	YB_ATTR_nodiscard YB_PURE static _tDst
 	MakeTranscoded(const _tChar* s, _tParams&&... args)
 	{
 		_tDst str(ystdex::ntctslen(s),
@@ -426,7 +427,7 @@ struct Transcoding
 	}
 
 	template<typename _tDst, typename _type, typename... _tParams>
-	static _tDst
+	YB_ATTR_nodiscard YB_PURE static _tDst
 	MakeViewTranscoded(_type sv, _tParams&&... args)
 	{
 		const auto s(sv.data());
@@ -447,7 +448,7 @@ struct Transcoding<_vFrom, CharSet::Null, _tDispatcher>
 {
 	template<typename _tDst, typename _tChar,
 		typename... _tParams>
-	static _tDst
+	YB_ATTR_nodiscard YB_PURE static _tDst
 	MakeTranscoded(const _tChar* s)
 	{
 		const auto w(FetchMaxCharWidth(CS_Default));
@@ -459,7 +460,7 @@ struct Transcoding<_vFrom, CharSet::Null, _tDispatcher>
 	}
 	template<typename _tDst, typename _tChar,
 		typename... _tParams>
-	static _tDst
+	YB_ATTR_nodiscard YB_PURE static _tDst
 	MakeTranscoded(const _tChar* s, Encoding enc, _tParams&&... args)
 	{
 		const auto w(FetchMaxCharWidth(enc));
@@ -472,7 +473,7 @@ struct Transcoding<_vFrom, CharSet::Null, _tDispatcher>
 
 	template<typename _tDst, typename _type,
 		typename... _tParams>
-	static _tDst
+	YB_ATTR_nodiscard YB_PURE static _tDst
 	MakeViewTranscoded(_type sv)
 	{
 		const auto s(sv.data());
@@ -489,7 +490,7 @@ struct Transcoding<_vFrom, CharSet::Null, _tDispatcher>
 	}
 	template<typename _tDst, typename _type,
 		typename... _tParams>
-	static _tDst
+	YB_ATTR_nodiscard YB_PURE static _tDst
 	MakeViewTranscoded(_type sv, Encoding enc, _tParams&&... args)
 	{
 		const auto s(sv.data());
@@ -523,13 +524,13 @@ struct Transcoding<_vFrom, CharSet::Null, _tDispatcher>
 		::MakeViewTranscoded<_tDst>(__VA_ARGS__);
 #define CHRLib_Impl_MakeTrans(_n, _tSrcChar, _tDstChar, _vFrom, _vTo, _vDeEnc) \
 	template<class _tDst = std::basic_string<_tDstChar>, typename... _tParams> \
-	YB_NONNULL(1) _tDst \
+	YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE _tDst \
 	Make##_n(const _tSrcChar* s, _tParams&&... args) \
 	{ \
 		CHRLib_Impl_Transcode(_vFrom, _vTo, s, yforward(args)...); \
 	} \
 	template<class _tDst = std::basic_string<_tDstChar>, typename... _tParams> \
-	_tDst \
+	YB_ATTR_nodiscard YB_PURE _tDst \
 	Make##_n(basic_string_view<_tSrcChar> sv, _tParams&&... args) \
 	{ \
 		CHRLib_Impl_TranscodeView(_vFrom, _vTo, sv, yforward(args)...); \
@@ -543,7 +544,7 @@ CHRLib_Impl_MakeTrans(UCS2LE, char, char16_t, Null, ISO_10646_UCS_2, CS_Default)
 \since build 641
 */
 template<class _tDst = std::basic_string<char16_t>>
-inline _tDst
+YB_ATTR_nodiscard YB_PURE inline _tDst
 MakeUCS2LE(u16string_view sv, Encoding = CharSet::ISO_10646_UCS_2)
 {
 	const auto s(sv.data());
@@ -578,7 +579,7 @@ CHRLib_Impl_MakeTrans(UCS4LE, char16_t, char32_t, ISO_10646_UCS_2,
 \since build 641
 */
 template<class _tDst = std::basic_string<char32_t>>
-inline _tDst
+YB_ATTR_nodiscard YB_PURE inline _tDst
 MakeUCS4LE(u32string_view sv, Encoding = CharSet::ISO_10646_UCS_4)
 {
 	const auto s(sv.data());
@@ -593,14 +594,14 @@ MakeUCS4LE(u32string_view sv, Encoding = CharSet::ISO_10646_UCS_4)
 //@{
 //! \since build 544
 template<class _tDst = std::string>
-YB_NONNULL(1) inline _tDst
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE inline _tDst
 MakeMBCS(const char* s, Encoding enc)
 {
 	return enc = CS_Default ? MakeMBCS<_tDst>(s)
 		: MakeMBCS<_tDst>(MakeUCS2LE(s, CS_Default), enc);
 }
 template<class _tDst = std::string>
-inline _tDst
+YB_ATTR_nodiscard YB_PURE inline _tDst
 MakeMBCS(string_view sv, Encoding enc)
 {
 	return enc = CS_Default ? MakeMBCS<_tDst>(sv)

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2018 FrankHB.
+	© 2012-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r3825
+\version r3974
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2018-11-26 17:01 +0800
+	2019-01-03 20:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,27 +81,14 @@ public:
 private:
 	//! \since build 844
 	//@{
-	template<typename... _tParam>
-	using enable_uses_alloc_trail = ystdex::enable_if_t<
-		std::is_constructible<ValueNode, _tParam..., allocator_type>::value>;
 	template<typename... _tParams>
 	using enable_value_constructible_t = ystdex::enable_if_t<
 		std::is_constructible<ValueObject, _tParams...>::value>;
-	template<size_t _vN, template<typename...> class _gOp, typename... _tParams>
-	using more_args_or_t = ystdex::cond_or_t<ystdex::bool_<
-		(sizeof...(_tParams) >= _vN)>, ystdex::true_, _gOp, _tParams...>;
-	template<typename _tParam, typename...>
-	using non_alloc_arg_t = ystdex::not_<std::is_convertible<_tParam,
-		std::allocator_arg_t>>;
-	//@}
-	/*!
-	\sa ystdex::mapped_set
-	\since build 844
-	*/
+	//! \sa ystdex::mapped_set
 	struct YF_API cont_traits
 	{
 		template<typename _tKey, class _tCon>
-		static inline auto
+		YB_ATTR_nodiscard YB_PURE static inline auto
 		extend_key(_tKey&& k, _tCon& con) ynothrow -> decltype(
 			ValueNode(std::allocator_arg, con.get_allocator(), NoContainer,
 				yforward(k)))
@@ -112,17 +99,14 @@ private:
 
 		//! \note 这些重载和构造函数中可能由参数确定键的值的情形匹配。
 		//@{
-		static inline PDefH(string, get_value_key, allocator_type = {}) ynothrow
+		YB_ATTR_nodiscard YB_PURE static inline
+			PDefH(string, get_value_key, allocator_type = {}) ynothrow
 			ImplRet({})
-		//! \since build 845
-		static PDefH(string, get_value_key, std::allocator_arg_t,
-			allocator_type) ynothrow
-			ImplRet({})
-		static PDefH(const string&, get_value_key, const ValueNode& nd,
-			allocator_type = {}) ynothrow
+		YB_ATTR_nodiscard YB_PURE static PDefH(const string&, get_value_key,
+			const ValueNode& nd, allocator_type = {}) ynothrow
 			ImplRet(nd.name)
-		static PDefH(string&&, get_value_key, ValueNode&& nd,
-			allocator_type = {}) ynothrow
+		YB_ATTR_nodiscard YB_PURE static PDefH(string&&, get_value_key,
+			ValueNode&& nd, allocator_type = {}) ynothrow
 			ImplRet(std::move(nd.name))
 		//! \since build 845
 		//@{
@@ -134,7 +118,7 @@ private:
 		template<typename _tString, typename _tOther, typename... _tParams,
 			yimpl(typename = enable_value_constructible_t<_tParams&&...>),
 			yimpl(typename = enable_not_key_t<_tOther>)>
-		static inline _tString&&
+		YB_ATTR_nodiscard YB_PURE static inline _tString&&
 		get_value_key(_tOther&&, _tString&& str, _tParams&&...)
 		{
 			return yforward(str);
@@ -142,33 +126,33 @@ private:
 		template<typename _tString, typename _tOther, typename... _tParams,
 			yimpl(typename = enable_value_constructible_t<_tParams&&...>),
 			yimpl(typename = enable_not_key_t<_tOther>)>
-		static inline _tString&&
+		YB_ATTR_nodiscard YB_PURE static inline _tString&&
 		get_value_key(std::allocator_arg_t, allocator_type, _tOther&&,
 			_tString&& str, _tParams&&...)
 		{
 			return yforward(str);
 		}
 		template<typename _tIn>
-		static inline string
+		YB_ATTR_nodiscard YB_PURE static inline string
 		get_value_key(const pair<_tIn, _tIn>&, allocator_type = {})
 		{
 			return {};
 		}
 		template<typename _tIn, typename _tString>
-		static inline _tString&&
+		YB_ATTR_nodiscard YB_PURE static inline _tString&&
 		get_value_key(const pair<_tIn, _tIn>&, _tString&& str,
 			allocator_type = {})
 		{
 			return yforward(str);
 		}
 		template<typename... _tParams1>
-		static inline string
+		YB_ATTR_nodiscard YB_PURE static inline string
 		get_value_key(tuple<_tParams1...>, allocator_type = {})
 		{
 			return {};
 		}
 		template<typename... _tParams1, typename... _tParams2>
-		static inline string
+		YB_ATTR_nodiscard YB_PURE static inline string
 		get_value_key(tuple<_tParams1...>, tuple<_tParams2...> args2,
 			allocator_type = {})
 		{
@@ -176,20 +160,11 @@ private:
 		}
 		template<typename... _tParams1, typename... _tParams2,
 			typename... _tParams3>
-		static inline string
+		YB_ATTR_nodiscard YB_PURE static inline string
 		get_value_key(tuple<_tParams1...>, tuple<_tParams2...> args2,
 			tuple<_tParams3...>, allocator_type = {})
 		{
 			return ystdex::make_from_tuple<string>(args2);
-		}
-		template<typename... _tParams, yimpl(typename = enable_uses_alloc_trail<
-			_tParams&&...>, typename = ystdex::enable_if_t<
-			more_args_or_t<1, non_alloc_arg_t, _tParams&&...>::value>)>
-		static inline auto
-		get_value_key(std::allocator_arg_t, allocator_type, _tParams&&... args)
-			-> decltype(get_value_key(yforward(args)...))
-		{
-			return get_value_key(yforward(args)...);
 		}
 		//@}
 		//@}
@@ -206,6 +181,7 @@ private:
 			ImplRet({std::move(node.GetContainerRef()),
 				node.GetName(), std::move(node.Value)})
 	};
+	//@}
 
 public:
 	using Container = ystdex::mapped_set<ValueNode, ystdex::less<>,
@@ -237,16 +213,10 @@ public:
 	//! \since build 844
 	//@{
 	//! \brief 构造：使用分配器。
-	//@{
 	explicit
 	ValueNode(allocator_type a)
 		: container(a)
 	{}
-	explicit
-	ValueNode(std::allocator_arg_t, allocator_type a)
-		: ValueNode(a)
-	{}
-	//@}
 	/*!
 	\brief 构造：使用容器对象引用和可选的分配器。
 	\since build 845
@@ -359,13 +329,6 @@ public:
 		Value(ystdex::make_from_tuple<ValueObject>(args3))
 	{}
 	//@}
-	template<typename... _tParams, yimpl(typename = enable_uses_alloc_trail<
-		_tParams&&...>, typename = ystdex::enable_if_t<
-		more_args_or_t<1, non_alloc_arg_t, _tParams&&...>::value>)>
-	inline
-	ValueNode(std::allocator_arg_t, allocator_type a, _tParams&&... args)
-		: ValueNode(yforward(args)..., a)
-	{}
 	inline
 	ValueNode(const ValueNode& nd, allocator_type a)
 		: name(nd.name), container(nd.container, a), Value(nd.Value)
@@ -438,45 +401,48 @@ public:
 		ImplRet(x.name == str)
 	//! \since build 730
 	template<typename _tKey>
-	friend bool
+	YB_ATTR_nodiscard YB_PURE friend bool
 	operator==(const ValueNode& x, const _tKey& k) ynothrow
 	{
 		return x.name == k;
 	}
 
 	//! \since build 673
-	friend PDefHOp(bool, <, const ValueNode& x, const ValueNode& y) ynothrow
+	YB_ATTR_nodiscard YB_PURE friend
+		PDefHOp(bool, <, const ValueNode& x, const ValueNode& y) ynothrow
 		ImplRet(x.name < y.name)
 	//! \since build 678
-	friend PDefHOp(bool, <, const ValueNode& x, const string& str) ynothrow
+	YB_ATTR_nodiscard YB_PURE friend
+		PDefHOp(bool, <, const ValueNode& x, const string& str) ynothrow
 		ImplRet(x.name < str)
 	//! \since build 730
 	template<typename _tKey>
-	friend bool
+	YB_ATTR_nodiscard YB_PURE friend bool
 	operator<(const ValueNode& x, const _tKey& k) ynothrow
 	{
 		return x.name < k;
 	}
 	//! \since build 730
 	template<typename _tKey>
-	friend bool
+	YB_ATTR_nodiscard YB_PURE friend bool
 	operator<(const _tKey& k, const ValueNode& y) ynothrow
 	{
 		return k < y.name;
 	}
 	//! \since build 679
-	friend PDefHOp(bool, >, const ValueNode& x, const string& str) ynothrow
+	YB_ATTR_nodiscard YB_PURE friend
+		PDefHOp(bool, >, const ValueNode& x, const string& str) ynothrow
 		ImplRet(x.name > str)
 	//! \since build 730
 	template<typename _tKey>
-	friend bool
+	YB_ATTR_nodiscard YB_PURE friend bool
 	operator>(const ValueNode& x, const _tKey& k) ynothrow
 	{
 		return x.name > k;
 	}
 	//! \since build 730
 	template<typename _tKey>
-	friend bool
+	YB_ATTR_nodiscard YB_PURE friend bool
 	operator>(const _tKey& k, const ValueNode& y) ynothrow
 	{
 		return k > y.name;
@@ -687,8 +653,8 @@ public:
 		Container res(con.get_allocator());
 
 		for(auto&& tm : con)
-			res.emplace(CreateRecursively(ystdex::forward_like<_tCon>(
-				tm.container), f), tm.GetName(),
+			res.emplace(CreateRecursively(
+				ystdex::forward_like<_tCon>(tm.container), f), tm.GetName(),
 				ystdex::invoke(f, ystdex::forward_like<_tCon>(tm.Value)));
 		return res;
 	}
@@ -847,18 +813,19 @@ public:
 	/*!
 	\brief 抛出索引越界异常。
 	\throw std::out_of_range 索引越界。
-	\since build 730
+	\since build 849
 	*/
 	YB_NORETURN static void
-	ThrowIndexOutOfRange();
+	ThrowIndexOutOfRange(size_t);
 
 	/*!
 	\brief 抛出名称错误异常。
+	\pre 间接断言：间接参数的数据指针非空。
 	\throw std::out_of_range 名称错误。
-	\since build 730
+	\since build 849
 	*/
 	YB_NORETURN static void
-	ThrowWrongNameFound();
+	ThrowWrongNameFound(string_view);
 
 	//! \since build 460
 	//@{
@@ -890,7 +857,8 @@ public:
 		erase, container.erase(yforward(args)...))
 
 	//! \since build 844
-	YB_ATTR_nodiscard PDefH(allocator_type, get_allocator, ) const ynothrow
+	YB_ATTR_nodiscard YB_PURE
+		PDefH(allocator_type, get_allocator, ) const ynothrow
 		ImplRet(container.get_allocator())
 
 	//! \since build 667
@@ -918,19 +886,19 @@ public:
 
 	//! \since build 696
 	//@{
-	PDefH(reverse_iterator, rbegin, )
+	YB_ATTR_nodiscard YB_PURE PDefH(reverse_iterator, rbegin, )
 		ImplRet(GetContainerRef().rbegin())
-	PDefH(const_reverse_iterator, rbegin, ) const
+	YB_ATTR_nodiscard YB_PURE PDefH(const_reverse_iterator, rbegin, ) const
 		ImplRet(GetContainer().rbegin())
 
-	PDefH(reverse_iterator, rend, )
+	YB_ATTR_nodiscard YB_PURE PDefH(reverse_iterator, rend, )
 		ImplRet(GetContainerRef().rend())
-	PDefH(const_reverse_iterator, rend, ) const
+	YB_ATTR_nodiscard YB_PURE PDefH(const_reverse_iterator, rend, ) const
 		ImplRet(GetContainer().rend())
 	//@}
 
 	//! \since build 598
-	PDefH(size_t, size, ) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(size_t, size, ) const ynothrow
 		ImplRet(container.size())
 
 	/*!
@@ -978,13 +946,13 @@ public:
 */
 //@{
 template<typename _type>
-inline _type&
+YB_ATTR_nodiscard YB_PURE inline _type&
 Access(ValueNode& node)
 {
 	return node.Value.Access<_type>();
 }
 template<typename _type>
-inline const _type&
+YB_ATTR_nodiscard YB_PURE inline const _type&
 Access(const ValueNode& node)
 {
 	return node.Value.Access<_type>();
@@ -996,13 +964,13 @@ Access(const ValueNode& node)
 //! \brief 访问节点的指定类型对象指针。
 //@{
 template<typename _type>
-inline observer_ptr<_type>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
 AccessPtr(ValueNode& node) ynothrow
 {
 	return node.Value.AccessPtr<_type>();
 }
 template<typename _type>
-inline observer_ptr<const _type>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<const _type>
 AccessPtr(const ValueNode& node) ynothrow
 {
 	return node.Value.AccessPtr<_type>();
@@ -1014,7 +982,7 @@ AccessPtr(const ValueNode& node) ynothrow
 */
 //@{
 template<typename _type, typename _tNodeOrPointer>
-inline auto
+YB_ATTR_nodiscard YB_PURE inline auto
 AccessPtr(observer_ptr<_tNodeOrPointer> p) ynothrow
 	-> decltype(YSLib::AccessPtr<_type>(*p))
 {
@@ -1027,11 +995,11 @@ AccessPtr(observer_ptr<_tNodeOrPointer> p) ynothrow
 //! \since build 749
 //@{
 //! \brief 取指定名称指称的值。
-YF_API ValueObject
+YB_ATTR_nodiscard YF_API YB_PURE ValueObject
 GetValueOf(observer_ptr<const ValueNode>);
 
 //! \brief 取指定名称指称的值的指针。
-YF_API observer_ptr<const ValueObject>
+YB_ATTR_nodiscard YF_API YB_PURE observer_ptr<const ValueObject>
 GetValuePtrOf(observer_ptr<const ValueNode>);
 //@}
 //@}
@@ -1040,10 +1008,10 @@ GetValuePtrOf(observer_ptr<const ValueNode>);
 //! \since build 730
 //@{
 template<typename _tKey>
-observer_ptr<ValueNode>
+YB_ATTR_nodiscard YB_PURE observer_ptr<ValueNode>
 AccessNodePtr(ValueNode::Container*, const _tKey&) ynothrow;
 template<typename _tKey>
-observer_ptr<const ValueNode>
+YB_ATTR_nodiscard YB_PURE observer_ptr<const ValueNode>
 AccessNodePtr(const ValueNode::Container*, const _tKey&) ynothrow;
 
 /*!
@@ -1052,47 +1020,47 @@ AccessNodePtr(const ValueNode::Container*, const _tKey&) ynothrow;
 */
 //@{
 //! \since build 670
-YF_API ValueNode&
+YB_ATTR_nodiscard YF_API YB_PURE ValueNode&
 AccessNode(ValueNode::Container*, const string&);
 //! \since build 670
-YF_API const ValueNode&
+YB_ATTR_nodiscard YF_API YB_PURE const ValueNode&
 AccessNode(const ValueNode::Container*, const string&);
 template<typename _tKey>
-ValueNode&
+YB_ATTR_nodiscard YB_PURE ValueNode&
 AccessNode(ValueNode::Container* p_con, const _tKey& name)
 {
 	if(const auto p = YSLib::AccessNodePtr(p_con, name))
 		return *p;
-	ValueNode::ThrowWrongNameFound();
+	ValueNode::ThrowWrongNameFound(name);
 }
 template<typename _tKey>
-const ValueNode&
+YB_ATTR_nodiscard YB_PURE const ValueNode&
 AccessNode(const ValueNode::Container* p_con, const _tKey& name)
 {
 	if(const auto p = YSLib::AccessNodePtr(p_con, name))
 		return *p;
-	ValueNode::ThrowWrongNameFound();
+	ValueNode::ThrowWrongNameFound(name);
 }
 template<typename _tKey>
-inline ValueNode&
+YB_ATTR_nodiscard YB_PURE inline ValueNode&
 AccessNode(observer_ptr<ValueNode::Container> p_con, const _tKey& name)
 {
 	return YSLib::AccessNode(p_con.get(), name);
 }
 template<typename _tKey>
-inline const ValueNode&
+YB_ATTR_nodiscard YB_PURE inline const ValueNode&
 AccessNode(observer_ptr<const ValueNode::Container> p_con, const _tKey& name)
 {
 	return YSLib::AccessNode(p_con.get(), name);
 }
 template<typename _tKey>
-inline ValueNode&
+YB_ATTR_nodiscard YB_PURE inline ValueNode&
 AccessNode(ValueNode::Container& con, const _tKey& name)
 {
 	return YSLib::AccessNode(&con, name);
 }
 template<typename _tKey>
-inline const ValueNode&
+YB_ATTR_nodiscard YB_PURE inline const ValueNode&
 AccessNode(const ValueNode::Container& con, const _tKey& name)
 {
 	return YSLib::AccessNode(&con, name);
@@ -1102,21 +1070,21 @@ AccessNode(const ValueNode::Container& con, const _tKey& name)
 \since build 670
 */
 //@{
-YF_API ValueNode&
+YB_ATTR_nodiscard YF_API YB_PURE ValueNode&
 AccessNode(ValueNode&, size_t);
-YF_API const ValueNode&
+YB_ATTR_nodiscard YF_API YB_PURE const ValueNode&
 AccessNode(const ValueNode&, size_t);
 //@}
 template<typename _tKey,
 	yimpl(typename = ValueNode::enable_if_key_t<_tKey>)>
-inline ValueNode&
+YB_ATTR_nodiscard YB_PURE inline ValueNode&
 AccessNode(ValueNode& node, const _tKey& name)
 {
 	return YSLib::AccessNode(node.GetContainerRef(), name);
 }
 template<typename _tKey,
 	yimpl(typename = ValueNode::enable_if_key_t<_tKey>)>
-inline const ValueNode&
+YB_ATTR_nodiscard YB_PURE inline const ValueNode&
 AccessNode(const ValueNode& node, const _tKey& name)
 {
 	return YSLib::AccessNode(node.GetContainer(), name);
@@ -1125,7 +1093,7 @@ AccessNode(const ValueNode& node, const _tKey& name)
 //@{
 //! \note 使用 ADL AccessNode 。
 template<class _tNode, typename _tIn>
-_tNode&&
+YB_ATTR_nodiscard YB_PURE _tNode&&
 AccessNode(_tNode&& node, _tIn first, _tIn last)
 {
 	return std::accumulate(first, last, ystdex::ref(node),
@@ -1137,7 +1105,7 @@ AccessNode(_tNode&& node, _tIn first, _tIn last)
 template<class _tNode, typename _tRange,
 	yimpl(typename = typename ystdex::enable_if_t<
 	!std::is_constructible<const string&, const _tRange&>::value>)>
-inline auto
+YB_ATTR_nodiscard YB_PURE inline auto
 AccessNode(_tNode&& node, const _tRange& c)
 	-> decltype(YSLib::AccessNode(yforward(node), begin(c), end(c)))
 {
@@ -1149,46 +1117,46 @@ AccessNode(_tNode&& node, const _tRange& c)
 //! \brief 访问节点指针。
 //@{
 //! \since build 670
-YF_API observer_ptr<ValueNode>
+YB_ATTR_nodiscard YF_API YB_PURE observer_ptr<ValueNode>
 AccessNodePtr(ValueNode::Container&, const string&) ynothrow;
 //! \since build 670
-YF_API observer_ptr<const ValueNode>
+YB_ATTR_nodiscard YF_API YB_PURE observer_ptr<const ValueNode>
 AccessNodePtr(const ValueNode::Container&, const string&) ynothrow;
 template<typename _tKey>
-observer_ptr<ValueNode>
+YB_ATTR_nodiscard YB_PURE observer_ptr<ValueNode>
 AccessNodePtr(ValueNode::Container& con, const _tKey& name) ynothrow
 {
 	return make_observer(ystdex::call_value_or<ValueNode*>(ystdex::addrof<>(),
 		con.find(name), {}, ystdex::end(con)));
 }
 template<typename _tKey>
-observer_ptr<const ValueNode>
+YB_ATTR_nodiscard YB_PURE observer_ptr<const ValueNode>
 AccessNodePtr(const ValueNode::Container& con, const _tKey& name) ynothrow
 {
 	return make_observer(ystdex::call_value_or<const ValueNode*>(
 		ystdex::addrof<>(), con.find(name), {}, ystdex::end(con)));
 }
 template<typename _tKey>
-inline observer_ptr<ValueNode>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<ValueNode>
 AccessNodePtr(ValueNode::Container* p_con, const _tKey& name) ynothrow
 {
 	return p_con ? YSLib::AccessNodePtr(*p_con, name) : nullptr;
 }
 template<typename _tKey>
-inline observer_ptr<const ValueNode>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<const ValueNode>
 AccessNodePtr(const ValueNode::Container* p_con, const _tKey& name) ynothrow
 {
 	return p_con ? YSLib::AccessNodePtr(*p_con, name) : nullptr;
 }
 template<typename _tKey>
-inline observer_ptr<ValueNode>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<ValueNode>
 AccessNodePtr(observer_ptr<ValueNode::Container> p_con, const _tKey& name)
 	ynothrow
 {
 	return p_con ? YSLib::AccessNodePtr(*p_con, name) : nullptr;
 }
 template<typename _tKey>
-inline observer_ptr<const ValueNode>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<const ValueNode>
 AccessNodePtr(observer_ptr<const ValueNode::Container> p_con, const _tKey& name)
 	ynothrow
 {
@@ -1199,21 +1167,21 @@ AccessNodePtr(observer_ptr<const ValueNode::Container> p_con, const _tKey& name)
 \since build 670
 */
 //@{
-YF_API observer_ptr<ValueNode>
+YB_ATTR_nodiscard YF_API YB_PURE observer_ptr<ValueNode>
 AccessNodePtr(ValueNode&, size_t);
-YF_API observer_ptr<const ValueNode>
+YB_ATTR_nodiscard YF_API YB_PURE observer_ptr<const ValueNode>
 AccessNodePtr(const ValueNode&, size_t);
 //@}
 template<typename _tKey, yimpl(typename = typename ystdex::enable_if_t<
 	ystdex::is_interoperable<const _tKey&, const string&>::value>)>
-inline observer_ptr<ValueNode>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<ValueNode>
 AccessNodePtr(ValueNode& node, const _tKey& name)
 {
 	return YSLib::AccessNodePtr(node.GetContainerRef(), name);
 }
 template<typename _tKey, yimpl(typename = typename ystdex::enable_if_t<
 	ystdex::is_interoperable<const _tKey&, const string&>::value>)>
-inline observer_ptr<const ValueNode>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<const ValueNode>
 AccessNodePtr(const ValueNode& node, const _tKey& name)
 {
 	return YSLib::AccessNodePtr(node.GetContainer(), name);
@@ -1222,7 +1190,7 @@ AccessNodePtr(const ValueNode& node, const _tKey& name)
 //@{
 //! \note 使用 ADL AccessNodePtr 。
 template<class _tNode, typename _tIn>
-auto
+YB_ATTR_nodiscard YB_PURE auto
 AccessNodePtr(_tNode&& node, _tIn first, _tIn last)
 	-> decltype(make_obsrever(std::addressof(node)))
 {
@@ -1236,7 +1204,7 @@ AccessNodePtr(_tNode&& node, _tIn first, _tIn last)
 template<class _tNode, typename _tRange,
 	yimpl(typename = typename ystdex::enable_if_t<
 	!std::is_constructible<const string&, const _tRange&>::value>)>
-inline auto
+YB_ATTR_nodiscard YB_PURE inline auto
 AccessNodePtr(_tNode&& node, const _tRange& c)
 	-> decltype(YSLib::AccessNodePtr(yforward(node), begin(c), end(c)))
 {
@@ -1259,7 +1227,7 @@ AccessNodePtr(_tNode&& node, const _tRange& c)
 */
 //@{
 template<typename _type, typename... _tParams>
-inline _type&
+YB_ATTR_nodiscard YB_PURE inline _type&
 AccessChild(ValueNode& node, _tParams&&... args)
 {
 	return Access<_type>(AccessNode(node, yforward(args)...));
@@ -1275,27 +1243,27 @@ AccessChild(const ValueNode& node, _tParams&&... args)
 //! \brief 访问指定名称的子节点的指定类型对象的指针。
 //@{
 template<typename _type, typename... _tParams>
-inline observer_ptr<_type>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
 AccessChildPtr(ValueNode& node, _tParams&&... args) ynothrow
 {
 	return AccessPtr<_type>(
 		AccessNodePtr(node.GetContainerRef(), yforward(args)...));
 }
 template<typename _type, typename... _tParams>
-inline observer_ptr<const _type>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<const _type>
 AccessChildPtr(const ValueNode& node, _tParams&&... args) ynothrow
 {
 	return AccessPtr<_type>(
 		AccessNodePtr(node.GetContainer(), yforward(args)...));
 }
 template<typename _type, typename... _tParams>
-inline observer_ptr<_type>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
 AccessChildPtr(ValueNode* p_node, _tParams&&... args) ynothrow
 {
 	return p_node ? AccessChildPtr<_type>(*p_node, yforward(args)...) : nullptr;
 }
 template<typename _type, typename... _tParams>
-inline observer_ptr<const _type>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<const _type>
 AccessChildPtr(const ValueNode* p_node, _tParams&&... args) ynothrow
 {
 	return p_node ? AccessChildPtr<_type>(*p_node, yforward(args)...) : nullptr;
@@ -1308,20 +1276,21 @@ AccessChildPtr(const ValueNode* p_node, _tParams&&... args) ynothrow
 //! \note 结果不含子节点。
 //@{
 //! \since build 678
-inline PDefH(const ValueNode&, AsNode, const ValueNode& node)
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(const ValueNode&, AsNode, const ValueNode& node)
 	ImplRet(node)
 //! \brief 传递指定名称和值参数构造值类型节点。
 //@{
 //! \since build 668
 template<typename _tString, typename... _tParams>
-inline ValueNode
+YB_ATTR_nodiscard YB_PURE inline ValueNode
 AsNode(_tString&& str, _tParams&&... args)
 {
 	return {NoContainer, yforward(str), yforward(args)...};
 }
 //! \since build 844
 template<typename _tString, typename... _tParams>
-inline ValueNode
+YB_ATTR_nodiscard YB_PURE inline ValueNode
 AsNode(ValueNode::allocator_type a, _tString&& str, _tParams&&... args)
 {
 	return {std::allocator_arg, a, NoContainer, yforward(str),
@@ -1333,14 +1302,14 @@ AsNode(ValueNode::allocator_type a, _tString&& str, _tParams&&... args)
 //@{
 //! \since build 337
 template<typename _tString, typename... _tParams>
-inline ValueNode
+YB_ATTR_nodiscard YB_PURE inline ValueNode
 MakeNode(_tString&& str, _tParams&&... args)
 {
 	return {NoContainer, yforward(str), ystdex::decay_copy(args)...};
 }
 //! \since build 844
 template<typename _tString, typename... _tParams>
-inline ValueNode
+YB_ATTR_nodiscard YB_PURE inline ValueNode
 MakeNode(ValueNode::allocator_type a, _tString&& str, _tParams&&... args)
 {
 	return {std::allocator_arg, a, NoContainer, yforward(str),
@@ -1356,14 +1325,14 @@ MakeNode(ValueNode::allocator_type a, _tString&& str, _tParams&&... args)
 //@{
 //! \since build 344
 template<typename _tString, typename... _tParams>
-inline ValueNode
+YB_ATTR_nodiscard YB_PURE inline ValueNode
 StringifyToNode(_tString&& str, _tParams&&... args)
 {
 	return {NoContainer, yforward(str), to_string(yforward(args)...)};
 }
 //! \since build 844
 template<typename _tString, typename... _tParams>
-inline ValueNode
+YB_ATTR_nodiscard YB_PURE inline ValueNode
 StringifyToNode(ValueNode::allocator_type a, _tString&& str, _tParams&&... args)
 {
 	return {std::allocator_arg, a, NoContainer, yforward(str),
@@ -1377,9 +1346,11 @@ StringifyToNode(ValueNode::allocator_type a, _tString&& str, _tParams&&... args)
 \since build 338
 */
 //@{
-inline PDefH(const ValueNode&, UnpackToNode, const ValueNode& arg)
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(const ValueNode&, UnpackToNode, const ValueNode& arg)
 	ImplRet(arg)
-inline PDefH(ValueNode&&, UnpackToNode, ValueNode&& arg)
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(ValueNode&&, UnpackToNode, ValueNode&& arg)
 	ImplRet(std::move(arg))
 //@}
 /*!
@@ -1388,7 +1359,7 @@ inline PDefH(ValueNode&&, UnpackToNode, ValueNode&& arg)
 \since build 338
 */
 template<class _tPack>
-inline ValueNode
+YB_ATTR_nodiscard YB_PURE inline ValueNode
 UnpackToNode(_tPack&& pk)
 {
 	return {0, get<0>(yforward(pk)),
@@ -1401,13 +1372,13 @@ UnpackToNode(_tPack&& pk)
 */
 //@{
 template<typename _tElem>
-inline ValueNode::Container
+YB_ATTR_nodiscard YB_PURE inline ValueNode::Container
 CollectNodes(std::initializer_list<_tElem> il)
 {
 	return il;
 }
 template<typename... _tParams>
-inline ValueNode::Container
+YB_ATTR_nodiscard YB_PURE inline ValueNode::Container
 CollectNodes(_tParams&&... args)
 {
 	return {yforward(args)...};
@@ -1419,7 +1390,7 @@ CollectNodes(_tParams&&... args)
 \since build 338
 */
 template<typename _tString, typename... _tParams>
-inline ValueNode
+YB_ATTR_nodiscard YB_PURE inline ValueNode
 PackNodes(_tString&& name, _tParams&&... args)
 {
 	return {CollectNodes(UnpackToNode(yforward(args))...), yforward(name)};
@@ -1467,7 +1438,7 @@ SetContentWith(ValueNode& dst, _tNode&& node, _fCallable f)
 \note 仅测试能被 <tt>unsigned long</tt> 表示的整数。
 \since build 659
 */
-YF_API bool
+YB_ATTR_nodiscard YF_API YB_PURE bool
 IsPrefixedIndex(string_view, char = '$');
 
 /*!
@@ -1478,11 +1449,13 @@ IsPrefixedIndex(string_view, char = '$');
 \since build 598
 */
 //@{
-YF_API string
+YB_ATTR_nodiscard YF_API YB_PURE string
 MakeIndex(size_t);
-inline PDefH(string, MakeIndex, const ValueNode::Container& con)
+YB_ATTR_nodiscard YB_PURE inline
+PDefH(string, MakeIndex, const ValueNode::Container& con)
 	ImplRet(MakeIndex(con.size()))
-inline PDefH(string, MakeIndex, const ValueNode& node)
+YB_ATTR_nodiscard YB_PURE inline
+PDefH(string, MakeIndex, const ValueNode& node)
 	ImplRet(MakeIndex(node.GetContainer()))
 //@}
 
@@ -1494,7 +1467,7 @@ inline PDefH(string, MakeIndex, const ValueNode& node)
 \since build 790
 */
 //@{
-YF_API size_t
+YB_ATTR_nodiscard YF_API YB_PURE size_t
 GetLastIndexOf(const ValueNode::Container&);
 inline PDefH(size_t, GetLastIndexOf, const ValueNode& term)
 	ImplRet(GetLastIndexOf(term.GetContainer()))
@@ -1507,14 +1480,14 @@ inline PDefH(size_t, GetLastIndexOf, const ValueNode& term)
 //@{
 //! \since build 691
 template<typename _tParam, typename... _tParams>
-inline ValueNode
+YB_ATTR_nodiscard inline YB_PURE ValueNode
 AsIndexNode(_tParam&& arg, _tParams&&... args)
 {
 	return AsNode(MakeIndex(yforward(arg)), yforward(args)...);
 }
 //! \since build 844
 template<typename _tParam, typename... _tParams>
-inline ValueNode
+YB_ATTR_nodiscard inline YB_PURE ValueNode
 AsIndexNode(ValueNode::allocator_type a, _tParam&& arg, _tParams&&... args)
 {
 	return AsNode(a, MakeIndex(yforward(arg)), yforward(args)...);
@@ -1579,7 +1552,7 @@ public:
 \since build 668
 */
 template<typename _tString, typename _tLiteral = NodeLiteral>
-inline NodeLiteral
+YB_ATTR_nodiscard inline YB_PURE NodeLiteral
 AsNodeLiteral(_tString&& name, std::initializer_list<_tLiteral> il)
 {
 	return {ListContainer, yforward(name), il};

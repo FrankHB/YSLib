@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2017 FrankHB.
+	© 2013-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3798
+\version r3805
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2017-11-28 23:50 +0800
+	2018-12-30 15:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -738,7 +738,7 @@ b288
 	/ %YReader $=
 	(
 		/ DLD "simplified event handlers" @ "class %ShlExplorer"
-			@ %'shells test example' ^ "lambda expressions"
+			@ %'shells test example' ^ "lambda-expression"
 			~ "static member functions",
 		/ %'text reader' $dep_from %YBase.YStandardEx.Iterator $=
 		(
@@ -1483,6 +1483,7 @@ b267
 
 b266
 (
+	/ ("pseudo keyword %yconstexprf" => "%yconstfn") @ %YDefinition,
 	/ DLP "library using"
 		$= (^ $re_ex(b224) "updated modified freetype 2.4.8"
 			~ "modified freetype 2.4.5"),
@@ -1819,7 +1820,8 @@ b247
 
 b246
 (
-	+ DLD ^ "selectable C++11 generalized constant expressions features",
+	+ "pseudo keyword %(yconstexpr, yconstexprf) to support C++11 generalized \
+		constant expressions features on conditions",
 	/ "file classes" $=
 	(
 		+ "mode selecting at opening files",
@@ -1903,7 +1905,7 @@ b242
 			~ ("functions" @ "class template %GEventMap");
 		- "class template %GEventMap"
 	),
-	/ DLD ^ "lambda expressions" ~ "most of member function handlers"
+	/ DLD ^ "lambda-xpression" ~ "most of member function handlers"
 		@ %YReader,
 	/ "simplified screen object interface and implementation" $=
 	(
@@ -2513,7 +2515,7 @@ b217
 		+ "workspace file",
 		+ "project files"
 	),
-	/ DLD ^ "lambda expression" ~ "several private member function as event \
+	/ DLD ^ "lambda-expression" ~ "several private member function as event \
 		handlers",
 	+ "%KeyDown and %KeyHeld handlers for scroll bars to perform mapped touch \
 		behaviors",
