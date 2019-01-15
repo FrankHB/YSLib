@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2018 FrankHB.
+	© 2012-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r1435
+\version r1439
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2018-12-26 19:13 +0800
+	2019-01-14 01:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "any.h" // for "any.h", any_ops, cond_t, wrap_handler, _t, decay_t,
 //	ptrdiff_t, any, exclude_self_t, any_ops::with_handler_t, is_convertible,
-//	indirect_t, decay_unwrap_t, remove_reference_t;
+//	indirect_t, unwrap_ref_decay_t, remove_reference_t;
 #include "iterator.hpp" // for is_undereferenceable, input_iteratable,
 //	std::unique_ptr, forward_iteratable, bidirectional_iteratable;
 
@@ -279,7 +279,7 @@ protected:
 	any_input_iterator(any_ops::with_handler_t<_tHandler> t, _tIter&& i)
 		: base(t, yforward(i))
 	{
-		static_assert(is_convertible<indirect_t<decay_unwrap_t<_tIter>>,
+		static_assert(is_convertible<indirect_t<unwrap_ref_decay_t<_tIter>>,
 			reference>(), "Wrong target iterator type found.");
 	}
 
@@ -406,7 +406,7 @@ public:
 		any_ops::forward_iterator_handler<decay_t<_tIter>, reference>>(),
 		yforward(i))
 	{
-		static_assert(is_convertible<indirect_t<decay_unwrap_t<_tIter>>,
+		static_assert(is_convertible<indirect_t<unwrap_ref_decay_t<_tIter>>,
 			reference>(), "Wrong target iterator type found.");
 	}
 

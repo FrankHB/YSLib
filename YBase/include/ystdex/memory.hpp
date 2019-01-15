@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2018 FrankHB.
+	© 2011-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r3323
+\version r3577
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2018-12-31 20:49 +0800
+	2019-01-15 17:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,16 +33,19 @@
 #include "placement.hpp" // for internal "placement.hpp", <memory>,
 //	is_copy_constructible, is_class_type, and_, cond_t, vdefer, is_detected,
 //	std::declval, detected_or_t, detected_t, cond, is_lvalue_reference,
-//	exclude_self_t, ystdex::construct_within, enable_if_convertible_t,
+//	exclude_self_t, false_, true_, enable_if_convertible_t,
 //	remove_reference_t, indirect_element_t, not_, is_void, remove_pointer_t,
 //	yconstraint, is_pointer, enable_if_t, is_array, extent, remove_extent_t,
-//	is_polymorphic;
+//	is_polymorphic, std::allocator_arg, is_explicitly_constructible,
+//	is_implicitly_constructible;
 #include "type_op.hpp" // for has_mem_value_type, cond_or;
 #include "pointer.hpp" // for interal "pointer.hpp", "iterator_op.hpp",
 //	ystdex::swap_dependent, ystdex::to_address;
 #include <limits> // for std::numeric_limits;
 #include "exception.h" // for throw_invalid_construction;
 #include "ref.hpp" // for is_reference_wrapper;
+#include "tuple.hpp" // for std::forward_as_tuple, std::make_tuple,
+//	std::piecewise_construct_t, std::piecewise_construct, ystdex::apply;
 
 /*!
 \brief \<memory\> 特性测试宏。
@@ -273,26 +276,30 @@ protected:
 //@{
 template<typename _tAlloc>
 inline void
+do_alloc_on_copy(_tAlloc&, const _tAlloc&, false_) ynothrow
+{}
+template<typename _tAlloc>
+inline void
 do_alloc_on_copy(_tAlloc& x, const _tAlloc& y, true_) ynoexcept_spec(x = y)
 {
 	x = y;
 }
+
 template<typename _tAlloc>
 inline void
-do_alloc_on_copy(_tAlloc&, const _tAlloc&, false_) ynothrow
+do_alloc_on_move(_tAlloc&, _tAlloc&, false_) ynothrow
 {}
-
 template<typename _tAlloc>
 inline void
 do_alloc_on_move(_tAlloc& x, _tAlloc& y, true_) ynoexcept_spec(x = std::move(y))
 {
 	x = std::move(y);
 }
+
 template<typename _tAlloc>
 inline void
-do_alloc_on_move(_tAlloc&, _tAlloc&, false_) ynothrow
+do_alloc_on_swap(_tAlloc&, _tAlloc&, false_) ynothrow
 {}
-
 template<typename _tAlloc>
 inline void
 do_alloc_on_swap(_tAlloc& x, _tAlloc& y, true_)
@@ -300,10 +307,6 @@ do_alloc_on_swap(_tAlloc& x, _tAlloc& y, true_)
 {
 	ystdex::swap_dependent(x, y);
 }
-template<typename _tAlloc>
-inline void
-do_alloc_on_swap(_tAlloc&, _tAlloc&, false_) ynothrow
-{}
 //@}
 
 } // namespace details;
@@ -433,8 +436,6 @@ YB_ATTR_nodiscard inline allocator_guard<_tAlloc>
 make_allocator_guard(_tAlloc& a,
 	typename allocator_traits<_tAlloc>::size_type n = 1)
 {
-	static_assert(is_decayed<_tAlloc>::value, "Invalid type found.");
-
 	return allocator_guard<_tAlloc>(allocator_traits<_tAlloc>::allocate(a, n),
 		allocator_guard_delete<_tAlloc>(a, n));
 }
@@ -1607,6 +1608,273 @@ clone_polymorphic_ptr(const _tPointer& p) -> decltype(clone_polymorphic(*p))
 {
 	return
 		p ? ystdex::clone_polymorphic(*p) : decltype(clone_polymorphic(*p))();
+}
+//@}
+
+
+/*!
+\see WG21 P0591R4 。
+\since build 850
+*/
+//@{
+namespace details
+{
+
+template<typename _type>
+struct is_pair : false_
+{};
+
+template<typename _type1, typename _type2>
+struct is_pair<std::pair<_type1, _type2>> : true_
+{};
+
+
+template<typename _type, class _tAlloc>
+struct pair_has_allocator : std::uses_allocator<_type, _tAlloc>
+{};
+
+template<typename _type1, typename _type2, class _tAlloc>
+struct pair_has_allocator<std::pair<_type1, _type2>, _tAlloc>
+	: or_<pair_has_allocator<_type1, _tAlloc>,
+	pair_has_allocator<_type2, _tAlloc>>
+{};
+
+template<typename, class, typename...>
+struct uaca_res;
+
+template<typename _type, class _tAlloc, typename... _tParams>
+using uaca_res_t = _t<uaca_res<_type, _tAlloc, _tParams...>>;
+
+template<typename _type, class _tAlloc>
+struct uaa_func
+{
+	const _tAlloc& a;
+
+	template<typename... _tParams>
+	YB_ATTR_nodiscard auto
+	operator()(_tParams&&...) const
+		-> uaca_res_t<_type, _tAlloc, _tParams...>;
+};
+
+
+template<typename, class _bPair, class _bPfx, class _tAlloc,
+	typename... _tParams>
+std::tuple<_tParams&&...>
+uses_allocator_args(_bPair, false_, _bPfx, const _tAlloc&, _tParams&&... args)
+{
+	return std::forward_as_tuple(yforward(args)...);
+}
+template<typename, class _tAlloc, typename... _tParams>
+YB_ATTR_nodiscard
+	std::tuple<const std::allocator_arg_t&, const _tAlloc&, _tParams&&...>
+uses_allocator_args(false_, true_, true_, const _tAlloc& a, _tParams&&... args)
+{
+	return std::forward_as_tuple(std::allocator_arg, a, yforward(args)...);
+}
+template<typename, class _tAlloc, typename... _tParams>
+YB_ATTR_nodiscard std::tuple<_tParams&&..., const _tAlloc&>
+uses_allocator_args(false_, true_, false_, const _tAlloc& a, _tParams&&... args)
+{
+	return std::forward_as_tuple(yforward(args)..., a);
+}
+template<class _type, class _tAlloc>
+YB_ATTR_nodiscard auto
+uses_allocator_args(true_, true_, false_, const _tAlloc&)
+	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
+	std::tuple<>, std::tuple<>>;
+template<typename _type, class _tAlloc, typename _type1, typename _type2>
+YB_ATTR_nodiscard auto
+uses_allocator_args(true_, true_, false_, const _tAlloc&,
+	const std::pair<_type1, _type2>&)
+	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
+	std::tuple<const _type1&>, std::tuple<const _type2&>>;
+template<typename _type, class _tAlloc, typename _type1, typename _type2>
+YB_ATTR_nodiscard auto
+uses_allocator_args(true_, true_, false_, const _tAlloc& a,
+	std::pair<_type1, _type2>&&)
+	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
+	std::tuple<_type1&&>, std::tuple<_type2&&>>;
+template<typename _type, class _tAlloc, typename _type1, typename _type2>
+YB_ATTR_nodiscard auto
+uses_allocator_args(true_, true_, false_, const _tAlloc& a, _type1&&, _type2&&)
+	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
+	std::tuple<_type1&&>, std::tuple<_type2&&>>;
+template<typename _type, class _tAlloc, class _tTuple1, class _tTuple2>
+YB_ATTR_nodiscard auto
+uses_allocator_args(true_, true_, false_, const _tAlloc& a,
+	std::piecewise_construct_t, _tTuple1&& x, _tTuple2&& y) -> decltype(
+	std::make_tuple(std::piecewise_construct, ystdex::apply(uaa_func<
+	typename _type::first_type, _tAlloc>{a}, yforward(x)), ystdex::apply(
+	uaa_func<typename _type::second_type, _tAlloc>{a}, yforward(y))))
+{
+	return std::make_tuple(std::piecewise_construct, ystdex::apply(uaa_func<
+		remove_cv_t<typename _type::first_type>, _tAlloc>{a}, yforward(x)),
+		ystdex::apply(uaa_func<remove_cv_t<typename _type::second_type>,
+		_tAlloc>{a}, yforward(y)));
+}
+
+} // unnamed namespace details;
+
+// XXX: Blocked. 'yforward' in the trailing-return-type cause G++ 5.3 20151204
+//	crash: internal compiler error: Segmentation fault.
+template<typename _type, class _tAlloc, typename... _tParams>
+YB_ATTR_nodiscard auto
+uses_allocator_construction_args(const _tAlloc& a, _tParams&&... args) -> yimpl(
+	decltype(details::uses_allocator_args<_type>(details::is_pair<_type>(),
+	details::pair_has_allocator<_type, _tAlloc>(), is_constructible<_type,
+	std::allocator_arg_t, _tAlloc, _tParams...>(), a,
+	std::forward<_tParams&&>(args)...)))
+{
+	return details::uses_allocator_args<_type>(details::is_pair<_type>(),
+		details::pair_has_allocator<_type, _tAlloc>(), is_constructible<_type,
+		std::allocator_arg_t, _tAlloc, _tParams...>(), a, yforward(args)...);
+}
+
+namespace details
+{
+
+template<typename _type, class _tAlloc, typename... _tParams>
+struct uaca_res
+{
+	using type = decltype(ystdex::uses_allocator_construction_args<_type>(
+		std::declval<const _tAlloc&>(), std::declval<_tParams>()...));
+};
+
+template<typename _type, class _tAlloc>
+	template<typename... _tParams>
+auto
+uaa_func<_type, _tAlloc>::operator()(_tParams&&... args) const
+	-> uaca_res_t<_type, _tAlloc, _tParams...>
+{
+	return
+		ystdex::uses_allocator_construction_args<_type>(a, yforward(args)...);
+}
+
+template<class _type, class _tAlloc>
+auto
+uses_allocator_args(true_, true_, false_, const _tAlloc& a) -> uaca_res_t<_type,
+	_tAlloc, const std::piecewise_construct_t&, std::tuple<>, std::tuple<>>
+{
+	return ystdex::uses_allocator_construction_args<_type>(a,
+		std::piecewise_construct, std::tuple<>(), std::tuple<>());
+}
+template<typename _type, class _tAlloc, typename _type1, typename _type2>
+auto
+uses_allocator_args(true_, true_, false_, const _tAlloc& a,
+	const std::pair<_type1, _type2>& arg)
+	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
+	std::tuple<const _type1&>, std::tuple<const _type2&>>
+{
+	return ystdex::uses_allocator_construction_args<_type>(a,
+		std::piecewise_construct, std::forward_as_tuple(arg.first),
+		std::forward_as_tuple(arg.second));
+}
+template<typename _type, class _tAlloc, typename _type1, typename _type2>
+auto
+uses_allocator_args(true_, true_, false_, const _tAlloc& a,
+	std::pair<_type1, _type2>&& arg)
+	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
+	std::tuple<_type1&&>, std::tuple<_type2&&>>
+{
+	return ystdex::uses_allocator_construction_args<_type>(a,
+		std::piecewise_construct, std::forward_as_tuple(yforward(arg.first)),
+		std::forward_as_tuple(yforward(arg.second)));
+}
+template<typename _type, class _tAlloc, typename _type1, typename _type2>
+auto
+uses_allocator_args(true_, true_, false_, const _tAlloc& a, _type1&& arg1,
+	_type2&& arg2)
+	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
+	std::tuple<_type1&&>, std::tuple<_type2&&>>
+{
+	return ystdex::uses_allocator_construction_args<_type>(a,
+		std::piecewise_construct, std::forward_as_tuple(yforward(arg1)),
+		std::forward_as_tuple(yforward(arg2)));
+}
+
+template<typename _type, class _tAlloc>
+struct ucua_func
+{
+	void* pv;
+
+	template<typename... _tParams>
+	_type*
+	operator()(_tParams&&... args) const
+		ynoexcept(is_nothrow_constructible<_type, _tParams...>())
+	{
+		return ::new(pv) _type(yforward(args)...);
+	}
+};
+
+// TODO: Detect more implemenations?
+// XXX: This is a workaround to implementation without support of WG21 N4387.
+#if (defined(__GLIBCXX__) && (__GLIBCXX__ <= 20150630 \
+	|| YB_IMPL_GNUCPP < 60000)) && !(_LIBCPP_VERSION > 4000 \
+	|| __cplusplus >= 201703L)
+// NOTE: See See https://gcc.gnu.org/viewcvs/gcc/trunk/libstdc++-v3/include/bits/stl_pair.h?r1=225189&r2=225188&pathrev=225189,
+//	and https://llvm.org/viewvc/llvm-project/libcxx/trunk/include/utility?r1=276605&r2=276604&pathrev=276605.
+template<typename _type1, typename _type2, class _tAlloc>
+struct ucua_func<std::pair<_type1, _type2>, _tAlloc>
+{
+	void* pv;
+
+	template<typename... _tParams>
+	auto
+	operator()(_tParams&&... args) const
+		-> decltype(::new(pv) std::pair<_type1, _type2>(yforward(args)...))
+	{
+		return ::new(pv) std::pair<_type1, _type2>(yforward(args)...);
+	}
+	template<typename _tParam1, typename _tParam2>
+	enable_if_t<and_<not_<is_constructible<_tParam1, _tParam2>>,
+		is_explicitly_constructible<_type1, _tParam1>,
+		is_implicitly_constructible<_type2, _tParam2>>::value,
+		std::pair<_type1, _type2>*>
+	operator()(_tParam1&& arg1, _tParam2&& arg2) const
+	{
+		return ::new(pv)
+			std::pair<_type1, _type2>(_type1(arg1), yforward(arg2));
+	}
+	template<typename _tParam1, typename _tParam2>
+	enable_if_t<and_<not_<is_constructible<_tParam1, _tParam2>>,
+		is_implicitly_constructible<_type1, _tParam1>,
+		is_explicitly_constructible<_type2, _tParam2>>::value,
+		std::pair<_type1, _type2>*>
+	operator()(_tParam1&& arg1, _tParam2&& arg2) const
+	{
+		return ::new(pv)
+			std::pair<_type1, _type2>(yforward(arg1), _type2(arg2));
+	}
+	template<typename _tParam1, typename _tParam2>
+	enable_if_t<and_<not_<is_constructible<_tParam1, _tParam2>>,
+		is_explicitly_constructible<_type1, _tParam1>,
+		is_explicitly_constructible<_type2, _tParam2>>::value,
+		std::pair<_type1, _type2>*>
+	operator()(_tParam1&& arg1, _tParam2&& arg2) const
+	{
+		return ::new(pv)
+			std::pair<_type1, _type2>(_type1(arg1), _type2(arg2));
+	}
+};
+#endif
+
+} // namespace details;
+
+template<typename _type, class _tAlloc, typename... _tParams>
+YB_ATTR_nodiscard _type
+make_obj_using_allocator(const _tAlloc& a, _tParams&&... args)
+{
+	return ystdex::make_from_tuple<_type>(
+		ystdex::uses_allocator_construction_args<_type>(a, yforward(args)...));
+}
+
+template<typename _type, class _tAlloc, typename... _tParams>
+_type*
+uninitialized_construct_using_allocator(_type* p, const _tAlloc& a,
+	_tParams&&... args)
+{
+	return ystdex::apply(details::ucua_func<_type, _tAlloc>{p},
+		ystdex::uses_allocator_construction_args<_type>(a, yforward(args)...));
 }
 //@}
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2018 FrankHB.
+	© 2012-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r1431
+\version r1473
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2018-12-13 11:33 +0800
+	2019-01-15 10:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -238,7 +238,6 @@ YStandardEx 及其实现保持兼容 ISO C++11 。
 替代接口若和标准库完全兼容，则使用标准库的版本；
 否则，可能使用 std::experimental 提供的名称。
 因为后者的部分接口在迁移至标准时可能有修改或者涉及现有标准库其它接口的改动，为保证兼容性和简化使用，可能不使用 std::experimental 提供的接口而直接提供替代接口和实现。
-使用标准库版本的接口时，一般通过别名声明的形式引入名称。
 
 @2.5.1 文件依赖性：
 非头文件依赖对应的头文件。
@@ -246,24 +245,26 @@ YStandardEx 及其实现保持兼容 ISO C++11 。
 @2.5.1.1 标准库扩展和替代：
 部分头文件以一对一或多对一的形式在相似接口意义上扩展或替代 ISO C++ 标准库，参见 @2.5.6 和 @2.5.7 。
 其中扩展 ISO C 标准库接口的部分不依赖扩展其它接口的头文件。
-扩展后的文件去除 .起始的后缀（文件扩展名）后和标准库头名称相同。
+扩展后的文件去除以 . 起始的后缀（文件扩展名）后和标准库头名称相同。
 扩展的标准库头及 LibDefect(@2.6) 对应的头文件被直接或间接地包含。若已包含 LibDefect 头文件，不直接包含对应的标准库头。
 
 @2.5.1.2 头文件依赖性：
 因标准库头及其中被 YStandard 替换特性与 YStandardEx 对应头文件和 API 的对应关系，以下依赖性作为接口公开：
 "type_traits.hpp" 依赖 "type_inspection.hpp" 、 "integral_constant.hpp" 、 "invoke.hpp" 和  "swap.hpp" ；
 "ref.hpp" 依赖 "addressof.hpp" 和 "invoke.hpp" ；
-"iterator_op.hpp" 依赖 "range.hpp" 和 "deref_op.hpp" ；
 "utility.hpp" 依赖 "swap.hpp" ；
+"tuple.hpp" 依赖 "apply.hpp" ；
+"iterator_op.hpp" 依赖 "range.hpp" 和 "deref_op.hpp" ；
 "iterator.hpp" 依赖 "iterator_op.hpp" ；
 "functional.hpp" 依赖 "functor.hpp" 、 "function.hpp" 和 "swap.hpp" ；
 "string.hpp" 、 "string_view" 、 "map.hpp" 和 "set.hpp" 依赖 "range.hpp" 。
 因其它接口设计原因，以下依赖性作为接口公开：
 "meta.hpp" 依赖 "type_inspection.hpp" 和 "integral_constant.hpp" ；
 "variadic.hpp" 和 "invoke.hpp" 依赖 "meta.hpp" ；
+"integer_sequence.hpp" 依赖 "variadic.hpp" ；
+"apply.hpp" 依赖 "invoke.hpp" ；
 "range.hpp" 依赖 "addressof.hpp" ；
 "functor.hpp" 依赖 "ref.hpp" 和 "type_traits.hpp" ；
-"integer_sequence.hpp" 依赖 "variadic.hpp" ；
 "type_op.hpp" 依赖 "integer_sequence.hpp" ；
 "opeators.hpp" 依赖 "addressof.hpp" ；
 "pointer.hpp" 和 "memory.hpp" 依赖 "iterator_op.hpp" ；
@@ -284,6 +285,8 @@ YStandardEx 及其实现保持兼容 ISO C++11 。
 "swap.hpp" 内部依赖 "type_pun.hpp" ；
 "type_traits.hpp" 依赖 "invoke.hpp" 和 "swap.hpp" ；
 "ref.hpp" 依赖 "addressof.hpp" 和 "invoke.hpp" ；
+"utility.hpp" 依赖 "swap.hpp" ；
+"apply.hpp" 依赖 "invoke.hpp" ；
 "functor.hpp" 依赖 "ref.hpp" 和 "type_traits.hpp" ；
 "integer_sequence.hpp" 依赖 "variadic.hpp" ；
 "type_op.hpp" 依赖 "integer_sequence.hpp" ；
@@ -292,12 +295,11 @@ YStandardEx 及其实现保持兼容 ISO C++11 。
 "pointer.hpp" 和 "memory.hpp" 依赖 "iterator_op.hpp" ；
 "memory.hpp" 内部依赖 "placement.hpp" 和 "pointer.hpp" ；
 "memory_resource.h" 内部依赖 "memory.hpp" ；
-"utility.hpp" 依赖 "swap.hpp" ；
 "iterator.hpp" 依赖 "iterator_op.hpp" ；
+"tuple.hpp" 依赖 "apply.hpp" ；
 "hash.hpp" 和 "mixin.hpp" 依赖 "tuple.hpp" ；
 "function.hpp" 内部依赖 "type_op.hpp" ；
 "functional.hpp" 依赖 "functor.hpp" 、 "function.hpp" 和 "swap.hpp" ；
-"tuple.hpp" 依赖 "functional.hpp" ；
 "any.h" 内部依赖 "typeinfo.h" 和 "utility.hpp" ；
 "any_iterator.hpp" 依赖 "any.h" ；
 "container.hpp" 依赖 "range.hpp" ；
@@ -337,9 +339,15 @@ ystdex::vseq ：变长序列元函数操作。
 ystdex_swap ：引入不和 ystdex 冲突的 swap 操作的命名空间。
 ystdex_swap::dep_swap ： 引入 std::swap 实现为 ADL 提供重载的命名空间。
 
-@2.5.2.3 标准库命名空间：
-std 的成员对 ystdex 命名空间中的类模板可能存在对应特化。注意完整包含所需的头文件，而不仅是 std 成员声明的标准库头。当前包括以下类型：
+@2.5.2.3 标准库命名空间中的名称：
+std 的成员对 ystdex 命名空间中的类模板可能存在对应特化。
+注意完整包含所需的头文件，而不仅是 std 成员声明的标准库头。当前包括以下类型：
 std::tuple （使用 "tuple.hpp" 代替 <tuple> ）。
+使用标准库中的接口时，通过通过别名声明、别名模板声明或命名空间别名声明的形式引入名称。
+使用部分 std 名称时，可通过之前的别名声明直接使用 ystdex:: 限定的或隐含 ystdex:: 的非限定的名称，并向用户代码提供为 ystdex 名称，包括：
+在 ISO C++11 的 <type_traits> 提供的 std 名称；
+替代接口存在对应符合要求（详见 @2.5.3 ）的 std 名称。
+若在命名空间 ystdex 中引入这些名称的对应的头文件已被包含，则在该上下文中不使用其被 std:: 限定的名称。
 
 @2.5.3 标准库兼容接口：
 YStandardEx 的一些公开接口实体和标准库命名空间 std 或 TS （技术规范）命名空间中 std::expermental 的实体声明基本一致，以提供代码迁移的便利。
@@ -465,59 +473,62 @@ ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证�
 @2.5.7.11 只读字符串视图 StringView ：
 提供 ISO C++17 标准库头 <string_view> 的替代接口和实现。
 
-@2.5.7.12 通用仿函数 Functor
+@2.5.7.12 元组类型和操作 Apply ：
+扩展标准库头 <tuple> ，提供元组应用相关操作。
 
 @2.5.7.13 元组类型和操作 Tuple ：
-扩展标准库头 <tuple> ，提供类型特征和序列相关的特化操作等。
+间接扩展标准库头 <tuple> ，提供类型特征和序列相关的特化操作等。
 
-@2.5.7.14 函数基本操作和调用包装对象 Function ：
+@2.5.7.14 通用仿函数 Functor
+
+@2.5.7.15 函数基本操作和调用包装对象 Function ：
 扩展标准库头 <functional> ，提供函数类型基本操作。
 
-@2.5.7.15 函数和可调用对象 Functional ：
+@2.5.7.16 函数和可调用对象 Functional ：
 扩展标准库头 <functional> ，提供函数类型操作和各种一般调用的实现。
 
-@2.5.7.16 通用迭代器 Iterator ：
+@2.5.7.17 通用迭代器 Iterator ：
 间接扩展标准库头 <iterator> ，提供若干迭代器适配器和相关操作。
 
-@2.5.7.17 迭代器特征 IteratorTrait ：
+@2.5.7.18 迭代器特征 IteratorTrait ：
 扩展标准库头 <iterator> ，提供迭代器相关的类型特征。
 
-@2.5.7.18 泛型算法 Algorithm ：
+@2.5.7.19 泛型算法 Algorithm ：
 扩展标准库头 <algorithm> ，提供一些泛型算法。
 除非另行指定，使用 first 和 last 为名称的参数指定同一个范围，否则不保证结果正确，可能引起未定义行为。
 
-@2.5.7.19 ISO C++ 标准字符串扩展 String ：
+@2.5.7.20 ISO C++ 标准字符串扩展 String ：
 间接扩展标准库头 <string> ，提供 std::char_traits 的扩展功能和对 std::basic_string 及类似类型的操作。
 
-@2.5.7.20 ISO C 宽字符分类操作扩展 CWideCharacterType ：
+@2.5.7.21 ISO C 宽字符分类操作扩展 CWideCharacterType ：
 头文件扩展标准库头 <cwctype> ，提供一些替代实现。
 
-@2.5.7.21 数组操作 Array ：
+@2.5.7.22 数组操作 Array ：
 扩展标准库头 <array> ，提供内建数组和 std::array 相关类型的操作。
 
-@2.5.7.22 作为关联容器实现的树 Tree ：
+@2.5.7.23 作为关联容器实现的树 Tree ：
 提供一些例程用于作为关联容器实现的基础。
 当前暂时不公开 API ，但其中的 API 已被 Map(@2.5.7.23) 和 Set(@2.5.7.24) 中的容器二进制依赖。未来可能会提供基于树实现关联容器公共 API 。
 
-@2.5.7.23 映射容器 Map ：
+@2.5.7.24 映射容器 Map ：
 和标准库头 <map> 类似，提供类模板作为和 ISO C++17 std::map 一致且支持不完整的键类型的实现。这些附加 ISO C++11 不保证的附加特性不依赖 ISO C++17 及其具体实现。
 
-@2.5.7.24 集合容器 Set ：
+@2.5.7.25 集合容器 Set ：
 扩展标准库头 <map> ，但提供和 std::set 类似的容器。
 
-@2.5.7.25 ISO C++ 标准流缓冲扩展 StreamBuffer ：
+@2.5.7.26 ISO C++ 标准流缓冲扩展 StreamBuffer ：
 扩展标准库头 <streambuf> 。
 
-@2.5.7.26 ISO C++ 标准输入流扩展 InputStream ：
+@2.5.7.27 ISO C++ 标准输入流扩展 InputStream ：
 扩展标准库头 <istream> 。
 
-@2.5.7.27 ISO C 标准输入/输出扩展 CStandardIO ：
+@2.5.7.28 ISO C 标准输入/输出扩展 CStandardIO ：
 头文件扩展标准库头 <cstdio> ，提供 C/C++ 流操作模式参数的转换和 C 标准库输入的迭代器包装。
 
-@2.5.7.28 ISO C++ <future> 扩展 Future ：
+@2.5.7.29 ISO C++ <future> 扩展 Future ：
 扩展标准库头 <future> ，提供一些别名模板和便利接口。
 
-@2.5.7.29 伪互斥量 PseudoMutex ：
+@2.5.7.30 伪互斥量 PseudoMutex ：
 提供单线程环境下互斥量和锁接口，作为标准库 <mutex> 的替代。
 
 @2.5.8 其它扩展接口：
@@ -531,13 +542,13 @@ ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证�
 
 @2.5.8.3 通用容器操作 Container ：
 实现通用容器适配器模板和对容器类型及构建数组容器的操作。
-参数限制同 Algorithm (@2.5.7.19) 。
+参数限制同 Algorithm (@2.5.7.20) 。
 
 @2.5.8.4 枚举相关操作 Enum ：
 提供枚举相关操作和类型。
 
 @2.5.8.5 动态泛型迭代器 AnyIterator ：
-基于 ystdex::any(@2.5.7.B) 实现的用于保存运行时确定类型迭代器的对象。
+基于 ystdex::any(@2.5.7.5) 实现的用于保存运行时确定类型迭代器的对象。
 
 @2.5.8.6 基于类继承的混入接口 Mixin ：
 提供基本的混入接口类型。

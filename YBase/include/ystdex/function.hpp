@@ -11,13 +11,13 @@
 /*!	\file function.hpp
 \ingroup YStandardEx
 \brief 函数基本操作和调用包装对象。
-\version r4720
+\version r4747
 \author FrankHB <frankhb1989@gmail.com>
 \since build 847
 \par 创建时间:
 	2018-12-13 01:24:06 +0800
 \par 修改时间:
-	2019-01-06 13:20 +0800
+	2019-01-15 12:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,8 +33,9 @@
 //	remove_cvref_t, _t, std::tuple_element, std::tuple_size, size_t_,
 //	enable_if_t, vseq::join_n_t, is_function, nullptr_t, is_trivially_copyable,
 //	exclude_self_t, std::reference_wrapper;
+#include "apply.hpp" // for call_projection, is_invocable_r, ystdex::invoke,
+//	yconstraint;
 #include "operators.hpp" // for operators::equality_comparable;
-#include "invoke.hpp" // for is_invocable_r, ystdex::invoke, yconstraint;
 #include "any.h" // for any, std::allocator_arg_t, std::allocator_arg;
 
 namespace ystdex
@@ -378,13 +379,31 @@ struct make_function_type<_tRet, std::tuple<_tParams...>>
 //@}
 
 
+//! \since build 448
+template<typename _tRet, typename... _tParams, size_t... _vSeq>
+struct call_projection<std::function<_tRet(_tParams...)>,
+	index_sequence<_vSeq...>>
+	: call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
+{};
+
+
+/*!
+\ingroup unary_type_traits
+\brief 取内建函数类型。
+\since build 850
+*/
+template<typename _fCallable>
+using as_function_type_t = make_function_type_t<return_of_t<_fCallable>,
+	make_parameter_tuple_t<_fCallable>>;
+
+
 /*!
 \brief 启用备用重载。
 \since build 651
 */
 template<template<typename...> class _gOp, typename _func, typename... _tParams>
 using enable_fallback_t = enable_if_t<!is_detected<_gOp, _tParams&&...>::value,
-	decltype(std::declval<_func>()(std::declval<_tParams&&>()...))>;
+	decltype(std::declval<_func>()(std::declval<_tParams>()...))>;
 
 
 //! \brief 取指定维数和指定参数类型的多元映射扩展恒等函数类型。
@@ -619,6 +638,7 @@ public:
 	{}
 	/*!
 	\see LWG 2781 。
+	\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65760 。
 	\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66284 。
 	*/
 	template<typename _fCallable, yimpl(typename
@@ -653,7 +673,8 @@ public:
 	\throw allocator_mismatch_error 分配器不兼容。
 	*/
 	template<class _tAlloc>
-	function_base(std::allocator_arg_t, const _tAlloc& a, const function_base& x)
+	function_base(std::allocator_arg_t, const _tAlloc& a,
+		const function_base& x)
 		: content(std::allocator_arg, a, x), p_invoke(x.p_invoke)
 	{}
 	// NOTE: The 'ynothrow' is presented as a conforming extension to ISO C++17,
@@ -770,6 +791,13 @@ template<class _tTraits, typename _fSig>
 struct return_of<function_base<_tTraits, _fSig>> : return_of<_fSig>
 {};
 //@}
+
+//! \since build 849
+template<class _tTraits, typename _tRet, typename... _tParams, size_t... _vSeq>
+struct call_projection<function_base<_tTraits, _tRet(_tParams...)>,
+	index_sequence<_vSeq...>>
+	: call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
+{};
 //@}
 
 

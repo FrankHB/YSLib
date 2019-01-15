@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2018 FrankHB.
+	© 2014-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r742
+\version r749
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2018-11-17 12:36 +0800
+	2019-01-14 14:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "YSLib/UI/YModules.h"
-#include YFM_YSLib_UI_TextBox
+#include YFM_YSLib_UI_TextBox // for ystdex::max, ystdex::min;
 #include YFM_YSLib_UI_Border
 #include YFM_YSLib_UI_YGUI
 #include YFM_YSLib_Service_TextLayout
@@ -260,8 +260,8 @@ TextSelection::Position
 TextBox::GetCaretPosition(const Point& pt)
 {
 	// XXX: Conversion to 'SPos' might be implementation-defined.
-	const auto
-		max_w(size_t(max<SPos>(pt.X + SPos(h_offset) - Margin.Left, SPos())));
+	const auto max_w(size_t(
+		ystdex::max<SPos>(pt.X + SPos(h_offset) - Margin.Left, SPos())));
 
 	if(MaskChar == char32_t())
 	{
@@ -274,7 +274,7 @@ TextBox::GetCaretPosition(const Point& pt)
 	}
 
 	const SDst w(FetchCharWidth(Font, MaskChar));
-	auto n(min<size_t>((max_w + w - 1U) / w, Text.length()));
+	auto n(ystdex::min<size_t>((max_w + w - 1U) / w, Text.length()));
 
 	if(n > 0 && w / 2U + max_w < w)
 		--n;
@@ -349,8 +349,8 @@ TextBox::ReplaceSelection(const String& text)
 		+ (MaxLength > len ? MaxLength - len : 0));
 
 	Text = Text.substr(0, r.first.X) + text.substr(0, subst_len)
-		+ Text.substr(min<size_t>(len, r.second.X));
-	r.second.X = r.first.X + min(subst_len, text.length()),
+		+ Text.substr(ystdex::min<size_t>(len, r.second.X));
+	r.second.X = r.first.X + ystdex::min(subst_len, text.length()),
 	CollapseCaret();
 }
 

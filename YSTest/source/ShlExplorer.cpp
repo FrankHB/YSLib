@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2018 FrankHB.
+	© 2010-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1552
+\version r1570
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2018-07-30 05:01 +0800
+	2019-01-14 15:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,15 +25,13 @@
 */
 
 
-#include "ShlExplorer.h"
+#include "ShlExplorer.h" // for ystdex::polymorphic_cast, ystdex::tolower;
 #include "ShlReader.h"
 #include YFM_YSLib_UI_ExStyle
 #include <ystdex/functional.hpp> // for ystdex::bind1;
 
 namespace YReader
 {
-
-using ystdex::polymorphic_downcast;
 
 namespace
 {
@@ -50,7 +48,7 @@ enum class FileCategory
 	Text
 };
 
-bool
+YB_ATTR_nodiscard bool
 CheckTextFileExtensions(string ext)
 {
 	for(auto& c : ext)
@@ -73,7 +71,7 @@ CheckTextFileExtensions(string ext)
 	return {};
 }
 
-FileCategory
+YB_ATTR_nodiscard FileCategory
 ClassifyFile(const Path& pth)
 {
 	switch(ClassifyNode(pth))
@@ -93,7 +91,7 @@ ClassifyFile(const Path& pth)
 //@}
 
 //! \since build 480
-bool
+YB_ATTR_nodiscard bool
 CheckReaderEnability(FileBox& fb, RadioBox& hex)
 {
 	if(fb.IsSelected())
@@ -119,7 +117,7 @@ CheckMenuKey(const KeyInput& k)
 #if YCL_Win32
 	auto ke(k);
 
-	unseq_apply([&](int vk) ynothrow{
+	ystdex::unseq_apply([&](int vk) ynothrow{
 		ke.set(size_t(vk), {});
 	}, VK_CONTROL, VK_LCONTROL, VK_RCONTROL);
 	return ke.none() && k[VK_CONTROL];
@@ -327,15 +325,15 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 	fbMain.SetRenderer(make_unique<BufferedRenderer>(true)),
 	pnlSetting.SetRenderer(make_unique<BufferedRenderer>()),
 	pnlTest1.SetRenderer(make_unique<BufferedRenderer>()),
-	unseq_apply(bind1(SetVisibleOf, false), pnlSetting, pnlTest1, pnlAbout,
-		pnlSysInfo),
-	unseq_apply(bind(&ShlDS::WrapForSwapScreens, this, _1, ref(SwapMask)),
-		dsk_m, dsk_s),
+	ystdex::unseq_apply(bind1(SetVisibleOf, false), pnlSetting, pnlTest1,
+		pnlAbout, pnlSysInfo),
+	ystdex::unseq_apply(bind(&ShlDS::WrapForSwapScreens, this, _1,
+		ref(SwapMask)), dsk_m, dsk_s),
 	ani.Reset(make_observer(&pnlTest1)),
 	ddlStyle.SetList(FetchVisualStyleNames()),
 	rbTxt.ShareTo(rbHex),
 	rbTxt.Select(),
-	unseq_apply(bind1(Enable, false), btnOK, btnPrevBackground),
+	ystdex::unseq_apply(bind1(Enable, false), btnOK, btnPrevBackground),
 	yunseq(
 	dsk_m.Background = ImageBrush(FetchImage(0)),
 	dsk_s.Background
@@ -479,7 +477,7 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 	},
 	FetchEvent<Click>(btnTestEx) += [&](CursorEventArgs&& e){
 		const auto& k(e.GetKeys());
-		auto& btn(polymorphic_downcast<Button&>(e.GetSender()));
+		auto& btn(ystdex::polymorphic_downcast<Button&>(e.GetSender()));
 
 		if(lblTitle.Background)
 			lblTitle.Background = nullptr;
@@ -532,7 +530,8 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 		if(up_i == 0)
 			Enable(btnPrevBackground, false);
 		GetMainDesktop().Background = ImageBrush(FetchImage(size_t(up_i)));
-		unseq_apply(SetInvalidationOf, GetMainDesktop(), GetSubDesktop());
+		ystdex::unseq_apply(SetInvalidationOf, GetMainDesktop(),
+			GetSubDesktop());
 	},
 	FetchEvent<Click>(btnNextBackground) += [&]{
 		if(size_t(up_i + 1) < Image_N)
@@ -547,7 +546,7 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 		SetInvalidationOf(GetSubDesktop());
 	},
 	cbDisableSetting.Ticked += [&](CheckBox::TickedArgs&& e){
-		unseq_apply(bind1(SetEnabledOf, !e), cbFPS, rbTxt, rbHex);
+		ystdex::unseq_apply(bind1(SetEnabledOf, !e), cbFPS, rbTxt, rbHex);
 		InvalidateWidgets(cbFPS, rbTxt, rbHex);
 	},
 	cbShowTextBoxContent.Ticked += [&](CheckBox::TickedArgs&& e){
@@ -561,7 +560,7 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 	}
 	);
 	RequestFocusCascade(fbMain),
-	unseq_apply(SetInvalidationOf, dsk_m, dsk_s);
+	ystdex::unseq_apply(SetInvalidationOf, dsk_m, dsk_s);
 
 	{
 		p_m0.reset(new Menu({}, make_shared<Menu::ListType, String>(
@@ -595,7 +594,7 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 		mhMain += m0, mhMain += m1,
 		m0 += {0u, make_observer(&m1)};
 		mhMain.Roots[btnMenu] = make_observer(&m0);
-		unseq_apply(ResizeForContent, m0, m1),
+		ystdex::unseq_apply(ResizeForContent, m0, m1),
 		// XXX: Conversion to 'SPos' might be implementation-defined.
 		SetLocationOf(m0,
 			Point(btnMenu.GetX(), btnMenu.GetY() - SPos(m0.GetHeight())));

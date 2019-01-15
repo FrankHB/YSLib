@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r3914
+\version r4028
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2019-01-06 13:21 +0800
+	2019-01-11 20:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,7 @@
 //	is_void, common_nonvoid_t, make_index_sequence;
 #include "swap.hpp" // for "swap.hpp", ystdex::swap_dependent,
 //	ystdex::move_and_swap;
+#include "apply.hpp" // for call_projection;
 #include <numeric> // for std::accumulate;
 
 namespace ystdex
@@ -441,125 +442,6 @@ invoke_for_value(_type&& val, _fCallable&& f, _tParams&&... args)
 }
 
 
-/*!
-\brief 调用投影：向原调用传递序列指定的位置的参数。
-\since build 447
-*/
-//@{
-template<class, class>
-struct call_projection;
-
-template<typename _tRet, typename... _tParams, size_t... _vSeq>
-struct call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
-{
-	//! \since build 810
-	//@{
-	template<typename _func>
-	static yconstfn auto
-	apply_call(_func&& f, std::tuple<_tParams...>&& args, yimpl(decay_t<
-		decltype(yforward(f)(std::get<_vSeq>(yforward(args))...))>* = {}))
-		-> yimpl(decltype(yforward(f)(std::get<_vSeq>(yforward(args))...)))
-	{
-		return yforward(f)(std::get<_vSeq>(yforward(args))...);
-	}
-
-	template<typename _fCallable>
-	static yconstfn auto
-	apply_invoke(_fCallable&& f, std::tuple<_tParams...>&& args,
-		yimpl(decay_t<decltype(ystdex::invoke(yforward(f),
-		std::get<_vSeq>(yforward(args))...))>* = {})) -> yimpl(decltype(
-		ystdex::invoke(yforward(f), std::get<_vSeq>(yforward(args))...)))
-	{
-		return ystdex::invoke(yforward(f), std::get<_vSeq>(yforward(args))...);
-	}
-	//@}
-
-	template<typename _func>
-	static yconstfn auto
-	call(_func&& f, _tParams&&... args)
-		-> yimpl(decltype(call_projection::apply_call(yforward(f),
-		std::forward_as_tuple(yforward(args)...))))
-	{
-		return call_projection::apply_call(yforward(f),
-			std::forward_as_tuple(yforward(args)...));
-	}
-
-	//! \since build 810
-	template<typename _fCallable>
-	static yconstfn auto
-	invoke(_fCallable&& f, _tParams&&... args)
-		-> yimpl(decltype(call_projection::apply_invoke(yforward(f),
-		std::forward_as_tuple(yforward(args)...))))
-	{
-		return call_projection::apply_invoke(yforward(f),
-			std::forward_as_tuple(yforward(args)...));
-	}
-};
-
-//! \since build 448
-template<typename _tRet, typename... _tParams, size_t... _vSeq>
-struct call_projection<std::function<_tRet(_tParams...)>,
-	index_sequence<_vSeq...>>
-	: call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
-{};
-
-//! \since build 849
-template<class _tTraits, typename _tRet, typename... _tParams, size_t... _vSeq>
-struct call_projection<function_base<_tTraits, _tRet(_tParams...)>,
-	index_sequence<_vSeq...>>
-	: call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
-{};
-
-/*!
-\note 不需要显式指定返回类型。
-\since build 547
-*/
-template<typename... _tParams, size_t... _vSeq>
-struct call_projection<std::tuple<_tParams...>, index_sequence<_vSeq...>>
-{
-	//! \since build 810
-	template<typename _func>
-	static yconstfn auto
-	apply_call(_func&& f, std::tuple<_tParams...>&& args)
-		-> yimpl(decltype(yforward(f)(std::get<_vSeq>(yforward(args))...)))
-	{
-		return yforward(f)(std::get<_vSeq>(yforward(args))...);
-	}
-
-	//! \since build 810
-	template<typename _fCallable>
-	static yconstfn auto
-	apply_invoke(_fCallable&& f, std::tuple<_tParams...>&& args) -> yimpl(
-		decltype(ystdex::invoke(yforward(f), std::get<_vSeq>(args)...)))
-	{
-		return ystdex::invoke(yforward(f), std::get<_vSeq>(args)...);
-	}
-
-	//! \since build 751
-	template<typename _func>
-	static yconstfn auto
-	call(_func&& f, _tParams&&... args)
-		-> decltype(call_projection::apply_call(yforward(f),
-		std::forward_as_tuple(yforward(yforward(args))...)))
-	{
-		return call_projection::apply_call(yforward(f),
-			std::forward_as_tuple(yforward(yforward(args))...));
-	}
-
-	//! \since build 810
-	template<typename _fCallable>
-	static yconstfn auto
-	invoke(_fCallable&& f, _tParams&&... args)
-		-> yimpl(decltype(call_projection::apply_invoke(
-		yforward(f), std::forward_as_tuple(yforward(args)...))))
-	{
-		return call_projection::apply_invoke(yforward(f),
-			std::forward_as_tuple(yforward(args)...));
-	}
-};
-//@}
-
-
 //! \since build 634
 //@{
 template<typename _fCallable, size_t _vLen = paramlist_size<_fCallable>::value>
@@ -705,6 +587,16 @@ make_expanded(_fCallable f)
 {
 	return expanded_caller<_fHandler, _fCallable>(std::move(f));
 }
+
+
+/*!
+\ingroup binary_type_traits
+\brief 判断可调用类型是可展开到指定函数对象的类型。
+\since build 850
+*/
+template<typename _func, typename _fCallable>
+using is_expandable = is_constructible<_func,
+	expanded_caller<as_function_type_t<_func>, _fCallable>>;
 
 
 /*!

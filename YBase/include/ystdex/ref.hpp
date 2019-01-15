@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018 FrankHB.
+	© 2011-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ref.hpp
 \ingroup YStandardEx
 \brief 引用包装。
-\version r464
+\version r477
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:29:20 +0800
 \par 修改时间:
-	2018-07-30 06:11 +0800
+	2019-01-14 02:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,9 @@
 #define YB_INC_ystdex_ref_hpp_ 1
 
 #include "addressof.hpp" // for "addressof.hpp", ystdex::addressof, false_,
-//	true_, exclude_self_t, cond_t, not_, is_object;
-#include "invoke.hpp" // for "invoke.hpp", std::reference_wrapper,
-//	invoke_result_t, ystdex::invoke;
+//	true_;
+#include "invoke.hpp" // for "invoke.hpp" invoke_result_t, ystdex::invoke,
+//	std::reference_wrapper;
 
 namespace ystdex
 {
@@ -69,11 +69,6 @@ public:
 	{}
 	//! \since build 661
 	lref(_type&&) = delete;
-	yconstfn
-	lref(std::reference_wrapper<_type> t) ynothrow
-		: lref(t.get())
-	{}
-
 	//! \since build 556
 	lref(const lref&) = default;
 
@@ -155,12 +150,13 @@ struct is_reference_wrapper<lref<_type>> : true_
 
 /*!
 \ingroup transformation_traits
-\see WG21 P0318R0 。
+\see WG21 P0318R1 。
 */
 //@{
 /*!
 \brief 取引用包装的类型或未被包装的模板参数类型。
 \note 接口含义类似 boost::unwrap_reference 。
+\note YStandardEx 扩展：支持 lref 。
 \since build 675
 */
 //@{
@@ -187,14 +183,14 @@ struct unwrap_reference<lref<_type>>
 //@}
 
 
-//! \since build 732
+//! \since build 850
 //@{
 template<typename _type>
-struct decay_unwrap : unwrap_reference<decay_t<_type>>
+struct unwrap_ref_decay : unwrap_reference<decay_t<_type>>
 {};
 
 template<typename _type>
-using decay_unwrap_t = _t<decay_unwrap<_type>>;
+using unwrap_ref_decay_t = _t<unwrap_ref_decay<_type>>;
 //@}
 //@}
 

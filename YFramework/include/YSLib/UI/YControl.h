@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YControl.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4857
+\version r4873
 \author FrankHB <frankhb1989@gmail.com>
 \since build 572
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2016-02-11 19:24 +0800
+	2019-01-14 17:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,7 +57,7 @@ public:
 	\brief 事件映射表。
 	\since build 580
 	*/
-	mutable EventMapping::MapType EventMap;
+	mutable VisualEventMap EventMap;
 
 private:
 	/*!
@@ -82,14 +82,15 @@ public:
 	PDefH(bool, IsEventEnabled, VisualEvent id) const ImplI(AController)
 		ImplRet(AController::IsEnabled() && !event_mask[id])
 
-	PDefH(EventMapping::ItemType&, GetItem, VisualEvent id) const
-		ImplI(AController)
-		ImplRet(EventMap.at(id))
-	EventMapping::ItemType&
-	GetItemRef(VisualEvent, EventMapping::MappedType(&)()) const override;
+	//! \since build 850
+	PDefH(EventRef, GetEvent, VisualEvent id) const ImplI(AController)
+		ImplRet(EventRef(EventMap.at(id)))
+	//! \since build 850
+	EventRef
+	GetEventRef(VisualEvent, EventItem(&)()) const override;
 	//@}
 	//! \brief 取事件映射表。
-	DefGetter(const ynothrow, EventMapping::MapType&, EventMap, EventMap)
+	DefGetter(const ynothrow, VisualEventMap&, EventMap, EventMap)
 
 	//! \since build 581
 	PDefH(void, SetEventEnabled, VisualEvent id, bool b) ImplI(AController)
@@ -132,7 +133,7 @@ Enable(IWidget&, bool = true);
 \since build 572
 */
 template<VisualEvent _vID>
-inline GEvent<typename EventTypeMapping<_vID>::HandlerType::FuncType>&
+inline EventOf<_vID>&
 FetchEvent(IWidget& wgt)
 {
 	return FetchEvent<_vID>(wgt.GetController());
@@ -147,13 +148,7 @@ template<VisualEvent _vID, typename _tEventArgs>
 inline size_t
 CallEvent(IWidget& wgt, _tEventArgs&& e)
 {
-	using HandlerType = typename EventTypeMapping<_vID>::HandlerType;
-	static_assert(std::is_convertible<ystdex::remove_reference_t<_tEventArgs>,
-		ystdex::remove_reference_t<typename EventArgsHead<typename
-		HandlerType::TupleType>::type>>(),
-		"Invalid event argument type found @ CallEvent;");
-
-	TryRet(DoEvent<HandlerType>(wgt.GetController(), _vID, std::move(e)))
+	TryRet(DoEvent<HandlerOf<_vID>>(wgt.GetController(), _vID, std::move(e)))
 	CatchIgnore(BadEvent&)
 	return 0;
 }

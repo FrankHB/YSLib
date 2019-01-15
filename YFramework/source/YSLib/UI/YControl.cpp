@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YControl.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3972
+\version r3976
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2016-02-12 01:48 +0800
+	2019-01-10 01:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,10 +80,10 @@ TouchHeld_DragWidget(observer_ptr<IWidget> p = {})
 } // unnamed namespace;
 
 
-EventMapping::ItemType&
-Controller::GetItemRef(VisualEvent id, EventMapping::MappedType(&f)()) const
+EventRef
+Controller::GetEventRef(VisualEvent id, EventItem(&f)()) const
 {
-	return GetEvent(EventMap, id, f);
+	return GetMappedEvent(EventMap, id, f);
 }
 
 

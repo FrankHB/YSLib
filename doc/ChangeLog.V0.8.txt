@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r9671
+\version r10096
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-01-06 18:33 +0800
+	2019-01-16 00:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,426 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ DLDI "qualified %unseq_apply with 'ystdex::'" $effective
+		@ %(YFramework.YSLib.UI.(YWidget, YUIContainer), YReader.(ShlExplorer,
+		ShlReader)) $dep_to "qualified unseq_apply",
+	/ DLDI "qualified %(max, min) with 'ystdex::'" $effective
+		@ %(YFramework.YSLib.(Core.YGDIBase, Service.(TextLayout, TextFile,
+		TextRenderer, YBlit, YGDI), UI.(ComboList, ExStyle, Selector,
+		TabControl, TextBox, Viewer, YStyle, ListControl, YGUI, Border)),
+		YReader.(ReaderSetting, DSReader, HexBrowser)) $dep_to
+		"qualified max and min",
+	/ DLDI "qualified %seq_apply with 'ystdex::'" $effective
+		@ %Tools.ProjectGenerator.Main $dep_to "qualified seq_apply",
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			/ %Meta $=
+			(
+				+ "binary type trait %is_same_or_convertible";
+				/ "loosed complete type requirment of parameters" 
+					@ "binary type trait %is_interoperable"
+					^ "%is_same_or_convertible" ~ "%is_convertible"
+			),
+			+ "binary type trait %is_expandable" @ %Functional
+				^ $dep_from ("%as_function_type_t" @ %Function),
+			/ %Ref
+			(
+				/ @ "class template %lref" $=
+				(
+					- $revert(b554) "constructor for parameter of \
+						%std::reference_wrapper instances";
+					* "possible ambiguity when constructed from a value \
+						convertible to both reference and \
+						%std::reference_wrapper instance value" $orig
+						(@ %Functional $since b554)
+				),
+				/ "transforamtion traits %(decay_unwrap, decay_unwrap_t)"
+					=> "%(unwrap_ref_decay, unwrap_ref_decay_t)"
+					// As WG21 P0318R1.
+			),
+			/ %Invoke $=
+			(
+				+ DD "\ingroup commands" @ "Doxygen comment" @ "traits",
+				/ @ "transformation trait %invoke_result" $=
+				(
+					/ DLDI "simplified with less specializations",
+					* "wrong result caused by unexpectedly adjusted \
+						cv-qualified parameter types in specializations" $since
+						b832 ^ "%empty_base" ~ "function types" $dep_to
+						"fixed function type of invocation detect"
+						// The function parameters and return types are \
+							adjusted as decaying, which should not be done in \
+							%invoke_result. Note the style of function type \
+							specializtion as in %std::result_of parameter also \
+							does not work to distinguish cv-qualified \
+							parameters and return types.
+				),
+				* "ill-formed for incomplete return types in SFINAE contexts"
+					@ "binary type traits %(is_invocable_r, \
+					is_nothrow_invocable_r)" $since b832
+					// See $2019-01 @ %Documentation::Workflow::Annual2019.
+					$= (/ $impl ^ $dep_from
+						("%is_same_or_convertible" @ %Meta) ~ "%is_convertible")
+			),
+			/ %Function $=
+			(
+				+ "unary type trait %as_function_type_t" @ %Function,
+				- DLDI "redundant '&&'" @ "%std::declval template arguments"
+					@ "transformation trait %enable_fallback_t",
+				* $comp "ill-formed for incomplete return types"
+					@ "constructors" @ "ystdex::function_base" $orig
+					(@ "constructors %function" $since b849)
+					$dep_from ("%invocable_r" @ %Invoke)
+			),
+			(
+			+ %Apply;
+			/ "class template %call_project except specializations for \
+				%(std::function, function_base)" @ %Functional >> %Apply;
+			* "missing update %apply implementation to ISO C++17" $since b833
+				$= (/ ^ "%apply_invoke" ~ "%apply_call")
+				@ "class template specializations %call_projection"),
+			* "missing forwarding for parameters" @ "%apply_invoke"
+				@ "class template specializations %call_projection" $since b810,
+			/ $forced "class template %call_project specializations for \
+				%(std::function, function_base)" @ %Functional >> %Function,
+			(
+			/ "function templates %(apply, make_from_tuple)" @ %Tuple >> %Apply;
+			/ %Memory $=
+			(
+				+ DLDI "inclusion %Tuple" $dep_from %Apply;
+				+ "function templates %(uses_allocator_construction_args; \
+					make_obj_using_allocator, \
+					uninitialized_construct_using_allocator)"
+					$dep_from ("fixed function type of invocation detect",
+					"avoided explicit CopyConstructible holder check")
+					// See $2019-01 @ %Documentation::Workflow::Annual2019.
+			)
+			)
+			),
+			/ %MemoryResource $=
+			(
+				/ "enhanced %construct"
+					@ "class template %polymorphic_allocator" $=
+				(
+					// See WG21 P0591R4.
+					/ "simplified %construct" ^ $dep_from
+						("%ystdex::uninitialized_construct_using_allocator"
+						@ %Memory);
+					/ "enabled class template %polymorphic_allocator"
+						@ 'YB_Has_memory_resource == 1';
+						// As of Microsoft Visual C++ 2017 15.9.4, \
+							%std::polymorphic_allocator implementation does \
+							not support interface of WG21 P0591R4.
+					/ "class template %polymorphic_allocator"
+						@ "inline namespace %cpp2017" >> "namespace %ystdex"
+						// WG21 P0591R4 is a feature in the current working \
+							draft targeting ISO C++2a.
+				),
+				+ $dev "explicitly defaulted default constructor and copy \
+					constructor" @ "class %memory_resource";
+					// See WG21 P0619R4.
+			)
+		),
+		/ %YDefinition $=
+		(
+			/ "macro %__cpp_lib_tuple_element_t" >> $dep_from %YStandadEx.Apply;
+			* $comp "wrong location of macro definition \
+				%__cpp_lib_tuple_element_t" $since b833
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Adaptor.YAdaptor $=
+			(
+				/ "removed declarations error-prone to ADL" $=
+				(
+					- $revert(b303) 'using ystdex::unseq_apply;' $dep_from
+						"qualified unseq_apply",
+					- $revert(b303) 'using ystdex::seq_apply;' $dep_from
+						"qualified seq_apply",
+					- $revert(b578) ('using ystdex::max;', 'using ystdex::min;')
+						$dep_from ("qualified max and min", %(Core.YGDIBase,
+						YDE.ImageBrowser.ImageControl))
+				),
+				+ 'using std::abs',
+				/ "aliases %(GetTicks, GetHighResolutionTicks)"
+					>> "namespace %Timers",
+				/ DLDI "reordered declarations",
+				+ "aliases %(any, function, bad_any_cast, in_place_type, \
+					in_place_type_t, any_cast, unchecked_any_cast, \
+					unsafe_any_cast) from namespace %ystdex",
+				+ 'namespace any_ops = ystdex::any_ops;',
+			),
+			/ %Core $=
+			(
+				/ DLDI "function template %ScaleMin" @ %YGDIBase
+					^ "%ystdex::min" ~ "%YSLib::min",
+				/ %YObject $=
+				(
+					(
+					/ $lib $impl "optimized %RefHolder" !^ "%ValueHolder";
+					+ $dev "static assertion of %RefHolder instances to ensure \
+						efficient allocation" @ "constructor %ValueObject with \
+						%OwnershipTag<> parameter"
+						^ "%ystdex::any_ops::is_in_place_storable"
+					),
+					- DLDI "redundant '&&'" @ "'*_constructible' template \
+						arguments" @ "constructor template %ValueHolder",
+					/ DLD "simplified without 'ystdex::'" ^ $dep_from
+						"%(any, any_ops, in_place_type, in_place_type_t)"
+						@ %Adaptor.YAdaptor,
+					/ DLDI ^ ("%YSLib::(unchecked_any_cast, any_cast)"
+						@ %Adaptor.YAdaptor)
+						~ "%ystdex::(unchecked_any_cast, any_cast)",
+					(
+					/ $revert_ex(b764, b868) "function templates \
+						%CreateHolderInPlace"
+						-> "class template %HolderOperations";
+					/ $forced DLDI "holders creation" @ "holder class \
+						templates and class %ValueObject" ^ "%HolderOperations"
+						~ "%CreateHolderInPlace" $dep_to
+						"avoided explicit CopyConstructible holder check"
+					)
+				),
+				/ %YEvent $=
+				(
+					/ @ "constructors %GHEvent" $=
+					(
+						/ "constructors with expandable caller types excluded \
+							non-expandable types" 
+							^ ("%ystdex::is_strictly_expandable"
+							@ %YBase.YStandardEx.Functional),
+						+ $re_add(b849) "constructor template with allocator, \
+							object and pointer to member parameters",
+						/ DLDI ^ ("%function" @ %Adaptor.YAdaptor)
+							~ "%ystdex::function"
+					),
+					/ @ "class template %GEvent" $=
+					(
+						(
+						+ "function template %Emplace"
+							^ "%(ContainerType::emplace, \
+							std::piecewise_construct)";
+						/ DLI "all 2 function templates %Insert" ^ "%Emplace",
+						- $lib "all 2 functions %Insert",
+							// This is covered by the 1st function template \
+								%Insert and there should be no more efficient \
+								like %insert over %emplace since a pair object \
+								has to be constructed otherwise.
+						),
+						(
+						/ DLI "all 2 function templates %Add"
+							^ "function templates %Insert" ~ "functions %Add";
+							// Similar to implementations of %Insert.
+						- "all 2 functions %Add"
+						),
+						+ "allocator support" $dep_from "%GHEvent" $=
+						(
+							+ "alias %allocator_type";
+							/ $forced "excluded parameter not constructible to \
+								%HandlerType as 1st parameter" @ "constructor \
+								template with handler as 1st parameter",
+							+ "5 constructors with trailing %allocator_type \
+								parameter"
+						),
+						- DLDI "redundant '&&'" @ "'*_constructible' template \
+							arguments" @ "constructor templates"
+					),
+					- $revert(b195) "class template %GDependencyEvent",
+					(
+					- $revert(b242) "class template %GEventPointerWrapper"
+						$dep_from ("%EventMapping::MappedType"
+						@ %UI.WidgetEvent) $dep_to "avoided %GIHEvent";
+					/ $comp "constructor template %GEventPointerWrapper" $=
+					(
+						* "missing moving for initiailiztion" $since b553,
+						* "missing '&&'" @ "exception-specifiction" $since b319
+					)
+					),
+					(
+					- $revert(b173) "class template %GEventWrapper"
+						$dep_from ("%WidgetController::Paint"
+						@ %UI.WidgetEvent) $dep_to "avoided %GIHEvent";
+					- $revert(b413) "class template %EventArgsHead"
+						$dep_all_from "avoided %EventArgsHead";
+					- "alias %TupleType"
+						@ "class templates %(GEvent; GHEvent)"
+					),
+					- $revert(b333) "interface template %GIHEvent"
+						$dep_all_from "avoided %GIHEvent",
+					- $revert(b429) "class template %GEventGuard",
+						// This can be replaced by the more generic templates \
+							like %ystdex::guard.
+					- $revert(b333) "all 4 function templates %AddUnique"
+						// It is better to be replaced by multiple operations \
+							explicitly for the cost.
+				)
+			),
+			/ %UI $=
+			(
+				/ %YWidgetEvent $=
+				(
+					/ DLDI "simplified function %GetEvent"
+						^ "%ystdex::emplace_hint_in_place"
+						~ "%EventMapping::PairType",
+					/ DLDI "alias %VisualEventMap"
+						!^ "%EventMapping::MapType",
+					(
+					/ @ "namespace %EventMapping" $=
+					(
+						- $revert(b242) "alias %SearchResult",
+						- "alias %PairType" $dep_from "%GetEvent",
+						- "alias %MapType" $dep_from ("%VisualEventMap",
+							"%Controller" @ %YControl),
+						(
+						/ "alias %MappedType" -> ("%EventItem"
+							@ "namespace %UI") ^ "%YObject"
+							~ "%GEventPointerWrapper";
+						/ "alias %ItemType" -> ("class %EventRef"
+							@ "namespace %UI") ^ "%ValueObject"
+							~ "%GIHEvent" $dep_to "avoided %GIHEvent";
+						+ "function template %Cast"
+						)
+					);
+					- $revert(b242) "namespace %EventMapping"
+					),
+					/ $forced "%WidgetController::Paint" ^ "%GEvent"
+						~ "%GEventWrapper" $dep_from "%EventRef"
+					/ $forced $impl "function templates %(DoEvent, all 2 \
+						FetchEvent)" ^ $dep_from "%EventMapping::Cast"
+						$dep_from "EventMapping::MappedType",
+					/ "parameter" @ "function template %DoEvent"
+						^ "ystdex::parameter_of_t" ~ "%EventArgsHead"
+						$dep_to "avoided %EventArgsHead",
+					(
+					+ "alias templates %(HandlerOf; EventOf)";
+					/ "functions %(GetItem, GetItemRef)"
+						@ "classes %(AController, WidgetController)"
+						-> "%(GetEvent, GetEventRef)",
+					/ DLDI "simplified function template %(NewEvent, \
+						FetchEvent)",
+					/ DLD "simplified return type"
+						@ "function templates %FetchEvent"
+					),
+					/ "function %GetEvent" -> "%GetMappedEvent",
+					+ $re_add(b849) $dev $lib 'YB_ATTR_nodiscard'
+						@ "function template %FetchEvent"
+				),
+				/ $forced $lib "all 'EventMapping::ItemType&'"
+					-> 'EventMapping::IterRef' $dep_from
+					("%EventRef" @ %YWidgetEvent)
+					$effective @ %(YWidgetEvent, YControl),
+				/ %YControl $=
+				(
+					/ DLDI "all %EventMapping::MapType" -> "%VisualEventMap"
+						$effective @ "class %Controller",
+					/ @ "function template %CallEvent" $=
+					(
+						- $dev $lib "static assertion" @ "function template \
+							%CallEvent" $dep_to "avoided %EventArgsHead",
+						/ DLDI "simplified type" ^ $dep_from
+							("%HandlerOf" @ %YWidgetEvent)
+					),
+					/ $forced "functions %(GetItem, GetItemRef)"
+						@ "class %Controller" -> "%(GetEvent, GetEventRef)"
+						$dep_from ("%AController" @ %YWidgetEvent),
+					/ DLD "simplified return type" @ "function template \
+						%FetchEvent" ^ $dep_from ("%EventOf" @ %YWidgetEvent)
+				),
+				/ %YUIContainer $=
+				(
+					/ DLDI "simplified function templates %(AddWidgets, \
+						AddWidgetsZ, RemoveWidgets)"
+						^ 'static_cast<IWidget&>' ~ 'std::forward<IWidget&>',
+					+ $re_ex(b849) $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+						@ "functions with names %(begin, end) or name \
+						prefixes ('Fetch', 'Locate') except for function \
+						with non-const reference parameters",
+					+ $re_ex(b849) $dev $lib 'YB_ATTR_nodiscard'
+						@ "function %LocateForTopOffset"
+				),
+				/ DLDI %YStyle $=
+				(
+					/ "trucated cast to 'MonoType'" @ "operator %Color"
+						@ "classes %(HSV, HSL)",
+						// To eliminate Microsoft VC++ 2017 warning: C4244.
+					/ "trucated cast to 'unsigned'" @ "operator %Color"
+						@ "class %HSV",
+						// To eliminate Microsoft VC++ 2017 warning: C4244.
+					/ "cast to 'uint16_t'" @ "constructor %HSL"
+						// To eliminate Microsoft VC++ 2017 warning: C4244.
+				),
+				/ %YWidget $=
+				(
+					+ $re_ex(b849) $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+						@ "functions with name \
+						prefixes ('Contains', 'Fetch', 'Get')",
+					+ $re_ex(b849) $dev $lib 'YB_ATTR_nodiscard'
+						@ "function template %WrapRenderer#2"
+				)
+			),
+			/ %Service $=
+			(
+				/ %YBlit $=
+				(
+					* $re_add(b835) DD "missing '!'" @ "end of '/*'"
+						@ "multiline Doxygen comment" @ "function templates \
+						%(ClearPixels, FillPixels, FillVerticalLine)"
+						$since b438,
+					+ DLDI ('inline' -> 'yconstfn') @ "internal function",
+					+ $dev $lib 'YB_ATTR_nodiscard YB_STATELESS ynothrow'
+						@ "function template %BlitScaleComponent"
+				),
+				/ %YGDI $=
+				(
+					/ $dev $lib 'inline' -> 'yconstfn'
+						@ "functions %(GetHorizontalOf, GetVerticalOf)",
+					+ $re_ex(b849) $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+						@ "functions %(operator(-, +, *), functions with name \
+						prefixes ('Get', 'Fetch')",
+					+ $re_ex(b849) $dev $lib 'YB_ATTR_nodiscard'
+						@ "functions with name prefix 'Clip'",
+					+ 'ynothrowv' @ "functions with name prefix 'Get'",
+					+ 'ynothrow' @ "functions %operator(-, +, *), functions \
+						with name prefixes ('Fetch', 'Clip')"
+				),
+				+ $re_ex(b849) $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+					@ "functions or function templates with name prefix 'Fetch'"
+					@ %TextLayout,
+			)
+		),
+		/ $forced DLDI "constructor, function %Refresh" @ "class %FPSCounter"
+			@ %Helper.ShellHelper $dep_from
+			("%GetHighResolutionTicks" @ %YSLib.Adaptor.YAdaptor)
+	),
+	+ $re_add(b849) DLDI 'YB_ATTR_nodiscard YB_PURE' @ "internal functions \
+		or function templates" @ %(YFramework.YSLib.(Core.YGDIBase,
+		Service.(TextRenderer, YBlit), UI.YGUI), Tools.ProjectGenerator.Main,
+		YReader.(ReaderSetting, DSReader)),
+	+ DLDI 'YB_ATTR_nodiscard' @ "internal functions"
+		@ %(YFramework.YSLib.Service.TextRenderer, YReader.ShlExplorer,
+		Tools.ProjectGenerator.Main)
+	+ DLDI 'ynothrow' @ "some internal functions"
+		@ %Tools.ProjectGenerator.Main,
+	/ DLDI %YDE.ImageBrowser.ImageControl $=
+	(
+		/ "member function %ImagePanel::Load" ^ "%ystdex::max" ~ "%YSLib::max",
+		/ "avoided namespace scope 'static'" @ "'yconstexpr' objects"
+	),
+	/ DLDI "'std::abs' where %abs introduced from YFramework" -> 'abs'
+		$effective @ %(YFramework.YSLib.Service.(TextRenderer, YDraw),
+		YReader.DSReader) $dep_from
+		("%abs" @ %YFramework.YSLib.Adaptor.YAdaptor),
+	/ DLDI "'std::round' where %round introduced from YFramework" -> 'round'
+		$effect @ "constructor %ImagePanel" @ %YDE.ImabeBrowser.ImageControl
+),
+
+b849
 (
 	/ %YBase $=
 	(
@@ -98,8 +518,8 @@ $now
 					@ %CStandardInteger $since b842,
 					// Use of %std::uintmax_t could be wrongly truncated.
 				+ $dev 'YB_STATELESS' @ "functions %(floor_lb, ceiling_lb)",
-				+ $dev 'YB_ATTR_nodiscard YB_PURE' @ "function templates \
-					%(pack_uint, read_uint_be, read_uint_le)"
+				+ $re_add(b847) $dev 'YB_ATTR_nodiscard YB_PURE' @ "function \
+					templates %(pack_uint, read_uint_be, read_uint_le)"
 			),
 			/ %Any $=
 			(
@@ -792,7 +1212,7 @@ b848
 				/ "types %(Filter, Sender)" ^ ("%ystdex::function"
 					@ %YBase.YStandardEx.Function) ~ "%std::function",
 				- $revert(b804) $dev "implementation specific check for \
-					nonthrowing %std::function swap" @ "member function %swap"
+					non-throwing %std::function swap" @ "member function %swap"
 			)
 		)
 		/ %Helper.HostRenderer $=
@@ -833,7 +1253,7 @@ b848
 							strictly matched (see %UI.YBrush modification \
 							above for example).
 					- $revert(b806) $dev "implementation specific check for \
-						nonthrowing %std::function swap"
+						non-throwing %std::function swap"
 						@ "member function %swap",
 					+ "5 constructor templates with %std::allocator_arg_t and \
 						allocator parameters"
@@ -1928,7 +2348,7 @@ b845
 						$dep_to "forms allocator support",
 						// The %TermNode::SetContent should be optimal as \
 							before when the allocator compares equal. However, \
-							it would be degraded otherwise. The nonthrowing \
+							it would be degraded otherwise. The non-throwing \
 							exception specification would also be dropped for \
 							the latter case.
 					/ $forced "supported %Environment::BindingMap allocator"
@@ -2468,7 +2888,7 @@ b843
 					C++17 standard container headers, as well as with \
 					additional %pmr container adaptors not in the standard.
 			// NOTE: Allocator default template argument in %basic_string is \
-				not changed to avoid %string does not nonthrowing convertible \
+				not changed to avoid %string does not non-throwing convertible \
 				to %std::string.
 			(
 			+ "inline namespace %basic_utilities";

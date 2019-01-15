@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018 FrankHB.
+	© 2011-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file meta.hpp
 \ingroup YStandardEx
 \brief 通用元编程设施。
-\version r1637
+\version r1650
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:28 +0800
 \par 修改时间:
-	2018-12-31 04:47 +0800
+	2019-01-15 12:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -638,12 +638,23 @@ struct is_trivially_moveable : and_<is_trivially_move_constructible<_type>,
 //! \ingroup binary_type_traits
 //@{
 /*!
-\brief 判断指定类型之间是否可转换。
+\brief 判断指定类型之间是否相同或可转换。
+\note 类似 is_convertible ，但不要求完整类型。
+\since build 850
+*/
+template<typename _type1, typename _type2>
+struct is_same_or_convertible
+	: or_<is_same<_type1, _type2>, is_convertible<_type1, _type2>>
+{};
+
+
+/*!
+\brief 判断指定类型之间是否相同或可互相转换。
 \since build 575
 */
 template<typename _type1, typename _type2>
-struct is_interoperable
-	: or_<is_convertible<_type1, _type2>, is_convertible<_type2, _type1>>
+struct is_interoperable : or_<is_same_or_convertible<_type1, _type2>,
+	is_convertible<_type2, _type1>>
 {};
 
 

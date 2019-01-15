@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2019 年度。
-\version r59
+\version r84
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2019-01-02 01:00:32 +0800
 \par 修改时间:
-	2019-01-02 01:53 +0800
+	2019-01-16 00:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,6 +55,31 @@ Unifying parameter type has been reviewd.
 						So 'ref-qualifiers' are not respected in the calls.
 						This is known and documented in the comments.
 	Note constructors of 'ystdex::any' are not the same, as it does not assume the parameter object having ignorable cost during passing like the wrappers above.
+WG21 P0541 has been implemented now, as it is approved in the current working paper of the standard.
+	The major change is adding the pair initialization with uses-allocator construction recursively.
+	Other change includes simplification on allocators.
+		For 'pmr::polymorphic_allocator', it is simplified even when used with Microsoft VC++, which has no support yet.
+		There is nothing to do with 'scoped_allocator_adaptor' because it is not introduced in 'ystdex'.
+	The implementation is somewhat tricky.
+		Since it needs to work without inferred trailing return type indroduced in ISO C++14, the declarations of implmentations are broken down in pieces when necessary.
+		The implementation reveals some fixes on buggy 'ystdex::is_invocable' and related traits (while the 'std' implementations in libstdc++ is correct).
+			The cv-qualified recursive instantiation will not work because of types mismatched in different declarations and function body in the implementation.
+				The bug in the traits wronly used the functional declarator as the template arguments internally, which dropped qualifiers unexpectedly.
+				For the similar reason, the already removed 'std::result_of' does not qualify to be used here.
+			Another bug is that missing SFINAE in 'ystdex::is_invocable_r' and 'ystdex::is_nothrow_invocable_r'.
+				The bug in 'ystdex::is_invocable_r' is caused by incomplete type handling.
+					See also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65760 for the similar bug.
+				The bug 'ystdex::is_nothrow_invocable_r' has more concerns on 'noexcept' test.
+				These bugs are not directly concerned here, but since the bug of 'ystdex::is_invocable_r' makes constructors of 'ystdex::function' not conforming as 'std::function', they are also fixed together.
+		There are also multiple implementation issues.
+			Mostly issues will not be problems without recursive pair support.
+			At least for platform Android, libstdc++ is lack of the resolution of WG21 N4387, i.e. the conditionally EXPLICIT constructor of 'std::pair', so there needs additional workaround.
+			For platform DS, G++ 8.1 complaints weirdly with an error on use of deleted defaulted function.
+				The error is triggered when instantiating the event map lookup ('emplace_hint') in module 'YFramework.YSLib.UI.YWidgetEvent' after the feature here is implemented.
+				The error is similar to https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88368.
+					However, because it is on instantiating 'YSLib::ValueHolder<std::_Tuple_impl<2, std::tuple<YSLib::ValueObject&&>&&>>' so there is no way to insert the proposed workaround.
+				Clang++ 7.0 does not has the problem.
+				It is unknown why this bug is not on platform MinGW (G++ 7.3), Android (G++ 5.3) (after other workarounds), and Linux (G++ 8.2), despite that the bugzilla issue also does not locate the root of the bug precisely.
 
 ////
 

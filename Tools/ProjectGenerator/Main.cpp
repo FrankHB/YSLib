@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2018 FrankHB.
+	© 2015-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r774
+\version r812
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-18 20:45:11 +0800
 \par 修改时间:
-	2018-07-31 00:22 +0800
+	2019-01-14 15:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@ See readme file for details.
 
 #include <YSBuild.h>
 #include YFM_NPL_NPLA1 // for NPL::MakeAttributeLiteral,
-//	NPL::InsertAttributeNode, NPL::InsertChildSyntaxNode, etc;
+//	NPL::InsertAttributeNode, NPL::InsertChildSyntaxNode, ystdex::seq_apply;
 #include YFM_YCLib_Host // for platform_ex::DecodeArg, platform_ex::EncodeArg;
 #include <iostream>
 
@@ -49,28 +49,29 @@ const string C_CMD("CMD /C ");
 //@{
 using spath = ystdex::path<vector<string>>;
 
-yconstfn YB_STATELESS PDefH(const char*, GetConfName, bool debug)
+YB_ATTR_nodiscard yconstfn YB_STATELESS
+	PDefH(const char*, GetConfName, bool debug)
 	ImplRet(debug ? "debug" : "release")
 
-yconstfn YB_STATELESS PDefH(const char*, GetConfSuffix, bool debug)
+YB_ATTR_nodiscard yconstfn YB_STATELESS PDefH(const char*, GetConfSuffix, bool debug)
 	ImplRet(debug ? "d." : ".")
 
-inline PDefH(string, GetDLLName, const string& name, bool debug,
-	bool win32 = true)
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(string, GetDLLName, const string& name, bool debug, bool win32 = true)
 	ImplRet(name + GetConfSuffix(debug) + (win32 ? "dll" : "so"))
 
-inline PDefH(spath, GetLibPath, const string& name, bool debug,
-	bool dll = true, bool win32 = true)
+YB_ATTR_nodiscard YB_PURE inline PDefH(spath, GetLibPath, const string& name,
+	bool debug, bool dll = true, bool win32 = true)
 	ImplRet({name, string(GetConfName(debug)), dll
 		? GetDLLName(name, debug, win32) : "lib" + name + GetConfSuffix(debug)
 		+ 'a'})
 
-inline PDefH(string, QuoteCommandPath, const spath& pth,
-	const string& separator = "\\")
+YB_ATTR_nodiscard YB_PURE inline PDefH(string, QuoteCommandPath,
+	const spath& pth, const string& separator = "\\")
 	ImplRet(ystdex::quote(to_string(pth, separator), " &quot;", "&quot;"))
 //@}
 
-NodeLiteral
+YB_ATTR_nodiscard NodeLiteral
 MakeCommandLiteral(const string& jstr = "-j8")
 {
 	const auto Build("$make " + jstr + C_CONF);
@@ -87,7 +88,7 @@ MakeCommandLiteral(const string& jstr = "-j8")
 }
 
 //! \since build 600
-NodeLiteral
+YB_ATTR_nodiscard NodeLiteral
 MakeExtraCommandLiteral(bool debug, const string& proj, const spath& prefix)
 {
 	const auto& dst(prefix / proj / GetConfName(debug));
@@ -114,14 +115,18 @@ MakeExtraCommandLiteral(bool debug, const string& proj, const spath& prefix)
 		{make(del("YFramework"))}, {make(create("YFramework"))}}};
 }
 
-inline PDefH(bool, IsDSARM, const string& platform)
+//! \since build 850
+//@{
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, IsDSARM, const string& platform) ynothrow
 	ImplRet(platform == "DS_ARM7" || platform == "DS_ARM9")
 
-inline PDefH(bool, IsDS, const string& platform)
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, IsDS, const string& platform) ynothrow
 	ImplRet(platform == "DS" || IsDSARM(platform))
 
-string
-LookupCompilerName(const string& platform)
+YB_ATTR_nodiscard YB_PURE string
+LookupCompilerName(const string& platform) ynothrow
 {
 	if(platform.empty())
 		return "null";
@@ -132,8 +137,10 @@ LookupCompilerName(const string& platform)
 	return "gcc";
 }
 
-inline PDefH(bool, CheckIfCustomMakefile, const string& platform)
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, CheckIfCustomMakefile, const string& platform)
 	ImplRet(LookupCompilerName(platform) != "gcc")
+//@}
 
 
 enum class BuildType : yimpl(size_t)
@@ -240,7 +247,7 @@ InsertTargetNode(ValueNode& node, const string& project,
 	InsertChildSyntaxNode(node, std::move(child));
 }
 
-vector<string>
+YB_ATTR_nodiscard YB_PURE vector<string>
 GetCompilerOptionList(bool debug)
 {
 	if(debug)
@@ -249,7 +256,7 @@ GetCompilerOptionList(bool debug)
 		"-flto=jobserver", "-DNDEBUG"};
 }
 
-bool
+YB_ATTR_nodiscard bool
 CheckExcluded(const string& path, const string& platform)
 {
 	static const map<string, vector<string>> elst{
@@ -336,7 +343,7 @@ SearchUnits(set<string>& res, const Path& pth, const Path& opth,
 		FindUnits(res, pth, opth, dir, platform);
 }
 
-ValueNode
+YB_ATTR_nodiscard YB_PURE ValueNode
 MakeCBDocNode(const string& project, const string& platform, bool exe,
 	const set<string>& units, bool custom_makefile)
 {
@@ -407,7 +414,7 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 					{
 						if(is_static)
 						{
-							seq_apply(lib_add, pfx_w32 / GetLibPath(
+							ystdex::seq_apply(lib_add, pfx_w32 / GetLibPath(
 								"YFramework", debug, {}), w32lib
 								/ "libFreeImage.a", w32lib / "libfreetype.a",
 								pfx_w32 / GetLibPath("YBase", debug, {}));
@@ -421,7 +428,7 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 							"--dynamic-list-cpp-new,--dynamic-list-cpp"
 							"-typeinfo");
 						if(project == "YFramework")
-							seq_apply(lib_add,
+							ystdex::seq_apply(lib_add,
 								spath{"lib-i686", "libFreeImage.a"},
 								spath{"lib-i686", "libfreetype.a"});
 					}
@@ -430,7 +437,8 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 						if(!is_static)
 							lib_add(pfx_w32 / GetLibPath("YBase", debug));
 						if(is_static != (project == "YFramework"))
-							seq_apply(lib_add, spath{"gdi32"}, spath{"imm32"});
+							ystdex::seq_apply(lib_add, spath{"gdi32"},
+								spath{"imm32"});
 					}
 				}
 				InsertChildSyntaxNode(nd, std::move(child));
@@ -462,7 +470,7 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 			InsertAttributeNode(child, "Add", "directory", str);
 		});
 
-		seq_apply(opt_add, "-Wnon-virtual-dtor", "-Wshadow",
+		ystdex::seq_apply(opt_add, "-Wnon-virtual-dtor", "-Wshadow",
 			"-Wredundant-decls", "-Wcast-align", "-Wmissing-declarations",
 			"-Wmissing-include-dirs", "-Wzero-as-null-pointer-constant",
 			"-pedantic-errors", "-Wextra", "-Wall", "-std=c++11",
@@ -479,24 +487,24 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 		if(project != "YBase")
 		{
 			if(project == "YFramework")
-				seq_apply(dir_add, "../DS/include", "../Win32/include");
+				ystdex::seq_apply(dir_add, "../DS/include", "../Win32/include");
 			else
-				seq_apply(dir_add, "../../YFramework/DS/include",
+				ystdex::seq_apply(dir_add, "../../YFramework/DS/include",
 					"../../YFramework/Win32/include",
 					"../../YFramework/include");
-			seq_apply(dir_add, "../../YBase/include", "../../3rdparty/include",
-				"../../3rdparty/freetype/include");
+			ystdex::seq_apply(dir_add, "../../YBase/include",
+				"../../3rdparty/include", "../../3rdparty/freetype/include");
 		}
 		InsertChildSyntaxNode(proj, std::move(child));
 		child = TransformToSyntaxNode(NodeLiteral("Linker"));
-		seq_apply(opt_add, "-Wl,--gc-sections", "-pipe");
+		ystdex::seq_apply(opt_add, "-Wl,--gc-sections", "-pipe");
 		InsertChildSyntaxNode(proj, std::move(child));
 	}
 	for(const auto& unit : units)
 		InsertAttributeNode(proj, "Unit", "filename", unit);
 	return doc;
 }
-ValueNode
+YB_ATTR_nodiscard YB_PURE ValueNode
 MakeCBDocNode(const Path& pth, const Path& opth, const string& platform,
 	bool exe)
 {

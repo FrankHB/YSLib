@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextFile.cpp
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r1402
+\version r1407
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2016-11-26 23:21 +0800
+	2019-01-14 14:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "YSLib/Service/YModules.h"
-#include YFM_YSLib_Service_TextFile
+#include YFM_YSLib_Service_TextFile // for ystdex::min;
 #include YFM_CHRLib_Convert
 #include <ystdex/utility.hpp> // for ystdex::as_const;
 
@@ -40,7 +40,7 @@ Encoding
 VerifyEncoding(std::FILE* fp, char* s, size_t buflen, size_t txt_len,
 	Encoding enc)
 {
-	const auto n(min(txt_len, buflen));
+	const auto n(ystdex::min(txt_len, buflen));
 
 	std::char_traits<char>::assign(Nonnull(s) + n, buflen - n, char());
 	if(std::fread(s, 1, n, Nonnull(fp)) == n)
@@ -55,7 +55,7 @@ Encoding
 VerifyEncoding(std::streambuf& sb, char* s, size_t buflen, size_t txt_len,
 	Encoding enc)
 {
-	const auto n(min(txt_len, buflen));
+	const auto n(ystdex::min(txt_len, buflen));
 
 	std::char_traits<char>::assign(Nonnull(s) + n, buflen - n, char());
 
@@ -73,7 +73,7 @@ Encoding
 VerifyEncoding(std::istream& stream, char* s, size_t buflen, size_t txt_len,
 	Encoding enc)
 {
-	const auto n(min(txt_len, buflen));
+	const auto n(ystdex::min(txt_len, buflen));
 
 	std::char_traits<char>::assign(Nonnull(s) + n, buflen - n, char());
 	stream.read(s, std::streamsize(n));

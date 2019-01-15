@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r829
+\version r1037
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2019-01-05 16:53 +0800
+	2019-01-15 17:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,6 +44,9 @@ LWG 3036 ：删除 polymorphic_allocator 的 destroy 函数模板，
 LWG 3037 : 明确 polymorphic_allocator 支持不完整的值类型。
 LWG 3038 ：在 polymorphic_allocator 的 allocate 函数处理整数溢出。
 LWG 3113 ：明确 polymorphic_allocator 的 construct 函数模板转移构造的元组值。
+包含以下 ISO C++17 后的修改：
+WG21 P0591R4 ：在 polymorphic_allocator 中支持递归构造 std::pair 。
+WG21 P0619R4 ：在 memory_resource 中显式声明默认构造函数和复制构造函数。
 */
 
 
@@ -52,9 +55,8 @@ LWG 3113 ：明确 polymorphic_allocator 的 construct 函数模板转移构造�
 
 #include "memory.hpp" // for internal "memory.hpp", is_constructible,
 //	std::allocator_arg_t, std::allocator_arg, std::uses_allocator, yforward,
-//	allocator_traits, std::pair, std::piecewise_construct, size_t, yalignof,
-//	yconstraint, enable_if_t, vdefer, vseq::_a, is_instance_of,
-//	std::piecewise_construct_t;
+//	allocator_traits, std::pair, size_t, yalignof, yconstraint,
+//	ystdex::uninitialized_construct_using_allocator;
 // NOTE: See "placement.hpp" for comments on inclusion conditions.
 #if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603) \
 	|| (__cplusplus >= 201603L && __has_include(<memory_resource>))
@@ -116,129 +118,11 @@ LWG 3113 ：明确 polymorphic_allocator 的 construct 函数模板转移构造�
 namespace ystdex
 {
 
-#if YB_Has_memory_resource != 1
+// TODO: Check support of P0591R4 and use %std::polymorphic_allocator if
+//	possible.
+
 namespace details
 {
-
-// TODO: Wait for WG21 P0591 adopted in the working draft and migrate the
-//	interface.
-
-template<class _tAlloc>
-class piecewise_args
-{
-	//! \since build 843
-	//@{
-private:
-	template<typename... _tParams>
-	YB_ATTR(always_inline) static inline auto
-	alloc_concat(true_, _tAlloc& a, std::tuple<_tParams...>&& tp)
-		-> decltype(std::tuple_cat(std::tuple<std::allocator_arg_t, _tAlloc&>(
-		std::allocator_arg, a), std::move(tp)))
-	{
-		return std::tuple_cat(std::tuple<std::allocator_arg_t, _tAlloc&>(
-			std::allocator_arg, a), std::move(tp));
-	}
-	template<typename... _tParams>
-	YB_ATTR(always_inline) static inline auto
-	alloc_concat(false_, _tAlloc& a, std::tuple<_tParams...>&& tp)
-		-> decltype(std::tuple_cat(std::move(tp), std::tuple<_tAlloc&>(a)))
-	{
-		return std::tuple_cat(std::move(tp), std::tuple<_tAlloc&>(a));
-	}
-
-public:
-	template<typename _type, typename... _tParams>
-	YB_ATTR(always_inline) static inline auto
-	concat(true_, _tAlloc& a, std::tuple<_tParams...>&& tp)
-		-> decltype(alloc_concat(is_constructible<_type, std::allocator_arg_t,
-		_tAlloc&, _tParams...>(), a, std::move(tp)))
-	{
-		return alloc_concat(is_constructible<_type, std::allocator_arg_t,
-			_tAlloc&, _tParams...>(), a, std::move(tp));
-	}
-	template<class, typename... _tParams>
-	YB_ATTR(always_inline) static inline std::tuple<_tParams...>&&
-	concat(false_, _tAlloc&, std::tuple<_tParams...>&& tp)
-	{
-		return std::move(tp);
-	}
-	//@}
-};
-
-template<class _tAllocOuter, class _tAllocInner>
-class allocator_construct
-{
-private:
-	using inner_args = piecewise_args<_tAllocInner>;
-	_tAllocOuter& outer;
-	_tAllocInner& inner;
-
-public:
-	allocator_construct(_tAllocOuter& o, _tAllocInner& i)
-		: outer(o), inner(i)
-	{}
-
-private:
-	//! \since build 843
-	template<typename _type, typename... _tParams>
-	YB_ATTR(always_inline) inline void
-	alloc_dispatch(true_, _type* p, _tParams&&... args)
-	{
-		allocator_traits<_tAllocOuter>::construct(outer, p,
-			std::allocator_arg, inner, yforward(args)...);
-	}
-	//! \since build 843
-	template<typename _type, typename... _tParams>
-	YB_ATTR(always_inline) inline void
-	alloc_dispatch(false_, _type* p, _tParams&&... args)
-	{
-		static_assert(is_constructible<_type, _tParams..., _tAllocInner&>(),
-			"Failed to meet requirement from [allocator.uses.construction]/1.");
-
-		allocator_traits<_tAllocOuter>::construct(outer, p, yforward(args)...,
-			inner);
-	}
-
-	template<typename _type, typename... _types>
-	YB_ATTR(always_inline) inline auto
-	compcat(std::tuple<_types...>&& val)
-		-> decltype(inner_args::template concat<_type>(std::uses_allocator<
-		_type, _tAllocInner>(), inner, std::move(val)))
-	{
-		return inner_args::template concat<_type>(std::uses_allocator<_type,
-			_tAllocInner>(), inner, std::move(val));
-	}
-
-public:
-	template<typename _type, typename... _tParams>
-	YB_ATTR(always_inline) inline void
-	dispatch(true_, _type* p, _tParams&&... args)
-	{
-		alloc_dispatch(is_constructible<_type, std::allocator_arg_t,
-			_tAllocInner&, _tParams...>(), p, yforward(args)...);
-	}
-	template<typename _type, typename... _tParams>
-	YB_ATTR(always_inline) inline void
-	dispatch(false_, _type* p, _tParams&&... args)
-	{
-		static_assert(is_constructible<_type, _tParams...>(),
-			"Failed to meet requirement from [allocator.uses.construction]/1.");
-
-		allocator_traits<_tAllocOuter>::construct(outer, p, yforward(args)...);
-	}
-
-	template<typename _type1, typename _type2, typename... _types1,
-		typename... _types2>
-	YB_ATTR(always_inline) inline void
-	dispatch_pair(std::pair<_type1, _type2>* p, std::tuple<_types1...>&& val1,
-		std::tuple<_types2...>&& val2)
-	{
-		allocator_traits<_tAllocOuter>::construct(outer, p,
-			std::piecewise_construct, compcat<_type1>(std::move(val1)),
-			compcat<_type2>(std::move(val2)));
-	}
-};
-
 
 //! \note 和 Microsoft VC++ 实现中的 %_Get_size_of_n 类似。
 //@{
@@ -259,7 +143,6 @@ get_size_of_n<1>(size_t n)
 //@}
 
 } // namespace details;
-#endif
 
 namespace pmr
 {
@@ -267,26 +150,21 @@ namespace pmr
 inline namespace cpp2017
 {
 
-#if YB_Has_memory_resource == 1
-using std::pmr::memory_resource;
-
-using std::pmr::polymorphic_allocator;
-
-using std::pmr::new_delete_resource;
-using std::pmr::null_memory_resource;
-using std::pmr::set_default_resource;
-using std::pmr::get_default_resource;
-
-using std::pmr::pool_options;
-#else
 // NOTE: Microsoft VC++ 15.8.2 implements ISO C++17 version (using WG21 N4700
 //	suggested by the assertion messages), while current libstdc++ and libc++
 //	only provide %std::experimental::fundamentals_v2 version, although some
 //	resoultions have applied on libc++.
+#if YB_Has_memory_resource == 1
+using std::pmr::memory_resource;
 
+using std::pmr::get_default_resource;
+#else
 //! \ingroup YBase_replacement_features
 //@{
-//! \see LWG 2724 。
+/*!
+\brief 存储资源。
+\see LWG 2724 。
+*/
 class YB_API YB_ATTR_novtable memory_resource
 	: private equality_comparable<memory_resource>
 {
@@ -294,6 +172,14 @@ private:
 	static constexpr size_t max_align = yalignof(std::max_align_t);
 
 public:
+	/*!
+	\since build 850
+	\see WG21 P0619R4 。
+	*/
+	//@{
+	memory_resource() = default;
+	memory_resource(const memory_resource&) = default;
+	//@}
 	// XXX: Microsoft VC++, libstdc++ and libc++ all defined the destructor
 	//	inline. Keeping it out-of-line for style consistency and to avoid
 	//	Clang++ warning [-Wweak-vtables] reilably.
@@ -363,8 +249,16 @@ private:
 
 YB_ATTR_nodiscard YB_API YB_ATTR_returns_nonnull memory_resource*
 get_default_resource() ynothrow;
+//@}
+#endif
+
+} // inline namespace cpp2017;
 
 
+/*!
+\ingroup YBase_replacement_features
+\brief 多态分配器。
+*/
 template<class _type>
 class polymorphic_allocator
 {
@@ -399,16 +293,6 @@ public:
 #endif
 
 private:
-	// NOTE: The defualt allocator would serve to construct object without
-	//	allocator. The allocator is used to construct object via fallback
-	//	%construct in %allocator_traits so allocation is not used. The choice of
-	//	%std::allocator<char> is based on the fact that it would be almost
-	//	always instantiated (e.g. by %std::string exception messages) so this is
-	//	efficient in translation.
-	using fallback_alloc_t = std::allocator<yimpl(char)>;
-	using nested_dispatcher
-		= details::allocator_construct<fallback_alloc_t, polymorphic_allocator>;
-
 	//! \invariant \c memory_rsrc 。
 	memory_resource* memory_rsrc;
 
@@ -449,59 +333,16 @@ public:
 			yalignof(_type));
 	}
 
+	/*!
+	\see WG21 P0591R4 。
+	\since build 850
+	*/
 	template<typename _tObj, typename... _tParams>
-	YB_NONNULL(2)
-		yimpl(enable_if_t<!is_instance_of<_tObj, vseq::_a<std::pair>>::value>)
+	YB_NONNULL(2) void
 	construct(_tObj* p, _tParams&&... args)
 	{
-		fallback_alloc_t a;
-
-		nested_dispatcher(a, *this).dispatch(std::uses_allocator<_tObj,
-			polymorphic_allocator>(), p, yforward(args)...);
-	}
-	template<typename _type1, typename _type2, typename... _types1,
-		typename... _types2>
-	YB_NONNULL(2) void
-	construct(std::pair<_type1, _type2>* p, std::piecewise_construct_t,
-		std::tuple<_types1...> x, std::tuple<_types2...> y)
-	{
-		fallback_alloc_t a;
-
-		nested_dispatcher(a, *this).dispatch_pair(p, std::move(x),
-			std::move(y));
-	}
-	template<typename _type1, typename _type2>
-	YB_NONNULL(2) void
-	construct(std::pair<_type1, _type2>* p)
-	{
-		construct(p, std::piecewise_construct, std::tuple<>(),
-			std::tuple<>());
-	}
-	template<typename _type1, typename _type2, typename _tOther1,
-		typename _tOther2>
-	YB_NONNULL(2) void
-	construct(std::pair<_type1, _type2>* p, _tOther1&& x, _tOther2&& y)
-	{
-		construct(p, std::piecewise_construct,
-			std::forward_as_tuple(yforward(x)),
-			std::forward_as_tuple(yforward(y)));
-	}
-	template<typename _type1, typename _type2, typename _tOther,
-		typename _tOther2>
-	YB_NONNULL(2) void
-	construct(std::pair<_type1, _type2>* p, const std::pair<_tOther, _tOther2>& pr)
-	{
-		construct(p, std::piecewise_construct,
-			std::forward_as_tuple(pr.first), std::forward_as_tuple(pr.second));
-	}
-	template<typename _type1, typename _type2, typename _tOther1,
-		typename _tOther2>
-	YB_NONNULL(2) void
-	construct(std::pair<_type1, _type2>* p, std::pair<_tOther1, _tOther2>&& pr)
-	{
-		construct(p, std::piecewise_construct,
-			std::forward_as_tuple(yforward(pr.first)),
-			std::forward_as_tuple(yforward(pr.second)));
+		ystdex::uninitialized_construct_using_allocator(p, *this,
+			yforward(args)...);
 	}
 
 	YB_ATTR_nodiscard polymorphic_allocator
@@ -533,6 +374,19 @@ operator!=(const polymorphic_allocator<_type1>& a,
 	return !(a == b);
 }
 
+
+inline namespace cpp2017
+{
+
+#if YB_Has_memory_resource == 1
+using std::pmr::new_delete_resource;
+using std::pmr::null_memory_resource;
+using std::pmr::set_default_resource;
+
+using std::pmr::pool_options;
+#else
+//! \ingroup YBase_replacement_features
+//@{
 YB_ATTR_nodiscard YB_API memory_resource*
 new_delete_resource() ynothrow;
 

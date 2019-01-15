@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2017 FrankHB.
+	© 2009-2017, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGDI.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3979
+\version r4044
 \author FrankHB <frankhb1989@gmail.com>
 \since build 566
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2017-02-20 18:55 +0800
+	2019-01-14 17:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,7 @@ struct YF_API Padding
 	SPos Left = 0, Right = 0, Top = 0, Bottom = 0;
 
 	/*!
-	\brief 默认构造：使用零边距。
+	\brief 无参数构造：使用零边距。
 	\since build 365
 	*/
 	DefDeCtor(Padding)
@@ -98,103 +98,91 @@ struct YF_API Padding
 			Bottom *= SPos(n)), *this)
 };
 
+//! \since build 850
+//@{
 //! \relates Padding
 //@{
-/*!
-\brief 加法逆元：对应分量调用一元 operator- 。
-\since build 572
-*/
-yconstfn PDefHOp(Padding, -, const Padding& x)
+//! \brief 加法逆元：对应分量调用一元 operator- 。
+YB_ATTR_nodiscard yconstfn YB_PURE
+	PDefHOp(Padding, -, const Padding& x) ynothrow
 	ImplRet(Padding(-x.Left, -x.Right, -x.Top, -x.Bottom))
 
-/*!
-\brief 加法：对应分量调用 operator+ 。
-*/
-yconstfn PDefHOp(Padding, +, const Padding& x, const Padding& y)
+//! \brief 加法：对应分量调用 operator+ 。
+YB_ATTR_nodiscard yconstfn YB_PURE
+	PDefHOp(Padding, +, const Padding& x, const Padding& y) ynothrow
 	ImplRet(Padding(x.Left + y.Left, x.Right + y.Right, x.Top + y.Top,
 		x.Bottom + y.Bottom))
 
-/*!
-\brief 减法：对应分量调用 operator- 。
-\since build 572
-*/
-yconstfn PDefHOp(Padding, -, const Padding& x, const Padding& y)
+//! \brief 减法：对应分量调用 operator- 。
+YB_ATTR_nodiscard yconstfn YB_PURE
+	PDefHOp(Padding, -, const Padding& x, const Padding& y) ynothrow
 	ImplRet(Padding(x.Left - y.Left, x.Right - y.Right, x.Top - y.Top,
 		x.Bottom - y.Bottom))
 
-/*!
-\brief 乘法：对应分量调用 operator* 。
-\since build 587
-*/
-yconstfn PDefHOp(Padding, *, const Padding& x, size_t n)
+//! \brief 乘法：对应分量调用 operator* 。
+YB_ATTR_nodiscard yconstfn YB_PURE
+	PDefHOp(Padding, *, const Padding& x, size_t n) ynothrow
 	ImplRet(Padding(SPos(x.Left * ptrdiff_t(n)), SPos(x.Right * ptrdiff_t(n)),
 		SPos(x.Top * ptrdiff_t(n)), SPos(x.Bottom * ptrdiff_t(n))))
 
-/*!
-\brief 加法：缩小屏幕标准矩形，相对位置由指定边距决定。
-\note 若边距过大，则矩形的宽或高可能为 0 。
-*/
-YF_API Rect
-operator+(const Rect&, const Padding&);
+//! \note 若边距过大，则矩形的宽或高可能为 0 。
+//@{
+//! \brief 加法：缩小屏幕标准矩形，相对位置由指定边距决定。
+YB_ATTR_nodiscard YF_API YB_PURE Rect
+operator+(const Rect&, const Padding&) ynothrow;
 
-/*!
-\brief 减法：放大屏幕标准矩形，相对位置由指定边距决定。
-\note 若边距过大，则矩形的宽或高可能为 0 。
-\since build 572
-*/
-inline PDefHOp(Rect, -, const Rect& r, const Padding& m)
+//! \brief 减法：放大屏幕标准矩形，相对位置由指定边距决定。
+YB_ATTR_nodiscard YB_PURE inline
+	PDefHOp(Rect, -, const Rect& r, const Padding& m) ynothrow
 	ImplRet(r + -m)
+//@}
 //@}
 
 
-/*!
-\brief 取水平边距和。
-*/
-inline PDefH(SDst, GetHorizontalOf, const Padding& m)
-	ImplRet(SDst(max<SPos>(0, m.Left) + max<SPos>(0, m.Right)))
+//! \warning 不检查溢出。
+//@{
+//! \brief 取水平边距和。
+YB_ATTR_nodiscard YB_PURE yconstfn
+	PDefH(SDst, GetHorizontalOf, const Padding& m) ynothrowv
+	ImplRet(SDst(ystdex::max<SPos>(0, m.Left) + ystdex::max<SPos>(0, m.Right)))
 
-/*!
-\brief 取竖直边距和。
-*/
-inline PDefH(SDst, GetVerticalOf, const Padding& m)
-	ImplRet(SDst(max<SPos>(0, m.Top) + max<SPos>(0, m.Bottom)))
-
-
-/*!
-\brief 取内边界相对外边界的边距。
-*/
-YF_API Padding
-FetchMargin(const Rect&, const Size&);
+//! \brief 取竖直边距和。
+YB_ATTR_nodiscard YB_PURE yconstfn
+	PDefH(SDst, GetVerticalOf, const Padding& m) ynothrowv
+	ImplRet(SDst(ystdex::max<SPos>(0, m.Top) + ystdex::max<SPos>(0, m.Bottom)))
+//@}
 
 
-/*!
-\brief 剪切操作：取标准矩形交集并判断是否严格非空。
-\since build 372
-*/
-inline PDefH(bool, Clip, Rect& x, const Rect& y)
+//! \brief 取内边界相对外边界的边距。
+YB_ATTR_nodiscard YF_API YB_PURE Padding
+FetchMargin(const Rect&, const Size&) ynothrow;
+
+
+//! \brief 剪切操作：取标准矩形交集并判断是否严格非空。
+YB_ATTR_nodiscard inline
+	PDefH(bool, Clip, Rect& x, const Rect& y) ynothrow
 	ImplRet(x &= y, !x.IsUnstrictlyEmpty())
 
 /*!
 \brief 根据指定源的边界优化绘制上下文的剪切区域。
 \return 若边距决定不足以被渲染则为 Point() ，否则为源的起始偏移位置。
 \note 当不需要绘制时，不修改偏移坐标。
-\since build 372
 
 检查边距限制下需要保留绘制的区域，结果保存至绘制上下文的除渲染目标外的其它成员。
 */
-YF_API Point
-ClipBounds(Rect&, const Rect&);
+YB_ATTR_nodiscard YF_API Point
+ClipBounds(Rect&, const Rect&) ynothrow;
 
 /*!
 \brief 根据指定边距和源的大小优化绘制上下文的剪切区域。
 \return 若边距决定不足以被渲染则为 Point() ，否则为源的起始偏移位置。
 \note 当不需要绘制时，不修改偏移坐标。
-\since build 369
 
 检查边距限制下需要保留绘制的区域，结果保存至绘制上下文的除渲染目标外的其它成员。
 */
-YF_API Point
-ClipMargin(PaintContext&, const Padding&, const Size&);
+YB_ATTR_nodiscard YF_API Point
+ClipMargin(PaintContext&, const Padding&, const Size&) ynothrow;
+//@}
 
 
 /*!
@@ -446,7 +434,7 @@ CopyTo(BitmapPtr, const CompactPixmapEx&, const Size&,
 \note 仅当指针和指向有效。自动裁剪适应大小。
 \since build 559
 
-以第一个参数作为目标，以指定输出指向复制第二个参数的缓冲区内容
+以第一参数作为目标，以指定输出指向复制第二参数的缓冲区内容
 	至相对目标缓冲区的点。
 */
 inline PDefH(bool, CopyTo, const Graphics& dst, const ConstGraphics& src,

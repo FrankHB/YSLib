@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YUIContainer.h
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r2131
+\version r2153
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2016-04-12 01:24 +0800
+	2019-01-14 17:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_UI_YUIContainer_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_UI_YWidget
+#include YFM_YSLib_UI_YWidget // for ystdex::unseq_apply;
 #include <ystdex/iterator.hpp>
 
 namespace YSLib
@@ -43,7 +43,7 @@ namespace UI
 \return 若无父部件则为参数自身，否则为视图树中的父部件指针为空指针的部件的引用。
 \since build 282
 */
-YF_API IWidget&
+YB_ATTR_nodiscard YF_API YB_PURE IWidget&
 FetchTopLevel(IWidget&);
 /*!
 \brief 取指定部件的顶层部件，当返回非第一参数时变换坐标。
@@ -59,7 +59,8 @@ FetchTopLevel(IWidget&, Point&);
 \return 部件视图树向上遍历的指针和对应相对其指向的部件相对位置序列。
 \since build 672
 */
-YF_API vector<pair<observer_ptr<const IWidget>, Point>>
+YB_ATTR_nodiscard YF_API YB_PURE
+	vector<pair<observer_ptr<const IWidget>, Point>>
 FetchTrace(const IWidget&);
 
 
@@ -67,14 +68,15 @@ FetchTrace(const IWidget&);
 \brief 取相对第三参数指向的部件的点相对第一参数指向的容器的偏移坐标。
 \since build 672
 */
-YF_API Point
+YB_ATTR_nodiscard YF_API YB_PURE Point
 LocateOffset(observer_ptr<const IWidget>, Point, observer_ptr<const IWidget>);
 
 /*!
 \brief 取相对部件 wgt 的点 pt 相对 wgt 的容器的偏移坐标。
 \since build 167
 */
-inline PDefH(Point, LocateContainerOffset, const IWidget& wgt, const Point& pt)
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(Point, LocateContainerOffset, const IWidget& wgt, const Point& pt)
 	ImplRet(pt + GetLocationOf(wgt))
 
 /*!
@@ -83,14 +85,14 @@ inline PDefH(Point, LocateContainerOffset, const IWidget& wgt, const Point& pt)
 
 计算第一参数在第二参数指定的部件对应的顶层部件位置与第三参数指定的偏移量之和。
 */
-YF_API Point
+YB_ATTR_nodiscard YF_API Point
 LocateForTopOffset(const Point&, IWidget&, const Point& = {});
 
 /*!
 \brief 取指定部件相对轨迹的偏移坐标。
 \since build 672
 */
-YF_API Point
+YB_ATTR_nodiscard YF_API YB_PURE Point
 LocateForTrace(const vector<pair<observer_ptr<const IWidget>, Point>>&,
 	const IWidget&);
 
@@ -98,7 +100,8 @@ LocateForTrace(const vector<pair<observer_ptr<const IWidget>, Point>>&,
 \brief 取部件 wgt 相对部件 base 指定的部件的偏移坐标。
 \since build 489
 */
-inline PDefH(Point, LocateForWidget, const IWidget& base, const IWidget& wgt)
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(Point, LocateForWidget, const IWidget& base, const IWidget& wgt)
 	ImplRet(LocateForTrace(FetchTrace(base), wgt))
 
 /*!
@@ -125,7 +128,7 @@ LocateForWidgetNode(IWidget& wgt, _fFetcher fetch_ptr)
 \note 若无容器则返回 Point::Invalid 。
 \since build 167
 */
-YF_API Point
+YB_ATTR_nodiscard YF_API YB_PURE Point
 LocateForParentContainer(const IWidget&);
 
 
@@ -184,7 +187,7 @@ const ZOrder DefaultWindowZOrder(128);
 /*!
 \brief 从容器中移除部件。
 \return 是否移除成功。
-\note 第二个参数指定的部件作为容器检查和尝试移除第一个参数指定的部件。
+\note 第二参数指定的部件作为容器检查和尝试移除第一参数指定的部件。
 \note 若移除成功同时移除焦点指针。
 \since build 494
 */
@@ -398,7 +401,7 @@ public:
 	QueryZ(IWidget&) const;
 
 	//! \since build 460
-	iterator
+	YB_ATTR_nodiscard YB_PURE iterator
 	begin();
 
 	//! \since build 537
@@ -406,7 +409,7 @@ public:
 		ImplExpr(mWidgets.clear())
 
 	//! \since build 460
-	iterator
+	YB_ATTR_nodiscard YB_PURE iterator
 	end();
 };
 
@@ -442,9 +445,9 @@ template<class _tCon, class... _tWidgets>
 inline void
 AddWidgets(_tCon& con, _tWidgets&... wgts)
 {
-	unseq_apply(std::bind(static_cast<void(_tCon::*)(IWidget&)>(
+	ystdex::unseq_apply(std::bind(static_cast<void(_tCon::*)(IWidget&)>(
 		&_tCon::operator+=), std::ref(con), std::placeholders::_1),
-		std::forward<IWidget&>(wgts)...);
+		static_cast<IWidget&>(wgts)...);
 }
 
 /*!
@@ -456,9 +459,9 @@ template<class _tCon, class... _tWidgets>
 inline void
 AddWidgetsZ(_tCon& con, ZOrder z, _tWidgets&... wgts)
 {
-	unseq_apply(std::bind(static_cast<void(_tCon::*)(IWidget&, ZOrder)>(
+	ystdex::unseq_apply(std::bind(static_cast<void(_tCon::*)(IWidget&, ZOrder)>(
 		&_tCon::Add), std::ref(con), std::placeholders::_1, z),
-		std::forward<IWidget&>(wgts)...);
+		static_cast<IWidget&>(wgts)...);
 }
 
 /*!
@@ -470,9 +473,9 @@ template<class _tCon, class... _tWidgets>
 inline void
 RemoveWidgets(_tCon& con, _tWidgets&... wgts)
 {
-	unseq_apply(std::bind(static_cast<bool(_tCon::*)(IWidget&)>(
+	ystdex::unseq_apply(std::bind(static_cast<bool(_tCon::*)(IWidget&)>(
 		&_tCon::operator-=), std::ref(con), std::placeholders::_1),
-		std::forward<IWidget&>(wgts)...);
+		static_cast<IWidget&>(wgts)...);
 }
 
 } // namespace UI;

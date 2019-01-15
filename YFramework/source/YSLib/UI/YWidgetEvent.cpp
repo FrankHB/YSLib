@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YWidgetEvent.cpp
 \ingroup UI
 \brief 标准部件事件定义。
-\version r194
+\version r204
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2016-10-06 17:01 +0800
+	2019-01-10 01:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,8 @@
 
 
 #include "YSLib/UI/YModules.h"
-#include YFM_YSLib_UI_YWidgetEvent
+#include YFM_YSLib_UI_YWidgetEvent // for ystdex::search_map_by,
+//	ystdex::emplace_hint_in_place;
 #include YFM_YSLib_UI_YWidget
 
 namespace YSLib
@@ -105,8 +106,8 @@ WidgetController::WidgetController(bool b)
 	Paint()
 {}
 
-EventMapping::ItemType&
-WidgetController::GetItem(VisualEvent id) const
+EventRef
+WidgetController::GetEvent(VisualEvent id) const
 {
 	if(id == UI::Paint)
 		return Paint;
@@ -114,12 +115,11 @@ WidgetController::GetItem(VisualEvent id) const
 }
 
 
-EventMapping::ItemType&
-GetEvent(EventMapping::MapType& m, VisualEvent id,
-	EventMapping::MappedType(&f)())
+EventRef
+GetMappedEvent(VisualEventMap& m, VisualEvent id, EventItem(&f)())
 {
-	return ystdex::search_map_by([&](EventMapping::MapType::const_iterator i){
-		return m.emplace_hint(i, EventMapping::PairType(id, f()));
+	return ystdex::search_map_by([&](VisualEventMap::const_iterator i){
+		return ystdex::emplace_hint_in_place(m, i, id, f());
 	}, m, id).first->second;
 }
 

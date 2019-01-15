@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018 FrankHB.
+	© 2009-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGUI.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4413
+\version r4418
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2018-11-20 19:24 +0800
+	2019-01-14 14:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "YSLib/UI/YModules.h"
-#include YFM_YSLib_UI_YGUI
+#include YFM_YSLib_UI_YGUI // for ystdex::max;
 #include YFM_YSLib_UI_YDesktop
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 
@@ -42,7 +42,7 @@ namespace
 {
 
 //! \since build 673
-IWidget&
+YB_ATTR_nodiscard YB_PURE IWidget&
 FetchTopEnabledAndVisibleWidget(IWidget& con, const Point& pt,
 	VisualEvent id)
 {
@@ -58,7 +58,7 @@ FetchTopEnabledAndVisibleWidget(IWidget& con, const Point& pt,
 }
 
 //! \since build 673
-inline PDefH(bool, IsVisibleEnabled, IWidget& wgt)
+YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsVisibleEnabled, IWidget& wgt)
 	ImplRet(IsVisible(wgt) && IsEnabled(wgt))
 
 } // unnamed namespace;
@@ -182,7 +182,7 @@ GUIState::RefreshTap(const Point& pt, size_t n, const Timers::Duration& delay)
 {
 	const auto taps(TapTimer.RefreshTap(tap_count, delay));
 
-	tap_count = taps < n ? max<size_t>(taps, 1) : 0;
+	tap_count = taps < n ? ystdex::max<size_t>(taps, 1) : 0;
 	if(pt != Point::Invalid)
 	{
 		if(tap_count == 0 || taps == 0 || tap_location == Point::Invalid)

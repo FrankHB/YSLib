@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBlit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3451
+\version r3464
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2016-09-20 10:18 +0800
+	2019-01-14 17:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include "YModules.h"
 #include YFM_YSLib_Core_YGraphics
 #include YFM_YSLib_Core_YCoreUtilities
-#include <ystdex/iterator.hpp>
+#include <ystdex/iterator.hpp> // for mandated header;
 #include <ystdex/rational.hpp>
 
 namespace YSLib
@@ -86,13 +86,13 @@ BlitBounds(const Point&, const Point&, const Size&, const Size&, const Size&,
 
 /*!
 \brief 块传输偏移分量计算器。
-\since build 577
+\since build 850
 */
 template<bool _bDec>
-yconstfn size_t
-BlitScaleComponent(SPos d, SPos s, SDst delta)
+YB_ATTR_nodiscard YB_STATELESS yconstfn size_t
+BlitScaleComponent(SPos d, SPos s, SDst delta) ynothrow
 {
-	return size_t(max<SPos>(0, s < 0 ? d - s : d))
+	return size_t(ystdex::max<SPos>(0, s < 0 ? d - s : d))
 		+ size_t(_bDec ? delta - 1 : 0);
 }
 
@@ -410,8 +410,8 @@ BlitRectPixels(_fPixelShader shader, _tOut dst, _tIn src, _tParams&&... args)
 \brief 分派用于着色器更新的可能转置的图像。
 \since build 729
 
-第一个参数指定是否需要转置（原始图像旋转一个直角）。
-第二个参数指定更新器，接受可能转置的原迭代器、可能转置的源图像大小和转置偏移位置。
+第一参数指定是否需要转置（原始图像旋转一个直角）。
+第二参数指定更新器，接受可能转置的原迭代器、可能转置的源图像大小和转置偏移位置。
 未转置时，转置偏移位置为原点；否则使用 RotateCenter 指定。
 */
 //@{
@@ -501,7 +501,7 @@ struct CopyLine<false>
 //@}
 
 
-/*
+/*!
 \brief 显示缓存操作：清除/以纯色像素填充。
 \tparam _tOut 输出迭代器类型（需要支持 += 操作，一般应是随机迭代器）。
 \since build 624
@@ -520,9 +520,7 @@ ClearPixels(_tOut dst, size_t n) ynothrowv
 	return dst;
 }
 
-/*!
-\brief 使用 n 个指定像素连续填充指定位置。
-*/
+//! \brief 使用 n 个指定像素连续填充指定位置。
 template<typename _tPixel, typename _tOut>
 inline void
 FillPixels(_tOut dst_iter, size_t n, _tPixel c)
@@ -596,7 +594,7 @@ TransformRect(const Graphics& g, const Rect& r, _fTransformPixel tp)
 
 
 /*!
-\brief 以第一个参数作为目标，复制第二个参数的缓冲区内容。
+\brief 以第一参数作为目标，复制第二参数的缓冲区内容。
 \pre 断言：大小相等。
 \pre 间接断言：指针非空。
 \note 缓冲区指针相等时忽略。

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018 FrankHB.
+	© 2011-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4896
+\version r4905
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2018-08-17 06:03 +0800
+	2019-01-14 07:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,9 +70,9 @@ ReaderBox::ReaderBox(const Rect& r)
 {
 	Background = nullptr,
 	SetRenderer(make_unique<BufferedRenderer>()),
-	unseq_apply(ystdex::bind1(SetContainerPtrOf, make_observer(this)), btnMenu,
-		btnSetting, btnInfo, btnBookmark, btnReturn, btnPrev, btnNext, pbReader,
-		lblProgress);
+	ystdex::unseq_apply(ystdex::bind1(SetContainerPtrOf, make_observer(this)),
+		btnMenu, btnSetting, btnInfo, btnBookmark, btnReturn, btnPrev, btnNext,
+		pbReader, lblProgress);
 	SetBufferRendererAndText(btnMenu, u"M"),
 	SetBufferRendererAndText(btnSetting, u"S"),
 	SetBufferRendererAndText(btnInfo, u"I"),
@@ -129,7 +129,7 @@ TextInfoBox::TextInfoBox()
 	lblTop({4, 60, 192, 18}),
 	lblBottom({4, 80, 192, 18})
 {
-	unseq_apply(ystdex::bind1(SetContainerPtrOf, make_observer(this)),
+	ystdex::unseq_apply(ystdex::bind1(SetContainerPtrOf, make_observer(this)),
 		lblEncoding, lblSize);
 	FetchEvent<TouchHeld>(*this) += OnTouchHeld_Dragging;
 }
@@ -139,7 +139,7 @@ TextInfoBox::Refresh(PaintEventArgs&& e)
 {
 	DialogBox::Refresh(std::move(e));
 
-	unseq_apply(ystdex::bind1<Rect(*)(IWidget&, const PaintContext&)>(
+	ystdex::unseq_apply(ystdex::bind1<Rect(*)(IWidget&, const PaintContext&)>(
 		PaintChild, std::ref(e)), lblEncoding, lblSize, lblTop, lblBottom);
 	UpdateClipSize(e, GetSizeOf(*this));
 }
@@ -289,7 +289,7 @@ ShlTextReader::BaseSession::BaseSession(ShlTextReader& shl)
 	reader_box_shown(IsVisible(shl.boxReader))
 {
 	shl.StopAutoScroll(),
-	unseq_apply(ystdex::bind1(Hide), shl.boxReader, shl.boxTextInfo);
+	ystdex::unseq_apply(ystdex::bind1(Hide), shl.boxReader, shl.boxTextInfo);
 }
 ShlTextReader::BaseSession::~BaseSession()
 {
@@ -364,8 +364,8 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 		session_ptr.reset();
 	});
 
-	unseq_apply(ystdex::bind1(SetVisibleOf, false), boxReader, boxTextInfo,
-		pnlSetting, pnlBookmark);
+	ystdex::unseq_apply(ystdex::bind1(SetVisibleOf, false), boxReader,
+		boxTextInfo, pnlSetting, pnlBookmark);
 	yunseq(
 	reader.ViewChanged = [this]{
 		if(IsVisible(boxReader))

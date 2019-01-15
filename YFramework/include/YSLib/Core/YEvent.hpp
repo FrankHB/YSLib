@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5613
+\version r5902
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2019-01-05 19:24 +0800
+	2019-01-15 10:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,36 +29,20 @@
 #define YSL_INC_Core_yevt_hpp_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YObject // for ystdex::is_decayed,
-//	ystdex::examiners::equal_examiner, std::allocator_arg_t, std::allocator_arg;
+#include YFM_YSLib_Core_YObject // for ystdex::is_expandable,
+//	ystdex::is_decayed, ystdex::examiners::equal_examiner, std::allocator_arg_t,
+//	std::allocator_arg, ystdex::make_expanded, ystdex::default_last_value,
+//	std::piecewise_construct, std::forward_as_tuple,
 #include YFM_YSLib_Core_YFunc
 #include <ystdex/iterator.hpp> // for ystdex::get_value;
 #include <ystdex/container.hpp> // for ystdex::erase_all_if;
 #include <ystdex/base.h> // for ystdex::cloneable;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
-#include <ystdex/functional.hpp> // for ystdex::function, ystdex::make_expanded,
-//	ystdex::default_last_value;
 #include <ystdex/swap.hpp> // for ystdex::swap_dependent;
 #include <ystdex/optional.h> // for ystdex::optional_last_value;
-#include <ystdex/tuple.hpp> // for ystdex::tuple_element_t;
 
 namespace YSLib
 {
-
-/*!
-\brief 事件处理器接口模板。
-\since build 333
-*/
-template<typename... _tParams>
-DeclDerivedI(, GIHEvent, ystdex::cloneable)
-	DeclIEntry(size_t operator()(_tParams...) const)
-	//! \since build 409
-	DeclIEntry(GIHEvent* clone() const ImplI(ystdex::cloneable))
-EndDecl
-
-template<typename... _tParams>
-GIHEvent<_tParams...>::DefDeDtor(GIHEvent)
-
 
 /*!
 \brief 标准事件处理器模板。
@@ -73,17 +57,23 @@ class GHEvent;
 
 //! \warning 非虚析构。
 template<typename _tRet, typename... _tParams>
-class GHEvent<_tRet(_tParams...)>
-	: protected ystdex::function<_tRet(_tParams...)>,
+class GHEvent<_tRet(_tParams...)> : protected function<_tRet(_tParams...)>,
 	private ystdex::equality_comparable<GHEvent<_tRet(_tParams...)>>,
 	private ystdex::equality_comparable<GHEvent<_tRet(_tParams...)>, nullptr_t>
 {
 public:
-	using TupleType = tuple<_tParams...>;
 	using FuncType = _tRet(_tParams...);
-	using BaseType = ystdex::function<FuncType>;
+	using BaseType = function<FuncType>;
 
 private:
+	// XXX: Clang++ 7.1 behaves weirdly with %lref<GHEvent> when using combined
+	//	traits by %ystdex::not_ and %ystdex::and_. It seems related to https://bugs.llvm.org/show_bug.cgi?id=38033,
+	//	but this dost not work whether '-std=c++17' is used.
+	//! \since build 850
+	template<typename _fCallable>
+	using enable_if_expandable_t = ystdex::enable_if_t<
+		!std::is_constructible<BaseType, _fCallable>::value
+		&& ystdex::is_expandable<BaseType, _fCallable>::value>;
 	//! \brief 比较函数类型。
 	using Comparer = bool(*)(const GHEvent&, const GHEvent&);
 	template<typename _fCallable>
@@ -184,8 +174,8 @@ public:
 		comp_eq(GEquality<_fCallable>::AreEqual)
 	{}
 	//! \brief 使用扩展函数对象。
-	template<typename _fCallable, yimpl(typename = ystdex::enable_if_t<
-		!std::is_constructible<BaseType, _fCallable>::value>)>
+	template<typename _fCallable,
+		yimpl(typename = enable_if_expandable_t<_fCallable>)>
 	GHEvent(_fCallable f)
 		: BaseType(ystdex::make_expanded<FuncType>(std::move(f))),
 		// XXX: Here lambda-expression is buggy in G++ LTO.
@@ -193,8 +183,7 @@ public:
 	{}
 	//! \brief 使用分配器和扩展函数对象。
 	template<typename _fCallable, class _tAlloc,
-		yimpl(typename = ystdex::enable_if_t<!std::is_constructible<
-		BaseType, _fCallable>::value>)>
+		yimpl(typename = enable_if_expandable_t<_fCallable>)>
 	GHEvent(std::allocator_arg_t, const _tAlloc& a, _fCallable f)
 		: BaseType(std::allocator_arg, a,
 		ystdex::make_expanded<FuncType>(std::move(f))),
@@ -205,10 +194,10 @@ public:
 	/*!
 	\brief 构造：使用对象引用和成员函数指针。
 	\warning 使用空成员指针构造的函数对象调用引起未定义行为。
-	\since build 413
 	\todo 支持相等构造。
-	\todo 支持分配器构造。
 	*/
+	//@{
+	//! \since build 413
 	template<class _type>
 	yconstfn
 	GHEvent(_type& obj, _tRet(_type::*pm)(_tParams...))
@@ -218,6 +207,18 @@ public:
 			return (obj.*pm)(yforward(args)...);
 		})
 	{}
+	//! \since build 850
+	template<class _type, class _tAlloc>
+	yconstfn
+	GHEvent(std::allocator_arg_t, const _tAlloc& a, _type& obj,
+		_tRet(_type::*pm)(_tParams...))
+		: GHEvent(std::allocator_arg, a, [&, pm](_tParams... args) ynoexcept(
+			noexcept((obj.*pm)(yforward(args)...))
+			&& std::is_nothrow_copy_constructible<_tRet>::value){
+			return (obj.*pm)(yforward(args)...);
+		})
+	{}
+	//@}
 	//! \throw allocator_mismatch_error 分配器不兼容。
 	//@{
 	//! \since build 848
@@ -393,7 +394,6 @@ public:
 	//! \since build 333
 	//@{
 	using HandlerType = GHEvent<_tRet(_tParams...)>;
-	using TupleType = typename HandlerType::TupleType;
 	using FuncType = typename HandlerType::FuncType;
 	//@}
 	/*!
@@ -404,6 +404,8 @@ public:
 		= multimap<EventPriority, HandlerType, std::greater<EventPriority>>;
 	//! \since build 675
 	using InvokerType = _tInvoker;
+	//! \since build 850
+	using allocator_type = typename ContainerType::allocator_type;
 	//! \since build 573
 	//@{
 	using const_iterator = typename ContainerType::const_iterator;
@@ -440,6 +442,10 @@ public:
 	\since build 333
 	*/
 	DefDeCtor(GEvent)
+	//! \since build 850
+	GEvent(allocator_type a)
+		: handlers(a)
+	{}
 	/*!
 	\brief 构造：使用指定调用器。
 	\since build 677
@@ -447,17 +453,39 @@ public:
 	GEvent(InvokerType ivk)
 		: Invoker(std::move(ivk))
 	{}
+	//! \since build 850
+	GEvent(InvokerType ivk, allocator_type a)
+		: Invoker(std::move(ivk)), handlers(a)
+	{}
 	/*!
 	\brief 构造：使用指定调用器并添加事件处理器。
 	\since build 849
 	*/
-	template<typename _tHandler,
-		yimpl(typename = ystdex::exclude_self_t<GEvent, _tHandler>)>
+	template<typename _tHandler, yimpl(typename = ystdex::exclude_self_t<GEvent,
+		_tHandler>, typename = ystdex::enable_if_t<
+		std::is_constructible<HandlerType, _tHandler>::value>)>
 	GEvent(_tHandler h, InvokerType ivk = {})
 		: Invoker(std::move(ivk))
 	{
 		Add(std::move(h));
 	}
+	//! \since build 850
+	//@{
+	template<typename _tHandler, yimpl(typename = ystdex::exclude_self_t<GEvent,
+		_tHandler>, typename = ystdex::enable_if_t<
+		std::is_constructible<HandlerType, _tHandler>::value>)>
+	GEvent(_tHandler h, InvokerType ivk, allocator_type a)
+		: Invoker(std::move(ivk)), handlers(a)
+	{
+		Add(std::move(h), a);
+	}
+	GEvent(const GEvent& e, allocator_type a)
+		: Invoker(e.Invoker), handlers(e.handlers, a)
+	{}
+	GEvent(GEvent&& e, allocator_type a)
+		: Invoker(std::move(e.Invoker)), handlers(std::move(e.handlers), a)
+	{}
+	//@}
 	//! \since build 333
 	DefDeCopyMoveCtorAssignment(GEvent)
 
@@ -468,9 +496,9 @@ public:
 	template<typename _tHandler,
 		yimpl(typename = ystdex::exclude_self_t<GEvent, _tHandler>)>
 	inline GEvent&
-	operator=(_tHandler&& _arg)
+	operator=(_tHandler&& arg)
 	{
-		return *this = GEvent(yforward(_arg));
+		return *this = GEvent(yforward(arg));
 	}
 
 	//! \since build 333
@@ -533,20 +561,13 @@ public:
 	\since build 294
 	*/
 	//@{
-	//! \note 使用 const 事件处理器和优先级。
-	inline PDefH(GEvent&, Add, const HandlerType& h,
-		EventPriority prior = DefaultEventPriority)
-		ImplRet(Insert(h, prior), *this)
-	//! \note 使用非 const 事件处理器和优先级。
-	inline PDefH(GEvent&, Add, HandlerType&& h,
-		EventPriority prior = DefaultEventPriority)
-		ImplRet(Insert(std::move(h), prior), *this)
 	//! \note 使用单一构造参数指定的事件处理器和优先级。
 	template<typename _type>
 	inline GEvent&
-	Add(_type&& _arg, EventPriority prior = DefaultEventPriority)
+	Add(_type&& arg, EventPriority prior = DefaultEventPriority)
 	{
-		return Add(HandlerType(yforward(_arg)), prior);
+		Insert(yforward(arg), prior);
+		return *this;
 	}
 	/*!
 	\note 使用对象引用、成员函数指针和优先级。
@@ -557,9 +578,20 @@ public:
 	Add(_tObj& obj, _tRet(_type::*pm)(_tParams...),
 		EventPriority prior = DefaultEventPriority)
 	{
-		return Add(HandlerType(static_cast<_type&>(obj), std::move(pm)), prior);
+		Insert(obj, pm, prior);
+		return *this;
 	}
 	//@}
+
+	//! \since build 850
+	template<typename... _tEmplaceParams>
+	inline typename ContainerType::iterator
+	Emplace(EventPriority prior, _tEmplaceParams&&... args)
+	{
+		return handlers.emplace(std::piecewise_construct,
+			std::forward_as_tuple(prior), std::forward_as_tuple(
+			std::allocator_arg, handlers.get_allocator(), yforward(args)...));
+	}
 
 	/*!
 	\brief 插入事件响应。
@@ -567,20 +599,12 @@ public:
 	\since build 572
 	*/
 	//@{
-	//! \note 使用 const 事件处理器和优先级。
-	inline PDefH(typename ContainerType::iterator, Insert, const HandlerType& h,
-		EventPriority prior = DefaultEventPriority)
-		ImplRet(handlers.emplace(prior, h))
-	//! \note 使用非 const 事件处理器和优先级。
-	inline PDefH(typename ContainerType::iterator, Insert, HandlerType&& h,
-		EventPriority prior = DefaultEventPriority)
-		ImplRet(handlers.emplace(prior, std::move(h)))
 	//! \note 使用单一构造参数指定的事件处理器和优先级。
 	template<typename _type>
 	inline typename ContainerType::iterator
-	Insert(_type&& _arg, EventPriority prior = DefaultEventPriority)
+	Insert(_type&& arg, EventPriority prior = DefaultEventPriority)
 	{
-		return Insert(HandlerType(yforward(_arg)), prior);
+		return Emplace(prior, yforward(arg));
 	}
 	//! \note 使用对象引用、成员函数指针和优先级。
 	template<class _tObj, class _type>
@@ -588,8 +612,7 @@ public:
 	Insert(_tObj& obj, _tRet(_type::*pm)(_tParams...),
 		EventPriority prior = DefaultEventPriority)
 	{
-		return
-			Insert(HandlerType(static_cast<_type&>(obj), std::move(pm)), prior);
+		return Emplace(prior, obj, pm);
 	}
 	//@}
 
@@ -735,205 +758,6 @@ AddUnique(GEvent<_tRet(_tParams...)>& evt, _type& obj,
 		prior);
 }
 //@}
-
-
-/*!
-\brief 使用 RAII 管理的事件辅助类。
-\warning 非虚析构。
-\since build 429
-*/
-template<typename... _tEventArgs>
-class GEventGuard
-{
-public:
-	using EventType = GEvent<_tEventArgs...>;
-	using HandlerType = GHEvent<_tEventArgs...>;
-	//! \since build 554
-	lref<EventType> Event;
-	HandlerType Handler;
-
-	template<typename _type>
-	GEventGuard(EventType& evt, _type&& handler,
-		EventPriority prior = DefaultEventPriority)
-		: Event(evt), Handler(yforward(handler))
-	{
-		Event.get().Add(Handler, prior);
-	}
-	~GEventGuard()
-	{
-		Event.get() -= Handler;
-	}
-};
-
-
-/*!
-\brief 依赖事件项模板。
-\warning 非虚析构。
-\since build 195
-*/
-template<class _tEvent, class _tOwnerPointer = shared_ptr<_tEvent>>
-class GDependencyEvent : public GDependency<_tEvent, _tOwnerPointer>
-{
-public:
-	using DependentType = typename GDependency<_tEvent>::DependentType;
-	using PointerType = typename GDependency<_tEvent>::PointerType;
-	using ConstReferenceType
-		= typename GDependency<_tEvent>::ConstReferenceType;
-	using ReferentType = typename GDependency<_tEvent>::ReferentType;
-	using ReferenceType = typename GDependency<_tEvent>::ReferenceType;
-	using EventType = DependentType;
-	using SEventType = typename EventType::SEventType;
-	using FuncType = typename EventType::FuncType;
-	using HandlerType = typename EventType::HandlerType;
-	using SizeType = typename EventType::SizeType;
-
-	GDependencyEvent(PointerType p = PointerType())
-		: GDependency<_tEvent>(p)
-	{}
-
-	/*!
-	\brief 添加事件响应。
-	*/
-	template<typename _type>
-	inline ReferenceType
-	operator+=(_type _arg)
-	{
-		return this->GetNewRef().operator+=(_arg);
-	}
-
-	/*!
-	\brief 移除事件响应。
-	*/
-	template<typename _type>
-	inline ReferenceType
-	operator-=(_type _arg)
-	{
-		return this->GetNewRef().operator-=(_arg);
-	}
-
-	/*!
-	\brief 添加事件响应：使用对象引用和成员函数指针。
-	\since build 413
-	*/
-	template<class _type, typename _tRet, typename... _tParams>
-	inline ReferenceType
-	Add(_type& obj, _tRet(_type::*pm)(_tParams...))
-	{
-		return this->GetNewRef().Add(obj, pm);
-	}
-
-	/*!
-	\brief 移除事件响应：目标为指定对象引用和成员函数指针。
-	\since build 413
-	*/
-	template<class _type, typename _tRet, typename... _tParams>
-	inline ReferenceType
-	Remove(_type& obj, _tRet(_type::*pm)(_tParams...))
-	{
-		return this->GetNewRef().Remove(obj, pm);
-	}
-
-	/*!
-	\brief 调用函数。
-	\since build 413
-	*/
-	template<typename... _tParams>
-	inline SizeType
-	operator()(_tParams&&... args) const
-	{
-		return this->GetRef().operator()(yforward(args)...);
-	}
-
-	/*!
-	\brief 取列表中的响应数。
-	*/
-	DefGetterMem(const ynothrow, SizeType, Size, this->GetRef())
-
-	/*!
-	\brief 清除：移除所有事件响应。
-	\since build 530
-	*/
-	PDefH(void, clear, )
-		ImplExpr(this->GetNewRef().clear())
-};
-
-
-//! \since build 413
-template<typename... _tParams>
-struct EventArgsHead
-{
-	using type = ystdex::conditional_t<sizeof...(_tParams) == 0, void,
-		ystdex::tuple_element_t<0, tuple<_tParams...>>>;
-};
-
-template<typename... _tParams>
-struct EventArgsHead<tuple<_tParams...>> : EventArgsHead<_tParams...>
-{};
-
-
-/*!
-\brief 事件包装类模板。
-\since build 173
-*/
-template<class _tEvent, typename _tBaseArgs>
-class GEventWrapper : public _tEvent, implements GIHEvent<_tBaseArgs>
-{
-public:
-	using EventType = _tEvent;
-	using BaseArgsType = _tBaseArgs;
-	using EventArgsType = _t<EventArgsHead<typename _tEvent::TupleType>>;
-
-	/*!
-	\brief 委托调用。
-	\warning 需要确保 BaseArgsType 引用的对象能够转换至 EventArgsType 。
-	\since build 331
-	*/
-	size_t
-	operator()(BaseArgsType e) const ImplI(GIHEvent<_tBaseArgs>)
-	{
-		return EventType::operator()(EventArgsType(yforward(e)));
-	}
-
-	//! \since build 409
-	DefClone(const ImplI(GIHEvent<_tBaseArgs>), GEventWrapper)
-};
-
-
-/*!
-\brief 事件项类型。
-\warning 非虚析构。
-\since build 242
-*/
-template<typename _tBaseArgs>
-class GEventPointerWrapper
-{
-public:
-	using ItemType = GIHEvent<_tBaseArgs>;
-	using PointerType = unique_ptr<ItemType>;
-
-private:
-	PointerType ptr;
-
-public:
-	//! \since build 586
-	template<typename _type, yimpl(
-		typename = ystdex::exclude_self_t<GEventPointerWrapper, _type>)>
-	inline
-	GEventPointerWrapper(_type&& p)
-		ynoexcept(std::is_nothrow_constructible<PointerType, _type>())
-		: ptr(Nonnull(p))
-	{}
-	/*!
-	\brief 复制构造：深复制。
-	*/
-	GEventPointerWrapper(const GEventPointerWrapper& item)
-		: ptr(ystdex::clone_polymorphic(Deref(item.ptr)))
-	{}
-	DefDeMoveCtor(GEventPointerWrapper)
-
-	yconstfn DefCvt(const ynothrow, const ItemType&, *ptr)
-	yconstfn DefCvt(const ynothrow, ItemType&, *ptr)
-};
 
 
 /*!

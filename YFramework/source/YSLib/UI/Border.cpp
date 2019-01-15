@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015, 2018 FrankHB.
+	© 2013-2015, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Border.cpp
 \ingroup UI
 \brief 图形用户界面边框。
-\version r207
+\version r213
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-09-06 23:25:42 +0800
 \par 修改时间:
-	2018-12-14 06:17 +0800
+	2019-01-14 14:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "YSLib/UI/YModules.h"
-#include YFM_YSLib_UI_Border
+#include YFM_YSLib_UI_Border // for ystdex::max;
 #include YFM_YSLib_Service_YDraw
 #include YFM_YSLib_UI_YGUI
 #include YFM_YSLib_UI_YControl
@@ -101,12 +101,12 @@ BorderResizer::Wrap()
 				switch(focused.first)
 				{
 				case BorderArea::Left:
-					bounds.Width = SDst(max<SPos>(SPos(MinSize.Width),
+					bounds.Width = SDst(ystdex::max<SPos>(SPos(MinSize.Width),
 						SPos(locked_bounds.Width) - offset.X));
 					bounds.X += SPos(locked_bounds.Width) - SPos(bounds.Width);
 					break;
 				case BorderArea::Right:
-					bounds.Width = SDst(max<SPos>(SPos(MinSize.Width),
+					bounds.Width = SDst(ystdex::max<SPos>(SPos(MinSize.Width),
 						SPos(locked_bounds.Width) + offset.X));
 					break;
 				default:
@@ -115,13 +115,13 @@ BorderResizer::Wrap()
 				switch(focused.second)
 				{
 				case BorderArea::Up:
-					bounds.Height = SDst(max<SPos>(SPos(MinSize.Height),
+					bounds.Height = SDst(ystdex::max<SPos>(SPos(MinSize.Height),
 						SPos(locked_bounds.Height) - offset.Y));
 					bounds.Y += SPos(locked_bounds.Height)
 						- SPos(bounds.Height);
 					break;
 				case BorderArea::Down:
-					bounds.Height = SDst(max<SPos>(SPos(MinSize.Height),
+					bounds.Height = SDst(ystdex::max<SPos>(SPos(MinSize.Height),
 						SPos(locked_bounds.Height) + offset.Y));
 					break;
 				default:

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YWidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5809
+\version r5826
 \author FrankHB <frankhb1989@gmail.com>
 \since build 569
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-02-12 01:26 +0800
+	2019-01-14 17:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,33 +98,35 @@ EndDecl
 \brief 判断部件是否可见。
 \since build 259
 */
-inline PDefH(bool, IsVisible, const IWidget& wgt)
+YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsVisible, const IWidget& wgt)
 	ImplRet(wgt.GetView().IsVisible())
 
 /*!
 \brief 判断点是否在部件的可视区域内。
 \since build 167
 */
-bool
+YB_ATTR_nodiscard YB_PURE bool
 YF_API Contains(const IWidget&, SPos, SPos);
 /*!
 \brief 判断点是否在部件的可视区域内。
 \since build 167
 */
-inline PDefH(bool, Contains, const IWidget& wgt, const Point& pt)
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, Contains, const IWidget& wgt, const Point& pt)
 	ImplRet(Contains(wgt, pt.X, pt.Y))
 
 /*!
 \brief 判断点是否在可见部件的可视区域内。
 \since build 173
 */
-bool
+YB_ATTR_nodiscard YB_PURE bool
 YF_API ContainsVisible(const IWidget& wgt, SPos x, SPos y);
 /*!
 \brief 判断点是否在可见部件的可视区域内。
 \since build 173
 */
-inline PDefH(bool, ContainsVisible, const IWidget& wgt, const Point& pt)
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, ContainsVisible, const IWidget& wgt, const Point& pt)
 	ImplRet(ContainsVisible(wgt, pt.X, pt.Y))
 
 /*!
@@ -133,7 +135,8 @@ inline PDefH(bool, ContainsVisible, const IWidget& wgt, const Point& pt)
 \note 使用此函数确保返回值传递的值语义。
 \since build 672
 */
-inline PDefH(observer_ptr<IWidget>, FetchContainerPtr, const IWidget& wgt)
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(observer_ptr<IWidget>, FetchContainerPtr, const IWidget& wgt)
 	ImplRet(wgt.GetView().ContainerPtr)
 
 /*!
@@ -142,7 +145,8 @@ inline PDefH(observer_ptr<IWidget>, FetchContainerPtr, const IWidget& wgt)
 \return 若为保存了子部件中的焦点对象的容器则返回指针，否则返回 \c nullptr 。
 \since build 672
 */
-inline PDefH(observer_ptr<IWidget>, FetchFocusingPtr, const IWidget& wgt)
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(observer_ptr<IWidget>, FetchFocusingPtr, const IWidget& wgt)
 	ImplRet(wgt.GetView().FocusingPtr)
 
 /*!
@@ -150,7 +154,7 @@ inline PDefH(observer_ptr<IWidget>, FetchFocusingPtr, const IWidget& wgt)
 \brief 取部件位置。
 \since build 569
 */
-inline PDefH(Point, GetLocationOf, const IWidget& wgt)
+YB_ATTR_nodiscard YB_PURE inline PDefH(Point, GetLocationOf, const IWidget& wgt)
 	ImplRet(wgt.GetView().GetLocation())
 
 /*!
@@ -158,14 +162,14 @@ inline PDefH(Point, GetLocationOf, const IWidget& wgt)
 \brief 取部件大小。
 \since build 569
 */
-inline PDefH(Size, GetSizeOf, const IWidget& wgt)
+YB_ATTR_nodiscard YB_PURE inline PDefH(Size, GetSizeOf, const IWidget& wgt)
 	ImplRet(wgt.GetView().GetSize())
 
 /*!
 \brief 取部件边界。
 \since build 190
 */
-inline PDefH(Rect, GetBoundsOf, const IWidget& wgt)
+YB_ATTR_nodiscard YB_PURE inline PDefH(Rect, GetBoundsOf, const IWidget& wgt)
 	ImplRet(wgt.GetView().GetBounds())
 
 /*!
@@ -513,7 +517,7 @@ WrapRenderer(Widget& wgt, unique_ptr<_tRenderer> p_renderer)
 	return res;
 }
 template<class _tRenderer, typename... _tParams>
-inline _tRenderer&
+YB_ATTR_nodiscard inline _tRenderer&
 WrapRenderer(Widget& wgt, _tParams&&... args)
 {
 	return UI::WrapRenderer(wgt, make_unique<_tRenderer>(yforward(args)...));
@@ -529,7 +533,7 @@ template<class... _tWidgets>
 inline void
 InvalidateWidgets(_tWidgets&... wgts)
 {
-	unseq_apply(static_cast<void(*)(IWidget&)>(Invalidate), wgts...);
+	ystdex::unseq_apply(static_cast<void(*)(IWidget&)>(Invalidate), wgts...);
 }
 
 } // namespace UI;

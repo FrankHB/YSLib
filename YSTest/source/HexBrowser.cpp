@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2015, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r670
+\version r674
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:12:20 +0800
 \par 修改时间:
-	2015-09-11 18:03 +0800
+	2019-01-14 18:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,7 @@
 */
 
 
-#include "HexBrowser.h"
+#include "HexBrowser.h" // for ystdex::min;
 #include <new>
 
 namespace YSLib
@@ -159,7 +159,8 @@ HexViewArea::Refresh(PaintEventArgs&& e)
 		// XXX: Conversion to 'SPos' might be implementation-defined.
 		x += SPos(w_addr);
 
-		const auto n(min<IndexType>(fsize - pos, IndexType(ItemPerLine)));
+		const auto
+			n(ystdex::min<IndexType>(fsize - pos, IndexType(ItemPerLine)));
 
 		// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
 		for(IndexType j(0); j < n;

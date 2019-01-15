@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2018 FrankHB.
+	© 2009-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r5412
+\version r5585
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2018-12-26 22:18 +0800
+	2019-01-16 00:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,13 +29,13 @@
 #define YSL_INC_Core_YObject_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YCoreUtilities // for ystdex::true_, ystdex::false_,
-//	ystdex::type_id, ystdex::alloc_value_t, ystdex::ref, ystdex::decay_t,
-//	std::allocator_arg_t, std::allocator_arg, ystdex::copy_or_move;
-#include <ystdex/any.h> // for ystdex::any, ystdex::any_ops::holder,
-//	ystdex::boxed_value, ystdex::any_ops::is_in_place_storable,
-//	ystdex::is_sharing, ystdex::any_ops::allocator_holder_handler,
-//	ystdex::pseudo_output;
+#include YFM_YSLib_Core_YCoreUtilities // for ystdex::true_, ystdex::is_decayed,
+//	any, any_ops::use_holder, in_place_type, ystdex::false_, ystdex::type_id,
+//	ystdex::alloc_value_t, std::allocator_arg, ystdex::ref, ystdex::decay_t,
+//	std::allocator_arg_t, in_place_type_t, ystdex::copy_or_move,
+//	any_ops::holder, ystdex::boxed_value, any_ops::is_in_place_storable,
+//	ystdex::is_sharing, YSLib::unchecked_any_cast, YSLib::any_cast,
+//	YSLib::make_observer, ystdex::pseudo_output;
 #include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
 
@@ -85,44 +85,99 @@ struct HasOwnershipOf : std::is_base_of<OwnershipTag<_type>, _tOwner>
 
 
 /*!
-\note 第一参数指定的选项创建擦除类型的持有者或抛出异常。
-\since build 764
+\brief 持有者操作。
+\since build 850
 */
-//@{
-template<class _tHolder, typename... _tParams>
-YB_ATTR_nodiscard ystdex::any
-CreateHolderInPlace(ystdex::true_, _tParams&&... args)
+template<class _tHolder>
+struct HolderOperations
 {
-	return ystdex::any(ystdex::any_ops::use_holder,
-		ystdex::in_place_type<_tHolder>, yforward(args)...);
-}
-//! \since build 848
-template<class _tHolder, class _tAlloc, typename... _tParams>
-YB_ATTR_nodiscard ystdex::any
-CreateHolderInPlace(std::allocator_arg_t, const _tAlloc& a, ystdex::true_,
-	_tParams&&... args)
-{
-	return ystdex::any(std::allocator_arg, a, ystdex::any_ops::use_holder,
-		ystdex::in_place_type<_tHolder>, yforward(args)...);
-}
-//! \exception ystdex::invalid_construction 参数类型无法用于初始化持有者。
-//@{
-template<class _tHolder, typename... _tParams>
-YB_ATTR_nodiscard YB_NORETURN ystdex::any
-CreateHolderInPlace(ystdex::false_, _tParams&&...)
-{
-	ystdex::throw_invalid_construction();
-}
-//! \since build 848
-template<class _tHolder, class _tAlloc, typename... _tParams>
-YB_ATTR_nodiscard YB_NORETURN ystdex::any
-CreateHolderInPlace(std::allocator_arg_t, const _tAlloc&, ystdex::false_,
-	_tParams&&...)
-{
-	ystdex::throw_invalid_construction();
-}
-//@}
-//@}
+	static_assert(ystdex::is_decayed<_tHolder>(), "Invalid holder type found.");
+
+	template<typename... _tParams>
+	YB_ATTR_nodiscard static any
+	CreateInPlace(_tParams&&... args)
+	{
+		return CreateInPlaceImpl(nullptr, yforward(args)...);
+	}
+	template<class _tAlloc, typename... _tParams>
+	YB_ATTR_nodiscard static any
+	CreateInPlace(std::allocator_arg_t, const _tAlloc& a,
+		_tParams&&... args)
+	{
+		return CreateInPlaceWithAllocatorImpl(nullptr, a, yforward(args)...);
+	}
+
+private:
+	template<typename... _tParams>
+	YB_ATTR_nodiscard static auto
+	CreateInPlaceImpl(nullptr_t, _tParams&&... args)
+		-> decltype(any(any_ops::use_holder, in_place_type<_tHolder>,
+		yforward(args)...))
+	{
+		return any(any_ops::use_holder, in_place_type<_tHolder>,
+			yforward(args)...);
+	}
+	template<typename... _tParams>
+	YB_ATTR_nodiscard YB_NORETURN static any
+	CreateInPlaceImpl(int, _tParams&&...)
+	{
+		ystdex::throw_invalid_construction();
+	}
+
+	template<class _tAlloc, typename... _tParams>
+	YB_ATTR_nodiscard static auto
+	CreateInPlaceWithAllocatorImpl(nullptr_t, const _tAlloc& a,
+		_tParams&&... args)
+		-> decltype(any(std::allocator_arg, a, any_ops::use_holder,
+		in_place_type<_tHolder>, yforward(args)...))
+	{
+		return any(std::allocator_arg, a, any_ops::use_holder,
+			in_place_type<_tHolder>, yforward(args)...);
+	}
+	template<typename... _tParams>
+	YB_ATTR_nodiscard YB_NORETURN static any
+	CreateInPlaceWithAllocatorImpl(int, _tParams&&...)
+	{
+		ystdex::throw_invalid_construction();
+	}
+
+public:
+	//! \note ystdex::true_ 或 ystdex::false_ 指定的选项创建持有者或抛出异常。
+	//@{
+	template<typename... _tParams>
+	YB_ATTR_nodiscard static any
+	CreateInPlaceConditionally(ystdex::true_, _tParams&&... args)
+	{
+		return any(any_ops::use_holder, in_place_type<_tHolder>,
+			yforward(args)...);
+	}
+	template<class _tAlloc, typename... _tParams>
+	YB_ATTR_nodiscard static any
+	CreateInPlaceConditionally(std::allocator_arg_t, const _tAlloc& a,
+		ystdex::true_, _tParams&&... args)
+	{
+		return any(std::allocator_arg, a, any_ops::use_holder,
+			in_place_type<_tHolder>, yforward(args)...);
+	}
+	//! \exception ystdex::invalid_construction 参数类型无法用于初始化持有者。
+	//@{
+	template<typename... _tParams>
+	YB_ATTR_nodiscard YB_NORETURN static any
+	CreateInPlaceConditionally(ystdex::false_, _tParams&&...)
+	{
+		ystdex::throw_invalid_construction();
+	}
+	//! \since build 848
+	template<class _tAlloc, typename... _tParams>
+	YB_ATTR_nodiscard YB_NORETURN static any
+	CreateInPlaceConditionally(std::allocator_arg_t, const _tAlloc&,
+		ystdex::false_, _tParams&&...)
+	{
+		ystdex::throw_invalid_construction();
+	}
+	//@}
+	//@}
+};
 
 
 /*!
@@ -130,7 +185,7 @@ CreateHolderInPlace(std::allocator_arg_t, const _tAlloc&, ystdex::false_,
 \sa ystdex::any_holder
 \since build 332
 */
-DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
+DeclDerivedI(YF_API, IValueHolder, any_ops::holder)
 	/*!
 	\brief 创建选项。
 	\sa Create
@@ -189,20 +244,20 @@ DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
 	\return 包含新创建的持有者的动态泛型对象。
 	\exception ystdex::invalid_construction 参数类型无法用于初始化持有者。
 	\sa Creation
-	\sa CreateHolder
+	\sa HolderOperations
 
 	按参数指定的选项创建按指定选项持有的对象。
 	派生实现应保证返回的值满足选项指定的条件，且变换不改变当前逻辑状态，
 	除 mutable 的数据成员可被转移；否则，应抛出异常。
 	*/
-	YB_ATTR_nodiscard DeclIEntry(ystdex::any Create(Creation) const)
+	YB_ATTR_nodiscard DeclIEntry(any Create(Creation) const)
 
 	/*!
 	\brief 提供创建持有者的默认实现。
 	\sa Create
 	*/
 	template<typename _type>
-	YB_ATTR_nodiscard static ystdex::any
+	YB_ATTR_nodiscard static any
 	CreateHolder(Creation, _type&);
 	//@}
 EndDecl
@@ -286,7 +341,7 @@ public:
 	template<typename _tParam,
 		yimpl(typename = ystdex::exclude_self_t<ValueHolder, _tParam>)>
 	ValueHolder(_tParam&& arg)
-		ynoexcept(std::is_nothrow_constructible<_type, _tParam&&>())
+		ynoexcept(std::is_nothrow_constructible<_type, _tParam>())
 		: ystdex::boxed_value<_type>(yforward(arg))
 	{}
 	using ystdex::boxed_value<_type>::boxed_value;
@@ -295,7 +350,7 @@ public:
 	DefDeCopyMoveCtorAssignment(ValueHolder)
 
 	//! \since build 761
-	YB_ATTR_nodiscard PDefH(ystdex::any, Create, Creation c) const
+	YB_ATTR_nodiscard PDefH(any, Create, Creation c) const
 		ImplI(IValueHolder)
 		ImplRet(CreateHolder(c, this->value))
 
@@ -323,7 +378,7 @@ public:
 
 /*!
 \brief 保存分配器的值持有者。
-\note 分配器通过配合 ystdex::any::allocated_holder_handler_t 被使用。
+\note 分配器通过配合 any::allocated_holder_handler_t 被使用。
 \note 模板参数指定分配器。
 \since build 847
 */
@@ -347,33 +402,30 @@ public:
 	DefDeCopyMoveCtorAssignment(AllocatorHolder)
 	//@}
 
-	YB_ATTR_nodiscard ystdex::any
+	YB_ATTR_nodiscard any
 	Create(Creation c) const ImplI(IValueHolder)
 	{
 		return CreateImpl(c,
-			ystdex::any_ops::is_in_place_storable<value_type>());
+			any_ops::is_in_place_storable<value_type>());
 	}
 
 private:
 	//! \since build 848
-	YB_ATTR_nodiscard PDefH(ystdex::any, CreateImpl, Creation c, ystdex::true_)
+	YB_ATTR_nodiscard PDefH(any, CreateImpl, Creation c, ystdex::true_)
 		const
 		ImplRet(IValueHolder::CreateHolder(c, value))
 	//! \since build 848
-	YB_ATTR_nodiscard ystdex::any
+	YB_ATTR_nodiscard any
 	CreateImpl(Creation c, ystdex::false_) const
 	{
 		switch(c)
 		{
 		case Copy:
-			return CreateHolderInPlace<AllocatorHolder<_tAlloc>>(
-				std::allocator_arg, get_allocator(),
-				std::is_copy_constructible<value_type>(), get_allocator(),
-				value);
+			return HolderOperations<AllocatorHolder<_tAlloc>>::CreateInPlace(
+				std::allocator_arg, get_allocator(), get_allocator(), value);
 		case Move:
-			return CreateHolderInPlace<AllocatorHolder<_tAlloc>>(
-				std::allocator_arg, get_allocator(),
-				std::is_move_constructible<value_type>(), get_allocator(),
+			return HolderOperations<AllocatorHolder<_tAlloc>>::CreateInPlace(
+				std::allocator_arg, get_allocator(), get_allocator(),
 				std::move(value));
 		default:
 			// NOTE: It is more efficient to construct in place for %Indirect
@@ -530,12 +582,13 @@ public:
 	DefGetter(ynothrow, const holder_pointer&, Held, p_held)
 
 	//! \since build 761
-	YB_ATTR_nodiscard ystdex::any
+	YB_ATTR_nodiscard any
 	Create(Creation c) const ImplI(IValueHolder)
 	{
 		// TODO: Blocked. Use C++17 'if constexpr' to simplify.
 		if(shared() && c == IValueHolder::Copy)
-			return CreateHolderInPlace<PointerHolder>(shared(), p_held);
+			return HolderOperations<PointerHolder>::CreateInPlaceConditionally(
+				shared(), p_held);
 		if(const auto& p = traits_type::get(p_held))
 			return CreateHolder(c, *p);
 		ystdex::throw_invalid_construction();
@@ -592,7 +645,8 @@ public:
 		= ystdex::remove_reference_t<ystdex::unwrap_reference_t<_type>>;
 
 private:
-	ValueHolder<lref<value_type>> base;
+	//! \since build 850
+	lref<value_type> ref;
 
 public:
 	/*!
@@ -600,14 +654,14 @@ public:
 	\since build 821
 	*/
 	RefHolder(_type& r) ynothrow
-		: base(r)
+		: ref(r)
 	{}
 	DefDeCopyMoveCtorAssignment(RefHolder)
 
 	//! \since build 761
-	YB_ATTR_nodiscard PDefH(ystdex::any, Create, Creation c) const
+	YB_ATTR_nodiscard PDefH(any, Create, Creation c) const
 		ImplI(IValueHolder)
-		ImplRet(CreateHolder(c, Ref()))
+		ImplRet(CreateHolder(c, ref.get()))
 
 	//! \since build 752
 	YB_ATTR_nodiscard PDefH(bool, Equals, const void* p) const
@@ -620,14 +674,8 @@ public:
 		ImplI(IValueHolder)
 		ImplRet(0)
 
-private:
-	//! \since build 761
-	YB_ATTR_nodiscard YB_PURE PDefH(value_type&, Ref, ) const
-		ImplRet(Deref(static_cast<lref<value_type>*>(base.get())).get())
-
-public:
 	YB_ATTR_nodiscard YB_PURE PDefH(void*, get, ) const ImplI(IValueHolder)
-		ImplRet(ystdex::pvoid(std::addressof(Ref())))
+		ImplRet(ystdex::pvoid(std::addressof(ref.get())))
 
 	YB_ATTR_nodiscard PDefH(const type_info&, type, ) const ynothrow
 		ImplI(IValueHolder)
@@ -636,20 +684,19 @@ public:
 //@}
 
 template<typename _type>
-ystdex::any
+any
 IValueHolder::CreateHolder(Creation c, _type& obj)
 {
 	switch(c)
 	{
 	case Indirect:
-		return CreateHolderInPlace<RefHolder<_type>>(ystdex::true_(),
-			ystdex::ref(obj));
+		return
+			HolderOperations<RefHolder<_type>>::CreateInPlace(ystdex::ref(obj));
 	case Copy:
-		return CreateHolderInPlace<ValueHolder<_type>>(
-			std::is_copy_constructible<_type>(), obj);
+		return HolderOperations<ValueHolder<_type>>::CreateInPlace(obj);
 	case Move:
-		return CreateHolderInPlace<ValueHolder<_type>>(
-			std::is_move_constructible<_type>(), std::move(obj));
+		return
+			HolderOperations<ValueHolder<_type>>::CreateInPlace(std::move(obj));
 	default:
 		ystdex::throw_invalid_construction();
 	}
@@ -672,7 +719,7 @@ public:
 	\brief 储存的内容。
 	\since build 748
 	*/
-	using Content = ystdex::any;
+	using Content = any;
 
 private:
 	//! \since build 848
@@ -699,8 +746,8 @@ public:
 		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>),
 		yimpl(typename = ystdex::exclude_self_t<std::allocator_arg_t, _type>)>
 	ValueObject(_type&& obj)
-		: content(ystdex::any_ops::use_holder, ystdex::in_place_type<
-		ValueHolder<ystdex::decay_t<_type>>>, yforward(obj))
+		: content(any_ops::use_holder,
+		in_place_type<ValueHolder<ystdex::decay_t<_type>>>, yforward(obj))
 	{}
 	/*!
 	\brief 构造：使用对象引用和构造器。
@@ -709,10 +756,10 @@ public:
 	*/
 	template<typename _type, class _tAlloc>
 	ValueObject(std::allocator_arg_t, const _tAlloc& a, _type&& arg)
-		: content(std::allocator_arg, a, ystdex::any_ops::use_holder,
-		ystdex::in_place_type<alloc_holder_t<_type, _tAlloc>>, a, yforward(arg))
+		: content(std::allocator_arg, a, any_ops::use_holder,
+		in_place_type<alloc_holder_t<_type, _tAlloc>>, a, yforward(arg))
 	{
-		static_assert(typename ystdex::any::allocated_holder_handler_t<_tAlloc,
+		static_assert(typename any::allocated_holder_handler_t<_tAlloc,
 			alloc_holder_t<_type, _tAlloc>>::base::base::local_storage(),
 			"Non-local storage found.");
 	}
@@ -725,19 +772,19 @@ public:
 	*/
 	template<typename _type, typename... _tParams>
 	explicit
-	ValueObject(ystdex::in_place_type_t<_type>, _tParams&&... args)
-		: content(ystdex::any_ops::use_holder,
-		ystdex::in_place_type<ValueHolder<_type>>, yforward(args)...)
+	ValueObject(in_place_type_t<_type>, _tParams&&... args)
+		: content(any_ops::use_holder,
+		in_place_type<ValueHolder<_type>>, yforward(args)...)
 	{}
 	/*!
 	\brief 构造：使用持有者。
 	\since builld 783
 	*/
 	template<typename _tHolder, typename... _tParams>
-	ValueObject(ystdex::any_ops::use_holder_t,
-		ystdex::in_place_type_t<_tHolder>, _tParams&&... args)
-		: content(ystdex::any_ops::use_holder,
-		ystdex::in_place_type<_tHolder>, yforward(args)...)
+	ValueObject(any_ops::use_holder_t, in_place_type_t<_tHolder>,
+		_tParams&&... args)
+		: content(any_ops::use_holder, in_place_type<_tHolder>,
+		yforward(args)...)
 	{}
 
 private:
@@ -756,9 +803,12 @@ public:
 	*/
 	template<typename _type>
 	ValueObject(_type& obj, OwnershipTag<>)
-		: content(ystdex::any_ops::use_holder,
-		ystdex::in_place_type<RefHolder<_type>>, ystdex::ref(obj))
-	{}
+		: content(any_ops::use_holder,
+		in_place_type<RefHolder<_type>>, ystdex::ref(obj))
+	{
+		static_assert(any_ops::is_in_place_storable<RefHolder<_type>>(),
+			"Suboptimal holder found.");
+	}
 	/*!
 	\note 得到包含指针指向的指定对象的实例，并获得所有权。
 	\note 使用 PointerHolder 管理资源（默认使用 delete 释放资源）。
@@ -770,8 +820,8 @@ public:
 	*/
 	template<typename _type>
 	ValueObject(_type* p, PointerTag)
-		: content(ystdex::any_ops::use_holder,
-		ystdex::in_place_type<PointerHolder<_type>>, p)
+		: content(any_ops::use_holder,
+		in_place_type<PointerHolder<_type>>, p)
 	{}
 	/*!
 	\brief 构造：使用对象 unique_ptr 指针。
@@ -884,13 +934,13 @@ public:
 	YB_ATTR_nodiscard YB_PURE inline _type&
 	GetObject() ynothrowv
 	{
-		return Deref(ystdex::unchecked_any_cast<_type>(&content));
+		return Deref(YSLib::unchecked_any_cast<_type>(&content));
 	}
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE inline const _type&
 	GetObject() const ynothrowv
 	{
-		return Deref(ystdex::unchecked_any_cast<const _type>(&content));
+		return Deref(YSLib::unchecked_any_cast<const _type>(&content));
 	}
 	//@}
 
@@ -904,13 +954,13 @@ public:
 	YB_ATTR_nodiscard YB_PURE inline _type&
 	Access()
 	{
-		return ystdex::any_cast<_type&>(content);
+		return YSLib::any_cast<_type&>(content);
 	}
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE inline const _type&
 	Access() const
 	{
-		return ystdex::any_cast<const _type&>(content);
+		return YSLib::any_cast<const _type&>(content);
 	}
 	//@}
 
@@ -923,13 +973,13 @@ public:
 	YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
 	AccessPtr() ynothrow
 	{
-		return YSLib::make_observer(ystdex::any_cast<_type>(&content));
+		return YSLib::make_observer(YSLib::any_cast<_type>(&content));
 	}
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE inline observer_ptr<const _type>
 	AccessPtr() const ynothrow
 	{
-		return YSLib::make_observer(ystdex::any_cast<const _type>(&content));
+		return YSLib::make_observer(YSLib::any_cast<const _type>(&content));
 	}
 	//@}
 
@@ -1037,7 +1087,7 @@ public:
 	{
 		using Holder = ValueHolder<ystdex::decay_t<_type>>;
 
-		content.emplace<Holder>(ystdex::any_ops::use_holder,
+		content.emplace<Holder>(any_ops::use_holder,
 			Holder(yforward(args)...));
 	}
 	template<typename _type>
@@ -1046,7 +1096,7 @@ public:
 	{
 		using Holder = PointerHolder<ystdex::decay_t<_type>>;
 
-		content.emplace<Holder>(ystdex::any_ops::use_holder, Holder(p));
+		content.emplace<Holder>(any_ops::use_holder, Holder(p));
 	}
 	//@}
 
@@ -1059,7 +1109,7 @@ public:
 
 	/*!
 	\brief 取持有的对象的类型。
-	\sa ystdex::any::type
+	\sa any::type
 	\since build 799
 	*/
 	YB_ATTR_nodiscard PDefH(const type_info&, type, ) const ynothrow

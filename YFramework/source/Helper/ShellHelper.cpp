@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2015, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r624
+\version r629
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2015-12-13 14:38 +0800
+	2019-01-14 19:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,6 +87,7 @@ TranslateTime(const std::tm& tm, const char* format)
 
 	// NOTE: 'std::strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", &tm)'
 	//	is correct but it makes the object file too large.
+	// TODO: Check the return value?
 	snftime(str, 80, tm, format);
 	return str;
 }
@@ -113,15 +114,15 @@ FetchFontFamilyNames()
 
 
 FPSCounter::FPSCounter(std::chrono::nanoseconds s)
-	: last_tick(GetHighResolutionTicks()), now_tick(), refresh_count(1),
-	MinimalInterval(s)
+	: last_tick(Timers::GetHighResolutionTicks()), now_tick(),
+	refresh_count(1), MinimalInterval(s)
 {}
 
 size_t
 FPSCounter::Refresh()
 {
 	using namespace std::chrono;
-	const nanoseconds tmp_tick(GetHighResolutionTicks());
+	const nanoseconds tmp_tick(Timers::GetHighResolutionTicks());
 
 	if(YB_UNLIKELY(last_tick + MinimalInterval < tmp_tick))
 	{

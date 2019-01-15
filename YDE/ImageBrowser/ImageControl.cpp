@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015, 2017 FrankHB.
+	© 2013-2015, 2017, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ImageControl.cpp
 \ingroup UI
 \brief 图像显示控件。
-\version r1192
+\version r1200
 \author FrankHB <frankhb1989@gmail.com>
 \since build 437
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2017-04-24 23:17 +0800
+	2019-01-14 18:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,7 @@
 */
 
 
-#include "ImageControl.h"
+#include "ImageControl.h" // for ystdex::max;
 #include YFM_YSLib_Service_YPixel
 
 namespace ImageBrowser
@@ -41,9 +41,6 @@ enum MenuItem : size_t
 	RotateCCW,
 	CopyImage
 };
-
-//! \since build 583
-static yconstexpr float def_scale(1.201F), def_rscale(1 / def_scale);
 
 ImagePanel::ImagePanel(const Rect& r_, const Size& min_size,
 	const Size& max_size)
@@ -128,12 +125,14 @@ ImagePanel::ImagePanel(const Rect& r_, const Size& min_size,
 	FetchEvent<CursorWheel>(*this) += [this](CursorWheelEventArgs&& e){
 		if(session_ptr)
 		{
+			static yconstexpr float def_scale(1.201F),
+				def_rscale(1 / def_scale);
 			auto& pages(GetPagesRef());
 
 			if(pages.ZoomByRatio(e.GetDelta() > 0 ? def_scale : def_rscale, e))
 			{
 				lblCenter.Text = ystdex::sfmt("%2u%%",
-					unsigned(std::round(pages.GetScale() * 100.F)));
+					unsigned(round(pages.GetScale() * 100.F)));
 				if(!IsVisible(lblCenter))
 				{
 					MoveToCenter(lblCenter),
@@ -202,7 +201,7 @@ ImagePanel::Load(ImagePages&& src)
 			// TODO: Allow user set minimal frame time.
 			TimeSpan d(20);
 
-			TryExpr(d = YSLib::max(GetFrameTimeOf(bmp), d))
+			TryExpr(d = ystdex::max(GetFrameTimeOf(bmp), d))
 			CatchExpr(LoggedEvent& e,
 				YTraceDe(e.GetLevel(), "Invalid frame time found."))
 			YTraceDe(Informative, "Loaded frame time = %s milliseconds.",

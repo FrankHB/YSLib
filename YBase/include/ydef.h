@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3518
+\version r3523
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2019-01-03 19:58 +0800
+	2019-01-11 20:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -320,11 +320,6 @@
 #ifndef __cpp_lib_integer_sequence
 #	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201304L
 #		define __cpp_lib_integer_sequence 201304L
-#	endif
-#endif
-#ifndef __cpp_lib_tuple_element_t
-#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201402L
-#		define __cpp_lib_tuple_element_t 201402L
 #	endif
 #endif
 //@}

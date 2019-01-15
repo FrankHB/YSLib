@@ -11,13 +11,13 @@
 /*!	\file YWidgetEvent.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1783
+\version r1931
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2019-01-06 15:21 +0800
+	2019-01-14 17:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,7 @@
 #include YFM_YSLib_Core_YString
 #include YFM_YSLib_Core_YDevice // for Devices::KeyInputDevice::Tester,
 //	Devices::KeyInputDevice::DefaultTest;
+#include <ystdex/function.hpp> // for ystdex::parameter_of;
 
 namespace YSLib
 {
@@ -104,13 +105,18 @@ public:
 	*/
 	enum RoutingStrategy
 	{
-		Bubble = 0, //!< 气泡事件：向上遍历视图树时触发。
-		Tunnel = 1, //!< 隧道事件：向下遍历视图树时触发。
-		Direct = 2 //!< 直接事件：仅当遍历至目标控件时触发。
+		//! \brief 气泡事件：向上遍历视图树时触发。
+		Bubble = 0,
+		//! \brief 隧道事件：向下遍历视图树时触发。
+		Tunnel = 1,
+		//! \brief 直接事件：仅当遍历至目标控件时触发。
+		Direct = 2
 	};
 
-	RoutingStrategy Strategy; //!< 事件路由策略。
-	bool Handled; //!< 事件已经被处理。
+	//! \brief 事件路由策略。
+	RoutingStrategy Strategy;
+	//! \brief 事件已被处理。
+	bool Handled;
 
 	RoutedEventArgs(IWidget& wgt, RoutingStrategy strategy = Direct)
 		: UIEventArgs(wgt),
@@ -186,11 +192,10 @@ public:
 struct YF_API KeyEventArgs : public InputEventArgs
 {
 public:
-	using InputType = KeyInput; //!< 输入类型。
+	//! \brief 输入类型。
+	using InputType = KeyInput;
 
-	/*!
-	\brief 构造：使用输入类型对象和事件路由策略。
-	*/
+	//! \brief 构造：使用输入类型对象和事件路由策略。
 	KeyEventArgs(IWidget&, const InputType& = {}, RoutingStrategy = Direct);
 
 	//! \since build 586
@@ -210,7 +215,8 @@ public:
 struct YF_API CursorEventArgs : public InputEventArgs
 {
 public:
-	using InputType = Drawing::Point; //!< 输入类型。
+	//! \brief 输入类型。
+	using InputType = Drawing::Point;
 
 	//! \since build 482
 	InputType Position;
@@ -369,28 +375,31 @@ using HTextInputEvent = GHEvent<void(TextInputEventArgs&&)>;
 */
 enum VisualEvent : size_t
 {
-//	AutoSizeChanged,
-//	BackColorChanged,
-//	ForeColorChanged,
-//	LocationChanged,
-//	MarginChanged,
-//	VisibleChanged,
-
-//	EnabledChanged,
-
-	//视图变更事件。
-	Move, //!< 移动：位置调整。
-	Resize, //!< 大小调整。
-
-	// GUI 输入事件。
-	KeyUp, //!< 键接触结束。
-	KeyDown, //!< 键接触开始。
-	KeyHeld, //!< 键接触保持。
-	KeyPress, //!< 键按下。
-	TouchUp, //!< 屏幕接触结束。
-	TouchDown, //!< 屏幕接触开始。
-	TouchHeld, //!< 屏幕接触保持。
-	Click, //!< 屏幕点击。
+	//\note 视图变更事件。
+	//@{
+	//! \brief 移动：位置调整。
+	Move,
+	//! \brief 大小调整。
+	Resize,
+	//@}
+	//! \note GUI 输入事件。
+	//@{
+	//! \brief 键接触结束。
+	KeyUp,
+	//! \brief 键接触开始。
+	KeyDown,
+	//! \brief 键接触保持。
+	KeyHeld,
+	//! \brief 键按下。
+	KeyPress,
+	//! \brief 屏幕接触结束。
+	TouchUp,
+	//! \brief 屏幕接触开始。
+	TouchDown,
+	//! \brief 屏幕接触保持。
+	TouchHeld,
+	//! \brief 屏幕点击。
+	Click,
 	/*!
 	\brief 屏幕点击在不同部件上。
 	\since build 433
@@ -411,21 +420,26 @@ enum VisualEvent : size_t
 	\since build 482
 	*/
 	TextInput,
-
-	// GUI 输出事件。
-	Paint, //!< 界面绘制。
-
-	//焦点事件。
-	GotFocus, //!< 焦点获得。
-	LostFocus, //!< 焦点失去。
-
+	//@}
+	//! \note GUI 输出事件。
+	//@{
+	//! \brief 界面绘制。
+	Paint,
+	//@}
+	//! \note 焦点事件。
+	//@{
+	//! \brief 焦点获得。
+	GotFocus,
+	//! \brief 焦点失去。
+	LostFocus,
+	//@}
 	//边界事件。
-	Enter, //!< 控件进入。
-	Leave, //!< 控件离开。
-//	TextChanged,
-//	FontChanged,
-//	FontColorChanged,
-//	FontSizeChanged,
+	//@{
+	//! \brief 控件进入。
+	Enter,
+	//! \brief 控件离开。
+	Leave,
+	//@}
 	/*!
 	\brief 事件边界。
 	\since build 580
@@ -436,10 +450,10 @@ enum VisualEvent : size_t
 };
 
 
+//! \note 定义 HandlerType 的默认值可能会导致运行时转换失败而抛出异常。
 template<VisualEvent>
 struct EventTypeMapping
 {
-	//定义 HandlerType 的默认值可能会导致运行期 dynamic_cast 失败。
 //	using HandlerType = HEvent;
 };
 
@@ -472,23 +486,65 @@ DefEventTypeMapping(Enter, HCursorEvent)
 DefEventTypeMapping(Leave, HCursorEvent)
 
 
+//! \since build 850
+//@{
+//! \brief 取索引指定的事件处理器类型。
+template<VisualEvent _vID>
+using HandlerOf = typename EventTypeMapping<_vID>::HandlerType;
+
+//! \brief 取索引指定的事件类型。
+template<VisualEvent _vID>
+using EventOf = GEvent<typename HandlerOf<_vID>::FuncType>;
+//@}
+
+
 /*!
-\brief 事件映射命名空间。
-\since build 242
+\brief 事件映射项类型。
+\since build 850
 */
-namespace EventMapping
+using EventItem = ValueObject;
+
+/*!
+\brief 事件引用。
+\since build 850
+*/
+class YF_API EventRef final
 {
+private:
+	ValueObject content;
 
-using MappedType = GEventPointerWrapper<UIEventArgs&&>; //!< 映射项类型。
-using ItemType = GIHEvent<UIEventArgs&&>;
-using PairType = pair<VisualEvent, MappedType>;
-using MapType = map<VisualEvent, MappedType>; //!< 映射表类型。
-using SearchResult = pair<typename MapType::iterator, bool>; \
-	//!< 搜索表结果类型。
+public:
+	template<typename _fSig>
+	EventRef(GEvent<_fSig>& e)
+		: content(e, OwnershipTag<>())
+	{}
+	EventRef(EventItem& e)
+		: content(e.MakeIndirect())
+	{}
+	DefDeCopyMoveCtorAssignment(EventRef)
 
-} // namespace EventMapping;
+	//! \throw std::bad_cast 转换失败。
+	//@{
+	//! \brief 转换映射项为签名指定的事件类型的对象引用。
+	template<typename _fSig>
+	GEvent<_fSig>&
+	Cast()
+	{
+		return content.Access<GEvent<_fSig>&>();
+	}
 
-using VisualEventMap = EventMapping::MapType;
+	//! \brief 转换映射项为索引指定的事件类型的对象引用。
+	template<VisualEvent _vID>
+	EventOf<_vID>&
+	CastWith()
+	{
+		return content.Access<EventOf<_vID>&>();
+	}
+	//@}
+};
+
+//! \brief 映射表类型。
+using VisualEventMap = map<VisualEvent, EventItem>;
 
 
 /*!
@@ -539,7 +595,8 @@ public:
 class YF_API AController : public ystdex::cloneable
 {
 private:
-	bool enabled; //!< 控件可用性。
+	//! \brief 控件可用性。
+	bool enabled;
 
 public:
 	/*!
@@ -567,17 +624,16 @@ public:
 
 	/*!
 	\brief 取事件项。
-	\since build 581
+	\since build 850
 	*/
-	DeclIEntry(EventMapping::ItemType& GetItem(VisualEvent) const)
+	DeclIEntry(EventRef GetEvent(VisualEvent) const)
 	/*!
-	\brief 取事件项，若不存在则用指定函数指针添加。
+	\brief 取事件项，若不存在则使用指定参数添加。
 	\note 派生类的实现可能抛出异常并忽略加入任何事件项。
-	\since build 581
+	\since build 850
 	*/
-	virtual PDefH(EventMapping::ItemType&, GetItemRef, VisualEvent id,
-		EventMapping::MappedType(&)()) const
-		ImplRet(GetItem(id))
+	virtual PDefH(EventRef, GetEventRef, VisualEvent id, EventItem(&)()) const
+		ImplRet(GetEvent(id))
 
 	DefSetter(, bool, Enabled, enabled)
 	/*!
@@ -597,14 +653,18 @@ public:
 };
 
 
-//! \since build 650
+/*!
+\brief 调用指定控制器和索引的事件。
+\note std::out_of_range 和 std::bad_cast 异常。
+\since build 850
+*/
 template<class _tEventHandler>
 size_t
 DoEvent(AController& controller, VisualEvent id,
-	_t<EventArgsHead<typename _tEventHandler::TupleType>>&& e)
+	ystdex::parameter_of_t<0, typename _tEventHandler::FuncType>&& e)
 {
-	TryRet(dynamic_cast<GEvent<typename _tEventHandler::FuncType>&>(
-		controller.GetItem(id))(std::move(e)))
+	TryRet(controller.GetEvent(id).template
+		Cast<typename _tEventHandler::FuncType>()(std::move(e)))
 	CatchIgnore(std::out_of_range&)
 	CatchIgnore(std::bad_cast&)
 	return 0;
@@ -613,21 +673,21 @@ DoEvent(AController& controller, VisualEvent id,
 
 /*!
 \brief 构造指针指向的 VisualEvent 指定的事件对象。
+\since build 850
 */
 template<VisualEvent _vID>
-EventMapping::MappedType
+EventItem
 NewEvent()
 {
-	return EventMapping::MappedType(new GEventWrapper<GEvent<typename
-		EventTypeMapping<_vID>::HandlerType::FuncType>, UIEventArgs&&>());
+	return EventItem(EventOf<_vID>());
 }
 
 /*!
-\brief 在事件映射表中取指定 id 对应的事件。
-\since build 581
+\brief 在事件映射表中取指定索引对应的事件。
+\since build 850
 */
-YF_API EventMapping::ItemType&
-GetEvent(EventMapping::MapType&, VisualEvent, EventMapping::MappedType(&)());
+YB_ATTR_nodiscard YF_API YB_PURE EventRef
+GetMappedEvent(VisualEventMap&, VisualEvent, EventItem(&)());
 
 /*!
 \ingroup helper_functions
@@ -637,11 +697,11 @@ GetEvent(EventMapping::MapType&, VisualEvent, EventMapping::MappedType(&)());
 \since build 572
 */
 template<VisualEvent _vID>
-GEvent<typename EventTypeMapping<_vID>::HandlerType::FuncType>&
+YB_ATTR_nodiscard EventOf<_vID>&
 FetchEvent(VisualEventMap& m)
 {
-	return dynamic_cast<GEvent<typename EventTypeMapping<_vID>::HandlerType
-		::FuncType>&>(GetEvent(m, _vID, NewEvent<_vID>));
+	return
+		UI::GetMappedEvent(m, _vID, NewEvent<_vID>).template CastWith<_vID>();
 }
 /*!
 \ingroup helper_functions
@@ -654,11 +714,11 @@ FetchEvent(VisualEventMap& m)
 \since build 572
 */
 template<VisualEvent _vID>
-GEvent<typename EventTypeMapping<_vID>::HandlerType::FuncType>&
+YB_ATTR_nodiscard EventOf<_vID>&
 FetchEvent(AController& controller)
 {
-	return dynamic_cast<GEvent<typename EventTypeMapping<_vID>::HandlerType
-		::FuncType>&>(controller.GetItemRef(_vID, NewEvent<_vID>));
+	return
+		controller.GetEventRef(_vID, NewEvent<_vID>).template CastWith<_vID>();
 }
 
 
@@ -669,8 +729,8 @@ FetchEvent(AController& controller)
 class YF_API WidgetController : public AController
 {
 public:
-	//! \since build 581
-	mutable GEventWrapper<GEvent<void(PaintEventArgs&&)>, UIEventArgs&&> Paint;
+	//! \since build 850
+	mutable GEvent<void(PaintEventArgs&&)> Paint;
 
 	/*!
 	\brief 构造：使用指定可用性。
@@ -678,9 +738,9 @@ public:
 	explicit
 	WidgetController(bool = {});
 
-	//! \since build 581
-	EventMapping::ItemType&
-	GetItem(VisualEvent) const ImplI(AController);
+	//! \since build 850
+	EventRef
+	GetEvent(VisualEvent) const ImplI(AController);
 
 	//! \since build 409
 	DefClone(const ImplI(AController), WidgetController)

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2015, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBlit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1088
+\version r1096
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:32 +0800
 \par 修改时间:
-	2015-08-19 10:27 +0800
+	2019-01-14 14:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,9 +26,7 @@
 
 
 #include "YSLib/Service/YModules.h"
-#include YFM_YSLib_Service_YBlit
-
-using namespace ystdex;
+#include YFM_YSLib_Service_YBlit // for ystdex::max, ystdex::min;
 
 namespace YSLib
 {
@@ -40,17 +38,18 @@ namespace
 {
 
 //! \since build 446
-inline SDst
+YB_ATTR_nodiscard YB_PURE yconstfn SDst
 blit_min(SPos s, SPos d)
 {
-	return SDst(max<SPos>(max(SPos(), s), s - d));
+	return SDst(ystdex::max<SPos>(ystdex::max(SPos(), s), s - d));
 }
 
-inline SPos
+YB_ATTR_nodiscard YB_PURE yconstfn SPos
 blit_max(SPos s, SPos d, SDst sl, SDst dl, SDst cl)
 {
 	// XXX: Conversion to 'SPos' might be implementation-defined.
-	return min<SPos>(min<SPos>(SPos(sl), s + SPos(cl)), s + SPos(dl) - d);
+	return ystdex::min<SPos>(ystdex::min<SPos>(SPos(sl), s + SPos(cl)),
+		s + SPos(dl) - d);
 }
 
 } // unnamed namespace;

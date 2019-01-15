@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3259
+\version r3291
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2016-11-26 11:58 +0800
+	2019-01-14 18:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,7 @@
 */
 
 
-#include "DSReader.h"
+#include "DSReader.h" // for ystdex::max;
 #include <algorithm> // for std::copy_n;
 #include YFM_YSLib_UI_YWindow
 #include YFM_YSLib_Service_TextLayout
@@ -142,7 +142,7 @@ CopyScrollArea(YSLib::UI::BufferedTextArea& src_area,
 	size_t dst_offset, ptrdiff_t offset, size_t n)
 {
 	YAssert(n != 0, "Invalid number of lines found.");
-	YAssert(n <= size_t(std::abs(offset)), "Invalid offset found.");
+	YAssert(n <= size_t(abs(offset)), "Invalid offset found.");
 
 	const SDst w(src_area.GetWidth());
 
@@ -169,35 +169,35 @@ MoveScrollArea(YSLib::UI::BufferedTextArea& area_up,
 	YAssert(SPos(area_up.GetHeight()) - area_up.Margin.Bottom - SPos(n) > 0,
 		"No enough space of areas found.");
 
-	const SDst up_btm(SDst(max<SPos>(area_up.Margin.Bottom, 0)));
+	const SDst up_btm(SDst(ystdex::max<SPos>(area_up.Margin.Bottom, 0)));
 
 	if(YB_UNLIKELY(area_up.GetHeight() <= up_btm + n))
-		return;
-
-	auto src_off(SDst(max<SPos>(area_dn.Margin.Top, 0))),
-		dst_off(SDst(area_up.GetHeight() - up_btm - n));
-	auto* p_src(&area_dn);
-	auto* p_dst(&area_up);
-	SDst clr_off;
-
-	// NOTE: Copy area is moved towards bottom, i.e. the browsering area is
-	//	scrolled to top.
-	if(offset > 0)
 	{
-		std::swap(p_src, p_dst),
-		std::swap(src_off, dst_off),
-		clr_off = SDst(max<SPos>(area_up.Margin.Top, 0));
+		auto src_off(SDst(ystdex::max<SPos>(area_dn.Margin.Top, 0))),
+			dst_off(SDst(area_up.GetHeight() - up_btm - n));
+		auto* p_src(&area_dn);
+		auto* p_dst(&area_up);
+		SDst clr_off;
+
+		// NOTE: Copy area is moved towards bottom, i.e. the browsering area is
+		//	scrolled to top.
+		if(offset > 0)
+		{
+			std::swap(p_src, p_dst),
+			std::swap(src_off, dst_off),
+			clr_off = SDst(ystdex::max<SPos>(area_up.Margin.Top, 0));
+		}
+		else
+			clr_off = area_dn.GetHeight()
+				- SDst(ystdex::max<SPos>(area_dn.Margin.Bottom, 0)) - n;
+		CopyScrollArea(*p_src, src_off, *p_dst, dst_off, offset, size_t(n));
+		p_src->ClearLine(clr_off, n);
 	}
-	else
-		clr_off = area_dn.GetHeight()
-			- SDst(max<SPos>(area_dn.Margin.Bottom, 0)) - n;
-	CopyScrollArea(*p_src, src_off, *p_dst, dst_off, offset, size_t(n));
-	p_src->ClearLine(clr_off, n);
 }
 
-//! \since build 375
-std::uint16_t
-CheckOverRead(TextRegion& r)
+//! \since build 850
+YB_ATTR_nodiscard YB_PURE std::uint16_t
+CheckOverRead(const TextRegion& r)
 {
 	const auto b(FetchLastLineBasePosition(r, r.GetHeight()));
 

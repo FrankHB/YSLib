@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YDraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1116
+\version r1118
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:33 +0800
 \par 修改时间:
-	2016-02-16 01:49 +0800
+	2019-01-14 18:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,7 +100,7 @@ PlotLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos x1, SPos y1,
 		//起点 (x1, y1) 和终点 (x2, y2) 不同。
 
 		const std::int8_t sx(FetchSign(x2 - x1)), sy(FetchSign(y2 - y1));
-		SDst dx(SDst(std::abs(x2 - x1))), dy(SDst(std::abs(y2 - y1)));
+		SDst dx(SDst(abs(x2 - x1))), dy(SDst(abs(y2 - y1)));
 		bool f(dy > dx);
 
 		if(f)

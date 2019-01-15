@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2015, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YStyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r1112
+\version r1126
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2015-04-10 01:18 +0800
+	2019-01-14 14:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "YSLib/UI/YModules.h"
-#include YFM_YSLib_UI_YStyle
+#include YFM_YSLib_UI_YStyle // for ystdex::min, ystdex::max;
 #include YFM_YSLib_UI_YWindow
 #include YFM_YSLib_UI_YGUI
 
@@ -293,7 +293,8 @@ HSL::HSL(Color c) ynothrow
 {
 	auto& saturation(GetSRef());
 	const std::uint8_t r(c.GetR()), g(c.GetG()), b(c.GetB()),
-		min_color(min(min(r, g), b)), max_color(max(max(r, g), b));
+		min_color(ystdex::min(ystdex::min(r, g), b)),
+		max_color(ystdex::max(ystdex::max(r, g), b));
 	float h(0); // 此处 h 的值每 0x6 对应一个圆周。
 
 	if(min_color == max_color)
@@ -301,7 +302,7 @@ HSL::HSL(Color c) ynothrow
 	else
 	{
 		const std::uint16_t p(max_color + min_color);
-		const float q(max_color - min_color);
+		const float q(std::uint16_t(max_color - min_color));
 
 		lightness = decltype(lightness)(p) / 0x200;
 	/*
@@ -329,7 +330,9 @@ HSL::operator Color() const ynothrow
 	YAssert(IsInClosedInterval(lightness, 0.F, 1.F), "Invalid light found.");
 	YAssert(std::isfinite(GetS()), "Abnormal saturation found.");
 	if(!std::isnormal(GetS()))
-		return MakeGray(lightness > 255.F / 0x100 ? 0xFF : lightness * 0x100);
+		// XXX: Truncated.
+		return MakeGray(
+			MonoType(lightness > 255.F / 0x100 ? 0xFF : lightness * 0x100));
 
 	float t2((lightness < 0.5F ? lightness * (1 + GetS())
 		: (lightness + GetS() - lightness * GetS())) * 0x100),
@@ -365,8 +368,8 @@ HSV::HSV(Color c) ynothrow
 	static_assert(std::is_signed<int_type>(), "Invalid type found.");
 	// TODO: Check range by constexpr 'std::numeric_limits' members.
 	const int_type r(c.GetR()), g(c.GetG()), b(c.GetB()),
-		max_color(max(r, max(g, b))),
-		delta(max_color - min(r, min(g, b)));
+		max_color(ystdex::max(r, ystdex::max(g, b))),
+		delta(max_color - ystdex::min(r, ystdex::min(g, b)));
 
 	yunseq(GetSRef() = max_color == 0 ? 0.F : delta / float(max_color),
 		value = max_color / 255.F);
@@ -399,7 +402,8 @@ HSV::operator Color() const ynothrow
 	if(s > 0.F)
 	{
 		float h(GetH() / 60.F);
-		const unsigned k(std::floor(h));
+		// XXX: Truncated.
+		const auto k(unsigned(std::floor(h)));
 		const float f(GetH() / 60.F - k), aa(v * (1.F - s)),
 			bb(v * (1.F - s * f)), cc(v * (1.F - (s * (1.F - f))));
 
@@ -422,7 +426,8 @@ HSV::operator Color() const ynothrow
 		}
 		YAssert(false, "Invalid state found.");
 	}
-	return MakeGray(v);
+	// XXX: Truncated.
+	return MakeGray(MonoType(v));
 }
 
 } // namespace Drawing;

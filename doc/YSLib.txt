@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2018 FrankHB.
+	© 2009-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r3158
+\version r3203
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2018-11-05 10:40 +0800
+	2019-01-15 10:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,6 +53,10 @@ YSLib 库的根命名空间为 YSLib ，应置于全局命名空间中，即为 
 YSLib 默认显式依赖库 YCLib ，在 Adaptor 引入 YCLib 中的名称。
 
 @1.1.5 命名空间分配：
+YSLib 具有以下命名空间别名：
+YSLib::any_ops ：命名空间 ystdex::any_ops 的别名，提供 ystdex::any 相关的接口。
+YSLib::pmr ：命名空间 ystdex::pmr 的别名，提供 std::pmr 的替代接口。
+YSLib 还具有以下子命名空间：
 YSLib::Devices ：设备抽象。
 YSLib::Drawing ：图形处理。
 YSLib::Drawing::ColorSpace ：颜色空间。
@@ -104,6 +108,7 @@ UI::YStyle 包含 <typeindex> 。
 @1.2.6 YSLib 头文件对 YBase 依赖性：
 Adapor::YAdaptor 需确保以下 YBase::YStandardEx([Documentation::YBase @@2.5]) 头文件被包含：
 <ystdex/algorithm.hpp> ；
+<ystdex/any.hpp> ；
 <ystdex/functional.hpp> ；
 <ystdex/memory_resource.h> 。
 本体头文件对 YBase 依赖性：
@@ -165,14 +170,48 @@ YDesktop 依赖 YWindow 和 Core::YDevice 。
 直接使用除 C++ 标准库、 POSIX / GNU C 兼容函数库、 YCLib 库之外的外部库原代码片段所在文件都从属于 Adaptor 。
 除非另行指定，仅保证必要文件[Documentation::YFramework @@2.1.1] 提供接口中的可重入性和线程安全性同本体([Documentation::YFramework @@2.1.5]) 。
 
-@2.1 外部库关联 YAdaptor ：
+@2.1 名称引入规则：
+被适配的外部库的接口通过别名声明、别名模板声明或命名空间别名声明的形式引入名称。
+若引入的名称适合被 using 指令引入，则使用 using 指令简化以上声明。
+部分引入名称提供对应某些除被命名空间限定外相同名称作为替代(replacement) 的接口，可根据需要切换不同的外部库提供的实现而不影响用户代码的源代码兼容性（但不保证二进制兼容性）。
+以上替代的约定同 https://bitbucket.org/FrankHB/yslib/wiki/StandardUsing.en-US.md ，而不保证 C++ 语言意义上的类型等价性。
+和 YBase ([Documentation::YBase @@2.1.1]) 不同，因为替代由不特定的外部库提供，自身不受 YSLib 文档规则限制，可能是标准库实现提供的保留名称提供的扩展。由于本体对保留名称和依赖兼容性的限制，仅可通过在 Adaptor 中提供这些名称使用这些特性。
+提供替代的接口应保证相对稳定以避免频繁维护。
+
+@2.1.1 引入名称候选：
+引入名称的必要性最终由本体需要的外部库支持的设计确定。
+被引入外部库的名称根据以下准则选取：
+根据各个模块的功能分配具体引入名称的 Adaptor 头文件，并最小化依赖，避免重复引入而造成使用及维护的困难；
+使用 YCLib 命名空间(@1.3.1) 引入的名称，应在 Adaptor 中声明以避免本体依赖非平台中立的名称；
+使用和 std 的类型或类模板除顶层 std:: 限定外相同的名称（称为 std 对应名称），若总是使用对应的 std:: 限定名称（而不使用 std:: 对应的名称），则建议在 Adaptor 中声明以减少复杂性。
+使用 std 对应名称替代 std 名称（可能由不同版本标准指定）时，应满足以下条件：
+保证使用 std 对应名称的接口和 std 名称能同时满足接口要求；
+同时，替代接口在接口语义上不保证和被替代的接口实质相同。
+以上条件的一些示例：
+要求 ISO C++11 语义时， __gnu_cxx::__versa_string 的实例替代 std::basic_string 的实例（通过别名模板引入以明确无视依赖参数的等价性）；
+使用 ystdex::pmr 命名空间的别名引入和 std::pmr 兼容的标准库（但不保证当前实现中通过 std 可用）的接口；
+使用 platform::containers 命名空间的类模板而直接使用 std 中的对应类模板，因为接口上两者并不保证相同（当前前者已默认使用和 YSLib::pmr 兼容的多态分配器）；
+直接使用 std::allocator_arg_t 而不在 YSLib 引入名称，或通过 ystdex 或 platform 间接在 YSLib 中引入名称，因为当前接口设计不需要提供扩展 std::allocator_arg_t 为不能被其替代的新接口。
+注意和 YStandardEx 中的使用([Documentation::YBase @@2.5.2.3]) 不同，在 ystdex:: 可能非限定的非替代标准库的名称（当前为 ISO C++11 引入的 <type_traits> 名称），不被直接引入，使用时仍需要 std:: 限定。
+
+@2.1.2 名称查找：
+使用 using 指令引入的名称，不需注意 ADL([Documentation::LanguageConvention @@5.2.4.1]) ，因被外部命名空间自然地限定。
+通过别名声明引入的在命名空间 YSLib 中可能以 ADL 形式提供重载的名称，应在 Adaptor 中声明同时注释可能使用 ADL ；
+通过别名声明引入的在命名空间 YSLib 中不以 ADL 形式提供重载的函数或函数模板名称，应在 Adaptor 中声明同时注释假定不使用 ADL 。
+
+@2.1.3 其它约束：
+引入的名称还符合以下规则：
+若引入的名称表示类型或类模板，其对应的操作或提供接口的命名空间应以别名声明或命名空间别名一并引入（如引入 ystdex::any 时一并引入 ystdex::any_ops ）；
+若引入的名称和 std 对应名称相同，且接口提供不被后者公开支持的功能，应注释明确不可替代性。
+
+@2.2 外部库关联 YAdaptor ：
 默认实现如下：
 包含 YNew ，引入平台设置和存储调试设施(@2.2) 。
 确保包含 YBase 依赖项(@1.2.6) 。
 确保包含 YCLib 的 适配模块([Documentation::YCLib @@5.3]) 、 YCommon([Documentation::YCLib @@5.4]) 、 FileSystem([Documentation::YCLib @@5.6.3]) 和 Video([Documentation::YCLib @@5.7.3]) 。
 在 YSLib 命名空间 using 引用必要的名称。
 
-@2.2 内存调试设施 YNew ：
+@2.3 内存调试设施 YNew ：
 默认包含编译配置、平台支持文件 <Platform.h>(@7.2.2.3.1) 和通用基础设施(@3) 。
 定义宏 YSL_USE_MEMORY_DEBUG 后（默认 debug 配置在 "config.h" 有此定义）可以使用在此声明的宏和类进行内存调试。
 重载全局 operator new 和 operator delete 可以用于用户程序调试（ YSLib 中默认并不使用）。
@@ -180,13 +219,13 @@ MemoryList 用于跟踪记录已分配的内存块。 debug 配置下默认定�
 可以用宏 ynew 代替 new/new[] ， ydelete 代替 delete ， ydelete_array 代替 delete[] ，配合 GetDebugMemoryList 检测内存泄露以及重复释放错误；但不适于智能指针，因为未使用 ydelete 和 ydelete_array 。
 YNew 的接口不保证可重入性，暂时不支持线程安全性。
 
-@2.3 外部库关联：文本接口 YTextBase ：
+@2.4 外部库关联：文本接口 YTextBase ：
 包含 CHRLib([Documentation::CHRLib]) 的 CharacterProcessing ，并在 YSLib 命名空间中引入相关名称。
 
-@2.4 平台无关的字体缓存库 Font ：
+@2.5 平台无关的字体缓存库 Font ：
 基本接口平台无关，但可能提供平台相关的扩展接口，实现也是平台相关的，因此在 Adaptor 中。
 
-@2.5 平台中立的图像输入和输出 Image ：
+@2.6 平台中立的图像输入和输出 Image ：
 基本接口平台无关，但可能提供平台相关的扩展接口，实现也是平台相关的，因此在 Adaptor 中。
 
 @3 核心构件：
@@ -279,9 +318,8 @@ KeyEventArgs ，键盘输入事件参数类。
 以下用模板定义用于事件处理机制的接口和实现类：
 事件处理器接口模板 GIHEvent ，提供两个参数的 operator() 抽象方法。
 事件处理器模板 GHEvent ，标准版 HEvent ；基于 Function 和 multimap 实现。
-事件模板 GEvent 为多播版本。（单播版本已被移除。）
-事件依赖项模板 GDependencyEvent ；基于 YObject 单元中的类模板 GDependency 实现共享事件以节约空间。
-事件包装类 GEventWrapper ；实现基于复杂性考虑，直接使用 GEvent 而不是 GDependencyEvent 的实例。
+事件模板 GEvent 为多播版本，实现为以优先级为键的 GHEvent 的关联容器。
+事件包装类 GEventWrapper ，包装 GEvent 作为 GIHEvent 的实现。
 事件映射表模板 GEventMap ，映射特定的枚举 ID 到 GEventWrapper 模板实例。
 
 @3.9.1 YSLib 标准事件处理实现概述：
@@ -651,7 +689,7 @@ OnTouchHeld_Dragging 实现拖曳。
 Control 类在构造函数中添加了 GotFocus 、 LostFocus 、 TouchDown 、 TouchHeld 的事件处理器，且除了 TouchHeld 外，都是 Control 的成员函数。
 
 @5.2.2 自定义 GUI 事件：
-和 YGUI 等单元相关的自定义事件，一般使用 YEvent 等单元实现。可以使用 GDependencyEvent 节约存储。
+和 YGUI 等单元相关的自定义事件，一般使用 YEvent 等单元实现。
 
 @5.2.3 GUI 事件组映射：
 事件组映射通过 std::function 等返回被映射事件的参数，并传递给特定的用于映射的事件处理器。

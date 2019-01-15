@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2015, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ExStyle.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r365
+\version r369
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-03 03:57:08 +0800
 \par 修改时间:
-	2015-04-29 00:46 +0800
+	2019-01-14 14:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,12 +26,12 @@
 
 
 #include "YSLib/UI/YModules.h"
-#include YFM_YSLib_UI_ExStyle
+#include YFM_YSLib_UI_ExStyle // for ystdex::min;
 #include YFM_YSLib_UI_YGUI
 #include YFM_YSLib_Service_YBlit
 #include YFM_YSLib_UI_Button
 #include YFM_YSLib_UI_Selector
-#include <ystdex/cast.hpp>
+#include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 
 namespace YSLib
 {
@@ -198,7 +198,7 @@ RectDrawRadioBox_Aoi(const PaintContext& pc_, RadioBox& rb)
 	RectDrawSelector_Aoi([](const PaintContext& pc, const Size& s,
 		const bool cst[], const Color ccs[], size_t c_idx){
 		const auto& g(pc.Target);
-		const SDst rad(min(s.Width / 2, s.Height / 2));
+		const SDst rad(ystdex::min(s.Width / 2, s.Height / 2));
 		const auto pt(pc.Location + Size(rad, rad));
 		const Rect& bounds(pc.ClipArea);
 		const Rect r(pc.Location, s);

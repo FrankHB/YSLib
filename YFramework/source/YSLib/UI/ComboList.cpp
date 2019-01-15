@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3309
+\version r3314
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2016-08-12 20:26 +0800
+	2019-01-14 14:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "YSLib/UI/YModules.h"
-#include YFM_YSLib_UI_ComboList
+#include YFM_YSLib_UI_ComboList // for ystdex::max;
 #include YFM_YSLib_UI_YStyle
 #include YFM_YSLib_UI_YPanel
 #include YFM_YSLib_Service_TextLayout // for FetchMaxTextWidth;
@@ -221,12 +221,13 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 				// NOTE: Get height of top widget, top and bottom spaces.
 				const SDst h0(GetSizeOf(*p).Height);
 				// XXX: Conversion to 'SPos' might be implementation-defined.
-				const SDst h1(SDst(max<SPos>(0, pt.Y))), h2(SDst(max<SPos>(0,
+				const SDst h1(SDst(ystdex::max<SPos>(0, pt.Y))),
+					h2(SDst(ystdex::max<SPos>(0,
 					SPos(h0) - pt.Y - SPos(GetHeight()))));
 
 				if(IsInOpenInterval(h1, h0) || IsInOpenInterval(h2, h0))
 				{
-					lbContent.ResizeForPreferred(Size(0, max(h1, h2)),
+					lbContent.ResizeForPreferred(Size(0, ystdex::max(h1, h2)),
 						Size(GetWidth(), 0));
 
 					const SDst h3(lbContent.GetHeight());
@@ -257,7 +258,6 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 	FetchEvent<LostFocus>(lbContent) += detacher,
 	lbContent.GetConfirmed() += [this](IndexEventArgs&& e){
 		YAssert(e.Value < lbContent.GetList().size(), "Invalid index found.");
-
 		Text = lbContent.GetList()[e.Value];
 		// XXX: This seems to be redundant if the detached top widget would be
 		//	always invalidated, however there is no such guarantee.

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2015, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextLayout.h
 \ingroup Service
 \brief 文本布局计算。
-\version r2868
+\version r2890
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-10-02 19:19 +0800
+	2019-01-14 15:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,7 @@ namespace Drawing
 \return 返回调整后的底边距值（由字体大小、行距和高决定）。
 \since build 252
 */
-YF_API SDst
+YB_ATTR_nodiscard YF_API YB_PURE SDst
 FetchResizedBottomMargin(const TextState&, SDst);
 
 /*!
@@ -54,7 +54,7 @@ FetchResizedBottomMargin(const TextState&, SDst);
 \return 最大能容纳的文本行数。
 \since build 252
 */
-YF_API std::uint16_t
+YB_ATTR_nodiscard YF_API YB_PURE std::uint16_t
 FetchResizedLineN(const TextState& ts, SDst);
 
 /*!
@@ -63,7 +63,7 @@ FetchResizedLineN(const TextState& ts, SDst);
 \warning 不检查边距正确性。若顶边距正确，则返回值应小于输入的高。
 \since build 190
 */
-YF_API SPos
+YB_ATTR_nodiscard YF_API YB_PURE SPos
 FetchLastLineBasePosition(const TextState&, SDst);
 
 
@@ -71,7 +71,8 @@ FetchLastLineBasePosition(const TextState&, SDst);
 \brief 取按字体高度和行距调整文本区域的底边距。
 \since build 252
 */
-inline PDefH(SDst, FetchResizedBottomMargin, const TextRegion& tr)
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(SDst, FetchResizedBottomMargin, const TextRegion& tr)
 	ImplRet(FetchResizedBottomMargin(tr, tr.GetHeight()))
 
 /*!
@@ -88,7 +89,7 @@ inline PDefH(void, AdjustBottomMarginOf, TextRegion& tr)
 \note 无边界限制。
 \since build 641
 */
-YF_API SDst
+YB_ATTR_nodiscard YF_API YB_PURE SDst
 FetchCharWidth(const Font&, char32_t);
 
 /*!
@@ -102,7 +103,7 @@ FetchCharWidth(const Font&, char32_t);
 */
 template<typename _tIter,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
-pair<size_t, SDst>
+YB_ATTR_nodiscard YB_PURE pair<size_t, SDst>
 FetchStringOffsets(size_t max_width, const Font& fnt, _tIter s)
 {
 	size_t r(0);
@@ -125,7 +126,7 @@ FetchStringOffsets(size_t max_width, const Font& fnt, _tIter s)
 */
 template<typename _tIter,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
-pair<size_t, SDst>
+YB_ATTR_nodiscard YB_PURE pair<size_t, SDst>
 FetchStringOffsets(size_t max_width, const Font& fnt, _tIter s, size_t n,
 	char32_t c = {})
 {
@@ -147,7 +148,7 @@ FetchStringOffsets(size_t max_width, const Font& fnt, _tIter s, size_t n,
 */
 template<typename _tIter,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
-pair<size_t, SDst>
+YB_ATTR_nodiscard YB_PURE pair<size_t, SDst>
 FetchStringOffsets(size_t max_width, const Font& fnt, _tIter s, _tIter g,
 	char32_t c = {})
 {
@@ -167,7 +168,7 @@ FetchStringOffsets(size_t max_width, const Font& fnt, _tIter s, _tIter g,
 //! \brief 取单行字符串在指定字体和宽度时的最多能显示的字符数和宽。
 template<class _tString,
 	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
-inline pair<size_t, SDst>
+YB_ATTR_nodiscard YB_PURE inline pair<size_t, SDst>
 FetchStringOffsets(size_t max_width, const Font& fnt, const _tString& str)
 {
 	return Drawing::FetchStringOffsets(max_width, fnt, str.c_str());
@@ -178,7 +179,7 @@ FetchStringOffsets(size_t max_width, const Font& fnt, const _tString& str)
 */
 template<class _tString,
 	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
-inline pair<size_t, SDst>
+YB_ATTR_nodiscard YB_PURE inline pair<size_t, SDst>
 FetchStringOffsets(size_t max_width, const Font& fnt, const _tString& str,
 	size_t n)
 {
@@ -193,7 +194,7 @@ FetchStringOffsets(size_t max_width, const Font& fnt, const _tString& str,
 */
 template<typename _tIter,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
-SDst
+YB_ATTR_nodiscard YB_PURE SDst
 FetchStringWidth(const Font& fnt, _tIter s)
 {
 	SDst w(0);
@@ -215,7 +216,7 @@ FetchStringWidth(const Font& fnt, _tIter s)
 */
 template<typename _tIter,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
-SDst
+YB_ATTR_nodiscard YB_PURE SDst
 FetchStringWidth(const Font& fnt, _tIter s, size_t n, char32_t c = {})
 {
 	SDst w(0);
@@ -235,7 +236,7 @@ FetchStringWidth(const Font& fnt, _tIter s, size_t n, char32_t c = {})
 */
 template<typename _tIter,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
-SDst
+YB_ATTR_nodiscard YB_PURE SDst
 FetchStringWidth(const Font& fnt, _tIter s, _tIter g, char32_t c = {})
 {
 	SDst w(0);
@@ -256,7 +257,7 @@ FetchStringWidth(const Font& fnt, _tIter s, _tIter g, char32_t c = {})
 */
 template<class _tString,
 	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
-inline SDst
+YB_ATTR_nodiscard YB_PURE inline SDst
 FetchStringWidth(const Font& fnt, const _tString& str)
 {
 	return Drawing::FetchStringWidth(fnt, str.c_str());
@@ -267,7 +268,7 @@ FetchStringWidth(const Font& fnt, const _tString& str)
 */
 template<class _tString,
 	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
-inline SDst
+YB_ATTR_nodiscard YB_PURE inline SDst
 FetchStringWidth(const Font& fnt, const _tString& str, size_t n)
 {
 	return Drawing::FetchStringWidth(fnt, str.data(), n);
@@ -280,7 +281,7 @@ FetchStringWidth(const Font& fnt, const _tString& str, size_t n)
 */
 template<typename _tIter,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
-SDst
+YB_ATTR_nodiscard YB_PURE SDst
 FetchStringWidth(TextState& ts, SDst h, _tIter s)
 {
 	const SPos x(ts.Pen.X);
@@ -297,7 +298,7 @@ FetchStringWidth(TextState& ts, SDst h, _tIter s)
 */
 template<typename _tIter,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
-SDst
+YB_ATTR_nodiscard YB_PURE SDst
 FetchStringWidth(TextState& ts, SDst h, _tIter s, _tIter g, char32_t c = {})
 {
 	const SPos x(ts.Pen.X);
@@ -313,7 +314,7 @@ FetchStringWidth(TextState& ts, SDst h, _tIter s, _tIter g, char32_t c = {})
 */
 template<class _tString,
 	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
-inline SDst
+YB_ATTR_nodiscard YB_PURE inline SDst
 FetchStringWidth(TextState& ts, SDst h, const _tString& str)
 {
 	return FetchStringWidth(ts, h, str.c_str());
@@ -326,12 +327,12 @@ FetchStringWidth(TextState& ts, SDst h, const _tString& str)
 */
 template<typename _tIn,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIn>)>
-SDst
+YB_ATTR_nodiscard YB_PURE SDst
 FetchMaxTextWidth(const Font& font, _tIn first, _tIn last)
 {
 	return std::accumulate(first, last, SDst(),
 		[&](SDst val, decltype(*first) str){
-		return max(val, FetchStringWidth(font, str));
+		return ystdex::max(val, FetchStringWidth(font, str));
 	});
 }
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ListControl.cpp
 \ingroup UI
 \brief 列表控件。
-\version r2155
+\version r2158
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2016-02-12 00:48 +0800
+	2019-01-14 14:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "YSLib/UI/YModules.h"
-#include YFM_YSLib_UI_ListControl
+#include YFM_YSLib_UI_ListControl // for ystdex::max;
 #include YFM_YSLib_UI_YWindow
 #include YFM_YSLib_UI_Border
 #include YFM_YSLib_Service_YBlit
@@ -304,7 +304,7 @@ TextList::InvalidateSelected(ListType::difference_type offset,
 
 		if(r.Y < 0 || SDst(r.Y) < GetHeight())
 		{
-			r.Y = max<SPos>(0, r.Y);
+			r.Y = ystdex::max<SPos>(0, r.Y);
 			// XXX: Conversion to 'SPos' might be implementation-defined.
 			RestrictUnsignedStrict(r.Height, SDst(SPos(GetHeight()) - r.Y));
 			Invalidate(*this, r);

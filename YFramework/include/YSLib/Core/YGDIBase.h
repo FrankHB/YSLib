@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018 FrankHB.
+	© 2011-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2537
+\version r2553
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2018-12-02 16:48 +0800
+	2019-01-14 14:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YCoreUtilities // for octet, size_t, Pixel,
-//	YSLib::GeneralEvent, YSLib::HalfDifference;
+//	ystdex::min, ystdex::max, YSLib::HalfDifference;
 #include <limits>
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
 #include <ystdex/string.hpp> // for ystdex::quote;
@@ -598,8 +598,8 @@ public:
 	\since build 555
 	*/
 	PDefHOp(Size&, &=, const Size& s) ynothrow
-		ImplRet(yunseq(Width = min(Width, s.Width),
-			Height = min(Height, s.Height)), *this)
+		ImplRet(yunseq(Width = ystdex::min(Width, s.Width),
+			Height = ystdex::min(Height, s.Height)), *this)
 
 	/*!
 	\brief 求与另一个屏幕标准矩形的并。
@@ -607,8 +607,8 @@ public:
 	\since build 555
 	*/
 	PDefHOp(Size&, |=, const Size& s) ynothrow
-		ImplRet(yunseq(Width = max(Width, s.Width),
-			Height = max(Height, s.Height)), *this)
+		ImplRet(yunseq(Width = ystdex::max(Width, s.Width),
+			Height = ystdex::max(Height, s.Height)), *this)
 
 	/*!
 	\brief 转换：屏幕二维向量。
@@ -656,18 +656,18 @@ YB_ATTR_nodiscard YB_PURE yconstfn PDefHOp(bool, ==, const Size& x, const Size& 
 \sa Size::operator&=
 \since build 555
 */
-YB_ATTR_nodiscard YB_PURE yconstfn PDefHOp(Size, &, const Size& x, const Size& y)
-	ynothrow
-	ImplRet({min(x.Width, y.Width), min(x.Height, y.Height)})
+YB_ATTR_nodiscard YB_PURE yconstfn
+	PDefHOp(Size, &, const Size& x, const Size& y) ynothrow
+	ImplRet({ystdex::min(x.Width, y.Width), ystdex::min(x.Height, y.Height)})
 
 /*!
 \brief 求两个屏幕区域大小的并。
 \sa Size::operator|=
 \since build 555
 */
-YB_ATTR_nodiscard YB_PURE yconstfn PDefHOp(Size, |, const Size& x, const Size& y)
-	ynothrow
-	ImplRet({max(x.Width, y.Width), max(x.Height, y.Height)})
+YB_ATTR_nodiscard YB_PURE yconstfn
+	PDefHOp(Size, |, const Size& x, const Size& y) ynothrow
+	ImplRet({ystdex::max(x.Width, y.Width), ystdex::max(x.Height, y.Height)})
 
 /*!
 \brief 取面积。
@@ -769,9 +769,8 @@ template<typename _tScalar = float>
 YB_ATTR_nodiscard YB_PURE yconstfn _tScalar
 ScaleMin(const Size& x, const Size& y, _tScalar threshold = 1.F)
 {
-	return YSLib::min({threshold,
-		_tScalar(_tScalar(x.Width) / _tScalar(y.Width)),
-		_tScalar(_tScalar(x.Height) / _tScalar(y.Height))});
+	return ystdex::min({threshold, _tScalar(_tScalar(x.Width) / _tScalar(
+		y.Width)), _tScalar(_tScalar(x.Height) / _tScalar(y.Height))});
 }
 
 
@@ -1076,7 +1075,7 @@ inline PDefH(void, Diminish, Rect& r, SDst off1 = 1, SDst off2 = 2)
 */
 YB_ATTR_nodiscard YB_PURE yconstfn
 	PDefH(Rect, MakeRect, const Point& pt1, const Point& pt2) ynothrow
-	ImplRet(Rect(min(pt1.X, pt2.X), min(pt1.Y, pt2.Y),
+	ImplRet(Rect(ystdex::min(pt1.X, pt2.X), ystdex::min(pt1.Y, pt2.Y),
 		SDst(pt1.X < pt2.X ? pt2.X - pt1.X : pt1.X - pt2.X),
 		SDst(pt1.Y < pt2.Y ? pt2.Y - pt1.Y : pt1.Y - pt2.Y)))
 

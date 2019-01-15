@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2015, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGDI.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2970
+\version r2975
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2015-08-19 10:26 +0800
+	2019-01-14 17:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,7 @@ namespace Drawing
 {
 
 Rect
-operator+(const Rect& r, const Padding& m)
+operator+(const Rect& r, const Padding& m) ynothrow
 {
 	// XXX: Conversion to 'SPos' might be implementation-defined.
 	return Rect(r.X + m.Left, r.Y + m.Top,
@@ -48,7 +48,7 @@ operator+(const Rect& r, const Padding& m)
 
 
 Padding
-FetchMargin(const Rect& r, const Size& s)
+FetchMargin(const Rect& r, const Size& s) ynothrow
 {
 	// XXX: Conversion to 'SPos' might be implementation-defined.
 	return Padding(r.X, SPos(s.Width) - r.X - SPos(r.Width),
@@ -57,7 +57,7 @@ FetchMargin(const Rect& r, const Size& s)
 
 
 Point
-ClipBounds(Rect& clip, const Rect& bounds)
+ClipBounds(Rect& clip, const Rect& bounds) ynothrow
 {
 	if(!clip.IsUnstrictlyEmpty() && Clip(clip, bounds))
 		return clip.GetPoint() - bounds.GetPoint();
@@ -66,7 +66,7 @@ ClipBounds(Rect& clip, const Rect& bounds)
 }
 
 Point
-ClipMargin(PaintContext& pc, const Padding& m, const Size& ss)
+ClipMargin(PaintContext& pc, const Padding& m, const Size& ss) ynothrow
 {
 	const Size& ds(pc.Target.GetSize());
 

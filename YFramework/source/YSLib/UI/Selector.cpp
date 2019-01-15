@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1089
+\version r1093
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2016-06-15 12:17 +0800
+	2019-01-14 14:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "YSLib/UI/YModules.h"
-#include YFM_YSLib_UI_Selector
+#include YFM_YSLib_UI_Selector // for ystdex::min;
 #include YFM_YSLib_Service_YBlit
 #include YFM_YSLib_UI_YGUI
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
@@ -72,7 +72,7 @@ RectDrawRadioBox(const PaintContext& pc, const Size& s, Hue base_hue,
 {
 	const bool inside(cursor_state != CursorState::Outside);
 	const bool is_pressed(cursor_state == CursorState::Pressed);
-	const SDst rad(min(s.Width / 2, s.Height / 2));
+	const SDst rad(ystdex::min(s.Width / 2, s.Height / 2));
 	const auto& g(pc.Target);
 	const auto pt(pc.Location + Size(rad, rad));
 	const Rect& bounds(pc.ClipArea);
@@ -120,7 +120,7 @@ CheckBox::CheckBox(const Rect& r)
 	: Thumb(r, ystdex::raw_tag()), MCheckBox()
 {
 	using namespace Styles;
-	static struct Init
+	static const struct Init
 	{
 		Init()
 		{

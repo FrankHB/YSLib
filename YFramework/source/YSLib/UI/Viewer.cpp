@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2015, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Viewer.cpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r298
+\version r302
 \author FrankHB <frankhb1989@gmail.com>
 \since build 525
 \par 创建时间:
 	2014-08-08 14:39:59 +0800
 \par 修改时间:
-	2015-09-28 01:00 +0800
+	2019-01-14 14:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "YSLib/UI/YModules.h"
-#include YFM_YSLib_UI_Viewer
+#include YFM_YSLib_UI_Viewer // for ystdex::min;
 #include YFM_YSLib_UI_YWidget // for UI::GetSizeOf;
 
 namespace YSLib
@@ -45,8 +45,7 @@ size_t
 SequenceViewer::GetValid(size_t total) const ynothrow
 {
 	YAssert(total >= head, "Total number of items is less than head index");
-
-	return min<size_t>(total - head, Length);
+	return ystdex::min<size_t>(total - head, Length);
 }
 
 bool
@@ -181,7 +180,7 @@ size_t
 AMUnitList::GetLastLabelIndexClipped(SPos v_off, SDst height) const
 {
 	// XXX: Conversion to 'SPos' might be implementation-defined.
-	return vwList.GetHeadIndex() + min(size_t((SPos(height + uTopOffset)
+	return vwList.GetHeadIndex() + ystdex::min(size_t((SPos(height + uTopOffset)
 		- v_off - 1) / SPos(GetItemHeight()) + 1), vwList.GetValid(GetTotal()));
 }
 Point

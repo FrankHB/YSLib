@@ -11,13 +11,13 @@
 /*!	\file TabControl.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面标签页控件。
-\version r307
+\version r309
 \author FrankHB <frankhb1989@gmail.com>
 \since build 494
 \par 创建时间:
 	2014-04-19 11:21:05 +0800
 \par 修改时间:
-	2019-01-06 15:15 +0800
+	2019-01-14 14:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "YSLib/UI/YModules.h"
-#include YFM_YSLib_UI_TabControl
+#include YFM_YSLib_UI_TabControl // for ystdex::max;
 #include YFM_YSLib_UI_YGUI
 #include YFM_YSLib_Service_YGDI // for Drawing::Clip;
 #include <ystdex/iterator.hpp>
@@ -152,7 +152,7 @@ Rect
 TabControl::GetPageBounds() const ynothrow
 {
 	const SDst h(GetHeight());
-	const SDst h_tb(max(GetTabBarRef().GetHeight(), BarHeight));
+	const SDst h_tb(ystdex::max(GetTabBarRef().GetHeight(), BarHeight));
 
 	// XXX: Conversion to 'SPos' might be implementation-defined.
 	return Rect(0, SPos(h_tb), GetWidth(), h < h_tb ? 0 : h - h_tb);

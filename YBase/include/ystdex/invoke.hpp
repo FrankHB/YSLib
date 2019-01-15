@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2018 FrankHB.
+	© 2010-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file invoke.hpp
 \ingroup YStandardEx
 \brief 可调用对象和调用包装接口。
-\version r4560
+\version r4614
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-24 05:03:12 +0800
 \par 修改时间:
-	2018-11-20 03:11 +0800
+	2019-01-15 12:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,9 @@
 #define YB_INC_ystdex_invoke_hpp_ 1
 
 #include "meta.hpp" // for "meta.hpp", <type_traits>, std::declval,
-//	__cpp_lib_is_invocable, void_t, false_, true_, remove_cvref, is_base_of, or_, is_void,
-//	is_convertible, is_implicitly_nothrow_constructible, __cpp_lib_invoke, and_;
+//	__cpp_lib_is_invocable, void_t, false_, true_, remove_cvref, is_base_of,
+//	or_, is_void, is_same_or_convertible, is_implicitly_nothrow_constructible,
+//	__cpp_lib_invoke, and_;
 #include "variadic.hpp" // for vseq::apply_t, vseq::_a, conditional_t;
 #include <functional> // for <functional>, std::reference_wrapper;
 #include "cassert.h" // for yconstraint;
@@ -217,12 +218,21 @@ struct inv_is_mem_ref<_tRet _tClass::*, _tParam>
 {};
 
 
-template<typename, bool, bool, typename = void>
-struct inv_mem_ptr
-{};
+//! \since build 850
+template<typename _fCallable, typename... _tParams>
+using fproto = empty_base<_fCallable, _tParams...>;
 
+template<class, bool, bool, typename = void>
+struct inv_mem_ptr
+{
+	//! \since build 850
+	static const yconstexpr bool noexcept_v = {};
+};
+
+//! \since build 850
+//@{
 template<typename _tMemPtr, typename _type, typename... _tParams>
-struct inv_mem_ptr<_tMemPtr(_type, _tParams...), true, true,
+struct inv_mem_ptr<fproto<_tMemPtr, _type, _tParams...>, true, true,
 	void_t<invoke_mem_fn_ref_t<_tMemPtr, _type, _tParams...>>>
 	: identity<invoke_mem_fn_ref_t<_tMemPtr, _type, _tParams...>>
 {
@@ -232,7 +242,7 @@ struct inv_mem_ptr<_tMemPtr(_type, _tParams...), true, true,
 };
 
 template<typename _tMemPtr, typename _type, typename... _tParams>
-struct inv_mem_ptr<_tMemPtr(_type, _tParams...), true, false,
+struct inv_mem_ptr<fproto<_tMemPtr, _type, _tParams...>, true, false,
 	void_t<invoke_mem_fn_deref_t<_tMemPtr, _type, _tParams...>>>
 	: identity<invoke_mem_fn_deref_t<_tMemPtr, _type, _tParams...>>
 {
@@ -241,7 +251,7 @@ struct inv_mem_ptr<_tMemPtr(_type, _tParams...), true, false,
 };
 
 template<typename _tMemPtr, typename _type>
-struct inv_mem_ptr<_tMemPtr(_type), false, true,
+struct inv_mem_ptr<fproto<_tMemPtr, _type>, false, true,
 	void_t<invoke_mem_obj_ref_t<_tMemPtr, _type>>>
 	: identity<invoke_mem_obj_ref_t<_tMemPtr, _type>>
 {
@@ -250,7 +260,7 @@ struct inv_mem_ptr<_tMemPtr(_type), false, true,
 };
 
 template<typename _tMemPtr, typename _type>
-struct inv_mem_ptr<_tMemPtr(_type), false, false,
+struct inv_mem_ptr<fproto<_tMemPtr, _type>, false, false,
 	void_t<invoke_mem_obj_deref_t<_tMemPtr, _type>>>
 	: identity<invoke_mem_obj_deref_t<_tMemPtr, _type>>
 {
@@ -258,13 +268,17 @@ struct inv_mem_ptr<_tMemPtr(_type), false, false,
 		= ynoexcept((*std::declval<_type>()).*std::declval<_tMemPtr>());
 };
 //@}
+//@}
 
-template<typename, typename = void>
+template<class, typename = void>
 struct inv_other
-{};
+{
+	//! \since build 850
+	static const yconstexpr bool noexcept_v = {};
+};
 
 template<typename _fCallable, typename... _tParams>
-struct inv_other<_fCallable(_tParams...),
+struct inv_other<fproto<_fCallable, _tParams...>,
 	void_t<invoke_other_t<_fCallable, _tParams...>>>
 	: identity<invoke_other_t<_fCallable, _tParams...>>
 {
@@ -276,24 +290,19 @@ struct inv_other<_fCallable(_tParams...),
 //! \since build 845
 //@{
 template<typename _tMemPtr, typename _tParam, typename... _tParams>
-struct inv_mem : inv_mem_ptr<_tMemPtr(inv_unwrap_t<_tParam>, _tParams...),
-	is_member_function_pointer<_tMemPtr>::value,
+struct inv_mem : inv_mem_ptr<fproto<_tMemPtr, inv_unwrap_t<_tParam>,
+	_tParams...>, is_member_function_pointer<_tMemPtr>::value,
 	inv_is_mem_ref<_tMemPtr, _tParam>::value>
 {};
 
 
-template<bool, typename, typename...>
-struct inv_test
+template<bool, typename _fCallable, typename... _tParams>
+struct inv_test : inv_other<fproto<_fCallable, _tParams...>>
 {};
 
 template<typename _fCallable, typename _tParam, typename... _tParams>
 struct inv_test<true, _fCallable, _tParam, _tParams...>
 	: inv_mem<decay_t<_fCallable>, _tParam, _tParams...>
-{};
-
-template<typename _fCallable, typename... _tParams>
-struct inv_test<false, _fCallable, _tParams...>
-	: inv_other<_fCallable(_tParams...)>
 {};
 //@}
 
@@ -306,23 +315,25 @@ template<typename _fCallable, typename... _tParams>
 using inv_result_t = _t<inv_result<_fCallable, _tParams...>>;
 
 
-template<typename, typename, typename = void>
+template<typename, class, typename = void>
 struct inv_enabled : false_
 {};
 
+//! \since build 850
 template<typename _tRet, typename _fCallable, typename... _tParams>
-struct inv_enabled<_fCallable, _tRet(_tParams...),
+struct inv_enabled<_fCallable, fproto<_tRet, _tParams...>,
 	void_t<inv_result_t<_fCallable, _tParams...>>>
 	: or_<is_void<_tRet>,
-	is_convertible<inv_result_t<_fCallable, _tParams...>, _tRet>>
+	is_same_or_convertible<inv_result_t<_fCallable, _tParams...>, _tRet>>
 {};
 
 template<typename, typename, typename = void>
 struct inv_enabled_nt : false_
 {};
 
+//! \since build 850
 template<typename _tRet, typename _fCallable, typename... _tParams>
-struct inv_enabled_nt<_fCallable, _tRet(_tParams...),
+struct inv_enabled_nt<_fCallable, fproto<_tRet, _tParams...>,
 	void_t<inv_result_t<_fCallable, _tParams...>>>
 	: or_<is_void<_tRet>, is_implicitly_nothrow_constructible<_tRet,
 	inv_result_t<_fCallable, _tParams...>>>
@@ -345,12 +356,16 @@ using std::is_nothrow_invocable_r;
 using std::invoke_result;
 using std::invoke_result_t;
 #else
+//! \ingroup binary_type_traits
+//@{
 template<typename _fCallable, typename... _tParams>
-struct is_invocable : details::inv_enabled<_fCallable, void(_tParams...)>
+struct is_invocable
+	: details::inv_enabled<_fCallable, details::fproto<void, _tParams...>>
 {};
 
 template<typename _tRet, typename _fCallable, typename... _tParams>
-struct is_invocable_r : details::inv_enabled<_fCallable, _tRet(_tParams...)>
+struct is_invocable_r
+	: details::inv_enabled<_fCallable, details::fproto<_tRet, _tParams...>>
 {};
 
 template<typename _fCallable, typename... _tParams>
@@ -360,12 +375,15 @@ struct is_nothrow_invocable
 {};
 
 template<typename _tRet, typename _fCallable, typename... _tParams>
-struct is_nothrow_invocable_r : bool_constant<
-	details::inv_enabled_nt<_fCallable, _tRet(_tParams...)>::value
+struct is_nothrow_invocable_r : bool_constant<details::inv_enabled_nt<
+	_fCallable, details::fproto<_tRet, _tParams...>>::value
 	&& details::inv_result<_fCallable, _tParams...>::noexcept_v>
 {};
+//@}
 
 
+//! \ingroup transformation_traits
+//@{
 template<typename _fCallable, typename... _tParams>
 struct invoke_result
 	: identity<typename details::inv_result<_fCallable, _tParams...>::type>
@@ -373,6 +391,7 @@ struct invoke_result
 
 template<typename _fCallable, typename... _tParams>
 using invoke_result_t = _t<invoke_result<_fCallable, _tParams...>>;
+//@}
 #endif
 //@}
 
@@ -491,7 +510,6 @@ invoke_impl(_fCallable&& f, _type&& obj)
 {
 	return yconstraint(f), (*yforward(obj)).*f;
 }
-
 template<typename _func, typename... _tParams>
 yconstfn auto
 invoke_impl(_func&& f, _tParams&&... args)
@@ -507,10 +525,11 @@ invoke_impl(_func&& f, _tParams&&... args)
 \brief 调用可调用对象。
 \note 和 ISO C++17 的 std::invoke 兼容，只处理 std::wrapper_reference 为引用包装。
 \sa http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4169.html
-\see WG21 N4527 20.9.2[func.require] ， WG21 N4527 20.9.3[func.invoke] 。
-\see LWG 2013 。
+\see ISO C++17 [func.require] ， ISO C++ 17 [func.invoke] 。
 \see CWG 1581 。
-\see P0604R0 。
+\see LWG 2013 。
+\see LWG 2219 。
+\see WG21 P0604R0 。
 \see https://llvm.org/bugs/show_bug.cgi?id=23141 。
 \since build 832
 */
