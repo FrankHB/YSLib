@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r3974
+\version r4014
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2019-01-03 20:59 +0800
+	2019-01-29 07:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YObject // for pmr, ystdex::invoke,
-//	ystdex::is_interoperable, ystdex::enable_if_t, ystdex::and_, ystdex::not_,
-//	ystdex::remove_cvref_t;
+//	ystdex::is_interoperable, ystdex::enable_if_t, std::allocator_arg_t,
+//	std::allocator_arg, ystdex::and_, ystdex::remove_cvref_t, in_place_type;
 #include <ystdex/operators.hpp> // for ystdex::totally_ordered;
 #include <ystdex/set.hpp> // for ystdex::mapped_set;
 #include <ystdex/variadic.hpp> // for ystdex::vseq;
@@ -69,6 +69,10 @@ class YF_API ValueNode : private ystdex::totally_ordered<ValueNode>,
 public:
 	//! \since build 844
 	//@{
+	/*!
+	\brief 分配器类型。
+	\note 支持 uses-allocator 构造。
+	*/
 	using allocator_type = pmr::polymorphic_allocator<ValueNode>;
 	template<typename _type>
 	using is_key_t = ystdex::is_interoperable<const _type&, const string&>;
@@ -116,7 +120,7 @@ private:
 			ynothrow
 			ImplRet({})
 		template<typename _tString, typename _tOther, typename... _tParams,
-			yimpl(typename = enable_value_constructible_t<_tParams&&...>),
+			yimpl(typename = enable_value_constructible_t<_tParams...>),
 			yimpl(typename = enable_not_key_t<_tOther>)>
 		YB_ATTR_nodiscard YB_PURE static inline _tString&&
 		get_value_key(_tOther&&, _tString&& str, _tParams&&...)
@@ -124,7 +128,7 @@ private:
 			return yforward(str);
 		}
 		template<typename _tString, typename _tOther, typename... _tParams,
-			yimpl(typename = enable_value_constructible_t<_tParams&&...>),
+			yimpl(typename = enable_value_constructible_t<_tParams...>),
 			yimpl(typename = enable_not_key_t<_tOther>)>
 		YB_ATTR_nodiscard YB_PURE static inline _tString&&
 		get_value_key(std::allocator_arg_t, allocator_type, _tOther&&,
@@ -243,7 +247,7 @@ public:
 	\note 不使用容器。
 	*/
 	template<typename _tString, typename... _tParams,
-		yimpl(typename = enable_value_constructible_t<_tParams&&...>)>
+		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	inline
 	ValueNode(NoContainerTag, _tString&& str, _tParams&&... args)
 		: name(yforward(str)), Value(yforward(args)...)
@@ -253,7 +257,7 @@ public:
 	\note 不使用容器。
 	*/
 	template<typename _tString, typename... _tParams,
-		yimpl(typename = enable_value_constructible_t<_tParams&&...>)>
+		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	inline
 	ValueNode(std::allocator_arg_t, allocator_type a, NoContainerTag,
 		_tString&& str, _tParams&&... args)
@@ -262,12 +266,12 @@ public:
 	//! \brief 构造：使用容器对象引用、字符串引用和值类型对象构造参数。
 	//@{
 	template<typename _tString, typename... _tParams,
-		yimpl(typename = enable_value_constructible_t<_tParams&&...>)>
+		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	ValueNode(const Container& con, _tString&& str, _tParams&&... args)
 		: name(yforward(str)), container(con), Value(yforward(args)...)
 	{}
 	template<typename _tString, typename... _tParams,
-		yimpl(typename = enable_value_constructible_t<_tParams&&...>)>
+		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	ValueNode(Container&& con, _tString&& str, _tParams&&... args)
 		: name(yforward(str)), container(std::move(con)),
 		Value(yforward(args)...)
@@ -276,7 +280,7 @@ public:
 	//! \brief 构造：使用容器对象引用、字符串引用、值类型对象构造参数和分配器。
 	//@{
 	template<typename _tString, typename... _tParams,
-		yimpl(typename = enable_value_constructible_t<_tParams&&...>)>
+		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	inline
 	ValueNode(std::allocator_arg_t, allocator_type a, const Container& con,
 		_tString&& str, _tParams&&... args)
@@ -284,7 +288,7 @@ public:
 		Value(yforward(args)...)
 	{}
 	template<typename _tString, typename... _tParams,
-		yimpl(typename = enable_value_constructible_t<_tParams&&...>)>
+		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	inline
 	ValueNode(std::allocator_arg_t, allocator_type a, Container&& con,
 		_tString&& str, _tParams&&... args)
@@ -500,7 +504,7 @@ public:
 	/*!
 	\pre 断言：分配器相等。
 	\note 设置子节点容器和值的内容。
-	\warning 除转移外非强异常安全。
+	\note 除转移外非强异常安全。
 	\since build 734
 	*/
 	//@{
@@ -739,7 +743,7 @@ public:
 	PlaceValue(_tString&& str, _tParams&&... args)
 	{
 		return try_emplace(str, NoContainer, yforward(str),
-			ystdex::in_place_type<_type>, yforward(args)...).first->Value;
+			in_place_type<_type>, yforward(args)...).first->Value;
 	}
 	//@}
 
@@ -917,12 +921,13 @@ public:
 	{
 		// NOTE: This is not efficient as a single %emplace when %k is not
 		//	equivalent to %cont_traits::get_value_key(yforward(args)...), as
-		//	per the notes in %ystdex::mapped. However, this function is needed
-		//	as a convenient base to other operations and there is in general
-		//	no superior alternatives (when it is needed to decide to insert on
-		//	two different keys). Thus, it is kept as a public function. All
-		//	other functions using this one would keep the equivalence, so they
-		//	are preferred unless the difference of keys is intended, though.
+		//	per the notes in %ystdex::mapped_set. However, this function is
+		//	needed as a convenient base to other operations and there is in
+		//	general no superior alternatives (when it is needed to decide to
+		//	insert on two different keys). Thus, it is kept as a public
+		//	function. All other functions using this one would keep the
+		//	equivalence, so they are still preferred unless the difference of
+		//	keys is intended, though.
 		return ystdex::try_emplace(container, yforward(k), yforward(args)...);
 	}
 
@@ -1443,9 +1448,10 @@ IsPrefixedIndex(string_view, char = '$');
 
 /*!
 \brief 转换节点大小为新的节点索引值。
-\return 保证 4 位十进制数内按字典序递增的字符串。
-\throw std::invalid_argument 索引值过大，不能以 4 位十进制数表示。
-\note 重复使用作为新节点的名称，可用于插入不重复节点。
+\return 保证按字典序递增的字符串。
+\note 重复以子节点数作为参数使用作为新节点的名称，可用于插入不重复节点。
+\note 字符串不保证可读。
+\note 具体算法未指定。相同实现的算法结果保证稳定，但不保证版本间稳定。
 \since build 598
 */
 //@{
@@ -1459,11 +1465,21 @@ PDefH(string, MakeIndex, const ValueNode& node)
 	ImplRet(MakeIndex(node.GetContainer()))
 //@}
 
+//! \throw std::invalid_argument 存在子节点但名称不是前缀索引。
+//@{
+/*!
+\brief 解码节点名称的前缀索引。
+\pre 断言：参数的数据指针非空。
+\return 若不存在子节点则为 \c size_t(-1) ，否则为名称对应的索引。
+\since build 851
+*/
+YB_ATTR_nodiscard YF_API size_t
+DecodeIndex(string_view);
+
 /*!
 \brief 取最后一个子节点名称的前缀索引。
 \return 若不存在子节点则为 \c size_t(-1) ，否则为最后一个子节点的名称对应的索引。
-\throw std::invalid_argument 存在子节点但名称不是前缀索引。
-\sa IsPrefixedIndex
+\sa DecodeIndex
 \since build 790
 */
 //@{
@@ -1471,6 +1487,7 @@ YB_ATTR_nodiscard YF_API YB_PURE size_t
 GetLastIndexOf(const ValueNode::Container&);
 inline PDefH(size_t, GetLastIndexOf, const ValueNode& term)
 	ImplRet(GetLastIndexOf(term.GetContainer()))
+//@}
 //@}
 
 /*!

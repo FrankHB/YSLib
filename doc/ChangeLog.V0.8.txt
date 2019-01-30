@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r10096
+\version r10500
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-01-16 00:22 +0800
+	2019-01-31 02:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,393 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ $re_add(b850) DLDI ^ "%YSLib::unchecked_any_cast"
+		~ "%ystdex::unchecked_any_cast" $effective
+		@ %YFramework.YSLib.Core.Application,
+	/ DLDI "simplified all perfect parameter forwarding without \
+		variadic parameter in lambda-expressions" ^ "%yforward"
+		~ "%std::forward" $effective
+		@ %YBase.YStandardEx.(Swap, Tree, Utilities),
+		// The exceptional case is blocked to work around G++ 5 crash.
+	- $re_add(b850) DLDI "redundant '&&'" @ "'*_constructible' \
+		template arguments" @ %(YBase.YStandardEx.(Any, Swap,
+		Utilities), YFramework.(NPL.NPLA1, YSLib.Core.ValueNode)),
+	/ DD "Doxygen group name patterns '*programing*' -> '*programming*'"
+		$effective @ %YBase.YStandardEx.IntegralConstant,
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			/ "constructors" @ "class template %boxed_value" @ %Utilities $=
+			(
+				+ "type %nothrow_default_constructible";
+					// This is a workaround for G++ 8.1 on platform %DS.
+				+ $re_add(b848) $dev 'explicit'
+					@ "constructor with %default_init_t parameter",
+				/ $re_add(b849) DLI "simplify constructor templates"
+					^ "%exclude_self_params_t" ~ "%exclude_self_t",
+				* $re_add(b849) "possible ill-formed but no diagnostics \
+					required bogus 'yconstfn'" $since b477 $=
+					(- 'yconstfn' @ "constructors"),
+				/ "improved SFINAE-friendly" $dep_to
+					"SFINAE-friendly boxed_value" $=
+				(
+					/ "excluded tags in constructors with %in_place_type_t \
+						instance, %std::allocator_arg_t and private tag types",
+						// This is an extension.
+					(
+					+ "braced-init-list '{}'" @ "data member %value";
+					/ "default constructor" -> "defaulted constructor"
+					),
+					/ "all other constructor templates made SFINAE-friendly" $=
+					(
+						/ DLDI "exposed private constructors";
+							// They have to be public, otherwise they would \
+								not be viable candidates.
+						+ $impl "template parameter to enable SFINAE check"
+					)
+				)
+			),
+			/ @ "namespace %vseq" @ %Variadic $=
+			(
+				/ "metafunctions (ctor_of, param_of)" $=
+				(
+					* "missing fallback specialization" $since b656 $dep_to
+						"vseq SFINAE",
+						// The missing of fallback would break SFINAE with \
+							%detected_or.
+					* "wrong specialized template argument existed partial \
+						specialization" $since b656
+						// The missing %when<true> in specialized template \
+							argument list would break the expect of order of \
+							specialization for user code.
+				),
+				* "missing fallback specialization" @ "metafucntion %defer"
+					$since b688 $dep_to "vseq SFINAE"
+			)
+			* "binary type trait %is_instance_of" @ %TypeOperation $since b849
+				^ "%detected_or_t" ~ "%vdefer" $dep_from
+				("vseq SFINAE" @ %Variadic),
+				// It actually needs one, but Clang++ needs also the %defer \
+					instantiation to be complete.
+			/ %Placement $=
+			(
+				+ $re_add(b848) $dev 'explicit' @ "constructor with \
+					%default_init_t parameter" @ "class template %tagged_value",
+				+ DD '\ingroup tags' @ "Doxygen comment" @ "%(default_init_t, \
+					default_init, value_init_t, value_init)",
+				+ DD '\ingroup YBase_replacement_features tags'
+					@ "Doxygen comment" @ "%(in_place_tag, in_place_t, \
+					in_place_type_t, in_place_index_t)",
+				/ DLDI "ordered 'static_cast<void>' discarded values at end in \
+					'for' statements" $effective @ %Placement,
+					// To be consistent with implementation of \
+						%ystdex::swap_ranges. This is intended for more \
+						clarity that the result of whole expreesion is also \
+						discarded.
+				(
+				+ "struct %in_place_index_ctor";
+				+ "class template specialization %vseq::ctor_of for \
+					%in_place_index_t instances"
+				),
+				+ "class template specialization %vseq::ctor_of for \
+					%in_place_type_t instances" $dep_to "tag type constructors"
+			),
+			+ "metafunctions %(nand_, nor_)" @ %IntegralConstant,
+			+ DD '\ingroup YBase_replacement_features' @ "Doxygen comment"
+				@ "metafunctions %(conjunction, disjunction, negation)"
+				@ %IntegralConstant,
+			/ %Any $=
+			(
+				(
+				/ "improved SFINAE-friendly handler construction"
+					@ "namespace %any_ops" $=
+				(
+					/ "public function template %init supported SFINAE"
+						$effecitve @ "class templates %(value_handler; \
+						holder_handler, allocator_value_handler)";
+					+ "function template %construct" ^ "trailing return type"
+				),
+				/ "improved SFINAE-friendly constructors" @ "class %any" $dep_to
+					"SFINAE-firendly value objects" $dep_from
+					"tag type constructors", ("constructor templates
+					%ValueObject" @ %YFramework.YSLib.Core.YObject) $=
+				(
+					* $re_ex(b848) "constructor with %in_place_type_t tag \
+						parameter missing exclusion of \
+						non-constructible parameters" $mismatch $since b848,
+						// WG21 N4606 does not have the requirements, but ISO \
+							C++17 has.
+					/ "all other constructor templates made SFINAE-friendly"
+						$dep_from ("%is_instance_of" @ %TypeOperation),
+						"%construct" ^ $dep_from ("%nor_" @ %IntegralConstant)
+				)
+				),
+				* "missing underlying implementation for constructor with \
+					%std::initializer_list instance and allocator parameters"
+					$since b848
+			),
+			* "invalid 'YB_STATELESS for %observer_ptr and %std::hash instances"
+				@ %Pointer $since b846
+				/ $= (/ $revert_ex(b846)
+					"all 'YB_STATELSS' except for %to_address#2" -> 'YB_PURE'),
+				// This would stage 1 Sysroot with Clang++ 7.0.1 on x86-64 \
+					Linux, because the output %SHBuild binary does not work.
+			/ %Function $=
+			(
+				(
+				/ "transformation trait %make_parameter_tuple"
+					-> "%make_parameter_list" ^ "%empty_base" ~ "%std::tuple";
+				/ $forced DLDI "type trait %parameter_of" ^ "%vseq::at_t"
+					~ "%std::tuple_element",
+				/ $forced DLDI "type trait %paramlist_size"
+					^ "%vseq::seq_size_t" ~ "%std::tuple_size"
+				),
+				/ @ "type traits %(is_covariant, is_contravariant, \
+					make_function_type)" $=
+				(
+					+ "specialization for %(empty_base, function_base) \
+						instances";
+					/ DLDI "simplified other specializations"
+				),
+				/ DLDI "type trait %make_function_type_t" ^ "%empty_base"
+					~ "%std::tuple"
+			),
+			/ %Tree $=
+			(
+				* $impl "missing class template declaration for tree" $since
+					b830,
+					// To eliminate Microsoft VC++ error: C2872. This error is \
+						caused by ambiguity between the name in the inline \
+						namespace and enclosing namespace.
+				/ $re_add(b849) DLDI "simplified" ^ "%rebind_alloc_t"
+					~ "%allocator_traits"
+			),
+			/ @ "function template %swap_dependent" @ %Swap $=
+			(
+				* "ambiguity for type with specialized %swap namespace %std"
+					$orig (@ %Utilities $since b830),
+				* "missing applying ADL %swap for enumerations" $since b837
+					$= (/ $impl ^ "%is_enum")
+			),
+			/ %Memory $=
+			(
+				+ "function templates %(allocate_unique; allocate_shared) for \
+					parameters of %std::initializer_list instances",
+				+ 'using std::make_shared',
+				* "self recursive calls" @ "make_unique for parameters of \
+					%std::initializer_list instances" $since b
+					$= (/ ^ "%ystdex::cpp2014::make_unique"
+						~ "%ystdex::make_unique"),
+				/ @ "functiont templates %(share_copy, share_forward, \
+					share_move, unique_copy, unique_forward, unique_move)" $=
+				(
+					/ ^ $dep_from "%ystdex::(make_shared, make_unique)"
+						~ "ADL %(make_shared, make_unique)",
+					+ ("overloads for of allocator and parameter packs",
+						"overloads for allocator and parameters of \
+						%std::initializer_list instances")
+						^ $dep_from "%ystdex::(allocate_unique, allocate_shared)"
+				),
+				/ DLDI "simplified function templates %(shared_copy, unique_copy)"
+					!^ 'yforward',
+				* "missing inclusion %YBase.IntegerSequence" @ %Apply $since b850
+			),
+			* "irrespective non-deduced context"
+				@ "transformation trait %invoke_result" @ %Invoke $since b832
+				// This would fail with Clang++ 7.0.1 for some SFINAE \
+					contexts, like initialization %YSLib::GHEvent with a \
+					%YSLib::GHEvent value referenced in %lref
+				$= (/ $impl "base class" !^ "%identity")
+		),
+		* $dev "Microsof VC++ project missing header %YStandardEx.Apply" $since
+			b850
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Core $=
+			(
+				/ %YApplication $=
+				(
+					/ $re_add(b850) DLD "simplified without 'ystdex::'"
+						^ "%any",
+					* $re_add(b850) DD "missing '!'" @ "end of '/*'"
+						@ "multiline Doxygen comment" @ "protected message \
+						queue data member" @ %YApplication $since b481,
+				),
+				/ %YObject $=
+				(
+					- DLDI $revert(b759) "redundant internal function"
+						@ %YObject
+						// To eliminate Clang++ warning: [-Wunused-function].
+					(
+						/ "improved SFINAE-friend %ValueHolder constructor \
+							templates" $dep_from "SFINAE-friendly boxed_value",
+						/ "improved SFINAE-friend %ValueObject constructor \
+							templates with object parameter" $dep_from
+							%UI.YWidgetEvent,
+							// To avoid possible tag types used as values, \
+								also to exclude nested %ValueHolder instances \
+								(as a workaround similar to \
+								%ystdex::boxed_value).
+						* "invalid fallback"
+							@ "static function templates %CreateInPlace"
+							@ "class templates %HolderOperations" $since b850;
+						* $comp "broken %ValueObject holder creation for user \
+							code" $since b850 $dep_from
+							"SFINAE-firendly value objects"
+						// See $2019-01 @ %Documentation::Workflow::Annual2019.
+					)
+				),
+				/ %ValueNode $=
+				(
+					/ $re_add(b850) DLD "simplified without 'ystdex::'"
+						^ "%in_place_type",
+					/ "functions %MakeIndex" $=
+					(
+						/ "made encoding result unspecified";
+						- "limitation for domain of parameter value",
+						/ $impl ^ "%ystdex::floor_lb" ~ "%std::snprintf"
+							// This makes it more efficient.
+					),
+					(
+					+ "function %DecodeIndex";
+					/ $forced $impl "functions %(GetLastIndexOf, \
+						IsPrefixedIndex)" $dep_from "function %MakeIndex"
+					)
+				)
+			),
+			/ %Service.YGDI $=
+			(
+				* "redundant 'using BaseType::GetBufferPtr;'"
+					@ "class %CompactBitmap" $since b566
+					// To eliminate Microsoft VC++ errors: C2668 and C2440. \
+						The ambiguity is never expected.
+				/ $workaround(#38) $resolve(#38) $impl "function %swap for \
+					classes %(CompactPixmap, CompactPixmapEx)"
+					^ $dep_from ("%ystdex::swap_dependent"
+					@ %YBase.YStandardEx.Swap) ~ "%std::swap<BaseType>"
+					// To eliminate Microsoft VC++ errors: C2039 and \
+						subsequent other errors.
+			),
+			/ %UI $=
+			(
+				* "wrong height used for drop list up to the widget" $since b290
+					@ "handled event %TouchDown" @ "%DropDownList" @ %ComboList,
+					// Also to eliminate Microsoft VC++ warning: C4146.
+				* "constructor %EventRef with 'EventItem&' parameter type"
+					@ %YWidgetEvent $since b850 $=
+					// This would cause unexpected initialization to \
+						%ValueObject from a %EventRef prvalue.
+				(
+					+ 'const' @ "parameter type",
+					/ "excluded parameters not referernce to %ValueObject"
+						^ "%ystdex::enable_if_same_t"
+						// To keep %UI::GetMappedEvent implementation \
+							well-formed, 'explicit' cannot be applied here.
+				)
+			)
+		),
+		/ %NPL $=
+		(
+			(
+			+ 'using YSLib::bad_any_cast;' @ %NPLA;
+			/ $re_ex(b850) DLDI "simplified without 'ystdex::' for \
+				%bad_any_cast" @ %(NPLA, NPLA1)
+			),
+			(
+			+ 'using YSLib::in_place_type;' @ %NPLA;
+			/ $re_add(b850) DLD "simplified without 'ystdex::'"
+				@ %(Dependency, NPLA1) ^ "%in_place_type"
+			),
+			(
+			+ (+ 'using YSLib::any;', 'namespace any_ops = YSLib::any_ops;'）
+				@ %NPLA;
+			/ $re_add(b850) DLD "simplified without 'ystdex::'"
+				@ %NPLA1 ^ "%(any, any_ops)"
+			),
+			/ DLDI "simplified function %LoadModule_std_environments"
+				@ %Dependency !^ "redundant 'static_cast'",
+			(
+			+ 'using YSLib::function;' @ %Lexical
+			/ $dev "all %std::function" -> "%function" $effective
+				@ %(Lexical, SContext, NPLA, NPLA1, Dependency)
+			),
+			/ %NPLA $=
+			(
+				+ "function %get_allocator" @ "class %ContextNode",
+				/ @ "class template %GComposedAction" $=
+				(
+					+ $dev "static asserts to constraint action components are \
+						objects";
+					/ "constructor template allocated components with allocator"
+						^ ("%ystdex::make_obj_using_allocator", $dep_from
+						"%ContextNode::get_allocator")
+				)
+			),
+			/ %NPLA1 $=
+			(
+				/ "allocated components with allocator"
+					@ "constructor template %Continuation"
+					^ ("%ystdex::make_obj_using_allocator", $dep_from
+					"%ContextNode::get_allocator"),
+				/ DLI "optimized allocator for %share_move"
+					$dep_from ("share_move" @ %YBase.YStandardEx.Memory),
+				/ DLDI "simplified function %ReduceOnce",
+				/ DLDI "made check parameter tree earlier" @ "vau handler",
+					// This makes slightly performace gain when the parameter \
+						tree is ill-formed.
+				/ "fresh evaluation of closures and expressions and vau \
+					handlers call" $=
+				(
+					// This improves performance because less continuations \
+						are needed and the redundant TCO without TCO action \
+						case is not supported.
+					/ DLDI "simplified" !^ "%(ReduceCheckedClosure, \
+						ContextState::SetNextTermRef)" $dep_to
+						"avoided ReduceCheckedClosure",
+					- DLI "redundant current term setting and recovery",
+						// The continuation capture is not allowed here.
+					(
+					* $re_ex(b825, b842) "missing saving temporary function \
+						and operand to the frame record list for TCO when the \
+						internal guard holding no environment" $since b823,
+					* "missing saving temporary function and operand to the \
+						frame record list in 1st enclosing calls" $since b842;
+						// When temporary operand can be updated more than one \
+							place, it could not guarantee the omission of \
+							1st frame record entry insertion is safe (to avoid \
+							to be overwritten).
+					+ $lib "assertion to ensure no temporary operand is \
+						unexpectedly overwritten"
+					),
+					/ $lib "check for TCO action" -> "assertion to ensure TCO \
+						action has been created",
+					/ DLI "avoided saving terms" @ "non-TCO implementations"
+				),
+				+ $re_add(b820) DLDI "internal static assertion to ensure TCO \
+					implementation as the premise of tail rewriting",
+				- "function %ReduceCheckedClosure" $dep_from
+					"avoided ReduceCheckedClosure"
+				/ DLI "TCO" $=
+				(
+					/ $design "simplified TCO action" ^ ($dep_from
+						"%get_allocator" ~ "%GetMemoryResourceRef")
+						@ "class %ContextNode" @ %NPLA,
+					/ "TCO record compressor and guard list" ^ "allocator"
+				)
+			)
+		)
+	),
+	/ DLB "excluded files without definitions" @ "platform %Win32"
+		@ "Microsoft VC++ projects"
+		// To eliminate Microsoft VC++ error: LNK4221.
+),
+
+b850
 (
 	/ DLDI "qualified %unseq_apply with 'ystdex::'" $effective
 		@ %(YFramework.YSLib.UI.(YWidget, YUIContainer), YReader.(ShlExplorer,
@@ -1988,7 +2375,7 @@ b845
 			/ $re_add(b841) "used stricter condition \
 				'(!YB_IMPL_CLANGPP || __cplusplus >= 201703L)'"
 				@ "macro %YB_ATTR_fallthrough",
-				// To eliminate error: [-Werror,-Wc++17-extensions].
+				// To eliminate Clang++ error: [-Werror,-Wc++17-extensions].
 			(
 			+ $re_add(b835) "conditionally-defined macro \
 				%__cpp_noexcept_function_type";
@@ -3099,7 +3486,8 @@ b843
 					/ DLDI "refactored TCO compression",
 					* "TCO invalidated by %ReduceChecked" $since b841,
 					(
-					/ "supported temporary cleanup" @ "function %ReduceAgain";
+					/ $re_ex(b825) "supported temporary cleanup"
+						@ "function %ReduceAgain";
 					* "temporary lifetime" @ "function %ReduceOrdered" $since
 						b823
 					)
@@ -3177,7 +3565,7 @@ b841
 			/ "used stricter condition \
 				'(!YB_IMPL_CLANGPP || __cplusplus >= 201703L)'"
 				@ "macro %YB_ATTR_nodiscard"
-				// To eliminate error: [-Werror,-Wc++17-extensions].
+				// To eliminate Clang++ error: [-Werror,-Wc++17-extensions].
 			/ $dev "avoided possible redefition of macros \
 				%(_CRT_SECURE_NO_WARNINGS, _SCL_SECURE_NO_WARNINGS)"
 				@ 'YB_IMPL_MSCPP >= 1400'
@@ -6781,7 +7169,7 @@ b825
 			),
 			/ %NPLA1 $=
 			(
-				* "lifetime of dynamic environments unnecessarily kept" $since
+				* "lifetime of dynamic environments not necessarily kept" $since
 					b823
 					// For PTC of invocation of 'f' in \
 						'$defl! f (n) $seq2 n (f n);', while '$seq2' is from \
@@ -9026,13 +9414,24 @@ b800
 	),
 	* $comp "file creation failure with %errno value 138" @ "platform %DS"
 		@ "function %LoadNPLA1File" @ %Helper.Initialization $since b721
-		$dep_from ("constructors %DEntry" @ %'YCLib_(DS)'.DSIO)
+		$dep_from ("constructors %DEntry" @ %'YCLib_(DS)'.DSIO),
 		// See also %'YCLib_(DS)'.DSIO correction for %FileInfo constructor \
 			which is hidden by this bug.
+	/ DLP "platform %MinGW32 toolchain"
+	(
+		^ $resolve(#30) $re_ex(b700) "MinGW[gcc version 7.1.0 (Rev2, Built by \
+			MSYS2 project)] mingw32/mingw-w64-i686-gcc-7.1.0-2" ~ "MinGW[gcc \
+			version 5.4.0 (Rev3, Built by MSYS2 project)] \
+			mingw32/mingw-w64-i686-gcc-5.4.0-1" @ "platform %MinGW32",
+			// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
+				Exceptions implementation: Dwarf2.
+		^ $re_ex(b700) "mingw-w64-i686-binutils 2.28-2 from MSYS2"
+			~ "mingw-w64-i686-binutils 2.25.1-5"
+	),
 	/ $re_ex(b700) "updated %SUBTITLE2 year" @ "makefile" @ "platform %DS"
 		@ "project %YSTest",
 	/ $re_ex(b700) "regenerated Code::Blocks projects"
-		^ ("%GenerateProjects.sh" @ %Tools.Scripts);
+		^ ("%GenerateProjects.sh" @ %Tools.Scripts)
 );
 
 ////

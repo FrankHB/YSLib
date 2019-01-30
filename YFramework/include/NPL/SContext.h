@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2018 FrankHB.
+	© 2012-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1554
+\version r1557
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2018-11-22 17:23 +0800
+	2019-01-20 00:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,8 +44,8 @@ using TLIter = TokenList::iterator;
 using TLCIter = TokenList::const_iterator;
 //! \since build 674
 //@{
-using YSLib::observer_ptr;
 using YSLib::LoggedEvent;
+using YSLib::observer_ptr;
 
 //! \brief 项节点：存储语法分析结果的值类型节点。
 using TermNode = yimpl(ValueNode);
@@ -115,7 +115,7 @@ class YF_API Session
 public:
 	//! \since build 546
 	//@{
-	using CharParser = std::function<void(LexicalAnalyzer&, char)>;
+	using CharParser = function<void(LexicalAnalyzer&, char)>;
 
 	//! \since build 592
 	LexicalAnalyzer Lexer;

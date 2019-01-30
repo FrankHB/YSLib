@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r2849
+\version r2856
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2019-01-05 16:49 +0800
+	2019-01-18 16:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,8 +32,8 @@
 #define YB_INC_ystdex_type_op_hpp_ 1
 
 #include "integer_sequence.hpp" // for is_class, std::declval, is_detected,
-//	vseq::apply, _t, bool_, is_void, is_same, remove_reference_t, and_, cond_t,
-//	is_enum, vdefer, underlying_type_t, common_type_t;
+//	vseq::apply, _t, bool_, is_void, is_same, detected_or_t, remove_reference_t,
+//	and_, cond_t, is_enum, vdefer, underlying_type_t, common_type_t;
 
 namespace ystdex
 {
@@ -145,6 +145,10 @@ using mem_value_t = decltype(std::declval<_type>().value);
 template<typename _type>
 using mem_value_type_t = typename _type::value_type;
 
+//! \since build 851
+template<typename _type>
+using ctor_of_or_void_t = vseq::ctor_of_t<_type>;
+
 } // namespace details;
 
 
@@ -243,7 +247,8 @@ struct have_common_nonempty_virtual_base : bool_<!is_same<_type1, _type2>::value
 \since build 849
 */
 template<typename _type, class _tCtor>
-using is_instance_of = is_same<vdefer<vseq::ctor_of_t, _type>, _tCtor>;
+using is_instance_of = is_same<
+	detected_or_t<void, details::ctor_of_or_void_t, _type>, _tCtor>;
 
 
 /*!

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2018 FrankHB.
+	© 2012-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1582
+\version r1588
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2018-05-09 02:46 +0800
+	2019-01-20 00:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,8 @@
 namespace NPL
 {
 
+//! \since build 851
+using YSLib::function;
 //! \since build 329
 using YSLib::list;
 //! \since build 806
@@ -163,15 +165,14 @@ public:
 	\note 返回值表示是否修改了前缀。
 	\since build 546
 	*/
-	using PrefixHandler = std::function<bool(char, string&)>;
+	using PrefixHandler = function<bool(char, string&)>;
 	/*!
 	\brief 指定匹配转义序列的反转义算法：解析转义序列并按需修改指定缓存。
 	\note 参数表示输出缓存、反转义上下文和当前正在处理的边界字符（如引号）。
 	\note 返回值表示是否修改了输出缓存。
 	\since build 545
 	*/
-	using Unescaper
-		= std::function<bool(string&, const UnescapeContext&, char)>;
+	using Unescaper = function<bool(string&, const UnescapeContext&, char)>;
 
 private:
 	/*!

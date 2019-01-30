@@ -11,13 +11,13 @@
 /*!	\file apply.hpp
 \ingroup YStandardEx
 \brief 元组应用操作。
-\version r985
+\version r986
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2019-01-11 19:43:23 +0800
 \par 修改时间:
-	2019-01-13 14:59 +0800
+	2019-01-30 10:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 
 #include "invoke.hpp" // for "invoke.hpp", index_sequence, ystdex::invoke,
 //	make_index_sequence, decay_t;
+#include "integer_sequence.hpp" // for index_sequence;
 #include <tuple> // for <tuple>, std::tuple, std::get, std::forward_as_tuple,
 //	std::tuple_size, std::make_from_tuple;
 

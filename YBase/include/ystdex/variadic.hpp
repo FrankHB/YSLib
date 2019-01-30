@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2018 FrankHB.
+	© 2012-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r1386
+\version r1403
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2018-07-23 21:42 +0800
+	2019-01-18 19:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -163,6 +163,11 @@ using apply_t = _t<apply<_func, _tParams...>>;
 YB_Impl_Variadic_SeqOp(defer, template<typename...> class _gOp YPP_Comma class
 	_tSeq, _gOp YPP_Comma _tSeq)
 
+//! \since build 851
+template<template<typename...> class _gOp, class _tSeq>
+struct defer<_gOp, _tSeq, when<true>>
+{};
+
 template<template<typename...> class _gOp, template<typename...> class _gSeq,
 	typename... _types>
 struct defer<_gOp, _gSeq<_types...>, when_valid<_gOp<_types...>>>
@@ -278,8 +283,14 @@ struct _q
 //@{
 YB_Impl_Variadic_SeqOpU(ctor_of)
 
+//! \since build 851
+template<class _tSeq>
+struct ctor_of<_tSeq, when<true>>
+{};
+
+//! \since build 851
 template<template<typename...> class _gSeq, typename... _types>
-struct ctor_of<_gSeq<_types...>>
+struct ctor_of<_gSeq<_types...>, when<true>>
 {
 	using type = _a<_gSeq>;
 };
@@ -295,8 +306,14 @@ struct ctor_of<_gSeq<_types...>>
 //@{
 YB_Impl_Variadic_SeqOpU(params_of)
 
+//! \since build 851
+template<class _tSeq>
+struct params_of<_tSeq, when<true>>
+{};
+
+//! \since build 851
 template<template<typename...> class _gSeq, typename... _types>
-struct params_of<_gSeq<_types...>>
+struct params_of<_gSeq<_types...>, when<true>>
 {
 	using type = empty_base<_types...>;
 };

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2018 FrankHB.
+	© 2014-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file swap.hpp
 \ingroup YStandardEx
 \brief 交换操作。
-\version r584
+\version r613
 \author FrankHB <frankhb1989@gmail.com>
 \since build 831
 \par 创建时间:
 	2018-07-12 16:38:36 +0800
 \par 修改时间:
-	2018-12-02 06:17 +0800
+	2019-01-22 13:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,11 @@
 #ifndef YB_INC_ystdex_swap_hpp_
 #define YB_INC_ystdex_swap_hpp_ 1
 
-#include "type_pun.hpp" // for internal "type_pun.hpp", std::move, std::declval,
-//	false_, bool_, is_referenceable, true_, is_class, is_nothrow_constructible,
-//	is_nothrow_assignable, add_volatile_t, std::addressof, is_standard_layout,
-//	pun_storage_t, aligned_replace_cast;
+#include "type_pun.hpp" // for internal "type_pun.hpp", enable_if_t,
+//	is_move_constructible, is_move_assignable, and_, std::move, std::declval,
+//	false_, bool_, is_referenceable, true_, is_class, is_enum, bool_, is_void,
+//	is_nothrow_constructible, is_nothrow_assignable, add_volatile_t,
+//	std::addressof, is_standard_layout, pun_storage_t, aligned_replace_cast;
 
 #if __cpp_lib_is_swappable >= 201603L
 #	define YB_Impl_Swap_Traits true
@@ -312,20 +313,31 @@ using ystdex_swap::swap_ranges;
 namespace details
 {
 
-template<typename _type>
+//! \since build 851
+//@{
+namespace yimpl(swap_dep_impl)
+{
+
+template<typename _type, typename = enable_if_t<is_void<_type>::value>>
+void
+swap(_type&);
+
+template<typename _type, typename _tDummy>
 yconstfn_relaxed void
-swap_dep(_type& x, _type& y, false_)
+swap_dep(_type& x, _type& y, _tDummy&&)
 {
 	ystdex_swap::swap(x, y);
 }
 template<typename _type>
-yconstfn_relaxed void
+yconstfn_relaxed auto
 swap_dep(_type& x, _type& y, true_)
+	-> decltype(static_cast<void>(swap(x, y)))
 {
-	using ystdex_swap::swap;
-
 	swap(x, y);
 }
+
+} // namespace yimpl(swap_dep_impl);
+//@}
 
 } // namespace details;
 
@@ -358,7 +370,9 @@ template<typename _type>
 yconstfn_relaxed void
 swap_dependent(_type& x, _type& y) ynothrow(is_nothrow_swappable<_type>())
 {
-	details::swap_dep(x, y, is_class<_type>());
+	details::yimpl(swap_dep_impl)::swap_dep(x, y,
+		// XXX: This has to be exactly %true_ for ADL overload.
+		bool_<is_class<_type>::value || is_enum<_type>::value>());
 }
 
 /*!
@@ -368,7 +382,7 @@ swap_dependent(_type& x, _type& y) ynothrow(is_nothrow_swappable<_type>())
 */
 //@{
 template<typename _type>
-yimpl(enable_if_t)<is_nothrow_constructible<_type, volatile _type&&>()
+yimpl(enable_if_t)<is_nothrow_constructible<_type, volatile _type>()
 	&& is_nothrow_assignable<_type&, volatile _type&&>()
 	&& is_nothrow_assignable<volatile _type&, _type&&>()>
 swap_volatile(_type& x, volatile _type& y)
@@ -465,7 +479,10 @@ vswap(_type&& x, _type2&& y) ynoexcept(detected_or_t<false_,
 //@}
 
 
-//! \note 使用 ADL swap 或 ystdex_swap::swap 。
+/*!
+\note 使用 ADL swap 或 ystdex_swap::swap 。
+\warning 若交换使用赋值实现并重入调用，则调用的行为未定义。
+*/
 //@{
 /*!
 \brief 复制后交换。
@@ -515,7 +532,7 @@ exchange(_type& obj, _type2&& new_val)
 {
 	_type old_val = std::move(obj);
 
-	obj = std::forward<_type2>(new_val);
+	obj = yforward(new_val);
 	return old_val;
 }
 #endif

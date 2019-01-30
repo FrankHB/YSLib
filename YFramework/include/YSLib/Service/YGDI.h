@@ -11,13 +11,13 @@
 /*!	\file YGDI.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r4044
+\version r4048
 \author FrankHB <frankhb1989@gmail.com>
 \since build 566
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2019-01-14 17:06 +0800
+	2019-01-21 20:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -275,7 +275,6 @@ public:
 
 	DefGetter(const ynothrow, BitmapPtr, BufferPtr,
 		BaseType::GetBufferPtr().get())
-	using BaseType::GetBufferPtr;
 	using BaseType::GetHeight;
 	using BaseType::GetWidth;
 	using BaseType::GetSize;
@@ -319,7 +318,7 @@ public:
 	\since build 710
 	*/
 	friend PDefH(void, swap, CompactPixmap& x, CompactPixmap& y) ynothrow
-		ImplExpr(std::swap<BaseType>(x, y))
+		ImplExpr(ystdex::swap_dependent<BaseType>(x, y))
 };
 
 /*!
@@ -396,7 +395,8 @@ public:
 	\since build 710
 	*/
 	PDefH(void, swap, CompactPixmapEx& x, CompactPixmapEx& y) ynothrow
-		ImplExpr(std::swap<CompactPixmap>(x, y),
+		// XXX: See https://bitbucket.org/FrankHB/yslib/issues/38.
+		ImplExpr(ystdex::swap_dependent<CompactPixmap>(x, y),
 			std::swap(x.pBufferAlpha, y.pBufferAlpha))
 };
 

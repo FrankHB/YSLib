@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018 FrankHB.
+	© 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file tree.h
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r2453
+\version r2497
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2018-11-17 00:34 +0800
+	2019-01-20 13:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,10 +43,10 @@
 //	ystdex::swap_dependent, yassume, yconstraint, true_, false_,
 //	std::pointer_traits, is_nothrow_copy_constructible, aligned_storage_t,
 //	standard_layout_storage, std::allocator, std::bidirectional_iterator_tag,
-//	ystdex::reverse_iterator, is_same, cond_t, is_nothrow_move_assignable, or_,
-//	and_, is_invocable, ystdex::alloc_on_copy, is_nothrow_swappable,
-//	ystdex::alloc_on_swap, enable_if_t, std::move_if_noexcept,
-//	ystdex::alloc_on_move;
+//	rebind_alloc_t, ystdex::reverse_iterator, is_same, cond_t,
+//	is_nothrow_move_assignable, or_, and_, is_invocable, ystdex::alloc_on_copy,
+//	is_nothrow_swappable, ystdex::alloc_on_swap, enable_if_t,
+//	std::move_if_noexcept, ystdex::alloc_on_move;
 #include "optional.h" // for optional, bidirectional_iteratable,
 //	equality_comparable, totally_ordered, has_mem_is_transparent,
 //	std::equal, std::lexicographical_compare;
@@ -60,6 +60,14 @@ namespace ystdex
 namespace details
 {
 
+inline namespace rb_tree
+{
+
+template<typename, typename, typename, typename, class>
+class tree;
+
+} // unnamed namespace;
+
 //! \warning 非虚析构。
 //{@
 //! \brief 节点句柄基类。
@@ -70,8 +78,7 @@ class node_handle_base
 	friend class tree;
 
 public:
-	using allocator_type
-		= typename allocator_traits<_tNodeAlloc>::template rebind_alloc<_type>;
+	using allocator_type = rebind_alloc_t<_tNodeAlloc, _type>;
 
 private:
 	using alloc_traits = allocator_traits<_tNodeAlloc>;
@@ -215,8 +222,7 @@ public:
 	~node_handle() = default;
 
 	node_handle&
-	operator=(node_handle&&) ynothrow
-		= default;
+	operator=(node_handle&&) ynothrow = default;
 
 	using key_type = _tKey;
 	using mapped_type = typename _type::second_type;
@@ -672,6 +678,10 @@ public:
 	using const_reference = const value_type&;
 	using size_type = size_t ;
 	using difference_type = ptrdiff_t;
+	/*!
+	\brief 分配器类型。
+	\note 支持 uses-allocator 构造。
+	*/
 	using allocator_type = _tAlloc;
 
 protected:
@@ -681,8 +691,7 @@ protected:
 	using const_link_type = const tree_node<_type>*;
 
 private:
-	using node_allocator = typename allocator_traits<_tAlloc>::template
-		rebind_alloc<tree_node<_type>>;
+	using node_allocator = rebind_alloc_t<_tAlloc, tree_node<_type>>;
 	using alloc_traits = allocator_traits<node_allocator>;
 	//! \since build 844
 	using alloc_move_nothrow
@@ -809,6 +818,7 @@ public:
 		cond_t<is_same<_tKey, _type>, const_iterator, iterator>, node_type>;
 
 	tree() = default;
+	//! \note 支持 uses-allocator 构造。
 	tree(const _fComp& comp, const allocator_type& a = allocator_type())
 		: objects(comp, node_allocator(a))
 	{}
@@ -818,9 +828,11 @@ public:
 		if(x.root())
 			root() = copy_node(x);
 	}
+	//! \note 支持 uses-allocator 构造。
 	tree(const allocator_type& a)
 		: objects(_fComp(), node_allocator(a))
 	{}
+	//! \note 支持 uses-allocator 构造。
 	tree(const tree& x, const allocator_type& a)
 		: objects(x.objects.key_compare, node_allocator(a))
 	{
@@ -828,9 +840,11 @@ public:
 			root() = copy_node(x);
 	}
 	tree(tree&&) = default;
+	//! \note 支持 uses-allocator 构造。
 	tree(tree&& x, const allocator_type& a)
 		: tree(std::move(x), node_allocator(a))
 	{}
+	//! \note 支持 uses-allocator 构造。
 	tree(tree&& x, node_allocator&& a)
 		: objects(x.objects.key_compare, std::move(a))
 	{
@@ -873,6 +887,18 @@ public:
 	operator=(tree&& x) ynoexcept_spec(
 		and_<alloc_move_nothrow, is_nothrow_move_assignable<_fComp>>::value)
 	{
+		// NOTE: Like ISO C++ [res.on.arguments], moving same object to itself
+		//	is not supported to meet the postcondition of moving assignment,
+		//	and the result is unspecified. Since it is still well-defined, there
+		//	is no assertion here.
+		// XXX: Moving from an ancestor to its subtree (composed by elements of
+		//	recursive container type) is also not supported and it would
+		//	typically lead to resource leaks, however there is no check anyway.
+		//	This is different to ISO C++ as associative containers do not
+		//	support incomplete element types so the recursive container type
+		//	itself cause undefined behavior anyway.
+		// XXX: Use %swap if the operand can reference to the object itself or
+		//	its subtrees thereby.
 		objects.key_compare = std::move(x.objects.key_compare);
 		move_assign_elements(x, alloc_move_nothrow());
 		return *this;
@@ -1025,7 +1051,7 @@ protected:
 	{
 		const auto tmp(get_node());
 
-		construct_node(tmp, std::forward<_tParams>(args)...);
+		construct_node(tmp, yforward(args)...);
 		return tmp;
 	}
 
@@ -1621,7 +1647,7 @@ public:
 	{
 		alloc_node an(*this);
 
-		return insert_hint_unique(position, std::forward<_tParam>(x), an);
+		return insert_hint_unique(position, yforward(x), an);
 	}
 
 	template<typename _tParam, typename _tNodeGen>
@@ -1641,14 +1667,14 @@ public:
 	{
 		alloc_node an(*this);
 
-		return insert_hint_equal(position, std::forward<_tParam>(x), an);
+		return insert_hint_equal(position, yforward(x), an);
 	}
 
 	template<typename... _tParams>
 	std::pair<iterator, bool>
 	emplace_unique(_tParams&&... args)
 	{
-		const auto nd(create_node(std::forward<_tParams>(args)...));
+		const auto nd(create_node(yforward(args)...));
 
 		try
 		{
@@ -1671,7 +1697,7 @@ public:
 	iterator
 	emplace_equal(_tParams&&... args)
 	{
-		const auto nd(create_node(std::forward<_tParams>(args)...));
+		const auto nd(create_node(yforward(args)...));
 
 		try
 		{
@@ -1690,7 +1716,7 @@ public:
 	iterator
 	emplace_hint_unique(const_iterator position, _tParams&&... args)
 	{
-		const auto nd(create_node(std::forward<_tParams>(args)...));
+		const auto nd(create_node(yforward(args)...));
 
 		try
 		{
@@ -1712,7 +1738,7 @@ public:
 	iterator
 	emplace_hint_equal(const_iterator position, _tParams&&... args)
 	{
-		const auto nd(create_node(std::forward<_tParams>(args)...));
+		const auto nd(create_node(yforward(args)...));
 
 		try
 		{
@@ -1780,7 +1806,6 @@ public:
 		erase_node_aux(position);
 		return res.cast_mutable();
 	}
-
 	iterator
 	erase(iterator position)
 	{
@@ -1792,7 +1817,6 @@ public:
 		erase_node_aux(position);
 		return res;
 	}
-
 	size_type
 	erase(const key_type& x)
 	{
@@ -1802,7 +1826,6 @@ public:
 		erase_node_aux(pr.first, pr.second);
 		return old_size - size();
 	}
-
 	iterator
 	erase(const_iterator first, const_iterator last)
 	{

@@ -218,14 +218,20 @@
     <ClCompile Include="Android\source\Helper\AndroidHost.cpp">
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Android\source\Helper\AndroidScreen.cpp">
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Android\source\YCLib\Android.cpp">
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="DS\source\Helper\DSMain.cpp">
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
@@ -243,7 +249,10 @@
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
     </ClCompile>
-    <ClCompile Include="DS\source\YCLib\DSIO.cpp" />
+    <ClCompile Include="DS\source\YCLib\DSIO.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="DS\source\YCLib\DSVideo.cpp">
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
@@ -303,6 +312,8 @@
     <ClCompile Include="source\Helper\ScreenBuffer.cpp">
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="source\Helper\ShellHelper.cpp">
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
@@ -311,6 +322,8 @@
     <ClCompile Include="source\Helper\yglobal.cpp">
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="source\NPL\Configuration.cpp" />
     <ClCompile Include="source\NPL\Dependency.cpp" />
@@ -341,7 +354,10 @@
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
     </ClCompile>
-    <ClCompile Include="source\YCLib\JNI.cpp" />
+    <ClCompile Include="source\YCLib\JNI.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="source\YCLib\Keys.cpp">
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
@@ -354,7 +370,10 @@
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
     </ClCompile>
-    <ClCompile Include="source\YCLib\POSIXThread.cpp" />
+    <ClCompile Include="source\YCLib\POSIXThread.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="source\YCLib\Timer.cpp">
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
@@ -363,7 +382,10 @@
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
     </ClCompile>
-    <ClCompile Include="source\YCLib\XCB.cpp" />
+    <ClCompile Include="source\YCLib\XCB.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="source\YCLib\YCommon.cpp">
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
@@ -410,7 +432,10 @@
     <ClCompile Include="source\YSLib\UI\Button.cpp" />
     <ClCompile Include="source\YSLib\UI\ComboList.cpp" />
     <ClCompile Include="source\YSLib\UI\ExStyle.cpp" />
-    <ClCompile Include="source\YSLib\UI\form.cpp" />
+    <ClCompile Include="source\YSLib\UI\form.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="source\YSLib\UI\Hover.cpp" />
     <ClCompile Include="source\YSLib\UI\Label.cpp" />
     <ClCompile Include="source\YSLib\UI\Loader.cpp" />
@@ -426,7 +451,10 @@
     <ClCompile Include="source\YSLib\UI\UIContainerEx.cpp" />
     <ClCompile Include="source\YSLib\UI\Viewer.cpp" />
     <ClCompile Include="source\YSLib\UI\Console.cpp" />
-    <ClCompile Include="source\YSLib\UI\YComponent.cpp" />
+    <ClCompile Include="source\YSLib\UI\YComponent.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="source\YSLib\UI\YControl.cpp" />
     <ClCompile Include="source\YSLib\UI\YDesktop.cpp" />
     <ClCompile Include="source\YSLib\UI\YFocus.cpp" />

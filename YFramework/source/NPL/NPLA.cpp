@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2018 FrankHB.
+	© 2014-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2139
+\version r2144
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2018-11-23 00:41 +0800
+	2019-01-20 00:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLA // for std::allocator_arg, ystdex::value_or,
-//	ystdex::write, ystdex::bad_any_cast, ystdex::unimplemented, ystdex::type_id,
+//	ystdex::write, bad_any_cast, ystdex::unimplemented, ystdex::type_id,
 //	ystdex::quote, ystdex::call_value_or, ystdex::begins_with, ystdex::sfmt,
 //	sfmt, ystdex::ref, ystdex::retry_on_cond, ystdex::type_info, pair;
 #include YFM_NPL_SContext
@@ -130,7 +130,7 @@ PrintNodeString(std::ostream& os, const ValueNode& node,
 	NodeToString node_to_str)
 {
 	TryRet(os << node_to_str(node) << '\n', true)
-	CatchIgnore(ystdex::bad_any_cast&)
+	CatchIgnore(bad_any_cast&)
 	return {};
 }
 
@@ -258,7 +258,7 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 					else
 						throw LoggedEvent("Empty item found.", Warning);
 				}
-				CatchExpr(ystdex::bad_any_cast& e, YTraceDe(Warning,
+				CatchExpr(bad_any_cast& e, YTraceDe(Warning,
 					"Conversion failed: <%s> to <%s>.", e.from(), e.to()))
 		}
 		return res;
@@ -351,7 +351,7 @@ RedirectToShared(string_view id, const shared_ptr<Environment>& p_shared)
 //! \since build 839
 //@{
 // XXX: Use other type without overhead of check on call of %operator()?
-using Redirector = std::function<observer_ptr<const Environment>()>;
+using Redirector = function<observer_ptr<const Environment>()>;
 
 observer_ptr<const Environment>
 RedirectParent(const ValueObject&, string_view, Redirector&);

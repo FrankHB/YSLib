@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r5585
+\version r5647
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2019-01-16 00:34 +0800
+	2019-01-31 02:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,13 +29,15 @@
 #define YSL_INC_Core_YObject_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YCoreUtilities // for ystdex::true_, ystdex::is_decayed,
-//	any, any_ops::use_holder, in_place_type, ystdex::false_, ystdex::type_id,
-//	ystdex::alloc_value_t, std::allocator_arg, ystdex::ref, ystdex::decay_t,
-//	std::allocator_arg_t, in_place_type_t, ystdex::copy_or_move,
-//	any_ops::holder, ystdex::boxed_value, any_ops::is_in_place_storable,
-//	ystdex::is_sharing, YSLib::unchecked_any_cast, YSLib::any_cast,
-//	YSLib::make_observer, ystdex::pseudo_output;
+#include YFM_YSLib_Core_YCoreUtilities // for any, any_ops::use_holder,
+//	std::allocator_arg, in_place_type, ystdex::false_, ystdex::true_,
+//	any_ops::holder, ystdex::boxed_value, ystdex::exclude_self_t,
+//	std::is_constructible, ystdex::enable_if_t, ystdex::type_id,
+//	ystdex::alloc_value_t, any_ops::is_in_place_storable, ystdex::is_sharing,
+//	ystdex::is_decayed, ystdex::ref, ystdex::cond_t, ystdex::decay_t,
+//	std::allocator_arg_t, in_place_type_t, YSLib::unchecked_any_cast,
+//	YSLib::any_cast, YSLib::make_observer, ystdex::copy_or_move,
+//	ystdex::pseudo_output;
 #include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
 
@@ -117,9 +119,10 @@ private:
 		return any(any_ops::use_holder, in_place_type<_tHolder>,
 			yforward(args)...);
 	}
+	//! \since build 851
 	template<typename... _tParams>
 	YB_ATTR_nodiscard YB_NORETURN static any
-	CreateInPlaceImpl(int, _tParams&&...)
+	CreateInPlaceImpl(void*, _tParams&&...)
 	{
 		ystdex::throw_invalid_construction();
 	}
@@ -134,31 +137,17 @@ private:
 		return any(std::allocator_arg, a, any_ops::use_holder,
 			in_place_type<_tHolder>, yforward(args)...);
 	}
+	//! \since build 851
 	template<typename... _tParams>
 	YB_ATTR_nodiscard YB_NORETURN static any
-	CreateInPlaceWithAllocatorImpl(int, _tParams&&...)
+	CreateInPlaceWithAllocatorImpl(void*, _tParams&&...)
 	{
 		ystdex::throw_invalid_construction();
 	}
 
 public:
-	//! \note ystdex::true_ 或 ystdex::false_ 指定的选项创建持有者或抛出异常。
+	//! \note ystdex::false_ 或 ystdex::true_ 指定的选项创建持有者或抛出异常。
 	//@{
-	template<typename... _tParams>
-	YB_ATTR_nodiscard static any
-	CreateInPlaceConditionally(ystdex::true_, _tParams&&... args)
-	{
-		return any(any_ops::use_holder, in_place_type<_tHolder>,
-			yforward(args)...);
-	}
-	template<class _tAlloc, typename... _tParams>
-	YB_ATTR_nodiscard static any
-	CreateInPlaceConditionally(std::allocator_arg_t, const _tAlloc& a,
-		ystdex::true_, _tParams&&... args)
-	{
-		return any(std::allocator_arg, a, any_ops::use_holder,
-			in_place_type<_tHolder>, yforward(args)...);
-	}
 	//! \exception ystdex::invalid_construction 参数类型无法用于初始化持有者。
 	//@{
 	template<typename... _tParams>
@@ -176,6 +165,21 @@ public:
 		ystdex::throw_invalid_construction();
 	}
 	//@}
+	template<typename... _tParams>
+	YB_ATTR_nodiscard static any
+	CreateInPlaceConditionally(ystdex::true_, _tParams&&... args)
+	{
+		return any(any_ops::use_holder, in_place_type<_tHolder>,
+			yforward(args)...);
+	}
+	template<class _tAlloc, typename... _tParams>
+	YB_ATTR_nodiscard static any
+	CreateInPlaceConditionally(std::allocator_arg_t, const _tAlloc& a,
+		ystdex::true_, _tParams&&... args)
+	{
+		return any(std::allocator_arg, a, any_ops::use_holder,
+			in_place_type<_tHolder>, yforward(args)...);
+	}
 	//@}
 };
 
@@ -336,16 +340,17 @@ public:
 	using value_type = _type;
 
 	//! \since build 677
-	//@{
 	DefDeCtor(ValueHolder)
-	template<typename _tParam,
-		yimpl(typename = ystdex::exclude_self_t<ValueHolder, _tParam>)>
+	//! \since build 851
+	template<typename _tParam, yimpl(typename = ystdex::exclude_self_t<
+		ValueHolder, _tParam>, typename = ystdex::enable_if_t<
+		std::is_constructible<_type, _tParam>::value>)>
 	ValueHolder(_tParam&& arg)
 		ynoexcept(std::is_nothrow_constructible<_type, _tParam>())
 		: ystdex::boxed_value<_type>(yforward(arg))
 	{}
+	//! \since build 677
 	using ystdex::boxed_value<_type>::boxed_value;
-	//@}
 	//! \since build 555
 	DefDeCopyMoveCtorAssignment(ValueHolder)
 
@@ -704,6 +709,21 @@ IValueHolder::CreateHolder(Creation c, _type& obj)
 
 
 /*!
+\ingroup unary_type_traits
+\since build 851
+*/
+//@{
+template<typename _type>
+struct IsValueHolder : ystdex::false_
+{};
+
+template<typename _type>
+struct IsValueHolder<ValueHolder<_type>> : ystdex::true_
+{};
+//@}
+
+
+/*!
 \brief 值类型对象类。
 \pre 满足 CopyConstructible 。
 \warning 非虚析构。
@@ -726,6 +746,13 @@ private:
 	template<typename _type, class _tAlloc>
 	using alloc_holder_t = AllocatorHolder<ystdex::rebind_alloc_t<_tAlloc,
 		ystdex::decay_t<_type>>>;
+	//! \since build 851
+	template<typename _type>
+	using add_vh_t
+		// XXX: This cannot use %ystdex::vseq::ctor_of_t because it does not
+		//	work for %std::_Tuple_impl instances. See also  See $2019-01
+		//	@ %Documentation::Workflow::Annual2019.
+		= ystdex::cond_t<IsValueHolder<_type>, _type, ValueHolder<_type>>;
 
 	//! \since build 748
 	Content content;
@@ -740,14 +767,15 @@ public:
 	/*!
 	\brief 构造：使用对象引用。
 	\pre obj 可作为转移构造参数。
-	\since build 847
+	\note 使用 ValueHolder 实例视为持有者而不视为被初始化的值。
+	\since build 851
 	*/
 	template<typename _type,
 		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>),
 		yimpl(typename = ystdex::exclude_self_t<std::allocator_arg_t, _type>)>
 	ValueObject(_type&& obj)
-		: content(any_ops::use_holder,
-		in_place_type<ValueHolder<ystdex::decay_t<_type>>>, yforward(obj))
+		: content(any_ops::use_holder, in_place_type<add_vh_t<ystdex::decay_t<
+		_type>>>, yforward(obj))
 	{}
 	/*!
 	\brief 构造：使用对象引用和构造器。

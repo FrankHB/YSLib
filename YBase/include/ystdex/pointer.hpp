@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2018 FrankHB.
+	© 2012-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r618
+\version r635
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2018-12-09 08:06 +0800
+	2019-01-17 20:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -279,38 +279,38 @@ public:
 	{}
 
 	//! \pre 断言： <tt>get() != nullptr</tt> 。
-	YB_ATTR_nodiscard YB_STATELESS yconstfn_relaxed reference
+	YB_ATTR_nodiscard YB_PURE yconstfn_relaxed reference
 	operator*() const ynothrowv
 	{
 		return yconstraint(get() != nullptr), *ptr;
 	}
 
-	YB_ATTR_nodiscard YB_STATELESS yconstfn pointer
+	YB_ATTR_nodiscard YB_PURE yconstfn pointer
 	operator->() const ynothrow
 	{
 		return ptr;
 	}
 
 	//! \since build 675
-	YB_ATTR_nodiscard YB_STATELESS friend yconstfn bool
+	YB_ATTR_nodiscard YB_PURE friend yconstfn bool
 	operator==(observer_ptr p, nullptr_t) ynothrow
 	{
 		return !p.ptr;
 	}
 
-	YB_ATTR_nodiscard YB_STATELESS explicit yconstfn
+	YB_ATTR_nodiscard YB_PURE explicit yconstfn
 	operator bool() const ynothrow
 	{
 		return ptr;
 	}
 
-	YB_ATTR_nodiscard YB_STATELESS explicit yconstfn
+	YB_ATTR_nodiscard YB_PURE explicit yconstfn
 	operator pointer() const ynothrow
 	{
 		return ptr;
 	}
 
-	YB_ATTR_nodiscard YB_STATELESS yconstfn pointer
+	YB_ATTR_nodiscard YB_PURE yconstfn pointer
 	get() const ynothrow
 	{
 		return ptr;
@@ -343,21 +343,21 @@ public:
 //! \since build 675
 //@{
 template<typename _type1, typename _type2>
-YB_ATTR_nodiscard YB_STATELESS yconstfn bool
+YB_ATTR_nodiscard YB_PURE yconstfn bool
 operator==(observer_ptr<_type1> p1, observer_ptr<_type2> p2) ynothrowv
 {
 	return p1.get() == p2.get();
 }
 
 template<typename _type1, typename _type2>
-YB_ATTR_nodiscard YB_STATELESS yconstfn bool
+YB_ATTR_nodiscard YB_PURE yconstfn bool
 operator!=(observer_ptr<_type1> p1, observer_ptr<_type2> p2) ynothrowv
 {
 	return !(p1 == p2);
 }
 
 template<typename _type1, typename _type2>
-YB_ATTR_nodiscard YB_STATELESS yconstfn bool
+YB_ATTR_nodiscard YB_PURE yconstfn bool
 operator<(observer_ptr<_type1> p1, observer_ptr<_type2> p2) ynothrowv
 {
 	return std::less<common_type_t<_type1*, _type2*>>()(p1.get(), p2.get());
@@ -371,7 +371,7 @@ swap(observer_ptr<_type>& p1, observer_ptr<_type>& p2) ynothrow
 	p1.swap(p2);
 }
 template<typename _type>
-YB_ATTR_nodiscard YB_STATELESS inline observer_ptr<_type>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
 make_observer(_type* p) ynothrow
 {
 	return observer_ptr<_type>(p);
@@ -446,7 +446,7 @@ public:
 	}
 
 	//! \since build 461
-	YB_ATTR_nodiscard YB_STATELESS yconstfn reference
+	YB_ATTR_nodiscard YB_PURE yconstfn reference
 	operator*() const ynothrowv
 	{
 		return yconstraint(raw), *raw;
@@ -468,20 +468,20 @@ public:
 	}
 
 	//! \since build 600
-	YB_ATTR_nodiscard YB_STATELESS friend yconstfn bool
+	YB_ATTR_nodiscard YB_PURE friend yconstfn bool
 	operator==(const pointer_iterator& x, const pointer_iterator& y) ynothrow
 	{
 		return x.raw == y.raw;
 	}
 
 	//! \since build 666
-	YB_ATTR_nodiscard YB_STATELESS friend yconstfn bool
+	YB_ATTR_nodiscard YB_PURE friend yconstfn bool
 	operator<(const pointer_iterator& x, const pointer_iterator& y) ynothrow
 	{
 		return x.raw < y.raw;
 	}
 
-	YB_ATTR_nodiscard YB_STATELESS yconstfn
+	YB_ATTR_nodiscard YB_PURE yconstfn
 	operator pointer() const ynothrow
 	{
 		return raw;
@@ -523,7 +523,7 @@ namespace std
 template<typename _type>
 struct hash<ystdex::nptr<_type>>
 {
-	YB_ATTR_nodiscard YB_STATELESS size_t
+	YB_ATTR_nodiscard YB_PURE size_t
 	operator()(const ystdex::observer_ptr<_type>& p) const
 		ynoexcept_spec(hash<_type>(p.get()))
 	{
@@ -539,7 +539,7 @@ struct hash<ystdex::nptr<_type>>
 template<typename _type>
 struct hash<ystdex::observer_ptr<_type>>
 {
-	YB_ATTR_nodiscard YB_STATELESS size_t
+	YB_ATTR_nodiscard YB_PURE size_t
 	operator()(const ystdex::observer_ptr<_type>& p) const yimpl(ynothrow)
 	{
 		return hash<_type*>(p.get());

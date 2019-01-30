@@ -11,13 +11,13 @@
 /*!	\file invoke.hpp
 \ingroup YStandardEx
 \brief 可调用对象和调用包装接口。
-\version r4614
+\version r4615
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-24 05:03:12 +0800
 \par 修改时间:
-	2019-01-15 12:57 +0800
+	2019-01-22 01:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -386,7 +386,7 @@ struct is_nothrow_invocable_r : bool_constant<details::inv_enabled_nt<
 //@{
 template<typename _fCallable, typename... _tParams>
 struct invoke_result
-	: identity<typename details::inv_result<_fCallable, _tParams...>::type>
+	: details::inv_result<_fCallable, _tParams...>
 {};
 
 template<typename _fCallable, typename... _tParams>

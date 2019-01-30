@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r794
+\version r841
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2019-01-01 10:08 +0800
+	2019-01-29 08:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "YSLib/Core/YModules.h"
 #include YFM_YSLib_Core_ValueNode // for ystdex::call_value_or, ystdex::addrof,
 //	ystdex::compose, std::mem_fn, ystdex::bind1;
-#include <cstdio> // for std::snprintf;
+#include <ystdex/cstdint.hpp> // for ystdex::floor_lb;
 
 namespace YSLib
 {
@@ -196,7 +196,7 @@ IsPrefixedIndex(string_view name, char prefix)
 		{
 			const auto ss(name.substr(1));
 
-			return MakeIndex(std::stoul(string(ss))) == ss;
+			return MakeIndex(DecodeIndex(ss)) == ss;
 		}
 		CatchIgnore(std::invalid_argument&)
 	return {};
@@ -205,20 +205,60 @@ IsPrefixedIndex(string_view name, char prefix)
 string
 MakeIndex(size_t n)
 {
-	char str[5]{};
+	string str;
+	// XXX: Conversion might be implementation-defined with steady result
+	//	expectedly.
+	const auto lb(n > 1 ? ystdex::floor_lb(n) + 1 : n);
 
-	if(n < 10000)
-		std::snprintf(str, 5, "%04u", unsigned(n));
-	else
-		throw std::invalid_argument("Argument is too large.");
+	str.resize((lb + 7) / 8 + 1);
+
+	size_t i(str.size() - 1);
+	while(n != 0)
+	{
+		if(i > 0)
+		{
+			str[i] = char(n & 0xFF);
+			n >>= 8;
+			--i;
+		}
+		else
+			YAssert(false, "Unexpected argument found.");
+	}
+	str[0] = char(lb);
 	return str;
+}
+
+size_t
+DecodeIndex(string_view sv)
+{
+	YAssert(sv.data(), "Invalid argument found.");
+
+	if(!sv.empty())
+	{
+		// XXX: Conversion might be implementation-defined with steady result
+		//	expectedly.
+		const auto lb(size_t(sv.front()));
+		const size_t sz(sv.size());
+
+		if(sz < std::numeric_limits<size_t>::digits / 8 + 1
+			&& sz == (lb + 7) / 8 + 1)
+		{
+			size_t n(0);
+			for(size_t i(1); i < sz; ++i)
+			{
+				n <<= 8;
+				n |= size_t(sv[i]);
+			}
+			return n;
+		}
+	}
+	throw std::invalid_argument("Invalid string name found.");
 }
 
 size_t
 GetLastIndexOf(const ValueNode::Container& con)
 {
-	return con.empty() ? size_t(-1)
-		: size_t(std::stoul(con.rbegin()->GetName()));
+	return !con.empty() ? DecodeIndex(con.rbegin()->GetName()) : size_t(-1);
 }
 
 } // namespace YSLib;

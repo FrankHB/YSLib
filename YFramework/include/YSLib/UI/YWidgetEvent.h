@@ -11,13 +11,13 @@
 /*!	\file YWidgetEvent.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1931
+\version r1936
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2019-01-14 17:50 +0800
+	2019-01-30 02:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_UI_YWidgetEvent_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_UI_YComponent
+#include YFM_YSLib_UI_YComponent // for ystdex::enable_if_same_t;
 #include YFM_YSLib_Core_YEvent
 #include YFM_YSLib_Core_YString
 #include YFM_YSLib_Core_YDevice // for Devices::KeyInputDevice::Tester,
@@ -518,7 +518,10 @@ public:
 	EventRef(GEvent<_fSig>& e)
 		: content(e, OwnershipTag<>())
 	{}
-	EventRef(EventItem& e)
+	//! \since build 851
+	template<class _tParam,
+		yimpl(typename = ystdex::enable_if_same_t<EventItem, _tParam>)>
+	EventRef(const _tParam& e)
 		: content(e.MakeIndirect())
 	{}
 	DefDeCopyMoveCtorAssignment(EventRef)

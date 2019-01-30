@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018 FrankHB.
+	© 2009-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YApplication.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1778
+\version r1785
 \author FrankHB <frankhb1989@gmail.com>
 \since build 577
 \par 创建时间:
 	2009-12-27 17:12:27 +0800
 \par 修改时间:
-	2018-03-03 17:21 +0800
+	2019-01-16 06:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,9 @@
 #define YSL_INC_Core_YApplication_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YShell // for Shell, stack,
-//	std::is_nothrow_copy_constructible, locked_ptr, ystdex::decay_t;
-#include <ystdex/any.h> // for ystdex::any, ystdex::unchecked_any_cast;
+#include YFM_YSLib_Core_YShell // for Shell, any, stack,
+//	std::is_nothrow_copy_constructible, locked_ptr, ystdex::decay_t,
+//	YSLib::unchecked_any_cast;
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
 
 namespace YSLib
@@ -50,7 +50,7 @@ private:
 	\brief 初始化守卫。
 	\since build 693
 	*/
-	stack<ystdex::any> on_exit{};
+	stack<any> on_exit{};
 	/*
 	\brief 初始化守卫互斥锁。
 	\since build 725
@@ -63,7 +63,7 @@ private:
 	recursive_mutex queue_mutex{};
 
 protected:
-	/*
+	/*!
 	\brief 主消息队列。
 	\since build 481
 	*/
@@ -141,7 +141,7 @@ public:
 		unique_lock<recursive_mutex> lck(on_exit_mutex);
 
 		PushExit(yforward(arg));
-		return {ystdex::unchecked_any_cast<ystdex::decay_t<_tParam>>(
+		return {YSLib::unchecked_any_cast<ystdex::decay_t<_tParam>>(
 			&on_exit.top()), std::move(lck)};
 	}
 	//@}

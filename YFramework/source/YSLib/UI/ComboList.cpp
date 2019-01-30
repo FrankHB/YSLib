@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3314
+\version r3315
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2019-01-14 14:26 +0800
+	2019-01-22 05:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -235,7 +235,7 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 					// NOTE: Bottom space is preferred.
 					// XXX: Conversion to 'SPos' might be
 					//	implementation-defined.
-					pt.Y += SPos(h2 < h3 ? -h3 : GetHeight());
+					pt.Y += h2 < h3 ? -SPos(h3) : SPos(GetHeight());
 					SetLocationOf(lbContent, pt);
 					lbContent.AdjustViewLength();
 					{

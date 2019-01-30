@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4622
+\version r4672
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2019-01-05 03:03 +0800
+	2019-01-24 11:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,13 +30,14 @@
 
 #include "YModules.h"
 #include YFM_NPL_SContext // for YSLib::MakeIndex, YSLib::NodeSequence,
-//	YSLib::NodeLiteral, YSLib::enable_shared_from_this,
-//	YSLib::lref, YSLib::make_shared, YSLib::make_weak, YSLib::observer_ptr,
-//	YSLib::pair, YSLib::to_string, YSLib::shared_ptr, YSLib::weak_ptr, NPLTag,
-//	ValueNode, TermNode, string, LoggedEvent, ystdex::isdigit,
-//	ystdex::equality_comparable, YSLib::allocate_shared, std::uintptr_t,
-//	ystdex::allocator_traits, ystdex::copy_and_swap, ystdex::move_and_swap,
-//	ystdex::type_info, ystdex::get_equal_to, ystdex::exchange;
+//	YSLib::NodeLiteral, YSLib::any, YSLib::bad_any_cast,
+//	YSLib::enable_shared_from_this, YSLib::lref, YSLib::make_shared,
+//	YSLib::make_weak, YSLib::observer_ptr, YSLib::pair, YSLib::to_string,
+//	YSLib::shared_ptr, YSLib::weak_ptr, NPLTag, ValueNode, TermNode, string,
+//	LoggedEvent, ystdex::isdigit, ystdex::equality_comparable,
+//	YSLib::allocate_shared, std::uintptr_t, ystdex::allocator_traits,
+//	ystdex::copy_and_swap, ystdex::move_and_swap, ystdex::type_info,
+//	ystdex::get_equal_to, ystdex::exchange, ystdex::make_obj_using_allocator;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include YFM_YSLib_Core_YEvent // for ystdex::indirect, ystdex::fast_any_of,
 //	YSLib::GHEvent, YSLib::GEvent, YSLib::GCombinerInvoker,
@@ -53,15 +54,24 @@ namespace NPL
 标记特定求值策略，储存于 TermNode 的 Value 数据成员中不直接表示宿主语言对象的类型。
 */
 
+//! \since build 851
+namespace any_ops = YSLib::any_ops;
+
 //! \since build 599
 using YSLib::MakeIndex;
 //! \since build 600
 using YSLib::NodeSequence;
 //! \since build 600
 using YSLib::NodeLiteral;
+//! \since build 851
+using YSLib::any;
+//! \since build 851
+using YSLib::bad_any_cast;
 //! \since build 788
 //@{
 using YSLib::enable_shared_from_this;
+//! \since build 851
+using YSLib::in_place_type;
 //! \since build 842
 using YSLib::lref;
 using YSLib::make_shared;
@@ -114,14 +124,14 @@ InsertSyntaxNode(_tNodeOrCon&& node_or_con, _type&& arg, _tParams&&... args)
 \brief 节点映射操作类型：变换节点为另一个节点。
 \since buld 501
 */
-using NodeMapper = std::function<ValueNode(const TermNode&)>;
+using NodeMapper = function<ValueNode(const TermNode&)>;
 
 //! \since buld 597
 //@{
-using NodeToString = std::function<string(const ValueNode&)>;
+using NodeToString = function<string(const ValueNode&)>;
 
 template<class _tCon>
-using GNodeInserter = std::function<void(TermNode&&, _tCon&)>;
+using GNodeInserter = function<void(TermNode&&, _tCon&)>;
 
 using NodeInserter = GNodeInserter<TermNode::Container&>;
 
@@ -153,7 +163,7 @@ TransformToSyntaxNode(const ValueNode&, const string& = {});
 /*!
 \brief 转义 NPLA 节点字面量。
 \return 调用 EscapeLiteral 转义访问字符串的结果。
-\exception ystdex::bad_any_cast 异常中立：由 Access 抛出。
+\exception bad_any_cast 异常中立：由 Access 抛出。
 \since build 597
 */
 YB_ATTR_nodiscard YF_API YB_PURE string
@@ -162,7 +172,7 @@ EscapeNodeLiteral(const ValueNode&);
 /*!
 \brief 转义 NPLA 节点字面量。
 \return 参数为控节点则空串，否则调用 Literalize 字面量化 EscapeNodeLiteral 的结果。
-\exception ystdex::bad_any_cast 异常中立：由 EscapeNodeLiteral 抛出。
+\exception bad_any_cast 异常中立：由 EscapeNodeLiteral 抛出。
 \sa EscapeNodeLiteral
 \since build 598
 */
@@ -213,7 +223,7 @@ InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, const NodeLiteral& nl)
 //! \since build 597
 //@{
 //! \brief 生成前缀缩进的函数类型。
-using IndentGenerator = std::function<string(size_t)>;
+using IndentGenerator = function<string(size_t)>;
 
 //! \brief 生成水平制表符为单位的缩进。
 YB_ATTR_nodiscard YF_API YB_PURE string
@@ -252,10 +262,13 @@ TraverseSubnodes(_fCallable f, const _type& node)
 			ystdex::invoke(f, nd);
 }
 
-//! \brief 打印容器边界和其中的 NPLA 节点，且在打印边界前调用前置操作。
+/*!
+\brief 打印容器边界和其中的 NPLA 节点，且在打印边界前调用前置操作。
+\since build 851
+*/
 template<typename _fCallable>
 void
-PrintContainedNodes(std::ostream& os, std::function<void()> pre, _fCallable f)
+PrintContainedNodes(std::ostream& os, function<void()> pre, _fCallable f)
 {
 	pre();
 	os << '(' << '\n';
@@ -280,7 +293,7 @@ PrintContainedNodes(std::ostream& os, std::function<void()> pre, _fCallable f)
 template<typename _fCallable, typename _fCallable2>
 void
 TraverseNodeChildAndPrint(std::ostream& os, const ValueNode& node,
-	std::function<void()> pre, _fCallable print_node_str,
+	function<void()> pre, _fCallable print_node_str,
 	_fCallable2 print_term_node)
 {
 	using YSLib::IsPrefixedIndex;
@@ -318,11 +331,11 @@ PrintNode(std::ostream&, const ValueNode&, NodeToString = EscapeNodeLiteral,
 /*!
 \brief 打印节点字符串。
 \return 是否成功访问节点字符串并输出。
-\note ystdex::bad_any_cast 外异常中立。
+\note bad_any_cast 外异常中立。
 \sa PrintNode
 
 使用最后一个参数指定的访问节点，打印得到的字符串和换行符。
-忽略 ystdex::bad_any_cast 。
+忽略 bad_any_cast 。
 */
 YF_API bool
 PrintNodeString(std::ostream&, const ValueNode&,
@@ -1516,7 +1529,7 @@ public:
 	\sa LookupName
 	\sa NameResolution
 	\sa Parent
-	\since build 821
+	\since build 851
 
 	解析指定环境中的名称。
 	被解析的环境可重定向：解析失败时，尝试提供能进一步解析名称的环境。
@@ -1531,7 +1544,7 @@ public:
 	只有和名称解析的相关保留名称被处理。其它保留名称被忽略。
 	不保证对循环重定向进行检查。
 	*/
-	std::function<NameResolution(string_view)> Resolve{
+	function<NameResolution(string_view)> Resolve{
 		std::bind(DefaultResolve, std::cref(*this), std::placeholders::_1)};
 	/*!
 	\brief 父环境：被解释的重定向目标。
@@ -2038,6 +2051,15 @@ public:
 		// TODO: Use C++17 %weak_from_this to get more efficient implementation.
 		ImplRet(ShareRecord())
 
+	/*!
+	\brief 取用于初始化环境以外的对象使用的分配器。
+	\since build 851
+	*/
+	PDefH(YSLib::pmr::polymorphic_allocator<yimpl(byte)>, get_allocator, )
+		const ynothrow
+		ImplRet(YSLib::pmr::polymorphic_allocator<yimpl(byte)>(
+			&GetMemoryResourceRef()))
+
 	friend PDefH(void, swap, ContextNode& x, ContextNode& y) ynothrow
 		ImplExpr(swap(x.p_record, y.p_record), swap(x.Trace, y.Trace))
 	//@}
@@ -2244,6 +2266,13 @@ struct EnvironmentSwitcher
 template<typename _fCurrent, typename _fNext>
 struct GComposedAction final
 {
+	//! \since build 851
+	static_assert(std::is_object<_fCurrent>(),
+		"Current action shall be an object.");
+	//! \since build 851
+	static_assert(std::is_object<_fCurrent>(),
+		"Next action shall be an object.");
+
 	// NOTE: Lambda is not used to avoid unspecified destruction order of
 	//	captured component and better performance (compared to the case of
 	//	%pair used to keep the order).
@@ -2258,7 +2287,10 @@ struct GComposedAction final
 
 	template<typename _tParam1, typename _tParam2>
 	GComposedAction(ContextNode& ctx, _tParam1&& cur, _tParam2&& next)
-		: Context(ctx), Next(yforward(next)), Current(yforward(cur))
+		: Context(ctx), Next(ystdex::make_obj_using_allocator<_fNext>(
+		ctx.get_allocator(), yforward(next))),
+		Current(ystdex::make_obj_using_allocator<_fCurrent>(
+		ctx.get_allocator(), yforward(cur)))
 	{}
 	//@}
 	// XXX: Copy is not intended used directly, but for well-formness.

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4288
+\version r4322
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2019-01-02 04:02 +0800
+	2019-01-28 08:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 //	ystdex::exclude_self_params_t, YSLib::AreEqualHeld, std::is_constructible,
 //	ystdex::decay_t, ystdex::expanded_caller, ystdex::or_,
 //	ystdex::exclude_self_t, ystdex::make_function_type_t,
-//	ystdex::make_parameter_tuple_t, std::ref, ystdex::make_expanded,
+//	ystdex::make_parameter_list_t, std::ref, ystdex::make_expanded,
 //	ystdex::invoke_nonvoid, NPL::AccessTerm, ystdex::make_transform,
 //	std::accumulate, ystdex::bind1, std::placeholders::_2,
 //	ystdex::examiners::equal_examiner;
@@ -170,7 +170,7 @@ YB_ATTR_nodiscard ValueNode
 LoadNode(_type&& tree, _tParams&&... args)
 {
 	TryRet(A1::TransformNode(std::forward<TermNode>(tree), yforward(args)...))
-	CatchThrow(ystdex::bad_any_cast& e, LoggedEvent(YSLib::sfmt(
+	CatchThrow(bad_any_cast& e, LoggedEvent(YSLib::sfmt(
 		"Bad NPLA1 tree found: cast failed from [%s] to [%s] .", e.from(),
 		e.to()), YSLib::Warning))
 }
@@ -181,7 +181,7 @@ LoadNodeSequence(_type&& tree, _tParams&&... args)
 {
 	TryRet(A1::TransformNodeSequence(std::forward<TermNode>(tree),
 		yforward(args)...))
-	CatchThrow(ystdex::bad_any_cast& e, LoggedEvent(YSLib::sfmt(
+	CatchThrow(bad_any_cast& e, LoggedEvent(YSLib::sfmt(
 		"Bad NPLA1 tree found: cast failed from [%s] to [%s] .", e.from(),
 		e.to()), YSLib::Warning))
 }
@@ -211,7 +211,7 @@ using LiteralPasses = GPasses<TermNode&, ContextNode&, string_view>;
 
 
 //! \brief 作用域守卫类型。
-using Guard = ystdex::any;
+using Guard = any;
 /*!
 \brief 作用域守卫遍：用于需在规约例程的入口和出口关联执行的操作。
 \todo 支持迭代使用旧值。
@@ -373,25 +373,6 @@ inline PDefH(void, ReduceArguments, TermNode& term, ContextNode& ctx)
 */
 YF_API ReductionStatus
 ReduceChecked(TermNode&, ContextNode&);
-
-/*!
-\brief 规约闭包。
-\pre 第一参数指定的项不是第四参数且不是第四参数的直接或间接子节点。
-\return 根据规约后剩余项确定的规约结果。
-\sa CheckNorm
-\sa ReduceChecked
-\sa ReduceForClosureResult
-\since build 828
-
-构造规约项，规约后替换到第一参数指定项。
-规约项的内容由第四参数的闭包指定。第三参数指定是否通过转移构造而不保留原项。
-规约后转移闭包规约的结果：子项以及引用的值的目标被转移到第一参数指定的项。
-结果中子项和值之间被转移的相对顺序未指定。
-第五参数指定是否使用 ReduceForClosureResult 保证规约后提升结果。
-规约闭包可作为 β 规约或动态环境中求值的尾调用。
-*/
-YF_API ReductionStatus
-ReduceCheckedClosure(TermNode&, ContextNode&, bool, TermNode&, bool);
 //@}
 
 /*!
@@ -564,7 +545,8 @@ public:
 	//! \since build 842
 	template<typename _func>
 	Continuation(_func&& handler, ContextNode& ctx)
-		: Handler(yforward(handler)), Context(ctx)
+		: Handler(ystdex::make_obj_using_allocator<ContextHandler>(
+		ctx.get_allocator(), yforward(handler))), Context(ctx)
 	{}
 
 	DefDeCopyMoveCtorAssignment(Continuation)
@@ -632,7 +614,7 @@ YB_ATTR_nodiscard YB_PURE inline _tDst
 WrapContextHandler(_func&& h, ystdex::false_)
 {
 	return WrappedContextHandler<YSLib::GHEvent<ystdex::make_function_type_t<
-		void, ystdex::make_parameter_tuple_t<typename _tDst::BaseType>>>>(
+		void, ystdex::make_parameter_list_t<typename _tDst::BaseType>>>>(
 		yforward(h));
 }
 template<class, typename _func>
@@ -653,7 +635,7 @@ WrapContextHandler(_func&& h)
 	//	otherwise it would cause G++ 5.4 crash with internal compiler error:
 	//	"error reporting routines re-entered".
 	return A1::WrapContextHandler<_tDst>(yforward(h), ystdex::or_<
-		std::is_constructible<BaseType, _func&&>,
+		std::is_constructible<BaseType, _func>,
 		std::is_constructible<BaseType, ystdex::expanded_caller<
 		typename _tDst::FuncType, ystdex::decay_t<_func>>>>());
 }
@@ -675,9 +657,9 @@ public:
 	ContextHandler Handler;
 	/*!
 	\brief 项检查例程：验证被包装的处理器的调用符合前置条件。
-	\since build 733
+	\since build 851
 	*/
-	std::function<bool(const TermNode&)> Check{IsBranch};
+	function<bool(const TermNode&)> Check{IsBranch};
 
 	//! \since build 697
 	template<typename _func,
@@ -707,8 +689,8 @@ public:
 	\return Handler 调用的返回值，或 ReductionStatus::Clean 。
 	\exception NPLException 异常中立。
 	\throw LoggedEvent 警告：类型不匹配，
-		由 Handler 抛出的 ystdex::bad_any_cast 转换。
-	\throw LoggedEvent 错误：由 Handler 抛出的 ystdex::bad_any_cast 外的
+		由 Handler 抛出的 bad_any_cast 转换。
+	\throw LoggedEvent 错误：由 Handler 抛出的 bad_any_cast 外的
 		std::exception 转换。
 	\throw std::invalid_argument 项检查未通过。
 	\since build 751
@@ -1235,7 +1217,7 @@ BindParameter(ContextNode&, const TermNode&, TermNode&);
 /*!
 \brief 匹配参数。
 \exception std::bad_function 异常中立：参数指定的处理器为空。
-\since build 828
+\since build 851
 
 进行匹配的算法递归搜索形式参数及其子项。
 若匹配成功，调用参数指定的匹配处理器。
@@ -1258,8 +1240,8 @@ BindParameter(ContextNode&, const TermNode&, TermNode&);
 */
 YF_API void
 MatchParameter(const TermNode&, TermNode&,
-	std::function<void(TNIter, TNIter, const TokenValue&, bool)>,
-	std::function<void(const TokenValue&, TermNode&, bool)>, bool);
+	function<void(TNIter, TNIter, const TokenValue&, bool)>,
+	function<void(const TokenValue&, TermNode&, bool)>, bool);
 //@}
 //@}
 //@}
@@ -1672,7 +1654,6 @@ LambdaRef(TermNode&, ContextNode&);
 \note 初始化的 <eformal> 表示动态环境的上下文参数，应为一个符号或 #ignore 。
 \note 引入的处理器的 operator() 支持保存当前动作。
 \throw InvalidSyntax <eformal> 不符合要求。
-\sa ReduceCheckedClosure
 
 上下文中环境以外的数据成员总是被复制而不被转移，
 	以避免求值过程中继续访问这些成员引起未定义行为。
@@ -1868,7 +1849,6 @@ EqualValue(TermNode&);
 /*!
 \brief 对指定项按指定的环境求值。
 \note 支持保存当前动作。
-\sa ReduceCheckedClosure
 \sa ResolveEnvironment
 
 以表达式 <expression> 和环境 <environment> 为指定的参数进行求值。

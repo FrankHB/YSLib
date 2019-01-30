@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2018 FrankHB.
+	© 2015-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2134
+\version r2139
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2018-12-02 17:54 +0800
+	2019-01-20 00:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -794,7 +794,7 @@ LoadModule_std_environments(REPLContext& context)
 		ystdex::bind1([](TermNode& term, REPLContext& rctx){
 		RetainN(term, 0);
 		term.Value = ValueObject(rctx, OwnershipTag<>());
-	}, std::ref(static_cast<REPLContext&>(context))));
+	}, std::ref(context)));
 	RegisterStrict(renv, "eval-string", EvalString);
 	RegisterStrict(renv, "eval-string%", EvalStringRef);
 	RegisterStrict(renv, "eval-unit", EvalUnit);
@@ -874,7 +874,7 @@ LoadModule_std_system(REPLContext& context)
 
 			for(const auto& arg : p_cmd_args->Arguments)
 				TermNode::AddValueTo(con, MakeIndex(con),
-					ystdex::in_place_type<string>, arg);
+					in_place_type<string>, arg);
 			return con;
 		}();
 		return ReductionStatus::Retained;
@@ -923,7 +923,7 @@ LoadModule_SHBuild(REPLContext& context)
 
 	// NOTE: SHBuild builtins.
 	renv.Define("SHBuild_BaseTerminalHook_",
-		ValueObject(std::function<void(const string&, const string&)>(
+		ValueObject(function<void(const string&, const string&)>(
 		[](const string& n, const string& val) ynothrow{
 			// XXX: Error from 'std::printf' is ignored.
 			std::printf("%s = \"%s\"\n", n.c_str(), val.c_str());
@@ -958,7 +958,7 @@ LoadModule_SHBuild(REPLContext& context)
 			if(const auto p = GetValuePtrOf(renv.LookupName(
 				"SHBuild_BaseTerminalHook_")))
 				if(const auto p_hook = AccessPtr<
-					std::function<void(const string&, const string&)>>(*p))
+					function<void(const string&, const string&)>>(*p))
 					(*p_hook)(n, val);
 		}, term);
 	});

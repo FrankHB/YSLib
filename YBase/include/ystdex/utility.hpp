@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2018 FrankHB.
+	© 2010-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3497
+\version r3550
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2018-11-25 22:27 +0800
+	2019-01-31 02:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,11 +30,13 @@
 
 #include "swap.hpp" // for "swap.hpp", is_lvalue_reference, conditional_t,
 //	remove_reference_t, std::forward, add_const_t, std::move,
-//	enable_if_convertible_t, is_nothrow_constructible, exclude_self_t;
-#include <functional> // for std::bind, std::ref
+//	is_nothrow_constructible, enable_if_convertible_t, exclude_self_t;
+#include "type_op.hpp" // for exclude_self_params_t;
 #include "placement.hpp" // for yassume, ystdex::construct_in,
 //	ystdex::destruct_in;
 #include "base.h" // for noncopyable, nonmovable;
+#include <functional> // for std::bind, std::ref
+#include <tuple> // for tuple workaround;
 
 namespace ystdex
 {
@@ -110,7 +112,7 @@ template<typename _type>
 yconstfn yimpl(enable_if_convertible_t)<_type, decay_t<_type>, decay_t<_type>>
 decay_copy(_type&& arg)
 {
-	return std::forward<_type>(arg);
+	return yforward(arg);
 }
 
 
@@ -125,6 +127,26 @@ underlying(_type val) ynothrow
 	return underlying_type_t<_type>(val);
 }
 
+namespace details
+{
+
+template<typename _type>
+struct is_nt_dc : is_nothrow_constructible<_type>
+{};
+
+#if defined(__GLIBCXX__) \
+	&& (YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 80200 && YB_IMPL_GNUCPP > 70100)
+// XXX: Workaround of libstdc++ non-SFINAE friendly std::tuple implementation.
+//	It is unknown which versions are exactly affected. See $2019-01
+//	@ %Documentation::Workflow::Annual2019.
+template<size_t _vIdx, typename _type, typename... _types>
+struct is_nt_dc<std::_Tuple_impl<_vIdx, _type, _types...>>
+	: and_<is_nothrow_constructible<_type>,
+	is_nt_dc<std::_Tuple_impl<_vIdx + 1, _types...>>>
+{};
+#endif
+
+} // namespace details;
 
 /*!
 \brief 包装类类型的值的对象。
@@ -134,34 +156,35 @@ underlying(_type val) ynothrow
 template<typename _type>
 struct boxed_value
 {
+	//! \since build 851
+	using nothrow_default_constructible = details::is_nt_dc<_type>;
+
 	//! \since build 677
 	mutable _type value;
 
-	//! \since build 677
+	//! \since build 851
 	//@{
+	template<yimpl(typename _tParam = _type,
+		typename = enable_if_t<is_constructible<_tParam>::value>)>
 	yconstfn
-	boxed_value() ynoexcept(is_nothrow_constructible<_type>())
+	boxed_value() ynoexcept(nothrow_default_constructible())
 		: value()
 	{}
-	//! \since build 716
-	yconstfn
-	boxed_value(default_init_t) ynoexcept(is_nothrow_constructible<_type>())
-	{}
-	template<typename _tParam,
-		yimpl(typename = exclude_self_t<boxed_value, _tParam>)>
-	yconstfn
-	boxed_value(_tParam&& arg)
-		ynoexcept(is_nothrow_constructible<_type, _tParam&&>())
-		: value(yforward(arg))
-	{}
-	template<typename _tParam1, typename _tParam2, typename... _tParams>
-	yconstfn
-	boxed_value(_tParam1&& arg1, _tParam2&& arg2, _tParams&&... args)
-		ynoexcept(is_nothrow_constructible<_type, _tParam1&&, _tParam2&&,
-		_tParams&&...>())
-		: value(yforward(arg1), yforward(arg2), yforward(args)...)
+	template<yimpl(typename _tParam = _type,
+		typename = enable_if_t<is_constructible<_tParam>::value>)>
+	explicit
+	boxed_value(default_init_t) ynoexcept(nothrow_default_constructible())
 	{}
 	//@}
+	//! \since build 848
+	template<typename... _tParams,
+		yimpl(typename = exclude_self_params_t<boxed_value, _tParams...>,
+		typename = enable_if_t<is_constructible<_type, _tParams...>::value>)>
+	yconstfn
+	boxed_value(_tParams&&... args)
+		ynoexcept(is_nothrow_constructible<_type, _tParams...>())
+		: value(yforward(args)...)
+	{}
 	//! \since build 539
 	//@{
 	boxed_value(const boxed_value&) = default;

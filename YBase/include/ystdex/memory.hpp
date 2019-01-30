@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r3577
+\version r3752
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2019-01-15 17:29 +0800
+	2019-01-24 23:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -475,7 +475,19 @@ allocate_unique(const _tAlloc& alloc, _tParams&&... args)
 
 	return ystdex::create_with_allocator<_type>(a, yforward(args)...);
 }
+/*!
+\brief 使用分配器和初始化列表参数创建 std::unique_ptr 。
+\since build 851
+*/
+template<typename _type, class _tAlloc, typename _tValue>
+YB_ATTR_nodiscard auto
+allocate_unique(const _tAlloc& alloc, std::initializer_list<_tValue> il)
+	-> std::unique_ptr<_type, allocator_delete<rebind_alloc_t<_tAlloc, _type>>>
+{
+	rebind_alloc_t<_tAlloc, _type> a(alloc);
 
+	return ystdex::create_with_allocator<_type>(a, il);
+}
 
 /*!
 \brief 使用分配器创建 std::shared_ptr 。
@@ -494,12 +506,19 @@ template<typename _type, class _tAlloc, typename... _tParams>
 YB_ATTR_nodiscard std::shared_ptr<_type>
 allocate_shared(const _tAlloc& alloc, _tParams&&... args)
 {
-	rebind_alloc_t<_tAlloc, _type> a(alloc);
-
-	return std::shared_ptr<_type>(ystdex::create_with_allocator<_type>(a,
-		yforward(args)...));
+	return std::shared_ptr<_type>(ystdex::allocate_unique<_type>(alloc, il));
 }
 #endif
+/*!
+\brief 使用分配器和初始化列表参数创建 std::shared_ptr 。
+\since build 851
+*/
+template<typename _type, class _tAlloc, typename _tValue>
+YB_ATTR_nodiscard std::shared_ptr<_type>
+allocate_shared(const _tAlloc& alloc, std::initializer_list<_tValue> il)
+{
+	return std::shared_ptr<_type>(ystdex::allocate_unique<_type>(alloc, il));
+}
 
 
 /*!
@@ -1351,7 +1370,7 @@ template<typename _type, typename _tElem>
 YB_ATTR_nodiscard yconstfn std::unique_ptr<_type>
 make_unique(std::initializer_list<_tElem> il)
 {
-	return ystdex::make_unique<_type>(il);
+	return ystdex::cpp2014::make_unique<_type>(il);
 }
 
 /*!
@@ -1386,7 +1405,10 @@ make_unique_with(_tDeleter&&, _tParams&&...) = delete;
 //@{
 //! \tparam _type 被指向类型。
 //@{
+//! \since build 851
+using std::make_shared;
 /*!
+\ingroup YBase_replacement_extensions
 \brief 使用指定类型的初始化列表构造指定类型的 std::shared_ptr 对象。
 \tparam _tValue 初始化列表的元素类型。
 \since build 529
@@ -1411,70 +1433,193 @@ make_weak(const std::shared_ptr<_type>& p) ynothrow
 //@}
 
 
-/*!
-\note 使用 ADL make_shared 。
-\since build 783
-*/
+//! \since build 783
 //@{
 //! \brief 复制值创建对应的 std::shared_ptr 实例的对象。
 template<typename _tValue, typename _type = _tValue>
 YB_ATTR_nodiscard yconstfn std::shared_ptr<decay_t<_type>>
 share_copy(const _tValue& v)
 {
-	using std::make_shared;
-
-	return make_shared<decay_t<_type>>(yforward(v));
+	return ystdex::make_shared<decay_t<_type>>(v);
 }
+//! \since build 851
+//@{
+//! \brief 复制初始化列表创建对应的 std::shared_ptr 实例的对象。
+template<typename _tValue, typename _type = _tValue>
+YB_ATTR_nodiscard yconstfn std::shared_ptr<decay_t<_type>>
+share_copy(std::initializer_list<_tValue> il)
+{
+	return ystdex::make_shared<decay_t<_type>>(il);
+}
+//! \brief 复制初始化值以分配器创建对应的 std::shared_ptr 实例的对象。
+template<typename _tValue, class _tAlloc, typename _type = _tValue>
+YB_ATTR_nodiscard yconstfn std::shared_ptr<decay_t<_type>>
+share_copy(const _tAlloc& a, const _tValue& v)
+{
+	return ystdex::allocate_shared<decay_t<_type>>(a, v);
+}
+//! \brief 复制初始化列表以分配器创建对应的 std::shared_ptr 实例的对象。
+template<typename _tValue, class _tAlloc, typename _type = _tValue>
+YB_ATTR_nodiscard yconstfn std::shared_ptr<decay_t<_type>>
+share_copy(const _tAlloc& a, std::initializer_list<_tValue> il)
+{
+	return ystdex::allocate_shared<decay_t<_type>>(a, il);
+}
+//@}
 
 //! \brief 传递值创建对应的 std::shared_ptr 实例的对象。
 template<typename _tValue, typename _type = _tValue>
 YB_ATTR_nodiscard yconstfn std::shared_ptr<decay_t<_type>>
 share_forward(_tValue&& v)
 {
-	using std::make_shared;
-
-	return make_shared<decay_t<_type>>(yforward(v));
+	return ystdex::make_shared<decay_t<_type>>(yforward(v));
 }
+//! \since build 851
+//@{
+//! \brief 传递初始化列表创建对应的 std::shared_ptr 实例的对象。
+template<typename _tValue, typename _type = _tValue>
+YB_ATTR_nodiscard yconstfn std::shared_ptr<decay_t<_type>>
+share_forward(std::initializer_list<_tValue> il)
+{
+	return ystdex::make_shared<decay_t<_type>>(il);
+}
+//! \brief 传递值以分配器创建对应的 std::shared_ptr 实例的对象。
+template<typename _tValue, class _tAlloc, typename _type = _tValue>
+YB_ATTR_nodiscard yconstfn std::shared_ptr<decay_t<_type>>
+share_forward(const _tAlloc& a, _tValue&& v)
+{
+	return ystdex::allocate_shared<decay_t<_type>>(a, yforward(v));
+}
+//! \brief 传递初始化列表以分配器创建对应的 std::shared_ptr 实例的对象。
+template<typename _tValue, class _tAlloc, typename _type = _tValue>
+YB_ATTR_nodiscard yconstfn std::shared_ptr<decay_t<_type>>
+share_forward(const _tAlloc& a, std::initializer_list<_tValue> il)
+{
+	return ystdex::allocate_shared<decay_t<_type>>(a, il);
+}
+//@}
 
 //! \brief 转移值创建对应的 std::shared_ptr 实例的对象。
 template<typename _tValue, typename _type = _tValue>
 YB_ATTR_nodiscard yconstfn std::shared_ptr<decay_t<_type>>
 share_move(_tValue&& v)
 {
-	using std::make_shared;
-
-	return make_shared<decay_t<_type>>(std::move(v));
+	return ystdex::make_shared<decay_t<_type>>(std::move(v));
+}
+//! \since build 851
+//@{
+//! \brief 转移初始化列表创建对应的 std::shared_ptr 实例的对象。
+template<typename _tValue, typename _type = _tValue>
+YB_ATTR_nodiscard yconstfn std::shared_ptr<decay_t<_type>>
+share_move(std::initializer_list<_tValue> il)
+{
+	return ystdex::make_shared<decay_t<_type>>(il);
+}
+//! \brief 转移值以分配器创建对应的 std::shared_ptr 实例的对象。
+template<typename _tValue, class _tAlloc, typename _type = _tValue>
+YB_ATTR_nodiscard yconstfn std::shared_ptr<decay_t<_type>>
+share_move(const _tAlloc& a, _tValue&& v)
+{
+	return ystdex::allocate_shared<decay_t<_type>>(a, std::move(v));
+}
+//! \brief 转移初始化列表以分配器创建对应的 std::shared_ptr 实例的对象。
+template<typename _tValue, class _tAlloc, typename _type = _tValue>
+YB_ATTR_nodiscard yconstfn std::shared_ptr<decay_t<_type>>
+share_move(const _tAlloc& a, std::initializer_list<_tValue> il)
+{
+	return ystdex::allocate_shared<decay_t<_type>>(a, il);
 }
 //@}
+//@}
 
-/*!
-\note 使用 ADL make_unique 。
-\since build 841
-*/
+//! \since build 841
 //@{
 //! \brief 复制值创建对应的 std::unique_ptr 实例的对象。
 template<typename _tValue, typename _type = _tValue>
 YB_ATTR_nodiscard yconstfn std::unique_ptr<decay_t<_type>>
 unique_copy(const _tValue& v)
 {
-	return make_unique<decay_t<_type>>(yforward(v));
+	return ystdex::make_unique<decay_t<_type>>(v);
 }
+//! \since build 851
+//@{
+template<typename _tValue, typename _type = _tValue>
+YB_ATTR_nodiscard yconstfn std::unique_ptr<decay_t<_type>>
+unique_copy(std::initializer_list<_tValue> il)
+{
+	return ystdex::make_unique<decay_t<_type>>(il);
+}
+template<typename _tValue, class _tAlloc, typename _type = _tValue>
+YB_ATTR_nodiscard yconstfn std::unique_ptr<decay_t<_type>>
+unique_copy(const _tAlloc& a, const _tValue& v)
+{
+	return ystdex::allocate_unique<decay_t<_type>>(a, v);
+}
+template<typename _tValue, class _tAlloc, typename _type = _tValue>
+YB_ATTR_nodiscard yconstfn std::unique_ptr<decay_t<_type>>
+unique_copy(const _tAlloc& a, std::initializer_list<_tValue> il)
+{
+	return ystdex::allocate_unique<decay_t<_type>>(a, il);
+}
+//@}
 
 //! \brief 传递值创建对应的 std::unique_ptr 实例的对象。
 template<typename _tValue, typename _type = _tValue>
 YB_ATTR_nodiscard yconstfn std::unique_ptr<decay_t<_type>>
 unique_forward(_tValue&& v)
 {
-	return make_unique<decay_t<_type>>(yforward(v));
+	return ystdex::make_unique<decay_t<_type>>(yforward(v));
 }
+//! \since build 851
+//@{
+template<typename _tValue, typename _type = _tValue>
+YB_ATTR_nodiscard yconstfn std::unique_ptr<decay_t<_type>>
+unique_forward(std::initializer_list<_tValue> il)
+{
+	return ystdex::make_unique<decay_t<_type>>(il);
+}
+template<typename _tValue, class _tAlloc, typename _type = _tValue>
+YB_ATTR_nodiscard yconstfn std::unique_ptr<decay_t<_type>>
+unique_forward(const _tAlloc& a, _tValue&& v)
+{
+	return ystdex::allocate_unique<decay_t<_type>>(a, yforward(v));
+}
+template<typename _tValue, class _tAlloc, typename _type = _tValue>
+YB_ATTR_nodiscard yconstfn std::unique_ptr<decay_t<_type>>
+unique_forward(const _tAlloc& a, std::initializer_list<_tValue> il)
+{
+	return ystdex::allocate_unique<decay_t<_type>>(a, il);
+}
+//@}
 
 //! \brief 转移值创建对应的 std::unique_ptr 实例的对象。
 template<typename _tValue, typename _type = _tValue>
 YB_ATTR_nodiscard yconstfn std::unique_ptr<decay_t<_type>>
 unique_move(_tValue&& v)
 {
-	return make_unique<decay_t<_type>>(std::move(v));
+	return ystdex::make_unique<decay_t<_type>>(std::move(v));
 }
+//! \since build 851
+//@{
+template<typename _tValue, typename _type = _tValue>
+YB_ATTR_nodiscard yconstfn std::unique_ptr<decay_t<_type>>
+unique_move(std::initializer_list<_tValue> il)
+{
+	return ystdex::make_unique<decay_t<_type>>(il);
+}
+template<typename _tValue, class _tAlloc, typename _type = _tValue>
+YB_ATTR_nodiscard yconstfn std::unique_ptr<decay_t<_type>>
+unique_move(const _tAlloc& a, _tValue&& v)
+{
+	return ystdex::allocate_unique<decay_t<_type>>(a, std::move(v));
+}
+template<typename _tValue, class _tAlloc, typename _type = _tValue>
+YB_ATTR_nodiscard yconstfn std::unique_ptr<decay_t<_type>>
+unique_move(const _tAlloc& a, std::initializer_list<_tValue> il)
+{
+	return ystdex::allocate_unique<decay_t<_type>>(a, il);
+}
+//@}
 //@}
 //@}
 

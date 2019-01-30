@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r4259
+\version r4388
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2019-01-05 19:35 +0800
+	2019-01-19 18:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,16 +32,18 @@
 #define YB_INC_ystdex_any_h_ 1
 
 #include "typeinfo.h" // for internal "typeinfo.h", type_info, exclude_self_t,
-//	ystdex::type_id, is_nothrow_move_constructible, and_, is_decayed, bool_,
-//	is_copy_constructible, enable_if_t, remove_reference_t, cond_t,
-//	is_convertible, is_same, is_class, std::bad_cast, decay_t, _t, yconstraint;
+//	ystdex::type_id, well_formed_t, is_convertible, enable_if_t,
+//	is_nothrow_move_constructible, and_, is_decayed, bool_, or_,
+//	is_copy_constructible, remove_reference_t, cond_t, is_convertible, is_same,
+//	is_class, std::bad_cast, nor_, std::declval, yconstraint, decay_t;
 #include "utility.hpp" // for internal "utility.hpp", boxed_value,
 //	std::addressof, std::unique_ptr, standard_layout_storage, aligned_storage_t,
-//	is_aligned_storable, ystdex::pvoid, default_init_t, default_init;
+//	is_aligned_storable, ystdex::pvoid, default_init_t, default_init, vseq::_a,
+//	is_instance_of, cond_or_t;
 #include "memory.hpp" // for ystdex::clone_monomorphic_ptr, std::allocator,
 //	allocator_delete, exclude_self_params_t, alloc_value_t, rebind_alloc_t,
 //	allocator_traits, ystdex::allocate_unique, in_place_type_t,
-//	vseq::_a, is_instance_of, std::allocator_arg_t, in_place_type;
+//	std::allocator_arg_t, in_place_type;
 #include "exception.h" // for throw_invalid_construction,
 //	throw_allocator_mismatch_error;
 #include "ref.hpp" // for is_reference_wrapper, unwrap_reference_t;
@@ -122,7 +124,7 @@ public:
 	template<typename _tParam,
 		yimpl(typename = exclude_self_t<value_holder, _tParam>)>
 	value_holder(_tParam&& arg)
-		ynoexcept(is_nothrow_constructible<_type, _tParam&&>())
+		ynoexcept(is_nothrow_constructible<_type, _tParam>())
 		: boxed_value<_type>(yforward(arg))
 	{}
 	using boxed_value<_type>::boxed_value;
@@ -387,11 +389,14 @@ using any_manager = void(*)(any_storage&, any_storage&, op_code);
 
 /*!
 \brief 使用指定处理器初始化存储。
-\since build 687
+\since build 851
 */
 template<class _tHandler, typename... _tParams>
-any_manager
-construct(any_storage& storage, _tParams&&... args)
+auto
+construct(any_storage& storage, _tParams&&... args) -> enable_if_t<
+	is_convertible<well_formed_t<decltype(_tHandler::manage),
+	decltype(_tHandler::init(storage, yforward(args)...))>, any_manager>::value,
+	any_manager>
 {
 	_tHandler::init(storage, yforward(args)...);
 	return _tHandler::manage;
@@ -539,9 +544,10 @@ public:
 	}
 	//@}
 
-	//! \since build 595
+	//! \since build 851
 	template<typename... _tParams>
-	YB_ATTR(always_inline) static void
+	YB_ATTR(always_inline) static
+		enable_if_t<is_constructible<value_type, _tParams...>::value>
 	init(any_storage& d, _tParams&&... args)
 	{
 		d.construct<stored_type>(yforward(args)...);
@@ -699,9 +705,10 @@ private:
 	}
 
 public:
-	//! \since build 395
-	YB_ATTR(always_inline) static void
-	init(any_storage& d, std::unique_ptr<holder_type> p)
+	//! \since build 851
+	YB_ATTR(always_inline) static auto
+	init(any_storage& d, std::unique_ptr<holder_type> p) -> decltype(
+		init(typename base::local_storage(), d, std::move(p)), void())
 	{
 		init(typename base::local_storage(), d, std::move(p));
 	}
@@ -810,8 +817,9 @@ public:
 	}
 
 	template<typename... _tParams>
-	YB_ATTR(always_inline) static void
-	init(any_storage& d, _tParams&&... args)
+	YB_ATTR(always_inline) static auto
+	init(any_storage& d, _tParams&&... args) -> decltype(base::init(d,
+		ystdex::allocate_unique<value_type>(yforward(args)...)), void())
 	{
 		base::init(d, ystdex::allocate_unique<value_type>(yforward(args)...));
 	}
@@ -971,7 +979,7 @@ struct wrap_handler
 \ingroup exceptions
 \brief 动态泛型转换失败异常。
 \note 基本接口和语义同 boost::bad_any_cast 。
-\note 非标准扩展：提供标识转换失败的源和目标类型。
+\note YStandardEx 扩展：提供标识转换失败的源和目标类型。
 \sa any_cast
 \see ISO C++17[any.bad_any_cast] 。
 \since build 586
@@ -1281,7 +1289,10 @@ struct any_emplace
 基本接口和语义同 ISO C++17 std::any 提议和 boost::any （对应接口以前者为准）。
 和 std::any 不同，支持不满足 CopyConstructible 但满足 MoveConstructible 的对象。
 作为扩展，基于命名空间 any_ops 支持更多的可扩展的底层接口。
-使用 any_ops::with_handler_t 显式指定处理器，可调用这些接口。
+和 std::any 类似，部分情形构造排除 in_place_type_t 的实例作为值类型对象。
+作为扩展，同时也排除 std::allocator_arg_t 、 any_ops::with_handler_t
+	的实例和 any_ops::use_holder_t 作为值的类型。
+构造时使用 any_ops::with_handler_t 显式指定处理器，可调用 any_ops 支持的接口。
 保存对象状态的内部数据存储在 any_ops::any_storage ，通过处理器访问。
 处理器是满足特定条件的类类型。
 处理器以管理操作 any_ops::any_manager 引用。
@@ -1315,15 +1326,43 @@ class YB_API any : private details::any_base, private details::any_emplace<any>
 	friend details::any_emplace<any>;
 
 private:
-	//! \since build 849
-	template<typename _type>
-	using exclude_tag_t = enable_if_t<!is_instance_of<decay_t<_type>,
-		vseq::_a<in_place_type_t>>::value>;
 	//! \since build 848
 	//@{
 	template<bool _vInPlace = false>
 	struct alloc_tag : bool_<_vInPlace>
 	{};
+	//! \since build 851
+	//@{
+	template<typename _type>
+	using not_tag_t
+		= nor_<is_instance_of<_type, vseq::_a<in_place_type_t>>, is_same<
+		_type, std::allocator_arg_t>, is_same<_type, any_ops::use_holder_t>,
+		is_instance_of<_type, vseq::_a<any_ops::with_handler_t>>,
+		is_same<_type, alloc_tag<>>, is_same<_type, alloc_tag<true>>>;
+	//! \since build 849
+	template<typename _type>
+	using exclude_tag_t = enable_if_t<not_tag_t<decay_t<_type>>::value>;
+	template<class _tHandler, typename... _tParams>
+	using is_handler_constructible_t = is_constructible<any_ops::any_manager,
+		decltype(any_ops::construct<_tHandler>(
+		std::declval<any_ops::any_storage&>(), std::declval<_tParams>()...))>;
+	template<class _tHandler, typename... _tParams>
+	using enable_with_handler_t = enable_if_t<is_constructible<
+		any_ops::any_manager, decltype(any_ops::construct<_tHandler>(
+		std::declval<any_ops::any_storage&>(), std::declval<_tParams>()...))>
+		::value>;
+	template<class _tCtor, class _tParamsList, typename... _tParams>
+	using is_handler_v_constructible_t = is_handler_constructible_t<
+		vseq::defer_apply_t<_tCtor, _tParamsList>, _tParams...>;
+	template<class _bCond, template<typename...> class _gHolder,
+		class _tParamsList, typename... _tParams>
+	using enable_with_handler_params_t = enable_if_t<cond_or_t<_bCond, false_,
+		is_handler_v_constructible_t, vseq::_a<_gHolder>, _tParamsList,
+		_tParams...>::value>;
+	template<typename _tParam>
+	using is_holder_arg_t = and_<not_tag_t<_tParam>,
+		any_ops::check_holder_t<_tParam>>;
+	//@}
 
 public:
 	/*!
@@ -1393,23 +1432,27 @@ public:
 	any(std::allocator_arg_t, const _tAlloc& a, _type&& x)
 		: any(opt_in_place_t<_type>(), a, yforward(x))
 	{}
-	//! \since build 717
-	template<typename _type, typename... _tParams>
+	//! \since build 851
+	//@{
+	template<typename _type, typename... _tParams, yimpl(typename
+		= enable_if_t<is_constructible<decay_t<_type>, _tParams...>::value>)>
 	explicit inline
 	any(in_place_type_t<_type>, _tParams&&... args)
 		: any(any_ops::with_handler_t<any_ops::value_handler<_type>>(),
 		yforward(args)...)
 	{}
-	//! \since build 848
-	//@{
 	//! \ingroup YBase_replacement_extensions
-	template<typename _type, class _tAlloc, typename... _tParams>
+	template<typename _type, class _tAlloc, typename... _tParams, yimpl(typename
+		= enable_if_t<is_constructible<decay_t<_type>, _tParams...>::value>)>
 	inline
 	any(std::allocator_arg_t, const _tAlloc& a, in_place_type_t<_type>,
 		_tParams&&... args)
 		: any(opt_in_place_t<_type>(), a, in_place_type<_type>,
 		yforward(args)...)
 	{}
+	//@}
+	//! \since build 848
+	//@{
 	//! \note YStandardEx 扩展：允许不满足 CopyConstructible 的类型的值作为参数。
 	template<typename _type, typename _type2, typename... _tParams,
 		yimpl(typename = enable_if_t<is_constructible<decay_t<_type>,
@@ -1420,10 +1463,12 @@ public:
 		: any(any_ops::with_handler_t<any_ops::value_handler<_type>>(), il,
 		yforward(args)...)
 	{}
+	//@}
 	//! \ingroup YBase_replacement_extensions
-	template<typename _type, typename _type2, class _tAlloc,
-		typename... _tParams,
-		yimpl(typename = enable_if_t<is_constructible<decay_t<_type>,
+	//@{
+	//! \since build 848
+	template<typename _type, typename _type2, class _tAlloc, typename...
+		_tParams, yimpl(typename = enable_if_t<is_constructible<decay_t<_type>,
 		std::initializer_list<_type2>&, _tParams...>::value>)>
 	inline
 	any(std::allocator_arg_t, const _tAlloc& a, in_place_type_t<_type>,
@@ -1431,43 +1476,48 @@ public:
 		: any(opt_in_place_t<_type>(), a, in_place_type<_type>, il,
 		yforward(args)...)
 	{}
-	//@}
-	//! \ingroup YBase_replacement_extensions
+	//! \since build 851
 	//@{
-	/*!
-	\brief 构造：使用指定持有者。
-	\since build 680
-	*/
+	//! \brief 构造：使用指定持有者。
 	//@{
-	template<typename _tHolder>
+	template<typename _tHolder, yimpl(typename = enable_with_handler_params_t<
+		is_holder_arg_t<_tHolder>, any_ops::holder_handler,
+		empty_base<_tHolder>, std::unique_ptr<_tHolder>>)>
 	inline
 	any(any_ops::use_holder_t, std::unique_ptr<_tHolder> p)
 		: any(any_ops::with_handler_t<any_ops::holder_handler<_tHolder>>(),
 		std::move(p))
 	{}
-	template<typename _tHolder>
+	template<typename _tHolder, yimpl(typename = enable_with_handler_params_t<
+		is_holder_arg_t<decay_t<_tHolder>>, any_ops::holder_handler,
+		empty_base<decay_t<_tHolder>>, _tHolder>)>
 	inline
 	any(any_ops::use_holder_t, _tHolder&& h)
 		: any(any_ops::with_handler_t<
 		any_ops::holder_handler<decay_t<_tHolder>>>(), yforward(h))
 	{}
-	//! \since build 848
-	template<typename _tHolder, class _tAlloc>
+	template<typename _tHolder, class _tAlloc,
+		yimpl(typename = enable_with_handler_params_t<
+		is_holder_arg_t<decay_t<_tHolder>>, any_ops::allocator_holder_handler_t,
+		empty_base<_tAlloc, decay_t<_tHolder>>, const _tAlloc&, _tHolder>)>
 	inline
 	any(std::allocator_arg_t, const _tAlloc& a, any_ops::use_holder_t,
 		_tHolder&& h)
 		: any(opt_in_place_t<_tHolder>(), a, any_ops::use_holder,
 		yforward(h))
 	{}
-	//! \since build 717
-	template<typename _tHolder, typename... _tParams>
+	template<typename _tHolder, typename... _tParams,
+		yimpl(typename = enable_with_handler_params_t<is_holder_arg_t<_tHolder>,
+		any_ops::holder_handler, empty_base<_tHolder>, _tParams...>)>
 	inline
 	any(any_ops::use_holder_t, in_place_type_t<_tHolder>, _tParams&&... args)
 		: any(any_ops::with_handler_t<any_ops::holder_handler<_tHolder>>(),
 		yforward(args)...)
 	{}
-	//! \since build 848
-	template<typename _tHolder, class _tAlloc, typename... _tParams>
+	template<typename _tHolder, class _tAlloc, typename... _tParams,
+		yimpl(typename = enable_with_handler_params_t<is_holder_arg_t<_tHolder>,
+		any_ops::allocator_holder_handler_t, empty_base<_tAlloc, _tHolder>,
+		const _tAlloc&, _tParams...>)>
 	inline
 	any(std::allocator_arg_t, const _tAlloc& a, any_ops::use_holder_t,
 		in_place_type_t<_tHolder>, _tParams&&... args)
@@ -1475,36 +1525,47 @@ public:
 		in_place_type<_tHolder>, yforward(args)...)
 	{}
 	//@}
-	template<typename _type>
+	template<typename _type,
+		yimpl(typename = exclude_tag_t<_type>, typename = enable_with_handler_t<
+		any_ops::holder_handler<any_ops::value_holder<decay_t<_type>>>, _type>)>
 	inline
 	any(_type&& x, any_ops::use_holder_t)
 		: any(any_ops::with_handler_t<any_ops::holder_handler<
 		any_ops::value_holder<decay_t<_type>>>>(), yforward(x))
 	{}
-	//! \since build 848
-	template<class _tAlloc, typename _type>
+	template<class _tAlloc, typename _type,
+		yimpl(typename = exclude_tag_t<_type>, typename = enable_with_handler_t<
+		any_ops::allocator_holder_handler_t<_tAlloc,
+		any_ops::value_holder<decay_t<_type>>>, const _tAlloc&, _type>)>
 	inline
 	any(std::allocator_arg_t, const _tAlloc& a, _type&& x,
 		any_ops::use_holder_t)
 		: any(opt_in_place_t<rebind_alloc_t<_tAlloc, any_ops::value_holder<
 		decay_t<_type>>>>(), a, yforward(x), any_ops::use_holder)
 	{}
-	//! \since build 687
-	template<class _tHandler, typename... _tParams>
+	template<class _tHandler, typename... _tParams, yimpl(
+		typename = enable_with_handler_t<_tHandler, _tParams...>)>
 	explicit inline
 	any(any_ops::with_handler_t<_tHandler> t, _tParams&&... args)
 		: any_base(t, yforward(args)...)
 	{}
-	//! \since build 848
-	//@{
-	template<class _tHandler, class _tAlloc, typename... _tParams>
+	template<class _tHandler, class _tAlloc, typename... _tParams,
+		yimpl(typename = enable_with_handler_t<_tHandler, const _tAlloc&,
+		_tParams...>)>
 	inline
 	any(std::allocator_arg_t, const _tAlloc& a,
 		any_ops::with_handler_t<_tHandler> t, _tParams&&... args)
 		: any_base(t, a, yforward(args)...)
 	{}
+	//@}
 
+// XXX: SFINAE to private constructors are ignored, so they are not testable in
+//	other constructors by %is_constructible. Conditions of SFINAE are also
+//	omitted here. It is the responsibility of caller to avoid the ill-formed
+//	constructor call.
 private:
+	//! \since build 848
+	//@{
 	template<class _tAlloc, typename... _tParams>
 	inline
 	any(alloc_tag<true>, const _tAlloc&, _tParams&&... args)
@@ -1522,6 +1583,15 @@ private:
 		_tParams&&... args)
 		: any(any_ops::with_handler_t<any_ops::allocator_value_handler_t<
 		_tAlloc, _type>>(), a, yforward(args)...)
+	{}
+	//! \since build 851
+	template<typename _type, typename _type2, class _tAlloc, typename...
+		_tParams>
+	inline
+	any(alloc_tag<>, const _tAlloc& a, in_place_type_t<_type>,
+		std::initializer_list<_type2> il, _tParams&&... args)
+		: any(any_ops::with_handler_t<any_ops::allocator_value_handler_t<
+		_tAlloc, _type>>(), a, il, yforward(args)...)
 	{}
 	template<typename _tHolder, class _tAlloc>
 	inline
@@ -1562,7 +1632,7 @@ public:
 	{
 		do_alloc_init(a, x, any_ops::clone_with_allocator);
 	}
-	//! \post 非标准扩展：转移后被转移的参数值满足 !has_value() 。
+	//! \post YStandardEx 扩展：转移后被转移的参数值满足 !has_value() 。
 	//@{
 	any(any&& x) ynothrow
 		: any_base(x)

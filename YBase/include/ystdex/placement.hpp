@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016, 2018 FrankHB.
+	© 2015-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r814
+\version r851
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2018-11-04 16:21 +0800
+	2019-01-19 17:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,8 +34,8 @@
 //	std::align, sizeof_t, size_t_, identity, empty_base, YB_ASSUME,
 //	ystdex::addressof, is_lvalue_reference, std::pair, std::allocator,
 //	std::allocator_traits, enable_if_convertible_t, std::unique_ptr;
-#include "cstdint.hpp" // for is_power_of_2, is_undereferenceable,
-//	std::iterator_traits, yconstraint;
+#include "cstdint.hpp" // for is_power_of_2, yconstraint, is_undereferenceable,
+//	std::iterator_traits, vseq, ctor_of, when, _a;
 #include <new> // for placement ::operator new from standard library;
 // NOTE: The following code is necessary to check for <optional> header to
 //	ensure it have %in_place_t consistently. Other implementation is in
@@ -110,12 +110,14 @@ is_aligned_ptr(_type* p, size_t alignment
 }
 
 /*!
+\ingroup tags
 \brief 默认初始化标记。
 \since build 677
 */
 yconstexpr const struct default_init_t{} default_init{};
 
 /*!
+\ingroup tags
 \brief 值初始化标记。
 \since build 705
 */
@@ -132,6 +134,7 @@ namespace uniformed_tags
 {
 
 /*!
+\ingroup YBase_replacement_features tags
 \see WG21 P0032R3 。
 \see WG21 N4606 20.2.7[utility.inplace] 。
 \see https://stackoverflow.com/questions/40923097/stdin-place-t-and-friends-in-c17 。
@@ -230,6 +233,37 @@ in_place_index(yimpl(size_t_<_vIdx>))
 #endif
 
 } // inline namespace cpp2017;
+
+//! \since build 851
+//@{
+//! \ingroup tags
+template<typename _type>
+struct in_place_index_ctor
+{
+	using type = in_place_index_t<_type::value>;
+};
+
+
+namespace vseq
+{
+
+//! \ingroup metafunctions
+//@{
+template<typename _type>
+struct ctor_of<in_place_type_t<_type>, when<true>>
+{
+	using type = _a<in_place_type_t>;
+};
+
+template<size_t _vIdx>
+struct ctor_of<in_place_index_t<_vIdx>, when<true>>
+{
+	using type = _a<in_place_index_ctor>;
+};
+//@}
+
+} // namespace vseq;
+//@}
 
 
 /*!
@@ -398,7 +432,7 @@ destroy_n(_tFwd first, _tSize n)
 	// NOTE: There can be improved diagnostics as https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80553,
 	//	which is not required for conforming. Note WG21 P0411R0 is not adopted.
 	// XXX: Excessive order refinment by ','?
-	for(; n > 0; static_cast<void>(++first), --n)
+	for(; n > 0; ++first, static_cast<void>(--n))
 		ystdex::destroy_at(ystdex::addressof(*first));
 	return first;
 }
@@ -517,7 +551,7 @@ uninitialized_default_construct_n(_tFwd first, _tSize n)
 {
 	YB_Impl_UninitGuard_Begin
 		// XXX: Excessive order refinment by ','?
-		for(; n > 0; static_cast<void>(++first), --n)
+		for(; n > 0; ++first, static_cast<void>(--n))
 			ystdex::construct_default(first);
 	YB_Impl_UninitGuard_End
 }
@@ -539,7 +573,7 @@ uninitialized_value_construct_n(_tFwd first, _tSize n)
 {
 	YB_Impl_UninitGuard_Begin
 		// XXX: Excessive order refinment by ','?
-		for(; n > 0; static_cast<void>(++first), --n)
+		for(; n > 0; ++first, static_cast<void>(--n))
 			ystdex::construct(first);
 	YB_Impl_UninitGuard_End
 	return first;
@@ -558,7 +592,7 @@ _tFwd
 uninitialized_move(_tIn first, _tIn last, _tFwd result)
 {
 	YB_Impl_UninitGuard_Begin
-		for(; first != last; static_cast<void>(++result), ++first)
+		for(; first != last; ++result, static_cast<void>(++first))
 			ystdex::construct(result, std::move(*first));
 	YB_Impl_UninitGuard_End
 	return result;
@@ -570,7 +604,7 @@ uninitialized_move_n(_tIn first, _tSize n, _tFwd result)
 {
 	YB_Impl_UninitGuard_Begin
 		// XXX: Excessive order refinment by ','?
-		for(; n > 0; ++result, static_cast<void>(++first), --n)
+		for(; n > 0; ++result, ++first, static_cast<void>(--n))
 			ystdex::construct(result, std::move(*first));
 	YB_Impl_UninitGuard_End
 	return {first, result};
@@ -725,6 +759,7 @@ struct tagged_value
 		ynoexcept_spec(is_nothrow_default_constructible<token_type>())
 		: token(), empty()
 	{}
+	explicit
 	tagged_value(default_init_t)
 	{}
 	tagged_value(token_type t)

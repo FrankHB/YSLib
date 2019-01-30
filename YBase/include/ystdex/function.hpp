@@ -11,13 +11,13 @@
 /*!	\file function.hpp
 \ingroup YStandardEx
 \brief 函数基本操作和调用包装对象。
-\version r4747
+\version r4833
 \author FrankHB <frankhb1989@gmail.com>
 \since build 847
 \par 创建时间:
 	2018-12-13 01:24:06 +0800
 \par 修改时间:
-	2019-01-15 12:32 +0800
+	2019-01-19 02:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,15 +28,14 @@
 #ifndef YB_INC_ystdex_function_hpp_
 #define YB_INC_ystdex_function_hpp_ 1
 
-#include "type_op.hpp" // for internal "type_op.hpp", index_sequence, true_,
+#include "any.h" // for internal "type_op.hpp", index_sequence, true_,
 //	std::tuple, is_convertible, vseq::at, bool_, index_sequence_for,
-//	remove_cvref_t, _t, std::tuple_element, std::tuple_size, size_t_,
-//	enable_if_t, vseq::join_n_t, is_function, nullptr_t, is_trivially_copyable,
-//	exclude_self_t, std::reference_wrapper;
-#include "apply.hpp" // for call_projection, is_invocable_r, ystdex::invoke,
-//	yconstraint;
+//	remove_cvref_t, _t, vseq::at_t, vseq::seq_size_t, enable_if_t,
+//	vseq::join_n_t, yconstraint, is_function, any, nullptr_t, ystdex::invoke,
+//	std::allocator_arg_t, exclude_self_t, is_invocable_r, std::allocator_arg,
+//	std::reference_wrapper;
+#include "apply.hpp" // for call_projection;
 #include "operators.hpp" // for operators::equality_comparable;
-#include "any.h" // for any, std::allocator_arg_t, std::allocator_arg;
 
 namespace ystdex
 {
@@ -46,42 +45,46 @@ namespace ystdex
 namespace details
 {
 
+//! \since build 851
+//@{
 template<class, class, class>
-struct tuple_element_convertible;
+struct elements_convertible;
 
 template<class _type1, class _type2>
-struct tuple_element_convertible<_type1, _type2, index_sequence<>> : true_
+struct elements_convertible<_type1, _type2, index_sequence<>> : true_
 {};
 
 template<typename... _types1, typename... _types2, size_t... _vSeq,
 	size_t _vHead>
-struct tuple_element_convertible<std::tuple<_types1...>, std::tuple<_types2...>,
+struct elements_convertible<empty_base<_types1...>, empty_base<_types2...>,
 	index_sequence<_vHead, _vSeq...>>
 {
 	static_assert(sizeof...(_types1) == sizeof...(_types2),
 		"Mismatched sizes of tuple found.");
 
 private:
-	using t1 = std::tuple<_types1...>;
-	using t2 = std::tuple<_types2...>;
+	using t1 = empty_base<_types1...>;
+	using t2 = empty_base<_types2...>;
 
 public:
 	static yconstexpr const bool value
 		= is_convertible<vseq::at<t1, _vHead>, vseq::at<t2, _vHead>>::value
-		&& tuple_element_convertible<t1, t2, index_sequence<_vSeq...>>::value;
+		&& elements_convertible<t1, t2, index_sequence<_vSeq...>>::value;
 };
+//@}
 
 
 //! \since build 847
 //@{
+//! \since build 851
 template<typename>
-struct mk_ptuple;
+struct mk_plist;
 
 #define YB_Impl_Functional_ptuple_spec(_exp, _p, _e) \
 	template<typename _tRet, _exp typename... _tParams ynoexcept_param(ne)> \
-	struct mk_ptuple<_tRet _p (_tParams... YPP_Args _e) ynoexcept_qual(ne)> \
+	struct mk_plist<_tRet _p (_tParams... YPP_Args _e) ynoexcept_qual(ne)> \
 	{ \
-		using type = std::tuple<_tParams...>; \
+		using type = empty_base<_tParams...>; \
 	};
 
 YB_Impl_Functional_ptuple_spec(, , )
@@ -91,8 +94,9 @@ YB_Impl_Functional_ptuple_spec(, (*), (, ...))
 
 #undef YB_Impl_Functional_ptuple_spec
 
+//! \since build 851
 template<typename _fSig>
-struct mk_ptuple<std::function<_fSig>> : mk_ptuple<_fSig>
+struct mk_plist<std::function<_fSig>> : mk_plist<_fSig>
 {};
 
 
@@ -146,10 +150,16 @@ struct is_covariant<_tFrom(_tFromParams...), _tTo(_tToParams...)>
 	: is_covariant<_tFrom, _tTo>
 {};
 
+//! \since build 851
+template<typename... _tFroms, typename... _tTos>
+struct is_covariant<empty_base<_tFroms...>, empty_base<_tTos...>>
+	: bool_<details::elements_convertible<empty_base<_tFroms...>,
+	empty_base<_tTos...>, index_sequence_for<_tTos...>>::value>
+{};
+
 template<typename... _tFroms, typename... _tTos>
 struct is_covariant<std::tuple<_tFroms...>, std::tuple<_tTos...>>
-	: bool_<details::tuple_element_convertible<std::tuple<_tFroms...>,
-	std::tuple<_tTos...>, index_sequence_for<_tTos...>>::value>
+	: is_covariant<empty_base<_tFroms...>, empty_base<_tTos...>>
 {};
 
 //! \since build 575
@@ -171,13 +181,19 @@ struct is_contravariant : is_convertible<_tTo, _tFrom>
 template<typename _tResFrom, typename _tResTo, typename... _tFromParams,
 	typename... _tToParams>
 struct is_contravariant<_tResFrom(_tFromParams...), _tResTo(_tToParams...)>
-	: is_contravariant<std::tuple<_tFromParams...>, std::tuple<_tToParams...>>
+	: is_contravariant<empty_base<_tFromParams...>, empty_base<_tToParams...>>
+{};
+
+//! \since build 851
+template<typename... _tFroms, typename... _tTos>
+struct is_contravariant<empty_base<_tFroms...>, empty_base<_tTos...>>
+	: bool_<details::elements_convertible<empty_base<_tTos...>,
+	empty_base<_tFroms...>, index_sequence_for<_tTos...>>::value>
 {};
 
 template<typename... _tFroms, typename... _tTos>
 struct is_contravariant<std::tuple<_tFroms...>, std::tuple<_tTos...>>
-	: bool_<details::tuple_element_convertible<std::tuple<_tTos...>,
-	std::tuple<_tFroms...>, index_sequence_for<_tTos...>>::value>
+	: is_contravariant<empty_base<_tFroms...>, empty_base<_tTos...>>
 {};
 
 //! \since build 575
@@ -306,17 +322,18 @@ unseq_apply(_func&& f, _tParams&&... args)
 
 //! \ingroup transformation_traits
 //@{
-//! \brief 取参数列表元组。
+//! \brief 取参数列表。
 //@{
-//! \since build 333
+//! \since build 851
+//@{
 template<typename _fCallable>
-struct make_parameter_tuple
-	: details::mk_ptuple<remove_cvref_t<_fCallable>>
+struct make_parameter_list
+	: details::mk_plist<remove_cvref_t<_fCallable>>
 {};
 
-//! \since build 447
 template<typename _fCallable>
-using make_parameter_tuple_t = _t<make_parameter_tuple<_fCallable>>;
+using make_parameter_list_t = _t<make_parameter_list<_fCallable>>;
+//@}
 //@}
 
 
@@ -341,8 +358,7 @@ using return_of_t = _t<return_of<_fCallable>>;
 template<size_t _vIdx, typename _fCallable>
 struct parameter_of
 {
-	using type
-		= _t<std::tuple_element<_vIdx, _t<make_parameter_tuple<_fCallable>>>>;
+	using type = vseq::at_t<make_parameter_list_t<_fCallable>, _vIdx>;
 };
 
 //! \since build 447
@@ -352,18 +368,21 @@ using parameter_of_t = _t<parameter_of<_vIdx, _fCallable>>;
 
 
 /*!
+\ingroup unary_type_traits
 \brief 取参数列表大小。
 \since build 333
 */
 template<typename _fCallable>
-struct paramlist_size : size_t_<std::tuple_size<typename
-	make_parameter_tuple<_fCallable>::type>::value>
+struct paramlist_size : vseq::seq_size_t<make_parameter_list_t<_fCallable>>
 {};
 
 
 //! \since build 572
 //@{
-//! \brief 取指定返回类型和元组指定参数类型的函数类型。
+/*!
+\ingroup binary_type_traits
+\brief 取指定返回类型和元组指定参数类型的函数类型。
+*/
 //@{
 template<typename, class>
 struct make_function_type;
@@ -372,10 +391,15 @@ template<typename _tRet, class _tTuple>
 using make_function_type_t = _t<make_function_type<_tRet, _tTuple>>;
 
 template<typename _tRet, typename... _tParams>
-struct make_function_type<_tRet, std::tuple<_tParams...>>
+struct make_function_type<_tRet, empty_base<_tParams...>>
 {
 	using type = _tRet(_tParams...);
 };
+
+template<typename _tRet, typename... _tParams>
+struct make_function_type<_tRet, std::tuple<_tParams...>>
+	: make_function_type<_tRet, empty_base<_tParams...>>
+{};
 //@}
 
 
@@ -394,7 +418,7 @@ struct call_projection<std::function<_tRet(_tParams...)>,
 */
 template<typename _fCallable>
 using as_function_type_t = make_function_type_t<return_of_t<_fCallable>,
-	make_parameter_tuple_t<_fCallable>>;
+	make_parameter_list_t<_fCallable>>;
 
 
 /*!
@@ -409,7 +433,7 @@ using enable_fallback_t = enable_if_t<!is_detected<_gOp, _tParams&&...>::value,
 //! \brief 取指定维数和指定参数类型的多元映射扩展恒等函数类型。
 template<typename _type, size_t _vN = 1, typename _tParam = _type>
 using id_func_t
-	= make_function_type_t<_type, vseq::join_n_t<_vN, std::tuple<_tParam>>>;
+	= make_function_type_t<_type, vseq::join_n_t<_vN, empty_base<_tParam>>>;
 
 //! \brief 取指定维数和 const 左值引用参数类型的多元映射扩展恒等函数类型。
 template<typename _type, size_t _vN = 1>
@@ -782,13 +806,36 @@ public:
 
 //! \relates function
 //@{
+//! \since build 851
 template<class _tTraits, typename _fSig>
-struct make_parameter_tuple<function_base<_tTraits, _fSig>>
-	: make_parameter_tuple<_fSig>
+struct make_parameter_list<function_base<_tTraits, _fSig>>
+	: make_parameter_list<_fSig>
 {};
 
 template<class _tTraits, typename _fSig>
 struct return_of<function_base<_tTraits, _fSig>> : return_of<_fSig>
+{};
+//@}
+
+//! \since build 851
+//@{
+template<class _tTraits, typename _tFrom, typename _tTo,
+	typename... _tFromParams, typename... _tToParams>
+struct is_covariant<function_base<_tTraits, _tFrom(_tFromParams...)>,
+	function_base<_tTraits, _tTo(_tToParams...)>>
+	: is_covariant<_tFrom(_tFromParams...), _tTo(_tToParams...)>
+{};
+
+template<class _tTraits, typename _tResFrom, typename _tResTo,
+	typename... _tFromParams, typename... _tToParams>
+struct is_contravariant<function_base<_tTraits, _tResFrom(_tFromParams...)>,
+	function_base<_tTraits, _tResTo(_tToParams...)>>
+	: is_contravariant<_tResFrom(_tFromParams...), _tResTo(_tToParams...)>
+{};
+
+template<class _tTraits, typename _tRet, typename... _tParams>
+struct make_function_type<_tRet, function_base<_tTraits, _tParams...>>
+	: make_function_type<_tRet, empty_base<_tParams...>>
 {};
 //@}
 
