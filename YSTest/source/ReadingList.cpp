@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014, 2017 FrankHB.
+	© 2012-2014, 2017, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ReadingList.cpp
 \ingroup YReader
 \brief 阅读列表。
-\version r148
+\version r151
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:14:27 +0800
 \par 修改时间:
-	2017-02-26 23:35 +0800
+	2019-02-10 14:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,7 +42,8 @@ ReadingList::operator ValueNode::Container() const
 	ValueNode::Container con;
 
 	for(const auto& bm : GetList())
-		con.insert(MakeNode("bm" + MakeIndex(con), ValueNode::Container(bm)));
+		con.insert(MakeNode("bm" + MakeIndex(con.size()),
+			ValueNode::Container(bm)));
 	return con;
 }
 

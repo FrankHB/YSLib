@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2144
+\version r2239
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2019-01-20 00:11 +0800
+	2019-02-10 14:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,10 +26,12 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA // for std::allocator_arg, ystdex::value_or,
-//	ystdex::write, bad_any_cast, ystdex::unimplemented, ystdex::type_id,
+#include YFM_NPL_NPLA // for YSLib::DecodeIndex, std::to_string,
+//	std::allocator_arg, ystdex::value_or, ystdex::write, bad_any_cast,
+//	YSLib::NodeSequence, AccessPtr, ystdex::unimplemented, ystdex::type_id,
 //	ystdex::quote, ystdex::call_value_or, ystdex::begins_with, ystdex::sfmt,
-//	sfmt, ystdex::ref, ystdex::retry_on_cond, ystdex::type_info, pair;
+//	sfmt, ystdex::ref, ystdex::retry_on_cond, ystdex::type_info, pair,
+//	NPL::make_observer;
 #include YFM_NPL_SContext
 
 using namespace YSLib;
@@ -43,36 +45,14 @@ namespace NPL
 #	define YF_Impl_NPLA_CheckStatus false
 #endif
 
-ValueNode
-MapNPLALeafNode(const TermNode& term)
+string
+DecodeNodeIndex(const string& name)
 {
-	return AsNode(term.get_allocator(), string(),
-		string(Deliteralize(ParseNPLANodeString(MapToValueNode(term)))));
+	TryRet(std::to_string(YSLib::DecodeIndex(name)))
+	CatchIgnore(std::invalid_argument&);
+	return name;
 }
 
-ValueNode
-TransformToSyntaxNode(const ValueNode& node, const string& name)
-{
-	ValueNode::Container con{AsIndexNode(node.get_allocator(), size_t(),
-		node.GetName())};
-	const auto nested_call([&](const ValueNode& nd){
-		con.emplace(TransformToSyntaxNode(nd, MakeIndex(con)));
-	});
-
-	if(node.empty())
-	{
-		if(const auto p = AccessPtr<NodeSequence>(node))
-			for(auto& nd : *p)
-				nested_call(nd);
-		else
-			con.emplace(NoContainer, MakeIndex(1),
-				Literalize(ParseNPLANodeString(node)));
-	}
-	else
-		for(auto& nd : node)
-			nested_call(nd);
-	return {std::allocator_arg, node.get_allocator(), std::move(con), name};
-}
 
 string
 EscapeNodeLiteral(const ValueNode& node)
@@ -111,16 +91,18 @@ PrintNode(std::ostream& os, const ValueNode& node, NodeToString node_to_str,
 	IndentGenerator igen, size_t depth)
 {
 	PrintIndent(os, igen, depth);
-	os << EscapeLiteral(node.GetName()) << ' ';
-	if(PrintNodeString(os, node, node_to_str))
+	os << EscapeLiteral(DecodeNodeIndex(node.GetName())) << ' ';
+
+	const auto print_node_str(std::bind(PrintNodeString, std::ref(os),
+		std::placeholders::_1, std::ref(node_to_str)));
+
+	if(print_node_str(node))
 		return;
 	os << '\n';
 	if(node)
 		TraverseNodeChildAndPrint(os, node, [&]{
 			PrintIndent(os, igen, depth);
-		}, [&](const ValueNode& nd){
-			return PrintNodeString(os, nd, node_to_str);
-		}, [&](const ValueNode& nd){
+		}, print_node_str, [&](const ValueNode& nd){
 			return PrintNode(os, nd, node_to_str, igen, depth + 1);
 		});
 }
@@ -134,6 +116,44 @@ PrintNodeString(std::ostream& os, const ValueNode& node,
 	return {};
 }
 
+
+string
+ParseNPLATermString(const TermNode& term)
+{
+	return ystdex::value_or(AccessPtr<string>(term));
+}
+
+ValueNode
+MapNPLALeafNode(const TermNode& term)
+{
+	return YSLib::AsNode(term.get_allocator(), string(),
+		string(Deliteralize(ParseNPLATermString(term))));
+}
+
+TermNode
+TransformToSyntaxNode(const TermNode& term, const string& name)
+{
+	TermNode res{std::allocator_arg, term.get_allocator(),
+		{AsIndexNode(term.get_allocator(), size_t(), term.GetName())}, name};
+	const auto nested_call([&](const TermNode& tm){
+		res.Add(TransformToSyntaxNode(tm, MakeIndex(res.size())));
+	});
+
+	if(term.empty())
+	{
+		if(const auto p = AccessPtr<YSLib::NodeSequence>(term))
+			for(const auto& nd : *p)
+				// TODO: Optimize to avoid unnecessary copies.
+				nested_call(TermNode(nd, term.get_allocator()));
+		else
+			res.emplace(NoContainer, MakeIndex(1),
+				Literalize(ParseNPLATermString(term)));
+	}
+	else
+		for(auto& tm : term)
+			nested_call(tm);
+	return res;
+}
 
 namespace SXML
 {
@@ -174,19 +194,16 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 		{
 			if(opt == ParseOption::String)
 				throw LoggedEvent("Invalid non-string term found.");
-
-			const auto& con(term.GetContainer());
-
-			if(!con.empty())
+			if(!term.empty())
 				try
 				{
-					auto i(con.cbegin());
+					auto i(term.begin());
 					const auto& str(Access<string>(Deref(i)));
 
 					++i;
 					if(str == "@")
 					{
-						for(; i != con.cend(); ++i)
+						for(; i != term.end(); ++i)
 							res += ' ' + ConvertAttributeNodeString(Deref(i));
 						return res;
 					}
@@ -195,7 +212,7 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 					if(str == "*PI*")
 					{
 						res = "<?";
-						for(; i != con.cend(); ++i)
+						for(; i != term.end(); ++i)
 							res += string(Deliteralize(ConvertDocumentNode(
 								Deref(i), igen, depth, ParseOption::String)))
 								+ ' ';
@@ -218,7 +235,7 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 
 						if(YB_UNLIKELY(!is_content && depth > 0))
 							YTraceDe(Warning, "Invalid *TOP* found.");
-						if(i != con.end())
+						if(i != term.end())
 						{
 							if(!Deref(i).empty()
 								&& (i->begin())->Value == string("@"))
@@ -226,14 +243,14 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 								head += string(
 									Deliteralize(ConvertDocumentNode(*i, igen,
 									depth, ParseOption::Attribute)));
-								if(++i == con.cend())
+								if(++i == term.end())
 									return head + " />";
 							}
 							head += '>';
 						}
 						else
 							return head + " />";
-						for(; i != con.cend(); ++i)
+						for(; i != term.end(); ++i)
 						{
 							nl = Deref(i).Value.type()
 								!= ystdex::type_id<string>();
@@ -283,7 +300,7 @@ PrintSyntaxNode(std::ostream& os, const TermNode& term, IndentGenerator igen,
 }
 
 
-ValueNode
+TermNode
 MakeXMLDecl(const string& name, const string& ver, const string& enc,
 	const string& sd)
 {
@@ -293,11 +310,11 @@ MakeXMLDecl(const string& name, const string& ver, const string& enc,
 		decl += " encoding=\"" + enc + '"';
 	if(!sd.empty())
 		decl += " standalone=\"" + sd + '"';
-	return AsNodeLiteral(name, {{MakeIndex(0), "*PI*"}, {MakeIndex(1), "xml"},
-		{MakeIndex(2), decl + ' '}});
+	return SXML::NodeLiteralToTerm(name, {{MakeIndex(0), "*PI*"},
+		{MakeIndex(1), "xml"}, {MakeIndex(2), decl + ' '}});
 }
 
-ValueNode
+TermNode
 MakeXMLDoc(const string& name, const string& ver, const string& enc,
 	const string& sd)
 {
@@ -341,7 +358,7 @@ observer_ptr<Environment>
 RedirectToShared(string_view id, const shared_ptr<Environment>& p_shared)
 {
 	if(p_shared)
-		return make_observer(get_raw(p_shared));
+		return NPL::make_observer(get_raw(p_shared));
 	// TODO: Use concrete semantic failure exception.
 	throw NPLException(ystdex::sfmt("Invalid reference found for%s name '%s',"
 		" probably due to invalid context access by dangling reference.",
@@ -539,18 +556,18 @@ IsLValueTerm(const TermNode& term) ynothrow
 
 
 pair<TermReference, bool>
-Collapse(TermNode& node)
+Collapse(TermNode& term)
 {
-	if(const auto p_tref = AccessPtr<const TermReference>(node))
+	if(const auto p_tref = AccessPtr<const TermReference>(term))
 		return {*p_tref, true};
-	return {node, {}};
+	return {term, {}};
 }
 pair<TermReference, bool>
-Collapse(TermNode& node, const Environment& env)
+Collapse(TermNode& term, const Environment& env)
 {
-	if(const auto p_tref = AccessPtr<const TermReference>(node))
+	if(const auto p_tref = AccessPtr<const TermReference>(term))
 		return {*p_tref, true};
-	return {{node, env.Anchor()}, {}};
+	return {{term, env.Anchor()}, {}};
 }
 
 TermNode&
@@ -733,7 +750,7 @@ Environment::Deduplicate(BindingMap& dst, const BindingMap& src)
 	for(const auto& binding : src)
 		// XXX: Non-trivially destructible objects is treated same.
 		// NOTE: Redirection is not needed here.
-		dst.Remove(binding.GetName());
+		dst.erase(binding);
 	// NOTE: If the resulted parent environment is empty, it is safe to be
 	//	removed.
 	return dst.empty();
@@ -742,7 +759,7 @@ Environment::Deduplicate(BindingMap& dst, const BindingMap& src)
 Environment::NameResolution
 Environment::DefaultResolve(const Environment& e, string_view id)
 {
-	observer_ptr<ValueNode> p;
+	NameResolution::first_type p;
 	auto env_ref(ystdex::ref<const Environment>(e));
 	Redirector cont;
 
@@ -775,16 +792,17 @@ Environment::Define(string_view id, ValueObject&& vo, bool forced)
 	YAssertNonnull(id.data());
 	if(forced)
 		// XXX: Self overwriting is possible.
-		swap(Bindings[id].Value, vo);
-	else if(!Bindings.AddValue(id, std::move(vo)))
+		swap((*this)[id].Value, vo);
+	else if(!AddValue(id, std::move(vo)))
 		throw BadIdentifier(id, 2);
 }
 
-observer_ptr<ValueNode>
+Environment::NameResolution::first_type
 Environment::LookupName(string_view id) const
 {
 	YAssertNonnull(id.data());
-	return AccessNodePtr(Bindings, id);
+	return NPL::make_observer(ystdex::call_value_or<TermNode*>(
+		ystdex::addrof<>(), Bindings.find(id), {}, Bindings.cend()));
 }
 
 void
@@ -800,7 +818,9 @@ bool
 Environment::Remove(string_view id, bool forced)
 {
 	YAssertNonnull(id.data());
-	if(Bindings.Remove(id))
+	// XXX: %BindingMap does not have transparent key %erase. This is like
+	//	%std::set.
+	if(ystdex::erase_first(Bindings, id))
 		return true;
 	if(forced)
 		return {};

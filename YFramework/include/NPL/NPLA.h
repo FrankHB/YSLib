@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4672
+\version r4930
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2019-01-24 11:06 +0800
+	2019-02-08 14:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,12 +32,14 @@
 #include YFM_NPL_SContext // for YSLib::MakeIndex, YSLib::NodeSequence,
 //	YSLib::NodeLiteral, YSLib::any, YSLib::bad_any_cast,
 //	YSLib::enable_shared_from_this, YSLib::lref, YSLib::make_shared,
-//	YSLib::make_weak, YSLib::observer_ptr, YSLib::pair, YSLib::to_string,
+//	YSLib::make_weak, observer_ptr, pair, YSLib::to_string,
 //	YSLib::shared_ptr, YSLib::weak_ptr, NPLTag, ValueNode, TermNode, string,
-//	LoggedEvent, ystdex::isdigit, ystdex::equality_comparable,
-//	YSLib::allocate_shared, std::uintptr_t, ystdex::allocator_traits,
-//	ystdex::copy_and_swap, ystdex::move_and_swap, ystdex::type_info,
-//	ystdex::get_equal_to, ystdex::exchange, ystdex::make_obj_using_allocator;
+//	TraverseSubnodes, LoggedEvent, ystdex::isdigit, NPL::Access, NPL::AccessPtr,
+//	ystdex::equality_comparable, ystdex::move_and_swap, ystdex::mapped_set,
+//	YSLib::allocate_shared, std::uintptr_t, ystdex::copy_and_swap, NoContainer,
+//	ystdex::try_emplace, ystdex::try_emplace_hint, ystdex::type_info,
+//	ystdex::get_equal_to, ystdex::exchange, ystdex::insert_or_assign,
+//	ystdex::make_obj_using_allocator;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include YFM_YSLib_Core_YEvent // for ystdex::indirect, ystdex::fast_any_of,
 //	YSLib::GHEvent, YSLib::GEvent, YSLib::GCombinerInvoker,
@@ -57,10 +59,6 @@ namespace NPL
 //! \since build 851
 namespace any_ops = YSLib::any_ops;
 
-//! \since build 599
-using YSLib::MakeIndex;
-//! \since build 600
-using YSLib::NodeSequence;
 //! \since build 600
 using YSLib::NodeLiteral;
 //! \since build 851
@@ -76,9 +74,6 @@ using YSLib::in_place_type;
 using YSLib::lref;
 using YSLib::make_shared;
 using YSLib::make_weak;
-using YSLib::observer_ptr;
-//! \since build 598
-using YSLib::pair;
 //! \since build 598
 using YSLib::to_string;
 using YSLib::shared_ptr;
@@ -96,69 +91,20 @@ struct YF_API NPLATag : NPLTag
 
 
 /*!
-\brief 插入语法节点。
-\since build 599
+\brief 解码索引节点名称。
+\return 解码后的名称。
+\since build 852
+\sa YSLib::DecodeIndex
+\sa std::to_string
 
-在指定的节点插入以节点大小字符串为名称的节点，可用于语法分析树。
+若存在解码成功的索引，则结果为其十进制表示；否则，结果同未解码的节点名称。
 */
-//@{
-template<class _tNodeOrCon, typename... _tParams>
-ValueNode::iterator
-InsertSyntaxNode(_tNodeOrCon&& node_or_con,
-	std::initializer_list<ValueNode> il, _tParams&&... args)
-{
-	return node_or_con.emplace_hint(node_or_con.end(), ValueNode::Container(il),
-		MakeIndex(node_or_con), yforward(args)...);
-}
-template<class _tNodeOrCon, typename _type, typename... _tParams>
-ValueNode::iterator
-InsertSyntaxNode(_tNodeOrCon&& node_or_con, _type&& arg, _tParams&&... args)
-{
-	return node_or_con.emplace_hint(node_or_con.end(), yforward(arg),
-		MakeIndex(node_or_con), yforward(args)...);
-}
-//@}
+YB_ATTR_nodiscard YF_API YB_PURE string
+DecodeNodeIndex(const string&);
 
 
-/*!
-\brief 节点映射操作类型：变换节点为另一个节点。
-\since buld 501
-*/
-using NodeMapper = function<ValueNode(const TermNode&)>;
-
-//! \since buld 597
-//@{
+//! \since build 597
 using NodeToString = function<string(const ValueNode&)>;
-
-template<class _tCon>
-using GNodeInserter = function<void(TermNode&&, _tCon&)>;
-
-using NodeInserter = GNodeInserter<TermNode::Container&>;
-
-using NodeSequenceInserter = GNodeInserter<NodeSequence>;
-//@}
-
-
-//! \return 创建的新节点。
-//@{
-/*!
-\brief 映射 NPLA 叶节点。
-\sa ParseNPLANodeString
-\since build 674
-
-创建新节点。若参数为空则返回值为空串的新节点；否则值以 ParseNPLANodeString 取得。
-*/
-YB_ATTR_nodiscard YF_API YB_PURE ValueNode
-MapNPLALeafNode(const TermNode&);
-
-/*!
-\brief 变换节点为语法分析树叶节点。
-\note 可选参数指定结果名称。
-\since build 598
-*/
-YB_ATTR_nodiscard YF_API YB_PURE ValueNode
-TransformToSyntaxNode(const ValueNode&, const string& = {});
-//@}
 
 /*!
 \brief 转义 NPLA 节点字面量。
@@ -189,37 +135,6 @@ YB_ATTR_nodiscard YF_API YB_PURE string
 ParseNPLANodeString(const ValueNode&);
 
 
-/*!
-\brief 插入语法子节点。
-\since build 599
-
-在指定的节点插入以节点大小字符串为名称的节点，可用于语法分析树。
-*/
-//@{
-//! \since build 666
-template<class _tNodeOrCon>
-ValueNode::iterator
-InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, ValueNode& child)
-{
-	return InsertSyntaxNode(yforward(node_or_con), child.GetContainerRef());
-}
-template<class _tNodeOrCon>
-ValueNode::iterator
-InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, ValueNode&& child)
-{
-	return InsertSyntaxNode(yforward(node_or_con),
-		std::move(child.GetContainerRef()));
-}
-template<class _tNodeOrCon>
-ValueNode::iterator
-InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, const NodeLiteral& nl)
-{
-	return
-		InsertChildSyntaxNode(yforward(node_or_con), TransformToSyntaxNode(nl));
-}
-//@}
-
-
 //! \since build 597
 //@{
 //! \brief 生成前缀缩进的函数类型。
@@ -237,30 +152,6 @@ DefaultGenerateIndent(size_t);
 */
 YF_API void
 PrintIndent(std::ostream&, IndentGenerator = DefaultGenerateIndent, size_t = 1);
-
-//! \since build 803
-//@{
-/*!
-\brief 遍历子节点。
-\note 使用 ADL AccessPtr 。
-
-遍历节点容器中的子节点。
-首先调用 AccessPtr 尝试访问 NodeSequence ，否则直接作为节点容器访问。
-*/
-template<typename _fCallable, class _type>
-void
-TraverseSubnodes(_fCallable f, const _type& node)
-{
-	using YSLib::AccessPtr;
-
-	// TODO: Null coalescing or variant value?
-	if(const auto p = AccessPtr<NodeSequence>(node))
-		for(const auto& nd : *p)
-			ystdex::invoke(f, nd);
-	else
-		for(const auto& nd : node)
-			ystdex::invoke(f, nd);
-}
 
 /*!
 \brief 打印容器边界和其中的 NPLA 节点，且在打印边界前调用前置操作。
@@ -280,9 +171,9 @@ PrintContainedNodes(std::ostream& os, function<void()> pre, _fCallable f)
 
 /*!
 \brief 打印有索引前缀的节点或遍历子节点并打印。
-\note 使用 ADL IsPrefixedIndex 。
-\sa IsPrefixedIndex
 \sa TraverseSubnodes
+\sa YSLib::IsPrefixedIndex
+\since build 851
 
 以第三参数作为边界前置操作，调用 PrintContainedNodes 逐个打印子节点内容。
 调用第四参数输出最后一个参数决定的缩进作为前缀，然后打印子节点内容。
@@ -290,16 +181,14 @@ PrintContainedNodes(std::ostream& os, function<void()> pre, _fCallable f)
 否则，调用第五参数递归打印子节点，忽略此过程中的 std::out_of_range 异常。
 其中，遍历子节点通过调用 TraverseSubnodes 实现。
 */
-template<typename _fCallable, typename _fCallable2>
+template<class _tNode, typename _fCallable, typename _fCallable2>
 void
-TraverseNodeChildAndPrint(std::ostream& os, const ValueNode& node,
+TraverseNodeChildAndPrint(std::ostream& os, const _tNode& node,
 	function<void()> pre, _fCallable print_node_str,
 	_fCallable2 print_term_node)
 {
-	using YSLib::IsPrefixedIndex;
-
-	TraverseSubnodes([&](const ValueNode& nd){
-		if(IsPrefixedIndex(nd.GetName()))
+	TraverseSubnodes([&](const _tNode& nd){
+		if(YSLib::IsPrefixedIndex(nd.GetName()))
 		{
 			pre();
 			ystdex::invoke(print_node_str, nd);
@@ -310,10 +199,10 @@ TraverseNodeChildAndPrint(std::ostream& os, const ValueNode& node,
 			});
 	}, node);
 }
-//@}
 
 /*!
 \brief 打印 NPLA 节点。
+\sa DecodeNodeIndex
 \sa PrintIdent
 \sa PrintNodeChild
 \sa PrintNodeString
@@ -323,6 +212,8 @@ TraverseNodeChildAndPrint(std::ostream& os, const ValueNode& node,
 先尝试调用 PrintNodeString 打印节点字符串，若成功直接返回；
 否则打印换行，对非空节点调用 TraverseNodeChildAndPrint 打印子节点内容。
 其中，使用的边界前置操作为调用第四参数输出最后一个参数决定的缩进作为前缀输出。
+打印节点内容中的节点名称时，首先尝试使用 YSLib::DecodeIndex 解码索引。
+输出的节点名称使用 DecodeNodeIndex 解码。
 */
 YF_API void
 PrintNode(std::ostream&, const ValueNode&, NodeToString = EscapeNodeLiteral,
@@ -342,6 +233,112 @@ PrintNodeString(std::ostream&, const ValueNode&,
 	NodeToString = EscapeNodeLiteral);
 //@}
 
+
+//! \since buld 597
+using NodeInserter = function<void(ValueNode&&, ValueNode::Container&)>;
+
+
+//! \since build 852
+using TermNodeToString = function<string(const TermNode&)>;
+
+/*!
+\brief 解析 NPLA 项节点字符串。
+\since build 852
+
+以 string 类型访问节点，若失败则结果为空串。
+*/
+YB_ATTR_nodiscard YF_API YB_PURE string
+ParseNPLATermString(const TermNode&);
+
+
+/*!
+\brief 节点映射操作类型：变换项节点为值节点。
+\since buld 501
+*/
+using NodeMapper = function<ValueNode(const TermNode&)>;
+
+/*!
+\brief 映射 NPLA 叶节点。
+\return 创建的新节点。
+\sa ParseNPLANodeString
+\since build 674
+
+创建新节点。若参数为空则返回值为空串的新节点；否则值以 ParseNPLANodeString 取得。
+*/
+YB_ATTR_nodiscard YF_API YB_PURE ValueNode
+MapNPLALeafNode(const TermNode&);
+
+//! \since build 852
+//@{
+/*!
+\brief 变换 NPLA 语法节点为语法分析树叶节点。
+\return 变换得到的节点。
+\note 可选参数指定结果名称。
+\since build 852
+\sa Literalize
+\sa ParseNPLANodeString
+
+输入是 NPLA 语法节点可能和其它节点的混合，可能是未完全解析的中间数据。
+变换输入为符合 NPLA 语法分析结果表示的项节点。
+插入的子节点以 YSLib::NodeSequence 的形式作为变换节点的值而不是子节点，可保持顺序。
+对其它叶节点，调用 ParseNPLANodeString 和 Literalize 解析和处理内容，
+	作为待插入的子节点。
+*/
+YB_ATTR_nodiscard YF_API YB_PURE TermNode
+TransformToSyntaxNode(const TermNode&, const string& = {});
+
+
+/*!
+\note 在指定的节点插入节点，可用于语法分析树的输入。
+\sa MakeIndex
+\sa TransformToSyntaxNode
+*/
+//@{
+//! \brief 插入语法节点。
+//@{
+template<class _tNodeOrCon, typename... _tParams>
+TermNode::iterator
+InsertSyntaxNode(_tNodeOrCon&& node_or_con,
+	std::initializer_list<TermNode> il, _tParams&&... args)
+{
+	return node_or_con.emplace_hint(node_or_con.end(), TermNode::Container(il),
+		MakeIndex(node_or_con.size()), yforward(args)...);
+}
+template<class _tNodeOrCon, typename _type, typename... _tParams>
+TermNode::iterator
+InsertSyntaxNode(_tNodeOrCon&& node_or_con, _type&& arg, _tParams&&... args)
+{
+	return node_or_con.emplace_hint(node_or_con.end(), yforward(arg),
+		MakeIndex(node_or_con.size()), yforward(args)...);
+}
+//@}
+
+//! \brief 插入语法子节点。
+//@{
+template<class _tNodeOrCon>
+TermNode::iterator
+InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, TermNode& child)
+{
+	return NPL::InsertSyntaxNode(yforward(node_or_con),
+		child.GetContainerRef());
+}
+template<class _tNodeOrCon>
+TermNode::iterator
+InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, TermNode&& child)
+{
+	return NPL::InsertSyntaxNode(yforward(node_or_con),
+		std::move(child.GetContainerRef()));
+}
+template<class _tNodeOrCon>
+TermNode::iterator
+InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, const NodeLiteral& nl)
+{
+	return NPL::InsertChildSyntaxNode(yforward(node_or_con),
+		TransformToSyntaxNode(TermNode(nl)));
+}
+//@}
+//@}
+//@}
 
 namespace SXML
 {
@@ -393,18 +390,25 @@ PrintSyntaxNode(std::ostream& os, const TermNode&,
 //@}
 
 
-//! \since build 599
+//! \since build 852
 //@{
+template<typename _tString, typename _tLiteral = NodeLiteral>
+YB_ATTR_nodiscard inline YB_PURE TermNode
+NodeLiteralToTerm(_tString&& name, std::initializer_list<_tLiteral> il)
+{
+	return TermNode(YSLib::AsNodeLiteral(yforward(name), il));
+}
+
 //! \brief 构造 SXML 文档顶级节点。
 //@{
 template<typename... _tParams>
-YB_ATTR_nodiscard YB_PURE ValueNode
+YB_ATTR_nodiscard YB_PURE TermNode
 MakeTop(const string& name, _tParams&&... args)
 {
-	return YSLib::AsNodeLiteral(name,
+	return SXML::NodeLiteralToTerm(name,
 		{{MakeIndex(0), "*TOP*"}, NodeLiteral(yforward(args))...});
 }
-YB_ATTR_nodiscard YB_PURE inline PDefH(ValueNode, MakeTop, )
+YB_ATTR_nodiscard YB_PURE inline PDefH(TermNode, MakeTop, )
 	ImplRet(MakeTop({}))
 //@}
 
@@ -414,7 +418,7 @@ YB_ATTR_nodiscard YB_PURE inline PDefH(ValueNode, MakeTop, )
 \note 最后两个参数可选为空值，此时结果不包括对应的属性。
 \warning 不对参数合规性进行检查。
 */
-YB_ATTR_nodiscard YF_API YB_PURE ValueNode
+YB_ATTR_nodiscard YF_API YB_PURE TermNode
 MakeXMLDecl(const string& = {}, const string& = "1.0",
 	const string& = "UTF-8", const string& = {});
 
@@ -423,10 +427,13 @@ MakeXMLDecl(const string& = {}, const string& = "1.0",
 \sa MakeTop
 \sa MakeXMLDecl
 */
-YB_ATTR_nodiscard YF_API YB_PURE ValueNode
+YB_ATTR_nodiscard YF_API YB_PURE TermNode
 MakeXMLDoc(const string& = {}, const string& = "1.0",
 	const string& = "UTF-8", const string& = {});
+//@}
 
+//! \since build 599
+//@{
 //! \brief 构造 SXML 属性标记字面量。
 //@{
 YB_ATTR_nodiscard YB_PURE inline PDefH(NodeLiteral, MakeAttributeTagLiteral,
@@ -1025,7 +1032,7 @@ ResolveTerm(_func do_resolve, TermNode& term)
 	-> decltype(do_resolve(term, bool()))
 {
 	// XXX: Assume value representation of %term is regular.
-	if(const auto p = YSLib::AccessPtr<const TermReference>(term))
+	if(const auto p = NPL::AccessPtr<const TermReference>(term))
 		return do_resolve(p->get(), true);
 	return do_resolve(term, {});
 }
@@ -1035,7 +1042,7 @@ ResolveTerm(_func do_resolve, const TermNode& term)
 	-> decltype(do_resolve(term, bool()))
 {
 	// XXX: Assume value representation of %term is regular.
-	if(const auto p = YSLib::AccessPtr<const TermReference>(term))
+	if(const auto p = NPL::AccessPtr<const TermReference>(term))
 		return do_resolve(p->get(), true);
 	return do_resolve(term, {});
 }
@@ -1055,7 +1062,7 @@ AccessTerm(TermNode& term)
 	auto& tm(ReferenceTerm(term));
 
 	if(!IsList(tm))
-		return tm.Value.Access<_type>();
+		return NPL::Access<_type>(tm);
 	ThrowListTypeErrorForInvalidType(ystdex::type_id<_type>(), term);
 }
 template<typename _type>
@@ -1065,7 +1072,7 @@ AccessTerm(const TermNode& term)
 	const auto& tm(ReferenceTerm(term));
 
 	if(!IsList(tm))
-		return tm.Value.Access<_type>();
+		return NPL::Access<_type>(tm);
 	ThrowListTypeErrorForInvalidType(ystdex::type_id<_type>(), term);
 }
 //@}
@@ -1076,13 +1083,13 @@ template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
 AccessTermPtr(TermNode& term) ynothrow
 {
-	return ReferenceTerm(term).Value.AccessPtr<_type>();
+	return NPL::AccessPtr<_type>(ReferenceTerm(term));
 }
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<const _type>
 AccessTermPtr(const TermNode& term) ynothrow
 {
-	return ReferenceTerm(term).Value.AccessPtr<_type>();
+	return NPL::AccessPtr<_type>(ReferenceTerm(term));
 }
 //@}
 //@}
@@ -1182,7 +1189,7 @@ inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo) ynothrow
 */
 inline PDefH(void, LiftTermIndirection, TermNode& term)
 	// NOTE: See $2018-02 @ %Documentation::Workflow::Annual2018.
-	ImplExpr(YSLib::SetContentWith(term, std::move(term),
+	ImplExpr(NPL::SetContentWith(term, std::move(term),
 		&ValueObject::MakeMoveCopy))
 
 /*!
@@ -1227,7 +1234,7 @@ inline PDefH(bool, LiftTermRefToSelf, TermNode& term)
 //@{
 //! \since build 799
 inline PDefH(void, LiftTermRef, TermNode& term, const TermNode& tm)
-	ImplExpr(YSLib::SetContentWith(term, tm, &ValueObject::MakeIndirect))
+	ImplExpr(NPL::SetContentWith(term, tm, &ValueObject::MakeIndirect))
 inline PDefH(void, LiftTermRef, ValueObject& term_v, const ValueObject& vo)
 	ImplExpr(term_v = vo.MakeIndirect())
 inline PDefH(void, LiftTermRef, TermNode& term, const ValueObject& vo)
@@ -1469,8 +1476,10 @@ class YF_API Environment : private ystdex::equality_comparable<Environment>,
 	public enable_shared_from_this<Environment>
 {
 public:
+	// TODO: Wait for %unordered_set to support transparent keys.
 	//! \since build 788
-	using BindingMap = ValueNode;
+	using BindingMap = ystdex::mapped_set<TermNode, ystdex::less<>,
+		TermNode::MappedSetTraits, TermNode::allocator_type>;
 	/*!
 	\brief 名称解析结果。
 	\since build 821
@@ -1478,7 +1487,7 @@ public:
 	名称解析的返回结果是环境中的绑定目标的对象指针和直接保存绑定目标的环境的引用。
 	*/
 	using NameResolution
-		= pair<observer_ptr<ValueNode>, lref<const Environment>>;
+		= pair<observer_ptr<TermNode>, lref<const Environment>>;
 	/*!
 	\brief 分配器类型。
 	\note 支持 uses-allocator 构造。
@@ -1624,9 +1633,21 @@ public:
 	DefDeMoveAssignment(Environment)
 	//@}
 
+	//! \since build 852
+	template<typename _tKey>
+	TermNode&
+	operator[](_tKey&& k)
+	{
+		return Deref(ystdex::try_emplace(Bindings, k, NoContainer,
+			yforward(k)).first);
+	}
+
 	YB_ATTR_nodiscard YB_PURE friend
 		PDefHOp(bool, ==, const Environment& x, const Environment& y) ynothrow
-		ImplRet(x.Bindings == y.Bindings)
+		// XXX: This is usd rarely (more often, equality on
+		//	%shared_ptr<Environment> is instead), but just keep it simple here
+		//	to avoid wrong ("always true") complement like it in %ValueObject.
+		ImplRet(ystdex::ref_eq<>()(x, y))
 
 	/*!
 	\brief 判断锚对象未被外部引用。
@@ -1642,6 +1663,24 @@ public:
 	//! \since build 847
 	DefGetter(const ynothrow, size_t, AnchorCount,
 		size_t(anchor.Ptr.use_count()))
+
+	//! \since build 852
+	template<typename _tKey, typename... _tParams>
+	inline yimpl(ystdex::enable_if_inconvertible_t)<_tKey&&,
+		BindingMap::const_iterator, bool>
+	AddValue(_tKey&& k, _tParams&&... args)
+	{
+		return ystdex::try_emplace(Bindings, k, NoContainer, yforward(k),
+			yforward(args)...).second;
+	}
+	//! \since build 852
+	template<typename _tKey, typename... _tParams>
+	inline bool
+	AddValue(BindingMap::const_iterator hint, _tKey&& k, _tParams&&... args)
+	{
+		return ystdex::try_emplace_hint(Bindings, hint, k, NoContainer,
+			yforward(k), yforward(args)...).second;
+	}
 
 	/*!
 	\brief 引用锚对象。
@@ -1712,11 +1751,11 @@ public:
 	\brief 查找名称。
 	\pre 断言：第二参数的数据指针非空。
 	\return 查找到的名称，或查找失败时的空值。
-	\since build 798
+	\since build 852
 
 	在环境中查找名称。
 	*/
-	YB_ATTR_nodiscard YB_PURE observer_ptr<ValueNode>
+	YB_ATTR_nodiscard YB_PURE NameResolution::first_type
 	LookupName(string_view) const;
 
 	//! \pre 间接断言：第一参数的数据指针非空。
@@ -2125,9 +2164,9 @@ EmplaceLeaf(Environment::BindingMap& m, string_view name, _tParams&&... args)
 	YAssertNonnull(name.data());
 	// XXX: The implementation is depended on the fact that %TermNode is simply
 	//	an alias of %ValueNode and it is same to %BindingMap currently.
-	return m.insert_or_assign(name, TermNode(std::allocator_arg,
-		m.get_allocator(), YSLib::NoContainer, name,
-		ystdex::in_place_type<_type>, yforward(args)...)).second;
+	return ystdex::insert_or_assign(m, name, TermNode(std::allocator_arg,
+		m.get_allocator(), NoContainer, name, ystdex::in_place_type<_type>,
+		yforward(args)...)).second;
 	// NOTE: The following code is incorrect because the subterms are not
 	//	cleared, as well as lacking of %bool return value of insertion result.
 //	m[name].Value.emplace<_type>(yforward(args)...);
@@ -2357,7 +2396,7 @@ RelayNext(ContextNode& ctx, _fCurrent&& cur, _fNext&& next)
 
 /*!
 \brief 异步规约指定动作和非空的当前动作。
-\pre 断言： \tt ctx.Current 。
+\pre 断言： \c ctx.Current 。
 */
 template<typename _fCurrent>
 inline ReductionStatus

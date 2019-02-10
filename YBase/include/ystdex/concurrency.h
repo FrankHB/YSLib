@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2018 FrankHB.
+	© 2014-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file concurrency.h
 \ingroup YStandardEx
 \brief 并发操作。
-\version r551
+\version r579
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 18:57:13 +0800
 \par 修改时间:
-	2018-09-04 15:53 +0800
+	2019-02-08 07:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 #include <queue> // for std::queue;
 #include "future.hpp" // for std::packaged_task, future_result_t, pack_task;
 #include <condition_variable> // for std::condition_variable;
-#include "functional.hpp" // for std::bind, std::function, ystdex::invoke;
+#include "functional.hpp" // for std::bind, function, ystdex::invoke;
 #include "cassert.h" // for yassume;
 
 namespace ystdex
@@ -110,9 +110,9 @@ public:
 	\note 若回调为空则忽略。
 	\note 线程数为 0 时无任务，不提供特别的检查。
 	\warning 回调的执行不提供顺序和并发安全保证。
-	\since build 543
+	\since build 852
 	*/
-	thread_pool(size_t, std::function<void()> = {}, std::function<void()> = {});
+	thread_pool(size_t, function<void()> = {}, function<void()> = {});
 	/*!
 	\brief 析构：设置停止状态并等待所有执行中的线程结束。
 	\note 断言设置停止状态时不抛出 std::system_error 。
@@ -163,7 +163,20 @@ public:
 	future_result_t<_fCallable, _tParams...>
 	wait_to_enqueue(_fWaiter waiter, _fCallable&& f, _tParams&&... args)
 	{
+#if YB_IMPL_MSCPP
+		// NOTE: Work around bug of %std::packaged_task implementation in
+		//	Microsoft VC++ 2017 and it would not be fixed for VC++ 2019 for ABI
+		//	compatibility. See https://developercommunity.visualstudio.com/content/problem/108672/unable-to-move-stdpackaged-task-into-any-stl-conta.html.
+#	define YB_Impl_Workaround_MSVC_std_packaged_task true
+#endif
+#if YB_Impl_Workaround_MSVC_std_packaged_task
+		auto p_bound(std::make_shared<decltype(ystdex::pack_task(yforward(f),
+			yforward(args)...))>(ystdex::pack_task(yforward(f),
+			yforward(args)...)));
+		auto& bound(*p_bound);
+#else
 		auto bound(ystdex::pack_task(yforward(f), yforward(args)...));
+#endif
 		auto res(bound.get_future());
 
 		{
@@ -172,7 +185,13 @@ public:
 			if(waiter(lck))
 			{
 				yassume(lck.owns_lock());
+#if YB_Impl_Workaround_MSVC_std_packaged_task
+				tasks.push(std::packaged_task<void()>([p_bound]() ynothrow{
+					(*p_bound)();
+				}));
+#else
 				tasks.push(std::packaged_task<void()>(std::move(bound)));
+#endif
 			}
 			else
 				return {};
@@ -199,10 +218,10 @@ public:
 	/*!
 	\brief 构造：使用指定的初始化和退出回调指定数量的工作线程和最大任务数。
 	\sa thread_pool::thread_pool
-	\since build 543
+	\since build 852
 	*/
-	task_pool(size_t n, std::function<void()> on_enter = {},
-		std::function<void()> on_exit = {})
+	task_pool(size_t n, function<void()> on_enter = {},
+		function<void()> on_exit = {})
 		: thread_pool(std::max<size_t>(n, 1), on_enter, on_exit),
 		max_tasks(std::max<size_t>(n, 1))
 	{}
@@ -271,7 +290,7 @@ public:
 	}
 
 	/*!
-	\build 以指定任务数设置内存池。
+	\brief 以指定任务数设置内存池。
 	\since build 723
 	*/
 	void
@@ -316,7 +335,7 @@ public:
 			enqueue_condition.notify_one();
 			// XXX: Blocked. 'yforward' cause G++ 5.2 to fail (perhaps silently)
 			//	with exit code 1.
-			return ystdex::invoke(f, std::forward<_tParams&&>(f_args)...);
+			return ystdex::invoke(f, std::forward<_tParams>(f_args)...);
 		}, yforward(args)...);
 	}
 

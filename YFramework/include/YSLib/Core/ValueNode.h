@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r4014
+\version r4045
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2019-01-29 07:42 +0800
+	2019-02-10 14:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,6 +62,8 @@ yconstexpr const struct NoContainerTag{} NoContainer{};
 
 包含名称字符串和值类型对象的对象节点。
 使用字符串作为外部访问的键，但容器类型直接保存的键是自身。
+内部包含一个 Container 类型的关联容器，保持被删除以外的其它元素不失效。
+因为 Container 对实现无其它要求，构造开销不保证可忽略，不使用合一构造。
 */
 class YF_API ValueNode : private ystdex::totally_ordered<ValueNode>,
 	private ystdex::totally_ordered<ValueNode, string>
@@ -71,7 +73,7 @@ public:
 	//@{
 	/*!
 	\brief 分配器类型。
-	\note 支持 uses-allocator 构造。
+	\note 支持 uses-allocator 构造并适合直接传递对象的值。
 	*/
 	using allocator_type = pmr::polymorphic_allocator<ValueNode>;
 	template<typename _type>
@@ -84,18 +86,24 @@ public:
 
 private:
 	//! \since build 844
-	//@{
 	template<typename... _tParams>
 	using enable_value_constructible_t = ystdex::enable_if_t<
 		std::is_constructible<ValueObject, _tParams...>::value>;
-	//! \sa ystdex::mapped_set
-	struct YF_API cont_traits
+
+public:
+	/*!
+	\sa ystdex::mapped_set
+	\since build 852
+	*/
+	struct YF_API MappedSetTraits
 	{
+		//! \since build 844
+		//@{
 		template<typename _tKey, class _tCon>
 		YB_ATTR_nodiscard YB_PURE static inline auto
 		extend_key(_tKey&& k, _tCon& con) ynothrow -> decltype(
 			ValueNode(std::allocator_arg, con.get_allocator(), NoContainer,
-				yforward(k)))
+			yforward(k)))
 		{
 			return {std::allocator_arg, con.get_allocator(), NoContainer,
 				yforward(k)};
@@ -184,12 +192,10 @@ private:
 		static PDefH(ValueNode, set_value_move, ValueNode& node)
 			ImplRet({std::move(node.GetContainerRef()),
 				node.GetName(), std::move(node.Value)})
+		//@}
 	};
-	//@}
-
-public:
 	using Container = ystdex::mapped_set<ValueNode, ystdex::less<>,
-		cont_traits, allocator_type>;
+		MappedSetTraits, allocator_type>;
 	//! \since build 678
 	using key_type = Container::key_type;
 	//! \since build 460
@@ -213,6 +219,7 @@ public:
 	//! \since build 667
 	ValueObject Value{};
 
+	//! \note 因为 Container 对实现无要求，不显式保证无异常抛出。
 	DefDeCtor(ValueNode)
 	//! \since build 844
 	//@{
@@ -360,9 +367,6 @@ public:
 	DefDeMoveAssignment(ValueNode)
 	//@}
 
-	//! \since build 336
-	DefBoolNeg(explicit, bool(Value) || !container.empty())
-
 	//! \since build 730
 	//@{
 	PDefHOp(const ValueNode&, +=, const ValueNode& node)
@@ -396,6 +400,9 @@ public:
 	operator%=(ValueNode&&);
 	//@}
 	//@}
+
+	//! \since build 336
+	DefBoolNeg(explicit, bool(Value) || !container.empty())
 
 	//! \since build 673
 	friend PDefHOp(bool, ==, const ValueNode& x, const ValueNode& y) ynothrow
@@ -1280,9 +1287,9 @@ AccessChildPtr(const ValueNode* p_node, _tParams&&... args) ynothrow
 
 //! \note 结果不含子节点。
 //@{
-//! \since build 678
+//! \since build 852
 YB_ATTR_nodiscard YB_PURE inline
-	PDefH(const ValueNode&, AsNode, const ValueNode& node)
+	PDefH(const ValueNode&, AsNode, const ValueNode& node) ynothrow
 	ImplRet(node)
 //! \brief 传递指定名称和值参数构造值类型节点。
 //@{
@@ -1454,16 +1461,8 @@ IsPrefixedIndex(string_view, char = '$');
 \note 具体算法未指定。相同实现的算法结果保证稳定，但不保证版本间稳定。
 \since build 598
 */
-//@{
 YB_ATTR_nodiscard YF_API YB_PURE string
 MakeIndex(size_t);
-YB_ATTR_nodiscard YB_PURE inline
-PDefH(string, MakeIndex, const ValueNode::Container& con)
-	ImplRet(MakeIndex(con.size()))
-YB_ATTR_nodiscard YB_PURE inline
-PDefH(string, MakeIndex, const ValueNode& node)
-	ImplRet(MakeIndex(node.GetContainer()))
-//@}
 
 //! \throw std::invalid_argument 存在子节点但名称不是前缀索引。
 //@{
@@ -1485,8 +1484,8 @@ DecodeIndex(string_view);
 //@{
 YB_ATTR_nodiscard YF_API YB_PURE size_t
 GetLastIndexOf(const ValueNode::Container&);
-inline PDefH(size_t, GetLastIndexOf, const ValueNode& term)
-	ImplRet(GetLastIndexOf(term.GetContainer()))
+inline PDefH(size_t, GetLastIndexOf, const ValueNode& node)
+	ImplRet(GetLastIndexOf(node.GetContainer()))
 //@}
 //@}
 

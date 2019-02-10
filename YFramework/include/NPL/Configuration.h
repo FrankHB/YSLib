@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Configuration.h
 \ingroup NPL
 \brief 配置设置。
-\version r370
+\version r385
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:08 +0800
 \par 修改时间:
-	2016-07-05 02:33 +0800
+	2019-02-02 08:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define NPL_INC_Configuration_h_
 
 #include "YModules.h"
-#include YFM_NPL_NPLA1
+#include YFM_NPL_NPLA1 // for NoContainer, ystdex::exclude_self_params_t;
 
 namespace NPL
 {
@@ -55,21 +55,13 @@ public:
 		: root(std::move(node))
 	{}
 	//@}
-	//! \since build 708
-	//@{
-	template<typename _tParam,
-		yimpl(typename = ystdex::exclude_self_t<Configuration, _tParam>)>
+	//! \since build 848
+	template<typename... _tParams, yimpl(typename
+		= ystdex::exclude_self_params_t<Configuration, _tParams...>)>
 	explicit
-	Configuration(_tParam&& arg)
-		: root(YSLib::NoContainer, yforward(arg))
+	Configuration(_tParams&&... args)
+		: root(NoContainer, yforward(args)...)
 	{}
-	template<typename _tParam1, typename _tParam2, typename... _tParams>
-	explicit
-	Configuration(_tParam1&& arg1, _tParam2&& arg2, _tParams&&... args)
-		: root(YSLib::NoContainer, yforward(arg1), yforward(arg2),
-		yforward(args)...)
-	{}
-	//@}
 	DefDeCopyMoveCtorAssignment(Configuration)
 
 	DefGetter(const ynothrow, const ValueNode&, Root, root)

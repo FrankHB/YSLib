@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018 FrankHB.
+	© 2013-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r1478
+\version r1520
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2018-11-18 14:07 +0800
+	2019-02-04 14:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,13 +68,14 @@ namespace ystdex
 */
 //@{
 /*!
+\ingroup customization traits
 \brief 路径特征。
 \sa path
 
 和 WG21 N1975 的 Boost.Filesystem V2 （及之后的 Dinkumware 的实现）不同，
 	这里的特征是单独设计的，且默认（非用户特化）不涉及外部表示的具体形式。
 这由表示路径的类型的设计的整体设计决定。
-判断根名称的参数预期为路径的第一个元素且至少作为第一个参数是已知为根名称，
+判断根名称的参数预期为路径的第一个元素且至少作为第一参数是已知为根名称，
 	否则结果是否表示根名称未指定。
 关于路径和 Boost 及 std::filesystem::path 的其它详细设计差异详见 path 模板的说明。
 */
@@ -86,7 +87,7 @@ template<>
 struct path_traits<void>
 {
 	template<typename _tString>
-	static yconstfn bool
+	YB_PURE static yconstfn bool
 	is_parent(const _tString& str) ynothrow
 	{
 		using char_value_t = decltype(str[0]);
@@ -103,7 +104,7 @@ struct path_traits<void>
 	}
 
 	template<typename _tString>
-	static yconstfn bool
+	YB_PURE static yconstfn bool
 	is_self(const _tString& str) ynothrow
 	{
 		return
@@ -111,21 +112,21 @@ struct path_traits<void>
 	}
 
 	template<typename _tString>
-	static yconstfn bool
+	YB_PURE static yconstfn bool
 	has_root_name(const _tString& x) ynothrow
 	{
 		return ystdex::string_empty(x);
 	}
 
 	template<typename _tString>
-	static yconstfn bool
+	YB_PURE static yconstfn bool
 	has_root_path(const _tString& x) ynothrow
 	{
 		return ystdex::string_empty(x);
 	}
 
 	template<typename _tString1, typename _tString2>
-	static yconstfn bool
+	YB_PURE static yconstfn bool
 	have_same_root_names(const _tString1& x, const _tString2& y) ynothrow
 	{
 		return x == y;
@@ -287,12 +288,12 @@ public:
 	//! \since build 844
 	//@{
 	template<typename _tParam, yimpl(typename
-		= enable_if_t<is_constructible<base, const base&, _tParam&&>::value>)>
+		= enable_if_t<is_constructible<base, const base&, _tParam>::value>)>
 	path(const path& pth, _tParam&& arg)
 		: base(pth, yforward(arg))
 	{}
 	template<typename _tParam, yimpl(typename
-		= enable_if_t<is_constructible<base, base&&, _tParam&&>::value>)>
+		= enable_if_t<is_constructible<base, base, _tParam>::value>)>
 	path(path&& pth, _tParam&& arg)
 		: base(std::move(pth), yforward(arg))
 	{}
@@ -306,12 +307,12 @@ public:
 		: base(il, yforward(args)...)
 	{}
 	template<typename... _tParams, yimpl(typename
-		= enable_if_t<is_constructible<base, _tParams&&...>::value>)>
+		= enable_if_t<is_constructible<base, _tParams...>::value>)>
 	path(_tParams&&... args)
 		: base(yforward(args)...)
 	{}
 	template<class _tAlloc, typename... _tParams, yimpl(typename = enable_if_t<
-		is_constructible<base, _tParams&&..., const _tAlloc&>::value>)>
+		is_constructible<base, _tParams..., const _tAlloc&>::value>)>
 	path(std::allocator_arg_t, const _tAlloc& a, _tParams&&... args)
 		: base(yforward(args)..., a)
 	{}
@@ -353,43 +354,37 @@ public:
 	path&
 	operator/=(const value_type& s)
 	{
-		if(!empty())
+		if(!empty() && traits_type::is_parent(s))
 		{
-			if(traits_type::is_parent(s))
+			if(has_leaf_nonempty())
 			{
-				if(has_leaf_nonempty())
-				{
-					if(!(traits_type::is_parent(back())
-						|| traits_type::is_self(back())))
-						pop_back();
-					else
-						push_back(s);
-				}
+				if(!(traits_type::is_parent(back())
+					|| traits_type::is_self(back())))
+					pop_back();
+				else if(!s.empty())
+					push_back(s);
 			}
-			else if(!traits_type::is_self(s))
-				push_back(s);
 		}
+		else if(!traits_type::is_self(s))
+			push_back(s);
 		return *this;
 	}
 	path&
 	operator/=(value_type&& s) ynothrow
 	{
-		if(!empty())
+		if(!empty() && traits_type::is_parent(s))
 		{
-			if(traits_type::is_parent(s))
+			if(!traits_type::is_absolute(front()) || 1U < size())
 			{
-				if(!traits_type::is_absolute(front()) || 1U < size())
-				{
-					if(!(traits_type::is_parent(back())
-						|| traits_type::is_self(back())))
-						pop_back();
-					else
-						push_back(std::move(s));
-				}
+				if(!(traits_type::is_parent(back())
+					|| traits_type::is_self(back())))
+					pop_back();
+				else if(!s.empty())
+					push_back(std::move(s));
 			}
-			else if(!traits_type::is_self(s))
-				push_back(std::move(s));
 		}
+		else if(!traits_type::is_self(s))
+			push_back(std::move(s));
 		return *this;
 	}
 	//@}
@@ -563,7 +558,7 @@ public:
 	has_leaf_nonempty() const ynothrowv
 	{
 		yconstraint(!empty());
-		return !traits_type::has_root_path(front()) || 1U < size();
+		return 1U < size() || !traits_type::has_root_path(front());
 	}
 	//@}
 
@@ -732,7 +727,7 @@ namespace std
 //! \brief 特化 uses-allcator 构造。
 template<class _tSeqCon, class _tTraits, class _tAlloc>
 struct uses_allocator<ystdex::path<_tSeqCon, _tTraits>, _tAlloc>
-	: public uses_allocator<_tSeqCon, _tAlloc>
+	: uses_allocator<_tSeqCon, _tAlloc>
 {};
 
 } // namespace std;

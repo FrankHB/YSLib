@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4322
+\version r4435
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2019-01-28 08:11 +0800
+	2019-02-10 13:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,27 +100,17 @@ YB_ATTR_nodiscard YF_API YB_PURE string
 to_string(ValueToken);
 
 
-//! \since build 674
-//@{
-//! \brief 插入 NPLA1 子节点。
+//! \since build 852
 //@{
 /*!
+\brief 插入 NPLA1 子节点。
 \note 插入后按名称排序顺序。
 
 第一参数指定的变换结果插入第二参数指定的容器。
 若映射操作返回节点名称为空则根据当前容器内子节点数量加前缀 $ 命名以避免重复。
 */
 YF_API void
-InsertChild(TermNode&&, TermNode::Container&);
-
-/*!
-\note 保持顺序。
-
-直接插入 NPLA1 子节点到序列容器末尾。
-*/
-YF_API void
-InsertSequenceChild(TermNode&&, NodeSequence&);
-//@}
+InsertChild(ValueNode&&, ValueNode::Container&);
 
 /*!
 \brief 变换 NPLA1 节点 S 表达式抽象语法树为 NPLA1 语义结构。
@@ -142,21 +132,7 @@ InsertSequenceChild(TermNode&&, NodeSequence&);
 */
 YF_API ValueNode
 TransformNode(const TermNode&, NodeMapper = {}, NodeMapper = MapNPLALeafNode,
-	NodeToString = ParseNPLANodeString, NodeInserter = InsertChild);
-
-/*!
-\brief 变换 NPLA1 节点 S 表达式抽象语法树为 NPLA1 序列语义结构。
-\exception std::bad_function_call 第三至五参数为空。
-\return 变换后的新节点（及子节点）。
-\sa TransformNode
-
-和 TransformNode 变换规则相同，
-但插入的子节点以 NodeSequence 的形式作为变换节点的值而不是子节点，可保持顺序。
-*/
-YF_API ValueNode
-TransformNodeSequence(const TermNode&, NodeMapper = {},
-	NodeMapper = MapNPLALeafNode, NodeToString = ParseNPLANodeString,
-	NodeSequenceInserter = InsertSequenceChild);
+	TermNodeToString = ParseNPLATermString, NodeInserter = InsertChild);
 //@}
 
 
@@ -164,7 +140,6 @@ TransformNodeSequence(const TermNode&, NodeMapper = {},
 \brief 加载 NPLA1 翻译单元。
 \throw LoggedEvent 警告：被加载配置中的实体转换失败。
 */
-//@{
 template<typename _type, typename... _tParams>
 YB_ATTR_nodiscard ValueNode
 LoadNode(_type&& tree, _tParams&&... args)
@@ -174,18 +149,6 @@ LoadNode(_type&& tree, _tParams&&... args)
 		"Bad NPLA1 tree found: cast failed from [%s] to [%s] .", e.from(),
 		e.to()), YSLib::Warning))
 }
-
-template<typename _type, typename... _tParams>
-YB_ATTR_nodiscard ValueNode
-LoadNodeSequence(_type&& tree, _tParams&&... args)
-{
-	TryRet(A1::TransformNodeSequence(std::forward<TermNode>(tree),
-		yforward(args)...))
-	CatchThrow(bad_any_cast& e, LoggedEvent(YSLib::sfmt(
-		"Bad NPLA1 tree found: cast failed from [%s] to [%s] .", e.from(),
-		e.to()), YSLib::Warning))
-}
-//@}
 
 
 /*!
@@ -354,11 +317,8 @@ ReduceAgain(TermNode&, ContextNode&);
 //@{
 YF_API void
 ReduceArguments(TNIter, TNIter, ContextNode&);
-//! \since build 685
-inline PDefH(void, ReduceArguments, TermNode::Container& con, ContextNode& ctx)
-	ImplRet(ReduceArguments(con.begin(), con.end(), ctx))
 inline PDefH(void, ReduceArguments, TermNode& term, ContextNode& ctx)
-	ImplRet(ReduceArguments(term.GetContainerRef(), ctx))
+	ImplRet(ReduceArguments(term.begin(), term.end(), ctx))
 //@}
 
 //! \note 失败视为重规约。
@@ -382,10 +342,8 @@ ReduceChecked(TermNode&, ContextNode&);
 //@{
 YF_API void
 ReduceChildren(TNIter, TNIter, ContextNode&);
-inline PDefH(void, ReduceChildren, TermNode::Container& con, ContextNode& ctx)
-	ImplExpr(ReduceChildren(con.begin(), con.end(), ctx))
 inline PDefH(void, ReduceChildren, TermNode& term, ContextNode& ctx)
-	ImplExpr(ReduceChildren(term.GetContainerRef(), ctx))
+	ImplExpr(ReduceChildren(term.begin(), term.end(), ctx))
 //@}
 //@}
 
@@ -399,12 +357,9 @@ inline PDefH(void, ReduceChildren, TermNode& term, ContextNode& ctx)
 //@{
 YF_API ReductionStatus
 ReduceChildrenOrdered(TNIter, TNIter, ContextNode&);
-inline PDefH(ReductionStatus, ReduceChildrenOrdered, TermNode::Container& con,
-	ContextNode& ctx)
-	ImplRet(ReduceChildrenOrdered(con.begin(), con.end(), ctx))
 inline PDefH(ReductionStatus, ReduceChildrenOrdered, TermNode& term,
 	ContextNode& ctx)
-	ImplRet(ReduceChildrenOrdered(term.GetContainerRef(), ctx))
+	ImplRet(ReduceChildrenOrdered(term.begin(), term.end(), ctx))
 //@}
 
 /*!
@@ -482,14 +437,13 @@ SetupTraceDepth(ContextState&, const string& = yimpl("$__depth"));
 
 /*!
 \note ValueObject 参数分别指定替换添加的前缀和被替换的分隔符的值。
-\since build 847
+\since build 852
 */
 //@{
 /*!
 \brief 变换分隔符中缀表达式为前缀表达式。
-\sa AsIndexNode
 
-移除子项中值和指定分隔符指定的项，并以 AsIndexNode 添加指定前缀值作为子项。
+移除子项中值和指定分隔符指定的项，并添加指定前缀值作为子项。
 被添加的子项若是只有一个子项的列表项，该项被提升直接加入转换后的项作为子项。
 最后一个参数指定返回值的名称。
 */
@@ -497,23 +451,20 @@ SetupTraceDepth(ContextState&, const string& = yimpl("$__depth"));
 //! \note 非递归变换。
 //@{
 YB_ATTR_nodiscard YF_API YB_PURE TermNode
-TransformForSeparator(const TermNode&, const ValueObject&, const TokenValue&,
-	const TokenValue& = {});
-//! \since build 824
+TransformForSeparator(const TermNode&, const ValueObject&, const TokenValue&);
 YB_ATTR_nodiscard YF_API YB_PURE TermNode
-TransformForSeparator(TermNode&&, const ValueObject&, const TokenValue&,
-	const TokenValue& = {});
+TransformForSeparator(TermNode&&, const ValueObject&, const TokenValue&);
 //@}
 
 //! \note 递归变换。
 //@{
 YB_ATTR_nodiscard YF_API YB_PURE TermNode
 TransformForSeparatorRecursive(const TermNode&, const ValueObject&,
-	const TokenValue&, const TokenValue& = {});
+	const TokenValue&);
 //! \since build 824
 YB_ATTR_nodiscard YF_API YB_PURE TermNode
 TransformForSeparatorRecursive(TermNode&&, const ValueObject&,
-	const TokenValue&, const TokenValue& = {});
+	const TokenValue&);
 //@}
 //@}
 
@@ -1099,9 +1050,9 @@ namespace Forms
 /*!
 \brief 判断字符串值是否可构成符号。
 \since build 779
-参考文法：
 
-symbol? <object>
+参考调用文法：
+<pre>symbol? \<object></pre>
 */
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsSymbol(const string&) ynothrow;
@@ -1133,7 +1084,7 @@ SymbolToString(const TokenValue&) ynothrow;
 \since build 765
 
 可使用 RegisterForm 注册上下文处理器，参考文法：
-$retain|$retainN <expression>
+$retain|$retainN \<expression>
 */
 //@{
 //! \brief 保留项：保留求值。
@@ -1537,8 +1488,8 @@ RegisterStrictBinary(_tTarget& target, string_view name, _func f)
 \since build 840
 
 实现修改环境的特殊形式。
-使用 <definiend> 指定绑定目标，和 Vau 的 <formals> 格式相同。
-剩余表达式 <expressions> 指定绑定的源。
+使用 \<definiend> 指定绑定目标，和 Vau 的 \<formals> 格式相同。
+剩余表达式 \<expressions> 指定绑定的源。
 返回未指定值。
 限定第三参数后可使用 RegisterForm 注册上下文处理器。
 */
@@ -1546,9 +1497,10 @@ RegisterStrictBinary(_tTarget& target, string_view name, _func f)
 /*!
 \note 不对剩余表达式进一步求值。
 
-剩余表达式视为求值结果，直接绑定到 <definiend> 。
+剩余表达式视为求值结果，直接绑定到 \c \<definiend> 。
+
 参考调用文法：
-$deflazy! <definiend> <expressions>
+<pre>$deflazy! \<definiend> \<expressions></pre>
 */
 YF_API ReductionStatus
 DefineLazy(TermNode&, ContextNode&);
@@ -1556,9 +1508,10 @@ DefineLazy(TermNode&, ContextNode&);
 /*!
 \note 不支持递归绑定。
 
-剩余表达式视为一个表达式进行求值后绑定到 <definiend> 。
+剩余表达式视为一个表达式进行求值后绑定到 \c \<definiend> 。
+
 参考调用文法：
-$def! <definiend> <expressions>
+<pre>$def! \<definiend> \<expressions></pre>
 */
 YF_API ReductionStatus
 DefineWithNoRecursion(TermNode&, ContextNode&);
@@ -1567,9 +1520,11 @@ DefineWithNoRecursion(TermNode&, ContextNode&);
 \note 支持直接递归和互相递归绑定。
 \sa InvalidReference
 
-解析可能递归绑定的名称，剩余表达式视为一个表达式进行求值后绑定到 <definiend> 。
+解析可能递归绑定的名称，剩余表达式视为一个表达式进行求值后绑定到 \c \<definiend> 。
 循环引用以此引入的名称可能抛出 InvalidReference 异常。
-$defrec! <definiend> <expressions>
+
+参考调用文法：
+<pre>$defrec! \<definiend> \<expressions></pre>
 */
 YF_API ReductionStatus
 DefineWithRecursion(TermNode&, ContextNode&);
@@ -1585,9 +1540,10 @@ DefineWithRecursion(TermNode&, ContextNode&);
 
 移除名称和关联的值，返回是否被移除。
 第三参数表示是否强制。若非强制，移除不存在的名称抛出异常。
+
 参考调用文法：
-$undef! <symbol>
-$undef-checked! <symbol>
+<pre>$undef! \<symbol>
+$undef-checked! \<symbol></pre>
 */
 YF_API void
 Undefine(TermNode&, ContextNode&, bool);
@@ -1600,11 +1556,12 @@ Undefine(TermNode&, ContextNode&, bool);
 \since build 750
 
 求值第一子项作为测试条件，成立时取第二子项，否则当第三子项时取第三子项。
-测试条件成立，当且仅当 <test> 非 #f 。
+测试条件成立，当且仅当 \<test> 非 #f 。
 和 Kernel 不同而和 Scheme 类似，求值结果非 #f 的条件都成立，且支持省略第三操作数。
+
 参考调用文法：
-$if <test> <consequent> <alternate>
-$if <test> <consequent>
+<pre>$if \<test> \<consequent> \<alternate>
+$if \<test> \<consequent></pre>
 */
 YF_API ReductionStatus
 If(TermNode&, ContextNode&);
@@ -1634,16 +1591,18 @@ If(TermNode&, ContextNode&);
 //@{
 /*!
 按值传递返回值：提升项以避免返回引用造成内存安全问题。
+
 参考调用文法：
-$lambda <formals> <body>
+<pre>$lambda \<formals> \<body></pre>
 */
 YF_API ReductionStatus
 Lambda(TermNode&, ContextNode&);
 
 /*!
 在返回时不提升项，允许返回引用。
+
 参考调用文法：
-$lambda& <formals> <body>
+<pre>$lambda& \<formals> \<body></pre>
 */
 YF_API ReductionStatus
 LambdaRef(TermNode&, ContextNode&);
@@ -1651,9 +1610,9 @@ LambdaRef(TermNode&, ContextNode&);
 
 /*!
 \note 动态环境的上下文参数被捕获为一个 lref<ContextNode> 对象。
-\note 初始化的 <eformal> 表示动态环境的上下文参数，应为一个符号或 #ignore 。
+\note 初始化的 \<eformal> 表示动态环境的上下文参数，应为一个符号或 #ignore 。
 \note 引入的处理器的 operator() 支持保存当前动作。
-\throw InvalidSyntax <eformal> 不符合要求。
+\throw InvalidSyntax \<eformal> 不符合要求。
 
 上下文中环境以外的数据成员总是被复制而不被转移，
 	以避免求值过程中继续访问这些成员引起未定义行为。
@@ -1668,8 +1627,9 @@ LambdaRef(TermNode&, ContextNode&);
 //@{
 /*!
 按值传递返回值：提升项以避免返回引用造成内存安全问题。
+
 参考调用文法：
-$vau <formals> <eformal> <body>
+<pre>$vau \<formals> \<eformal> \<body></pre>
 */
 YF_API ReductionStatus
 Vau(TermNode&, ContextNode&);
@@ -1678,8 +1638,9 @@ Vau(TermNode&, ContextNode&);
 \since build 822
 
 在返回时不提升项，允许返回引用。
+
 参考调用文法：
-$vau& <formals> <eformal> <body>
+<pre>$vau& \<formals> \<eformal> \<body></pre>
 */
 YF_API ReductionStatus
 VauRef(TermNode&, ContextNode&);
@@ -1689,23 +1650,25 @@ VauRef(TermNode&, ContextNode&);
 \brief 带环境的 vau 抽象：求值为一个捕获当前上下文的非严格求值的函数。
 \sa ResolveEnvironment
 
-捕获的静态环境由环境参数 <env> 求值后指定。
+捕获的静态环境由环境参数 \<env> 求值后指定。
 根据环境参数的类型为 \c shared_ptr<Environment> 或 \c weak_ptr<Environment>
 	决定是否保留所有权。
 */
 //@{
 /*!
 按值传递返回值：提升项以避免返回引用造成内存安全问题。
+
 参考调用文法：
-$vaue <env> <formals> <eformal> <body>
+<pre>$vaue \<env> \<formals> \<eformal> \<body></pre>
 */
 YF_API ReductionStatus
 VauWithEnvironment(TermNode&, ContextNode&);
 
 /*!
 在返回时不提升项，允许返回引用。
+
 参考调用文法：
-$vaue& <env> <formals> <eformal> <body>
+<pre>$vaue& \<env> \<formals> \<eformal> \<body></pre>
 */
 YF_API ReductionStatus
 VauWithEnvironmentRef(TermNode&, ContextNode&);
@@ -1723,7 +1686,7 @@ VauWithEnvironmentRef(TermNode&, ContextNode&);
 \since build 823
 
 参考调用文法：
-$sequence <object>...
+<pre>$sequence \<object>...</pre>
 */
 YF_API ReductionStatus
 Sequence(TermNode&, ContextNode&);
@@ -1741,8 +1704,9 @@ Sequence(TermNode&, ContextNode&);
 非严格求值若干个子项，返回求值结果的逻辑与：
 除第一个子项，没有其它子项时，返回 true ；否则从左到右逐个求值子项。
 当子项全求值为 true 时返回最后一个子项的值，否则返回 false 。
+
 参考调用文法：
-$and? <test>...
+<pre>$and? \<test>...</pre>
 */
 YF_API ReductionStatus
 And(TermNode&, ContextNode&);
@@ -1753,8 +1717,9 @@ And(TermNode&, ContextNode&);
 非严格求值若干个子项，返回求值结果的逻辑或：
 除第一个子项，没有其它子项时，返回 false ；否则从左到右逐个求值子项。
 当子项全求值为 false 时返回 false，否则返回第一个不是 false 的子项的值。
+
 参考调用文法：
-$or? <test>...
+<pre>$or? \<test>...</pre>
 */
 YF_API ReductionStatus
 Or(TermNode&, ContextNode&);
@@ -1767,7 +1732,7 @@ Or(TermNode&, ContextNode&);
 \since build 741
 
 参考调用文法：
-system <string>
+<pre>system \<string></pre>
 */
 YF_API void
 CallSystem(TermNode&);
@@ -1784,8 +1749,9 @@ CallSystem(TermNode&);
 \since build 779
 
 按值传递返回值：提升项以避免返回引用造成内存安全问题。
+
 参考调用文法：
-cons <object> <list>
+<pre>cons \<object> \<list></pre>
 */
 YF_API ReductionStatus
 Cons(TermNode&);
@@ -1794,8 +1760,9 @@ Cons(TermNode&);
 \since build 822
 
 在返回时不提升项，允许返回引用。
+
 参考调用文法：
-cons% <object> <list>
+<pre>cons% \<object> \<list></pre>
 */
 YF_API ReductionStatus
 ConsRef(TermNode&);
@@ -1807,7 +1774,7 @@ ConsRef(TermNode&);
 \since build 804
 
 参考调用文法：
-eq? <object1> <object2>
+<pre>eq? \<object1> \<object2></pre>
 */
 YF_API void
 Equal(TermNode&);
@@ -1818,7 +1785,7 @@ Equal(TermNode&);
 \since build 804
 
 参考调用文法：
-eql? <object1> <object2>
+<pre>eql? \<object1> \<object2></pre>
 */
 YF_API void
 EqualLeaf(TermNode&);
@@ -1830,7 +1797,7 @@ EqualLeaf(TermNode&);
 \sa YSLib::HoldSame
 
 参考调用文法：
-eqr? <object1> <object2>
+<pre>eqr? \<object1> \<object2></pre>
 */
 YF_API void
 EqualReference(TermNode&);
@@ -1840,7 +1807,7 @@ EqualReference(TermNode&);
 \sa YSLib::ValueObject
 
 参考调用文法：
-eqv? <object1> <object2>
+<pre>eqv? \<object1> \<object2></pre>
 */
 YF_API void
 EqualValue(TermNode&);
@@ -1851,7 +1818,7 @@ EqualValue(TermNode&);
 \note 支持保存当前动作。
 \sa ResolveEnvironment
 
-以表达式 <expression> 和环境 <environment> 为指定的参数进行求值。
+以表达式 \c \<expression> 和环境 \c \<environment> 为指定的参数进行求值。
 环境以 ContextNode 的引用表示。
 */
 //@{
@@ -1860,7 +1827,7 @@ EqualValue(TermNode&);
 按值传递返回值：提升项以避免返回引用造成内存安全问题。
 
 参考调用文法：
-eval <expression> <environment>
+<pre>eval \<expression> \<environment></pre>
 */
 YF_API ReductionStatus
 Eval(TermNode&, ContextNode&);
@@ -1869,8 +1836,9 @@ Eval(TermNode&, ContextNode&);
 \since build 822
 
 在返回时不提升项，允许返回引用。
+
 参考调用文法：
-eval% <expression> <environment>
+<pre>eval% \<expression> \<environment></pre>
 */
 YF_API ReductionStatus
 EvalRef(TermNode&, ContextNode&);
@@ -1886,7 +1854,7 @@ EvalRef(TermNode&, ContextNode&);
 \note 没有 REPL 中的预处理过程。
 \sa Eval
 
-eval-string <string> <environment>
+eval-string \<string> \<environment>
 */
 YF_API ReductionStatus
 EvalString(TermNode&, ContextNode&);
@@ -1897,7 +1865,7 @@ EvalString(TermNode&, ContextNode&);
 \sa EvalRef
 
 在返回时不提升项，允许返回引用。
-eval-string% <string> <environment>
+eval-string% \<string> \<environment>
 */
 YF_API ReductionStatus
 EvalStringRef(TermNode&, ContextNode&);
@@ -1908,7 +1876,7 @@ EvalStringRef(TermNode&, ContextNode&);
 \sa Reduce
 \since build 835
 
-eval-unit <string> <object>
+eval-unit \<string> \<object>
 */
 YF_API ReductionStatus
 EvalUnit(TermNode&);
@@ -1919,8 +1887,9 @@ EvalUnit(TermNode&);
 \since build 785
 
 取得的宿主值类型为 weak_ptr<Environment> 。
+
 参考调用文法：
-() get-current-environment
+<pre>() get-current-environment</pre>
 */
 YF_API void
 GetCurrentEnvironment(TermNode&, ContextNode&);
@@ -1930,8 +1899,9 @@ GetCurrentEnvironment(TermNode&, ContextNode&);
 \since build 837
 
 取得的宿主值类型为 shared_ptr<Environment> 。
+
 参考调用文法：
-() lock-current-environment
+<pre>() lock-current-environment</pre>
 */
 YF_API void
 LockCurrentEnvironment(TermNode&, ContextNode&);
@@ -1945,8 +1915,9 @@ LockCurrentEnvironment(TermNode&, ContextNode&);
 构造器传递值：转移右值参数，或转换左值参数到右值并复制值进行封装。
 访问器取得的是引用值。
 用户代码需自行确定封装对象的生存期以避免访问取得的引用值引起未定义行为。
+
 参考调用文法：
-() make-encapsulation-type
+<pre>() make-encapsulation-type</pre>
 */
 YF_API ReductionStatus
 MakeEncapsulationType(TermNode&);
@@ -1960,8 +1931,9 @@ MakeEncapsulationType(TermNode&);
 \todo 使用专用的异常类型。
 
 取以指定的参数初始化新创建的父环境。
+
 参考调用文法：
-make-environment <environment>...
+<pre>make-environment \<environment>...</pre>
 */
 YF_API void
 MakeEnvironment(TermNode&);
@@ -1976,8 +1948,9 @@ MakeEnvironment(TermNode&);
 //@{
 /*!
 第二参数转换为右值。
+
 参考调用文法：
-set-first! <list> <object>
+<pre>set-first! \<list> \<object></pre>
 */
 YF_API void
 SetFirst(TermNode&);
@@ -1986,8 +1959,9 @@ SetFirst(TermNode&);
 \warning 不检查循环引用。
 
 保留第二参数引用值。
+
 参考调用文法：
-set-first%! <list> <object>
+<pre>set-first%! \<list> \<object></pre>
 */
 YF_API void
 SetFirstRef(TermNode&);
@@ -2000,8 +1974,9 @@ SetFirstRef(TermNode&);
 //@{
 /*!
 第二参数的元素转换为右值。
+
 参考调用文法：
-set-rest! <list> <object>
+<pre>set-rest! \<list> \<object></pre>
 */
 YF_API void
 SetRest(TermNode&);
@@ -2010,8 +1985,9 @@ SetRest(TermNode&);
 \warning 不检查循环引用。
 
 保留第二参数元素中的引用值。
+
 参考调用文法：
-set-rest%! <list> <object>
+<pre>set-rest%! \<list> \<object></pre>
 */
 YF_API void
 SetRestRef(TermNode&);
@@ -2025,8 +2001,9 @@ SetRestRef(TermNode&);
 
 在对象语言中实现函数接受一个 string 类型的参数项，返回值为指定的实体。
 当名称查找失败时，返回的值为 ValueToken::Null 。
+
 参考调用文法：
-value-of <object>
+<pre>value-of \<object></pre>
 */
 YF_API ReductionStatus
 ValueOf(TermNode&, const ContextNode&);
@@ -2039,7 +2016,7 @@ ValueOf(TermNode&, const ContextNode&);
 \brief 包装合并子为应用子。
 
 参考调用文法：
-wrap <combiner>
+<pre>wrap \<combiner></pre>
 */
 YF_API ContextHandler
 Wrap(const ContextHandler&);
@@ -2050,7 +2027,7 @@ Wrap(const ContextHandler&);
 \brief 包装操作子为应用子。
 
 参考调用文法：
-wrap1 <operative>
+<pre>wrap1 \<operative></pre>
 */
 YF_API ContextHandler
 WrapOnce(const ContextHandler&);
@@ -2059,7 +2036,7 @@ WrapOnce(const ContextHandler&);
 \brief 解包装应用子为合并子。
 
 参考调用文法：
-unwrap <applicative>
+<pre>unwrap \<applicative></pre>
 */
 YF_API ContextHandler
 Unwrap(const ContextHandler&);

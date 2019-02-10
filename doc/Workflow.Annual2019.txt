@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2019 年度。
-\version r101
+\version r102
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2019-01-02 01:00:32 +0800
 \par 修改时间:
-	2019-01-31 02:55 +0800
+	2019-02-04 03:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,7 +93,7 @@ WG21 P0541 has been implemented now, as it is approved in the current working pa
 						This is broken by SFINAE check in infinite recursion of 'std::tuple' constructor for multiple elements, which should fail in this case.
 						This only breaks non-C++17 modes (with GNU extensions or not) in G++ and Clang++.
 							It has nothing to do with 'std::invoke'.
-							It should have nothing to do with CWG 1225, as C++14 modes also fail.
+							It should have nothing to do with CWG 1227, as C++14 modes also fail.
 				As the workaround, nonthrowing check is intercepted for 'std::_Tuple_impl' instances used for 'ystdex::boxed_value'.
 				Other workaround includes preventing nested (in template parameters) 'YSLib::ValueHolder' instances constructed in 'ValueObject'.
 					This is not guarded by the compiler version condition checks because behavior of avoiding nested 'YSLib::ValueHolder' should be uniform for all implementations.

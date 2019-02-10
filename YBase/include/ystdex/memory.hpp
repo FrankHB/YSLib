@@ -11,19 +11,19 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r3752
+\version r3756
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2019-01-24 23:37 +0800
+	2019-01-31 04:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Memory
 
-扩展标准库头 <memory> ，提供对智能指针类型的操作及判断迭代器不可解引用的模板。
+扩展标准库头 \c \<memory> ，提供对智能指针类型的操作及判断迭代器不可解引用的模板。
 */
 
 
@@ -48,7 +48,7 @@
 //	std::piecewise_construct_t, std::piecewise_construct, ystdex::apply;
 
 /*!
-\brief \<memory\> 特性测试宏。
+\brief \c \<memory> 特性测试宏。
 \see WG21 P0941R2 2.2 。
 \since build 628
 */
@@ -506,7 +506,8 @@ template<typename _type, class _tAlloc, typename... _tParams>
 YB_ATTR_nodiscard std::shared_ptr<_type>
 allocate_shared(const _tAlloc& alloc, _tParams&&... args)
 {
-	return std::shared_ptr<_type>(ystdex::allocate_unique<_type>(alloc, il));
+	return std::shared_ptr<_type>(
+		ystdex::allocate_unique<_type>(alloc, yforward(args)...));
 }
 #endif
 /*!

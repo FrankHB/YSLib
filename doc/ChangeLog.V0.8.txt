@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r10500
+\version r10869
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-01-31 02:58 +0800
+	2019-02-10 15:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,374 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Memory $=
+		(
+			* "ill-formed function template %allocate_shared#1"
+				@ !('__cplusplus >= 201703L \
+				|| (__GLIBCXX__ && !(__GLIBCXX__ <= 20111108))') $since
+				b851,
+			* DD "missing escaping tag" @ "Doxygen comments" $since b660
+				// To eliminate Doxygen warning: Unsupported xml/html tag found.
+		),
+		/ %Concurrency $=
+		(
+			+ "workaround for Microsoft VC++ 2017 non-conforming \
+				std::packaged_task"
+				@ "function template %wait_to_enqueue" @ "class %thread_pool",
+				// According to https://developercommunity.visualstudio.com/content/problem/108672/unable-to-move-stdpackaged-task-into-any-stl-conta.html, \
+					Microsoft VC++ 2019 would not have the fix for ABI \
+					compatibility. Thus the workaround is enabled for \
+					compatibility with a near future of Microsoft VC++.
+			/ DLDI "'std::forward<_tParams&&>' within variadic parameter \
+				packs" -> 'std::forward<_tParams>' $effective
+				@ "function template %wait_to_enqueue" @ "class %task_pool",
+			/ $re_add(b851) $dev "all %std::function" -> "%function" $effective
+				@ "constructors %(thread_pool, task_pool)",
+			* DD "wrong Doxygen command '\build' used" ~ '\brief'
+				@ "member function %task_pool::reset" $since b723
+		),
+		/ %Path $=
+		(
+			/ @ "class template %path" $=
+			(
+				/ DLI "check size first" @ "function %has_leaf_nonempty",
+					// This is more predictable in efficiency, and (hopefully) \
+						more efficient, as the %size call to the underlying \
+						sequence container is usually guaranteed O(1) and it \
+						should be usually cheap.
+				* $revert_ex(b838) "empty paths cannot be overriden"
+					@ "functions %operator/=#(1, 2)" $since b838
+					// The buggy implementation would ignore the case when \
+						self (rather than the parameter) is empty, so it would \
+						never append the element to an empty path.
+			),
+			- $re_add(b851) DLDI "redundant '&&'"
+				@ "'*_constructible' template arguments",
+			+ DD '\ingroup customization traits' @ "Doxygen comment"
+				@ "class template %path_traits",
+			+ $dev $lib 'YB_PURE' @ "all static functions"
+				@ "class template specialization %path_traits<void>",
+			- DLDI "redundant 'public" @ "base class"
+				@ "class template specialization %std::uses_allocator"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ "improved compatibility" @ "alias %ModuleProc"
+			@ %YCLib_MinGW32.MinGW32 ^ '__stdcall',
+			// This allows Microsoft VC++ which does not has extension for \
+				'__stdcall' in %std::remove_reference.
+		/ %YSLib.Core.ValueNode $=
+		(
+			+ "trait class MappedSetTraits" @ "class %ValueNode",
+			+ $dev 'ynothrow' @ "function %AsNode",
+			- $revert(b598) "function %MakeIndex overloads with container \
+				parameter or %ValueNode parameter" $dep_all_from
+				"avoided MakeIndex with container"
+		),
+		/ %NPL $=
+		(
+			// Changes to tag "TermNode iterator" are to avoid dependency on \
+				%TermNode::Container::iterator and %TermNode::iterator.
+			/ %SContext $=
+			(
+				+ "function templates %(Access, AccessPtr)",
+				(
+				+ 'using YSLib::NoContainer;';
+				+ "function templates %AsTermNode";
+				+ "function templates %AsIndexTermNode" $dep_from
+					("%MakeIndex" @ %NPLA);
+				/ DLDI "function %Reduce" ^ "%NPL::AsIndexTermNode"
+					~ "%AsIndexNode"
+				),
+				/ DLDI "function %Reduce" ^ "%TermNode::Add"
+					~ "%TermNode::operator+=",
+				+ 'ynothrow' @ "functions %(MapToTermNode, MapToValueNode) \
+					with return value same to the parameter",
+				+ $re_add(b850) $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+					@ "functions with name prefix 'Is', function template \
+					%HasValue",
+				+ $re_ex(b850) $dev $lib 'YB_ATTR_nodiscard'
+					@ "functions %(Verify, Reduce), function template %Analyze"
+					@ "namespace %SContext",
+				+ 'using YSLib::SetContentWith;',
+				+ 'using YSLib::make_observer;',
+				- $revert(b733)
+					"all functions %(MapToTermNode, MapToValueNode)",
+					// Explicit constructions or conversions are needed in \
+						these cases.
+				+ "functions %AddChildToTail",
+				(
+				+ 'using YSLib::make_pair;',
+				+ 'using YSLib::NoContainerTag;';
+				/ "alias %TermNode" -> "class %TermNode; function overloads \
+					%(AsTermNode, MapToTermNode, MapToValueNode, RemoveHead), \
+					function template %SetContentWith" $dep_all_from
+					("TermNode iterator", "avoided calls prefixed YSLib in NPL",
+					"syntax term type") $dep_from ("%Reduce",
+					"%Environment::NameResolution" @ %NPLA, "%(ReduceTail, \
+					TransformForSeparator, TransformForSeparatorRecursive, \
+					Forms::(MakeEncapsulationType, SetRest, SetRestRef, Cons, \
+					ConsRef))" @ %NPLA1)
+				)
+			),
+			/ %NPLA $=
+			(
+				/ DLDI "function %SXML::ConvertDocumentNode"
+					!^ "%TermNode::Container" $dep_to "TermNode iterator",
+				/ 'using YSLib::MakeIndex' >> %SContext,
+				/ "function templates %ResolveTerm" ^ $dep_from
+					("%NPL::AccessPtr" @ %SContext) ~ "%YSLib::AccessPtr"
+					$dep_to "avoided calls prefixed YSLib in NPL",
+				/ "functions %(LiftTermIndirection, LiftTermRef)"
+					^ ("%NPL::SetContentWith" @ %SContext)
+					~ "%YSLib::SetContentWith" $dep_to
+					"avoided calls prefixed YSLib in NPL"
+				/ DLDI "function template EmplaceLeaf#1"
+					^ ("%ystdex::insert_or_assign",
+					$dep_from ("%NoContainer" @ %SContext)),
+				/ @ "class %Environment" $=
+				(
+					+ "function templates %AddValue"
+						^ $dep_from ("%NoContainer" @ %SContext),
+					(
+					+ "function template %operator[]"
+						^ $dep_from ("%NoContainer" @ %SContext),
+					(
+					/ @ "function %LookupName" $=
+					(
+						/ DLDI "return type" -> "%NameResolution::first_type"
+							~ "%observer_ptr<ValueNode>",
+						/ $impl ^ $dep_from ("%NPL::make_observer" @ %SContext)
+					)
+					/ "BindingMap" ^ ($dep_from "%MappedSetTraits"
+						@ "%ValueNode" @ %YSLib.Core.ValueNode,
+						"%ystdex::mapped_set") ~ "%ValueNode" ($dep_from
+						"%EmplaceLeaf", "name lookup adjustment") ^ $dep_from
+						"%NoContainer" @ %SContext;
+					/ "%NameResolution" ^ "%TermNode" ~ "%ValueNode"
+					);
+					/ $forced DLDI "functions %(Define, Deduplicate, Remove)"
+					),
+					/ "operator==" ^ "%ystdex::ref_eq<>"
+						~ "%BindingMap %operator=="
+						// Although this is not directly used normally (with \
+							%shared_ptr equality instead), it is better \
+							consistent with all members (rather than only \
+							%BindingMap), or just of identity respected like \
+							%ystdex::ref_eq.
+				),
+				/ DLDI "function %RedirectToShared" ^ $dep_from
+					("%NPL::make_observer" @ %SContext) ~ "%make_observer",
+				/ @ "namespace %SXML" $=
+				(
+					+ "function template %NodeLiteralToTerm";
+					/ DLDI "function %MakeTop" ^ "%SXML::(MakeXMLDecl, \
+						NodeLiteralToTerm)" ~ "%YSLib::AsNodeLiteral";
+					/ "all 'ValueNode'" -> 'TermNode' $dep_to "syntax term type"
+				),
+				* "missing preventing ADL call %InsertSyntaxNode" @ "all 3 \
+					function temlates %InsertChildSyntaxNode" $since b599
+					$= (/ $impl "qualified call with 'NPL::'"),
+				/ 'ValueNode' @ ("all 2 function templates %InsertSyntaxNode",
+					"all 3 function temlates %InsertChildSyntaxNode",
+					"function %TransformToSyntaxNode") -> 'TermNode' $dep_to
+					"syntax term type",
+				/ 'using YSLib::pair;' >> %SContext,
+				- DLDI 'using YSLib::obersever_ptr',
+					// This has been in %SContext.
+				(
+				/ DLDI "%alias NodeInserter" !^ "%GNodeInserter";
+				(
+				- $revert(b597) "alias %NodeSequenceInserter" $dep_from
+					("%TransformNodeSequence" @ %NPLA1);
+				- $revert(b597) "alias template %GNodeInserter"
+				),
+				/ 'TermNode' @ "%NodeInserter" -> 'ValueNode'
+				),
+				(
+				/ DLDI "qualified %NodeSequence with 'YSLib::'"
+					@ "function %TransformToSyntaxNode",
+				(
+				+ "explicit cast to '_tNode' for %NodeSequence element"
+					@ "function template %TraverseSubnodes";
+				/ "function template %TraverseSubnodes" >> %Scontext;
+				),
+				- $revert(b600) 'using YSLib::NodeSequence;' $dep_from
+					("%InsertSequenceChild" @ %NPLA1,
+					"%NodeSequenceInserter" @ %NPLA)
+					// %TransformToSyntaxNode need support of \
+						%YSLib::NodeSequence to kepp the capability with \
+						%Tools.ProjectGenerator.Main, and %TraverseSubnodes \
+						also need it for %PrintNode.
+				),
+				/ DLDI "reordered declarations",
+					// To put functions insensitive to equivalence of \
+						%TermNode and %ValueNode together.
+				+ "alias %TermNodeToString",
+				(
+				+ "function %ParseNPLATermString";
+				/ DLDI "simplified functions %(MapNPLALeafNode, \
+					TransformToSyntaxNode)" ^ "%ParseNPLATermString"
+				),
+				+ "function %DecodeNodeIndex",
+				/ @ "function template %TraverseNodeChildAndPrint" $=
+				(
+					/ "supported parmaterized node as 1st parameter template"
+						~ "%ValueNode",
+					^ "%YSLib::IsPrefixedIndex" ~ "ADL %IsPrefixedIndex"
+				),
+				/ @ "function %PrintNode" $=
+				(
+					/ "decoded node names" ^ "%DecodeNodeIndex",
+					/ DLDI "simplified" ^ "%std::(bind, placeholders::_1, ref)"
+				),
+				* DD "wrong Doxygen command '\tt' used" ~ '\c'
+					@ "function %RelaySwitchedUnchecked" $since b838,
+					// To eliminate Doxygen warning: Found unknown command.
+				/ DLDI "qualified %AsNode with prefix 'YSLib::'"
+					@ "function %MapNPLALeafNode",
+				/ DLDI "simplified function templates %AccessTerm"
+					^ $dep_from ("%NPL::Access" @ %SContext),
+				/ DLDI "simplified function templates %AccessTermPtr"
+					^ $dep_from ("%NPL::AccessPtr" @ %SContext),
+				/ DLDI !^ "%MakeIndex with size" @ ("function \
+					%TransformToSyntaxNode", "functions %InsertSyntaxNode")
+					$dep_to "avoided MakeIndex with container"
+			),
+			/ %NPLA1 $=
+			(
+				/ "functions %(ReduceArguments, ReduceChildren, \
+					ReduceChildrenOrdered)" $dep_to "TermNode iterator" $=
+				(
+					/ DLDI "overload with term parameter"
+						!^ "overload with container parameter";
+					- "overload with container parameter"
+				),
+				/ DLDI "vau handler, TCO action, functions \
+					%(SetupTraceDepth, Forms::(DefineWithRecursion, \
+					BindParameter))" ^ $dep_from (("%Environment::(operator[], \
+					AddValue)" @ %NPLA), "%NPL::(Access, make_observer)"
+					@ %SContext) $dep_to "name lookup adjustment",
+				/ DLDI "member function %ContextState::SetNextTermRef"
+					^ $dep_from ("%NPL::make_observer" @ %SContext)
+					~ "%YSLib::make_observer",
+				- "function templates %(LoadNodeSequence; \
+					TransformNodeSequence); function %InsertSequenceChild",
+				/ @ "function %InsertChild" $=
+				(
+					/ $forced 'TermNode' -> 'ValueNode' $dep_from
+						("%NodeInserter" @ %NPLA),
+					/ DLDI !^ "%MakeIndex with size" $dep_to
+						"avoided MakeIndex with container"
+				),
+				/ "function %TransformNode" ^ (($dep_from "%(TermNodeToString, \
+					ParseNPLATermString)")
+					~ "%(NodeToString, ParseNPLANodeString)" @ %NPLA),
+				/ DLDI "function %ReduceTail" !^ "container",
+				/ @ "namespace %Forms" $=
+				(
+					/ DLDI "simplified initializer-list" @ "function \
+						%MakeEncapsulationType" !^ "explicit 'TermNode'",
+					/ DLDI "avoided %GetLastIndexOf call relying on %TermNode \
+						and %ValueNode equivalence"
+						@ "functions %(Cons, ConsRef)" ^ $dep_from
+						("%NPL::AddChildToTail" @ %SContext),
+					/ "simplified functions %(SetRest, SetRestRef)"
+						^ $dep_from ("%NPL::AddChildToTail" @ %SContext),
+					/ DLDI !^ "%MakeIndex with size" @ "function %BindParameter"
+						$dep_to "avoided MakeIndex with container"
+				),
+				+ DD "made around '<pre>' and '</pre>' for NPL call grammars"
+					@ "Doxygen comments",
+					// Also to eliminate Doxygen warning: \
+						"Unsupported xml/html tag <...> found".
+				* DD $impl "wrong Doxygen command '\t' used" ~ '\c'
+					@ "function %RelaySwitchedUnchecked" $since b800,
+					// To eliminate Doxygen warning: Found unknown command.
+				/ DLDI "qualified %AsNode with prefix 'YSLib::'"
+					@ "function %(InsertChild, TransformNode)",
+				/ "functions %(TransformForSeparator, \
+					TransformForSeparatorRecursive)" $=
+				(
+					/ DLDI ^ $dep_from ("%AsTermNode" @ %SContext)
+						~ "%AsNode",
+					/ DLDI ^ "%TermNode::Add" ~ "%TermNode::operator+=",
+					/ DLDI "simplified" ^ $dep_from
+						("%NPL::AddChildToTail" @ %SContext),
+					(
+					- "last parameter";
+						// This is reducible in all known and intended uses.
+					* "last parameter type" $since b753;
+						// As a term node name, this should be %string but not \
+							%TokenValue.
+					/ DLI "simplified without redundant subnode name index \
+						construction"
+						// Only %TransformForSeparatorRecursive did need it \
+							directly, and it was actually not needed at all \
+							since the name would be equal to the index of term \
+							being added to, got from %MakeIndex.
+					),
+					/ DLDI !^ "%MakeIndex with size" $dep_to
+						"avoided MakeIndex with container"
+				),
+				/ $forced DLDI "simplified function %ReplaceSeparatedChildren"
+					$dep_from ("last parameter type" @ "%TransformForSeparator")
+			),
+			/ DLI "simplified constructor templates" @ "class %Configuration"
+				@ %Configuration $=
+			(
+				/ $re_add(b851) DLI ^ "%exclude_self_params_t"
+					~ "%exclude_self_t",
+				/ $design ^ $dep_from ("%NoContainer" @ %SContext)
+					~ "%YSLib::NoContainer"
+			),
+			/ DLDI !^ "%MakeIndex with size" @ "derivation of applicative \
+				'cmd-get-args'" @ "function %LoadModule_std_system"
+				@ %Dependency $dep_to "avoided MakeIndex with container"
+		)
+	),
+	/ %Tools $=
+	(
+		/ %ProjectGenerator.Main $=
+		(
+			* $comp "crash due to invalid path handling"
+				$since b838 $dep_from
+				("%operator/=" @ "class template %path"
+					@ %YBase.YStandardEx.Path),
+				// The paths would be accessed by %front without check, \
+					expecting they should have been set by %operator/=. For \
+					empty paths, this would cause undefined behavior with \
+					the buggy %operator/= which would do nothing and keep the \
+					paths staying empty.
+			/ $dev "syntax term node Type %ValueNode" -> "%TermNode" $dep_to
+				"syntax term type",
+			/ $forced DLDI "main function" $dep_from
+				("%TermNode" @ %YFramework.NPL.SContext)
+				^ "%YSLib::ListContainer"
+				// To avoid matching unexpected argument lists, %TermNode now \
+					does not allow to be implicilty constructed.
+		),
+		(
+		/ %SHBuild.Main $=
+		(
+			/ $impl ^ "%function" ~ "%std::function";
+			* $comp "applicative 'SHBuild_EchoVar' from module 'SHBuile_env_' \
+				did not have effect due to mismatched hook type" $since b851
+		);
+		* $comp "option %SS_DebugEnv printed nothing after 'SS_DebugEnv'"
+			@ "%SHBuild-YSLib-common.txt"
+		)
+	),
+	/ DLDI !^ "%MakeIndex with size" @ "member function %ReadingList::operator \
+		ValueNode::Container" @ %YReader.ReadingList $dep_to
+		"avoided MakeIndex with container"
+),
+
+b851,
 (
 	/ $re_add(b850) DLDI ^ "%YSLib::unchecked_any_cast"
 		~ "%ystdex::unchecked_any_cast" $effective
@@ -55,7 +423,7 @@ $now
 					// This is a workaround for G++ 8.1 on platform %DS.
 				+ $re_add(b848) $dev 'explicit'
 					@ "constructor with %default_init_t parameter",
-				/ $re_add(b849) DLI "simplify constructor templates"
+				/ $re_add(b849) DLI "simplified constructor templates"
 					^ "%exclude_self_params_t" ~ "%exclude_self_t",
 				* $re_add(b849) "possible ill-formed but no diagnostics \
 					required bogus 'yconstfn'" $since b477 $=
@@ -1265,7 +1633,7 @@ b849
 				(
 					// Microsoft VC++ 15.9.4 still has bug in instantiating \
 						%WrapContextHandler. See https://developercommunity.visualstudio.com/content/problem/279415/using-tuple-element-in-if-constexpr-yields-erroneo.html.
-					/ $re_add(b848) DLI "simplify constructor templates \
+					/ $re_add(b848) DLI "simplified constructor templates \
 						%WrappedContextHandler"
 						^ "%ystdex::exclude_self_params_t"
 						~ "%ystdex::exclude_self_t",

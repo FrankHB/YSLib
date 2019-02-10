@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r812
+\version r836
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-18 20:45:11 +0800
 \par 修改时间:
-	2019-01-14 15:16 +0800
+	2019-02-06 11:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -178,11 +178,11 @@ AddCompilerNode(_tNodeOrCon&& node_or_con, const string& platform)
 		LookupCompilerName(platform));
 }
 
-using HostHandler = std::function<void(ValueNode&, bool, bool)>;
+using HostHandler = std::function<void(TermNode&, bool, bool)>;
 
-//! \since build 667
+//! \since build 852
 void
-InsertTargetNode(ValueNode& node, const string& project,
+InsertTargetNode(TermNode& term, const string& project,
 	const string& platform, bool custom_makefile, bool debug, BuildType btype,
 	HostHandler hosted_handler = {})
 {
@@ -204,8 +204,8 @@ InsertTargetNode(ValueNode& node, const string& project,
 		}
 	}(!debug && bool(btype & BuildType::Executable) ? btype
 		| BuildType::GUI : btype));
-	auto child(TransformToSyntaxNode(MakeAttributeLiteral("Target", "title",
-		bool(btype & BuildType::Static) ? target : target + "_DLL")));
+	auto child(TransformToSyntaxNode(TermNode(MakeAttributeLiteral("Target",
+		"title", bool(btype & BuildType::Static) ? target : target + "_DLL"))));
 
 	if(!(platform.empty() || custom_makefile))
 	{
@@ -244,7 +244,7 @@ InsertTargetNode(ValueNode& node, const string& project,
 	}
 	if(!platform.empty() && custom_makefile)
 		InsertChildSyntaxNode(child, MakeCommandLiteral());
-	InsertChildSyntaxNode(node, std::move(child));
+	InsertChildSyntaxNode(term, std::move(child));
 }
 
 YB_ATTR_nodiscard YB_PURE vector<string>
@@ -343,7 +343,9 @@ SearchUnits(set<string>& res, const Path& pth, const Path& opth,
 		FindUnits(res, pth, opth, dir, platform);
 }
 
-YB_ATTR_nodiscard YB_PURE ValueNode
+//! \since build 852
+//@{
+YB_ATTR_nodiscard YB_PURE TermNode
 MakeCBDocNode(const string& project, const string& platform, bool exe,
 	const set<string>& units, bool custom_makefile)
 {
@@ -375,8 +377,9 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 	HostHandler handler;
 
 	if(!custom_makefile)
-		handler = [&, btype](ValueNode& nd, bool debug, bool is_static){
-			auto child(TransformToSyntaxNode(NodeLiteral("Compiler")));
+		handler = [&, btype](TermNode& tm, bool debug, bool is_static){
+			auto
+				child(TransformToSyntaxNode(TermNode(NodeLiteral("Compiler"))));
 			const auto opt_add([&child](const string& str){
 				InsertAttributeNode(child, "Add", "option", str);
 			});
@@ -397,11 +400,11 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 						: "-DYF_DLL");
 				}
 			}
-			InsertChildSyntaxNode(nd, std::move(child));
+			InsertChildSyntaxNode(tm, std::move(child));
 			if(!debug || (project != "YBase"
 				&& !(project == "YFramework" && is_static)))
 			{
-				child = TransformToSyntaxNode(NodeLiteral("Linker"));
+				child = TransformToSyntaxNode(TermNode(NodeLiteral("Linker")));
 				if(!debug)
 					opt_add("-s");
 				if(project != "YBase")
@@ -441,11 +444,11 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 								spath{"imm32"});
 					}
 				}
-				InsertChildSyntaxNode(nd, std::move(child));
+				InsertChildSyntaxNode(tm, std::move(child));
 			}
 			if(exe && !is_static && platform == "MinGW32")
-				InsertChildSyntaxNode(nd, MakeExtraCommandLiteral(debug,
-					project, {"..", "..", "build", "MinGW32"}));
+				InsertChildSyntaxNode(tm, MakeExtraCommandLiteral(
+					debug, project, {"..", "..", "build", "MinGW32"}));
 		};
 
 	const auto ins([&, custom_makefile](bool d, BuildType bt){
@@ -462,7 +465,7 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 	}
 	if(!custom_makefile)
 	{
-		auto child(TransformToSyntaxNode(NodeLiteral("Compiler")));
+		auto child(TransformToSyntaxNode(TermNode(NodeLiteral("Compiler"))));
 		const auto opt_add([&child](const string& str){
 			InsertAttributeNode(child, "Add", "option", str);
 		});
@@ -496,7 +499,7 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 				"../../3rdparty/include", "../../3rdparty/freetype/include");
 		}
 		InsertChildSyntaxNode(proj, std::move(child));
-		child = TransformToSyntaxNode(NodeLiteral("Linker"));
+		child = TransformToSyntaxNode(TermNode(NodeLiteral("Linker")));
 		ystdex::seq_apply(opt_add, "-Wl,--gc-sections", "-pipe");
 		InsertChildSyntaxNode(proj, std::move(child));
 	}
@@ -504,7 +507,7 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 		InsertAttributeNode(proj, "Unit", "filename", unit);
 	return doc;
 }
-YB_ATTR_nodiscard YB_PURE ValueNode
+YB_ATTR_nodiscard YB_PURE TermNode
 MakeCBDocNode(const Path& pth, const Path& opth, const string& platform,
 	bool exe)
 {
@@ -551,6 +554,7 @@ MakeCBDocNode(const Path& pth, const Path& opth, const string& platform,
 	}
 	return MakeCBDocNode(project, platform, exe, units, custom_makefile);
 }
+//@}
 
 } // unnamed namespace;
 
@@ -599,9 +603,9 @@ main(int argc, char* argv[])
 			clog << ".\nProject path '" << EncodeArg(to_string(ipath).GetMBCS())
 				<< "' recognized." << endl;
 			return FilterExceptions([&]{
-				SXML::PrintSyntaxNode(cout, {{{MakeCBDocNode(ipath,
-					platform.empty() || IsDSARM(platform) ? Path()
-					: Path(u".."), platform, ptype == "c")}}});
+				SXML::PrintSyntaxNode(cout, {YSLib::ListContainer,
+					{{MakeCBDocNode(ipath, platform.empty() || IsDSARM(platform)
+					? Path() : Path(u".."), platform, ptype == "c")}}});
 				cout << endl;
 				clog << "Conversion finished." << endl;
 			}, yfsig) ? EXIT_FAILURE : EXIT_SUCCESS;

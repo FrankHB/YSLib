@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2018 FrankHB.
+	© 2014-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3860
+\version r3866
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2018-09-29 13:11 +0800
+	2019-02-06 11:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -136,10 +136,12 @@ const struct Option
 {
 	const char *prefix, *name = {}, *option_arg;
 	std::initializer_list<const char*> option_details;
-	std::function<bool(const string&)> filter;
+	//! \since build 852
+	function<bool(const string&)> filter;
 
+	//! \since build 852
 	Option(const char* pfx, const char* n, const char* opt_arg,
-		std::function<void(string&&)> parse,
+		function<void(string&&)> parse,
 		std::initializer_list<const char*> il)
 		: prefix(pfx), name(n), option_arg(opt_arg), option_details(il),
 		filter(std::bind(ystdex::filter_prefix<string, string, decltype(parse)>,
@@ -365,7 +367,7 @@ RunNPLFromStream(const char* name, std::istream&& is)
 			LoadModule_SHBuild(context);
 			// XXX: Overriding.
 			rctx.GetRecordRef().Define("SHBuild_BaseTerminalHook_",
-				ValueObject(std::function<void(const string&, const string&)>(
+				ValueObject(function<void(const string&, const string&)>(
 				[](const string& n, const string& val){
 					// XXX: Errors from 'std::printf' and 'std::puts' are
 					//	ignored.

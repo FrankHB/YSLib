@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2018 FrankHB.
+	© 2012-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1558
+\version r1564
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2018-12-05 21:01 +0800
+	2019-02-10 14:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,18 +76,18 @@ Reduce(TermNode& term, TLCIter b, TLCIter e)
 		if(*b == "(")
 		{
 			// FIXME: Potential overflow.
-			// NOTE: Explicit type 'TermNode' is intended.
-			TermNode tm(AsIndexNode(a, term));
+			auto tm(NPL::AsIndexTermNode(a, term.size()));
 			auto res(Reduce(tm, ++b, e));
 
 			if(res == e || *res != ")")
 				throw LoggedEvent("Redundant '(' found.", Alert);
-			term += std::move(tm);
+			term.Add(std::move(tm));
 			b = ++res;
 		}
 		else
 			// TODO: More specific pool for %ValueObject?
-			term += AsIndexNode(a, term, std::allocator_arg, a, *b++);
+			term.Add(NPL::AsIndexTermNode(a, term.size(), std::allocator_arg, a,
+				*b++));
 	return b;
 }
 

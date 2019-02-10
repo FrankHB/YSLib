@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018 FrankHB.
+	© 2013-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2016
+\version r2025
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2018-08-22 20:42 +0800
+	2019-01-31 04:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,9 @@
 #define YCL_MinGW32_INC_MinGW32_h_ 1
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_Host // for string, wstring, unique_ptr_from,
-//	ystdex::ends_with, ystdex::aligned_storage_t, ystdex::pun_ref, pair;
+#include YFM_YCLib_Host // for string, ystdex::remove_reference_t, wstring,
+//	unique_ptr_from, ystdex::ends_with, ystdex::aligned_storage_t,
+//	ystdex::pun_ref, pair;
 #include YFM_YCLib_NativeAPI // for ERROR_SUCCESS,
 //	MAXIMUM_REPARSE_DATA_BUFFER_SIZE, MAX_PATH;
 #if !YCL_Win32
@@ -219,7 +220,12 @@ public:
 //@{
 //! \brief 加载过程地址得到的过程类型。
 using ModuleProc
+#if YB_IMPL_MSCPP
+	= ystdex::remove_reference_t<decltype(::GetProcAddress(::HMODULE(), {})())>(
+		__stdcall)();
+#else
 	= ystdex::remove_reference_t<decltype(*::GetProcAddress(::HMODULE(), {}))>;
+#endif
 
 /*!
 \brief 从模块加载指定过程的指针。

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9847
+\version r9975
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2019-01-28 15:29 +0800
+	2019-02-10 14:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,12 +28,13 @@
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLA1 // for YSLib, ystdex::bind1, std::make_move_iterator,
 //	ystdex::value_or, shared_ptr, tuple, list, lref, vector, observer_ptr, set,
-//	owner_less, ystdex::erase_all, ystdex::as_const, std::find_if,
-//	NPL::AllocateEnvironment, unordered_map, YSLib::allocate_shared, ystdex::id,
-//	ystdex::cast_mutable, pair, share_move, ystdex::equality_comparable,
-//	std::allocator_arg, NoContainer, ystdex::exchange,
-//	NPL::SwitchToFreshEnvironment, ystdex::call_value_or,
-//	ystdex::invoke_value_or, ystdex::make_transform, in_place_type;
+//	owner_less, ystdex::erase_all, ystdex::as_const, NPL::make_observer,
+//	std::find_if, NPL::AllocateEnvironment, unordered_map, AccessPtr,
+//	YSLib::allocate_shared, ystdex::id, ystdex::cast_mutable, pair, share_move,
+//	ystdex::equality_comparable, std::allocator_arg, NoContainer,
+//	ystdex::exchange, NPL::SwitchToFreshEnvironment, ystdex::invoke_value_or,
+//	ystdex::call_value_or, ystdex::make_transform, in_place_type,
+//	ystdex::try_emplace, NPL::Access;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard, ystdex::swap_guard,
 //	ystdex::unique_guard;
 #include YFM_NPL_SContext // for Session;
@@ -87,22 +88,15 @@ to_string(ValueToken vt)
 }
 
 void
-InsertChild(TermNode&& term, TermNode::Container& con)
+InsertChild(ValueNode&& node, ValueNode::Container& con)
 {
-	con.insert(term.GetName().empty() ? AsNode(term.get_allocator(),
-		'$' + MakeIndex(con), std::move(term.Value))
-		: std::move(MapToValueNode(term)));
-}
-
-void
-InsertSequenceChild(TermNode&& term, NodeSequence& con)
-{
-	con.emplace_back(std::move(MapToValueNode(term)));
+	con.insert(node.GetName().empty() ? YSLib::AsNode(node.get_allocator(),
+		'$' + MakeIndex(con.size()), std::move(node.Value)) : std::move(node));
 }
 
 ValueNode
 TransformNode(const TermNode& term, NodeMapper mapper, NodeMapper map_leaf_node,
-	NodeToString node_to_str, NodeInserter insert_child)
+	TermNodeToString term_to_str, NodeInserter insert_child)
 {
 	auto s(term.size());
 
@@ -111,12 +105,12 @@ TransformNode(const TermNode& term, NodeMapper mapper, NodeMapper map_leaf_node,
 
 	auto i(term.begin());
 	const auto nested_call(ystdex::bind1(TransformNode, mapper, map_leaf_node,
-		node_to_str, insert_child));
+		term_to_str, insert_child));
 
 	if(s == 1)
 		return nested_call(*i);
 
-	const auto& name(node_to_str(*i));
+	const auto& name(term_to_str(*i));
 
 	if(!name.empty())
 		yunseq(++i, --s);
@@ -125,7 +119,8 @@ TransformNode(const TermNode& term, NodeMapper mapper, NodeMapper map_leaf_node,
 		auto&& nd(nested_call(*i));
 
 		if(nd.GetName().empty())
-			return AsNode(term.get_allocator(), name, std::move(nd.Value));
+			return
+				YSLib::AsNode(term.get_allocator(), name, std::move(nd.Value));
 		return
 			{ValueNode::Container({std::move(nd)}, term.get_allocator()), name};
 	}
@@ -135,44 +130,8 @@ TransformNode(const TermNode& term, NodeMapper mapper, NodeMapper map_leaf_node,
 	std::for_each(i, term.end(), [&](const TermNode& tm){
 		insert_child(mapper ? mapper(tm) : nested_call(tm), node_con);
 	});
-	return {std::allocator_arg, term.get_allocator(), std::move(node_con),
-		name};
-}
-
-ValueNode
-TransformNodeSequence(const TermNode& term, NodeMapper mapper, NodeMapper
-	map_leaf_node, NodeToString node_to_str, NodeSequenceInserter insert_child)
-{
-	auto s(term.size());
-
-	if(s == 0)
-		return map_leaf_node(term);
-
-	auto i(term.begin());
-	auto nested_call(ystdex::bind1(TransformNodeSequence, mapper,
-		map_leaf_node, node_to_str, insert_child));
-
-	if(s == 1)
-		return nested_call(*i);
-
-	const auto& name(node_to_str(*i));
-
-	if(!name.empty())
-		yunseq(++i, --s);
-	if(s == 1)
-	{
-		auto&& n(nested_call(*i));
-
-		return AsNode(term.get_allocator(), name, n.GetName().empty()
-			? std::move(n.Value) : ValueObject(NodeSequence{std::move(n)}));
-	}
-
-	NodeSequence node_con;
-
-	std::for_each(i, term.end(), [&](const TermNode& tm){
-		insert_child(mapper ? mapper(tm) : nested_call(tm), node_con);
-	});
-	return AsNode(term.get_allocator(), name, std::move(node_con));
+	return
+		{std::allocator_arg, term.get_allocator(), std::move(node_con), name};
 }
 
 
@@ -180,29 +139,27 @@ TransformNodeSequence(const TermNode& term, NodeMapper mapper, NodeMapper
 namespace
 {
 
-//! \since build 847
+//! \since build 852
 //@{
 template<typename _func, class _tTerm>
 YB_ATTR_nodiscard TermNode
 TransformForSeparatorCore(_func trans, _tTerm&& term, const ValueObject& pfx,
-	const TokenValue& delim, const string& name)
+	const TokenValue& delim)
 {
 	using namespace std::placeholders;
 	using it_t = decltype(std::make_move_iterator(term.end()));
-	// NOTE: Explicit type 'TermNode' is intended.
-	TermNode res(AsNode(term.get_allocator(), name, yforward(term).Value));
+	auto res(AsTermNode(term.get_allocator(), MakeIndex(term.size()),
+		yforward(term).Value));
 
 	if(IsBranch(term))
 	{
 		// NOTE: Explicit type 'TermNode' is intended.
-		res += TermNode(AsIndexNode(term.get_allocator(), res, pfx));
+		res.Add(TermNode(AsIndexNode(term.get_allocator(), res.size(), pfx)));
 		ystdex::split(std::make_move_iterator(term.begin()),
 			std::make_move_iterator(term.end()), ystdex::bind1(
 			HasValue<TokenValue>, std::ref(delim)), [&](it_t b, it_t e){
 				const auto add([&](TermNode& node, it_t i){
-					const auto& k(MakeIndex(node));
-
-					node.AddChild(k, trans(Deref(i), k));
+					NPL::AddChildToTail(node, trans(Deref(i)));
 				});
 
 				// XXX: The implementation is depended on the fact that
@@ -217,35 +174,38 @@ TransformForSeparatorCore(_func trans, _tTerm&& term, const ValueObject& pfx,
 				else
 				{
 					// NOTE: Explicit type 'TermNode' is intended.
-					TermNode child(AsIndexNode(res.get_allocator(), res));
+					TermNode
+						child(AsIndexNode(res.get_allocator(), res.size()));
 
 					while(b != e)
 						add(child, b++);
-					res += std::move(child);
+					res.Add(std::move(child));
 				}
 			});
 	}
 	return res;
 }
 
+//! \since build 852
 template<class _tTerm>
 YB_ATTR_nodiscard TermNode
 TransformForSeparatorTmpl(_tTerm&& term, const ValueObject& pfx,
-	const TokenValue& delim, const TokenValue& name)
+	const TokenValue& delim)
 {
-	return TransformForSeparatorCore([&](_tTerm&& tm, const string&) ynothrow{
+	return TransformForSeparatorCore([&](_tTerm&& tm) ynothrow{
 		return yforward(tm);
-	}, yforward(term), pfx, delim, name);
+	}, yforward(term), pfx, delim);
 }
 
+//! \since build 852
 template<class _tTerm>
 YB_ATTR_nodiscard TermNode
 TransformForSeparatorRecursiveTmpl(_tTerm&& term, const ValueObject& pfx,
-	const TokenValue& delim, const TokenValue& name)
+	const TokenValue& delim)
 {
-	return TransformForSeparatorCore([&](_tTerm&& tm, const string& k){
-		return TransformForSeparatorRecursiveTmpl(yforward(tm), pfx, delim, k);
-	}, yforward(term), pfx, delim, name);
+	return TransformForSeparatorCore([&](_tTerm&& tm){
+		return TransformForSeparatorRecursiveTmpl(yforward(tm), pfx, delim);
+	}, yforward(term), pfx, delim);
 }
 //@}
 
@@ -494,7 +454,7 @@ public:
 		ContextHandler res;
 		const auto i(std::find_if(xgds.rbegin(), xgds.rend(),
 			[this](const ContextHandler& h) ynothrow{
-			return make_observer(&h) == LastFunction;
+			return NPL::make_observer(&h) == LastFunction;
 		}));
 
 		if(i != xgds.rend())
@@ -516,8 +476,8 @@ public:
 		YAssert(!TemporaryPtr,
 			"The temporary stored for TCO context is overwritten.");
 		// NOTE: An environment object is introduced to make it collectable.
-		(TemporaryPtr = AllocateEnvironment(term, ctx))
-			->Bindings[OperandName].SetContent(std::move(term));
+		Deref(TemporaryPtr = AllocateEnvironment(term, ctx))[
+			OperandName].SetContent(std::move(term));
 	}
 };
 
@@ -753,10 +713,10 @@ private:
 			// XXX: This is served as addtional static environment.
 			Forms::CheckParameterLeafToken(n, [&]{
 				// XXX: The symbol can be rebound.
-				env.GetMapRef()[n].SetContent(TermNode::Container(
-					t.get_allocator()), ValueObject(any_ops::use_holder,
-					in_place_type<HolderFromPointer<weak_ptr<
-					ContextHandler>>>, store[n] = p_d));
+				env[n].SetContent(TermNode::Container(t.get_allocator()),
+					ValueObject(any_ops::use_holder,
+					in_place_type<HolderFromPointer<weak_ptr<ContextHandler>>>,
+					store[n] = p_d));
 			});
 		}
 	}
@@ -770,7 +730,7 @@ private:
 		else if(const auto p = AccessPtr<TokenValue>(t))
 			FilterExceptions([&]{
 				const auto& n(*p);
-				auto& v(env.GetMapRef()[n].Value);
+				auto& v(env[n].Value);
 
 				if(v.type() == ystdex::type_id<ContextHandler>())
 				{
@@ -1424,7 +1384,7 @@ private:
 	string eformal{};
 	/*!
 	\brief 形式参数对象。
-	\invariant \t bool(p_formals) 。
+	\invariant \c bool(p_formals) 。
 	\since build 771
 	*/
 	shared_ptr<TermNode> p_formals;
@@ -1509,7 +1469,7 @@ private:
 	{
 		YAssert(!eformal.empty(), "Empty dynamic environment name found.");
 		// NOTE: Bound dynamic environment.
- 		ctx.GetBindingsRef().AddValue(eformal, std::move(vo));
+ 		ctx.GetRecordRef().AddValue(eformal, std::move(vo));
 		// NOTE: The dynamic environment is either out of TCO action or
 		//	referenced by other environments already in TCO action, so there
 		//	is no need to treat as root.
@@ -1561,7 +1521,7 @@ private:
 			// NOTE: The arguments in the operand held by the term have to be
 			//	saved for extension of lifetime of bound reference parameters.
 			act.UpdateTemporaryPtr(term, ctx);
-			return act.TemporaryPtr->Bindings[OperandName];
+			return Deref(act.TemporaryPtr)[OperandName];
 #else
 			return term;
 #endif
@@ -1601,7 +1561,7 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	lf = {};
 	// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
 	//	error: Segmentation fault.
-	yunseq(0, (lf = make_observer(
+	yunseq(0, (lf = NPL::make_observer(
 		&fused_act.AttachFunction(std::forward<_tParams>(args)).get()), 0)...);
 	fused_act.ReduceCombined = true;
 	SetupNextTerm(ctx, term);
@@ -1637,7 +1597,9 @@ ConsImpl(TermNode& term, bool by_val)
 	return ResolveTerm([&](TermNode& nd, bool has_ref) -> ReductionStatus{
 		const auto get_ins_idx([&, i]{
 			term.erase(i);
-			return GetLastIndexOf(term);
+			// TODO: Simplify without relying on equivalence between
+			//	%TermNode::Container and %ValueNode::Container.
+			return GetLastIndexOf(term.GetContainer());
 		});
 		const auto ret([&]{
 			RemoveHead(term);
@@ -1655,7 +1617,7 @@ ConsImpl(TermNode& term, bool by_val)
 				auto idx(get_ins_idx());
 
 				for(const auto& subnode : tail)
-					term.AddChild(MakeIndex(++idx), subnode);
+					NPL::AddChildToTail(++idx, term, subnode);
 				return ret();
 			}
 		}
@@ -1665,7 +1627,7 @@ ConsImpl(TermNode& term, bool by_val)
 			auto idx(get_ins_idx());
 
 			for(auto& subnode : tail)
-				term.AddChild(MakeIndex(++idx), std::move(subnode));
+				NPL::AddChildToTail(++idx, term, std::move(subnode));
 			return ret();
 		}
 		throw ListTypeError(
@@ -1741,11 +1703,11 @@ SetRestImpl(TermNode& term, bool by_val)
 
 				if(has_ref)
 					for(const auto& subnode : nd)
-						nd_new.AddChild(MakeIndex(++idx), subnode);
+						NPL::AddChildToTail(idx, nd_new, subnode);
 				else
 					for(const auto& subnode : nd)
 						// XXX: No cyclic reference check.
-						nd_new.AddChild(MakeIndex(++idx), std::move(subnode));
+						NPL::AddChildToTail(idx, nd_new, std::move(subnode));
 				if(by_val)
 					LiftSubtermsToReturn(nd_new);
 				// XXX: The order is significant.
@@ -2022,7 +1984,7 @@ ContextState::GetNextTermRef() const
 void
 ContextState::SetNextTermRef(TermNode& term)
 {
-	next_term_ptr = YSLib::make_observer(&term);
+	next_term_ptr = NPL::make_observer(&term);
 }
 
 ReductionStatus
@@ -2229,9 +2191,7 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 ReductionStatus
 ReduceTail(TermNode& term, ContextNode& ctx, TNIter i)
 {
-	auto& con(term.GetContainerRef());
-
-	con.erase(con.begin(), i);
+	term.erase(term.begin(), i);
 	// NOTE: This is neutral to thunks.
 	return ReduceAgain(term, ctx);
 }
@@ -2241,17 +2201,23 @@ void
 SetupTraceDepth(ContextState& root, const string& name)
 {
 	yunseq(
-	root.GetBindingsRef().Place<size_t>(name),
+	ystdex::try_emplace(root.GetBindingsRef(), name, NoContainer, name,
+		in_place_type<size_t>),
 	root.Guard = [name](TermNode& term, ContextNode& ctx){
-		using ystdex::pvoid;
-		auto& depth(AccessChild<size_t>(ctx.GetBindingsRef(), name));
+		if(const auto p = ctx.GetRecordRef().LookupName(name))
+		{
+			using ystdex::pvoid;
+			auto& depth(NPL::Access<size_t>(*p));
 
-		YTraceDe(Informative, "Depth = %zu, context = %p, semantics = %p.",
-			depth, pvoid(&ctx), pvoid(&term));
-		++depth;
-		return ystdex::unique_guard([&]() ynothrow{
-			--depth;
-		});
+			YTraceDe(Informative, "Depth = %zu, context = %p, semantics = %p.",
+				depth, pvoid(&ctx), pvoid(&term));
+			++depth;
+			return ystdex::unique_guard([&]() ynothrow{
+				--depth;
+			});
+		}
+		else
+			ValueNode::ThrowWrongNameFound(name);
 	}
 	);
 }
@@ -2259,29 +2225,28 @@ SetupTraceDepth(ContextState& root, const string& name)
 
 TermNode
 TransformForSeparator(const TermNode& term, const ValueObject& pfx,
-	const TokenValue& delim, const TokenValue& name)
+	const TokenValue& delim)
 {
-	return TransformForSeparatorTmpl(term, pfx, delim, name);
+	return TransformForSeparatorTmpl(term, pfx, delim);
 }
 TermNode
 TransformForSeparator(TermNode&& term, const ValueObject& pfx,
-	const TokenValue& delim, const TokenValue& name)
+	const TokenValue& delim)
 {
-	return TransformForSeparatorTmpl(std::move(term), pfx, delim, name);
+	return TransformForSeparatorTmpl(std::move(term), pfx, delim);
 }
 
 TermNode
 TransformForSeparatorRecursive(const TermNode& term, const ValueObject& pfx,
-	const TokenValue& delim, const TokenValue& name)
+	const TokenValue& delim)
 {
-	return TransformForSeparatorRecursiveTmpl(term, pfx, delim, name);
+	return TransformForSeparatorRecursiveTmpl(term, pfx, delim);
 }
 TermNode
 TransformForSeparatorRecursive(TermNode&& term, const ValueObject& pfx,
-	const TokenValue& delim, const TokenValue& name)
+	const TokenValue& delim)
 {
-	return
-		TransformForSeparatorRecursiveTmpl(std::move(term), pfx, delim, name);
+	return TransformForSeparatorRecursiveTmpl(std::move(term), pfx, delim);
 }
 
 ReductionStatus
@@ -2290,8 +2255,7 @@ ReplaceSeparatedChildren(TermNode& term, const ValueObject& pfx,
 {
 	if(std::find_if(term.begin(), term.end(),
 		ystdex::bind1(HasValue<TokenValue>, std::ref(delim))) != term.end())
-		term = TransformForSeparator(std::move(term), pfx, delim,
-			TokenValue(term.GetName()));
+		term = TransformForSeparator(std::move(term), pfx, delim);
 	return ReductionStatus::Clean;
 }
 
@@ -2630,7 +2594,7 @@ RetainN(const TermNode& term, size_t m)
 void
 BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 {
-	auto& m(ctx.GetBindingsRef());
+	auto& env(ctx.GetRecordRef());
 	const auto check_sigil([&](string_view& id){
 		char sigil(id.front());
 
@@ -2668,13 +2632,13 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 				for(; first != last; ++first)
 					BindParameterObject()(sigil, copy, Deref(first), [&](const
 						TermNode::Container& c, const ValueObject& vo){
-						con.emplace(c, MakeIndex(con), vo);
+						con.emplace(c, MakeIndex(con.size()), vo);
 					}, [&](TermNode::Container&& c, ValueObject&& vo){
-						con.emplace(std::move(c), MakeIndex(con),
+						con.emplace(std::move(c), MakeIndex(con.size()),
 							std::move(vo));
 					}, p_anchor);
 
-				auto& term(m[id]);
+				auto& term(env[id]);
 
 				// XXX: This relies on the assumption that %ValueNode has same
 				//	container type with %TermNode.
@@ -2691,9 +2655,9 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 				if(!id.empty())
 					BindParameterObject()(sigil, copy, b, [&](const
 						TermNode::Container& c, const ValueObject& vo){
-						m[id].SetContent(c, vo);
+						env[id].SetContent(c, vo);
 					}, [&](TermNode::Container&& c, ValueObject&& vo){
-						m[id].SetContent(std::move(c), std::move(vo));
+						env[id].SetContent(std::move(c), std::move(vo));
 					}, p_anchor);
 			}
 		});
@@ -3094,11 +3058,11 @@ MakeEncapsulationType(TermNode& term)
 	shared_ptr<void> p_type(new yimpl(byte));
 	const auto& tag(in_place_type<ContextHandler>);
 
-	term.GetContainerRef() = {TermNode(NoContainer, MakeIndex(0), tag,
-		StrictContextHandler(Encapsulate(p_type))), TermNode(NoContainer,
-		MakeIndex(1), tag, StrictContextHandler(Encapsulated(p_type))),
-		TermNode(NoContainer, MakeIndex(2), tag,
-		StrictContextHandler(Decapsulate(p_type)))};
+	term.GetContainerRef() = {{NoContainer, MakeIndex(0), tag,
+		StrictContextHandler(Encapsulate(p_type))}, {NoContainer,
+		MakeIndex(1), tag, StrictContextHandler(Encapsulated(p_type))},
+		{NoContainer, MakeIndex(2), tag,
+		StrictContextHandler(Decapsulate(p_type))}};
 	return ReductionStatus::Retained;
 }
 

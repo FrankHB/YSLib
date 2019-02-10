@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2139
+\version r2140
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2019-01-20 00:11 +0800
+	2019-02-10 14:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -873,7 +873,7 @@ LoadModule_std_system(REPLContext& context)
 			TermNode::Container con{};
 
 			for(const auto& arg : p_cmd_args->Arguments)
-				TermNode::AddValueTo(con, MakeIndex(con),
+				TermNode::AddValueTo(con, MakeIndex(con.size()),
 					in_place_type<string>, arg);
 			return con;
 		}();
