@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2018 FrankHB.
+	© 2009-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r4641
+\version r4650
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2018-12-02 16:00 +0800
+	2019-02-22 14:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1123,20 +1123,23 @@ Throw* ：含义同 throw_*(@4.1.7.4) 。
 Try* ：含义同 try_*(@4.1.7.3) 。
 
 @4.1.7.3 ISO C++ 标准库惯用命名：
-包括以下成员类型名：
+包括以下 public 成员类型名：
 size_type ：表示元素数的无符号整数类型；
 difference_type ：表示差值的有符号整数类型；
 iterator ：迭代器类型；
 const_iterator ：只读迭代器类型；
 pointer ：指针类型（注意作为删除器的成员类型可影响 std::unique_ptr 的 pointer 成员类型）；
 reference ：引用类型。
-包括以下成员或友元函数名：
+allocator_type ：分配器类型（可用于 uses-allocator 构造）。
+包括以下非静态成员或友元函数（模板）名：
 begin ：表示起始迭代器。
 end ：表示终止迭代器。
 at ：带有越界检查的访问函数，接受一个左值引用类型的参数，越界时抛出异常（如 std::out_of_range ）；参见 ISO C++ [sequence.reqmts] 和 ISO C++ [associative] 。
-swap ：交换函数，接受被交换的左值引用类型的参数，返回类型 void ；参见 ISO C++ [swappable.requirements] 。
+包括以下非静态成员函数名：
+swap ：一元交换函数，接受被交换的左值引用类型的参数，返回类型 void ；参见 ISO C++ [swappable.requirements] 。
 type ：返回表示存储类型的 const 对象引用，通常为 const std::type_info& 或相同目的的替代品。
-包括以下命名空间作用域函数或函数模板名：
+get_allocator ：取分配器副本或 const 对象引用。
+包括以下友元或命名空间作用域函数或函数模板名：
 to_string ：转换为字符串（通常应为 std::string 类型或至少类型名为 string ）表示。
 make_* ：返回特定对象的助手函数（模板）。
 swap ：交换函数。
@@ -1151,7 +1154,7 @@ cbegin ：用于 range based for 的起始只读迭代器。
 cend ：用于 range based for 的终止只读迭代器。
 包括以下前缀：
 try_* ：尝试进行状态检查并非阻塞地调用，失败时可能对非预期状态进行原地处理，可捕获并重新抛出异常，或抛出其它异常（包括嵌套异常）。
-类似 ISO C++ 标准库的 try_lock 和 try_emplace 等；可对应没有前缀的接口抛出异常表示这些错误，此时带前缀 try_* 的版本在返回值中应蕴含操作是否成功。
+类似 ISO C++ 标准库的 try_lock 、 try_emplace 和 WG21 P0042 的 try_recover 等；可对应没有前缀的接口抛出异常表示这些错误，此时带前缀 try_* 的版本在返回值中应蕴含操作是否成功。
 
 @4.1.7.4 其它惯用命名：
 包括以下前缀：

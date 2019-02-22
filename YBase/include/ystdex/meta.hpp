@@ -11,13 +11,13 @@
 /*!	\file meta.hpp
 \ingroup YStandardEx
 \brief 通用元编程设施。
-\version r1650
+\version r1666
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:28 +0800
 \par 修改时间:
-	2019-01-15 12:43 +0800
+	2019-02-15 20:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YB_INC_ystdex_meta_hpp_ 1
 
 #include "type_inspection.hpp" // for "type_inspection.hpp",
-//	__cpp_lib_transformation_trait_aliases, __cpp_lib_void_t, is_same;
+//	__cpp_lib_transformation_trait_aliases, __cpp_lib_void_t, is_same, or_,
+//	nor_, and_, is_trivial, is_class, is_union, is_convertible, not_;
 #include "integral_constant.hpp" // for true_;
 
 namespace ystdex
@@ -220,6 +221,7 @@ using std::remove_cvref;
 using std::remove_cvref_t;
 #else
 /*!
+\ingroup YBase_replacement_features
 \brief 移除可能被 cv-qualifier 修饰的引用类型。
 \note remove_pointer 包含 cv-qualifier 的移除，不需要对应版本。
 \see WG21 P0550R2 。
@@ -467,7 +469,7 @@ struct is_referenceable : or_<is_object<_type>, is_reference<_type>,
 */
 template<typename _type>
 struct is_returnable
-	: not_<or_<is_array<_type>, is_abstract<_type>, is_function<_type>>>
+	: nor_<is_array<_type>, is_abstract<_type>, is_function<_type>>
 {};
 
 
@@ -540,18 +542,25 @@ struct is_rvalue_class_reference
 
 /*!
 \pre remove_all_extents<_type> 是完整类型或（可能 cv 修饰的） \c void 。
-\see ISO C++11 9/10 。
+\see ISO C++17 [class.prop]/2 。
+\since build 853
 */
 //@{
-//! \brief 判断指定类型是否是 POD struct 。
+/*!
+\brief 判断指定类型是否是平凡的非联合类类型。
+\note 注意和 ISO C++ 的 \c std::is_class 类似，排除联合。
+*/
 template<typename _type>
-struct is_pod_struct : and_<is_pod<_type>, is_class<_type>>
+struct is_trivial_class : and_<is_trivial<_type>, is_class<_type>>
 {};
 
-
-//! \brief 判断指定类型是否是 POD union 。
 template<typename _type>
-struct is_pod_union : and_<is_pod<_type>, is_union<_type>>
+struct is_trivial_class_type : and_<is_trivial<_type>, is_class_type<_type>>
+{};
+
+//! \brief 判断指定类型是否是平凡的联合类型。
+template<typename _type>
+struct is_trivial_union : and_<is_trivial<_type>, is_union<_type>>
 {};
 //@}
 //@}

@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2140
+\version r2156
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2019-02-10 14:29 +0800
+	2019-02-15 00:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,8 +27,9 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_Dependency // for ystdex::isspace, std::istream,
-//	YSLib::unique_ptr, NPL::AllocateEnvironment, ystdex::isdigit, ystdex::bind1,
-//	std::placeholders, ystdex::tolower, ystdex::swap_dependent;
+//	YSLib::unique_ptr, NPL::AllocateEnvironment, std::piecewise_construct,
+//	std::forward_as_tuple, ystdex::isdigit, ystdex::bind1, std::placeholders,
+//	ystdex::tolower, ystdex::swap_dependent;
 #include YFM_NPL_SContext
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
@@ -254,13 +255,15 @@ CopyEnvironmentDFS(Environment& d, const Environment& e)
 
 	copy_parent_ptr(d, e.Parent);
 	for(const auto& b : e.GetMapRef())
-		m.emplace(b.CreateWith([&](const ValueObject& vo) -> ValueObject{
+		m.emplace(std::piecewise_construct, std::forward_as_tuple(b.first),
+			std::forward_as_tuple(b.second.CreateWith(
+			[&](const ValueObject& vo) -> ValueObject{
 			Environment dst(a);
 
 			if(copy_parent_ptr(dst, vo))
 				return ValueObject(std::move(dst));
 			return vo;
-		}), b.GetName(), b.Value);
+		}), b.second.Value));
 }
 
 void
@@ -782,7 +785,7 @@ LoadModule_std_environments(REPLContext& context)
 			return CheckSymbol(id, [&]{
 				return bool(ResolveName(ctx, id).first);
 			});
-		}, AccessTermPtr<string>(term));
+		}, NPL::AccessTermPtr<string>(term));
 	});
 	context.Perform(u8R"NPL(
 		$defv/e! $binds1? (make-environment
@@ -811,7 +814,7 @@ LoadModule_std_strings(REPLContext& context)
 	RegisterStrictUnary<const string>(renv, "string-empty?",
 		std::mem_fn(&string::empty));
 	RegisterStrictBinary(renv, "string<-", [](TermNode& x, const TermNode& y){
-		AccessTerm<string>(x) = AccessTerm<const string>(y);
+		NPL::AccessTerm<string>(x) = NPL::AccessTerm<const string>(y);
 		return ValueToken::Unspecified;
 	});
 	RegisterStrictBinary<string, string>(renv, "string-contains-ci?",
@@ -835,8 +838,8 @@ LoadModule_std_strings(REPLContext& context)
 	});
 	RegisterStrict(renv, "regex-match?", [](TermNode& term){
 		auto i(std::next(term.begin()));
-		const auto& str(AccessTerm<const string>(Deref(i)));
-		const auto& r(AccessTerm<const std::regex>(Deref(++i)));
+		const auto& str(NPL::AccessTerm<const string>(Deref(i)));
+		const auto& r(NPL::AccessTerm<const std::regex>(Deref(++i)));
 
 		term.ClearTo(std::regex_match(str, r));
 	}, ystdex::bind1(RetainN, 2));
@@ -873,8 +876,7 @@ LoadModule_std_system(REPLContext& context)
 			TermNode::Container con{};
 
 			for(const auto& arg : p_cmd_args->Arguments)
-				TermNode::AddValueTo(con, MakeIndex(con.size()),
-					in_place_type<string>, arg);
+				TermNode::AddValueTo(con, in_place_type<string>, arg);
 			return con;
 		}();
 		return ReductionStatus::Retained;
@@ -900,9 +902,8 @@ LoadModule_std_system(REPLContext& context)
 			TermNode::Container con;
 			auto res(FetchCommandOutput(cmd.c_str()));
 
-			TermNode::AddValueTo(con, MakeIndex(0),
-				ystdex::trim(std::move(res.first)));
-			TermNode::AddValueTo(con, MakeIndex(1), res.second);
+			TermNode::AddValueTo(con, ystdex::trim(std::move(res.first)));
+			TermNode::AddValueTo(con, res.second);
 			ystdex::swap_dependent(con, term.GetContainerRef());
 		}, term);
 		return ReductionStatus::Retained;

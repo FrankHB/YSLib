@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r10869
+\version r11232
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-02-10 15:07 +0800
+	2019-02-22 14:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,363 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Meta $=
+		(
+			/ $revert_ex(b351) "unary type traits %(is_pod_struct, \
+				is_pod_union)" @ %Meta -> ("unary type traits \
+				%(is_trivial_class, is_trivial_class_type, is_trivial_union")
+				^ "%is_trivial" ~ "%is_pod";
+			/ DLDI "simplified" ^ "%nor_" ~ "%(not_, or_)"
+				@ "unary type trait %is_returnable"
+		),
+		- $revert(b254) 'using std::is_pod;' @ %TypeInspection $dep_from
+			("%(is_pod_struct, is_pod_union)" @ %Meta),
+			// To avoid use of deprecated feature, see WG21 P0767R1.
+		/ DLI "removed redundant 'const' for %ystdex::type_id" $effective
+			@ "function templates %(unchecked_any_cast, unsafe_any_cast)"
+			@ %Any,
+		/ %Any $=
+		(
+			* $re_add(b852) DD "wrong Doxygen command '\build' used" ~ '\brief'
+				@ "%(any_trivial_local_data, any_local_data)" $since b848,
+			/ DLDI "removed redundant internal copy and move constructors"
+				@ "non-local stored thunk value"
+				@ "class template %value_handler",
+			- 'ynothrowv' @ "all 2 function templates %unchecked_any_cast"
+				$dep_from ("%ValueObject::GetObject" @ %YSLib.Core.YObject),
+			- 'ynothrowv' @ "all 2 function templates %unsafe_any_cast",
+			/ @ "class %any" $=
+			(
+				/ DLDI "function templates %target" !^ "%get";
+				- 'ynothrow' @ "%get" $dep_from "%unsafe_any_cast";
+				(
+				* $comp "terminated on %get when holder throws" $since b352,
+				(
+				- 'ynothrowv' @ "%unchecked_get" $dep_from
+					"%unchecked_any_cast";
+				* $comp "terminated on %unchecked_get when holder throws" $since
+					b677
+				)
+				)
+			)
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib.Core $=
+		(
+			/ %ValueNode $=
+			(
+				+ "function %GetNodeRef" @ "class %NodeLiteral",
+					// To avoid ambiguity in user code accepting both \
+						'const ValueNode&' and 'ValueNode&&' (e.g. in \
+						copy-initialization of %ValueNode), the conversion \
+						function is not extended with different ref-qualifiers.
+				- "all 2 function templates %AsIndexNode" $dep_all_from
+					"avoided AsIndexNode for term node",
+				- $revert(b790) "functions %GetLastIndexOf" $dep_from
+					"avoided GetLastIndexOf",
+				/ DLDI "simplified function %GetValueOf"
+					^ "%ystdex::invoke_value_or"
+					~ "%(ystdex::call_value_or, std::mem_fn)"
+			),
+			/ "function template %ClearSequence" @ %YCoreUtilities
+				^ "%std::is_trivial" ~ "%std::is_pod",
+				// To avoid use of deprecated feature, see WG21 P0767R1.
+			/ %YObject $=
+			(
+				+ $re_add(b852) dev $lib 'YB_PURE' @ "function %type"
+					@ "class template %RefHolder"
+				* $re_add(b852) DD "wrong Doxygen command '\build' used"
+					~ '\brief' @ "member functions \
+					%ValueObject::(GetHolderPtr, GetHolderRef)" $since b752,
+				/ @ "class %ValueObject" $=
+				(
+					/ DLDI "simplified special member functions"
+						^ "%DefDeCopyMoveCtorAssignment"
+						~ "%(DefCopyCtor, DefMoveCtor, DefDeCopyAssignment, \
+						DefDeMoveAssignment)"
+					- 'ynothrowv' @ "all 2 functions %GetObject"
+				),
+				(
+				+ "2 function templates %GetRawPtrOf";
+				/ "supported throwing for %weak_ptr instances" @ "static \
+					function %get" @ "trait template %PointerHolderTraits"
+					^ "%YSLib::GetRawPtrOf" ~ "ADL %get_raw"
+				)
+			)
+		),
+		/ %NPL $=
+		(
+			/ %SContext $=
+			(
+				+ 'using YSLib::Deref;',
+				+ "2 functions %GetNodeNameOf",
+				/ @ "class %TermNode" $=
+				(
+					(
+					/ DLDI "function %MoveContent" !^ "%ValueNode::MoveContent";
+					- 'using ValueNode::MoveContent;',
+					),
+					(
+					/ DLDI "function %Remove" !^ "%TermNode::Remove";
+					- 'using ValueNode::Remove;'
+					),
+					- "function template %insert_or_assign";
+					(
+					/ "function template %insert forwarded to container";
+						// Now it supports hint, until %Container is \
+							changed to the implementation based on \
+							%YSLib::list (see below).
+					/ $lib "using declarations %(GetContainer, \
+						GetContainerRef, GetName; operator(!, bool), \
+						AddValueTo, Clear, ClearContainer, ClearTo, \
+						SetContent, SwapContent, empty, get_allocator, size)"
+						-> "functions" $dep_to "removal of using declarations",
+					- "functions %operator[]"
+					),
+					(
+					/ $impl "class %TermNode" !^ "base class %ValueNode"
+						$dep_from ("qualified Deref", "%MapNPLALeafNode"
+						@ %NPLA, "explicit initializers for TermNode",
+						"explicit allocator type for TermNode",
+						"%(TransformNode, Forms::BindParameter)"
+						@ %NPLA1) $dep_to "removal of base ValueNode";
+					/ $forced DLDI "constructors and various member functions",
+					+ $comp "constructor with %NoContainerTag but no allocator",
+					- $comp "functions %SetContainer with ValueNode parameters",
+					- $comp "static function %CreateRecursively with \
+						%IValueHolder::Creation parameter",
+					- $comp "function %MoveContent with %ValueNode parameter",
+					),
+					(
+					/ "return type" @ "function template %emplace"
+						-> "%iterator" ~ "%pair<iterator, bool>",
+					- "function template %emplace_hint" $dep_from
+						"avoided TermNode::emplace_hint",
+					/ "return type" @ ("all 2 functions", "all 2 function \
+						templates %AddValueTo") -> "%void" ~ "%bool"
+						$dep_from "removal of using declarations",
+					/ "%(reverse_iterator, const_reverse_iterator)"
+						!^ "%ystdex::reverse_iterator";
+					/ "%Container" ^ "%list"
+						~ "%(ystdex::(mapped_set, less), MappedSetTraits)"
+						$dep_from "removal of base ValueNode";
+					/ DLDI "simplified %allocator_type"
+						^ "%Container::allocator_type"
+						~ "%YSLib::pmr::polymorphic_allocator",
+					/ $forced DLDI "various member functions",
+					(
+					- "key parameter" @ "function templates %AddValueTo"
+						$dep_to "removal of term node key in AddValueTo",
+					- "function templates %AddChildToTail" $dep_from
+						"%NPL::AddChildToTail";
+					- "string parameter" @ "all constructor templates",
+						$dep_to "removal of term node key construction"
+					),
+					(
+					(
+					- "struct %MappedSetTraits" $dep_from
+						("%Environment::BindingMap" @ %NPLA),
+					- "comparison operators"
+					);
+					- "function %GetName" $dep_from
+						("%(TraverseNodeChildAndPrint, TransformToSyntaxNode)"
+						@ %NPLA, "avoided key index for term node construction \
+						forms");
+					/ DLI "avoided swap internal name"
+						@ "friend function %swap";
+					- DLI "internal name data member"
+					)
+					)
+				),
+				- "function template %AddChildToTail" $dep_from
+					"avoided AddChildToTail",
+				(
+				- "function %AsTermNode with 1 %TermNode parameter",
+				(
+				/ "function %Reduce" ^ "%NPL::AsTermNode"
+					~ "%NPL::AsIndexTermNode";
+				- "all 2 function templates %AsIndexTermNode"
+				);
+				/ $forced DLI "all 2 function templates %AsTermNode"
+					!^ "NPL::MakeIndex" $dep_from "removal of term node key \
+					construction";
+				- "string parameter" @ "all 2 function template %AsTermNode";
+				* $forced "potentially index overflow" @ "function %Reduce"
+					$since b335
+				),
+				+ 'using YSLib::Access',
+				(
+				+ 'using YSLib::AccessPtr';
+				- DLDI 'using YSLib::AccessPtr;'
+					@ "function template %TraverseSubnodes"
+				)
+			),
+			/ %NPLA $=
+			(
+				/ DLDI "member function %BadIdentifier" ^ $dep_from
+					("%NPL::Deref" @ %SContext) ~ "%YSLib::Deref",
+				/ DLDI "functions %(LiftFirst, LiftLast, \
+					Environment::operator[])" ^ $dep_from ("%NPL::Deref"
+					@ %SContext) ~ "%Deref" $dep_to "qualified Deref",
+				/ @ "class %Environment" $=
+				(
+					(
+					/ DLI "%BindingMap" ^ "%(YSLib::map, string)"
+						~ "%(ystdex::mapped_set, TermNode::MappedSetTraits)";
+					/ $forced DLDI
+						"functions %(operator[], Deduplicate, LookupName)"
+					),
+					/ DLDI "qualified call of %get_raw with 'YSLib::'"
+						@ "static function %DefaultResolve",
+					/ DLDI "function templates %AddValue" $dep_from
+						"removal of term node key construction"
+				),
+				/ DLI @ "all 2 function templates %InsertSyntaxNode" $=
+				(
+					/ ^ "%emplace" ~ "%emplace_hint" $dep_from
+						("%emplace" @ "%TermNode" @ %SContext)
+						$dep_to "avoided TermNode::emplace_hint",
+					/ !^ "index" $dep_from
+						"removal of term node key construction"
+				),
+				/ "function template %TraverseNodeChildAndPrint" ^ $dep_from
+					(("%NPL::GetNodeNameOf" ~ "%TermNode::GetName")
+					@ %SContext),
+				/ @ "function %TransformToSyntaxNode" $=
+				(
+					/ DLDI "explicitly constructed item" @ "initializer-list"
+						^ "%TermNode" $dep_to
+						"explicit initializers for TermNode",
+					(
+					/ "1st parameter" ^ 'ValueNode&&' ~ 'const TermNode&'
+						$dep_to "1st parameter of syntax node transformation",
+					/ $forced $impl ^ "%ParseNPLANodeString"
+						~ "%ParseNPLATermString",
+					/ DLI "optimized without %TermNode copies"
+					),
+					(
+					- "last parameter";
+					/ $forced DLDI "avoided use of %TermNode name"
+						$dep_from "removal of term node key construction"
+					),
+					/ DLDI ^ "%NPL::AsTermNode" ~ "%AsIndexNode"
+						$dep_from ("%TermNode::Container" @ %SContext)
+						$dep_to "avoided AsIndexNode for term node"
+				),
+				+ "function %TransformToSyntaxNode overload for 'NodeLiteral&&'"
+					$dep_from "1st parameter of syntax node transformation"
+					^ $dep_from
+					("%NodeLiteral::GetNodeRef" @ %YSLib.Core.ValueNode),
+				/ $forced DLDI "function template %EmplaceLeaf#1" $dep_from
+					"removal of term node key construction",
+				/ $forced "simplified" @ "function template \
+					%InsertChildSyntaxNode#3" $dep_from
+					"1st parameter of syntax node transformation" $=
+				(
+					/ "2nd paraemter type 'const NodeLiteral&'"
+						-> 'NodeLiteral&&';
+					/ $revert(b852) $impl "simplified"
+						!^ "explicit cast to %TermNode" ^ $dep_from
+						("%NodeLiteral::GetNodeRef" @ %YSLib.Core.ValueNode)
+				)
+			),
+			/ %NPLA1 $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					/ DLI "function %MakeEncapsulationType"
+						^ "allocator from term parameter",
+					/ "function %BindParameter" $=
+					(
+						/ DLDI "simplified" ^ "%TermNode" ~ "%ValueNode",
+						/ $forced DLDI ^ "%emplace_back" ~ "%emplace"
+							$dep_from ("%TermNode::Container" @ %SContext),
+						/ $forced DLDI !^ "key" $dep_from
+							"removal of term node key construction"
+					),
+					/ "functions %(BindParameter, MakeEncapsulationType, Cons, \
+						ConsRef, SetRest, SetRestRef)" !^ "index" $dep_from
+						"removal of term node key construction" $dep_to
+						"avoided key index for term node construction forms",
+					/ DLDI "functions %(TransformForSeparator, \
+						TransformForSeparatorRecursive)" $=
+					(
+						/ "qualified call of %AsTermNode with 'NPL::'",
+						/ $forced $dep_from ("%NPL::AsTermNode" @ %SContext),
+						/ $forced $dep_from
+							"removal of term node key construction",
+						/ DLDI ^ "%NPL::AsTermNode" ~ "%AsIndexNode"
+							$dep_from ("%TermNode::Container" @ %SContext)
+							$dep_to "avoided AsIndexNode for term node"
+					),
+					/ DLDI "functions %(Cons, ConsRef, SetRest, SetRestRef, \
+						TransformForSeparator, TransformForSeparatorRecursive)"
+						^ $dep_from ("%TermNode::Add" @ %SContext)
+						~ "%NPL::AddChildToTail" $dep_from
+						("%TermNode::Container" @ %SContext) $dep_to
+						"avoided AddChildToTail",
+					/ DLDI ^ "%TermNode::Container::splice"
+						@ "functions %(Cons, ConsRef)" $dep_from
+						("%TermNode::Container" @ %SContext)
+						~ "%GetLastIndexOf" $dep_to
+						"avoided GetLastIndexOf",
+					/ DLI "optimized term move" @ "functions %(SetRest, \
+						SetRestRef)" ^ "%TermNode::Container::splice",
+					/ @ "function %DefindWithRecursion" $=
+					(
+						* "unexpected overwirtten of default value for \
+							invalid handler after more than one symbol binding"
+							$since b784,
+						* "crash on referencing duplicated symbols in the \
+							parameter tree during evaluation of expression"
+							@ "function %DefineWithRecursion" $since b780,
+							// For example, '$defrec! (a a) list a a' would \
+								crash, but '$defrec! (a a) list 1 1' would not.
+						/ DLI "simplified by avoiding assignment to duplicate \
+							symbols"
+					)
+				),
+				/ DLDI ("function %SetupTraceDepth", "vau handler constructor")
+					!^ "key" $dep_from "removal of term node key construction"
+			),
+			/ $forced DLDI "explicitly cast for allocator in constructing item"
+				@ ("functions %(TransformToSyntaxNode, MapNPLALeafNode)"
+				@ %NPLA, "function %(TransformNode, TransformForSeparator, \
+				TransformForSeparatorRecursive)" @ %NPLA1)
+				^ "%ValueNode::allocator_type" $dep_from "%TermNode::Container"
+				$dep_to "explicit allocator type for TermNode",
+			/ %Dependency $=
+			(
+				/ $forced DLDI "derivation of applicative 'copy-environment'"
+					@ "function %LoadGroundContext" $dep_from
+					("%Environment::BindingMap" @ %NPLA,
+					"removal of term node key construction"),
+				/ $forced DLDI "derivation of applicatives ('cmd-get-args', \
+					'system-get')" @ "function %LoadModule_std_system" $dep_from
+					"removal of term node key in AddValueTo"
+			),
+			/ DLDI ^ "%TNIter" ~ "%TermNode::iterator"
+				$effective @ ("%(InsertSyntaxNode, InsertChildSyntaxNode)"
+				@ %NPLA, "internal vau creation funcion" @ %NPLA1),
+			/ DLDI "qualified call of %(Access, AccessPtr) with 'NPL::'"
+				$dep_from ("%NPL::(Access, AccessPtr)" @ %SContext) $effective
+				@ %(NPLA, NPLA1),
+			/ DLDI "qualified call of %(AccessTerm, AccessTermPtr) with 'NPL::'"
+				$effective @ %(NPLA, NPLA1, Dependency)
+		)
+	),
+	/ $forced "call to %TransformToSyntaxNode" @ %Tools.ProjectGenerator.Main
+		$dep_from "1st parameter of syntax node transformation"
+		$= (/ $revert(b852) $impl "simplified" !^ "explicit cast to %TermNode"
+			$dep_from ("%TransformToSyntaxNode#2" @ %YFramework.NPL.NPLA))
+),
+
+b852
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -79,7 +436,7 @@ $now
 				@ "'*_constructible' template arguments",
 			+ DD '\ingroup customization traits' @ "Doxygen comment"
 				@ "class template %path_traits",
-			+ $dev $lib 'YB_PURE' @ "all static functions"
+			+ $re_add(b849) $dev $lib 'YB_PURE' @ "all static functions"
 				@ "class template specialization %path_traits<void>",
 			- DLDI "redundant 'public" @ "base class"
 				@ "class template specialization %std::uses_allocator"
@@ -1257,7 +1614,7 @@ b849
 					),
 					/ $re_add(b848) DLDI "simplified private member type"
 						^ "%rebind_alloc_t" ~ "%allocator_traits",
-					+ $dev $lib 'YB_PURE' @ "function %empty",
+					+ $re_add(b847) $dev $lib 'YB_PURE' @ "function %empty",
 					- DLDI 'inline' @ "friend function %swap"
 				),
 				+ $re_ex(b847) $dev $lib 'YB_ATTR_nodiscard' @ "returning \
@@ -2189,8 +2546,8 @@ b847
 						^ "%(ynoexcept_param, ynoexcept_qual)")
 			),
 			* $re_add(b675) "missing specialization for trailing '...' \
-				parameters as ignored" @ "trait %make_parameter_tuple" $since
-				b333
+				parameters as ignored"
+				@ "transformation trait %make_parameter_tuple" $since b333
 		)
 		)
 	),
@@ -2537,7 +2894,7 @@ b846
 			@ 'YB_IMPL_MSCPP >= 1900 && !defined(__EDG__) \
 			&& !defined _CORECRT_BUILD' @ %YDefinition $since b842,
 		* "ambiguity of %swap caused by order of internal specialiations"
-			@ "traits %(is_swappable_with, is_swappable, \
+			@ "trait templates %(is_swappable_with, is_swappable, \
 			is_nothrow_swappable_with, is_nothrow_swappable)"
 			$since b845
 	),
@@ -2809,7 +3166,7 @@ b845
 			/ %Meta $=
 			(
 				/ "supported ISO C++17 'noexcept' type qualifiers"
-					@ "trait %is_referenceable_function" ^ $dep_from
+					@ "unary type trait %is_referenceable" ^ $dep_from
 					("%(ynoexcept_param, ynoexcept_qual)" @ %YDefinition),
 					// This is similar to libstdc++'s solution. Although \
 						libc++ has a permissive (even compatible to ISO \
@@ -7401,7 +7758,7 @@ b826
 	/ %YFramework $=
 	(
 		/ $dev $impl "local type name" @ "static member function %is_parent"
-			@ "trait %PathTraits" @ %YSLib.Core.FileSystem,
+			@ "trait template %PathTraits" @ %YSLib.Core.FileSystem,
 			// To eliminate G++ 8.1.0 warning: [-Wshadow].
 		/ $forced DLDI ^ ('void*' ~ 'int') @ "opaque file information \
 			descriptor" @ "device operation table" @ "platform %DS"

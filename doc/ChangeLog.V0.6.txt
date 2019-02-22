@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2018 FrankHB.
+	© 2015-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r12205
+\version r12237
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2018-03-24 09:13 +0800
+	2019-02-22 14:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -673,7 +673,7 @@ b692
 			/ "data member %data" -> "2 functions %data"
 				// Like %state_guard.
 			),
-			/ $dev "loose static assertion" ^ "%is_standard_layout" ~ "%is_pod"
+			/ $dev "loosed static assertion" ^ "%is_standard_layout" ~ "%is_pod"
 		),
 		/ %Memory $=
 		(
@@ -958,9 +958,9 @@ b689
 			+ $impl "workaround for internal comparator" @ 'YB_IMPL_CLANGPP'
 				@ %Set,
 				// See https://llvm.org/bugs/show_bug.cgi?id=27504.
-			/ @ "class %invalid_construction" @ %Any $=
+			/ $dev $lib @ "class %invalid_construction" @ %Any $=
 			(
-				+ $re_add(b615) $dev "defined out-of-line virtual destructor",
+				+ $re_add(b615) "defined out-of-line virtual destructor",
 					// To eliminate Clang++ warning: [-Wweak-vtable].
 				+ "default copy constructor"
 					// To prevent Clang++ warning: [-Wdeprecated].
@@ -1136,7 +1136,7 @@ b688
 			instead %YFramework.NPL.NPLA1 was needed. Now it needs \
 			%YFramework.NPL.SContext.
 	(
-	/ $dev $repo $re_add(b654) "all edited file with module name not the same \
+	/ $dev $repo $re_add(b672) "all edited file with module name not the same \
 		as base filename" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.("%ysbuild.h" => "%YSBuild.h");
 	/ $forced "header inclusion" @ %(YReader.Shells, Tools.(ProjectGenerator,
@@ -2184,7 +2184,7 @@ b677
 				+ "constructor template" ^ $dep_from "%in_place_t instance",
 				/ DLDI "simplified all constructor templates",
 				(
-				^ DLDI "empty braced-init-list" @ "data members";
+				^ DLDI "braced-init-list '{}'" @ "data members";
 				/ DLD "explicitly defaulted default constructor"
 					$= (- 'yconstfn')
 					// Since it is first declared as defaulted, 'constexpr' \
@@ -2283,7 +2283,7 @@ b676
 			(
 				/ $lib @ "class %bad_any_cast" $=
 				(
-					/ "in-class defined member functions %(from, to, what)"
+					/ $dev "in-class defined member functions %(from, to, what)"
 						-> ("out-of-line defined functions"
 						@ "non-header file"),
 					+ ('YB_ATTR_returns_nonnull' $dep_from %YBase.YDefinition)
@@ -2492,7 +2492,7 @@ b675
 			(
 				/ DLDI "static assertion" ^ ("%unwrap_reference_t" @ %Reference)
 					~ "%wrapped_traits",
-				* $re_add(b376) "missing exclusion of self type" $since b356,
+				* $re_add(b539) "missing exclusion of self type" $since b356,
 				/ $re_add(b595) "handled reference types" ^ "%decay_t"
 					~ "%remove_rcv_t"
 			)
@@ -4567,7 +4567,7 @@ b660
 			+ "2nd parameter 'bool = {}' to allow specifying following reparse \
 				point behavior" @ "functions \
 				%(QueryFileLinks, QueryFileNodeID) with pathname parameter",
-			* DD "wrong Doxygen command '\breif' used" ~ '\brief'
+			* $re_add(b524) DD "wrong Doxygen command '\breif' used" ~ '\brief'
 				@ "function %GetErrnoFromWin32" $since b622,
 			/ @ "all 2 functions %ConvertTime" $=
 			(
@@ -6595,7 +6595,7 @@ b646
 				* "missing including %CAssert for %yassume" $since b521,
 				* "missing including %TypeOperation for %and_" $since b611,
 				+ "functions %(get, list)" @ "class template %used_list_cache",
-				/ @ "trait %used_list_cache_traits" $=
+				/ @ "trait template %used_list_cache_traits" $=
 				(
 					* "wrong %used_cache_type" @ "primary template \
 						%used_list_cache_traits" $mismatch $since b611 $=
@@ -7687,7 +7687,7 @@ b638
 				(
 					* $re(b637) "wrong exception-specification" $since b610
 						$= (- 'ythrow(std::system_error)'),
-					+ $dev 'YB_PURE'
+					+ $dev $lib 'YB_PURE'
 				),
 				- DLDI "redundant null pointer check"
 					@ "constuctor %DirectorySession" @ "platform %Win32"
@@ -7703,7 +7703,7 @@ b638
 		+ 'YB_ATTR(returns_nonnull)' @ ("functions %(InitScrUp, InitScrDown)"
 			@ %'YCLib_(DS)'.DSVideo, "all 2 functions %TranslateTime"
 			@ %Helper.ShellHelper),
-		/ $revert(b459) $dev $build "disabled warning C4520"
+		/ $revert(b459) $dev $build "enabled warning C4520"
 			@ "Microsoft VC++ project",
 			// It seems that the bug is no longer in Microsoft VC++ 2015.
 	),
@@ -7720,7 +7720,7 @@ b638
 		(
 			/ %CStandardIO $=
 			(
-				+ $dev 'YB_PURE' @ "all 2 functions %openmode_conv",
+				+ $dev $lib 'YB_PURE' @ "all 2 functions %openmode_conv",
 				* $re_add(b637) DD "missing '!'" @ "end of '/*'"
 					@ "multiline Doxygen comment"
 					@ ("all 2 functions %openmode_conv" $since b326,
@@ -7875,13 +7875,14 @@ b636
 	),
 	/ %Tools $=
 	(
-		/ "concurrency tasks run" $=
+		/ "concurrent tasks run" $=
 		(
 			+ "printed information when enqueueing the task",
 			* "printed too more tasks cmd line than actually executed"
-				@ %SHBuild.Main $since b539
+				@ %SHBuild.Main $since b539,
 				// The command should be printed just before being called \
 					rather than enqueued.
+			/ "spelling error" @ "waiting message" $since b624
 		),
 		* "missing update of installing 'include' directory for platform %Win32"
 			$since b633
@@ -8062,7 +8063,7 @@ b633
 			(
 				+ 'YB_STATELESS' @ "function templates %(HalfDifference, 2 \
 					IsInInterval, 2 IsInClosedInterval, 2 IsInOpenInterval)",
-				+ $lib 'YB_PURE YB_NONNULL(2)' @ "function templates \
+				+ $dev $lib 'YB_PURE YB_NONNULL(2)' @ "function templates \
 					%(SwitchInterval, SwitchAddedInterval)",
 				/ "(function, function templates) %(FetchSign, \
 					FetchSignFromInterval)" $=
@@ -8629,12 +8630,12 @@ b628
 		(
 			(
 			+ "macro %YCL_WrapCallWin32";
-			/ DLDI "simplified macro definition %YCL_CallWin32"
+			/ DLDI "simplified macro %YCL_CallWin32"
 				^ "%YCL_WrapCallWin32",
 			),
 			(
 			+ "macro %YCL_WrapCallWin32_Trace";
-			/ DLDI "simplified macro definition %YCL_CallWin32_Trace"
+			/ DLDI "simplified macro %YCL_CallWin32_Trace"
 				^ "%YCL_WrapCallWin32_Trace",
 			),
 			/ @ "private member function" @ "%DirectoryFindData" $=
@@ -8706,9 +8707,9 @@ b628
 			(
 			+ "predefined feature-test macro %__cpp_constexpr recommended by \
 				WG21 N4200 when not defined";
-			/ "conditional macro definition %yconstexpr"
+			/ "conditional macro %yconstexpr"
 				@ ^ '__cpp_constexpr >= 201304' ~ 'YB_HAS_CONSTEXPR_CPP14',
-			/ "conditional macro definition %yconstexpr_relaxed"
+			/ "conditional macro %yconstexpr_relaxed"
 				^ '__cpp_constexpr >= 200704' ~ 'YB_HAS_CONSTEXPR'
 			),
 			- $revert(b313) "macro %YB_HAS_CONSTEXPR" $dep_from
@@ -8716,7 +8717,7 @@ b628
 			- $revert(b591) "macro %YB_HAS_CONSTEXPR_CPP14" $dep_from
 				"%__cpp_constexpr",
 			(
-			+ "macro %__has_attribute";
+			+ $re_add(b591) "conditionally-defined macro %__has_attribute";
 			/ "allowed conditions" @ "macros %(YB_ALLOCATOR, YB_NORETURN, \
 				YB_PURE, YB_STATELESS, YB_API)" ^ "%__has_attribute"
 			)
@@ -9430,7 +9431,7 @@ b621
 				- $revert(b412) "function %Open with 'const char*' parameters"
 				),
 				(
-				+ DLD "brace-or-equal-initializer '{}'" @ "data members";
+				+ DLD "braced-init-list '{}'" @ "data members";
 				/ "default constructor"
 					-> "explicitly defaulted default constructor"
 				),
@@ -9818,8 +9819,8 @@ b615
 				),
 				/ DLDI ^ $dep_from ("%ConvertCharacter" @ %CHRLib.Convert)
 			),
-			+ "defined out-of-line virtual destructor" @ "class %TextFile"
-				@ %TextFile
+			+ $re_add(b601) $dev $lib "defined out-of-line virtual destructor"
+				@ "class %TextFile" @ %TextFile
 				// To eliminate Clang++ warning: [-Wweak-vtable].
 		),
 		/ %CHRLib $=
@@ -10039,7 +10040,7 @@ b612
 						+ "indirect assertions" ^ "%Deref",
 						/ "exception-specification" -> 'ynothrowv' ~ 'ynothrow'
 					),
-					+ "empty braced-init-list" @ "native handle data member",
+					+ "braced-init-list '{}'" @ "native handle data member",
 					+ "defaulted default constructor"
 				),
 				/ $forced "2nd parameter type" @ "member function \
@@ -11116,7 +11117,7 @@ b601
 				("%ScrDraw" @ %'Helper_(DS)'.DSMain),
 			/ DLDI "simplified %Cleanup"
 		),
-		+ $dev $re_ex(b586) "out-of-line virtual destructors" @ ("class \
+		+ $re_add(b586) $dev $lib "out-of-line virtual destructors" @ ("class \
 			%SwitchScreensButton" @ %ShlExplorer, "classes %(ShlHexBrowser, \
 			ReaderBox, FileInfoPanel, ShlTextReader::BookmarkSession)"
 			@ %ShlReader, "class %FrmAbout" @ %About, "class %BookmarkPanel"
@@ -11222,8 +11223,8 @@ b600
 		),
 		/ %CStandardIO $=
 		(
-			+ $dev "explicitly defaulted copy %operator="
-				@ "class %ifile_iterator",
+			+ $re_add(b586) $dev "explicitly defaulted copy %operator= to \
+				avoid ISO C++11 deprecation" @ "class %ifile_iterator",
 				// To eliminate Clang++ warning: [-Wdeprecated].
 			(
 			/ "postfix %operator++, %operator->" -> "instance of \
@@ -11385,8 +11386,8 @@ b600
 			@ "all 8 macros 'DefSetter*'" @ %YBaseMacro,
 		/ @ "function %ExpandEnvironmentStrings" @ %'YCLib_(MinGW32)'.MinGW32 $=
 		(
-			/ DLDI "explicitly cast to 'unsigned long' for \
-				'::ExpandEnvironmentStringsW' argument"
+			/ DLDI "cast to 'unsigned long' for '::ExpandEnvironmentStringsW' \
+				argument"
 				// To eliminate Clang++ warning: [-Wshorten-64-to-32].
 			* $impl "strict ISO C++ compatibility" $since b594
 				// See http://stackoverflow.com/questions/26888805/how-to-declare-a-lambdas-operator-as-noreturn.

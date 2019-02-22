@@ -1,5 +1,5 @@
 ﻿/*
-	© 2016-2018 FrankHB.
+	© 2016-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r8170
+\version r8210
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2018-07-20 11:59 +0800
+	2019-02-22 14:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@ $now
 	(
 		/ %NPL $=
 		(
-			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+			/ "loaded functions" @ "function %LoadNPLContextForSHBuild"
 				@ %Dependency $=
 			(
 				+ "operative '$quote'",
@@ -184,7 +184,7 @@ b798
 		),
 		/ %NPL $=
 		(
-			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+			/ "loaded functions" @ "function %LoadNPLContextForSHBuild"
 				@ %Dependency $=
 			(
 				/ ("<expression>" -> "<body>" ) @ "<clause>"
@@ -217,7 +217,7 @@ b798
 						+ "data member %Redirect"
 						),
 						(
-						+ "static function DefaultResolve"
+						+ "static function %DefaultResolve"
 							^ $dep_from "%Lookup";
 						+ "data member %Resolve;
 						);
@@ -276,7 +276,7 @@ b797
 		/ %SHBuild.Main $=
 		(
 			(
-			+ "applicative 'cmd-get-args'" @ "loading forms"
+			+ "applicative 'cmd-get-args'" @ "loaded functions"
 				@ "NPL REPL context initialization";
 			+ "command line arguments initialization support"
 				@ "command %RunNPLFile"
@@ -303,7 +303,7 @@ b797
 		+ "class %ArgumentsVector" @ %YSLib.Core.YCoreUtilities,
 		/ %NPL $=
 		(
-			+ "applicatives ('list-concat', %append)" @ "loading forms"
+			+ "applicatives ('list-concat', %append)" @ "loaded functions"
 				@ "function %LoadNPLContextForSHBuild" @ %Dependency,
 			* "missing arity check" @ "function %GetCurrentEnvironment"
 				@ "namespace %Forms" @ %NPLA1 $since b785
@@ -328,7 +328,7 @@ b796
 		),
 		/ %SHBuild.Main $=
 		(
-			+ "applicative %load" @ "loading forms"
+			+ "applicative %load" @ "loaded functions"
 				@ "NPL REPL context initialization",
 			+ "nested exception with name of source"
 				@ "loading NPLA1 script failure"
@@ -347,7 +347,7 @@ b796
 				/ DLDI "simplified" ^ "%(PDefH, ImplExpr)"
 			)
 		),
-		* "applicative %SHBuild_TrimOptions_" @ "loading forms"
+		* "applicative %SHBuild_TrimOptions_" @ "loaded functions"
 			@ "function %LoadNPLContextForSHBuild" @ %Dependency $since b763
 			^ $dep_from ("%IgnorePrefix" @ %Lexical)
 	)
@@ -419,7 +419,7 @@ b795
 		)
 	),
 	* "use of %Check in handlers" @ %Documentation.NPL $mismatch $since b773,
-	/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+	/ "loaded functions" @ "function %LoadNPLContextForSHBuild"
 		@ %YFramework.NPL.Dependency $=
 	(
 		+ "applicatives ('string->regex', 'regex-match?', \
@@ -478,7 +478,7 @@ b794
 		/ %NPL $=
 		(
 			* "insufficient recursive referencing" @ "applicative \
-				'copy-environment'" @ "loading forms" @ "function \
+				'copy-environment'" @ "loaded functions" @ "function \
 				%LoadNPLContextForSHBuild" @ %Dependency $since b789,
 			/ %NPLA1 $=
 			(
@@ -573,7 +573,7 @@ b792
 		),
 		/ %NPL $=
 		(
-			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+			/ "loaded functions" @ "function %LoadNPLContextForSHBuild"
 				@ %Dependency $=
 			(
 				+ "operative '$let*'",
@@ -613,7 +613,7 @@ b791
 (
 	/ %YFramework $=
 	(
-		/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+		/ "loaded functions" @ "function %LoadNPLContextForSHBuild"
 			@ %NPL.Dependency $=
 		(
 			+ "applicatives ('list-rest', 'first-null?', %(accl, accr))";
@@ -639,7 +639,7 @@ b791
 		* "normal line begins with '++' or '-- 'in contents wrongly recognized \
 			as special line to indicate source path" @ %RevisionPatcher.Main
 			$since b565,
-		+ "applicative %system-get" @ "loading forms"
+		+ "applicative %system-get" @ "loaded functions"
 			@ "NPL REPL context initialization" @ %SHBuild.Main ^ $dep_from
 			("%FetchCommandOutput" @ %YCLib.Host),
 		/ %Scripts $=
@@ -673,11 +673,11 @@ b790
 	(
 		/ %NPL $=
 		(
-			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+			/ "loaded functions" @ "function %LoadNPLContextForSHBuild"
 				@ %Dependency $=
 			(
 				* "missing applicative %wrap for '$cond' and alternative \
-					definition of '$sequence'" $since b789,
+					derivation of '$sequence'" $since b789,
 				* "missing applicative %head for '$cond'" $since b789,
 				+ "operatives ('$and?', '$defw!')",
 					// For completeness.
@@ -799,7 +799,7 @@ b789
 					@ "function %ResolveName"
 				)
 			),
-			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+			/ "loaded functions" @ "function %LoadNPLContextForSHBuild"
 				@ %Dependency $=
 			(
 				+ "applicatives %('null?', cons, 'make-environment'; apply)",
@@ -1070,7 +1070,7 @@ b786
 						Vau, VauWithEnvironment)" $mismatch $since b769
 				)
 			),
-			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+			/ "loaded functions" @ "function %LoadNPLContextForSHBuild"
 				@ %Dependency $=
 			(
 				(
@@ -1089,7 +1089,7 @@ b786
 		),
 		/ %YSLib.Core.YObject $=
 		(
-			+ "static function %size_t" @ "trait %PointerHolderTraits",
+			+ "static function %size_t" @ "trait template %PointerHolderTraits",
 			(
 			/ "abstract method %OwnsUnique" @ "interface %IValueHolder"
 				-> "%OwnsCount";
@@ -1243,7 +1243,7 @@ b784
 				function names with proper types"
 				// Recursive function name is weakly referenced since it \
 					has to be shared and the object it points to cannot be \
-					determined when introduced Now derivation of 'list*' as \
+					determined when introduced. Now derivation of 'list*' as \
 					Kenerl can work as expected, when also applied \
 					%ReduceCheckedClosure fix.
 		),
@@ -1663,7 +1663,7 @@ b776
 	(
 		/ %NPL $=
 		(
-			/ "form %'$or'" => '$or?' @ "loading forms"
+			/ "form %'$or'" => '$or?' @ "loaded functions"
 				@ "function %LoadNPLContextForSHBuild" @ %Dependency,
 			/ @ %NPLA1 $=
 			(
@@ -2023,7 +2023,7 @@ b769
 	(
 		/ %NPL $=
 		(
-			+ "form %'$vau'" @ "loading forms"
+			+ "form %'$vau'" @ "loaded functions"
 				@ "function %LoadNPLContextForSHBuild" @ %Dependency,
 			+ "function %CheckNorm" @ %NPLA,
 			/ %NPLA1 $=
@@ -2341,7 +2341,7 @@ b763
 				/ DLDI "simplified member function %UnescapeContext::PopIf#2"
 					^ ("%ystdex::pop_back_val" @ %YBase.YStandardEx.Container)
 			),
-			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+			/ "loaded functions" @ "function %LoadNPLContextForSHBuild"
 				@ %Dependency $=
 			(
 				+ "form %'$lambda'",
@@ -2375,7 +2375,7 @@ b762
 		(
 			* "spelling error" @ "message for waiting tasks"
 				@ "member function %BuildContext::Build" $since b624,
-			+ "form %env-set" @ "loading forms"
+			+ "form %env-set" @ "loaded functions"
 				@ "NPL REPL context initialization"
 		),
 		/ %Scripts $=
@@ -2443,7 +2443,7 @@ b751
 		),
 		/ %NPL $=
 		(
-			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+			/ "loaded functions" @ "function %LoadNPLContextForSHBuild"
 				@ %Dependency $=
 			(
 				+ "forms %('string<-', SHBuild_SQuote_)",
@@ -2533,7 +2533,7 @@ b761
 					~ "assignment",
 				+ "function %ReferenceValue"
 			),
-			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+			/ "loaded functions" @ "function %LoadNPLContextForSHBuild"
 				@ %Dependency $=
 			(
 				/ DLDI "simplified form %SHBuild_SDot_"
@@ -2633,7 +2633,7 @@ b759
 	(
 		/ %NPL $=
 		(
-			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+			/ "loaded functions" @ "function %LoadNPLContextForSHBuild"
 				@ %Dependency $=
 			(
 				- "unused form %SHBuild_EchoVar_E_",
@@ -2655,7 +2655,7 @@ b759
 						~ "direct call"
 				),
 				/ DLDI "simplified function %CallSystem"
-					^ "%std::(mem_fn, ystdex::compose)" ~ "lambda expression",
+					^ "%std::(mem_fn, ystdex::compose)" ~ "lambda-expression",
 				/ "allowed %ystdex::pseudo_output result" @ "function template \
 					%CallBinaryFold"
 					$= (/ $impl ^ $dep_from ("%YSLib::EmplaceCallResult"
@@ -2821,8 +2821,7 @@ b757
 	),
 	/ %Test $=
 	(
-		/ $impl "cast to 'double' explictly" @ "case for %ystdex::apply"
-			@ %YBase;
+		/ $impl "cast to 'double'" @ "case for %ystdex::apply" @ %YBase;
 			// To eliminate G++ warning: [-Wdouble-promotion].
 		- $revert(b595) "test to adding '-Wno-double-promotion'"
 			@ "%CXXFLAGS" @ "%test.sh"
@@ -2985,7 +2984,7 @@ b753
 			/ DLI "improved %operator(!, bool)" ^ "%any::has_value"
 				~ "%any::get_holder"
 				// Since the content is private, it is safe to assume every \
-					value is held with holder, specifically, dereived class \
+					value is held with holder, specifically, a dereived class \
 					object of %IValueHolder.
 		),
 		/ %NPL $=
@@ -3000,7 +2999,7 @@ b753
 				(
 					/ $forced $design "functions %(TransformForSeparator, \
 						TransformForSeparatorRecursive, \
-						ReplaceSeparatedChildren)",
+						ReplaceSeparatedChildren)";
 					/ $comp "improved term node comparison"
 				),
 				(
@@ -3864,7 +3863,7 @@ b740
 		* "ill-formed 1 case for %ystdex::compose"
 			@ "group %YStandard.Functional" @ %YBase $since b735
 			$= (/ 'compose' -> 'compose_n');
-		* $comp "failed to build" @ %Test.YBase $since b735 $dep_from
+		* $comp "failed to build" @ %YBase $since b735 $dep_from
 			%YBase.YStandardEx.Functional $dep_to "compose test"
 		),
 		* "undefined behavior due to out-of-lifetime temporary access"
@@ -4197,7 +4196,7 @@ b734
 		),
 		/ @ "Microsoft VC++ project" $=
 		(
-			/ $revert(b459) $dev $build "disabled warning C4800";
+			/ $revert(b459) $dev $build "enabled warning C4800";
 				// It seems that now it would not occur.
 			* $dev $build "missing disabling warnings"
 				@ "configuration %release" $since b459
@@ -4660,7 +4659,7 @@ b729
 		),
 		/ %YSLib $=
 		(
-			/ $forced $re_ex(b728) %YAdaptor.Adaptor $dep_from %YCLib.Video $=
+			/ $forced $re_ex(b728) %Adaptor.YAdaptor $dep_from %YCLib.Video $=
 			(
 				/ 'using platform::AXYZTrait;' -> 'using platform::AXYZTraits;',
 				/ 'using platform::XYZATrait;' -> 'using platform::XYZATraits;'
@@ -4877,7 +4876,7 @@ b727
 			)
 		),
 		/ %CMath @ "Clang++" ^ 'inline' ~ 'constexpr'
-			// To avoid Clang++ error: [-Winvalid-constexpr]. See \
+			// To eliminate Clang++ error: [-Winvalid-constexpr]. See \
 				https://llvm.org/bugs/show_bug.cgi?id=18327 for details.
 	),
 	/ %Tools $=
@@ -5470,7 +5469,7 @@ b720
 				/ $re_add(b418) "threw %std::system_error on file opening \
 					failure" @ "function %HaveSameContents",
 				- "function template %ThrowFileOperationFailure; class \
-					FileOperationFailure" $dep_from %YSLib.YAdaptor.Adaptor,
+					FileOperationFailure" $dep_from %YSLib.Adaptor.YAdaptor,
 				/ DLDI "simplified" ("(constructor, function \
 					%SetTranslationMode)" @ "class %FileDescriptor",
 					!"platform %DS" @ "function %upclose") ^ "%YCL_CallGlobal"
@@ -6287,7 +6286,7 @@ b714
 				+ 'ynothrowv',
 				(
 				+ $doc "Doxygen command '\pre'";
-				+ "assertion for narrow contract vaiolation"
+				+ "assertion for narrow contract violation"
 				)
 			),
 			/ $impl "constructor#2 %Win32Exception" ^ $dep_from
@@ -6578,7 +6577,7 @@ b711
 		(
 			/ %FileIO $=
 			(
-				+ 'YB_returns_nonnull' @ "all function %rdbuf" @ "class \
+				+ 'YB_ATTR_returns_nonnull' @ "all function %rdbuf" @ "class \
 					templates %(basic_ifstream, basic_ofstream, basic_fstream)",
 				/ @ "class %FileDescriptor" $=
 				(
@@ -6965,7 +6964,7 @@ b708
 		/ @ "costructor templates %Configuration" @ %NPL.Configuration $=
 		(
 			* "ill-formed initializer" $since b674
-				/ $impl ^ "%NoContainer" ~ '0',
+				$= (/ $impl ^ "%NoContainer" ~ '0'),
 			+ 'explicit',
 			- "redundant 'yconstfn'"
 		)
@@ -7115,7 +7114,7 @@ b707
 	),
 	/ $impl @ !"platform %Android" @ "function %FetchDefaultShellDirectory"
 		@ %YReader.ShlExplorer ^ $dep_from ("%TryGetCurrentWorkingDirectory"
-		@ %YFramework.YSLib.YAdaptor.Adaptor)
+		@ %YFramework.YSLib.Adaptor.YAdaptor)
 		~ "%FetchCurrentWorkingDirectory"
 ),
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2018 FrankHB.
+	© 2013-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r5648
+\version r5661
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2018-01-07 06:39 +0800
+	2019-02-22 14:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -655,8 +655,8 @@ b381
 	(
 		/ %Helper $=
 		(
-			- "dependency on including" %UI.GUI.YDesktop @ "header %YGlobal",
-			/ "headers inclusion involved" %'%YGlobal',
+			- %UI.GUI.YDesktop @ "header %YGlobal",
+			/ "header inclusion involved" %YGlobal,
 			/ @ "platform %MinGW32" $=
 			(
 				/ @ "class %Environment" $=
@@ -775,7 +775,7 @@ b376
 	(
 		+ "metafunctions %(remove_rcv, remove_rcvp)" %TypeOperation,
 		/ DLD "explicitly" !^ 'std::' @ "%wrap_handler" @ %AnyIterator,
-		* "missing excluding of 'any&'" @ "constructor template with 1 \
+		* "missing exclusion of self type" @ "constructor template with 1 \
 			function parameter" @ "class %any" $since b352
 	),
 	/ %YFramework $=
@@ -799,9 +799,8 @@ b376
 			(
 				+ "more constructors";
 					// To handle argument with specific types correctly.
-				* $comp $dev "missing excluding of 'Configuration&'"
-					@ "constructor template with 1 function parameter" $since
-					b335
+				* $comp "missing exclusion of self type" @ "constructor \
+					template with 1 function parameter" $since b335
 			)
 		)
 	),
@@ -1266,7 +1265,7 @@ b362
 		+ "external macro %(YB_DLL, YB_BUILD_DLL) for using and building DLL";
 		+ "macro %YB_API";
 		/ "all non-templated public interface specified by %YB_API",
-			// See $RESOLVED_ENVIRONMENT_ISSUE.
+			// See $resolve(#17).
 		/ $build "linking options" @ "MinGW32 '*_DLL' Code::Blocks projects"
 	);
 	/ %YFramework $=
@@ -2149,7 +2148,7 @@ b337
 		$since b326,
 	/ %YFramework $=
 	(
-		^ DLD "empty braced-init-list" ~ "zero-initialized objects"
+		^ DLD "braced-init-list '{}'" ~ "zero-initialized objects"
 			@ "function default arguments" $dep_to
 			"brace init default arguments",
 		/ %YSLib.Core $=
@@ -2188,7 +2187,7 @@ b337
 		+ "2 function templates %make_move_iterator_pair" @ %Iterator,
 		/ %Utilities $=
 		(
-			^ DLD "empty braced-init-list" ~ "zero-initialized objects"
+			^ DLD "braced-init-list '{}'" ~ "zero-initialized objects"
 				@ "function default arguments" $dep_to
 				"brace init default arguments"
 			+ "function template %decay_copy",
@@ -2215,7 +2214,7 @@ b335
 (
 	/ %YFramework $=
 	(
-		* DLP "head inclusion" @ %Helper $since b303,
+		* DLP "header inclusion" @ %Helper $since b303,
 		+ "library %NPL"
 			$= (+ "units %(Lexical; SContext; Configuration)")
 	)
@@ -2310,7 +2309,7 @@ b332
 			/ "constructor %any(any_holder*)"
 				-> "%any(any_holder*, std::nullptr_t)"
 		),
-		/ $dev "headers including" $=
+		/ $dev "header inclusion" $=
 		(
 		- "header %TypeOperation",
 		* $build "strict ISO C++11 code conformance" $since b331
@@ -3305,7 +3304,7 @@ b301
 					guarantee.
 			+ "function templates %(parameterize_static_object; get_init)";
 		),
-		/ DLDI "simplified" ^ "constexpr brace-initializers"
+		/ DLDI "simplified" ^ "constexpr braced-init-lists"
 			@ "class template %iterator_operations" @ %Iterator
 	),
 	/ %YReader $=

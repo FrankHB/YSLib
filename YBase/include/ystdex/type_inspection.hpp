@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013, 2016, 2018 FrankHB.
+	© 2011-2013, 2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file type_inspection.hpp
 \ingroup YStandardEx
 \brief 类型检查元编程设施。
-\version r1963
+\version r1965
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:54:58 +0800
 \par 修改时间:
-	2018-12-31 04:47 +0800
+	2019-02-15 20:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,7 +97,6 @@ using std::is_volatile;
 using std::is_trivial;
 //	using std::is_trivially_copyable;
 using std::is_standard_layout;
-using std::is_pod;
 using std::is_empty;
 using std::is_polymorphic;
 using std::is_abstract;

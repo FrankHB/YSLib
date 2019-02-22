@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r841
+\version r850
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2019-01-29 08:06 +0800
+	2019-02-22 14:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,8 +26,9 @@
 
 
 #include "YSLib/Core/YModules.h"
-#include YFM_YSLib_Core_ValueNode // for ystdex::call_value_or, ystdex::addrof,
-//	ystdex::compose, std::mem_fn, ystdex::bind1;
+#include YFM_YSLib_Core_ValueNode // for ystdex::invoke_value_or,
+//	ystdex::call_value_or, ystdex::addrof, ystdex::compose, std::mem_fn,
+//	ystdex::bind1;
 #include <ystdex/cstdint.hpp> // for ystdex::floor_lb;
 
 namespace YSLib
@@ -162,7 +163,7 @@ AccessNodePtr(const ValueNode& node, size_t n)
 ValueObject
 GetValueOf(observer_ptr<const ValueNode> p_node)
 {
-	return ystdex::call_value_or(std::mem_fn(&ValueNode::Value), p_node);
+	return ystdex::invoke_value_or(&ValueNode::Value, p_node);
 }
 
 observer_ptr<const ValueObject>
@@ -253,12 +254,6 @@ DecodeIndex(string_view sv)
 		}
 	}
 	throw std::invalid_argument("Invalid string name found.");
-}
-
-size_t
-GetLastIndexOf(const ValueNode::Container& con)
-{
-	return !con.empty() ? DecodeIndex(con.rbegin()->GetName()) : size_t(-1);
 }
 
 } // namespace YSLib;

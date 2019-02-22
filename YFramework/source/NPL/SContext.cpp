@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1564
+\version r1620
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2019-02-10 14:17 +0800
+	2019-02-14 14:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,69 @@ using namespace YSLib;
 
 namespace NPL
 {
+
+// XXX: Simplify with %CreateRecursively?
+TermNode::Container
+TermNode::ConCons(const ValueNode::Container& con)
+{
+	Container res;
+
+	for(const auto& item : con)
+		res.emplace_back(ConCons(item.GetContainer()), item.Value);
+	return res;
+}
+TermNode::Container
+TermNode::ConCons(ValueNode::Container&& con)
+{
+	Container res;
+
+	for(auto& item : con)
+		res.emplace_back(ConCons(std::move(item.GetContainerRef())),
+			std::move(item.Value));
+	return res;
+}
+TermNode::Container
+TermNode::ConCons(const ValueNode::Container& con, allocator_type a)
+{
+	Container res(a);
+
+	for(const auto& item : con)
+		res.emplace_back(ConCons(item.GetContainer()), item.Value);
+	return res;
+}
+TermNode::Container
+TermNode::ConCons(ValueNode::Container&& con, allocator_type a)
+{
+	Container res(a);
+
+	for(auto& item : con)
+		res.emplace_back(ConCons(std::move(item.GetContainerRef())),
+			std::move(item.Value));
+	return res;
+}
+
+void
+TermNode::MoveContent(TermNode&& node)
+{
+	// NOTE: Similar to %ValueNode::MoveContent.
+	const auto t(std::move(GetContainerRef()));
+
+	SetContent(std::move(node));
+}
+
+void
+TermNode::SwapContent(TermNode& term) ynothrowv
+{
+	SwapContainer(term),
+	swap(Value, term.Value);
+}
+
+void
+swap(TermNode& x, TermNode& y) ynothrowv
+{
+	x.SwapContent(y);
+}
+
 
 void
 Session::DefaultParseByte(LexicalAnalyzer& lexer, char c)
@@ -76,7 +139,7 @@ Reduce(TermNode& term, TLCIter b, TLCIter e)
 		if(*b == "(")
 		{
 			// FIXME: Potential overflow.
-			auto tm(NPL::AsIndexTermNode(a, term.size()));
+			auto tm(NPL::AsTermNode(a));
 			auto res(Reduce(tm, ++b, e));
 
 			if(res == e || *res != ")")
@@ -86,8 +149,7 @@ Reduce(TermNode& term, TLCIter b, TLCIter e)
 		}
 		else
 			// TODO: More specific pool for %ValueObject?
-			term.Add(NPL::AsIndexTermNode(a, term.size(), std::allocator_arg, a,
-				*b++));
+			term.Add(NPL::AsTermNode(a, std::allocator_arg, a, *b++));
 	return b;
 }
 

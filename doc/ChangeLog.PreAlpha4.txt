@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2018 FrankHB.
+	© 2013-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r9283
+\version r9314
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2018-05-18 15:38 +0800
+	2019-02-22 14:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -641,9 +641,9 @@ b494
 			),
 			/ %Core $=
 			(
-				/ %Core.YEvent $=
+				/ %YEvent $=
 				(
-					+ "class template %GHandlerAdatpor";
+					+ "class template %GHandlerAdaptor";
 					/ %YWidgetEvent $=
 					(
 						+ "alias template %GWidgetHandlerAdaptor";
@@ -666,12 +666,12 @@ b494
 			make_transform) and one of constructor templates of \
 			%YSLib::GHEvent are modified. See $2014-04 \
 			@ %Documentation::Workflow::Annual2014.
-	/ DD "interface comments" $=
+	/ DD "Doxygen comments" $=
 	(
 		^ '\invariant' ~ '\note' @ "non-null guarantee",
 		^ '\sa' ~ '\see' @ "all YSLib internal references"
 	),
-	+ "controls %(TabBar, TabControl) dynamic loader registered"
+	+ "controls %(TabBar, TabControl) dynamic loader registration"
 		@ %YReader.Shells $dep_from %YSLib.UI.TabControl
 ),
 
@@ -1028,12 +1028,13 @@ b488
 				/ "virtual functions %(OnDestroy, OnPaint, OnLostFocus)"
 					-> 'std::map<::UINT, \
 					YSLib::GEvent<void(::WPARAM, ::LPARAM)>> MessageMap;';
-				+ "implemented message handler" ^ 'MessageMap',
+				+ "implemented message handlers" ^ "%MessageMap",
 			),
-			/ "bound event dispatching with data members for windows messages \
-				%(WM_SIZE, WM_MOVE)" @ %Host,
-				// Output message painted differently, for all non-specific \
-					messages with message IDs instead of message names.
+			/ "bound event dispatching with data members for window messages \
+				except %WM_INPUT" @ %Host,
+				// Output debug messages painted differently for all
+					non-specific messages with message IDs instead of message \
+					names.
 		),
 		/ "platform %Win32" @ %Helper $=
 		(
@@ -1282,7 +1283,7 @@ b484
 	(
 		+ "'__apple_build_version__' detection",
 		(
-		+ "macros %(__has_feature, __has_extension)" @ "undefined";
+		+ "conditonally-defined macros %(__has_feature, __has_extension)";
 		+ "feature tests" @ "macros %(YB_HAS_ALIGNAS, YB_HAS_BUILTIN_NULLPTR, \
 			YB_HAS_NOEXCEPT)"
 			^ "macros %(__has_feature, __has_extension)",
@@ -1454,7 +1455,7 @@ b482
 				(
 					/ @ "class %CursorEventArgs" $=
 					(
-						/ "public inheritance %MScreenPositionEventArgs"
+						/ "public base class %MScreenPositionEventArgs"
 							-> "member 'InputType Position;'",
 						+ "operator %InputType"
 					);
@@ -2662,7 +2663,8 @@ b459
 (
 	/ %YFramework $=
 	(
-		/ $dev $build "disabled warning (C4520, C4800)" @ "Microsoft VC++ project",
+		/ $dev $build "disabled warning (C4520, C4800)"
+			@ "Microsoft VC++ project",
 			// See $2013-11 @ %Documentation::Workflow::Annual2013.
 		/ $dev %YCLib $=
 		(
@@ -3122,7 +3124,7 @@ b454
 			/ "macro %yjoin" => "YPP_Join",
 			/ "macro %yJOIN" => "YPP_Concat";
 			/ "macros %(YPP_Join, YPP_Concat)" => "group %preprocessor_helpers",
-			+ "macro definition %_CRT_SECURE_NO_WARNINGS"
+			+ "macro %_CRT_SECURE_NO_WARNINGS"
 				@ 'YB_IMPL_MSCPP >= 1400',
 			* "wrong definition of macros %(YB_LIKELY, YB_UNLIKELY)"
 				@ !'YB_IMPL_GNUCPP >= 29600' $since b313
@@ -3140,8 +3142,8 @@ b454
 						// Microsoft VC++ 2013 complains about explicitly \
 							defaulted move constructor.
 				),
-				* $dev "missing exclusion of self type" @ "member (constructor \
-					template, function template %operator=)"
+				* $re_add(b432) "missing exclusion of self type" @ "member \
+					(constructor template, function template %operator=)"
 					@ "class template %pod_storage" $since b352
 			),
 			+ "defaulted operator=" @ "class templates %(any_input_iterator, \
@@ -3973,8 +3975,8 @@ b442
 								types is forbidden by static assertions.
 						+ "explicit specialization \
 							'struct GPixelCompositor<1, 0>'";
-						/ $design "reusing with private inheritance"
-							~ "public inheritance of specializations except \
+						/ $design "reusing with private base class"
+							~ "public base class of specializations except \
 							for 'struct GPixelCompositor<1, 0>'"
 					),
 					+ "function templates %(CompositeComponent; 3 Composite)",
@@ -4540,7 +4542,7 @@ b432
 		(
 			/ @ "!defined %NDEBUG" @ %YDefinition $=
 			(
-				+ "macro definition %YB_Use_YTrace",
+				+ "macro %YB_Use_YTrace",
 				/ "macro %YB_USE_YASSERT" -> "macro %YB_Use_YAssert"
 			),
 			/ "macro %(yconstraint, yassume)" @ %YDefinition
@@ -4588,7 +4590,7 @@ b432
 		(
 			/ %Adaptor $=
 			(
-				- "macro definition %YB_USE_YASSERT" @ "!defined %NDEBUG"
+				- "macro %YB_USE_YASSERT" @ "!defined %NDEBUG"
 					@ %Configuration,
 				+ 'using namespace platform::Discriptions;'
 					@ "namespace %YSLib" @ %YAdaptor $dep_from
@@ -4610,7 +4612,7 @@ b432
 						'const ValueNode*'",
 					+ "2 function templates %AccessChildPtr"
 				),
-				* $dev "missing exclusion of self type"
+				* $re_add(b409) "missing exclusion of self type"
 					@ "template %operator= with 1 function parameter"
 					@ "class template %GEvent" @ %GEvent $since b293
 					// This would cause recursive calls by self.
@@ -4635,7 +4637,7 @@ b432
 				// For %::NTSTATUS error 'STATUS_CONTROL_C_EXIT'(0xC000013A), \
 					it is expected when console window closed or Ctrl+C pressed.
 		),
-		* $comp "missing exclusion of self type"
+		* $comp $re_add(b409) "missing exclusion of self type"
 			@ "constructor template with 1 function parameter"
 			@ "class %Configuration" @ %NPL.Configuration $since b376,
 		+ "class %WindowClass" @ %'YCLib_(MinGW32)'.Win32GUI
@@ -4833,7 +4835,7 @@ b429
 				/ @ "class %DSApplication" $=
 				(
 					(
-					+ "private inheritance %platform_ex::DSVideoState"
+					+ "private base class %platform_ex::DSVideoState"
 						$dep_from %YCLib.Video;
 					+ 'using DSVideoState::IsLCDMainOnTop;'
 					);
@@ -4978,7 +4980,7 @@ b427
 				+ $dev 'using namespace platform_ex' @ "namespace %Host"
 					@ "platform %MinGW32" @ %HostWindow,
 				/ DLDI "simplified class %Host::Window"
-					^ "private inheritance %Windows::WindowReference"
+					^ "private base class %Windows::WindowReference"
 					$dep_from %'YCLib_(MinGW32)'.Win32GUI,
 				+ 'std::atomic<bool> BoundsLimited{false};'
 					@ "class %Host::Window" $dep_to "window cursor boundary"
@@ -5338,7 +5340,7 @@ b420
 		),
 		/ @ "class %NativeFontSize" $=
 		(
-			+ $dev "private inheritance %noncopyable",
+			+ $dev "private base class %noncopyable",
 			/ $dev "constructor accept reference" ~ "pointer",
 			+ "function %Activate",
 			- "redundant check"
@@ -5908,11 +5910,11 @@ b409
 					+ "macro %DefSwap",
 					/ "macro %yJOIN" >> YBase.YDefinition
 				),
-				/ @ %YEvent $=
+				/ %YEvent $=
 				(
 					+ "non-function template %swap for specification of \
 						%GEvent",
-					* "missing exclusion of self type"
+					* $re_add(b376) "missing exclusion of self type"
 						@ "constructor template with 1 function parameter"
 						@ "class template %GEvent" $since b293
 				),
@@ -6206,7 +6208,7 @@ b403
 				(
 					/ "allowed specifying encoding" @ "constructor template",
 					/ "simplified non-template constuctors",
-					/ "public inheritance %String" -> "explicit conversion \
+					/ "public base class %String" -> "explicit conversion \
 						functions to %(String&, const String&),
 					+ "function %Swap",
 					+ "fully implementation"
@@ -6251,7 +6253,7 @@ b402
 			/ $dev "normalized header including with prefix 'YCLib/'",
 			/ @ "platform %MinGW32" @ %NativeAPI $=
 			(
-				/ "simplified including" ,
+				/ "simplified header inclusion" ,
 					// Reduced some name pollution.
 				- "directory APIs"
 			),

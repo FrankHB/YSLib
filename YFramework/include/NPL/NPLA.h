@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4930
+\version r4970
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2019-02-08 14:52 +0800
+	2019-02-15 00:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,11 +34,12 @@
 //	YSLib::enable_shared_from_this, YSLib::lref, YSLib::make_shared,
 //	YSLib::make_weak, observer_ptr, pair, YSLib::to_string,
 //	YSLib::shared_ptr, YSLib::weak_ptr, NPLTag, ValueNode, TermNode, string,
-//	TraverseSubnodes, LoggedEvent, ystdex::isdigit, NPL::Access, NPL::AccessPtr,
-//	ystdex::equality_comparable, ystdex::move_and_swap, ystdex::mapped_set,
-//	YSLib::allocate_shared, std::uintptr_t, ystdex::copy_and_swap, NoContainer,
-//	ystdex::try_emplace, ystdex::try_emplace_hint, ystdex::type_info,
-//	ystdex::get_equal_to, ystdex::exchange, ystdex::insert_or_assign,
+//	TraverseSubnodes, NPL::GetNodeNameOf, LoggedEvent, ystdex::isdigit,
+//	NPL::Access, NPL::AccessPtr, ystdex::equality_comparable,
+//	ystdex::move_and_swap, ystdex::less, YSLib::map, YSLib::allocate_shared,
+//	std::uintptr_t, ystdex::copy_and_swap, NoContainer, ystdex::try_emplace,
+//	ystdex::try_emplace_hint, ystdex::type_info, ystdex::get_equal_to,
+//	ystdex::exchange, ystdex::insert_or_assign,
 //	ystdex::make_obj_using_allocator;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include YFM_YSLib_Core_YEvent // for ystdex::indirect, ystdex::fast_any_of,
@@ -109,7 +110,7 @@ using NodeToString = function<string(const ValueNode&)>;
 /*!
 \brief 转义 NPLA 节点字面量。
 \return 调用 EscapeLiteral 转义访问字符串的结果。
-\exception bad_any_cast 异常中立：由 Access 抛出。
+\exception bad_any_cast 异常中立：由 NPL::Access 抛出。
 \since build 597
 */
 YB_ATTR_nodiscard YF_API YB_PURE string
@@ -188,7 +189,7 @@ TraverseNodeChildAndPrint(std::ostream& os, const _tNode& node,
 	_fCallable2 print_term_node)
 {
 	TraverseSubnodes([&](const _tNode& nd){
-		if(YSLib::IsPrefixedIndex(nd.GetName()))
+		if(YSLib::IsPrefixedIndex(NPL::GetNodeNameOf(nd)))
 		{
 			pre();
 			ystdex::invoke(print_node_str, nd);
@@ -268,13 +269,11 @@ using NodeMapper = function<ValueNode(const TermNode&)>;
 YB_ATTR_nodiscard YF_API YB_PURE ValueNode
 MapNPLALeafNode(const TermNode&);
 
-//! \since build 852
-//@{
 /*!
-\brief 变换 NPLA 语法节点为语法分析树叶节点。
+\brief 变换 NPLA 语法节点为语法分析树的叶节点。
 \return 变换得到的节点。
 \note 可选参数指定结果名称。
-\since build 852
+\since build 853
 \sa Literalize
 \sa ParseNPLANodeString
 
@@ -284,10 +283,17 @@ MapNPLALeafNode(const TermNode&);
 对其它叶节点，调用 ParseNPLANodeString 和 Literalize 解析和处理内容，
 	作为待插入的子节点。
 */
+//@{
 YB_ATTR_nodiscard YF_API YB_PURE TermNode
-TransformToSyntaxNode(const TermNode&, const string& = {});
+TransformToSyntaxNode(ValueNode&&);
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(TermNode, TransformToSyntaxNode, NodeLiteral&& nl)
+	ImplRet(TransformToSyntaxNode(std::move(nl.GetNodeRef())))
+//@}
 
 
+//! \since build 852
+//@{
 /*!
 \note 在指定的节点插入节点，可用于语法分析树的输入。
 \sa MakeIndex
@@ -297,44 +303,42 @@ TransformToSyntaxNode(const TermNode&, const string& = {});
 //! \brief 插入语法节点。
 //@{
 template<class _tNodeOrCon, typename... _tParams>
-TermNode::iterator
+TNIter
 InsertSyntaxNode(_tNodeOrCon&& node_or_con,
 	std::initializer_list<TermNode> il, _tParams&&... args)
 {
-	return node_or_con.emplace_hint(node_or_con.end(), TermNode::Container(il),
-		MakeIndex(node_or_con.size()), yforward(args)...);
+	return node_or_con.emplace(TermNode::Container(il), yforward(args)...);
 }
 template<class _tNodeOrCon, typename _type, typename... _tParams>
-TermNode::iterator
+TNIter
 InsertSyntaxNode(_tNodeOrCon&& node_or_con, _type&& arg, _tParams&&... args)
 {
-	return node_or_con.emplace_hint(node_or_con.end(), yforward(arg),
-		MakeIndex(node_or_con.size()), yforward(args)...);
+	return node_or_con.emplace(yforward(arg), yforward(args)...);
 }
 //@}
 
 //! \brief 插入语法子节点。
 //@{
 template<class _tNodeOrCon>
-TermNode::iterator
+TNIter
 InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, TermNode& child)
 {
 	return NPL::InsertSyntaxNode(yforward(node_or_con),
 		child.GetContainerRef());
 }
 template<class _tNodeOrCon>
-TermNode::iterator
+TNIter
 InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, TermNode&& child)
 {
 	return NPL::InsertSyntaxNode(yforward(node_or_con),
 		std::move(child.GetContainerRef()));
 }
 template<class _tNodeOrCon>
-TermNode::iterator
-InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, const NodeLiteral& nl)
+TNIter
+InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, NodeLiteral&& nl)
 {
 	return NPL::InsertChildSyntaxNode(yforward(node_or_con),
-		TransformToSyntaxNode(TermNode(nl)));
+		TransformToSyntaxNode(std::move(nl.GetNodeRef())));
 }
 //@}
 //@}
@@ -686,7 +690,7 @@ public:
 	DefDeCopyAssignment(BadIdentifier)
 
 	DefGetter(const ynothrow, const string&, Identifier,
-		YSLib::Deref(p_identifier))
+		NPL::Deref(p_identifier))
 };
 
 
@@ -1320,14 +1324,14 @@ inline PDefH(void, LiftDelayed, TermNode& term, DelayedTerm& tm)
 \since build 685
 */
 inline PDefH(void, LiftFirst, TermNode& term)
-	ImplExpr(AssertBranch(term), LiftTerm(term, Deref(term.begin())))
+	ImplExpr(AssertBranch(term), LiftTerm(term, NPL::Deref(term.begin())))
 
 /*!
 \brief 提升末项：使用最后一个子项替换项的内容。
 \since build 696
 */
 inline PDefH(void, LiftLast, TermNode& term)
-	ImplExpr(AssertBranch(term), LiftTerm(term, Deref(term.rbegin())))
+	ImplExpr(AssertBranch(term), LiftTerm(term, NPL::Deref(term.rbegin())))
 //@}
 
 
@@ -1478,8 +1482,7 @@ class YF_API Environment : private ystdex::equality_comparable<Environment>,
 public:
 	// TODO: Wait for %unordered_set to support transparent keys.
 	//! \since build 788
-	using BindingMap = ystdex::mapped_set<TermNode, ystdex::less<>,
-		TermNode::MappedSetTraits, TermNode::allocator_type>;
+	using BindingMap = YSLib::map<string, TermNode, ystdex::less<>>;
 	/*!
 	\brief 名称解析结果。
 	\since build 821
@@ -1638,8 +1641,8 @@ public:
 	TermNode&
 	operator[](_tKey&& k)
 	{
-		return Deref(ystdex::try_emplace(Bindings, k, NoContainer,
-			yforward(k)).first);
+		return NPL::Deref(ystdex::try_emplace(Bindings, yforward(k),
+			NoContainer).first).second;
 	}
 
 	YB_ATTR_nodiscard YB_PURE friend
@@ -1670,7 +1673,7 @@ public:
 		BindingMap::const_iterator, bool>
 	AddValue(_tKey&& k, _tParams&&... args)
 	{
-		return ystdex::try_emplace(Bindings, k, NoContainer, yforward(k),
+		return ystdex::try_emplace(Bindings, yforward(k), NoContainer,
 			yforward(args)...).second;
 	}
 	//! \since build 852
@@ -1678,8 +1681,8 @@ public:
 	inline bool
 	AddValue(BindingMap::const_iterator hint, _tKey&& k, _tParams&&... args)
 	{
-		return ystdex::try_emplace_hint(Bindings, hint, k, NoContainer,
-			yforward(k), yforward(args)...).second;
+		return ystdex::try_emplace_hint(Bindings, hint, yforward(k),
+			NoContainer, yforward(args)...).second;
 	}
 
 	/*!
@@ -2165,7 +2168,7 @@ EmplaceLeaf(Environment::BindingMap& m, string_view name, _tParams&&... args)
 	// XXX: The implementation is depended on the fact that %TermNode is simply
 	//	an alias of %ValueNode and it is same to %BindingMap currently.
 	return ystdex::insert_or_assign(m, name, TermNode(std::allocator_arg,
-		m.get_allocator(), NoContainer, name, ystdex::in_place_type<_type>,
+		m.get_allocator(), NoContainer, ystdex::in_place_type<_type>,
 		yforward(args)...)).second;
 	// NOTE: The following code is incorrect because the subterms are not
 	//	cleared, as well as lacking of %bool return value of insertion result.

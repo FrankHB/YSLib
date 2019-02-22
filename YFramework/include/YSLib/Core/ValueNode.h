@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r4045
+\version r4079
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2019-02-10 14:24 +0800
+	2019-02-14 16:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1474,40 +1474,6 @@ MakeIndex(size_t);
 */
 YB_ATTR_nodiscard YF_API size_t
 DecodeIndex(string_view);
-
-/*!
-\brief 取最后一个子节点名称的前缀索引。
-\return 若不存在子节点则为 \c size_t(-1) ，否则为最后一个子节点的名称对应的索引。
-\sa DecodeIndex
-\since build 790
-*/
-//@{
-YB_ATTR_nodiscard YF_API YB_PURE size_t
-GetLastIndexOf(const ValueNode::Container&);
-inline PDefH(size_t, GetLastIndexOf, const ValueNode& node)
-	ImplRet(GetLastIndexOf(node.GetContainer()))
-//@}
-//@}
-
-/*!
-\brief 传递作为索引名称的值和其它参数构造值类型节点。
-\note 使用 ADL AsNode 和 MakeIndex 。
-*/
-//@{
-//! \since build 691
-template<typename _tParam, typename... _tParams>
-YB_ATTR_nodiscard inline YB_PURE ValueNode
-AsIndexNode(_tParam&& arg, _tParams&&... args)
-{
-	return AsNode(MakeIndex(yforward(arg)), yforward(args)...);
-}
-//! \since build 844
-template<typename _tParam, typename... _tParams>
-YB_ATTR_nodiscard inline YB_PURE ValueNode
-AsIndexNode(ValueNode::allocator_type a, _tParam&& arg, _tParams&&... args)
-{
-	return AsNode(a, MakeIndex(yforward(arg)), yforward(args)...);
-}
 //@}
 
 
@@ -1560,6 +1526,9 @@ public:
 
 	DefCvt(ynothrow, ValueNode&, node)
 	DefCvt(const ynothrow, const ValueNode&, node)
+
+	//! \since build 853
+	DefGetter(ynothrow, ValueNode&, NodeRef, node)
 };
 
 /*!

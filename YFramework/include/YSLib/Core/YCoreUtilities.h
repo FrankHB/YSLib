@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2018 FrankHB.
+	© 2010-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2572
+\version r2578
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2018-09-20 00:55 +0800
+	2019-02-15 21:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -349,8 +349,8 @@ CheckPositive(_type val, const string& name = {}, RecordLevel lv = Err)
 /*!
 \brief 清除指定的连续对象。
 \pre 设类型 T 为 <tt>ystdex::decay_t<decltype(*dst)></tt>， 则应满足
-	<tt>std::is_pod\<T\>() || (std::is_nothrow_default_constructible\<T\>()
-		&& std::is_nothrow_assignable\<T, T\>())</tt> 。
+	<tt>std::is_trivial\<T>() || (std::is_nothrow_default_constructible\<T>()
+		&& std::is_nothrow_assignable\<T, T>())</tt> 。
 \since build 624
 */
 template<typename _tOut>
@@ -358,10 +358,9 @@ inline void
 ClearSequence(_tOut dst, size_t n) ynothrowv
 {
 	using _type = ystdex::decay_t<decltype(*dst)>;
-	static_assert(std::is_pod<_type>()
+	static_assert(std::is_trivial<_type>()
 		|| (std::is_nothrow_default_constructible<_type>()
-		&& std::is_nothrow_assignable<_type, _type>()),
-		"Invalid type found.");
+		&& std::is_nothrow_assignable<_type, _type>()), "Invalid type found.");
 
 	std::fill_n(dst, n, _type());
 }

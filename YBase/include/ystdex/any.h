@@ -11,19 +11,19 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r4388
+\version r4453
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2019-01-19 18:47 +0800
+	2019-02-22 13:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Any
 
-\see ISO C++17[any] 。
+\see ISO C++17 [any] 。
 \see http://www.boost.org/doc/libs/1_60_0/doc/html/any/reference.html 。
 */
 
@@ -33,8 +33,8 @@
 
 #include "typeinfo.h" // for internal "typeinfo.h", type_info, exclude_self_t,
 //	ystdex::type_id, well_formed_t, is_convertible, enable_if_t,
-//	is_nothrow_move_constructible, and_, is_decayed, bool_, or_,
-//	is_copy_constructible, remove_reference_t, cond_t, is_convertible, is_same,
+//	is_nothrow_move_constructible, and_, is_decayed, bool_, noncopyable,
+//	nonmovable, or_, is_copy_constructible, remove_reference_t, cond_t, is_same,
 //	is_class, std::bad_cast, nor_, std::declval, yconstraint, decay_t;
 #include "utility.hpp" // for internal "utility.hpp", boxed_value,
 //	std::addressof, std::unique_ptr, standard_layout_storage, aligned_storage_t,
@@ -348,7 +348,7 @@ enum base_op : op_code
 //! \since build 848
 //@{
 /*!
-\build 能被动态泛型对象平凡原地存储的数据类型。
+\brief 能被动态泛型对象平凡原地存储的数据类型。
 \note 保证适合原地分配平凡的非类类型可调用对象。
 */
 union any_trivial_local_data
@@ -362,7 +362,7 @@ union any_trivial_local_data
 
 
 /*!
-\build 能被动态泛型对象原地存储的数据类型。
+\brief 能被动态泛型对象原地存储的数据类型。
 \note 保证适合原地分配平凡的可调用对象以及使用默认分配器的分配器指针。
 */
 union any_local_data
@@ -467,8 +467,8 @@ public:
 private:
 	//! \since build 848
 	//@{
-	// TODO: Extrace as %unique_ptr instance?
-	class memory_thunk
+	// TODO: Extract as %std::unique_ptr instance?
+	class memory_thunk : private noncopyable, private nonmovable
 	{
 	private:
 		std::unique_ptr<value_type> p_val;
@@ -480,10 +480,6 @@ private:
 		memory_thunk(_tParams&&... args)
 			: p_val(make_unique<value_type>(yforward(args)...))
 		{}
-		memory_thunk(const memory_thunk& mt)
-			: p_val(make_unique(*mt.p_val))
-		{}
-		memory_thunk(memory_thunk&& mt) = default;
 
 		operator value_type&() const ynothrowv
 		{
@@ -981,7 +977,7 @@ struct wrap_handler
 \note 基本接口和语义同 boost::bad_any_cast 。
 \note YStandardEx 扩展：提供标识转换失败的源和目标类型。
 \sa any_cast
-\see ISO C++17[any.bad_any_cast] 。
+\see ISO C++17 [any.bad_any_cast] 。
 \since build 586
 */
 class YB_API bad_any_cast : public std::bad_cast
@@ -1107,8 +1103,9 @@ public:
 
 	//! \pre 间接断言：\c manager 。
 	//@{
+	//! \since build 853
 	YB_ATTR_nodiscard YB_PURE void*
-	get() const ynothrowv
+	get() const
 	{
 		return unchecked_access<void*>(default_init, any_ops::get_ptr);
 	}
@@ -1155,15 +1152,33 @@ public:
 	YB_ATTR_nodiscard _type*
 	target() ynothrowv
 	{
-		return type() == ystdex::type_id<_type>() ? static_cast<_type*>(get())
-			: nullptr;
+		return type() == ystdex::type_id<_type>()
+			? static_cast<_type*>(try_get()) : nullptr;
 	}
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE const _type*
 	target() const ynothrowv
 	{
 		return type() == ystdex::type_id<_type>()
-			? static_cast<const _type*>(get()) : nullptr;
+			? static_cast<const _type*>(try_get()) : nullptr;
+	}
+
+	/*!
+	\brief 取对象指针。
+	\return 当持有者抛出异常时返回为空指针，否则为对象指针。
+	\sa get
+	\since build 853
+	*/
+	YB_ATTR_nodiscard YB_PURE void*
+	try_get() const
+	{
+		try
+		{
+			return get();
+		}
+		catch(...)
+		{}
+		return {};
 	}
 
 	YB_ATTR_nodiscard YB_PURE const type_info&
@@ -1281,7 +1296,7 @@ struct any_emplace
 \ingroup YBase_replacement_features
 \brief 基于类型擦除的动态泛型对象。
 \warning 非虚析构。
-\see ISO C++17[any.class] 。
+\see ISO C++17 [any.class] 。
 \see http://www.boost.org/doc/libs/1_69_0/doc/html/any/reference.html#any.ValueType 。
 \since build 331
 
@@ -1730,9 +1745,9 @@ public:
 
 	//! \ingroup YBase_replacement_extensions
 	//@{
-	//! \since build 352
+	//! \since build 853
 	YB_ATTR_nodiscard YB_PURE void*
-	get() const ynothrow
+	get() const
 	{
 		return manager ? unchecked_get() : nullptr;
 	}
@@ -1829,9 +1844,13 @@ public:
 	//! \since build 848
 	yimpl(using) any_base::unchecked_access;
 
-	//! \brief 取包含对象的指针。
+	/*!
+	\brief 取包含对象的指针。
+	\exception 异常中立：由持有者抛出。
+	\since build 853
+	*/
 	YB_ATTR_nodiscard void*
-	unchecked_get() const ynothrowv
+	unchecked_get() const
 	{
 		return any_base::get();
 	}
@@ -1859,7 +1878,7 @@ public:
 //@{
 //! \ingroup YBase_replacement_features
 //@{
-//! \see ISO C++17[any.nonmembers] 。
+//! \see ISO C++17 [any.nonmembers] 。
 //@{
 /*!
 \ingroup helper_functions
@@ -1955,7 +1974,10 @@ any_cast(any&& x)
 //@}
 //@}
 
-//! \ingroup YBase_replacement_extensions
+/*!
+\ingroup YBase_replacement_extensions
+\exception 异常中立：由持有者抛出。
+*/
 //@{
 /*!
 \brief 判断是否持有相同对象。
@@ -1966,32 +1988,27 @@ hold_same(const any& x, const any& y)
 {
 	return x.get() == y.get();
 }
-/*!
-\brief 未检查的动态泛型转换。
-\note 对非空对象语义同非公开接口 \c boost::unsafe_any_cast 。
-\since build 677
-*/
+
+//! \since build 853
 //@{
 /*!
+\brief 未检查的动态泛型转换。
 \pre 断言： <tt>p && p->has_value()
 	&& p->unchecked_type() == ystdex::type_id<_type>()</tt> 。
+\note 对非空对象，除持有者抛出异常外语义同非公开接口 \c boost::unsafe_any_cast 。
 */
+//@{
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline _type*
-unchecked_any_cast(any* p) ynothrowv
+unchecked_any_cast(any* p)
 {
 	yconstraint(p && p->has_value()
 		&& p->unchecked_type() == ystdex::type_id<_type>());
 	return static_cast<_type*>(p->unchecked_get());
 }
-
-/*!
-\pre 断言： <tt>p && p->has_value()
-	&& p->unchecked_type() == ystdex::type_id<_type>()</tt> 。
-*/
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline const _type*
-unchecked_any_cast(const any* p) ynothrowv
+unchecked_any_cast(const any* p)
 {
 	yconstraint(p && p->has_value()
 		&& p->unchecked_type() == ystdex::type_id<_type>());
@@ -2001,27 +2018,25 @@ unchecked_any_cast(const any* p) ynothrowv
 
 /*!
 \brief 非安全动态泛型转换。
-\note 语义同非公开接口 \c boost::unsafe_any_cast 。
-\since build 673
+\pre 断言： <tt>p && p->type() == ystdex::type_id<_type>()</tt> 。
+\note 除持有者抛出异常外语义同非公开接口 \c boost::unsafe_any_cast 。
 */
 //@{
-//! \pre 断言： <tt>p && p->type() == ystdex::type_id<_type>()</tt> 。
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline _type*
-unsafe_any_cast(any* p) ynothrowv
+unsafe_any_cast(any* p)
 {
 	yconstraint(p && p->type() == ystdex::type_id<_type>());
 	return static_cast<_type*>(p->get());
 }
-
-//! \pre 断言： <tt>p && p->type() == ystdex::type_id<_type>()</tt> 。
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline const _type*
-unsafe_any_cast(const any* p) ynothrowv
+unsafe_any_cast(const any* p)
 {
 	yconstraint(p && p->type() == ystdex::type_id<_type>());
 	return static_cast<const _type*>(p->get());
 }
+//@}
 //@}
 //@}
 //@}

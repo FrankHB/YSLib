@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2018 FrankHB.
+	© 2013-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1624
+\version r1649
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2018-10-28 03:33 +0800
+	2019-02-22 14:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,26 +85,30 @@ NOTES:
 The requirements of contracts imply no undefined behavior.
 
 End-users of the project may observe behavior changes. For developers, the
-contracts further includes ahead-of-time build characteristics such as static
-assertions but not runtime observable behavior like runtime assertions.
+	contracts further includes ahead-of-time build characteristics such as static
+	assertions but not runtime observable behavior like runtime assertions.
 
 Being conforming to the interface specification implies contracts on that
-interface are not violated.
+	interface are not violated.
 
-Expected "correct" behavior would only be achived when the corresponding
-interface specifications are not violated and the behavior of external
-environment remains also predicatable.
+Expected "correct" behavior would only be achieved when the corresponding
+	interface specifications are not violated and the behavior of external
+	environment also remains predicatable.
 
 Certain kinds of modifications of the library provide explicit backward
-compatibility on API and/or ABI level. If not mentioned, ABI stability is not
-preserved.
-If ABI remains compatibile, there would be no need to deploy new
-binary code.
+	compatibility on API and/or ABI. If not mentioned, ABI stability is not
+	preserved.
+If ABI remains compatible, there would be no need to deploy new binary code.
+Changing inline definition of public interface to out-of-line ones or vice versa
+	breaks ABI compatibility in both direction for platforms with dynamic
+	loading, or breaks one direction of backward/forward compatibility for
+	others.
 If API remains compatible, there would be no need for library users to modify
-code using to adapt to the modification unless they depend on the new interface.
+	code using to adapt to the modification unless they depend on the new
+	interface.
 Since additions of interface might intefere with valid working code (e.g. with
-SFINAE checks), so unless specified otherwise, they do not fall into the
-category of not requiring the user code to be modified.
+	SFINAE checks), so unless specified otherwise, they do not fall into the
+	category of not requiring the user code to be modified.
 */
 $dev; // issues concerned by developers, which end-users of the product can \
 	observe no behavior change as long as the contracts of the code are not \
@@ -115,7 +119,9 @@ $lib; // issues only concerned with library, without interface modification \
 	long as there is no undefined behavior;
 $design; // features changing probably only made sense to who needs to \
 	reference or modify the implementation;
-$src; // issues known to break public ABI but remain source compatibility;
+$src; // issues expected to break public ABI in at least one direction of one \
+	first-class supported platform configuration but remain source \
+	compatibility in every cases;
 
 // Project usage:
 $build; // issues on build, such as build scripts and diagnostic messages;
@@ -182,7 +188,10 @@ $HISTORY:
 // Since b539, tracked issues are hosted on Bitbucket, see https://bitbucket.org/FrankHB/yslib/issues.
 // These issues are referenced by 'issue #NUM' with NUM indicating issue number.
 //	See also '$inum' for use in tags.
-$resolve(#1);
+// The issue tracker still use '$RESOLVED_ENVIRONMENT_ISSUE' to mark the \
+	resolved issues so they can be referenced in documents here.
+$resolve(#1); // This is still to be improved and not marked as "Resolved" on \
+	the issue tracker.
 
 // Code refactoring/fixing for quality across multiple files and probably \
 	multiple revisions.

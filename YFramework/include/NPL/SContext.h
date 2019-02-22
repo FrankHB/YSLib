@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2050
+\version r2402
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2019-02-10 14:09 +0800
+	2019-02-15 00:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,18 +30,22 @@
 
 #include "YModules.h"
 #include YFM_NPL_Lexical
-#include YFM_YSLib_Core_ValueNode // for YSLib::NoContainer, YSLib::ValueObject,
+#include YFM_YSLib_Core_ValueNode // for YSLib::Deref, YSLib::MakeIndex,
+//	YSLib::NoContainer, YSLib::NoContainerTag, YSLib::ValueObject,
 //	YSLib::ValueNode, list, YSLib::LoggedEvent, YSLib::make_observer,
-//	YSLib::make_pair, YSLib::observer_ptr, YSLib::pair, ystdex::totally_ordered,
-//	YSLib::ListContainerTag, std::initializer_list, YSLib::AccessPtr,
-//	std::mem_fn, ystdex::call_value_or, ystdex::addrof, ystdex::compose,
-//	ystdex::forward_like, ystdex::invoke;
-#include <ystdex/iterator.hpp> // for ystdex::transformed_iterator,
-//	ystdex::reverse_iterator, ystdex::make_transform;
+//	YSLib::make_pair, YSLib::observer_ptr, YSLib::pair, YSLib::ListContainerTag,
+//	std::initializer_list, ystdex::forward_like, ystdex::invoke,
+//	YSLib::AccessPtr, ystdex::false_, std::is_convertible, ystdex::decay_t,
+//	ystdex::bool_, ystdex::cond_or_t, ystdex::not_, ystdex::enable_if_t,
+//	ystdex::call_value_or, ystdex::addrof, ystdex::compose;
 
 namespace NPL
 {
 
+//! \since build 853
+using YSLib::Deref;
+//! \since build 599
+using YSLib::MakeIndex;
 //! \since build 852
 using YSLib::NoContainer;
 //! \since build 852
@@ -68,81 +72,34 @@ using YSLib::pair;
 /*!
 \brief 项节点：存储语法分析结果的值类型节点。
 \since build 852
+
+类似 ValueNode 的节点类型，但没有名称数据成员、按键比较和按键访问，
+	且使用 list 而不是 ystdex::mapped_set 作为容器。
 */
 class YF_API TermNode
-	: private ValueNode, private ystdex::totally_ordered<TermNode>,
-	private ystdex::totally_ordered<TermNode, string>
 {
 private:
-	struct ConstIteratorMap
-	{
-		template<typename _tIter>
-		yconstfn const TermNode&
-		operator()(const _tIter& i) const ynothrowv
-		{
-			return static_cast<const TermNode&>(*i);
-		}
-	};
-	struct IteratorMap : ConstIteratorMap
-	{
-		template<typename _tIter>
-		yconstfn TermNode&
-		operator()(const _tIter& i) const ynothrowv
-		{
-			return static_cast<TermNode&>(*i);
-		}
-	};
 	// TODO: Deduplicate within %ValueNode?
 	template<typename... _tParams>
 	using enable_value_constructible_t = ystdex::enable_if_t<
 		std::is_constructible<ValueObject, _tParams...>::value>;
 
 public:
-	//! \sa ystdex::mapped_set
-	struct YF_API MappedSetTraits : ValueNode::MappedSetTraits
-	{
-		template<typename _tKey, class _tCon>
-		YB_ATTR_nodiscard YB_PURE static inline auto
-		extend_key(_tKey&& k, _tCon& con) ynothrow -> decltype(
-			TermNode(std::allocator_arg, con.get_allocator(), NoContainer,
-			yforward(k)))
-		{
-			return {std::allocator_arg, con.get_allocator(), NoContainer,
-				yforward(k)};
-		}
+	using Container = list<TermNode>;
+	using allocator_type = Container::allocator_type;
+	using iterator = Container::iterator;
+	using const_iterator = Container::const_iterator;
+	using reverse_iterator = Container::reverse_iterator;
+	using const_reverse_iterator = Container::const_reverse_iterator;
 
-		//! \note 这些重载和构造函数中可能由参数确定键的值的情形匹配。
-		//@{
-		using ValueNode::MappedSetTraits::get_value_key;
-		YB_ATTR_nodiscard YB_PURE static PDefH(const string&, get_value_key,
-			const TermNode& nd, allocator_type = {}) ynothrow
-			ImplRet(nd.GetName())
-		YB_ATTR_nodiscard YB_PURE static PDefH(string&&, get_value_key,
-			TermNode&& nd, allocator_type = {}) ynothrow
-			ImplRet(ValueNode::MappedSetTraits::get_value_key(
-				static_cast<ValueNode&&>(nd)))
-		//@}
+private:
+	//! \since build 853
+	//@{
+	Container container{};
 
-		//! \sa ystdex::restore_key
-		static PDefH(void, restore_key, TermNode& node, TermNode&& ek)
-			ImplExpr(
-				ValueNode::MappedSetTraits::restore_key(node, std::move(ek)))
-
-		//! \sa ystdex::set_value_move
-		static PDefH(TermNode, set_value_move, TermNode& node)
-			ImplRet({std::move(node.GetContainerRef()),
-				node.GetName(), std::move(node.Value)})
-	};
-	using ValueNode::Container;
-	using ValueNode::allocator_type;
-	using iterator
-		= ystdex::transformed_iterator<ValueNode::iterator, IteratorMap>;
-	using const_iterator = ystdex::transformed_iterator<
-		ValueNode::const_iterator, ConstIteratorMap>;
-	using reverse_iterator = ystdex::reverse_iterator<iterator>;
-	using const_reverse_iterator = ystdex::reverse_iterator<const_iterator>;
-
-	using ValueNode::Value;
+public:
+	ValueObject Value{};
+	//@}
 
 	DefDeCtor(TermNode)
 	// XXX: Not all constructors like %ValueNode need to be supported here.
@@ -150,308 +107,268 @@ public:
 	//@{
 	explicit
 	TermNode(allocator_type a)
-		: ValueNode(a)
+		: container(a)
 	{}
 	TermNode(const Container& con)
-		: ValueNode(con)
+		: container(con)
 	{}
 	TermNode(Container&& con)
-		: ValueNode(std::move(con))
+		: container(std::move(con))
 	{}
-	template<typename _tString, typename... _tParams,
+	//! \since build 853
+	//@{
+	template<typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
-	TermNode(const Container& con, _tString&& str, _tParams&&... args)
-		: ValueNode(con, yforward(str), yforward(args)...)
+	inline
+	TermNode(NoContainerTag, _tParams&&... args)
+		: Value(yforward(args)...)
 	{}
-	template<typename _tString, typename... _tParams,
+	template<typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
-	TermNode(Container&& con, _tString&& str, _tParams&&... args)
-		: ValueNode(std::move(con), yforward(str), yforward(args)...)
+	TermNode(const Container& con, _tParams&&... args)
+		: container(con), Value(yforward(args)...)
 	{}
-	template<typename _tString, typename... _tParams,
+	template<typename... _tParams,
+		yimpl(typename = enable_value_constructible_t<_tParams...>)>
+	TermNode(Container&& con, _tParams&&... args)
+		: container(std::move(con)), Value(yforward(args)...)
+	{}
+	template<typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	inline
 	TermNode(std::allocator_arg_t, allocator_type a, NoContainerTag,
-		_tString&& str, _tParams&&... args)
-		: ValueNode(std::allocator_arg, a, NoContainer, yforward(str),
-		yforward(args)...)
+		_tParams&&... args)
+		: container(a), Value(yforward(args)...)
 	{}
-	template<typename _tString, typename... _tParams,
+	template<typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	inline
 	TermNode(std::allocator_arg_t, allocator_type a, const Container& con,
-		_tString&& str, _tParams&&... args)
-		: ValueNode(std::allocator_arg, a, con, yforward(str),
-		yforward(args)...)
+		_tParams&&... args)
+		: container(con, a), Value(yforward(args)...)
 	{}
-	template<typename _tString, typename... _tParams,
+	template<typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	inline
 	TermNode(std::allocator_arg_t, allocator_type a, Container&& con,
-		_tString&& str, _tParams&&... args)
-		: ValueNode(std::allocator_arg, a, std::move(con), yforward(str),
-		yforward(args)...)
+		_tParams&&... args)
+		: container(std::move(con), a), Value(yforward(args)...)
 	{}
+	//@}
+	//@}
 	TermNode(const ValueNode& nd, allocator_type a)
-		: ValueNode(nd, a)
+		: container(ConCons(nd.GetContainer(), a)), Value(nd.Value)
 	{}
 	TermNode(ValueNode&& nd, allocator_type a)
-		: ValueNode(std::move(nd), a)
+		: container(ConCons(std::move(nd.GetContainerRef()), a)),
+		Value(std::move(nd.Value))
 	{}
 	//@}
 	// XXX: This needs tag to avoid clash with other constructors.
 	TermNode(YSLib::ListContainerTag, std::initializer_list<TermNode> il)
-		: ValueNode(MapInitializerList(il))
+		: container(il)
 	{}
 	TermNode(std::initializer_list<TermNode> il, allocator_type a)
-		: ValueNode(MapInitializerList(il, a))
+		: container(il, a)
 	{}
-	template<typename _tString, typename... _tParams,
+	//! \since build 853
+	template<typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	inline
 	TermNode(std::allocator_arg_t, allocator_type a,
-		std::initializer_list<TermNode> il,
-		_tString&& str, _tParams&&... args)
-		: TermNode(std::allocator_arg, a, Container(MapInitializerList(il, a)),
-		yforward(str), yforward(args)...)
+		std::initializer_list<TermNode> il, _tParams&&... args)
+		: TermNode(std::allocator_arg, a, Container(il, a), yforward(args)...)
 	{}
 	explicit
 	TermNode(const ValueNode& nd)
-		: ValueNode(nd)
+		: container(ConCons(nd.GetContainer())), Value(nd.Value)
 	{}
 	explicit
 	TermNode(ValueNode&& nd)
-		: ValueNode(std::move(nd))
+		: container(ConCons(std::move(nd.GetContainer()))),
+		Value(std::move(nd.Value))
 	{}
 	TermNode(const TermNode& tm, allocator_type a)
-		: ValueNode(tm, a)
+		: container(tm.container, a), Value(tm.Value)
 	{}
 	TermNode(TermNode&& tm, allocator_type a)
-		: ValueNode(std::move(tm), a)
+		: container(std::move(tm.container), a), Value(std::move(tm.Value))
 	{}
 	DefDeCopyMoveCtorAssignment(TermNode)
 
-	using ValueNode::operator!;
+	//! \since build 853
+	DefBoolNeg(explicit, bool(Value) || !empty())
 
-	using ValueNode::operator[];
+	//! \since build 853
+	//@{
+	DefGetter(const ynothrow, const Container&, Container, container)
+	DefGetter(ynothrow, Container&, ContainerRef, container)
 
-	friend PDefHOp(bool, ==, const TermNode& x, const TermNode& y) ynothrow
-		ImplRet(x.GetName() == y.GetName())
-	friend PDefHOp(bool, ==, const TermNode& x, const string& str) ynothrow
-		ImplRet(x.GetName() == str)
-	template<typename _tKey>
-	YB_ATTR_nodiscard YB_PURE friend bool
-	operator==(const TermNode& x, const _tKey& k) ynothrow
+	template<class _tCon, class _type>
+	yimpl(ystdex::enable_if_t)<
+		ystdex::and_<std::is_assignable<Container, _tCon&&>,
+		std::is_assignable<ValueObject, _type&&>>::value>
+	SetContent(_tCon&& con, _type&& val) ynoexcept(ystdex::and_<
+		std::is_nothrow_assignable<Container, _tCon&&>,
+		std::is_nothrow_assignable<ValueObject, _type&&>>())
 	{
-		return x.GetName() == k;
+		container = yforward(con);
+		Value = yforward(val);
 	}
-
-	YB_ATTR_nodiscard YB_PURE friend
-		PDefHOp(bool, <, const TermNode& x, const TermNode& y) ynothrow
-		ImplRet(x.GetName() < y.GetName())
-	YB_ATTR_nodiscard YB_PURE friend
-		PDefHOp(bool, <, const TermNode& x, const string& str) ynothrow
-		ImplRet(x.GetName() < str)
-	template<typename _tKey>
-	YB_ATTR_nodiscard YB_PURE friend bool
-	operator<(const TermNode& x, const _tKey& k) ynothrow
-	{
-		return x.GetName() < k;
-	}
-	template<typename _tKey>
-	YB_ATTR_nodiscard YB_PURE friend bool
-	operator<(const _tKey& k, const TermNode& y) ynothrow
-	{
-		return k < y.GetName();
-	}
-	YB_ATTR_nodiscard YB_PURE friend
-		PDefHOp(bool, >, const TermNode& x, const string& str) ynothrow
-		ImplRet(x.GetName() > str)
-	template<typename _tKey>
-	YB_ATTR_nodiscard YB_PURE friend bool
-	operator>(const TermNode& x, const _tKey& k) ynothrow
-	{
-		return x.GetName() > k;
-	}
-	template<typename _tKey>
-	YB_ATTR_nodiscard YB_PURE friend bool
-	operator>(const _tKey& k, const TermNode& y) ynothrow
-	{
-		return k > y.GetName();
-	}
-
-	using ValueNode::operator bool;
-
-	using ValueNode::GetContainer;
-	using ValueNode::GetContainerRef;
-	using ValueNode::GetName;
-
-	using ValueNode::SetContent;
 	PDefH(void, SetContent, const TermNode& term)
-		ImplExpr(ValueNode::SetContent(static_cast<const ValueNode&>(term)))
+		ImplExpr(SetContent(term.container, term.Value))
 	PDefH(void, SetContent, TermNode&& term)
-		ImplExpr(ValueNode::SetContent(static_cast<ValueNode&&>(term)))
+		ImplExpr(SetContent(std::move(term.container), std::move(term.Value)))
+	//@}
 
-	PDefH(bool, Add, const TermNode& term)
-		ImplRet(insert(static_cast<const ValueNode&>(term)).second)
-	PDefH(bool, Add, TermNode&& term)
-		ImplRet(insert(static_cast<ValueNode&&>(term)).second)
+	//! \since build 853
+	PDefH(void, Add, const TermNode& term)
+		ImplExpr(container.push_back(term))
+	//! \since build 853
+	PDefH(void, Add, TermNode&& term)
+		ImplExpr(container.push_back(std::move(term)))
 
-	template<typename _tKey>
-	yimpl(ystdex::enable_if_inconvertible_t)<_tKey&&, TermNode::const_iterator>
-	AddChildToTail(_tKey&& k, const TermNode& tm)
+	//! \since build 853
+	//@{
+	template<typename... _tParams>
+	static inline void
+	AddValueTo(Container& con, _tParams&&... args)
 	{
-		ystdex::try_emplace(GetContainerRef(), yforward(k), tm.GetContainer(),
-			yforward(k), tm.Value);
+		con.emplace_back(NoContainer, yforward(args)...);
 	}
-	template<typename _tKey>
-	yimpl(ystdex::enable_if_inconvertible_t)<_tKey&&, TermNode::const_iterator>
-	AddChildToTail(_tKey&& k, TermNode&& tm)
+	template<typename... _tParams>
+	static inline void
+	AddValueTo(const_iterator position, Container& con, _tParams&&... args)
 	{
-		ystdex::try_emplace(GetContainerRef(), yforward(k),
-			std::move(tm.GetContainerRef()), yforward(k), std::move(tm.Value));
+		con.emplace(position, NoContainer, yforward(args)...);
 	}
 
-	using ValueNode::AddValueTo;
+	PDefH(void, Clear, ) ynothrow
+		ImplExpr(Value.Clear(), ClearContainer())
 
-	using ValueNode::Clear;
+	PDefH(void, ClearContainer, ) ynothrow
+		ImplExpr(container.clear())
 
-	using ValueNode::ClearContainer;
+	PDefH(void, ClearTo, const ValueObject& vo) ynothrow
+		ImplExpr(ClearContainer(), Value = vo)
+	PDefH(void, ClearTo, ValueObject&& vo) ynothrow
+		ImplExpr(ClearContainer(), Value = std::move(vo))
 
-	using ValueNode::ClearTo;
+private:
+	static TermNode::Container
+	ConCons(const ValueNode::Container&);
+	static TermNode::Container
+	ConCons(ValueNode::Container&&);
+	static TermNode::Container
+	ConCons(const ValueNode::Container&, allocator_type);
+	static TermNode::Container
+	ConCons(ValueNode::Container&&, allocator_type);
 
-	using ValueNode::CreateRecursively;
+public:
+	template<class _tCon, typename _fCallable,
+		yimpl(typename = ystdex::enable_if_t<
+		std::is_same<Container&, ystdex::remove_cvref_t<_tCon>&>::value>)>
+	static Container
+	CreateRecursively(_tCon&& con, _fCallable f)
+	{
+		Container res(con.get_allocator());
+
+		for(auto&& tm : con)
+			res.emplace_back(CreateRecursively(
+				ystdex::forward_like<_tCon>(tm.container), f),
+				ystdex::invoke(f, ystdex::forward_like<_tCon>(tm.Value)));
+		return res;
+	}
+	//@}
 
 	template<typename _fCallable>
 	Container
 	CreateWith(_fCallable f) &
 	{
-		return CreateRecursively(GetContainerRef(), f);
+		return CreateRecursively(container, f);
 	}
 	template<typename _fCallable>
 	Container
 	CreateWith(_fCallable f) const&
 	{
-		return CreateRecursively(GetContainer(), f);
+		return CreateRecursively(container, f);
 	}
 	template<typename _fCallable>
 	Container
 	CreateWith(_fCallable f) &&
 	{
-		return CreateRecursively(std::move(GetContainerRef()), f);
+		return CreateRecursively(std::move(container), f);
 	}
 	template<typename _fCallable>
 	Container
 	CreateWith(_fCallable f) const&&
 	{
-		return CreateRecursively(std::move(GetContainer()), f);
+		return CreateRecursively(std::move(container), f);
 	}
 
-private:	
-	YB_ATTR_nodiscard static
-		PDefH(const ValueNode&, DerefToBase, const TermNode* p_node) ynothrowv
-		ImplRet(Deref(p_node))
+	//! \since build 953
+	void
+	MoveContent(TermNode&&);
 
-	YB_ATTR_nodiscard YB_PURE static PDefH(Container, MapInitializerList,
-		std::initializer_list<TermNode> il)
-		ImplRet({MapIteratorForInitializerList(il.begin()),
-			MapIteratorForInitializerList(il.begin() + il.size())})
-	YB_ATTR_nodiscard YB_PURE static PDefH(Container, MapInitializerList,
-		std::initializer_list<TermNode> il, allocator_type a)
-		ImplRet(Container({MapIteratorForInitializerList(il.begin()),
-			MapIteratorForInitializerList(il.begin() + il.size())}, a))
-
-	YB_ATTR_nodiscard YB_PURE static
-		PDefH(iterator, MapIterator, ValueNode::iterator i) ynothrow
-		ImplRet(ystdex::make_transform(i, IteratorMap()))
-	YB_ATTR_nodiscard YB_PURE static
-		PDefH(const_iterator, MapIterator, ValueNode::const_iterator i) ynothrow
-		ImplRet(ystdex::make_transform(i, ConstIteratorMap()))
-	YB_ATTR_nodiscard YB_PURE static PDefH(reverse_iterator, MapIterator,
-		ValueNode::reverse_iterator i) ynothrow
-		ImplRet(reverse_iterator(MapIterator(i.base())))
-	YB_ATTR_nodiscard YB_PURE static PDefH(const_reverse_iterator, MapIterator,
-		ValueNode::const_reverse_iterator i) ynothrow
-		ImplRet(const_reverse_iterator(MapIterator(i.base())))
-	YB_ATTR_nodiscard YB_PURE static PDefH(pair<iterator YPP_Comma bool>,
-		MapIterator, pair<ValueNode::iterator YPP_Comma bool> pr) ynothrow
-		ImplRet(NPL::make_pair(MapIterator(pr.first), pr.second))
-
-	YB_ATTR_nodiscard YB_PURE static PDefH(auto, MapIteratorForInitializerList,
-		const TermNode* p) -> decltype(ystdex::make_transform(p, DerefToBase))
-		ImplRet(ystdex::make_transform(p, DerefToBase))
-
-public:
-	using ValueNode::MoveContent;
-	PDefH(void, MoveContent, TermNode&& term)
-		ImplExpr(MoveContent(static_cast<ValueNode&&>(term)))
-
-	using ValueNode::Remove;
 	PDefH(void, Remove, const_iterator i)
-		ImplExpr(ValueNode::Remove(i.get()))
+		ImplExpr(erase(i))
 
 	PDefH(void, SwapContainer, TermNode& term) ynothrowv
-		ImplExpr(term.ValueNode::SwapContainer(static_cast<TermNode&>(*this)))
+		ImplExpr(YAssert(get_allocator() == term.get_allocator(),
+			"Invalid allocator found."), container.swap(term.container))
 
-	PDefH(void, SwapContent, TermNode& term)
-		ImplRet(term.ValueNode::SwapContent(static_cast<TermNode&>(*this)))
+	void
+	SwapContent(TermNode&) ynothrowv;
 
 	YB_ATTR_nodiscard YB_PURE PDefH(iterator, begin, ) ynothrow
-		ImplRet(MapIterator(ValueNode::begin()))
+		ImplRet(container.begin())
 	YB_ATTR_nodiscard YB_PURE PDefH(const_iterator, begin, ) const ynothrow
-		ImplRet(MapIterator(ValueNode::begin()))
+		ImplRet(container.begin())
 
-	DefFwdTmpl(, pair<iterator YPP_Comma bool>, emplace,
-		MapIterator(ValueNode::emplace(yforward(args)...)))
+	//! \since build 853
+	DefFwdTmpl(, iterator, emplace, (container.emplace_back(yforward(args)...),
+		std::prev(container.end())))
 
-	template<typename... _tParams>
-	iterator
-	emplace_hint(const_iterator position, _tParams&&... args)
-	{
-		return MapIterator(ValueNode::emplace_hint(position.get(),
-			yforward(args)...));
-	}
-
-	using ValueNode::empty;
+	//! \since build 853
+	YB_ATTR_nodiscard PDefH(bool, empty, ) const ynothrow
+		ImplRet(container.empty())
 
 	PDefH(iterator, erase, const_iterator i)
-		ImplRet(MapIterator(ValueNode::erase(i.get())))
+		ImplRet(container.erase(i))
 	PDefH(iterator, erase, const_iterator first, const_iterator last)
-		ImplRet(MapIterator(ValueNode::erase(first.get(), last.get())))
+		ImplRet(container.erase(first, last))
 
 	YB_ATTR_nodiscard YB_PURE PDefH(iterator, end, ) ynothrow
-		ImplRet(MapIterator(ValueNode::end()))
+		ImplRet(container.end())
 	YB_ATTR_nodiscard YB_PURE PDefH(const_iterator, end, ) const ynothrow
-		ImplRet(MapIterator(ValueNode::end()))
+		ImplRet(container.end())
 
-	using ValueNode::get_allocator;
+	//! \since buid 853
+	YB_ATTR_nodiscard YB_PURE
+		PDefH(allocator_type, get_allocator, ) const ynothrow
+		ImplRet(container.get_allocator())
 
-	// FIXME: Call of %insert with hint does not support correct type of hint
-	//	parameter. Use %Add for workaround.
-	DefFwdTmpl(-> decltype(MapIterator(ValueNode::insert(
-		yforward(args)...))), auto, insert,
-		MapIterator(ValueNode::insert(yforward(args)...)))
-
-	DefFwdTmpl(-> decltype(MapIterator(ValueNode::insert_or_assign(
-		yforward(args)...))), auto, insert_or_assign,
-		MapIterator(ValueNode::insert_or_assign(yforward(args)...)))
+	DefFwdTmpl(-> decltype(container.insert(yforward(args)...)), auto,
+		insert, container.insert(yforward(args)...))
 
 	YB_ATTR_nodiscard YB_PURE PDefH(reverse_iterator, rbegin, ) ynothrow
-		ImplRet(reverse_iterator(begin()))
+		ImplRet(container.rbegin())
 	YB_ATTR_nodiscard YB_PURE
 		PDefH(const_reverse_iterator, rbegin, ) const ynothrow
-		ImplRet(const_reverse_iterator(begin()))
+		ImplRet(container.rbegin())
 
 	YB_ATTR_nodiscard YB_PURE PDefH(reverse_iterator, rend, ) ynothrow
-		ImplRet(reverse_iterator(end()))
+		ImplRet(container.rend())
 	YB_ATTR_nodiscard YB_PURE
 		PDefH(const_reverse_iterator, rend, ) const ynothrow
-		ImplRet(const_reverse_iterator(end()))
+		ImplRet(container.rend())
 
-	using ValueNode::size;
+	//! \since build 853
+	YB_ATTR_nodiscard YB_PURE PDefH(size_t, size, ) const ynothrow
+		ImplRet(container.size())
 
-	friend DefSwap(ynothrow, TermNode, ystdex::swap_dependent(static_cast<
-		ValueNode&>(_x), static_cast<ValueNode&>(_y)))
+	YF_API friend void
+	swap(TermNode&, TermNode&) ynothrowv;
 };
 
 //! \relates TermNode
@@ -482,6 +399,8 @@ YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsList, const TermNode& term)
 	ImplRet(!term.empty() || !term.Value)
 //@}
 
+//! \since build 853
+using YSLib::Access;
 template<typename _type>
 YB_ATTR_nodiscard inline _type&
 Access(TermNode& term) ynothrow
@@ -495,6 +414,8 @@ Access(const TermNode& term) ynothrow
 	return term.Value.Access<_type>();
 }
 
+//! \since build 853
+using YSLib::AccessPtr;
 template<typename _type>
 YB_ATTR_nodiscard inline observer_ptr<_type>
 AccessPtr(TermNode& term) ynothrow
@@ -508,53 +429,31 @@ AccessPtr(const TermNode& term) ynothrow
 	return term.Value.AccessPtr<_type>();
 }
 
+//! \since build 853
+template<typename... _tParam, typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline
-	PDefH(const TermNode&, AsTermNode, const TermNode& node) ynothrow
-	ImplRet(node)
-template<typename _tString, typename... _tParams>
-YB_ATTR_nodiscard YB_PURE inline TermNode
-AsTermNode(_tString&& str, _tParams&&... args)
+ystdex::enable_if_t<ystdex::not_<ystdex::cond_or_t<ystdex::bool_<
+	(sizeof...(_tParams) >= 1)>, ystdex::false_, std::is_convertible,
+	ystdex::decay_t<_tParams>..., TermNode::allocator_type>>::value, TermNode>
+AsTermNode(_tParams&&... args)
 {
-	return {NoContainer, yforward(str), yforward(args)...};
+	return {NoContainer, yforward(args)...};
 }
-template<typename _tString, typename... _tParams>
-YB_ATTR_nodiscard YB_PURE inline TermNode
-AsTermNode(TermNode::allocator_type a, _tString&& str, _tParams&&... args)
-{
-	return
-		{std::allocator_arg, a, NoContainer, yforward(str), yforward(args)...};
-}
-
-
-//! \since build 599
-using YSLib::MakeIndex;
-
-//! \since build 852
-//@{
-inline
-	PDefH(void, AddChildToTail, size_t idx, TermNode& term, const TermNode& tm)
-	ImplExpr(term.AddChildToTail(MakeIndex(idx), tm))
-inline PDefH(void, AddChildToTail, size_t idx, TermNode& term, TermNode&& tm)
-	ImplExpr(term.AddChildToTail(MakeIndex(idx), std::move(tm)))
-inline PDefH(void, AddChildToTail, TermNode& term, const TermNode& tm)
-	ImplExpr(NPL::AddChildToTail(term.size(), term, tm))
-inline PDefH(void, AddChildToTail, TermNode& term, TermNode&& tm)
-	ImplExpr(NPL::AddChildToTail(term.size(), term, std::move(tm)))
-//@}
-
+//! \since build 853
 template<typename... _tParams>
-YB_ATTR_nodiscard inline YB_PURE TermNode
-AsIndexTermNode(size_t idx, _tParams&&... args)
+YB_ATTR_nodiscard YB_PURE inline TermNode
+AsTermNode(TermNode::allocator_type a, _tParams&&... args)
 {
-	return NPL::AsTermNode(NPL::MakeIndex(idx), yforward(args)...);
-}
-template<typename... _tParams>
-YB_ATTR_nodiscard inline YB_PURE TermNode
-AsIndexTermNode(TermNode::allocator_type a, size_t idx, _tParams&&... args)
-{
-	return NPL::AsTermNode(a, NPL::MakeIndex(idx), yforward(args)...);
+	return {std::allocator_arg, a, NoContainer, yforward(args)...};
 }
 
+
+//! \since build 853
+inline PDefH(const string&, GetNodeNameOf, const ValueNode& node) ynothrow
+	ImplRet(node.GetName())
+//! \since build 853
+inline PDefH(string, GetNodeNameOf, const TermNode&) ynothrow
+	ImplRet(string("[TermNode]"))
 
 // NOTE: Like %YSLib::GetValueOf.
 YB_ATTR_nodiscard YB_PURE inline
@@ -603,8 +502,6 @@ template<typename _fCallable, class _tNode>
 void
 TraverseSubnodes(_fCallable f, const _tNode& node)
 {
-	using YSLib::AccessPtr;
-
 	// TODO: Null coalescing or variant value?
 	if(const auto p = AccessPtr<YSLib::NodeSequence>(node))
 		for(const auto& nd : *p)

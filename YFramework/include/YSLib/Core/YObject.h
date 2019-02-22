@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r5647
+\version r5694
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2019-01-31 02:58 +0800
+	2019-02-20 23:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -463,6 +463,29 @@ public:
 
 
 /*!
+\ingroup get_raw
+\brief 取内建指针。
+\since build 853
+*/
+//@{
+//! \note 使用 ADL get_raw 。
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE yconstfn auto
+GetRawPtrOf(const _type& p) ynothrow -> decltype(get_raw(p))
+{
+	return get_raw(p);
+}
+//! \exception bad_weak_ptr 异常中立：由 shared_ptr 构造函数抛出。
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE yconstfn _type*
+GetRawPtrOf(const weak_ptr<_type>& p)
+{
+	return shared_ptr<_type>(p).get();
+}
+//@}
+
+
+/*!
 \ingroup traits
 \brief 指针持有者特征。
 \since build 784
@@ -490,10 +513,10 @@ private:
 	//@}
 
 public:
-	//! \note 使用 ADL get_raw 。
 	YB_ATTR_nodiscard YB_PURE static PDefH(auto, get, const holder_pointer&
-		p_held) ynoexcept_spec(get_raw(p_held)) -> decltype(get_raw(p_held))
-		ImplRet(get_raw(p_held))
+		p_held) ynoexcept_spec(YSLib::GetRawPtrOf(p_held))
+		-> decltype(YSLib::GetRawPtrOf(p_held))
+		ImplRet(YSLib::GetRawPtrOf(p_held))
 
 	//! \note 使用 ADL owns_unique 。
 	YB_ATTR_nodiscard YB_PURE static PDefH(bool, is_unique_owner,
@@ -682,7 +705,7 @@ public:
 	YB_ATTR_nodiscard YB_PURE PDefH(void*, get, ) const ImplI(IValueHolder)
 		ImplRet(ystdex::pvoid(std::addressof(ref.get())))
 
-	YB_ATTR_nodiscard PDefH(const type_info&, type, ) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(const type_info&, type, ) const ynothrow
 		ImplI(IValueHolder)
 		ImplRet(ystdex::type_id<value_type>())
 };
@@ -862,27 +885,13 @@ public:
 		p.release();
 	}
 	//@}
-	/*!
-	\brief 复制构造：默认实现。
-	\since build 332
-	*/
-	DefDeCopyCtor(ValueObject)
-	/*!
-	\brief 转移构造：默认实现。
-	\since build 332
-	*/
-	DefDeMoveCtor(ValueObject)
+	//! \since build 332
+	DefDeCopyMoveCtorAssignment(ValueObject)
 	/*!
 	\brief 析构：默认实现。
 	\since build 332
 	*/
 	DefDeDtor(ValueObject)
-
-	//! \since build 332
-	//@{
-	DefDeCopyAssignment(ValueObject)
-	DefDeMoveAssignment(ValueObject)
-	//@}
 
 	/*!
 	\brief 判断是否为空或非空。
@@ -942,11 +951,11 @@ public:
 	DefGetter(const ynothrow, const Content&, Content, content)
 	//! \since build 752
 	//@{
-	//! \build 取持有者指针。
+	//! \brief 取持有者指针。
 	YB_ATTR_nodiscard YB_PURE IValueHolder*
 	GetHolderPtr() const;
 	/*!
-	\build 取持有者引用。
+	\brief 取持有者引用。
 	\pre 持有者指针非空。
 	*/
 	YB_ATTR_nodiscard YB_PURE IValueHolder&
@@ -955,18 +964,19 @@ public:
 	/*!
 	\brief 取指定类型的对象。
 	\pre 间接断言：存储对象类型和访问的类型一致。
-	\since build 673
+	\exception 异常中立：由持有者抛出。
+	\since build 853
 	*/
 	//@{
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE inline _type&
-	GetObject() ynothrowv
+	GetObject()
 	{
 		return Deref(YSLib::unchecked_any_cast<_type>(&content));
 	}
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE inline const _type&
-	GetObject() const ynothrowv
+	GetObject() const
 	{
 		return Deref(YSLib::unchecked_any_cast<const _type>(&content));
 	}

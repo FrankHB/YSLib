@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2018 FrankHB.
+	© 2009-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1447
+\version r1449
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2018-11-23 18:12 +0800
+	2019-02-22 14:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -689,7 +689,7 @@ Ultimate++ ： http://www.ultimatepp.org/www$uppweb$overview$en-us.html 。
 
 @3.5.3 资源管理：
 基于对象所有权，方法参见 [Documentation::YSLib @@2.2.2] 。
-基于和 Ultimate++ 相同的理由，接口不使用智能指针，且用户代码而不是被依赖的组件决定部件对象的所有权从属。
+基于和 Ultimate++ 相同的理由，除非必要，接口不使用智能指针，且用户代码而不是被依赖的组件决定部件对象的所有权从属。
 但总体风格上没有限定作用域和所有权的严格对应关系，也因此能够自然地使用部件指针的标准库容器。这点同时简化基于迭代器模式的实现。
 此外， YSLib 不排斥在部件实现([Documentation::YSLib @3.3]) 中提供（有限的）复制和转移支持以保证值语义。
 

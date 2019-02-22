@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2239
+\version r2284
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2019-02-10 14:25 +0800
+	2019-02-15 00:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,12 +26,14 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA // for YSLib::DecodeIndex, std::to_string,
-//	std::allocator_arg, ystdex::value_or, ystdex::write, bad_any_cast,
-//	YSLib::NodeSequence, AccessPtr, ystdex::unimplemented, ystdex::type_id,
-//	ystdex::quote, ystdex::call_value_or, ystdex::begins_with, ystdex::sfmt,
-//	sfmt, ystdex::ref, ystdex::retry_on_cond, ystdex::type_info, pair,
-//	NPL::make_observer;
+#include YFM_NPL_NPLA // for YSLib, string, YSLib::DecodeIndex, std::to_string,
+//	std::invalid_argument, ValueNode, NPL::Access, EscapeLiteral, Literalize,
+//	NPL::AccessPtr, ystdex::value_or, ystdex::write, bad_any_cast,
+//	std::allocator_arg, YSLib::NodeSequence, ystdex::unimplemented,
+//	ystdex::type_id, ystdex::quote, ystdex::call_value_or, ystdex::begins_with,
+//	YSLib::get_raw, NPL::make_observer, ystdex::sfmt, sfmt, ystdex::ref,
+//	ystdex::retry_on_cond, ystdex::type_info, pair, ystdex::addrof,
+//	ystdex::second_of, ystdex::call_value_or;
 #include YFM_NPL_SContext
 
 using namespace YSLib;
@@ -57,7 +59,7 @@ DecodeNodeIndex(const string& name)
 string
 EscapeNodeLiteral(const ValueNode& node)
 {
-	return EscapeLiteral(Access<string>(node));
+	return EscapeLiteral(NPL::Access<string>(node));
 }
 
 string
@@ -69,7 +71,7 @@ LiteralizeEscapeNodeLiteral(const ValueNode& node)
 string
 ParseNPLANodeString(const ValueNode& node)
 {
-	return ystdex::value_or(AccessPtr<string>(node));
+	return ystdex::value_or(NPL::AccessPtr<string>(node));
 }
 
 
@@ -120,38 +122,36 @@ PrintNodeString(std::ostream& os, const ValueNode& node,
 string
 ParseNPLATermString(const TermNode& term)
 {
-	return ystdex::value_or(AccessPtr<string>(term));
+	return ystdex::value_or(NPL::AccessPtr<string>(term));
 }
 
 ValueNode
 MapNPLALeafNode(const TermNode& term)
 {
-	return YSLib::AsNode(term.get_allocator(), string(),
-		string(Deliteralize(ParseNPLATermString(term))));
+	return YSLib::AsNode(ValueNode::allocator_type(term.get_allocator()),
+		string(), string(Deliteralize(ParseNPLATermString(term))));
 }
 
 TermNode
-TransformToSyntaxNode(const TermNode& term, const string& name)
+TransformToSyntaxNode(ValueNode&& node)
 {
-	TermNode res{std::allocator_arg, term.get_allocator(),
-		{AsIndexNode(term.get_allocator(), size_t(), term.GetName())}, name};
-	const auto nested_call([&](const TermNode& tm){
-		res.Add(TransformToSyntaxNode(tm, MakeIndex(res.size())));
+	const TermNode::allocator_type a(node.get_allocator());
+	TermNode res(std::allocator_arg, a, {NPL::AsTermNode(a, node.GetName())});
+	const auto nested_call([&](ValueNode& nd){
+		res.Add(TransformToSyntaxNode(std::move(nd)));
 	});
 
-	if(term.empty())
+	if(node.empty())
 	{
-		if(const auto p = AccessPtr<YSLib::NodeSequence>(term))
-			for(const auto& nd : *p)
-				// TODO: Optimize to avoid unnecessary copies.
-				nested_call(TermNode(nd, term.get_allocator()));
+		if(const auto p = NPL::AccessPtr<NodeSequence>(node))
+			for(auto& nd : *p)
+				nested_call(nd);
 		else
-			res.emplace(NoContainer, MakeIndex(1),
-				Literalize(ParseNPLATermString(term)));
+			res.emplace(NoContainer, Literalize(ParseNPLANodeString(node)));
 	}
 	else
-		for(auto& tm : term)
-			nested_call(tm);
+		for(auto& nd : node)
+			nested_call(nd);
 	return res;
 }
 
@@ -169,13 +169,13 @@ ConvertAttributeNodeString(const TermNode& term)
 	case 2:
 		{
 			auto i(term.begin());
-			const auto& n(Access<string>(Deref(i)));
+			const auto& n(NPL::Access<string>(Deref(i)));
 
-			return n + '=' + Access<string>(Deref(++i));
+			return n + '=' + NPL::Access<string>(Deref(++i));
 		}
 		YB_ATTR_fallthrough;
 	case 1:
-		return Access<string>(Deref(term.begin()));
+		return NPL::Access<string>(Deref(term.begin()));
 	case 0:
 		break;
 	}
@@ -198,7 +198,7 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 				try
 				{
 					auto i(term.begin());
-					const auto& str(Access<string>(Deref(i)));
+					const auto& str(NPL::Access<string>(Deref(i)));
 
 					++i;
 					if(str == "@")
@@ -286,7 +286,7 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 string
 ConvertStringNode(const TermNode& term)
 {
-	return ystdex::call_value_or(EscapeXML, AccessPtr<string>(term));
+	return ystdex::call_value_or(EscapeXML, NPL::AccessPtr<string>(term));
 }
 
 void
@@ -358,10 +358,10 @@ observer_ptr<Environment>
 RedirectToShared(string_view id, const shared_ptr<Environment>& p_shared)
 {
 	if(p_shared)
-		return NPL::make_observer(get_raw(p_shared));
+		return NPL::make_observer(YSLib::get_raw(p_shared));
 	// TODO: Use concrete semantic failure exception.
 	throw NPLException(ystdex::sfmt("Invalid reference found for%s name '%s',"
-		" probably due to invalid context access by dangling reference.",
+		" probably due to invalid context NPL::Access by dangling reference.",
 		IsReserved(id) ? " reserved" : "", id.data()));
 }
 
@@ -503,7 +503,7 @@ IsNPLAExtendedLiteral(string_view id) ynothrowv
 observer_ptr<const TokenValue>
 TermToNamePtr(const TermNode& term)
 {
-	return AccessPtr<TokenValue>(term);
+	return NPL::AccessPtr<TokenValue>(term);
 }
 
 string
@@ -536,7 +536,7 @@ TokenizeTerm(TermNode& term)
 {
 	for(auto& child : term)
 		TokenizeTerm(child);
-	if(const auto p = AccessPtr<string>(term))
+	if(const auto p = NPL::AccessPtr<string>(term))
 		term.Value.emplace<TokenValue>(std::move(*p));
 }
 
@@ -551,21 +551,21 @@ bool
 IsLValueTerm(const TermNode& term) ynothrow
 {
 	return ystdex::call_value_or(std::mem_fn(&TermReference::IsTermReferenced),
-		AccessPtr<const TermReference>(term));
+		NPL::AccessPtr<const TermReference>(term));
 }
 
 
 pair<TermReference, bool>
 Collapse(TermNode& term)
 {
-	if(const auto p_tref = AccessPtr<const TermReference>(term))
+	if(const auto p_tref = NPL::AccessPtr<const TermReference>(term))
 		return {*p_tref, true};
 	return {term, {}};
 }
 pair<TermReference, bool>
 Collapse(TermNode& term, const Environment& env)
 {
-	if(const auto p_tref = AccessPtr<const TermReference>(term))
+	if(const auto p_tref = NPL::AccessPtr<const TermReference>(term))
 		return {*p_tref, true};
 	return {{term, env.Anchor()}, {}};
 }
@@ -576,7 +576,7 @@ ReferenceTerm(TermNode& term)
 	return ystdex::call_value_or(
 		[&](const TermReference& term_ref) ynothrow -> TermNode&{
 		return term_ref.get();
-	}, AccessPtr<const TermReference>(term), term);
+	}, NPL::AccessPtr<const TermReference>(term), term);
 }
 const TermNode&
 ReferenceTerm(const TermNode& term)
@@ -584,7 +584,7 @@ ReferenceTerm(const TermNode& term)
 	return ystdex::call_value_or(
 		[&](const TermReference& term_ref) ynothrow -> const TermNode&{
 		return term_ref.get();
-	}, AccessPtr<TermReference>(term), term);
+	}, NPL::AccessPtr<TermReference>(term), term);
 }
 
 
@@ -615,7 +615,7 @@ RegularizeTerm(TermNode& term, ReductionStatus res) ynothrow
 bool
 LiftTermOnRef(TermNode& term, TermNode& tm)
 {
-	if(const auto p = AccessPtr<const TermReference>(tm))
+	if(const auto p = NPL::AccessPtr<const TermReference>(tm))
 	{
 		LiftTermRef(term, p->get());
 		return true;
@@ -750,7 +750,7 @@ Environment::Deduplicate(BindingMap& dst, const BindingMap& src)
 	for(const auto& binding : src)
 		// XXX: Non-trivially destructible objects is treated same.
 		// NOTE: Redirection is not needed here.
-		dst.erase(binding);
+		dst.erase(binding.first);
 	// NOTE: If the resulted parent environment is empty, it is safe to be
 	//	removed.
 	return dst.empty();
@@ -802,7 +802,8 @@ Environment::LookupName(string_view id) const
 {
 	YAssertNonnull(id.data());
 	return NPL::make_observer(ystdex::call_value_or<TermNode*>(
-		ystdex::addrof<>(), Bindings.find(id), {}, Bindings.cend()));
+		ystdex::compose(ystdex::addrof<>(), ystdex::second_of<>()),
+		Bindings.find(id), {}, Bindings.cend()));
 }
 
 void

@@ -13,7 +13,7 @@ In "src/sfnt/ttmtx.c":
 	Ported old 2.4.11 implementation with "FT_CONFIG_OPTION_OLD_INTERNALS" conditional inclusion of the static function "tt_face_get_metrics".
 In "src/smooth/ftgrays.c":
 	Used "FT_CONFIG_OPTION_OLD_INTERNALS" as a hack to check if there is a DS build to work around stack overflow.
-Note: The macro "FT_RENDER_POOL_SIZE" is not modified in "include/freetype/config/ftoption.h". It is not fit here because it also change behavior of other modules. This file in "devel" directory in the source repository also has comments about it should be greater than 4096, which can work but is still considerably too large on platform DS with a stack in ".dtcm" section of only 32KiB specified by devkitARM linker script by default.
+NOTE: The macro "FT_RENDER_POOL_SIZE" is not modified in "include/freetype/config/ftoption.h". It is not fit here because it also change behavior of other modules. This file in "devel" directory in the source repository also has comments about it should be greater than 4096, which can work but is still considerably too large on platform DS with a stack in ".dtcm" section of only 32KiB specified by devkitARM linker script by default.
 
 == Additional source replacement
 
@@ -31,7 +31,7 @@ See also "Modified files of FreeType" section above.
 Dependencies of FreeType interal headers are removed if external build of FreeType2 headers and libraries are used.
 
 = Since build 562:
-A check added in implementation of module "YSLib::Adaptor::Font" to enable the hack only when macro "FT_CONFIG_OPTION_OLD_INTERNALS" is defined for version 2.5.0 or above. This macro is not supported since 2.5.0, so both older versions and new versions of external build is supported.
+A check is added in implementation of module "YSLib::Adaptor::Font" to enable the hack only when macro "FT_CONFIG_OPTION_OLD_INTERNALS" is defined for version 2.5.0 or above. This macro is not supported since 2.5.0, so both older versions and new versions of external build is supported.
 Though untested, now all versions with compatible APIs should work, at least for versions since 2.3.12 because no new APIs are used since then.
 
 = Since build 420:
@@ -133,6 +133,7 @@ The include path has been modified since 2.5.1. No "freetype/" would be in the d
 = Patching
 For platform DS, patching is necessary. For other platforms, it is optional.
 Copy all files of "build" and "src" directory to the source directory and overwrite original files before building the library.
+The directory "include" is not required to be copied currently. It should be identical to the corresponding file in recently versions of FreeType, except for some comments.
 See "Additional source replacement" and "Custom configuration" sections above.
 
 = DS
@@ -155,7 +156,7 @@ Then run "mingw32-make" (optionally with "-j" to build concurrently) with proper
 The working directory should be FreeType source directory.
 Basically, YSLib uses:
 
-	mingw32-make CFLAGS="-c -O3 -Wall -fomit-frame-pointer -DNDEBUG"
+	mingw32-make CFLAGS="-c -O3 -Wall -DNDEBUG"
 
 See history above for actually used CFLAGS.
 The output is "objs/freetype.a" in the freetype source directory. To use in YSLib, rename it to "libfreetype.a".

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2018 FrankHB.
+	© 2014-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r15360
+\version r15403
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2018-05-09 17:50 +0800
+	2019-02-22 14:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1657,7 +1657,8 @@ b591
 			+ "feature tests support from WG21 N4200" $=
 			(
 				(
-				+ "macro %__has_cpp_attribute" @ "!defined";
+				+ $re_add(b535)
+					"conditionally-defined macro %__has_cpp_attribute";
 				+ "%__has_cpp_attribute(noreturn) test" @ "macro %YB_NORETURN"
 				),
 				+ "macro %__cpp_constexpr test" @ "macro %YB_HAS_CONSTEXPR"
@@ -2946,7 +2947,8 @@ b586
 				/ "cast to %base_type from round result"
 					@ "constructor template for floating point numbers",
 					// To eliminate Clang++ warning: [-Wconversion].
-				+ "explicitly defaulted copy %operator=",
+				+ $re_add(b554) $dev $lib "explicitly defaulted copy \
+					%operator= to avoid ISO C++11 deprecation",
 					// To eliminate Clang++ warning: [-Wdeprecated].
 				/ DLD "cast to result type from shift result"
 					~ "cast from parameter"
@@ -2994,15 +2996,13 @@ b586
 			(
 				+ $dev "explicitly defaulted default constructor"
 					@ "class %BadEvent" @ %YWidgetEvent,
-				/ $dev %YWidgetView $=
+				/ $dev $lib %YWidgetView $=
 				(
-					/ @ "class %AView" $=
-					(
-						/ "inline defined destructor" -> ("defined virtual \
-							out-of-line destructor" @ "non-header file"),
-							// To eliminate Clang++ warning: [-Wweak-vtables].
-					),
-					/ $lib "explicitly defaulted (move, copy) constructors"
+					/ "inline defined destructor" @ "class %AView"
+						-> ("defined virtual out-of-line destructor"
+						@ "non-header file"),
+						// To eliminate Clang++ warning: [-Wweak-vtables].
+					/ "explicitly defaulted (move, copy) constructors"
 						@ "class %View" ^ "%DefDeCopyMoveCtor"
 				),
 				- 'virtual' @ "destructor" @ "class %Console" @ %Console,
@@ -4194,8 +4194,8 @@ b578
 		(
 			+ "logical metafunctions %(and_, or_, not_)";
 			/ "simplified inheritance of traits";
-			* "wrong base class" @ "trait %is_lvalue_class_reference" $since
-				b333
+			* "wrong base class" @ "unary type trait %is_lvalue_class_reference"
+				$since b333
 		)
 	),
 	/ %YFramework $=
@@ -4332,7 +4332,7 @@ b577
 					+ "%operator- for %GBinaryGroup<_type> and %Size",
 					+ "function %Flip for %Rotation"
 				),
-				/ DLD "data members initialized" ^ "empty braced-init-list"
+				/ DLD "data members initialized" ^ "braced-init-list '{}'"
 					~ "ctor-initializer" @ "class %Application" @ %YApplication
 			)
 		),
@@ -4631,7 +4631,7 @@ b574
 				(
 					/ @ "class %Menu" $=
 					(
-						+ "brace-or-equal-initializer '{}'" @ "protected data \
+						+ "braced-init-list '{}'" @ "protected data \
 							members %(pHost, pParent, mSubMenus)";
 						* $comp "missing initialization"
 							@ "protected data member %pHost" $since b214,
@@ -4685,7 +4685,7 @@ b574
 		/ DLD @ ("class %ShlExplorer" @ %ShlExplorer,
 			"class %ShlReader" @ %ShlReader) $=
 		(
-			+ "brace-or-equal-initializer '{}'"
+			+ "braced-init-list '{}'"
 				@ "default constructed data members";
 			/ "simplified constructor implementation"
 		),
@@ -4737,7 +4737,7 @@ b573
 				+ "function %LocateForTopOffset" @ %YUIContainer,
 				/ @ "class %TimedHoverState" @ %Hover $=
 				(
-					+ $dev "brace-or-equal-initializer '{DefaultLocate}'"
+					+ "braced-init-list '{DefaultLocate}'"
 						@ "%Locator",
 					/ DLD "all 'Drawing::Point'" -> 'Point',
 					/ "parameter" @ "function signature"
@@ -5712,7 +5712,7 @@ b564
 		(
 			/ $dev "implemented for CXXABI_1.3 compatibility only when \
 				defined(_GLIBCXX_EH_PTR_COMPAT) as header";
-			- $impl "header include order requirement";
+			- $impl "header inclusion order requirement";
 			/ $comp
 				"allowed precompiled header with <exception> included at first"
 		),
@@ -7627,11 +7627,11 @@ b554
 		/ DLB $impl "explicitly truncated value" %CHRLib $=
 		(
 			@ "function %UCS4ToUCS2" @ %CharacterProcessing,
-				// To eliminate warning C4244 on Microsoft VC++ 2015 Preview with \
-					warning level /W3.
+				// To eliminate warning Microsoft VC++ 2015 Preview warning: \
+					C4244 with warning level /W3.
 			@ "constructor %ConversionState" @ %CharacterMapping
-				// To eliminate warning C4267 on Microsoft VC++ 2015 Preview with \
-					warning level /W3.
+				// To eliminate warning Microsoft VC++ 2015 Preview warning: \
+					C4267 with warning level /W3.
 		),
 		/ @ %YSLib.Adaptor.YReference $dep_from %YBase.YStandardEx.Functional $=
 		(
@@ -7658,8 +7658,8 @@ b554
 								types",
 							// To eliminate Clang++ warning: \
 								[-Wsign-conversion].
-						+ "explicitly defaulted copy %operator= to avoid ISO \
-							C++11 deprecation"
+						+ $dev "explicitly defaulted copy %operator= to avoid \
+							ISO C++11 deprecation"
 							// To eliminate Clang++ warning: [-Wdeprecated].
 					),
 					/ @ "class %Size" $=
@@ -7667,8 +7667,8 @@ b554
 						/ $dev $design "simplified copy constructor"
 							^ "%DefDeCopyCtor" ~ "non-trivial user-defined \
 							copy constructor",
-						+ "explicitly defaulted copy %operator= to avoid ISO \
-							C++11 deprecation"
+						+ $dev $lib "explicitly defaulted copy %operator= to \
+							avoid ISO C++11 deprecation"
 							// To eliminate Clang++ warning: [-Wdeprecated].
 					),
 					+ "2 function templates %get for (class template \
@@ -7987,7 +7987,7 @@ b552
 				(
 					/ "protected member %Map" $=
 					(
-						/ "initialized" ^ "empty braced-init-list"
+						/ "initialized" ^ "braced-init-list '{}'"
 							~ "ctor-initializer",
 						=> "mBuffer"
 					),
@@ -8056,7 +8056,7 @@ b552
 			(
 				* "missing initialization of member %p_dirent"
 					@ "constructor with pathname parameter" $since b411,
-				/ DLD "initialized member %utf8_name" ^ "empty braced-init-list"
+				/ DLD "initialized member %utf8_name" ^ "braced-init-list '{}'"
 			),
 			/ "call %YConsoleInit for message with level less than \
 				%Descriptions::Alert" @ "platform %DS"
@@ -9726,7 +9726,7 @@ b539
 		),
 		/ @ "function template %boxed_value" @ %Utilities $=
 		(
-			* "missing exclusion of self type"
+			* $re_add(b454) "missing exclusion of self type"
 				@ "constructor template with 1 function parameter" $since b477
 				$= (/ "constructor template" -> "explicitly defaulted \
 					(default, copy, move) constructors and 2 constructor \
@@ -10313,7 +10313,8 @@ b535
 	(
 		/ %YDefinition $=
 		(
-			+ "macros %(__has_builtin; YB_ABORT; YB_ASSUME)",
+			+ $re_add(b484) "conditionally-defined macro %__has_builtin";
+			+ "macros %(YB_ABORT; YB_ASSUME)",
 			+ DLD "prefix '_'" @ "macro parameters"
 		),
 		/ @ "macro definitions %(yconstraint, yassume)" @ % CAssert $=
@@ -10321,7 +10322,7 @@ b535
 			/ "explicitly required exactly one macro parameter",
 			/ "expanded" ^ "%YB_ASSUME" @ "!defined %NDEBUG" $dep_from
 				"%YB_ASSUME"
-			/ "macro definition %YAssert" @ "!defined %YB_Use_YAssert" $=
+			/ "macro %YAssert" @ "!defined %YB_Use_YAssert" $=
 			(
 				/ "expanded" ^ "%yassume";
 				* $comp "wrong argument of %assert" $since b495
@@ -11468,10 +11469,10 @@ b521
 	(
 		/ @ "platform %Win32" @ %YCLib.NativeAPI $=
 		(
-			+ "macro definition %NOMINMAX when undefined before including \
+			+ "macro %NOMINMAX when undefined before including \
 				<Windows.h>",
 				// To get rid of macros %(min, max) pollution.
-			/ "macro definition %mkdir" -> '#undef mkdir',
+			/ "macro %mkdir" -> '#undef mkdir',
 			/ "function 'int makedir(char const* dir, ::mode_t)'"
 				@ "namespace %platform_replace"
 				-> "function 'int makedir(char const* dir, ::mode_t = 0777)'"
@@ -12484,14 +12485,17 @@ b512
 				+ DLD "fake caret to support IME candidate window locating";
 				+ "function %UpdateCandidateWindowLocation";
 				+ "window caret location caching";
-				+ "support of caret update by moving hosted window",
+				+ "support of caret update on moving the hosted window"
+					$= (+ "handler of window message %WM_MOVE"
+						^ "%UpdateCandidateWindowLocation"),
 					// Currently it works on Windows 7 but not on Windows 2012 \
 						R2.
 				+ "support of caret update on composing the input string";
 					// Ditto.
 				) $dep_to "hosted caret",
 				+ "function %BindDefaultWindowProc";
-				/ DLDI "simplified constructor" ^ "function %BindDefaultWindowProc"
+				/ DLDI "simplified constructor"
+					^ "function %BindDefaultWindowProc"
 			),
 			^ DLD "macro %YFM_DS_Helper_Shell_DS" @ %Shells
 		),
@@ -12846,7 +12850,7 @@ b507
 			* "pixel RGB component wrongly reversed" @ "platform %Android"
 				@ %Video $since b492
 			(
-				/ "macro definition %YCL_PIXEL_FORMAT_XYZ888 with value"
+				/ "macro %YCL_PIXEL_FORMAT_XYZ888 with value"
 					-> '0xAABBCCDD' ~ '0xAADDCCBB',
 				/ "alias-declaration %PixelType" -> "%RGBA<8, 8, 8, 8>"
 					~ "%BGRA<8, 8, 8, 8>",

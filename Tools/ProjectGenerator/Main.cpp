@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r836
+\version r843
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-18 20:45:11 +0800
 \par 修改时间:
-	2019-02-06 11:16 +0800
+	2019-02-14 11:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -204,8 +204,8 @@ InsertTargetNode(TermNode& term, const string& project,
 		}
 	}(!debug && bool(btype & BuildType::Executable) ? btype
 		| BuildType::GUI : btype));
-	auto child(TransformToSyntaxNode(TermNode(MakeAttributeLiteral("Target",
-		"title", bool(btype & BuildType::Static) ? target : target + "_DLL"))));
+	auto child(TransformToSyntaxNode(MakeAttributeLiteral("Target",
+		"title", bool(btype & BuildType::Static) ? target : target + "_DLL")));
 
 	if(!(platform.empty() || custom_makefile))
 	{
@@ -378,8 +378,7 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 
 	if(!custom_makefile)
 		handler = [&, btype](TermNode& tm, bool debug, bool is_static){
-			auto
-				child(TransformToSyntaxNode(TermNode(NodeLiteral("Compiler"))));
+			auto child(TransformToSyntaxNode(NodeLiteral("Compiler")));
 			const auto opt_add([&child](const string& str){
 				InsertAttributeNode(child, "Add", "option", str);
 			});
@@ -404,7 +403,7 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 			if(!debug || (project != "YBase"
 				&& !(project == "YFramework" && is_static)))
 			{
-				child = TransformToSyntaxNode(TermNode(NodeLiteral("Linker")));
+				child = TransformToSyntaxNode(NodeLiteral("Linker"));
 				if(!debug)
 					opt_add("-s");
 				if(project != "YBase")
@@ -465,7 +464,7 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 	}
 	if(!custom_makefile)
 	{
-		auto child(TransformToSyntaxNode(TermNode(NodeLiteral("Compiler"))));
+		auto child(TransformToSyntaxNode(NodeLiteral("Compiler")));
 		const auto opt_add([&child](const string& str){
 			InsertAttributeNode(child, "Add", "option", str);
 		});
@@ -499,7 +498,7 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 				"../../3rdparty/include", "../../3rdparty/freetype/include");
 		}
 		InsertChildSyntaxNode(proj, std::move(child));
-		child = TransformToSyntaxNode(TermNode(NodeLiteral("Linker")));
+		child = TransformToSyntaxNode(NodeLiteral("Linker"));
 		ystdex::seq_apply(opt_add, "-Wl,--gc-sections", "-pipe");
 		InsertChildSyntaxNode(proj, std::move(child));
 	}
