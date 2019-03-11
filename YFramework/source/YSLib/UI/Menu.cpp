@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1458
+\version r1464
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2016-02-12 00:42 +0800
+	2019-03-05 22:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -252,11 +252,15 @@ Menu::ShowSub(IndexType idx)
 	return {};
 }
 
-void
+bool
 Menu::TryShowingSub(IndexType idx)
 {
 	if(const auto p_mnu = ShowSub(idx))
+	{
 		p_mnu->SelectFirst();
+		return true;
+	}
+	return {};
 }
 
 void

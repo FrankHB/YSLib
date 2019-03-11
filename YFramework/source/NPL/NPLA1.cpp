@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r10122
+\version r10311
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2019-02-22 13:51 +0800
+	2019-03-11 16:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,15 +26,19 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA1 // for YSLib, ystdex::bind1, std::make_move_iterator,
-//	ystdex::value_or, shared_ptr, tuple, list, lref, vector, observer_ptr, set,
-//	owner_less, ystdex::erase_all, ystdex::as_const, NPL::make_observer,
-//	std::find_if, NPL::AllocateEnvironment, unordered_map, NPL::AccessPtr,
-//	YSLib::allocate_shared, ystdex::id, ystdex::cast_mutable, pair, share_move,
+#include YFM_NPL_NPLA1 // for YSLib, TokenValue, std::placeholders, IsBranch,
+//	NPL::AsTermNode, std::make_move_iterator, HasValue, ystdex::bind1,
+//	ContextHandler, Environment, shared_ptr, tuple, list, lref, observer_ptr,
+//	ystdex::value_or, vector, set, owner_less, ystdex::erase_all,
+//	ystdex::as_const, NPL::make_observer, std::find_if,
+//	NPL::AllocateEnvironment, NPL::TryAccessReferencedLeaf, unordered_map,
+//	NPL::TryAccessLeaf, YSLib::allocate_shared, ystdex::id,
+//	ystdex::cast_mutable, NPL::AccessPtr, pair, TermReference, share_move,
 //	ystdex::equality_comparable, std::allocator_arg, NoContainer,
-//	ystdex::exchange, NPL::SwitchToFreshEnvironment, ystdex::invoke_value_or,
-//	ystdex::call_value_or, ystdex::make_transform, in_place_type,
-//	ystdex::try_emplace, NPL::Access;
+//	ystdex::exchange, NPL::SwitchToFreshEnvironment, ResolveTerm, ResolveLeaf,
+//	ystdex::invoke_value_or, ystdex::call_value_or, ystdex::make_transform,
+//	in_place_type, ystdex::try_emplace, NPL::Access, ResolveIdentifier,
+//	NPL::TryAccessTerm, LiteralHandler, IsLeaf, NPL::TryAccessLeaf;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard, ystdex::swap_guard,
 //	ystdex::unique_guard;
 #include YFM_NPL_SContext // for Session;
@@ -256,13 +260,14 @@ PushActionsRange(EvaluationPasses::const_iterator first,
 {
 	if(first != last)
 	{
-		const auto& f(first->second);
-
-		++first;
 		// NOTE: Retrying is recognized from the result since 1st administrative
 		//	pass is reduced. The non-skipped administractive reductions are
 		//	reduced in the tail context, otherwise they are dropped by no-op.
 		if(ctx.LastStatus != ReductionStatus::Retrying)
+		{
+			const auto& f(first->second);
+
+			++first;
 			RelaySwitched(ctx, [=, &f, &term, &ctx]{
 				PushActionsRange(first, last, term, ctx);
 
@@ -273,6 +278,7 @@ PushActionsRange(EvaluationPasses::const_iterator first,
 						= CombineSequenceReductionResult(ctx.LastStatus, res);
 				return ctx.LastStatus;
 			});
+		}
 	}
 	else
 		ctx.LastStatus = ReductionStatus::Retained;
@@ -325,12 +331,14 @@ public:
 	lref<TermNode> Term;
 	//! \since build 821
 	mutable Reducer Next;
-	//! \since build 820
-	//@{
-	bool ReduceNestedAsync = {};
-	bool LiftCallResult = {};
 
 private:
+	//! \since build 854
+	//@{
+	bool req_combined = {};
+	bool req_lift_result = {};
+	bool req_retrying = {};
+	//@}
 	//! \since build 827
 	mutable list<ContextHandler> xgds{};
 
@@ -340,11 +348,10 @@ public:
 	mutable observer_ptr<const ContextHandler> LastFunction{};
 	//! \since build 829
 	mutable shared_ptr<Environment> TemporaryPtr{};
+	//! \since build 820
 	mutable EnvironmentGuard EnvGuard;
 	//! \since build 825
 	mutable FrameRecordList RecordList;
-	bool ReduceCombined = {};
-	//@}
 #		if YF_Impl_NPLA1_Enable_WeakExternalRoots
 	//! \since build 827
 	mutable set<weak_ptr<Environment>, owner_less<weak_ptr<Environment>>>
@@ -353,7 +360,7 @@ public:
  
 	//! \since build 819
 	TCOAction(ContextNode& ctx, TermNode& term, bool lift)
-		: Term(term), Next(ctx.Switch()), LiftCallResult(lift),
+		: Term(term), Next(ctx.Switch()), req_lift_result(lift),
 		xgds(ctx.get_allocator()), EnvGuard(ctx),
 		RecordList(ctx.get_allocator())
 #		if YF_Impl_NPLA1_Enable_WeakExternalRoots
@@ -365,9 +372,9 @@ public:
 	TCOAction(const TCOAction& a)
 		// XXX: Some members are moved. This is only safe when newly constructed
 		//	object always live longer than the older one.
-		: Term(a.Term), Next(a.Next), ReduceNestedAsync(a.ReduceNestedAsync),
-		LiftCallResult(a.LiftCallResult), xgds(std::move(a.xgds)),
-		EnvGuard(std::move(a.EnvGuard)), ReduceCombined(a.ReduceCombined)
+		: Term(a.Term), Next(a.Next), req_combined(a.req_combined),
+		req_lift_result(a.req_lift_result), req_retrying(a.req_retrying),
+		xgds(std::move(a.xgds)), EnvGuard(std::move(a.EnvGuard))
 #		if YF_Impl_NPLA1_Enable_WeakExternalRoots
 		, WeakEnvs(std::move(a.WeakEnvs))
 #		endif
@@ -383,10 +390,9 @@ public:
 
 		RelaySwitched(ctx, std::move(Next));
 
-		// NOTE: Lifting is optional. See also $2018-02
-		//	@ %Documentation::Workflow::Annual2018.
-		const auto res(LiftCallResult
-			? ReduceForClosureResultInContext(Term, ctx) : ctx.LastStatus);
+		// NOTE: Lifting is optional, but is shall be performed before release
+		//	of guards. See also $2018-02 @ %Documentation::Workflow::Annual2018.
+		const auto res(HandleResultLiftRequest(Term, ctx));
 
 		// NOTE: The order here is significant. The environment in the guards
 		//	should be hold until lifting is completed.
@@ -397,9 +403,9 @@ public:
 		}
 		while(!xgds.empty())
 			xgds.pop_back();
-		if(ReduceCombined)
+		if(req_combined)
 			RegularizeTerm(Term, res);
-		return ReduceNestedAsync ? ReductionStatus::Clean : res;
+		return req_retrying ? ReductionStatus::Retrying : res;
 	}
 
 	//! \since build 825
@@ -432,6 +438,18 @@ public:
 		}
 	}
 
+	//! \since build 854
+	ReductionStatus
+	HandleResultLiftRequest(TermNode& term, ContextNode& ctx) const
+	{
+		// NOTE: This implies the call of %RegularizeTerm before lifting. Since
+		//	the call of %RegularizeTerm is idempotent without term modification
+		//	before the next reduction of the term or some other term, there is
+		//	no need to call %RegularizeTerm if lift is not needed. 
+		return req_lift_result ? ReduceForClosureResultInContext(term, ctx)
+			: ctx.LastStatus;
+	}
+
 	//! \since build 825
 	YB_ATTR_nodiscard ContextHandler
 	MoveFunction()
@@ -450,6 +468,28 @@ public:
 		LastFunction = {};
 		return res;
 	}
+
+	//! \since build 854
+	//@{
+	void
+	RequestCombined()
+	{
+		req_combined = true;
+	}
+
+	void
+	RequestLiftResult()
+	{
+		req_lift_result = true;
+	}
+
+	void
+	RequestRetrying()
+	{
+		req_retrying = true,
+		CleanupOrphanTemporary();
+	}
+	//@}
 
 	//! \since build 844
 	void
@@ -539,6 +579,7 @@ DoAdministratives(const EvaluationPasses& passes, TermNode& term,
 	SetupNextTerm(ctx, term);
 	// XXX: Be cautious with overflow risks in call of %ContextNode::ApplyTail
 	//	when TCO is not enabled.
+	ctx.LastStatus = ReductionStatus::Partial;
 	PushActionsRange(passes.cbegin(), passes.cend(), term, ctx);
 	return ReductionStatus::Partial;
 #else
@@ -590,12 +631,12 @@ ReduceSequenceOrderedAsync(TermNode& term, ContextNode& ctx, TNIter i)
 #endif
 
 
-//! \since build 808
+//! \since build 854
 YB_ATTR_nodiscard YB_PURE bool
-ExtractBool(TermNode& term, bool is_and) ynothrow
+ExtractBool(TermNode& term, bool is_and)
 {
-	return ystdex::value_or(NPL::AccessTermPtr<bool>(ReferenceTerm(term)),
-		is_and) == is_and;
+	return ystdex::value_or(NPL::TryAccessReferencedLeaf<bool>(term), is_and)
+		== is_and;
 }
 
 //! \since build 753
@@ -664,8 +705,8 @@ private:
 	using shared_ptr_t = shared_ptr<ContextHandler>;
 	//! \since build 784
 	unordered_map<string, shared_ptr_t> store{};
-	//! \since build 847
-	shared_ptr_t p_default;
+	//! \since build 854
+	lref<ContextState> cs_ref;
 
 public:
 	//! \since build 840
@@ -673,10 +714,9 @@ public:
 	//! \since build 840
 	lref<const TermNode> Term;
 
-	//! \since build 787
-	//@{
-	RecursiveThunk(Environment& env, const TermNode& t)
-		: Record(env), Term(t)
+	//! \since build 854
+	RecursiveThunk(ContextState& cs, const TermNode& t)
+		: cs_ref(cs), Record(cs.GetRecordRef()), Term(t)
 	{
 		Fix(Record, Term);
 	}
@@ -694,7 +734,7 @@ private:
 		if(IsBranch(t))
 			for(const auto& tm : t)
 				Fix(env, tm);
-		else if(const auto p = NPL::AccessPtr<TokenValue>(t))
+		else if(const auto p = NPL::TryAccessLeaf<TokenValue>(t))
 		{
 			const auto& n(*p);
 
@@ -711,13 +751,14 @@ private:
 		}
 	}
 
+	//! \since build 787
 	void
 	Restore(Environment& env, const TermNode& t)
 	{
 		if(IsBranch(t))
 			for(const auto& tm : t)
 				Restore(env, tm);
-		else if(const auto p = NPL::AccessPtr<TokenValue>(t))
+		else if(const auto p = NPL::TryAccessLeaf<TokenValue>(t))
 			FilterExceptions([&]{
 				const auto& n(*p);
 				auto& v(env[n].Value);
@@ -1017,12 +1058,6 @@ struct RecordCompressor final
 //! \since build 842
 //@{
 void
-UpdateFusedAction(TCOAction& fused_act, EnvironmentGuard& gd)
-{
-	fused_act.EnvGuard = std::move(gd);
-}
-
-void
 CompressTCOFramesForSavedEnvironment(ContextNode& ctx, TCOAction& act,
 	Environment& saved)
 {
@@ -1253,17 +1288,20 @@ RelayForEval(ContextNode& ctx, TermNode& term, bool move, TermNode& expr,
 			//	without an environment).
 		}
 		else
-			UpdateFusedAction(act, gd);
+			act.EnvGuard = std::move(gd);
 		add_rec({});
 	}();
 	set_expr();
+	// NOTE: The lift is handled according to the previous status of
+	//	%act.LiftCallResult, rather than %no_lift.
+	act.HandleResultLiftRequest(term, ctx);
+	// NOTE: The %act.LiftCallResult indicates a request for handling during
+	//	next time (by %TCOAction::HandleResultLiftRequest call above before the
+	//	last one) before %TCOAction is finished. The last request would be
+	//	handled by %TCOAction::operator(), which also calls
+	//	%TCOAction::HandleResultLiftRequest.
 	if(!no_lift)
-	{
-		if(act.LiftCallResult)
-			ReduceForClosureResultInContext(term, ctx);
-		else
-			act.LiftCallResult = true;
-	}
+		act.RequestLiftResult();
 	return RelaySwitchedUnchecked(ctx, Continuation(ReduceChecked, ctx));
 #elif YF_Impl_NPLA1_Enable_Thunked
 	set_expr();
@@ -1308,12 +1346,13 @@ RelayForCall(ContextNode& ctx, TermNode& term, bool move, TermNode& closure,
 	SetExpressionToReduce(term, closure, move);
 	return RelayForAction(a, ctx, term, no_lift);
 #else
+	// NOTE: With TCO, the operand should have been saved before binding.
 #	if !YF_Impl_NPLA1_Enable_TCO
 	// NOTE: It is necessary to keep the operand alive for function calls.
 	const auto operand_l(std::move(term.GetContainerRef()));
 	const auto operand_v(std::move(term.Value));
-#	endif
 
+#	endif
 	return RelayForEval(ctx, term, move, closure, std::move(gd), no_lift);
 #endif
 }
@@ -1326,7 +1365,7 @@ EvalImplUnchecked(TermNode& term, ContextNode& ctx, bool no_lift)
 {
 	auto i(std::next(term.begin()));
 	const auto term_args([](TermNode& expr) -> pair<bool, lref<TermNode>>{
-		if(const auto p = NPL::AccessPtr<const TermReference>(expr))
+		if(const auto p = NPL::TryAccessTerm<const TermReference>(expr))
 			return {{}, p->get()};
 		return {true, expr};
 	}(Deref(i)));
@@ -1355,8 +1394,8 @@ EvalStringImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 	Forms::RetainN(term, 2);
 
 	auto& expr(Deref(std::next(term.begin())));
-	auto unit(SContext::Analyze(Session(NPL::AccessTerm<const string>(expr)),
-		term.get_allocator()));
+	auto unit(SContext::Analyze(Session(
+		NPL::AccessRegularValue<const string>(expr)), term.get_allocator()));
 
 	unit.SwapContainer(expr);
 	return EvalImplUnchecked(term, ctx, no_lift);
@@ -1553,15 +1592,15 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	static_assert(sizeof...(args) < 2, "Unsupported owner arguments found.");
 
 #if YF_Impl_NPLA1_Enable_TCO
-	auto& fused_act(EnsureTCOAction(ctx, term));
-	auto& lf(fused_act.LastFunction);
+	auto& act(EnsureTCOAction(ctx, term));
+	auto& lf(act.LastFunction);
 
 	lf = {};
 	// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
 	//	error: Segmentation fault.
 	yunseq(0, (lf = NPL::make_observer(
-		&fused_act.AttachFunction(std::forward<_tParams>(args)).get()), 0)...);
-	fused_act.ReduceCombined = true;
+		&act.AttachFunction(std::forward<_tParams>(args)).get()), 0)...);
+	act.RequestCombined();
 	SetupNextTerm(ctx, term);
 	return
 		RelaySwitchedUnchecked(ctx, Continuation(std::ref(lf ? *lf : h), ctx));
@@ -1676,7 +1715,7 @@ SetFirstImpl(TermNode& term, bool by_val)
 		// XXX: How to simplify? Merge with %BindParameterObject?
 		if([&]() -> bool{
 			// XXX: Assume value representation of %nd is regular.
-			if(const auto p = NPL::AccessPtr<const TermReference>(nd))
+			if(const auto p = NPL::TryAccessTerm<const TermReference>(nd))
 			{
 				if(by_val)
 					head.SetContent(p->get());
@@ -1698,7 +1737,7 @@ void
 SetRestImpl(TermNode& term, void(*lift)(TermNode&))
 {
 	SetFirstRest([lift](TermNode& node, TermNode& tm){
-		ResolveTerm([&, lift](TermNode& nd, bool has_ref){
+		ResolveLeaf([&, lift](TermNode& nd, bool has_ref){
 			// XXX: How to simplify? Merge with %BindParameterObject?
 			if(IsList(nd))
 			{
@@ -1808,7 +1847,7 @@ struct BindParameterObject
 		//	retained are also transferred.
 		// TODO: Support xvalues as currently rvalue references are not
 		//	distinguished here.
-		if(const auto p = NPL::AccessPtr<const TermReference>(b))
+		if(const auto p = NPL::TryAccessTerm<const TermReference>(b))
 		{
 			if(sigil == char())
 				// NOTE: Since it is passed by value copy, direct destructive
@@ -1895,9 +1934,9 @@ public:
 	operator()(TermNode& term) const
 	{
 		Forms::CallUnary([this](TermNode& tm) YB_PURE{
-			return Encapsulation(GetType(),
-				ystdex::invoke_value_or(&TermReference::get,
-				NPL::AccessTermPtr<const TermReference>(tm), std::move(tm)));
+			return Encapsulation(GetType(), ystdex::invoke_value_or(
+				&TermReference::get, NPL::TryAccessReferencedLeaf<
+				const TermReference>(tm), std::move(tm)));
 		}, term);
 	}
 };
@@ -1918,11 +1957,11 @@ public:
 	void
 	operator()(TermNode& term) const
 	{
-		Forms::CallUnary([this](TermNode& tm) YB_PURE ynothrow -> bool{
+		Forms::CallUnary([this](TermNode& tm) YB_PURE -> bool{
 			return ystdex::call_value_or(
 				[this](const Encapsulation& enc) YB_PURE ynothrow{
 				return Get() == enc.Get();
-			}, NPL::AccessTermPtr<Encapsulation>(tm));
+			}, NPL::TryAccessReferencedLeaf<Encapsulation>(tm));
 		}, term);
 	}
 };
@@ -2018,11 +2057,7 @@ ReduceAgain(TermNode& term, ContextNode& ctx)
 
 	SetupNextTerm(ctx, term);
 #	if YF_Impl_NPLA1_Enable_TCO
-
-	auto& act(EnsureTCOAction(ctx, term));
-
-	act.ReduceNestedAsync = true,
-	act.CleanupOrphanTemporary();
+	EnsureTCOAction(ctx, term).RequestRetrying();
 	return RelaySwitchedUnchecked(ctx, std::move(reduce_again));
 #	else
 	return RelayNext(ctx, std::move(reduce_again),
@@ -2124,16 +2159,16 @@ ReduceFirst(TermNode& term, ContextNode& ctx)
 }
 
 ReductionStatus
-ReduceOnce(TermNode& term, ContextNode& cb)
+ReduceOnce(TermNode& term, ContextNode& ctx)
 {
-	auto& ctx(ystdex::polymorphic_downcast<ContextState&>(cb));
+	auto& cb(ystdex::polymorphic_downcast<ContextState&>(ctx));
 
 	if(IsBranch(term))
 	{
 		YAssert(term.size() != 0, "Invalid node found.");
 		if(term.size() != 1)
 			// NOTE: List evaluation.
-			return DoAdministratives(ctx.EvaluateList, term, ctx);
+			return DoAdministratives(cb.EvaluateList, term, ctx);
 		else
 		{
 			// NOTE: List with single element shall be reduced as the
@@ -2150,7 +2185,7 @@ ReduceOnce(TermNode& term, ContextNode& cb)
 	// NOTE: The reduction relies on proper handling of reduction status and
 	//	proper tail action for the thunked implementations.
 	return tp != ystdex::type_id<void>() && tp != ystdex::type_id<ValueToken>()
-		? DoAdministratives(ctx.EvaluateLeaf, term, ctx)
+		? DoAdministratives(cb.EvaluateLeaf, term, ctx)
 		: ReductionStatus::Clean;
 }
 
@@ -2265,23 +2300,10 @@ ReductionStatus
 FormContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 {
 	auto cont([this](TermNode& t, ContextNode& c) -> ReductionStatus{
-		// XXX: Is it worth matching specific builtin special forms here?
-		// FIXME: Exception filtering does not work well with thunks.
-		try
-		{
-			if(!Check || Check(t))
-				return Handler(t, c);
-			// XXX: Use more specific exception type?
-			throw std::invalid_argument("Term check failed.");
-		}
-		CatchExpr(NPLException&, throw)
-		// TODO: Use semantic exceptions.
-		CatchThrow(bad_any_cast& e, LoggedEvent(ystdex::sfmt(
-			"Mismatched types ('%s', '%s') found.", e.from(), e.to()), Warning))
-		// TODO: Use nested exceptions?
-		CatchThrow(std::exception& e, LoggedEvent(e.what(), Err))
-		// XXX: Use distinct status for failure?
-		return ReductionStatus::Clean;
+		if(!Check || Check(t))
+			return Handler(t, c);
+		// XXX: Use more specific exception type?
+		throw std::invalid_argument("Term check failed.");
 	});
 
 #if YF_Impl_NPLA1_Enable_Thunked
@@ -2335,7 +2357,7 @@ EvaluateDelayed(TermNode& term)
 {
 	return ystdex::call_value_or([&](DelayedTerm& delayed){
 		return EvaluateDelayed(term, delayed);
-	}, NPL::AccessPtr<DelayedTerm>(term), ReductionStatus::Clean);
+	}, NPL::TryAccessTerm<DelayedTerm>(term), ReductionStatus::Clean);
 }
 ReductionStatus
 EvaluateDelayed(TermNode& term, DelayedTerm& delayed)
@@ -2360,11 +2382,13 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 	//	invalid reference after rebinding would cause undefined behavior in the
 	//	object language.
 	auto t_pr(ResolveIdentifier(ctx, id));
+	auto& t_ref(t_pr.first);
+	auto& term_ref(t_ref.get());
 
-	term.Value = TermReference(t_pr.second, std::move(t_pr.first));
+	term.Value = TermReference(t_pr.second, std::move(t_ref));
 	// NOTE: This is not guaranteed to be saved as %ContextHandler in
 	//	%ReduceCombined.
-	if(const auto p_handler = NPL::AccessTermPtr<LiteralHandler>(term))
+	if(const auto p_handler = NPL::TryAccessTerm<LiteralHandler>(term_ref))
 		return (*p_handler)(ctx);
 	// NOTE: Unevaluated term shall be detected and evaluated. See also
 	//	$2017-05 @ %Documentation::Workflow::Annual2017.
@@ -2425,31 +2449,34 @@ ReduceCombined(TermNode& term, ContextNode& ctx)
 	{
 		auto& fm(Deref(term.begin()));
 
-		// NOTE: This is neutral to thunks.
-		if(const auto p_handler = NPL::AccessPtr<ContextHandler>(fm))
-#if YF_Impl_NPLA1_Enable_Thunked
+		if(IsLeaf(fm))
 		{
+			if(const auto p_handler = NPL::TryAccessLeaf<ContextHandler>(fm))
+#if YF_Impl_NPLA1_Enable_Thunked
+			{
 #	if YF_Impl_NPLA1_Enable_TCO
-			return CombinerReturnThunk(*p_handler, term, ctx,
-				std::move(*p_handler));
+				return CombinerReturnThunk(*p_handler, term, ctx,
+					std::move(*p_handler));
 #	else
-			// XXX: Optimize for performance using context-dependent store?
-			// XXX: This should ideally be a member of handler. However, it
-			//	makes no sense before allowing %ContextHandler overload for
-			//	ref-qualifier '&&'.
-			auto p(share_move(ctx.get_allocator(), *p_handler));
+				// XXX: Optimize for performance using context-dependent store?
+				// XXX: This should ideally be a member of handler. However, it
+				//	makes no sense before allowing %ContextHandler overload for
+				//	ref-qualifier '&&'.
+				auto p(share_move(ctx.get_allocator(), *p_handler));
 
-			return CombinerReturnThunk(*p, term, ctx, std::move(p));
+				return CombinerReturnThunk(*p, term, ctx, std::move(p));
 #	endif
-		}
+			}
 #else
-			return CombinerReturnThunk(ContextHandler(std::move(*p_handler)),
-				term, ctx);
+				return CombinerReturnThunk(
+					ContextHandler(std::move(*p_handler)), term, ctx);
 #endif
-		if(const auto p_handler = NPL::AccessTermPtr<ContextHandler>(fm))
-			return CombinerReturnThunk(*p_handler, term, ctx);
-		ResolveTerm(
-			[&](const TermNode& nd, bool has_ref) YB_ATTR(noreturn){
+			// NOTE: This is neutral to thunks.
+			if(const auto p_handler
+				= NPL::TryAccessReferencedLeaf<ContextHandler>(fm))
+				return CombinerReturnThunk(*p_handler, term, ctx);
+		}
+		ResolveLeaf([&](const TermNode& nd, bool has_ref) YB_ATTR(noreturn){
 			// TODO: Capture contextual information in error.
 			// TODO: Extract general form information extractor function.
 			throw ListReductionFailure(ystdex::sfmt("No matching combiner '%s'"
@@ -2498,6 +2525,18 @@ REPLContext::REPLContext(bool trace, YSLib::pmr::memory_resource& rsrc)
 		SetupTraceDepth(Root);
 }
 
+ReductionStatus
+REPLContext::ReduceAndFilter(TermNode& term, ContextNode& ctx)
+{
+	TryRet(Reduce(term, ctx))
+	CatchExpr(NPLException&, throw)
+	// TODO: Use semantic exceptions.
+	CatchThrow(bad_any_cast& e, LoggedEvent(ystdex::sfmt(
+		"Mismatched types ('%s', '%s') found.", e.from(), e.to()), Warning))
+	// TODO: Use nested exceptions?
+	CatchThrow(std::exception& e, LoggedEvent(e.what(), Err))
+}
+
 TermNode
 REPLContext::Perform(string_view unit, ContextNode& ctx)
 {
@@ -2534,7 +2573,7 @@ void
 REPLContext::Process(TermNode& term, ContextNode& ctx) const
 {
 	Prepare(term);
-	Reduce(term, ctx);
+	ReduceAndFilter(term, ctx);
 }
 
 TermNode
@@ -2675,7 +2714,7 @@ MatchParameter(const TermNode& t, TermNode& o, function<void(TNIter,
 
 			if(IsLeaf(back) && ReferenceTerm(back))
 			{
-				if(const auto p = NPL::AccessPtr<TokenValue>(back))
+				if(const auto p = NPL::TryAccessLeaf<TokenValue>(back))
 				{
 					if(!p->empty() && p->front() == '.')
 						--last;
@@ -2723,7 +2762,7 @@ MatchParameter(const TermNode& t, TermNode& o, function<void(TNIter,
 			if(match_branch(a, last != t.end(), copy))
 				YAssert(++last == t.end(), "Invalid state found.");
 		});
-		if(const auto p = NPL::AccessPtr<const TermReference>(o))
+		if(const auto p = NPL::TryAccessTerm<const TermReference>(o))
 			// XXX: There is only one level of indirection. It should work if
 			//	reference collapse is correctly implemented.
 			match_operand_branch(p->get(), true);
@@ -2737,7 +2776,7 @@ MatchParameter(const TermNode& t, TermNode& o, function<void(TNIter,
 					" value '%s' found for empty list parameter.",
 					TermToStringWithReferenceMark(nd, has_ref).c_str()));
 		}, o);
-	else if(const auto p = NPL::AccessPtr<TokenValue>(t))
+	else if(const auto p = NPL::TryAccessTerm<TokenValue>(t))
 		bind_value(*p, o, o_copy);
 	else
 		throw ParameterMismatch(ystdex::sfmt(
@@ -2787,10 +2826,8 @@ DefineWithRecursion(TermNode& term, ContextNode& ctx)
 #if YF_Impl_NPLA1_Enable_Thunked
 	DoDefine(term, [&](TermNode& formals){
 		auto p_saved(ShareMoveTerm(formals));
-		// TODO: Avoid %shared_ptr.
-		auto p_thunk(YSLib::allocate_shared<RecursiveThunk>(
-			term.get_allocator(), ctx.GetRecordRef(), *p_saved));
 
+		// TODO: Avoid %shared_ptr.
 		// TODO: Blocked. Use C++14 lambda initializers to simplify
 		//	implementation.
 		return ReduceSubsequent(term, ctx, std::bind([&](const
@@ -2802,7 +2839,8 @@ DefineWithRecursion(TermNode& term, ContextNode& ctx)
 			p_gd->Commit();
 			return DoDefineReturn(term);
 		}, std::move(p_saved), YSLib::allocate_shared<RecursiveThunk>(
-			term.get_allocator(), ctx.GetRecordRef(), *p_saved)));
+			term.get_allocator(),
+			ystdex::polymorphic_downcast<ContextState&>(ctx), *p_saved)));
 	});
 	return ReductionStatus::Partial;
 #else
@@ -2826,7 +2864,7 @@ Undefine(TermNode& term, ContextNode& ctx, bool forced)
 	Retain(term);
 	if(term.size() == 2)
 	{
-		const auto& n(NPL::AccessTerm<const TokenValue>(
+		const auto& n(NPL::AccessRegularValue<const TokenValue>(
 			Deref(std::next(term.begin()))));
 
 		if(IsNPLASymbol(n))
@@ -3091,7 +3129,7 @@ ValueOf(TermNode& term, const ContextNode& ctx)
 {
 	RetainN(term);
 	LiftToOther(term, Deref(std::next(term.begin())));
-	if(const auto p_id = NPL::AccessPtr<string>(term))
+	if(const auto p_id = NPL::TryAccessTerm<string>(term))
 		TryRet(EvaluateIdentifier(term, ctx, *p_id))
 		CatchIgnore(BadIdentifier&)
 	term.Value = ValueToken::Null;

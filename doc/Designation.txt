@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2018 FrankHB.
+	© 2009-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 项目设计规则指定和说明。
-\version r9895
+\version r9899
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2018-07-10 22:05 +0800
+	2019-03-11 16:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -166,13 +166,13 @@ YSLib 基于基本的底层系统接口（由 YFramework/YCLib[Documentation::YC
 
 @3.1 类 C 标准库接口：
 
-@3.1.1 内存管理行为：
-接口不符合无隐式 malloc 规则 [Documentation::LanguageConvention @@5.25.3.1] 时必须向用户明确存储所有权。
+@3.1.1 资源管理行为：
+接口不符合无隐式动态分配规则 [Documentation::LanguageConvention @@6.3.1] 时必须向用户明确存储所有权。
 
 @3.2 C++ 函数和函数模板：
 
 @3.2.1 成员最小接口：
-为了利用以类为单位的封装性（包括访问权限控制），一般类内的成员函数以最小接口为主，而人本接口在类外紧接类定义声明为第一个参数为类的引用类型的非成员函数。
+为了利用以类为单位的封装性（包括访问权限控制），一般类内的成员函数以最小接口为主，而人本接口在类外紧接类定义声明为第一参数为类的引用类型的非成员函数。
 可以适当使用友元简化接口和实现。
 
 @3.2.2 函数参数和返回类型：

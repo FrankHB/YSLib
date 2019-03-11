@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r11232
+\version r11542
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-02-22 14:34 +0800
+	2019-03-11 16:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,316 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Any $=
+		(
+			/ @ "namespace %any_ops" $=
+			(
+				/ @ "function template %pointer_holder" $=
+				(
+					+ "assertion to ensure pointer has nonnull value"
+						@ "constructor";
+					+ $dev $lib 'YB_ATTR_returns_nonnull' @ "function %get"
+				);
+				/ $doc "%base_op::get_ptr guaranteed result as non-void \
+					pointers",
+				+ $dev $lib 'YB_ATTR_returns_nonnull' @ "function %get"
+					@ "class %holder"
+			),
+			/ @ "class %any" $=
+			(
+				* "ill-formed result" @ "function templates %emplace"
+					$since b848,
+				+ $dev $lib 'YB_ATTR_returns_nonnull'
+					@ "function %unchecked_get" $dep_from "%any_ops",
+				+ DLDI 'ynothrow' @ "internal getter",
+				(
+				* DD "wrong Doxygen group %YBase_replacement_features for \
+					%taget" $since b847
+					$= (/ DD ^ "%YBase_replacement_extensions"
+						~ "%YBase_replacement_features");
+				/ "all 2 %target" => "%try_get_object_ptr" $dep_from
+					"function templates %ystdex::any_cast with reference \
+					parameter"
+				),
+				+ "2 function templates %get_object_ptr"
+			),
+			+ $dev $lib 'YB_ATTR_returns_nonnull' @ "function templates \
+				%unchecked_any_cast" $dep_from "%any::unchecked_get",
+			/ "function templates %any_cast with reference parameter supported \
+				throwing from holders"
+				^ $dep_from "%any::try_get_object_ptr" ~ "%any::target",
+			/ $forced DLDI "function templates %any_cast with pointer parameter"
+				^ $dep_from "%any::try_get_object_ptr" $dep_from "%any::target"
+		),
+		/ $forced DLDI "function templates %target"
+			@ "class template %function_base" @ %Function ^ $dep_from
+			("%any::try_get_object_ptr" @ %Any) $dep_from "%any::target",
+		/ @ "class template %any_iterator" @ %AnyIterator $=
+		(
+			+ 'using any::get_object_ptr;' $dep_from
+				("%any::get_object_ptr" @ %Any)
+			/ $forced 'using any::target;' -> 'using any::try_get_object_ptr;'
+				^ $dep_from ("%any::try_get_object_ptr" @ Any) ~ "%any::target"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Core.YObject $=
+			(
+				/ @ "function %get"
+					@ "class templates %(ValueHolder, AllocatorHolder)" $=
+				(
+					+ $dev $lib 'YB_ATTR_returns_nonnull',
+					+ 'ynothrow'
+				),
+				+ "2 function templates %IsNullPointer",
+				/ @ "class template %PointerHolder" $=
+				(
+					/ "function %type" ^ $dep_from "%YSLib::IsNullPointer"
+						~ "%traits_type::is_owner",
+						// See $2019-03 @ %Documentation::Workflow::Annual2019.
+					/ @ "function %get" $=
+					(
+						+ $dev $lib 'YB_ATTR_returns_nonnull',
+						+ "assertion to ensure nonnull return value"
+					)
+				)
+			),
+			/ @ "member function %Menu::TryShowingSub" @ %UI.Menu $=
+			(
+				+ "return value of %bool representing operation performed";
+				* $comp $dev "missing conventional return value"
+					$mismatch(Documentation.CommonRules) $since b846
+					// A function named 'Try*' shall return a value.
+			)
+		),
+		/ %NPL $=
+		(
+			* "wrong 'ynothrow'" @ "all 2 function templates %Access with \
+				%TermNode parameter" @ %SContext $since b852,
+			/ %NPLA $=
+			(
+				/ @ "all 2 functions %ReferenceTerm" $=
+				(
+					+ 'ynothrow',
+					/ DLDI "simplified"
+						^ ("%ystdex::invoke_value_or", "%TermReference::get")
+						~ ("%ystdex::call_value_or", "lambda-expression")
+				),
+				/ @ "function template %operator()" @ "struct %ReferenceTermOp"
+					$=
+				(
+					+ 'ynothrow' $dep_from "%ReferenceTerm",
+					* "missing qualified with 'NPL::' at the call \
+						%ReferenceTerm" $since b801
+				),
+				(
+				+ "2 functions %TryAccessLeaf";
+				(
+				/ @ "all 2 function templates %AccessTermPtr"
+					-> "%TryAccessTerm" ^ "%TryAccessLeaf" $=
+				(
+					- "call of %ReferenceTerm",
+						// This now requires external check.
+					(
+					- 'ynothrow';
+					* $comp $lib "wrong 'ynothrow'" $since b800,
+						// Call of %ReferenceTerm also did not provide \
+							guarantee at interface level previously.
+					/ "made exception neutral to exceptions thrown by value \
+						holders" ^ "%(YSLib::Access, std::addressof, \
+						NPL::make_observer)" ~ "%YSLib::AccessPtr"
+						$dep_from %SContext
+					),
+					+ $re_add(b840) "%IsList check"
+						// They are now checked like the old %AccessTerm \
+							overloads but without \
+							%ThrowListTypeErrorForInvalidType call.
+				);
+				+ "2 function templates %TryAccessReferencedLeaf"
+					^ "%(TryAccessTerm, ReferenceTerm)",
+				/ "enhanced handling to corruptied values and non-leaf values"
+					@ "function %TermToNamePtr"
+					^ "%NPL::TryAccessTerm" ~ "%NPL::AccessPtr"
+					$dep_to "enhanced handling to corruptied values",
+				+ "2 function templates %ResolveLeaf" ^ "%NPL::TryAccessLeaf"
+				),
+				/ ("enhanced handling to corruptied values and supported to \
+					check list term" @ ("all 2 function templates %ResolveTerm";
+					$comp "function %ResolveEnvironment#2"),
+					"enhanced handling to corruptied values and limited \
+					reference handling to the regularized form"
+					@ ("all 2 functions %(Collapse, ReferenceTerm)",
+					("function %LiftTermOnRef"; $comp "functions \
+					%(LiftToReference, (LiftTermRefToSelf; LiftToReturn, \
+					LiftToSelf, LiftToOther))"))) ^ "%NPL::TryAccessTerm"
+					~ "%NPL::AccessPtr" $dep_to
+					"enhanced handling to corruptied values",
+				),
+				/ $dev "split constructor with %bool and %TermReference \
+					parameter" -> "2 constructors with 2nd parameter as \
+					'const TermReference&' and 'TermReference&&'",
+					// To decrease cost of reference count of the anchor \
+						pointer as possible.
+				/ DLDI "simplified function %IsLValueTerm"
+					^ "%ystdex::invoke_value_or"
+					~ ("%ystdex::call_value_or", "%std::mem_fn"),
+				/ "all 2 function templates %AccessTerm"
+					=> "%AccessRegularValue",
+				(
+				+ "function %HasReferenceValue";
+					// This is same to the old %IsReferenceTerm. It is usually \
+						not to be directly bound as a primitive in the object \
+						language.
+				/ "constructors %TermReference#(1, 2)" ^ "%HasReferenceValue"
+					~ "%IsReferenceTerm"
+				),
+				+ "function %(IsLValueLeaf, IsReferenceLeaf)",
+				/ "enhanced handling to corruptied values"
+					@ ("function %IsLValueTerm", "function %IsReferenceTerm"
+					$dep_from "constructors %TermReference")
+					$dep_to "enhanced handling to corruptied values" $=
+				(
+					- 'ynothrow';
+					/ $impl ^ "%"
+				),
+				/ $comp "enhanced handling to corruptied values"
+					@ "function %ThrowListTypeErrorForInvalidType"
+					$dep_from "%IsReferenceTerm" $dep_to
+					"enhanced handling to corruptied values",
+				/ @ "class %ContextNode" $=
+				(
+					/ "reordered data members %Current and %Delimited",
+						// Delimited actions should live longer.
+					(
+					/ "friend function %swap swapped %(Delimited, Current, \
+						LastStatus)";
+					/ $comp "move constructor moved all data members"
+					)
+				)
+			),
+			/ %NPLA1 $=
+			(
+				* "missing cleanup if the result term is not lifted" @ "TCO"
+					@ "functions %(ReduceCombined, Forms::(Eval, EvalRef))"
+					$orig (@ "function %ReduceCheckedClosure" $since b821),
+				/ DLI "reduced unnecessary operation of iterators"
+					@ "admistrative handling with thunked code",
+				(
+				* "missing insulation of last reduction status before 1st \
+					administrative action" $since b842 $=
+					(/ "insulated by %ReductionStatus::Partial");
+					// This is necessary to make full evaluations immune from \
+						%ReductionStatus::Retrying.
+				* "missing skipping next administrative actions for nested \
+					asynchronous by returning %ReductionStatus::Retrying"
+					@ "TCO Action for function %ReduceAgain" $since b841;
+					// After the removal of \
+						%ContextNode::SkipToNextEvaluation, this would wrongly \
+						return %ReductionStatus::Clean, although it would not \
+						make obvious differences in results.
+				* $comp "reduction status wrongly overwritten to \
+					%ReductionStatus::Clean unconditionally at end of TCO \
+					action when call %ReduceAgain" $since b820
+				),
+				/ DLDI "simplified guard update" @ "TCO",
+				/ @ "namespace %Forms" $=
+				(
+					/ DLDI "simplified inner function"
+						@ "functions %(SetRest, SetRestRef)"
+						^ $dep_from ("%ResolveLeaf" @ %NPLA) ~ "%ResolveTerm",
+					/ "enhanced handling to corruptied values" @ "functions \
+						%(DefinedWithRecursion, MatchParameter)" ^ $dep_from
+						("%NPL::TryAccessLeaf" @ %NPLA) ~ "%NPL::AccessPtr"
+						$dep_to
+						"enhanced handling to corruptied values"
+				),
+				(
+				/ $forced "enhanced handling to corruptied values"
+					@ "%functions %(Forms::(And, If, MakeEncapsulationType, \
+					Or), ReduceCombined)"
+					^ $dep_from ("%NPL::TryAccessReferencedLeaf" @ %NPLA)
+					$dep_from ("%NPL::AccessTermPtr" @ %NPLA) $dep_to
+					"enhanced handling to corruptied values";
+				/ $comp "avoided redundant call to %ReferenceTerm"
+					@ "functions %Forms(And, If, Or)"
+				),
+				/ $forced "enhanced handling to corruptied values"
+					@ "%function %EvaluateIdentifier"
+					^ $dep_from ("%NPL::TryAccessTerm" @ %NPLA)
+					$dep_from ("%NPL::AccessTermPtr" @ %NPLA) $dep_to
+					"enhanced handling to corruptied values",
+				/ @ "function %ReduceCombined" $=
+				(
+					(
+					/ "filtered out non-leaf nodes at first" ^ "%IsLeaf";
+					/ DLDI "improved rvalue access" ^ $dep_from
+						("%NPL::TryAccessLeaf" @ %NPLA) ~ "%NPL::AccessPtr"
+					),
+					/ DLDI "simplified throwing"
+						^ $dep_from ("%ResolveLeaf" @ %NPLA) ~ "%ResolveTerm"
+				),
+				/ "enhanced handling to corruptied values" @ "functions \
+					%(Forms::(Eval, EvalRef, SetFirst, SetFirstRef, \
+					BindParameter, MatchParameter, ValueOf), EvaluateDelayed#1)"
+					^ $dep_from ("%NPL::TryAccessTerm" @ %NPLA)
+					~ "%NPL::AccessPtr" $dep_to
+					"enhanced handling to corruptied values",
+				(
+				/ "exception filtering" @ "member function \
+					%FormContextHandler::operator()"
+					-> "static member function %REPLContext::ReduceAndFilter",
+				/ "all %Reduce call except in %REPLContext::ReduceAndFilter"
+					@ "class %REPLContext" -> "%ReduceAndFilter calls";
+				/ $comp "avoided %FormContextHandler filter difference \
+					exceptions to code within other contexts",
+					// For example, when %ReduceCombined meets a %bad_weak_ptr \
+						exception thrown, it now will not terminate in the \
+						REPL once %LoggedEvent is handled properly.
+				* $comp "exception filtering in function application did not \
+					fully supported to work with thunked asynchrnous actions"
+					$since b809
+					// Although the external work is still to be done \
+						elsewhere, the inner reduction should now be consistent.
+				)
+			),
+			/ %Dependency $=
+			(
+				/ @ "function %LoadGroundContext" $=
+				(
+					/ @ "derivation of applicative 'copy-environment'"
+					(
+						* "environment object in bindings directly copied as \
+							%Environment objects" $orig (@
+							"function %LoadNPLContextForSHBuild" $since b794),
+						/ DLI "improved copy bindings without create an \
+							%Environment object unconditionally"
+							^ "%NPL::AllocateEnvironment"
+					),
+					+ "applicative 'deshare'",
+					/ DLDI "simplified native applicatives %(id, idv)"
+				),
+				/ $forced "enhanced handling to corruptied values"
+					@ "derivation of applicative 'bound?'"
+					@ "function %LoadModule_std_environments"
+					^ $dep_from ("%TryAccessReferencedLeaf" @ %NPLA)
+					$dep_from ("%NPL::AccessTermPtr" @ %NPLA),
+				/ $comp "derivation of various functions supported corruptied \
+					values detection" ($dep_all_from "enhanced handling to \
+					corruptied values", $dep_from ("%any::any_cast"
+					@ %YBase.YStandardEx.Any, "%PointerHolder"
+					@ %YSLib.Core.YObject))
+			)
+		)
+	)
+),
+
+b853
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -345,7 +655,7 @@ $now
 							$since b784,
 						* "crash on referencing duplicated symbols in the \
 							parameter tree during evaluation of expression"
-							@ "function %DefineWithRecursion" $since b780,
+							$since b780,
 							// For example, '$defrec! (a a) list a a' would \
 								crash, but '$defrec! (a a) list 1 1' would not.
 						/ DLI "simplified by avoiding assignment to duplicate \

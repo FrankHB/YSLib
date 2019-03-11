@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r4453
+\version r4585
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2019-02-22 13:59 +0800
+	2019-03-09 01:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,7 +83,7 @@ public:
 	//@}
 
 	//! \since build 348
-	YB_ATTR_nodiscard YB_PURE virtual void*
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE virtual void*
 	get() const = 0;
 
 	//! \since build 683
@@ -180,9 +180,12 @@ protected:
 	holder_pointer p_held;
 
 public:
-	//! \brief 取得所有权。
+	/*!
+	\brief 初始化：取得所有权。
+	\pre 断言：指针指向对象。
+	*/
 	pointer_holder(pointer value)
-		: p_held(value)
+		: p_held((yconstraint(value.get()), value))
 	{}
 	//! \since build 352
 	//@{
@@ -198,7 +201,7 @@ public:
 	operator=(pointer_holder&&) = default;
 
 	//! \since build 348
-	YB_ATTR_nodiscard void*
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull void*
 	get() const override
 	{
 		return p_held.get();
@@ -257,7 +260,8 @@ enum base_op : op_code
 
 	取指向源对象的指针，结果为 void* 。
 	要求已构造结果对象类型 void* ，用于保存结果。
-	若源对象不存在，则结果为空指针。
+	结果总是指向对象的非空指针。
+	若源对象不存在，则抛出异常。
 	*/
 	get_ptr,
 	/*!
@@ -1078,6 +1082,7 @@ protected:
 	~any_base() = default;
 
 public:
+	//! \pre 断言：\c manager 。
 	any_ops::any_storage&
 	call(any_ops::any_storage& t, any_ops::op_code op) const
 	{
@@ -1104,10 +1109,13 @@ public:
 	//! \pre 间接断言：\c manager 。
 	//@{
 	//! \since build 853
-	YB_ATTR_nodiscard YB_PURE void*
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE void*
 	get() const
 	{
-		return unchecked_access<void*>(default_init, any_ops::get_ptr);
+		const auto p(unchecked_access<void*>(default_init, any_ops::get_ptr));
+
+		yassume(p);
+		return p;
 	}
 
 	YB_ATTR_nodiscard YB_PURE any_ops::holder*
@@ -1115,6 +1123,28 @@ public:
 	{
 		return unchecked_access<any_ops::holder*>(default_init,
 			any_ops::get_holder_ptr);
+	}
+	//@}
+
+	/*!
+	\pre 间接断言：\c manager 。
+	\exception 异常中立：由持有者抛出。
+	\since build 854
+	*/
+	//@{
+	template<typename _type>
+	YB_ATTR_nodiscard _type*
+	get_object_ptr()
+	{
+		return type() == ystdex::type_id<_type>() ? static_cast<_type*>(get())
+			: nullptr;
+	}
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE const _type*
+	get_object_ptr() const
+	{
+		return type() == ystdex::type_id<_type>()
+			? static_cast<const _type*>(get()) : nullptr;
 	}
 	//@}
 
@@ -1148,29 +1178,30 @@ public:
 
 	//! \pre 间接断言：\c manager 。
 	//@{
+	//! \since build 854
+	//@{
 	template<typename _type>
 	YB_ATTR_nodiscard _type*
-	target() ynothrowv
+	try_get_object_ptr() ynothrowv
 	{
 		return type() == ystdex::type_id<_type>()
 			? static_cast<_type*>(try_get()) : nullptr;
 	}
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE const _type*
-	target() const ynothrowv
+	try_get_object_ptr() const ynothrowv
 	{
 		return type() == ystdex::type_id<_type>()
 			? static_cast<const _type*>(try_get()) : nullptr;
 	}
 
 	/*!
-	\brief 取对象指针。
+	\brief 取类型中立的对象指针。
 	\return 当持有者抛出异常时返回为空指针，否则为对象指针。
 	\sa get
-	\since build 853
 	*/
 	YB_ATTR_nodiscard YB_PURE void*
-	try_get() const
+	try_get() const ynothrow
 	{
 		try
 		{
@@ -1180,6 +1211,7 @@ public:
 		{}
 		return {};
 	}
+	//@}
 
 	YB_ATTR_nodiscard YB_PURE const type_info&
 	type() const ynothrowv
@@ -1224,7 +1256,10 @@ struct any_emplace
 {
 	//! \since build 848
 	//@{
-	//! \see LWG 2857 。 
+	/*!
+	\exception YStandardEx 扩展：异常中立：由持有者抛出。
+	\see LWG 2857 。 
+	*/
 	//@{
 	template<typename _type, typename... _tParams>
 	decay_t<_type>&
@@ -1232,7 +1267,7 @@ struct any_emplace
 	{
 		emplace_with_handler<any_ops::value_handler<decay_t<_type>>>(
 			yforward(args)...);
-		return unchecked_target<_type>();
+		return unchecked_target_ref<_type>();
 	}
 	template<typename _type, typename _tOther, typename... _tParams>
 	decay_t<_type>&
@@ -1240,7 +1275,7 @@ struct any_emplace
 	{
 		emplace_with_handler<any_ops::value_handler<decay_t<_type>>>(il,
 			yforward(args)...);
-		return unchecked_target<_type>();
+		return unchecked_target_ref<_type>();
 	}
 	//@}
 	// NOTE: The return is similar but different to overloads above.
@@ -1279,13 +1314,15 @@ struct any_emplace
 		}
 	}
 
-	//! \since build 848
+	//! \since build 854
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE decay_t<_type>&
-	unchecked_target()
+	unchecked_target_ref()
 	{
-		return static_cast<decay_t<_type>&>(
-			static_cast<_tAny&>(*this).unchecked_get());
+		const auto p(static_cast<_tAny&>(*this).unchecked_get());
+
+		yassume(p);
+		return static_cast<decay_t<_type>&>(*p);
 	}
 };
 
@@ -1745,7 +1782,10 @@ public:
 
 	//! \ingroup YBase_replacement_extensions
 	//@{
-	//! \since build 853
+	/*!
+	\since build 853
+	\exception 异常中立：由持有者抛出。
+	*/
 	YB_ATTR_nodiscard YB_PURE void*
 	get() const
 	{
@@ -1757,6 +1797,27 @@ public:
 	{
 		return manager ? unchecked_get_holder() : nullptr;
 	}
+
+	/*!
+	\brief 取目标指针。
+	\return 若存储目标类型和模板参数相同则为指向存储对象的指针值，否则为空指针值。
+	\exception 异常中立：由持有者抛出。
+	\since build 854
+	*/
+	//@{
+	template<typename _type>
+	YB_ATTR_nodiscard _type*
+	get_object_ptr()
+	{
+		return manager ? any_base::template get_object_ptr<_type>() : nullptr;
+	}
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE const _type*
+	get_object_ptr() const
+	{
+		return manager ? any_base::template get_object_ptr<_type>() : nullptr;
+	}
+	//@}
 	//@}
 
 	/*!
@@ -1808,23 +1869,25 @@ public:
 	//@}
 
 	/*!
-	\ingroup YBase_replacement_features
-	\brief 取目标指针。
-	\return 若存储目标类型和模板参数相同则为指向存储对象的指针值，否则为空指针值。
-	\since build 352
+	\ingroup YBase_replacement_extensions
+	\brief 尝试取目标指针：存储目标类型和模板参数相同且不存在持有者抛出的异常。
+	\return 若存在满足条件的结果则为指向存储对象的指针值，否则为空指针值。
+	\since build 854
 	*/
 	//@{
 	template<typename _type>
 	YB_ATTR_nodiscard _type*
-	target() ynothrow
+	try_get_object_ptr() ynothrow
 	{
-		return manager ? any_base::template target<_type>() : nullptr;
+		return
+			manager ? any_base::template try_get_object_ptr<_type>() : nullptr;
 	}
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE const _type*
-	target() const ynothrow
+	try_get_object_ptr() const ynothrow
 	{
-		return manager ? any_base::template target<_type>() : nullptr;
+		return
+			manager ? any_base::template try_get_object_ptr<_type>() : nullptr;
 	}
 	//@}
 
@@ -1849,7 +1912,7 @@ public:
 	\exception 异常中立：由持有者抛出。
 	\since build 853
 	*/
-	YB_ATTR_nodiscard void*
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull void*
 	unchecked_get() const
 	{
 		return any_base::get();
@@ -1876,9 +1939,10 @@ public:
 
 //! \relates any
 //@{
-//! \ingroup YBase_replacement_features
-//@{
-//! \see ISO C++17 [any.nonmembers] 。
+/*!
+\ingroup YBase_replacement_features
+\see ISO C++17 [any.nonmembers] 。
+*/
 //@{
 /*!
 \ingroup helper_functions
@@ -1903,29 +1967,13 @@ make_any(std::initializer_list<_tOther> il, _tParams&&... args)
 
 /*!
 \brief 动态泛型转换。
-\return 当 <tt>p
-	&& p->type() == ystdex::type_id<remove_pointer_t<_tPointer>>()</tt> 时
-	为指向对象的指针，否则为空指针。
-\note 语义同 \c boost::any_cast 。
+\note 存储对象类型通过 \c ystdex::type_id 取动态类型并比较结果相等判断。
 \since build 671
 \todo 检验特定实现环境（如使用动态库时）比较 std::type_info::name() 的必要性。
 */
 //@{
-//@{
-template<typename _type>
-YB_ATTR_nodiscard YB_PURE inline _type*
-any_cast(any* p) ynothrow
-{
-	return p ? p->target<_type>() : nullptr;
-}
-template<typename _type>
-YB_ATTR_nodiscard YB_PURE inline const _type*
-any_cast(const any* p) ynothrow
-{
-	return p ? p->target<_type>() : nullptr;
-}
-//@}
 /*!
+\exception YStandardEx 扩展：异常中立：由持有者抛出。
 \throw bad_any_cast 当 <tt>x.type()
 	!= ystdex::type_id<remove_reference_t<_type>>()</tt> 。
 \note LWG 2509 已被 LWG 2769 的解覆盖。
@@ -1941,7 +1989,7 @@ any_cast(any& x)
 	static_assert(is_constructible<_type, target_t&>(),
 		"Invalid cast destination type found.");
 
-	if(const auto p = x.template target<target_t>())
+	if(const auto p = x.template get_object_ptr<target_t>())
 		return static_cast<_type>(*p);
 	throw bad_any_cast(x.type(), ystdex::type_id<_type>());
 }
@@ -1953,7 +2001,7 @@ any_cast(const any& x)
 	static_assert(is_constructible<_type, const target_t&>(),
 		"Invalid cast destination type found.");
 
-	if(const auto p = x.template target<target_t>())
+	if(const auto p = x.template get_object_ptr<target_t>())
 		return static_cast<_type>(*p);
 	throw bad_any_cast(x.type(), ystdex::type_id<_type>());
 }
@@ -1966,9 +2014,24 @@ any_cast(any&& x)
 	static_assert(is_constructible<_type, target_t>(),
 		"Invalid cast destination type found.");
 
-	if(const auto p = x.template target<target_t>())
+	if(const auto p = x.template get_object_ptr<target_t>())
 		return static_cast<_type>(std::move(*p));
 	throw bad_any_cast(x.type(), ystdex::type_id<_type>());
+}
+//@}
+//! \return 若参数非空指针且类型和模板参数一致，为储存的非空对象指针；否则为空指针。
+//@{
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE inline _type*
+any_cast(any* p) ynothrow
+{
+	return p ? p->try_get_object_ptr<_type>() : nullptr;
+}
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE inline const _type*
+any_cast(const any* p) ynothrow
+{
+	return p ? p->try_get_object_ptr<_type>() : nullptr;
 }
 //@}
 //@}
@@ -1989,17 +2052,20 @@ hold_same(const any& x, const any& y)
 	return x.get() == y.get();
 }
 
-//! \since build 853
+/*!
+\note 存储对象类型通过 \c ystdex::type_id 取动态类型并比较结果相等判断。
+\since build 853
+*/
 //@{
 /*!
 \brief 未检查的动态泛型转换。
-\pre 断言： <tt>p && p->has_value()
-	&& p->unchecked_type() == ystdex::type_id<_type>()</tt> 。
+\pre 断言：参数非空，指向的对象具有值，且存储的对象类型和模板参数指定的一致。
+\return 储存的对象指针。
 \note 对非空对象，除持有者抛出异常外语义同非公开接口 \c boost::unsafe_any_cast 。
 */
 //@{
 template<typename _type>
-YB_ATTR_nodiscard YB_PURE inline _type*
+YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE inline _type*
 unchecked_any_cast(any* p)
 {
 	yconstraint(p && p->has_value()
@@ -2007,7 +2073,7 @@ unchecked_any_cast(any* p)
 	return static_cast<_type*>(p->unchecked_get());
 }
 template<typename _type>
-YB_ATTR_nodiscard YB_PURE inline const _type*
+YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE inline const _type*
 unchecked_any_cast(const any* p)
 {
 	yconstraint(p && p->has_value()
@@ -2018,7 +2084,8 @@ unchecked_any_cast(const any* p)
 
 /*!
 \brief 非安全动态泛型转换。
-\pre 断言： <tt>p && p->type() == ystdex::type_id<_type>()</tt> 。
+\pre 断言：参数非空，指向的对象不具有值或存储的对象类型和模板参数指定的一致。
+\return 若参数指定的对象具有值，为储存的非空对象指针；否则为空指针。
 \note 除持有者抛出异常外语义同非公开接口 \c boost::unsafe_any_cast 。
 */
 //@{
@@ -2036,7 +2103,6 @@ unsafe_any_cast(const any* p)
 	yconstraint(p && p->type() == ystdex::type_id<_type>());
 	return static_cast<const _type*>(p->get());
 }
-//@}
 //@}
 //@}
 //@}

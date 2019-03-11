@@ -11,13 +11,13 @@
 /*!	\file function.hpp
 \ingroup YStandardEx
 \brief 函数基本操作和调用包装对象。
-\version r4833
+\version r4835
 \author FrankHB <frankhb1989@gmail.com>
 \since build 847
 \par 创建时间:
 	2018-12-13 01:24:06 +0800
 \par 修改时间:
-	2019-01-19 02:27 +0800
+	2019-03-06 16:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -787,13 +787,13 @@ public:
 	YB_ATTR_nodiscard YB_PURE _type*
 	target() ynothrow
 	{
-		return content.template target<_type>();
+		return content.template try_get_object_ptr<_type>();
 	}
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE const _type*
 	target() const ynothrow
 	{
-		return content.template target<_type>();
+		return content.template try_get_object_ptr<_type>();
 	}
 
 	YB_ATTR_nodiscard YB_PURE const type_info&

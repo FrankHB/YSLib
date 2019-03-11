@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r5694
+\version r5731
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2019-02-20 23:36 +0800
+	2019-03-04 04:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -370,8 +370,9 @@ public:
 		ImplI(IValueHolder)
 		ImplRet(1)
 
-	//! \since build 348
-	YB_ATTR_nodiscard YB_PURE PDefH(void*, get, ) const ImplI(IValueHolder)
+	//! \since build 854
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE PDefH(void*, get, ) const
+		ynothrow ImplI(IValueHolder)
 		ImplRet(std::addressof(this->value))
 
 	//! \since build 683
@@ -449,7 +450,9 @@ public:
 		ImplI(IValueHolder)
 		ImplRet(1)
 
-	YB_ATTR_nodiscard YB_PURE PDefH(void*, get, ) const ImplI(IValueHolder)
+	//! \since build 854
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE PDefH(void*, get, ) const
+		ynothrow ImplI(IValueHolder)
 		ImplRet(std::addressof(value))
 
 	YB_ATTR_nodiscard YB_PURE
@@ -461,6 +464,29 @@ public:
 		ImplRet(ystdex::type_id<value_type>())
 };
 
+
+/*!
+\brief 判断指针值是否为有效的空值。
+\since build 854
+*/
+//@{
+//! \note 使用 ADL get_raw 。
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE yconstfn bool
+IsNullPointer(const _type& p) ynothrow
+{
+	return !bool(get_raw(p));
+}
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE inline bool
+IsNullPointer(const weak_ptr<_type>& p) ynothrow
+{
+	TryRet(!shared_ptr<_type>(p).get())
+	CatchIgnore(bad_weak_ptr&)
+	CatchExpr(..., yassume(false))
+	return {};
+}
+//@}
 
 /*!
 \ingroup get_raw
@@ -634,15 +660,19 @@ public:
 		ImplI(IValueHolder)
 		ImplRet(traits_type::count_owner(p_held))
 
-	//! \since build 348
-	YB_ATTR_nodiscard YB_PURE PDefH(void*, get, ) const ImplI(IValueHolder)
-		ImplRet(traits_type::get(p_held))
+	/*!
+	\pre 间接断言：持有非空指针。
+	\since build 348
+	*/
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE PDefH(void*, get, ) const
+		ImplI(IValueHolder)
+		ImplRet(Nonnull(traits_type::get(p_held)))
 
 	//! \since build 683
 	YB_ATTR_nodiscard YB_PURE PDefH(const type_info&, type, ) const ynothrow
 		ImplI(IValueHolder)
-		ImplRet(traits_type::is_owner(p_held)
-			? ystdex::type_id<_type>() : ystdex::type_id<void>())
+		ImplRet(!YSLib::IsNullPointer(p_held) ? ystdex::type_id<_type>()
+			: ystdex::type_id<void>())
 };
 
 /*!

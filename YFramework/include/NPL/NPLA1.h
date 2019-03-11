@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4435
+\version r4468
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2019-02-10 13:56 +0800
+	2019-03-09 04:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,14 +30,14 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA // for NPLATag, TermNode, ValueNode, YSLib::GHEvent,
-//	LoggedEvent, ystdex::ref_eq, ystdex::equality_comparable,
-//	ystdex::exclude_self_params_t, YSLib::AreEqualHeld, std::is_constructible,
-//	ystdex::decay_t, ystdex::expanded_caller, ystdex::or_,
-//	ystdex::exclude_self_t, ystdex::make_function_type_t,
-//	ystdex::make_parameter_list_t, std::ref, ystdex::make_expanded,
-//	ystdex::invoke_nonvoid, NPL::AccessTerm, ystdex::make_transform,
-//	std::accumulate, ystdex::bind1, std::placeholders::_2,
-//	ystdex::examiners::equal_examiner;
+//	LoggedEvent, shared_ptr, Environment, ystdex::ref_eq,
+//	ystdex::equality_comparable, ystdex::exclude_self_params_t,
+//	YSLib::AreEqualHeld, std::is_constructible, ystdex::decay_t,
+//	ystdex::expanded_caller, ystdex::or_, ystdex::exclude_self_t,
+//	ystdex::make_function_type_t, ystdex::make_parameter_list_t, std::ref,
+//	ystdex::make_expanded, ystdex::invoke_nonvoid, NPL::AccessRegularValue,
+//	ystdex::make_transform, std::accumulate, ystdex::bind1,
+//	std::placeholders::_2, ystdex::examiners::equal_examiner;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 
 namespace NPL
@@ -638,15 +638,11 @@ public:
 	/*!
 	\brief 处理一般形式。
 	\return Handler 调用的返回值，或 ReductionStatus::Clean 。
-	\exception NPLException 异常中立。
-	\throw LoggedEvent 警告：类型不匹配，
-		由 Handler 抛出的 bad_any_cast 转换。
-	\throw LoggedEvent 错误：由 Handler 抛出的 bad_any_cast 外的
-		std::exception 转换。
 	\throw std::invalid_argument 项检查未通过。
 	\since build 751
 
-	项检查不存在或在检查通过后，变换无参数规约，然后对节点调用 Hanlder ，否则抛出异常。
+	项检查不存在或在检查通过后，变换无参数规约，然后对节点调用 Hanlder ，
+		否则抛出异常。
 	无参数时第一参数具有两个子项且第二项为空节点。无参数变换删除空节点。
 	*/
 	ReductionStatus
@@ -921,7 +917,7 @@ public:
 	\brief 加载：从指定参数指定的来源读取并处理源代码。
 	\exception std::invalid_argument 异常中立：由 ReadFrom 抛出。
 	\sa ReadFrom
-	\sa Reduce
+	\sa ReduceAndFilter
 	\since build 802
 	*/
 	//@{
@@ -937,7 +933,7 @@ public:
 	{
 		auto term(ReadFrom(input));
 
-		Reduce(term, ctx);
+		ReduceAndFilter(term, ctx);
 	}
 	//@}
 
@@ -978,7 +974,7 @@ public:
 	/*!
 	\brief 处理：准备规约项并进行规约。
 	\sa Prepare
-	\sa Reduce
+	\sa ReduceAndFilter
 	\since build 742
 	*/
 	//@{
@@ -1000,7 +996,7 @@ public:
 	{
 		auto term(Prepare(input));
 
-		Reduce(term, ctx);
+		ReduceAndFilter(term, ctx);
 		return term;
 	}
 	//@}
@@ -1019,6 +1015,18 @@ public:
 	YB_ATTR_nodiscard TermNode
 	ReadFrom(std::streambuf&) const;
 	//@}
+
+	/*!
+	\brief 规约入口：规约并过滤异常。
+	\exception NPLException 异常中立。
+	\throw LoggedEvent 警告：类型不匹配，由 Reduce 抛出的 bad_any_cast 转换。
+	\throw LoggedEvent 错误：由 Reduce 抛出的 bad_any_cast 外的
+		std::exception 转换。
+	\sa Reduce
+	\since build 854
+	*/
+	static ReductionStatus
+	ReduceAndFilter(TermNode&, ContextNode&);
 };
 
 /*!
@@ -1231,7 +1239,8 @@ CallUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
 		//	error: Segmentation fault.
 		return ystdex::make_expanded<void(_type&, _tParams&&...)>(std::ref(f))(
-			NPL::AccessTerm<_type>(node), std::forward<_tParams>(args)...);
+			NPL::AccessRegularValue<_type>(node),
+			std::forward<_tParams>(args)...);
 	}, term);
 }
 //@}
@@ -1263,11 +1272,11 @@ CallBinaryAs(_func&& f, TermNode& term, _tParams&&... args)
 	RetainN(term, 2);
 
 	auto i(term.begin());
-	auto& x(NPL::AccessTerm<_type>(YSLib::Deref(++i)));
+	auto& x(NPL::AccessRegularValue<_type>(YSLib::Deref(++i)));
 
 	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
 		ystdex::make_expanded<void(_type&, _type2&, _tParams&&...)>(
-		std::ref(f)), x, NPL::AccessTerm<_type2>(YSLib::Deref(++i)),
+		std::ref(f)), x, NPL::AccessRegularValue<_type2>(YSLib::Deref(++i)),
 		yforward(args)...));
 }
 //@}
@@ -1285,7 +1294,7 @@ CallBinaryFold(_func f, _type val, TermNode& term, _tParams&&... args)
 	const auto n(FetchArgumentN(term));
 	auto i(term.begin());
 	const auto j(ystdex::make_transform(++i, [](TNIter it){
-		return NPL::AccessTerm<_type>(YSLib::Deref(it));
+		return NPL::AccessRegularValue<_type>(YSLib::Deref(it));
 	}));
 
 	YSLib::EmplaceCallResult(term.Value, std::accumulate(j, std::next(j,

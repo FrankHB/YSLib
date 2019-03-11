@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r1439
+\version r1443
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2019-01-14 01:58 +0800
+	2019-03-06 17:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -350,6 +350,9 @@ public:
 	}
 	//@}
 
+	//! \since build 854
+	using any::get_object_ptr;
+
 	/*!
 	\ingroup is_undereferenceable
 	\since build 676
@@ -361,8 +364,8 @@ public:
 			any_ops::check_undereferenceable) : true;
 	}
 
-	//! \since build 615
-	using any::target;
+	//! \since build 854
+	using any::try_get_object_ptr;
 
 	//! \since build 355
 	using any::type;

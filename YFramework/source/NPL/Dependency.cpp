@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2156
+\version r2199
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2019-02-15 00:07 +0800
+	2019-03-08 18:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #include "NPL/YModules.h"
 #include YFM_NPL_Dependency // for ystdex::isspace, std::istream,
 //	YSLib::unique_ptr, NPL::AllocateEnvironment, std::piecewise_construct,
-//	std::forward_as_tuple, ystdex::isdigit, ystdex::bind1, std::placeholders,
-//	ystdex::tolower, ystdex::swap_dependent;
+//	std::forward_as_tuple, ystdex::isdigit, NPL::TryAccessReferencedLeaf,
+//	ystdex::bind1, ystdex::plus, std::placeholders, std::mem_fn,
+//	NPL::AccessRegularValue, ystdex::tolower, ystdex::swap_dependent;
 #include YFM_NPL_SContext
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
@@ -235,33 +236,38 @@ CopyEnvironmentDFS(Environment& d, const Environment& e)
 		dst.Parent = std::move(p_env);
 	});
 	const auto copy_parent_ptr(
-		[&](Environment& dst, const ValueObject& vo) -> bool{
+		[&](function<Environment&()> mdst, const ValueObject& vo) -> bool{
 		if(const auto p = AccessPtr<EnvironmentReference>(vo))
 		{
 			if(const auto p_parent = p->Lock())
-				copy_parent(dst, *p_parent);
+				copy_parent(mdst(), *p_parent);
 			// XXX: Failure of locking is ignored.
 			return true;
 		}
 		else if(const auto p_e = AccessPtr<shared_ptr<Environment>>(vo))
 		{
 			if(const auto p_parent = *p_e)
-				copy_parent(dst, *p_parent);
+				copy_parent(mdst(), *p_parent);
 			// XXX: Empty parent is ignored.
 			return true;
 		}
 		return {};
 	});
 
-	copy_parent_ptr(d, e.Parent);
+	copy_parent_ptr([&]() ynothrow -> Environment&{
+		return d;
+	}, e.Parent);
 	for(const auto& b : e.GetMapRef())
 		m.emplace(std::piecewise_construct, std::forward_as_tuple(b.first),
 			std::forward_as_tuple(b.second.CreateWith(
 			[&](const ValueObject& vo) -> ValueObject{
-			Environment dst(a);
+			shared_ptr<Environment> p_env;
 
-			if(copy_parent_ptr(dst, vo))
-				return ValueObject(std::move(dst));
+			if(copy_parent_ptr([&]() ynothrow -> Environment&{
+				p_env = NPL::AllocateEnvironment(a);
+				return *p_env;
+			}, vo))
+				return ValueObject(std::move(p_env));
 			return vo;
 		}), b.second.Value));
 }
@@ -275,6 +281,17 @@ CopyEnvironment(TermNode& term, ContextNode& ctx)
 	term.Value = ValueObject(std::move(p_env));
 }
 //@}
+
+//! \since build 854
+template<typename _func>
+ReductionStatus
+DoIdFunc(_func f, TermNode& term)
+{
+	RetainN(term);
+	LiftTerm(term, Deref(std::next(term.begin())));
+	f(term);
+	return CheckNorm(term);
+}
 
 //! \since build 842
 void
@@ -424,6 +441,12 @@ LoadEnvironments(ContextNode& ctx)
 	RegisterForm(ctx, "$deflazy!", DefineLazy);
 	RegisterForm(ctx, "$def!", DefineWithNoRecursion);
 	RegisterForm(ctx, "$defrec!", DefineWithRecursion);
+	RegisterStrict(ctx, "deshare", [](TermNode& term){
+		return DoIdFunc([](TermNode& t){
+			LiftTermRefToSelf(t);
+			LiftTermIndirection(t);
+		}, term);
+	});
 }
 
 void
@@ -481,15 +504,10 @@ LoadPrimitive(REPLContext& context)
 #endif
 #if YF_Impl_NPLA1_Native_Forms
 	RegisterStrict(renv, "id", [](TermNode& term){
-		RetainN(term);
-		LiftTerm(term, Deref(std::next(term.begin())));
-		return CheckNorm(term);
+		return DoIdFunc([](TermNode&) ynothrow{}, term);
 	});
 	RegisterStrict(renv, "idv", [](TermNode& term){
-		RetainN(term);
-		LiftTerm(term, Deref(std::next(term.begin())));
-		LiftToReturn(term);
-		return CheckNorm(term);
+		return DoIdFunc(LiftToReturn, term);
 	});
 	RegisterStrict(renv, "list", ReduceBranchToListValue);
 	RegisterStrict(renv, "list%", ReduceBranchToList);
@@ -785,7 +803,7 @@ LoadModule_std_environments(REPLContext& context)
 			return CheckSymbol(id, [&]{
 				return bool(ResolveName(ctx, id).first);
 			});
-		}, NPL::AccessTermPtr<string>(term));
+		}, NPL::TryAccessReferencedLeaf<string>(term));
 	});
 	context.Perform(u8R"NPL(
 		$defv/e! $binds1? (make-environment
@@ -814,7 +832,8 @@ LoadModule_std_strings(REPLContext& context)
 	RegisterStrictUnary<const string>(renv, "string-empty?",
 		std::mem_fn(&string::empty));
 	RegisterStrictBinary(renv, "string<-", [](TermNode& x, const TermNode& y){
-		NPL::AccessTerm<string>(x) = NPL::AccessTerm<const string>(y);
+		NPL::AccessRegularValue<string>(x)
+			= NPL::AccessRegularValue<const string>(y);
 		return ValueToken::Unspecified;
 	});
 	RegisterStrictBinary<string, string>(renv, "string-contains-ci?",
@@ -838,8 +857,8 @@ LoadModule_std_strings(REPLContext& context)
 	});
 	RegisterStrict(renv, "regex-match?", [](TermNode& term){
 		auto i(std::next(term.begin()));
-		const auto& str(NPL::AccessTerm<const string>(Deref(i)));
-		const auto& r(NPL::AccessTerm<const std::regex>(Deref(++i)));
+		const auto& str(NPL::AccessRegularValue<const string>(Deref(i)));
+		const auto& r(NPL::AccessRegularValue<const std::regex>(Deref(++i)));
 
 		term.ClearTo(std::regex_match(str, r));
 	}, ystdex::bind1(RetainN, 2));

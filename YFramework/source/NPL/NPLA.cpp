@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2284
+\version r2335
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2019-02-15 00:29 +0800
+	2019-03-08 08:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,10 @@
 //	NPL::AccessPtr, ystdex::value_or, ystdex::write, bad_any_cast,
 //	std::allocator_arg, YSLib::NodeSequence, ystdex::unimplemented,
 //	ystdex::type_id, ystdex::quote, ystdex::call_value_or, ystdex::begins_with,
-//	YSLib::get_raw, NPL::make_observer, ystdex::sfmt, sfmt, ystdex::ref,
+//	YSLib::get_raw, NPL::make_observer, ystdex::sfmt, NPL::TryAccessTerm, sfmt,
+//	ystdex::invoke_value_or, NPL::TryAccessLeaf, ystdex::ref,
 //	ystdex::retry_on_cond, ystdex::type_info, pair, ystdex::addrof,
-//	ystdex::second_of, ystdex::call_value_or;
+//	ystdex::second_of;
 #include YFM_NPL_SContext
 
 using namespace YSLib;
@@ -503,7 +504,7 @@ IsNPLAExtendedLiteral(string_view id) ynothrowv
 observer_ptr<const TokenValue>
 TermToNamePtr(const TermNode& term)
 {
-	return NPL::AccessPtr<TokenValue>(term);
+	return NPL::TryAccessTerm<TokenValue>(term);
 }
 
 string
@@ -542,49 +543,66 @@ TokenizeTerm(TermNode& term)
 
 
 bool
-IsReferenceTerm(const TermNode& term) ynothrow
+HasReferenceValue(const TermNode& term) ynothrow
 {
 	return term.Value.type() == ystdex::type_id<TermReference>();
-}
-
-bool
-IsLValueTerm(const TermNode& term) ynothrow
-{
-	return ystdex::call_value_or(std::mem_fn(&TermReference::IsTermReferenced),
-		NPL::AccessPtr<const TermReference>(term));
 }
 
 
 pair<TermReference, bool>
 Collapse(TermNode& term)
 {
-	if(const auto p_tref = NPL::AccessPtr<const TermReference>(term))
+	if(const auto p_tref = NPL::TryAccessTerm<const TermReference>(term))
 		return {*p_tref, true};
 	return {term, {}};
 }
 pair<TermReference, bool>
 Collapse(TermNode& term, const Environment& env)
 {
-	if(const auto p_tref = NPL::AccessPtr<const TermReference>(term))
+	if(const auto p_tref = NPL::TryAccessTerm<const TermReference>(term))
 		return {*p_tref, true};
 	return {{term, env.Anchor()}, {}};
 }
 
 TermNode&
-ReferenceTerm(TermNode& term)
+ReferenceTerm(TermNode& term) ynothrow
 {
-	return ystdex::call_value_or(
-		[&](const TermReference& term_ref) ynothrow -> TermNode&{
-		return term_ref.get();
-	}, NPL::AccessPtr<const TermReference>(term), term);
+	return ystdex::invoke_value_or(&TermReference::get,
+		NPL::TryAccessTerm<const TermReference>(term), term);
 }
 const TermNode&
-ReferenceTerm(const TermNode& term)
+ReferenceTerm(const TermNode& term) ynothrow
 {
-	return ystdex::call_value_or(
-		[&](const TermReference& term_ref) ynothrow -> const TermNode&{
-		return term_ref.get();
-	}, NPL::AccessPtr<TermReference>(term), term);
+	return ystdex::invoke_value_or(&TermReference::get,
+		NPL::TryAccessTerm<TermReference>(term), term);
+}
+
+
+bool
+IsReferenceLeaf(const TermNode& term)
+{
+	return bool(NPL::TryAccessLeaf<const TermReference>(term));
+}
+
+bool
+IsReferenceTerm(const TermNode& term)
+{
+	return bool(NPL::TryAccessTerm<const TermReference>(term));
+}
+
+
+bool
+IsLValueLeaf(const TermNode& term)
+{
+	return ystdex::invoke_value_or(&TermReference::IsTermReferenced,
+		NPL::TryAccessLeaf<const TermReference>(term));
+}
+
+bool
+IsLValueTerm(const TermNode& term)
+{
+	return ystdex::invoke_value_or(&TermReference::IsTermReferenced,
+		NPL::TryAccessTerm<const TermReference>(term));
 }
 
 
@@ -615,7 +633,7 @@ RegularizeTerm(TermNode& term, ReductionStatus res) ynothrow
 bool
 LiftTermOnRef(TermNode& term, TermNode& tm)
 {
-	if(const auto p = NPL::AccessPtr<const TermReference>(tm))
+	if(const auto p = NPL::TryAccessTerm<const TermReference>(tm))
 	{
 		LiftTermRef(term, p->get());
 		return true;
@@ -837,7 +855,7 @@ Environment::ThrowForInvalidType(const ystdex::type_info& tp)
 
 
 EnvironmentReference::EnvironmentReference(const shared_ptr<Environment>& p_env)
-	// TODO: Blocked. Use C++1z %weak_from_this and throw-expression?
+	// TODO: Blocked. Use C++17 %weak_from_this and throw-expression?
 	: EnvironmentReference(p_env, p_env ? p_env->Anchor() : nullptr)
 {}
 
@@ -928,6 +946,16 @@ ContextNode::Transit() ynothrow
 			return {};
 	}
 	return true;
+}
+
+void
+swap(ContextNode& x, ContextNode& y) ynothrow 
+{
+	swap(x.p_record, y.p_record),
+	swap(x.Delimited, y.Delimited),
+	swap(x.Current, y.Current),
+	std::swap(x.LastStatus, y.LastStatus),
+	swap(x.Trace, y.Trace);
 }
 
 

@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2019 年度。
-\version r102
+\version r115
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2019-01-02 01:00:32 +0800
 \par 修改时间:
-	2019-02-04 03:39 +0800
+	2019-03-11 16:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,7 +75,7 @@ WG21 P0541 has been implemented now, as it is approved in the current working pa
 			Mostly issues will not be problems without recursive pair support.
 			At least for platform Android, libstdc++ is lack of the resolution of WG21 N4387, i.e. the conditionally EXPLICIT constructor of 'std::pair', so there needs additional workaround.
 			For platform DS, G++ 8.1 complaints weirdly with an error on use of deleted defaulted function.
-				The error is triggered when instantiating the event map lookup ('emplace_hint') in module 'YFramework.YSLib.UI.YWidgetEvent' after the feature here is implemented.
+				The error is triggered when instantiating the event map lookup ('emplace_hint') in YFramework module YSLib::UI::YWidgetEvent after the feature here is implemented.
 					See also LWG 2397, whose resolution is conditionally used here.
 				The error is similar to https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88368.
 					However, because it is on instantiating 'YSLib::ValueHolder<std::_Tuple_impl<2, std::tuple<YSLib::ValueObject&&>&&>>' so there is no way to insert the proposed workaround.
@@ -97,6 +97,20 @@ WG21 P0541 has been implemented now, as it is approved in the current working pa
 				As the workaround, nonthrowing check is intercepted for 'std::_Tuple_impl' instances used for 'ystdex::boxed_value'.
 				Other workaround includes preventing nested (in template parameters) 'YSLib::ValueHolder' instances constructed in 'ValueObject'.
 					This is not guarded by the compiler version condition checks because behavior of avoiding nested 'YSLib::ValueHolder' should be uniform for all implementations.
+
+$2019-03:
+
+report.impl:
+Pointer holder in module YSLib::Core::YObject is reworked.
+	Semantic properties on lifetime have changed.
+		Based on clarification of allowing exception in holder 'get' function in module YStandardEx::Any, getting an object may throw an exception if the object is not existed.
+		Since the getter may throw, some 'ystdex::any' API as well as 'GetObject' overloads for 'ValueObject' do not have noexcept-specifier any longer.
+	For weak pointers ('NPL::weak_ptr' instances), the getter can throw on expired now.
+	However, the 'type' function in the pointer holder still does not throw. But the behavior is also changed.
+		Now it does not reilies on owner judgement.
+		For weak pointers, it does not need to get strong pointers to get the type.
+			An expired value might lead to 'void' type previously. This is changed to getting 'void' only when the pointer value is null despite the owner.
+			User code should be careful in this case.
 
 ////
 

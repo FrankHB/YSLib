@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2402
+\version r2406
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2019-02-15 00:26 +0800
+	2019-03-04 17:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -401,15 +401,17 @@ YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsList, const TermNode& term)
 
 //! \since build 853
 using YSLib::Access;
+//! \since build 854
 template<typename _type>
 YB_ATTR_nodiscard inline _type&
-Access(TermNode& term) ynothrow
+Access(TermNode& term)
 {
 	return term.Value.Access<_type>();
 }
+//! \since build 854
 template<typename _type>
 YB_ATTR_nodiscard inline const _type&
-Access(const TermNode& term) ynothrow
+Access(const TermNode& term)
 {
 	return term.Value.Access<_type>();
 }
