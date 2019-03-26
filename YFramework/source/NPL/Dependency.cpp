@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2199
+\version r2302
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2019-03-08 18:29 +0800
+	2019-03-26 22:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 //	YSLib::unique_ptr, NPL::AllocateEnvironment, std::piecewise_construct,
 //	std::forward_as_tuple, ystdex::isdigit, NPL::TryAccessReferencedLeaf,
 //	ystdex::bind1, ystdex::plus, std::placeholders, std::mem_fn,
-//	NPL::AccessRegularValue, ystdex::tolower, ystdex::swap_dependent;
+//	NPL::ResolveRegular, ystdex::tolower, ystdex::swap_dependent;
 #include YFM_NPL_SContext
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
@@ -333,9 +333,16 @@ LoadBasicProcessing(ContextState& ctx)
 				if(size_t(eptr - ptr) == id.size() && errno != ERANGE)
 					// XXX: Conversion to 'int' might be implementation-defined.
 					term.Value = int(ans);
-				// TODO: Supported literal postfix?
+				// TODO: Use more specific exception type like
+				//	%std::range_error?
+				else if(ystdex::isdigit(id.back()))
+					throw InvalidSyntax(ystdex::sfmt("Value of identifier '%s'"
+						" is out of the range of the supported integer.",
+						id.data()));
 				else
-					throw InvalidSyntax("Literal postfix is unsupported.");
+					// TODO: Supported literal postfix?
+					throw InvalidSyntax(ystdex::sfmt("Literal postfix is"
+						" unsupported in identifier '%s'.", id.data()));
 			}
 			else
 				return ReductionStatus::Retrying;
@@ -381,8 +388,9 @@ LoadControl(ContextNode& ctx)
 	RegisterForm(ctx, "$if", If);
 }
 
+//! \since build 855
 void
-LoadLists(ContextNode& ctx)
+LoadObjects(ContextNode& ctx)
 {
 	RegisterStrictUnary(ctx, "null?", ComposeReferencedTermOp(IsEmpty));
 	RegisterStrictUnary(ctx, "nullpr?", IsEmpty);
@@ -391,18 +399,42 @@ LoadLists(ContextNode& ctx)
 	RegisterStrict(ctx, "move", [](TermNode& term){
 		RetainN(term);
 		LiftTerm(term, ReferenceTerm(Deref(std::next(term.begin()))));
-		LiftToReturn(term);
+		return ReduceForLiftedResult(term);
+	});
+	RegisterStrict(ctx, "deshare", [](TermNode& term){
+		return DoIdFunc([](TermNode& t){
+			if(const auto p = NPL::TryAccessTerm<const TermReference>(t))
+				LiftTermRef(t, p->get());
+			LiftTermIndirection(t);
+		}, term);
+	});
+	RegisterStrict(ctx, "ref", [](TermNode& term){
+		CallUnary([&](TermNode& tm){
+			LiftToReference(term, tm);
+		}, term);
 		return CheckNorm(term);
 	});
+	RegisterStrictBinary(ctx, "<-", [](TermNode& x, const TermNode& y){
+		ResolveTerm([&](TermNode& nd, bool has_ref){
+			if(has_ref)
+				nd.SetContent(y);
+			else
+				throw ValueCategoryMismatch(ystdex::sfmt("Expected an"
+					" lvalue for the 1st argument, got '%s'.",
+					TermToString(nd).c_str()));
+		}, x);
+		return ValueToken::Unspecified;
+	});
+}
+
+void
+LoadLists(ContextNode& ctx)
+{
 	// NOTE: Though NPLA does not use cons pairs, corresponding primitives are
 	//	still necessary.
 	// NOTE: Since NPL has no con pairs, it only added head to existed list.
 	RegisterStrict(ctx, "cons", Cons);
 	RegisterStrict(ctx, "cons%", ConsRef);
-	// NOTE: Like '$set-car!' in Kernel, with no references.
-	RegisterStrict(ctx, "set-first!", SetFirst);
-	// NOTE: Like '$set-car!' in Kernel.
-	RegisterStrict(ctx, "set-first%!", SetFirstRef);
 	// NOTE: Like '$set-cdr!' in Kernel, with no references.
 	RegisterStrict(ctx, "set-rest!", SetRest);
 	// NOTE: Like '$set-cdr!' in Kernel.
@@ -441,12 +473,6 @@ LoadEnvironments(ContextNode& ctx)
 	RegisterForm(ctx, "$deflazy!", DefineLazy);
 	RegisterForm(ctx, "$def!", DefineWithNoRecursion);
 	RegisterForm(ctx, "$defrec!", DefineWithRecursion);
-	RegisterStrict(ctx, "deshare", [](TermNode& term){
-		return DoIdFunc([](TermNode& t){
-			LiftTermRefToSelf(t);
-			LiftTermIndirection(t);
-		}, term);
-	});
 }
 
 void
@@ -459,6 +485,20 @@ LoadCombiners(ContextNode& ctx)
 	RegisterForm(ctx, "$vau/e%", VauWithEnvironmentRef);
 	RegisterStrictUnary<ContextHandler>(ctx, "wrap", Wrap);
 	RegisterStrictUnary<ContextHandler>(ctx, "unwrap", Unwrap);
+}
+
+//! \since build 855
+void
+LoadChecks(ContextNode& ctx)
+{
+	RegisterStrict(ctx, "check-list-lvalue", CheckListLValue);
+}
+
+//! \since build 855
+void
+LoadEncapsulations(ContextNode& ctx)
+{
+	RegisterStrict(ctx, "make-encapsulation-type", MakeEncapsulationType);
 }
 
 void
@@ -475,9 +515,12 @@ Load(ContextNode& ctx)
 */
 	LoadEquals(ctx);
 	LoadControl(ctx);
+	LoadObjects(ctx);
 	LoadLists(ctx);
 	LoadEnvironments(ctx);
 	LoadCombiners(ctx);
+	LoadChecks(ctx);
+	LoadEncapsulations(ctx);
 }
 
 } // namespace Primitive;
@@ -485,10 +528,9 @@ Load(ContextNode& ctx)
 namespace Derived
 {
 
-//! \since build 839
-//@{
+//! \since build 855
 void
-LoadPrimitive(REPLContext& context)
+LoadGroundedDerived(REPLContext& context)
 {
 	auto& renv(context.Root.GetRecordRef());
 
@@ -515,6 +557,10 @@ LoadPrimitive(REPLContext& context)
 	RegisterForm(renv, "$lambda%", LambdaRef);
 	// NOTE: The sequence operator is also available as infix ';' syntax sugar.
 	RegisterForm(renv, "$sequence", Sequence);
+	// NOTE: Like '$set-car!' in Kernel, with no references.
+	RegisterStrict(renv, "set-first!", SetFirst);
+	// NOTE: Like '$set-car!' in Kernel.
+	RegisterStrict(renv, "set-first%!", SetFirstRef);
 #else
 #	if YF_Impl_NPLA1_Native_EnvironmentPrimitives
 	context.Perform(u8R"NPL(
@@ -549,7 +595,8 @@ LoadPrimitive(REPLContext& context)
 		$def! list wrap ($vau (.x) #ignore x);
 		$def! list% wrap ($vau &x #ignore x);
 	)NPL");
-	// XXX: The operative '$defv!' is same to following derivations.
+	// XXX: The operative '$defv!' is same to following derivations in
+	//	%LoadCore.
 	context.Perform(u8R"NPL(
 		$def! $defv! $vau (&$f &formals &senv .&body) d
 			eval (list $set! d $f $vau formals senv body) d;
@@ -581,9 +628,20 @@ LoadPrimitive(REPLContext& context)
 								(eval% head d)) (eval% (cons% $aux tail) d))))
 			(make-environment (() get-current-environment));
 	)NPL");
+	// XXX: The operative '$defl%!' and the applicative 'first&' are same to
+	//	following derivations in %LoadCore.
+	context.Perform(u8R"NPL(
+		$defv! $defl%! (&f &formals .&body) d eval
+			(list $set! d f $lambda% formals body) d;
+		$defl%! first& (&l) ($lambda% ((&x .)) x) (check-list-lvalue l);
+		$defl%! set-first! (&l &x) <- (first& (check-list-lvalue l)) (idv x);
+		$defl%! set-first%! (&l &x) <- (first& (check-list-lvalue l)) x;
+	)NPL");
 #endif
 }
 
+//! \since build 839
+//@{
 void
 LoadCore(REPLContext& context)
 {
@@ -611,10 +669,10 @@ LoadCore(REPLContext& context)
 			$if (lvalue? (resolve-identifier ($quote x))) x (idv x);
 		$defl! first ((&x .)) x;
 		$defl%! first% ((%x .)) forward x;
-		$defl%! first& ((&x .)) x;
+		$defl%! first& (&l) ($lambda% ((&x .)) x) (check-list-lvalue l);
 		$defl! rest ((#ignore .x)) x;
 		$defl! rest% ((#ignore .%x)) x;
-		$defl! rest& ((#ignore .&x)) x;
+		$defl! rest& (&l) ($lambda% ((#ignore .&x)) x) (check-list-lvalue l);
 		$defl%! apply (&appv &arg .&opt)
 			eval% (cons% () (cons% (unwrap appv) arg))
 				($if (null? opt) (() make-environment) (first& opt));
@@ -714,14 +772,14 @@ LoadCore(REPLContext& context)
 			eval (list*% $bindings/p->environment
 				(list (() make-standard-environment)) bindings) denv;
 		$defv! $provide! (&symbols .&body) d $sequence
-			(eval (list% $def! symbols (list $let () $sequence (list% $set!
-				(() get-current-environment) ($quote res) (list% ()
-				lock-current-environment)) body (list* () list symbols))) d)
+			(eval (list% $def! symbols (list $let () $sequence
+				(list% $set! (() get-current-environment) ($quote res) (list% ()
+					lock-current-environment)) body (list* () list symbols))) d)
 			res;
 		$defv! $provide/d! (&symbols &ef .&body) d $sequence
-			(eval (list% $def! symbols (list $let/d () ef $sequence (list% $set!
-				(() get-current-environment) ($quote res) (list% ()
-				lock-current-environment)) body (list* () list symbols))) d)
+			(eval (list% $def! symbols (list $let/d () ef $sequence
+				(list% $set! (() get-current-environment) ($quote res) (list% ()
+					lock-current-environment)) body (list* () list symbols))) d)
 			res;
 		$defv! $import! (&e .&symbols) d
 			eval% (list $set! d symbols (list* () list symbols)) (eval e d);
@@ -739,30 +797,10 @@ LoadCore(REPLContext& context)
 }
 
 void
-LoadObjectInteroperations(REPLContext& context)
-{
-	RegisterStrict(context.Root, "ref", [](TermNode& term){
-		CallUnary([&](TermNode& tm){
-			LiftToReference(term, tm);
-		}, term);
-		return CheckNorm(term);
-	});
-}
-
-void
-LoadEncapsulations(REPLContext& context)
-{
-	RegisterStrict(context.Root, "make-encapsulation-type",
-		MakeEncapsulationType);
-}
-
-void
 Load(REPLContext& context)
 {
-	LoadPrimitive(context);
+	LoadGroundedDerived(context);
 	LoadCore(context);
-	LoadObjectInteroperations(context);
-	LoadEncapsulations(context);
 }
 //@}
 
@@ -832,8 +870,7 @@ LoadModule_std_strings(REPLContext& context)
 	RegisterStrictUnary<const string>(renv, "string-empty?",
 		std::mem_fn(&string::empty));
 	RegisterStrictBinary(renv, "string<-", [](TermNode& x, const TermNode& y){
-		NPL::AccessRegularValue<string>(x)
-			= NPL::AccessRegularValue<const string>(y);
+		NPL::ResolveRegular<string>(x) = NPL::ResolveRegular<const string>(y);
 		return ValueToken::Unspecified;
 	});
 	RegisterStrictBinary<string, string>(renv, "string-contains-ci?",
@@ -857,8 +894,8 @@ LoadModule_std_strings(REPLContext& context)
 	});
 	RegisterStrict(renv, "regex-match?", [](TermNode& term){
 		auto i(std::next(term.begin()));
-		const auto& str(NPL::AccessRegularValue<const string>(Deref(i)));
-		const auto& r(NPL::AccessRegularValue<const std::regex>(Deref(++i)));
+		const auto& str(NPL::ResolveRegular<const string>(Deref(i)));
+		const auto& r(NPL::ResolveRegular<const std::regex>(Deref(++i)));
 
 		term.ClearTo(std::regex_match(str, r));
 	}, ystdex::bind1(RetainN, 2));

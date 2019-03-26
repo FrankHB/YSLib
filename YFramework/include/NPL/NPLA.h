@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r5135
+\version r5349
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2019-03-09 02:10 +0800
+	2019-03-22 20:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 //	YSLib::make_weak, observer_ptr, pair, YSLib::to_string,
 //	YSLib::shared_ptr, YSLib::weak_ptr, NPLTag, ValueNode, TermNode, string,
 //	TraverseSubnodes, NPL::GetNodeNameOf, LoggedEvent, ystdex::isdigit,
-//	NPL::Access, std::addressof, NPL::make_observer,
+//	NPL::Access, std::addressof, NPL::make_observer, ystdex::make_expanded,
 //	ystdex::equality_comparable, ystdex::move_and_swap, ystdex::less,
 //	YSLib::map, YSLib::allocate_shared, std::uintptr_t, ystdex::copy_and_swap,
 //	NoContainer, ystdex::try_emplace, ystdex::try_emplace_hint,
@@ -823,7 +823,7 @@ TermToString(const TermNode&);
 
 /*!
 \brief 访问项的值并转换为可选带有引用标记的字符串形式。
-\note 当前使用前缀 [*] 和空格表示引用项。
+\note 当前使用前缀 [*] 和空格表示引用项。直接附加字符串，因此通常表示已解析的引用。
 \sa TermToString
 \since build 840
 */
@@ -834,13 +834,13 @@ TermToStringWithReferenceMark(const TermNode&, bool);
 /*!
 \brief 对列表项抛出指定预期访问值的类型的异常。
 \throw ListTypeError 消息中包含由参数指定的预期访问值的类型的异常。
-\note 根据是否为引用项确定消息中的引用标记。
-\sa IsReferenceTerm
+\note 后两个参数传递给 TermToStringWithReferenceMark ，预期用法通常相同。
 \sa TermToStringWithReferenceMark
-\since build 840
+\since build 855
 */
 YB_NORETURN YF_API void
-ThrowListTypeErrorForInvalidType(const ystdex::type_info&, const TermNode&);
+ThrowListTypeErrorForInvalidType(const ystdex::type_info&, const TermNode&,
+	bool);
 
 /*!
 \brief 标记记号节点：递归变换节点，转换其中的词素为记号值。
@@ -1013,9 +1013,8 @@ public:
 	{}
 	//@}
 	//@}
-	DefDeCopyCtor(TermReference)
-
-	DefDeCopyAssignment(TermReference)
+	//! \since build 855
+	DefDeCopyMoveCtorAssignment(TermReference)
 
 	//! \brief 等于：当且仅当引用的项同一时相等。
 	YB_ATTR_nodiscard YB_PURE friend
@@ -1067,39 +1066,34 @@ YB_ATTR_nodiscard YF_API YB_PURE const TermNode&
 ReferenceTerm(const TermNode&) ynothrow;
 
 
+//! \since build 855
+//@{
+/*!
+\brief 表示解析项后作为访问参数的项引用指针。
+
+用于可选参数访问的指针类型，满足：
+满足 ISO C++ [nullablepointer.requirements] NullablePointer 要求；
+允许隐式转换为 bool ，结果同显式转换为 bool ；
+使用一元 * 取指定项引用的 const 内建引用。
+注意具体类型不应被依赖。使用内建指针实现以在某些 ABI 上提供高效的二进制实现，
+	并支持转换为访问参数指针的操作在常量表达式上下文中出现。
+*/
+using ResolvedTermReferencePtr = yimpl(const TermReference*);
+
+/*!
+\brief 转换项引用指针为项引用的访问参数指针。
+\relates ResolvedTermReferencePtr
+*/
+yconstfn PDefH(ResolvedTermReferencePtr, ResolveToTermReferencePtr,
+	observer_ptr<const TermReference> p) ynothrow
+	ImplRet(p.get())
+//@}
+
+
 //! \exception 异常中立：由项的值数据成员的持有者抛出。
 //@{
 //! \since build 854
 //@{
-/*!
-\brief 访问解析 TermReference 后的项的指定类型对象。
-\exception ListTypeError 异常中立：项为列表项。
-\exception bad_any_cast 异常中立：非列表项类型检查失败。
-\sa ThrowListTypeErrorForInvalidType
-*/
-//@{
-template<typename _type>
-YB_ATTR_nodiscard YB_PURE _type&
-AccessRegularValue(TermNode& term)
-{
-	auto& tm(ReferenceTerm(term));
-
-	if(!IsList(tm))
-		return NPL::Access<_type>(tm);
-	ThrowListTypeErrorForInvalidType(ystdex::type_id<_type>(), term);
-}
-template<typename _type>
-YB_ATTR_nodiscard YB_PURE const _type&
-AccessRegularValue(const TermNode& term)
-{
-	const auto& tm(ReferenceTerm(term));
-
-	if(!IsList(tm))
-		return NPL::Access<_type>(tm);
-	ThrowListTypeErrorForInvalidType(ystdex::type_id<_type>(), term);
-}
-//@}
-
 //! \brief 尝试访问解析 TermReference 后的项的指定类型对象指针。
 //@{
 template<typename _type>
@@ -1116,7 +1110,6 @@ TryAccessReferencedLeaf(const TermNode& term)
 }
 //@}
 
-
 //! \brief 判断项的值数据成员是否为引用项。
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsReferenceLeaf(const TermNode&);
@@ -1132,59 +1125,98 @@ IsLValueLeaf(const TermNode&);
 //! \brief 判断项是否表示左值引用。
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsLValueTerm(const TermNode&);
+//@}
 
-
+/*!
+\sa NPL::ResolveToTermReferencePtr
+\sa ResolveTermHandler
+\sa ResolvedTermReferencePtr
+\sa TermReference
+\since build 855
+*/
+//@{
 /*!
 \brief 解析并间接引用处理可能是引用值的项。
 \note 假定项符合正规表示，不需要对间接值检查 IsBranch 或 IsLeaf 。
 */
-//@{
-template<typename _func>
+template<typename _func, class _tTerm>
 auto
-ResolveLeaf(_func do_resolve, TermNode& term)
-	-> decltype(do_resolve(term, bool()))
+ResolveLeaf(_func do_resolve, _tTerm&& term)
+	-> decltype(do_resolve(yforward(term), ResolvedTermReferencePtr()))
 {
+	using handler_t = yimpl(void)(_tTerm&&, ResolvedTermReferencePtr);
+
 	// XXX: Assume value representation of %term is regular.
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
-		return do_resolve(p->get(), true);
-	return do_resolve(term, {});
+		return ystdex::make_expanded<handler_t>(std::ref(do_resolve))(
+			p->get(), NPL::ResolveToTermReferencePtr(p));
+	return ystdex::make_expanded<handler_t>(std::ref(do_resolve))(
+		yforward(term), ResolvedTermReferencePtr());
 }
-template<typename _func>
-auto
-ResolveLeaf(_func do_resolve, const TermNode& term)
-	-> decltype(do_resolve(term, bool()))
-{
-	// XXX: Assume value representation of %term is regular.
-	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
-		return do_resolve(p->get(), true);
-	return do_resolve(term, {});
-}
-//@}
-//@}
 
 /*!
 \brief 解析并间接引用处理可能是引用值的项。
 \note 不假定项符合正规表示，首先检查 IsLeaf 。
-\since build 840
+*/
+template<typename _func, class _tTerm>
+auto
+ResolveTerm(_func do_resolve, _tTerm&& term)
+	-> decltype(do_resolve(yforward(term), ResolvedTermReferencePtr()))
+{
+	using handler_t = yimpl(void)(_tTerm&&, ResolvedTermReferencePtr);
+
+	if(const auto p = NPL::TryAccessTerm<const TermReference>(term))
+		return ystdex::make_expanded<handler_t>(std::ref(do_resolve))(
+			p->get(), NPL::ResolveToTermReferencePtr(p));
+	return ystdex::make_expanded<handler_t>(std::ref(do_resolve))(
+		yforward(term), ResolvedTermReferencePtr());
+}
+//@}
+
+/*!
+\exception ListTypeError 异常中立：项为列表项。
+\exception bad_any_cast 异常中立：非列表项类型检查失败。
+\since build 855
 */
 //@{
-template<typename _func>
-auto
-ResolveTerm(_func do_resolve, TermNode& term)
-	-> decltype(do_resolve(term, bool()))
+template<typename _type, typename _func, class _tTerm, typename... _tParams>
+YB_ATTR_nodiscard YB_PURE auto
+CheckRegular(_func f, _tTerm& term, bool has_ref, _tParams&&... args)
+	-> yimpl(decltype(f(yforward(args)...)))
 {
-	if(const auto p = NPL::TryAccessTerm<const TermReference>(term))
-		return do_resolve(p->get(), true);
-	return do_resolve(term, {});
+	if(!IsList(term))
+		return f(yforward(args)...);
+	ThrowListTypeErrorForInvalidType(ystdex::type_id<_type>(), term, has_ref);
 }
-template<typename _func>
-auto
-ResolveTerm(_func do_resolve, const TermNode& term)
-	-> decltype(do_resolve(term, bool()))
+
+/*!
+\brief 访问项的指定类型正规值。
+\sa ThrowListTypeErrorForInvalidType
+*/
+template<typename _type, class _tTerm>
+YB_ATTR_nodiscard YB_PURE auto
+AccessRegular(_tTerm& term, bool has_ref)
+	-> yimpl(decltype(NPL::Access<_type>(term)))
 {
-	if(const auto p = NPL::TryAccessTerm<const TermReference>(term))
-		return do_resolve(p->get(), true);
-	return do_resolve(term, {});
+	return NPL::CheckRegular<_type>([&]()
+		-> yimpl(decltype(NPL::Access<_type>(term))){
+		return NPL::Access<_type>(term);
+	}, term, has_ref);
+}
+
+/*!
+\brief 访问一次解析引用值后的项的指定类型正规值。
+\note 若遇到正规值为引用值，则进行解引用后继续访问。解引用至多一次。
+\sa NPL::ResolveTerm
+*/
+template<typename _type, class _tTerm>
+YB_ATTR_nodiscard YB_PURE auto
+ResolveRegular(_tTerm& term) -> yimpl(decltype(NPL::Access<_type>(term)))
+{
+	return NPL::ResolveTerm([&](_tTerm& nd, bool has_ref)
+		-> yimpl(decltype(NPL::Access<_type>(term))){
+		return NPL::AccessRegular<_type>(nd, has_ref);
+	}, term);
 }
 //@}
 //@}
@@ -1296,34 +1328,6 @@ inline PDefH(void, LiftTermIndirection, TermNode& term)
 */
 //@{
 /*!
-\note 用于支持实现对象语言中的左值到右值转换。
-\sa LiftTerm
-\sa LiftTermRef
-\sa TermReference
-*/
-//@{
-/*!
-\brief 提升引用项。
-\return 项为引用项。
-\since build 828
-
-项的 Value 数据成员为 TermReference 类型的值时调用 LiftTermRef 。
-*/
-YF_API bool
-LiftTermOnRef(TermNode&, TermNode&);
-
-/*!
-\brief 提升自身引用项。
-\sa LiftTermOnRef
-\since build 828
-
-作用同以相同参数调用 LiftTermOnRef 。
-*/
-inline PDefH(bool, LiftTermRefToSelf, TermNode& term)
-	ImplRet(LiftTermOnRef(term, term))
-//@}
-
-/*!
 \brief 提升项引用：使用第二参数指定的项的内容引用替换第一个项的内容。
 \sa ValueObject::MakeIndirect
 \since build 747
@@ -1345,47 +1349,21 @@ inline PDefH(void, LiftTermRef, TermNode& term, const ValueObject& vo)
 \sa LiftTerm
 \since build 800
 \todo 使用具体的语义错误异常类型。
+
+若项对象表示引用值则提升项，
+否则对 ValueObject 进行基于所有权的生存期检查并取引用这个项的引用值。
 */
 YF_API void
 LiftToReference(TermNode&, TermNode&);
 
 /*!
 \brief 提升自身引用项后提升间接引用项以满足返回值的内存安全要求。
-\sa LiftTermRefToSelf
+\note 复制引用项引用的对象，调用 LiftTermIndirection 复制或转移非引用项的对象。
 \sa LiftTermIndirection
 \since build 828
 */
 YF_API void
 LiftToReturn(TermNode&);
-
-/*!
-\brief 递归提升项及其子项或递归创建项和子项对应的包含间接值的引用项到自身。
-\note 先提升项的值再提升子项以确保子项表示引用值时被提升。
-\sa LiftTermRefToSelf
-*/
-YF_API void
-LiftToSelf(TermNode&);
-
-/*!
-\brief 递归提升项及其子项或递归创建项和子项对应的包含间接值的间接引用项到自身。
-\sa LiftToSelf
-\sa LiftTermIndirection
-\since build 821
-
-调用 LiftToSelf ，然后递归地以相同参数调用 LiftTermIndirection 复制或转移自身。
-*/
-YF_API void
-LiftToSelfSafe(TermNode&);
-
-/*!
-\brief 递归提升项及其子项或递归创建项和子项对应的包含间接值的引用项到其它项。
-\sa LiftTerm
-\sa LiftToSelf
-
-以第二参数调用 LiftToSelf 后再调用 LiftTerm 。
-*/
-YF_API void
-LiftToOther(TermNode&, TermNode&);
 //@}
 
 /*!
@@ -1394,13 +1372,6 @@ LiftToOther(TermNode&, TermNode&);
 */
 inline PDefH(void, LiftSubtermsToReturn, TermNode& term)
 	ImplExpr(std::for_each(term.begin(), term.end(), LiftToReturn))
-
-/*!
-\brief 对每个子项调用 LiftToSelfSafe 。
-\since build 822
-*/
-inline PDefH(void, LiftSubtermsToSelfSafe, TermNode& term)
-	ImplExpr(std::for_each(term.begin(), term.end(), LiftToSelfSafe))
 
 /*!
 \brief 提升延迟求值项的引用。
@@ -1447,13 +1418,10 @@ ReduceBranchToListValue(TermNode&) ynothrowv;
 //@}
 
 /*!
-\since build 774
-\sa RemoveHead
-*/
-//@{
-/*!
 \brief 规约第一个非结尾空列表子项。
 \return ReductionStatus::Clean 。
+\sa RemoveHead
+\since build 774
 
 若项具有不少于一个子项且第一个子项是空列表则移除。
 允许空列表作为第一个子项以标记没有操作数的函数应用。
@@ -1461,7 +1429,23 @@ ReduceBranchToListValue(TermNode&) ynothrowv;
 YF_API ReductionStatus
 ReduceHeadEmptyList(TermNode&) ynothrow;
 
-//! \return 移除项时 ReductionStatus::Retained ，否则 ReductionStatus::Clean。
+/*!
+\brief 规约提升结果。
+\return 对提升后的结果调用 CheckNorm 的返回值。
+\sa CheckNorm
+\sa LiftToReturn
+\since build 855
+
+调用 LiftToReturn 提升结果，再调用 CheckNorm 返回规约状态。
+*/
+YF_API ReductionStatus
+ReduceForLiftedResult(TermNode&);
+
+/*!
+\return 移除项时 ReductionStatus::Retained ，否则 ReductionStatus::Clean。
+\sa RemoveHead
+\since build 774
+*/
 //@{
 /*!
 \brief 规约为列表：对枝节点移除第一个子项，保留余下的子项作为列表。
@@ -1478,24 +1462,6 @@ ReduceToList(TermNode&) ynothrow;
 YF_API ReductionStatus
 ReduceToListValue(TermNode&) ynothrow;
 //@}
-//@}
-
-
-/*!
-\brief 规约闭包结果处理：提升结果。
-\return 根据规约后剩余项确定的规约结果。
-\sa CheckNorm
-\sa LiftToReturn
-\sa RegularizeTerm
-\since build 841
-
-对规约闭包结果进行处理，依次进行以下操作：
-调用 RegularizeTerm 根据第二参数指定的规约结果对项进行正规化；
-调用 LiftToReturn 提升最外一级的引用项后递归提升间接值；
-最后调用 CheckNorm 确定返回值。
-*/
-YF_API ReductionStatus
-ReduceForClosureResult(TermNode&, ReductionStatus);
 
 
 /*!

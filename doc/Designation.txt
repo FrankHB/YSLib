@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 项目设计规则指定和说明。
-\version r9899
+\version r9905
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2019-03-11 16:35 +0800
+	2019-03-17 06:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -462,6 +462,13 @@ reinterpret_cast
 @6.2.5 宏定义：
 除非文档说明，不在代码中定义或取消定义影响实现特性的宏([Documentation::LanguageConvention @@5.3.3.2]) 。
 不假定这些宏之前未被外部环境预定义([Documentation::LanguageConvention @@5.3.4]) ，且需保证在标准库头之前包含([Documentation::LanguageConvention @@5.3.6]) 。
+
+@6.3 实现内部注释：
+特定格式的实现内部注释辅助特性和缺陷([Documentation::ProjectRules @@2.3.3]) 管理。
+项目管理关注以下标签：
+TODO ：指定待实现特性。
+FIXME ：标记已知的实现缺陷。
+若已在接口缺陷包含，则使用 \todo 指令(@6.1) 或在项目内部文档([Documentation::ProjectRules @@2.4]) 中另行指定替代 FIXME 。
 
 @7 一般实现导引：
 自定义应用程序 Shell 类，继承默认 Shells::Shell 类或其派生类并产生实例。

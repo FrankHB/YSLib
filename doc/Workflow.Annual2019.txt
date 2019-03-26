@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2019 年度。
-\version r115
+\version r189
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2019-01-02 01:00:32 +0800
 \par 修改时间:
-	2019-03-11 16:33 +0800
+	2019-03-17 08:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,6 +111,80 @@ Pointer holder in module YSLib::Core::YObject is reworked.
 		For weak pointers, it does not need to get strong pointers to get the type.
 			An expired value might lead to 'void' type previously. This is changed to getting 'void' only when the pointer value is null despite the owner.
 			User code should be careful in this case.
+NPL objects involved with pointer holders are effected by the change of pointer holder in module YSLib::Core::YObject.
+	Values of Weak references in the past would be more troblesome as the values without strong reference is recognized as 'void' rather than concrete type.
+		So, there would be simply wrong value rather than the 'YSLib::bad_weak_ptr' exception thrown, if no other strong reference is kept.
+		The only example is 'ContextHandler' used as the default object by the call of 'NPL::A1::Forms::DefineWithRecursion'.
+	This is now changed to improve the interoperbility.
+		See the discussions of pointer holder modification for weak pointers above for reasons.
+	Keeping some strong references elsewhere is however difficult after the whole evaluation without special handling using centralized storage (e.g. in 'NPL::ContextNode').
+Internal recursive thunk as the part of implementation of function 'NPL::A1::Forms::DefineWithRecursion' is reworked.
+	To allow identifying the situation of cyclic references, default objects still use weak references, but the behavior is slightly changed. See the discussions concerned with pointer holders above.
+	Now newly bound variables are stable, i.e. they do not be restored to another values in the call of 'NPL::Forms::DefineWithRecursion' after the evaluation of the expression as the binding source.
+		This ensures references to these variables do not go out of their lifetime unexpectedly.
+		After defining, the default objects are recovered as thunks which access the environment by name for the real caller when called.
+			This allows check and exceptions can be thrown on failure.
+	Expired 'weak_ptr<ContextNode>' value in a default object is a corruptied value.
+		This is now handled generally by by improved implementation in modules NPL::NPLA and NPL::NPLA1 with API provided by module NPL::NPLA.
+		If the default object is corruptied and called, it would throw a different exception ('bad_weak_ptr') from default ones.
+			This is undefined behavior in the object language.
+				The current behavior is for ease of debugging.
+				Although it will not changed frequently, the behavior is not guaranteed stable.
+	Implementation of operative '$defrec!' (by 'Forms::DefineWithRecursion') is revised.
+		To avoid undefined behavior caused by recursive reference with ownership, the weak reference of target bindings is kept.
+		The environment access to recursive binding is now delayed with symbol access to the locked-on-access environment, to allow more error checked (in case of already undefined behavior specified in the object language), e.g. by throwing 'bad_weak_ptr'.
+		Since the environment enclosing the bound variables does not have strong reference to the object, it should be careful to save the environment in the binding with 'lock-current-environment', rather than 'get-current-environment', if necessary.
+	The implementation difference is significant especailly when 'NPL::LiftToReturn' does not lift reference at first by 'NPL::LiftTermRefToSelf' (now removed).
+		The lift makes it essentially deep copies the shared value (configured by pointer holders) of bound variables.
+			See the values of shared variable '$aux' in the following cases.
+		Case 1 (an alternative derivation of '$sequence'):
+			$def! $sequence
+				($lambda (&cenv) ($lambda #ignore $vau/e cenv body env
+					$if (null? body) inert (eval (cons $aux body) env))
+					($setrec! cenv $aux $vau/e (weaken-environment cenv)
+						(&head .&tail) env
+						$if (null? tail) (eval head env) (($lambda #ignore
+							(eval (cons $aux tail) env)) (eval head env)))
+				)
+				(() make-standard-environment);
+			$sequence "a" "b";
+			The case above will not work without deep copy in 'NPL::LiftToReturn' of the shared values if '$aux' is not stable.
+				Alternatively, lift specifically configured in implementation of 'cons' or wrapping '$aux' with a native deep copy identity function for both occurences is also OK.
+		Case 2 (an invalid derivation of '$sequence'):
+			$def! $sequence
+				(wrap
+					($vau (&$seq2) #ignore $seq2
+						($defrec! $aux $vau/e (() copy-environment) (&first .&rest) env
+							($if (null? rest) (eval first env)
+								($seq2 (eval first env)
+									(eval (cons $aux rest) env))))
+						($vau/e (() copy-environment) &body env
+							($if (null? body) inert
+								(eval (cons $aux body) env)))))
+				($vau (first second) env (wrap ($vau #ignore #ignore (eval second env))) (eval first env));
+			$sequence "a" "b";
+			The derivation is invalid because of cyclic references, which implies undefined behavior in NPLA1.
+				With the deep copy (likewise in Case 1), it will occasionally work as the '$aux' is unshared before calling.
+					With modification of '$defrec!' with delayed environment access, it does not work.
+				Without the deep copy and '$defrec!' modification, it also does not work.
+					It will access invalid memory by TCO in the call using the shared value hold by '$aux'.
+					It will access invalid memory or infinitely recursively reenters the host function (value of 'NPL::ContextHanlder') of '$aux'.
+						Whether to reenter depends on the implementation details of 'NPL::Forms::DefineWithRecursion'.
+				The applicative 'deshare' is provided to restore the deep copy locally. It is not needed in most cases.
+			The workable derivation is:
+				$def! $sequence
+				(wrap
+					($vau (&$seq2) #ignore $seq2
+						($defrec! $aux $vau/e (make-environment (() lock-current-environment) (() copy-environment)) (&first .&rest) env
+							($if (null? rest) (eval first env)
+								($seq2 (eval first env)
+									(eval (cons $aux rest) env))))
+						($vau/e (make-environment (() lock-current-environment) (() copy-environment)) &body env
+							($if (null? body) inert
+								(eval (cons $aux body) env)))
+					)
+				)
+				($vau (first second) env (wrap ($vau #ignore #ignore (eval second env))) (eval first env));
 
 ////
 

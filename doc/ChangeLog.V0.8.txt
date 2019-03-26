@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r11542
+\version r11788
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-03-11 16:32 +0800
+	2019-03-26 23:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,247 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				(
+				(
+				- $revert(b822) "function %LiftSubtermsToSelfSafe";
+				- $revert(b821) "function %LiftToSelfSafe"
+				),
+				(
+				- $revert(b800) "function %LiftToOther" $dep_from
+					("%Forms::ValueOf" @ %NPLA1);
+				* $comp DD "function %LiftToOther" $mismatch $since b803
+				);
+				- $revert(b800) "function %LiftToSelf" $dep_all_from
+					"avoiding LiftToSelf"
+				),
+				(
+				(
+				/ "avoided handling indirect values other than references"
+					@ "function %LiftToReturn"
+					// The old behavior is preserved in the applicative \
+						%deshare.
+					$= (/ "copy reference target" ^ "%ValueObject::MakeCopy"
+						~ "%(LiftTermRefToSelf, LiftTermRefToSelf)");
+				- $revert(b828) "function %LiftTermRefToSelf" $dep_from
+					("applicative %deshare"
+					@ "function %A1::Forms::LoadGroundContext" @ %Dependency)
+				),
+				* "missing support of list term" @ "function %LiftToReference"
+					$since b800 ^ "%TermReference" ~ "%LiftTermOnRef";
+					// This is still unsafe if the operand is not a reference \
+						value, because the anchor is not referenced.
+				- $revert(b828) "function %LiftTermOnRef" $dep_from
+					"%LiftToReference"
+				),
+				(
+				+ "%bool parameter to specify reference mark explicitly"
+					@ "function %ThrowListTypeErrorForInvalidType"
+					~ "%IsReferenceTerm",
+					// This makes it more efficient by avoiding %ReferenceTerm \
+						at caller sites, although call sites like \
+						%AccessRegularValue were not with it (and being not \
+						correct, see below).
+				* $forced "wrong $ListTypeError exception message string for \
+					wrong lvalues" @ "all 2 function template \
+					%AccessRegularValue" ^ "%NPL::IsReferenceTerm" $since b840
+				),
+				(
+				+ "alias %ResolveTermHandler";
+				+ "function %ResolveToTermReferencePtr";
+				/ "supported optional arguments in handlers" @ "%ResolveTerm"
+					^ "%(ystdex::make_expanded, std::ref, ResolveTermHandler, \
+					NPL::ResolveToTermReferencePtr)" $dep_to
+					"resolved term reference pointer argument"
+				),
+				/ "merged 2 function templates %(ResolveTerm, ResolveLeaf)"
+					^ "universal reference of term class",
+				+ "function %ReduceForLiftedResult",
+				- $revert(b841) "function %ReduceForClosureResult" $dep_from
+					"simplified term regularization",
+					// The order of calls in %ReduceForClosureResult is \
+						correct but it is only suited for TCO implementation \
+						and the calls are not for the same reduction. To avoid \
+						confusion, this is now implemented internally in NPLA1.
+				/ DLDI "variable names" @ "function %RegularizeTerm",
+				(
+					+ "function template %CheckRegular";
+					+ "function template %AccessRegular;
+					/ "all 2 function templates %AccessRegularValue"
+						-> "function template %ResolveRegular"
+						^ "%AccessRegular"
+				),
+				+ "defaulted default (move constructor, move %operator=)"
+					@ "class %TermReference" ^ "%DefDeCopyMoveCtorAssignment"
+					// Since there is an anchor object, it is sensible to move.
+			),
+			/ %NPLA1 $=
+			(
+				(
+				+ "function template %CallRawUnary";
+				/ DLDI "function template %CallUnary" ^ "%Forms::CallRawUnary",
+				(
+				+ "function template %CallResolvedUnary";
+				+ "function template %CallRegularUnaryAs" $dep_from
+					"resolved term reference pointer argument"
+				)
+				),
+				/ "namespace %Forms" @ %NPLA1 $=
+				(
+					/ @ "function %DefineWithRecursion" $=
+					(
+						/ DLI "avoided redundant restoring for bound variable \
+							without more than 1 shared reference",
+						/ "handling of default object" $dep_from
+							("%PointerHolder::type" @ %YSLib.Core.YObject),
+						- DLDI "redundant thunk creation",
+						(
+						// See $2019-03 @ %Documentation::Workflow::Annual2019.
+						/ "made default object as strong references to thunks \
+							with environment resolution",
+							// This can avoid invalidation as well as cyclic \
+								references involving default objects.
+						* "invalidation of bound variables caused by directly \
+							overriden bound variable" $since b780;
+						/ "avoided change of bound object in the \
+							environment in restoring the default objects" $=
+						(
+							/ "restored thunk accessing environment"
+								$dep_to "delayed environment access",
+							+ "throwing %InvalidReference for expired \
+								environment",
+							+ "throwing %BadIdentifier on access failure"
+						)
+						),
+						* "ill-formed thunk construction" @ "direct style code"
+							$since b854
+					),
+					/ @ "function %MatchParameters" $=
+					(
+						(
+						/ "supported access of referent of %TermReference as \
+							symbols" $dep_to "ptree reference support";
+						/ DLDI "simplified leaf accesses"
+							^ "%ValueObject::GetObject" ~ "%NPL::TryAccessTerm"
+						),
+						* DD "exception name" @ "'\exception' command"
+							@ "Doxygen comment" $since b780 $=
+							(/ DD 'bad_function' -> 'bad_function_call')
+					),
+					- $revert(b800) DLI "call of %LiftToSelf before parameter \
+						tree binding" @ ("function %Forms(DefineLazy, \
+						DefineWithNoRecursion, DefineWithRecursion, Lambda, \
+						LambdaRef, Vau, VauRef, VauWithEnvironment, \
+						VauWithEnvironmentRef)") $dep_to "avoiding LiftToSelf",
+					/ @ "function %BindParameter" $=
+					(
+						* DD "operand lifting" $mismatch
+							$since b803 $dep_to "avoiding LiftToSelf",
+							// Since b803, %LiftTermOnRef is called instead of \
+								%LiftToSelf. Since b822, %LiftToSelf is called \
+								only for by value passing. Since b828, lifting \
+								is moved out of matching and lifting functions \
+								are not called any more.
+						/ DLI "optimized anchor by avoiding copying",
+						* "lists in lvalues bound to sigil '&' as copied \
+							rvalues" $since b829 $dep_to
+							"list rvalue binding fix"
+							// It is actually safe to be bound as lvalues when \
+								%copy is set for it or one of its ancestor.
+					),
+					* DD "operator names" $mismatch(Documentation.NPL)
+						@ ("functions %(LambdaRef, VauRef, \
+						VauWithEnvironmentRef)" $since b828,
+						@ "function %VauWithEnvironment" $since b839),
+					/ "function %ValueOf" ^ "%LiftTerm" ~ "%LiftToOther",
+					/ "simplified functions %(Eval, EvalRef, EvalString, \
+						EvalStringRef, MatchParameter)" ^ "%ResolveTerm"
+						~ "%NPL::TryAccessTerm",
+					* "wrong $ListTypeError exception message string for wrong \
+						referenced lvalues" @ "functions %(Cons, ConsRef)"
+						$since b840,
+						// Referenced type instead of %TermReference is \
+							expected.
+					/ DLI "removed redundant term regularization"
+						@ "thunked code" @ "functions %(Eval, Lambda, Vau, \
+						VauWithEnvironment)" ^ $dep_from
+						("%ReduceForLiftedResult" @ %NPLA) $dep_to
+						"simplified term regularization",
+						// The inner regulation in the TCO action is \
+							redundant. It would be also redundant elsewhere \
+							except in the implementation %ReduceCombined (or \
+							at the end of the TCO action).
+					* "invalid access in decapsulating prvalues" @ "function \
+						%MakeEncapsulationType" $since b834 ^ $dep_from
+						"%Forms::CallRegularUnaryAs",
+					* "typo" @ "exception message" @ "%ValueCategoryMismatch \
+						exception thrown" @ "functions %(SetFirst, \
+						SetFirstRef, SetRest, SetRestRef)" $since b834,
+					/ DLDI "reordered function declarations",
+					(
+					+ "function %CheckListReference";
+					/ DLDI "shared error check with %CheckListReference"
+						@ "functions %(SetFirst, SetFirstRef, SetRest, \
+						SetRestRef)"
+					)
+				)
+			),
+			/ "namespace %A1::Forms" @ %Dependency $=
+			(
+				* "too large value of integer literal handled as invalid suffix"
+					@ "integer literal handling" $orig (@ "function \
+					%LoadNPLContextForSHBuild" $since b770),
+				/ @ "function %LoadGroundContext" @ %Dependency $=
+				(
+					/ DLDI "derivation of operatives ('$provide!', \
+						'$provide/d!')" @ "function %LoadGroundContext",
+					/ DLDI "applicative %deshare"
+						@ %Dependency ^ "%LiftTermRef" ~ "%LiftTermRefToSelf",
+					/ DLDI "simplified applicative %move" ^ $dep_from
+						("%ReduceForLiftedResult" @ %NPLA),
+					/ DLDI "loaded applicative ('make-encapsulation-type', \
+						'ref', 'deshare') earlier",
+						// These are the primitive operation, so let it loaded \
+							together with other primitives.
+					* $comp "invalid references to temporary objects"
+						@ "applicatives ('first&', 'rest&')" $since b829
+						$dep_from "list rvalue binding fix",
+						// This also includes cases of undefined behavior like \
+							nested 'first&' calls on nested list \
+							lvalues.
+					+ "applicative '<-'",
+					(
+					+ "applicative 'check-list-reference'" ^ $dep_from
+						("%CheckListReference" @ %NPLA);
+					+ "check to exclude undefined behavior on rvalue argument"
+						@ "derivation" @ "applicatives ('first&', 'rest&')"
+						^ 'check-list-reference'
+					),
+					+ "alternative derivations"
+						@ "applicatives ('set-first!', 'set-first%!')"
+						^ $dep_from ('<-', 'first&', 'check-list-reference')
+						// Relying on 'check-list-reference' is necessary for \
+							cases where the 1st argument is a list prvalue \
+							(e.g. from expressions like 'rest& x').
+				)
+			),
+			/ DLDI "all 'YSLib::Deref'" -> 'NPL::Deref' $effective @ %NPLA1
+		),
+		/ DLDI "simplified function %Equals" @ "class template %PointerHolder"
+			@ %YSLib.Core.YObject
+			// Also to eliminate Clang++ warning: [-Wpointer-bool-conversion].
+	),
+	* ("return references for applicatives ('first%', 'first&', '%rest', \
+		'%rest&')") @ %Documentation.NPL $since b828
+),
+
+b854
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -255,10 +496,9 @@ $now
 						@ "functions %(SetRest, SetRestRef)"
 						^ $dep_from ("%ResolveLeaf" @ %NPLA) ~ "%ResolveTerm",
 					/ "enhanced handling to corruptied values" @ "functions \
-						%(DefinedWithRecursion, MatchParameter)" ^ $dep_from
+						%(DefineWithRecursion, MatchParameter)" ^ $dep_from
 						("%NPL::TryAccessLeaf" @ %NPLA) ~ "%NPL::AccessPtr"
-						$dep_to
-						"enhanced handling to corruptied values"
+						$dep_to "enhanced handling to corruptied values"
 				),
 				(
 				/ $forced "enhanced handling to corruptied values"
@@ -977,7 +1217,9 @@ b852
 					/ "simplified functions %(SetRest, SetRestRef)"
 						^ $dep_from ("%NPL::AddChildToTail" @ %SContext),
 					/ DLDI !^ "%MakeIndex with size" @ "function %BindParameter"
-						$dep_to "avoided MakeIndex with container"
+						$dep_to "avoided MakeIndex with container",
+					/ DLDI "initialized with context state"
+						@ "function %DefineWithRecursion"
 				),
 				+ DD "made around '<pre>' and '</pre>' for NPL call grammars"
 					@ "Doxygen comments",

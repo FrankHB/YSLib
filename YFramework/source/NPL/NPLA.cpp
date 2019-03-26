@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2335
+\version r2401
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2019-03-08 08:25 +0800
+	2019-03-21 10:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -525,11 +525,11 @@ TermToStringWithReferenceMark(const TermNode& term, bool has_ref)
 
 void
 ThrowListTypeErrorForInvalidType(const ystdex::type_info& tp,
-	const TermNode& term)
+	const TermNode& term, bool is_ref)
 {
 	throw ListTypeError(ystdex::sfmt("Expected a value of type '%s', got a list"
-		" '%s'.", tp.name(), 
-		TermToStringWithReferenceMark(term, IsReferenceTerm(term)).c_str()));
+		" '%s'.", tp.name(),
+		TermToStringWithReferenceMark(term, is_ref).c_str()));
 }
 
 void
@@ -554,6 +554,8 @@ Collapse(TermNode& term)
 {
 	if(const auto p_tref = NPL::TryAccessTerm<const TermReference>(term))
 		return {*p_tref, true};
+	// XXX: This is unsafe and not checkable because the anchor is not
+	//	referenced.
 	return {term, {}};
 }
 pair<TermReference, bool>
@@ -621,39 +623,29 @@ CheckReducible(ReductionStatus status)
 }
 
 ReductionStatus
-RegularizeTerm(TermNode& term, ReductionStatus res) ynothrow
+RegularizeTerm(TermNode& term, ReductionStatus status) ynothrow
 {
 	// NOTE: Cleanup if and only if necessary.
-	if(res == ReductionStatus::Clean)
+	if(status == ReductionStatus::Clean)
 		term.ClearContainer();
-	return res;
+	return status;
 }
 
-
-bool
-LiftTermOnRef(TermNode& term, TermNode& tm)
-{
-	if(const auto p = NPL::TryAccessTerm<const TermReference>(tm))
-	{
-		LiftTermRef(term, p->get());
-		return true;
-	}
-	return {};
-}
 
 void
 LiftToReference(TermNode& term, TermNode& tm)
 {
 	if(tm)
 	{
-		if(!LiftTermOnRef(term, tm))
-		{
-			if(!tm.Value.OwnsUnique())
-				LiftTerm(term, tm);
-			else
-				throw InvalidReference(
-					"Value of a temporary shall not be referenced.");
-		}
+		if(IsReferenceTerm(tm))
+			LiftTerm(term, tm);
+		else if(!tm.Value.OwnsUnique())
+			// XXX: This is unsafe and not checkable because the anchor is not
+			//	referenced.
+			term.Value = TermReference(false, tm);
+		else
+			throw InvalidReference(
+				"Value of a temporary shall not be referenced.");
 	}
 	else
 		ystdex::throw_invalid_construction();
@@ -664,39 +656,19 @@ LiftToReturn(TermNode& term)
 {
 	// TODO: Detect lifetime escape to perform copy elision?
 	// NOTE: Only outermost one level is referenced.
-	LiftTermRefToSelf(term);
-	// NOTE: To keep lifetime of objects referenced by references introduced in
-	//	%EvaluateIdentifier sane, %ValueObject::MakeMoveCopy is not enough
-	//	because it will not copy objects referenced in holders of
-	//	%YSLib::RefHolder instances). On the other hand, the references captured
-	//	by vau handlers (which requries recursive copy of vau handler members if
-	//	forced) are not blessed here to avoid leaking abstraction of detailed
-	//	implementation of vau handlers; it can be checked by the vau handler
-	//	itself, if necessary.
-	LiftTermIndirection(term);
-}
-
-void
-LiftToSelf(TermNode& term)
-{
-	// NOTE: The order is significant.
-	LiftTermRefToSelf(term);
-	for(auto& child : term)
-		LiftToSelf(child);
-}
-
-void
-LiftToSelfSafe(TermNode& term)
-{
-	LiftToSelf(term);
-	LiftTermIndirection(term);
-}
-
-void
-LiftToOther(TermNode& term, TermNode& tm)
-{
-	LiftTermRefToSelf(tm);
-	LiftTerm(term, tm);
+	if(const auto p = NPL::AccessPtr<const TermReference>(term))
+		// NOTE: To keep lifetime of objects referenced by references introduced
+		//	in %A1::EvaluateIdentifier sane, %ValueObject::MakeMoveCopy is not
+		//	enough because it will not copy objects referenced in holders of
+		//	%YSLib::RefHolder instances).
+		NPL::SetContentWith(term, p->get(), &ValueObject::MakeCopy);
+	else
+		LiftTermIndirection(term);
+	// NOTE: On the other hand, the references captured by vau handlers (which
+	//	requries recursive copy of vau handler members if forced) are not
+	//	blessed here to avoid leaking abstraction of detailed implementation
+	//	of vau handlers; it can be checked by the vau handler itself, if
+	//	necessary.
 }
 
 
@@ -713,6 +685,14 @@ ReduceBranchToListValue(TermNode& term) ynothrowv
 	RemoveHead(term);
 	LiftSubtermsToReturn(term);
 	return ReductionStatus::Retained;
+}
+
+ReductionStatus
+ReduceForLiftedResult(TermNode& term)
+{
+	LiftToReturn(term);
+	// XXX: This is needed to update %LastResult in the enclosing context.
+	return CheckNorm(term);
 }
 
 ReductionStatus
@@ -734,15 +714,6 @@ ReduceToListValue(TermNode& term) ynothrow
 {
 	return IsBranch(term) ? ReduceBranchToListValue(term)
 		: ReductionStatus::Clean;
-}
-
-
-ReductionStatus
-ReduceForClosureResult(TermNode& term, ReductionStatus res)
-{
-	RegularizeTerm(term, res);
-	LiftToReturn(term);
-	return CheckNorm(term);
 }
 
 

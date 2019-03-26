@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1449
+\version r1457
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2019-02-22 14:34 +0800
+	2019-03-17 06:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,9 +44,18 @@ YSLib 项目的框架容器。
 @1.2 理论背景、工具和依据：
 基本内容参见 [Documentation::CommonRules @@2.1] 。
 
-@1.3 构建原则：
+@1.3 构建原则和特性：
 基本内容参见 [Documentation::CommonRules @@2.2] 。
 其它见 [Documentation::Designation @@2.3] 。
+
+@1.3.1 项目管理特性：
+本节概述项目管理相关特性的要求。
+
+@1.3.1.1 缺陷管理：
+除 YBase 约定的情形([Documentation::YBase @@1.3.2.1]) 外，API 实现还可能存在不符合特性情况下的实现缺陷实现缺陷([Documentation::Designation @@6.3]) 。
+当前版本中，以下特性属于 API 限制而不属于实现缺陷：
+模块 YCLib_(DS)::DSIO ([Documentation::YCLib @@7.1.1]) 假定本机实现使用小端序。
+模块 CHRLib::CharacterProcessing([Documentation::CHRLib @@1.5.5]) 的构造字符串的 API 中 MakeUCS2LE 和 MakeUCS2LE 假定本机实现使用小端序。
 
 @1.4 通用语义：
 基本内容参见 [Documentation::CommonRules @@2.3] 。

@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r5731
+\version r5732
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2019-03-04 04:02 +0800
+	2019-03-21 22:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -653,7 +653,7 @@ public:
 		ImplI(IValueHolder)
 		ImplRet(traits_type::is_owner(p_held) && p
 			? AreEqualHeld(Deref(traits_type::get(p_held)),
-			Deref(static_cast<const value_type*>(p))) : !get())
+			Deref(static_cast<const value_type*>(p))) : false)
 
 	//! \since build 786
 	YB_ATTR_nodiscard YB_PURE PDefH(size_t, OwnsCount, ) const ynothrow

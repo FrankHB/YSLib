@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2018 FrankHB.
+	© 2012-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CHRLib.txt
 \ingroup Documentation
 \brief CHRLib 说明。
-\version r180
+\version r185
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2018-07-09 10:08 +0800
+	2019-03-17 06:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,16 +85,16 @@ CHRLib 的实现抽象 f 、 g 和 h ，表达它们的一些典型具体实例�
 基于 C++11 基本类型的 UCS-2/UCS-4 字符类型，以及 UCS 整数类型，参见 chrdef.h 。
 
 @1.5.2 编码：
-基于 MIBEnum 的字符编码定义，参见 YCLib::Encoding 。
+基于 MIBEnum 的字符编码定义，模块名称 YCLib::Encoding 。
 
 @1.5.3 字符映射：
-转换序列、转换结果和编码宽度等，参见 YCLib::CharacterMapping 。
+转换序列、转换结果和编码宽度等，模块名称 CharacterMapping 。
 
 @1.5.4 静态编码映射：
-提供特定编码的转换 API ，参见 YCLib::StaticMapping 。
+提供特定编码的转换 API ，模块名称 StaticMapping 。
 
 @1.5.5 字符编码处理：
-编码判断和编码转换 API ，参见 YCLib::CharacterProcessing 。
+编码判断和编码转换 API ，模块名称 CharacterProcessing 。
 
 @1.6 存在问题：
 完备性。

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4468
+\version r4981
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2019-03-09 04:36 +0800
+	2019-03-26 22:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,8 +34,9 @@
 //	ystdex::equality_comparable, ystdex::exclude_self_params_t,
 //	YSLib::AreEqualHeld, std::is_constructible, ystdex::decay_t,
 //	ystdex::expanded_caller, ystdex::or_, ystdex::exclude_self_t,
-//	ystdex::make_function_type_t, ystdex::make_parameter_list_t, std::ref,
-//	ystdex::make_expanded, ystdex::invoke_nonvoid, NPL::AccessRegularValue,
+//	ystdex::make_function_type_t, ystdex::make_parameter_list_t, NPL::Deref,
+//	ystdex::make_expanded, std::ref, NPL::CheckRegular,
+//	ResolvedTermReferencePtr, ystdex::invoke_nonvoid, NPL::ResolveRegular,
 //	ystdex::make_transform, std::accumulate, ystdex::bind1,
 //	std::placeholders::_2, ystdex::examiners::equal_examiner;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
@@ -133,12 +134,12 @@ InsertChild(ValueNode&&, ValueNode::Container&);
 YF_API ValueNode
 TransformNode(const TermNode&, NodeMapper = {}, NodeMapper = MapNPLALeafNode,
 	TermNodeToString = ParseNPLATermString, NodeInserter = InsertChild);
-//@}
 
 
 /*!
 \brief 加载 NPLA1 翻译单元。
 \throw LoggedEvent 警告：被加载配置中的实体转换失败。
+\since build 665
 */
 template<typename _type, typename... _tParams>
 YB_ATTR_nodiscard ValueNode
@@ -154,6 +155,7 @@ LoadNode(_type&& tree, _tParams&&... args)
 /*!
 \note 结果表示判断是否应继续规约。
 \sa PassesCombiner
+\since build 697
 */
 //@{
 //! \brief 一般合并遍。
@@ -326,7 +328,7 @@ inline PDefH(void, ReduceArguments, TermNode& term, ContextNode& ctx)
 /*!
 \brief 规约并检查成功：等效调用 Reduce 并检查结果直至不需重规约。
 \note 支持尾调用优化，不直接使用 CheckedReduceWith 和 Reduce 。
-\return ReductionStatus::Partial 。
+\return 若使用异步调用 ReductionStatus::Partial ，否则为调用 CheckNorm 的结果。
 \sa CheckedReduceWith
 \sa Reduce
 \since build 817
@@ -911,7 +913,7 @@ public:
 	\since build 845
 	*/
 	REPLContext(bool = {}, YSLib::pmr::memory_resource&
-		= YSLib::Deref(YSLib::pmr::new_delete_resource()));
+		= NPL::Deref(YSLib::pmr::new_delete_resource()));
 
 	/*!
 	\brief 加载：从指定参数指定的来源读取并处理源代码。
@@ -1140,7 +1142,6 @@ CheckParameterLeafToken(string_view n, _func f) -> decltype(f())
 
 /*!
 \note 不具有强异常安全保证。匹配失败时，其它的绑定状态未指定。
-\sa LiftToSelf
 \since build 776
 
 递归遍历参数和操作数树进行结构化匹配。
@@ -1156,7 +1157,6 @@ CheckParameterLeafToken(string_view n, _func f) -> decltype(f())
 
 形式参数和操作数为项指定的表达式树。
 第二参数指定形式参数，第三参数指定操作数。
-进行其它操作前，对操作数调用 LiftToSelf 处理，但不处理形式参数。
 进行匹配的算法递归搜索形式参数及其子项，要求参见 MatchParameter 。
 若匹配成功，在第一参数指定的环境内绑定未被忽略的匹配的项。
 对结尾序列总是匹配前缀为 . 的符号为目标按以下规则忽略或绑定：
@@ -1175,7 +1175,7 @@ BindParameter(ContextNode&, const TermNode&, TermNode&);
 
 /*!
 \brief 匹配参数。
-\exception std::bad_function 异常中立：参数指定的处理器为空。
+\exception std::bad_function_call 异常中立：参数指定的处理器为空。
 \since build 851
 
 进行匹配的算法递归搜索形式参数及其子项。
@@ -1195,6 +1195,7 @@ BindParameter(ContextNode&, const TermNode&, TermNode&);
 	若最后的子项为 . 起始的符号，则匹配操作数中结尾的任意个数的项作为结尾序列：
 	其它子项一一匹配操作数的子项；
 若项是空列表，则操作数的对应的项应为空列表；
+若项是 TermReference ，则以其引用的项作为子项继续匹配；
 否则，匹配非列表项。
 */
 YF_API void
@@ -1206,8 +1207,64 @@ MatchParameter(const TermNode&, TermNode&,
 //@}
 
 
+//! \since build 855
+//@{
+//! \brief 访问节点的子节点并调用一元函数。
+template<typename _func, typename... _tParams>
+inline auto
+CallRawUnary(_func&& f, TermNode& term, _tParams&&... args)
+	-> yimpl(decltype(ystdex::make_expanded<void(TermNode&, _tParams&&...)>(
+	std::ref(f))(NPL::Deref(std::next(term.begin())), yforward(args)...)))
+{
+	RetainN(term);
+	return ystdex::make_expanded<void(TermNode&, _tParams&&...)>(std::ref(f))(
+		NPL::Deref(std::next(term.begin())), yforward(args)...);
+}
+
+//! \brief 解析节点的子节点并调用一元函数。
+template<typename _func>
+inline auto
+CallResolvedUnary(_func&& f, TermNode& term)
+	-> yimpl(decltype(NPL::ResolveTerm(yforward(f), term)))
+{
+	return Forms::CallRawUnary([&](TermNode& node)
+		-> yimpl(decltype(NPL::ResolveTerm(yforward(f), term))){
+		return NPL::ResolveTerm(yforward(f), node);
+	}, term);
+}
+
 /*!
-确定项具有一个实际参数后展开调用参数指定的函数。
+\brief 访问节点的子节点，以正规值调用一元函数。
+\sa CheckRegular
+\exception ListTypeError 异常中立：项为列表项。
+\exception bad_any_cast 异常中立：非列表项类型检查失败。
+*/
+template<typename _type, typename _func, typename... _tParams>
+auto
+CallRegularUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
+	-> yimpl(decltype(ystdex::make_expanded<void(TermNode&,
+	const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(term,
+	ResolvedTermReferencePtr())))
+{
+	// TODO: Blocked. Use C++14 'decltype(auto)'.
+	using ret_t = decltype(ystdex::make_expanded<void(TermNode&,
+		const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(term,
+		ResolvedTermReferencePtr()));
+
+	return Forms::CallResolvedUnary(
+		[&](TermNode& nd, ResolvedTermReferencePtr p_ref) -> ret_t{
+		return NPL::CheckRegular<_type>([&, p_ref]() -> ret_t{
+			// XXX: Blocked. 'yforward' cause G++ 7.1.0 failed silently.
+			return ystdex::make_expanded<void(TermNode&,
+				const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
+				nd, p_ref, std::forward<_tParams>(args)...);
+		}, nd, p_ref);
+	}, term);
+}
+//@}
+
+/*!
+\note 确定项具有一个实际参数后展开调用参数指定的函数。
 若被调用的函数返回类型非 void ，返回值作为项的值被构造。
 调用 YSLib::EmplaceCallResult 对 ValueObject 及引用值处理不同。
 若需以和其它类型的值类似的方式被包装，在第一参数中构造 ValueObject 对象。
@@ -1225,10 +1282,11 @@ template<typename _func, typename... _tParams>
 void
 CallUnary(_func&& f, TermNode& term, _tParams&&... args)
 {
-	RetainN(term);
-	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
-		ystdex::make_expanded<void(TermNode&, _tParams&&...)>(std::ref(f)),
-		YSLib::Deref(std::next(term.begin())), yforward(args)...));
+	Forms::CallRawUnary([&](TermNode& node){
+		YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
+			ystdex::make_expanded<void(TermNode&, _tParams&&...)>(std::ref(f)),
+			node, yforward(args)...));
+	}, term);
 }
 
 template<typename _type, typename _func, typename... _tParams>
@@ -1239,7 +1297,7 @@ CallUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
 		//	error: Segmentation fault.
 		return ystdex::make_expanded<void(_type&, _tParams&&...)>(std::ref(f))(
-			NPL::AccessRegularValue<_type>(node),
+			NPL::ResolveRegular<_type>(node),
 			std::forward<_tParams>(args)...);
 	}, term);
 }
@@ -1257,11 +1315,11 @@ CallBinary(_func&& f, TermNode& term, _tParams&&... args)
 	RetainN(term, 2);
 
 	auto i(term.begin());
-	auto& x(YSLib::Deref(++i));
+	auto& x(NPL::Deref(++i));
 
 	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
 		ystdex::make_expanded<void(TermNode&, TermNode&, _tParams&&...)>(
-		std::ref(f)), x, YSLib::Deref(++i), yforward(args)...));
+		std::ref(f)), x, NPL::Deref(++i), yforward(args)...));
 }
 
 //! \since build 835
@@ -1272,11 +1330,11 @@ CallBinaryAs(_func&& f, TermNode& term, _tParams&&... args)
 	RetainN(term, 2);
 
 	auto i(term.begin());
-	auto& x(NPL::AccessRegularValue<_type>(YSLib::Deref(++i)));
+	auto& x(NPL::ResolveRegular<_type>(NPL::Deref(++i)));
 
 	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
 		ystdex::make_expanded<void(_type&, _type2&, _tParams&&...)>(
-		std::ref(f)), x, NPL::AccessRegularValue<_type2>(YSLib::Deref(++i)),
+		std::ref(f)), x, NPL::ResolveRegular<_type2>(NPL::Deref(++i)),
 		yforward(args)...));
 }
 //@}
@@ -1294,7 +1352,7 @@ CallBinaryFold(_func f, _type val, TermNode& term, _tParams&&... args)
 	const auto n(FetchArgumentN(term));
 	auto i(term.begin());
 	const auto j(ystdex::make_transform(++i, [](TNIter it){
-		return NPL::AccessRegularValue<_type>(YSLib::Deref(it));
+		return NPL::ResolveRegular<_type>(NPL::Deref(it));
 	}));
 
 	YSLib::EmplaceCallResult(term.Value, std::accumulate(j, std::next(j,
@@ -1305,7 +1363,7 @@ CallBinaryFold(_func f, _type val, TermNode& term, _tParams&&... args)
 
 /*!
 \brief 保存函数展开调用的函数对象。
-\todo 使用 C++1y lambda 表达式代替。
+\todo 使用 C++14 lambda 表达式代替。
 
 适配作为上下文处理器的除项以外可选参数的函数对象。
 为适合作为上下文处理器，支持的参数列表类型实际存在限制：
@@ -1486,8 +1544,318 @@ RegisterStrictBinary(_tTarget& target, string_view name, _func f)
 //@}
 
 
+/*!
+\brief 比较两个子项表示的值引用相同的对象。
+\sa YSLib::HoldSame
+\since build 804
+
+参考调用文法：
+<pre>eq? \<object1> \<object2></pre>
+*/
+YF_API void
+Equal(TermNode&);
+
+/*!
+\brief 比较两个子项的值相等。
+\sa YSLib::ValueObject
+\since build 804
+
+参考调用文法：
+<pre>eql? \<object1> \<object2></pre>
+*/
+YF_API void
+EqualLeaf(TermNode&);
+
+//! \since build 748
+//@{
+/*!
+\brief 比较两个子项的值引用相同的对象。
+\sa YSLib::HoldSame
+
+参考调用文法：
+<pre>eqr? \<object1> \<object2></pre>
+*/
+YF_API void
+EqualReference(TermNode&);
+
+/*!
+\brief 比较两个子项表示的值相等。
+\sa YSLib::ValueObject
+
+参考调用文法：
+<pre>eqv? \<object1> \<object2></pre>
+*/
+YF_API void
+EqualValue(TermNode&);
+//@}
+
+
+/*!
+\brief 条件判断：根据求值的条件取表达式。
+\note 支持保存当前动作。
+\sa ReduceChecked
+\since build 750
+
+求值第一子项作为测试条件，成立时取第二子项，否则当第三子项时取第三子项。
+测试条件成立，当且仅当 \<test> 非 #f 。
+和 Kernel 不同而和 Scheme 类似，求值结果非 #f 的条件都成立，且支持省略第三操作数。
+
+参考调用文法：
+<pre>$if \<test> \<consequent> \<alternate>
+$if \<test> \<consequent></pre>
+*/
+YF_API ReductionStatus
+If(TermNode&, ContextNode&);
+
+/*!
+\note 支持保存当前动作。
+\sa ReduceChecked
+\since build 754
+*/
+//@{
+/*!
+\brief 逻辑与。
+
+非严格求值若干个子项，返回求值结果的逻辑与：
+除第一个子项，没有其它子项时，返回 true ；否则从左到右逐个求值子项。
+当子项全求值为 true 时返回最后一个子项的值，否则返回 false 。
+
+参考调用文法：
+<pre>$and? \<test>...</pre>
+*/
+YF_API ReductionStatus
+And(TermNode&, ContextNode&);
+
+/*!
+\brief 逻辑或。
+
+非严格求值若干个子项，返回求值结果的逻辑或：
+除第一个子项，没有其它子项时，返回 false ；否则从左到右逐个求值子项。
+当子项全求值为 false 时返回 false，否则返回第一个不是 false 的子项的值。
+
+参考调用文法：
+<pre>$or? \<test>...</pre>
+*/
+YF_API ReductionStatus
+Or(TermNode&, ContextNode&);
+//@}
+
+
+/*!
+\brief 接受两个参数，返回以第一参数作为第一个元素插入第二参数创建的新的列表。
+\return ReductionStatus::Retained 。
+\throw ListTypeError 第二参数不是列表。
+\note NPLA 无 cons 对，所以要求创建的总是列表。
+*/
+//@{
+/*!
+\sa LiftSubtermsToReturn
+\since build 779
+
+按值传递返回值：提升项以避免返回引用造成内存安全问题。
+
+参考调用文法：
+<pre>cons \<object> \<list></pre>
+*/
+YF_API ReductionStatus
+Cons(TermNode&);
+
+/*!
+\since build 822
+
+在返回时不提升项，允许返回引用。
+
+参考调用文法：
+<pre>cons% \<object> \<list></pre>
+*/
+YF_API ReductionStatus
+ConsRef(TermNode&);
+//@}
+
+/*!
+\throw ListTypeError 第一参数不是非空列表。
+\throw ValueCategoryMismatch 第一参数不是左值。
+\since build 834
+*/
+//@{
+//! \brief 修改第一参数指定的列表以第二参数作为第一个元素。
+//@{
+/*!
+第二参数转换为右值。
+
+参考调用文法：
+<pre>set-first! \<list> \<object></pre>
+*/
+YF_API void
+SetFirst(TermNode&);
+
+/*!
+\warning 不检查循环引用。
+
+保留第二参数引用值。
+
+参考调用文法：
+<pre>set-first%! \<list> \<object></pre>
+*/
+YF_API void
+SetFirstRef(TermNode&);
+//@}
+
+/*!
+\brief 修改第一参数指定的列表以第二参数作为第一个元素外的列表。
+\throw ListTypeError 第二参数不是列表。
+*/
+//@{
+/*!
+第二参数的元素转换为右值。
+
+参考调用文法：
+<pre>set-rest! \<list> \<object></pre>
+*/
+YF_API void
+SetRest(TermNode&);
+
+/*!
+\warning 不检查循环引用。
+
+保留第二参数元素中的引用值。
+
+参考调用文法：
+<pre>set-rest%! \<list> \<object></pre>
+*/
+YF_API void
+SetRestRef(TermNode&);
+//@}
+//@}
+
+
+/*!
+\brief 对指定项按指定的环境求值。
+\note 支持保存当前动作。
+\sa ResolveEnvironment
+
+以表达式 \c \<expression> 和环境 \c \<environment> 为指定的参数进行求值。
+环境以 ContextNode 的引用表示。
+*/
+//@{
+/*!
+\since build 787
+按值传递返回值：提升项以避免返回引用造成内存安全问题。
+
+参考调用文法：
+<pre>eval \<expression> \<environment></pre>
+*/
+YF_API ReductionStatus
+Eval(TermNode&, ContextNode&);
+
+/*!
+\since build 822
+
+在返回时不提升项，允许返回引用。
+
+参考调用文法：
+<pre>eval% \<expression> \<environment></pre>
+*/
+YF_API ReductionStatus
+EvalRef(TermNode&, ContextNode&);
+//@}
+
+/*!
+\since build 835
+\return ReductionStatus::Retained 。
+*/
+//@{
+/*!
+\brief 在参数指定的环境中求值作为外部表示的字符串。
+\note 没有 REPL 中的预处理过程。
+\sa Eval
+
+eval-string \<string> \<environment>
+*/
+YF_API ReductionStatus
+EvalString(TermNode&, ContextNode&);
+
+/*!
+\brief 在参数指定的环境中求值作为外部表示的字符串。
+\note 没有 REPL 中的预处理过程。
+\sa EvalRef
+
+在返回时不提升项，允许返回引用。
+eval-string% \<string> \<environment>
+*/
+YF_API ReductionStatus
+EvalStringRef(TermNode&, ContextNode&);
+
+/*!
+\brief 在参数指定的 REPL 环境中规约字符串表示的翻译单元以求值。
+\exception LoggedEvent 翻译单元为空串。
+\sa Reduce
+\since build 835
+
+eval-unit \<string> \<object>
+*/
+YF_API ReductionStatus
+EvalUnit(TermNode&);
+//@}
+
+
 //! \pre 间接断言：第一参数指定的项是枝节点。
 //@{
+/*!
+\brief 创建以参数指定的环境列表作为父环境的新环境。
+\exception NPLException 异常中立：由 Environment 的构造函数抛出。
+\sa Environment::CheckParent
+\sa EnvironmentList
+\since build 798
+\todo 使用专用的异常类型。
+
+取以指定的参数初始化新创建的父环境。
+
+参考调用文法：
+<pre>make-environment \<environment>...</pre>
+*/
+YF_API void
+MakeEnvironment(TermNode&);
+
+/*!
+\brief 取当前环境的引用。
+\since build 785
+
+取得的宿主值类型为 weak_ptr<Environment> 。
+
+参考调用文法：
+<pre>() get-current-environment</pre>
+*/
+YF_API void
+GetCurrentEnvironment(TermNode&, ContextNode&);
+
+/*!
+\brief 锁定当前环境的引用。
+\since build 837
+
+取得的宿主值类型为 shared_ptr<Environment> 。
+
+参考调用文法：
+<pre>() lock-current-environment</pre>
+*/
+YF_API void
+LockCurrentEnvironment(TermNode&, ContextNode&);
+
+/*!
+\brief 求值标识符得到指称的实体。
+\sa EvaluateIdentifier
+\since build 757
+
+在对象语言中实现函数接受一个 string 类型的参数项，返回值为指定的实体。
+当名称查找失败时，返回的值为 ValueToken::Null 。
+
+参考调用文法：
+<pre>value-of \<object></pre>
+*/
+YF_API ReductionStatus
+ValueOf(TermNode&, const ContextNode&);
+
+
 /*!
 \brief 定义。
 \exception ParameterMismatch 绑定匹配失败。
@@ -1559,23 +1927,6 @@ Undefine(TermNode&, ContextNode&, bool);
 
 
 /*!
-\brief 条件判断：根据求值的条件取表达式。
-\note 支持保存当前动作。
-\sa ReduceChecked
-\since build 750
-
-求值第一子项作为测试条件，成立时取第二子项，否则当第三子项时取第三子项。
-测试条件成立，当且仅当 \<test> 非 #f 。
-和 Kernel 不同而和 Scheme 类似，求值结果非 #f 的条件都成立，且支持省略第三操作数。
-
-参考调用文法：
-<pre>$if \<test> \<consequent> \<alternate>
-$if \<test> \<consequent></pre>
-*/
-YF_API ReductionStatus
-If(TermNode&, ContextNode&);
-
-/*!
 \exception ParameterMismatch 异常中立：由 BindParameter 抛出。
 \sa EvaluateIdentifier
 \sa ExtractParameters
@@ -1611,7 +1962,7 @@ Lambda(TermNode&, ContextNode&);
 在返回时不提升项，允许返回引用。
 
 参考调用文法：
-<pre>$lambda& \<formals> \<body></pre>
+<pre>$lambda% \<formals> \<body></pre>
 */
 YF_API ReductionStatus
 LambdaRef(TermNode&, ContextNode&);
@@ -1649,7 +2000,7 @@ Vau(TermNode&, ContextNode&);
 在返回时不提升项，允许返回引用。
 
 参考调用文法：
-<pre>$vau& \<formals> \<eformal> \<body></pre>
+<pre>$vau% \<formals> \<eformal> \<body></pre>
 */
 YF_API ReductionStatus
 VauRef(TermNode&, ContextNode&);
@@ -1668,7 +2019,7 @@ VauRef(TermNode&, ContextNode&);
 按值传递返回值：提升项以避免返回引用造成内存安全问题。
 
 参考调用文法：
-<pre>$vaue \<env> \<formals> \<eformal> \<body></pre>
+<pre>$vau/e \<env> \<formals> \<eformal> \<body></pre>
 */
 YF_API ReductionStatus
 VauWithEnvironment(TermNode&, ContextNode&);
@@ -1677,345 +2028,12 @@ VauWithEnvironment(TermNode&, ContextNode&);
 在返回时不提升项，允许返回引用。
 
 参考调用文法：
-<pre>$vaue& \<env> \<formals> \<eformal> \<body></pre>
+<pre>$vau/e% \<env> \<formals> \<eformal> \<body></pre>
 */
 YF_API ReductionStatus
 VauWithEnvironmentRef(TermNode&, ContextNode&);
 //@}
 //@}
-//@}
-
-
-/*!
-\brief 序列有序参数规约：移除第一项后顺序规约子项，结果为最后一个子项的规约结果。
-\return 子项被规约时为最后一个子项的规约状态，否则为 ReductionStatus::Clean 。
-\note 可直接实现顺序求值。在对象语言中，若参数为空，返回未指定值。
-\sa ReduceOrdered
-\sa RemoveHead
-\since build 823
-
-参考调用文法：
-<pre>$sequence \<object>...</pre>
-*/
-YF_API ReductionStatus
-Sequence(TermNode&, ContextNode&);
-
-
-/*!
-\note 支持保存当前动作。
-\sa ReduceChecked
-\since build 754
-*/
-//@{
-/*!
-\brief 逻辑与。
-
-非严格求值若干个子项，返回求值结果的逻辑与：
-除第一个子项，没有其它子项时，返回 true ；否则从左到右逐个求值子项。
-当子项全求值为 true 时返回最后一个子项的值，否则返回 false 。
-
-参考调用文法：
-<pre>$and? \<test>...</pre>
-*/
-YF_API ReductionStatus
-And(TermNode&, ContextNode&);
-
-/*!
-\brief 逻辑或。
-
-非严格求值若干个子项，返回求值结果的逻辑或：
-除第一个子项，没有其它子项时，返回 false ；否则从左到右逐个求值子项。
-当子项全求值为 false 时返回 false，否则返回第一个不是 false 的子项的值。
-
-参考调用文法：
-<pre>$or? \<test>...</pre>
-*/
-YF_API ReductionStatus
-Or(TermNode&, ContextNode&);
-//@}
-
-
-/*!
-\brief 调用 UTF-8 字符串的系统命令，并保存 int 类型的结果到项的值中。
-\sa usystem
-\since build 741
-
-参考调用文法：
-<pre>system \<string></pre>
-*/
-YF_API void
-CallSystem(TermNode&);
-
-/*!
-\brief 接受两个参数，返回以第一参数作为第一个元素插入第二参数创建的新的列表。
-\return ReductionStatus::Retained 。
-\throw ListTypeError 第二参数不是列表。
-\note NPLA 无 cons 对，所以要求创建的总是列表。
-*/
-//@{
-/*!
-\sa LiftSubtermsToReturn
-\since build 779
-
-按值传递返回值：提升项以避免返回引用造成内存安全问题。
-
-参考调用文法：
-<pre>cons \<object> \<list></pre>
-*/
-YF_API ReductionStatus
-Cons(TermNode&);
-
-/*!
-\since build 822
-
-在返回时不提升项，允许返回引用。
-
-参考调用文法：
-<pre>cons% \<object> \<list></pre>
-*/
-YF_API ReductionStatus
-ConsRef(TermNode&);
-//@}
-
-/*!
-\brief 比较两个子项表示的值引用相同的对象。
-\sa YSLib::HoldSame
-\since build 804
-
-参考调用文法：
-<pre>eq? \<object1> \<object2></pre>
-*/
-YF_API void
-Equal(TermNode&);
-
-/*!
-\brief 比较两个子项的值相等。
-\sa YSLib::ValueObject
-\since build 804
-
-参考调用文法：
-<pre>eql? \<object1> \<object2></pre>
-*/
-YF_API void
-EqualLeaf(TermNode&);
-
-//! \since build 748
-//@{
-/*!
-\brief 比较两个子项的值引用相同的对象。
-\sa YSLib::HoldSame
-
-参考调用文法：
-<pre>eqr? \<object1> \<object2></pre>
-*/
-YF_API void
-EqualReference(TermNode&);
-
-/*!
-\brief 比较两个子项表示的值相等。
-\sa YSLib::ValueObject
-
-参考调用文法：
-<pre>eqv? \<object1> \<object2></pre>
-*/
-YF_API void
-EqualValue(TermNode&);
-//@}
-
-/*!
-\brief 对指定项按指定的环境求值。
-\note 支持保存当前动作。
-\sa ResolveEnvironment
-
-以表达式 \c \<expression> 和环境 \c \<environment> 为指定的参数进行求值。
-环境以 ContextNode 的引用表示。
-*/
-//@{
-/*!
-\since build 787
-按值传递返回值：提升项以避免返回引用造成内存安全问题。
-
-参考调用文法：
-<pre>eval \<expression> \<environment></pre>
-*/
-YF_API ReductionStatus
-Eval(TermNode&, ContextNode&);
-
-/*!
-\since build 822
-
-在返回时不提升项，允许返回引用。
-
-参考调用文法：
-<pre>eval% \<expression> \<environment></pre>
-*/
-YF_API ReductionStatus
-EvalRef(TermNode&, ContextNode&);
-//@}
-
-/*!
-\since build 835
-\return ReductionStatus::Retained 。
-*/
-//@{
-/*!
-\brief 在参数指定的环境中求值作为外部表示的字符串。
-\note 没有 REPL 中的预处理过程。
-\sa Eval
-
-eval-string \<string> \<environment>
-*/
-YF_API ReductionStatus
-EvalString(TermNode&, ContextNode&);
-
-/*!
-\brief 在参数指定的环境中求值作为外部表示的字符串。
-\note 没有 REPL 中的预处理过程。
-\sa EvalRef
-
-在返回时不提升项，允许返回引用。
-eval-string% \<string> \<environment>
-*/
-YF_API ReductionStatus
-EvalStringRef(TermNode&, ContextNode&);
-
-/*!
-\brief 在参数指定的 REPL 环境中规约字符串表示的翻译单元以求值。
-\exception LoggedEvent 翻译单元为空串。
-\sa Reduce
-\since build 835
-
-eval-unit \<string> \<object>
-*/
-YF_API ReductionStatus
-EvalUnit(TermNode&);
-//@}
-
-/*!
-\brief 取当前环境的引用。
-\since build 785
-
-取得的宿主值类型为 weak_ptr<Environment> 。
-
-参考调用文法：
-<pre>() get-current-environment</pre>
-*/
-YF_API void
-GetCurrentEnvironment(TermNode&, ContextNode&);
-
-/*!
-\brief 锁定当前环境的引用。
-\since build 837
-
-取得的宿主值类型为 shared_ptr<Environment> 。
-
-参考调用文法：
-<pre>() lock-current-environment</pre>
-*/
-YF_API void
-LockCurrentEnvironment(TermNode&, ContextNode&);
-
-/*!
-\brief 创建封装类型。
-\return ReductionStatus::Retained 。
-\since build 834
-
-创建封装类型操作的应用子。基本语义同 Kernel 的 make-encapsulation-type 。
-构造器传递值：转移右值参数，或转换左值参数到右值并复制值进行封装。
-访问器取得的是引用值。
-用户代码需自行确定封装对象的生存期以避免访问取得的引用值引起未定义行为。
-
-参考调用文法：
-<pre>() make-encapsulation-type</pre>
-*/
-YF_API ReductionStatus
-MakeEncapsulationType(TermNode&);
-
-/*!
-\brief 创建以参数指定的环境列表作为父环境的新环境。
-\exception NPLException 异常中立：由 Environment 的构造函数抛出。
-\sa Environment::CheckParent
-\sa EnvironmentList
-\since build 798
-\todo 使用专用的异常类型。
-
-取以指定的参数初始化新创建的父环境。
-
-参考调用文法：
-<pre>make-environment \<environment>...</pre>
-*/
-YF_API void
-MakeEnvironment(TermNode&);
-
-/*!
-\throw ListTypeError 第一参数不是非空列表。
-\throw ValueCategoryMismatch 第一参数不是左值。
-\since build 834
-*/
-//@{
-//! \brief 修改第一参数指定的列表以第二参数作为第一个元素。
-//@{
-/*!
-第二参数转换为右值。
-
-参考调用文法：
-<pre>set-first! \<list> \<object></pre>
-*/
-YF_API void
-SetFirst(TermNode&);
-
-/*!
-\warning 不检查循环引用。
-
-保留第二参数引用值。
-
-参考调用文法：
-<pre>set-first%! \<list> \<object></pre>
-*/
-YF_API void
-SetFirstRef(TermNode&);
-//@}
-
-/*!
-\brief 修改第一参数指定的列表以第二参数作为第一个元素外的列表。
-\throw ListTypeError 第二参数不是列表。
-*/
-//@{
-/*!
-第二参数的元素转换为右值。
-
-参考调用文法：
-<pre>set-rest! \<list> \<object></pre>
-*/
-YF_API void
-SetRest(TermNode&);
-
-/*!
-\warning 不检查循环引用。
-
-保留第二参数元素中的引用值。
-
-参考调用文法：
-<pre>set-rest%! \<list> \<object></pre>
-*/
-YF_API void
-SetRestRef(TermNode&);
-//@}
-//@}
-
-/*!
-\brief 求值标识符得到指称的实体。
-\sa EvaluateIdentifier
-\since build 757
-
-在对象语言中实现函数接受一个 string 类型的参数项，返回值为指定的实体。
-当名称查找失败时，返回的值为 ValueToken::Null 。
-
-参考调用文法：
-<pre>value-of \<object></pre>
-*/
-YF_API ReductionStatus
-ValueOf(TermNode&, const ContextNode&);
 //@}
 
 
@@ -2050,6 +2068,67 @@ WrapOnce(const ContextHandler&);
 YF_API ContextHandler
 Unwrap(const ContextHandler&);
 //@}
+//@}
+
+
+/*!
+\brief 检查参数指定的项表示引用列表项的引用。
+\return 检查通过后的项 CheckNorm 的结果。
+\since build 855
+
+对参数指定的项进行检查。
+接受对象语言的一个参数。若这个参数不表示引用值，抛出异常；
+	否则，对象语言中返回为参数指定的值。
+
+参考调用文法：
+<pre>check-list-lvalue \<object></pre>
+*/
+YF_API ReductionStatus
+CheckListLValue(TermNode&);
+
+
+/*!
+\brief 创建封装类型。
+\return ReductionStatus::Retained 。
+\since build 834
+
+创建封装类型操作的应用子。基本语义同 Kernel 的 make-encapsulation-type 。
+构造器传递值：转移右值参数，或转换左值参数到右值并复制值进行封装。
+访问器取得的是引用值。
+用户代码需自行确定封装对象的生存期以避免访问取得的引用值引起未定义行为。
+
+参考调用文法：
+<pre>() make-encapsulation-type</pre>
+*/
+YF_API ReductionStatus
+MakeEncapsulationType(TermNode&);
+
+
+/*!
+\brief 序列有序参数规约：移除第一项后顺序规约子项，结果为最后一个子项的规约结果。
+\return 子项被规约时为最后一个子项的规约状态，否则为 ReductionStatus::Clean 。
+\note 可直接实现顺序求值。在对象语言中，若参数为空，返回未指定值。
+\sa ReduceOrdered
+\sa RemoveHead
+\since build 823
+
+参考调用文法：
+<pre>$sequence \<object>...</pre>
+*/
+YF_API ReductionStatus
+Sequence(TermNode&, ContextNode&);
+
+
+/*!
+\brief 调用 UTF-8 字符串的系统命令，并保存 int 类型的结果到项的值中。
+\sa usystem
+\since build 741
+
+参考调用文法：
+<pre>system \<string></pre>
+*/
+YF_API void
+CallSystem(TermNode&);
 //@}
 
 } // namespace Forms;
