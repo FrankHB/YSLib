@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r5349
+\version r5588
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2019-03-22 20:29 +0800
+	2019-04-12 17:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -344,6 +344,7 @@ InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, NodeLiteral&& nl)
 //@}
 //@}
 
+//! \since build 597
 namespace SXML
 {
 
@@ -485,7 +486,6 @@ InsertAttributeNode(_tNodeOrCon&& node_or_con, const string& name,
 //@}
 
 } // namespace SXML;
-//@}
 
 
 /*!
@@ -901,17 +901,22 @@ enum class ReductionStatus : yimpl(size_t)
 	*/
 	Partial,
 	/*!
-	\brief 规约成功终止且不需要保留子项。
+	\brief 纯值规约：规约成功终止且应清理子项。
 	\since build 841
 	*/
 	Clean,
 	/*!
-	\brief 规约成功但需要保留子项。
+	\brief 非纯值规约：规约成功且需要保留子项。
 	\since build 757
 	*/
 	Retained,
 	/*!
-	\brief 需要重规约。
+	\brief 已取得正规表示的规约：规约成功且已保证正规化，不指定是否需要保留子项。
+	\since build 865
+	*/
+	Regular = yimpl(Retained),
+	/*!
+	\brief 重规约。
 	\since build 757
 	*/
 	Retrying,
@@ -956,14 +961,48 @@ using AnchorPtr = yimpl(shared_ptr<const void>);
 */
 class YF_API TermReference
 {
+public:
+	/*!
+	\brief 标签：表示引用元数据的位。
+	\since build 856
+
+	指定项引用具有的元数据。选项为位掩码值。
+	*/
+	enum Tags
+	{
+		/*!
+		\brief 非限定引用。
+
+		指定默认情形的引用。
+		当前用于实现对象语言的左值引用。
+		*/
+		Unqualified = 0,
+		/*!
+		\brief 唯一引用。
+
+		指定被引用的对象具有唯一引用。
+		被引用的对象应未被别名，或可假定被未被别名。
+		当前用于实现对象语言的右值引用。
+		*/
+		Unique = 1,
+		/*!
+		\brief 不可修改引用。
+
+		指定被引用的对象不通过此引用被修改。
+		除非唯一，被引用的对象仍可能通过其它引用修改。
+		当前用于实现对象语言的不可修改引用。
+		*/
+		Nonmodifying = 2
+	};
+
 private:
 	//! \since build 842
 	lref<TermNode> term_ref;
 	/*!
-	\brief 指定是否以引用值初始化。
-	\since build 828
+	\brief 引用标签。
+	\since build 856
 	*/
-	bool is_ref;
+	Tags tags = Unqualified;
 	/*!
 	\brief 引用的锚对象指针。
 	\since build 847
@@ -971,11 +1010,12 @@ private:
 	AnchorPtr p_anchor{};
 
 public:
-	//! \since build 849
-	//@{
-	//! \brief 构造：使用参数指定的引用和空锚对象并自动判断是否使用引用值初始化。
+	/*!
+	\brief 构造：使用参数指定的引用和空锚对象并自动判断是否使用引用值初始化。
+	\since build 849
+	*/
 	TermReference(TermNode& term) ynothrow
-		: TermReference(HasReferenceValue(term), term)
+		: TermReference(InitTags(term), term)
 	{}
 	/*!
 	\brief 构造：使用参数指定的引用和锚对象并自动判断是否使用引用值初始化。
@@ -983,33 +1023,27 @@ public:
 	*/
 	template<typename _tParam, typename... _tParams>
 	TermReference(TermNode& term, _tParam&& arg, _tParams&&... args)
-		: TermReference(HasReferenceValue(term), term, yforward(arg),
-		yforward(args)...)
+		: TermReference(InitTags(term), term, yforward(arg), yforward(args)...)
 	{}
-	//! \brief 构造：使用参数指定的是否使用引用值初始化的标记及指定引用和空锚对象。
-	TermReference(bool r, TermNode& term) ynothrow
-		: term_ref(term), is_ref(r)
+	//! \since build 856
+	//@{
+	//! \brief 构造：使用参数指定的标签及指定引用和空锚对象。
+	TermReference(Tags t, TermNode& term) ynothrow
+		: term_ref(term), tags(t)
 	{}
-	/*!
-	\brief 构造：使用参数指定的是否使用引用值初始化的标记及指定引用和指定锚对象。
-	\since build 828
-	*/
+	//! \brief 构造：使用参数指定的标签及、引用和锚对象。
 	template<typename _tParam, typename... _tParams>
-	TermReference(bool r, TermNode& term, _tParam&& arg, _tParams&&... args)
-		: term_ref(term), is_ref(r),
+	TermReference(Tags t, TermNode& term, _tParam&& arg, _tParams&&... args)
+		: term_ref(term), tags(t),
 		p_anchor(yforward(arg), yforward(args)...)
 	{}
-	/*!
-	\brief 构造：使用参数指定的是否使用引用值初始化的标记及现有的项引用。
-	\since build 854
-	*/
+	//! \brief 构造：使用参数指定的标签及现有的项引用。
 	//@{
-	TermReference(bool r, const TermReference& t_ref) ynothrow
-		: term_ref(t_ref.term_ref), is_ref(r), p_anchor(t_ref.p_anchor)
+	TermReference(Tags t, const TermReference& t_ref) ynothrow
+		: term_ref(t_ref.term_ref), tags(t), p_anchor(t_ref.p_anchor)
 	{}
-	TermReference(bool r, TermReference&& t_ref) ynothrow
-		: term_ref(t_ref.term_ref), is_ref(r),
-		p_anchor(std::move(t_ref.p_anchor))
+	TermReference(Tags t, TermReference&& t_ref) ynothrow
+		: term_ref(t_ref.term_ref), tags(t), p_anchor(std::move(t_ref.p_anchor))
 	{}
 	//@}
 	//@}
@@ -1022,16 +1056,36 @@ public:
 		ImplRet(ystdex::get_equal_to<>()(x.term_ref, y.term_ref))
 
 	/*!
+	\brief 判断被引用的对象是否可通过引用被修改。
+	\since build 856
+	*/
+	DefPred(const ynothrow, Modifiable, !bool(tags & Nonmodifying))
+	/*!
 	\brief 判断被引用项在初始化时是否表示引用值。
 	\since build 828
 	*/
-	DefPred(const ynothrow, TermReferenced, is_ref)
+	DefPred(const ynothrow, TermReferenced, tags != Unique)
+	/*!
+	\brief 判断被引用的对象是否指定唯一。
+	\since build 856
+	*/
+	DefPred(const ynothrow, Unique, bool(tags & Unique))
 
 	explicit DefCvtMem(const ynothrow, TermNode&, term_ref)
 
-	//! \since build 847
+	/*!
+	\brief 取锚对象指针。
+	\since build 847
+	*/
 	DefGetter(const ynothrow, const AnchorPtr&, AnchorPtr, p_anchor)
 
+private:
+	//! \since build 856
+	YB_ATTR_nodiscard YB_PURE static
+		PDefH(Tags, InitTags, TermNode& term) ynothrow
+		ImplRet(HasReferenceValue(term) ? Nonmodifying : Unique)
+
+public:
 	YB_ATTR_nodiscard YB_PURE PDefH(TermNode&, get, ) const ynothrow
 		ImplRet(term_ref.get())
 };
@@ -1431,12 +1485,11 @@ ReduceHeadEmptyList(TermNode&) ynothrow;
 
 /*!
 \brief 规约提升结果。
-\return 对提升后的结果调用 CheckNorm 的返回值。
-\sa CheckNorm
+\return ReductionStatus::Regular 。
 \sa LiftToReturn
 \since build 855
 
-调用 LiftToReturn 提升结果，再调用 CheckNorm 返回规约状态。
+调用 LiftToReturn 提升结果，再返回规约状态。
 */
 YF_API ReductionStatus
 ReduceForLiftedResult(TermNode&);
@@ -1493,11 +1546,12 @@ YB_ATTR_nodiscard YB_PURE inline
 	ImplRet(CheckReducible(r) ? r : CombineReductionResult(res, r))
 
 
-//! \since build 676
+//! \warning 非虚析构。
 //@{
 /*!
 \brief 遍合并器：逐次调用序列中的遍直至成功。
 \note 合并遍结果用于表示及早判断是否应继续规约，可在循环中实现再次规约一个项。
+\since build 676
 */
 struct PassesCombiner
 {
@@ -1530,8 +1584,21 @@ using EnvironmentList = vector<ValueObject>;
 
 
 /*!
+\brief 环境引用计数检查支持。
+\sa Environment
+\sa EnvironmentReference
+\since build 856
+
+若定义为 true ，则在 Environment 和 EnvironmentReference 启用引用计数检查支持。
+检查在 Environment 的析构函数进行，通过对锚对象剩余引用计数的来源计数判断正常状态。
+若引用计数来源都是 Environment 和 EnvironmentReference（而不是 TermReference ），
+	则表示正常；否则，使用 YTraceDe 输出错误消息。
+因为绑定析构顺序不确定，可能导致依赖不确定而误报；且对性能有影响。因此默认不启用。
+*/
+#define NPL_NPLA_CheckEnvironmentReferenceCount false
+
+/*!
 \brief 环境。
-\warning 非虚析构。
 \warning 避免 shared_ptr 析构方式不兼容的初始化。
 \since build 787
 */
@@ -1551,6 +1618,49 @@ public:
 	using NameResolution
 		= pair<observer_ptr<TermNode>, lref<const Environment>>;
 	/*!
+	\brief 锚对象使用的共享数据。
+	\sa EnvironmentReference
+	\since build 856
+
+	共享数据仅被特定的引用访问。
+	此类引用访问假定 AnchorPtr 实际为 shared_ptr<AnchorValue>;
+	当前只有 EnvironmentReference 使用此类访问。
+	*/
+	struct AnchorValue final
+	{
+		friend class Environment;
+		friend class EnvironmentReference;
+
+	private:
+		//! \brief 环境引用计数。
+		mutable size_t env_count = 0;
+
+	public:
+		DefDeCtor(AnchorValue)
+		DefDeCopyCtor(AnchorValue)
+
+		DefDeCopyAssignment(AnchorValue)
+
+#if NPL_NPLA_CheckEnvironmentReferenceCount
+	private:
+		/*!
+		\brief 转换为锚对象内部数据的引用。
+		\pre 断言：参数非空。
+		*/
+		static PDefH(const AnchorValue&, Access, const AnchorPtr& p) ynothrowv
+			ImplRet(YAssertNonnull(p),
+				Deref(YSLib::static_pointer_cast<const AnchorValue>(p)))
+
+		PDefH(void, AddReference, ) const ynothrow
+			ImplExpr(++env_count)
+
+		//! \pre 断言：引用计数大于 0 。
+		PDefH(void, RemoveReference, ) const ynothrowv
+			ImplExpr(YAssert(env_count > 0, "Invalid zero shared anchor count"
+				" for environments found."), --env_count)
+#endif
+	};
+	/*!
 	\brief 分配器类型。
 	\note 支持 uses-allocator 构造。
 	\since build 847
@@ -1566,14 +1676,13 @@ private:
 	{
 		//! \since build 847
 		//@{
-		using value_type = yimpl(uintptr_t);
 		using allocator_type
-			= ystdex::rebind_alloc_t<Environment::allocator_type, value_type>;
+			= ystdex::rebind_alloc_t<Environment::allocator_type, AnchorValue>;
 
 		AnchorPtr Ptr;
 
 		SharedAnchor(allocator_type a)
-			: Ptr(YSLib::allocate_shared<value_type>(a))
+			: Ptr(YSLib::allocate_shared<AnchorValue>(a))
 		{}
 		//@}
 		SharedAnchor(SharedAnchor&& anc) ynothrow
@@ -1691,6 +1800,13 @@ public:
 
 	PDefHOp(Environment&, =, const Environment& e) ynothrow
 		ImplRet(ystdex::copy_and_swap(*this, e))
+#if NPL_NPLA_CheckEnvironmentReferenceCount
+	/*!
+	\brief 析构：检查锚对象中的引用计数。
+	\since build 856
+	*/
+	~Environment();
+#endif
 
 	DefDeMoveAssignment(Environment)
 	//@}
@@ -1722,7 +1838,15 @@ public:
 	\since build 788
 	*/
 	DefGetter(const ynothrow, BindingMap&, MapRef, Bindings)
-	//! \since build 847
+	/*!
+	\brief 取锚对象指针。
+	\since build 856
+	*/
+	DefGetter(const ynothrow, const AnchorPtr&, AnchorPtr, anchor.Ptr)
+	/*!
+	\brief 取锚对象指针的引用计数。
+	\since build 847
+	*/
 	DefGetter(const ynothrow, size_t, AnchorCount,
 		size_t(anchor.Ptr.use_count()))
 
@@ -1743,13 +1867,6 @@ public:
 		return ystdex::try_emplace_hint(Bindings, hint, yforward(k),
 			NoContainer, yforward(args)...).second;
 	}
-
-	/*!
-	\brief 引用锚对象。
-	\since build 847
-	*/
-	YB_ATTR_nodiscard PDefH(AnchorPtr, Anchor, ) const ynothrow
-		ImplRet(anchor.Ptr)
 
 	//! \since build 798
 	//@{
@@ -1870,33 +1987,61 @@ private:
 public:
 	//! \brief 构造：使用指定的环境指针和此环境的锚对象指针。
 	EnvironmentReference(const shared_ptr<Environment>&);
-	//! \brief 构造：使用指定的环境指针和锚对象指针。
-	//@{
+	/*!
+	\brief 构造：使用指定的环境指针和锚对象指针。
+	\pre 第二参数表示由环境提供的锚对象指针。
+	*/
 	template<typename _tParam1, typename _tParam2>
 	EnvironmentReference(_tParam1&& arg1, _tParam2&& arg2)
 		: p_weak(yforward(arg1)), p_anchor(yforward(arg2))
-	{}
+	{
+#if NPL_NPLA_CheckEnvironmentReferenceCount
+		ReferenceEnvironmentAnchor();
+#endif
+	}
+#if NPL_NPLA_CheckEnvironmentReferenceCount
+	//! \since build 856
+	//@{
+	EnvironmentReference(const EnvironmentReference& env_ref)
+		: p_weak(env_ref.p_weak), p_anchor(env_ref.p_anchor)
+	{
+		ReferenceEnvironmentAnchor();
+	}
+	DefDeMoveCtor(EnvironmentReference)
+
+	~EnvironmentReference();
+
+	DefDeCopyAssignment(EnvironmentReference)
+	DefDeMoveAssignment(EnvironmentReference)
 	//@}
+#else
 	DefDeCopyMoveCtorAssignment(EnvironmentReference)
-
-	DefGetter(const ynothrow, const weak_ptr<Environment>&, Ptr, p_weak)
-	//! \since build 847
-	DefGetter(const ynothrow, const AnchorPtr&, AnchorPtr, p_anchor)
-
-	PDefH(shared_ptr<Environment>, Lock, ) const ynothrow
-		ImplRet(p_weak.lock())
+#endif
 
 	//! \since build 824
 	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
 		const EnvironmentReference& x, const EnvironmentReference& y) ynothrow
 		ImplRet(x.p_weak.lock() == y.p_weak.lock())
+
+	//! \since build 847
+	DefGetter(const ynothrow, const AnchorPtr&, AnchorPtr, p_anchor)
+	DefGetter(const ynothrow, const weak_ptr<Environment>&, Ptr, p_weak)
+
+	PDefH(shared_ptr<Environment>, Lock, ) const ynothrow
+		ImplRet(p_weak.lock())
+#if NPL_NPLA_CheckEnvironmentReferenceCount
+
+private:
+	//! \since build 856
+	void
+	ReferenceEnvironmentAnchor();
+#endif
 };
 
 
 /*!
 \brief 规约函数类型：和绑定所有参数的求值遍的处理器等价。
 \warning 假定转移不抛出异常。
-\warning 非虚析构。
 \since build 841
 */
 class YF_API Reducer : private YSLib::GHEvent<ReductionStatus()>
@@ -1935,6 +2080,7 @@ public:
 
 	using BaseType::target_type;
 };
+//@}
 
 
 /*!
@@ -2410,13 +2556,15 @@ struct GComposedAction final
 
 
 /*!
-\note 参数分别为上下文、捕获的当前动作和捕获的后继动作。
+\note 第一和第二参数分别为上下文和捕获的当前动作。
+\note 若存在第三参数，为捕获的后继动作。
 \note 以参数声明的相反顺序捕获参数作为动作，结果以参数声明的顺序析构捕获的动作。
 */
 //@{
+//! \note 若当前动作为空，则直接使用后继动作作为结果。
+//@{
 /*!
 \brief 组合规约动作：创建指定上下文中的连续异步规约当前和后继动作的规约动作。
-\note 若当前动作为空，则直接使用后继动作作为结果。
 \sa GComposedAction
 \since build 841
 */
@@ -2440,6 +2588,34 @@ ComposeActions(ContextNode& ctx, _fCurrent&& cur, _fNext&& next)
 }
 //@}
 
+//! \since build 856
+//@{
+/*!
+\brief 组合规约动作和上下文中非空的当前动作。
+\sa ComposeActions
+*/
+template<typename _fCurrent>
+YB_ATTR_nodiscard YB_PURE inline Reducer
+ComposeSwitchedUnchecked(ContextNode& ctx, _fCurrent&& cur)
+{
+	YAssert(ctx.Current, "No action found to be the next action.");
+	return NPL::ComposeActions(ctx, yforward(cur), ctx.Switch());
+}
+
+/*!
+\brief 组合规约动作和上下文中当前动作。
+\sa ComposeSwitchedUnchecked
+*/
+template<typename _fCurrent>
+YB_ATTR_nodiscard YB_PURE inline Reducer
+ComposeSwitched(ContextNode& ctx, _fCurrent&& cur)
+{
+	return ctx.Current ? ComposeSwitchedUnchecked(ctx, yforward(cur))
+		: yforward(cur);
+}
+//@}
+//@}
+
 /*!
 \return ReductionStatus::Partial 。
 \since build 841
@@ -2458,7 +2634,7 @@ RelayNext(ContextNode& ctx, _fCurrent&& cur, _fNext&& next)
 }
 
 /*!
-\brief 异步规约指定动作和非空的当前动作。
+\brief 异步规约指定动作和上下文中非空的当前动作。
 \pre 断言： \c ctx.Current 。
 */
 template<typename _fCurrent>
@@ -2470,7 +2646,7 @@ RelaySwitchedUnchecked(ContextNode& ctx, _fCurrent&& cur)
 }
 
 /*!
-\brief 异步规约指定动作和当前动作。
+\brief 异步规约指定动作和上下文中的当前动作。
 \sa RelaySwitchedUnchecked
 */
 template<typename _fCurrent>

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4981
+\version r4990
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2019-03-26 22:26 +0800
+	2019-04-05 07:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,7 +155,7 @@ LoadNode(_type&& tree, _tParams&&... args)
 /*!
 \note 结果表示判断是否应继续规约。
 \sa PassesCombiner
-\since build 697
+\since build 676
 */
 //@{
 //! \brief 一般合并遍。
@@ -328,7 +328,8 @@ inline PDefH(void, ReduceArguments, TermNode& term, ContextNode& ctx)
 /*!
 \brief 规约并检查成功：等效调用 Reduce 并检查结果直至不需重规约。
 \note 支持尾调用优化，不直接使用 CheckedReduceWith 和 Reduce 。
-\return 若使用异步调用 ReductionStatus::Partial ，否则为调用 CheckNorm 的结果。
+\return 若使用异步调用 ReductionStatus::Partial ，
+	否则为 ReductionStatus::Regular 。
 \sa CheckedReduceWith
 \sa Reduce
 \since build 817
@@ -1176,11 +1177,11 @@ BindParameter(ContextNode&, const TermNode&, TermNode&);
 /*!
 \brief 匹配参数。
 \exception std::bad_function_call 异常中立：参数指定的处理器为空。
-\since build 851
+\since build 856
 
 进行匹配的算法递归搜索形式参数及其子项。
 若匹配成功，调用参数指定的匹配处理器。
-参数指定形式参数、实际参数、两个处理器和复制标识。
+参数指定形式参数、实际参数、两个处理器、复制标识和引用值对应的锚对象指针。
 当复制标识为 true 时，递归处理的所有对实际参数的绑定以复制代替转移。
 以上处理的操作数的子项仅在确定参数对应位置是列表时进行。
 处理器为参数列表结尾的结尾序列处理器和值处理器，分别匹配以 . 起始的项和非列表项。
@@ -1199,9 +1200,9 @@ BindParameter(ContextNode&, const TermNode&, TermNode&);
 否则，匹配非列表项。
 */
 YF_API void
-MatchParameter(const TermNode&, TermNode&,
-	function<void(TNIter, TNIter, const TokenValue&, bool)>,
-	function<void(const TokenValue&, TermNode&, bool)>, bool);
+MatchParameter(const TermNode&, TermNode&, function<void(TNIter, TNIter, const
+	TokenValue&, bool, const AnchorPtr&)>, function<void(const TokenValue&,
+	TermNode&, bool, const AnchorPtr&)>, bool, const AnchorPtr&);
 //@}
 //@}
 //@}
@@ -2073,7 +2074,7 @@ Unwrap(const ContextHandler&);
 
 /*!
 \brief 检查参数指定的项表示引用列表项的引用。
-\return 检查通过后的项 CheckNorm 的结果。
+\return ReductionStatus::Regular 。
 \since build 855
 
 对参数指定的项进行检查。

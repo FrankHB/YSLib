@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2302
+\version r2387
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2019-03-26 22:56 +0800
+	2019-04-12 20:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,13 +55,13 @@ namespace NPL
 //! \since build 837
 //@{
 // NOTE: For general native implementations.
-#define YF_Impl_NPLA1_Native_Forms true
+#define NPL_Impl_NPLA1_Native_Forms true
 // NOTE: For environment primitive native implemantations.
-#define YF_Impl_NPLA1_Native_EnvironmentPrimitives true
+#define NPL_Impl_NPLA1_Native_EnvironmentPrimitives true
 // NOTE: For '$vau' in 'id' derivations instead of '$lambda'.
-#define YF_Impl_NPLA1_Use_Id_Vau true
+#define NPL_Impl_NPLA1_Use_Id_Vau true
 // NOTE: For awareness of strong ownership of environments.
-#define YF_Impl_NPLA1_Use_LockEnvironment true
+#define NPL_Impl_NPLA1_Use_LockEnvironment true
 //@}
 
 vector<string>
@@ -284,13 +284,29 @@ CopyEnvironment(TermNode& term, ContextNode& ctx)
 
 //! \since build 854
 template<typename _func>
-ReductionStatus
+YB_ATTR_nodiscard ReductionStatus
 DoIdFunc(_func f, TermNode& term)
 {
 	RetainN(term);
 	LiftTerm(term, Deref(std::next(term.begin())));
 	f(term);
-	return CheckNorm(term);
+	return ReductionStatus::Regular;
+}
+
+//! \since build 856
+template<typename _func>
+YB_ATTR_nodiscard ValueToken
+DoAssign(_func f, TermNode& x)
+{
+	ResolveTerm([&](TermNode& nd, bool has_ref){
+		if(has_ref)
+			f(nd);
+		else
+			throw ValueCategoryMismatch(ystdex::sfmt("Expected an"
+				" lvalue for the 1st argument, got '%s'.",
+				TermToString(nd).c_str()));
+	}, x);
+	return ValueToken::Unspecified;
 }
 
 //! \since build 842
@@ -412,18 +428,22 @@ LoadObjects(ContextNode& ctx)
 		CallUnary([&](TermNode& tm){
 			LiftToReference(term, tm);
 		}, term);
-		return CheckNorm(term);
+		return ReductionStatus::Regular;
 	});
-	RegisterStrictBinary(ctx, "<-", [](TermNode& x, const TermNode& y){
-		ResolveTerm([&](TermNode& nd, bool has_ref){
-			if(has_ref)
-				nd.SetContent(y);
-			else
-				throw ValueCategoryMismatch(ystdex::sfmt("Expected an"
-					" lvalue for the 1st argument, got '%s'.",
-					TermToString(nd).c_str()));
+	RegisterStrictBinary(ctx, "<-", [](TermNode& x, TermNode& y){
+		return DoAssign([&](TermNode& nd){
+			ResolveTerm([&](TermNode& r, ResolvedTermReferencePtr p_ref){
+				if(p_ref && !p_ref->IsModifiable())
+					nd.SetContent(r);
+				else
+					nd.SetContent(std::move(r));
+			}, y);
 		}, x);
-		return ValueToken::Unspecified;
+	});
+	RegisterStrictBinary(ctx, "<-%", [](TermNode& x, TermNode& y){
+		return DoAssign([&](TermNode& nd){
+			nd.SetContent(std::move(y));
+		}, x);
 	});
 }
 
@@ -536,15 +556,15 @@ LoadGroundedDerived(REPLContext& context)
 
 	// NOTE: Some combiners are provided here as host primitives for
 	//	more efficiency and less dependencies.
-#if YF_Impl_NPLA1_Native_Forms || YF_Impl_NPLA1_Native_EnvironmentPrimitives
+#if NPL_Impl_NPLA1_Native_Forms || NPL_Impl_NPLA1_Native_EnvironmentPrimitives
 	RegisterStrict(renv, "get-current-environment", GetCurrentEnvironment);
 	RegisterStrict(renv, "lock-current-environment", LockCurrentEnvironment);
 #endif
-#if YF_Impl_NPLA1_Native_Forms || !YF_Impl_NPLA1_Native_EnvironmentPrimitives
+#if NPL_Impl_NPLA1_Native_Forms || !NPL_Impl_NPLA1_Native_EnvironmentPrimitives
 	RegisterForm(renv, "$vau", Vau);
 	RegisterForm(renv, "$vau%", VauRef);
 #endif
-#if YF_Impl_NPLA1_Native_Forms
+#if NPL_Impl_NPLA1_Native_Forms
 	RegisterStrict(renv, "id", [](TermNode& term){
 		return DoIdFunc([](TermNode&) ynothrow{}, term);
 	});
@@ -562,7 +582,7 @@ LoadGroundedDerived(REPLContext& context)
 	// NOTE: Like '$set-car!' in Kernel.
 	RegisterStrict(renv, "set-first%!", SetFirstRef);
 #else
-#	if YF_Impl_NPLA1_Native_EnvironmentPrimitives
+#	if NPL_Impl_NPLA1_Native_EnvironmentPrimitives
 	context.Perform(u8R"NPL(
 		$def! $vau $vau/e (() get-current-environment) (&formals &e .&body) d
 			eval (cons $vau/e (cons d (cons formals (cons e body)))) d;
@@ -581,7 +601,7 @@ LoadGroundedDerived(REPLContext& context)
 		$def! $set! $vau (&e &formals .&expr) d
 			eval (list $def! formals (unwrap eval) expr d) (eval e d);
 	)NPL");
-#	if YF_Impl_NPLA1_Use_Id_Vau
+#	if NPL_Impl_NPLA1_Use_Id_Vau
 	// NOTE: The parameter shall be in list explicitly as '(.x)' to lift
 	//	elements by value rather than by reference (as '&x'), otherwise resulted
 	//	'list' is wrongly implemented as 'list%' with undefined behavior becuase
@@ -628,14 +648,18 @@ LoadGroundedDerived(REPLContext& context)
 								(eval% head d)) (eval% (cons% $aux tail) d))))
 			(make-environment (() get-current-environment));
 	)NPL");
-	// XXX: The operative '$defl%!' and the applicative 'first&' are same to
-	//	following derivations in %LoadCore.
+	// XXX: The operatives '$defl!' and '$defl%!', as well as theapplicative
+	//	'first@' are same to following derivations in %LoadCore.
 	context.Perform(u8R"NPL(
+		$defv! $defl! (&f &formals .&body) d eval
+			(list $set! d f $lambda formals body) d;
 		$defv! $defl%! (&f &formals .&body) d eval
 			(list $set! d f $lambda% formals body) d;
-		$defl%! first& (&l) ($lambda% ((&x .)) x) (check-list-lvalue l);
-		$defl%! set-first! (&l &x) <- (first& (check-list-lvalue l)) (idv x);
-		$defl%! set-first%! (&l &x) <- (first& (check-list-lvalue l)) x;
+		$defl%! first@ (&l) ($lambda% ((@x .)) x) (check-list-lvalue l);
+		$defl! set-first! (&l x)
+			<-% (first@ (check-list-lvalue l)) (move x);
+		$defl! set-first%! (&l &x)
+			<-% (first@ (check-list-lvalue l)) (forward x);
 	)NPL");
 #endif
 }
@@ -648,7 +672,6 @@ LoadCore(REPLContext& context)
 	auto& renv(context.Root.GetRecordRef());
 
 	context.Perform(u8R"NPL(
-		$def! $quote $vau (&x) #ignore x;
 		$def! $set! $vau (&e &formals .&expr) d
 			eval (list $def! formals (unwrap eval) expr d) (eval e d);
 		$def! $defv! $vau (&$f &formals &senv .&body) d
@@ -665,14 +688,18 @@ LoadCore(REPLContext& context)
 			(list $set! d f $lambda formals body) d;
 		$defv! $defl%! (&f &formals .&body) d eval
 			(list $set! d f $lambda% formals body) d;
+		$defv! $quote (&x) #ignore x;
 		$defl%! forward (&x)
 			$if (lvalue? (resolve-identifier ($quote x))) x (idv x);
+		$defl%! check-environment (&e)
+			$sequence ($vau/e% e . #ignore) (forward e);
 		$defl! first ((&x .)) x;
 		$defl%! first% ((%x .)) forward x;
 		$defl%! first& (&l) ($lambda% ((&x .)) x) (check-list-lvalue l);
+		$defl%! first@ (&l) ($lambda% ((@x .)) x) (check-list-lvalue l);
 		$defl! rest ((#ignore .x)) x;
 		$defl! rest% ((#ignore .%x)) x;
-		$defl! rest& (&l) ($lambda% ((#ignore .&x)) x) (check-list-lvalue l);
+		$defl! rest& (&l) ($lambda ((#ignore .&x)) x) (check-list-lvalue l);
 		$defl%! apply (&appv &arg .&opt)
 			eval% (cons% () (cons% (unwrap appv) arg))
 				($if (null? opt) (() make-environment) (first& opt));
@@ -703,7 +730,7 @@ LoadCore(REPLContext& context)
 				$if (eval test d) (eval% body d)
 					(apply (wrap $cond) clauses d)) clauses);
 	)NPL");
-#if YF_Impl_NPLA1_Use_LockEnvironment
+#if NPL_Impl_NPLA1_Use_LockEnvironment
 	context.Perform(u8R"NPL(
 		$def! make-standard-environment
 			$lambda () () lock-current-environment;
@@ -860,6 +887,34 @@ LoadModule_std_environments(REPLContext& context)
 }
 
 void
+LoadModule_std_promises(REPLContext& context)
+{
+	context.Perform(u8R"NPL(
+		$def! std.promises $provide! (promise? memoize $lazy $lazy/e force)
+		(
+			$def! (encapsulate promise? decapsulate) () make-encapsulation-type,
+			$defl%! memoize (%value) encapsulate (list (list% value ())),
+			$defv%! $lazy (.expr) d encapsulate (list (list expr d)),
+			$defv%! $lazy/e (&e .expr) d
+				encapsulate (list (list expr (check-environment (eval e d)))),
+			$defl%! force (&x)
+				forward ($if (promise? x) (force-promise (decapsulate x)) x),
+			$defl%! force-promise (&x) $let ((((&object &env)) x))
+				$if (null? env) (idv object)
+					(handle-promise-result x (eval% object env)),
+			$defl%! handle-promise-result (&x &y) $cond
+				((null? (first% (rest& (first& x))))
+					forward (first& (first& x)))
+				((promise? y) $sequence
+					(set-first%! x (first& (decapsulate y))) (force-promise x))
+				(#t $sequence
+					($let (((&o &e) first& x)) list% (<- o y) (<-% e ()))
+					(forward y))
+		);
+	)NPL");
+}
+
+void
 LoadModule_std_strings(REPLContext& context)
 {
 	auto& renv(context.Root.GetRecordRef());
@@ -897,7 +952,8 @@ LoadModule_std_strings(REPLContext& context)
 		const auto& str(NPL::ResolveRegular<const string>(Deref(i)));
 		const auto& r(NPL::ResolveRegular<const std::regex>(Deref(++i)));
 
-		term.ClearTo(std::regex_match(str, r));
+		term.Value = std::regex_match(str, r);
+		return ReductionStatus::Clean;
 	}, ystdex::bind1(RetainN, 2));
 }
 

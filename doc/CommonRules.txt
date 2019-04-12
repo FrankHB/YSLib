@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r4650
+\version r4675
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2019-02-22 14:30 +0800
+	2019-04-10 16:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,11 +27,14 @@
 
 /*
 
-@0 前言：
+@0 前言(Preface) ：
+本文档适用于一般开发。
 
 @0.1 体例说明：
 体例限制为 Unicode(@1.1) 可表示的文本文件，且与其它文档符合 https://bitbucket.org/FrankHB/yslib/wiki/WikiRules.en-US.md 。
-部分术语的英文对应关系混合不同学科的翻译惯例，在这些术语的第一个出现为止注明。
+按上述文档，默认使用的自然语言为 zh-CN 和 en-US 。
+部分术语的英文对应关系混合不同学科的翻译惯例，在这些术语的第一个出现处注明。
+作为英文标题的非术语词首大写。
 （文档专用）外部语义位置标记符：
 // 被用作注释。单独一行“//[”表示引用文本段落起始；单独一行“//]”表示引用文本段落终止。
 @ //作用于可打印字符或空白符（见以下定义）的字符序列，表示逻辑位置。
@@ -39,8 +42,9 @@
 以字符串 @ 起始的字符串本文档内部引用章节。
 以字符 @ 起始的行作为章节标题。
 同一文件以外的文档引用使用 [] 标注，称为引用标记。
+部分不使用引用标记的引用来源仍可能和文档关联，包括正式的标准(standard) 和通过术语或缩写关联的文档等。
+文中局部使用的文献通过类似的方式引入和引用，可能附带资源链接。
 模块名称([Documentation::ProjectRules @@3.2]) 为 Documentation 的引用是本项目的正式文档。本行即为示例。
-自然语言为简体中文和英文。
 
 @0.1.1 日期和时间表示：
 文本的日期和时间表示基于 ISO 8601:2004(@1.1) 的日期的扩展格式(extended format) 。仅使用精确到日的日期、精确到分或秒的时间，不使用周表示和非完全(complete) 表示。
@@ -48,17 +52,14 @@
 
 @0.2 使用规则：
 
-@0.2.1 适用范围：
-本文档适用于一般开发。
-
-@0.2.2 依赖规则：
+@0.2.1 依赖规则：
 在项目中对依赖([Documentation::ProjectRules @@1]) 进行管理。文档引用视为依赖。
 除下列例外，本文档不依赖项目内的其它文档：
 @0 ；
 [Documentation::ProjectRules] 中对项目和文档适用的规则；
 对 [Documentation::LanguageConvention] 及 [Documentation::NPL] 中的基本概念定义参考引用（“另见”）。
 
-@0.2.3 来源要求：
+@0.2.2 来源要求：
 [Documentation] 的文档中明确提出需提供文档的描述（如“文档说明”）表示要求至少存在以下文档来源之一：
 [Documentation] 中的文档段落；
 [Documentation] 中注明“正式引用”一节的文档的段落；
@@ -69,9 +70,9 @@
 一般意义的可读性包含主观因素，即在一定的背景下，特定读者对特定书面文本材料的理解能力可能不同。
 为便于规范描述， [Documentation] 中的文档约定忽略主观可读性，由理想情况下的某个读者（参考读者）对不同材料的认识界定使之成为文本材料决定的性质。
 
-@1 绪论：
+@1 绪论(Introduction) ：
 
-@1.1 正式引用：
+@1.1 正式引用(Normative references) ：
 — ISO/IEC 2382 (all parts), Information technology — Vocabulary
 — ISO 8601, Data elements and interchangeformats — Information interchange—Representation of dates and times
 — ISO/IEC 9899:2011, Programming languages — C
@@ -80,15 +81,23 @@
 	— Part 1: Architecture and Basic Multilingual Plane
 — ISO/IEC 14882:2003, Information technology — Programming languages — C++
 — ISO/IEC 14882:2011, Information technology — Programming languages — C++
+— ISO/IEC 14882:2014, Information technology — Programming languages — C++
 — ISO 80000-2:2009, Quantities and units — Part 2: Mathematical signs and symbols to be usedin the natural sciences and technology
+— 1003.1-2003 - IEEE Standard for IEEE Information Technology - Portable Operating System Interface (POSIX(R))
+— 1003.1-2008 - IEEE Standard for IEEE Information Technology - Portable Operating System Interface (POSIX(R))
 — The Unicode Standard — Version 6.0 – Core Specification
-— GCC Coding Conventions(http://gcc.gnu.org/codingconventions.html)
+— GCC Coding Conventions
+	http://gcc.gnu.org/codingconventions.html
 
 @1.1.1 引用简写：
-ISO C ： ISO/IEC 9899 ；
-ISO C++ ： ISO/IEC 14882 ；
-ISO C++03 ： ISO/IEC 14882:2003 ；
+ISO C ： ISO/IEC 9899 。
+ISO C11 ： ISO/IEC 9899:2011 。
+ISO C++ ： ISO/IEC 14882 。
+ISO C++03 ： ISO/IEC 14882:2003 。
 ISO C++11 ： ISO/IEC 14882:2011 。
+ISO C++14 ： ISO/IEC 14882:2014 。
+POSIX.1 ： ISO/IEC 9945:2003 （引用内容同 IEEE Std 1003.1-2003 ）。
+POSIX.1-2008 ：IEEE Std 1003.1-2008 。
 
 @1.2 术语：
 

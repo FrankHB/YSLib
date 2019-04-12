@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2019 年度。
-\version r189
+\version r255
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2019-01-02 01:00:32 +0800
 \par 修改时间:
-	2019-03-17 08:04 +0800
+	2019-04-05 07:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -185,6 +185,72 @@ Internal recursive thunk as the part of implementation of function 'NPL::A1::For
 					)
 				)
 				($vau (first second) env (wrap ($vau #ignore #ignore (eval second env))) (eval first env));
+Memory safety of NPL environment is taken cared.
+	Anchors in 'NPL::A1::Forms::BindParameter' are fixed.
+		This fixes a bug that releasing TCO frames too eary.
+		They were wrongly referred to TCO temporary, which is not the cases used in the referent implied by the reference values.
+		To support the fix, 'NPL::A1::Forms::MatchParameter' now has more additional parameters to indicate the anchor pointer.
+	Additional check for memory safety based on environment anchor reference counts in NPLA is added.
+		The check is performed in the destructor of 'NPL::Environment'.
+			The check get reference count of anchor and ensure it is expected. Otherwise, it issues an error message by logging (via 'YTraceDe', not the logger in 'NPL::ContextNode').
+			Since there is no specific order of destruction of bindings in the environments, this is not reliable in general.
+				It should be OK to leave the dead anchor pointers (in the destructor of the environment binding recored) since they are essentially the weak references without accesses.
+				Removal of the order requirements would also increase performance.
+				And it will cost too much to add a specified order for each bindings record in the environments.
+				So, it is normally only useful to aid debugging.
+			The anchor of temporary bound by the '&' sigil for reference operands in the TCO impmlementation of 'NPL::A1::BindParameter' will cause significantly lot of false positive check failures.
+				Because the source environment of referent is not traceable in the function, the anchor in the references are not accurate.
+					Without the fixes above, there can be many false positive results.
+					With the fixes above, there can be still a few false positive results shown on the cases having references in the environment which is introduced as the local environment of some caller.
+						These were exactly buggy without the fixes having nothing to do with the actual bug.
+				However, this is still necessary for safety of TCO within nested function calls.
+					At least 'NPL::A1::ReduceOrder' does require the parent frames not being released too early, which in turns relying on the count introduced here.
+				Ideally the anchor should be passed from the real referent.
+					However, this is not always possible unless that all objects have the anchors.
+					The current design does not use anchors for tracing all objects.
+						Only environments and reference values in the object language have anchors.
+						Otherwise, it needs too many resources and it is not even a good choice for debug builds.
+							If such capability is needed, a tracing GC would do better in general (except that the determinism of finalization should be cared additionally).
+			For performance and the correctness reason above, this is not enabled by default.
+				This can be enabled by change the definition of the new macro 'NPL_NPLA_CheckEnvironmentReferenceCount' in the header of the module NPL::NPLA to control the conditional inclusion.
+					The macro is in the header to get less restrictions on the implementation and to prevent possible warnings of unused code as well.
+		Since the dead environment references are allowed to be preserved elsewhere, direct check at destruction of environment have false positive results.
+		More precise check is still at environemnt destruction, but it distinguishes anchor reference counts from environment references vs. term references.
+			The basic idea is to store another reference count to indicate the different source, i.e. 'NPL::EnvironmentReference' vs. 'NPL::TermReference'.
+				To minimize the change, the unused anchor value is now changed to store the secondary reference count, and 'NPL::EnvironmentReference' are modified to have explicit reference count maintenance code with friendship of the anchor value interface.
+				This is not efficient, anyway.
+			The check is then added to ensure all remained anchor references are from 'NPL::EnvironmentReference'.
+		The check is then used to find bugs in the current implementation.
+		For non-TCO implementations, everything is OK.
+		There are several failure cases without tail rewriting being enabled:
+			1. $let ();
+			2. list*% ();
+			3. ($lambda% (x) x) ();
+			4. ($vau% (x) #ignore x)();
+			5. ($lambda (x) forward x) ();
+			6. ($lambda (x) ($lambda (y) idv y) x) ();
+			7. for-each-ltr ($lambda .) (list ());
+			8. map-reverse ($lambda .) (list ());
+			9. $def! l list (); ($lambda ((&x .)) x) l;
+		While some of the cases (3 and 4) are indeed undefined behavior, a few others are really interesting.
+			The cases 1, 2 and 5 is the real bug, whose fix is to reorder the cleanup of TCO action records.
+				The order is significant, but there is still uncertainty not properly handled before.
+				This fixes many cases like case 1 and 2 above, and all errors shown in the loading stage of the module NPL::Dependency are cleanup.
+			The case 6 is caused by order of components removal in the same frame.
+				Note the name 'idv' is somewhat insignificant (as it can be any unary function compatible with the argument), for example the following are also problematic:
+					6a. ($lambda (x) ($lambda (y) id y) x) ();
+					6b. ($lambda (x) ($lambda (y) ++ y) x) "";
+				And even with an empty body, it is still problematic:
+					6c. ($lambda (x) ($lambda (y)) x) ();
+					6d. ($lambda (x) ($lambda (.)) x) ();
+				But the following variants are OK:
+					6e. ($lambda (x) ($lambda (.) ()) x) ();
+					6f. ($lambda (x) ($lambda (y) y) x) ();
+					6g. ($lambda (x) ($lambda (y) (idv y)) x) ();
+					6h. $def! foo $lambda% (z) z; ($lambda (x) ($lambda (y) foo y) x) ();
+					6i. ($lambda (x) ($lambda (y) ($lambda% (z) z) y) x) ();
+				This is fixed by explicitly clear of the components in the frame before the removal.
+			The case 7, 8 and 9 are caused by the bug of '&' reference using wrong anchor from 'NPL::BindParameter'.
 
 ////
 

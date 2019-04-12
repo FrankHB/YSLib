@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r11788
+\version r12016
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-03-26 23:21 +0800
+	2019-04-12 20:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,231 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				/ @ "class %Environment" $=
+				(
+					/ $revert_ex(b847) ("function %Anchor"
+						-> "function %GetAnchorPtr") $dep_from
+						"avoided Environment::Anchor";
+						// This makes it same to %TermReference. The new \
+							function returns anchor pointer but unlike \
+							%Anchor, it does not modify the underlying \
+							reference count.
+					(
+					+ "macro %NPL_NPLA_CheckEnvironmentReferenceCount";
+					/ "internal anchor interface to make the value store the \
+						secondary reference count" \
+						@ 'NPL_NPLA_CheckEnvironmentReferenceCount' $dep_to
+						"secondary reference count",
+					+ "destructor" $dep_from "%EnvironmentReference" $=
+						(+ $lib "optional anchor count check and diagnostics"
+							@ 'NPL_NPLA_CheckEnvironmentReferenceCount'
+							^ "%YSLib::FilterExceptions")
+							// See $2019-03 @ \
+								%Documentation::Workflow::Annual2019.
+					)
+				),
+				/ $forced DLDI ("function %Collapse#2", "constructor \
+					%EnvironmentReference#2") ^ $dep_from \
+					"%Environment::GetAnchorPtr" ~ "%Environment::Anchor",
+				/ "stored secondary reference count"
+					@ "class EnvironmentReference" $dep_from
+					"secondary reference count" $=
+				(
+					+ "move constructor",
+					+ "destructor",
+					/ $impl "constructors"
+				),
+				(
+				+ "enumerator %Regular" @ "enum class %ReductionStatus";
+				/ "simplified function %ReduceForLiftedResult"
+					^ "%ReductionStatus::Regular" ~ "%CheckNorm"
+				),
+				+ "function templates %(ComposeSwitchedUnchecked; \
+					ComposeSwitched)",
+				/ @ "class %TermReference" $=
+				(
+					+ "enum %Tags";
+					(
+					/ ("all %bool parameter" -> "%Tags parameter")
+						@ "constructors";
+					/ $forced "function %TermReferenced and internal state"
+						^ "%Tags"
+					),
+					+ "predicates %(IsModifiable, IsUnique)"
+				),
+				/ @ "function %LiftToReference" $=
+				(
+					/ $forced "lifted reference value" $dep_from
+						"constructor %TermReference" ^ $dep_from
+						"%TermReference::Unqualified";
+					* $comp "wrong non-lvalue reference used" $since b855
+				)
+			),
+			/ %NPLA1 $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					* "missing lvalue-to-rvalue conversion for the operand"
+						@ "function %ValueOf" $since b855 ^ "%ReferenceTerm",
+					/ "simplified function %CheckListLValue" ^ $dep_from
+						("%ReductionStatus::Regular" @ %NPLA) ~ "%CheckNorm",
+					* "missing current action null value check"
+						@ "thunked implementation" @ "functions %(And, Or, If, \
+						DefineWithRecursion)" $since b817
+						$= (/ "simplified" ^ $dep_from
+							("%ComposeSwitched" @ %NPLA)),
+					+ "anchor parameters" @ "function %MatchParameter",
+					/ @ "function %BindParameter" $=
+					(
+						(
+						/ $forced "calling %MatchParameter with anchors"
+							$ep_from "%BindParameter";
+							// Anchors are still needed for TCO although they \
+								interfere \
+								%NPL_NPLA_CheckEnvironmentReferenceCount. See \
+								$2019-03 @ %Documentation::Workflow::Annual2019.
+						* "anchors wrongly moved for multiple references" $since
+							b855 !^ "%Environment::Anchor"
+							$dep_to "avoided Environment::Anchor",
+							// This would cause only the 1st occurence is valid.
+						) $dep_to "encapsulation anchor fix",
+						/ DLI "avoided anchor access for symbols known to bind",
+						/ $forced DLDI $dep_from
+							("constructor %TermReference" @ %NPLA),
+						+ "support of sigil '@'" ^ $dep_from
+							("TermReference::(Nonmodifying, Unqualified)"
+							@ %NPLA)
+					),
+					* "decapsulated prvalue wrongly collected by TCO"
+						@ "function %MakeEncapsulationType" $since b855
+						$dep_to "encapsulation anchor fix"
+				),
+				* "term references referred out of environment lifetime \
+					due to TCO action cleanup order" $since b820
+				* "term references referred out of environment lifetime \
+					due to TCO components cleanup order in the same frame"
+					$since b820,
+					// The bug fixes of TCO action also make the instruction \
+						numbers decreased more than 1.5% on Linux x64 within a \
+						small test run.
+				/ "simplified" ("non-thunked implementation" @ "functions \
+					%(ReduceChecked, ReduceChildrenOrdered#1)", "thunked \
+					implementation" @ "function %ReduceOrdered") ^ $dep_from
+					("%ReductionStatus::Regular" @ %NPLA) ~ "%CheckNorm",
+				/ "simplified" ("function %ReduceCombined", "non-TCO thunked \
+					implementation" @ "function %ReduceChecked") ^ $dep_from
+					("%ComposeSwitched" @ %NPLA),
+				* "missing current action null value check" @ ("non-TCO \
+					thunked implementation" @ "function %ReduceAgain" $since
+					b819, "thunked implementation" @ ("function %ReduceOrdered"
+					$since b813, "member function \
+					%StrictContextHandler::operator()" $since b841))
+					$= (/ "simplified" ^ $dep_from
+						("%ComposeSwitched" @ %NPLA) ~ "%ComposeActions"),
+				* $revert_ex(b841) $re_add(b842) "missing handling of \
+					previous reduction status" @ "non-TCO thunked \
+					implementation" @ "function %ReduceChecked" $since b841
+					$= (/ $impl ^ "TCO implementation"),
+					// The divergence of TCO and non-TCO implementations \
+						since b842 was not intended. The old \
+						implementation was actually same to %ReduceAgain \
+						except the bug fixed above.
+				/ DLI "simplified composing %ReduceChecked call"
+					@ "thunked implementation" @ "action relaying"
+					@ "functions (%Forms::'Eval*', vau handler %operator())",
+				/ "thunked implementation" @ "function %ReduceChildren" $=
+				(
+					+ $lib "%Continuation construction of subterms",
+						// To be consistent with other implemenations. \
+							Continuations are not supported yet, though.
+					/ "simplified" ^ ("%RelayNext",
+						$dep_from ("%ComposeSwitched" @ %NPLA))
+						~ "%RelaySwitched"
+				),
+				/ $forced DLDI "function %EvaluateIdentifier" $dep_from
+					("constructor %TermReference" @ %NPLA)
+			),
+			/ "namespace %Forms" @ %Dependency $=
+			(
+				/ @ "function %LoadGroundContext" $=
+				(
+					* "dangling reference returned"
+						@ "derivation of applicative 'rest&'" $since b855
+						$= (/ $impl ^ '$lambda' ~ '$lambda%'),
+						// This would usually crash. It could occasionally \
+							look normal because of TCO.
+					* $comp "missing lvalue-to-rvalue conversion on the operand"
+						@ "applicative 'value-of'" $since b855 $dep_from
+						("%ValueOf" @ %NPLA1),
+					/ "simplified applicatives %(deshare, id, idv, ref)"
+						^ $dep_from ("%ReductionStatus::Regular" @ %NPLA)
+						~ "%CheckNorm",
+					/ DLDI "operative '$quote'" ^ '$defv' ~ ('$def!', '$vau'),
+					+ "applicative 'check-environment'",
+					/ DLDI "simplified alternative derivation"
+						@ "applicative 'set-first!'" ^ "%move" ~ "%idv",
+					(
+					+ "applicative 'first@'",
+					* "alternative derivations ('set-first!', 'set-first%!') \
+						unexpectedly resolved destination reference term" $since
+						b855 ^ 'first@' ~ 'first&'
+					),
+					(
+					* "missing resolution of reference value of 2nd argument"
+						@ "applicative '<-'" $since b855,
+						// The naming convention needs it to do \
+							lvalue-to-rvalue conversion.
+					+ "applicative '<-%'";
+					/ $forced DLDI "alternative derivation"
+						@ "applicative 'set-first%!'" ^ '<-%' ~ '<-',
+					)
+				),
+				/ DLDI "applicative 'regex-match?'"
+					@ "function %LoadModule_std_strings"
+					^ "%ReductionStatus::Clean" ~ "%TermNode::ClearTo",
+				+ "function %LoadModule_std_promises" $dep_all_from
+					"encapsulation anchor fix" $=
+				(
+					+ "applicatives ('promise?', %memoize)",
+					+ "applicative %force" ^ $dep_from
+						("applicatives ('<-', '<-%')"
+						@ "function %LoadGroundContext")
+					+ "operative '$lazy'",
+					+ "operative '$lazy/e'" ^ $dep_from
+						('check-environment' @ "%LoadGroundContext")
+				)
+			),
+			/ DLDI "renamed internal conditional inclusion macros" $effective
+				@ %(NPLA1, Dependency),
+				// 'YF_' prefix is changed to 'NPL_', which is already in \
+					%Documentation::Definitions.
+			/ @ "class %TermNode" @ %SContext $=
+			(
+				- "all 2 functions %ClearTo"
+					$dep_from ("%Forms::LoadModule_std_strings" @ %Dependency),
+				* $comp "wrong exception specification" @ "function %ClearTo#1"
+					$since b776
+			)
+		),
+		/ @ "class %ValueNode" @ %YSLib.Core.ValueNode $=
+		(
+			- $revert_ex(b776) "all 2 functions %ClearTo";
+			* $comp "wrong exception specification" @ "function %ClearTo#1"
+				$since b776
+		)
+	),
+	* $comp "stage 1 build failure" $since b855 $dep_from ('value-of'
+		@ "function %Forms::LoadGroundContext" @ %NPL.Dependency)
+),
+
+b855
 (
 	/ %YFramework $=
 	(
@@ -227,7 +452,7 @@ $now
 				* "too large value of integer literal handled as invalid suffix"
 					@ "integer literal handling" $orig (@ "function \
 					%LoadNPLContextForSHBuild" $since b770),
-				/ @ "function %LoadGroundContext" @ %Dependency $=
+				/ @ "function %LoadGroundContext" $=
 				(
 					/ DLDI "derivation of operatives ('$provide!', \
 						'$provide/d!')" @ "function %LoadGroundContext",
@@ -4637,7 +4862,7 @@ b843
 	)
 ),
 
-b843
+b842
 (
 	/ %YBase $=
 	(
@@ -9156,8 +9381,7 @@ b819
 				* "missing guaranteed retrying as %RecuceChecked with \
 					direct style implementation" @ "functions other than \
 					%ReduceAgain" $since b817,
-				/ DLI "simplified with tail recursion" ^ "%RelaySwitched"
-					~ "%RelayNext"
+				/ DLI "simplified TCO actions"
 			),
 			(
 			* "missing clearing %ContextNode::SkipToNextEvaluation before \

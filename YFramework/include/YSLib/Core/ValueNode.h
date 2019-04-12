@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r4079
+\version r4089
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2019-02-14 16:37 +0800
+	2019-04-01 01:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -628,17 +628,6 @@ public:
 	*/
 	PDefH(void, Clear, ) ynothrow
 		ImplExpr(Value.Clear(), ClearContainer())
-
-	/*!
-	\brief 清除容器并设置值。
-	\since build 776
-	*/
-	//@{
-	PDefH(void, ClearTo, const ValueObject& vo) ynothrow
-		ImplExpr(ClearContainer(), Value = vo)
-	PDefH(void, ClearTo, ValueObject&& vo) ynothrow
-		ImplExpr(ClearContainer(), Value = std::move(vo))
-	//@}
 	//@}
 
 	/*!

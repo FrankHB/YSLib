@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2018 FrankHB.
+	© 2015-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r278
+\version r295
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2018-12-01 15:44 +0800
+	2019-04-06 22:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,7 +103,7 @@ YB_NONNULL(1, 2) inline PDefH(void, InstallDirectory, const char* dst,
 /*!
 \note 在创建链接前首先删除文件。
 \exception std::system_error 由 IO::Remove 抛出的除文件不存在外的错误。
-\warning 非强异常安全：删除文件成功但创建链接失败时，不重新创建原有的链接。
+\note 非强异常安全：删除文件成功但创建链接失败时，不重新创建原有的链接。
 \see IO::Remove
 */
 //@{
@@ -189,13 +189,18 @@ LoadModule(ContextNode& ctx, string_view module_name, _fCallable&& f,
 }
 
 
-//! \since build 839
+/*!
+\note 支持的具体语法形式参考 Documentation::NPL 。
+\since build 839
+*/
 //@{
 /*!
 \brief 加载基础 NPL 上下文。
 \sa LoadSequenceSeparators
 
 加载序列中缀分隔符和 NPL 基础环境使用的公共语法形式。
+支持的语法形式包括预定义对象、基本操作和定义在基础环境中的派生操作。
+其中，派生操作包括基本派生操作和核心库函数。
 */
 YF_API void
 LoadGroundContext(REPLContext&);
@@ -209,13 +214,23 @@ LoadGroundContext(REPLContext&);
 //@{
 /*!
 \brief 加载环境模块。
-\pre 当前实现：求值合并子调用前已加载字符串模块或等价方式初始化为模块 std.strings 。
+\pre 当前实现：求值合并子调用前已加载初始化字符串模块 std.strings 。
 \sa LoadModule_std_strings
 
 加载扩展的环境库操作。
 */
 YF_API void
 LoadModule_std_environments(REPLContext&);
+
+/*!
+\brief 加载代理求值模块。
+\note 当前实现：加载为模块 std.promise 。
+\since build 856
+
+加载 promise 等类型和延迟求值等操作。
+*/
+YF_API void
+LoadModule_std_promises(REPLContext&);
 
 /*!
 \brief 加载字符串模块。

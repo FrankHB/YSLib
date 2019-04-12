@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2401
+\version r2462
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2019-03-21 10:09 +0800
+	2019-04-01 01:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,12 +29,12 @@
 #include YFM_NPL_NPLA // for YSLib, string, YSLib::DecodeIndex, std::to_string,
 //	std::invalid_argument, ValueNode, NPL::Access, EscapeLiteral, Literalize,
 //	NPL::AccessPtr, ystdex::value_or, ystdex::write, bad_any_cast,
-//	std::allocator_arg, YSLib::NodeSequence, ystdex::unimplemented,
+//	std::allocator_arg, YSLib::NodeSequence, ystdex::unimplemented, 
 //	ystdex::type_id, ystdex::quote, ystdex::call_value_or, ystdex::begins_with,
 //	YSLib::get_raw, NPL::make_observer, ystdex::sfmt, NPL::TryAccessTerm, sfmt,
 //	ystdex::invoke_value_or, NPL::TryAccessLeaf, ystdex::ref,
-//	ystdex::retry_on_cond, ystdex::type_info, pair, ystdex::addrof,
-//	ystdex::second_of;
+//	YSLib::FilterExceptions, ystdex::retry_on_cond, ystdex::type_info, pair,
+//	ystdex::addrof, ystdex::second_of;
 #include YFM_NPL_SContext
 
 using namespace YSLib;
@@ -563,7 +563,7 @@ Collapse(TermNode& term, const Environment& env)
 {
 	if(const auto p_tref = NPL::TryAccessTerm<const TermReference>(term))
 		return {*p_tref, true};
-	return {{term, env.Anchor()}, {}};
+	return {{term, env.GetAnchorPtr()}, {}};
 }
 
 TermNode&
@@ -642,7 +642,7 @@ LiftToReference(TermNode& term, TermNode& tm)
 		else if(!tm.Value.OwnsUnique())
 			// XXX: This is unsafe and not checkable because the anchor is not
 			//	referenced.
-			term.Value = TermReference(false, tm);
+			term.Value = TermReference(TermReference::Unqualified, tm);
 		else
 			throw InvalidReference(
 				"Value of a temporary shall not be referenced.");
@@ -691,8 +691,8 @@ ReductionStatus
 ReduceForLiftedResult(TermNode& term)
 {
 	LiftToReturn(term);
-	// XXX: This is needed to update %LastResult in the enclosing context.
-	return CheckNorm(term);
+	// XXX: This is used to update %LastStatus in the enclosing context.
+	return ReductionStatus::Regular;
 }
 
 ReductionStatus
@@ -716,6 +716,50 @@ ReduceToListValue(TermNode& term) ynothrow
 		: ReductionStatus::Clean;
 }
 
+
+#if NPL_NPLA_CheckEnvironmentReferenceCount
+Environment::~Environment()
+{
+	if(const auto& p_anchor = anchor.Ptr)
+	{
+		const auto acnt(p_anchor.use_count());
+
+		if(acnt >= 1)
+		{
+			// XXX: Assume this would not wrap.
+			const auto ecnt(AnchorValue::Access(anchor.Ptr).env_count + 1);
+
+			if(ecnt < size_t(acnt))
+				YSLib::FilterExceptions([this, acnt, ecnt]{
+					const size_t n(Bindings.size());
+					size_t i(0);
+					// XXX: Allocator type is not available for %string yet.
+					string str;
+					// XXX: The value is heuristic for common cases.
+					str.reserve(n * yimpl(4));
+
+					for(const auto& pr : Bindings)
+					{
+						str += pr.first;
+						if(++i != n)
+							str += ", ";
+					}
+					YTraceDe(Err, "Invalid environment destruction: remained"
+						" shared anchor count for reference values is nonzero"
+						" value %zu, with bindings {%s}.", size_t(acnt) - ecnt,
+						str.c_str());
+				}, yfsig);
+			else if(YB_UNLIKELY(ecnt > size_t(acnt)))
+				YTraceDe(Err, "Anchor count for environments %zu is greater"
+					" than anchor count %ld.", ecnt, acnt);
+		}
+		else
+			YTraceDe(Err, "Invalid environment use count %ld found.", acnt);
+	}
+	else
+		YTraceDe(Err, "Invalid environment anchor found in destruction.");
+}
+#endif
 
 void
 Environment::CheckParent(const ValueObject& vo)
@@ -827,8 +871,22 @@ Environment::ThrowForInvalidType(const ystdex::type_info& tp)
 
 EnvironmentReference::EnvironmentReference(const shared_ptr<Environment>& p_env)
 	// TODO: Blocked. Use C++17 %weak_from_this and throw-expression?
-	: EnvironmentReference(p_env, p_env ? p_env->Anchor() : nullptr)
+	: EnvironmentReference(p_env, p_env ? p_env->GetAnchorPtr() : nullptr)
 {}
+#if NPL_NPLA_CheckEnvironmentReferenceCount
+EnvironmentReference::~EnvironmentReference()
+{
+	if(p_anchor)
+		Environment::AnchorValue::Access(p_anchor).RemoveReference();
+}
+
+void
+EnvironmentReference::ReferenceEnvironmentAnchor()
+{
+	if(p_anchor)
+		Environment::AnchorValue::Access(p_anchor).AddReference();
+}
+#endif
 
 
 ContextNode::ContextNode(YSLib::pmr::memory_resource& rsrc)

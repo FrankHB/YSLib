@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2018 FrankHB.
+	© 2010-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14179
+\version r14203
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2018-11-20 18:01 +0800
+	2019-03-29 21:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -222,7 +222,7 @@ $dir YFramework // YFramework 既定宏污染列表。
 {
 
 YF_* // 保留给 YFramework 使用。
-	YF_Impl_* // 保留用于 YFramework 实现。
+	NPL_Impl_* // 保留用于 YFramework 实现。
 YFM_* // 保留作为 YFramework 模块包含文件宏。
 CHRLib_* // 保留给 YFramework.CHRLib 使用。
 YCL_* // 保留给 YFramework.YCLib 使用。
@@ -454,10 +454,32 @@ DeclDynWidgetNode(_t, _n)
 }
 $unit Scroll
 {
-YSL_UI_ATRACK_PARTIAL_INVALIDATION
+YSL_UI_Impl_ATrack_Partial_Invalidation
 }
 } // $dir UI;
 } // $dir YSLib;
+
+$dir NPL
+{
+$dir NPLA
+{
+NPL_NPLA_CheckEnvironmentReferenceCount
+}
+$unit NPLA1
+{
+NPL_Impl_NPLA1_Enable_TCO
+NPL_Impl_NPLA1_Enable_TailRewriting
+NPL_Impl_NPLA1_Enable_Thunked
+NPL_Impl_NPLA1_Enable_WeakExternalRoots
+}
+$unit Dependency
+{
+NPL_Impl_NPLA1_Native_Forms
+NPL_Impl_NPLA1_Native_EnvironmentPrimitives
+NPL_Impl_NPLA1_Use_Id_Vau
+NPL_Impl_NPLA1_Use_LockEnvironment
+}
+} // $dir NPL;
 
 $dir Helper
 {

@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2406
+\version r2410
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2019-03-04 17:55 +0800
+	2019-04-01 01:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -248,11 +248,6 @@ public:
 
 	PDefH(void, ClearContainer, ) ynothrow
 		ImplExpr(container.clear())
-
-	PDefH(void, ClearTo, const ValueObject& vo) ynothrow
-		ImplExpr(ClearContainer(), Value = vo)
-	PDefH(void, ClearTo, ValueObject&& vo) ynothrow
-		ImplExpr(ClearContainer(), Value = std::move(vo))
 
 private:
 	static TermNode::Container
