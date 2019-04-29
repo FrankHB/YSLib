@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2019 年度。
-\version r255
+\version r280
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2019-01-02 01:00:32 +0800
 \par 修改时间:
-	2019-04-05 07:09 +0800
+	2019-04-23 20:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -251,6 +251,32 @@ Memory safety of NPL environment is taken cared.
 					6i. ($lambda (x) ($lambda (y) ($lambda% (z) z) y) x) ();
 				This is fixed by explicitly clear of the components in the frame before the removal.
 			The case 7, 8 and 9 are caused by the bug of '&' reference using wrong anchor from 'NPL::BindParameter'.
+
+$2019-04:
+Several designs of NPLA have been revised.
+	The reference type ('NPL::TermReference') now supports xvalues.
+		This is achieved by additional metadata as the internal data members of 'NPL::TermReference'.
+		The metadata is organized as the tag type 'NPL::TermReference::Tags'.
+			Member functions with 'bool' parameter are updated to use this type instead.
+		The constructors with inference of the metadata is also updated.
+			Now the arguments keep the tags using 'NPL::TermToTag'.
+	Value category are identified by metadata only in references.
+		Currently objects in environments are not general available in the object language except for a few operations like 'resolve-identifier' in NPLA1.
+		The type of object 'x' is like 'decltype((x))' in the host language, in despite of 'decltype(x)' having possible different result.
+		Now the reference type 'NPL::TermReference' has more tag.
+		For temporary objects bound to references, the metadata is needed in 'NPL::TermNode' as well.
+			The tag type is now lifted as the bitmask scoped enumeration 'NPL::TermTags'.
+			An index enumeration 'NPL::TermTagIndices' is also provided to avoid magic values in the enumerators in 'NPL::TermTags'.
+	'NPL::EvaluateIdentifier' is fixed to ensure results are lvalues.
+		Other resolution are not directly subject to the value of variable.
+		This is carefully designed to keep the applicative 'forward' work.
+			There are two dependencies of the implementation as the prerequisitions of this change.
+				First, the applicative 'first%' is needed to changeto prevent invalid 'forward' call in the old implementation.
+				Second, operatives of the '$let' family are now split like '$lambda' and '$lambda%'.
+					The old implementations would not work without the change because 'forward' call cannot correctly get the value category of the final return value when it contains the lvalues bound directly as objects in the parameter list.
+					On the ohter hand, in old implementations with old rules, it would not treat such resolved parameters as lvalues.
+			For performance, a native implementation is also added.
+		The result of 'lvalue?' for the reference from environment are always '#t'.
 
 ////
 

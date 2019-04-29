@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2410
+\version r2474
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2019-04-01 01:03 +0800
+	2019-04-22 21:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,6 +69,72 @@ using YSLib::observer_ptr;
 using YSLib::pair;
 
 
+//! \since build 857
+//@{
+//! \brief 项标签索引：指定项标签元数据掩码的位。
+enum TermTagIndices : size_t
+{
+	UnqualifiedIndex = 0,
+	UniqueIndex,
+	NonmodifyingIndex,
+	TemporaryIndex
+};
+
+
+/*!
+\brief 标签：表示引用元数据的位。
+\relates TermTagIndices
+
+指定项引用具有的元数据。选项为位掩码值。
+*/
+enum class TermTags
+{
+	/*!
+	\brief 非限定对象。
+
+	指定默认情形的对象或对象引用。
+	当前用于实现对象语言的左值引用。
+	*/
+	Unqualified = 1 << UnqualifiedIndex,
+	/*!
+	\brief 唯一引用。
+
+	指定被引用的对象具有唯一引用。
+	被引用的对象应未被别名，或可假定被未被别名。
+	当前用于实现对象语言的右值引用。
+	通常在派生实现绑定特定对象引入右值引用时使用。
+	*/
+	Unique = 1 << UniqueIndex,
+	/*!
+	\brief 不可修改。
+
+	指定对象不可修改或被引用的对象不通过此引用。
+	除非唯一，被引用的对象仍可能通过其它引用修改。
+	当前用于实现对象语言的不可修改引用。
+	通常在派生实现绑定特定的对象引入不可修改引用时使用。
+	*/
+	Nonmodifying = 1 << NonmodifyingIndex,
+	/*!
+	\brief 临时对象。
+
+	指定被引用的对象是显式的临时对象。
+	类似宿主语言中声明的右值引用，但实际作用在被引用的对象而不是引用。
+	和宿主语言不同，引用不需要被扩展生存期的临时对象具有所有权。
+	通常在派生实现绑定特定引用且指定被引用的对象是右值时使用。
+	*/
+	Temporary = 1 << TemporaryIndex
+};
+
+//! \relates TermTags
+//@{
+DefBitmaskEnum(TermTags)
+
+yconstfn PDefH(TermTags, GetLValueTagsOf, const TermTags& tags) ynothrow
+	ImplRet(tags & ~TermTags::Temporary)
+//@}
+//@}
+
+
 /*!
 \brief 项节点：存储语法分析结果的值类型节点。
 \since build 852
@@ -100,6 +166,8 @@ private:
 public:
 	ValueObject Value{};
 	//@}
+	//! \since build 857
+	TermTags Tags = TermTags::Unqualified;
 
 	DefDeCtor(TermNode)
 	// XXX: Not all constructors like %ValueNode need to be supported here.
@@ -301,7 +369,14 @@ public:
 		return CreateRecursively(std::move(container), f);
 	}
 
-	//! \since build 953
+	/*!
+	\brief 转移参数内容。
+	\pre 断言：参数不是 *this 。
+	\since build 853
+
+	转移参数指定的节点的内容到对象。转移后的节点内容是转移前的参数内容。
+	允许被转移的参数直接或间接地被容器引用。
+	*/
 	void
 	MoveContent(TermNode&&);
 

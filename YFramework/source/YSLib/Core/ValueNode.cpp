@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r850
+\version r852
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2019-02-22 14:03 +0800
+	2019-04-15 13:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "YSLib/Core/YModules.h"
 #include YFM_YSLib_Core_ValueNode // for ystdex::invoke_value_or,
 //	ystdex::call_value_or, ystdex::addrof, ystdex::compose, std::mem_fn,
-//	ystdex::bind1;
+//	ystdex::bind1, ystdex::ref_eq;
 #include <ystdex/cstdint.hpp> // for ystdex::floor_lb;
 
 namespace YSLib
@@ -54,6 +54,8 @@ ValueNode::CreateRecursively(const Container& con, IValueHolder::Creation c)
 void
 ValueNode::MoveContent(ValueNode&& node)
 {
+	YAssert(!ystdex::ref_eq<>()(*this, node), "Invalid self move found.");
+
 	// NOTE: This is required for the case when the moved-to object (referenced
 	//	by '*this') is an ancestor of the moved-from node (referenced by the
 	//	parameter). In such cases, an object moved from the moved-to object

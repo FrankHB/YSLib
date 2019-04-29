@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1620
+\version r1622
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2019-02-14 14:51 +0800
+	2019-04-22 15:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_SContext // for std::allocator_arg;
+#include YFM_NPL_SContext // for ystdex::ref_eq, std::allocator_arg;
 
 using namespace YSLib;
 
@@ -76,6 +76,8 @@ TermNode::ConCons(ValueNode::Container&& con, allocator_type a)
 void
 TermNode::MoveContent(TermNode&& node)
 {
+	YAssert(!ystdex::ref_eq<>()(*this, node), "Invalid self move found.");
+
 	// NOTE: Similar to %ValueNode::MoveContent.
 	const auto t(std::move(GetContainerRef()));
 

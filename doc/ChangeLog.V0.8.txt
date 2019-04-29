@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r12016
+\version r12258
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-04-12 20:28 +0800
+	2019-04-30 01:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,250 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Memory $=
+		(
+			+ "function templates %is_undereferenceable for %std::(unique_ptr, \
+				shared_ptr, weak_ptr) instances",
+				// This enhances %Deref debuggin in %YFramework.
+			* DD "wrong Doxygen command '\sinne' used" ~ '\since'
+				@ "function templates %is_sharing" $since b784
+		),
+		/ %Pointer $=
+		(
+			+ "friend function" @ "class template %observer_ptr" @ %Pointer
+				// Ditto.
+			* $re_add(b852) DD "missing escaping tag" @ "Doxygen comments"
+				$since b660
+				// To eliminate Doxygen warning: Unsupported xml/html tag found.
+		)
+	),
+	/ %YFramework $=
+	(
+		* $lib "missing precondition to prevent self move"
+			@ "member function %ValueNode::MoveContent"
+			@ %YSLib.Core.ValueNode $since b806
+			$= (+ "assertion"),
+		/ %NPL $=
+		(
+			/ %SContext $=
+			(
+				(
+				+ "enum %TermTagIndices";
+				+ "enum class %TermTags";
+				+ 'DefBitmaskEnum(TermTags)';
+				+ "function %GetLValueTagsOf"
+				),
+				/ @ "class %TermNode" $=
+				(
+					* $lib "missing precondition to prevent self move"
+						@ "function %MoveContent" @  $since b853
+						$= (+ "assertion"),
+					+ "object %Tags" ^ $dep_from "%TermTags"
+				)
+			),
+			/ %NPLA $=
+			(
+				+ "function %TermToTags" ^ $dep_from
+					("%GetLValueTagsOf" @ %SContext),
+				/ @ "class %TermReferece" $=
+				(
+					/ $revert_ex(b856) "tags type" $=
+					(
+						/ "all tags" ^ $dep_from ("%TermTags" @ %SContext)
+							~ "%Tags";
+						- "enum %Tags"
+					),
+					/ "function %IsTermReferenced"
+						-> "function %IsReferencedLValue"
+						$dep_from "avoided TermReference::IsTermReferenced"
+						$= (* "invalid nonmodifying interaction"
+							@ "function %IsTermReferenced" $since b856
+							$dep_from ("%TermTags" @ %SContext)),
+					(
+					- 'ynothrow' @ "constructor#1";
+						// Now corruptied terms would be handled by throwing.
+					/ "inherited tags for reference arguments"
+						@ "constructors#(1, 2)" ^ "%TermToTags"
+						~ "%HasReferenceValue"
+						// Now lvalues can be modifiable.
+					),
+					+ "function %GetTags" $dep_from "%TermTags",
+					+ "friend function %swap",
+					+ "function %IsMovable" ^ $dep_from
+						("%TermTags" @ %SContext)
+				),
+				- $revert_ex(b854) "function %HasReferenceValue" $dep_from
+					"constructors %TermReference#(1, 2)",
+					// %IsReferenceTerm is preferred as it can handle \
+						corruptied terms.
+				(
+				/ $dev $lib "order of some declarations";
+				/ $revert_ex(b829) "2 function overloads %Collapse"
+					-> "function %PrepareCollapse" $=
+				(
+					/ "specified 2nd parameter with %AnchorPtr"
+						~ "nothing or %Environment",
+					/ "adjusted reference tags" ^ $dep_from
+						("%TermNode::Tags" @ %SContext)
+						// To avoid redundant call in initialization of the \
+							%TermReference object.
+				);
+				- $revert(b840) $dev "class name declaration %Environment",
+				/ $forced $impl "function %ResolveIdentifier"
+					^ "%PrepareCollapse" ~ "%Collapse"
+				),
+				* $lib "missing handling self lifting" @ "function %LiftTerm#1"
+					$since b806,
+					// This should be no-op.
+				/ @ "class %Environment" $=
+				(
+					/ DLDI ("alias %NameResolution", "function %LookupName")
+						^ "%BindingMap::mapped_type" ~ "%TermNode",
+					+ "function template %Bind"
+				),
+				+ "function %LiftRValueToReturn"
+			),
+			/ %NPLA1 $=
+			(
+				/ @ "function %EvaluateIdentifier" 
+					$dep_from (("applicative 'first%'" @ %Dependency),
+					"split forwarding binding operatives")
+					// See $2019-04 @ %Documentation::Workflow::Annual2019.
+					$=
+				(
+					/ "specified %TermTags::Unqualified on general \
+						lvalues" ~ "%TermTags::Nonmodifying",
+						// This makes lvalues modifiable by default.
+					* "references to object environment not marked as lvalues"
+						$since b829 $dep_from "%Forms::BindParameter"
+						$dep_to "fixed lvalue resolution"
+				),
+				/ @ "namespace %Forms" $=
+				(
+					/ DLDI ("function %CheckListLValue", "decapsulation strict \
+						context handler %operator()"
+						@ "function %MakeEncapsulationType")
+						^ "%TermReference::IsUnique"
+						~ $dep_from "%TermReference::IsTermReferenced"
+						$dep_to "avoided TermReference::IsTermReferenced",
+					/ @ "function %BindParameter" $=
+					(
+						/ DLI "enabled reference move on '%' or '&' sigils on \
+							matched reference value operands",
+						/ "enabled rvalue tag" $dep_from ("%TermReference"
+							@ %NPLA, ("%TermNode::Tags", "%GetLValueTagsOf")
+							@ %Scontext),
+						/ DLDI "simplified" ^ $dep_from ("%Environment::Bind"
+							@ %NPLA) ~ "%Environment::operator[]"
+							// This would be probably slightly inefficient, \
+								though.
+					),
+					/ "supported move of unique referents"
+						^ $dep_from ("%TermReference::IsMovable" @ %NPLA)
+						@ "function %MatchParameter"
+						$dep_from "%EvaluateIdentifier",
+						// The old implementation would be buggy to move the \
+							terms marked with unique tag because all lvalues \
+							are evaluated to be unique in %EvaluateIdentifier, \
+							which is also different to the host language.
+					/ DLDI "simplified function %DefineWithRecursion"
+						^ $dep_from ("%Environment::Bind" @ %NPLA),
+					/ "missing reference collapse" @ "decapsulation applicative"
+						@ "function %MakeEncapsulationType" $since b855,
+					/ DD "reference funnction name" @ "Doxygen comment"
+						@ "function %IsSymbol" -> 'string-symbol?' ~ 'symbol?',
+						// To conform to the convention of predicates to types.
+					(
+					+ "function %ThrowValueCategoryErrorForFirstArgument";
+					/ "exception message" ^ 'a reference' ~ 'an lvalue'
+						@ "functions %(SetFirst, SetFirstRef, SetRest, \
+						SetRestRef, CheckListLValue)"
+						^ "%ThrowValueCategoryErrorForFirstArgument";
+					/ "function %CheckListLValue" => "%CheckListReference"
+					)
+				)
+			),
+			/ %Dependency $=
+			(
+				/ "function %LoadGroundContext" $=
+				(
+					* "applicative '<-'" @ "function %LoadGroundContext"
+						$since b856
+						$= (/ $impl ^ "%TermReference::IsUnique"
+							~ "%TermReference::IsModifiable"),
+					* DLI "redundant native operative '$vau%' used"
+						@ "alternatives for primitives" @ $since b837,
+						// This means alternative '$vau%' is wrongly overriden \
+							and not used at all.
+					* "missing introducing '$defv!' before"
+						@ "alternative derivation" @ "applicative 'first@'"
+						$orig (@ "applicative 'set-first!'" $since b855),
+						// In some configurations where '$defv!' is not \
+							native, it would fail.
+					* "applicative 'first%' failed to move out \
+						lvalue reference components" $since b828
+						!^ "applicative %forward",
+					/ "split operatives ('$let', '$let/d', \
+						'$let/e', '$let*', '$letrec')" $dep_to
+						"split forwarding binding operatives"
+						// See $2019-04 @ %Documentation::Workflow::Annual2019.
+					(
+						+ "operatives with '%' postfix and old implementations",
+						/ "kept old operatives without '%' postfix in the \
+							inner call";
+						- $impl "'forward' before %body"
+					),
+					+ $lib "native derivation of operative '$quote' and \
+						enabled by default",
+					* $comp "wrong result of applicative 'lvalue?' for named \
+						lvalue references" $since b828 $dep_from
+						"fixed lvalue resolution",
+					/ "applicative 'forward'" $=
+					(
+						+ "native derivation" ^ $dep_from
+							("%LiftRValueToReturn" @ %NPLA),
+							// See $2019-04 @ \
+								%Documentation::Workflow::Annual2019.
+						/ DLI "original derivation" ^ "%unwrap" ~ '$quote'
+					),
+					+ "applicatives (%(box, unbox), 'box?')" $dep_from
+						("%MakeEncapsulationType" @ %NPLA1),
+					(
+					/ "applicative '<-%'" => '<-@';
+						// This is consistent to 'first@'. Only these \
+							functions can return references to reference.
+					(
+					+ $forced "applicative <-%" ^ $dep_from
+						("%Collapse" @ %NPLA);
+
+				//	* $comp "missing collapse" @ "alternative derivation"
+						@ "applicative 'set-first%!'" $since b;
+
+					* "possible cyclic reference move self or subterm"
+						@ "applicatives ('<-', '<-%')" $since b856
+						^ $dep_from ("%LiftTerm#1" @ %NPLA)
+					),
+					/ DLDI "simplified alternative derivation"
+						@ "applicative 'set-first!'" ^ $dep_from '<-@' ~ '<-%'
+					),
+					/ $forced ("applicative 'check-list-lvalue'"
+						-> 'check-list-reference', "exception message of \
+						native implementations of applicatives ('<-', '<-%')")
+						$dep_from ("%CheckListLValue" @ %NPLA1)
+						^ ("%ThrowValueCategoryErrorForFirstArgument" @ %NPLA1)
+						// The exception message is kept same here.
+				)
+			),
+			/ DLDI "derivation of applicative %force"
+				@ "function %LoadModule_std_promises" ^ $dep_from '<-@' ~ '<-%'
+		)
+	)
+),
+
+b856
 (
 	/ %YFramework $=
 	(
@@ -5580,6 +5824,7 @@ b840
 			),
 			/ %NPLA $=
 			(
+				+ $dev "class name declaration %Environment",
 				/ DLDI "optimized %ContextNode::Rewrite" ^ "%std::move",
 					// Since %Reducer is copyable and passed by value, moving \
 						on the parameter is not reliable in general. However, \

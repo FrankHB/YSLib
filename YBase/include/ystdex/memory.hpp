@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r3756
+\version r3784
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2019-01-31 04:05 +0800
+	2019-04-26 04:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -735,7 +735,7 @@ new_or_throw(_tParams&&... args)
 \brief 判断指定类型是否为已知的持有共享所有权的对象类型。
 \tparam _type 需要判断特征的类型参数。
 \note 用户可继承此特征再特化派生的特征扩展新的类型。
-\sinne build 784
+\since build 784
 */
 //@{
 template<typename _type>
@@ -999,6 +999,34 @@ using defer_element = cond_or<not_<is_void<remove_pointer_t<_tPointer>>>,
 	_tDefault, indirect_element_t, _tPointer>;
 //@}
 
+
+/*!
+\ingroup is_undereferenceable
+\brief 判断智能指针实例是否不可解引用。
+\since build 857
+*/
+//@{
+template<typename _type, typename _fDeleter>
+inline bool
+is_undereferenceable(const std::unique_ptr<_type, _fDeleter>& p) ynothrow
+{
+	return !p;
+}
+template<typename _type>
+inline bool
+is_undereferenceable(const std::shared_ptr<_type>& p) ynothrow
+{
+	return !p;
+}
+template<typename _type>
+inline bool
+is_undereferenceable(const std::weak_ptr<_type>& p) ynothrow
+{
+	// XXX: Although conforming, this is actually not sufficient. There can be
+	//	some false negative results when the pointer is null.
+	return !p.expired();
+}
+//@}
 
 /*!	\defgroup get_raw Get Raw Pointers
 \brief 取内建指针。

@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2387
+\version r2449
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2019-04-12 20:14 +0800
+	2019-04-30 00:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #include "NPL/YModules.h"
 #include YFM_NPL_Dependency // for ystdex::isspace, std::istream,
 //	YSLib::unique_ptr, NPL::AllocateEnvironment, std::piecewise_construct,
-//	std::forward_as_tuple, ystdex::isdigit, NPL::TryAccessReferencedLeaf,
-//	ystdex::bind1, ystdex::plus, std::placeholders, std::mem_fn,
+//	std::forward_as_tuple, ystdex::isdigit, ystdex::bind1,
+//	NPL::TryAccessReferencedLeaf, ystdex::plus, std::placeholders, std::mem_fn,
 //	NPL::ResolveRegular, ystdex::tolower, ystdex::swap_dependent;
 #include YFM_NPL_SContext
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
@@ -302,9 +302,7 @@ DoAssign(_func f, TermNode& x)
 		if(has_ref)
 			f(nd);
 		else
-			throw ValueCategoryMismatch(ystdex::sfmt("Expected an"
-				" lvalue for the 1st argument, got '%s'.",
-				TermToString(nd).c_str()));
+			ThrowValueCategoryErrorForFirstArgument(nd);
 	}, x);
 	return ValueToken::Unspecified;
 }
@@ -433,17 +431,25 @@ LoadObjects(ContextNode& ctx)
 	RegisterStrictBinary(ctx, "<-", [](TermNode& x, TermNode& y){
 		return DoAssign([&](TermNode& nd){
 			ResolveTerm([&](TermNode& r, ResolvedTermReferencePtr p_ref){
-				if(p_ref && !p_ref->IsModifiable())
+				if(p_ref && !p_ref->IsUnique())
 					nd.SetContent(r);
 				else
-					nd.SetContent(std::move(r));
+					LiftTerm(nd, r);
 			}, y);
 		}, x);
 	});
 	RegisterStrictBinary(ctx, "<-%", [](TermNode& x, TermNode& y){
 		return DoAssign([&](TermNode& nd){
-			nd.SetContent(std::move(y));
+			if(const auto p = NPL::TryAccessTerm<const TermReference>(y))
+				nd.SetContent(TermNode::Container(nd.get_allocator()),
+					Collapse(std::move(*p)).first);
+			else
+				LiftTerm(nd, y);
 		}, x);
+	});
+	RegisterStrictBinary(ctx, "<-@", [](TermNode& x, TermNode& y){
+		return DoAssign(ystdex::bind1(static_cast<void(&)(TermNode&,
+			TermNode&)>(LiftTerm), std::ref(y)), x);
 	});
 }
 
@@ -511,7 +517,7 @@ LoadCombiners(ContextNode& ctx)
 void
 LoadChecks(ContextNode& ctx)
 {
-	RegisterStrict(ctx, "check-list-lvalue", CheckListLValue);
+	RegisterStrict(ctx, "check-list-reference", CheckListReference);
 }
 
 //! \since build 855
@@ -565,18 +571,25 @@ LoadGroundedDerived(REPLContext& context)
 	RegisterForm(renv, "$vau%", VauRef);
 #endif
 #if NPL_Impl_NPLA1_Native_Forms
+
+	const auto idv([](TermNode& term){
+		return DoIdFunc(LiftToReturn, term);
+	});
+
+	RegisterForm(renv, "$quote", idv);
 	RegisterStrict(renv, "id", [](TermNode& term){
 		return DoIdFunc([](TermNode&) ynothrow{}, term);
 	});
-	RegisterStrict(renv, "idv", [](TermNode& term){
-		return DoIdFunc(LiftToReturn, term);
-	});
+	RegisterStrict(renv, "idv", idv);
 	RegisterStrict(renv, "list", ReduceBranchToListValue);
 	RegisterStrict(renv, "list%", ReduceBranchToList);
 	RegisterForm(renv, "$lambda", Lambda);
 	RegisterForm(renv, "$lambda%", LambdaRef);
 	// NOTE: The sequence operator is also available as infix ';' syntax sugar.
 	RegisterForm(renv, "$sequence", Sequence);
+	RegisterStrict(renv, "forward", [](TermNode& term){
+		return DoIdFunc(LiftRValueToReturn, term);
+	});
 	// NOTE: Like '$set-car!' in Kernel, with no references.
 	RegisterStrict(renv, "set-first!", SetFirst);
 	// NOTE: Like '$set-car!' in Kernel.
@@ -589,7 +602,6 @@ LoadGroundedDerived(REPLContext& context)
 		$def! $vau% $vau (&formals &senv .&body) d
 			eval (cons $vau/e% (cons d (cons formals (cons senv body)))) d;
 	)NPL");
-	RegisterForm(renv, "$vau%", VauRef);
 #	else
 	context.Perform(u8R"NPL(
 		$def! get-current-environment (wrap ($vau () d d));
@@ -598,6 +610,7 @@ LoadGroundedDerived(REPLContext& context)
 #	endif
 	// XXX: The operative '$set!' is same to following derivations.
 	context.Perform(u8R"NPL(
+		$def! $quote $vau (&x) #ignore x;
 		$def! $set! $vau (&e &formals .&expr) d
 			eval (list $def! formals (unwrap eval) expr d) (eval e d);
 	)NPL");
@@ -611,7 +624,7 @@ LoadGroundedDerived(REPLContext& context)
 	//	objects with arbitrary longer lifetime.
 	context.Perform(u8R"NPL(
 		$def! id wrap ($vau% (%x) #ignore x);
-		$def! idv wrap ($vau (&x) #ignore x);
+		$def! idv wrap $quote;
 		$def! list wrap ($vau (.x) #ignore x);
 		$def! list% wrap ($vau &x #ignore x);
 	)NPL");
@@ -635,7 +648,7 @@ LoadGroundedDerived(REPLContext& context)
 		$def! list% $lambda &x x;
 	)NPL");
 #	endif
-	// TODO: Support move-only types at end?
+	// TODO: Support move-only types at end in '$sequence'?
 	context.Perform(u8R"NPL(
 		$def! $sequence
 			($lambda (&cenv)
@@ -655,11 +668,13 @@ LoadGroundedDerived(REPLContext& context)
 			(list $set! d f $lambda formals body) d;
 		$defv! $defl%! (&f &formals .&body) d eval
 			(list $set! d f $lambda% formals body) d;
-		$defl%! first@ (&l) ($lambda% ((@x .)) x) (check-list-lvalue l);
+		$defl%! forward (&x)
+			$if (lvalue? ((unwrap resolve-identifier) x)) x (idv x);
+		$defl%! first@ (&l) ($lambda% ((@x .)) x) (check-list-reference l);
 		$defl! set-first! (&l x)
-			<-% (first@ (check-list-lvalue l)) (move x);
+			<-@ (first@ (check-list-reference l)) (move x);
 		$defl! set-first%! (&l &x)
-			<-% (first@ (check-list-lvalue l)) (forward x);
+			<-% (first@ (check-list-reference l)) (forward x);
 	)NPL");
 #endif
 }
@@ -672,6 +687,7 @@ LoadCore(REPLContext& context)
 	auto& renv(context.Root.GetRecordRef());
 
 	context.Perform(u8R"NPL(
+		$def! (box box? unbox) () make-encapsulation-type;
 		$def! $set! $vau (&e &formals .&expr) d
 			eval (list $def! formals (unwrap eval) expr d) (eval e d);
 		$def! $defv! $vau (&$f &formals &senv .&body) d
@@ -688,18 +704,15 @@ LoadCore(REPLContext& context)
 			(list $set! d f $lambda formals body) d;
 		$defv! $defl%! (&f &formals .&body) d eval
 			(list $set! d f $lambda% formals body) d;
-		$defv! $quote (&x) #ignore x;
-		$defl%! forward (&x)
-			$if (lvalue? (resolve-identifier ($quote x))) x (idv x);
 		$defl%! check-environment (&e)
 			$sequence ($vau/e% e . #ignore) (forward e);
 		$defl! first ((&x .)) x;
-		$defl%! first% ((%x .)) forward x;
-		$defl%! first& (&l) ($lambda% ((&x .)) x) (check-list-lvalue l);
-		$defl%! first@ (&l) ($lambda% ((@x .)) x) (check-list-lvalue l);
+		$defl%! first& (&l) ($lambda% ((&x .)) x) (check-list-reference l);
+		$defl%! first% (&l) ($if (lvalue? l) first& first) l;
+		$defl%! first@ (&l) ($lambda% ((@x .)) x) (check-list-reference l);
 		$defl! rest ((#ignore .x)) x;
+		$defl! rest& (&l) ($lambda ((#ignore .&x)) x) (check-list-reference l);
 		$defl! rest% ((#ignore .%x)) x;
-		$defl! rest& (&l) ($lambda ((#ignore .&x)) x) (check-list-lvalue l);
 		$defl%! apply (&appv &arg .&opt)
 			eval% (cons% () (cons% (unwrap appv) arg))
 				($if (null? opt) (() make-environment) (first& opt));
@@ -773,21 +786,36 @@ LoadCore(REPLContext& context)
 		$defl! list-concat (&x &y) foldr1 cons% y x;
 		$defl! append (.&ls) foldr1 list-concat () ls;
 		$defv%! $let (&bindings .&body) d forward (eval% (list*% ()
-			(list*% $lambda% (map1 first% bindings) forward (list body))
+			(list*% $lambda (map1 first% bindings) (list body))
+			(map1 list-rest% bindings)) d);
+		$defv%! $let% (&bindings .&body) d forward (eval% (list*% ()
+			(list*% $lambda% (map1 first% bindings) (list body))
 			(map1 list-rest% bindings)) d);
 		$defv%! $let/d (&bindings &ef .&body) d forward (eval% (list*% ()
-			(list% wrap
-				(list*% $vau% (map1 first% bindings) ef forward (list body)))
+			(list% wrap (list*% $vau (map1 first% bindings) ef (list body)))
+			(map1 list-rest% bindings)) d);
+		$defv%! $let/d% (&bindings &ef .&body) d forward (eval% (list*% ()
+			(list% wrap (list*% $vau% (map1 first% bindings) ef (list body)))
 			(map1 list-rest% bindings)) d);
 		$defv%! $let/e (&e &bindings .&body) d forward (eval% (list*% ()
-			(list*% $lambda/e% e (map1 first% bindings) forward (list body))
+			(list*% $lambda/e e (map1 first% bindings) (list body))
+			(map1 list-rest% bindings)) d);
+		$defv%! $let/e% (&e &bindings .&body) d forward (eval% (list*% ()
+			(list*% $lambda/e% e (map1 first% bindings) (list body))
 			(map1 list-rest% bindings)) d);
 		$defv%! $let* (&bindings .&body) d forward
 			(eval% ($if (null? bindings) (list*% $let bindings (idv body))
 				(list% $let (list (first% bindings))
 				(list*% $let* (rest% bindings) body))) d);
+		$defv%! $let*% (&bindings .&body) d forward
+			(eval% ($if (null? bindings) (list*% $let* bindings (idv body))
+				(list% $let% (list (first% bindings))
+				(list*% $let*% (rest% bindings) body))) d);
 		$defv%! $letrec (&bindings .&body) d forward
 			(eval% (list $let () $sequence (list% $def! (map1 first% bindings)
+				(list*% () list (map1 rest% bindings))) body) d);
+		$defv%! $letrec% (&bindings .&body) d forward
+			(eval% (list $let% () $sequence (list% $def! (map1 first% bindings)
 				(list*% () list (map1 rest% bindings))) body) d);
 		$defv! $bindings/p->environment (&parents .&bindings) denv $sequence
 			($def! res apply make-environment (map1 ($lambda% (x) eval% x denv)
@@ -908,7 +936,7 @@ LoadModule_std_promises(REPLContext& context)
 				((promise? y) $sequence
 					(set-first%! x (first& (decapsulate y))) (force-promise x))
 				(#t $sequence
-					($let (((&o &e) first& x)) list% (<- o y) (<-% e ()))
+					($let (((&o &e) first& x)) list% (<- o y) (<-@ e ()))
 					(forward y))
 		);
 	)NPL");

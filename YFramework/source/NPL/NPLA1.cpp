@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r10996
+\version r11146
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2019-04-12 18:30 +0800
+	2019-04-30 00:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,9 +37,10 @@
 //	ystdex::cast_mutable, NPL::AccessPtr, pair, ComposeActions, share_move,
 //	ystdex::equality_comparable, std::allocator_arg, NoContainer,
 //	ystdex::exchange, NPL::SwitchToFreshEnvironment, ResolveTerm, ResolveLeaf,
-//	ystdex::invoke_value_or, ystdex::call_value_or, ystdex::make_transform,
-//	in_place_type, ystdex::try_emplace, NPL::Access, ResolveIdentifier,
-//	NPL::TryAccessTerm, LiteralHandler, IsLeaf, NPL::TryAccessLeaf, std::mem_fn;
+//	GetLValueTagsOf, TermTags, ystdex::invoke_value_or, ystdex::call_value_or,
+//	ystdex::make_transform, in_place_type, ystdex::try_emplace, NPL::Access,
+//	ResolveIdentifier, NPL::TryAccessTerm, LiteralHandler, IsLeaf,
+//	NPL::TryAccessLeaf, std::mem_fn;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard, ystdex::swap_guard,
 //	ystdex::unique_guard;
 #include YFM_NPL_SContext // for Session;
@@ -413,6 +414,17 @@ public:
 		return req_retrying ? ReductionStatus::Retrying : res;
 	}
 
+	//! \since build 857
+	void
+	AddRecord(shared_ptr<Environment>&& p_env)
+	{
+		// NOTE: The temporary function, the environment and the
+		//	temporary operand are saved in the frame record list as a new
+		//	entry.
+		RecordList.emplace_front(MoveFunction(), std::move(p_env),
+			std::move(TemporaryPtr));
+	}
+
 	//! \since build 825
 	YB_ATTR_nodiscard lref<const ContextHandler>
 	AttachFunction(ContextHandler&& h)
@@ -597,17 +609,22 @@ FetchTailAnchor(ContextNode& ctx) ynothrow
 	}, AccessTCOAction(ctx));
 #endif
 #else
+	yunused(ctx);
 	return {};
 #endif
 }
 
 //! \since build 856
 YB_ATTR_nodiscard YB_PURE TermReference
-ForwardToTermReference(TermNode& term, const TermReference& t_ref,
+ForwardToTermReference(TermNode& term, const TermReference& ref,
 	ContextNode& ctx) ynothrow
 {
-	return TermReference(term, t_ref.IsTermReferenced()
-		? t_ref.GetAnchorPtr() : FetchTailAnchor(ctx));
+	const bool rv(ref.IsUnique());
+
+	if(const auto p = NPL::TryAccessTerm<const TermReference>(term))
+		return
+			rv ? TermReference(p->GetTags() | TermTags::Nonmodifying, *p) : *p;
+	return TermReference(term, rv ? FetchTailAnchor(ctx) : ref.GetAnchorPtr());
 }
 
 
@@ -784,11 +801,11 @@ private:
 			Forms::CheckParameterLeafToken(n, [&]{
 				if(store.find(n) == store.cend())
 					// NOTE: The symbol can be rebound.
-					env[n].SetContent(TermNode::Container(t.get_allocator()),
+					env.Bind(n, TermNode(TermNode::Container(t.get_allocator()),
 						ValueObject(any_ops::use_holder, in_place_type<
 						HolderFromPointer<weak_ptr<ContextHandler>>>,
 						store[n] = YSLib::allocate_shared<ContextHandler>(
-						t.get_allocator(), ThrowInvalidCyclicReference)));
+						t.get_allocator(), ThrowInvalidCyclicReference))));
 			});
 		}
 	}
@@ -803,9 +820,8 @@ private:
 		else if(const auto p = NPL::TryAccessLeaf<TokenValue>(t))
 			FilterExceptions([&]{
 				const auto& n(*p);
-				auto& v(env[n].Value);
 
-				if(v.type() == ystdex::type_id<ContextHandler>())
+				if(env[n].Value.type() == ystdex::type_id<ContextHandler>())
 				{
 					// XXX: The element should exist unless previously removed.
 					const auto i(store.find(n));
@@ -1233,19 +1249,43 @@ struct ThunkedActionSaver
 	DefDeMoveAssignment(ThunkedActionSaver)
 };
 
-struct EvalAction
+//! \since build 857
+struct EvalLiteAction
 {
-	// NOTE: The destruction order of following captured component is
-	//	significant. See %ThunkedActionSaver.
 	mutable Reducer Next;
+
+	EvalLiteAction(ContextNode& ctx)
+		: Next(ctx.Switch())
+	{}
+	// NOTE: See comment to the copy constructor of class %ThunkedActionSaver.
+	EvalLiteAction(const EvalLiteAction& a)
+		: Next(std::move(a.Next))
+	{}
+	DefDeMoveCtor(EvalLiteAction)
+
+	DefDeMoveAssignment(EvalLiteAction)
+
+	ReductionStatus
+	operator()() const
+	{
+		return Next();
+	}
+};
+
+struct EvalAction : EvalLiteAction
+{
+	// NOTE: The destruction order of captured component is significant. See
+	//	%ThunkedActionSaver.
 	mutable EnvironmentGuard Guard;
 
 	EvalAction(ContextNode& ctx, EnvironmentGuard& egd)
-		: Next(ctx.Switch()), Guard(std::move(egd))
+		: EvalLiteAction(ctx),
+		Guard(std::move(egd))
 	{}
 	// NOTE: See comment to the copy constructor of class %ThunkedActionSaver.
 	EvalAction(const EvalAction& a)
-		: Next(std::move(a.Next)), Guard(std::move(Guard))
+		: EvalLiteAction(std::move(a)),
+		Guard(std::move(Guard))
 	{}
 	DefDeMoveCtor(EvalAction)
 
@@ -1257,7 +1297,7 @@ struct EvalAction
 		{
 			const auto egd(std::move(Guard));
 		}
-		return Next();
+		return EvalLiteAction::operator()();
 	}
 };
 
@@ -1290,21 +1330,42 @@ SetExpressionToReduce(TermNode& term, TermNode& expr, bool move)
 
 /*!
 \pre 对 TCO 实现，存在 TCOAction 当前动作且操作数已被保存为 TemporaryPtr 。
+\pre 第二参数和第四参数不同。
 \note 对 TCO 实现利用 TCOAction 以尾上下文进行规约。
 \note 第三参数指定是否通过转移构造而不保留原项。
 \note 第四参数用于替换第二参数，可能是前者的子项。
-\note 第六参数指定是否避免保证规约后提升结果。
+\note 最后一个参数指定是否避免保证规约后提升结果。
 */
 //@{
+#if NPL_Impl_NPLA1_Enable_TCO
+/*!
+\brief 指定 TCO 动作直接求值规约。
+\since build 857
+*/
+ReductionStatus
+RelayForEvalLiteTCO(ContextNode& ctx, TermNode& term, bool move, TermNode& expr,
+	bool no_lift, TCOAction& act)
+{
+	SetExpressionToReduce(term, expr, move);
+	// NOTE: The lift is handled according to the previous status of
+	//	%act.LiftCallResult, rather than %no_lift.
+	act.HandleResultLiftRequest(term, ctx);
+	// NOTE: The %act.LiftCallResult indicates a request for handling during
+	//	next time (by %TCOAction::HandleResultLiftRequest call above before the
+	//	last one) before %TCOAction is finished. The last request would be
+	//	handled by %TCOAction::operator(), which also calls
+	//	%TCOAction::HandleResultLiftRequest.
+	if(!no_lift)
+		act.RequestLiftResult();
+	return RelaySwitchedUnchecked(ctx, Continuation(ReduceChecked, ctx));
+}
+#endif
+
 //! \brief 直接求值规约。
 ReductionStatus
 RelayForEval(ContextNode& ctx, TermNode& term, bool move, TermNode& expr,
 	EnvironmentGuard&& gd, bool no_lift)
 {
-	const auto set_expr([&, move]{
-		SetExpressionToReduce(term, expr, move);
-	});
-
 	// XXX: For thunked code, there should be a single continuation before being
 	//	captured and it is not capturable here. No %SetupNextTerm or
 	//	%RecoverNextTerm needs to be called.
@@ -1312,14 +1373,6 @@ RelayForEval(ContextNode& ctx, TermNode& term, bool move, TermNode& expr,
 	auto& act(RefTCOAction(ctx));
 
 	[&]{
-		// NOTE: The temporary function, the environment and the
-		//	temporary operand are saved in the frame record list as a new
-		//	entry.
-		const auto add_rec([&](shared_ptr<Environment>&& p_env){
-			act.RecordList.emplace_front(act.MoveFunction(),
-				std::move(p_env), std::move(act.TemporaryPtr));
-		});
-
 		// NOTE: If there is no environment set in %act.EnvGuard yet, there is
 		//	ideally no need to save the components to the frame record list
 		//	for recursive calls, except that %TCOAction::UpdateTemporaryPtr is
@@ -1335,7 +1388,7 @@ RelayForEval(ContextNode& ctx, TermNode& term, bool move, TermNode& expr,
 			if(auto& p_saved = gd.func.SavedPtr)
 			{
 				CompressTCOFramesForSavedEnvironment(ctx, act, *p_saved);
-				add_rec(std::move(p_saved));
+				act.AddRecord(std::move(p_saved));
 				return;
 			}
 			// XXX: Normally this should not occur, but this is allowed by the
@@ -1344,27 +1397,16 @@ RelayForEval(ContextNode& ctx, TermNode& term, bool move, TermNode& expr,
 		}
 		else
 			act.EnvGuard = std::move(gd);
-		add_rec({});
+		act.AddRecord({});
 	}();
-	set_expr();
-	// NOTE: The lift is handled according to the previous status of
-	//	%act.LiftCallResult, rather than %no_lift.
-	act.HandleResultLiftRequest(term, ctx);
-	// NOTE: The %act.LiftCallResult indicates a request for handling during
-	//	next time (by %TCOAction::HandleResultLiftRequest call above before the
-	//	last one) before %TCOAction is finished. The last request would be
-	//	handled by %TCOAction::operator(), which also calls
-	//	%TCOAction::HandleResultLiftRequest.
-	if(!no_lift)
-		act.RequestLiftResult();
-	return RelaySwitchedUnchecked(ctx, Continuation(ReduceChecked, ctx));
+	return RelayForEvalLiteTCO(ctx, term, move, expr, no_lift, act);
 #elif NPL_Impl_NPLA1_Enable_Thunked
-	set_expr();
+	SetExpressionToReduce(term, expr, move);
 	return RelayForAction(EvalAction(ctx, gd), ctx, term, no_lift);
 #else
 	yunused(gd);
 	// NOTE: This does not support PTC.
-	set_expr();
+	SetExpressionToReduce(term, expr, move);
 
 	const auto res(ReduceCheckedSync(term, ctx));
 
@@ -1746,8 +1788,7 @@ CheckResolvedListReference(_func&& f, TermNode& nd, bool has_ref)
 			TermToStringWithReferenceMark(nd, true).c_str()));
 	}
 	else
-		throw ValueCategoryMismatch(ystdex::sfmt("Expected an lvalue for the"
-			" 1st argument, got '%s'.", TermToString(nd).c_str()));
+		Forms::ThrowValueCategoryErrorForFirstArgument(nd);
 }
 
 //! \since build 834
@@ -1896,6 +1937,20 @@ VauWithEnvironmentImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 }
 //@}
 
+//! \since build 857
+inline PDefH(void, CopyTermTags, TermNode& term, const TermNode& tm)
+	ImplExpr(term.Tags = GetLValueTagsOf(tm.Tags))
+
+//! \since build 857
+void
+MarkTemporyTerm(TermNode& term, char sigil) ynothrow
+{
+	if(sigil != char())
+		// XXX: This is like lifetime extension of temporary objects with rvalue
+		//	references in the host language.
+		term.Tags |= TermTags::Temporary;
+}
+
 //! \since build 828
 struct BindParameterObject
 {
@@ -1914,10 +1969,11 @@ struct BindParameterObject
 	void
 	operator()(char sigil, bool copy, TermNode& b, _fCopy cp, _fMove mv) const
 	{
-		// NOTE: The operand should have been evaluated. Subnodes in arguments
-		//	retained are also transferred.
+		// NOTE: The operand should have been evaluated.
 		if(sigil != '@')
 		{
+			// NOTE: Subterms in arguments retained are also transferred for
+			//	values.
 			// TODO: Support xvalues as currently rvalue references are not
 			//	distinguished here.
 			if(const auto p = NPL::TryAccessTerm<const TermReference>(b))
@@ -1925,9 +1981,11 @@ struct BindParameterObject
 				if(sigil == char())
 					// NOTE: Since it is passed by value copy, direct
 					//	destructive lifting cannot be used.
-					cp(p->get().GetContainer(), p->get().Value);
-				else
+					cp(p->get());
+				else if(copy)
 					mv(TermNode::Container(b.get_allocator()), *p);
+				else
+					mv(TermNode::Container(b.get_allocator()), std::move(*p));
 			}
 			else if(copy)
 			{
@@ -1945,19 +2003,20 @@ struct BindParameterObject
 					//	%NPL_NPLA_CheckEnvironmentReferenceCount for no
 					//	benefits)?
 					mv(TermNode::Container(b.get_allocator()),
-						TermReference(IsList(b) ? TermReference::Nonmodifying
-							: TermReference::Unique, b, TailAnchor.get()));
+						TermReference(b.Tags | TermTags::Nonmodifying, b,
+						TailAnchor.get()));
 				else
-					cp(b.GetContainer(), b.Value);
+					cp(b);
 			}
 			else
 				// XXX: Moved. This is copy elision in the object language.
-				mv(std::move(b.GetContainerRef()), std::move(b.Value));
+				MarkTemporyTerm(mv(std::move(b.GetContainerRef()),
+					std::move(b.Value)), sigil);
 		}
 		else
 			mv(TermNode::Container(b.get_allocator()),
-				TermReference(copy ? TermReference::Nonmodifying
-				: TermReference::Unqualified, b, TailAnchor.get()));
+				TermReference(copy ? TermTags::Nonmodifying
+				: TermTags::Unqualified, b, TailAnchor.get()));
 	}
 	//@}
 };
@@ -2472,13 +2531,12 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 	//	invalid reference after rebinding would cause undefined behavior in the
 	//	object language.
 	auto t_pr(ResolveIdentifier(ctx, id));
-	auto& t_ref(t_pr.first);
-	auto& term_ref(t_ref.get());
+	auto& ref(t_pr.first);
+	auto& term_ref(ref.get());
 
 	// NOTE: Every reference to object in the environment is assumed aliased.
-	//	The %second result of %ResolveIdentifier is not overriden, though.
-	term.Value = TermReference(t_pr.second ? TermReference::Nonmodifying
-		: TermReference::Unique, std::move(t_ref));
+	term.Value
+		= TermReference(ref.GetTags() & ~TermTags::Unique, std::move(ref));
 	// NOTE: This is not guaranteed to be saved as %ContextHandler in
 	//	%ReduceCombined.
 	if(const auto p_handler = NPL::TryAccessTerm<LiteralHandler>(term_ref))
@@ -2754,14 +2812,17 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 				TermNode::Container con(t.get_allocator());
 
 				for(; first != last; ++first)
+					// TODO: Blocked. Use C++17 sequence container return value.
 					BindParameterObject{p_anchor}(sigil, copy, Deref(first),
-						[&](const TermNode::Container& c,
-						const ValueObject& vo){
-						con.emplace_back(c, vo);
-					}, [&](TermNode::Container&& c, ValueObject&& vo){
+						[&](const TermNode& tm){
+						con.emplace_back(tm.GetContainer(), tm.Value);
+						CopyTermTags(con.back(), tm);
+					}, [&](TermNode::Container&& c, ValueObject&& vo)
+						-> TermNode&{
 						con.emplace_back(std::move(c), std::move(vo));
+						return con.back();
 					});
-				env[id].SetContent(TermNode(std::move(con)));
+				MarkTemporyTerm(env.Bind(id, TermNode(std::move(con))), sigil);
 			}
 		}
 	}, [&](const TokenValue& n, TermNode& b, bool copy,
@@ -2773,11 +2834,13 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 				const char sigil(check_sigil(id));
 
 				if(!id.empty())
-					BindParameterObject{p_anchor}(sigil, copy, b, [&](const
-						TermNode::Container& c, const ValueObject& vo){
-						env[id].SetContent(c, vo);
-					}, [&](TermNode::Container&& c, ValueObject&& vo){
-						env[id].SetContent(std::move(c), std::move(vo));
+					BindParameterObject{p_anchor}(sigil, copy, b,
+						[&](const TermNode& tm){
+						CopyTermTags(env.Bind(id, tm), tm);
+					}, [&](TermNode::Container&& c, ValueObject&& vo)
+						-> TermNode&{
+						return env.Bind(id,
+							TermNode(std::move(c), std::move(vo)));
 					});
 			}
 		});
@@ -2817,7 +2880,7 @@ MatchParameter(const TermNode& t, TermNode& o, function<void(TNIter,
 		ResolveTerm([&, n_p, o_copy](TermNode& tm,
 			ResolvedTermReferencePtr p_ref){
 			const bool ellipsis(last != t.end());
-			const bool copy(bool(p_ref) || o_copy);
+			const bool copy(o_copy || (p_ref && !p_ref->IsMovable()));
 			const auto n_o(tm.size());
 
 			if(n_p == n_o || (ellipsis && n_o >= n_p - 1))
@@ -2829,7 +2892,7 @@ MatchParameter(const TermNode& t, TermNode& o, function<void(TNIter,
 				for(auto i(t.begin()); i != last; yunseq(++i, ++j))
 				{
 					YAssert(j != tm.end(), "Invalid state of operand found.");
-					// TODO: Support PTC using host TCO.
+					// TODO: Support PTC without host TCO.
 					MatchParameter(Deref(i), Deref(j), bind_trailing_seq,
 						bind_value, copy, p_ref_anchor);
 				}
@@ -2863,7 +2926,7 @@ MatchParameter(const TermNode& t, TermNode& o, function<void(TNIter,
 		const auto& tp(t.Value.type());
 		
 		if(tp == ystdex::type_id<TermReference>())
-			// TODO: Support PTC using host TCO.
+			// TODO: Support PTC without host TCO.
 			MatchParameter(t.Value.GetObject<TermReference>().get(), o,
 				std::move(bind_trailing_seq), std::move(bind_value), o_copy,
 				p_anchor);
@@ -3233,15 +3296,22 @@ Unwrap(const ContextHandler& h)
 }
 
 
+void
+ThrowValueCategoryErrorForFirstArgument(const TermNode& term)
+{
+	throw ValueCategoryMismatch(ystdex::sfmt("Expected a reference for the 1st "
+		"argument, got '%s'.", TermToString(term).c_str()));
+}
+
 ReductionStatus
-CheckListLValue(TermNode& term)
+CheckListReference(TermNode& term)
 {
 	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
 		return CheckResolvedListReference([&]{
 			// XXX: Similar to %DoIdFunc in %NPL.Dependency.
 			LiftTerm(term, Deref(std::next(term.begin())));
 			return ReductionStatus::Regular;
-		}, nd, p_ref && p_ref->IsTermReferenced());
+		}, nd, p_ref && !p_ref->IsUnique());
 	}, term);
 }
 

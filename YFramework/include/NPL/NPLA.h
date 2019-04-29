@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r5588
+\version r5723
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2019-04-12 17:39 +0800
+	2019-04-29 13:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,11 +36,12 @@
 //	YSLib::shared_ptr, YSLib::weak_ptr, NPLTag, ValueNode, TermNode, string,
 //	TraverseSubnodes, NPL::GetNodeNameOf, LoggedEvent, ystdex::isdigit,
 //	NPL::Access, std::addressof, NPL::make_observer, ystdex::make_expanded,
-//	ystdex::equality_comparable, ystdex::move_and_swap, ystdex::less,
-//	YSLib::map, YSLib::allocate_shared, std::uintptr_t, ystdex::copy_and_swap,
-//	NoContainer, ystdex::try_emplace, ystdex::try_emplace_hint,
-//	ystdex::type_info, ystdex::get_equal_to, ystdex::exchange,
-//	ystdex::insert_or_assign, ystdex::make_obj_using_allocator;
+//	ystdex::ref_eq, ystdex::equality_comparable, ystdex::move_and_swap,
+//	ystdex::less, YSLib::map, YSLib::allocate_shared, std::uintptr_t,
+//	ystdex::copy_and_swap, NoContainer, ystdex::try_emplace,
+//	ystdex::try_emplace_hint, ystdex::type_info, ystdex::get_equal_to,
+//	ystdex::exchange, ystdex::insert_or_assign, NPL::Deref,
+//	ystdex::make_obj_using_allocator;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include YFM_YSLib_Core_YEvent // for ystdex::indirect, ystdex::fast_any_of,
 //	YSLib::GHEvent, YSLib::GEvent, YSLib::GCombinerInvoker,
@@ -798,6 +799,22 @@ YB_ATTR_nodiscard YB_PURE inline
 using TokenValue = ystdex::derived_entity<string, NPLATag>;
 
 
+//! \since build 847
+using AnchorPtr = yimpl(shared_ptr<const void>);
+
+
+/*!
+\ingroup ThunkType
+\brief 延迟求值项。
+\note 和被延迟求值的项及其它节点是不同的包装类型。
+\warning 非空析构。
+\since build 752
+
+直接作为项的值对象包装被延迟求值的项。
+*/
+using DelayedTerm = ystdex::derived_entity<TermNode, NPLATag>;
+
+
 /*!
 \brief 访问项的值作为记号。
 \return 通过访问项的值取得的记号的指针，或空指针表示无法取得名称。
@@ -830,6 +847,17 @@ TermToString(const TermNode&);
 YB_ATTR_nodiscard YF_API YB_PURE string
 TermToStringWithReferenceMark(const TermNode&, bool);
 //@}
+
+/*!
+\brief 访问项初始化标签。
+\since build 857
+\sa TermTags
+
+若项表示引用值，使用引用值排除 TermTags::Temporary 后的标签；
+否则，使用 TermTags::Unique 。
+*/
+YB_ATTR_nodiscard YF_API YB_PURE TermTags
+TermToTags(TermNode&);
 
 /*!
 \brief 对列表项抛出指定预期访问值的类型的异常。
@@ -925,34 +953,6 @@ enum class ReductionStatus : yimpl(size_t)
 
 /*!
 \ingroup ThunkType
-\brief 延迟求值项。
-\note 和被延迟求值的项及其它节点是不同的包装类型。
-\warning 非空析构。
-\since build 752
-
-直接作为项的值对象包装被延迟求值的项。
-*/
-using DelayedTerm = ystdex::derived_entity<TermNode, NPLATag>;
-
-
-//! \since build 840
-class Environment;
-
-
-/*!
-\brief 判断项是的值数据成员否为满足引用项的类型。
-\since build 854
-*/
-YB_ATTR_nodiscard YF_API YB_PURE bool
-HasReferenceValue(const TermNode&) ynothrow;
-
-
-//! \since build 847
-using AnchorPtr = yimpl(shared_ptr<const void>);
-
-
-/*!
-\ingroup ThunkType
 \brief 项引用。
 \warning 非虚析构。
 \since build 800
@@ -961,48 +961,14 @@ using AnchorPtr = yimpl(shared_ptr<const void>);
 */
 class YF_API TermReference
 {
-public:
-	/*!
-	\brief 标签：表示引用元数据的位。
-	\since build 856
-
-	指定项引用具有的元数据。选项为位掩码值。
-	*/
-	enum Tags
-	{
-		/*!
-		\brief 非限定引用。
-
-		指定默认情形的引用。
-		当前用于实现对象语言的左值引用。
-		*/
-		Unqualified = 0,
-		/*!
-		\brief 唯一引用。
-
-		指定被引用的对象具有唯一引用。
-		被引用的对象应未被别名，或可假定被未被别名。
-		当前用于实现对象语言的右值引用。
-		*/
-		Unique = 1,
-		/*!
-		\brief 不可修改引用。
-
-		指定被引用的对象不通过此引用被修改。
-		除非唯一，被引用的对象仍可能通过其它引用修改。
-		当前用于实现对象语言的不可修改引用。
-		*/
-		Nonmodifying = 2
-	};
-
 private:
 	//! \since build 842
 	lref<TermNode> term_ref;
 	/*!
 	\brief 引用标签。
-	\since build 856
+	\since build 857
 	*/
-	Tags tags = Unqualified;
+	TermTags tags = TermTags::Unqualified;
 	/*!
 	\brief 引用的锚对象指针。
 	\since build 847
@@ -1012,10 +978,10 @@ private:
 public:
 	/*!
 	\brief 构造：使用参数指定的引用和空锚对象并自动判断是否使用引用值初始化。
-	\since build 849
+	\since build 857
 	*/
-	TermReference(TermNode& term) ynothrow
-		: TermReference(InitTags(term), term)
+	TermReference(TermNode& term)
+		: TermReference(TermToTags(term), term)
 	{}
 	/*!
 	\brief 构造：使用参数指定的引用和锚对象并自动判断是否使用引用值初始化。
@@ -1023,27 +989,28 @@ public:
 	*/
 	template<typename _tParam, typename... _tParams>
 	TermReference(TermNode& term, _tParam&& arg, _tParams&&... args)
-		: TermReference(InitTags(term), term, yforward(arg), yforward(args)...)
+		: TermReference(TermToTags(term), term, yforward(arg),
+		yforward(args)...)
 	{}
-	//! \since build 856
+	//! \since build 857
 	//@{
 	//! \brief 构造：使用参数指定的标签及指定引用和空锚对象。
-	TermReference(Tags t, TermNode& term) ynothrow
+	TermReference(TermTags t, TermNode& term) ynothrow
 		: term_ref(term), tags(t)
 	{}
 	//! \brief 构造：使用参数指定的标签及、引用和锚对象。
 	template<typename _tParam, typename... _tParams>
-	TermReference(Tags t, TermNode& term, _tParam&& arg, _tParams&&... args)
+	TermReference(TermTags t, TermNode& term, _tParam&& arg, _tParams&&... args)
 		: term_ref(term), tags(t),
 		p_anchor(yforward(arg), yforward(args)...)
 	{}
 	//! \brief 构造：使用参数指定的标签及现有的项引用。
 	//@{
-	TermReference(Tags t, const TermReference& t_ref) ynothrow
-		: term_ref(t_ref.term_ref), tags(t), p_anchor(t_ref.p_anchor)
+	TermReference(TermTags t, const TermReference& ref) ynothrow
+		: term_ref(ref.term_ref), tags(t), p_anchor(ref.p_anchor)
 	{}
-	TermReference(Tags t, TermReference&& t_ref) ynothrow
-		: term_ref(t_ref.term_ref), tags(t), p_anchor(std::move(t_ref.p_anchor))
+	TermReference(TermTags t, TermReference&& ref) ynothrow
+		: term_ref(ref.term_ref), tags(t), p_anchor(std::move(ref.p_anchor))
 	{}
 	//@}
 	//@}
@@ -1059,17 +1026,22 @@ public:
 	\brief 判断被引用的对象是否可通过引用被修改。
 	\since build 856
 	*/
-	DefPred(const ynothrow, Modifiable, !bool(tags & Nonmodifying))
-	/*!
-	\brief 判断被引用项在初始化时是否表示引用值。
-	\since build 828
-	*/
-	DefPred(const ynothrow, TermReferenced, tags != Unique)
+	DefPred(const ynothrow, Modifiable, !bool(tags & TermTags::Nonmodifying))
+	//! \since build 857
+	//@{
+	//! \brief 判断被引用的对象是否可通过引用值被转移。
+	DefPred(const ynothrow, Movable, (tags
+		& (TermTags::Unique | TermTags::Nonmodifying)) == TermTags::Unique)
+	DefGetter(const ynothrow, TermTags, Tags, tags)
+	//! \brief 判断引用值是否表示被引用的左值。
+	DefPred(const ynothrow, ReferencedLValue,
+		!(bool(tags & TermTags::Unique) || bool(tags & TermTags::Temporary)))
+	//@}
 	/*!
 	\brief 判断被引用的对象是否指定唯一。
 	\since build 856
 	*/
-	DefPred(const ynothrow, Unique, bool(tags & Unique))
+	DefPred(const ynothrow, Unique, bool(tags & TermTags::Unique))
 
 	explicit DefCvtMem(const ynothrow, TermNode&, term_ref)
 
@@ -1079,34 +1051,35 @@ public:
 	*/
 	DefGetter(const ynothrow, const AnchorPtr&, AnchorPtr, p_anchor)
 
-private:
-	//! \since build 856
-	YB_ATTR_nodiscard YB_PURE static
-		PDefH(Tags, InitTags, TermNode& term) ynothrow
-		ImplRet(HasReferenceValue(term) ? Nonmodifying : Unique)
-
-public:
 	YB_ATTR_nodiscard YB_PURE PDefH(TermNode&, get, ) const ynothrow
 		ImplRet(term_ref.get())
 };
 
 /*!
-\brief 折叠项引用。
-\return 引用值及初始化时是否表示引用值。
-\note 可选提供环境关联锚对象指针。
+\sa TermNode::Tags
+\return 结果引用值及初始化时是否表示引用值。
 \relates TermReference
-\since build 829
+\since build 857
+*/
+/*!
+\brief 折叠项引用。
+
+若被参数引用值引用的对象是否是一个引用值，结果为合并标签后的被后者引用的对象和 true ；
+否则，返回自身和 false 。
+*/
+YB_ATTR_nodiscard YF_API pair<TermReference, bool>
+Collapse(TermReference);
+
+/*!
+\brief 准备折叠项引用。
 
 返回引用由以下方式确定：
 当参数的 Value 表示项引用时，返回值；否则为通过参数初始化的项引用。
 这种方式避免初始化引用的引用。
+使用引用值初始化时保留标签，否则使用项中的标签。
 */
-//@{
 YB_ATTR_nodiscard YF_API pair<TermReference, bool>
-Collapse(TermNode&);
-YB_ATTR_nodiscard YF_API pair<TermReference, bool>
-Collapse(TermNode&, const Environment&);
-//@}
+PrepareCollapse(TermNode&, const AnchorPtr&);
 
 /*!
 \brief 访问项并取解析 TermReference 间接值后的引用。
@@ -1359,7 +1332,8 @@ RegularizeTerm(TermNode&, ReductionStatus) ynothrow;
 \since build 844
 */
 inline PDefH(void, LiftTerm, TermNode& term, TermNode& tm)
-	ImplExpr(term.MoveContent(std::move(tm)))
+	ImplExpr(!ystdex::ref_eq<>()(term, tm) ? term.MoveContent(std::move(tm))
+		: void())
 inline PDefH(void, LiftTerm, ValueObject& term_v, ValueObject& vo) ynothrow
 	ImplExpr(term_v = std::move(vo))
 inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo) ynothrow
@@ -1411,13 +1385,23 @@ YF_API void
 LiftToReference(TermNode&, TermNode&);
 
 /*!
-\brief 提升自身引用项后提升间接引用项以满足返回值的内存安全要求。
+\brief 提升间接引用项以满足返回值的内存安全要求。
 \note 复制引用项引用的对象，调用 LiftTermIndirection 复制或转移非引用项的对象。
 \sa LiftTermIndirection
 \since build 828
 */
 YF_API void
 LiftToReturn(TermNode&);
+
+/*!
+\brief 提升右值中的提升间接引用项以满足返回值的内存安全要求。
+\note 对左值不进行修改，否则同 LiftToReturn 。可实现类似 C++ 的 std::forward 。
+\sa IsLValueTerm
+\sa LiftToReturn
+\since build 857
+*/
+YF_API void
+LiftRValueToReturn(TermNode&);
 //@}
 
 /*!
@@ -1616,7 +1600,7 @@ public:
 	名称解析的返回结果是环境中的绑定目标的对象指针和直接保存绑定目标的环境的引用。
 	*/
 	using NameResolution
-		= pair<observer_ptr<TermNode>, lref<const Environment>>;
+		= pair<observer_ptr<BindingMap::mapped_type>, lref<const Environment>>;
 	/*!
 	\brief 锚对象使用的共享数据。
 	\sa EnvironmentReference
@@ -1866,6 +1850,17 @@ public:
 	{
 		return ystdex::try_emplace_hint(Bindings, hint, yforward(k),
 			NoContainer, yforward(args)...).second;
+	}
+
+	//! \since build 857
+	template<typename _tKey, class _tNode>
+	TermNode&
+	Bind(_tKey&& k, _tNode&& tm)
+	{
+		// XXX: %YSLib::map::insert_or_assign does not allows keys not of
+		//	%BindingMap::key_type to be directly forwarded.
+		return NPL::Deref(ystdex::insert_or_assign(Bindings, yforward(k),
+			yforward(tm)).first).second;
 	}
 
 	//! \since build 798

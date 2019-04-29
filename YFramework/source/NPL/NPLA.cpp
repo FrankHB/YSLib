@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2462
+\version r2508
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2019-04-01 01:44 +0800
+	2019-04-29 11:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,10 @@
 //	std::allocator_arg, YSLib::NodeSequence, ystdex::unimplemented, 
 //	ystdex::type_id, ystdex::quote, ystdex::call_value_or, ystdex::begins_with,
 //	YSLib::get_raw, NPL::make_observer, ystdex::sfmt, NPL::TryAccessTerm, sfmt,
-//	ystdex::invoke_value_or, NPL::TryAccessLeaf, ystdex::ref,
-//	YSLib::FilterExceptions, ystdex::retry_on_cond, ystdex::type_info, pair,
-//	ystdex::addrof, ystdex::second_of;
+//	GetLValueTagsOf, std::mem_fn, ystdex::compose, ystdex::invoke_value_or,
+//	NPL::TryAccessLeaf, ystdex::ref, YSLib::FilterExceptions,
+//	ystdex::retry_on_cond, ystdex::type_info, pair, ystdex::addrof,
+//	ystdex::second_of;
 #include YFM_NPL_SContext
 
 using namespace YSLib;
@@ -415,6 +416,14 @@ RedirectParent(const ValueObject& parent, string_view id,
 }
 //@}
 
+//! \since build 857
+TermTags
+MergeTermTags(TermTags x, TermTags y) ynothrow
+{
+	return (x | y) & ~(TermTags::Unique | TermTags::Temporary)
+		& (x & y & TermTags::Unique);
+}
+
 } // unnamed namespace;
 
 
@@ -523,6 +532,14 @@ TermToStringWithReferenceMark(const TermNode& term, bool has_ref)
 	return has_ref ? "[*] " + std::move(term_str) : std::move(term_str);
 }
 
+TermTags
+TermToTags(TermNode& term)
+{
+	return ystdex::call_value_or(ystdex::compose(GetLValueTagsOf,
+		std::mem_fn(&TermReference::GetTags)),
+		NPL::TryAccessTerm<const TermReference>(term), term.Tags);
+}
+
 void
 ThrowListTypeErrorForInvalidType(const ystdex::type_info& tp,
 	const TermNode& term, bool is_ref)
@@ -542,28 +559,21 @@ TokenizeTerm(TermNode& term)
 }
 
 
-bool
-HasReferenceValue(const TermNode& term) ynothrow
+pair<TermReference, bool>
+Collapse(TermReference ref)
 {
-	return term.Value.type() == ystdex::type_id<TermReference>();
+	if(const auto p = NPL::TryAccessTerm<const TermReference>(ref.get()))
+		return {{MergeTermTags(ref.GetTags(), p->GetTags()), p->get(),
+			ref.GetAnchorPtr()}, true};
+	return {std::move(ref), {}};
 }
 
-
 pair<TermReference, bool>
-Collapse(TermNode& term)
+PrepareCollapse(TermNode& term, const AnchorPtr& p_anchor)
 {
-	if(const auto p_tref = NPL::TryAccessTerm<const TermReference>(term))
-		return {*p_tref, true};
-	// XXX: This is unsafe and not checkable because the anchor is not
-	//	referenced.
-	return {term, {}};
-}
-pair<TermReference, bool>
-Collapse(TermNode& term, const Environment& env)
-{
-	if(const auto p_tref = NPL::TryAccessTerm<const TermReference>(term))
-		return {*p_tref, true};
-	return {{term, env.GetAnchorPtr()}, {}};
+	if(const auto p = NPL::TryAccessTerm<const TermReference>(term))
+		return {*p, true};
+	return {{term.Tags, term, p_anchor}, {}};
 }
 
 TermNode&
@@ -596,14 +606,14 @@ IsReferenceTerm(const TermNode& term)
 bool
 IsLValueLeaf(const TermNode& term)
 {
-	return ystdex::invoke_value_or(&TermReference::IsTermReferenced,
+	return ystdex::invoke_value_or(&TermReference::IsReferencedLValue,
 		NPL::TryAccessLeaf<const TermReference>(term));
 }
 
 bool
 IsLValueTerm(const TermNode& term)
 {
-	return ystdex::invoke_value_or(&TermReference::IsTermReferenced,
+	return ystdex::invoke_value_or(&TermReference::IsReferencedLValue,
 		NPL::TryAccessTerm<const TermReference>(term));
 }
 
@@ -642,7 +652,7 @@ LiftToReference(TermNode& term, TermNode& tm)
 		else if(!tm.Value.OwnsUnique())
 			// XXX: This is unsafe and not checkable because the anchor is not
 			//	referenced.
-			term.Value = TermReference(TermReference::Unqualified, tm);
+			term.Value = TermReference(TermTags::Unqualified, tm);
 		else
 			throw InvalidReference(
 				"Value of a temporary shall not be referenced.");
@@ -669,6 +679,13 @@ LiftToReturn(TermNode& term)
 	//	blessed here to avoid leaking abstraction of detailed implementation
 	//	of vau handlers; it can be checked by the vau handler itself, if
 	//	necessary.
+}
+
+void
+LiftRValueToReturn(TermNode& term)
+{
+	if(!IsLValueTerm(term))
+		LiftToReturn(term);
 }
 
 
@@ -834,7 +851,7 @@ Environment::NameResolution::first_type
 Environment::LookupName(string_view id) const
 {
 	YAssertNonnull(id.data());
-	return NPL::make_observer(ystdex::call_value_or<TermNode*>(
+	return NPL::make_observer(ystdex::call_value_or<BindingMap::mapped_type*>(
 		ystdex::compose(ystdex::addrof<>(), ystdex::second_of<>()),
 		Bindings.find(id), {}, Bindings.cend()));
 }
@@ -1001,7 +1018,7 @@ ResolveIdentifier(const ContextNode& ctx, string_view id)
 	auto pr(ResolveName(ctx, id));
 
 	if(pr.first)
-		return Collapse(*pr.first, pr.second);
+		return PrepareCollapse(*pr.first, pr.second.get().GetAnchorPtr());
 	throw BadIdentifier(id);
 }
 

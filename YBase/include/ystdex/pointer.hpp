@@ -11,19 +11,19 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r635
+\version r647
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2019-01-17 20:40 +0800
+	2019-04-26 04:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Pointer
 
-间接扩展标准库头 <iterator> ，提供指针的迭代器适配器包装及其它和指针类型相关的模板。
+间接扩展标准库头 \c \<iterator> ，提供指针的迭代器适配器包装及其它和指针类型相关的模板。
 */
 
 
@@ -241,6 +241,7 @@ swap(nptr<_type>& x, nptr<_type>& y) ynothrow
 //! \since build 669
 //@{
 /*!
+\ingroup YBase_replacement_features
 \brief 观察者指针：无所有权的智能指针。
 \see WG21 N4758 5.2[memory.observer.ptr] 。
 */
@@ -314,6 +315,17 @@ public:
 	get() const ynothrow
 	{
 		return ptr;
+	}
+
+	/*!
+	\ingroup YBase_replacement_extensions
+	\ingroup is_undereferenceable
+	\since build 878
+	*/
+	friend yconstfn YB_PURE bool
+	is_undereferenceable(const observer_ptr& p) ynothrow
+	{
+		return !p;
 	}
 
 	yconstfn_relaxed pointer

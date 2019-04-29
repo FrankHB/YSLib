@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4990
+\version r5001
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2019-04-05 07:36 +0800
+	2019-04-30 00:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1063,7 +1063,7 @@ namespace Forms
 \since build 779
 
 参考调用文法：
-<pre>symbol? \<object></pre>
+<pre>symbol-string? \<object></pre>
 */
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsSymbol(const string&) ynothrow;
@@ -2073,19 +2073,27 @@ Unwrap(const ContextHandler&);
 
 
 /*!
+\brief 抛出第一参数不符合预期值类别的异常。
+\throw ValueCategory 第一参数值类别错误。
+\since build 857
+*/
+YB_NORETURN void
+ThrowValueCategoryErrorForFirstArgument(const TermNode&);
+
+/*!
 \brief 检查参数指定的项表示引用列表项的引用。
 \return ReductionStatus::Regular 。
-\since build 855
+\since build 857
 
 对参数指定的项进行检查。
 接受对象语言的一个参数。若这个参数不表示引用值，抛出异常；
 	否则，对象语言中返回为参数指定的值。
 
 参考调用文法：
-<pre>check-list-lvalue \<object></pre>
+<pre>check-list-reference \<object></pre>
 */
 YF_API ReductionStatus
-CheckListLValue(TermNode&);
+CheckListReference(TermNode&);
 
 
 /*!

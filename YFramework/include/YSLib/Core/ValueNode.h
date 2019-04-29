@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r4089
+\version r4090
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2019-04-01 01:05 +0800
+	2019-04-15 13:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -693,6 +693,7 @@ public:
 
 	/*!
 	\brief 转移参数内容。
+	\pre 断言：参数不是 *this 。
 	\since build 844
 
 	转移参数指定的节点的内容到对象。转移后的节点内容是转移前的参数内容。
