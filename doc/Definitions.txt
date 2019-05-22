@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14203
+\version r14208
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2019-03-29 21:53 +0800
+	2019-05-15 11:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,7 +54,7 @@ $region $synopsis $begin
 // ! 默认由外部（如预定义标识符、编译器命令行或标准库头）提供。
 // # 可能由外部提供。
 // ~ 由宏替换生成而不是宏定义引入的标识符。
-// 非外部提供的非头文件守卫宏的保留内部使用的宏名可能被 #undef 取消定义。
+// 非外部提供的非头文件守卫宏的保留内部使用的宏名可能被 #undef 取消定义。未被取消定义的内部使用的宏也在以下一并列出。
 
 !NDEBUG // ISO C 非调试状态宏，可能取消定义。
 
@@ -222,7 +222,7 @@ $dir YFramework // YFramework 既定宏污染列表。
 {
 
 YF_* // 保留给 YFramework 使用。
-	NPL_Impl_* // 保留用于 YFramework 实现。
+	YF_Impl_* // 保留用于 YFramework 实现。
 YFM_* // 保留作为 YFramework 模块包含文件宏。
 CHRLib_* // 保留给 YFramework.CHRLib 使用。
 YCL_* // 保留给 YFramework.YCLib 使用。
@@ -233,6 +233,7 @@ YSL_* // 保留给 YFramework.YSLib 使用。
 	YSL_INC_* // YSLib 公开头文件包含守卫宏。
 	YSL_Inc_* // YSLib 非公开头文件包含守卫宏。
 NPL_* // 保留给 YFramework.NPL 使用。
+	NPL_Impl_* // 保留用于 YFrameowrk.NPL 实现。
 // 对 YFramework 的次级子项目 $lib ，同时保留以下名称：
 INC_$lib_* // 保留作为（除 YCLib 和 YSLib 外）公开头文件守卫宏使用。
 Inc_$lib_* // 保留作为（除 YCLib 和 YSLib 外）非公开头文件守卫宏使用。
@@ -461,9 +462,10 @@ YSL_UI_Impl_ATrack_Partial_Invalidation
 
 $dir NPL
 {
-$dir NPLA
+$unit NPLA
 {
 NPL_NPLA_CheckEnvironmentReferenceCount
+NPL_Impl_NPLA_CheckStatus
 }
 $unit NPLA1
 {

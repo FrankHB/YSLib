@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r5723
+\version r5811
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2019-04-29 13:07 +0800
+	2019-05-21 15:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,8 @@
 //	YSLib::make_weak, observer_ptr, pair, YSLib::to_string,
 //	YSLib::shared_ptr, YSLib::weak_ptr, NPLTag, ValueNode, TermNode, string,
 //	TraverseSubnodes, NPL::GetNodeNameOf, LoggedEvent, ystdex::isdigit,
+//	ystdex::is_nothrow_copy_constructible, ystdex::is_nothrow_copy_assignable,
+//	ystdex::is_nothrow_move_constructible, ystdex::is_nothrow_move_assignable,
 //	NPL::Access, std::addressof, NPL::make_observer, ystdex::make_expanded,
 //	ystdex::ref_eq, ystdex::equality_comparable, ystdex::move_and_swap,
 //	ystdex::less, YSLib::map, YSLib::allocate_shared, std::uintptr_t,
@@ -799,9 +801,27 @@ YB_ATTR_nodiscard YB_PURE inline
 using TokenValue = ystdex::derived_entity<string, NPLATag>;
 
 
-//! \since build 847
+/*!
+\brief 锚对象指针。
+\note 满足可复制和转移且不抛出异常。
+\since build 847
+*/
 using AnchorPtr = yimpl(shared_ptr<const void>);
 
+/*!
+\relates AnchorPtr
+\since build 858
+*/
+//@{
+static_assert(ystdex::is_nothrow_copy_constructible<AnchorPtr>(),
+	"Invalid type found.");
+static_assert(ystdex::is_nothrow_copy_assignable<AnchorPtr>(),
+	"Invalid type found.");
+static_assert(ystdex::is_nothrow_move_assignable<AnchorPtr>(),
+	"Invalid type found.");
+static_assert(ystdex::is_nothrow_move_constructible<AnchorPtr>(),
+	"Invalid type found.");
+//@}
 
 /*!
 \ingroup ThunkType
@@ -854,7 +874,7 @@ TermToStringWithReferenceMark(const TermNode&, bool);
 \sa TermTags
 
 若项表示引用值，使用引用值排除 TermTags::Temporary 后的标签；
-否则，使用 TermTags::Unique 。
+否则，使用项的标签。
 */
 YB_ATTR_nodiscard YF_API YB_PURE TermTags
 TermToTags(TermNode&);
@@ -898,7 +918,7 @@ TryAccessLeaf(const TermNode& term)
 }
 //@}
 
-//! \brief 尝试访问项的指定类型叶结点对象指针。
+//! \brief 尝试访问项的指定类型叶节点对象指针。
 //@{
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
@@ -1101,7 +1121,8 @@ ReferenceTerm(const TermNode&) ynothrow;
 用于可选参数访问的指针类型，满足：
 满足 ISO C++ [nullablepointer.requirements] NullablePointer 要求；
 允许隐式转换为 bool ，结果同显式转换为 bool ；
-使用一元 * 取指定项引用的 const 内建引用。
+非空值可使用一元 * 和 -> 取指定项引用的 const 内建引用及成员访问；
+不对被访问的项引用具所有权。
 注意具体类型不应被依赖。使用内建指针实现以在某些 ABI 上提供高效的二进制实现，
 	并支持转换为访问参数指针的操作在常量表达式上下文中出现。
 */
@@ -1119,35 +1140,52 @@ yconstfn PDefH(ResolvedTermReferencePtr, ResolveToTermReferencePtr,
 
 //! \exception 异常中立：由项的值数据成员的持有者抛出。
 //@{
-//! \since build 854
-//@{
 //! \brief 尝试访问解析 TermReference 后的项的指定类型对象指针。
+//@{
+/*!
+\sa NPL::TryAccessLeaf
+\since build 854
+*/
 //@{
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
 TryAccessReferencedLeaf(TermNode& term)
 {
-	return NPL::TryAccessTerm<_type>(ReferenceTerm(term));
+	return NPL::TryAccessLeaf<_type>(ReferenceTerm(term));
 }
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<const _type>
 TryAccessReferencedLeaf(const TermNode& term)
 {
-	return NPL::TryAccessTerm<_type>(ReferenceTerm(term));
+	return NPL::TryAccessLeaf<_type>(ReferenceTerm(term));
 }
 //@}
 
-//! \brief 判断项的值数据成员是否为引用项。
-YB_ATTR_nodiscard YF_API YB_PURE bool
-IsReferenceLeaf(const TermNode&);
+/*!
+\sa NPL::TryAccessTerm
+\since build 858
+*/
+//@{
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
+TryAccessReferencedTerm(TermNode& term)
+{
+	return NPL::TryAccessTerm<_type>(ReferenceTerm(term));
+}
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<const _type>
+TryAccessReferencedTerm(const TermNode& term)
+{
+	return NPL::TryAccessTerm<_type>(ReferenceTerm(term));
+}
+//@}
+//@}
 
+//! \since build 854
+//@{
 //! \brief 判断项是否为引用项。
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsReferenceTerm(const TermNode&);
-
-//! \brief 判断项的值数据成员是否表示左值引用。
-YB_ATTR_nodiscard YF_API YB_PURE bool
-IsLValueLeaf(const TermNode&);
 
 //! \brief 判断项是否表示左值引用。
 YB_ATTR_nodiscard YF_API YB_PURE bool
@@ -1155,35 +1193,13 @@ IsLValueTerm(const TermNode&);
 //@}
 
 /*!
+\brief 解析并间接引用处理可能是引用值的项。
+\note 假定项不使用平凡正规表示，不需要对间接值检查 IsBranch 或 IsLeaf 。
 \sa NPL::ResolveToTermReferencePtr
 \sa ResolveTermHandler
 \sa ResolvedTermReferencePtr
 \sa TermReference
 \since build 855
-*/
-//@{
-/*!
-\brief 解析并间接引用处理可能是引用值的项。
-\note 假定项符合正规表示，不需要对间接值检查 IsBranch 或 IsLeaf 。
-*/
-template<typename _func, class _tTerm>
-auto
-ResolveLeaf(_func do_resolve, _tTerm&& term)
-	-> decltype(do_resolve(yforward(term), ResolvedTermReferencePtr()))
-{
-	using handler_t = yimpl(void)(_tTerm&&, ResolvedTermReferencePtr);
-
-	// XXX: Assume value representation of %term is regular.
-	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
-		return ystdex::make_expanded<handler_t>(std::ref(do_resolve))(
-			p->get(), NPL::ResolveToTermReferencePtr(p));
-	return ystdex::make_expanded<handler_t>(std::ref(do_resolve))(
-		yforward(term), ResolvedTermReferencePtr());
-}
-
-/*!
-\brief 解析并间接引用处理可能是引用值的项。
-\note 不假定项符合正规表示，首先检查 IsLeaf 。
 */
 template<typename _func, class _tTerm>
 auto
@@ -1192,13 +1208,13 @@ ResolveTerm(_func do_resolve, _tTerm&& term)
 {
 	using handler_t = yimpl(void)(_tTerm&&, ResolvedTermReferencePtr);
 
-	if(const auto p = NPL::TryAccessTerm<const TermReference>(term))
+	// XXX: Assume value representation of %term is not trivially regular.
+	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
 		return ystdex::make_expanded<handler_t>(std::ref(do_resolve))(
 			p->get(), NPL::ResolveToTermReferencePtr(p));
 	return ystdex::make_expanded<handler_t>(std::ref(do_resolve))(
 		yforward(term), ResolvedTermReferencePtr());
 }
-//@}
 
 /*!
 \exception ListTypeError 异常中立：项为列表项。
@@ -1334,8 +1350,8 @@ RegularizeTerm(TermNode&, ReductionStatus) ynothrow;
 inline PDefH(void, LiftTerm, TermNode& term, TermNode& tm)
 	ImplExpr(!ystdex::ref_eq<>()(term, tm) ? term.MoveContent(std::move(tm))
 		: void())
-inline PDefH(void, LiftTerm, ValueObject& term_v, ValueObject& vo) ynothrow
-	ImplExpr(term_v = std::move(vo))
+inline PDefH(void, LiftTerm, ValueObject& tv, ValueObject& vo) ynothrow
+	ImplExpr(!ystdex::ref_eq<>()(tv, vo) ? void(tv = std::move(vo)) : void())
 inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo) ynothrow
 	ImplExpr(LiftTerm(term.Value, vo))
 //@}
@@ -1348,6 +1364,16 @@ inline PDefH(void, LiftTermIndirection, TermNode& term)
 	// NOTE: See $2018-02 @ %Documentation::Workflow::Annual2018.
 	ImplExpr(NPL::SetContentWith(term, std::move(term),
 		&ValueObject::MakeMoveCopy))
+
+
+/*!
+\brief 提升折叠后的项引用。
+\sa Collapse
+\sa LiftTerm
+\since build 858
+*/
+YF_API void
+LiftCollapsed(TermNode&, TermNode&, TermReference);
 
 /*!
 \warning 引入的间接值无所有权，应注意在生存期内使用以保证内存安全。
@@ -1418,7 +1444,6 @@ inline PDefH(void, LiftSubtermsToReturn, TermNode& term)
 inline PDefH(void, LiftDelayed, TermNode& term, DelayedTerm& tm)
 	ImplExpr(LiftTermRef(term, tm))
 
-
 //! \pre 断言：参数指定的项是枝节点。
 //@{
 /*!
@@ -1485,14 +1510,14 @@ ReduceForLiftedResult(TermNode&);
 */
 //@{
 /*!
-\brief 规约为列表：对枝节点移除第一个子项，保留余下的子项作为列表。
+\brief 规约为列表：对分支列表节点移除第一个子项，保留余下的子项作为列表。
 \sa ReduceBranchToList
 */
 YF_API ReductionStatus
 ReduceToList(TermNode&) ynothrow;
 
 /*!
-\brief 规约为列表值：对枝节点移除第一个子项，保留余下的子项提升后作为列表的值。
+\brief 规约为列表值：对分支列表节点移除第一个子项，保留余下的子项提升后作为列表的值。
 \sa ReduceBranchToListValue
 \since build 821
 */
@@ -1633,7 +1658,7 @@ public:
 		*/
 		static PDefH(const AnchorValue&, Access, const AnchorPtr& p) ynothrowv
 			ImplRet(YAssertNonnull(p),
-				Deref(YSLib::static_pointer_cast<const AnchorValue>(p)))
+				NPL::Deref(YSLib::static_pointer_cast<const AnchorValue>(p)))
 
 		PDefH(void, AddReference, ) const ynothrow
 			ImplExpr(++env_count)

@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2019 年度。
-\version r280
+\version r317
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2019-01-02 01:00:32 +0800
 \par 修改时间:
-	2019-04-23 20:48 +0800
+	2019-05-19 15:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -253,6 +253,8 @@ Memory safety of NPL environment is taken cared.
 			The case 7, 8 and 9 are caused by the bug of '&' reference using wrong anchor from 'NPL::BindParameter'.
 
 $2019-04:
+
+report.impl:
 Several designs of NPLA have been revised.
 	The reference type ('NPL::TermReference') now supports xvalues.
 		This is achieved by additional metadata as the internal data members of 'NPL::TermReference'.
@@ -277,6 +279,44 @@ Several designs of NPLA have been revised.
 					On the ohter hand, in old implementations with old rules, it would not treat such resolved parameters as lvalues.
 			For performance, a native implementation is also added.
 		The result of 'lvalue?' for the reference from environment are always '#t'.
+
+$2019-05:
+
+report.impl:
+The simplified Chinese translation (in locale zh-CN) of terms has been reconsidered, but nothing has been decided to change yet.
+	The translation of term 'complete' for types has been reconsidered to change to '完全' from '完整' ('完全类型' from '完整类型' for 'complete type', '不完全类型' from '不完整类型' for 'incomplete type').
+		The current translation is consistent to some canonical sources, including the standard GB/T 15727-94.
+			The documentation of Microsoft Visual Studio has the same use of 'incomplete type', e.g. https://docs.microsoft.com/zh-cn/cpp/c-language/incomplete-types?view=vs-2019.
+			The diagnostic messages of Microsoft VC++ are also the same on 'incomplete type'.
+			This is also used in some other notable online documents like https://zh.cppreference.com/w/cpp/language/type.
+		However, the consisdered replacment is consistent with other sources.
+			It is consistent with most mathematical concepts and the usual translations of phrases widely used in computer science like "NP-complete problem".
+				A second mathematical replacement is '完备'. This is not considered here. 
+			It is consistent with diagnostic messages in GCC.
+				The characters '不完全' for 'incomplete' are also exactly same in locale zh-TW.
+					However, some translations in locale zh-CN is considered somewhat in the zh-TW flavor, e.g. '提领' instead of '解引用' for 'dereference'. So, this is considered not quite precisely reflecting the actual popular use in zh-CN.
+				The characters '不完全' for 'incomplete' are also exactly same in locale ja, e.g. '不完全型' for 'incomplete type'.
+			There is an entry of '不完全类型' in Chinese Wikipedia, e.g. https://zh.wikipedia.org/wiki/%E4%B8%8D%E5%AE%8C%E5%85%A8%E7%B1%BB%E5%9E%8B.
+				However, the content is mostly about partial classes in C#.
+				As the time of writing, the only other entry of translation available is https://de.wikipedia.org/wiki/Partielle_Klasse, which has nothing about incomplete types of C/C++.
+					The English tranlation is at https://en.wikipedia.org/wiki/Class_%28computer_programming%29#Partial. This is again has nothing to do with incomplete types.
+		As concluded, the replacement use is not considered canonical in locale zh-CN. Nothing is changed.
+	The translation of term 'full expression' in locale zh-CN is still '完全表达式'.
+		The tranlsation of 'full' is originally kept distinct to 'complete'.
+			As the latter is not changed, it is kept.
+		There is also no good (intuitive and widely used) replacement other than '完全' or '完整' find.
+		Further, the prase is hyphened in recent working draft of ISO C++.
+			This change makes it quite contextually specific to limited C++ specification text.
+				The use in YSLib documentation (notably, the glossory used in wiki pages and in NPL documents) is then not necessary to keep the use as exact as the C++-style.
+			This is gramatically (in English) not necessary, though.
+		Note that the current "full-expression" in ISO C++ draft has other problems, see https://github.com/cplusplus/draft/issues/2885.
+Self assignment is supported in several applicatives in NPLA1.
+	The old '<-%' did not handle this at all.
+		It is now fixed in 'assign%!'.
+	The old behavior of 'NPL::A1::Forms::SetFirstRef' actually did not allow self-assignment by documented '\warning' command in the Doxygen comments.
+		It is too error-prone to involve undefined behavior, as there is no easy way to make sure the parameter is of an rvalue reference implying not aliasing like in C++, so it is subject to be changed.
+		To be consistent with 'assign%!', the self-assignment is handled simlarly.
+			Note arbitrary cyclic reference check is still not present.
 
 ////
 

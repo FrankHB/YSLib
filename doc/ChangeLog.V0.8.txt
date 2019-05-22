@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r12258
+\version r12617
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-04-30 01:01 +0800
+	2019-05-22 21:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,361 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ @ "function template %SetContentWith" @ %YSLib.Core.ValueNode $=
+		(
+			* $re_ex(b844) "exception safety not kept on container operation \
+				failure" $since b844;
+			* $comp "container invalidated too early" $since b844
+				// As of b844, the %Value cannot refer to the the container. \
+					Before b844, the elements in the container cannot refer to \
+					the %Value reliably, either.
+		),
+		/ %NPL $=
+		(
+			+ $lib $impl "workaround for x86_64-w64-linux G++ 8.3"
+				@ "function %Literalize" @ %Lexical,
+				// Otherwise, it would cause invalid memory access in %release \
+					configurations. It could crash if there is no valid \
+					'yconf.txt' already available with message \
+					"free(): double free detected in tcache 2" from glibc.
+			/ %SContext $=
+			(
+				+ "function %IsExtendedList",
+					// Is is exactly the same to old %IsList.
+				/ "function %IsList" $dep_from ("%ResolveEnvironment" @ %NPLA),
+				+ "function %IsBranchedList",
+				/ @ "function template %SetContentWith" $=
+				(
+					* "exception safety not kept on container operation \
+						failure" $since b852;
+					* $comp "container invalidated too early" $since b852
+						$dep_to "irregular representation support"
+						// For references with irregular representation, the \
+							container shall be valid before the operation on \
+							the %Value is performed, e.g. in %LiftToReturn.
+				)
+			),
+			/ %NPLA $=
+			(
+				/ DLDI "function %ResolveEnvironment"
+					^ (($dep_from "%IsExtendedList" ~ "%IsList") @ %NPLA),
+				/ $comp "excluded irregular list representation"
+					@ "function template %CheckRegular" $dep_from
+					("%IsList" @ %SContext) $dep_to
+					"irregular representation support",
+				* "allowed constructed references by objects with zero owner \
+					count" @ "function %LiftToReference" $since b800,
+					// This would cause undefined behavior as in 'ref (id 1)'.
+				/ $re_add(b854) "enhanced handling to corruptied values"
+					@ "function %LiftToReturn" ^ "%NPL::TryAccessLeaf"
+					~ "%NPL::AccessPtr",
+				/ "supported references with irregular representation"
+					@ ("functions %(TermToTags, Collapse, PrepareCollapse)",
+					"all 2 functions %ReferenceTerm")
+					^ "%NPL::TryAccessLeaf" ~ "%NPL::TryAccessTerm" $dep_to
+					"irregular representation support",
+				/ "merged functions %(IsReferenceLeaf, IsReferenceTerm)"
+					-> "function %IsReferenceTerm" $dep_to
+					"irregular representation support",
+					// The new function is same to old %IsReferenceLeaf.
+				/ "merged functions %(IsLValueLeaf, IsLValueTerm)"
+					-> "function %IsLValueTerm" $dep_to
+					"irregular representation support",
+					// The new function is same to old %IsLValueLeaf.
+				/ "merged function templates %(ResolveLeaf, ResolveTerm)"
+					-> "function %ResolveTerm",
+					// The new function template is same to old %ResolveLeaf.
+				/ "functions %(ReduceToList, ReduceToListValue)"
+					^ (($dep_frmo "%IsBranchedList") ~ "%IsBranch" @ %SContext)
+					$dep_to "irregular representation support",
+				+ "2 function tmeplates %TryAccessReferencedTerm",
+				/ "all 2 function templates %TryAccessReferencedLeaf"
+					^ "%NPL::TryAccessLeaf" ~ "%NPL::TryAccessTerm",
+					// The old TryAccessReferencedLeaf is now \
+						%TryAccessReferencedTerm.
+				/ $re_add(b857) "functions %LiftTerm with %ValueObject source \
+					supported self lifting",
+					// To be consistent with %LiftTerm#1.
+				+ "function %LiftCollapsed",
+				/ $re_add(b856) DLDI
+					"renamed internal conditional inclusion macro",
+				* DD "return value for non-reference terms" @ "Doxygen comment"
+					@ "function %TermToTags" $mismatch $since b857,
+				+ DLI "static assertions for %AnchorPtr type"
+					^ "ystdex::(is_nothrow_copy_constructible, \
+					is_nothrow_copy_assignable, is_nothrow_move_constructible, \
+					is_nothrow_move_assignable)"
+			),
+			/ %NPLA1 $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					/ @ "function %MatchParameter" $=
+					(
+						(
+						/ "option parameter %bool" -> "%TermTags";
+						+ "support of list option to indicate list prvalues"
+							^ "%TermTags::Unique" $dep_to "tag match support"
+						),
+						/ "reordered branches to support references with \
+							irregular representation" ^ $dep_to
+							"matched regular representation first",
+						/ "simplified ellipsis detection" $=
+						(
+							/ $impl ^ $dep_from ("%IsList" @ %SContext)
+								~ "%ReferenceTerm";
+							/ $comp "removed lvalue support for empty list"
+								// A symbol denoting an empty list is still a \
+									symbol, not an empty list in the formal \
+									parameter tree.
+						)
+					),
+					/ @ "function %BindParameter" $=
+					(
+						+ "check to throw %InvalidReference on non-list cases \
+							for sigil '@'" $dep_from "tag match support",
+						/ "supported references with irregular representation"
+							^ "%NPL::TryAccessLeaf" ~ "%NPL::TryAccessTerm"
+							$dep_from "matched regular representation first"
+							$dep_to "irregular representation support"
+					),
+					/ @ "function %SetFirstRef" ^ $dep_from
+						("%LiftCollapsed" @ %NPLA) $=
+					(
+						/ "supported references with irregular representation"
+							^ "%NPL::TryAccessLeaf" ~ "%NPL::TryAccessTerm"
+							$dep_to "irregular representation support",
+						* "missing collapse on the source argument" $since b834
+							^ $dep_from ("%Collapse" @ %NPLA),
+						+ "support of self assignment"
+							// See $2019-05 @ \
+								%Documentation::Workflow::Annual2019.
+					),
+					+ "function %SetFirstRefAt" ^ $dep_from
+						("%LiftCollapsed" @ %NPLA),
+					/ @ "function template %CallRegularUnaryAs" $=
+					(
+						* "missing trailing variadic packed arguments"
+							@ "trailing return type" $since b855,
+						/ "cast with 1st template parameter" @ "called functor"
+							$dep_to "explicit type for regular unary call"
+					),
+					/ "decapsulating values" @ "function %MakeEncapsulationType"
+						$=
+					(
+						/ $forced DLDI $dep_from
+							"explicit type for regular unary call",
+						(
+						/ "supported rvalue reference arguments as rvalues";
+						* "redundant tag %TermTags::Nonmodifying for rvalue \
+							reference arguments" $since b857
+						),
+						/ "supported references with irregular representation"
+							^ "%NPL::TryAccessLeaf" ~ "%NPL::TryAccessTerm"
+							$dep_to "irregular representation support"
+					),
+					/ $forced DLDI "functions %(SetRest, SetRestRef)"
+						^ ("%ResolveTerm" ~ $dep_from "%ResolveLeaf" @ %NPLA),
+						// The assumption to use %ResolveLeaf is actually \
+							invalid.
+					/ $comp "excluded irregular list representation"
+						@ "functions %(Cons, ConsRef, SetRest, SetRestRef)"
+						$dep_from ("%IsList" @ %SContext) $dep_to
+						"irregular representation support",
+					/ DLDI "simplified functions %(Equal, EqualValue)"
+						^ "%ystdex::(ref_eq, equal_to)",
+					/ ("thunk" @ "function %DefineWithRecursion", "check"
+						@ "function %CheckListReference")
+						^ ((dep_from "%IsBranchedList" ~ "%IsList") @ %SContext)
+						$dep_to "irregular representation support",
+					/ $forced DLDI ("functions %(And, If, Or)", "member \
+						function %operator()" @ "functor as predicate \
+						returned by %MakeEncapsulationType")
+						^ (($dep_from "%NPL::TryAccessReferencedTerm"
+						~ $dep_from "%NPL::TryAccessReferencedLeaf") @ %NPLA),
+					/ $comp "member function %operator()" @ "functor as \
+						constructor returned by %MakeEncapsulationType"
+						$dep_from ("%NPL::TryAccessReferenceLeaf" @ %NPLA)
+						$dep_to "irregular representation support",
+					* "wrapped redundant %ContextHandler for \
+						%FormContextHandler" @ "function %Wrap" $since b785,
+						// This was not consistent with even %WrapOnce.
+					/ @ "function %Unwrap" $=
+					(
+						* "failed to unwrap context handlers wrapped more than \
+							once" $since b785 $dep_from "%Wrap",
+						/ "supported forwarding" $=
+						(
+							/ "parameter 'const ContextHandler&'"
+								-> 'TermNode&, ContextNode&',
+							/ "return type" -> 'ReductionStatus'
+								~ 'ContextHandler',
+							/ "move %StrictContextHandler::Handler object for \
+								rvalues"
+							/ "forwarding by subobject reference for lvalues"
+								@ "function %Unwrap" $dep_all_from
+								"function %ReduceCombined"
+								// Subobject references need the check of \
+									%TermReference without branch comes first. \
+									The referent is put as the only subterm here.
+								$= (/ $impl ^ "%CallRegularUnaryAs" $dep_from
+									"explicit type for regular unary call")
+						)
+					)
+				),
+				/ @ "functions %ReduceCombined" $=
+				(
+					/ $forced DLDI
+						^ ("%ResolveTerm" ~ $dep_from "%ResolveLeaf" @ %NPLA),
+					/ $comp "excluded irregular list representation"
+						^ (($dep_from "%IsBranchedList" ~ "%IsBranch")
+						@ %SContext) $dep_to "irregular representation support";
+					+ "support of irregular representation" $=
+					(
+						+ $impl "assertions for supported irrgular \
+							representation",
+							// The only supported one is documented in \
+								%Documentation.NPL.
+						+ "access of %ContextHandler in the irregular \
+							representation" ^ "%NPL::Access";
+						+ "conversion to rvalues"
+					)
+				),
+				/ ("initialier for %FormContextHandler::Check", "check"
+					@ "%operator()" @ "vau handler")
+					-> ((dep_from "%IsBranchedList" ~ "%IsList") @ %SContext)
+					$dep_to "irregular representation support",
+				/ @ "fucntion %ReduceFirst" $dep_to
+					"irregular representation support" $=
+				(
+					/ "list condition" ^ ((dep_from "%IsBranchedList"
+						~ "%IsList") @ %SContext),
+					/ "returned %ReductionStatus::Retained"
+						~ "%ReductionStatus::Clean"
+				),
+				/ @ "function %ReduceOnce" $=
+				(
+					/ "reordered to skip irregular representations for list \
+						evaluation passes",
+						// %IsBranchedList is not needed separatedly here.
+					/ DLI "optimized by avoiding access RTTI on list \
+						evaluation passes"
+				),
+				/ $forced DLDI "function %EvaluateIdentifier"
+					^ (($dep_from "%NPL::TryAccessReferencedTerm"
+					~ $dep_from "%NPL::TryAccessReferencedLeaf") @ %NPLA),
+				/ DLDI "qualified with 'YSLib::' at the calls of %share_move"
+			),
+			/ %Dependency $=
+			(
+				/ @ "function %LoadGroundContext" $=
+				(
+					/ "applicative %ref" => 'ref&',
+						// This is essentially unsafe.
+					(
+					/ "applicatives ('<-', '<-%', '<-@')"
+						=> "(assign!, assign%!, assign@!)";
+						// These functions do not allow non-references as the \
+							1st argument as 'string<-' does, so the '<-' \
+							postfix is not fit.
+					* $comp "applicative '<-' wrongly moved nonmodifiable \
+						referents" $since b857,
+					+ "alternative derivation of applicative 'assign!'"
+						^ 'assign%!',
+					/ @ "applicative 'assign%!'" ^ $dep_from
+						("%LiftCollapsed" @ %NPLA) $=
+					(
+						/ "supported references with irregular representation"
+							^ "%NPL::TryAccessLeaf" ~ "%NPL::TryAccessTerm"
+							$dep_to "irregular representation support",
+						* $comp "missing collapse on the source argument" $since
+							(@ '<-%' $mismatch(Documentation.NPL) $since b857)
+							^ $dep_from ("%Collapse" @ %NPLA),
+							// As documented, '%' shall be used for preserving \
+								collapsed references.
+						* "missing handling self assignment" $orig
+							(@ '<-%' $since b857)
+							// See $2019-05 @ \
+								%Documentation::Workflow::Annual2019.
+					)
+					),
+					* "missing internal definition of operative '$defv!'"
+						@ '!NPL_Impl_NPLA1_Native_Forms \
+						&& !NPL_Impl_NPLA1_Use_Id_Vau' $since b856,
+					+ "alternative derivation of operative '$deflazy!'"
+						^ '$def!',
+					/ DLDI "simplified operatives ('$provide!', '$provide/d!')"
+						^ ('$vau%', 'lock-environment')
+						~ ('$quote', 'lock-current-environment'),
+					(
+					/ "applicative %box" => 'box%';
+						// To be consistent with 'list%'.
+					+ "applicative %box"
+						// To be consistent with %list.
+					),
+					/ DLDI "reordered some combiner definitions",
+					/ "supported references with irregular representation"
+						@ "applicative %deshare" ^ "%NPL::TryAccessLeaf"
+						~ "%NPL::TryAccessTerm" $dep_to
+						"irregular representation support",
+					+ "applicative %set-first@!",
+					/ $comp "excluded irregular list representation"
+						@ "applicatives ('list?', 'listpr?')"
+						$dep_from ("%IsList" @ %SContext) $dep_to
+						"irregular representation support",
+					(
+					/ "avoided applicative %first" @ "applicative %map-reverse"
+						^ 'first%' ~ "%first";
+					- "appliactive %first";
+					/ "applicative 'first%'" => "%first";
+						// To make accessors consistent to 'unbox', etc. The \
+							%rest family is still special without special \
+							irregular representation support, though.
+					/ $forced DLDI ("applicatives ('first-null?', %foldr1)",
+						"operatives ('$let', '$let%', '$let/d', '$let/d%',
+						'$let/e', '$let/e%', '$let*', '$let*%', '$letrec',
+						'$letrec%', '$bindings/p->environment'") ^ "%first"
+						~ 'first%'
+					),
+					/ DLDI "adjusted newline before 'eval'"
+						@ "operatives ('$defw!', '$defw%!', '$defw/e!', \
+						'$defw/e%!', '$defl/e!', '$defl/e%!')",
+					/ "applicative %unwrap" $=
+					(
+						/ $forced ^ "%RegisterStrict" ~ "%RegisterStrictUnary"
+							$dep_from ("%Unwrap" @ %NPLA1);
+						/ $comp "supported access of subobject references"
+					),
+					(
+					/ "object %inert" -> "prvalue literal #inert";
+						// This is now also more similar to Kernel.
+					/ $forced DLI "all %inert" -> '#inert';
+						// This is more efficient due to less lvalue-to-rvalue \
+							conversions.
+					/ $comp "enforced prvalue result for call without arguments"
+						@ "applicative '$cond'"
+					)
+				),
+				/ "supported forward parameter rvalues" @ "applicative '<-'"
+					@ "function %LoadModule_std_strings",
+				+ $re_add(b853) DLDI "qualified all calls of %AccessPtr with \
+					'NPL::'",
+					// To be consistent with %NPLA1.
+				/ $forced DLDI "applicative 'bound?'"
+					@ "function %LoadModule_std_environments"
+					^ (($dep_from "%NPL::TryAccessReferencedTerm" ~ $dep_from
+					"%NPL::TryAccessReferencedLeaf") @ %NPLA)
+			),
+			/ DLDI "qualified with 'NPL::' at the calls of %Deref"
+				$effective @ %(NPLA, NPLA1, Dependency)
+		)
+	)
+),
+
+b857
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -476,7 +831,7 @@ b856
 						('check-environment' @ "%LoadGroundContext")
 				)
 			),
-			/ DLDI "renamed internal conditional inclusion macros" $effective
+			/ DLDI "renamed internal conditional inclusion macros"
 				@ %(NPLA1, Dependency),
 				// 'YF_' prefix is changed to 'NPL_', which is already in \
 					%Documentation::Definitions.
@@ -847,7 +1202,7 @@ b854
 				(
 					+ 'ynothrow' $dep_from "%ReferenceTerm",
 					* "missing qualified with 'NPL::' at the call \
-						%ReferenceTerm" $since b801
+						of %ReferenceTerm" $since b801
 				),
 				(
 				+ "2 functions %TryAccessLeaf";
@@ -6445,7 +6800,7 @@ b837
 							matched without this fix. Some functions like \
 							derivation of '$provide!' rely on this fix.
 					* "missing exclusion of empty list"
-						@ "ellipsed symbol check for last term" $since b777
+						@ "ellipsis symbol check for last term" $since b777
 						// The last '()' parameter would always not work \
 							without this fix.
 				)
@@ -8563,7 +8918,8 @@ b828
 			(
 				/ @ "function %BindParameter" $=
 				(
-					* "empty name bound for parameter '.&', or '&'" $since b822,
+					* "empty name bound for parameter '.&', or '&'" $since b822
+						$= (/ "ellipsis detection" ^ "%ReferenceTerm"),
 					/ "trailing sequence binding" $=
 					(
 						/ DLDI "avoided unnecessary container from creation",

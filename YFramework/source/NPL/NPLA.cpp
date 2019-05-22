@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2508
+\version r2560
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2019-04-29 11:51 +0800
+	2019-05-22 17:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,9 +27,9 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLA // for YSLib, string, YSLib::DecodeIndex, std::to_string,
-//	std::invalid_argument, ValueNode, NPL::Access, EscapeLiteral, Literalize,
+//	std::invalid_argument, ValueNode, NPL::Access, NPL::DerefEscapeLiteral, Literalize,
 //	NPL::AccessPtr, ystdex::value_or, ystdex::write, bad_any_cast,
-//	std::allocator_arg, YSLib::NodeSequence, ystdex::unimplemented, 
+//	std::allocator_arg, YSLib::NodeSequence, NPL::Deref, ystdex::unimplemented, 
 //	ystdex::type_id, ystdex::quote, ystdex::call_value_or, ystdex::begins_with,
 //	YSLib::get_raw, NPL::make_observer, ystdex::sfmt, NPL::TryAccessTerm, sfmt,
 //	GetLValueTagsOf, std::mem_fn, ystdex::compose, ystdex::invoke_value_or,
@@ -44,9 +44,9 @@ namespace NPL
 {
 
 #ifndef NDEBUG
-#	define YF_Impl_NPLA_CheckStatus true
+#	define NPL_Impl_NPLA_CheckStatus true
 #else
-#	define YF_Impl_NPLA_CheckStatus false
+#	define NPL_Impl_NPLA_CheckStatus false
 #endif
 
 string
@@ -171,13 +171,13 @@ ConvertAttributeNodeString(const TermNode& term)
 	case 2:
 		{
 			auto i(term.begin());
-			const auto& n(NPL::Access<string>(Deref(i)));
+			const auto& n(NPL::Access<string>(NPL::Deref(i)));
 
-			return n + '=' + NPL::Access<string>(Deref(++i));
+			return n + '=' + NPL::Access<string>(NPL::Deref(++i));
 		}
 		YB_ATTR_fallthrough;
 	case 1:
-		return NPL::Access<string>(Deref(term.begin()));
+		return NPL::Access<string>(NPL::Deref(term.begin()));
 	case 0:
 		break;
 	}
@@ -200,13 +200,14 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 				try
 				{
 					auto i(term.begin());
-					const auto& str(NPL::Access<string>(Deref(i)));
+					const auto& str(NPL::Access<string>(NPL::Deref(i)));
 
 					++i;
 					if(str == "@")
 					{
 						for(; i != term.end(); ++i)
-							res += ' ' + ConvertAttributeNodeString(Deref(i));
+							res += ' '
+								+ ConvertAttributeNodeString(NPL::Deref(i));
 						return res;
 					}
 					if(opt == ParseOption::Attribute)
@@ -215,9 +216,9 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 					{
 						res = "<?";
 						for(; i != term.end(); ++i)
-							res += string(Deliteralize(ConvertDocumentNode(
-								Deref(i), igen, depth, ParseOption::String)))
-								+ ' ';
+							res += string(Deliteralize(
+								ConvertDocumentNode(NPL::Deref(i), igen, depth,
+								ParseOption::String))) + ' ';
 						if(!res.empty())
 							res.pop_back();
 						return res + "?>";
@@ -239,7 +240,7 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 							YTraceDe(Warning, "Invalid *TOP* found.");
 						if(i != term.end())
 						{
-							if(!Deref(i).empty()
+							if(!NPL::Deref(i).empty()
 								&& (i->begin())->Value == string("@"))
 							{
 								head += string(
@@ -254,7 +255,7 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 							return head + " />";
 						for(; i != term.end(); ++i)
 						{
-							nl = Deref(i).Value.type()
+							nl = NPL::Deref(i).Value.type()
 								!= ystdex::type_id<string>();
 							if(nl)
 								res += '\n' + igen(depth + size_t(is_content));
@@ -297,7 +298,7 @@ PrintSyntaxNode(std::ostream& os, const TermNode& term, IndentGenerator igen,
 {
 	if(IsBranch(term))
 		ystdex::write(os,
-			ConvertDocumentNode(Deref(term.begin()), igen, depth), 1);
+			ConvertDocumentNode(NPL::Deref(term.begin()), igen, depth), 1);
 	os << std::flush;
 }
 
@@ -537,7 +538,7 @@ TermToTags(TermNode& term)
 {
 	return ystdex::call_value_or(ystdex::compose(GetLValueTagsOf,
 		std::mem_fn(&TermReference::GetTags)),
-		NPL::TryAccessTerm<const TermReference>(term), term.Tags);
+		NPL::TryAccessLeaf<const TermReference>(term), term.Tags);
 }
 
 void
@@ -562,7 +563,7 @@ TokenizeTerm(TermNode& term)
 pair<TermReference, bool>
 Collapse(TermReference ref)
 {
-	if(const auto p = NPL::TryAccessTerm<const TermReference>(ref.get()))
+	if(const auto p = NPL::TryAccessLeaf<const TermReference>(ref.get()))
 		return {{MergeTermTags(ref.GetTags(), p->GetTags()), p->get(),
 			ref.GetAnchorPtr()}, true};
 	return {std::move(ref), {}};
@@ -571,7 +572,7 @@ Collapse(TermReference ref)
 pair<TermReference, bool>
 PrepareCollapse(TermNode& term, const AnchorPtr& p_anchor)
 {
-	if(const auto p = NPL::TryAccessTerm<const TermReference>(term))
+	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
 		return {*p, true};
 	return {{term.Tags, term, p_anchor}, {}};
 }
@@ -580,41 +581,27 @@ TermNode&
 ReferenceTerm(TermNode& term) ynothrow
 {
 	return ystdex::invoke_value_or(&TermReference::get,
-		NPL::TryAccessTerm<const TermReference>(term), term);
+		NPL::TryAccessLeaf<const TermReference>(term), term);
 }
 const TermNode&
 ReferenceTerm(const TermNode& term) ynothrow
 {
 	return ystdex::invoke_value_or(&TermReference::get,
-		NPL::TryAccessTerm<TermReference>(term), term);
+		NPL::TryAccessLeaf<const TermReference>(term), term);
 }
 
-
-bool
-IsReferenceLeaf(const TermNode& term)
-{
-	return bool(NPL::TryAccessLeaf<const TermReference>(term));
-}
 
 bool
 IsReferenceTerm(const TermNode& term)
 {
-	return bool(NPL::TryAccessTerm<const TermReference>(term));
-}
-
-
-bool
-IsLValueLeaf(const TermNode& term)
-{
-	return ystdex::invoke_value_or(&TermReference::IsReferencedLValue,
-		NPL::TryAccessLeaf<const TermReference>(term));
+	return bool(NPL::TryAccessLeaf<const TermReference>(term));
 }
 
 bool
 IsLValueTerm(const TermNode& term)
 {
 	return ystdex::invoke_value_or(&TermReference::IsReferencedLValue,
-		NPL::TryAccessTerm<const TermReference>(term));
+		NPL::TryAccessLeaf<const TermReference>(term));
 }
 
 
@@ -623,7 +610,7 @@ CheckReducible(ReductionStatus status)
 {
 	if(status == ReductionStatus::Clean || status == ReductionStatus::Retained)
 		return {};
-#if YF_Impl_NPLA_CheckStatus
+#if NPL_Impl_NPLA_CheckStatus
 	// NOTE: Keep away assertions so client code can be diagnosed.
 	if(YB_UNLIKELY(status != ReductionStatus::Partial
 		&& status != ReductionStatus::Retrying))
@@ -643,13 +630,26 @@ RegularizeTerm(TermNode& term, ReductionStatus status) ynothrow
 
 
 void
+LiftCollapsed(TermNode& term, TermNode& tm, TermReference ref)
+{
+	auto pr(Collapse(std::move(ref)));
+
+	if(!ystdex::ref_eq<>()(term, tm))
+		term.MoveContent(TermNode(std::move(tm.GetContainerRef()),
+			std::move(pr.first)));
+	else if(pr.second)
+		term.Value = std::move(pr.first);
+}
+
+void
 LiftToReference(TermNode& term, TermNode& tm)
 {
 	if(tm)
 	{
 		if(IsReferenceTerm(tm))
+			// NOTE: Reference collapsed.
 			LiftTerm(term, tm);
-		else if(!tm.Value.OwnsUnique())
+		else if(tm.Value.OwnsCount() > 1)
 			// XXX: This is unsafe and not checkable because the anchor is not
 			//	referenced.
 			term.Value = TermReference(TermTags::Unqualified, tm);
@@ -666,7 +666,7 @@ LiftToReturn(TermNode& term)
 {
 	// TODO: Detect lifetime escape to perform copy elision?
 	// NOTE: Only outermost one level is referenced.
-	if(const auto p = NPL::AccessPtr<const TermReference>(term))
+	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
 		// NOTE: To keep lifetime of objects referenced by references introduced
 		//	in %A1::EvaluateIdentifier sane, %ValueObject::MakeMoveCopy is not
 		//	enough because it will not copy objects referenced in holders of
@@ -715,7 +715,7 @@ ReduceForLiftedResult(TermNode& term)
 ReductionStatus
 ReduceHeadEmptyList(TermNode& term) ynothrow
 {
-	if(term.size() > 1 && IsEmpty(Deref(term.begin())))
+	if(term.size() > 1 && IsEmpty(NPL::Deref(term.begin())))
 		RemoveHead(term);
 	return ReductionStatus::Clean;
 }
@@ -723,13 +723,14 @@ ReduceHeadEmptyList(TermNode& term) ynothrow
 ReductionStatus
 ReduceToList(TermNode& term) ynothrow
 {
-	return IsBranch(term) ? ReduceBranchToList(term) : ReductionStatus::Clean;
+	return IsBranchedList(term) ? ReduceBranchToList(term)
+		: ReductionStatus::Clean;
 }
 
 ReductionStatus
 ReduceToListValue(TermNode& term) ynothrow
 {
-	return IsBranch(term) ? ReduceBranchToListValue(term)
+	return IsBranchedList(term) ? ReduceBranchToListValue(term)
 		: ReductionStatus::Clean;
 }
 
@@ -815,7 +816,7 @@ Environment::DefaultResolve(const Environment& e, string_view id)
 
 	ystdex::retry_on_cond([&](observer_ptr<const Environment> p_env) ynothrow{
 		if(p_env)
-			env_ref = ystdex::ref(Deref(p_env));
+			env_ref = ystdex::ref(NPL::Deref(p_env));
 		return p_env || cont;
 	}, [&, id]() -> observer_ptr<const Environment>{
 		auto& env(env_ref.get());
@@ -1036,7 +1037,7 @@ pair<shared_ptr<Environment>, bool>
 ResolveEnvironment(const TermNode& term)
 {
 	return ResolveTerm([&](const TermNode& nd, bool has_ref){
-		if(!IsList(nd))
+		if(!IsExtendedList(nd))
 			return ResolveEnvironment(nd.Value);
 		throw ListTypeError(
 			ystdex::sfmt("Invalid environment formed from list '%s' found.",

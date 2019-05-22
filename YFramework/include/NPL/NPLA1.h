@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r5001
+\version r5048
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2019-04-30 00:58 +0800
+	2019-05-22 20:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 //	YSLib::AreEqualHeld, std::is_constructible, ystdex::decay_t,
 //	ystdex::expanded_caller, ystdex::or_, ystdex::exclude_self_t,
 //	ystdex::make_function_type_t, ystdex::make_parameter_list_t, NPL::Deref,
-//	ystdex::make_expanded, std::ref, NPL::CheckRegular,
+//	ystdex::make_expanded, std::ref, NPL::Access, NPL::CheckRegular,
 //	ResolvedTermReferencePtr, ystdex::invoke_nonvoid, NPL::ResolveRegular,
 //	ystdex::make_transform, std::accumulate, ystdex::bind1,
 //	std::placeholders::_2, ystdex::examiners::equal_examiner;
@@ -373,7 +373,8 @@ inline PDefH(ReductionStatus, ReduceChildrenOrdered, TermNode& term,
 \since build 730
 
 快速严格性分析：
-无条件求值枝节点第一项以避免非确定性推断子表达式求值的附加复杂度。
+当节点为分支列表的节点时，无条件求值第一项以避免非确定性推断子表达式求值的附加复杂度；
+否则，返回 ReductionStatus::Retained 。
 调用 ReduceOnce 规约子项。
 */
 YF_API ReductionStatus
@@ -613,7 +614,7 @@ public:
 	\brief 项检查例程：验证被包装的处理器的调用符合前置条件。
 	\since build 851
 	*/
-	function<bool(const TermNode&)> Check{IsBranch};
+	function<bool(const TermNode&)> Check{IsBranchedList};
 
 	//! \since build 697
 	template<typename _func,
@@ -838,7 +839,9 @@ EvaluateLeafToken(TermNode&, ContextNode&, string_view);
 
 /*!
 \brief 规约合并项：检查项的第一个子项尝试作为操作符进行函数应用，并规范化。
+\pre 断言：若第一个子项表示子对象引用，则符合子对象引用的非正规表示约定。
 \return 规约状态。
+\exception bad_any_cast 异常中立：子对象引用持有的值不是 ContextHandler 类型。
 \throw ListReductionFailure 规约失败：枝节点的第一个子项不表示上下文处理器。
 \sa ContextHandler
 \sa Reduce
@@ -1152,6 +1155,7 @@ CheckParameterLeafToken(string_view n, _func f) -> decltype(f())
 /*!
 \brief 使用操作数结构化匹配并绑定参数。
 \throw ArityMismatch 子项数匹配失败。
+\throw InvalidReference 非法的 @ 引用标记字符绑定。
 \note 第一参数指定的上下文决定绑定的环境。
 \sa MatchParameter
 \sa TermReference
@@ -1168,7 +1172,8 @@ CheckParameterLeafToken(string_view n, _func f) -> decltype(f())
 匹配要求如下：
 若项是 #ignore ，则忽略操作数对应的项；
 若项的值是符号，则操作数的对应的项应为非列表项。
-若被绑定的目标有 & ，则以按引用传递的方式绑定；否则以按值传递的方式绑定。
+若被绑定的目标有引用标记字符，则以按引用传递的方式绑定；否则以按值传递的方式绑定。
+当绑定的引用标记字符为 @ 且不是列表项时抛出异常。
 按引用传递绑定直接转移该项的内容。
 */
 YF_API void
@@ -1177,12 +1182,19 @@ BindParameter(ContextNode&, const TermNode&, TermNode&);
 /*!
 \brief 匹配参数。
 \exception std::bad_function_call 异常中立：参数指定的处理器为空。
-\since build 856
+\sa TermTags
+\since build 858
 
 进行匹配的算法递归搜索形式参数及其子项。
 若匹配成功，调用参数指定的匹配处理器。
-参数指定形式参数、实际参数、两个处理器、复制标识和引用值对应的锚对象指针。
-当复制标识为 true 时，递归处理的所有对实际参数的绑定以复制代替转移。
+参数指定形式参数、实际参数、两个处理器、绑定选项和引用值对应的锚对象指针。
+其中，形式参数被视为作为形式参数树的右值。
+绑定选项以 TermTags 编码，但含义和作用在项上时不完全相同：
+仅使用其中的 Unique 位和 Nonmodifying 位；
+Unique 表示不被共享的项（在此即非列表左值）；
+Nonmodifying 表示需要复制。
+当需要复制时，递归处理的所有对实际参数的绑定以复制代替转移；
+可能被共享的项在发现表达数树中存在列表后失效，且对之后的子项进行递归处理。
 以上处理的操作数的子项仅在确定参数对应位置是列表时进行。
 处理器为参数列表结尾的结尾序列处理器和值处理器，分别匹配以 . 起始的项和非列表项。
 处理器参数列表中的记号值为匹配的名称；
@@ -1201,8 +1213,8 @@ BindParameter(ContextNode&, const TermNode&, TermNode&);
 */
 YF_API void
 MatchParameter(const TermNode&, TermNode&, function<void(TNIter, TNIter, const
-	TokenValue&, bool, const AnchorPtr&)>, function<void(const TokenValue&,
-	TermNode&, bool, const AnchorPtr&)>, bool, const AnchorPtr&);
+	TokenValue&, TermTags, const AnchorPtr&)>, function<void(const TokenValue&,
+	TermNode&, TermTags, const AnchorPtr&)>, TermTags, const AnchorPtr&);
 //@}
 //@}
 //@}
@@ -1243,22 +1255,23 @@ CallResolvedUnary(_func&& f, TermNode& term)
 template<typename _type, typename _func, typename... _tParams>
 auto
 CallRegularUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
-	-> yimpl(decltype(ystdex::make_expanded<void(TermNode&,
-	const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(term,
-	ResolvedTermReferencePtr())))
+	-> yimpl(decltype(ystdex::make_expanded<void(_type&,
+	const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
+	NPL::Access<_type>(term), ResolvedTermReferencePtr(),
+	std::forward<_tParams>(args)...)))
 {
 	// TODO: Blocked. Use C++14 'decltype(auto)'.
-	using ret_t = decltype(ystdex::make_expanded<void(TermNode&,
-		const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(term,
-		ResolvedTermReferencePtr()));
+	using ret_t = decltype(ystdex::make_expanded<void(_type&,
+		const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
+		NPL::Access<_type>(term), ResolvedTermReferencePtr()));
 
 	return Forms::CallResolvedUnary(
 		[&](TermNode& nd, ResolvedTermReferencePtr p_ref) -> ret_t{
 		return NPL::CheckRegular<_type>([&, p_ref]() -> ret_t{
 			// XXX: Blocked. 'yforward' cause G++ 7.1.0 failed silently.
-			return ystdex::make_expanded<void(TermNode&,
+			return ystdex::make_expanded<void(_type&,
 				const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
-				nd, p_ref, std::forward<_tParams>(args)...);
+				NPL::Access<_type>(nd), p_ref, std::forward<_tParams>(args)...);
 		}, nd, p_ref);
 	}, term);
 }
@@ -1298,8 +1311,7 @@ CallUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
 		//	error: Segmentation fault.
 		return ystdex::make_expanded<void(_type&, _tParams&&...)>(std::ref(f))(
-			NPL::ResolveRegular<_type>(node),
-			std::forward<_tParams>(args)...);
+			NPL::ResolveRegular<_type>(node), std::forward<_tParams>(args)...);
 	}, term);
 }
 //@}
@@ -1690,9 +1702,9 @@ ConsRef(TermNode&);
 YF_API void
 SetFirst(TermNode&);
 
+//! \warning 除自赋值外，不检查循环引用。
+//@{
 /*!
-\warning 不检查循环引用。
-
 保留第二参数引用值。
 
 参考调用文法：
@@ -1700,6 +1712,18 @@ SetFirst(TermNode&);
 */
 YF_API void
 SetFirstRef(TermNode&);
+
+/*!
+\since build 858
+
+保留第二参数未折叠的引用值。
+
+参考调用文法：
+<pre>set-first@! \<list> \<object></pre>
+*/
+YF_API void
+SetFirstRefAt(TermNode&);
+//@}
 //@}
 
 /*!
@@ -2062,12 +2086,13 @@ WrapOnce(const ContextHandler&);
 
 /*!
 \brief 解包装应用子为合并子。
+\since build 858
 
 参考调用文法：
 <pre>unwrap \<applicative></pre>
 */
-YF_API ContextHandler
-Unwrap(const ContextHandler&);
+YF_API ReductionStatus
+Unwrap(TermNode&, ContextNode&);
 //@}
 //@}
 

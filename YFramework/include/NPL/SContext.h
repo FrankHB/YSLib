@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2474
+\version r2486
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2019-04-22 21:51 +0800
+	2019-05-17 10:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,7 +79,6 @@ enum TermTagIndices : size_t
 	NonmodifyingIndex,
 	TemporaryIndex
 };
-
 
 /*!
 \brief 标签：表示引用元数据的位。
@@ -455,9 +454,19 @@ YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsBranch, const TermNode& term)
 	ynothrow
 	ImplRet(!term.empty())
 
+//! \since build 858
+YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsBranchedList,
+	const TermNode& term) ynothrow
+	ImplRet(!(term.empty() || term.Value))
+
 YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsEmpty, const TermNode& term)
 	ynothrow
 	ImplRet(!term)
+
+//! \since build 858
+YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsExtendedList,
+	const TermNode& term) ynothrow
+	ImplRet(!(term.empty() && term.Value))
 
 YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsLeaf, const TermNode& term)
 	ynothrow
@@ -466,7 +475,7 @@ YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsLeaf, const TermNode& term)
 //! \since build 774
 YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsList, const TermNode& term)
 	ynothrow
-	ImplRet(!term.empty() || !term.Value)
+	ImplRet(!term.Value)
 //@}
 
 //! \since build 853
@@ -555,9 +564,9 @@ SetContentWith(TermNode& dst, _tNode&& node, _fCallable f)
 {
 	// NOTE: Similar to %YSLib::SetContentWith.
 	auto con(yforward(node).CreateWith(f));
+	auto vo(ystdex::invoke(f, yforward(node).Value));
 
-	dst.GetContainerRef() = std::move(con);
-	dst.Value = ystdex::invoke(f, yforward(node).Value);
+	dst.SetContent(std::move(con), std::move(vo));
 }
 //@}
 //@}
