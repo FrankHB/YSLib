@@ -11,13 +11,13 @@
 /*!	\file LanguageConvention.txt
 \ingroup Documentation
 \brief 语言使用规约。
-\version r2345
+\version r2401
 \author FrankHB <frankhb1989@gmail.com>
 \since build 543
 \par 创建时间:
 	2012-10-08 05:13:05 +0800
 \par 修改时间:
-	2019-02-20 22:59 +0800
+	2019-06-12 14:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,9 +27,11 @@
 
 /*
 
-@0 体例和适用范围：
-引用标记参见 [Documentation::CommonRules @@0.1] 。
+@0 前言(Preface) ：
 本文档适用于一般开发，用于促进程序代码中可预期的良好性质。
+
+@0.1 体例说明：
+引用标记参见 [Documentation::CommonRules @@0.1] 。
 
 @0.1 可读性(readability) ：
 基本概念参照 [Documentation::CommonRules @@0.3] 。
@@ -39,32 +41,37 @@
 @1 绪论：
 
 @1.1 正式引用：
+@1.1.1 的简写引用的来源同 [Documentation::CommonRules @@1.1] 。
+以下作为概念定义参考的文档的来源同 [Documentation::CommonRules @@1.1] ：
 — ISO/IEC 2382 (all parts), Information technology — Vocabulary
-— ISO/IEC 9899:1999, Programming languages — C
-— ISO/IEC 9899:1999/Cor.3:2007(E), Programming languages — C, Technical Corrigendum 3
-— ISO/IEC 9899:2011, Programming languages — C
-— ISO/IEC 9945:2003, Information Technology — Portable Operating System Interface (POSIX)
 — ISO/IEC 10646-1:1993, Information technology — Universal Multiple-Octet Coded Character Set (UCS)
 	— Part 1: Architecture and Basic Multilingual Plane
-— ISO/IEC 14882:2003, Information technology — Programming languages — C++
-— ISO/IEC 14882:2011, Information technology — Programming languages — C++
+以下文档的来源同 [Documentation::CommonRules @@1.1] ：
+— The Unicode Standard — Version 6.0 – Core Specification
+以下其它文档在本文中引用：
+— ISO/IEC 9899:1999, Programming languages — C
+— ISO/IEC 9899:1999/Cor.3:2007(E), Programming languages — C, Technical Corrigendum 3
+— ISO/IEC 14882:1998, Information technology — Programming languages — C++
+— ISO/IEC 14882:2017, Information technology — Programming languages — C++
 — ISO/IEC TR 10815:2006, Information technology — Programming languages, their environments and system software interfaces — Technical Report on C++ Performance
 — ISO/IEC TR 19769:2004, Information technology — Programming languages, their environments and system software interfaces — Extensions for the programming language C to support new character data types
-— The Unicode Standard — Version 6.0 – Core Specification
+— 1003.1-2004 - IEEE Standard for IEEE Information Technology - Portable Operating System Interface (POSIX(R))
 
 @1.1.1 引用简写：
+以下引用简写同 [Documentation::CommonRules @@1.1.1] 。
+ISO C
+ISO C11
+ISO C++
+ISO C++03
+ISO C++11
+ISO C++14
+其它引用简写：
 CWG ： WG21 Core Working Group (Issues) 。
-ISO C ： ISO/IEC 9899 ；
-ISO C90 ： ISO/IEC 9899:1990 ；
-ISO C99 ： ISO/IEC 9899:1999 ；
-ISO C11 ： ISO/IEC 9899:2011 ；
-ISO C++ ： ISO/IEC 14882 ；
-ISO C++98 ： ISO/IEC 14882:1998 ；
-ISO C++03 ： ISO/IEC 14882:2003 ；
-ISO C++11 ： ISO/IEC 14882:2011 ；
-ISO C++14 ： ISO/IEC 14882:2014 。
+ISO C90 ： ISO/IEC 9899:1990 。
+ISO C99 ： ISO/IEC 9899:1999 。
+ISO C++98 ： ISO/IEC 14882:1998 。
+ISO C++17 ： ISO/IEC 14882:2017 。
 LWG ： WG21 Library Working Group (Issues) 。
-POSIX.1 ： IEEE Std 1003.1 ；
 POSIX.1-2004 ： IEEE Std 1003.1-2004 。
 SUS ： Single UNIX Specification 。
 WG14 ： ISO/IEC JTC1/SC22/WG14 。
@@ -466,17 +473,20 @@ bool 类型以外的整数类型零值和 false 可以互相转换。另见 @5.1
 除了头文件中的函数声明以及其它特别注明外，尽可能使用定义代替非定义的声明（如类定义代替类名声明，函数定义代替非函数定义的函数声明）。
 不在同一个文件且同一个作用域内使用超过一个等价的声明。
 
-@5.5.1
-不使用表示存储类的关键字 auto ，使用编译器的隐式实现。
-显式使用会使和 ISO C++11 代码的共用出现问题。
+@5.5.1 auto 关键字：
+不使用表示存储类的关键字 auto ，使用隐式的自动存储类实现。
+注意 ISO C++11 起无法使用关键字 auto 表示存储类。
+显式使用会使和 ISO C++11 及之后的代码的共用出现问题。
 
-@5.5.2
-尽可能避免使用存储类关键字 register ，参见 @5.1.5 。
+@5.5.2 register 关键字：
+不使用存储类关键字 register ，参见 @5.1.5 。
+注意 ISO C++17 起无法使用关键字 auto 表示存储类。
 除了平台相关的上下文以外，不使用 register 。
 注意 register 仅是建议，而不是命令。
 
-@5.5.3
-尽可能避免使用静态和全局存储期对象。
+@5.5.3 静态存储期：
+尽可能避免使用静态和线程局部存储期对象。
+如有必要，在接口明确这些对象如何被使用。
 
 @5.5.4 static 和 thread_local ：
 
@@ -514,13 +524,13 @@ const 或 constexpr 静态数据成员可直接在类定义内初始化。在没
 
 @5.5.5 extern ：
 
-@5.5.5.1
+@5.5.5.1 extern 声明：
 正确地使用 extern ，并检查语义的合理性。
 注意对之前已有的对象声明， extern 不能直接决定其链接，必须参照之前的声明。
 不使用冗余的 extern 。
 仅在命名空间作用域中使用显式 extern 声明。
 
-@5.5.5.2
+@5.5.5.2 类型：
 在多个翻译单元中，extern 声明的类型应保持一致。
 
 @5.5.5.3 语言链接(language linkage) ：
@@ -528,13 +538,13 @@ ISO C++ 指定实现需要支持 extern "C" （ C 语言链接）和 extern "C++
 特定的 C++ 语言构造要求使用 C 语言链接（如 @6.3.2.3 ）。除此之外，使用 C 语言链接以兼容 C 实现，并在 C++ 实现之间的互操作时取得一般较好的兼容性。
 
 @5.5.6 指示符(specifier) 和属性(attribute) ：
-注意 constexpr 隐含 inline 。
-inline 对 namespace 的使用参见 @5.5.8.3 。
-按需使用属性。在实现支持时可以使用扩展，如 GNU C++ 的 __attribute__ 和 Microsoft VC++ 的 __declspec ，并考虑用宏统一包装。
+按需使用属性。
+必要且确保实现支持时，可以使用扩展，如 GNU C++ 的 __attribute__ 和 Microsoft VC++ 的 __declspec ，并考虑用宏统一包装。
 注意 ISO C++ 的属性被设计为尽可能减少语义的改变，参见 http://herbsutter.com/2012/04/05/reader-qa-what-does-it-mean-for-attributes-to-affect-language-semantics/ 。
 属性可以修饰声明或声明符。若两者效果等价（如 [[noreturn]](@5.5.11.1) 修饰函数声明），当声明中只有一个声明符时，直接使用声明的属性而不是声明符的属性。
 注意 ISO C++ 属性和扩展不一定通用。如 [[noreturn]] 不支持修饰 lambda 表达式（尽管 G++ 错误地接受，但 Clang++ 拒绝），而 __attribute__((noreturn)) 可用。
-另见 @5.5.6.1 。
+关于 inline 和 constexpr ，参见 @5.5.6.1 和 @5.5.6.5 。
+关于 inline 对 namespace 的使用，参见 @5.5.8.3 。
 
 @5.5.6.1 一般语法：
 在必要时使用 inline 关键字。
@@ -550,9 +560,10 @@ inline 对 ODR(@5.1.8) 发生影响。
 若能保证不降低源代码的可移植性，在必要时可以使用与编译环境相关的内联语法，但不直接使用非标准的内联关键字，而使用特定的宏定义代替。
 
 @5.5.6.3 禁止内联：
-需要保证函数定义在确定的翻译单元时，应避免内联，首先不在公用头文件中使用 inline 修饰函数声明，并避免在类定义内定义成员函数。
+需要保证函数定义在确定的翻译单元时，应避免内联。
+需要避免内联时，首先不在公用头文件中使用 inline 修饰函数声明，并避免在类定义内定义成员函数。
 对模板实例，使用显式实例化和 extern 声明保证。
-必要时使用实现的扩展禁止内联。
+必要时可使用实现的扩展（如 GNU 扩展的 noinline 属性）指示不内联。
 以下情形应考虑避免内联：
 典型实现的虚析构函数的符号位置可能影响 ABI 规范定义的虚表(vtable) 的位置（若所有虚函数定义通过 #include 指令引入，则在每个翻译单元生成虚表： Clang++ 警告 [-Wweak-vtables] ）。需要确保符号唯一时，至少一个虚函数（通常是虚析构函数）应仅在类中声明，而定义在确定的翻译单元中（通常非头文件），即使使用显式默认的析构函数。
 作为公开接口的回调函数在库中应保留明确的定义以便确定唯一实体。对动态库，应避免实现自动导入或其它修饰。
@@ -569,7 +580,9 @@ inline 对 ODR(@5.1.8) 发生影响。
 
 @5.5.6.5 省略：
 在类定义中的成员函数声明中省略 inline 关键字，参见 ISO C++03 7.1.2/3 ；另见 @5.9.1.1 。
-注意 constexpr(@5.5.6.1) 隐含 inline 。
+注意修饰的函数或从 ISO C++17 起修饰类的静态变量的 constexpr(@5.5.6.1) 隐含 inline 。
+使用 constexpr 时，不应使用冗余的 inline 。
+不依赖 constexpr 中隐含的 const ，以避免影响声明类型的可读性。
 若类的成员函数声明和定义分离，在完整定义而不是声明处使用 inline 。
 函数模板在 ODR 上隐含和 inline 类似的效果，但一般不论是否需要被内联都使用相同的定义方式（参见 @5.9.1.2 ），不省略 inline 以明示目的。
 

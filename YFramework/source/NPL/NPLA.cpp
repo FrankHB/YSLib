@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2560
+\version r2583
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2019-05-22 17:58 +0800
+	2019-06-07 23:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,13 +27,13 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLA // for YSLib, string, YSLib::DecodeIndex, std::to_string,
-//	std::invalid_argument, ValueNode, NPL::Access, NPL::DerefEscapeLiteral, Literalize,
-//	NPL::AccessPtr, ystdex::value_or, ystdex::write, bad_any_cast,
+//	std::invalid_argument, ValueNode, NPL::Access, NPL::DerefEscapeLiteral,
+//	Literalize, NPL::AccessPtr, ystdex::value_or, ystdex::write, bad_any_cast,
 //	std::allocator_arg, YSLib::NodeSequence, NPL::Deref, ystdex::unimplemented, 
 //	ystdex::type_id, ystdex::quote, ystdex::call_value_or, ystdex::begins_with,
 //	YSLib::get_raw, NPL::make_observer, ystdex::sfmt, NPL::TryAccessTerm, sfmt,
 //	GetLValueTagsOf, std::mem_fn, ystdex::compose, ystdex::invoke_value_or,
-//	NPL::TryAccessLeaf, ystdex::ref, YSLib::FilterExceptions,
+//	NPL::TryAccessLeaf, NPL::IsMovable, ystdex::ref, YSLib::FilterExceptions,
 //	ystdex::retry_on_cond, ystdex::type_info, pair, ystdex::addrof,
 //	ystdex::second_of;
 #include YFM_NPL_SContext
@@ -604,6 +604,13 @@ IsLValueTerm(const TermNode& term)
 		NPL::TryAccessLeaf<const TermReference>(term));
 }
 
+bool
+IsUniqueTerm(const TermNode& term)
+{
+	return ystdex::invoke_value_or(&TermReference::IsUnique,
+		NPL::TryAccessLeaf<const TermReference>(term), true);
+}
+
 
 bool
 CheckReducible(ReductionStatus status)
@@ -626,6 +633,16 @@ RegularizeTerm(TermNode& term, ReductionStatus status) ynothrow
 	if(status == ReductionStatus::Clean)
 		term.ClearContainer();
 	return status;
+}
+
+
+void
+LiftTermOrCopy(TermNode& term, TermNode& tm, bool move)
+{
+	if(move)
+		LiftTerm(term, tm);
+	else
+		term.SetContent(tm);
 }
 
 
@@ -667,13 +684,8 @@ LiftToReturn(TermNode& term)
 	// TODO: Detect lifetime escape to perform copy elision?
 	// NOTE: Only outermost one level is referenced.
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
-		// NOTE: To keep lifetime of objects referenced by references introduced
-		//	in %A1::EvaluateIdentifier sane, %ValueObject::MakeMoveCopy is not
-		//	enough because it will not copy objects referenced in holders of
-		//	%YSLib::RefHolder instances).
-		NPL::SetContentWith(term, p->get(), &ValueObject::MakeCopy);
-	else
-		LiftTermIndirection(term);
+		NPL::SetContentWith(term, p->get(), NPL::IsMovable(*p)
+			? &ValueObject::MakeMove : &ValueObject::MakeCopy);
 	// NOTE: On the other hand, the references captured by vau handlers (which
 	//	requries recursive copy of vau handler members if forced) are not
 	//	blessed here to avoid leaking abstraction of detailed implementation

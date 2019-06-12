@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r5048
+\version r5278
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2019-05-22 20:02 +0800
+	2019-06-08 17:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,10 @@
 #include YFM_NPL_NPLA // for NPLATag, TermNode, ValueNode, YSLib::GHEvent,
 //	LoggedEvent, shared_ptr, Environment, ystdex::ref_eq,
 //	ystdex::equality_comparable, ystdex::exclude_self_params_t,
-//	YSLib::AreEqualHeld, std::is_constructible, ystdex::decay_t,
-//	ystdex::expanded_caller, ystdex::or_, ystdex::exclude_self_t,
-//	ystdex::make_function_type_t, ystdex::make_parameter_list_t, NPL::Deref,
+//	YSLib::AreEqualHeld, ystdex::make_function_type_t, ystdex::decay_t,
+//	ystdex::expanded_caller, std::is_constructible, ystdex::or_,
+//	ystdex::exclude_self_t, ystdex::enable_if_inconvertible_t,
+//	ystdex::make_parameter_list_t, NPL::Deref,
 //	ystdex::make_expanded, std::ref, NPL::Access, NPL::CheckRegular,
 //	ResolvedTermReferencePtr, ystdex::invoke_nonvoid, NPL::ResolveRegular,
 //	ystdex::make_transform, std::accumulate, ystdex::bind1,
@@ -597,11 +598,10 @@ WrapContextHandler(_func&& h)
 //@}
 
 
-//! \warning 非虚析构。
-//@{
 /*!
 \brief 形式上下文处理器。
 \since build 674
+\warning 非虚析构。
 
 处理列表项的操作符。
 */
@@ -615,18 +615,28 @@ public:
 	\since build 851
 	*/
 	function<bool(const TermNode&)> Check{IsBranchedList};
+	//! \since build 859
+	//@{
+	/*!
+	\brief 包装数。
+	\note 决定调用前需要对操作数进行求值的次数。
+	*/
+	size_t Wrapping;
 
 	//! \since build 697
 	template<typename _func,
 		yimpl(typename = ystdex::exclude_self_t<FormContextHandler, _func>)>
-	FormContextHandler(_func&& f)
-		: Handler(A1::WrapContextHandler<ContextHandler>(yforward(f)))
+	FormContextHandler(_func&& f, size_t n = 0)
+		: Handler(A1::WrapContextHandler<ContextHandler>(yforward(f))),
+		Wrapping(n)
 	{}
-	//! \since build 733
-	template<typename _func, typename _fCheck>
-	FormContextHandler(_func&& f, _fCheck c)
-		: Handler(A1::WrapContextHandler<ContextHandler>(yforward(f))), Check(c)
+	template<typename _func, typename _fCheck,
+		yimpl(typename = ystdex::enable_if_inconvertible_t<_fCheck, size_t>)>
+	FormContextHandler(_func&& f, _fCheck c, size_t n = 0)
+		: Handler(A1::WrapContextHandler<ContextHandler>(yforward(f))),
+		Check(c), Wrapping(n)
 	{}
+	//@}
 	//! \since build 757
 	DefDeCopyMoveCtorAssignment(FormContextHandler)
 
@@ -637,75 +647,40 @@ public:
 	*/
 	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
 		const FormContextHandler& x, const FormContextHandler& y)
-		ImplRet(x.Handler == y.Handler)
+		ImplRet(x.Equals(y))
 
 	/*!
 	\brief 处理一般形式。
 	\return Handler 调用的返回值，或 ReductionStatus::Clean 。
 	\throw std::invalid_argument 项检查未通过。
+	\warning 要求异步实现中对 Handler 调用时保证此对象生存期，否则行为未定义。
+	\sa ReduceArguments
+	\sa Wrapping
 	\since build 751
 
+	对每一个子项求值，重复 Wrapping 次；
+	然后检查项，对可调用的项调用 Hanlder ，否则抛出异常。
 	项检查不存在或在检查通过后，变换无参数规约，然后对节点调用 Hanlder ，
 		否则抛出异常。
 	无参数时第一参数具有两个子项且第二项为空节点。无参数变换删除空节点。
 	*/
+	PDefHOp(ReductionStatus, (), TermNode& term, ContextNode& ctx) const
+		ImplRet(CallN(Wrapping, term, ctx))
+
+private:
+	//! \since build 859
 	ReductionStatus
-	operator()(TermNode&, ContextNode&) const;
+	CallN(size_t, TermNode&, ContextNode&) const;
 
-	//! \since build 834
-	friend DefSwap(ynothrow, FormContextHandler, swap(_x.Handler, _y.Handler))
-};
+	//! \since build 859
+	YB_ATTR_nodiscard YB_PURE bool
+	Equals(const FormContextHandler&) const;
 
-
-/*!
-\brief 严格上下文处理器。
-\since build 754
-
-对参数先进行求值的处理列表项的操作符。
-*/
-class YF_API StrictContextHandler
-	: private ystdex::equality_comparable<StrictContextHandler>
-{
 public:
-	//! \since build 696
-	FormContextHandler Handler;
-
-	//! \since build 697
-	template<typename _func,
-		yimpl(typename = ystdex::exclude_self_t<StrictContextHandler, _func>)>
-	StrictContextHandler(_func&& f)
-		: Handler(yforward(f))
-	{}
-	//! \since build 733
-	template<typename _func, typename _fCheck>
-	StrictContextHandler(_func&& f, _fCheck c)
-		: Handler(yforward(f), c)
-	{}
-	//! \since build 757
-	DefDeCopyMoveCtorAssignment(StrictContextHandler)
-
-	//! \brief 比较上下文处理器相等。
-	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
-		const StrictContextHandler& x, const StrictContextHandler& y)
-		ImplRet(x.Handler == y.Handler)
-
-	/*!
-	\brief 处理函数。
-	\return Handler 调用的返回值。
-	\throw ListReductionFailure 列表子项不大于一项。
-	\warning 要求异步实现中对 Handler 调用时保证此对象生存期，否则行为未定义。
-	\sa ReduceArguments
-	\since build 751
-
-	对每一个子项求值；然后检查项数，对可调用的项调用 Hanlder ，否则抛出异常。
-	*/
-	ReductionStatus
-	operator()(TermNode&, ContextNode&) const;
-
 	//! \since build 834
-	friend DefSwap(ynothrow, StrictContextHandler, swap(_x.Handler, _y.Handler))
+	friend DefSwap(ynothrow, FormContextHandler, (swap(_x.Handler, _y.Handler),
+		std::swap(_x.Wrapping, _y.Wrapping)))
 };
-//@}
 
 
 /*!
@@ -728,7 +703,7 @@ inline void
 RegisterStrict(_tTarget& target, string_view name, _tParams&&... args)
 {
 	NPL::EmplaceLeaf<ContextHandler>(target, name,
-		StrictContextHandler(yforward(args)...));
+		FormContextHandler(yforward(args)..., size_t(1)));
 }
 //@}
 
@@ -1191,7 +1166,7 @@ BindParameter(ContextNode&, const TermNode&, TermNode&);
 其中，形式参数被视为作为形式参数树的右值。
 绑定选项以 TermTags 编码，但含义和作用在项上时不完全相同：
 仅使用其中的 Unique 位和 Nonmodifying 位；
-Unique 表示不被共享的项（在此即非列表左值）；
+Unique 表示不被共享的项（在此即右值）；
 Nonmodifying 表示需要复制。
 当需要复制时，递归处理的所有对实际参数的绑定以复制代替转移；
 可能被共享的项在发现表达数树中存在列表后失效，且对之后的子项进行递归处理。
@@ -1246,11 +1221,34 @@ CallResolvedUnary(_func&& f, TermNode& term)
 	}, term);
 }
 
+//! \exception bad_any_cast 异常中立：非列表项类型检查失败。
+//@{
+//! \since build 859
+template<typename _type, typename _func, typename... _tParams>
+auto
+CallResolvedUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
+	-> yimpl(decltype(ystdex::make_expanded<void(_type&,
+	const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
+	NPL::Access<_type>(term), ResolvedTermReferencePtr(),
+	std::forward<_tParams>(args)...)))
+{
+	return Forms::CallResolvedUnary(
+		[&](TermNode& nd, ResolvedTermReferencePtr p_ref)
+		// TODO: Blocked. Use C++14 'decltype(auto)'.
+		-> decltype(ystdex::make_expanded<void(_type&,
+		const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
+		NPL::Access<_type>(term), ResolvedTermReferencePtr())){
+		// XXX: Blocked. 'yforward' cause G++ 7.1.0 failed silently.
+		return ystdex::make_expanded<void(_type&,
+			const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
+			NPL::Access<_type>(nd), p_ref, std::forward<_tParams>(args)...);
+	}, term);
+}
+
 /*!
-\brief 访问节点的子节点，以正规值调用一元函数。
+\note 访问节点的子节点，以正规值调用一元函数。
 \sa CheckRegular
 \exception ListTypeError 异常中立：项为列表项。
-\exception bad_any_cast 异常中立：非列表项类型检查失败。
 */
 template<typename _type, typename _func, typename... _tParams>
 auto
@@ -1260,21 +1258,20 @@ CallRegularUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 	NPL::Access<_type>(term), ResolvedTermReferencePtr(),
 	std::forward<_tParams>(args)...)))
 {
-	// TODO: Blocked. Use C++14 'decltype(auto)'.
-	using ret_t = decltype(ystdex::make_expanded<void(_type&,
-		const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
-		NPL::Access<_type>(term), ResolvedTermReferencePtr()));
-
 	return Forms::CallResolvedUnary(
-		[&](TermNode& nd, ResolvedTermReferencePtr p_ref) -> ret_t{
-		return NPL::CheckRegular<_type>([&, p_ref]() -> ret_t{
-			// XXX: Blocked. 'yforward' cause G++ 7.1.0 failed silently.
-			return ystdex::make_expanded<void(_type&,
-				const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
-				NPL::Access<_type>(nd), p_ref, std::forward<_tParams>(args)...);
-		}, nd, p_ref);
+		// TODO: Blocked. Use C++14 'decltype(auto)'.
+		[&](TermNode& nd, ResolvedTermReferencePtr p_ref)
+		-> decltype(ystdex::make_expanded<void(_type&,
+		const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
+		NPL::Access<_type>(term), ResolvedTermReferencePtr())){
+		NPL::CheckRegular<_type>(nd, p_ref);
+		// XXX: Blocked. 'yforward' cause G++ 7.1.0 failed silently.
+		return ystdex::make_expanded<void(_type&,
+			const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
+			NPL::Access<_type>(nd), p_ref, std::forward<_tParams>(args)...);
 	}, term);
 }
+//@}
 //@}
 
 /*!
@@ -1687,7 +1684,7 @@ ConsRef(TermNode&);
 
 /*!
 \throw ListTypeError 第一参数不是非空列表。
-\throw ValueCategoryMismatch 第一参数不是左值。
+\throw ValueCategoryMismatch 第一参数不是引用值。
 \since build 834
 */
 //@{
@@ -1753,6 +1750,52 @@ SetRestRef(TermNode&);
 //@}
 //@}
 
+/*!
+\brief 取参数指定的列表中的第一元素的引用值。
+\throw ListTypeError 参数不是非空列表。
+\since build 859
+*/
+//@{
+/*!
+转发参数和函数值。
+
+参考调用文法：
+<pre>first \<list></pre>
+*/
+YF_API ReductionStatus
+First(TermNode&);
+
+//! \throw ValueCategoryMismatch 参数不是引用值。
+//@{
+/*!
+保留结果中的引用值。
+
+参考调用文法：
+<pre>first& \<list></pre>
+*/
+YF_API ReductionStatus
+FirstRef(TermNode&);
+
+/*!
+保留结果中未折叠的引用值。
+
+参考调用文法：
+<pre>first@ \<list></pre>
+*/
+YF_API ReductionStatus
+FirstRefAt(TermNode&);
+
+/*!
+不保留结果中的引用值。
+
+参考调用文法：
+<pre>firstv \<list></pre>
+*/
+YF_API ReductionStatus
+FirstVal(TermNode&);
+//@}
+//@}
+
 
 /*!
 \brief 对指定项按指定的环境求值。
@@ -1795,7 +1838,8 @@ EvalRef(TermNode&, ContextNode&);
 \note 没有 REPL 中的预处理过程。
 \sa Eval
 
-eval-string \<string> \<environment>
+参考调用文法：
+<pre>eval-string \<string> \<environment></pre>
 */
 YF_API ReductionStatus
 EvalString(TermNode&, ContextNode&);
@@ -1806,7 +1850,9 @@ EvalString(TermNode&, ContextNode&);
 \sa EvalRef
 
 在返回时不提升项，允许返回引用。
-eval-string% \<string> \<environment>
+
+参考调用文法：
+<pre>eval-string% \<string> \<environment></pre>
 */
 YF_API ReductionStatus
 EvalStringRef(TermNode&, ContextNode&);
@@ -1817,7 +1863,8 @@ EvalStringRef(TermNode&, ContextNode&);
 \sa Reduce
 \since build 835
 
-eval-unit \<string> \<object>
+参考调用文法：
+<pre>eval-unit \<string> \<object></pre>
 */
 YF_API ReductionStatus
 EvalUnit(TermNode&);
@@ -2062,16 +2109,29 @@ VauWithEnvironmentRef(TermNode&, ContextNode&);
 //@}
 
 
-//! \since build 785
+//! \since build 859
 //@{
 /*!
 \brief 包装合并子为应用子。
+\exception NPLException 包装数溢出。
 
 参考调用文法：
 <pre>wrap \<combiner></pre>
 */
-YF_API ContextHandler
-Wrap(const ContextHandler&);
+YF_API ReductionStatus
+Wrap(TermNode&, ContextNode&);
+
+/*!
+\brief 包装合并子为应用子。
+\exception NPLException 包装数溢出。
+
+允许返回引用。
+
+参考调用文法：
+<pre>wrap& \<combiner></pre>
+*/
+YF_API ReductionStatus
+WrapRef(TermNode&, ContextNode&);
 
 //! \exception TypeError 应用子参数的类型不符合要求。
 //@{
@@ -2081,8 +2141,19 @@ Wrap(const ContextHandler&);
 参考调用文法：
 <pre>wrap1 \<operative></pre>
 */
-YF_API ContextHandler
-WrapOnce(const ContextHandler&);
+YF_API ReductionStatus
+WrapOnce(TermNode&, ContextNode&);
+
+/*!
+\brief 包装操作子为应用子。
+
+允许返回引用。
+
+参考调用文法：
+<pre>wrap1& \<operative></pre>
+*/
+YF_API ReductionStatus
+WrapOnceRef(TermNode&, ContextNode&);
 
 /*!
 \brief 解包装应用子为合并子。
@@ -2097,21 +2168,65 @@ Unwrap(TermNode&, ContextNode&);
 //@}
 
 
+//! \since build 859
+//@{
+/*!
+\brief 抛出缺少项的异常。
+\throw ParameterMismatch 缺少项的错误。
+*/
+YF_API YB_NORETURN void
+ThrowInsufficientTermsError();
+
+/*!
+\brief 抛出参数指定消息的语法错误异常。
+\throw InvalidSyntax 语法错误。
+*/
+//@{
+//! \pre 间接断言：第一参数非空。
+YF_API YB_NONNULL(1) YB_NORETURN void
+ThrowInvalidSyntaxError(const char*);
+YF_API YB_NORETURN void
+ThrowInvalidSyntaxError(string_view);
+//@}
+
+/*!
+\brief 抛出被赋值操作数不可修改的异常。
+\throw TypeError 被赋值操作数不可修改错误。
+*/
+YF_API YB_NORETURN void
+ThrowNonmodifiableErrorForAssignee();
+
 /*!
 \brief 抛出第一参数不符合预期值类别的异常。
 \throw ValueCategory 第一参数值类别错误。
-\since build 857
 */
-YB_NORETURN void
+YF_API YB_NORETURN void
 ThrowValueCategoryErrorForFirstArgument(const TermNode&);
 
+//! \return ReductionStatus::Regular 。
+//@{
 /*!
-\brief 检查参数指定的项表示引用列表项的引用。
-\return ReductionStatus::Regular 。
+\brief 检查参数指定的项表示环境。
+\exception TypeError 检查失败：参数指定的项不表示环境。
+\exception ListTypeError 检查失败：参数指定的项表示列表。
+
+对参数指定的项进行检查。
+接受对象语言的一个参数。若这个参数不表示环境，抛出异常；
+	否则，对象语言中返回为参数指定的值。
+
+参考调用文法：
+<pre>check-environment \<object></pre>
+*/
+YF_API ReductionStatus
+CheckEnvironment(TermNode&);
+
+/*!
+\brief 检查参数指定的项表示非空列表的引用。
+\exception ListTypeError 检查失败：参数指定的项不表示非空列表。
 \since build 857
 
 对参数指定的项进行检查。
-接受对象语言的一个参数。若这个参数不表示引用值，抛出异常；
+接受对象语言的一个参数。若这个参数不表示非空列表引用值，抛出异常；
 	否则，对象语言中返回为参数指定的值。
 
 参考调用文法：
@@ -2119,6 +2234,8 @@ ThrowValueCategoryErrorForFirstArgument(const TermNode&);
 */
 YF_API ReductionStatus
 CheckListReference(TermNode&);
+//@}
+//@}
 
 
 /*!
@@ -2151,6 +2268,17 @@ MakeEncapsulationType(TermNode&);
 */
 YF_API ReductionStatus
 Sequence(TermNode&, ContextNode&);
+
+/*!
+\brief 函数应用：应用参数指定的函数和作为函数参数的列表。
+\since build 859
+
+参考调用文法：
+<pre>apply \<applicative> \<object> \<environment>
+apply \<applicative> \<object></pre>
+*/
+YF_API ReductionStatus
+Apply(TermNode&, ContextNode&);
 
 
 /*!

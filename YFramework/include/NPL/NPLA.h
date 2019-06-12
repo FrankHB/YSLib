@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r5811
+\version r5893
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2019-05-21 15:56 +0800
+	2019-06-08 11:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -504,7 +504,7 @@ public:
 	NPLException(const char* str = "", YSLib::RecordLevel lv = YSLib::Err)
 		: LoggedEvent(str, lv)
 	{}
-	NPLException(const string_view sv, YSLib::RecordLevel lv = YSLib::Err)
+	NPLException(string_view sv, YSLib::RecordLevel lv = YSLib::Err)
 		: LoggedEvent(sv, lv)
 	{}
 	//! \since build 844
@@ -967,7 +967,7 @@ enum class ReductionStatus : yimpl(size_t)
 	\brief 重规约。
 	\since build 757
 	*/
-	Retrying,
+	Retrying
 };
 
 
@@ -1086,6 +1086,7 @@ public:
 
 若被参数引用值引用的对象是否是一个引用值，结果为合并标签后的被后者引用的对象和 true ；
 否则，返回自身和 false 。
+引用值可包含的非正规表示不被处理，调用时应注意维护子项生存期。
 */
 YB_ATTR_nodiscard YF_API pair<TermReference, bool>
 Collapse(TermReference);
@@ -1125,6 +1126,7 @@ ReferenceTerm(const TermNode&) ynothrow;
 不对被访问的项引用具所有权。
 注意具体类型不应被依赖。使用内建指针实现以在某些 ABI 上提供高效的二进制实现，
 	并支持转换为访问参数指针的操作在常量表达式上下文中出现。
+这个类型用于解析项时的可选指针参数，其使用详见以下 NPL::ResolveTerm 。
 */
 using ResolvedTermReferencePtr = yimpl(const TermReference*);
 
@@ -1132,9 +1134,31 @@ using ResolvedTermReferencePtr = yimpl(const TermReference*);
 \brief 转换项引用指针为项引用的访问参数指针。
 \relates ResolvedTermReferencePtr
 */
-yconstfn PDefH(ResolvedTermReferencePtr, ResolveToTermReferencePtr,
-	observer_ptr<const TermReference> p) ynothrow
+YB_ATTR_nodiscard YB_PURE yconstfn PDefH(ResolvedTermReferencePtr,
+	ResolveToTermReferencePtr, observer_ptr<const TermReference> p) ynothrow
 	ImplRet(p.get())
+//@}
+
+
+/*!
+\brief 判断解析后的项是否指示可被转移的项。
+\since build 859
+
+判断参数指定的项是否可被转移。
+参数是项的引用或指向项的指针（支持包括项引用指针和项引用的访问参数指针），
+	通常应表示解析项的结果。
+*/
+//@{
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, IsMovable, const TermReference& ref) ynothrow
+	ImplRet(ref.IsMovable())
+template<typename _tPointer>
+YB_ATTR_nodiscard YB_PURE inline auto
+IsMovable(_tPointer p) ynothrow
+	-> decltype(!bool(p) || NPL::IsMovable(*p))
+{
+	return !bool(p) || NPL::IsMovable(*p);
+}
 //@}
 
 
@@ -1187,10 +1211,22 @@ TryAccessReferencedTerm(const TermNode& term)
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsReferenceTerm(const TermNode&);
 
-//! \brief 判断项是否表示左值引用。
+/*!
+\brief 判断项是否表示左值引用。
+\sa TermReference::IsReferencedLValue
+*/
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsLValueTerm(const TermNode&);
 //@}
+
+//! \since build 859
+//@{
+/*!
+\brief 判断项是否表示非引用项或唯一引用。
+\sa TermReference::IsUnique
+*/
+YB_ATTR_nodiscard YF_API YB_PURE bool
+IsUniqueTerm(const TermNode&);
 
 /*!
 \brief 解析并间接引用处理可能是引用值的项。
@@ -1199,12 +1235,25 @@ IsLValueTerm(const TermNode&);
 \sa ResolveTermHandler
 \sa ResolvedTermReferencePtr
 \sa TermReference
-\since build 855
+
+接受指定解析实现的函数和被解析的项作为参数，尝试访问其中是否具有引用值。
+若确定是引用值，则被引用的项是被引用值引用的项；否则，被引用的项是第二参数指定的项。
+确定被引用的项后，调用解析函数继续处理。
+参数指定解析函数和被解析的项。
+解析函数应具有第一参数取被解析的项的引用，还可以具有第二可选参数。后者是
+	NPL::ResolvedTermReferencePtr 或 NPL::ResolvedTermReferencePtr 保证支持的
+	可隐式转换的目的类型（如 bool ）。
+调用解析函数时，指向被解析的项的 NPL::ResolvedTermReferencePtr 类型的值
+	被作为实际参数。
+和 observer_ptr<const TermReference> 不同，因为这个类型允许隐式转换为 bool ，
+	所以解析函数的实现中可直接以 bool 作为第二形式参数。
 */
 template<typename _func, class _tTerm>
 auto
 ResolveTerm(_func do_resolve, _tTerm&& term)
-	-> decltype(do_resolve(yforward(term), ResolvedTermReferencePtr()))
+	-> yimpl(decltype(ystdex::make_expanded<yimpl(void)(_tTerm&&,
+	ResolvedTermReferencePtr)>(std::ref(do_resolve))(yforward(term),
+	ResolvedTermReferencePtr())))
 {
 	using handler_t = yimpl(void)(_tTerm&&, ResolvedTermReferencePtr);
 
@@ -1219,17 +1268,15 @@ ResolveTerm(_func do_resolve, _tTerm&& term)
 /*!
 \exception ListTypeError 异常中立：项为列表项。
 \exception bad_any_cast 异常中立：非列表项类型检查失败。
-\since build 855
 */
 //@{
-template<typename _type, typename _func, class _tTerm, typename... _tParams>
-YB_ATTR_nodiscard YB_PURE auto
-CheckRegular(_func f, _tTerm& term, bool has_ref, _tParams&&... args)
-	-> yimpl(decltype(f(yforward(args)...)))
+template<typename _type, class _tTerm>
+void
+CheckRegular(_tTerm& term, bool has_ref)
 {
-	if(!IsList(term))
-		return f(yforward(args)...);
-	ThrowListTypeErrorForInvalidType(ystdex::type_id<_type>(), term, has_ref);
+	if(YB_UNLIKELY(IsList(term)))
+		ThrowListTypeErrorForInvalidType(ystdex::type_id<_type>(), term,
+			has_ref);
 }
 
 /*!
@@ -1241,10 +1288,8 @@ YB_ATTR_nodiscard YB_PURE auto
 AccessRegular(_tTerm& term, bool has_ref)
 	-> yimpl(decltype(NPL::Access<_type>(term)))
 {
-	return NPL::CheckRegular<_type>([&]()
-		-> yimpl(decltype(NPL::Access<_type>(term))){
-		return NPL::Access<_type>(term);
-	}, term, has_ref);
+	NPL::CheckRegular<_type>(term, has_ref);
+	return NPL::Access<_type>(term);
 }
 
 /*!
@@ -1261,6 +1306,7 @@ ResolveRegular(_tTerm& term) -> yimpl(decltype(NPL::Access<_type>(term)))
 		return NPL::AccessRegular<_type>(nd, has_ref);
 	}, term);
 }
+//@}
 //@}
 //@}
 
@@ -1357,7 +1403,7 @@ inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo) ynothrow
 //@}
 
 /*!
-\brief 提升项间接引用：复制或转移间接引用项使项不含间接值。
+\brief 提升项间接引用：复制或转移项使项的值数据成员不含间接值。
 \since build 834
 */
 inline PDefH(void, LiftTermIndirection, TermNode& term)
@@ -1365,12 +1411,28 @@ inline PDefH(void, LiftTermIndirection, TermNode& term)
 	ImplExpr(NPL::SetContentWith(term, std::move(term),
 		&ValueObject::MakeMoveCopy))
 
+/*!
+\brief 提升项或项的副本。
+\since build 859
+
+提升参数指定的项或设置项。第三参数指定是否直接提升。
+若直接提升，同 LiftTerm ，否则同 TermNode::SetContent 。
+*/
+YF_API void
+LiftTermOrCopy(TermNode&, TermNode&, bool);
+
 
 /*!
 \brief 提升折叠后的项引用。
 \sa Collapse
 \sa LiftTerm
 \since build 858
+
+按参数指定的项提升引用。参数分别为目标、源和项引用。
+不复制项的标签。这适合不保留标签的赋值操作。
+使用第二参数以支持非正规表示。
+假定第三参数引用的项是第二参数；
+否则，若目标和源项不相同且引用值具有非正规表示，行为未定义。
 */
 YF_API void
 LiftCollapsed(TermNode&, TermNode&, TermReference);
@@ -1411,7 +1473,7 @@ YF_API void
 LiftToReference(TermNode&, TermNode&);
 
 /*!
-\brief 提升间接引用项以满足返回值的内存安全要求。
+\brief 提升项的值数据成员可能包含的引用值以满足返回值的内存安全要求。
 \note 复制引用项引用的对象，调用 LiftTermIndirection 复制或转移非引用项的对象。
 \sa LiftTermIndirection
 \since build 828
@@ -1420,7 +1482,7 @@ YF_API void
 LiftToReturn(TermNode&);
 
 /*!
-\brief 提升右值中的提升间接引用项以满足返回值的内存安全要求。
+\brief 提升表示右值的项的值数据成员可能包含的引用值以满足返回值的内存安全要求。
 \note 对左值不进行修改，否则同 LiftToReturn 。可实现类似 C++ 的 std::forward 。
 \sa IsLValueTerm
 \sa LiftToReturn
@@ -1431,7 +1493,8 @@ LiftRValueToReturn(TermNode&);
 //@}
 
 /*!
-\brief 对每个子项调用 LiftToReturn 。
+\brief 对每个子项提升项的值数据成员可能包含的引用值。
+\sa LiftToReturn
 \since build 830
 */
 inline PDefH(void, LiftSubtermsToReturn, TermNode& term)

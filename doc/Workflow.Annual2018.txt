@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2018 年度。
-\version r826
+\version r831
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2018-02-27 22:36:36 +0800
 \par 修改时间:
-	2019-02-22 14:26 +0800
+	2019-06-12 14:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,7 @@ $2018-05:
 
 $report.impl:
 Several DS buidling problem concerned with compatibility issues in devkitPro has been addressed.
-	The update of libnds 1.6.0 changes minor internal interfaces, which has been adapted in module 'YCLib.NativeAPI'.
+	The update of libnds 1.6.0 changes minor internal interfaces, which has been adapted in module YCLib::NativeAPI.
 	The update of devkitARM r46 changes libgloss I/O interface in newlib, using 'void*' instead of 'int' as internal representation of file descriptor.
 		Module 'YCLib_(DS).DSIO' is adapted to use 'void*' type file handle instead of raw file descriptor.
 			This also reduces casts between pointers and 'int'.
@@ -186,7 +186,7 @@ TCO (tail call optimization) algorithm in NPLA1 to support PTC (proper tail call
 			The objects being seached is a set of environment, called candidate search set, defined by following rules:
 				The environment in the guard object is the root of search.
 				All direct and indirect parents of the root which can be determined in finite time is also in the set.
-					The determination dependes on module 'NPLA'. In current design, there is no nondeterminism in parantage, and all search operations shall terminate in finite time.
+					The determination dependes on module NPL::NPLA. In current design, there is no nondeterminism in parantage, and all search operations shall terminate in finite time.
 				No other object are in the set.
 			The operation to determine the candidate search set is tracing.
 			After tracing determine the objects to be collected in the candidate search set, objects are collected if necessary.
@@ -357,14 +357,14 @@ Use of inherited constructors are rechecked to interact without resolution from 
 	This is searched using regular expression pattern 'using (.+)\:\:\1' in the editor in VS 2017.
 	Currently, resolution of WG21 P0136R1 (esp. for CWG 1941) is not relied on.
 		Some of the inherited constructors may be effected with dependent types from template parameters.
-			Currently, these class names matching the pattern are 'derived_entity', 'default_init_allocator' and 'path' in module 'YBase::YStandardEx'.
-			The only use of 'derived_entity' in user code is 'NPL::TokenValue' in module 'YFramework::NPL::NPLA'.
+			Currently, these class names matching the pattern are 'derived_entity', 'default_init_allocator' and 'path' in namespace 'ystdex' provided by YBase module YStandardEx.
+			The only use of 'derived_entity' in user code is 'NPL::TokenValue' in module NPL::NPLA.
 				This is not considered relying on P0136R1 because it is based on interface like 'std::basic_string', where there no issue is related directly.
 				This changes after adoption of C++17 whose 'std::basic_string' having conditionally enabled constructor targetting to 'std::basic_string_view' instances.
 					This should ideally be resolved before adapting 'string_view' on the new 'ystdex::basic_string', but nothing is required to be done yet, since new constructors of 'std::basic_string' is still compatible in semantics with substitution failure.
 			No use of 'default_init_allocator' in user code is found.
 			Class name 'path' is safe because due to 'ystdex::sequence_container_adaptor'. 
-		All other use are safe except 'using u16string::u16string;' in class 'String' in 'YFramework::YSLib::Core::YString'.
+		All other use are safe except 'using u16string::u16string;' in class 'String' in module YSLib::Core::YString.
 			This should also be handled like 'ystdex::basic_string' and 'NPL::TokenValue'.
 
 $2018-08:

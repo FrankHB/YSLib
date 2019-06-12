@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2018 FrankHB.
+	© 2014-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r660
+\version r685
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-10 05:09:57 +0800
 \par 修改时间:
-	2018-07-30 05:32 +0800
+	2019-06-12 14:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -226,6 +226,25 @@ t_constfn() ynothrow
 
 } // namespace memory_test;
 
+//! \since build 851
+namespace function_test
+{
+
+struct C
+{
+	C() = default;
+	C(function<C(int)>);
+	C(function<C(int, int)>);
+	template<class _type>
+	C
+	operator()(_type&&);
+	template<class _type>
+	C
+	operator()(_type&&, _type&&);
+};
+
+} // namespace function_test;
+
 //! \since build 549
 namespace bitseg_test
 {
@@ -350,6 +369,15 @@ main()
 	seq_apply(make_guard("YStandard.AddressOf").get(pass, fail),
 		memory_test::t_constfn<memory_test::t1>(),
 		memory_test::t_constfn<memory_test::t2>()
+	);
+	// 1 case covering: ystdex::function.
+	seq_apply(make_guard("YStandard.Function").get(pass, fail),
+		[]{
+			// NOTE: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65760.
+			const auto c = function_test::C();
+
+			yunused(c);
+		}
 	);
 	// 4 cases covering: ystdex::apply, ystdex::compose, ystdex::make_expanded.
 	seq_apply(make_guard("YStandard.Functional").get(pass, fail),

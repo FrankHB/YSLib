@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r12617
+\version r12940
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-05-22 21:08 +0800
+	2019-06-12 14:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,320 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA $=
+		(
+			+ $re_add(b852) $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+				@ "function %ResolveToTermReferencePtr",
+			(
+			+ "function %IsMovable";
+			+ "function template %IsMovable",
+			/ "supported moving object referenced by reference arguments as \
+				rvalues and avoided non-reference lifting by calling \
+				%LiftTermIndirection" @ "function %LiftToReturn"; $comp
+				"functions %(LiftSubtermsToReturn; ReduceBranchToListValue)"
+				// The call to %LiftTermIndirection should be avoid in cases \
+					other than a few like applicative %deshare. This is \
+					basically not guaranteed in interface (and annoying to \
+					simulate in non-native derivations). This also improves \
+					performance in many cases.
+			),
+			/ @ "function template %CheckRegular" $=
+			(
+				/ "removed forwarding call parameters" $dep_to
+					"simplified regular check call";
+					// This change (rather than removing 'YB_PURE') is made \
+						also to improve perforance, although it requires user \
+						code to change.
+				* "wrong 'YB_PURE'" $since b855
+			),
+			/ $forced DLDI @ "function template %AccessRegular" $dep_from
+				"simplified regular check call",
+			/ DLDI "avoid redundant ',' at end of enumerators"
+				@ "enum class %ReductionStatus",
+			+ "functions %(IsUniqueTerm, LiftTermOrCopy)",
+			* "missing optional argument support caused by wrong \
+				trailing-return-type" @ "function template %ResolveTerm"
+				$since b855,
+			- DLDI "redundant 'const'" @ "1st parameter"
+				@ "constructor %NPLException#2"
+		),
+		/ %NPLA1 $=
+		(
+			/ @ "namespace %Forms" $=
+			(
+				* "termination caused by invalid 'ynothrow' when failed to \
+					modify term" @ "decapsulation strict context handler \
+					%operator()" @ "function %MakeEncapsulationType" $since
+					b858,
+				/ @ ("function %Unwrap",
+					"decapsulation strict context handler %operator()"
+					@ "function %MakeEncapsulationType") $=
+				(
+					* $comp "temporary parameters not treated as rvalues"
+						(@ "function %Unwrap" $since b858,
+						@ "decapsulation strict context handler %operator()"
+						@ "function %MakeEncapsulationType" $since b857),
+						$dep_from ("%TermReference::IsUnique" @ %NPLA),
+					/ DLDI "simplified" ^ $dep_from
+						("%NPL::IsMovable" @ %NPLA)
+				),
+				+ "function template %CallResolvedUnaryAs",
+					// This is not used currently. It is friendly to future \
+						extensions.
+				/ @ "function template %CallRegularUnaryAs" $=
+				(
+					/ $forced DLDI "simplified" $dep_from
+						"simplified regular check call";
+					* $comp $since b855
+						// This behaves wrongly even in %debug configurations.
+				),
+				(
+				/ "supported moving object referenced by non-aliased reference \
+					arguments as rvalues" $=
+				(
+					/ $comp @ "functions %(Cons, SetRest)" $dep_from
+						("%LiftSubtermsToReturn" @ %NPLA)
+						$dep_to "native return move support",
+					/ @ "functions %(Wrap, WrapOnce)" $=
+					(
+						/ "function type" -> 'void(TermNode&)'
+							~ 'ContextHandler(const ContextHandler&)';
+						/ $impl ^ $dep_from "%CallRegularUnaryAs"
+					)
+				);
+				+ "functions %(WrapRef, WrapOnceRef)" ^ $dep_from
+					"%CallRegularUnaryAs"
+				),
+				/ "supported %ValueToken::Unspecified for NPLA1 expression \
+					without <alternate> subexpression" @ "function %If",
+				/ "supported move of rvalue operands"
+					@ "functions %(Cons, ConsRef, SetRest, SetRestRef)"
+					^ $dep_from ("%NPL::IsMovable" @ %NPLA)
+					$dep_to "native rvalue operands move support",
+				/ "rvalue references checked as failure"
+					@ "function %CheckListReference" $mismatch $since b857,
+				/ "support %TermTags::Unique and %TermTags::Temporary \
+					propagation for references"
+					@ "function %MatchParameter",
+					// This makes the %TermTags parameter to have more \
+						precise meaning to the enumerators.
+				/ @ "function %BindParameter" $=
+				(
+					/ "preserved tail anchor in the current environment"
+						@ "TCO implementation",
+					/ $forced DLDI $dep_from "function %MatchParameter",
+					/ "supported move for binding by value with rvalue \
+						operands",
+					/ "term tag on sigil '&' binding for non-reference operands"
+						$=
+					(
+						* "missing removing %TermTags::Temporary from the \
+							source term" $since b857;
+							// Since the referent can be bound in an \
+								environment, it may have this tag.
+						* "bogus %TermTags::Nonmodifying added" $since b856
+							$dep_to "modifying qualification fix",
+						/ "inherited input tags"
+					),
+					* "bogus %TermTags::Temporary initialized for references"
+						@ "term tag on sigil '&' binding for reference operands"
+						$since b857 $dep_from ("missing massive forwarding",
+						"avoiding reference temporary tags rebinding")
+						$dep_to "shared temporaries fix"
+						// This bug would cause binding on temporaries used \
+							more than once easily moved unexpectedly.
+				),
+				/ DLDI "simplified resolved list reference checks"
+					@ "functions %(CheckListReference, SetFirst, \
+					SetFirstRef, SetRest, SetRestRef)",
+					// This is similar to the changel of %CheckRegular.
+				* "missing 'YF_API" @ "function \
+					%ThrowValueCategoryErrorForFirstArgument" $since b857,
+				+ "functions %(FirstRef, FirstRefAt, \
+					ThrowNonmodifiableErrorForAssignee)",
+				(
+				+ "function %ThrowInsufficientTermsError";
+				/ DLDI "simplified function %ThrowInsufficientTermsError"
+					^ "%ThrowInsufficientTermsError",
+				+ "function %First"
+				),
+				/ DLDI "avoiding redundant branching"
+					@ "functions %(SetFirst, SetFirstRef, SetFirstRefAt)",
+				/ "supported move" @ "function %SetFirst" ^ $dep_from
+					("%LiftTermOrCopy" @ %NPLA),
+				/ DLDI "functions %(SetRest, SetRestRef)",
+				+ "function %FirstVal" ^ $dep_from "%ResolveTerm",
+				+ "function %CheckEnvironment",
+				* DD "missing <pre> and </pre> tags" @ "Doxygen comments"
+					@ "functions %(EvalString, EvalStringRef, EvalUnit)" $since
+					b855,
+				/ DLDI "simplified functions %(Cons, ConsRef)",
+				/ @ ("functions %(Eval, EvalRef, EvalString, EvalStringRef)",
+					"%operator()" @ "vau handlers") $=
+				(
+					/ "simplified" ^ $dep_from ("%LiftTermOrCopy" @ %NPLA),
+					* "missing setting current term for the next continuation"
+						$since b851
+				),
+				/ DLDI "function %MakeEncapsulationType" !^ 'const auto&',
+					// To be consistent with other instances of the \
+						initialization of the allocator object.
+				+ "function %Apply",
+				+ "2 functions %ThrowInvalidSyntaxError"
+			),
+			(
+			/ @ "class %FormContextHandler" $=
+			(
+				(
+				+ "data member %Wrapping";
+				/ "supported wrapping calls" @ "operator %()",
+				+ "wrapping count parameter with 0 default argument"
+					@ "2 function templates",
+				/ $forced $lib $impl "%(operator==, swap)"
+				),
+				/ DLI "optimized argument evaluation of cases with no argument"
+					@ "thunked implementation"
+					// Like klisp.
+			);
+			/ ("functions %(RegisterSequenceContextTransformer, \
+				Forms::(Wrap, WrapOnce, Unwrap; Lambda, LambdaRef, \
+				MakeEncapsulationType))", "function template %RegisterStrict")
+				^ "%FormContextHandler" ~ "%StrictContextHandler";
+			/ $comp "failure message on operative arguments"
+				@ "%Forms::Unwrap",
+			- $revert(b754) "class %StrictContextHandler"
+			),
+			/ DLDI "simplified non-thunked implementation"
+				@ "function %ReduceChildrenOrdered"
+		),
+		/ %Dependency $=
+		(
+			/ @ "function %LoadGroundContext" $=
+			(
+				/ $forced "applicative %wrap" ^ "%RegisterStrict"
+					~ "%RegisterStrictUnary" $dep_from ("%Wrap" @ %NPLA1);
+				(
+				/ $comp "supported move parameters as possible"
+					@ ("applicative %list" $dep_from
+					("%ReduceBranchToListValue" @ %NPLA),
+					"applicative %cons" $dep_from ("%Cons" @ %NPLA1),
+					"applicative 'set-rest!'" $dep_from
+					("%SetRest" @ %NPLA1), "applicative %wrap");
+				/ $forced DLDI "derivation equivalence of applicatives \
+					('cons', 'cons%', 'set-rest!', 'set-rest%!')"
+					$dep_from "native return move support"
+					$= (/ $comp $dep_from "native rvalue operands move support")
+				),
+				/ $comp "result of operatives ('$if'; '$when', '$unless') \
+					when the condition is '#f'" -> '#inert' ~ '()' $dep_from
+					("%If" @ %NPLA1),
+				* "wrong result" @ "operatives ('$when', '$unless') when \
+					<body> is empty" $since b789,
+				* $comp "wrong result of 'eqv?' for subobject references \
+					wrapped from %unwrap lvalues" $since b858 $dep_from
+					("%operator==" @ "class %FormContextHandler") @ %NPLA1,
+				+ "applicative 'wrap%'" ^ $dep_from ("%WrapRef" @ %NPLA1),
+				/ DLDI "simplified" @ "applicative 'assign!'" ^ $dep_from
+					("%NPL::IsMovable" @ %NPLA),
+				+ "native derivation" @ "applicative 'check-environment' and \
+					enabled by default" ^ $dep_from
+					("%CheckEnvironment" @ %NPLA1),
+				+ "native derivation" @ "applicative 'first&' and enabled by \
+					default" ^ $dep_from ("%FirstRef" @ %NPLA1),
+				+ "modifiable lvalue check before assignment"
+					@ "applicatives ('assign!', 'assign%!', 'assign@!')"
+					^ $dep_from
+					("%ThrowNonmodifiableErrorForAssignee" @ %NPLA1)
+					$dep_from "modifying qualification fix",
+					// This would break 'force' in 'std.promises' without the \
+						fix.
+				+ "native derivation" @ "applicative 'first@' and enabled by \
+					default" ^ $dep_from ("%FirstRefAt" @ %NPLA1),
+				/ DLDI "simplified symbol 'denv'" @ "derivation"
+					@ "operatives ('$bindings/p->environment', \
+					'$bindings->environment')"-> 'd',
+				+ "applicative 'unique?'" ^ $dep_from
+					("%IsUniqueTerm" @ %NPLA),
+				/ "copied the term to respect %TermTags::Nonmodifying on move"
+					@ "applicative %move",
+				/ DLDI "sigils" @ "applicative 'list*%'"
+					-> '&' ~ '%',
+				/ DLDI "parameter binding sigil" ^ '%' ~ '&'
+					@ "alternative derivation" @ "applicative %forward"
+					$dep_from 'list*%' $dep_to
+					"avoiding reference temporary tags rebinding",
+				* "missing forwarded lists" @ "applicatives (%(accl, accr, \
+					foldr1, map1, append), 'list-concat', 'map-reverse')"
+					$since b829 $dep_to "missing massive forwarding",
+				(
+				+ "applicative %firstv" ^ $dep_from
+					("function %FirstVal" @ %NPLA1);
+				/ "ensured binding formation incompatible to forwarding %first"
+					@ "operatives ('$let', '$let%', '$let/d', '$let/d%',
+					'$let/e', '$let/e%', '$letrec', '$letrec%')" ^ "%firstv"
+					~ "%first",
+					// Due to bugs (see below) in %first, this does not cause \
+						bugs yet.
+				/ @ "applicative %first" $=
+				(
+					// The following bug occasionally avoided references in \
+						parameter trees, hence it was not obviously buggy.
+					* "missing move for rvalue results" $since b858 ^ $dep_from
+						"%forward" $dep_from "shared temporaries fix";
+						// This is not effective as long as the terms operated \
+							are preserved.
+					* DLDI "%ReductionStatus use" @ "native derivations did \
+						not respect irregular representation of references"
+						$since b858
+						$= (/ DLDI "native derivation" @ "applicatives ('id', \
+							'idv', 'ref&')" ^ "%ReductionStatus::Retained"
+							~ "%ReductionStats::Regular"),
+					+ "native derivation" @ "applicative %first and enabled \
+						by default" ^ $dep_from ("%First" @ %NPLA1)
+						// Only with the bug above fixed, the native \
+							implementation can behave the same.
+				)
+				),
+				- $revert(b829) DLI "redundant %forward call"
+					@ "applicative 'unfoldable?'",
+				/ DLDI "simplified applicatives %move, 'assign!'"
+					^ $dep_from ("function %LiftTermOrCopy" @ %NPLA),
+				/ DLDI "simplified basic processing" ^ $dep_from
+					("%ThrowInvalidSyntaxError" @ %NPLA1)
+				+ "applicative 'raise-invaild-syntax-error'" ^ $dep_from
+					("%ThrowInvalidSyntaxError" @ %NPLA1),
+				/ @ "applicative %apply" $=
+				(
+					+ "error check for syntax with environment to ensure only \
+						1 environment argument" ^ '$lambda',
+						// This is needed to make the native implementation \
+							sane enough.
+					/ "forwarded applicative and argument list rvalues",
+						// This is like %ystdex::apply as well as \
+							%std::apply in ISO C++17. It also makes the \
+							equivalent native implementation simpler.
+					/ "handled error" ^ $dep_from 'raise-invalid-syntax';
+						// This is also needed to make the equivalent native \
+							implementation simpler.
+					+ "native derivation and enabled by default"
+						^ ("%Apply" @ %NPLA1)
+				)
+			),
+			/ @ "applicative 'string<-'" @ "function %LoadModule_std_strings" $=
+			(
+				/ DLDI "simplified" ^ $dep_from ("%NPL::IsMovable" @ %NPLA),
+				+ "modifiable lvalue check before assignment" ^ $dep_from
+					("%ThrowNonmodifiableErrorForAssignee" @ %NPLA1)
+			)
+		)
+	),
+	+ "1 test case for %ystdex::function" @ %Test.YBase
+),
+
+b858
 (
 	/ %YFramework $=
 	(
@@ -179,7 +493,8 @@ $now
 						/ $forced DLDI $dep_from
 							"explicit type for regular unary call",
 						(
-						/ "supported rvalue reference arguments as rvalues";
+						/ "supported non-aliased reference arguments as \
+							rvalues";
 						* "redundant tag %TermTags::Nonmodifying for rvalue \
 							reference arguments" $since b857
 						),
@@ -293,7 +608,7 @@ $now
 							postfix is not fit.
 					* $comp "applicative '<-' wrongly moved nonmodifiable \
 						referents" $since b857,
-					+ "alternative derivation of applicative 'assign!'"
+					+ "alternative derivation" @ "applicative 'assign!'"
 						^ 'assign%!',
 					/ @ "applicative 'assign%!'" ^ $dep_from
 						("%LiftCollapsed" @ %NPLA) $=
@@ -315,7 +630,7 @@ $now
 					* "missing internal definition of operative '$defv!'"
 						@ '!NPL_Impl_NPLA1_Native_Forms \
 						&& !NPL_Impl_NPLA1_Use_Id_Vau' $since b856,
-					+ "alternative derivation of operative '$deflazy!'"
+					+ "alternative derivation" @ "operative '$deflazy!'"
 						^ '$def!',
 					/ DLDI "simplified operatives ('$provide!', '$provide/d!')"
 						^ ('$vau%', 'lock-environment')
@@ -582,12 +897,12 @@ b857
 							inner call";
 						- $impl "'forward' before %body"
 					),
-					+ $lib "native derivation of operative '$quote' and \
+					+ $lib "native derivation" @ "operative '$quote' and \
 						enabled by default",
 					* $comp "wrong result of applicative 'lvalue?' for named \
 						lvalue references" $since b828 $dep_from
 						"fixed lvalue resolution",
-					/ "applicative 'forward'" $=
+					/ @ "applicative 'forward'" $=
 					(
 						+ "native derivation" ^ $dep_from
 							("%LiftRValueToReturn" @ %NPLA),
@@ -5881,9 +6196,9 @@ b840
 					/ "loaded derived functions" @ "function %LoadGroundContext"
 						$= (+ "operatives ('$let/d'; '$provide/d!')",),
 					/ DLDI "renamed dynamic environment parameters to 'd'"
-						$effective @ (("alternative derivation of operatives \
+						$effective @ (("alternative derivation" @ "operatives \
 						('$vau', '$vau%', '$lambda', '$lambda%')", \
-						"alternative derivations of applicatives \
+						"alternative derivations" @ "applicatives \
 						'get-current-environment', \
 						'lock-current-environment'", "derivation of operatives \
 						('$sequence', '$set!', '$defv!', '$defv%!', \
@@ -6817,7 +7132,7 @@ b837
 							'get-current-environent' and 'lock-environment' \
 							because lifetime of a uniquely referenced \
 							environment is not guaranteed.
-					+ "alternative derivation of applicative \
+					+ "alternative derivation" @ "applicative \
 						'get-current-environment'" ^ 'lock-current-environment',
 					/ DLDI "reordered alternative operatives ('$lambda', \
 						'$lambda%', '$sequence')",
@@ -9752,7 +10067,7 @@ b822
 				// This is now also consistent with 'list'.
 			+ "applicative 'cons&'" ^ $dep_from ("%ConsRef" @ %NPLA1),
 				// Similar to 'list&'.
-			/ $dev $lib "rearranged alternative derivation of forms" $=
+			/ $dev $lib "rearranged alternative derivation" @ "forms" $=
 			(
 				+ "macros to control forms with conditional inclusion",
 				+ "derivation of operative '$lambda'" ^ $dep_from
