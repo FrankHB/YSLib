@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2017 FrankHB.
+	© 2013-2017, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2178
+\version r2181
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2017-08-11 01:25 +0800
+	2019-06-23 16:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -526,7 +526,8 @@ DirectoryFindData::GetNodeCategory() const ynothrow
 bool
 DirectoryFindData::Read()
 {
-	const auto chk_err([this](const char* fn, ErrorCode ec) YB_NONNULL(1){
+	const auto chk_err(
+		[this](const char* fn, ErrorCode ec) YB_ATTR_LAMBDA(nonnull(1)){
 		const auto err(::GetLastError());
 
 		if(err != ec)

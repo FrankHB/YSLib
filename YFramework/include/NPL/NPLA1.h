@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r5278
+\version r5404
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2019-06-08 17:02 +0800
+	2019-06-27 09:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,16 +30,15 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA // for NPLATag, TermNode, ValueNode, YSLib::GHEvent,
-//	LoggedEvent, shared_ptr, Environment, ystdex::ref_eq,
-//	ystdex::equality_comparable, ystdex::exclude_self_params_t,
-//	YSLib::AreEqualHeld, ystdex::make_function_type_t, ystdex::decay_t,
-//	ystdex::expanded_caller, std::is_constructible, ystdex::or_,
-//	ystdex::exclude_self_t, ystdex::enable_if_inconvertible_t,
-//	ystdex::make_parameter_list_t, NPL::Deref,
-//	ystdex::make_expanded, std::ref, NPL::Access, NPL::CheckRegular,
+//	ystdex::ref_eq, LoggedEvent, shared_ptr, ystdex::equality_comparable,
+//	ystdex::exclude_self_params_t, YSLib::AreEqualHeld,
+//	ystdex::make_function_type_t, ystdex::decay_t, ystdex::expanded_caller,
+//	std::is_constructible, ystdex::or_, ystdex::exclude_self_t,
+//	ystdex::enable_if_inconvertible_t, ystdex::make_parameter_list_t,
+//	NPL::Deref, ystdex::make_expanded, std::ref, NPL::Access, NPL::CheckRegular,
 //	ResolvedTermReferencePtr, ystdex::invoke_nonvoid, NPL::ResolveRegular,
 //	ystdex::make_transform, std::accumulate, ystdex::bind1,
-//	std::placeholders::_2, ystdex::examiners::equal_examiner;
+//	std::placeholders::_2, ystdex::examiners::equal_examiner, Environment;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 
 namespace NPL
@@ -102,61 +101,11 @@ YB_ATTR_nodiscard YF_API YB_PURE string
 to_string(ValueToken);
 
 
-//! \since build 852
+//! \since build 676
 //@{
-/*!
-\brief 插入 NPLA1 子节点。
-\note 插入后按名称排序顺序。
-
-第一参数指定的变换结果插入第二参数指定的容器。
-若映射操作返回节点名称为空则根据当前容器内子节点数量加前缀 $ 命名以避免重复。
-*/
-YF_API void
-InsertChild(ValueNode&&, ValueNode::Container&);
-
-/*!
-\brief 变换 NPLA1 节点 S 表达式抽象语法树为 NPLA1 语义结构。
-\exception std::bad_function_call 第三至五参数为空。
-\return 变换后的新节点（及子节点）。
-
-第一参数指定源节点，其余参数指定部分变换规则。
-当被调用的第二至第四参数不修改传入的节点参数时变换不修改源节点。
-过程如下：
-若源节点为叶节点，直接返回使用第三参数创建映射的节点。
-若源节点只有一个子节点，直接返回这个子节点的变换结果。
-否则，使用第四参数从第一个子节点取作为变换结果名称的字符串。
-	若名称非空则忽略第一个子节点，只变换剩余子节点。
-		当剩余一个子节点（即源节点有两个子节点）时，直接递归变换这个节点并返回。
-		若变换后的结果名称非空，则作为结果的值；否则，结果作为容器内单一的值。
-	否则，新建节点容器，遍历并变换剩余的节点插入其中，返回以之构造的节点。
-		第二参数指定此时的映射操作，若为空则默认使用递归 TransformNode 调用。
-		调用第五参数插入映射的结果到容器。
-*/
-YF_API ValueNode
-TransformNode(const TermNode&, NodeMapper = {}, NodeMapper = MapNPLALeafNode,
-	TermNodeToString = ParseNPLATermString, NodeInserter = InsertChild);
-
-
-/*!
-\brief 加载 NPLA1 翻译单元。
-\throw LoggedEvent 警告：被加载配置中的实体转换失败。
-\since build 665
-*/
-template<typename _type, typename... _tParams>
-YB_ATTR_nodiscard ValueNode
-LoadNode(_type&& tree, _tParams&&... args)
-{
-	TryRet(A1::TransformNode(std::forward<TermNode>(tree), yforward(args)...))
-	CatchThrow(bad_any_cast& e, LoggedEvent(YSLib::sfmt(
-		"Bad NPLA1 tree found: cast failed from [%s] to [%s] .", e.from(),
-		e.to()), YSLib::Warning))
-}
-
-
 /*!
 \note 结果表示判断是否应继续规约。
 \sa PassesCombiner
-\since build 676
 */
 //@{
 //! \brief 一般合并遍。
@@ -273,6 +222,41 @@ public:
 			y.next_term_ptr), swap(x.EvaluateLeaf, y.EvaluateLeaf),
 			swap(x.EvaluateList, y.EvaluateList),
 			swap(x.EvaluateLiteral, y.EvaluateLiteral), swap(x.Guard, y.Guard))
+};
+
+
+/*!
+\brief 续延。
+\warning 非虚析构。
+\since build 841
+\todo 支持一等续延捕获。
+*/
+class YF_API Continuation
+{
+public:
+	ContextHandler Handler;
+	// \since build 842
+	lref<ContextNode> Context;
+
+	//! \since build 842
+	template<typename _func>
+	Continuation(_func&& handler, ContextNode& ctx)
+		: Handler(ystdex::make_obj_using_allocator<ContextHandler>(
+		ctx.get_allocator(), yforward(handler))), Context(ctx)
+	{}
+
+	DefDeCopyMoveCtorAssignment(Continuation)
+
+	friend PDefHOp(bool, ==, const Continuation& x, const Continuation& y)
+		ynothrow
+		ImplRet(ystdex::ref_eq<>()(x, y))
+
+	PDefHOp(ReductionStatus, (), ) const
+		ImplRet(Handler(ContextState::Access(Context).GetNextTermRef(),
+			Context))
+
+	friend DefSwap(ynothrow, Continuation, swap(_x.Handler, _y.Handler),
+		ystdex::swap_dependent(_x.Context, _y.Context))
 };
 
 
@@ -441,6 +425,56 @@ SetupTraceDepth(ContextState&, const string& = yimpl("$__depth"));
 
 
 /*!
+\brief 插入 NPLA1 子节点。
+\note 插入后按名称排序顺序。
+\since build 852
+
+第一参数指定的变换结果插入第二参数指定的容器。
+若映射操作返回节点名称为空则根据当前容器内子节点数量加前缀 $ 命名以避免重复。
+*/
+YF_API void
+InsertChild(ValueNode&&, ValueNode::Container&);
+
+/*!
+\brief 变换 NPLA1 节点 S 表达式抽象语法树为 NPLA1 语义结构。
+\exception std::bad_function_call 第三至五参数为空。
+\return 变换后的新节点（及子节点）。
+\since build 852
+
+第一参数指定源节点，其余参数指定部分变换规则。
+当被调用的第二至第四参数不修改传入的节点参数时变换不修改源节点。
+过程如下：
+若源节点为叶节点，直接返回使用第三参数创建映射的节点。
+若源节点只有一个子节点，直接返回这个子节点的变换结果。
+否则，使用第四参数从第一个子节点取作为变换结果名称的字符串。
+	若名称非空则忽略第一个子节点，只变换剩余子节点。
+		当剩余一个子节点（即源节点有两个子节点）时，直接递归变换这个节点并返回。
+		若变换后的结果名称非空，则作为结果的值；否则，结果作为容器内单一的值。
+	否则，新建节点容器，遍历并变换剩余的节点插入其中，返回以之构造的节点。
+		第二参数指定此时的映射操作，若为空则默认使用递归 TransformNode 调用。
+		调用第五参数插入映射的结果到容器。
+*/
+YF_API ValueNode
+TransformNode(const TermNode&, NodeMapper = {}, NodeMapper = MapNPLALeafNode,
+	TermNodeToString = ParseNPLATermString, NodeInserter = InsertChild);
+
+/*!
+\brief 加载 NPLA1 翻译单元。
+\throw LoggedEvent 警告：被加载配置中的实体转换失败。
+\since build 665
+*/
+template<typename _type, typename... _tParams>
+YB_ATTR_nodiscard ValueNode
+LoadNode(_type&& tree, _tParams&&... args)
+{
+	TryRet(A1::TransformNode(std::forward<TermNode>(tree), yforward(args)...))
+	CatchThrow(bad_any_cast& e, LoggedEvent(YSLib::sfmt(
+		"Bad NPLA1 tree found: cast failed from [%s] to [%s] .", e.from(),
+		e.to()), YSLib::Warning))
+}
+
+
+/*!
 \note ValueObject 参数分别指定替换添加的前缀和被替换的分隔符的值。
 \since build 852
 */
@@ -483,41 +517,6 @@ TransformForSeparatorRecursive(TermNode&&, const ValueObject&,
 YF_API ReductionStatus
 ReplaceSeparatedChildren(TermNode&, const ValueObject&, const TokenValue&);
 //@}
-
-
-/*!
-\brief 续延。
-\warning 非虚析构。
-\since build 841
-\todo 支持一等续延捕获。
-*/
-class YF_API Continuation
-{
-public:
-	ContextHandler Handler;
-	// \since build 842
-	lref<ContextNode> Context;
-
-	//! \since build 842
-	template<typename _func>
-	Continuation(_func&& handler, ContextNode& ctx)
-		: Handler(ystdex::make_obj_using_allocator<ContextHandler>(
-		ctx.get_allocator(), yforward(handler))), Context(ctx)
-	{}
-
-	DefDeCopyMoveCtorAssignment(Continuation)
-
-	friend PDefHOp(bool, ==, const Continuation& x, const Continuation& y)
-		ynothrow
-		ImplRet(ystdex::ref_eq<>()(x, y))
-
-	PDefHOp(ReductionStatus, (), ) const
-		ImplRet(Handler(ContextState::Access(Context).GetNextTermRef(),
-			Context))
-
-	friend DefSwap(ynothrow, Continuation, swap(_x.Handler, _y.Handler),
-		ystdex::swap_dependent(_x.Context, _y.Context))
-};
 
 
 //! \since build 751
@@ -1601,8 +1600,7 @@ EqualValue(TermNode&);
 
 
 /*!
-\brief 条件判断：根据求值的条件取表达式。
-\note 支持保存当前动作。
+\brief 分支判断：根据求值的条件选取表达式求值。
 \sa ReduceChecked
 \since build 750
 
@@ -1616,6 +1614,17 @@ $if \<test> \<consequent></pre>
 */
 YF_API ReductionStatus
 If(TermNode&, ContextNode&);
+
+/*!
+\brief 条件选择：根据条件列表顺序选取第一个符合其中条件对应的表达式求值。
+\sa ReduceChecked
+\since build 860
+
+参考调用文法：
+<pre>$cond \<clauses>...</pre>
+*/
+YF_API ReductionStatus
+Cond(TermNode&, ContextNode&);
 
 /*!
 \note 支持保存当前动作。
@@ -1768,7 +1777,7 @@ First(TermNode&);
 //! \throw ValueCategoryMismatch 参数不是引用值。
 //@{
 /*!
-保留结果中的引用值。
+结果是列表的第一个元素引用的对象的引用值。保留结果中的引用值。
 
 参考调用文法：
 <pre>first& \<list></pre>
@@ -1777,7 +1786,7 @@ YF_API ReductionStatus
 FirstRef(TermNode&);
 
 /*!
-保留结果中未折叠的引用值。
+结果是列表的第一个元素的引用值。保留结果中未折叠的引用值。
 
 参考调用文法：
 <pre>first@ \<list></pre>
@@ -1786,7 +1795,7 @@ YF_API ReductionStatus
 FirstRefAt(TermNode&);
 
 /*!
-不保留结果中的引用值。
+结果是列表的第一个元素经过返回值转换的值。不保留结果中的引用值。
 
 参考调用文法：
 <pre>firstv \<list></pre>
@@ -2273,12 +2282,40 @@ Sequence(TermNode&, ContextNode&);
 \brief 函数应用：应用参数指定的函数和作为函数参数的列表。
 \since build 859
 
+结果是对解包装的应用子应用参数的函数值。保留结果中的引用值。
+
 参考调用文法：
 <pre>apply \<applicative> \<object> \<environment>
 apply \<applicative> \<object></pre>
 */
 YF_API ReductionStatus
 Apply(TermNode&, ContextNode&);
+
+/*!
+\brief 使用可选的参数指定的不定数量的元素和结尾列表构造新列表。
+\exception ParameterMismatch 参数不是
+\throw ListTypeError 参数超过一个，且最后参数不是列表。
+\since build 860
+*/
+//@{
+/*!
+结果是构造的列表的值。不保留结果中的引用值。
+
+参考调用文法：
+<pre>list* \<object>+ </pre>
+*/
+YF_API ReductionStatus
+ListAsterisk(TermNode&);
+
+/*!
+结果是构造的列表的值。保留结果中的引用值。
+
+参考调用文法：
+<pre>list*% \<object>+ </pre>
+*/
+YF_API ReductionStatus
+ListAsteriskRef(TermNode&);
+//@}
 
 
 /*!

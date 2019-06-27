@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2018 FrankHB.
+	© 2011-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3793
+\version r3797
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2018-11-16 18:40 +0800
+	2019-06-23 17:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,6 +39,7 @@
 #include <ystdex/iterator.hpp> // for ystdex::indirect_input_iterator;
 #include <ctime> // for std::time_t;
 #include YFM_YCLib_Debug // for Nonnull, Deref;
+#include <ystdex/function.hpp> // for ystdex::function;
 #include <ystdex/type_pun.hpp> // for ystdex::is_trivially_replaceable;
 #include <ystdex/cstdint.hpp> // for ystdex::read_uint_le;
 
@@ -1277,10 +1278,10 @@ public:
 	\note 第二参数是校验别名项存在性的例程，其中字符串的数据指针保证非空。
 	\sa LFN::GenerateAliasChecksum
 	\sa LFN::WriteNumericTail
-	\since build 659
+	\since build 860
 	*/
 	pair<EntryDataUnit, size_t>
-	FillNewName(string_view, std::function<bool(string_view)>);
+	FillNewName(string_view, ystdex::function<bool(string_view)>);
 
 	/*!
 	\pre 间接断言：参数的数据指针非空。

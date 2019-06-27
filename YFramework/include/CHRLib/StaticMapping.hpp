@@ -11,13 +11,13 @@
 /*!	\file StaticMapping.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2608
+\version r2613
 \author FrankHB <frankhb1989@gmail.com>
 \since build 587
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2019-01-04 11:11 +0800
+	2019-06-23 14:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -323,7 +323,12 @@ public:
 			return ConversionResult::Invalid;
 		}
 
+		// XXX: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90966.
+#if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 90000
+		using state_t = unsigned;
+#else
 		using state_t = std::uint_fast8_t;
+#endif
 		static yconstexpr const state_t t_data_1[]{
 			8, 8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
 			2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,

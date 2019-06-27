@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2706
+\version r2774
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2019-06-12 14:39 +0800
+	2019-06-23 16:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -421,7 +421,7 @@ void
 LoadObjects(ContextNode& ctx)
 {
 	RegisterStrictUnary(ctx, "null?", ComposeReferencedTermOp(IsEmpty));
-	RegisterStrictUnary(ctx, "nullpr?", IsEmpty);
+	RegisterStrictUnary(ctx, "nullv?", IsEmpty);
 	RegisterStrictUnary(ctx, "reference?", IsReferenceTerm);
 	RegisterStrictUnary(ctx, "lvalue?", IsLValueTerm);
 	RegisterStrictUnary(ctx, "unique?", IsUniqueTerm);
@@ -525,7 +525,7 @@ void
 LoadErrorsAndChecks(ContextNode& ctx)
 {
 	RegisterStrictUnary<const string>(ctx, "raise-invalid-syntax-error",
-		[](const string& str) YB_ATTR(noreturn){
+		[](const string& str) YB_ATTR_LAMBDA(noreturn){
 		ThrowInvalidSyntaxError(str);
 	});
 	RegisterStrict(ctx, "check-list-reference", CheckListReference);
@@ -623,13 +623,18 @@ LoadGroundedDerived(REPLContext& context)
 	RegisterStrict(renv, "firstv", FirstVal);
 	RegisterStrict(renv, "check-environment", CheckEnvironment);
 	RegisterStrict(renv, "apply", Apply);
+	RegisterStrict(renv, "list*", ListAsterisk);
+	RegisterStrict(renv, "list*%", ListAsteriskRef);
+	RegisterForm(renv, "$cond", Cond);
+	RegisterForm(renv, "$and?", And);
+	RegisterForm(renv, "$or?", Or);
 #else
 #	if NPL_Impl_NPLA1_Native_EnvironmentPrimitives
 	context.Perform(u8R"NPL(
-		$def! $vau $vau/e (() get-current-environment) (&formals &e .&body) d
-			eval (cons $vau/e (cons d (cons formals (cons e body)))) d;
-		$def! $vau% $vau (&formals &senv .&body) d
-			eval (cons $vau/e% (cons d (cons formals (cons senv body)))) d;
+		$def! $vau $vau/e (() get-current-environment) (&formals &ef .&body) d
+			eval (cons $vau/e (cons d (cons formals (cons ef body)))) d;
+		$def! $vau% $vau (&formals &ef .&body) d
+			eval (cons $vau/e% (cons d (cons formals (cons ef body)))) d;
 	)NPL");
 #	else
 	context.Perform(u8R"NPL(
@@ -660,8 +665,8 @@ LoadGroundedDerived(REPLContext& context)
 	// XXX: The operative '$defv!' is same to following derivations in
 	//	%LoadCore.
 	context.Perform(u8R"NPL(
-		$def! $defv! $vau (&$f &formals &senv .&body) d
-			eval (list $set! d $f $vau formals senv body) d;
+		$def! $defv! $vau (&$f &formals &ef .&body) d
+			eval (list $set! d $f $vau formals ef body) d;
 		$defv! $lambda (&formals .&body) d
 			wrap (eval (cons $vau (cons formals (cons ignore body))) d);
 		$defv! $lambda% (&formals .&body) d
@@ -679,26 +684,26 @@ LoadGroundedDerived(REPLContext& context)
 	// XXX: The operative '$defv!' is same to following derivations in
 	//	%LoadCore.
 	context.Perform(u8R"NPL(
-		$def! $defv! $vau (&$f &formals &senv .&body) d
-			eval (list $set! d $f $vau formals senv body) d;
+		$def! $defv! $vau (&$f &formals &ef .&body) d
+			eval (list $set! d $f $vau formals ef body) d;
 	)NPL");
 #	endif
 	context.Perform(u8R"NPL(
 		$def! $deflazy! $vau (&definiend .&expr) d
 			eval (list $def! definiend $quote expr) d;
 		$def! $sequence
-			($lambda (&cenv)
-				($lambda #ignore $vau/e% cenv &body d
+			($lambda (&se)
+				($lambda #ignore $vau/e% se &body d
 					$if (null? body) #inert (eval% (cons% $aux body) d))
-				($set! cenv $aux
-					$vau/e% (weaken-environment cenv) (&head .&tail) d
+				($set! se $aux
+					$vau/e% (weaken-environment se) (&head .&tail) d
 						$if (null? tail) (eval% head d)
 							(($vau% (&t) e ($lambda% #ignore (eval% t e))
 								(eval% head d)) (eval% (cons% $aux tail) d))))
 			(make-environment (() get-current-environment));
 	)NPL");
-	// XXX: The operatives '$defl!' and '$defl%!', as well as theapplicative
-	//	'first@' are same to following derivations in %LoadCore.
+	// XXX: The operatives '$defl!', '$defl%!', and '$defv%!', as well as the
+	//	applicative 'first@' are same to following derivations in %LoadCore.
 	context.Perform(u8R"NPL(
 		$defv! $defl! (&f &formals .&body) d
 			eval (list $set! d f $lambda formals body) d;
@@ -728,6 +733,26 @@ LoadGroundedDerived(REPLContext& context)
 						$if (null? eopt) e
 							(raise-invalid-syntax-error
 								"Syntax error in applying form.")) opt));
+		$defl! list* (&head .&tail)
+			$if (null? tail) head (cons head (apply list* tail));
+		$defl%! list*% (&head .&tail) $if (null? tail) (forward head)
+			(cons% (forward head) (apply list*% tail));
+		$defv! $defv%! (&$f &formals &ef .&body) d
+			eval (list $set! d $f $vau% formals ef body) d;
+		$defv%! $cond &clauses d $if (null? clauses) #inert
+			(apply ($lambda% ((&test .&body) .clauses)
+				$if (eval test d) (eval% body d) (apply (wrap $cond) clauses d))
+				clauses);
+		$defv%! $and? x d $cond
+			((null? x) #t)
+			((nullv? (rest& x)) eval% (first (forward x)) d)
+			((eval% (first& x) d) apply (wrap $and?) (rest% (forward x)) d)
+			(#t #f);
+		$defv%! $or? x d $cond
+			((null? x) #f)
+			((nullv? (rest& x)) eval% (first (forward x)) d)
+			((eval% (first& x) d) eval% (first (forward x)) d)
+			(#t apply (wrap $or?) (rest% (forward x)) d);
 	)NPL");
 #endif
 }
@@ -737,19 +762,17 @@ LoadGroundedDerived(REPLContext& context)
 void
 LoadCore(REPLContext& context)
 {
-	auto& renv(context.Root.GetRecordRef());
-
 	context.Perform(u8R"NPL(
 		$def! $set! $vau (&e &formals .&expr) d
 			eval (list $def! formals (unwrap eval) expr d) (eval e d);
-		$def! $defv! $vau (&$f &formals &senv .&body) d
-			eval (list $set! d $f $vau formals senv body) d;
-		$defv! $defv%! (&$f &formals &senv .&body) d
-			eval (list $set! d $f $vau% formals senv body) d;
-		$defv! $defv/e! (&$f &e &formals &senv .&body) d
-			eval (list $set! d $f $vau/e e formals senv body) d;
-		$defv! $defv/e%! (&$f &e &formals &senv .&body) d
-			eval (list $set! d $f $vau/e% e formals senv body) d;
+		$def! $defv! $vau (&$f &formals &ef .&body) d
+			eval (list $set! d $f $vau formals ef body) d;
+		$defv! $defv%! (&$f &formals &ef .&body) d
+			eval (list $set! d $f $vau% formals ef body) d;
+		$defv! $defv/e! (&$f &e &formals &ef .&body) d
+			eval (list $set! d $f $vau/e e formals ef body) d;
+		$defv! $defv/e%! (&$f &e &formals &ef .&body) d
+			eval (list $set! d $f $vau/e% e formals ef body) d;
 		$defv! $defl! (&f &formals .&body) d
 			eval (list $set! d f $lambda formals body) d;
 		$defv! $defl%! (&f &formals .&body) d
@@ -759,18 +782,14 @@ LoadCore(REPLContext& context)
 		$defl! rest ((#ignore .x)) x;
 		$defl! rest& (&l) ($lambda ((#ignore .&x)) x) (check-list-reference l);
 		$defl! rest% ((#ignore .%x)) x;
-		$defl! list* (&head .&tail)
-			$if (null? tail) head (cons head (apply list* tail));
-		$defl%! list*% (&head .&tail) $if (null? tail) (forward head)
-			(cons% (forward head) (apply list*% tail));
-		$defv! $defw! (&f &formals &senv .&body) d
-			eval (list $set! d f wrap (list* $vau formals senv body)) d;
-		$defv! $defw%! (&f &formals &senv .&body) d
-			eval (list $set! d f wrap (list* $vau% formals senv body)) d;
-		$defv! $defw/e! (&f &e &formals &senv .&body) d
-			eval (list $set! d f wrap (list* $vau/e e formals senv body)) d;
-		$defv! $defw/e%! (&f &e &formals &senv .&body) d
-			eval (list $set! d f wrap (list* $vau/e% e formals senv body)) d;
+		$defv! $defw! (&f &formals &ef .&body) d
+			eval (list $set! d f wrap (list* $vau formals ef body)) d;
+		$defv! $defw%! (&f &formals &ef .&body) d
+			eval (list $set! d f wrap (list* $vau% formals ef body)) d;
+		$defv! $defw/e! (&f &e &formals &ef .&body) d
+			eval (list $set! d f wrap (list* $vau/e e formals ef body)) d;
+		$defv! $defw/e%! (&f &e &formals &ef .&body) d
+			eval (list $set! d f wrap (list* $vau/e% e formals ef body)) d;
 		$defv! $lambda/e (&e &formals .&body) d
 			wrap (eval (list* $vau/e e formals ignore body) d);
 		$defv! $lambda/e% (&e &formals .&body) d
@@ -779,10 +798,6 @@ LoadCore(REPLContext& context)
 			eval (list $set! d f $lambda/e e formals body) d;
 		$defv! $defl/e%! (&f &e &formals .&body) d
 			eval (list $set! d f $lambda/e% e formals body) d;
-		$defv%! $cond &clauses d $if (null? clauses) #inert
-			(apply ($lambda% ((&test .&body) .clauses)
-				$if (eval test d) (eval% body d) (apply (wrap $cond) clauses d))
-				clauses);
 	)NPL");
 #if NPL_Impl_NPLA1_Use_LockEnvironment
 	context.Perform(u8R"NPL(
@@ -792,9 +807,9 @@ LoadCore(REPLContext& context)
 #else
 	context.Perform(u8R"NPL(
 		$def! make-standard-environment
-			($lambda (&cenv &env)
-				($lambda #ignore $vau/e cenv () #ignore (make-environment senv))
-				($set! cenv senv env))
+			($lambda (&se &e)
+				($lambda #ignore $vau/e se () #ignore (make-environment ce))
+				($set! se ce e))
 			(make-environment (() get-current-environment))
 			(() get-current-environment);
 	)NPL");
@@ -806,10 +821,6 @@ LoadCore(REPLContext& context)
 			$if (eval test d) (eval% (list*% () $sequence vexpr) d);
 		$defv%! $unless (&test .&vexpr) d
 			$if (not? (eval test d)) (eval% (list*% () $sequence vexpr) d);
-	)NPL");
-	RegisterForm(renv, "$and?", And);
-	RegisterForm(renv, "$or?", Or);
-	context.Perform(u8R"NPL(
 		$def! (box% box? unbox) () make-encapsulation-type;
 		$defl! box (&x) box% x;
 		$defl! first-null? (&l) null? (first l);
@@ -885,15 +896,15 @@ LoadCore(REPLContext& context)
 			eval% (list $set! d symbols (list* () list symbols)) (eval e d);
 		$defl! unfoldable? (&l)
 			accr l null? (first-null? l) first-null? rest% $or?;
-		$def! map-reverse $let ((&cenv () make-standard-environment)) wrap
+		$def! map-reverse $let ((&se () make-standard-environment)) wrap
 			($sequence
-				($set! cenv cxrs $lambda/e (weaken-environment cenv) (&ls &cxr)
+				($set! se cxrs $lambda/e (weaken-environment se) (&ls &cxr)
 					accl (forward ls) null? () ($lambda (&l) cxr (first l))
 						rest cons)
-				($vau/e cenv (&appv .&ls) d accl (forward ls) unfoldable? ()
+				($vau/e se (&appv .&ls) d accl (forward ls) unfoldable? ()
 					($lambda (&ls) cxrs ls first) ($lambda (&ls) cxrs ls rest)
 						($lambda (&x &xs) cons (apply appv x d) xs)));
-		$defw! for-each-ltr &ls env $sequence (apply map-reverse ls env) #inert;
+		$defw! for-each-ltr &ls d $sequence (apply map-reverse ls d) #inert;
 	)NPL");
 }
 
@@ -1180,7 +1191,7 @@ LoadModule_SHBuild(REPLContext& context)
 		throw NPLException("Error in quoted string.");
 	});
 	RegisterStrictUnary<const string>(renv, "SHBuild_RaiseError_",
-		[](const string& str) YB_ATTR(noreturn){
+		[](const string& str) YB_ATTR_LAMBDA(noreturn){
 		throw LoggedEvent(str);
 	});
 	RegisterStrictBinary<const string, const string>(renv,

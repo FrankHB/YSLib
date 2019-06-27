@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2018 FrankHB.
+	© 2011-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4333
+\version r4336
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2018-11-16 18:38 +0800
+	2019-06-23 17:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -353,7 +353,7 @@ DirectorySession::DirectorySession(const char* path)
 #if YCL_Win32
 	: dir(CreateDirectoryDataPtr<Data>(MakePathStringW(path)))
 #else
-	: sDirPath([](const char* p) YB_NONNULL(1){
+	: sDirPath([](const char* p) YB_ATTR_LAMBDA(nonnull(1)){
 		const auto res(Deref(p) != char()
 			? ystdex::rtrim(string(p), FetchSeparator<char>()) : ".");
 
@@ -673,7 +673,7 @@ EntryData::CopyLFN(char16_t* str) const ynothrowv
 
 pair<EntryDataUnit, size_t>
 EntryData::FillNewName(string_view name,
-	std::function<bool(string_view)> verify)
+	ystdex::function<bool(string_view)> verify)
 {
 	YAssertNonnull(name.data()),
 	YAssertNonnull(verify);

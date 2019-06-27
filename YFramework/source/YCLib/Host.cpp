@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2018 FrankHB.
+	© 2014-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r799
+\version r801
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2018-09-20 11:15 +0800
+	2019-06-23 16:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -222,7 +222,7 @@ MakePipe()
 	YCL_CallF_CAPI(, ::pipe, fds);
 
 	auto pr(make_pair(UniqueHandle(fds[0]), UniqueHandle(fds[1])));
-	auto check([](UniqueHandle& h, const char* msg) YB_NONNULL(3){
+	auto check([](UniqueHandle& h, const char* msg) YB_ATTR_LAMBDA(nonnull(3)){
 		// NOTE: %O_NONBLOCK is initially cleared on ::pipe results.
 		//	See http://pubs.opengroup.org/onlinepubs/9699919799/.
 		if(h)

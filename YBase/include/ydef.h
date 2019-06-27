@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3523
+\version r3541
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2019-01-11 20:28 +0800
+	2019-06-23 16:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -241,7 +241,7 @@
 */
 //@{
 /*!
-\brief \<cstddef\> 特性测试宏。
+\brief \c \<cstddef> 特性测试宏。
 \since build 832
 \see https://blogs.msdn.microsoft.com/vcblog/2017/05/10/c17-features-in-vs-2017-3/ 。
 \see https://gcc.gnu.org/onlinedocs/libstdc++/manual/status.html#status.iso.2017 。
@@ -256,7 +256,7 @@
 #endif
 //@}
 /*!
-\brief \<type_traits\> 特性测试宏。
+\brief \c \<type_traits> 特性测试宏。
 \since build 679
 \see https://blogs.msdn.microsoft.com/vcblog/2016/10/11/c1417-features-and-stl-fixes-in-vs-15-preview-5/ 。
 */
@@ -299,7 +299,7 @@
 #endif
 //@}
 /*!
-\brief \<utility\> 特性测试宏。
+\brief \c \<utility> 特性测试宏。
 \see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
 \since build 628
 */
@@ -504,6 +504,18 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 #endif
 
 /*!
+\def YB_ATTR_LAMBDA
+\brief 允许在 lambda 表达式的参数列表后使用的属性。
+\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89640 。
+\since build 860
+*/
+#if !(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 90000)
+#	define YB_ATTR_LAMBDA(...) YB_ATTR(__VA_ARGS__)
+#else
+#	define YB_ATTR_LAMBDA(...)
+#endif
+
+/*!
 \def YB_ATTR_STD
 \brief C++ 标准属性。
 \note 注意和 GNU 风格不同，在使用时受限，如不能修饰 lambda 表达式非类型的声明。
@@ -574,7 +586,7 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 \brief 标记返回值不被忽略的属性。
 \since build 833
 \see WG21 P0189R1 。
-\see https://clang.llvm.org/docs/AttributeReference.html#nodiscard-warn-unused-result-clang-warn-unused-result-gnu-warn-unused-result 。
+\see https://clang.llvm.org/docs/AttributeReference.html#nodiscard-warn-unused-result 。
 \see https://gcc.gnu.org/projects/cxx-status.html 。
 */
 #if __has_cpp_attribute(nodiscard) \
@@ -719,8 +731,10 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 /*!
 \def YB_NORETURN
 \brief 指定无返回值函数。
-\note 不保证适用修饰 lambda 。这种情况可使用 YB_ATTR(noreturn) 代替。
+\note 不保证适用修饰 lambda 。这种情况可使用 YB_ATTR_LAMBDA(noreturn) 代替。
 \warning 当指定的函数调用实际返回时行为未定义。
+\sa YB_ATTR
+\sa YB_ATTR_LAMBDA
 \see https://msdn.microsoft.com/en-us/library/hh567368.aspx 。
 \since build 396
 */

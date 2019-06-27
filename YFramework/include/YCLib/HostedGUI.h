@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1532
+\version r1537
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2018-12-14 08:17 +0800
+	2019-06-23 17:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,8 +32,9 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host // for nptr, map, unique_ptr, ystdex::aligned_storage_t,
 //	ystdex::pun_ref, wstring, wstring_view, string_view, YSLib::recursive_mutex,
-//	YSLib::lock_guard, u16string_view;
-#include YFM_YSLib_Core_YEvent // for YSLib::GEvent, YSLib::string;
+//	YSLib::lock_guard, YSLib::function, u16string_view;
+#include YFM_YSLib_Core_YEvent // for YSLib::GEvent,
+//	YSLib::string;
 #include YFM_YSLib_Core_YGraphics // for YSLib::Drawing::Rect,
 //	YSLib::Drawing::Point, YSLib::Drawing::Size;
 #include YFM_YSLib_Core_YString // for YSLib::String;
@@ -1081,9 +1082,9 @@ public:
 	Receive(YSLib::String&);
 
 private:
-	//! \since build 670
+	//! \since build 860
 	bool
-	ReceiveRaw(FormatType, std::function<void(const Data&)>);
+	ReceiveRaw(FormatType, YSLib::function<void(const Data&)>);
 
 public:
 	/*!

@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2019 年度。
-\version r317
+\version r357
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2019-01-02 01:00:32 +0800
 \par 修改时间:
-	2019-05-19 15:54 +0800
+	2019-06-23 10:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -317,6 +317,48 @@ Self assignment is supported in several applicatives in NPLA1.
 		It is too error-prone to involve undefined behavior, as there is no easy way to make sure the parameter is of an rvalue reference implying not aliasing like in C++, so it is subject to be changed.
 		To be consistent with 'assign%!', the self-assignment is handled simlarly.
 			Note arbitrary cyclic reference check is still not present.
+
+$2019-06:
+
+report.impl:
+Several NPLA1 improvements are made, including some critical bug fixes related to the PTC guarantee.
+	A bug of dynamic environment capture in vau abstraction causing PTC guarantees broken has been fixed.
+		The bug causes '#ignore' not being ignored in the creation of the combiner.
+		Instead, a dynamic environment named "#ignore" is bound in the newly created environment before evaluation of the vau abstraction body in the call of the combiner.
+			This breaks PTC because currently named dynamic environments are not collected by the TCO frame compression algorithm.
+				With the fact about the fundamental role of vairous vau abstractions, the bug also breaks almost all non-native derivations in NPLA1.
+				Even despite the guarantee, asymptotic memory consumption behavior between native and non-native lambda abstractions differs, which should be unexpected.
+			This is actually weaker than what Kernel guarantees in RnRK.
+				However, klisp also leaks here, e.g. by '($sequence ($define! $f ($vau () #ignore (($f)))) (($f)))'.
+			With the fix, at least the non-native derivation of lambda abstractions behave normally. For example:
+				$defl! f () () f; () f;
+				$defl! f () () (unwrap f); () f;
+			The following cases are also fixed regardless of native derivations are used or not:
+				$defv! $f () #ignore () $f; () $f;
+				$defv! $f () #ignore () (wrap $f); () $f;
+	NPLA1 now enforced clearer rules on temporary lifetime. Notably, the operative '$sequence' is clearified with intended behavior on temporary lifetime.
+		This was underspecified at the first glance of the specifiation of the operative.
+		However, there is a real bug of native implementation of '$sequence' and it is now fixed.
+			The general temporary rules to assert full expressions on parameters were only effective for combiner "application", thus it should have make the parameters sequenced, which was not implemented in the native implementation.
+			And anyway, native and non-native derivations should have the same observable behavior (e.g. with destructors of hosted objects called), whatever the expected behavior should be.
+	NPLA1 TCO implementation is simplified to avoid a bug on the collection operation of the orphan temporary object cleanup.
+		The old implementation collect the temporary object unconditionally during the vau handler calls. This is illogical in general.
+			It would break the following case:
+				$defl! |> (&f &g) $lambda/e% ($bindings/p->environment ((() make-standard-environment)) (&f (forward f)) (&g (forward g))) (&x) (forward g) ((forward f) (forward x));
+				$defl! double (n) * n 2;
+				$defl! increment (n) + n 1;
+				(|> (|> (|> double double) increment) double) 5;
+			The compressor would access invalid parent environment collected previously by the orphan temporary object cleanup.
+		The new scheme uses more less aggressive orphan temporary object cleanup, but a simpler temporary object store at first in the binding code in the vau handler calls.
+			Since the temporary binding has been involved with 'TermTags::Temporary' on terms directly, no other temporary objects are need to be saved.
+			Now there is no difference in TCO and non-TCO implementations to store the operands.
+		The old implementation is still kept for exposition only.
+			Note it is still problematic with following cases even when the orphan temporary object cleanup is disabled during the vau handler calls:
+				$defl! f (n) ($vau (x) d eval x d) (f n); f ();
+			While the following case is good to TCO:
+				$defv! $f (x) d eval x d; $defl! f (n) $f (f n); f ();
+		The orphan temporary object cleanup is also disabled in the reduction of by 'A1::ReduceAgain'.
+			It might be replaced for a saner and simpler implementation in future.
 
 ////
 

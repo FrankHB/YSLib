@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2018 FrankHB.
+	© 2011-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r1447
+\version r1454
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2018-07-09 10:06 +0800
+	2019-06-23 17:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,6 +41,7 @@
 //	platform::Concurrency, platform::FileSystemType, std::system_error, array,
 //	string, string_view;
 #	include <sys/syslimits.h> // for NAME_MAX.
+#	include <ystdex/function.hpp> // for ystdex::function;
 #	include <ystdex/optional.h> // for ystdex::ref_opt;
 #	include <bitset> // for std::bitset;
 #endif
@@ -350,7 +351,7 @@ public:
 	\brief 修剪存储的簇链：跳过指定保留的簇，移除之后链接的所有簇。
 	\exception std::system_error 调用失败。
 		\li std::errc::io_error 下一簇有效性校验失败。
-	\note 第二个参数指定保留的簇的数量上限减 1 。
+	\note 第二参数指定保留的簇的数量上限减 1 。
 	\sa ClearLinks
 	\sa QueryNext
 
@@ -562,10 +563,10 @@ public:
 	\note 路径相对分区，无根前缀，空串路径视为当前工作目录。
 	\note 当最后一个参数非空时初始化和添加新文件并输出父目录簇，忽略第三参数。
 	\note 若添加项，长短文件名由 FindEntryGap 调用设置。
-	\since build 656
+	\since build 860
 	*/
 	DEntry(Partition&, string_view, LeafAction = LeafAction::Return,
-		std::function<void(DEntry&)> = {},
+		ystdex::function<void(DEntry&)> = {},
 		ClusterIndex& = ystdex::ref_opt<ClusterIndex>());
 
 	DefPred(const ynothrow, Dot, name == "." || name == "..")
@@ -819,7 +820,7 @@ public:
 			指定的旧文件不存在或新路径为空串。
 		\li std::errc::file_exists 指定的新项已存在；
 		std::errc::io_error 读写错误。
-	\note 第一个参数指定已有文件的路径，第二个参数指定新文件的路径。
+	\note 第一参数指定已有文件的路径，第二参数指定新文件的路径。
 	\note 第二个路径是完整路径，可能有根前缀。
 	\since build 643
 	*/
@@ -894,7 +895,7 @@ private:
 	lref<Partition> part_ref;
 	// XXX: Members %(start_cluster, valid_entry) should be protected by the
 	//	partition mutex in construction.
-	// FIXME: More precise concurrency safety?
+	// TODO: More precise concurrency safety?
 	ClusterIndex start_cluster;
 	DEntry current_entry;
 	bool valid_entry;

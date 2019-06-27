@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 框架初始化。
-\version r836
+\version r843
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-09-04 22:52 +0800
+	2019-06-23 17:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define INC_Helper_Initialization_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_ValueNode // for ValueNode;
+#include YFM_YSLib_Core_ValueNode // for function, FilterExceptions, ValueNode;
 #include YFM_YSLib_Core_YApplication // for Application;
 #include YFM_YSLib_Adaptor_Font // for Drawing::FontCache;
 #include YFM_YSLib_Service_ContentType // for MIMEBiMapping;
@@ -49,16 +49,15 @@ extern bool ShowInitializedLog;
 \brief 初始化关键模块。
 \throw FatalError 初始化失败。
 \note 第二参数表示调用签名；后两个参数用于抛出异常。
-\since build 725
+\since build 860
 */
 YF_API void
-InitializeKeyModule(std::function<void()>, const char*, const char*,
-	string_view);
+InitializeKeyModule(function<void()>, const char*, const char*, string_view);
 
 /*!
 \brief 处理最外层边界的异常，若捕获致命错误则在之后终止程序。
-\note 可作为 FilterException 的参数，用于统一处理抛出到主函数的异常。
-\sa FilterException
+\note 可作为 FilterExceptions 的参数，用于统一处理抛出到 GUI 程序的主函数的异常。
+\sa FilterExceptions
 \since build 691
 */
 YF_API void

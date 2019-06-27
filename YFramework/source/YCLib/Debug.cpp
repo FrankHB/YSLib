@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2018 FrankHB.
+	© 2011-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r852
+\version r855
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2018-12-24 12:15 +0800
+	2019-06-23 16:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -182,8 +182,8 @@ Logger::DoLogRaw(Level level, const char* str)
 void
 Logger::DoLogException(Level lv, const std::exception& e) ynothrow
 {
-	const auto do_log_excetpion_raw([this](const char* msg) YB_NONNULL(1)
-		ynothrow{
+	const auto do_log_excetpion_raw([this](const char* msg)
+		YB_ATTR_LAMBDA(nonnull(1)) ynothrow{
 		try
 		{
 			DoLogRaw(Descriptions::Emergent,

@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14208
+\version r14210
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2019-05-15 11:53 +0800
+	2019-06-26 16:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -114,6 +114,7 @@ YB_HAS_BUILTIN_NULLPTR
 YB_HAS_NOEXCEPT
 YB_ABORT
 YB_ATTR(...)
+YB_ATTR_LAMBDA(...)
 YB_ATTR_STD(...)
 YB_ATTR_fallthrough
 YB_ATTR_gnu_printf(...)
@@ -472,7 +473,6 @@ $unit NPLA1
 NPL_Impl_NPLA1_Enable_TCO
 NPL_Impl_NPLA1_Enable_TailRewriting
 NPL_Impl_NPLA1_Enable_Thunked
-NPL_Impl_NPLA1_Enable_WeakExternalRoots
 }
 $unit Dependency
 {

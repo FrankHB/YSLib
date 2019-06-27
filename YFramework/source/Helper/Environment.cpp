@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018 FrankHB.
+	© 2013-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1905
+\version r1907
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2018-09-06 16:11 +0800
+	2019-06-23 16:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,7 +67,7 @@ Environment::Environment(Application& app)
 	::defaultExceptionHandler();
 	DSConsoleInit(true, ColorSpace::Lime, ColorSpace::Black);
 	FetchCommonLogger().SetSender([&](Logger::Level lv, Logger&,
-		const char* str) YB_NONNULL(4) ynothrowv{
+		const char* str) YB_ATTR_LAMBDA(NONNULL(4)) ynothrowv{
 		if(ShowInitializedLog || lv <= Descriptions::Alert)
 		{
 			if(!ShowInitializedLog)

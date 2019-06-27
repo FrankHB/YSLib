@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2018 FrankHB.
+	© 2009-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3464
+\version r3470
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2018-09-06 16:12 +0800
+	2019-06-23 16:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "Helper/YModules.h"
-#include YFM_Helper_Initialization // for ystdex::nptr;
+#include YFM_Helper_Initialization // for ystdex::nptr, function;
 #include YFM_YSLib_Core_YException // for ExtractException, ExtractAndTrace;
 #include YFM_CHRLib_MappingEx // for CHRLib::cp113_lkp;
 #include YFM_YSLib_Service_TextFile // for Text::BOM_UTF_8, Text::CheckBOM;
@@ -224,7 +224,7 @@ class CMap final
 private:
 	MappedFile mapped{};
 #	if YCL_Win32
-	ystdex::nptr<char16_t(*)(byte, byte)> cp113_lkp_backup = {};
+	nptr<char16_t(*)(byte, byte)> cp113_lkp_backup = {};
 #	endif
 
 public:
@@ -262,8 +262,8 @@ public:
 			else
 #	endif
 			{
-				CHRLib::cp113_lkp = [](byte, byte) YB_ATTR(noreturn)
-					-> char16_t{
+				CHRLib::cp113_lkp
+					= [](byte, byte) YB_ATTR_LAMBDA(noreturn) -> char16_t{
 					throw
 						LoggedEvent("Failed calling conversion for CHRMapEx.");
 				};
@@ -336,7 +336,7 @@ FetchDefaultResource(_fLoader load, _func f)
 } // unnamed namespace;
 
 void
-InitializeKeyModule(std::function<void()> f, const char* sig,
+InitializeKeyModule(function<void()> f, const char* sig,
 	const char* t, string_view sv)
 {
 	string res;

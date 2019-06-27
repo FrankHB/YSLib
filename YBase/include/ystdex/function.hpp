@@ -11,13 +11,13 @@
 /*!	\file function.hpp
 \ingroup YStandardEx
 \brief 函数基本操作和调用包装对象。
-\version r4835
+\version r4837
 \author FrankHB <frankhb1989@gmail.com>
 \since build 847
 \par 创建时间:
 	2018-12-13 01:24:06 +0800
 \par 修改时间:
-	2019-03-06 16:56 +0800
+	2019-06-23 16:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -526,7 +526,7 @@ struct function_traits<_tRet(_tParams...), empty_function_policy::throwing>
 	YB_ATTR(always_inline) static yconstfn_relaxed void
 	init_empty(const _tContent&, _fInvoke& f)
 	{
-		f = [](const _tContent&, _tParams...) YB_ATTR(noreturn) -> _tRet{
+		f = [](const _tContent&, _tParams...) YB_ATTR_LAMBDA(noreturn) -> _tRet{
 			// TODO: Use a function call to throw?
 			throw std::bad_function_call();
 		};
@@ -859,6 +859,7 @@ using optional_function = function_base<function_traits<_fSig,
 	empty_function_policy::no_effect>, _fSig>;
 
 /*!
+\ingroup YBase_replacement_features
 \brief 函数包装类模板。
 \see ISO C++17 [func.wrap.func] 。
 \see WG21 P0288 。

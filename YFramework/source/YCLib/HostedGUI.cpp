@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2018 FrankHB.
+	© 2013-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1957
+\version r1960
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2018-12-14 08:17 +0800
+	2019-06-23 17:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1028,7 +1028,7 @@ Clipboard::Receive(YSLib::String& str)
 }
 
 bool
-Clipboard::ReceiveRaw(FormatType fmt, std::function<void(const Data&)> f)
+Clipboard::ReceiveRaw(FormatType fmt, YSLib::function<void(const Data&)> f)
 {
 	if(IsAvailable(fmt))
 		if(const auto h = ::GetClipboardData(fmt))
@@ -1121,7 +1121,7 @@ ExecuteShellCommand(const wchar_t* cmd, const wchar_t* args, bool use_admin,
 				boxed_exception{std::runtime_error("ShellExecuteW"), res})
 			catch(boxed_exception& e)
 			{
-				const auto throw_ex([=](int ec) YB_ATTR(noreturn){
+				const auto throw_ex([=](int ec) YB_ATTR_LAMBDA(noreturn){
 					std::throw_with_nested(Win32Exception(ErrorCode(ec),
 						ystdex::sfmt("ShellExecuteW: %d", res), Err));
 				});
