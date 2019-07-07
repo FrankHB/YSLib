@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2774
+\version r2833
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2019-06-23 16:34 +0800
+	2019-07-06 11:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 //	std::forward_as_tuple, NPL::Deref, ystdex::isdigit, Collapse,
 //	ystdex::bind1, NPL::IsMovable, NPL::TryAccessReferencedTerm, ystdex::plus,
 //	std::placeholders, std::mem_fn, NPL::ResolveRegular, ystdex::tolower,
-//	ystdex::swap_dependent;
+//	ystdex::swap_dependent, NPL::Forms functions;
 #include YFM_NPL_SContext
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
@@ -485,7 +485,7 @@ LoadEnvironments(ContextNode& ctx)
 	RegisterStrictUnary<const TokenValue>(ctx, "resolve-identifier",
 		[](string_view id, const ContextNode& c){
 		return CheckSymbol(id, [&]{
-			return ResolveIdentifier(c, id).first;
+			return ResolveIdentifier(c, id);
 		});
 	});
 	// NOTE: This is now be primitive since in NPL environment capture is more
@@ -628,6 +628,7 @@ LoadGroundedDerived(REPLContext& context)
 	RegisterForm(renv, "$cond", Cond);
 	RegisterForm(renv, "$and?", And);
 	RegisterForm(renv, "$or?", Or);
+	RegisterStrictUnary(renv, "not?", Not);
 #else
 #	if NPL_Impl_NPLA1_Native_EnvironmentPrimitives
 	context.Perform(u8R"NPL(
@@ -743,6 +744,7 @@ LoadGroundedDerived(REPLContext& context)
 			(apply ($lambda% ((&test .&body) .clauses)
 				$if (eval test d) (eval% body d) (apply (wrap $cond) clauses d))
 				clauses);
+		$defl! not? (&x) eql? x #f;
 		$defv%! $and? x d $cond
 			((null? x) #t)
 			((nullv? (rest& x)) eval% (first (forward x)) d)
@@ -816,7 +818,6 @@ LoadCore(REPLContext& context)
 #endif
 	// NOTE: Use of 'eql?' is more efficient than '$if'.
 	context.Perform(u8R"NPL(
-		$defl! not? (&x) eql? x #f;
 		$defv%! $when (&test .&vexpr) d
 			$if (eval test d) (eval% (list*% () $sequence vexpr) d);
 		$defv%! $unless (&test .&vexpr) d
@@ -829,50 +830,50 @@ LoadCore(REPLContext& context)
 			($defl%! aux (&l &base) $if (pred? l) (forward base)
 				(aux (tail (forward l)) (sum (head (forward l))
 					(forward base))))
-			(forward (aux (forward l) (forward base)));
+			(aux (forward l) (forward base));
 		$defl%! accr (&l &pred? &base &head &tail &sum) $sequence
 			($defl%! aux (&l) $if (pred? l) (forward base)
 				(sum (head (forward l)) (aux (tail (forward l)))))
-			(forward (aux (forward l)));
+			(aux (forward l));
 		$defl%! foldr1 (&kons &knil &l)
-			forward (accr (forward l) null? (forward knil) first rest% kons);
-		$defw%! map1 (&appv &l) d forward
-			(foldr1 ($lambda (&x &xs) cons% (apply appv (list% x) d) xs) ()
-				(forward l));
+			accr (forward l) null? (forward knil) first rest% kons;
+		$defw%! map1 (&appv &l) d
+			foldr1 ($lambda (&x &xs) cons% (apply appv (list% x) d) xs) ()
+				(forward l);
 		$defl! list-concat (&x &y) foldr1 cons% y (forward x);
 		$defl! append (.&ls) foldr1 list-concat () (forward ls);
-		$defv%! $let (&bindings .&body) d forward (eval% (list*% ()
-			(list*% $lambda (map1 firstv bindings) (list body))
-			(map1 list-rest% bindings)) d);
-		$defv%! $let% (&bindings .&body) d forward (eval% (list*% ()
-			(list*% $lambda% (map1 firstv bindings) (list body))
-			(map1 list-rest% bindings)) d);
-		$defv%! $let/d (&bindings &ef .&body) d forward (eval% (list*% ()
-			(list% wrap (list*% $vau (map1 firstv bindings) ef (list body)))
-			(map1 list-rest% bindings)) d);
-		$defv%! $let/d% (&bindings &ef .&body) d forward (eval% (list*% ()
-			(list% wrap (list*% $vau% (map1 firstv bindings) ef (list body)))
-			(map1 list-rest% bindings)) d);
-		$defv%! $let/e (&e &bindings .&body) d forward (eval% (list*% ()
-			(list*% $lambda/e e (map1 firstv bindings) (list body))
-			(map1 list-rest% bindings)) d);
-		$defv%! $let/e% (&e &bindings .&body) d forward (eval% (list*% ()
-			(list*% $lambda/e% e (map1 firstv bindings) (list body))
-			(map1 list-rest% bindings)) d);
-		$defv%! $let* (&bindings .&body) d forward
-			(eval% ($if (null? bindings) (list*% $let bindings (idv body))
+		$defv%! $let (&bindings .&body) d
+			eval% (list*% () (list*% $lambda (map1 firstv bindings) (list body))
+				(map1 list-rest% bindings)) d;
+		$defv%! $let% (&bindings .&body) d
+			eval% (list*% () (list*% $lambda% (map1 firstv bindings)
+				(list body)) (map1 list-rest% bindings)) d;
+		$defv%! $let/d (&bindings &ef .&body) d
+			eval% (list*% () (list% wrap (list*% $vau (map1 firstv bindings)
+				ef (list body))) (map1 list-rest% bindings)) d;
+		$defv%! $let/d% (&bindings &ef .&body) d
+			eval% (list*% () (list% wrap (list*% $vau% (map1 firstv bindings)
+				ef (list body))) (map1 list-rest% bindings)) d;
+		$defv%! $let/e (&e &bindings .&body) d
+			eval% (list*% () (list*% $lambda/e e (map1 firstv bindings)
+				(list body)) (map1 list-rest% bindings)) d;
+		$defv%! $let/e% (&e &bindings .&body) d
+			eval% (list*% () (list*% $lambda/e% e (map1 firstv bindings)
+				(list body)) (map1 list-rest% bindings)) d;
+		$defv%! $let* (&bindings .&body) d
+			eval% ($if (null? bindings) (list*% $let bindings (idv body))
 				(list% $let (list (first bindings))
-				(list*% $let* (rest% bindings) body))) d);
-		$defv%! $let*% (&bindings .&body) d forward
-			(eval% ($if (null? bindings) (list*% $let* bindings (idv body))
+				(list*% $let* (rest% bindings) body))) d;
+		$defv%! $let*% (&bindings .&body) d
+			eval% ($if (null? bindings) (list*% $let* bindings (idv body))
 				(list% $let% (list (first bindings))
-				(list*% $let*% (rest% bindings) body))) d);
-		$defv%! $letrec (&bindings .&body) d forward
-			(eval% (list $let () $sequence (list% $def! (map1 firstv bindings)
-				(list*% () list (map1 rest% bindings))) body) d);
-		$defv%! $letrec% (&bindings .&body) d forward
-			(eval% (list $let% () $sequence (list% $def! (map1 firstv bindings)
-				(list*% () list (map1 rest% bindings))) body) d);
+				(list*% $let*% (rest% bindings) body))) d;
+		$defv%! $letrec (&bindings .&body) d
+			eval% (list $let () $sequence (list% $def! (map1 firstv bindings)
+				(list*% () list (map1 rest% bindings))) body) d;
+		$defv%! $letrec% (&bindings .&body) d
+			eval% (list $let% () $sequence (list% $def! (map1 firstv bindings)
+				(list*% () list (map1 rest% bindings))) body) d;
 		$defv! $bindings/p->environment (&parents .&bindings) d $sequence
 			($def! res apply make-environment (map1 ($lambda% (x) eval% x d)
 				parents))
@@ -974,28 +975,32 @@ LoadModule_std_environments(REPLContext& context)
 void
 LoadModule_std_promises(REPLContext& context)
 {
+	// NOTE: Call of 'set-first%!' does not check cyclic references. This is
+	//	kept safe since it can occur only with NPLA1 undefined behavior.
 	context.Perform(u8R"NPL(
 		$def! std.promises $provide! (promise? memoize $lazy $lazy/e force)
 		(
 			$def! (encapsulate promise? decapsulate) () make-encapsulation-type,
-			$defl%! memoize (%value) encapsulate (list (list% value ())),
-			$defv%! $lazy (.expr) d encapsulate (list (list expr d)),
-			$defv%! $lazy/e (&e .expr) d
+			$defl%! memoize (&value)
+				encapsulate (list (list% (forward value) ())),
+			$defv%! $lazy (.&expr) d encapsulate (list (list expr d)),
+			$defv%! $lazy/e (&e .&expr) d
 				encapsulate (list (list expr (check-environment (eval e d)))),
 			$defl%! force (&x)
-				forward ($if (promise? x) (force-promise (decapsulate x)) x),
+				$if (promise? x) (force-promise (decapsulate x)) (forward x),
 			$defl%! force-promise (&x) $let ((((&object &env)) x))
-				$if (null? env) (idv object)
-					(handle-promise-result x (eval% object env)),
-			$defl%! handle-promise-result (&x &y) $cond
-				((null? (first (rest& (first& x))))
-					forward (first& (first& x)))
-				((promise? y) $sequence
-					(set-first%! x (first& (decapsulate y))) (force-promise x))
-				(#t $sequence
-					($let (((&o &e) first& x))
-						list% (assign! o y) (assign@! e ()))
-					(forward y))
+				$if (null? env) (forward object)
+				(
+					$let% ((&y eval% object env)) $cond
+						((null? (first (rest& (first& x)))) first& (first& x))
+						((promise? y) $sequence
+							(set-first%! x (first (decapsulate (forward y))))
+							(force-promise x))
+						(#t $sequence
+							($let (((&o &e) first& x))
+								list% (assign! o y) (assign@! e ()))
+							(forward y))
+				)
 		);
 	)NPL");
 }

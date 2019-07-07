@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4905
+\version r4911
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2019-01-14 07:02 +0800
+	2019-07-08 00:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,9 +25,8 @@
 */
 
 
-#include "ShlReader.h"
+#include "ShlReader.h" // for ystdex::ltrim, make_string_view;
 #include "ShlExplorer.h"
-#include YFM_NPL_Lexical
 #include <ystdex/functional.hpp> // for ystdex::bind1;
 #include <sys/stat.h> // for ::stat;
 
@@ -219,7 +218,8 @@ ShlReader::LoadBookmarks(const string& group)
 		ystdex::split(value.cbegin(), value.cend(), static_cast<int(&)(int)>(
 			std::isspace),
 			[&](string::const_iterator b, string::const_iterator e){
-				TryExpr(bookmarks.push_back(stoul(ystdex::ltrim(string(b, e)))))
+				TryExpr(bookmarks.push_back(
+					stoul(ystdex::ltrim(std::string(b, e)))))
 				CatchIgnore(std::invalid_argument&)
 				CatchIgnore(std::out_of_range&)
 		});
@@ -256,12 +256,12 @@ ShlReader::SaveBookmarks(const string& group, const BookmarkList& bookmarks)
 {
 	try
 	{
-		string str;
+		std::string str;
 
 		for(const auto& pos : bookmarks)
 			str += to_string(pos) + ' ';
 		FetchRoot()["YReader"]["Bookmarks"]['"' + group + '"'].Value
-			= std::move(str);
+			= string(make_string_view(str));
 	}
 	CatchExpr(std::exception& e, YTraceDe(Warning,
 		// TODO: Use demangled name.

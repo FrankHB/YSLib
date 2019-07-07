@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018 FrankHB.
+	© 2010-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r624
+\version r632
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2018-07-25 01:43 +0800
+	2019-07-07 15:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,11 +25,11 @@
 */
 
 
-#ifndef YSL_INC_Core_yexcept_h_
-#define YSL_INC_Core_yexcept_h_ 1
+#ifndef YSL_INC_Core_YException_h_
+#define YSL_INC_Core_YException_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YShellDefinition
+#include YFM_YSLib_Core_YShellDefinition // for function;
 #include <exception> // for mandated header;
 #include <stdexcept> // for mandated header;
 #include YFM_YSLib_Adaptor_YTextBase // for string_view;
@@ -125,12 +125,12 @@ public:
 //@{
 /*!
 \brief 打印带有层次信息的函数类型。
-\note 约定第一个参数非空。
+\note 约定第一参数非空。
 */
 using ExtractedLevelPrinter
-	= std::function<void(const char*, RecordLevel, size_t)>;
+	= function<void(const char*, RecordLevel, size_t)>;
 template<typename _type>
-using GLevelTracer = std::function<void(_type, RecordLevel)>;
+using GLevelTracer = function<void(_type, RecordLevel)>;
 using ExceptionTracer = GLevelTracer<const std::exception&>;
 
 
@@ -174,7 +174,7 @@ ExtractException(const ExtractedLevelPrinter&,
 对参数指定的函数求值，并使用最后一个参数跟踪记录异常。
 */
 YF_API bool
-TryExecute(std::function<void()>, const char* = {}, RecordLevel = Alert,
+TryExecute(function<void()>, const char* = {}, RecordLevel = Alert,
 	ExceptionTracer = ExtractAndTrace);
 
 /*!

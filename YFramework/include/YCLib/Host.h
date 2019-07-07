@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2018 FrankHB.
+	© 2014-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r623
+\version r633
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2018-09-20 11:15 +0800
+	2019-07-07 19:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,11 +70,17 @@ public:
 	YB_NONNULL(3)
 	Exception(std::error_code, const char* = "unknown host exception",
 		YSLib::RecordLevel = YSLib::Emergent);
+	//! \since build 861
+	Exception(std::error_code, const std::string&,
+		YSLib::RecordLevel = YSLib::Emergent);
 	Exception(std::error_code, string_view,
 		YSLib::RecordLevel = YSLib::Emergent);
 	YB_NONNULL(4)
 	Exception(int, const std::error_category&, const char*
 		= "unknown host exception", YSLib::RecordLevel = YSLib::Emergent);
+	//! \since build 861
+	Exception(int, const std::error_category&, const std::string&,
+		YSLib::RecordLevel = YSLib::Emergent);
 	Exception(int, const std::error_category&, string_view,
 		YSLib::RecordLevel = YSLib::Emergent);
 	//@}
@@ -246,7 +252,7 @@ inline PDefH(string, DecodeArg, string_view arg)
 template<typename _type
 #if YCL_Win32
 	, yimpl(typename = ystdex::enable_if_t<
-		!std::is_constructible<string_view, _type&&>::value>)
+		!std::is_constructible<string_view, _type>::value>)
 #endif
 	>
 yconstfn auto
@@ -264,8 +270,8 @@ inline PDefH(string, EncodeArg, string_view arg)
 #	endif
 template<typename _type
 #if YCL_Win32
-	, yimpl(typename = ystdex::enable_if_t<!std::is_constructible<string_view,
-		_type&&>::value>)
+	, yimpl(typename = ystdex::enable_if_t<
+		!std::is_constructible<string_view, _type>::value>)
 #endif
 	>
 yconstfn auto

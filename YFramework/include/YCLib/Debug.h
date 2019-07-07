@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2018 FrankHB.
+	© 2011-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r779
+\version r790
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2018-12-24 12:15 +0800
+	2019-07-07 18:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -127,7 +127,7 @@ public:
 	/*!
 	\brief 无参数构造：使用过滤器和发送器。
 	\note 异常中立：同 FetchDefaultSender 。
-	\note 由 std::function 的构造模板提供的保证确保无其它异常抛出。
+	\note 由 ystdex::function 的构造模板提供的保证确保无其它异常抛出。
 	*/
 	DefDeCtor(Logger)
 	//! \brief 复制构造：复制过滤等级、过滤器和发送器，使用新创建的互斥量。
@@ -308,9 +308,7 @@ LogWithSource(const char*, int, const char*, ...) ynothrow;
 */
 #define YF_TraceRaw(_lv, ...) \
 	YCL_Log(_lv, [&]() -> platform::string { \
-		using platform::sfmt; \
-	\
-		TryRet(sfmt(__VA_ARGS__)) \
+		TryRet(ystdex::sfmt<platform::string>(__VA_ARGS__)) \
 		CatchRet(..., {}) \
 	})
 
@@ -490,17 +488,17 @@ Deref(_type&& p) -> decltype(*p)
 \brief 组合消息和函数签名字符串。
 \pre 间接断言：指针参数非空。
 \note 使用 ADL to_string 。
-\since build 714
+\since build 861
 */
 //@{
-YB_NONNULL(2) inline PDefH(string, ComposeMessageWithSignature,
-	const string& msg, const char* sig)
+YB_NONNULL(2) inline PDefH(std::string, ComposeMessageWithSignature,
+	const std::string& msg, const char* sig)
 	ImplRet(msg + " @ " + Nonnull(sig))
-YB_NONNULL(1, 2) inline PDefH(string, ComposeMessageWithSignature,
+YB_NONNULL(1, 2) inline PDefH(std::string, ComposeMessageWithSignature,
 	const char* msg, const char* sig)
-	ImplRet(string(Nonnull(msg)) + " @ " + Nonnull(sig))
+	ImplRet(std::string(Nonnull(msg)) + " @ " + Nonnull(sig))
 template<class _type>
-YB_NONNULL(2) inline string
+YB_NONNULL(2) inline std::string
 ComposeMessageWithSignature(const _type& msg, const char* sig)
 {
 	using ystdex::to_string;

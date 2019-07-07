@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2486
+\version r2512
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2019-05-17 10:05 +0800
+	2019-07-07 02:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define NPL_INC_SContext_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_Lexical
+#include YFM_NPL_Lexical // for function, pmr;
 #include YFM_YSLib_Core_ValueNode // for YSLib::Deref, YSLib::MakeIndex,
 //	YSLib::NoContainer, YSLib::NoContainerTag, YSLib::ValueObject,
 //	YSLib::ValueNode, list, YSLib::LoggedEvent, YSLib::make_observer,
@@ -116,8 +116,8 @@ enum class TermTags
 	/*!
 	\brief 临时对象。
 
-	指定被引用的对象是显式的临时对象。
-	类似宿主语言中声明的右值引用，但实际作用在被引用的对象而不是引用。
+	指定被引用的对象是绑定在环境中的显式的临时对象。
+	类似宿主语言中声明的右值引用，但实际作用在被引用的对象的项而不是引用值所在的项。
 	和宿主语言不同，引用不需要被扩展生存期的临时对象具有所有权。
 	通常在派生实现绑定特定引用且指定被引用的对象是右值时使用。
 	*/
@@ -631,7 +631,10 @@ public:
 
 	//! \since build 618
 	DefDeCtor(Session)
+	//! \since build 861
+	Session(pmr::memory_resource&);
 	//! \throw LoggedEvent 关键失败：无法访问源内容。
+	//@{
 	template<typename _tIn>
 	Session(_tIn first, _tIn last, CharParser parse = DefaultParseByte)
 		: Lexer()
@@ -639,10 +642,28 @@ public:
 		std::for_each(first, last,
 			std::bind(parse, std::ref(Lexer), std::placeholders::_1));
 	}
+	//! \since build 861
+	template<typename _tIn>
+	Session(pmr::memory_resource& rsrc, _tIn first, _tIn last,
+		CharParser parse = DefaultParseByte)
+		: Lexer(rsrc)
+	{
+		std::for_each(first, last,
+			std::bind(parse, std::ref(Lexer), std::placeholders::_1));
+	}
+	//@}
 	template<typename _tRange,
-		yimpl(typename = ystdex::exclude_self_t<Session, _tRange>)>
+		yimpl(typename = ystdex::exclude_self_t<Session, _tRange>,
+		typename = ystdex::exclude_self_t<pmr::memory_resource, _tRange>)>
 	Session(const _tRange& c, CharParser parse = DefaultParseByte)
 		: Session(ystdex::begin(c), ystdex::end(c), parse)
+	{}
+	//! \since build 861
+	template<typename _tRange,
+		yimpl(typename = ystdex::exclude_self_t<Session, _tRange>)>
+	Session(pmr::memory_resource& rsrc, const _tRange& c,
+		CharParser parse = DefaultParseByte)
+		: Session(rsrc, ystdex::begin(c), ystdex::end(c), parse)
 	{}
 	DefDeCopyMoveCtorAssignment(Session)
 

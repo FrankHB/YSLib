@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3470
+\version r3474
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2019-06-23 16:29 +0800
+	2019-07-07 15:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -203,9 +203,9 @@ inline PDefH(string, FetchSystemFontDirectory_Win32, )
 #endif
 
 #if !CHRLib_NoDynamic_Mapping
-//! \since build 712
+//! \since build 861
 MappedFile
-LoadMappedModule(const string& path)
+LoadMappedModule(const std::string& path)
 {
 	TryRet(MappedFile(path))
 	CatchExpr(..., std::throw_with_nested(
@@ -230,13 +230,13 @@ private:
 public:
 	CMap(const string& data_dir)
 	{
-		const string mapping_name(data_dir + "cp113.bin");
+		const std::string mapping_name(to_std_string(data_dir) + "cp113.bin");
 
 		YTraceDe(Notice, "Loading character mapping file '%s' ...",
 			mapping_name.c_str());
 		try
 		{
-			mapped = LoadMappedModule(data_dir + "cp113.bin");
+			mapped = LoadMappedModule(mapping_name);
 			if(mapped.GetSize() != 0)
 				CHRLib::cp113 = mapped.GetPtr();
 			else

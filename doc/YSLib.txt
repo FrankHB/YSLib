@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r3204
+\version r3232
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2019-02-22 14:34 +0800
+	2019-07-07 23:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 
 @1 约束、组成和架构：
 关于显式外部依赖项规则，参见 [Documentation::YFramework @@2.1] 。
-YSLib 库下直接的子目录计有 Adaptor 、 Core 、 Service 和 UI 。
+YSLib 库下直接的子目录计有 Adaptor 、Core 、Service 和 UI 。
 
 @1.1 名称和源代码一般规则：
 基本规则参见([Documentation::YFramework @@2.3]) 。另见 [Documentation::Designation @@6.3] 。
@@ -71,8 +71,8 @@ YSLib::UI ：用户界面。
 YSLib::UI::Styles ：用户界面样式定制。
 
 @1.1.6 名称引用限制：
-除 Adaptor 中的 using 声明、 using 指令和命名空间别名外， YSLib 命名空间下不直接使用 YSLib 、 std 和 ystdex 以外的根命名空间以及其中的名称；不直接使用 std::tr1 及其中的名称。
-不使用除了 operator new 、 operator new[] 、 operator delete 、 operator delete[] 和 main 以外的全局命名空间中的名称。
+除 Adaptor 中的 using 声明、 using 指令和命名空间别名外， YSLib 命名空间下不直接使用 YSLib 、std 和 ystdex 以外的根命名空间以及其中的名称；不直接使用 std::tr1 及其中的名称。
+不使用除了 operator new 、operator new[] 、operator delete 、operator delete[] 和 main 以外的全局命名空间中的名称。
 
 @1.1.7 附加名称限制：
 不在 Adaptor 和 Helper 等确定可以使用平台相关的代码以外区域使用环境、编译器和版本判断宏。
@@ -82,18 +82,18 @@ YSLib::UI::Styles ：用户界面样式定制。
 
 @1.2.1 引入自 C 标准库的 C++ 标准库头依赖项：
 不在本体的必要文件中显式包含，除了以下例外：
-Adaptor::YAdaptor 需要保证 <cstddef> 、 <cstdint> 、 <climits> 和 <cmath> 被包含；
+Adaptor::YAdaptor 需要保证 <cstddef> 、<cstdint> 、<climits> 和 <cmath> 被包含；
 
 @1.2.2 不在本体中显式包含，需要在 Adaptor::YAdaptor 包含或提供替代品的 C++ 标准库依赖项：
-<algorithm> 、 <array> 、 <deque> 、 <forward_list> 、<istream> 、 <list> 、 <memory> 、 <map> 、<ostream> 、 <queue> 、 <set> 、 <stack> 、 <string> 、 <unordered_map> 、 <unordered_set> 和 <vector>。
-此外， Adaptor::YAdaptor 需要保证 <bitset> 、 <functional> 、 <initializer_list> 、 <new> 、 <type_traits> 和 <utility> 被包含。
+<algorithm> 、<array> 、<deque> 、<forward_list> 、<iosfwd> 、<istream> 、<list> 、<memory> 、<map> 、<ostream> 、<queue> 、<set> 、<stack> 、<string> 、<unordered_map> 、<unordered_set> 和 <vector>。
+此外， Adaptor::YAdaptor 需要保证 <bitset> 、<functional> 、<initializer_list> 、<new> 、<type_traits> 和 <utility> 被包含。
 例外：同时需要使用容器和限定标准库类型时：
 Core::YException 包含 <string> （由于复用标准库异常需要的参数类型 std::string 不一定是此处配置的字符串类型）。
 以上不在本体的头文件中显式包含的 C++ 标准库依赖项，同时可能在 Adaptor 的必要头文件直接或间接包含。
 
 @1.2.3 不在本体或 Adaptor 的头文件中显式包含的 C++ 标准库依赖项：
 基于性能、兼容性、安全性及其它因素考虑，Adaptor 和本体不直接使用以下头及唯一在其中声明的接口和包含的宏（但可能会间接依赖）：
-<csetjmp> 、 <csignal> 、 <ciso646> 、 <iostream> 、 <locale> 和 <strstream> 。
+<csetjmp> 、<csignal> 、<ciso646> 、<iostream> 、<locale> 和 <strstream> 。
 另见 [Documentation::LanguageConvention @@6.15] 。
 
 @1.2.4 本体的必要头文件中显式包含的 C++ 标准库依赖项：
@@ -103,7 +103,7 @@ UI::YComponent 包含 <typeinfo> ；
 UI::YStyle 包含 <typeindex> 。
 
 @1.2.5 本体的头文件中未限定（可能显式包含）的 C++ 标准库依赖项：
-<codecvt> 、 <complex> 、 <condition_variable> 、 <future> 、 <limits> 、 <mutex> 、 <numeric> 、 <random> 、 <ratio> 、 <system_error> 、 <thread> 和 <valarray> 。
+<codecvt> 、<complex> 、<condition_variable> 、<future> 、<limits> 、<mutex> 、<numeric> 、<random> 、<ratio> 、<system_error> 、<thread> 和 <valarray> 。
 
 @1.2.6 YSLib 头文件对 YBase 依赖性：
 Adapor::YAdaptor 需确保以下 YBase::YStandardEx([Documentation::YBase @@2.5]) 头文件被包含：
@@ -123,7 +123,7 @@ YShellDefinition 依赖 Adaptor::YAdaptor 和 Adaptor::YReference ；
 除了 YShellDefinition 外都直接或间接依赖 YShellDefinition；
 YCoreUtilities 和 YGDIBase 依赖 YException ；
 YObject 依赖 YCoreUtilities ；
-YDevice 、 YString 和 YMessage 依赖 YObject ；
+YDevice 、YString 和 YMessage 依赖 YObject ；
 YGraphics 依赖 YGDIBase ；
 YDevice 依赖 YGraphics ；
 YString 依赖 Adaptor::YTextBase ；
@@ -133,27 +133,27 @@ YShell 依赖 YMessageDefinition ；
 YApplication 依赖 YShell 。
 在 Service 中，以下模块对应的头文件依赖关系是确定的：
 YTimer 依赖 Core::YClock ；
-YBlit 、 YDraw 和 YGDI 依赖 Core::YGraphics ；
+YBlit 、YDraw 和 YGDI 依赖 Core::YGraphics ；
 YBlit 依赖 Core::YCoreUtilities ；
-YBrush 依赖 YBlit 、 YResource 和 Core::YEvent ；
+YBrush 依赖 YBlit 、YResource 和 Core::YEvent ；
 在 UI 中，以下模块对应的头文件依赖关系是确定的：
-YComponent 依赖 Core::YGraphics 、 Core::YFunc 、 Core::YMessageDefinition ；
+YComponent 依赖 Core::YGraphics 、Core::YFunc 、Core::YMessageDefinition ；
 除了 YComponent 外都直接或间接依赖 YComponent；
 YStyle 依赖 Service::YDraw ；
 YWidgetEvent 依赖 Core::YEvent ；
 YWidget 依赖 YFocus 和 YWidgetView ；
-YGUI 依赖 YWidgetEvent 、 YStyle 和 Service::YTimer ；
+YGUI 依赖 YWidgetEvent 、YStyle 和 Service::YTimer ；
 YUIContainer 依赖 YWidget ；
 YControl 依赖 YWidget 和 YWidgetEvent ；
 YPanel 依赖 YControl 和 YUIContainer ；
-YWindow 依赖 YPanel 、 YRenderer 和 Service::YResource ；
+YWindow 依赖 YPanel 、YRenderer 和 Service::YResource ；
 YDesktop 依赖 YWindow 和 Core::YDevice 。
 在整个 YSLib 头文件中根据以上确定的依赖关系，包含尽可能少（数量相同时从上至下应用依赖关系）的头文件。
 
 @1.3 安全性：
 除非具体 API 另行指定， YSLib 严格不依赖多线程执行环境： YSLib API 同时支持单线程和多线程环境并保持一致的语义。
 一般规则参见 [Documentation::YFramework @@1.4.1.4] 。
-可重入性和线程安全性参见 @2 、 @2.2 、 @3 、 @4 和 @5 ，优先于一般规则。
+可重入性和线程安全性参见 @2 、@2.2 、@3 、@4 和 @5 ，优先于一般规则。
 
 @1.4 预处理附加规则：
 头文件名使用符合规则 [Documentation::YFramework @@2.1.6] 。
@@ -208,7 +208,7 @@ YDesktop 依赖 YWindow 和 Core::YDevice 。
 默认实现如下：
 包含 YNew ，引入平台设置和存储调试设施(@2.2) 。
 确保包含 YBase 依赖项(@1.2.6) 。
-确保包含 YCLib 的 适配模块([Documentation::YCLib @@5.3]) 、 YCommon([Documentation::YCLib @@5.4]) 、 FileSystem([Documentation::YCLib @@5.6.3]) 和 Video([Documentation::YCLib @@5.7.3]) 。
+确保包含 YCLib 的 适配模块([Documentation::YCLib @@5.3]) 、YCommon([Documentation::YCLib @@5.4]) 、FileSystem([Documentation::YCLib @@5.6.3]) 和 Video([Documentation::YCLib @@5.7.3]) 。
 在 YSLib 命名空间 using 引用必要的名称。
 
 @2.3 内存调试设施 YNew ：
@@ -281,7 +281,7 @@ Unicode 字符处理要求识别不同语言的脚本(script) ，也不保证和
 @3.7.1 基本屏幕对象：
 用于实现屏幕坐标系([Documentation::YFramework @@1.5.2.2]) 。
 YSLib 默认使用整数分量坐标，类型为 SPos （平台相关的有符号整数类型），绝对值类型为 SDst （宽度与 SPos 相同的无符号整数类型）。
-以此为基础进一步定义了 Point 、 Vec 、 Size 和 Rect 等基本屏幕对象类。
+以此为基础进一步定义了 Point 、Vec 、Size 和 Rect 等基本屏幕对象类。
 Point 和 Vec 为 SPos 二元组，具有不同的相关运算集。
 Size 为 SDst 二元组。
 Rect 为标准矩形([Documentation::YFramework @@1.5.2.4]) ，即边和屏幕坐标系共线的矩形；使用 Point 表示左上角， Size 表示长和宽。
@@ -456,7 +456,7 @@ Application::OnGotMessage 分派处理消息：发送到对应的 Shell 中，�
 @5 用户界面：
 位于 "/UI" 。
 包含基本的部件/控件抽象、图形界面中较常用绘图例程以及样式管理。
-更基本的图形抽象、绘图/图像处理例程和图像资源管理则来自 Core::YGDIBase 、 Service::YGDI 和 Service::YResource 。
+更基本的图形抽象、绘图/图像处理例程和图像资源管理则来自 Core::YGDIBase 、Service::YGDI 和 Service::YResource 。
 设计时可预期一些 GUI 特性在不同的平台可表现不同的行为，但其中一部分可有公共行为。
 这里对此类特性提供统一的抽象和实现，由非平台中立的调用方决定是否使用。
 这可能会引起二进制文件体积增加，但能直接保持 YSLib 平台中立性。这些特性包括：
@@ -513,7 +513,7 @@ Desktop 作为默认视图树的默认根节点类型。
 @5.1.4.1 部件接口 UI::IWidget ：
 IWidget 除了支持访问视图树关联节点(@5.1.2) 外，还包括对部件内部的架构实现代理(@5.1.4.1) 的相关操作。所有虚方法可以在容器中重载实现。
 接口方法返回的迭代器或引用有效性由派生类约定。
-功能说明和其它描述参见 @5.1 、 @5.1.4.4 。
+功能说明和其它描述参见 @5.1 、@5.1.4.4 。
 
 @5.1.4.2 继承：
 GUI 构件相关参见 @5.1.4.4 。
@@ -577,11 +577,11 @@ YWidgetEvent 单元定义了基本的 GUI 事件参数和事件类型，包括�
 即 YWidgetEvent 单元中定义的标准部件事件，发送对象类型为 IWidget 。
 参数类型总是 UIEventArgs 及其派生类，包含发送对象类型，通过 UIEventArgs::GetSender 取得发送对象的引用。
 事件依赖项仅对非映射事件使用。相关类参见 @3.9 。
-默认 GUI 事件使用 Core::YEvent 等单元实现，和 YWidget 、 YControl 和 YGUI 单元相关。
-在 YWidgetEvent 单元中的枚举类型 typedef 名称 VisualEvent 定义了标准控件事件空间，其中定义了标准控件事件，包含视图变更事件(@5.2.1.1) 、 GUI 输入(@5.2.1.2) /输出(@5.2.1.3) 事件和焦点事件(@5.2.1.4) 等。
+默认 GUI 事件使用 Core::YEvent 等单元实现，和 YWidget 、YControl 和 YGUI 单元相关。
+在 YWidgetEvent 单元中的枚举类型 typedef 名称 VisualEvent 定义了标准控件事件空间，其中定义了标准控件事件，包含视图变更事件(@5.2.1.1) 、GUI 输入(@5.2.1.2) /输出(@5.2.1.3) 事件和焦点事件(@5.2.1.4) 等。
 GUI 输入事件包含基本 GUI 输入事件和扩展 GUI 输入事件，参见 @5.2.1.2 。
 事件参数类型由 RoutedEventArgs 派生的称为路由事件。
-路由事件的路由策略分为三类： Tunnel 、 Direct 和 Bubble 。
+路由事件的路由策略分为三类： Tunnel 、Direct 和 Bubble 。
 Tunnel 事件在处理事件的根部件进入子部件时依序触发， Direct 事件在定位至部件时触发， Bubble 事件在之后子部件退出至根部件时依序触发。
 当 Tunnel 事件非可视(visible) 或非启用(enabled) 时事件路由终止。
 当参数中的处理标记（数据成员 Handled ）被设置为 true 时，事件路由终止。
@@ -590,7 +590,7 @@ YSLib::UI 的实现中订阅的事件处理器除了依赖样式的绘制外，�
 YSLib::UI 的实现中若没有额外约定，使用动态类型和静态类型一致的参数对象。
 
 @5.2.1.1 视图变更事件：
-包括 Move 、 Resize 事件等。
+包括 Move 、Resize 事件等。
 事件参数类型 UIEventArgs ，事件类型为 HUIEvent 。
 在试图变更视图时触发。
 需要注意，不包括必然的视图改变后置条件。即使设置控件视图操作的结果与未设置时相同，仍触发事件。
@@ -616,10 +616,10 @@ YSLib::UI 的实现中若没有额外约定，使用动态类型和静态类型�
 用户可以触发滚轮度量等于 0 的滚轮事件。但考虑性能，实现一般不会触发多余的滚轮事件。
 
 @5.2.1.2.2 基本按键输入事件：
-基本按键输入事件包含 KeyUp 、 KeyDown 和 KeyHeld 。
+基本按键输入事件包含 KeyUp 、KeyDown 和 KeyHeld 。
 
 @5.2.1.2.3 基本指针设备输入（触摸屏输入）事件：
-基本指针设备输入事件包含 TouchUp 、 TouchDown 、 TouchHeld 、 CursorOver 和 CursorWheel。
+基本指针设备输入事件包含 TouchUp 、TouchDown 、TouchHeld 、CursorOver 和 CursorWheel。
 CursorOver 对支持光标自由移动的指针设备（如鼠标、无线感应笔）时有效。其它指针设备（如触摸屏）默认忽略，但允许用户手动触发事件。
 CursorWheel 对支持滚轮的指针设备（如鼠标、无线感应笔）时有效。其它指针设备（如触摸屏）默认忽略，但允许用户手动触发事件。
 默认通过 GUIState 实现的 TouchHeld 事件当且仅当触摸移动的部件和开始接触时不同时，事件发送者和订阅者不同。订阅者总是开始接触时的部件，通过公共状态的部件独立焦点指针(@5.1.1) 指定。
@@ -630,7 +630,7 @@ CursorWheel 对支持滚轮的指针设备（如鼠标、无线感应笔）时�
 TextInput 是文本输入构造事件，可能和宿主环境输入法交互。
 
 @5.2.1.2.5 输入事件路由：
-事件路由通过 YGUI 单元中的 GUIState 类实现。包括按键输入事件 KeyUp 、 KeyDown 、 KeyHeld 和 KeyPress；指针设备（屏幕光标定位设备）接触事件 TouchUp 、TouchDown 、 TouchHeld 和 Click 。
+事件路由通过 YGUI 单元中的 GUIState 类实现。包括按键输入事件 KeyUp 、KeyDown 、KeyHeld 和 KeyPress；指针设备（屏幕光标定位设备）接触事件 TouchUp 、TouchDown 、TouchHeld 和 Click 。
 触发过程：由 Helper 中的单元完成平台相关的用户输入信号捕获并向 YGUI 单元的 GUIState 类的全局实例传递，后者处理后生成对应输入事件。
 YGUI 中，复合事件和边界事件仅在直接事件路由策略处理中通过访问独立焦点指针，判断满足特定条件触发。
 KeyPress 需要先后在同一部件上触发 KeyDown 和 KeyUp 事件。
@@ -673,7 +673,7 @@ YSLib 的 UI 实现保证顶层部件(@5.1.2.1) 向下传递的 PaintContext 中
 边界事件可能由不同的事件处理触发，默认通过 GUIState 实现，只有处理 CursorOver 事件触发的 Leave 事件中的发送者和订阅者不同。
 指针设备作用于部件，触发 CursorOver 时改变光标所在的部件可以触发边界事件。此外，触发 TouchDown 事件之前判断输入焦点时触发 Enter 事件；触发 TouchHeld 同时移动指针设备出入部件边界可触发 Leave 和 Enter 事件； TouchUp 事件触发后触发 Leave 事件。
 通过 CursorOver 的事件保证按键（参数的 Keys 数据成员）会被清空。据此可以判断边界事件的触发方式。（但注意不保证非 CursorOver 对应的 Keys 一定非空，用户的事件处理器可能会重新设置按键。）
-默认不对所有部件启用触发。通过 GUIState::Wrap 指定对部件启用触发， Control 类构造时自动指定启用。判断 CursorOver 、 TouchDown 和 TouchHeld 触发时使用最高事件优先级，判断 TouchUp 触发时使用最低事件优先级。
+默认不对所有部件启用触发。通过 GUIState::Wrap 指定对部件启用触发， Control 类构造时自动指定启用。判断 CursorOver 、TouchDown 和 TouchHeld 触发时使用最高事件优先级，判断 TouchUp 触发时使用最低事件优先级。
 对于 Enter 事件，默认实现的事件发送者和订阅者相同。通过比较发送者的指针和 GUIState 的 GetIndependentFocusPtr() 可以分辨 Leave 事件是否由 CursorOver 的处理引起。
 
 @5.2.2 公用和扩展事件处理程序：
@@ -686,7 +686,7 @@ OnTouchHeld_Dragging 实现拖曳。
 默认的事件处理器不适用虚函数，以免在基类添加事件后，在派生类重复添加事件响应。
 默认的事件处理器可以是 lambda 表达式。
 在派生类定义的和基类同名的事件响应函数（函数名以 On 起始）会被隐藏而不是覆盖基类的事件响应函数，是非 public 方法。一般应避免在类实现外部调用响应函数。
-Control 类在构造函数中添加了 GotFocus 、 LostFocus 、 TouchDown 、 TouchHeld 的事件处理器，且除了 TouchHeld 外，都是 Control 的成员函数。
+Control 类在构造函数中添加了 GotFocus 、LostFocus 、TouchDown 、TouchHeld 的事件处理器，且除了 TouchHeld 外，都是 Control 的成员函数。
 
 @5.2.2 自定义 GUI 事件：
 和 YGUI 等单元相关的自定义事件，一般使用 YEvent 等单元实现。

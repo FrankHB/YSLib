@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3866
+\version r3917
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2019-02-06 11:56 +0800
+	2019-07-07 23:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,9 @@ See readme file for details.
 
 #include <YSBuild.h>
 #include YFM_YSLib_Service_FileSystem // for namespace YSLib,
-//	namespace YSLib::IO, namespace std::placeholders, uspawn;
+//	namespace YSLib::IO, namespace std::placeholders, std::mutex
+//	std::lock_guard, function, vector, std::initializer_list, to_std_string,
+//	string_view, uspawn, ystdex::sfmt, istringstream;
 #include YFM_YCLib_Host // for namespace platform_ex, platform_ex::Terminal,
 //	platform_ex::EncodeArg, platform_ex::DecodeArg,
 //	platform_ex::SetEnvironmentVariable;
@@ -44,8 +46,7 @@ See readme file for details.
 //	NPL::Install*;
 #include YFM_YSLib_Core_YConsole // for YSLib::Consoles;
 #include <ystdex/concurrency.h> // for ystdex::task_pool;
-#include YFM_YSLib_Service_TextFile // for YSLib::SharedInputMappedFileStream,
-//	YSLib::Text::CheckBOM;
+#include <sstream> // for complete istringstream;
 
 //! \since build 837
 namespace SHBuild
@@ -108,17 +109,35 @@ Quote(_tString&& str) -> decltype(quote(yforward(str), '\''))
 	return quote(yforward(str), '\'');
 }
 
-void
-PrintInfo(const string& line, RecordLevel lv = Notice,
-	LogGroup grp = LogGroup::General)
+//! \since build 861
+yconstexpr const struct
 {
-	std::lock_guard<std::mutex> lck(LastLogGroupMutex);
+	void
+	operator()(const char* line, RecordLevel lv = Notice,
+		LogGroup grp = LogGroup::General) const
+	{
+		DoPrint(line, lv, grp);
+	}
+	template<class _tStringView>
+	void
+	operator()(const _tStringView& line, RecordLevel lv = Notice,
+		LogGroup grp = LogGroup::General) const
+	{
+		DoPrint(line.data(), lv, grp);
+	}
 
-	LastLogGroup = grp;
-	FetchStaticRef<Logger>().Log(lv, [&]{
-		return line;
-	});
-}
+	static void
+	DoPrint(const char* line, RecordLevel lv = Notice,
+		LogGroup grp = LogGroup::General)
+	{
+		std::lock_guard<std::mutex> lck(LastLogGroupMutex);
+
+		LastLogGroup = grp;
+		FetchStaticRef<Logger>().Log(lv, [&]{
+			return line;
+		});
+	}
+} PrintInfo{};
 
 
 #define OPT_des_mul "Multiple occurrence is allowed."
@@ -135,7 +154,8 @@ string TargetName;
 const struct Option
 {
 	const char *prefix, *name = {}, *option_arg;
-	std::initializer_list<const char*> option_details;
+	//! \since build 861
+	vector<const char*> option_details;
 	//! \since build 852
 	function<bool(const string&)> filter;
 
@@ -156,7 +176,7 @@ const struct Option
 
 			try
 			{
-				const auto uval(ystdex::ston<_type>(val));
+				const auto uval(ystdex::ston<_type>(to_std_string(val)));
 
 				if(uval < threshold)
 					f(uval);
@@ -289,8 +309,8 @@ EnsureOutputDirectory(const string& opath)
 		PrintInfo("Checking output directory: " + Quote(opath) + " ...");
 		EnsureDirectory(opath);
 	}
-	CatchExpr(std::system_error&,
-		raise_exception(2, "Failed creating directory " + Quote(opath) + '.'))
+	CatchExpr(std::system_error&, raise_exception(2,
+		("Failed creating directory " + Quote(opath) + '.').c_str()))
 }
 
 //! \since build 545
@@ -649,8 +669,8 @@ SearchDirectory(const Rule& rule, const ActionContext& actx)
 
 	const auto snum(src_files.size());
 
-	print(to_string(snum) + " file(s) found to be built in path " + Quote(path)
-		+ '.', Informative);
+	print(ystdex::sfmt("%zu file(s) found to be built in path \"%s\".", snum,
+		path.c_str()), Informative);
 	if(snum != 0)
 	{
 		EnsureOutputDirectory(opth.VerifyAsMBCS());
@@ -927,13 +947,13 @@ main(int argc, char* argv[])
 				const auto sz(args.size());
 				const auto check_n([sz](size_t n){
 					if(sz != n)
-						throw std::runtime_error(sfmt("Wrong number %zu of"
-							" arguments (should be %zu) found.", sz, n));
+						throw std::runtime_error(ystdex::sfmt("Wrong number %zu"
+							" of arguments (should be %zu) found.", sz, n));
 				});
 				const auto check_n_ge([sz](size_t n){
 					if(sz < n)
-						throw std::runtime_error(sfmt("Wrong number %zu of"
-							" arguments (should at least be %zu) found.", sz,
+						throw std::runtime_error(ystdex::sfmt("Wrong number %zu"
+							" of arguments (should at least be %zu) found.", sz,
 							n));
 				});
 
@@ -983,8 +1003,7 @@ main(int argc, char* argv[])
 						const auto& arg0(p_cmd_args->Arguments.front());
 
 						if(RequestedCommand == "RunNPL")
-							RunNPLFromStream("<stdin>",
-								std::istringstream(arg0));
+							RunNPLFromStream("<stdin>", istringstream(arg0));
 						else
 						{
 							const auto p(A1::OpenFile(arg0.c_str()));
@@ -993,8 +1012,9 @@ main(int argc, char* argv[])
 						}
 					}
 					else
-						throw std::runtime_error(sfmt("Specified command name"
-							" '%s' not supported.", RequestedCommand.c_str()));
+						throw std::runtime_error(ystdex::sfmt("Specified"
+							" command name '%s' is not supported.",
+							RequestedCommand.c_str()));
 				}
 				CatchExpr(std::exception& e,
 					std::throw_with_nested(std::move(e)))
@@ -1068,8 +1088,8 @@ main(int argc, char* argv[])
 	}, {}, Err, [](const std::exception& e, RecordLevel l){
 		ExtractException([](const char* str, RecordLevel lv, size_t level)
 			YB_NONNULL(1){
-			const auto print([=](const string& s){
-				PrintInfo(string(level, ' ') + s, lv, LogGroup::General);
+			const auto print([=](const std::string& s){
+				PrintInfo(std::string(level, ' ') + s, lv, LogGroup::General);
 			});
 
 			TryExpr(throw)
@@ -1079,7 +1099,7 @@ main(int argc, char* argv[])
 				"ERROR: System error (possible file operation failure)."))
 			CatchIgnore(std::exception&)
 			CatchExpr(..., YAssert(false, "Invalid exception found."))
-			print(string("ERROR: ") + str);
+			print(std::string("ERROR: ") + str);
 		}, e, l, 0);
 	}) ? EXIT_FAILURE : EXIT_SUCCESS;
 }

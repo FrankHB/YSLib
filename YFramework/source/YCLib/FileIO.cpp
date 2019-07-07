@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2018 FrankHB.
+	© 2011-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3165
+\version r3174
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2018-09-19 23:10 +0800
+	2019-07-07 05:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -230,10 +230,6 @@ inline PDefH(FileNodeID, get_file_node_id, struct ::stat& st) ynothrow
 YB_NONNULL(2, 4) inline PDefH(void, cstat, struct ::stat& st,
 	const char16_t* path, bool follow_link, const char* sig)
 	ImplRet(cstat(st, MakePathString(path).c_str(), follow_link, sig))
-//! \since build 632
-YB_NONNULL(2) inline PDefH(int, estat, struct ::stat& st, const char16_t* path,
-	bool follow_link)
-	ImplRet(estat(st, MakePathString(path).c_str(), follow_link))
 #endif
 
 //! \since build 632
@@ -380,7 +376,7 @@ MakePathString(const char16_t* s)
 #if YCL_Win32
 	return platform_ex::WCSToUTF8(wcast(s));
 #else
-	return CHRLib::MakeMBCS(s);
+	return CHRLib::MakeMBCS<string>(s);
 #endif
 }
 
@@ -637,6 +633,7 @@ void
 FileDescriptor::Flush()
 {
 #if YCL_Win32
+	// NOTE: This calls %::FlushFileBuffers internally.
 	YCL_CallF_CAPI(, ::_commit, desc);
 #else
 	// XXX: http://austingroupbugs.net/view.php?id=672.
@@ -788,7 +785,7 @@ SetBinaryIO(std::FILE* stream) ynothrowv
 	FileDescriptor(Nonnull(stream)).SetTranslationMode(int(OpenMode::Binary));
 #else
 	// NOTE: No effect.
-	Nonnull(stream);
+	YAssertNonnull(stream);
 #endif
 }
 
@@ -1354,7 +1351,7 @@ MakePathStringW(const char* s)
 u16string
 MakePathStringU(const char* s)
 {
-	return CHRLib::MakeUCS2LE(s);
+	return CHRLib::MakeUCS2LE<u16string>(s);
 }
 #endif
 

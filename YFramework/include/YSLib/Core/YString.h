@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018 FrankHB.
+	© 2010-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YString.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r2329
+\version r2367
 \author FrankHB <frankhb1989@gmail.com>
 \since build 594
 \par 创建时间:
 	2010-03-05 22:06:05 +0800
 \par 修改时间:
-	2018-08-18 13:54 +0800
+	2019-07-07 17:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_Core_YString_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YObject
+#include YFM_YSLib_Core_YObject // for allocator_arg;
 #include YFM_YSLib_Adaptor_YTextBase // for u16string;
 
 namespace YSLib
@@ -124,6 +124,40 @@ public:
 		: String(basic_string_view<_tChar>(s), enc)
 	{}
 	//@}
+	//! \since build 861
+	//@{
+	/*!
+	\brief 构造：使用非 char16_t 的字符类型的 basic_string_view 、默认编码
+		和分配器。
+	*/
+	template<typename _tChar, yimpl(typename
+		= ystdex::enable_if_t<!std::is_same<_tChar, char16_t>::value>)>
+	explicit
+	String(basic_string_view<_tChar> sv, const allocator_type& a)
+		: u16string(MakeUCS2LE<u16string>(std::allocator_arg, a, sv,
+		CS_Default))
+	{}
+	//! \brief 构造：使用指定字符类型的 basic_string_view 、指定编码和分配器。
+	template<typename _tChar>
+	explicit
+	String(basic_string_view<_tChar> sv, Encoding enc, const allocator_type& a)
+		: u16string(MakeUCS2LE<u16string>(std::allocator_arg, a, sv, enc))
+	{}
+	//! \brief 构造：使用非 char16_t 的字符类型的 basic_string 、默认编码和分配器。
+	template<typename _tChar, class _tTraits = std::char_traits<_tChar>,
+		class _tAlloc = std::allocator<_tChar>, yimpl(typename
+		= ystdex::enable_if_t<!std::is_same<_tChar, char16_t>::value>)>
+	String(const basic_string<_tChar, _tTraits, _tAlloc>& s,
+		const allocator_type& a)
+		: String(basic_string_view<_tChar>(s), CS_Default, a)
+	{}
+	//! \brief 构造：使用指定字符类型的 basic_string 、指定编码和分配器。
+	template<typename _tChar, class _tTraits = std::char_traits<_tChar>,
+		class _tAlloc = std::allocator<_tChar>>
+	String(const basic_string<_tChar, _tTraits, _tAlloc>& s,
+		Encoding enc, const allocator_type& a)
+		: String(basic_string_view<_tChar>(s), enc, a)
+	{}
 	//@}
 	/*!
 	\brief 构造：使用字符的初值符列表。
@@ -170,7 +204,8 @@ public:
 	\since build 287
 	*/
 	PDefH(string, GetMBCS, Encoding enc = CS_Default) const
-		ImplRet(MakeMBCS<string>(*this, enc))
+		ImplRet(MakeMBCS<string>(std::allocator_arg, get_allocator(), *this,
+			enc))
 };
 
 /*!

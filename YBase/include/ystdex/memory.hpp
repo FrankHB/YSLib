@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r3784
+\version r3789
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2019-04-26 04:09 +0800
+	2019-07-07 15:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1873,13 +1873,15 @@ YB_ATTR_nodiscard auto
 uses_allocator_args(true_, true_, false_, const _tAlloc& a, _type1&&, _type2&&)
 	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
 	std::tuple<_type1&&>, std::tuple<_type2&&>>;
+//! \since build 861
 template<typename _type, class _tAlloc, class _tTuple1, class _tTuple2>
 YB_ATTR_nodiscard auto
 uses_allocator_args(true_, true_, false_, const _tAlloc& a,
 	std::piecewise_construct_t, _tTuple1&& x, _tTuple2&& y) -> decltype(
-	std::make_tuple(std::piecewise_construct, ystdex::apply(uaa_func<
-	typename _type::first_type, _tAlloc>{a}, yforward(x)), ystdex::apply(
-	uaa_func<typename _type::second_type, _tAlloc>{a}, yforward(y))))
+	std::make_tuple(std::piecewise_construct, ystdex::apply(
+	uaa_func<remove_cv_t<typename _type::first_type>, _tAlloc>{a}, yforward(x)),
+	ystdex::apply(uaa_func<remove_cv_t<typename _type::second_type>,
+	_tAlloc>{a}, yforward(y))))
 {
 	return std::make_tuple(std::piecewise_construct, ystdex::apply(uaa_func<
 		remove_cv_t<typename _type::first_type>, _tAlloc>{a}, yforward(x)),

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r5404
+\version r5438
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2019-06-27 09:39 +0800
+	2019-07-07 02:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,9 @@
 #include YFM_NPL_NPLA // for NPLATag, TermNode, ValueNode, YSLib::GHEvent,
 //	ystdex::ref_eq, LoggedEvent, shared_ptr, ystdex::equality_comparable,
 //	ystdex::exclude_self_params_t, YSLib::AreEqualHeld,
-//	ystdex::make_function_type_t, ystdex::decay_t, ystdex::expanded_caller,
-//	std::is_constructible, ystdex::or_, ystdex::exclude_self_t,
-//	ystdex::enable_if_inconvertible_t, ystdex::make_parameter_list_t,
+//	ystdex::make_parameter_list_t, ystdex::make_function_type_t,
+//	ystdex::decay_t, ystdex::expanded_caller, std::is_constructible,
+//	ystdex::or_, ystdex::exclude_self_t, ystdex::enable_if_inconvertible_t, pmr,
 //	NPL::Deref, ystdex::make_expanded, std::ref, NPL::Access, NPL::CheckRegular,
 //	ResolvedTermReferencePtr, ystdex::invoke_nonvoid, NPL::ResolveRegular,
 //	ystdex::make_transform, std::accumulate, ystdex::bind1,
@@ -164,7 +164,7 @@ public:
 	\brief 构造：使用指定的存储资源。
 	\since build 845
 	*/
-	ContextState(YSLib::pmr::memory_resource&);
+	ContextState(pmr::memory_resource&);
 	ContextState(const ContextState&);
 	ContextState(ContextState&&);
 	//! \brief 虚析构：类定义外默认实现。
@@ -736,28 +736,6 @@ YB_ATTR_nodiscard YB_PURE inline
 
 //! \note 第一参数指定输入的项，其 Value 指定输出的值。
 //@{
-//! \sa LiftDelayed
-//@{
-/*!
-\brief 求值以节点数据结构间接表示的项。
-\since build 752
-
-以 TermNode 按项访问值，若成功调用 LiftDelayed 替换值并返回要求重规约。
-以项访问对规约以项转移的可能未求值的操作数是必要的。
-*/
-YF_API ReductionStatus
-EvaluateDelayed(TermNode&);
-/*!
-\brief 求值指定的延迟求值项。
-\return ReductionStatus::Partial 。
-\since build 761
-
-提升指定的延迟求值项并规约。
-*/
-YF_API ReductionStatus
-EvaluateDelayed(TermNode&, DelayedTerm&);
-//@}
-
 /*!
 \exception BadIdentifier 未在环境中找到指定标识符的绑定。
 \note 默认结果为 ReductionStatus::Clean 以保证强规范化性质。
@@ -767,7 +745,6 @@ EvaluateDelayed(TermNode&, DelayedTerm&);
 \brief 求值标识符。
 \pre 间接断言：第三参数的数据指针非空。
 \note 不验证标识符是否为字面量；仅以字面量处理时可能需要重规约。
-\sa EvaluateDelayed
 \sa LiteralHandler
 \sa ReferenceTerm
 \sa ResolveName
@@ -779,7 +756,6 @@ EvaluateDelayed(TermNode&, DelayedTerm&);
 初始化值，进行引用折叠后重新引用为左值；
 以 LiteralHandler 访问字面量处理器，若成功调用并返回字面量处理器的处理结果。
 若未返回，根据节点表示的值进一步处理：
-	对表示非 TokenValue 值的叶节点，调用 EvaluateDelayed 求值；
 	对表示 TokenValue 值的叶节点，返回 ReductionStatus::Clean ；
 	对枝节点视为列表，返回 ReductionStatus::Retained 。
 初始化值的目标是第一参数的 Value 数据成员，包括以下操作：
@@ -890,8 +866,8 @@ public:
 	\sa SetupTraceDepth
 	\since build 845
 	*/
-	REPLContext(bool = {}, YSLib::pmr::memory_resource&
-		= NPL::Deref(YSLib::pmr::new_delete_resource()));
+	REPLContext(bool = {}, pmr::memory_resource&
+		= NPL::Deref(pmr::new_delete_resource()));
 
 	/*!
 	\brief 加载：从指定参数指定的来源读取并处理源代码。
@@ -1625,6 +1601,18 @@ If(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 Cond(TermNode&, ContextNode&);
+
+/*!
+\brief 逻辑非。
+\since build 861
+
+当子项求值为 true 时返回 false ，否则返回子项。
+
+参考调用文法：
+<pre>not? \<test></pre>
+*/
+YF_API bool
+Not(TermNode&);
 
 /*!
 \note 支持保存当前动作。

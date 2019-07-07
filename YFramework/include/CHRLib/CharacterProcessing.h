@@ -11,13 +11,13 @@
 /*!	\file CharacterProcessing.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r2243
+\version r2400
 \author FrankHB <frankhb1989@gmail.com>
 \since build 565
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2019-01-03 20:04 +0800
+	2019-07-07 17:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,8 @@
 #include YFM_CHRLib_CharacterMapping
 #include <ystdex/cstring.h> // for ystdex::uchar_t;
 #include <ystdex/string.hpp> // for ystdex::is_null, ystdex::ntctslen,
-//	ystdex::string_traits;
+//	ystdex::string_traits, std::allocator_arg_t,
+//	ystdex::make_obj_using_allocator, std::basic_string, std::allocator_arg;
 #include <cstdio> // for std::FILE;
 #include <memory> // for std::move;
 
@@ -425,6 +426,18 @@ struct Transcoding
 		str.resize(_tDispatcher::Transcode(&str[0], s, yforward(args)...));
 		return str;
 	}
+	//! \since build 861
+	template<typename _tDst, typename _tChar, typename... _tParams>
+	YB_ATTR_nodiscard YB_PURE static _tDst
+	MakeTranscoded(std::allocator_arg_t, const typename
+		_tDst::allocator_type& a, const _tChar* s, _tParams&&... args)
+	{
+		auto str(ystdex::make_obj_using_allocator<_tDst>(a, ystdex::ntctslen(s),
+			typename ystdex::string_traits<_tDst>::value_type()));
+
+		str.resize(_tDispatcher::Transcode(&str[0], s, yforward(args)...));
+		return str;
+	}
 
 	template<typename _tDst, typename _type, typename... _tParams>
 	YB_ATTR_nodiscard YB_PURE static _tDst
@@ -441,13 +454,30 @@ struct Transcoding
 			yforward(args)...));
 		return str;
 	}
+	//! \since build 861
+	template<typename _tDst, typename _type, typename... _tParams>
+	YB_ATTR_nodiscard YB_PURE static _tDst
+	MakeViewTranscoded(std::allocator_arg_t,
+		const typename _tDst::allocator_type& a, _type sv, _tParams&&... args)
+	{
+		const auto s(sv.data());
+
+		yconstraint(s);
+
+		const auto l(sv.length());
+		auto str(ystdex::make_obj_using_allocator<_tDst>(a, l,
+			typename ystdex::string_traits<_tDst>::value_type()));
+
+		str.resize(_tDispatcher::Transcode(&str[0], s, s + l,
+			yforward(args)...));
+		return str;
+	}
 };
 
 template<Encoding _vFrom, class _tDispatcher>
 struct Transcoding<_vFrom, CharSet::Null, _tDispatcher>
 {
-	template<typename _tDst, typename _tChar,
-		typename... _tParams>
+	template<typename _tDst, typename _tChar, typename... _tParams>
 	YB_ATTR_nodiscard YB_PURE static _tDst
 	MakeTranscoded(const _tChar* s)
 	{
@@ -458,8 +488,7 @@ struct Transcoding<_vFrom, CharSet::Null, _tDispatcher>
 		str.resize(_tDispatcher::Transcode(&str[0], s));
 		return str;
 	}
-	template<typename _tDst, typename _tChar,
-		typename... _tParams>
+	template<typename _tDst, typename _tChar, typename... _tParams>
 	YB_ATTR_nodiscard YB_PURE static _tDst
 	MakeTranscoded(const _tChar* s, Encoding enc, _tParams&&... args)
 	{
@@ -470,9 +499,36 @@ struct Transcoding<_vFrom, CharSet::Null, _tDispatcher>
 		str.resize(_tDispatcher::Transcode(&str[0], s, enc, yforward(args)...));
 		return str;
 	}
+	//! \since build 861
+	template<typename _tDst, typename _tChar, typename... _tParams>
+	YB_ATTR_nodiscard YB_PURE static _tDst
+	MakeTranscoded(std::allocator_arg_t,
+		const typename _tDst::allocator_type& a, const _tChar* s)
+	{
+		const auto w(FetchMaxCharWidth(CS_Default));
+		auto str(ystdex::make_obj_using_allocator<_tDst>(a,
+			ystdex::ntctslen(s) * (w == 0 ? sizeof(ucsint_t) : w),
+			typename ystdex::string_traits<_tDst>::value_type()));
 
-	template<typename _tDst, typename _type,
-		typename... _tParams>
+		str.resize(_tDispatcher::Transcode(&str[0], s));
+		return str;
+	}
+	//! \since build 861
+	template<typename _tDst, typename _tChar, typename... _tParams>
+	YB_ATTR_nodiscard YB_PURE static _tDst
+	MakeTranscoded(std::allocator_arg_t, const typename _tDst::allocator_type&
+		a, const _tChar* s, Encoding enc, _tParams&&... args)
+	{
+		const auto w(FetchMaxCharWidth(enc));
+		auto str(ystdex::make_obj_using_allocator<_tDst>(a, ystdex::ntctslen(s)
+			* (w == 0 ? sizeof(ucsint_t) : w),
+			typename ystdex::string_traits<_tDst>::value_type()));
+
+		str.resize(_tDispatcher::Transcode(&str[0], s, enc, yforward(args)...));
+		return str;
+	}
+
+	template<typename _tDst, typename _type, typename... _tParams>
 	YB_ATTR_nodiscard YB_PURE static _tDst
 	MakeViewTranscoded(_type sv)
 	{
@@ -488,8 +544,7 @@ struct Transcoding<_vFrom, CharSet::Null, _tDispatcher>
 		str.resize(_tDispatcher::Transcode(&str[0], s, s + l));
 		return str;
 	}
-	template<typename _tDst, typename _type,
-		typename... _tParams>
+	template<typename _tDst, typename _type, typename... _tParams>
 	YB_ATTR_nodiscard YB_PURE static _tDst
 	MakeViewTranscoded(_type sv, Encoding enc, _tParams&&... args)
 	{
@@ -501,6 +556,44 @@ struct Transcoding<_vFrom, CharSet::Null, _tDispatcher>
 		const auto w(FetchMaxCharWidth(enc));
 		_tDst str(l * (w == 0 ? sizeof(ucsint_t) : w),
 			typename ystdex::string_traits<_tDst>::value_type());
+
+		str.resize(_tDispatcher::Transcode(&str[0], s, s + l, enc,
+			yforward(args)...));
+		return str;
+	}
+	//! \since build 861
+	template<typename _tDst, typename _type, typename... _tParams>
+	YB_ATTR_nodiscard YB_PURE static _tDst
+	MakeViewTranscoded(std::allocator_arg_t, const typename _tDst::allocator_type& a, _type sv)
+	{
+		const auto s(sv.data());
+
+		yconstraint(s);
+
+		const auto l(sv.length());
+		const auto w(FetchMaxCharWidth(CS_Default));
+		auto str(ystdex::make_obj_using_allocator<_tDst>(a,
+			l * (w == 0 ? sizeof(ucsint_t) : w),
+			typename ystdex::string_traits<_tDst>::value_type()));
+
+		str.resize(_tDispatcher::Transcode(&str[0], s, s + l));
+		return str;
+	}
+	//! \since build 861
+	template<typename _tDst, typename _type, typename... _tParams>
+	YB_ATTR_nodiscard YB_PURE static _tDst
+	MakeViewTranscoded(std::allocator_arg_t, const typename
+		_tDst::allocator_type& a, _type sv, Encoding enc, _tParams&&... args)
+	{
+		const auto s(sv.data());
+
+		yconstraint(s);
+
+		const auto l(sv.length());
+		const auto w(FetchMaxCharWidth(enc));
+		auto str(ystdex::make_obj_using_allocator<_tDst>(a,
+			l * (w == 0 ? sizeof(ucsint_t) : w),
+			typename ystdex::string_traits<_tDst>::value_type()));
 
 		str.resize(_tDispatcher::Transcode(&str[0], s, s + l, enc,
 			yforward(args)...));
@@ -534,6 +627,22 @@ struct Transcoding<_vFrom, CharSet::Null, _tDispatcher>
 	Make##_n(basic_string_view<_tSrcChar> sv, _tParams&&... args) \
 	{ \
 		CHRLib_Impl_TranscodeView(_vFrom, _vTo, sv, yforward(args)...); \
+	} \
+	template<class _tDst = std::basic_string<_tDstChar>, typename... _tParams> \
+	YB_ATTR_nodiscard YB_NONNULL(3) YB_PURE _tDst \
+	Make##_n(std::allocator_arg_t, const typename _tDst::allocator_type& a, \
+		const _tSrcChar* s, _tParams&&... args) \
+	{ \
+		CHRLib_Impl_Transcode(_vFrom, _vTo, std::allocator_arg, a, s, \
+			yforward(args)...); \
+	} \
+	template<class _tDst = std::basic_string<_tDstChar>, typename... _tParams> \
+	YB_ATTR_nodiscard YB_PURE _tDst \
+	Make##_n(std::allocator_arg_t, const typename _tDst::allocator_type& a, \
+		basic_string_view<_tSrcChar> sv, _tParams&&... args) \
+	{ \
+		CHRLib_Impl_TranscodeView(_vFrom, _vTo, std::allocator_arg, a, sv, \
+			yforward(args)...); \
 	}
 //! \brief 转换指定编码的多字节字符串为指定类型的 UCS-2 字符串。
 //@{
@@ -552,6 +661,21 @@ MakeUCS2LE(u16string_view sv, Encoding = CharSet::ISO_10646_UCS_2)
 	yconstraint(s);
 	// FIXME: Correct conversion for encoding other than UCS-2LE.
 	return {s, sv.length()};
+}
+/*!
+\brief 使用指定的分配器构造指定类型的 UCS-2 字符串。
+\since build 861
+*/
+template<class _tDst = std::basic_string<char16_t>>
+YB_ATTR_nodiscard YB_PURE inline _tDst
+MakeUCS2LE(std::allocator_arg_t, const typename _tDst::allocator_type& a,
+	u16string_view sv, Encoding = CharSet::ISO_10646_UCS_2)
+{
+	const auto s(sv.data());
+
+	yconstraint(s);
+	// FIXME: Correct conversion for encoding other than UCS-2LE.
+	return ystdex::make_obj_using_allocator<_tDst>(a, s, sv.length());
 }
 /*!
 \brief 转换 UCS-4 字符串为指定类型的 UCS-2 字符串。
@@ -588,6 +712,21 @@ MakeUCS4LE(u32string_view sv, Encoding = CharSet::ISO_10646_UCS_4)
 	// FIXME: Correct conversion for encoding other than UCS-4LE.
 	return {s, sv.length()};
 }
+/*!
+\brief 使用指定的分配器构造指定类型的 UCS-4 字符串。
+\since build 861
+*/
+template<class _tAlloc, class _tDst = std::basic_string<char32_t>>
+YB_ATTR_nodiscard YB_PURE inline _tDst
+MakeUCS4LE(std::allocator_arg_t, const typename _tDst::allocator_type& a,
+	u32string_view sv, Encoding = CharSet::ISO_10646_UCS_4)
+{
+	const auto s(sv.data());
+
+	yconstraint(s);
+	// FIXME: Correct conversion for encoding other than UCS-4LE.
+	return ystdex::make_obj_using_allocator<_tDst>(a, s, sv.length());
+}
 
 //@{
 //! \brief 转换 UTF-8 字符串为指定编码的多字节字符串。
@@ -606,6 +745,26 @@ MakeMBCS(string_view sv, Encoding enc)
 {
 	return enc = CS_Default ? MakeMBCS<_tDst>(sv)
 		: MakeMBCS<_tDst>(MakeUCS2LE(sv, CS_Default), enc);
+}
+//! \since build 861
+template<class _tDst = std::string>
+YB_ATTR_nodiscard YB_NONNULL(3) YB_PURE inline _tDst
+MakeMBCS(std::allocator_arg_t, const typename _tDst::allocator_type& a, char* s,
+	Encoding enc)
+{
+	return enc = CS_Default ? MakeMBCS<_tDst>(s)
+		: MakeMBCS<_tDst>(std::allocator_arg, a,
+		MakeUCS2LE(std::allocator_arg, a, s, CS_Default), enc);
+}
+//! \since build 861
+template<class _tDst = std::string>
+YB_ATTR_nodiscard YB_PURE inline _tDst
+MakeMBCS(std::allocator_arg_t, const typename _tDst::allocator_type& a,
+	string_view sv, Encoding enc)
+{
+	return enc = CS_Default ? MakeMBCS<_tDst>(sv)
+		: MakeMBCS<_tDst>(std::allocator_arg, a,
+		MakeUCS2LE(std::allocator_arg, a, sv, CS_Default), enc);
 }
 //@}
 //! \brief 转换 UCS-2LE 字符串为指定编码的多字节字符串。

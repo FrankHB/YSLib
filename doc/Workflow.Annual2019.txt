@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2019 年度。
-\version r357
+\version r397
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2019-01-02 01:00:32 +0800
 \par 修改时间:
-	2019-06-23 10:16 +0800
+	2019-06-29 11:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -341,24 +341,46 @@ Several NPLA1 improvements are made, including some critical bug fixes related t
 		However, there is a real bug of native implementation of '$sequence' and it is now fixed.
 			The general temporary rules to assert full expressions on parameters were only effective for combiner "application", thus it should have make the parameters sequenced, which was not implemented in the native implementation.
 			And anyway, native and non-native derivations should have the same observable behavior (e.g. with destructors of hosted objects called), whatever the expected behavior should be.
-	NPLA1 TCO implementation is simplified to avoid a bug on the collection operation of the orphan temporary object cleanup.
-		The old implementation collect the temporary object unconditionally during the vau handler calls. This is illogical in general.
-			It would break the following case:
-				$defl! |> (&f &g) $lambda/e% ($bindings/p->environment ((() make-standard-environment)) (&f (forward f)) (&g (forward g))) (&x) (forward g) ((forward f) (forward x));
-				$defl! double (n) * n 2;
-				$defl! increment (n) + n 1;
-				(|> (|> (|> double double) increment) double) 5;
-			The compressor would access invalid parent environment collected previously by the orphan temporary object cleanup.
-		The new scheme uses more less aggressive orphan temporary object cleanup, but a simpler temporary object store at first in the binding code in the vau handler calls.
-			Since the temporary binding has been involved with 'TermTags::Temporary' on terms directly, no other temporary objects are need to be saved.
-			Now there is no difference in TCO and non-TCO implementations to store the operands.
-		The old implementation is still kept for exposition only.
-			Note it is still problematic with following cases even when the orphan temporary object cleanup is disabled during the vau handler calls:
-				$defl! f (n) ($vau (x) d eval x d) (f n); f ();
-			While the following case is good to TCO:
-				$defv! $f (x) d eval x d; $defl! f (n) $f (f n); f ();
-		The orphan temporary object cleanup is also disabled in the reduction of by 'A1::ReduceAgain'.
-			It might be replaced for a saner and simpler implementation in future.
+	NPLA1 TCO implementation is simplfiied in various aspects.
+		The TCO implementation is simplified to avoid a bug on the collection operation of the orphan temporary object cleanup.
+			The old implementation collect the temporary object unconditionally during the vau handler calls. This is illogical in general.
+				It would break the following case:
+					$defl! |> (&f &g) $lambda/e% ($bindings/p->environment ((() make-standard-environment)) (&f (forward f)) (&g (forward g))) (&x) (forward g) ((forward f) (forward x));
+					$defl! double (n) * n 2;
+					$defl! increment (n) + n 1;
+					(|> (|> (|> double double) increment) double) 5;
+				The compressor would access invalid parent environment collected previously by the orphan temporary object cleanup.
+			The new scheme uses more less aggressive orphan temporary object cleanup, but a simpler temporary object store at first in the binding code in the vau handler calls.
+				Since the temporary binding has been involved with 'TermTags::Temporary' on terms directly, no other temporary objects are need to be saved.
+				Now there is no difference in TCO and non-TCO implementations to store the operands.
+			The old implementation is still kept for exposition only.
+				Note it is still problematic with following cases even when the orphan temporary object cleanup is disabled during the vau handler calls:
+					$defl! f (n) ($vau (x) d eval x d) (f n); f ();
+				While the following case is good to TCO:
+					$defv! $f (x) d eval x d; $defl! f (n) $f (f n); f ();
+			The orphan temporary object cleanup is also disabled in the reduction of by 'A1::ReduceAgain'.
+				It might be replaced for a saner and simpler implementation in future.
+		The TCO implementation is simplified with specialized inactive frame detection removed.
+			The old implementation overlaps the execution of compressor lifetime and the record frame list traverse, which is not necessary and potentionally buggy.
+				The frame detection in the record frame list traverse is now performed before the compressor.
+			The specialized detection with variable deduplication between the active frame (saved in the guard) with its parents is now removed.
+				On contrast, no variable deduplication is needed in the compressor.
+			Currently both record compressor and inactive frame detection work for known cases to test PTC.
+				No cases suitable only for compressor but not inactive frame detection, or vice versa.
+			Moreover, actually no cases are tested for compressor itself.
+				However, removal of environments not included in the activation records relies on the copressor or other means out of the scope of record frame list traverse.
+			Since the compressor is more general, keep it instead of inactive frame detection in the traverse.
+	NPLA1 TCO now collects function prvalue implemented as combiners as well as function lvalues.
+		This is implemented by converting function temporary object to components saved in the vau handler before the evaluation of the function body.
+		For example, the following cases now work conforming to PTC:
+			$defl! f (n) ($lambda (x) f x) n; f 1;
+			$defl! f (n) ($vau (x) d f (eval x d)) n; f 1;
+		In contrast, the following correspoinding cases using lvalues work even without the change:
+			$defl! g (x) f x; $defl! f (n) g n; f 1;
+			$defv! $g (x) d f (eval x d); $defl! f (n) $g n; f 1;
+		Note the following cases also work without the improvement because function prvalues are immediatedly called before recursively saved as temporary objects:
+			$defl! f (n) ($vau (x) d eval (list f x) d) n; f 1;
+			$defl! f (n) ($vau (x) d eval x d) (f n); f 1;
 
 ////
 

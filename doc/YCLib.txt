@@ -11,13 +11,13 @@
 /*!	\file YCLib.txt
 \ingroup Documentation
 \brief YCLib 说明。
-\version r557
+\version r559
 \author FrankHB <frankhb1989@gmail.com>
 \since build 651
 \par 创建时间:
 	2015-11-19 09:05:02 +0800
 \par 修改时间:
-	2019-01-11 20:14 +0800
+	2019-07-07 23:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,8 +58,9 @@ platform 命名空间包含平台无关或平台中立([Documentation::CommonRul
 inline platform::basic_types ：基本类型声明内联命名空间。
 inline platform::basic_utilities ：基本实用接口声明内联命名空间。
 inline platform::containers ：容器声明内联命名空间。
-inline platform::strings ：字符串接口声明内联命名空间。
+inline platform::ios ：输入/输出接口声明内联命名空间。
 inline platform::references ：引用声明内联命名空间。
+inline platform::strings ：字符串接口声明内联命名空间。
 platform::Concurrency ：平台并发操作接口。
 platform::FAT ：文件分配表接口。
 inline platform::FAT::FAT16 ： FAT16 接口（ FAT12 共享实现）。

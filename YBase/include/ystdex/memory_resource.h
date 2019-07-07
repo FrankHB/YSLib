@@ -11,19 +11,19 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1037
+\version r1040
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2019-01-15 17:36 +0800
+	2019-07-07 02:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::MemoryResource
 
-提供 ISO C++17 标准库头 <memory_resource> 兼容的替代接口和实现。
+提供 ISO C++17 标准库头 \c \<memory_resource> 兼容的替代接口和实现。
 除了部分关系操作使用 operators 实现而不保留命名空间内的声明及散列支持提供偏特化外，
 其它接口同 std::pmr 中的对应接口。
 注意因为一些兼容问题， std::experimental::pmr 中的接口不被可选地使用，
@@ -101,7 +101,7 @@ WG21 P0619R4 ：在 memory_resource 中显式声明默认构造函数和复制�
 #endif
 
 /*!
-\brief \<memory_resource\> 特性测试宏。
+\brief \c \<memory_resource> 特性测试宏。
 \see WG21 P0941R2 2.2 。
 \see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
 \since build 842
@@ -351,7 +351,7 @@ public:
 		return {};
 	}
 
-	YB_ATTR_nodiscard memory_resource*
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull memory_resource*
 	resource() const
 	{
 		return memory_rsrc;

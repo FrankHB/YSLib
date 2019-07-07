@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r801
+\version r814
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2019-06-23 16:49 +0800
+	2019-07-07 19:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,8 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host // for make_observer, platform::CallNothrow;
-#include YFM_YSLib_Core_YCoreUtilities // for YSLib, FetchCachedCommandResult,
-//	ystdex::underlying, FilterExceptions;
+#include YFM_YSLib_Core_YCoreUtilities // for YSLib, to_std_string,
+//	FetchCachedCommandResult, ystdex::underlying, FilterExceptions;
 #include YFM_YCLib_NativeAPI // for YCL_TraceCallF_CAPI, ::sem_open,
 //	::sem_close, ::sem_unlink, ::pipe, ToHandle, YCL_CallGlobal, isatty;
 #include YFM_YCLib_FileIO // for MakePathStringW, YCL_Raise_SysE,
@@ -59,8 +59,6 @@ namespace platform
 
 using namespace platform_ex;
 
-
-
 } // namespace platform;
 
 #if YF_Hosted
@@ -71,8 +69,12 @@ Exception::Exception(std::error_code ec, const char* str, RecordLevel lv)
 	: system_error(ec, Nonnull(str)),
 	level(lv)
 {}
+Exception::Exception(std::error_code ec, const std::string& str, RecordLevel lv)
+	: system_error(ec, str),
+	level(lv)
+{}
 Exception::Exception(std::error_code ec, string_view sv, RecordLevel lv)
-	: system_error(ec, (Nonnull(sv.data()), string(sv))),
+	: system_error(ec, (Nonnull(sv.data()), to_std_string(sv))),
 	level(lv)
 {}
 Exception::Exception(int ev, const std::error_category& ecat, const char* str,
@@ -80,9 +82,14 @@ Exception::Exception(int ev, const std::error_category& ecat, const char* str,
 	: system_error(ev, ecat, Nonnull(str)),
 	level(lv)
 {}
+Exception::Exception(int ev, const std::error_category& ecat,
+	const std::string& str, RecordLevel lv)
+	: system_error(ev, ecat, str),
+	level(lv)
+{}
 Exception::Exception(int ev, const std::error_category& ecat, string_view sv,
 	RecordLevel lv)
-	: system_error(ev, ecat, (Nonnull(sv.data()), string(sv))),
+	: system_error(ev, ecat, (Nonnull(sv.data()), to_std_string(sv))),
 	level(lv)
 {}
 ImplDeDtor(Exception)

@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1570
+\version r1580
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2019-01-14 15:18 +0800
+	2019-07-08 00:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,8 @@
 */
 
 
-#include "ShlExplorer.h" // for ystdex::polymorphic_cast, ystdex::tolower;
+#include "ShlExplorer.h" // for ystdex::polymorphic_cast, ystdex::tolower,
+//	to_string, make_string_view;
 #include "ShlReader.h"
 #include YFM_YSLib_UI_ExStyle
 #include <ystdex/functional.hpp> // for ystdex::bind1;
@@ -438,7 +439,8 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 		SetInvalidationOf(GetSubDesktop());
 	},
 	FetchEvent<Move>(pnlSetting) += [&]{
-		lblDragTest.Text = to_string(GetLocationOf(pnlSetting)) + ';';
+		lblDragTest.Text = String(
+			make_string_view(to_string(GetLocationOf(pnlSetting)) + ';'));
 		Invalidate(lblDragTest);
 	},
 	FetchEvent<TouchHeld>(pnlSetting) += OnTouchHeld_Dragging,
@@ -483,8 +485,9 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 			lblTitle.Background = nullptr;
 		else
 			lblTitle.Background = SolidBrush(GenerateRandomColor());
-		lblInfo.Text = btn.Text + u", " + String(to_string(
-			FetchImageLoadTime())) + u";\n" + String(string(k.to_string()));
+		lblInfo.Text = btn.Text + u", "
+			+ String(to_string(FetchImageLoadTime())) + u";\n"
+			+ String(make_string_view(k.to_string()));
 		InvalidateWidgets(lblTitle, lblInfo);
 	},
 	FetchEvent<Click>(btnTestAni) += [&]{
@@ -502,11 +505,12 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 	FetchEvent<Enter>(btnEnterTest) += [](CursorEventArgs&& e){
 		auto& btn(ystdex::polymorphic_downcast<Button&>(e.GetSender()));
 
-		btn.Text = u"Enter: " + String(to_string(e.Position));
+		btn.Text = u"Enter: " + String(make_string_view(to_string(e.Position)));
 		Invalidate(btn);
 	},
 	FetchEvent<Leave>(btnEnterTest) += [&](CursorEventArgs&& e){
-		btnEnterTest.Text = u"Leave: " + String(to_string(e.Position));
+		btnEnterTest.Text = u"Leave: "
+			+ String(make_string_view(to_string(e.Position)));
 		Invalidate(btnEnterTest);
 	},
 	FetchEvent<Click>(btnMenu) += [this]{

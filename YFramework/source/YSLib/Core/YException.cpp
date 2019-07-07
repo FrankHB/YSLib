@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018 FrankHB.
+	© 2010-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YException.cpp
 \ingroup Core
 \brief 异常处理模块。
-\version r383
+\version r387
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2018-07-30 01:31 +0800
+	2019-07-07 15:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "YSLib/Core/YModules.h"
-#include YFM_YSLib_Core_YException
+#include YFM_YSLib_Core_YException // for function, to_std_string;
 #include <ystdex/exception.h> // for ystdex::handle_nested;
 
 namespace YSLib
@@ -37,7 +37,7 @@ LoggedEvent::LoggedEvent(const char* str, RecordLevel lv)
 	level(lv)
 {}
 LoggedEvent::LoggedEvent(string_view sv, RecordLevel lv)
-	: GeneralEvent(string(sv)),
+	: GeneralEvent(to_std_string(sv)),
 	level(lv)
 {}
 LoggedEvent::LoggedEvent(const GeneralEvent& e, RecordLevel lv)
@@ -91,7 +91,7 @@ ExtractException(const ExtractedLevelPrinter& print, const std::exception& e,
 }
 
 bool
-TryExecute(std::function<void()> f, const char* desc, RecordLevel lv,
+TryExecute(function<void()> f, const char* desc, RecordLevel lv,
 	ExceptionTracer trace)
 {
 	try

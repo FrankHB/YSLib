@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1588
+\version r1597
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2019-01-20 00:08 +0800
+	2019-07-07 02:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,12 @@
 namespace NPL
 {
 
+//! \since build 861
+namespace pmr = YSLib::pmr;
+//! \since build 546
+using YSLib::begin;
+//! \since build 546
+using YSLib::end;
 //! \since build 851
 using YSLib::function;
 //! \since build 329
@@ -49,10 +55,6 @@ using YSLib::string;
 using YSLib::string_view;
 //! \since build 545
 using YSLib::vector;
-//! \since build 546
-using YSLib::begin;
-//! \since build 546
-using YSLib::end;
 
 
 /*!
@@ -208,6 +210,8 @@ private:
 
 public:
 	LexicalAnalyzer();
+	//! \since build 861
+	LexicalAnalyzer(pmr::memory_resource&);
 	//! \since build 546
 	DefDeCopyMoveCtorAssignment(LexicalAnalyzer)
 

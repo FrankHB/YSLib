@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2018 FrankHB.
+	© 2015-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file string_view.hpp
 \ingroup YStandardEx
 \brief 只读字符串视图。
-\version r587
+\version r603
 \author FrankHB <frankhb1989@gmail.com>
 \since build 640
 \par 创建时间:
 	2015-09-28 12:04:58 +0800
 \par 修改时间:
-	2018-08-27 03:57 +0800
+	2019-07-07 15:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,11 @@
 \see ISO C++17 [string.view] 。
 \see WG21 N4480 7[string_view] 。
 
+提供 ISO C++17 标准库头 <string_view> 兼容的替代接口和实现。
 除了部分关系操作使用 operators 实现而不保留命名空间内的声明及散列支持提供偏特化外，
 其它接口同 std::string_view 。
+注意因为一些兼容问题， std::experimental::string_view 不被可选地使用，
+	以便支持和 std::string 的交互性。
 */
 
 
@@ -34,11 +37,7 @@
 #define YB_INC_ystdex_string_view_hpp_ 1
 
 #include "range.hpp" // "range.hpp", ystdex::reverse_iterator;
-// NOTE: Check of %__cplusplus is needed because SD-6 issues are not resolved in
-//	mainstream implementations yet. See https://groups.google.com/a/isocpp.org/forum/#!topic/std-discussion/1rO2FiqWgtI
-//	and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=79433 for details. For
-//	feature-test marcos, see https://isocpp.org/std/standing-documents/sd-6-sg10-feature-test-recommendations.
-//	See also https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance.
+// NOTE: See "placement.hpp" for comments on inclusion conditions.
 #if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603) \
 	|| (__cplusplus >= 201703L && __has_include(<string_view>))
 #	include <string_view>
@@ -62,11 +61,11 @@
 #endif
 
 /*!
-\brief \<string\> 特性测试宏。
+\brief \c \<string> 特性测试宏。
 \see WG21 P0254R2 。
 \see WG21 P0941R2 2.2 。
 \see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
-\since build 847
+\since build 837
 */
 //@{
 #ifndef __cpp_lib_string_view
@@ -89,6 +88,7 @@ using std::basic_string_view;
 #else
 //! \since build 640
 //@{
+//! \ingroup YBase_replacement_features
 template<typename _tChar, class _tTraits = std::char_traits<_tChar>>
 class basic_string_view
 	: yimpl(private totally_ordered<basic_string_view<_tChar, _tTraits>>)
@@ -121,8 +121,9 @@ public:
 	basic_string_view(const _tChar* str)
 		: data_(str), size_(traits_type::length(str))
 	{}
+	//! \since build 861
 	YB_NONNULL(2) yconstfn
-	basic_string_view(const _tChar* str, size_type len)
+	basic_string_view(const _tChar* str, size_type len) ynothrowv
 		: data_(str), size_(len)
 	{}
 	yconstfn
@@ -441,15 +442,14 @@ using wstring_view = basic_string_view<wchar_t>;
 } // inline namespace cpp2017;
 
 /*!
+\ingroup YBase_replacement_extensions
 \brief 取字符串类类型的值类型对应的字符串视图类型。
-\note YStandardEx 扩展。
 \since build 836
 */
 template<class _tString>
 using string_view_t = basic_string_view<typename _tString::value_type>;
 
 } // namespace ystdex;
-
 
 #if YB_Has_string_view != 1
 namespace std

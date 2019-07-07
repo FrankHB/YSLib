@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r736
+\version r738
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:23:44 +0800
 \par 修改时间:
-	2019-01-14 14:43 +0800
+	2019-07-07 06:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,7 @@ namespace Drawing
 const Size Size::Invalid(std::numeric_limits<SDst>::lowest(),
 	std::numeric_limits<SDst>::lowest());
 
-string
+std::string
 to_string(const Size& s)
 {
 	using YSLib::to_string;
@@ -137,7 +137,7 @@ Rect::operator|=(const Rect& r) ynothrow
 		- mx), SDst(ystdex::max(GetBottom(), r.GetBottom()) - my));
 }
 
-string
+std::string
 to_string(const Rect& r)
 {
 	using YSLib::to_string;

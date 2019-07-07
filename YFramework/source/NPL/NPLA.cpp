@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2583
+\version r2620
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2019-06-07 23:43 +0800
+	2019-07-07 19:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,15 +27,15 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLA // for YSLib, string, YSLib::DecodeIndex, std::to_string,
-//	std::invalid_argument, ValueNode, NPL::Access, NPL::DerefEscapeLiteral,
-//	Literalize, NPL::AccessPtr, ystdex::value_or, ystdex::write, bad_any_cast,
-//	std::allocator_arg, YSLib::NodeSequence, NPL::Deref, ystdex::unimplemented, 
-//	ystdex::type_id, ystdex::quote, ystdex::call_value_or, ystdex::begins_with,
-//	YSLib::get_raw, NPL::make_observer, ystdex::sfmt, NPL::TryAccessTerm, sfmt,
-//	GetLValueTagsOf, std::mem_fn, ystdex::compose, ystdex::invoke_value_or,
-//	NPL::TryAccessLeaf, NPL::IsMovable, ystdex::ref, YSLib::FilterExceptions,
-//	ystdex::retry_on_cond, ystdex::type_info, pair, ystdex::addrof,
-//	ystdex::second_of;
+//	YSLib::make_string_view, std::invalid_argument, ValueNode, NPL::Access,
+//	NPL::DerefEscapeLiteral, Literalize, NPL::AccessPtr, ystdex::value_or,
+//	ystdex::write, bad_any_cast, std::allocator_arg, YSLib::NodeSequence,
+//	NPL::Deref, ystdex::unimplemented, ystdex::type_id, ystdex::quote,
+//	ystdex::call_value_or, ystdex::begins_with, YSLib::get_raw,
+//	NPL::make_observer, ystdex::sfmt, NPL::TryAccessTerm, sfmt, GetLValueTagsOf,
+//	std::mem_fn, ystdex::compose, ystdex::invoke_value_or, NPL::TryAccessLeaf,
+//	NPL::IsMovable, ystdex::ref, YSLib::FilterExceptions, ystdex::retry_on_cond,
+//	ystdex::type_info, pair, ystdex::addrof, ystdex::second_of;
 #include YFM_NPL_SContext
 
 using namespace YSLib;
@@ -52,7 +52,8 @@ namespace NPL
 string
 DecodeNodeIndex(const string& name)
 {
-	TryRet(std::to_string(YSLib::DecodeIndex(name)))
+	TryRet(string(
+		YSLib::make_string_view(std::to_string(YSLib::DecodeIndex(name)))))
 	CatchIgnore(std::invalid_argument&);
 	return name;
 }
@@ -522,7 +523,8 @@ TermToString(const TermNode& term)
 {
 	if(const auto p = TermToNamePtr(term))
 		return *p;
-	return sfmt("#<unknown{%zu}:%s>", term.size(), term.Value.type().name());
+	return sfmt<string>("#<unknown{%zu}:%s>", term.size(),
+		term.Value.type().name());
 }
 
 string
@@ -569,12 +571,12 @@ Collapse(TermReference ref)
 	return {std::move(ref), {}};
 }
 
-pair<TermReference, bool>
+TermReference
 PrepareCollapse(TermNode& term, const AnchorPtr& p_anchor)
 {
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
-		return {*p, true};
-	return {{term.Tags, term, p_anchor}, {}};
+		return *p;
+	return {term.Tags, term, p_anchor};
 }
 
 TermNode&
@@ -717,33 +719,11 @@ ReduceBranchToListValue(TermNode& term) ynothrowv
 }
 
 ReductionStatus
-ReduceForLiftedResult(TermNode& term)
-{
-	LiftToReturn(term);
-	// XXX: This is used to update %LastStatus in the enclosing context.
-	return ReductionStatus::Regular;
-}
-
-ReductionStatus
 ReduceHeadEmptyList(TermNode& term) ynothrow
 {
 	if(term.size() > 1 && IsEmpty(NPL::Deref(term.begin())))
 		RemoveHead(term);
 	return ReductionStatus::Clean;
-}
-
-ReductionStatus
-ReduceToList(TermNode& term) ynothrow
-{
-	return IsBranchedList(term) ? ReduceBranchToList(term)
-		: ReductionStatus::Clean;
-}
-
-ReductionStatus
-ReduceToListValue(TermNode& term) ynothrow
-{
-	return IsBranchedList(term) ? ReduceBranchToListValue(term)
-		: ReductionStatus::Clean;
 }
 
 
@@ -919,7 +899,7 @@ EnvironmentReference::ReferenceEnvironmentAnchor()
 #endif
 
 
-ContextNode::ContextNode(YSLib::pmr::memory_resource& rsrc)
+ContextNode::ContextNode(pmr::memory_resource& rsrc)
 	: memory_rsrc(rsrc)
 {}
 ContextNode::ContextNode(const ContextNode& ctx,
@@ -1025,7 +1005,7 @@ ResolveName(const ContextNode& ctx, string_view id)
 	return ctx.GetRecordRef().Resolve(id);
 }
 
-pair<TermReference, bool>
+TermReference
 ResolveIdentifier(const ContextNode& ctx, string_view id)
 {
 	auto pr(ResolveName(ctx, id));

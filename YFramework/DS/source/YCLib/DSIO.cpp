@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r4408
+\version r4424
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2019-06-23 17:17 +0800
+	2019-07-07 20:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2185,7 +2185,7 @@ op_file_locked(::_reent* r, void* fh, _fCallable f, _tParams&&... args)
 const ::devoptab_t dotab_fat{
 	"fat", sizeof(FileInfo), [](::_reent* r, void* file_struct,
 		const char* path, int flags, int)
-		YB_ATTR_LAMBDA(nonnull(1, 2)) ynothrowv{
+		YB_ATTR_LAMBDA(nonnull(2, 3)) ynothrowv{
 		// NOTE: Before call of %::devoptab_t::open_r, the parameter
 		//	%file_struct is set as a pointer after handling in implementation
 		//	of devkitPro port of newlib (libsysbase) %::_open_r, which is
@@ -2195,7 +2195,7 @@ const ::devoptab_t dotab_fat{
 
 			return int(file_struct);
 		});
-	}, [](::_reent* r, void* fh) YB_ATTR_LAMBDA(nonnull(1)) ynothrowv{
+	}, [](::_reent* r, void* fh) YB_ATTR_LAMBDA(nonnull(2)) ynothrowv{
 		// NOTE: The parameter %fd is actually cast from the file structure
 		//	pointer stored by %devoptab_t::open_r. This function is called
 		//	when the reference count in handle decreased to zero. Since this
@@ -2222,31 +2222,31 @@ const ::devoptab_t dotab_fat{
 		return op_file_checked(r, fh, &FileInfo::CanRead, &FileInfo::Read, buf,
 			nbyte);
 	}, [](::_reent* r, void* fh, ::off_t offset, int whence)
-		YB_ATTR_LAMBDA(nonnull(1)) ynothrowv{
+		YB_ATTR_LAMBDA(nonnull(2)) ynothrowv{
 		return op_file_locked(r, fh, &FileInfo::Seek, offset, whence);
 	}, [](::_reent* r, void* fh, struct ::stat* buf)
 		YB_ATTR_LAMBDA(nonnull(2, 4)) ynothrowv{
 		return op_file_locked(r, fh, &FileInfo::Stat, Deref(buf));
 	}, [](::_reent* r, const char* path, struct ::stat* buf)
-		YB_ATTR_LAMBDA(nonnull(1, 2, 3)) ynothrowv{
+		YB_ATTR_LAMBDA(nonnull(2, 3, 4)) ynothrowv{
 		return op_path_locked(r, path, &Partition::Stat, Deref(buf), path);
 	}, [](::_reent* r, const char*, const char*)
-		YB_ATTR_LAMBDA(nonnull(1, 2, 3)) ynothrowv{
+		YB_ATTR_LAMBDA(nonnull(2, 3, 4)) ynothrowv{
 		return seterr(r, ENOTSUP);
 	}, [](::_reent* r, const char* path)
-		YB_ATTR_LAMBDA(nonnull(1, 2)) ynothrowv{
+		YB_ATTR_LAMBDA(nonnull(2, 3)) ynothrowv{
 		return op_path_locked(r, path, &Partition::Unlink, path);
 	}, [](::_reent* r, const char* path)
-		YB_ATTR_LAMBDA(nonnull(1, 2)) ynothrowv{
+		YB_ATTR_LAMBDA(nonnull(2, 3)) ynothrowv{
 		return op_path_locked(r, path, &Partition::ChangeDir, path);
 	}, [](::_reent* r, const char* old, const char* new_name)
-		YB_NONNULL(1, 2, 3) ynothrowv{
+		YB_ATTR_LAMBDA(nonnull(2, 3, 4)) ynothrowv{
 		return op_path_locked(r, old, &Partition::Rename, old, new_name);
 	}, [](::_reent* r, const char* path, int)
-		YB_ATTR_LAMBDA(nonnull(1, 2)) ynothrowv{
+		YB_ATTR_LAMBDA(nonnull(2, 3)) ynothrowv{
 		return op_path_locked(r, path, &Partition::MakeDir, path);
 	}, sizeof(DirState), [](::_reent* r, ::DIR_ITER* dir_state,
-		const char* path) YB_ATTR_LAMBDA(nonnull(1, 2, 3)) ynothrowv{
+		const char* path) YB_ATTR_LAMBDA(nonnull(2, 3, 4)) ynothrowv{
 		return op_path_locked(r, path, [=, &path](Partition& part)
 			-> ::DIR_ITER*{
 			const auto p(dir_state->dirStruct);
@@ -2255,28 +2255,28 @@ const ::devoptab_t dotab_fat{
 			return static_cast<::DIR_ITER*>(p);
 		});
 	}, [](::_reent* r, ::DIR_ITER* dir_state)
-		YB_ATTR_LAMBDA(nonnull(1, 2)) ynothrowv{
+		YB_ATTR_LAMBDA(nonnull(2, 3)) ynothrowv{
 		return op_dir_locked(r, dir_state, &DirState::Reset);
 	}, [](::_reent* r, ::DIR_ITER* dir_state, char* filename,
-		struct ::stat* filestat) YB_ATTR_LAMBDA(nonnull(1, 2, 3)) ynothrowv{
+		struct ::stat* filestat) YB_ATTR_LAMBDA(nonnull(2, 3, 4)) ynothrowv{
 		// NOTE: The filename is of %NAME_MAX characters in newlib DS port.
 		return
 			op_dir_locked(r, dir_state, &DirState::Iterate, filename, filestat);
 	}, [](::_reent* r, ::DIR_ITER* dir_state)
-		YB_ATTR_LAMBDA(nonnull(1, 2)) ynothrowv{
+		YB_ATTR_LAMBDA(nonnull(2, 3)) ynothrowv{
 		return op_dir_locked(r, dir_state, [](DirState& state) ynothrow{
 			state.~DirState();
 		});
 	}, [](::_reent* r, const char* path, struct ::statvfs* buf)
-		YB_NONNULL(1, 2, 3) ynothrowv{
+		YB_ATTR_LAMBDA(nonnull(2, 3, 4)) ynothrowv{
 		return op_path_locked(r, path, &Partition::StatFS, Deref(buf));
 	}, [](::_reent* r, void* fh, ::off_t length)
-		YB_ATTR_LAMBDA(nonnull(1)) ynothrowv -> int{
+		YB_ATTR_LAMBDA(nonnull(2)) ynothrowv -> int{
 		return length >= 0 ? (sizeof(length) <= 4 || length <= ::off_t(
 			MaxFileSize) ? op_file_checked(r, fh, &FileInfo::CanWrite,
 			&FileInfo::Truncate, std::uint32_t(length)) : EFBIG) : EINVAL;
 	}, [](::_reent* r, void* fh)
-		YB_ATTR_LAMBDA(nonnull(1)) ynothrowv -> int{
+		YB_ATTR_LAMBDA(nonnull(2)) ynothrowv -> int{
 		return op_file_locked(r, fh, &FileInfo::SyncToDisc);
 	}, nullptr, nullptr, nullptr, nullptr
 };

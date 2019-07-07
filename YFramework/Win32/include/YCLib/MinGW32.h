@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2027
+\version r2038
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2019-06-23 16:53 +0800
+	2019-07-07 20:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,8 +87,16 @@ public:
 	\since build 643
 	*/
 	//@{
-	Win32Exception(ErrorCode, string_view = "Win32 exception",
+	//! \since build 861
+	//@{
+	YB_NONNULL(3)
+	Win32Exception(ErrorCode, const char* = "Win32 exception",
 		YSLib::RecordLevel = YSLib::Emergent);
+	Win32Exception(ErrorCode, string_view,
+		YSLib::RecordLevel = YSLib::Emergent);
+	Win32Exception(ErrorCode, const std::string&,
+		YSLib::RecordLevel = YSLib::Emergent);
+	//@}
 	/*!
 	\pre 第三参数非空。
 	\note 第三参数是表示调用位置函数签名，可以使用 \c __func__ 。
@@ -176,7 +184,7 @@ public:
 */
 //@{
 #	define YCL_WrapCall_Win32(_fn, ...) \
-	[&](const char* sig_) YB_ATTR_LAMBDA(nonnull(1)){ \
+	[&](const char* sig_) YB_ATTR_LAMBDA(nonnull(2)){ \
 		const auto res_(_fn(__VA_ARGS__)); \
 	\
 		if(YB_UNLIKELY(!res_)) \
@@ -198,7 +206,7 @@ public:
 */
 //@{
 #	define YCL_TraceWrapCall_Win32(_fn, ...) \
-	[&](const char* sig_) YB_ATTR_LAMBDA(nonnull(1)){ \
+	[&](const char* sig_) YB_ATTR_LAMBDA(nonnull(2)){ \
 		const auto res_(_fn(__VA_ARGS__)); \
 	\
 		if(YB_UNLIKELY(!res_)) \

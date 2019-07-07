@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r13092
+\version r13473
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-06-27 11:27 +0800
+	2019-07-08 00:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,377 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		+ $dev $lib 'YB_ATTR_returns_nonnull' @ "member function %resource"
+			@ "class template polymorphic_allocator"
+			@ %MemoryResource,
+		* "cv-qualifier" @ "internal deduced return types for %pair instances"
+			@ "function template %uses_allocator_construction_args" @ %Memory
+			$since b850,
+		/ %StringView $=
+		(
+			/ @ "class template %basic_string_view" $=
+			(
+				+ DD '\ingroup YBase_replacement_features' @ "Doxygen comment"
+				* "missing 'ynothrowv'" @ "constructor#3" @ %StringView $since
+					b640
+			),
+			+ DD '\ingroup YBase_replacement_extensions' @ "Doxygen comment"
+				@ "alias template %string_view_t"
+		),
+		/ %String $=
+		(
+			/ "function templates %(vsfmt, sfmt)" $=
+			(
+				/ "template parameter" !^ "character type",
+				/ "%sfmt" ^ "%ystdex::vsfmt" ~ "ADL %vsfmt"
+			),
+			+ "function template %make_string_view" $dep_from
+				("constructor %basic_string_view#3" @ %StringView)
+		),
+		* "missing traits template argument" @ "class template specialization \
+			%path for %basic_string instances" @ %Path $since b836
+			// The allocator argument is actually treated as the traits and \
+				the actual allocator is the default one in %basic_string.
+	),
+	/ %YFramework $=
+	(
+		+ "allocator support" @ %CHRLib.CharacterProcessing $=
+		(
+			+ "transcoding function overloads",
+			+ "%(MakeUCS2LE, MakeUCS4LE, MakeMBCS) overloads"
+		),
+		/ %YCLib $=
+		(
+			/ DLDI @ !"platform %Win32" $=
+			(
+				- $revert(b632) "redundant internal function"
+					// To eliminate Clang++ warning: [-Wunused-function].
+				/ "function %SetBinaryIO" ^ "%YAssertNonnull" ~ "%Nonnull"
+					// To eliminate Clang++ warning: [-Wunused-variable].
+				/ "avoided template default argument for %CHRLib::(MakeMBCS, \
+					MakeUCS2LE) calls" @ %FileIO $dep_to "avoiding relying on \
+					the platform string equivalence with std::string"
+			),
+			/ DLDI "avoided template default argument for %CHRLib::MakeUCS2LE \
+				call" @ "member function %FAT::EntryData::FillNewName"
+				@ %FileSystem $dep_to "avoiding relying on the platform string \
+				equivalence with std::string",
+			/ %Host $=
+			(
+				/ DLDI "constructors %Exceptions" ^ $dep_from ("%to_std_string"
+					@ %YSLib.Adaptor.YAdaptor) $dep_to "avoiding relying on \
+					the platform string equivalence with std::string",
+				+ 2 "constructors %Exception with 'const std::string&' \
+					parameter",
+				- $re_add(b852) DLDI "redundant '&&'"
+					@ "'*_constructible' template arguments"
+			),
+			/ %Debug $=
+			(
+				/ "return type" @ "all function and function templates \
+					%ComposeMessageWithSignature" @ %Debug -> "%std::string"
+					~ "%string" $dep_from %YCLib_(Win32).MinGW32 $dep_to
+					"avoiding relying on the platform string equivalence with \
+					std::string",
+					// The interface for message is mainly used for \
+						exceptions. Thus, it should better not relying on the \
+						equivalence between %string and %std::string.
+				/ DLDI ("macro %YF_TraceRaw" ^ 'ystdex::sfmt<platform::string>',
+					"function %LogWithSource" ^ 'sfmt<string>') ~ 'sfmt'
+					$dep_from ("%ysdex::sfmt" @ %YBase.YStandardEx.String)
+					$dep_to "avoiding relying on the platform string \
+					equivalence with standard string",
+				* "invalid null message argument on catching '...'"
+					@ "member function %Logger::DoLogException" $since b547
+			),
+			/ @ "namespace %platform" @ %Container $=
+			(
+				/ @ "inline namespace %strings" $=
+				(
+					+ "function template %to_std_string"
+					+ 'using ystdex::make_string_view;' ^ $dep_from
+						("%ystdex::make_string_view"
+						@ %YBase.YStandardEx.String),
+					+ "class template speailization %std::hash for \
+						%basic_string with an allcator of \
+						ystdex::polymorphic_allocator instance" $dep_to
+						"extended string hash",
+					(
+					/ $dev "loosed static assertion for string types";
+						// Now %string is allowed not being able to initialize \
+							a %std::string.
+					* $comp $dev "redundant word" @ "static assertion message \
+						for %string" $since b833,
+					/ "changed default allocator argument" @ "%basic_string"
+						^ "%pmr::polymorphic_allocator" ~ "%std::allocator"
+						($dep_all_from "avoiding relying on the platform \
+						string equivalence with std::string",
+						%(YSLib.Core.YString, %YBase.YStandard.(Memory, Path)),
+						$dep_from "extended string hash")
+						// The fixes in %YBase.YStandard are needed, otherwise \
+							the change would break %YSLib.Service.ContentType \
+							(for %Memory) or %Tools.ProjectGenerator.Main (for \
+							%Path).
+					)
+				),
+				+ "inline namespace %ios" $=
+				(
+				(
+				+ "alias templates %(basic_stringbuf; stringbuf_from)";
+				+ "aliases %(stringbuf, wstringbuf)"
+				),
+				(
+				+ "alias templates %(basic_istringstream; istringstream_from)";
+				+ "aliases %(istringstream, wistringstream)"
+				),
+				(
+				+ "alias templates %(basic_ostringstream; ostringstream_from)";
+				+ "aliases %(ostringstream, wostringstream)"
+				),
+				(
+				+ "alias templates %(basic_stringstream; stringstream_from)";
+				+ "aliases %(stringstream, wstringstream)"
+				)
+				)
+			),
+			- $re_add(b850) DLDI "redundant '&&'" @ "%std::declval template \
+				arguments" @ "macro %YCL_DeclCheck_t" @ %YCommon
+		),
+		* $impl "wrong 'nonnull(1)' attribute for lambda-expressions"
+			@ (("member function %Logger::DoLogException" @ %Debug $since
+			b654 "macros %(YCL_WrapCall_CAPI, YCL_TraceWrapCall_CAPI)"
+			@ %YCommon $orig (@ %FileIO $since b714), !'YCL_Win32'
+			@ "constructor %DirectorySession" @ %FileSystem $since b662)
+			@ %YCLib, "macros %(YCL_WrapCall_Win32, YCL_TraceWrapCall_Win32)"
+			@ %YCLib_(Win32).MinGW32 $since b651, "function %Mount"
+			@ %YCLib_(DS).DSIO $since b611),
+			// To eliminate Clang++ error in %YB_ATTR_LAMBDA attributes \
+				since b860.
+		/ %YCLib_(Win32).MinGW32 @ "class %Win32Exception" $dep_to "avoiding \
+			relying on the platform string equivalence with std::string" $=
+		(
+			/ @ "constructors" @ %YCLib_(Win32).MinGW32 $=
+			(
+				+ "2 overloads with 'const char*' and 'const std::string&' \
+					parameter respectively";
+				/ "moved default arugument of 'string_view' parameter to \
+					'const char*'"
+			),
+			/ DLDI "static function %FormatMessage" ^ $dep_from
+				("%to_std_string" @ %YSLib.Adaptor.YAdaptor)
+		),
+		* "missing replace lambda attributes %YB_NONNULL with %YB_ATTR_LAMBDA"
+			@ "function %Mount" @ %YCLib_(DS).DSIO $since b680,
+			// There are 2 entries in the %::devoptab_t data are missed. \
+				However, other attributes are still mostly wrong, see above.
+		/ %YSLib $=
+		(
+			/ %Adaptor.YAdaptor
+			(
+				+ ('using platform::make_string_view;',
+					'using platform::to_std_string;') $dep_from
+					("%(make_string_view, to_std_string") @ %YCLib.Container),
+				+ 'using namespace platform::ios;' $dep_from
+					("namespace %platform::ios" @ %YCLib.Container)
+			),
+			/ %Core $=
+			(
+				/ "return type" @ "function and function templates %to_string"
+					@ %YGDIBase -> "%std::string" ~ "%string" $dep_to
+					"avoiding relying on the platform string equivalence with \
+					std::string",
+				/ %YException $=
+				(
+					/ $re_add(b852) $dev "all %std::function" -> "%function",
+					/ "constructor %LoggedEvent#2" ^ $dep_from ("%to_std_string"
+						@ %YSLib.Adaptor.YAdaptor) $dep_to "avoiding relying \
+						on the platform string equivalence with std::string"
+				),
+				/ %YString $=
+				(
+					+ "4 constructor templates %String with \
+						'const allocator_type&' parameter" ^ $dep_from
+						("%MakeUCS2LE" @ %CHRLib.CharacterProcessing),
+					/ "preserved allocator" @ "function %GetMBCS"
+						^ $dep_from
+						("%MakeMBCS" @ %CHRLib.CharacterProcessing)
+				)
+			),
+			/ DLDI %Service $dep_to "avoiding relying on the platform string \
+				equivalence with std::string" $=
+			(
+				/ "avoided template default argument for %MakeMBCS call"
+					@ "function %EnsureDirectory" @ %FileSystem
+				/ "exception string arguments" @ %File
+					^ "%(c_str(), std::string)" ~ "%string"
+			),
+			/ DLDI %UI.Loader $dep_to "avoiding relying on the platform string \
+				equivalence with std::string" $=
+			(
+				/ "avoided string stream relying on allocator"
+					@ "function %ParseRect" ^ $dep_from ("%istringstream"
+					@ %YFramework.YSLib.Adaptor.YAdaptor)
+					~ "%std::istringstream",
+				/ "%std::stoul call argument" @ "member function \
+					%WidgetLoader::TransformUILayout" ^ $dep_from
+					("to_std_string" @ %YFramework.YSLib.Adaptor.YAdaptor)
+			)
+		),
+		/ DLDI "function %LoadComponents" @ %Helper.Initialization
+			^ $dep_from ("%to_std_string" @ %YSLib.Adaptor.YAdaptor)
+			$dep_to "avoiding relying on the platform string equivalence with \
+			std::string",
+		/ %NPL $=
+		(
+			/ %Lexical $=
+			(
+				+ 'namespace pmr = YSLib::pmr;';
+				+ "consturctor %LexicalAnalyzer with memory resource parameter"
+			),
+			+ "3 consturctors %Session with memory resource parameter"
+				@ %SContext $dep_from ("%LexicalAnalyzer" @ %Lexical),
+			/ %NPLA $=
+			(
+				/ "return type" @ "functions %(ResolveIdentifier; \
+					PrepareCollapse)" -> "%TermReference"
+					~ 'pair<TermReference, bool>',
+				/ DLI "functions %(ReduceForLiftedResult, ReduceToList, \
+					ReduceToListValue)" -> "inline function",
+				- $revert(b752) ("function %LiftDelayed"; "type %DelayedTerm")
+					$dep_from ("%EvaluateDelayed" @ %NPLA1),
+				/ DLDI "function %DecodeNodeIndex" ^ ("%YSLib::make_string_view"
+					@ %YSLib.Adaptor.YAdaptor) $dep_to "avoiding relying on \
+					the platform string equivalence with std::string"
+			),
+			/ %NPLA1 $=
+			(
+				/ DLDI "simplified vau handlers data members",
+				/ "TCO implementation" $=
+				(
+					/ "improved collection without keeping saved temporary \
+						function prvalues" @ "%operator()" @ "vau handlers",
+						// See $2019-06 @ %Documentation::Workflow::Annual2019.
+					/ DLI "avoid specialized inactive frame detection"
+						// See $2019-06 @ %Documentation::Workflow::Annual2019.
+				),
+				* "ill-formed call" @ !'NPL_Impl_NPLA1_Enable_TCO'
+					@ "%operator()" @ "vau handlers" $since b860,
+				/ DLDI "simplified result value and status setting"
+					@ "functions %Forms::(Cond, If)",
+				/ @ "function %EvaluateIdentifier" $=
+				(
+					/ $forced DLDI "simplified"
+						$dep_from ("%ResolveIdentifier" @ %NPLA),
+					(
+					- "%EvaluateDelayed call" $dep_to "dropped support of \
+						builtin delayed term evaluation";
+						// For performance. The delayed evaluation can be \
+							derived by the promises API instead.
+					/ DLDI "simplified" ^ "%CheckNorm"
+					)
+				),
+				- "all 2 functions %EvaluateDelayed" $dep_from "dropped \
+					support of builtin delayed term evaluation",
+				/ DLI "allcated unit with allocator"
+					@ ("functions %Forms::(EvalString, EvalStringRef)",
+					"member functions %Perform" @ "class %REPLContext")
+					$dep_from ("%Session" @ %SContext)
+			),
+			/ %Dependency $=
+			(
+				/ @ "function %LoadGroundContext" $=
+				(
+					* "PTC support" @ ("operatives with name prefix '$let",
+						("applicative %accl"; $comp "applicative \
+						'map-reverse'"), "applicatives %(accr; foldr1; map1)")
+						$since b829
+						$= (- "redundant %forward call"),
+					+ "native derivation" @ "applicative 'not?' and enabled by \
+						default" ^ $dep_from ("%Cond" @ %NPLA1),
+					/ $forced DLDI "simplified applicative 'resolve-identifier'"
+						$dep_from ("%ResolveIdentifier" @ %NPLA)
+				),
+				/ @ "function %LoadModule_std_promises" $=
+				(
+					/ $comp "PTC support of $lazy operations" $dep_from
+						('$let' @ "%LoadGroundContext") $since b856,
+						// Now it works as the last example for promises \
+							(namely, the "stream-filter" example) in [RnRK].
+					/ DLI "optimized 'expr' with binding mark '&'"
+						@ "operatives ('$lazy', '$lazy/e')",
+						// To be consistent with other functions. This also \
+							does not need to call %move.
+					/ @ "applicative %force" $=
+					(
+						/ DLI "simplified" ^ "less %forward calls",
+						* "missing %forward call for the call when setting the \
+							redirected promise" $since b856,
+							// The bug would cause invalid access on \
+								duplicated %force calls when the lazily \
+								evaluated expression has a prvalue promise \
+								result (e.g. the result from a %memoize call).
+						* "inconsistent results for already forced promises"
+							$since b856 ^ "%forward" ~ "%idv",
+						/ DLDI "inlined internal promise handling call"
+							$dep_from ("%operator()" @ "vau handlers" @ %NPLA1)
+							// This relies on the fact that prvalues does not \
+								eliminates the PTC gurarntee after the \
+								improvement.
+					),
+					* "missing %forward call for the bound value"
+						@ "applicative %memoize" $since b856,
+				)
+			),
+			/ DLDI "simplified" %(NPLA, NPLA1) ^ $dep_from ("%pmr" @ %Lexical)
+				~ "%YSLib::pmr",
+			/ DLDI ("function %TermToString" @ %NPLA, "%operator()"
+				@ "vau handler" @ %NPLA1) ^ 'sfmt<string>' ~ 'sfmt'
+				$dep_from ("%ysdex::sfmt" @ %YBase.YStandardEx.String)
+				$dep_to "avoiding relying on the platform string \
+				equivalence with std::string"
+		)
+	),
+	/ %Tools.SHBuild.Main $=
+	(
+		(
+		/ DLDI "all %sfmt calls prefixed with 'ystdex::'",
+		/ DLDI "avoided string stream relying on allocator"
+			^ $dep_from ("%istringstream" @ %YFramework.YSLib.Adaptor.YAdaptor)
+			~ "%std::istringstream",
+		/ DLDI "%ston call argument" ^ $dep_from ("to_std_string"
+			@ %YFramework.YSLib.Adaptor.YAdaptor);
+		/ DLI "optimized string printing and exception message construction"
+			$dep_to "avoiding relying on the platform string equivalence \
+			with std::string"
+		),
+		/ "minor exception message changed for unsupported input commands",
+		* "stored option descriptions invalidly" $since b547
+	),
+	/ DLDI %YReader $=
+	(
+		/ ($forced "constructor %ShlExplorer" @ %ShlExplorer,
+			$dep_from %YFramework.YSLib.Core.YGDIBase,
+			"member function %ShlReader::SaveBookmarks")
+			$= (/ $impl ^ $dep_from
+				("%make_string_view" @ %YAdaptor.Adaptor)),
+		/ ("constructor %BookmarkPanel" @ %BookmarkUI, "constructor \
+			%ReaderSetting" @ %ReaderSetting) ^ $dep_from ("%to_std_string"
+			@ %YSLib.Adaptor.YAdaptor) $dep_to "avoiding relying on the \
+			platform string equivalence with std::string",
+		/ $dev $impl "avoided potential ambiguity between %ystdex::string and \
+			%YSLib::string" $dep_to "avoiding relying on the platform string \
+			equivalence with std::string"
+			$= (- 'using namespace ystdex;'),
+		/ "member function %ShlReader::LoadBookmarks" @ %ShlReader
+			^ "%std::string" ~ "%string" $dep_to "avoiding relying on the \
+			platform string equivalence with std::string"
+	)
+),
+
+b860
 (
 	(
 	+ "macro %YB_ATTR_LAMBDA" %YBase.YDefinition;
@@ -150,17 +521,16 @@ $now
 			(
 				/ "function %LoadGroundContext" $=
 				(
-					+ "native derivation" @ "applicative %list and enabled by \
-						default" ^ $dep_from ("%ListAsterisk" @ %NPLA1),
-					+ "native derivation" @ "applicative 'list%' and enabled \
-						by default" ^ $dep_from ("%ListAsteriskRef" @ %NPLA1),
+					+ "native derivation and enabled by default"
+						@ ("applicative %list" ^ $dep_from
+						("%ListAsterisk" @ %NPLA1), "applicative 'list%'"
+						^ $dep_from ("%ListAsteriskRef" @ %NPLA1),
+						"operative '$cond'" ^ $dep_from ("%Cond" @ %NPLA1)),
 					/ "applicative 'nullpr?'" => 'nullv?',
 					* $comp "wrong result" @ "operative '$or?'" $orig
 						(@ "special form '$or'" $since b759) $dep_from
 						"wrong native non-strict logical-OR results",
 					+ "alternative derivation" @ "operatives ('$and?', '$or?')",
-					+ "native derivation" @ "operative '$cond' and enabled by \
-						default" ^ $dep_from ("%Cond" @ %NPLA1),
 					* $comp "broken PTC guarantees on the evaluation of body \
 						in ('$vau', '$vau/e', '$vau/e', '$vau/e%') abstractions"
 						$dep_from "vau dynamic capture ignorance fix" $since
@@ -405,8 +775,9 @@ b859
 				+ "native derivation" @ "applicative 'check-environment' and \
 					enabled by default" ^ $dep_from
 					("%CheckEnvironment" @ %NPLA1),
-				+ "native derivation" @ "applicative 'first&' and enabled by \
-					default" ^ $dep_from ("%FirstRef" @ %NPLA1),
+				+ "native derivation and enabled by default" @ ("applicative \
+					'first&'" ^ $dep_from ("%FirstRef" @ %NPLA1), "applicative \
+					'first@' " ^ $dep_from ("%FirstRefAt" @ %NPLA1)),
 				+ "modifiable lvalue check before assignment"
 					@ "applicatives ('assign!', 'assign%!', 'assign@!')"
 					^ $dep_from
@@ -414,8 +785,6 @@ b859
 					$dep_from "modifying qualification fix",
 					// This would break 'force' in 'std.promises' without the \
 						fix.
-				+ "native derivation" @ "applicative 'first@' and enabled by \
-					default" ^ $dep_from ("%FirstRefAt" @ %NPLA1),
 				/ DLDI "simplified symbol 'denv'" @ "derivation"
 					@ "operatives ('$bindings/p->environment', \
 					'$bindings->environment')"-> 'd',

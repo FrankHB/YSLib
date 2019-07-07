@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2181
+\version r2197
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2019-06-23 16:53 +0800
+	2019-07-07 20:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -269,14 +269,25 @@ FetchFixedSystemPath(SystemPaths e, size_t s)
 } // unnamed namespace;
 
 
-Win32Exception::Win32Exception(ErrorCode ec, string_view msg, RecordLevel lv)
-	: Exception(int(ec), GetErrorCategory(), msg, lv)
+Win32Exception::Win32Exception(ErrorCode ec, const char* str, RecordLevel lv)
+	: Exception(int(ec), GetErrorCategory(), str, lv)
 {
 	YAssert(ec != 0, "No error should be thrown.");
 }
-Win32Exception::Win32Exception(ErrorCode ec, string_view msg, const char* sig,
+Win32Exception::Win32Exception(ErrorCode ec, string_view sv, RecordLevel lv)
+	: Exception(int(ec), GetErrorCategory(), sv, lv)
+{
+	YAssert(ec != 0, "No error should be thrown.");
+}
+Win32Exception::Win32Exception(ErrorCode ec, const std::string& str,
 	RecordLevel lv)
-	: Win32Exception(ec, platform::ComposeMessageWithSignature(msg, sig), lv)
+	: Exception(int(ec), GetErrorCategory(), str, lv)
+{
+	YAssert(ec != 0, "No error should be thrown.");
+}
+Win32Exception::Win32Exception(ErrorCode ec, string_view sv, const char* sig,
+	RecordLevel lv)
+	: Win32Exception(ec, platform::ComposeMessageWithSignature(sv, sig), lv)
 {}
 ImplDeDtor(Win32Exception)
 
@@ -303,7 +314,7 @@ Win32Exception::FormatMessage(ErrorCode ec) ynothrow
 
 			const auto p(unique_raw(buf, LocalDelete()));
 
-			return ystdex::rtrim(WCSToUTF8(buf));
+			return to_std_string(ystdex::rtrim(WCSToUTF8(buf)));
 		}
 		CatchExpr(..., YTraceDe(Warning, "FormatMessage failed."), throw)
 	});

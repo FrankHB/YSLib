@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018 FrankHB.
+	© 2013-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r364
+\version r371
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2018-07-25 01:44 +0800
+	2019-07-07 22:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,8 +27,8 @@
 
 #include "YSLib/UI/YModules.h"
 #include "NPL/YModules.h"
-#include YFM_YSLib_UI_Loader
-#include <sstream>
+#include YFM_YSLib_UI_Loader // for to_std_string, istringtream;
+#include <sstream> // for complete istringtream;
 #include YFM_YSLib_UI_YPanel
 #include YFM_NPL_SContext
 #include YFM_NPL_Configuration
@@ -46,7 +46,7 @@ ParseRect(const string& str)
 
 	try
 	{
-		std::istringstream iss(str);
+		istringstream iss(str);
 
 		iss.exceptions(std::ios::failbit | std::ios::badbit);
 		iss >> res.X >> res.Y >> res.Width >> res.Height;
@@ -68,7 +68,7 @@ IWidget&
 AccessWidget(const ValueNode& node)
 {
 	if(const auto p = AccessNodePtr(node, "$pointer"))
-		// NOTE: It may still throw %ystdex::bad_any_cast.
+		// NOTE: It may still throw %bad_any_cast.
 		return Deref(Access<shared_ptr<IWidget>>(*p));
 	throw WidgetNotFound(node.GetName(), "Widget pointer not found.");
 }
@@ -133,7 +133,8 @@ WidgetLoader::TransformUILayout(const ValueNode& node)
 							if(insz && p_z)
 								try
 								{
-									const auto r(std::stoul(*p_z));
+									const auto
+										r(std::stoul(to_std_string(*p_z)));
 
 									// TODO: Do not use magic number.
 									if(r < 0x100)

@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2388
+\version r2397
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2019-01-15 11:08 +0800
+	2019-07-07 23:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,9 +38,9 @@
 //	ystdex::in_place_type, ystdex::in_place_type_t, ystdex::any_cast,
 //	ystdex::unchecked_any_cast, ystdex::unsafe_any_cast;
 #include YFM_YCLib_FileIO // for <ystdex/functional.hpp>, <functional>,
-//	<ystdex/memory_resource.h>, <array>, <deque>, <forward_list>, <istream>,
-//	<ostream>, <queue>, <set>, <stack>, <unordered_map>, <unordered_set>,
-//	YFM_YCLib_Container, <vector>, platform::basic_types,
+//	<ystdex/memory_resource.h>, <array>, <deque>, <forward_list>, <iosfwd>,
+//	<istream>, <ostream>, <queue>, <set>, <stack>, <unordered_map>,
+//	<unordered_set>, YFM_YCLib_Container, <vector>, platform::basic_types,
 //	platform::basic_utilities, platform::containers, '*string_view', uopen,
 //	'uf*', 'up*', etc;
 #include YFM_YCLib_Reference // for YFM_YCLib_Reference, platform::references,
@@ -108,12 +108,14 @@ using ystdex::any;
 using ystdex::function;
 //@}
 
+//! \since build 861
+using namespace platform::ios;
+
 //! \since build 616
 //@{
 using platform::basic_filebuf;
 using platform::filebuf;
 using platform::wfilebuf;
-
 //! \since build 619
 using platform::basic_ifstream;
 //! \since build 619
@@ -172,6 +174,11 @@ using platform::vsfmt;
 
 // !\note 可能使用 ADL 。
 //@{
+//! \since build 861
+using ystdex::make_string_view;
+
+//! \since build 861
+using platform::to_std_string;
 using platform::to_string;
 using platform::to_wstring;
 //@}

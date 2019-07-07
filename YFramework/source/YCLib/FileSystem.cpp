@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4336
+\version r4340
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2019-06-23 17:22 +0800
+	2019-07-07 20:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,7 +65,8 @@ yconstexpr const auto SymbolicLinkFlagDirectory(1UL);
 
 inline PDefH(void, W32_CreateSymbolicLink, const char16_t* dst,
 	const char16_t* src, unsigned long flags)
-	ImplExpr(YCL_CallF_Win32(CreateSymbolicLinkW, wcast(dst), wcast(src), flags))
+	ImplExpr(
+		YCL_CallF_Win32(CreateSymbolicLinkW, wcast(dst), wcast(src), flags))
 
 } // namespace YCL_Impl_details;
 
@@ -353,7 +354,7 @@ DirectorySession::DirectorySession(const char* path)
 #if YCL_Win32
 	: dir(CreateDirectoryDataPtr<Data>(MakePathStringW(path)))
 #else
-	: sDirPath([](const char* p) YB_ATTR_LAMBDA(nonnull(1)){
+	: sDirPath([](const char* p) YB_ATTR_LAMBDA(nonnull(2)){
 		const auto res(Deref(p) != char()
 			? ystdex::rtrim(string(p), FetchSeparator<char>()) : ".");
 
@@ -695,7 +696,7 @@ EntryData::FillNewName(string_view name,
 	}
 	else
 	{
-		const auto& long_name(CHRLib::MakeUCS2LE(name));
+		const auto& long_name(CHRLib::MakeUCS2LE<u16string>(name));
 		const auto len(long_name.length());
 
 		if(len < LFN::MaxLength)

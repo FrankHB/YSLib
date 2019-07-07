@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r1520
+\version r1527
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2019-02-04 14:56 +0800
+	2019-07-07 20:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,12 +133,15 @@ struct path_traits<void>
 	}
 };
 
-//! \brief 文件字符串路径特征。
-template<typename _tChar, class _tAlloc>
-struct path_traits<basic_string<_tChar, _tAlloc>>
+/*!
+\brief 文件字符串路径特征。
+\since build 861
+*/
+template<typename _tChar, class _tTraits, class _tAlloc>
+struct path_traits<basic_string<_tChar, _tTraits, _tAlloc>>
 {
 	using char_type = _tChar;
-	using value_type = basic_string<_tChar, _tAlloc>;
+	using value_type = basic_string<_tChar, _tTraits, _tAlloc>;
 	using view_type = basic_string_view<char_type>;
 
 	static yconstfn bool

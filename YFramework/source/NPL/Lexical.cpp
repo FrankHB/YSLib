@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1635
+\version r1639
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2019-05-17 10:54 +0800
+	2019-07-07 02:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,6 +113,10 @@ NPLUnescape(string& buf, const UnescapeContext& uctx, char ld)
 
 
 LexicalAnalyzer::DefDeCtor(LexicalAnalyzer)
+LexicalAnalyzer::LexicalAnalyzer(pmr::memory_resource& rsrc)
+	: qlist(vector<size_t>::allocator_type(&rsrc)),
+	left_qset(YSLib::set<size_t>::allocator_type(&rsrc))
+{}
 
 bool
 LexicalAnalyzer::CheckEscape(byte b, Unescaper unescape)

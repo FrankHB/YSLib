@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3954
+\version r3957
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2019-06-23 16:45 +0800
+	2019-07-07 19:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -137,7 +137,7 @@ struct IDTagSet : virtual IDTag<_vN>...
 #define YCL_DeclCheck_t(_fn, _call) \
 	template<typename... _tParams> \
 	using YCL_CheckDecl_t(_fn) \
-		= decltype(_call(std::declval<_tParams&&>()...));
+		= decltype(_call(std::declval<_tParams>()...));
 //@}
 
 
@@ -234,7 +234,7 @@ enum RecordLevel : std::uint8_t
 */
 //@{
 #define YCL_WrapCall_CAPI(_t, _fn, ...) \
-	[&](const char* sig_) YB_ATTR_LAMBDA(nonnull(1)){ \
+	[&](const char* sig_) YB_ATTR_LAMBDA(nonnull(2)){ \
 		const auto res_(_fn(__VA_ARGS__)); \
 	\
 		if(YB_UNLIKELY(res_ < decltype(res_)())) \
@@ -255,7 +255,7 @@ enum RecordLevel : std::uint8_t
 */
 //@{
 #define YCL_TraceWrapCall_CAPI(_fn, ...) \
-	[&](const char* sig_) YB_ATTR_LAMBDA(nonnull(1)){ \
+	[&](const char* sig_) YB_ATTR_LAMBDA(nonnull(2)){ \
 		const auto res_(_fn(__VA_ARGS__)); \
 	\
 		if(YB_UNLIKELY(res_ < decltype(res_)())) \

@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r2954
+\version r2978
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2019-01-01 13:55 +0800
+	2019-07-07 18:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -765,6 +765,19 @@ struct string_traits
 	using const_pointer = const value_type*;
 	using initializer = std::initializer_list<value_type>;
 };
+
+
+/*!
+\brief 从字符串创建 basic_string_view 对象。
+\since build 861
+*/
+template<class _tString>
+inline basic_string_view<typename string_traits<_tString>::value_type,
+	typename string_traits<_tString>::traits_type>
+make_string_view(const _tString& str) ynothrowv
+{
+	return {str.data(), str.size()};
+}
 
 
 //! \since build 450
@@ -1927,7 +1940,7 @@ ston(const _tString& str, _tParams&&... args)
 }
 
 
-//! \since build 833
+//! \since build 861
 //@{
 /*!
 \pre 间接断言：第一参数非空。
@@ -1935,13 +1948,13 @@ ston(const _tString& str, _tParams&&... args)
 */
 //@{
 /*!
-\brief 以 C 标准输出格式的输出 basic_string 实例的对象。
+\brief 以 C 标准输出格式的输出字符串类型的对象。
 \throw std::runtime_error 格式化字符串输出失败。
 \note 对 _tString 构造异常中立。
 */
-template<typename _tChar, class _tString = basic_string<_tChar>>
+template<class _tString = string>
 YB_ATTR_nodiscard YB_NONNULL(1) _tString
-vsfmt(const _tChar* fmt, std::va_list args)
+vsfmt(typename string_traits<_tString>::const_pointer fmt, std::va_list args)
 {
 	std::va_list ap;
 
@@ -1953,11 +1966,11 @@ vsfmt(const _tChar* fmt, std::va_list args)
 	if(l == size_t(-1))
 		throw std::runtime_error("Failed to write formatted string.");
 
-	_tString str(l, _tChar());
+	_tString str(l, typename _tString::value_type());
 
 	if(l != 0)
 	{
-		yassume(str.length() > 0 && str[0] == _tChar());
+		yassume(str.length() > 0 && str[0] == typename _tString::value_type());
 		std::vsprintf(&str[0], fmt, args);
 	}
 	return str;
@@ -1965,20 +1978,18 @@ vsfmt(const _tChar* fmt, std::va_list args)
 
 /*!
 \brief 以 C 标准输出格式的输出 basic_string 实例的对象。
-\note 使用 ADL 访问可变参数。
 \note Clang++ 对模板声明 attribute 直接提示格式字符串类型错误。
 */
-template<typename _tChar>
-YB_ATTR_nodiscard YB_NONNULL(1) auto
-sfmt(const _tChar* fmt, ...)
-	-> decltype(vsfmt(fmt, std::declval<std::va_list>()))
+template<class _tString = string>
+YB_ATTR_nodiscard YB_NONNULL(1) _tString
+sfmt(typename string_traits<_tString>::const_pointer fmt, ...)
 {
 	std::va_list args;
 
 	va_start(args, fmt);
 	try
 	{
-		auto str(vsfmt(fmt, args));
+		auto str(ystdex::vsfmt<_tString>(fmt, args));
 
 		va_end(args);
 		return str;
@@ -1996,7 +2007,7 @@ sfmt(const _tChar* fmt, ...)
 \sa ystdex::sfmt
 */
 template YB_ATTR_gnu_printf(1, 2) YB_NONNULL(1) string
-sfmt<char>(const char*, ...);
+sfmt<string>(const char*, ...);
 //@}
 
 

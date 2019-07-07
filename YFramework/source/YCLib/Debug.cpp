@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r855
+\version r860
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2019-06-23 16:39 +0800
+	2019-07-07 20:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -183,7 +183,7 @@ void
 Logger::DoLogException(Level lv, const std::exception& e) ynothrow
 {
 	const auto do_log_excetpion_raw([this](const char* msg)
-		YB_ATTR_LAMBDA(nonnull(1)) ynothrow{
+		YB_ATTR_LAMBDA(nonnull(2)) ynothrow{
 		try
 		{
 			DoLogRaw(Descriptions::Emergent,
@@ -205,7 +205,7 @@ Logger::DoLogException(Level lv, const std::exception& e) ynothrow
 		DoLogRaw(lv, sfmt("<%s>: %s", typeid(e).name(), msg));
 	}
 	CatchExpr(std::exception& ex, do_log_excetpion_raw(ex.what()))
-	CatchExpr(..., do_log_excetpion_raw({}))
+	CatchExpr(..., do_log_excetpion_raw("<unknown>"))
 }
 
 Logger::Sender
@@ -215,7 +215,7 @@ Logger::FetchDefaultSender(string_view tag)
 #if YCL_Win32
 	return [](Level lv, Logger& logger, const char* str){
 		// TODO: Avoid throwing of %WriteString here for better performance?
-		// FIXME: Output may be partially updated?
+		// XXX: Assume underlying output would always be completely updated.
 		try
 		{
 			wstring wstr;
@@ -298,7 +298,8 @@ LogWithSource(const char* file, int line, const char* fmt, ...) ynothrow
 		string str(vsfmt(fmt, args));
 
 		va_end(args);
-		return sfmt("\"%s\":%i:\n", chk_null(file), line) + std::move(str);
+		return sfmt<string>("\"%s\":%i:\n", chk_null(file), line)
+			+ std::move(str);
 	}
 	CatchExpr(...,
 		ystdex::ytrace(stderr, Descriptions::Emergent, Descriptions::Notice,

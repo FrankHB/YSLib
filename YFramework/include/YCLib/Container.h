@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018 FrankHB.
+	© 2010-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Container.h
 \ingroup YCLib
 \brief 容器、拟容器和适配器。
-\version r924
+\version r1023
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2018-11-06 11:58 +0800
+	2019-07-07 23:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,9 @@
 #include <ystdex/functor.hpp> // for ystdex::less, ystdex::equal_to;
 //#include <ext/vstring.h>
 #include <ystdex/tstring_view.hpp>
-#include <ystdex/string.hpp>
+#include <ystdex/string.hpp> // for ystdex::basic_string,
+//	ystdex::basic_string_view, ystdex::make_string_view, std::to_string,
+//	std::basic_string;
 #include <ystdex/array.hpp>
 #include <deque>
 #include <forward_list>
@@ -46,6 +48,9 @@
 #include <unordered_map>
 #include <queue>
 #include <stack>
+#include <iosfwd> // for std::basic_istringstream, std::basic_ostringstream,
+//	std::basic_stringstream;
+#include <ystdex/hash.hpp> // for std::hash, ystdex::hash_range;
 
 namespace platform
 {
@@ -166,7 +171,7 @@ inline namespace strings
 \since build 597
 */
 template<typename _tChar, typename _tTraits = std::char_traits<_tChar>,
-	class _tAlloc = std::allocator<_tChar>>
+	class _tAlloc = pmr::polymorphic_allocator<_tChar>>
 using basic_string = ystdex::basic_string<_tChar, _tTraits, _tAlloc>;
 //	using versa_string = __gnu_cxx::__versa_string<_tChar>;
 
@@ -195,11 +200,15 @@ using ystdex::u16tstring_view;
 using ystdex::wtstring_view;
 //@}
 
-//! \since build 833
-//@{
+//! \since build 861
+using ystdex::make_string_view;
+
+//! \since build 861
 static_assert(ystdex::is_implicitly_nothrow_constructible<const std::string&,
-	const string&>(), "Invalid string type (which is incompatible to exception"
+	const basic_string<char, std::char_traits<char>, std::allocator<char>>&>(),
+	"Invalid basic string type (which is incompatible to exception"
 	" the standard string type in exception types) found.");
+//! \since build 833
 static_assert(ystdex::is_implicitly_nothrow_constructible<string_view,
 	string>(), "Invalid string view type found.");
 
@@ -207,13 +216,78 @@ static_assert(ystdex::is_implicitly_nothrow_constructible<string_view,
 using ystdex::sfmt;
 //! \since build 593
 using ystdex::vsfmt;
+//! \since build 861
+//@{
+// TODO: Optimize for cases of same type?
+template<typename _tChar, class _tString = std::basic_string<_tChar>>
+inline _tString
+to_std_string(basic_string_view<_tChar> sv)
+{
+	return _tString(sv.data(), sv.size());
+}
+template<typename _tChar, class _tString = std::basic_string<_tChar>,
+	class _tTraits, class _tAlloc>
+inline _tString
+to_std_string(const basic_string<_tChar, _tTraits, _tAlloc>& str)
+{
+	return _tString(str.data(), str.size());
+}
+//@}
 
 //! \since build 308
 using ystdex::to_string;
+//! \since build 833
 using ystdex::to_wstring;
-//@}
 
 } // inline namespace strings;
+
+//! \since build 861
+//@{
+inline namespace ios
+{
+
+template<typename _tChar,
+	class _tTraits = typename basic_string<_tChar>::traits_type,
+	class _tAlloc = typename basic_string<_tChar>::allocator_type>
+using basic_stringbuf = std::basic_stringbuf<_tChar, _tTraits, _tAlloc>;
+template<class _tString>
+using stringbuf_for = basic_stringbuf<typename _tString::value_type,
+	typename _tString::traits_type, typename _tString::allocator_type>;
+using stringbuf = stringbuf_for<string>;
+using wstringbuf = stringbuf_for<wstring>;
+
+template<typename _tChar,
+	class _tTraits = typename basic_string<_tChar>::traits_type,
+	class _tAlloc = typename basic_string<_tChar>::allocator_type>
+using basic_istringstream = std::basic_istringstream<_tChar, _tTraits, _tAlloc>;
+template<class _tString>
+using istringstream_for = basic_istringstream<typename _tString::value_type,
+	typename _tString::traits_type, typename _tString::allocator_type>;
+using istringstream = istringstream_for<string>;
+using wistringstream = istringstream_for<wstring>;
+
+template<typename _tChar,
+	class _tTraits = typename basic_string<_tChar>::traits_type,
+	class _tAlloc = typename basic_string<_tChar>::allocator_type>
+using basic_ostringstream = std::basic_ostringstream<_tChar, _tTraits, _tAlloc>;
+template<class _tString>
+using ostringstream_for = basic_ostringstream<typename _tString::value_type,
+	typename _tString::traits_type, typename _tString::allocator_type>;
+using ostringstream = ostringstream_for<string>;
+using wostringstream = ostringstream_for<wstring>;
+
+template<typename _tChar,
+	class _tTraits = typename basic_string<_tChar>::traits_type,
+	class _tAlloc = typename basic_string<_tChar>::allocator_type>
+using basic_stringstream = std::basic_stringstream<_tChar, _tTraits, _tAlloc>;
+template<class _tString>
+using stringstream_for = basic_stringstream<typename _tString::value_type,
+	typename _tString::traits_type, typename _tString::allocator_type>;
+using stringstream = stringstream_for<string>;
+using wstringstream = stringstream_for<wstring>;
+
+} // inline namespace ios;
+//@}
 
 } // namespace platform;
 
@@ -228,6 +302,34 @@ using namespace platform::containers;
 using namespace platform::strings;
 
 } // namespace platform_ex;
+
+// XXX: Currently %ystdex::polymorphic_allocator is always separatedly defined.
+#if !YB_Impl_String_has_P0254R2
+//! \since build 833
+namespace std
+{
+
+/*!
+\brief 使用多态分配器的 ystdex::basic_string 散列支持。
+\since build 861
+\see LWG 2978 。
+\todo 在合适的 YBase.YStandardEx 头文件中扩展并使用 WG21 P1406R1 的解决方案。
+*/
+template<typename _tChar, class _tTraits>
+struct hash<ystdex::basic_string<_tChar, _tTraits,
+	ystdex::pmr::polymorphic_allocator<_tChar>>>
+{
+	size_t
+	operator()(const ystdex::basic_string<_tChar, _tTraits,
+		ystdex::pmr::polymorphic_allocator<_tChar>>& k) const ynothrow
+	{
+		// NOTE: This is similar to %ystdex::basic_string_view.
+		return ystdex::hash_range(k.data(), k.data() + k.size());
+	}
+};
+
+} // namespace std;
+#endif
 
 #endif
 

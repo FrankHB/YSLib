@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2018 FrankHB.
+	© 2009-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台中立的文件抽象。
-\version r1656
+\version r1661
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2018-09-06 19:56 +0800
+	2019-07-07 14:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,8 +67,8 @@ Remove(const _tChar* path)
 		const int err(errno);
 
 		if(err != ENOENT)
-			ystdex::throw_error(err, "Failed removing destination file '"
-				+ IO::MakePathString(path) + '\'');
+			ystdex::throw_error(err, ("Failed removing destination file '"
+				+ IO::MakePathString(path) + '\'').c_str());
 	}
 }
 
@@ -81,8 +81,8 @@ Unlink(const _tChar* path)
 		const int err(errno);
 
 		if(err != ENOENT)
-			ystdex::throw_error(err, "Failed unlinking destination file '"
-				+ IO::MakePathString(path) + '\'');
+			ystdex::throw_error(err, ("Failed unlinking destination file '"
+				+ IO::MakePathString(path) + '\'').c_str());
 	}
 }
 //@}

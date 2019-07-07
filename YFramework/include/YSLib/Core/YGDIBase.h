@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2553
+\version r2559
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2019-01-14 14:19 +0800
+	2019-07-07 06:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -498,10 +498,10 @@ get(const GBinaryGroup<_type>& val)
 /*!
 \brief 转换为字符串。
 \note 使用 ADL 。
-\since build 308
+\since build 861
 */
 template<typename _type>
-YB_ATTR_nodiscard YB_PURE string
+YB_ATTR_nodiscard YB_PURE std::string
 to_string(const GBinaryGroup<_type>& val)
 {
 	using YSLib::to_string;
@@ -721,9 +721,9 @@ get(const Size& s)
 /*!
 \brief 转换为字符串。
 \note 使用 ADL 。
-\since build 308
+\since build 861
 */
-YB_ATTR_nodiscard YB_PURE YF_API string
+YB_ATTR_nodiscard YB_PURE YF_API std::string
 to_string(const Size&);
 //@}
 
@@ -1114,9 +1114,9 @@ get(const Rect& r)
 /*!
 \brief 转换为字符串。
 \note 使用 ADL 。
-\since build 308
+\since build 861
 */
-YB_ATTR_nodiscard YB_PURE YF_API string
+YB_ATTR_nodiscard YB_PURE YF_API std::string
 to_string(const Rect&);
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file ReaderSetting.cpp
 \ingroup YReader
 \brief 阅读器设置。
-\version r603
+\version r605
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:14:21 +0800
 \par 修改时间:
-	2019-01-14 18:34 +0800
+	2019-07-07 23:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,7 @@
 */
 
 
-#include "ReaderSetting.h" // ystdex::min;
+#include "ReaderSetting.h" // ystdex::min, to_std_string;
 
 namespace YReader
 {
@@ -54,7 +54,7 @@ template<>
 YB_ATTR_nodiscard YB_PURE int
 FetchSetting<int>(const ValueNode::Container& con, const string& name)
 {
-	return std::stoi(FetchSetting<string>(con, name));
+	return std::stoi(to_std_string(FetchSetting<string>(con, name)));
 }
 
 template<>

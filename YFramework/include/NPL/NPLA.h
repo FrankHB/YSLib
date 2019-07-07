@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r5893
+\version r5938
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2019-06-08 11:33 +0800
+	2019-07-07 02:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,8 +38,8 @@
 //	ystdex::is_nothrow_copy_constructible, ystdex::is_nothrow_copy_assignable,
 //	ystdex::is_nothrow_move_constructible, ystdex::is_nothrow_move_assignable,
 //	NPL::Access, std::addressof, NPL::make_observer, ystdex::make_expanded,
-//	ystdex::ref_eq, ystdex::equality_comparable, ystdex::move_and_swap,
-//	ystdex::less, YSLib::map, YSLib::allocate_shared, std::uintptr_t,
+//	ystdex::ref_eq, ystdex::equality_comparable, ystdex::less,
+//	YSLib::map, YSLib::allocate_shared, ystdex::move_and_swap, pmr,
 //	ystdex::copy_and_swap, NoContainer, ystdex::try_emplace,
 //	ystdex::try_emplace_hint, ystdex::type_info, ystdex::get_equal_to,
 //	ystdex::exchange, ystdex::insert_or_assign, NPL::Deref,
@@ -823,17 +823,6 @@ static_assert(ystdex::is_nothrow_move_constructible<AnchorPtr>(),
 	"Invalid type found.");
 //@}
 
-/*!
-\ingroup ThunkType
-\brief 延迟求值项。
-\note 和被延迟求值的项及其它节点是不同的包装类型。
-\warning 非空析构。
-\since build 752
-
-直接作为项的值对象包装被延迟求值的项。
-*/
-using DelayedTerm = ystdex::derived_entity<TermNode, NPLATag>;
-
 
 /*!
 \brief 访问项的值作为记号。
@@ -1077,12 +1066,13 @@ public:
 
 /*!
 \sa TermNode::Tags
-\return 结果引用值及初始化时是否表示引用值。
 \relates TermReference
-\since build 857
 */
+//@{
 /*!
 \brief 折叠项引用。
+\return 结果引用值及初始化时是否表示引用值。
+\since build 857
 
 若被参数引用值引用的对象是否是一个引用值，结果为合并标签后的被后者引用的对象和 true ；
 否则，返回自身和 false 。
@@ -1093,14 +1083,16 @@ Collapse(TermReference);
 
 /*!
 \brief 准备折叠项引用。
+\since build 861
 
 返回引用由以下方式确定：
 当参数的 Value 表示项引用时，返回值；否则为通过参数初始化的项引用。
 这种方式避免初始化引用的引用。
 使用引用值初始化时保留标签，否则使用项中的标签。
 */
-YB_ATTR_nodiscard YF_API pair<TermReference, bool>
+YB_ATTR_nodiscard YF_API TermReference
 PrepareCollapse(TermNode&, const AnchorPtr&);
+//@}
 
 /*!
 \brief 访问项并取解析 TermReference 间接值后的引用。
@@ -1500,13 +1492,6 @@ LiftRValueToReturn(TermNode&);
 inline PDefH(void, LiftSubtermsToReturn, TermNode& term)
 	ImplExpr(std::for_each(term.begin(), term.end(), LiftToReturn))
 
-/*!
-\brief 提升延迟求值项的引用。
-\since build 752
-*/
-inline PDefH(void, LiftDelayed, TermNode& term, DelayedTerm& tm)
-	ImplExpr(LiftTermRef(term, tm))
-
 //! \pre 断言：参数指定的项是枝节点。
 //@{
 /*!
@@ -1563,29 +1548,32 @@ ReduceHeadEmptyList(TermNode&) ynothrow;
 
 调用 LiftToReturn 提升结果，再返回规约状态。
 */
-YF_API ReductionStatus
-ReduceForLiftedResult(TermNode&);
+inline PDefH(ReductionStatus, ReduceForLiftedResult, TermNode& term)
+	// XXX: This is used to update %LastStatus in the enclosing context.
+	ImplRet(LiftToReturn(term), ReductionStatus::Regular)
 
 /*!
 \return 移除项时 ReductionStatus::Retained ，否则 ReductionStatus::Clean。
 \sa RemoveHead
-\since build 774
 */
 //@{
 /*!
 \brief 规约为列表：对分支列表节点移除第一个子项，保留余下的子项作为列表。
 \sa ReduceBranchToList
+\since build 774
 */
-YF_API ReductionStatus
-ReduceToList(TermNode&) ynothrow;
+inline PDefH(ReductionStatus, ReduceToList, TermNode& term) ynothrow
+	ImplRet(IsBranchedList(term) ? ReduceBranchToList(term)
+		: ReductionStatus::Clean)
 
 /*!
 \brief 规约为列表值：对分支列表节点移除第一个子项，保留余下的子项提升后作为列表的值。
 \sa ReduceBranchToListValue
 \since build 821
 */
-YF_API ReductionStatus
-ReduceToListValue(TermNode&) ynothrow;
+inline PDefH(ReductionStatus, ReduceToListValue, TermNode& term) ynothrow
+	ImplRet(IsBranchedList(term) ? ReduceBranchToListValue(term)
+		: ReductionStatus::Clean)
 //@}
 
 
@@ -1820,7 +1808,7 @@ public:
 		: Bindings(a)
 	{}
 	//! \brief 构造：使用指定的存储资源构造的绑定映射分配器初始化空环境。
-	Environment(YSLib::pmr::memory_resource& rsrc)
+	Environment(pmr::memory_resource& rsrc)
 		: Environment(allocator_type(&rsrc))
 	{}
 	//@}
@@ -1855,10 +1843,10 @@ public:
 		: Bindings(a), Parent((CheckParent(vo), std::move(vo)))
 	{}
 	//@}
-	Environment(YSLib::pmr::memory_resource& rsrc, const ValueObject& vo)
+	Environment(pmr::memory_resource& rsrc, const ValueObject& vo)
 		: Environment(vo, allocator_type(&rsrc))
 	{}
-	Environment(YSLib::pmr::memory_resource& rsrc, ValueObject&& vo)
+	Environment(pmr::memory_resource& rsrc, ValueObject&& vo)
 		: Environment(std::move(vo), allocator_type(&rsrc))
 	{}
 	//@}
@@ -2177,7 +2165,7 @@ private:
 	\brief 内部存储资源。
 	\since build 845
 	*/
-	lref<YSLib::pmr::memory_resource> memory_rsrc;
+	lref<pmr::memory_resource> memory_rsrc;
 	/*!
 	\brief 环境记录指针。
 	\invariant p_record 。
@@ -2215,7 +2203,7 @@ public:
 	\brief 构造：使用指定的存储资源。
 	\since build 845
 	*/
-	ContextNode(YSLib::pmr::memory_resource&);
+	ContextNode(pmr::memory_resource&);
 	/*!
 	\throw std::invalid_argument 参数指针为空。
 	\note 遍和日志追踪对象被复制。
@@ -2244,7 +2232,7 @@ public:
 	//! \since build 788
 	DefGetter(const ynothrow, Environment&, RecordRef, *p_record)
 	//! \since build 845
-	DefGetter(const ynothrow, YSLib::pmr::memory_resource&, MemoryResourceRef,
+	DefGetter(const ynothrow, pmr::memory_resource&, MemoryResourceRef,
 		memory_rsrc)
 
 	/*!
@@ -2386,9 +2374,9 @@ public:
 	\brief 取用于初始化环境以外的对象使用的分配器。
 	\since build 851
 	*/
-	PDefH(YSLib::pmr::polymorphic_allocator<yimpl(byte)>, get_allocator, )
-		const ynothrow
-		ImplRet(YSLib::pmr::polymorphic_allocator<yimpl(byte)>(
+	PDefH(pmr::polymorphic_allocator<yimpl(byte)>, get_allocator, ) const
+		ynothrow
+		ImplRet(pmr::polymorphic_allocator<yimpl(byte)>(
 			&GetMemoryResourceRef()))
 
 	YF_API friend void
@@ -2528,15 +2516,15 @@ ResolveName(const ContextNode&, string_view);
 /*!
 \brief 解析标识符：解析名称并折叠引用。
 \pre 间接断言：第二参数的数据指针非空。
-\return 标识符指称的实体的引用及初始化时是否表示引用值。
+\return 标识符指称的实体的引用。
 \throw BadIdentifier 标识符未在环境中找到。
 \sa Collapse
 \sa ResolveName
-\since build 829
+\since build 861
 
 解析指定上下文中的标识符，若不存在绑定则抛出异常。
 */
-YB_ATTR_nodiscard YF_API pair<TermReference, bool>
+YB_ATTR_nodiscard YF_API TermReference
 ResolveIdentifier(const ContextNode&, string_view);
 //@}
 
