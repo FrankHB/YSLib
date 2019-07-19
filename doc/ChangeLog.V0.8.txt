@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r13473
+\version r13664
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-07-08 00:20 +0800
+	2019-07-19 22:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,11 +32,186 @@ $import $HISTORY;
 
 $now
 (
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			/ %String $=
+			(
+				- $revert(b846) 'YB_ATTR_nodiscard'
+					@ "function template %filter_prefix";
+				* $dev "unused result warning"
+					@ "function template %cond_prefix" $since b846,
+				/ $revert_ex(b861) DLDI "function templates %(vsfmt, sfmt)"
+					^ ('const', 'value_type*') ~ 'const_pointer'
+					// To eliminate Clang++ warning on '__nonnull__' attribute.
+			),
+			/ $resolve(#35) "functon template %destruct_in" @ %Placement
+				$= (+ $workaround(#35) @ 'YB_IMPL_MSCPP < 1921')
+		),
+		/ %YDefinition $=
+		(
+			+ "optional condition '__has_attribute(nonnull)' to enable"
+				@ "macro %YB_NONNULL" $dep_from ("%vsfmt" @ %YStandardEx.String,
+				"wrong use of YB_NONNULL on member functions",
+				"%ThrowInvalidSyntaxError" @ %YFramework.NPL.NPLA1),
+			/ @ "macro %YB_ATTR_gnu_printf" $=
+			(
+				+ "optional condition '__has_cpp_attribute(format)' to enable \
+					secondary substitution",
+				/ DLDI "removed space character after '__format__' attribute \
+					in the replaced token sequences"
+					// For consistency.
+			),
+			+ "preceding and following '__' for attribute names in replaced \
+				token sequences enclosed in %YB_ATTR except for Microsoft VC++ \
+				extensions" $effective @ "macros %(YB_ATTR_fallthrough, \
+				YB_ATTR_maybe_unused, YB_ATTR_nodiscard, \
+				YB_ATTR_returns_nonnull)"
+				// For consistency. Note Clang also supports this as GCC. See \
+					https://clang.llvm.org/docs/LanguageExtensions.html. \
+					Currently only attribute names used in %YDefinition rely \
+					on the feature. 
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ "function templates %to_std_string" @ %Container $=
+			(
+				+ "assertion" @ "overload with parameter of %basic_string_view \
+					instance" ^ "%YAssertNonnull",
+				+ "overloads for possible same source to destination type of \
+					the string argument"
+			),
+			/ DLDI "simplified constructors %Exception#(3, 6)" @ %YCLib.Host
+				^ "delegating constructors",
+		),
+		/ $re_add(b861) $dev "all %std::function" -> "%function"
+			@ %(YSLib.Core.YDevice, Helper.HostRenderer),
+		+ "workaround for GCC 'nonnull' attribute" @ %YSLib.Service.File
+			$dep_to "workaround for GCC PR 91127",
+			// This is for the case where nonnull attribute with argument on \
+				the constructor of class with a virtual base is used. See \
+				https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91127.
+		/ %NPL $=
+		(
+			/ %Lexical $=
+			(
+				(
+				+ "alias %SmallString";
+				/ "all %string except those in %list<string>" @ ("classes \
+					%(LexicalAnalyzer, UnescapeContext)", "functions \
+					%(HandleBackslashPrefix, IgnorePrefix, NPLUnescape)")
+					-> "%SmallString",
+				/ @ "function Decompose" $=
+				(
+				/ "parameter type" -> 'const SmallString&' ~ "%string_view";
+				- "assertion"
+				),
+				(
+				/ "all %list<string>" @ ("class LexicalAnalyzer",
+					"functions %(Decompose, Tokenize)")
+					-> $dep_from ("%TokenList" @ %SContext),
+				+ "overload of function %Tokenize with parameter of \
+					'SmallString&&' type"
+				)
+				)
+			),
+			/ %Dependency $=
+			(
+				/ $forced DLDI "function %DecomposeMakefileDepList"
+					$dep_from ("%LexicalAnalyzer::ParseQuoted" @ %Lexical)
+			),
+			/ %SContext $=
+			(
+				/ "alias %TokenList" >> %SContext ^ ("%SmallString" @ %SContext)
+					~ "%string",
+				/ @ "class %Session" $=
+				(
+					/ $forced "return type" @ "function %GetBuffer"
+						$dep_from ("%LexicalAnalyzer::GetBuffer" @ %Lexical),
+					/ "alias %CharParser" ^ "reference type" ~ "%function",
+					/ "all 4 constructor template" ^ "parameter of template \
+						parameter type defaulted to %CharParser"
+						~ "non-template %CharParser parameter"
+				),
+				/ @ "function %Reduce" $=
+				(
+					/ $forced DLDI "constructed %string explicitly"
+						$dep_from "%TokenList",
+					/ "enable allocator support on constructed strings"
+				),
+				/ $dev $impl "all 2 function templates %AsTermNode"
+					^ "direct-initialization" ~ "implicit list-initialization"
+					// For better diagnostics.
+				* "potentional undefined behavior for large input"
+					@ "functions %(Reduce, Validate)" $since b335
+					$= (/ !^ "recursive calls")
+			),
+		),
+		* $design $impl "over-specified exception specification"
+			@ "%::devoptab_t operations for %fsync" @ %YCLib_(DS).DSIO
+			$since b702
+			$= (/ $revert_ex(b702) 'ynothrow' -> 'ynothrowv'),
+		/ %NPLA1 $=
+		(
+			* "wrong 'YB_NONNULL(1)' position"
+				@ "function %ThrowInvalidSyntaxError#1" $since b859,
+				// To eliminate Clang++ error.
+			/ DLI "supported allocator" @ "mem-initializer" @ "data member \
+				%(Preprocess, ListTermPreprocess)" @ "class %REPLContext"
+				^ "%Allocator"
+		)
+	),
+	/ %Tools $=
+	(
+		* "missing project %RevisionPatcher" @ "list of development tools to \
+			be built with stage 2 SHBuild" @ "%SHBuild-YSLib-build.txt"
+			@ %Scripts $since b838,
+			// This was overlooked. The original script %install-sysroot.sh \
+				in %Tools was OK.
+		* "ill-formed for string types" @ %RevisionPatcher.Main $since b861
+	),
+	/ $re_add(b861) "wrong 'nonnull(1)' attribute used" $effective @ (("member \
+		function %Screen::Update" @ %YSLib.Core.YDevice, (("member functions \
+		%ScreenBuffer::(Premultiply, UpdateFrom, UpdateFromBounds)",
+		"constructor %WindowClass#1" @ "platform %Win32") @ %HostedGUI,
+		("member function %Logger::DoLogRaw" @ %Debug) @ %YCLib, $impl
+		"internal member function %DSScreen::Update" @ %Helper_(DS).DSScreen,
+		("member functions %Window::(UpdateFrom, UpdateFromBounds)"
+		@ %HostWindow, "member function %HostRenderer::Update" @ %HostRenderer)
+		@ %Helper) @ %YFramework $since b592), "constructors \
+		%(SharedInputMappedFileStream, UniqueLockedOutputFileStream)"
+		@ %YFramework.YSLib.Service.File $since b724 $dep_from
+		"workaround for GCC PR 91127", "lambda-expression"
+		@ "main function" @ %SHBuild.Main $since b657) $dep_to
+		"wrong use of YB_NONNULL on member functions"
+		$= (/ 'YB_NONNULL(1)' -> "'YB_NONNULL(2)' or 'YB_NONNULL(3)'"),
+	/ $build "Microsoft VC++ projects" $=
+	(
+		/ $resolve(#36, #37) "retargeted toolchain to Microsoft VC++ 2019 \
+			(vc142)" ~ "Microsoft VC++2017 (vc141)",
+			// There are new issues not yet reported to be resolved, though.
+		/ $re_ex(b832) $dev $lib "updated 'WindowsTargetPlatformVersion' value \
+			'10.0'" ~ '10.0.17134.0'
+			// The value '10.0' is "newest version" indicated by the update \
+				GUI in Microsoft VS 2019.
+	)
+),
+
+b861
+(
 	/ %YBase.YStandardEx $=
 	(
-		+ $dev $lib 'YB_ATTR_returns_nonnull' @ "member function %resource"
-			@ "class template polymorphic_allocator"
-			@ %MemoryResource,
+		/ %MemoryResource $=
+		(
+			+ $dev $lib 'YB_ATTR_returns_nonnull' @ "member function %resource"
+				@ "class template polymorphic_allocator",
+			* $re_add(b857) DD "missing escaping tag" @ "Doxygen comments"
+				$since b842
+		),
 		* "cv-qualifier" @ "internal deduced return types for %pair instances"
 			@ "function template %uses_allocator_construction_args" @ %Memory
 			$since b850,
@@ -170,13 +345,13 @@ $now
 			- $re_add(b850) DLDI "redundant '&&'" @ "%std::declval template \
 				arguments" @ "macro %YCL_DeclCheck_t" @ %YCommon
 		),
-		* $impl "wrong 'nonnull(1)' attribute for lambda-expressions"
-			@ (("member function %Logger::DoLogException" @ %Debug $since
-			b654 "macros %(YCL_WrapCall_CAPI, YCL_TraceWrapCall_CAPI)"
+		* "wrong 'nonnull(1)' attribute" @ "lambda-expressions"
+			@ (($impl "member function %Logger::DoLogException" @ %Debug $since
+			b654, "macros %(YCL_WrapCall_CAPI, YCL_TraceWrapCall_CAPI)"
 			@ %YCommon $orig (@ %FileIO $since b714), !'YCL_Win32'
-			@ "constructor %DirectorySession" @ %FileSystem $since b662)
+			@ $impl "constructor %DirectorySession" @ %FileSystem $since b662)
 			@ %YCLib, "macros %(YCL_WrapCall_Win32, YCL_TraceWrapCall_Win32)"
-			@ %YCLib_(Win32).MinGW32 $since b651, "function %Mount"
+			@ %YCLib_(Win32).MinGW32 $since b651, $impl "function %Mount"
 			@ %YCLib_(DS).DSIO $since b611),
 			// To eliminate Clang++ error in %YB_ATTR_LAMBDA attributes \
 				since b860.
@@ -881,8 +1056,9 @@ b858
 		),
 		/ %NPL $=
 		(
-			+ $lib $impl "workaround for x86_64-w64-linux G++ 8.3"
-				@ "function %Literalize" @ %Lexical,
+			+ $lib $impl "workaround for x86_64-w64-linux G++ 8.3 wrong code \
+				generation with '-O3' option" @ "function %Literalize"
+				@ %Lexical,
 				// Otherwise, it would cause invalid memory access in %release \
 					configurations. It could crash if there is no valid \
 					'yconf.txt' already available with message \
@@ -3100,8 +3276,9 @@ b851,
 				@ %Pointer $since b846
 				/ $= (/ $revert_ex(b846)
 					"all 'YB_STATELSS' except for %to_address#2" -> 'YB_PURE'),
-				// This would stage 1 Sysroot with Clang++ 7.0.1 on x86-64 \
-					Linux, because the output %SHBuild binary does not work.
+				// This would break stage 1 Sysroot with Clang++ 7.0.1 on \
+					x86-64 Linux, because the output %SHBuild binary does not \
+					work.
 			/ %Function $=
 			(
 				(
@@ -6677,7 +6854,7 @@ b840
 			/ DLDI "simplified local declarations"
 		),
 		/ "allowed empty buffer pointer when the length is zero"
-			@ "constructor %membuf" @ %StreamBuffer
+			@ "constructor %basic_membuf" @ %StreamBuffer
 	),
 	/ %YFramework $=
 	(
@@ -9931,8 +10108,8 @@ b827
 	(
 		* "wrong directorie in paths" $since b700,
 		* "missing removing unused files" $since b826
-			// On the other hand, Code::Blocks project files would be regenerated \
-				on release.
+			// On the other hand, Code::Blocks project files would be \
+				regenerated on release.
 	),
 	/ %YFramework.NPL $=
 	(

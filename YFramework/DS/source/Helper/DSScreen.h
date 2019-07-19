@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 屏幕。
-\version r472
+\version r475
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:02 +0800
 \par 修改时间:
-	2016-06-11 20:02 +0800
+	2019-07-08 19:21 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -75,7 +75,7 @@ public:
 	\note 复制到屏幕。
 	\since build 558
 	*/
-	YB_NONNULL(1) void
+	YB_NONNULL(2) void
 	Update(Drawing::ConstBitmapPtr) ynothrow override;
 #elif YCL_HostedUI
 public:
@@ -103,7 +103,7 @@ public:
 	\note 部分线程安全：在不同线程上更新到屏幕和屏幕缓冲区之间线程间未决定有序。
 	\since build 558
 	*/
-	YB_NONNULL(1) void
+	YB_NONNULL(2) void
 	Update(Drawing::ConstBitmapPtr) ynothrow override;
 
 	//! \since build 386

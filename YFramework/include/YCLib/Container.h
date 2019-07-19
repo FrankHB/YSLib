@@ -11,13 +11,13 @@
 /*!	\file Container.h
 \ingroup YCLib
 \brief 容器、拟容器和适配器。
-\version r1023
+\version r1034
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2019-07-07 23:01 +0800
+	2019-07-08 11:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YCL_INC_Container_h_ 1
 
 #include "YModules.h"
-#include YFM_YCLib_YCommon
+#include YFM_YCLib_YCommon // for YAssertNonnull;
 #include <ystdex/memory_resource.h> // for ystdex::pmr;
 #include <ystdex/functor.hpp> // for ystdex::less, ystdex::equal_to;
 //#include <ext/vstring.h>
@@ -218,11 +218,11 @@ using ystdex::sfmt;
 using ystdex::vsfmt;
 //! \since build 861
 //@{
-// TODO: Optimize for cases of same type?
 template<typename _tChar, class _tString = std::basic_string<_tChar>>
 inline _tString
 to_std_string(basic_string_view<_tChar> sv)
 {
+	YAssertNonnull(sv.data());
 	return _tString(sv.data(), sv.size());
 }
 template<typename _tChar, class _tString = std::basic_string<_tChar>,
@@ -231,6 +231,14 @@ inline _tString
 to_std_string(const basic_string<_tChar, _tTraits, _tAlloc>& str)
 {
 	return _tString(str.data(), str.size());
+}
+//! \since build 862
+template<class _tString = std::string, class _tParam = _tString, yimpl(typename
+	= ystdex::enable_if_same_t<_tString&, ystdex::decay_t<_tParam>&>)>
+inline _tString
+to_std_string(_tParam&& str)
+{
+	return yforward(str);
 }
 //@}
 

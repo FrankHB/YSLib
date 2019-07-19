@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2018 FrankHB.
+	© 2013-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1537
+\version r1542
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2019-06-23 17:33 +0800
+	2019-07-08 19:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -503,7 +503,7 @@ public:
 	\warning 直接复制，没有边界和大小检查。实际存储必须和 32 位 ::HBITMAP 兼容。
 	\since build 558
 	*/
-	YB_NONNULL(1) void
+	YB_NONNULL(2) void
 	Premultiply(YSLib::Drawing::ConstBitmapPtr) ynothrow;
 #	endif
 
@@ -525,7 +525,7 @@ public:
 	\warning Android 平台：实际存储必须和 32 位 RGBA8888 兼容。
 	\since build 558
 	*/
-	YB_NONNULL(1) void
+	YB_NONNULL(2) void
 	UpdateFrom(YSLib::Drawing::ConstBitmapPtr) ynothrow;
 	//@}
 
@@ -538,7 +538,7 @@ public:
 	\warning 实际存储必须和 32 位 ::HBITMAP 兼容。
 	\since build 591
 	*/
-	YB_NONNULL(1) void
+	YB_NONNULL(2) void
 	UpdateFromBounds(YSLib::Drawing::ConstBitmapPtr,
 		const YSLib::Drawing::Rect&) ynothrow;
 
@@ -775,7 +775,7 @@ public:
 	\sa HostWindow::WindowProcedure
 	\since build 690
 	*/
-	YB_NONNULL(1)
+	YB_NONNULL(2)
 	WindowClass(const wchar_t*, ::WNDPROC = {}, unsigned = 0,
 		::HBRUSH = ::HBRUSH(4 + 1), ::HINSTANCE = {});
 	WindowClass(const ::WNDCLASSW&);

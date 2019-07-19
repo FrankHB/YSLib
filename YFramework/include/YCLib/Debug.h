@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r790
+\version r791
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2019-07-07 18:45 +0800
+	2019-07-08 19:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -214,7 +214,7 @@ private:
 	\since build 510
 	*/
 	//@{
-	YB_NONNULL(1) void
+	YB_NONNULL(3) void
 	DoLogRaw(Level, const char*);
 	//! \since build 659
 	PDefH(void, DoLogRaw, Level lv, string_view sv)

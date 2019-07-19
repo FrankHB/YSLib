@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1622
+\version r1664
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2019-04-22 15:01 +0800
+	2019-07-13 11:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,9 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_SContext // for ystdex::ref_eq, std::allocator_arg;
+#include YFM_NPL_SContext // for ystdex::ref_eq, std::allocator_arg,
+//	YSLib::make_string_view;
+#include <ystdex/scope_guard.hpp> // for ystdex::make_guard;
 
 using namespace YSLib;
 
@@ -117,42 +119,56 @@ namespace SContext
 TLCIter
 Validate(TLCIter b, TLCIter e)
 {
-	while(b != e && *b != ")")
-		if(*b == "(")
-		{
-			// FIXME: Potential overflow.
-			auto res(Validate(++b, e));
+	size_t left(0);
 
-			if(res == e || *res != ")")
-				throw LoggedEvent("Redundant '(' found.", Alert);
-			b = ++res;
+	for(; b != e; ++b)
+		if(*b == "(")
+			++left;
+		else if(*b == ")")
+		{
+			if(left != 0)
+				--left;
+			else
+				return b;
 		}
-		else
-			++b;
-	return b;
+	if(left == 0)
+		return b;
+	throw LoggedEvent("Redundant '(' found.", Alert);
 }
 
 TLCIter
 Reduce(TermNode& term, TLCIter b, TLCIter e)
 {
 	const auto a(term.get_allocator());
+	stack<TermNode> tms(a);
+	const auto gd(ystdex::make_guard([&]() ynothrowv{
+		YAssert(!tms.empty(), "Invalid state found.");
+		term = std::move(tms.top());
+	}));
 
-	while(b != e && *b != ")")
+	tms.push(std::move(term));
+	for(; b != e; ++b)
 		if(*b == "(")
+			tms.push(NPL::AsTermNode(a));
+		else if(*b != ")")
 		{
-			// FIXME: Potential overflow.
-			auto tm(NPL::AsTermNode(a));
-			auto res(Reduce(tm, ++b, e));
+			YAssert(!tms.empty(), "Invalid state found.");
+			tms.top().Add(NPL::AsTermNode(a, std::allocator_arg, a,
+				string(YSLib::make_string_view(*b), a)));
+		}
+		else if(tms.size() != 1)
+		{
+			auto tm(std::move(tms.top()));
 
-			if(res == e || *res != ")")
-				throw LoggedEvent("Redundant '(' found.", Alert);
-			term.Add(std::move(tm));
-			b = ++res;
+			tms.pop();
+			YAssert(!tms.empty(), "Invalid state found.");
+			tms.top().Add(std::move(tm));
 		}
 		else
-			// TODO: More specific pool for %ValueObject?
-			term.Add(NPL::AsTermNode(a, std::allocator_arg, a, *b++));
-	return b;
+			return b;
+	if(tms.size() == 1)
+		return b;
+	throw LoggedEvent("Redundant '(' found.", Alert);
 }
 
 void

@@ -1,4 +1,4 @@
-﻿"#", "(C) 2014-2018 FrankHB.",
+﻿"#", "(C) 2014-2019 FrankHB.",
 "NPLA1 script for building YSLib using SHBuild.";
 
 $import! std.strings ++ string->symbol string-empty?,
@@ -308,7 +308,7 @@ $if (safeenv-empty? "SHBuild_NoDev")
 (
 	puts "Building other development tools using stage2 SHBuild ...";
 	$def! e_S2_SHBuild_ system-quote (++ SR_Bin_ "/SHBuild");
-	$def! tools-list list "SXML2XML" "ProjectGenerator";
+	$def! tools-list list "RevisionPatcher" "SXML2XML" "ProjectGenerator";
 	build-with-conf-opt SR_SHBuild_ env-os #f #t "" #t
 		ld-ext-noadjust_ ($lambda (CXX CXXFLAGS SHBOPT LIBPFX) for-each-ltr
 			($lambda (name)

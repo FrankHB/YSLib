@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2015, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YDevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r2088
+\version r2094
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-12-28 16:39:39 +0800
 \par 修改时间:
-	2015-05-24 21:42 +0800
+	2019-07-08 20:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,8 @@
 #define YSL_INC_Core_YDevice_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YObject
+#include YFM_YSLib_Core_YObject // for function, ystdex::unsupported;
 #include YFM_YSLib_Core_YGraphics
-#include <ystdex/exception.h> // for ystdex::unsupported;
 
 namespace YSLib
 {
@@ -58,7 +57,6 @@ public:
 	{}
 	//! \since build 586
 	DefDeCopyCtor(GraphicDevice)
-	//! \brief 虚析构：类定义外默认实现。
 	/*!
 	\brief 虚析构：类定义外默认实现。
 	\since build 297
@@ -98,7 +96,7 @@ class YF_API KeyInputDevice
 {
 public:
 	//! \brief 输入测试器：判断是否在指定索引上激活输入状态。
-	using Tester = std::function<bool(const KeyInput&, KeyIndex)>;
+	using Tester = function<bool(const KeyInput&, KeyIndex)>;
 
 private:
 	//! \brief 宽度：设备支持的按键编码上界（不含）。
@@ -150,7 +148,7 @@ public:
 	\pre 参数指定的缓冲区和屏幕缓冲区兼容。
 	\since build 558
 	*/
-	virtual YB_NONNULL(1) void
+	YB_NONNULL(2) virtual void
 	Update(Drawing::ConstBitmapPtr) ynothrow;
 
 	//! \since build 558

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r5438
+\version r5442
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2019-07-07 02:20 +0800
+	2019-07-19 22:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -854,9 +854,9 @@ public:
 	*/
 	ContextState Root;
 	//! \brief 预处理节点：每次翻译时预先处理调用的公共例程。
-	TermPasses Preprocess{};
-	//! \brief 表项处理例程：每次翻译中规约回调处理调用的公共例程。
-	EvaluationPasses ListTermPreprocess{};
+	TermPasses Preprocess{Allocator};
+	//! \brief 列表项处理例程：每次翻译中规约回调处理调用的公共例程。
+	EvaluationPasses ListTermPreprocess{Allocator};
 
 	/*!
 	\brief 构造：使用默认的解释和指定的存储资源。
@@ -2180,7 +2180,7 @@ ThrowInsufficientTermsError();
 */
 //@{
 //! \pre 间接断言：第一参数非空。
-YF_API YB_NONNULL(1) YB_NORETURN void
+YF_API YB_NORETURN YB_NONNULL(1) void
 ThrowInvalidSyntaxError(const char*);
 YF_API YB_NORETURN void
 ThrowInvalidSyntaxError(string_view);

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018 FrankHB.
+	© 2013-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r534
+\version r540
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2018-03-03 17:23 +0800
+	2019-07-08 19:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,7 +84,7 @@ class YF_API WindowThread : private OwnershipTag<Window>
 {
 public:
 	//! \since build 589
-	using Guard = ystdex::any;
+	using Guard = any;
 	//! \since build 589
 	using GuardGenerator = std::function<Guard(Window&)>;
 
@@ -147,8 +147,8 @@ private:
 		FilterExceptions([&, this]{
 			// XXX: Blocked. 'yforward' cause G++ 5.2 crash: segmentation
 			//	fault.
-			ThreadLoop(ystdex::invoke(std::forward<_func&&>(f),
-				std::forward<_tParams&&>(args)...));
+			ThreadLoop(ystdex::invoke(std::forward<_func>(f),
+				std::forward<_tParams>(args)...));
 		});
 	}
 
@@ -297,6 +297,7 @@ private:
 	\brief 初始化部件视图。
 	\sa RootMode
 	\since build 571
+	\todo 在根模式支持 UI::View 外的视图。
 
 	Win32 平台：对可转换为 UI::Widget 的部件设置视图；添加部件至宿主环境桌面。
 	根据初始化的部件视图决定 RootMode 。
@@ -345,7 +346,7 @@ public:
 	调整宿主窗口位置，保持部件位置在原点。按内部状态同步宿主窗口大小。
 	调用宿主窗口 UpdateFrom 方法更新窗口内容。
 	*/
-	YB_NONNULL(1) void
+	YB_NONNULL(2) void
 	Update(Drawing::ConstBitmapPtr, const Drawing::Rect&);
 
 	//! \since build 387

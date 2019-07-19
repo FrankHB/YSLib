@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r2978
+\version r2984
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2019-07-07 18:45 +0800
+	2019-07-08 19:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1803,7 +1803,7 @@ arithmetic_to_wstring(unsigned val, true_)
 } // namespace details;
 
 /*!
-\brief 转换为字符串： basic_string 的实例对象。
+\brief 转换为字符串：basic_string 的实例对象。
 \note 可与标准库的同名函数共用以避免某些类型转换警告，如 G++ 的 [-Wsign-promo] 。
 \since build 833
 */
@@ -1944,6 +1944,7 @@ ston(const _tString& str, _tParams&&... args)
 //@{
 /*!
 \pre 间接断言：第一参数非空。
+\note 使用 value_type* 而不是 const_pointer 以避免 Clang++ 对 __nonnull__ 警告。
 \bug \c char 以外的模板参数非正确实现。
 */
 //@{
@@ -1954,7 +1955,8 @@ ston(const _tString& str, _tParams&&... args)
 */
 template<class _tString = string>
 YB_ATTR_nodiscard YB_NONNULL(1) _tString
-vsfmt(typename string_traits<_tString>::const_pointer fmt, std::va_list args)
+vsfmt(const typename string_traits<_tString>::value_type* fmt,
+	std::va_list args)
 {
 	std::va_list ap;
 
@@ -1982,7 +1984,7 @@ vsfmt(typename string_traits<_tString>::const_pointer fmt, std::va_list args)
 */
 template<class _tString = string>
 YB_ATTR_nodiscard YB_NONNULL(1) _tString
-sfmt(typename string_traits<_tString>::const_pointer fmt, ...)
+sfmt(const typename string_traits<_tString>::value_type* fmt, ...)
 {
 	std::va_list args;
 
@@ -2017,7 +2019,7 @@ sfmt<string>(const char*, ...);
 \since build 520
 */
 template<typename _type, typename _tString, typename _func>
-YB_ATTR_nodiscard bool
+bool
 filter_prefix(const _tString& str, const _type& prefix, _func f)
 {
 	if(ystdex::begins_with(str, prefix))

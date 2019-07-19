@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3541
+\version r3554
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2019-06-23 16:30 +0800
+	2019-07-08 11:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -543,7 +543,7 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 #elif __has_cpp_attribute(gnu::fallthrough)
 #	define YB_ATTR_fallthrough YB_ATTR_STD(gnu::fallthrough)
 #elif __has_attribute(fallthrough)
-#	define YB_ATTR_fallthrough YB_ATTR(fallthrough)
+#	define YB_ATTR_fallthrough YB_ATTR(__fallthrough__)
 #else
 #	define YB_ATTR_fallthrough
 #endif
@@ -551,14 +551,16 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 /*!
 \def YB_ATTR_gnu_printf
 \brief GNU 风格 printf 属性。
-\note Clang++ 未支持此属性，警告 [-Wignored-attributes] 。
+\note 早期版本 Clang++ 未支持此属性，警告 [-Wignored-attributes] 。
 \since build 615
+\see https://clang.llvm.org/docs/AttributeReference.html#format 。
 */
 #if YB_IMPL_GNUC >= 40400 && !YB_IMPL_CLANGPP
 #	define YB_ATTR_gnu_printf(...) \
-	YB_ATTR(__format__ (__gnu_printf__, __VA_ARGS__))
-#elif YB_IMPL_GNUC >= 20604 && !YB_IMPL_CLANGPP
-#	define YB_ATTR_gnu_printf(...) YB_ATTR(__format__ (__printf__, __VA_ARGS__))
+	YB_ATTR(__format__(__gnu_printf__, __VA_ARGS__))
+#elif __has_cpp_attribute(format) \
+	|| (YB_IMPL_GNUC >= 20604 && !YB_IMPL_CLANGPP)
+#	define YB_ATTR_gnu_printf(...) YB_ATTR(__format__(__printf__, __VA_ARGS__))
 #else
 #	define YB_ATTR_gnu_printf(...)
 #endif
@@ -576,7 +578,7 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 #elif __has_cpp_attribute(gnu::unused)
 #	define YB_ATTR_maybe_unused YB_ATTR_STD(gnu::unused)
 #elif __has_attribute(unused)
-#	define YB_ATTR_maybe_unused YB_ATTR(unused)
+#	define YB_ATTR_maybe_unused YB_ATTR(__unused__)
 #else
 #	define YB_ATTR_maybe_unused
 #endif
@@ -598,7 +600,7 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 #elif __has_cpp_attribute(gnu::warn_unused_result)
 #	define YB_ATTR_nodiscard YB_ATTR_STD(gnu::warn_unused_result)
 #elif __has_attribute(warn_unused_result)
-#	define YB_ATTR_nodiscard YB_ATTR(warn_unused_result)
+#	define YB_ATTR_nodiscard YB_ATTR(__warn_unused_result__)
 #else
 #	define YB_ATTR_nodiscard
 #endif
@@ -636,13 +638,14 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 \def YB_ATTR_returns_nonnull
 \brief 指示返回非空属性。
 \since build 676
+\see https://clang.llvm.org/docs/AttributeReference.html#returns-nonnull 。
 \see http://reviews.llvm.org/rL199626 。
 \see http://reviews.llvm.org/rL199790 。
 \todo 确认 Clang++ 最低可用的版本。
 */
 #if __has_attribute(returns_nonnull) || YB_IMPL_GNUC >= 40900 \
 	|| YB_IMPL_CLANGPP >= 30500
-#	define YB_ATTR_returns_nonnull YB_ATTR(returns_nonnull)
+#	define YB_ATTR_returns_nonnull YB_ATTR(__returns_nonnull__)
 #else
 #	define YB_ATTR_returns_nonnull
 #endif
@@ -720,9 +723,10 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 \def YB_NONNULL
 \brief 指定假定保证不为空指针的函数参数。
 \warning 当指定的函数实际为空时行为未定义。
+\see https://clang.llvm.org/docs/AttributeReference.html#id15 。
 \since build 524
 */
-#if YB_IMPL_GNUCPP >= 30300
+#if __has_attribute(nonnull) || YB_IMPL_GNUCPP >= 30300
 #	define YB_NONNULL(...) YB_ATTR(__nonnull__(__VA_ARGS__))
 #else
 #	define YB_NONNULL(...)

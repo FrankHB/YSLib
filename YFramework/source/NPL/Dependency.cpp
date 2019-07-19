@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2833
+\version r2839
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2019-07-06 11:56 +0800
+	2019-07-12 11:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,7 +74,7 @@ DecomposeMakefileDepList(std::streambuf& sb)
 	const auto sbuf(Session(s_it_t(&sb), s_it_t(),
 		[&](LexicalAnalyzer& lexer, char c){
 		lexer.ParseQuoted(c,
-			[&](string& buf, const UnescapeContext& uctx, char) -> bool{
+			[&](SmallString& buf, const UnescapeContext& uctx, char) -> bool{
 			const auto& escs(uctx.GetSequence());
 
 			// NOTE: See comments in %munge function of 'mkdeps.c' from libcpp
@@ -101,7 +101,7 @@ DecomposeMakefileDepList(std::streambuf& sb)
 				}
 			}
 			return {};
-		}, [](char ch, string& pfx) -> bool{
+		}, [](char ch, SmallString& pfx) -> bool{
 			if(ch == '\\')
 				pfx = "\\";
 			else if(ch == '$')
@@ -114,9 +114,9 @@ DecomposeMakefileDepList(std::streambuf& sb)
 	vector<string> lst;
 
 	ystdex::split_if(sbuf.begin(), sbuf.end(), ystdex::isspace,
-		[&](string::const_iterator b, string::const_iterator e){
+		[&](SmallString::const_iterator b, SmallString::const_iterator e){
 		lst.push_back(string(b, e));
-	}, [&](string::const_iterator i){
+	}, [&](SmallString::const_iterator i){
 		return !ystdex::exists(spaces, size_t(i - sbuf.cbegin()));
 	});
 	return lst;
@@ -1230,7 +1230,7 @@ LoadModule_SHBuild(REPLContext& context)
 		for(const auto& str : lexer.Literalize())
 			if(!str.empty())
 			{
-				using iter_t = string::const_iterator;
+				using iter_t = SmallString::const_iterator;
 
 				// XXX: As %NPL::Tokenize.
 				if(str.front() != '\'' && str.front() != '"')
@@ -1250,7 +1250,7 @@ LoadModule_SHBuild(REPLContext& context)
 					if(!res.empty() && l != 0 && left_qset.count(l) != 0
 						&& !ystdex::isspace(src[l - 1]))
 						res.pop_back();
-					res += str;
+					res += string(YSLib::make_string_view(str));
 					res += ' ';
 				}
 				l += str.length();

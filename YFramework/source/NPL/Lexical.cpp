@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1639
+\version r1671
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2019-07-07 02:09 +0800
+	2019-07-12 16:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ namespace NPL
 #	define NPL_Impl_Lexical_Wknd_GCC_O3_wrong_code true
 #endif
 
-string
+SmallString
 UnescapeContext::Done()
 {
 	auto res(std::move(Prefix));
@@ -51,7 +51,7 @@ UnescapeContext::Done()
 
 
 bool
-HandleBackslashPrefix(char c, string& pfx)
+HandleBackslashPrefix(char c, SmallString& pfx)
 {
 	if(c == '\\')
 	{
@@ -62,7 +62,7 @@ HandleBackslashPrefix(char c, string& pfx)
 }
 
 bool
-NPLUnescape(string& buf, const UnescapeContext& uctx, char ld)
+NPLUnescape(SmallString& buf, const UnescapeContext& uctx, char ld)
 {
 	const auto& escs(uctx.GetSequence());
 
@@ -114,6 +114,10 @@ NPLUnescape(string& buf, const UnescapeContext& uctx, char ld)
 
 LexicalAnalyzer::DefDeCtor(LexicalAnalyzer)
 LexicalAnalyzer::LexicalAnalyzer(pmr::memory_resource& rsrc)
+	// NOTE: The allocator in %cbuf is not needed since it should be short
+	//	enough in most cases to have small string optimization. Setting an
+	//	allocator on %cbuf (of %string rather than %SmallString type) actually
+	//	makes the performance worse in typical tests.
 	: qlist(vector<size_t>::allocator_type(&rsrc)),
 	left_qset(YSLib::set<size_t>::allocator_type(&rsrc))
 {}
@@ -224,11 +228,11 @@ LexicalAnalyzer::ParseQuoted(char c, Unescaper unescape,
 		cbuf += c;
 }
 
-list<string>
+TokenList
 LexicalAnalyzer::Literalize() const
 {
 	size_t i(0);
-	list<string> result;
+	TokenList result;
 
 	std::for_each(qlist.cbegin(), qlist.cend(), [&](size_t s){
 		if(s != i)
@@ -398,13 +402,11 @@ Literalize(string_view sv, char c)
 #endif
 
 
-list<string>
-Decompose(string_view src)
+TokenList
+Decompose(const SmallString& src)
 {
-	YAssertNonnull(src.data());
-
-	list<string> dst;
-	using iter_type = typename string_view::const_iterator;
+	TokenList dst;
+	using iter_type = typename SmallString::const_iterator;
 
 	ystdex::split_l(src.cbegin(), src.cend(), IsDelimiter,
 		// TODO: Blocked. Use C++14 generic lambda expressions.
@@ -421,21 +423,36 @@ Decompose(string_view src)
 		}
 		ystdex::trim(sv);
 		if(!sv.empty())
-			dst.push_back(string(sv));
+			dst.push_back({sv.data(), sv.size()});
 	});
 	return dst;
 }
 
-list<string>
-Tokenize(const list<string>& src)
+TokenList
+Tokenize(const TokenList& src)
 {
-	list<string> dst;
+	TokenList dst;
 
 	for(const auto& str : src)
 		if(!str.empty())
 		{
 			if(str.front() != '\'' && str.front() != '"')
 				dst.splice(dst.end(), Decompose(str));
+			else
+				dst.push_back(str);
+		}
+	return dst;
+}
+TokenList
+Tokenize(TokenList&& src)
+{
+	TokenList dst;
+
+	for(auto& str : src)
+		if(!str.empty())
+		{
+			if(str.front() != '\'' && str.front() != '"')
+				dst.splice(dst.end(), Decompose(std::move(str)));
 			else
 				dst.push_back(str);
 		}

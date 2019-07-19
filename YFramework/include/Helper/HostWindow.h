@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r521
+\version r525
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2016-04-27 23:03 +0800
+	2019-07-08 19:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,7 +60,7 @@ public:
 	/*!
 	\brief 标记是否使用不透明性成员。
 	\note 使用 Windows 层叠窗口实现，但和 WindowReference 实现不同：使用
-		::UpdateLayeredWindows 而非 WM_PAINT 更新窗口。
+		::UpdateLayeredWindow 而非 WM_PAINT 更新窗口。
 	\warning 使用不透明性成员时在此窗口上调用 ::SetLayeredWindowAttributes 、
 		GetOpacity 或 SetOpacity 可能出错。
 	\since build 435
@@ -105,7 +105,7 @@ public:
 	\note 根据 UseOpacity 选择更新操作。
 	\since build 589
 	*/
-	YB_NONNULL(1) void
+	YB_NONNULL(2) void
 	UpdateFrom(Drawing::ConstBitmapPtr, ScreenBuffer&);
 
 #if YCL_Win32
@@ -115,7 +115,7 @@ public:
 	\note 根据 UseOpacity 选择更新操作。
 	\since build 591
 	*/
-	YB_NONNULL(1) void
+	YB_NONNULL(2) void
 	UpdateFromBounds(Drawing::ConstBitmapPtr, ScreenBuffer&,
 		const Drawing::Rect&, const Drawing::Point& = {});
 

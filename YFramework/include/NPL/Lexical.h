@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1597
+\version r1661
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2019-07-07 02:09 +0800
+	2019-07-12 16:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,10 @@
 #define YF_INC_NPL_Lexical_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_NPL // for byte, CHAR_MIN;
-#include YFM_YSLib_Adaptor_YTextBase // for YSLib::list, YSLib::set, YSLib::string,
-//	YSLib::string_view, YSLib::vector, YSLib::begin, YSLib::end;
+#include YFM_NPL_NPL // for std::string, byte, CHAR_MIN;
+#include YFM_YSLib_Adaptor_YTextBase // for YSLib::begin, YSLib::end,
+//	YSLib::function, YSLib::list, YSLib::set, YSLib::string, YSLib::string_view,
+//	YSLib::vector, YSLib::make_string_view;
 #include <cctype> // for std::isgraph;
 
 namespace NPL
@@ -56,24 +57,39 @@ using YSLib::string_view;
 //! \since build 545
 using YSLib::vector;
 
+/*!
+\brief 不需要提供分配器的短字符串。
+\since build 862
+*/
+using SmallString = yimpl(std::string);
+/*!
+\brief 记号列表：不需要提供分配器的短字符串列表。
+\since build 304
+*/
+using TokenList = list<SmallString>;
+
 
 /*!
 \brief 反转义上下文。
+\note 因为通常情形使用短字符串，不提供分配器接口。
 \since build 545
 */
 class YF_API UnescapeContext
 {
 public:
+	//! \since build 862
+	//@{
 	/*!
 	\brief 转义序列前缀。
 	\note 上下文处理不直接修改，一般由转移序列前缀处理器设置。
 	\sa LexicalAnalyzer::PrefixHandler
 	*/
-	string Prefix;
+	SmallString Prefix;
 
 private:
 	//! \brief 有效转义序列。
-	string sequence;
+	SmallString sequence;
+	//@}
 
 public:
 	DefDeCtor(UnescapeContext)
@@ -85,14 +101,17 @@ public:
 	\since build 659
 	*/
 	PDefH(bool, IsHandling, string_view pfx) const
-		ImplRet((YAssertNonnull(pfx.data()), Prefix == pfx))
+		ImplRet((YAssertNonnull(pfx.data()),
+			YSLib::make_string_view(Prefix) == pfx))
 
-	DefGetter(const ynothrow, const string&, Sequence, sequence)
+	//! \since build 862
+	DefGetter(const ynothrow, const SmallString&, Sequence, sequence)
 
 	PDefH(void, Clear, ) ynothrow
 		ImplExpr(Prefix.clear(), sequence.clear())
 
-	string
+	//! \since build 862
+	SmallString
 	Done();
 
 	PDefH(bool, PopIf, byte uc)
@@ -106,26 +125,22 @@ public:
 };
 
 
-/*!
-\brief 设置反斜杠转义前缀：当输入 '\\' 时设置前缀为 "\\" 。
-\sa LexicalAnalyzer::PrefixHandler
-\since build 546
-*/
+//! \since build 862
+//@{
+//! \sa LexicalAnalyzer::PrefixHandler
+//@{
+//! \brief 设置反斜杠转义前缀：当输入 '\\' 时设置前缀为 "\\" 。
 YF_API bool
-HandleBackslashPrefix(char, string&);
+HandleBackslashPrefix(char, SmallString&);
 
-/*!
-\brief 忽略前缀。
-\sa LexicalAnalyzer::PrefixHandler
-\since build 794
-*/
-yconstfn PDefH(bool, IgnorePrefix, char, string&) ynothrow
+//! \brief 忽略前缀。
+yconstfn PDefH(bool, IgnorePrefix, char, SmallString&) ynothrow
 	ImplRet({})
+//@}
 
 /*!
 \brief NPL 转义匹配算法。
 \sa LexicalAnalyzer::Unescaper
-\since build 545
 
 支持转义序列为 "\\" 、 "\a" 、 "\b" 、 "\f" 、 "\n" 、 "\r" 、 "\t" 和 "\v" 。
 除以下说明外，转义序列语义参见 ISO C++11 （排除 raw-string-literal ）；
@@ -135,7 +150,8 @@ yconstfn PDefH(bool, IgnorePrefix, char, string&) ynothrow
 引号转义：反斜杠之后紧接单引号或双引号时，反斜杠会被删除。
 */
 YF_API bool
-NPLUnescape(string&, const UnescapeContext&, char);
+NPLUnescape(SmallString&, const UnescapeContext&, char);
+//@}
 
 
 /*!
@@ -145,7 +161,7 @@ NPLUnescape(string&, const UnescapeContext&, char);
 \since build 329
 
 以字节为基本单位的词法分析器。
-接受字节输入迭代器的输入，结果存放于 string 中。
+接受字节输入迭代器的输入，结果存放于字符串中。
 基本字符集的字符的值保证在区间 [0, 0x7F) 内。
 可接受的单字符词法分隔符都保证在基本字符集内。
 输出规则（按优先顺序）：
@@ -167,14 +183,15 @@ public:
 	\note 返回值表示是否修改了前缀。
 	\since build 546
 	*/
-	using PrefixHandler = function<bool(char, string&)>;
+	using PrefixHandler = function<bool(char, SmallString&)>;
 	/*!
 	\brief 指定匹配转义序列的反转义算法：解析转义序列并按需修改指定缓存。
 	\note 参数表示输出缓存、反转义上下文和当前正在处理的边界字符（如引号）。
 	\note 返回值表示是否修改了输出缓存。
 	\since build 545
 	*/
-	using Unescaper = function<bool(string&, const UnescapeContext&, char)>;
+	using Unescaper
+		= function<bool(SmallString&, const UnescapeContext&, char)>;
 
 private:
 	/*!
@@ -195,8 +212,10 @@ private:
 	char ld = {};
 	/*!
 	\brief 字符解析中间结果。
+	\note 因为通常情形使用短字符串，不提供分配器接口。
+	\since build 862
 	*/
-	string cbuf{};
+	SmallString cbuf{};
 	/*!
 	\brief 字符解析中间结果中非转义的引号出现的位置的有序列表。
 	\since build 545
@@ -215,7 +234,8 @@ public:
 	//! \since build 546
 	DefDeCopyMoveCtorAssignment(LexicalAnalyzer)
 
-	DefGetter(const ynothrow, const string&, Buffer, cbuf)
+	//! \since build 862
+	DefGetter(const ynothrow, const SmallString&, Buffer, cbuf)
 	//! \since build 806
 	DefGetter(const ynothrow, const set<size_t>&, LeftQuotes, left_qset)
 	//! \since build 545
@@ -265,8 +285,9 @@ public:
 	/*!
 	\brief 根据中间结果取字符串列表。
 	\note 其中每一项是完整的字面量或非字面量。
+	\since build 862
 	*/
-	list<string>
+	TokenList
 	Literalize() const;
 };
 
@@ -354,20 +375,23 @@ yconstfn PDefH(bool, IsDelimiter, char c) ynothrow
 
 /*!
 \brief 分解字符串为记号。
-\pre 断言：字符串参数的数据指针非空。
 \post 结果中字符串两端不包括 "C" 区域 \tt std::isspace 返回非零的字符。
-\since build 659
+\since build 862
 */
-YF_API list<string>
-Decompose(string_view);
+YF_API TokenList
+Decompose(const SmallString&);
 
 /*!
 \brief 记号化：提取字符串列表中的记号。
 \note 排除字面量，分解其余字符串为记号列表。
-\since build 301
+\since build 862
 */
-YF_API list<string>
-Tokenize(const list<string>&);
+//@{
+YF_API TokenList
+Tokenize(const TokenList&);
+YF_API TokenList
+Tokenize(TokenList&&);
+//@}
 
 } // namespace NPL;
 

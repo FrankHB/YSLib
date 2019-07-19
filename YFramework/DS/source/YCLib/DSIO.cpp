@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r4424
+\version r4427
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2019-07-07 20:11 +0800
+	2019-07-11 23:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2198,14 +2198,14 @@ const ::devoptab_t dotab_fat{
 	}, [](::_reent* r, void* fh) YB_ATTR_LAMBDA(nonnull(2)) ynothrowv{
 		// NOTE: The parameter %fd is actually cast from the file structure
 		//	pointer stored by %devoptab_t::open_r. This function is called
-		//	when the reference count in handle decreased to zero. Since this
+		//	when the reference count in the handle decreased to zero. Since this
 		//	pointer would not be null for non-predefined streams unless
 		//	corrupted, check for null (yield %EBADF) is not performed, as same
-		//	as LibFAT did. Also the name is %fd, not POSIX %filedes.
+		//	as LibFAT does. Also note the name is %fd, not POSIX %filedes.
 		return FilterDevOps(r, [=]{
 			auto& file(Deref(static_cast<FileInfo*>(fh)));
 			auto& part(file.GetPartitionRef());
-			const auto gd(ystdex::make_guard([&]() ynothrow{
+			const auto gd(ystdex::make_guard([&]() ynothrowv{
 				Deref(part.LockOpenFiles()).erase(file);
 				file.~FileInfo();
 			}));

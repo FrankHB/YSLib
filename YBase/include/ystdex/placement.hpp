@@ -11,13 +11,13 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r851
+\version r861
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2019-01-19 17:14 +0800
+	2019-07-14 12:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,7 +68,7 @@
 #endif
 
 /*!
-\brief \<optional\> 特性测试宏。
+\brief \c \<optional> 特性测试宏。
 \see WG21 P0941R2 2.2 。
 \see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
 \since build 842
@@ -384,7 +384,7 @@ inline namespace cpp2017
 /*!
 \brief 原地销毁。
 \note 不保证支持带有执行策略的重载。
-\see ISO C++17[specialized.destroy] 。
+\see ISO C++17 [specialized.destroy] 。
 \see WG21 P0040R3 。
 \see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
 */
@@ -454,6 +454,11 @@ template<typename _type>
 yconstfn_relaxed void
 destruct_in(_type& obj)
 {
+	// XXX: See https://developercommunity.visualstudio.com/content/problem/431598/vc-fails-to-compile-the-noexcept-expression-inside.html.
+#if YB_IMPL_MSCPP < 1921
+	// XXX: This should allow privete memberwise %operator delete.
+	::delete static_cast<_type*>(nullptr);
+#endif
 	obj.~_type();
 }
 
@@ -532,7 +537,7 @@ using std::uninitialized_move_n;
 //@{
 //! \brief 在范围内未初始化放置构造。
 //@{
-//! \see ISO C++17[uninitialized.construct.default] 。
+//! \see ISO C++17 [uninitialized.construct.default] 。
 //@{
 #else
 template<typename _tFwd>
@@ -557,7 +562,7 @@ uninitialized_default_construct_n(_tFwd first, _tSize n)
 }
 //@}
 
-//! \see ISO C++17[uninitialized.construct.value] 。
+//! \see ISO C++17 [uninitialized.construct.value] 。
 template<typename _tFwd>
 inline void
 uninitialized_value_construct(_tFwd first, _tFwd last)
@@ -583,7 +588,7 @@ uninitialized_value_construct_n(_tFwd first, _tSize n)
 
 /*!
 \brief 转移初始化范围。
-\see ISO C++17[uninitialized.move] 。
+\see ISO C++17 [uninitialized.move] 。
 \since build 716
 */
 //@{

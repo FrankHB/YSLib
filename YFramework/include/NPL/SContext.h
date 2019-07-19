@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2512
+\version r2531
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2019-07-07 02:21 +0800
+	2019-07-16 09:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,7 +54,6 @@ using YSLib::NoContainerTag;
 using YSLib::ValueObject;
 //! \since build 335
 using YSLib::ValueNode;
-using TokenList = list<string>;
 using TLIter = TokenList::iterator;
 using TLCIter = TokenList::const_iterator;
 //! \since build 674
@@ -518,14 +517,14 @@ ystdex::enable_if_t<ystdex::not_<ystdex::cond_or_t<ystdex::bool_<
 	ystdex::decay_t<_tParams>..., TermNode::allocator_type>>::value, TermNode>
 AsTermNode(_tParams&&... args)
 {
-	return {NoContainer, yforward(args)...};
+	return TermNode(NoContainer, yforward(args)...);
 }
 //! \since build 853
 template<typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline TermNode
 AsTermNode(TermNode::allocator_type a, _tParams&&... args)
 {
-	return {std::allocator_arg, a, NoContainer, yforward(args)...};
+	return TermNode(std::allocator_arg, a, NoContainer, yforward(args)...);
 }
 
 
@@ -624,7 +623,7 @@ class YF_API Session
 public:
 	//! \since build 546
 	//@{
-	using CharParser = function<void(LexicalAnalyzer&, char)>;
+	using CharParser = void(&)(LexicalAnalyzer&, char);
 
 	//! \since build 592
 	LexicalAnalyzer Lexer;
@@ -633,41 +632,43 @@ public:
 	DefDeCtor(Session)
 	//! \since build 861
 	Session(pmr::memory_resource&);
+	//! \since build 862
+	//@{
 	//! \throw LoggedEvent 关键失败：无法访问源内容。
 	//@{
-	template<typename _tIn>
-	Session(_tIn first, _tIn last, CharParser parse = DefaultParseByte)
+	template<typename _tIn, typename _tCharParser = CharParser>
+	Session(_tIn first, _tIn last, _tCharParser parse = DefaultParseByte)
 		: Lexer()
 	{
 		std::for_each(first, last,
 			std::bind(parse, std::ref(Lexer), std::placeholders::_1));
 	}
-	//! \since build 861
-	template<typename _tIn>
+	template<typename _tIn, typename _tCharParser = CharParser>
 	Session(pmr::memory_resource& rsrc, _tIn first, _tIn last,
-		CharParser parse = DefaultParseByte)
+		_tCharParser parse = DefaultParseByte)
 		: Lexer(rsrc)
 	{
 		std::for_each(first, last,
 			std::bind(parse, std::ref(Lexer), std::placeholders::_1));
 	}
 	//@}
-	template<typename _tRange,
+	template<typename _tRange, typename _tCharParser = CharParser,
 		yimpl(typename = ystdex::exclude_self_t<Session, _tRange>,
 		typename = ystdex::exclude_self_t<pmr::memory_resource, _tRange>)>
-	Session(const _tRange& c, CharParser parse = DefaultParseByte)
+	Session(const _tRange& c, _tCharParser parse = DefaultParseByte)
 		: Session(ystdex::begin(c), ystdex::end(c), parse)
 	{}
-	//! \since build 861
-	template<typename _tRange,
+	template<typename _tRange, typename _tCharParser = CharParser,
 		yimpl(typename = ystdex::exclude_self_t<Session, _tRange>)>
 	Session(pmr::memory_resource& rsrc, const _tRange& c,
-		CharParser parse = DefaultParseByte)
+		_tCharParser parse = DefaultParseByte)
 		: Session(rsrc, ystdex::begin(c), ystdex::end(c), parse)
 	{}
+	//@}
 	DefDeCopyMoveCtorAssignment(Session)
 
-	DefGetterMem(const ynothrow, const string&, Buffer, Lexer)
+	//! \since build 862
+	DefGetterMem(const ynothrow, const SmallString&, Buffer, Lexer)
 	//@}
 	DefGetter(const, TokenList, TokenList, Tokenize(Lexer.Literalize()))
 

@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r814
+\version r818
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2019-07-07 19:10 +0800
+	2019-07-11 01:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,8 +74,7 @@ Exception::Exception(std::error_code ec, const std::string& str, RecordLevel lv)
 	level(lv)
 {}
 Exception::Exception(std::error_code ec, string_view sv, RecordLevel lv)
-	: system_error(ec, (Nonnull(sv.data()), to_std_string(sv))),
-	level(lv)
+	: Exception(ec, (Nonnull(sv.data()), to_std_string(sv)), lv)
 {}
 Exception::Exception(int ev, const std::error_category& ecat, const char* str,
 	RecordLevel lv)
@@ -89,8 +88,7 @@ Exception::Exception(int ev, const std::error_category& ecat,
 {}
 Exception::Exception(int ev, const std::error_category& ecat, string_view sv,
 	RecordLevel lv)
-	: system_error(ev, ecat, (Nonnull(sv.data()), to_std_string(sv))),
-	level(lv)
+	: Exception(ev, ecat, (Nonnull(sv.data()), to_std_string(sv)), lv)
 {}
 ImplDeDtor(Exception)
 

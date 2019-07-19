@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2017 FrankHB.
+	© 2015-2017, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 版本补丁工具。
-\version r232
+\version r242
 \author FrankHB <frankhb1989@gmail.com>
 \since build 565
 \par 创建时间:
 	2015-01-11 14:20:05 +0800
 \par 修改时间:
-	2017-08-11 12:44 +0800
+	2019-07-08 12:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,11 @@ namespace
 using Entry = vector<string>;
 using EntryMap = map<size_t, Entry>;
 using PatchMap = map<string, pair<size_t, EntryMap>>;
-using namespace ystdex;
+//! \since build 862
+//@{
+using ystdex::string_length;
+using ystdex::begins_with;
+//@}
 
 PatchMap
 Analyze(std::istream& in)
@@ -70,7 +74,8 @@ Analyze(std::istream& in)
 		else if(begins_with(line, "@@"))
 		{
 			line = cond_prefix(rtrcrlf(line, 2), " -");
-			at_blk = !line.empty() ? std::stoul(line) : size_t(-1);
+			at_blk
+				= !line.empty() ? std::stoul(to_std_string(line)) : size_t(-1);
 		}
 		else if(!name_b.empty() && at_blk != size_t(-1))
 		{
@@ -88,8 +93,8 @@ Analyze(std::istream& in)
 					const auto vstr(rtrcrlf(line, 2));
 
 					if(begins_with(vstr, vpfx))
-						TryExpr(res[name_b].first
-							= std::stoul(vstr.substr(string_length(vpfx))))
+						TryExpr(res[name_b].first = std::stoul(
+							to_std_string(vstr.substr(string_length(vpfx)))))
 						CatchIgnore(std::invalid_argument&)
 						CatchIgnore(std::out_of_range&)
 				}
