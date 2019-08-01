@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2018 FrankHB.
+	© 2010-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,19 +11,19 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r941
+\version r959
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2018-10-13 17:42 +0800
+	2019-07-26 17:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Functor
 
-扩展标准库头 <functional> ，提供若干函数对象。
+扩展标准库头 \c \<functional> ，提供若干函数对象。
 */
 
 
@@ -31,22 +31,10 @@
 #define YB_INC_ystdex_functor_hpp_ 1
 
 #include "ref.hpp" // for <functional>, enable_if_t, is_detected,
-//	ystdex::addressof, not_, or_, is_reference_wrapper, and_;
+//	ystdex::addressof, nor_, not_, is_reference_wrapper, and_;
 #include "type_traits.hpp" // for ystdex::addrof_t, ystdex::indirect_t,
 //	ystdex::first_t, ystdex::second_t;
 #include <string> // for std::char_traits;
-#include <algorithm> // for std::lexicographical_compare;
-
-/*!
-\brief \<algorithm\> 特性测试宏。
-\see WG21 P0941R2 2.2 。
-\since build 628
-*/
-#ifndef __cpp_lib_robust_nonmodifying_seq_ops
-#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201304L
-#		define __cpp_lib_robust_nonmodifying_seq_ops 201304L
-#	endif
-#endif
 
 namespace ystdex
 {
@@ -189,7 +177,7 @@ struct mem_get<void>
 {
 	template<typename _type>
 	auto
-	operator()(_type&& x) const ynoexcept_spec(std::declval<_type&&>().get())
+	operator()(_type&& x) const ynoexcept_spec(std::declval<_type>().get())
 		-> decltype(x.get())
 	{
 		return yforward(x.get());
@@ -206,8 +194,8 @@ struct is_equal
 {
 	//! \since build 594
 	template<typename _type1, typename _type2>
-	yconstfn yimpl(enable_if_t)<not_<or_<is_reference_wrapper<_type1>,
-		is_reference_wrapper<_type2>>>::value, bool>
+	yconstfn yimpl(enable_if_t)<nor_<is_reference_wrapper<_type1>,
+		is_reference_wrapper<_type2>>::value, bool>
 	operator()(const _type1& x, const _type2& y) const ynoexcept_spec(x == y)
 	{
 		return x == y;
@@ -423,7 +411,7 @@ YB_Impl_Functor_Unary(bit_not, ~)
 } // inline namespace cpp2014;
 
 /*!
-\note YStandardEx 扩展。
+\ingroup YBase_replacement_extensions
 \since build 668
 */
 //@{

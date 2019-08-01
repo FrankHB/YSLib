@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r4427
+\version r4437
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2019-07-11 23:45 +0800
+	2019-08-01 18:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,8 +87,8 @@ SectorCache::GetPage(::sec_t key) ynothrowv
 {
 	YAssert(GetKey(key) == key, "Invalid key found.");
 
-	return YSLib::TryInvoke([=]{
-		return &ystdex::cache_lookup(entries, key, [=]{
+	return YSLib::TryInvoke([this, key]{
+		return &ystdex::cache_lookup(entries, key, [this, key]{
 			const auto size(bytes_per_sector << sectors_per_page_shift);
 			// TODO: Use aligned allocation for cache implementation.
 			// NOTE: Intentionally uninitialized as LibFAT.
@@ -108,8 +108,8 @@ bool
 SectorCache::EraseWritePartialSector(::sec_t sec, size_t offset,
 	const void* p_buf, size_t n) ynothrowv
 {
-	return PerformPartialSectorIO([=](ystdex::block_buffer& entry,
-		size_t sec_bytes){
+	return PerformPartialSectorIO(
+		[this, offset, p_buf, n](ystdex::block_buffer& entry, size_t sec_bytes){
 		ystdex::trivially_fill_n(entry.get() + sec_bytes, bytes_per_sector);
 		entry.write(sec_bytes + offset, p_buf, n);
 	}, sec, offset, n);
@@ -119,8 +119,8 @@ bool
 SectorCache::FillPartialSector(::sec_t sec, size_t offset, size_t n, byte val)
 	ynothrowv
 {
-	return PerformPartialSectorIO([=](ystdex::block_buffer& entry,
-		size_t sec_bytes){
+	return PerformPartialSectorIO(
+		[this, offset, n, val](ystdex::block_buffer& entry, size_t sec_bytes){
 		entry.fill(sec_bytes + offset, n, val);
 	}, sec, offset, n);
 }
@@ -160,8 +160,8 @@ bool
 SectorCache::ReadPartialSector(void* p_buf, ::sec_t sec, size_t offset,
 	size_t n) ynothrowv
 {
-	return PerformPartialSectorIO([=](ystdex::block_buffer& entry,
-		size_t sec_bytes){
+	return PerformPartialSectorIO(
+		[this, p_buf, offset, n](ystdex::block_buffer& entry, size_t sec_bytes){
 		entry.read(p_buf, sec_bytes + offset, n);
 	}, sec, offset, n);
 }
@@ -183,8 +183,8 @@ bool
 SectorCache::WritePartialSector(::sec_t sec, size_t offset, const void* p_buf,
 	size_t n) ynothrowv
 {
-	return PerformPartialSectorIO([=](ystdex::block_buffer& entry,
-		size_t sec_bytes){
+	return PerformPartialSectorIO(
+		[this, offset, p_buf, n](ystdex::block_buffer& entry, size_t sec_bytes){
 		entry.write(sec_bytes + offset, p_buf, n);
 	}, sec, offset, n);
 }

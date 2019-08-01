@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r5732
+\version r5805
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2019-03-21 22:12 +0800
+	2019-07-24 11:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -831,19 +831,20 @@ public:
 		_type>>>, yforward(obj))
 	{}
 	/*!
-	\brief 构造：使用对象引用和构造器。
+	\brief 构造：使用对象引用和分配器。
 	\pre obj 可作为转移构造参数。
 	\since build 847
 	*/
 	template<typename _type, class _tAlloc>
 	ValueObject(std::allocator_arg_t, const _tAlloc& a, _type&& arg)
-		: content(std::allocator_arg, a, any_ops::use_holder,
-		in_place_type<alloc_holder_t<_type, _tAlloc>>, a, yforward(arg))
-	{
-		static_assert(typename any::allocated_holder_handler_t<_tAlloc,
-			alloc_holder_t<_type, _tAlloc>>::base::base::local_storage(),
-			"Non-local storage found.");
-	}
+		: ValueObject(std::allocator_arg, a, in_place_type<_type>,
+		yforward(arg))
+	{}
+	/*!
+	\tparam _type 目标类型。
+	\tparam _tParams 目标类型初始化参数类型。
+	*/
+	//@{
 	/*!
 	\brief 构造：使用对象初始化参数。
 	\tparam _type 目标类型。
@@ -857,6 +858,22 @@ public:
 		: content(any_ops::use_holder,
 		in_place_type<ValueHolder<_type>>, yforward(args)...)
 	{}
+	/*!
+	\brief 构造：使用对象和分配器初始化参数。
+	\since build 853
+	*/
+	template<typename _type, class _tAlloc, typename... _tParams>
+	explicit
+	ValueObject(std::allocator_arg_t, const _tAlloc& a, in_place_type_t<_type>,
+		_tParams&&... args)
+		: content(std::allocator_arg, a, any_ops::use_holder,
+		in_place_type<alloc_holder_t<_type, _tAlloc>>, a, yforward(args)...)
+	{
+		static_assert(typename any::allocated_holder_handler_t<_tAlloc,
+			alloc_holder_t<_type, _tAlloc>>::base::base::local_storage(),
+			"Non-local storage found.");
+	}
+	//@}
 	/*!
 	\brief 构造：使用持有者。
 	\since builld 783
@@ -1158,6 +1175,19 @@ public:
 		content.emplace<Holder>(any_ops::use_holder,
 			Holder(yforward(args)...));
 	}
+	//! \since build 863
+	template<typename _type, class _tAlloc, typename... _tParams>
+	void
+	emplace(std::allocator_arg_t, const _tAlloc& a, _tParams&&... args)
+	{
+		using Holder = alloc_holder_t<_type, _tAlloc>;
+		static_assert(typename any::allocated_holder_handler_t<_tAlloc,
+			alloc_holder_t<_type, _tAlloc>>::base::base::local_storage(),
+			"Non-local storage found.");
+
+		content.emplace<Holder>(any_ops::use_holder,
+			Holder(a, yforward(args)...));
+	}
 	template<typename _type>
 	void
 	emplace(_type* p, PointerTag)
@@ -1207,7 +1237,7 @@ AccessPtr(const ValueObject& vo) ynothrow
 
 /*!
 \brief 以指定参数按需构造替换值。
-\since build 759
+\since build 863
 
 默认对 ValueObject 及引用值会被直接复制或转移赋值；
 其它情形调用 ValueObject::emplace 。
@@ -1216,34 +1246,64 @@ AccessPtr(const ValueObject& vo) ynothrow
 //@{
 template<typename _type, typename... _tParams>
 void
-EmplaceCallResult(ValueObject&, _type&&, ystdex::false_) ynothrow
+EmplaceCallResult(ValueObject&, _type&&, ystdex::false_, _tParams&&...) ynothrow
 {}
-template<typename _type, typename... _tParams>
+template<typename _type>
 inline void
 EmplaceCallResult(ValueObject& vo, _type&& res, ystdex::true_, ystdex::true_)
 	ynoexcept_spec(vo = yforward(res))
 {
 	vo = yforward(res);
 }
-template<typename _type, typename... _tParams>
+template<typename _type, class _tAlloc>
+inline void
+EmplaceCallResult(ValueObject& vo, _type&& res, ystdex::true_, ystdex::true_,
+	const _tAlloc& a)
+	ynoexcept_spec(vo = ValueObject(std::allocator_arg, a, yforward(res)))
+{
+	vo = ValueObject(std::allocator_arg, a, yforward(res));
+}
+template<typename _type, class _tAlloc>
+inline void
+EmplaceCallResult(ValueObject& vo, _type&& res, ystdex::true_, ystdex::false_,
+	const _tAlloc& a)
+{
+	vo.emplace<ystdex::decay_t<_type>>(std::allocator_arg, a, yforward(res));
+}
+template<typename _type>
 inline void
 EmplaceCallResult(ValueObject& vo, _type&& res, ystdex::true_, ystdex::false_)
 {
 	vo.emplace<ystdex::decay_t<_type>>(yforward(res));
 }
-template<typename _type, typename... _tParams>
+template<typename _type>
 inline void
 EmplaceCallResult(ValueObject& vo, _type&& res, ystdex::true_)
 {
 	YSLib::EmplaceCallResult(vo, yforward(res), ystdex::true_(),
 		std::is_same<ystdex::decay_t<_type>, ValueObject>());
 }
-template<typename _type, typename... _tParams>
+template<typename _type, class _tAlloc>
+inline void
+EmplaceCallResult(ValueObject& vo, _type&& res, ystdex::true_,
+	const _tAlloc& a)
+{
+	YSLib::EmplaceCallResult(vo, yforward(res), ystdex::true_(),
+		std::is_same<ystdex::decay_t<_type>, ValueObject>(), a);
+}
+template<typename _type>
 inline void
 EmplaceCallResult(ValueObject& vo, _type&& res)
 {
 	YSLib::EmplaceCallResult(vo, yforward(res), ystdex::not_<
 		std::is_same<ystdex::decay_t<_type>, ystdex::pseudo_output>>());
+}
+template<typename _type, class _tAlloc>
+inline void
+EmplaceCallResult(ValueObject& vo, _type&& res, const _tAlloc& a)
+{
+	YSLib::EmplaceCallResult(vo, yforward(res), ystdex::not_<
+		std::is_same<ystdex::decay_t<_type>, ystdex::pseudo_output>>(), a);
 }
 //@}
 

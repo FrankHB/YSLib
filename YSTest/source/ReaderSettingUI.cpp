@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r497
+\version r499
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:28:23 +0800
 \par 修改时间:
-	2016-01-11 11:23 +0800
+	2019-08-01 12:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@ namespace YReader
 namespace
 {
 
-const char TU_ReaderSettingUI[]{u8R"NPL(root
+const char TU_ReaderSettingUI[]{R"NPL(root
 ($type "TabControl")($bounds "8 24 240 160")
 (pnlPage1
 	($type "Panel")

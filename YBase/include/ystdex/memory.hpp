@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r3789
+\version r3803
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2019-07-07 15:10 +0800
+	2019-08-01 12:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@
 //	is_polymorphic, std::allocator_arg, is_explicitly_constructible,
 //	is_implicitly_constructible;
 #include "type_op.hpp" // for has_mem_value_type, cond_or;
-#include "pointer.hpp" // for interal "pointer.hpp", "iterator_op.hpp",
+#include "pointer.hpp" // for internal "pointer.hpp", "iterator_op.hpp",
 //	ystdex::swap_dependent, ystdex::to_address;
 #include <limits> // for std::numeric_limits;
 #include "exception.h" // for throw_invalid_construction;
@@ -1786,6 +1786,16 @@ clone_polymorphic_ptr(const _tPointer& p) -> decltype(clone_polymorphic(*p))
 //@}
 
 
+#if __cplusplus > 201703L && (!defined(__GLIBCXX__) || __GLIBCXX__ > 20190731)
+// XXX: See https://github.com/cplusplus/draft/issues/3111.
+// XXX: See https://gcc.gnu.org/viewcvs/gcc/trunk/libstdc++-v3/include/std/memory?r1=273515&r2=273945.
+//! \since build 863
+//@{
+using std::uses_allocator_construction_args;
+using std::make_obj_using_allocator;
+using std::uninitialized_construct_using_allocator;
+//@}
+#else
 /*!
 \see WG21 P0591R4 。
 \since build 850
@@ -1984,7 +1994,7 @@ struct ucua_func
 
 // TODO: Detect more implemenations?
 // XXX: This is a workaround to implementation without support of WG21 N4387.
-#if (defined(__GLIBCXX__) && (__GLIBCXX__ <= 20150630 \
+#	if (defined(__GLIBCXX__) && (__GLIBCXX__ <= 20150630 \
 	|| YB_IMPL_GNUCPP < 60000)) && !(_LIBCPP_VERSION > 4000 \
 	|| __cplusplus >= 201703L)
 // NOTE: See See https://gcc.gnu.org/viewcvs/gcc/trunk/libstdc++-v3/include/bits/stl_pair.h?r1=225189&r2=225188&pathrev=225189,
@@ -2032,7 +2042,7 @@ struct ucua_func<std::pair<_type1, _type2>, _tAlloc>
 			std::pair<_type1, _type2>(_type1(arg1), _type2(arg2));
 	}
 };
-#endif
+#	endif
 
 } // namespace details;
 
@@ -2053,6 +2063,7 @@ uninitialized_construct_using_allocator(_type* p, const _tAlloc& a,
 		ystdex::uses_allocator_construction_args<_type>(a, yforward(args)...));
 }
 //@}
+#endif
 
 
 //! \since build 588

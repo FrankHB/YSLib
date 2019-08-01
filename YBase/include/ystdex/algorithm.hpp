@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2018 FrankHB.
+	© 2010-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r1097
+\version r1126
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2018-09-03 16:58 +0800
+	2019-07-26 17:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,16 +30,18 @@
 
 #include "iterator_trait.hpp" // for have_same_iterator_category;
 #include <numeric> // for std::accumulate;
-#include "functor.hpp" // for <algorithm>,
-//	__cpp_lib_robust_nonmodifying_seq_ops, is_equal, std::bind,
-//	std::placeholders::_1, less;
+#include <algorithm> // for <algorithm>;
+#include "functor.hpp" // for is_equal, std::bind, std::placeholders::_1, less;
 #include "cassert.h" // for yconstraint;
 #include "deref_op.hpp" // for is_undereferenceable;
 #include <cstring> // for std::memcpy, std::memmove;
 
 /*!
-\brief \<algorithm\> 特性测试宏。
+\brief \c \<algorithm> 特性测试宏。
 \see WG21 P0941R2 2.2 。
+*/
+//@{
+/*!
 \see https://blogs.msdn.microsoft.com/vcblog/2016/10/11/c1417-features-and-stl-fixes-in-vs-15-preview-5/ 。
 \since build 835
 */
@@ -49,6 +51,15 @@
 #		define __cpp_lib_clamp 201603L
 #	endif
 #endif
+//@}
+//! \since build 628
+//@{
+#ifndef __cpp_lib_robust_nonmodifying_seq_ops
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201304L
+#		define __cpp_lib_robust_nonmodifying_seq_ops 201304L
+#	endif
+#endif
+//@}
 //@}
 
 namespace ystdex
@@ -539,9 +550,13 @@ using std::min;
 using std::max;
 #else
 /*!
+\ingroup YBase_replacement_features
+\since build 578
+*/
+//@{
+/*!
 \brief 取较小的元素。
 \note 语义同 ISO C++14 std::min 的带 constexpr 的重载。
-\since build 578
 */
 //@{
 template<typename _type, typename _fComp = less<_type>>
@@ -563,7 +578,6 @@ min(std::initializer_list<_type> t, _fComp comp = less<_type>(),
 /*!
 \brief 取较大的元素。
 \note 语义同 ISO C++14 std::max 的带 constexpr 的重载。
-\since build 578
 */
 //@{
 template<typename _type, typename _fComp = less<_type>>
@@ -581,6 +595,7 @@ max(std::initializer_list<_type> t, _fComp comp = less<_type>(),
 		ystdex::max(t, comp, n + 1)) : *(t.begin() + n);
 }
 //@}
+//@}
 #endif
 
 } // inline namespace cpp2014;
@@ -592,7 +607,7 @@ max(std::initializer_list<_type> t, _fComp comp = less<_type>(),
 */
 //@{
 /*!
-\see ISO C++17[alg.clamp] 。
+\see ISO C++17 [alg.clamp] 。
 \see WG21 P0025R1 。
 */
 //@{
@@ -602,6 +617,8 @@ inline namespace cpp2017
 #if __cpp_lib_clamp >= 201603L
 using std::clamp;
 #else
+//! \ingroup YBase_replacement_features
+//@{
 template<typename _type, typename _fComp>
 yconstfn const _type&
 clamp(const _type& v, const _type& lo, const _type& hi, _fComp comp)
@@ -614,11 +631,13 @@ clamp(const _type& v, const _type& lo, const _type& hi)
 {
     return ystdex::clamp(v, lo, hi, less<_type>());
 }
+//@}
 #endif
 
 } // inline namespace cpp2017;
 //@}
 
+//! \ingroup YBase_replacement_extensions
 template<typename _tIn, typename _tOut, typename _fComp = less<>>
 yconstfn _tOut
 clamp_range(_tIn first, _tIn last, _tOut result, const typename

@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5902
+\version r5921
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2019-01-15 10:47 +0800
+	2019-07-24 00:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -659,18 +659,18 @@ public:
 			handlers.cend() | ystdex::get_value, yforward(args)...))
 
 	//! \since build 573
-	PDefH(const_iterator, cbegin, ) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(const_iterator, cbegin, ) const ynothrow
 		ImplRet(handlers.cbegin())
 
 	//! \since build 572
 	//@{
-	PDefH(iterator, begin, ) ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(iterator, begin, ) ynothrow
 		ImplRet(handlers.begin())
-	PDefH(iterator, begin, ) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(iterator, begin, ) const ynothrow
 		ImplRet(handlers.begin())
 
 	//! \since build 573
-	PDefH(const_iterator, cend, ) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(const_iterator, cend, ) const ynothrow
 		ImplRet(handlers.cend())
 
 	//! \brief 清除：移除所有事件响应。
@@ -679,35 +679,43 @@ public:
 
 	//! \since build 573
 	//@{
-	PDefH(size_type, count, EventPriority prior) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(size_type, count, EventPriority prior) const
+		ynothrow
 		ImplRet(handlers.count(prior))
 
-	PDefH(const_reverse_iterator, crbegin, ) const ynothrow
+	YB_ATTR_nodiscard YB_PURE
+		PDefH(const_reverse_iterator, crbegin, ) const ynothrow
 		ImplRet(handlers.crbegin())
 
-	PDefH(const_reverse_iterator, crend, ) const ynothrow
+	YB_ATTR_nodiscard YB_PURE
+		PDefH(const_reverse_iterator, crend, ) const ynothrow
 		ImplRet(handlers.crend())
 	//@}
 
 	YB_ATTR_nodiscard PDefH(bool, empty, ) const ynothrow
 		ImplRet(handlers.empty())
 
-	PDefH(iterator, end, ) ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(iterator, end, ) ynothrow
 		ImplRet(handlers.end())
-	PDefH(iterator, end, ) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(iterator, end, ) const ynothrow
 		ImplRet(handlers.end())
 	//@}
 
+	//! \since build 862
+	YB_ATTR_nodiscard YB_PURE
+		PDefH(allocator_type, get_allocator, ) const ynothrow
+		ImplRet(handlers.get_allocator())
+
 	//! \since build 573
 	//@{
-	PDefH(reverse_iterator, rbegin, ) ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(reverse_iterator, rbegin, ) ynothrow
 		ImplRet(handlers.rbegin())
 
-	PDefH(reverse_iterator, rend, ) ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(reverse_iterator, rend, ) ynothrow
 		ImplRet(handlers.rend())
 
 	//! \brief 取列表中的响应数。
-	PDefH(size_type, size, ) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(size_type, size, ) const ynothrow
 		ImplRet(handlers.size())
 	//@}
 

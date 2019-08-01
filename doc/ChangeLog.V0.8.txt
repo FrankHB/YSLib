@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r13664
+\version r13914
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-07-19 22:39 +0800
+	2019-08-01 18:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,254 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ "improved incomplete element type support" @ "class template %nptr"
+			@ %Pointer $=
+		(
+			/ "member functions %operator*" -> "function templates";
+			/ $dev $impl "removed static assertions for equality operations \
+				only for operator*"
+		),
+		/ DLI "simplified member functions %(seekoff, seekpos)"
+			@ "class template %basic_membuf" @ %StreamBuffer,
+		/ %CStandardIO $=
+		(
+			/ $dev $lib 'YB_PURE' @ "function %openmode_conv#1"
+				-> 'YB_STATELESS',
+				// This should be safe. For some similar but more aggressive \
+					uses, see https://lwn.net/Articles/285332/.
+			/ "return value" @ "function %setnbuf" %CStandardIO
+				^ "%bool to indicate success"
+				~ "zero value of %int to indicate success"
+		),
+		* "allocator not SFINAE-friendly" @ "constructor %any#15" @ %Any $since
+			b851,
+		/ %Functor $=
+		(
+			/ ("inclusion <algorithm>", "feature-test macro \
+				%__cpp_lib_robust_nonmodifying_seq_ops") @  >> %Algorithm
+				// This could have been done after removal of \
+					%ystdex::deref_str_comp since b660.
+			/ $re_add(b853) DLDI "simplified" ^ "%nor_" ~ "%(not_, or_)"
+				$effective @ "%is_equal::operator()",
+			+ DD '\ingroup YBase_replacement_extensions' @ "Doxygen comment"
+				@ "functors %(addrof, indirect, ref_eq, first_of, second_of)"
+		),
+		/ DD %Algorithm $=
+		(
+			+ '\ingroup YBase_replacement_features' @ "Doxygen comment"
+				@ "all 2 function tmeplates %(max, min, clamp)",
+			+ '\ingroup YBase_replacement_extensions' @ "Doxygen comment"
+				@ "function tmeplate %clamp_range"
+		),
+		/ %Memory $=
+		(
+			+ ('using std::uses_allocator_construction_args;',
+				'using std::make_obj_using_allocator;',
+				'using std::uninitialized_construct_using_allocator;')
+				@ '__cplusplus > 201703L \
+				&& (!defined(__GLIBCXX__) || __GLIBCXX__ > 20190731)',
+				// '__GLIBCXX__' can be '20190301' (since svn 269311) without \
+					the bug of %std::make_obj_using_allocator. See \
+					https://github.com/cplusplus/draft/issues/3111.
+			/ "restricted %(uses_allocator_construction_args, \
+				make_obj_using_allocator, \
+				uninitialized_construct_using_allocator) only when %std \
+				counterparts are not available"
+		),
+		/ %MemoryResource $=
+		(
+			/ DLDI "cleanup unused functions" @ 'YB_Has_memory_resource != 1',
+				// To eliminate compiler warnings in such cases (e.g. in ISO \
+					C++17 mode).
+			+ "function %adjust_pool_options",
+			+ "class %resource_pool" $dep_from %Pointer,
+			+ "class %oversized_map",
+			/ @ "class %pool_resource" $=
+			(
+				(
+				/ DLI ^ $dep_from "%resource_pool" ~ "internal pool" $=
+				(
+					// This makes a little inefficient using the \
+						%pool_resource, but the exposed pool interface can be \
+						used to built more efficient memory resources. A \
+						verbatim implementation of %pool_resource in the \
+						executable object can even be more efficient due to \
+						the aggressive optimization (at least compared with \
+						dynamic %YBase shared object in x86-64 Linux).
+					/ $design "simplified pool allocation",
+					(
+					/ "allocated internal chunks with upstream resource";
+					/ $design "simplified pool upstream resource storage"
+						!^ "%pool_resource dependency"
+					),
+					/ $design "simplified" ^ "%equal_to" ~ "%std::equal_to",
+					(
+					/ $design "moved maximum blocks per chunk initialization \
+						out of pool allocation";
+					/ "supported optional extra data" @ "pool objects"
+						// This avoids mandatory of the geometric sequence (of \
+							base 2) of pool sizes in client code without \
+							significant performance degeneration.
+					)
+				);
+				* $comp DLI "relying on WG21 N4510" $mismatch $since b843
+					// The %std::vector now does not use incomplete pool type.
+				),
+				/ "simplified constructor %pool_resource#2 with new \
+					implementation-defined values of %pool_options default \
+					limits" ^ $dep_from "%adjust_pool_options"
+					// The Microsoft ABI uses consistent size for \
+						%::ptrdiff_t across x86 and x64 configurations. This \
+						is hardly a portable option in general.
+					$= (/ $comp "%(max_blocks_per_chunk, \
+						largest_required_pool_block)" ^ ('sizeof(size_t)', \
+						'CHAR_BIT') ~ "%PTRDIFF_MAX"),
+				/ DLDI "simplified oversized data handling" $=
+					// This improves performance slightly.
+				(
+					/ "simplified allocation and deallocation",
+					(
+					/ "simplified releasing";
+					/ $comp "destruction order between oversized data and \
+						pooled data"
+						// This is always unspecified.
+					)
+				)
+			),
+			+ "WG21 P0339R6 support" @ "class template %polymorphic_allocator"
+				$=
+			(
+				+ 'using std::pmr::polymorphic_allocator'
+					@ 'YB_Has_memory_resource && __cplusplus > 201703L \
+					&& (!defined(__GLIBCXX__) || __GLIBCXX__ > 20190731)',
+					// '__GLIBCXX__' can be '20190304' without the bug of \
+						%std::make_obj_using_allocator. See %Memory above.
+				/ "replacement implementation" $=
+				(
+					/ "restricted only when %std::pmr::polymorphic_allocator \
+						is not available",
+					+ "default template argument %byte",
+					+ "function templates %(allocate_bytes, deallocate_bytes, \
+						allocate_object, deallocate_object, new_object, \
+						delete_object"
+				)
+			)
+		),
+		* "missing 'const' for unused parameter" @ "lambda-expression for \
+			%std::accumulate" @ "primary class template %default_last_value"
+			@ %Functional $since b675
+			// This is qualified a bug because of unexpectation at first. \
+				This would actually break the code since WG21 P0616R0 is \
+				accepted. See also LWG 2055.
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib.Core $=
+		(
+			/ @ "class template %GHEvent" @ %YEvent $=
+			(
+				+ $re_add(b858) $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+					@ "functions %(cbegin, cend, crbegin, crend, begin, end, \
+					rbegin, rend, count)",
+				+ $re_add(b853) $dev $lib 'YB_PURE' @ "function %size",
+				+ $re_add(b851) "function %get_allocator"
+			),
+			/ %YObject $=
+			(
+				/ "class %ValueObject" $=
+				(
+					(
+					+ "constructor with allocator parameter and parameter pack \
+						as constructor#5";
+					/ DLDI "simplified constructor#3" ^ "constructor#5"
+					),
+					+ "function template %emplace with allocator parameter"
+				),
+				/ @ "function templates %EmplaceCallResult" $=
+				(
+					- "redundant template parameter pack";
+					+ "overloads to support allocator" ^ $dep_from
+						"%ValueObject::emplace"
+				)
+			)
+		),
+		/ %NPL $=
+		(
+			/ DLI ^ "allocator on string %ValueObject construction in the \
+				result" @ "function %TransformToSyntaxNode" @ %NPLA,
+			/ %NPLA1 $=
+			(
+				/ DLI "supported allocators" @ "function \
+					%RegisterSequenceContextTransformer"
+					^ $dep_from ("%get_allocator" @ "%GEvent"
+					@ %YSLib.Core.YEvent),
+				/ "namespace %Forms" $=
+				(
+					/ @ "function %MatchParameter" $=
+					(
+						/ DLI "simplified by reducing internal parameter \
+							passing",
+						/ DLI "left away an assertion to parameter"
+							!@ 'NDEBUG';
+						* $re_add(b862) "potentional undefined behavior caused \
+							by native call overflow for large input" $since b335
+							$= (/ $impl ^ "trampoline"
+								~ "direct recursive calls")
+					),
+					+ "function %StringToSymbol with 'string&&' parameter",
+						// Note allocators are not needed in most cases for \
+							%TokenValue.
+					/ DLI "allocated %ContextHandler with allocator"
+						@ "function %MakeEncapsulationType"
+						$dep_from %YBase.YStandardEx.Any
+						// By 'std::allocator_arg, a' after each 'tag'. For \
+							performance, %ValueObject for handlers are not \
+							allocated with allocators. This is get done by \
+							'std::allocator_arg, a' before each 'tag', which \
+							relies on the new constructor %ValueObject. \
+							Internal type placeholder are also not allocated \
+							with allocators for the same reason.
+				)
+			),
+			/ DLI "supported moving the prvalue argument" @ "applicative \
+				'symbol->string'" @ "function %LoadModule_std_strings"
+				@ %Dependency ^ $dep_from ("%StringToSymbol" @ %NPLA1)
+		)
+	),
+	+ "initial ISO C++20 support" $=
+		// Tested with Clang++ 8.0.1 with '-std=c++2a'.
+	(
+		/ $comp "well-formedness" $dep_from %YBase.YStandardEx.Functional,
+		/ "all 'u8R'string literal prefix" -> 'R' $effective
+			@ %(YFramework.(NPL.Dependency, Helper.Initialization),
+			YReader.(ShlExplorer, ReaderSettingUI, About)),
+			// The %char8_t support is not ready. As per WG21 P1423R1, the \
+				compatibility issues are expected to exist. In fact, \
+				currently no UTF-8 is relied on in %YSLib projects code, since \
+				all of these string literals uses only the basic execution \
+				character set. (Note the character encoding (UTF-8) is also \
+				enforced by the project rules.) So, simple removal of 'u8' is \
+				appropriate.
+		/ DLI "avoided deprecated lambda capture '=' with implicit 'this'"
+			$effective @ %(YBase.(YStandardEx.Concurrency, YTest.Test),
+			YFramework.('YCLib_(DS)'.DSIO, YCLib.(FileIO, Host, MemoryMapping)),
+			YReader.ShlReader, Tools.SHBuild.Main,
+			YDE.ImageBrowser.ImageControl)
+			// To eliminate Clang++ warning: [-Wdeprecated-this-capture]. \
+				It can not be disabled by '-Wno-deprecated-this-capture'. This \
+				seems a bug.
+	),
+	/ %YReader.About $=
+	(
+		/ "updated copyright year" @ "label text" @ "constructor %AboutPanel",
+		/ $re_ex(b850) DLDI "simplified without 'ystdex::' for %bad_any_cast"
+	)
+),
+
+b862
 (
 	/ %YBase $=
 	(
@@ -146,9 +394,10 @@ $now
 				/ $dev $impl "all 2 function templates %AsTermNode"
 					^ "direct-initialization" ~ "implicit list-initialization"
 					// For better diagnostics.
-				* "potentional undefined behavior for large input"
+				* "potentional undefined behavior caused by native call \
+					overflow for large input"
 					@ "functions %(Reduce, Validate)" $since b335
-					$= (/ !^ "recursive calls")
+					$= (/ $impl !^ "direct recursive calls")
 			),
 		),
 		* $design $impl "over-specified exception specification"

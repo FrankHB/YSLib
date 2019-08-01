@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018 FrankHB.
+	© 2011-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r703
+\version r710
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2018-09-19 00:14 +0800
+	2019-07-22 10:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,13 +55,14 @@ vfmtlen(const wchar_t*, std::va_list) ynothrow;
 /*!
 \brief 关闭流缓冲。
 \pre 参数非空。
-\since build 566
+\return 是否成功。
+\since build 863
 */
-inline int
+inline bool
 setnbuf(std::FILE* stream) ynothrow
 {
 	yconstraint(stream);
-	return std::setvbuf(stream, {}, _IONBF, 0);
+	return std::setvbuf(stream, {}, _IONBF, 0) == 0;
 }
 
 /*!
@@ -112,9 +113,10 @@ read_all_with_buffer(std::FILE* fp, char* p_buf, size_t len, _func append)
 /*!
 \see ISO C++11 Table 132 。
 \note 忽略 std::ios_base::ate 。
+\note 返回值未指定，但返回值指向的内容是确定的，且无副作用，因此可用 YB_STATELESS 。
 \see LWG 596 。
 */
-YB_API YB_PURE const char*
+YB_API YB_STATELESS const char*
 openmode_conv(std::ios_base::openmode) ynothrow;
 /*!
 \brief ISO C/C++ 标准输入输出接口打开模式转换。

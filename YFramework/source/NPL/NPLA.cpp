@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2620
+\version r2622
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2019-07-07 19:04 +0800
+	2019-07-23 23:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -139,7 +139,8 @@ TermNode
 TransformToSyntaxNode(ValueNode&& node)
 {
 	const TermNode::allocator_type a(node.get_allocator());
-	TermNode res(std::allocator_arg, a, {NPL::AsTermNode(a, node.GetName())});
+	TermNode res(std::allocator_arg, a, {NPL::AsTermNode(a, std::allocator_arg,
+		a, node.GetName())});
 	const auto nested_call([&](ValueNode& nd){
 		res.Add(TransformToSyntaxNode(std::move(nd)));
 	});

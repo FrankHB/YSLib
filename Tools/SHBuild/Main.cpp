@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3918
+\version r3919
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2019-07-08 22:56 +0800
+	2019-08-01 18:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -170,7 +170,7 @@ const struct Option
 	template<typename _type, typename _func>
 	Option(const char* pfx, const char* n, const char* opt_arg, _func f,
 		_type threshold, std::initializer_list<const char*> il)
-		: Option(pfx, n, opt_arg, [=](string&& val){
+		: Option(pfx, n, opt_arg, [this, f, threshold](string&& val){
 			const auto
 				print(std::bind(PrintInfo, _1, Warning, LogGroup::General));
 

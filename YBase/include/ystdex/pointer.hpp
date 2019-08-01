@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r647
+\version r676
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2019-04-26 04:07 +0800
+	2019-07-26 17:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,11 +31,11 @@
 #define YB_INC_ystdex_pointer_hpp_ 1
 
 #include "iterator_op.hpp" // for "iterator_op.hpp", <memory>, pointer_traits,
-//	nullptr_t, bool_, not_, is_function, true_, totally_ordered,
-//	equality_comparable, add_pointer_t, add_lvalue_reference_t, yconstraint,
-//	iterator_operators_t, std::iterator_traits;
-#include <functional> // for std::equal_to, std::less, std::hash;
-#include "type_traits.hpp" // for add_ptr_t, add_ref_t, ystdex::swap_dependent;
+//	nullptr_t, bool_, not_, is_function, true_, detected_or_t,
+//	totally_ordered, equality_comparable, add_pointer_t, add_lvalue_reference_t,
+//	yconstraint, iterator_operators_t, std::iterator_traits;
+#include "functor.hpp" // for indirect_t, std::equal_to, std::less, std::hash,
+//	add_ptr_t, add_ref_t, ystdex::swap_dependent;
 
 namespace ystdex
 {
@@ -66,6 +66,20 @@ template<typename _type>
 using nptr_eq1 = bool_<_type() == _type()>;
 template<typename _type>
 using nptr_eq2 = bool_<_type(nullptr) == nullptr>;
+
+//! \since build 863
+template<typename _type>
+struct nptr_eq_checks
+{
+	//! \since build 560
+	static_assert(detected_or_t<true_, details::nptr_eq1, _type>(),
+		"Invalid type found.");
+	//! \since build 560
+	static_assert(detected_or_t<true_, details::nptr_eq2, _type>(),
+		"Invalid type found.");
+
+	using reference = indirect_t<_type>;
+};
 
 } // namespace details;
 
@@ -101,6 +115,7 @@ to_address(_type* p) ynothrow
 \brief 可空指针包装：满足 \c NullablePointer 要求同时满足转移后为空。
 \tparam _type 被包装的指针。
 \pre _type 满足 \c NullablePointer 要求。
+\note 支持不完整元素类型，当且仅当被包装的指针支持不完整元素类型。
 */
 template<typename _type>
 class nptr : private totally_ordered<nptr<_type>>
@@ -108,10 +123,6 @@ class nptr : private totally_ordered<nptr<_type>>
 	//! \since build 630
 	static_assert(is_nothrow_copyable<_type>(), "Invalid type found.");
 	static_assert(is_destructible<_type>(), "Invalid type found.");
-	static_assert(detected_or_t<true_, details::nptr_eq1, _type>(),
-		"Invalid type found.");
-	static_assert(detected_or_t<true_, details::nptr_eq2, _type>(),
-		"Invalid type found.");
 
 public:
 	using pointer = _type;
@@ -152,17 +163,24 @@ public:
 		return !bool(*this);
 	}
 
-	//! \since build 613
+	/*!
+	\note 不直接限定返回类型以支持定义时 pointer 指向的元素是不完整类型。
+	\since build 863
+	*/
 	//@{
 	//! \pre 表达式 \c *ptr 合式。
 	//@{
+	template<yimpl(typename _tPtr = pointer)>
 	YB_ATTR_nodiscard YB_PURE yconstfn_relaxed auto
-	operator*() ynothrow -> decltype(*ptr)
+	operator*() ynothrow
+		-> yimpl(typename details::nptr_eq_checks<_tPtr>::reference)
 	{
 		return *ptr;
 	}
+	template<yimpl(typename _tPtr = const pointer)>
 	YB_ATTR_nodiscard YB_PURE yconstfn auto
-	operator*() const ynothrow -> decltype(*ptr)
+	operator*() const ynothrow
+		-> yimpl(typename details::nptr_eq_checks<_tPtr>::reference)
 	{
 		return *ptr;
 	}

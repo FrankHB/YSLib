@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r4028
+\version r4031
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2019-01-11 20:21 +0800
+	2019-08-01 12:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -568,8 +568,8 @@ struct expanded_caller
 	//! \since build 640
 	template<typename... _tParams>
 	inline auto
-	operator()(_tParams&&... args) const -> decltype(
-		expand_proxy<_fHandler>::call(caller, yforward(args)...))
+	operator()(_tParams&&... args) const
+		-> decltype(expand_proxy<_fHandler>::call(caller, yforward(args)...))
 	{
 		return expand_proxy<_fHandler>::call(caller, yforward(args)...);
 	}
@@ -613,7 +613,7 @@ struct default_last_value
 	operator()(_tIn first, _tIn last, const _type& val = {}) const
 	{
 		return std::accumulate(first, last, val,
-			[](_type&, decltype(*first) v){
+			[](const _type&, decltype(*first) v){
 			return yforward(v);
 		});
 	}

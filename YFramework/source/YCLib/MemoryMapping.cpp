@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2018 FrankHB.
+	© 2012-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r520
+\version r525
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2018-10-02 15:25 +0800
+	2019-08-01 18:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,7 +65,7 @@ MappedFile::MappedFile(std::uint64_t off, size_t len, UniqueFile f,
 #if YCL_DS
 	len != 0 ? new byte[len] : nullptr
 #else
-	[=]() -> byte*{
+	[this, off, len, opt, key]() -> byte*{
 		try
 		{
 			if(len != 0)
@@ -182,7 +182,9 @@ MappedFile::FlushView()
 #elif YCL_Win32
 	YCL_CallF_Win32(::FlushViewOfFile, GetPtr(), GetSize());
 	// NOTE: It should be noted %::FlushFileBuffers is required to flush file
-	//	buffer, but this will be called in file descriptor flush below.
+	//	buffer, but this will be called in file descriptor flush below in the
+	//	call of %FlushFile. This should be also immune to the kernel bug of some
+	//	versions of Microsoft Windows 10, see https://randomascii.wordpress.com/2018/02/25/compiler-bug-linker-bug-windows-kernel-bug/.
 #else
 	// NOTE: It is unspecified that whether data in %MAP_PRIVATE mappings has
 	//	any permanent storage locations, see http://pubs.opengroup.org/onlinepubs/9699919799/functions/msync.html.

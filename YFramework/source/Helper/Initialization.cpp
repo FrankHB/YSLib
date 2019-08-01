@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3474
+\version r3475
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2019-07-07 15:22 +0800
+	2019-08-01 12:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,7 +65,7 @@ namespace
 //! \since build 551
 unique_ptr<ValueNode> p_root;
 //! \since build 450
-yconstexpr const char TU_MIME[]{u8R"NPLA1(
+yconstexpr const char TU_MIME[]{R"NPLA1(
 (application
 	(octet-stream "bin" "so")
 	(x-msdownload "exe" "dll" "com" "bat" "msi")

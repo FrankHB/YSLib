@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1040
+\version r1284
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2019-07-07 02:31 +0800
+	2019-08-01 12:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,6 +45,7 @@ LWG 3037 : 明确 polymorphic_allocator 支持不完整的值类型。
 LWG 3038 ：在 polymorphic_allocator 的 allocate 函数处理整数溢出。
 LWG 3113 ：明确 polymorphic_allocator 的 construct 函数模板转移构造的元组值。
 包含以下 ISO C++17 后的修改：
+WG21 P0339R6 ：支持 polymorphic_allocator 的 byte 默认模板参数和对象分配函数模板。
 WG21 P0591R4 ：在 polymorphic_allocator 中支持递归构造 std::pair 。
 WG21 P0619R4 ：在 memory_resource 中显式声明默认构造函数和复制构造函数。
 */
@@ -53,10 +54,9 @@ WG21 P0619R4 ：在 memory_resource 中显式声明默认构造函数和复制�
 #ifndef YB_INC_ystdex_memory_resource_h_
 #define YB_INC_ystdex_memory_resource_h_ 1
 
-#include "memory.hpp" // for internal "memory.hpp", is_constructible,
-//	std::allocator_arg_t, std::allocator_arg, std::uses_allocator, yforward,
-//	allocator_traits, std::pair, size_t, yalignof, yconstraint,
-//	ystdex::uninitialized_construct_using_allocator;
+#include "memory.hpp" // for internal "memory.hpp", byte, size_t, yalignof,
+//	yconstraint, SIZE_MAX, std::length_error, yforward,
+//	ystdex::uninitialized_construct_using_allocator, std::pair, tidy_ptr;
 // NOTE: See "placement.hpp" for comments on inclusion conditions.
 #if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603) \
 	|| (__cplusplus >= 201603L && __has_include(<memory_resource>))
@@ -73,15 +73,24 @@ WG21 P0619R4 ：在 memory_resource 中显式声明默认构造函数和复制�
 #		define YB_Has_memory_resource 2
 #	endif
 #endif
+#if YB_Has_memory_resource && __cplusplus > 201703L \
+	&& (!defined(__GLIBCXX__) || __GLIBCXX__ > 20190731)
+// XXX: See https://github.com/cplusplus/draft/issues/3111.
+// XXX: See https://gcc.gnu.org/viewcvs/gcc/trunk/libstdc++-v3/include/std/memory?r1=273515&r2=273945.
+#	define YB_Impl_P0339R6 true
+#else
+#	define YB_Impl_P0339R6 false
+#endif
 #if YB_Has_memory_resource != 1
 #	include <tuple> // for std::tuple, std::forward_as_tuple, std::tuple_cat;
 #	include "operators.hpp" // for equality_comparable;
 #endif
 #include "base.h" // for noncopyable, nonmovable;
 #include "cstdint.hpp" // for is_power_of_2;
+#include "map.hpp" // for greater, map, equal_to, std::hash;
 #include <vector> // for std::vector;
-#include <unordered_map> // for std::hash, std::unordered_map;
-#include <functional> // for std::equal_to;
+#include <unordered_map> // for std::unordered_map;
+#include "algorithm.hpp" // for ystdex::max;
 #if YB_Has_memory_resource != 1
 #	if (defined(__GLIBCXX__) && !(defined(_GLIBCXX_USE_C99_STDINT_TR1) \
 	&& defined(_GLIBCXX_HAS_GTHREADS))) \
@@ -118,7 +127,7 @@ WG21 P0619R4 ：在 memory_resource 中显式声明默认构造函数和复制�
 namespace ystdex
 {
 
-// TODO: Check support of P0591R4 and use %std::polymorphic_allocator if
+// TODO: Check support of P0591R4 and use %std::pmr::polymorphic_allocator if
 //	possible.
 
 namespace details
@@ -255,11 +264,14 @@ get_default_resource() ynothrow;
 } // inline namespace cpp2017;
 
 
+#if YB_Impl_P0339R6
+using std::pmr::polymorphic_allocator;
+#else
 /*!
 \ingroup YBase_replacement_features
 \brief 多态分配器。
 */
-template<class _type>
+template<class _type = byte>
 class polymorphic_allocator
 {
 public:
@@ -325,13 +337,73 @@ public:
 		return static_cast<_type*>(memory_rsrc->allocate(
 			details::get_size_of_n<sizeof(_type)>(n), yalignof(_type)));
 	}
-
+	
 	void
 	deallocate(_type* p, size_t n)
 	{
 		memory_rsrc->deallocate(p, details::get_size_of_n<sizeof(_type)>(n),
 			yalignof(_type));
 	}
+
+	/*!
+	\see WG21 P0339R6 。
+	\since build 863
+	*/
+	//@{
+	void*
+	allocate_bytes(size_t nbytes, size_t alignment = yalignof(std::max_align_t))
+	{
+		return memory_rsrc->allocate(nbytes, alignment);
+	}
+
+	void
+	deallocate_bytes(void* p, size_t nbytes, size_t alignment = yalignof(std::max_align_t))
+	{
+		return memory_rsrc->deallocate(p, nbytes, alignment);
+	}
+
+	template<typename _tObj>
+	_tObj*
+	allocate_object(size_t n = 1)
+	{
+		if(SIZE_MAX / sizeof(_tObj) >= n)
+			return static_cast<_tObj*>(allocate_bytes(n * sizeof(_tObj),
+				yalignof(_tObj)));
+		throw std::length_error("polymorphic_allocator::allocate_object");
+	}
+
+	template<typename _tObj>
+	void
+	deallocate_object(_tObj* p, size_t n = 1)
+	{
+		deallocate_bytes(p, n * sizeof(_tObj), yalignof(_tObj));
+	}
+
+	template<typename _tObj, typename... _tCtorParams>
+	_tObj*
+	new_object(_tCtorParams&&... ctor_args)
+	{
+		_tObj* p(allocate_object<_tObj>());
+
+		try
+		{
+			construct(p, yforward(ctor_args)...);
+		}
+		catch(...)
+		{
+			deallocate_object(p);
+			throw;
+		}
+		return p;
+	}
+
+	template<typename _tObj>
+	void delete_object(_tObj* p)
+	{
+		destroy(p);
+		deallocate_object(p);
+	}
+	//@}
 
 	/*!
 	\see WG21 P0591R4 。
@@ -373,6 +445,7 @@ operator!=(const polymorphic_allocator<_type1>& a,
 {
 	return !(a == b);
 }
+#endif
 
 
 inline namespace cpp2017
@@ -412,31 +485,210 @@ struct YB_API pool_options
 
 } // inline namespace cpp2017;
 
+//! \ingroup YBase_replacement_extensions
+//@{
+//! \since build 863
+//@{
+/*!
+\brief 修改池选项的默认值。
+\post 参数中的数据成员不含 0 值。
+\note 每区块最大块数限制为 \c size_t((sizeof(size_t) * CHAR_BIT) << 16U) 。
+\note 最大块分配大小限制为 \c size_t((sizeof(size_t) * CHAR_BIT) << 18U) 。
+*/
+YB_API void
+adjust_pool_options(pool_options&);
+
+
+/*!
+\brief 资源池。
+\warning 非虚析构。
+*/
+class YB_API resource_pool
+{
+private:
+	//! \brief 块类型。
+	class chunk_t;
+	enum : size_t
+	{
+		default_next_capacity = yimpl(4)
+	};
+	static_assert(default_next_capacity > 1, "Invalid default value found.");
+	//! \brief 块标识类型。
+	using id_t = size_t;
+	//! \brief 保存在块末尾的元数据类型。
+	struct block_meta_t
+	{
+		id_t id;
+		//! \invariant \c p_chunk 。
+		chunk_t* p_chunk;
+	};
+	//! \brief 块存储对类型。
+	using chunk_pr_t = std::pair<const id_t, chunk_t>;
+
+	/*!
+	\brief 块中最大区块数。
+	\since build 863
+	*/
+	size_t max_blocks_per_chunk;
+	//! \brief 被池所有的块。
+	map<id_t, chunk_t, greater<>, polymorphic_allocator<chunk_pr_t>> chunks;
+	//! \brief 快速待分配贮藏指针。
+	tidy_ptr<chunk_pr_t> p_stashed{};
+	//! \brief 快速待分配空块指针。
+	tidy_ptr<chunk_pr_t> p_empty{};
+	//! \brief 下一可用的块中分配块的容量。
+	size_t next_capacity = default_next_capacity;
+	/*!
+	\brief 分配块大小。
+	\invariant <tt>block_size > 0</tt> 。
+	*/
+	size_t block_size;
+	//! \since build 863
+	//@{
+	//! \brief 附加数据。
+	size_t extra_data;
+
+public:
+	//! \brief 最小区块大小。
+	static yconstexpr const size_t min_block_size = sizeof(block_meta_t) + 1;
+
+	/*!
+	\brief 构造：使用上级存储资源、块中最大区块数、区块大小和附加数据。
+	\pre 断言：区块大小不小于 \c resource_pool::min_block_size 。
+	\sa get_extra_data
+	\sa size_for_capacity
+
+	通过参数指定的上级存储资源和块属性构造块。
+	附加数据是可选的。使用以 2 为底的区块大小的对数可加速对数分布的池的查询过程。
+	*/
+	resource_pool(memory_resource&, size_t, size_t, size_t = 0) ynothrowv;
+	resource_pool(resource_pool&&) ynothrow;
+	~resource_pool();
+
+	resource_pool&
+	operator=(resource_pool&&) ynothrow;
+	//@}
+
+private:
+	//! \pre 参数指向池中块的首字节。
+	YB_ATTR_nodiscard block_meta_t&
+	access_meta(void*) const ynothrow;
+
+public:
+	//! \sa p_stashed
+	YB_ALLOCATOR void*
+	allocate();
+
+	/*!
+	\brief 调整分配空间大小以适应块。
+	\since build 863
+	*/
+	YB_ATTR_nodiscard YB_STATELESS static yconstfn size_t
+	adjust_for_block(size_t bytes, size_t alignment) ynothrow
+	{
+		return ystdex::max(bytes + sizeof(block_meta_t), alignment);
+	}
+
+	void
+	deallocate(void*) ynothrowv;
+
+private:
+	YB_ATTR_nodiscard tidy_ptr<chunk_pr_t>
+	find_chunk_pr_ptr(id_t) ynothrowv;
+
+public:
+	//! \since build 845
+	YB_ATTR_nodiscard size_t
+	get_block_size() const ynothrow
+	{
+		return block_size;
+	}
+
+	YB_ATTR_nodiscard size_t
+	get_extra_data() const ynothrow
+	{
+		return extra_data;
+	}
+
+	//! \since build 863
+	YB_ATTR_nodiscard YB_PURE memory_resource&
+	upstream() const ynothrowv
+	{
+		auto p(chunks.get_allocator().resource());
+
+		yassume(p);
+		return *p;
+	}
+};
+
+
+/*!
+\brief 超出池内分配的资源映射。
+\warning 非虚析构。
+*/
+class YB_API oversized_map
+	: private yimpl(noncopyable), private yimpl(nonmovable)
+{
+	friend class shared_pool_resource;
+
+public:
+	using mapped_type = std::pair<size_t, size_t>;
+	using map_type = std::unordered_map<void*, mapped_type, std::hash<void*>,
+		equal_to<>, polymorphic_allocator<std::pair<void* const,
+		mapped_type>>>;
+
+private:
+	map_type entries;
+
+public:
+	oversized_map(memory_resource& mem_rsrc)
+		: entries(&mem_rsrc)
+	{}
+	~oversized_map();
+
+	YB_ATTR_nodiscard YB_PURE memory_resource&
+	upstream() ynothrowv
+	{
+		const auto p_upstream(entries.get_allocator().resource());
+
+		yassume(p_upstream);
+		return *p_upstream;
+	}
+
+	YB_ALLOCATOR void*
+	allocate(size_t, size_t);
+
+	void
+	deallocate(void*, size_t, size_t) yimpl(ynothrowv);
+
+	void
+	release() ynothrow;
+};
+//@}
+
+
 /*!
 \brief 池资源。
-\ingroup YBase_replacement_extensions
 \since build 843
 
 接口同 ISO C++17 的 std::pmr::unsynchronized_pool_resource ，
 	但保证能在上游的分配器分配的区块为空时去配。
 */
-class YB_API pool_resource : public memory_resource,
-	private yimpl(noncopyable), private yimpl(nonmovable)
+class YB_API pool_resource : public memory_resource
 {
 private:
-	class pool_t;
-	using pools_t = std::vector<pool_t, polymorphic_allocator<pool_t>>;
-	using oversized_data_t = std::pair<size_t, size_t>;
+	using pools_t
+		= std::vector<resource_pool, polymorphic_allocator<resource_pool>>;
+
 	pool_options saved_options;
-	std::unordered_map<void*, oversized_data_t, std::hash<void*>, std::equal_to<
-		void*>, polymorphic_allocator<std::pair<void* const, oversized_data_t>>>
-		oversized{};
+	//! \since build 863
+	oversized_map oversized;
 	pools_t pools;
 
 public:
 	/*!
-	\note 实现定义：每区块最大块数限制为 \c size_t(PTRDIFF_MAX) 。
-	\note 实现定义：最大块分配大小限制为 \c size_t(PTRDIFF_MAX >> 8) + 1 。
+	\note 实现定义：参见 adjust_pool_options 的调整的值。
+	\sa adjust_pool_options
 	*/
 	//@{
 	pool_resource() ynothrow
@@ -444,8 +696,7 @@ public:
 	{}
 	//! \pre 断言：指针参数非空。
 	YB_NONNULL(3)
-	pool_resource(const pool_options&, memory_resource*)
-		ynothrow;
+	pool_resource(const pool_options&, memory_resource*) ynothrow;
 	//! \pre 间接断言：指针参数非空。
 	explicit
 	pool_resource(memory_resource* upstream)
@@ -490,9 +741,6 @@ private:
 	YB_ATTR_nodiscard YB_PURE bool
 	pool_exists(const std::pair<pools_t::iterator, size_t>&) ynothrow;
 
-	void
-	release_oversized() ynothrow;
-
 	YB_ATTR_nodiscard YB_PURE memory_resource&
 	upstream() ynothrowv
 	{
@@ -502,6 +750,7 @@ private:
 		return *p_upstream;
 	}
 };
+//@}
 
 inline namespace cpp2017
 {

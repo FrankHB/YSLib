@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2018 FrankHB.
+	© 2015-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file streambuf.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准库标准流缓冲扩展。
-\version r156
+\version r210
 \author FrankHB <frankhb1989@gmail.com>
 \since build 636
 \par 创建时间:
 	2015-09-22 11:19:27 +0800
 \par 修改时间:
-	2018-10-03 10:21 +0800
+	2019-07-22 23:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,7 +57,7 @@ streambuf_equal(std::basic_streambuf<_tChar, _tTraits>& a,
 /*!
 \brief 内存中储存不具有所有权的只读流缓冲。
 \warning 流操作不写缓冲区，否则行为未定义。
-\todo 提供 setbuf 。
+\todo 提供 setbuf 、uflow 和 showmanyc 等覆盖实现。
 */
 template<typename _tChar, class _tTraits = std::char_traits<_tChar>>
 class basic_membuf : public std::basic_streambuf<_tChar, _tTraits>
@@ -83,72 +83,54 @@ public:
 		}
 	}
 
-	//! \since build 805
-	//@{
 protected:
+	//! \since build 805
 	pos_type
 	seekoff(off_type off, std::ios_base::seekdir way, std::ios_base::openmode
 		which = std::ios_base::in | std::ios_base::out) override
 	{
 		if(bool(which & std::ios_base::in) && !bool(which & std::ios_base::out))
 		{
-			const char_type* beg(this->eback());
-
-			if(beg || off == off_type())
+			if(const auto beg = this->eback())
 			{
-				update_egptr();
-				if(way == std::ios_base::cur)
-					off += this->gptr() - beg;
-				else if(way == std::ios_base::end)
-					off += this->egptr() - beg;
-				if(off >= off_type() && this->egptr() - beg >= off)
+				switch(way)
 				{
-					set_input_area(off);
-					return pos_type(off);
+				case std::ios_base::beg:
+					break;
+				case std::ios_base::cur:
+					off += this->gptr() - beg;
+					break;
+				case std::ios_base::end:
+					off += this->egptr() - beg;
+					break;
+				default:
+					yassume(false);
+				}
+				if(off >= off_type())
+				{
+					const auto gend(this->egptr());
+
+					if(gend - beg >= off)
+					{
+						this->setg(beg, beg + off, gend);
+						return pos_type(off);
+					}
 				}
 			}
+			// NOTE: See LWG 453.
+			else if(off == off_type())
+				return pos_type(off_type(0));
 		}
 		return pos_type(off_type(-1));
 	}
 
+	//! \since build 805
 	pos_type
 	seekpos(pos_type sp, std::ios_base::openmode which
 		= std::ios_base::in | std::ios_base::out) override
 	{
-		if(bool(which & std::ios_base::in) && !bool(which & std::ios_base::out))
-		{
-			const char_type* beg(this->eback());
-
-			if(beg || off_type(sp) == off_type())
-			{
-				update_egptr();
-
-				const auto pos(sp);
-
-				if(pos_type() <= pos && pos <= pos_type(this->egptr() - beg))
-				{
-					set_input_area(off_type(pos));
-					return sp;
-				}
-			}
-		}
-		return pos_type(off_type(-1));
+		return basic_membuf::seekoff(off_type(sp), std::ios::beg, which);
 	}
-
-private:
-	void
-	set_input_area(off_type off)
-	{
-		this->setg(this->eback(), this->eback() + off, this->egptr());
-	}
-
-	void
-	update_egptr()
-	{
-		if(this->pptr() && this->pptr() > this->egptr())
-			this->setg(this->eback(), this->gptr(), this->pptr());
-	}
-	//@}
 };
 
 using membuf = basic_membuf<char>;

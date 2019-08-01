@@ -11,13 +11,13 @@
 /*!	\file concurrency.h
 \ingroup YStandardEx
 \brief 并发操作。
-\version r579
+\version r590
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 18:57:13 +0800
 \par 修改时间:
-	2019-02-08 07:20 +0800
+	2019-08-01 18:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -245,8 +245,9 @@ public:
 	future_result_t<_fCallable, _tParams...>
 	poll(_func poller, _fCallable&& f, _tParams&&... args)
 	{
-		return wait_to_enqueue([=](std::unique_lock<std::mutex>& lck){
-			enqueue_condition.wait(lck, [=]{
+		return wait_to_enqueue(
+			[this, poller](std::unique_lock<std::mutex>& lck){
+			enqueue_condition.wait(lck, [this, poller]{
 				return poller() && can_enqueue_unlocked();
 			});
 			return true;
@@ -259,8 +260,9 @@ public:
 	poll_for(_func poller, const _tDuration& duration, _fCallable&& f,
 		_tParams&&... args)
 	{
-		return wait_to_enqueue([=](std::unique_lock<std::mutex>& lck){
-			return enqueue_condition.wait_for(lck, duration, [=]{
+		return wait_to_enqueue(
+			[this, poller, duration](std::unique_lock<std::mutex>& lck){
+			return enqueue_condition.wait_for(lck, duration, [this, poller]{
 				return poller() && can_enqueue_unlocked();
 			});
 		}, yforward(f), yforward(args)...);
@@ -272,8 +274,9 @@ public:
 	poll_until(_func poller, const _tTimePoint& abs_time,
 		_fCallable&& f, _tParams&&... args)
 	{
-		return wait_to_enqueue([=](std::unique_lock<std::mutex>& lck){
-			return enqueue_condition.wait_until(lck, abs_time, [=]{
+		return wait_to_enqueue(
+			[this, poller, abs_time](std::unique_lock<std::mutex>& lck){
+			return enqueue_condition.wait_until(lck, abs_time, [this, poller]{
 				return poller() && can_enqueue_unlocked();
 			});
 		}, yforward(f), yforward(args)...);
@@ -324,12 +327,12 @@ public:
 	wait_to_enqueue(_fWaiter waiter, _fCallable&& f, _tParams&&... args)
 	{
 		return thread_pool::wait_to_enqueue(
-			[=](std::unique_lock<std::mutex>& lck) -> bool{
+			[this, waiter](std::unique_lock<std::mutex>& lck) -> bool{
 			while(!can_enqueue_unlocked())
 				if(!waiter(lck))
 					return {};
 			return true;
-		}, [=](_tParams&&... f_args){
+		}, [this, f](_tParams&&... f_args){
 			// TODO: Blocked. Use C++14 lambda initializers to implement
 			//	passing %f with %ystdex::decay_copy.
 			enqueue_condition.notify_one();

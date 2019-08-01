@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018 FrankHB.
+	© 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r903
+\version r1192
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2018-12-29 16:13 +0800
+	2019-07-30 00:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,8 +27,8 @@
 
 #include "ystdex/memory_resource.h" // for __cpp_aligned_new, std::align_val_t,
 //	std::align, __cpp_sized_deallocation, std::bad_alloc, ::operator new,
-//	::operator delete, make_observer, is_trivial, is_decayed, yassume,
-//	yconstraint, PTRDIFF_MAX, ceiling_lb;
+//	::operator delete, make_observer, is_trivial, yassume, yconstraint, lref,
+//	CHAR_BIT, ceiling_lb, PTRDIFF_MAX;
 #if YB_Has_memory_resource != 1
 #	include <atomic> // for std::atomic;
 #endif
@@ -286,6 +286,7 @@ struct intrusive_stack
 	}
 };
 
+#if YB_Has_memory_resource != 1
 //! \since build 845
 //@{
 struct monobuf_header final : slink
@@ -306,7 +307,7 @@ enum : size_t
 	mono_scale_div = 1
 };
 
-static yconstfn size_t
+yconstfn size_t
 monobuf_scale(size_t size, size_t max_size) ynothrow
 {
 	// NOTE: Scale size to %max_size, rounding up to a multiple of alignment of
@@ -315,7 +316,7 @@ monobuf_scale(size_t size, size_t max_size) ynothrow
 	return size >= max_size ? mono_alloc_max : ((size * mono_scale
 		/ mono_scale_div + yalignof(monobuf_header) - 1) & mono_alloc_max);
 }
-static yconstfn size_t
+yconstfn size_t
 monobuf_scale(size_t size) ynothrow
 {
 	// NOTE: Scale size by 'mono_scale / mono_scale_div'.
@@ -323,188 +324,156 @@ monobuf_scale(size_t size) ynothrow
 		/ mono_scale * mono_scale_div);
 }
 //@}
+#endif
 
 } // unnamed namespace;
 
-//! \brief 池类型。
-class pool_resource::pool_t final
+void
+adjust_pool_options(pool_options& opts)
+{
+	yconstexpr const auto
+		max_blocks_per_chunk_limit(size_t((sizeof(size_t) * CHAR_BIT) << 16U));
+	// NOTE: Larger chunks are assumed being better handled by the upstream
+	//	resource by default.
+	yconstexpr const auto largest_required_pool_block_limit(
+		size_t((sizeof(size_t) * CHAR_BIT) << 18U));
+	static_assert(is_power_of_2(largest_required_pool_block_limit),
+		"Invalid limit value found.");
+
+	// TODO: Use interval arithmetic libraries.
+	if(opts.max_blocks_per_chunk - 1 >= max_blocks_per_chunk_limit)
+		opts.max_blocks_per_chunk = max_blocks_per_chunk_limit;
+	if(opts.largest_required_pool_block - 1
+		>= largest_required_pool_block_limit)
+		opts.largest_required_pool_block = largest_required_pool_block_limit;
+	// NOTE: The minimum chunk size should not be smaller than a machine word in
+	//	typical implementations.
+	else if(opts.largest_required_pool_block - 1 < sizeof(void*))
+		opts.largest_required_pool_block = sizeof(void*);
+	else
+		// NOTE: Make sure the value is power of 2.
+		opts.largest_required_pool_block = size_t(1)
+			<< ceiling_lb(opts.largest_required_pool_block);
+}
+
+
+oversized_map::~oversized_map()
+{
+	release();
+}
+
+void*
+oversized_map::allocate(size_t bytes, size_t alignment)
+{
+	auto& upstream_ref(upstream());
+	const auto p(upstream_ref.allocate(bytes, alignment));
+	auto gd(unique_guard([&]() ynothrow{
+		upstream_ref.deallocate(p, bytes, alignment);
+	}));
+
+	entries.emplace(p, oversized_map::mapped_type(bytes, alignment));
+	ystdex::dismiss(gd);
+	return p;
+}
+
+void
+oversized_map::deallocate(void* p, size_t bytes, size_t alignment)
+	yimpl(ynothrowv)
+{
+	const auto i(entries.find(p));
+
+	yassume(i != entries.cend());
+	yassume(bytes == i->second.first);
+	yassume(alignment == i->second.second);
+	upstream().deallocate(i->first, bytes, alignment);
+	entries.erase(i);
+}
+
+void
+oversized_map::release() ynothrow
+{
+	auto& upstream_ref(upstream());
+
+	for(const auto& pr : entries)
+		upstream_ref.deallocate(pr.first, pr.second.first, pr.second.second);
+	entries.clear();
+}
+
+
+//! \since build 863
+class resource_pool::chunk_t final
 {
 private:
-	//! \brief 区块类型。
-	class chunk_t final
-	{
-	private:
-		//! \since build 845
-		lref<memory_resource> mem_rsrc;
-		size_t block_size;
-		intrusive_stack<slink> free_blocks{};
-		size_t free_count;
-		size_t capacity;
-		//! \since build 845
-		size_t size_for_cap;
-		byte* base;
-		size_t next_available = 0;
-
-	public:
-		chunk_t(pool_t&, void*, size_t) ynothrow;
-		chunk_t(chunk_t&&);
-		~chunk_t();
-
-		chunk_t&
-		operator=(chunk_t&&) ynothrow;
-
-		YB_ALLOCATOR void*
-		allocate_block_free();
-
-		YB_ALLOCATOR void*
-		allocate_block_seq(size_t);
-
-		void
-		add_free(void* p) ynothrow
-		{
-			free_blocks.push(make_observer(::new(p) slink)),
-			++free_count;
-		}
-
-		bool
-		is_empty() const ynothrow
-		{
-			return free_count == capacity;
-		}
-
-		bool
-		is_full() const ynothrow
-		{
-			return free_count == 0;
-		}
-	};
-	enum : size_t
-	{
-		default_next_capacity = yimpl(4)
-	};
-	static_assert(default_next_capacity > 1,
-		"Invalid default value found.");
-	//! \brief 区块标识类型。
-	using id_t = size_t;
-	static_assert(is_decayed<id_t>(), "Invalid type found.");
-	//! \brief 保存在块末尾的元数据类型。
-	struct block_meta_t
-	{
-		// NOTE: The types shall be decayed to avoid need of call to
-		//	%std::launder.
-		id_t id;
-		//! \invariant \c p_chunk 。
-		chunk_t* p_chunk;
-	};
-	static_assert(is_trivial<block_meta_t>(), "Invalid type found.");
-	//! \brief 区块存储对类型。
-	using chunk_pr_t = std::pair<const id_t, chunk_t>;
-	//! \brief 池资源引用。
-	lref<pool_resource> pool_rsrc_ref;
-	//! \brief 被池所有的区块。
-	map<id_t, chunk_t, greater<>, polymorphic_allocator<chunk_pr_t>> chunks{};
-	//! \brief 用于减少复杂度的待分配贮藏指针。
-	tidy_ptr<chunk_pr_t> p_stashed{};
-	//! \brief 用于减少复杂度的待分配贮藏指针。
-	tidy_ptr<chunk_pr_t> p_empty{};
-	//! \brief 下一可用的区块中分配块的容量。
-	size_t next_capacity = default_next_capacity;
-	//! \brief 分配块大小。
+	//! \since build 845
+	lref<memory_resource> mem_rsrc;
+	//! \since build 843
+	//@{
 	size_t block_size;
-	//! \invariant <tt>block_size == 1 << lb_size</tt> 。
-	size_t lb_size;
+	intrusive_stack<slink> free_blocks{};
+	size_t free_count;
+	size_t capacity;
+	byte* base;
+	size_t next_available = 0;
 
 public:
-	pool_t(pool_resource&, size_t) ynothrowv;
-	pool_t(pool_t&&) ynothrow;
-	pool_t&
-	operator=(pool_t&&) ynothrow;
-	~pool_t();
+	chunk_t(resource_pool&, void*, size_t) ynothrow;
+	chunk_t(chunk_t&&);
+	~chunk_t();
 
-	//! \sa p_stashed
+	chunk_t&
+	operator=(chunk_t&&) ynothrow;
+
 	YB_ALLOCATOR void*
-	allocate();
+	allocate_block_free();
 
-	YB_ATTR_nodiscard YB_PURE static size_t
-	adjust_size(size_t bytes, size_t alignment) ynothrow
-	{
-		return std::max(bytes + sizeof(block_meta_t), alignment);
-	}
+	/*!
+	\pre 断言：\c base 。
+	\pre 断言：参数小于 \c resource_pool::min_block_size 。
+	\note 参数表示分配的区块大小。
+	*/
+	YB_ALLOCATOR void*
+	allocate_block_seq(size_t);
 
 	void
-	deallocate(void*) ynothrowv;
-
-private:
-	tidy_ptr<chunk_pr_t>
-	find_chunk_pr_ptr(id_t id) ynothrowv
+	add_free(void* p) ynothrow
 	{
-		const auto i(chunks.find(id));
-
-		yassume(i != chunks.end());
-		return make_observer(&*i);
+		free_blocks.push(make_observer(::new(p) slink)),
+		++free_count;
 	}
 
-public:
-	//! \pre 参数指向池中块的首字节。
-	block_meta_t&
-	access_meta(void* p) const ynothrow
+	bool
+	is_empty() const ynothrow
 	{
-		yconstraint(p);
-
-		const auto p_meta(static_cast<block_meta_t*>(static_cast<void*>(
-			static_cast<byte*>(p) + block_size - sizeof(block_meta_t))));
-
-		yassume(is_aligned_ptr(p_meta));
-		return *p_meta;
+		return free_count == capacity;
 	}
 
-	//! \since build 845
-	size_t
-	get_block_size() const ynothrow
+	bool
+	is_full() const ynothrow
 	{
-		return block_size;
+		return free_count == 0;
 	}
-
-	size_t
-	get_lb_size() const ynothrow
-	{
-		return lb_size;
-	}
-
-	size_t
-	size_for_capacity(size_t c) const ynothrow
-	{
-		return c << lb_size;
-	}
-
-	memory_resource&
-	upstream() ynothrowv
-	{
-		return pool_rsrc_ref.get().upstream();
-	}
+	//@}
 };
 
-pool_resource::pool_t::chunk_t::chunk_t(pool_t& pl, void* b, size_t c) ynothrow
+resource_pool::chunk_t::chunk_t(resource_pool& pl, void* b, size_t c) ynothrow
 	: mem_rsrc(pl.upstream()), block_size(pl.get_block_size()), free_count(c),
-	capacity(c), size_for_cap(pl.size_for_capacity(c)),
-	base(static_cast<byte*>(b))
+	capacity(c), base(static_cast<byte*>(b))
 {}
-pool_resource::pool_t::chunk_t::chunk_t(chunk_t&& cnk)
+resource_pool::chunk_t::chunk_t(chunk_t&& cnk)
 	: mem_rsrc(cnk.mem_rsrc), block_size(cnk.block_size),
 	free_blocks(std::move(cnk.free_blocks)), free_count(cnk.free_count),
-	capacity(cnk.capacity), size_for_cap(cnk.size_for_cap), base(cnk.base),
-	next_available(cnk.next_available)
+	capacity(cnk.capacity), base(cnk.base), next_available(cnk.next_available)
 {
 	cnk.base = {};
 }
-pool_resource::pool_t::chunk_t::~chunk_t()
+resource_pool::chunk_t::~chunk_t()
 {
 	if(base)
-		mem_rsrc.get().deallocate(base, size_for_cap, block_size);
+		mem_rsrc.get().deallocate(base, capacity * block_size, block_size);
 }
 
-pool_resource::pool_t::chunk_t&
-pool_resource::pool_t::chunk_t::operator=(chunk_t&& cnk) ynothrow
+resource_pool::chunk_t&
+resource_pool::chunk_t::operator=(chunk_t&& cnk) ynothrow
 {
 	std::swap(base, cnk.base),
 	yunseq(
@@ -513,14 +482,13 @@ pool_resource::pool_t::chunk_t::operator=(chunk_t&& cnk) ynothrow
 	free_blocks = std::move(cnk.free_blocks),
 	free_count = cnk.free_count,
 	capacity = cnk.capacity,
-	size_for_cap = cnk.size_for_cap,
 	next_available = cnk.next_available
 	);
 	return *this;
 }
 
 void*
-pool_resource::pool_t::chunk_t::allocate_block_free()
+resource_pool::chunk_t::allocate_block_free()
 {
 	yconstraint(base);
 	if(!free_blocks.empty())
@@ -537,12 +505,13 @@ pool_resource::pool_t::chunk_t::allocate_block_free()
 }
 
 void*
-pool_resource::pool_t::chunk_t::allocate_block_seq(size_t lb_size_v)
+resource_pool::chunk_t::allocate_block_seq(size_t blk_size)
 {
 	yconstraint(base);
+	yconstraint(blk_size >= resource_pool::min_block_size);
 	if(next_available < capacity)
 	{
-		const auto blk(base + (next_available << lb_size_v));
+		const auto blk(base + (next_available * blk_size));
 
 		yunseq(--free_count, ++next_available);
 		return blk;
@@ -550,68 +519,58 @@ pool_resource::pool_t::chunk_t::allocate_block_seq(size_t lb_size_v)
 	return {};
 }
 
-pool_resource::pool_t::pool_t(pool_resource& pl_rsrc, size_t lb_size_v)
-	ynothrowv
-	: pool_rsrc_ref(pl_rsrc), block_size(size_t(1) << lb_size_v),
-	lb_size(lb_size_v)
+resource_pool::resource_pool(memory_resource& up_rsrc, size_t mbpc,
+	size_t blk_size, size_t extra) ynothrowv
+	: max_blocks_per_chunk(mbpc), chunks(&up_rsrc), block_size((yconstraint(
+	blk_size >= resource_pool::min_block_size), blk_size)), extra_data(extra)
 {
 	yconstraint(block_size > sizeof(block_meta_t));
 }
-pool_resource::pool_t::pool_t(pool_t&& pool) ynothrow
-	: pool_rsrc_ref(pool.pool_rsrc_ref), chunks(std::move(pool.chunks)),
-	p_stashed(std::move(pool.p_stashed)), p_empty(std::move(pool.p_empty)),
+resource_pool::resource_pool(resource_pool&& pool) ynothrow
+	: max_blocks_per_chunk(pool.max_blocks_per_chunk),
+	chunks(std::move(pool.chunks)), p_stashed(std::move(pool.p_stashed)),
+	p_empty(std::move(pool.p_empty)),
 	next_capacity(ystdex::exchange(pool.next_capacity, default_next_capacity)),
-	block_size(pool.block_size), lb_size(pool.lb_size)
+	block_size(pool.block_size), extra_data(pool.extra_data)
 {}
-// XXX: Order of chunk destruction is unspecified.
-pool_resource::pool_t::~pool_t() = yimpl(default);
+// XXX: The order destruction among chunks is unspecified.
+resource_pool::~resource_pool() = yimpl(default);
 
-pool_resource::pool_t&
-pool_resource::pool_t::operator=(pool_t&& pool) ynothrow
+resource_pool&
+resource_pool::operator=(resource_pool&& pool) ynothrow
 {
 	yunseq(
-	pool_rsrc_ref = pool.pool_rsrc_ref,
+	max_blocks_per_chunk = pool.max_blocks_per_chunk,
 	chunks = std::move(pool.chunks),
 	p_stashed = std::move(pool.p_stashed),
 	p_empty = std::move(pool.p_empty),
 	next_capacity = ystdex::exchange(pool.next_capacity, default_next_capacity),
 	block_size = pool.block_size,
-	lb_size = pool.lb_size
+	extra_data = pool.extra_data
 	);
 	return *this;
 }
 
-pool_resource::pool_resource(
-	const pool_options& opts, memory_resource* p_up) ynothrow
-	: saved_options(opts), pools((yconstraint(p_up), p_up))
+resource_pool::block_meta_t&
+resource_pool::access_meta(void* p) const ynothrow
 {
-	yconstexpr const auto max_blocks_per_chunk_limit(size_t(PTRDIFF_MAX));
-	// NOTE: Larger chunks are assumed being better handled by the upstream
-	//	resource by default.
-	yconstexpr const auto largest_required_pool_block_limit(
-		size_t(PTRDIFF_MAX >> yimpl(8)) + 1);
-	static_assert(is_power_of_2(largest_required_pool_block_limit),
-		"Invalid limit value found.");
+	// NOTE: The types of the data members in %block_meta_t shall be decayed to
+	//	avoid need of call to %std::launder which is not available before ISO
+	//	C++17.
+	static_assert(is_decayed<id_t>(), "Invalid type found.");
+	static_assert(is_trivial<block_meta_t>(), "Invalid type found.");
 
-	// TODO: Use interval arithmetic libraries.
-	if(saved_options.max_blocks_per_chunk - 1 >= max_blocks_per_chunk_limit)
-		saved_options.max_blocks_per_chunk = max_blocks_per_chunk_limit;
-	if(saved_options.largest_required_pool_block - 1
-		>= largest_required_pool_block_limit)
-		saved_options.largest_required_pool_block
-		= largest_required_pool_block_limit;
-	// NOTE: The minimum chunk size should not be smaller than a machine word in
-	//	typical implementations.
-	else if(saved_options.largest_required_pool_block - 1 < sizeof(void*))
-		saved_options.largest_required_pool_block = sizeof(void*);
-	else
-		// NOTE: Make sure the value is power of 2.
-		saved_options.largest_required_pool_block = size_t(1)
-			<< ceiling_lb(saved_options.largest_required_pool_block);
+	yconstraint(p);
+
+	const auto p_meta(static_cast<block_meta_t*>(static_cast<void*>(
+		static_cast<byte*>(p) + block_size - sizeof(block_meta_t))));
+
+	yassume(is_aligned_ptr(p_meta));
+	return *p_meta;
 }
 
 void*
-pool_resource::pool_t::allocate()
+resource_pool::allocate()
 {
 	return retry_on_cond(ystdex::logical_not<>(), [&]() -> void*{
 		void* p = {};
@@ -620,14 +579,12 @@ pool_resource::pool_t::allocate()
 		{
 			// NOTE: Replenish.
 			p_stashed = make_observer(&*chunks.emplace_hint(chunks.begin(),
-				chunks.empty() ? 0 : chunks.begin()->first + 1,
-				chunk_t(*this, upstream().allocate(size_for_capacity(
-				next_capacity), block_size), next_capacity)));
+				chunks.empty() ? 0 : chunks.begin()->first + 1, chunk_t(*this,
+				upstream().allocate(next_capacity * block_size, block_size),
+				next_capacity)));
 			p_empty = p_stashed;
 			// NOTE: See $2018-11 @ %Documentation::Workflow::Annual2018.
-			next_capacity = std::min(next_capacity << 1,
-				std::min(size_t(PTRDIFF_MAX >> lb_size),
-				pool_rsrc_ref.get().saved_options.max_blocks_per_chunk));
+			next_capacity = std::min(next_capacity << 1, max_blocks_per_chunk);
 		}
 		else
 			p = p_stashed->second.allocate_block_free();
@@ -635,7 +592,7 @@ pool_resource::pool_t::allocate()
 		auto& cnk(p_stashed->second);
 
 		if(!p)
-			p = cnk.allocate_block_seq(lb_size);
+			p = cnk.allocate_block_seq(block_size);
 		if(p)
 		{
 			::new(&access_meta(p)) block_meta_t{p_stashed->first, &cnk};
@@ -648,18 +605,14 @@ pool_resource::pool_t::allocate()
 			auto i(chunks.find(p_stashed->first));
 
 			yassume(i != chunks.cend());
-			++i;
-			if(i != chunks.cend())
-				p_stashed = make_observer(&*i);
-			else
-				p_stashed = {};
+			p_stashed = ++i != chunks.cend() ? make_observer(&*i) : nullptr;
 		}
 		return {};
 	});
 }
 
 void
-pool_resource::pool_t::deallocate(void* p) ynothrowv
+resource_pool::deallocate(void* p) ynothrowv
 {
 	const auto& meta(access_meta(p));
 	const auto p_cnk(meta.p_chunk);
@@ -694,15 +647,28 @@ pool_resource::pool_t::deallocate(void* p) ynothrowv
 	}
 }
 
-pool_resource::~pool_resource()
+tidy_ptr<resource_pool::chunk_pr_t>
+resource_pool::find_chunk_pr_ptr(id_t id) ynothrowv
 {
-	release_oversized();
+	const auto i(chunks.find(id));
+
+	yassume(i != chunks.end());
+	return make_observer(&*i);
 }
+
+
+pool_resource::pool_resource(const pool_options& opts, memory_resource* p_up)
+	ynothrow
+	: saved_options(opts), oversized((yconstraint(p_up), *p_up)), pools(p_up)
+{
+	adjust_pool_options(saved_options);
+}
+pool_resource::~pool_resource() = default;
 
 void
 pool_resource::release() yimpl(ynothrow)
 {
-	release_oversized();
+	oversized.release();
 	pools.clear();
 	pools.shrink_to_fit();
 }
@@ -715,19 +681,12 @@ pool_resource::do_allocate(size_t bytes, size_t alignment)
 		auto pr(find_pool(bytes, alignment));
 
 		if(!pool_exists(pr))
-			pr.first = pools.emplace(pr.first, *this, pr.second);
+			pr.first = pools.emplace(pr.first, upstream(), std::min(size_t(
+				PTRDIFF_MAX >> pr.second), saved_options.max_blocks_per_chunk),
+				size_t(1) << pr.second, pr.second);
 		return pr.first->allocate();
 	}
-
-	auto& upstream_ref(upstream());
-	const auto p(upstream_ref.allocate(bytes, alignment));
-	auto gd(unique_guard([&]() ynothrow{
-		upstream_ref.deallocate(p, bytes, alignment);
-	}));
-
-	oversized.emplace(p, oversized_data_t(bytes, alignment));
-	ystdex::dismiss(gd);
-	return p;
+	return oversized.allocate(bytes, alignment);
 }
 
 void
@@ -744,13 +703,7 @@ pool_resource::do_deallocate(void* p, size_t bytes, size_t alignment)
 			yassume(false);
 	}
 	else
-	{
-		const auto i(oversized.find(p));
-
-		yassume(i != oversized.cend());
-		upstream().deallocate(i->first, i->second.first, i->second.second);
-		oversized.erase(i);
-	}
+		return oversized.deallocate(p, bytes, alignment);
 }
 
 YB_Impl_do_is_equal(, pool_resource::)
@@ -758,11 +711,12 @@ YB_Impl_do_is_equal(, pool_resource::)
 std::pair<pool_resource::pools_t::iterator, size_t>
 pool_resource::find_pool(size_t bytes, size_t alignment) ynothrow
 {
-	const auto lb_size(ceiling_lb(pool_t::adjust_size(bytes, alignment)));
+	const auto
+		lb_size(ceiling_lb(resource_pool::adjust_for_block(bytes, alignment)));
 
 	return {std::lower_bound(pools.begin(), pools.end(), lb_size,
-		[](const pool_t& a, size_t lb) ynothrow{
-		return a.get_lb_size() < lb;
+		[](const resource_pool& a, size_t lb) ynothrow{
+		return a.get_extra_data() < lb;
 	}), lb_size};
 }
 
@@ -770,17 +724,7 @@ bool
 pool_resource::pool_exists(const std::pair<pools_t::iterator, size_t>& pr)
 	ynothrow
 {
-	return pr.first != pools.end() && pr.first->get_lb_size() == pr.second;
-}
-
-void
-pool_resource::release_oversized() ynothrow
-{
-	auto& upstream_ref(upstream());
-
-	for(const auto& pr : oversized)
-		upstream_ref.deallocate(pr.first, pr.second.first, pr.second.second);
-	oversized.clear();
+	return pr.first != pools.end() && pr.first->get_extra_data() == pr.second;
 }
 
 #if YB_Has_memory_resource != 1

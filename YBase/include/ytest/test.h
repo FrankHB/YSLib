@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file test.h
 \ingroup YTest
 \brief 基础测试工具。
-\version r109
+\version r111
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-17 03:56:17 +0800
 \par 修改时间:
-	2014-10-17 20:38 +0800
+	2019-08-01 18:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,7 +86,7 @@ public:
 	std::function<void(bool)>
 	get(_fPass pass, _fFail fail)
 	{
-		return [=](bool b){
+		return [this, pass, fail](bool b){
 			if(b)
 			{
 				++pass_n;

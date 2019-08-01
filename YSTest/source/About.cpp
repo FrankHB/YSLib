@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file About.cpp
 \ingroup YReader
 \brief 关于界面。
-\version r272
+\version r276
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:06:35 +0800
 \par 修改时间:
-	2016-06-05 23:20 +0800
+	2019-08-01 12:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@ namespace YReader
 namespace
 {
 
-const char TU_About[]{u8R"NPL(root
+const char TU_About[]{R"NPL(root
 ($type "Panel")($bounds "0 0 208 144")
 (lblTitle
 	($type "Label")($bounds "8 4 192 28"))
@@ -76,7 +76,7 @@ AboutPanel::AboutPanel()
 	lblVersion.Text = G_APP_VER + String(u" 0.6"),
 	lblVersion.ForeColor = ColorSpace::Green,
 	lblCopyright.Background = nullptr,
-	lblCopyright.Text = String("(C)2009-2015 by ") + G_COMP_NAME,
+	lblCopyright.Text = String("(C)2009-2019 by ") + G_COMP_NAME,
 	lblCopyright.ForeColor = ColorSpace::Maroon,
 	btnSysInfo.Text = u"系统信息",
 	btnExit.Text = u"退出",
@@ -122,7 +122,7 @@ SystemInformationPanel::UpdateContents()
 		const String& n(nd.GetName());
 
 		TryRet(n + u": " + TreeList::DefaultExtractText(nd))
-		CatchIgnore(ystdex::bad_any_cast&)
+		CatchIgnore(bad_any_cast&)
 		return n;
 	};
 	view.GetTreeRootRef() = FetchRoot();

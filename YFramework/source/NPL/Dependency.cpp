@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2839
+\version r2862
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2019-07-12 11:45 +0800
+	2019-08-01 12:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -631,20 +631,20 @@ LoadGroundedDerived(REPLContext& context)
 	RegisterStrictUnary(renv, "not?", Not);
 #else
 #	if NPL_Impl_NPLA1_Native_EnvironmentPrimitives
-	context.Perform(u8R"NPL(
+	context.Perform(R"NPL(
 		$def! $vau $vau/e (() get-current-environment) (&formals &ef .&body) d
 			eval (cons $vau/e (cons d (cons formals (cons ef body)))) d;
 		$def! $vau% $vau (&formals &ef .&body) d
 			eval (cons $vau/e% (cons d (cons formals (cons ef body)))) d;
 	)NPL");
 #	else
-	context.Perform(u8R"NPL(
+	context.Perform(R"NPL(
 		$def! get-current-environment (wrap ($vau () d d));
 		$def! lock-current-environment (wrap ($vau () d lock-environment d));
 	)NPL");
 #	endif
 	// XXX: The operative '$set!' is same to following derivations.
-	context.Perform(u8R"NPL(
+	context.Perform(R"NPL(
 		$def! $quote $vau (&x) #ignore x;
 		$def! $set! $vau (&e &formals .&expr) d
 			eval (list $def! formals (unwrap eval) expr d) (eval e d);
@@ -657,7 +657,7 @@ LoadGroundedDerived(REPLContext& context)
 	//	This is not required in Kernel as it does not differentiate lvalues
 	//	(first-class referents) from prvalues and all terms can be accessed as
 	//	objects with arbitrary longer lifetime.
-	context.Perform(u8R"NPL(
+	context.Perform(R"NPL(
 		$def! id wrap ($vau% (%x) #ignore x);
 		$def! idv wrap $quote;
 		$def! list wrap ($vau (.x) #ignore x);
@@ -665,7 +665,7 @@ LoadGroundedDerived(REPLContext& context)
 	)NPL");
 	// XXX: The operative '$defv!' is same to following derivations in
 	//	%LoadCore.
-	context.Perform(u8R"NPL(
+	context.Perform(R"NPL(
 		$def! $defv! $vau (&$f &formals &ef .&body) d
 			eval (list $set! d $f $vau formals ef body) d;
 		$defv! $lambda (&formals .&body) d
@@ -676,7 +676,7 @@ LoadGroundedDerived(REPLContext& context)
 #	else
 	RegisterForm(renv, "$lambda", Lambda);
 	RegisterForm(renv, "$lambda%", LambdaRef);
-	context.Perform(u8R"NPL(
+	context.Perform(R"NPL(
 		$def! id $lambda% (%x) x;
 		$def! idv $lambda (&x) x;
 		$def! list $lambda (.x) x;
@@ -684,12 +684,12 @@ LoadGroundedDerived(REPLContext& context)
 	)NPL");
 	// XXX: The operative '$defv!' is same to following derivations in
 	//	%LoadCore.
-	context.Perform(u8R"NPL(
+	context.Perform(R"NPL(
 		$def! $defv! $vau (&$f &formals &ef .&body) d
 			eval (list $set! d $f $vau formals ef body) d;
 	)NPL");
 #	endif
-	context.Perform(u8R"NPL(
+	context.Perform(R"NPL(
 		$def! $deflazy! $vau (&definiend .&expr) d
 			eval (list $def! definiend $quote expr) d;
 		$def! $sequence
@@ -705,7 +705,7 @@ LoadGroundedDerived(REPLContext& context)
 	)NPL");
 	// XXX: The operatives '$defl!', '$defl%!', and '$defv%!', as well as the
 	//	applicative 'first@' are same to following derivations in %LoadCore.
-	context.Perform(u8R"NPL(
+	context.Perform(R"NPL(
 		$defv! $defl! (&f &formals .&body) d
 			eval (list $set! d f $lambda formals body) d;
 		$defv! $defl%! (&f &formals .&body) d
@@ -764,7 +764,7 @@ LoadGroundedDerived(REPLContext& context)
 void
 LoadCore(REPLContext& context)
 {
-	context.Perform(u8R"NPL(
+	context.Perform(R"NPL(
 		$def! $set! $vau (&e &formals .&expr) d
 			eval (list $def! formals (unwrap eval) expr d) (eval e d);
 		$def! $defv! $vau (&$f &formals &ef .&body) d
@@ -802,12 +802,12 @@ LoadCore(REPLContext& context)
 			eval (list $set! d f $lambda/e% e formals body) d;
 	)NPL");
 #if NPL_Impl_NPLA1_Use_LockEnvironment
-	context.Perform(u8R"NPL(
+	context.Perform(R"NPL(
 		$def! make-standard-environment
 			$lambda () () lock-current-environment;
 	)NPL");
 #else
-	context.Perform(u8R"NPL(
+	context.Perform(R"NPL(
 		$def! make-standard-environment
 			($lambda (&se &e)
 				($lambda #ignore $vau/e se () #ignore (make-environment ce))
@@ -817,7 +817,7 @@ LoadCore(REPLContext& context)
 	)NPL");
 #endif
 	// NOTE: Use of 'eql?' is more efficient than '$if'.
-	context.Perform(u8R"NPL(
+	context.Perform(R"NPL(
 		$defv%! $when (&test .&vexpr) d
 			$if (eval test d) (eval% (list*% () $sequence vexpr) d);
 		$defv%! $unless (&test .&vexpr) d
@@ -956,7 +956,7 @@ LoadModule_std_environments(REPLContext& context)
 			});
 		}, NPL::TryAccessReferencedTerm<string>(term));
 	});
-	context.Perform(u8R"NPL(
+	context.Perform(R"NPL(
 		$defv/e! $binds1? (make-environment
 			(() get-current-environment) std.strings) (&e &s) d
 			eval (list (unwrap bound?) (symbol->string s)) (eval e d);
@@ -977,7 +977,7 @@ LoadModule_std_promises(REPLContext& context)
 {
 	// NOTE: Call of 'set-first%!' does not check cyclic references. This is
 	//	kept safe since it can occur only with NPLA1 undefined behavior.
-	context.Perform(u8R"NPL(
+	context.Perform(R"NPL(
 		$def! std.promises $provide! (promise? memoize $lazy $lazy/e force)
 		(
 			$def! (encapsulate promise? decapsulate) () make-encapsulation-type,
@@ -1047,7 +1047,14 @@ LoadModule_std_strings(REPLContext& context)
 		to_lwr(y);
 		return x.find(y) != string::npos;
 	});
-	RegisterStrictUnary<const string>(renv, "string->symbol", StringToSymbol);
+	RegisterStrictUnary(renv, "string->symbol", [](TermNode& term){
+		return ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
+			auto& s(NPL::AccessRegular<string>(nd, p_ref));
+
+			return NPL::IsMovable(p_ref) ? StringToSymbol(std::move(s))
+				: StringToSymbol(s);
+		}, term);
+	});
 	RegisterStrictUnary<const TokenValue>(renv, "symbol->string",
 		SymbolToString);
 	RegisterStrictUnary<const string>(renv, "string->regex",
@@ -1110,7 +1117,7 @@ LoadModule_std_system(REPLContext& context)
 		[&](const string& var, const string& val){
 		SetEnvironmentVariable(var.c_str(), val.c_str());
 	});
-	context.Perform(u8R"NPL(
+	context.Perform(R"NPL(
 		$defl/e! env-empty?
 			(make-environment (() get-current-environment) std.strings) (&n)
 			string-empty? (env-get n);

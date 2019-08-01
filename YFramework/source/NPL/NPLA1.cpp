@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r12947
+\version r13234
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2019-07-07 19:07 +0800
+	2019-07-24 00:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,6 +70,17 @@ static_assert(!NPL_Impl_NPLA1_Enable_TCO || NPL_Impl_NPLA1_Enable_Thunked,
 //! \since build 851
 static_assert(!NPL_Impl_NPLA1_Enable_TailRewriting || NPL_Impl_NPLA1_Enable_TCO,
 	"Invalid combination of build options found.");
+
+//! \since build 863
+//@{
+#ifndef NDEBUG
+#	define NPL_Impl_NPLA1_AssertParameterMatch true
+#	define NPL_Impl_NPLA1_TraceVauCall true
+#else
+#	define NPL_Impl_NPLA1_AssertParameterMatch false
+#	define NPL_Impl_NPLA1_TraceVauCall false
+#endif
+//@}
 
 namespace A1
 {
@@ -1486,7 +1497,7 @@ private:
 		//	elsewhere (by using %TermTags::Temporary instead), this should be
 		//	safe even for TCO.
 		Forms::BindParameter(ctx, NPL::Deref(p_formals), term);
-#ifndef NDEBUG
+#if NPL_Impl_NPLA1_TraceVauCall
 		ctx.Trace.Log(Debug, [&]{
 			return sfmt<string>("Function called, with %ld shared term(s), %ld"
 				" %s shared static environment(s), %zu parameter(s).",
@@ -2007,6 +2018,183 @@ struct BindParameterObject
 };
 
 
+//! \since build 863
+class ParameterMatcher
+{
+public:
+	template<typename... _tParams>
+	using GBinder = function<void(_tParams..., TermTags, const AnchorPtr&)>;
+	using Action = function<void()>;
+
+	GBinder<TNIter, TNIter, const TokenValue&> BindTrailing;
+	GBinder<const TokenValue&, TermNode&> BindValue;
+
+private:
+	// XXX: This does not use any allocator. Allocator would generally make the
+	//	performance worse here.
+	mutable Action act{};
+
+public:
+	template<class _type, class _type2>
+	ParameterMatcher(_type&& arg, _type2&& arg2)
+		: BindTrailing(yforward(arg)), BindValue(yforward(arg2))
+	{}
+
+	void
+	operator()(const TermNode& t, TermNode& o, TermTags o_tags,
+		const AnchorPtr& p_anchor) const
+	{
+		// NOTE: This is a trampoline to eliminate the call depth limitation.
+		Match(t, o, o_tags, p_anchor);
+		while(act)
+		{
+			const auto a(std::move(act));
+
+			a();
+		}
+	}
+
+private:
+	void
+	Match(const TermNode& t, TermNode& o, TermTags o_tags,
+		const AnchorPtr& p_anchor) const
+	{
+		if(IsList(t))
+		{
+			if(IsBranch(t))
+			{
+				const auto n_p(t.size());
+				auto last(t.end());
+
+				if(n_p > 0)
+				{
+					const auto& back(NPL::Deref(std::prev(last)));
+
+					// NOTE: Empty list lvalue arguments shall not be matched
+					//	here.
+					if(IsLeaf(back))
+					{
+						if(const auto p = NPL::TryAccessLeaf<TokenValue>(back))
+						{
+							if(!p->empty() && p->front() == '.')
+								--last;
+						}
+						else if(!IsList(back))
+							throw ParameterMismatch(ystdex::sfmt(
+								"Invalid term '%s' found for symbol parameter.",
+								TermToString(back).c_str()));
+					}
+				}
+				// XXX: There is only one level of indirection. It should work
+				//	with the correct implementation of the reference collapse.
+				ResolveTerm([&, n_p, o_tags](TermNode& tm,
+					ResolvedTermReferencePtr p_ref){
+					const bool ellipsis(last != t.end());
+					const auto n_o(tm.size());
+
+					if(n_p == n_o || (ellipsis && n_o >= n_p - 1))
+					{
+						auto n_tags(o_tags);
+
+						// XXX: Only lvalues can be qualified.
+						if(p_ref)
+						{
+							const auto rtags(p_ref->GetTags());
+
+							if(!bool(rtags & TermTags::Unique))
+								n_tags &= ~TermTags::Unique;
+							n_tags |= rtags & (TermTags::Nonmodifying
+								| TermTags::Temporary);
+						}
+						MatchSubterms(t.begin(), last, tm.begin(), tm.end(),
+							n_tags, p_ref ? p_ref->GetAnchorPtr() : p_anchor,
+							ellipsis
+#if NPL_Impl_NPLA1_AssertParameterMatch
+							, t.end()
+#endif
+							);
+					}
+					else if(!ellipsis)
+						throw ArityMismatch(n_p, n_o);
+					else
+						Forms::ThrowInsufficientTermsError();
+				}, o);
+			}
+			else
+				ResolveTerm([&](const TermNode& nd, bool has_ref){
+					if(nd)
+						throw ParameterMismatch(ystdex::sfmt("Invalid nonempty"
+							" operand value '%s' found for empty list"
+							" parameter.", TermToStringWithReferenceMark(nd,
+							has_ref).c_str()));
+				}, o);
+		}
+		else
+		{
+			const auto& tp(t.Value.type());
+		
+			if(tp == ystdex::type_id<TermReference>())
+				UpdateAction([&, o_tags]{
+					Match(t.Value.GetObject<TermReference>().get(), o, o_tags,
+						p_anchor);
+				});
+			else if(tp == ystdex::type_id<TokenValue>())
+				BindValue(t.Value.GetObject<TokenValue>(), o, o_tags,
+					p_anchor);
+			else
+				throw ParameterMismatch(ystdex::sfmt("Invalid parameter value"
+					" '%s' found.", TermToString(t).c_str()));
+		}
+	}
+
+	void
+	MatchSubterms(TNCIter i, TNCIter last, TNIter j, TNIter o_last,
+		TermTags n_tags, const AnchorPtr& p_ref_anchor, bool ellipsis
+#if NPL_Impl_NPLA1_AssertParameterMatch
+		, TNCIter t_end
+#endif
+		) const
+	{
+		if(i != last)
+		{
+			UpdateAction(std::bind(&ParameterMatcher::MatchSubterms, this,
+				std::next(i), last, std::next(j), o_last, n_tags,
+				std::ref(p_ref_anchor), ellipsis
+#if NPL_Impl_NPLA1_AssertParameterMatch
+				, t_end
+#endif
+				));
+			YAssert(j != o_last, "Invalid state of operand found.");
+			Match(NPL::Deref(i), NPL::Deref(j), n_tags, p_ref_anchor);
+		}
+		else if(ellipsis)
+		{
+			const auto& lastv(NPL::Deref(last).Value);
+
+			YAssert(lastv.type() == ystdex::type_id<TokenValue>(),
+				"Invalid ellipsis sequence token found.");
+			BindTrailing(j, o_last, lastv.GetObject<TokenValue>(), n_tags,
+				p_ref_anchor);
+#if NPL_Impl_NPLA1_AssertParameterMatch
+			YAssert(std::next(last) == t_end, "Invalid state found.");
+#endif
+		}
+	}
+
+	template<typename _func>
+	void
+	UpdateAction(_func f) const
+	{
+		// TODO: Blocked. Use C++14 lambda initializers to simplify
+		//	implementation.
+		act = std::bind([this, f](Action& a){
+			act = std::move(a);
+			f();
+		}, std::move(act));
+	}
+};
+
+
 //! \since build 859
 //@{
 class RefContextHandler : private ystdex::equality_comparable<RefContextHandler>
@@ -2089,6 +2277,7 @@ ThrowForUnwrappingFailure(const ContextHandler& h)
 ReductionStatus
 WrapH(TermNode& term, ContextHandler h)
 {
+	// XXX: Allocators are not used for performance in most cases.
 	term.Value = std::move(h);
 	return ReductionStatus::Clean;
 }
@@ -2781,9 +2970,12 @@ void
 RegisterSequenceContextTransformer(EvaluationPasses& passes,
 	const TokenValue& delim, bool ordered)
 {
-	passes += ystdex::bind1(ReplaceSeparatedChildren,
-		ordered ? ContextHandler(Forms::Sequence)
-		: ContextHandler(FormContextHandler(ReduceBranchToList, 1)), delim);
+	const auto a(passes.get_allocator());
+
+	passes += ystdex::bind1(ReplaceSeparatedChildren, ValueObject(
+		std::allocator_arg, a, ordered ? ContextHandler(std::allocator_arg, a,
+		Forms::Sequence) : ContextHandler(std::allocator_arg, a,
+		FormContextHandler(ReduceBranchToList, 1))), delim);
 }
 
 
@@ -2987,7 +3179,14 @@ IsSymbol(const string& id) ynothrow
 TokenValue
 StringToSymbol(const string& s)
 {
-	return s;
+	// XXX: Allocators are not used for performance in most cases.
+	return TokenValue(s);
+}
+TokenValue
+StringToSymbol(string&& s)
+{
+	// XXX: Ditto.
+	return TokenValue(std::move(s));
 }
 
 const string&
@@ -3023,8 +3222,8 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 	});
 
 	// NOTE: No duplication check here. Symbols can be rebound.
-	// TODO: Support xvalues. See %BindParameterObject.
-	// XXX: Additional ownership check?
+	// TODO: Additional ownership and lifetime check to kept away undefined
+	//	behavior?
 	MatchParameter(t, o, [&, check_sigil](TNIter first, TNIter last,
 		string_view id, TermTags o_tags, const AnchorPtr& p_anchor){
 		YAssert(ystdex::begins_with(id, "."), "Invalid symbol found.");
@@ -3084,106 +3283,8 @@ MatchParameter(const TermNode& t, TermNode& o, function<void(TNIter,
 	function<void(const TokenValue&, TermNode&, TermTags, const AnchorPtr&)>
 	bind_value, TermTags o_tags, const AnchorPtr& p_anchor)
 {
-	if(IsList(t))
-	{
-		if(IsBranch(t))
-		{
-			const auto n_p(t.size());
-			auto last(t.end());
-
-			if(n_p > 0)
-			{
-				const auto& back(NPL::Deref(std::prev(last)));
-
-				// NOTE: Empty list lvalue arguments shall not be matched here.
-				if(IsLeaf(back))
-				{
-					if(const auto p = NPL::TryAccessLeaf<TokenValue>(back))
-					{
-						if(!p->empty() && p->front() == '.')
-							--last;
-					}
-					else if(!IsList(back))
-						throw ParameterMismatch(ystdex::sfmt(
-							"Invalid term '%s' found for symbol parameter.",
-							TermToString(back).c_str()));
-				}
-			}
-			// XXX: There is only one level of indirection. It should work with
-			//	the correct implementation of the reference collapse.
-			ResolveTerm([&, n_p, o_tags](TermNode& tm,
-				ResolvedTermReferencePtr p_ref){
-				const bool ellipsis(last != t.end());
-				const auto n_o(tm.size());
-
-				if(n_p == n_o || (ellipsis && n_o >= n_p - 1))
-				{
-					auto n_tags(o_tags);
-
-					// XXX: Only lvalues can be qualified.
-					if(p_ref)
-					{
-						const auto rtags(p_ref->GetTags());
-
-						if(!bool(rtags & TermTags::Unique))
-							n_tags &= ~TermTags::Unique;
-						n_tags |= rtags
-							& (TermTags::Nonmodifying | TermTags::Temporary);
-					}
-					auto j(tm.begin());
-					const auto&
-						p_ref_anchor(p_ref ? p_ref->GetAnchorPtr() : p_anchor);
-
-					for(auto i(t.begin()); i != last; yunseq(++i, ++j))
-					{
-						YAssert(j != tm.end(),
-							"Invalid state of operand found.");
-						// TODO: Support PTC without host TCO.
-						MatchParameter(NPL::Deref(i), NPL::Deref(j),
-							bind_trailing_seq, bind_value, n_tags,
-							p_ref_anchor);
-					}
-					if(ellipsis)
-					{
-						const auto& lastv(NPL::Deref(last).Value);
-
-						YAssert(lastv.type() == ystdex::type_id<TokenValue>(),
-							"Invalid ellipsis sequence token found.");
-						bind_trailing_seq(j, tm.end(),
-							lastv.GetObject<TokenValue>(), n_tags,
-							p_ref_anchor);
-						YAssert(++last == t.end(), "Invalid state found.");
-					}
-				}
-				else if(!ellipsis)
-					throw ArityMismatch(n_p, n_o);
-				else
-					ThrowInsufficientTermsError();
-			}, o);
-		}
-		else
-			ResolveTerm([&](const TermNode& nd, bool has_ref){
-				if(nd)
-					throw ParameterMismatch(ystdex::sfmt("Invalid nonempty"
-						" operand value '%s' found for empty list parameter.",
-						TermToStringWithReferenceMark(nd, has_ref).c_str()));
-			}, o);
-	}
-	else
-	{
-		const auto& tp(t.Value.type());
-		
-		if(tp == ystdex::type_id<TermReference>())
-			// TODO: Support PTC without host TCO.
-			MatchParameter(t.Value.GetObject<TermReference>().get(), o,
-				std::move(bind_trailing_seq), std::move(bind_value), o_tags,
-				p_anchor);
-		else if(tp == ystdex::type_id<TokenValue>())
-			bind_value(t.Value.GetObject<TokenValue>(), o, o_tags, p_anchor);
-		else
-			throw ParameterMismatch(ystdex::sfmt("Invalid parameter value '%s'"
-				" found.", TermToString(t).c_str()));
-	}
+	ParameterMatcher(std::move(bind_trailing_seq), std::move(bind_value))(t, o,
+		o_tags, p_anchor);
 }
 
 
@@ -3706,15 +3807,31 @@ CheckListReference(TermNode& term)
 ReductionStatus
 MakeEncapsulationType(TermNode& term)
 {
-	shared_ptr<void> p_type(new yimpl(byte));
 	const auto tag(in_place_type<ContextHandler>);
 	const auto a(term.get_allocator());
+	// NOTE: The %p_type handle can be extended to point to a metadata block.
+#if true
+	shared_ptr<void> p_type(new yimpl(byte));
 
 	term.GetContainerRef() = {{std::allocator_arg, a, NoContainer,
-		tag, FormContextHandler(Encapsulate(p_type), 1)}, {std::allocator_arg,
-		a, NoContainer, tag, FormContextHandler(Encapsulated(p_type), 1)},
-		{std::allocator_arg, a, NoContainer, tag,
+		tag, std::allocator_arg, a, FormContextHandler(Encapsulate(p_type), 1)},
+		{std::allocator_arg, a, NoContainer, tag, std::allocator_arg, a,
+		FormContextHandler(Encapsulated(p_type), 1)},
+		{std::allocator_arg, a, NoContainer, tag, std::allocator_arg, a,
 		FormContextHandler(Decapsulate(p_type), 1)}};
+#else
+	// XXX: Mixing the %p_type above to following assignment code can be worse
+	//	in performance.
+	shared_ptr<void> p_type(YSLib::allocate_shared<yimpl(byte)>(a));
+
+	term.GetContainerRef() = {{std::allocator_arg, a, NoContainer,
+		std::allocator_arg, a, tag, std::allocator_arg, a,
+		FormContextHandler(Encapsulate(p_type), 1)},
+		{std::allocator_arg, a, NoContainer, std::allocator_arg, a, tag,
+		std::allocator_arg, a, FormContextHandler(Encapsulated(p_type), 1)},
+		{std::allocator_arg, a, NoContainer, std::allocator_arg, a, tag,
+		std::allocator_arg, a, FormContextHandler(Decapsulate(p_type), 1)}};
+#endif
 	return ReductionStatus::Retained;
 }
 

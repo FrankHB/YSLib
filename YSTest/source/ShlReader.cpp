@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4911
+\version r4912
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2019-07-08 00:19 +0800
+	2019-08-01 18:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -193,7 +193,7 @@ ShlReader::Exit()
 		const auto h_up(GetMainDesktopHandle());
 		const auto h_dn(GetSubDesktopHandle());
 
-		PostTask([=]{
+		PostTask([this, h_up, h_dn]{
 			ResetDSDesktops(*h_up, *h_dn);
 			NowShellTo(make_shared<ShlExplorer>(CurrentPath / u"..", h_up,
 				h_dn));

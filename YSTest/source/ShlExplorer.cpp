@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1580
+\version r1582
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2019-07-08 00:13 +0800
+	2019-08-01 12:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -149,7 +149,7 @@ DrawStar(Graphics& g, const Rect& bounds, Color c, const Point& pt, SDst r,
 //@}
 
 //! \since build 436
-const char TU_Explorer_Main[]{u8R"NPL(root
+const char TU_Explorer_Main[]{R"NPL(root
 ($type "Panel")($bounds "0 0 256 192")
 (lblTitle
 	($type "Label")($bounds "16 20 220 22"))
@@ -159,7 +159,7 @@ const char TU_Explorer_Main[]{u8R"NPL(root
 	($type "Label")($bounds "8 100 240 64"))
 )NPL"};
 //! \since build 436
-const char TU_Explorer_Sub[]{u8R"NPL(root
+const char TU_Explorer_Sub[]{R"NPL(root
 ($type "Panel")($bounds "0 0 256 192")
 (fbMain
 	($type "FileBox")($bounds "0 0 256 170"))

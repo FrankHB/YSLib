@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3174
+\version r3176
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2019-07-07 05:02 +0800
+	2019-08-01 13:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -474,7 +474,7 @@ FileNodeID
 FileDescriptor::GetNodeID() const ynothrow
 {
 #if YCL_Win32
-	return CallNothrow({}, [=]{
+	return CallNothrow({}, [this]{
 		return QueryFileNodeID(ToHandle(desc));
 	});
 #else
@@ -487,7 +487,7 @@ size_t
 FileDescriptor::GetNumberOfLinks() const ynothrow
 {
 #if YCL_Win32
-	return CallNothrow({}, [=]{
+	return CallNothrow({}, [this]{
 		return QueryFileLinks(ToHandle(desc));
 	});
 #else

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r5442
+\version r5448
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2019-07-19 22:01 +0800
+	2019-07-24 12:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1027,8 +1027,13 @@ IsSymbol(const string&) ynothrow;
 \brief 创建等于指定字符串值的记号值。
 \note 不检查值是否符合符号要求。
 */
+//@{
 YB_ATTR_nodiscard YF_API YB_PURE TokenValue
 StringToSymbol(const string&);
+//! \since build 863
+YB_ATTR_nodiscard YF_API YB_PURE TokenValue
+StringToSymbol(string&&);
+//@}
 
 //! \brief 取符号对应的名称字符串。
 YB_ATTR_nodiscard YF_API YB_PURE const string&
@@ -1251,11 +1256,13 @@ CallRegularUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 
 /*!
 \note 确定项具有一个实际参数后展开调用参数指定的函数。
+
 若被调用的函数返回类型非 void ，返回值作为项的值被构造。
 调用 YSLib::EmplaceCallResult 对 ValueObject 及引用值处理不同。
 若需以和其它类型的值类似的方式被包装，在第一参数中构造 ValueObject 对象。
 实现使用 ystdex::make_expanded 展开调用，但不复制或转移可调用对象，
 	因此使用 std::ref 包装第一参数。注意当前无条件视第一参数为 const 左值。
+考虑一般实现的性能不确定性，当前实现中，调用 YSLib::EmplaceCallResult 不使用分配器。
 */
 //@{
 /*!

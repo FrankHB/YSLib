@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r4585
+\version r4596
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2019-03-09 01:54 +0800
+	2019-07-23 23:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1585,9 +1585,17 @@ public:
 		: any(any_ops::with_handler_t<any_ops::holder_handler<
 		any_ops::value_holder<decay_t<_type>>>>(), yforward(x))
 	{}
-	template<class _tAlloc, typename _type,
-		yimpl(typename = exclude_tag_t<_type>, typename = enable_with_handler_t<
-		any_ops::allocator_holder_handler_t<_tAlloc,
+	// XXX: In the context trying instantiating
+	//	%any_ops::allocator_holder_handler_t without the lazy instantiation
+	//	protection from %enable_with_handler_t (via %vseq::defer_apply_t),
+	//	%_tAlloc shall be SFINAE-friendly. Otherwise, a parameter pack prefixed
+	//	with %std::allocator_arg_t in the calling code can render it ill-formed
+	//	because %_tAlloc is then %std::allocator_arg_t, e.g. in the constructor
+	//	'any(any_ops::use_holder_t, in_place_type_t<_tHolder>,
+	//	_tParams&&... args)' above.
+	template<class _tAlloc, typename _type, yimpl(typename
+		= exclude_tag_t<_type>, typename = exclude_tag_t<_tAlloc>, typename
+		= enable_with_handler_t<any_ops::allocator_holder_handler_t<_tAlloc,
 		any_ops::value_holder<decay_t<_type>>>, const _tAlloc&, _type>)>
 	inline
 	any(std::allocator_arg_t, const _tAlloc& a, _type&& x,
