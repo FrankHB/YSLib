@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r1126
+\version r1138
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2019-07-26 17:58 +0800
+	2019-08-06 22:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,8 +32,7 @@
 #include <numeric> // for std::accumulate;
 #include <algorithm> // for <algorithm>;
 #include "functor.hpp" // for is_equal, std::bind, std::placeholders::_1, less;
-#include "cassert.h" // for yconstraint;
-#include "deref_op.hpp" // for is_undereferenceable;
+#include "deref_op.hpp" // for YB_VerifyIterator, yconstraint;
 #include <cstring> // for std::memcpy, std::memmove;
 
 /*!
@@ -332,8 +331,7 @@ template<typename _tIn, typename _tOut, typename _fPred, typename _fOp>
 _tOut
 transform_when(_tIn first, _tOut result, _fPred pred, _fOp op)
 {
-	yunseq((yconstraint(!is_undereferenceable(first)), 0),
-		(yconstraint(!is_undereferenceable(result)), 0));
+	yunseq((YB_VerifyIterator(first), 0), (YB_VerifyIterator(result), 0));
 
 	for(; pred(*first); yunseq((++first, 0), (++result, 0)))
 		*result = op(*first);
@@ -367,8 +365,8 @@ transform_n(_fOp op, _tOut result, size_t n, _tIns... iters)
 {
 	while(n-- != 0)
 	{
-		yunseq((yconstraint(!is_undereferenceable(result)), 0),
-			(yconstraint(!is_undereferenceable(iters)), void(iters), 0)...);
+		yunseq((YB_VerifyIterator(result), 0),
+			(YB_VerifyIterator(iters), void(iters), 0)...);
 		*result = op((*iters)...);
 		yunseq(++result, ++iters...);
 	}
@@ -379,7 +377,7 @@ transform_n(_fOp op, _tOut result, size_t n, _tIns... iters)
 \tparam _type 指定对象类型。
 \pre 静态断言： <tt>is_trivial<_type>()</tt> 。
 \pre 范围中的指针有效。
-\pre 断言：范围起始指针满足 <tt>!is_undereferenceable</tt> 。
+\pre 断言：范围起始指针满足 YB_VerifyIterator 。
 \since build 603
 \todo 使用 \c is_trivially_copyable 代替 \c is_trivial 。
 */
@@ -395,7 +393,7 @@ trivially_fill_n(_type* first, size_t n = 1, byte value = {}) ynothrowv
 {
 	static_assert(is_trivial<_type>(), "Non-trivial type found.");
 
-	yconstraint(!is_undereferenceable(first));
+	YB_VerifyIterator(first);
 	std::memset(first, int(value), sizeof(_type) * n);
 	return first + n;
 }
@@ -422,8 +420,8 @@ trivially_copy_n(const _type* first, size_t n, _type* result) ynothrowv
 	static_assert(is_copy_assignable<_type>(),
 		"Type shall meet CopyAssignable.");
 
-	yunseq((yconstraint(!is_undereferenceable(result)), 0),
-		(yconstraint(!is_undereferenceable(first)), 0));
+	yunseq((YB_VerifyIterator(result), 0),
+		(YB_VerifyIterator(first), 0));
 	std::memcpy(result, first, sizeof(_type) * n);
 	return result + n;
 }
@@ -450,8 +448,8 @@ trivially_move_n(const _type* first, size_t n, _type* result)
 	static_assert(is_copy_assignable<_type>(),
 		"Type shall meet CopyAssignable.");
 
-	yunseq((yconstraint(!is_undereferenceable(result)), 0),
-		(yconstraint(!is_undereferenceable(first)), 0));
+	yunseq((YB_VerifyIterator(result), 0),
+		(YB_VerifyIterator(first), 0));
 	std::memmove(result, first, sizeof(_type) * n);
 	return result + n;
 }

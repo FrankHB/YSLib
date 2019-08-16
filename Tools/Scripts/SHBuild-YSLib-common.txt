@@ -1,4 +1,4 @@
-﻿"#", "(C) 2014-2018 FrankHB.",
+﻿"#", "(C) 2014-2019 FrankHB.",
 "NPLA1 script as common library.";
 
 "XXX", "'SHBuild_2*' depend on 'cygpath' optionally.";
@@ -114,6 +114,8 @@ $defl! win32? (env-os) eqv? env-os "Win32";
 $defl! get-nul-dev (env-os) $if (win32? env-os) "NUL" "/dev/null";
 $defl! get-tmp-dir (env-os) $if (win32? env-os) "%TEMP%" "/tmp";
 $defl! get-tmp-nul (env-os) ++ (get-tmp-dir env-os) "/null";
+"NOTE",
+	"The output path cannot be '/dev/null'. See http://sourceforge.net/p/msys2/discussion/general/thread/2d6adff2/?limit=25.";
 $defl! system-or-puts (env-os cmd pth) $let (((rstr code .)
 	system-get (cons-cmd cmd (system-quote pth) "2>" (get-nul-dev env-os))))
 	$if (eqv? code 0) rstr pth;
@@ -210,7 +212,10 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 			"-Wstrict-null-sentinel" "-Wzero-as-null-pointer-constant";
 		$set-if-empty! CXXFLAGS_IMPL_OPT
 			"-fexpensive-optimizations -flto=jobserver";
-		$set-if-empty! LDFLAGS_IMPL_OPT "-fexpensive-optimizations -flto"
+		"XXX", "Workarond for LTO bug on MinGW. See https://sourceware.org/bugzilla/show_bug.cgi?id=12762.";
+		$set-if-empty! LDFLAGS_IMPL_OPT $if (win32? env-os)
+			"-fexpensive-optimizations -flto -Wl,-allow-multiple-definition"
+			"-fexpensive-optimizations -flto"
 	);
 	$env-de! CFLAGS_STD "-std=c11";
 	$env-de! CFLAGS_WARNING cons-cmd C_CXXFLAGS_WARNING C_CXXFLAGS_IMPL_WARNING;

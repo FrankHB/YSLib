@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2018 FrankHB.
+# (C) 2014-2019 FrankHB.
 # Common options script for build YSLib using SHBuild.
 
 : ${SHBuild_ToolDir:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
@@ -86,7 +86,13 @@ elif SHBuild_Put "$CXX" | grep g++ > /dev/null; then
 		-Wzero-as-null-pointer-constant \
 		"}
 	: ${CXXFLAGS_IMPL_OPT:='-fexpensive-optimizations -flto=jobserver'}
-	: ${LDFLAGS_IMPL_OPT:='-fexpensive-optimizations -flto'}
+	# XXX: Workarond for LTO bug on MinGW. See https://sourceware.org/bugzilla/show_bug.cgi?id=12762.
+	if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
+		: ${LDFLAGS_IMPL_OPT:="-fexpensive-optimizations -flto \
+			-Wl,-allow-multiple-definition"}
+	else
+		: ${LDFLAGS_IMPL_OPT:='-fexpensive-optimizations -flto'}
+	fi
 fi
 
 : ${CFLAGS_STD:='-std=c11'}

@@ -11,13 +11,13 @@
 /*!	\file tree.h
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r2497
+\version r2733
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2019-01-20 13:46 +0800
+	2019-08-15 01:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,12 +40,12 @@
 #define YB_INC_ystdex_tree_hpp_ 1
 
 #include "memory.hpp" // for allocator_traits, is_move_assignable,
-//	ystdex::swap_dependent, yassume, yconstraint, true_, false_,
+//	ystdex::swap_dependent, YAssert, yassume, yconstraint, true_, false_,
 //	std::pointer_traits, is_nothrow_copy_constructible, aligned_storage_t,
 //	standard_layout_storage, std::allocator, std::bidirectional_iterator_tag,
 //	rebind_alloc_t, ystdex::reverse_iterator, is_same, cond_t,
 //	is_nothrow_move_assignable, or_, and_, is_invocable, ystdex::alloc_on_copy,
-//	is_nothrow_swappable, ystdex::alloc_on_swap, enable_if_t,
+//	is_nothrow_swappable, ystdex::alloc_on_swap, std::declval, enable_if_t,
 //	std::move_if_noexcept, ystdex::alloc_on_move;
 #include "optional.h" // for optional, bidirectional_iteratable,
 //	equality_comparable, totally_ordered, has_mem_is_transparent,
@@ -81,12 +81,13 @@ public:
 	using allocator_type = rebind_alloc_t<_tNodeAlloc, _type>;
 
 private:
-	using alloc_traits = allocator_traits<_tNodeAlloc>;
+	//! \since build 864
+	using node_ator_traits = allocator_traits<_tNodeAlloc>;
 
 	optional<_tNodeAlloc> alloc{};
 
 protected:
-	typename alloc_traits::pointer ptr{};
+	typename node_ator_traits::pointer ptr{};
 
 	yconstfn
 	node_handle_base() ynothrow = default;
@@ -101,7 +102,7 @@ protected:
 		nh.ptr = {};
 		nh.alloc = nullopt;
 	}
-	node_handle_base(typename alloc_traits::pointer p, const _tNodeAlloc& a)
+	node_handle_base(typename node_ator_traits::pointer p, const _tNodeAlloc& a)
 		: ptr(p), alloc(a)
 	{}
 
@@ -127,11 +128,11 @@ protected:
 	swap_base(node_handle_base& nh) ynothrow
 	{
 		ystdex::swap_dependent(ptr, nh.ptr);
-		if(alloc_traits::propagate_on_container_swap::value || !alloc
+		if(node_ator_traits::propagate_on_container_swap::value || !alloc
 			|| !nh.alloc)
 			alloc.swap(nh.alloc);
 		else
-			yassume(alloc == nh.alloc);
+			YAssert(alloc == nh.alloc, "Unequal allocators found.");
 	}
 
 private:
@@ -143,7 +144,7 @@ private:
 			allocator_type a(*alloc);
 
 			allocator_traits<allocator_type>::destroy(a, ptr->access_ptr());
-			alloc_traits::deallocate(*alloc, ptr, 1);
+			node_ator_traits::deallocate(*alloc, ptr, 1);
 		}
 	}
 
@@ -164,11 +165,11 @@ public:
 	void
 	move_assign(node_handle_base& nh, true_)
 	{
-		if(alloc_traits::propagate_on_container_move_assignment::value
+		if(node_ator_traits::propagate_on_container_move_assignment::value
 			|| !alloc)
 			alloc = std::move(nh.alloc);
 		else
-			yassume(alloc == nh.alloc);
+			YAssert(alloc == nh.alloc, "Unequal allocators found.");
 	}
 	void
 	move_assign(false_)
@@ -187,10 +188,11 @@ class node_handle : public node_handle_base<_type, _tNodeAlloc>
 	// TODO: Add unordered associative container support?
 
 private:
-	using alloc_traits = allocator_traits<_tNodeAlloc>;
+	//! \since build 864
+	using ator_traits = allocator_traits<_tNodeAlloc>;
 	template<typename _tObj>
 	using ptr_t = typename std::pointer_traits<typename
-		alloc_traits::pointer>::template rebind<remove_reference_t<_tObj>>;
+		ator_traits::pointer>::template rebind<remove_reference_t<_tObj>>;
 
 	ptr_t<_tKey> p_key = {};
 	ptr_t<typename _type::second_type> p_mapped = {};
@@ -200,7 +202,7 @@ public:
 	node_handle() ynothrow = default;
 
 private:
-	node_handle(typename alloc_traits::pointer p, const _tNodeAlloc& a)
+	node_handle(typename ator_traits::pointer p, const _tNodeAlloc& a)
 		: node_handle_base<_type, _tNodeAlloc>(p, a)
 	{
 		if(p)
@@ -263,7 +265,7 @@ public:
 
 private:
 	template<typename _tObj>
-	ptr_t<_tObj>
+	inline ptr_t<_tObj>
 	pointer_to(_tObj& obj)
 	{
 		return std::pointer_traits<ptr_t<_type>>::pointer_to(obj);
@@ -281,15 +283,17 @@ class node_handle<_type, _type, _tNodeAlloc>
 	// TODO: Add unordered associative container support?
 
 private:
-	using alloc_traits = allocator_traits<_tNodeAlloc>;
+	//! \since build 864
+	using ator_traits = allocator_traits<_tNodeAlloc>;
 
 public:
 	using value_type = _type;
 
-	yconstfn node_handle() ynothrow = default;
+	yconstfn
+	node_handle() ynothrow = default;
 
 private:
-	node_handle(typename alloc_traits::pointer p, const _tNodeAlloc& a)
+	node_handle(typename ator_traits::pointer p, const _tNodeAlloc& a)
 		: node_handle_base<_type, _tNodeAlloc>(p, a)
 	{}
 
@@ -321,6 +325,7 @@ public:
 };
 
 
+//! \see ISO C++ [container.insert.return] 。
 template<typename _tIter, typename _tNodeHandle>
 struct node_insert_return
 {
@@ -384,8 +389,9 @@ struct tree_node_base
 		return x;
 	}
 
+	//! \since build 864
 	void
-	init_header() ynothrow
+	initialize() ynothrow
 	{
 		reset_links();
 		color = tree_color::red;
@@ -407,15 +413,16 @@ struct tree_key_compare
 {
 	_tKeyComp key_compare{};
 
-	tree_key_compare()
-		ynoexcept_spec(is_nothrow_default_constructible<_tKeyComp>::value)
+	//! \since build 864
+	tree_key_compare() ynoexcept_spec(_tKeyComp())
 	{}
 	tree_key_compare(const _tKeyComp& comp)
 		: key_compare(comp)
 	{}
 	tree_key_compare(const tree_key_compare&) = default;
+	// XXX: This is copied.
 	tree_key_compare(tree_key_compare&& x)
-		ynoexcept_spec(is_nothrow_copy_constructible<_tKeyComp>::value)
+		ynoexcept(is_nothrow_copy_constructible<_tKeyComp>())
 		: key_compare(x.key_compare)
 	{}
 };
@@ -423,21 +430,22 @@ struct tree_key_compare
 
 struct tree_header
 {
-	tree_node_base header;
+	//! \since build 864
+	tree_node_base base_header;
 	size_t node_count;
 
 	tree_header() ynothrow
 		: node_count(0)
 	{
-		header.init_header();
+		base_header.initialize();
 	}
 	tree_header(tree_header&& x) ynothrow
 	{
-		if(x.header.parent)
+		if(x.base_header.parent)
 			move_data(x);
 		else
 		{
-			header.init_header();
+			base_header.initialize();
 			node_count = 0;
 		}
 	}
@@ -445,15 +453,16 @@ struct tree_header
 	void
 	move_data(tree_header& from)
 	{
-		header = from.header;
-		yunseq(header.parent->parent = &header, node_count = from.node_count);
+		base_header = from.base_header;
+		yunseq(base_header.parent->parent = &base_header,
+			node_count = from.node_count);
 		from.reset();
 	}
 
 	void
 	reset()
 	{
-		header.reset_links();
+		base_header.reset_links();
 		node_count = 0;
 	}
 };
@@ -470,12 +479,12 @@ private:
 		yalignof(_type)>> storage;
 
 public:
-	YB_PURE yconstfn_relaxed _type*
+	YB_PURE yconstfn_relaxed YB_PURE _type*
 	access_ptr()
 	{
 		return static_cast<_type*>(storage.access());
 	}
-	YB_PURE yconstfn const _type*
+	YB_PURE yconstfn YB_PURE const _type*
 	access_ptr() const
 	{
 		return static_cast<const _type*>(storage.access());
@@ -509,24 +518,26 @@ template<typename _type>
 class tree_iterator
 	: public bidirectional_iteratable<tree_iterator<_type>, _type&>
 {
-	// XXX: Partial specialization is not allowed by ISO C++.
+	// XXX: Partial specialization is not allowed here by ISO C++.
 	template<typename, typename, class, typename, class>
 	friend class tree;
 	template<typename>
 	friend class tree_const_iterator;
 
 public:
-	using value_type = _type;
-	using reference = _type&;
-	using pointer = _type*;
 	using iterator_category = std::bidirectional_iterator_tag;
+	using value_type = _type;
+	using pointer = _type*;
+	using reference = _type&;
 	using difference_type = ptrdiff_t;
-	using self_type = tree_iterator<_type>;
-	using base_ptr = tree_node_base::base_ptr;
-	using link_type = tree_node<_type>*;
 
 private:
-	base_ptr p_node{};
+	//! \since build 864
+	using base_ptr = tree_node_base::base_ptr;
+	//! \since build 864
+	using link_type = tree_node<_type>*;
+
+	base_ptr p_node = {};
 
 public:
 	tree_iterator() ynothrow = default;
@@ -535,28 +546,28 @@ public:
 		: p_node(x)
 	{}
 
-	reference
+	YB_ATTR_nodiscard YB_PURE reference
 	operator*() const ynothrow
 	{
 		return *link_type(p_node)->access_ptr();
 	}
 
-	self_type&
+	tree_iterator&
 	operator++() ynothrow
 	{
 		p_node = tree_increment(p_node);
 		return *this;
 	}
 
-	self_type&
+	tree_iterator&
 	operator--() ynothrow
 	{
 		p_node = tree_decrement(p_node);
 		return *this;
 	}
 
-	bool
-	operator==(const self_type& x) const ynothrow
+	YB_ATTR_nodiscard YB_PURE bool
+	operator==(const tree_iterator& x) const ynothrow
 	{
 		return p_node == x.p_node;
 	}
@@ -568,22 +579,25 @@ class tree_const_iterator
 	: public bidirectional_iteratable<tree_const_iterator<_type>, const _type&>,
 	public equality_comparable<tree_const_iterator<_type>, tree_iterator<_type>>
 {
-	// XXX: Partial specialization is not allowed by ISO C++.
+	// XXX: Partial specialization is not allowed here by ISO C++.
 	template<typename, typename, class, typename, class>
 	friend class tree;
 
 public:
-	using value_type = _type;
-	using reference = const _type&;
-	using pointer = const _type*;
-	using iterator = tree_iterator<_type>;
 	using iterator_category = std::bidirectional_iterator_tag;
+	using value_type = _type;
+	using pointer = const _type*;
+	using reference = const _type&;
 	using difference_type = ptrdiff_t;
-	using self_type = tree_const_iterator<_type>;
-	using base_ptr = tree_node_base::const_base_ptr;
-	using link_type = const tree_node<_type>*;
 
 private:
+	//! \since build 864
+	using iterator = tree_iterator<_type>;
+	//! \since build 864
+	using base_ptr = tree_node_base::const_base_ptr;
+	//! \since build 864
+	using link_type = const tree_node<_type>*;
+
 	base_ptr p_node = {};
 
 public:
@@ -596,38 +610,38 @@ public:
 		: p_node(it.p_node)
 	{}
 
-	iterator
+	YB_ATTR_nodiscard YB_PURE iterator
 	cast_mutable() const ynothrow
 	{
 		return iterator(const_cast<typename iterator::base_ptr>(p_node));
 	}
 
-	reference
+	YB_ATTR_nodiscard YB_PURE reference
 	operator*() const ynothrow
 	{
 		return *link_type(p_node)->access_ptr();
 	}
 
-	self_type&
+	tree_const_iterator&
 	operator++() ynothrow
 	{
 		p_node = tree_increment(p_node);
 		return *this;
 	}
 
-	self_type&
+	tree_const_iterator&
 	operator--() ynothrow
 	{
 		p_node = tree_decrement(p_node);
 		return *this;
 	}
 
-	bool
-	operator==(const self_type& x) const ynothrow
+	YB_ATTR_nodiscard YB_PURE bool
+	operator==(const tree_const_iterator& x) const ynothrow
 	{
 		return p_node == x.p_node;
 	}
-	bool
+	YB_ATTR_nodiscard YB_PURE bool
 	operator==(const iterator& x) const ynothrow
 	{
 		return p_node == x.p_node;
@@ -674,9 +688,9 @@ public:
 	using value_type = _type;
 	using pointer = value_type*;
 	using const_pointer = const value_type*;
-	using reference = value_type& ;
+	using reference = value_type&;
 	using const_reference = const value_type&;
-	using size_type = size_t ;
+	using size_type = size_t;
 	using difference_type = ptrdiff_t;
 	/*!
 	\brief 分配器类型。
@@ -692,11 +706,12 @@ protected:
 
 private:
 	using node_allocator = rebind_alloc_t<_tAlloc, tree_node<_type>>;
-	using alloc_traits = allocator_traits<node_allocator>;
+	//! \since build 864
+	using node_ator_traits = allocator_traits<node_allocator>;
 	//! \since build 844
 	using alloc_move_nothrow
-		= or_<typename alloc_traits::propagate_on_container_move_assignment,
-		typename alloc_traits::is_always_equal>;
+		= or_<typename node_ator_traits::propagate_on_container_move_assignment,
+		typename node_ator_traits::is_always_equal>;
 	struct alloc_node
 	{
 		tree& tree_ref;
@@ -706,7 +721,7 @@ private:
 		{}
 
 		template<typename _tParam>
-		link_type
+		inline link_type
 		operator()(_tParam&& arg) const
 		{
 			return tree_ref.create_node(yforward(arg));
@@ -784,14 +799,13 @@ private:
 
 protected:
 	template<typename _tKeyComp>
-	struct components : public node_allocator,
-		public tree_key_compare<_tKeyComp>, public tree_header
+	struct components : node_allocator, tree_key_compare<_tKeyComp>, tree_header
 	{
 		using base_key_compare = tree_key_compare<_tKeyComp>;
 
-		components() ynoexcept_spec(
-			and_<is_nothrow_default_constructible<node_allocator>,
-			is_nothrow_default_constructible<base_key_compare>>())
+		//! \since build 864
+		components() ynoexcept(
+			noexcept(node_allocator()) && noexcept(base_key_compare()))
 			: node_allocator()
 		{}
 		components(const _tKeyComp& comp, node_allocator&& a)
@@ -800,7 +814,7 @@ protected:
 		{}
 		components(const components& x)
 			: node_allocator(
-			alloc_traits::select_on_container_copy_construction(x)),
+			node_ator_traits::select_on_container_copy_construction(x)),
 			base_key_compare(x.key_compare), tree_header()
 		{}
 		components(components&&) = default;
@@ -812,7 +826,7 @@ public:
 	using iterator = tree_iterator<value_type>;
 	using const_iterator = tree_const_iterator<value_type>;
 	using reverse_iterator = ystdex::reverse_iterator<iterator>;
-	using const_reverse_iterator = ystdex::reverse_iterator<const_iterator> ;
+	using const_reverse_iterator = ystdex::reverse_iterator<const_iterator>;
 	using node_type = node_handle<_tKey, _type, node_allocator>;
 	using insert_return_type = node_insert_return<
 		cond_t<is_same<_tKey, _type>, const_iterator, iterator>, node_type>;
@@ -849,7 +863,7 @@ public:
 		: objects(x.objects.key_compare, std::move(a))
 	{
 		if(x.root())
-			move_data(x, typename alloc_traits::is_always_equal());
+			move_data(x, typename node_ator_traits::is_always_equal());
 	}
 	~tree() ynothrow
 	{
@@ -861,12 +875,13 @@ public:
 	{
 		if(&x != this)
 		{
-			if(typename alloc_traits::propagate_on_container_copy_assignment())
+			if(typename
+				node_ator_traits::propagate_on_container_copy_assignment())
 			{
 				auto& this_alloc(get_node_allocator());
 				auto& that_alloc(x.get_node_allocator());
 
-				if(!typename alloc_traits::is_always_equal()
+				if(!typename node_ator_traits::is_always_equal()
 					&& this_alloc != that_alloc)
 				{
 					clear();
@@ -883,9 +898,10 @@ public:
 		}
 		return *this;
 	}
+	//! \since build 864
 	tree&
-	operator=(tree&& x) ynoexcept_spec(
-		and_<alloc_move_nothrow, is_nothrow_move_assignable<_fComp>>::value)
+	operator=(tree&& x) ynoexcept(and_<alloc_move_nothrow,
+		is_nothrow_move_assignable<_fComp>>())
 	{
 		// NOTE: Like ISO C++ [res.on.arguments], moving same object to itself
 		//	is not supported to meet the postcondition of moving assignment,
@@ -913,23 +929,23 @@ public:
 	iterator
 	begin() ynothrow
 	{
-		return iterator(objects.header.left);
+		return iterator(objects.base_header.left);
 	}
 	const_iterator
 	begin() const ynothrow
 	{
-		return const_iterator(objects.header.left);
+		return const_iterator(objects.base_header.left);
 	}
 
 	iterator
 	end() ynothrow
 	{
-		return iterator(&objects.header);
+		return iterator(&objects.base_header);
 	}
 	const_iterator
 	end() const ynothrow
 	{
-		return const_iterator(&objects.header);
+		return const_iterator(&objects.base_header);
 	}
 
 	reverse_iterator
@@ -969,7 +985,7 @@ public:
 	size_type
 	max_size() const ynothrow
 	{
-		return alloc_traits::max_size(get_node_allocator());
+		return node_ator_traits::max_size(get_node_allocator());
 	}
 
 	allocator_type
@@ -978,8 +994,9 @@ public:
 		return allocator_type(get_node_allocator());
 	}
 
+	//! \since build 864
 	friend void
-	swap(tree& x, tree& y) ynoexcept_spec(is_nothrow_swappable<_fComp>::value)
+	swap(tree& x, tree& y) ynoexcept(is_nothrow_swappable<_fComp>())
 	{
 		if(!x.root())
 		{
@@ -1018,13 +1035,13 @@ protected:
 	YB_ATTR_nodiscard link_type
 	get_node()
 	{
-		return alloc_traits::allocate(get_node_allocator(), 1);
+		return node_ator_traits::allocate(get_node_allocator(), 1);
 	}
 
 	void
 	put_node(link_type p) ynothrow
 	{
-		alloc_traits::deallocate(get_node_allocator(), p, 1);
+		node_ator_traits::deallocate(get_node_allocator(), p, 1);
 	}
 
 	template<typename... _tParams>
@@ -1034,8 +1051,8 @@ protected:
 		try
 		{
 			::new(node) tree_node<_type>;
-			alloc_traits::construct(get_node_allocator(), node->access_ptr(),
-				yforward(args)...);
+			node_ator_traits::construct(get_node_allocator(),
+				node->access_ptr(), yforward(args)...);
 		}
 		catch(...)
 		{
@@ -1046,7 +1063,7 @@ protected:
 	}
 
 	template<typename... _tParams>
-	link_type
+	inline link_type
 	create_node(_tParams&&... args)
 	{
 		const auto tmp(get_node());
@@ -1058,7 +1075,7 @@ protected:
 	void
 	destroy_node(link_type p) ynothrow
 	{
-		alloc_traits::destroy(get_node_allocator(), p->access_ptr());
+		node_ator_traits::destroy(get_node_allocator(), p->access_ptr());
 		p->~tree_node<_type>();
 	}
 
@@ -1072,56 +1089,56 @@ protected:
 	base_ptr&
 	root() ynothrow
 	{
-		return objects.header.parent;
+		return objects.base_header.parent;
 	}
 	const_base_ptr
 	root() const ynothrow
 	{
-		return objects.header.parent;
+		return objects.base_header.parent;
 	}
 
 	base_ptr&
 	leftmost() ynothrow
 	{
-		return objects.header.left;
+		return objects.base_header.left;
 	}
 	const_base_ptr
 	leftmost() const ynothrow
 	{
-		return objects.header.left;
+		return objects.base_header.left;
 	}
 
 	base_ptr&
 	rightmost() ynothrow
 	{
-		return objects.header.right;
+		return objects.base_header.right;
 	}
 	const_base_ptr
 	rightmost() const ynothrow
 	{
-		return objects.header.right;
+		return objects.base_header.right;
 	}
 
 	link_type
 	node_begin() ynothrow
 	{
-		return link_type(objects.header.parent);
+		return link_type(objects.base_header.parent);
 	}
 	const_link_type
 	node_begin() const ynothrow
 	{
-		return const_link_type(objects.header.parent);
+		return const_link_type(objects.base_header.parent);
 	}
 
 	base_ptr
 	node_end() ynothrow
 	{
-		return &objects.header;
+		return &objects.base_header;
 	}
 	const_base_ptr
 	node_end() const ynothrow
 	{
-		return &objects.header;
+		return &objects.base_header;
 	}
 
 	static const _tKey&
@@ -1193,7 +1210,7 @@ protected:
 private:
 	//! \since build 840
 	template<typename _tParam>
-	bool
+	inline bool
 	is_insert_left(base_ptr p, const _tParam& arg)
 	{
 		return p == node_end() || !objects.key_compare(select_key(p), arg);
@@ -1201,7 +1218,7 @@ private:
 
 	//! \since build 840
 	template<typename _tParam>
-	bool
+	inline bool
 	is_insert_left_strict(base_ptr p, const _tParam& arg)
 	{
 		return p == node_end() || objects.key_compare(arg, select_key(p));
@@ -1217,7 +1234,7 @@ private:
 			|| is_insert_left_strict(p, _fKeyOfValue()(v)));
 		const link_type nd(node_gen(yforward(v)));
 
-		tree_insert_and_rebalance(insert_left, nd, p, objects.header);
+		tree_insert_and_rebalance(insert_left, nd, p, objects.base_header);
 		++objects.node_count;
 		return iterator(nd);
 	}
@@ -1226,7 +1243,7 @@ private:
 	insert_node(base_ptr x, base_ptr p, link_type nd)
 	{
 		tree_insert_and_rebalance(bool(x)
-			|| is_insert_left_strict(p, select_key(nd)), nd, p, objects.header);
+			|| is_insert_left_strict(p, select_key(nd)), nd, p, objects.base_header);
 		++objects.node_count;
 		return iterator(nd);
 	}
@@ -1240,7 +1257,7 @@ private:
 		const bool insert_left(is_insert_left(p, _fKeyOfValue()(v)));
 		const auto nd(create_node(yforward(v)));
 
-		tree_insert_and_rebalance(insert_left, nd, p, objects.header);
+		tree_insert_and_rebalance(insert_left, nd, p, objects.base_header);
 		++objects.node_count;
 		return iterator(nd);
 	}
@@ -1266,7 +1283,7 @@ private:
 	{
 		const bool insert_left(is_insert_left(p, select_key(nd)));
 
-		tree_insert_and_rebalance(insert_left, nd, p, objects.header);
+		tree_insert_and_rebalance(insert_left, nd, p, objects.base_header);
 		++objects.node_count;
 		return iterator(nd);
 	}
@@ -1374,7 +1391,7 @@ private:
 		return _tIter(y);
 	}
 	template<typename _tIter, class _tTree>
-	static _tIter
+	static inline _tIter
 	lower_bound_impl(_tTree& t, const key_type& k)
 	{
 		return lower_bound_impl<_tIter>(t, t.node_begin(), t.node_end(), k);
@@ -1395,7 +1412,7 @@ private:
 		return _tIter(y);
 	}
 	template<typename _tIter, class _tTree>
-	static _tIter
+	static inline _tIter
 	upper_bound_impl(_tTree& t, const key_type& k)
 	{
 		return lower_bound_impl<_tIter>(t, t.node_begin(), t.node_end(), k);
@@ -1662,7 +1679,7 @@ public:
 			node_gen) : insert_equal_lower(yforward(v));
 	}
 	template<typename _tParam>
-	iterator
+	inline iterator
 	insert_hint_equal(const_iterator position, _tParam&& x)
 	{
 		alloc_node an(*this);
@@ -1670,90 +1687,117 @@ public:
 		return insert_hint_equal(position, yforward(x), an);
 	}
 
+private:
+	// XXX: The return type can be incomplete before this template is
+	//	instantiated.
+	//! \since build 864
+	template<typename _func, yimpl(typename _tRes
+		= decltype(std::declval<_func&>()(std::declval<const key_type&>())))>
+	inline _tRes
+	insert_or_drop(link_type nd, _func f)
+	{
+		try
+		{
+			return f(select_key(nd));
+		}
+		catch(...)
+		{
+			drop_node(nd);
+			throw;
+		}
+	}
+
+public:
 	template<typename... _tParams>
-	std::pair<iterator, bool>
+	YB_FLATTEN inline std::pair<iterator, bool>
 	emplace_unique(_tParams&&... args)
 	{
-		const auto nd(create_node(yforward(args)...));
+		return emplace_unique_node(create_node(yforward(args)...));
+	}
 
-		try
-		{
-			using res_t = std::pair<iterator, bool>;
-			const auto pr(get_insert_unique_pos(select_key(nd)));
+private:
+	//! \since build 864
+	std::pair<iterator, bool>
+	emplace_unique_node(link_type nd)
+	{
+		return insert_or_drop(nd,
+			[&](const key_type& k) -> std::pair<iterator, bool>{
+			const auto pr(get_insert_unique_pos(k));
 	
 			if(pr.second)
-				return res_t(insert_node(pr.first, pr.second, nd), true);
+				return {insert_node(pr.first, pr.second, nd), true};
 			drop_node(nd);
-			return res_t(iterator(pr.first), {});
-		}
-		catch(...)
-		{
-			drop_node(nd);
-			throw;
-		}
+			return {iterator(pr.first), {}};
+		});
 	}
 
+public:
 	template<typename... _tParams>
-	iterator
+	YB_FLATTEN inline iterator
 	emplace_equal(_tParams&&... args)
 	{
-		const auto nd(create_node(yforward(args)...));
-
-		try
-		{
-			const auto pr(get_insert_equal_pos(select_key(nd)));
-
-			return insert_node(pr.first, pr.second, nd);
-		}
-		catch(...)
-		{
-			drop_node(nd);
-			throw;
-		}
+		return emplace_equal_node(create_node(yforward(args)...));
 	}
 
-	template<typename... _tParams>
+private:
+	//! \since build 864
 	iterator
+	emplace_equal_node(link_type nd)
+	{
+		return insert_or_drop(nd, [&](const key_type& k){
+			const auto pr(get_insert_equal_pos(k));
+
+			return insert_node(pr.first, pr.second, nd);
+		});
+	}
+
+public:
+	template<typename... _tParams>
+	YB_FLATTEN inline iterator
 	emplace_hint_unique(const_iterator position, _tParams&&... args)
 	{
-		const auto nd(create_node(yforward(args)...));
+		return
+			emplace_hint_unique_node(position, create_node(yforward(args)...));
+	}
 
-		try
-		{
-			const auto pr(get_insert_hint_unique_pos(position, select_key(nd)));
+private:
+	//! \since build 864
+	iterator
+	emplace_hint_unique_node(const_iterator position, link_type nd)
+	{
+		return insert_or_drop(nd, [&](const key_type& k){
+			const auto pr(get_insert_hint_unique_pos(position, k));
 
 			if(pr.second)
 				return insert_node(pr.first, pr.second, nd);
 			drop_node(nd);
 			return iterator(pr.first);
-		}
-		catch(...)
-		{
-			drop_node(nd);
-			throw;
-		}
+		});
 	}
 
+public:
 	template<typename... _tParams>
-	iterator
+	YB_FLATTEN inline iterator
 	emplace_hint_equal(const_iterator position, _tParams&&... args)
 	{
-		const auto nd(create_node(yforward(args)...));
+		return
+			emplace_hint_equal_node(position, create_node(yforward(args)...));
+	}
 
-		try
-		{
-			const auto pr(get_insert_hint_equal_pos(position, select_key(nd)));
+private:
+	//! \since build 864
+	iterator
+	emplace_hint_equal_node(const_iterator position, link_type nd)
+	{
+		return insert_or_drop([&](const key_type& k){
+			const auto pr(get_insert_hint_equal_pos(position, k));
 
 			return pr.second ? insert_node(pr.first, pr.second, nd)
 				: insert_equal_lower_node(nd);
-		}
-		catch(...)
-		{
-			drop_node(nd);
-			throw;
-		}
+		});
 	}
 
+public:
 	template<typename _tIn>
 	void
 	insert_unique(_tIn first, _tIn last)
@@ -1779,7 +1823,7 @@ private:
 	erase_node_aux(const_iterator position)
 	{
 		const auto y(link_type(tree_rebalance_for_erase(
-			const_cast<base_ptr>(position.p_node), objects.header)));
+			const_cast<base_ptr>(position.p_node), objects.base_header)));
 
 		drop_node(y);
 		--objects.node_count;
@@ -1795,7 +1839,7 @@ private:
 	}
 
 public:
-	iterator
+	YB_FLATTEN iterator
 	erase(const_iterator position)
 	{
 		yconstraint(position != end());
@@ -1806,7 +1850,7 @@ public:
 		erase_node_aux(position);
 		return res.cast_mutable();
 	}
-	iterator
+	YB_FLATTEN iterator
 	erase(iterator position)
 	{
 		yconstraint(position != end());
@@ -1817,7 +1861,7 @@ public:
 		erase_node_aux(position);
 		return res;
 	}
-	size_type
+	YB_FLATTEN size_type
 	erase(const key_type& x)
 	{
 		const auto pr(equal_range(x));
@@ -1826,13 +1870,13 @@ public:
 		erase_node_aux(pr.first, pr.second);
 		return old_size - size();
 	}
-	iterator
+	YB_FLATTEN iterator
 	erase(const_iterator first, const_iterator last)
 	{
 		erase_node_aux(first, last);
 		return last.cast_mutable();
 	}
-	void
+	YB_FLATTEN void
 	erase(const key_type* first, const key_type* last)
 	{
 		while(first != last)
@@ -1902,7 +1946,7 @@ public:
 	//@{
 	template<typename _tTransKey, typename
 		= enable_if_t<has_mem_is_transparent<_fComp, _tTransKey>::value>>
-	iterator
+	inline iterator
 	find_tr(const _tTransKey& k)
 	{
 		return ystdex::as_const(*this).find_tr(k).cast_mutable();
@@ -1920,7 +1964,7 @@ public:
 
 	template<typename _tTransKey, typename
 		= enable_if_t<has_mem_is_transparent<_fComp, _tTransKey>::value>>
-	size_type
+	inline size_type
 	count_tr(const _tTransKey& k) const
 	{
 		const auto pr(equal_range_tr(k));
@@ -1930,7 +1974,7 @@ public:
 
 	template<typename _tTransKey, typename
 		= enable_if_t<has_mem_is_transparent<_fComp, _tTransKey>::value>>
-	iterator
+	inline iterator
 	lower_bound_tr(const _tTransKey& k)
 	{
 		return ystdex::as_const(*this).lower_bound_tr(k).cast_mutable();
@@ -1956,7 +2000,7 @@ public:
 
 	template<typename _tTransKey, typename
 		= enable_if_t<has_mem_is_transparent<_fComp, _tTransKey>::value>>
-	iterator
+	inline iterator
 	upper_bound_tr(const _tTransKey& k)
 	{
 		return ystdex::as_const(*this).upper_bound_tr(k).cast_mutable();
@@ -1982,7 +2026,7 @@ public:
 
 	template<typename _tTransKey, typename
 		= enable_if_t<has_mem_is_transparent<_fComp, _tTransKey>::value>>
-	std::pair<iterator, iterator>
+	inline std::pair<iterator, iterator>
 	equal_range_tr(const _tTransKey& k)
 	{
 		const auto pr(ystdex::as_const(*this).equal_range_tr(k));
@@ -1996,9 +2040,9 @@ public:
 	{
 		auto low(lower_bound_tr(k));
 		auto high(low);
-		auto& tCmp(objects.key_compare);
+		auto& t_cmp(objects.key_compare);
 
-		while(high != end() && !tCmp(k, select_key(high.p_node)))
+		while(high != end() && !t_cmp(k, select_key(high.p_node)))
 			++high;
 		return {low, high};
 	}
@@ -2014,8 +2058,8 @@ public:
 	{
 		if(objects.node_count == 0 || begin() == end())
 			return objects.node_count == 0 && begin() == end()
-				&& objects.header.left == node_end()
-				&& objects.header.right == node_end();
+				&& objects.base_header.left == node_end()
+				&& objects.base_header.right == node_end();
 
 		const auto len(tree_black_count(leftmost(), root()));
 
@@ -2135,7 +2179,8 @@ public:
 			ret.position = end();
 		else
 		{
-			yassume(get_node_allocator() == *nh.m_alloc);
+			YAssert(get_node_allocator() == *nh.alloc,
+				"Mismatched allocators found.");
 
 			const auto pr(get_insert_unique_pos(nh.ckey()));
 
@@ -2164,7 +2209,8 @@ public:
 			ret = end();
 		else
 		{
-			yassume(get_node_allocator() == *nh.m_alloc);
+			YAssert(get_node_allocator() == *nh.alloc,
+				"Mismatched allocators found.");
 			
 			const auto res(get_insert_equal_pos(nh.ckey()));
 
@@ -2183,7 +2229,8 @@ public:
 			ret = end();
 		else
 		{
-			yassume(get_node_allocator() == *nh.m_alloc);
+			YAssert(get_node_allocator() == *nh.alloc,
+				"Mismatched allocators found.");
 
 			const auto res(get_insert_hint_unique_pos(hint, nh.ckey()));
 
@@ -2206,7 +2253,8 @@ public:
 			ret = end();
 		else
 		{
-			yassume(get_node_allocator() == *nh.m_alloc);
+			YAssert(get_node_allocator() == *nh.alloc,
+				"Mismatched allocators found.");
 
 			const auto res(get_insert_hint_equal_pos(hint, nh.ckey()));
 
@@ -2221,7 +2269,7 @@ public:
 	extract(const_iterator position)
 	{
 		const auto ptr(tree_rebalance_for_erase(position.cast_mutable().p_node,
-			objects.header));
+			objects.base_header));
 
 		--objects.node_count;
 		return {link_type(ptr), get_node_allocator()};
@@ -2230,7 +2278,8 @@ public:
 	extract(const key_type& k)
 	{
 		node_type nh;
-		auto position = find(k);
+		const auto position(find(k));
+
 		if(position != end())
 			nh = extract(const_iterator(position));
 		return nh;
@@ -2253,7 +2302,7 @@ public:
 				auto& src_objs(tree_merge_helper<tree, _fComp2>::get_components(
 					src));
 				const auto ptr(tree_rebalance_for_erase(position.p_node,
-					src_objs.header));
+					src_objs.base_header));
 
 				--src_objs.node_count;
 				insert_node(res.first, res.second, link_type(ptr));
@@ -2279,7 +2328,7 @@ public:
 				auto& src_objs(tree_merge_helper<tree, _fComp2>::get_components(
 					src));
 				const auto ptr(
-					tree_rebalance_for_erase(position.p_node, src_objs.header));
+					tree_rebalance_for_erase(position.p_node, src_objs.base_header));
 
 				--src_objs.node_count;
 				insert_node(pr.first, pr.second, link_type(ptr));

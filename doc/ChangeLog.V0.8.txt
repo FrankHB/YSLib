@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r13914
+\version r14273
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-08-01 18:25 +0800
+	2019-08-16 11:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,352 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YDefinition $=
+		(
+			/ "macro %YB_ASSUME" $=
+			(
+				/ $lib "specifically supported %__builtin_assume" ^ "condition \
+					'__has_builtin(__builtin_assume) \
+					|| YB_IMPL_CLANGPP >= 35100'",
+				/ $impl ^ 'void()' ~ 'void(0)'
+					// To be consistent to %YStandardEx.CAssert. This header has \
+						already no support ISO C anyway.
+			),
+			+ "macro %YB_ATTR_QUAL",
+			+ $dev $re_add(b862) "preceding and following '__' for attribute \
+				names conditons" @ "argument of %__has_attribute" $effective
+				@ "macros %(YB_ATTR_fallthrough, YB_ATTR_maybe_unused, \
+				YB_ATTR_nodiscard, YB_ATTR_nonnull, YB_ATTR_returns_nonnull)",
+			/ $lib ^ "%__builtin_offsetof when available"
+				@ "pseudo keyword %yoffsetof",
+			/ $lib "specifically supported Clang++" @ "macro %YB_FLATTEN"
+				^ "condition 'YB_IMPL_CLANGPP >= 30402'"
+		),
+		/ %YStandardEx $=
+		(
+			/ %Any
+			(
+				/ @ "namespace %any_ops" $=
+				(
+					(
+					+ "enumerator %get_allocator_ptr" @ "enum %base_op";
+					+ "handling of %get_allocator_ptr"
+						@ "static member function %manage" @ "class \
+						templates %(value_handler, allocator_value_handler)"
+					),
+					+ $dev $lib "static assertion to ensure the owned pointer \
+						is stored locally"
+						@ "class template %allocator_value_handler"
+				),
+				+ "metafunctions %(exclude_tag_t, exclude_tagged_params_t)",
+				/ @ "class %any" $=
+				(
+					- DLDI "redandant 'template'"
+						@ "constructors with allocator parameter",
+					/ DLDI "simplified %any" ^ $dep_from "%exclude_tag_t",
+					(
+					* "missing exclusion of tags at 1st parameter"
+						@ "function template %any::emplace#1" $since b677
+						$= (/ $impl ^ $dep_from "%exclude_tagged_params_t");
+					+ "3 function template overloads %emplace with allocator \
+						parameter" $dep_to "any allocator emplacement"
+					)
+				),
+				/ DLI "ruled out assertion condition of type sanity seperatedly"
+					@ "all 2 function templates %(unchecked_any_cast, \
+					unsafe_any_cast)" ^ "%YAssert"
+					// This is not efficient to be in %yconstrained in general.
+			),
+			/ %CAssert $=
+			(
+				// See $2019-08 @ %Documentation::Workflow::Annual2019.
+				/ "%YAssert" @ !'YB_Use_YAssert' ^ "%assert"
+					~ "%yassume",
+				+ "pseudo keyword %yverify"
+			),
+			/ DLI ("function templates %polymorphic_downcast#(1, 5)"
+				@ %Cast, "all 2 function templates %erase_n" @ %Container,
+				"member function %extract#1" @ "class template %map" @ %Map,
+				"function template %vsfmt" @ %String, $impl
+				"allocator equality checks" @ %Tree, "member function \
+				%oversized_map::deallocate" @ %MemoryResource) ^ "%YAssert"
+				~ "%yassume",
+			(
+			+ "macro %YB_VerifyIterator" @ %DerefOperation
+				^ $dep_from ("%yverify" @ %CAssert);
+			/ DLI "iterator verfication with %is_dereferenceable"
+				@ "function %share_sequence" @ "class template \
+				%transposed_iterator" @ %Iterator ^ "%yverify" ~ "%yassume",
+			/ DLI "iterator verfication with %is_dereferenceable" ^ $dep_from
+				"%YB_VerifyIterator" ~ "%(yassume, yconstraint)" $effective
+				@ %(Algorithm, Iterator, IteratorOperation,
+				Container, CStandardInteger, Placement)
+			),
+			/ %AddressOf $=
+			(
+				+ "unary type trait %has_no_overloaded_addressof",
+				/ @ "function templates %addressof" $=
+				(
+					+ $dev $lib 'YB_PURE' @ "all overloads not deleted",
+					* "ill-formed for incomplete type used in the parameter"
+						@ !'__cpp_lib_addressof_constexpr >= 201606L \
+						|| __has_builtin(__builtin_addressof)' $since b660
+						$dep_to "addressof fix",
+					+ 'YB_IMPL_GNUCPP >= 70100 || YB_IMPL_CLANGPP >= 30300'
+						@ "contition to use %__builtin_addressof"
+				)
+			),
+			* $comp "ill-formed instantiations of iterator types with \
+				incomplete %value_type" @ ($impl %Tree; %Map) $dep_from 
+				"addressof fix" $since b830 $dep_to
+				"map iterator to incomplete type fix",
+				// Another change of %__builtin_addressof also works for GCC \
+					>= 7.1.0.
+			/ %Placement $=
+			(
+				+ "pseudo keyword %yaligned"
+					^ $dep_from ("%yverify" @ %CAssert),
+				* "wrong exception specification" @ "default constructor \
+					%tagged_value" $since b718
+					$= (/ $impl !^ "%std::is_nothrow_default_constructible"),
+				/ DLDI "simplified exception specification"
+					@ "function template %constructor"
+					@ "class template %default_init_allocator"
+					!^ "%is_nothrow_default_constructible"
+			),
+			/ %Tree $=
+			(
+				/ DLDI "minor code format" @ %Tree,
+				+ DLDI "13 'inline'" @ "function templates"
+				/ DLI "split 4 function templates for emplacement"
+					-> "functions and function templates" ^ "%YF_FLATTEN"
+				+ DLI 'YF_FLATTEN' @ "5 functions for erasure",
+				- DLDI "redundant spaces before ';'",
+				- DLDI "%self_type" @ "iterator class templates",
+				/ DLI "hid %(iterator, link_type) as private aliases",
+				/ DLDI "renamed internal allocator traits alias for nodes",
+					// To be consistent to other headers.
+				* "ill-formed assertions due to wrong data member name of node \
+					handles when reinsertion functions are instantiated" $since
+					b830,
+				+ $re_add(b863) DLI 'YB_ATTR_nodiscard YB_PURE'
+					@ "internal access of nodes, iterator equality comparison \
+					and iterator dereference",
+				(
+				* "wrong exception specification" @ "tree %swap, tree data \
+					construction, tree move %operator= and and tree \
+					comparator constructors" $since b830
+					$= (/ $impl ^ "%ynoexcept" ~ "%ynoexcept_spec");
+				/ DLDI "simplified use of %(ynoexcept, \
+					is_nothrow_default_constructible)" -> "%ynoexcept_spec"
+				)
+			),
+			/ %Map $=
+			(
+				- $re_add(b861) DLDI "redundant '&&'"
+					@ "'*_constructible' template arguments",
+				+ DLDI "23 'inline'" @ "function templates",
+				/ DLI "all 'noexcept' noexcept-specifier" -> 'ynothrow'
+					$effective @ "functions %(cbegin, cend, crbegin, crend)"
+					@ "class template %map",
+				/ @ "class template %map" $=
+				(
+					/ DLDI ^ "%is_same" ~ "%std::is_same"
+					+ DD "'\note' commands to indicate \
+						implementation-defined types"
+						@ "aliases %(size_type, difference_type, \
+						iterator_type, const_iterator_type)",
+					/ DLI "simplified internal allocator traits"
+						!^ "rebinding with %rebind_alloc_t"
+						// This is needed for a traditional-libstdc++ \
+							extension which is not relied on. See comments of \
+							GCC r271866.
+					* "wrong exception specification" @ "member function %swap"
+						$since b848
+						$= (/ $impl ^ "%ynoexcept" ~ "%ynoexcept_spec"),
+					* "wrong exception specification" @ "friend function %swap"
+						$since b848
+						$= (/ $impl !^ "%noexcept"),
+					* $comp "wrong implicit exception specification"
+						@ "move %operator=" $since b830 $dep_from
+						("tree %operator=" @ %Tree)
+				)
+			),
+			/ %MemoryResource $=
+			(
+				/ DLI "simplified member function %memory_resource::allocate"
+					^ $dep_from ("%yaligned" @ %Placement)
+					~ "%(yassume, is_aligned_ptr)",
+				/ DLI "class template %pool_resource" ^ "%std::list"
+					~ "%vector",
+				/ @ "class %resource_pool" $=
+				(
+					+ "function %clear",
+					/ DLDI "hid default block next capacity value from header",
+					(
+					/ "move (constructor, %operator=)"
+						-> "private bases %(noncopyable, nonmovable)"
+						$dep_From "%pool_resource";
+					* $comp "termination on pool with wrong allocator moved \
+						due to %ynothrow" $since b863
+						// Internally the %ynothrow exception-specifier was \
+							designated since b843. This worked since the \
+							implementation guaranteed no incompatible \
+							allocator could be reached.
+					),
+					/ DLI "optimization" $=
+					(
+						/ "constructor" ^ $dep_from ("%yverify" @ %CAssert)
+							~ "%yconstraint",
+						/ "optimized function %allocate"
+							(!^ "%(ystdex::logical_not, retry_on_cond)",
+							^ $dep_from "%yverify" @ %CAssert ~ "%yconstraint"),
+						/ "simplified move constructor" !^ "%ystdex::exchange",
+						+ 'YB_PURE' @ "internal intrusive stack observers",
+						/ "simplified meta block data access"
+							^ $dep_from ("%yaligned" @ %Placement)
+							~ "%(yassume, is_aligned_ptr)",
+						(
+						/ "simplified block size passing in allocating block \
+							at the end of the chunk";
+						/ "stashed and empty pointer" -> "iterators" $dep_from
+							"map iterator to incomplete type fix"
+							$dep_from "%pool_resource";
+							// The invalidation requirements on move \
+								operations of pools count, unless all pools \
+								are guaranteed fixed. This is now done by \
+								using %std::list instead of %std::vector in \
+								%pool_resource.
+						/ "functions %(allocate, deallocate) avoided \
+							unnecessary key access"
+						),
+						/ "chunks emplacement" @ "function %allocate"
+							^ "%std::(piecewise_construct, forward_as_tuple)",
+							// Without newly add instances of %YB_FLATTEN in \
+								emplacement function templates in %Tree, this \
+								is more inefficient, at least with G++ 9.1 on \
+								x86-64 Linux.
+					)
+				),
+				+ DLI "pure attribute" @ "lambda-expression"
+					@ "internal pool finding" @ "member functions \
+					%pool_resource::(do_allocate, do_deallocate)" ^ $dep_from
+					("%YB_ATTR_LAMBDA_QUAL" @ %YDefinition),
+				/ DLI "simplified function %do_allocate"
+					@ !'__cpp_aligned_new >= 201606L' @ "internal resource"
+					@ "function %new_delete_resource" ^ $dep_from ("%yaligned"
+					@ %Placement) ~ "%(yconstraint, is_aligned_ptr)"
+			),
+			/ "class template %basic_string" @ %String $=
+			(
+				+ DD "'\see' command for LWG 2455" @ "Doxygen comment"
+					@ "default constructor",
+				/ DLDI 'this->' -> 'base::' $effective
+					@ ("operator %sv_type", "replace#9"),
+					// To be consistent.
+				+ "supported fix of LWG 2788"
+					$= (/ "function templates %(append, assign, insert, \
+						replace) with iterator parameters"
+						^ "%base::get_allocator")
+			),
+			+ %List,
+				// Currently only stubs and some internal implementations.
+			/ %Iterator $=
+			(
+				/ @ "class template %indirect_input_iterator" $=
+				(
+					/ "private data member" ^ "brace-init-list '{}'";
+					/ "default constructor" $=
+					(
+						/ $impl "defaulted";
+						/ $comp "conditional implicit 'constexpr' and \
+							'noexcept'"
+					)
+				)
+				/ @ "class template %transposed_iterator" $=
+				(
+					/ "all private data members"
+						^ "brace-or-equal-initializer '{}' or '= 0'";
+					/ $comp "conditional implicit 'constexpr' and 'noexcept'"
+						@ "defaulted default constructor"
+				)
+			)
+		)
+	),
+	* "ill-formed without '-std=c++2a'" @ %YDE.ImageBrowser.ImageControl $since
+		b863,
+		// The change required WG21 P0409R2.
+	/ %YFramework $=
+	(
+		/ %YSLib.Core.YObject $=
+		(
+			* "missing exclusion of tags at 1st parameter"
+				@ ("function template %emplace#1" @ "class %ValueObject"
+				$since b863, "function template %CreateInPlace#1"
+				@ "class template %HolderOperations")
+				$= (/ $impl ^ $dep_from ("%ystdex::exclude_tagged_params_t"
+					@ %YBase.YStandardEx.Any)),
+			(
+			+ "2nd parameter 'const any&'" @ "abstrat method %Create"
+				@ "interface %IValueHolder";
+			+ $forced "2nd parameter" @ "function %Create" @ "class templates \
+				%(ValueHolder, AllocatorHolder, PointerHolder, RefHolder)",
+			/ $forced DLDI "member function %ValueObject::Create"
+			),
+			/ @ "class template %AllocatorHolder" $=
+			(
+				/ "avoided stored allocator"
+					$dep_from ("2nd parameter" @ "%AllocatorHolder::Create")
+				(
+					/ "allocation for %(Copy, Move)" @ "function %Create"
+						^ "2nd parameter" ~ "stored allocator" $dep_from
+						("%any::ops::get_allocator_ptr"
+						@ %YBase.YStandardEx.Any);
+					- "function %get_allocator";
+					- "stored allocator"
+				),
+				/ "simplified" ^ "%ValueHolder" $=
+				(
+					+ $lib 'using Creation = IValueHolder::Creation;';
+					+ "public base class %ValueHolder<value_type>";
+					- "overriders (Equals, OwnsCount, get, type)"
+				),
+				- "allocator parameter" @ "constructor"
+			),
+			/ @ "class %ValueObject" $=
+			(
+				/ $forced "simplified" @ ("constructor#5", "emplace#2")
+					$dep_from ("constructor" @ "%AllocatorHolder"),
+				* "emplace#2 missing using of underlying allocator"
+					$dep_from "any allocator emplacement",
+				+ DLD "inline" @ ("all constructor templates",
+					"all function templates %emplace")
+			)
+		)
+	),
+	/ %Tools $=
+	(
+		/ %Scripts $=
+		(
+			+ '-Wl,-allow-multiple-definition' @ "default value"
+				@ "variable %LDFLAGS_IMPL_OPT" @ ("%SHBuild-common-options.sh",
+				"%SHBuild-YSLib-common.txt") $dep_to "script LTO workaround",
+			+ DLDI "note to null device" @ "%SHBuild-YSLib-common.txt"
+				// Similar to %SHBuild-common-options.sh, but the NPLA1 script \
+					has already handle it more smoothly than the shell script.
+		)
+		+ "'-flto -Wl,-allow-multiple-definition' after '-s' @ "linker option"
+			@ "non-debug configurations" @ %ProjectGenerator.Main
+	),
+	* $re_ex(b825) $comp $build "propable build failure with LTO"
+		@ "%release configurations" @ "platform %Win32" $since b353
+		$dep_from ("script LTO workaround", %Tools.ProjectGenerator.Main)
+),
+
+b863
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -4227,7 +4573,7 @@ b849
 					@ "internal functions",
 				/ @ "class template %polymorphic_allocator" $=
 				(
-					+ $workaround "pre-C++11 allocator members"
+					+ "workaround for pre-C++11 allocator members"
 						@ 'defined(__GLIBCXX__) && (__GLIBCXX__ <= 20150617 \
 						|| YB_IMPL_GNUCPP < 60000)' $dep_to
 						"G++ 5.3 workarounds",
@@ -4248,7 +4594,7 @@ b849
 							// To eliminate Microsoft VC++ 15.9.4 error: \
 								C3547. This should be conforming but it was \
 								not intended.
-						+ $workaround ^ "%std::forward" ~ "%yforward" $dep_to
+						+ "workaround" ^ "%std::forward" ~ "%yforward" $dep_to
 							"G++ 5.3 workarounds"
 					),
 					/ $re_add(b848) DLDI "simplified private member type"
@@ -4988,7 +5334,8 @@ b848
 			(
 				/ @ "class template %GHEvent" @ %YEvent $=
 				(
-					/ ^ $dep_from ("%ystdex::function"
+					(
+					/ $impl "base" ^ $dep_from ("%ystdex::function"
 						@ %YBase.YStandard.Function) ~ "%std::function"
 						$dep_from (("class template specialization \
 						%ystdex::make_parameter_tuple" @ %Function),
@@ -5008,6 +5355,9 @@ b848
 						@ "member function %swap",
 					+ "5 constructor templates with %std::allocator_arg_t and \
 						allocator parameters"
+					),
+					/ $revert_ex(b825) "smplified workaround"
+						@ "constructor with callable object parameter"
 				),
 				/ %YObject $=
 				(
@@ -10496,7 +10846,12 @@ b825
 						for equality",
 					/ "constructor with function type of \
 						%ystdex::make_expanded handled equality" $dep_to
-						"expanded equality of handlers"
+						"expanded equality of handlers",
+					+ "workaround for GCC LTO"
+						@ "constructor with callable object parameter"
+						$dep_to "LTO workaround"
+						// G++ 7.1.0 fails with multiple definitions on \
+							linking enabled with LTO.
 				)
 			),
 			+ DLDI "workaround for nonconforming %ftell return type"
@@ -10602,7 +10957,7 @@ b825
 		// See ISO C11 7.4/1.
 	* $build "missing commented out redundant '-ldswifi7 -lmm7'"
 		@ "variable %LIBS" @ "ARM7 makefile" @ "project %YSTest"
-		@ "platform %DS" $orig (@ "project makefile") $mismatch $since b132
+		@ "platform %DS" $orig (@ "project makefile") $mismatch $since b132,
 		// The libraries DS Wifi and MaxMod were never publicly used as \
 			dependencies.
 ),

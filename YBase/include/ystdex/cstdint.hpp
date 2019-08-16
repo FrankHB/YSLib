@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型和相关扩展操作。
-\version r631
+\version r634
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2019-01-03 02:19 +0800
+	2019-08-06 22:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "iterator_op.hpp" // for CHAR_BIT, size_t_, make_signed, make_unsigned,
 //	size_t, std::int64_t, std::uint64_t, is_signed, _t, common_type,
-//	cond_t, and_, is_unsigned, bool_, yconstraint, is_undereferenceable,
+//	cond_t, and_, is_unsigned, bool_, yconstraint, YB_VerifyIterator,
 //	ystdex::make_reverse_iterator;
 #include <limits>
 #include <numeric> // for std::accumulate;
@@ -463,7 +463,7 @@ pack_uint(_tIn first, _tIn last) ynothrowv
 		"Invalid integer width found.");
 	using utype = typename make_width_int<_vWidth>::unsigned_type;
 
-	yconstraint(!is_undereferenceable(first));
+	YB_VerifyIterator(first);
 	return std::accumulate(first, last, utype(), [](utype x, byte y){
 		return utype(x << std::numeric_limits<unsigned char>::digits
 			| utype(y));
@@ -486,7 +486,7 @@ unpack_uint(typename ystdex::make_width_int<_vWidth>::unsigned_type value,
 
 	while(!(_vWidth < (n -= std::numeric_limits<unsigned char>::digits)))
 	{
-		yconstraint(!is_undereferenceable(result));
+		YB_VerifyIterator(result);
 		*result = byte(value >> n);
 		++result;
 	}

@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r2984
+\version r3004
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2019-07-08 19:52 +0800
+	2019-08-14 11:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,13 +30,13 @@
 
 #include "memory.hpp" // for allocator_traits, enable_if_t, remove_cvref_t,
 //	false_, is_object, decay_t, std::declval, true_, nested_allocator, or_,
-//	is_same, is_enum, is_class;
+//	is_same, is_enum, yconstraint, is_class, yassume, YAssert;
 #include "string_view.hpp" // for internal "string_view.hpp" (implying
 //	"range.hpp" and "<libdefect/string.h>"), basic_string_view,
 //	std::char_traits, std::initializer_list, std::to_string, ntctslen;
 #include "container.hpp" // for "container.hpp", make_index_sequence,
 //	index_sequence, begin, end, size, sort_unique, underlying, std::hash;
-#include "cstdio.h" // for yconstraint, vfmtlen, ystdex::is_null;
+#include "cstdio.h" // for vfmtlen, ystdex::is_null;
 #include "array.hpp" // for std::bidirectional_iterator_tag, to_array;
 #include <istream> // for std::basic_istream;
 #include "ios.hpp" // for rethrow_badstate;
@@ -98,7 +98,10 @@ public:
 	//	original %basic_string type, and the return type %basic_string is this
 	//	class.
 
-	//! \see LWG 2193 。
+	/*!
+	\see LWG 2193 。
+	\see LWG 2455 。
+	*/
 	basic_string() ynoexcept_spec(_tAlloc())
 		: base()
 	{}
@@ -247,7 +250,7 @@ public:
 	YB_ATTR_nodiscard YB_PURE
 	operator sv_type() const ynothrow
 	{
-		return sv_type(this->data(), this->size());
+		return sv_type(base::data(), base::size());
 	}
 
 	basic_string&
@@ -304,11 +307,12 @@ public:
 		base::append(n, c);
 		return *this;
 	}
+	//! \see LWG 2788 。
 	template<typename _tIn>
 	basic_string&
 	append(_tIn first, _tIn last)
 	{
-		base::append(first, last);
+		base::append(base(first, last, base::get_allocator()));
 		return *this;
 	}
 	basic_string&
@@ -377,11 +381,12 @@ public:
 		base::assign(n, c);
 		return *this;
 	}
+	//! \see LWG 2788 。
 	template<typename _tIn>
 	basic_string&
 	assign(_tIn first, _tIn last)
 	{
-		base::assign(first, last);
+		base::assign(base(first, last, base::get_allocator()));
 		return *this;
 	}
 	basic_string&
@@ -433,7 +438,6 @@ public:
 		base::insert(pos, s);
 		return *this;
 	}
-
 	YB_NONNULL(3) basic_string&
 	insert(size_type pos, const _tChar* s, size_type n)
 	{
@@ -456,11 +460,13 @@ public:
 	{
 		return base::insert(p, n, c);
 	}
+	//! \see LWG 2788 。
 	template<typename _tIn>
 	iterator
 	insert(const_iterator p, _tIn first, _tIn last)
 	{
-		return base::insert(p, first, last);
+		return base::insert(p - base::begin(),
+			base(first, last, base::get_allocator()));
 	}
 	iterator
 	insert(const_iterator p, std::initializer_list<_tChar> il)
@@ -534,7 +540,7 @@ public:
 	basic_string&
 	replace(const_iterator i1, const_iterator i2, sv_type sv)
 	{
-		return replace(i1 - this->begin(), i2 - i1, sv);
+		return replace(i1 - base::begin(), i2 - i1, sv);
 	}
 	YB_NONNULL(4) basic_string&
 	replace(const_iterator i1, const_iterator i2, const _tChar* s, size_type n)
@@ -548,11 +554,13 @@ public:
 		base::replace(i1, i2, n, c);
 		return *this;
 	}
+	//! \see LWG 2788 。
 	template<typename _tIn>
 	basic_string&
 	replace(const_iterator i1, const_iterator i2, _tIn j1, _tIn j2)
 	{
-		base::replace(i1, i2, j1, j2);
+		base::replace(i1 - base::begin(), i2 - i1,
+			base(j1, j2, base::get_allocator()));
 		return *this;
 	}
 	basic_string&
@@ -1972,7 +1980,8 @@ vsfmt(const typename string_traits<_tString>::value_type* fmt,
 
 	if(l != 0)
 	{
-		yassume(str.length() > 0 && str[0] == typename _tString::value_type());
+		YAssert(str.length() > 0 && str[0] == typename _tString::value_type(),
+			"Invalid string value constructed.");
 		std::vsprintf(&str[0], fmt, args);
 	}
 	return str;

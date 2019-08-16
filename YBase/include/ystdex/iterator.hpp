@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2018 FrankHB.
+	© 2011-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r6084
+\version r6106
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2018-08-01 04:32 +0800
+	2019-08-06 22:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,8 @@
 #include "pointer.hpp" // for "iterator_op.hpp", iterator_operators_t,
 //	std::iterator_traits, _t, pointer_classify, cond_t, and_,
 //	exclude_self_t, enable_if_convertible_t, *_tag, ystdex::swap_dependent,
-//	yassume, is_undereferenceable, yconstraint, random_access_iteratable;
+//	YB_VerifyIterator, is_undereferenceable, yassume, yconstraint,
+//	random_access_iteratable;
 #include "type_op.hpp" // for first_tag, second_tag, std::tuple,
 //	make_index_sequence, index_sequence, std::get;
 #include "ref.hpp" // for invoke_result_t, ystdex::invoke, lref;
@@ -274,8 +275,8 @@ public:
 	template<typename _tIter2, typename _fTrans2, typename _tRef2,
 		yimpl(typename = enable_if_t<and_<not_<is_convertible<
 		transformed_iterator<_tIter2, _fTrans2, _tRef2>&&, iterator_type>>,
-		is_constructible<_tIter, _tIter2&&>,
-		is_constructible<_fTrans, _fTrans2&&>>::value>)>
+		is_constructible<_tIter, _tIter2>,
+		is_constructible<_fTrans, _fTrans2>>::value>)>
 	yconstfn
 	transformed_iterator(transformed_iterator<_tIter2, _fTrans2, _tRef2>&& i)
 		: transformer(std::move(i.transformer)), transformed(i.get())
@@ -798,12 +799,10 @@ public:
 	using reference = typename std::iterator_traits<iterator_type>::reference;
 
 private:
-	iterator_type iter;
+	iterator_type iter{};
 
 public:
-	indirect_input_iterator()
-		: iter()
-	{}
+	indirect_input_iterator() = default;
 	indirect_input_iterator(iterator_type i)
 		: iter(i)
 	{
@@ -824,24 +823,24 @@ public:
 
 	/*!
 	\brief 间接操作。
-	\pre 断言： <tt>!is_undereferenceable(iter)</tt> 。
+	\pre 断言：满足 YB_VerifyIterator 。
 	\since build 461
 	*/
 	reference
 	operator*() const
 	{
-		yassume(!is_undereferenceable(iter));
+		YB_VerifyIterator(iter);
 		return **iter;
 	}
 
 	/*!
 	\brief 迭代：向后遍历。
-	\pre 断言： <tt>!is_undereferenceable(iter)</tt> 。
+	\pre 断言：满足 YB_VerifyIterator 。
 	*/
 	indirect_input_iterator&
 	operator++()
 	{
-		yassume(!is_undereferenceable(iter));
+		YB_VerifyIterator(iter);
 		++*iter;
 		return *this;
 	}
@@ -898,8 +897,8 @@ public:
 	using size_type = make_unsigned_t<difference_type>;
 
 private:
-	iterator_type iter;
-	size_type width, height, row, col;
+	iterator_type iter{};
+	size_type width = 0, height = 0, row = 0, col = 0;
 
 public:
 	transposed_iterator() = default;
@@ -953,14 +952,14 @@ public:
 	reference
 	operator*() const
 	{
-		yconstraint(!is_undereferenceable(*this));
+		YB_VerifyIterator(*this);
 		return *get();
 	}
 
 	transposed_iterator&
 	operator++()
 	{
-		yconstraint(!is_undereferenceable(*this));
+		YB_VerifyIterator(*this);
 		if(++row == height)
 			yunseq(row = 0, ++col);
 		return *this;
@@ -1058,10 +1057,8 @@ public:
 	bool
 	share_sequence(const transposed_iterator& i) const ynothrow
 	{
-		yassume(!is_undereferenceable(*this)
-			|| (row == 0 && col == width)),
-		yassume(!is_undereferenceable(i)
-			|| (i.row == 0 && i.col == i.width));
+		yverify(!is_undereferenceable(*this) || (row == 0 && col == width)),
+		yverify(!is_undereferenceable(i) || (i.row == 0 && i.col == i.width));
 		return iter == i.iter && width == i.width && height == i.height;
 	}
 };
@@ -1244,7 +1241,7 @@ public:
 	reference
 	operator*() const ynothrowv
 	{
-		yassume(!is_undereferenceable(*this));
+		YB_VerifyIterator(*this);
 		return (*container_ptr)[index];
 	}
 

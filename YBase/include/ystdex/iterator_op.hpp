@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018 FrankHB.
+	© 2013-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file iterator_op.hpp
 \ingroup YStandardEx
 \brief 迭代器操作。
-\version r252
+\version r257
 \author FrankHB <frankhb1989@gmail.com>
 \since build 576
 \par 创建时间:
 	2015-02-09 11:28:52 +0800
 \par 修改时间:
-	2018-08-17 03:54 +0800
+	2019-08-06 22:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include "range.hpp" // for "range.hpp", std::next, std::prev,
 //	std::make_move_iterator, std::reverse_iterator, std::make_pair, begin, end;
 #include "cassert.h" // for yconstraint;
-#include "deref_op.hpp" // for "deref_op.hpp", is_undereferenceable;
+#include "deref_op.hpp" // for "deref_op.hpp", YB_VerifyIterator;
 #include "operators.hpp" // for input_iteratable, output_iteratable,
 //	forward_iteratable, bidirectional_iteratable, random_access_iteratable, _t;
 
@@ -47,7 +47,7 @@ namespace ystdex
 /*!
 \brief 迭代器指向的值满足条件时取邻接迭代器，否则取原值。
 \param i 指定的迭代器。
-\pre 迭代器可解引用，蕴含断言：<tt>!is_undereferenceable(i)</tt> 。
+\pre 迭代器可解引用，蕴含断言：满足 YB_VerifyIterator 。
 */
 //@{
 template<typename _tIn, typename _fPred>
@@ -55,7 +55,7 @@ _tIn
 next_if(_tIn i, _fPred f,
 	typename std::iterator_traits<_tIn>::difference_type n = 1)
 {
-	yconstraint(!is_undereferenceable(i));
+	YB_VerifyIterator(i);
 	return f(*i) ? std::next(i, n) : i;
 }
 template<typename _tIn, typename _type>
@@ -63,7 +63,7 @@ _tIn
 next_if_eq(_tIn i, const _type& val,
 	typename std::iterator_traits<_tIn>::difference_type n = 1)
 {
-	yconstraint(!is_undereferenceable(i));
+	YB_VerifyIterator(i);
 	return *i == val ? std::next(i, n) : i;
 }
 //@}

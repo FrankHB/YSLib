@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3554
+\version r3618
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2019-07-08 11:26 +0800
+	2019-08-11 20:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,21 +125,33 @@
 \since build 484
 */
 //@{
-//! \since build 628
+/*!
+\see http://clang.llvm.org/docs/LanguageExtensions.html#has-attribute 。
+\since build 628
+*/
 #ifndef __has_attribute
 #	define __has_attribute(...) 0
 #endif
 
-//! \since build 535
+/*!
+\see http://clang.llvm.org/docs/LanguageExtensions.html#has-builtin 。
+\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66970 。
+\since build 535
+*/
 #ifndef __has_builtin
 #	define __has_builtin(...) 0
 #endif
 
-//! \since build 591
+/*!
+\see http://clang.llvm.org/docs/LanguageExtensions.html#has-cpp-attribute 。
+\since build 591
+*/
 #ifndef __has_cpp_attribute
 #	define __has_cpp_attribute(...) 0
 #endif
 
+//! \see http://clang.llvm.org/docs/LanguageExtensions.html#has-feature-and-has-extension 。
+//@{
 #ifndef __has_extension
 #	define __has_extension(...) 0
 #endif
@@ -147,8 +159,12 @@
 #ifndef __has_feature
 #	define __has_feature(...) 0
 #endif
+//@}
 
-//! \since build 831
+/*!
+\see http://clang.llvm.org/docs/LanguageExtensions.html#has-include 。
+\since build 831
+*/
 #ifndef __has_include
 #	define __has_include(...) 0
 #endif
@@ -516,6 +532,19 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 #endif
 
 /*!
+\def YB_ATTR_LAMBDA_QUAL
+\brief 允许在 lambda 表达式的参数列表后和限定符共用的属性。
+\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60503 。
+\since build 864
+*/
+#if !(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 90100) && !YB_IMPL_CLANGPP
+#	define YB_ATTR_LAMBDA_QUAL(_q, ...) _q __VA_ARGS__
+#else
+#	define YB_ATTR_LAMBDA_QUAL(_q, ...) __VA_ARGS__ _q
+#endif
+
+
+/*!
 \def YB_ATTR_STD
 \brief C++ 标准属性。
 \note 注意和 GNU 风格不同，在使用时受限，如不能修饰 lambda 表达式非类型的声明。
@@ -542,7 +571,7 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 #	define YB_ATTR_fallthrough YB_ATTR_STD(clang::fallthrough)
 #elif __has_cpp_attribute(gnu::fallthrough)
 #	define YB_ATTR_fallthrough YB_ATTR_STD(gnu::fallthrough)
-#elif __has_attribute(fallthrough)
+#elif __has_attribute(__fallthrough__)
 #	define YB_ATTR_fallthrough YB_ATTR(__fallthrough__)
 #else
 #	define YB_ATTR_fallthrough
@@ -577,7 +606,7 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 #	define YB_ATTR_maybe_unused YB_ATTR_STD(maybe_unused)
 #elif __has_cpp_attribute(gnu::unused)
 #	define YB_ATTR_maybe_unused YB_ATTR_STD(gnu::unused)
-#elif __has_attribute(unused)
+#elif __has_attribute(__unused__)
 #	define YB_ATTR_maybe_unused YB_ATTR(__unused__)
 #else
 #	define YB_ATTR_maybe_unused
@@ -599,7 +628,7 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 #	define YB_ATTR_nodiscard YB_ATTR_STD(clang::warn_unused_result)
 #elif __has_cpp_attribute(gnu::warn_unused_result)
 #	define YB_ATTR_nodiscard YB_ATTR_STD(gnu::warn_unused_result)
-#elif __has_attribute(warn_unused_result)
+#elif __has_attribute(__warn_unused_result__)
 #	define YB_ATTR_nodiscard YB_ATTR(__warn_unused_result__)
 #else
 #	define YB_ATTR_nodiscard
@@ -643,7 +672,7 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 \see http://reviews.llvm.org/rL199790 。
 \todo 确认 Clang++ 最低可用的版本。
 */
-#if __has_attribute(returns_nonnull) || YB_IMPL_GNUC >= 40900 \
+#if __has_attribute(__returns_nonnull__) || YB_IMPL_GNUC >= 40900 \
 	|| YB_IMPL_CLANGPP >= 30500
 #	define YB_ATTR_returns_nonnull YB_ATTR(__returns_nonnull__)
 #else
@@ -676,17 +705,22 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 
 /*!
 \def YB_ASSUME(expr)
-\brief 假定表达式总是成立。
-\note 若假定成立有利于优化。
+\brief 假定表达式的求值总是为真。
+\note 未指定表达式是否被求值。
+\note 可作为优化提示。可能影响控制流预测，一般接近对应条件被求值的位置局部使用。
 \warning 若假定不成立则行为未定义。
+\see https://clang.llvm.org/docs/LanguageExtensions.html#builtin-assume 。
+\see https://reviews.llvm.org/rL217349 。
 \since build 535
 */
 #if YB_IMPL_MSCPP >= 1200
 #	define YB_ASSUME(_expr) __assume(_expr)
+#elif __has_builtin(__builtin_assume) || YB_IMPL_CLANGPP >= 35100
+#	define YB_ASSUME(_expr) __builtin_assume(_expr)
 #elif __has_builtin(__builtin_unreachable) || YB_IMPL_GNUCPP >= 40500
-#	define YB_ASSUME(_expr) ((_expr) ? void(0) : __builtin_unreachable())
+#	define YB_ASSUME(_expr) ((_expr) ? void() : __builtin_unreachable())
 #else
-#	define YB_ASSUME(_expr) ((_expr) ? void(0) : YB_ABORT)
+#	define YB_ASSUME(_expr) ((_expr) ? void() : YB_ABORT)
 #endif
 
 /*!
@@ -710,10 +744,12 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 \def YB_FLATTEN
 \brief 标记函数尽可能内联定义内的调用。
 \see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=48731 。
+\see https://bugs.llvm.org/show_bug.cgi?id=7559 。
+\see https://reviews.llvm.org/rL209217 。
 \since build 646
 */
-#if (__has_attribute(__flatten__) || YB_IMPL_GNUCPP >= 40102) \
-	&& YB_IMPL_GNUCPP != 40600
+#if (__has_attribute(__flatten__) || (YB_IMPL_GNUCPP >= 40102 \
+	&& YB_IMPL_GNUCPP != 40600) || YB_IMPL_CLANGPP >= 30402)
 #	define YB_FLATTEN YB_ATTR(__flatten__)
 #else
 #	define YB_FLATTEN
@@ -726,7 +762,7 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 \see https://clang.llvm.org/docs/AttributeReference.html#id15 。
 \since build 524
 */
-#if __has_attribute(nonnull) || YB_IMPL_GNUCPP >= 30300
+#if __has_attribute(__nonnull__) || YB_IMPL_GNUCPP >= 30300
 #	define YB_NONNULL(...) YB_ATTR(__nonnull__(__VA_ARGS__))
 #else
 #	define YB_NONNULL(...)
@@ -1310,14 +1346,26 @@ class offsetof_check
 \ingroup YBase_pseudo_keyword
 \brief 带有静态类型检查的成员偏移计算。
 \see ISO C++ 18.2/4 。
-\note 某些 G++ 和 Clang++ 版本可使用 __builtin_offsetof 及 -Winvalid-offsetof ，
-	但可移植性较差。
+\note 某些实现可直接使用 __builtin_offsetof 及 -Winvalid-offsetof 。
+\see https://gcc.gnu.org/onlinedocs/gcc-4.0.0/gcc/Offsetof.html 。
+\see https://docs.microsoft.com/en-us/cpp/cpp-conformance-improvements-2017?view=vs-2017 。
+\see https://reviews.llvm.org/rL46515 。
+\see https://bugs.llvm.org/show_bug.cgi?id=31178 。
 \since build 325
 */
-#define yoffsetof(_type, _member) \
+#if __has_builtin(__builtin_offsetof) || YB_IMPL_GNUCPP >= 40000 \
+	|| YB_IMPL_CLANGPP >= 20200
+#	define yoffsetof(_type, _member) \
+	(decltype(sizeof(ystdex::offsetof_check< \
+	std::is_member_object_pointer<decltype(&_type::_member)>::value, \
+	ynoexcept(__builtin_offsetof(_type, _member)), _type>))( \
+	__builtin_offsetof(_type, _member)))
+#else
+#	define yoffsetof(_type, _member) \
 	(decltype(sizeof(ystdex::offsetof_check<std::is_member_object_pointer< \
 	decltype(&_type::_member)>::value, ynoexcept(offsetof(_type, _member)), \
 	_type>))(offsetof(_type, _member)))
+#endif
 
 /*!
 \ingroup YBase_pseudo_keyword

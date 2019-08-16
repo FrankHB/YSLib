@@ -54,6 +54,7 @@
     <ClInclude Include="include\ystdex\iterator.hpp" />
     <ClInclude Include="include\ystdex\iterator_op.hpp" />
     <ClInclude Include="include\ystdex\iterator_trait.hpp" />
+    <ClInclude Include="include\ystdex\list.hpp" />
     <ClInclude Include="include\ystdex\map.hpp" />
     <ClInclude Include="include\ystdex\memory.hpp" />
     <ClInclude Include="include\ystdex\memory_resource.h" />

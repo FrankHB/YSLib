@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2017 FrankHB.
+	© 2010-2017, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r1419
+\version r1424
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2017-12-09 11:56 +0800
+	2019-08-06 20:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 #include <limits> // for std::numeric_limits;
 #include "exception.h" // for narrowing_error, std::addressof;
 #include <typeinfo> // for std::bad_cast;
-#include "cassert.h" // for yassume;
+#include "cassert.h" // for yassume, YAssert;
 
 //! \since build 175
 namespace ystdex
@@ -242,7 +242,7 @@ polymorphic_downcast(_tSrc* v) ynothrowv
 	static_assert(is_base_of<_tSrc, remove_cv_t<
 		remove_pointer_t<_pDst>>>(), "Wrong destination type found.");
 
-	yassume(dynamic_cast<_pDst>(v) == v);
+	YAssert(dynamic_cast<_pDst>(v) == v, "Invalid source operand found.");
 	return static_cast<_pDst>(v);
 }
 /*!
@@ -301,8 +301,8 @@ inline yimpl(enable_if_t)<!is_reference<_tDst>::value
 	&& !is_array<_tDst>::value, std::shared_ptr<_tDst>>
 polymorphic_downcast(const std::unique_ptr<_tSrc>& v) ynothrowv
 {
-	yassume(dynamic_cast<_tDst*>(v.get()) == v.get());
-
+	YAssert(dynamic_cast<_tDst*>(v.get()) == v.get(),
+		"Invalid source operand found.");
 	return std::static_pointer_cast<_tDst>(v);
 }
 //@}

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018 FrankHB.
+	© 2011-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file deref_op.hpp
 \ingroup YStandardEx
 \brief 解引用操作。
-\version r249
+\version r261
 \author FrankHB <frankhb1989@gmail.com>
 \since build 576
 \par 创建时间:
 	2015-02-10 13:12:26 +0800
 \par 修改时间:
-	2018-07-23 19:31 +0800
+	2019-08-06 22:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YB_INC_ystdex_deref_op_hpp_
 #define YB_INC_ystdex_deref_op_hpp_ 1
 
-#include "meta.hpp" // for "meta.hpp", decay_t;
+#include "meta.hpp" // for internal "meta.hpp", decay_t;
+#include "cassert.h" // for yverify;
 
 namespace ystdex
 {
@@ -53,6 +54,17 @@ is_undereferenceable(_type* p) ynothrow
 	return !p;
 }
 //@}
+
+
+/*!
+\brief 验证表达式求值的迭代器的有效性。
+\note 同 yverify ，一定条件下可忽略验证。
+\note 验证条件使用 ADL is_undereferenceable 。
+\sa is_undefeferenceable
+\sa yverify
+\since build 864
+*/
+#define YB_VerifyIterator(_expr) yverify(!is_undereferenceable(_expr))
 
 
 //! \since build 749

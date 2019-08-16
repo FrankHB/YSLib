@@ -11,13 +11,13 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r861
+\version r899
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2019-07-14 12:30 +0800
+	2019-08-16 09:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,8 +33,9 @@
 #include "addressof.hpp" // for "addressof.hpp", cond_t, is_void, _t, vdefer,
 //	std::align, sizeof_t, size_t_, identity, empty_base, YB_ASSUME,
 //	ystdex::addressof, is_lvalue_reference, std::pair, std::allocator,
-//	std::allocator_traits, enable_if_convertible_t, std::unique_ptr;
-#include "cstdint.hpp" // for is_power_of_2, yconstraint, is_undereferenceable,
+//	std::allocator_traits, enable_if_convertible_t, std::unique_ptr,
+//	is_nothrow_destructible;
+#include "cstdint.hpp" // for is_power_of_2, yconstraint, YB_VerifyIterator,
 //	std::iterator_traits, vseq, ctor_of, when, _a;
 #include <new> // for placement ::operator new from standard library;
 // NOTE: The following code is necessary to check for <optional> header to
@@ -108,6 +109,29 @@ is_aligned_ptr(_type* p, size_t alignment
 
 	return bool(std::align(alignment, space, ptr, space));
 }
+
+
+/*!
+\ingroup YBase_pseudo_keyword
+\def yaligned
+\brief 假定指定指针值按指定对齐值对齐。
+\sa yassume
+\sa yverify
+\see WG21 P0886R0 。
+\see https://gcc.gnu.org/gcc-4.7/changes.html 。
+\see https://clang.llvm.org/docs/LanguageExtensions.html#builtin-functions 。
+\since build 864
+*/
+#if __has_builtin(__builtin_assume_aligned) || YB_IMPL_GNUCPP >= 40700 \
+	|| YB_IMPL_CLANGPP >= 35100
+#	define yaligned(_p, _align) \
+	(yverify(ystdex::is_aligned_ptr(_p, _align)), \
+		__builtin_assume_aligned(_p, _align))
+#else
+#	define yaligned(_p, _align) \
+		(yassume(ystdex::is_aligned_ptr(_p, _align)), _p)
+#endif
+
 
 /*!
 \ingroup tags
@@ -328,7 +352,7 @@ construct_in(_type& obj, _tParams&&... args)
 /*!
 \tparam _tParams 用于构造对象的参数包类型。
 \param args 用于构造对象的参数包。
-\pre 断言：指定范围末尾以外的迭代器满足 <tt>!is_undereferenceable</tt> 。
+\pre 断言：指定范围末尾以外的迭代器满足 YB_VerifyIterator 。
 */
 //@{
 /*!
@@ -344,7 +368,7 @@ construct(_tIter i, _tParams&&... args)
 {
 	using value_type = typename std::iterator_traits<_tIter>::value_type;
 
-	yconstraint(!is_undereferenceable(i));
+	YB_VerifyIterator(i);
 	ystdex::construct_within<value_type>(*i, yforward(args)...);
 }
 
@@ -359,7 +383,7 @@ construct_default(_tIter i)
 {
 	using value_type = typename std::iterator_traits<_tIter>::value_type;
 
-	yconstraint(!is_undereferenceable(i));
+	YB_VerifyIterator(i);
 	ystdex::construct_default_within<value_type>(*i);
 }
 
@@ -465,7 +489,7 @@ destruct_in(_type& obj)
 /*!
 \brief 析构迭代器指向的对象。
 \param i 迭代器。
-\pre 断言：<tt>!is_undereferenceable(i)</tt> 。
+\pre 断言：满足 YB_VerifyIterator 。
 \sa destroy
 */
 template<typename _tIter>
@@ -474,7 +498,7 @@ destruct(_tIter i)
 {
 	using value_type = typename std::iterator_traits<_tIter>::value_type;
 
-	yconstraint(!is_undereferenceable(i));
+	YB_VerifyIterator(i);
 	ystdex::destruct_in<value_type>(*i);
 }
 
@@ -693,10 +717,10 @@ public:
 	*/
 	using allocator_type::allocator_type;
 
+	//! \since build 864
 	template<typename _tOther>
 	void
-	construct(_tOther* p)
-		ynoexcept(std::is_nothrow_default_constructible<_tOther>::value)
+	construct(_tOther* p) ynoexcept(_tOther())
 	{
 		::new(static_cast<void*>(p)) _tOther;
 	}
@@ -759,9 +783,14 @@ struct tagged_value
 		mutable _type value;
 	};
 
+	//! \since build 864
 	yconstfn
-	tagged_value()
-		ynoexcept_spec(is_nothrow_default_constructible<token_type>())
+#if !YB_IMPL_GNUCPP || YB_IMPL_GNUCPP < 70000 || YB_IMPL_GNUCPP > 70300
+	tagged_value() ynoexcept_spec(token_type())
+	// XXX: Blocked. See $2019-08 @ %Documentation::Workflow::Annual2019.
+#else
+	tagged_value() ynoexcept(is_nothrow_default_constructible<token_type>())
+#endif
 		: token(), empty()
 	{}
 	explicit

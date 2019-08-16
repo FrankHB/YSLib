@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2018 FrankHB.
+	© 2012-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cassert.h
 \ingroup YStandardEx
 \brief ISO C 断言/调试跟踪扩展。
-\version r221
+\version r258
 \author FrankHB <frankhb1989@gmail.com>
 \since build 432
 \par 创建时间:
 	2013-07-27 04:11:53 +0800
 \par 修改时间:
-	2018-07-24 22:51 +0800
+	2019-08-06 22:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,14 +77,34 @@ ytrace(std::FILE*, std::uint8_t, std::uint8_t, const char*, int, const char*,
 */
 //@{
 /*!
+\note 未指定表达式是否被求值。
+\sa YB_ASSUME
+\since build 535
+*/
+//@{
+/*!
+\def yassume
+\brief 假定：环境语义。
+\note 和普通断言相比强调非接口契约。
+
+运行时检查的环境条件约束断言。
+用于需要假设表达式求值结果为真但明确不通过接口直接约束的情形。
+*/
+#ifdef NDEBUG
+#	define yassume(_expr) (YB_ASSUME(_expr), void())
+#else
+#	define yassume(_expr) (assert(_expr), void())
+#endif
+
+/*!
 \def yconstraint
 \brief 约束：接口语义。
-\note 和普通断言相比强调接口契约。对移植特定的平台实现时应予以特别注意。
+\note 和普通断言相比强调接口契约。
 \note 使用常量表达式在 ISO C++11 constexpr 模板中合式。
 \see $2015-10 @ %Documentation::Workflow::Annual2015.
-\since build 535
 
-运行时检查的接口语义约束断言。不满足此断言的行为是接口明确地未定义的，行为不可预测。
+可能在运行时检查的接口语义约束断言。
+不满足此断言的行为是接口明确地未定义的，行为不可预测。
 */
 #ifdef NDEBUG
 #	define yconstraint(_expr) (YB_ASSUME(_expr), void())
@@ -93,33 +113,39 @@ ytrace(std::FILE*, std::uint8_t, std::uint8_t, const char*, int, const char*,
 	((_expr) ? void() : ystdex::yassert(#_expr, __FILE__, __LINE__, \
 		"Constraint violation."))
 #endif
+//@}
 
 /*!
-\ingroup YBase_pseudo_keyword
-\def yassume
-\brief 假定：环境语义。
-\note 和普通断言相比强调非接口契约。对移植特定的平台实现时应予以特别注意。
-\since build 535
+\def yverify
+\brief 验证：执行语义。
+\note 和普通断言相比强调执行中状态。
+\since build 864
 
-运行时检查的环境条件约束断言。用于明确地非 yconstraint 适用的情形。
+运行时检查的验证状态语义约束断言。
+同标准库的宏 assert ，定义 NDEBUG 时表达式不被求值。
 */
 #ifdef NDEBUG
-#	define yassume(_expr) (YB_ASSUME(_expr), void())
+#	define yverify(_expr) void()
 #else
-#	define yassume(_expr) (assert(_expr), void())
+#	define yverify(_expr) \
+	((_expr) ? void() : ystdex::yassert(#_expr, __FILE__, __LINE__, \
+		"Verification failure."))
 #endif
 //@}
 
 
+// NOTE: As %assert, this may be undefined and redefined.
 #ifndef YAssert
 #	if YB_Use_YAssert
 #		define YAssert(_expr, _msg) \
 	((_expr) ? void(0) : ystdex::yassert(#_expr, __FILE__, __LINE__, _msg))
 #	else
-#		define YAssert(_expr, _msg) yassume(_expr)
+// XXX: This does not use %yassume to prevent %_expr being evaluated.
+#		define YAssert(_expr, _msg) assert(_expr)
 #	endif
 #endif
 
+// NOTE: As %assert, this may be undefined and redefined.
 #ifndef YAssertNonnull
 //! \since build 495
 #	define YAssertNonnull(_expr) YAssert(bool(_expr), "Null reference found.")

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016, 2018 FrankHB.
+	© 2015-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file addressof.hpp
 \ingroup YStandardEx
 \brief 一元操作符 & 和取指针的相关接口。
-\version r199
+\version r228
 \author FrankHB <frankhb1989@gmail.com>
 \since build 660
 \par 创建时间:
 	2015-12-17 10:07:56 +0800
 \par 修改时间:
-	2018-10-29 11:00 +0800
+	2019-08-10 14:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,15 +36,15 @@
 #include <memory> // for std::addressof;
 
 /*!
-\brief \<memory\> 特性测试宏。
+\brief \c \<memory> 特性测试宏。
 \see https://isocpp.org/std/standing-documents/sd-6-sg10-feature-test-recommendations 。
 \see https://blogs.msdn.microsoft.com/vcblog/2015/06/19/c111417-features-in-vs-2015-rtm/ 。
 \since build 832
 */
 //@{
 // XXX: There was once no feature test macro provided. See http://www.open-std.org/pipermail/features/2016-March/000399.html.
-// XXX: It is known 'std::addressof' has 'constexpr' in VC++ 15.6.4. Not sure
-//	which is the initial version as it seems undocumented.
+// XXX: It is known 'std::addressof' has 'constexpr' in Microsoft VC++ 15.6.4.
+//	Not sure which is the initial version as it seems undocumented.
 // TODO: Get more accurate version.
 #ifndef __cpp_lib_addressof_constexpr
 #	if (YB_IMPL_MSCPP >= 1913 && _MSVC_LANG >= 201606) || __cplusplus >= 201606L
@@ -70,8 +70,9 @@ using addressof_free_t = decltype(operator&(std::declval<const _type&>()));
 
 } // namespace details;
 
+//! \ingroup unary_type_traits
+//@{
 /*!
-\ingroup unary_type_traits
 \brief 判断是否存在合式重载 & 操作符接受指定类型的表达式。
 \pre 参数不为不完整类型。
 \since build 649
@@ -84,9 +85,23 @@ struct has_overloaded_addressof
 
 
 /*!
+\brief 判断是否无法重载 & 操作符接受指定类型的表达式。
+\note 支持参数为不完整类型的情形。不排除任意可能重载 & 的类型。
+\since build 864
+*/
+template<typename _type>
+struct has_no_overloaded_addressof
+	: or_<is_arithmetic<remove_cvref_t<_type>>, is_array<remove_cvref_t<_type>>,
+	is_function<remove_reference_t<_type>>, is_null_pointer<_type>>
+{};
+//@}
+
+
+/*!
 \brief 尝试对非重载 operator& 提供 constexpr 的 std::addressof 替代。
 \since build 831
 \see LWG 2296 。
+\see https://reviews.llvm.org/rL186053 。
 
 提供和 ISO C++17 的 std::addressof 尽可能相同的接口。
 在 ISO C++17 前， constexpr 需要扩展支持。
@@ -97,20 +112,22 @@ Microsoft VC++ 15.7.5 也使用 [[nodiscard]] 。
 #if __cpp_lib_addressof_constexpr >= 201606L
 using std::addressof;
 #else
-#	if __has_builtin(__builtin_addressof)
+// NOTE: This is implemented since GCC r240873.
+#	if __has_builtin(__builtin_addressof) || YB_IMPL_GNUCPP >= 70100 \
+	|| YB_IMPL_CLANGPP >= 30300
 //! \since build 833
 template<typename _type>
-YB_ATTR_nodiscard yconstfn _type*
+YB_ATTR_nodiscard YB_PURE yconstfn _type*
 addressof(_type& r) ynothrow
 {
 	return __builtin_addressof(r);
 }
 #	else
-//@{
 //! \since build 833
+//@{
 template<typename _type>
-YB_ATTR_nodiscard yconstfn
-	yimpl(enable_if_t)<!has_overloaded_addressof<_type>::value, _type*>
+YB_ATTR_nodiscard YB_PURE yconstfn
+	yimpl(enable_if_t)<has_no_overloaded_addressof<_type>::value, _type*>
 addressof(_type& r) ynothrow
 {
 	return &r;
@@ -118,11 +135,10 @@ addressof(_type& r) ynothrow
 /*!
 \note 因为可移植性需要，不能直接提供 constexpr 。
 \warning ISO C++17 前无 constexpr 支持。
-\since build 833
 */
 template<typename _type,
-	yimpl(typename = enable_if_t<has_overloaded_addressof<_type>::value>)>
-YB_ATTR_nodiscard inline _type*
+	yimpl(typename = enable_if_t<!has_no_overloaded_addressof<_type>::value>)>
+YB_ATTR_nodiscard YB_PURE inline _type*
 addressof(_type& r) ynothrow
 {
 	return std::addressof(r);

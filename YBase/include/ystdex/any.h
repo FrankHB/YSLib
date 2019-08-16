@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r4596
+\version r4801
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2019-07-23 23:26 +0800
+	2019-08-16 11:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 //	ystdex::type_id, well_formed_t, is_convertible, enable_if_t,
 //	is_nothrow_move_constructible, and_, is_decayed, bool_, noncopyable,
 //	nonmovable, or_, is_copy_constructible, remove_reference_t, cond_t, is_same,
-//	is_class, std::bad_cast, nor_, std::declval, yconstraint, decay_t;
+//	is_class, std::bad_cast, nor_, std::declval, yconstraint, YAssert, decay_t;
 #include "utility.hpp" // for internal "utility.hpp", boxed_value,
 //	std::addressof, std::unique_ptr, standard_layout_storage, aligned_storage_t,
 //	is_aligned_storable, ystdex::pvoid, default_init_t, default_init, vseq::_a,
@@ -308,11 +308,20 @@ enum base_op : op_code
 	/*!
 	\brief 取重绑定到 byte 的分配器的类型。
 
-	取源对象关联的分配器的类型，结果为 const type_info& 。
+	取源对象保存的分配器的类型，结果为 const type_info& 。
 	要求已构造结果对象类型 const type_info* ，用于保存结果。
 	若分配器不存在，则结果为 ystdex::type_id<void> 。
 	*/
 	get_allocator_type,
+	/*!
+	\brief 取指向重绑定到 byte 的分配器对象的指针。
+	\since build 864
+
+	取指向源对象保存的分配器的指针，结果为 void* 。
+	要求已构造结果对象类型 void* ，用于保存结果。
+	若分配器不存在，则结果为空指针。
+	*/
+	get_allocator_ptr,
 	/*!
 	\brief 以分配器复制。
 
@@ -594,6 +603,9 @@ public:
 			break;
 		case get_holder_ptr:
 			d = static_cast<holder*>(nullptr);
+			break;
+		case get_allocator_ptr:
+			d = static_cast<void*>(nullptr);
 		}
 	}
 };
@@ -761,6 +773,9 @@ private:
 	using deleter_type = allocator_delete<ator_type>;
 	using ator_owned_ptr = std::unique_ptr<value_type, deleter_type>;
 	using rebound_ator_type = rebind_alloc_t<ator_type, byte>;
+	//! \since build 864
+	static_assert(is_in_place_storable<ator_owned_ptr>(),
+		"Insufficient storage for the owner pointer type found.");
 
 public:
 	using base = value_handler<ator_owned_ptr>;
@@ -863,6 +878,10 @@ public:
 			break;
 		case get_allocator_type:
 			d = &ystdex::type_id<rebound_ator_type>();
+			break;
+		case get_allocator_ptr:
+			d = static_cast<void*>(std::addressof(
+				base::get_reference(s).get_deleter().get_allocator()));
 			break;
 		case clone_with_allocator:
 			do_with_allocator(d, s,
@@ -1037,6 +1056,48 @@ public:
 	YB_ATTR_nodiscard YB_ATTR_returns_nonnull yimpl(YB_PURE) virtual const char*
 	what() const ynothrow override;
 };
+
+
+//! \since build 864
+namespace details
+{
+
+template<bool _vInPlace = false>
+struct alloc_tag : bool_<_vInPlace>
+{};
+
+template<typename _type>
+using not_tag_t = nor_<is_instance_of<_type, vseq::_a<in_place_type_t>>,
+	is_same<_type, std::allocator_arg_t>, is_same<_type, any_ops::use_holder_t>,
+	is_instance_of<_type, vseq::_a<any_ops::with_handler_t>>,
+	is_same<_type, alloc_tag<>>, is_same<_type, alloc_tag<true>>>;
+
+template<typename _type>
+using decayed_not_tag_t = not_tag_t<decay_t<_type>>;
+
+template<typename _type>
+using any_in_place_t
+	= alloc_tag<any_ops::is_in_place_storable<decay_t<_type>>::value>;
+
+} // namespace details;
+
+
+/*!
+\ingroup metafunctions
+\since build 864
+*/
+//@{
+//! \brief 排除选择类型为标签的重载。
+template<typename _tSelected, typename _type = void>
+using exclude_tag_t
+	= enable_if_t<details::decayed_not_tag_t<_tSelected>::value, _type>;
+
+//! \brief 排除选择类型的第一个参数为标签的重载。
+template<typename... _tParams>
+using exclude_tagged_params_t
+	= enable_if_t<sizeof...(_tParams) == 0 ? true : details::decayed_not_tag_t<
+	vseq::front_t<empty_base<_tParams...>>>::value>;
+//@}
 
 
 //! \since build 687
@@ -1254,44 +1315,74 @@ public:
 template<class _tAny>
 struct any_emplace
 {
-	//! \since build 848
-	//@{
+	//! \since build 864
+	template<bool _vInPlace = false>
+	using alloc_tag = details::alloc_tag<_vInPlace>;
+	template<typename _type>
+	using opt_in_place_t = details::any_in_place_t<_type>;
+
 	/*!
 	\exception YStandardEx 扩展：异常中立：由持有者抛出。
 	\see LWG 2857 。 
+	\since build 848
 	*/
 	//@{
-	template<typename _type, typename... _tParams>
-	decay_t<_type>&
+	template<typename _type, typename... _tParams,
+		yimpl(typename = exclude_tagged_params_t<_tParams...>)>
+	inline decay_t<_type>&
 	emplace(_tParams&&... args)
 	{
-		emplace_with_handler<any_ops::value_handler<decay_t<_type>>>(
+		return emplace_within<_type>(yforward(args)...);
+	}
+	/*!
+	\ingroup YBase_replacement_extensions
+	\since build 864
+	*/
+	template<typename _type, class _tAlloc, typename... _tParams>
+	inline decay_t<_type>&
+	emplace(std::allocator_arg_t, const _tAlloc& a, _tParams&&... args)
+	{
+		return emplace_with_tag<_type>(opt_in_place_t<_type>(), a,
 			yforward(args)...);
-		return unchecked_target_ref<_type>();
 	}
 	template<typename _type, typename _tOther, typename... _tParams>
-	decay_t<_type>&
+	inline decay_t<_type>&
 	emplace(std::initializer_list<_tOther> il, _tParams&&... args)
 	{
-		emplace_with_handler<any_ops::value_handler<decay_t<_type>>>(il,
+		return emplace_within<_type>(il, yforward(args)...);
+	}
+	/*!
+	\ingroup YBase_replacement_extensions
+	\since build 864
+	*/
+	template<typename _type, class _tAlloc, typename _tOther,
+		typename... _tParams>
+	inline decay_t<_type>&
+	emplace(std::allocator_arg_t, const _tAlloc& a,
+		std::initializer_list<_tOther> il, _tParams&&... args)
+	{
+		return emplace_with_tag<_type>(opt_in_place_t<_type>(), a, il,
 			yforward(args)...);
-		return unchecked_target_ref<_type>();
 	}
 	//@}
 	// NOTE: The return is similar but different to overloads above.
 	//! \ingroup YBase_replacement_extensions
+	//@{
+	//! \since build 848
 	template<typename _tHolder, typename... _tParams>
-	decay_t<_tHolder>&
+	inline decay_t<_tHolder>&
 	emplace(any_ops::use_holder_t, _tParams&&... args)
 	{
-		emplace_with_handler<any_ops::holder_handler<decay_t<_tHolder>>>(
-			yforward(args)...);
-
-		const auto p_holder(static_cast<decay_t<_tHolder>*>(
-			static_cast<_tAny&>(*this).unchecked_get_holder()));
-
-		yassume(p_holder);
-		return *p_holder;
+		return emplace_within<_tHolder>(any_ops::use_holder, yforward(args)...);
+	}
+	//! \since build 864
+	template<typename _tHolder, class _tAlloc, typename... _tParams>
+	inline decay_t<_tHolder>&
+	emplace(std::allocator_arg_t, const _tAlloc& a, any_ops::use_holder_t,
+		_tParams&&... args)
+	{
+		return emplace_with_tag<_tHolder>(opt_in_place_t<_tHolder>(), a,
+			any_ops::use_holder, yforward(args)...);
 	}
 	//@}
 
@@ -1313,6 +1404,81 @@ struct any_emplace
 			throw;
 		}
 	}
+
+private:
+	//! \since build 864
+	//@{
+	template<typename _type, class _tAlloc, typename... _tParams>
+	inline decay_t<_type>&
+	emplace_with_tag(alloc_tag<true>, const _tAlloc&, _tParams&&... args)
+	{
+		return emplace_within<_type>(yforward(args)...);
+	}
+	template<typename _type, class _tAlloc, typename... _tParams>
+	decay_t<_type>&
+	emplace_with_tag(alloc_tag<>, const _tAlloc& a, _tParams&&... args)
+	{
+		emplace_with_handler<any_ops::allocator_value_handler<_tAlloc,
+			decay_t<_type>>>(a, yforward(args)...);
+		return unchecked_target_ref<_type>();
+	}
+	template<typename _type, class _tAlloc, typename _tOther,
+		typename... _tParams>
+	decay_t<_type>&
+	emplace_with_tag(alloc_tag<>, const _tAlloc& a,
+		std::initializer_list<_tOther> il, _tParams&&... args)
+	{
+		emplace_with_handler<any_ops::allocator_value_handler<_tAlloc,
+			decay_t<_type>>>(a, il, yforward(args)...);
+		return unchecked_target_ref<_type>();
+	}
+	template<typename _tHolder, class _tAlloc, typename... _tParams>
+	decay_t<_tHolder>&
+	emplace_with_tag(alloc_tag<>, const _tAlloc& a, any_ops::use_holder_t,
+		_tParams&&... args)
+	{
+		emplace_with_handler<any_ops::allocator_holder_handler_t<_tAlloc,
+			decay_t<_tHolder>>>(a, yforward(args)...);
+		return unchecked_holder_ref<_tHolder>();
+	}
+
+	template<typename _type, typename... _tParams>
+	decay_t<_type>&
+	emplace_within(_tParams&&... args)
+	{
+		emplace_with_handler<any_ops::value_handler<decay_t<_type>>>(
+			yforward(args)...);
+		return unchecked_target_ref<_type>();
+	}
+	template<typename _type, typename _tOther, typename... _tParams>
+	decay_t<_type>&
+	emplace_within(std::initializer_list<_tOther> il, _tParams&&... args)
+	{
+		emplace_with_handler<any_ops::value_handler<decay_t<_type>>>(il,
+			yforward(args)...);
+		return unchecked_target_ref<_type>();
+	}
+	template<typename _tHolder, typename... _tParams>
+	decay_t<_tHolder>&
+	emplace_within(any_ops::use_holder_t, _tParams&&... args)
+	{
+		emplace_with_handler<any_ops::holder_handler<decay_t<_tHolder>>>(
+			yforward(args)...);
+		return unchecked_holder_ref<_tHolder>();
+	}
+
+public:
+	template<class _tHolder>
+	YB_ATTR_nodiscard YB_PURE decay_t<_tHolder>&
+	unchecked_holder_ref()
+	{
+		const auto p_holder(static_cast<decay_t<_tHolder>*>(
+			static_cast<_tAny&>(*this).unchecked_get_holder()));
+
+		yassume(p_holder);
+		return *p_holder;
+	}
+	//@}
 
 	//! \since build 854
 	template<typename _type>
@@ -1381,19 +1547,9 @@ private:
 	//! \since build 848
 	//@{
 	template<bool _vInPlace = false>
-	struct alloc_tag : bool_<_vInPlace>
-	{};
+	using alloc_tag = details::alloc_tag<_vInPlace>;
 	//! \since build 851
 	//@{
-	template<typename _type>
-	using not_tag_t
-		= nor_<is_instance_of<_type, vseq::_a<in_place_type_t>>, is_same<
-		_type, std::allocator_arg_t>, is_same<_type, any_ops::use_holder_t>,
-		is_instance_of<_type, vseq::_a<any_ops::with_handler_t>>,
-		is_same<_type, alloc_tag<>>, is_same<_type, alloc_tag<true>>>;
-	//! \since build 849
-	template<typename _type>
-	using exclude_tag_t = enable_if_t<not_tag_t<decay_t<_type>>::value>;
 	template<class _tHandler, typename... _tParams>
 	using is_handler_constructible_t = is_constructible<any_ops::any_manager,
 		decltype(any_ops::construct<_tHandler>(
@@ -1412,7 +1568,7 @@ private:
 		is_handler_v_constructible_t, vseq::_a<_gHolder>, _tParamsList,
 		_tParams...>::value>;
 	template<typename _tParam>
-	using is_holder_arg_t = and_<not_tag_t<_tParam>,
+	using is_holder_arg_t = and_<details::not_tag_t<_tParam>,
 		any_ops::check_holder_t<_tParam>>;
 	//@}
 
@@ -1435,8 +1591,7 @@ public:
 	原地存储的处理器的 value_type 在以上情形中分别是被构造的对象类型和持有者类型。 
 	*/
 	template<typename _type>
-	using opt_in_place_t
-		= alloc_tag<any_ops::is_in_place_storable<decay_t<_type>>::value>;
+	using opt_in_place_t = details::any_in_place_t<_type>;
 	//! \ingroup binary_type_traits
 	//@{
 	//! \brief 根据分配器类型和存储对象的类型取使用分配器构造时的处理器。
@@ -1619,10 +1774,10 @@ public:
 	{}
 	//@}
 
-// XXX: SFINAE to private constructors are ignored, so they are not testable in
+// XXX: SFINAE to private constructors is ignored, so they are not testable in
 //	other constructors by %is_constructible. Conditions of SFINAE are also
-//	omitted here. It is the responsibility of caller to avoid the ill-formed
-//	constructor call.
+//	omitted here. It is the responsibility of the caller to prevent the
+//	ill-formed constructor call being instantiated.
 private:
 	//! \since build 848
 	//@{
@@ -1768,7 +1923,7 @@ private:
 
 		if(manager)
 		{
-			const auto& alloc_tp(*x.template unchecked_access<const type_info*>(
+			const auto& alloc_tp(*x.unchecked_access<const type_info*>(
 				default_init, any_ops::get_allocator_type));
 
 			if(ystdex::type_id<_tByteAlloc>() == alloc_tp)
@@ -2076,16 +2231,23 @@ template<typename _type>
 YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE inline _type*
 unchecked_any_cast(any* p)
 {
-	yconstraint(p && p->has_value()
-		&& p->unchecked_type() == ystdex::type_id<_type>());
+	// NOTE: See $2019-08 @ %Documentation::Workflow::Annual2019.
+//	yconstraint(p && p->has_value());
+	yconstraint(p);
+	yconstraint(p->has_value());
+	YAssert(p->unchecked_type() == ystdex::type_id<_type>(),
+		"Invalid target type found.");
 	return static_cast<_type*>(p->unchecked_get());
 }
 template<typename _type>
 YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE inline const _type*
 unchecked_any_cast(const any* p)
 {
-	yconstraint(p && p->has_value()
-		&& p->unchecked_type() == ystdex::type_id<_type>());
+	// NOTE: Ditto.
+	yconstraint(p);
+	yconstraint(p->has_value());
+	YAssert(p->unchecked_type() == ystdex::type_id<_type>(),
+		"Invalid target type found.");
 	return static_cast<const _type*>(p->unchecked_get());
 }
 //@}
@@ -2101,14 +2263,18 @@ template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline _type*
 unsafe_any_cast(any* p)
 {
-	yconstraint(p && p->type() == ystdex::type_id<_type>());
+	yconstraint(p);
+	YAssert(p->unchecked_type() == ystdex::type_id<_type>(),
+		"Invalid target type found.");
 	return static_cast<_type*>(p->get());
 }
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline const _type*
 unsafe_any_cast(const any* p)
 {
-	yconstraint(p && p->type() == ystdex::type_id<_type>());
+	yconstraint(p);
+	YAssert(p->unchecked_type() == ystdex::type_id<_type>(),
+		"Invalid target type found.");
 	return static_cast<const _type*>(p->get());
 }
 //@}

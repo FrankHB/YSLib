@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1284
+\version r1345
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2019-08-01 12:09 +0800
+	2019-08-14 12:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,8 +55,8 @@ WG21 P0619R4 ：在 memory_resource 中显式声明默认构造函数和复制�
 #define YB_INC_ystdex_memory_resource_h_ 1
 
 #include "memory.hpp" // for internal "memory.hpp", byte, size_t, yalignof,
-//	yconstraint, SIZE_MAX, std::length_error, yforward,
-//	ystdex::uninitialized_construct_using_allocator, std::pair, tidy_ptr;
+//	yconstraint, yaligned, SIZE_MAX, std::length_error, yforward,
+//	ystdex::uninitialized_construct_using_allocator, std::pair, yassume;
 // NOTE: See "placement.hpp" for comments on inclusion conditions.
 #if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603) \
 	|| (__cplusplus >= 201603L && __has_include(<memory_resource>))
@@ -88,7 +88,7 @@ WG21 P0619R4 ：在 memory_resource 中显式声明默认构造函数和复制�
 #include "base.h" // for noncopyable, nonmovable;
 #include "cstdint.hpp" // for is_power_of_2;
 #include "map.hpp" // for greater, map, equal_to, std::hash;
-#include <vector> // for std::vector;
+#include <list> // for std::list;
 #include <unordered_map> // for std::unordered_map;
 #include "algorithm.hpp" // for ystdex::max;
 #if YB_Has_memory_resource != 1
@@ -100,8 +100,8 @@ WG21 P0619R4 ：在 memory_resource 中显式声明默认构造函数和复制�
 //	%ystdex::pmr. Preserving %ystdex::single_thread pseudo implementation
 //	introduces some basic checks of sanity on mutex types.
 #		include "pseudo_mutex.h" // for ystdex::single_thread::mutex,
-#		define YB_Impl_mutex_ns ystdex::single_thread
 //	ystdex::single_thread::lock_guard;
+#		define YB_Impl_mutex_ns ystdex::single_thread
 #	else
 #		include <mutex> // for std::mutex, std::lock_guard;
 #		define YB_Impl_mutex_ns std
@@ -219,8 +219,7 @@ public:
 
 		const auto p(do_allocate(bytes, alignment));
 
-		yassume(is_aligned_ptr(p, alignment));
-		return p;
+		return yaligned(p, alignment);
 	}
 
 	void
@@ -503,27 +502,29 @@ adjust_pool_options(pool_options&);
 \brief 资源池。
 \warning 非虚析构。
 */
-class YB_API resource_pool
+class YB_API resource_pool : private noncopyable, private nonmovable
 {
 private:
 	//! \brief 块类型。
 	class chunk_t;
-	enum : size_t
-	{
-		default_next_capacity = yimpl(4)
-	};
-	static_assert(default_next_capacity > 1, "Invalid default value found.");
 	//! \brief 块标识类型。
 	using id_t = size_t;
+	//! \brief 块存储对类型。
+	using chunk_pr_t = std::pair<const id_t, chunk_t>;
+	//! \since build 864
+	//@{
+	//! \build 块集合类型。
+	using chunks_t
+		= map<id_t, chunk_t, greater<>, polymorphic_allocator<chunk_pr_t>>;
+	//! \build 块集合迭代器类型。
+	using chunks_iter_t = chunks_t::iterator;
+	//@}
 	//! \brief 保存在块末尾的元数据类型。
 	struct block_meta_t
 	{
-		id_t id;
-		//! \invariant \c p_chunk 。
-		chunk_t* p_chunk;
+		//! \invariant <tt> i_chunk != chunks.end()</tt> 。
+		chunks_iter_t i_chunk;
 	};
-	//! \brief 块存储对类型。
-	using chunk_pr_t = std::pair<const id_t, chunk_t>;
 
 	/*!
 	\brief 块中最大区块数。
@@ -531,13 +532,16 @@ private:
 	*/
 	size_t max_blocks_per_chunk;
 	//! \brief 被池所有的块。
-	map<id_t, chunk_t, greater<>, polymorphic_allocator<chunk_pr_t>> chunks;
-	//! \brief 快速待分配贮藏指针。
-	tidy_ptr<chunk_pr_t> p_stashed{};
-	//! \brief 快速待分配空块指针。
-	tidy_ptr<chunk_pr_t> p_empty{};
+	chunks_t chunks;
+	//! \since build 864
+	//@{
+	//! \brief 快速待分配贮藏迭代器。
+	chunks_iter_t i_stashed;
+	//! \brief 快速待分配空块迭代器。
+	chunks_iter_t i_empty;
+	//@}
 	//! \brief 下一可用的块中分配块的容量。
-	size_t next_capacity = default_next_capacity;
+	size_t next_capacity;
 	/*!
 	\brief 分配块大小。
 	\invariant <tt>block_size > 0</tt> 。
@@ -562,20 +566,30 @@ public:
 	附加数据是可选的。使用以 2 为底的区块大小的对数可加速对数分布的池的查询过程。
 	*/
 	resource_pool(memory_resource&, size_t, size_t, size_t = 0) ynothrowv;
-	resource_pool(resource_pool&&) ynothrow;
 	~resource_pool();
-
-	resource_pool&
-	operator=(resource_pool&&) ynothrow;
 	//@}
 
 private:
 	//! \pre 参数指向池中块的首字节。
-	YB_ATTR_nodiscard block_meta_t&
-	access_meta(void*) const ynothrow;
+	YB_ATTR_nodiscard YB_PURE static block_meta_t&
+	access_meta(void* p, size_t blk_size) ynothrow
+	{
+		// NOTE: The types of the data members in %block_meta_t shall be decayed
+		//	to avoid need of call to %std::launder which is not available before
+		//	ISO C++17.
+		static_assert(is_decayed<id_t>(), "Invalid type found.");
+
+		yconstraint(p);
+
+		const auto p_meta(static_cast<block_meta_t*>(static_cast<void*>(
+			static_cast<byte*>(p) + blk_size - sizeof(block_meta_t))));
+
+		return *static_cast<block_meta_t*>(
+			yaligned(p_meta, yalignof(block_meta_t)));
+	}
 
 public:
-	//! \sa p_stashed
+	//! \sa i_stashed
 	YB_ALLOCATOR void*
 	allocate();
 
@@ -589,14 +603,16 @@ public:
 		return ystdex::max(bytes + sizeof(block_meta_t), alignment);
 	}
 
+	/*!
+	\brief 清除指针并释放所有块。
+	\since build 864
+	*/
+	void
+	clear() ynothrow;
+
 	void
 	deallocate(void*) ynothrowv;
 
-private:
-	YB_ATTR_nodiscard tidy_ptr<chunk_pr_t>
-	find_chunk_pr_ptr(id_t) ynothrowv;
-
-public:
 	//! \since build 845
 	YB_ATTR_nodiscard size_t
 	get_block_size() const ynothrow
@@ -678,7 +694,7 @@ class YB_API pool_resource : public memory_resource
 {
 private:
 	using pools_t
-		= std::vector<resource_pool, polymorphic_allocator<resource_pool>>;
+		= std::list<resource_pool, polymorphic_allocator<resource_pool>>;
 
 	pool_options saved_options;
 	//! \since build 863

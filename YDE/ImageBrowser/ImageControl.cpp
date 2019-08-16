@@ -11,13 +11,13 @@
 /*!	\file ImageControl.cpp
 \ingroup UI
 \brief 图像显示控件。
-\version r1202
+\version r1203
 \author FrankHB <frankhb1989@gmail.com>
 \since build 437
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2019-08-01 13:26 +0800
+	2019-08-01 21:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -219,7 +219,7 @@ ImagePanel::Load(ImagePages&& src)
 
 		refresh_frame();
 		UI::SetupByTimer(get<1>(*session_ptr), *this, get<2>(*session_ptr),
-			[=, this]{
+			[this, refresh_frame]{
 			if(GetPagesRef().SwitchPageDiff(1))
 			{
 				refresh_frame();

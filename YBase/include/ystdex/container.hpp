@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2018 FrankHB.
+	© 2010-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r2242
+\version r2251
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2018-11-21 04:57 +0800
+	2019-08-06 22:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,9 @@
 #include "iterator.hpp" // for "range.hpp", std::initializer_list,
 //	ystdex::begin, ystdex::end, make_transform, std::declval, size,
 //	is_detected_convertible, std::distance, std::make_move_iterator,
-//	ystdex::cbegin, ystdex::cend, std::piecewise_construct_t,
+//	yassume, ystdex::cbegin, ystdex::cend, YAssert, std::piecewise_construct_t,
 //	std::piecewise_construct, enable_if_convertible_t;
-#include "algorithm.hpp" // for is_undereferenceable, sort_unique;
+#include "algorithm.hpp" // for YB_VerifyIterator, sort_unique;
 #include "functional.hpp" // for ystdex::seq_apply;
 #include "utility.hpp" // for ystdex::as_const;
 
@@ -204,7 +204,7 @@ insert_reversed(_tCon& con, typename _tCon::const_iterator i, _tIn first,
 {
 	for(; first != last; ++first)
 	{
-		yconstraint(!is_undereferenceable(first));
+		YB_VerifyIterator(first);
 		i = con.insert(i, *first);
 	}
 	return i;
@@ -543,7 +543,8 @@ typename _tCon::const_iterator
 erase_n(_tCon& con, typename _tCon::const_iterator i,
 	typename _tCon::difference_type n)
 {
-	yassume(n <= std::distance(i, ystdex::cend(con)));
+	YAssert(n <= std::distance(i, ystdex::cend(con)),
+		"Invalid difference value found.");
 	return con.erase(i, std::next(i, n));
 }
 //! \since build 532
@@ -552,7 +553,8 @@ typename _tCon::iterator
 erase_n(_tCon& con, typename _tCon::iterator i,
 	typename _tCon::difference_type n)
 {
-	yassume(n <= std::distance(i, ystdex::end(con)));
+	YAssert(n <= std::distance(i, ystdex::end(con)),
+		"Invalid difference value found.");
 	return con.erase(i, std::next(i, n));
 }
 //@}
@@ -969,6 +971,7 @@ search_map_by(_func f, _tAssocCon& con, _tParams&&... args)
 /*!
 \note 使用 ADL emplace_hint_in_place 。
 \sa emplace_hint_in_place
+\note 和 WG21 N4279 不同，支持透明比较器和非特定的键类型。
 \see WG21 N4279 。
 */
 //@{

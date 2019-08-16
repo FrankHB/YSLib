@@ -11,13 +11,13 @@
 /*!	\file YObject.cpp
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r907
+\version r909
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2019-01-16 06:05 +0800
+	2019-08-04 09:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,8 +63,8 @@ ValueObject::GetHolderRef() const
 ValueObject
 ValueObject::Create(IValueHolder::Creation c) const
 {
-	return ystdex::call_value_or([c](const IValueHolder& h){
-		return ValueObject(h, c);
+	return ystdex::call_value_or([this, c](const IValueHolder& h){
+		return ValueObject(h, content, c);
 	}, GetHolderPtr());
 }
 

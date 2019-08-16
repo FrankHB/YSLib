@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2019 年度。
-\version r397
+\version r532
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2019-01-02 01:00:32 +0800
 \par 修改时间:
-	2019-06-29 11:39 +0800
+	2019-08-16 11:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,7 +94,7 @@ WG21 P0541 has been implemented now, as it is approved in the current working pa
 						This only breaks non-C++17 modes (with GNU extensions or not) in G++ and Clang++.
 							It has nothing to do with 'std::invoke'.
 							It should have nothing to do with CWG 1227, as C++14 modes also fail.
-				As the workaround, nonthrowing check is intercepted for 'std::_Tuple_impl' instances used for 'ystdex::boxed_value'.
+				As the workaround, the non-throwing check is intercepted for 'std::_Tuple_impl' instances used for 'ystdex::boxed_value'.
 				Other workaround includes preventing nested (in template parameters) 'YSLib::ValueHolder' instances constructed in 'ValueObject'.
 					This is not guarded by the compiler version condition checks because behavior of avoiding nested 'YSLib::ValueHolder' should be uniform for all implementations.
 
@@ -381,6 +381,142 @@ Several NPLA1 improvements are made, including some critical bug fixes related t
 		Note the following cases also work without the improvement because function prvalues are immediatedly called before recursively saved as temporary objects:
 			$defl! f (n) ($vau (x) d eval (list f x) d) n; f 1;
 			$defl! f (n) ($vau (x) d eval x d) (f n); f 1;
+
+$2019-08:
+
+Assertions in YBase have been revised.
+	The assertion macros 'YAssert' and 'YAssertNonnull' should have be more like 'assume' by default.
+		This is now guraranteed by using 'assert' instead of 'yassume' in when 'NDEBUG' is defined.
+			Different to 'yconstraint' or 'yassume', with name "assert", use of 'yassume' may cause surprising result if the expression is evaluated in release configurations.
+			It is also better for performance when the hint is not used for branch.
+		Now there is also a note in the source to allow them being overriden.
+	The pseudo keyword 'yconstraint' and 'yassume' are explicitly specified with unspecified behavior about whether the expression is evaluated.
+		This ensures the allowance of using of 'yassume' as current.
+		See also the caveats of 'YB_ASSUME' below.
+	The macro 'YB_ASSUME' is also updated.
+		It is also explicitly documented with unspecified behavior on the condition expression evaluation.
+		Support of '__builtin_assume' is added. This is superior than the implementation with '__builtin_unreachable' in general.
+		Not same to 'GSL_ASSUME' in https://github.com/Microsoft/GSL/blob/master/include/gsl/gsl_assert, the '!!' is not used in the fallback, since '_expr' is not assumed as an expression capable as the operand of '!'.
+		Since it can still be implemented as fallbacks without guarantee of the unevaluated operand, it is suggested that this macro should be used locally for the best performance.
+	The evaluation of condition expression may have effect on optimization.
+	A new peseudo keyword 'yverify' has been added.
+		The interface guarantees the condition expression is not evaluated when 'NDEBUG' is defined, which is like the macro 'assert' in the standard library.
+		This can be treated as 'yconstraint' with 'assert' instead of 'yassume' in the implementation aspect.
+	Uses of 'yconstraint', 'yassume', 'YAssert' and 'YAssertNonnull' are also revised.
+		After the change of 'YAssert', most cases just work as expected.
+		Some other evaluations of expressions in these macros may still be suboptimal, but not much.
+			Most calls involved are like call on 'is_undereferenceable' which is assumed pure, though the implementation may be lack of the information (esp. in the cases of ADL).
+				These assertions are replaced by 'yverify' expressions directly or indirectly.
+			A few constarint checks in the operand of 'yconstraint' in YBase.YStandardEx.Any are now implemented separatedly using 'YAssert'.
+				See also the notes about LTO below.
+			The checks in 'ystdex::polymorphic_downcast', 'ystdex::erase_n' and a few more are now implemented using 'YAssert' instead of 'yassume'.
+		For code where the hints are needed, additional explicit 'YB_ASSUME' is more appropriate.
+		The function 'NPL::AssertBranch' in YFrameowrk has an issue of warning [-Wunused-parameter] on unused parameter if 'assume' is used. This has been fixed.
+	See also https://stackoverflow.com/questions/25667901 and https://stackoverflow.com/questions/44054078.
+Some exception specifications have been fixed.
+	Mostly it is a wrong use between the choice of 'ynothrow' and 'ynothrow_spec'.
+		Note in YSLib, currently only noexcept-specifier but not noexcept-expression is adapted to be a macro.
+		The latter has an 'noexcept' operator in the noexcept-expression with an unevaluated operand. This is not suitable for a result from a type trait value.
+	To simpler the fix, traits within 'ynothrow' (after the fix) as an exception speificier is replace by 'ynothrow_spec' with an unevaluated operand directly, when feasible.
+		This is not feasible when the result is more complicated (e.g. requiring 'std::declval').
+			Most 'is_nothrow_default_constructible' (but not things like 'is_nothrow_default_copy_constructible') used in YBase can thus be replaced.
+				However, replacement of 'is_nothrow_default_constructible' can not work in G++ 7.1 due to a bug.
+					The resulted code causes G++ 7.1 crash: internal compiler error: in tsubst, at cp/pt.c:13525.
+					This seems a regression not reported, but fixed in later versions (at least in 9.2).
+					A possibly related case with exact the same diagnostics in G++ 7.1: http://coliru.stacked-crooked.com/a/7f17cf55137efefa.
+						However, this case seems never fixed. Tested in https://gcc.godbolt.org/ for other versions:
+							G++ < 6 there is no '-fconcepts', so the case does not work.
+							G++ 6.1 ICE cp/pt.c:13014.
+							G++ 6.2 ICE cp/pt.c:13073.
+							G++ 6.3 ICE cp/pt.c:13073.
+							G++ 6.4 ICE cp/pt.c:13077.
+							G++ 7.2 ICE cp/pt.c:13607.
+							G++ 7.3 ICE cp/pt.c:13630.
+							G++ 7.4 ICE cp/pt.c:13657.
+							G++ 8.1 ICE cp/pt.c:14378.
+							G++ 8.2 ICE cp/pt.c:14400.
+							G++ 9.1 ICE cp/pt.c:14560.
+							G++ 9.2 ICE cp/pt.c:14561.
+							Search on bugzilla shows some candidates.
+								https://gcc.gnu.org/bugzilla/show_bug.cgi?id=78514 for 6.2 matches, but it is for invalid code.
+						Similar with https://wandbox.org/. It is not fixed in trunk (10.0.0.20190 for now). With G++ 7.1 the backtrace shown:
+							prog.cc:13:8: internal compiler error: in tsubst, at cp/pt.c:13525
+							 void f(Swappable& x) {}
+									^~~~~~~~~
+							0x5daeeb tsubst(tree_node*, tree_node*, int, tree_node*)
+								../../gcc-7.1.0/gcc/cp/pt.c:13525
+							0x5e67bc coerce_template_parms
+								../../gcc-7.1.0/gcc/cp/pt.c:8103
+							0x6dc46a resolve_variable_concept_check(tree_node*)
+								../../gcc-7.1.0/gcc/cp/constraint.cc:304
+							0x6dc514 deduce_constrained_parameter(tree_node*, tree_node*&, tree_node*&)
+								../../gcc-7.1.0/gcc/cp/constraint.cc:329
+							0x61df5e cp_parser_maybe_constrained_type_specifier
+								../../gcc-7.1.0/gcc/cp/parser.c:17084
+							0x6212c1 cp_parser_nonclass_name
+								../../gcc-7.1.0/gcc/cp/parser.c:17175
+							0x63f478 cp_parser_type_name
+								../../gcc-7.1.0/gcc/cp/parser.c:16981
+							0x63f478 cp_parser_simple_type_specifier
+								../../gcc-7.1.0/gcc/cp/parser.c:16853
+							0x62828d cp_parser_type_specifier
+								../../gcc-7.1.0/gcc/cp/parser.c:16499
+							0x62917c cp_parser_decl_specifier_seq
+								../../gcc-7.1.0/gcc/cp/parser.c:13330
+							0x643375 cp_parser_parameter_declaration
+								../../gcc-7.1.0/gcc/cp/parser.c:21183
+							0x643b57 cp_parser_parameter_declaration_list
+								../../gcc-7.1.0/gcc/cp/parser.c:20999
+							0x643ebc cp_parser_parameter_declaration_clause
+								../../gcc-7.1.0/gcc/cp/parser.c:20922
+							0x634ac1 cp_parser_direct_declarator
+								../../gcc-7.1.0/gcc/cp/parser.c:19645
+							0x634ac1 cp_parser_declarator
+								../../gcc-7.1.0/gcc/cp/parser.c:19521
+							0x64990d cp_parser_init_declarator
+								../../gcc-7.1.0/gcc/cp/parser.c:19046
+							0x64a75d cp_parser_simple_declaration
+								../../gcc-7.1.0/gcc/cp/parser.c:12777
+							0x64b365 cp_parser_block_declaration
+								../../gcc-7.1.0/gcc/cp/parser.c:12602
+							0x629cb4 cp_parser_declaration
+								../../gcc-7.1.0/gcc/cp/parser.c:12500
+							0x64f8fb cp_parser_declaration_seq_opt
+								../../gcc-7.1.0/gcc/cp/parser.c:12376
+							Please submit a full bug report,
+							with preprocessed source if appropriate.
+							Please include the complete backtrace with any bug report.
+							See <https://gcc.gnu.org/bugs/> for instructions.
+					The minimal case reduced is with the following code:
+						#define YB_DLL
+						#define YF_BUILD_DLL
+						#include <YSLib/Adaptor/Font.h>
+						#include <YSLib/Service/File.h>
+						#include <NPL/Configuration.h>
+						#include <YSLib/Service/FileSystem.h>
+						#include <Helper/GUIApplication.h>
+						#include <YCLib/NLS.h>
+						void aaaaabbbbbbbcccc();
+						void ddddeeeeeeeeffff();
+					The case only fails when '-g2' or higher debug level is used.
+						The case is sensitive to header inclusion order.
+						Macros 'YB_DLL' and 'YB_BUILD_DLL' are necessary.
+						Actually it is not Win32-specific ('YCLib/NLS.h' is not necessary here; put it here just to be simple).
+					The case above is not reproducible with preprocessed file (with 'gcc -E -xc++'). So, this is tested directly with cc1plus for the whole source.
+					It only reproduced when there are enough long (unmangled) names of functions or objects, or even macro names after '#ifndef'.
+						The length of such long names is not less than 16.
+					As the result, GCC 6.3 and GCC 8.2 work but GCC 7.1 and GCC fail.
+						It seems a GCC 7 regression.
+						It is not known which bug is related in GCC Bugzilla.
+						As now, only versions 7 before 7.4 are conservatively assumed broken for this case.
+			For clearity, 'is_nothrow_destructible' is also not replaced.
+Some issues met with LTO are reviewed.
+	LTO may cause multiple definition with MinGW.
+		This is an unresolved bug. See https://sourceware.org/bugzilla/show_bug.cgi?id=12762.
+		This is now fixed in build scripts (both the shell script and NPLA1 script), as well as the generator for Code::Blocks projects in the tools.
+	The modification in YBase.YStandardEx.Any in build 864 requires workaround of the bug above.
+	The modification of 'ystdex::unchecked_any_cast' in YBase.YStandardEx.Any in build 864 (see notes about constraints above) would cause wrong code (illegal instruction) in release static build of YSTest with MinGW32 G++ (at least i686 7.1 and 7.3).
+		This is worked around by using 'yconstraint(p); yconstraint(p->has_value());' instead of 'yconstraint(p && p->has_value());'.
 
 ////
 

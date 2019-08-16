@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14210
+\version r14221
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2019-06-26 16:44 +0800
+	2019-08-08 00:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -115,6 +115,7 @@ YB_HAS_NOEXCEPT
 YB_ABORT
 YB_ATTR(...)
 YB_ATTR_LAMBDA(...)
+YB_ATTR_LAMBDA_QUAL(_q, ...)
 YB_ATTR_STD(...)
 YB_ATTR_fallthrough
 YB_ATTR_gnu_printf(...)
@@ -151,9 +152,7 @@ ynoexcept_assert(_msg, *)?
 ynoexcept_param(_n)?
 ynoexcept_qual(*)?
 ynoexcept_spec(*)
-yconstraint(_expr)
 ythrow(*)?
-yassume(_expr)
 yoffsetof(_type, _member)
 yforward(_expr)
 yunseq
@@ -162,8 +161,16 @@ $dir ystdex
 {
 $header CAssert
 {
-YAssert(*)
-YTrace(*)
+yassume(_expr)
+yconstraint(_expr)
+yverify(_expr)
+#YAssert(*)
+#YAssertNonnull(*)
+#YTrace(*)
+}
+$header DeferenceOperation
+{
+YB_VerifyIterator(_expr)
 }
 $header AddressOf
 {
