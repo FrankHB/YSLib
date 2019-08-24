@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r3803
+\version r3840
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2019-08-01 12:09 +0800
+	2019-08-24 18:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -275,33 +275,39 @@ protected:
 //! \since build 843
 //@{
 template<typename _tAlloc>
-inline void
+yconstfn_relaxed void
 do_alloc_on_copy(_tAlloc&, const _tAlloc&, false_) ynothrow
 {}
 template<typename _tAlloc>
-inline void
+yconstfn_relaxed void
 do_alloc_on_copy(_tAlloc& x, const _tAlloc& y, true_) ynoexcept_spec(x = y)
 {
 	x = y;
 }
 
 template<typename _tAlloc>
-inline void
+yconstfn_relaxed void
 do_alloc_on_move(_tAlloc&, _tAlloc&, false_) ynothrow
 {}
+/*!
+\pre 参数指定的类型不在转移时抛出异常而退出。
+\since build 865
+*/
 template<typename _tAlloc>
-inline void
-do_alloc_on_move(_tAlloc& x, _tAlloc& y, true_) ynoexcept_spec(x = std::move(y))
+yconstfn_relaxed void
+do_alloc_on_move(_tAlloc& x, _tAlloc& y, true_) ynothrow
 {
+	// NOTE: As per ISO C++17 [allocator.requirements], this shall exit via
+	//	an exception.
 	x = std::move(y);
 }
 
 template<typename _tAlloc>
-inline void
+yconstfn_relaxed void
 do_alloc_on_swap(_tAlloc&, _tAlloc&, false_) ynothrow
 {}
 template<typename _tAlloc>
-inline void
+yconstfn_relaxed void
 do_alloc_on_swap(_tAlloc& x, _tAlloc& y, true_)
 	ynoexcept_spec(ystdex::swap_dependent(x, y))
 {
@@ -449,10 +455,9 @@ make_allocator_guard(_tAlloc& a,
 template<typename _type, class _tAlloc, typename... _tParams>
 YB_ATTR_nodiscard auto
 create_with_allocator(_tAlloc&& a, _tParams&&... args)
-	-> std::unique_ptr<_type, allocator_delete<rebind_alloc_t<decay_t<_tAlloc>,
-	_type>>>
+	-> std::unique_ptr<_type, allocator_delete<remove_cvref_t<_tAlloc>>>
 {
-	using ator_t = decay_t<_tAlloc>;
+	using ator_t = remove_cvref_t<_tAlloc>;
 	using ator_del_t = allocator_delete<ator_t>;
 	auto gd(ystdex::make_allocator_guard(a));
 
@@ -496,8 +501,9 @@ allocate_unique(const _tAlloc& alloc, std::initializer_list<_tValue> il)
 \see https://developercommunity.visualstudio.com/content/problem/417142/lwg-2070p0674r1-stdallocate-shared-is-not-conformi.html
 \since build 849
 \todo 实现 WG21 P0674R1 。
+\todo 在 ISO C++20 出版后更新 __cplusplus 的值。
 */
-#if __cplusplus >= 201703L || (__GLIBCXX__ && !(__GLIBCXX__ <= 20111108))
+#if __cplusplus > 201703L || (__GLIBCXX__ && !(__GLIBCXX__ <= 20111108))
 // NOTE: See https://gcc.gnu.org/viewcvs/gcc/trunk/libstdc++-v3/include/bits/shared_ptr_base.h?r1=181171&r2=181170&pathrev=181171.
 // NOTE: LWG 2070 is not implemented by libc++ yet.
 using std::allocate_shared;
@@ -571,34 +577,44 @@ using local_allocator = cond_t<and_<has_mem_new<_type, size_t>,
 //@{
 //! \brief 按分配器特征在传播容器时复制赋值分配器。
 template<typename _tAlloc>
-inline void
-alloc_on_copy(_tAlloc& x, const _tAlloc& y)
+yconstfn_relaxed void
+alloc_on_copy(_tAlloc& x, const _tAlloc& y) ynothrow
 {
 	details::do_alloc_on_copy(x, y, typename allocator_traits<
 		_tAlloc>::propagate_on_container_copy_assignment());
 }
-//! \brief 按分配器特征在传播容器时复制分配器。
+/*!
+\brief 按分配器特征在传播容器时复制分配器。
+\since build 830
+*/
 template<typename _tAlloc>
-inline _tAlloc
+YB_ATTR_nodiscard yconstfn _tAlloc
 alloc_on_copy(const _tAlloc& a)
 {
+	// NOTE: As per ISO C++17 [allocator.requirements]/4, this shall not throw
+	// exceptions.
 	return allocator_traits<_tAlloc>::select_on_container_copy_construction(a);
 }
 
 //! \brief 按分配器特征在传播容器时转移分配器。
 template<typename _tAlloc>
-inline void
-alloc_on_move(_tAlloc& x, _tAlloc& y)
+yconstfn_relaxed void
+alloc_on_move(_tAlloc& x, _tAlloc& y) ynothrow
 {
+	// NOTE: As per ISO C++17 [allocator.requirements]/4, this shall not throw
+	// exceptions. Even without this requirement, it still shall not exit via an
+	//	exception. See %details::do_alloc_on_move for the rationale.
 	details::do_alloc_on_move(x, y, typename
 		allocator_traits<_tAlloc>::propagate_on_container_move_assignment());
 }
 
 //! \brief 按分配器特征在传播容器时交换分配器。
 template<typename _tAlloc>
-inline void
-alloc_on_swap(_tAlloc& x, _tAlloc& y)
+yconstfn_relaxed void
+alloc_on_swap(_tAlloc& x, _tAlloc& y) ynothrow
 {
+	// NOTE: As per ISO C++17 [allocator.requirements]/4, this shall not throw
+	// exceptions.
 	details::do_alloc_on_swap(x, y,
 		typename allocator_traits<_tAlloc>::propagate_on_container_swap());
 }
@@ -1998,7 +2014,7 @@ struct ucua_func
 	|| YB_IMPL_GNUCPP < 60000)) && !(_LIBCPP_VERSION > 4000 \
 	|| __cplusplus >= 201703L)
 // NOTE: See See https://gcc.gnu.org/viewcvs/gcc/trunk/libstdc++-v3/include/bits/stl_pair.h?r1=225189&r2=225188&pathrev=225189,
-//	and https://llvm.org/viewvc/llvm-project/libcxx/trunk/include/utility?r1=276605&r2=276604&pathrev=276605.
+//	and https://reviews.llvm.org/rL276605.
 template<typename _type1, typename _type2, class _tAlloc>
 struct ucua_func<std::pair<_type1, _type2>, _tAlloc>
 {

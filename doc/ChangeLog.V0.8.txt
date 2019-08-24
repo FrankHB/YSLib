@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r14273
+\version r14492
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-08-16 11:42 +0800
+	2019-08-25 00:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,213 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ DD "allowed the version (in '\since') of documented entities kept \
+		unchanged only with equivalent exception specifciation modifications"
+		@ %Documentation.ProjectRules,
+	/ %YBase.YStandardEx $=
+	(
+		/ %Meta $=
+		(
+			(
+			+ "binary type trait %is_same_param";
+			+ "metafunction %enable_if_same_param_t"
+			),
+			/ $dev $lib @ "metafunction %exclude_self_t" $=
+			(
+				- $doc "'\pre' command" @ "Doxygen comment",
+				/ $impl "simplified" ^ $dep_from "%is_same_param"
+			),
+			+ "type trait operation %is_unqualified",
+			/ "type trait operation %is_decayed" $=
+			(
+				/ DD "Doxygen group" -> "%type_trait_operations"
+					~ "%unary_type_traits",
+				/ "decayed 2nd parameter" ~ "decayed 1st parameter"
+					// To be consistent with %is_unqualified and sane to \
+						unchecked (possibly not decayed) 2nd argument. \
+						This does not change the result when the 2nd argument \
+						is the default argument or an already decayed type. \
+						Currently no known use of a non-decayed type as the \
+						2nd argument, so nothing is to be broken.
+			),
+			+ "unary type trait %is_throwing_move_copyable"
+		),
+		/ $dev %TypeOperation $=
+		(
+			* $re_add(b861) $doc "missing escaping tag" @ "Doxygen comments"
+				$since b660,
+			/ $lib @ "metafunction %exclude_self_params_t" $=
+			(
+				- $doc "'\pre' command" @ "Doxygen comment",
+				/ $impl "simplified" ^ $dep_from ("%is_same_param" @ %Meta)
+			)
+		),
+		/ %Memory $=
+		(
+			+ $re_add(b852) $dev $lib 'YB_ATTR_nodiscard'
+				@ "function template %alloc_on_copy#2",
+			/ DLI 'inline' @ "function templates %(alloc_on_copy, \
+				alloc_on_move, alloc_on_swap") -> 'yconstfn_relaxed',
+			+ 'ynothrow' @ "function templates %(alloc_on_move, alloc_on_move, \
+				alloc_on_swap) with 2 parameters",
+			* "incorrect condition '__cplusplus >= 201703L'"
+				@ "condition for using %std::allocate_shared"
+				$since b849
+				$= (/ '__cplusplus >= 201703L' -> '__cplusplus > 201703L'),
+				// The use of %allocator_traits::construct is not added until \
+					WG21 P0674R1 is adopted in 2017-07. See also ISO C++17 \
+					(FDIS WG21 N4659) [util.smartptr.shared.create]/1.
+			/ @ "function template %create_with_allocator" $=
+			(
+				* "mismatched trailing return type" $since b849,
+				/ $lib "all %decay_t" -> "%remove_cvref_t"
+			)
+		),
+		/ %Tree $=
+		(
+			/ DLDI "tree class template" $=
+			(
+				+ "several 'ynothrow'",
+				+ 'YB_ATTR_nodiscard YB_PURE' @ "iterator observers, count, \
+					boundary search and verification functions",
+				+ 'YB_ATTR_nodiscard' @ "member functions to create nodes, to \
+					extract node handles, to get the node allocator or the \
+					comparison object",
+				/ 'YB_ATTR_nodiscard' @ "raw node creator"
+					-> 'YB_ALLOCATOR YB_ATTR_returns_nonnull',
+				/ "comparison functions" ^ "%(cbegin, cend)"
+					~ "%(begin, end)",
+				/ "reordered several private tree members",
+				(
+				+ "node alias type";
+				+ "static assertions to ensure trivially default constructible \
+					and trivially distructible";
+				/ "simplified node construction and destroy"
+					!^ "placement new and explicit destructor call";
+				/ "simplified node construction"
+					^ "%(allocator_guard, allocator_guard_delete)"
+				)
+			),
+			* "allocator not properly propagated when on %is_always_equal"
+				$since b830,
+				// See also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91531.
+			* "missing inclusion <algorithm>" $since b863,
+			* "possible name clash between node allocator members and list \
+				header" $since b830
+				// This is not same to libstdc++ which uses reserved names.
+		),
+		* "missing inheriting base members" @ "class template specialization \
+			%expand_proxy for function without parameters" @ %Functional
+			$since b810,
+		(
+		+ %NodeBase;
+		/ $impl "non-templated node classes" @ %List -> %NodeBase
+		+ "internal node free functions"
+		),
+		+ "transformation trait %increment_t" @ %TypeTraits,
+		/ %IteratorTrait $=
+		(
+			/ DLDI "simplified metafunction %enable_for_iterator_t" $=
+			(
+				!^ "%std::pair",
+				^ $dep_from ("%increment_t" @ %TypeTraits)
+			),
+			+ "metafunction %enable_for_input_iterator"
+				^ $dep_from ("%increment_t" @ %TypeTraits),
+			+ "binary type trait %has_iterator_category",
+			* "failed to detect contagories same but not convertible to \
+				specified tag" @ "type trait %have_same_iterator_category"
+				$since b627
+				$= (/ $impl ^ "%(and_, is_convertible)" ~ "%are_same")
+		),
+		* $comp "failed meeting complexity requirements when parameter has tag \
+			not same but convertible to %std::random_access_iterator_tag"
+			@ "function template %equal"
+			@ '!(__cpp_lib_robust_nonmodifying_seq_ops >= 201304L)' @ %Algorithm
+			$since b627 $dep_from
+			("%have_same_iterator_category" @ %IteratorTrait),
+		/ %List
+		(
+			* DLI "missing friend class template of const iterator for \
+				internal iterator" $since b864,
+			* DLI "internal const iterator type members" $since b864
+		)
+	),
+	/ %YFramework.NPL $=
+	(
+		/ $dev $lib "annotated unused term argument" @ ("function \
+			%AssertBranch" @ %SContext, "function template \
+			%AllocateEnvironment#3" @ %NPLA) ^ "%yunused",
+			// To eliminate warning: [-Wunused-parameter] when %assert is \
+				used and the %YAssert expression expands to nothing.
+		/ DLI "annotated unused immediate variables"
+			@ "functions %(ReduceCombined, Forms::Apply)" @ %NPLA1,
+			// Ditto.
+		/ %NPLA $=
+		(
+			* DD "wrong '\pre' command" @ "Doxygen comment"
+				@ "member function %ContextNode::Push#2" @ $since b812,
+			* "missing qualified 'NPL::' for %AllocateEnvironment call"
+				@ "function template %AllocateEnvironment#2" @ %NPLA $since
+				b847
+				// ADL is not intended here.
+		),
+		/ DLDI "simplified applicative 'get-current-repl'"
+			@ "function %LoadModules_std_environments" @ %Dependency,
+			// This also gets rid of the requirement on SFINAE-friendly \
+				%std::bind result.
+		* "undefined behavior caused by invalid access lifting flag after \
+			moved vau object when TCO is enabled" @ "%operator()"
+			@ "vau handlers" @ %NPLA1 $since b861
+	),
+	/ $build "Microsoft VC++ projects" $=
+	(
+		/ %YFramework $=
+		(
+			/ "updated project files" @ "platform %Android" $=
+			(
+				(
+				- "%default_font.bin" @ "the .vcxproj file";
+				* $comp "redundant data file not included in the filter" $since
+					b492,
+				),
+				* "missing files" @ "the .filter file" $since b502
+			),
+			* "missing retargeting" @ "platform %DS" $since b862 $=
+				$= (/ $re_add(b862) $dev $lib "updated \
+					'WindowsTargetPlatformVersion' value '10.0'"
+					~ '10.0.17134.0')
+		),
+		/ ".vcxproj file" @ "platform %Android" @ %YSTest $=
+		(
+			* "'ProjectGuid' and 'RootNamespace' properties clashed with \
+				platform %DS YSTest project" $since b492,
+			* "failed loading project file" $since b862
+				$= (* "invalid value '../../Build.props'"
+					@ "tag 'Improject Project'" $since b862),
+			* "redundant data files not included in the filter" $since b492
+		),
+		/ @ ".vcxproj file" @ %SHBuild $=
+		(
+			- DLDI "redundant empty 'ItemGroup' tag",
+			* "missing UTF-8 BOM" $since b847
+		),
+		/ DLDI "removed redundant slashes" @ "output file paths"
+			@ "all 6 projects" @ "platform %Win32" $=
+			(/ "value '$(IntDir)/%(RelativeDir)/'"
+				-> '$(IntDir)%(RelativeDir)' @ "tag 'ObjectFileName'"),
+		+ "tag 'FunctionLevelLinking' with value 'true'"
+			@ "configuration %release" @ "platform %Win32"
+			@ "project %(YBase, YFramework)"
+			// To be consisten to configuration %Release in client projects \
+				like %SHBuild. This would add '/Gy' in the compiler options. \
+				Note the '/ZI' in the compilier options of %debug \
+				configuration of these projects already implies '/Gy'.
+	)
+),
+
+b864
 (
 	/ %YBase $=
 	(
@@ -277,7 +484,11 @@ $now
 				/ DLDI 'this->' -> 'base::' $effective
 					@ ("operator %sv_type", "replace#9"),
 					// To be consistent.
-				+ "supported fix of LWG 2788"
+				* "missing supported fix of LWG 2788" \
+					!@ '__cpp_lib_string_view >= 201606L \
+					|| __cplusplus >= 201606L'$since b833
+					// This is an ISO C++17 feature that should have been \
+						supported.
 					$= (/ "function templates %(append, assign, insert, \
 						replace) with iterator parameters"
 						^ "%base::get_allocator")
@@ -404,7 +615,7 @@ b863
 		/ %Functor $=
 		(
 			/ ("inclusion <algorithm>", "feature-test macro \
-				%__cpp_lib_robust_nonmodifying_seq_ops") @  >> %Algorithm
+				%__cpp_lib_robust_nonmodifying_seq_ops") @ >> %Algorithm
 				// This could have been done after removal of \
 					%ystdex::deref_str_comp since b660.
 			/ $re_add(b853) DLDI "simplified" ^ "%nor_" ~ "%(not_, or_)"
@@ -3927,12 +4138,13 @@ b851,
 						~ "ADL %(make_shared, make_unique)",
 					+ ("overloads for of allocator and parameter packs",
 						"overloads for allocator and parameters of \
-						%std::initializer_list instances")
-						^ $dep_from "%ystdex::(allocate_unique, allocate_shared)"
+						%std::initializer_list instances") ^ $dep_from
+						"%ystdex::(allocate_unique, allocate_shared)"
 				),
-				/ DLDI "simplified function templates %(shared_copy, unique_copy)"
-					!^ 'yforward',
-				* "missing inclusion %YBase.IntegerSequence" @ %Apply $since b850
+				/ DLDI "simplified function templates %(shared_copy, \
+					unique_copy)" !^ 'yforward',
+				* "missing inclusion %YBase.IntegerSequence" @ %Apply $since
+					b850
 			),
 			* "irrespective non-deduced context"
 				@ "transformation trait %invoke_result" @ %Invoke $since b832

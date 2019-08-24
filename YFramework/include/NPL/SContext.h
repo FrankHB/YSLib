@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2531
+\version r2532
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2019-07-16 09:31 +0800
+	2019-08-16 12:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -599,7 +599,7 @@ TraverseSubnodes(_fCallable f, const _tNode& node)
 */
 inline PDefH(void, AssertBranch, const TermNode& term,
 	const char* msg = "Invalid term found.") ynothrowv
-	ImplExpr(yunused(msg), YAssert(IsBranch(term), msg))
+	ImplExpr(yunused(term), yunused(msg), YAssert(IsBranch(term), msg))
 
 
 /*!

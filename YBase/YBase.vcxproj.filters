@@ -272,6 +272,9 @@
     <ClInclude Include="include\ystdex\list.hpp">
       <Filter>include\ystdex</Filter>
     </ClInclude>
+    <ClInclude Include="include\ystdex\node_base.h">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ystdex\cstdio.cpp">
@@ -314,6 +317,9 @@
       <Filter>source\ystdex</Filter>
     </ClCompile>
     <ClCompile Include="source\ystdex\memory_resource.cpp">
+      <Filter>source\ystdex</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ystdex\node_base.cpp">
       <Filter>source\ystdex</Filter>
     </ClCompile>
   </ItemGroup>

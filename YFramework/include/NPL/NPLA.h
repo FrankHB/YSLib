@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r5938
+\version r5949
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2019-07-07 02:17 +0800
+	2019-08-21 10:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2238,7 +2238,7 @@ public:
 	/*!
 	\brief 转移并应用尾调用。
 	\note 调用前切换 Current 以允许调用 SetupTail 设置新的尾调用。
-	\pre 断言： \c Current 。
+	\pre 断言：\c Current 。
 	\sa LastStatus
 	\since build 810
 	*/
@@ -2254,8 +2254,8 @@ public:
 	//@{
 	/*!
 	\brief 转移首个定界动作为当前动作。
-	\pre 断言： \c !Delimited.empty() 。
-	\pre 间接断言： \c !Current 。
+	\pre 断言：\c !Delimited.empty() 。
+	\pre 间接断言：\c !Current 。
 	\post \c Current 。
 	\sa Delimited
 	\sa SetupTail
@@ -2266,7 +2266,7 @@ public:
 
 	/*!
 	\brief 转移当前动作为首个定界动作。
-	\pre 断言： \c Current 。
+	\pre 断言：\c Current 。
 	*/
 	//@{
 	//! \since build 812
@@ -2276,7 +2276,6 @@ public:
 	void
 	Push(Reducer&&);
 	//@}
-	//! \pre \c !Current 。
 	PDefH(void, Push, )
 		ImplExpr(Push(Reducer()))
 	//@}
@@ -2351,7 +2350,7 @@ public:
 
 	/*!
 	\brief 按需转移首个定界动作为当前动作。
-	\pre 间接断言： \c !Current 。
+	\pre 间接断言：\c !Current 。
 	\return 是否可继续规约。
 	\sa Pop
 	\since build 811
@@ -2401,7 +2400,7 @@ template<typename... _tParams>
 inline shared_ptr<Environment>
 AllocateEnvironment(ContextNode& ctx, _tParams&&... args)
 {
-	return AllocateEnvironment(ctx.GetBindingsRef().get_allocator(),
+	return NPL::AllocateEnvironment(ctx.GetBindingsRef().get_allocator(),
 		yforward(args)...);
 }
 template<typename... _tParams>
@@ -2410,6 +2409,7 @@ AllocateEnvironment(TermNode& term, ContextNode& ctx, _tParams&&... args)
 {
 	const auto a(ctx.GetBindingsRef().get_allocator());
 
+	yunused(term);
 	YAssert(a == term.get_allocator(),
 		"Allocator mismatch between term and context.");
 	return NPL::AllocateEnvironment(a, yforward(args)...);
@@ -2444,6 +2444,8 @@ EmplaceLeaf(Environment::BindingMap& m, string_view name, _tParams&&... args)
 	YAssertNonnull(name.data());
 	// XXX: The implementation is depended on the fact that %TermNode is simply
 	//	an alias of %ValueNode and it is same to %BindingMap currently.
+	// XXX: Allocators are not used on %ValueObject for performance in most
+	//	cases.
 	return ystdex::insert_or_assign(m, name, TermNode(std::allocator_arg,
 		m.get_allocator(), NoContainer, ystdex::in_place_type<_type>,
 		yforward(args)...)).second;
@@ -2706,7 +2708,7 @@ RelayNext(ContextNode& ctx, _fCurrent&& cur, _fNext&& next)
 
 /*!
 \brief 异步规约指定动作和上下文中非空的当前动作。
-\pre 断言： \c ctx.Current 。
+\pre 断言：\c ctx.Current 。
 */
 template<typename _fCurrent>
 inline ReductionStatus

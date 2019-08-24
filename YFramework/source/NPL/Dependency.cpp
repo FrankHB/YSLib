@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2862
+\version r2866
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2019-08-01 12:56 +0800
+	2019-08-23 00:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -962,11 +962,10 @@ LoadModule_std_environments(REPLContext& context)
 			eval (list (unwrap bound?) (symbol->string s)) (eval e d);
 	)NPL");
 	RegisterStrict(renv, "value-of", ValueOf);
-	RegisterStrict(renv, "get-current-repl",
-		ystdex::bind1([](TermNode& term, REPLContext& rctx){
+	RegisterStrict(renv, "get-current-repl", [&](TermNode& term){
 		RetainN(term, 0);
-		term.Value = ValueObject(rctx, OwnershipTag<>());
-	}, std::ref(context)));
+		term.Value = ValueObject(context, OwnershipTag<>());
+	});
 	RegisterStrict(renv, "eval-string", EvalString);
 	RegisterStrict(renv, "eval-string%", EvalStringRef);
 	RegisterStrict(renv, "eval-unit", EvalUnit);

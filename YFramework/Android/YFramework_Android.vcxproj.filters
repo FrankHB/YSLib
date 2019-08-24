@@ -3,4 +3,14 @@
   <ItemGroup>
     <None Include="Makefile" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\Helper\AndroidHost.cpp" />
+    <ClCompile Include="source\Helper\AndroidScreen.cpp" />
+    <ClCompile Include="source\YCLib\Android.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\Helper\AndroidHost.h" />
+    <ClInclude Include="include\YCLib\Android.h" />
+    <ClInclude Include="source\Helper\AndroidScreen.h" />
+  </ItemGroup>
 </Project>

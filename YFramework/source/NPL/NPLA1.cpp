@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r13234
+\version r13249
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2019-07-24 00:45 +0800
+	2019-08-25 00:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,13 +35,13 @@
 //	ystdex::invoke_value_or, TermReference, NPL::IsMovable, NPL::TryAccessLeaf,
 //	NPL::TryAccessReferencedTerm, ystdex::value_or, IsLeaf, unordered_map,
 //	ystdex::ref_eq, IsBranchedList, YSLib::allocate_shared, vector, ystdex::ref,
-//	ystdex::id, ystdex::cast_mutable, NPL::AccessPtr, pair, ComposeActions,
-//	ResolveTerm, YSLib::share_move, ystdex::equality_comparable,
-//	std::allocator_arg, NoContainer, ystdex::exchange,
-//	NPL::SwitchToFreshEnvironment, Collapse, GetLValueTagsOf, TermTags,
-//	NPL::TryAccessReferencedLeaf, ystdex::call_value_or, ystdex::make_transform,
-//	in_place_type, ystdex::try_emplace, NPL::Access, ResolveIdentifier,
-//	NPL::TryAccessTerm, LiteralHandler, std::mem_fn;
+//	ystdex::id, ystdex::cast_mutable, ComposeActions, ResolveTerm,
+//	YSLib::share_move, ystdex::equality_comparable, std::allocator_arg,
+//	NoContainer, ystdex::exchange, NPL::SwitchToFreshEnvironment, Collapse,
+//	GetLValueTagsOf, TermTags, NPL::TryAccessReferencedLeaf,
+//	ystdex::call_value_or, ystdex::make_transform, in_place_type,
+//	ystdex::try_emplace, NPL::Access, ResolveIdentifier, NPL::TryAccessTerm,
+//	LiteralHandler, std::mem_fn;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard, ystdex::swap_guard,
 //	ystdex::unique_guard;
 #include YFM_NPL_SContext // for Session;
@@ -1520,12 +1520,16 @@ private:
 			if(p_static && p_static.use_count() == 1)
 				act.RecordList.emplace_front(ContextHandler(),
 					std::move(p_static));
+
+			const bool no_lifting(NoLifting);
+
 			// XXX: This would make '*this' invalid.
 			yunused(act.MoveFunction());
 			// XXX: The evaluation structure does not need to be saved, since it
 			//	would be used immediately in %RelayForCall. The pointer is moved
 			//	to indicate the error condition when it is called again.
 			LiftTerm(term, eval_struct);
+			return RelayForCall(ctx, term, std::move(gd), no_lifting);
 		}
 		else
 			term.SetContent(Deref(p_eval_struct));
@@ -1551,19 +1555,16 @@ RegularizeForm(TermNode& fm)
 		{
 			YAssert(fm.size() == 1, "Invalid irregular representation of"
 				" reference with multiple subterms found.");
-
-			const auto& fm_sub0(*fm.begin());
-
-			YAssert(IsLeaf(fm_sub0), "Invalid irregular representation of"
+			YAssert(IsLeaf(*fm.begin()), "Invalid irregular representation of"
 				" reference with non-leaf 1st subterm found.");
 
-			const auto& tm_ptr(NPL::Access<shared_ptr<TermNode>>(fm_sub0));
 			// XXX: Assume nonnull. This is guaranteed in construction
 			//	in %UnwrapStrict.
 			const auto& referenced(p_ref_fm->get());
 
-			YAssert(ystdex::ref_eq<>()(NPL::Deref(tm_ptr),
-				referenced), "Invalid subobject reference found.");
+			YAssert(ystdex::ref_eq<>()(NPL::Deref(NPL::Access<
+				shared_ptr<TermNode>>(*fm.begin())), referenced),
+				"Invalid subobject reference found.");
 			fm.MoveContent(TermNode(referenced));
 			YAssert(IsLeaf(fm), "Wrong result of irregular"
 				" representation conversion found.");

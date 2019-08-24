@@ -11,13 +11,13 @@
 /*!	\file meta.hpp
 \ingroup YStandardEx
 \brief 通用元编程设施。
-\version r1666
+\version r1710
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:28 +0800
 \par 修改时间:
-	2019-02-15 20:51 +0800
+	2019-08-18 03:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -460,7 +460,6 @@ struct is_referenceable : or_<is_object<_type>, is_reference<_type>,
 {};
 
 
-
 /*!
 \brief 判断指定类型是否可作为返回类型。
 \note 即排除数组类型、抽象类类型和函数类型的所有类型。
@@ -538,6 +537,7 @@ template<typename _type>
 struct is_rvalue_class_reference
 	: and_<is_rvalue_reference<_type>, is_class<remove_reference_t<_type>>>
 {};
+//@}
 
 
 /*!
@@ -564,7 +564,6 @@ struct is_trivial_union : and_<is_trivial<_type>, is_union<_type>>
 {};
 //@}
 //@}
-//@}
 
 
 /*!
@@ -574,6 +573,7 @@ struct is_trivial_union : and_<is_trivial<_type>, is_union<_type>>
 template<typename _type>
 struct is_cv : or_<is_const<_type>, is_volatile<_type>>
 {};
+//@}
 
 
 /*!
@@ -589,15 +589,6 @@ template<template<typename...> class _gOp, typename... _types>
 struct is_decomposable<_gOp<_types...>> : true_
 {};
 //@}
-
-
-/*!
-\brief 判断指定类型是否已退化为指定类型。
-\since build 841
-*/
-template<typename _type, typename _tTo = _type>
-struct is_decayed : is_same<decay_t<_type>, _tTo>
-{};
 
 
 /*!
@@ -640,7 +631,39 @@ template<typename _type>
 struct is_trivially_moveable : and_<is_trivially_move_constructible<_type>,
 	is_trivially_move_assignable<_type>>
 {};
+
+
+/*!
+\brief 判断指定类型是否为可复制构造但不可无抛出异常地转移构造的类型。
+\note 和 std::move_if_noexcept 需要避免复制的条件相同。
+\since build 865
+*/
+template<typename _type>
+struct is_throwing_move_copyable : and_<is_copy_constructible<_type>,
+	not_<is_nothrow_move_constructible<_type>>>
+{};
 //@}
+//@}
+
+
+//! \ingroup type_traits_operations
+//@{
+/*!
+\brief 判断指定类型是否已退化为指定类型。
+\since build 841
+*/
+template<typename _type, typename _tTo = _type>
+struct is_decayed : is_same<_type, decay_t<_tTo>>
+{};
+
+
+/*!
+\brief 判断指定类型是否为无限定的指定类型。
+\since build 865
+*/
+template<typename _type, typename _tTo = _type>
+struct is_unqualified : is_same<_type, remove_cv_t<_tTo>>
+{};
 //@}
 
 
@@ -696,6 +719,15 @@ struct is_implicitly_nothrow_constructible : and_<is_nothrow_constructible<
 	_type, _tFrom>, is_convertible<_tFrom, _type>>
 {};
 //@}
+
+
+/*!
+\brief 判断第一参数和第二参数指定的参数类型相同。
+\since build 865
+*/
+template<typename _type, typename _tParam>
+struct is_same_param : is_same<_type&, decay_t<_tParam>&>
+{};
 //@}
 
 
@@ -792,14 +824,19 @@ template<typename _type1, typename _type2, typename _type = void>
 using enable_if_same_t
 	= enable_if_t<is_same<_type1, _type2>::value, _type>;
 
+//! \since build 865
+template<typename _type1, typename _type2, typename _type = void>
+using enable_if_same_param_t
+	= enable_if_t<is_same_param<_type1, _type2>::value, _type>;
+
 /*!
-\brief 移除选择类类型的特定重载避免构造模板和复制/转移特殊成员函数冲突。
-\pre 第一参数为类类型。
+\brief 排除选择类型的特定参数的重载。
+\note 第一参数通常为类类型，可避免被选择的类的构造模板和复制/转移特殊成员函数冲突。
 \since build 687
 */
-template<class _tClass, typename _tParam, typename _type = void>
+template<typename _tSelected, typename _tParam, typename _type = void>
 using exclude_self_t
-	= enable_if_t<!is_same<_tClass&, decay_t<_tParam>&>::value, _type>;
+	= enable_if_t<!is_same_param<_tSelected, _tParam>::value, _type>;
 //@}
 //@}
 

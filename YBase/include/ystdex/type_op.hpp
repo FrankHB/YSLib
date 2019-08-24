@@ -11,19 +11,19 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r2856
+\version r2861
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2019-01-18 16:30 +0800
+	2019-08-16 12:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::TypeOperation
 
-间接扩展标准库头 <type_traits> ，包括一些不适用于所有类型或组合的类型特征，
+间接扩展标准库头 \c \<type_traits> ，包括一些不适用于所有类型或组合的类型特征，
 以及其它元编程设施。
 */
 
@@ -318,15 +318,15 @@ using common_underlying_t = common_type_t<underlying_cond_type_t<_types>...>;
 
 /*!
 \ingroup transformation_traits
-\pre 第一参数为类类型。
-\brief 移除参数包中选择类类型的特定重载避免构造模板和复制/转移特殊成员函数冲突。
+\brief 排除选择类型的特定参数类型的重载。
+\note 第一参数通常为类类型，可避免被选择的类的构造模板和复制/转移特殊成员函数冲突。
 \note 类似 exclude_self_t ，但支持参数包，而不支持指定结果类型。
 \since build 848
 */
-template<class _tClass, typename... _tParams>
+template<typename _tSelected, typename... _tParams>
 using exclude_self_params_t
 	= enable_if_t<not_<cond_or_t<bool_<sizeof...(_tParams) == 1>,
-	false_, is_same, _tClass&, decay_t<_tParams>&...>>::value, yimpl(void)>;
+	false_, is_same_param, _tSelected, _tParams...>>::value, yimpl(void)>;
 
 
 /*!

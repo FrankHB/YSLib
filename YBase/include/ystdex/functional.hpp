@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r4031
+\version r4037
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2019-08-01 12:43 +0800
+	2019-08-19 09:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -505,7 +505,16 @@ template<typename _fCallable>
 struct expand_proxy<_fCallable, 0>
 	: private call_projection<_fCallable, index_sequence<>>
 {
+	//! \since build 865
+	using call_projection<_fCallable, index_sequence<>>::apply_call;
+
+	//! \since build 865
+	using call_projection<_fCallable, index_sequence<>>::apply_invoke;
+
 	using call_projection<_fCallable, index_sequence<>>::call;
+
+	//! \since build 865
+	using call_projection<_fCallable, index_sequence<>>::invoke;
 };
 //@}
 
