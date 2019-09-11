@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2866
+\version r2873
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2019-08-23 00:50 +0800
+	2019-09-05 22:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 //	YSLib::unique_ptr, NPL::AllocateEnvironment, std::piecewise_construct,
 //	std::forward_as_tuple, NPL::Deref, ystdex::isdigit, Collapse,
 //	ystdex::bind1, NPL::IsMovable, NPL::TryAccessReferencedTerm, ystdex::plus,
-//	std::placeholders, std::mem_fn, NPL::ResolveRegular, ystdex::tolower,
+//	std::placeholders, NPL::ResolveRegular, ystdex::tolower,
 //	ystdex::swap_dependent, NPL::Forms functions;
 #include YFM_NPL_SContext
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
@@ -492,7 +492,9 @@ LoadEnvironments(ContextNode& ctx)
 	//	basic than vau.
 	RegisterStrict(ctx, "copy-environment", CopyEnvironment);
 	RegisterStrictUnary<const EnvironmentReference>(ctx, "lock-environment",
-		std::mem_fn(&EnvironmentReference::Lock));
+		[](const EnvironmentReference& wenv) ynothrow{
+			return wenv.Lock();
+		});
 	RegisterStrict(ctx, "make-environment", MakeEnvironment);
 	RegisterStrictUnary<const shared_ptr<Environment>>(ctx,
 		"weaken-environment", [](const shared_ptr<Environment>& p) ynothrow{
@@ -1013,7 +1015,9 @@ LoadModule_std_strings(REPLContext& context)
 		std::bind(CallBinaryFold<string, ystdex::plus<>>, ystdex::plus<>(),
 		string(), std::placeholders::_1));
 	RegisterStrictUnary<const string>(renv, "string-empty?",
-		std::mem_fn(&string::empty));
+		[](const string& str) ynothrow{
+			return str.empty();
+		});
 	RegisterStrictBinary(renv, "string<-", [](TermNode& x, TermNode& y){
 		ResolveTerm([&](TermNode& nd_x, ResolvedTermReferencePtr p_ref_x){
 			if(!p_ref_x || p_ref_x->IsModifiable())

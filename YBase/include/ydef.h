@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3618
+\version r3627
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2019-08-11 20:44 +0800
+	2019-09-11 20:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -811,6 +811,8 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 \def YB_PURE
 \brief 指示函数或函数模板实例为纯函数。
 \since build 373
+\see https://reviews.llvm.org/rL230763 。
+\see https://bugs.llvm.org/show_bug.cgi?id=43275 。
 
 指示函数或函数模板的求值仅用于计算返回值，无影响其它顶层块作用域外存储的副作用，
 且返回值只依赖参数和/或编译时确定内存位置（如静态存储的对象的）存储的值。
@@ -819,7 +821,11 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 不访问函数外部 volatile 存储；
 不调用具有不可忽略副作用而不可被 YB_PURE 安全指定的函数。
 */
-#if __has_attribute(__pure__) || YB_IMPL_GNUCPP >= 20296
+// XXX: The conditions latter implies '_LIBUNWIND_ARM_EHABI' in libunwind and
+//	'_LIBCXXABI_ARM_EHABI' in libc++.
+#if (__has_attribute(__pure__) || YB_IMPL_GNUCPP >= 20296) \
+	&& !(YB_IMPL_CLANGPP && defined(__arm__) \
+	&& !defined(__USING_SJLJ_EXCEPTIONS__) && !defined(__ARM_DWARF_EH__))
 #	define YB_PURE YB_ATTR(__pure__)
 #else
 #	define YB_PURE
@@ -838,7 +844,8 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 假定条件包括：
 不访问函数外部的存储；
 不调用具有不可忽略副作用而不可被 YB_STATELESS 安全指定的函数。
-可被安全指定的函数或函数模板是 YB_PURE 限定的函数或函数模板的真子集。
+可被安全指定的函数或函数模板是 YB_PURE 限定的函数或函数模板的真子集；
+不抛出异常。
 */
 #if __has_attribute(__const__) || YB_IMPL_GNUCPP >= 20500
 #	define YB_STATELESS YB_ATTR(__const__)

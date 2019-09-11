@@ -11,13 +11,13 @@
 /*!	\file iterator_op.hpp
 \ingroup YStandardEx
 \brief 迭代器操作。
-\version r257
+\version r269
 \author FrankHB <frankhb1989@gmail.com>
 \since build 576
 \par 创建时间:
 	2015-02-09 11:28:52 +0800
 \par 修改时间:
-	2019-08-06 22:50 +0800
+	2019-08-25 02:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,6 +117,19 @@ make_reverse_iterator(_tIter i)
 
 //! \ingroup helper_functions
 //@{
+/*!
+\brief 按 std::move_if_noexcept 的条件构造转移迭代器或非转移迭代器。
+\since build 866
+*/
+template<typename _tIter, typename _tRet = cond_t<is_throwing_move_copyable<
+	typename std::iterator_traits<_tIter>::value_type>, _tIter,
+	std::move_iterator<_tIter>>>
+yconstfn _tRet
+make_move_if_noexcept_iterator(_tIter it)
+{
+	return _tRet(it);
+}
+
 /*!
 \brief 构造转移迭代器对。
 \since build 337

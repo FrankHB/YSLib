@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2018 FrankHB.
+	© 2012-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1097
+\version r1107
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-26 13:36:28 +0800
 \par 修改时间:
-	2018-05-23 11:04 +0800
+	2019-09-06 00:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -200,29 +200,35 @@ _gmtime32(const ::__time32_t* p)
 // NOTE: Linux kernel version since 2.6.23 should be all OK. For early kernel
 //	versions Android used, see http://elinux.org/Android_Kernel_Versions.
 //	Also https://en.wikipedia.org/wiki/Android_version_history.
+#	if !(__ANDROID_API__ >= 21)
 int
 linkat(int fd1, const char* path1, int fd2, const char* path2, int flag)
-	ynothrow
+	yimpl(ynothrow)
 {
 	// NOTE: The 'linkat' syscall was introduced in Linux 2.6.16.
 	return ::syscall(__NR_linkat, fd1, path1, fd2, path2, flag);
 }
+#	endif
 
+#	if !(__ANDROID_API__ >= 19)
 int
-futimens(int fd, const ::timespec times[2]) ynothrow
+futimens(int fd, const ::timespec times[2]) yimpl(ynothrow)
 {
 	// NOTE: See https://android.googlesource.com/platform/bionic/+/840a114eb12773c5af39c0c97675b27aa6dee78c/libc/bionic/futimens.cpp.
 	return ::utimensat(fd, {}, times, 0);
 }
+#	endif
 
+#	if !(__ANDROID_API__ >= 12)
 int
 utimensat(int fd, const char* path, const ::timespec times[2], int flags)
-	ynothrow
+	yimpl(ynothrow)
 {
 	// NOTE: The 'utimesat' syscall was introduced in Linux 2.6.22.
 	// NOTE: See http://stackoverflow.com/questions/19374749/how-to-work-around-absence-of-futimes-in-android-ndk.
 	return ::syscall(__NR_utimensat, fd, path, times, flags);
 }
+#	endif
 #endif
 
 namespace platform

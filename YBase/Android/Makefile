@@ -1,5 +1,5 @@
 #
-#	(C) 2009-2016 FrankHB.
+#	(C) 2009-2016, 2019 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YBase
-# Version = r263
+# Version = r272
 # Created = 2014-04-07 12:41:43 +0800
-# Updated = 2016-04-12 22:20 +0800
+# Updated = 2019-09-08 00:25 +0800
 # Encoding = ANSI
 
 
@@ -50,8 +50,9 @@ export DATA			:=	data $(REFDIR)/data
 # options for code generation
 CFLAGS := $(INCLUDE) $(C_CXXFLAGS) $(CFLAGS_COMMON)
 CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS) $(CXXFLAGS_COMMON) \
-	-fno-threadsafe-statics -fuse-cxa-atexit -Wctor-dtor-privacy -Wnoexcept \
+	-fno-threadsafe-statics -fuse-cxa-atexit -Wctor-dtor-privacy \
 	-Wnon-virtual-dtor -Wold-style-cast -Wsign-promo
+#	-Wnoexcept -Wnon-virtual-dtor -Wold-style-cast -Wsign-promo
 
 ifneq ($(CONF),$(notdir $(CURDIR)))
 
@@ -117,7 +118,7 @@ DEPENDS	:= $(OFILES:.o=.d)
 # main targets
 #----
 
-$(OUTPUT)	:	$(OFILES)
+$(OUTPUT): $(OFILES)
 	@rm -f "$(OUTPUT)"
 	@echo Linking $(notdir $@) ...
 	@$(AR) rcs "$(OUTPUT)" $(foreach file,$(OFILES),$(DEPSDIR)/$(file))
@@ -130,17 +131,17 @@ $(OUTPUT)	:	$(OFILES)
 # Compile Targets for C/C++
 #----
 
-%.cpp.o : %.cpp
+%.cpp.o: %.cpp
 	@echo $<
 	@[ -d $(dir $(DEPSDIR)/$@) ] || mkdir -p $(dir $(DEPSDIR)/$@)
 	@$(CXX) -MMD -MP -MF $(DEPSDIR)/$*.cpp.d $(CXXFLAGS) -c $< -o$(DEPSDIR)/$@
 
-%.c.o : %.c
+%.c.o: %.c
 	@echo $<
 	@[ -d $(dir $(DEPSDIR)/$@) ] || mkdir -p $(dir $(DEPSDIR)/$@)
 	@$(CC) -MMD -MP -MF $(DEPSDIR)/$*.c.d $(CFLAGS) -c $< -o$(DEPSDIR)/$@
 
-%.s.o : %.s
+%.s.o: %.s
 	@echo $<
 	@[ -d $(dir $(DEPSDIR)/$@) ] || mkdir -p $(dir $(DEPSDIR)/$@)
 	@$(CC) -MMD -MP -MF $(DEPSDIR)/$*.s.d -x assembler-with-cpp $(ASFLAGS) -c $< -o$(DEPSDIR)/$@
@@ -156,11 +157,11 @@ define bin2o
 	echo "extern const u32" $(notdir $(*))_size";" >> $(DEPSDIR)/$(*).h
 endef
 
-%.bin.o	:	%.bin
+%.bin.o: %.bin
 	@echo $<
 	@$(bin2o)
 
-%.map.o	:	%.map
+%.map.o: %.map
 	@echo $<
 	@$(bin2o)
 

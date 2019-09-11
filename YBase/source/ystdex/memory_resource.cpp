@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1402
+\version r1407
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2019-08-14 01:51 +0800
+	2019-08-30 02:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,8 @@
 #endif
 #include "ystdex/map.hpp" // for map, greater;
 #include "ystdex/pointer.hpp" // for tidy_ptr;
-#include <algorithm> // for std::max, std::min, std::lower_bound;
+#include "ystdex/algorithm.hpp" // for std::max, std::min,
+//	ystdex::lower_bound_n;
 #include "ystdex/scope_guard.hpp" // for unique_guard, ystdex::dismiss;
 
 namespace ystdex
@@ -679,8 +680,9 @@ pool_resource::find_pool(size_t bytes, size_t alignment) ynothrow
 	const auto
 		lb_size(ceiling_lb(resource_pool::adjust_for_block(bytes, alignment)));
 
-	return {std::lower_bound(pools.begin(), pools.end(), lb_size,
-		[](const resource_pool& a, size_t lb)
+	return {ystdex::lower_bound_n(pools.begin(),
+		pools_t::difference_type(pools.size()),
+		lb_size, [](const resource_pool& a, size_t lb)
 		YB_ATTR_LAMBDA_QUAL(ynothrow, YB_PURE){
 		return a.get_extra_data() < lb;
 	}), lb_size};

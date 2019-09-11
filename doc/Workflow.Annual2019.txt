@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2019 年度。
-\version r532
+\version r582
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2019-01-02 01:00:32 +0800
 \par 修改时间:
-	2019-08-16 11:42 +0800
+	2019-09-12 04:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -517,6 +517,58 @@ Some issues met with LTO are reviewed.
 	The modification in YBase.YStandardEx.Any in build 864 requires workaround of the bug above.
 	The modification of 'ystdex::unchecked_any_cast' in YBase.YStandardEx.Any in build 864 (see notes about constraints above) would cause wrong code (illegal instruction) in release static build of YSTest with MinGW32 G++ (at least i686 7.1 and 7.3).
 		This is worked around by using 'yconstraint(p); yconstraint(p->has_value());' instead of 'yconstraint(p && p->has_value());'.
+
+$2019-09:
+
+YBase now provides 'ystdex::list' class template.
+	It is a drop-in dedicated replacement to 'std::list', with some C++20 features (e.g. [WG21 P0084R2]) enabled.
+	Currently it it remains the layout ABI-compatible to (non-debugging version) ISO C++11 'std::list' (which has a node count for O(1) size) in libstdc++.
+	There are several differences to the implementation of libstdc++.
+		There is no effort to detect whether a pair of list iterators is a whole range of a list object in getting distance between them.
+			The internal implemantation of list iterators have overloads of 'std::__distance' for a fast access when the range is the whole list.
+			The perforance might be effected if user code does not optimize explicitly in this case, e.g. on call of 'std::lower_bound'.
+			Consider using something already knows the size of the range instead when possible, e.g. 'ystdex::lower_bound_n' in YBase.StandardEx.Algorithm.
+		The implementation of 'list::remove_if' and 'list::unique' respect to [LWG 526].
+			See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91620.
+				Both libstdc++ and Microsoft VC++ has the desired behavior.
+			This is fixed for 'std::list::remove', see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=17012.
+		The 'list::sort' implementation has some optimal implementation without using a magic number for pre-allocated temporary lists in libstdc++.
+		The 'list::resize' implementation is optimized to avoid unnecessary size update.
+		The 'list::erase' implementation for range is optimized to the 'clear()' case check (like Microsoft VC++) and have less update to pointers otherwise.
+	The necessity for the previous builds is from the fact that 'std::list' implementation in libstdc++ on the Android configurations (with CrystaX) are still not conforming to C++11, and it breaks 'NPL::TermNode' allocator-extended construction in YFramework.NPL.SContext.
+		However, since it also needs to fix 'std::stack' (thus, including 'std::deque') if nothing is changed in the client code in YFramework.NPL.SContext, update to the official NDK r20 is planned instead.
+			The update requires to implemented YCLib.FileIO support for libc++ and a few other fixes, but no need to replace the 'std' types. 
+		YFramework still plans to change to 'ystdex::list' now as it is believed to have better performance (at least in x86_64-linux).
+	Another bonus is it supports incomplete value types specified in [WG21 N4510], which is adopted as an ISO C++17 feature.
+		This is considered to be used in 'ystdex::pmr::memory_resource' implementations when the pool type was not exposed. Is not the case now.
+	The class 'ystdex::pmr::pool_resource' now uses 'ystdex::list' despite there is no need for adapt to incomplete value type here.
+		The pool finding is optimized with 'ystdex::lower_bound_n' instead of 'ystdex::lower_bound' (see above).
+			This have few effects for 'std::list' in libstdc++ because it is already optimized.
+			However, this is necessary to prevent performance degression for other implementations without such optimization.
+		Strictly speaking, since 'ystdex::pmr::resouce_pool' now is not an incomplete type, and no allocator-extended constructors are relied on here, there is no necessary to change the list type.
+			However, the optimization of using 'ystdex::lower_bound_n' can have slightly better performance with 'ystdex::list' instead of 'std::list'.
+		A side effect is that the change removes the debug interface used for the list type of libstdc++ in several debug configuarations, which should be OK for now, as the implementation of 'ystdex::pmr::pool_resource' before the change is considered stable enough.
+Android platform toolchain has been updated.
+	Because CrystaX NDK does not release an updated version for years, YSLib switched back to the official Android NDK.
+		The old release CrystaX sticks on GCC 5. This requires workaround for libstdc++ still not conforming to C++11.
+		The newer test builds (e.g. https://dl.crystax.net/builds/1072/) are alive.
+			It seems thatstill not having up-to-date compilers. https://tracker.crystax.net/issues shows GCC 6 is still not ready.
+	Although GCC 6 is sufficiently to remove the workarounds, newer compilers should be better.
+	The newest version of official NDK, i.e. r20, is used. The toolchain has some changes needing some additional work.
+		Since it now only containers Clang++ and libc++, the makefiles of YSLib should be changed.
+			Some changes have to be made because libc++ is yet not a part of Android platform.
+				This is by design, see https://developer.android.com/ndk/guides/cpp-support#libc.
+				The NativeActivity still only supports loading of one dynamic library, so libc++ should be statically linked.
+				However, exception handling does not work when 'YB_PURE' is used.
+					It throws via '__cxxabiv1::failed_throw' even with 'catch(...)'.
+						This indicates there is something wrong in unwinding.
+						See https://bugs.llvm.org/show_bug.cgi?id=43275.
+					There are some non-bugs excluded.
+						The bug of '__gnu_Unwind_Find_exidx' in libc (Boinic) is fixed at and fixed in the platform.
+							See https://github.com/aosp-mirror/platform_bionic/commit/55ca56c27ca166a247b1e621a0a0e3f4d1907b4d.
+							See also https://github.com/aosp-mirror/platform_bionic/commit/aeb5bc658feaa579b72560a7026374cbeb38ea56 for the 1st try.
+						NDK bug for static libc++ has been fixed. See https://github.com/android-ndk/ndk/issues/593.
+			Some bugs of C++ code are fixed to make Clang++ happy.
 
 ////
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2017 FrankHB.
+	© 2011-2017, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1642
+\version r1653
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2017-01-19 18:55 +0800
+	2019-09-06 00:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -215,7 +215,7 @@ enum class OpenMode : int
 #if O_DIRECTORY
 	YCL_Impl_OMode_POSIX(Directory, DIRECTORY),
 #else
-	// FIXME: Platform %DS does not support this.
+	// XXX: Platform %DS does not support this.
 	Directory = 0,
 #endif
 	YCL_Impl_OMode(Exclusive, EXCL),
@@ -683,8 +683,10 @@ extern "C"
 \see http://pubs.opengroup.org/onlinepubs/9699919799/functions/link.html 。
 \since build 660
 */
+#	if !(__ANDROID_API__ >= 21)
 int
-linkat(int, const char*, int, const char*, int) ynothrow;
+linkat(int, const char*, int, const char*, int) yimpl(ynothrow);
+#	endif
 
 #	ifndef UTIME_NOW
 #		define UTIME_NOW ((1L << 30) - 1L)
@@ -695,11 +697,15 @@ linkat(int, const char*, int, const char*, int) ynothrow;
 
 //! \see http://pubs.opengroup.org/onlinepubs/9699919799/functions/utimensat.html 。
 //@{
+#	if !(__ANDROID_API__ >= 19)
 int
-futimens(int, const ::timespec times[2]) ynothrow;
+futimens(int, const ::timespec times[2]) yimpl(ynothrow);
+#	endif
 
+#	if !(__ANDROID_API__ >= 12)
 int
-utimensat(int, const char*, const ::timespec[2], int) ynothrow;
+utimensat(int, const char*, const ::timespec[2], int) yimpl(ynothrow);
+#	endif
 //@}
 
 } // extern "C";

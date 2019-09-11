@@ -11,13 +11,13 @@
 /*!	\file node_base.cpp
 \ingroup YStandardEx
 \brief 作为节点序列容器实现的节点基础。
-\version r165
+\version r174
 \author FrankHB <frankhb1989@gmail.com>
 \since build 865
 \par 创建时间:
 	2019-08-22 17:48:43 +0800
 \par 修改时间:
-	2019-08-24 20:41 +0800
+	2019-09-12 03:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -102,9 +102,9 @@ list_node_base::reverse_nodes() ynothrow
 {
 	auto x(this);
 
-	ystdex::retry_on_cond([&]{
+	ystdex::retry_on_cond([&]() ynothrow{
 		return x != this;
-	}, [&]{
+	}, [&]() ynothrow{
 		std::swap(x->next, x->prev);
 		x = x->prev;
 	});
@@ -135,7 +135,7 @@ list_header::list_header(list_header&& x) ynothrow
 	if(x.next != &x.base())
 	{
 		next->prev = prev->next = &base();
-		x.reset_links();
+		x.reset();
 	}
 	else
 		reset_links();
@@ -144,19 +144,18 @@ list_header::list_header(list_header&& x) ynothrow
 void
 list_header::move_nodes(list_header&& x)
 {
-	const auto p_xnode(&x.base());
+	auto& xnode(x.base());
 
-	if(p_xnode->next == p_xnode)
-		reset_links();
+	if(xnode.next == &xnode)
+		reset();
 	else
 	{
 		const auto p_node(&base());
 
-		p_node->next = p_xnode->next;
-		p_node->prev = p_xnode->prev;
+		yunseq(p_node->next = xnode.next, p_node->prev = xnode.prev);
 		p_node->next->prev = p_node->prev->next = p_node;
 		node_count = x.node_count;
-		x.reset_links();
+		x.reset();
 	}
 }
 

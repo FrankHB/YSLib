@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r1138
+\version r1186
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2019-08-06 22:54 +0800
+	2019-08-30 02:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include "iterator_trait.hpp" // for have_same_iterator_category;
 #include <numeric> // for std::accumulate;
 #include <algorithm> // for <algorithm>;
-#include "functor.hpp" // for is_equal, std::bind, std::placeholders::_1, less;
+#include "functor.hpp" // for is_equal, less, std::bind, std::placeholders::_1;
 #include "deref_op.hpp" // for YB_VerifyIterator, yconstraint;
 #include <cstring> // for std::memcpy, std::memmove;
 
@@ -226,6 +226,58 @@ equal(_tIn1 first1, _tIn1 last1, _tIn2 first2, _tIn2 last2)
 #endif
 
 } // inline namespace cpp2014;
+
+
+/*!
+\note 起始范围距离可较迭代器类别指定的复杂度更优化（如指定 list 的整个范围时）。
+\since build 865
+*/
+//@{
+/*
+\brief 取有序范围内的迭代器下界。
+\note 同 std::lower_bound 但使用起始迭代器和距离指定范围。
+*/
+template<typename _tFwd, typename _type, typename _fComp = less<_type>>
+_tFwd
+lower_bound_n(_tFwd first, typename std::iterator_traits<
+	_tFwd>::difference_type n, const _type& value, _fComp comp = less<_type>())
+{
+	while(n > 0)
+	{
+		const auto half(n >> 1);
+		auto middle(first);
+
+		YB_VerifyIterator(middle);
+		std::advance(middle, half);
+		YB_VerifyIterator(middle);
+		if(comp(*middle, value))
+		{
+			first = middle;
+			++first;
+			n = n - half - 1;
+		}
+		else
+			n = half;
+	}
+	return first;
+}
+
+
+/*!
+\brief 取有序范围内的迭代器上界。
+\note 同 std::upper_bound 但使用起始迭代器和距离指定范围。
+*/
+template<typename _tFwd, typename _type, typename _fComp = less<_type>>
+_tFwd
+upper_bound_n(_tFwd first, typename std::iterator_traits<
+	_tFwd>::difference_type n, const _type& value, _fComp comp = less<_type>())
+{
+	return ystdex::lower_bound_n(first, n, value, [&](const _type& x,
+		const typename std::iterator_traits<_tFwd>::value_type& y){
+		return !comp(y, x);
+	});
+}
+//@}
 
 
 //! \note 只保留非空结果，不保留分隔符。

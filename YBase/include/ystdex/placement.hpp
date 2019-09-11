@@ -11,13 +11,13 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r899
+\version r909
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2019-08-16 09:48 +0800
+	2019-09-05 14:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,11 +122,19 @@ is_aligned_ptr(_type* p, size_t alignment
 \see https://clang.llvm.org/docs/LanguageExtensions.html#builtin-functions 。
 \since build 864
 */
-#if __has_builtin(__builtin_assume_aligned) || YB_IMPL_GNUCPP >= 40700 \
-	|| YB_IMPL_CLANGPP >= 35100
+// XXX: Although GCC supports non-constant alignment in its test suite, Clang++
+//	does not and it would complain with "error: argument to
+//	'__builtin_assume_aligned' must be a constant integer". WG21 P0886R0 also
+//	porposes the attribute having constant-expression (or a type-id).
+#if YB_IMPL_GNUCPP >= 40700
 #	define yaligned(_p, _align) \
 	(yverify(ystdex::is_aligned_ptr(_p, _align)), \
 		__builtin_assume_aligned(_p, _align))
+#elif false && (__has_builtin(__builtin_assume_aligned) \
+	|| YB_IMPL_CLANGPP >= 35100)
+#	define yaligned(_p, _align) \
+	(yverify(ystdex::is_aligned_ptr(_p, _align)), __builtin_constant_p(_align) \
+		? __builtin_assume_aligned(_p, _align) : _p)
 #else
 #	define yaligned(_p, _align) \
 		(yassume(ystdex::is_aligned_ptr(_p, _align)), _p)

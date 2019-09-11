@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r1479
+\version r1525
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2019-03-17 06:32 +0800
+	2019-09-06 01:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,8 +49,10 @@ YBase 是 YSLib(the YSLib project) 的顶级子项目([ProjectRules @@1.3]) ，�
 
 @1.3.1 目标代码兼容性：
 基本内容参见 [Documentation::Designation @@2.3.6] 。
-现阶段 YBase 提供以下二进制兼容性保证：
-除非在变更日志中使用 $src 标识([Documentation::ProjectRules @@2.2.10.1]) ，满足二进制库向后兼容保证([Documentation::CommonRules @@2.2.4.2]) 。
+除以下例外，现阶段 YBase 对实体的变更提供二进制库向后兼容保证([Documentation::CommonRules @@2.2.4.2]) ：
+在变更日志中使用 $src 标识([Documentation::ProjectRules @@2.2.10.1]) ；
+完全限定名称(fully qualified name) 被修改；
+不引起其它被保证二进制兼容的实体的符号或对象布局的变化，且变更后不具有外部可见的二进制符号。
 
 @1.3.2 项目管理特性：
 本节概述项目管理相关特性的要求。
@@ -68,13 +70,19 @@ YBase 包括 YDefinition(@2.4) 、YStandardEx(@2.5) 、LibDefect(@2.6) 和 Test(
 @2.1.1 语言规范：
 遵守的具体标准规范及替代和扩展接口约定参见 https://bitbucket.org/FrankHB/yslib/wiki/StandardUsing.en-US.md 。
 尽可能严格遵守 ISO C++ ，涉及未指定行为和实现定义的行为时应由文档说明。
-默认使用 ISO C++11 的一个严格子集，基本内容参见 [Documentation::ProjectRules @@1.2.1] ，不符合此规则的例外由本节指定或文档另行指定。
-在 YDefinition 和 YStandardEx 实现标准库替代时，视接口和实现的语义，在被 ISO C++ 允许（这是一般情形）的前提下可提供更多的 [[nodiscard]] （以 YB_ATTR_nodiscard 的形式）和 noexcept （以 ynothrow 的形式）异常规范
-除标准库中依赖多线程环境的接口外， YBase 严格不依赖运行时具有的多线程执行环境。
+特性使用的基本规则参见 [Documentation::ProjectRules @@1.2.1] ，不符合此规则的例外由本节指定或文档另行指定，但除指定依赖特定实现的代码，应保持以下原则：
+默认使用 ISO C++11 的一个严格子集；
+可选使用之后版本的标准兼容的特性；
+使用的特性应使代码保持和已出版的最新标准兼容。
+可选使用的标准兼容的特性可用于支持对 ISO C++ 自身可能具有的缺陷的修正。
+除使用标准库明确依赖多线程环境的接口外，YBase 严格不依赖运行时具有的多线程执行环境。
+在 YDefinition 和 YStandardEx 提供标准库替代接口时，视语义在被 ISO C++ 允许（这是一般情形）的前提下可提供更多的 [[nodiscard]]（以 YB_ATTR_nodiscard 的形式）和 noexcept（以 ynothrow 等形式）的异常规范。
+为支持 ISO C++ 实现不可靠的实现环境([Documentation::Dependencies @@1]) ，可提供针该实现环境使用的语言实现的变通；符合文档要求下，对实现环境的判断可能不精确。在提升环境要求后，这些变通应在发布([Documentation::ProjectRules @2.2.3]) 前被移除。
 关于对语言的使用，另见 [Documentation::LanguageConvention @@5] 和 [Documentation::LanguageConvention @@6] 。
 
 @2.1.1.1 预处理指令：
-允许在预处理指令中使用特定实现的宏检查支持的特性作为变通。正式的变通使用的宏仅限公开支持的宏或者 YDefinition 提供的宏。
+允许在预处理指令中使用特定实现的宏检查支持的特性作为变通。
+正式的变通使用的宏仅限公开支持的宏或者 YDefinition 提供的宏。
 其中，在条件包含中可使用除符合 ISO C++ 当前草案的 __has_cpp_attribute 和 __has_include 外，还可使用由 https://clang.llvm.org/docs/LanguageExtensions.html 约定含义的以下特性检查扩展：
 __has_attribute
 __has_builtin
@@ -82,17 +90,22 @@ __has_extension
 __has_feature
 且实现应在这些标识符没有作为宏定义时替换为不影响预处理器特性判断的 0 值。
 另见 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66970 。
+GCC 和 Clang 支持前置和后置双下划线“__”属性名（作为保留标识符）代替对应的非保留标识符以减小可移植性问题。在 YDefinition 的实现中对 GCC 和 Clang 风格的属性名称应使用这样的标识符；其它情形不使用。
 
 @2.1.1.2 内建特性：
 若内建特性在 YDefinition 提供宏支持且可用，以 YDefinition 宏替代直接的使用。
-使用 __has_builtin 进行内建特性检查时若返回为 true ，假定支持以下特性（除非另行指定，按 https://clang.llvm.org/docs/LanguageExtensions.html 约定含义 ）：
+使用 __has_builtin 进行内建特性检查时若返回为 true ，假定可能支持以下特性（除非另行指定，按 https://clang.llvm.org/docs/LanguageExtensions.html 约定含义 ）：
 __builtin_addressof
+__builtin_assume
+__builtin_assume_aligned
 __builtin_clz
 __builtin_clzl
 __builtin_clzll
 __builtin_expect
 __builtin_trap
 __builtin_unreachable
+在特定实现还可能使用：
+__builtin_constant_p
 外部参考列表：
 https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
 https://releases.llvm.org/1.5/docs/ReleaseNotes.html#whatsnew
@@ -133,10 +146,12 @@ http://lists.llvm.org/pipermail/cfe-commits/Week-of-Mon-20130708/083439.html
 存在文档说明的前提下，部分 API 可调整关于 ISO C++ [res.on.arguments] 和 [lib.types.movedfrom] 相关的规则，但 YBase 只允许更严格的要求（如 @2.1.4.1 ）。
 
 @2.1.4 接口设计保证：
-YBase 不使用 [Documentation::LanguageConvention @@5.12.2.3.1] 的例外。
+YBase 不使用 [Documentation::LanguageConvention @@5.12.2.3.1] 的右值的例外。
 
 @2.1.4.1 模板参数：
-模板参数是不完整类型时，仅在需要实例化完整类型的操作时，要求类型完整。
+同 ISO C++ ，支持不完整类型的模板参数时，需要显式在接口中指定，排除因此直接导致的未定义行为。
+任意接口语义蕴含需要实例化完整类型的操作时，要求被实例化的类型完整，即使接口指定对应的模板参数允许不完整类型作为实例。
+容器模板的实例可能支持不完整类型，此时应明确支持的具体不完整类型来源的模板参数，且附加需要完整类型时的操作的要求。除了可指定不同的具体类型，这和 [WG21 N4371] 引入的特性中的要求原则上一致。
 
 @2.1.4.2 容器操作：
 当不完整类型作为容器的析构函数满足 ISO C++ [reentrancy] 以外的可重入要求，但允许的递归深度依赖具体语言实现。
@@ -279,7 +294,8 @@ YStandardEx 及其实现保持兼容 ISO C++11 。
 "tree.hpp" 和 "container.hpp" 依赖 "range.hpp" ；
 "string_view.hpp" 依赖 <libdefect/string.h> ；
 "string.hpp" 依赖 "container.hpp" ；
-"map.hpp" 和 "set.hpp" 依赖 "tree.hpp" 。
+"map.hpp" 和 "set.hpp" 依赖 "tree.hpp" ；
+"list.hpp" 依赖 "node_base.h" 。
 另见 @2.5.4 、 @2.5.5 、 @2.5.6 和 @2.5.7 。
 
 @2.5.1.2 内部头文件依赖性：
@@ -512,29 +528,38 @@ ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证�
 @2.5.7.22 数组操作 Array ：
 扩展标准库头 <array> ，提供内建数组和 std::array 相关类型的操作。
 
-@2.5.7.23 作为关联容器实现的树 Tree ：
+@2.5.7.23 作为节点序列容器实现的节点基础 NodeBase ：
+提供一些例程用于作为基于节点的序列容器实现的基础。
+当前暂时不公开 API ，但其中的 API 已被 List(@2.5.7.24) 中的容器二进制依赖。未来可能会提供基于节点实现关联容器公共 API 。
+
+@2.5.7.24 列表容器 List ：
+扩展标准库头 <list> ，提供类模板作为和 ISO C++17 std::list 类似且提供标准草案的一些其它接口。未来可能提供其它关联的 API 。
+附加 ISO C++11 不保证的附加特性不依赖 ISO C++17 及其具体实现。
+
+@2.5.7.25 作为关联容器实现的树 Tree ：
 提供一些例程用于作为关联容器实现的基础。
-当前暂时不公开 API ，但其中的 API 已被 Map(@2.5.7.23) 和 Set(@2.5.7.24) 中的容器二进制依赖。未来可能会提供基于树实现关联容器公共 API 。
+当前暂时不公开 API ，但其中的 API 已被 Map(@2.5.7.25) 和 Set(@2.5.7.26) 中的容器二进制依赖。未来可能会提供基于树实现关联容器公共 API 。
 
-@2.5.7.24 映射容器 Map ：
-和标准库头 <map> 类似，提供类模板作为和 ISO C++17 std::map 一致且支持不完整的键类型的实现。这些附加 ISO C++11 不保证的附加特性不依赖 ISO C++17 及其具体实现。
+@2.5.7.26 映射容器 Map ：
+扩展标准库头 <map> ，提供类模板作为和 ISO C++17 std::map 类似且支持不完整的键类型的实现。
+附加 ISO C++11 不保证的附加特性不依赖 ISO C++17 及其具体实现。
 
-@2.5.7.25 集合容器 Set ：
+@2.5.7.27 集合容器 Set ：
 扩展标准库头 <map> ，但提供和 std::set 类似的容器。
 
-@2.5.7.26 ISO C++ 标准流缓冲扩展 StreamBuffer ：
+@2.5.7.28 ISO C++ 标准流缓冲扩展 StreamBuffer ：
 扩展标准库头 <streambuf> 。
 
-@2.5.7.27 ISO C++ 标准输入流扩展 InputStream ：
+@2.5.7.29 ISO C++ 标准输入流扩展 InputStream ：
 扩展标准库头 <istream> 。
 
-@2.5.7.28 ISO C 标准输入/输出扩展 CStandardIO ：
+@2.5.7.30 ISO C 标准输入/输出扩展 CStandardIO ：
 头文件扩展标准库头 <cstdio> ，提供 C/C++ 流操作模式参数的转换和 C 标准库输入的迭代器包装。
 
-@2.5.7.29 ISO C++ <future> 扩展 Future ：
+@2.5.7.31 ISO C++ <future> 扩展 Future ：
 扩展标准库头 <future> ，提供一些别名模板和便利接口。
 
-@2.5.7.30 伪互斥量 PseudoMutex ：
+@2.5.7.32 伪互斥量 PseudoMutex ：
 提供单线程环境下互斥量和锁接口，作为标准库 <mutex> 的替代。
 
 @2.5.8 其它扩展接口：
@@ -581,7 +606,7 @@ ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证�
 
 @2.6 LibDefect ：
 用于修正依赖的标准库实现因不完善或配置问题等与标准规定的接口的偏差。
-和 YStandardEx 支持相同的语言标准。
+和 YStandardEx 支持相同的语言标准，但可能支持部分不完整的实现。
 除非另行指定，支持基本实现环境最低版本，参见 [Documentation::Dependencies @@1] 。
 可能会因为更新而缺少兼容性，当前仅对最新环境进行测试。
 可支持 libstdc++ 以外的 C++ 实现，但未测试。
@@ -601,7 +626,7 @@ ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证�
 YBase 不重载 operator, ，也不对其它代码是否重载 operator, 做出假设。
 
 @3.1.2 别名：
-除 LibDefect 可能实现兼容 ISO C++11 以前实现的代码外，不使用 typedef ，而用 using 别名声明代替。
+除 LibDefect(@2.6) 可能实现兼容 ISO C++11 以前实现的代码外，不使用 typedef ，而用 using 别名声明代替。
 
 @3.1.3 重载决议：
 在保证 API 兼容时，公开接口仍可能添加不破坏现有调用语义的重载函数。

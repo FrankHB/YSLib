@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r1364
+\version r1377
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2019-02-22 14:30 +0800
+	2019-09-06 16:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -313,11 +313,13 @@ libstdc++-6.dll 依赖其余的文件。使用不同异常模型的文件名相�
 因为许可证原因，以上文件不随项目文件分发。
 
 @1.6 Android 平台工具链和标准库实现：
-Oracle JDK ： http://www.oracle.com/technetwork/java/javase/downloads/index.html 。
-Android SDK ： https://developer.android.com/studio/releases/sdk-tools.html 。
+Oracle JDK ：http://www.oracle.com/technetwork/java/javase/downloads/index.html 。
+（注意 Android 只支持部分 JDK 1.8 特性。更高的版本和 Android Device Monitor 不兼容。）
+Android SDK ：https://developer.android.com/studio/releases/sdk-tools.html 。
+在 Android SDK Tools 25.2.5 后需要 Android Studio ，或参考 https://stackoverflow.com/questions/37505709 。
 Android SDK Build-tools ：使用 Android SDK Manager 更新。
-Android NDK ： https://developer.android.com/ndk 。
-CrystaX NDK ： https://www.crystax.net/android/ndk 。
+Android NDK ：https://developer.android.com/ndk 。
+CrystaX NDK ：https://www.crystax.net/android/ndk 。
 依赖 JDK / Android SDK / NDK 版本：
 build 492 前：
 无（不支持的平台）。
@@ -338,6 +340,10 @@ Oracle JDK 8u5 x64 / Android SDK / Android SDK Build-tools 19.0.3 。
 升级 G++ 5.3 （版本 5.3 20151204 (GCC) ） 。
 2017-01-22(build 762) 起：
 升级 Oracle JDK 8u121 x64 / Android SDK Build-tools 25.0.2 。
+2019-09-06(build 866) 起：
+升级 Oracle JDK 8u211 x64 / Android SDK Build-tools 29.0.2 。
+使用 Android NDK r20 x86_64 代替独立工具链（使用 Clang++ 和 libc++ 代替 G++ 和 libstdc++ ）。
+升级 API level 21 。
 
 @1.7 MinGW64 平台工具链和标准库实现：
 除非以下说明，配置同 MinGW32(@1.5) 。
@@ -906,7 +912,7 @@ any 使用 type_info 代替 std::type_info 。
 添加 FAT 公共接口。
 添加支持 UTF-8 路径的文件缓冲和流替代标准库的对应 API 。
 完善文件输入/输出接口，提供链接、复制以及文件时间的支持。
-添加基于标签分派的接口，强化平台模拟支持。
+添加基于标签分派的接口和取运行时平台限制的接口，强化平台模拟支持。
 [YFramework.YSLib]
 [YFramework.YSLib.Adaptor]
 头文件不包含 FreeType2 头文件。
@@ -932,7 +938,7 @@ ValueObject 使用 type_info 代替 std::type_info 。
 移除 TreeView 测试（使用关于面板中的系统信息界面代替）。
 
 @5.8 V0.8 ：
-2017-06-?(V0.8) ：
+2017-08-10(V0.8) ：
 [Test]
 构建和生成目录默认为 build 下特定宿主平台目录的 .test 目录。
 [Tools]
@@ -962,6 +968,7 @@ any_input_iterator 支持非引用的 reference 类型。
 除兼容标准库的接口，使用 friend 启用 ADL swap 而不是成员 swap 和重载命名空间 swap 。
 [YFramework.Helper]
 锁定外部文件访问，避免竞争。
+宿主平台不设置终止处理器覆盖标准库实现的默认行为。
 [YFramework.NPL]
 添加节点规约公共实现。
 添加 REPL 实现。

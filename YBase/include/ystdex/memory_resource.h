@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1345
+\version r1374
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2019-08-14 12:35 +0800
+	2019-09-06 00:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,7 +88,7 @@ WG21 P0619R4 ：在 memory_resource 中显式声明默认构造函数和复制�
 #include "base.h" // for noncopyable, nonmovable;
 #include "cstdint.hpp" // for is_power_of_2;
 #include "map.hpp" // for greater, map, equal_to, std::hash;
-#include <list> // for std::list;
+#include "list.hpp" // for list;
 #include <unordered_map> // for std::unordered_map;
 #include "algorithm.hpp" // for ystdex::max;
 #if YB_Has_memory_resource != 1
@@ -275,33 +275,6 @@ class polymorphic_allocator
 {
 public:
 	using value_type = _type;
-#if defined(__GLIBCXX__) && (__GLIBCXX__ <= 20150617 || YB_IMPL_GNUCPP < 60000)
-// NOTE: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=55409.
-// XXX: Blocked. This is a workaround for old toolchain, although this is not
-//	support at the library (YBase) level, it is still supported for Android
-//	platform configurations in YBase (with '__GLIBCXX__' 20151204). Also note
-//	%std::allocator as a base is not
-//	guaranteed to work as it could have been already simplified as ISO C++11
-//	without %rebind, etc.
-	//! \since build 849
-	//@{
-	using pointer = _type*;
-	using const_pointer = const _type*;
-	using reference = _type&;
-	using const_reference = const _type&;
-	template<typename _tOther>
-	struct rebind
-	{
-		using other = polymorphic_allocator<_tOther>;
-	};
-
-	void
-	destroy(pointer p) ynothrow
-	{
-		p->~_type();
-	}
-	//@}
-#endif
 
 private:
 	//! \invariant \c memory_rsrc 。
@@ -522,7 +495,7 @@ private:
 	//! \brief 保存在块末尾的元数据类型。
 	struct block_meta_t
 	{
-		//! \invariant <tt> i_chunk != chunks.end()</tt> 。
+		//! \invariant <tt>i_chunk != chunks.end()</tt> 。
 		chunks_iter_t i_chunk;
 	};
 
@@ -694,7 +667,7 @@ class YB_API pool_resource : public memory_resource
 {
 private:
 	using pools_t
-		= std::list<resource_pool, polymorphic_allocator<resource_pool>>;
+		= list<resource_pool, polymorphic_allocator<resource_pool>>;
 
 	pool_options saved_options;
 	//! \since build 863

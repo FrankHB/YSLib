@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r3004
+\version r3051
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2019-08-14 11:29 +0800
+	2019-08-30 13:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,8 +34,9 @@
 #include "string_view.hpp" // for internal "string_view.hpp" (implying
 //	"range.hpp" and "<libdefect/string.h>"), basic_string_view,
 //	std::char_traits, std::initializer_list, std::to_string, ntctslen;
-#include "container.hpp" // for "container.hpp", make_index_sequence,
-//	index_sequence, begin, end, size, sort_unique, underlying, std::hash;
+#include "container.hpp" // for "container.hpp", enable_for_input_iterator_t,
+//	make_index_sequence, index_sequence, begin, end, size, sort_unique,
+//	underlying, std::hash;
 #include "cstdio.h" // for vfmtlen, ystdex::is_null;
 #include "array.hpp" // for std::bidirectional_iterator_tag, to_array;
 #include <istream> // for std::basic_istream;
@@ -66,6 +67,8 @@ using std::basic_string;
 \ingroup YBase_replacement_features
 \note 所有 find 相关的函数的 noexcept 异常规范同 std::basic_string 。
 \note 支持和 std::basic_string 转换以避免修改多数用户代码。
+\note WG21 P1148R0 实质没有修改输入迭代器要求的相关接口，因此在此直接忽略约束。
+\todo 支持 ISO C++20 API ，解决 LWG 3076 。
 */
 template<typename _tChar, class _tTraits = std::char_traits<_tChar>,
 	class _tAlloc = std::allocator<_tChar>>
@@ -73,11 +76,12 @@ class basic_string : yimpl(public) std::basic_string<_tChar, _tTraits, _tAlloc>
 {
 private:
 	using base = std::basic_string<_tChar, _tTraits, _tAlloc>;
-	using alloc_traits = allocator_traits<_tAlloc>;
+	//! \since build 865
+	using ator_traits = allocator_traits<_tAlloc>;
 	template<typename _tTrait>
-	using equal_alloc_or = or_<_tTrait, typename alloc_traits::is_always_equal>;
+	using equal_alloc_or = or_<_tTrait, typename ator_traits::is_always_equal>;
 	using equal_alloc_or_pocma = equal_alloc_or<typename
-		alloc_traits::propagate_on_container_move_assignment>;
+		ator_traits::propagate_on_container_move_assignment>;
 	using sv_type = basic_string_view<_tChar, _tTraits>;
 	template<class _type, class _tRes = void>
 	// XXX: Ready for LWG 2946, which is not adopted here yet as it is not in
@@ -147,7 +151,12 @@ public:
 	basic_string(size_type n, _tChar c, const _tAlloc& a = _tAlloc())
 		: base(n, c, a)
 	{}
-	template<typename _tIn>
+	/*!
+	\see ISO C++17 [sequences.reqmts]/13 。
+	\see LWG 438 。
+	\see LWG 1234 。
+	*/
+	template<typename _tIn, yimpl(typename = enable_for_input_iterator_t<_tIn>)>
 	basic_string(_tIn begin, _tIn end, const _tAlloc& a = _tAlloc())
 		: base(begin, end, a)
 	{}
@@ -199,7 +208,7 @@ public:
 		return *this;
 	}
 	basic_string&
-	operator=(base&& str) ynoexcept(equal_alloc_or_pocma::value)
+	operator=(base&& str) ynoexcept(equal_alloc_or_pocma())
 	{
 		static_cast<base&>(*this) = std::move(str);
 		return *this;
@@ -207,7 +216,7 @@ public:
 	basic_string&
 	operator=(const basic_string&) = default;
 	basic_string&
-	operator=(basic_string&&) ynoexcept(equal_alloc_or_pocma::value) = default;
+	operator=(basic_string&&) ynoexcept(equal_alloc_or_pocma()) = default;
 
 	basic_string&
 	operator+=(const base& str)
@@ -307,8 +316,13 @@ public:
 		base::append(n, c);
 		return *this;
 	}
-	//! \see LWG 2788 。
-	template<typename _tIn>
+	/*!
+	\see ISO C++17 [sequences.reqmts]/13 。
+	\see LWG 438 。
+	\see LWG 1234 。
+	\see LWG 2788 。
+	*/
+	template<typename _tIn, yimpl(typename = enable_for_input_iterator_t<_tIn>)>
 	basic_string&
 	append(_tIn first, _tIn last)
 	{
@@ -329,7 +343,7 @@ public:
 		return *this = str;
 	}
 	basic_string&
-	assign(base&& str) ynoexcept(equal_alloc_or_pocma::value)
+	assign(base&& str) ynoexcept(equal_alloc_or_pocma())
 	{
 		return *this = std::move(str);
 	}
@@ -381,8 +395,13 @@ public:
 		base::assign(n, c);
 		return *this;
 	}
-	//! \see LWG 2788 。
-	template<typename _tIn>
+	/*!
+	\see ISO C++17 [sequences.reqmts]/13 。
+	\see LWG 438 。
+	\see LWG 1234 。
+	\see LWG 2788 。
+	*/
+	template<typename _tIn, yimpl(typename = enable_for_input_iterator_t<_tIn>)>
 	basic_string&
 	assign(_tIn first, _tIn last)
 	{
@@ -460,8 +479,13 @@ public:
 	{
 		return base::insert(p, n, c);
 	}
-	//! \see LWG 2788 。
-	template<typename _tIn>
+	/*!
+	\see ISO C++17 [sequences.reqmts]/13 。
+	\see LWG 438 。
+	\see LWG 1234 。
+	\see LWG 2788 。
+	*/
+	template<typename _tIn, yimpl(typename = enable_for_input_iterator_t<_tIn>)>
 	iterator
 	insert(const_iterator p, _tIn first, _tIn last)
 	{
@@ -554,8 +578,13 @@ public:
 		base::replace(i1, i2, n, c);
 		return *this;
 	}
-	//! \see LWG 2788 。
-	template<typename _tIn>
+	/*!
+	\see ISO C++17 [sequences.reqmts]/13 。
+	\see LWG 438 。
+	\see LWG 1234 。
+	\see LWG 2788 。
+	*/
+	template<typename _tIn, yimpl(typename = enable_for_input_iterator_t<_tIn>)>
 	basic_string&
 	replace(const_iterator i1, const_iterator i2, _tIn j1, _tIn j2)
 	{
@@ -580,7 +609,7 @@ public:
 
 	void
 	swap(basic_string& s) ynoexcept(equal_alloc_or<typename
-		alloc_traits::propagate_on_container_swap>::value)
+		ator_traits::propagate_on_container_swap>())
 	{
 		base::swap(s);
 	}

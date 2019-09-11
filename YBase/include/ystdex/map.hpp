@@ -11,13 +11,13 @@
 /*!	\file map.hpp
 \ingroup YStandardEx
 \brief 映射容器。
-\version r1089
+\version r1190
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:12:51 +0800
 \par 修改时间:
-	2019-08-15 09:18 +0800
+	2019-09-04 23:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_map_hpp_
 #define YB_INC_ystdex_map_hpp_ 1
 
-#include "tree.h" // for "tree.hpp" (implying "range.hpp"), less, std::pair,
+#include "tree.h" // for "tree.h" (implying "range.hpp"), less, std::pair,
 //	std::allocator, totally_ordered, alloc_value_t, is_same, allocator_traits,
 //	first_of, is_nothrow_copy_constructible, and_, YAssert, is_constructible,
 //	enable_if_t, ystdex::swap_dependent;
@@ -46,9 +46,9 @@ namespace ystdex
 // NOTE: For exposition only. Since %ystdex::map has incomplete type support
 //	which is not guaranteed by ISO C++17 (even if guaranteed by libstdc++), it
 //	should not be in %cpp2017 inline namespace.
-#if (__cpp_lib_generic_associative_lookup >= 201304L || __cplusplus >= 201402L) \
-	&& ((__cpp_lib_allocator_traits_is_always_equal >= 201411L \
-	&& __cpp_lib_map_try_emplace >= 201411L \
+#if (__cpp_lib_generic_associative_lookup >= 201304L \
+	|| __cplusplus >= 201402L) && ((__cpp_lib_allocator_traits_is_always_equal
+	>= 201411L && __cpp_lib_map_try_emplace >= 201411L \
 	&& __cpp_lib_node_extract >= 201606L) || __cplusplus >= 201606L)
 #	define YB_Has_Cpp17_map true
 #else
@@ -68,7 +68,10 @@ class multimap;
 \see Documentation::YBase @2.1.4.1 。
 \see Documentation::YBase @2.1.4.2 。
 
-类似 ISO C++ 的 std::map 的容器，但支持不完整类型作为键和值类型。
+类似 ISO C++17 的 std::map 的容器，但支持不完整类型作为键和被映射的类型。
+支持 WG21 P0458R2 。
+不完整类型的支持条件同 WG21 N4510 ，除对类型完整地要求扩展到键和映射的类型。
+部分成员提供较 ISO C++17 更强的 noexcept 异常规范，除转移赋值略有不同。
 */
 template<typename _tKey, typename _tMapped, typename _fComp = less<_tKey>,
 	class _tAlloc = std::allocator<std::pair<const _tKey, _tMapped>>>
@@ -133,64 +136,80 @@ private:
 	rep_type tree;
 
 public:
-	map() = default;
-	explicit
-	map(const _fComp& comp, const allocator_type& a = allocator_type())
-		: tree(comp, allocator_type(a))
-	{}
+	map() yimpl(= default);
 	explicit
 	map(const allocator_type& a)
-		: tree(_fComp(), allocator_type(a))
+		: tree(a)
+	{}
+	explicit
+	map(const _fComp& comp, const allocator_type& a = allocator_type())
+		: tree(comp, a)
 	{}
 	template<typename _tIn>
 	inline
 	map(_tIn first, _tIn last)
 		: tree()
 	{
-		tree.insert_unique(first, last);
+		tree.insert_range_unique(first, last);
 	}
 	template<typename _tIn>
 	inline
 	map(_tIn first, _tIn last, const allocator_type& a)
-		: tree(_fComp(), allocator_type(a))
+		: tree(_fComp(), a)
 	{
-		tree.insert_unique(first, last);
+		tree.insert_range_unique(first, last);
 	}
 	template<typename _tIn>
 	inline
 	map(_tIn first, _tIn last, const _fComp& comp,
 		const allocator_type& a = allocator_type())
-		: tree(comp, allocator_type(a))
+		: tree(comp, a)
 	{
-		tree.insert_unique(first, last);
+		tree.insert_range_unique(first, last);
 	}
 	map(std::initializer_list<value_type> il, const _fComp& comp = _fComp(),
 		const allocator_type& a = allocator_type())
 		: tree(comp, allocator_type(a))
 	{
-		tree.insert_unique(il.begin(), il.end());
+		tree.insert_range_unique(il.begin(), il.end());
 	}
 	map(std::initializer_list<value_type> il, const allocator_type& a)
-		: tree(_fComp(), allocator_type(a))
+		: tree(_fComp(), a)
 	{
-		tree.insert_unique(il.begin(), il.end());
+		tree.insert_range_unique(il.begin(), il.end());
 	}
-	map(const map&) = default;
+	map(const map&) yimpl(= default);
 	map(const map& m, const allocator_type& a)
-		: tree(m.tree, allocator_type(a))
+		: tree(m.tree, a)
 	{}
-	map(map&&) = default;
+	// XXX: The exception specification is strengthened to the noexcept
+	//	specification of the copy constructor of the comparison object. In ISO
+	//	C++17 there is no explicit exception specification.
+	map(map&&) yimpl(= default);
+	// XXX: The exception specification is strengthened to noexcept
+	//	specification having the operand equivalent to the conjunction of
+	//	%std::allocator_traits::is_always_equal trait of the internal node and
+	//	'is_nothrow_copy_constructible<_fComp>'. In ISO C++17 there is
+	//	no explicit exception specification.
 	map(map&& m, const allocator_type& a)
-		ynoexcept_spec(and_<is_nothrow_copy_constructible<_fComp>,
-		typename ator_traits::is_always_equal>())
-		: tree(std::move(m.tree), allocator_type(a))
+		yimpl(ynoexcept(is_nothrow_constructible<
+		rep_type, rep_type&&, const allocator_type&>()))
+		: tree(std::move(m.tree), a)
 	{}
-	~map() = default;
+	~map() yimpl(= default);
 
 	map&
-	operator=(const map&) = default;
+	operator=(const map&) yimpl(= default);
+	// XXX: The exception specification is changed. ISO C++17 only requires
+	//	conditional non-throwing exception specification when the allocator
+	//	meets %std::allocator_traits<allocator_type>::is_always_equal and the
+	//	comparison object type meets %std::is_nothrow_move_assignable, with
+	//	regardless to %propagate_on_container_move_assignment of the node
+	//	allocator. Here the %allocator_traits of the internal node is also used
+	//	instead. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91541 and LWG
+	//	3267.
 	map&
-	operator=(map&&) = default;
+	operator=(map&&) yimpl(= default);
 	map&
 	operator=(std::initializer_list<value_type> il)
 	{
@@ -201,7 +220,7 @@ public:
 	YB_ATTR_nodiscard YB_PURE allocator_type
 	get_allocator() const ynothrow
 	{
-		return allocator_type(tree.get_allocator());
+		return tree.get_allocator();
 	}
 
 	YB_ATTR_nodiscard YB_PURE iterator
@@ -433,7 +452,7 @@ private:
 		//	because there is more specific internal method to deal with internal
 		//	knowledge of node pointers of underlying tree and case for %end().
 	//	return ystdex::try_emplace_hint(*this, hint, k,
-	//	yforward(args)...).first;
+	//		yforward(args)...).first;
 		const auto pr(tree.get_insert_hint_unique_pos(hint, k));
 
 		return pr.second ? emplace_hint(iterator(pr.second),
@@ -454,12 +473,13 @@ public:
 	{
 		return tree.insert_unique(std::move(x));
 	}
-	template<typename _tPair,
-		typename = enable_if_t<is_constructible<value_type, _tPair>::value>>
-	inline std::pair<iterator, bool>
+	//! \see LWG 2005 。
+	template<typename _tPair>
+	inline yimpl(enable_if_t)<is_constructible<value_type, _tPair>::value,
+		std::pair<iterator, bool>>
 	insert(_tPair&& x)
 	{
-		return tree.insert_unique(yforward(x));
+		return tree.emplace_unique(yforward(x));
 	}
 	void
 	insert(std::initializer_list<value_type> il)
@@ -477,18 +497,20 @@ public:
 	{
 		return tree.insert_hint_unique(position, std::move(x));
 	}
-	template<typename _tPair,
-		typename = enable_if_t<is_constructible<value_type, _tPair>::value>>
-	inline iterator
+	//! \see LWG 2005 。
+	template<typename _tPair>
+	inline yimpl(enable_if_t)<is_constructible<value_type, _tPair>::value,
+		iterator>
 	insert(const_iterator position, _tPair&& x)
 	{
-		return tree.insert_hint_unique(position, yforward(x));
+		return tree.emplace_hint_unique(position, yforward(x));
 	}
+	//! \see LWG 2571 。
 	template<typename _tIn>
 	void
 	insert(_tIn first, _tIn last)
 	{
-		tree.insert_unique(first, last);
+		tree.insert_range_unique(first, last);
 	}
 
 	template<typename _tObj>
@@ -558,6 +580,23 @@ public:
 		return tree.erase(first, last);
 	}
 
+	// XXX: The exception specification is strengthened. ISO C++17 only requires
+	//	conditional non-throwing exception specification when the allocator also
+	//	meets %std::allocator_traits<allocator_type>::is_always_equal.
+	//! \since build 864
+	void
+	swap(map& x) ynoexcept(yimpl(is_nothrow_swappable<_fComp>()))
+	{
+		ystdex::swap_dependent(tree, x.tree);
+	}
+	//! \since build 864
+	friend void
+	swap(map<_tKey, _tMapped, _fComp, _tAlloc>& x, map<_tKey, _tMapped, _fComp,
+		_tAlloc>& y) ynoexcept_spec(x.swap(y))
+	{
+		x.swap(y);
+	}
+
 	void
 	clear() ynothrow
 	{
@@ -610,6 +649,24 @@ public:
 	{
 		return tree.count_tr(x);
 	}
+
+	/*!
+	\see WG21 P0458R2 。
+	\since build 866
+	*/
+	//@{
+	YB_ATTR_nodiscard YB_PURE bool
+	contains(const key_type& x) const
+	{
+		return tree.find(x) != tree.end();
+	}
+	template<typename _tTransKey>
+	YB_ATTR_nodiscard YB_PURE inline auto
+	contains(const _tTransKey& x) const -> decltype(void(tree.find_tr(x)), true)
+	{
+		return tree.find_tr(x) != tree.end();
+	}
+	//@}
 
 	YB_ATTR_nodiscard YB_PURE iterator
 	lower_bound(const key_type& x)
@@ -698,20 +755,6 @@ public:
 	{
 		return x.tree < y.tree;
 	}
-
-	//! \since build 864
-	void
-	swap(map& x) ynoexcept(is_nothrow_swappable<_fComp>())
-	{
-		ystdex::swap_dependent(tree, x.tree);
-	}
-	//! \since build 864
-	friend void
-	swap(map<_tKey, _tMapped, _fComp, _tAlloc>& x, map<_tKey, _tMapped, _fComp,
-		_tAlloc>& y) ynoexcept_spec(x.swap(y))
-	{
-		x.swap(y);
-	}
 };
 
 namespace details
@@ -723,7 +766,8 @@ inline namespace rb_tree
 //! \relates map
 template<typename _tKey, typename _tMapped, typename _fComp1, typename _tAlloc,
 	typename _fComp2>
-struct tree_merge_helper<ystdex::map<_tKey, _tMapped, _fComp1, _tAlloc>, _fComp2>
+struct
+	tree_merge_helper<ystdex::map<_tKey, _tMapped, _fComp1, _tAlloc>, _fComp2>
 {
 private:
 	friend class ystdex::map<_tKey, _tMapped, _fComp1, _tAlloc>;

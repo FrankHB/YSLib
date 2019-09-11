@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2018 FrankHB.
+	© 2011-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2824
+\version r2846
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2018-11-30 06:34 +0800
+	2019-09-05 21:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -691,7 +691,7 @@ uremove(const char*) ynothrowv;
 \since build 616
 */
 //@{
-#if __GLIBCXX__ || YB_IMPL_MSCPP
+#if __GLIBCXX__ || _LIBCPP_VERSION || YB_IMPL_MSCPP
 /*!
 \note 扩展打开模式。
 \since build 721
@@ -707,6 +707,9 @@ yconstexpr const auto ios_nocreate(
 */
 yconstexpr const auto ios_noreplace(
 	std::ios_base::openmode(std::_Ios_Openmode::yimpl(_S_trunc << 2)));
+#	elif _LIBCPP_VERSION
+yconstexpr const auto ios_nocreate(yimpl(std::ios::trunc << 1));
+yconstexpr const auto ios_noreplace(yimpl(std::ios::trunc << 2));
 #	else
 yconstexpr const auto ios_nocreate(std::ios::_Nocreate);
 yconstexpr const auto ios_noreplace(std::ios::_Noreplace);
@@ -758,6 +761,14 @@ public:
 				p.release();
 				return this;
 			}
+#	elif _LIBCPP_VERSION
+#		ifdef _LIBCPP_HAS_NO_GLOBAL_FILESYSTEM_NAMESPACE
+		// XXX: See https://reviews.llvm.org/rL232049. This configuration shall
+		//	not be used in the YCLib platforms.
+#			error "Nonconforming implementation is not supported."
+#		endif
+			this->__open(*p.get(), mode);
+			return this;
 #	else
 			if(!this->is_open())
 				if(const auto mode_str = ystdex::openmode_conv(mode))
@@ -779,9 +790,16 @@ public:
 		if(!this->is_open())
 		{
 #	if __GLIBCXX__
-			this->_M_file.sys_open(uopen(s, omode_convb(mode)), mode);
-			if(open_check(mode))
+			const auto smode(mode & ~(ios_nocreate | ios_noreplace));
+
+			this->_M_file.sys_open(uopen(s, omode_convb(mode)), smode);
+			if(open_check(smode))
 				return this;
+#	elif _LIBCPP_VERSION
+			const auto smode(mode & ~(ios_nocreate | ios_noreplace));
+
+			this->__open(uopen(s, omode_convb(mode)), smode);
+			return this;
 #	else
 			return open_file_ptr(std::_Fiopen(s, mode,
 				int(std::ios_base::_Openprot)));
@@ -821,7 +839,7 @@ private:
 		}
 		return {};
 	}
-#	else
+#	elif YB_IMPL_MSCPP
 	//! \since build 837
 	YB_NONNULL(1) basic_filebuf<_tChar, _tTraits>*
 	open_file_ptr(std::FILE* p_file)
@@ -1339,7 +1357,7 @@ HaveSameContents(UniqueFile, UniqueFile, const char*, const char*);
 /*!
 \brief 判断参数是否表示共享的文件节点。
 \note 可能设置 errno 。
-\nsince build 638
+\since build 638
 */
 //@{
 YB_ATTR_nodiscard YB_PURE yconstfn

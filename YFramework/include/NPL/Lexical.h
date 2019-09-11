@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1661
+\version r1662
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2019-07-12 16:54 +0800
+	2019-09-05 21:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -364,7 +364,7 @@ yconstfn PDefH(bool, IsGraphicalDelimiter, char c) ynothrow
 	ImplRet(c == '(' || c == ')' || c == ',' || c == ';')
 
 //! \brief 判断参数是否为 NPL 分隔符。
-yconstfn PDefH(bool, IsDelimiter, char c) ynothrow
+inline PDefH(bool, IsDelimiter, char c) ynothrow
 #if CHAR_MIN < 0
 	ImplRet(c >= 0 && (!std::isgraph(c) || IsGraphicalDelimiter(c)))
 #else

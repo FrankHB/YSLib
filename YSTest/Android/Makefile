@@ -1,5 +1,5 @@
 #
-#	(C) 2014, 2016 FrankHB.
+#	(C) 2014, 2016, 2019 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YSTest
-# Version = r316
+# Version = r350
 # Created = 2014-04-17 23:51:27 +0800
-# Updated = 2016-09-17 20:33 +0800
+# Updated = 2019-09-11 20:47 +0800
 # Encoding = ANSI
 
 .SUFFIXES:
@@ -40,9 +40,15 @@ export BUILDDIR ?= $(TOPDIR)/../../build/$(PLATFORM)/$(PROJNAME)/$(RELEASE)
 export RELEASEDIR ?= $(BUILDDIR)
 export TARGET := $(PROJNAME)
 export OUTPUT := $(BUILDDIR)/$(TARGET)
-export SOARCH := armeabi
+#export SOARCH := armeabi
+export SOARCH := armeabi-v7a
 export OUTPUTSODIR := $(BUILDDIR)/$(SOARCH)
 export OUTPUTSO := $(OUTPUTSODIR)/lib$(TARGET).so
+NDK_ROOT := $(dir $(shell which $(CXX)))..
+TARGET_LIB_PATH := $(NDK_ROOT)/sysroot/usr/lib/arm-linux-androideabi
+TARGET_LIBV_PATH := $(TARGET_LIB_PATH)/$(ANDROID_PLATFORM)
+#LIBCXXSOSRC := $(TARGET_LIB_PATH)/libc++_shared.so
+#LIBCXXSO := $(OUTPUTSODIR)/libc++_shared.so
 export OUTPUT_APK := $(OUTPUT).apk
 export OUTPUT_SIGNED := $(BUILDDIR)/$(TARGET).signed.apk
 export OUTPUT_FINAL := $(BUILDDIR)/$(TARGET).final.apk
@@ -69,12 +75,12 @@ CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS) $(CXXFLAGS_COMMON) \
 #	-Wnoexcept -Wnon-virtual-dtor -Wold-style-cast -Wsign-promo
 
 LDFLAGS := $(LDFLAGS_OPT_DBG) $(ARCH) -Wl,--gc-sections \
-	-Wl,--no-undefined -Wl,--dynamic-list-data -Wl,--dynamic-list-cpp-new \
-	-Wl,--dynamic-list-cpp-typeinfo
+	-Wl,--no-undefined
 
 # any extra libraries we wish to link with the project
 LIBS :=-llog -landroid -lEGL -lGLESv1_CM
-LIBCRYSTAX_STATIC ?= -u __crystax_on_load -u __crystax_on_unload \
+LIBCRYSTAX_STATIC ?=
+#LIBCRYSTAX_STATIC ?= -u __crystax_on_load -u __crystax_on_unload \
 	-Wl,-z,muldefs -Wl,--eh-frame-hdr -L$(BUILDDIR) -lstdc++ \
 	$(TARGET_LIB_PATH)/libcrystax.a -lc
 #LIBS := -landroid -llog -lEGL -lGLESv2
@@ -143,46 +149,58 @@ else
 
 DEPENDS	:= $(OFILES:.o=.d)
 
-$(OUTPUT_FINAL) : $(OUTPUT_SIGNED)
+$(OUTPUT_FINAL): $(OUTPUT_SIGNED)
 	@echo Aligning $(notdir $@) ...
 	$(ANDROID_BUILD_TOOLS_DIR)/zipalign -f -v 4 $(OUTPUT_SIGNED) $(OUTPUT_FINAL)
 	@echo Built $(notdir $@) .
 
-$(OUTPUT_SIGNED) : $(OUTPUT_APK)
+$(OUTPUT_SIGNED): $(OUTPUT_APK)
 	@echo Signing $(notdir $@) ...
 	$(JARSIGNER) -verbose $(JARSIGN_ALGO) -keystore $(APK_KEYSTORE) $(APK_PASSWORD_OPT) -signedjar $(OUTPUT_SIGNED) $(OUTPUT_APK) $(APK_KEYSTORE_ALIAS)
 	@echo Signed $(notdir $@) .
 
-$(OUTPUT_APK) : $(RESOURCES) $(OUTPUTSO)
+$(OUTPUT_APK): $(RESOURCES) $(OUTPUTSO)
 	@echo Building $(notdir $@) ...
 	$(JAVA) -classpath $(ANDROID_SDK)/tools/lib/sdklib.jar com.android.sdklib.build.ApkBuilderMain $(OUTPUT_APK) -v -u -z $(RESOURCES) -nf $(BUILDDIR)
 	@echo Built $(notdir $@) .
 
-$(RESOURCES) : $(MANIFEST)
+$(RESOURCES): $(MANIFEST)
 	$(ANDROID_BUILD_TOOLS_DIR)/aapt package -f -m -J $(TOPDIR)/gen -S $(RESDIR) -M $(MANIFEST) -I $(platforms)/android.jar
 	$(ANDROID_BUILD_TOOLS_DIR)/aapt package -f -M $(MANIFEST) -S $(RESDIR) -I $(platforms)/android.jar -F $(RESOURCES)
 
-$(OUTPUTSO) : $(OFILES) $(YFRAMEWORK_A) $(YBASE_A)
-	@rm -f "$(OUTPUTSO)"
-	@rm -f "$(BUILDDIR)/libcrystax.a"
-	@echo Creating stub library for static linking ...
-	$(AR) rc "$(BUILDDIR)/libcrystax.a"
-	@echo Linking $(notdir $@) ...
-	$(LD) -shared $(LDFLAGS) $(foreach file,$(OFILES),$(DEPSDIR)/$(file)) \
-		$(YFRAMEWORK_A) $(YBASE_A) $(LIBPATHS) $(LIBS) $(LIBPATHEX) $(LIBEX) \
-		$(LIBCRYSTAX_STATIC) -o $@
+# XXX: Since ANativeActivity does not support more than 1 shared libraries,
+#	and libc++ is not the system library, this is not used.
 
-%.cpp.o : %.cpp
+#$(LIBCXXSOSRC):
+
+#$(LIBCXXSO): $(LIBCXXSOSRC)
+#	@echo Copying libc++ shared library file "$(LIBCXXSOSRC)" as needed...
+#	@cp -f $(LIBCXXSOSRC) $(LIBCXXSO)
+#	@echo Done.
+
+$(OUTPUTSO): $(OFILES) $(YFRAMEWORK_A) $(YBASE_A) $(LIBCXXSO)
+	@rm -f "$(OUTPUTSO)"
+#	@rm -f "$(BUILDDIR)/libcrystax.a"
+#	@echo Creating stub library for static linking ...
+#	$(AR) rc "$(BUILDDIR)/libcrystax.a"
+	@echo Linking $(notdir $@) ...
+	$(LD) -shared -o $@ -static-libstdc++ -Wl,--exclude-libs,libgcc.a \
+		-Wl,--exclude-libs,libunwind.a $(LDFLAGS) \
+		$(foreach file,$(OFILES),$(DEPSDIR)/$(file)) \
+		$(YFRAMEWORK_A) $(YBASE_A) $(LIBPATHS) $(LIBS) $(LIBPATHEX) $(LIBEX) \
+		$(LIBCRYSTAX_STATIC)
+
+%.cpp.o: %.cpp
 	@echo $<
 	@[ -d $(dir $(DEPSDIR)/$@) ] || mkdir -p $(dir $(DEPSDIR)/$@)
 	@$(CXX) -MMD -MP -MF $(DEPSDIR)/$*.cpp.d $(CXXFLAGS) -c $< -o$(DEPSDIR)/$@
 
-%.c.o : %.c
+%.c.o: %.c
 	@echo $<
 	@[ -d $(dir $(DEPSDIR)/$@) ] || mkdir -p $(dir $(DEPSDIR)/$@)
 	@$(CC) -MMD -MP -MF $(DEPSDIR)/$*.c.d $(CFLAGS) -c $< -o$(DEPSDIR)/$@
 
-%.s.o : %.s
+%.s.o: %.s
 	@echo $<
 	@[ -d $(dir $(DEPSDIR)/$@) ] || mkdir -p $(dir $(DEPSDIR)/$@)
 	@$(CC) -MMD -MP -MF $(DEPSDIR)/$*.s.d -x assembler-with-cpp $(ASFLAGS) -c $< -o$(DEPSDIR)/$@

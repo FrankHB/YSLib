@@ -11,13 +11,13 @@
 /*!	\file iterator_trait.hpp
 \ingroup YStandardEx
 \brief 迭代器特征。
-\version r113
+\version r127
 \author FrankHB <frankhb1989@gmail.com>
 \since build 627
 \par 创建时间:
 	2015-08-30 16:29:07 +0800
 \par 修改时间:
-	2019-08-24 16:38 +0800
+	2019-09-04 11:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,8 +35,9 @@
 namespace ystdex
 {
 
+//! \ingroup binary_type_traits
+//@{
 /*!
-\ingroup binary_type_traits
 \brief 判断迭代器是否具有相同的指定的类别。
 \since build 865
 */
@@ -44,6 +45,17 @@ template<class _tTag, typename _tIter>
 struct has_iterator_category : is_convertible<typename
 	std::iterator_traits<_tIter>::iterator_category, _tTag>
 {};
+
+
+/*!
+\brief 判断迭代器是否具有相同的指定的值类型。
+\since build 866
+*/
+template<typename _type, typename _tIter>
+using has_iterator_value_type
+	= is_same<typename std::iterator_traits<_tIter>::value_type, _type>;
+//@}
+
 
 /*!
 \ingroup type_traits_operations
@@ -64,9 +76,9 @@ template<typename _tParam>
 using iterator_reqirement_t = is_same<increment_t<_tParam&>, _tParam&>;
 
 template<typename _tParam>
-using input_iterator_reqirement_t
-	= and_<iterator_reqirement_t<_tParam>, is_convertible<
-	typename std::iterator_traits<_tParam>, std::input_iterator_tag>>;
+using input_iterator_reqirement_t = and_<iterator_reqirement_t<_tParam>,
+	is_convertible<typename std::iterator_traits<_tParam>::iterator_category,
+	std::input_iterator_tag>>;
 
 } // namespace details;
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2016-2018 FrankHB.
+	© 2016-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r1429
+\version r1437
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2018-12-31 11:43 +0800
+	2019-09-05 14:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 //	iterator_transformation::second, ystdex::reverse_iterator,
 //	ystdex::make_transform, index_sequence, std::tuple, std::forward_as_tuple,
 //	std::get;
-#include "map.hpp" // for "tree.hpp" (implying "range.hpp"), map,
+#include "map.hpp" // for "tree.h" (implying "range.hpp"), map,
 //	rebind_alloc_t, std::initializer_list, ystdex::search_map_by,
 //	ystdex::emplace_hint_in_place, ystdex::as_const;
 
@@ -347,12 +347,11 @@ public:
 	}
 	// NOTE: Since the resolution of LWG 2321 is respected in the underlying
 	//	container, no %amend_all call is needed.
-	//! \since build 830
+	// XXX: The exception specification is changed. See the comment for the move
+	//	assignment operator of %ystdex::map.
+	//! \since build 866
 	mapped_set&
-	operator=(mapped_set&& s)
-		ynoexcept_spec(and_<typename allocator_traits<_tAlloc>::is_always_equal,
-		is_nothrow_move_assignable<_fComp>>::value) yimpl(= default);
-
+	operator=(mapped_set&&) yimpl(= default);
 	mapped_set&
 	operator=(std::initializer_list<value_type> il)
 	{

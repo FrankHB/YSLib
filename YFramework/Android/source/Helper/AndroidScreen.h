@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 屏幕。
-\version r151
+\version r153
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2014-06-04 22:53:58 +0800
 \par 修改时间:
-	2015-05-04 19:51 +0800
+	2019-09-06 02:22 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -100,7 +100,7 @@ public:
 	\note 部分线程安全：在不同线程上更新到屏幕和屏幕缓冲区之间线程间未决定有序。
 	\since build 558
 	*/
-	YB_NONNULL(1) void
+	YB_NONNULL(2) void
 	Update(Drawing::ConstBitmapPtr) ynothrow override;
 };
 
