@@ -11,13 +11,13 @@
 /*!	\file StaticMapping.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2613
+\version r2620
 \author FrankHB <frankhb1989@gmail.com>
 \since build 587
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2019-06-23 14:47 +0800
+	2019-09-12 05:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include YFM_CHRLib_CharacterMapping // for ystdex::remove_cvref_t, byte,
 //	std::is_convertible, std::is_integral, ystdex::bool_, ystdex::or_,
 //	ystdex::is_undereferenceable, ystdex::remove_reference_t, octet,
-//	ystdex::pseudo_output, yconstraint;
+//	ystdex::pseudo_output, YB_VerifyIterator;
 #include <ystdex/cast.hpp> // for ystdex::not_widen_cast;
 
 namespace CHRLib
@@ -155,7 +155,7 @@ struct UCSMapperBase
 		using ystdex::is_undereferenceable;
 		ynoexcept_assert("Invalid type found.", !is_undereferenceable(d));
 
-		yconstraint(!is_undereferenceable(d));
+		YB_VerifyIterator(d);
 		*d = ystdex::not_widen_cast<ystdex::remove_reference_t<decltype(*d)>>(
 			c);
 	}
@@ -418,7 +418,7 @@ public:
 		using ystdex::is_undereferenceable;
 		size_t l(0);
 
-		yconstraint(!is_undereferenceable(d));
+		YB_VerifyIterator(d);
 		if(c < 0x80U)
 		{
 			EncodeChar(d, c);
@@ -470,13 +470,13 @@ struct GUCSMapper<CharSet::UTF_16BE> : UCSMapperBase
 			{
 				if(YB_UNLIKELY(!CHRLib::IsValidSurrogateHead(octet(seq[0]))))
 					return ConversionResult::Invalid;
-				YB_ATTR_fallthrough;
 			}
 			else
 			{
 				Assign(uc, char32_t(seq[0]) << 8U | char32_t(seq[1]));
 				break;
 			}
+			YB_ATTR_fallthrough;
 		case 2:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
@@ -528,13 +528,13 @@ struct GUCSMapper<CharSet::UTF_16LE> : UCSMapperBase
 			{
 				if(YB_UNLIKELY(!CHRLib::IsValidSurrogateHead(octet(seq[1]))))
 					return ConversionResult::Invalid;
-				YB_ATTR_fallthrough;
 			}
 			else
 			{
 				Assign(uc, char32_t(seq[0]) | char32_t(seq[1]) << 8U);
 				break;
 			}
+			YB_ATTR_fallthrough;
 		case 2:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;

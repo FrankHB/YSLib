@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2019 年度。
-\version r582
+\version r590
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2019-01-02 01:00:32 +0800
 \par 修改时间:
-	2019-09-12 04:08 +0800
+	2019-09-23 15:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -541,6 +541,7 @@ YBase now provides 'ystdex::list' class template.
 		YFramework still plans to change to 'ystdex::list' now as it is believed to have better performance (at least in x86_64-linux).
 	Another bonus is it supports incomplete value types specified in [WG21 N4510], which is adopted as an ISO C++17 feature.
 		This is considered to be used in 'ystdex::pmr::memory_resource' implementations when the pool type was not exposed. Is not the case now.
+		This is now used to replace 'ystdex::map' as the chunks onwer in 'ystdex::pmr::resource_pool'.
 	The class 'ystdex::pmr::pool_resource' now uses 'ystdex::list' despite there is no need for adapt to incomplete value type here.
 		The pool finding is optimized with 'ystdex::lower_bound_n' instead of 'ystdex::lower_bound' (see above).
 			This have few effects for 'std::list' in libstdc++ because it is already optimized.
@@ -569,6 +570,13 @@ Android platform toolchain has been updated.
 							See also https://github.com/aosp-mirror/platform_bionic/commit/aeb5bc658feaa579b72560a7026374cbeb38ea56 for the 1st try.
 						NDK bug for static libc++ has been fixed. See https://github.com/android-ndk/ndk/issues/593.
 			Some bugs of C++ code are fixed to make Clang++ happy.
+Rule of non-reference argument passing is revised for allocators.
+	Although the standard using the form like 'const allocator_type&' as the parameter type, YSLib uses 'allocator_type' directly in constructors unless necessary (e.g. implementing standard-conforming container interface).
+	Besides odr-uses issues (to allow allocators used in constant-expressions which is not relied on in YSLib), performance counts.
+		One reason is to allow copy elision in the constructor calls. It may also count to other optimization as a result, though.
+		It is verified that at least in GCC 9.2 on x86_64-linux, the former can make the compiler generate slightly bad code.
+			This is tested with NPL client code. Uses of 'NPL::TermNode' constructors may have worse code generated with bloated 'strcmp' calls. It seems a side effect of failure of inlining.
+		See WG21 P0889R1 for the detailed analysis on possible effects.
 
 ////
 

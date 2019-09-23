@@ -11,13 +11,13 @@
 /*!	\file map.hpp
 \ingroup YStandardEx
 \brief 映射容器。
-\version r1190
+\version r1194
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:12:51 +0800
 \par 修改时间:
-	2019-09-04 23:41 +0800
+	2019-09-12 17:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,9 @@
 #define YB_INC_ystdex_map_hpp_ 1
 
 #include "tree.h" // for "tree.h" (implying "range.hpp"), less, std::pair,
-//	std::allocator, totally_ordered, alloc_value_t, is_same, allocator_traits,
-//	first_of, is_nothrow_copy_constructible, and_, YAssert, is_constructible,
-//	enable_if_t, ystdex::swap_dependent;
+//	std::allocator, totally_ordered, is_allocator_for, allocator_traits,
+//	first_of, is_nothrow_copy_constructible, and_, YAssert,
+//	is_constructible, enable_if_t, ystdex::swap_dependent;
 #include <map> // for <map>, std::initializer_list;
 #include <tuple> // for std::piecewise_construct, std::tuple;
 #include "container.hpp" // for ystdex::try_emplace, ystdex::insert_or_assign,
@@ -85,7 +85,7 @@ public:
 	using mapped_type = _tMapped;
 	using value_type = std::pair<const _tKey, _tMapped>;
 	//! \see WG21 P1463R1 。
-	static_assert(is_same<alloc_value_t<_tAlloc>, value_type>(),
+	static_assert(is_allocator_for<_tAlloc, value_type>(),
 		"Value type mismatched to the allocator found.");
 	using key_compare = _fComp;
 	using allocator_type = _tAlloc;

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2018 FrankHB.
+# (C) 2014-2019 FrankHB.
 # Common source script: bootstrap configuration.
 
 SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
@@ -32,16 +32,17 @@ INCLUDES=" \
 	-I$YSLib_BaseDir/YBase/include \
 	"
 
-# Coordinated at build 843.
+# Coordinated at build 867.
 LIBS=" \
-	$YSLib_BaseDir/YBase/source/ystdex/cassert.cpp \
-	$YSLib_BaseDir/YBase/source/ystdex/cstdio.cpp \
 	$YSLib_BaseDir/YBase/source/ystdex/base.cpp \
 	$YSLib_BaseDir/YBase/source/ystdex/exception.cpp \
+	$YSLib_BaseDir/YBase/source/ystdex/cassert.cpp \
+	$YSLib_BaseDir/YBase/source/ystdex/cstdio.cpp \
 	$YSLib_BaseDir/YBase/source/ystdex/any.cpp \
-	$YSLib_BaseDir/YBase/source/ystdex/concurrency.cpp \
-	$YSLib_BaseDir/YBase/source/ystdex/tree.cpp \
 	$YSLib_BaseDir/YBase/source/ystdex/memory_resource.cpp \
+	$YSLib_BaseDir/YBase/source/ystdex/node_base.cpp \
+	$YSLib_BaseDir/YBase/source/ystdex/tree.cpp \
+	$YSLib_BaseDir/YBase/source/ystdex/concurrency.cpp \
 	$YSLib_BaseDir/YFramework/source/CHRLib/chrmap.cpp \
 	$YSLib_BaseDir/YFramework/source/CHRLib/CharacterProcessing.cpp \
 	$YSLib_BaseDir/YFramework/source/CHRLib/MappingEx.cpp \

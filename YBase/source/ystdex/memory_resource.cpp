@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1407
+\version r1451
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2019-08-30 02:59 +0800
+	2019-09-23 15:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,8 +27,9 @@
 
 #include "ystdex/memory_resource.h" // for __cpp_aligned_new, is_trivial,
 //	std::align_val_t, std::align, __cpp_sized_deallocation, std::bad_alloc,
-//	::operator new, ::operator delete, make_observer, YAssert, lref, yassume,
-//	ystdex::destruct_in, yconstraint, CHAR_BIT, ceiling_lb, PTRDIFF_MAX;
+//	::operator new, ::operator delete, std::unique_ptr, make_observer, YAssert,
+//	lref, yassume, ystdex::destruct_in, yconstraint, CHAR_BIT, ceiling_lb,
+//	std::piecewise_construct, std::forward_as_tuple, PTRDIFF_MAX;
 #if YB_Has_memory_resource != 1
 #	include <atomic> // for std::atomic;
 #endif
@@ -538,8 +539,36 @@ resource_pool::resource_pool(memory_resource& up_rsrc, size_t mbpc,
 {
 	yconstraint(block_size > sizeof(block_meta_t));
 }
+resource_pool::resource_pool(resource_pool&& pl) ynothrow
+	: max_blocks_per_chunk(pl.max_blocks_per_chunk),
+	chunks(pl.chunks.get_allocator()), i_stashed(pl.i_stashed),
+	i_empty(pl.i_empty), next_capacity(pl.next_capacity),
+	block_size(pl.block_size), extra_data(pl.extra_data)
+{
+	std::swap(chunks, pl.chunks);
+}
 // XXX: The order destruction among chunks is unspecified.
 resource_pool::~resource_pool() = yimpl(default);
+
+resource_pool&
+resource_pool::operator=(resource_pool&& pl) ynothrowv
+{
+	yconstraint(chunks.get_allocator() == pl.chunks.get_allocator());
+
+	const bool no_stashed(pl.i_stashed == pl.chunks.end()),
+		no_empty(pl.i_empty == pl.chunks.end());
+
+	std::swap(chunks, pl.chunks);
+	yunseq(
+	i_stashed = no_stashed ? chunks.end() : pl.i_stashed,
+	i_empty = no_empty ? chunks.end() : pl.i_empty,
+	max_blocks_per_chunk = pl.max_blocks_per_chunk,
+	next_capacity = pl.next_capacity,
+	block_size = pl.block_size,
+	extra_data = pl.extra_data
+	);
+	return *this;
+}
 
 void*
 resource_pool::allocate()
@@ -549,11 +578,19 @@ resource_pool::allocate()
 		if(YB_UNLIKELY(i_stashed == chunks.end()))
 		{
 			// NOTE: Replenish.
-			i_stashed = chunks.emplace_hint(chunks.begin(),
-				std::piecewise_construct, std::forward_as_tuple(chunks.empty()
-				? 0 : chunks.begin()->first + 1), std::forward_as_tuple(*this,
-				upstream().allocate(next_capacity * block_size, block_size),
-				next_capacity));
+			auto& up_rsrc(upstream());
+			const auto del([&](void* p) ynothrow{
+				up_rsrc.deallocate(p, next_capacity * block_size, block_size);
+			});
+			std::unique_ptr<void, decltype(del)> gd(
+				up_rsrc.allocate(next_capacity * block_size, block_size), del);
+
+			chunks.emplace_front(std::piecewise_construct,
+				std::forward_as_tuple(chunks.empty() ? 0
+				: chunks.begin()->first + 1),
+				std::forward_as_tuple(*this, gd.get(), next_capacity));
+			gd.release();
+			i_stashed = chunks.begin();
 			i_empty = i_stashed;
 			// NOTE: See $2018-11 @ %Documentation::Workflow::Annual2018.
 			next_capacity = std::min(next_capacity << 1, max_blocks_per_chunk);
@@ -663,10 +700,8 @@ pool_resource::do_deallocate(void* p, size_t bytes, size_t alignment)
 	{
 		const auto pr(find_pool(bytes, alignment));
 
-		if(pool_exists(pr))
-			pr.first->deallocate(p);
-		else
-			yassume(false);
+		yverify(pool_exists(pr));
+		pr.first->deallocate(p);
 	}
 	else
 		return oversized.deallocate(p, bytes, alignment);

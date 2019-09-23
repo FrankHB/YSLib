@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r5448
+\version r5469
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2019-07-24 12:05 +0800
+	2019-09-17 05:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1984,22 +1984,37 @@ DefineWithRecursion(TermNode&, ContextNode&);
 //@}
 
 /*!
-\brief 移除名称绑定。
-\exception BadIdentifier 非强制时移除不存在的名称。
 \throw InvalidSyntax 标识符不是符号。
 \sa IsNPLASymbol
 \sa RemoveIdentifier
-\since build 786
+\since build 867
+*/
+//@{
+/*!
+\brief 移除名称绑定。
 
 移除名称和关联的值，返回是否被移除。
-第三参数表示是否强制。若非强制，移除不存在的名称抛出异常。
+移除不存在的名称时忽略。
 
 参考调用文法：
-<pre>$undef! \<symbol>
-$undef-checked! \<symbol></pre>
+<pre>$undef! \<symbol></pre>
 */
 YF_API void
-Undefine(TermNode&, ContextNode&, bool);
+Undefine(TermNode&, ContextNode&);
+
+/*!
+\brief 检查并移除名称绑定。
+\exception BadIdentifier 移除不存在的名称。
+
+移除名称和关联的值。
+移除不存在的名称抛出异常。
+
+参考调用文法：
+<pre>$undef-checked! \<symbol></pre>
+*/
+YF_API void
+UndefineChecked(TermNode&, ContextNode&);
+//@}
 
 
 /*!

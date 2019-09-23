@@ -11,13 +11,13 @@
 /*!	\file list.hpp
 \ingroup YStandardEx
 \brief 列表容器。
-\version r1590
+\version r1607
 \author FrankHB <frankhb1989@gmail.com>
 \since build 864
 \par 创建时间:
 	2019-08-14 14:48:52 +0800
 \par 修改时间:
-	2019-09-03 09:05 +0800
+	2019-09-16 01:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 //	rebind_alloc_t, allocator_traits, false_, true_, ystdex::alloc_on_move,
 //	allocator_guard, allocator_guard_delete, ystdex::alloc_on_swap,
 //	ystdex::swap_dependent, std::allocator, is_object, is_unqualified, and_,
-//	alloc_value_t, is_same, is_nothrow_constructible, less, ref_eq, equal_to;
+//	is_allocator_for, is_nothrow_constructible, less, ref_eq, equal_to;
 #include "iterator_op.hpp" // for bidirectional_iteratable, equality_comparable,
 //	totally_ordered, ystdex::reverse_iterator,
 //	ystdex::make_move_if_noexcept_iterator, yverify, std::advance;
@@ -268,13 +268,9 @@ protected:
 		components() ynoexcept_spec(node_allocator())
 			: node_allocator()
 		{}
-		components(const node_allocator& a) ynothrow
-			: node_allocator(a)
-		{}
-		components(node_allocator&& a, components&& x)
-			: node_allocator(std::move(a)), header(std::move(x.header))
-		{}
-		components(node_allocator&& a) ynothrow
+		//! \since build 867
+		explicit
+		components(node_allocator a) ynothrow
 			: node_allocator(std::move(a))
 		{}
 		components(const components& x)
@@ -282,6 +278,10 @@ protected:
 			node_ator_traits::select_on_container_copy_construction(x))
 		{}
 		components(components&&) = default;
+		//! \since build 867
+		components(components&& x, node_allocator a) ynothrow
+			: node_allocator(std::move(a)), header(std::move(x.header))
+		{}
 	};
 
 private:
@@ -337,11 +337,13 @@ public:
 	{}
 
 private:
-	list_rep(list_rep&& x, const node_allocator& a, true_) ynothrow
-		: objects(a, std::move(x.objects))
+	//! \since build 867
+	list_rep(list_rep&& x, node_allocator a, true_) ynothrow
+		: objects(std::move(x.objects), std::move(a))
 	{}
-	list_rep(list_rep&& x, const node_allocator& a, false_)
-		: objects(a)
+	//! \since build 867
+	list_rep(list_rep&& x, node_allocator a, false_)
+		: objects(std::move(a))
 	{
 		if(get_node_allocator() == x.get_node_allocator())
 			move_nodes(std::move(x));
@@ -1054,7 +1056,7 @@ public:
 	*/
 	static_assert(and_<is_object<_type>, is_unqualified<_type>>(),
 		"The value type for allocator shall be an unqualified object type.");
-	static_assert(is_same<alloc_value_t<_tAlloc>, value_type>(),
+	static_assert(is_allocator_for<_tAlloc, value_type>(),
 		"Value type mismatched to the allocator found.");
 	using allocator_type = _tAlloc;
 

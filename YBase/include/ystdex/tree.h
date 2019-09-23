@@ -11,13 +11,13 @@
 /*!	\file tree.h
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r3326
+\version r3334
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2019-09-12 03:57 +0800
+	2019-09-16 01:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -834,9 +834,9 @@ protected:
 			noexcept(node_allocator()) && noexcept(base_key_compare()))
 			: node_allocator(), base_key_compare()
 		{}
-		//! \since build 866
+		//! \since build 867
 		explicit
-		components(node_allocator&& a) ynothrow
+		components(node_allocator a) ynothrow
 			: node_allocator(std::move(a))
 		{}
 		components(const _tKeyComp& comp, node_allocator&& a)
@@ -848,8 +848,8 @@ protected:
 			base_key_compare(x.key_compare)
 		{}
 		components(components&&) = default;
-		//! \since build 866
-		components(components&& x, node_allocator&& a)
+		//! \since build 867
+		components(components&& x, node_allocator a)
 			: node_allocator(std::move(a)), base_key_compare(std::move(x)),
 			header(std::move(x.header))
 		{}
@@ -899,11 +899,13 @@ public:
 	{}
 
 private:
-	tree(tree&& x, node_allocator&& a, true_)
+	//! \since build 867
+	tree(tree&& x, node_allocator a, true_)
 		ynoexcept(is_nothrow_default_constructible<_fComp>())
 		: objects(std::move(x.objects), std::move(a))
 	{}
-	tree(tree&& x, node_allocator&& a, false_)
+	//! \since build 867
+	tree(tree&& x, node_allocator a, false_)
 		: objects(x.objects.key_compare, std::move(a))
 	{
 		if(x.root())

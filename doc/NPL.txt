@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r11074
+\version r11090
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2019-07-29 12:43 +0800
+	2019-09-17 21:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2221,6 +2221,17 @@ shared_ptr<Environment> ；
 NPL::EnvironmentReference 。
 宿主类型(@5.2.3) observer_ptr<const Environment> 通常用于内部实现而不要求所有使用环境的操作支持。
 除 shared_ptr<Environment> 的 use_count 的结果外，环境的引用计数具体值是实现细节，不保证具有明确含义的稳定的结果。
+类 Environment 还包含以下 API 。
+成员函数模板 AddValue 添加绑定。
+成员函数模板 Bind 添加或覆盖绑定。
+静态成员函数 CheckParent 检查可作为父环境的宿主对象。
+静态成员函数 Deduplicate 移除名称重复的绑定项。
+成员函数 Define 和 DefineChecked 添加定义。后者在定义已存在时抛出异常。
+成员函数 LookupName 在绑定集合中查找（一般作为局部变量的）标识符指定的名称，实现名称查找(@4.3.3) 。输入字符串指定（假定名称验证已通过的）名称。
+成员函数 Remove 和 RemoveChecked 以字符串为标识符在指定上下文移除定义。后者在定义不存在时抛出异常。
+成员函数 Replace 和 ReplaceChecked 以字符串为标识符在指定上下文的名称查找结果中替换定义。后者在定义不存在时抛出异常。
+成员函数 ThrowForInvalidType 对不符合环境要求的类型抛出异常。
+友元函数 swap 交换环境对象的绑定、算法和锚对象指针。
 
 @5.8.8.2 上下文 API ：
 类型 NPL::Reducer 是和遍处理器(@5.8.7.1) 等价的类型，用于抽象一遍规约的动作(@5.4.4) 。动作有效当前仅当 NPL::Reducer 类型的值能上下文转换为 bool 类型后为真。
@@ -2246,9 +2257,6 @@ Current 和 LastStatus 共同表示当前续延。
 类 NPL::EnvironmentSwitcher 用于设置 ContextNode 切换环境(@5.8.8.2) 的结果。
 配合作用域守卫可用于以异常中立的方式恢复被切换的环境。
 切换环境时，旧的环境若没有被引用，则被释放。由于环境具有对象的所有权(@5.2.4.2) ，内部绑定的对象作为自动变量也被一并释放(@5.2.4.5) 。
-函数模板 NPL::LookupName 用于在绑定集合中查找（一般作为局部变量的）标识符指定的名称，实现名称查找(@4.3.3) 。输入字符串指定（假定名称验证已通过的）名称。
-函数模板 NPL::FetchValue 分别用于在上下文中查找标识符指定的名称及取上下文中名称指称的值，实现对名称表达式(@4.5.1) 的求值。
-函数模板 NPL::FetchValuePtr 同 NPL::FetchValue 但不复制值。
 NPL::ResolveName 解析名称：处理保留名称并查找名称(@4.3.3) 。
 解析名称重定向上下文时，可能找到循环引用(@5.2) ；作为 @5.2 的补充，此时抛出异常。
 NPL::ResolveIdentifier 解析标识符：解析名称并折叠引用(@5.5.3.2) 。
@@ -3186,6 +3194,8 @@ Forms::CallSystem 实现到 YFramework 提供的 usystem 函数的调用转发�
 上述语法糖实现为 REPL 对象内部的无状态的预处理器，仅包含 @6.5.3 添加的中缀变换。
 相关对象语言的相关接口参见 @8 。
 NPL::Dependency 还提供其它一些接口，调用函数 Forms::LoadGroundContext 初始化上下文后继续调用，初始化特定操作的环境：
+函数模板 Forms::GetModuleFor 加载代码作为模块。
+函数模板 Forms::LoadModule 和 Forms::LoadModuleChecked 加载模块为变量。后者在变量绑定已存在时抛出异常。
 函数 Forms::LoadModule_std_environments 提供环境操作(@9.1) ；
 函数 Forms::LoadModule_std_promises 提供延迟求值等操作(@9.2) ；
 函数 Forms::LoadModule_std_strings 提供字符串操作(@9.3) ；

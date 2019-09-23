@@ -11,13 +11,13 @@
 /*!	\file meta.hpp
 \ingroup YStandardEx
 \brief 通用元编程设施。
-\version r1710
+\version r1736
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:28 +0800
 \par 修改时间:
-	2019-08-18 03:43 +0800
+	2019-09-13 12:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -374,6 +374,19 @@ struct detector<_tDefault, void_t<_gOp<_tParams...>>, _gOp, _tParams...>
 	using type = _gOp<_tParams...>;
 };
 
+
+//! \since build 867
+//@{
+template<typename _type1, typename _type2,
+	bool _vSame = is_same<_type1, _type2>::value>
+struct is_same_or_convertible : is_convertible<_type1, _type2>
+{};
+
+template<typename _type1, typename _type2>
+struct is_same_or_convertible<_type1, _type2, true> : true_
+{};
+//@}
+
 } // namespace details;
 
 //! \ingroup YBase_replacement_features
@@ -541,7 +554,7 @@ struct is_rvalue_class_reference
 
 
 /*!
-\pre remove_all_extents<_type> 是完整类型或（可能 cv 修饰的） \c void 。
+\pre remove_all_extents\<_type> 是完整类型或（可能 cv 修饰的） \c void 。
 \see ISO C++17 [class.prop]/2 。
 \since build 853
 */
@@ -592,7 +605,7 @@ struct is_decomposable<_gOp<_types...>> : true_
 
 
 /*!
-\pre remove_all_extents<_type> 是完整类型、（可能 cv 修饰的） \c void ，
+\pre remove_all_extents\<_type> 是完整类型、（可能 cv 修饰的） \c void ，
 	或未知大小的数组。
 \since build 630
 */
@@ -646,6 +659,8 @@ struct is_throwing_move_copyable : and_<is_copy_constructible<_type>,
 //@}
 
 
+//! \note 参数可以是不完整类型。
+//@{
 //! \ingroup type_traits_operations
 //@{
 /*!
@@ -667,6 +682,18 @@ struct is_unqualified : is_same<_type, remove_cv_t<_tTo>>
 //@}
 
 
+/*!
+\ingroup unary_type_trait
+\brief 判断类型是否为非 const 对象类型。
+\since build 867
+*/
+template<typename _type>
+struct is_unqualified_object
+	: and_<is_object<_type>, is_unqualified<_type>>
+{};
+//@}
+
+
 //! \ingroup binary_type_traits
 //@{
 /*!
@@ -675,8 +702,7 @@ struct is_unqualified : is_same<_type, remove_cv_t<_tTo>>
 \since build 850
 */
 template<typename _type1, typename _type2>
-struct is_same_or_convertible
-	: or_<is_same<_type1, _type2>, is_convertible<_type1, _type2>>
+struct is_same_or_convertible : details::is_same_or_convertible<_type1, _type2>
 {};
 
 

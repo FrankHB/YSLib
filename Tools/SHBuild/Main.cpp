@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3919
+\version r3923
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2019-08-01 18:21 +0800
+	2019-08-17 05:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -373,7 +373,7 @@ RunNPLFromStream(const char* name, std::istream&& is)
 	auto& rctx(context.Root);
 	const auto load_std_module([&](string_view module_name,
 		void(&load_module)(REPLContext&)){
-		LoadModule(rctx, "std." + string(module_name),
+		LoadModuleChecked(rctx, "std." + string(module_name),
 			std::bind(load_module, std::ref(context)));
 	});
 
@@ -382,7 +382,7 @@ RunNPLFromStream(const char* name, std::istream&& is)
 	load_std_module("io", LoadModule_std_io),
 	load_std_module("system", LoadModule_std_system);
 	GetModuleFor(rctx, [&]{
-		context.Root.GetRecordRef().Define("env_SHBuild_",
+		context.Root.GetRecordRef().DefineChecked("env_SHBuild_",
 			GetModuleFor(rctx, [&]{
 			LoadModule_SHBuild(context);
 			// XXX: Overriding.
@@ -406,8 +406,8 @@ RunNPLFromStream(const char* name, std::istream&& is)
 						std::printf("%s", val.c_str());
 					}
 					std::puts("\"");
-			})), true);
-		}), {});
+			})));
+		}));
 		TryLoadSource(context, name, is);
 	});
 }

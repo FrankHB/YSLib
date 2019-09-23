@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r4801
+\version r4807
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2019-08-16 11:33 +0800
+	2019-09-12 17:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,8 +41,8 @@
 //	is_aligned_storable, ystdex::pvoid, default_init_t, default_init, vseq::_a,
 //	is_instance_of, cond_or_t;
 #include "memory.hpp" // for ystdex::clone_monomorphic_ptr, std::allocator,
-//	allocator_delete, exclude_self_params_t, alloc_value_t, rebind_alloc_t,
-//	allocator_traits, ystdex::allocate_unique, in_place_type_t,
+//	allocator_delete, exclude_self_params_t, is_byte_allocator, alloc_value_t,
+//	rebind_alloc_t, allocator_traits, ystdex::allocate_unique, in_place_type_t,
 //	std::allocator_arg_t, in_place_type;
 #include "exception.h" // for throw_invalid_construction,
 //	throw_allocator_mismatch_error;
@@ -760,8 +760,8 @@ public:
 template<class _tByteAlloc, typename _tValue>
 class allocator_value_handler
 {
-	static_assert(and_<is_decayed<_tByteAlloc>, is_same<alloc_value_t<
-		_tByteAlloc>, byte>>(), "Invalid base allocator type found.");
+	static_assert(and_<is_byte_allocator<_tByteAlloc>>(),
+		"Invalid base allocator type found.");
 	static_assert(is_decayed<_tValue>(), "Invalid value type found.");
 
 public:
@@ -1918,8 +1918,8 @@ private:
 	void
 	do_alloc_init_impl(const _tByteAlloc& a, const any& x, any_ops::op_code op)
 	{
-		static_assert(and_<is_decayed<_tByteAlloc>, is_same<alloc_value_t<
-			_tByteAlloc>, byte>>(), "Invalid base allocator type found.");
+		static_assert(is_byte_allocator<_tByteAlloc>(),
+			"Invalid base allocator type found.");
 
 		if(manager)
 		{

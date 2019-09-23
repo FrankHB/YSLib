@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2873
+\version r2877
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2019-09-05 22:41 +0800
+	2019-09-17 05:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -217,6 +217,7 @@ namespace
 void
 LoadSequenceSeparators(EvaluationPasses& passes)
 {
+	// XXX: Allocators are inefficient for short strings here.
 	RegisterSequenceContextTransformer(passes, TokenValue(";"), true),
 	RegisterSequenceContextTransformer(passes, TokenValue(","));
 }
@@ -393,7 +394,7 @@ LoadObjects(Environment& env)
 	// NOTE: This is like '#ignore' in Kernel, but with the symbol type. An
 	//	alternative definition is by evaluating '$def! ignore $quote #ignore'
 	//	(see '$def!' and '$quote').
-	env.Define("ignore", TokenValue("#ignore"), {});
+	env.Define("ignore", TokenValue("#ignore"));
 }
 
 namespace Primitive
@@ -1152,12 +1153,12 @@ LoadModule_SHBuild(REPLContext& context)
 	auto& renv(context.Root.GetRecordRef());
 
 	// NOTE: SHBuild builtins.
-	renv.Define("SHBuild_BaseTerminalHook_",
+	renv.DefineChecked("SHBuild_BaseTerminalHook_",
 		ValueObject(function<void(const string&, const string&)>(
 		[](const string& n, const string& val) ynothrow{
 			// XXX: Error from 'std::printf' is ignored.
 			std::printf("%s = \"%s\"\n", n.c_str(), val.c_str());
-	})), {});
+	})));
 	RegisterStrictUnary<const string>(renv, "SHBuild_BuildGCH_existed_",
 		[](const string& str) -> bool{
 		if(IO::UniqueFile

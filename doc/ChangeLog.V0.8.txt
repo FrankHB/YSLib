@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r14780
+\version r15009
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-09-12 04:04 +0800
+	2019-09-23 16:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,224 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Meta $=
+		(
+			+ "unary type trait %is_unqualified_object",
+			* "binary type trait %is_same_or_convertible" $since b850
+		),
+		+ "transformation traits %(increment_post_t, decrement_t, \
+			decrement_post_t, subscript_t, equal_t, not_equal_t)" @ %TypeTraits,
+		/ %Memory $=
+		(
+			/ "unary type trait %is_allocatable" ^ ($dep_from
+				"%is_unqualified_object" ~ "%is_nonconst_object") @ %Meta;
+				// LWG 2447.
+			+ "unary type trait %is_allocator" ^ "%is_allocatable";
+			(
+			+ "binary type trait %is_allocator_for";
+			+ "unary type trait %is_byte_allocator"
+			),
+			/ "enhanced allocator check" @ "%has_nested_allocator"
+				^ "%is_allocator"
+		),
+		/ DLDI "simplified static assertion"
+			@ ("class template %any_ops::allocator_value_handler",
+			"allocator-extended constructors" @ "class %any") @ %Any
+			^ $dep_from ("%is_byte_allocator" @ %Memory),
+		/ DLDI "simplified static assertion"
+			@ ("class template %list" @ %List, "class template %map" @ %Map)
+			^ $dep_from ("%is_allocator_for" @ %Memory),
+		/ %TypeOperation $=
+		(
+			/ "simplified binary type trait %has_subscription" >> %TypeTraits
+				^ $dep_from ("%subscript_t" @ %TypeTraits)
+			/ "simplified binary type trait %has_equality_operator"
+				>> %TypeTraits ^ $dep_from ("%equal_t" @ %TypeTraits)
+		),
+		/ $foced "inclusion %TypeOperation" @ %Examiner -> "%TypeTraits"
+			$dep_from ("%has_equality_operator" @ %TypeOperation),
+		/ DLDI "simplified %list internal construction" @ %List
+			// To make it more like %Tree.
+		/ DLI "internal construction parameters" ^ "node allocator type"
+			~ "node allocator reference type" @ %(List, Tree),
+			// This is slightly more efficient.
+		/ %MemoryResource $=
+		(
+			/ @ "class %resource_pool" $=
+			(
+				/ $revert_ex(b864) "supported move operations" $=
+				(
+					- $revert(b864) "private base %nonmovable";
+					+ "move constructor",
+					+ "move %operator="
+				),
+				/ DLI "chunks owner" ^ "%list" ~ "%map",
+					// Ideally this should be a intrusive list like the \
+						implementation in Microsoft VC++. Now just keep it \
+						simple.
+				* "upstream allocated memory leak" @ "chunk allocation failure"
+					@ "replenish" @ "function %allocate"
+					$orig (@ "%pool_resource::allocate" $since b843)
+					// Intrusive lists would have no such problem, as the \
+						allocation of node is non-throwing.
+			),
+			/ @ "class %pool_resource" $=
+			(
+				/ $revert_ex(b865) DLI "pools type" ^ "%std::vector" ~ "%list"
+					$dep_from ("supported move operations" @ "%resource_pool"),
+					//	Some more optimized memory resource client code relied \
+						on the random accesses of the vector (with some \
+						preallocation techniques) can make small objects like \
+						%NPL::TermReference in %YFramework.NPL.NPLA allocation \
+						more efficient, at least on x86-64 Linux.
+				/ DLI "simplified function %do_deallocate" ^ "%yverify"
+					~ "%yassume"
+			)
+		)
+	),
+	/ %YFramework $=
+	(
+		/ DLDI "adjusted position of %YB_ATTR_fallthrough" @ "function \
+			template %Decode" @ "class template specializations \
+			%(GUCSMapper<CharSet::UTF_16BE>, GUCSMapper<CharSet::UTF_16LE>)"
+			@ %CHRLib.StaticMapping,
+			// To eliminate Microsoft VC++ warning: C4468.
+		/ %YCLib.Container $=
+		(
+			/ DLDI "simplified function template %to_std_string#3"
+				^ ("%ystdex::enable_if_same_param_t"
+				@ %YBase.YStandardEx.Meta) ~ "%ystdex::enable_if_same_t",
+			/ "%list" ^ ("%ystdex::list" @ %List) ~ "%std::list"
+				// See $2019-08 @ %Documentation::Workflow::Annual2019. It \
+					also makes %NPL performance slightly better.
+		),
+		/ %YSLib.Core $=
+		(
+			/ %YObject $=
+			(
+				/ "class template %AllocatorHolder" ^ "byte allocator" $=
+				(
+					+ "1st template parameter for %value_type";
+					+ $dev "static assertion" ^ $dep_from
+						("%ystdex::is_allocatable" @ %YBase.YStandardEx.Memory),
+					(
+					/ "restricted allocator as byte allocator";
+					+ $dev "static assertion" ^ $dep_from
+						("%ystdex::is_byte_allocator"
+						@ %YBase.YStandardEx.Memory),
+					- DLDI "rebinding" @ "function %Create"
+					)
+				);
+				/ $forced DLDI "internal allocator holder type"
+					@ "class %ValueObject"
+					// This makes less allocator holder class templates need \
+						to be instantiated.
+			),
+			/ @ "function templates %(AsNode, MakeNode, StringifyToNode)"
+				@ %ValueNode $=
+				// Constructor parameter of allocators in %ValueNode is not \
+					changed. See See $2019-09 \
+					@ %Documentation::Workflow::Annual2019.
+			(
+				/ "excludes convertible to %ValueNode::allocator"
+					@ "overloads#1"
+				/ "parameter 'ValueNode::allocator_type'"
+					@ "function template overloads#2"
+					-> 'const ValueNode::allocator_type&'
+			)
+		),
+		/ %NPL $=
+		(
+			/ "parameter 'TermNode::allocator_type'"
+				@ "function template %(AsTermNode#2, Analyze)" @ %SContext
+				-> 'const TermNode::allocator_type&',
+				// Constructor parameter of allocators in %TermNode is not \
+					changed. See See $2019-09 \
+					@ %Documentation::Workflow::Annual2019.
+			/ %NPLA $=
+			(
+				/ $dev "parameter 'Environment::allocator_type'" @ "function \
+					template %AllocateEnvironment#1"
+					-> 'const Environment::allocator_type&',
+				/ @ "class %Environment" $=
+				(
+					/ $dev "kept private anchor reference count away"
+						!@ 'NPL_NPLA_CheckEnvironmentReferenceCount',
+						// To eliminate Clang++ warning: \
+							[-Wunused-private-field]. The ABI compatibility \
+							here is not kept now.
+					/ "split forced and normal binding mutators" $=
+					(
+						// For performance.
+						/ "function %Define"
+							-> "functions %(Define, DefineChecked)",
+						/ "function %Redefine"
+							-> "functions %(Replace, ReplaceChecked)"
+							// Rename to avoid confusion of the distinction \
+								between redefinition and multiple definitions.
+						/ "function %Remove"
+							-> "functions %(Remove, RemoveChecked)"
+					)
+				),
+				(
+				- $revert(b788) "all function templates %(FetchValue, \
+					FetchValuePtr; LookupName)";
+				/ "ill-formed instantaitions of %(FetchValue, FetchValuePtr, \
+					LookupName)" $since b852
+				)
+			),
+			/ %NPLA1 $=
+			(
+				/ "function %Undefine" @ "namespace %Forms"
+					-> "functions %(Undefine, UndefineChecked)"
+					$= (/ $forced $impl ^ $dep_from
+						("%Environment::(Remove, RemoveChecked)" @ %NPLA))
+			),
+			/ %Dependency $=
+			(
+				/ $forced DLDI "function %LoadModule_SHBuild" $dep_from
+					("%Environment::Define" @ %NPLA)
+					$= (/ $impl ^ $dep_from
+						("%Environment::DefineChecked" @ %NPLA)),
+				/ $forced DLI "function %LoadGroundContext" $dep_from
+					("%Environment::Define" @ %NPLA)
+					// In initialization of the ground environment, there \
+						should be no such symbol.
+					$= (/ "forced overriding of definition of '#ignore'"
+						^ $dep_from ("%Environment::Define" @ %NPLA)),
+				/ "function template %LoadModule"
+					-> "function templates %(LoadModule, LoadModuleChecked)"
+					$= (/ $forced $impl ^ $dep_from
+						("%Environment::(Define, DefineChecked)" @ %NPLA))
+			)
+		)
+	),
+	/ %Tools $=
+	(
+		/ "%SHBuild-bootstrap.sh" @ %Scripts $=
+		(
+			/ $re_add(b843) $forced "updated %LIBS for \
+				%YBase.YStandardEx.NodeBase" $dep_from
+				%YFramework.YCLib.Container,
+			/ DLDI "reordered files of %YBase.YStandardEx" @ "%LIBS"
+				// As the module order in %Documentation::YBase.
+		),
+		/ $forced DLDI "initialization of environment for running NPL from \
+			stream" @ %SHBuild.Main $=
+		(
+			/ $dep_from ("%Environment::Define" @ %NPLA)
+				$= (/ $impl ^ $dep_from
+					("%Environment::(Define, DefineChecked)" @ %NPLA))
+			/ $dep_from ("%LoadModule" @ %Dependency)
+				$= (/ $impl ^ $dep_from ("%LoadModuleChecked" @ %Dependency))
+		)
+	)
+),
+
+b866
 (
 	/ DLI "iterator verfication with %is_dereferenceable" ^
 		("%YB_VerifyIterator" @ %CAssert) ~ "%(yassume, yconstraint)" $effective
@@ -89,7 +307,8 @@ $now
 				/ DLI "optimized pool finding"
 					^ $dep_from ("%ystdex::lower_bound_n" @ %Algorithm
 					~ "%std::lower_bound");
-				^ $dep_from "%list" @ %List ~ "%std::list"
+				/ $revert_ex(b864) "pools type"
+					^ $dep_from ("%list" @ %List) ~ "%std::list"
 				),
 				- $revert(b849) "workaround for pre-C++11 allocator members"
 					@ "unneeded workaround for incomplete C++11 implementation"
@@ -725,7 +944,8 @@ b864
 							~ "%(yassume, is_aligned_ptr)",
 						(
 						/ "simplified block size passing in allocating block \
-							at the end of the chunk";
+							at the end of the chunk",
+						/ "pools type" ^ "%std::list" ~ "%std::vector";
 						/ "stashed and empty pointer" -> "iterators" $dep_from
 							"map iterator to incomplete type fix"
 							$dep_from "%pool_resource";
@@ -4420,8 +4640,7 @@ b851,
 				),
 				/ DLDI "simplified function templates %(shared_copy, \
 					unique_copy)" !^ 'yforward',
-				* "missing inclusion %YBase.IntegerSequence" @ %Apply $since
-					b850
+				* "missing inclusion %IntegerSequence" @ %Apply $since b850
 			),
 			* "irrespective non-deduced context"
 				@ "transformation trait %invoke_result" @ %Invoke $since b832
@@ -6791,8 +7010,7 @@ b845
 			* "ill-formed pointer composite type and functor call"
 				@ "%operator< for %observer_ptr instances" @ %Pointer $orig
 				(@ %Memory $since b669),
-			* "missing inclusion %YBase.YStandardEx.TypeOperation" @ %Array
-				$since b630
+			* "missing inclusion %TypeOperation" @ %Array $since b630
 		)
 	),
 	/ %YFramework $=
@@ -7089,8 +7307,8 @@ b844
 				now it is better to follow the common practice.
 			$= (/ "friend function template %operator-"
 				-> "non-member function template"),
-		* "missing inclusion %YBase.YStandardEx.CString"
-			@ 'YB_Has_string_view == 1' @ %(TStringView, Path) $since b837,
+		* "missing inclusion %CString" @ 'YB_Has_string_view == 1'
+			@ %(TStringView, Path) $since b837,
 		* $impl "missing dependent key type for %enable_if test"
 			@ "function templates for transparent key types" $effective
 			@ (%Tree; $comp %Map) $since b830,
@@ -7387,8 +7605,7 @@ b843
 					* "missing deleter" @ "return type" @ "non-array overload"
 						$since b562
 				),
-				* "missing inclusion %YBase.YStandardEx.Functional"
-					@ %ScopeGuard $since b686,
+				* "missing inclusion %Functional" @ %ScopeGuard $since b686,
 					// For %one_shot.
 				/ DLI "internal" @ "function templates %(alloc_on_copy, \
 					alloc_on_move, alloc_on_swap)" ^ "exception specifications"

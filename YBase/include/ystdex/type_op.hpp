@@ -11,19 +11,19 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r2861
+\version r2893
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2019-08-16 12:41 +0800
+	2019-09-13 13:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::TypeOperation
 
-间接扩展标准库头 \c \<type_traits> ，包括一些不适用于所有类型或组合的类型特征，
+间接扩展标准库头 \c \<type_traits> ，包括一些不保证所有类型适用的或组合的类型特征，
 以及其它元编程设施。
 */
 
@@ -32,8 +32,9 @@
 #define YB_INC_ystdex_type_op_hpp_ 1
 
 #include "integer_sequence.hpp" // for is_class, std::declval, is_detected,
-//	vseq::apply, _t, bool_, is_void, is_same, detected_or_t, remove_reference_t,
-//	and_, cond_t, is_enum, vdefer, underlying_type_t, common_type_t;
+//	vseq::apply, _t, bool_, subscript_t, is_void, equal_t, is_same,
+//	detected_or_t, remove_reference_t, and_, cond_t, is_enum, vdefer,
+//	underlying_type_t, common_type_t;
 
 namespace ystdex
 {
@@ -73,17 +74,6 @@ struct max_<_v1, _v2, _vn...>
 
 namespace details
 {
-
-//! \since build 649
-template<typename _type, typename _type2>
-using subscription_t
-	= decltype(std::declval<_type>()[std::declval<_type2>()]);
-
-//! \since build 649
-template<typename _type, typename _type2>
-using equality_operator_t
-	= decltype(std::declval<_type>() == std::declval<_type2>());
-
 
 //! \since build 629
 template<class _type>
@@ -187,30 +177,6 @@ struct has_mem_value : is_detected<details::mem_value_t, _type>
 */
 template<typename _type>
 struct has_mem_value_type : is_detected<details::mem_value_type_t, _type>
-{};
-//@}
-
-
-//! \ingroup binary_type_traits
-//@{
-/*!
-\brief 判断是否存在合式的结果为非 void 类型的 [] 操作符接受指定类型的表达式。
-\since build 399
-*/
-template<typename _type1, typename _type2>
-struct has_subscription
-	: bool_<is_detected<details::subscription_t, _type1, _type2>::value
-	&& !is_void<detected_t<details::subscription_t, _type1, _type2>>::value>
-{};
-
-
-/*!
-\brief 判断是否存在合式的结果可转换为 bool 类型的 == 操作符接受指定类型的表达式。
-\since build 649
-*/
-template<typename _type, typename _type2 = _type>
-struct has_equality_operator : is_detected_convertible<bool,
-	details::equality_operator_t, _type, _type2>
 {};
 //@}
 

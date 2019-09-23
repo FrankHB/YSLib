@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r5918
+\version r5940
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2019-08-05 13:33 +0800
+	2019-09-12 14:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,13 +34,13 @@
 //	ystdex::enable_if_t, any, any_ops::use_holder, in_place_type,
 //	std::allocator_arg_t, std::allocator_arg, ystdex::false_, ystdex::true_,
 //	any_ops::holder, ystdex::boxed_value, ystdex::exclude_self_t,
-//	std::is_constructible, ystdex::type_id, ystdex::alloc_value_t,
-//	ystdex::exclude_self_params_t, any_ops::is_in_place_storable,
-//	ystdex::default_init, ystdex::rebind_alloc_t, any_ops::get_allocator_type,
-//	any_ops::get_allocator_ptr, ystdex::is_sharing, ystdex::ref, ystdex::cond_t,
-//	ystdex::decay_t, in_place_type_t, YSLib::unchecked_any_cast,
-//	YSLib::any_cast, YSLib::make_observer, ystdex::copy_or_move,
-//	ystdex::pseudo_output;
+//	std::is_constructible, ystdex::type_id, ystdex::is_allocatable,
+//	ystdex::is_byte_allocator, ystdex::exclude_self_params_t,
+//	any_ops::is_in_place_storable, ystdex::default_init,
+//	any_ops::get_allocator_type, any_ops::get_allocator_ptr, ystdex::is_sharing,
+//	ystdex::ref, ystdex::cond_t, ystdex::decay_t, ystdex::rebind_alloc_t,
+//	in_place_type_t, YSLib::unchecked_any_cast, YSLib::any_cast,
+//	YSLib::make_observer, ystdex::copy_or_move, ystdex::pseudo_output;
 #include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
 
@@ -391,15 +391,22 @@ public:
 \brief 保存分配器的值持有者。
 \note 分配器通过配合 any::allocated_holder_handler_t 被使用。
 \note 模板参数指定分配器。
-\since build 847
+\since build 867
 */
-template<class _tAlloc>
-class AllocatorHolder : public ValueHolder<ystdex::alloc_value_t<_tAlloc>>
+template<typename _type, class _tByteAlloc>
+class AllocatorHolder : public ValueHolder<_type>
 {
+	//! \since build 867
+	static_assert(ystdex::is_allocatable<_type>(), "Invalid type found.");
+	//! \since build 867
+	static_assert(ystdex::is_byte_allocator<_tByteAlloc>(),
+		"Invalid byte allocator found.");
+
 public:
 	//! \since build 864
 	using Creation = IValueHolder::Creation;
-	using value_type = typename ystdex::alloc_value_t<_tAlloc>;
+	//! \since build 847
+	using value_type = _type;
 
 private:
 	//! \since build 864
@@ -442,7 +449,6 @@ private:
 		if(c == Creation::Copy || c == Creation::Move)
 		{
 			using ystdex::default_init;
-			using _tByteAlloc = ystdex::rebind_alloc_t<_tAlloc, byte>;
 
 			YAssert(x.has_value(), "Invalid state found.");
 			YAssert(*x.unchecked_access<const type_info*>(
@@ -454,9 +460,9 @@ private:
 				any_ops::get_allocator_ptr))));
 
 			if(c == Creation::Copy)
-				return HolderOperations<AllocatorHolder<_tAlloc>>
+				return HolderOperations<AllocatorHolder>
 					::CreateInPlace(std::allocator_arg, ra, value);
-			return HolderOperations<AllocatorHolder<_tAlloc>>
+			return HolderOperations<AllocatorHolder>
 				::CreateInPlace(std::allocator_arg, ra,
 				std::move(value));
 		}
@@ -799,8 +805,8 @@ public:
 private:
 	//! \since build 848
 	template<typename _type, class _tAlloc>
-	using alloc_holder_t = AllocatorHolder<ystdex::rebind_alloc_t<_tAlloc,
-		ystdex::decay_t<_type>>>;
+	using alloc_holder_t = AllocatorHolder<ystdex::decay_t<_type>,
+		ystdex::rebind_alloc_t<_tAlloc, byte>>;
 	//! \since build 851
 	template<typename _type>
 	using add_vh_t

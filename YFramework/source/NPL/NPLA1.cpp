@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r13249
+\version r13280
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2019-08-25 00:44 +0800
+	2019-09-17 06:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1839,6 +1839,28 @@ MakeVal(TermNode& term, TermNode& tm)
 }
 //@}
 
+//! \since build 867
+template<typename _func>
+void
+UndefineImpl(TermNode& term, _func f)
+{
+	Forms::Retain(term);
+	if(term.size() == 2)
+	{
+		const auto& n(NPL::ResolveRegular<const TokenValue>(
+			NPL::Deref(std::next(term.begin()))));
+
+		if(IsNPLASymbol(n))
+			f(n);
+		else
+			Forms::ThrowInvalidSyntaxError(ystdex::sfmt("Invalid token '%s'"
+				" found as name to be undefined.", n.c_str()));
+	}
+	else
+		Forms::ThrowInvalidSyntaxError(
+			"Expected exact one term as name to be undefined.");
+}
+
 //! \since build 840
 //@{
 template<typename _func>
@@ -3642,23 +3664,19 @@ DefineWithRecursion(TermNode& term, ContextNode& ctx)
 }
 
 void
-Undefine(TermNode& term, ContextNode& ctx, bool forced)
+Undefine(TermNode& term, ContextNode& ctx)
 {
-	Retain(term);
-	if(term.size() == 2)
-	{
-		const auto& n(NPL::ResolveRegular<const TokenValue>(
-			NPL::Deref(std::next(term.begin()))));
+	UndefineImpl(term, [&](const TokenValue& n){
+		term.Value = ctx.GetRecordRef().Remove(n);
+	});
+}
 
-		if(IsNPLASymbol(n))
-			term.Value = ctx.GetRecordRef().Remove(n, forced);
-		else
-			ThrowInvalidSyntaxError(ystdex::sfmt("Invalid token '%s' found as"
-				" name to be undefined.", n.c_str()));
-	}
-	else
-		throw
-			InvalidSyntax("Expected exact one term as name to be undefined.");
+void
+UndefineChecked(TermNode& term, ContextNode& ctx)
+{
+	UndefineImpl(term, [&](const TokenValue& n){
+		ctx.GetRecordRef().RemoveChecked(n);
+	});
 }
 
 

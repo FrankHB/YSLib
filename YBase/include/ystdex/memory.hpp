@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r3840
+\version r4022
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2019-08-24 18:41 +0800
+	2019-09-13 14:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,10 @@
 #define YB_INC_ystdex_memory_hpp_ 1
 
 #include "placement.hpp" // for internal "placement.hpp", <memory>,
-//	is_copy_constructible, is_class_type, and_, cond_t, vdefer, is_detected,
-//	std::declval, detected_or_t, detected_t, cond, is_lvalue_reference,
-//	exclude_self_t, false_, true_, enable_if_convertible_t,
+//	detected_or_t, is_unqualified_object, is_copy_constructible, is_class_type,
+//	and_, is_same, std::pointer_traits, std::declval, is_detected, true_,
+//	cond_or_t, detected_t, is_detected_exact, vdefer, false_, cond,
+//	is_lvalue_reference, exclude_self_t, enable_if_convertible_t, bool_,
 //	remove_reference_t, indirect_element_t, not_, is_void, remove_pointer_t,
 //	yconstraint, is_pointer, enable_if_t, is_array, extent, remove_extent_t,
 //	is_polymorphic, std::allocator_arg, is_explicitly_constructible,
@@ -90,41 +91,10 @@ namespace ystdex
 #	define YB_Impl_Has_allocator_traits_is_always_equal false
 #endif
 
+
 //! \since build 595
 namespace details
 {
-
-template<typename _type>
-using is_copy_constructible_class
-	= and_<is_copy_constructible<_type>, is_class_type<_type>>;
-
-
-//! \since build 651
-template<class _tAlloc, typename _type>
-using rebind_t = typename _tAlloc::template rebind<_type>::other;
-
-// XXX: Details member across headers?
-//! \since build 650
-template<typename _type>
-using check_allocator = and_<cond_t<has_mem_value_type<_type>,
-	is_detected<rebind_t, _type, vdefer<details::mem_value_type_t, _type>>>,
-	is_copy_constructible_class<_type>>;
-
-//! \since build 650
-template<typename _type>
-using nested_allocator_t = typename _type::allocator_type;
-
-
-//! \since build 746
-//@{
-template<typename _type, typename... _tParams>
-using mem_new_t
-	= decltype(_type::operator new(std::declval<_tParams>()...));
-
-template<typename _type, typename... _tParams>
-using mem_delete_t
-	= decltype(_type::operator delete(std::declval<_tParams>()...));
-//@}
 
 //! \since build 830
 //@{
@@ -135,30 +105,6 @@ using mem_is_always_equal_t = typename _type::is_always_equal;
 //@}
 
 } // namespace details;
-
-/*!
-\ingroup type_traits_operations
-\since build 746
-*/
-//@{
-template<typename _type, typename... _tParams>
-struct has_mem_new : is_detected<details::mem_new_t, _type, _tParams...>
-{};
-
-template<typename _type, typename... _tParams>
-struct has_mem_delete : is_detected<details::mem_delete_t, _type, _tParams...>
-{};
-//@}
-
-
-/*!
-\ingroup unary_type_traits
-\brief 判断类型是否符合分配器要求的目标类型。
-\since build 650
-*/
-template<typename _type>
-struct is_allocatable : is_nonconst_object<_type>
-{};
 
 //! \since build 595
 //@{
@@ -185,6 +131,22 @@ struct allocator_traits : std::allocator_traits<_tAlloc>
 template<class _tAlloc>
 using alloc_value_t = typename allocator_traits<_tAlloc>::value_type;
 
+//! \since build 867
+//@{
+template<class _tAlloc>
+using alloc_pointer_t = typename allocator_traits<_tAlloc>::pointer;
+
+template<class _tAlloc>
+using alloc_const_pointer_t = typename allocator_traits<_tAlloc>::const_pointer;
+
+template<class _tAlloc>
+using alloc_size_type_t = typename allocator_traits<_tAlloc>::size_type;
+
+template<class _tAlloc>
+using alloc_difference_type_t
+	= typename allocator_traits<_tAlloc>::difference_type;
+//@}
+
 //! \ingroup binary_type_traits
 //@{
 template<class _tAlloc, typename _type>
@@ -197,13 +159,192 @@ using rebind_traits_t
 //@}
 //@}
 
+
 /*!
 \ingroup unary_type_traits
-\brief 判断类型具有嵌套的成员 allocator_type 指称一个可复制构造的类类型。
+\brief 判断类型是否符合分配器要求的目标类型。
+\note _type 可以是不完整类型。
+\see LWG 2447 。
+\since build 650
+*/
+template<typename _type>
+struct is_allocatable : is_unqualified_object<_type>
+{};
+
+
+//! \since build 595
+namespace details
+{
+
+template<typename _type>
+using is_copy_constructible_class
+	= and_<is_copy_constructible<_type>, is_class_type<_type>>;
+
+//! \since build 867
+//@{
+template<class _tAlloc>
+using mem_pointer_t = typename _tAlloc::pointer;
+
+template<class _tAlloc>
+using mem_const_pointer_t = typename _tAlloc::const_pointer;
+
+template<class _tAlloc>
+using mem_const_pointer_conv_t = is_convertible<mem_pointer_t<_tAlloc>,
+	mem_const_pointer_t<_tAlloc>>;
+
+template<class _tAlloc>
+using mem_void_pointer_t = typename _tAlloc::void_pointer;
+
+template<class _tAlloc>
+using mem_void_pointer_conv_t = is_convertible<mem_pointer_t<_tAlloc>,
+	mem_void_pointer_t<_tAlloc>>;
+
+template<class _tAlloc>
+using mem_const_void_pointer_t = typename _tAlloc::const_void_pointer;
+
+template<class _tAlloc>
+using mem_const_void_pointer_conv_t = and_<is_convertible<mem_pointer_t<
+	_tAlloc>, mem_const_void_pointer_t<_tAlloc>>,
+	is_convertible<mem_const_pointer_t<_tAlloc>,
+	mem_const_void_pointer_t<_tAlloc>>, is_convertible<
+	mem_void_pointer_t<_tAlloc>, mem_const_void_pointer_t<_tAlloc>>>;
+
+template<class _tAlloc>
+using same_pointer_to_test_t
+	= is_same<decltype(std::pointer_traits<mem_pointer_t<_tAlloc>>::pointer_to(
+	*std::declval<mem_pointer_t<_tAlloc>>())), mem_pointer_t<_tAlloc>>;
+
+template<class _tAlloc>
+using same_pointer_to_t = cond_or_t<is_detected<mem_pointer_t, _tAlloc>, true_,
+	same_pointer_to_test_t, _tAlloc>;
+
+template<class _tAlloc>
+using mem_allocate_t = decltype(std::declval<_tAlloc&>().allocate(size_t(0)));
+
+template<class _tAlloc, typename _tPointer = decltype(
+	std::declval<typename allocator_traits<_tAlloc>::const_void_pointer>())>
+using ator_allocate_hint_t = decltype(allocator_traits<_tAlloc>::allocate(
+	std::declval<_tAlloc&>(), size_t(0), std::declval<_tPointer>()));
+
+template<class _tAlloc>
+using mem_deallocate_t = decltype(std::declval<_tAlloc&>().deallocate(
+	std::declval<mem_allocate_t<_tAlloc>>(), size_t(0)));
+
+template<class _tAlloc>
+using ator_max_size_t
+	= decltype(allocator_traits<_tAlloc>::max_size(std::declval<_tAlloc&>()));
+
+// XXX: Details member %mem_value_type_t across headers.
+template<class _type, typename _tPointer = detected_t<alloc_pointer_t,
+	_type>, typename _tSize = detected_t<alloc_size_type_t, _type>,
+	typename _tDifference = detected_t<alloc_difference_type_t, _type>>
+struct check_allocator_members : and_<cond_or_t<is_detected<
+	mem_const_pointer_t, _type>, true_, mem_const_pointer_conv_t, _type>,
+	cond_or_t<is_detected<mem_void_pointer_t, _type>, true_,
+	mem_void_pointer_conv_t, _type>, cond_or_t<is_detected<
+	mem_const_void_pointer_t, _type>, true_, mem_const_void_pointer_conv_t,
+	_type>, is_unsigned<_tSize>, is_signed<_tDifference>,
+	same_pointer_to_t<_type>,
+	is_detected_exact<_tPointer, mem_allocate_t, _type>,
+	is_detected_exact<_tPointer, ator_allocate_hint_t, _type>,
+	is_detected<mem_deallocate_t, _type>,
+	is_detected_exact<_tSize, ator_max_size_t, _type>>
+{};
+
+template<typename _type,
+	typename _tValue = detected_or_t<void, mem_value_type_t, _type>>
+struct is_allocator
+	: cond_or_t<is_allocatable<_tValue>, false_, check_allocator_members, _type>
+{};
+
+template<typename _type, typename _tValue>
+using same_alloc_value_t = is_same<alloc_value_t<_type>, _tValue>;
+//@}
+
+//! \since build 650
+template<typename _type>
+using nested_allocator_t = typename _type::allocator_type;
+
+
+//! \since build 746
+//@{
+template<typename _type, typename... _tParams>
+using mem_new_t
+	= decltype(_type::operator new(std::declval<_tParams>()...));
+
+template<typename _type, typename... _tParams>
+using mem_delete_t
+	= decltype(_type::operator delete(std::declval<_tParams>()...));
+//@}
+
+} // namespace details;
+
+/*!
+\ingroup type_traits_operations
+\since build 746
+*/
+//@{
+template<typename _type, typename... _tParams>
+struct has_mem_new : is_detected<details::mem_new_t, _type, _tParams...>
+{};
+
+template<typename _type, typename... _tParams>
+struct has_mem_delete : is_detected<details::mem_delete_t, _type, _tParams...>
+{};
+//@}
+
+
+/*!
+\pre _type 是非类类型或完整的类类型。
+\note 可能有假阳性结果。
+\see ISO C++17 [allocator.requirements] 。
+\since build 867
+*/
+//@{
+/*!
+\ingroup unary_type_traits
+\brief 判断类型是分配器。
+
+判断分配器，检查符合以下要求：
+成员类型 value_type 是没有被 cv 修饰的（可能不完整的）对象类型；
+不涉及其它分配器、 操作符、容器传播或 is_always_equal 的其它表达式符合类型要求；
+可以符合分配器要求的值调用 allocate 、deallocator 和 max_size 。
+因为 ADL ，带有非限定形式操作符不能被可靠地检查而支持不完整的 value_type 。
+*/
+template<typename _type>
+struct is_allocator : details::is_allocator<_type>
+{};
+
+
+/*!
+\ingroup binary_type_traits
+\pre _tValue 是（可能不完整的）对象类型。
+\brief 判断类型是指定值类型的分配器。
+*/
+template<typename _type, typename _tValue>
+struct is_allocator_for : cond_or_t<is_allocator<_type>, false_,
+	details::same_alloc_value_t, _type, _tValue>
+{};
+
+
+/*!
+\ingroup unary_type_traits
+\brief 判断类型是 byte 分配器。
+*/
+template<typename _type>
+struct is_byte_allocator : is_allocator_for<_type, byte>
+{};
+//@}
+
+
+/*!
+\ingroup unary_type_traits
+\brief 判断类型具有嵌套的成员 allocator_type 指称一个构造器类型。
+\note 若嵌套的类型是满足具有 value_type 的可复制构造类类型，则视为构造器类型。
 */
 template<typename _type>
 struct has_nested_allocator
-	: details::check_allocator<detected_t<details::nested_allocator_t, _type>>
+	: is_allocator<detected_t<details::nested_allocator_t, _type>>
 {};
 
 

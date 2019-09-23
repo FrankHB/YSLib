@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r5949
+\version r6026
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2019-08-21 10:32 +0800
+	2019-09-17 21:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1691,9 +1691,11 @@ public:
 		friend class Environment;
 		friend class EnvironmentReference;
 
+#if NPL_NPLA_CheckEnvironmentReferenceCount
 	private:
 		//! \brief 环境引用计数。
 		mutable size_t env_count = 0;
+#endif
 
 	public:
 		DefDeCtor(AnchorValue)
@@ -1986,20 +1988,29 @@ public:
 	//@}
 
 	/*!
-	\pre 字符串参数的数据指针非空。
+	\pre 断言：第一参数的数据指针非空。
 	\throw BadIdentifier 非强制调用时发现标识符不存在或冲突。
-	\note 最后一个参数表示强制调用。
 	\warning 应避免对被替换或移除的值的悬空引用。
-	\since build 787
+	\since build 867
 	*/
 	//@{
-	//! \brief 以字符串为标识符在指定上下文中定义值。
+	/*!
+	\brief 以字符串为标识符在指定上下文中添加或覆盖定义。
+	\note 不检查标识符合法性。
+	\note 若定义已存在，覆盖这个定义。覆盖相同的定义无作用。
+	*/
 	void
-	Define(string_view, ValueObject&&, bool);
+	Define(string_view, ValueObject&&);
+
+	/*!
+	\brief 以字符串为标识符在指定上下文中定义值。
+	\throw BadIdentifier 定义已存在。
+	*/
+	void
+	DefineChecked(string_view, ValueObject&&);
 
 	/*!
 	\brief 查找名称。
-	\pre 断言：第二参数的数据指针非空。
 	\return 查找到的名称，或查找失败时的空值。
 	\since build 852
 
@@ -2008,19 +2019,32 @@ public:
 	YB_ATTR_nodiscard YB_PURE NameResolution::first_type
 	LookupName(string_view) const;
 
-	//! \pre 间接断言：第一参数的数据指针非空。
-	//@{
-	//! \brief 以字符串为标识符在指定上下文中覆盖定义值。
-	void
-	Redefine(string_view, ValueObject&&, bool);
-
-	/*
-	\brief 以字符串为标识符在指定上下文移除对象。
+	/*!
+	\brief 以字符串为标识符在指定上下文移除定义。
 	\return 是否成功移除。
 	*/
 	bool
-	Remove(string_view, bool);
-	//@}
+	Remove(string_view);
+	/*!
+	\brief 以字符串为标识符在指定上下文移除定义并检查是否成功。
+	\throw BadIdentifier 定义不存在。
+	*/
+	void
+	RemoveChecked(string_view);
+
+	/*!
+	\brief 以字符串为标识符在指定上下文的名称查找结果中替换定义。
+	\note 若定义不存在则忽略。
+	*/
+	void
+	Replace(string_view, ValueObject&&);
+
+	/*!
+	\brief 以字符串为标识符在指定上下文的名称查找结果中替换已存在的定义。
+	\throw BadIdentifier 定义不存在。
+	*/
+	void
+	ReplaceChecked(string_view, ValueObject&&);
 	//@}
 
 	/*!
@@ -2390,9 +2414,10 @@ public:
 \since build 847
 */
 //@{
+//! \since build 867
 template<typename... _tParams>
 inline shared_ptr<Environment>
-AllocateEnvironment(Environment::allocator_type a, _tParams&&... args)
+AllocateEnvironment(const Environment::allocator_type& a, _tParams&&... args)
 {
 	return YSLib::allocate_shared<NPL::Environment>(a, yforward(args)...);
 }
@@ -2464,41 +2489,6 @@ inline bool
 EmplaceLeaf(ContextNode& ctx, string_view name, _tParams&&... args)
 {
 	return NPL::EmplaceLeaf<_type>(ctx.GetRecordRef(), name, yforward(args)...);
-}
-//@}
-
-//! \since build 788
-//@{
-//! \brief 从指定环境查找名称对应的节点。
-//@{
-template<typename _tKey>
-YB_ATTR_nodiscard YB_PURE inline observer_ptr<ValueNode>
-LookupName(Environment& ctx, const _tKey& id) ynothrow
-{
-	return YSLib::AccessNodePtr(ctx.GetMapRef(), id);
-}
-template<typename _tKey>
-YB_ATTR_nodiscard YB_PURE inline observer_ptr<const ValueNode>
-LookupName(const Environment& ctx, const _tKey& id) ynothrow
-{
-	return YSLib::AccessNodePtr(ctx.GetMapRef(), id);
-}
-//@}
-
-//! \brief 从指定环境取指定名称指称的值。
-template<typename _tKey>
-YB_ATTR_nodiscard YB_PURE ValueObject
-FetchValue(const Environment& env, const _tKey& name)
-{
-	return GetValueOf(NPL::LookupName(env, name));
-}
-
-//! \brief 从指定上下文取指定名称指称的值的指针。
-template<typename _tKey>
-YB_ATTR_nodiscard YB_PURE observer_ptr<const ValueObject>
-FetchValuePtr(const Environment& env, const _tKey& name)
-{
-	return GetValuePtrOf(NPL::LookupName(env, name));
 }
 //@}
 

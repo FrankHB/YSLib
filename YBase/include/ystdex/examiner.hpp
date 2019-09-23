@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013, 2015-2016, 2018 FrankHB.
+	© 2012-2013, 2015-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file examiner.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作检测。
-\version r119
+\version r123
 \author FrankHB <frankhb1989@gmail.com>
 \since build 348
 \par 创建时间:
 	2012-10-17 01:21:01 +0800
 \par 修改时间:
-	2018-07-30 06:13 +0800
+	2019-09-13 13:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_examiner_hpp_
 #define YB_INC_ystdex_examiner_hpp_ 1
 
-#include "type_op.hpp" // for ynoexcept_spec, yimpl, enable_if_t,
+#include "type_traits.hpp" // for ynoexcept_spec, yimpl, enable_if_t,
 //	has_equality_operator;
 
 namespace ystdex
@@ -48,9 +48,9 @@ namespace examiners
 struct equal
 {
 	//! \since build 668
-	template<typename _type1, typename _type2>
+	template<typename _type, typename _type2>
 	static YB_PURE yconstfn auto
-	are_equal(_type1&& x, _type2&& y)
+	are_equal(_type&& x, _type2&& y)
 		ynoexcept_spec(bool(x == y)) -> decltype(bool(x == y))
 	{
 		return bool(x == y);

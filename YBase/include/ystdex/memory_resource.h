@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1374
+\version r1391
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2019-09-06 00:56 +0800
+	2019-09-23 15:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,7 +56,8 @@ WG21 P0619R4 ：在 memory_resource 中显式声明默认构造函数和复制�
 
 #include "memory.hpp" // for internal "memory.hpp", byte, size_t, yalignof,
 //	yconstraint, yaligned, SIZE_MAX, std::length_error, yforward,
-//	ystdex::uninitialized_construct_using_allocator, std::pair, yassume;
+//	ystdex::uninitialized_construct_using_allocator, std::pair, yassume, list,
+//	equal_to, std::hash;
 // NOTE: See "placement.hpp" for comments on inclusion conditions.
 #if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603) \
 	|| (__cplusplus >= 201603L && __has_include(<memory_resource>))
@@ -87,8 +88,8 @@ WG21 P0619R4 ：在 memory_resource 中显式声明默认构造函数和复制�
 #endif
 #include "base.h" // for noncopyable, nonmovable;
 #include "cstdint.hpp" // for is_power_of_2;
-#include "map.hpp" // for greater, map, equal_to, std::hash;
-#include "list.hpp" // for list;
+#include "list.hpp"// for list;
+#include <vector> // for std::vector;
 #include <unordered_map> // for std::unordered_map;
 #include "algorithm.hpp" // for ystdex::max;
 #if YB_Has_memory_resource != 1
@@ -475,7 +476,7 @@ adjust_pool_options(pool_options&);
 \brief 资源池。
 \warning 非虚析构。
 */
-class YB_API resource_pool : private noncopyable, private nonmovable
+class YB_API resource_pool : private noncopyable
 {
 private:
 	//! \brief 块类型。
@@ -483,12 +484,11 @@ private:
 	//! \brief 块标识类型。
 	using id_t = size_t;
 	//! \brief 块存储对类型。
-	using chunk_pr_t = std::pair<const id_t, chunk_t>;
+	using chunk_pr_t = std::pair<id_t, chunk_t>;
 	//! \since build 864
 	//@{
 	//! \build 块集合类型。
-	using chunks_t
-		= map<id_t, chunk_t, greater<>, polymorphic_allocator<chunk_pr_t>>;
+	using chunks_t = list<chunk_pr_t, polymorphic_allocator<chunk_pr_t>>;
 	//! \build 块集合迭代器类型。
 	using chunks_iter_t = chunks_t::iterator;
 	//@}
@@ -539,8 +539,17 @@ public:
 	附加数据是可选的。使用以 2 为底的区块大小的对数可加速对数分布的池的查询过程。
 	*/
 	resource_pool(memory_resource&, size_t, size_t, size_t = 0) ynothrowv;
+	//! \since build 867
+	resource_pool(resource_pool&&) ynothrow;
 	~resource_pool();
 	//@}
+
+	/*!
+	\pre 断言：分配器相等。
+	\since build 867
+	*/
+	resource_pool&
+	operator=(resource_pool&&) ynothrowv;
 
 private:
 	//! \pre 参数指向池中块的首字节。
@@ -667,7 +676,7 @@ class YB_API pool_resource : public memory_resource
 {
 private:
 	using pools_t
-		= list<resource_pool, polymorphic_allocator<resource_pool>>;
+		= std::vector<resource_pool, polymorphic_allocator<resource_pool>>;
 
 	pool_options saved_options;
 	//! \since build 863

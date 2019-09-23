@@ -11,13 +11,13 @@
 /*!	\file Container.h
 \ingroup YCLib
 \brief 容器、拟容器和适配器。
-\version r1034
+\version r1037
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2019-07-08 11:04 +0800
+	2019-09-12 05:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@
 #include <ystdex/array.hpp>
 #include <deque>
 #include <forward_list>
-#include <list>
+#include <ystdex/list.hpp> // for ystdex::list;
 #include <vector>
 #include <ystdex/map.hpp> // for ystdex::map;
 #include <set>
@@ -96,7 +96,7 @@ template<typename _type, class _tAlloc = pmr::polymorphic_allocator<_type>>
 using forward_list = std::forward_list<_type, _tAlloc>;
 
 template<typename _type, class _tAlloc = pmr::polymorphic_allocator<_type>>
-using list = std::list<_type, _tAlloc>;
+using list = ystdex::list<_type, _tAlloc>;
 
 template<typename _type, class _tAlloc = pmr::polymorphic_allocator<_type>>
 using vector = std::vector<_type, _tAlloc>;
@@ -234,7 +234,7 @@ to_std_string(const basic_string<_tChar, _tTraits, _tAlloc>& str)
 }
 //! \since build 862
 template<class _tString = std::string, class _tParam = _tString, yimpl(typename
-	= ystdex::enable_if_same_t<_tString&, ystdex::decay_t<_tParam>&>)>
+	= ystdex::enable_if_same_param_t<_tString, _tParam>)>
 inline _tString
 to_std_string(_tParam&& str)
 {

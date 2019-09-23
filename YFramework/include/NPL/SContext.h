@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2532
+\version r2536
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2019-08-16 12:41 +0800
+	2019-09-14 02:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -519,10 +519,10 @@ AsTermNode(_tParams&&... args)
 {
 	return TermNode(NoContainer, yforward(args)...);
 }
-//! \since build 853
+//! \since build 867
 template<typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline TermNode
-AsTermNode(TermNode::allocator_type a, _tParams&&... args)
+AsTermNode(const TermNode::allocator_type& a, _tParams&&... args)
 {
 	return TermNode(std::allocator_arg, a, NoContainer, yforward(args)...);
 }
@@ -734,11 +734,11 @@ Analyze(TermNode&, const Session&);
 //@}
 /*!
 \note 调用 ADL Analyze 分析节点。
-\since build 844
+\since build 867
 */
 template<typename _type>
 YB_ATTR_nodiscard TermNode
-Analyze(const _type& arg, TermNode::allocator_type a = {})
+Analyze(const _type& arg, const TermNode::allocator_type& a = {})
 {
 	TermNode root(a);
 

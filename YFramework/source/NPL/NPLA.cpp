@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2622
+\version r2655
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2019-07-23 23:25 +0800
+	2019-09-17 05:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -831,13 +831,18 @@ Environment::DefaultResolve(const Environment& e, string_view id)
 }
 
 void
-Environment::Define(string_view id, ValueObject&& vo, bool forced)
+Environment::Define(string_view id, ValueObject&& vo)
 {
 	YAssertNonnull(id.data());
-	if(forced)
-		// XXX: Self overwriting is possible.
-		swap((*this)[id].Value, vo);
-	else if(!AddValue(id, std::move(vo)))
+	// XXX: Self overwriting is possible.
+	swap((*this)[id].Value, vo);
+}
+
+void
+Environment::DefineChecked(string_view id, ValueObject&& vo)
+{
+	YAssertNonnull(id.data());
+	if(!AddValue(id, std::move(vo)))
 		throw BadIdentifier(id, 2);
 }
 
@@ -850,33 +855,42 @@ Environment::LookupName(string_view id) const
 		Bindings.find(id), {}, Bindings.cend()));
 }
 
-void
-Environment::Redefine(string_view id, ValueObject&& vo, bool forced)
-{
-	if(const auto p = LookupName(id))
-		swap(p->Value, vo);
-	else if(!forced)
-		throw BadIdentifier(id, 0);
-}
-
 bool
-Environment::Remove(string_view id, bool forced)
+Environment::Remove(string_view id)
 {
 	YAssertNonnull(id.data());
 	// XXX: %BindingMap does not have transparent key %erase. This is like
 	//	%std::set.
-	if(ystdex::erase_first(Bindings, id))
-		return true;
-	if(forced)
-		return {};
+	return ystdex::erase_first(Bindings, id);
+}
+
+void
+Environment::RemoveChecked(string_view id)
+{
+	if(!Remove(id))
+		throw BadIdentifier(id, 0);
+}
+
+void
+Environment::Replace(string_view id, ValueObject&& vo)
+{
+	if(const auto p = LookupName(id))
+		swap(p->Value, vo);
+}
+
+void
+Environment::ReplaceChecked(string_view id, ValueObject&& vo)
+{
+	if(const auto p = LookupName(id))
+		swap(p->Value, vo);
 	throw BadIdentifier(id, 0);
 }
 
 void
 Environment::ThrowForInvalidType(const ystdex::type_info& tp)
 {
-	throw TypeError(ystdex::sfmt("Invalid environment type '%s' found.",
-		tp.name()));
+	throw TypeError(
+		ystdex::sfmt("Invalid environment type '%s' found.", tp.name()));
 }
 
 

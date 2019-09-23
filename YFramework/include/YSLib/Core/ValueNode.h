@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r4093
+\version r4112
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2019-04-12 12:52 +0800
+	2019-09-14 02:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1275,6 +1275,8 @@ AccessChildPtr(const ValueNode* p_node, _tParams&&... args) ynothrow
 //@}
 
 
+//! \since build 867
+//@{
 //! \note 结果不含子节点。
 //@{
 //! \since build 852
@@ -1283,17 +1285,17 @@ YB_ATTR_nodiscard YB_PURE inline
 	ImplRet(node)
 //! \brief 传递指定名称和值参数构造值类型节点。
 //@{
-//! \since build 668
-template<typename _tString, typename... _tParams>
+template<typename _tString, typename... _tParams,
+	yimpl(typename = ystdex::enable_if_inconvertible_t<_tString&&,
+	const ValueNode::allocator_type&>)>
 YB_ATTR_nodiscard YB_PURE inline ValueNode
 AsNode(_tString&& str, _tParams&&... args)
 {
 	return {NoContainer, yforward(str), yforward(args)...};
 }
-//! \since build 844
 template<typename _tString, typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline ValueNode
-AsNode(ValueNode::allocator_type a, _tString&& str, _tParams&&... args)
+AsNode(const ValueNode::allocator_type& a, _tString&& str, _tParams&&... args)
 {
 	return {std::allocator_arg, a, NoContainer, yforward(str),
 		yforward(args)...};
@@ -1302,17 +1304,17 @@ AsNode(ValueNode::allocator_type a, _tString&& str, _tParams&&... args)
 
 //! \brief 传递指定名称和退化值参数构造值类型节点。
 //@{
-//! \since build 337
-template<typename _tString, typename... _tParams>
+template<typename _tString, typename... _tParams,
+	yimpl(typename = ystdex::enable_if_inconvertible_t<_tString&&,
+	const ValueNode::allocator_type&>)>
 YB_ATTR_nodiscard YB_PURE inline ValueNode
 MakeNode(_tString&& str, _tParams&&... args)
 {
 	return {NoContainer, yforward(str), ystdex::decay_copy(args)...};
 }
-//! \since build 844
 template<typename _tString, typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline ValueNode
-MakeNode(ValueNode::allocator_type a, _tString&& str, _tParams&&... args)
+MakeNode(const ValueNode::allocator_type& a, _tString&& str, _tParams&&... args)
 {
 	return {std::allocator_arg, a, NoContainer, yforward(str),
 		ystdex::decay_copy(args)...};
@@ -1325,21 +1327,23 @@ MakeNode(ValueNode::allocator_type a, _tString&& str, _tParams&&... args)
 \note 使用非限定 to_string 转换。
 */
 //@{
-//! \since build 344
-template<typename _tString, typename... _tParams>
+template<typename _tString, typename... _tParams,
+	yimpl(typename = ystdex::enable_if_inconvertible_t<_tString&&,
+	const ValueNode::allocator_type&>)>
 YB_ATTR_nodiscard YB_PURE inline ValueNode
 StringifyToNode(_tString&& str, _tParams&&... args)
 {
 	return {NoContainer, yforward(str), to_string(yforward(args)...)};
 }
-//! \since build 844
 template<typename _tString, typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline ValueNode
-StringifyToNode(ValueNode::allocator_type a, _tString&& str, _tParams&&... args)
+StringifyToNode(const ValueNode::allocator_type& a, _tString&& str,
+	_tParams&&... args)
 {
 	return {std::allocator_arg, a, NoContainer, yforward(str),
 		to_string(yforward(args)...)};
 }
+//@}
 //@}
 
 
