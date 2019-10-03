@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r13280
+\version r13555
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2019-09-17 06:15 +0800
+	2019-10-02 16:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -173,6 +173,21 @@ TransformForSeparatorRecursiveTmpl(_tTerm&& term, const ValueObject& pfx,
 		return TransformForSeparatorRecursiveTmpl(yforward(tm), pfx, delim);
 	}, yforward(term), pfx, delim);
 }
+//@}
+
+
+//! \since build 868
+//@{
+using Forms::BindParameter;
+using Forms::CallRegularUnaryAs;
+using Forms::CallUnary;
+using Forms::CheckParameterLeafToken;
+using Forms::Retain;
+using Forms::RetainN;
+using Forms::ThrowInsufficientTermsError;
+//! \since build 859
+using Forms::ThrowInvalidSyntaxError;
+using Forms::ThrowValueCategoryErrorForFirstArgument;
 //@}
 
 
@@ -506,17 +521,17 @@ ReduceCheckedSync(TermNode& term, ContextNode& ctx)
 }
 #endif
 
-//! \since build 856
+//! \since build 868
 YB_ATTR_nodiscard YB_PURE AnchorPtr
-FetchTailAnchor(ContextNode& ctx) ynothrow
+FetchTailAnchor(Environment& env) ynothrow
 {
 #if NPL_Impl_NPLA1_Enable_TCO
 	// XXX: All prvalues are treated as rvalue references introduced in the
 	//	current environment. This is necessary to keep the environment alive in
 	//	the TCO implementation.
-	return ctx.GetRecordRef().GetAnchorPtr();
+	return env.GetAnchorPtr();
 #else
-	yunused(ctx);
+	yunused(env);
 	return {};
 #endif
 }
@@ -527,7 +542,7 @@ FetchContextOrTailAnchor(const TermReference& ref, ContextNode& ctx) ynothrow
 {
 	auto p_anchor(ref.GetAnchorPtr());
 
-	return p_anchor ? std::move(p_anchor) : FetchTailAnchor(ctx);
+	return p_anchor ? std::move(p_anchor) : FetchTailAnchor(ctx.GetRecordRef());
 }
 
 //! \since build 859
@@ -614,7 +629,7 @@ TNIter
 CondClauseCheck(TermNode& clause)
 {
 	if(YB_UNLIKELY(clause.empty()))
-		Forms::ThrowInsufficientTermsError();
+		ThrowInsufficientTermsError();
 	return clause.begin();
 }
 
@@ -650,6 +665,30 @@ CondImpl(TermNode& term, ContextNode& ctx, TNIter i)
 #endif
 
 ReductionStatus
+WhenUnless(TermNode& term, ContextNode& ctx, bool is_when)
+{
+	using namespace Forms;
+
+	Retain(term);
+	RemoveHead(term);
+	if(!term.empty())
+	{
+		auto& test(Deref(term.begin()));
+
+		return ReduceSubsequent(test, ctx, [&, is_when]{
+			if(ExtractBool(test) == is_when)
+			{
+				RemoveHead(term);
+				return ReduceOrdered(term, ctx);
+			}
+			return ReduceReturnUnspecified(term);
+		});
+	}
+	else
+		ThrowInsufficientTermsError();
+}
+
+ReductionStatus
 And2(TermNode& term, ContextNode& ctx, TNIter i)
 {
 	if(ExtractBool(*i))
@@ -676,7 +715,7 @@ ReductionStatus
 AndOr(TermNode& term, ContextNode& ctx, ReductionStatus
 	(&and_or)(TermNode&, ContextNode&, TNIter))
 {
-	Forms::Retain(term);
+	Retain(term);
 
 	auto i(term.begin());
 
@@ -695,7 +734,7 @@ template<typename _fComp, typename _func>
 void
 EqualTerm(TermNode& term, _fComp f, _func g)
 {
-	Forms::RetainN(term, 2);
+	RetainN(term, 2);
 
 	auto i(term.begin());
 	const auto& x(NPL::Deref(++i));
@@ -732,8 +771,6 @@ private:
 	using shared_ptr_t = shared_ptr<ContextHandler>;
 	//! \since build 784
 	unordered_map<string, shared_ptr_t> store{};
-	//! \since build 854
-	lref<ContextState> cs_ref;
 
 public:
 	//! \since build 840
@@ -741,9 +778,9 @@ public:
 	//! \since build 840
 	lref<const TermNode> Term;
 
-	//! \since build 854
-	RecursiveThunk(ContextState& cs, const TermNode& t)
-		: cs_ref(cs), Record(cs.GetRecordRef()), Term(t)
+	//! \since build 868
+	RecursiveThunk(Environment& env, const TermNode& t)
+		: Record(env), Term(t)
 	{
 		Fix(Record, Term);
 	}
@@ -766,7 +803,7 @@ private:
 			const auto& n(*p);
 
 			// XXX: This is served as addtional static environment.
-			Forms::CheckParameterLeafToken(n, [&]{
+			CheckParameterLeafToken(n, [&]{
 				if(store.find(n) == store.cend())
 					// NOTE: The symbol can be rebound.
 					env.Bind(n, TermNode(TermNode::Container(t.get_allocator()),
@@ -841,27 +878,179 @@ public:
 };
 
 
-//! \since build 859
-using Forms::ThrowInvalidSyntaxError;
+//! \since build 851
+YB_ATTR_nodiscard inline
+	PDefH(shared_ptr<TermNode>, ShareMoveTerm, TermNode& term)
+	ImplRet(YSLib::share_move(term.get_allocator(), term))
+//! \since build 851
+YB_ATTR_nodiscard inline
+	PDefH(shared_ptr<TermNode>, ShareMoveTerm, TermNode&& term)
+	ImplRet(YSLib::share_move(term.get_allocator(), term))
 
-//! \since build 841
+
+//! \since build 868
+//@{
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(TermNode&, AccessFirstSubterm, TermNode& term)
+	ImplRet(NPL::Deref(term.begin()))
+
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(TermNode&&, MoveFirstSubterm, TermNode& term)
+	ImplRet(std::move(AccessFirstSubterm(term)))
+
+
 template<typename _func>
-void
-DoDefine(TermNode& term, _func f)
+auto
+DoDefineSet(TermNode& term, size_t n, _func f) -> decltype(f())
 {
-	Forms::Retain(term);
-	if(term.size() > 2)
-	{
-		RemoveHead(term);
-
-		auto formals(std::move(NPL::Deref(term.begin())));
-
-		RemoveHead(term);
-		f(formals);
-	}
-	else
-		ThrowInvalidSyntaxError("Insufficient terms in definition.");
+	Retain(term);
+	if(term.size() > n)
+		return f();
+	ThrowInvalidSyntaxError("Insufficient terms in definition.");
 }
+
+// XXX: Both %YB_FLATTEN are needed in the following code. Otherwise,
+//	optimization of G++ 9.1 would try reusing the basic blocks inside the
+//	instantiated functions and the resulted code would be inefficient even all
+//	calls in the client code of the public interface (e.g.
+//	%Forms::DefineWithNoRecursion) are only relying on one of them.
+
+template<typename _func>
+YB_FLATTEN auto
+DoDefine(TermNode& term, _func f) -> decltype(f(term))
+{
+	return DoDefineSet(term, 2, [&]{
+		RemoveHead(term);
+
+		auto formals(MoveFirstSubterm(term));
+
+		RemoveHead(term);
+		return f(formals);
+	});
+}
+
+template<typename _func>
+YB_FLATTEN ReductionStatus
+DoSet(TermNode& term, ContextNode& ctx, _func f)
+{
+	return DoDefineSet(term, 3, [&]{
+		RemoveHead(term);
+
+		const auto i(term.begin());
+
+		return ReduceSubsequent(*i, ctx, [&, f, i]{
+			auto p_env(ResolveEnvironment(*i).first);
+
+			RemoveHead(term);
+
+			auto formals(MoveFirstSubterm(term));
+
+			RemoveHead(term);
+			return f(formals, p_env);
+		});
+	});
+}
+
+YB_ATTR_nodiscard inline PDefH(Environment&, FetchDefineOrSetEnvironment,
+	ContextNode& ctx) ynothrow
+	ImplRet(ctx.GetRecordRef())
+YB_ATTR_nodiscard inline PDefH(Environment&, FetchDefineOrSetEnvironment,
+	ContextNode&, const shared_ptr<Environment>& p_env) ynothrowv
+	ImplRet(NPL::Deref(p_env))
+
+
+template<bool = false>
+struct DoDefineOrSet final
+{
+	template<typename... _tParams>
+	static ReductionStatus
+	Call(TermNode& term, ContextNode& ctx, Environment& env,
+		TermNode& formals, _tParams&&... args)
+	{
+#if NPL_Impl_NPLA1_Enable_Thunked
+		// XXX: Terms shall be moved and saved into the actions.
+		// TODO: Blocked. Use C++14 lambda initializers to simplify
+		//	implementation.
+		return ReduceSubsequent(term, ctx,
+			std::bind([&](const TermNode& saved, const _tParams&...){
+			BindParameter(env, saved, term);
+			return ReduceReturnUnspecified(term);
+		}, std::move(formals), std::move(args)...));
+#else
+		yunseq(0, args...);
+		// NOTE: This does not support PTC.
+		CallImpl(term, ctx, env, formals);
+		return ReduceReturnUnspecified(term);
+#endif
+	}
+
+#if !NPL_Impl_NPLA1_Enable_Thunked
+	static void
+	CallImpl(TermNode& term, ContextNode& ctx, Environment& env,
+		TermNode& formals)
+	{
+		ReduceCheckedSync(term, ctx);
+		BindParameter(env, formals, term);
+	}
+#endif
+};
+
+template<>
+struct DoDefineOrSet<true> final
+{
+	template<typename... _tParams>
+	static ReductionStatus
+	Call(TermNode& term, ContextNode& ctx, Environment& env,
+		TermNode& formals, _tParams&&... args)
+	{
+#if NPL_Impl_NPLA1_Enable_Thunked
+		// XXX: Terms shall be moved and saved into the actions.
+		auto p_saved(ShareMoveTerm(formals));
+
+		// TODO: Avoid %shared_ptr.
+		// TODO: Blocked. Use C++14 lambda initializers to simplify
+		//	implementation.
+		return ReduceSubsequent(term, ctx,
+			std::bind([&](const shared_ptr<TermNode>&,
+			const shared_ptr<RecursiveThunk>& p_gd, const _tParams&...){
+			BindParameter(env, p_gd->Term, term);
+			// NOTE: This cannot support PTC because only the implicit commit
+			//	operation is in the tail context.
+			p_gd->Commit();
+			return ReduceReturnUnspecified(term);
+		}, std::move(p_saved), YSLib::allocate_shared<RecursiveThunk>(
+			term.get_allocator(), env, *p_saved), std::move(args)...));
+#else
+		// NOTE: This does not support PTC.
+		RecursiveThunk gd(env, formals);
+
+		yunseq(0, args...);
+		DoDefineOrSet<>::CallImpl(term, ctx, env, formals);
+		// NOTE: This cannot support PTC because only the implicit commit
+		//	operation is in the tail context.
+		gd.Commit();
+		return ReduceReturnUnspecified(term);
+#endif
+	}
+};
+
+
+template<bool _vRec = false>
+struct DefineOrSetDispatcher final
+{
+	TermNode& Term;
+	ContextNode& Context;
+
+	template<typename... _tParams>
+	ReductionStatus
+	operator()(TermNode& formals, _tParams&&... args) const
+	{
+		return DoDefineOrSet<_vRec>::Call(Term, Context,
+			FetchDefineOrSetEnvironment(Context, args...), formals,
+			yforward(args)...);
+	}
+};
+//@}
 
 
 //! \since build 860
@@ -1294,7 +1483,6 @@ ReductionStatus
 EvalImplUnchecked(TermNode& term, ContextNode& ctx, bool no_lift)
 {
 	const auto i(std::next(term.begin()));
-	// XXX: Support more environment types?
 	auto p_env(ResolveEnvironment(NPL::Deref(std::next(i))).first);
 
 	ResolveTerm([&](TermNode& tm, ResolvedTermReferencePtr p_ref){
@@ -1308,7 +1496,7 @@ EvalImplUnchecked(TermNode& term, ContextNode& ctx, bool no_lift)
 ReductionStatus
 EvalImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 {
-	Forms::RetainN(term, 2);
+	RetainN(term, 2);
 	return EvalImplUnchecked(term, ctx, no_lift);
 }
 //@}
@@ -1317,7 +1505,7 @@ EvalImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 ReductionStatus
 EvalStringImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 {
-	Forms::RetainN(term, 2);
+	RetainN(term, 2);
 
 	auto& expr(NPL::Deref(std::next(term.begin())));
 	auto unit(SContext::Analyze(Session(Deref(term.get_allocator().resource()),
@@ -1326,14 +1514,6 @@ EvalStringImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 	unit.SwapContainer(expr);
 	return EvalImplUnchecked(term, ctx, no_lift);
 }
-
-
-//! \since build 851
-inline PDefH(shared_ptr<TermNode>, ShareMoveTerm, TermNode& term)
-	ImplRet(YSLib::share_move(term.get_allocator(), term))
-//! \since build 851
-inline PDefH(shared_ptr<TermNode>, ShareMoveTerm, TermNode&& term)
-	ImplRet(YSLib::share_move(term.get_allocator(), term))
 
 
 //! \since build 767
@@ -1466,7 +1646,7 @@ private:
 		//	cared) form the context would cause undefined behavior (e.g.
 		//	returning a reference to automatic object in the host language). The
 		//	lifting of call result is enabled to prevent this, unless
-		//	%NoLifting is %true. See also %Forms::BindParameter.
+		//	%NoLifting is %true. See also %BindParameter.
 		return DoCall(term, ctx, gd);
 	}
 
@@ -1496,7 +1676,7 @@ private:
 		// NOTE: Since now binding does not relying on temporaries stored
 		//	elsewhere (by using %TermTags::Temporary instead), this should be
 		//	safe even for TCO.
-		Forms::BindParameter(ctx, NPL::Deref(p_formals), term);
+		BindParameter(ctx.GetRecordRef(), NPL::Deref(p_formals), term);
 #if NPL_Impl_NPLA1_TraceVauCall
 		ctx.Trace.Log(Debug, [&]{
 			return sfmt<string>("Function called, with %ld shared term(s), %ld"
@@ -1615,7 +1795,7 @@ ReduceCombinedImpl(TermNode& term, ContextNode& ctx)
 {
 	YAssert(IsBranchedList(term), "Invalid term found for combined term.");
 
-	auto& fm(NPL::Deref(term.begin()));
+	auto& fm(AccessFirstSubterm(term));
 	const bool irregular(RegularizeForm(fm));
 
 	// XXX: As now, it needs to do the conversion at first to save the subterm
@@ -1714,7 +1894,7 @@ ConsItem(TermNode& term, TermNode& item)
 void
 ConsImpl(TermNode& term)
 {
-	Forms::RetainN(term, 2);
+	RetainN(term, 2);
 
 	const auto i(std::next(term.begin(), 2));
 
@@ -1736,16 +1916,15 @@ CheckResolvedListReference(TermNode& nd, bool has_ref)
 				TermToStringWithReferenceMark(nd, true).c_str()));
 	}
 	else
-		Forms::ThrowValueCategoryErrorForFirstArgument(nd);
+		ThrowValueCategoryErrorForFirstArgument(nd);
 }
 
 //! \since build 834
-//@{
 template<typename _func>
 void
 SetFirstRest(_func f, TermNode& term)
 {
-	Forms::RetainN(term, 2);
+	RetainN(term, 2);
 
 	auto i(term.begin());
 
@@ -1756,10 +1935,10 @@ SetFirstRest(_func f, TermNode& term)
 	term.Value = ValueToken::Unspecified;
 }
 
-//! \since build 858
+//! \since build 868
 template<typename _func>
 void
-DoSetFirst(_func f, TermNode& term)
+DoSetFirst(TermNode& term, _func f)
 {
 	SetFirstRest([f](TermNode& dst, TermNode& tm){
 		auto& head(NPL::Deref(dst.begin()));
@@ -1770,7 +1949,6 @@ DoSetFirst(_func f, TermNode& term)
 			LiftTerm(head, tm);
 	}, term);
 }
-//@}
 
 //! \since build 853
 void
@@ -1844,7 +2022,7 @@ template<typename _func>
 void
 UndefineImpl(TermNode& term, _func f)
 {
-	Forms::Retain(term);
+	Retain(term);
 	if(term.size() == 2)
 	{
 		const auto& n(NPL::ResolveRegular<const TokenValue>(
@@ -1853,11 +2031,11 @@ UndefineImpl(TermNode& term, _func f)
 		if(IsNPLASymbol(n))
 			f(n);
 		else
-			Forms::ThrowInvalidSyntaxError(ystdex::sfmt("Invalid token '%s'"
-				" found as name to be undefined.", n.c_str()));
+			ThrowInvalidSyntaxError(ystdex::sfmt("Invalid token '%s' found as"
+				" name to be undefined.", n.c_str()));
 	}
 	else
-		Forms::ThrowInvalidSyntaxError(
+		ThrowInvalidSyntaxError(
 			"Expected exact one term as name to be undefined.");
 }
 
@@ -1867,7 +2045,7 @@ template<typename _func>
 ReductionStatus
 CreateFunction(TermNode& term, _func f, size_t n)
 {
-	Forms::Retain(term);
+	Retain(term);
 	if(term.size() > n)
 		return f();
 	ThrowInvalidSyntaxError("Insufficient terms in function abstraction.");
@@ -2140,7 +2318,7 @@ private:
 					else if(!ellipsis)
 						throw ArityMismatch(n_p, n_o);
 					else
-						Forms::ThrowInsufficientTermsError();
+						ThrowInsufficientTermsError();
 				}, o);
 			}
 			else
@@ -2361,7 +2539,7 @@ template<typename _func, typename _func2>
 ReductionStatus
 WrapUnwrap(TermNode& term, _func f, _func2 f2)
 {
-	return Forms::CallRegularUnaryAs<ContextHandler>(
+	return CallRegularUnaryAs<ContextHandler>(
 		[&](ContextHandler& h, ResolvedTermReferencePtr p_ref){
 		return DispatchContextHandler(h, p_ref, f, f2);
 	}, term);
@@ -2468,7 +2646,7 @@ public:
 	void
 	operator()(TermNode& term) const
 	{
-		Forms::CallUnary([this](TermNode& tm) YB_PURE{
+		CallUnary([this](TermNode& tm) YB_PURE{
 			return Encapsulation(GetType(), ystdex::invoke_value_or(
 				&TermReference::get, NPL::TryAccessReferencedLeaf<
 				const TermReference>(tm), std::move(tm)));
@@ -2492,7 +2670,7 @@ public:
 	void
 	operator()(TermNode& term) const
 	{
-		Forms::CallUnary([this](TermNode& tm) YB_ATTR_LAMBDA(pure) -> bool{
+		CallUnary([this](TermNode& tm) YB_ATTR_LAMBDA(pure) -> bool{
 			return ystdex::call_value_or(
 				[this](const Encapsulation& enc) YB_ATTR_LAMBDA(pure) ynothrow{
 				return Get() == enc.Get();
@@ -2518,7 +2696,7 @@ public:
 	ReductionStatus
 	operator()(TermNode& term, ContextNode& ctx) const
 	{
-		return Forms::CallRegularUnaryAs<const Encapsulation>(
+		return CallRegularUnaryAs<const Encapsulation>(
 			[&](const Encapsulation& enc, ResolvedTermReferencePtr p_ref){
 			auto& tm(enc.Term);
 
@@ -2574,7 +2752,7 @@ ApplyImpl(TermNode& term, ContextNode& ctx, shared_ptr<Environment> p_env)
 void
 ListAsteriskImpl(TermNode& term)
 {
-	Forms::Retain(term);
+	Retain(term);
 
 	auto i(std::next(term.begin()));
 
@@ -2594,7 +2772,7 @@ ListAsteriskImpl(TermNode& term)
 		RemoveHead(term);
 	}
 	else
-		Forms::ThrowInsufficientTermsError();
+		ThrowInsufficientTermsError();
 }
 
 } // unnamed namespace;
@@ -2748,7 +2926,7 @@ ReductionStatus
 ReduceFirst(TermNode& term, ContextNode& ctx)
 {
 	// NOTE: This is neutral to thunks.
-	return IsBranchedList(term) ? ReduceOnce(NPL::Deref(term.begin()), ctx)
+	return IsBranchedList(term) ? ReduceOnce(AccessFirstSubterm(term), ctx)
 		: ReductionStatus::Retained;
 }
 
@@ -3231,9 +3409,8 @@ RetainN(const TermNode& term, size_t m)
 
 
 void
-BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
+BindParameter(Environment& env, const TermNode& t, TermNode& o)
 {
-	auto& env(ctx.GetRecordRef());
 	const auto check_sigil([&](string_view& id){
 		char sigil(id.front());
 
@@ -3297,7 +3474,7 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 	//	so without the call to %FetchTailAnchor for TCO, it still works. Anyway,
 	//	keep it saner to be friendly to possible TCO compressions in future
 	//	seems OK.
-	}, TermTags::Unique, FetchTailAnchor(ctx));
+	}, TermTags::Unique, FetchTailAnchor(env));
 }
 
 void
@@ -3381,6 +3558,18 @@ Cond(TermNode& term, ContextNode& ctx)
 #endif
 }
 
+ReductionStatus
+When(TermNode& term, ContextNode& ctx)
+{
+	return WhenUnless(term, ctx, true);
+}
+
+ReductionStatus
+Unless(TermNode& term, ContextNode& ctx)
+{
+	return WhenUnless(term, ctx, {});
+}
+
 bool
 Not(TermNode& term)
 {
@@ -3418,26 +3607,26 @@ ConsRef(TermNode& term)
 void
 SetFirst(TermNode& term)
 {
-	DoSetFirst([](TermNode& dst, TermNode&, const TermReference& ref){
+	DoSetFirst(term, [](TermNode& dst, TermNode&, const TermReference& ref){
 		LiftTermOrCopy(dst, ref.get(), ref.IsMovable());
-	}, term);
+	});
 }
 
 void
 SetFirstRef(TermNode& term)
 {
-	DoSetFirst([](TermNode& dst, TermNode& tm, const TermReference& ref){
+	DoSetFirst(term, [](TermNode& dst, TermNode& tm, const TermReference& ref){
 		// XXX: No cyclic reference check except for self assignment.
 		LiftCollapsed(dst, tm, ref);
-	}, term);
+	});
 }
 
 void
 SetFirstRefAt(TermNode& term)
 {
-	DoSetFirst([](TermNode& dst, TermNode& tm, const TermReference&){
+	DoSetFirst(term, [](TermNode& dst, TermNode& tm, const TermReference&){
 		LiftTerm(dst, tm);
-	}, term);
+	});
 }
 
 void
@@ -3593,74 +3782,33 @@ ValueOf(TermNode& term, const ContextNode& ctx)
 ReductionStatus
 DefineLazy(TermNode& term, ContextNode& ctx)
 {
-	DoDefine(term, [&](TermNode& formals){
-		BindParameter(ctx, formals, term);
-		return ReductionStatus::Clean;
-	});
+	DoDefine(term, std::bind(BindParameter, std::ref(ctx.GetRecordRef()),
+		std::placeholders::_1, std::ref(term)));
 	return ReduceReturnUnspecified(term);
 }
 
 ReductionStatus
 DefineWithNoRecursion(TermNode& term, ContextNode& ctx)
 {
-	// XXX: Terms shall be moved and saved into the actions for thunked code.
-#if NPL_Impl_NPLA1_Enable_Thunked
-	DoDefine(term, [&](TermNode& formals){
-		// TODO: Blocked. Use C++14 lambda initializers to simplify
-		//	implementation.
-		return ReduceSubsequent(term, ctx, std::bind([&](const TermNode& saved){
-			// NOTE: This does not support PTC.
-			BindParameter(ctx, saved, term);
-			return ReduceReturnUnspecified(term);
-		}, std::move(formals)));
-	});
-	return ReductionStatus::Partial;
-#else
-	DoDefine(term, [&](const TermNode& formals){
-		ReduceCheckedSync(term, ctx);
-		// NOTE: This does not support PTC.
-		BindParameter(ctx, formals, term);
-	});
-	return ReduceReturnUnspecified(term);
-#endif
+	return DoDefine(term, DefineOrSetDispatcher<>{term, ctx});
 }
 
 ReductionStatus
 DefineWithRecursion(TermNode& term, ContextNode& ctx)
 {
-	// XXX: Terms shall be moved and saved into the actions for thunked code.
-#if NPL_Impl_NPLA1_Enable_Thunked
-	DoDefine(term, [&](TermNode& formals){
-		auto p_saved(ShareMoveTerm(formals));
+	return DoDefine(term, DefineOrSetDispatcher<true>{term, ctx});
+}
 
-		// TODO: Avoid %shared_ptr.
-		// TODO: Blocked. Use C++14 lambda initializers to simplify
-		//	implementation.
-		return ReduceSubsequent(term, ctx, std::bind([&](const
-			shared_ptr<TermNode>&, const shared_ptr<RecursiveThunk>& p_gd){
-			// NOTE: This does not support PTC.
-			BindParameter(ctx, p_gd->Term, term);
-			// NOTE: This cannot support PTC because only the implicit commit
-			//	operation is in the tail context.
-			p_gd->Commit();
-			return ReduceReturnUnspecified(term);
-		}, std::move(p_saved), YSLib::allocate_shared<RecursiveThunk>(
-			term.get_allocator(), ContextState::Access(ctx), *p_saved)));
-	});
-	return ReductionStatus::Partial;
-#else
-	DoDefine(term, [&](const TermNode& formals){
-		// NOTE: This does not support PTC.
-		RecursiveThunk gd(ContextState::Access(ctx), formals);
+ReductionStatus
+SetWithNoRecursion(TermNode& term, ContextNode& ctx)
+{
+	return DoSet(term, ctx, DefineOrSetDispatcher<>{term, ctx});
+}
 
-		ReduceCheckedSync(term, ctx);
-		BindParameter(ctx, formals, term);
-		// NOTE: This cannot support PTC because only the implicit commit
-		//	operation is in the tail context.
-		gd.Commit();
-	});
-	return ReduceReturnUnspecified(term);
-#endif
+ReductionStatus
+SetWithRecursion(TermNode& term, ContextNode& ctx)
+{
+	return DoSet(term, ctx, DefineOrSetDispatcher<true>{term, ctx});
 }
 
 void

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r5469
+\version r5523
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2019-09-17 05:35 +0800
+	2019-09-28 22:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1101,7 +1101,6 @@ CheckParameterLeafToken(string_view n, _func f) -> decltype(f())
 
 /*!
 \note 不具有强异常安全保证。匹配失败时，其它的绑定状态未指定。
-\since build 776
 
 递归遍历参数和操作数树进行结构化匹配。
 若匹配失败，则抛出异常。
@@ -1111,9 +1110,10 @@ CheckParameterLeafToken(string_view n, _func f) -> decltype(f())
 \brief 使用操作数结构化匹配并绑定参数。
 \throw ArityMismatch 子项数匹配失败。
 \throw InvalidReference 非法的 @ 引用标记字符绑定。
-\note 第一参数指定的上下文决定绑定的环境。
+\note 第一参数指定绑定所在的环境。
 \sa MatchParameter
 \sa TermReference
+\since build 868
 
 形式参数和操作数为项指定的表达式树。
 第二参数指定形式参数，第三参数指定操作数。
@@ -1132,7 +1132,7 @@ CheckParameterLeafToken(string_view n, _func f) -> decltype(f())
 按引用传递绑定直接转移该项的内容。
 */
 YF_API void
-BindParameter(ContextNode&, const TermNode&, TermNode&);
+BindParameter(Environment&, const TermNode&, TermNode&);
 
 /*!
 \brief 匹配参数。
@@ -1582,13 +1582,14 @@ EqualValue(TermNode&);
 //@}
 
 
+//! \note 测试条件成立，当且仅当 \<test> 非 #f 。
+//@{
 /*!
 \brief 分支判断：根据求值的条件选取表达式求值。
 \sa ReduceChecked
 \since build 750
 
-求值第一子项作为测试条件，成立时取第二子项，否则当第三子项时取第三子项。
-测试条件成立，当且仅当 \<test> 非 #f 。
+求值第一参数作为测试条件，成立时取第二参数子项，否则当第三参数子项时取第三参数子项。
 和 Kernel 不同而和 Scheme 类似，求值结果非 #f 的条件都成立，且支持省略第三操作数。
 
 参考调用文法：
@@ -1599,7 +1600,7 @@ YF_API ReductionStatus
 If(TermNode&, ContextNode&);
 
 /*!
-\brief 条件选择：根据条件列表顺序选取第一个符合其中条件对应的表达式求值。
+\brief 条件分支选择：根据条件列表顺序选取第一个符合其中条件对应的表达式求值。
 \sa ReduceChecked
 \since build 860
 
@@ -1608,6 +1609,32 @@ If(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 Cond(TermNode&, ContextNode&);
+
+//! \since build 868
+//@{
+/*!
+\brief 条件顺序求值：预期条件成立。
+
+求值第一参数子项作为测试条件，成立时顺序求值之后的子项。
+
+参考调用文法：
+<pre>$when \<test> \<expression-sequence></pre>
+*/
+YF_API ReductionStatus
+When(TermNode&, ContextNode&);
+
+/*!
+\brief 条件顺序求值：预期条件不成立。
+
+求值第一参数子项作为测试条件，不成立时顺序求值之后的子项。
+
+参考调用文法：
+<pre>$unless \<test> \<expression-sequence></pre>
+*/
+YF_API ReductionStatus
+Unless(TermNode&, ContextNode&);
+//@}
+//@}
 
 /*!
 \brief 逻辑非。
@@ -1961,7 +1988,7 @@ DefineLazy(TermNode&, ContextNode&);
 /*!
 \note 不支持递归绑定。
 
-剩余表达式视为一个表达式进行求值后绑定到 \c \<definiend> 。
+剩余表达式视为一个表达式在上下文决定的当前环境进行求值后绑定到 \c \<definiend> 。
 
 参考调用文法：
 <pre>$def! \<definiend> \<expressions></pre>
@@ -1973,7 +2000,9 @@ DefineWithNoRecursion(TermNode&, ContextNode&);
 \note 支持直接递归和互相递归绑定。
 \sa InvalidReference
 
-解析可能递归绑定的名称，剩余表达式视为一个表达式进行求值后绑定到 \c \<definiend> 。
+分阶段解析可能递归绑定的名称。
+剩余表达式视为一个表达式，在上下文决定的当前环境进行求值后绑定到 \c \<definiend> 。
+常规绑定前后遍历被绑定的操作数树以支持强递归绑定。不存在的操作数被绑定为中间值。
 循环引用以此引入的名称可能抛出 InvalidReference 异常。
 
 参考调用文法：
@@ -1981,6 +2010,31 @@ DefineWithNoRecursion(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 DefineWithRecursion(TermNode&, ContextNode&);
+//@}
+
+//! \since build 868
+//@{
+/*!
+\brief 修改指定环境的绑定，不带递归匹配。
+
+同 DefineWithNoRecursion ，但由规约第一参数子项的结果显式地确定被修改的环境。
+
+参考调用文法：
+<pre>$set! \<environment> \<formals> \<expressions></pre>
+*/
+YF_API ReductionStatus
+SetWithNoRecursion(TermNode&, ContextNode&);
+
+/*!
+\brief 修改指定环境的绑定，带递归匹配。
+
+同 DefineWithRecursion ，但由规约第一参数子项的结果显式地确定被修改的环境。
+
+参考调用文法：
+<pre>$setrec! \<environment> \<formals> \<expressions></pre>
+*/
+YF_API ReductionStatus
+SetWithRecursion(TermNode&, ContextNode&);
 //@}
 
 /*!
@@ -1991,7 +2045,7 @@ DefineWithRecursion(TermNode&, ContextNode&);
 */
 //@{
 /*!
-\brief 移除名称绑定。
+\brief 移除定义引入的绑定。
 
 移除名称和关联的值，返回是否被移除。
 移除不存在的名称时忽略。
@@ -2283,7 +2337,7 @@ MakeEncapsulationType(TermNode&);
 \since build 823
 
 参考调用文法：
-<pre>$sequence \<object>...</pre>
+<pre>$sequence \<expression-sequence>...</pre>
 */
 YF_API ReductionStatus
 Sequence(TermNode&, ContextNode&);

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file pseudo_mutex.h
 \ingroup YStandardEx
 \brief 伪互斥量。
-\version r1639
+\version r1641
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-03 13:53:34 +0800
 \par 修改时间:
-	2016-09-05 01:01 +0800
+	2019-10-03 21:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1060,7 +1060,7 @@ public:
 	{}
 	template<typename... _tParams>
 	unlock_delete(mutex_type& mtx, _tParams&&... args) ynoexcept(
-		std::declval<mutex_type&>()(std::declval<_tParams&&>()...))
+		std::declval<mutex_type&>()(std::declval<_tParams>()...))
 		: lock(mtx, yforward(args)...)
 	{}
 

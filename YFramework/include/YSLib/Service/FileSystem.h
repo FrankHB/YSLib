@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018 FrankHB.
+	© 2010-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r3463
+\version r3473
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2018-09-06 19:12 +0800
+	2019-10-03 22:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YSL_INC_Service_FileSystem_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Service_File // for YSLib::CheckNonnegative, IO::Remove;
+#include YFM_YSLib_Service_File // for YSLib::CheckNonnegative, function,
+//	IO::Remove;
 #include YFM_YSLib_Core_YString
 #include <ystdex/path.hpp> // for ystdex::path;
 
@@ -236,8 +237,8 @@ public:
 	\since build 837
 	*/
 	template<typename _type, yimpl(typename = ystdex::enable_if_t<
-		ystdex::or_<std::is_constructible<u16string_view, _type&&>,
-		std::is_constructible<String, _type&&>>::value>,
+		ystdex::or_<std::is_constructible<u16string_view, _type>,
+		std::is_constructible<String, _type>>::value>,
 		typename = ystdex::exclude_self_t<Path, _type>)>
 	explicit
 	Path(_type&& arg)
@@ -289,8 +290,8 @@ public:
 		ImplRet(GetBaseRef() /= pth, *this)
 	//! \since build 838
 	template<typename _type, yimpl(typename = ystdex::enable_if_t<
-		ystdex::or_<std::is_constructible<u16string_view, _type&&>,
-		std::is_constructible<String, _type&&>>::value>,
+		ystdex::or_<std::is_constructible<u16string_view, _type>,
+		std::is_constructible<String, _type>>::value>,
 		typename = ystdex::exclude_self_t<Path, _type>,
 		typename = ystdex::exclude_self_t<ypath, _type>)>
 	Path&
@@ -347,13 +348,13 @@ private:
 	template<typename _tParam>
 	auto
 	AsStringArg(_tParam&& arg) -> yimpl(ystdex::enable_if_t)<
-		std::is_constructible<u16string_view, _tParam&&>::value, u16string_view>
+		std::is_constructible<u16string_view, _tParam>::value, u16string_view>
 	{
 		return u16string_view(yforward(arg));
 	}
 	template<typename _tParam, yimpl(typename = ystdex::enable_if_t<
 		ystdex::and_<ystdex::not_<std::is_constructible<u16string_view,
-		_tParam&&>>, std::is_constructible<String, _tParam&&>>::value
+		_tParam>>, std::is_constructible<String, _tParam>>::value
 	>)>
 	String
 	AsStringArg(_tParam&& arg)
@@ -735,7 +736,7 @@ TraverseTree(_func f, const Path& dst, const Path& src, _tParams&&... args)
 \note 函数参数分别对应目标和源。
 \since build 651
 */
-using CopyFileHandler = std::function<void(FileDescriptor, FileDescriptor)>;
+using CopyFileHandler = function<void(FileDescriptor, FileDescriptor)>;
 
 //! \sa CopyFileHandler
 //@{

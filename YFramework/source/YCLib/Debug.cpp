@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r860
+\version r861
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2019-07-07 20:26 +0800
+	2019-09-23 16:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -211,6 +211,7 @@ Logger::DoLogException(Level lv, const std::exception& e) ynothrow
 Logger::Sender
 Logger::FetchDefaultSender(string_view tag)
 {
+	yunused(tag);
 	YAssertNonnull(tag.data());
 #if YCL_Win32
 	return [](Level lv, Logger& logger, const char* str){

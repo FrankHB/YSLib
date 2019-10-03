@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2877
+\version r2922
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2019-09-17 05:26 +0800
+	2019-10-03 19:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -439,7 +439,7 @@ LoadObjects(ContextNode& ctx)
 		return DoIdFunc([](TermNode& t){
 			if(const auto p = NPL::TryAccessLeaf<const TermReference>(t))
 				LiftTermRef(t, p->get());
-			LiftTermIndirection(t);
+			NPL::SetContentWith(t, std::move(t), &ValueObject::MakeMoveCopy);
 		}, term);
 	});
 	RegisterStrict(ctx, "ref&", [](TermNode& term){
@@ -600,6 +600,8 @@ LoadGroundedDerived(REPLContext& context)
 	// NOTE: Lazy form '$deflazy!' is the basic operation, which may bind
 	//	parameter as unevaluated operands. 
 	RegisterForm(renv, "$deflazy!", DefineLazy);
+	RegisterForm(renv, "$set!", SetWithNoRecursion);
+	RegisterForm(renv, "$setrec!", SetWithRecursion);
 	RegisterForm(renv, "$lambda", Lambda);
 	RegisterForm(renv, "$lambda%", LambdaRef);
 	// NOTE: The sequence operator is also available as infix ';' syntax sugar.
@@ -629,9 +631,11 @@ LoadGroundedDerived(REPLContext& context)
 	RegisterStrict(renv, "list*", ListAsterisk);
 	RegisterStrict(renv, "list*%", ListAsteriskRef);
 	RegisterForm(renv, "$cond", Cond);
+	RegisterForm(renv, "$when", When);
+	RegisterForm(renv, "$unless", Unless);
+	RegisterStrictUnary(renv, "not?", Not);
 	RegisterForm(renv, "$and?", And);
 	RegisterForm(renv, "$or?", Or);
-	RegisterStrictUnary(renv, "not?", Not);
 #else
 #	if NPL_Impl_NPLA1_Native_EnvironmentPrimitives
 	context.Perform(R"NPL(
@@ -649,8 +653,6 @@ LoadGroundedDerived(REPLContext& context)
 	// XXX: The operative '$set!' is same to following derivations.
 	context.Perform(R"NPL(
 		$def! $quote $vau (&x) #ignore x;
-		$def! $set! $vau (&e &formals .&expr) d
-			eval (list $def! formals (unwrap eval) expr d) (eval e d);
 	)NPL");
 #	if NPL_Impl_NPLA1_Use_Id_Vau
 	// NOTE: The parameter shall be in list explicitly as '(.x)' to lift
@@ -666,16 +668,6 @@ LoadGroundedDerived(REPLContext& context)
 		$def! list wrap ($vau (.x) #ignore x);
 		$def! list% wrap ($vau &x #ignore x);
 	)NPL");
-	// XXX: The operative '$defv!' is same to following derivations in
-	//	%LoadCore.
-	context.Perform(R"NPL(
-		$def! $defv! $vau (&$f &formals &ef .&body) d
-			eval (list $set! d $f $vau formals ef body) d;
-		$defv! $lambda (&formals .&body) d
-			wrap (eval (cons $vau (cons formals (cons ignore body))) d);
-		$defv! $lambda% (&formals .&body) d
-			wrap (eval (cons $vau% (cons formals (cons ignore body))) d);
-	)NPL");
 #	else
 	RegisterForm(renv, "$lambda", Lambda);
 	RegisterForm(renv, "$lambda%", LambdaRef);
@@ -685,30 +677,41 @@ LoadGroundedDerived(REPLContext& context)
 		$def! list $lambda (.x) x;
 		$def! list% $lambda &x x;
 	)NPL");
+#	endif
 	// XXX: The operative '$defv!' is same to following derivations in
 	//	%LoadCore.
 	context.Perform(R"NPL(
-		$def! $defv! $vau (&$f &formals &ef .&body) d
-			eval (list $set! d $f $vau formals ef body) d;
-	)NPL");
-#	endif
-	context.Perform(R"NPL(
 		$def! $deflazy! $vau (&definiend .&expr) d
 			eval (list $def! definiend $quote expr) d;
+		$def! $set! $vau (&e &formals .&expr) d
+			eval (list $def! formals (unwrap eval) expr d) (eval e d);
+		$def! $defv! $vau (&$f &formals &ef .&body) d
+			eval (list $set! d $f $vau formals ef body) d;
+		$defv! $setrec! (&e &formals .&expr) d
+			eval (list $defrec! formals (unwrap eval) expr d) (eval e d);
+	)NPL");
+#	if NPL_Impl_NPLA1_Use_Id_Vau
+	context.Perform(R"NPL(
+		$defv! $lambda (&formals .&body) d
+			wrap (eval (cons $vau (cons formals (cons ignore body))) d);
+		$defv! $lambda% (&formals .&body) d
+			wrap (eval (cons $vau% (cons formals (cons ignore body))) d);
+	)NPL");
+#	endif
+	// XXX: The operatives '$defl!', '$defl%!', and '$defv%!', as well as the
+	//	applicative 'first@' are same to following derivations in %LoadCore.
+	// NOTE: Use of 'eql?' is more efficient than '$if'.
+	context.Perform(R"NPL(
 		$def! $sequence
 			($lambda (&se)
-				($lambda #ignore $vau/e% se &body d
-					$if (null? body) #inert (eval% (cons% $aux body) d))
+				($lambda #ignore $vau/e% se &exprseq d
+					$if (null? exprseq) #inert (eval% (cons% $aux exprseq) d))
 				($set! se $aux
 					$vau/e% (weaken-environment se) (&head .&tail) d
 						$if (null? tail) (eval% head d)
 							(($vau% (&t) e ($lambda% #ignore (eval% t e))
 								(eval% head d)) (eval% (cons% $aux tail) d))))
 			(make-environment (() get-current-environment));
-	)NPL");
-	// XXX: The operatives '$defl!', '$defl%!', and '$defv%!', as well as the
-	//	applicative 'first@' are same to following derivations in %LoadCore.
-	context.Perform(R"NPL(
 		$defv! $defl! (&f &formals .&body) d
 			eval (list $set! d f $lambda formals body) d;
 		$defv! $defl%! (&f &formals .&body) d
@@ -747,6 +750,10 @@ LoadGroundedDerived(REPLContext& context)
 			(apply ($lambda% ((&test .&body) .clauses)
 				$if (eval test d) (eval% body d) (apply (wrap $cond) clauses d))
 				clauses);
+		$defv%! $when (&test .&exprseq) d
+			$if (eval test d) (eval% (list*% () $sequence exprseq) d);
+		$defv%! $unless (&test .&exprseq) d
+			$if (eval test d) #inert (eval% (list*% () $sequence exprseq) d);
 		$defl! not? (&x) eql? x #f;
 		$defv%! $and? x d $cond
 			((null? x) #t)
@@ -768,8 +775,6 @@ void
 LoadCore(REPLContext& context)
 {
 	context.Perform(R"NPL(
-		$def! $set! $vau (&e &formals .&expr) d
-			eval (list $def! formals (unwrap eval) expr d) (eval e d);
 		$def! $defv! $vau (&$f &formals &ef .&body) d
 			eval (list $set! d $f $vau formals ef body) d;
 		$defv! $defv%! (&$f &formals &ef .&body) d
@@ -782,8 +787,6 @@ LoadCore(REPLContext& context)
 			eval (list $set! d f $lambda formals body) d;
 		$defv! $defl%! (&f &formals .&body) d
 			eval (list $set! d f $lambda% formals body) d;
-		$defv! $setrec! (&e &formals .&expr) d
-			eval (list $defrec! formals (unwrap eval) expr d) (eval e d);
 		$defl! rest ((#ignore .x)) x;
 		$defl! rest& (&l) ($lambda ((#ignore .&x)) x) (check-list-reference l);
 		$defl! rest% ((#ignore .%x)) x;
@@ -819,12 +822,7 @@ LoadCore(REPLContext& context)
 			(() get-current-environment);
 	)NPL");
 #endif
-	// NOTE: Use of 'eql?' is more efficient than '$if'.
 	context.Perform(R"NPL(
-		$defv%! $when (&test .&vexpr) d
-			$if (eval test d) (eval% (list*% () $sequence vexpr) d);
-		$defv%! $unless (&test .&vexpr) d
-			$if (not? (eval test d)) (eval% (list*% () $sequence vexpr) d);
 		$def! (box% box? unbox) () make-encapsulation-type;
 		$defl! box (&x) box% x;
 		$defl! first-null? (&l) null? (first l);
@@ -834,10 +832,10 @@ LoadCore(REPLContext& context)
 				(aux (tail (forward l)) (sum (head (forward l))
 					(forward base))))
 			(aux (forward l) (forward base));
-		$defl%! accr (&l &pred? &base &head &tail &sum) $sequence
-			($defl%! aux (&l) $if (pred? l) (forward base)
-				(sum (head (forward l)) (aux (tail (forward l)))))
-			(aux (forward l));
+		$defl%! accr (&l &pred? &base &head &tail &sum) $if (pred? l)
+			(forward base)
+			(sum (head (forward l)) (accr (tail (forward l)) (forward pred?)
+				(forward base) (forward head) (forward tail) (forward sum)));
 		$defl%! foldr1 (&kons &knil &l)
 			accr (forward l) null? (forward knil) first rest% kons;
 		$defw%! map1 (&appv &l) d

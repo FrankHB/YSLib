@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1582
+\version r1585
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2019-08-01 12:57 +0800
+	2019-09-23 16:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -384,8 +384,7 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 	btnNextBackground.Font.SetStyle(FontStyle::Bold),
 	btnNextBackground.Text = u">>",
 	fbMain.SetPath(pth),
-	dsk_s.BoundControlPtr
-		= [&, this](const KeyInput& k) -> observer_ptr<IWidget>{
+	dsk_s.BoundControlPtr = [&](const KeyInput& k) -> observer_ptr<IWidget>{
 		if(k.count() == 1)
 		{
 			if(k[YCL_KEY(A)])
@@ -558,7 +557,7 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 			: tbTest.MaskChar) = e ? char32_t() : u'●';
 		Invalidate(tbTest);
 	},
-	ddlStyle.GetConfirmed() += [&, this]{
+	ddlStyle.GetConfirmed() += [&]{
 		FetchGUIConfiguration().Styles.Switch(ddlStyle.Text.GetMBCS());
 		InvalidateWidgets(dsk_m, dsk_s);
 	}

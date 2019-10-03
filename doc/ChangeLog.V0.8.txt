@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r15009
+\version r15133
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-09-23 16:11 +0800
+	2019-10-03 22:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,123 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ DLDI "removed redundant captures" @ "lambda-expressions"
+		@ ("constructor %SettingPanel" @ %ReaderSettingUI,
+		"constructor %ShlExplorer" @ %ShlExplorer) @ %YReader,
+		// To eliminate Clang++ warning: [-Wunused-lambda-capture].
+	/ %YBase.YStandardEx $=
+	(
+		/ $re_add(b852) DLI "simplify constructor templates"
+			^ "%exclude_self_params_t" ~ "%exclude_self_t"
+			@ "class template %guard" @ %ScopeGuard,
+		/ %Optional $=
+		(
+			+ DD "%YBase_replacement_extensions" @ '\ingroup command'
+				@ "metafunction %optional_relop_t",
+			+ DD "%YBase_replacement_features" @ '\ingroup command'
+				@ "class %cpp2017::bad_optional_access",
+			+ DD '\ingroup YBase_replacement_features'
+				@ "Doxygen comment" @ "class template %cpp2017::optional",
+			+ DD '\ingroup YBase_replacement_extensions'
+				@ "Doxygen comment" @ "function template %ref_opt, class \
+				template %optional_last_value"
+			+ DD '\ingroup tags' @ "Doxygen comment" @ "%(nullopt_t, nullopt)",
+			- $re_add(b864) DLDI "redundant '&&'"
+				@ "'*_constructible' template arguments",
+			/ DLDI "simplified" ^ "%nand_" ~ "%(not_, and_)"
+		),
+		* DD "missing escape for angle brackets" @ "Doxygen comment"
+			@ "function templates %(to_lower, to_upper)" @ %CCtype $since b605
+	),
+	* $re_add(b851) DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen \
+		comment" $effective @ %(YBase.(YStandardEx.Base),
+		YFramework.YSLib.(Service.YDraw, Adaptor.New, UI.YStyle)) $since b203,
+	/ DLDI "simplified all 'YB_ALLOCATOR YB_ATTR_nodiscard'"
+		-> 'YB_ALLOCATOR' $effective @ %YFramework.YSLib.Adaptor.YNew,
+	- $re_add(b863) DLDI "redundant '&&'"
+		@ "'*_constructible' template arguments" $effective
+		@ %(YBase.YStandardEx.ScopeGuard, YFramework.YSLib.Service.FileSystem),
+	- $re_add(b863) DLDI "redundant '&&'" @ "%std::declval template arguments"
+		$effective @ "exception specifier" @ "constructor template"
+		@ "class template %unlock_delete" @ %YBase.YStandardEx.PseudoMutex,
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ $dev $lib "annotated unused argument" @ "static member \
+				functions (%Logger::FetchDefaultSender" @ %Debug,
+				!"platform %Win32" @ "function %SetBinaryIO" @ %FileIO)
+				^ "%yunused",
+				// To eliminate warning: [-Wunused-parameter] when %assert \
+					is used and the %YAssertNonnull expression expands to \
+					nothing.
+		),
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					+ "functions %(When, Unless)",
+					/ DLDI "simplified function %DefineLazy" ^ "%std::bind"
+					/ DLDI "simplified thunked implementation"
+						@ "function %DefineWithNoRecursion",
+					/ DLDI "simplified function %DefineWithNoRecursion"
+						!^ "%ContextState::Access",
+					(
+					/ "1st parameter type" @ "function %BindParameter"
+						-> 'Environment&' ~ 'ContextNode&';
+					/ $forced DLDI ("functions %(DefineLazy, \
+						DefineWithNoRecursion, DefineWithRecursion)",
+						"%operator()" @ "vau handlers")
+					),
+					/ DLDI "functions %(SetFirst, SetFirstRef, SetFirstRefAt)",
+						// For consistent functor argument position with other \
+							function implementations: when it is for a \
+							reduction function, the 'TermNode&' parameter \
+							always comes first.
+					+ "functions %(SetWithNoRecursion, SetWithRecursion)",
+				),
+				/ DLDI "simplified functions %(ReduceCombine, ReduceFirst, \
+					Forms::Apply)"
+			),
+			/ @ "function %LoadGroundContext" %Dependency $=
+			(
+				/ DLDI "parameter name" @ "derivations"
+					@ "operatives ('$sequence', '$when', '$unless')"
+					^ 'exprseq' ~ ('vexpr' or 'body'),
+					// To be consistent with the current %Documentation::NPL.
+				/ DLDI "derivation" @ "operative '$unless'" ^ '#inert' ~ 'not?',
+				+ "native derivation" @ "operative '$set!' and enabled by \
+					default" ^ $dep_from ("%SetWithNoRecursion" @ %NPLA1),
+				+ "native derivation" @ "operative '$setrec!' and enabled by \
+					default" ^ $dep_from ("%SetWithRecursion" @ %NPLA1),
+				/ DLI "optimized derivation" @ "applicative %accr",
+					// Direct recursion without auxiliary function is slightly \
+						more efficient.
+				/ DLDI "applicative %deshare" !^ "%LiftTermIndirection"
+			),
+			/ $revert_ex(b858) $lib $dev "workaround for x86_64-w64-linux G++"
+				@ %Lexical $=
+			(
+				/ $impl "simplified" ^ "%YB_ATTR" ~ "#pragma directive",
+					// There is only one function to modify, anyway.
+				/ "disabled by specifying 'YB_IMPL_GNUCPP < 90100'",
+					// This works again. But there is still no relevant bug \
+						report found at https://gcc.gnu.org/bugzilla.
+			),
+			- $revert(b834) "function %LiftTermIndirection" @ %NPLA
+				$dep_from ("applicative %deshare"
+				@ "function %LoadGroundContext" @ %Dependency)
+		),
+		/ $re_add(b862) $dev "%std::function" @ ("alias %Handler" @ %UI.YStyle,
+			"alias %CopyFileHandler" @ %Service.FileSystem) @ %YSLib
+			-> "%function"
+	)
+),
+
+b867
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -1118,7 +1235,9 @@ b863
 			/ $re_add(b853) DLDI "simplified" ^ "%nor_" ~ "%(not_, or_)"
 				$effective @ "%is_equal::operator()",
 			+ DD '\ingroup YBase_replacement_extensions' @ "Doxygen comment"
-				@ "functors %(addrof, indirect, ref_eq, first_of, second_of)"
+				@ "functors %(addrof, indirect, ref_eq, first_of, second_of)",
+			- $re_add(b861) DLDI "redundant '&&'"
+				@ "%std::declval template arguments"
 		),
 		/ DD %Algorithm $=
 		(
@@ -2106,7 +2225,7 @@ b859
 				/ "supported moving object referenced by non-aliased reference \
 					arguments as rvalues" $=
 				(
-					/ $comp @ "functions %(Cons, SetRest)" $dep_from
+					/ $comp "functions %(Cons, SetRest)" $dep_from
 						("%LiftSubtermsToReturn" @ %NPLA)
 						$dep_to "native return move support",
 					/ @ "functions %(Wrap, WrapOnce)" $=
@@ -2172,7 +2291,7 @@ b859
 					^ "%ThrowInsufficientTermsError",
 				+ "function %First"
 				),
-				/ DLDI "avoiding redundant branching"
+				/ DLDI "avoided redundant branching"
 					@ "functions %(SetFirst, SetFirstRef, SetFirstRefAt)",
 				/ "supported move" @ "function %SetFirst" ^ $dep_from
 					("%LiftTermOrCopy" @ %NPLA),
@@ -2503,7 +2622,8 @@ b858
 							^ "%NPL::TryAccessLeaf" ~ "%NPL::TryAccessTerm"
 							$dep_to "irregular representation support"
 					),
-					/ $forced DLDI "functions %(SetRest, SetRestRef)"
+					/ $forced $revert_ex(b854) DLDI
+						"functions %(SetRest, SetRestRef)"
 						^ ("%ResolveTerm" ~ $dep_from "%ResolveLeaf" @ %NPLA),
 						// The assumption to use %ResolveLeaf is actually \
 							invalid.
@@ -8377,7 +8497,7 @@ b840
 	(
 		/ %YCLib $=
 		(
-			/ $lib $impl "supported Microsoft VC++ 2017 15.8"
+			/ $re_ex(b709) $lib $impl "supported Microsoft VC++ 2017 15.8"
 				@ "class template %basic_filebuf" @ %FileIO,
 			/ %Host $=
 			(

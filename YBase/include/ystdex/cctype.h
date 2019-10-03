@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2018 FrankHB.
+	© 2014-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cctype.h
 \ingroup YStandardEx
 \brief ISO C 字符分类操作扩展。
-\version r257
+\version r259
 \author FrankHB <frankhb1989@gmail.com>
 \since build 513
 \par 创建时间:
 	2014-06-29 13:42:39 +0800
 \par 修改时间:
-	2018-08-17 07:15 +0800
+	2019-10-03 21:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -145,7 +145,7 @@ isspace(char c) ynothrow
 
 /*!
 \brief 转换大小写字符。
-\note 和 ISO C 标准库对应接口不同而和 ISO C++ \<locale\> 中的接口类似，
+\note 和 ISO C 标准库对应接口不同而和 ISO C++ \<locale> 中的接口类似，
 	参数和返回值是字符类型而不是对应的整数类型。
 */
 //@{

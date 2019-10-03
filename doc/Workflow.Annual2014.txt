@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2018 FrankHB.
+	© 2014-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r945
+\version r947
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2018-01-07 06:40 +0800
+	2019-10-03 20:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -571,7 +571,7 @@ Though it might probably a problem for 'std::make_shared' to enlarge the binary 
 	Thus the interface should be simpler.
 	On the other hand, 'std::make_shared' providing opportunity to optimize the allocation, which is not done by naive 'new' and constructing.
 	The 'ystdex::make_shared' is now only providing an extra overloading for instances of 'std::initializer_list' as parameter.
-A bug found in 'FetchStringWidth' of module 'YSLib::Service::TextLayout' in YFramework of b529.
+A bug found in 'FetchStringWidth' of module YSLib::Service::TextLayout in YFramework of b529.
 	Wrong behavior is only observed behavior for release builds on menu widths.
 		The 'release' configuration (statically linked) in platform 'MinGW32' shows a large with. All other release configuration seems to suggest a zero value of width.
 	The reason is not clear and not further investigated yet.

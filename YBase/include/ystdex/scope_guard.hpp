@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2018 FrankHB.
+	© 2015-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守卫。
-\version r566
+\version r583
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2018-10-30 17:08 +0800
+	2019-10-03 22:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,10 +30,10 @@
 #ifndef YB_INC_ystdex_scope_guard_hpp_
 #define YB_INC_ystdex_scope_guard_hpp_ 1
 
-#include "utility.hpp" // for exclude_self_t, is_nothrow_constructible, decay_t,
-//	is_reference, ystdex::vswap, tagged_value, noncopyable, std::declval,
-//	is_nothrow_copyable;
-#include "functional.hpp" // for one_shot;
+#include "utility.hpp" // for exclude_self_params_t, is_nothrow_constructible,
+//	decay_t, is_reference, ystdex::vswap, tagged_value, noncopyable,
+//	std::declval, is_nothrow_copyable;
+#include "functional.hpp" // for one_shot, function;
 
 namespace ystdex
 {
@@ -48,18 +48,12 @@ struct guard
 {
 	_func func;
 
-	//! \since build 820
-	template<typename _tParam, yimpl(typename = exclude_self_t<guard, _tParam>)>
-	guard(_tParam&& arg)
-		ynoexcept(is_nothrow_constructible<_func, _tParam&&>::value)
-		: func(yforward(arg))
-	{}
-	//! \since build 820
-	template<typename _tParam1, typename _tParam2, typename... _tParams>
-	guard(_tParam1&& arg1, _tParam2&& arg2, _tParams&&... args)
-		ynoexcept(is_nothrow_constructible<_func, _tParam1&&, _tParam2&&,
-		_tParams&&...>::value)
-		: func(yforward(arg1), yforward(arg2), yforward(args)...)
+	//! \since build 868
+	template<typename... _tParams,
+		yimpl(typename = exclude_self_params_t<guard, _tParams...>)>
+	guard(_tParams&&... args)
+		ynoexcept(is_nothrow_constructible<_func, _tParams...>::value)
+		: func(yforward(args)...)
 	{}
 	guard(guard&&) = default;
 	~guard() ynoexcept_spec(!_bNoThrow)

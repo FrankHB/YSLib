@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha1.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha1 。
-\version r331
+\version r334
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2016-06-09 00:01 +0800
+	2019-10-03 20:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -166,7 +166,7 @@ b188
 
 b187
 (
-	/ DLP "header %files and source files put in separated directories"
+	/ DLP "header files and source files put in separated directories"
 		@ "solution configuration",
 	/ @ "makefile" @ "project %YSTest" $=
 	(
@@ -182,7 +182,7 @@ b186
 (
 	/ "solution configuration",
 	* DLB "makefiles",
-	/ DLP "file including",
+	/ DLP "header inclusion",
 	* "some wrong Doxygen comments"
 ),
 

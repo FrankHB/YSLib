@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r6026
+\version r6036
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2019-09-17 21:04 +0800
+	2019-10-03 19:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1395,15 +1395,6 @@ inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo) ynothrow
 //@}
 
 /*!
-\brief 提升项间接引用：复制或转移项使项的值数据成员不含间接值。
-\since build 834
-*/
-inline PDefH(void, LiftTermIndirection, TermNode& term)
-	// NOTE: See $2018-02 @ %Documentation::Workflow::Annual2018.
-	ImplExpr(NPL::SetContentWith(term, std::move(term),
-		&ValueObject::MakeMoveCopy))
-
-/*!
 \brief 提升项或项的副本。
 \since build 859
 
@@ -1466,8 +1457,7 @@ LiftToReference(TermNode&, TermNode&);
 
 /*!
 \brief 提升项的值数据成员可能包含的引用值以满足返回值的内存安全要求。
-\note 复制引用项引用的对象，调用 LiftTermIndirection 复制或转移非引用项的对象。
-\sa LiftTermIndirection
+\note 复制引用项引用的对象，复制或转移非引用项的对象。
 \since build 828
 */
 YF_API void

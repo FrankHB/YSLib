@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015, 2018 FrankHB.
+	© 2010-2015, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YStyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r845
+\version r855
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2018-11-05 07:39 +0800
+	2019-10-03 21:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_UI_ystyle_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_UI_YComponent
+#include YFM_YSLib_UI_YComponent // for function;
 #include YFM_YSLib_Service_YDraw
 #include <ystdex/rational.hpp>
 #include <typeindex> // for mandated header;
@@ -117,16 +117,16 @@ DrawCornerArrow(const Graphics&, const Rect&, const Point&, SDst = 4,
 
 /*!
 \brief 在指定图形接口上下文中使用指定颜色描画交叉直线段（“×”）。
-\note 第二个参数指定边界；绘制的图形顶点为第三个参数指定的矩形的顶点或边的中点。
+\note 第二参数指定边界；绘制的图形顶点为第三参数指定的矩形的顶点或边的中点。
 \note 若不满足长和宽都大于 8 则忽略。
 \since build 480
 */
 YF_API void
 DrawCross(const Graphics&, const Rect&, const Rect&, Color);
 
-/*
+/*!
 \brief 在指定图形接口上下文中使用指定颜色描画对勾（“√”）。
-\note 第二个参数指定边界；绘制的图形顶点为第三个参数指定的矩形的顶点或边的中点。
+\note 第二参数指定边界；绘制的图形顶点为第三参数指定的矩形的顶点或边的中点。
 \note 若指定的矩形不满足长和宽都大于 8 则忽略。
 \since build 480
 */
@@ -190,7 +190,7 @@ public:
 	DefGetter(ynothrow, Hue&, HRef, first)
 	DefGetter(ynothrow, float&, SRef, second)
 
-	/*
+	/*!
 	\brief 色调偏移。
 	\pre 断言：输入值在范围内。
 	*/
@@ -236,7 +236,7 @@ public:
 	DefGetter(const ynothrow, float, L, lightness)
 	DefGetter(ynothrow, float&, LRef, lightness)
 
-	/*
+	/*!
 	\brief 色调偏移。
 	\pre 间接断言：输入值在范围内。
 	\return 自身引用。
@@ -282,7 +282,7 @@ public:
 	DefGetter(const ynothrow, float, V, value)
 	DefGetter(ynothrow, float&, VRef, value)
 
-	/*
+	/*!
 	\brief 色调偏移。
 	\pre 间接断言：输入值在范围内。
 	\return 自身引用。
@@ -377,7 +377,7 @@ using StyleItem = size_t;
 using Key = pair<std::type_index, StyleItem>;
 
 //! \brief 样式处理器。
-using Handler = std::function<void(PaintEventArgs&&)>;
+using Handler = function<void(PaintEventArgs&&)>;
 
 //! \brief 样式处理器表。
 using HandlerTable = unordered_map<Key, Handler, ystdex::combined_hash<Key>>;
@@ -390,7 +390,7 @@ using VisualStyle = pair<string, HandlerTable>;
 \ingroup helper_functions
 \brief 向样式处理器表添加指定类型的处理器。
 \note 被添加的值需能表示为 StyleItem 和 Handler 的有序对，
-	使用 ADL \c get\<0U\> 和 \c get\<1U\> 实现访问其中的成员。
+	使用 ADL \c get\<0U> 和 \c get\<1U> 实现访问其中的成员。
 \since build 469
 */
 //@{

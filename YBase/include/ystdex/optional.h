@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2018 FrankHB.
+	© 2015-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r1297
+\version r1329
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2018-10-19 03:25 +0800
+	2019-10-03 21:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,6 +26,7 @@
 \see WG21 N4606 20.6[optional] 。
 \see http://www.boost.org/doc/libs/1_57_0/libs/optional/doc/html/optional/reference.html 。
 
+提供 ISO C++17 标准库头 <optional> 兼容的替代接口和实现。
 除了部分关系操作使用 operators 实现而不保留命名空间内的声明外，
 其它接口除命名空间成员扩展外，同 std::optional 。
 注意因为一些兼容问题， std::experimental::optional 不被可选地使用，
@@ -48,22 +49,22 @@ WG21 N3765 ：支持不同的比较操作。
 
 #include "placement.hpp" // for <optional> conditionally, tagged_value;
 #if YB_Has_optional != 1
-#	include "operators.hpp" // for nullptr_t, is_trivially_destructible, is_cv,
-//	std::move, empty_base, is_nothrow_moveable, and_, remove_cv_t,
-//	totally_ordered, or_, is_reference, is_same, is_nothrow_destructible,
-//	is_object, enable_if_t, is_constructible, decay_t, is_nothrow_swappable,
-//	ystdex::addressof, is_copyable;
+#	include "operators.hpp" // for or_, is_trivially_destructible, is_cv,
+//	std::move, empty_base, is_nothrow_moveable, and_, nullptr_t, remove_cv_t,
+//	totally_ordered, not_, nand_, is_reference, is_same,
+//	is_nothrow_destructible, is_object, enable_if_t, is_constructible, decay_t,
+//	is_nothrow_swappable, ystdex::addressof, is_copyable;
 #	include <initializer_list> // for std::initializer_list;
 #	include <stdexcept> // for std::logic_error;
-//	std::accumulate, std::hash;
 #endif
 #include "functional.hpp" // for ystdex::swap_dependent, default_last_value,
+//	std::accumulate, std::hash;
 
 namespace ystdex
 {
 
 /*!
-\ingroup metafunctions
+\ingroup YBase_replacement_extensions metafunctions
 \brief 保留可选的比较操作对象类型的比较操作结果类型。
 \note YBase optional 扩展。
 \since build 831
@@ -91,8 +92,8 @@ namespace details
 template<typename _type, typename _tOther>
 using converts_from_optional = or_<is_constructible<_type,
 	const optional<_tOther>&>, is_constructible<_type, optional<_tOther>&>,
-	is_constructible<_type, const optional<_tOther>&&>, is_constructible<_type,
-	optional<_tOther>&&>, is_convertible<const optional<_tOther>&, _type>,
+	is_constructible<_type, const optional<_tOther>>, is_constructible<_type,
+	optional<_tOther>>, is_convertible<const optional<_tOther>&, _type>,
 	is_convertible<optional<_tOther>&, _type>, is_convertible<const
 	optional<_tOther>&&, _type>, is_convertible<optional<_tOther>&&, _type>>;
 
@@ -281,7 +282,10 @@ using std::experimental::make_optional;
 //@{
 //! \see WG21 N4606 20.6.4[optional.nullopt] 。
 //@{
-//! \brief 无值状态指示。
+/*!
+\ingroup tags
+\brief 无值状态指示。
+*/
 //@{
 #if YB_IMPL_MSCPP
 struct nullopt_t
@@ -293,7 +297,7 @@ yconstexpr_inline const struct nullopt_t
 	\see LWG 2510 。
 	\since build 718
 	*/
-	yimpl(yconstfn explicit
+	yimpl(explicit yconstfn
 	nullopt_t(nullptr_t)
 	{})
 #if YB_IMPL_MSCPP
@@ -307,7 +311,7 @@ yconstexpr_inline const nullopt_t nullopt{yimpl(nullptr)};
 
 
 /*!
-\ingroup exceptions
+\ingroup YBase_replacement_features exceptions
 \brief 可选值操作失败异常。
 \see ISO C++17 [optional.bad_optional_access] 。
 \see LWG 2806 。
@@ -327,13 +331,14 @@ public:
 	\return 实现定义："bad optional access" 。
 	\since build 831
 	*/
-	YB_PURE YB_ATTR_returns_nonnull virtual const char*
+	YB_ATTR_returns_nonnull YB_PURE virtual const char*
 	what() const ynothrow override;
 };
 //@}
 
 
 /*!
+\ingroup YBase_replacement_features
 \brief 可选值对象包装。
 \note 值语义。基本接口和语义同 std::experimental::optional 提议
 	和 boost::optional （对应接口以前者为准）。
@@ -349,8 +354,7 @@ class optional : private details::optional_base<remove_cv_t<_type>>, yimpl(
 	//! \see WG21 N4606 20.6.2[optional.synopsis]/1 。
 	static_assert(!or_<is_reference<_type>, is_same<remove_cv_t<_type>,
 		in_place_t>, is_same<remove_cv_t<_type>, in_place_t>,
-		is_same<remove_cv_t<_type>, nullopt_t>>(),
-		"Invalid type found.");
+		is_same<remove_cv_t<_type>, nullopt_t>>(), "Invalid type found.");
 	//! \see WG21 N4606 20.6.3[optional.object]/3 。
 	static_assert(and_<is_nothrow_destructible<_type>, is_object<_type>>(),
 		"Invalid type found.");
@@ -375,7 +379,7 @@ public:
 	//@{
 	template<typename _tOther = _type, yimpl(enable_if_t<and_<not_<is_same<
 		optional<_type>, decay_t<_tOther>>>, not_<is_same<in_place_t,
-		decay_t<_tOther>>>, is_constructible<_type, _tOther&&>,
+		decay_t<_tOther>>>, is_constructible<_type, _tOther>,
 		is_convertible<_tOther&&, _type>>::value, bool> = true)>
 	yconstfn
 	optional(_tOther&& v)
@@ -383,7 +387,7 @@ public:
 	{}
 	template<typename _tOther = _type, yimpl(enable_if_t<and_<not_<is_same<
 		optional<_type>, decay_t<_tOther>>>, not_<is_same<in_place_t,
-		decay_t<_tOther>>>, is_constructible<_type, _tOther&&>, not_<
+		decay_t<_tOther>>>, is_constructible<_type, _tOther>, not_<
 		is_convertible<_tOther&&, _type>>>::value, bool> = false)>
 	explicit yconstfn
 	optional(_tOther&& v)
@@ -413,7 +417,7 @@ public:
 			emplace(*t);
 	}
 	template<typename _tOther, yimpl(enable_if_t<and_<not_<is_same<_type,
-		_tOther>>, is_constructible<_type, _tOther&&>, is_convertible<_tOther&&,
+		_tOther>>, is_constructible<_type, _tOther>, is_convertible<_tOther&&,
 		_type>, not_<details::converts_from_optional<_type, _tOther>>>::value,
 		bool> = true)>
 	yconstfn_relaxed
@@ -424,7 +428,7 @@ public:
 			emplace(std::move(*t));
 	}
 	template<typename _tOther, yimpl(enable_if_t<and_<not_<is_same<_type,
-		_tOther>>, is_constructible<_type, _tOther&&>, not_<is_convertible<
+		_tOther>>, is_constructible<_type, _tOther>, not_<is_convertible<
 		_tOther&&, _type>>, not_<details::converts_from_optional<_type,
 		_tOther>>>::value, bool> = false)>
 	explicit yconstfn_relaxed
@@ -436,7 +440,7 @@ public:
 	}
 	//@}
 	template<typename... _tParams, yimpl(
-		typename = enable_if_t<is_constructible<_type, _tParams&&...>::value>)>
+		typename = enable_if_t<is_constructible<_type, _tParams...>::value>)>
 	explicit yconstfn
 	optional(in_place_t, _tParams&&... args)
 		: base(in_place, yforward(args)...)
@@ -482,8 +486,8 @@ public:
 	//@{
 	template<typename _tOther = _type>
 	enable_if_t<and_<not_<is_same<optional<_type>, decay_t<_tOther>>>,
-		is_constructible<_type, _tOther>, not_<and_<is_scalar<_type>,
-		is_same<_type, decay_t<_tOther>>>>,
+		is_constructible<_type, _tOther>, nand_<is_scalar<_type>,
+		is_same<_type, decay_t<_tOther>>>,
 		is_assignable<_type&, _tOther>>::value, optional&>
 	operator=(_tOther&& v)
 	{
@@ -923,8 +927,8 @@ make_optional_inplace(_tParams&&... args)
 }
 
 /*!
+\ingroup YBase_replacement_extensions
 \brief 从 optional 实例的临时对象取左值引用。
-\note YStandardEx 扩展。
 \warning 应仅在确认生存期时使用。
 */
 template<typename _type>
@@ -943,8 +947,8 @@ ref_opt() ynothrowv
 
 
 /*!
+\ingroup YBase_replacement_extensions
 \brief 合并可选值序列。
-\note YStandardEx 扩展。
 \note 语义同 Boost.Signal2 的 \c boost::optional_last_value 。
 \since build 675
 */
@@ -972,7 +976,6 @@ struct optional_last_value<void> : default_last_value<void>
 } // inline namespace cpp2017;
 
 } // namespace ystdex;
-
 
 #if YB_Has_optional != 1
 namespace std

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015, 2017-2018 FrankHB.
+	© 2013-2015, 2017-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file base.h
 \ingroup YStandardEx
 \brief 基类实用设施。
-\version r240
+\version r242
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2014-11-28 11:59:15 +0800
 \par 修改时间:
-	2018-11-16 00:07 +0800
+	2019-10-03 21:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,7 +81,7 @@ public:
 };
 
 
-/*
+/*!
 \brief 不可转移对象：禁止继承此类的对象调用默认原型的转移构造函数和转移赋值操作符。
 \warning 非虚析构。
 \since build 373

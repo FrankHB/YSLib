@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3176
+\version r3177
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2019-08-01 13:13 +0800
+	2019-09-23 16:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -784,6 +784,7 @@ SetBinaryIO(std::FILE* stream) ynothrowv
 #if YCL_Win32
 	FileDescriptor(Nonnull(stream)).SetTranslationMode(int(OpenMode::Binary));
 #else
+	yunused(stream);
 	// NOTE: No effect.
 	YAssertNonnull(stream);
 #endif

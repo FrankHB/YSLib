@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r499
+\version r500
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:28:23 +0800
 \par 修改时间:
-	2019-08-01 12:57 +0800
+	2019-09-23 16:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -191,7 +191,7 @@ SettingPanel::SettingPanel()
 			const std::uint16_t delta(is_smooth ? 10 : 100);
 			std::uint16_t t(0);
 
-			std::generate(lst.begin(), lst.end(), [&, is_smooth, delta]{
+			std::generate(lst.begin(), lst.end(), [&, delta]{
 				return String(to_string(t += delta)) + postfix;
 			});
 			return share_raw(&lst);

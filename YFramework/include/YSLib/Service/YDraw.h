@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015, 2018 FrankHB.
+	© 2011-2015, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YDraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1255
+\version r1258
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:26 +0800
 \par 修改时间:
-	2018-07-09 10:16 +0800
+	2019-10-03 21:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,7 +49,7 @@ namespace Drawing
 	Plot* 以 BitmapPtr 为首参数，为绘制操作；
 	Draw* 以 const Graphics& 为首参数，为描画操作，
 	Fill* 参数同 Draw* ，为填充操作。
-	以上接口的第二个参数若为 const Rect& ，除非另行指定，否则表示绘制边界，
+	以上接口的第二参数若为 const Rect& ，除非另行指定，否则表示绘制边界，
 	运行时忽略越界的状态修改；若首参数同时为 const Graphics& ，
 	则断言此边界包含于 Graphics 指定缓冲区的边界。
 */
@@ -148,7 +148,7 @@ YF_API void
 PlotLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos x1, SPos y1,
 	SPos x2, SPos y2, Color);
 
-/*
+/*!
 \brief 描画线段：在区域 ds 绘制端点为 p1(x1, y1) 和 p2(x2, y2) 的线段。
 \pre 断言： bounds 在 g 指定的边界内。
 */

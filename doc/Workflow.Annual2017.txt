@@ -1,5 +1,5 @@
 ﻿/*
-	© 2017 FrankHB.
+	© 2017, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2017.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2017 年度。
-\version r612
+\version r618
 \author FrankHB <frankhb1989@gmail.com>
 \since build 763
 \par 创建时间:
 	2017-01-27 16:01:59 +0800
 \par 修改时间:
-	2017-12-11 23:57 +0800
+	2019-10-03 20:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,7 +69,7 @@ Some points about unevaluated expressions are concerned with the current impleme
 			It is only for symbols, i.e. tokens to be evaluated, rather than arbitrary expressions.
 			It is better on performance since no new terms have to be constructed during the evaluation.
 		Transformation like 'TokenizeTerm' would be still preserved within a preprocessing pass in REPL context for saparation of lexical phase from further evaluation.
-	Unevaluated expressions can be explicitly evaluated in function 'A1::EvaluateIdentifier' in module 'NPL::NPLA1'.
+	Unevaluated expressions can be explicitly evaluated in function 'A1::EvaluateIdentifier' in module NPL::NPLA1.
 		Terms of 'TokenValue' and 'DelayedTerm' would be processed differently.
 		For 'TokenValue', it is done here directly rather than by wrapping in a new delayed term and than calling 'A1::EvaluateLeafToken' for 2 reasons:
 			Const-correctness is needed on parameter with type of reference to 'ContextNode' and in other cases the 'A1::EvaluateIdentifier' function has no need to modify the context node.
@@ -196,7 +196,8 @@ Style of the Kernel language can be compared with current NPL, esp. NPLA1.
 				If needed, features for cyclic data structures can be provided by library.
 		Proper tail recursion is not required in NPL as in tradition Scheme dialects and Kernel.
 			Most requirements on tail recursion is an issue of QoI rather than design, so it is not mandated.
-			Ideally the operation on raw activation record frames should be deterministically handled. This requires the failure of allocation of activation records frame is always predicatable.
+			Ideally the operation on raw activation record frames should be deterministically handled.
+				This requires the failure of allocation of activation record frames is always predicatable.
 				Undefined behavior of recusion call failure in hosted language should be avoided.
 					In typical naive native language implementation (e.g. C or C++) without TCO (tail call optimization), call stack overflow are unavoidable and it could be essentially unpredicatable even in aspect of implementation.
 					So the implementation of object language should provide some guarantees to avoid such cases.
@@ -554,7 +555,7 @@ report.impl:
 To implement asynchronous CPS by trampolines, there are different ways to deal with tail action.
 	The traditional way is to save the contination as the tail action and then to call the captured current action directly.
 		This is general safe, though not very efficient.
-		It is now delimited for current activation record frame to allow operate on the end of sequence of asynchronous operations for frame cleanup.
+		It is now delimited for the currently active frame to allow operating at the end of sequence of asynchronous operations for frame cleanup.
 			The current action representing current continuation is detached from the context before being invoked.
 			The next continuation is set (by current continuation dynamically, or setup before the invocation) as the tail action in the context, being the pending continuation.
 		This allows reifying delimited continuations in future.
@@ -580,7 +581,7 @@ To implement asynchronous CPS by trampolines, there are different ways to deal w
 			The actual reduced parameters for subterms should be bound previously.
 		So the call is avoided for performance and simplicity of implementation for usual cases where no recursively called handlers occurs.
 			The recursive calls rely on client code to guarantee proper tail calls, so it is not acceptable in general.
-			The known depth of host activation record would almost always smaller enough.
+			The known depth of host activation records would almost always smaller enough.
 			It is even more precise (and efficient) with the difference being taken into account.
 				The parameters are not altered by rebinding of parameters of next actions here.
 				So it would be correct parameters for next actions when it is a toplevel reduction.
