@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2655
+\version r2755
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2019-09-17 05:23 +0800
+	2019-10-24 16:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -366,26 +366,25 @@ RedirectToShared(string_view id, const shared_ptr<Environment>& p_shared)
 		return NPL::make_observer(YSLib::get_raw(p_shared));
 	// TODO: Use concrete semantic failure exception.
 	throw NPLException(ystdex::sfmt("Invalid reference found for%s name '%s',"
-		" probably due to invalid context NPL::Access by dangling reference.",
+		" probably due to invalid context access by dangling reference.",
 		IsReserved(id) ? " reserved" : "", id.data()));
 }
 
-//! \since build 839
+//! \since build 869
 //@{
 // XXX: Use other type without overhead of check on call of %operator()?
-using Redirector = function<observer_ptr<const Environment>()>;
+using Redirector = function<observer_ptr<Environment>()>;
 
-observer_ptr<const Environment>
-RedirectParent(const ValueObject&, string_view, Redirector&);
+observer_ptr<Environment>
+RedirectParent(ValueObject&, string_view, Redirector&);
 
-observer_ptr<const Environment>
-RedirectEnvironmentList(EnvironmentList::const_iterator first,
-	EnvironmentList::const_iterator last, string_view id, Redirector& cont)
+observer_ptr<Environment>
+RedirectEnvironmentList(EnvironmentList::iterator first,
+	EnvironmentList::iterator last, string_view id, Redirector& cont)
 {
 	if(first != last)
 	{
-		cont = std::bind([=, &cont](EnvironmentList::const_iterator i,
-			Redirector& c){
+		cont = std::bind([=, &cont](EnvironmentList::iterator i, Redirector& c){
 			cont = std::move(c);
 			return RedirectEnvironmentList(i, last, id, cont);
 		}, std::next(first), std::move(cont));
@@ -395,9 +394,8 @@ RedirectEnvironmentList(EnvironmentList::const_iterator first,
 	return {};
 }
 
-observer_ptr<const Environment>
-RedirectParent(const ValueObject& parent, string_view id,
-	Redirector& cont)
+observer_ptr<Environment>
+RedirectParent(ValueObject& parent, string_view id, Redirector& cont)
 {
 	const auto& tp(parent.type());
 
@@ -405,10 +403,8 @@ RedirectParent(const ValueObject& parent, string_view id,
 	{
 		auto& envs(parent.GetObject<EnvironmentList>());
 
-		return RedirectEnvironmentList(envs.cbegin(), envs.cend(), id, cont);
+		return RedirectEnvironmentList(envs.begin(), envs.end(), id, cont);
 	}
-	if(tp == ystdex::type_id<observer_ptr<const Environment>>())
-		return parent.GetObject<observer_ptr<const Environment>>();
 	if(tp == ystdex::type_id<EnvironmentReference>())
 		return RedirectToShared(id,
 			parent.GetObject<EnvironmentReference>().Lock());
@@ -426,6 +422,50 @@ MergeTermTags(TermTags x, TermTags y) ynothrow
 	return (x | y) & ~(TermTags::Unique | TermTags::Temporary)
 		& (x & y & TermTags::Unique);
 }
+
+
+/*!
+\brief 锚对象使用的共享数据。
+\sa EnvironmentReference
+\since build 869
+
+共享数据仅被特定的引用访问。
+此类引用访问假定 AnchorPtr 实际为 shared_ptr<AnchorData> 。
+*/
+struct AnchorData final
+{
+#if NPL_NPLA_CheckEnvironmentReferenceCount
+private:
+	//! \brief 环境引用计数。
+	mutable size_t env_count = 0;
+#endif
+
+public:
+	DefDeCtor(AnchorData)
+	DefDeMoveCtor(AnchorData)
+
+	DefDeMoveAssignment(AnchorData)
+
+#if NPL_NPLA_CheckEnvironmentReferenceCount
+	DefGetter(const ynothrow, size_t, Count, env_count)
+
+	/*!
+	\brief 转换为锚对象内部数据的引用。
+	\pre 断言：参数非空。
+	*/
+	static PDefH(const AnchorData&, Access, const AnchorPtr& p) ynothrowv
+		ImplRet(YAssertNonnull(p),
+			NPL::Deref(YSLib::static_pointer_cast<const AnchorData>(p)))
+
+	PDefH(void, AddReference, ) const ynothrow
+		ImplExpr(++env_count)
+
+	//! \pre 断言：引用计数大于 0 。
+	PDefH(void, RemoveReference, ) const ynothrowv
+		ImplExpr(YAssert(env_count > 0, "Invalid zero shared anchor count"
+			" for environments found."), --env_count)
+#endif
+};
 
 } // unnamed namespace;
 
@@ -568,16 +608,16 @@ Collapse(TermReference ref)
 {
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(ref.get()))
 		return {{MergeTermTags(ref.GetTags(), p->GetTags()), p->get(),
-			ref.GetAnchorPtr()}, true};
+			ref.GetEnvironmentReference()}, true};
 	return {std::move(ref), {}};
 }
 
 TermReference
-PrepareCollapse(TermNode& term, const AnchorPtr& p_anchor)
+PrepareCollapse(TermNode& term, Environment& env)
 {
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
 		return *p;
-	return {term.Tags, term, p_anchor};
+	return {term.Tags, term, env.shared_from_this()};
 }
 
 TermNode&
@@ -608,6 +648,14 @@ IsLValueTerm(const TermNode& term)
 }
 
 bool
+IsUncollapsedTerm(const TermNode& term)
+{
+	return ystdex::call_value_or(ystdex::compose(IsReferenceTerm,
+		std::mem_fn(&TermReference::get)),
+		NPL::TryAccessLeaf<const TermReference>(term));
+}
+
+bool
 IsUniqueTerm(const TermNode& term)
 {
 	return ystdex::invoke_value_or(&TermReference::IsUnique,
@@ -618,15 +666,22 @@ IsUniqueTerm(const TermNode& term)
 bool
 CheckReducible(ReductionStatus status)
 {
-	if(status == ReductionStatus::Clean || status == ReductionStatus::Retained)
-		return {};
+	switch(status)
+	{
+	case ReductionStatus::Partial:
+	case ReductionStatus::Retrying:
+		return true;
+	default:
 #if NPL_Impl_NPLA_CheckStatus
-	// NOTE: Keep away assertions so client code can be diagnosed.
-	if(YB_UNLIKELY(status != ReductionStatus::Partial
-		&& status != ReductionStatus::Retrying))
-		YTraceDe(Warning, "Unexpected status found.");
+		// NOTE: Keep away assertions so client code can be diagnosed.
+		if(YB_UNLIKELY(status != ReductionStatus::Neutral
+			&& status != ReductionStatus::Clean
+			&& status != ReductionStatus::Retained))
+			YTraceDe(Warning, "Unexpected status found.");
 #endif
-	return true;
+		break;
+	}
+	return {};
 }
 
 ReductionStatus
@@ -672,7 +727,8 @@ LiftToReference(TermNode& term, TermNode& tm)
 		else if(tm.Value.OwnsCount() > 1)
 			// XXX: This is unsafe and not checkable because the anchor is not
 			//	referenced.
-			term.Value = TermReference(TermTags::Unqualified, tm);
+			term.Value = TermReference(TermTags::Unqualified, tm,
+				EnvironmentReference());
 		else
 			throw InvalidReference(
 				"Value of a temporary shall not be referenced.");
@@ -687,10 +743,14 @@ LiftToReturn(TermNode& term)
 	// TODO: Detect lifetime escape to perform copy elision?
 	// NOTE: Only outermost one level is referenced.
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
+		// NOTE: See $2018-02 @ %Documentation::Workflow::Annual2018.
+		// NOTE: This is compatible to the irregular representation of subobject
+		//	references provided the setting order of %NPL::SetContentWith.
+		// TODO: Check the representation is sane?
 		NPL::SetContentWith(term, p->get(), NPL::IsMovable(*p)
 			? &ValueObject::MakeMove : &ValueObject::MakeCopy);
 	// NOTE: On the other hand, the references captured by vau handlers (which
-	//	requries recursive copy of vau handler members if forced) are not
+	//	requires recursive copy of vau handler members if forced) are not
 	//	blessed here to avoid leaking abstraction of detailed implementation
 	//	of vau handlers; it can be checked by the vau handler itself, if
 	//	necessary.
@@ -724,21 +784,21 @@ ReduceHeadEmptyList(TermNode& term) ynothrow
 {
 	if(term.size() > 1 && IsEmpty(NPL::Deref(term.begin())))
 		RemoveHead(term);
-	return ReductionStatus::Clean;
+	return ReductionStatus::Neutral;
 }
 
 
 #if NPL_NPLA_CheckEnvironmentReferenceCount
 Environment::~Environment()
 {
-	if(const auto& p_anchor = anchor.Ptr)
+	if(p_anchor)
 	{
 		const auto acnt(p_anchor.use_count());
 
 		if(acnt >= 1)
 		{
 			// XXX: Assume this would not wrap.
-			const auto ecnt(AnchorValue::Access(anchor.Ptr).env_count + 1);
+			const auto ecnt(AnchorData::Access(p_anchor).GetCount() + 1);
 
 			if(ecnt < size_t(acnt))
 				YSLib::FilterExceptions([this, acnt, ecnt]{
@@ -770,6 +830,8 @@ Environment::~Environment()
 	else
 		YTraceDe(Err, "Invalid environment anchor found in destruction.");
 }
+#else
+ImplDeDtor(Environment)
 #endif
 
 void
@@ -801,17 +863,17 @@ Environment::Deduplicate(BindingMap& dst, const BindingMap& src)
 }
 
 Environment::NameResolution
-Environment::DefaultResolve(const Environment& e, string_view id)
+Environment::DefaultResolve(Environment& e, string_view id)
 {
 	NameResolution::first_type p;
-	auto env_ref(ystdex::ref<const Environment>(e));
+	auto env_ref(ystdex::ref<Environment>(e));
 	Redirector cont;
 
-	ystdex::retry_on_cond([&](observer_ptr<const Environment> p_env) ynothrow{
+	ystdex::retry_on_cond([&](observer_ptr<Environment> p_env) ynothrow{
 		if(p_env)
 			env_ref = ystdex::ref(NPL::Deref(p_env));
 		return p_env || cont;
-	}, [&, id]() -> observer_ptr<const Environment>{
+	}, [&, id]() -> observer_ptr<Environment>{
 		auto& env(env_ref.get());
 
 		p = env.LookupName(id);
@@ -844,6 +906,12 @@ Environment::DefineChecked(string_view id, ValueObject&& vo)
 	YAssertNonnull(id.data());
 	if(!AddValue(id, std::move(vo)))
 		throw BadIdentifier(id, 2);
+}
+
+AnchorPtr
+Environment::InitAnchor() const
+{
+	return YSLib::allocate_shared<AnchorData>(Bindings.get_allocator());
 }
 
 Environment::NameResolution::first_type
@@ -902,14 +970,14 @@ EnvironmentReference::EnvironmentReference(const shared_ptr<Environment>& p_env)
 EnvironmentReference::~EnvironmentReference()
 {
 	if(p_anchor)
-		Environment::AnchorValue::Access(p_anchor).RemoveReference();
+		AnchorData::Access(p_anchor).RemoveReference();
 }
 
 void
 EnvironmentReference::ReferenceEnvironmentAnchor()
 {
 	if(p_anchor)
-		Environment::AnchorValue::Access(p_anchor).AddReference();
+		AnchorData::Access(p_anchor).AddReference();
 }
 #endif
 
@@ -1026,13 +1094,14 @@ ResolveIdentifier(const ContextNode& ctx, string_view id)
 	auto pr(ResolveName(ctx, id));
 
 	if(pr.first)
-		return PrepareCollapse(*pr.first, pr.second.get().GetAnchorPtr());
+		return PrepareCollapse(*pr.first, pr.second);
 	throw BadIdentifier(id);
 }
 
 pair<shared_ptr<Environment>, bool>
 ResolveEnvironment(const ValueObject& vo)
 {
+	// XXX: Support more environment types?
 	if(const auto p = vo.AccessPtr<const EnvironmentReference>())
 		return {p->Lock(), {}};
 	if(const auto p = vo.AccessPtr<const shared_ptr<Environment>>())

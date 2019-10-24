@@ -13,6 +13,26 @@ $import! env_SHBuild_ SHBuild_String_absolute_path?_ SHBuild_QuoteS_
 	SHBuild_RaiseError_ SHBuild_EchoVar SHBuild_SDot_ SHBuild_BuildGCH_existed_
 	SHBuild_BuildGCH_mkpdirp_;
 
+"NOTE", "Prelude:", "Unsafe functions not friendly to environment stability",
+	" or dangerous to environments except 'lock-current-environment' are",
+	" poisoned.";
+$provide/d! (move! assign! assign%! assign@! copy-environment lock-environment
+	$defrec! $setrec! make-standard-environment) mods
+(
+	$def! fns (unwrap list) move! assign! assign%! assign@! copy-environment
+		lock-environment $defrec! $setrec!;
+	$defl/e! raise-error mods (&fn) SHBuild_RaiseError_
+		(++ "ERROR: Use of unsafe function '" fn "' is not allowed.");
+	$defl! poison-fn (&fn &env)
+		eval (list $defl/e! fn (() make-standard-environment)
+			(string->symbol ".") raise-error (symbol->string fn)) env;
+	$defw! poison (fns) d for-each-ltr ($lambda (fn) poison-fn fn d) fns;
+	poison fns;
+	$def! nstd (() make-standard-environment);
+	eval (list poison (list $quote fns)) nstd;
+	$defl/e! make-standard-environment nstd () () lock-current-environment
+);
+
 $def! $redef! $def!;
 $defl! rmatch? (x r) regex-match? x (string->regex r);
 $defl! putss (.xs) puts (apply ++ xs);

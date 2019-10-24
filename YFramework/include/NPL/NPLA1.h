@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r5523
+\version r5578
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2019-09-28 22:50 +0800
+	2019-10-16 18:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,15 +30,15 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA // for NPLATag, TermNode, ValueNode, YSLib::GHEvent,
-//	ystdex::ref_eq, LoggedEvent, shared_ptr, ystdex::equality_comparable,
+//	ystdex::ref_eq, LiftTerm, LoggedEvent, ystdex::equality_comparable,
 //	ystdex::exclude_self_params_t, YSLib::AreEqualHeld,
 //	ystdex::make_parameter_list_t, ystdex::make_function_type_t,
 //	ystdex::decay_t, ystdex::expanded_caller, std::is_constructible,
 //	ystdex::or_, ystdex::exclude_self_t, ystdex::enable_if_inconvertible_t, pmr,
-//	NPL::Deref, ystdex::make_expanded, std::ref, NPL::Access, NPL::CheckRegular,
-//	ResolvedTermReferencePtr, ystdex::invoke_nonvoid, NPL::ResolveRegular,
-//	ystdex::make_transform, std::accumulate, ystdex::bind1,
-//	std::placeholders::_2, ystdex::examiners::equal_examiner, Environment;
+//	NPL::Deref, Environment, ystdex::make_expanded, std::ref, NPL::Access,
+//	NPL::CheckRegular, ResolvedTermReferencePtr, ystdex::invoke_nonvoid,
+//	NPL::ResolveRegular, ystdex::make_transform, std::accumulate, ystdex::bind1,
+//	std::placeholders::_2, ystdex::examiners::equal_examiner, shared_ptr;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 
 namespace NPL
@@ -174,8 +174,8 @@ public:
 
 	/*!
 	\brief 访问实例。
-	\pre 参数指定对象是 NPLA1 上下文状态或 public 继承的派生类。
-	\warning 若不满足要求，行为未定义。
+	\pre 参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
+	\warning 若不满足上下文状态类型要求，行为未定义。
 	*/
 	//@{
 	static PDefH(ContextState&, Access, ContextNode& ctx) ynothrowv
@@ -261,17 +261,25 @@ public:
 
 
 /*!
+\pre ContextNode& 类型的参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
+\note 第一参数为 TermNode& 类型时，引用的对象为被规约项。
+\warning 若不满足上下文状态类型要求，行为未定义。
+*/
+//@{
+/*!
 \brief NPLA1 表达式节点规约：调用至少一次求值例程规约子表达式。
 \return 规约状态。
 \sa ContextState::RewriteGuarded
 \sa ReduceOnce
 \since build 730
 
-以第一参数为项，以 ReduceOnce 为规约函数调用 ContextState::RewriteGuarded 。
+以 ReduceOnce 为规约函数调用 ContextState::RewriteGuarded 。
 */
 YF_API ReductionStatus
 Reduce(TermNode&, ContextNode&);
 
+//! \return 若支持异步规约则为 ReductionStatus::Partial ，否则同 Reduce 。
+//@{
 /*!
 \brief 再次规约。
 \return ReductionStatus::Partial 。
@@ -284,6 +292,19 @@ Reduce(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 ReduceAgain(TermNode&, ContextNode&);
+
+/*!
+\brief 再次规约提升后的项。
+\sa LiftTerm
+\sa ReduceAgain
+\since build 869
+
+先提升项，再调用 ReduceAgain 规约。
+*/
+inline PDefH(ReductionStatus, ReduceAgainLifted, TermNode& term,
+	ContextNode& ctx, TermNode& tm)
+	ImplRet(LiftTerm(term, tm), ReduceAgain(term, ctx))
+//@}
 
 /*!
 \note 可能使参数中容器的迭代器失效。
@@ -313,7 +334,7 @@ inline PDefH(void, ReduceArguments, TermNode& term, ContextNode& ctx)
 /*!
 \brief 规约并检查成功：等效调用 Reduce 并检查结果直至不需重规约。
 \note 支持尾调用优化，不直接使用 CheckedReduceWith 和 Reduce 。
-\return 若使用异步调用 ReductionStatus::Partial ，
+\return 若支持异步规约则为 ReductionStatus::Partial ，
 	否则为 ReductionStatus::Regular 。
 \sa CheckedReduceWith
 \sa Reduce
@@ -359,7 +380,7 @@ inline PDefH(ReductionStatus, ReduceChildrenOrdered, TermNode& term,
 
 快速严格性分析：
 当节点为分支列表的节点时，无条件求值第一项以避免非确定性推断子表达式求值的附加复杂度；
-否则，返回 ReductionStatus::Retained 。
+否则，返回 ReductionStatus::Regular 。
 调用 ReduceOnce 规约子项。
 */
 YF_API ReductionStatus
@@ -367,27 +388,31 @@ ReduceFirst(TermNode&, ContextNode&);
 
 /*!
 \brief NPLA1 表达式节点规约：调用求值例程规约子表达式。
+\pre 第二参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
 \return 规约状态。
 \note 异常安全为调用遍的最低异常安全保证。
 \note 可能使参数中容器的迭代器失效。
 \note 默认不需要重规约。这可被求值遍改变。
 \note 可被求值遍调用以实现递归求值。
+\warning 若不满足上下文状态类型要求，行为未定义。
 \sa ContextNode::EvaluateLeaf
 \sa ContextNode::EvaluateList
 \sa ValueToken
 \sa ReduceAgain
 \since build 806
-\todo 实现 ValueToken 保留处理。
 
 对应不同的节点次级结构分类，一次迭代按以下顺序选择以下分支之一，按需规约子项：
-对枝节点调用 ContextNode::EvaluateList 求值；
-对空节点或值为 ValueToken 的叶节点不进行操作；
-对其它叶节点调用 ContextNode::EvaluateList 求值。
-迭代结束调用 CheckReducible ，根据结果判断是否进行重规约。
+对枝节点调用 ContextState::EvaluateList 求值；
+对空节点或值数据成员为 ValueToken 类型的值的叶节点不进行操作；
+对其它叶节点调用 ContextState::EvaluateList 求值。
+支持重规约。异步重规约由 ContextNode 支持。
 此处约定的迭代中对节点的具体结构分类默认也适用于其它 NPLA1 实现 API ；
 例外情况应单独指定明确的顺序。
 例外情况包括输入节点不是表达式语义结构（而是 AST ）的 API ，如 TransformNode 。
-当前实现返回的规约状态总是 ReductionStatus::Clean ，否则会循环迭代。
+规约结果由以下规则确定：
+对异步规约，返回 Reduction::Partial ；
+否则，对枝节点，返回被调用的规约遍的求值结果；
+否则，对非枝节点，返回的规约状态总是 ReductionStatus::Regular 。
 若需要保证无异常时仅在规约成功后终止，使用 ReduceChecked 代替。
 */
 YF_API ReductionStatus
@@ -411,6 +436,7 @@ ReduceOrdered(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 ReduceTail(TermNode&, ContextNode&, TNIter);
+//@}
 //@}
 
 
@@ -736,10 +762,7 @@ YB_ATTR_nodiscard YB_PURE inline
 
 //! \note 第一参数指定输入的项，其 Value 指定输出的值。
 //@{
-/*!
-\exception BadIdentifier 未在环境中找到指定标识符的绑定。
-\note 默认结果为 ReductionStatus::Clean 以保证强规范化性质。
-*/
+//! \exception BadIdentifier 未在环境中找到指定标识符的绑定。
 //@{
 /*!
 \brief 求值标识符。
@@ -754,10 +777,8 @@ YB_ATTR_nodiscard YB_PURE inline
 依次进行以下求值操作：
 调用 ResolveName 根据指定名称查找值，若失败抛出未声明异常；
 初始化值，进行引用折叠后重新引用为左值；
-以 LiteralHandler 访问字面量处理器，若成功调用并返回字面量处理器的处理结果。
-若未返回，根据节点表示的值进一步处理：
-	对表示 TokenValue 值的叶节点，返回 ReductionStatus::Clean ；
-	对枝节点视为列表，返回 ReductionStatus::Retained 。
+以 LiteralHandler 访问字面量处理器，若成功调用并返回字面量处理器的处理结果；
+否则，返回 ReductionStatus::Neutral 。
 初始化值的目标是第一参数的 Value 数据成员，包括以下操作：
 	调用 ReferenceTerm 确保进一步操作解析得到的（保存在环境中的）项对象不是引用；
 	若上一步得到的值是空列表或 TokenValue ，直接复制；
@@ -769,7 +790,9 @@ EvaluateIdentifier(TermNode&, const ContextNode&, string_view);
 
 /*!
 \brief 求值叶节点记号。
+\pre 第二参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
 \pre 断言：第三参数的数据指针非空。
+\warning 若不满足上下文状态类型要求，行为未定义。
 \sa CategorizeLexeme
 \sa ContextNode::EvaluateLiteral
 \sa DeliteralizeUnchecked
@@ -1138,11 +1161,11 @@ BindParameter(Environment&, const TermNode&, TermNode&);
 \brief 匹配参数。
 \exception std::bad_function_call 异常中立：参数指定的处理器为空。
 \sa TermTags
-\since build 858
+\since build 869
 
 进行匹配的算法递归搜索形式参数及其子项。
 若匹配成功，调用参数指定的匹配处理器。
-参数指定形式参数、实际参数、两个处理器、绑定选项和引用值对应的锚对象指针。
+参数指定形式参数、实际参数、两个处理器、绑定选项和引用值关联的环境。
 其中，形式参数被视为作为形式参数树的右值。
 绑定选项以 TermTags 编码，但含义和作用在项上时不完全相同：
 仅使用其中的 Unique 位和 Nonmodifying 位；
@@ -1168,8 +1191,8 @@ Nonmodifying 表示需要复制。
 */
 YF_API void
 MatchParameter(const TermNode&, TermNode&, function<void(TNIter, TNIter, const
-	TokenValue&, TermTags, const AnchorPtr&)>, function<void(const TokenValue&,
-	TermNode&, TermTags, const AnchorPtr&)>, TermTags, const AnchorPtr&);
+	TokenValue&, TermTags, Environment&)>, function<void(const TokenValue&,
+	TermNode&, TermTags, Environment&)>, TermTags, Environment&);
 //@}
 //@}
 //@}
@@ -2366,7 +2389,7 @@ Apply(TermNode&, ContextNode&);
 结果是构造的列表的值。不保留结果中的引用值。
 
 参考调用文法：
-<pre>list* \<object>+ </pre>
+<pre>list* \<object>+</pre>
 */
 YF_API ReductionStatus
 ListAsterisk(TermNode&);
@@ -2375,7 +2398,7 @@ ListAsterisk(TermNode&);
 结果是构造的列表的值。保留结果中的引用值。
 
 参考调用文法：
-<pre>list*% \<object>+ </pre>
+<pre>list*% \<object>+</pre>
 */
 YF_API ReductionStatus
 ListAsteriskRef(TermNode&);

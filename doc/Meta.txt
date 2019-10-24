@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1649
+\version r1653
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2019-02-22 14:31 +0800
+	2019-10-24 20:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,8 +111,8 @@ Since additions of interface might intefere with valid working code (e.g. with
 	category of not requiring the user code to be modified.
 */
 $dev; // issues concerned by developers, which end-users of the product can \
-	observe no behavior change as long as the contracts of the code are not \
-	violated;
+	observe no behavior change within every supported configuration \
+	consistently, as long as the contracts of the code are not violated;
 $lib; // issues only concerned with library, without interface modification \
 	(also including deletion, but not addition) potentially requiring user \
 	code modification by providing some backward-compatible replacements as \
@@ -187,8 +187,8 @@ $HISTORY:
 
 // Since b539, tracked issues are hosted on Bitbucket, see https://bitbucket.org/FrankHB/yslib/issues.
 // These issues are referenced by 'issue #NUM' with NUM indicating issue number.
-//	See also '$inum' for use in tags.
-// The issue tracker still use '$RESOLVED_ENVIRONMENT_ISSUE' to mark the \
+//	See also '$inum' for the uses in the tags.
+// The issue tracker still uses '$RESOLVED_ENVIRONMENT_ISSUE' to mark the \
 	resolved issues so they can be referenced in documents here.
 $resolve(#1); // This is still to be improved and not marked as "Resolved" on \
 	the issue tracker.

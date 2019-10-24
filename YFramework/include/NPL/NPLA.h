@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r6036
+\version r6368
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2019-10-03 19:39 +0800
+	2019-10-24 16:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -926,37 +926,99 @@ TryAccessTerm(const TermNode& term)
 
 
 /*!
-\brief 规约状态：某个项上的一遍规约可能的中间结果。
-\since build 730
+\brief 环境引用计数检查支持。
+\sa Environment
+\sa EnvironmentReference
+\sa YTraceDe
+\since build 856
+
+若定义为 true ，则在 Environment 和 EnvironmentReference 启用引用计数检查支持。
+检查在 Environment 的析构函数进行，通过对锚对象剩余引用计数的来源计数判断正常状态。
+若引用计数来源都是 Environment 、 EnvironmentReference 或 TermReference ，
+	则表示正常；否则，使用 YTraceDe 输出错误消息。
+注意绑定析构顺序不确定，可能导致依赖不确定而误报。
+因对性能有影响，默认仅调试配置下启用。
 */
-enum class ReductionStatus : yimpl(size_t)
+#ifndef NDEBUG
+#	define NPL_NPLA_CheckEnvironmentReferenceCount true
+#else
+#	define NPL_NPLA_CheckEnvironmentReferenceCount false
+#endif
+
+//! \since build 869
+class Environment;
+
+/*!
+\brief 环境引用。
+\since build 823
+
+可能共享所有权环境的引用。
+*/
+class YF_API EnvironmentReference
+	: private ystdex::equality_comparable<EnvironmentReference>
 {
+private:
+	weak_ptr<Environment> p_weak{};
 	/*!
-	\brief 部分规约：需要继续进行规约。
-	\note 一般仅用于异步规约。
-	\since build 841
+	\brief 引用的锚对象指针。
+	\since build 847
 	*/
-	Partial,
+	AnchorPtr p_anchor{};
+
+public:
+	//! \since build 869
+	DefDeCtor(EnvironmentReference)
+	//! \brief 构造：使用指定的环境指针和此环境的锚对象指针。
+	EnvironmentReference(const shared_ptr<Environment>&);
 	/*!
-	\brief 纯值规约：规约成功终止且应清理子项。
-	\since build 841
+	\brief 构造：使用指定的环境指针和锚对象指针。
+	\pre 第二参数表示由环境提供的锚对象指针。
 	*/
-	Clean,
-	/*!
-	\brief 非纯值规约：规约成功且需要保留子项。
-	\since build 757
-	*/
-	Retained,
-	/*!
-	\brief 已取得正规表示的规约：规约成功且已保证正规化，不指定是否需要保留子项。
-	\since build 865
-	*/
-	Regular = yimpl(Retained),
-	/*!
-	\brief 重规约。
-	\since build 757
-	*/
-	Retrying
+	template<typename _tParam1, typename _tParam2>
+	EnvironmentReference(_tParam1&& arg1, _tParam2&& arg2)
+		: p_weak(yforward(arg1)), p_anchor(yforward(arg2))
+	{
+#if NPL_NPLA_CheckEnvironmentReferenceCount
+		ReferenceEnvironmentAnchor();
+#endif
+	}
+#if NPL_NPLA_CheckEnvironmentReferenceCount
+	//! \since build 856
+	//@{
+	EnvironmentReference(const EnvironmentReference& env_ref)
+		: p_weak(env_ref.p_weak), p_anchor(env_ref.p_anchor)
+	{
+		ReferenceEnvironmentAnchor();
+	}
+	DefDeMoveCtor(EnvironmentReference)
+
+	~EnvironmentReference();
+
+	DefDeCopyAssignment(EnvironmentReference)
+	DefDeMoveAssignment(EnvironmentReference)
+	//@}
+#else
+	DefDeCopyMoveCtorAssignment(EnvironmentReference)
+#endif
+
+	//! \since build 824
+	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
+		const EnvironmentReference& x, const EnvironmentReference& y) ynothrow
+		ImplRet(x.p_weak.lock() == y.p_weak.lock())
+
+	//! \since build 847
+	DefGetter(const ynothrow, const AnchorPtr&, AnchorPtr, p_anchor)
+	DefGetter(const ynothrow, const weak_ptr<Environment>&, Ptr, p_weak)
+
+	PDefH(shared_ptr<Environment>, Lock, ) const ynothrow
+		ImplRet(p_weak.lock())
+#if NPL_NPLA_CheckEnvironmentReferenceCount
+
+private:
+	//! \since build 856
+	void
+	ReferenceEnvironmentAnchor();
+#endif
 };
 
 
@@ -967,6 +1029,9 @@ enum class ReductionStatus : yimpl(size_t)
 \since build 800
 
 表示列表项的引用的中间求值结果的项。
+项引用可选地关联环境。
+当关联的环境不存在时，不提供对引入的对象内存安全的检查。
+为避免安全问题，不提供不关联环境的构造函数。若需不关联环境，需要显示构造空环境引用。
 */
 class YF_API TermReference
 {
@@ -979,21 +1044,14 @@ private:
 	*/
 	TermTags tags = TermTags::Unqualified;
 	/*!
-	\brief 引用的锚对象指针。
-	\since build 847
+	\brief 包含引用的锚对象指针的环境引用。
+	\since build 869
 	*/
-	AnchorPtr p_anchor{};
+	EnvironmentReference r_env;
 
 public:
 	/*!
-	\brief 构造：使用参数指定的引用和空锚对象并自动判断是否使用引用值初始化。
-	\since build 857
-	*/
-	TermReference(TermNode& term)
-		: TermReference(TermToTags(term), term)
-	{}
-	/*!
-	\brief 构造：使用参数指定的引用和锚对象并自动判断是否使用引用值初始化。
+	\brief 构造：使用参数指定的项并自动判断是否使用引用值初始化。
 	\since build 821
 	*/
 	template<typename _tParam, typename... _tParams>
@@ -1003,23 +1061,19 @@ public:
 	{}
 	//! \since build 857
 	//@{
-	//! \brief 构造：使用参数指定的标签及指定引用和空锚对象。
-	TermReference(TermTags t, TermNode& term) ynothrow
-		: term_ref(term), tags(t)
-	{}
-	//! \brief 构造：使用参数指定的标签及、引用和锚对象。
+	//! \brief 构造：使用参数指定的标签及引用。
 	template<typename _tParam, typename... _tParams>
 	TermReference(TermTags t, TermNode& term, _tParam&& arg, _tParams&&... args)
 		: term_ref(term), tags(t),
-		p_anchor(yforward(arg), yforward(args)...)
+		r_env(yforward(arg), yforward(args)...)
 	{}
 	//! \brief 构造：使用参数指定的标签及现有的项引用。
 	//@{
 	TermReference(TermTags t, const TermReference& ref) ynothrow
-		: term_ref(ref.term_ref), tags(t), p_anchor(ref.p_anchor)
+		: term_ref(ref.term_ref), tags(t), r_env(ref.r_env)
 	{}
 	TermReference(TermTags t, TermReference&& ref) ynothrow
-		: term_ref(ref.term_ref), tags(t), p_anchor(std::move(ref.p_anchor))
+		: term_ref(ref.term_ref), tags(t), r_env(std::move(ref.r_env))
 	{}
 	//@}
 	//@}
@@ -1058,7 +1112,10 @@ public:
 	\brief 取锚对象指针。
 	\since build 847
 	*/
-	DefGetter(const ynothrow, const AnchorPtr&, AnchorPtr, p_anchor)
+	DefGetterMem(const ynothrow, const AnchorPtr&, AnchorPtr, r_env)
+	//! \since build 869
+	DefGetter(const ynothrow, const EnvironmentReference&, EnvironmentReference,
+		r_env)
 
 	YB_ATTR_nodiscard YB_PURE PDefH(TermNode&, get, ) const ynothrow
 		ImplRet(term_ref.get())
@@ -1083,15 +1140,16 @@ Collapse(TermReference);
 
 /*!
 \brief 准备折叠项引用。
-\since build 861
+\since build 869
 
 返回引用由以下方式确定：
-当参数的 Value 表示项引用时，返回值；否则为通过参数初始化的项引用。
-这种方式避免初始化引用的引用。
+当第一参数表示项引用时，返回这个项引用的值；否则为通过参数初始化的项引用。
+这种方式避免初始化引用的引用，除非第一参数已具有未折叠的引用。
 使用引用值初始化时保留标签，否则使用项中的标签。
+第二参数指定通过参数初始化引用值时关联的环境。
 */
 YB_ATTR_nodiscard YF_API TermReference
-PrepareCollapse(TermNode&, const AnchorPtr&);
+PrepareCollapse(TermNode&, Environment&);
 //@}
 
 /*!
@@ -1210,6 +1268,13 @@ IsReferenceTerm(const TermNode&);
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsLValueTerm(const TermNode&);
 //@}
+
+/*!
+\brief 判断项是否表示未折叠的引用。
+\since build 869
+*/
+YB_ATTR_nodiscard YF_API YB_PURE bool
+IsUncollapsedTerm(const TermNode&);
 
 //! \since build 859
 //@{
@@ -1334,26 +1399,59 @@ ComposeReferencedTermOp(_func f)
 
 
 /*!
-\brief 检查视为范式的节点并提取规约状态。
-\since build 769
+\brief 规约状态：某个项上的一遍规约可能的中间结果。
+\note 实现的编码未指定，编码和规约时的判断性能相关。
+\since build 730
 */
-YB_ATTR_nodiscard YB_PURE inline
-	PDefH(ReductionStatus, CheckNorm, const TermNode& term) ynothrow
-	ImplRet(IsBranch(term) ? ReductionStatus::Retained : ReductionStatus::Clean)
+enum class ReductionStatus : yimpl(size_t)
+{
+	/*!
+	\brief 部分规约：需要继续进行规约。
+	\note 一般仅用于异步规约。
+	\since build 841
+	*/
+	Partial = yimpl(0x00),
+	/*!
+	\brief 中立规约：规约成功终止，且未指定是否需要保留子项。
+	\note 一般用于不改变被规约项是否为空项的规约遍。
+	\since build 869
+	*/
+	Neutral = yimpl(0x01),
+	/*!
+	\brief 纯值规约：规约成功终止，且不需要保留子项。
+	\since build 841
+	*/
+	Clean = yimpl(0x02),
+	/*!
+	\brief 非纯值规约：规约成功，且需要保留子项。
+	\since build 757
+	*/
+	Retained = yimpl(0x03),
+	/*!
+	\brief 已取得正规表示的规约：规约成功且已保证正规化，不指定是否需要保留子项。
+	\since build 865
+	*/
+	Regular = yimpl(Retained),
+	/*!
+	\brief 重规约。
+	\since build 757
+	*/
+	Retrying = yimpl(0x10)
+};
 
 /*!
 \brief 根据规约状态检查是否可继续规约。
-\sa ReductionStatus::Partial
-\sa ReductionStatus::Retrying
+\relates ReductionStatus
 \sa YTraceDe
 \since build 734
 
-只根据输入状态确定结果。当且仅当规约成功时不视为继续规约。
-若发现不支持的状态视为不成功，输出警告。
+只根据参数确定结果：当且仅当参数规约成功时不视为可继续规约。
+在调试配置下，若发现不支持的状态视为不成功，输出警告。
 派生实现可使用类似的接口指定多个不同的状态。
 */
 YB_ATTR_nodiscard YF_API YB_PURE bool
 CheckReducible(ReductionStatus);
+
 
 /*!
 \sa CheckReducible
@@ -1456,19 +1554,24 @@ YF_API void
 LiftToReference(TermNode&, TermNode&);
 
 /*!
-\brief 提升项的值数据成员可能包含的引用值以满足返回值的内存安全要求。
+\brief 提升项作为返回值。
 \note 复制引用项引用的对象，复制或转移非引用项的对象。
 \since build 828
+
+提升项的值数据成员可能包含的引用值以满足返回值的内存安全要求。
 */
 YF_API void
 LiftToReturn(TermNode&);
 
 /*!
-\brief 提升表示右值的项的值数据成员可能包含的引用值以满足返回值的内存安全要求。
-\note 对左值不进行修改，否则同 LiftToReturn 。可实现类似 C++ 的 std::forward 。
+\brief 提升右值项作为返回值。
 \sa IsLValueTerm
 \sa LiftToReturn
 \since build 857
+
+提升表示右值的项的值数据成员可能包含的引用值以满足返回值的内存安全要求。
+对左值不进行修改，否则同 LiftToReturn 。
+可在对象语言中实现类似 C++ 的 std::forward 。
 */
 YF_API void
 LiftRValueToReturn(TermNode&);
@@ -1519,8 +1622,33 @@ ReduceBranchToListValue(TermNode&) ynothrowv;
 //@}
 
 /*!
+\brief 规约提升结果。
+\return ReductionStatus::Retained 。
+\sa LiftToReturn
+\since build 855
+
+调用 LiftToReturn 提升结果，再返回规约状态。
+*/
+inline PDefH(ReductionStatus, ReduceForLiftedResult, TermNode& term)
+	// NOTE: This is mainly used to update %LastStatus in the enclosing context.
+	ImplRet(LiftToReturn(term), ReductionStatus::Retained)
+
+/*!
+\brief 规约转发提升结果。
+\sa IsLValueTerm
+\sa ReduceForLiftedResult
+\since build 869
+
+按项是否表示左值选择性提升结果，再返回规约状态。
+对左值不进行修改，返回 ReductionStatus::Neutral ；否则同 ReduceForLiftedResult 。
+*/
+inline PDefH(ReductionStatus, ReduceForwarded, TermNode& term)
+	ImplRet(!IsLValueTerm(term) ? ReduceForLiftedResult(term)
+		: ReductionStatus::Neutral)
+
+/*!
 \brief 规约第一个非结尾空列表子项。
-\return ReductionStatus::Clean 。
+\return ReductionStatus::Neutral 。
 \sa RemoveHead
 \since build 774
 
@@ -1531,19 +1659,7 @@ YF_API ReductionStatus
 ReduceHeadEmptyList(TermNode&) ynothrow;
 
 /*!
-\brief 规约提升结果。
-\return ReductionStatus::Regular 。
-\sa LiftToReturn
-\since build 855
-
-调用 LiftToReturn 提升结果，再返回规约状态。
-*/
-inline PDefH(ReductionStatus, ReduceForLiftedResult, TermNode& term)
-	// XXX: This is used to update %LastStatus in the enclosing context.
-	ImplRet(LiftToReturn(term), ReductionStatus::Regular)
-
-/*!
-\return 移除项时 ReductionStatus::Retained ，否则 ReductionStatus::Clean。
+\return 移除项时 ReductionStatus::Retained ，否则 ReductionStatus::Regular 。
 \sa RemoveHead
 */
 //@{
@@ -1554,7 +1670,7 @@ inline PDefH(ReductionStatus, ReduceForLiftedResult, TermNode& term)
 */
 inline PDefH(ReductionStatus, ReduceToList, TermNode& term) ynothrow
 	ImplRet(IsBranchedList(term) ? ReduceBranchToList(term)
-		: ReductionStatus::Clean)
+		: ReductionStatus::Regular)
 
 /*!
 \brief 规约为列表值：对分支列表节点移除第一个子项，保留余下的子项提升后作为列表的值。
@@ -1563,23 +1679,35 @@ inline PDefH(ReductionStatus, ReduceToList, TermNode& term) ynothrow
 */
 inline PDefH(ReductionStatus, ReduceToListValue, TermNode& term) ynothrow
 	ImplRet(IsBranchedList(term) ? ReduceBranchToListValue(term)
-		: ReductionStatus::Clean)
+		: ReductionStatus::Regular)
 //@}
 
+
+/*!
+\brief 判断参数指定的规约结果在合并中是否可被覆盖。
+\warning 具体支持的值未指定，结果的稳定性不应被依赖。
+\since build 869
+*/
+YB_ATTR_nodiscard yconstfn YB_STATELESS PDefH(bool,
+	IsOverridableReductionResult, ReductionStatus r) ynothrow
+	ImplRet(yimpl(r == ReductionStatus::Clean
+		|| r == ReductionStatus::Retained))
 
 /*!
 \since build 807
 \note 一般第一参数用于指定被合并的之前的规约结果，第二参数指定用于合并的结果。
 \return 合并后的规约结果。
 */
+//@{
 /*!
 \brief 合并规约结果。
 
-若第二参数指定保留项，则合并后的规约结果为第二参数；否则为第一参数。
+若第二参数显式指定是否保留或不保留子项，则合并后的规约结果为第二参数；
+否则为第一参数。
 */
-YB_ATTR_nodiscard yconstfn YB_PURE PDefH(ReductionStatus,
+YB_ATTR_nodiscard yconstfn YB_STATELESS PDefH(ReductionStatus,
 	CombineReductionResult, ReductionStatus res, ReductionStatus r) ynothrow
-	ImplRet(r == ReductionStatus::Retained ? r : res)
+	ImplRet(IsOverridableReductionResult(r) ? r : res)
 
 /*!
 \brief 合并序列规约结果。
@@ -1594,6 +1722,7 @@ YB_ATTR_nodiscard YB_PURE inline
 	PDefH(ReductionStatus, CombineSequenceReductionResult, ReductionStatus res,
 	ReductionStatus r) ynothrow
 	ImplRet(CheckReducible(r) ? r : CombineReductionResult(res, r))
+//@}
 
 
 //! \warning 非虚析构。
@@ -1601,6 +1730,7 @@ YB_ATTR_nodiscard YB_PURE inline
 /*!
 \brief 遍合并器：逐次调用序列中的遍直至成功。
 \note 合并遍结果用于表示及早判断是否应继续规约，可在循环中实现再次规约一个项。
+\note 忽略部分规约。不支持异步规约。
 \since build 676
 */
 struct PassesCombiner
@@ -1613,11 +1743,13 @@ struct PassesCombiner
 	YB_ATTR_nodiscard YB_PURE ReductionStatus
 	operator()(_tIn first, _tIn last) const
 	{
-		auto res(ReductionStatus::Clean);
+		auto res(ReductionStatus::Neutral);
 
 		return ystdex::fast_any_of(first, last, [&](ReductionStatus r) ynothrow{
 			res = CombineReductionResult(res, r);
-			// XXX: Currently %CheckReducible is not used.
+			// XXX: Currently %CheckReducible is not used. This should be safe
+			//	because only %ReductionStatus::Partial is the exception to be
+			//	set, which is not supported here.
 			return r == ReductionStatus::Retrying;
 		}) ? ReductionStatus::Retrying : res;
 	}
@@ -1632,20 +1764,6 @@ struct PassesCombiner
 */
 using EnvironmentList = vector<ValueObject>;
 
-
-/*!
-\brief 环境引用计数检查支持。
-\sa Environment
-\sa EnvironmentReference
-\since build 856
-
-若定义为 true ，则在 Environment 和 EnvironmentReference 启用引用计数检查支持。
-检查在 Environment 的析构函数进行，通过对锚对象剩余引用计数的来源计数判断正常状态。
-若引用计数来源都是 Environment 和 EnvironmentReference（而不是 TermReference ），
-	则表示正常；否则，使用 YTraceDe 输出错误消息。
-因为绑定析构顺序不确定，可能导致依赖不确定而误报；且对性能有影响。因此默认不启用。
-*/
-#define NPL_NPLA_CheckEnvironmentReferenceCount false
 
 /*!
 \brief 环境。
@@ -1666,52 +1784,7 @@ public:
 	名称解析的返回结果是环境中的绑定目标的对象指针和直接保存绑定目标的环境的引用。
 	*/
 	using NameResolution
-		= pair<observer_ptr<BindingMap::mapped_type>, lref<const Environment>>;
-	/*!
-	\brief 锚对象使用的共享数据。
-	\sa EnvironmentReference
-	\since build 856
-
-	共享数据仅被特定的引用访问。
-	此类引用访问假定 AnchorPtr 实际为 shared_ptr<AnchorValue>;
-	当前只有 EnvironmentReference 使用此类访问。
-	*/
-	struct AnchorValue final
-	{
-		friend class Environment;
-		friend class EnvironmentReference;
-
-#if NPL_NPLA_CheckEnvironmentReferenceCount
-	private:
-		//! \brief 环境引用计数。
-		mutable size_t env_count = 0;
-#endif
-
-	public:
-		DefDeCtor(AnchorValue)
-		DefDeCopyCtor(AnchorValue)
-
-		DefDeCopyAssignment(AnchorValue)
-
-#if NPL_NPLA_CheckEnvironmentReferenceCount
-	private:
-		/*!
-		\brief 转换为锚对象内部数据的引用。
-		\pre 断言：参数非空。
-		*/
-		static PDefH(const AnchorValue&, Access, const AnchorPtr& p) ynothrowv
-			ImplRet(YAssertNonnull(p),
-				NPL::Deref(YSLib::static_pointer_cast<const AnchorValue>(p)))
-
-		PDefH(void, AddReference, ) const ynothrow
-			ImplExpr(++env_count)
-
-		//! \pre 断言：引用计数大于 0 。
-		PDefH(void, RemoveReference, ) const ynothrowv
-			ImplExpr(YAssert(env_count > 0, "Invalid zero shared anchor count"
-				" for environments found."), --env_count)
-#endif
-	};
+		= pair<observer_ptr<BindingMap::mapped_type>, lref<Environment>>;
 	/*!
 	\brief 分配器类型。
 	\note 支持 uses-allocator 构造。
@@ -1719,37 +1792,6 @@ public:
 	*/
 	using allocator_type = BindingMap::allocator_type;
 
-private:
-	/*!
-	\brief 锚对象类型：提供被引用计数。
-	\since build 821
-	*/
-	struct SharedAnchor final
-	{
-		//! \since build 847
-		//@{
-		using allocator_type
-			= ystdex::rebind_alloc_t<Environment::allocator_type, AnchorValue>;
-
-		AnchorPtr Ptr;
-
-		SharedAnchor(allocator_type a)
-			: Ptr(YSLib::allocate_shared<AnchorValue>(a))
-		{}
-		//@}
-		SharedAnchor(SharedAnchor&& anc) ynothrow
-			: Ptr(anc.Ptr)
-		{}
-
-		//! \since build 847
-		PDefHOp(SharedAnchor&, =, SharedAnchor&& anc) ynothrow
-			ImplRet(ystdex::move_and_swap(*this, anc))
-
-		friend PDefH(void, swap, SharedAnchor& x, SharedAnchor& y) ynothrow
-			ImplRet(swap(x.Ptr, y.Ptr))
-	};
-
-public:
 	//! \since build 788
 	mutable BindingMap Bindings;
 	/*!
@@ -1777,7 +1819,7 @@ public:
 	不保证对循环重定向进行检查。
 	*/
 	function<NameResolution(string_view)> Resolve{
-		std::bind(DefaultResolve, std::cref(*this), std::placeholders::_1)};
+		std::bind(DefaultResolve, std::ref(*this), std::placeholders::_1)};
 	/*!
 	\brief 父环境：被解释的重定向目标。
 	\sa DefaultResolve
@@ -1788,9 +1830,9 @@ public:
 private:
 	/*!
 	\brief 锚对象指针：提供被引用计数。
-	\since build 821
+	\since build 869
 	*/
-	SharedAnchor anchor{Bindings.get_allocator()};
+	AnchorPtr p_anchor{InitAnchor()};
 
 public:
 	//! \since build 845
@@ -1852,13 +1894,12 @@ public:
 
 	PDefHOp(Environment&, =, const Environment& e) ynothrow
 		ImplRet(ystdex::copy_and_swap(*this, e))
-#if NPL_NPLA_CheckEnvironmentReferenceCount
 	/*!
-	\brief 析构：检查锚对象中的引用计数。
+	\brief 析构。
+	\note 可检查锚对象中的引用计数。
 	\since build 856
 	*/
 	~Environment();
-#endif
 
 	DefDeMoveAssignment(Environment)
 	//@}
@@ -1883,7 +1924,7 @@ public:
 	\brief 判断锚对象未被外部引用。
 	\since build 830
 	*/
-	DefPred(const ynothrow, Orphan, anchor.Ptr.use_count() == 1)
+	DefPred(const ynothrow, Orphan, p_anchor.use_count() == 1)
 
 	/*!
 	\brief 取名称绑定映射。
@@ -1894,13 +1935,12 @@ public:
 	\brief 取锚对象指针。
 	\since build 856
 	*/
-	DefGetter(const ynothrow, const AnchorPtr&, AnchorPtr, anchor.Ptr)
+	DefGetter(const ynothrow, const AnchorPtr&, AnchorPtr, p_anchor)
 	/*!
 	\brief 取锚对象指针的引用计数。
 	\since build 847
 	*/
-	DefGetter(const ynothrow, size_t, AnchorCount,
-		size_t(anchor.Ptr.use_count()))
+	DefGetter(const ynothrow, size_t, AnchorCount, size_t(p_anchor.use_count()))
 
 	//! \since build 852
 	template<typename _tKey, typename... _tParams>
@@ -1957,7 +1997,7 @@ public:
 	\sa Lookup
 	\sa Parent
 	\sa Resolve
-	\since build 821
+	\since build 869
 
 	按默认环境解析规则解析名称。
 	局部解析失败时，重定向解析 Parent 储存的对象作为父环境的引用值。
@@ -1965,7 +2005,6 @@ public:
 	重定向的候选目标是到有限个不同的环境。
 	支持的重定向项的宿主值的类型包括：
 	EnvironmentList ：环境列表；
-	observer_ptr<const Environment> 无所有权的重定向环境；
 	EnvironmentReference 可能具有共享所有权的重定向环境；
 	shared_ptr<Environment> 具有共享所有权的重定向环境。
 	若重定向可能具有共享所有权的失败，则表示资源访问错误，如构成循环引用；
@@ -1974,7 +2013,7 @@ public:
 	对列表，使用 DFS （深度优先搜索）依次递归检查其元素。
 	*/
 	YB_ATTR_nodiscard static NameResolution
-	DefaultResolve(const Environment&, string_view);
+	DefaultResolve(Environment&, string_view);
 	//@}
 
 	/*!
@@ -1999,6 +2038,15 @@ public:
 	void
 	DefineChecked(string_view, ValueObject&&);
 
+private:
+	/*!
+	\brief 初始化锚对象指针。
+	\since build 869
+	*/
+	YB_ATTR_nodiscard YB_PURE AnchorPtr
+	InitAnchor() const;
+
+public:
 	/*!
 	\brief 查找名称。
 	\return 查找到的名称，或查找失败时的空值。
@@ -2048,84 +2096,12 @@ public:
 	//! \since build 746
 	friend PDefH(void, swap, Environment& x, Environment& y) ynothrow
 		ImplExpr(swap(x.Bindings, y.Bindings), swap(x.Resolve, y.Resolve),
-			swap(x.Parent, y.Parent), swap(x.anchor, y.anchor))
+			swap(x.Parent, y.Parent), swap(x.p_anchor, y.p_anchor))
 };
 
 
 /*!
-\brief 环境引用。
-\since build 823
-
-可能共享所有权环境的引用。
-*/
-class YF_API EnvironmentReference
-	: private ystdex::equality_comparable<EnvironmentReference>
-{
-private:
-	weak_ptr<Environment> p_weak;
-	/*!
-	\brief 引用的锚对象指针。
-	\since build 847
-	*/
-	AnchorPtr p_anchor;
-
-public:
-	//! \brief 构造：使用指定的环境指针和此环境的锚对象指针。
-	EnvironmentReference(const shared_ptr<Environment>&);
-	/*!
-	\brief 构造：使用指定的环境指针和锚对象指针。
-	\pre 第二参数表示由环境提供的锚对象指针。
-	*/
-	template<typename _tParam1, typename _tParam2>
-	EnvironmentReference(_tParam1&& arg1, _tParam2&& arg2)
-		: p_weak(yforward(arg1)), p_anchor(yforward(arg2))
-	{
-#if NPL_NPLA_CheckEnvironmentReferenceCount
-		ReferenceEnvironmentAnchor();
-#endif
-	}
-#if NPL_NPLA_CheckEnvironmentReferenceCount
-	//! \since build 856
-	//@{
-	EnvironmentReference(const EnvironmentReference& env_ref)
-		: p_weak(env_ref.p_weak), p_anchor(env_ref.p_anchor)
-	{
-		ReferenceEnvironmentAnchor();
-	}
-	DefDeMoveCtor(EnvironmentReference)
-
-	~EnvironmentReference();
-
-	DefDeCopyAssignment(EnvironmentReference)
-	DefDeMoveAssignment(EnvironmentReference)
-	//@}
-#else
-	DefDeCopyMoveCtorAssignment(EnvironmentReference)
-#endif
-
-	//! \since build 824
-	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
-		const EnvironmentReference& x, const EnvironmentReference& y) ynothrow
-		ImplRet(x.p_weak.lock() == y.p_weak.lock())
-
-	//! \since build 847
-	DefGetter(const ynothrow, const AnchorPtr&, AnchorPtr, p_anchor)
-	DefGetter(const ynothrow, const weak_ptr<Environment>&, Ptr, p_weak)
-
-	PDefH(shared_ptr<Environment>, Lock, ) const ynothrow
-		ImplRet(p_weak.lock())
-#if NPL_NPLA_CheckEnvironmentReferenceCount
-
-private:
-	//! \since build 856
-	void
-	ReferenceEnvironmentAnchor();
-#endif
-};
-
-
-/*!
-\brief 规约函数类型：和绑定所有参数的求值遍的处理器等价。
+\brief 规约动作类型：和绑定所有参数的求值遍的处理器等价。
 \warning 假定转移不抛出异常。
 \since build 841
 */
@@ -2206,7 +2182,7 @@ public:
 	\sa ApplyTail
 	\since build 813
 	*/
-	ReductionStatus LastStatus = ReductionStatus::Clean;
+	ReductionStatus LastStatus = ReductionStatus::Neutral;
 	/*!
 	\brief 上下文日志追踪。
 	\since build 803

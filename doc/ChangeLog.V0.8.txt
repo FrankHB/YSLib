@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r15133
+\version r15362
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-10-03 22:22 +0800
+	2019-10-24 23:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,236 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA $=
+		(
+			(
+			+ "enuerator %Neutral" @ "enum %ReductionStatus";
+			/ "supported %ReductionStatus::Neutral" @ "%CheckReducible";
+			+ "function %ReduceForwarded",
+			/ "returned %ReductionStatus::Neutral" ~ "%ReductionStatus::Clean"
+				@ "function %ReduceHeadEmptyList" $dep_to
+				"avoided clean reduction overriding",
+			/ ("default %ReductionStatus value" @ "struct %PassesCombiner",
+				"default value" @ "%ContextNode::LastStatus")
+				-> "%ReductionStatus::Neutral" ~ "%ReductionStatus::Clean"
+			),
+			/ "returned %ReductionStatus::Regular for empty lists"
+				~ "%ReductionStatus::Clean"
+				@ "functions %(ReduceToList, ReduceToListValue)",
+			- $revert(b769) "function %CheckNorm" $dep_from
+				("%EvaluateIdentifier" @ %NPLA1),
+			* $lib "missing support to irregular representation for references \
+				to reference with irregular representation"
+				@ "function %ReduceForLiftedResult" $since b858
+				// This is still compatible because the values of the \
+					enumerators %ReductionStatus::Regular and \
+					%ReductionStatus::Retained are equal, thus the results \
+					cannot be distinguished by the call sites.
+				$= (/ "return value %ReductionStatus::Regular"
+					-> "%ReductionStatus::Retained"),
+			+ "function %IsOverridableReductionResult",
+			/ @ "function %CombineReductionResult" $=
+			(
+				/ $lib "%YB_PURE" -> "%YB_STATELESS",
+				(
+				/ $impl "simplified" ^ "%IsOverridableReductionResult"
+					$dep_from "avoided clean reduction overriding",
+				/ $comp "allowed %ReductionStatus::Clean in the result"
+					@ "function %CombineReductionResult"
+				)
+			),
+			/ DLI "encoded %ReductionStatus enumerators explicitly",
+				// This is still in 'yimpl' to be implementation details. \
+					However, current implemenation has already relies on the \
+					underlying code to be more efficient, e.g. in \
+					%IsOverridableReductionResult and %CheckReducible above.
+			/ DLDI "reordered declaration of enum %ReductionStatus",
+				// To be consistent with %Documentation.NPL.
+			/ @ "class %Environment" $=
+			(
+				(
+				/ "use of struct %AnchorValue" @ "anchor" -> "private data";
+				- $revert(b849) "struct %AnchorValue"
+				),
+				+ $re_add(b856) DLI "out-of-line destructor"
+					!@ 'NPL_NPLA_CheckEnvironmentReferenceCount',
+					// This is defaulted and it is good for performance.
+				/ DLI "simplified shared anchor",
+				/ @ "static function %DefaultResolve" $=
+				(
+					* "exception message" $since b853,
+					- "support of %observer_ptr<const Environment> as the \
+						environment host type" $dep_to
+						"removal of internal environment host type support",
+					- $forced 'const' @ "supported environment types"
+						@ "function %DefaultResolve" $dep_from "%NameResolution"
+						$dep_to "removal of const requirements for \
+							default name resolutions"
+				),
+				- 'const' @ "type %NameResolution" $dep_from
+					"removal of internal environment host type support",
+				/ $forced DLI "braced-init-list" @ "%Resolve" $dep_from
+					"removal of const requirements for default name resolutions"
+			),
+			(
+			+ "defaulted default constructor %EnvironmentReference";
+			/ DLDI "function %LiftToReference"
+				^ "explicit 'EnvironmentReference()'"
+			),
+			(
+			+ DLDI "class name declaration %Environment";
+			/ DLDI "reordered definition" @ "class %EnvironmentReference";
+			/ "supported tracing environment reference" @ "%TermReference"
+				^ "%EnvironmentReference" ~ "%AnchorPtr" $=
+			(
+				- $revert(b857) "2 constructors without trailing parameters"
+					$dep_from "function %LiftToReference";
+					// Now empty environment references would not be \
+						implicitly introduced.
+				/ "saved %EnvironmentReference" ~ "%AnchorPtr";
+				/ $forced "constructors",
+				+ "function %GetEnvironmentReference"
+			)
+			),
+			(
+			/ $forced "2nd parameter type" @ "function %PrepareCollapse"
+				^ 'Environment&' ~ 'const AnchorPtr&' $dep_from
+				"constructors %TermReference";
+			/ $forced "supported tracing environment reference"
+				@ "function %ResolveIdentifier"
+				$= (/ $impl $dep_from "%Environment::NameResolution");
+			/ "enabled %NPL_NPLA_CheckEnvironmentReferenceCount as %true"
+				@ '!defined(NDEBUG)'
+				$dep_all_from "NPLA1 tracing environment reference support"
+				// Now term references are also traced to get correct weak \
+					counts.
+			),
+			+ "function %IsUncollapsedTerm"
+		),
+		/ %NPLA1 $=
+		(
+			/ "function %ReduceOnce" $=
+			(
+				/ DLDI "simplified" !^ 'else',
+				/ DLI "default internal %ReductionStatus value"
+					-> (($dep_from "%ReductionStatus::Neutral"
+					~ "%ReductionStatus::Partial") @ %NPLA)
+					// The default value is chosen to be consistent with \
+						%NPL::PassesCombiner now.
+				* "%ReductionStatus::Retained wrongly set at the last \
+					asynchrnous pass call" $since b841
+					$= (/ ^ (($dep_from "%ReductionStatus::Neutral"
+						~ "%ReductionStatus::Retained") @ %NPLA)),
+					// In the call of %CombineSequenceReductionResult, the \
+						result would wrongly override %ReductionStatus::Clean \
+						returned by previous passes and the setting of \
+						%ReductionStatus::Clean (if any) returned by the last \
+						pass would have no effect.
+				/ "returned %ReductionStatus::Regular for regular values"
+					~ "%ReductionStatus::Clean"
+			),
+			/ $lib "normal path return value" @ "function %EvaluateIdentifier"
+				^ (($dep_from "%ReductionStatus::Neutral" ~ "%CheckNorm")
+				@ %NPLA) $dep_from ("%CheckReducible" @ %NPLA),
+				// The regularization would be redundant for normal cases.
+			/ DLDI "simplified internal %NPL::Deref calls",
+				// If the size is known (e.g. from the call of %RetainN), \
+					there is no need to call %NPL::Deref in the same \
+					procedure. Otherwise, it is better needed.
+			(
+			+ "function %ReduceAgainLifted";
+			/ DLDI "simplified functions %(Forms::(If, Cond, Or, And), \
+				ReduceOrdered)"
+			),
+			/ @ "namespace %Forms" $=
+			(
+				/ "simplified functions %(First, FirstVal, CheckEnvironment)"
+					^ $dep_from ("%ReducedForwarded" @ %NPLA)
+				/ $forced "supported tracing environment reference"
+					@ "function %(FirstRef, FirstRefAt, \
+					MakeEncapsulationType, Unwrap, WrapRef)" $dep_from
+					("constructors %TermReference" @ %NPLA)
+					$dep_to "NPLA1 tracing environment reference support"
+					$= (/ $impl ^ $dep_from
+						("%TermReference::GetEnvironmentReference" @ %NPLA)),
+				(
+				/ "parameter types" @ "function %MatchParameter"
+					-> 'Environment&' ~ 'const AnchorPtr&';
+				/ $forced $impl "supported tracing environment reference"
+					@ "function %BindParameter"
+					$dep_to "NPLA1 tracing environment reference support"
+				),
+				/ DLI "moved %TermReference term" @ "function %SetFirstRef"
+			),
+			/ $lib "returned %ReductionStatus::Regular for leaf term"
+				~ "%ReductionStatus::Retained" @ "function %ReduceFirst"
+		),
+		/ %Dependency $=
+		(
+			/ @ "function %LoadGroundContext" $=
+			(
+				/ $re_add(b868) DLI
+					"optimized derivation" @ "applicative %accl",
+				/ DLDI "native derivation" @ "applicative %idv"
+					^ "%ReduceForLiftedResult" ~ "%LiftToReturn",
+				/ DLI "native derivation" @ "applicative %id"
+					^ 'YB_ATTR_LAMBDA(const)',
+				/ DLI "native derivation" @ "applicative %forward" ^ (($dep_from
+					"%ReduceForwarded" ~ "%LiftRValueToReturn") @ %NPLA),
+					// This now has %ReductionStatus::Neutral if the value is \
+						not lifted.
+				/ DLDI "native derivation" @ "applicative %deshare"
+				* $lib $impl "missing previous derivation of applicative \
+					'first@' for internal use" @ "alternative derivation"
+					@ "applicatives ('set-first!', 'set-first%!', \
+					'set-first@!')" $since b859
+					$= (/ "derivation order of 'first@'"),
+					// This should be not observable in the user code because \
+						the missing derivation is defined later again.
+				* $lib $impl "missing previous derivation of applicatives \
+					('rest&', 'rest%') for internal use"
+					@ "alternative derivation" @ "operatives ('$and?', '$or?')"
+					$since b860,
+					// Ditto.
+				/ "applicative %move" => 'move!',
+				+ "applicative 'uncollapsed?'"
+					^ $dep_from ("%IsUncollapsedTerm" @ %NPLA),
+				+ "applicative %collapse",
+				/ DLDI "simplified applicative 'assign%!'"
+					// By sharing implementation with applicative %collapse.
+			),
+			/ @ "native derivations" @ "function %LoadModule_std_strings" $=
+			(
+				/ DLDI "simplified variable names"
+					@ "applicative 'string<-'",
+				+ DLDI 'ynothrow' @ "lambda-expression"
+					@ "applicative 'string-contains-ci?'" 
+			)
+		),
+		/ DLDI "renamed internal 'TermNode&' parameter names" $effective
+			@ ("functions %Forms::(CheckEnvironment, 'Eval*', 'First*', \
+			MatchParameter, MakeEncapsulationType, 'SetFirst*', 'SetRest*')"
+			@ %NPLA1, "functions %(LoadGroundContext, LoadModule_std_strings)"
+			@ %Dependency)
+			// To make the use of term names more consistent. This is mainly \
+				for preventing 'TermNode& tm' used as a resolved node from \
+				term (while 'tm' is still remained in the parameters of public \
+				APIs). Other results including terms named as 'x' and 'y', \
+				resolved terms like 'nd_x' and 'nd_y', direct term operand for \
+				binary operands like 'dst' and 'src', and the string \
+				parameters prefixed with 'str'.
+	),
+	/ $dev $lib "poisoned unsafe functions not friendly to environment \
+		stability or dangerous to environments except \
+		'lock-current-environment'" @ "%SHBuild-YSLib-common.txt"
+		@ %Tools.Scripts $dep_from ("applicative %move"
+		@ "function %LoadGroundContext" %YFramework.NPL.Dependency)
+),
+
+b868
 (
 	/ DLDI "removed redundant captures" @ "lambda-expressions"
 		@ ("constructor %SettingPanel" @ %ReaderSettingUI,

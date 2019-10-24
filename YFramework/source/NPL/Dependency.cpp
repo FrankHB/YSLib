@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2922
+\version r2988
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2019-10-03 19:40 +0800
+	2019-10-24 21:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,6 @@
 //	ystdex::bind1, NPL::IsMovable, NPL::TryAccessReferencedTerm, ystdex::plus,
 //	std::placeholders, NPL::ResolveRegular, ystdex::tolower,
 //	ystdex::swap_dependent, NPL::Forms functions;
-#include YFM_NPL_SContext
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
 //	ystdex::make_transform;
@@ -222,6 +221,16 @@ LoadSequenceSeparators(EvaluationPasses& passes)
 	RegisterSequenceContextTransformer(passes, TokenValue(","));
 }
 
+//! \since build 869
+void
+LiftTermCollapsed(TermNode& term, TermNode& tm)
+{
+	if(const auto p = NPL::TryAccessLeaf<TermReference>(tm))
+		LiftCollapsed(term, tm, *p);
+	else
+		LiftTerm(term, tm);
+}
+
 //! \since build 794
 //@{
 void
@@ -284,15 +293,14 @@ CopyEnvironment(TermNode& term, ContextNode& ctx)
 }
 //@}
 
-//! \since build 854
+//! \since build 869
 template<typename _func>
 YB_ATTR_nodiscard ReductionStatus
 DoIdFunc(_func f, TermNode& term)
 {
 	RetainN(term);
 	LiftTerm(term, NPL::Deref(std::next(term.begin())));
-	f(term);
-	return ReductionStatus::Retained;
+	return f(term);
 }
 
 //! \since build 859
@@ -424,9 +432,10 @@ LoadObjects(ContextNode& ctx)
 	RegisterStrictUnary(ctx, "null?", ComposeReferencedTermOp(IsEmpty));
 	RegisterStrictUnary(ctx, "nullv?", IsEmpty);
 	RegisterStrictUnary(ctx, "reference?", IsReferenceTerm);
+	RegisterStrictUnary(ctx, "uncollapsed?", IsUncollapsedTerm);
 	RegisterStrictUnary(ctx, "lvalue?", IsLValueTerm);
 	RegisterStrictUnary(ctx, "unique?", IsUniqueTerm);
-	RegisterStrict(ctx, "move", [](TermNode& term){
+	RegisterStrict(ctx, "move!", [](TermNode& term){
 		RetainN(term);
 		ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
 			// NOTE: Force move. No %IsMovable check is needed.
@@ -436,25 +445,21 @@ LoadObjects(ContextNode& ctx)
 		return ReduceForLiftedResult(term);
 	});
 	RegisterStrict(ctx, "deshare", [](TermNode& term){
-		return DoIdFunc([](TermNode& t){
-			if(const auto p = NPL::TryAccessLeaf<const TermReference>(t))
-				LiftTermRef(t, p->get());
-			NPL::SetContentWith(t, std::move(t), &ValueObject::MakeMoveCopy);
+		return DoIdFunc([](TermNode& nd){
+			if(const auto p = NPL::TryAccessLeaf<const TermReference>(nd))
+				LiftTermRef(nd, p->get());
+			NPL::SetContentWith(nd, std::move(nd), &ValueObject::MakeMoveCopy);
+			return ReductionStatus::Retained;
 		}, term);
 	});
 	RegisterStrict(ctx, "ref&", [](TermNode& term){
-		CallUnary([&](TermNode& tm){
-			LiftToReference(term, tm);
+		CallUnary([&](TermNode& nd){
+			LiftToReference(term, nd);
 		}, term);
 		return ReductionStatus::Retained;
 	});
 	RegisterStrictBinary(ctx, "assign%!", [](TermNode& x, TermNode& y){
-		return DoAssign([&](TermNode& nd){
-			if(const auto p = NPL::TryAccessLeaf<TermReference>(y))
-				LiftCollapsed(nd, y, *p);
-			else
-				LiftTerm(nd, y);
-		}, x);
+		return DoAssign(ystdex::bind1(LiftTermCollapsed, std::ref(y)), x);
 	});
 	RegisterStrictBinary(ctx, "assign@!", [](TermNode& x, TermNode& y){
 		return DoAssign(ystdex::bind1(static_cast<void(&)(TermNode&,
@@ -587,12 +592,14 @@ LoadGroundedDerived(REPLContext& context)
 #if NPL_Impl_NPLA1_Native_Forms
 
 	const auto idv([](TermNode& term){
-		return DoIdFunc(LiftToReturn, term);
+		return DoIdFunc(ReduceForLiftedResult, term);
 	});
 
 	RegisterForm(renv, "$quote", idv);
 	RegisterStrict(renv, "id", [](TermNode& term){
-		return DoIdFunc([](TermNode&) ynothrow{}, term);
+		return DoIdFunc([](TermNode&) YB_ATTR_LAMBDA(const) ynothrow{
+			return ReductionStatus::Retained;
+		}, term);
 	});
 	RegisterStrict(renv, "idv", idv);
 	RegisterStrict(renv, "list", ReduceBranchToListValue);
@@ -606,13 +613,19 @@ LoadGroundedDerived(REPLContext& context)
 	RegisterForm(renv, "$lambda%", LambdaRef);
 	// NOTE: The sequence operator is also available as infix ';' syntax sugar.
 	RegisterForm(renv, "$sequence", Sequence);
+	RegisterStrict(renv, "collapse", [](TermNode& term){
+		return DoIdFunc([&](TermNode& nd){
+			LiftTermCollapsed(term, nd);
+			return ReductionStatus::Retained;
+		}, term);
+	});
 	RegisterStrict(renv, "forward", [](TermNode& term){
-		return DoIdFunc(LiftRValueToReturn, term);
+		return DoIdFunc(ReduceForwarded, term);
 	});
 	RegisterStrictBinary(renv, "assign!", [](TermNode& x, TermNode& y){
-		return DoAssign([&](TermNode& nd){
-			ResolveTerm([&](TermNode& tm, ResolvedTermReferencePtr p_ref){
-				LiftTermOrCopy(nd, tm, NPL::IsMovable(p_ref));
+		return DoAssign([&](TermNode& nd_x){
+			ResolveTerm([&](TermNode& nd_y, ResolvedTermReferencePtr p_ref_y){
+				LiftTermOrCopy(nd_x, nd_y, NPL::IsMovable(p_ref_y));
 			}, y);
 		}, x);
 	});
@@ -699,7 +712,8 @@ LoadGroundedDerived(REPLContext& context)
 	)NPL");
 #	endif
 	// XXX: The operatives '$defl!', '$defl%!', and '$defv%!', as well as the
-	//	applicative 'first@' are same to following derivations in %LoadCore.
+	//	applicatives 'rest&', 'rest%' are same to following derivations in
+	//	%LoadCore.
 	// NOTE: Use of 'eql?' is more efficient than '$if'.
 	context.Perform(R"NPL(
 		$def! $sequence
@@ -716,11 +730,14 @@ LoadGroundedDerived(REPLContext& context)
 			eval (list $set! d f $lambda formals body) d;
 		$defv! $defl%! (&f &formals .&body) d
 			eval (list $set! d f $lambda% formals body) d;
+		$defl%! collapse (%x)
+			$if (uncollapsed? ((unwrap resolve-identifier) x)) (idv x) x;
 		$defl%! forward (%x)
 			$if (lvalue? ((unwrap resolve-identifier) x)) x (idv x);
 		$defl! assign! (&x &y) assign%! (forward x) (idv y);
+		$defl%! first@ (&l) ($lambda% ((@x .)) x) (check-list-reference l);
 		$defl! set-first! (&l x)
-			assign@! (first@ (check-list-reference l)) (move x);
+			assign@! (first@ (check-list-reference l)) (move! x);
 		$defl! set-first%! (&l &x)
 			assign%! (first@ (check-list-reference l)) (forward x);
 		$defl! set-first@! (&l &x)
@@ -729,8 +746,9 @@ LoadGroundedDerived(REPLContext& context)
 			($lambda% ((&x .))
 				($if (lvalue? ((unwrap resolve-identifier) l)) id forward) x) l;
 		$defl%! first& (&l) ($lambda% ((&x .)) x) (check-list-reference l);
-		$defl%! first@ (&l) ($lambda% ((@x .)) x) (check-list-reference l);
 		$defl! firstv ((&x .)) x;
+		$defl! rest& (&l) ($lambda ((#ignore .&x)) x) (check-list-reference l);
+		$defl! rest% ((#ignore .%x)) x;
 		$defl%! check-environment (&e)
 			$sequence ($vau/e% e . #ignore) (forward e);
 		$defl%! apply (&appv &arg .&opt)
@@ -827,11 +845,10 @@ LoadCore(REPLContext& context)
 		$defl! box (&x) box% x;
 		$defl! first-null? (&l) null? (first l);
 		$defl! list-rest% (&x) list% (rest% x);
-		$defl%! accl (&l &pred? &base &head &tail &sum) $sequence
-			($defl%! aux (&l &base) $if (pred? l) (forward base)
-				(aux (tail (forward l)) (sum (head (forward l))
-					(forward base))))
-			(aux (forward l) (forward base));
+		$defl%! accl (&l &pred? &base &head &tail &sum) $if (pred? l)
+			(forward base)
+			(accl (tail (forward l)) (forward pred?) (sum (head (forward l))
+				(forward base)) (forward head) (forward tail) (forward sum));
 		$defl%! accr (&l &pred? &base &head &tail &sum) $if (pred? l)
 			(forward base)
 			(sum (head (forward l)) (accr (tail (forward l)) (forward pred?)
@@ -1021,15 +1038,16 @@ LoadModule_std_strings(REPLContext& context)
 		ResolveTerm([&](TermNode& nd_x, ResolvedTermReferencePtr p_ref_x){
 			if(!p_ref_x || p_ref_x->IsModifiable())
 			{
-				auto& sx(NPL::AccessRegular<string>(nd_x, p_ref_x));
+				auto& str_x(NPL::AccessRegular<string>(nd_x, p_ref_x));
 
-				ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
-					auto& sy(NPL::AccessRegular<string>(nd, p_ref));
+				ResolveTerm(
+					[&](TermNode& nd_y, ResolvedTermReferencePtr p_ref_y){
+					auto& str_y(NPL::AccessRegular<string>(nd_y, p_ref_y));
 
-					if(NPL::IsMovable(p_ref))
-						sx = std::move(sy);
+					if(NPL::IsMovable(p_ref_y))
+						str_x = std::move(str_y);
 					else
-						sx = sy;
+						str_x = str_y;
 				}, y);
 			}
 			else
@@ -1040,8 +1058,8 @@ LoadModule_std_strings(REPLContext& context)
 	RegisterStrictBinary<string, string>(renv, "string-contains-ci?",
 		[](string x, string y){
 		// TODO: Extract 'strlwr'.
-		const auto to_lwr([](string& s){
-			for(auto& c : s)
+		const auto to_lwr([](string& str) ynothrow{
+			for(auto& c : str)
 				c = ystdex::tolower(c);
 		});
 
