@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016, 2018 FrankHB.
+	© 2015-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file range.hpp
 \ingroup YStandardEx
 \brief 范围操作。
-\version r925
+\version r933
 \author FrankHB <frankhb1989@gmail.com>
 \since build 624
 \par 创建时间:
 	2015-08-18 22:33:54 +0800
 \par 修改时间:
-	2018-11-16 18:59 +0800
+	2019-11-04 17:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,12 +35,12 @@
 //	instead.
 
 /*!
-\brief \<iterator\> 特性测试宏。
+\brief \c \<iterator> 特性测试宏。
 \see WG21 P0941R2 2.2 。
 */
 //@{
 /*!
-\see P0031R0 。
+\see WG21 P0031R0 。
 \since build 834
 */
 //@{
@@ -100,8 +100,8 @@ inline namespace cpp2017
 //	adopted by WG21 N3936, it is effective since ISO C++14.
 // NOTE: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=86734.
 // XXX: Assume non-GCC would not use libstdc++ old branch earlier for GCC 6.
-#if __cplusplus >= 201703L && !YB_IMPL_MSCPP && !(__GLIBCXX__ && \
-	(__GLIBCXX__ <= 20180808 || YB_IMPL_GNUCPP < 60800))
+#if __cplusplus >= 201703L && !YB_IMPL_MSCPP \
+	&& !(__GLIBCXX__ && (__GLIBCXX__ <= 20180808 || YB_IMPL_GNUCPP < 60800))
 #	define YB_Use_std_reverse_iterator true
 #endif
 #if YB_Use_std_reverse_iterator
@@ -365,8 +365,8 @@ end(_type(&array)[_vN]) ynothrow
 } // inline namespace cpp2017;
 
 /*!
+\ingroup YBase_replacement_features
 \since build 833
-\note YStandardEx 扩展。
 */
 //@{
 //! \since build 664
@@ -604,7 +604,7 @@ data(std::initializer_list<_tElem> il) ynothrow
 
 } // inline namespace cpp2017;
 
-//! \note YStandardEx 扩展。
+//! \ingroup YBase_replacement_features
 template<typename _type, size_t _vN>
 yconstfn _type*
 data(_type(&&array)[_vN]) ynothrow

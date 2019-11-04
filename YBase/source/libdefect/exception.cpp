@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2018 FrankHB.
+	© 2014-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,14 +10,14 @@
 
 /*!	\file exception.cpp
 \ingroup LibDefect
-\brief 标准库实现 \c \<exception\> 修正。
-\version r632
+\brief 标准库实现 \c \<exception> 修正。
+\version r657
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-01 11:00:14 +0800
 \par 修改时间:
-	2018-10-19 03:34 +0800
+	2019-11-03 14:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -187,24 +187,24 @@ __GXX_INIT_DEPENDENT_EXCEPTION_CLASS(_Unwind_Exception_Class c)
 }
 #	else
 const _Unwind_Exception_Class __gxx_primary_exception_class
-	= (((((((_Unwind_Exception_Class('G')
-	<< 8 | _Unwind_Exception_Class('N'))
-	<< 8 | _Unwind_Exception_Class('U'))
-	<< 8 | _Unwind_Exception_Class('C'))
-	<< 8 | _Unwind_Exception_Class('C'))
-	<< 8 | _Unwind_Exception_Class('+'))
-	<< 8 | _Unwind_Exception_Class('+'))
-	<< 8 | _Unwind_Exception_Class('\0'));
+	= (((((((_Unwind_Exception_Class('G') << 8
+	| _Unwind_Exception_Class('N')) << 8
+	| _Unwind_Exception_Class('U')) << 8
+	| _Unwind_Exception_Class('C')) << 8
+	| _Unwind_Exception_Class('C')) << 8
+	| _Unwind_Exception_Class('+')) << 8
+	| _Unwind_Exception_Class('+')) << 8
+	| _Unwind_Exception_Class('\0'));
 
 const _Unwind_Exception_Class __gxx_dependent_exception_class
-	= (((((((_Unwind_Exception_Class('G')
-	<< 8 | _Unwind_Exception_Class('N'))
-	<< 8 | _Unwind_Exception_Class('U'))
-	<< 8 | _Unwind_Exception_Class('C'))
-	<< 8 | _Unwind_Exception_Class('C'))
-	<< 8 | _Unwind_Exception_Class('+'))
-	<< 8 | _Unwind_Exception_Class('+'))
-	<< 8 | _Unwind_Exception_Class('\x01'));
+	= (((((((_Unwind_Exception_Class('G') << 8
+	| _Unwind_Exception_Class('N')) << 8
+	| _Unwind_Exception_Class('U')) << 8
+	| _Unwind_Exception_Class('C')) << 8
+	| _Unwind_Exception_Class('C')) << 8
+	| _Unwind_Exception_Class('+')) << 8
+	| _Unwind_Exception_Class('+')) << 8
+	| _Unwind_Exception_Class('\x01'));
 
 inline bool
 __is_gxx_exception_class(_Unwind_Exception_Class c)
@@ -273,8 +273,10 @@ static_assert(adjptr<__cxa_exception>()
 	" consistent with __cxa_exception::adjustedPtr");
 #	endif
 
-// FIXME: For platforms with threading but no atomic builtins, e.g. Android
-//	ARMv5.
+// NOTE: On platforms with threading but no atomic builtins, e.g. Android ARMv5,
+//	atomic builtins should be supported via libatomic. This following code are
+//	for exposition only.
+#	if false
 #	if !_GLIBCXX_HAS_GTHREADS || __clang__
 template<typename _type>
 inline _type
@@ -293,6 +295,7 @@ __atomic_sub_fetch_(_type* ptr, _type val, int)
 }
 #		define __atomic_add_fetch __atomic_add_fetch_
 #		define __atomic_sub_fetch __atomic_sub_fetch_
+#	endif
 #	endif
 
 void
@@ -322,12 +325,10 @@ __gxx_exception_cleanup(_Unwind_Reason_Code code, _Unwind_Exception* exc)
 
 	if(code != _URC_FOREIGN_EXCEPTION_CAUGHT && code != _URC_NO_REASON)
 		__terminate(header->exc.terminateHandler);
-
 	if(__atomic_sub_fetch(&header->referenceCount, 1, __ATOMIC_ACQ_REL) == 0)
 	{
 		if(header->exc.exceptionDestructor)
 			header->exc.exceptionDestructor(header + 1);
-
 		__cxa_free_exception(header + 1);
 	}
 }
@@ -471,8 +472,8 @@ current_exception() noexcept
 {
 	const auto header(__cxa_get_globals()->caughtExceptions);
 
-	return header && __is_gxx_exception_class(
-		header->unwindHeader.exception_class)
+	return header
+		&& __is_gxx_exception_class(header->unwindHeader.exception_class)
 		? exception_ptr(__get_object_from_ambiguous_exception(header))
 		: exception_ptr();
 }

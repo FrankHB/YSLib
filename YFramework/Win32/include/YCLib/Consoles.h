@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 控制台。
-\version r306
+\version r309
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2013-05-09 11:01:12 +0800
 \par 修改时间:
-	2016-07-25 10:25 +0800
+	2019-11-04 17:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,14 +63,14 @@ FixConsoleHandler(int(WINAPI*)(unsigned long) = {}, bool = true);
 
 
 /*!
-\build Windows 控制台对象。
+\brief Windows 控制台对象。
 \since build 304
 */
 class YF_API WConsole
 {
 public:
 	/*!
-	\build Windows 控制台文本样式。
+	\brief Windows 控制台文本样式。
 	\since build 519
 	*/
 	enum Style

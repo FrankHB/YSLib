@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015, 2018 FrankHB.
+	© 2011-2015, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1912
+\version r1915
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2018-11-29 21:55 +0800
+	2019-11-04 17:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,7 @@ static_assert(std::is_signed<SPos>(),
 static_assert(std::is_unsigned<SDst>(),
 	"Only unsigned integer is supported for screen destination measurement.");
 static_assert(ystdex::integer_width<SDst>() >= ystdex::integer_width<SPos>(),
-	"Max value of screen destination shall be grater than max value of screen"
+	"Max value of screen destination shall be greater than max value of screen"
 	" position.");
 //@}
 
@@ -115,7 +115,7 @@ enum ABGR : size_t
 //! \ingroup traits
 //@{
 /*!
-\breif 逻辑分量值特征。
+\brief 逻辑分量值特征。
 \note A 表示 Alpha 通道分量， X 、 Y 和 Z 表示颜色分量。
 \note 模板参数为位段特征及各个逻辑分量在位段特征中的存储索引。
 \sa ystdex::bitseg_traits

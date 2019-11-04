@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2018 FrankHB.
+	© 2010-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Reference.h
 \ingroup YCLib
 \brief 指针和引用访问操作模块。
-\version r2847
+\version r2850
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-03-21 23:09:06 +0800
 \par 修改时间:
-	2018-12-30 22:46 +0800
+	2019-11-04 18:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,8 +58,6 @@ using yimpl(std)::get_deleter;
 using ystdex::get_raw;
 //! \since build 669
 using yimpl(ystdex)::make_observer;
-//! \since build 529
-using yimpl(std)::make_shared;
 //! \since build 298
 using ystdex::make_shared;
 //! \since build 292

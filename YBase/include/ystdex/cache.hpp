@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018 FrankHB.
+	© 2013-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cache.hpp
 \ingroup YStandardEx
 \brief 高速缓冲容器模板。
-\version r578
+\version r594
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-12-22 20:19:14 +0800
 \par 修改时间:
-	2018-08-13 10:27 +0800
+	2019-11-04 18:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,12 @@
 #ifndef YB_INC_ystdex_cache_hpp_
 #define YB_INC_ystdex_cache_hpp_ 1
 
-#include "memory.hpp" // for std::pair, yassume, allocator_traits, are_same;
+#include "memory.hpp" // for std::pair, yassume, allocator_traits, are_same,
+//	rebind_alloc_t;
 #include <list> // for std::list;
 #include <unordered_map> // for std::unordered_map;
 #include <map> // for std::map;
+#include "function.hpp" // for function;
 #include <stdexcept> // for std::runtime_error;
 
 namespace ystdex
@@ -48,6 +50,10 @@ template<typename _tKey, typename _tMapped,
 class recent_used_list : private std::list<std::pair<const _tKey, _tMapped>>
 {
 public:
+	/*!
+	\brief 分配器类型。
+	\note 支持 uses-allocator 构造。
+	*/
 	using allocator_type = _tAlloc;
 	using value_type = std::pair<const _tKey, _tMapped>;
 	using list_type = std::list<value_type>;
@@ -141,9 +147,8 @@ struct used_list_cache_traits
 		std::equal_to<_tKey>, _tAlloc>;
 	using used_list_type = _tList;
 	using used_cache_type = std::unordered_map<_tKey, typename _tList::iterator,
-		_fHash, typename map_type::key_equal,
-		typename allocator_traits<_tAlloc>::template
-		rebind_alloc<std::pair<const _tKey, typename _tList::iterator>>>;
+		_fHash, typename map_type::key_equal, rebind_alloc_t<_tAlloc,
+		std::pair<const _tKey, typename _tList::iterator>>>;
 };
 
 template<typename _tKey, typename _tMapped, class _tAlloc, class _tList>
@@ -152,9 +157,8 @@ struct used_list_cache_traits<_tKey, _tMapped, void, _tAlloc, _tList>
 	using map_type = std::map<_tKey, _tMapped, std::less<_tKey>, _tAlloc>;
 	using used_list_type = _tList;
 	using used_cache_type = std::map<_tKey, typename _tList::iterator,
-		typename map_type::key_compare,
-		typename allocator_traits<_tAlloc>::template
-		rebind_alloc<std::pair<const _tKey, typename _tList::iterator>>>;
+		typename map_type::key_compare, rebind_alloc_t<_tAlloc,
+		std::pair<const _tKey, typename _tList::iterator>>>;
 };
 //@}
 
@@ -198,8 +202,8 @@ private:
 	size_type max_use;
 
 public:
-	//! \since build 604
-	std::function<void(value_type&)> flush{};
+	//! \since build 870
+	function<void(value_type&)> flush{};
 
 	explicit
 	used_list_cache(size_type s = yimpl(15U))

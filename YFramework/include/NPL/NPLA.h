@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r6368
+\version r6383
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2019-10-24 16:13 +0800
+	2019-11-02 21:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1519,6 +1519,18 @@ YF_API void
 LiftCollapsed(TermNode&, TermNode&, TermReference);
 
 /*!
+\brief 提升折叠后的项。
+\sa LiftCollapsed
+\sa LiftTerm
+\since build 870
+
+按参数指定的项提升折叠的项。参数分别为目标和源。
+当源是引用项时，调用 LiftCollapse 提升其中的引用，否则同 LiftTerm 。
+*/
+YF_API void
+LiftCollapsedTerm(TermNode&, TermNode&);
+
+/*!
 \warning 引入的间接值无所有权，应注意在生存期内使用以保证内存安全。
 \since build 800
 \todo 支持消亡值和复制。
@@ -1927,11 +1939,6 @@ public:
 	DefPred(const ynothrow, Orphan, p_anchor.use_count() == 1)
 
 	/*!
-	\brief 取名称绑定映射。
-	\since build 788
-	*/
-	DefGetter(const ynothrow, BindingMap&, MapRef, Bindings)
-	/*!
 	\brief 取锚对象指针。
 	\since build 856
 	*/
@@ -1941,6 +1948,11 @@ public:
 	\since build 847
 	*/
 	DefGetter(const ynothrow, size_t, AnchorCount, size_t(p_anchor.use_count()))
+	/*!
+	\brief 取名称绑定映射。
+	\since build 788
+	*/
+	DefGetter(const ynothrow, BindingMap&, MapRef, Bindings)
 
 	//! \since build 852
 	template<typename _tKey, typename... _tParams>

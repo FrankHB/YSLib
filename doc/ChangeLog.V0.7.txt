@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r8210
+\version r8223
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2019-02-22 14:28 +0800
+	2019-11-04 17:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -824,7 +824,7 @@ b789
 				~ "%weak_ptr<Environment>"
 		)
 	),
-	* DD "'\ingroup' command" @ "Doxygen comments" @ "metafunction \
+	* DD "'\ingroup' command" @ "Doxygen comment" @ "metafunction \
 		%enable_if_transparent_t" @ %YBase.YStandardEx.Functor $since b679
 ),
 
@@ -1156,7 +1156,7 @@ b785
 					^ (('&ValueObject::MakeMoveCopy', "%MakeMoveCopy") $dep_from
 					%YSLib.Core.YObject) ~ "%IValueHolder::Copy"
 			),
-			+ DD "'\warning' command" @ "Doxygen comments"
+			+ DD "'\warning' command" @ "Doxygen comment"
 				@ "function %ReferenceValue" @ %NPLA
 		),
 		/ %YSLib.Core.YObject $=
@@ -1390,8 +1390,8 @@ b782
 				)
 			)
 		),
-		* $doc "wrong '\t'" @ "'\pre' command" @ "Doxygen comment"
-			@ "member function %c::operator[]"
+		* DD "wrong '\t'" @ "'\pre' command" @ "Doxygen comment"
+			@ "member function %TextFileBuffer::operator[]"
 			@ %YSLib.Service.TextManager $since b616
 	)
 ),
@@ -2720,8 +2720,8 @@ b758
 	),
 	/ %Tools $=
 	(
-		/ $dev "updated %LIBS for extra NPL dependencies"
-			@ "%SHBuild-bootstrap.sh" @ %Scripts,
+		/ $re_add(b623) "updated %LIBS for extra NPL dependencies"
+			@ "%SHBuild-bootstrap.sh" @ %Scripts;
 		/ %Tools.SHBuild.Main $=
 		(
 			+ "commands %(RunNPL, RunNPLFile)" ^ $dep_from
@@ -3638,7 +3638,7 @@ b744
 			/ "showed different error message when buffer loading failed"
 				^ $dep_from "%ShowError"
 		),
-		* $doc "missing parameter name" @ "'\param' command"
+		* DD "wrong '\param' command" @ "Doxygen comment"
 			@ "function %ScrollByPixel" $since b292
 	),
 	/ %YBase.YStandardEx $=
@@ -4881,7 +4881,8 @@ b727
 	),
 	/ %Tools $=
 	(
-		/ "updated toolchain version for NDK r10c" @ "command line options"
+		/ $re_add(b554) "updated toolchain version with CrystaX NDK 10.3.2"
+			~ "Android NDK r10c" @ "command line options"
 			@ "%make-clang-android.sh" $=
 		(
 			/ '--toolchain=arm-linux-androideabi-4.9'
@@ -5821,7 +5822,7 @@ b718
 					$= (/ DLDI ^ ("%FileOperationFailure::ThrowNested"
 						@ %FileIO) ~ "%ThrowFileOperationFailure");
 				* $comp $doc "nested exception not thrown" @ "platform %Win32"
-					@ "Doxygen comments" @ "constructors %DirectorySession"
+					@ "Doxygen comment" @ "constructors %DirectorySession"
 					$since b715
 			)
 		),
@@ -6222,7 +6223,7 @@ b714
 				@ "namespace %platform" @ %Debug,
 			/ %FileIO $=
 			(
-				* "missing including <cerrno> for %errno" $since b701,
+				* "missing inclusion <cerrno> for %errno" $since b701,
 				+ "macros %(YCL_Raise_SysE, \
 					YCL_RaiseZ_SysE, YCL_Trace_SysE)",
 				(
@@ -6310,7 +6311,7 @@ b714
 				YCL_TraceCall_Win32, YCL_TraceCallF_Win32)"
 		)
 	),
-	* "missing includeing %CAssert" @ %YBase.YStandardEx.Functional $since b612
+	* "missing inclusion %CAssert" @ %YBase.YStandardEx.Functional $since b612
 	/ $forced DLDI $dep_from %YFramework.YCLib_(Win32).MinGW32 $effective
 		@ %(YCLib_(Win32), YCLib.(Host, HostedGUI, FileIO, MemoryMapping,
 		FileSystem), Helper.(GUIApplication, HostRenderer)) @ %YFramework
@@ -6870,7 +6871,7 @@ b709
 		),
 		/ %YSLib $=
 		(
-			* $doc "'\pre' command" @ "Doxygen comments" @ "function template \
+			* $doc "'\pre' command" @ "Doxygen comment" @ "function template \
 				%ClearSequence" @ %Core.YCoreUtilities $since b624,
 			/ @ "class %FileBox" @ %UI.ComboList $=
 			(

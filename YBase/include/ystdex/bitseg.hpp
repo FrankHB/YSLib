@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018 FrankHB.
+	© 2013-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file bitseg.hpp
 \ingroup YStandardEx
 \brief 位段数据结构和访问。
-\version r569
+\version r574
 \author FrankHB <frankhb1989@gmail.com>
 \since build 507
 \par 创建时间:
 	2014-06-12 21:42:50 +0800
 \par 修改时间:
-	2018-09-04 01:04 +0800
+	2019-11-04 17:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,7 @@ namespace nodep
 {
 
 /*!
-\ingroup type_traits_operations
+\ingroup traits
 \since build 729
 */
 //@{
@@ -63,9 +63,9 @@ struct bitseg_traits
 	//@{
 	using sequence = index_sequence<_vSize...>;
 
-	static yconstexpr size_t bits_n = fseq::fold(fseq::plus(), size_t_<0>(),
-		sequence());
-	static yconstexpr size_t bytes_n = (bits_n + CHAR_BIT - 1) / CHAR_BIT;
+	static yconstexpr const size_t bits_n = fseq::fold(fseq::plus(),
+		size_t_<0>(), sequence());
+	static yconstexpr const size_t bytes_n = (bits_n + CHAR_BIT - 1) / CHAR_BIT;
 
 	using array = byte[bytes_n];
 	using integer

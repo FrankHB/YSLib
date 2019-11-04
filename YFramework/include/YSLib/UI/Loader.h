@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Loader.h
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r663
+\version r666
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:37:16 +0800
 \par 修改时间:
-	2016-05-09 13:28 +0800
+	2019-01-16 06:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -138,7 +138,7 @@ AccessWidgetNode(ValueNode& node, const string& name, _tParams&&... args)
 
 /*!
 \brief 按指定名称访问子部件。
-\exception ystdex::bad_any_cast 异常中立：由 Access 抛出。
+\exception bad_any_cast 异常中立：由 Access 抛出。
 */
 //@{
 YF_API IWidget&
@@ -259,7 +259,7 @@ public:
 	/*!
 	\brief 变换 UI 布局树：根据 NPLA1 中间表示动态创建部件树。
 	\exception std::out_of_range 异常中立：找不到 $type 节点。
-	\exception ystdex::bad_any_cast 异常中立：$type 节点的值不是 string 类型。
+	\exception bad_any_cast 异常中立：$type 节点的值不是 string 类型。
 	\sa CheckChildName
 
 	参数指定的树中，使用以下元数据名称的节点表示数据：

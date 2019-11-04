@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r15362
+\version r15482
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-10-24 23:20 +0800
+	2019-11-04 18:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,106 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	* DD "wrong '\param' command" @ "Doxygen comment" @ "private function"
+		@ "class %ShlTextReader" @ %YReader.ShlReader
+		$orig (@ "function %Switch" $since b286),
+	/ $re_add(b851) DLDI "simplified" ^ "%rebind_alloc_t" ~ "%allocator_traits"
+		$effective @ %YBase.YStandardEx.Cache,
+	/ %YBase $=
+	(
+		/ %LibDefect $=
+		(
+			/ "disabled %(__atomic_add_fetch, __atomic_sub_fetch) workaround"
+				@ '!_GLIBCXX_HAS_GTHREADS || __clang__' @ %Exception,
+				// Since platform %Android now uses Clang++ and libc++ \
+					(instead of G++ with libgcc_s), libatomic is not needed.
+			/ 'defined(__GLIBCXX__) && (defined(__GXX_EXPERIMENTAL_CXX0X__) \
+				|| __cplusplus >= 201103L) \
+				&& !(defined(_GLIBCXX_USE_C99_MATH_TR1))' @ %CMath $=
+			(
+				/ DLDI "simplified macros",
+				+ "optional support of %(_GLIBCXX_BEGIN_NAMESPACE_VERSION, \
+					_GLIBCXX_END_NAMESPACE_VERSION)",
+				+ 'extern "C++"'
+			)
+		),
+		/ %YStandardEx $=
+		(
+			/ "supported resolution of LWG 2993" @ "class template %lref"
+				@ %Ref,
+			/ $re_add(b863) DLDI "simplified" ^ "%nor_" ~ "%(not_, or_)"
+				$effective @ %CString,
+			* $re_add(b865) DD "missing escaping tag" @ "Doxygen comments"
+				$since b660 $effective @ %(CString, Ref),
+					// To eliminate Doxygen warning: Unsupported xml/html tag \
+						found.
+			/ %BitSegment $=
+			(
+				/ DD "group %type_traits_operations" @ "'\ingroup' command"
+					@ "Doxygen comment"
+					@ "class templates %(bitseg_traits, ordered_bitseg_traits)"
+					@ -> "%traits",
+				+ DLDI "'const' after 'yconstexpr'" @ "trait %bitseg_traits"
+			),
+			+ DD '\ingroup YBase_replacement_features' @ "Doxygen comment"
+				@ ("class template %integer_sequence",
+				"alias template %index_sequence") @ %IntegerSequence,
+			+ DD '\ingroup YBase_replacement_extensions' @ "Doxygen comment"
+				@ "function template %(begin, end, rbegin, rend, data) with \
+				rvalue reference parameter" @ %Range,
+			/ $re_add(b852) $dev "all %std::function" -> "%function"
+				@ %(ScopeGuard, Thunk, Cache)
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			+ "function %LiftCollapsedTerm" @ %NPLA,
+			/ %NPLA1 $=
+			(
+				/ "function %ReduceCombined set %TermTags::Temporary on \
+					reduced term" ~ "on first subterm";
+				/ $forced "simplified %operator" @ "vau handlers"
+			),
+			/ @ "function %LoadGroundContext" @ %Dependency $=
+			(
+				/ "simplified native derivation" @ "applicatives (%collapse, \
+					'assign%!')" ^ $dep_from ("%LiftCollapsedTerm" @ %NPLA),
+				+ "alternative derivation" @ "applicative 'assign%!'"
+					^ "applicative %collapse"
+				/ DLI "alternative derivation" @ "applicative 'assign!'"
+					^ "applicatives ('assign@!', %collapse)"
+					~ "applicative 'assign%!'"
+					// To be more efficient.
+			)
+		),
+		* $re_add(b853) DD "wrong Doxygen command '\build' used" ~ '\brief'
+			@ ("class %WConsole", "member function %WConsole::Style")
+			@ %'YCLib_(Win32)'.Consoles $since b520,
+			// To eliminate Doxygen warning: Found unknown command.
+		/ $re_ex(b863) DLDI "simplified without 'ystdex::' for %bad_any_cast"
+			@ %YSLib.(UI.Loader, Service.ContentType),
+		/ %YCLib $=
+		(
+			* %Video $since b517 $=
+			(
+				* $re_add(b660) DD "wrong Doxygen command '\breif' used"
+					~ '\brief' @ "class template %AXYZValueTraits",
+				* $dev "spelling error" @ "static assert message of integer \
+					width check failure"
+			),
+			/ DLDI @ "platform %DS" @ "function %SetEnvironmentVariable"
+				@ %YCommon ^ 'yunused',
+				// To eliminate G++ warning: [-Wunused-parameter].
+			- $revert(b529) $lib 'using yimpl(std)::make_shared;' @ %Reference
+				// Now %YBase.StandardEx.Memory is sufficient.
+		)
+	)
+),
+
+b869
 (
 	/ %YFramework.NPL $=
 	(
@@ -899,8 +999,9 @@ b865
 		),
 		/ $dev %TypeOperation $=
 		(
-			* $re_add(b861) $doc "missing escaping tag" @ "Doxygen comments"
+			* $re_add(b863) $doc "missing escaping tag" @ "Doxygen comments"
 				$since b660,
+				// To eliminate Doxygen warning: Unsupported xml/html tag found.
 			/ $lib @ "metafunction %exclude_self_params_t" $=
 			(
 				- $doc "'\pre' command" @ "Doxygen comment",
@@ -1467,7 +1568,10 @@ b863
 			+ DD '\ingroup YBase_replacement_extensions' @ "Doxygen comment"
 				@ "functors %(addrof, indirect, ref_eq, first_of, second_of)",
 			- $re_add(b861) DLDI "redundant '&&'"
-				@ "%std::declval template arguments"
+				@ "%std::declval template arguments",
+			* $re_add(b861) $doc "missing escaping tag" @ "Doxygen comments"
+				$since b660
+				// To eliminate Doxygen warning: Unsupported xml/html tag found.
 		),
 		/ DD %Algorithm $=
 		(
@@ -1741,6 +1845,12 @@ b862
 		),
 		/ $re_add(b861) $dev "all %std::function" -> "%function"
 			@ %(YSLib.Core.YDevice, Helper.HostRenderer),
+		/ %Helper.HostRenderer $=
+		(
+			/ DLDI ("'std::forward<_tParams&&>' within variadic parameter packs"
+				-> 'std::forward<_tParams>') @ "class %WindowThread",
+			/ $re_add(b851) DLD "simplified without 'ystdex::'" ^ "%any"
+		),
 		+ "workaround for GCC 'nonnull' attribute" @ %YSLib.Service.File
 			$dep_to "workaround for GCC PR 91127",
 			// This is for the case where nonnull attribute with argument on \
@@ -1863,6 +1973,7 @@ b861
 				@ "class template polymorphic_allocator",
 			* $re_add(b857) DD "missing escaping tag" @ "Doxygen comments"
 				$since b842
+				// To eliminate Doxygen warning: Unsupported xml/html tag found.
 		),
 		* "cv-qualifier" @ "internal deduced return types for %pair instances"
 			@ "function template %uses_allocator_construction_args" @ %Memory
@@ -7955,14 +8066,18 @@ b843
 					* "missing deleter" @ "return type" @ "non-array overload"
 						$since b562
 				),
-				* "missing inclusion %Functional" @ %ScopeGuard $since b686,
-					// For %one_shot.
+				/ %ScopeGuard $=
+				(
+					* "missing inclusion %Functional" $since b686,
+						// For %one_shot.
+					- DLDI "inclusion %(Base, Placement)"
+				),
 				/ DLI "internal" @ "function templates %(alloc_on_copy, \
 					alloc_on_move, alloc_on_swap)" ^ "exception specifications"
 			),
 			* "always wrong result" @ "function %operator!"
-				@ "class template %nptr" @ %Pointer $orig
-				(@ %Utilities $since b560),
+				@ "class template %nptr" @ %Pointer
+				$orig (@ %Utilities $since b560),
 			/ @ "namespace %pmr" @ %MemoryResource $=
 			(
 				/ @ "member function %memory_resource::allocate" $=

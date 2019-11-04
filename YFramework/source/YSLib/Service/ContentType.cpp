@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ContentType.cpp
 \ingroup Service
 \brief 内容类型接口。
-\version r116
+\version r118
 \author FrankHB <frankhb1989@gmail.com>
 \since build 449
 \par 创建时间:
 	2013-10-10 06:04:40 +0800
 \par 修改时间:
-	2016-02-03 22:44 +0800
+	2019-11-04 17:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,7 +70,7 @@ AddMIMEItems(MIMEBiMapping& m, const ValueNode& node,
 				AddMIMEItems(m, nd, std::move(pth));
 				pth.pop_back();
 			}
-			CatchIgnore(ystdex::bad_any_cast&)
+			CatchIgnore(bad_any_cast&)
 	else if(const auto p = AccessPtr<string>(node))
 		m += {*p, !pth.empty() && IsPrefixedIndex(pth.back())
 			? MIMEBiMapping::MIMEType{pth.cbegin(), std::prev(pth.cend())}

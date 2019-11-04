@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2755
+\version r2763
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2019-10-24 16:13 +0800
+	2019-10-25 02:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -714,6 +714,15 @@ LiftCollapsed(TermNode& term, TermNode& tm, TermReference ref)
 			std::move(pr.first)));
 	else if(pr.second)
 		term.Value = std::move(pr.first);
+}
+
+void
+LiftCollapsedTerm(TermNode& term, TermNode& tm)
+{
+	if(const auto p = NPL::TryAccessLeaf<TermReference>(tm))
+		LiftCollapsed(term, tm, *p);
+	else
+		LiftTerm(term, tm);
 }
 
 void

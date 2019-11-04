@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013, 2015-2016, 2018 FrankHB.
+	© 2012-2013, 2015-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file integer_sequence.hpp
 \ingroup YStandardEx
 \brief 整数序列元编程接口。
-\version r597
+\version r600
 \author FrankHB <frankhb1989@gmail.com>
 \since build 589
 \par 创建时间:
 	2013-03-30 00:55:06 +0800
 \par 修改时间:
-	2018-08-17 03:53 +0800
+	2019-11-04 17:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,6 +47,7 @@ inline namespace cpp2014
 using std::integer_sequence;
 using std::index_sequence;
 #else
+//! \ingroup YBase_replacement_features
 template<typename _tInt, _tInt... _vSeq>
 struct integer_sequence
 {
@@ -59,6 +60,7 @@ struct integer_sequence
 	}
 };
 
+//! \ingroup YBase_replacement_features
 template<size_t... _vSeq>
 using index_sequence = integer_sequence<size_t, _vSeq...>;
 #endif

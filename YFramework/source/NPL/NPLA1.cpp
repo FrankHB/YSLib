@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r13758
+\version r13762
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2019-10-22 04:54 +0800
+	2019-10-27 01:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1655,7 +1655,7 @@ private:
 		YAssert(p_eval_struct, "Invalid evaluation structure found.");
 
 		const bool move(p_eval_struct.use_count() == 1
-			&& bool(Deref(term.begin()).Tags & TermTags::Temporary));
+			&& bool(term.Tags & TermTags::Temporary));
 
 		// NOTE: Since first term is expected to be saved (e.g. by
 		//	%ReduceCombined), it is safe to be removed directly.
@@ -1794,9 +1794,9 @@ ReduceCombinedImpl(TermNode& term, ContextNode& ctx)
 	if(irregular || IsLeaf(fm))
 	{
 		if(irregular)
-			fm.Tags &= ~TermTags::Temporary;
+			term.Tags &= ~TermTags::Temporary;
 		else
-			fm.Tags |= TermTags::Temporary;
+			term.Tags |= TermTags::Temporary;
 		if(const auto p_handler = NPL::TryAccessLeaf<ContextHandler>(fm))
 #if NPL_Impl_NPLA1_Enable_TCO
 			return CombinerReturnThunk(*p_handler, term, ctx,
@@ -1819,7 +1819,7 @@ ReduceCombinedImpl(TermNode& term, ContextNode& ctx)
 	// NOTE: This is neutral to thunks.
 	if(const auto p_handler = NPL::TryAccessReferencedTerm<ContextHandler>(fm))
 	{
-		fm.Tags &= ~TermTags::Temporary;
+		term.Tags &= ~TermTags::Temporary;
 		return CombinerReturnThunk(*p_handler, term, ctx);
 	}
 	return ResolveTerm([&](const TermNode& nd, bool has_ref)

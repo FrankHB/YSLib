@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r2988
+\version r3005
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2019-10-24 21:40 +0800
+	2019-10-25 02:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -219,16 +219,6 @@ LoadSequenceSeparators(EvaluationPasses& passes)
 	// XXX: Allocators are inefficient for short strings here.
 	RegisterSequenceContextTransformer(passes, TokenValue(";"), true),
 	RegisterSequenceContextTransformer(passes, TokenValue(","));
-}
-
-//! \since build 869
-void
-LiftTermCollapsed(TermNode& term, TermNode& tm)
-{
-	if(const auto p = NPL::TryAccessLeaf<TermReference>(tm))
-		LiftCollapsed(term, tm, *p);
-	else
-		LiftTerm(term, tm);
 }
 
 //! \since build 794
@@ -458,9 +448,6 @@ LoadObjects(ContextNode& ctx)
 		}, term);
 		return ReductionStatus::Retained;
 	});
-	RegisterStrictBinary(ctx, "assign%!", [](TermNode& x, TermNode& y){
-		return DoAssign(ystdex::bind1(LiftTermCollapsed, std::ref(y)), x);
-	});
 	RegisterStrictBinary(ctx, "assign@!", [](TermNode& x, TermNode& y){
 		return DoAssign(ystdex::bind1(static_cast<void(&)(TermNode&,
 			TermNode&)>(LiftTerm), std::ref(y)), x);
@@ -615,12 +602,15 @@ LoadGroundedDerived(REPLContext& context)
 	RegisterForm(renv, "$sequence", Sequence);
 	RegisterStrict(renv, "collapse", [](TermNode& term){
 		return DoIdFunc([&](TermNode& nd){
-			LiftTermCollapsed(term, nd);
+			LiftCollapsedTerm(term, nd);
 			return ReductionStatus::Retained;
 		}, term);
 	});
 	RegisterStrict(renv, "forward", [](TermNode& term){
 		return DoIdFunc(ReduceForwarded, term);
+	});
+	RegisterStrictBinary(renv, "assign%!", [](TermNode& x, TermNode& y){
+		return DoAssign(ystdex::bind1(LiftCollapsedTerm, std::ref(y)), x);
 	});
 	RegisterStrictBinary(renv, "assign!", [](TermNode& x, TermNode& y){
 		return DoAssign([&](TermNode& nd_x){
@@ -734,7 +724,8 @@ LoadGroundedDerived(REPLContext& context)
 			$if (uncollapsed? ((unwrap resolve-identifier) x)) (idv x) x;
 		$defl%! forward (%x)
 			$if (lvalue? ((unwrap resolve-identifier) x)) x (idv x);
-		$defl! assign! (&x &y) assign%! (forward x) (idv y);
+		$defl! assign%! (&x &y) assign@! (forward x) (forward (collapse y));
+		$defl! assign! (&x &y) assign@! (forward x) (idv (collapse y));
 		$defl%! first@ (&l) ($lambda% ((@x .)) x) (check-list-reference l);
 		$defl! set-first! (&l x)
 			assign@! (first@ (check-list-reference l)) (move! x);

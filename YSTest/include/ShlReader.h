@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015, 2018 FrankHB.
+	© 2011-2015, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1836
+\version r1838
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2018-08-17 06:02 +0800
+	2018-11-04 17:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -387,7 +387,7 @@ private:
 
 	/*!
 	\brief 更新近期浏览记录并更新按钮状态。
-	\param 是否后退。
+	\note 参数表示是否后退。
 	\since build 286
 	*/
 	void

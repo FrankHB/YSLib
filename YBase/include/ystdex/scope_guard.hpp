@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守卫。
-\version r583
+\version r584
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2019-10-03 22:21 +0800
+	2019-11-04 18:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -268,7 +268,7 @@ struct state_guard_impl : public tagged_value<_tToken, _type>,
 */
 //@{
 template<typename _type, typename _tCond = bool,
-	typename _tToken = std::function<void(bool, _type&)>>
+	typename _tToken = function<void(bool, _type&)>>
 class state_guard : private details::state_guard_impl<_type, _tToken>
 {
 	static_assert(is_nothrow_copy_constructible<_tCond>(),

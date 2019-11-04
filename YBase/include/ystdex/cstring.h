@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018 FrankHB.
+	© 2009-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,26 +11,26 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r2613
+\version r2618
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2018-08-20 07:54 +0800
+	2019-11-04 17:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::CString
 
-扩展标准库头 <cstring> ，提供可在翻译时求值的 C 风格字符串操作等接口。
+扩展标准库头 \c \<cstring> ，提供可在翻译时求值的 C 风格字符串操作等接口。
 */
 
 
 #ifndef YB_INC_ystdex_cstring_h_
 #define YB_INC_ystdex_cstring_h_ 1
 
-#include "type_pun.hpp" // for is_in_types, enable_if_t, not_, or_,
+#include "type_pun.hpp" // for is_in_types, enable_if_t, nor_,
 //	is_trivially_replaceable, cond_t, replace_cast, enable_if_replaceable_t;
 #include <cstring> // for std::strlen, std::strcpy, std::strncpy;
 #include <libdefect/string.h> // for std::char_traits;
@@ -104,9 +104,9 @@ struct is_char_specialized_in_std
 \brief 选择不和 char 或 wchar_t 可替换字符类类型的特定重载以避免冲突。
 */
 template<typename _tChar, typename _type = void>
-using enable_if_irreplaceable_char_t = enable_if_t<not_<or_<
+using enable_if_irreplaceable_char_t = enable_if_t<nor_<
 	is_trivially_replaceable<_tChar, char>,
-	is_trivially_replaceable<_tChar, wchar_t>>>::value, _type>;
+	is_trivially_replaceable<_tChar, wchar_t>>::value, _type>;
 
 
 /*!

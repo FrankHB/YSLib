@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015, 2017-2018 FrankHB.
+	© 2014-2015, 2017-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,14 +10,14 @@
 
 /*!	\file exception.h
 \ingroup LibDefect
-\brief 标准库实现 \c \<exception\> 修正。
-\version r385
+\brief 标准库实现 \c \<exception> 修正。
+\version r391
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-01 00:13:53 +0800
 \par 修改时间:
-	2018-10-19 03:22 +0800
+	2019-11-03 14:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,6 +50,8 @@
 //	the function definition instead of '__attribute__((__noreturn__))' after a
 //	function declarator for. [[noreturn]] does not work on G++ earlier than 4.8.
 //	For compatibility reason this is not used.
+// NOTE: This implementation may need libatomic with G++ on platform without
+//	native atomic builtins support (e.g. ARMv5).
 
 // XXX: What is the exact Clang++ version?
 #if defined(__GLIBCXX__) \
@@ -91,7 +93,7 @@ extern "C++"
 namespace std
 {
 
-// NOTE: Following code is compatible with <bits/exception_ptr.h>.
+// NOTE: The following code is compatible with <bits/exception_ptr.h>.
 
 class type_info;
 
@@ -226,7 +228,7 @@ make_exception_ptr(_Ex __ex) noexcept
 	}
 }
 
-// NOTE: Following code is compatible with <bits/nested_exception.h>.
+// NOTE: The following code is compatible with <bits/nested_exception.h>.
 
 class nested_exception
 {

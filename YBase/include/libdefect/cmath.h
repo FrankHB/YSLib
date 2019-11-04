@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,14 +10,14 @@
 
 /*!	\file cmath.h
 \ingroup LibDefect
-\brief 标准库实现 \c \<cmath\> 修正。
-\version r571
+\brief 标准库实现 \c \<cmath> 修正。
+\version r614
 \author FrankHB <frankhb1989@gmail.com>
 \since build 308
 \par 创建时间:
 	2014-11-24 06:53:27 +0800
 \par 修改时间:
-	2016-09-16 04:24 +0800
+	2019-11-03 16:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,8 +34,15 @@
 	&& (defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L) \
 	&& !(defined(_GLIBCXX_USE_C99_MATH_TR1))
 
+extern "C++"
+{
+
 namespace std _GLIBCXX_VISIBILITY(default)
 {
+
+#ifdef _GLIBCXX_BEGIN_NAMESPACE_VERSION
+_GLIBCXX_BEGIN_NAMESPACE_VERSION
+#endif
 
 #undef acosh
 #undef acoshf
@@ -145,6 +152,8 @@ namespace std _GLIBCXX_VISIBILITY(default)
 
 
 #ifdef __BIONIC__
+// XXX: Old versions of Bionic do not define %::float_t and %::double_t. These
+//	declarations should be compatible with new versions.
 using float_t = float;
 using double_t = double;
 #else
@@ -152,7 +161,8 @@ using ::double_t;
 using ::float_t;
 #endif
 
-// TODO: Deferred. How to detect if 'long double' available?
+// XXX: Detection of availability of 'long double' is not necessarily reliable.
+//	Be conservative.
 #	define YB_LibDefect_CMath_using_f(_fn) \
 	using ::_fn; \
 	using ::_fn##f;
@@ -160,6 +170,15 @@ using ::float_t;
 	YB_LibDefect_CMath_using_f(_fn) \
 	using ::_fn##l;
 
+// NOTE: In Bionic some functions supporting 'long double' are introduced
+//	since API level 21. They are not respected here because most of them are
+//	renamed symbols (by assembly) which do not provide significant better
+//	choices in C++, and there may have architectural issues among different
+//	versions. Since %__BIONIC__ does not expose a reliable way to detect the
+//	version of libc, no further work is done here. Further, libstdc++ is already
+//	not supported for new versions of NDK, this header should normally not used
+//	for new NDK versions (e.g. by tested configurations of YSLib, since NDK
+//	r9c).
 #ifndef __BIONIC__
 #	define YB_LibDefect_CMath_using(_fn) \
 	YB_LibDefect_CMath_using_fl(_fn)
@@ -227,9 +246,9 @@ YB_LibDefect_CMath_using(trunc)
 
 #if __clang__
 // NOTE: See also https://llvm.org/bugs/show_bug.cgi?id=18327.
-#	define YB_LibDefect_CMath_constexpr inline
+#	define YB_LibDefect_CMath_constfn inline
 #else
-#	define YB_LibDefect_CMath_constexpr constexpr
+#	define YB_LibDefect_CMath_constfn constexpr
 #endif
 
 #define YB_LibDefect_CMath_builtin(_n, ...) \
@@ -237,18 +256,18 @@ YB_LibDefect_CMath_using(trunc)
 		return __builtin_##_n(__VA_ARGS__); \
 	}
 #define YB_LibDefect_CMath_fn(_t, _fn, _n) \
-	YB_LibDefect_CMath_constexpr _t \
+	YB_LibDefect_CMath_constfn _t \
 	_fn(_t __x) \
 	YB_LibDefect_CMath_builtin(_n, __x)
 #define YB_LibDefect_CMath_fn2(_t, _fn, _n) \
-	YB_LibDefect_CMath_constexpr _t \
+	YB_LibDefect_CMath_constfn _t \
 	_fn(_t __x, _t __y) \
 	YB_LibDefect_CMath_builtin(_n, __x, __y)
 #define YB_LibDefect_CMath_fns(_fn) \
 	YB_LibDefect_CMath_fn(float, _fn, _fn##f) \
 	YB_LibDefect_CMath_fn(long double, _fn, _fn##l) \
 	template<typename _Tp> \
-	YB_LibDefect_CMath_constexpr typename \
+	YB_LibDefect_CMath_constfn typename \
 		__gnu_cxx::__enable_if<__is_integer<_Tp>::__value, double>::__type \
 	_fn(_Tp __x) \
 	YB_LibDefect_CMath_builtin(_fn, __x)
@@ -256,7 +275,7 @@ YB_LibDefect_CMath_using(trunc)
 	YB_LibDefect_CMath_fn2(float, _fn, _fn##f) \
 	YB_LibDefect_CMath_fn2(long double, _fn, _fn##l) \
 	template<typename _Tp, typename _Up> \
-	YB_LibDefect_CMath_constexpr \
+	YB_LibDefect_CMath_constfn \
 		typename __gnu_cxx::__promote_2<_Tp, _Up>::__type \
 	_fn(_Tp __x, _Up __y) \
 	{ \
@@ -290,14 +309,14 @@ YB_LibDefect_CMath_fns(expm1)
 
 YB_LibDefect_CMath_fns2(fdim)
 
-YB_LibDefect_CMath_constexpr float
+YB_LibDefect_CMath_constfn float
 fma(float __x, float __y, float __z)
 YB_LibDefect_CMath_builtin(fmaf, __x, __y, __z)
-YB_LibDefect_CMath_constexpr long double
+YB_LibDefect_CMath_constfn long double
 fma(long double __x, long double __y, long double __z)
 YB_LibDefect_CMath_builtin(fmal, __x, __y, __z)
 template<typename _Tp, typename _Up, typename _Vp>
-YB_LibDefect_CMath_constexpr \
+YB_LibDefect_CMath_constfn \
 	typename __gnu_cxx::__promote_3<_Tp, _Up, _Vp>::__type
 fma(_Tp __x, _Up __y, _Vp __z)
 {
@@ -335,14 +354,14 @@ YB_LibDefect_CMath_fns(nearbyint)
 
 YB_LibDefect_CMath_fns2(nextafter)
 
-YB_LibDefect_CMath_constexpr float
+YB_LibDefect_CMath_constfn float
 nexttoward(float __x, long double __y)
 YB_LibDefect_CMath_builtin(nexttowardf, __x, __y)
-YB_LibDefect_CMath_constexpr long double
+YB_LibDefect_CMath_constfn long double
 nexttoward(long double __x, long double __y)
 YB_LibDefect_CMath_builtin(nexttowardl, __x, __y)
 template<typename _Tp>
-YB_LibDefect_CMath_constexpr
+YB_LibDefect_CMath_constfn
 	typename __gnu_cxx::__enable_if<__is_integer<_Tp>::__value, double>::__type
 nexttoward(_Tp __x, long double __y)
 YB_LibDefect_CMath_builtin(nexttoward, __x, __y)
@@ -368,26 +387,26 @@ YB_LibDefect_CMath_fns(rint)
 
 YB_LibDefect_CMath_fns(round)
 
-YB_LibDefect_CMath_constexpr float
+YB_LibDefect_CMath_constfn float
 scalbln(float __x, long __ex)
 YB_LibDefect_CMath_builtin(scalblnf, __x, __ex)
-YB_LibDefect_CMath_constexpr long double
+YB_LibDefect_CMath_constfn long double
 scalbln(long double __x, long __ex)
 YB_LibDefect_CMath_builtin(scalblnl, __x, __ex)
 template<typename _Tp>
-YB_LibDefect_CMath_constexpr
+YB_LibDefect_CMath_constfn
 	typename __gnu_cxx::__enable_if<__is_integer<_Tp>::__value, double>::__type
 scalbln(_Tp __x, long __ex)
 YB_LibDefect_CMath_builtin(scalbln, __x, __ex)
 
-YB_LibDefect_CMath_constexpr float
+YB_LibDefect_CMath_constfn float
 scalbn(float __x, int __ex)
 YB_LibDefect_CMath_builtin(scalbnf, __x, __ex)
-YB_LibDefect_CMath_constexpr long double
+YB_LibDefect_CMath_constfn long double
 scalbn(long double __x, int __ex)
 YB_LibDefect_CMath_builtin(scalbnl, __x, __ex)
 template<typename _Tp>
-YB_LibDefect_CMath_constexpr
+YB_LibDefect_CMath_constfn
 	typename __gnu_cxx::__enable_if<__is_integer<_Tp>::__value, double>::__type
 scalbn(_Tp __x, int __ex)
 YB_LibDefect_CMath_builtin(scalbn, __x, __ex)
@@ -400,9 +419,15 @@ YB_LibDefect_CMath_fns(trunc)
 #undef YB_LibDefect_CMath_fn2
 #undef YB_LibDefect_CMath_fn
 #undef YB_LibDefect_CMath_builtin
-#undef YB_LibDefect_CMath_constexpr
+#undef YB_LibDefect_CMath_constfn
+
+#ifdef _GLIBCXX_END_NAMESPACE_VERSION
+_GLIBCXX_END_NAMESPACE_VERSION
+#endif
 
 } // namespace std;
+
+} // extern "C++";
 
 #endif
 

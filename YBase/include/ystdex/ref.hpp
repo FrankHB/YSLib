@@ -11,28 +11,28 @@
 /*!	\file ref.hpp
 \ingroup YStandardEx
 \brief 引用包装。
-\version r477
+\version r494
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:29:20 +0800
 \par 修改时间:
-	2019-01-14 02:03 +0800
+	2019-11-02 22:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Ref
 
-扩展标准库头 <functional> ，提供替代 std::reference_wrapper 的接口。
+扩展标准库头 \c \<functional> ，提供替代 std::reference_wrapper 的接口。
 */
 
 
 #ifndef YB_INC_ystdex_ref_hpp_
 #define YB_INC_ystdex_ref_hpp_ 1
 
-#include "addressof.hpp" // for "addressof.hpp", ystdex::addressof, false_,
-//	true_;
-#include "invoke.hpp" // for "invoke.hpp" invoke_result_t, ystdex::invoke,
+#include "addressof.hpp" // for "addressof.hpp", std::declval, exclude_self_t,
+//	ystdex::addressof, false_, true_;
+#include "invoke.hpp" // for "invoke.hpp", invoke_result_t, ystdex::invoke,
 //	std::reference_wrapper;
 
 namespace ystdex
@@ -46,6 +46,7 @@ namespace ystdex
 \note 满足 TrivialCopyable 要求。
 \see WG21 N4277 。
 \see WG21 P0357R1 。
+\see LWG 2993 。
 
 类似 std::reference_wrapper 和 \c boost::reference_wrapper 公共接口兼容的
 	引用包装类实现。
@@ -62,13 +63,20 @@ public:
 private:
 	_type* ptr;
 
+	//! \since build 870
+	//@{
+	yconstfn static _type*
+	fun(_type&) ynothrow;
+	yconstfn static _type*
+	fun(_type&&) = delete;
+
 public:
-	yconstfn
-	lref(_type& t) ynothrow
-		: ptr(ystdex::addressof(t))
+	template<typename _type2, yimpl(typename = decltype(
+		fun(std::declval<_type2>())), typename = exclude_self_t<lref, _type2>)>
+	lref(_type2&& u) ynoexcept(yimpl(noexcept(fun(std::declval<_type2>()))))
+		: ptr(ystdex::addressof(static_cast<_type&>(std::forward<_type2>(u))))
 	{}
-	//! \since build 661
-	lref(_type&&) = delete;
+	//@}
 	//! \since build 556
 	lref(const lref&) = default;
 
