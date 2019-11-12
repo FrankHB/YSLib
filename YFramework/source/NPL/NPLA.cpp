@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2763
+\version r2836
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2019-10-25 02:12 +0800
+	2019-11-12 21:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLA // for YSLib, string, YSLib::DecodeIndex, std::to_string,
 //	YSLib::make_string_view, std::invalid_argument, ValueNode, NPL::Access,
-//	NPL::DerefEscapeLiteral, Literalize, NPL::AccessPtr, ystdex::value_or,
+//	EscapeLiteral, Literalize, NPL::AccessPtr, ystdex::value_or,
 //	ystdex::write, bad_any_cast, std::allocator_arg, YSLib::NodeSequence,
 //	NPL::Deref, ystdex::unimplemented, ystdex::type_id, ystdex::quote,
 //	ystdex::call_value_or, ystdex::begins_with, YSLib::get_raw,
@@ -344,13 +344,6 @@ InitBadIdentifierExceptionString(string&& id, size_t n)
 		: "Unknown identifier: '") + std::move(id) + "'.";
 }
 
-//! \since build 815
-YB_NORETURN void
-ThrowInvalidEnvironment()
-{
-	throw std::invalid_argument("Invalid environment record pointer found.");
-}
-
 
 bool
 IsReserved(string_view id) ynothrowv
@@ -360,10 +353,10 @@ IsReserved(string_view id) ynothrowv
 }
 
 observer_ptr<Environment>
-RedirectToShared(string_view id, const shared_ptr<Environment>& p_shared)
+RedirectToShared(string_view id, const shared_ptr<Environment>& p_env)
 {
-	if(p_shared)
-		return NPL::make_observer(YSLib::get_raw(p_shared));
+	if(p_env)
+		return NPL::make_observer(YSLib::get_raw(p_env));
 	// TODO: Use concrete semantic failure exception.
 	throw NPLException(ystdex::sfmt("Invalid reference found for%s name '%s',"
 		" probably due to invalid context access by dangling reference.",
@@ -617,7 +610,7 @@ PrepareCollapse(TermNode& term, Environment& env)
 {
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
 		return *p;
-	return {term.Tags, term, env.shared_from_this()};
+	return {env.MakeTermTags(term), term, env.shared_from_this()};
 }
 
 TermNode&
@@ -641,7 +634,7 @@ IsReferenceTerm(const TermNode& term)
 }
 
 bool
-IsLValueTerm(const TermNode& term)
+IsBoundLValueTerm(const TermNode& term)
 {
 	return ystdex::invoke_value_or(&TermReference::IsReferencedLValue,
 		NPL::TryAccessLeaf<const TermReference>(term));
@@ -717,12 +710,13 @@ LiftCollapsed(TermNode& term, TermNode& tm, TermReference ref)
 }
 
 void
-LiftCollapsedTerm(TermNode& term, TermNode& tm)
+MoveCollapsed(TermNode& term, TermNode& tm)
 {
 	if(const auto p = NPL::TryAccessLeaf<TermReference>(tm))
-		LiftCollapsed(term, tm, *p);
+		term.MoveContent(TermNode(std::move(tm.GetContainerRef()),
+			Collapse(std::move(*p)).first));
 	else
-		LiftTerm(term, tm);
+		term.MoveContent(std::move(tm));
 }
 
 void
@@ -752,12 +746,7 @@ LiftToReturn(TermNode& term)
 	// TODO: Detect lifetime escape to perform copy elision?
 	// NOTE: Only outermost one level is referenced.
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
-		// NOTE: See $2018-02 @ %Documentation::Workflow::Annual2018.
-		// NOTE: This is compatible to the irregular representation of subobject
-		//	references provided the setting order of %NPL::SetContentWith.
-		// TODO: Check the representation is sane?
-		NPL::SetContentWith(term, p->get(), NPL::IsMovable(*p)
-			? &ValueObject::MakeMove : &ValueObject::MakeCopy);
+		LiftReferenceToReturn(term, *p);
 	// NOTE: On the other hand, the references captured by vau handlers (which
 	//	requires recursive copy of vau handler members if forced) are not
 	//	blessed here to avoid leaking abstraction of detailed implementation
@@ -766,10 +755,33 @@ LiftToReturn(TermNode& term)
 }
 
 void
-LiftRValueToReturn(TermNode& term)
+LiftReferenceToReturn(TermNode& term, const TermReference& ref)
 {
-	if(!IsLValueTerm(term))
+	// NOTE: See $2018-02 @ %Documentation::Workflow::Annual2018.
+	// NOTE: This is compatible to the irregular representation of subobject
+	//	references provided the setting order of %NPL::SetContentWith.
+	// TODO: Check the representation is sane?
+	NPL::SetContentWith(term, ref.get(),
+		ref.IsMovable() ? &ValueObject::MakeMove : &ValueObject::MakeCopy);
+}
+
+void
+MoveRValueToReturn(TermNode& term, TermNode& tm)
+{
+#	if true
+	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
+	{
+		if(!p->IsReferencedLValue())
+			return LiftReferenceToReturn(term, *p);
+	}
+	term.MoveContent(std::move(tm));
+#	else
+	// NOTE: For exposition only. The following optimized implemenation shall be
+	//	equivalent to this.
+	term.MoveContent(std::move(tm));
+	if(!IsBoundLValueTerm(term))
 		LiftToReturn(term);
+#	endif
 }
 
 
@@ -794,6 +806,28 @@ ReduceHeadEmptyList(TermNode& term) ynothrow
 	if(term.size() > 1 && IsEmpty(NPL::Deref(term.begin())))
 		RemoveHead(term);
 	return ReductionStatus::Neutral;
+}
+
+ReductionStatus
+ReduceToReferenceAt(TermNode& term, TermNode& tm,
+	ResolvedTermReferencePtr p_ref)
+{
+	term.Value = TermReference(GetLValueTagsOf(tm.Tags), tm,
+		NPL::Deref(p_ref).GetEnvironmentReference());
+	return ReductionStatus::Clean;
+}
+
+ReductionStatus
+ReduceToReference(TermNode& term, TermNode& tm, ResolvedTermReferencePtr p_ref)
+{
+	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
+	{
+		// NOTE: Reference collapsed by copy.
+		term.SetContent(tm);
+		// XXX: The resulted representation can be irregular.
+		return ReductionStatus::Retained;
+	}
+	return ReduceToReferenceAt(term, tm, p_ref);
 }
 
 
@@ -970,6 +1004,14 @@ Environment::ThrowForInvalidType(const ystdex::type_info& tp)
 		ystdex::sfmt("Invalid environment type '%s' found.", tp.name()));
 }
 
+void
+Environment::ThrowForInvalidValue(bool record)
+{
+	throw std::invalid_argument(record
+		? "Invalid environment record pointer found."
+		: "Invalid environment found.");
+}
+
 
 EnvironmentReference::EnvironmentReference(const shared_ptr<Environment>& p_env)
 	// TODO: Blocked. Use C++17 %weak_from_this and throw-expression?
@@ -999,7 +1041,7 @@ ContextNode::ContextNode(const ContextNode& ctx,
 	: memory_rsrc(ctx.memory_rsrc), p_record([&]{
 		if(p_rec)
 			return std::move(p_rec);
-		ThrowInvalidEnvironment();
+		Environment::ThrowForInvalidValue(true);
 	}()),
 	Trace(ctx.Trace)
 {}
@@ -1056,7 +1098,7 @@ ContextNode::SwitchEnvironment(shared_ptr<Environment> p_env)
 {
 	if(p_env)
 		return SwitchEnvironmentUnchecked(std::move(p_env));
-	ThrowInvalidEnvironment();
+	Environment::ThrowForInvalidValue(true);
 }
 
 shared_ptr<Environment>

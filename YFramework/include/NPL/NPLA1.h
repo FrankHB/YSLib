@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r5578
+\version r5666
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2019-10-16 18:11 +0800
+	2019-11-12 00:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -708,6 +708,35 @@ public:
 };
 
 
+//! \since build 871
+//@{
+/*!
+\brief 包装数种类枚举。
+\note 用于指定创建上下文处理器的种类。
+*/
+enum WrappingKind : decltype(FormContextHandler::Wrapping)
+{
+	//! \brief 一般形式：不对参数求值。
+	Form = 0,
+	//! \brief 严格求值形式：对参数求值 1 次。
+	Strict = 1
+};
+
+
+/*!
+\brief 注册一般形式上下文处理器。
+\pre 间接断言：第二参数的数据指针非空。
+*/
+//! \brief 注册一般形式上下文处理器。
+template<size_t _vWrapping = Strict, class _tTarget, typename... _tParams>
+inline void
+RegisterHandler(_tTarget& target, string_view name, _tParams&&... args)
+{
+	NPL::EmplaceLeaf<ContextHandler>(target, name,
+		FormContextHandler(yforward(args)..., _vWrapping));
+}
+//@}
+
 /*!
 \pre 间接断言：第二参数的数据指针非空。
 \since build 838
@@ -718,8 +747,7 @@ template<class _tTarget, typename... _tParams>
 inline void
 RegisterForm(_tTarget& target, string_view name, _tParams&&... args)
 {
-	NPL::EmplaceLeaf<ContextHandler>(target, name,
-		FormContextHandler(yforward(args)...));
+	A1::RegisterHandler<Form>(target, name, yforward(args)...);
 }
 
 //! \brief 注册严格上下文处理器。
@@ -727,8 +755,7 @@ template<class _tTarget, typename... _tParams>
 inline void
 RegisterStrict(_tTarget& target, string_view name, _tParams&&... args)
 {
-	NPL::EmplaceLeaf<ContextHandler>(target, name,
-		FormContextHandler(yforward(args)..., size_t(1)));
+	A1::RegisterHandler<>(target, name, yforward(args)...);
 }
 //@}
 
@@ -770,20 +797,26 @@ YB_ATTR_nodiscard YB_PURE inline
 \note 不验证标识符是否为字面量；仅以字面量处理时可能需要重规约。
 \sa LiteralHandler
 \sa ReferenceTerm
-\sa ResolveName
+\sa ResolveIdentifier
 \sa TermReference
 \since build 745
 
-依次进行以下求值操作：
-调用 ResolveName 根据指定名称查找值，若失败抛出未声明异常；
-初始化值，进行引用折叠后重新引用为左值；
+根据第三参数指定的标识符求值，保存结果到第一参数指定的目标项中。
+标识符通常来自对象语言中的名称表达式。求值标识符即对先前保存此标识符的项求值：
+解析名称并初始化目标项的值；然后检查字面量处理器，若存在则调用。
+具体依次进行以下求值操作：
+调用 ResolveIdentifier 解析指定的标识符，若失败则抛出异常；
+解析的结果进行引用折叠后重新引用为左值，并赋值到第一参数指定的项的值数据成员；
 以 LiteralHandler 访问字面量处理器，若成功调用并返回字面量处理器的处理结果；
 否则，返回 ReductionStatus::Neutral 。
-初始化值的目标是第一参数的 Value 数据成员，包括以下操作：
-	调用 ReferenceTerm 确保进一步操作解析得到的（保存在环境中的）项对象不是引用；
-	若上一步得到的值是空列表或 TokenValue ，直接复制；
-	否则，目标初始化为引用上一步得到的值的新创建 TermReference 值。
-引用折叠通过调用 ReferenceTerm 再初始化 TermReference 实现，确保不构造引用的引用。
+其中 ResolveIdentifier 包含的引用折叠确保不引入引用的引用；
+只有解析结果自身是未折叠的引用值时，求值标识符的结果才可能是未折叠的引用值。
+确保左值引用的操作总是去除解析结果的标签中的 TermTags::Unique ，
+	以保证求值结果不是消亡值；
+这个过程不移除 TermTags::Temporary ，之后可区分指称的被绑定的对象是否为临时对象。
+关于保留标签的用法，参见 TermReference::IsReferencedLValue ；
+一般地，因为无法保留消亡值，不使用 EvaluateIdentifier 而用基于调用
+	ResolveIdentifier 的（不排除 TermTags::Uniuqe ）的方式与之配合取得结果。
 */
 YF_API ReductionStatus
 EvaluateIdentifier(TermNode&, const ContextNode&, string_view);
@@ -1218,9 +1251,9 @@ inline auto
 CallResolvedUnary(_func&& f, TermNode& term)
 	-> yimpl(decltype(NPL::ResolveTerm(yforward(f), term)))
 {
-	return Forms::CallRawUnary([&](TermNode& node)
+	return Forms::CallRawUnary([&](TermNode& tm)
 		-> yimpl(decltype(NPL::ResolveTerm(yforward(f), term))){
-		return NPL::ResolveTerm(yforward(f), node);
+		return NPL::ResolveTerm(yforward(f), tm);
 	}, term);
 }
 
@@ -1298,10 +1331,10 @@ template<typename _func, typename... _tParams>
 void
 CallUnary(_func&& f, TermNode& term, _tParams&&... args)
 {
-	Forms::CallRawUnary([&](TermNode& node){
+	Forms::CallRawUnary([&](TermNode& tm){
 		YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
 			ystdex::make_expanded<void(TermNode&, _tParams&&...)>(std::ref(f)),
-			node, yforward(args)...));
+			tm, yforward(args)...));
 	}, term);
 }
 
@@ -1309,11 +1342,11 @@ template<typename _type, typename _func, typename... _tParams>
 void
 CallUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 {
-	Forms::CallUnary([&](TermNode& node){
+	Forms::CallUnary([&](TermNode& tm){
 		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
 		//	error: Segmentation fault.
 		return ystdex::make_expanded<void(_type&, _tParams&&...)>(std::ref(f))(
-			NPL::ResolveRegular<_type>(node), std::forward<_tParams>(args)...);
+			NPL::ResolveRegular<_type>(tm), std::forward<_tParams>(args)...);
 	}, term);
 }
 //@}
@@ -1397,7 +1430,7 @@ struct UnaryExpansion
 
 	//! \since build 787
 	UnaryExpansion(_func f)
-		: Function(f)
+		: Function(std::move(f))
 	{}
 
 	/*!
@@ -1428,7 +1461,7 @@ struct UnaryAsExpansion
 
 	//! \since build 787
 	UnaryAsExpansion(_func f)
-		: Function(f)
+		: Function(std::move(f))
 	{}
 
 	/*!
@@ -1462,7 +1495,7 @@ struct BinaryExpansion
 
 	//! \since build 787
 	BinaryExpansion(_func f)
-		: Function(f)
+		: Function(std::move(f))
 	{}
 
 	/*!
@@ -1495,7 +1528,7 @@ struct BinaryAsExpansion : private
 
 	//! \since build 787
 	BinaryAsExpansion(_func f)
-		: Function(f)
+		: Function(std::move(f))
 	{}
 
 	/*!
@@ -1520,40 +1553,44 @@ struct BinaryAsExpansion : private
 
 /*!
 \pre 间接断言：第二参数的数据指针非空。
-\since build 838
+\since build 871
 */
 //@{
 //! \brief 注册一元严格求值上下文处理器。
 //@{
-template<typename _func, class _tTarget>
+template<size_t _vWrapping = Strict, typename _func, class _tTarget>
 void
-RegisterStrictUnary(_tTarget& target, string_view name, _func f)
+RegisterUnary(_tTarget& target, string_view name, _func f)
 {
-	A1::RegisterStrict(target, name, UnaryExpansion<_func>(f));
+	A1::RegisterHandler<_vWrapping>(target, name,
+		UnaryExpansion<_func>(std::move(f)));
 }
-template<typename _type, typename _func, class _tTarget>
+template<size_t _vWrapping = Strict, typename _type, typename _func,
+	class _tTarget>
 void
-RegisterStrictUnary(_tTarget& target, string_view name, _func f)
+RegisterUnary(_tTarget& target, string_view name, _func f)
 {
-	A1::RegisterStrict(target, name, UnaryAsExpansion<_type, _func>(f));
+	A1::RegisterHandler<_vWrapping>(target, name,
+		UnaryAsExpansion<_type, _func>(std::move(f)));
 }
 //@}
 
 //! \brief 注册二元严格求值上下文处理器。
 //@{
-template<typename _func, class _tTarget>
+template<size_t _vWrapping = Strict, typename _func, class _tTarget>
 void
-RegisterStrictBinary(_tTarget& target, string_view name, _func f)
+RegisterBinary(_tTarget& target, string_view name, _func f)
 {
-	A1::RegisterStrict(target, name, BinaryExpansion<_func>(f));
+	A1::RegisterHandler<_vWrapping>(target, name,
+		BinaryExpansion<_func>(std::move(f)));
 }
-//! \since build 835
-template<typename _type, typename _type2, typename _func, class _tTarget>
+template<size_t _vWrapping = Strict, typename _type, typename _type2,
+	typename _func, class _tTarget>
 void
-RegisterStrictBinary(_tTarget& target, string_view name, _func f)
+RegisterBinary(_tTarget& target, string_view name, _func f)
 {
-	A1::RegisterStrict(target, name,
-		BinaryAsExpansion<_type, _type2, _func>(f));
+	A1::RegisterHandler<_vWrapping>(target, name,
+		BinaryAsExpansion<_type, _type2, _func>(std::move(f)));
 }
 //@}
 //@}
@@ -1716,7 +1753,8 @@ Or(TermNode&, ContextNode&);
 \sa LiftSubtermsToReturn
 \since build 779
 
-按值传递返回值：提升项以避免返回引用造成内存安全问题。
+按值传递返回值。构造的对象中的元素转换为右值。
+替代引用值通过 NPL::LiftSubtermsToReturn(@6.6.2) 提升求值后的项的每个子项实现。
 
 参考调用文法：
 <pre>cons \<object> \<list></pre>
@@ -1746,6 +1784,7 @@ ConsRef(TermNode&);
 //@{
 /*!
 第二参数转换为右值。
+替代引用值直接通过插入第一个元素引用的值实现。
 
 参考调用文法：
 <pre>set-first! \<list> \<object></pre>
@@ -1783,7 +1822,10 @@ SetFirstRefAt(TermNode&);
 */
 //@{
 /*!
+\sa LiftSubtermsToReturn
+
 第二参数的元素转换为右值。
+替代引用值通过 LiftSubtermsToReturn 插入第一个元素前的每个子项实现。
 
 参考调用文法：
 <pre>set-rest! \<list> \<object></pre>
@@ -1852,7 +1894,7 @@ FirstVal(TermNode&);
 
 
 /*!
-\brief 对指定项按指定的环境求值。
+\brief 对指定项以指定的环境求值。
 \note 支持保存当前动作。
 \sa ResolveEnvironment
 
@@ -1862,7 +1904,8 @@ FirstVal(TermNode&);
 //@{
 /*!
 \since build 787
-按值传递返回值：提升项以避免返回引用造成内存安全问题。
+
+按值传递返回值：提升求值后的项。
 
 参考调用文法：
 <pre>eval \<expression> \<environment></pre>
@@ -1873,7 +1916,7 @@ Eval(TermNode&, ContextNode&);
 /*!
 \since build 822
 
-在返回时不提升项，允许返回引用。
+不提升求值后的项，允许返回引用值。
 
 参考调用文法：
 <pre>eval% \<expression> \<environment></pre>
@@ -1903,7 +1946,7 @@ EvalString(TermNode&, ContextNode&);
 \note 没有 REPL 中的预处理过程。
 \sa EvalRef
 
-在返回时不提升项，允许返回引用。
+不提升求值后的项，允许返回引用值。
 
 参考调用文法：
 <pre>eval-string% \<string> \<environment></pre>
@@ -1916,6 +1959,8 @@ EvalStringRef(TermNode&, ContextNode&);
 \exception LoggedEvent 翻译单元为空串。
 \sa Reduce
 \since build 835
+
+提供创建 REPL 新实例并求值的便利接口。
 
 参考调用文法：
 <pre>eval-unit \<string> \<object></pre>
@@ -1983,7 +2028,6 @@ ValueOf(TermNode&, const ContextNode&);
 
 
 /*!
-\brief 定义。
 \exception ParameterMismatch 绑定匹配失败。
 \throw InvalidSyntax 绑定的源为空。
 \sa BindParameter
@@ -1998,6 +2042,7 @@ ValueOf(TermNode&, const ContextNode&);
 */
 //@{
 /*!
+\brief 以惰性求值的表达式定义值。
 \note 不对剩余表达式进一步求值。
 
 剩余表达式视为求值结果，直接绑定到 \c \<definiend> 。
@@ -2009,7 +2054,7 @@ YF_API ReductionStatus
 DefineLazy(TermNode&, ContextNode&);
 
 /*!
-\note 不支持递归绑定。
+\brief 不带递归匹配的定义。
 
 剩余表达式视为一个表达式在上下文决定的当前环境进行求值后绑定到 \c \<definiend> 。
 
@@ -2020,6 +2065,7 @@ YF_API ReductionStatus
 DefineWithNoRecursion(TermNode&, ContextNode&);
 
 /*!
+\brief 带递归匹配的定义。
 \note 支持直接递归和互相递归绑定。
 \sa InvalidReference
 
@@ -2118,7 +2164,7 @@ UndefineChecked(TermNode&, ContextNode&);
 */
 //@{
 /*!
-按值传递返回值：提升项以避免返回引用造成内存安全问题。
+按值传递返回值：提升项。
 
 参考调用文法：
 <pre>$lambda \<formals> \<body></pre>

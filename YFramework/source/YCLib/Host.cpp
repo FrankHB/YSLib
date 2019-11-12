@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r819
+\version r821
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2019-08-01 18:18 +0800
+	2019-11-05 01:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -260,7 +260,6 @@ EncodeArg(const char* str)
 #	endif
 
 
-#if !YCL_Android
 //! \since build 755
 namespace
 {
@@ -436,7 +435,6 @@ UpdateForeColorByLevel(Terminal& term, RecordLevel lv)
 	}
 	return {};
 }
-#endif
 
 } // namespace platform_ex;
 

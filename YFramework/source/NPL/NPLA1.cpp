@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r13762
+\version r13836
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2019-10-27 01:31 +0800
+	2019-11-12 21:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,10 +52,10 @@ namespace NPL
 {
 
 // NOTE: The following options provide documented alternative implementations.
-//	They are for exposition only. The code without TCO or thunks works without
-//	several guarantees in the specification (notably, support of PTC), which is
-//	not conforming. Other documented cases not supporting PTC are noted in
-//	implementations separatedly.
+//	They are for exposition only. The code without TCO or asynchrous thunked
+//	calls works without several guarantees in the specification (notably,
+//	support of PTC), which is not conforming. Other documented cases not
+//	supporting PTC are noted in implementations separatedly.
 
 #define NPL_Impl_NPLA1_Enable_TCO true
 #define NPL_Impl_NPLA1_Enable_TailRewriting NPL_Impl_NPLA1_Enable_TCO
@@ -736,8 +736,8 @@ template<typename _func>
 void
 EqualTermValue(TermNode& term, _func f)
 {
-	EqualTerm(term, f, [](const TermNode& node) -> const ValueObject&{
-		return ReferenceTerm(node).Value;
+	EqualTerm(term, f, [](const TermNode& x) -> const ValueObject&{
+		return ReferenceTerm(x).Value;
 	});
 }
 
@@ -842,11 +842,11 @@ private:
 	//! \since build 855
 	static ReductionStatus
 	RestoredThunk(TermNode& term, ContextNode& ctx, const TokenValue& n,
-		const EnvironmentReference& wenv)
+		const EnvironmentReference& env_ref)
 	{
-		if(const auto p_senv = wenv.Lock())
+		if(const auto p_env = env_ref.Lock())
 		{
-			if(const auto p_f = p_senv->LookupName(n))
+			if(const auto p_f = p_env->LookupName(n))
 				return NPL::ResolveRegular<ContextHandler>(*p_f)(term, ctx);
 			throw BadIdentifier("Invalid name of shared object found.");
 		}
@@ -887,6 +887,14 @@ YB_ATTR_nodiscard YB_PURE inline
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TermNode&&, MoveFirstSubterm, TermNode& term)
 	ImplRet(std::move(AccessFirstSubterm(term)))
+
+//! \since build 871
+void
+CheckValidEnvironment(const shared_ptr<Environment>& p_env)
+{
+	if(YB_UNLIKELY(!p_env))
+		Environment::ThrowForInvalidValue();
+}
 
 
 template<typename _func>
@@ -931,6 +939,7 @@ DoSet(TermNode& term, ContextNode& ctx, _func f)
 		return ReduceSubsequent(*i, ctx, [&, f, i]{
 			auto p_env(ResolveEnvironment(*i).first);
 
+			CheckValidEnvironment(p_env);
 			RemoveHead(term);
 
 			auto formals(MoveFirstSubterm(term));
@@ -1554,7 +1563,7 @@ public:
 	VauHandler(string&& ename, shared_ptr<TermNode>&& p_fm,
 		shared_ptr<Environment>&& p_env, bool owning, TermNode& term, bool nl)
 		: eformal(std::move(ename)), p_formals((CheckParameterTree(Deref(p_fm)),
-		std::move(p_fm))), parent(Nonnull(p_env)),
+		std::move(p_fm))), parent((CheckValidEnvironment(p_env), p_env)),
 		// XXX: Optimize with region inference?
 		p_static(owning ? std::move(p_env) : nullptr),
 		p_eval_struct(ShareMoveTerm(ystdex::exchange(term,
@@ -1816,7 +1825,7 @@ ReduceCombinedImpl(TermNode& term, ContextNode& ctx)
 				term, ctx);
 #endif
 	}
-	// NOTE: This is neutral to thunks.
+	// NOTE: This is neutral to %NPL_Impl_NPLA1_Enable_Thunked.
 	if(const auto p_handler = NPL::TryAccessReferencedTerm<ContextHandler>(fm))
 	{
 		term.Tags &= ~TermTags::Temporary;
@@ -1971,39 +1980,6 @@ SetRestImpl(TermNode& term, void(&lift)(TermNode&))
 	}, term);
 }
 
-//! \since build 859
-//@{
-ReductionStatus
-MakeRefAt(TermNode& term, TermNode& src, ResolvedTermReferencePtr p_ref)
-{
-	// XXX: This should be safe, since the parent list is guaranteed an
-	//	lvalue by %CheckResolvedListReference.
-	term.Value = TermReference(GetLValueTagsOf(src.Tags), src,
-		Deref(p_ref).GetEnvironmentReference());
-	return ReductionStatus::Clean;
-}
-
-ReductionStatus
-MakeRef(TermNode& term, TermNode& src, ResolvedTermReferencePtr p_ref)
-{
-	if(const auto p = NPL::TryAccessLeaf<const TermReference>(src))
-	{
-		// NOTE: Reference collapsed by copy.
-		term.SetContent(src);
-		// XXX: The resulted representation can be irregular.
-		return ReductionStatus::Retained;
-	}
-	return MakeRefAt(term, src, p_ref);
-}
-
-//! \pre 间接断言：参数是不相同的项。
-ReductionStatus
-MakeVal(TermNode& term, TermNode& src)
-{
-	term.MoveContent(std::move(src));
-	return ReduceForwarded(term);
-}
-//@}
 
 //! \since build 867
 template<typename _func>
@@ -2404,8 +2380,8 @@ public:
 public:
 	//! \since build 869
 	RefContextHandler(const ContextHandler& h,
-		const EnvironmentReference& r_env) ynothrow
-		: anchor_ptr(r_env.GetAnchorPtr()), HandlerRef(h)
+		const EnvironmentReference& env_ref) ynothrow
+		: anchor_ptr(env_ref.GetAnchorPtr()), HandlerRef(h)
 	{}
 	DefDeCopyMoveCtorAssignment(RefContextHandler)
 
@@ -2636,10 +2612,10 @@ public:
 	void
 	operator()(TermNode& term) const
 	{
-		CallUnary([this](TermNode& nd) YB_PURE{
+		CallUnary([this](TermNode& tm) YB_PURE{
 			return Encapsulation(GetType(), ystdex::invoke_value_or(
 				&TermReference::get, NPL::TryAccessReferencedLeaf<
-				const TermReference>(nd), std::move(nd)));
+				const TermReference>(tm), std::move(tm)));
 		}, term);
 	}
 };
@@ -2660,11 +2636,11 @@ public:
 	void
 	operator()(TermNode& term) const
 	{
-		CallUnary([this](TermNode& nd) YB_ATTR_LAMBDA(pure) -> bool{
+		CallUnary([this](TermNode& tm) YB_ATTR_LAMBDA(pure) -> bool{
 			return ystdex::call_value_or(
 				[this](const Encapsulation& enc) YB_ATTR_LAMBDA(pure) ynothrow{
 				return Get() == enc.Get();
-			}, NPL::TryAccessReferencedTerm<Encapsulation>(nd));
+			}, NPL::TryAccessReferencedTerm<Encapsulation>(tm));
 		}, term);
 	}
 };
@@ -2717,7 +2693,7 @@ public:
 ReductionStatus
 ApplyImpl(TermNode& term, ContextNode& ctx, shared_ptr<Environment> p_env)
 {
-	YAssert(p_env, "Invalid environment found.");
+	CheckValidEnvironment(p_env);
 
 	using namespace std::placeholders;
 	auto i(term.begin());
@@ -2848,7 +2824,7 @@ void
 ReduceArguments(TNIter first, TNIter last, ContextNode& ctx)
 {
 	if(first != last)
-		// NOTE: This is neutral to thunks.
+		// NOTE: This is neutral to %NPL_Impl_NPLA1_Enable_Thunked.
 		// NOTE: The order of evaluation is unspecified by the language
 		//	specification. It should not be depended on.
 		ReduceChildren(++first, last, ctx);
@@ -2915,7 +2891,7 @@ ReduceChildrenOrdered(TNIter first, TNIter last, ContextNode& ctx)
 ReductionStatus
 ReduceFirst(TermNode& term, ContextNode& ctx)
 {
-	// NOTE: This is neutral to thunks.
+	// NOTE: This is neutral to %NPL_Impl_NPLA1_Enable_Thunked.
 	return IsBranchedList(term) ? ReduceOnce(AccessFirstSubterm(term), ctx)
 		: ReductionStatus::Regular;
 }
@@ -2984,7 +2960,7 @@ ReductionStatus
 ReduceTail(TermNode& term, ContextNode& ctx, TNIter i)
 {
 	term.erase(term.begin(), i);
-	// NOTE: This is neutral to thunks.
+	// NOTE: This is neutral to %NPL_Impl_NPLA1_Enable_Thunked.
 	return ReduceAgain(term, ctx);
 }
 
@@ -3628,10 +3604,12 @@ First(TermNode& term)
 	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
 		if(IsBranchedList(nd))
 		{
-			auto& src(Deref(nd.begin()));
+			auto& tm(Deref(nd.begin()));
 
-			return NPL::IsMovable(p_ref) ? MakeVal(term, src)
-				: MakeRef(term, src, p_ref);
+			// XXX: This should be safe, since the parent list is guaranteed an
+			//	lvalue by the false result of the call to %NPL::IsMovable.
+			return NPL::IsMovable(p_ref) ? ReduceToValue(term, tm)
+				: ReduceToReference(term, tm, p_ref);
 		}
 		else
 			ThrowInsufficientTermsError();
@@ -3643,7 +3621,9 @@ FirstRef(TermNode& term)
 {
 	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
 		CheckResolvedListReference(nd, p_ref);
-		return MakeRef(term, Deref(nd.begin()), p_ref);
+		// XXX: This should be safe, since the parent list is guaranteed an
+		//	lvalue by %CheckResolvedListReference.
+		return ReduceToReference(term, Deref(nd.begin()), p_ref);
 	}, term);
 }
 
@@ -3652,16 +3632,17 @@ FirstRefAt(TermNode& term)
 {
 	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
 		CheckResolvedListReference(nd, p_ref);
-		return MakeRefAt(term, Deref(nd.begin()), p_ref);
+		// XXX: Similar to %FirstRef.
+		return ReduceToReferenceAt(term, Deref(nd.begin()), p_ref);
 	}, term);
 }
 
 ReductionStatus
 FirstVal(TermNode& term)
 {
-	return CallResolvedUnary([&](TermNode& nd){
-		if(IsBranchedList(nd))
-			return MakeVal(term, Deref(nd.begin()));
+	return CallResolvedUnary([&](TermNode& tm){
+		if(IsBranchedList(tm))
+			return ReduceToValue(term, Deref(tm.begin()));
 		ThrowInsufficientTermsError();
 	}, term);
 }
@@ -3928,10 +3909,10 @@ CheckEnvironment(TermNode& term)
 {
 	RetainN(term);
 
-	auto& src(*std::next(term.begin()));
+	auto& tm(*std::next(term.begin()));
 
-	yunused(ResolveEnvironment(src));
-	MakeVal(term, src);
+	CheckValidEnvironment(ResolveEnvironment(tm).first);
+	ReduceToValue(term, tm);
 	return ReductionStatus::Regular;
 }
 

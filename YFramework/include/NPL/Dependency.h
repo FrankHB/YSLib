@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r315
+\version r323
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2019-09-17 06:05 +0800
+	2019-11-05 01:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -173,16 +173,15 @@ GetModuleFor(ContextNode& ctx, _fCallable&& f)
 	return ctx.ShareRecord();
 }
 
-/*!
-\pre 间接断言：模块名称字符串的数据指针非空。
-\since build 857
-*/
+//! \pre 间接断言：模块名称字符串的数据指针非空。
 //@{
-//! \brief 加载模块为变量，若已存在则忽略。
+/*!
+\brief 加载模块为变量，若已存在则忽略。
+\since build 871
+*/
 template<typename _fCallable>
 inline void
-LoadModule(ContextNode& ctx, string_view module_name, _fCallable&& f,
-	bool forced = {})
+LoadModule(ContextNode& ctx, string_view module_name, _fCallable&& f)
 {
 	ctx.GetRecordRef().Define(module_name,
 		Forms::GetModuleFor(ctx, yforward(f)));
@@ -191,6 +190,7 @@ LoadModule(ContextNode& ctx, string_view module_name, _fCallable&& f,
 /*!
 \brief 加载模块为变量，若已存在抛出异常。
 \exception BadIdentifier 变量绑定已存在。
+\since build 867
 */
 template<typename _fCallable>
 inline void

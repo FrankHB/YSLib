@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r15482
+\version r15629
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-11-04 18:22 +0800
+	2019-11-12 22:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,138 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ "supported terminal" @ "%platform %Android" @ %Host,
+			$= (- "conditional inclusion for declarations of (classes \
+				%(TerminalData, Terminal), function %UpdateForeColorByLevel)"),
+				// This should be usable on Termux.
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				(
+				+ "function %LiftReferenceToReturn";
+				/ DLDI "simplified function %LiftToReturn"
+					^ "%LiftReferenceToReturn"
+				),
+				(
+				/ $revert_ex(b857) "function %LiftRValueToReturn"
+					-> "function %MoveRValueToReturn";
+				+ "function %ReduceToValue"
+				),
+				- $revert(b869) "function %ReduceForwarded" $dep_all_from
+					"removal of ReduceForwarded",
+				+ "functions %(ReduceToReferenceAt; ReduceToReference)",
+				/ $revert_ex(b870) "function %LiftCollapsedTerm"
+					-> "function %MoveCollapsed",
+				/ "%IsLValueTerm" => "%IsBoundLValueTerm",
+				(
+				/ @ "class %Environment" $=
+				(
+					+ "data member %Frozen";
+					+ "function %MakeTermTags",
+					+ "static function %ThrowForInvalidEnvironment"
+				),
+				/ "reference term tags" @ "function %PrepareCollapse"
+					^ $dep_from "%Environment::MakeTermTags"
+			),
+			/ @ "namespace %Forms" @ %NPLA1 $=
+			(
+				* "wrong %ReductionStatus::Neutral status instead of \
+					%ReductionStatus::Retained for forwarding lvalue operands"
+					@ "functions %(CheckEnvironment, First, FirstVal)"
+					^ $dep_from ("%MoveRValueToReturn" @ %NPLA)
+					~ "%ReduceForwarded" $since b869 $dep_to
+					"removal of ReduceForwarded",
+				/ DLDI "simplified functions %(First, FirstRef)"
+					^ $dep_from ("%ReduceToReference" @ %NPLA),
+				/ DLDI "simplified function %FirstRefAt"
+					^ $dep_from ("%ReduceToReferenceAt" @ %NPLA),
+				(
+				+ "enum %WrappingKind";
+				+ "function template %RegisterHandler";
+				/ DLDI "simplified function templates %(RegisterForm, \
+					RegisterStrict)" ^ "%RegisterHandler",
+				/ "supported wrapping" @ "all 4 function templates \
+					%(RegisterStrictUnary, RegisterStrictBinary)"
+					-> "%(RegisterUnary, RegisterBinary)"
+				),
+				/ "allowed move-only functions" @ "constructor templates \
+					%(UnaryExpansion, UnaryAsExpansion, \
+					BinaryExpansion, BinaryAsExpansion)"
+					$= (/ "constructed stored function with move" ^ "%std::move"
+						~ "direct copy-initialization"),
+				+ "hosted environment value checks" ^ $dep_from
+					("%Environment::ThrowForInvalidValue" @ %NPLA)
+					$effective @ "functions (%(Apply, CheckEnvironment), \
+					'Lambda*', 'Vau*', 'Set*')"
+			),
+			/ %Dependency $=
+			(
+				* "missing removed unused 2nd parameter"
+					@ "function template %LoadModule" $since b867,
+				/ @ "function %LoadGroundContext" $=
+				(
+					/ DLDI "simplified applicative 'move!'"
+						^ "%Forms::CallResolvedUnary",
+					/ DLI "simplified native derivations" @ "applicatives \
+						%(deshare, collapse)" ^ "%Forms::CallRawUnary",
+					/ DLI @ "native derivations" @ "applicatives %(id, idv)" $=
+					(
+						/ $design ^ "%Forms::CallRawUnary",
+						/ ^ "%TermNode::MoveContent" ~ "%LiftTerm"
+					),
+					/ @ "native derivation" @ "applicative %forward" $=
+					(
+						/ DLDI ^ "%Forms::CallRawUnary",
+						* "wrong %ReductionStatus::Neutral status instead of \
+							%ReductionStatus::Retained for lvalue \
+							operands" ^ $dep_from ("%ReduceToValue"
+							@ %NPLA) ~ "%ReduceForwarded" $since b869 $dep_to
+							"removal of ReduceForwarded"
+					),
+					/ $forced DLI "native derivation" @ "applicatives \
+						(%collapse, 'assign%!')" ^ (($dep_from "%MoveCollapsed"
+						~ "%LiftCollapsedTerm") @ %NPLA),
+					(
+					/ "applicative 'resolve-identifier'"
+						-> "operative '$resolve-identifier'"
+						^ $dep_from ("%RegisterUnary" @ %NPLA1);
+						// Similar to the rationale to change 'binds?' to \
+							'$binds?' in [RnRK].
+					/ $forced "simplified alternative derivations"
+						@ "applicatives %(collapse, forward, first)"
+						^ '$resolve-identifier' ~ '(unwrap resolve-identifier)'
+					),
+					/ "applicative 'lvalue?'" -> 'bound-lvalue?'
+						$= (/ $forced DLDI $dep_from ("%IsLValueTerm" @ %NPLA)),
+					/ "protected the ground environment from modification \
+						after initialization of bindings"
+						$dep_from ("%Environment::Frozen" @ %NPLA),
+					+ "applicative 'freeze-environment!'" ^ $dep_from
+						("%Environment::ThrowForInvalidEnvironment" @ %NPLA)
+				),
+				/ $forced DLDI "functions %(LoadGroundContext, \
+					LoadModule_std_environments, LoadModule_std_strings, \
+					LoadModule_std_io, LoadModule_std_io, LoadModule_SHBuild)"
+					$dep_from ("%(RegisterUnaryStrict, RegisterBinaryStrict)"
+					@ %NPLA1)
+			),
+			/ $revert_ex(b869) DLDI "renamed internal 'TermNode&' parameter \
+				names" $effective @ (("functions %(CheckEnvironment, \
+				EqualLeaf, EqualReference, FirstVal, MakeEncapsulationType)",
+				"function templates %(CallUnary, CallUnaryAs, \
+				CallResolvedUnary)") @ "namespace %Forms" @ %NPLA1,
+				"function %LoadGroundContext" @ %Dependency)
+				// Subterms not being resolved are now named 'tm' instead \
+					of 'node', 'nd' or 'src'.
+		)
+	)
+),
+
+b870
 (
 	* DD "wrong '\param' command" @ "Doxygen comment" @ "private function"
 		@ "class %ShlTextReader" @ %YReader.ShlReader
@@ -8971,23 +9103,19 @@ b840
 						moving should be still more optimal here.
 				/ @ "class %Environment" $=
 				(
-					/ "static member function %DefaultRedirect" $=
+					- "assertion" @ "static function %DefaultResolve",
+						// Indirect call of %Environment::LookupName would \
+							account.
 					(
-						- "assertion" @ "static function %DefaultResolve",
-							// Indirect call of %Environment::LookupName would \
-								account.
-						(
-						/ "supported unbound calls" ^ "thunked call"
-							~ "%Redirect";
-						* "ignored environments other than front element in an \
-							environment list" $since b798,
-							// This bug of missing backtracking only occurs \
-								for list with more than one element and the \
-								name cannot be look up successfully in the \
-								first one.
-						- $revert(b798) "static function %DefaultRedirect; \
-							data member %Redirect, "
-						)
+					/ "supported unbound calls" ^ "thunked call"
+						~ "%Redirect";
+					* "ignored environments other than front element in an \
+						environment list" $since b798,
+						// This bug of missing backtracking only occurs for \
+							list with more than one element and the name \
+							cannot be look up successfully in the first one.
+					- $revert(b798) "static function %DefaultRedirect; \
+						data member %Redirect"
 					)
 				)
 			)

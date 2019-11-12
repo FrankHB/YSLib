@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r6383
+\version r6611
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2019-11-02 21:56 +0800
+	2019-11-12 21:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -522,7 +522,11 @@ public:
 \todo 捕获并保存类型信息。
 */
 //@{
-//! \brief 类型错误。
+/*!
+\brief 类型错误。
+
+类型不匹配的错误。
+*/
 class YF_API TypeError : public NPLException
 {
 public:
@@ -560,6 +564,8 @@ public:
 /*!
 \brief 列表类型错误。
 \note 预期列表或列表引用。
+
+列表类型或非列表类型不匹配的错误。
 */
 class YF_API ListTypeError : public TypeError
 {
@@ -579,7 +585,7 @@ public:
 
 /*!
 \brief 列表规约失败。
-\note 预期 ContextHandler 或引用。
+\note 预期 ContextHandler 或引用 ContextHandler 的引用值。
 \since build 692
 \todo 捕获并保存上下文信息。
 */
@@ -598,7 +604,11 @@ public:
 };
 
 
-//! \brief 语法错误。
+/*!
+\brief 无效语法。
+
+特定上下文中的语法错误。
+*/
 class YF_API InvalidSyntax : public NPLException
 {
 public:
@@ -634,6 +644,8 @@ public:
 /*!
 \brief 元数不匹配错误。
 \todo 支持范围匹配。
+
+操作数子项个数不匹配的错误。
 */
 class YF_API ArityMismatch : public ParameterMismatch
 {
@@ -664,6 +676,8 @@ public:
 /*!
 \brief 标识符错误。
 \since build 726
+
+因在当前上下文中无效或不存在的标识符而引起的错误。
 */
 class YF_API BadIdentifier : public InvalidSyntax
 {
@@ -698,8 +712,10 @@ public:
 
 
 /*!
-\brief 无效引用错误。
+\brief 无效引用。
 \since build 822
+
+无效引用错误。
 */
 class YF_API InvalidReference : public NPLException
 {
@@ -782,6 +798,9 @@ YB_ATTR_nodiscard YB_PURE inline
 /*!
 \brief 判断词素是否为 NPLA 符号。
 \pre 间接断言：字符串参数的数据指针非空且字符串非空。
+
+判断字符串是否为 NPLA 语言规范中约定支持的符号，
+	即分类为 LexemeCategory::Symbol 的词素。
 */
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(bool, IsNPLASymbol, string_view id) ynothrowv
@@ -889,7 +908,13 @@ TokenizeTerm(TermNode& term);
 
 //! \exception 异常中立：由项的值数据成员的持有者抛出。
 //@{
-//! \brief 尝试访问项的指定类型对象指针。
+/*!
+\brief 尝试访问项的指定类型对象指针。
+
+尝试访问作为叶节点的 TermNode 。
+和 YSLib::AccessPtr 访问 ValueNode 的 Value 数据成员类似，
+	但先解析引用重定向到目标，且对持有者异常中立。
+*/
 //@{
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
@@ -907,7 +932,13 @@ TryAccessLeaf(const TermNode& term)
 }
 //@}
 
-//! \brief 尝试访问项的指定类型叶节点对象指针。
+/*!
+\brief 尝试访问项的指定类型叶节点对象指针。
+
+尝试访问 TermNode 。
+类似 NPL::TryAccessLeaf ，但先使用 NPL::IsLeaf 判断叶节点，
+	对非叶节点直接返回空指针。
+*/
 //@{
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
@@ -949,10 +980,10 @@ TryAccessTerm(const TermNode& term)
 class Environment;
 
 /*!
-\brief 环境引用。
+\brief 环境引用值。
 \since build 823
 
-可能共享所有权环境的引用。
+可能共享所有权环境的弱引用。
 */
 class YF_API EnvironmentReference
 	: private ystdex::equality_comparable<EnvironmentReference>
@@ -1096,7 +1127,33 @@ public:
 	DefPred(const ynothrow, Movable, (tags
 		& (TermTags::Unique | TermTags::Nonmodifying)) == TermTags::Unique)
 	DefGetter(const ynothrow, TermTags, Tags, tags)
-	//! \brief 判断引用值是否表示被引用的左值。
+	/*!
+	\brief 判断引用值是否表示被引用的被绑定对象左值。
+
+	判断引用值是否具有表示被引用的左值的标签，即排除以下情形：
+	消亡值，即标签具有 TermTags::Unique 的引用值；
+	引用绑定临时对象的引用值，即标签具有 TermTags::Temporary 的引用值。
+	区分临时对象的情形类似宿主语言使用 std::forward<P> 转发 P&& 类型的函数参数：
+	当 P&& 类型的函数形式参数绑定右值实际参数，P 为非引用类型函数模板参数；
+	当 P&& 类型的函数形式参数绑定左值实际参数，P 为左值引用类型函数模板参数。
+	P 为非引用类型时，类似对象语言绑定临时对象，否则类似对象语言中绑定非临时对象。
+	这种区分在宿主语言中通过推断模板参数而非函数的实际参数类型或值类别确定，
+		结果体现在函数的形式参数类型 P&& 是否为左值引用，等价 P 是否为左值引用。
+	作为实际参数的消亡值在宿主语言保证总是推断 P 为非引用类型，这也和对象语言一致，
+		允许使用实际参数中的 TermTags::Unique 标签代替形式参数类型编码这种区分；
+	但对象语言函数的形式参数不具有显式类型，因此用被绑定对象上的
+		TermTags::Temporary 标签标记通过纯右值（即作为临时对象）实际参数初始化
+		被绑定对象的情形，对应区分 P 是否被推断为非左值引用的情形；
+	因此，按表达式的值中是否具有 TermTags::Unique 或 TermTags::Temporary 标签，
+		即可区分是否按右值转发，而实现类似宿主语言的完美转发（除限定符外）。
+	据此，本函数和其它实现转发的一些 API 区分提供的参数中的引用值标签，
+		即视带有 TermTags::Unique 或 TermTags::Temporary 标签的引用值为右值。
+	在此，被绑定对象具有 TermTags::Temporary 类似宿主语言中推断得到 P&&
+		为右值引用类型，并非需被转发的初始化它的实际参数为消亡值。
+	本函数不适用在不需要转发对象语言的函数参数的上下文，如判断表达式的值类别
+		（右值为带有 TermTags::Unique 的引用的消亡值，或非引用值的纯右值），；
+		通常应使用 IsUnique 等代替。
+	*/
 	DefPred(const ynothrow, ReferencedLValue,
 		!(bool(tags & TermTags::Unique) || bool(tags & TermTags::Temporary)))
 	//@}
@@ -1113,7 +1170,10 @@ public:
 	\since build 847
 	*/
 	DefGetterMem(const ynothrow, const AnchorPtr&, AnchorPtr, r_env)
-	//! \since build 869
+	/*!
+	\brief 取关联环境的引用。
+	\since build 869
+	*/
 	DefGetter(const ynothrow, const EnvironmentReference&, EnvironmentReference,
 		r_env)
 
@@ -1140,10 +1200,12 @@ Collapse(TermReference);
 
 /*!
 \brief 准备折叠项引用。
+\sa Environment::MakeTermTags
 \since build 869
 
 返回引用由以下方式确定：
 当第一参数表示项引用时，返回这个项引用的值；否则为通过参数初始化的项引用。
+初始化引用使用指定环境创建的标签。
 这种方式避免初始化引用的引用，除非第一参数已具有未折叠的引用。
 使用引用值初始化时保留标签，否则使用项中的标签。
 第二参数指定通过参数初始化引用值时关联的环境。
@@ -1202,6 +1264,7 @@ YB_ATTR_nodiscard YB_PURE yconstfn PDefH(ResolvedTermReferencePtr,
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(bool, IsMovable, const TermReference& ref) ynothrow
 	ImplRet(ref.IsMovable())
+//! \note 空指针指定解析结果中不存在引用值，被解析的项总是视为可转移的右值项。
 template<typename _tPointer>
 YB_ATTR_nodiscard YB_PURE inline auto
 IsMovable(_tPointer p) ynothrow
@@ -1255,36 +1318,43 @@ TryAccessReferencedTerm(const TermNode& term)
 //@}
 //@}
 
+//! \note 使用 NPL::TryAccessLeaf 访问。
+//@{
 //! \since build 854
 //@{
-//! \brief 判断项是否为引用项。
+//! \brief 判断项（的值数据成员）是否为引用项。
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsReferenceTerm(const TermNode&);
 
 /*!
-\brief 判断项是否表示左值引用。
+\brief 判断项（的值数据成员）是否表示被绑定的左值引用。
 \sa TermReference::IsReferencedLValue
+\since build 871
+
+判断项是否表示引用且 TermReference::IsReferencedLValue 的结果为 true 。
 */
 YB_ATTR_nodiscard YF_API YB_PURE bool
-IsLValueTerm(const TermNode&);
+IsBoundLValueTerm(const TermNode&);
 //@}
 
 /*!
-\brief 判断项是否表示未折叠的引用。
+\brief 判断项（的值数据成员）是否表示未折叠的引用。
 \since build 869
 */
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsUncollapsedTerm(const TermNode&);
 
-//! \since build 859
-//@{
 /*!
-\brief 判断项是否表示非引用项或唯一引用。
+\brief 判断项（的值数据成员）是否表示非引用项或唯一引用。
 \sa TermReference::IsUnique
+\since build 859
 */
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsUniqueTerm(const TermNode&);
+//@}
 
+//! \since build 859
+//@{
 /*!
 \brief 解析并间接引用处理可能是引用值的项。
 \note 假定项不使用平凡正规表示，不需要对间接值检查 IsBranch 或 IsLeaf 。
@@ -1370,7 +1440,11 @@ ResolveRegular(_tTerm& term) -> yimpl(decltype(NPL::Access<_type>(term)))
 
 //! \since build 801
 //@{
-//! \brief 引用项操作。
+/*!
+\brief 项引用函数对象操作。
+\note 这是 NPL::ReferenceTerm 的函数对象形式。
+\sa ReferenceTerm
+*/
 struct ReferenceTermOp
 {
 	//! \since build 854
@@ -1384,7 +1458,7 @@ struct ReferenceTermOp
 };
 
 /*!
-\brief 包装一个非引用项的操作为 NPL::ReferenceTermOp 以支持项引用。
+\brief 包装一个非项引用的操作为 NPL::ReferenceTermOp 以支持项引用。
 \relates ReferenceTermOp
 \since build 802
 */
@@ -1503,14 +1577,15 @@ YF_API void
 LiftTermOrCopy(TermNode&, TermNode&, bool);
 
 
+//! \note 不复制项的标签。这适合不保留标签的赋值操作。
+//@{
 /*!
-\brief 提升折叠后的项引用。
+\brief 提升折叠后的项引用到指定的项。
 \sa Collapse
 \sa LiftTerm
 \since build 858
 
 按参数指定的项提升引用。参数分别为目标、源和项引用。
-不复制项的标签。这适合不保留标签的赋值操作。
 使用第二参数以支持非正规表示。
 假定第三参数引用的项是第二参数；
 否则，若目标和源项不相同且引用值具有非正规表示，行为未定义。
@@ -1519,16 +1594,20 @@ YF_API void
 LiftCollapsed(TermNode&, TermNode&, TermReference);
 
 /*!
-\brief 提升折叠后的项。
+\brief 提升折叠后的第二参数指定的项。
+\pre 间接断言：第一和第二参数指定不相同的项。
+\sa Collapse
 \sa LiftCollapsed
-\sa LiftTerm
-\since build 870
+\sa TermNode::MoveContent
+\since build 871
 
 按参数指定的项提升折叠的项。参数分别为目标和源。
-当源是引用项时，调用 LiftCollapse 提升其中的引用，否则同 LiftTerm 。
+当源是引用项时，提升源表示的引用，否则同 TermNode::MoveContent。
+其中提升操作等效调用 LiftCollapsed 。
 */
 YF_API void
-LiftCollapsedTerm(TermNode&, TermNode&);
+MoveCollapsed(TermNode&, TermNode&);
+//@}
 
 /*!
 \warning 引入的间接值无所有权，应注意在生存期内使用以保证内存安全。
@@ -1567,26 +1646,42 @@ LiftToReference(TermNode&, TermNode&);
 
 /*!
 \brief 提升项作为返回值。
-\note 复制引用项引用的对象，复制或转移非引用项的对象。
+\sa LiftReferenceToReturn
 \since build 828
 
-提升项的值数据成员可能包含的引用值以满足返回值的内存安全要求。
+若参数是引用值，则调用 LiftReferenceToReturn 提升此引用值指定的项。
 */
 YF_API void
 LiftToReturn(TermNode&);
 
 /*!
-\brief 提升右值项作为返回值。
-\sa IsLValueTerm
-\sa LiftToReturn
-\since build 857
+\brief 提升引用的项作为返回值。
+\note 复制引用项引用的对象，复制或转移非引用项的对象。
+\since build 871
 
-提升表示右值的项的值数据成员可能包含的引用值以满足返回值的内存安全要求。
-对左值不进行修改，否则同 LiftToReturn 。
-可在对象语言中实现类似 C++ 的 std::forward 。
+提升第二参数引用的项使其中可能包含的引用值以满足返回值的内存安全要求。
+对第二参数指定的引用值按 TermReference::IsMovable 的结果判断转移或复制对象。
 */
 YF_API void
-LiftRValueToReturn(TermNode&);
+LiftReferenceToReturn(TermNode&, const TermReference&);
+
+/*!
+\brief 提升第二参数指定的右值项作为第一参数指定项中的返回值。
+\pre 间接断言：参数指定不相同的项。
+\sa LiftToReturn
+\sa TermNode::MoveContent
+\sa TermReference::IsReferencedLValue
+\since build 871
+
+效果同先转移第二参数到第一参数，然后对结果进行返回值转换。
+因允许减少转移，实现可较无条件转移参数指定的项后转换返回值高效。
+返回值转换提升表示右值的项的值数据成员可能包含的引用值以满足返回值的内存安全要求。
+返回值转换对左值不进行修改，否则同 LiftToReturn 。
+返回值转换可在对象语言中实现类似 C++ 的 std::forward ，但可能复制值。
+区分左值同 TermReference::IsReferencedLValue 。
+*/
+YF_API void
+MoveRValueToReturn(TermNode&, TermNode&);
 //@}
 
 /*!
@@ -1646,19 +1741,6 @@ inline PDefH(ReductionStatus, ReduceForLiftedResult, TermNode& term)
 	ImplRet(LiftToReturn(term), ReductionStatus::Retained)
 
 /*!
-\brief 规约转发提升结果。
-\sa IsLValueTerm
-\sa ReduceForLiftedResult
-\since build 869
-
-按项是否表示左值选择性提升结果，再返回规约状态。
-对左值不进行修改，返回 ReductionStatus::Neutral ；否则同 ReduceForLiftedResult 。
-*/
-inline PDefH(ReductionStatus, ReduceForwarded, TermNode& term)
-	ImplRet(!IsLValueTerm(term) ? ReduceForLiftedResult(term)
-		: ReductionStatus::Neutral)
-
-/*!
 \brief 规约第一个非结尾空列表子项。
 \return ReductionStatus::Neutral 。
 \sa RemoveHead
@@ -1692,6 +1774,37 @@ inline PDefH(ReductionStatus, ReduceToList, TermNode& term) ynothrow
 inline PDefH(ReductionStatus, ReduceToListValue, TermNode& term) ynothrow
 	ImplRet(IsBranchedList(term) ? ReduceBranchToListValue(term)
 		: ReductionStatus::Regular)
+//@}
+
+/*!
+\pre 间接断言：第一和第二参数指定不相同的项。
+\since build 871
+*/
+//@{
+//! \note 第三参数指定的被引用项关联的环境被作为新创建的引用值关联的环境。
+//@{
+/*!
+\brief 规约转发第二参数指定的项表示的引用值作为求值结果。
+\pre 间接断言：第三参数非空。
+*/
+YF_API ReductionStatus
+ReduceToReference(TermNode&, TermNode&, ResolvedTermReferencePtr);
+
+/*!
+\brief 规约转发第二参数指定的项表示的未折叠引用值作为求值结果。
+\pre 间接断言：第二参数指定的项是引用项，或第三参数非空。
+*/
+YF_API ReductionStatus
+ReduceToReferenceAt(TermNode&, TermNode&, ResolvedTermReferencePtr);
+//@}
+
+/*!
+\brief 规约转发第二参数指定的项表示的值作为求值结果。
+\return ReductionStatus::Retained 。
+\sa MoveRValueToReturn
+*/
+inline PDefH(ReductionStatus, ReduceToValue, TermNode& term, TermNode& tm)
+	ImplRet(MoveRValueToReturn(term, tm), ReductionStatus::Retained)
 //@}
 
 
@@ -1818,7 +1931,8 @@ public:
 	\since build 851
 
 	解析指定环境中的名称。
-	被解析的环境可重定向：解析失败时，尝试提供能进一步解析名称的环境。
+	值指定的实现可被改变，应符合以下描述中的要求。
+	被解析的环境可能被重定向：解析失败时，尝试提供能进一步解析名称的环境。
 	重定向通常在局部解析失败时进行，也可对特定保留名称进行。
 	重定向的目标通常是父环境。
 	实现名称解析的一般步骤包括：
@@ -1826,9 +1940,16 @@ public:
 	否则，若支持重定向，尝试重定向解析：在重定向后的环境中重新查找名称；
 	否则，名称解析失败。
 	名称解析失败时默认返回空值和未指定的环境引用值。对特定的失败，实现可约定抛出异常。
-	保留名称的集合和是否支持重定向由实现约定。
-	只有和名称解析的相关保留名称被处理。其它保留名称被忽略。
-	不保证对循环重定向进行检查。
+	只有和名称解析的相关保留名称需被处理。其它保留名称被忽略。
+	是否支持重定向由实现指定。若实现支持重定向，应指定确定重定向的目标的规则。
+	除非实现另行指定，保留名称为空集；否则，保留名称的集合由实现指定。
+	解析名称重定向上下文时，可能找到被重定向的环境或被解析的对象的循环引用。
+	不保证检查对反复进入同一重定向环境的循环重定向的环境引用或被解析对象的循环引用。
+	调用名称解析接口需注意绑定中的状态不引起循环重定向。
+	若引起循环重定向，除非实现另行指定，行为未定义。
+	若循环重定向的行为被实现定义，则实现应能确定循环重定向存在；
+		此后，名称解析最终应失败或不终止。
+	若使用被解析的对象的循环引用，可在对象语言中引起未定义行为。
 	*/
 	function<NameResolution(string_view)> Resolve{
 		std::bind(DefaultResolve, std::ref(*this), std::placeholders::_1)};
@@ -1838,6 +1959,12 @@ public:
 	\since build 798
 	*/
 	ValueObject Parent{};
+	/*!
+	\brief 冻结状态。
+	\sa MakeTermTags
+	\since build 871
+	*/
+	bool Frozen = {};
 
 private:
 	/*!
@@ -1954,7 +2081,11 @@ public:
 	*/
 	DefGetter(const ynothrow, BindingMap&, MapRef, Bindings)
 
-	//! \since build 852
+	/*!
+	\brief 添加绑定。
+	\since build 852
+	*/
+	//@{
 	template<typename _tKey, typename... _tParams>
 	inline yimpl(ystdex::enable_if_inconvertible_t)<_tKey&&,
 		BindingMap::const_iterator, bool>
@@ -1963,7 +2094,6 @@ public:
 		return ystdex::try_emplace(Bindings, yforward(k), NoContainer,
 			yforward(args)...).second;
 	}
-	//! \since build 852
 	template<typename _tKey, typename... _tParams>
 	inline bool
 	AddValue(BindingMap::const_iterator hint, _tKey&& k, _tParams&&... args)
@@ -1971,8 +2101,12 @@ public:
 		return ystdex::try_emplace_hint(Bindings, hint, yforward(k),
 			NoContainer, yforward(args)...).second;
 	}
+	//@}
 
-	//! \since build 857
+	/*!
+	\brief 添加或覆盖绑定。
+	\since build 857
+	*/
 	template<typename _tKey, class _tNode>
 	TermNode&
 	Bind(_tKey&& k, _tNode&& tm)
@@ -2003,7 +2137,7 @@ public:
 	Deduplicate(BindingMap&, const BindingMap&);
 
 	/*!
-	\brief 解析名称：处理保留名称并查找名称。
+	\brief 默认的名称解析算法。
 	\pre 断言：第二参数的数据指针非空。
 	\exception NPLException 访问共享重定向环境失败。
 	\sa Lookup
@@ -2020,9 +2154,10 @@ public:
 	EnvironmentReference 可能具有共享所有权的重定向环境；
 	shared_ptr<Environment> 具有共享所有权的重定向环境。
 	若重定向可能具有共享所有权的失败，则表示资源访问错误，如构成循环引用；
-		可能涉及未定义行为。
-	以上支持的宿主值类型被依次检查。若检查成功，则使用此宿主值类型访问环境。
+		发现环境的循环引用视为失败，抛出异常；其它情形行为未定义。
+	以上支持的宿主值类型被依次尝试访问。若成功，则使用此宿主值类型访问环境。
 	对列表，使用 DFS （深度优先搜索）依次递归检查其元素。
+	循环重定向不终止。
 	*/
 	YB_ATTR_nodiscard static NameResolution
 	DefaultResolve(Environment&, string_view);
@@ -2070,6 +2205,14 @@ public:
 	LookupName(string_view) const;
 
 	/*!
+	\brief 根据当前状态创建指定项的引用。
+	\note 项通常表示当前环境对象所有的被绑定对象。
+	\since build 871
+	*/
+	PDefH(TermTags, MakeTermTags, const TermNode& term) const
+		ImplRet(Frozen ? term.Tags | TermTags::Nonmodifying : term.Tags)
+
+	/*!
 	\brief 以字符串为标识符在指定上下文移除定义。
 	\return 是否成功移除。
 	*/
@@ -2104,6 +2247,16 @@ public:
 	*/
 	YB_NORETURN static void
 	ThrowForInvalidType(const ystdex::type_info&);
+
+	/*!
+	\brief 抛出无效环境值异常。
+	\throw std::invalid_argument 环境宿主值失败。
+	\note 参数指定是否用于构造上下文，决定不同的异常消息。
+	\note 用于对不符合作为对象语言中有效环境引用的值的宿主值抛出异常。
+	\since build 871
+	*/
+	YB_NORETURN static void
+	ThrowForInvalidValue(bool = {});
 
 	//! \since build 746
 	friend PDefH(void, swap, Environment& x, Environment& y) ynothrow
@@ -2231,14 +2384,17 @@ public:
 	//! \since build 788
 	DefGetter(const ynothrow, Environment::BindingMap&, BindingsRef,
 		GetRecordRef().GetMapRef())
-	//! \since build 788
+	/*!
+	\brief 取环境记录引用。
+	\since build 788
+	*/
 	DefGetter(const ynothrow, Environment&, RecordRef, *p_record)
 	//! \since build 845
 	DefGetter(const ynothrow, pmr::memory_resource&, MemoryResourceRef,
 		memory_rsrc)
 
 	/*!
-	\brief 转移并应用尾调用。
+	\brief 转移并应用作为尾动作的当前动作，并设置 LastStatus 。
 	\note 调用前切换 Current 以允许调用 SetupTail 设置新的尾调用。
 	\pre 断言：\c Current 。
 	\sa LastStatus
@@ -2329,6 +2485,8 @@ public:
 	/*!
 	\brief 切换当前动作。
 	\since build 807
+
+	交换 Current 并返回旧的值。
 	*/
 	PDefH(Reducer, Switch, Reducer f = {})
 		ImplRet(ystdex::exchange(Current, std::move(f)))
@@ -2438,6 +2596,10 @@ SwitchToFreshEnvironment(ContextNode& ctx, _tParams&&... args) ynothrow
 \return 对应的值在构造前不存在。
 \pre 断言：第二参数的数据指针非空。
 \since build 838
+
+设置被绑定对象的值数据成员并清空子项。
+可访问 Environment::Bindings 、Environment 或 ContextNode 类型中指定名称的绑定。
+因为直接替换被绑定对象，不需要检查目标是否和 TermNode 的正规表示一致。
 */
 //@{
 template<typename _type, typename... _tParams>
@@ -2475,10 +2637,11 @@ EmplaceLeaf(ContextNode& ctx, string_view name, _tParams&&... args)
 /*!
 \brief 解析名称：处理保留名称并查找名称。
 \pre 断言：第二参数的数据指针非空。
-\sa Environment::ResolveName
+\sa Environment::Resolve
 \since build 821
 
-解析指定上下文中的名称。
+解析指定上下文的当前环境中的名称。
+解析名称调用上下文的当前环境的 Environment::Resolve 实现。
 */
 YB_ATTR_nodiscard YF_API Environment::NameResolution
 ResolveName(const ContextNode&, string_view);
@@ -2486,13 +2649,16 @@ ResolveName(const ContextNode&, string_view);
 /*!
 \brief 解析标识符：解析名称并折叠引用。
 \pre 间接断言：第二参数的数据指针非空。
-\return 标识符指称的实体的引用。
+\return 标识符指称的对象的引用。
 \throw BadIdentifier 标识符未在环境中找到。
-\sa Collapse
+\sa PrepareCollapse
 \sa ResolveName
 \since build 861
 
-解析指定上下文中的标识符，若不存在绑定则抛出异常。
+解析指定上下文的当前环境中的标识符，若不存在绑定则抛出异常。
+调用 ResolveName ，并调用 PrepareCollapse 进行引用折叠。
+若无法在指定的环境中找到标识符的绑定，则抛出异常。
+解析的结果中的对象以引用在项中表达，以避免使用对象副本。
 */
 YB_ATTR_nodiscard YF_API TermReference
 ResolveIdentifier(const ContextNode&, string_view);
@@ -2521,7 +2687,11 @@ ResolveEnvironment(const TermNode& term);
 /*!
 \brief 环境切换器。
 \warning 非虚析构。
+\sa Environment::SwitchEnvironmentUnchecked
 \since build 821
+
+类 NPL::EnvironmentSwitcher 用于保存切换上下文的当前环境的结果。
+配合作用域守卫可用于以异常中立的方式恢复被切换的环境。
 */
 struct EnvironmentSwitcher
 {
