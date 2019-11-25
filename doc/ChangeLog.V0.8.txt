@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r15629
+\version r15741
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-11-12 22:14 +0800
+	2019-11-25 22:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,112 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	- DLDI "redundant 'YB_PURE YB_ATTR_returns_nonnull'"
+		@ "member function %bad_optional_access::what"
+		@ %YBase.YStandardEx.Optional,
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %SContext $=
+			(
+				(
+				+ "2 functions %AccessFirstSubterm";
+				+ "function %MoveFirstSubterm"
+				),
+				+ "2 functions %ShareMoveTerm"
+					$dep_from ("%shared_ptr" @ %NPLA)
+			),
+			/ %NPLA $=
+			(
+				/ "alias declarations %(shared_ptr, weak_ptr, make_shared)"
+					>> %SContext,
+				/ @ "class %Environment" $=
+				(
+					+ "static function %EnsureValid",
+					/ DLD "parameter type" @ "functions %(SwitchEnvironment, \
+						SwitchEnvironmentUnchecked)" -> 'const \
+						shared_ptr<Environment>&' ~ 'shared_ptr<Environment>'
+				),
+				/ DLDI "simplified functions %(ReduceHeadEmptyList, \
+					%SXML::(ConvertAttributeNodeString, PrintSyntaxNode))"
+					^ $dep_from ("%AccessFirstSubterm" @ %SContext)
+				/ DLDI "simplified function %LiftFirst"
+					^ $dep_from ("%AccessFirstSubterm" @ %SContext)
+					~ "%AssertBranch",
+				/ DLDI "simplified function %SXML::ConvertDocumentNode"
+					^ "%IsBranch",
+				(
+				/ "function %LiftReferenceToReturn"
+					-> "functions %(LiftTermValueOrCopy; LiftTransferred)";
+				/ $forced DLDI "function %(LiftToReturn, MoveRValueToReturn)",
+				+ "function %MoveRValueToForward"
+				)
+			),
+			/ %NPLA1 $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					- $revert_ex(b871) "hosted environment value checks"
+						^ @ "function %Apply"
+						// This should be safe because it is eventually \
+							checked in %ContextNode::SwitchEnvironment.
+					/ DLDI "simplified funtions ('Define*', 'SetWith*', \
+						'Lambda*', 'Vau*')"
+						^ $dep_from ("%ShareMoveTerm" @ %SContext),
+					/ DLDI "simplified funtions ('Define*', 'SetWith*')"
+						^ $dep_from ("%MoveFirstSubterm" @ %SContext),
+					/ DLDI "simplified functions %(When, Unless)"
+						^ $dep_from ("%AccessFirstSubterm" @ %SContext),
+				),
+				/ DLDI "simplified funtions %(ReduceCombined, ReduceFirst, \
+					Forms::(Apply, First, FirstRef, FirstRefAt, SetFirst, \
+					FirstVal, SetFirstRef, SetFirstRefAt)"
+					^ $dep_from ("%AccessFirstSubterm" @ %SContext)
+				/ DLDI "simplified funtions %(SetRest, SetRestRef)" ^ $dep_from
+					("%(AccessFirstSubterm, MoveFirstSubterm)" @ %SContext)
+				/ DLDI "simplified functions %(Forms::(When, Unless), \
+					ReduceOrdered)" ^ "%IsBranch"
+			),
+			/ %Dependency $=
+			(
+				/ @ "function %LoadGroundContext" $=
+				(
+					/ DLDI "simplified applicative 'freeze-environment!'"
+						^ $dep_from ("%Environment::EnsureValid" @ %NPLA)
+						~ "%Environment::ThrowForInvalidValue",
+					+ "applicative 'transfer!'"
+						^ $dep_from ("%LiftTermValueOrCopy" @ %NPLA),
+					+ "applicative 'forward!'" ^ $dep_from ('transfer!',
+						("%MoveRValueToForward" @ %NPLA)),
+					* "missing '&' for the operand binding"
+						@ "alternative derivations ('$and?', '$or?')"
+						$since b860
+				),
+				/ "all non-alised operands forwarding" ^ $dep_from
+					'forward!' ~ 'forward' $effective @ (("alternative \
+					derivations ('set-first%!', 'set-first@!', \
+					'check-environment', 'apply', 'list*%', '$and?', '$or?')",
+					"derivations (%accl, %accr, %foldr1, %map1, 'list-concat', \
+					%append, 'map-reverse')") @ "function %LoadGroundContext",
+					"applicatives %(memoize, force)"
+					@ "function %LoadModule_std_promises")
+			),
+		),
+		+ $re_add(b865) $dev $lib 'YB_ATTR_nodiscard YB_PURE' 
+			@ "functions with name prefixes ('FetchBiChar', 'Get')"
+			@ %CHRLib.CharacterMapping,
+		/ $dev "header %ymsgdef.h" @ %YSLib.Core => "%YMessageDefinition.h",
+		/ $re_add(b868) $dev "all %std::function" -> "%function"
+			$effective @ %(Helper_(Android).AndroidHost, Helper.(GUIApplication,
+			HostRenderer), YSLib.(Core.(YFunc, YMessageDefinition),
+			Service.TextRenderer, UI.(Animation, Hover, ListControl, TabControl,
+			TreeView, YControl, YStyle, Selector))),
+	)
+),
+
+b871
 (
 	/ %YFramework $=
 	(
@@ -94,10 +200,13 @@ $now
 					BinaryExpansion, BinaryAsExpansion)"
 					$= (/ "constructed stored function with move" ^ "%std::move"
 						~ "direct copy-initialization"),
+				/ "assertion" -> "hosted environment value checks"
+					@ "function %Apply" ^ $dep_from
+					("%Environment::ThrowForInvalidValue" @ %NPLA),
 				+ "hosted environment value checks" ^ $dep_from
 					("%Environment::ThrowForInvalidValue" @ %NPLA)
 					$effective @ "functions (%(Apply, CheckEnvironment), \
-					'Lambda*', 'Vau*', 'Set*')"
+					'Lambda*', 'Vau*', 'SetWith*')"
 			),
 			/ %Dependency $=
 			(
@@ -1166,8 +1275,9 @@ b865
 			/ DLDI "tree class template" $=
 			(
 				+ "several 'ynothrow'",
-				+ 'YB_ATTR_nodiscard YB_PURE' @ "iterator observers, count, \
-					boundary search and verification functions",
+				+ $re_add(b864) 'YB_ATTR_nodiscard YB_PURE'
+					@ "iterator observers, count, boundary search and \
+					verification functions",
 				+ 'YB_ATTR_nodiscard' @ "member functions to create nodes, to \
 					extract node handles, to get the node allocator or the \
 					comparison object",

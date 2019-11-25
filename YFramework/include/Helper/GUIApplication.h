@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r557
+\version r560
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2016-09-01 12:05 +0800
+	2019-11-25 21:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,8 +84,9 @@ public:
 	/*!
 	\brief 点映射例程。
 	\sa MapCursor
+	\since build 872
 	*/
-	std::function<pair<observer_ptr<Host::Window>, Drawing::Point>(
+	function<pair<observer_ptr<Host::Window>, Drawing::Point>(
 		const Drawing::Point&)> MapPoint{};
 	//! \brief 宿主环境桌面。
 	UI::Panel Desktop{};

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2015, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CharacterMapping.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r1382
+\version r1394
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2015-10-12 11:29 +0800
+	2019-11-25 21:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include "YModules.h"
 #include YFM_CHRLib_Encoding
 #include YFM_YBaseMacro
-#include <ystdex/cassert.h>
+#include <ystdex/cassert.h> // for yconstraint;
 #include <utility> // for std::pair;
 #include <ystdex/ref.hpp> // for ystdex::lref;
 
@@ -76,11 +76,13 @@ struct MapFixedEncoding<char32_t>
 */
 //@{
 //! \brief 取 c_ptr 指向的大端序双字节字符。
-inline PDefH(char16_t, FetchBiCharBE, const char* c_ptr)
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(char16_t, FetchBiCharBE, const char* c_ptr)
 	ImplRet(yconstraint(c_ptr), char16_t((*c_ptr << CHAR_BIT) | c_ptr[1]))
 
 //! \brief 取 c_ptr 指向的小端序双字节字符。
-inline PDefH(char16_t, FetchBiCharLE, const char* c_ptr)
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(char16_t, FetchBiCharLE, const char* c_ptr)
 	ImplRet(yconstraint(c_ptr), char16_t((c_ptr[1] << CHAR_BIT) | *c_ptr))
 //@}
 
@@ -131,11 +133,14 @@ struct ConversionState
 //! \relates ConversionState
 //@{
 //! \since build 594
-yconstfn PDefH(std::uint_fast8_t&, GetIndexOf, ConversionState& st)
+YB_ATTR_nodiscard YB_PURE yconstfn
+	PDefH(std::uint_fast8_t&, GetIndexOf, ConversionState& st)
 	ImplRet(st.Index)
-yconstfn PDefH(ucsint_t&, GetWideOf, ConversionState& st)
+YB_ATTR_nodiscard YB_PURE yconstfn
+	PDefH(ucsint_t&, GetWideOf, ConversionState& st)
 	ImplRet(st.Value.Wide)
-yconstfn PDefH(byte*, GetSequenceOf, ConversionState& st)
+YB_ATTR_nodiscard YB_PURE yconstfn
+	PDefH(byte*, GetSequenceOf, ConversionState& st)
 	ImplRet(st.Value.Sequence)
 //@}
 

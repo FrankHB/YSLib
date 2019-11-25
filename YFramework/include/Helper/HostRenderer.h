@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r540
+\version r543
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2019-07-08 19:41 +0800
+	2019-11-25 21:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define INC_Helper_HostRenderer_h_ 1
 
 #include "YModules.h"
-#include YFM_Helper_HostWindow // for Host::Window, ystdex::unimplemented;
+#include YFM_Helper_HostWindow // for Host::Window, ystdex::unimplemented,
+//	function;
 #if YF_Multithread == 1
 #	include <thread>
 #endif
@@ -86,7 +87,7 @@ public:
 	//! \since build 589
 	using Guard = any;
 	//! \since build 589
-	using GuardGenerator = std::function<Guard(Window&)>;
+	using GuardGenerator = function<Guard(Window&)>;
 
 private:
 	/*!

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r13836
+\version r13899
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2019-11-12 21:36 +0800
+	2019-11-13 22:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,20 +28,23 @@
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLA1 // for YSLib, ystdex::bind1, TokenValue,
 //	std::placeholders, std::make_move_iterator, NPL::AsTermNode, NPL::Deref,
-//	IsBranch, HasValue, RelaySwitched, ContextHandler, Environment, shared_ptr,
-//	tuple, list, lref, observer_ptr, set, owner_less, ystdex::erase_all,
-//	ystdex::as_const, std::find_if, NPL::make_observer,
-//	NPL::AllocateEnvironment, ComposeSwitched, RelayNext,
-//	ystdex::invoke_value_or, TermReference, NPL::IsMovable, NPL::TryAccessLeaf,
-//	NPL::TryAccessReferencedTerm, ystdex::value_or, IsLeaf, unordered_map,
-//	ystdex::ref_eq, IsBranchedList, YSLib::allocate_shared, vector, ystdex::ref,
-//	ystdex::id, ystdex::cast_mutable, ComposeActions, ResolveTerm,
-//	YSLib::share_move, ystdex::equality_comparable, std::allocator_arg,
-//	NoContainer, ystdex::exchange, NPL::SwitchToFreshEnvironment, Collapse,
-//	GetLValueTagsOf, TermTags, NPL::TryAccessReferencedLeaf,
-//	ystdex::call_value_or, ystdex::make_transform, in_place_type,
-//	ystdex::try_emplace, NPL::Access, ResolveIdentifier, NPL::TryAccessTerm,
-//	LiteralHandler, std::mem_fn;
+//	IsBranch, HasValue, EnvironmentSwitcher, RelaySwitched, ContextHandler,
+//	Environment, shared_ptr, tuple, list, lref, observer_ptr, set, owner_less,
+//	ystdex::erase_all, ystdex::as_const, std::find_if, NPL::make_observer,
+//	ComposeSwitched, RelayNext, TermReference, NPL::IsMovable, TermTags,
+//	NPL::TryAccessReferencedTerm, ystdex::value_or, RemoveHead,
+//	AccessFirstSubterm, IsLeaf, unordered_map, ystdex::ref_eq, IsBranchedList,
+//	NPL::TryAccessLeaf, any_ops::use_holder, weak_ptr, in_place_type,
+//	ystdex::type_id, YSLib::allocate_shared, InvalidReference, MoveFirstSubterm,
+//	vector, ShareMoveTerm, ystdex::ref, ystdex::exists, ystdex::id,
+//	ystdex::cast_mutable, ComposeActions, ResolveTerm,
+//	ystdex::equality_comparable, std::allocator_arg, NoContainer,
+//	ystdex::exchange, NPL::SwitchToFreshEnvironment, NPL::Access,
+//	YSLib::share_move, GetLValueTagsOf,
+//	NPL::TryAccessReferencedLeaf, ystdex::invoke_value_or,
+//	ystdex::call_value_or, ystdex::make_transform, ystdex::try_emplace,
+//	ResolveIdentifier, NPL::TryAccessTerm, LiteralHandler, LiftCollapsed,
+//	NPL::AllocateEnvironment, std::mem_fn;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard, ystdex::swap_guard,
 //	ystdex::unique_guard;
 #include YFM_NPL_SContext // for Session;
@@ -661,9 +664,9 @@ WhenUnless(TermNode& term, ContextNode& ctx, bool is_when)
 
 	Retain(term);
 	RemoveHead(term);
-	if(!term.empty())
+	if(IsBranch(term))
 	{
-		auto& test(Deref(term.begin()));
+		auto& test(AccessFirstSubterm(term));
 
 		return ReduceSubsequent(test, ctx, [&, is_when]{
 			if(ExtractBool(test) == is_when)
@@ -868,34 +871,15 @@ public:
 };
 
 
-//! \since build 851
-YB_ATTR_nodiscard inline
-	PDefH(shared_ptr<TermNode>, ShareMoveTerm, TermNode& term)
-	ImplRet(YSLib::share_move(term.get_allocator(), term))
-//! \since build 851
-YB_ATTR_nodiscard inline
-	PDefH(shared_ptr<TermNode>, ShareMoveTerm, TermNode&& term)
-	ImplRet(YSLib::share_move(term.get_allocator(), term))
-
-
 //! \since build 868
 //@{
-YB_ATTR_nodiscard YB_PURE inline
-	PDefH(TermNode&, AccessFirstSubterm, TermNode& term)
-	ImplRet(NPL::Deref(term.begin()))
-
-YB_ATTR_nodiscard YB_PURE inline
-	PDefH(TermNode&&, MoveFirstSubterm, TermNode& term)
-	ImplRet(std::move(AccessFirstSubterm(term)))
-
-//! \since build 871
-void
-CheckValidEnvironment(const shared_ptr<Environment>& p_env)
-{
-	if(YB_UNLIKELY(!p_env))
-		Environment::ThrowForInvalidValue();
-}
-
+YB_ATTR_nodiscard inline PDefH(Environment&, FetchDefineOrSetEnvironment,
+	ContextNode& ctx) ynothrow
+	ImplRet(ctx.GetRecordRef())
+//! \since build 872
+YB_ATTR_nodiscard inline PDefH(Environment&, FetchDefineOrSetEnvironment,
+	ContextNode&, const shared_ptr<Environment>& p_env)
+	ImplRet(Environment::EnsureValid(p_env))
 
 template<typename _func>
 auto
@@ -939,23 +923,17 @@ DoSet(TermNode& term, ContextNode& ctx, _func f)
 		return ReduceSubsequent(*i, ctx, [&, f, i]{
 			auto p_env(ResolveEnvironment(*i).first);
 
-			CheckValidEnvironment(p_env);
 			RemoveHead(term);
 
 			auto formals(MoveFirstSubterm(term));
 
 			RemoveHead(term);
-			return f(formals, p_env);
+			// NOTE: It is necessary to save %p_env here. The necessary check is
+			//	in the call of %FetchDefineOrSetEnvironment.
+			return f(formals, std::move(p_env));
 		});
 	});
 }
-
-YB_ATTR_nodiscard inline PDefH(Environment&, FetchDefineOrSetEnvironment,
-	ContextNode& ctx) ynothrow
-	ImplRet(ctx.GetRecordRef())
-YB_ATTR_nodiscard inline PDefH(Environment&, FetchDefineOrSetEnvironment,
-	ContextNode&, const shared_ptr<Environment>& p_env) ynothrowv
-	ImplRet(NPL::Deref(p_env))
 
 
 template<bool = false>
@@ -1563,7 +1541,7 @@ public:
 	VauHandler(string&& ename, shared_ptr<TermNode>&& p_fm,
 		shared_ptr<Environment>&& p_env, bool owning, TermNode& term, bool nl)
 		: eformal(std::move(ename)), p_formals((CheckParameterTree(Deref(p_fm)),
-		std::move(p_fm))), parent((CheckValidEnvironment(p_env), p_env)),
+		std::move(p_fm))), parent((Environment::EnsureValid(p_env), p_env)),
 		// XXX: Optimize with region inference?
 		p_static(owning ? std::move(p_env) : nullptr),
 		p_eval_struct(ShareMoveTerm(ystdex::exchange(term,
@@ -1939,7 +1917,7 @@ void
 DoSetFirst(TermNode& term, _func f)
 {
 	SetFirstRest([f](TermNode& nd_x, TermNode& y){
-		auto& dst(NPL::Deref(nd_x.begin()));
+		auto& dst(AccessFirstSubterm(nd_x));
 
 		if(const auto p = NPL::TryAccessLeaf<TermReference>(y))
 			f(dst, y, *p);
@@ -1968,8 +1946,7 @@ SetRestImpl(TermNode& term, void(&lift)(TermNode&))
 					MergeTerm(nd_new, nd_y);
 				lift(nd_new);
 				// XXX: The order is significant.
-				NPL::Deref(nd_new.begin())
-					= std::move(NPL::Deref(nd_x.begin()));
+				AccessFirstSubterm(nd_new) = MoveFirstSubterm(nd_x);
 				swap(nd_x, nd_new);
 			}
 			else
@@ -2693,8 +2670,6 @@ public:
 ReductionStatus
 ApplyImpl(TermNode& term, ContextNode& ctx, shared_ptr<Environment> p_env)
 {
-	CheckValidEnvironment(p_env);
-
 	using namespace std::placeholders;
 	auto i(term.begin());
 	auto& comb(NPL::Deref(++i));
@@ -2929,7 +2904,7 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 {
 #if NPL_Impl_NPLA1_Enable_Thunked
 #	if NPL_Impl_NPLA1_Enable_TCO
-	if(!term.empty())
+	if(IsBranch(term))
 		return ReduceSequenceOrderedAsync(term, ctx, term.begin());
 	term.Value = ValueToken::Unspecified;
 	return ReductionStatus::Retained;
@@ -2938,7 +2913,7 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 	// TODO: Blocked. Use C++14 lambda initializers to simplify implementation.
 	return RelayNext(ctx, Continuation(static_cast<ReductionStatus(&)(TermNode&,
 		ContextNode&)>(ReduceChildrenOrdered), ctx), ComposeSwitched(ctx, [&]{
-		if(!term.empty())
+		if(IsBranch(term))
 			LiftTerm(term, *term.rbegin());
 		else
 			term.Value = ValueToken::Unspecified;
@@ -2948,7 +2923,7 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 #else
 	const auto res(ReduceChildrenOrdered(term, ctx));
 
-	if(!term.empty())
+	if(IsBranch(term))
 		LiftTerm(term, *term.rbegin());
 	else
 		term.Value = ValueToken::Unspecified;
@@ -3604,7 +3579,7 @@ First(TermNode& term)
 	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
 		if(IsBranchedList(nd))
 		{
-			auto& tm(Deref(nd.begin()));
+			auto& tm(AccessFirstSubterm(nd));
 
 			// XXX: This should be safe, since the parent list is guaranteed an
 			//	lvalue by the false result of the call to %NPL::IsMovable.
@@ -3623,7 +3598,7 @@ FirstRef(TermNode& term)
 		CheckResolvedListReference(nd, p_ref);
 		// XXX: This should be safe, since the parent list is guaranteed an
 		//	lvalue by %CheckResolvedListReference.
-		return ReduceToReference(term, Deref(nd.begin()), p_ref);
+		return ReduceToReference(term, AccessFirstSubterm(nd), p_ref);
 	}, term);
 }
 
@@ -3633,7 +3608,7 @@ FirstRefAt(TermNode& term)
 	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
 		CheckResolvedListReference(nd, p_ref);
 		// XXX: Similar to %FirstRef.
-		return ReduceToReferenceAt(term, Deref(nd.begin()), p_ref);
+		return ReduceToReferenceAt(term, AccessFirstSubterm(nd), p_ref);
 	}, term);
 }
 
@@ -3642,7 +3617,7 @@ FirstVal(TermNode& term)
 {
 	return CallResolvedUnary([&](TermNode& tm){
 		if(IsBranchedList(tm))
-			return ReduceToValue(term, Deref(tm.begin()));
+			return ReduceToValue(term, AccessFirstSubterm(tm));
 		ThrowInsufficientTermsError();
 	}, term);
 }
@@ -3911,7 +3886,7 @@ CheckEnvironment(TermNode& term)
 
 	auto& tm(*std::next(term.begin()));
 
-	CheckValidEnvironment(ResolveEnvironment(tm).first);
+	Environment::EnsureValid(ResolveEnvironment(tm).first);
 	ReduceToValue(term, tm);
 	return ReductionStatus::Regular;
 }

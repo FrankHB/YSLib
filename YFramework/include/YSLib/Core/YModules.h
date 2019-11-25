@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2015, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup YSLib
 \brief YSLib 核心模块配置文件。
-\version r84
+\version r86
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:25 +0800
 \par 修改时间:
-	2015-04-30 10:22 +0800
+	2019-11-25 22:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,7 +54,7 @@
 #define YFM_YSLib_Core_YGraphics <YSLib/Core/YGraphics.h>
 #define YFM_YSLib_Core_YDevice <YSLib/Core/YDevice.h>
 #define YFM_YSLib_Core_YMessage <YSLib/Core/YMessage.h>
-#define YFM_YSLib_Core_YMessageDefinition <YSLib/Core/ymsgdef.h>
+#define YFM_YSLib_Core_YMessageDefinition <YSLib/Core/YMessageDefinition.h>
 #define YFM_YSLib_Core_YShell <YSLib/Core/YShell.h>
 #define YFM_YSLib_Core_YApplication <YSLib/Core/YApplication.h>
 #define YFM_YSLib_Core_YCounter <YSLib/Core/ycounter.hpp>

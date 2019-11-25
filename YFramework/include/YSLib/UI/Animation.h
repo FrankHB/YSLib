@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2017 FrankHB.
+	© 2013-2017, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Animation.h
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r449
+\version r453
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-10-06 22:11:33 +0800
 \par 修改时间:
-	2017-04-24 22:29 +0800
+	2019-11-25 21:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_UI_Animation_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_UI_YWidget
+#include YFM_YSLib_UI_YWidget // for function;
 #include YFM_YSLib_Core_Task
 #include YFM_YSLib_Service_YTimer // for Timers::TimeSpan;
 
@@ -81,7 +81,7 @@ Animate(_fUpdater f, Messaging::Priority prior = UI::AnimationPriority)
 
 
 //! \brief 动画会话。
-template<typename _fUpdater = std::function<bool()>>
+template<typename _fUpdater = function<bool()>>
 class GAnimationSession final
 {
 public:
@@ -127,7 +127,7 @@ class YF_API InvalidationUpdater
 {
 public:
 	//! \since build 462
-	using Invalidator = std::function<bool(IWidget&)>;
+	using Invalidator = function<bool(IWidget&)>;
 	//! \since build 672
 	observer_ptr<IWidget> WidgetPtr;
 	//! \brief 准备和最后持续状态：更新函数的最后结果。

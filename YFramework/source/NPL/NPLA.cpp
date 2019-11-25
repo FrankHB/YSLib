@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2836
+\version r2885
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2019-11-12 21:25 +0800
+	2019-11-25 20:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 //	YSLib::make_string_view, std::invalid_argument, ValueNode, NPL::Access,
 //	EscapeLiteral, Literalize, NPL::AccessPtr, ystdex::value_or,
 //	ystdex::write, bad_any_cast, std::allocator_arg, YSLib::NodeSequence,
-//	NPL::Deref, ystdex::unimplemented, ystdex::type_id, ystdex::quote,
-//	ystdex::call_value_or, ystdex::begins_with, YSLib::get_raw,
+//	NPL::Deref, AccessFirstSubterm, ystdex::unimplemented, ystdex::type_id,
+//	ystdex::quote, ystdex::call_value_or, ystdex::begins_with, YSLib::get_raw,
 //	NPL::make_observer, ystdex::sfmt, NPL::TryAccessTerm, sfmt, GetLValueTagsOf,
 //	std::mem_fn, ystdex::compose, ystdex::invoke_value_or, NPL::TryAccessLeaf,
 //	NPL::IsMovable, ystdex::ref, YSLib::FilterExceptions, ystdex::retry_on_cond,
@@ -179,7 +179,7 @@ ConvertAttributeNodeString(const TermNode& term)
 		}
 		YB_ATTR_fallthrough;
 	case 1:
-		return NPL::Access<string>(NPL::Deref(term.begin()));
+		return NPL::Access<string>(AccessFirstSubterm(term));
 	case 0:
 		break;
 	}
@@ -198,7 +198,7 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 		{
 			if(opt == ParseOption::String)
 				throw LoggedEvent("Invalid non-string term found.");
-			if(!term.empty())
+			if(IsBranch(term))
 				try
 				{
 					auto i(term.begin());
@@ -300,7 +300,7 @@ PrintSyntaxNode(std::ostream& os, const TermNode& term, IndentGenerator igen,
 {
 	if(IsBranch(term))
 		ystdex::write(os,
-			ConvertDocumentNode(NPL::Deref(term.begin()), igen, depth), 1);
+			ConvertDocumentNode(AccessFirstSubterm(term), igen, depth), 1);
 	os << std::flush;
 }
 
@@ -696,6 +696,17 @@ LiftTermOrCopy(TermNode& term, TermNode& tm, bool move)
 		term.SetContent(tm);
 }
 
+void
+LiftTermValueOrCopy(TermNode& term, TermNode& tm, bool move)
+{
+	// NOTE: See $2018-02 @ %Documentation::Workflow::Annual2018.
+	// NOTE: This is compatible to the irregular representation of subobject
+	//	references provided the setting order of %NPL::SetContentWith.
+	// TODO: Check the representation is sane?
+	NPL::SetContentWith(term, tm,
+		move ? &ValueObject::MakeMove : &ValueObject::MakeCopy);
+}
+
 
 void
 LiftCollapsed(TermNode& term, TermNode& tm, TermReference ref)
@@ -746,7 +757,7 @@ LiftToReturn(TermNode& term)
 	// TODO: Detect lifetime escape to perform copy elision?
 	// NOTE: Only outermost one level is referenced.
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
-		LiftReferenceToReturn(term, *p);
+		LiftTransferred(term, *p, p->IsMovable());
 	// NOTE: On the other hand, the references captured by vau handlers (which
 	//	requires recursive copy of vau handler members if forced) are not
 	//	blessed here to avoid leaking abstraction of detailed implementation
@@ -755,14 +766,27 @@ LiftToReturn(TermNode& term)
 }
 
 void
-LiftReferenceToReturn(TermNode& term, const TermReference& ref)
+MoveRValueToForward(TermNode& term, TermNode& tm)
 {
-	// NOTE: See $2018-02 @ %Documentation::Workflow::Annual2018.
-	// NOTE: This is compatible to the irregular representation of subobject
-	//	references provided the setting order of %NPL::SetContentWith.
-	// TODO: Check the representation is sane?
-	NPL::SetContentWith(term, ref.get(),
-		ref.IsMovable() ? &ValueObject::MakeMove : &ValueObject::MakeCopy);
+#	if true
+	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
+	{
+		if(!p->IsReferencedLValue())
+			return LiftTransferred(term, *p, p->IsMovable()
+				|| bool(p->GetTags() & TermTags::Temporary));
+	}
+	term.MoveContent(std::move(tm));
+#	else
+	// NOTE: For exposition only. The following optimized implemenation shall be
+	//	equivalent to this.
+	term.MoveContent(std::move(tm));
+	if(!IsBoundLValueTerm(term))
+	{
+		if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
+			LiftTransferred(term, *p, p->IsMovable()
+			|| bool(p->GetTags() & TermTags::Temporary));
+	}
+#	endif
 }
 
 void
@@ -772,7 +796,7 @@ MoveRValueToReturn(TermNode& term, TermNode& tm)
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
 	{
 		if(!p->IsReferencedLValue())
-			return LiftReferenceToReturn(term, *p);
+			return LiftTransferred(term, *p, p->IsMovable());
 	}
 	term.MoveContent(std::move(tm));
 #	else
@@ -803,7 +827,7 @@ ReduceBranchToListValue(TermNode& term) ynothrowv
 ReductionStatus
 ReduceHeadEmptyList(TermNode& term) ynothrow
 {
-	if(term.size() > 1 && IsEmpty(NPL::Deref(term.begin())))
+	if(term.size() > 1 && IsEmpty(AccessFirstSubterm(term)))
 		RemoveHead(term);
 	return ReductionStatus::Neutral;
 }
@@ -951,6 +975,14 @@ Environment::DefineChecked(string_view id, ValueObject&& vo)
 		throw BadIdentifier(id, 2);
 }
 
+Environment&
+Environment::EnsureValid(const shared_ptr<Environment>& p_env)
+{
+	if(p_env)
+		return *p_env;
+	Environment::ThrowForInvalidValue();
+}
+
 AnchorPtr
 Environment::InitAnchor() const
 {
@@ -1094,15 +1126,16 @@ ContextNode::Rewrite(Reducer reduce)
 }
 
 shared_ptr<Environment>
-ContextNode::SwitchEnvironment(shared_ptr<Environment> p_env)
+ContextNode::SwitchEnvironment(const shared_ptr<Environment>& p_env)
 {
 	if(p_env)
-		return SwitchEnvironmentUnchecked(std::move(p_env));
+		return SwitchEnvironmentUnchecked(p_env);
 	Environment::ThrowForInvalidValue(true);
 }
 
 shared_ptr<Environment>
-ContextNode::SwitchEnvironmentUnchecked(shared_ptr<Environment> p_env) ynothrowv
+ContextNode::SwitchEnvironmentUnchecked(const shared_ptr<Environment>& p_env)
+	ynothrowv
 {
 	YAssertNonnull(p_env);
 	return ystdex::exchange(p_record, p_env);

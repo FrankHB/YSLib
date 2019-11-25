@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ListControl.h
 \ingroup UI
 \brief 列表控件。
-\version r1639
+\version r1646
 \author FrankHB <frankhb1989@gmail.com>
 \since build 528
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2015-07-04 01:02 +0800
+	2019-11-25 21:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_UI_ListControl_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_UI_YControl
+#include YFM_YSLib_UI_YControl // for function;
 #include YFM_YSLib_UI_YGUI
 #include YFM_YSLib_UI_Label
 #include YFM_YSLib_UI_Viewer
@@ -217,8 +217,11 @@ public:
 
 	//! \brief 选择操作选项。
 	std::bitset<SelectionOptionMax> SelectionOptions{};
-	//! \brief 判断是否为 Leave 目标时不取消选择的相关部件。
-	std::function<bool(IWidget&)> IsRelated{};
+	/*!
+	\brief 判断是否为 Leave 目标时不取消选择的相关部件。
+	\since build 872
+	*/
+	function<bool(IWidget&)> IsRelated{};
 	//@}
 	/*!
 	\brief 默认前景色。

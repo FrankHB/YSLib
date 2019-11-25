@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2018 FrankHB.
+	© 2013-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Hover.h
 \ingroup UI
 \brief 样式无关的指针设备悬停相关功能。
-\version r200
+\version r203
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-09-28 12:50:42 +0800
 \par 修改时间:
-	2018-11-20 19:26 +0800
+	2019-11-25 21:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_UI_Hover_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_UI_YControl // for ystdex::invoke;
+#include YFM_YSLib_UI_YControl // for ystdex::invoke, function;
 #include YFM_YSLib_UI_YGUI
 
 namespace YSLib
@@ -111,7 +111,7 @@ public:
 
 	用于接收 CursorOver 事件参数并映射为显示的部件位置的函数的类型。
 	*/
-	using Locator = std::function<Point(const CursorEventArgs&)>;
+	using Locator = function<Point(const CursorEventArgs&)>;
 
 	Locator Locate{DefaultLocate};
 

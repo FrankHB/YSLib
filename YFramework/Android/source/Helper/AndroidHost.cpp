@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r445
+\version r447
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2016-08-17 08:59 +0800
+	2019-11-25 21:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -253,7 +253,7 @@ NativeHost::RestoreSavedState(byte* p_byte) const
 }
 
 void
-NativeHost::RunOnUIThread(std::function<void()> f)
+NativeHost::RunOnUIThread(function<void()> f)
 {
 	YTraceDe(Debug, "RunOnUIThread called.");
 

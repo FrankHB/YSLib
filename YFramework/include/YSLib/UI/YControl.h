@@ -11,13 +11,13 @@
 /*!	\file YControl.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4873
+\version r4876
 \author FrankHB <frankhb1989@gmail.com>
 \since build 572
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2019-01-14 17:50 +0800
+	2019-11-25 21:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_UI_YControl_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_UI_YWidget
+#include YFM_YSLib_UI_YWidget // for function;
 #include YFM_YSLib_UI_YWidgetEvent
 
 namespace YSLib
@@ -281,10 +281,11 @@ public:
 	/*!
 	\brief 按键-指针设备输入事件组映射。
 	\note 默认为 Control::GetBoundControlPtr 。
+	\since build 872
 
 	转换按键输入事件为指定部件的指针设备输入事件。
 	*/
-	std::function<observer_ptr<IWidget>(const KeyInput&)> BoundControlPtr;
+	function<observer_ptr<IWidget>(const KeyInput&)> BoundControlPtr;
 
 	/*!
 	\brief 构造：使用指定边界，无背景。

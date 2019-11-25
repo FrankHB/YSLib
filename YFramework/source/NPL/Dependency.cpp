@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3080
+\version r3143
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2019-11-12 21:27 +0800
+	2019-11-25 21:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -219,6 +219,19 @@ LoadSequenceSeparators(EvaluationPasses& passes)
 	// XXX: Allocators are inefficient for short strings here.
 	RegisterSequenceContextTransformer(passes, TokenValue(";"), true),
 	RegisterSequenceContextTransformer(passes, TokenValue(","));
+}
+
+//! \since build 872
+YB_ATTR_nodiscard ReductionStatus
+DoMoveOrTransfer(void(&f)(TermNode&, TermNode&, bool), TermNode& term)
+{
+	return Forms::CallResolvedUnary(
+		[&](TermNode& tm, ResolvedTermReferencePtr p_ref){
+		// NOTE: Force move. No %IsMovable check is needed.
+		f(term, tm, !p_ref || p_ref->IsModifiable());
+		// NOTE: Term tag is not copied.
+		return ReduceForLiftedResult(term);
+	}, term);
 }
 
 //! \since build 794
@@ -426,15 +439,10 @@ LoadObjects(ContextNode& ctx)
 	RegisterUnary<>(ctx, "bound-lvalue?", IsBoundLValueTerm);
 	RegisterUnary<>(ctx, "uncollapsed?", IsUncollapsedTerm);
 	RegisterUnary<>(ctx, "unique?", IsUniqueTerm);
-	RegisterStrict(ctx, "move!", [](TermNode& term){
-		return Forms::CallResolvedUnary(
-			[&](TermNode& tm, ResolvedTermReferencePtr p_ref){
-			// NOTE: Force move. No %IsMovable check is needed.
-			LiftTermOrCopy(term, tm, !p_ref || p_ref->IsModifiable());
-			// NOTE: Term tag is not copied.
-			return ReduceForLiftedResult(term);
-		}, term);
-	});
+	RegisterStrict(ctx, "move!", std::bind(DoMoveOrTransfer,
+		std::ref(LiftTermOrCopy), std::placeholders::_1));
+	RegisterStrict(ctx, "transfer!", std::bind(DoMoveOrTransfer,
+		std::ref(LiftTermValueOrCopy), std::placeholders::_1));
 	RegisterStrict(ctx, "deshare", [](TermNode& term){
 		return Forms::CallRawUnary([&](TermNode& tm){
 			if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
@@ -491,10 +499,7 @@ LoadEnvironments(ContextNode& ctx)
 		return wenv.Lock();
 	});
 	RegisterUnary<>(ctx, "freeze-environment!", [](TermNode& term){
-		if(const auto p_env = ResolveEnvironment(term).first)
-			p_env->Frozen = true;
-		else
-			Environment::ThrowForInvalidValue();
+		Environment::EnsureValid(ResolveEnvironment(term).first).Frozen = true;
 		return ValueToken::Unspecified;
 	});
 	RegisterStrict(ctx, "make-environment", MakeEnvironment);
@@ -619,6 +624,12 @@ LoadGroundedDerived(REPLContext& context)
 		return Forms::CallRawUnary(std::bind(ReduceToValue, std::ref(term),
 			std::placeholders::_1), term);
 	});
+	RegisterStrict(renv, "forward!", [](TermNode& term){
+		return Forms::CallRawUnary([&](TermNode& tm){
+			MoveRValueToForward(term, tm);
+			return ReductionStatus::Retained;
+		}, term);
+	});
 	RegisterBinary<>(renv, "assign%!", [](TermNode& x, TermNode& y){
 		return DoAssign(ystdex::bind1(MoveCollapsed, std::ref(y)), x);
 	});
@@ -734,15 +745,17 @@ LoadGroundedDerived(REPLContext& context)
 			$if (uncollapsed? ($resolve-identifier x)) (idv x) x;
 		$defl%! forward (%x)
 			$if (bound-lvalue? ($resolve-identifier x)) x (idv x);
-		$defl! assign%! (&x &y) assign@! (forward x) (forward (collapse y));
-		$defl! assign! (&x &y) assign@! (forward x) (idv (collapse y));
+		$defl%! forward! (%x)
+			$if (bound-lvalue? ($resolve-identifier x)) x (transfer! x);
+		$defl! assign%! (&x &y) assign@! (forward! x) (forward! (collapse y));
+		$defl! assign! (&x &y) assign@! (forward! x) (idv (collapse y));
 		$defl%! first@ (&l) ($lambda% ((@x .)) x) (check-list-reference l);
 		$defl! set-first! (&l x)
 			assign@! (first@ (check-list-reference l)) (move! x);
 		$defl! set-first%! (&l &x)
-			assign%! (first@ (check-list-reference l)) (forward x);
+			assign%! (first@ (check-list-reference l)) (forward! x);
 		$defl! set-first@! (&l &x)
-			assign@! (first@ (check-list-reference l)) (forward x);
+			assign@! (first@ (check-list-reference l)) (forward! x);
 		$defl%! first (&l)
 			($lambda% ((&x .))
 				($if (bound-lvalue? ($resolve-identifier l)) id forward) x) l;
@@ -751,9 +764,9 @@ LoadGroundedDerived(REPLContext& context)
 		$defl! rest& (&l) ($lambda ((#ignore .&x)) x) (check-list-reference l);
 		$defl! rest% ((#ignore .%x)) x;
 		$defl%! check-environment (&e)
-			$sequence ($vau/e% e . #ignore) (forward e);
+			$sequence ($vau/e% e . #ignore) (forward! e);
 		$defl%! apply (&appv &arg .&opt)
-			eval% (cons% () (cons% (unwrap (forward appv)) (forward arg)))
+			eval% (cons% () (cons% (unwrap (forward! appv)) (forward! arg)))
 				($if (null? opt) (() make-environment)
 					(($lambda ((&e .&eopt))
 						$if (null? eopt) e
@@ -761,8 +774,8 @@ LoadGroundedDerived(REPLContext& context)
 								"Syntax error in applying form.")) opt));
 		$defl! list* (&head .&tail)
 			$if (null? tail) head (cons head (apply list* tail));
-		$defl%! list*% (&head .&tail) $if (null? tail) (forward head)
-			(cons% (forward head) (apply list*% tail));
+		$defl%! list*% (&head .&tail) $if (null? tail) (forward! head)
+			(cons% (forward! head) (apply list*% tail));
 		$defv! $defv%! (&$f &formals &ef .&body) d
 			eval (list $set! d $f $vau% formals ef body) d;
 		$defv%! $cond &clauses d $if (null? clauses) #inert
@@ -774,16 +787,16 @@ LoadGroundedDerived(REPLContext& context)
 		$defv%! $unless (&test .&exprseq) d
 			$if (eval test d) #inert (eval% (list*% () $sequence exprseq) d);
 		$defl! not? (&x) eql? x #f;
-		$defv%! $and? x d $cond
+		$defv%! $and? &x d $cond
 			((null? x) #t)
-			((nullv? (rest& x)) eval% (first (forward x)) d)
-			((eval% (first& x) d) apply (wrap $and?) (rest% (forward x)) d)
+			((nullv? (rest& x)) eval% (first (forward! x)) d)
+			((eval% (first& x) d) apply (wrap $and?) (rest% (forward! x)) d)
 			(#t #f);
-		$defv%! $or? x d $cond
+		$defv%! $or? &x d $cond
 			((null? x) #f)
-			((nullv? (rest& x)) eval% (first (forward x)) d)
-			((eval% (first& x) d) eval% (first (forward x)) d)
-			(#t apply (wrap $or?) (rest% (forward x)) d);
+			((nullv? (rest& x)) eval% (first (forward! x)) d)
+			((eval% (first& x) d) eval% (first (forward! x)) d)
+			(#t apply (wrap $or?) (rest% (forward! x)) d);
 	)NPL");
 #endif
 }
@@ -847,20 +860,20 @@ LoadCore(REPLContext& context)
 		$defl! first-null? (&l) null? (first l);
 		$defl! list-rest% (&x) list% (rest% x);
 		$defl%! accl (&l &pred? &base &head &tail &sum) $if (pred? l)
-			(forward base)
-			(accl (tail (forward l)) (forward pred?) (sum (head (forward l))
-				(forward base)) (forward head) (forward tail) (forward sum));
+			(forward! base)
+			(accl (tail (forward l)) (forward! pred?) (sum (head (forward l))
+				(forward! base)) (forward head) (forward tail) (forward sum));
 		$defl%! accr (&l &pred? &base &head &tail &sum) $if (pred? l)
-			(forward base)
-			(sum (head (forward l)) (accr (tail (forward l)) (forward pred?)
-				(forward base) (forward head) (forward tail) (forward sum)));
+			(forward! base)
+			(sum (head (forward l)) (accr (tail (forward l)) (forward! pred?)
+				(forward! base) (forward head) (forward tail) (forward sum)));
 		$defl%! foldr1 (&kons &knil &l)
-			accr (forward l) null? (forward knil) first rest% kons;
+			accr (forward! l) null? (forward knil) first rest% kons;
 		$defw%! map1 (&appv &l) d
 			foldr1 ($lambda (&x &xs) cons% (apply appv (list% x) d) xs) ()
-				(forward l);
-		$defl! list-concat (&x &y) foldr1 cons% y (forward x);
-		$defl! append (.&ls) foldr1 list-concat () (forward ls);
+				(forward! l);
+		$defl! list-concat (&x &y) foldr1 cons% y (forward! x);
+		$defl! append (.&ls) foldr1 list-concat () (forward! ls);
 		$defv%! $let (&bindings .&body) d
 			eval% (list*% () (list*% $lambda (map1 firstv bindings) (list body))
 				(map1 list-rest% bindings)) d;
@@ -919,9 +932,9 @@ LoadCore(REPLContext& context)
 		$def! map-reverse $let ((&se () make-standard-environment)) wrap
 			($sequence
 				($set! se cxrs $lambda/e (weaken-environment se) (&ls &cxr)
-					accl (forward ls) null? () ($lambda (&l) cxr (first l))
+					accl (forward! ls) null? () ($lambda (&l) cxr (first l))
 						rest cons)
-				($vau/e se (&appv .&ls) d accl (forward ls) unfoldable? ()
+				($vau/e se (&appv .&ls) d accl (forward! ls) unfoldable? ()
 					($lambda (&ls) cxrs ls first) ($lambda (&ls) cxrs ls rest)
 						($lambda (&x &xs) cons (apply appv x d) xs)));
 		$defw! for-each-ltr &ls d $sequence (apply map-reverse ls d) #inert;
@@ -1003,24 +1016,24 @@ LoadModule_std_promises(REPLContext& context)
 		(
 			$def! (encapsulate promise? decapsulate) () make-encapsulation-type,
 			$defl%! memoize (&value)
-				encapsulate (list (list% (forward value) ())),
+				encapsulate (list (list% (forward! value) ())),
 			$defv%! $lazy (.&expr) d encapsulate (list (list expr d)),
 			$defv%! $lazy/e (&e .&expr) d
 				encapsulate (list (list expr (check-environment (eval e d)))),
 			$defl%! force (&x)
-				$if (promise? x) (force-promise (decapsulate x)) (forward x),
+				$if (promise? x) (force-promise (decapsulate x)) (forward! x),
 			$defl%! force-promise (&x) $let ((((&object &env)) x))
-				$if (null? env) (forward object)
+				$if (null? env) (forward! object)
 				(
 					$let% ((&y eval% object env)) $cond
 						((null? (first (rest& (first& x)))) first& (first& x))
 						((promise? y) $sequence
-							(set-first%! x (first (decapsulate (forward y))))
+							(set-first%! x (first (decapsulate (forward! y))))
 							(force-promise x))
 						(#t $sequence
 							($let (((&o &e) first& x))
 								list% (assign! o y) (assign@! e ()))
-							(forward y))
+							(forward! y))
 				)
 		);
 	)NPL");

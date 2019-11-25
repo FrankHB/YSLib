@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2013, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ymsgdef.h
+/*!	\file YMessageDefinition.h
 \ingroup Core
 \brief 标准 Shell 消息列表。
-\version r1976
+\version r1983
 \author FrankHB <frankhb1989@gmail.com>
 \since build 217
 \par 创建时间:
 	2009-12-08 12:05:26 +0800
 \par 修改时间:
-	2013-12-24 09:17 +0800
+	2019-11-25 22:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,12 +25,11 @@
 */
 
 
-#ifndef YSL_INC_CORE_ymsgdef_h_
-#define YSL_INC_CORE_ymsgdef_h_ 1
+#ifndef YSL_INC_Core_YMessageDefinition_h_
+#define YSL_INC_Core_YMessageDefinition_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YMessage
-#include <functional> // for std::function;
+#include YFM_YSLib_Core_YMessage // for shared_ptr, pair, function;
 
 namespace YSLib
 {
@@ -85,7 +84,7 @@ DefMessageTarget(SM_Null, void)
 DefMessageTarget(SM_Set, shared_ptr<Shell>)
 DefMessageTarget(SM_Quit, int)
 DefMessageTarget(SM_Bound, pair<weak_ptr<Shell> YPP_Comma Message>)
-DefMessageTarget(SM_Task, std::function<void()>)
+DefMessageTarget(SM_Task, function<void()>)
 DefMessageTarget(SM_Input, void)
 //@}
 

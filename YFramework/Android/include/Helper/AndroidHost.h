@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r246
+\version r254
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2013-06-04 23:05:33 +0800
 \par 修改时间:
-	2016-05-05 12:04 +0800
+	2019-11-25 21:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 #define INC_Android_Helper_AndroidHost_h_ 1
 
 #include "YModules.h"
-#include YFM_Helper_Environment // for unique_ptr, std::atomic,
+#include YFM_Helper_Environment // for function, unique_ptr, std::atomic,
 //	Devices::AndroidScreen, ystdex::aligned_store_cast;
 #if YCL_Android
 #	include <thread>
@@ -86,7 +86,8 @@ protected:
 	std::thread thrdMain{};
 	//! \brief 暂存状态。
 	vector<byte> vecSavedState{};
-	std::function<void(void*&, size_t&)> fSaveState{};
+	//! \since build 868
+	function<void(void*&, size_t&)> fSaveState{};
 
 public:
 	/*!
@@ -108,7 +109,8 @@ private:
 	mutex msg_mutex{};
 	//! \since build 593
 	pair<UniqueHandle, UniqueHandle> msg_pipe;
-	std::function<void()> msg_task{};
+	//! \since build 872
+	function<void()> msg_task{};
 	//@}
 	/*!
 	\brief 暂存状态锁。
@@ -192,9 +194,9 @@ public:
 	void
 	RestoreSavedState(byte* p_byte) const;
 
-	//! \since build 553
+	//! \since build 872
 	void
-	RunOnUIThread(std::function<void()>);
+	RunOnUIThread(function<void()>);
 
 	void*
 	SaveInstanceState(size_t* p_len);

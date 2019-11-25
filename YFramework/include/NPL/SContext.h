@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2536
+\version r2600
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2019-09-14 02:17 +0800
+	2019-11-20 01:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,43 +29,54 @@
 #define NPL_INC_SContext_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_Lexical // for function, pmr;
-#include YFM_YSLib_Core_ValueNode // for YSLib::Deref, YSLib::MakeIndex,
-//	YSLib::NoContainer, YSLib::NoContainerTag, YSLib::ValueObject,
-//	YSLib::ValueNode, list, YSLib::LoggedEvent, YSLib::make_observer,
-//	YSLib::make_pair, YSLib::observer_ptr, YSLib::pair, YSLib::ListContainerTag,
-//	std::initializer_list, ystdex::forward_like, ystdex::invoke,
-//	YSLib::AccessPtr, ystdex::false_, std::is_convertible, ystdex::decay_t,
-//	ystdex::bool_, ystdex::cond_or_t, ystdex::not_, ystdex::enable_if_t,
-//	ystdex::call_value_or, ystdex::addrof, ystdex::compose;
+#include YFM_NPL_Lexical // for function, pmr, TokenList;
+#include YFM_YSLib_Core_ValueNode // for YSLib::Deref, YSLib::LoggedEvent,
+//	YSLib::MakeIndex, YSLib::NoContainer, YSLib::NoContainerTag,
+//	YSLib::ValueNode, YSLib::ValueObject, YSLib::make_observer,
+//	YSLib::make_pair, YSLib::share_move, YSLib::make_shared, YSLib::make_weak,
+//	YSLib::observer_ptr, YSLib::pair, YSLib::shared_ptr, YSLib::weak_ptr, list,
+//	YSLib::ListContainerTag, std::initializer_list, ystdex::forward_like,
+//	ystdex::invoke, YSLib::AccessPtr, ystdex::false_, std::is_convertible,
+//	ystdex::decay_t, ystdex::bool_, ystdex::cond_or_t, ystdex::not_,
+//	ystdex::enable_if_t, ystdex::call_value_or, ystdex::addrof, ystdex::compose;
 
 namespace NPL
 {
 
 //! \since build 853
 using YSLib::Deref;
+//! \since build 674
+using YSLib::LoggedEvent;
 //! \since build 599
 using YSLib::MakeIndex;
 //! \since build 852
 using YSLib::NoContainer;
 //! \since build 852
 using YSLib::NoContainerTag;
-//! \since build 675
-using YSLib::ValueObject;
+//! \since build 304
+using TLIter = TokenList::iterator;
+//! \since build 304
+using TLCIter = TokenList::const_iterator;
 //! \since build 335
 using YSLib::ValueNode;
-using TLIter = TokenList::iterator;
-using TLCIter = TokenList::const_iterator;
-//! \since build 674
-//@{
-using YSLib::LoggedEvent;
+//! \since build 675
+using YSLib::ValueObject;
 //! \since build 852
 using YSLib::make_observer;
 //! \since build 852
 using YSLib::make_pair;
+//! \since build 788
+using YSLib::make_shared;
+//! \since build 788
+using YSLib::make_weak;
+//! \since build 674
 using YSLib::observer_ptr;
 //! \since build 598
 using YSLib::pair;
+//! \since build 788
+using YSLib::shared_ptr;
+//! \since build 788
+using YSLib::weak_ptr;
 
 
 //! \since build 857
@@ -220,7 +231,6 @@ public:
 		_tParams&&... args)
 		: container(std::move(con), a), Value(yforward(args)...)
 	{}
-	//@}
 	//@}
 	TermNode(const ValueNode& nd, allocator_type a)
 		: container(ConCons(nd.GetContainer(), a)), Value(nd.Value)
@@ -441,7 +451,9 @@ public:
 
 //! \relates TermNode
 //@{
+//! \since build 674
 using TNIter = TermNode::iterator;
+//! \since build 674
 using TNCIter = TermNode::const_iterator;
 
 /*!
@@ -496,18 +508,29 @@ Access(const TermNode& term)
 
 //! \since build 853
 using YSLib::AccessPtr;
+//! \since build 852
 template<typename _type>
 YB_ATTR_nodiscard inline observer_ptr<_type>
 AccessPtr(TermNode& term) ynothrow
 {
 	return term.Value.AccessPtr<_type>();
 }
+//! \since build 852
 template<typename _type>
 YB_ATTR_nodiscard inline observer_ptr<const _type>
 AccessPtr(const TermNode& term) ynothrow
 {
 	return term.Value.AccessPtr<_type>();
 }
+
+/*!
+\brief 断言枝节点。
+\pre 断言：参数指定的项是枝节点。
+\since build 761
+*/
+inline PDefH(void, AssertBranch, const TermNode& term,
+	const char* msg = "Invalid term found.") ynothrowv
+	ImplExpr(yunused(term), yunused(msg), YAssert(IsBranch(term), msg))
 
 //! \since build 853
 template<typename... _tParam, typename... _tParams>
@@ -527,7 +550,6 @@ AsTermNode(const TermNode::allocator_type& a, _tParams&&... args)
 	return TermNode(std::allocator_arg, a, NoContainer, yforward(args)...);
 }
 
-
 //! \since build 853
 inline PDefH(const string&, GetNodeNameOf, const ValueNode& node) ynothrow
 	ImplRet(node.GetName())
@@ -535,6 +557,8 @@ inline PDefH(const string&, GetNodeNameOf, const ValueNode& node) ynothrow
 inline PDefH(string, GetNodeNameOf, const TermNode&) ynothrow
 	ImplRet(string("[TermNode]"))
 
+//! \since build 852
+//@{
 // NOTE: Like %YSLib::GetValueOf.
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(ValueObject, GetValueOf, observer_ptr<const TermNode> p_term)
@@ -551,6 +575,30 @@ YB_ATTR_nodiscard YB_PURE inline PDefH(observer_ptr<const ValueObject>,
 		[](const TermNode& term) -> const ValueObject&{
 		return term.Value;
 	}), p_term))
+
+//! \since build 872
+//@{
+//! \pre 断言：参数指定的项是枝节点。
+//@{
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(TermNode&, AccessFirstSubterm, TermNode& term)
+	ImplRet(AssertBranch(term), NPL::Deref(term.begin()))
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(const TermNode&, AccessFirstSubterm, const TermNode& term)
+	ImplRet(AssertBranch(term), NPL::Deref(term.begin()))
+
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(TermNode&&, MoveFirstSubterm, TermNode& term)
+	ImplRet(std::move(AccessFirstSubterm(term)))
+//@}
+
+YB_ATTR_nodiscard inline
+	PDefH(shared_ptr<TermNode>, ShareMoveTerm, TermNode& term)
+	ImplRet(YSLib::share_move(term.get_allocator(), term))
+YB_ATTR_nodiscard inline
+	PDefH(shared_ptr<TermNode>, ShareMoveTerm, TermNode&& term)
+	ImplRet(YSLib::share_move(term.get_allocator(), term))
+//@}
 
 //! \pre 断言：项节点容器非空。
 inline PDefH(void, RemoveHead, TermNode& term) ynothrowv
@@ -593,16 +641,6 @@ TraverseSubnodes(_fCallable f, const _tNode& node)
 
 
 /*!
-\brief 断言枝节点。
-\pre 断言：参数指定的项是枝节点。
-\since build 761
-*/
-inline PDefH(void, AssertBranch, const TermNode& term,
-	const char* msg = "Invalid term found.") ynothrowv
-	ImplExpr(yunused(term), yunused(msg), YAssert(IsBranch(term), msg))
-
-
-/*!
 \brief 检查项节点是否具有指定的值。
 \since build 753
 */
@@ -615,7 +653,7 @@ HasValue(const TermNode& term, const _type& x)
 
 
 /*!
-\brief 会话：分析指定 NPL 代码。
+\brief 会话：分析组成 NPL 基本翻译单元的源代码。
 \since build 304
 */
 class YF_API Session

@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r6611
+\version r6701
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2019-11-12 21:25 +0800
+	2019-11-25 21:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,21 +29,20 @@
 #define NPL_INC_NPLA_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_SContext // for YSLib::MakeIndex, YSLib::NodeSequence,
-//	YSLib::NodeLiteral, YSLib::any, YSLib::bad_any_cast,
-//	YSLib::enable_shared_from_this, YSLib::lref, YSLib::make_shared,
-//	YSLib::make_weak, observer_ptr, pair, YSLib::to_string,
-//	YSLib::shared_ptr, YSLib::weak_ptr, NPLTag, ValueNode, TermNode, string,
-//	TraverseSubnodes, NPL::GetNodeNameOf, LoggedEvent, ystdex::isdigit,
+#include YFM_NPL_SContext // for YSLib::any_ops, YSLib::NodeLiteral, YSLib::any,
+//	YSLib::bad_any_cast, YSLib::enable_shared_from_this, YSLib::in_place_type,
+//	YSLib::lref, YSLib::to_string, NPLTag, string, ValueNode, function,
+//	NPL::GetNodeNameOf, YSLib::IsPrefixedIndex, TraverseSubnodes, TermNode,
+//	YSLib::MakeIndex, LoggedEvent, shared_ptr, NPL::Deref, ystdex::isdigit,
 //	ystdex::is_nothrow_copy_constructible, ystdex::is_nothrow_copy_assignable,
 //	ystdex::is_nothrow_move_constructible, ystdex::is_nothrow_move_assignable,
-//	NPL::Access, std::addressof, NPL::make_observer, ystdex::make_expanded,
-//	ystdex::ref_eq, ystdex::equality_comparable, ystdex::less,
-//	YSLib::map, YSLib::allocate_shared, ystdex::move_and_swap, pmr,
+//	observer_ptr, ystdex::type_id, std::addressof, NPL::make_observer,
+//	ystdex::equality_comparable, weak_ptr, ystdex::get_equal_to, pair,
+//	ystdex::make_expanded, NPL::Access, ystdex::ref_eq, ValueObject,
+//	NPL::SetContentWith, AccessFirstSubterm, ystdex::less, YSLib::map, pmr,
 //	ystdex::copy_and_swap, NoContainer, ystdex::try_emplace,
-//	ystdex::try_emplace_hint, ystdex::type_info, ystdex::get_equal_to,
-//	ystdex::exchange, ystdex::insert_or_assign, NPL::Deref,
-//	ystdex::make_obj_using_allocator;
+//	ystdex::try_emplace_hint, ystdex::insert_or_assign, ystdex::type_info,
+//	YSLib::allocate_shared, ystdex::exchange, ystdex::make_obj_using_allocator;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include YFM_YSLib_Core_YEvent // for ystdex::indirect, ystdex::fast_any_of,
 //	YSLib::GHEvent, YSLib::GEvent, YSLib::GCombinerInvoker,
@@ -76,12 +75,8 @@ using YSLib::enable_shared_from_this;
 using YSLib::in_place_type;
 //! \since build 842
 using YSLib::lref;
-using YSLib::make_shared;
-using YSLib::make_weak;
 //! \since build 598
 using YSLib::to_string;
-using YSLib::shared_ptr;
-using YSLib::weak_ptr;
 //@}
 
 
@@ -1143,7 +1138,7 @@ public:
 		允许使用实际参数中的 TermTags::Unique 标签代替形式参数类型编码这种区分；
 	但对象语言函数的形式参数不具有显式类型，因此用被绑定对象上的
 		TermTags::Temporary 标签标记通过纯右值（即作为临时对象）实际参数初始化
-		被绑定对象的情形，对应区分 P 是否被推断为非左值引用的情形；
+		被绑定对象的情形，对应区分 P 被推断为非左值引用的情形；
 	因此，按表达式的值中是否具有 TermTags::Unique 或 TermTags::Temporary 标签，
 		即可区分是否按右值转发，而实现类似宿主语言的完美转发（除限定符外）。
 	据此，本函数和其它实现转发的一些 API 区分提供的参数中的引用值标签，
@@ -1151,7 +1146,7 @@ public:
 	在此，被绑定对象具有 TermTags::Temporary 类似宿主语言中推断得到 P&&
 		为右值引用类型，并非需被转发的初始化它的实际参数为消亡值。
 	本函数不适用在不需要转发对象语言的函数参数的上下文，如判断表达式的值类别
-		（右值为带有 TermTags::Unique 的引用的消亡值，或非引用值的纯右值），；
+		（右值为带有 TermTags::Unique 的引用的消亡值，或非引用值的纯右值）；
 		通常应使用 IsUnique 等代替。
 	*/
 	DefPred(const ynothrow, ReferencedLValue,
@@ -1253,10 +1248,10 @@ YB_ATTR_nodiscard YB_PURE yconstfn PDefH(ResolvedTermReferencePtr,
 
 
 /*!
-\brief 判断解析后的项是否指示可被转移的项。
+\brief 判断解析后的项是否指示可转移项。
 \since build 859
 
-判断参数指定的项是否可被转移。
+判断参数指定的项是否可通过判断项的元数据确定被转移。
 参数是项的引用或指向项的指针（支持包括项引用指针和项引用的访问参数指针），
 	通常应表示解析项的结果。
 */
@@ -1576,6 +1571,21 @@ inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo) ynothrow
 YF_API void
 LiftTermOrCopy(TermNode&, TermNode&, bool);
 
+/*!
+\brief 提升项的值数据成员或项的值数据成员的副本。
+\note 复制引用项引用的对象，复制或转移非引用项的对象。
+\note 第三参数指定转移是否被转移。
+\brief 提升引用的项的值。
+\sa NPL::SetContentWith
+\since build 872
+
+提升第二参数引用的项使其中可能包含的引用值以满足返回值的内存安全要求。
+提升参数指定的项或设置项。第三参数指定是否直接提升。
+若直接提升，同 LiftTerm ，否则同 TermNode::SetContent 。
+*/
+YF_API void
+LiftTermValueOrCopy(TermNode&, TermNode&, bool);
+
 
 //! \note 不复制项的标签。这适合不保留标签的赋值操作。
 //@{
@@ -1611,7 +1621,6 @@ MoveCollapsed(TermNode&, TermNode&);
 
 /*!
 \warning 引入的间接值无所有权，应注意在生存期内使用以保证内存安全。
-\since build 800
 \todo 支持消亡值和复制。
 */
 //@{
@@ -1644,41 +1653,72 @@ inline PDefH(void, LiftTermRef, TermNode& term, const ValueObject& vo)
 YF_API void
 LiftToReference(TermNode&, TermNode&);
 
+
 /*!
 \brief 提升项作为返回值。
-\sa LiftReferenceToReturn
+\sa LiftTransferred
 \since build 828
 
-若参数是引用值，则调用 LiftReferenceToReturn 提升此引用值指定的项。
+提升项的值数据成员可能包含的引用值以满足返回值的内存安全要求。
+提升可能转移或复制对象作为返回值，由一般表达式的值确定可转移：
+转移条件等价可转移项，即按 NPL::IsMovable 判断。
+若参数是引用项，以项引用作为第二参数调用 NPL::LiftTransferred 。
 */
 YF_API void
 LiftToReturn(TermNode&);
 
 /*!
-\brief 提升引用的项作为返回值。
+\brief 提升引用的项作为转移的项。
 \note 复制引用项引用的对象，复制或转移非引用项的对象。
-\since build 871
+\note 第三参数指定转移是否被转移。
+\sa LiftTermValueOrCopy
+\since build 872
 
 提升第二参数引用的项使其中可能包含的引用值以满足返回值的内存安全要求。
-对第二参数指定的引用值按 TermReference::IsMovable 的结果判断转移或复制对象。
+*/
+inline PDefH(void, LiftTransferred, TermNode& term, const TermReference& ref,
+	bool move)
+	ImplExpr(LiftTermValueOrCopy(term, ref.get(), move))
+//@}
+
+/*!
+\pre 间接断言：参数指定不相同的项。
+\note 等价使用 TermReference::IsReferencedLValue 区分左值。
+\sa TermNode::MoveContent
+\sa TermReference::IsReferencedLValue
+*/
+//@{
+/*!
+\brief 提升第二参数指定的右值项作为转发的第一参数指定项中的返回值。
+\pre 间接断言：参数指定不相同的项。
+\since build 872
+
+效果同先提升第二参数到第一参数，然后对结果进行处理以转发：
+提升表示右值的项的值数据成员可能包含的引用值以满足返回值的内存安全要求；
+转发提升后的值。
+转发操作由被转发表达式的值确定可转移：
+对左值不进行修改；
+否则同 LiftToReturn ，但临时对象的引用值被视为可转移。
+同 MoveRValueToReturn ，但转移而非复制临时对象。
+可在对象语言中实现类似 C++ 的 std::forward 的转发操作，
+	但转移非左值为非引用类型的值。
 */
 YF_API void
-LiftReferenceToReturn(TermNode&, const TermReference&);
+MoveRValueToForward(TermNode&, TermNode&);
 
 /*!
 \brief 提升第二参数指定的右值项作为第一参数指定项中的返回值。
-\pre 间接断言：参数指定不相同的项。
 \sa LiftToReturn
-\sa TermNode::MoveContent
-\sa TermReference::IsReferencedLValue
 \since build 871
 
-效果同先转移第二参数到第一参数，然后对结果进行返回值转换。
-因允许减少转移，实现可较无条件转移参数指定的项后转换返回值高效。
-返回值转换提升表示右值的项的值数据成员可能包含的引用值以满足返回值的内存安全要求。
-返回值转换对左值不进行修改，否则同 LiftToReturn 。
-返回值转换可在对象语言中实现类似 C++ 的 std::forward ，但可能复制值。
-区分左值同 TermReference::IsReferencedLValue 。
+效果同先提升第二参数到第一参数，然后对结果进行处理以传递返回值：
+提升表示右值的项的值数据成员可能包含的引用值以满足返回值的内存安全要求；
+传递提升后的值。
+传递操作由一般表达式的值确定可转移：
+对左值不进行修改，否则同 LiftToReturn 。
+因允许减少提升，实现可较无条件转移参数指定的项后转换返回值高效。
+可在对象语言中实现类似 C++ 的 std::forward 的转发操作，
+	但复制非左值为非引用类型的值。
 */
 YF_API void
 MoveRValueToReturn(TermNode&, TermNode&);
@@ -1699,7 +1739,7 @@ inline PDefH(void, LiftSubtermsToReturn, TermNode& term)
 \since build 685
 */
 inline PDefH(void, LiftFirst, TermNode& term)
-	ImplExpr(AssertBranch(term), LiftTerm(term, NPL::Deref(term.begin())))
+	ImplExpr(LiftTerm(term, AccessFirstSubterm(term)))
 
 /*!
 \brief 提升末项：使用最后一个子项替换项的内容。
@@ -2185,6 +2225,15 @@ public:
 	void
 	DefineChecked(string_view, ValueObject&&);
 
+	/*!
+	\brief 确保环境指针有效。
+	\exception std::invalid_argument 异常中立：由 ThrowForInvalidType 抛出。
+	\sa ThrowForInvalidType
+	\since build 872
+	*/
+	static Environment&
+	EnsureValid(const shared_ptr<Environment>&);
+
 private:
 	/*!
 	\brief 初始化锚对象指针。
@@ -2493,7 +2542,7 @@ public:
 
 	/*!
 	\brief 切换环境。
-	\since build 815
+	\since build 872
 	*/
 	//@{
 	/*!
@@ -2501,11 +2550,11 @@ public:
 	\sa SwitchEnvironmentUnchecked
 	*/
 	shared_ptr<Environment>
-	SwitchEnvironment(shared_ptr<Environment>);
+	SwitchEnvironment(const shared_ptr<Environment>&);
 
 	//! \pre 断言：参数指针非空。
 	shared_ptr<Environment>
-	SwitchEnvironmentUnchecked(shared_ptr<Environment>) ynothrowv;
+	SwitchEnvironmentUnchecked(const shared_ptr<Environment>&) ynothrowv;
 	//@}
 
 	/*!

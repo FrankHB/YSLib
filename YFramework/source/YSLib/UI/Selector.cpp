@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1093
+\version r1096
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2019-01-14 14:34 +0800
+	2019-11-25 21:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "YSLib/UI/YModules.h"
-#include YFM_YSLib_UI_Selector // for ystdex::min;
+#include YFM_YSLib_UI_Selector // for ystdex::min, function;
 #include YFM_YSLib_Service_YBlit
 #include YFM_YSLib_UI_YGUI
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
@@ -90,9 +90,9 @@ RectDrawRadioBox(const PaintContext& pc, const Size& s, Hue base_hue,
 			is_enabled ? ColorSpace::Black : MakeGray(112));
 }
 
-//! \since build 569
+//! \since build 872
 void
-BoxRefresh(AView& v, MLabel& lbl, PaintEventArgs& e, std::function<void()> f)
+BoxRefresh(AView& v, MLabel& lbl, PaintEventArgs& e, function<void()> f)
 {
 	{
 		using namespace std::placeholders;

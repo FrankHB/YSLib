@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r3232
+\version r3233
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2019-07-07 23:09 +0800
+	2019-11-25 22:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -937,7 +937,7 @@ SM_Quit					0x0012
 SM_Bound				0x0016
 
 //任务消息。参考优先级 0x20 。
-//参数类型 std::function<void()> 。
+//参数类型 function<void()> 。
 //调用参数指定的函数，一般作为后台任务。应注意保持相关对象的有效的生存期，若无法满足应从消息队列中移除。
 SM_Task					0x0016
 

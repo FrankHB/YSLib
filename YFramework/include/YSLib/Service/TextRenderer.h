@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2015, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r3233
+\version r3239
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-12-12 20:33 +0800
+	2019-11-25 22:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_Service_TextRenderer_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Service_CharRenderer
+#include YFM_YSLib_Service_CharRenderer // for function;
 #include YFM_YSLib_Core_YString
 
 namespace YSLib
@@ -39,11 +39,11 @@ namespace Drawing
 {
 
 /*!
-\note 使用 ADL \c GetEndOfLineOffsetOf 判断行尾位置。
+\note 使用 ADL GetEndOfLineOffsetOf 判断行尾位置。
 \since build 483
 */
 //@{
-//! \note 使用 ADL \c PrintChar 渲染字符。
+//! \note 使用 ADL PrintChar 渲染字符。
 //@{
 /*!
 \brief 打印迭代器指定的起始字符的字符串，直至行尾或字符迭代终止。
@@ -154,7 +154,7 @@ PrintString(_tRenderer& rd, const _tString& str)
 }
 //@}
 
-//! \note 使用 ADL \c PutChar 渲染字符。
+//! \note 使用 ADL PutChar 渲染字符。
 //@{
 /*!
 \brief 打印迭代器指定的起始字符的字符串，直至行尾或字符迭代终止。
@@ -457,7 +457,7 @@ class YF_API CustomTextRenderer : public TextRenderer,
 	public GTextRendererBase<CustomTextRenderer>
 {
 public:
-	using RenderFunctionType = std::function<void(TextRenderer&, char32_t)>;
+	using RenderFunctionType = function<void(TextRenderer&, char32_t)>;
 
 	RenderFunctionType RenderFunction;
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TabControl.h
 \ingroup UI
 \brief 样式相关的图形用户界面标签页控件。
-\version r254
+\version r265
 \author FrankHB <frankhb1989@gmail.com>
 \since build 494
 \par 创建时间:
 	2014-04-19 11:21:43 +0800
 \par 修改时间:
-	2016-02-12 22:33 +0800
+	2019-11-25 21:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_UI_TabControl_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_UI_YPanel
+#include YFM_YSLib_UI_YPanel // for function;
 #include YFM_YSLib_UI_WidgetIteration
 
 namespace YSLib
@@ -52,16 +52,15 @@ public:
 	//! \brief 每个标签最小的位置。
 	SDst MinWidth = 12;
 	/*!
-	\brief 标签背景附加绘制操作。
 	\note 空时被忽略。
+	\since build 872
 	*/
-	std::function<void(PaintEventArgs&&)> PaintTabBackground{};
-	/*!
-	\brief 标签前景附加绘制操作。
-	\note 空时被忽略。
-	*/
-	std::function<void(PaintEventArgs&&)>
-		PaintTabForeground{DefaultPaintTabBorder};
+	//@{
+	//! \brief 标签背景附加绘制操作。
+	function<void(PaintEventArgs&&)> PaintTabBackground{};
+	//! \brief 标签前景附加绘制操作。
+	function<void(PaintEventArgs&&)> PaintTabForeground{DefaultPaintTabBorder};
+	//@}
 
 	explicit
 	TabBar(const Rect& = {});

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2016, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TreeView.h
 \ingroup UI
 \brief 树形视图控件。
-\version r288
+\version r294
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-09-04 19:48:13 +0800
 \par 修改时间:
-	2016-05-24 01:30 +0800
+	2019-11-25 21:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_UI_TreeView_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_UI_ComboList
+#include YFM_YSLib_UI_ComboList // for function;
 #include YFM_YSLib_Core_ValueNode // for YSLib::ValueNode;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 
@@ -71,8 +71,9 @@ public:
 	/*!
 	\brief 提取文本。
 	\warning 要求不改变列表的状态，否则可能引起未定义行为。
+	\since build 872
 	*/
-	std::function<String(const ValueNode&)> ExtractText{DefaultExtractText};
+	function<String(const ValueNode&)> ExtractText{DefaultExtractText};
 	/*!
 	\brief 响应 CursorOver 事件时节点分支图标的颜色。
 	\since build 532
@@ -233,7 +234,8 @@ public:
 
 	DefGetter(, GEvent<void(IndexType)>&, Collapse, GetTreeListRef().Collapse)
 	DefGetter(, GEvent<void(IndexType)>&, Expand, GetTreeListRef().Expand)
-	DefGetter(, std::function<String(const ValueNode&)>&, ExtractText,
+	//! \since build 851
+	DefGetter(, function<String(const ValueNode&)>&, ExtractText,
 		GetTreeListRef().ExtractText)
 	DefGetterMem(const, Rect, IndentBox, GetTreeListRef())
 	PDefH(Rect, GetIndentBoxBounds, IndexType idx) const
