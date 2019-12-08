@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1907
+\version r1908
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2019-06-23 16:46 +0800
+	2019-11-29 03:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,7 +67,7 @@ Environment::Environment(Application& app)
 	::defaultExceptionHandler();
 	DSConsoleInit(true, ColorSpace::Lime, ColorSpace::Black);
 	FetchCommonLogger().SetSender([&](Logger::Level lv, Logger&,
-		const char* str) YB_ATTR_LAMBDA(NONNULL(4)) ynothrowv{
+		const char* str) YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_NONNULL(4)){
 		if(ShowInitializedLog || lv <= Descriptions::Alert)
 		{
 			if(!ShowInitializedLog)

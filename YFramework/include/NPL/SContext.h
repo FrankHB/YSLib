@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2600
+\version r2646
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2019-11-20 01:41 +0800
+	2019-12-07 02:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -102,22 +102,22 @@ enum class TermTags
 	\brief 非限定对象。
 
 	指定默认情形的对象或对象引用。
-	当前用于实现对象语言的左值引用。
+	当前用于实现对象语言的被绑定的对象或消亡值以外的表达式。
 	*/
 	Unqualified = 1 << UnqualifiedIndex,
 	/*!
 	\brief 唯一引用。
 
 	指定被引用的对象具有唯一引用。
-	被引用的对象应未被别名，或可假定被未被别名。
-	当前用于实现对象语言的右值引用。
-	通常在派生实现绑定特定对象引入右值引用时使用。
+	被引用的对象应未被别名，或可假定未被别名。
+	当前用于实现对象语言的消亡值。
+	通常在派生实现绑定特定消亡值或显式标记引用值为消亡值时使用。
 	*/
 	Unique = 1 << UniqueIndex,
 	/*!
 	\brief 不可修改。
 
-	指定对象不可修改或被引用的对象不通过此引用。
+	指定对象不可修改或被引用的对象不可通过此引用被修改。
 	除非唯一，被引用的对象仍可能通过其它引用修改。
 	当前用于实现对象语言的不可修改引用。
 	通常在派生实现绑定特定的对象引入不可修改引用时使用。
@@ -126,10 +126,16 @@ enum class TermTags
 	/*!
 	\brief 临时对象。
 
-	指定被引用的对象是绑定在环境中的显式的临时对象。
-	类似宿主语言中声明的右值引用，但实际作用在被引用的对象的项而不是引用值所在的项。
-	和宿主语言不同，引用不需要被扩展生存期的临时对象具有所有权。
+	指定特定的项是临时对象。
 	通常在派生实现绑定特定引用且指定被引用的对象是右值时使用。
+	取得范式的项中，临时对象标签指示被绑定对象或其引用的绑定的是临时对象，
+		类似宿主语言中声明的右值引用变量，但实际作用在被引用的对象的项，
+		而不引入引用项。
+	范式中来自绑定的临时对象外的标签在对象语言中完全通过表达式的值类别决定。
+	排除临时对象标签的项，在特定上下文中被推断为左值，仍保留剩余的标签；
+	在这些上下文中，临时对象标签使推断结果为右值。
+	和宿主语言的 std::forward 不同，此处推断的右值除了是消亡值外，也可以是纯右值。
+	不取得范式的项中，派生语言可指定指示被绑定对象以外的语义。
 	*/
 	Temporary = 1 << TemporaryIndex
 };
@@ -138,7 +144,14 @@ enum class TermTags
 //@{
 DefBitmaskEnum(TermTags)
 
-yconstfn PDefH(TermTags, GetLValueTagsOf, const TermTags& tags) ynothrow
+/*!
+\brief 取推断为左值表达式时保留的标签。
+\sa TermTags::Temporary
+
+取推断为左值表达式的标签，即除临时对象以外的标签。
+*/
+YB_ATTR_nodiscard YB_STATELESS yconstfn
+	PDefH(TermTags, GetLValueTagsOf, const TermTags& tags) ynothrow
 	ImplRet(tags & ~TermTags::Temporary)
 //@}
 //@}
@@ -461,29 +474,41 @@ using TNCIter = TermNode::const_iterator;
 \since build 733
 */
 //@{
+//! \brief 判断项是否为枝节点。
 YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsBranch, const TermNode& term)
 	ynothrow
 	ImplRet(!term.empty())
 
-//! \since build 858
+/*!
+\brief 判断项是否为分支列表节点。
+\since build 858
+*/
 YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsBranchedList,
 	const TermNode& term) ynothrow
 	ImplRet(!(term.empty() || term.Value))
 
+//! \brief 判断项是否为空节点。
 YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsEmpty, const TermNode& term)
 	ynothrow
 	ImplRet(!term)
 
-//! \since build 858
+/*!
+\brief 判断项是否为扩展列表节点。
+\since build 858
+*/
 YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsExtendedList,
 	const TermNode& term) ynothrow
 	ImplRet(!(term.empty() && term.Value))
 
+//! \brief 判断项是否为叶节点。
 YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsLeaf, const TermNode& term)
 	ynothrow
 	ImplRet(term.empty())
 
-//! \since build 774
+/*!
+\brief 判断项是否为列表节点。
+\since build 774
+*/
 YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsList, const TermNode& term)
 	ynothrow
 	ImplRet(!term.Value)
@@ -532,6 +557,8 @@ inline PDefH(void, AssertBranch, const TermNode& term,
 	const char* msg = "Invalid term found.") ynothrowv
 	ImplExpr(yunused(term), yunused(msg), YAssert(IsBranch(term), msg))
 
+//! \brief 创建项节点。
+//@{
 //! \since build 853
 template<typename... _tParam, typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline
@@ -549,6 +576,7 @@ AsTermNode(const TermNode::allocator_type& a, _tParams&&... args)
 {
 	return TermNode(std::allocator_arg, a, NoContainer, yforward(args)...);
 }
+//@}
 
 //! \since build 853
 inline PDefH(const string&, GetNodeNameOf, const ValueNode& node) ynothrow
@@ -605,6 +633,11 @@ inline PDefH(void, RemoveHead, TermNode& term) ynothrowv
 	ImplExpr(YAssert(!term.empty(), "Empty term container found."),
 		term.erase(term.begin()))
 
+/*!
+\brief 根据节点和节点容器创建操作设置目标节点的值或子节点。
+\note 可用于创建副本。
+\warning 不检查嵌套深度，不支持嵌套调用安全。
+*/
 template<typename _fCallable, class _tNode>
 void
 SetContentWith(TermNode& dst, _tNode&& node, _fCallable f)

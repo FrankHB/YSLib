@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r13899
+\version r13965
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2019-11-13 22:20 +0800
+	2019-12-07 18:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -554,6 +554,7 @@ LiftForwarded(ResolvedTermReferencePtr p_ref, _fCopy cp, _fMove mv)
 //! \since build 869
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TermReference, EnsureLValueReference, TermReference&& ref)
+	// XXX: Use %TermReference::SetTags is not efficient here.
 	ImplRet(TermReference(ref.GetTags() & ~TermTags::Unique, std::move(ref)))
 
 //! \since build 851
@@ -2051,9 +2052,14 @@ VauWithEnvironmentImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 }
 //@}
 
-//! \since build 857
-inline PDefH(void, CopyTermTags, TermNode& term, const TermNode& tm)
+//! \since build 873
+inline PDefH(void, CopyTermTags, TermNode& term, const TermNode& tm) ynothrow
 	ImplExpr(term.Tags = GetLValueTagsOf(tm.Tags))
+
+//! \since build 873
+YB_ATTR_nodiscard YB_STATELESS yconstfn
+	PDefH(TermTags, ConvertTagsBySigil, TermTags tags, char sigil) ynothrow
+	ImplRet(sigil == '&' ? GetLValueTagsOf(tags) : tags)
 
 //! \since build 858
 void
@@ -2089,13 +2095,28 @@ struct BindParameterObject
 
 		if(sigil != '@')
 		{
-			const bool copy(bool(o_tags & TermTags::Nonmodifying) || !unique);
+			const bool
+				not_move(bool(o_tags & TermTags::Nonmodifying) || !unique);
 
 			// NOTE: Subterms in arguments retained are also transferred for
 			//	values.
 			if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
 			{
-				if(sigil == char())
+				if(sigil != char())
+				{
+					const auto
+						ref_tags(ConvertTagsBySigil(p->GetTags(), sigil));
+
+					if(not_move)
+						// NOTE: Reference collapsed by copy.
+						mv(TermNode::Container(tm.GetContainer()),
+							TermReference(ref_tags, *p));
+					else
+						// NOTE: Reference collapsed by move.
+						mv(std::move(tm.GetContainerRef()),
+							TermReference(ref_tags, std::move(*p)));
+				}
+				else
 				{
 					auto& src(p->get());
 
@@ -2107,22 +2128,8 @@ struct BindParameterObject
 						mv(std::move(src.GetContainerRef()),
 							std::move(src.Value));
 				}
-				else
-				{
-					const auto rtags(sigil == '&'
-						? GetLValueTagsOf(p->GetTags()) : p->GetTags());
-
-					if(copy)
-						// NOTE: Reference collapsed by copy.
-						mv(TermNode::Container(tm.GetContainer()),
-							TermReference(rtags, *p));
-					else
-						// NOTE: Reference collapsed by move.
-						mv(std::move(tm.GetContainerRef()),
-							TermReference(rtags, std::move(*p)));
-				}
 			}
-			else if(copy)
+			else if(not_move)
 			{
 				// NOTE: Binding on list prvalues is always unsafe. However,
 				//	%copy currently implies some ancestor of %tm is a
@@ -2244,20 +2251,22 @@ private:
 
 					if(n_p == n_o || (ellipsis && n_o >= n_p - 1))
 					{
-						auto n_tags(o_tags);
+						auto tags(o_tags);
 
-						// XXX: Only lvalues can be qualified.
+						// NOTE: All tags as type qualifiers should be checked
+						//	here. Currently only glvalues can be qualified.
+						// XXX: Term tags are currently not respected in
+						//	prvalues.
 						if(p_ref)
 						{
-							const auto rtags(p_ref->GetTags());
+							const auto ref_tags(p_ref->GetTags());
 
-							if(!bool(rtags & TermTags::Unique))
-								n_tags &= ~TermTags::Unique;
-							n_tags |= rtags & (TermTags::Nonmodifying
-								| TermTags::Temporary);
+							if(!bool(ref_tags & TermTags::Unique))
+								tags &= ~TermTags::Unique;
+							tags |= ref_tags & TermTags::Nonmodifying;
 						}
 						MatchSubterms(t.begin(), last, nd.begin(), nd.end(),
-							n_tags, p_ref ? FetchTailEnvironment(*p_ref) : env,
+							tags, p_ref ? FetchTailEnvironment(*p_ref) : env,
 							ellipsis
 #if NPL_Impl_NPLA1_AssertParameterMatch
 							, t.end()
@@ -2298,7 +2307,7 @@ private:
 
 	void
 	MatchSubterms(TNCIter i, TNCIter last, TNIter j, TNIter o_last,
-		TermTags n_tags, Environment& env, bool ellipsis
+		TermTags tags, Environment& env, bool ellipsis
 #if NPL_Impl_NPLA1_AssertParameterMatch
 		, TNCIter t_end
 #endif
@@ -2307,14 +2316,14 @@ private:
 		if(i != last)
 		{
 			UpdateAction(std::bind(&ParameterMatcher::MatchSubterms, this,
-				std::next(i), last, std::next(j), o_last, n_tags, std::ref(env),
+				std::next(i), last, std::next(j), o_last, tags, std::ref(env),
 				ellipsis
 #if NPL_Impl_NPLA1_AssertParameterMatch
 				, t_end
 #endif
 				));
 			YAssert(j != o_last, "Invalid state of operand found.");
-			Match(NPL::Deref(i), NPL::Deref(j), n_tags, env);
+			Match(NPL::Deref(i), NPL::Deref(j), tags, env);
 		}
 		else if(ellipsis)
 		{
@@ -2322,7 +2331,7 @@ private:
 
 			YAssert(lastv.type() == ystdex::type_id<TokenValue>(),
 				"Invalid ellipsis sequence token found.");
-			BindTrailing(j, o_last, lastv.GetObject<TokenValue>(), n_tags, env);
+			BindTrailing(j, o_last, lastv.GetObject<TokenValue>(), tags, env);
 #if NPL_Impl_NPLA1_AssertParameterMatch
 			YAssert(std::next(last) == t_end, "Invalid state found.");
 #endif
@@ -2614,8 +2623,8 @@ public:
 	operator()(TermNode& term) const
 	{
 		CallUnary([this](TermNode& tm) YB_ATTR_LAMBDA(pure) -> bool{
-			return ystdex::call_value_or(
-				[this](const Encapsulation& enc) YB_ATTR_LAMBDA(pure) ynothrow{
+			return ystdex::call_value_or([this](const Encapsulation& enc)
+				YB_ATTR_LAMBDA_QUAL(ynothrow, YB_PURE){
 				return Get() == enc.Get();
 			}, NPL::TryAccessReferencedTerm<Encapsulation>(tm));
 		}, term);
@@ -3545,19 +3554,19 @@ SetFirst(TermNode& term)
 }
 
 void
+SetFirstAt(TermNode& term)
+{
+	DoSetFirst(term, [](TermNode& dst, TermNode& y, const TermReference&){
+		LiftTerm(dst, y);
+	});
+}
+
+void
 SetFirstRef(TermNode& term)
 {
 	DoSetFirst(term, [](TermNode& dst, TermNode& y, TermReference& ref){
 		// XXX: No cyclic reference check except for self assignment.
 		LiftCollapsed(dst, y, std::move(ref));
-	});
-}
-
-void
-SetFirstRefAt(TermNode& term)
-{
-	DoSetFirst(term, [](TermNode& dst, TermNode& y, const TermReference&){
-		LiftTerm(dst, y);
 	});
 }
 
@@ -3592,6 +3601,16 @@ First(TermNode& term)
 }
 
 ReductionStatus
+FirstAt(TermNode& term)
+{
+	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
+		CheckResolvedListReference(nd, p_ref);
+		// XXX: Similar to %FirstRef.
+		return ReduceToReferenceAt(term, AccessFirstSubterm(nd), p_ref);
+	}, term);
+}
+
+ReductionStatus
 FirstRef(TermNode& term)
 {
 	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
@@ -3599,16 +3618,6 @@ FirstRef(TermNode& term)
 		// XXX: This should be safe, since the parent list is guaranteed an
 		//	lvalue by %CheckResolvedListReference.
 		return ReduceToReference(term, AccessFirstSubterm(nd), p_ref);
-	}, term);
-}
-
-ReductionStatus
-FirstRefAt(TermNode& term)
-{
-	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
-		CheckResolvedListReference(nd, p_ref);
-		// XXX: Similar to %FirstRef.
-		return ReduceToReferenceAt(term, AccessFirstSubterm(nd), p_ref);
 	}, term);
 }
 

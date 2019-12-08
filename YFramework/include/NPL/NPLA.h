@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r6701
+\version r6736
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2019-11-25 21:06 +0800
+	2019-12-07 02:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -874,6 +874,7 @@ TermToStringWithReferenceMark(const TermNode&, bool);
 /*!
 \brief 访问项初始化标签。
 \since build 857
+\sa GetLValueTagsOf
 \sa TermTags
 
 若项表示引用值，使用引用值排除 TermTags::Temporary 后的标签；
@@ -1121,7 +1122,6 @@ public:
 	//! \brief 判断被引用的对象是否可通过引用值被转移。
 	DefPred(const ynothrow, Movable, (tags
 		& (TermTags::Unique | TermTags::Nonmodifying)) == TermTags::Unique)
-	DefGetter(const ynothrow, TermTags, Tags, tags)
 	/*!
 	\brief 判断引用值是否表示被引用的被绑定对象左值。
 
@@ -1157,6 +1157,13 @@ public:
 	\since build 856
 	*/
 	DefPred(const ynothrow, Unique, bool(tags & TermTags::Unique))
+
+	DefGetter(const ynothrow, TermTags, Tags, tags)
+
+	//! \since build 873
+	DefSetter(ynothrow, TermNode&, Referent, term_ref)
+	//! \since build 873
+	DefSetter(ynothrow, TermTags, Tags, tags)
 
 	explicit DefCvtMem(const ynothrow, TermNode&, term_ref)
 
@@ -1404,6 +1411,8 @@ CheckRegular(_tTerm& term, bool has_ref)
 /*!
 \brief 访问项的指定类型正规值。
 \sa ThrowListTypeErrorForInvalidType
+
+以 NPL::Access 访问调用 NPL::CheckRegular 检查后的项。
 */
 template<typename _type, class _tTerm>
 YB_ATTR_nodiscard YB_PURE auto
@@ -1416,8 +1425,14 @@ AccessRegular(_tTerm& term, bool has_ref)
 
 /*!
 \brief 访问一次解析引用值后的项的指定类型正规值。
-\note 若遇到正规值为引用值，则进行解引用后继续访问。解引用至多一次。
+\sa NPL::AccessRegular
 \sa NPL::ResolveTerm
+
+以 NPL::AccessRegular 访问调用 NPL::ResolveTerm 解析引用值得到的项。
+若遇到正规值为引用值，则进行解引用后继续访问。解引用至多一次。
+和 YSLib::Access 访问 ValueNode 类似，但调用 NPL::ResolveTerm
+	解析引用重定向到目标，且首先对检查项，若项为列表项使用
+	NPL::ThrowListTypeErrorForInvalidType 抛出异常。
 */
 template<typename _type, class _tTerm>
 YB_ATTR_nodiscard YB_PURE auto
@@ -1655,30 +1670,30 @@ LiftToReference(TermNode&, TermNode&);
 
 
 /*!
+\brief 提升引用的项作为转移的项。
+\note 复制引用项引用的对象，复制或转移非引用项的对象。
+\note 第三参数指定转移是否被转移。
+\sa LiftTermValueOrCopy
+\since build 873
+
+提升第二参数引用的项使其中可能包含的引用值以满足返回值的内存安全要求。
+*/
+inline PDefH(void, LiftMoved, TermNode& term, const TermReference& ref,
+	bool move)
+	ImplExpr(LiftTermOrCopy(term, ref.get(), move))
+
+/*!
 \brief 提升项作为返回值。
-\sa LiftTransferred
+\sa LiftMoved
 \since build 828
 
 提升项的值数据成员可能包含的引用值以满足返回值的内存安全要求。
 提升可能转移或复制对象作为返回值，由一般表达式的值确定可转移：
 转移条件等价可转移项，即按 NPL::IsMovable 判断。
-若参数是引用项，以项引用作为第二参数调用 NPL::LiftTransferred 。
+若参数是引用项，以项引用作为第二参数调用 NPL::LiftMoved 。
 */
 YF_API void
 LiftToReturn(TermNode&);
-
-/*!
-\brief 提升引用的项作为转移的项。
-\note 复制引用项引用的对象，复制或转移非引用项的对象。
-\note 第三参数指定转移是否被转移。
-\sa LiftTermValueOrCopy
-\since build 872
-
-提升第二参数引用的项使其中可能包含的引用值以满足返回值的内存安全要求。
-*/
-inline PDefH(void, LiftTransferred, TermNode& term, const TermReference& ref,
-	bool move)
-	ImplExpr(LiftTermValueOrCopy(term, ref.get(), move))
 //@}
 
 /*!
@@ -1794,6 +1809,7 @@ ReduceHeadEmptyList(TermNode&) ynothrow;
 
 /*!
 \return 移除项时 ReductionStatus::Retained ，否则 ReductionStatus::Regular 。
+\note 返回值总是指示范式。
 \sa RemoveHead
 */
 //@{
@@ -1801,6 +1817,8 @@ ReduceHeadEmptyList(TermNode&) ynothrow;
 \brief 规约为列表：对分支列表节点移除第一个子项，保留余下的子项作为列表。
 \sa ReduceBranchToList
 \since build 774
+
+对分支列表节点移除项，同 NPL::ReduceBranchToList ；否则直接返回规约结果。
 */
 inline PDefH(ReductionStatus, ReduceToList, TermNode& term) ynothrow
 	ImplRet(IsBranchedList(term) ? ReduceBranchToList(term)
@@ -1810,6 +1828,8 @@ inline PDefH(ReductionStatus, ReduceToList, TermNode& term) ynothrow
 \brief 规约为列表值：对分支列表节点移除第一个子项，保留余下的子项提升后作为列表的值。
 \sa ReduceBranchToListValue
 \since build 821
+
+对分支列表节点移除项，同 NPL::ReduceBranchToListValue ；否则直接返回规约结果。
 */
 inline PDefH(ReductionStatus, ReduceToListValue, TermNode& term) ynothrow
 	ImplRet(IsBranchedList(term) ? ReduceBranchToListValue(term)
@@ -1825,14 +1845,14 @@ inline PDefH(ReductionStatus, ReduceToListValue, TermNode& term) ynothrow
 //@{
 /*!
 \brief 规约转发第二参数指定的项表示的引用值作为求值结果。
-\pre 间接断言：第三参数非空。
+\pre 间接断言：第二参数指定的项是引用项或第三参数非空。
 */
 YF_API ReductionStatus
 ReduceToReference(TermNode&, TermNode&, ResolvedTermReferencePtr);
 
 /*!
 \brief 规约转发第二参数指定的项表示的未折叠引用值作为求值结果。
-\pre 间接断言：第二参数指定的项是引用项，或第三参数非空。
+\pre 间接断言：第三参数非空。
 */
 YF_API ReductionStatus
 ReduceToReferenceAt(TermNode&, TermNode&, ResolvedTermReferencePtr);

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4340
+\version r4341
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2019-07-07 20:06 +0800
+	2019-11-29 03:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -354,7 +354,7 @@ DirectorySession::DirectorySession(const char* path)
 #if YCL_Win32
 	: dir(CreateDirectoryDataPtr<Data>(MakePathStringW(path)))
 #else
-	: sDirPath([](const char* p) YB_ATTR_LAMBDA(nonnull(2)){
+	: sDirPath([](const char* p) YB_NONNULL(2){
 		const auto res(Deref(p) != char()
 			? ystdex::rtrim(string(p), FetchSeparator<char>()) : ".");
 

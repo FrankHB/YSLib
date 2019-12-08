@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3177
+\version r3178
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2019-09-23 16:44 +0800
+	2019-11-29 01:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1134,7 +1134,7 @@ YCL_Impl_FileSystem_ufunc_1(uremove)
 	//	empty directories.
 	return CallNothrow({}, [=]{
 		return CallFuncWithAttr([](const wchar_t* wstr, FileAttributes attr)
-			YB_NONNULL(1) ynothrow{
+			YB_ATTR_LAMBDA_QUAL(ynothrow, YB_NONNULL(1)){
 			return attr & FileAttributes::Directory ? ::_wrmdir(wstr) == 0
 				: UnlinkWithAttr(wstr, attr);
 		}, path);

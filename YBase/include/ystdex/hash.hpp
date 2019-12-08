@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015 FrankHB.
+	© 2015, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file hash.hpp
 \ingroup YStandardEx
 \brief 散列接口。
-\version r174
+\version r182
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:12:11 +0800
 \par 修改时间:
-	2015-04-29 01:20 +0800
+	2019-11-27 02:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_hash_hpp_
 #define YB_INC_ystdex_hash_hpp_ 1
 
-#include "tuple.hpp" // for ../ydef.h, std::tuple, index_sequence, std::get,
+#include "tuple.hpp" // for "tuple.hpp", std::tuple, index_sequence, std::get,
 //	std::declval, index_sequence_for, std::pair;
 #include <functional> // for std::hash;
 #include <numeric> // for std::accumulate;
@@ -128,6 +128,7 @@ struct combined_hash_tuple<_type, index_sequence<_vSeq...>>
 
 /*!
 \brief 使用 std::hash 和 ystdex::hash_combine_seq 实现的对特定类型的散列。
+\note 用户可特化此特征，满足同 ISO C++17 [unord.hash] 中对 std::hash 特化的要求。
 \since build 468
 */
 //@{
@@ -156,6 +157,12 @@ struct combined_hash<std::tuple<_types...>>
 template<typename _type1, typename _type2>
 struct combined_hash<std::pair<_type1, _type2>>
 	: combined_hash<std::tuple<_type1, _type2>>
+{};
+
+//! \since build 873
+template<typename _type1, typename _type2, typename... _types>
+struct combined_hash<_type1, _type2, _types...>
+	: combined_hash<std::tuple<_type1, _type2, _types...>>
 {};
 //@}
 //@}

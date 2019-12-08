@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r5666
+\version r5690
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2019-11-12 00:46 +0800
+	2019-12-07 02:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -851,12 +851,14 @@ EvaluateLeafToken(TermNode&, ContextNode&, string_view);
 \throw ListReductionFailure 规约失败：枝节点的第一个子项不表示上下文处理器。
 \sa ContextHandler
 \sa Reduce
+\sa TermTags::Temporary
 \since build 766
 
 对枝节点尝试以第一个子项的 Value 数据成员为上下文处理器并调用，且当规约终止时规范化；
 否则视为规约成功，没有其它作用。
 若发生 ContextHandler 调用，调用前先转移处理器保证生存期，
 	以允许处理器内部移除或修改之前占用的第一个子项（包括其中的 Value 数据成员）。
+在被规约的项没有取得范式时，标记临时对象标签以允许转移作为操作符的函数右值。
 */
 YF_API ReductionStatus
 ReduceCombined(TermNode&, ContextNode&);
@@ -1795,16 +1797,7 @@ SetFirst(TermNode&);
 //! \warning 除自赋值外，不检查循环引用。
 //@{
 /*!
-保留第二参数引用值。
-
-参考调用文法：
-<pre>set-first%! \<list> \<object></pre>
-*/
-YF_API void
-SetFirstRef(TermNode&);
-
-/*!
-\since build 858
+\since build 873
 
 保留第二参数未折叠的引用值。
 
@@ -1812,7 +1805,16 @@ SetFirstRef(TermNode&);
 <pre>set-first@! \<list> \<object></pre>
 */
 YF_API void
-SetFirstRefAt(TermNode&);
+SetFirstAt(TermNode&);
+
+/*!
+保留第二参数引用值。
+
+参考调用文法：
+<pre>set-first%! \<list> \<object></pre>
+*/
+YF_API void
+SetFirstRef(TermNode&);
 //@}
 //@}
 
@@ -1864,6 +1866,17 @@ First(TermNode&);
 //! \throw ValueCategoryMismatch 参数不是引用值。
 //@{
 /*!
+\since build 873
+
+结果是列表的第一个元素的引用值。保留结果中未折叠的引用值。
+
+参考调用文法：
+<pre>first@ \<list></pre>
+*/
+YF_API ReductionStatus
+FirstAt(TermNode&);
+
+/*!
 结果是列表的第一个元素引用的对象的引用值。保留结果中的引用值。
 
 参考调用文法：
@@ -1871,15 +1884,6 @@ First(TermNode&);
 */
 YF_API ReductionStatus
 FirstRef(TermNode&);
-
-/*!
-结果是列表的第一个元素的引用值。保留结果中未折叠的引用值。
-
-参考调用文法：
-<pre>first@ \<list></pre>
-*/
-YF_API ReductionStatus
-FirstRefAt(TermNode&);
 
 /*!
 结果是列表的第一个元素经过返回值转换的值。不保留结果中的引用值。

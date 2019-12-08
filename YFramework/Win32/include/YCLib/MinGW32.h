@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2038
+\version r2040
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2019-07-07 20:13 +0800
+	2019-11-29 03:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -184,7 +184,7 @@ public:
 */
 //@{
 #	define YCL_WrapCall_Win32(_fn, ...) \
-	[&](const char* sig_) YB_ATTR_LAMBDA(nonnull(2)){ \
+	[&](const char* sig_) YB_NONNULL(2){ \
 		const auto res_(_fn(__VA_ARGS__)); \
 	\
 		if(YB_UNLIKELY(!res_)) \
@@ -206,7 +206,7 @@ public:
 */
 //@{
 #	define YCL_TraceWrapCall_Win32(_fn, ...) \
-	[&](const char* sig_) YB_ATTR_LAMBDA(nonnull(2)){ \
+	[&](const char* sig_) YB_NONNULL(2){ \
 		const auto res_(_fn(__VA_ARGS__)); \
 	\
 		if(YB_UNLIKELY(!res_)) \

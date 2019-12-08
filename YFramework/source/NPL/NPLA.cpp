@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2885
+\version r2910
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2019-11-25 20:56 +0800
+	2019-12-08 05:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -599,9 +599,12 @@ TokenizeTerm(TermNode& term)
 pair<TermReference, bool>
 Collapse(TermReference ref)
 {
-	if(const auto p = NPL::TryAccessLeaf<const TermReference>(ref.get()))
-		return {{MergeTermTags(ref.GetTags(), p->GetTags()), p->get(),
-			ref.GetEnvironmentReference()}, true};
+	if(const auto p = NPL::TryAccessLeaf<TermReference>(ref.get()))
+	{
+		ref.SetTags(MergeTermTags(ref.GetTags(), p->GetTags())),
+		ref.SetReferent(p->get());
+		return {std::move(ref), true};
+	}
 	return {std::move(ref), {}};
 }
 
@@ -690,6 +693,7 @@ RegularizeTerm(TermNode& term, ReductionStatus status) ynothrow
 void
 LiftTermOrCopy(TermNode& term, TermNode& tm, bool move)
 {
+	// XXX: Term tags are currently not respected in prvalues.
 	if(move)
 		LiftTerm(term, tm);
 	else
@@ -703,6 +707,7 @@ LiftTermValueOrCopy(TermNode& term, TermNode& tm, bool move)
 	// NOTE: This is compatible to the irregular representation of subobject
 	//	references provided the setting order of %NPL::SetContentWith.
 	// TODO: Check the representation is sane?
+	// XXX: Term tags are currently not respected in prvalues.
 	NPL::SetContentWith(term, tm,
 		move ? &ValueObject::MakeMove : &ValueObject::MakeCopy);
 }
@@ -754,10 +759,13 @@ LiftToReference(TermNode& term, TermNode& tm)
 void
 LiftToReturn(TermNode& term)
 {
+	// XXX: Term tags are currently not respected in prvalues. However, this
+	//	should be neutral here due to copy elision in the object language. Note
+	//	the operation here is idempotent for qualified expressions.
 	// TODO: Detect lifetime escape to perform copy elision?
 	// NOTE: Only outermost one level is referenced.
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
-		LiftTransferred(term, *p, p->IsMovable());
+		LiftMoved(term, *p, p->IsMovable());
 	// NOTE: On the other hand, the references captured by vau handlers (which
 	//	requires recursive copy of vau handler members if forced) are not
 	//	blessed here to avoid leaking abstraction of detailed implementation
@@ -768,23 +776,23 @@ LiftToReturn(TermNode& term)
 void
 MoveRValueToForward(TermNode& term, TermNode& tm)
 {
+	// XXX: Term tags are currently not respected in prvalues. However, this
+	//	should be neutral here due to copy elision in the object language.
 #	if true
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
 	{
 		if(!p->IsReferencedLValue())
-			return LiftTransferred(term, *p, p->IsMovable()
-				|| bool(p->GetTags() & TermTags::Temporary));
+			return LiftMoved(term, *p, p->IsModifiable());
 	}
 	term.MoveContent(std::move(tm));
 #	else
-	// NOTE: For exposition only. The following optimized implemenation shall be
+	// NOTE: For exposition only. The optimized implemenation shall be
 	//	equivalent to this.
 	term.MoveContent(std::move(tm));
 	if(!IsBoundLValueTerm(term))
 	{
 		if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
-			LiftTransferred(term, *p, p->IsMovable()
-			|| bool(p->GetTags() & TermTags::Temporary));
+			LiftMoved(term, *p, p->IsModifiable());
 	}
 #	endif
 }
@@ -792,15 +800,17 @@ MoveRValueToForward(TermNode& term, TermNode& tm)
 void
 MoveRValueToReturn(TermNode& term, TermNode& tm)
 {
+	// XXX: Term tags are currently not respected in prvalues. However, this
+	//	should be neutral here due to copy elision in the object language.
 #	if true
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
 	{
 		if(!p->IsReferencedLValue())
-			return LiftTransferred(term, *p, p->IsMovable());
+			return LiftMoved(term, *p, p->IsMovable());
 	}
 	term.MoveContent(std::move(tm));
 #	else
-	// NOTE: For exposition only. The following optimized implemenation shall be
+	// NOTE: For exposition only. The optimized implemenation shall be
 	//	equivalent to this.
 	term.MoveContent(std::move(tm));
 	if(!IsBoundLValueTerm(term))
@@ -836,6 +846,8 @@ ReductionStatus
 ReduceToReferenceAt(TermNode& term, TermNode& tm,
 	ResolvedTermReferencePtr p_ref)
 {
+	// XXX: Currently rvalues does not support qualifiers. The tags should be
+	//	ignored normally except for future internal use.
 	term.Value = TermReference(GetLValueTagsOf(tm.Tags), tm,
 		NPL::Deref(p_ref).GetEnvironmentReference());
 	return ReductionStatus::Clean;

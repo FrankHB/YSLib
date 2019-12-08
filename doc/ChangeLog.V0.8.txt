@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r15741
+\version r15851
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-11-25 22:40 +0800
+	2019-12-08 18:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,117 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	+ "specialiazation for more than 2 template arguments"
+		@ "class template %combined_hash" @ %YBase.YStandardEx.Hash
+	/ $revert_ex(b860) $lib $impl "lambda-expressions without \
+		trailing-return-type" ^ "%(YB_ATTR, YB_PURE, YB_STATELESS)"
+		~ "%YB_ATTR_LAMBDA"
+		$effective @ %('YCLib_(DS)'.DSIO, YCLib.(YCommon, Debug, FileSystem,
+		Host, HostedGUI), 'YCLib_(Win32)'.MinGW32, Helper.Environment,
+		NPL.(Dependency, NPLA1)) @ %YFramework,
+	/ $re_add(b860) $lib $impl "workaround for G++ 9.2 of attributes \
+		on lambda-expressions with qualifiers" ^ "%YB_ATTR_LAMBDA_QUAL"
+		$effective @ (("function %uremove" @ "platform %Win32" @ %FileIO,
+		"member function %Logger::DoLogException" @ %Debug) @ %YCLib,
+		%'YCLib_(DS)'.DSIO, "platform %DS" @ "constructor %Environment"
+		@ %Helper.Environment) @ %YFramework,
+	/ %YFramework $=
+	(
+		* $dev "invalid attribute %NONNULL" @ "lambda-expression"
+			@ "constructor %Environment" @ "platform %DS"
+			@ %Helper.Environment $since b860,
+		/ DLDI @ "platform %Win32" @ "function %FetchLimit" @ %YCLib.YCommon,
+			// To eliminate G++ warning: [-Wsign-compare].
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				/ DLDI "simplified function %MoveRValueToForward"
+					^ "%TermReference::IsModifiable"
+				(
+				+ "member functions %TermReference::(SetReferent, SetTags)";
+				/ DLI "reference collpase" @ "function %Collapse"
+					^ "%TermReference::(SetReferent, SetTags)"
+				),
+				(
+				/ "function %LiftTransferred" -> "%LiftMoved"
+					^ "%LiftTermOrCopy" ~ "%LiftTermValueOrCopy";
+				/ $forced "transferred by term move" @ "functions \
+					%(LiftToReturn, MoveRValueToForward, MoveRValueToReturn)"
+					$dep_from "%LiftTransferred"
+				),
+				* DD "misplaced '\pre' command" @ "Doxygen comment"
+					@ "functions %(ReduceToReference, ReduceToReferenceAt)"
+					$since b871
+			),
+			+ $re_add(b849) $dev $lib 'YB_ATTR_nodiscard YB_STATELESS'
+				@ "function %GetLValueTagsOf" @ %SContext,
+			/ %NPLA1 @ "namespace %Forms" $=
+			(
+				/ "function %FirstRefAt" => "%FirstAt",
+				/ "function %SetFirstRefAt" => "%SetFirstAt",
+				* "bound %TermTags::Temporary for subterm references \
+					recursively" @ "function %MatchParameter" $since b859
+					$dep_from ("applicative %first"
+					@ "function %LoadGroundContext" @ %Dependency),
+					// This could cause named variables bound directly as \
+						termporary objects matching subterms in the formal \
+						parameter in nested binding constructs.
+			),
+			/ %Dependency $=
+			(
+				/ @ "function %LoadGroundContext" $=
+				(
+					/ DLDI "applicatives ('first@', 'set-first@!')"
+						$dep_from ("%(FirstRefAt, SetFirstRefAt)" @ %NPLA1),
+					/ DLDI "reordered derivations" @ "applicatives (('first@', \
+						'first&'), ('set-first%!', 'set-first@!'), \
+						('assign%!', 'assign!'), (%deshare, ('move!', \
+						'transfer!')))",
+					/ "avoided return value conversion"
+						@ "applicatives ('move!', 'transfer!')";
+					* $comp "redundant return value conversion" @ "alternative \
+						derivations" @ ("applicative 'set-first!'" $since b856,
+						"applicative 'forward!'" $since b872,
+						"applicative %first" $sincc b859),
+					/ DLI "alternative derivation" @ "appliative %first"
+						^ 'forward!',
+					+ "applicative %expire" ^ $dep_from
+						("%TermReference::SetTag" @ %NPLA),
+					/ DLI "optimized trailing parameter forwarding"
+						@ "applicatives %append, 'map-reverse'" ^ 'move!'
+						~ 'forward!',
+					(
+					/ "transferred or returned values by term move except for \
+						'transfer!'" $=
+					(
+						/ $comp "native derivations" $dep_from
+							("%(LiftToReturn, MoveRValueToForward, \
+							MoveRValueToReturn)" @ %NPLA,
+						/ "alternative derivation" @ "applicative 'forward!"
+							^ 'move!' ~ 'transfer!'
+					);
+					/ $comp DLI "optimized native and alternative derivations \
+						to return list"
+					);
+					/ DLI "optimized trailing parameter forwarding"
+						@ "operatives ('$let*', '$let*%')" ^ 'move!' ~ 'idv',
+					/ DLI "optimized all lvalue trailing parameters 'body' \
+						forwarding" ^ 'move!',
+					/ DLI "optimized 'clause'" @ "alternative derivation"
+						@ "operative '$cond'" ^ 'move!',
+					* "non-reference objects not forwarded" @ "alternative \
+						derivations" @ "applicative %id" $since b828
+						$= (/ $impl ^ "'bound-lvalue?', 'move!' and sigil '&'"
+							~ "sigil '%'")
+				)
+			)
+		)
+	),
+),
+
+b872
 (
 	- DLDI "redundant 'YB_PURE YB_ATTR_returns_nonnull'"
 		@ "member function %bad_optional_access::what"

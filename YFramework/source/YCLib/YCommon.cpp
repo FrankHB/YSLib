@@ -11,13 +11,13 @@
 /*!	\file YCommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2907
+\version r2908
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:42 +0800
 \par 修改时间:
-	2019-11-04 17:45 +0800
+	2019-12-04 04:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -170,7 +170,7 @@ FetchLimit(SystemOption opt) ynothrow
 #endif
 	case SystemOption::MaxSemaphoreValue:
 #if YCL_Win32
-		static_assert(size_t(std::numeric_limits<long>::max())
+		static_assert(long(size_t(std::numeric_limits<long>::max()))
 			== std::numeric_limits<long>::max(), "Invalid value found.");
 
 		return size_t(std::numeric_limits<long>::max());
