@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018 FrankHB.
+	© 2010-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2780
+\version r2782
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2018-11-17 00:01 +0800
+	2019-12-18 08:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -382,7 +382,7 @@ public:
 	virtual \
 	~_n();
 
-/*
+/*!
 \brief 定义派生接口类型。
 \note 由于接口定义为 struct 类型，因此通常只需指定是否为 virtual 继承。
 \since build 362

@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2910
+\version r2954
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2019-12-08 05:50 +0800
+	2019-12-15 15:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -416,6 +416,20 @@ MergeTermTags(TermTags x, TermTags y) ynothrow
 		& (x & y & TermTags::Unique);
 }
 
+//! \since build 874
+void
+MoveRValueFor(TermNode& term, TermNode& tm, bool(TermReference::*pm)() const)
+{
+	// XXX: Term tags are currently not respected in prvalues. However, this
+	//	should be neutral here due to copy elision in the object language.
+	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
+	{
+		if(!p->IsReferencedLValue())
+			return LiftMoved(term, *p, ((*p).*pm)());
+	}
+	term.MoveContent(std::move(tm));
+}
+
 
 /*!
 \brief 锚对象使用的共享数据。
@@ -776,18 +790,11 @@ LiftToReturn(TermNode& term)
 void
 MoveRValueToForward(TermNode& term, TermNode& tm)
 {
-	// XXX: Term tags are currently not respected in prvalues. However, this
-	//	should be neutral here due to copy elision in the object language.
 #	if true
-	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
-	{
-		if(!p->IsReferencedLValue())
-			return LiftMoved(term, *p, p->IsModifiable());
-	}
-	term.MoveContent(std::move(tm));
+	MoveRValueFor(term, tm, &TermReference::IsModifiable);
 #	else
 	// NOTE: For exposition only. The optimized implemenation shall be
-	//	equivalent to this.
+	//	equivalent to this, except for the copy elision.
 	term.MoveContent(std::move(tm));
 	if(!IsBoundLValueTerm(term))
 	{
@@ -800,18 +807,11 @@ MoveRValueToForward(TermNode& term, TermNode& tm)
 void
 MoveRValueToReturn(TermNode& term, TermNode& tm)
 {
-	// XXX: Term tags are currently not respected in prvalues. However, this
-	//	should be neutral here due to copy elision in the object language.
 #	if true
-	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
-	{
-		if(!p->IsReferencedLValue())
-			return LiftMoved(term, *p, p->IsMovable());
-	}
-	term.MoveContent(std::move(tm));
+	MoveRValueFor(term, tm, &TermReference::IsMovable);
 #	else
 	// NOTE: For exposition only. The optimized implemenation shall be
-	//	equivalent to this.
+	//	equivalent to this, except for the copy elision.
 	term.MoveContent(std::move(tm));
 	if(!IsBoundLValueTerm(term))
 		LiftToReturn(term);
@@ -843,27 +843,33 @@ ReduceHeadEmptyList(TermNode& term) ynothrow
 }
 
 ReductionStatus
-ReduceToReferenceAt(TermNode& term, TermNode& tm,
-	ResolvedTermReferencePtr p_ref)
-{
-	// XXX: Currently rvalues does not support qualifiers. The tags should be
-	//	ignored normally except for future internal use.
-	term.Value = TermReference(GetLValueTagsOf(tm.Tags), tm,
-		NPL::Deref(p_ref).GetEnvironmentReference());
-	return ReductionStatus::Clean;
-}
-
-ReductionStatus
 ReduceToReference(TermNode& term, TermNode& tm, ResolvedTermReferencePtr p_ref)
 {
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
 	{
 		// NOTE: Reference collapsed by copy.
-		term.SetContent(tm);
+		if(p_ref)
+			// NOTE: Reference collapsed by copy.
+			term.SetContent(tm);
+		else
+			// NOTE: Reference collapsed by move.
+			term.MoveContent(std::move(tm));
 		// XXX: The resulted representation can be irregular.
 		return ReductionStatus::Retained;
 	}
 	return ReduceToReferenceAt(term, tm, p_ref);
+}
+
+ReductionStatus
+ReduceToReferenceAt(TermNode& term, TermNode& tm,
+	ResolvedTermReferencePtr p_ref)
+{
+	// XXX: Term tags on prvalues are reserved and should be ignored normally
+	//	except for future internal use. Since %term is a term, %Tags::Temporary
+	//	is not expected, the %GetLValueTagsOf is also not used.
+	term.Value = TermReference(tm.Tags, tm,
+		NPL::Deref(p_ref).GetEnvironmentReference());
+	return ReductionStatus::Clean;
 }
 
 

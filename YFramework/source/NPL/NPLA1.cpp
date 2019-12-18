@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r13965
+\version r14120
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2019-12-07 18:49 +0800
+	2019-12-18 08:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -183,6 +183,8 @@ TransformForSeparatorRecursiveTmpl(_tTerm&& term, const ValueObject& pfx,
 //@{
 using Forms::BindParameter;
 using Forms::CallRegularUnaryAs;
+//! \since build 874
+using Forms::CallResolvedUnary;
 using Forms::CallUnary;
 using Forms::CheckParameterLeafToken;
 using Forms::Retain;
@@ -542,10 +544,12 @@ FetchContextOrTailEnvironmentReference(const TermReference& ref,
 		: EnvironmentReference(ctx.GetRecordRef().shared_from_this());
 }
 
-//! \since build 859
+//! \since build 874
+// XXX: This is more efficient, at least in code generation by x86_64-w64-linux
+//	G++ 9.2 for %WrapN.
 template<typename _fCopy, typename _fMove>
-YB_ATTR_nodiscard YB_PURE auto
-LiftForwarded(ResolvedTermReferencePtr p_ref, _fCopy cp, _fMove mv)
+YB_ATTR_nodiscard YB_FLATTEN auto
+MakeValueOrMove(ResolvedTermReferencePtr p_ref, _fCopy cp, _fMove mv)
 	-> decltype(NPL::IsMovable(p_ref) ? mv() : cp())
 {
 	return NPL::IsMovable(p_ref) ? mv() : cp();
@@ -1822,20 +1826,20 @@ ReduceCombinedImpl(TermNode& term, ContextNode& ctx)
 }
 
 
-//! \since build 853
-//@{
-void
-MergeTerm(TermNode& term, TermNode& tm)
+//! \since build 874
+YB_FLATTEN void
+MakeValueListOrMove(TermNode& term, TermNode& nd,
+	ResolvedTermReferencePtr p_ref)
 {
-	auto tail_con(std::move(tm.GetContainerRef()));
-
-	term.GetContainerRef().splice(term.end(), std::move(tail_con));
+	MakeValueOrMove(p_ref, [&]{
+		for(const auto& sub : nd)
+			term.Add(sub);
+	}, [&]{
+		// XXX: No cyclic reference check.
+		term.GetContainerRef().splice(term.end(),
+			std::move(nd.GetContainerRef()));
+	});
 }
-
-void
-LiftNoOp(TermNode&) ynothrow
-{}
-//@}
 
 //! \since build 859
 //@{
@@ -1852,17 +1856,7 @@ ConsItem(TermNode& term, TermNode& y)
 {
 	ResolveTerm([&](TermNode& nd_y, ResolvedTermReferencePtr p_ref){
 		if(IsList(nd_y))
-		{
-			if(!NPL::IsMovable(p_ref))
-				for(const auto& sub : nd_y)
-					term.Add(sub);
-			else
-			{
-				auto tail_con(std::move(nd_y.GetContainerRef()));
-
-				term.GetContainerRef().splice(term.end(), std::move(tail_con));
-			}
-		}
+			MakeValueListOrMove(term, nd_y, p_ref);
 		else
 			ThrowConsError(nd_y, p_ref);
 	}, y);
@@ -1929,6 +1923,11 @@ DoSetFirst(TermNode& term, _func f)
 
 //! \since build 853
 void
+LiftNoOp(TermNode&) ynothrow
+{}
+
+//! \since build 853
+void
 SetRestImpl(TermNode& term, void(&lift)(TermNode&))
 {
 	SetFirstRest([&lift](TermNode& nd_x, TermNode& y){
@@ -1939,12 +1938,7 @@ SetRestImpl(TermNode& term, void(&lift)(TermNode&))
 				const auto a(nd_x.get_allocator());
 				TermNode nd_new(std::allocator_arg, a, {TermNode(a)});
 
-				if(!NPL::IsMovable(p_ref_y))
-					for(const auto& sub : nd_y)
-						nd_new.Add(sub);
-				else
-					// XXX: No cyclic reference check.
-					MergeTerm(nd_new, nd_y);
+				MakeValueListOrMove(nd_new, nd_y, p_ref_y);
 				lift(nd_new);
 				// XXX: The order is significant.
 				AccessFirstSubterm(nd_new) = MoveFirstSubterm(nd_x);
@@ -1955,6 +1949,31 @@ SetRestImpl(TermNode& term, void(&lift)(TermNode&))
 					" the 2nd argument, got '%s'.",
 					TermToStringWithReferenceMark(nd_y, p_ref_y).c_str()));
 		}, y);
+	}, term);
+}
+
+//! \since build 874
+template<typename _func>
+YB_FLATTEN ReductionStatus
+FirstAtRef(TermNode& term, _func f)
+{
+	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
+		CheckResolvedListReference(nd, p_ref);
+		// XXX: This should be safe, since the parent list is guaranteed an
+		//	lvalue by %CheckResolvedListReference.
+		return f(term, AccessFirstSubterm(nd), p_ref);
+	}, term);
+}
+
+//! \since build 874
+template<typename _func>
+YB_FLATTEN ReductionStatus
+FirstOrVal(TermNode& term, _func f)
+{
+	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
+		if(IsBranchedList(nd))
+			return f(AccessFirstSubterm(nd), p_ref);
+		ThrowInsufficientTermsError();
 	}, term);
 }
 
@@ -2088,33 +2107,32 @@ struct BindParameterObject
 	//! \since build 858
 	template<typename _fCopy, typename _fMove>
 	void
-	operator()(char sigil, TermTags o_tags, TermNode& tm, _fCopy cp, _fMove mv)
+	operator()(char sigil, TermTags o_tags, TermNode& o, _fCopy cp, _fMove mv)
 		const
 	{
 		const bool unique(bool(o_tags & TermTags::Unique));
 
 		if(sigil != '@')
 		{
-			const bool
-				not_move(bool(o_tags & TermTags::Nonmodifying) || !unique);
+			const bool can_modify(!bool(o_tags & TermTags::Nonmodifying));
 
 			// NOTE: Subterms in arguments retained are also transferred for
 			//	values.
-			if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
+			if(const auto p = NPL::TryAccessLeaf<const TermReference>(o))
 			{
 				if(sigil != char())
 				{
 					const auto
 						ref_tags(ConvertTagsBySigil(p->GetTags(), sigil));
 
-					if(not_move)
-						// NOTE: Reference collapsed by copy.
-						mv(TermNode::Container(tm.GetContainer()),
-							TermReference(ref_tags, *p));
-					else
+					if(can_modify && unique)
 						// NOTE: Reference collapsed by move.
-						mv(std::move(tm.GetContainerRef()),
+						mv(std::move(o.GetContainerRef()),
 							TermReference(ref_tags, std::move(*p)));
+					else
+						// NOTE: Reference collapsed by copy.
+						mv(TermNode::Container(o.GetContainer()),
+							TermReference(ref_tags, *p));
 				}
 				else
 				{
@@ -2129,35 +2147,36 @@ struct BindParameterObject
 							std::move(src.Value));
 				}
 			}
-			else if(not_move)
-			{
-				// NOTE: Binding on list prvalues is always unsafe. However,
-				//	%copy currently implies some ancestor of %tm is a
-				//	referenceable object, albeit not always an lvalue (which
-				//	implies undefined behavior if used as an lvalue).
-				if(sigil == '&')
-					// XXX: Always move because the value object is newly
-					//	created. The anchor here (if any) is not accurate
-					//	because it refers to the anchor saved by the reference
-					//	(if any), not necessarily the original environment
-					//	owning the referent.
-					// TODO: Remove anchors without TCO (as it always interferes
-					//	%NPL_NPLA_CheckEnvironmentReferenceCount for no
-					//	benefits)?
-					mv(TermNode::Container(tm.get_allocator()),
-						TermReference(GetLValueTagsOf(tm.Tags) | o_tags, tm,
-						Referenced));
-				else
-					cp(tm);
-			}
+			else if((can_modify || sigil == '%') && unique)
+				// XXX: The object is bound to reference as temporary, implying
+				//	copy elision in the object language.
+				MarkTemporaryTerm(mv(std::move(o.GetContainerRef()),
+					std::move(o.Value)), sigil);
+			// NOTE: Binding on list prvalues is always unsafe. However,
+			//	not %can_modify currently implies some ancestor of %o is a
+			//	referenceable object, albeit not always an lvalue (which implies
+			//	undefined behavior if used as an lvalue).
+			else if(sigil == '&')
+				// XXX: Always move because the value object is newly created.
+				//	The anchor here (if any) is not accurate because it refers
+				//	to the anchor saved by the reference (if any), not
+				//	necessarily the original environment owning the referent.
+				// TODO: Remove anchors without TCO (as it always interferes
+				//	%NPL_NPLA_CheckEnvironmentReferenceCount for no
+				//	benefits)?
+				mv(TermNode::Container(o.get_allocator()),
+					// XXX: Term tags on prvalues are reserved and should be
+					//	ignored normally except for future internal use. Note
+					//	that %TermTags::Temporary can be provided by a bound
+					//	object (indicated by %o) in an environment.
+					TermReference(GetLValueTagsOf(o.Tags) | o_tags, o,
+					Referenced));
 			else
-				// XXX: Moved. This is copy elision in the object language.
-				MarkTemporaryTerm(mv(std::move(tm.GetContainerRef()),
-					std::move(tm.Value)), sigil);
+				cp(o);
 		}
 		else if(!unique)
-			mv(TermNode::Container(tm.get_allocator()),
-				TermReference(o_tags & TermTags::Nonmodifying, tm, Referenced));
+			mv(TermNode::Container(o.get_allocator()),
+				TermReference(o_tags & TermTags::Nonmodifying, o, Referenced));
 		else
 			throw
 				InvalidReference("Invalid operand found on binding sigil '@'.");
@@ -2261,8 +2280,8 @@ private:
 						{
 							const auto ref_tags(p_ref->GetTags());
 
-							if(!bool(ref_tags & TermTags::Unique))
-								tags &= ~TermTags::Unique;
+							tags = (tags & ~TermTags::Unique)
+								| (ref_tags & TermTags::Unique);
 							tags |= ref_tags & TermTags::Nonmodifying;
 						}
 						MatchSubterms(t.begin(), last, nd.begin(), nd.end(),
@@ -2438,7 +2457,7 @@ ReductionStatus
 WrapN(TermNode& term, ContextNode&, ResolvedTermReferencePtr p_ref,
 	FormContextHandler& fch, size_t n)
 {
-	return WrapH(term, LiftForwarded(p_ref, [&]{
+	return WrapH(term, MakeValueOrMove(p_ref, [&]{
 		return FormContextHandler(fch.Handler, fch.Check, n);
 	}, [&]{
 		return
@@ -2464,7 +2483,7 @@ UnwrapResolved(TermNode& term, ContextNode& ctx, FormContextHandler& fch,
 {
 	if(fch.Wrapping != 0)
 	{
-		return LiftForwarded(p_ref, [&]{
+		return MakeValueOrMove(p_ref, [&]{
 			return ReduceForCombinerRef(term, ctx, Deref(p_ref), fch.Handler,
 				fch.Check, fch.Wrapping - 1);
 		}, [&]{
@@ -2652,7 +2671,7 @@ public:
 			[&](const Encapsulation& enc, ResolvedTermReferencePtr p_ref){
 			auto& tm(enc.Term);
 
-			return LiftForwarded(p_ref, [&]() -> ReductionStatus{
+			return MakeValueOrMove(p_ref, [&]() -> ReductionStatus{
 				// NOTE: As lvalue references, the object in %tm cannot be
 				//	destroyed.
 				if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
@@ -3585,50 +3604,65 @@ SetRestRef(TermNode& term)
 ReductionStatus
 First(TermNode& term)
 {
-	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
-		if(IsBranchedList(nd))
-		{
-			auto& tm(AccessFirstSubterm(nd));
+	return FirstOrVal(term, [&](TermNode& tm, ResolvedTermReferencePtr p_ref)
+		-> ReductionStatus{
+#if true
+		// XXX: This is verbose but likely more efficient with %YB_FLATTEN.
+		const bool list_not_move(!NPL::IsMovable(p_ref));
 
-			// XXX: This should be safe, since the parent list is guaranteed an
-			//	lvalue by the false result of the call to %NPL::IsMovable.
-			return NPL::IsMovable(p_ref) ? ReduceToValue(term, tm)
-				: ReduceToReference(term, tm, p_ref);
+		if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
+		{
+			if(list_not_move)
+			{
+				term.SetContent(tm);
+				return ReductionStatus::Retained;
+			}
+			if(!p->IsReferencedLValue())
+			{
+				LiftMoved(term, *p, p->IsMovable());
+				return ReductionStatus::Retained;
+			}
 		}
-		else
-			ThrowInsufficientTermsError();
-	}, term);
+		else if(list_not_move)
+			return ReduceToReferenceAt(term, tm, p_ref);
+		term.MoveContent(std::move(tm));
+		return ReductionStatus::Retained;
+#else
+		// NOTE: For exposition only. The optimized implemenation shall be
+		//	equivalent to this.
+		// XXX: This should be safe, since the parent list is guaranteed an
+		//	lvalue by the false result of the call to %NPL::IsMovable.
+		return NPL::IsMovable(p_ref) ? ReduceToValue(term, tm)
+			: ReduceToReference(term, tm, p_ref);
+#endif
+	});
 }
 
 ReductionStatus
 FirstAt(TermNode& term)
 {
-	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
-		CheckResolvedListReference(nd, p_ref);
-		// XXX: Similar to %FirstRef.
-		return ReduceToReferenceAt(term, AccessFirstSubterm(nd), p_ref);
-	}, term);
+	return FirstAtRef(term, ReduceToReferenceAt);
 }
 
 ReductionStatus
 FirstRef(TermNode& term)
 {
-	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
-		CheckResolvedListReference(nd, p_ref);
-		// XXX: This should be safe, since the parent list is guaranteed an
-		//	lvalue by %CheckResolvedListReference.
-		return ReduceToReference(term, AccessFirstSubterm(nd), p_ref);
-	}, term);
+	return FirstAtRef(term, ReduceToReference);
 }
 
 ReductionStatus
 FirstVal(TermNode& term)
 {
-	return CallResolvedUnary([&](TermNode& tm){
-		if(IsBranchedList(tm))
-			return ReduceToValue(term, AccessFirstSubterm(tm));
-		ThrowInsufficientTermsError();
-	}, term);
+	return FirstOrVal(term, [&](TermNode& tm, bool has_ref){
+		// XXX: Simple 'ReduceToValue(term, tm)' is wrong because it may
+		//	move non-unqiue reference object away.
+		if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
+			LiftMoved(term, *p, !has_ref && p->IsMovable());
+		else
+			// XXX: Term tags are currently not respected in prvalues.
+			LiftTermOrCopy(term, tm, !has_ref);
+		return ReductionStatus::Retained;
+	});
 }
 
 
@@ -3815,7 +3849,7 @@ Wrap(TermNode& term, ContextNode& ctx)
 {
 	return WrapOrRef(term, ctx, WrapN,
 		[&](ContextHandler& h, ResolvedTermReferencePtr p_ref){
-		return WrapH(term, LiftForwarded(p_ref, [&]{
+		return WrapH(term, MakeValueOrMove(p_ref, [&]{
 			return FormContextHandler(h, 1);
 		}, [&]{
 			return FormContextHandler(std::move(h), 1);

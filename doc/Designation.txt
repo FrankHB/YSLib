@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 项目设计规则指定和说明。
-\version r9905
+\version r9924
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2019-03-17 06:18 +0800
+	2019-12-18 08:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -230,6 +230,9 @@ YSLib 基于基本的底层系统接口（由 YFramework/YCLib[Documentation::YC
 
 @4.1.2.1 YBase 和 YFramework 约定：
 用于实现标准库兼容接口时，优先使用以下名称的对应或一致形式。
+除非另行指定，本节约定的类型名作为函数参数类型时，也隐含适用以下对应的关联类型：
+通用引用([Documentation::LanguageConvention @@5.2.9.2]) 实例化的引用类型；
+作为函数对象类型的函数指针退化来源的函数引用类型。
 使用以下固定含义的模板形式参数名称（前缀参见 @4.1.1.2 ），同时表示对应的类型要求（模板参数引用作为函数参数时可以是对应的对象类型引用）：
 _type ：一般类型参数（对应标准库的 T ）；
 _type2 ：第二类型参数（对应标准库的 U ）；
@@ -239,23 +242,23 @@ _tElem ：元素类型（如 std::initializer_list 的模板参数等，对应�
 _tEx ：异常类型（除非另行指定，应为类类型）；
 _tSeq ：表示序列的类型参数（一般需要是类类型；注意可以是元类型的实例，而不一定是容器类型）。
 _tScalar ：纯量类型（和向量类型相对；注意不一定是 ISO C++ 定义的纯量类型，即不需要保证满足 std::is_scalar 类型特征）；
-_func ：函数对象类型；
-_fCallable ：可调用类型；
-_fPred ：谓词函数类型；
-_fBiPred ：二元谓词函数类型；
-_tIter ：迭代器类型；
-_tIn ：输入迭代器类型；
-_tOut ：输出迭代器类型；
-_tFwd ：前向迭代器类型；
-_tBi ：双向迭代器类型；
-_tRandom ：随机访问迭代器类型；
-_tRange ：一般范围类型；
-_tCon ：容器类型（符合 ISO C++11 约定的容器要求的类型，或类似的在特定上下文中通过文档约定的类型如 std::string ，下同）；
-_tSeqCon ：序列容器类型；
-_tAssocCon ：关联容器和无序关联容器类型；
+_func ：函数对象类型（符合 ISO C++17 [function.objects]/1 的类型）；
+_fCallable ：可调用类型（符合 ISO C++17 [func.def]/3 的类型，满足 [func.require] 的调用）；
+_fPred ：谓词函数类型（同 ISO C++17 [algorithms.requirements]/6 的 Predicate ）；
+_fBiPred ：二元谓词函数类型（同 ISO C++17 [algorithms.requirements]/7 的 BinaryPredicate ）；
+_tIter ：迭代器类型（符合 ISO C++17 [iterator.iterators] 的 Iterator 要求的模板参数）；
+_tIn ：输入迭代器类型（同 ISO C++17 [algorithms.requirements]/3.1 的 InputIterator ）；
+_tOut ：输出迭代器类型（同 ISO C++17 [algorithms.requirements]/3.2 的 OutputIterator ）；
+_tFwd ：前向迭代器类型（同 ISO C++17 [algorithms.requirements]/3.3 的 ForwardIterator ）；
+_tBi ：双向迭代器类型（同 ISO C++17 [algorithms.requirements]/3.4 的 BidirectionalIterator ）；
+_tRandom ：随机访问迭代器类型（同 ISO C++17 [algorithms.requirements]/3.5 的 RandomAccessIterator ）；
+_tRange ：一般范围类型（符合 WG21 N3830 [range.range] 的 range 概念要求的模板参数，但调用不要求 ranges::begin 和 ranges::end 而允许使用 ADL 调用）；
+_tCon ：容器类型（符合 ISO C++17 [container.requirements.general] 约定的容器要求的类型，包括类似的在特定上下文中通过文档约定的类型如 std::string ，下同）；
+_tSeqCon ：序列容器类型（符合 ISO C++17 [sequence.reqmts] 约定的容器要求的类型）；
+_tAssocCon ：关联容器和无序关联容器类型（符合 ISO C++17 [associative.reqmts] 或 [unord.req] 约定的容器要求的类型）；
 _tKey ：关联容器和无序关联容器的键类型；
 _tTransKey ：关联容器和无序关联容器的透明键类型（用于查找时替代键的不同类型）；
-_fComp ：关联容器或算法使用的基于序关系比较的二元操作类型；
+_fComp ：关联容器或算法使用的基于序关系比较的二元操作函数对象类型（同 ISO C++17 [alg.sorting] 的 Compare ）；
 _tChar ：适合作为 std::char_traits 的第一参数的字符类型。
 以上非数字结尾的类型参数加后缀 s 表示可变模板参数中的多个类型。
 使用以下非 ISO C++11 的要求中出现的其它成员名称：
@@ -264,7 +267,7 @@ begin 和 end 以 ADL 为使用形式，一般使用命名空间作用域包装�
 无歧义时，优先使用约定的对象或对象引用类型的参数名称：
 c 一般范围；
 c 字符（特别是符合 _tChar 类型的）；
-c 范围（特别是和容器并列时）；
+c 范围（特别是和具有容器参数的重载并列时）；
 con 容器（特别是符合 _tCon 、 _tSeqCon 或 _tAssocCon 类型或其引用类型的）；
 il std::initializer_list 示例类型的参数（和标准库一致）；
 str 字符串（字符指针或类）类型。

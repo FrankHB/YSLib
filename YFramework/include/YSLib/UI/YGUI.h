@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018 FrankHB.
+	© 2009-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGUI.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2463
+\version r2465
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2018-11-20 19:26 +0800
+	2019-12-18 08:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,7 +68,7 @@ public:
 	\brief 虚析构：类定义外默认实现。
 	\since build 586
 	*/
-	virtual ~InputTimer();
+	~InputTimer() override;
 
 	//! \brief 默认延迟。
 	static yconstfn DefGetter(ynothrow, Duration, DefaultDuration,

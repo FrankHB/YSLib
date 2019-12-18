@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r12237
+\version r12285
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2019-02-22 14:28 +0800
+	2019-12-18 08:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -955,8 +955,8 @@ b689
 				// This would return reference to automatic object if the \
 					template parameter type of other argument is not a \
 					reference.
-			+ $impl "workaround for internal comparator" @ 'YB_IMPL_CLANGPP'
-				@ %Set,
+			+ $impl "workaround for internal comparison object"
+				@ 'YB_IMPL_CLANGPP' @ %Set,
 				// See https://llvm.org/bugs/show_bug.cgi?id=27504.
 			/ $dev $lib @ "class %invalid_construction" @ %Any $=
 			(
@@ -1383,13 +1383,14 @@ b685
 		and output library file" @ "target %clean"
 		@ "makefiles" @ "platforms %(DS, Android)" @ %(YBase, YFramework),
 		// Now '*.log' from Microsoft Visual Studio would not be cleaned.
-	/ DLDI "replaced inclusion of <ystdex/cast.hpp>" $effective @ ("non-header \
-		files" @ %YFramework) $dep_from %YBase.YStandardEx.Cast $=
+	/ DLDI "replaced inclusion %YBase.YStandardEx.Cast" $effective
+		@ ("non-header files" @ %YFramework) $dep_from %YBase.YStandardEx.Cast
+		$=
 	(
-		- "redundant inclusion of <ystdex/cast.hpp>" $effective
+		- "redundant inclusion %YBase.YStandardEx.Cast" $effective
 			@ %(Helper.(HostedUI, HostRenderer), NPL.NPLA1, YSLib.Adaptor.YNew),
-		/ $forced "inclusion of <ystdex/cast.hpp>"
-			-> '#include <ystdex/addressof.hpp>' $effective @ %YCLib.XCB
+		/ $forced "inclusion %YBase.YStandardEx.Cast"
+			-> "inclusion %YStandardEx.AddressOf" $effective @ %YCLib.XCB
 	)
 ),
 
@@ -1805,14 +1806,14 @@ b680
 				* $comp "ill-formed generic associative lookup for failed \
 					%is_transparent merber type detection" $since b679
 					$dep_from ("%enable_if_transparent_t" @ %Functor),
-				* $comp "ill-formed default comparator"
+				* $comp "ill-formed default comparison object"
 					@ '__cpp_lib_transparent_operators >= 201210 \
 					|| __cplusplus >= 201402L' @ $since b679 $dep_from
 					("%less" @ %Functor),
 				+ "4 function templates %try_emplace" ^ $dep_from
 					("%ystdex::(try_emplace, try_emplace_hint)" @ %Container)
 			),
-			* $comp "ill-formed default comparator"
+			* $comp "ill-formed default comparison object"
 				@ "functions %(min, max, minmax, clamp, clamp_range)"
 				@ '__cpp_lib_transparent_operators >= 201210 \
 				|| __cplusplus >= 201402L' @ %Algorithm $since b679 $dep_from
@@ -1823,7 +1824,7 @@ b680
 				%(try_emplace, insert_or_assign) would work since revision \
 				2015-08-27.
 				$= (+ "workaround for libstdc++"),
-			/ DLDI "simplified generic associative comparator"
+			/ DLDI "simplified generic associative comparison object"
 		)
 	),
 	/ %YFramework $=
@@ -1931,7 +1932,7 @@ b679
 			(
 				/ DLDI "flattened nested types",
 					// To shorten mangled name and reuse generic key types.
-				/ DLI "comparator initialization" ^ "move" ~ "copy",
+				/ DLI "comparison object initialization" ^ "move" ~ "copy",
 				(
 				* "function templates %(2 lower_bound, 2 upper_bound, 2 \
 					equal_range)" $since b678;
@@ -1944,8 +1945,9 @@ b679
 					|| __cplusplus >= 201402L',
 					// See WG21 P0096R1.
 				/ "limited all 9 generic associative lookup function templates \
-					only for comparator with member type %is_transparent"
-					^ $dep_from ("%enable_if_transparent_t" @ %Functor)
+					only for comparison object type with member type \
+					%is_transparent" ^ $dep_from
+					("%enable_if_transparent_t" @ %Functor)
 					// As WG21 N3657.
 			),
 			/ DLDI '201402' -> '201402L' @ "condition test for %__cplusplus"
@@ -1976,7 +1978,7 @@ b679
 		),
 		/ $dev $re_add(b628) "updated feature-testing macros" $=
 		(
-			/ $doc "updated Doxygen comments" @ %YDefinition,
+			/ DD "updated Doxygen comments" @ %YDefinition,
 			(
 			+ "2 feature-test macros %(__cpp_lib_bool_constant, \
 				__cpp_lib_void_t recommended) by WG21 P0096R1 when not defined"
@@ -1997,7 +1999,7 @@ b679
 				/ $lib "simplified inclusion condition for %invoke"
 					!^ 'YB_IMPL_MSCPP' @ %Function
 				),
-				/ $doc "updated Doxygen comments" @ %Functor,
+				/ DD "updated Doxygen comments" @ %Functor,
 				+ "feature-test macro %__cpp_lib_transparent_operators by WG21 \
 					P0096R1 when not defined" @ 'YB_IMPL_MSCPP >= 1800' @ %Ref
 			)
@@ -2114,8 +2116,8 @@ b678
 					+ 'using key_type = typename Container::key_type;';
 					+ "4 function templates %try_emplace"
 					),
-					/ "alias %Container" ^ "comparator %ystdex::less"
-						~ "default comparator",
+					/ "alias %Container" ^ "comparison object type \
+						%ystdex::less" ~ "default comparison object type",
 					+ "%operaotr< for 'const ValueNode&' and 'const string&'",
 					- "%operator const string&",
 					+ "private base class %ystdex::totally_ordered<ValueNode>",
@@ -2378,7 +2380,7 @@ b676
 	),
 	/ $build %Tools $=
 	(
-		* "missing updating %LIBS for %YFramework.YCLib.YCommon"
+		* $re_add(b617) "missing updating %LIBS for %YFramework.YCLib.YCommon"
 			@ "%SHBuild-bootstrap.sh" @ %Scripts $since b633,
 		* "silently exited when 'pkg-config' detection for package %freetype2 \
 			failed" @ "%install-sysroot.sh" $since b563
@@ -2419,18 +2421,18 @@ b675
 			~ "WG21 N4081" $=
 			// See $2016-03 @ %Documentation::Workflow::Annual2016.
 		(
-			/ $doc "updated Doxygen comments" @ %Any,
+			/ DD "updated Doxygen comments" @ %Any,
 			/ %Optional $=
 			(
 				+ '&&' @ "return type" @ "2 member functions %(operator*, \
 					value)" @ "class template %optional"
-				/ $doc "updated Doxygen comments"
+				/ DD "updated Doxygen comments"
 			),
 			/ %StringView $=
 			(
 				- "member function %clear"
 					@ "class template %basic_string_view",
-				/ $doc "updated Doxygen comments"
+				/ DD "updated Doxygen comments"
 			)
 		),
 		+ "class template %default_last_value and its specialization for %void"
@@ -2733,11 +2735,11 @@ b673
 					(
 						/ "member function" -> "friend function",
 							// Ditto.
-						/ "returned 'true' when parameters are empty"
-							// Like %GEvent comparator. This is a breaking \
-								change, but it should not change the current \
-								behavior as no interface implementation has \
-								been relying on it.
+						/ "returned %true when parameters are empty"
+							// Like %GEvent comparison object. This is a \
+								breaking change, but it should not change the \
+								current behavior as no interface \
+								implementation has been relying on it.
 					),
 					/ @ "all 2 function templates %GetObject" $=
 					(
@@ -2874,7 +2876,7 @@ b672
 						(
 							(
 							/ "key type" -> 'lref<IWidget>' ~ 'IWidget*';
-							/ $forced "comparator type"
+							/ $forced "comparison object type"
 								^ $dep_from ("%ystdex::lref_less"
 								@ %YBase.YStandardEx.Functional)
 								~ "implicit %less<IWidget*>"
@@ -3367,7 +3369,7 @@ b670
 						// Polymorphic functors should be better typed in \
 							construction side. Other removed call wrappers \
 							should be better be replaced by lambda-expressions.
-					- "including <functional> and <typeinfo>" $dep_from
+					- "inclusion (<functional>, <typeinfo>)" $dep_from
 						%(UI.YComponent, Documentation.YSLib)
 						// No YFramework code will be implicitly break due to \
 							new guarantees.
@@ -3777,7 +3779,7 @@ b667
 			@ "class template %pointer_iterator" @ %Pointer,
 		/ %Iterator $=
 		(
-			* "missing including %TypeOperation for %(first_tag, second_tag)"
+			* "missing inclusion %TypeOperation for %(first_tag, second_tag)"
 				$since b627,
 			/ DLD "simplified return type" @ "friend function %operator-"
 				@ "class template %pseudo_iterator",
@@ -3808,7 +3810,7 @@ b667
 		),
 		/ %Set $=
 		(
-			* "missing including %Functor for %less" $since b665,
+			* "missing inclusion %Functor for %less" $since b665,
 			* "function %erase with 2 arguments" @ "class templates %mapped_set"
 				$since b665
 		),
@@ -4652,7 +4654,7 @@ b660
 				)
 			)
 		),
-		* "missing including %Utilities for %is_nothrow_swappable" @ %ScopeGuard
+		* "missing inclusion %Utilities for %is_nothrow_swappable" @ %ScopeGuard
 			$since b588,
 		/ "supported deterministic comparison" @ "class template %nptr"
 			@ %Pointer $=
@@ -4697,7 +4699,7 @@ b660
 		),
 		/ %Cast $=
 		(
-			* "missing including %TypeOperation for traits" $since b650,
+			* "missing inclusion %TypeOperation for traits" $since b650,
 			/ $forced DLDI "%general_cast" ^ $dep_from
 				("%have_common_nonempty_virtual_base" @ %TypeOperation)
 		)
@@ -6206,7 +6208,7 @@ b650
 			^ "%is_detected_convertible",
 		/ %Iterator $=
 		(
-			* "missing including %IntegerSequence for %(make_index_sequence, \
+			* "missing inclusion %IntegerSequence for %(make_index_sequence, \
 				index_sequence)" $since b595,
 			/ $impl "simplified all 4 function template %operator|"
 				^ "%decay_t" ~ "%array_decay_t"
@@ -6402,9 +6404,9 @@ b649
 		),
 		/ "simplified header dependency" @ %(Exception, Cache, Future, \
 			IteratorTrait) ^ %TypeTraits ~ %TypeOperation
-		* "missing including header for %exclude_self_ctor_t" @ %Ref $since b640
+		* "missing inclusion header for %exclude_self_ctor_t" @ %Ref $since b640
 			// Originally this should be %TypeOperation.
-			$= (+ $dev "including %TypeTraits" ),
+			$= (+ $dev "inclusion %TypeTraits" ),
 		/ DLDI "simplified %make_successor" @ %IntegerSequence $dep_from
 			"variadic sequence using traits" ^ "%common_type_t"
 			~ "%std::common_type"
@@ -6592,8 +6594,8 @@ b646
 		(
 			/ %Cache $=
 			(
-				* "missing including %CAssert for %yassume" $since b521,
-				* "missing including %TypeOperation for %and_" $since b611,
+				* "missing inclusion %CAssert for %yassume" $since b521,
+				* "missing inclusion %TypeOperation for %and_" $since b611,
 				+ "functions %(get, list)" @ "class template %used_list_cache",
 				/ @ "trait template %used_list_cache_traits" $=
 				(
@@ -6602,7 +6604,7 @@ b646
 						(/ 'unordered_multimap' -> 'unordered_map'),
 					/ @ "specialization for %void hash type" $=
 					(
-						* "missing comparator template argument"
+						* "missing comparison object type template argument"
 							@ "alias %map_type" $since b611;
 						/ "%used_cache_type" ^ "%map_type"
 					)
@@ -7134,7 +7136,7 @@ b641
 			/ %CString $=
 			(
 				* "strict ISO C++ code compatibility" @ %LibDefect $since b640
-					$= (* "missing including <algorithm> for %std::min"),
+					$= (* "missing inclusion <algorithm> for %std::min"),
 				+ "function template %ntctschr",
 				/ @ "function template %ntctslen with size" $=
 				(
@@ -8760,7 +8762,7 @@ b627
 			$= (+ "traits %have_same_iterator_category"),
 		/ "metafunction %enable_for_iterator_t" @ %IteratorOperation
 			>> %IteratorTraits,
-		* "missing including <ystdex/type_op.hpp>" @ %Operators $since b278
+		* "missing inclusion %TypeOperations" @ %Operators $since b278
 	),
 	/ @ "class %ImagePanel" @ %YDE.ImageBrowser.ImageControl $=
 	(
@@ -9215,8 +9217,8 @@ b623
 			/ $impl $revert_ex(b520) "clean waiting" !^ "duration" $dep_from
 				("%task_pool" @ %YBase.YStandardEx.Concurrency)
 		),
-		/ $forced "updated %LIBS" @ "%SHBuild-bootstrap.sh" $dep_from
-			"library dependency"
+		/ $re_add(b587) $forced $build "updated %LIBS" @ "%SHBuild-bootstrap.sh"
+			$dep_from "library dependency"
 	),
 	/ DLDI "argument type" @ "%seekg with 1 parameter"
 		-> "explicitly cast stream %off_type" ~ "stream %pos_type" $effective
@@ -9280,7 +9282,7 @@ b623
 				* "wrongly ignored waiting call result" @ "function \
 					%wait_to_enqueue" $since b538 $dep_from "%task_pool"
 			),
-			* "missing including %CAssertion for %yassume" @ "header"
+			* "missing inclusion %CAssertion for %yassume" @ "header"
 				@ %Concurrency $since b588
 			(
 				+ "alias template %future_result_t";
@@ -10724,7 +10726,7 @@ b604
 			+ "function template %ntctsncpy",
 			+ "2 inline functions %ntctsncpy for %(char, wchar_t) pointers"
 				^ "%std::(strncpy, wcsncpy)",
-			* "missing including %CAssert" $since b432,
+			* "missing inclusion %CAssert" $since b432,
 				// The program may be ill-formed due to undefined %yconstraint.
 			/ @ "function template %ntctsicmp" $=
 			(
@@ -10958,7 +10960,7 @@ b601
 					/ $impl !^ "unneeded volatile type cast"
 				),
 				+ "function %InitializeFileSystem",
-				- "inclusion of <nds.h>" @ "header" $dep_from
+				- "inclusion <nds.h>" @ "header" $dep_from
 					"hiding libfat interface"
 			)
 		),

@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3241
+\version r3249
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2019-12-02 01:37 +0800
+	2019-12-18 00:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -714,7 +714,7 @@ LoadGroundedDerived(REPLContext& context)
 	//	(first-class referents) from prvalues and all terms can be accessed as
 	//	objects with arbitrary longer lifetime.
 	context.Perform(R"NPL(
-		$def! id wrap ($vau% (&x) #ignore $if (bound-lvalue? x) x (move! x));
+		$def! id wrap ($vau% (%x) #ignore $if (bound-lvalue? x) x (move! x));
 		$def! idv wrap $quote;
 		$def! list wrap ($vau (.x) #ignore x);
 		$def! list% wrap ($vau &x #ignore x);
@@ -723,7 +723,7 @@ LoadGroundedDerived(REPLContext& context)
 	RegisterForm(renv, "$lambda", Lambda);
 	RegisterForm(renv, "$lambda%", LambdaRef);
 	context.Perform(R"NPL(
-		$def! id $lambda% (&x) $if (bound-lvalue? x) x (move! x);
+		$def! id $lambda% (%x) $if (bound-lvalue? x) x (move! x);
 		$def! idv $lambda (&x) x;
 		$def! list $lambda (.x) x;
 		$def! list% $lambda &x x;
@@ -784,9 +784,8 @@ LoadGroundedDerived(REPLContext& context)
 		$defl! set-first%! (&l &x)
 			assign%! (first@ (check-list-reference l)) (forward! x);
 		$defl%! first (&l)
-			($lambda% ((&x .))
-				($if (bound-lvalue? ($resolve-identifier l)) id forward!) x)
-			(forward! l);
+			($lambda% (fwd) ($lambda% ((&x .)) fwd x) (forward! l))
+				($if (bound-lvalue? ($resolve-identifier l)) id forward!);
 		$defl%! first& (&l) ($lambda% ((&x .)) x) (check-list-reference l);
 		$defl! firstv ((&x .)) x;
 		$defl! rest& (&l) ($lambda ((#ignore .&x)) x) (check-list-reference l);
@@ -899,9 +898,9 @@ LoadCore(REPLContext& context)
 				(forward! base) (forward head) (forward tail) (forward sum)));
 		$defl%! foldr1 (&kons &knil &l)
 			accr (forward! l) null? (forward knil) first rest% kons;
-		$defw%! map1 (&appv &l) d
-			foldr1 ($lambda (&x &xs) cons% (apply appv (list% x) d) xs) ()
-				(forward! l);
+		$defw%! map1 (&appv &l) d foldr1
+			($lambda (&x &xs) cons% (apply appv (list% (forward! x)) d) xs) ()
+			(forward! l);
 		$defl! list-concat (&x &y) foldr1 cons% y (forward! x);
 		$defl! append (.&ls) foldr1 list-concat () (move! ls);
 		$defv%! $let (&bindings .&body) d
