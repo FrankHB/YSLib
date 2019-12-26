@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018 FrankHB.
+	© 2009-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r836
+\version r842
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2018-07-09 10:05 +0800
+	2019-12-26 22:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -212,7 +212,7 @@
 #elif defined(_WIN32)
 #	define YF_Platform YF_Platform_Win32
 #elif defined(__ANDROID__)
-// FIXME: Architecture detection.
+// TODO: Precise architecture detection.
 #	define YF_Platform YF_Platform_Android_ARM
 #elif defined(__linux__)
 #	ifdef __i386__
@@ -244,19 +244,19 @@
 /*!
 \ingroup PlatformAPI
 \def YCL_API_Has_dirent_h
-\brief API 可用 \c \<dirent.h\> 。
+\brief API 可用 \c \<dirent.h> 。
 */
 
 /*!
 \ingroup PlatformAPI
 \def YCL_API_Has_semaphore_h
-\brief API 可用 \c \<semaphore.h\> 。
+\brief API 可用 \c \<semaphore.h> 。
 */
 
 /*!
 \ingroup PlatformAPI
 \def YCL_API_Have_unistd_h
-\brief API 可用 \c \<unistd.h\> 。
+\brief API 可用 \c \<unistd.h> 。
 */
 
 /*!
@@ -272,7 +272,7 @@
 \ingroup PlatformOptionalFeatures
 \def YF_Use_JNI
 \brief 使用 Java 本机接口的版本。
-\pre 若被定义，替换的记号和在 \c \<jni.h\> 中的某个 \c JNI_VERSION_* 宏一致。
+\pre 若被定义，替换的记号和在 \c \<jni.h> 中的某个 \c JNI_VERSION_* 宏一致。
 \since build 552
 */
 

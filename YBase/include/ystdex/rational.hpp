@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2017 FrankHB.
+	© 2011-2017, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2198
+\version r2200
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2017-08-25 18:00 +0805
+	2019-12-26 22:30 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,7 +64,7 @@ is_zero(_type x)
 //@{
 /*!
 \note 不检查误差非零。
-\note 使用 ADL \c round 。
+\note 使用 ADL round 。
 */
 template<typename _type>
 yconstfn _type
@@ -608,7 +608,6 @@ using make_fixed_t = fixed_point<conditional_t<_bSigned,
 	typename make_width_int<_vFrac + _vInt>::unsigned_least_type>, _vFrac>;
 
 } // namespace ystdex;
-
 
 namespace std
 {

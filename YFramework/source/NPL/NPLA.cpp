@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2954
+\version r2965
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2019-12-15 15:30 +0800
+	2019-12-26 23:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -425,7 +425,7 @@ MoveRValueFor(TermNode& term, TermNode& tm, bool(TermReference::*pm)() const)
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
 	{
 		if(!p->IsReferencedLValue())
-			return LiftMoved(term, *p, ((*p).*pm)());
+			return LiftMovedUnchecked(term, *p, ((*p).*pm)());
 	}
 	term.MoveContent(std::move(tm));
 }
@@ -715,6 +715,16 @@ LiftTermOrCopy(TermNode& term, TermNode& tm, bool move)
 }
 
 void
+LiftTermOrCopyUnchecked(TermNode& term, TermNode& tm, bool move)
+{
+	// XXX: Term tags are currently not respected in prvalues.
+	if(move)
+		term.MoveContent(std::move(tm));
+	else
+		term.SetContent(tm);
+}
+
+void
 LiftTermValueOrCopy(TermNode& term, TermNode& tm, bool move)
 {
 	// NOTE: See $2018-02 @ %Documentation::Workflow::Annual2018.
@@ -799,7 +809,7 @@ MoveRValueToForward(TermNode& term, TermNode& tm)
 	if(!IsBoundLValueTerm(term))
 	{
 		if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
-			LiftMoved(term, *p, p->IsModifiable());
+			LiftMovedUnchecked(term, *p, p->IsModifiable());
 	}
 #	endif
 }

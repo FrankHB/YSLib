@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2015, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r906
+\version r909
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2015-12-20 01:03 +0800
+	2019-12-26 22:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,8 +83,8 @@ private:
 
 public:
 	/*!
-	\brief \c private 构造函数：非内联。
-	\pre 断言：进程唯一性。
+	\brief 无参数构造。
+	\pre 断言：唯一性。
 	*/
 	DSApplication();
 

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r15927
+\version r16050
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-12-18 08:55 +0800
+	2019-12-27 01:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,123 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ $re_add(b870) DD $impl "simplified all tags with '\>' escape'"
+		@ "Doxygen comments" @ %(YBase.(LibDefect.(CStandardIO, String),
+		YStandardEx.Future)), YFramework.(Platform, YCLib.Keys)),
+	- DD $impl "'\c' before ADL identifiers" $effecitve
+		@ %(YBase.YStandardEx.Rational,
+		YFramework.(CHRLib.Convert, YSLib.(Core.YStorage, UI.YStyle))),
+	/ %YFramework $=
+	(
+		* $re_add(b868) DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen \
+			comment" @ %YSLib.Core.YGraphics
+			$orig (@ %YSLib.Core.YGDIBase $since b366),
+		* DD "wrong Doxygen comment" @ "constructor %DSApplication"
+			@ %'Helper_(DS)'.DSMain $orig (@ %Helper.YGlobal $since b269),
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				+ "function %(LiftTermOrCopyUnchecked; LiftMovedUnchecked)";
+				/ DLI "functions %(MoveRValueToForward, MoveRValueToReturn)"
+					^ "%LiftMovedUnchecked" ~ "%LiftMoved"
+			),
+			/ "namespace %Forms" @ %NPLA1 $=
+			(
+				/ "supported options tags of %TermTags::Temporary"
+					@ "function %MatchParameter" $=
+				(
+					/ DLDI "exlucded %TermTags::Temporary"
+						@ "creatd references bound with sigil '%'"
+						$dep_to "binding temporary option tags";
+					/ "supported binding references to xvalues with sigil '@'",
+					/ "bound xvalues as references instead of moved temporary \
+						objects"
+						// This is needed in partially binding elements of a \
+							list and the elements in the list can be further \
+							bound as subterms again.
+				),
+				/ "function %BindParameter" $=
+				(
+					/ $forced DLDI $dep_from
+						"binding temporary option tags",
+					/ "bound additional %TermTags::Temporary"
+						@ "binding xvalue operands with sigil '&'"
+						$dep_to "unified xvalues binding"
+						// Like C++, prvalue and xvalues are both bound to \
+							deduced argument. Now '$resolved-identifier' is \
+							not needed for 'forward!' for an xvalue not in as \
+							a list element.
+				),
+				(
+				/ DLDI "function %Apply";
+				+ "function %ForwardListFirst"
+				),
+				/ "function %First" $=
+				(
+					/ "supported unified forwarding",
+					* "moved or subterm of nonmodifying lists" $since b869
+						^ $dep_from ("%LiftTermOrCopyUnchecked" @ %NPLA)
+						~ "%LiftTermOrCopy"
+				),
+				/ DLI ("functions %(FirstVal, Eval, EvalRef, EvalString, \
+					EvalStringRef)", "%operator()" @ "vau handler") ^ $dep_from
+					("%LiftTermOrCopyUnchecked" @ %NPLA) ~ "%LiftTermOrCopy",
+				/ DLI ("%operator()" @ "vau handler", "function %SetFirstAt")
+					^ "%TermNode::MoveContent" ~ "%LiftTerm",
+				/ DLI "function %SetFirst"
+					^ $dep_from ("%LiftMovedUnchecked" @ %NPLA) ~ "%LiftTerm",
+				/ DLI "functions %(First, FirstVal)"
+					^ $dep_from ("%LiftMovedUnchecked" @ %NPLA) ~ "%LiftMoved"
+			),
+			/ @ "function %LoadGroundContext" @ %Dependency $=
+			(
+				+ "applicative 'forward-list-first'" ^ $dep_from
+					("%ForwardListFirst" @ %NPLA1),
+				/ "supported unified forwarding" @ "applicative %first" $=
+				(
+					/ $comp "native derivation" $dep_from ("%First" @ %NPLA1),
+					/ $impl "alternative derivation" ^ "sigil '%' binding"
+						$dep_from "unified xvalues binding"
+				),
+				/ "avoided rvalue copies" @ "applicative %accl"
+					!^ 'forward' $dep_to "accl forwarding",
+				(
+				/ $comp "supported forwarding current iterated elements"
+					@ "applicative %foldr1" $dep_from "%first";
+					// The change of %first is necessary to keep applicatives \
+						based on %fordr1 like 'list-concat' or %append sane.
+				/ "avoided rvalue copies" @ "applicative %accr"
+					!^ 'forward' $dep_from "%first";
+				+ "applicative %list-extract" ^ $dep_from 'forward-list-first';
+				(
+				+ "applicatives ('list-extract-first', 'list-extract-rest%')";
+				/ DLI "applicative 'map-reverse'" $=
+				(
+					/ $impl "simplified" ^ ('list-extract-first',
+						'list-extract-rest%');
+					/ "supported forwarding values" ^ 'cons%' ~ 'cons'
+						$dep_from "accl forwarding"
+				)
+				)
+				),
+				/ "passing predicator as lvalue"
+					@ "applicatives %(accl, accr)" ^ 'forward!',
+					// This is now more consistent to passing of other \
+						parameters.
+				/ DLI "moving nil rvalue parameter" ^ "appliative %foldr1"
+					^ 'forward!' ~ 'forward',
+				/ "applicative %rest" => "%restv",
+					// This is like %firstv.
+				/ "simplified applicative 'move!'"
+					^ $dep_from ("%LiftTermOrCopyUnchecked" @ %NPLA)
+			)
+		)
+	)
+),
+
+b874
 (
 	/ %YFramework $=
 	(
@@ -483,8 +600,12 @@ b870
 		),
 		/ %YStandardEx $=
 		(
-			/ "supported resolution of LWG 2993" @ "class template %lref"
-				@ %Ref,
+			/ %Ref $=
+			(
+				/ "supported resolution of LWG 2993" @ "class template %lref",
+				/ DD $impl "simplified all tags with '\>' escape'"
+					@ "Doxygen comments"
+			),
 			/ $re_add(b863) DLDI "simplified" ^ "%nor_" ~ "%(not_, or_)"
 				$effective @ %CString,
 			* $re_add(b865) DD "missing escaping tag" @ "Doxygen comments"
@@ -817,7 +938,7 @@ b868
 			@ "function templates %(to_lower, to_upper)" @ %CCtype $since b605
 	),
 	* $re_add(b851) DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen \
-		comment" $effective @ %(YBase.(YStandardEx.Base),
+		comment" @ %(YBase.(YStandardEx.Base),
 		YFramework.YSLib.(Service.YDraw, Adaptor.New, UI.YStyle)) $since b203,
 	/ DLDI "simplified all 'YB_ALLOCATOR YB_ATTR_nodiscard'"
 		-> 'YB_ALLOCATOR' $effective @ %YFramework.YSLib.Adaptor.YNew,

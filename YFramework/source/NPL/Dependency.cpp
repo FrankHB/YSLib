@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3249
+\version r3280
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2019-12-18 00:45 +0800
+	2019-12-26 23:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -233,16 +233,6 @@ DoMoveOrTransfer(void(&f)(TermNode&, TermNode&, bool), TermNode& term)
 		// NOTE: Term tags are not copied.
 		return ReductionStatus::Retained;
 	}, term);
-}
-
-//! \since build 873
-void
-LiftTermOrCopyUnchecked(TermNode& term, TermNode& tm, bool move)
-{
-	if(move)
-		term.MoveContent(std::move(tm));
-	else
-		term.SetContent(tm);
 }
 
 //! \since build 794
@@ -666,6 +656,7 @@ LoadGroundedDerived(REPLContext& context)
 	RegisterStrict(renv, "set-first@!", SetFirstAt);
 	// NOTE: Like '$set-car!' in Kernel, with reference collapsed.
 	RegisterStrict(renv, "set-first%!", SetFirstRef);
+	RegisterStrict(renv, "forward-list-first", ForwardListFirst);
 	RegisterStrict(renv, "first", First);
 	RegisterStrict(renv, "first@", FirstAt);
 	RegisterStrict(renv, "first&", FirstRef);
@@ -783,9 +774,13 @@ LoadGroundedDerived(REPLContext& context)
 			assign@! (first@ (check-list-reference l)) (forward! x);
 		$defl! set-first%! (&l &x)
 			assign%! (first@ (check-list-reference l)) (forward! x);
-		$defl%! first (&l)
-			($lambda% (fwd) ($lambda% ((&x .)) fwd x) (forward! l))
-				($if (bound-lvalue? ($resolve-identifier l)) id forward!);
+		$defl%! forward-list-first (&list-appv &appv &l)
+			($lambda% ((&x .)) (forward! appv) ($resolve-identifier x))
+				((forward! list-appv) l);
+		$defl%! first (%l)
+			($lambda% (lvalue) forward-list-first ($if lvalue id expire)
+				($if lvalue id forward!) l)
+				(bound-lvalue? ($resolve-identifier l));
 		$defl%! first& (&l) ($lambda% ((&x .)) x) (check-list-reference l);
 		$defl! firstv ((&x .)) x;
 		$defl! rest& (&l) ($lambda ((#ignore .&x)) x) (check-list-reference l);
@@ -846,7 +841,7 @@ LoadCore(REPLContext& context)
 			eval (list $set! d f $lambda formals (move! body)) d;
 		$defv! $defl%! (&f &formals .&body) d
 			eval (list $set! d f $lambda% formals (move! body)) d;
-		$defl! rest ((#ignore .x)) x;
+		$defl! restv ((#ignore .x)) x;
 		$defl! rest& (&l) ($lambda ((#ignore .&x)) x) (check-list-reference l);
 		$defl! rest% ((#ignore .%x)) x;
 		$defv! $defw! (&f &formals &ef .&body) d
@@ -890,14 +885,12 @@ LoadCore(REPLContext& context)
 		$defl! list-rest% (&x) list% (rest% x);
 		$defl%! accl (&l &pred? &base &head &tail &sum) $if (pred? l)
 			(forward! base)
-			(accl (tail (forward l)) (forward! pred?) (sum (head (forward l))
-				(forward! base)) (forward head) (forward tail) (forward sum));
+			(accl (tail l) pred? (sum (head l) (forward! base)) head tail sum);
 		$defl%! accr (&l &pred? &base &head &tail &sum) $if (pred? l)
 			(forward! base)
-			(sum (head (forward l)) (accr (tail (forward l)) (forward! pred?)
-				(forward! base) (forward head) (forward tail) (forward sum)));
+			(sum (head l) (accr (tail l) pred? (forward! base) head tail sum));
 		$defl%! foldr1 (&kons &knil &l)
-			accr (forward! l) null? (forward knil) first rest% kons;
+			accr (forward! l) null? (forward! knil) first rest% kons;
 		$defw%! map1 (&appv &l) d foldr1
 			($lambda (&x &xs) cons% (apply appv (list% (forward! x)) d) xs) ()
 			(forward! l);
@@ -960,14 +953,14 @@ LoadCore(REPLContext& context)
 			eval% (list $set! d symbols (list* () list symbols)) (eval e d);
 		$defl! unfoldable? (&l)
 			accr l null? (first-null? l) first-null? rest% $or?;
-		$def! map-reverse $let ((&se () make-standard-environment)) wrap
-			($sequence
-				($set! se cxrs $lambda/e (weaken-environment se) (&ls &cxr)
-					accl (forward! ls) null? () ($lambda (&l) cxr (first l))
-						rest cons)
-				($vau/e se (&appv .&ls) d accl (move! ls) unfoldable? ()
-					($lambda (&ls) cxrs ls first) ($lambda (&ls) cxrs ls rest)
-						($lambda (&x &xs) cons (apply appv x d) xs)));
+		$defl%! list-extract (&l &extr) accr l null? ()
+			($lambda% (&l) forward-list-first expire extr l) rest% cons%;
+		$defl%! list-extract-first (&l) list-extract l first;
+		$defl%! list-extract-rest% (&l) list-extract l rest%;
+		$defw%! map-reverse (&appv .&ls) d
+			accl (move! ls) unfoldable? () list-extract-first
+				list-extract-rest%
+				($lambda (&x &xs) cons% (apply (forward! appv) x d) xs);
 		$defw! for-each-ltr &ls d $sequence (apply map-reverse ls d) #inert;
 	)NPL");
 }

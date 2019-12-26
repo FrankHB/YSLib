@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015, 2018 FrankHB.
+	© 2011-2015, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r1490
+\version r1492
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2018-08-20 07:51 +0800
+	2019-12-26 22:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -419,7 +419,7 @@ namespace Linux
 
 /*!
 \brief 基本公用按键集合。
-\note 值和 Linux 头文件 <tt>\<linux/input.h\></tt> 中的宏 KEY_* 替换的值对应。
+\note 值和 Linux 头文件 <tt>\<linux/input.h></tt> 中的宏 KEY_* 替换的值对应。
 \since build 562
 */
 enum NativeSet

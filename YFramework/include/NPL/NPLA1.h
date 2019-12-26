@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r5690
+\version r5714
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2019-12-07 02:21 +0800
+	2019-12-27 00:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -779,7 +779,7 @@ RegisterSequenceContextTransformer(EvaluationPasses&, const TokenValue&,
 /*!
 \brief 取项的参数个数：子项数减 1 。
 \pre 间接断言：参数指定的项是枝节点。
-\return 项的参数个数。
+\return 项作为列表操作数被匹配的最大实际参数的个数。
 \since build 733
 */
 YB_ATTR_nodiscard YB_PURE inline
@@ -1063,7 +1063,10 @@ TryLoadSource(REPLContext& context, const char* name, _tParams&&... args)
 /*!
 \brief NPLA1 语法形式对应的功能实现。
 \pre 除非另行指定支持保存当前动作，若存在子项，关联的上下文中的尾动作为空。
+\pre 设置为处理器调用的操作在进入调用前应确保设置尾上下文等内部状态。
+\pre 作为操作数的项的子项不包含引用项引入的对操作数内的子项的循环引用。
 \note 提供的操作用于实现操作子或应用子底层的操作子。
+\note 除非另行指定，操作子的参数被通过直接转移项的形式转发。
 \since build 732
 */
 namespace Forms
@@ -1203,11 +1206,11 @@ BindParameter(Environment&, const TermNode&, TermNode&);
 参数指定形式参数、实际参数、两个处理器、绑定选项和引用值关联的环境。
 其中，形式参数被视为作为形式参数树的右值。
 绑定选项以 TermTags 编码，但含义和作用在项上时不完全相同：
-仅使用其中的 Unique 位和 Nonmodifying 位；
-Unique 表示不被共享的项（在此即右值）；
-Nonmodifying 表示需要复制。
+Unique 表示唯一引用项（在此即消亡值值）；
+Nonmodifying 表示需要复制；
+Temporary 表示不被共享的项（在此即纯右值或没有匹配列表的引用值）。
 当需要复制时，递归处理的所有对实际参数的绑定以复制代替转移；
-可能被共享的项在发现表达数树中存在列表后失效，且对之后的子项进行递归处理。
+可能被共享的项在发现表达数树中存在需被匹配的列表后失效，对之后的子项进行递归处理。
 以上处理的操作数的子项仅在确定参数对应位置是列表时进行。
 处理器为参数列表结尾的结尾序列处理器和值处理器，分别匹配以 . 起始的项和非列表项。
 处理器参数列表中的记号值为匹配的名称；
@@ -1848,14 +1851,29 @@ SetRestRef(TermNode&);
 //@}
 //@}
 
+//! \throw ListTypeError 参数不是非空列表。
+//@{
+/*!
+\brief 取列表的第一元素并转发给指定的应用子。
+\since build 875
+
+使用第一参数指定的应用子调用第三参数指定的列表，取结果匹配的第一元素作为参数，
+	调用第二参数指定的应用子。
+列表参数在对象语言中按引用传递。
+
+参考调用文法：
+<pre>forward-list-first \<applicative1> \<applicative2> \<list></pre>
+*/
+YF_API ReductionStatus
+ForwardListFirst(TermNode&, ContextNode&);
+
 /*!
 \brief 取参数指定的列表中的第一元素的引用值。
-\throw ListTypeError 参数不是非空列表。
 \since build 859
 */
 //@{
 /*!
-转发参数和函数值。
+转发参数的元素和函数值。
 
 参考调用文法：
 <pre>first \<list></pre>
@@ -1893,6 +1911,7 @@ FirstRef(TermNode&);
 */
 YF_API ReductionStatus
 FirstVal(TermNode&);
+//@}
 //@}
 //@}
 

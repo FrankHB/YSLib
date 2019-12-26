@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015, 2017 FrankHB.
+	© 2014-2015, 2017, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,14 +10,14 @@
 
 /*!	\file cstdio.h
 \ingroup LibDefect
-\brief 标准库实现 \c \<cstdio\> 修正。
-\version r121
+\brief 标准库实现 \c \<cstdio> 修正。
+\version r123
 \author FrankHB <frankhb1989@gmail.com>
 \since build 580
 \par 创建时间:
 	2015-02-26 22:39:31 +0800
 \par 修改时间:
-	2017-08-06 14:51 +0800
+	2019-12-26 22:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013, 2015 FrankHB.
+	© 2013, 2015, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Convert.hpp
 \ingroup CHRLib
 \brief 转换模板。
-\version r153
+\version r155
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-23 10:18:20 +0800
 \par 修改时间:
-	2015-07-18 20:27 +0800
+	2019-12-26 22:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,7 +75,7 @@ ConvertCharacter(_fConv f, GuardPair<_tIn>& i, ConversionState&& st)
 /*!
 \brief 验证指定字符序列是否可转换为 UCS-2 字符串。
 \pre 指定范围内的迭代器可解引用。
-\note 使用 ADL \c MBCToUC 指定转换迭代器的例程：第一参数应迭代输入参数至下一位置。
+\note 使用 ADL MBCToUC 指定转换迭代器的例程：第一参数应迭代输入参数至下一位置。
 \since build 613
 */
 //@{

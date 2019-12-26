@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2015, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YStorage.hpp
 \ingroup Core
 \brief 全局公用存储管理。
-\version r453
+\version r456
 \author FrankHB <frankhb1989@gmail.com>
 \since build 567
 \par 创建时间:
 	2011-03-14 20:17:34 +0800
 \par 修改时间:
-	2015-08-18 22:44 +0800
+	2019-12-26 22:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,7 +122,7 @@ public:
 
 	/*!
 	\brief 删除对象并置指针为空值。
-	\note 使用 ADL \c reset 。
+	\note 使用 ADL reset 。
 	\since build 319
 	*/
 	static void
@@ -205,7 +205,6 @@ public:
 
 	/*!
 	\brief 删除对象并置指针为空值。
-	\note 使用 ADL \c reset 。
 	\since build 319
 	*/
 	static void

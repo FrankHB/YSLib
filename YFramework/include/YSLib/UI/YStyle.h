@@ -11,13 +11,13 @@
 /*!	\file YStyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r855
+\version r856
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2019-10-03 21:25 +0800
+	2019-12-26 22:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -390,7 +390,7 @@ using VisualStyle = pair<string, HandlerTable>;
 \ingroup helper_functions
 \brief 向样式处理器表添加指定类型的处理器。
 \note 被添加的值需能表示为 StyleItem 和 Handler 的有序对，
-	使用 ADL \c get\<0U> 和 \c get\<1U> 实现访问其中的成员。
+	使用 ADL get\<0U> 和 get\<1U> 实现访问其中的成员。
 \since build 469
 */
 //@{

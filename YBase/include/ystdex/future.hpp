@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016, 2018 FrankHB.
+	© 2015-2016, 2018, 2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,14 +10,14 @@
 
 /*!	\file future.hpp
 \ingroup YStandardEx
-\brief 标准库\c \<future\> 扩展。
-\version r125
+\brief 标准库\c \<future> 扩展。
+\version r127
 \author FrankHB <frankhb1989@gmail.com>
 \since build 624
 \par 创建时间:
 	2015-08-18 10:12:00 +0800
 \par 修改时间:
-	2018-07-25 01:01 +0800
+	2019-12-26 22:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,6 +73,7 @@ std::future<_type>
 make_ready_future(std::exception_ptr p)
 {
 	std::promise<_type> pm;
+
 	pm.set_exception(p);
 	return pm.get_future();
 }

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018 FrankHB.
+	© 2011-2016, 2018-2019 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGraphics.h
 \ingroup Core
 \brief 平台无关的基础图形接口。
-\version r229
+\version r231
 \author FrankHB <frankhb1989@gmail.com>
 \since build 585
 \par 创建时间:
 	2015-03-17 18:03:31 +0800
 \par 修改时间:
-	2018-07-09 10:05 +0800
+	2019-12-26 22:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -177,7 +177,7 @@ DeclDerivedI(YF_API, IImage, ystdex::cloneable)
 EndDecl
 
 
-/*
+/*!
 \brief 绘制上下文。
 \warning 非虚析构。
 \since build 255

@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r6736
+\version r6771
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2019-12-07 02:21 +0800
+	2019-12-26 00:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1559,8 +1559,11 @@ RegularizeTerm(TermNode&, ReductionStatus) ynothrow;
 
 
 /*!
-\brief 提升项：使用第二参数指定的项的内容替换第一个项的内容。
+\brief 提升项：设置项的内容为参数指定的项或值。
 \since build 805
+
+使用第二参数指定的项的内容替换第一个项的内容。
+不修改项的子项和值数据成员以外的的内容。
 */
 //@{
 /*!
@@ -1578,13 +1581,25 @@ inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo) ynothrow
 
 /*!
 \brief 提升项或项的副本。
-\since build 859
 
 提升参数指定的项或设置项。第三参数指定是否直接提升。
-若直接提升，同 LiftTerm ，否则同 TermNode::SetContent 。
+*/
+//@{
+/*!
+\note 若直接提升，同 LiftTerm ，否则同 TermNode::SetContent 。
+\since build 859
 */
 YF_API void
 LiftTermOrCopy(TermNode&, TermNode&, bool);
+
+/*!
+\pre 间接断言：非直接提升或第一和第二参数指定不相同的项。
+\note 若直接提升，调用 TermNode::MoveContent ，否则同 TermNode::SetContent 。
+\since build 875
+*/
+YF_API void
+LiftTermOrCopyUnchecked(TermNode&, TermNode&, bool);
+//@}
 
 /*!
 \brief 提升项的值数据成员或项的值数据成员的副本。
@@ -1673,14 +1688,27 @@ LiftToReference(TermNode&, TermNode&);
 \brief 提升引用的项作为转移的项。
 \note 复制引用项引用的对象，复制或转移非引用项的对象。
 \note 第三参数指定转移是否被转移。
-\sa LiftTermValueOrCopy
-\since build 873
 
 提升第二参数引用的项使其中可能包含的引用值以满足返回值的内存安全要求。
+*/
+//@{
+/*!
+\sa LiftTermValueOrCopy
+\since build 873
 */
 inline PDefH(void, LiftMoved, TermNode& term, const TermReference& ref,
 	bool move)
 	ImplExpr(LiftTermOrCopy(term, ref.get(), move))
+
+/*!
+\pre 间接断言：非直接提升或第一和第二参数指定不相同的项。
+\sa LiftTermValueOrCopyUnchecked
+\since build 875
+*/
+inline PDefH(void, LiftMovedUnchecked, TermNode& term, const TermReference& ref,
+	bool move)
+	ImplExpr(LiftTermOrCopyUnchecked(term, ref.get(), move))
+//@}
 
 /*!
 \brief 提升项作为返回值。
@@ -1705,7 +1733,7 @@ LiftToReturn(TermNode&);
 //@{
 /*!
 \brief 提升第二参数指定的右值项作为转发的第一参数指定项中的返回值。
-\pre 间接断言：参数指定不相同的项。
+\pre 间接断言：第一和第二参数指定不相同的项。
 \since build 872
 
 效果同先提升第二参数到第一参数，然后对结果进行处理以转发：
@@ -1846,13 +1874,20 @@ inline PDefH(ReductionStatus, ReduceToListValue, TermNode& term) ynothrow
 /*!
 \brief 规约转发第二参数指定的项表示的引用值作为求值结果。
 \pre 间接断言：第二参数指定的项是引用项或第三参数非空。
+
+若第二参数指定引用项，复制或转移到第一参数，返回 ReductionStatus::Retained ；
+否则，以相同参数调用 ReduceToReferenceAt 。
+使用引用项复制或转移时，非空的第三参数指定复制，否则指定转移。
 */
 YF_API ReductionStatus
 ReduceToReference(TermNode&, TermNode&, ResolvedTermReferencePtr);
 
 /*!
 \brief 规约转发第二参数指定的项表示的未折叠引用值作为求值结果。
+\return ReductionStatus::Clean 。
 \pre 间接断言：第三参数非空。
+
+以第二参数指定的项中的对象作为被引用对象，设置第一参数表示的值为其引用值。
 */
 YF_API ReductionStatus
 ReduceToReferenceAt(TermNode&, TermNode&, ResolvedTermReferencePtr);
