@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2019 FrankHB.
+	© 2014-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r5714
+\version r5955
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2019-12-27 00:44 +0800
+	2020-01-03 02:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,10 +36,11 @@
 //	ystdex::decay_t, ystdex::expanded_caller, std::is_constructible,
 //	ystdex::or_, ystdex::exclude_self_t, ystdex::enable_if_inconvertible_t, pmr,
 //	NPL::Deref, Environment, ystdex::make_expanded, std::ref, NPL::Access,
-//	NPL::CheckRegular, ResolvedTermReferencePtr, ystdex::invoke_nonvoid,
+//	NPL::AccessRegular, ResolvedTermReferencePtr, ystdex::invoke_nonvoid,
 //	NPL::ResolveRegular, ystdex::make_transform, std::accumulate, ystdex::bind1,
 //	std::placeholders::_2, ystdex::examiners::equal_examiner, shared_ptr;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
+#include <ystdex/scope_guard.hpp> // for ystdex::guard,
 
 namespace NPL
 {
@@ -295,15 +296,16 @@ ReduceAgain(TermNode&, ContextNode&);
 
 /*!
 \brief 再次规约提升后的项。
-\sa LiftTerm
+\pre 间接断言：第一和第三参数指定不相同的项。
+\sa LiftOther
 \sa ReduceAgain
 \since build 869
 
-先提升项，再调用 ReduceAgain 规约。
+调用 LiftOther 提升项，再调用 ReduceAgain 规约。
 */
 inline PDefH(ReductionStatus, ReduceAgainLifted, TermNode& term,
 	ContextNode& ctx, TermNode& tm)
-	ImplRet(LiftTerm(term, tm), ReduceAgain(term, ctx))
+	ImplRet(LiftOther(term, tm), ReduceAgain(term, ctx))
 //@}
 
 /*!
@@ -876,6 +878,145 @@ ReduceLeafToken(TermNode&, ContextNode&);
 //@}
 
 
+//! \since build 876
+//@{
+/*!
+\brief 求值环境守卫。
+
+作用域退出时调用环境切换器恢复保存的环境的作用域守卫。
+*/
+using EnvironmentGuard = ystdex::guard<EnvironmentSwitcher>;
+
+
+/*!
+\pre 对 TCO 实现，存在 TCOAction 当前动作。
+\note 参数分别表示规约上下文、被规约的项和待被保存的当前求值环境守卫。
+\note 第四参数指定避免规约后提升结果。
+\note 对 TCO 实现利用 TCOAction 以尾上下文进行规约。
+\since build 876
+*/
+//@{
+/*!
+\brief 直接求值规约。
+\note 第五参数指定下一个动作的续延。
+*/
+YF_API ReductionStatus
+RelayForEval(ContextNode&, TermNode&, EnvironmentGuard&&, bool, Continuation);
+
+/*!
+\brief 函数调用规约（ β-规约）。
+\pre 不存在临时函数或已通过 ReduceCombined 的内部实现调用被适当保存。
+\since build 876
+*/
+YF_API ReductionStatus
+RelayForCall(ContextNode&, TermNode&, EnvironmentGuard&&, bool);
+//@}
+//@}
+
+
+//! \throw ParameterMismatch 匹配失败。
+//@{
+/*!
+\pre 断言：字符串参数的数据指针非空。
+\since build 794
+*/
+//@{
+//! \brief 检查记号值是符合匹配条件的符号。
+template<typename _func>
+auto
+CheckSymbol(string_view n, _func f) -> decltype(f())
+{
+	if(IsNPLASymbol(n))
+		return f();
+	throw ParameterMismatch(ystdex::sfmt(
+		"Invalid token '%s' found for symbol parameter.", n.data()));
+}
+
+//! \brief 检查记号值是符合匹配条件的参数符号。
+template<typename _func>
+auto
+CheckParameterLeafToken(string_view n, _func f) -> decltype(f())
+{
+	if(n != "#ignore")
+		CheckSymbol(n, f);
+}
+//@}
+
+/*!
+\note 不具有强异常安全保证。匹配失败时，其它的绑定状态未指定。
+
+递归遍历参数和操作数树进行结构化匹配。
+若匹配失败，则抛出异常。
+*/
+//@{
+/*!
+\brief 匹配参数。
+\exception std::bad_function_call 异常中立：参数指定的处理器为空。
+\sa TermTags
+\since build 869
+
+进行匹配的算法递归搜索形式参数及其子项。
+若匹配成功，调用参数指定的匹配处理器。
+参数指定形式参数、实际参数、两个处理器、绑定选项和引用值关联的环境。
+其中，形式参数被视为作为形式参数树的右值。
+绑定选项以 TermTags 编码，但含义和作用在项上时不完全相同：
+Unique 表示唯一引用项（在此即消亡值值）；
+Nonmodifying 表示需要复制；
+Temporary 表示不被共享的项（在此即纯右值或没有匹配列表的引用值）。
+当需要复制时，递归处理的所有对实际参数的绑定以复制代替转移；
+可能被共享的项在发现表达数树中存在需被匹配的列表后失效，对之后的子项进行递归处理。
+以上处理的操作数的子项仅在确定参数对应位置是列表时进行。
+处理器为参数列表结尾的结尾序列处理器和值处理器，分别匹配以 . 起始的项和非列表项。
+处理器参数列表中的记号值为匹配的名称；
+处理器最后的参数指定按值传递时的复制（而非转移）；
+其余参数指定被匹配的操作数子项。
+若操作数的某一个需匹配的列表子项是 TermReference 或复制标识为 true ，
+	序列处理器中需要进行复制。
+结尾序列处理器传入的字符串参数表示需绑定的表示结尾序列的列表标识符。
+匹配要求如下：
+若项是非空列表，则操作数的对应的项应为满足确定子项数的列表：
+	若最后的子项为 . 起始的符号，则匹配操作数中结尾的任意个数的项作为结尾序列：
+	其它子项一一匹配操作数的子项；
+若项是空列表，则操作数的对应的项应为空列表；
+若项是 TermReference ，则以其引用的项作为子项继续匹配；
+否则，匹配非列表项。
+*/
+YF_API void
+MatchParameter(const TermNode&, TermNode&, function<void(TNIter, TNIter, const
+	TokenValue&, TermTags, Environment&)>, function<void(const TokenValue&,
+	TermNode&, TermTags, Environment&)>, TermTags, Environment&);
+
+/*!
+\brief 使用操作数结构化匹配并绑定参数。
+\throw ArityMismatch 子项数匹配失败。
+\throw InvalidReference 非法的 @ 引用标记字符绑定。
+\note 第一参数指定绑定所在的环境。
+\sa MatchParameter
+\sa TermReference
+\since build 868
+
+形式参数和操作数为项指定的表达式树。
+第二参数指定形式参数，第三参数指定操作数。
+进行匹配的算法递归搜索形式参数及其子项，要求参见 MatchParameter 。
+若匹配成功，在第一参数指定的环境内绑定未被忽略的匹配的项。
+对结尾序列总是匹配前缀为 . 的符号为目标按以下规则忽略或绑定：
+子项为 . 时，对应操作数的结尾序列被忽略；
+否则，绑定项的目标为移除前缀 . 和后续可选前缀 & 后的符号。
+非列表项的绑定使用以下规则：
+若匹配成功，在第一参数指定的环境内绑定未被忽略的匹配的非列表项。
+匹配要求如下：
+若项是 #ignore ，则忽略操作数对应的项；
+若项的值是符号，则操作数的对应的项应为非列表项。
+若被绑定的目标有引用标记字符，则以按引用传递的方式绑定；否则以按值传递的方式绑定。
+当绑定的引用标记字符为 @ 且不是列表项时抛出异常。
+按引用传递绑定直接转移该项的内容。
+*/
+YF_API void
+BindParameter(Environment&, const TermNode&, TermNode&);
+//@}
+//@}
+
+
 /*!
 \brief 设置默认解释：解释使用的公共处理遍。
 \note 非强异常安全：加入遍可能提前设置状态而不在失败时回滚。
@@ -1064,7 +1205,7 @@ TryLoadSource(REPLContext& context, const char* name, _tParams&&... args)
 \brief NPLA1 语法形式对应的功能实现。
 \pre 除非另行指定支持保存当前动作，若存在子项，关联的上下文中的尾动作为空。
 \pre 设置为处理器调用的操作在进入调用前应确保设置尾上下文等内部状态。
-\pre 作为操作数的项的子项不包含引用项引入的对操作数内的子项的循环引用。
+\pre 作为操作数的项的子项不包含引用或非正规表示引入的对操作数内的子项的循环引用。
 \note 提供的操作用于实现操作子或应用子底层的操作子。
 \note 除非另行指定，操作子的参数被通过直接转移项的形式转发。
 \since build 732
@@ -1132,110 +1273,6 @@ RetainN(const TermNode&, size_t = 1);
 //@}
 
 
-//! \throw ParameterMismatch 匹配失败。
-//@{
-/*!
-\pre 断言：字符串参数的数据指针非空。
-\since build 794
-*/
-//@{
-//! \brief 检查记号值是符合匹配条件的符号。
-template<typename _func>
-auto
-CheckSymbol(string_view n, _func f) -> decltype(f())
-{
-	if(IsNPLASymbol(n))
-		return f();
-	throw ParameterMismatch(ystdex::sfmt(
-		"Invalid token '%s' found for symbol parameter.", n.data()));
-}
-
-//! \brief 检查记号值是符合匹配条件的参数符号。
-template<typename _func>
-auto
-CheckParameterLeafToken(string_view n, _func f) -> decltype(f())
-{
-	if(n != "#ignore")
-		CheckSymbol(n, f);
-}
-//@}
-
-/*!
-\note 不具有强异常安全保证。匹配失败时，其它的绑定状态未指定。
-
-递归遍历参数和操作数树进行结构化匹配。
-若匹配失败，则抛出异常。
-*/
-//@{
-/*!
-\brief 使用操作数结构化匹配并绑定参数。
-\throw ArityMismatch 子项数匹配失败。
-\throw InvalidReference 非法的 @ 引用标记字符绑定。
-\note 第一参数指定绑定所在的环境。
-\sa MatchParameter
-\sa TermReference
-\since build 868
-
-形式参数和操作数为项指定的表达式树。
-第二参数指定形式参数，第三参数指定操作数。
-进行匹配的算法递归搜索形式参数及其子项，要求参见 MatchParameter 。
-若匹配成功，在第一参数指定的环境内绑定未被忽略的匹配的项。
-对结尾序列总是匹配前缀为 . 的符号为目标按以下规则忽略或绑定：
-子项为 . 时，对应操作数的结尾序列被忽略；
-否则，绑定项的目标为移除前缀 . 和后续可选前缀 & 后的符号。
-非列表项的绑定使用以下规则：
-若匹配成功，在第一参数指定的环境内绑定未被忽略的匹配的非列表项。
-匹配要求如下：
-若项是 #ignore ，则忽略操作数对应的项；
-若项的值是符号，则操作数的对应的项应为非列表项。
-若被绑定的目标有引用标记字符，则以按引用传递的方式绑定；否则以按值传递的方式绑定。
-当绑定的引用标记字符为 @ 且不是列表项时抛出异常。
-按引用传递绑定直接转移该项的内容。
-*/
-YF_API void
-BindParameter(Environment&, const TermNode&, TermNode&);
-
-/*!
-\brief 匹配参数。
-\exception std::bad_function_call 异常中立：参数指定的处理器为空。
-\sa TermTags
-\since build 869
-
-进行匹配的算法递归搜索形式参数及其子项。
-若匹配成功，调用参数指定的匹配处理器。
-参数指定形式参数、实际参数、两个处理器、绑定选项和引用值关联的环境。
-其中，形式参数被视为作为形式参数树的右值。
-绑定选项以 TermTags 编码，但含义和作用在项上时不完全相同：
-Unique 表示唯一引用项（在此即消亡值值）；
-Nonmodifying 表示需要复制；
-Temporary 表示不被共享的项（在此即纯右值或没有匹配列表的引用值）。
-当需要复制时，递归处理的所有对实际参数的绑定以复制代替转移；
-可能被共享的项在发现表达数树中存在需被匹配的列表后失效，对之后的子项进行递归处理。
-以上处理的操作数的子项仅在确定参数对应位置是列表时进行。
-处理器为参数列表结尾的结尾序列处理器和值处理器，分别匹配以 . 起始的项和非列表项。
-处理器参数列表中的记号值为匹配的名称；
-处理器最后的参数指定按值传递时的复制（而非转移）；
-其余参数指定被匹配的操作数子项。
-若操作数的某一个需匹配的列表子项是 TermReference 或复制标识为 true ，
-	序列处理器中需要进行复制。
-结尾序列处理器传入的字符串参数表示需绑定的表示结尾序列的列表标识符。
-匹配要求如下：
-若项是非空列表，则操作数的对应的项应为满足确定子项数的列表：
-	若最后的子项为 . 起始的符号，则匹配操作数中结尾的任意个数的项作为结尾序列：
-	其它子项一一匹配操作数的子项；
-若项是空列表，则操作数的对应的项应为空列表；
-若项是 TermReference ，则以其引用的项作为子项继续匹配；
-否则，匹配非列表项。
-*/
-YF_API void
-MatchParameter(const TermNode&, TermNode&, function<void(TNIter, TNIter, const
-	TokenValue&, TermTags, Environment&)>, function<void(const TokenValue&,
-	TermNode&, TermTags, Environment&)>, TermTags, Environment&);
-//@}
-//@}
-//@}
-
-
 //! \since build 855
 //@{
 //! \brief 访问节点的子节点并调用一元函数。
@@ -1266,7 +1303,7 @@ CallResolvedUnary(_func&& f, TermNode& term)
 //@{
 //! \since build 859
 template<typename _type, typename _func, typename... _tParams>
-auto
+inline auto
 CallResolvedUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 	-> yimpl(decltype(ystdex::make_expanded<void(_type&,
 	const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
@@ -1278,7 +1315,7 @@ CallResolvedUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 		// TODO: Blocked. Use C++14 'decltype(auto)'.
 		-> decltype(ystdex::make_expanded<void(_type&,
 		const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
-		NPL::Access<_type>(term), ResolvedTermReferencePtr())){
+		std::declval<_type&>(), p_ref)){
 		// XXX: Blocked. 'yforward' cause G++ 7.1.0 failed silently.
 		return ystdex::make_expanded<void(_type&,
 			const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
@@ -1288,11 +1325,11 @@ CallResolvedUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 
 /*!
 \note 访问节点的子节点，以正规值调用一元函数。
-\sa CheckRegular
+\sa NPL::AccessRegular
 \exception ListTypeError 异常中立：项为列表项。
 */
 template<typename _type, typename _func, typename... _tParams>
-auto
+inline auto
 CallRegularUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 	-> yimpl(decltype(ystdex::make_expanded<void(_type&,
 	const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
@@ -1304,12 +1341,12 @@ CallRegularUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 		[&](TermNode& nd, ResolvedTermReferencePtr p_ref)
 		-> decltype(ystdex::make_expanded<void(_type&,
 		const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
-		NPL::Access<_type>(term), ResolvedTermReferencePtr())){
-		NPL::CheckRegular<_type>(nd, p_ref);
+		std::declval<_type&>(), p_ref)){
 		// XXX: Blocked. 'yforward' cause G++ 7.1.0 failed silently.
 		return ystdex::make_expanded<void(_type&,
 			const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
-			NPL::Access<_type>(nd), p_ref, std::forward<_tParams>(args)...);
+			NPL::AccessRegular<_type>(nd, p_ref), p_ref,
+			std::forward<_tParams>(args)...);
 	}, term);
 }
 //@}
@@ -1390,6 +1427,7 @@ CallBinaryAs(_func&& f, TermNode& term, _tParams&&... args)
 		std::ref(f)), x, NPL::ResolveRegular<_type2>(NPL::Deref(++i)),
 		yforward(args)...));
 }
+//@}
 //@}
 //@}
 
@@ -1564,7 +1602,7 @@ struct BinaryAsExpansion : private
 //! \brief 注册一元严格求值上下文处理器。
 //@{
 template<size_t _vWrapping = Strict, typename _func, class _tTarget>
-void
+inline void
 RegisterUnary(_tTarget& target, string_view name, _func f)
 {
 	A1::RegisterHandler<_vWrapping>(target, name,
@@ -1572,7 +1610,7 @@ RegisterUnary(_tTarget& target, string_view name, _func f)
 }
 template<size_t _vWrapping = Strict, typename _type, typename _func,
 	class _tTarget>
-void
+inline void
 RegisterUnary(_tTarget& target, string_view name, _func f)
 {
 	A1::RegisterHandler<_vWrapping>(target, name,
@@ -1583,7 +1621,7 @@ RegisterUnary(_tTarget& target, string_view name, _func f)
 //! \brief 注册二元严格求值上下文处理器。
 //@{
 template<size_t _vWrapping = Strict, typename _func, class _tTarget>
-void
+inline void
 RegisterBinary(_tTarget& target, string_view name, _func f)
 {
 	A1::RegisterHandler<_vWrapping>(target, name,
@@ -1591,7 +1629,7 @@ RegisterBinary(_tTarget& target, string_view name, _func f)
 }
 template<size_t _vWrapping = Strict, typename _type, typename _type2,
 	typename _func, class _tTarget>
-void
+inline void
 RegisterBinary(_tTarget& target, string_view name, _func f)
 {
 	A1::RegisterHandler<_vWrapping>(target, name,
@@ -1779,6 +1817,70 @@ YF_API ReductionStatus
 ConsRef(TermNode&);
 //@}
 
+//! \throw ListTypeError 参数不是非空列表。
+//@{
+/*!
+\brief 取列表的第一元素并转发给指定的应用子。
+\since build 875
+
+使用第一参数指定的应用子调用第三参数指定的列表，取结果匹配的第一元素作为参数，
+	调用第二参数指定的应用子。
+列表参数在对象语言中按引用传递。
+
+参考调用文法：
+<pre>forward-list-first \<applicative1> \<applicative2> \<list></pre>
+*/
+YF_API ReductionStatus
+ForwardListFirst(TermNode&, ContextNode&);
+
+/*!
+\brief 取参数指定的列表中的第一元素的引用值。
+\since build 859
+*/
+//@{
+/*!
+转发参数的元素和函数值。
+
+参考调用文法：
+<pre>first \<list></pre>
+*/
+YF_API ReductionStatus
+First(TermNode&);
+
+//! \throw ValueCategoryMismatch 参数不是引用值。
+//@{
+/*!
+\since build 873
+
+结果是列表的第一个元素的引用值。保留结果中未折叠的引用值。
+
+参考调用文法：
+<pre>first@ \<list></pre>
+*/
+YF_API ReductionStatus
+FirstAt(TermNode&);
+
+/*!
+结果是列表的第一个元素引用的对象的引用值。保留结果中的引用值。
+
+参考调用文法：
+<pre>first& \<list></pre>
+*/
+YF_API ReductionStatus
+FirstRef(TermNode&);
+
+/*!
+结果是列表的第一个元素经过返回值转换的值。不保留结果中的引用值。
+
+参考调用文法：
+<pre>firstv \<list></pre>
+*/
+YF_API ReductionStatus
+FirstVal(TermNode&);
+//@}
+//@}
+//@}
+
 /*!
 \throw ListTypeError 第一参数不是非空列表。
 \throw ValueCategoryMismatch 第一参数不是引用值。
@@ -1848,70 +1950,6 @@ SetRest(TermNode&);
 */
 YF_API void
 SetRestRef(TermNode&);
-//@}
-//@}
-
-//! \throw ListTypeError 参数不是非空列表。
-//@{
-/*!
-\brief 取列表的第一元素并转发给指定的应用子。
-\since build 875
-
-使用第一参数指定的应用子调用第三参数指定的列表，取结果匹配的第一元素作为参数，
-	调用第二参数指定的应用子。
-列表参数在对象语言中按引用传递。
-
-参考调用文法：
-<pre>forward-list-first \<applicative1> \<applicative2> \<list></pre>
-*/
-YF_API ReductionStatus
-ForwardListFirst(TermNode&, ContextNode&);
-
-/*!
-\brief 取参数指定的列表中的第一元素的引用值。
-\since build 859
-*/
-//@{
-/*!
-转发参数的元素和函数值。
-
-参考调用文法：
-<pre>first \<list></pre>
-*/
-YF_API ReductionStatus
-First(TermNode&);
-
-//! \throw ValueCategoryMismatch 参数不是引用值。
-//@{
-/*!
-\since build 873
-
-结果是列表的第一个元素的引用值。保留结果中未折叠的引用值。
-
-参考调用文法：
-<pre>first@ \<list></pre>
-*/
-YF_API ReductionStatus
-FirstAt(TermNode&);
-
-/*!
-结果是列表的第一个元素引用的对象的引用值。保留结果中的引用值。
-
-参考调用文法：
-<pre>first& \<list></pre>
-*/
-YF_API ReductionStatus
-FirstRef(TermNode&);
-
-/*!
-结果是列表的第一个元素经过返回值转换的值。不保留结果中的引用值。
-
-参考调用文法：
-<pre>firstv \<list></pre>
-*/
-YF_API ReductionStatus
-FirstVal(TermNode&);
-//@}
 //@}
 //@}
 

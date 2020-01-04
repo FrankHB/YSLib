@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2019 FrankHB.
+	© 2015-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3280
+\version r3356
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2019-12-26 23:28 +0800
+	2020-01-05 03:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,12 @@
 #include "NPL/YModules.h"
 #include YFM_NPL_Dependency // for ystdex::isspace, std::istream,
 //	YSLib::unique_ptr, NPL::AllocateEnvironment, std::piecewise_construct,
-//	std::forward_as_tuple, NPL::Deref, ystdex::isdigit, Collapse,
-//	ystdex::bind1, NPL::IsMovable, NPL::TryAccessReferencedTerm, ystdex::plus,
+//	std::forward_as_tuple, LiftOther, ystdex::isdigit, Collapse,
+//	LiftOtherOrCopy, LiftTermValueOrCopy, ystdex::bind1, NPL::IsMovable,
+//	LiftTermOrCopy, ResolveTerm, NPL::TryAccessReferencedTerm, ystdex::plus,
 //	std::placeholders, NPL::ResolveRegular, ystdex::tolower,
-//	ystdex::swap_dependent, NPL::Forms functions;
+//	ystdex::swap_dependent, LiftOther, LiftTermRef, LiftTerm, NPL::Deref,
+//	NPL::Forms functions;
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
 //	ystdex::make_transform;
@@ -303,7 +305,7 @@ YB_ATTR_nodiscard ReductionStatus
 DoIdFunc(_func f, TermNode& term)
 {
 	return Forms::CallRawUnary([&](TermNode& tm){
-		term.MoveContent(std::move(tm));
+		LiftOther(term, tm);
 		return f(term);
 	}, term);
 }
@@ -458,7 +460,7 @@ LoadObjects(ContextNode& ctx)
 		}, term);
 	});
 	RegisterStrict(ctx, "move!", std::bind(DoMoveOrTransfer,
-		std::ref(LiftTermOrCopyUnchecked), std::placeholders::_1));
+		std::ref(LiftOtherOrCopy), std::placeholders::_1));
 	RegisterStrict(ctx, "transfer!", std::bind(DoMoveOrTransfer,
 		std::ref(LiftTermValueOrCopy), std::placeholders::_1));
 	RegisterStrict(ctx, "ref&", [](TermNode& term){
@@ -494,11 +496,14 @@ LoadEnvironments(ContextNode& ctx)
 	//	different implementation of control primitives.
 	RegisterStrict(ctx, "eval", Eval);
 	RegisterStrict(ctx, "eval%", EvalRef);
-	RegisterUnary<Form, const TokenValue>(ctx, "$resolve-identifier",
-		[](string_view id, const ContextNode& c){
-		return CheckSymbol(id, [&]{
-			return ResolveIdentifier(c, id);
-		});
+	RegisterForm(ctx, "$resolve-identifier",
+		[](TermNode& term, const ContextNode& c){
+		Forms::CallRegularUnaryAs<const TokenValue>([&](string_view id){
+			term = CheckSymbol(id, [&]{
+				return ResolveIdentifier(c, id);
+			});
+		}, term);
+		return ReductionStatus::Retained;
 	});
 	// NOTE: This is now be primitive since in NPL environment capture is more
 	//	basic than vau.
@@ -650,21 +655,21 @@ LoadGroundedDerived(REPLContext& context)
 			}, y);
 		}, x);
 	});
-	// NOTE: Like '$set-car!' in Kernel, with no references.
-	RegisterStrict(renv, "set-first!", SetFirst);
-	// NOTE: Like '$set-car!' in Kernel, with reference not collapsed.
-	RegisterStrict(renv, "set-first@!", SetFirstAt);
-	// NOTE: Like '$set-car!' in Kernel, with reference collapsed.
-	RegisterStrict(renv, "set-first%!", SetFirstRef);
+	RegisterStrict(renv, "apply", Apply);
+	RegisterStrict(renv, "list*", ListAsterisk);
+	RegisterStrict(renv, "list*%", ListAsteriskRef);
 	RegisterStrict(renv, "forward-list-first", ForwardListFirst);
 	RegisterStrict(renv, "first", First);
 	RegisterStrict(renv, "first@", FirstAt);
 	RegisterStrict(renv, "first&", FirstRef);
 	RegisterStrict(renv, "firstv", FirstVal);
+	// NOTE: Like 'set-car!' in Kernel, with no references.
+	RegisterStrict(renv, "set-first!", SetFirst);
+	// NOTE: Like 'set-car!' in Kernel, with reference not collapsed.
+	RegisterStrict(renv, "set-first@!", SetFirstAt);
+	// NOTE: Like 'set-car!' in Kernel, with reference collapsed.
+	RegisterStrict(renv, "set-first%!", SetFirstRef);
 	RegisterStrict(renv, "check-environment", CheckEnvironment);
-	RegisterStrict(renv, "apply", Apply);
-	RegisterStrict(renv, "list*", ListAsterisk);
-	RegisterStrict(renv, "list*%", ListAsteriskRef);
 	RegisterForm(renv, "$cond", Cond);
 	RegisterForm(renv, "$when", When);
 	RegisterForm(renv, "$unless", Unless);
@@ -726,11 +731,11 @@ LoadGroundedDerived(REPLContext& context)
 		$def! $deflazy! $vau (&definiend .&expr) d
 			eval (list $def! definiend $quote expr) d;
 		$def! $set! $vau (&e &formals .&expr) d
-			eval (list $def! formals (unwrap eval) expr d) (eval e d);
+			eval (list $def! formals (unwrap eval%) expr d) (eval e d);
 		$def! $defv! $vau (&$f &formals &ef .&body) d
 			eval (list $set! d $f $vau formals ef (move! body)) d;
 		$defv! $setrec! (&e &formals .&expr) d
-			eval (list $defrec! formals (unwrap eval) expr d) (eval e d);
+			eval (list $defrec! formals (unwrap eval%) expr d) (eval e d);
 	)NPL");
 #	if NPL_Impl_NPLA1_Use_Id_Vau
 	context.Perform(R"NPL(
@@ -740,9 +745,9 @@ LoadGroundedDerived(REPLContext& context)
 			(eval (cons $vau% (cons formals (cons ignore (move! body)))) d);
 	)NPL");
 #	endif
-	// XXX: The operatives '$defl!', '$defl%!', and '$defv%!', as well as the
-	//	applicatives 'rest&', 'rest%' are same to following derivations in
-	//	%LoadCore.
+	// XXX: The operatives '$defl!', '$defl%!', '$defw%!', and '$defv%!', as
+	//	well as the applicatives 'rest&' and 'rest%' are same to following
+	//	derivations in %LoadCore.
 	// NOTE: Use of 'eql?' is more efficient than '$if'.
 	context.Perform(R"NPL(
 		$def! $sequence
@@ -752,7 +757,7 @@ LoadGroundedDerived(REPLContext& context)
 				($set! se $aux
 					$vau/e% (weaken-environment se) (&head .&tail) d
 						$if (null? tail) (eval% head d)
-							(($vau% (&t) e ($lambda% #ignore (eval% t e))
+							(($vau% (&t) e ($lambda% #ignore eval% t e)
 								(eval% head d)) (eval% (cons% $aux tail) d))))
 			(make-environment (() get-current-environment));
 		$defv! $defl! (&f &formals .&body) d
@@ -767,26 +772,6 @@ LoadGroundedDerived(REPLContext& context)
 			$if (bound-lvalue? ($resolve-identifier x)) x (move! x);
 		$defl! assign! (&x &y) assign@! (forward! x) (idv (collapse y));
 		$defl! assign%! (&x &y) assign@! (forward! x) (forward! (collapse y));
-		$defl%! first@ (&l) ($lambda% ((@x .)) x) (check-list-reference l);
-		$defl! set-first! (&l x)
-			assign@! (first@ (check-list-reference l)) (move! x);
-		$defl! set-first@! (&l &x)
-			assign@! (first@ (check-list-reference l)) (forward! x);
-		$defl! set-first%! (&l &x)
-			assign%! (first@ (check-list-reference l)) (forward! x);
-		$defl%! forward-list-first (&list-appv &appv &l)
-			($lambda% ((&x .)) (forward! appv) ($resolve-identifier x))
-				((forward! list-appv) l);
-		$defl%! first (%l)
-			($lambda% (lvalue) forward-list-first ($if lvalue id expire)
-				($if lvalue id forward!) l)
-				(bound-lvalue? ($resolve-identifier l));
-		$defl%! first& (&l) ($lambda% ((&x .)) x) (check-list-reference l);
-		$defl! firstv ((&x .)) x;
-		$defl! rest& (&l) ($lambda ((#ignore .&x)) x) (check-list-reference l);
-		$defl! rest% ((#ignore .%x)) x;
-		$defl%! check-environment (&e)
-			$sequence ($vau/e% e . #ignore) (forward! e);
 		$defl%! apply (&appv &arg .&opt)
 			eval% (cons% () (cons% (unwrap (forward! appv)) (forward! arg)))
 				($if (null? opt) (() make-environment)
@@ -798,6 +783,28 @@ LoadGroundedDerived(REPLContext& context)
 			$if (null? tail) head (cons head (apply list* tail));
 		$defl%! list*% (&head .&tail) $if (null? tail) (forward! head)
 			(cons% (forward! head) (apply list*% tail));
+		$defv! $defw%! (&f &formals &ef .&body) d
+			eval (list $set! d f wrap (list* $vau% formals ef (move! body))) d;
+		$defw%! forward-list-first (&list-appv &appv &l) d
+			($lambda% ((&x .))
+				eval% (list% (forward! appv) ($resolve-identifier x)) d)
+				(eval% (list% (forward! list-appv) l) d);
+		$defl%! first@ (&l) ($lambda% ((@x .)) x) (check-list-reference l);
+		$defl%! first (%l)
+			($lambda% (fwd) forward-list-first fwd forward! l)
+				($if (bound-lvalue? ($resolve-identifier l)) id expire);
+		$defl%! first& (&l) ($lambda% ((&x .)) x) (check-list-reference l);
+		$defl! firstv ((&x .)) x;
+		$defl! rest& (&l) ($lambda ((#ignore .&x)) x) (check-list-reference l);
+		$defl! rest% ((#ignore .%x)) x;
+		$defl! set-first! (&l x)
+			assign@! (first@ (check-list-reference l)) (move! x);
+		$defl! set-first@! (&l &x)
+			assign@! (first@ (check-list-reference l)) (forward! x);
+		$defl! set-first%! (&l &x)
+			assign%! (first@ (check-list-reference l)) (forward! x);
+		$defl%! check-environment (&e)
+			$sequence ($vau/e% e . #ignore) (forward! e);
 		$defv! $defv%! (&$f &formals &ef .&body) d
 			eval (list $set! d $f $vau% formals ef (move! body)) d;
 		$defv%! $cond &clauses d $if (null? clauses) #inert
@@ -883,17 +890,19 @@ LoadCore(REPLContext& context)
 		$defl! box (&x) box% x;
 		$defl! first-null? (&l) null? (first l);
 		$defl! list-rest% (&x) list% (rest% x);
-		$defl%! accl (&l &pred? &base &head &tail &sum) $if (pred? l)
-			(forward! base)
-			(accl (tail l) pred? (sum (head l) (forward! base)) head tail sum);
-		$defl%! accr (&l &pred? &base &head &tail &sum) $if (pred? l)
-			(forward! base)
-			(sum (head l) (accr (tail l) pred? (forward! base) head tail sum));
-		$defl%! foldr1 (&kons &knil &l)
-			accr (forward! l) null? (forward! knil) first rest% kons;
-		$defw%! map1 (&appv &l) d foldr1
-			($lambda (&x &xs) cons% (apply appv (list% (forward! x)) d) xs) ()
-			(forward! l);
+		$defw%! accl (&l &pred? &base &head &tail &sum) d
+			$if (apply pred? (list% l) d) (forward! base)
+				(eval% (list% accl (list% tail l) pred? (list% sum
+					(list% head l) (list% forward! base)) head tail sum) d);
+		$defw%! accr (&l &pred? &base &head &tail &sum) d
+			$if (apply pred? (list% l) d) (forward! base)
+				(eval% (list% sum (list% head l) (list% accr (list% tail l)
+					pred? (list% forward! base) head tail sum)) d);
+		$defw%! foldr1 (&kons &knil &l) d apply accr
+			(list% (forward! l) null? (forward! knil) first rest% kons) d;
+		$defw%! map1 (&appv &l) d
+			foldr1 ($lambda (&x &xs) cons%
+				(apply appv (list% (forward! x)) d) xs) () (forward! l);
 		$defl! list-concat (&x &y) foldr1 cons% y (forward! x);
 		$defl! append (.&ls) foldr1 list-concat () (move! ls);
 		$defv%! $let (&bindings .&body) d
@@ -960,7 +969,7 @@ LoadCore(REPLContext& context)
 		$defw%! map-reverse (&appv .&ls) d
 			accl (move! ls) unfoldable? () list-extract-first
 				list-extract-rest%
-				($lambda (&x &xs) cons% (apply (forward! appv) x d) xs);
+				($lambda (&x &xs) cons% (apply appv (forward! x) d) xs);
 		$defw! for-each-ltr &ls d $sequence (apply map-reverse ls d) #inert;
 	)NPL");
 }

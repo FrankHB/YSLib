@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2019 FrankHB.
+	© 2012-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2646
+\version r2656
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2019-12-07 02:21 +0800
+	2020-01-04 20:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -183,12 +183,17 @@ public:
 private:
 	//! \since build 853
 	//@{
+	//! \brief 子项的容器。
 	Container container{};
 
 public:
+	//! \brief 值数据成员。
 	ValueObject Value{};
 	//@}
-	//! \since build 857
+	/*!
+	\brief 项的标签。
+	\since build 857
+	*/
 	TermTags Tags = TermTags::Unqualified;
 
 	DefDeCtor(TermNode)
@@ -278,10 +283,11 @@ public:
 		Value(std::move(nd.Value))
 	{}
 	TermNode(const TermNode& tm, allocator_type a)
-		: container(tm.container, a), Value(tm.Value)
+		: container(tm.container, a), Value(tm.Value), Tags(tm.Tags)
 	{}
 	TermNode(TermNode&& tm, allocator_type a)
-		: container(std::move(tm.container), a), Value(std::move(tm.Value))
+		: container(std::move(tm.container), a), Value(std::move(tm.Value)),
+		Tags(tm.Tags)
 	{}
 	DefDeCopyMoveCtorAssignment(TermNode)
 

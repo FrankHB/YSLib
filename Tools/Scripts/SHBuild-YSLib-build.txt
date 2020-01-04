@@ -1,4 +1,4 @@
-﻿"#", "(C) 2014-2019 FrankHB.",
+﻿"#", "(C) 2014-2020 FrankHB.",
 "NPLA1 script for building YSLib using SHBuild.";
 
 $import! std.strings ++ string->symbol string-empty?,
@@ -49,7 +49,7 @@ $defl! SHBuild_EchoVar_E (env var) SHBuild_EchoVar var
 	(eval (string->symbol (SHBuild_SDot_ var)) env);
 
 "#", "Whole script variables.";
-$def! extra-opts (rest (() cmd-get-args));
+$def! extra-opts (restv (() cmd-get-args));
 $def! (env-os env-arch) () SHBuild_GetPlatformStrings;
 $assert-nonempty env-os, $assert-nonempty env-arch;
 $def! SHBuild_Host_Platform $if (win32? env-os) "MinGW32" env-os;
@@ -143,7 +143,7 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 					$def! DFLAG_B_YB $if dynamic "-DYB_BUILD_DLL" "";
 					$defl! build-lib (lib-name opt-list)
 						system-check (apply cons-cmd (append (list e_S1_SHBuild_
-						SHBOPT (++ "-xn," LIBPFX (libdname lib-name))) (rest
+						SHBOPT (++ "-xn," LIBPFX (libdname lib-name))) (restv
 						(() cmd-get-args)) (list (++ repo-base "/" lib-name)
 						CXXFLAGS) opt-list inc-pch));
 					build-lib "YBase" (list DFLAG_B_YB INCLUDES_YBase);

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2019 FrankHB.
+	© 2014-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2965
+\version r3024
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2019-12-26 23:30 +0800
+	2020-01-05 02:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -345,22 +345,32 @@ InitBadIdentifierExceptionString(string&& id, size_t n)
 }
 
 
+#if NPL_NPLA_CheckParentEnvironment
 bool
 IsReserved(string_view id) ynothrowv
 {
 	YAssertNonnull(id.data());
 	return ystdex::begins_with(id, "__");
 }
+#endif
 
 observer_ptr<Environment>
 RedirectToShared(string_view id, const shared_ptr<Environment>& p_env)
 {
+#if NPL_NPLA_CheckParentEnvironment
 	if(p_env)
+#else
+	yunused(id);
+	YAssertNonnull(p_env);
+#endif
 		return NPL::make_observer(YSLib::get_raw(p_env));
-	// TODO: Use concrete semantic failure exception.
-	throw NPLException(ystdex::sfmt("Invalid reference found for%s name '%s',"
-		" probably due to invalid context access by dangling reference.",
+#if NPL_NPLA_CheckParentEnvironment
+	// XXX: Consider use more concrete semantic failure exception.
+	throw InvalidReference(ystdex::sfmt("Invalid reference found for%s name"
+		" '%s', probably due to invalid context access by a dangling"
+		" reference.",
 		IsReserved(id) ? " reserved" : "", id.data()));
+#endif
 }
 
 //! \since build 869
@@ -425,9 +435,9 @@ MoveRValueFor(TermNode& term, TermNode& tm, bool(TermReference::*pm)() const)
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
 	{
 		if(!p->IsReferencedLValue())
-			return LiftMovedUnchecked(term, *p, ((*p).*pm)());
+			return LiftMovedOther(term, *p, ((*p).*pm)());
 	}
-	term.MoveContent(std::move(tm));
+	LiftOther(term, tm);
 }
 
 
@@ -610,6 +620,18 @@ TokenizeTerm(TermNode& term)
 }
 
 
+#if NPL_NPLA_CheckTermReferenceIndirection
+TermNode&
+TermReference::get() const
+{
+	if(r_env.GetAnchorPtr() && r_env.GetPtr().lock())
+		return term_ref.get();
+	throw InvalidReference("Invalid reference found on indirection, probably"
+		" due to invalid context access by a dangling reference.");
+}
+#endif
+
+
 pair<TermReference, bool>
 Collapse(TermReference ref)
 {
@@ -622,22 +644,25 @@ Collapse(TermReference ref)
 	return {std::move(ref), {}};
 }
 
-TermReference
+TermNode
 PrepareCollapse(TermNode& term, Environment& env)
 {
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
-		return *p;
-	return {env.MakeTermTags(term), term, env.shared_from_this()};
+		return term;
+	return NPL::AsTermNode(term.get_allocator(),
+		TermReference(env.MakeTermTags(term), term, env.shared_from_this()));
 }
 
 TermNode&
-ReferenceTerm(TermNode& term) ynothrow
+ReferenceTerm(TermNode& term)
+	ynoexcept_spec(std::declval<TermReference>().get())
 {
 	return ystdex::invoke_value_or(&TermReference::get,
 		NPL::TryAccessLeaf<const TermReference>(term), term);
 }
 const TermNode&
-ReferenceTerm(const TermNode& term) ynothrow
+ReferenceTerm(const TermNode& term)
+	ynoexcept_spec(std::declval<TermReference>().get())
 {
 	return ystdex::invoke_value_or(&TermReference::get,
 		NPL::TryAccessLeaf<const TermReference>(term), term);
@@ -705,23 +730,23 @@ RegularizeTerm(TermNode& term, ReductionStatus status) ynothrow
 
 
 void
+LiftOtherOrCopy(TermNode& term, TermNode& tm, bool move)
+{
+	// XXX: Term tags are currently not respected in prvalues.
+	if(move)
+		LiftOther(term, tm);
+	else
+		term.SetContent(tm);
+}
+
+void
 LiftTermOrCopy(TermNode& term, TermNode& tm, bool move)
 {
 	// XXX: Term tags are currently not respected in prvalues.
 	if(move)
 		LiftTerm(term, tm);
 	else
-		term.SetContent(tm);
-}
-
-void
-LiftTermOrCopyUnchecked(TermNode& term, TermNode& tm, bool move)
-{
-	// XXX: Term tags are currently not respected in prvalues.
-	if(move)
-		term.MoveContent(std::move(tm));
-	else
-		term.SetContent(tm);
+		term.MoveContent(TermNode(tm));
 }
 
 void
@@ -756,7 +781,7 @@ MoveCollapsed(TermNode& term, TermNode& tm)
 		term.MoveContent(TermNode(std::move(tm.GetContainerRef()),
 			Collapse(std::move(*p)).first));
 	else
-		term.MoveContent(std::move(tm));
+		LiftOther(term, tm);
 }
 
 void
@@ -805,11 +830,11 @@ MoveRValueToForward(TermNode& term, TermNode& tm)
 #	else
 	// NOTE: For exposition only. The optimized implemenation shall be
 	//	equivalent to this, except for the copy elision.
-	term.MoveContent(std::move(tm));
+	LiftOther(term, tm);
 	if(!IsBoundLValueTerm(term))
 	{
 		if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
-			LiftMovedUnchecked(term, *p, p->IsModifiable());
+			LiftMovedOther(term, *p, p->IsModifiable());
 	}
 #	endif
 }
@@ -822,7 +847,7 @@ MoveRValueToReturn(TermNode& term, TermNode& tm)
 #	else
 	// NOTE: For exposition only. The optimized implemenation shall be
 	//	equivalent to this, except for the copy elision.
-	term.MoveContent(std::move(tm));
+	LiftOther(term, tm);
 	if(!IsBoundLValueTerm(term))
 		LiftToReturn(term);
 #	endif
@@ -857,13 +882,8 @@ ReduceToReference(TermNode& term, TermNode& tm, ResolvedTermReferencePtr p_ref)
 {
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
 	{
-		// NOTE: Reference collapsed by copy.
-		if(p_ref)
-			// NOTE: Reference collapsed by copy.
-			term.SetContent(tm);
-		else
-			// NOTE: Reference collapsed by move.
-			term.MoveContent(std::move(tm));
+		// NOTE: Reference collapsed.
+		LiftOtherOrCopy(term, tm, !p_ref);
 		// XXX: The resulted representation can be irregular.
 		return ReductionStatus::Retained;
 	}
@@ -902,7 +922,7 @@ Environment::~Environment()
 					// XXX: Allocator type is not available for %string yet.
 					string str;
 					// XXX: The value is heuristic for common cases.
-					str.reserve(n * yimpl(4));
+					str.reserve(n * yimpl(8));
 
 					for(const auto& pr : Bindings)
 					{
@@ -1200,7 +1220,7 @@ ResolveName(const ContextNode& ctx, string_view id)
 	return ctx.GetRecordRef().Resolve(id);
 }
 
-TermReference
+TermNode
 ResolveIdentifier(const ContextNode& ctx, string_view id)
 {
 	auto pr(ResolveName(ctx, id));

@@ -1,0 +1,38 @@
+# NOTE: The following rules are enforced in the whole repository.
+#	Only use "BIN" to provide defaults or to override previous rules.
+[patterns]
+# NOTE: Files to be kept as-is.
+3rdparty/FreeImage/** = BIN
+YFramework/alternative/** = BIN
+
+# NOTE: Project files and build scripts.
+**.sln = CRLF
+**.vcproj = CRLF
+**.vcxproj = CRLF
+**.vcxproj.filters = CRLF
+**.workspace = LF
+**.cbp = LF
+Makefile = LF
+path:Doxyfile = LF
+
+# NOTE: General scripts.
+**.bat = CRLF
+**.cmd = CRLF
+**.sh = LF
+
+# NOTE: Source code.
+**.h = CRLF
+**.hpp = CRLF
+**.cpp = CRLF
+Tools/*.txt = CRLF
+Tools/Scripts/*.txt = CRLF
+
+# NOTE: Documentation and miscellaenous.
+doc/*.txt = CRLF
+Readme*.txt = CRLF
+*.txt = CRLF
+
+# NOTE: Do not use "native" in public repositories.
+[repository]
+native = CRLF
+

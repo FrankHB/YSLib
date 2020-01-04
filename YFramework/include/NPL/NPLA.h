@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2019 FrankHB.
+	© 2014-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r6771
+\version r6873
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2019-12-26 00:48 +0800
+	2020-01-05 00:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -953,9 +953,13 @@ TryAccessTerm(const TermNode& term)
 
 
 /*!
+\note 因对性能有影响，默认仅调试配置下启用。
+\sa EnvironmentReference
+*/
+//@{
+/*!
 \brief 环境引用计数检查支持。
 \sa Environment
-\sa EnvironmentReference
 \sa YTraceDe
 \since build 856
 
@@ -966,17 +970,55 @@ TryAccessTerm(const TermNode& term)
 注意绑定析构顺序不确定，可能导致依赖不确定而误报。
 因对性能有影响，默认仅调试配置下启用。
 */
-#ifndef NDEBUG
-#	define NPL_NPLA_CheckEnvironmentReferenceCount true
-#else
-#	define NPL_NPLA_CheckEnvironmentReferenceCount false
+#ifndef NPL_NPLA_CheckEnvironmentReferenceCount
+#	ifndef NDEBUG
+#		define NPL_NPLA_CheckEnvironmentReferenceCount true
+#	else
+#		define NPL_NPLA_CheckEnvironmentReferenceCount false
+#	endif
 #endif
+
+/*!
+\sa InvalidReference
+\since build 876
+*/
+//@{
+/*!
+\brief 父环境访问检查支持。
+\sa Environment
+
+若定义为 true ，则在默认解析父环境时，检查环境引用是否存在。
+*/
+#ifndef NPL_NPLA_CheckParentEnvironment
+#	ifndef NDEBUG
+#		define NPL_NPLA_CheckParentEnvironment true
+#	else
+#		define NPL_NPLA_CheckParentEnvironment false
+#	endif
+#endif
+
+/*!
+\brief 项引用间接访问检查支持。
+\sa TermReference
+
+若定义为 true ，则在访问 TermReference 的值时，检查环境引用是否存在。
+*/
+#ifndef NPL_NPLA_CheckTermReferenceIndirection
+#	ifndef NDEBUG
+#		define NPL_NPLA_CheckTermReferenceIndirection true
+#else
+#		define NPL_NPLA_CheckTermReferenceIndirection false
+#	endif
+#endif
+//@}
+//@}
 
 //! \since build 869
 class Environment;
 
 /*!
 \brief 环境引用值。
+\sa NPL_NPLA_CheckEnvironmentReferenceCount
 \since build 823
 
 可能共享所有权环境的弱引用。
@@ -1179,8 +1221,18 @@ public:
 	DefGetter(const ynothrow, const EnvironmentReference&, EnvironmentReference,
 		r_env)
 
+	/*!
+	\brief 取被引用的值。
+	\throw NPLException 配置 NPL_NPLA_CheckTermReferenceIndirection 时，环境无效。
+	\since build 876
+	*/
+#if NPL_NPLA_CheckTermReferenceIndirection
+	YB_ATTR_nodiscard YB_PURE TermNode&
+	get() const;
+#else
 	YB_ATTR_nodiscard YB_PURE PDefH(TermNode&, get, ) const ynothrow
 		ImplRet(term_ref.get())
+#endif
 };
 
 /*!
@@ -1203,16 +1255,17 @@ Collapse(TermReference);
 /*!
 \brief 准备折叠项引用。
 \sa Environment::MakeTermTags
-\since build 869
+\since build 876
 
-返回引用由以下方式确定：
-当第一参数表示项引用时，返回这个项引用的值；否则为通过参数初始化的项引用。
-初始化引用使用指定环境创建的标签。
+返回由以下方式确定的引用项：
+当第一参数表示项引用时，返回这个引用项；
+否则为通过参数初始化的项引用构成的正规表示的项。
+初始化项引用时，使用指定环境创建的标签。
 这种方式避免初始化引用的引用，除非第一参数已具有未折叠的引用。
 使用引用值初始化时保留标签，否则使用项中的标签。
-第二参数指定通过参数初始化引用值时关联的环境。
+第二参数指定通过参数初始化项引用时关联的环境。
 */
-YB_ATTR_nodiscard YF_API TermReference
+YB_ATTR_nodiscard YF_API TermNode
 PrepareCollapse(TermNode&, Environment&);
 //@}
 
@@ -1223,9 +1276,10 @@ PrepareCollapse(TermNode&, Environment&);
 \since build 854
 */
 YB_ATTR_nodiscard YF_API YB_PURE TermNode&
-ReferenceTerm(TermNode&) ynothrow;
+ReferenceTerm(TermNode&) ynoexcept_spec(std::declval<TermReference>().get());
 YB_ATTR_nodiscard YF_API YB_PURE const TermNode&
-ReferenceTerm(const TermNode&) ynothrow;
+ReferenceTerm(const TermNode&)
+	ynoexcept_spec(std::declval<TermReference>().get());
 
 
 //! \since build 855
@@ -1415,7 +1469,7 @@ CheckRegular(_tTerm& term, bool has_ref)
 以 NPL::Access 访问调用 NPL::CheckRegular 检查后的项。
 */
 template<typename _type, class _tTerm>
-YB_ATTR_nodiscard YB_PURE auto
+YB_ATTR_nodiscard YB_PURE inline auto
 AccessRegular(_tTerm& term, bool has_ref)
 	-> yimpl(decltype(NPL::Access<_type>(term)))
 {
@@ -1435,7 +1489,7 @@ AccessRegular(_tTerm& term, bool has_ref)
 	NPL::ThrowListTypeErrorForInvalidType 抛出异常。
 */
 template<typename _type, class _tTerm>
-YB_ATTR_nodiscard YB_PURE auto
+YB_ATTR_nodiscard YB_PURE inline auto
 ResolveRegular(_tTerm& term) -> yimpl(decltype(NPL::Access<_type>(term)))
 {
 	return NPL::ResolveTerm([&](_tTerm& nd, bool has_ref)
@@ -1457,10 +1511,11 @@ ResolveRegular(_tTerm& term) -> yimpl(decltype(NPL::Access<_type>(term)))
 */
 struct ReferenceTermOp
 {
-	//! \since build 854
+	//! \since build 876
 	template<typename _type>
 	auto
-	operator()(_type&& term) const ynothrow
+	operator()(_type&& term) const
+		ynoexcept_spec(NPL::ReferenceTerm(yforward(term)))
 		-> decltype(NPL::ReferenceTerm(yforward(term)))
 	{
 		return NPL::ReferenceTerm(yforward(term));
@@ -1567,12 +1622,18 @@ RegularizeTerm(TermNode&, ReductionStatus) ynothrow;
 */
 //@{
 /*!
+\pre 间接断言：第一和第二参数指定不相同的项。
+\since build 876
+*/
+inline PDefH(void, LiftOther, TermNode& term, TermNode& tm)
+	ImplExpr(term.MoveContent(std::move(tm)))
+
+/*!
 \note 参数相同时作用为空，但可能有额外开销。
 \since build 844
 */
 inline PDefH(void, LiftTerm, TermNode& term, TermNode& tm)
-	ImplExpr(!ystdex::ref_eq<>()(term, tm) ? term.MoveContent(std::move(tm))
-		: void())
+	ImplExpr(!ystdex::ref_eq<>()(term, tm) ? LiftOther(term, tm) : void())
 inline PDefH(void, LiftTerm, ValueObject& tv, ValueObject& vo) ynothrow
 	ImplExpr(!ystdex::ref_eq<>()(tv, vo) ? void(tv = std::move(vo)) : void())
 inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo) ynothrow
@@ -1586,19 +1647,20 @@ inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo) ynothrow
 */
 //@{
 /*!
-\note 若直接提升，同 LiftTerm ，否则同 TermNode::SetContent 。
+\pre 间接断言：非直接提升或第一和第二参数指定不相同的项。
+\pre 直接提升或第二参数指定的项不共享第一参数的项的子项。
+\note 若直接提升，同 LiftOther ，否则同 TermNode::SetContent 。
+\since build 876
+*/
+YF_API void
+LiftOtherOrCopy(TermNode&, TermNode&, bool);
+
+/*!
+\note 若直接提升，同 LiftTerm ，否则同创建对象副本调用 TermNode::MoveContent 。
 \since build 859
 */
 YF_API void
 LiftTermOrCopy(TermNode&, TermNode&, bool);
-
-/*!
-\pre 间接断言：非直接提升或第一和第二参数指定不相同的项。
-\note 若直接提升，调用 TermNode::MoveContent ，否则同 TermNode::SetContent 。
-\since build 875
-*/
-YF_API void
-LiftTermOrCopyUnchecked(TermNode&, TermNode&, bool);
 //@}
 
 /*!
@@ -1638,11 +1700,11 @@ LiftCollapsed(TermNode&, TermNode&, TermReference);
 \pre 间接断言：第一和第二参数指定不相同的项。
 \sa Collapse
 \sa LiftCollapsed
-\sa TermNode::MoveContent
+\sa LiftOther
 \since build 871
 
 按参数指定的项提升折叠的项。参数分别为目标和源。
-当源是引用项时，提升源表示的引用，否则同 TermNode::MoveContent。
+当源是引用项时，提升源表示的引用，否则同 LiftOther 。
 其中提升操作等效调用 LiftCollapsed 。
 */
 YF_API void
@@ -1693,7 +1755,7 @@ LiftToReference(TermNode&, TermNode&);
 */
 //@{
 /*!
-\sa LiftTermValueOrCopy
+\sa LiftTermOrCopy
 \since build 873
 */
 inline PDefH(void, LiftMoved, TermNode& term, const TermReference& ref,
@@ -1702,12 +1764,13 @@ inline PDefH(void, LiftMoved, TermNode& term, const TermReference& ref,
 
 /*!
 \pre 间接断言：非直接提升或第一和第二参数指定不相同的项。
-\sa LiftTermValueOrCopyUnchecked
-\since build 875
+\pre 直接提升或第二参数指定的项不共享第一参数的项的子项。
+\sa LiftOtherOrCopy
+\since build 876
 */
-inline PDefH(void, LiftMovedUnchecked, TermNode& term, const TermReference& ref,
+inline PDefH(void, LiftMovedOther, TermNode& term, const TermReference& ref,
 	bool move)
-	ImplExpr(LiftTermOrCopyUnchecked(term, ref.get(), move))
+	ImplExpr(LiftOtherOrCopy(term, ref.get(), move))
 //@}
 
 /*!
@@ -1874,6 +1937,8 @@ inline PDefH(ReductionStatus, ReduceToListValue, TermNode& term) ynothrow
 /*!
 \brief 规约转发第二参数指定的项表示的引用值作为求值结果。
 \pre 间接断言：第二参数指定的项是引用项或第三参数非空。
+\pre 间接断言：第三参数空或第一和第二参数指定不相同的项。
+\pre 第三参数非空或第二参数指定的项不共享第一参数的项的子项。
 
 若第二参数指定引用项，复制或转移到第一参数，返回 ReductionStatus::Retained ；
 否则，以相同参数调用 ReduceToReferenceAt 。
@@ -2234,8 +2299,9 @@ public:
 	/*!
 	\brief 默认的名称解析算法。
 	\pre 断言：第二参数的数据指针非空。
-	\exception NPLException 访问共享重定向环境失败。
+	\exception InvalidReference 访问共享重定向环境失败。
 	\sa Lookup
+	\sa NPL_NPLA_CheckParentEnvironment
 	\sa Parent
 	\sa Resolve
 	\since build 869
@@ -2757,14 +2823,14 @@ ResolveName(const ContextNode&, string_view);
 \throw BadIdentifier 标识符未在环境中找到。
 \sa PrepareCollapse
 \sa ResolveName
-\since build 861
+\since build 876
 
 解析指定上下文的当前环境中的标识符，若不存在绑定则抛出异常。
 调用 ResolveName ，并调用 PrepareCollapse 进行引用折叠。
 若无法在指定的环境中找到标识符的绑定，则抛出异常。
 解析的结果中的对象以引用在项中表达，以避免使用对象副本。
 */
-YB_ATTR_nodiscard YF_API TermReference
+YB_ATTR_nodiscard YF_API TermNode
 ResolveIdentifier(const ContextNode&, string_view);
 //@}
 

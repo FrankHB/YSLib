@@ -1,5 +1,5 @@
 ﻿/*
-	© 2017-2019 FrankHB.
+	© 2017-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r16050
+\version r16283
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2019-12-27 01:07 +0800
+	2020-01-05 03:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,239 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			* "missing copying the term tag" @ "allocator-aware copy/move \
+				constructors %TermNode" @ %SContext $since b857,
+			/ %NPLA $=
+			(
+				(
+				+ "function %LiftOther";
+				/ DLDI "simplified function %(LiftTerm#1, \
+					MoveRValueToForward, MoveRValueToReturn, \
+					LiftTermOrCopyUnchecked, MoveCollapsed)" ^ "%LiftOther"
+					~ "%TermNode::MoveContent"
+				),
+				(
+				/ $dep_from "function %LiftTermOrCopyUnchecked"
+					=> "%LiftOtherOrCopy" ^ "%LiftOther";
+				/ DLDI "simplified function %ReduceToReference"
+					^ "%LiftOtherOrCopy"
+				),
+				/ "function %LiftMovedUnchecked" => "LiftMovedOther",
+				* "unsafe shared subterm set on copy"
+					@ "function %LiftTermOrCopy" $since b858
+					$= (/ $impl ^ $dep_from "%LiftOther"
+						~ "%TermNode::SetContent"),
+						// Irregular term could be invalidated before \
+							the call of %TermNode::SetContent call.
+				+ DLI 'inline'
+					@ "function templates %(AccessRegular, ResolveRegular)",
+				/ DLI "doubled reserved heuristic message string length"
+					@ "destructor %Environment"
+					@ 'NPL_NPLA_CheckEnvironmentReferenceCount',
+				(
+				(
+				/ $lib "exception specification" @ "function template \
+					%operator()" @ "struct %ReferenceTermOp"
+					-> 'ynoexcept_spec(NPL::ReferenceTerm(yforward(term)))'
+					~ 'ynothrow';
+				/ $lib "exception specification"
+					@ "all 2 functions %ReferenceTerm"
+					-> 'ynoexcept_spec(std::declval<TermReference>().get())'
+					~ 'ynothrow',
+				+ $dev "configurable macro \
+					%NPL_NPLA_CheckTermReferenceIndirection"
+				);
+				/ "enabled throwing %TermReference::get with check"
+					@ 'NPL_NPLA_CheckTermReferenceIndirection'
+				),
+				/ $dev "made macro %NPL_NPLA_CheckEnvironmentReferenceCount \
+					configurable",
+				+ "configurable macro %NPL_NPLA_CheckParentEnvironment",
+				/ @ "static member function %Environment::DefaultResolve" $=
+				(
+					/ $lib ("threw %InvalidReference on parent environment \
+						access failure" ~ "%NPLException"),
+					/ $lib "exception message",
+					/ DLI "disable parent environment check"
+						@ '!NPL_NPLA_CheckEnvironmentReferenceCount'
+						@ $dep_from "%NPL_NPLA_CheckEnvironmentReferenceCount"
+				),
+				/ ("returned %TermNode" ~ "%TermReference")
+					@ "functions %(PrepareCollapse, ResolveIdentifier)"
+			),
+			/ %NPLA1 $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					/ DLDI "boolean extraction",
+					/ DLDI ("%operator()" @ "vau handler", "functions \
+						%(ListAsterisk, ListAsteriskRef, SetFirstAt)")
+						^ $dep_from ("%LiftOther" @ %NPLA)
+						~ "%TermNode::MoveContent",
+					/ DLDI "reordered declarations"
+						@ "functions (%ForwardListFirst, 'First*', \
+						('SetFirst*', 'SetRest*'))",
+					/ "reference binding" @ "function %BindParameter" $=
+					(
+						* "non-temporary unique reference unexpected moved"
+							$since b875;
+						/ DLI "allowed reference moved when unique or \
+							temporary tags are specified"
+					),
+					/ "function %ForwardListFirst" $=
+					(
+						/ $impl "keeping TCO action" ^ "%yunused",
+							// To eliminate G++ warning: [-Wunused-result].
+						/ "used current environments instead of creating fresh \
+							environments" @ "function %ForwardListFirst"
+							$dep_to "forward list environment fix",
+						* "forwarded bounded reference to tempoaraty list \
+							as an expression as operand of list access \
+							applicative" $since b875,
+						* "unexpected subterm and element access applicative \
+							copy on binding the element" $since b875
+							$dep_from %SContext
+					),
+					/ $re_ex(b860) "further simplified thunked calls"
+						@ "%operator()" @ "vau handlers"
+						^ $dep_from "%RelayForCall",
+						// Now temporary objects are not maintained \
+							differently in TCO and non-TCO contexts.
+					/ DLDI "simplified function %WrapRef" ~ 'if',
+					/ ("function templates %(CheckSymbol, \
+						CheckParameterLeafToken)",
+						"functions %(MatchParameter, BindParaneter)")
+						>> "namespace %A1",
+					/ DLI "internal expansion" @ "functions %(Wrap, WrapRef, \
+						WrapOnce, WrapOnceRef, Unwrap)" ^ "%YB_FLATTEN",
+				),
+				/ @ "function %ReduceAgainLifted" $=
+				(
+					+ DD "more strict precondition" ^ "'\pre' command"
+						@ "Doxygen comment";
+					/ DLI ^ $dep_from ("%LiftOther" @ %NPLA) ~ "%LiftTerm"
+				),
+				/ DLDI "unified internal combiner call interface"
+					@ "functions %(Forms::(Apply, ForwardListFirst), \
+					ReduceCombined)",
+				(
+				+ "alias %EnvironmentGuard";
+				+ "functions %(RelayForEval; RelayForCall)"
+				),
+				/ DLDI "simplified function template %CallRegularUnaryAs"
+					^ "%NPL::AccessRegular" ~ "%NPL::(CheckRegular, Access)",
+				/ DLDI "simplified internal type signature" @ "function \
+					templates %(CallResolvedUnaryAs, CallRegularUnaryAs)",
+				+ DLI 'inline' @ "function templates %(CallResolvedUnaryAs, \
+					CallRegularUnaryAs, 2 Forms::RegisterUnary, 2 \
+					Forms::RegisterBinary)",
+				/ "irregular representation of combiner subobject" $effective
+					@ "function %(Forms::(WrapRef, WrapOnceRef, Unwrap, \
+					ForwardListFirst, Apply), ReduceCombined)"
+					@ 'NPL_NPLA_CheckEnvironmentReferenceCount' $=
+				(
+					// This is not touched for efficiency of generated code \
+						when '!NPL_NPLA_CheckEnvironmentReferenceCount'.
+					/ "saved anchor" @ "wrapper"
+						-> "saved environment reference";
+						// Since the reference is tracked by the \
+							%TermReference (even when \
+							'NPL_NPLA_CheckEnvironmentReferenceCount' is not \
+							enabled), saving the anchor pointer is useless, \
+							esp. for %release configurations.
+					* $comp "inconsistent anchor and reference count on \
+						%Environment destrctor check" @ "calling reference \
+						operand on %Forms::(WrapRef, WrapOnceRef, Unwrap)"
+						@ 'NPL_NPLA_CheckEnvironmentReferenceCount'
+						$since b869
+						// The divergence of counts should not be assumed \
+							normal since %EnvironmentReference contains the \
+							anchor pointer.
+				),
+				* $re_add(b869) "missing support irregular reprenstation for \
+					reference results"
+					$dep_from ("function %ResolveIdentifier" @ %NPLA)
+					// An object of irregular representation could be sliced \
+						here.
+			),
+			/ @ "function %LoadGroundContext" @ %Dependency $=
+			(
+				/ $revert_ex(b875) "simplified alternative derivation"
+					@ "applicative %first",
+				/ DLDI "simplified native derivation"
+					@ "applications %(id, idv)" ^ $dep_from
+					("%LiftOther" @ %NPLA) ~ "%TermNode::MoveContent",
+				/ DLDI "simplified alternative derivation"
+					@ "operative '$sequence'",
+				/ DLDI "reordered derivations" @ "applicatives with names \
+					((%apply, 'list*', 'list*%'), ('forward-list-first', \
+					pattern 'first*', pattern 'rest*'), pattern 'set-first*')",
+					// Applicatives 'list*' is needed for '$defw%!' in \
+						following changes. The result is also more similar to \
+						[RnRK].
+				/ "applicative 'forward-list-first'" $=
+				(
+					* "unexpected local environment used"
+						@ "alternative derivation" $since b875
+						$= (/ $impl ^ '$defw%!' ~ '$defl%!'),
+						// At least 'list-appv' and 'appv' in the \
+							implementation should not be exposed.
+					/ $comp "used dynamic environment of the call" $dep_from
+						"forward list environment fix";
+						// As the rationale of the applicative %map rather \
+							than %apply in Kernel, the dynamic environment is \
+							preffered to new ones. It also allows more \
+							efficient native implementation as \
+							%ForwardListFirst.
+					* $doc "wrong environment used" $since b875
+						// Even if the dynamic environment is not directly \
+							used, the local environment should not be exposed.
+				),
+				* "unexpected local environment used"
+					@ "applicatives %(accl, accr, foldr1)" $since b791 $=
+				(
+					// Using 'apply' instead of 'eval%' is actually more \
+						efficient due to less 'lest%' required to be evaluated \
+						and omision of evaluation passes in native the 'apply' \
+						implemenation. And at least for tail contexts, making \
+						evaluation structure smaller is better.
+					/ $impl "%accl" ^ 'eval%',
+					/ $impl "%fodr1" ^ ('eval%', 'apply')
+					/ $impl "%fodr1" ^ 'apply'
+				),
+				* "wrong 'forward! called on applicative parameter"
+					@ "applicative 'map-reverse'" $since b875,
+				* $re_add(b869) $forced "missing support irregular \
+					reprenstation for reference results"
+					@ "applicative '$resolve-identifier'" $since b858
+					$dep_from ("function %ResolveIdentifier" @ %NPLA),
+					// Same to %A1::EvaluateIdentifier.
+				* "values set not respective to reference" @ "alternative \
+					derivations" @ "operatives ('$set!', '$setrec!)" $since b828
+					$= (/ $impl ^ 'unwrap eval%' ~ 'unwrap eval')
+			)
+		)
+	),
+	* $re_add(b856) "stage 1 build failure" %Tools.Scripts $since b875 $=
+	(
+		* $comp "failed evaluation on 'for-each-ltr' expressions"
+			$dep_from ('map-reverse' @ %YFramework.NPL.Depencdency) $since b875,
+		* "missing changed uses of %rest to %restv" @ "%SHBuild-YSLib-build.txt"
+			$since b875
+	),
+	(
+	+ $repo ".hgeol";
+	/ $comp "converted EOL" @ "%3rdparty/freetype/builds/build-ds.sh"
+		-> "LF" ~ "CR+LF"
+	)
+),
+
+b875
 (
 	/ $re_add(b870) DD $impl "simplified all tags with '\>' escape'"
 		@ "Doxygen comments" @ %(YBase.(LibDefect.(CStandardIO, String),

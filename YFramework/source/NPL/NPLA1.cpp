@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2019 FrankHB.
+	© 2014-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r14524
+\version r15156
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2019-12-27 00:57 +0800
+	2020-01-05 00:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,22 +31,20 @@
 //	IsBranch, HasValue, EnvironmentSwitcher, RelaySwitched, ContextHandler,
 //	Environment, shared_ptr, tuple, list, lref, observer_ptr, set, owner_less,
 //	ystdex::erase_all, ystdex::as_const, std::find_if, NPL::make_observer,
-//	ComposeSwitched, RelayNext, TermReference, NPL::IsMovable, TermTags,
-//	NPL::TryAccessReferencedTerm, ystdex::value_or, RemoveHead,
+//	ComposeSwitched, RelayNext, TermReference, ResolveTerm, NPL::IsMovable,
+//	TermTags, NPL::TryAccessReferencedTerm, ystdex::value_or, RemoveHead,
 //	AccessFirstSubterm, IsLeaf, unordered_map, ystdex::ref_eq, IsBranchedList,
 //	NPL::TryAccessLeaf, any_ops::use_holder, weak_ptr, in_place_type,
 //	ystdex::type_id, YSLib::allocate_shared, InvalidReference, MoveFirstSubterm,
 //	vector, ShareMoveTerm, ystdex::ref, ystdex::exists, ystdex::id,
-//	ystdex::cast_mutable, ComposeActions, ResolveTerm,
+//	ystdex::cast_mutable, ComposeActions, LiftOtherOrCopy,
 //	ystdex::equality_comparable, std::allocator_arg, NoContainer,
 //	ystdex::exchange, NPL::SwitchToFreshEnvironment, NPL::Access,
-//	YSLib::share_move, GetLValueTagsOf,
-//	NPL::TryAccessReferencedLeaf, ystdex::invoke_value_or,
-//	ystdex::call_value_or, ystdex::make_transform, ystdex::try_emplace,
-//	ResolveIdentifier, NPL::TryAccessTerm, LiteralHandler, LiftCollapsed,
-//	NPL::AllocateEnvironment, std::mem_fn;
-#include <ystdex/scope_guard.hpp> // for ystdex::guard, ystdex::swap_guard,
-//	ystdex::unique_guard;
+//	YSLib::share_move, GetLValueTagsOf, NPL::TryAccessReferencedLeaf,
+//	ystdex::invoke_value_or, ystdex::call_value_or, ystdex::swap_guard,
+//	ystdex::make_transform, ystdex::try_emplace, ystdex::unique_guard,
+//	ResolveIdentifier, NPL::TryAccessTerm, LiteralHandler, LiftMovedOther,
+//	LiftCollapsed, NPL::AllocateEnvironment, std::mem_fn;
 #include YFM_NPL_SContext // for Session;
 
 using namespace YSLib;
@@ -181,12 +179,10 @@ TransformForSeparatorRecursiveTmpl(_tTerm&& term, const ValueObject& pfx,
 
 //! \since build 868
 //@{
-using Forms::BindParameter;
 using Forms::CallRegularUnaryAs;
 //! \since build 874
 using Forms::CallResolvedUnary;
 using Forms::CallUnary;
-using Forms::CheckParameterLeafToken;
 using Forms::Retain;
 using Forms::RetainN;
 using Forms::ThrowInsufficientTermsError;
@@ -202,9 +198,6 @@ SetupNextTerm(ContextNode& ctx, TermNode& term)
 {
 	ContextState::Access(ctx).SetNextTermRef(term);
 }
-
-//! \since build 820
-using EnvironmentGuard = ystdex::guard<EnvironmentSwitcher>;
 
 // NOTE: See $2018-09 @ %Documentation::Workflow::Annual2018 for rationale of
 //	implementation.
@@ -322,7 +315,7 @@ public:
 	mutable EnvironmentGuard EnvGuard;
 	//! \since build 825
 	mutable FrameRecordList RecordList;
- 
+
 	//! \since build 819
 	TCOAction(ContextNode& ctx, TermNode& term, bool lift)
 		: Term(term), Next(ctx.Switch()), req_lift_result(lift),
@@ -470,7 +463,8 @@ YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TCOAction*, AccessTCOAction, ContextNode& ctx)
 	ImplRet(ctx.Current.target<TCOAction>())
 // NOTE: There is no need to check term like 'if(&p->Term.get() == &term)'. It
-//	should be same to saved enclosing term currently.
+//	should be same to saved enclosing term unless a nested TCO action is needed
+//	explicitly (by following %SetupTailAction rather than %EnsureTCOAction).
 
 //! \since build 840
 template<typename _func>
@@ -531,9 +525,9 @@ ReduceCheckedSync(TermNode& term, ContextNode& ctx)
 bool
 RegularizeForm(TermNode& fm)
 {
-	// XXX: As now, it needs to do the conversion at first to save the
-	//	subterm in the irregular representation. See %UnwrapStrict for the
-	//	introduction of the irregular representation.
+	// XXX: As now, it needs to convert at first to save the subterm in the
+	//	irregular representation. See %ReduceForCombinerRef for the introduction
+	//	of the irregular representation.
 	if(const auto p_ref_fm = NPL::TryAccessLeaf<const TermReference>(fm))
 		if(IsBranch(fm))
 		{
@@ -543,12 +537,14 @@ RegularizeForm(TermNode& fm)
 				" reference with non-leaf 1st subterm found.");
 
 			// XXX: Assume nonnull. This is guaranteed in construction
-			//	in %UnwrapStrict.
+			//	in %ReduceForCombinerRef.
 			const auto& referenced(p_ref_fm->get());
 
 			YAssert(ystdex::ref_eq<>()(NPL::Deref(NPL::Access<
 				shared_ptr<TermNode>>(*fm.begin())), referenced),
 				"Invalid subobject reference found.");
+			// XXX: %TermNode::SetContent cannot be used here due to subterm
+			//	invalidation.
 			fm.MoveContent(TermNode(referenced));
 			YAssert(IsLeaf(fm), "Wrong result of irregular"
 				" representation conversion found.");
@@ -580,7 +576,8 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 #elif NPL_Impl_NPLA1_Enable_Thunked
 
 	SetupNextTerm(ctx, term);
-	// TODO: Blocked. Use C++14 lambda initializers to simplify implementation.
+	// TODO: Blocked. Use C++14 lambda initializers to simplify the
+	//	implementation.
 	return RelayNext(ctx, Continuation(std::ref(h), ctx),
 		ComposeSwitched(ctx, std::bind([&](const _tParams&...){
 		// NOTE: Captured argument pack is only needed when %h actually shares.
@@ -602,8 +599,8 @@ ReduceCombinedImpl(TermNode& term, ContextNode& ctx)
 	auto& fm(AccessFirstSubterm(term));
 	const bool irregular(RegularizeForm(fm));
 
-	// XXX: As now, it needs to do the conversion at first to save the subterm
-	//	in the irregular representation. See %UnwrapStrict for the introduction
+	// XXX: As now, it needs to convert at first to save the subterm in the
+	//	irregular representation. See %ReduceForCombinerRef for the introduction
 	//	of the irregular representation.
 	if(irregular || IsLeaf(fm))
 	{
@@ -738,14 +735,15 @@ ReduceReturnUnspecified(TermNode& term) ynothrow
 	return ReductionStatus::Clean;
 }
 
-//! \since build 860
-//@{
+//! \since build 876
 YB_ATTR_nodiscard YB_PURE bool
-ExtractBool(TermNode& term)
+ExtractBool(const TermNode& term)
 {
 	return ystdex::value_or(NPL::TryAccessReferencedTerm<bool>(term), true);
 }
 
+//! \since build 860
+//@{
 TNIter
 CondClauseCheck(TermNode& clause)
 {
@@ -958,7 +956,7 @@ private:
 
 						if(p_strong.use_count() > 1)
 							// TODO: Blocked. Use C++14 lambda initializers
-							//	to simplify implementation.
+							//	to simplify the implementation.
 							NPL::Deref(p_strong) = std::bind(RestoredThunk,
 								std::placeholders::_1, std::placeholders::_2, n,
 								env.shared_from_this());
@@ -1140,17 +1138,17 @@ struct DoDefineOrSet<true> final
 };
 
 
-template<bool _vRec = false>
+template<bool _bRecur = false>
 struct DefineOrSetDispatcher final
 {
 	TermNode& Term;
 	ContextNode& Context;
 
 	template<typename... _tParams>
-	ReductionStatus
+	inline ReductionStatus
 	operator()(TermNode& formals, _tParams&&... args) const
 	{
-		return DoDefineOrSet<_vRec>::Call(Term, Context,
+		return DoDefineOrSet<_bRecur>::Call(Term, Context,
 			FetchDefineOrSetEnvironment(Context, args...), formals,
 			yforward(args)...);
 	}
@@ -1468,34 +1466,26 @@ RelayForAction(_tAction&& a, ContextNode& ctx, TermNode& term, bool no_lift,
 	//	term is guaranteed not changed.
 	return RelayNext(ctx, std::move(next),
 		no_lift ? Reducer(std::move(a)) : ComposeActions(ctx, Continuation([&]{
-			// TODO: Avoid fixed continuation parameter.
-			return ReduceForLiftedResult(term);
-		}, ctx), std::move(a)));
+		// TODO: Avoid fixed continuation parameter.
+		return ReduceForLiftedResult(term);
+	}, ctx), std::move(a)));
 }
 //@}
 #endif
 
-/*!
-\param ctx 规约上下文。
-\param term 被规约的项。
-\param no_lift 指定是否避免保证规约后提升结果。
-\pre 对 TCO 实现，存在 TCOAction 当前动作。
-\pre 第二参数和第四参数不同。
-\note 对 TCO 实现利用 TCOAction 以尾上下文进行规约。
-\note 第三参数指定是否通过转移构造而不保留原项。
-\note 第四参数用于替换第二参数，可能是前者的子项。
-*/
-//@{
-/*!
-\param next 指定下一个动作的续延。
-\since build 860
-*/
-//@{
-// TODO: Use %EvalLiteAction for %NPL_Impl_NPLA1_Enable_Thunk.
+// TODO: Add %RelayForEvalLiteThunked using %EvalLiteAction for
+//	%NPL_Impl_NPLA1_Enable_Thunk.
 #if NPL_Impl_NPLA1_Enable_TCO
 /*!
 \brief 指定 TCO 动作直接求值规约。
+\param ctx 规约上下文。
+\param term 被规约的项。
+\param no_lift 指定是否避免保证规约后提升结果。
 \param act TCO 动作。
+\param next 指定下一个动作的续延。
+\pre 对 TCO 实现，存在 TCOAction 当前动作。
+\note 对 TCO 实现利用 TCOAction 以尾上下文进行规约。
+\since build 860
 */
 ReductionStatus
 RelayForEvalLiteTCO(ContextNode& ctx, TermNode& term, bool no_lift,
@@ -1515,84 +1505,6 @@ RelayForEvalLiteTCO(ContextNode& ctx, TermNode& term, bool no_lift,
 }
 #endif
 
-/*!
-\brief 直接求值规约。
-\param gd 待被保存的当前求值环境守卫。
-*/
-ReductionStatus
-RelayForEval(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
-	bool no_lift, Continuation next)
-{
-	// XXX: For thunked code, %next shall be a continuation before being
-	//	captured and it is not capturable here. No %SetupNextTerm or
-	//	%RecoverNextTerm needs to be called.
-#if NPL_Impl_NPLA1_Enable_TCO
-	auto& act(RefTCOAction(ctx));
-
-	[&]{
-		// NOTE: If there is no environment set in %act.EnvGuard yet, there is
-		//	ideally no need to save the components to the frame record list
-		//	for recursive calls. In such case, each operation making
-		//	potentionally overwriting of %act.LastFunction will always get into
-		//	this call and that time %act.EnvGuard should be set.
-		if(act.EnvGuard.func.SavedPtr)
-		{
-			// NOTE: Operand saving is performed whether the frame compression
-			//	is needed, once there is a saved environment set.
-			if(auto& p_saved = gd.func.SavedPtr)
-			{
-				CompressTCOFrames(ctx, act);
-				act.AddRecord(std::move(p_saved));
-				return;
-			}
-			// XXX: Normally this should not occur, but this is allowed by the
-			//	interface (for an object %EnvironmentSwitcher initialized
-			//	without an environment).
-		}
-		else
-			act.EnvGuard = std::move(gd);
-		act.AddRecord({});
-	}();
-	return RelayForEvalLiteTCO(ctx, term, no_lift, act, std::move(next));
-#elif NPL_Impl_NPLA1_Enable_Thunked
-	return RelayForAction(EvalAction(ctx, gd), ctx, term, no_lift,
-		std::move(next));
-#else
-	yunused(ctx), yunused(gd);
-
-	const auto res(next.Handler(term, next.Context));
-
-	return no_lift ? res : ReduceForLiftedResult(term);
-#endif
-}
-//@}
-
-/*!
-\brief 函数调用规约（ β-规约）。
-\param gd 待被保存的当前求值环境守卫。
-\pre 若为非 TCO 的函数调用，第二参数的子项已绑定变量。
-\pre 临时函数不存在或已通过 CombinerReturnThunk 调用被适当保存。
-\since build 861
-*/
-ReductionStatus
-RelayForCall(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
-	bool no_lift)
-{
-#if NPL_Impl_NPLA1_Enable_Thunked && !NPL_Impl_NPLA1_Enable_TCO
-	EvalAction a(ctx, gd);
-
-	SetupNextTerm(ctx, term);
-	return RelayForAction(a, ctx, term, no_lift,
-		Continuation(ReduceChecked, ctx));
-#else
-	// NOTE: With TCO, the operand should have been saved before binding.
-	SetupNextTerm(ctx, term);
-	return RelayForEval(ctx, term, std::move(gd), no_lift,
-		Continuation(ReduceChecked, ctx));
-#endif
-}
-//@}
-
 //! \since build 875
 Continuation
 SetupToCombine(ContextNode& ctx, TermNode& term)
@@ -1602,9 +1514,9 @@ SetupToCombine(ContextNode& ctx, TermNode& term)
 	return Continuation(ReduceCombinedImpl, ctx);
 }
 
-//! \since build 875
+//! \since build 876
 ReductionStatus
-RelayForEvalWithNextTerm(ContextNode& ctx, TermNode& term,
+RelayForCombine(ContextNode& ctx, TermNode& term,
 	shared_ptr<Environment> p_env)
 {
 	// NOTE: %ReduceFirst and other passes would not be called again. The
@@ -1626,7 +1538,7 @@ EvalImplUnchecked(TermNode& term, ContextNode& ctx, bool no_lift)
 	auto p_env(ResolveEnvironment(NPL::Deref(std::next(i))).first);
 
 	ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
-		LiftTermOrCopyUnchecked(term, nd, NPL::IsMovable(p_ref));
+		LiftOtherOrCopy(term, nd, NPL::IsMovable(p_ref));
 	}, NPL::Deref(i));
 	SetupNextTerm(ctx, term);
 	return RelayForEval(ctx, term, EnvironmentGuard(ctx, ctx.SwitchEnvironment(
@@ -1661,7 +1573,7 @@ class VauHandler final : private ystdex::equality_comparable<VauHandler>
 {
 private:
 	/*!
-	\brief 动态上下文名称。
+	\brief 动态环境名称。
 	\since build 769
 	*/
 	string eformal{};
@@ -1763,7 +1675,7 @@ private:
 	{
 		YAssert(!eformal.empty(), "Empty dynamic environment name found.");
 		// NOTE: Bound dynamic environment.
- 		ctx.GetRecordRef().AddValue(eformal, std::move(vo));
+		ctx.GetRecordRef().AddValue(eformal, std::move(vo));
 		// NOTE: The dynamic environment is either out of TCO action or
 		//	referenced by other environments already in TCO action, so there
 		//	is no need to treat as root.
@@ -1848,14 +1760,14 @@ private:
 			// XXX: The evaluation structure does not need to be saved, since it
 			//	would be used immediately in %RelayForCall. The pointer is moved
 			//	to indicate the error condition when it is called again.
-			term.MoveContent(std::move(eval_struct));
+			LiftOther(term, eval_struct);
 			return RelayForCall(ctx, term, std::move(gd), no_lifting);
 		}
 		else
 			term.SetContent(Deref(p_eval_struct));
 #else
 		// XXX: Ditto.
-		LiftTermOrCopyUnchecked(term, Deref(p_eval_struct), move);
+		LiftOtherOrCopy(term, Deref(p_eval_struct), move);
 #endif
 		return RelayForCall(ctx, term, std::move(gd), NoLifting);
 	}
@@ -1912,6 +1824,244 @@ ConsImpl(TermNode& term)
 }
 //@}
 
+
+//! \since build 859
+//@{
+class RefContextHandler : private ystdex::equality_comparable<RefContextHandler>
+{
+private:
+#if NPL_NPLA_CheckEnvironmentReferenceCount
+	//! \since build 876
+	EnvironmentReference environment_ref;
+#else
+	// XXX: The anchor pointer here is for more efficient native code generation
+	//	(at least with x86_64-w64-linux G++ 9.2), though there are still more
+	//	than necessary memory allocations should have been better avoided.
+	AnchorPtr anchor_ptr;
+#endif
+
+public:
+	lref<const ContextHandler> HandlerRef;
+
+public:
+	//! \since build 869
+	RefContextHandler(const ContextHandler& h,
+		const EnvironmentReference& env_ref) ynothrow
+#if NPL_NPLA_CheckEnvironmentReferenceCount
+		: environment_ref(env_ref), HandlerRef(h)
+#else
+		: anchor_ptr(env_ref.GetAnchorPtr()), HandlerRef(h)
+#endif
+	{}
+	DefDeCopyMoveCtorAssignment(RefContextHandler)
+
+	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
+		const RefContextHandler& x, const RefContextHandler& y)
+		ImplRet(x.HandlerRef.get() == y.HandlerRef.get())
+
+	PDefHOp(ReductionStatus, (), TermNode& term, ContextNode& ctx) const
+		ImplRet(HandlerRef.get()(term, ctx))
+
+#if NPL_NPLA_CheckEnvironmentReferenceCount
+	friend DefSwap(ynothrow, RefContextHandler,
+		(std::swap(_x.environment_ref, _y.environment_ref),
+		std::swap(_x.HandlerRef, _y.HandlerRef)))
+#else
+	friend DefSwap(ynothrow, RefContextHandler,
+		(std::swap(_x.anchor_ptr, _y.anchor_ptr),
+		std::swap(_x.HandlerRef, _y.HandlerRef)))
+#endif
+};
+
+
+YB_NORETURN ReductionStatus
+ThrowForUnwrappingFailure(const ContextHandler& h)
+{
+	throw TypeError(ystdex::sfmt("Unwrapping failed with type '%s'.",
+		h.target_type().name()));
+}
+
+//! \since build 869
+ReductionStatus
+ReduceForCombinerRef(TermNode& term, ContextNode& ctx,
+	const TermReference& ref, const ContextHandler& h,
+	const decltype(FormContextHandler::Check)& chk, size_t n)
+{
+	const auto& r_env(FetchContextOrTailEnvironmentReference(ref, ctx));
+	const auto a(term.get_allocator());
+	auto p_sub(YSLib::allocate_shared<TermNode>(a, TermNode(std::allocator_arg,
+		a, NoContainer, ContextHandler(FormContextHandler(RefContextHandler(h,
+		r_env), chk, n)))));
+	auto& sub(NPL::Deref(p_sub));
+	TermNode tm(std::allocator_arg, a, {{std::allocator_arg, a, NoContainer,
+		std::move(p_sub)}});
+
+	tm.Value = TermReference(sub, r_env);
+	term.SetContent(std::move(tm));
+	return ReductionStatus::Retained;
+}
+
+ReductionStatus
+UnwrapResolved(TermNode& term, ContextNode& ctx, FormContextHandler& fch,
+	ResolvedTermReferencePtr p_ref)
+{
+	if(fch.Wrapping != 0)
+	{
+		return MakeValueOrMove(p_ref, [&]{
+			return ReduceForCombinerRef(term, ctx, NPL::Deref(p_ref),
+				fch.Handler, fch.Check, fch.Wrapping - 1);
+		}, [&]{
+			--fch.Wrapping;
+			term.Value = ContextHandler(std::move(fch));
+			return ReductionStatus::Clean;
+		});
+	}
+	throw TypeError("Unwrapping failed on an operative argument.");
+}
+
+template<typename _func, typename _func2>
+ReductionStatus
+DispatchContextHandler(ContextHandler& h, ResolvedTermReferencePtr p_ref,
+	_func f, _func2 f2)
+{
+	if(const auto p = h.target<FormContextHandler>())
+		return f(*p, p_ref);
+	return ystdex::make_expanded<ReductionStatus(ContextHandler&,
+		const ResolvedTermReferencePtr&)>(f2)(h, p_ref);
+}
+
+template<typename _func, typename _func2>
+ReductionStatus
+WrapUnwrapResolve(TermNode& term, _func f, _func2 f2)
+{
+	return NPL::ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
+		NPL::CheckRegular<ContextHandler>(nd, p_ref);
+		return DispatchContextHandler(NPL::Access<ContextHandler>(nd), p_ref, f,
+			f2);
+	}, term);
+}
+//@}
+
+
+//! \since build 876
+//@{
+template<typename... _tParams>
+TermNode&
+AddTrailingTemporary(TermNode& term, _tParams&&... args)
+{
+	return *term.emplace(yforward(args)...);
+}
+
+YB_ATTR_nodiscard YB_PURE TermTags
+BindReferenceTags(const TermReference& ref) ynothrow
+{
+	auto ref_tags(GetLValueTagsOf(ref.GetTags()));
+
+	// NOTE: An xvalue should also be bindable as a prvalue. Note xvalue is
+	//	still distinguishable by both tag enumerators than one, which is not
+	//	like variables bound by universal references in C++.
+	return bool(ref_tags & TermTags::Unique) ? ref_tags | TermTags::Temporary
+		: ref_tags;
+}
+
+template<typename _fMove>
+void
+BindMoveLocalReference(TermNode& o, _fMove mv)
+{
+	// NOTE: Simplified from %BindParameterObject::operator().
+	if(const auto p = NPL::TryAccessLeaf<TermReference>(o))
+		// NOTE: Reference collapsed by move.
+		mv(std::move(o.GetContainerRef()),
+			TermReference(BindReferenceTags(*p), std::move(*p)));
+	else
+		// NOTE: As %MarkTemporaryTerm;
+		(mv(std::move(o.GetContainerRef()),
+			std::move(o.Value))).Tags |= TermTags::Temporary;
+}
+
+template<typename _fMove>
+void
+BindNonmovableLocalReference(TermTags o_tags, TermNode& o, _fMove mv,
+	const EnvironmentReference& r_env)
+{
+	// NOTE: Simplified from %BindParameterObject::operator().
+	mv(TermNode::Container(o.GetContainer()), [&]{
+		if(const auto p = NPL::TryAccessLeaf<TermReference>(o))
+			return TermReference(BindReferenceTags(*p), *p);
+		return TermReference(GetLValueTagsOf(o.Tags | o_tags), o, r_env);
+	}());
+}
+
+// NOTE: As %PrepareCollapse without frozen environment protection and no
+//	preservation of the operand term.
+TermNode
+EvaluateBoundValue(TermNode& term, Environment& env)
+{
+	if(const auto p = NPL::TryAccessLeaf<TermReference>(term))
+		return std::move(term);
+	return NPL::AsTermNode(term.get_allocator(), TermReference(term.Tags, term,
+		env.shared_from_this()));
+}
+
+TermNode
+EvaluateBoundLValue(TermNode& term, Environment& env)
+{
+	// NOTE: As %EvaluateIdentifier.
+	auto t(EvaluateBoundValue(term, env));
+
+	t.Value
+		= EnsureLValueReference(std::move(t.Value.GetObject<TermReference>()));
+	return std::move(t);
+}
+//@}
+
+//! \since build 875
+//@{
+void
+ForwardCombiner(TermNode& comb, ContextNode& ctx)
+{
+	using namespace std::placeholders;
+
+	RegularizeTerm(comb, WrapUnwrapResolve(comb, std::bind(UnwrapResolved,
+		std::ref(comb), std::ref(ctx), _1, _2), ThrowForUnwrappingFailure));
+}
+
+// NOTE: As %ReduceSubsequent.
+template<typename _fCurrent>
+ReductionStatus
+ReduceCallSubsequent(TermNode& term, ContextNode& ctx,
+	shared_ptr<Environment> p_env, _fCurrent&& next)
+{
+#if NPL_Impl_NPLA1_Enable_Thunked
+	// TODO: Blocked. Use C++14 lambda initializers to simplify the implementation.
+	return RelayNext(ctx, std::bind([&](shared_ptr<Environment>& p_e){
+#	if NPL_Impl_NPLA1_Enable_TCO
+		// TODO: Optimize with known combiner calls. Ideally %EnsureTCOAction
+		//	should not be called later in %CombinerReturnThunk where the term is
+		//	actually a combiner call.
+		yunused(EnsureTCOAction(ctx, term));
+#	endif
+		return RelayForCombine(ctx, term, std::move(p_e));
+	}, std::move(p_env)), ComposeSwitched(ctx, yforward(next)));
+#else
+	RelayForCombine(ctx, term, std::move(p_env));
+	return next();
+#endif
+}
+
+//! \since build 874
+template<typename _func>
+YB_FLATTEN ReductionStatus
+FirstOrVal(TermNode& term, _func f)
+{
+	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
+		if(IsBranchedList(nd))
+			return f(AccessFirstSubterm(nd), p_ref);
+		ThrowInsufficientTermsError();
+	}, term);
+}
+//@}
+
 //! \since build 859
 void
 CheckResolvedListReference(TermNode& nd, bool has_ref)
@@ -1925,6 +2075,19 @@ CheckResolvedListReference(TermNode& nd, bool has_ref)
 	}
 	else
 		ThrowValueCategoryErrorForFirstArgument(nd);
+}
+
+//! \since build 874
+template<typename _func>
+YB_FLATTEN ReductionStatus
+FirstAtRef(TermNode& term, _func f)
+{
+	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
+		CheckResolvedListReference(nd, p_ref);
+		// XXX: This should be safe, since the parent list is guaranteed an
+		//	lvalue by %CheckResolvedListReference.
+		return f(term, AccessFirstSubterm(nd), p_ref);
+	}, term);
 }
 
 //! \since build 834
@@ -1986,179 +2149,6 @@ SetRestImpl(TermNode& term, void(&lift)(TermNode&))
 					" the 2nd argument, got '%s'.",
 					TermToStringWithReferenceMark(nd_y, p_ref_y).c_str()));
 		}, y);
-	}, term);
-}
-
-
-//! \since build 859
-//@{
-class RefContextHandler : private ystdex::equality_comparable<RefContextHandler>
-{
-private:
-	AnchorPtr anchor_ptr;
-
-public:
-	lref<const ContextHandler> HandlerRef;
-
-public:
-	//! \since build 869
-	RefContextHandler(const ContextHandler& h,
-		const EnvironmentReference& env_ref) ynothrow
-		: anchor_ptr(env_ref.GetAnchorPtr()), HandlerRef(h)
-	{}
-	DefDeCopyMoveCtorAssignment(RefContextHandler)
-
-	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
-		const RefContextHandler& x, const RefContextHandler& y)
-		ImplRet(x.HandlerRef.get() == y.HandlerRef.get())
-
-	PDefHOp(ReductionStatus, (), TermNode& term, ContextNode& ctx) const
-		ImplRet(HandlerRef.get()(term, ctx))
-
-	friend DefSwap(ynothrow, RefContextHandler,
-		(std::swap(_x.anchor_ptr, _y.anchor_ptr),
-		std::swap(_x.HandlerRef, _y.HandlerRef)))
-};
-
-
-YB_NORETURN ReductionStatus
-ThrowForUnwrappingFailure(const ContextHandler& h)
-{
-	throw TypeError(ystdex::sfmt("Unwrapping failed with type '%s'.",
-		h.target_type().name()));
-}
-
-//! \since build 869
-ReductionStatus
-ReduceForCombinerRef(TermNode& term, ContextNode& ctx,
-	const TermReference& ref, const ContextHandler& h,
-	const decltype(FormContextHandler::Check)& chk, size_t n)
-{
-	const auto& r_env(FetchContextOrTailEnvironmentReference(ref, ctx));
-	const auto a(term.get_allocator());
-	auto p_sub(YSLib::allocate_shared<TermNode>(a, TermNode(std::allocator_arg,
-		a, NoContainer, ContextHandler(FormContextHandler(RefContextHandler(h,
-		r_env), chk, n)))));
-	auto& sub(NPL::Deref(p_sub));
-	TermNode tm(std::allocator_arg, a, {{std::allocator_arg, a, NoContainer,
-		std::move(p_sub)}});
-
-	tm.Value = TermReference(sub, r_env);
-	term.SetContent(std::move(tm));
-	return ReductionStatus::Retained;
-}
-
-ReductionStatus
-UnwrapResolved(TermNode& term, ContextNode& ctx, FormContextHandler& fch,
-	ResolvedTermReferencePtr p_ref)
-{
-	if(fch.Wrapping != 0)
-	{
-		return MakeValueOrMove(p_ref, [&]{
-			return ReduceForCombinerRef(term, ctx, Deref(p_ref), fch.Handler,
-				fch.Check, fch.Wrapping - 1);
-		}, [&]{
-			--fch.Wrapping;
-			term.Value = ContextHandler(std::move(fch));
-			return ReductionStatus::Clean;
-		});
-	}
-	throw TypeError("Unwrapping failed on an operative argument.");
-}
-
-template<typename _func, typename _func2>
-ReductionStatus
-DispatchContextHandler(ContextHandler& h, ResolvedTermReferencePtr p_ref,
-	_func f, _func2 f2)
-{
-	if(const auto p = h.target<FormContextHandler>())
-		return f(*p, p_ref);
-	return ystdex::make_expanded<ReductionStatus(ContextHandler&,
-		const ResolvedTermReferencePtr&)>(f2)(h, p_ref);
-}
-
-template<typename _func, typename _func2>
-ReductionStatus
-WrapUnwrapResolve(TermNode& term, _func f, _func2 f2)
-{
-	return NPL::ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
-		NPL::CheckRegular<ContextHandler>(nd, p_ref);
-		return DispatchContextHandler(NPL::Access<ContextHandler>(nd), p_ref, f,
-			f2);
-	}, term);
-}
-//@}
-
-
-//! \since build 875
-//@{
-void
-BindLocalReference(TermNode& o)
-{
-	// NOTE: Simplified from %BindParameterObject::operator().
-	if(const auto p = NPL::TryAccessLeaf<TermReference>(o))
-		// NOTE: As %EvaluateIdentifier.
-		p->SetTags(GetLValueTagsOf(p->GetTags()) & ~TermTags::Unique);
-	else
-		// NOTE: As %MarkTemporaryTerm;
-		o.Tags |= TermTags::Temporary;
-}
-
-void
-ForwardCombiner(TermNode& comb, ContextNode& ctx)
-{
-	using namespace std::placeholders;
-
-	RegularizeTerm(comb, WrapUnwrapResolve(comb, std::bind(UnwrapResolved,
-		std::ref(comb), std::ref(ctx), _1, _2), ThrowForUnwrappingFailure));
-}
-
-// NOTE: As %ReduceSubsequent.
-template<typename _fCurrent>
-ReductionStatus
-ReduceCallSubsequent(TermNode& term, ContextNode& ctx,
-	shared_ptr<Environment> p_env, _fCurrent&& next)
-{
-#if NPL_Impl_NPLA1_Enable_Thunked
-	// TODO: Blocked. Use C++14 lambda initializers to simplify implementation.
-	return RelayNext(ctx, std::bind([&](shared_ptr<Environment>& p_e){
-#	if NPL_Impl_NPLA1_Enable_TCO
-		// TODO: Optimize with known combiner calls. Ideally %EnsureTCOAction
-		//	should not be called later in %CombinerReturnThunk where the term is
-		//	actually a combiner call.
-		EnsureTCOAction(ctx, term);
-#	endif
-		return RelayForEvalWithNextTerm(ctx, term, std::move(p_e));
-	}, std::move(p_env)), ComposeSwitched(ctx, yforward(next)));
-#else
-	RelayForEvalWithNextTerm(ctx, term, std::move(p_env));
-	return next();
-#endif
-}
-
-//! \since build 874
-template<typename _func>
-YB_FLATTEN ReductionStatus
-FirstOrVal(TermNode& term, _func f)
-{
-	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
-		if(IsBranchedList(nd))
-			return f(AccessFirstSubterm(nd), p_ref);
-		ThrowInsufficientTermsError();
-	}, term);
-}
-//@}
-
-//! \since build 874
-template<typename _func>
-YB_FLATTEN ReductionStatus
-FirstAtRef(TermNode& term, _func f)
-{
-	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
-		CheckResolvedListReference(nd, p_ref);
-		// XXX: This should be safe, since the parent list is guaranteed an
-		//	lvalue by %CheckResolvedListReference.
-		return f(term, AccessFirstSubterm(nd), p_ref);
 	}, term);
 }
 
@@ -2291,27 +2281,24 @@ struct BindParameterObject
 		const
 	{
 		const bool temp(bool(o_tags & TermTags::Temporary));
-		const bool unique(bool(o_tags & TermTags::Unique));
 
+		// NOTE: The binding rules here should be carefully tweaked to make them
+		//	exactly accept expression representations (in %TermNode) in NPLA1
+		//	all around.
 		if(sigil != '@')
 		{
 			const bool can_modify(!bool(o_tags & TermTags::Nonmodifying));
 
 			// NOTE: Subterms in arguments retained are also transferred for
 			//	values.
-			if(const auto p = NPL::TryAccessLeaf<const TermReference>(o))
+			if(const auto p = NPL::TryAccessLeaf<TermReference>(o))
 			{
 				if(sigil != char())
 				{
-					auto ref_tags(p->GetTags());
+					const auto ref_tags(sigil == '&' ? BindReferenceTags(*p)
+						: p->GetTags());
 
-					if(sigil == '&')
-					{
-						ref_tags = GetLValueTagsOf(ref_tags);
-						if(bool(ref_tags & TermTags::Unique))
-							ref_tags |= TermTags::Temporary;
-					}
-					if(can_modify && (unique || temp))
+					if(can_modify && temp)
 						// NOTE: Reference collapsed by move.
 						mv(std::move(o.GetContainerRef()),
 							TermReference(ref_tags, std::move(*p)));
@@ -2382,8 +2369,7 @@ public:
 	GBinder<const TokenValue&, TermNode&> BindValue;
 
 private:
-	// XXX: This does not use any allocator. Allocator would generally make the
-	//	performance worse here.
+	// XXX: Allocators are not used here for performance in most cases.
 	mutable Action act{};
 
 public:
@@ -2579,7 +2565,7 @@ ThrowForWrappingFailure(const ystdex::type_info& tp)
 ReductionStatus
 WrapH(TermNode& term, ContextHandler h)
 {
-	// XXX: Allocators are not used for performance in most cases.
+	// XXX: Allocators are not used here for performance in most cases.
 	term.Value = std::move(h);
 	return ReductionStatus::Clean;
 }
@@ -2609,7 +2595,7 @@ WrapRefN(TermNode& term, ContextNode& ctx, ResolvedTermReferencePtr p_ref,
 }
 
 template<typename _func, typename _func2>
-ReductionStatus
+YB_FLATTEN ReductionStatus
 WrapUnwrap(TermNode& term, _func f, _func2 f2)
 {
 	return CallRegularUnaryAs<ContextHandler>(
@@ -2800,7 +2786,7 @@ ApplyImpl(TermNode& term, ContextNode& ctx, shared_ptr<Environment> p_env)
 
 	ConsItem(expr, NPL::Deref(++i));
 	term = std::move(expr);
-	return RelayForEvalWithNextTerm(ctx, term, std::move(p_env));
+	return RelayForCombine(ctx, term, std::move(p_env));
 }
 
 //! \since build 860
@@ -2823,7 +2809,7 @@ ListAsteriskImpl(TermNode& term)
 			term.erase(last);
 		}
 		else
-			term.MoveContent(std::move(head));
+			LiftOther(term, head);
 		RemoveHead(term);
 	}
 	else
@@ -3024,7 +3010,8 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 	return ReductionStatus::Retained;
 #	else
 	SetupNextTerm(ctx, term);
-	// TODO: Blocked. Use C++14 lambda initializers to simplify implementation.
+	// TODO: Blocked. Use C++14 lambda initializers to simplify the
+	//	implementation.
 	return RelayNext(ctx, Continuation(static_cast<ReductionStatus(&)(TermNode&,
 		ContextNode&)>(ReduceChildrenOrdered), ctx), ComposeSwitched(ctx, [&]{
 		if(IsBranch(term))
@@ -3182,7 +3169,8 @@ FormContextHandler::CallN(size_t n, TermNode& term, ContextNode& ctx) const
 	// XXX: Optimize for cases with no argument.
 	if(n == 0 || term.size() <= 1)
 		return RelaySwitched(ctx, Continuation(std::move(cont), ctx));
-	// TODO: Blocked. Use C++14 lambda initializers to simplify implementation.
+	// TODO: Blocked. Use C++14 lambda initializers to simplify the
+	//	implementation.
 	return RelayNext(ctx, Continuation([&](TermNode& t, ContextNode& c){
 		ReduceArguments(t, c);
 		return ReductionStatus::Partial;
@@ -3242,12 +3230,14 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 	//	directly and without rebinding. Note access of objects denoted by
 	//	invalid reference after rebinding would cause undefined behavior in the
 	//	object language.
-	auto ref(ResolveIdentifier(ctx, id));
+	term = ResolveIdentifier(ctx, id);
+
+	auto& ref(term.Value.GetObject<TermReference>());
 	auto& rterm(ref.get());
 
 	// NOTE: Every reference to the object in the environment is assumed
-	//	aliased.
-	term.Value = EnsureLValueReference(std::move(ref));
+	//	aliased, so no %TermTags::Unique is preserved.
+	ref = EnsureLValueReference(std::move(ref));
 	// NOTE: This is not guaranteed to be saved as %ContextHandler in
 	//	%ReduceCombined.
 	if(const auto p_handler = NPL::TryAccessTerm<LiteralHandler>(rterm))
@@ -3318,6 +3308,141 @@ ReduceLeafToken(TermNode& term, ContextNode& ctx)
 	}, TermToNamePtr(term), ReductionStatus::Clean));
 
 	return CheckReducible(res) ? ReduceAgain(term, ctx) : res;
+}
+
+
+ReductionStatus
+RelayForEval(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
+	bool no_lift, Continuation next)
+{
+	// XXX: For thunked code, %next shall be a continuation before being
+	//	captured and it is not capturable here. No %SetupNextTerm or
+	//	%RecoverNextTerm needs to be called.
+#if NPL_Impl_NPLA1_Enable_TCO
+	auto& act(RefTCOAction(ctx));
+
+	[&]{
+		// NOTE: If there is no environment set in %act.EnvGuard yet, there is
+		//	ideally no need to save the components to the frame record list
+		//	for recursive calls. In such case, each operation making
+		//	potentionally overwriting of %act.LastFunction will always get into
+		//	this call and that time %act.EnvGuard should be set.
+		if(act.EnvGuard.func.SavedPtr)
+		{
+			// NOTE: Operand saving is performed whether the frame compression
+			//	is needed, once there is a saved environment set.
+			if(auto& p_saved = gd.func.SavedPtr)
+			{
+				CompressTCOFrames(ctx, act);
+				act.AddRecord(std::move(p_saved));
+				return;
+			}
+			// XXX: Normally this should not occur, but this is allowed by the
+			//	interface (for an object %EnvironmentSwitcher initialized
+			//	without an environment).
+		}
+		else
+			act.EnvGuard = std::move(gd);
+		act.AddRecord({});
+	}();
+	return RelayForEvalLiteTCO(ctx, term, no_lift, act, std::move(next));
+#elif NPL_Impl_NPLA1_Enable_Thunked
+	return RelayForAction(EvalAction(ctx, gd), ctx, term, no_lift,
+		std::move(next));
+#else
+	yunused(ctx), yunused(gd);
+
+	const auto res(next.Handler(term, next.Context));
+
+	return no_lift ? res : ReduceForLiftedResult(term);
+#endif
+}
+
+ReductionStatus
+RelayForCall(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
+	bool no_lift)
+{
+	// NOTE: With TCO, the operand temporary is been indicated by
+	//	%TermTags::Temporary, no lifetime extension needs to be cared here.
+	SetupNextTerm(ctx, term);
+	return RelayForEval(ctx, term, std::move(gd), no_lift,
+		Continuation(ReduceChecked, ctx));
+}
+
+
+void
+MatchParameter(const TermNode& t, TermNode& o, function<void(TNIter,
+	TNIter, const TokenValue&, TermTags, Environment&)> bind_trailing_seq,
+	function<void(const TokenValue&, TermNode&, TermTags, Environment&)>
+	bind_value, TermTags o_tags, Environment& env)
+{
+	ParameterMatcher(std::move(bind_trailing_seq), std::move(bind_value))(t, o,
+		o_tags, env);
+}
+
+void
+BindParameter(Environment& env, const TermNode& t, TermNode& o)
+{
+	const auto check_sigil([&](string_view& id){
+		char sigil(id.front());
+
+		if(sigil != '&' && sigil != '%' && sigil != '@')
+			sigil = char();
+		else
+			id.remove_prefix(1);
+		return sigil;
+	});
+
+	// NOTE: No duplication check here. Symbols can be rebound.
+	// TODO: Additional ownership and lifetime check to kept away undefined
+	//	behavior?
+	MatchParameter(t, o, [&, check_sigil](TNIter first, TNIter last,
+		string_view id, TermTags o_tags, Environment& e){
+		YAssert(ystdex::begins_with(id, "."), "Invalid symbol found.");
+		id.remove_prefix(1);
+		if(!id.empty())
+		{
+			const char sigil(check_sigil(id));
+
+			if(!id.empty())
+			{
+				TermNode::Container con(t.get_allocator());
+
+				for(; first != last; ++first)
+					// TODO: Blocked. Use C++17 sequence container return value.
+					BindParameterObject{e}(sigil, o_tags,
+						NPL::Deref(first), [&](const TermNode& tm){
+						con.emplace_back(tm.GetContainer(), tm.Value);
+						CopyTermTags(con.back(), tm);
+					}, [&](TermNode::Container&& c, ValueObject&& vo)
+						-> TermNode&{
+						con.emplace_back(std::move(c), std::move(vo));
+						return con.back();
+					});
+				MarkTemporaryTerm(env.Bind(id, TermNode(std::move(con))),
+					sigil);
+			}
+		}
+	}, [&](const TokenValue& n, TermNode& b, TermTags o_tags, Environment& e){
+		CheckParameterLeafToken(n, [&]{
+			if(!n.empty())
+			{
+				string_view id(n);
+				const char sigil(check_sigil(id));
+
+				if(!id.empty())
+					BindParameterObject{e}(sigil, o_tags, b,
+						[&](const TermNode& tm){
+						CopyTermTags(env.Bind(id, tm), tm);
+					}, [&](TermNode::Container&& c, ValueObject&& vo)
+						-> TermNode&{
+						// XXX: Allocators are not used here for performance.
+						return env.Bind(id,
+							TermNode(std::move(c), std::move(vo)));
+					});
+			}
+		});
+	}, TermTags::Temporary, env);
 }
 
 
@@ -3431,7 +3556,7 @@ IsSymbol(const string& id) ynothrow
 TokenValue
 StringToSymbol(const string& s)
 {
-	// XXX: Allocators are not used for performance in most cases.
+	// XXX: Allocators are not used here for performance in most cases.
 	return TokenValue(s);
 }
 TokenValue
@@ -3456,81 +3581,6 @@ RetainN(const TermNode& term, size_t m)
 	if(n != m)
 		throw ArityMismatch(m, n);
 	return n;
-}
-
-
-void
-BindParameter(Environment& env, const TermNode& t, TermNode& o)
-{
-	const auto check_sigil([&](string_view& id){
-		char sigil(id.front());
-
-		if(sigil != '&' && sigil != '%' && sigil != '@')
-			sigil = char();
-		else
-			id.remove_prefix(1);
-		return sigil;
-	});
-
-	// NOTE: No duplication check here. Symbols can be rebound.
-	// TODO: Additional ownership and lifetime check to kept away undefined
-	//	behavior?
-	MatchParameter(t, o, [&, check_sigil](TNIter first, TNIter last,
-		string_view id, TermTags o_tags, Environment& e){
-		YAssert(ystdex::begins_with(id, "."), "Invalid symbol found.");
-		id.remove_prefix(1);
-		if(!id.empty())
-		{
-			const char sigil(check_sigil(id));
-
-			if(!id.empty())
-			{
-				TermNode::Container con(t.get_allocator());
-
-				for(; first != last; ++first)
-					// TODO: Blocked. Use C++17 sequence container return value.
-					BindParameterObject{e}(sigil, o_tags,
-						NPL::Deref(first), [&](const TermNode& tm){
-						con.emplace_back(tm.GetContainer(), tm.Value);
-						CopyTermTags(con.back(), tm);
-					}, [&](TermNode::Container&& c, ValueObject&& vo)
-						-> TermNode&{
-						con.emplace_back(std::move(c), std::move(vo));
-						return con.back();
-					});
-				MarkTemporaryTerm(env.Bind(id, TermNode(std::move(con))),
-					sigil);
-			}
-		}
-	}, [&](const TokenValue& n, TermNode& b, TermTags o_tags, Environment& e){
-		CheckParameterLeafToken(n, [&]{
-			if(!n.empty())
-			{
-				string_view id(n);
-				const char sigil(check_sigil(id));
-
-				if(!id.empty())
-					BindParameterObject{e}(sigil, o_tags, b,
-						[&](const TermNode& tm){
-						CopyTermTags(env.Bind(id, tm), tm);
-					}, [&](TermNode::Container&& c, ValueObject&& vo)
-						-> TermNode&{
-						return env.Bind(id,
-							TermNode(std::move(c), std::move(vo)));
-					});
-			}
-		});
-	}, TermTags::Temporary, env);
-}
-
-void
-MatchParameter(const TermNode& t, TermNode& o, function<void(TNIter,
-	TNIter, const TokenValue&, TermTags, Environment&)> bind_trailing_seq,
-	function<void(const TokenValue&, TermNode&, TermTags, Environment&)>
-	bind_value, TermTags o_tags, Environment& env)
-{
-	ParameterMatcher(std::move(bind_trailing_seq), std::move(bind_value))(t, o,
-		o_tags, env);
 }
 
 
@@ -3650,71 +3700,65 @@ ConsRef(TermNode& term)
 	return ReductionStatus::Retained;
 }
 
-void
-SetFirst(TermNode& term)
-{
-	DoSetFirst(term, [](TermNode& dst, TermNode&, const TermReference& ref){
-		LiftMovedUnchecked(dst, ref, ref.IsMovable());
-	});
-}
-
-void
-SetFirstAt(TermNode& term)
-{
-	DoSetFirst(term, [](TermNode& dst, TermNode& y, const TermReference&){
-		dst.MoveContent(std::move(y));
-	});
-}
-
-void
-SetFirstRef(TermNode& term)
-{
-	DoSetFirst(term, [](TermNode& dst, TermNode& y, TermReference& ref){
-		// XXX: No cyclic reference check except for self assignment.
-		LiftCollapsed(dst, y, std::move(ref));
-	});
-}
-
-void
-SetRest(TermNode& term)
-{
-	SetRestImpl(term, LiftSubtermsToReturn);
-}
-
-void
-SetRestRef(TermNode& term)
-{
-	SetRestImpl(term, LiftNoOp);
-}
-
 ReductionStatus
 ForwardListFirst(TermNode& term, ContextNode& ctx)
 {
 	RetainN(term, 3);
 
 	auto i(term.begin());
-	auto& list_comb(*++i);
+	auto& head(*i);
+	const auto i_list_comb(++i);
 	auto& comb(*++i);
 	auto& l(*++i);
+	const auto a(term.get_allocator());
+	auto& env(ctx.GetRecordRef());
+	const auto assign_head([&, a](TermNode::Container&& c, ValueObject&& vo)
+		-> TermNode&{
+		// XXX: The term %head is reused as the bound operand.
+		head = TermNode(std::allocator_arg, a, std::move(c), std::move(vo));
+		return head;
+	});
 
-	BindLocalReference(l),
-	ForwardCombiner(list_comb, ctx);
-	l = TermNode(std::allocator_arg, term.get_allocator(),
-		{std::move(list_comb), std::move(l)});
-	return ReduceCallSubsequent(l, ctx,
-		NPL::AllocateEnvironment(term.get_allocator()), [&]{
+	BindMoveLocalReference(l, assign_head);
+
+	TermNode::Container con({EvaluateBoundLValue(head, env)}, a);
+
+	ForwardCombiner(*i_list_comb, ctx);
+	con.splice(con.cbegin(), term.GetContainerRef(), i_list_comb);
+	l = TermNode(std::allocator_arg, a, std::move(con));
+	return ReduceCallSubsequent(l, ctx, env.shared_from_this(),
+		[&, a, assign_head]{
 		return NPL::ResolveTerm(
 			[&](TermNode& nd, ResolvedTermReferencePtr p_ref){
 			if(IsBranchedList(nd))
 			{
-				auto& nd_x(AccessFirstSubterm(nd));
+				auto& x(AccessFirstSubterm(nd));
 
-				BindLocalReference(nd_x),
+				if(p_ref)
+					BindNonmovableLocalReference(p_ref->GetTags()
+						& (TermTags::Unique | TermTags::Nonmodifying), x,
+						assign_head, p_ref->GetEnvironmentReference());
+				else
+					BindMoveLocalReference(x, assign_head);
 				ForwardCombiner(comb, ctx);
-				term = TermNode(std::allocator_arg, term.get_allocator(),
-					{NPL::IsMovable(p_ref) ? std::move(comb) : comb, nd_x});
-				return RelayForEvalWithNextTerm(ctx, term,
-					NPL::AllocateEnvironment(term.get_allocator()));
+				l = TermNode(std::allocator_arg, a, {std::move(comb),
+					EvaluateBoundValue(head, env)});
+#if NPL_Impl_NPLA1_Enable_Thunked
+				return RelayNext(ctx, [&]{
+#	if NPL_Impl_NPLA1_Enable_TCO
+					// TODO: See %ReduceCallSubsequent.
+					SetupTailAction(ctx, TCOAction(ctx, l, {}));
+#	endif
+					return RelayForCombine(ctx, l, env.shared_from_this());
+				}, ComposeSwitched(ctx, [&]{
+					LiftOther(term, l);
+					return ReductionStatus::Retained;
+				}));
+#else
+				RelayForCombine(ctx, l, ctx.ShareRecord());
+				LiftOther(term, l);
+				return ReductionStatus::Retained;
+#endif
 			}
 			else
 				ThrowInsufficientTermsError();
@@ -3740,14 +3784,14 @@ First(TermNode& term)
 			}
 			if(!p->IsReferencedLValue())
 			{
-				LiftMovedUnchecked(term, *p, p->IsMovable());
+				LiftMovedOther(term, *p, p->IsMovable());
 				return ReductionStatus::Retained;
 			}
 		}
 		else if(list_not_move)
 			return ReduceToReferenceAt(term, tm, p_ref);
 		// XXX: Term tags are currently not respected in prvalues.
-		LiftTermOrCopyUnchecked(term, tm, !p_ref || p_ref->IsModifiable());
+		LiftOtherOrCopy(term, tm, !p_ref || p_ref->IsModifiable());
 		return ReductionStatus::Retained;
 #else
 		// NOTE: For exposition only. The optimized implemenation shall be
@@ -3760,12 +3804,12 @@ First(TermNode& term)
 			{
 				if(!p->IsReferencedLValue())
 				{
-					LiftMovedUnchecked(term, *p, p->IsMovable());
+					LiftMovedOther(term, *p, p->IsMovable());
 					return ReductionStatus::Retained;
 				}
 			}
 			// XXX: Term tags are currently not respected in prvalues.
-			LiftTermOrCopyUnchecked(term, tm, !p_ref || p_ref->IsModifiable());
+			LiftOtherOrCopy(term, tm, !p_ref || p_ref->IsModifiable());
 			return ReductionStatus::Retained;
 		}
 		return ReduceToReference(term, tm, p_ref);
@@ -3792,12 +3836,49 @@ FirstVal(TermNode& term)
 		// XXX: Simple 'ReduceToValue(term, tm)' is wrong because it may
 		//	move non-unqiue reference object away.
 		if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
-			LiftMovedUnchecked(term, *p, !has_ref && p->IsMovable());
+			LiftMovedOther(term, *p, !has_ref && p->IsMovable());
 		else
 			// XXX: Term tags are currently not respected in prvalues.
-			LiftTermOrCopyUnchecked(term, tm, !has_ref);
+			LiftOtherOrCopy(term, tm, !has_ref);
 		return ReductionStatus::Retained;
 	});
+}
+
+void
+SetFirst(TermNode& term)
+{
+	DoSetFirst(term, [](TermNode& dst, TermNode&, const TermReference& ref){
+		LiftMovedOther(dst, ref, ref.IsMovable());
+	});
+}
+
+void
+SetFirstAt(TermNode& term)
+{
+	DoSetFirst(term, [](TermNode& dst, TermNode& y, const TermReference&){
+		LiftOther(dst, y);
+	});
+}
+
+void
+SetFirstRef(TermNode& term)
+{
+	DoSetFirst(term, [](TermNode& dst, TermNode& y, TermReference& ref){
+		// XXX: No cyclic reference check except for self assignment.
+		LiftCollapsed(dst, y, std::move(ref));
+	});
+}
+
+void
+SetRest(TermNode& term)
+{
+	SetRestImpl(term, LiftSubtermsToReturn);
+}
+
+void
+SetRestRef(TermNode& term)
+{
+	SetRestImpl(term, LiftNoOp);
 }
 
 
@@ -3996,12 +4077,10 @@ ReductionStatus
 WrapRef(TermNode& term, ContextNode& ctx)
 {
 	return WrapOrRef(term, ctx, WrapRefN,
-		[&](ContextHandler& h, ResolvedTermReferencePtr p_ref)
-		-> ReductionStatus{
-		if(p_ref)
-			return
-				ReduceForCombinerRef(term, ctx, *p_ref, h, IsBranchedList, 1);
-		return WrapH(term, FormContextHandler(std::move(std::move(h)), 1));
+		[&](ContextHandler& h, ResolvedTermReferencePtr p_ref){
+		return p_ref
+			? ReduceForCombinerRef(term, ctx, *p_ref, h, IsBranchedList, 1)
+			: WrapH(term, FormContextHandler(std::move(std::move(h)), 1));
 	});
 }
 
