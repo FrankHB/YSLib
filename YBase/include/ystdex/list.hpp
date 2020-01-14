@@ -1,5 +1,5 @@
 ﻿/*
-	© 2019 FrankHB.
+	© 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file list.hpp
 \ingroup YStandardEx
 \brief 列表容器。
-\version r1607
+\version r1609
 \author FrankHB <frankhb1989@gmail.com>
 \since build 864
 \par 创建时间:
 	2019-08-14 14:48:52 +0800
 \par 修改时间:
-	2019-09-16 01:32 +0800
+	2020-01-12 18:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,7 +84,7 @@ public:
 };
 
 
-// XXX: See $2019-09 @ %Documentation::Workflow::Annual2019.
+// XXX: See $2019-09 @ %Documentation::Workflow.
 //! \since build 865
 template<typename>
 class list_const_iterator;

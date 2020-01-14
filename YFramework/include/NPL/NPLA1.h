@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r5955
+\version r6107
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-01-03 02:12 +0800
+	2020-01-14 15:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,16 +29,17 @@
 #define NPL_INC_NPLA1_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_NPLA // for NPLATag, TermNode, ValueNode, YSLib::GHEvent,
-//	ystdex::ref_eq, LiftTerm, LoggedEvent, ystdex::equality_comparable,
-//	ystdex::exclude_self_params_t, YSLib::AreEqualHeld,
-//	ystdex::make_parameter_list_t, ystdex::make_function_type_t,
-//	ystdex::decay_t, ystdex::expanded_caller, std::is_constructible,
-//	ystdex::or_, ystdex::exclude_self_t, ystdex::enable_if_inconvertible_t, pmr,
-//	NPL::Deref, Environment, ystdex::make_expanded, std::ref, NPL::Access,
-//	NPL::AccessRegular, ResolvedTermReferencePtr, ystdex::invoke_nonvoid,
-//	NPL::ResolveRegular, ystdex::make_transform, std::accumulate, ystdex::bind1,
-//	std::placeholders::_2, ystdex::examiners::equal_examiner, shared_ptr;
+#include YFM_NPL_NPLA // for NPLATag, TermNode, ContextNode, YSLib::GHEvent,
+//	ystdex::exclude_self_t, ystdex::ref_eq, TNIter, ValueNode, LiftOther,
+//	LoggedEvent, ystdex::equality_comparable, ystdex::exclude_self_params_t,
+//	YSLib::AreEqualHeld, ystdex::make_parameter_list_t,
+//	ystdex::make_function_type_t, ystdex::decay_t, ystdex::expanded_caller,
+//	std::is_constructible, ystdex::or_, ystdex::enable_if_inconvertible_t, pmr,
+//	NPL::Deref, Environment, ystdex::expand_proxy, NPL::Access, std::ref,
+//	ystdex::make_expanded, ResolvedTermReferencePtr, NPL::AccessRegular,
+//	ystdex::invoke_nonvoid, NPL::ResolveRegular, ystdex::make_transform,
+//	std::accumulate, ystdex::bind1, std::placeholders::_2,
+//	ystdex::examiners::equal_examiner, shared_ptr;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard,
 
@@ -138,6 +139,59 @@ using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
 
 
 /*!
+\brief 续延。
+\warning 非虚析构。
+\since build 841
+\todo 支持一等续延捕获。
+*/
+class YF_API Continuation
+{
+public:
+	//! \since build 877
+	using allocator_type
+		= decltype(std::declval<const ContextNode&>().get_allocator());
+
+	ContextHandler Handler;
+
+	//! \since build 877
+	//@{
+	template<typename _func, yimpl(typename
+		= ystdex::exclude_self_t<Continuation, _func>)>
+	inline
+	Continuation(_func&& handler, allocator_type a)
+		: Handler(ystdex::make_obj_using_allocator<ContextHandler>(a,
+		yforward(handler)))
+	{}
+	template<typename _func, yimpl(typename
+		= ystdex::exclude_self_t<Continuation, _func>)>
+	inline
+	Continuation(_func&& handler, const ContextNode& ctx)
+		: Continuation(yforward(handler), ctx.get_allocator())
+	{}
+	Continuation(const Continuation& cont, allocator_type a)
+		: Handler(ystdex::make_obj_using_allocator<ContextHandler>(a,
+		cont.Handler))
+	{}
+	Continuation(Continuation&& cont, allocator_type a)
+		: Handler(ystdex::make_obj_using_allocator<ContextHandler>(a,
+		std::move(cont.Handler)))
+	{}
+	//@}
+	DefDeCopyMoveCtorAssignment(Continuation)
+
+	friend PDefHOp(bool, ==, const Continuation& x, const Continuation& y)
+		ynothrow
+		ImplRet(ystdex::ref_eq<>()(x, y))
+
+	//! \since build 877
+	ReductionStatus
+	operator()(ContextNode&) const;
+
+	friend DefSwap(ynothrow, Continuation, swap(_x.Handler, _y.Handler))
+};
+
+
+/*!
 \brief NPLA1 上下文状态。
 \note 扩展 ContextNode 。
 \sa ContextNode::Derivation
@@ -148,10 +202,13 @@ NPLA1 上下文状态扩展 NPLA 上下文。
 class YF_API ContextState : public ContextNode
 {
 public:
+	// XXX: Allocators are not used here for performance.
 	EvaluationPasses EvaluateLeaf{};
 	EvaluationPasses EvaluateList{};
 	LiteralPasses EvaluateLiteral{};
 	GuardPasses Guard{};
+	//! \since build 877
+	Continuation ReduceOnce{InitReduceOnce()};
 
 private:
 	/*!
@@ -179,9 +236,11 @@ public:
 	\warning 若不满足上下文状态类型要求，行为未定义。
 	*/
 	//@{
-	static PDefH(ContextState&, Access, ContextNode& ctx) ynothrowv
+	YB_ATTR_nodiscard YB_PURE static
+		PDefH(ContextState&, Access, ContextNode& ctx) ynothrowv
 		ImplRet(ystdex::polymorphic_downcast<ContextState&>(ctx))
-	static PDefH(const ContextState&, Access, const ContextNode& ctx) ynothrowv
+	YB_ATTR_nodiscard YB_PURE static
+		PDefH(const ContextState&, Access, const ContextNode& ctx) ynothrowv
 		ImplRet(ystdex::polymorphic_downcast<const ContextState&>(ctx))
 	//@}
 
@@ -205,6 +264,12 @@ public:
 	PDefH(void, ClearNextTerm, ) ynothrow
 		ImplExpr(next_term_ptr = {})
 
+private:
+	//! \since build 877
+	Continuation
+	InitReduceOnce() const;
+
+public:
 	/*!
 	\brief 构造作用域守卫并重写项。
 	\sa Guard
@@ -226,39 +291,8 @@ public:
 };
 
 
-/*!
-\brief 续延。
-\warning 非虚析构。
-\since build 841
-\todo 支持一等续延捕获。
-*/
-class YF_API Continuation
-{
-public:
-	ContextHandler Handler;
-	// \since build 842
-	lref<ContextNode> Context;
-
-	//! \since build 842
-	template<typename _func>
-	Continuation(_func&& handler, ContextNode& ctx)
-		: Handler(ystdex::make_obj_using_allocator<ContextHandler>(
-		ctx.get_allocator(), yforward(handler))), Context(ctx)
-	{}
-
-	DefDeCopyMoveCtorAssignment(Continuation)
-
-	friend PDefHOp(bool, ==, const Continuation& x, const Continuation& y)
-		ynothrow
-		ImplRet(ystdex::ref_eq<>()(x, y))
-
-	PDefHOp(ReductionStatus, (), ) const
-		ImplRet(Handler(ContextState::Access(Context).GetNextTermRef(),
-			Context))
-
-	friend DefSwap(ynothrow, Continuation, swap(_x.Handler, _y.Handler),
-		ystdex::swap_dependent(_x.Context, _y.Context))
-};
+inline PDefH(ReductionStatus, Continuation::operator(), ContextNode& ctx) const
+	ImplRet(Handler(ContextState::Access(ctx).GetNextTermRef(), ctx))
 
 
 /*!
@@ -274,7 +308,10 @@ public:
 \sa ReduceOnce
 \since build 730
 
-以 ReduceOnce 为规约函数调用 ContextState::RewriteGuarded 。
+以 ReduceOnce 为规约动作调用 ContextState::RewriteGuarded 作为跳板进行重写。
+这里的跳板对异步实现是必要的。
+同时，在调用时对必要的异步状态（当前上下文的动作）进行保护，
+	允许同步和异步的规约的本机实现混合调用。
 */
 YF_API ReductionStatus
 Reduce(TermNode&, ContextNode&);
@@ -289,7 +326,8 @@ Reduce(TermNode&, ContextNode&);
 \sa RelaySwitchedUnchecked
 \since build 807
 
-确保再次 Reduce 调用并返回要求重规约的结果。
+确保再次 ReduceOnce 调用并返回要求重规约的结果。
+若使用异步实现，指定重规约，且可在尾上下文支持尾调用优化；否则同 ReduceOnce 。
 */
 YF_API ReductionStatus
 ReduceAgain(TermNode&, ContextNode&);
@@ -331,21 +369,6 @@ inline PDefH(void, ReduceArguments, TermNode& term, ContextNode& ctx)
 	ImplRet(ReduceArguments(term.begin(), term.end(), ctx))
 //@}
 
-//! \note 失败视为重规约。
-//@{
-/*!
-\brief 规约并检查成功：等效调用 Reduce 并检查结果直至不需重规约。
-\note 支持尾调用优化，不直接使用 CheckedReduceWith 和 Reduce 。
-\return 若支持异步规约则为 ReductionStatus::Partial ，
-	否则为 ReductionStatus::Regular 。
-\sa CheckedReduceWith
-\sa Reduce
-\since build 817
-*/
-YF_API ReductionStatus
-ReduceChecked(TermNode&, ContextNode&);
-//@}
-
 /*!
 \brief 规约子项。
 \since build 697
@@ -362,7 +385,7 @@ inline PDefH(void, ReduceChildren, TermNode& term, ContextNode& ctx)
 \brief 有序规约子项。
 \pre 断言：参数指定的范围不存在子项或参数指定的上下文中的尾动作为空。
 \return 当存在子项时为最后一个子项的规约状态，否则为 ReductionStatus::Clean 。
-\sa ReduceChecked
+\sa ReduceOnce
 \since build 773
 */
 //@{
@@ -389,7 +412,7 @@ YF_API ReductionStatus
 ReduceFirst(TermNode&, ContextNode&);
 
 /*!
-\brief NPLA1 表达式节点规约：调用求值例程规约子表达式。
+\brief NPLA1 表达式节点一次规约：调用求值例程规约子表达式。
 \pre 第二参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
 \return 规约状态。
 \note 异常安全为调用遍的最低异常安全保证。
@@ -401,8 +424,18 @@ ReduceFirst(TermNode&, ContextNode&);
 \sa ContextNode::EvaluateList
 \sa ValueToken
 \sa ReduceAgain
+\sa ReduceOnce
 \since build 806
 
+对同步实现，调用求值遍对项规约；
+否则，设置上下文使用求值遍作为异步实现的规约动作，
+	依赖外部跳板继续表示完成项的规约迭代。
+进入参数指定的项的异步规约调用遍前，清除上下文的最后一次规约状态为中立规约，
+	不能使用之前的状态指定重规约。
+在已进入异步规约时，则在上下文最后一次规约状态设置为 ReductionStatus::Retrying 时，
+	不继续设置异步求值遍而跳过剩余的求值遍。
+若需在异步的本机实现中兼容已在调用前指定重规约状态而跳过剩余的求值遍，
+	通常使用 ReductionChecked 。
 对应不同的节点次级结构分类，一次迭代按以下顺序选择以下分支之一，按需规约子项：
 对枝节点调用 ContextState::EvaluateList 求值；
 对空节点或值数据成员为 ValueToken 类型的值的叶节点不进行操作；
@@ -415,7 +448,6 @@ ReduceFirst(TermNode&, ContextNode&);
 对异步规约，返回 Reduction::Partial ；
 否则，对枝节点，返回被调用的规约遍的求值结果；
 否则，对非枝节点，返回的规约状态总是 ReductionStatus::Regular 。
-若需要保证无异常时仅在规约成功后终止，使用 ReduceChecked 代替。
 */
 YF_API ReductionStatus
 ReduceOnce(TermNode&, ContextNode&);
@@ -1279,11 +1311,11 @@ RetainN(const TermNode&, size_t = 1);
 template<typename _func, typename... _tParams>
 inline auto
 CallRawUnary(_func&& f, TermNode& term, _tParams&&... args)
-	-> yimpl(decltype(ystdex::make_expanded<void(TermNode&, _tParams&&...)>(
-	std::ref(f))(NPL::Deref(std::next(term.begin())), yforward(args)...)))
+	-> yimpl(decltype(ystdex::expand_proxy<void(TermNode&, _tParams&&...)>
+	::call(f, NPL::Deref(std::next(term.begin())), yforward(args)...)))
 {
 	RetainN(term);
-	return ystdex::make_expanded<void(TermNode&, _tParams&&...)>(std::ref(f))(
+	return ystdex::expand_proxy<yimpl(void)(TermNode&, _tParams&&...)>::call(f,
 		NPL::Deref(std::next(term.begin())), yforward(args)...);
 }
 
@@ -1305,21 +1337,21 @@ CallResolvedUnary(_func&& f, TermNode& term)
 template<typename _type, typename _func, typename... _tParams>
 inline auto
 CallResolvedUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
-	-> yimpl(decltype(ystdex::make_expanded<void(_type&,
-	const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
-	NPL::Access<_type>(term), ResolvedTermReferencePtr(),
-	std::forward<_tParams>(args)...)))
+	-> yimpl(decltype(ystdex::expand_proxy<void(_type&, const
+	ResolvedTermReferencePtr&, _tParams&&...)>::call(f, NPL::Access<_type>(
+	term), ResolvedTermReferencePtr(), std::forward<_tParams>(args)...)))
 {
+	using handler_t
+		= yimpl(void)(_type&, const ResolvedTermReferencePtr&, _tParams&&...);
+
 	return Forms::CallResolvedUnary(
 		[&](TermNode& nd, ResolvedTermReferencePtr p_ref)
 		// TODO: Blocked. Use C++14 'decltype(auto)'.
-		-> decltype(ystdex::make_expanded<void(_type&,
-		const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
+		-> decltype(ystdex::expand_proxy<handler_t>::call(f,
 		std::declval<_type&>(), p_ref)){
 		// XXX: Blocked. 'yforward' cause G++ 7.1.0 failed silently.
-		return ystdex::make_expanded<void(_type&,
-			const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
-			NPL::Access<_type>(nd), p_ref, std::forward<_tParams>(args)...);
+		return ystdex::expand_proxy<handler_t>::call(f, NPL::Access<_type>(nd),
+			p_ref, std::forward<_tParams>(args)...);
 	}, term);
 }
 
@@ -1331,22 +1363,21 @@ CallResolvedUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 template<typename _type, typename _func, typename... _tParams>
 inline auto
 CallRegularUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
-	-> yimpl(decltype(ystdex::make_expanded<void(_type&,
-	const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
-	NPL::Access<_type>(term), ResolvedTermReferencePtr(),
-	std::forward<_tParams>(args)...)))
+	-> yimpl(decltype(ystdex::expand_proxy<void(_type&, const
+	ResolvedTermReferencePtr&, _tParams&&...)>::call(f, NPL::Access<_type>(
+	term), ResolvedTermReferencePtr(), std::forward<_tParams>(args)...)))
 {
+	using handler_t
+		= yimpl(void)(_type&, const ResolvedTermReferencePtr&, _tParams&&...);
+
 	return Forms::CallResolvedUnary(
 		// TODO: Blocked. Use C++14 'decltype(auto)'.
 		[&](TermNode& nd, ResolvedTermReferencePtr p_ref)
-		-> decltype(ystdex::make_expanded<void(_type&,
-		const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
+		-> decltype(ystdex::expand_proxy<handler_t>::call(f,
 		std::declval<_type&>(), p_ref)){
 		// XXX: Blocked. 'yforward' cause G++ 7.1.0 failed silently.
-		return ystdex::make_expanded<void(_type&,
-			const ResolvedTermReferencePtr&, _tParams&&...)>(std::ref(f))(
-			NPL::AccessRegular<_type>(nd, p_ref), p_ref,
-			std::forward<_tParams>(args)...);
+		return ystdex::expand_proxy<handler_t>::call(f, NPL::AccessRegular<
+			_type>(nd, p_ref), p_ref, std::forward<_tParams>(args)...);
 	}, term);
 }
 //@}
@@ -1685,11 +1716,13 @@ EqualValue(TermNode&);
 //@}
 
 
-//! \note 测试条件成立，当且仅当 \<test> 非 #f 。
+/*!
+\note 测试条件成立，当且仅当 \<test> 非 #f 。
+\sa ReduceOnce
+*/
 //@{
 /*!
 \brief 分支判断：根据求值的条件选取表达式求值。
-\sa ReduceChecked
 \since build 750
 
 求值第一参数作为测试条件，成立时取第二参数子项，否则当第三参数子项时取第三参数子项。
@@ -1704,7 +1737,6 @@ If(TermNode&, ContextNode&);
 
 /*!
 \brief 条件分支选择：根据条件列表顺序选取第一个符合其中条件对应的表达式求值。
-\sa ReduceChecked
 \since build 860
 
 参考调用文法：
@@ -1713,10 +1745,9 @@ If(TermNode&, ContextNode&);
 YF_API ReductionStatus
 Cond(TermNode&, ContextNode&);
 
-//! \since build 868
-//@{
 /*!
 \brief 条件顺序求值：预期条件成立。
+\since build 868
 
 求值第一参数子项作为测试条件，成立时顺序求值之后的子项。
 
@@ -1728,6 +1759,7 @@ When(TermNode&, ContextNode&);
 
 /*!
 \brief 条件顺序求值：预期条件不成立。
+\since build 868
 
 求值第一参数子项作为测试条件，不成立时顺序求值之后的子项。
 
@@ -1736,7 +1768,6 @@ When(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 Unless(TermNode&, ContextNode&);
-//@}
 //@}
 
 /*!
@@ -1753,7 +1784,7 @@ Not(TermNode&);
 
 /*!
 \note 支持保存当前动作。
-\sa ReduceChecked
+\sa ReduceOnce
 \since build 754
 */
 //@{

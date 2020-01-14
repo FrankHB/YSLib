@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2019 FrankHB.
+	© 2012-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCLib.txt
 \ingroup Documentation
 \brief YCLib 说明。
-\version r560
+\version r562
 \author FrankHB <frankhb1989@gmail.com>
 \since build 651
 \par 创建时间:
 	2015-11-19 09:05:02 +0800
 \par 修改时间:
-	2019-12-18 08:21 +0800
+	2020-01-12 18:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -359,7 +359,7 @@ build 593 起从 YSLib::Adaptor 迁移至 YCLib ，在 platform 命名空间引�
 
 @5.4.5 C 风格字符串转换模板：
 提供模板 ucast 和 wcast ，在特定平台使使用 wchar_t 和 char16_t 或 char32_t 的例程可互换。
-注意严格别名问题，参见 [Documentation::LanguageConvention @@5.2.10.1] 和 [Documentation::Workflow::Annual2016 $2016-06] 。
+注意严格别名问题，参见 [Documentation::LanguageConvention @@5.2.10.1] 和 [Documentation::Workflow $2016-06] 。
 另见 @1.6.3 、 @3.2.1 和 @7.2 。
 
 @5.4.6 函数模板 RetryOnError ：

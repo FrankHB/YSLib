@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2019 FrankHB.
+	© 2012-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r3051
+\version r3054
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2019-08-30 13:36 +0800
+	2020-01-12 18:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,7 +133,7 @@ public:
 	basic_string(sv_type sv, const _tAlloc& a = _tAlloc())
 		: basic_string(sv.data(), sv.size(), a)
 	{}
-	// NOTE: See $2018-07 @ %Documentation::Workflow::Annual2018.
+	// NOTE: See $2018-07 @ %Documentation::Workflow.
 	// XXX: Names would not be safely hidden.
 #if __cpp_inheriting_constructors >= 201511L
 	using base::base;
@@ -1194,7 +1194,7 @@ template<typename _tRange1, typename _tRange2, typename _fPred>
 YB_ATTR_nodiscard inline bool
 ends_with(const _tRange1& input, const _tRange2& test, _fPred comp)
 {
-	// NOTE: See $2014-07 @ %Documentation::Workflow::Annual2014.
+	// NOTE: See $2014-07 @ %Documentation::Workflow.
 	return details::ends_with_iter_dispatch(string_begin(input),
 		string_end(input), string_begin(test), string_end(test), comp, typename
 		std::iterator_traits<remove_reference_t<decltype(string_begin(input))>>

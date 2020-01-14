@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2019 FrankHB.
+	© 2009-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r5940
+\version r5942
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2019-09-12 14:51 +0800
+	2020-01-12 18:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -812,7 +812,7 @@ private:
 	using add_vh_t
 		// XXX: This cannot use %ystdex::vseq::ctor_of_t because it does not
 		//	work for %std::_Tuple_impl instances. See $2019-01
-		//	@ %Documentation::Workflow::Annual2019.
+		//	@ %Documentation::Workflow.
 		= ystdex::cond_t<IsValueHolder<_type>, _type, ValueHolder<_type>>;
 
 	//! \since build 748

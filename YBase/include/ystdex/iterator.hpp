@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2019 FrankHB.
+	© 2011-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r6106
+\version r6108
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2019-08-06 22:48 +0800
+	2020-01-12 18:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -935,7 +935,7 @@ public:
 	{
 		auto idx(col * height + row);
 
-		// NOTE: See $2015-02 @ %Documentation::Workflow::Annual2015.
+		// NOTE: See $2015-02 @ %Documentation::Workflow.
 		yassume(!(difference_type(idx) < -n)),
 		yassume(!(difference_type(width * height) < difference_type(idx) + n));
 		idx += size_type(n);

@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r6873
+\version r6943
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2020-01-05 00:57 +0800
+	2020-01-14 03:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,7 @@
 //	ystdex::is_nothrow_move_constructible, ystdex::is_nothrow_move_assignable,
 //	observer_ptr, ystdex::type_id, std::addressof, NPL::make_observer,
 //	ystdex::equality_comparable, weak_ptr, ystdex::get_equal_to, pair,
-//	ystdex::make_expanded, NPL::Access, ystdex::ref_eq, ValueObject,
+//	ystdex::expand_proxy, NPL::Access, ystdex::ref_eq, ValueObject,
 //	NPL::SetContentWith, AccessFirstSubterm, ystdex::less, YSLib::map, pmr,
 //	ystdex::copy_and_swap, NoContainer, ystdex::try_emplace,
 //	ystdex::try_emplace_hint, ystdex::insert_or_assign, ystdex::type_info,
@@ -1434,17 +1434,17 @@ IsUniqueTerm(const TermNode&);
 template<typename _func, class _tTerm>
 auto
 ResolveTerm(_func do_resolve, _tTerm&& term)
-	-> yimpl(decltype(ystdex::make_expanded<yimpl(void)(_tTerm&&,
-	ResolvedTermReferencePtr)>(std::ref(do_resolve))(yforward(term),
+	-> yimpl(decltype(ystdex::expand_proxy<yimpl(void)(_tTerm&&,
+	ResolvedTermReferencePtr)>::call(do_resolve, yforward(term),
 	ResolvedTermReferencePtr())))
 {
 	using handler_t = yimpl(void)(_tTerm&&, ResolvedTermReferencePtr);
 
 	// XXX: Assume value representation of %term is not trivially regular.
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
-		return ystdex::make_expanded<handler_t>(std::ref(do_resolve))(
-			p->get(), NPL::ResolveToTermReferencePtr(p));
-	return ystdex::make_expanded<handler_t>(std::ref(do_resolve))(
+		return ystdex::expand_proxy<handler_t>::call(do_resolve, p->get(),
+			NPL::ResolveToTermReferencePtr(p));
+	return ystdex::expand_proxy<handler_t>::call(do_resolve,
 		yforward(term), ResolvedTermReferencePtr());
 }
 
@@ -2435,47 +2435,16 @@ public:
 };
 
 
+//! \since build 877
+class ContextNode;
+
+
 /*!
 \brief 规约动作类型：和绑定所有参数的求值遍的处理器等价。
 \warning 假定转移不抛出异常。
 \since build 841
 */
-class YF_API Reducer : private YSLib::GHEvent<ReductionStatus()>
-{
-public:
-	using BaseType = YSLib::GHEvent<ReductionStatus()>;
-
-	DefDeCtor(Reducer)
-#if __cpp_inheriting_constructors >= 201511L
-	using BaseType::BaseType;
-#else
-	//! \since build 849
-	template<typename... _tParams, yimpl(typename
-		= ystdex::exclude_self_params_t<Reducer, _tParams...>)>
-	Reducer(_tParams&&... args)
-		: BaseType(yforward(args)...)
-	{}
-#endif
-	DefDeCopyMoveCtorAssignment(Reducer)
-
-	DefGetter(const ynothrow, const BaseType&, Base, *this)
-	DefGetter(ynothrow, BaseType&, BaseRef, *this)
-
-	using BaseType::operator bool;
-
-	YB_ATTR_nodiscard YB_PURE friend
-		PDefHOp(bool, ==, const Reducer& x, const Reducer& y) ynothrow
-		ImplRet(ystdex::ref_eq<>()(x, y))
-
-	using BaseType::operator();
-
-	friend DefSwap(ynothrow, Reducer,
-		ystdex::swap_dependent(_x.GetBaseRef(), _y.GetBaseRef()))
-
-	using BaseType::target;
-
-	using BaseType::target_type;
-};
+yimpl(using) Reducer = YSLib::GHEvent<ReductionStatus(ContextNode&)>;
 //@}
 
 
@@ -2902,36 +2871,55 @@ struct GComposedAction final
 	static_assert(std::is_object<_fCurrent>(),
 		"Next action shall be an object.");
 
+	//! \since build 877
+	using allocator_type
+		= decltype(std::declval<const ContextNode&>().get_allocator());
+
 	// NOTE: Lambda is not used to avoid unspecified destruction order of
 	//	captured component and better performance (compared to the case of
 	//	%pair used to keep the order).
-	lref<ContextNode> Context;
 	// NOTE: The destruction order of captured component is significant.
-	//! \since build 821
-	//@{
 	mutable _fNext Next;
 	// XXX: To support function objects like %std::bind result with mutable
 	//	bound parameters.
 	mutable _fCurrent Current;
 
 	template<typename _tParam1, typename _tParam2>
-	GComposedAction(ContextNode& ctx, _tParam1&& cur, _tParam2&& next)
-		: Context(ctx), Next(ystdex::make_obj_using_allocator<_fNext>(
-		ctx.get_allocator(), yforward(next))),
-		Current(ystdex::make_obj_using_allocator<_fCurrent>(
-		ctx.get_allocator(), yforward(cur)))
+	inline
+	GComposedAction(const ContextNode& ctx, _tParam1&& cur, _tParam2&& next)
+		: GComposedAction(yforward(cur), yforward(next), ctx.get_allocator())
 	{}
-	//@}
+	//! \since build 877
+	template<typename _tParam1, typename _tParam2>
+	inline
+	GComposedAction(_tParam1&& cur, _tParam2&& next, allocator_type a)
+		: Next(ystdex::make_obj_using_allocator<_fNext>(a,
+		yforward(next))), Current(ystdex::make_obj_using_allocator<_fCurrent>(
+		a, yforward(cur)))
+	{}
 	// XXX: Copy is not intended used directly, but for well-formness.
 	DefDeCopyMoveCtor(GComposedAction)
+	//! \since build 877
+	GComposedAction(const GComposedAction& act, allocator_type a)
+		: Next(ystdex::make_obj_using_allocator<_fNext>(a, act.Next)),
+		Current(ystdex::make_obj_using_allocator<_fCurrent>(a, act.Current))
+	{}
+	//! \since build 877
+	GComposedAction(GComposedAction&& act, allocator_type a)
+		: Next(ystdex::make_obj_using_allocator<_fNext>(a,
+		std::move(act.Next))), Current(ystdex::make_obj_using_allocator<
+		_fCurrent>(a, std::move(act.Current)))
+	{}
 
 	DefDeMoveAssignment(GComposedAction)
 
+	//! \since build 877
 	ReductionStatus
-	operator()() const
+	operator()(ContextNode& ctx) const
 	{
-		RelaySwitched(Context, std::move(Next));
-		return Current();
+		RelaySwitched(ctx, std::move(Next));
+		return ystdex::expand_proxy<Reducer::FuncType>::call(Current,
+			ctx);
 	}
 };
 

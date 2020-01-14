@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3024
+\version r3026
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2020-01-05 02:23 +0800
+	2020-01-13 19:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -752,7 +752,7 @@ LiftTermOrCopy(TermNode& term, TermNode& tm, bool move)
 void
 LiftTermValueOrCopy(TermNode& term, TermNode& tm, bool move)
 {
-	// NOTE: See $2018-02 @ %Documentation::Workflow::Annual2018.
+	// NOTE: See $2018-02 @ %Documentation::Workflow.
 	// NOTE: This is compatible to the irregular representation of subobject
 	//	references provided the setting order of %NPL::SetContentWith.
 	// TODO: Check the representation is sane?
@@ -1137,7 +1137,7 @@ ContextNode::ApplyTail()
 {
 	// TODO: Avoid stack overflow when current action is called.
 	YAssert(bool(Current), "No tail action found.");
-	return LastStatus = Switch()();
+	return LastStatus = Switch()(*this);
 }
 
 void

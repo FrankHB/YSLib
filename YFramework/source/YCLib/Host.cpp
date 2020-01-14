@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2019 FrankHB.
+	© 2014-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r822
+\version r824
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2019-11-29 03:40 +0800
+	2020-01-12 18:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -375,7 +375,7 @@ Terminal::Terminal(std::FILE* fp)
 		// NOTE: This is not necessary for Windows since it only determine
 		//	whether the file descriptor is associated with a character device.
 		//	However as a optimization, it is somewhat more efficient for some
-		//	cases. See $2015-01 @ %Documentation::Workflow::Annual2015.
+		//	cases. See $2015-01 @ %Documentation::Workflow.
 		if(YCL_CallGlobal(isatty, fd))
 #	if YCL_Win32
 			TryRet(new TerminalData(fd))

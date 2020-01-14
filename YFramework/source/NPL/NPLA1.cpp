@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r15156
+\version r15265
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-01-05 00:58 +0800
+	2020-01-14 19:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -199,7 +199,7 @@ SetupNextTerm(ContextNode& ctx, TermNode& term)
 	ContextState::Access(ctx).SetNextTermRef(term);
 }
 
-// NOTE: See $2018-09 @ %Documentation::Workflow::Annual2018 for rationale of
+// NOTE: See $2018-09 @ %Documentation::Workflow for rationale of the
 //	implementation.
 // XXX: First-class continuations are not implemented yet, due to lack of term
 //	replacement mechanism in captured continuation. Kernel-style continuation
@@ -308,7 +308,7 @@ private:
 	mutable list<ContextHandler> xgds{};
 
 public:
-	// See $2018-06 @ %Documentation::Workflow::Annual2018 for details.
+	// See $2018-06 @ %Documentation::Workflow for details.
 	//! \since build 825
 	mutable observer_ptr<const ContextHandler> LastFunction{};
 	//! \since build 820
@@ -335,15 +335,17 @@ public:
 
 	DefDeMoveAssignment(TCOAction)
 
+	//! \since build 877
 	ReductionStatus
-	operator()() const
+	operator()(ContextNode& ctx) const
 	{
-		auto& ctx(EnvGuard.func.Context.get());
+		YAssert(ystdex::ref_eq<>()(EnvGuard.func.Context.get(), ctx),
+			"Invalid context found.");
 
 		RelaySwitched(ctx, std::move(Next));
 
 		// NOTE: Lifting is optional, but is shall be performed before release
-		//	of guards. See also $2018-02 @ %Documentation::Workflow::Annual2018.
+		//	of guards. See also $2018-02 @ %Documentation::Workflow.
 		const auto res(HandleResultLiftRequest(Term, ctx));
 
 		// NOTE: The order here is significant. The environment in the guards
@@ -505,18 +507,11 @@ ReduceChildrenOrderedAsync(TNIter first, TNIter last, ContextNode& ctx)
 	if(first != last)
 	{
 		SetupNextTerm(ctx, *first++);
-		return RelayNext(ctx, Continuation(ReduceChecked, ctx),
+		return RelayNext(ctx, std::ref(ContextState::Access(ctx).ReduceOnce),
 			ComposeSwitched(ctx, std::bind(ReduceChildrenOrderedAsync, first,
 			last, std::ref(ctx))));
 	}
 	return ReductionStatus::Clean;
-}
-#else
-//! \since build 841
-ReductionStatus
-ReduceCheckedSync(TermNode& term, ContextNode& ctx)
-{
-	return CheckedReduceWith(Reduce, term, ctx);
 }
 #endif
 
@@ -665,7 +660,7 @@ FetchContextOrTailEnvironmentReference(const TermReference& ref,
 }
 
 //! \since build 874
-// XXX: This is more efficient, at least in code generation by x86_64-w64-linux
+// XXX: This is more efficient, at least in code generation by x86_64-pc-linux
 //	G++ 9.2 for %WrapN.
 template<typename _fCopy, typename _fMove>
 YB_ATTR_nodiscard YB_FLATTEN auto
@@ -705,10 +700,10 @@ ReduceSubsequent(TermNode& term, ContextNode& ctx, _fCurrent&& next)
 {
 #if NPL_Impl_NPLA1_Enable_Thunked
 	SetupNextTerm(ctx, term);
-	return RelayNext(ctx, Continuation(ReduceChecked, ctx),
+	return RelayNext(ctx, std::ref(ContextState::Access(ctx).ReduceOnce),
 		ComposeSwitched(ctx, yforward(next)));
 #else
-	ReduceCheckedSync(term, ctx);
+	ReduceOnce(term, ctx);
 	return next();
 #endif
 }
@@ -1092,7 +1087,7 @@ struct DoDefineOrSet final
 	CallImpl(TermNode& term, ContextNode& ctx, Environment& env,
 		TermNode& formals)
 	{
-		ReduceCheckedSync(term, ctx);
+		ReduceOnce(term, ctx);
 		BindParameter(env, formals, term);
 	}
 #endif
@@ -1360,8 +1355,8 @@ struct RecordCompressor final
 	}
 };
 
-// NOTE: See $2018-06 @ %Documentation::Workflow::Annual2018 and $2019-06 @
-//	%Documentation::Workflow::Annual2019 for details.
+// NOTE: See $2018-06 @ %Documentation::Workflow and $2019-06 @
+//	%Documentation::Workflow for details.
 //! \since build 861
 void
 CompressTCOFrames(ContextNode& ctx, TCOAction& act)
@@ -1419,10 +1414,11 @@ struct EvalLiteAction
 
 	DefDeMoveAssignment(EvalLiteAction)
 
+	//! \since bulid 877
 	ReductionStatus
-	operator()() const
+	operator()(ContextNode& ctx) const
 	{
-		return Next();
+		return Next(ctx);
 	}
 };
 
@@ -1445,13 +1441,14 @@ struct EvalAction : EvalLiteAction
 
 	DefDeMoveAssignment(EvalAction)
 
+	//! \since build 877
 	ReductionStatus
-	operator()() const
+	operator()(ContextNode& ctx) const
 	{
 		{
 			const auto egd(std::move(Guard));
 		}
-		return EvalLiteAction::operator()();
+		return EvalLiteAction::operator()(ctx);
 	}
 };
 
@@ -1542,7 +1539,8 @@ EvalImplUnchecked(TermNode& term, ContextNode& ctx, bool no_lift)
 	}, NPL::Deref(i));
 	SetupNextTerm(ctx, term);
 	return RelayForEval(ctx, term, EnvironmentGuard(ctx, ctx.SwitchEnvironment(
-		std::move(p_env))), no_lift, Continuation(ReduceChecked, ctx));
+		std::move(p_env))), no_lift,
+		std::ref(ContextState::Access(ctx).ReduceOnce));
 }
 
 //! \since build 822
@@ -1835,7 +1833,7 @@ private:
 	EnvironmentReference environment_ref;
 #else
 	// XXX: The anchor pointer here is for more efficient native code generation
-	//	(at least with x86_64-w64-linux G++ 9.2), though there are still more
+	//	(at least with x86_64-pc-linux G++ 9.2), though there are still more
 	//	than necessary memory allocations should have been better avoided.
 	AnchorPtr anchor_ptr;
 #endif
@@ -1843,7 +1841,6 @@ private:
 public:
 	lref<const ContextHandler> HandlerRef;
 
-public:
 	//! \since build 869
 	RefContextHandler(const ContextHandler& h,
 		const EnvironmentReference& env_ref) ynothrow
@@ -1997,7 +1994,7 @@ BindNonmovableLocalReference(TermTags o_tags, TermNode& o, _fMove mv,
 TermNode
 EvaluateBoundValue(TermNode& term, Environment& env)
 {
-	if(const auto p = NPL::TryAccessLeaf<TermReference>(term))
+	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
 		return std::move(term);
 	return NPL::AsTermNode(term.get_allocator(), TermReference(term.Tags, term,
 		env.shared_from_this()));
@@ -2006,12 +2003,13 @@ EvaluateBoundValue(TermNode& term, Environment& env)
 TermNode
 EvaluateBoundLValue(TermNode& term, Environment& env)
 {
-	// NOTE: As %EvaluateIdentifier.
-	auto t(EvaluateBoundValue(term, env));
-
-	t.Value
-		= EnsureLValueReference(std::move(t.Value.GetObject<TermReference>()));
-	return std::move(t);
+	if(const auto p = NPL::TryAccessLeaf<TermReference>(term))
+	{
+		*p = EnsureLValueReference(std::move(*p));
+		return std::move(term);
+	}
+	return NPL::AsTermNode(term.get_allocator(), EnsureLValueReference(
+		TermReference(term.Tags, term, env.shared_from_this())));
 }
 //@}
 
@@ -2033,7 +2031,8 @@ ReduceCallSubsequent(TermNode& term, ContextNode& ctx,
 	shared_ptr<Environment> p_env, _fCurrent&& next)
 {
 #if NPL_Impl_NPLA1_Enable_Thunked
-	// TODO: Blocked. Use C++14 lambda initializers to simplify the implementation.
+	// TODO: Blocked. Use C++14 lambda initializers to simplify the
+	//	implementation.
 	return RelayNext(ctx, std::bind([&](shared_ptr<Environment>& p_e){
 #	if NPL_Impl_NPLA1_Enable_TCO
 		// TODO: Optimize with known combiner calls. Ideally %EnsureTCOAction
@@ -2852,6 +2851,12 @@ ContextState::SetNextTermRef(TermNode& term)
 	next_term_ptr = NPL::make_observer(&term);
 }
 
+Continuation
+ContextState::InitReduceOnce() const
+{
+	return Continuation(A1::ReduceOnce, *this);
+}
+
 ReductionStatus
 ContextState::RewriteGuarded(TermNode& term, Reducer reduce)
 {
@@ -2871,7 +2876,7 @@ Reduce(TermNode& term, ContextNode& ctx)
 #endif
 	SetupNextTerm(ctx, term);
 	return ContextState::Access(ctx).RewriteGuarded(term,
-		Continuation(ReduceOnce, ctx));
+		std::ref(ContextState::Access(ctx).ReduceOnce));
 }
 
 ReductionStatus
@@ -2891,7 +2896,7 @@ ReduceAgain(TermNode& term, ContextNode& ctx)
 	}));
 #	endif
 #else
-	return Reduce(term, ctx);
+	return ReduceOnce(term, ctx);
 #endif
 }
 
@@ -2905,27 +2910,6 @@ ReduceArguments(TNIter first, TNIter last, ContextNode& ctx)
 		ReduceChildren(++first, last, ctx);
 	else
 		ThrowInvalidSyntaxError("Invalid function application found.");
-}
-
-ReductionStatus
-ReduceChecked(TermNode& term, ContextNode& ctx)
-{
-#if NPL_Impl_NPLA1_Enable_Thunked
-	// XXX: Assume it is always reducing the same term and the next actions are
-	//	safe to be dropped.
-	RelaySwitched(ctx, [&]{
-		if(ctx.LastStatus == ReductionStatus::Retrying)
-		{
-			SetupNextTerm(ctx, term);
-			return RelaySwitched(ctx, Continuation(ReduceOnce, ctx));
-		}
-		return ctx.LastStatus;
-	});
-	return ReductionStatus::Retrying;
-#else
-	ReduceCheckedSync(term, ctx);
-	return ReductionStatus::Regular;
-#endif
 }
 
 void
@@ -2942,7 +2926,7 @@ ReduceChildren(TNIter first, TNIter last, ContextNode& ctx)
 #if NPL_Impl_NPLA1_Enable_Thunked
 	ReduceChildrenOrderedAsync(first, last, ctx);
 #else
-	std::for_each(first, last, ystdex::bind1(ReduceCheckedSync, std::ref(ctx)));
+	std::for_each(first, last, ystdex::bind1(ReduceOnce, std::ref(ctx)));
 #endif
 }
 
@@ -2954,7 +2938,7 @@ ReduceChildrenOrdered(TNIter first, TNIter last, ContextNode& ctx)
 #else
 	const auto tr([&](TNIter iter){
 		return ystdex::make_transform(iter, [&](TNIter i){
-			return ReduceChecked(*i, ctx);
+			return ReduceOnce(*i, ctx);
 		});
 	});
 
@@ -3230,21 +3214,42 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 	//	directly and without rebinding. Note access of objects denoted by
 	//	invalid reference after rebinding would cause undefined behavior in the
 	//	object language.
-	term = ResolveIdentifier(ctx, id);
+	auto pr(ResolveName(ctx, id));
 
-	auto& ref(term.Value.GetObject<TermReference>());
-	auto& rterm(ref.get());
+	if(pr.first)
+	{
+		auto& bound(*pr.first);
+		TermNode* p_rterm;
 
-	// NOTE: Every reference to the object in the environment is assumed
-	//	aliased, so no %TermTags::Unique is preserved.
-	ref = EnsureLValueReference(std::move(ref));
-	// NOTE: This is not guaranteed to be saved as %ContextHandler in
-	//	%ReduceCombined.
-	if(const auto p_handler = NPL::TryAccessTerm<LiteralHandler>(rterm))
-		return (*p_handler)(ctx);
-	// NOTE: Unevaluated term shall be detected and evaluated. See also
-	//	$2017-05 @ %Documentation::Workflow::Annual2017.
-	return ReductionStatus::Neutral;
+		// NOTE: This is essentially similar to a successful call to
+		//	%ResolveIdentifier plus a call to %EnsureLValueReference, except
+		//	that the term tags are always not touched and the term container is
+		//	also not touched when the result is not a reference.
+		// NOTE: Every reference to the object in the environment is assumed
+		//	aliased, so no %TermTags::Unique is preserved.
+		if(const auto p = NPL::TryAccessLeaf<const TermReference>(bound))
+		{
+			p_rterm = &p->get();
+			term.SetContent(bound.GetContainer(),
+				EnsureLValueReference(TermReference(*p)));
+		}
+		else
+		{
+			auto& env(pr.second.get());
+
+			p_rterm = &bound;
+			term.Value = TermReference(env.MakeTermTags(bound)
+				& ~TermTags::Unique, bound, env.shared_from_this());
+		}
+		// NOTE: This is not guaranteed to be saved as %ContextHandler in
+		//	%ReduceCombined.
+		if(const auto p_handler = NPL::TryAccessTerm<LiteralHandler>(*p_rterm))
+			return (*p_handler)(ctx);
+		// NOTE: Unevaluated term shall be detected and evaluated. See also
+		//	$2017-05 @ %Documentation::Workflow.
+		return ReductionStatus::Neutral;
+	}
+	throw BadIdentifier(id);
 }
 
 ReductionStatus
@@ -3350,9 +3355,9 @@ RelayForEval(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 	return RelayForAction(EvalAction(ctx, gd), ctx, term, no_lift,
 		std::move(next));
 #else
-	yunused(ctx), yunused(gd);
+	yunused(gd);
 
-	const auto res(next.Handler(term, next.Context));
+	const auto res(next.Handler(term, ctx));
 
 	return no_lift ? res : ReduceForLiftedResult(term);
 #endif
@@ -3366,7 +3371,7 @@ RelayForCall(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 	//	%TermTags::Temporary, no lifetime extension needs to be cared here.
 	SetupNextTerm(ctx, term);
 	return RelayForEval(ctx, term, std::move(gd), no_lift,
-		Continuation(ReduceChecked, ctx));
+		std::ref(ContextState::Access(ctx).ReduceOnce));
 }
 
 
@@ -3449,8 +3454,16 @@ BindParameter(Environment& env, const TermNode& t, TermNode& o)
 void
 SetupDefaultInterpretation(ContextState& root, EvaluationPasses passes)
 {
+#if true
+	// XXX: Optimized based synchrnous call of %ReduceHeadEmptyList.
+	passes += [](TermNode& t, ContextNode& c){
+		ReduceHeadEmptyList(t);
+		return ReduceFirst(t, c);
+	};
+#else
 	passes += ReduceHeadEmptyList;
 	passes += ReduceFirst;
+#endif
 	// TODO: Insert more optional optimized lifted form evaluation passes.
 	// XXX: This should be the last of list pass for current TCO
 	//	implementation, assumed by TCO action.
@@ -3646,7 +3659,7 @@ Cond(TermNode& term, ContextNode& ctx)
 		auto& clause(Deref(i));
 		auto j(CondClauseCheck(clause));
 
-		ReduceCheckedSync(Deref(j), ctx);
+		ReduceOnce(Deref(j), ctx);
 		if(CondTest(clause, j))
 			return ReduceAgainLifted(term, ctx, clause);
 	}

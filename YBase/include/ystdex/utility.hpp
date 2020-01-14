@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2019 FrankHB.
+	© 2010-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3550
+\version r3553
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2019-01-31 02:32 +0800
+	2020-01-12 18:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -138,7 +138,7 @@ struct is_nt_dc : is_nothrow_constructible<_type>
 	&& (YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 80200 && YB_IMPL_GNUCPP > 70100)
 // XXX: Workaround of libstdc++ non-SFINAE friendly std::tuple implementation.
 //	It is unknown which versions are exactly affected. See $2019-01
-//	@ %Documentation::Workflow::Annual2019.
+//	@ %Documentation::Workflow.
 template<size_t _vIdx, typename _type, typename... _types>
 struct is_nt_dc<std::_Tuple_impl<_vIdx, _type, _types...>>
 	: and_<is_nothrow_constructible<_type>,
@@ -374,7 +374,7 @@ public:
 \tparam _tOnceFlag 初始化调用标识。
 \note 使用 ADL call_once 。
 \note 线程安全取决于 call_once 对 _tOnceFlag 的支持。
-	若对支持 \c \<mutex\> 的实现使用 std::once_flag ，
+	若对支持 \c \<mutex> 的实现使用 std::once_flag ，
 	对应 std::call_once ，则是线程安全的。
 \since build 328
 \todo 使用支持 lambda pack 展开的实现构造模板。

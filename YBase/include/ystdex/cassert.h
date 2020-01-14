@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2018-2019 FrankHB.
+	© 2012-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cassert.h
 \ingroup YStandardEx
 \brief ISO C 断言/调试跟踪扩展。
-\version r258
+\version r260
 \author FrankHB <frankhb1989@gmail.com>
 \since build 432
 \par 创建时间:
 	2013-07-27 04:11:53 +0800
 \par 修改时间:
-	2019-08-06 22:01 +0800
+	2020-01-12 18:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,7 +101,7 @@ ytrace(std::FILE*, std::uint8_t, std::uint8_t, const char*, int, const char*,
 \brief 约束：接口语义。
 \note 和普通断言相比强调接口契约。
 \note 使用常量表达式在 ISO C++11 constexpr 模板中合式。
-\see $2015-10 @ %Documentation::Workflow::Annual2015.
+\see $2015-10 @ %Documentation::Workflow.
 
 可能在运行时检查的接口语义约束断言。
 不满足此断言的行为是接口明确地未定义的，行为不可预测。

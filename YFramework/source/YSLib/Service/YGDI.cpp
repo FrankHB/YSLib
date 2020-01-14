@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015, 2019 FrankHB.
+	© 2009-2015, 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGDI.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2975
+\version r2977
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2019-01-14 17:04 +0800
+	2020-01-12 18:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -107,7 +107,7 @@ CompactPixmap::CompactPixmap(unique_ptr<Pixel[]> p, const Size& s) ynothrow
 	: BaseType(std::move(p), s)
 {}
 CompactPixmap::CompactPixmap(const CompactPixmap& buf)
-	// XXX: $2015-03 @ %Documentation::Workflow::Annual2015.
+	// XXX: $2015-03 @ %Documentation::Workflow.
 	: BaseType(), IImage()
 {
 	SetSize(buf.GetSize());

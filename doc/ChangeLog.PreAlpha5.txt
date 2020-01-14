@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2019 FrankHB.
+	© 2014-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r15403
+\version r15447
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2019-02-22 14:28 +0800
+	2020-01-12 18:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1199,7 +1199,7 @@ b594
 	/ %YBase $=
 	(
 		* "strict ISO C++ code conformance" @ %LibDefect $since b308
-			$= (* "missing including <cwchar>" @ %YStandardEx.String),
+			$= (* "missing inclusion <cwchar>" @ %YStandardEx.String),
 		/ %YStandardEx $=
 		(
 			+ "enum class %byte_order" @ %CStandardInteger,
@@ -1542,7 +1542,7 @@ b592
 						'GetMessageW'.
 				+ '#undef ExpandEnvironmentStrings'
 			),
-			- DLB "redundant inclusion of '<Shlwapi.h>'" @ "platform %Win32"
+			- DLB "redundant inclusion <Shlwapi.h>" @ "platform %Win32"
 				@ %FileSystem $redendant $since b559,
 			/ @ "platform %Win32" %HostedGUI $=
 			(
@@ -1922,7 +1922,7 @@ b590
 		(
 			+ "missing 'using ystdex::is_undereferenceable;'"
 				@ "function template %transform_n",
-			* "missing including %CAssertion" $since b576
+			* "missing inclusion %CAssertion" $since b576
 				// This might cause 'yconstraint' used without defined.
 		)
 	),
@@ -2033,12 +2033,12 @@ b590
 		YGraphics, YCoreUtilities, Task)), YCLib.(XCB, HostedGUI, Video,
 		FileSystem), 'YCLib_(MinGW32)'.COM, CHRLib.(StaticMapping,
 		CharacterProcessing), YDefinition),
-		// See $2015-04 @ %Documentation::Workflow::Annual2015.
+		// See $2015-04 @ %Documentation::Workflow.
 	/ DLD "simplified noexcept exception specifications with \
 		%integral_constant derived types" ^ '()' ~ 'value' $effective
 		@ %YBase.YStandardEx.(Iterator, ScopeGuard, Utilities),
 		YFramework.YSLib.Core.YEvent),
-		// See $2015-04 @ %Documentation::Workflow::Annual2015.
+		// See $2015-04 @ %Documentation::Workflow.
 	/ $re_ex(b586) DLD "simplified noexcept exception specifications"
 		^ 'ynoexcept_spec' ~ "nested 'ynoexcept'" $effective
 		@ %YBase.YStandardEx.(Any, Examiner),
@@ -2182,7 +2182,7 @@ b589
 			/ "alias template %make_natural_sequence_t" -> (("alias templates \
 				%(make_integer_sequence; make_index_sequence")
 				@ !'__cplusplus > 201402L' @ %IntegerSequence)
-				// See $2015-03 @ %Documentation::Workflow::Annual2015 for \
+				// See $2015-03 @ %Documentation::Workflow for \
 					details about '__cplusplus'.
 			),
 			/ "class template %variadic_sequence"
@@ -2399,7 +2399,7 @@ b588
 			@ %Functional >> %Functor;
 		* "strict ISO C++ code conformance" @ "functor %deref_str_comp" $orig
 			(@ %Functional $since b333)
-			$= (* "missing including <algorithm> for \
+			$= (* "missing inclusion <algorithm> for \
 				%std::lexicographical_compare")
 		),
 		/ DLD "simplified inclusion" @ %Concurrency,
@@ -3264,7 +3264,7 @@ b586
 		+ '-Wshorten-64-to-32 -Wweak-vtables' @ "default value"
 			@ "variable %CXXFLAGS_IMPL_WARNING for Clang++"
 			@ "%SHBuild-common-options.sh",
-			// See $2015-03 @ %Documentation::Workflow::Annual2015 for details \
+			// See $2015-03 @ %Documentation::Workflow for details \
 				of '-Wweak-vtables'. Though it is not fit for every project, \
 				it is still tentatively placed here in the script.
 		(
@@ -3396,7 +3396,7 @@ b585
 		platform %DS" @ %YSTest_(ARM9).Main,
 	/ "%RevisionPatcher.sh" @ %Tools.Scripts $=
 	(
-		// See $2015-03 @ %Documentation::Workflow::Annual2014.
+		// See $2015-03 @ %Documentation::Workflow.
 		/ "default value" @ "variable %PatchEnd" -> '30' ~ '20',
 		/ "restricted revision pattern with single prefixed number character"
 	),
@@ -3502,7 +3502,7 @@ b584
 			(
 				/ $dev $re_ex(b572) "all 'const TimeSpan&' parameter"
 					-> 'TimeSpan' $effective @ "function %Delay",
-					// See $2015-01 @ %Documentation::Workflow::Annual2015.
+					// See $2015-01 @ %Documentation::Workflow.
 				/ "underlying integer type" @ "alias %TimeSpan"
 					-> "unsigned type as of %Duration";
 				/ "class %HighResolutionClock; alias-declarations %(Duration, \
@@ -3723,7 +3723,7 @@ b582
 							@ "class %TextBox" $dep_from
 							("%GUIState::UpdateChar" @ %YGUI) $since b489,
 							// See $2015-03 @ \
-								%Documentation::Workflow::Annual2015.
+								%Documentation::Workflow.
 						(
 						+ "function %GetPenOffset";
 						- "calculation of pen offset" @ "function \
@@ -4183,7 +4183,7 @@ b578
 				// They should be used as %std::(min, max) with 'constexpr' \
 					in ISO C++14.
 			* "strict ISO C++ code conformance" $since b532
-				$= (* "missing including <functional>")
+				$= (* "missing inclusion <functional>")
 		),
 		/ @ "function templates %unique_raw" %Memory $=
 		(
@@ -4408,7 +4408,7 @@ b576
 					templates are now compatible with Boost.Operators.
 		),
 		* "strict ISO C++ code conformance" $since b532
-			$= (* "missing including <iterator>" @ %Array),
+			$= (* "missing inclusion <iterator>" @ %Array),
 		/ "simplified iterator interface" @ %Iterator ^ %Operators $=
 		(
 			+ "metafunction %iterator_operators_t";
@@ -4879,7 +4879,7 @@ b572
 		),
 		/ $dev "all 'const Duration&' parameter" -> 'Duration'
 			$effective %(YSLib.Service.YTimer, UI.YGUI),
-			// See $2015-01 @ %Documentation::Workflow::Annual2015.
+			// See $2015-01 @ %Documentation::Workflow.
 		/ $lib $design "simplified type of data member %Environment::MapPoint"
 			@ "platform %Android" @ %Helper.Environment ^ $dep_from \
 			("%ystdex::id_func_clr_t" @ %YBase.YStandardEx.Functional)
@@ -5066,7 +5066,7 @@ b570
 				$since b278,
 			- $re_ex(b406) '&&' @ "parameter"
 				@ "member function %Widget::SetView" @ %YWidget,
-				// See $2015-01 @ %Documentation::Workflow::Annual2015.
+				// See $2015-01 @ %Documentation::Workflow.
 		)
 	),
 	/ $dev $repo $re_add(b569) "all edited file with module name not the same \
@@ -5247,7 +5247,7 @@ b567
 			/ @ "class %Terminal" $=
 			(
 				/ "creating terminal data only when for TTY";
-					// See $2015-01 @ %Documentation::Workflow::Annual2015.
+					// See $2015-01 @ %Documentation::Workflow.
 				* $comp "escape sequence output even if underlying stream \
 					redirected" @ !"platform %Win32" $since b560
 			)
@@ -5538,7 +5538,7 @@ b565
 		* "probable crash on console window close (or Ctrl+C handled, etc)"
 			@ "platform %Win32" @ %Helper $since b299 $dep_from
 			("function %FixConsoleHandler" @ %'YCLib_(MinGW32)'.MinGW32)
-			// See $2015-01 @ %Documentation::Workflow::Annual2015.
+			// See $2015-01 @ %Documentation::Workflow.
 	),
 	/ %YBase.YStandardEx.String $=
 	(
@@ -5567,7 +5567,7 @@ b565
 			@ "%install-sysroot.sh" $dep_from %PatchRevision,
 		+ $dev "file %FixUAC.manifest as source to workaround UAC privilege \
 			problem",
-			// See $2015-01 @ %Documentation::Workflow::Annual2015.
+			// See $2015-01 @ %Documentation::Workflow.
 		+ $dev "%DrMemory-YSLib-suppress.txt" @ %Tools,
 			// Saved as ANSI/UTF-8 compatible encoding without BOM, because \
 				DrMemory would reject BOM.
@@ -5580,7 +5580,7 @@ b565
 		+ "pattern 'bak.patch'"
 			// To ignore revision patching backup file.
 	),
-	* $dev $design "location for %Documentation::Workflow::Annual2015"
+	* $dev $design "location for %Documentation::Workflow"
 		@ "filter of Microsoft VC++ project" $since b564,
 	/ $dev $repo $re_add(b564) "all edited file with module name not the same \
 		as base filename" @ !%YBase ^ 'hg mv' $effective @ ("%chrproc.h"
@@ -6078,7 +6078,7 @@ b562
 				@ %Core.YModules $since b561,
 			/ %Adaptor $=
 			(
-				* "missing including <ext/malloc_allocator.h> for libstdc++ \
+				* "missing inclusion <ext/malloc_allocator.h> for libstdc++ \
 					used without G++" @ %YNew $since b561,
 				/ %Font $=
 				(
@@ -6183,7 +6183,7 @@ b562
 			+ "metafunction %common_nonvoid_t" @ %TypeOperation,
 			/ %Array $=
 			(
-				* "missing including <ystdex/utility.hpp>" $since b532,
+				* "missing inclusion <ystdex/utility.hpp>" $since b532,
 					// For 'decay_copy'.
 				+ "metafunction %common_array_t" $dep_from %TypeOperation;
 				/ "function templates %(make_array, forward_as_array)" $=
@@ -6350,7 +6350,7 @@ b561
 			~ "raw '__GLIBCXX__'" @ %Concurrency,
 			// Just for uniformly using.
 		* "strict ISO C++ code conformance" $since b525
-			$= (* "missing including <memory>" @ %Utilities),
+			$= (* "missing inclusion <memory>" @ %Utilities),
 		* "missing rebinding allocator type for \
 			%used_list_cache::(used_list_type, used_cache_type)" @ %Cache $since
 			b521 $orig ("%GMRUCache::(UseList, UseCache)"
@@ -7097,7 +7097,7 @@ b557
 	),
 	/ %YBase.YStandardEx $=
 	(
-		/ DLD ^ 'override' ~ 'virtual'
+		/ $re_add(b488) DLD ^ 'override' ~ 'virtual'
 			@ "destructors %(unsupported, unimplemented)" @ %Exception,
 		/ @ "class %thread_pool" @ %Concurrency $=
 		(
@@ -7635,7 +7635,7 @@ b554
 		),
 		/ @ %YSLib.Adaptor.YReference $dep_from %YBase.YStandardEx.Functional $=
 		(
-			// See $2014-11 @ %Documentation::Workflow::Annual2014.
+			// See $2014-11 @ %Documentation::Workflow.
 			+ 'using ystdex::reference_wrapper;'
 		),
 		/ DLD "implemented %operator()" @ "class %ChildPainter"
@@ -7700,7 +7700,7 @@ b554
 	(
 		/ @ "namespace %ystdex" @ %Functional $=
 		(
-			// See $2014-11 @ %Documentation::Workflow::Annual2014.
+			// See $2014-11 @ %Documentation::Workflow.
 			+ "class template %lref";
 			+ "class template specialization %wrapped_traits for %lref",
 			+ "function templates %(ref, cref)",
@@ -7710,7 +7710,7 @@ b554
 		^ 'lref' ~ 'std::reference_wrapper' @ "function parameters"
 			@ "namespace %ystdex" $dep_from ("%reference_wrapper" @ %Functional)
 			$effective @ %(Any, Functional),
-			// See $2014-11 @ %Documentation::Workflow::Annual2014.
+			// See $2014-11 @ %Documentation::Workflow.
 		* "all 2 redundant ';' in class definitions" @ %Container $since b408,
 			// To eliminate Clang++ warning: extra ';' after member function \
 				definition [-Wextra-semi].
@@ -7723,7 +7723,7 @@ b554
 			// To eliminate Clang++ warning: [-Wdocumentation].
 	),
 	(
-	// See $2014-11 @ %Documentation::Workflow::Annual2014.
+	// See $2014-11 @ %Documentation::Workflow.
 	/ $dev "simplified reference wrapper with namespace %YSLib used"
 		^ 'lref' ~ 'std::reference_wrapper' @ "data members"
 		$effective @ %YFramework.(Helper.(HostRenderer, HostWindow, \
@@ -7739,7 +7739,7 @@ b554
 		%std::reference_wrapper concerned" ^ "%ystdex::(ref, cref)"
 		~ "%std::(ref, cref)" $effective "%std::ref" @ %YFramework.YSLib.(
 		Core.ValueNode, Adaptor.Font, UI.(Menu, YGUI, YPanel, YUIContainer)),
-	/ "updated toolchain version for NDK r10c" @ "command line options"
+	/ "updated toolchain version with Android NDK r10c" @ "command line options"
 		@ "%make-clang-android.sh" @ %Tools $=
 	(
 		/ '--toolchain=arm-linux-androideabi-4.8'
@@ -7773,7 +7773,7 @@ b553
 		(
 			/ %Debug $=
 			(
-				* "missing including <ystdex/string.hpp>"
+				* "missing inclusion <ystdex/string.hpp>"
 					@ "header file" $since b499,
 					// Thus 'ystdex::sfmt' would be not necessarily declared.
 				+ "function templates %(Nonnull; Deref)"
@@ -8104,7 +8104,7 @@ b551
 		(
 			* $dev $build "ill-formed code" $since b550 $=
 			(
-				* "missing including <chrono>",
+				* "missing inclusion <chrono>",
 				* "order of alias-declaration"
 					@ "class templates %(lock_guard, unique_lock)",
 				* "constructing %std::system_error" $=
@@ -8910,7 +8910,7 @@ b546
 			(
 			/ "directly generated final target without intermediate '.a' \
 				targets";
-				// See $2014-10 @ %Documentation::Workflow::Annual2014.
+				// See $2014-10 @ %Documentation::Workflow.
 			+ "mode support to select %AR or %LD to be used for final target"
 			),
 			/ "added 8 to message output level" @ "timestamp check",
@@ -8930,7 +8930,7 @@ b546
 			(
 				/ "exported %AR",
 				+ "'export LANG=C' before commands",
-					// See $2014-10 @ %Documentation::Workflow::Annual2014.
+					// See $2014-10 @ %Documentation::Workflow.
 				+ "dynamic library support" $dep_from %Main,
 				+ DLD "variable %SHBuild to simplified call",
 				* "missing splitting shell arguments on calling %SHBuild" $since
@@ -9946,7 +9946,7 @@ b538
 			/ %Concurrency $=
 			(
 				/ $dev "improved strict ISO C++ code conformance"
-					$= (+ "including <functional>, <memory> and <mutex>"),
+					$= (+ "inclusion (<functional>, <memory>, <mutex>)"),
 					// For %std::make_shared and %std::bind used in \
 						implementation in template. The program temporarily is \
 						not ill-formed even if these headers are missing when \
@@ -10498,7 +10498,7 @@ b532
 			(
 			+ "3rd template parameter 'typename _tReference = void'";
 			/ "%reference" ^ "%_tReference"
-			// See $2014-09 @ %Documentation::Workflow::Annual2014.
+			// See $2014-09 @ %Documentation::Workflow.
 			)
 		),
 		/ $dev $design "trailing-return-type"
@@ -10616,7 +10616,7 @@ b531
 		YSLib.((Core.(YEvent, YMessage), Service.(AccessHistory,TextManager)),
 		Adaptor.(YNew, Font), UI.(YUIContainer, YPanel)), NPL.SContext,
 		'Helper_(Android)'.AndroidHost), YReader.(BookmarkUI, HexBrowser)),
-		// See $2014-08 @ %Documentation::Workflow::Annual2014.
+		// See $2014-08 @ %Documentation::Workflow.
 	/ %YBase.YStandardEx $=
 	(
 		+ "function templates %(qualify, unqualify)" @ %Cast,
@@ -10663,7 +10663,7 @@ b530
 				// To eliminate redundant evaluation with calls of \
 					%FetchStringWidth.
 			* $comp "wrong value calculated" $since b529
-				// See $2014-08 @ %Documentation::Workflow::Annual2014.
+				// See $2014-08 @ %Documentation::Workflow.
 		),
 		/ "member function %Clear" => "%clear" @ ("class templates \
 			%(GEvent, GDependencyEvent)" @ %Core.YEvent;
@@ -10730,7 +10730,7 @@ b529
 		(
 			- $revert(b298) "function template %make_shared as replacement of \
 				%std::make_shared",
-				// See $2014-08 @ %Documentation::Workflow::Annual2014.
+				// See $2014-08 @ %Documentation::Workflow.
 			+ "function template %make_shared for instances of \
 				$std::initializer as parameter"
 				// For convenience.
@@ -10953,7 +10953,7 @@ b527
 		),
 		/ $dev "replacement" @ "macro %ImplI(...)" -> 'override' ~ 'virtual'
 			@ %YBaseMacro,
-		/ $dev $design / "adjust 'ImplI'" @ "member function declarations"
+		/ $dev $design "adjust 'ImplI'" @ "member function declarations"
 			!^ 'override'
 	),
 	/ %YBase.YStandardEx.Functional $=
@@ -11319,7 +11319,7 @@ b524
 		$= (^ "braced-init-list" ~ "empty ctor-initializer")
 		@ ("class %Environment" @ %Environment $orig (@ %Host) $since b399,
 		"class %WindowThread" @ %HostRenderer $orig (@ %Helper $impl) b428);
-		// See $2014-08 @ %Documentation::Workflow::Annual2014. Similar as fix \
+		// See $2014-08 @ %Documentation::Workflow. Similar as fix \
 			@ b491.
 ),
 
@@ -11744,7 +11744,7 @@ b520
 		/ @ "Code::Blocks projects" $=
 		(
 			+ '-ffat-lto-objects' @ "release configurations",
-				// See $2014-07 @ %Documentation::Workflow::Annual2014.
+				// See $2014-07 @ %Documentation::Workflow.
 			/ "made '-flto=jobserver' only effective in release configurations"
 		)
 	),
@@ -11815,7 +11815,7 @@ b520
 		%YReader.Shells $since b183)
 	// It would fail to compile for Win64.
 	/ "macro %YCL_MinGW32" => "%YCL_MinGW"
-		// See $2014-07 @ %Documentation::Workflow::Annual2014.
+		// See $2014-07 @ %Documentation::Workflow.
 ),
 
 b519
@@ -11907,7 +11907,7 @@ b519
 		/ %YStandardEx $=
 		(
 			* "strict ISO C++ code conformance" $since b352
-				$= (* "missing including <new>" @ %Any),
+				$= (* "missing inclusion <new>" @ %Any),
 				// The program temporarily is not ill-formed for libstdc++'s \
 					<memory> including <new>.
 			/ @ %String $=
@@ -11931,7 +11931,7 @@ b519
 						adjust to the same as %boost::starts_with for array \
 						types.
 				/ DLD "prefix comparing" ^ "%std::equal" %String;
-					// See $2014-07 @ %Documentation::Workflow::Annual2014.
+					// See $2014-07 @ %Documentation::Workflow.
 			),
 			* DLD "wrong specifier order" @ "function templates %get"
 				@ "class templates %variadic_param" @ %Functional $since b412,

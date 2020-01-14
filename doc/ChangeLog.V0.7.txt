@@ -1,5 +1,5 @@
 ﻿/*
-	© 2016-2019 FrankHB.
+	© 2016-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r8223
+\version r8231
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2019-11-04 17:09 +0800
+	2020-01-12 18:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ $now
 				@ %Dependency $=
 			(
 				+ "operative '$quote'",
-					// See $2017-07 @ %Documentation::Workflow::Annual2017.
+					// See $2017-07 @ %Documentation::Workflow.
 				+ "operative '$setrec!'",
 				+ "operative '$vaue'",
 				/ $dev "alternative derivation" @ "operative '$sequence'" $=
@@ -1151,7 +1151,7 @@ b785
 					$since b774,
 				* "symbol reduction result evaluated again"
 					@ "function %EvaluateIdentifier" $since b767,
-					// See $2017-02 @ %Documentation::Workflow::Annual2017.
+					// See $2017-02 @ %Documentation::Workflow.
 				/ "function %ReduceCheckedClosure transferred list children"
 					^ (('&ValueObject::MakeMoveCopy', "%MakeMoveCopy") $dep_from
 					%YSLib.Core.YObject) ~ "%IValueHolder::Copy"
@@ -1677,7 +1677,7 @@ b776
 						$since b774,
 					/ $comp "allowed rebinding for duplicated symbols to be \
 						bound" ~ "throwing %InvalidSyntax"
-						// See $2017-03 @ %Documentation::Workflow::Annual2017.
+						// See $2017-03 @ %Documentation::Workflow.
 					),
 					(
 					/ "lifted context parameter as 1st parameter"
@@ -1782,7 +1782,7 @@ b774
 					// It is needed to allow vau handler call without operand.
 				- $revert_ex(b773) "empty list removal"
 					@ "member function %StrictContextHandler::operator()"
-					// See $2017-03 @ %Documentation::Workflow::Annual2017.
+					// See $2017-03 @ %Documentation::Workflow.
 			),
 			+ "functions %(ReduceToList, ReduceHeadEmptyList)" @ %NPLA,
 			+ "function %IsList" @ %SContext
@@ -1957,7 +1957,7 @@ b771
 		/ "avoided to initialize DSi SD device 'sd' when detected DSi mode"
 			@ "constuctor %platform_ex::FileSystem" @ "platform %DS"
 			@ %YCLib.NativeAPI
-			// See $2017-03 @ %Documentation::Workflow::Annual2017.
+			// See $2017-03 @ %Documentation::Workflow.
 	)
 ),
 
@@ -2361,7 +2361,7 @@ b763
 			* "ill-formed call for pointer to members as callable type" $since
 				b612
 			/ "forwarded member object pm-expression as left operand of '.*'"
-				// See $2017-01 @ %Documentation::Workflow::Annual2017.
+				// See $2017-01 @ %Documentation::Workflow.
 		),
 		/ DLDI "simplified template arguments" @ %YBase.YStandardEx.Rational
 	)
@@ -2860,7 +2860,7 @@ b756
 				/ "1st parameter type" @ "function templates %(CallUnary, \
 					CallUnaryAs)" -> '_func&&' ~ '_func',
 					// Because it is based on expanded caller. See also \
-						$2014-04 @ %Documentation::Workflow::Annual2014.
+						$2014-04 @ %Documentation::Workflow.
 				* "missing correct equality comparison"
 					@ "class template %WrappedContextHandler" $since b751 $=
 				(

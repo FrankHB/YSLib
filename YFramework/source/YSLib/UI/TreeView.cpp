@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2016, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TreeView.cpp
 \ingroup UI
 \brief 树形视图控件。
-\version r826
+\version r830
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-08-24 16:29:28 +0800
 \par 修改时间:
-	2016-09-17 12:10 +0800
+	2020-01-12 18:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -226,7 +226,7 @@ TreeList::GetNodePath(TreeList::IndexType idx) const
 		pair<IndexType, IndentType> last(idx, indent);
 
 		std::for_each(ystdex::make_reverse_iterator(i), indent_map.crend(),
-			[&](decltype(*indent_map.crend()) pr){
+			[&](decltype(*indent_map.crbegin()) pr){
 			if(last.second <= indent)
 			{
 				YAssert(pr.first < last.first, "Invalid state found.");
@@ -373,7 +373,7 @@ TreeList::ExpandOrCollapseNodeImpl(NodeState st, size_t idx)
 		YAssert(vec_ins.back().first > j->first,
 			"Invalid insertion sequence found");
 		// FIXME: Strong exception safety guarantee.
-		// NOTE: See $2014-09 @ %Documentation::Workflow::Annual2014.
+		// NOTE: See $2014-09 @ %Documentation::Workflow.
 		{
 			// XXX: Use %std::make_move_iterator if proper.
 			vector<pair<IndentType, IndexType>>
@@ -432,7 +432,7 @@ TreeList::ExpandOrCollapseNodeImpl(NodeState st, size_t idx)
 					indent_map.end()), vec.rbegin(), vec.rend());
 			}
 #else
-			// NOTE: See $2014-09 @ %Documentation::Workflow::Annual2014.
+			// NOTE: See $2014-09 @ %Documentation::Workflow.
 			for(; j != indent_map.cend(); ++j)
 				j = ystdex::replace_value(indent_map, j->first,
 					[n](decltype(*indent_map.cbegin()) pr){

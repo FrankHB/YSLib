@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2019 FrankHB.
+	© 2011-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file meta.hpp
 \ingroup YStandardEx
 \brief 通用元编程设施。
-\version r1736
+\version r1738
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:28 +0800
 \par 修改时间:
-	2019-09-13 12:55 +0800
+	2020-01-12 18:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,7 +73,7 @@ using std::remove_all_extents;
 using std::remove_pointer;
 using std::add_pointer;
 
-// XXX: See $2018-12 @ %Documentation::Workflow::Annual2018.
+// XXX: See $2018-12 @ %Documentation::Workflow.
 //! \see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61458 。
 using std::aligned_storage;
 //! \since build 595

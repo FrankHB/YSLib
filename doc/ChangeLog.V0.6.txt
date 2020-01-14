@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2019 FrankHB.
+	© 2015-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r12285
+\version r12309
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2019-12-18 08:19 +0800
+	2020-01-12 23:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1373,7 +1373,7 @@ b685
 				SetupTraceDepth)"
 		),
 		- $revert(b669) "function %RetryClose" @ %YCLib.FileIO,
-			// See $2016-04 @ %Documentation::Workflow::Annual2016. Note \
+			// See $2016-04 @ %Documentation::Workflow. Note \
 				calling 'std::fclose' instead of '::close' is almost always \
 				wrong.
 		* $comp "failed to build" @ "platform %Android" $since b684 $dep_from
@@ -1692,7 +1692,7 @@ b681
 		- $revert(b680) "all 4 function templates %try_emplace"
 			@ "class template %mapped_set" @ %Set $dep_from
 			("%ValueNode::try_emplace" @ %YFramework.YSLib.Core.ValueNode)
-			// See $2016-03 @ %Documentation::Workflow::Annual2016.
+			// See $2016-03 @ %Documentation::Workflow.
 		/ %Container $=
 		(
 			+ "metafunction %is_piecewise_mapped; 2 function templates \
@@ -2156,7 +2156,7 @@ b678
 		%GHEvent" @ %YEvent, ("class template %GBinaryGroup",
 		"classes %(Size, Rect)") @ %YGDIBase, "class %ValueObject" @ %YObject)
 		@ %Core) @ %YSLib) @ %YFramework);
-		// See $2016-03 @ %Documentation::Workflow::Annual2016.
+		// See $2016-03 @ %Documentation::Workflow.
 ),
 
 b677
@@ -2402,7 +2402,7 @@ b675
 			@ %Operators,
 			// It seems that Clang++ 3.7 does not support it as well. There \
 				was one additional usage note, see $2016-02 \
-				@ %Documentation::Workflow::Annual2016.
+				@ %Documentation::Workflow.
 		/ @ "class template %observer_ptr" @ %Memory $=
 		(
 			^ "passed by value" @ "comparison" ~ "passed by reference",
@@ -2419,7 +2419,7 @@ b675
 			@ %CString $orig (@ %YCLib.YCommon $since $before b132),
 		/ "updated reference to library fundamental TS final draft(WG21 N4480)"
 			~ "WG21 N4081" $=
-			// See $2016-03 @ %Documentation::Workflow::Annual2016.
+			// See $2016-03 @ %Documentation::Workflow.
 		(
 			/ DD "updated Doxygen comments" @ %Any,
 			/ %Optional $=
@@ -4055,7 +4055,7 @@ b665
 
 b664
 (
-	* $dev $design "missing %Documentation::Workflow::Annual2016"
+	* $dev $design "missing %Documentation::Workflow"
 		@ "filter of Microsoft VC++ project" $since b663,
 	* $build "generated code with dependency on ('u8', 'u32')" @ "makefiles"
 		@ ("platform %DS" $since $before b132, "platform %Android" $since b492),
@@ -4225,7 +4225,7 @@ b663
 			/ "all 2 function template %vector_size" ^ "non-member ADL %size"
 				~ "member %size" $dep_from %Range,
 			(
-			// See $2016-01 @ %Documentation::Workflow::Annual2016.
+			// See $2016-01 @ %Documentation::Workflow.
 			/ "function templates %range_size" ^ "non-member ADL %size"
 				$dep_from %Range;
 				// Funtion templates %ystdex::arrlen are delayed to be removed \
@@ -4238,7 +4238,7 @@ b663
 		/ "function template %as_const" @ %Cast >> %Utilities,
 		/ %Range $=
 		(
-			// See $2016-01 @ %Documentation::Workflow::Annual2016.
+			// See $2016-01 @ %Documentation::Workflow.
 			+ "function templates %(2 size, 3 empty, 4 data)"
 				// See WG21 N4280.
 			+ "overloaded function templates %(empty, data) for rvalue \
@@ -4342,7 +4342,7 @@ b662
 			/ "all 4 'mkdir -p'" -> 'SHB_EnsureDirectory'
 		),
 		+ 'C_CXXFLAGS_COMMON += -fno-threadsafe-statics' @ "%Toolchain.DS.mk"
-			// See $2015-12 @ %Documentation::Workflow::Annual2015.
+			// See $2015-12 @ %Documentation::Workflow.
 	),
 	/ %YBase $=
 	(
@@ -4364,7 +4364,7 @@ b662
 	),
 	/ DLP "toolchain and library using" @ "platform %DS" $=
 	(
-		// See $2015-12 @ %Documentation::Workflow::Annual2015.
+		// See $2015-12 @ %Documentation::Workflow.
 		^ $re_ex(b558) "updated devkitARM release 45"
 			~ "devkitARM release 44" $dep_from %(YBase.YStandardEx.Operators,
 				"%upopen" @ %YCLib.FileIO),
@@ -5632,8 +5632,7 @@ b654
 				(
 					/ $impl "simplified function %DoLogException"
 						$= (- "nullary check for message")
-							// See $2015-11 \
-								@ %Documentation::Workflow::Annual2015.
+							// See $2015-11 @ %Documentation::Workflow.
 					/ $doc "explicitly guaranteed 3rd parameter not null"
 						@ "type %Sender"
 				),
@@ -5902,7 +5901,7 @@ b651
 		(
 			/ DLDI "simplified %fold" @ %Tuple ^ $dep_from
 				("%apply_t" @ %Variadic),
-				// See $2015-11 @ %Documentation::Workflow::Annual2015.
+				// See $2015-11 @ %Documentation::Workflow.
 			+ "metafunction %_q" @ $dep_from ("group %composition" @ %Variadic),
 			(
 			// See WG21 P0088R0.
@@ -6285,7 +6284,7 @@ b649
 	(
 		/ @ "thread options" @ "SHBuild-common-options.sh" @ %Scripts $=
 		(
-			// See $2015-10 @ %Documentation::Workflow::Annual2015.
+			// See $2015-10 @ %Documentation::Workflow.
 			/ "hard-coded detection for platform without specs 'mthreads'"
 				-> "check for no 'no-pthread' in specs";
 			+ $comp "supported for OS other than Windows, Linux and OS X with \
@@ -7011,7 +7010,7 @@ b642
 				/ "merged 2 constructor %DEntry with character pointer" $=
 				(
 					/ "pathname parameter" ^ "%string_view" ~ 'const char*',
-						// See $2015-10 @ %Documentation::Workflow::Annual2015.
+						// See $2015-10 @ %Documentation::Workflow.
 					/ DLDI "reduced %std::strlen calls",
 					/ "placed directory entry check before name and alias \
 						checks",
@@ -7361,7 +7360,7 @@ b640
 			+ $lib 'YB_NONNULL(1)' @ "all 2 functions %vfmtlen" @ %CStandardIO,
 			/ "transformation trait %tuple_element_t" @ %Tuple
 				("%__cpp_lib_tuple_element_t" @ %YDefinition) $=
-				// See $2015-10 @ %Documentation::Workflow::Annual2015.
+				// See $2015-10 @ %Documentation::Workflow.
 			(
 				>> "inline namespace %cpp2014" \
 					@ '__cpp_lib_tuple_element_t >= 201402 \
@@ -7383,7 +7382,7 @@ b640
 		+ "feature-test macro %__cpp_lib_tuple_element_t recommended by \
 			WG21 N4200 when \
 			not defined" @ 'YB_IMPL_MSCPP >= 1900' @ YDefinition
-			// See $2015-10 @ %Documentation::Workflow::Annual2015.
+			// See $2015-10 @ %Documentation::Workflow.
 	),
 	/ %Test $=
 	(
@@ -8325,7 +8324,7 @@ b631
 			@ '!YB_IMPL_GNUCPP' $effective @ %(YCLib.FileSystem, \
 			'YCLib_(MinGW32)'.MinGW32) $since b453,
 			// Also to avoid Clang++ warning: [-Wfuture-compat]. See $2015-09 \
-				@ %Documentation::Workflow::Annual2015.
+				@ %Documentation::Workflow.
 		* "wrong month value (always 1 smaller than real value)"
 			@ "function %TranslateTime" @ %Helper.ShellHelper $since b307 $orig
 			(@ %YReader.ShlReader $since b264)
@@ -8342,7 +8341,7 @@ b631
 			code about default argument for template non-type parameters"
 			$effective @ %(Rational $since b561 $orig, BitSegment $since b507
 			$orig @ (%Iterator $since b458))
-			// See $2015-09 @ %Documentation::Workflow::Annual2015.
+			// See $2015-09 @ %Documentation::Workflow.
 	),
 	/ $forced DLDI @ %Tools.SHBuild.Main $dep_from
 		"removal of getting modification time template",
@@ -8571,7 +8570,7 @@ b629
 				%GetFileModificationTimeOf" $=
 			(
 				+ $lib $design "initializer '{}' for %::FILETIME",
-					// See $2015-09 @ %Documentation::Workflow::Annual2015.
+					// See $2015-09 @ %Documentation::Workflow.
 				/ DLDI "simplified" ^ $dep_from ("%platform_ex::QueryFileTime"
 					@ %'YCLib_(MinGW32)'.MinGW32);
 				/ $comp "exception message"
@@ -9291,7 +9290,7 @@ b623
 					"%poll, poll_for, poll_until, wait, wait_for, \
 					wait_to_enqueue, wait_until") ^ "%future_result_t"
 					// Also to avoid GCC bug. See $2015-08 \
-						@ %Documentation::Workflow::Annual2015.
+						@ %Documentation::Workflow.
 			)
 		)
 	)
@@ -9393,7 +9392,7 @@ b621
 			"removal of public sentry" $dep_to "stream I/O";
 		* $comp "strict ISO C/C++ code conformance for %std::fseek call on binary \
 			stream" $since $before b132
-			// See $2015-08 @ %Documentation::Workflow::Annual2015.
+			// See $2015-08 @ %Documentation::Workflow.
 		),
 		/ %TextFile $=
 		(
@@ -10311,7 +10310,7 @@ b611
 			"removal of stat name entry traverse"
 	),
 	+ $re_ex(b501) $dev $repo "tag 'V0.6' to revision 472",
-	// See $2015-06 @ %Documentation::Workflow::Annual2015.
+	// See $2015-06 @ %Documentation::Workflow.
 	/ %YBase.YStandardEx $=
 	(
 		/ %Cache $=

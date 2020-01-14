@@ -1085,12 +1085,6 @@
     <Text Include="..\doc\NPL.txt">
       <Filter>doc</Filter>
     </Text>
-    <Text Include="..\doc\Workflow.Annual2013.txt">
-      <Filter>doc</Filter>
-    </Text>
-    <Text Include="..\doc\Workflow.Annual2014.txt">
-      <Filter>doc</Filter>
-    </Text>
     <Text Include="..\doc\ChangeLog.PreAlpha5.txt">
       <Filter>doc</Filter>
     </Text>
@@ -1098,9 +1092,6 @@
       <Filter>doc</Filter>
     </Text>
     <Text Include="..\doc\LanguageConvention.txt">
-      <Filter>doc</Filter>
-    </Text>
-    <Text Include="..\doc\Workflow.Annual2015.txt">
       <Filter>doc</Filter>
     </Text>
     <Text Include="..\doc\Test.txt">
@@ -1112,22 +1103,13 @@
     <Text Include="..\doc\YCLib.txt">
       <Filter>doc</Filter>
     </Text>
-    <Text Include="..\doc\Workflow.Annual2016.txt">
-      <Filter>doc</Filter>
-    </Text>
     <Text Include="..\doc\ChangeLog.V0.7.txt">
-      <Filter>doc</Filter>
-    </Text>
-    <Text Include="..\doc\Workflow.Annual2017.txt">
       <Filter>doc</Filter>
     </Text>
     <Text Include="..\doc\ChangeLog.V0.8.txt">
       <Filter>doc</Filter>
     </Text>
-    <Text Include="..\doc\Workflow.Annual2018.txt">
-      <Filter>doc</Filter>
-    </Text>
-    <Text Include="..\doc\Workflow.Annual2019.txt">
+    <Text Include="..\doc\Workflow.txt">
       <Filter>doc</Filter>
     </Text>
   </ItemGroup>

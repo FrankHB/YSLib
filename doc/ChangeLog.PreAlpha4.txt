@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2019 FrankHB.
+	© 2013-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r9314
+\version r9339
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2019-02-22 14:28 +0800
+	2020-01-12 18:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -665,7 +665,7 @@ b494
 		// Only transformer parameter @ %ystdex::(transformed_iterator, \
 			make_transform) and one of constructor templates of \
 			%YSLib::GHEvent are modified. See $2014-04 \
-			@ %Documentation::Workflow::Annual2014.
+			@ %Documentation::Workflow.
 	/ DD "Doxygen comments" $=
 	(
 		^ '\invariant' ~ '\note' @ "non-null guarantee",
@@ -1042,7 +1042,7 @@ b488
 			$dep_from %'YCLib_(MinGW32)';
 			/ @ "class %Host::Window" @ %HostWindow $=
 			(
-				/ DLD "virtual destructor" ^ 'override',
+				/ $re_add(b311) DLD "virtual destructor" ^ 'override',
 				- "overriders for event %OnLostFocus",
 				+ "implemented message handler" ^ 'MessageMap'
 			),
@@ -1212,7 +1212,7 @@ b486
 				),
 				+ "manually invalidation handlers" @ "events %(GotFocus, \
 					LostFocus)" @ "controls" $effective %TextBox
-					// See $2014-03 @ %Documentation::Workflow::Annual2014.
+					// See $2014-03 @ %Documentation::Workflow.
 			),
 			/ @ %Adaptor.YAdaptor $=
 			(
@@ -1386,16 +1386,16 @@ b483
 				// If the parameter is a character type
 				^ DLD 'ystdex::enable_for_string_class_t',
 				* $comp "non overloaded non-class argument selected for \
-					infinite recursion" ~ "translation-time diagnostics"
-					$since build 471
+					infinite recursion" ~ "translation-time diagnostics" $since
+					b471
 			)
 			/ "selection of string parameters for overloads"
 				@ "%ImageCodec::LoadForPlaying" $=
 			(
 				^ DLD 'ystdex::enable_for_string_class_t',
 				* $comp "non overloaded non-class argument selected for \
-					infinite recursion" ~ "translation-time diagnostics"
-					$since build 458
+					infinite recursion" ~ "translation-time diagnostics" $since
+					b458
 			)
 		),
 		/ %Service $dep_from %YBase.YStandardEx.Iterator $=
@@ -1480,7 +1480,7 @@ b482
 					$= (/ '*this' -> 'e.GetSender()' @ "handlers capturing \
 						'this' and added to '*this'" @ "classes %(Thumb, \
 						DropDownList, Control, AScrollBar)"),
-					// See $2014-03 @ %Documentation::Workflow::Annual2014.
+					// See $2014-03 @ %Documentation::Workflow.
 				+ "function %IsFocusedCascade" @ %YFocus
 			),
 			+ "function %Timer::(RefreshDelta, RefreshRemainder)"
@@ -1973,10 +1973,10 @@ b474
 			/ "paths for %(DirectorySession, HDirectory)" $=
 			(
 				/ "explicitly supported one or more trailing slash in paths",
-					// See $2014-02 @ %Documentation::Workflow::Annual2014.
+					// See $2014-02 @ %Documentation::Workflow.
 				/ $dev "explicitly specified slash as delimiter supported as \
 					well" @ "platform %MinGW32"
-					// See $2014-02 @ %Documentation::Workflow::Annual2014.
+					// See $2014-02 @ %Documentation::Workflow.
 			),
 			/ DLB $comp "implemented more compatible with Microsoft VC++ 2013",
 			),
@@ -2179,7 +2179,7 @@ b470
 		Core.(ValueNode, FileSystem), Service.(AccessHistory, TextManager,
 		TextFile), UI.(ComboList, Loader)), Helper.Initialization,
 		YCLib.FileSystem), YReader.(ReadingList, ShlReader)),
-		// See $2014-01 @ %Documentation::Workflow::Annual2014.
+		// See $2014-01 @ %Documentation::Workflow.
 	/ %YFramework.YSLib $=
 	(
 		/ %Core.YCoreUtilities $=
@@ -2337,7 +2337,7 @@ b467
 		// It bloats object and library files of debug configuration a little. \
 			Though currently seems to be no effect for release configuration, it \
 			might probably be support in future.
-		// See $2014-01 @ %Documentation::Workflow::Annual2014.
+		// See $2014-01 @ %Documentation::Workflow.
 		+ '-fdata-sections -ffunction-sections' @ "complier options",
 		+ '-Wl,--gc-sections' @ "linker options"
 	),
@@ -2417,7 +2417,7 @@ b464
 					// These functions are not declared when macro \
 						%__STRICT_ANSI__ is defined. For MinGW-W64 predefined \
 						macros, see $2014-01 \
-						@ %Documentation::Workflow::Annual2014 for details.
+						@ %Documentation::Workflow for details.
 				/ $dev "implemented function %HDirectory::IsDirectory"
 					^ ('::_stat' ~ '::stat', '::_wstat' ~ '::wstat')
 			)
@@ -2463,7 +2463,7 @@ b464
 	^ "light green color as background" @ "setting panel"
 		@ %YReader.ShlExplorer;
 		// To avoid ilusion of checkbox border thickness, see $2014-01 @ \
-			%Documentation::Workflow::Annual2013 for details.
+			%Documentation::Workflow for details.
 ),
 
 b463
@@ -2665,7 +2665,7 @@ b459
 	(
 		/ $dev $build "disabled warning (C4520, C4800)"
 			@ "Microsoft VC++ project",
-			// See $2013-11 @ %Documentation::Workflow::Annual2013.
+			// See $2013-11 @ %Documentation::Workflow.
 		/ $dev %YCLib $=
 		(
 			- "all 8 macros 'VK_*'" @ "platform %Win32" @ %Keys,
@@ -2784,7 +2784,7 @@ b458
 				- "%istream_type",
 				* $comp "incompatible for implementations with %std::FILE* \
 					as cv-void" $since b245
-					// See $2013-11 @ %Documentation::Workflow::Annual2013.
+					// See $2013-11 @ %Documentation::Workflow.
 			)
 		),
 		/ $dev %YDefinition $=
@@ -2921,7 +2921,7 @@ b456
 			@ "Code::Blocks projects" @ "platform %MinGW32",
 		- $revert(b297) '-D_GLIBCXX_DEBUG' @ "all macro %CFLAGS" @ "makefiles"
 			@ "platform %DS"
-		// See $2013-11 @ %Documentation::Workflow::Annual2013.
+		// See $2013-11 @ %Documentation::Workflow.
 	),
 	* "wrong button text" @ "animation test" @ %YReader.ShlExplorer
 		$since b455
@@ -3459,7 +3459,7 @@ b449
 		(
 			+ "full validation on adjusting boundary of host windows"
 				@ "function %HostRenderer::Update" @ %HostRenderer,
-				// See $2013-10 @ %Documentation::Workflow::Annual2013.
+				// See $2013-10 @ %Documentation::Workflow.
 			/ DLD "data member %GUIApplication::UIResponseLimit initialization"
 				@ %GUIApplication ^ "member initializer",
 				// This emphasizes the magic default value as public interface.
@@ -3743,7 +3743,7 @@ b446
 					// Conversion constructor of %Rect is used.
 				+ "functions %(PlotHLineSeg, PlotVLineSeg)",
 				* "function %DrawCircle" $since b394;
-					// See $2013-09 @ %Documentation::Workflow::Annual2013.
+					// See $2013-09 @ %Documentation::Workflow.
 				+ "function %FillCircle"
 			),
 			* "blitting boundary and overload for non-zero source offset"
@@ -4334,7 +4334,7 @@ b436
 			@ %YSLib.UI.Loader,
 		+ $dev '#define YCL_Device_Cursor_FixedKey 1' @ "platform %DS"
 			@ %YCLib.Platform
-			// See $2013-08 @ %Documentation::Workflow::Annual2013.
+			// See $2013-08 @ %Documentation::Workflow.
 	),
 	/ DLD %YReader $=
 	(
@@ -4429,7 +4429,7 @@ b434
 (
 	/ "all anonymous struct typedef declarations"
 		-> "named struct declarations",
-		// See $2013-08 @ %Documentation::Workflow::Annual2013.
+		// See $2013-08 @ %Documentation::Workflow.
 	/ DLD "all typedef declarations except in directory %3rdparty"
 		-> "alias-declarations",
 		// Ditto.
@@ -5363,7 +5363,7 @@ b420
 			files remained" ~ "FreeType 2.4.11",
 			// See [Documentation::Dependencies @@2.2.3] .
 		/ $comp "hid error message of font requesting" @ "platform %DS"
-			// See $2016-06 @ %Documentation::Workflow::Annual2016 for further \
+			// See $2016-06 @ %Documentation::Workflow for further \
 				analysis.
 	)
 ),
@@ -6294,8 +6294,8 @@ b402
 		)
 	),
 	/ DD "made expected non-sentance Doxygen especially for command '\sa'",
-	* "missing including <ystdex/functional.hpp>"
-		@ %YBase.YStandardEx.AnyIterator $since b355
+	* "missing inclusion %Functional" @ %YBase.YStandardEx.AnyIterator
+		$since b355
 ),
 
 b401

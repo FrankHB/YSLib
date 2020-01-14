@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2019 FrankHB.
+	© 2013-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1961
+\version r1963
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2019-11-29 03:40 +0800
+	2020-01-12 18:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -887,7 +887,7 @@ WindowInputHost::WindowInputHost(HostWindow& wnd)
 		unsigned size(sizeof(ri));
 
 		// TODO: Use '{}' to simplify initialization after CWG 1368 resolved by
-		//	C++14. See $2015-09 @ %Documentation::Workflow::Annual2015.
+		//	C++14. See $2015-09 @ %Documentation::Workflow.
 		ystdex::trivially_fill_n(&ri);
 		if(YB_LIKELY(::GetRawInputData(::HRAWINPUT(l_param), RID_INPUT, &ri,
 			&size, sizeof(::RAWINPUTHEADER)) != unsigned(-1) && ri.header.dwType

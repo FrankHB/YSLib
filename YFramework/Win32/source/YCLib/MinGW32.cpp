@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2017, 2019 FrankHB.
+	© 2013-2017, 2019-2010 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2198
+\version r2200
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2019-11-29 03:23 +0800
+	2020-01-12 18:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -759,7 +759,7 @@ ConvertTime(const ::FILETIME& file_time)
 	if(file_time.dwLowDateTime != 0 || file_time.dwHighDateTime != 0)
 	{
 		// FIXME: Local time conversion for FAT volumes.
-		// NOTE: See $2014-10 @ %Documentation::Workflow::Annual2014.
+		// NOTE: See $2014-10 @ %Documentation::Workflow.
 		::LARGE_INTEGER date;
 
 		// NOTE: The epoch is Jan. 1, 1601: 134774 days to Jan. 1, 1970, i.e.

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2016, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YWidget.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r4490
+\version r4493
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-12-01 22:05 +0800
+	2020-01-12 18:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -214,14 +214,14 @@ Widget::Widget(const Rect& r)
 	InitializeEvents();
 }
 Widget::Widget(const Rect& r, HBrush b)
-	// XXX: $2015-03 @ %Documentation::Workflow::Annual2015.
+	// XXX: $2015-03 @ %Documentation::Workflow.
 	: IWidget(), view_ptr(new View(r)), renderer_ptr(new Renderer()),
 	controller_ptr(new WidgetController({})), Background(b)
 {
 	InitializeEvents();
 }
 Widget::Widget(const Widget& wgt)
-	// XXX: $2015-03 @ %Documentation::Workflow::Annual2015.
+	// XXX: $2015-03 @ %Documentation::Workflow.
 	: IWidget(), view_ptr(ystdex::clone_polymorphic(Deref(wgt.view_ptr))),
 	renderer_ptr(ystdex::clone_polymorphic(Deref(wgt.renderer_ptr))),
 	controller_ptr(ystdex::clone_polymorphic(Deref(wgt.controller_ptr))),

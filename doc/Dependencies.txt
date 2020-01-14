@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2019 FrankHB.
+	© 2009-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r1377
+\version r1379
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2019-09-06 16:37 +0800
+	2020-01-12 18:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -461,7 +461,7 @@ build 224 rev 34 起：
 DS 库文件： 2.4.11 按新的构建命令行重新编译。
 MinGW32 库文件：按新的构建命令行重新编译。
 2013-07-01(build 420) 起：
-使用 FreeType 2.5.0.1 ，但部分文件使用 2.4.11 版本替换，参见 b420 $workaround(#19) 和 [Documentation::Workflow::Annual2016 $2016-06] 。
+使用 FreeType 2.5.0.1 ，但部分文件使用 2.4.11 版本替换，参见 b420 $workaround(#19) 和 [Documentation::Workflow $2016-06] 。
 对原始版本和配置 "modules.cfg" 的修改参见 "3rdparty/freetype/Readme.en-US.txt" 中的历史记录。
 重新编译 DS 库文件。
 使用上一版本 "modules.cfg" 重新编译 MinGW32 库文件。

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r16283
+\version r16675
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-01-05 03:26 +0800
+	2020-01-14 19:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,221 +32,344 @@ $import $HISTORY;
 
 $now
 (
-	/ %YFramework $=
+	/ $doc %Documentation $=
 	(
-		/ %NPL $=
+		+ "explicit rules to allowing different order of typechecking of \
+			NPLA1 operations" @ %Documentation.NPLA1,
+		/ "merged files with glob pattern 'Workflow.*.txt'" -> %Workflow;
+		/ $foced DLD "cross references" $dep_to %(YCLib, Dependencies,
+			ChangeLog.(PreAlpha4, PreAlpha5, 'V0.6', 'V0.7', 'V0.8'))
+	),
+	/ $forced DLD "source comments with %Documentation.Workflow" $dep_from \
+		%Documentation.Workflow $dep_to %(YBase.YStandarEx.(Any, CAssert,
+		MemoryResource, Utilities, String, Placement, Meta, Memory, List,
+		Iterator), YFramework.(NPL.(NPLA, NPLA1, Dependency),
+		'YCLib._(Win32)'.(MinGW32, Consoles), YCLib.(HostedGUI, Host, FileIO), 
+		YSLib.(Core.YObject, UI.(YWidget, TreeView),
+		Service.(FileSystem, YBlit, YGDI)))),
+		// The comments names of sections with dates should not be duplicated \
+			in filenames.
+	/ $re_add(b875) DD $impl "simplified all tags with '\>' escape'"
+		@ %YBase.YStandardEx.Utilities,
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA $=
 		(
-			* "missing copying the term tag" @ "allocator-aware copy/move \
-				constructors %TermNode" @ %SContext $since b857,
-			/ %NPLA $=
+			+ $dev "class name declaration %ContextNode";
+			/ "class %Reducer" -> "type %Reducer" $=
 			(
-				(
-				+ "function %LiftOther";
-				/ DLDI "simplified function %(LiftTerm#1, \
-					MoveRValueToForward, MoveRValueToReturn, \
-					LiftTermOrCopyUnchecked, MoveCollapsed)" ^ "%LiftOther"
-					~ "%TermNode::MoveContent"
-				),
-				(
-				/ $dep_from "function %LiftTermOrCopyUnchecked"
-					=> "%LiftOtherOrCopy" ^ "%LiftOther";
-				/ DLDI "simplified function %ReduceToReference"
-					^ "%LiftOtherOrCopy"
-				),
-				/ "function %LiftMovedUnchecked" => "LiftMovedOther",
-				* "unsafe shared subterm set on copy"
-					@ "function %LiftTermOrCopy" $since b858
-					$= (/ $impl ^ $dep_from "%LiftOther"
-						~ "%TermNode::SetContent"),
-						// Irregular term could be invalidated before \
-							the call of %TermNode::SetContent call.
-				+ DLI 'inline'
-					@ "function templates %(AccessRegular, ResolveRegular)",
-				/ DLI "doubled reserved heuristic message string length"
-					@ "destructor %Environment"
-					@ 'NPL_NPLA_CheckEnvironmentReferenceCount',
-				(
-				(
-				/ $lib "exception specification" @ "function template \
-					%operator()" @ "struct %ReferenceTermOp"
-					-> 'ynoexcept_spec(NPL::ReferenceTerm(yforward(term)))'
-					~ 'ynothrow';
-				/ $lib "exception specification"
-					@ "all 2 functions %ReferenceTerm"
-					-> 'ynoexcept_spec(std::declval<TermReference>().get())'
-					~ 'ynothrow',
-				+ $dev "configurable macro \
-					%NPL_NPLA_CheckTermReferenceIndirection"
-				);
-				/ "enabled throwing %TermReference::get with check"
-					@ 'NPL_NPLA_CheckTermReferenceIndirection'
-				),
-				/ $dev "made macro %NPL_NPLA_CheckEnvironmentReferenceCount \
-					configurable",
-				+ "configurable macro %NPL_NPLA_CheckParentEnvironment",
-				/ @ "static member function %Environment::DefaultResolve" $=
-				(
-					/ $lib ("threw %InvalidReference on parent environment \
-						access failure" ~ "%NPLException"),
-					/ $lib "exception message",
-					/ DLI "disable parent environment check"
-						@ '!NPL_NPLA_CheckEnvironmentReferenceCount'
-						@ $dep_from "%NPL_NPLA_CheckEnvironmentReferenceCount"
-				),
-				/ ("returned %TermNode" ~ "%TermReference")
-					@ "functions %(PrepareCollapse, ResolveIdentifier)"
+				/ "base function type"
+					^ "'ContextNode&' as 1st parameter type";
+				- "data member %Context",
+				- "member type %BaseType"
+			);
+			/ $forced "passed 1st parameter type 'ContextNode&'"
+				@ "member function %operator()"
+				@ "class template %GComposedAction"
+				$= (/ $impl "passed optional argument"
+					^ "%ystdex::expand_proxy"),
+					// This must be optional, otherwise there would need more \
+						reduction actions with '(ContextNode&)' parameter list \
+						in composed lambda-expressions in %NPLA1 to avoid \
+						ill-formed compositions.
+			/ $forced "passed '*this' as argument of call"
+				@ "member function %ContextNode::ApplyTail"
+		),
+		/ %NPLA1 $=
+		(
+			/ @ "namespace %Forms" $=
+			(
+				/ DLDI "simplified function %ForwardListFirst",
+					// Also to eliminate G++ 9.2 warning: \
+						[-Wpessimizing-move]. Note this is actually not \
+						pessimizing, at least on x86_64-pc-linux.
+				/ $revert_ex(b876) DLI "optimized function \
+					%EvaluateIdentifier" !^ "%ResolveIdentifier"
+					// Now tags and containers for regular representations are \
+						not set, as before b876.
 			),
-			/ %NPLA1 $=
+			* "inconsistent guard call" @ "function %ReduceAgain" $since b812,
+				// See $2020-01 @ %Documentation::Workflow.
+				/ $impl ^ ("%ReduceOnce" ~ "%Reduce"),
 			(
-				/ @ "namespace %Forms" $=
-				(
-					/ DLDI "boolean extraction",
-					/ DLDI ("%operator()" @ "vau handler", "functions \
-						%(ListAsterisk, ListAsteriskRef, SetFirstAt)")
-						^ $dep_from ("%LiftOther" @ %NPLA)
-						~ "%TermNode::MoveContent",
-					/ DLDI "reordered declarations"
-						@ "functions (%ForwardListFirst, 'First*', \
-						('SetFirst*', 'SetRest*'))",
-					/ "reference binding" @ "function %BindParameter" $=
-					(
-						* "non-temporary unique reference unexpected moved"
-							$since b875;
-						/ DLI "allowed reference moved when unique or \
-							temporary tags are specified"
-					),
-					/ "function %ForwardListFirst" $=
-					(
-						/ $impl "keeping TCO action" ^ "%yunused",
-							// To eliminate G++ warning: [-Wunused-result].
-						/ "used current environments instead of creating fresh \
-							environments" @ "function %ForwardListFirst"
-							$dep_to "forward list environment fix",
-						* "forwarded bounded reference to tempoaraty list \
-							as an expression as operand of list access \
-							applicative" $since b875,
-						* "unexpected subterm and element access applicative \
-							copy on binding the element" $since b875
-							$dep_from %SContext
-					),
-					/ $re_ex(b860) "further simplified thunked calls"
-						@ "%operator()" @ "vau handlers"
-						^ $dep_from "%RelayForCall",
-						// Now temporary objects are not maintained \
-							differently in TCO and non-TCO contexts.
-					/ DLDI "simplified function %WrapRef" ~ 'if',
-					/ ("function templates %(CheckSymbol, \
-						CheckParameterLeafToken)",
-						"functions %(MatchParameter, BindParaneter)")
-						>> "namespace %A1",
-					/ DLI "internal expansion" @ "functions %(Wrap, WrapRef, \
-						WrapOnce, WrapOnceRef, Unwrap)" ^ "%YB_FLATTEN",
-				),
-				/ @ "function %ReduceAgainLifted" $=
-				(
-					+ DD "more strict precondition" ^ "'\pre' command"
-						@ "Doxygen comment";
-					/ DLI ^ $dep_from ("%LiftOther" @ %NPLA) ~ "%LiftTerm"
-				),
-				/ DLDI "unified internal combiner call interface"
-					@ "functions %(Forms::(Apply, ForwardListFirst), \
-					ReduceCombined)",
-				(
-				+ "alias %EnvironmentGuard";
-				+ "functions %(RelayForEval; RelayForCall)"
-				),
-				/ DLDI "simplified function template %CallRegularUnaryAs"
-					^ "%NPL::AccessRegular" ~ "%NPL::(CheckRegular, Access)",
-				/ DLDI "simplified internal type signature" @ "function \
-					templates %(CallResolvedUnaryAs, CallRegularUnaryAs)",
-				+ DLI 'inline' @ "function templates %(CallResolvedUnaryAs, \
-					CallRegularUnaryAs, 2 Forms::RegisterUnary, 2 \
-					Forms::RegisterBinary)",
-				/ "irregular representation of combiner subobject" $effective
-					@ "function %(Forms::(WrapRef, WrapOnceRef, Unwrap, \
-					ForwardListFirst, Apply), ReduceCombined)"
-					@ 'NPL_NPLA_CheckEnvironmentReferenceCount' $=
-				(
-					// This is not touched for efficiency of generated code \
-						when '!NPL_NPLA_CheckEnvironmentReferenceCount'.
-					/ "saved anchor" @ "wrapper"
-						-> "saved environment reference";
-						// Since the reference is tracked by the \
-							%TermReference (even when \
-							'NPL_NPLA_CheckEnvironmentReferenceCount' is not \
-							enabled), saving the anchor pointer is useless, \
-							esp. for %release configurations.
-					* $comp "inconsistent anchor and reference count on \
-						%Environment destrctor check" @ "calling reference \
-						operand on %Forms::(WrapRef, WrapOnceRef, Unwrap)"
-						@ 'NPL_NPLA_CheckEnvironmentReferenceCount'
-						$since b869
-						// The divergence of counts should not be assumed \
-							normal since %EnvironmentReference contains the \
-							anchor pointer.
-				),
-				* $re_add(b869) "missing support irregular reprenstation for \
-					reference results"
-					$dep_from ("function %ResolveIdentifier" @ %NPLA)
-					// An object of irregular representation could be sliced \
-						here.
+			/ "avoided unnecessary guard call and supported configuration \
+				continuation" $effecive @ ("functions \
+				%(ReduceArguments, ReduceChildren, ReduceChildrenOrdered, \
+				ReduceOrdered, RelayForCall, Forms::(If, And, Or, When, \
+				Unless, Cond, Sequence, DefineLazy, DefineWithNoRecursion, \
+				DefineWithRecursion, SetWithNoRecursion, SetWithRecursion, \
+				ForwardListFirst, Eval, EvalRef, EvalString, EvalStringRef, \
+				VauWithEnvironment, VauWithEnvironmentRef)",
+				"function %operator()" @ "vau handler") $=
+				/ $impl ^ $dep_from ("%ContextState::ReduceOnce"
+					~ "%ReduceChecked");
+				// Ditto with %A1::ReduceOnce. This is also consistently \
+					redundant in asynchrnous implementations, though. This is \
+					slightly more efficient with %std::ref.
+			- $revert(b735) "function %ReduceChecked";
+				// See $2020-01 @ %Documentation::Workflow.
+			* DD "wrong return value for asynchronized reductions"
+				@ "function %ReduceChecked" $since b842
 			),
-			/ @ "function %LoadGroundContext" @ %Dependency $=
+			* "wrong continuation used" @ "synchrnous implementation"
+				@ "function %RelayForEval"
+				$orig (@ "internal implementation" $since b859),
+				// The context should not from the next action.
+			/ DLDI "declaration order" @ "%(Continuation, ContextState)"
+				$dep_to "continuation type completeness adjustement",
+			/ @ "class %Continuation" $=
 			(
-				/ $revert_ex(b875) "simplified alternative derivation"
-					@ "applicative %first",
-				/ DLDI "simplified native derivation"
-					@ "applications %(id, idv)" ^ $dep_from
-					("%LiftOther" @ %NPLA) ~ "%TermNode::MoveContent",
-				/ DLDI "simplified alternative derivation"
-					@ "operative '$sequence'",
-				/ DLDI "reordered derivations" @ "applicatives with names \
-					((%apply, 'list*', 'list*%'), ('forward-list-first', \
-					pattern 'first*', pattern 'rest*'), pattern 'set-first*')",
-					// Applicatives 'list*' is needed for '$defw%!' in \
-						following changes. The result is also more similar to \
-						[RnRK].
-				/ "applicative 'forward-list-first'" $=
 				(
-					* "unexpected local environment used"
-						@ "alternative derivation" $since b875
-						$= (/ $impl ^ '$defw%!' ~ '$defl%!'),
-						// At least 'list-appv' and 'appv' in the \
-							implementation should not be exposed.
-					/ $comp "used dynamic environment of the call" $dep_from
-						"forward list environment fix";
-						// As the rationale of the applicative %map rather \
-							than %apply in Kernel, the dynamic environment is \
-							preffered to new ones. It also allows more \
-							efficient native implementation as \
-							%ForwardListFirst.
-					* $doc "wrong environment used" $since b875
-						// Even if the dynamic environment is not directly \
-							used, the local environment should not be exposed.
+				/ $forced "passed 1st parameter type 'ContextNode&'"
+					@ "member function %operator()"
+					$dep_from ("%(Reducer, GComposedAction)" @ %NPLA);
+				- "data member %Context" $dep_from "%RelayForEval"
 				),
-				* "unexpected local environment used"
-					@ "applicatives %(accl, accr, foldr1)" $since b791 $=
 				(
-					// Using 'apply' instead of 'eval%' is actually more \
-						efficient due to less 'lest%' required to be evaluated \
-						and omision of evaluation passes in native the 'apply' \
-						implemenation. And at least for tail contexts, making \
-						evaluation structure smaller is better.
-					/ $impl "%accl" ^ 'eval%',
-					/ $impl "%fodr1" ^ ('eval%', 'apply')
-					/ $impl "%fodr1" ^ 'apply'
+				+ "type %allocator_type";
+				+ "3 allocator-aware constructors";
+				/ DLDI "simplified constructor with 'ContextNode&' \
+					parameter type"
 				),
-				* "wrong 'forward! called on applicative parameter"
-					@ "applicative 'map-reverse'" $since b875,
-				* $re_add(b869) $forced "missing support irregular \
-					reprenstation for reference results"
-					@ "applicative '$resolve-identifier'" $since b858
-					$dep_from ("function %ResolveIdentifier" @ %NPLA),
-					// Same to %A1::EvaluateIdentifier.
-				* "values set not respective to reference" @ "alternative \
-					derivations" @ "operatives ('$set!', '$setrec!)" $since b828
-					$= (/ $impl ^ 'unwrap eval%' ~ 'unwrap eval')
+				+ $dev $lib $re_add(b872) 'YB_ATTR_nodiscard YB_PURE'
+					@ "all 2 static functions %Access",
+				+ "data member %ReduceOnce as continuation intialized with \
+					%A1::ReduceOnce"
+					$dep_from "continuation type completeness adjustement"
+			),
+			/ $forced $impl "passed 1st parameter type 'ContextNode&'"
+				@ "member function %operator()" @ "internal actions"
+				$dep_from ("%(Reducer, GComposedAction)" @ %NPLA),
+			/ DLI "all default initialization of pass objects"
+				-> "constructor#1 using allocator from memory resoruce"
+				@ "class %ContextState",
+			/ DLI "optimized by folding synchrnous call of \
+				%ReduceHeadEmptyList before the call of %ReduceFirst"
+				@ "function %SetupDefaultInterpretation"
+		),
+		/ @ "function %LoadGroundContext" @ %Dependency $=
+		(
+			* $comp "behaviors on exception disagreed in multiple typechecking \
+				failure between the native implementation and alternatmive \
+				derivation" @ "applicative 'forward-list-first'" $since b875
+				$dep_from %Documentation.NPL
+		),
+		/ DLDI "simplified direct expansion calls" ^ "%ystdex::expand_proxy"
+			~ "%ystdex::make_expanded" $effective
+			@ ("function template %ResolveTerm" @ %NPLA,
+			"function templates %(CallRawUnary, CallResolvedUnaryAs, \
+			CallRegularUnaryAs, CallUnary, CallUnaryAs)" @ %NPLA1),
+		/ @ ("class template %GComposedAction" @ %NPLA,
+			"class %Continuation" @ %NPLA1) $=
+		(
+			+ "type %allocator_type";
+			+ "3 allocator-aware constructors";
+			/ "constructor with 'ContextNode&' parameter type" $=
+			(
+				/ DLDI "simplified"
+				+ "parameter type 'ContextNode&'" -> 'const ContextNode&'
 			)
+		)
+	)
+),
+
+b876
+(
+	/ %YFramework.NPL $=
+	(
+		* "missing copying the term tag" @ "allocator-aware copy/move \
+			constructors %TermNode" @ %SContext $since b857,
+		/ %NPLA $=
+		(
+			(
+			+ "function %LiftOther";
+			/ DLDI "simplified function %(LiftTerm#1, MoveRValueToForward, \
+				MoveRValueToReturn, LiftTermOrCopyUnchecked, MoveCollapsed)"
+				^ "%LiftOther" ~ "%TermNode::MoveContent"
+			),
+			(
+			/ $dep_from "function %LiftTermOrCopyUnchecked"
+				=> "%LiftOtherOrCopy" ^ "%LiftOther";
+			/ DLDI "simplified function %ReduceToReference" ^ "%LiftOtherOrCopy"
+			),
+			/ "function %LiftMovedUnchecked" => "LiftMovedOther",
+			* "unsafe shared subterm set on copy"
+				@ "function %LiftTermOrCopy" $since b858
+				$= (/ $impl ^ $dep_from "%LiftOther" ~ "%TermNode::SetContent"),
+					// Irregular term could be invalidated before the call of \
+						%TermNode::SetContent call.
+			+ DLI 'inline'
+				@ "function templates %(AccessRegular, ResolveRegular)",
+			/ DLI "doubled reserved heuristic message string length"
+				@ "destructor %Environment"
+				@ 'NPL_NPLA_CheckEnvironmentReferenceCount',
+			(
+			(
+			/ $lib "exception specification" @ "function template %operator()"
+				@ "struct %ReferenceTermOp"
+				-> 'ynoexcept_spec(NPL::ReferenceTerm(yforward(term)))'
+				~ 'ynothrow';
+			/ $lib "exception specification"
+				@ "all 2 functions %ReferenceTerm"
+				-> 'ynoexcept_spec(std::declval<TermReference>().get())'
+				~ 'ynothrow',
+			+ $dev "configurable macro %NPL_NPLA_CheckTermReferenceIndirection"
+			);
+			/ "enabled throwing %TermReference::get with check"
+				@ 'NPL_NPLA_CheckTermReferenceIndirection'
+			),
+			/ $dev "made macro %NPL_NPLA_CheckEnvironmentReferenceCount \
+				configurable",
+			+ "configurable macro %NPL_NPLA_CheckParentEnvironment",
+			/ @ "static member function %Environment::DefaultResolve" $=
+			(
+				/ $lib ("threw %InvalidReference on parent environment access \
+					failure" ~ "%NPLException"),
+				/ $lib "exception message",
+				/ DLI "disable parent environment check"
+					@ '!NPL_NPLA_CheckEnvironmentReferenceCount'
+					@ $dep_from "%NPL_NPLA_CheckEnvironmentReferenceCount"
+			),
+			/ ("returned %TermNode" ~ "%TermReference")
+				@ "functions %(PrepareCollapse, ResolveIdentifier)"
+		),
+		/ %NPLA1 $=
+		(
+			/ @ "namespace %Forms" $=
+			(
+				/ DLDI "boolean extraction",
+				/ DLDI ("function %operator()" @ "vau handler", "functions \
+					%(ListAsterisk, ListAsteriskRef, SetFirstAt)")
+					^ $dep_from ("%LiftOther" @ %NPLA)
+					~ "%TermNode::MoveContent",
+				/ DLDI "reordered declarations" @ "functions \
+					(%ForwardListFirst, 'First*', ('SetFirst*', 'SetRest*'))",
+				/ "reference binding" @ "function %BindParameter" $=
+				(
+					* "non-temporary unique reference unexpected moved"
+						$since b875;
+					/ DLI "allowed reference moved when unique or temporary \
+						tags are specified"
+				),
+				/ "function %ForwardListFirst" $=
+				(
+					/ $impl "keeping TCO action" ^ "%yunused",
+						// To eliminate G++ warning: [-Wunused-result].
+					/ "used current environments instead of creating fresh \
+						environments" @ "function %ForwardListFirst"
+						$dep_to "forward list environment fix",
+					* "forwarded bounded reference to tempoaraty list as an \
+						expression as operand of list access applicative"
+						$since b875,
+					* "unexpected subterm and element access applicative copy \
+						on binding the element" $since b875 $dep_from %SContext
+				),
+				/ $re_ex(b860) "further simplified thunked calls"
+					@ "%operator()" @ "vau handlers"
+					^ $dep_from "%RelayForCall",
+					// Now temporary objects are not maintained differently in \
+						TCO and non-TCO contexts.
+				/ DLDI "simplified function %WrapRef" ~ 'if',
+				/ ("function templates %(CheckSymbol, CheckParameterLeafToken)",
+					"functions %(MatchParameter, BindParaneter)")
+					>> "namespace %A1",
+				/ DLI "internal expansion" @ "functions %(Wrap, WrapRef, \
+					WrapOnce, WrapOnceRef, Unwrap)" ^ "%YB_FLATTEN",
+			),
+			/ @ "function %ReduceAgainLifted" $=
+			(
+				+ DD "more strict precondition" ^ "'\pre' command"
+					@ "Doxygen comment";
+				/ DLI ^ $dep_from ("%LiftOther" @ %NPLA) ~ "%LiftTerm"
+			),
+			/ DLDI "unified internal combiner call interface" @ "functions \
+				%(Forms::(Apply, ForwardListFirst), ReduceCombined)",
+			(
+			+ "alias %EnvironmentGuard";
+			+ "functions %(RelayForEval; RelayForCall)"
+			),
+			/ DLDI "simplified function template %CallRegularUnaryAs"
+				^ "%NPL::AccessRegular" ~ "%NPL::(CheckRegular, Access)",
+			/ DLDI "simplified internal type signature" @ "function templates \
+				%(CallResolvedUnaryAs, CallRegularUnaryAs)",
+			+ DLI 'inline' @ "function templates %(CallResolvedUnaryAs, \
+				CallRegularUnaryAs, 2 Forms::RegisterUnary, 2 \
+				Forms::RegisterBinary)",
+			/ "irregular representation of combiner subobject" $effective
+				@ "function %(Forms::(WrapRef, WrapOnceRef, Unwrap, \
+				ForwardListFirst, Apply), ReduceCombined)"
+				@ 'NPL_NPLA_CheckEnvironmentReferenceCount' $=
+			(
+				// This is not touched for efficiency of generated code when \
+					'!NPL_NPLA_CheckEnvironmentReferenceCount'.
+				/ "saved anchor" @ "wrapper" -> "saved environment reference";
+					// Since the reference is tracked by the %TermReference \
+						(even when 'NPL_NPLA_CheckEnvironmentReferenceCount' \
+						is not enabled), saving the anchor pointer is useless, \
+						esp. for %release configurations.
+				* $comp "inconsistent anchor and reference count on \
+					%Environment destrctor check" @ "calling reference operand \
+					on %Forms::(WrapRef, WrapOnceRef, Unwrap)"
+					@ 'NPL_NPLA_CheckEnvironmentReferenceCount' $since b869
+					// The divergence of counts should not be assumed normal \
+						since %EnvironmentReference contains the anchor pointer.
+			),
+			* $re_add(b869) "missing support irregular reprenstation for \
+				reference results"
+				$dep_from ("function %ResolveIdentifier" @ %NPLA)
+				// An object of irregular representation could be sliced here.
+		),
+		/ @ "function %LoadGroundContext" @ %Dependency $=
+		(
+			/ $revert_ex(b875) "simplified alternative derivation"
+				@ "applicative %first",
+			/ DLDI "simplified native derivation" @ "applications %(id, idv)"
+				^ $dep_from ("%LiftOther" @ %NPLA) ~ "%TermNode::MoveContent",
+			/ DLDI "simplified alternative derivation"
+				@ "operative '$sequence'",
+			/ DLDI "reordered derivations" @ "applicatives with names \
+				((%apply, 'list*', 'list*%'), ('forward-list-first', \
+				pattern 'first*', pattern 'rest*'), pattern 'set-first*')",
+				// Applicatives 'list*' is needed for '$defw%!' in following \
+					changes. The result is also more similar to [RnRK].
+			/ "applicative 'forward-list-first'" $=
+			(
+				* "unexpected local environment used" @ "alternative derivation"
+					$since b875
+					$= (/ $impl ^ '$defw%!' ~ '$defl%!'),
+					// At least 'list-appv' and 'appv' in the implementation \
+						should not be exposed.
+				/ $comp "used dynamic environment of the call" $dep_from
+					"forward list environment fix";
+					// As the rationale of the applicative %map rather than \
+						%apply in Kernel, the dynamic environment is preffered \
+						to new ones. It also allows more efficient native \
+						implementation as %ForwardListFirst.
+				* $doc "wrong environment used" $since b875
+					// Even if the dynamic environment is not directly used, \
+						the local environment should not be exposed.
+			),
+			* "unexpected local environment used"
+				@ "applicatives %(accl, accr, foldr1)" $since b791 $=
+			(
+				// Using 'apply' instead of 'eval%' is actually more efficient \
+					due to less 'lest%' required to be evaluated and omission \
+					of evaluation passes in native the 'apply' implemenation. \
+					And at least for tail contexts, making evaluation \
+					structure smaller is better.
+				/ $impl "%accl" ^ 'eval%',
+				/ $impl "%fodr1" ^ ('eval%', 'apply')
+				/ $impl "%fodr1" ^ 'apply'
+			),
+			* "wrong 'forward! called on applicative parameter"
+				@ "applicative 'map-reverse'" $since b875,
+			* $re_add(b869) $forced "missing support irregular reprenstation \
+				for reference results" @ "applicative '$resolve-identifier'"
+				$since b858 $dep_from ("function %ResolveIdentifier" @ %NPLA),
+				// Same to %A1::EvaluateIdentifier.
+			* "values set not respective to reference" @ "alternative \
+				derivations" @ "operatives ('$set!', '$setrec!)" $since b828
+				$= (/ $impl ^ 'unwrap eval%' ~ 'unwrap eval')
 		)
 	),
 	* $re_add(b856) "stage 1 build failure" %Tools.Scripts $since b875 $=
@@ -257,7 +380,7 @@ $now
 			$since b875
 	),
 	(
-	+ $repo ".hgeol";
+	+ $repo "file %.hgeol";
 	/ $comp "converted EOL" @ "%3rdparty/freetype/builds/build-ds.sh"
 		-> "LF" ~ "CR+LF"
 	)
@@ -1349,8 +1472,8 @@ b867
 				^ ("%ystdex::enable_if_same_param_t"
 				@ %YBase.YStandardEx.Meta) ~ "%ystdex::enable_if_same_t",
 			/ "%list" ^ ("%ystdex::list" @ %List) ~ "%std::list"
-				// See $2019-08 @ %Documentation::Workflow::Annual2019. It \
-					also makes %NPL performance slightly better.
+				// See $2019-08 @ %Documentation::Workflow. It also makes %NPL \
+					performance slightly better.
 		),
 		/ %YSLib.Core $=
 		(
@@ -1377,8 +1500,7 @@ b867
 			/ @ "function templates %(AsNode, MakeNode, StringifyToNode)"
 				@ %ValueNode $=
 				// Constructor parameter of allocators in %ValueNode is not \
-					changed. See See $2019-09 \
-					@ %Documentation::Workflow::Annual2019.
+					changed. See See $2019-09 @ %Documentation::Workflow.
 			(
 				/ "excludes convertible to %ValueNode::allocator"
 					@ "overloads#1"
@@ -1393,8 +1515,7 @@ b867
 				@ "function template %(AsTermNode#2, Analyze)" @ %SContext
 				-> 'const TermNode::allocator_type&',
 				// Constructor parameter of allocators in %TermNode is not \
-					changed. See See $2019-09 \
-					@ %Documentation::Workflow::Annual2019.
+					changed. See See $2019-09 @ %Documentation::Workflow.
 			/ %NPLA $=
 			(
 				/ $dev "parameter 'Environment::allocator_type'" @ "function \
@@ -1530,7 +1651,7 @@ b866
 			/ @ "class %pool_resource" @ %MemoryResource $=
 			(
 				(
-				// See $2019-09 @ %Documentation::Workflow::Annual2019.
+				// See $2019-09 @ %Documentation::Workflow.
 				/ DLI "optimized pool finding"
 					^ $dep_from ("%ystdex::lower_bound_n" @ %Algorithm
 					~ "%std::lower_bound");
@@ -1726,7 +1847,7 @@ b866
 							library being liked for others. See \
 							https://github.com/android-ndk/ndk/issues/823 and \
 							https://developer.android.com/ndk/guides/cpp-support#libc.
-					// See $2019-09 @ %Documentation::Workflow::Annual2019.
+					// See $2019-09 @ %Documentation::Workflow.
 					+ '-libstdc++-static'
 				),
 				- '-Wl,--dynamic-list-data -Wl,--dynamic-list-cpp-new \
@@ -2024,7 +2145,7 @@ b864
 			),
 			/ %CAssert $=
 			(
-				// See $2019-08 @ %Documentation::Workflow::Annual2019.
+				// See $2019-08 @ %Documentation::Workflow.
 				/ "%YAssert" @ !'YB_Use_YAssert' ^ "%assert"
 					~ "%yassume",
 				+ "pseudo keyword %yverify"
@@ -3002,9 +3123,9 @@ b861
 				(
 					/ "improved collection without keeping saved temporary \
 						function prvalues" @ "%operator()" @ "vau handlers",
-						// See $2019-06 @ %Documentation::Workflow::Annual2019.
+						// See $2019-06 @ %Documentation::Workflow.
 					/ DLI "avoid specialized inactive frame detection"
-						// See $2019-06 @ %Documentation::Workflow::Annual2019.
+						// See $2019-06 @ %Documentation::Workflow.
 				),
 				* "ill-formed call" @ !'NPL_Impl_NPLA1_Enable_TCO'
 					@ "%operator()" @ "vau handlers" $since b860,
@@ -3196,7 +3317,7 @@ b860
 						@ "functions %(Vau, VauRef, VauWithEnvironment, \
 						VauWithEnvironmentRef)" $since b799 $dep_to
 						"vau dynamic capture ignorance fix",
-						// See $2019-06 @ %Documentation::Workflow::Annual2019.
+						// See $2019-06 @ %Documentation::Workflow.
 					/ DLDI "simplified TCO compression"
 				),
 				/ DLDI "reordered declarations %(Continuation, InsertChild, \
@@ -3221,7 +3342,7 @@ b860
 						known candidate environments",
 						// This is not used with the following changes, though.
 					(
-					// See $2019-06 @ %Documentation::Workflow::Annual2019.
+					// See $2019-06 @ %Documentation::Workflow.
 					- DLI "removed weak roots collection by default";
 					/ "avoided stored tempoarary object for the operand"
 						@ "%operator()" @ "vau handlers";
@@ -3254,11 +3375,11 @@ b860
 						in ('$vau', '$vau/e', '$vau/e', '$vau/e%') abstractions"
 						$dep_from "vau dynamic capture ignorance fix" $since
 						b799 $dep_to "captureless eformal vau PTC fix",
-						// See $2019-06 @ %Documentation::Workflow::Annual2019.
+						// See $2019-06 @ %Documentation::Workflow.
 					* $comp "wrong temporary lifetime in parameters"
 						@ "native implementation" @ "operative '$sequence'"
 						$since b823 $dep_from ("%Sequence" @ %NPLA1),
-						// See $2019-06 @ %Documentation::Workflow::Annual2019.
+						// See $2019-06 @ %Documentation::Workflow.
 					/ $re_ex(b840) DLDI "renamed various environment names"
 						@ "derivations"
 						// Mostly, 'senv' to 'ef' to represent syntactic \
@@ -3717,7 +3838,7 @@ b858
 							^ $dep_from ("%Collapse" @ %NPLA),
 						+ "support of self assignment"
 							// See $2019-05 @ \
-								%Documentation::Workflow::Annual2019.
+								%Documentation::Workflow.
 					),
 					+ "function %SetFirstRefAt" ^ $dep_from
 						("%LiftCollapsed" @ %NPLA),
@@ -3866,7 +3987,7 @@ b858
 						* "missing handling self assignment" $orig
 							(@ '<-%' $since b857)
 							// See $2019-05 @ \
-								%Documentation::Workflow::Annual2019.
+								%Documentation::Workflow.
 					)
 					),
 					* "missing internal definition of operative '$defv!'"
@@ -4054,7 +4175,7 @@ b857
 				/ @ "function %EvaluateIdentifier" 
 					$dep_from (("applicative 'first%'" @ %Dependency),
 					"split forwarding binding operatives")
-					// See $2019-04 @ %Documentation::Workflow::Annual2019.
+					// See $2019-04 @ %Documentation::Workflow.
 					$=
 				(
 					/ "specified %TermTags::Unqualified on general \
@@ -4132,7 +4253,7 @@ b857
 					/ "split operatives ('$let', '$let/d', \
 						'$let/e', '$let*', '$letrec')" $dep_to
 						"split forwarding binding operatives"
-						// See $2019-04 @ %Documentation::Workflow::Annual2019.
+						// See $2019-04 @ %Documentation::Workflow.
 					(
 						+ "operatives with '%' postfix and old implementations",
 						/ "kept old operatives without '%' postfix in the \
@@ -4149,7 +4270,7 @@ b857
 						+ "native derivation" ^ $dep_from
 							("%LiftRValueToReturn" @ %NPLA),
 							// See $2019-04 @ \
-								%Documentation::Workflow::Annual2019.
+								%Documentation::Workflow.
 						/ DLI "original derivation" ^ "%unwrap" ~ '$quote'
 					),
 					+ "applicatives (%(box, unbox), 'box?')" $dep_from
@@ -4214,7 +4335,7 @@ b856
 							@ 'NPL_NPLA_CheckEnvironmentReferenceCount'
 							^ "%YSLib::FilterExceptions")
 							// See $2019-03 @ \
-								%Documentation::Workflow::Annual2019.
+								%Documentation::Workflow.
 					)
 				),
 				/ $forced DLDI ("function %Collapse#2", "constructor \
@@ -4276,7 +4397,7 @@ b856
 							// Anchors are still needed for TCO although they \
 								interfere \
 								%NPL_NPLA_CheckEnvironmentReferenceCount. See \
-								$2019-03 @ %Documentation::Workflow::Annual2019.
+								$2019-03 @ %Documentation::Workflow.
 						* "anchors wrongly moved for multiple references" $since
 							b855 !^ "%Environment::Anchor"
 							$dep_to "avoided Environment::Anchor",
@@ -4513,7 +4634,7 @@ b855
 							("%PointerHolder::type" @ %YSLib.Core.YObject),
 						- DLDI "redundant thunk creation",
 						(
-						// See $2019-03 @ %Documentation::Workflow::Annual2019.
+						// See $2019-03 @ %Documentation::Workflow.
 						/ "made default object as strong references to thunks \
 							with environment resolution",
 							// This can avoid invalidation as well as cyclic \
@@ -4725,7 +4846,7 @@ b854
 				(
 					/ "function %type" ^ $dep_from "%YSLib::IsNullPointer"
 						~ "%traits_type::is_owner",
-						// See $2019-03 @ %Documentation::Workflow::Annual2019.
+						// See $2019-03 @ %Documentation::Workflow.
 					/ @ "function %get" $=
 					(
 						+ $dev $lib 'YB_ATTR_returns_nonnull',
@@ -5928,7 +6049,7 @@ b851,
 						* $comp "broken %ValueObject holder creation for user \
 							code" $since b850 $dep_from
 							"SFINAE-firendly value objects"
-						// See $2019-01 @ %Documentation::Workflow::Annual2019.
+						// See $2019-01 @ %Documentation::Workflow.
 					)
 				),
 				/ %ValueNode $=
@@ -6137,7 +6258,7 @@ b850
 				* "ill-formed for incomplete return types in SFINAE contexts"
 					@ "binary type traits %(is_invocable_r, \
 					is_nothrow_invocable_r)" $since b832
-					// See $2019-01 @ %Documentation::Workflow::Annual2019.
+					// See $2019-01 @ %Documentation::Workflow.
 					$= (/ $impl ^ $dep_from
 						("%is_same_or_convertible" @ %Meta) ~ "%is_convertible")
 			),
@@ -6172,7 +6293,7 @@ b850
 					uninitialized_construct_using_allocator)"
 					$dep_from ("fixed function type of invocation detect",
 					"avoided explicit CopyConstructible holder check")
-					// See $2019-01 @ %Documentation::Workflow::Annual2019.
+					// See $2019-01 @ %Documentation::Workflow.
 			)
 			)
 			),
@@ -6701,7 +6822,7 @@ b849
 						(copy, move) %operator=",
 					/ "constructor template" ^ "callable object"
 						~ "callable reference" !^ "%ystdex::decay_t"
-						// See $2019-01 @ %Documentation::Workflow::Annual2019.
+						// See $2019-01 @ %Documentation::Workflow.
 				),
 				/ "function template %make_expanded" $=
 				(
@@ -6885,7 +7006,7 @@ b849
 							!^ "ystdex::decay_t",
 							// Note %operator= or compound assignment \
 								operators are not applicable. See $2019-01 @ \
-								%Documentation::Workflow::Annual2019.
+								%Documentation::Workflow.
 						- "filtering %std::bad_function_call"
 							@ "function template %operator"
 							@ "struct %CountedHandlerInvoker" $dep_from
@@ -7130,7 +7251,7 @@ b848
 					@ "constructor template %any with 1 parameter"
 					^ "%any_ops::value_handler" ~ "%any_ops::ref_hanlder"
 					$dep_from "avoided implicit wrapping of %any construction",
-					// See $2018-12 @ %Documentation::Workflow::Annual2018.
+					// See $2018-12 @ %Documentation::Workflow.
 				/ DD "updated descriptions on extensions and external \
 					references" @ "Doxygen comment",
 				* $revert(b847) "wrong 'YB_ATTR_nodiscard YB_PURE'"
@@ -7142,7 +7263,7 @@ b848
 					constructor with %default_init_t and default \
 					constructor with explicit 'yconstfn' and 'ynothrow'";
 				/ DLI "kept move constructor away from redundant storage swap",
-					// See $2018-12 @ %Documentation::Workflow::Annual2018.
+					// See $2018-12 @ %Documentation::Workflow.
 				+ "constructor with %default_init_t parameter"
 				),
 				/ DLDI "simplified base (copy, move) operations",
@@ -7150,11 +7271,11 @@ b848
 					// They share implementations.
 				/ DLI "copy %operator=" ^ "move %operator=" ~ "%swap",
 				/ DLI "move %operator=" ^ "%reset" ~ "%swap",
-					// See $2018-12 @ %Documentation::Workflow::Annual2018.
+					// See $2018-12 @ %Documentation::Workflow.
 				/ DLDI "protected base constructions",
 				/ DLI "all out-of-line %any member function definitions and \
 					base cleanup member functions" -> "header",
-					// See $2018-12 @ %Documentation::Workflow::Annual2018.
+					// See $2018-12 @ %Documentation::Workflow.
 				(
 				+ "unary type trait %opt_in_place_t";
 				(
@@ -7773,7 +7894,7 @@ b846
 				/ @ "class template %allocator_delete" -> "class templates \
 					%(allocator_delete, allocator_guard_delete)" $=
 				(
-					// See $2018-12 @ %Documentation::Workflow::Annual2018.
+					// See $2018-12 @ %Documentation::Workflow.
 					+ "class template %allocator_guard_delete";
 						// As old %allocator_delete.
 					/ @ "class template %allocator_delete" $=
@@ -9108,7 +9229,7 @@ b842
 					$= (/ $impl ^ "%AssertBranch" ~ "%IsBranch"),
 				/ @ "class %ContextNode" $=
 				(
-					// See $2018-10 @ %Documentation::Workflow::Annual2018.
+					// See $2018-10 @ %Documentation::Workflow.
 					+ "virtual destructor",
 					(
 					/ "data member %(EvaluateLeaf, EvaluateList, \
@@ -9189,7 +9310,7 @@ b842
 	* "bogus '-s' option for strip in compiler options for C++"
 		@ "%SHBuild-YSLib-common.(txt, sh)" @ %Tools.Scripts $since b839
 		$= (- "variable %C_CXXFLAGS_STRIP"),
-		// See $2018-10 @ %Documentation::Workflow::Annual2018.
+		// See $2018-10 @ %Documentation::Workflow.
 	- $dev "redundant NMake properties" @ "project %YBase"
 		@ "Microsoft VC++ projects"
 ),
@@ -9368,7 +9489,7 @@ b841
 					@ "function %ReduceOnce" ^ "%ContextNode::LastStatus"
 					~ "private shared status and \
 					%ContextNode::SkipToNextEvaluation";
-					// See $2018-10 @ %Documentation::Workflow::Annual2018.
+					// See $2018-10 @ %Documentation::Workflow.
 				/ DLDI "simplified function %Reduce for thunked code"
 					!^ "%ContextNode::SkipToNextEvaluation",
 				* $comp "wrong status setting in distributing thunked \
@@ -9697,7 +9818,7 @@ b840
 						/ "loaded derived functions" $=
 						(
 							// See $2018-09 @ \
-								%Documentation::Workflow::Annual2018.
+								%Documentation::Workflow.
 							/ "renamed function name with phrases 'lambdae', \
 								'vaue'" -> ('lambda/e', 'vau/e')
 								$effective @ ('$lambdae', '$lambdae%', '$vaue',
@@ -9735,7 +9856,7 @@ b840
 					!^ "%ystdex::exchange",
 				/ @ "vau and evaluation TCO" $=
 				(
-					// See $2018-09 @ %Documentation::Workflow::Annual2018.
+					// See $2018-09 @ %Documentation::Workflow.
 					- "function prvalues collection";
 					* "environment for operand wrongly removed when \
 						environment frame is removed from the record list"
@@ -10777,7 +10898,7 @@ b836
 				/ "support UNC roots detection for %IDTag<YF_Platform_Win32> \
 					parameter overloads" @ "function templates \
 					%(FetchRootNameLength_P, FetchRootPathLength_P)"
-					// See $2018-08 @ %Documentation::Workflow::Annual2018.
+					// See $2018-08 @ %Documentation::Workflow.
 			)
 		),
 		/ $forced DLDI "namespaces" @ "platform %DS" @ %(Helper.Environment,
@@ -11034,7 +11155,7 @@ b835
 		+ $dev "suffix 'L'" @ "defined values" @ "feature testing macros"
 			$effective @ %(YDefinition,
 			YStandardEx.(AddressOf, Functor, Invoke, Memory, Range, Tuple)),
-			// See $2018-08 @ %Documentation::Workflow::Annual2018.
+			// See $2018-08 @ %Documentation::Workflow.
 		+ $dev "suffix 'L'" @ "condition expression with feature testing macros"
 			@ "condition inclusions" $effective @ %(YDefinition, YStandardEx.(
 			AddressOf, Algorithm, Functor, IntegerSequence, IntegralConstant,
@@ -11486,7 +11607,7 @@ b833
 				+ "metafunction %stream_str_t",
 				/ @ "inline namespace %cpp2017"
 				(
-					// See also $2018-07 @ %Documentation::Workflow::Annual2018.
+					// See also $2018-07 @ %Documentation::Workflow.
 					+ 'using std::basic_string' @ '__cplusplus >= 201703L',
 					+ "class template %basic_string"
 						!@ '__cplusplus >= 201703L';
@@ -12669,7 +12790,7 @@ b827
 			(
 				* "missing remove entry for newly added temporary object"
 					$since b825,
-				// See $2018-06 @ %Documentation::Workflow::Annual2018.
+				// See $2018-06 @ %Documentation::Workflow.
 				/ $revert_ex(b886) "refactored entry of TCO frame checking";
 				/ "suppored collection of indirect referenced environments by \
 					separated record compressor"
@@ -12721,10 +12842,10 @@ b826
 	(
 	/ DLB "removed targets generated from 'objcopy -O binary'"
 		@ "all DS makefiles";
-		// See $2018-02 @ %Documentation::Workflow::Annual2018.
+		// See $2018-02 @ %Documentation::Workflow.
 	+ $forced $build '-h 0x200' @ "%ndstool command" @ "makefile"
 		@ "platform %DS" @ %YSTest,
-		// See $2018-02 @ %Documentation::Workflow::Annual2018.
+		// See $2018-02 @ %Documentation::Workflow.
 	),
 	+ "touch screen initialization" @ "main function" @ %YReader.Main_ARM7
 		@ "project %YSTest_ARM7";
@@ -13601,7 +13722,7 @@ b818
 				/ "merged call of term lifting for only outermost tail context \
 					for vau and evaluation calls specifically as TCO action"
 					@ "function %ReduceCheckedClosure",
-					// See $2018-02 @ %Documentation::Workflow::Annual2018.
+					// See $2018-02 @ %Documentation::Workflow.
 				/ "resolved term before guard construction"
 					@ "function %Forms::Eval"
 					// This makes it possible to receive term reference for \
@@ -13935,7 +14056,7 @@ b811
 			- $revert(b807) "function %ReduceNested"
 			),
 			/ $comp $revert(b810) "avoided trailing actions exposed as actions"
-				// See $2017-12 @ %Documentation::Workflow::Annual2017.
+				// See $2017-12 @ %Documentation::Workflow.
 			),
 			(
 			/ "kept handler in setup function to make it live long enough"
@@ -14140,7 +14261,7 @@ b808
 				parameter";
 				// Move-only functions are now supported by a style of \
 					forwarding call wrapper. See $2014-04 @ \
-					%Documentation::Workflow::Annual2014. This is also \
+					%Documentation::Workflow. This is also \
 					consistent to avoid the bug below.
 			* $comp "ambiguity for imprecisely match function object as 1st \
 				argument to construct" $since b494
@@ -14228,7 +14349,7 @@ b807
 					(
 					/ "loop invariant" ^ "%TailAction" ~ "%CheckReducible";
 						// See $2017-10 @ \
-							%Documentation::Workflow::Annual2017.
+							%Documentation::Workflow.
 					/ $forced "return value determination" ^ "%CheckNorm"
 						~ "%TailAction call results"
 						// This is consistent to new loop invariant.
@@ -14598,7 +14719,7 @@ b804
 			* "unexpected NPLA1 tracing messages" @ "running command 'RunNPL' \
 				or 'RunNPLFile'" @ "stage 1 execution" $since b803 $dep_from
 				("copy constructor %ContextNode" @ %YFramework.NPL.NPLA)
-				// See $2017-09 @ %Documentation::Workflow::Annual2017.
+				// See $2017-09 @ %Documentation::Workflow.
 				$= (/ $impl "setting filter level to %Informative" ~ "%Debug")
 		),
 		/ %Scripts $=
@@ -14771,7 +14892,7 @@ b802
 					^ "%ReduceCheckedClosure" ~ "%CheckNorm",
 				* "unsafe evaluation" @ "function %Eval"
 					$since b772 ^ "%ReduceCheckedClosure" ~ "%Reduce"
-					// See $2017-09 @ %Documentation::Workflow::Annual2017.
+					// See $2017-09 @ %Documentation::Workflow.
 			),
 			/ $lib "supported external contexts" @ "class %REPLContext" $=
 			(
@@ -14850,7 +14971,7 @@ b801
 					* "partition initialzation faliure on verifying FAT \
 						partition when the 0 sector is not ready and the \
 						master partition is valid and readable" $since b611
-						// See $2017-08 @ %Documentation::Workflow::Annual2017.
+						// See $2017-08 @ %Documentation::Workflow.
 				),
 				/ $lib $design "asserting string" @ "function %CreateFSInfo",
 			)
@@ -14953,7 +15074,7 @@ b800
 						/ "functions %Forms::(Eval, ValueOf)" ^ $dep_from
 							("%LiftToOther" @ %NPLA) ~ "%LiftTerm"
 							// See $2017-08 @ \
-								%Documentation::Workflow::Annual2017.
+								%Documentation::Workflow.
 						/ "function %Forms(DefineLazy, DefineWithNoRecursion, \
 							DefineWithRecursion, Lambda, Vau, \
 							VauWithEnvironment)" ^ $dep_from "%LiftToSelf",
@@ -14989,7 +15110,7 @@ b800
 		(
 			/ "limited %FAT::LFN::(MaxLength, MaxMBCSLength) value as '255'"
 				 @ FileSystem,
-				// See $2017-08 @ %Documentation::Workflow::Annual2017.
+				// See $2017-08 @ %Documentation::Workflow.
 			/ @ "platform %DS" @ %NativeAPI $=
 			(
 				+ "worked arounded missing %__sync_synchronize stub for \

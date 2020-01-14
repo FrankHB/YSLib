@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3356
+\version r3357
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2020-01-05 03:24 +0800
+	2020-01-12 18:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -571,7 +571,7 @@ Load(ContextNode& ctx)
 	The primitives are listed in order as Chapter 4 of Revised^-1 Report on the
 		Kernel Programming Language. Derived forms are not ordered likewise.
 	There are some difference of listed primitives.
-	See $2017-02 @ %Documentation::Workflow::Annual2017.
+	See $2017-02 @ %Documentation::Workflow.
 */
 	LoadEquals(ctx);
 	LoadControl(ctx);

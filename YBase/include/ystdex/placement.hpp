@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016, 2018-2019 FrankHB.
+	© 2015-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r909
+\version r912
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2019-09-05 14:06 +0800
+	2020-01-12 18:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -120,6 +120,7 @@ is_aligned_ptr(_type* p, size_t alignment
 \see WG21 P0886R0 。
 \see https://gcc.gnu.org/gcc-4.7/changes.html 。
 \see https://clang.llvm.org/docs/LanguageExtensions.html#builtin-functions 。
+\see https://bugs.llvm.org/show_bug.cgi?id=16294 。
 \since build 864
 */
 // XXX: Although GCC supports non-constant alignment in its test suite, Clang++
@@ -795,7 +796,7 @@ struct tagged_value
 	yconstfn
 #if !YB_IMPL_GNUCPP || YB_IMPL_GNUCPP < 70000 || YB_IMPL_GNUCPP > 70300
 	tagged_value() ynoexcept_spec(token_type())
-	// XXX: Blocked. See $2019-08 @ %Documentation::Workflow::Annual2019.
+	// XXX: Blocked. See $2019-08 @ %Documentation::Workflow.
 #else
 	tagged_value() ynoexcept(is_nothrow_default_constructible<token_type>())
 #endif

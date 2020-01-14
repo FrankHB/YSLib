@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2019 FrankHB.
+	© 2011-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r4022
+\version r4024
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2019-09-13 14:02 +0800
+	2020-01-12 18:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -461,7 +461,7 @@ do_alloc_on_swap(_tAlloc& x, _tAlloc& y, true_)
 
 /*!
 \note 模板参数可能是引用。
-\see $2018-12 @ %Documentation::Workflow::Annual2018.
+\see $2018-12 @ %Documentation::Workflow.
 */
 //@{
 /*!

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018-2019 FrankHB.
+	© 2010-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r3473
+\version r3475
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2019-10-03 22:05 +0800
+	2020-01-12 18:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -757,7 +757,7 @@ const auto PreserveModificationAndAccessTime(
 \note 第一参数表示目标，第二参数表示源。
 \note mode_t 参数依次表示打开目标和源的权限模式。
 \note 不复制元数据。
-\see $2015-09 @ %Documentation::Workflow::Annual2015.
+\see $2015-09 @ %Documentation::Workflow.
 \since build 648
 */
 //@{

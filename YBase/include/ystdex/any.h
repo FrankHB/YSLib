@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2019 FrankHB.
+	© 2011-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r4807
+\version r4812
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2019-09-12 17:02 +0800
+	2020-01-12 18:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1849,6 +1849,7 @@ public:
 	}
 	//! \post YStandardEx 扩展：转移后被转移的参数值满足 !has_value() 。
 	//@{
+	//! \note YStandardEx 扩展：若存在值被转移，不从值初始化新的对象。
 	any(any&& x) ynothrow
 		: any_base(x)
 	{
@@ -1893,6 +1894,8 @@ public:
 	}
 	/*!
 	\brief 转移赋值：使用复制和交换。
+	\post YStandardEx 扩展：转移后被转移的参数值满足 !has_value() 。
+	\note YStandardEx 扩展：若存在值被转移，不从值初始化新的对象。
 	\since build 332
 	*/
 	any&
@@ -2231,7 +2234,7 @@ template<typename _type>
 YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE inline _type*
 unchecked_any_cast(any* p)
 {
-	// NOTE: See $2019-08 @ %Documentation::Workflow::Annual2019.
+	// NOTE: See $2019-08 @ %Documentation::Workflow.
 //	yconstraint(p && p->has_value());
 	yconstraint(p);
 	yconstraint(p->has_value());

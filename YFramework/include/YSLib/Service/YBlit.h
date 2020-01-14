@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2019 FrankHB.
+	© 2009-2016, 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBlit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3464
+\version r3468
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2019-01-14 17:17 +0800
+	2019-01-12 18:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -200,7 +200,7 @@ struct BlitScannerLoop
 		while(delta_y-- > 0)
 		{
 			scanner(dst_iter, src_iter, delta_x);
-			// NOTE: See $2015-02 @ %Documentation::Workflow::Annual2015.
+			// NOTE: See $2015-02 @ %Documentation::Workflow.
 			if(YB_LIKELY(delta_y != 0))
 				yunseq(src_iter += src_inc,
 					ystdex::delta_assign<_bDec>(dst_iter, dst_inc));
@@ -462,7 +462,7 @@ struct CopyLine
 			"Invalid input iterator found.");
 		std::copy_n(src_iter, delta_x, dst_iter);
 		// NOTE: Possible undefined behavior. See $2015-02
-		//	@ %Documentation::Workflow::Annual2015.
+		//	@ %Documentation::Workflow.
 		yunseq(src_iter += delta_x, dst_iter += delta_x);
 	}
 	//! \since build 583
@@ -477,7 +477,7 @@ struct CopyLine
 			"Invalid output iterator found."),
 		std::fill_n(dst_iter, delta_x, Deref(src_iter));
 		// NOTE: Possible undefined behavior. See $2015-02
-		//	@ %Documentation::Workflow::Annual2015.
+		//	@ %Documentation::Workflow.
 		dst_iter += delta_x;
 	}
 	//@}

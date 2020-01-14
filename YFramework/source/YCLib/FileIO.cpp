@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2019 FrankHB.
+	© 2011-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3178
+\version r3180
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2019-11-29 01:02 +0800
+	2020-01-12 18:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -416,7 +416,7 @@ FileDescriptor::Deleter::operator()(pointer p) const ynothrow
 {
 	if(p && YB_UNLIKELY(YCL_CallGlobal(close, *p) < 0))
 		// NOTE: This is not a necessarily error. See $2016-04
-		//	@ %Documentation::Workflow::Annual2016.
+		//	@ %Documentation::Workflow.
 		YTraceDe(Descriptions::Warning,
 			"Falied closing file descriptor, errno = %d.", errno);
 }
