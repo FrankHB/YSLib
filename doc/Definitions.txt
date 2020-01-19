@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14225
+\version r14227
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2020-01-04 23:53 +0800
+	2020-01-16 22:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -479,8 +479,8 @@ NPL_Impl_NPLA_CheckStatus
 }
 $unit NPLA1
 {
+NPL_Impl_NPLA1_Enable_InlineDirect
 NPL_Impl_NPLA1_Enable_TCO
-NPL_Impl_NPLA1_Enable_TailRewriting
 NPL_Impl_NPLA1_Enable_Thunked
 }
 $unit Dependency

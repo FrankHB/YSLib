@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r6107
+\version r6209
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-01-14 15:26 +0800
+	2020-01-17 17:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -203,12 +203,21 @@ class YF_API ContextState : public ContextNode
 {
 public:
 	// XXX: Allocators are not used here for performance.
+	//! \brief 叶遍。
 	EvaluationPasses EvaluateLeaf{};
+	//! \brief 列表遍。
 	EvaluationPasses EvaluateList{};
+	//! \brief 字面量遍。
 	LiteralPasses EvaluateLiteral{};
+	//! \brief 守卫遍。
 	GuardPasses Guard{};
-	//! \since build 877
-	Continuation ReduceOnce{InitReduceOnce()};
+	/*!
+	\brief NPLA1 表达式节点一次规约续延。
+	\pre 规约函数第二参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
+	\pre 若修改规约函数实现，应和 DefaultReduceOnce 具有相同的求值语义。
+	\since build 877
+	*/
+	Continuation ReduceOnce{DefaultReduceOnce, *this};
 
 private:
 	/*!
@@ -264,12 +273,45 @@ public:
 	PDefH(void, ClearNextTerm, ) ynothrow
 		ImplExpr(next_term_ptr = {})
 
-private:
-	//! \since build 877
-	Continuation
-	InitReduceOnce() const;
+	/*!
+	\brief NPLA1 表达式节点一次规约默认实现：调用求值例程规约子表达式。
+	\pre 第二参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
+	\return 规约状态。
+	\note 异常安全为调用遍的最低异常安全保证。
+	\note 可能使参数中容器的迭代器失效。
+	\note 默认不需要重规约。这可被求值遍改变。
+	\note 可被求值遍调用以实现递归求值。
+	\warning 若不满足上下文状态类型要求，行为未定义。
+	\sa EvaluateLeaf
+	\sa EvaluateList
+	\sa ReduceAgain
+	\sa ReduceOnce
+	\sa ValueToken
+	\since build 878
 
-public:
+	对同步实现，调用求值遍对项规约；
+	否则，设置上下文使用求值遍作为异步实现的规约动作，
+		依赖外部跳板继续表示完成项的规约迭代。
+	进入参数指定的项的异步规约调用遍前，清除上下文的最后一次规约状态为中立规约，
+		不能使用之前的状态指定重规约。
+	在已进入异步规约时，则在上下文最后一次规约状态设置为
+		ReductionStatus::Retrying 时，不继续设置异步求值遍而跳过剩余的求值遍。
+	对应不同的节点次级结构分类，一次迭代按以下顺序选择以下分支之一，按需规约子项：
+	对枝节点调用 EvaluateList 求值；
+	对空节点或值数据成员为 ValueToken 类型的值的叶节点不进行操作；
+	对其它叶节点调用 EvaluateList 求值。
+	支持重规约。异步重规约由 ContextNode 支持。
+	此处约定的迭代中对节点的具体结构分类默认也适用于其它 NPLA1 实现 API ；
+	例外情况应单独指定明确的顺序。
+	例外情况包括输入节点不是表达式语义结构（而是 AST ）的 API ，如 TransformNode 。
+	规约结果由以下规则确定：
+	对异步规约，返回 Reduction::Partial ；
+	否则，对枝节点，返回被调用的规约遍的求值结果；
+	否则，对非枝节点，返回的规约状态总是 ReductionStatus::Regular 。
+	*/
+	static ReductionStatus
+	DefaultReduceOnce(TermNode&, ContextNode&);
+
 	/*!
 	\brief 构造作用域守卫并重写项。
 	\sa Guard
@@ -384,7 +426,7 @@ inline PDefH(void, ReduceChildren, TermNode& term, ContextNode& ctx)
 /*!
 \brief 有序规约子项。
 \pre 断言：参数指定的范围不存在子项或参数指定的上下文中的尾动作为空。
-\return 当存在子项时为最后一个子项的规约状态，否则为 ReductionStatus::Clean 。
+\return 当存在子项时为最后一个子项的规约状态，否则为 ReductionStatus::Neutral 。
 \sa ReduceOnce
 \since build 773
 */
@@ -412,42 +454,17 @@ YF_API ReductionStatus
 ReduceFirst(TermNode&, ContextNode&);
 
 /*!
-\brief NPLA1 表达式节点一次规约：调用求值例程规约子表达式。
+\brief NPLA1 表达式节点一次规约：转发调用到 NPLA1 表达式节点一次规约续延并调用。
 \pre 第二参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
 \return 规约状态。
-\note 异常安全为调用遍的最低异常安全保证。
-\note 可能使参数中容器的迭代器失效。
-\note 默认不需要重规约。这可被求值遍改变。
-\note 可被求值遍调用以实现递归求值。
+\note 默认实现由 ContextState::DefaultReduceOnce 提供。
+\note 异常安全和参数的要求同默认实现。
 \warning 若不满足上下文状态类型要求，行为未定义。
-\sa ContextNode::EvaluateLeaf
-\sa ContextNode::EvaluateList
-\sa ValueToken
-\sa ReduceAgain
-\sa ReduceOnce
+\sa ContextState::DefaultReduceOnce
+\sa ContextState::ReduceOnce
 \since build 806
 
-对同步实现，调用求值遍对项规约；
-否则，设置上下文使用求值遍作为异步实现的规约动作，
-	依赖外部跳板继续表示完成项的规约迭代。
-进入参数指定的项的异步规约调用遍前，清除上下文的最后一次规约状态为中立规约，
-	不能使用之前的状态指定重规约。
-在已进入异步规约时，则在上下文最后一次规约状态设置为 ReductionStatus::Retrying 时，
-	不继续设置异步求值遍而跳过剩余的求值遍。
-若需在异步的本机实现中兼容已在调用前指定重规约状态而跳过剩余的求值遍，
-	通常使用 ReductionChecked 。
-对应不同的节点次级结构分类，一次迭代按以下顺序选择以下分支之一，按需规约子项：
-对枝节点调用 ContextState::EvaluateList 求值；
-对空节点或值数据成员为 ValueToken 类型的值的叶节点不进行操作；
-对其它叶节点调用 ContextState::EvaluateList 求值。
-支持重规约。异步重规约由 ContextNode 支持。
-此处约定的迭代中对节点的具体结构分类默认也适用于其它 NPLA1 实现 API ；
-例外情况应单独指定明确的顺序。
-例外情况包括输入节点不是表达式语义结构（而是 AST ）的 API ，如 TransformNode 。
-规约结果由以下规则确定：
-对异步规约，返回 Reduction::Partial ；
-否则，对枝节点，返回被调用的规约遍的求值结果；
-否则，对非枝节点，返回的规约状态总是 ReductionStatus::Regular 。
+转换第二参数为 NPLA1 上下文状态引用，访问其中的 NPLA1 表达式节点一次规约续延并调用。
 */
 YF_API ReductionStatus
 ReduceOnce(TermNode&, ContextNode&);
@@ -669,11 +686,6 @@ class YF_API FormContextHandler
 {
 public:
 	ContextHandler Handler;
-	/*!
-	\brief 项检查例程：验证被包装的处理器的调用符合前置条件。
-	\since build 851
-	*/
-	function<bool(const TermNode&)> Check{IsBranchedList};
 	//! \since build 859
 	//@{
 	/*!
@@ -688,12 +700,6 @@ public:
 	FormContextHandler(_func&& f, size_t n = 0)
 		: Handler(A1::WrapContextHandler<ContextHandler>(yforward(f))),
 		Wrapping(n)
-	{}
-	template<typename _func, typename _fCheck,
-		yimpl(typename = ystdex::enable_if_inconvertible_t<_fCheck, size_t>)>
-	FormContextHandler(_func&& f, _fCheck c, size_t n = 0)
-		: Handler(A1::WrapContextHandler<ContextHandler>(yforward(f))),
-		Check(c), Wrapping(n)
 	{}
 	//@}
 	//! \since build 757
@@ -711,17 +717,17 @@ public:
 	/*!
 	\brief 处理一般形式。
 	\return Handler 调用的返回值，或 ReductionStatus::Clean 。
-	\throw std::invalid_argument 项检查未通过。
+	\note 断言调用 Handler 前的项符合 IsBranchedList 。
 	\warning 要求异步实现中对 Handler 调用时保证此对象生存期，否则行为未定义。
 	\sa ReduceArguments
 	\sa Wrapping
 	\since build 751
 
 	对每一个子项求值，重复 Wrapping 次；
-	然后检查项，对可调用的项调用 Hanlder ，否则抛出异常。
+	然后断言检查项，对可调用的项调用 Hanlder 。
 	项检查不存在或在检查通过后，变换无参数规约，然后对节点调用 Hanlder ，
 		否则抛出异常。
-	无参数时第一参数具有两个子项且第二项为空节点。无参数变换删除空节点。
+	无参数时第一参数应具有两个子项且第二项为空节点。
 	*/
 	PDefHOp(ReductionStatus, (), TermNode& term, ContextNode& ctx) const
 		ImplRet(CallN(Wrapping, term, ctx))
@@ -1057,6 +1063,11 @@ BindParameter(Environment&, const TermNode&, TermNode&);
 \sa ReduceHeadEmptyList
 \sa ReduceLeafToken
 \since build 842
+
+设置默认解释的求值遍到第一参数指定的上下文的列表求值遍和叶求值遍中。
+列表求值遍等效第二参数后依次添加 ReduceFirst 、ReduceHeadEmptyList 和
+	ReduceCombined ，但不保证分别作为单独的遍添加。
+叶求值遍设置为 ReduceLeafToken 。
 */
 YF_API void
 SetupDefaultInterpretation(ContextState&, EvaluationPasses);
@@ -1238,9 +1249,11 @@ TryLoadSource(REPLContext& context, const char* name, _tParams&&... args)
 \pre 除非另行指定支持保存当前动作，若存在子项，关联的上下文中的尾动作为空。
 \pre 设置为处理器调用的操作在进入调用前应确保设置尾上下文等内部状态。
 \pre 作为操作数的项的子项不包含引用或非正规表示引入的对操作数内的子项的循环引用。
-\note 提供的操作用于实现操作子或应用子底层的操作子。
-\note 除非另行指定，操作子的参数被通过直接转移项的形式转发。
 \since build 732
+
+提供支持 NPLA1 对象语言文法的操作的接口。
+提供的操作用于实现操作子或应用子底层的操作子。
+除非另行指定，操作子的参数被通过直接转移项的形式转发。
 */
 namespace Forms
 {
@@ -1859,7 +1872,7 @@ ConsRef(TermNode&);
 列表参数在对象语言中按引用传递。
 
 参考调用文法：
-<pre>forward-list-first \<applicative1> \<applicative2> \<list></pre>
+<pre>forward-list-first% \<applicative1> \<applicative2> \<list></pre>
 */
 YF_API ReductionStatus
 ForwardListFirst(TermNode&, ContextNode&);

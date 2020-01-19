@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2018-2019 FrankHB.
+	© 2012-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file function.hpp
 \ingroup YStandardEx
 \brief 函数基本操作和调用包装对象。
-\version r4837
+\version r4891
 \author FrankHB <frankhb1989@gmail.com>
 \since build 847
 \par 创建时间:
 	2018-12-13 01:24:06 +0800
 \par 修改时间:
-	2019-06-23 16:28 +0800
+	2020-01-19 22:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -497,6 +497,20 @@ struct function_traits<_tRet(_tParams...), empty_function_policy::no_check>
 template<typename _tRet, typename... _tParams>
 struct function_traits<_tRet(_tParams...), empty_function_policy::no_effect>
 {
+	// NOTE: See $2020-01 @ %Documentation::Workflow.
+	//! \since build 878
+	template<class _tContent>
+#if YB_IMPL_GNUCPP && defined(NDEBUG) \
+	&& !(defined(YB_DLL) || defined(YB_BUILD_DLL))
+	YB_ATTR(noinline) YB_ATTR(optimize("O2"))
+#endif
+	static _tRet
+	invoke_empty(const _tContent&, _tParams...)
+		ynoexcept(is_nothrow_constructible<_tRet>())
+	{
+		return _tRet();
+	}
+
 	template<class _tContent, typename _fInvoke>
 	YB_ATTR(always_inline) static yconstfn_relaxed void
 	init_empty(const _tContent&, _fInvoke& f) ynothrow
@@ -504,10 +518,8 @@ struct function_traits<_tRet(_tParams...), empty_function_policy::no_effect>
 		static_assert(is_nothrow_copy_assignable<_fInvoke>(),
 			"Invalid invoker type found.");
 
-		f = [](const _tContent&, _tParams...)
-			ynoexcept(is_nothrow_constructible<_tRet>()) -> _tRet{
-			return _tRet();
-		};
+		// XXX: Here lambda-expression is buggy in G++ LTO.
+		f = &invoke_empty<_tContent>;
 	}
 
 	template<class _tContent, typename _fInvoke>
@@ -522,14 +534,26 @@ struct function_traits<_tRet(_tParams...), empty_function_policy::no_effect>
 template<typename _tRet, typename... _tParams>
 struct function_traits<_tRet(_tParams...), empty_function_policy::throwing>
 {
+	// NOTE: See $2020-01 @ %Documentation::Workflow.
+	//! \since build 878
+	template<class _tContent>
+#if YB_IMPL_GNUCPP && defined(NDEBUG) \
+	&& !(defined(YB_DLL) || defined(YB_BUILD_DLL))
+	YB_ATTR(noinline) YB_ATTR(optimize("O2"))
+#endif
+	YB_NORETURN static _tRet
+	invoke_empty(const _tContent&, _tParams...)
+	{
+		// TODO: Use a function call to throw?
+		throw std::bad_function_call();
+	}
+
 	template<class _tContent, typename _fInvoke>
 	YB_ATTR(always_inline) static yconstfn_relaxed void
 	init_empty(const _tContent&, _fInvoke& f)
 	{
-		f = [](const _tContent&, _tParams...) YB_ATTR_LAMBDA(noreturn) -> _tRet{
-			// TODO: Use a function call to throw?
-			throw std::bad_function_call();
-		};
+		// XXX: Here lambda-expression is buggy in G++ LTO.
+		f = &invoke_empty<_tContent>;
 	}
 
 	template<class _tContent, typename _fInvoke>
@@ -604,12 +628,15 @@ function_not_empty(const _type&) ynothrow
 和 ISO C++17 std::function 特化对应的接口相同，除以下特性：
 允许不满足 CopyConstructible 的类型作为目标；
 复制不满足 CopyConstructible 的目标时抛出异常；
-模板参数中包含特化调用行为的特征。
-调用没有目标的空对象不抛出异常，行为未定义；
+模板参数中包含特化调用行为的特征；
+调用没有目标的空对象的行为由特征决定，不一定抛出异常，行为可能未定义；
 保证转移构造无异常抛出（参见 WG21 P0043R0 ）；
-构造函数支持分配器（类似 WG21 P0302R1 移除的接口；另见 WG21 P0043R0 ），
-	但没有使用构造器的初始化不保证等价使用默认构造器（和 any 设计的策略一致）。
-不提供 assign ；可直接使用构造后转移赋值代替。 
+构造函数支持分配器（类似 WG21 P0302R1 移除的接口；另见 WG21 P0043R0 ）；
+不提供 assign（可直接使用构造后转移赋值代替）。
+分配器支持具有以下特性：
+相等的分配器随复制和转移构造传播（同 WG21 P0043R0 ）；
+没有使用分配器的初始化不保证等价使用默认分配器（和 any 设计的策略一致）；
+没有 std::uses_allocator 特化（同 ISO C++17 和 WG21 P0043R0 ）。
 */
 template<class _tTraits, typename _tRet, typename... _tParams>
 class function_base<_tTraits, _tRet(_tParams...)> : private equality_comparable<
@@ -648,6 +675,7 @@ public:
 	}
 	//! \ingroup YBase_replacement_extensions
 	template<class _tAlloc>
+	inline
 	function_base(std::allocator_arg_t, const _tAlloc&) ynothrow
 		: function_base()
 	{}
@@ -656,6 +684,7 @@ public:
 	{}
 	//! \ingroup YBase_replacement_extensions
 	template<class _tAlloc>
+	inline
 	function_base(std::allocator_arg_t, const _tAlloc&, nullptr_t,
 		const _tAlloc&) ynothrow
 		: function_base()
@@ -706,7 +735,7 @@ public:
 	// XXX: The moved-from value is valid but unspecified. It is empty here to
 	//	simplify the implementation (as libstdc++ does), which is still not
 	//	guaranteed by the interface.
-	function_base(function_base&&) yimpl(ynothrow) = default;
+	function_base(function_base&&) ynothrow = default;
 	/*!
 	\ingroup YBase_replacement_extensions
 	\throw allocator_mismatch_error 分配器不兼容。
@@ -804,7 +833,7 @@ public:
 	//@}
 };
 
-//! \relates function
+//! \relates function_base
 //@{
 //! \since build 851
 template<class _tTraits, typename _fSig>
@@ -815,7 +844,6 @@ struct make_parameter_list<function_base<_tTraits, _fSig>>
 template<class _tTraits, typename _fSig>
 struct return_of<function_base<_tTraits, _fSig>> : return_of<_fSig>
 {};
-//@}
 
 //! \since build 851
 //@{
@@ -832,12 +860,14 @@ struct is_contravariant<function_base<_tTraits, _tResFrom(_tFromParams...)>,
 	function_base<_tTraits, _tResTo(_tToParams...)>>
 	: is_contravariant<_tResFrom(_tFromParams...), _tResTo(_tToParams...)>
 {};
+//@}
 
-template<class _tTraits, typename _tRet, typename... _tParams>
-struct make_function_type<_tRet, function_base<_tTraits, _tParams...>>
+//! \since build 878
+template<class _tTraits, typename _tRet, typename _tUnused,
+	typename... _tParams>
+struct make_function_type<_tRet, function_base<_tTraits, _tUnused(_tParams...)>>
 	: make_function_type<_tRet, empty_base<_tParams...>>
 {};
-//@}
 
 //! \since build 849
 template<class _tTraits, typename _tRet, typename... _tParams, size_t... _vSeq>
@@ -845,6 +875,7 @@ struct call_projection<function_base<_tTraits, _tRet(_tParams...)>,
 	index_sequence<_vSeq...>>
 	: call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 {};
+//@}
 //@}
 
 

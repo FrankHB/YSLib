@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r15265
+\version r15663
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-01-14 19:02 +0800
+	2020-01-19 17:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,14 +52,22 @@ using namespace YSLib;
 namespace NPL
 {
 
+// NOTE: The inlined synchronous calls are more effecient than asynchronous
+//	ones. It is intended to prevent unneeded uncapturable continuation being
+//	construced by reduction action composition calls (e.g. of %RelayNext).
+//	However, they are only safe where they are not directly called by
+//	asynchronous implementations which expect the actions in these direct calls
+//	are always strictly asynchronous. In thunked implementations, they shall
+//	also be cared to avoid direct recursion of synchronous calls which make the
+//	thunks potentially useless to prevent the host stack overflow.
+#define NPL_Impl_NPLA1_Enable_InlineDirect true
+
 // NOTE: The following options provide documented alternative implementations.
 //	They are for exposition only. The code without TCO or asynchrous thunked
 //	calls works without several guarantees in the specification (notably,
 //	support of PTC), which is not conforming. Other documented cases not
 //	supporting PTC are noted in implementations separatedly.
-
 #define NPL_Impl_NPLA1_Enable_TCO true
-#define NPL_Impl_NPLA1_Enable_TailRewriting NPL_Impl_NPLA1_Enable_TCO
 #define NPL_Impl_NPLA1_Enable_Thunked true
 
 // NOTE: Use %RelaySwitched instead of %RelayNext without %ComposeSwitched as
@@ -67,9 +75,6 @@ namespace NPL
 
 //! \since build 820
 static_assert(!NPL_Impl_NPLA1_Enable_TCO || NPL_Impl_NPLA1_Enable_Thunked,
-	"Invalid combination of build options found.");
-//! \since build 851
-static_assert(!NPL_Impl_NPLA1_Enable_TailRewriting || NPL_Impl_NPLA1_Enable_TCO,
 	"Invalid combination of build options found.");
 
 //! \since build 863
@@ -193,18 +198,15 @@ using Forms::ThrowValueCategoryErrorForFirstArgument;
 
 
 //! \since build 842
-void
-SetupNextTerm(ContextNode& ctx, TermNode& term)
-{
-	ContextState::Access(ctx).SetNextTermRef(term);
-}
+YB_FLATTEN inline PDefH(void, SetupNextTerm, ContextNode& ctx, TermNode& term)
+	ImplExpr(ContextState::Access(ctx).SetNextTermRef(term))
 
 // NOTE: See $2018-09 @ %Documentation::Workflow for rationale of the
 //	implementation.
 // XXX: First-class continuations are not implemented yet, due to lack of term
 //	replacement mechanism in captured continuation. Kernel-style continuation
-//	interception is also unsupported because no parantage is maintained in the
-//	continuation object now.
+//	interception is also unsupported because no reference for parantage is
+//	maintained in the context currently.
 
 #if NPL_Impl_NPLA1_Enable_Thunked
 #	if false
@@ -220,6 +222,16 @@ PDefH(ReductionStatus, RelayTail, ContextNode&, const Reducer& cur)
 	ImplRet(cur())
 #		endif
 #	endif
+
+//! \since build 840
+template<typename _func>
+void
+SetupTailAction(ContextNode& ctx, _func&& act)
+{
+	// XXX: Avoid direct use of %ContextNode::SetupTail even though it is safe
+	//	because %Current is already saved in %act?
+	ctx.SetupTail(std::move(act));
+}
 
 // NOTE: For a continuation not capturable in the object language, it does not
 //	have to be of a %Continuation.
@@ -246,6 +258,7 @@ PushActionsRange(EvaluationPasses::const_iterator first,
 			const auto& f(first->second);
 
 			++first;
+			SetupNextTerm(ctx, term);
 			RelaySwitched(ctx, [=, &f, &term, &ctx]{
 				PushActionsRange(first, last, term, ctx);
 
@@ -469,16 +482,6 @@ YB_ATTR_nodiscard YB_PURE inline
 //	explicitly (by following %SetupTailAction rather than %EnsureTCOAction).
 
 //! \since build 840
-template<typename _func>
-void
-SetupTailAction(ContextNode& ctx, _func&& act)
-{
-	// XXX: Avoid direct use of %ContextNode::SetupTail even though it is safe
-	//	because %Current is already saved in %act?
-	ctx.SetupTail(std::move(act));
-}
-
-//! \since build 840
 YB_ATTR_nodiscard TCOAction&
 EnsureTCOAction(ContextNode& ctx, TermNode& term)
 {
@@ -499,19 +502,82 @@ YB_ATTR_nodiscard inline PDefH(TCOAction&, RefTCOAction, ContextNode& ctx)
 	//	calling a combiner from %ReduceCombinedImpl.
 	ImplRet(NPL::Deref(AccessTCOAction(ctx)))
 #	endif
+#endif
 
+
+//! \since build 878
+//@{
+#if NPL_Impl_NPLA1_Enable_InlineDirect || !NPL_Impl_NPLA1_Enable_Thunked
+template<typename _fCurrent>
+YB_ATTR(always_inline) inline ReductionStatus
+RelayDirect(ContextNode& ctx, _fCurrent&& cur)
+{
+	return cur(ctx);
+}
+template<typename _fCurrent>
+YB_ATTR(always_inline) inline auto
+RelayDirect(ContextNode& ctx, _fCurrent&& cur, TermNode& term)
+	-> decltype(cur(term, ctx))
+{
+	return cur(term, ctx);
+}
+#endif
+YB_ATTR(always_inline) inline ReductionStatus
+RelayDirect(ContextNode& ctx, const Continuation& cur, TermNode& term)
+{
+	return cur.Handler(term, ctx);
+}
+//@}
+
+//! \since build 878
+template<typename _fCurrent, typename _fNext>
+YB_FLATTEN inline ReductionStatus
+ReduceCurrentNext(TermNode& term, ContextNode& ctx, _fCurrent&& cur,
+	_fNext&& next)
+{
+	SetupNextTerm(ctx, term);
+#if NPL_Impl_NPLA1_Enable_Thunked
+#	if NPL_Impl_NPLA1_Enable_InlineDirect
+	RelaySwitched(ctx, yforward(next));
+	return RelayDirect(ctx, yforward(cur), term);
+#	else
+	return RelayNext(ctx, yforward(cur), ComposeSwitched(ctx, yforward(next)));
+#	endif
+#else
+	cur(term, ctx);
+	return ystdex::expand_proxy<ReductionStatus(ContextNode&)>::call(
+		yforward(next), ctx);
+#endif
+}
+
+//! \since build 821
+template<typename _fCurrent>
+inline ReductionStatus
+ReduceSubsequent(TermNode& term, ContextNode& ctx, _fCurrent&& next)
+{
+#if NPL_Impl_NPLA1_Enable_Thunked && !NPL_Impl_NPLA1_Enable_InlineDirect
+	return ReduceCurrentNext(term, ctx,
+		std::ref(ContextState::Access(ctx).ReduceOnce), yforward(next));
+#else
+	return ReduceCurrentNext(term, ctx, ReduceOnce, yforward(next));
+#endif
+}
+
+#if NPL_Impl_NPLA1_Enable_Thunked
 //! \since build 810
 ReductionStatus
 ReduceChildrenOrderedAsync(TNIter first, TNIter last, ContextNode& ctx)
 {
 	if(first != last)
 	{
-		SetupNextTerm(ctx, *first++);
-		return RelayNext(ctx, std::ref(ContextState::Access(ctx).ReduceOnce),
-			ComposeSwitched(ctx, std::bind(ReduceChildrenOrderedAsync, first,
-			last, std::ref(ctx))));
+		auto& term(*first++);
+
+		return ReduceSubsequent(term, ctx,
+			Continuation([first, last](TermNode&, ContextNode& c){
+			return ReduceChildrenOrderedAsync(first, last, c);
+		}, ctx));
 	}
-	return ReductionStatus::Clean;
+	return ReductionStatus::Neutral;
 }
 #endif
 
@@ -566,18 +632,24 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 		&act.AttachFunction(std::forward<_tParams>(args)).get()), 0)...);
 	act.RequestCombined();
 	SetupNextTerm(ctx, term);
+#	if NPL_Impl_NPLA1_Enable_InlineDirect
+	return (lf ? *lf : h)(term, ctx);
+#	else
 	return
 		RelaySwitchedUnchecked(ctx, Continuation(std::ref(lf ? *lf : h), ctx));
+#	endif
 #elif NPL_Impl_NPLA1_Enable_Thunked
 
-	SetupNextTerm(ctx, term);
-	// TODO: Blocked. Use C++14 lambda initializers to simplify the
-	//	implementation.
-	return RelayNext(ctx, Continuation(std::ref(h), ctx),
-		ComposeSwitched(ctx, std::bind([&](const _tParams&...){
+	return ReduceCurrentNext(term, ctx,
+#	if NPL_Impl_NPLA1_Enable_InlineDirect
+		h,
+#	else
+		Continuation(std::ref(h), ctx),
+#	endif
+		std::bind([&](const _tParams&...){
 		// NOTE: Captured argument pack is only needed when %h actually shares.
 		return RegularizeTerm(term, ctx.LastStatus);
-	}, std::move(args)...)));
+	}, std::move(args)...));
 #else
 
 	yunseq(0, args...);
@@ -682,7 +754,6 @@ DoAdministratives(const EvaluationPasses& passes, TermNode& term,
 	ContextNode& ctx)
 {
 #if NPL_Impl_NPLA1_Enable_Thunked
-	SetupNextTerm(ctx, term);
 	// XXX: Be cautious with overflow risks in call of %ContextNode::ApplyTail
 	//	when TCO is not enabled.
 	ctx.LastStatus = ReductionStatus::Neutral;
@@ -693,22 +764,6 @@ DoAdministratives(const EvaluationPasses& passes, TermNode& term,
 #endif
 }
 
-//! \since build 821
-template<typename _fCurrent>
-ReductionStatus
-ReduceSubsequent(TermNode& term, ContextNode& ctx, _fCurrent&& next)
-{
-#if NPL_Impl_NPLA1_Enable_Thunked
-	SetupNextTerm(ctx, term);
-	return RelayNext(ctx, std::ref(ContextState::Access(ctx).ReduceOnce),
-		ComposeSwitched(ctx, yforward(next)));
-#else
-	ReduceOnce(term, ctx);
-	return next();
-#endif
-}
-
-#if NPL_Impl_NPLA1_Enable_TailRewriting
 //! \since build 823
 ReductionStatus
 ReduceSequenceOrderedAsync(TermNode& term, ContextNode& ctx, TNIter i)
@@ -720,7 +775,6 @@ ReduceSequenceOrderedAsync(TermNode& term, ContextNode& ctx, TNIter i)
 		return ReduceSequenceOrderedAsync(term, ctx, term.erase(i));
 	});
 }
-#endif
 
 //! \since build 861
 ReductionStatus
@@ -1390,6 +1444,82 @@ CompressTCOFrames(ContextNode& ctx, TCOAction& act)
 	});
 	RecordCompressor(ctx.GetRecordRef()).Compress();
 }
+
+//! \since build 878
+//@{
+/*!
+\brief 准备 TCO 求值。
+\param ctx 规约上下文。
+\param term 被规约的项。
+\param act TCO 动作。
+*/
+TCOAction&
+PrepareTCOEvaluation(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd)
+{
+	// TODO: Add %RelayForEvalLiteThunked using %EvalLiteAction for
+	//	%NPL_Impl_NPLA1_Enable_Thunk?
+	auto& act(RefTCOAction(ctx));
+
+	[&]{
+		// NOTE: If there is no environment set in %act.EnvGuard yet, there is
+		//	ideally no need to save the components to the frame record list
+		//	for recursive calls. In such case, each operation making
+		//	potentionally overwriting of %act.LastFunction will always get into
+		//	this call and that time %act.EnvGuard should be set.
+		if(act.EnvGuard.func.SavedPtr)
+		{
+			// NOTE: Operand saving is performed whether the frame compression
+			//	is needed, once there is a saved environment set.
+			if(auto& p_saved = gd.func.SavedPtr)
+			{
+				CompressTCOFrames(ctx, act);
+				act.AddRecord(std::move(p_saved));
+				return;
+			}
+			// XXX: Normally this should not occur, but this is allowed by the
+			//	interface (for an object %EnvironmentSwitcher initialized
+			//	without an environment).
+		}
+		else
+			act.EnvGuard = std::move(gd);
+		act.AddRecord({});
+	}();
+	// NOTE: The lift is handled according to the previous status of
+	//	%act.LiftCallResult, rather than a seperated boolean value (e.g.
+	//	the parameter %no_lift in %RelayForEval).
+	act.HandleResultLiftRequest(term, ctx);
+	return act;
+}
+
+/*!
+\brief 按参数设置 TCO 动作提升请求。
+\param act TCO 动作。
+\param no_lift 指定是否避免保证规约后提升结果。
+*/
+void
+SetupTCOLift(TCOAction& act, bool no_lift)
+{
+	// NOTE: The %act.LiftCallResult indicates a request for handling during
+	//	next time (by %TCOAction::HandleResultLiftRequest call above before the
+	//	last one) before %TCOAction is finished. The last request would be
+	//	handled by %TCOAction::operator(), which also calls
+	//	%TCOAction::HandleResultLiftRequest.
+	if(!no_lift)
+		act.RequestLiftResult();
+}
+
+template<typename _fCurrent>
+YB_ATTR(always_inline) inline ReductionStatus
+RelayCurrentOrDirect(ContextNode& ctx, _fCurrent&& cur, TermNode& term)
+{
+#	if NPL_Impl_NPLA1_Enable_InlineDirect
+	return RelayDirect(ctx, yforward(cur), term);
+#	else
+	yunused(term);
+	return RelaySwitchedUnchecked(ctx, yforward(cur));
+#	endif
+}
+//@}
 #elif NPL_Impl_NPLA1_Enable_Thunked
 /*!
 \warning 非虚析构。
@@ -1451,76 +1581,120 @@ struct EvalAction : EvalLiteAction
 		return EvalLiteAction::operator()(ctx);
 	}
 };
+//@}
 
 
-//! \since build 859
-template<class _tAction>
+//! \since build 878
+//@{
+template<class _tAction, typename _fNext>
 ReductionStatus
-RelayForAction(_tAction&& a, ContextNode& ctx, TermNode& term, bool no_lift,
-	Continuation next)
+RelayForActionLift(_tAction&& act, ContextNode& ctx, TermNode& term,
+	_fNext&& next)
 {
 	// XXX: Term reused. Call of %RecoverNextTerm is not needed as the next
-	//	term is guaranteed not changed.
-	return RelayNext(ctx, std::move(next),
-		no_lift ? Reducer(std::move(a)) : ComposeActions(ctx, Continuation([&]{
+	//	term is guaranteed not changed when %next is a continuation.
+	Continuation cont([&]{
 		// TODO: Avoid fixed continuation parameter.
 		return ReduceForLiftedResult(term);
-	}, ctx), std::move(a)));
+	}, ctx);
+
+#	if NPL_Impl_NPLA1_Enable_InlineDirect
+	SetupTailAction(ctx, std::move(act));
+	RelaySwitched(ctx, std::move(cont));
+	return RelayDirect(ctx, yforward(next), term);
+#	else
+	return RelayNext(ctx, std::move(next),
+		ComposeActions(ctx, std::move(cont), std::move(act)));
+#	endif
+}
+
+//! \since build 878
+template<class _tAction, typename _fNext>
+ReductionStatus
+RelayForActionNoLift(_tAction&& act, ContextNode& ctx, TermNode& term,
+	_fNext&& next)
+{
+	// XXX: See %RelayForActionLift.
+#	if NPL_Impl_NPLA1_Enable_InlineDirect
+	SetupTailAction(ctx, std::move(act));
+	return RelayDirect(ctx, yforward(next), term);
+#	else
+	yunused(term);
+	return RelayNext(ctx, std::move(next), std::move(act));
+#	endif
 }
 //@}
 #endif
 
-// TODO: Add %RelayForEvalLiteThunked using %EvalLiteAction for
-//	%NPL_Impl_NPLA1_Enable_Thunk.
-#if NPL_Impl_NPLA1_Enable_TCO
-/*!
-\brief 指定 TCO 动作直接求值规约。
-\param ctx 规约上下文。
-\param term 被规约的项。
-\param no_lift 指定是否避免保证规约后提升结果。
-\param act TCO 动作。
-\param next 指定下一个动作的续延。
-\pre 对 TCO 实现，存在 TCOAction 当前动作。
-\note 对 TCO 实现利用 TCOAction 以尾上下文进行规约。
-\since build 860
-*/
+//! \since build 878
+//@{
+template<typename _fNext>
 ReductionStatus
-RelayForEvalLiteTCO(ContextNode& ctx, TermNode& term, bool no_lift,
-	TCOAction& act, Continuation next)
+RelayForEvalOrDirect(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
+	bool no_lift, _fNext&& next)
 {
-	// NOTE: The lift is handled according to the previous status of
-	//	%act.LiftCallResult, rather than %no_lift.
-	act.HandleResultLiftRequest(term, ctx);
-	// NOTE: The %act.LiftCallResult indicates a request for handling during
-	//	next time (by %TCOAction::HandleResultLiftRequest call above before the
-	//	last one) before %TCOAction is finished. The last request would be
-	//	handled by %TCOAction::operator(), which also calls
-	//	%TCOAction::HandleResultLiftRequest.
-	if(!no_lift)
-		act.RequestLiftResult();
-	return RelaySwitchedUnchecked(ctx, std::move(next));
-}
-#endif
+	// XXX: For thunked code, %next shall likely be a %Continuation before being
+	//	captured and it is not capturable here. No %SetupNextTerm or
+	//	%RecoverNextTerm needs to be called here. Otherwise, %next is not a
+	//	%Contiuation and it shall still handle the capture of the term by
+	//	itself. The %term is optinonally used in direct calls instead of the
+	//	setup next term, while they shall be equivalent.
+#if NPL_Impl_NPLA1_Enable_TCO
+	SetupTCOLift(PrepareTCOEvaluation(ctx, term, std::move(gd)), no_lift);
+	return RelayCurrentOrDirect(ctx, yforward(next), term);
+#elif NPL_Impl_NPLA1_Enable_Thunked
+	EvalAction act(ctx, gd);
 
-//! \since build 875
-Continuation
-SetupToCombine(ContextNode& ctx, TermNode& term)
-{
-	// XXX: Consider optimization when the combiner subterm is known regular.
-	SetupNextTerm(ctx, term);
-	return Continuation(ReduceCombinedImpl, ctx);
+	return no_lift ? RelayForActionNoLift(act, ctx, term, yforward(next))
+		: RelayForActionLift(act, ctx, term, yforward(next));
+#else
+	yunused(gd);
+
+	const auto res(RelayDirect(ctx, next, term));
+
+	return no_lift ? res : ReduceForLiftedResult(term);
+#endif
 }
+
+// XXX: Same to %RelayForEvalOrDirect, except that %no_lift is always %true.
+template<typename _fNext>
+ReductionStatus
+RelayForEvalOrDirectNoLift(ContextNode& ctx, TermNode& term,
+	EnvironmentGuard&& gd, _fNext&& next)
+{
+	// XXX: See %RelayForEvalOrDirect.
+#if NPL_Impl_NPLA1_Enable_TCO
+	PrepareTCOEvaluation(ctx, term, std::move(gd));
+	return RelayCurrentOrDirect(ctx, yforward(next), term);
+#elif NPL_Impl_NPLA1_Enable_Thunked
+	EvalAction act(ctx, gd);
+
+	return RelayForActionNoLift(act, ctx, term, yforward(next));
+#else
+	yunused(gd);
+	return RelayDirect(ctx, next, term);
+#endif
+}
+//@}
 
 //! \since build 876
 ReductionStatus
-RelayForCombine(ContextNode& ctx, TermNode& term,
-	shared_ptr<Environment> p_env)
+RelayForCombine(ContextNode& ctx, TermNode& term, shared_ptr<Environment> p_env)
 {
 	// NOTE: %ReduceFirst and other passes would not be called again. The
 	//	unwrapped combiner should have been evaluated and it would not be
 	//	wrongly evaluated again.
-	return RelayForEval(ctx, term, EnvironmentGuard(ctx, ctx.SwitchEnvironment(
-		std::move(p_env))), true, SetupToCombine(ctx, term));
+	// XXX: Consider optimization when the combiner subterm is known regular.
+	// NOTE: Term is set even for direct inlining call of %ReduceCombinedImpl.
+	SetupNextTerm(ctx, term);
+	return RelayForEvalOrDirectNoLift(ctx, term, EnvironmentGuard(ctx,
+		ctx.SwitchEnvironment(std::move(p_env))),
+#if NPL_Impl_NPLA1_Enable_InlineDirect
+		ReduceCombinedImpl
+#else
+		Continuation(ReduceCombinedImpl, ctx)
+#endif
+		);
 }
 
 /*!
@@ -1538,8 +1712,8 @@ EvalImplUnchecked(TermNode& term, ContextNode& ctx, bool no_lift)
 		LiftOtherOrCopy(term, nd, NPL::IsMovable(p_ref));
 	}, NPL::Deref(i));
 	SetupNextTerm(ctx, term);
-	return RelayForEval(ctx, term, EnvironmentGuard(ctx, ctx.SwitchEnvironment(
-		std::move(p_env))), no_lift,
+	return RelayForEvalOrDirect(ctx, term, EnvironmentGuard(ctx,
+		ctx.SwitchEnvironment(std::move(p_env))), no_lift,
 		std::ref(ContextState::Access(ctx).ReduceOnce));
 }
 
@@ -1878,17 +2052,16 @@ ThrowForUnwrappingFailure(const ContextHandler& h)
 		h.target_type().name()));
 }
 
-//! \since build 869
+//! \since build 878
 ReductionStatus
 ReduceForCombinerRef(TermNode& term, ContextNode& ctx,
-	const TermReference& ref, const ContextHandler& h,
-	const decltype(FormContextHandler::Check)& chk, size_t n)
+	const TermReference& ref, const ContextHandler& h, size_t n)
 {
 	const auto& r_env(FetchContextOrTailEnvironmentReference(ref, ctx));
 	const auto a(term.get_allocator());
 	auto p_sub(YSLib::allocate_shared<TermNode>(a, TermNode(std::allocator_arg,
 		a, NoContainer, ContextHandler(FormContextHandler(RefContextHandler(h,
-		r_env), chk, n)))));
+		r_env), n)))));
 	auto& sub(NPL::Deref(p_sub));
 	TermNode tm(std::allocator_arg, a, {{std::allocator_arg, a, NoContainer,
 		std::move(p_sub)}});
@@ -1906,7 +2079,7 @@ UnwrapResolved(TermNode& term, ContextNode& ctx, FormContextHandler& fch,
 	{
 		return MakeValueOrMove(p_ref, [&]{
 			return ReduceForCombinerRef(term, ctx, NPL::Deref(p_ref),
-				fch.Handler, fch.Check, fch.Wrapping - 1);
+				fch.Handler, fch.Wrapping - 1);
 		}, [&]{
 			--fch.Wrapping;
 			term.Value = ContextHandler(std::move(fch));
@@ -2033,15 +2206,23 @@ ReduceCallSubsequent(TermNode& term, ContextNode& ctx,
 #if NPL_Impl_NPLA1_Enable_Thunked
 	// TODO: Blocked. Use C++14 lambda initializers to simplify the
 	//	implementation.
-	return RelayNext(ctx, std::bind([&](shared_ptr<Environment>& p_e){
-#	if NPL_Impl_NPLA1_Enable_TCO
+	auto call([&](shared_ptr<Environment>& p_e){
+#		if NPL_Impl_NPLA1_Enable_TCO
 		// TODO: Optimize with known combiner calls. Ideally %EnsureTCOAction
 		//	should not be called later in %CombinerReturnThunk where the term is
 		//	actually a combiner call.
 		yunused(EnsureTCOAction(ctx, term));
-#	endif
+#		endif
 		return RelayForCombine(ctx, term, std::move(p_e));
-	}, std::move(p_env)), ComposeSwitched(ctx, yforward(next)));
+	});
+
+#	if NPL_Impl_NPLA1_Enable_InlineDirect
+	RelaySwitched(ctx, yforward(next));
+	return call(p_env);
+#	else
+	return RelayNext(ctx, std::bind(std::move(call), std::move(p_env)),
+		ComposeSwitched(ctx, yforward(next)));
+#	endif
 #else
 	RelayForCombine(ctx, term, std::move(p_env));
 	return next();
@@ -2574,10 +2755,10 @@ WrapN(TermNode& term, ContextNode&, ResolvedTermReferencePtr p_ref,
 	FormContextHandler& fch, size_t n)
 {
 	return WrapH(term, MakeValueOrMove(p_ref, [&]{
-		return FormContextHandler(fch.Handler, fch.Check, n);
+		return FormContextHandler(fch.Handler, n);
 	}, [&]{
 		return
-			FormContextHandler(std::move(fch.Handler), std::move(fch.Check), n);
+			FormContextHandler(std::move(fch.Handler), n);
 	}));
 }
 
@@ -2586,10 +2767,9 @@ WrapRefN(TermNode& term, ContextNode& ctx, ResolvedTermReferencePtr p_ref,
 	FormContextHandler& fch, size_t n)
 {
 	if(p_ref)
-		return ReduceForCombinerRef(term, ctx, *p_ref, fch.Handler, fch.Check,
+		return ReduceForCombinerRef(term, ctx, *p_ref, fch.Handler,
 			n);
-	term.Value = ContextHandler(FormContextHandler(
-		std::move(fch.Handler), std::move(fch.Check), n));
+	term.Value = ContextHandler(FormContextHandler(std::move(fch.Handler), n));
 	return ReductionStatus::Clean;
 }
 
@@ -2851,10 +3031,32 @@ ContextState::SetNextTermRef(TermNode& term)
 	next_term_ptr = NPL::make_observer(&term);
 }
 
-Continuation
-ContextState::InitReduceOnce() const
+ReductionStatus
+ContextState::DefaultReduceOnce(TermNode& term, ContextNode& ctx)
 {
-	return Continuation(A1::ReduceOnce, *this);
+	auto& cb(ContextState::Access(ctx));
+	const bool non_list(term.Value);
+
+	// NOTE: Empty list or special value token has no-op to do with.
+	if(non_list)
+	{
+		// XXX: Add logic to directly handle special value tokens here?
+		// NOTE: The reduction relies on proper handling of reduction status and
+		//	proper tail action for the thunked implementations.
+		if(term.Value.type() != ystdex::type_id<ValueToken>())
+			return DoAdministratives(cb.EvaluateLeaf, term, ctx);
+	}
+	else if(IsBranch(term))
+	{
+		YAssert(term.size() != 0, "Invalid node found.");
+		if(term.size() != 1)
+			// NOTE: List evaluation.
+			return DoAdministratives(cb.EvaluateList, term, ctx);
+		// NOTE: List with single element shall be reduced as the element.
+		LiftFirst(term);
+		return ReduceAgain(term, ctx);
+	}
+	return ReductionStatus::Regular;
 }
 
 ReductionStatus
@@ -2882,19 +3084,19 @@ Reduce(TermNode& term, ContextNode& ctx)
 ReductionStatus
 ReduceAgain(TermNode& term, ContextNode& ctx)
 {
-#if NPL_Impl_NPLA1_Enable_Thunked
-	Continuation reduce_again(ReduceOnce, ctx);
-
-	SetupNextTerm(ctx, term);
-#	if NPL_Impl_NPLA1_Enable_TCO
+#if NPL_Impl_NPLA1_Enable_TCO
 	EnsureTCOAction(ctx, term).RequestRetrying();
-	return RelaySwitchedUnchecked(ctx, std::move(reduce_again));
+	SetupNextTerm(ctx, term);
+#	if NPL_Impl_NPLA1_Enable_InlineDirect
+	return ReduceOnce(term, ctx);
 #	else
-	return RelayNext(ctx, std::move(reduce_again),
-		ComposeSwitched(ctx, []() ynothrow{
-		return ReductionStatus::Retrying;
-	}));
+	return RelaySwitchedUnchecked(ctx,
+		std::ref(ContextState::Access(ctx).ReduceOnce));
 #	endif
+#elif NPL_Impl_NPLA1_Enable_Thunked
+	return ReduceSubsequent(term, ctx, []() ynothrow{
+		return ReductionStatus::Retrying;
+	});
 #else
 	return ReduceOnce(term, ctx);
 #endif
@@ -2943,7 +3145,7 @@ ReduceChildrenOrdered(TNIter first, TNIter last, ContextNode& ctx)
 	});
 
 	return ystdex::default_last_value<ReductionStatus>()(tr(first), tr(last),
-		ReductionStatus::Clean);
+		ReductionStatus::Neutral);
 #endif
 }
 
@@ -2958,29 +3160,7 @@ ReduceFirst(TermNode& term, ContextNode& ctx)
 ReductionStatus
 ReduceOnce(TermNode& term, ContextNode& ctx)
 {
-	auto& cb(ContextState::Access(ctx));
-	const bool non_list(term.Value);
-
-	// NOTE: Empty list or special value token has no-op to do with.
-	if(non_list)
-	{
-		// XXX: Add logic to directly handle special value tokens here?
-		// NOTE: The reduction relies on proper handling of reduction status and
-		//	proper tail action for the thunked implementations.
-		if(term.Value.type() != ystdex::type_id<ValueToken>())
-			return DoAdministratives(cb.EvaluateLeaf, term, ctx);
-	}
-	else if(IsBranch(term))
-	{
-		YAssert(term.size() != 0, "Invalid node found.");
-		if(term.size() != 1)
-			// NOTE: List evaluation.
-			return DoAdministratives(cb.EvaluateList, term, ctx);
-		// NOTE: List with single element shall be reduced as the element.
-		LiftFirst(term);
-		return ReduceAgain(term, ctx);
-	}
-	return ReductionStatus::Regular;
+	return RelayDirect(ctx, ContextState::Access(ctx).ReduceOnce, term);
 }
 
 ReductionStatus
@@ -2993,17 +3173,15 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 	term.Value = ValueToken::Unspecified;
 	return ReductionStatus::Retained;
 #	else
-	SetupNextTerm(ctx, term);
-	// TODO: Blocked. Use C++14 lambda initializers to simplify the
-	//	implementation.
-	return RelayNext(ctx, Continuation(static_cast<ReductionStatus(&)(TermNode&,
-		ContextNode&)>(ReduceChildrenOrdered), ctx), ComposeSwitched(ctx, [&]{
+	return ReduceCurrentNext(term, ctx,
+		Continuation(static_cast<ReductionStatus(&)(TermNode&,
+		ContextNode&)>(ReduceChildrenOrdered), ctx), [&]{
 		if(IsBranch(term))
 			LiftTerm(term, *term.rbegin());
 		else
 			term.Value = ValueToken::Unspecified;
 		return ReductionStatus::Regular;
-	}));
+	});
 #	endif
 #else
 	const auto res(ReduceChildrenOrdered(term, ctx));
@@ -3139,22 +3317,16 @@ ReplaceSeparatedChildren(TermNode& term, const ValueObject& pfx,
 ReductionStatus
 FormContextHandler::CallN(size_t n, TermNode& term, ContextNode& ctx) const
 {
-	auto cont([this](TermNode& t, ContextNode& c) -> ReductionStatus{
-		if(!Check || Check(t))
-			return Handler(t, c);
-		// XXX: Use more specific exception type?
-		throw std::invalid_argument("Term check failed.");
-	});
-
 	// NOTE: This implementes arguments evaluation in applicative order when
 	//	%Wrapping is not zero.
 #if NPL_Impl_NPLA1_Enable_Thunked
-	SetupNextTerm(ctx, term);
 	// XXX: Optimize for cases with no argument.
 	if(n == 0 || term.size() <= 1)
-		return RelaySwitched(ctx, Continuation(std::move(cont), ctx));
-	// TODO: Blocked. Use C++14 lambda initializers to simplify the
-	//	implementation.
+		// XXX: Assume the term has been setup by the caller.
+		return RelaySwitched(ctx, Continuation(std::ref(Handler), ctx));
+	// XXX: Optimization based on %NPL_Impl_NPLA1_Enable_InlineDirect cannot be
+	//	used at the following case because of clash between asynchronized calls
+	//	and direct recursive calls of %CallN.
 	return RelayNext(ctx, Continuation([&](TermNode& t, ContextNode& c){
 		ReduceArguments(t, c);
 		return ReductionStatus::Partial;
@@ -3170,7 +3342,7 @@ FormContextHandler::CallN(size_t n, TermNode& term, ContextNode& ctx) const
 	//	calls is almost PTC in reality.
 	while(n-- != 0)
 		ReduceArguments(term, ctx);
-	return cont(term, ctx);
+	return Handler(term, ctx);
 #endif
 }
 
@@ -3323,44 +3495,8 @@ RelayForEval(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 	// XXX: For thunked code, %next shall be a continuation before being
 	//	captured and it is not capturable here. No %SetupNextTerm or
 	//	%RecoverNextTerm needs to be called.
-#if NPL_Impl_NPLA1_Enable_TCO
-	auto& act(RefTCOAction(ctx));
-
-	[&]{
-		// NOTE: If there is no environment set in %act.EnvGuard yet, there is
-		//	ideally no need to save the components to the frame record list
-		//	for recursive calls. In such case, each operation making
-		//	potentionally overwriting of %act.LastFunction will always get into
-		//	this call and that time %act.EnvGuard should be set.
-		if(act.EnvGuard.func.SavedPtr)
-		{
-			// NOTE: Operand saving is performed whether the frame compression
-			//	is needed, once there is a saved environment set.
-			if(auto& p_saved = gd.func.SavedPtr)
-			{
-				CompressTCOFrames(ctx, act);
-				act.AddRecord(std::move(p_saved));
-				return;
-			}
-			// XXX: Normally this should not occur, but this is allowed by the
-			//	interface (for an object %EnvironmentSwitcher initialized
-			//	without an environment).
-		}
-		else
-			act.EnvGuard = std::move(gd);
-		act.AddRecord({});
-	}();
-	return RelayForEvalLiteTCO(ctx, term, no_lift, act, std::move(next));
-#elif NPL_Impl_NPLA1_Enable_Thunked
-	return RelayForAction(EvalAction(ctx, gd), ctx, term, no_lift,
+	return RelayForEvalOrDirect(ctx, term, std::move(gd), no_lift,
 		std::move(next));
-#else
-	yunused(gd);
-
-	const auto res(next.Handler(term, ctx));
-
-	return no_lift ? res : ReduceForLiftedResult(term);
-#endif
 }
 
 ReductionStatus
@@ -3370,7 +3506,7 @@ RelayForCall(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 	// NOTE: With TCO, the operand temporary is been indicated by
 	//	%TermTags::Temporary, no lifetime extension needs to be cared here.
 	SetupNextTerm(ctx, term);
-	return RelayForEval(ctx, term, std::move(gd), no_lift,
+	return RelayForEvalOrDirect(ctx, term, std::move(gd), no_lift,
 		std::ref(ContextState::Access(ctx).ReduceOnce));
 }
 
@@ -3452,24 +3588,44 @@ BindParameter(Environment& env, const TermNode& t, TermNode& o)
 
 
 void
-SetupDefaultInterpretation(ContextState& root, EvaluationPasses passes)
+SetupDefaultInterpretation(ContextState& cs, EvaluationPasses passes)
 {
 #if true
-	// XXX: Optimized based synchrnous call of %ReduceHeadEmptyList.
-	passes += [](TermNode& t, ContextNode& c){
-		ReduceHeadEmptyList(t);
-		return ReduceFirst(t, c);
+	// NOTE: This is an example of merged passes.
+	passes += [](TermNode& term, ContextNode& ctx) -> ReductionStatus{
+		ReduceHeadEmptyList(term);
+		if(IsBranchedList(term))
+		{
+			auto& fm(AccessFirstSubterm(term));
+
+			// XXX: Without %NPL_Impl_NPLA1_Enable_InlineDirect, the
+			//	asynchronous calls are actually more inefficient than separated
+			//	calls.
+			return ReduceSubsequent(fm, ctx, [&](ContextNode& c){
+				SetupNextTerm(c, term);
+				return ReduceCombinedImpl(term, c);
+			});
+		}
+		return ReductionStatus::Clean;
 	};
 #else
+#	if true
+	// XXX: Optimized based synchronous call of %ReduceHeadEmptyList.
+	passes += [](TermNode& term, ContextNode& ctx){
+		ReduceHeadEmptyList(term);
+		return ReduceFirst(term, ctx);
+	};
+#	else
 	passes += ReduceHeadEmptyList;
 	passes += ReduceFirst;
-#endif
+#	endif
 	// TODO: Insert more optional optimized lifted form evaluation passes.
 	// XXX: This should be the last of list pass for current TCO
 	//	implementation, assumed by TCO action.
 	passes += ReduceCombined;
-	root.EvaluateList = std::move(passes);
-	root.EvaluateLeaf = ReduceLeafToken;
+#endif
+	cs.EvaluateList = std::move(passes);
+	cs.EvaluateLeaf = ReduceLeafToken;
 }
 
 
@@ -4092,7 +4248,7 @@ WrapRef(TermNode& term, ContextNode& ctx)
 	return WrapOrRef(term, ctx, WrapRefN,
 		[&](ContextHandler& h, ResolvedTermReferencePtr p_ref){
 		return p_ref
-			? ReduceForCombinerRef(term, ctx, *p_ref, h, IsBranchedList, 1)
+			? ReduceForCombinerRef(term, ctx, *p_ref, h, 1)
 			: WrapH(term, FormContextHandler(std::move(std::move(h)), 1));
 	});
 }

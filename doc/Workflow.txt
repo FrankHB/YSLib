@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r3437
+\version r3481
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2020-01-13 02:01 +0800
+	2020-01-19 22:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -906,7 +906,7 @@ Implementations of clocks are cared.
 dep.merge:
 Boost.Trie(https://github.com/ithlony/Boost.Trie): tentatively rejected.
 	This is a project of Boost GSoC 2013.
-	Despite the whole Boost had been rejected before($2012), it was probable to be accepted to merge. However, it is not proper now.
+	Despite the whole Boost had been rejected before ($2012), it was probable to be accepted to merge. However, it is not proper now.
 	It is not being actively developed for months.
 	It was considered not peer review ready, see https://groups.google.com/d/topic/boost-devel-archive/KjerA9jlLbo for some details.
 	There seems to be no documentation ready.
@@ -2603,7 +2603,7 @@ Retionale of reductions in NPLA1 (esp. implementation of 'A1::ReduceOnce') is re
 	The status as a returning value of an action would inform propably existed enclosing invoker to retry a new turn of evaluation reductions if the current action is cleared.
 		Otherwise it is to be ignored as per the condition of enclosing rewriting loop.
 			Typically the loop is provided by a trampoline of synchronous caller, or top-level enclosing loop in NPLA context.
-		The invoker of the action is either synchrnous or asynchrnous, either in evaluation or of admistrative.
+		The invoker of the action is either synchronous or asynchronous, either in evaluation or of admistrative.
 	The returning value cannot be handled just (as the enclosed operation) by unconditionally retrying some specific operation, thus it reflects the control of administrative reductions.
 	The status 'ReductionStatus::Retrying' indicates a request to skip the all remained administrative reductions.
 		The skip is treated as attempt to switch to a new action, which should be in turn already properly set or cleared as the current action.
@@ -3334,7 +3334,7 @@ Assertions in YBase have been revised.
 		Some other evaluations of expressions in these macros may still be suboptimal, but not much.
 			Most calls involved are like call on 'is_undereferenceable' which is assumed pure, though the implementation may be lack of the information (esp. in the cases of ADL).
 				These assertions are replaced by 'yverify' expressions directly or indirectly.
-			A few constarint checks in the operand of 'yconstraint' in YBase.YStandardEx.Any are now implemented separatedly using 'YAssert'.
+			A few constarint checks in the operand of 'yconstraint' in YBase module YStandardEx::Any are now implemented separatedly using 'YAssert'.
 				See also the notes about LTO below.
 			The checks in 'ystdex::polymorphic_downcast', 'ystdex::erase_n' and a few more are now implemented using 'YAssert' instead of 'yassume'.
 		For code where the hints are needed, additional explicit 'YB_ASSUME' is more appropriate.
@@ -3441,8 +3441,8 @@ Some issues met with LTO are reviewed.
 	LTO may cause multiple definition with MinGW.
 		This is an unresolved bug. See https://sourceware.org/bugzilla/show_bug.cgi?id=12762.
 		This is now fixed in build scripts (both the shell script and NPLA1 script), as well as the generator for Code::Blocks projects in the tools.
-	The modification in YBase.YStandardEx.Any in build 864 requires workaround of the bug above.
-	The modification of 'ystdex::unchecked_any_cast' in YBase.YStandardEx.Any in build 864 (see notes about constraints above) would cause wrong code (illegal instruction) in release static build of YSTest with MinGW32 G++ (at least i686 7.1 and 7.3).
+	The modification in YBase module YStandardEx::Any in build 864 requires workaround of the bug above.
+	The modification of 'ystdex::unchecked_any_cast' in YBase module YStandardEx::Any in build 864 (see notes about constraints above) would cause wrong code (illegal instruction) in release static build of YSTest with MinGW32 G++ (at least i686 7.1 and 7.3).
 		This is worked around by using 'yconstraint(p); yconstraint(p->has_value());' instead of 'yconstraint(p && p->has_value());'.
 
 $2019-09:
@@ -3509,19 +3509,45 @@ Rule of non-reference argument passing is revised for allocators.
 $2020-01:
 
 report.impl:
-Trampolined reductions in YFramework module NPL::NPLA1 has been cleaned up.
-	'NPL::A1' API now are simplified and imporved in efficiency.
-		A bug of inconsistency between synchrnous and asynchrnous implementations of 'A1::ReduceAgain' has been fixed.
-			The guard call in 'A1::Reduce' is unnecessary in the synchronous reduction implementation.
-			It should have been replaced by 'A1::ReduceOnce' once available, whether TCO is used or not.
-		Various implementations now uses 'A1::ReduceOnce' instead of 'A1::ReduceChecked' equivalence.
-			This eliminates the unnecessary overhead of tracking 'ReductionStatus::Retrying' results which has been handled by 'A1::ReduceOnce' and 'A1::ReduceAgain'.
-	Function 'A1::ReduceChecked' has been removed.
-		The function is now considered confusing because 'ReductionStatus::Retrying' handled by this function has been nothing necessary to do with trampoline in callers for a while.
-		The asynchorous implementation relies on the external trampoline to do the right handling of 'ReductionsStatus::Retrying', which is not as safe as explicit call of 'A1::ReduceAgain'.
-			There are risks to handle unnecessary 'A1::ReduceOnce' action in the asynchonous implementation if there are more action other than 'A1::ReduceOnce' inserted before the asynchrnous call of the check.
-			On the other hand, the call of 'A1::ReduceAgain' ensures the inserted next continuation not intercepted by action other than the intentional 'A1::ReduceOnce'.
-		The inserted asynchrouns check relying on the last status 'ReductionStatus::Retrying' is also inefficient in particular where no other actions are intended to be inserted before the later 'A1::ReduceOnce'.
+Implementation of NPL in YFramework module NPL::NPLA1 has been cleanup for performance.
+	Trampolined reductions in YFramework module NPL::NPLA1 has been cleaned up, as well as other improvements.
+		'NPL::A1' API now are simplified and imporved in efficiency.
+			A bug of inconsistency between synchronous and asynchronous implementations of 'A1::ReduceAgain' has been fixed.
+				The guard call in 'A1::Reduce' is unnecessary in the synchronous reduction implementation.
+				It should have been replaced by 'A1::ReduceOnce' once available, whether TCO is used or not.
+			Various implementations now uses 'A1::ReduceOnce' instead of 'A1::ReduceChecked' equivalence.
+				This eliminates the unnecessary overhead of tracking 'ReductionStatus::Retrying' results which has been handled by 'A1::ReduceOnce' and 'A1::ReduceAgain'.
+		Function 'A1::ReduceChecked' has been removed.
+			The function is now considered confusing because 'ReductionStatus::Retrying' handled by this function has been nothing necessary to do with trampoline in callers for a while.
+			The asynchorous implementation relies on the external trampoline to do the right handling of 'ReductionsStatus::Retrying', which is not as safe as explicit call of 'A1::ReduceAgain'.
+				There are risks to handle unnecessary 'A1::ReduceOnce' action in the asynchonous implementation if there are more action other than 'A1::ReduceOnce' inserted before the asynchronous call of the check.
+				On the other hand, the call of 'A1::ReduceAgain' ensures the inserted next continuation not intercepted by action other than the intentional 'A1::ReduceOnce'.
+			The inserted asynchrouns check relying on the last status 'ReductionStatus::Retrying' is also inefficient in particular where no other actions are intended to be inserted before the later 'A1::ReduceOnce'.
+	The macro 'NPL_Impl_NPLA1_Enable_TailRewriting' is removed.
+		It is considered outdated for a while.
+			Since the temporary objects are now stored in the reduced terms rather than frames for calls, no special allocations are cared.
+			The only instance of the remaining use is 'A1::ReduceOrdered'. This is however always expected enabled for TCO. 
+	A new macro 'NPL_Impl_NPLA1_Enable_InlineDirect' is added to tweak implementations on asynchronous calls.
+		The macro specifies the outermost asynchronous calls formally composed by function templates like 'NPL::RelayNext' or 'NPL::RelaySwitched' now split and being synchrnized sequentially.
+			This also means the inner calls (if any) composed by these function templates now usually ignore the return value 'ReductionStatus::Partial' in asynchronous implementations.
+		The macro shall be used carefully.
+			Asynchronous native implementations expect the actions in the called functions always asynchronous, so they can be further captured to be actions in the context.
+				This is not necessary if the resulted reduction action is not needed to be captured as a continuation.
+			If the asynchronous calls have direct recursion paths (which can potentially overflow the host stack), it can render the thunks useless.
+	Term check in 'A1::FormContextHandler' is removed.
+		There is no real use in the NPLA1 implementation except a few cases now.
+			In applicative 'regex-match?' in YFramework module NPL::Dependency, term check is used as the precondition check by 'A1::Forms::RetainN'.
+				It is easily avoided by direct call of 'RetainN'.
+			The remaining call is 'NPL::IsBranchedList'.
+				It should succeed for correct implementations, therefore it is replaced by an assertion in the call initiated in 'A1::FormContextHandler'.
+		Term check can be opt-in in the handler if needed.
+Some issues met with LTO are reviewed again, as $2019-08.
+	Default constructors of 'ystdex::function_base' with lambda-expressions are fixed.
+	However, the fixes would cause in YBase.YStandardEx.Any in build 878 (see notes about constraints above) would cause wrong code (illegal instruction) in release static build of YSTest with MinGW32 G++ (at least i686 7.1).
+		This is worked around by using 'YB_ATTR(noinline) YB_ATTR(optimize("O2"))' when 'YB_IMPL_GNUCPP && defined(NDEBUG) && !(defined(YB_DLL) || defined(YB_BUILD_DLL))'.
+			The using of static library are assumed across YBase, YFramework and client programs.
+			There may be other implicit options for options are effective besides inlining. It is yet unknown which presice set of options are effective.
+			It would be still broken if either 'YB_ATTR(noinline)' or 'YB_ATTR(optimize("O2"))' (or more low optimization level) is not present.
 
 ////
 

@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3357
+\version r3363
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2020-01-12 18:23 +0800
+	2020-01-19 17:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -658,7 +658,7 @@ LoadGroundedDerived(REPLContext& context)
 	RegisterStrict(renv, "apply", Apply);
 	RegisterStrict(renv, "list*", ListAsterisk);
 	RegisterStrict(renv, "list*%", ListAsteriskRef);
-	RegisterStrict(renv, "forward-list-first", ForwardListFirst);
+	RegisterStrict(renv, "forward-list-first%", ForwardListFirst);
 	RegisterStrict(renv, "first", First);
 	RegisterStrict(renv, "first@", FirstAt);
 	RegisterStrict(renv, "first&", FirstRef);
@@ -785,13 +785,13 @@ LoadGroundedDerived(REPLContext& context)
 			(cons% (forward! head) (apply list*% tail));
 		$defv! $defw%! (&f &formals &ef .&body) d
 			eval (list $set! d f wrap (list* $vau% formals ef (move! body))) d;
-		$defw%! forward-list-first (&list-appv &appv &l) d
+		$defw%! forward-list-first% (&list-appv &appv &l) d
 			($lambda% ((&x .))
 				eval% (list% (forward! appv) ($resolve-identifier x)) d)
 				(eval% (list% (forward! list-appv) l) d);
 		$defl%! first@ (&l) ($lambda% ((@x .)) x) (check-list-reference l);
 		$defl%! first (%l)
-			($lambda% (fwd) forward-list-first fwd forward! l)
+			($lambda% (fwd) forward-list-first% fwd forward! l)
 				($if (bound-lvalue? ($resolve-identifier l)) id expire);
 		$defl%! first& (&l) ($lambda% ((&x .)) x) (check-list-reference l);
 		$defl! firstv ((&x .)) x;
@@ -963,7 +963,7 @@ LoadCore(REPLContext& context)
 		$defl! unfoldable? (&l)
 			accr l null? (first-null? l) first-null? rest% $or?;
 		$defl%! list-extract (&l &extr) accr l null? ()
-			($lambda% (&l) forward-list-first expire extr l) rest% cons%;
+			($lambda% (&l) forward-list-first% expire extr l) rest% cons%;
 		$defl%! list-extract-first (&l) list-extract l first;
 		$defl%! list-extract-rest% (&l) list-extract l rest%;
 		$defw%! map-reverse (&appv .&ls) d
@@ -1132,13 +1132,15 @@ LoadModule_std_strings(REPLContext& context)
 		return std::regex(str);
 	});
 	RegisterStrict(renv, "regex-match?", [](TermNode& term){
+		RetainN(term, 2);
+
 		auto i(std::next(term.begin()));
 		const auto& str(NPL::ResolveRegular<const string>(NPL::Deref(i)));
 		const auto& r(NPL::ResolveRegular<const std::regex>(NPL::Deref(++i)));
 
 		term.Value = std::regex_match(str, r);
 		return ReductionStatus::Clean;
-	}, ystdex::bind1(RetainN, 2));
+	});
 }
 
 void

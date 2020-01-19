@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r16675
+\version r16859
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-01-14 19:05 +0800
+	2020-01-19 22:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,180 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Function $=
+		(
+			+ DLI 'inline' @ "constructors"
+				@ "class template specialization %function_base",
+			* "wrong specialization %make_function_type for %function_base \
+				specializations" %Function $since b851,
+			* $revert_add(b848) "missing workaround for invoker initialization"
+				@ "default constructor" @ "class %function_base \
+				specializations with policy template argument \
+				%empty_function_policy::(no_effect, throwing)" $since b848
+				// These cases should also have been covered by the workaround \
+					for G++ LTO. There are also some additional side effects \
+					due to toolchain issues to be worked around. See $2020-01 \
+					@ %Documentation::Workflow..
+				$= (+ "static function template %invoke_empty"
+					@ "class specializations %function_traits with specified \
+					template arguments")
+		),
+		/ %Functional $=
+		(
+			+ "class template %expanded_function";
+			+ "class template specialization %expanded_function",
+			+ "specializations %(make_parameter_list, return_of, is_covariant, \
+				is_contravariant, make_function_type, call_projection) for \
+				%expanded_function"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ @ "class %GHEvent" @ %YSLib.Core.YEvent $=
+		(
+			(
+			/ DLDI "constructors#(3, 4)" ^ "%function" ~ "%BaseType";
+			/ ("protected base"; "%BaseType") ^ "%ystdex::expanded_function"
+				~ "%function"
+				// The changes does not simplified constructors, but allow \
+					efficient initialization from instances both %function \
+					and %ystdex::expanded_function.
+			),
+			+ 'ynothrow' @ "constructors with function pointer parameters",
+			+ DLI 'inline' @ "constructor templates",
+			* "redundant copy" @ "constructor with callable type parameter"
+				$since b849
+		),
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				(
+				/ DLDI "function %operator()" @ "class templae %GComposedAction"
+					!^ "%Reducer";
+				/ $re_ex(b877) $dev $lib "removed comparison" @ "type %Reducer"
+					$= (/ $impl ^ $dep_from ("ystdex::expanded_function"
+						@ %YBase.YStandardEx.Functional) ~ "%YSLib::GHEvent")
+					// Since %operator== is not relied on, better avoid the \
+						unused comparator pointer in %GHEvent.
+				),
+				/ DLI "class %ContextNode" $=
+				(
+					+ 'YB_ATTR(always_inline) inline'
+						@ "function template %SetupTail",
+					/ "made functions %(ApplyTail, \
+						SwitchEnvironmentUnchecked) inline"
+				),
+				+ DLI 'YB_ATTR(always_inline) inline'
+					@ "function templates %RelayNext"
+			),
+			/ %Dependency $=
+			(
+				/ DLDI "applicative 'regex-match?'" @ "function \
+					%LoadModule_std_strings" !^ "term check",
+				/ "applicative 'forward-list-first'"
+					@ "function %LoadGroundContext" => 'forward-list-first%'
+					// The syntax should allow unsafe results by expression \
+						like 'forward-list-first% id id (list 1 2)', so sigil \
+						'%' should be placed here to indicate potential \
+						unsafety.
+			),
+			/ %NPLA1 $=
+			(
+				/ @ "class %ContextState" $=
+				(
+					+ "static function %DefaultReduceOnce",
+					/ DLDI "simplified initialization" @ "%ReduceOnce"
+						^ "%DefaultReduceOnce" ~ "%A1::ReduceOnce"
+				),
+				/ @ "function %ReduceOnce" $=
+				(
+					/ "redirected calls"
+						^ $dep_from "%ContextState::ReduceOnce",
+					(
+					* "missing call of %ContextState::SetNextTermRef \
+						from 2nd passes" $since b842,
+					/ $revert_ex(b842) DLI "avoided call of \
+						%ContextState::SetNextTermRef for empty passes sequence"
+						// This would cause wront term in the call of \
+							%ReduceCombine after the call of %ReduceFirst \
+							without merged passes setup in \
+							%SetupDefaultInterpretation.
+					)
+				),
+				* $comp "missing redirection to configurable \
+					%ContextState::ReduceOnce" @ "%ReduceOnce calls"
+					@ "synchronous implementations and functions \
+					%(ReduceAgain, ReduceFirst)" $since b877,
+				/ @ "function %operator()" @ "class tempalte %GComposedAction"
+					$=
+				(
+					+ DLI 'YB_FLATTEN',
+						// XXX: On %ComposeActions, this will crash with \
+							x86_64-pc-linux-gnu G++ 9.2.
+					* $impl "unexpected ADL call to %RelaySwitched" $since b841
+				),
+				(
+				- $revert(b851) DLDI "static assertion on macro \
+					%NPL_Impl_NPLA1_Enable_TailRewriting"
+					// See $2020-01 @ %Documentation::Workflow.
+				- DLI "macro %NPL_Impl_NPLA1_Enable_TailRewriting" $orig
+					(@ "macro %YF_Impl_NPLA1_Enable_TailRewriting" $since b823)
+				),
+				/ $re_ex(b877) DLI "optimized by folding synchronous call of \
+					%ReduceHeadEmptyList before the call of %ReduceFirst"
+					@ "function %SetupDefaultInterpretation",
+				* "missing %Continuation construction" @ "asynchronous calls"
+					@ "function ReductionChildrenOrdered#1" $since b841,
+				(
+				/ DLI "optimized internal functions to return \
+					%ReductionStatus::Neutral"
+					~ "%ReductionStatus::Clean"
+					@ "functions %(ReduceChildren, ReduceArguments)",
+				/ "optimized functions to return %ReductionStatus::Neutral"
+					~ "%ReductionStatus::Clean"
+					@ "functions %ReduceChildrenOrdered"
+				),
+				/ DLI "internal %ContextState term update" $=
+				(
+					+ DLI 'YB_FLATTEN' ,
+					/ $dev $lib "update term for synchrnoized relaying"
+						// This is now more accurate for %Continuation direct \
+							call.
+				),
+				/ DLI @ "function %RelayForEval" $=
+				(
+					/ $revert_ex(b860) "simplified TCO implementation",
+					/ "split implementations for lifting and non-lifting cases"
+				),
+				(
+				+ DLI "macro %NPL_Impl_NPLA1_Enable_InlineDirect";
+					// See $2020-01 @ %Documentation::Workflow.
+				/ DLI "optimized by avoiding construction of unneeded \
+					reduction actions where direct recurison is impossible"
+					!^ "%(RelayNext, RelaySwitched)"
+				),
+				(
+				/ "wrapping and unwrapping" @ "%Forms::(Apply, Unwrap, \
+					UnwrapRef, ForwardListFirst, Warp, WrapRef, WrapOnce, \
+					WrapOnceRef)" ^ "%FormContextHandler::Check";
+				/ @ "class %FormContextHandler"
+					$dep_from ("%LoadModule_std_strings" @ %Dependency) $=
+				(
+					- "constructor template#2",
+					/ "check" -> "assertion by %IsBranchedList" @ "%operator()";
+					- "data member %Check"
+				)
+				)
+			)
+		)
+	)
+),
+
+b877
 (
 	/ $doc %Documentation $=
 	(
@@ -104,14 +278,14 @@ $now
 				/ $impl ^ $dep_from ("%ContextState::ReduceOnce"
 					~ "%ReduceChecked");
 				// Ditto with %A1::ReduceOnce. This is also consistently \
-					redundant in asynchrnous implementations, though. This is \
+					redundant in asynchronous implementations, though. This is \
 					slightly more efficient with %std::ref.
 			- $revert(b735) "function %ReduceChecked";
 				// See $2020-01 @ %Documentation::Workflow.
 			* DD "wrong return value for asynchronized reductions"
 				@ "function %ReduceChecked" $since b842
 			),
-			* "wrong continuation used" @ "synchrnous implementation"
+			* "wrong continuation used" @ "synchronous implementation"
 				@ "function %RelayForEval"
 				$orig (@ "internal implementation" $since b859),
 				// The context should not from the next action.
@@ -143,7 +317,7 @@ $now
 			/ DLI "all default initialization of pass objects"
 				-> "constructor#1 using allocator from memory resoruce"
 				@ "class %ContextState",
-			/ DLI "optimized by folding synchrnous call of \
+			/ DLI "optimized by folding synchronous call of \
 				%ReduceHeadEmptyList before the call of %ReduceFirst"
 				@ "function %SetupDefaultInterpretation"
 		),
@@ -1154,7 +1328,7 @@ b869
 					// The default value is chosen to be consistent with \
 						%NPL::PassesCombiner now.
 				* "%ReductionStatus::Retained wrongly set at the last \
-					asynchrnous pass call" $since b841
+					asynchronous pass call" $since b841
 					$= (/ ^ (($dep_from "%ReductionStatus::Neutral"
 						~ "%ReductionStatus::Retained") @ %NPLA)),
 					// In the call of %CombineSequenceReductionResult, the \
@@ -5045,7 +5219,7 @@ b854
 						exception thrown, it now will not terminate in the \
 						REPL once %LoggedEvent is handled properly.
 				* $comp "exception filtering in function application did not \
-					fully supported to work with thunked asynchrnous actions"
+					fully supported to work with thunked asynchronous actions"
 					$since b809
 					// Although the external work is still to be done \
 						elsewhere, the inner reduction should now be consistent.
@@ -7426,7 +7600,7 @@ b848
 					+ "5 constructor templates with %std::allocator_arg_t and \
 						allocator parameters"
 					),
-					/ $revert_ex(b825) "smplified workaround"
+					/ $revert_ex(b825) "simplified workaround"
 						@ "constructor with callable object parameter"
 				),
 				/ %YObject $=
@@ -9434,7 +9608,7 @@ b841
 			),
 			/ %NPLA1 $=
 			(
-				* "undefined behavior cuased by invalid access in asynchrnous \
+				* "undefined behavior cuased by invalid access in asynchronous \
 					action call" @ "functions %Forms::(VauWithEnvironment, \
 					VauWithEnvironmentRef)" $since b840,
 				/ $lib "supported thunked call for expressions to be evaluated"
@@ -9473,7 +9647,7 @@ b841
 					/ "simplified non-thunked code"
 						!^ "%ContextNode::LastStatus" ^ $dep_from
 						("%CheckedReduceWith" @ %NPLA),
-					/ "set %ContextNode::LastStatus explicitly as asynchrnous \
+					/ "set %ContextNode::LastStatus explicitly as asynchronous \
 						call result" @ "thunked non-TCO and TCO code"
 				)
 				),
@@ -14002,11 +14176,11 @@ b812
 					by the reset operation of each action setup by \
 					%NPL::ReduceWithNextActions.
 			/ DLDI "simplified function %ReduceOnce",
-			* DLDI "ill-formed synchrnous referential code" @ "vau handler"
+			* DLDI "ill-formed synchronous referential code" @ "vau handler"
 				$since b811,
 				// Redundant 'const' would cause it ill-formed.
 			* DLDI "unexpected modification on current action for \
-				synchrnous referential code" @ ("function %ReduceAgain"
+				synchronous referential code" @ ("function %ReduceAgain"
 				$since b807, "function %ReduceChildren" $since 809)
 		)
 	)
@@ -14060,7 +14234,7 @@ b811
 			),
 			(
 			/ "kept handler in setup function to make it live long enough"
-				@ "function %ReduceCombined with asynchrnous call";
+				@ "function %ReduceCombined with asynchronous call";
 			/ "supported thunked tail calls"
 				@ "function %StrictContextHandler::operator()";
 			/ "setup current action" @ "vau handler calls"

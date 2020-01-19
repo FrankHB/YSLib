@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2019 FrankHB.
+	© 2010-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5921
+\version r5951
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2019-07-24 00:49 +0800
+	2020-01-16 01:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include YFM_YSLib_Core_YObject // for ystdex::is_expandable,
 //	ystdex::is_decayed, ystdex::examiners::equal_examiner, std::allocator_arg_t,
 //	std::allocator_arg, ystdex::make_expanded, ystdex::default_last_value,
-//	std::piecewise_construct, std::forward_as_tuple,
+//	std::piecewise_construct, std::forward_as_tuple;
 #include YFM_YSLib_Core_YFunc
 #include <ystdex/iterator.hpp> // for ystdex::get_value;
 #include <ystdex/container.hpp> // for ystdex::erase_all_if;
@@ -48,6 +48,7 @@ namespace YSLib
 \brief 标准事件处理器模板。
 \note 若使用仿函数，可以不满足 \c EqualityComparable 的接口，即
 	可使用返回 \c bool 的 \c operator== ，但此类模板不检查其语义。
+\note 初始化构造函数的可调用对象要求和 ystdex::expanded_function 的类似。
 \since build 333
 \todo 允许使用特征定制目标的相等性。
 */
@@ -57,13 +58,14 @@ class GHEvent;
 
 //! \warning 非虚析构。
 template<typename _tRet, typename... _tParams>
-class GHEvent<_tRet(_tParams...)> : protected function<_tRet(_tParams...)>,
+class GHEvent<_tRet(_tParams...)>
+	: protected ystdex::expanded_function<_tRet(_tParams...)>,
 	private ystdex::equality_comparable<GHEvent<_tRet(_tParams...)>>,
 	private ystdex::equality_comparable<GHEvent<_tRet(_tParams...)>, nullptr_t>
 {
 public:
 	using FuncType = _tRet(_tParams...);
-	using BaseType = function<FuncType>;
+	using BaseType = ystdex::expanded_function<FuncType>;
 
 private:
 	// XXX: Clang++ 7.1 behaves weirdly with %lref<GHEvent> when using combined
@@ -72,8 +74,8 @@ private:
 	//! \since build 850
 	template<typename _fCallable>
 	using enable_if_expandable_t = ystdex::enable_if_t<
-		!std::is_constructible<BaseType, _fCallable>::value
-		&& ystdex::is_expandable<BaseType, _fCallable>::value>;
+		!std::is_constructible<function<FuncType>, _fCallable>::value
+		&& ystdex::is_expandable<function<FuncType>, _fCallable>::value>;
 	//! \brief 比较函数类型。
 	using Comparer = bool(*)(const GHEvent&, const GHEvent&);
 	template<typename _fCallable>
@@ -134,22 +136,20 @@ private:
 	Comparer comp_eq;
 
 public:
-	//! \note 对函数指针为参数的初始化允许区分重载函数。
-	//@{
 	/*!
-	\brief 构造：使用函数指针。
-	\since build 516
+	\note 对函数指针为参数的初始化允许区分重载函数并提供异常规范。
+	\since build 878
 	*/
-	GHEvent(FuncType* f = {})
+	//@{
+	//! \brief 构造：使用函数指针。
+	GHEvent(FuncType* f = {}) ynothrow
 		: BaseType(f),
 		comp_eq(GEquality<ystdex::decay_t<FuncType>>::AreEqual)
 	{}
-	/*!
-	\brief 构造：使用分配器和函数指针。
-	\since build 848
-	*/
+	//! \brief 构造：使用分配器和函数指针。
 	template<class _tAlloc>
-	GHEvent(std::allocator_arg_t, const _tAlloc& a, FuncType* f = {})
+	inline
+	GHEvent(std::allocator_arg_t, const _tAlloc& a, FuncType* f = {}) ynothrow
 		: BaseType(std::allocator_arg, a, f),
 		comp_eq(GEquality<ystdex::decay_t<FuncType>>::AreEqual)
 	{}
@@ -159,16 +159,18 @@ public:
 	//! \brief 使用函数对象。
 	template<class _fCallable, yimpl(typename = ystdex::exclude_self_t<GHEvent,
 		_fCallable>, typename = ystdex::enable_if_t<std::is_constructible<
-		BaseType, _fCallable>::value>)>
+		function<FuncType>, _fCallable>::value>)>
+	inline
 	GHEvent(_fCallable f)
-		: BaseType(yforward(f)),
+		: BaseType(std::move(f)),
 		comp_eq(GEquality<_fCallable>::AreEqual)
 	{}
 	//! \brief 使用分配器和函数对象。
 	template<class _fCallable, class _tAlloc,
 		yimpl(typename = ystdex::exclude_self_t<GHEvent, _fCallable>,
 		typename = ystdex::enable_if_t<
-		std::is_constructible<BaseType, _fCallable>::value>)>
+		std::is_constructible<function<FuncType>, _fCallable>::value>)>
+	inline
 	GHEvent(std::allocator_arg_t, const _tAlloc& a, _fCallable&& f)
 		: BaseType(std::allocator_arg, a, yforward(f)),
 		comp_eq(GEquality<_fCallable>::AreEqual)
@@ -176,6 +178,7 @@ public:
 	//! \brief 使用扩展函数对象。
 	template<typename _fCallable,
 		yimpl(typename = enable_if_expandable_t<_fCallable>)>
+	inline
 	GHEvent(_fCallable f)
 		: BaseType(ystdex::make_expanded<FuncType>(std::move(f))),
 		// XXX: Here lambda-expression is buggy in G++ LTO.
@@ -184,6 +187,7 @@ public:
 	//! \brief 使用分配器和扩展函数对象。
 	template<typename _fCallable, class _tAlloc,
 		yimpl(typename = enable_if_expandable_t<_fCallable>)>
+	inline
 	GHEvent(std::allocator_arg_t, const _tAlloc& a, _fCallable f)
 		: BaseType(std::allocator_arg, a,
 		ystdex::make_expanded<FuncType>(std::move(f))),
@@ -223,12 +227,14 @@ public:
 	//@{
 	//! \since build 848
 	template<class _tAlloc>
+	inline
 	GHEvent(std::allocator_arg_t, const _tAlloc& a, const GHEvent& x)
 		: BaseType(std::allocator_arg, a, x),
 		comp_eq(x.comp_eq)
 	{}
 	//! \since build 848
 	template<class _tAlloc>
+	inline
 	GHEvent(std::allocator_arg_t, const _tAlloc& a, GHEvent&& x)
 		: BaseType(std::allocator_arg, a, std::move(x)),
 		comp_eq(x.comp_eq)

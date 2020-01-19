@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3026
+\version r3040
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2020-01-13 19:16 +0800
+	2020-01-17 19:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1132,14 +1132,6 @@ ContextNode::ContextNode(ContextNode&& ctx) ynothrow
 }
 ContextNode::ImplDeDtor(ContextNode)
 
-ReductionStatus
-ContextNode::ApplyTail()
-{
-	// TODO: Avoid stack overflow when current action is called.
-	YAssert(bool(Current), "No tail action found.");
-	return LastStatus = Switch()(*this);
-}
-
 void
 ContextNode::Pop() ynothrow
 {
@@ -1179,14 +1171,6 @@ ContextNode::SwitchEnvironment(const shared_ptr<Environment>& p_env)
 	if(p_env)
 		return SwitchEnvironmentUnchecked(p_env);
 	Environment::ThrowForInvalidValue(true);
-}
-
-shared_ptr<Environment>
-ContextNode::SwitchEnvironmentUnchecked(const shared_ptr<Environment>& p_env)
-	ynothrowv
-{
-	YAssertNonnull(p_env);
-	return ystdex::exchange(p_record, p_env);
 }
 
 bool

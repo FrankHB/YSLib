@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2019 FrankHB.
+	© 2010-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r4037
+\version r4236
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2019-08-19 09:12 +0800
+	2020-01-16 01:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,10 +29,12 @@
 #define YB_INC_ystdex_functional_hpp_ 1
 
 #include "functor.hpp" // for "ref.hpp", "invoke.hpp", <functional>,
-//	std::function, addressof_op, less, mem_get;
+//	exclude_self_t, addressof_op, less, mem_get, true_, false_, is_void,
+//	is_constructible, enable_if_t, std::allocator_arg_t, std::allocator_arg,
+//	is_nothrow_copy_constructible;
 #include "function.hpp" // for "function.hpp", std::tuple, index_sequence,
-//	index_sequence_for, is_nothrow_swappable, exclude_self_t, true_, false_,
-//	is_void, common_nonvoid_t, make_index_sequence;
+//	index_sequence_for, is_nothrow_swappable, common_nonvoid_t,
+//	make_index_sequence, as_function_type_t, equality_comparable;
 #include "swap.hpp" // for "swap.hpp", ystdex::swap_dependent,
 //	ystdex::move_and_swap;
 #include "apply.hpp" // for call_projection;
@@ -606,6 +608,217 @@ make_expanded(_fCallable f)
 template<typename _func, typename _fCallable>
 using is_expandable = is_constructible<_func,
 	expanded_caller<as_function_type_t<_func>, _fCallable>>;
+
+
+//! \since build 878
+//@{
+/*!
+\brief 扩展函数包装类模板。
+\pre 第二模板参数指定和 function_base 的对应签名的实例的操作兼容的类类型。
+
+接受冗余参数的可调用对象的函数包装类模板。
+函数模板签名和对应的基类。
+基类和 function_base 实例的操作兼容，当且仅当实例化的操作具有相同的语义，
+	包括使用特定类型的参数构造对象时和 std::function 实例类似的不抛出异常的要求。
+*/
+template<typename _fSig, class = function<_fSig>>
+class expanded_function;
+
+/*!
+\brief 扩展函数包装类模板特化。
+\sa function
+\sa function_base
+*/
+template<typename _tRet, typename... _tParams, class _tBase>
+class expanded_function<_tRet(_tParams...), _tBase>
+	: protected _tBase, private equality_comparable<expanded_function<
+	_tRet(_tParams...), _tBase>>, private equality_comparable<
+	expanded_function<_tRet(_tParams...), _tBase>, nullptr_t>
+{
+public:
+	using base_type = _tBase;
+	using result_type = typename base_type::result_type;
+
+private:
+	template<typename _fCallable>
+	using enable_if_expandable_t = enable_if_t<
+		!is_constructible<base_type, _fCallable>::value
+		&& is_expandable<base_type, _fCallable>::value>;
+
+public:
+	//! \note 对函数指针为参数的初始化允许区分重载函数并提供异常规范。
+	//@{
+	expanded_function() ynothrow
+		: base_type()
+	{}
+	//! \brief 构造：使用函数指针。
+	expanded_function(_tRet(*f)(_tParams...)) ynothrow
+		: base_type(f)
+	{}
+	//! \brief 构造：使用分配器。
+	template<class _tAlloc>
+	inline
+	expanded_function(std::allocator_arg_t, const _tAlloc& a) ynothrow
+		: base_type(std::allocator_arg, a)
+	{}
+	//! \brief 构造：使用分配器和函数指针。
+	template<class _tAlloc>
+	inline
+	expanded_function(std::allocator_arg_t, const _tAlloc& a,
+		_tRet(*f)(_tParams...)) ynothrow
+		: base_type(std::allocator_arg, a, f)
+	{}
+	//@}
+	//! \brief 使用函数对象。
+	template<class _fCallable, yimpl(typename = exclude_self_t<
+		expanded_function, _fCallable>, typename = enable_if_t<is_constructible<
+		base_type, _fCallable>::value>)>
+	expanded_function(_fCallable f)
+		: base_type(std::move(f))
+	{}
+	//! \brief 使用分配器和函数对象。
+	template<class _fCallable, class _tAlloc,
+		yimpl(typename = exclude_self_t<expanded_function, _fCallable>,
+		typename = enable_if_t<
+		std::is_constructible<base_type, _fCallable>::value>)>
+	expanded_function(std::allocator_arg_t, const _tAlloc& a, _fCallable&& f)
+		: base_type(std::allocator_arg, a, yforward(f))
+	{}
+	//! \brief 使用扩展函数对象。
+	template<typename _fCallable,
+		yimpl(typename = enable_if_expandable_t<_fCallable>)>
+	expanded_function(_fCallable f)
+		: base_type(ystdex::make_expanded<_tRet(_tParams...)>(std::move(f)))
+	{}
+	//! \brief 使用分配器和扩展函数对象。
+	template<typename _fCallable, class _tAlloc,
+		yimpl(typename = enable_if_expandable_t<_fCallable>)>
+	expanded_function(std::allocator_arg_t, const _tAlloc& a, _fCallable f)
+		: base_type(std::allocator_arg, a,
+		ystdex::make_expanded<_tRet(_tParams...)>(std::move(f)))
+	{}
+	/*!
+	\brief 构造：使用对象引用和成员函数指针。
+	\warning 使用空成员指针构造的函数对象调用引起未定义行为。
+	\todo 支持相等构造。
+	*/
+	//@{
+	template<class _type>
+	yconstfn
+	expanded_function(_type& obj, _tRet(_type::*pm)(_tParams...))
+		: expanded_function([&, pm](_tParams... args) ynoexcept(
+			noexcept((obj.*pm)(yforward(args)...))
+			&& is_nothrow_copy_constructible<_tRet>::value){
+			return (obj.*pm)(yforward(args)...);
+		})
+	{}
+	template<class _type, class _tAlloc>
+	yconstfn
+	expanded_function(std::allocator_arg_t, const _tAlloc& a, _type& obj,
+		_tRet(_type::*pm)(_tParams...))
+		: expanded_function(std::allocator_arg, a,
+			[&, pm](_tParams... args) ynoexcept(
+			noexcept((obj.*pm)(yforward(args)...))
+			&& is_nothrow_copy_constructible<_tRet>::value){
+			return (obj.*pm)(yforward(args)...);
+		})
+	{}
+	//@}
+	//! \exception allocator_mismatch_error 分配器不兼容。
+	//@{
+	template<class _tAlloc>
+	expanded_function(std::allocator_arg_t, const _tAlloc& a,
+		const expanded_function& x)
+		: base_type(std::allocator_arg, a, x)
+	{}
+	template<class _tAlloc>
+	expanded_function(std::allocator_arg_t, const _tAlloc& a,
+		expanded_function&& x)
+		: base_type(std::allocator_arg, a, std::move(x))
+	{}
+	//@}
+	expanded_function(const expanded_function&) = default;
+	expanded_function(expanded_function&&) = default;
+
+	expanded_function&
+	operator=(nullptr_t) ynothrow
+	{
+		base_type::operator=(nullptr);
+		return *this;
+	}
+	template<typename _fCallable, yimpl(typename
+		= exclude_self_t<expanded_function, _fCallable>), yimpl(typename
+		= enable_if_t<is_invocable_r<_tRet, _fCallable&, _tParams...>::value>)>
+	expanded_function&
+	operator=(_fCallable&& f)
+	{
+		return *this = expanded_function(std::move(f));
+	}
+	template<typename _fCallable>
+	expanded_function&
+	operator=(std::reference_wrapper<_fCallable> f) ynothrow
+	{
+		return *this = expanded_function(f);
+	}
+	expanded_function&
+	operator=(const expanded_function&) = default;
+	expanded_function&
+	operator=(expanded_function&&) = default;
+
+	using base_type::operator();
+
+	using base_type::operator bool;
+
+	friend void
+	swap(expanded_function& x, expanded_function& y) ynothrow
+	{
+		ystdex::swap_dependent(static_cast<base_type&>(x),
+			static_cast<base_type&>(y));
+	}
+
+	using base_type::target;
+
+	using base_type::target_type;
+};
+
+//! \relates expanded_function
+//@{
+template<typename _fSig, class _tBase>
+struct make_parameter_list<expanded_function<_fSig, _tBase>>
+	: make_parameter_list<_fSig>
+{};
+
+template<typename _fSig, class _tBase>
+struct return_of<expanded_function<_fSig, _tBase>> : return_of<_fSig>
+{};
+
+template<typename _tFrom, typename _tTo,
+	typename... _tFromParams, typename... _tToParams, class _tBase>
+struct is_covariant<expanded_function<_tFrom(_tFromParams...), _tBase>,
+	expanded_function<_tTo(_tToParams...), _tBase>>
+	: is_covariant<_tFrom(_tFromParams...), _tTo(_tToParams...)>
+{};
+
+template<typename _tResFrom, typename _tResTo,
+	typename... _tFromParams, typename... _tToParams, class _tBase>
+struct is_contravariant<expanded_function<_tResFrom(_tFromParams...), _tBase>,
+	expanded_function<_tResTo(_tToParams...), _tBase>>
+	: is_contravariant<_tResFrom(_tFromParams...), _tResTo(_tToParams...)>
+{};
+
+template<typename _tRet, typename _tUnused, typename... _tParams, class _tBase>
+struct make_function_type<_tRet, expanded_function<_tUnused(_tParams...),
+	_tBase>>
+	: make_function_type<_tRet, empty_base<_tParams...>>
+{};
+
+template<typename _tRet, typename... _tParams, class _tBase, size_t... _vSeq>
+struct call_projection<expanded_function<_tRet(_tParams...), _tBase>,
+	index_sequence<_vSeq...>>
+	: call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
+{};
+//@}
+//@}
 
 
 /*!
