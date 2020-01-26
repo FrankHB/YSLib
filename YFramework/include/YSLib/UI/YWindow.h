@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2015, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YWindow.h
 \ingroup UI
 \brief 样式无关的 GUI 窗口。
-\version r3853
+\version r3855
 \author FrankHB <frankhb1989@gmail.com>
 \since build 650
 \par 创建时间:
 	2009-12-28 16:46:40 +0800
 \par 修改时间:
-	2015-11-07 10:29 +0800
+	2020-01-25 16:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,6 @@ public:
 	explicit
 	Window(const Rect& = {},
 		unique_ptr<Renderer> = make_unique<BufferedRenderer>());
-	DefDeMoveCtor(Window)
 
 	void
 	operator+=(IWidget&) override;

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2019 FrankHB.
+	© 2013-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r543
+\version r555
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2019-11-25 21:56 +0800
+	2020-01-25 22:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_Helper_HostWindow // for Host::Window, ystdex::unimplemented,
-//	function;
+//	function, ystdex::exclude_self_params_t;
 #if YF_Multithread == 1
 #	include <thread>
 #endif
@@ -105,7 +105,8 @@ public:
 	*/
 	GuardGenerator GenerateGuard{};
 
-	template<typename... _tParams>
+	template<typename... _tParams, yimpl(typename
+		= ystdex::exclude_self_params_t<WindowThread, _tParams...>)>
 	WindowThread(_tParams&&... args)
 		: WindowThread({}, yforward(args)...)
 	{}
@@ -115,8 +116,13 @@ public:
 		: thrd(&WindowThread::ThreadFunc<_tParams...>, this, yforward(args)...),
 		GenerateGuard(guard_gen)
 	{}
-	//! \since build 385
-	DefDelMoveCtor(WindowThread)
+	//! \since build 879
+	WindowThread(WindowThread&& wthrd) ynothrow
+		// XXX: This is not thread-safe.
+		: p_window(static_cast<Window*>(wthrd.p_window)),
+		thrd(std::move(wthrd.thrd)),
+		GenerateGuard(std::move(wthrd.GenerateGuard))
+	{}
 	/*!
 	\brief 析构：关闭窗口。
 	\note 忽略实现抛出的异常。
@@ -265,6 +271,7 @@ private:
 	}
 
 public:
+	// XXX: This might not be thread-safe due to %WindowThread.
 	DefDeMoveCtor(HostRenderer)
 
 	//! \since build 536

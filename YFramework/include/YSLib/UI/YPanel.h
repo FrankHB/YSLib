@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2014, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ypanel.h
+/*!	\file YPanel.h
 \ingroup UI
 \brief 样式无关的 GUI 面板。
-\version r435
+\version r440
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-13 20:40:51 +0800
 \par 修改时间:
-	2014-11-21 09:24 +0800
+	2020-01-25 16:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_ypanel_h_
-#define YSL_INC_UI_ypanel_h_ 1
+#ifndef YSL_INC_UI_YPanel_h_
+#define YSL_INC_UI_YPanel_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_UI_YControl
@@ -51,7 +51,6 @@ public:
 	*/
 	explicit
 	Panel(const Rect& = {});
-	DefDeMoveCtor(Panel)
 
 	virtual void
 	operator+=(IWidget&);

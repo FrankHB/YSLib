@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r6979
+\version r7013
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2020-01-17 19:01 +0800
+	2020-01-22 20:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,9 +45,6 @@
 //	ystdex::expanded_function, YSLib::allocate_shared, ystdex::exchange,
 //	ystdex::make_obj_using_allocator;
 #include <ystdex/base.h> // for ystdex::derived_entity;
-#include YFM_YSLib_Core_YEvent // for ystdex::indirect, ystdex::fast_any_of,
-//	YSLib::GHEvent, YSLib::GEvent, YSLib::GCombinerInvoker,
-//	YSLib::GDefaultLastValueInvoker;
 #include <algorithm> // for std::for_each;
 
 namespace NPL
@@ -1018,7 +1015,7 @@ TryAccessTerm(const TermNode& term)
 class Environment;
 
 /*!
-\brief 环境引用值。
+\brief 环境引用。
 \sa NPL_NPLA_CheckEnvironmentReferenceCount
 \since build 823
 
@@ -1846,7 +1843,7 @@ inline PDefH(void, LiftSubtermsToReturn, TermNode& term)
 \since build 685
 */
 inline PDefH(void, LiftFirst, TermNode& term)
-	ImplExpr(LiftTerm(term, AccessFirstSubterm(term)))
+	ImplExpr(LiftOther(term, AccessFirstSubterm(term)))
 
 /*!
 \brief 提升末项：使用最后一个子项替换项的内容。
@@ -2013,35 +2010,6 @@ YB_ATTR_nodiscard YB_PURE inline
 
 //! \warning 非虚析构。
 //@{
-/*!
-\brief 遍合并器：逐次调用序列中的遍直至成功。
-\note 合并遍结果用于表示及早判断是否应继续规约，可在循环中实现再次规约一个项。
-\note 忽略部分规约。不支持异步规约。
-\since build 676
-*/
-struct PassesCombiner
-{
-	/*!
-	\note 对遍调用异常中立。
-	\since build 764
-	*/
-	template<typename _tIn>
-	YB_ATTR_nodiscard YB_PURE ReductionStatus
-	operator()(_tIn first, _tIn last) const
-	{
-		auto res(ReductionStatus::Neutral);
-
-		return ystdex::fast_any_of(first, last, [&](ReductionStatus r) ynothrow{
-			res = CombineReductionResult(res, r);
-			// XXX: Currently %CheckReducible is not used. This should be safe
-			//	because only %ReductionStatus::Partial is the exception to be
-			//	set, which is not supported here.
-			return r == ReductionStatus::Retrying;
-		}) ? ReductionStatus::Retrying : res;
-	}
-};
-
-
 /*!
 \brief 环境列表。
 \since build 798
@@ -3040,6 +3008,9 @@ YB_FLATTEN inline ReductionStatus
 GComposedAction<_fCurrent, _fNext>::operator()(ContextNode& ctx) const
 {
 	NPL::RelaySwitched(ctx, std::move(Next));
+	// XXX: The context object passed here is inteded to be used by default.
+	//	This can be overrided by a captured context reference same to this if
+	//	necessary (e.g. for performance).
 	return ystdex::expand_proxy<ReductionStatus(ContextNode&)>::call(
 		Current, ctx);
 }

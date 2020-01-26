@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2019 FrankHB.
+	© 2009-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -18,14 +18,14 @@
 
 /*!	\file ydef.h
 \ingroup YBase
-\brief 系统环境和公用类型和宏的基础定义。
-\version r3627
+\brief 语言实现和系统环境相关特性及公用类型和宏的基础定义。
+\version r3689
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2019-09-11 20:56 +0800
+	2020-01-26 02:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,8 +90,8 @@
 #		if defined(__apple_build_version__)
 #		define YB_IMPL_CLANGPP (40300 + __clang_patchlevel__)
 #		else
-#			define YB_IMPL_CLANGPP (__clang__ * 10000 + __clang_minor__ * 100 \
-	+ __clang_patchlevel__)
+#			define YB_IMPL_CLANGPP \
+	(__clang_major__ * 10000 + __clang_minor__ * 100 + __clang_patchlevel__)
 #		endif
 #	elif defined(__GNUG__)
 #		undef YB_IMPL_GNUCPP
@@ -522,8 +522,12 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 /*!
 \def YB_ATTR_LAMBDA
 \brief 允许在 lambda 表达式的参数列表后使用的属性。
+\sa YB_ATTR_LAMBDA_QUAL
 \see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89640 。
 \since build 860
+
+选择性启用 lambda 表达式的扩展属性。
+参见以下 YB_ATTR_LAMBDA_QUAL 的使用。
 */
 #if !(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 90000)
 #	define YB_ATTR_LAMBDA(...) YB_ATTR(__VA_ARGS__)
@@ -536,6 +540,32 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 \brief 允许在 lambda 表达式的参数列表后和限定符共用的属性。
 \see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60503 。
 \since build 864
+
+在 lambda 表达式中可能同时支持标准属性、限定符和（不修饰返回类型的）扩展属性。
+语法示例：
+<tt>[]() __attribute__(()) noexcept [[]] -> void{}</tt> 。
+配合其它宏的语法示例：
+<tt>[]() YB_ATTR() ynothrow YB_ATTR_STD() -> void{}</tt> 。
+Clang++ 9 正确支持这些属性，而 G++ 9 之前不支持，需要调换标准属性和限定符的顺序。
+G++ 9 之前可支持：
+<tt>[]() YB_ATTR() ynothrow -> void{}</tt> ；
+<tt>[]() YB_ATTR_STD() ynothrow -> void{}</tt> 。
+G++ 9.1 起可支持：
+<tt>[]() ynothrow YB_ATTR_STD() YB_ATTR() {}</tt> ；
+<tt>[]() ynothrow YB_ATTR_STD() -> void{}</tt> 。
+显式返回类型在此和 YB_ATTR() 冲突而不能同时使用。
+作为变通，正确的 YB_ATTR 使用 YB_ATTR_LAMBDA 代替，此时，语法如以下之一：
+<tt>[]() YB_ATTR_LAMBDA_QUAL(ynothrow, YB_ATTR_LAMBDA()) -> void{}</tt> ；
+<tt>[]() YB_ATTR_LAMBDA_QUAL(ynothrow, YB_ATTR_STD()) -> void{}</tt> ；
+<tt>[]() YB_ATTR_LAMBDA_QUAL(ynothrow, YB_ATTR()){}</tt> ；
+<tt>[]() YB_ATTR_LAMBDA_QUAL(ynothrow, YB_ATTR_STD()){}</tt> ；
+<tt>[]() YB_ATTR_LAMBDA() -> void{}</tt> ；
+<tt>[]() YB_ATTR_STD() -> void{}</tt> ；
+<tt>[]() YB_ATTR(){}</tt> ；
+<tt>[]() YB_ATTR_STD(){}</tt> 。
+G++ 9.1 起，YB_ATTR_LAMBDA 中的 __attribute__ 暂不起效。
+注意，Clang++ 不支持标准属性 [[noreturn]] 修饰 lambda 表达式，
+	这类属性不能选择 YB_ATTR_STD 。
 */
 #if !(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 90100) && !YB_IMPL_CLANGPP
 #	define YB_ATTR_LAMBDA_QUAL(_q, ...) _q __VA_ARGS__
@@ -653,11 +683,11 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 	参见 ISO C++ [abstract.class]/6 ；
 	因此当基类只有纯虚函数时，不改变程序的预期语义，而仅用于优化。
 其它情形派生类需要排除更多的限制。
-当前 Microsoft VC++ 或 Clang++ （使用 Microsoft ABI ）支持这项特性。
+当前 Microsoft VC++ 或 Clang++（使用 Microsoft ABI ）支持这项特性。
 对不支持的情形，近期版本 Clang++ 可直接忽略。
 */
-#if __has_cpp_attribute(novtable) || YB_IMPL_MSVC >= 1100 \
-	|| YB_IMPL_CLANGPP >= 30700
+#if __has_cpp_attribute(novtable) || YB_IMPL_MSCPP >= 1100 \
+	|| (YB_IMPL_CLANGPP >= 30700 && YB_IMPL_MSCPP)
 #	define YB_ATTR_novtable YB_ATTR(novtable)
 #else
 #	define YB_ATTR_novtable
@@ -711,11 +741,19 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 \warning 若假定不成立则行为未定义。
 \see https://clang.llvm.org/docs/LanguageExtensions.html#builtin-assume 。
 \see https://reviews.llvm.org/rL217349 。
+\see https://bugs.llvm.org/show_bug.cgi?id=32424 。
 \since build 535
 */
 #if YB_IMPL_MSCPP >= 1200
 #	define YB_ASSUME(_expr) __assume(_expr)
-#elif __has_builtin(__builtin_assume) || YB_IMPL_CLANGPP >= 35100
+#elif YB_IMPL_CLANGPP >= 30501
+// NOTE: The warning [-Wassume ]is largely useless with misleading diagnostics.
+#	define YB_ASSUME(_expr) \
+	_Pragma("clang diagnostic push") \
+	_Pragma("clang diagnostic ignored \"-Wassume\"") \
+	__builtin_assume(_expr) \
+	_Pragma("clang diagnostic pop")
+#elif __has_builtin(__builtin_assume)
 #	define YB_ASSUME(_expr) __builtin_assume(_expr)
 #elif __has_builtin(__builtin_unreachable) || YB_IMPL_GNUCPP >= 40500
 #	define YB_ASSUME(_expr) ((_expr) ? void() : __builtin_unreachable())
@@ -1376,23 +1414,26 @@ class offsetof_check
 
 /*!
 \ingroup YBase_pseudo_keyword
-\brief 根据参数类型使用 std::forward 传递对应参数。
+\brief 根据参数类型使用 std::forward 转发对应参数。
 \since build 245
 
-传递参数：按类型保持值类别(value catory) 和 cv-qualifier 。
-当表达式类型为函数或函数引用类型时，结果为左值(lvalue) ，否则：
-当且仅当左值引用类型时结果为左值（此时类型不变）；
-否则结果为对应的右值引用类型的消亡值(xvalue) 。
-按类型传递不能直接通过函数模板匹配不同的引用传递至 std::forward 实现。
-因为函数模板的传递形式参数无法完全保留函数的实际参数的类型，
-	不根据实际参数的类型而是根据实际参数的值类别决定形式参数是左值或右值引用类型，
-	导致 std::forward 的实际参数类型不保证和作为函数实际参数的表达式类型相同，
-	而使传递的值类别和表达式可能具有的引用类型不一致：
-使用包含以 && 为类型声明符的模板参数的传递参数时，由于 std::forward 传递的是
-	函数模板实例中和函数参数一致（可能是左值引用或右值引用的类型）的形式参数，
-	使用宏或函数模板都能传递对象左值引用表达式为左值，对象右值引用表达式为右值；
-而使传递对象右值引用类型的左值表达式，如对象右值引用声明的变量的 id-expression 时，
-	结果总被传递为和表达式类型无关的左值。
+转发参数：按类型传递参数，保持值类别(value catrgory) 和 cv-qualifier 。
+当作为宏参数的被转发表达式的类型为函数或函数引用类型时，结果为左值(lvalue) ，否则：
+当且仅当被转发表达式的类型为左值引用类型时，结果为左值（此时类型不变）；
+否则，结果为对应的右值引用类型的消亡值(xvalue) 。
+按类型传递不能直接实现为一个具有转发引用(forwarding reference) 类型的模板参数的
+	函数模板匹配不同的引用然后以其实例的函数形式参数作为实际参数调用 std::forward ，
+	而需要使用宏实现，以确保在不同被转发表达式类型上的一致性：
+转发引用类型的函数形式参数无法完全保留作为其对应函数实际参数的被转发表达式的类型
+	（即不按被转发表达式的类型而是其值类别推导转发引用中的模板参数，
+	再确定作为函数的形式参数的转发引用被实例化为左值或右值引用类型），
+	于是，函数模板实例中的形式参数类型不保证和被转发表达式类型相同；
+而 std::forward 转发结果类型的模板参数只能从函数模板实例的形式参数类型中取得；
+因此 std::forward 使用的模板参数不能总是保证结果的值类别和被转发表达式中的类型对应，
+	确保左值引用类型总是转发为左值且右值引用类型总是转发为右值；
+若转发对象右值引用类型的左值表达式，如按对象右值引用类型声明的变量的
+	id-expression 时，函数模板转发的结果总被传递为左值，
+	即便被转发表达式可能只能安全地绑定到右值。
 */
 #define yforward(_expr) std::forward<decltype(_expr)>(_expr)
 

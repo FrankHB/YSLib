@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2015, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup YSLib
 \brief YSLib 用户界面模块配置文件。
-\version r107
+\version r110
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:29 +0800
 \par 修改时间:
-	2015-11-07 10:29 +0800
+	2020-01-25 16:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,7 +48,7 @@
 #define YFM_YSLib_UI_YControl <YSLib/UI/YControl.h>
 #define YFM_YSLib_UI_YGUI <YSLib/UI/YGUI.h>
 #define YFM_YSLib_UI_YUIContainer <YSLib/UI/YUIContainer.h>
-#define YFM_YSLib_UI_YPanel <YSLib/UI/ypanel.h>
+#define YFM_YSLib_UI_YPanel <YSLib/UI/YPanel.h>
 #define YFM_YSLib_UI_YWindow <YSLib/UI/YWindow.h>
 #define YFM_YSLib_UI_YDesktop <YSLib/UI/YDesktop.h>
 #define YFM_YSLib_UI_Console <YSLib/UI/Console.h>
@@ -61,7 +61,7 @@
 #define YFM_YSLib_UI_Label <YSLib/UI/Label.h>
 #define YFM_YSLib_UI_Button <YSLib/UI/Button.h>
 #define YFM_YSLib_UI_UIContainerEx <YSLib/UI/UIContainerEx.h>
-#define YFM_YSLib_UI_Form <YSLib/UI/form.h>
+#define YFM_YSLib_UI_Form <YSLib/UI/Form.h>
 #define YFM_YSLib_UI_Selector <YSLib/UI/Selector.h>
 #define YFM_YSLib_UI_Scroll <YSLib/UI/Scroll.h>
 #define YFM_YSLib_UI_Progress <YSLib/UI/Progress.h>

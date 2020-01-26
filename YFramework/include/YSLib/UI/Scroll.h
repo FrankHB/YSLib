@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2016, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2792
+\version r2798
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2016-02-11 19:24 +0800
+	2020-01-25 16:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -172,7 +172,6 @@ public:
 	*/
 	explicit
 	ATrack(const Rect& = {}, SDst = 8);
-	DefDeMoveCtor(ATrack)
 
 	DefPred(const ynothrow, Horizontal, GetOrientation() == Horizontal)
 	DefPred(const ynothrow, Vertical, GetOrientation() == Vertical)
@@ -273,7 +272,6 @@ public:
 	*/
 	explicit
 	HorizontalTrack(const Rect& = {}, SDst = 8);
-	DefDeMoveCtor(HorizontalTrack)
 	/*!
 	\brief 虚析构：类定义外默认实现。
 	\since build 586
@@ -299,7 +297,6 @@ public:
 	*/
 	explicit
 	VerticalTrack(const Rect& = {}, SDst = 8);
-	DefDeMoveCtor(VerticalTrack)
 	/*!
 	\brief 虚析构：类定义外默认实现。
 	\since build 586
@@ -355,7 +352,6 @@ public:
 	*/
 	explicit
 	ScrollBar(const Rect& = {}, Orientation = Horizontal, SDst = 8);
-	DefDeMoveCtor(ScrollBar)
 
 protected:
 	//! \since build 443
@@ -422,7 +418,6 @@ public:
 	//! \since build 337
 	explicit
 	ScrollableContainer(const Rect& = {});
-	DefDeMoveCtor(ScrollableContainer)
 	/*!
 	\brief 虚析构：类定义外默认实现。
 	\since build 586

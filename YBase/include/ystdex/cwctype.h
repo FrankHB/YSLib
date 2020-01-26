@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2015, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cwctype.h
 \ingroup YStandardEx
 \brief ISO C 宽字符分类操作扩展。
-\version r78
+\version r82
 \author FrankHB <frankhb1989@gmail.com>
 \since build 513
 \par 创建时间:
 	2014-06-29 15:34:34 +0800
 \par 修改时间:
-	2015-12-27 21:34 +0800
+	2020-01-27 02:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,7 +42,7 @@ namespace ystdex
 \note 可作为替代 MSVCRT 的实现的变通（测试表明 iswprintf 和 isprint 有类似缺陷）。
 \sa https://connect.microsoft.com/VisualStudio/feedback/details/799287/isprint-incorrectly-classifies-t-as-printable-in-c-locale
 */
-YB_API bool
+YB_API YB_STATELESS bool
 iswprint(wchar_t) ynothrow;
 
 /*!
@@ -51,14 +51,14 @@ iswprint(wchar_t) ynothrow;
 \note 可作为替代 Android 2.3.1 的实现的变通（测试表明 iswspace 对个别字符可能返回 8 ）。
 \since build 514
 */
-YB_API bool
+YB_API YB_STATELESS bool
 iswspace(wchar_t) ynothrow;
 
 /*!
 \brief 区域无关的 std::iswgraph 实现。
 \see ISO C11 7.30.2.1.6 。
 */
-inline bool
+YB_STATELESS inline bool
 iswgraph(wchar_t wc) ynothrow
 {
 	return !iswspace(wc) && iswprint(wc);

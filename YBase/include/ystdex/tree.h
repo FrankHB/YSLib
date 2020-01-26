@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018-2019 FrankHB.
+	© 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file tree.h
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r3334
+\version r3343
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2019-09-16 01:32 +0800
+	2020-01-27 02:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -359,15 +359,14 @@ struct tree_node_base
 	tree_color color;
 	base_ptr parent, left, right;
 
-	static base_ptr
+	YB_PURE static base_ptr
 	maximum(base_ptr x) ynothrow
 	{
 		while(x->right)
 			x = x->right;
 		return x;
 	}
-
-	static const_base_ptr
+	YB_PURE static const_base_ptr
 	maximum(const_base_ptr x) ynothrow
 	{
 		while(x->right)
@@ -375,15 +374,14 @@ struct tree_node_base
 		return x;
 	}
 
-	static base_ptr
+	YB_PURE static base_ptr
 	minimum(base_ptr x) ynothrow
 	{
 		while(x->left)
 			x = x->left;
 		return x;
 	}
-
-	static const_base_ptr
+	YB_PURE static const_base_ptr
 	minimum(const_base_ptr x) ynothrow
 	{
 		while(x->left)
@@ -1290,23 +1288,23 @@ protected:
 		return const_link_type(x->right);
 	}
 
-	static base_ptr
+	YB_PURE static base_ptr
 	maximum(base_ptr x) ynothrow
 	{
 		return tree_node_base::maximum(x);
 	}
-	static const_base_ptr
+	YB_PURE static const_base_ptr
 	maximum(const_base_ptr x) ynothrow
 	{
 		return tree_node_base::maximum(x);
 	}
 
-	static base_ptr
+	YB_PURE static base_ptr
 	minimum(base_ptr x) ynothrow
 	{
 		return tree_node_base::minimum(x);
 	}
-	static const_base_ptr
+	YB_PURE static const_base_ptr
 	minimum(const_base_ptr x) ynothrow
 	{
 		return tree_node_base::minimum(x);

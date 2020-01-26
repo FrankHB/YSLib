@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2019 FrankHB.
+	© 2010-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r2251
+\version r2255
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2019-08-06 22:34 +0800
+	2020-01-27 03:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -258,14 +258,14 @@ namespace details
 {
 
 template<class _tCon, typename _tKey>
-bool
+YB_PURE bool
 exists(const _tCon& con, const _tKey& key,
 	decltype(std::declval<_tCon>().count()) = 1U)
 {
 	return con.count(key) != 0;
 }
 template<class _tCon, typename _tKey>
-bool
+YB_PURE bool
 exists(const _tCon& con, const _tKey& key, ...)
 {
 	return con.find(key) != ystdex::end(con);
@@ -418,7 +418,7 @@ erase_all_if(_tCon& con, _fPred pred, false_)
 \since build 488
 */
 template<class _tCon, typename _tKey>
-inline bool
+YB_PURE inline bool
 exists(const _tCon& con, const _tKey& key)
 {
 	return details::exists(con, key);

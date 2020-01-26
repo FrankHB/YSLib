@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2015, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Button.h
 \ingroup UI
 \brief 样式相关的 GUI 按钮控件。
-\version r2322
+\version r2325
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2015-03-21 18:53 +0800
+	2020-01-25 16:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,7 +90,6 @@ protected:
 	Thumb(const Rect&, ystdex::raw_tag);
 
 public:
-	DefDeMoveCtor(Thumb)
 	/*!
 	\brief 虚析构：类定义外默认实现。
 	\since build 586
@@ -148,7 +147,6 @@ public:
 	*/
 	Button(const Rect&, Drawing::Hue, const Drawing::Font& = {}, Color
 		= Drawing::ColorSpace::Black, TextAlignment = TextAlignment::Center);
-	DefDeMoveCtor(Button)
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。

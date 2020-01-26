@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2019 FrankHB.
+	© 2011-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3797
+\version r3799
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2019-06-23 17:22 +0800
+	2020-01-27 01:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -276,7 +276,7 @@ FetchRootNameLength_P(IDTag<YF_Platform_Win32> tag, const _tChar* path)
 	return 0;
 }
 template<typename _tChar>
-size_t
+YB_PURE size_t
 FetchRootNameLength_P(IDTag<YF_Platform_Win32> tag,
 	basic_string_view<_tChar> path) ynothrowv
 {

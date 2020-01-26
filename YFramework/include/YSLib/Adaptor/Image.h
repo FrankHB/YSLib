@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2017, 2019 FrankHB.
+	© 2013-2017, 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1512
+\version r1526
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2019-01-04 15:16 +0800
+	2020-01-25 23:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -842,7 +842,7 @@ to_string(const ImageTag&, ImageMetadataModel);
 \warning 非虚析构。
 \since build 557
 */
-class YF_API ImageMetadataFindData : private noncopyable
+class YF_API ImageMetadataFindData
 {
 public:
 	using DataPtr = ::FIMETADATA*;
@@ -855,18 +855,26 @@ public:
 	ImageMetadataModel CurrentModel;
 
 private:
-	HBitmap::DataPtr p_bitmap;
+	HBitmap::DataPtr p_bitmap = {};
 	ImageTag::DataPtr p_tag = {};
 	DataPtr p_metadata = {};
 
 public:
+	//! \since build 879
+	DefDeCtor(ImageMetadataFindData)
 	//! \throw std::invalid_argument 图像指针为空。
 	//@{
 	ImageMetadataFindData(HBitmap::DataPtr, ImageMetadataModel);
 	ImageMetadataFindData(const HBitmap&, ImageMetadataModel);
 	//@}
+	//! \since build 879
+	ImageMetadataFindData(ImageMetadataFindData&&) ynothrow;
 	//! \brief 析构：关闭查找状态。
 	~ImageMetadataFindData();
+
+	//! \since build 879
+	PDefHOp(ImageMetadataFindData&, =, ImageMetadataFindData&& dat) ynothrow
+		ImplRet(swap(*this, dat), *this)
 
 	DefBoolNeg(explicit, p_metadata)
 
@@ -883,6 +891,11 @@ public:
 
 	void
 	Rewind() ynothrow;
+
+	//! \since build 879
+	friend DefSwap(ynothrow, ImageMetadataFindData,
+		std::swap(_x.p_bitmap, _y.p_bitmap), std::swap(_x.p_tag, _y.p_tag),
+		std::swap(_x.p_metadata, _y.p_metadata))
 };
 
 

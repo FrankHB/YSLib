@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2019 FrankHB.
+	© 2014-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file swap.hpp
 \ingroup YStandardEx
 \brief 交换操作。
-\version r613
+\version r632
 \author FrankHB <frankhb1989@gmail.com>
 \since build 831
 \par 创建时间:
 	2018-07-12 16:38:36 +0800
 \par 修改时间:
-	2019-01-22 13:57 +0800
+	2020-01-25 17:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -482,34 +482,38 @@ vswap(_type&& x, _type2&& y) ynoexcept(detected_or_t<false_,
 /*!
 \note 使用 ADL swap 或 ystdex_swap::swap 。
 \warning 若交换使用赋值实现并重入调用，则调用的行为未定义。
+\sa ystdex::swap_dependent
 */
 //@{
 /*!
-\brief 复制后交换。
-\since build 768
+\brief 创建对象并交换。
+\since build 879
+
+直接初始化创建对象并交换。
+转移赋值操作符的实现通常不需要创建对象，而可能直接使用交换操作。
 */
-template<typename _type, typename _type2 = _type>
+template<typename _type, typename... _tParams>
 inline _type&
-copy_and_swap(_type& obj, const _type2& new_val)
+create_and_swap(_type& obj, _tParams&&... args)
 {
-	auto t(new_val);
+	auto t(yforward(args)...);
 
 	ystdex::swap_dependent(t, obj);
 	return obj;
 }
 
 /*!
-\brief 转移后交换。
-\since build 818
+\brief 复制对象并交换。
+\since build 768
+
+创建第二参数的对象副本，并和第一参数指定的对象交换。
+可通过交换操作实现复制赋值操作符。
 */
 template<typename _type, typename _type2 = _type>
-inline _type&
-move_and_swap(_type& obj, _type2&& new_val)
+YB_ATTR(always_inline) inline _type&
+copy_and_swap(_type& obj, const _type2& new_val)
 {
-	auto t(std::move(new_val));
-
-	ystdex::swap_dependent(t, obj);
-	return obj;
+	return create_and_swap(obj, new_val);
 }
 //@}
 

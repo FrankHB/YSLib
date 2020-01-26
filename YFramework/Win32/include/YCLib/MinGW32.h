@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2019 FrankHB.
+	© 2013-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2040
+\version r2050
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2019-11-29 03:22 +0800
+	2020-01-27 02:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -527,19 +527,22 @@ enum FileAttributesAndFlags : unsigned long
 \brief 判断 \c FileAttributes 是否指定目录。
 \since build 701
 */
-yconstfn PDefH(bool, IsDirectory, FileAttributes attr) ynothrow
+YB_ATTR_nodiscard YB_STATELESS yconstfn
+	PDefH(bool, IsDirectory, FileAttributes attr) ynothrow
 	ImplRet(attr & Directory)
 /*!
 \brief 判断 \c ::WIN32_FIND_DATAA 指定的节点是否为目录。
 \since build 298
 */
-inline PDefH(bool, IsDirectory, const ::WIN32_FIND_DATAA& d) ynothrow
+YB_ATTR_nodiscard YB_STATELESS inline
+	PDefH(bool, IsDirectory, const ::WIN32_FIND_DATAA& d) ynothrow
 	ImplRet(IsDirectory(FileAttributes(d.dwFileAttributes)))
 /*!
 \brief 判断 \c ::WIN32_FIND_DATAW 指定的节点是否为目录。
 \since build 299
 */
-inline PDefH(bool, IsDirectory, const ::WIN32_FIND_DATAW& d) ynothrow
+YB_ATTR_nodiscard YB_STATELESS inline
+	PDefH(bool, IsDirectory, const ::WIN32_FIND_DATAW& d) ynothrow
 	ImplRet(IsDirectory(FileAttributes(d.dwFileAttributes)))
 
 /*!
@@ -570,17 +573,17 @@ TryCategorizeNodeDevice(UniqueHandle::pointer);
 */
 //@{
 //! \brief 按 FileAttributes 和重解析标签归类节点类别。
-YF_API platform::NodeCategory
+YF_API YB_STATELESS platform::NodeCategory
 CategorizeNode(FileAttributes, unsigned long = 0) ynothrow;
 //! \brief 按 \c ::WIN32_FIND_DATAA 归类节点类别。
-inline PDefH(platform::NodeCategory, CategorizeNode,
+YB_STATELESS inline PDefH(platform::NodeCategory, CategorizeNode,
 	const ::WIN32_FIND_DATAA& d) ynothrow
 	ImplRet(CategorizeNode(FileAttributes(d.dwFileAttributes), d.dwReserved0))
 /*!
 \brief 按 \c ::WIN32_FIND_DATAW 归类节点类别。
 \since build 658
 */
-inline PDefH(platform::NodeCategory, CategorizeNode,
+YB_STATELESS inline PDefH(platform::NodeCategory, CategorizeNode,
 	const ::WIN32_FIND_DATAW& d) ynothrow
 	ImplRet(CategorizeNode(FileAttributes(d.dwFileAttributes), d.dwReserved0))
 //@}

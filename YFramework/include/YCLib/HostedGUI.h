@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2019 FrankHB.
+	© 2013-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1542
+\version r1559
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2019-07-08 19:09 +0800
+	2020-01-25 22:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -590,12 +590,30 @@ private:
 public:
 	//! \since build 596
 	using ScreenBuffer::ScreenBuffer;
+	/*!
+	\brief 转移构造：转移基类子对象。
+	\since build 879
+	*/
+	ScreenRegionBuffer(ScreenRegionBuffer&& rbuf)
+		: ScreenBuffer(std::move(rbuf))
+	{}
+
+	//! \since build 879
+	PDefHOp(ScreenRegionBuffer&, =, ScreenRegionBuffer&& rbuf) ynothrow
+		ImplRet(swap(*this, rbuf), *this)
 
 	DefGetter(ynothrow, ScreenBuffer&, ScreenBufferRef, *this)
 
 	//! \since build 589
 	PDefH(YSLib::locked_ptr<ScreenBuffer>, Lock, )
 		ImplRet({&GetScreenBufferRef(), mtx})
+
+	/*!
+	\brief 交换：交换所有互斥量以外的子对象。
+	\since build 879
+	*/
+	friend DefSwap(ynothrow, ScreenRegionBuffer,
+		swap(static_cast<ScreenBuffer&>(_x), static_cast<ScreenBuffer&>(_y)))
 };
 //@}
 

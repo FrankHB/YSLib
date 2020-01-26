@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2019 FrankHB.
+	© 2013-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1252
+\version r1259
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2019-01-03 18:03 +0800
+	2020-01-25 23:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -726,6 +726,12 @@ ImageMetadataFindData::ImageMetadataFindData(const HBitmap& bmp,
 	ImageMetadataModel model)
 	: ImageMetadataFindData(bmp.GetDataPtr(), model)
 {}
+ImageMetadataFindData::ImageMetadataFindData(ImageMetadataFindData&& dat)
+	ynothrow
+	: p_bitmap(dat.p_bitmap), p_tag(dat.p_tag), p_metadata(dat.p_metadata)
+{
+	p_metadata = {};
+}
 ImageMetadataFindData::~ImageMetadataFindData()
 {
 	if(p_metadata)

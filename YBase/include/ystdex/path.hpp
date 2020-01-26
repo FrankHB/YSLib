@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2019 FrankHB.
+	© 2013-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r1527
+\version r1531
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2019-07-07 20:50 +0800
+	2020-01-27 03:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -203,7 +203,7 @@ enum class path_category : yimpl(size_t)
 \relates path_category
 */
 template<class _tString, class _tTraits = path_traits<_tString>>
-path_category
+YB_PURE path_category
 classify_path(const _tString& name) ynothrow
 {
 	if(YB_UNLIKELY(name.empty()))
@@ -428,13 +428,13 @@ public:
 
 	//! \since build 600
 	//@{
-	friend bool
+	YB_PURE friend bool
 	operator==(const path& x, const path& y)
 	{
 		return static_cast<const base&>(x) == static_cast<const base&>(y);
 	}
 
-	friend bool
+	YB_PURE friend bool
 	operator<(const path& x, const path& y)
 	{
 		return static_cast<const base&>(x) < static_cast<const base&>(y);

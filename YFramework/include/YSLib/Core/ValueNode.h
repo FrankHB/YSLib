@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2019 FrankHB.
+	© 2012-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r4112
+\version r4132
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2019-09-14 02:33 +0800
+	2020-01-25 21:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,7 @@
 #include <ystdex/set.hpp> // for ystdex::mapped_set;
 #include <ystdex/variadic.hpp> // for ystdex::vseq;
 #include <ystdex/tuple.hpp> // for ystdex::make_from_tuple;
+#include <ystdex/swap.hpp> // for ystdex::create_and_swap;
 #include <ystdex/path.hpp> // for ystdex::path;
 #include <ystdex/utility.hpp> // for ystdex::forward_like;
 #include <numeric> // for std::accumulate;
@@ -340,26 +341,29 @@ public:
 		Value(ystdex::make_from_tuple<ValueObject>(args3))
 	{}
 	//@}
-	inline
+	/*!
+	\brief 复制构造：使用参数和参数指定的分配器。
+	\since build 879
+	*/
+	ValueNode(const ValueNode& nd)
+		: ValueNode(nd, nd.get_allocator())
+	{}
 	ValueNode(const ValueNode& nd, allocator_type a)
 		: name(nd.name), container(nd.container, a), Value(nd.Value)
 	{}
-	inline
+	//! \since build 330
+	DefDeMoveCtor(ValueNode)
 	ValueNode(ValueNode&& nd, allocator_type a) ynothrowv
 		: name(std::move(nd.name)), container(std::move(nd.container), a),
 		Value(std::move(nd.Value))
 	{}
 	//@}
-	DefDeCopyMoveCtor(ValueNode)
 
 	//! \since build 768
 	//@{
-	//! \brief 复制赋值：使用以参数的分配器构造的副本和交换操作。
+	//! \brief 复制赋值：使用参数的分配器构造的副本和交换操作。
 	PDefHOp(ValueNode&, =, const ValueNode& node)
-		// XXX: A simple %ystdex::copy_and_swap call would not work because the
-		//	 allocator would not propagate.
-		ImplRet(ystdex::move_and_swap(*this, ValueNode(node,
-			node.get_allocator())))
+		ImplRet(ystdex::copy_and_swap(*this, node))
 	/*!
 	\pre 被转移的参数不是被子节点容器直接或间接所有的其它节点。
 	\warning 违反前置条件的转移可能引起循环引用。
@@ -1423,13 +1427,15 @@ inline PDefH(void, RemoveHead, ValueNode& node) ynothrowv
 
 /*!
 \brief 根据节点和节点容器创建操作设置目标节点的值或子节点。
+\note 可用于创建副本。
+\warning 不检查嵌套深度，不支持嵌套调用安全。
 \since build 834
 */
 template<typename _tNode, typename _fCallable>
 void
 SetContentWith(ValueNode& dst, _tNode&& node, _fCallable f)
 {
-	// NOTE: Similar reason but different implementation to implementation of
+	// NOTE: Similar reason but different to the implementation of
 	//	%ValueNode::MoveContent.
 	auto con(yforward(node).CreateWith(f));
 	auto vo(ystdex::invoke(f, yforward(node).Value));

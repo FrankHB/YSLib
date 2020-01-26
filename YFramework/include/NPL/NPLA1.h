@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r6209
+\version r6263
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-01-17 17:48 +0800
+	2020-01-22 01:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,17 +29,20 @@
 #define NPL_INC_NPLA1_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_NPLA // for NPLATag, TermNode, ContextNode, YSLib::GHEvent,
-//	ystdex::exclude_self_t, ystdex::ref_eq, TNIter, ValueNode, LiftOther,
-//	LoggedEvent, ystdex::equality_comparable, ystdex::exclude_self_params_t,
-//	YSLib::AreEqualHeld, ystdex::make_parameter_list_t,
-//	ystdex::make_function_type_t, ystdex::decay_t, ystdex::expanded_caller,
-//	std::is_constructible, ystdex::or_, ystdex::enable_if_inconvertible_t, pmr,
-//	NPL::Deref, Environment, ystdex::expand_proxy, NPL::Access, std::ref,
+#include YFM_NPL_NPLA // for NPLATag, TermNode, ContextNode,
+//	CombineReductionResult, ystdex::exclude_self_t, ystdex::ref_eq, TNIter,
+//	ValueNode, LiftOther, LoggedEvent, ystdex::equality_comparable,
+//	ystdex::exclude_self_params_t, YSLib::AreEqualHeld,
+//	ystdex::make_parameter_list_t, ystdex::make_function_type_t,
+//	ystdex::decay_t, ystdex::expanded_caller, std::is_constructible,
+//	ystdex::or_, ystdex::enable_if_inconvertible_t, pmr, NPL::Deref,
+//	Environment, ystdex::expand_proxy, NPL::Access, std::ref,
 //	ystdex::make_expanded, ResolvedTermReferencePtr, NPL::AccessRegular,
-//	ystdex::invoke_nonvoid, NPL::ResolveRegular, ystdex::make_transform,
-//	std::accumulate, ystdex::bind1, std::placeholders::_2,
-//	ystdex::examiners::equal_examiner, shared_ptr;
+//	ystdex::invoke_nonvoid, NPL::ResolveRegular, std::accumulate, ystdex::bind1,
+//	std::placeholders::_2, ystdex::examiners::equal_examiner, shared_ptr;
+#include YFM_YSLib_Core_YEvent // for ystdex::fast_any_of, YSLib::GHEvent,
+//	YSLib::GEvent, YSLib::GCombinerInvoker, YSLib::GDefaultLastValueInvoker,
+//	ystdex::make_transform;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard,
 
@@ -105,6 +108,34 @@ to_string(ValueToken);
 
 //! \since build 676
 //@{
+/*!
+\brief 遍合并器：逐次调用序列中的遍直至成功。
+\note 合并遍结果用于表示及早判断是否应继续规约，可在循环中实现再次规约一个项。
+\note 忽略部分规约。不支持异步规约。
+*/
+struct PassesCombiner
+{
+	/*!
+	\note 对遍调用异常中立。
+	\since build 764
+	*/
+	template<typename _tIn>
+	YB_ATTR_nodiscard YB_PURE ReductionStatus
+	operator()(_tIn first, _tIn last) const
+	{
+		auto res(ReductionStatus::Neutral);
+
+		return ystdex::fast_any_of(first, last, [&](ReductionStatus r) ynothrow{
+			res = CombineReductionResult(res, r);
+			// XXX: Currently %CheckReducible is not used. This should be safe
+			//	because only %ReductionStatus::Partial is the exception to be
+			//	set, which is not supported here.
+			return r == ReductionStatus::Retrying;
+		}) ? ReductionStatus::Retrying : res;
+	}
+};
+
+
 /*!
 \note 结果表示判断是否应继续规约。
 \sa PassesCombiner
@@ -927,15 +958,17 @@ using EnvironmentGuard = ystdex::guard<EnvironmentSwitcher>;
 
 
 /*!
+\pre ContextNode& 类型的参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
 \pre 对 TCO 实现，存在 TCOAction 当前动作。
 \note 参数分别表示规约上下文、被规约的项和待被保存的当前求值环境守卫。
 \note 第四参数指定避免规约后提升结果。
 \note 对 TCO 实现利用 TCOAction 以尾上下文进行规约。
+\warning 若不满足上下文状态类型要求，行为未定义。
 \since build 876
 */
 //@{
 /*!
-\brief 直接求值规约。
+\brief 设置当前项并直接求值规约。
 \note 第五参数指定下一个动作的续延。
 */
 YF_API ReductionStatus
@@ -1102,14 +1135,21 @@ public:
 
 	/*!
 	\brief 构造：使用默认的解释和指定的存储资源。
-	\note 参数指定是否启用对规约深度进行跟踪。
 	\sa ListTermPreprocess
 	\sa SetupDefaultInterpretation
-	\sa SetupTraceDepth
-	\since build 845
+	\since build 879
 	*/
-	REPLContext(bool = {}, pmr::memory_resource&
-		= NPL::Deref(pmr::new_delete_resource()));
+	REPLContext(pmr::memory_resource& = NPL::Deref(pmr::new_delete_resource()));
+
+	/*!
+	\brief 判断当前实现是否为异步实现。
+	\since build 879
+
+	判断当前实现是否支持在本机实现中使用异步调用。
+	若不支持同步调用，则只应使用同步调用的本机实现。
+	*/
+	YB_STATELESS bool
+	IsAsynchronous() const ynothrow;
 
 	/*!
 	\brief 加载：从指定参数指定的来源读取并处理源代码。
@@ -1792,7 +1832,7 @@ Unless(TermNode&, ContextNode&);
 参考调用文法：
 <pre>not? \<test></pre>
 */
-YF_API bool
+YF_API YB_PURE bool
 Not(TermNode&);
 
 /*!

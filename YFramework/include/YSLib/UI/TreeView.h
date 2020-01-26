@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2019 FrankHB.
+	© 2014-2016, 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TreeView.h
 \ingroup UI
 \brief 树形视图控件。
-\version r294
+\version r297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-09-04 19:48:13 +0800
 \par 修改时间:
-	2019-11-25 21:53 +0800
+	2020-01-25 16:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,7 +122,6 @@ public:
 	TreeList(const Rect& = {}, const shared_ptr<ListType>& = {},
 		const pair<Color, Color>& = FetchGUIConfiguration().Colors.GetPair(
 		Styles::Highlight, Styles::HighlightText));
-	DefDeMoveCtor(TreeList)
 	/*!
 	\brief 虚析构：类定义外默认实现。
 	\since build 586
@@ -225,7 +224,6 @@ public:
 
 	explicit
 	TreeView(const Rect& = {}, const shared_ptr<ListType>& = {});
-	DefDeMoveCtor(TreeView)
 	/*!
 	\brief 虚析构：类定义外默认实现。
 	\since build 586

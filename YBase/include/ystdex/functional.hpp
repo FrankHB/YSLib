@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r4236
+\version r4242
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2020-01-16 01:09 +0800
+	2020-01-25 17:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,8 +35,7 @@
 #include "function.hpp" // for "function.hpp", std::tuple, index_sequence,
 //	index_sequence_for, is_nothrow_swappable, common_nonvoid_t,
 //	make_index_sequence, as_function_type_t, equality_comparable;
-#include "swap.hpp" // for "swap.hpp", ystdex::swap_dependent,
-//	ystdex::move_and_swap;
+#include "swap.hpp" // for "swap.hpp", ystdex::swap_dependent;
 #include "apply.hpp" // for call_projection;
 #include <numeric> // for std::accumulate;
 
@@ -255,7 +254,8 @@ struct one_shot
 	one_shot&
 	operator=(one_shot&& f) ynothrow
 	{
-		return ystdex::move_and_swap(*this, std::move(f));
+		ystdex::swap_dependent(*this, f);
+		return *this;
 	}
 
 	template<typename... _tParams>
@@ -300,7 +300,8 @@ struct one_shot<_func, void, _tState>
 	one_shot&
 	operator=(one_shot&& f) ynothrow
 	{
-		return ystdex::move_and_swap(*this, std::move(f));
+		ystdex::swap_dependent(*this, f);
+		return *this;
 	}
 
 	template<typename... _tParams>

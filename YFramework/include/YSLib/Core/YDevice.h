@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015, 2019 FrankHB.
+	© 2009-2015, 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YDevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r2094
+\version r2097
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-12-28 16:39:39 +0800
 \par 修改时间:
-	2019-07-08 20:01 +0800
+	2020-01-25 16:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,8 +55,6 @@ public:
 	GraphicDevice(const Drawing::Size& s, Drawing::BitmapPtr p = {}) ynothrow
 		: Graphics(p, s)
 	{}
-	//! \since build 586
-	DefDeCopyCtor(GraphicDevice)
 	/*!
 	\brief 虚析构：类定义外默认实现。
 	\since build 297

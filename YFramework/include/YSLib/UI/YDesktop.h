@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2015, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YDesktop.h
 \ingroup UI
 \brief 平台无关的桌面抽象层。
-\version r1442
+\version r1444
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2010-05-02 12:00:08 +0800
 \par 修改时间:
-	2015-03-21 14:24 +0800
+	2020-01-25 16:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,7 +59,6 @@ public:
 	Desktop(Devices::Screen&, Color = Drawing::ColorSpace::Black,
 		const shared_ptr<Drawing::Image>& = {},
 		unique_ptr<BufferedRenderer> = {});
-	DefDeMoveCtor(Desktop)
 	/*!
 	\brief 虚析构：类定义外默认实现。
 	\since build 586

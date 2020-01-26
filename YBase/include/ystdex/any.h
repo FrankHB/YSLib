@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r4812
+\version r4814
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2020-01-12 18:07 +0800
+	2020-01-27 02:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1053,7 +1053,8 @@ public:
 	//@}
 	//@}
 
-	YB_ATTR_nodiscard YB_ATTR_returns_nonnull yimpl(YB_PURE) virtual const char*
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull yimpl(YB_STATELESS) virtual
+		const char*
 	what() const ynothrow override;
 };
 

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r16859
+\version r17229
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-01-19 22:40 +0800
+	2020-01-27 03:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,343 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YDefinition $=
+		(
+			(
+			* "wrong clang version detection" @ "%YB_IMPL_CLANGPP" $since b458
+				$= (/ $impl ^ "%__clang_major__" ~ "%__clang__");
+			/ @ "macro %YB_ASSUME" $=
+			(
+				* "wrong %YB_IMPL_CLANGPP version detection" $since b864
+					$= (/ $impl '30501' ~ '35100')
+				/ $dev "ignored warning [-Wassume] for Clang++" ^ '_Pragma'
+					// The latter is mainly for %CHRLib.
+			),
+			),
+			* @ "ineffective macro %YB_ATTR_novtable" $since b842 $=
+			(
+				* "wrong inclusion condition for Clang++ without Microsoft C++ \
+					ABI" $since b842 $dep_from "%YB_IMPL_CLANGPP",
+				* "wrong macro used to detect Microsoft VC++" $since b842
+			)
+		),
+		/ %YStandardEx $=
+		(
+			/ "optimized move %operator=" @ "class template specializations \
+				%one_shot" ^ "%ystdex::swap_dependent"
+				~ "%ystdex::move_and_swap" @ %Functional,
+			/ %Swap $=
+			(
+				/ "class template %move_and_swap" -> "create_and_swap"
+					$dep_from %(Functional, YFramework.YSLib.Core.ValueNode),
+				/ DLDI @ "function template %copy_and_swap" $=
+				(
+					/ "simplified" ^ $dep_from "%create_and_swap",
+					+ 'YB_ATTR(always_inline)'
+				)
+			),
+			* "implicit defaulted move %operator= as deleted" @ "class \
+				template %used_list_cache" @ %Cache $orig (@ "class template \
+				%GMRUCache" @ %YFramework.YSLib.Core.Cache $since b461),
+				// Also to eliminate Clang++ 8 warning: \
+					[-Wdefaulted-function-deleted].
+				/ $= (+ "explicit defaulted move %operator=")
+			/ $dev "ignored warning [-Wpointer-bool-conversion] for Clang++"
+				@ "macro %yconstraint" @ %CAssert ^ '_Pragma',
+				// This is for cases where the checked conditions already \
+					satisfy 'nonnull' attribute, currently in \
+					%CHRLib.CharacterProcessing for example.
+			+ $dev $lib 'YB_PURE' @ ("function template %exists_substr#1"
+				@ %String, $impl "internal tree functions" @ %Tree,
+				"function template %exists" @ %Container,
+				"function templates %(max, min)" @ %Algorithm, ("friend \
+				functions %operator(<, ==)" @ "class template %path",
+				"function template %classify_path") @ %Path)
+				// Also to eliminate G++ 7.1 warning: \
+					[-Wsuggest-attribute=pure].
+			+ $dev $lib 'YB_STATELESS' @ ("function template %type_id"
+				@ %TypeInfo, "all 3 functions" @ %CWideCharacterType,
+				"function template %forward_like" @ %Utilities),
+				// Also to eliminate G++ 7.1 warning: \
+					[-Wsuggest-attribute=const].
+			+ $dev $lib "'yimpl(YB_PURE)' or 'YB_PURE'" (@ $revert_ex(b847)
+				"member function %bad_any_cast::what" @ %Any,
+				"member function %bad_optional_access::what",
+				$revert_ex(b849) $impl "internal memory resource equality \
+				comparison functions) -> 'yimpl(YB_STATELESS)'
+				// Also to eliminate G++ 7.1 warning: \
+					[-Wsuggest-attribute=const].
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ @ "class %ScreenRegionBuffer" @ %Helper.HostedGUI $=
+			(
+				// As %Logger in %YCLib.Debug.
+				+ "user-defined move constructor",
+				+ "friend function %swap",
+				* "implicit defaulted move %operator= as deleted" $since b428
+					// Also to eliminate Clang++ 8 warning: \
+						[-Wdefaulted-function-deleted].
+					$= (/ "move %operator=" ^ $dep_from "%swap")
+			),
+			/ %Debug $=
+			(
+				* "explicit defaulted move %operator= as deleted"
+					@ "class %Logger" $since b803
+					// Also to eliminate Clang++ 8 warning: \
+						[-Wdefaulted-function-deleted].
+					$= (/ $impl ^ "user-defined (copy, move) %operator= \
+						with %ystdex::(copy_and_swap, move_and_swap)"
+						~ "%DefDeCopyMoveAssignment"),
+				+ $dev $lib 'YB_PURE' @ 'YB_Use_StrictNoThrow'
+					@ "function templates %(Nonnull, FwdIter, Deref)"
+			),
+			+ $dev $lib 'YB_PURE' @ "function template %FetchRootNameLength_P#4"
+				@ %YCLib.FileSystem
+				// Also to eliminate G++ 7.1 warning: \
+					[-Wsuggest-attribute=pure].
+		),
+		/ "supported move construction" @ "class %WindowThread"
+			@ %Helper.HostRenderer $=
+		(
+			// Also to eliminate Clang++ 8 warning: \
+				[-Wdefaulted-function-deleted] for %HostRenderer.
+			/ "excluded constructor argument" @ "constructor template"
+				^ "%ystdex::exclude_self_params_t";
+			/ "deleted move constructor" -> "user-defined move constructor"
+		),
+		/ %YSLib $=
+		(
+			/ %Core $=
+			(
+				- $revert(b586) $dev $lib "explicit defaulted copy constructor"
+					@ "class %GraphicDevice" @ %YDevice,
+					// To eliminate Clang++ 8 warning: \
+						[-Wdefaulted-function-deleted].
+				/ @ "class %ValueNode" @ %ValueNode $=
+				(
+					* "missing allocator propogation" @ "copy constructor"
+						$since b844;
+						// This should be consistent to the copy assignment.
+					/ DLI "simplified copy %operator="
+						^ (("%ystdex::copy_and_swap"
+						~ "%ystdex::move_and_swap") @ %YBase.YStandardEx.Swap),
+						// This also avoids redundant copy.
+				)
+			),
+			/ %UI $=
+			(
+				- $lib "all explicit defaulted move constructor"
+					@ "widget classes as subclass of %Widget" @ %UI
+					// To eliminate Clang++ 8 warning: \
+						[-Wdefaulted-function-deleted].
+				/ "header %ypanel.h" => "%YPanel.h",
+				/ "header %form.h" => "%Form.h"
+			),
+			/ @ "class %ImageMetadataFindData" @ %Adaptor.Image $=
+			(
+				/ "base class %noncopyable" -> "move constructor",
+					// Also to eliminate Clang++ 8 warning: \
+						[-Wdefaulted-function-deleted] for %HImageMetadata.
+				+ "friend function %swap";
+				+ "move %operator="
+			)
+		),
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				/ "struct %PassCombiner" @ "namespace %NPL"
+					>> ("namespace %NPL::A1" @ %NPLA1);
+				/ $dev "header inclusion %YSLib.Core.YEvent" >> %NPLA1,
+				/ DLDI "functon %LiftFirst" ^ "%LiftTerm" ~ "%LiftOther"
+			),
+			/ @ "class %TermNode" @ %SContext $=
+			(
+				// Similar to %YSLib::ValueNode. This is also slightly better \
+					for NPLA1 performance.
+				* "missing allocator propagation" @ "copy constructor" $since
+					b852;
+					// This would make copied terms like terms stored in the \
+						%Forms::MakeEncapsulationType having different \
+						allocators.
+				* "missing allocator propagation and strong exception safety \
+					gurantee" @ "move %operator=" $since b853
+					$= (/ $impl ^ "%ystdex::copy_and_swap")
+					// This should come after the modification of copy \
+						constructor otherwise there is undefined behavior in \
+						the move assignment caused by unequal allocators.
+			),
+			/ %NPLA1 $=
+			(
+				/ DLDI "optimized internal iterator operations"
+					@ "function %(TransformForSeparator, \
+					TransformForSeparatorRecursive)",
+				/ @ "class %REPLContext" $=
+				(
+					+ "function %IsAsynchronous",
+					/ @ "constructor" $=
+					(
+						- "trace setup";
+							// If needed, %SetupTrace should be called \
+								separatedly.
+						- "1st parameter"
+					)
+				),
+				* "possible environment mismatch" @ "function %SetupTraceDepth"
+					$since b782,
+					// This originally only broke after the environment is \
+						altered by finding no name being registered in the \
+						altered environment. However, now the ground \
+						enviornment is intended to be switched, so it is \
+						likely always broken.
+				/ DLDI "simplified next term setup"
+					@ "function %operator()" @ "class %FormContextHandler",
+				/ DLDI "simplified the combiner call"
+					@ "function %(ReduceCombined, Forms::Apply)",
+				/ DLDI "simplified function %ReduceAgain"
+					^ "%ContextState::ReduceOnce" ~ "%ReduceOnce",
+				/ DLDI "%ContextState parameter names"
+					@ "functions %(ContextState::DefaultReduceOnce, \
+					SetupTraceDepth, EvaluateLeafToken)",
+				/ DLI ("all captured contexts" @ "asynchronous implementations \
+					of functions except %Forms::If" -> "parameter passed from \
+					the action") $effective @ "functions %(ReduceOrdered, \
+					Forms::(Cond, When, Unless, And, Or))",
+					// Only %Forms::If has efficiency gain from a captured \
+						context reference.
+				/ @ "namespace %Forms" $=
+				(
+					/ DLDI "simplified combiner calls"
+						@ "function %ForwardListFirst",
+					+ $dev $lib 'YB_PURE' @ "function %Not"
+						// Also to eliminate G++ 7.1 warning: \
+							[-Wsuggest-attribute=pure].
+				),
+				/ @ "function %RelayForEval" $=
+				(
+					/ "setup term in %ContextState";
+					/ DLDI "simplified"
+				),
+				(
+				/ $revert_ex(b878) $lib "form handling call"
+					@ "asynchrnonous implementations"
+					!^ "%NPL_Impl_NPLA1_Enable_InlineDirect optimization"
+					$dep_to "thunked handler call implementation";
+				* $comp "reduced handler with optimizations as \
+					%NPL_Impl_NPLA1_Enable_InlineDirect clashed with \
+					asynchrnous calls" @ "function %ReduceCombined" $since b878
+				),
+				/ DLDI "static function %ContextState::DefaultReduceOnce"
+					^ "%(AccessFirstSubterm, ReduceAgainLifted)"
+					~ "%(LiftFirst, ReduceAgain)",
+				/ DLI @ "function %FormContextHandler::operator()" $=
+				(
+					/ "optimized thunked implementation"
+						^ "%NPL_Impl_NPLA1_Enable_InlineDirect optimization"
+						$dep_from "thunked handler call implementation",
+					/ "asynchronous evaluation for arguments"
+						!^ "%ReduceArgument"
+				),
+				/ DLDI "avoided unused function of local class"
+					@ 'YB_IMPL_CLANGPP'
+					// To eliminate Clang++ warning: [-Wunused-function].
+			),
+			* $dev "missing excluding Clang++" @ "G++ workaround"
+				@ %Lexical $since b858
+				// Also to eliminate Clang++ warning: [-Wunknown-attributes].
+		),
+		+ $dev $lib 'YB_PURE' @ ('YF_Hosted'
+			@ "function %DSVideoState::IsLCDMainOnTop" @ %'YCLib_(DS)'.DSVideo,
+			$impl "internal console handler" @ %'YCLib_(Win32)'.Consoles),
+			// Also to eliminate G++ 7.1 warning: [-Wsuggest-attribute=pure].
+		/ $dev $lib %'YCLib_(Win32)' $=
+		(
+			+ 'YB_ATTR_nodiscard YB_STATELESS'
+				@ "all 3 functions %IsDirectory" @ %MinGW32;
+			+ 'YB_STATELESS' @ ("static member function \
+				%WConsole::ComposeAttributes" @ %Consoles,
+				"functions CategorizeNode#(1, 2, 3)" @ %MinGW32), 
+				// Also to eliminate G++ 7.1 warning: \
+					[-Wsuggest-attribute=const].
+		)
+	),
+	/ @ "%SHBuild-YSTest.sh" @ %YSTest $=
+	(
+		(
+		+ "optional input" @ "%SHBuild_AppBaseDir support";
+		+ "build directory creation" ^ 'mkdir -p'
+		),
+		* "missing protection of paths with quotes"
+			@ ("arguments to %SHBuild-BuildApp.sh" $since b421,
+			"%SHBuild_AppBaseDir" $since b739)
+	),
+	/ %Tools $=
+	(
+		* "missing testing nonnull value for default value"
+			@ "%SHBuild_SysRoot" @ "%install-sysroot.sh" $since b546
+			$= (/ $impl ^ ':=' ~ '='),
+		/ %Scripts $=
+		(
+			/ @ "%SHBuild-build.sh" $=
+			(
+				/ "defined %LDFLAGS_IMPL_OPT as ' ' to disable LTO by \
+					default" $dep_to "disabled stage 1 bootstrapping LTO",
+					// To avoid clash between '-Og' with error 'Optimization \
+						level must be between 0 and 3' caused by options \
+						passed to the linker from Clang++ driver.
+				+ $dev "command line output on non-empty variable \
+					%SHBuild_Verbose_"
+			),
+			/ "changed default value" @ "%LD" @ "%SHBuild-common-toolchian.sh"
+				-> '$CXX' ~ 'g++',
+				// This is now consistent to %SHBuild-common-toolchain.sh.
+			/ "enabled '-flto' for %(CXXFLAGS_IMPL_OPT, LDFLAGS_IMPL_OPT) when \
+				using Clang++" @ ("%SHBuild-YSLib-common.txt", \
+				"%SHBuild-common-option.sh" $dep_from
+				"disabled stage 1 bootstrapping LTO"),
+			/ @ "%SHBuild-BuildApp.sh" $=
+			(
+				/ $lib "proteced default value of %SHBuild_YSLib_Platform \
+					with quotes",
+					// Although the value of %SHBuild_Env_OS is not expected \
+						to have space normally, this is more robust.
+				/ "setting for variable %AR" $=
+				(
+					* "missing hiding stderr output on testing using 'hash' \
+						for value of %AR" @ $since b546,
+					+ "supported defaulted to 'llvm-ar' when %CXX contains \
+						'clang++'",
+					/ "defaulted to 'gcc-ar' only when %CXX contains 'g++' \
+						but not 'clang++'"
+				),
+				* "missing protection of paths with quotes"
+					@ ("%YSLib_BaseDir" $since b740, "arguments to %SHBuild"
+					@ "function %SHBuild_BuildApp" $since b549,
+					"'.' commands" $since b556),
+				/ "value of %LD on %CXX containing 'clang++' for static builds"
+					-> 'g++'
+					// This works around LTO issues in Linux using Clang++ as \
+						the compiler, which seems not able to find the linker \
+						plugin when used as a compiler driver.
+			),
+			+ ("-Wsuggest-attribute=const", "-Wsuggest-attribute=pure")
+				@ "%C_CXXFLAGS_IMPL_WARNING" @ "G++ warnings"
+				@ "%(SHBuild-YSLib-common.txt, SHBuild-common-options.sh)"
+				// This is known incompatible to old supported versions of \
+					GCC. Version check of the toolchain is planned to be \
+					implemented in future.
+		)
+	)
+),
+
+b878
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -796,7 +1133,7 @@ b874
 					@ "functions %(ReduceToReference, ReduceToReferenceAt)"
 					$since b871
 			),
-			+ $re_add(b849) $dev $lib 'YB_ATTR_nodiscard YB_STATELESS'
+			+ $dev $lib 'YB_ATTR_nodiscard YB_STATELESS'
 				@ "function %GetLValueTagsOf" @ %SContext,
 			/ %NPLA1 @ "namespace %Forms" $=
 			(
@@ -956,9 +1293,8 @@ b872
 					@ "function %LoadModule_std_promises")
 			),
 		),
-		+ $re_add(b865) $dev $lib 'YB_ATTR_nodiscard YB_PURE' 
-			@ "functions with name prefixes ('FetchBiChar', 'Get')"
-			@ %CHRLib.CharacterMapping,
+		+ $dev $lib 'YB_ATTR_nodiscard YB_PURE' @ "functions with name \
+			prefixes ('FetchBiChar', 'Get')" @ %CHRLib.CharacterMapping,
 		/ $dev "header %ymsgdef.h" @ %YSLib.Core => "%YMessageDefinition.h",
 		/ $re_add(b868) $dev "all %std::function" -> "%function"
 			$effective @ %(Helper_(Android).AndroidHost, Helper.(GUIApplication,
@@ -2085,7 +2421,7 @@ b865
 		),
 		/ %Memory $=
 		(
-			+ $re_add(b852) $dev $lib 'YB_ATTR_nodiscard'
+			+ $dev $lib 'YB_ATTR_nodiscard'
 				@ "function template %alloc_on_copy#2",
 			/ DLI 'inline' @ "function templates %(alloc_on_copy, \
 				alloc_on_move, alloc_on_swap") -> 'yconstfn_relaxed',
@@ -2763,10 +3099,9 @@ b863
 		(
 			/ @ "class template %GHEvent" @ %YEvent $=
 			(
-				+ $re_add(b858) $dev $lib 'YB_ATTR_nodiscard YB_PURE'
-					@ "functions %(cbegin, cend, crbegin, crend, begin, end, \
-					rbegin, rend, count)",
-				+ $re_add(b853) $dev $lib 'YB_PURE' @ "function %size",
+				+ $dev $lib 'YB_ATTR_nodiscard YB_PURE' @ "functions %(cbegin, \
+					cend, crbegin, crend, begin, end, rbegin, rend, count)",
+				+ $dev $lib 'YB_PURE' @ "function %size",
 				+ $re_add(b851) "function %get_allocator"
 			),
 			/ %YObject $=
@@ -3573,7 +3908,7 @@ b859
 	(
 		/ %NPLA $=
 		(
-			+ $re_add(b852) $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+			+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
 				@ "function %ResolveToTermReferencePtr",
 			(
 			+ "function %IsMovable";
@@ -5662,7 +5997,7 @@ b852
 				@ "'*_constructible' template arguments",
 			+ DD '\ingroup customization traits' @ "Doxygen comment"
 				@ "class template %path_traits",
-			+ $re_add(b849) $dev $lib 'YB_PURE' @ "all static functions"
+			+ $dev $lib 'YB_PURE' @ "all static functions"
 				@ "class template specialization %path_traits<void>",
 			- DLDI "redundant 'public" @ "base class"
 				@ "class template specialization %std::uses_allocator"
@@ -5701,7 +6036,7 @@ b852
 					~ "%TermNode::operator+=",
 				+ 'ynothrow' @ "functions %(MapToTermNode, MapToValueNode) \
 					with return value same to the parameter",
-				+ $re_add(b850) $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+				+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
 					@ "functions with name prefix 'Is', function template \
 					%HasValue",
 				+ $re_ex(b850) $dev $lib 'YB_ATTR_nodiscard'
@@ -6679,7 +7014,7 @@ b850
 						@ "function templates %FetchEvent"
 					),
 					/ "function %GetEvent" -> "%GetMappedEvent",
-					+ $re_add(b849) $dev $lib 'YB_ATTR_nodiscard'
+					+ $dev $lib 'YB_ATTR_nodiscard'
 						@ "function template %FetchEvent"
 				),
 				/ $forced $lib "all 'EventMapping::ItemType&'"
@@ -6843,7 +7178,7 @@ b849
 					),
 					/ $re_add(b848) DLDI "simplified private member type"
 						^ "%rebind_alloc_t" ~ "%allocator_traits",
-					+ $re_add(b847) $dev $lib 'YB_PURE' @ "function %empty",
+					+ $dev $lib 'YB_PURE' @ "function %empty",
 					- DLDI 'inline' @ "friend function %swap"
 				),
 				+ $re_ex(b847) $dev $lib 'YB_ATTR_nodiscard' @ "returning \
@@ -7025,17 +7360,17 @@ b849
 			(
 				* "missing inclusion %YBase.YStandardEx.CString"
 					@ "<string_view> used" $since b831,
-				+ $re_add(b846) $dev $lib 'YB_ATTR_nodiscard YB_STATELESS'
+				+ $dev $lib 'YB_ATTR_nodiscard YB_STATELESS'
 					@ "function templates %(IsASCII, ToASCII)",
-				+ $re_add(b847) $dev $lib 'YB_ATTR_nodiscard YB_PURE' 
+				+ $dev $lib 'YB_ATTR_nodiscard YB_PURE' 
 					@ "functions with name prefix 'Make'"
 			),
 			* "missing inclusion %YBase.YStandardEx.TypeTraits"
 				@ "<string_view> used" @ %MappingEx $since b831,
-			+ $re_add(b847) $dev $lib 'YB_ATTR_nodiscard'
+			+ $dev $lib 'YB_ATTR_nodiscard'
 				@ "function templates with name %(Decode, Encode)"
 				@ %(StaticMapping, MappingEx),
-			+ $re_add(b846) $dev $lib 'YB_ATTR_nodiscard YB_STATELESS'
+			+ $dev $lib 'YB_ATTR_nodiscard YB_STATELESS'
 				@ "static function with name postfix 'Invalid'"
 				@ "class template specialization %GUCSMapper<CharSet::UTF_8>"
 				@ %MappingEx
@@ -7043,8 +7378,8 @@ b849
 			(
 				/ "distinguished %byte and other 1-byte integral"
 					@ "static assertion" @ "function template %CheckIterator",
-				+ $re_add(b846) $dev $lib 'YB_ATTR_nodiscard' @ "function \
-					templates with name prefix 'Fetch'",
+				+ $dev $lib 'YB_ATTR_nodiscard'
+					@ "function templates with name prefix 'Fetch'",
 				/ DLI "avoided redundant %byte initialization"
 					@ "static function %Decode#2" @ "class template \
 					specialization %GUCSMapper<CharSet::UTF_8>"
@@ -7067,7 +7402,7 @@ b849
 							@ "member function %FontCache::LoadTypefaces",
 						+ $dev 'YB_ATTR_returns_nonnull'
 							@ "function %FetchName",
-						+ $re_add(b847) $dev $lib 'YB_ATTR_nodiscard YB_PURE' 
+						+ $dev $lib 'YB_ATTR_nodiscard YB_PURE' 
 							@ "functions with name prefixes ('Fetch', 'Get', \
 							'Lookup')",
 						/ DLDI "member functions %Font::(GetAscender, \
@@ -7080,11 +7415,11 @@ b849
 							%ImageMemory constructor buffer size",
 							// Also to eliminate Clang++ warning: \
 								[-Wshorten-64-to-32].
-						+ $re_add(b847) $dev $lib 'YB_ATTR_nodiscard YB_PURE' 
+						+ $dev $lib 'YB_ATTR_nodiscard YB_PURE' 
 							@ "functions with name prefixes 'Get' or names \
 							%(operator*, operator CompactPixmap, Lock, begin, \
 							end, to_string, Load)", \
-						+ $re_add(b847) $dev $lib 'YB_ATTR_nodiscard' 
+						+ $dev $lib 'YB_ATTR_nodiscard' 
 							@ "functions and function templates with names \
 							%(Release, DetectFormat) or prefix 'LoadFor'",
 						+ $dev $lib 'YB_ATTR_returns_nonnull YB_PURE'
@@ -7130,12 +7465,12 @@ b849
 									redundant to the uses-allcator construction.
 							+ "parameter" @ "static functions \
 								%(ThrowIndexOutOfRange, ThrowWrongNameFound)",
-							+ $re_add(b847) $dev $lib 'YB_PURE'
+							+ $dev $lib 'YB_PURE'
 								@ "function %get_allocator"
 						),
 						/ $forced "recoded parameter on throw"
 							@ "(function, function templates) %AccessNode",
-						+ $re_add(b847) $dev $lib 'YB_ATTR_nodiscard YB_PURE' 
+						+ $dev $lib 'YB_ATTR_nodiscard YB_PURE' 
 							@ "functions with names %(extend_key, \
 							get_value_key, operator(==, <, >), \
 							size, IsPrefixedIndex), postfixes ('begin', 'end', \
@@ -7709,9 +8044,9 @@ b847
 				$= ('*access', '*target', '*type', "%any_cast", "%from",
 					"%has_value", "%hold_same", "%operator _type", "%to",
 					'un*_any_cast', 'un*_get*'),
-				+ $re_add(b846) $dev $lib 'YB_ATTR_nodiscard'
+				+ $dev $lib 'YB_ATTR_nodiscard'
 					@ "all 2 function templates %make_any",
-				+ $re_add(b846) $dev $lib 'YB_ATTR_nodiscard yimpl(YB_PURE)'
+				+ $dev $lib 'YB_ATTR_nodiscard yimpl(YB_PURE)'
 					@ "member function %bad_any_cast::what",
 				/ "enlarged %any_ops::any_storage size",
 				/ $dev @ "namespace %any_ops" $=
@@ -7908,17 +8243,16 @@ b847
 					@ "function %DefineWithRecursion") @ "namespace %Forms"
 					^ $dep_from ("%allocate_shared" @ %NPLA) ~ "%make_shared"
 					$dep_from "fixed polymorphic allocated type",
-				+ $re_add(b846) $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+				+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
 					@ "functions and function templates with specified glob \
 					name patterns or names except those defined by 'Def*'" $=
 					("%to_string", "%GetNextTermRef", "%operator==", 'Wrap*',
 					'Transform*', "%FetchArgumentN", 'Is*', 'StringTo*'),
 					// Result of 'Retain*' is idiomatic to be optionally \
 						ignored.
-				+ $re_add(b846) $dev $lib 'YB_ATTR_nodiscard' @ "returning \
-					non-void functions or function templates with names \
-					%(Propress, Prepare, ReadFrom) or glob name pattern \
-					'LoadNode*'",
+				+ $dev $lib 'YB_ATTR_nodiscard' @ "functions or function \
+					templates returning non-void with names %(Propress, \
+					Prepare, ReadFrom) or glob name pattern 'LoadNode*'",
 				/ DLI "optimized vau handler calls" $=
 				(
 					/ "handled dynamic environment name at construction"
@@ -8553,11 +8887,11 @@ b845
 	(
 		/ @ "class %ValueNode" @ %YSLib.Core.ValueNode $=
 		(
-			/ "insertion" @ $dep_from ("%emplace, emplace_hint)"
+			/ "insertion" @ $dep_from ("%(emplace, emplace_hint)"
 				@ "%ystdex::mapped_set" @ %YBase.YStandardEx.Set) $=
 			(
 				* $forced DLDI "possible wrong result" @ "%get_value_key \
-					overloads" @ "%Container traits" $since b845,
+					overloads" @ "%Container traits" $since b844,
 				* $comp "missing implicit %std::allocator_arg and allocator \
 					parameter when insertion subnodes" $since b844
 			),

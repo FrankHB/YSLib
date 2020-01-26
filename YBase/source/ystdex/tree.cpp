@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018 FrankHB.
+	© 2018, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file tree.cpp
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r407
+\version r410
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2018-07-08 01:34 +0800
+	2020-01-27 02:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ inline namespace rb_tree
 namespace
 {
 
-tree_node_base*
+YB_PURE tree_node_base*
 local_tree_increment(tree_node_base* x) ynothrow
 {
 	if(x->right)
@@ -64,7 +64,7 @@ local_tree_increment(tree_node_base* x) ynothrow
 	return x;
 }
 
-tree_node_base*
+YB_PURE tree_node_base*
 local_tree_decrement(tree_node_base* x) ynothrow
 {
 	if(x->color == tree_color::red && x->parent->parent == x)

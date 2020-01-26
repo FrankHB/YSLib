@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3553
+\version r3554
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2020-01-12 18:19 +0800
+	2020-01-27 03:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,7 +53,7 @@ using forward_like_t = conditional_t<is_lvalue_reference<_type>::value,
 
 //! \brief 按第一模板参数指定类型蕴含的值类别传递参数。
 template<typename _type, typename _type2>
-forward_like_t<_type, _type2>
+YB_STATELESS forward_like_t<_type, _type2>
 forward_like(_type2&& x)
 {
 	return std::forward<forward_like_t<_type, _type2>>(yforward(x));

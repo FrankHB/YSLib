@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2019 FrankHB.
+	© 2010-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r1186
+\version r1191
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2019-08-30 02:51 +0800
+	2020-01-27 03:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -610,13 +610,13 @@ using std::max;
 */
 //@{
 template<typename _type, typename _fComp = less<_type>>
-yconstfn const _type&
+YB_PURE yconstfn const _type&
 min(const _type& a, const _type& b, _fComp comp = less<_type>())
 {
 	return comp(b, a) ? b : a;
 }
 template<typename _type, typename _fComp = less<_type>>
-yconstfn const _type&
+YB_PURE yconstfn const _type&
 min(std::initializer_list<_type> t, _fComp comp = less<_type>(),
 	yimpl(size_t n = 0))
 {
@@ -631,13 +631,13 @@ min(std::initializer_list<_type> t, _fComp comp = less<_type>(),
 */
 //@{
 template<typename _type, typename _fComp = less<_type>>
-yconstfn const _type&
+YB_PURE yconstfn const _type&
 max(const _type& a, const _type& b, _fComp comp = less<_type>())
 {
 	return comp(a, b) ? b : a;
 }
 template<typename _type, typename _fComp = less<_type>>
-yconstfn const _type&
+YB_PURE yconstfn const _type&
 max(std::initializer_list<_type> t, _fComp comp = less<_type>(),
 	yimpl(size_t n = 0))
 {

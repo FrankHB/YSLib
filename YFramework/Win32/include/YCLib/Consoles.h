@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2019-2010 FrankHB.
+	© 2013-2016, 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 控制台。
-\version r314
+\version r316
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2013-05-09 11:01:12 +0800
 \par 修改时间:
-	2020-01-12 18:10 +0800
+	2020-01-27 02:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -134,7 +134,7 @@ public:
 		ImplExpr(std::system("CLS"))
 
 	//! \since build 645
-	static ::WORD
+	YB_STATELESS static ::WORD
 	ComposeAttributes(std::uint8_t, std::uint8_t) ynothrow;
 
 	//! \since build 519

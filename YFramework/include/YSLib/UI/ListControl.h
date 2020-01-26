@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2019 FrankHB.
+	© 2011-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ListControl.h
 \ingroup UI
 \brief 列表控件。
-\version r1646
+\version r1649
 \author FrankHB <frankhb1989@gmail.com>
 \since build 528
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2019-11-25 21:50 +0800
+	2020-01-26 16:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,7 +100,6 @@ public:
 	*/
 	explicit
 	AMUnitControlList(unique_ptr<IWidget>);
-	DefDeMoveCtor(AMUnitControlList)
 
 	//! \since build 529
 	using AMUnitList::GetFullViewHeight;
@@ -241,7 +240,6 @@ public:
 	TextList(const Rect& = {}, const shared_ptr<ListType>& = {},
 		const pair<Color, Color>& = FetchGUIConfiguration().Colors.GetPair(
 		Styles::Highlight, Styles::HighlightText));
-	DefDeMoveCtor(TextList)
 
 	DefPredMem(const ynothrow, Selected, vwList)
 	//! \since build 639

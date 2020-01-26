@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2018 FrankHB.
+	© 2014-2018, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r427
+\version r429
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2018-07-12 20:12 +0800
+	2020-01-25 16:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -252,7 +252,6 @@ public:
 	TextBox(const Rect& = {}, const Drawing::Font& = {}, const
 		pair<Drawing::Color, Drawing::Color>& = FetchGUIConfiguration().Colors
 		.GetPair(Styles::Highlight, Styles::HighlightText));
-	DefDeMoveCtor(TextBox)
 
 	/*!
 	\brief 取插入符光标的显示位置。

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2016, 2018 FrankHB.
+	© 2016, 2018, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file typeinfo.h
 \ingroup YStandardEx
 \brief ISO C++ 类型信息扩展。
-\version r163
+\version r165
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2016-04-01 08:56:47 +0800
 \par 修改时间:
-	2018-07-23 21:28 +0800
+	2020-01-27 01:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -145,7 +145,7 @@ using std::type_info;
 
 //! \sa type_info
 template<typename _type>
-const type_info&
+YB_STATELESS const type_info&
 type_id()
 {
 #if YB_Use_LightweightTypeID

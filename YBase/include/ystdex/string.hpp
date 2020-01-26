@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r3054
+\version r3055
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2020-01-12 18:20 +0800
+	2020-01-27 01:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1217,7 +1217,7 @@ ends_with(const _tRange1& input, const _tRange2& test)
 */
 //@{
 template<class _tString, typename _type>
-YB_ATTR_nodiscard inline bool
+YB_ATTR_nodiscard YB_PURE inline bool
 exists_substr(const _tString& str, const _type& sub)
 {
 	return str.find(sub) != _tString::npos;

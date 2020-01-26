@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2656
+\version r2680
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2020-01-04 20:06 +0800
+	2020-01-25 21:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,10 +35,11 @@
 //	YSLib::ValueNode, YSLib::ValueObject, YSLib::make_observer,
 //	YSLib::make_pair, YSLib::share_move, YSLib::make_shared, YSLib::make_weak,
 //	YSLib::observer_ptr, YSLib::pair, YSLib::shared_ptr, YSLib::weak_ptr, list,
-//	YSLib::ListContainerTag, std::initializer_list, ystdex::forward_like,
-//	ystdex::invoke, YSLib::AccessPtr, ystdex::false_, std::is_convertible,
-//	ystdex::decay_t, ystdex::bool_, ystdex::cond_or_t, ystdex::not_,
-//	ystdex::enable_if_t, ystdex::call_value_or, ystdex::addrof, ystdex::compose;
+//	YSLib::ListContainerTag, std::initializer_list, ystdex::create_and_swap,
+//	ystdex::forward_like, ystdex::invoke, YSLib::AccessPtr, ystdex::false_,
+//	std::is_convertible, ystdex::decay_t, ystdex::bool_, ystdex::cond_or_t,
+//	ystdex::not_, ystdex::enable_if_t, ystdex::call_value_or, ystdex::addrof,
+//	ystdex::compose;
 
 namespace NPL
 {
@@ -282,14 +283,33 @@ public:
 		: container(ConCons(std::move(nd.GetContainer()))),
 		Value(std::move(nd.Value))
 	{}
+	/*!
+	\brief 复制构造：使用参数和参数指定的分配器。
+	\since build 879
+	*/
+	TermNode(const TermNode& tm)
+		: TermNode(tm, tm.get_allocator())
+	{}
 	TermNode(const TermNode& tm, allocator_type a)
 		: container(tm.container, a), Value(tm.Value), Tags(tm.Tags)
 	{}
+	DefDeMoveCtor(TermNode)
 	TermNode(TermNode&& tm, allocator_type a)
 		: container(std::move(tm.container), a), Value(std::move(tm.Value)),
 		Tags(tm.Tags)
 	{}
-	DefDeCopyMoveCtorAssignment(TermNode)
+
+	/*!
+	\brief 复制赋值：使用以参数的分配器构造的副本和交换操作。
+	\since build 879
+	*/
+	PDefHOp(TermNode&, =, const TermNode& tm)
+		ImplRet(ystdex::copy_and_swap(*this, tm))
+	/*!
+	\pre 被转移的参数不是被子节点容器直接或间接所有的其它节点。
+	\warning 违反前置条件的转移可能引起循环引用。
+	*/
+	DefDeMoveAssignment(TermNode)
 
 	//! \since build 853
 	DefBoolNeg(explicit, bool(Value) || !empty())

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2019 FrankHB.
+	© 2015-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r1329
+\version r1331
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2019-10-03 21:01 +0800
+	2020-01-27 02:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -331,7 +331,7 @@ public:
 	\return 实现定义："bad optional access" 。
 	\since build 831
 	*/
-	YB_ATTR_returns_nonnull YB_PURE virtual const char*
+	YB_ATTR_returns_nonnull yimpl(YB_STATELESS) virtual const char*
 	what() const ynothrow override;
 };
 //@}

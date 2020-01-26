@@ -11,13 +11,13 @@
 /*!	\file cassert.h
 \ingroup YStandardEx
 \brief ISO C 断言/调试跟踪扩展。
-\version r260
+\version r278
 \author FrankHB <frankhb1989@gmail.com>
 \since build 432
 \par 创建时间:
 	2013-07-27 04:11:53 +0800
 \par 修改时间:
-	2020-01-12 18:08 +0800
+	2020-01-26 02:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -102,16 +102,32 @@ ytrace(std::FILE*, std::uint8_t, std::uint8_t, const char*, int, const char*,
 \note 和普通断言相比强调接口契约。
 \note 使用常量表达式在 ISO C++11 constexpr 模板中合式。
 \see $2015-10 @ %Documentation::Workflow.
+\see https://reviews.llvm.org/rL204776 。
 
 可能在运行时检查的接口语义约束断言。
 不满足此断言的行为是接口明确地未定义的，行为不可预测。
 */
 #ifdef NDEBUG
-#	define yconstraint(_expr) (YB_ASSUME(_expr), void())
+#	if YB_IMPL_CLANGPP >= 30401
+#		define yconstraint(_expr) \
+	((_Pragma("clang diagnostic push") \
+		_Pragma("clang diagnostic ignored \"-Wpointer-bool-conversion\"") \
+		YB_ASSUME(_expr) _Pragma("clang diagnostic pop")), void())
+#	else
+#		define yconstraint(_expr) (YB_ASSUME(_expr), void())
+#	endif
 #else
-#	define yconstraint(_expr) \
+#	if YB_IMPL_CLANGPP >= 30401
+#		define yconstraint(_expr) \
+	((_Pragma("clang diagnostic push") \
+		_Pragma("clang diagnostic ignored \"-Wpointer-bool-conversion\"") \
+		_expr _Pragma("clang diagnostic pop")) ? void() \
+		: ystdex::yassert(#_expr, __FILE__, __LINE__, "Constraint violation."))
+#	else
+#		define yconstraint(_expr) \
 	((_expr) ? void() : ystdex::yassert(#_expr, __FILE__, __LINE__, \
 		"Constraint violation."))
+#	endif
 #endif
 //@}
 

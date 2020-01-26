@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# (C) 2014-2018 FrankHB.
+# (C) 2014-2018, 2020 FrankHB.
 # Script for build YSLib applications using SHBuild.
 
 : ${SHBuild_Bin:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
 : ${SHBuild_AppBaseDir=$(cd `dirname "$0"`; pwd)}
 : ${SHBuild:="$SHBuild_Bin/SHBuild"}
-. $SHBuild_Bin/SHBuild-common.sh
+. "$SHBuild_Bin/SHBuild-common.sh"
 
 SHBuild_PrintUsage()
 {
@@ -62,21 +62,31 @@ fi
 
 SHBuild_Dest="$SHBuild_BuildPrefix.$SHBuild_Conf"
 SHBOPT="-xd,$SHBuild_Dest -xid,include -xmode,2 $@"
-. $SHBuild_Bin/SHBuild-common.sh
-if hash gcc-ar > /dev/null; then
-	: ${AR:='gcc-ar'}
-elif hash ar > /dev/null; then
-	: ${AR:='ar'}
+
+SHBuild_setup_AR_()
+{
+	if hash "$1" 2> /dev/null; then
+		: ${AR:="$1"}
+	elif hash ar 2> /dev/null; then
+		: ${AR:='ar'}
+	fi
+}
+
+if SHBuild_Put "$CXX" | grep clang++ > /dev/null; then
+	SHBuild_setup_AR_ 'llvm-ar'
+elif SHBuild_Put "$CXX" | grep g++ > /dev/null; then
+	SHBuild_setup_AR_ 'gcc-ar'
 fi
+
 export AR
-. $SHBuild_Bin/SHBuild-common-toolchain.sh
+. "$SHBuild_Bin/SHBuild-common-toolchain.sh"
 if [[ "$SHBuild_Debug" != '' ]]; then
 	SHBuild_Puts Use debug configuration $SHBuild_Conf.
 	CXXFLAGS_OPT_DBG='-O0 -g -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC'
 	unset CXXFLAGS_COMMON
 	unset CXXFLAGS
 	LDFLAGS_OPT_DBG=' '
-	. $SHBuild_Bin/SHBuild-common-options.sh
+	. "$SHBuild_Bin/SHBuild-common-options.sh"
 	SHBuild_YSLib_LibNames='-lYFrameworkd -lYBased'
 else
 	SHBuild_Puts Use release configuration $SHBuild_Conf.
@@ -84,7 +94,7 @@ else
 	unset CXXFLAGS_COMMON
 	unset CXXFLAGS
 	unset LDFLAGS
-	. $SHBuild_Bin/SHBuild-common-options.sh
+	. "$SHBuild_Bin/SHBuild-common-options.sh"
 	if [[ "$SHBuild_Env_OS" == 'Win32' \
 		&& "$SHBuild_NoAdjustSubsystem" == '' ]]; then
 		LDFLAGS="$LDFLAGS -mwindows"
@@ -101,7 +111,7 @@ if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
 	SHBuild_YF_SystemLibs='-lgdi32 -limm32'
 	: ${SHBuild_YF_Libs_freetype:='-lfreetype'}
 else
-	: ${SHBuild_YSLib_Platform:=$SHBuild_Env_OS}
+	: ${SHBuild_YSLib_Platform:="$SHBuild_Env_OS"}
 	SHBuild_YF_SystemLibs='-Wl,-dy -lxcb -lpthread'
 	SHBuild_YF_CFlags_freetype="`pkg-config --cflags freetype2 2> /dev/null`"
 	: ${SHBuild_YF_CFlags_freetype:='-I/usr/include'}
@@ -117,6 +127,11 @@ if [[ "$SHBuild_Static" == '' ]]; then
 		$SHBuild_YF_CFlags_freetype -I\"$SHBuild_Bin/../include\""
 	export LIBS="$LIBS $SHBuild_YSLib_LibNames"
 else
+	# XXX: Use 'g++' even when %CXX is 'clang++' to work around LTO issue for
+	#	static executables in Linux.
+	if SHBuild_Put "$CXX" | grep clang++ > /dev/null; then
+		LD=g++
+	fi
 	SHBuild_YSLib_Flags="$SHBuild_YF_CFlags_freetype \
 		-I\"$SHBuild_Bin/../include\""
 	SHBuild_YSLib_LibNames="$SHBuild_YSLib_LibNames \
@@ -130,7 +145,7 @@ SHBuild_BuildApp()
 {
 	SHBuild_AssertNonempty SHBuild_AppBaseDir
 	SHBuild_Puts Found application base directory \"$SHBuild_AppBaseDir\".
-	(cd "$SHBuild_AppBaseDir"; "$SHBuild" $SHBOPT $@ $SHBuild_YSLib_Flags)
+	(cd "$SHBuild_AppBaseDir"; "$SHBuild" $SHBOPT "$@" $SHBuild_YSLib_Flags)
 }
 
 SHBuild_EchoVar_N 'CXXFLAGS'

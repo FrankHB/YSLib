@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2015, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextArea.h
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r490
+\version r493
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2011-06-30 20:09:23 +0800
 \par 修改时间:
-	2015-03-21 23:36 +0800
+	2020-01-25 16:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,6 @@ public:
 	*/
 	TextArea(const Drawing::Rect&, Drawing::FontCache&,
 		HBrush = MakeBlankBrush(), Drawing::Color = Drawing::ColorSpace::Black);
-	DefDeMoveCtor(TextArea)
 	/*!
 	\brief 虚析构：类定义外默认实现。
 	\since build 586
@@ -94,7 +93,6 @@ public:
 	*/
 	BufferedTextArea(const Drawing::Rect&, Drawing::FontCache&,
 		HBrush = MakeBlankBrush(), Drawing::Color = Drawing::ColorSpace::Black);
-	DefDeMoveCtor(BufferedTextArea)
 
 	using Widget::GetWidth;
 	using Widget::GetHeight;

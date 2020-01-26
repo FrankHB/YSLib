@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018 FrankHB.
+	© 2009-2016, 2018, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 视频输出接口。
-\version r146
+\version r150
 \author FrankHB <frankhb1989@gmail.com>
 \since build 585
 \par 创建时间:
 	2015-03-17 12:45:13 +0800
 \par 修改时间:
-	2018-09-20 02:33 +0800
+	2020-01-27 02:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,6 +96,9 @@ private:
 #endif
 
 public:
+#if YF_Hosted
+	YB_PURE
+#endif
 	bool
 	IsLCDMainOnTop() const;
 

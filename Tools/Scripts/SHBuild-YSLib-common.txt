@@ -1,4 +1,4 @@
-﻿"#", "(C) 2014-2019 FrankHB.",
+﻿"#", "(C) 2014-2020 FrankHB.",
 "NPLA1 script as common library.";
 
 "XXX", "'SHBuild_2*' depend on 'cygpath' optionally.";
@@ -183,7 +183,7 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 	($env-de! CXX "g++"; safeenv-set "CXX" CXX),
 	($env-de! AR "ar"; safeenv-set "AR" AR),
 	($env-de! ARFLAGS "rcs"; safeenv-set "ARFLAGS" ARFLAGS),
-	($env-de! LD "g++"; safeenv-set "LD" LD);
+	($env-de! LD CXX; safeenv-set "LD" LD);
 	"TODO", "Add sanity checks.";
 	$env-de! C_CXXFLAGS_GC "-fdata-sections -ffunction-sections";
 	$env-de! LDFLAGS_GC
@@ -220,13 +220,14 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 		$set-if-empty! CXXFLAGS_IMPL_WARNING cons-cmd "-Wno-deprecated-register"
 			"-Wno-mismatched-tags" "-Wno-missing-braces" "-Wshorten-64-to-32"
 			"-Wweak-vtables";
-		"#", "CXXFLAGS_IMPL_OPT -flto";
-		$set-if-empty! LDFLAGS_IMPL_OPT CXXFLAGS_IMPL_OPT
+		$set-if-empty! CXXFLAGS_IMPL_OPT "-flto";
+		$set-if-empty! LDFLAGS_IMPL_OPT "-flto"
 	)
 	(
 		(string-contains-ci? CXX "g++")
 		$set-if-empty! C_CXXFLAGS_IMPL_WARNING cons-cmd "-Wdouble-promotion"
-			"-Wlogical-op" "-Wtrampolines";
+			"-Wlogical-op" "-Wtrampolines" "-Wsuggest-attribute=const"
+			"-Wsuggest-attribute=pure";
 		$set-if-empty! CXXFLAGS_IMPL_WARNING cons-cmd
 			"-Wconditionally-supported" "-Wno-noexcept-type"
 			"-Wstrict-null-sentinel" "-Wzero-as-null-pointer-constant";

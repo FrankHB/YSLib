@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2015, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1542
+\version r1546
 \author FrankHB <frankhb1989@gmail.com>
 \since build 573
 \par 创建时间:
 	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2015-02-02 10:18 +0800
+	2020-01-25 16:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,7 +63,7 @@ class YF_API MLabel
 public:
 	/*!
 	\brief 当前使用的剪切文本更新器。
-	\note 第三个模板参数表示是否自动换行。
+	\note 第三模板参数表示是否自动换行。
 	\note 被 DrawText 调用。
 	\since build 525
 	*/
@@ -100,7 +100,6 @@ public:
 	explicit
 	MLabel(const Drawing::Font& = {}, Color = Drawing::ColorSpace::Black,
 		TextAlignment = TextAlignment::Left);
-	DefDeMoveCtor(MLabel)
 
 	/*!
 	\brief 描画：使用发送者的大小并调用 DrawText 绘制文本。
@@ -162,7 +161,6 @@ public:
 		HBrush b = MakeBlankBrush(), Color c = Drawing::ColorSpace::Black)
 		: Widget(r, b), MLabel(fnt, c)
 	{}
-	DefDeMoveCtor(Label)
 
 	//! \since build 526
 	using MLabel::GetAlignedPenOffset;

@@ -1,12 +1,19 @@
 #!/usr/bin/env bash
-# (C) 2014-2018 FrankHB.
+# (C) 2014-2018, 2020 FrankHB.
 # SHBuild installation script.
 
 set -e
-SHBuild_ToolDir=$(cd `dirname "$0"`/Scripts; pwd)
-: ${YSLib_BaseDir:="$SHBuild_ToolDir/../.."}
+SHBuild_ToolDir=$(cd "`dirname "$0"`/Scripts"; pwd)
 . $SHBuild_ToolDir/SHBuild-common.sh # For SHBuild_Puts,
 #	SHBuild_CheckHostPlatform;
+
+# NOTE: Some variables are configurable. If not set or set to empty, the
+#	variables can be later set by the scripts being called.
+
+# NOTE: Optional stage 1 path which can later set by
+#	"%Scripts/SHBuild-bootstrap.sh" This is required to locate the YSLib
+#	repository base directory.
+: ${YSLib_BaseDir:="$SHBuild_ToolDir/../.."}
 
 SHBuild_Puts Configuring ...
 : ${SHBuild_BuildOpt:="-xj,6"}
@@ -15,8 +22,8 @@ export SHBuild_BuildOpt
 export SHBuild_LogOpt
 : ${SHBuild_Opt:="$SHBuild_LogOpt $SHBuild_BuildOpt"}
 export SHBuild_Opt
-: ${SHBuild_SysRoot="$YSLib_BaseDir/sysroot"}
-export YSLib_BaseDir=$(cd $YSLib_BaseDir; pwd)
+: ${SHBuild_SysRoot:="$YSLib_BaseDir/sysroot"}
+export YSLib_BaseDir=$(cd "$YSLib_BaseDir"; pwd)
 SHBuild_CheckHostPlatform
 # This directory will be created if not existed by following stage 1 process
 #	or by %SHBuild-YSLib-build.txt.

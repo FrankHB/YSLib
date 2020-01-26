@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1453
+\version r1454
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2020-01-12 18:19 +0800
+	2020-01-27 02:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,7 +49,7 @@ inline namespace cpp2017
 {
 
 #define YB_Impl_do_is_equal(_virt, _ns_pfx) \
-	YB_ATTR_nodiscard yimpl(YB_PURE) bool \
+	YB_ATTR_nodiscard yimpl(YB_STATELESS) bool \
 	_ns_pfx do_is_equal(const memory_resource& other) const ynothrow _virt \
 	{ \
 		return this == &other; \

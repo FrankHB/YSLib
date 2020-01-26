@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2019 FrankHB.
+	© 2010-2016, 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YControl.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4876
+\version r4878
 \author FrankHB <frankhb1989@gmail.com>
 \since build 572
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2019-11-25 21:54 +0800
+	2020-01-25 16:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -308,7 +308,6 @@ public:
 	\brief 复制构造：除容器为空外深复制。
 	*/
 	Control(const Control&);
-	DefDeMoveCtor(Control)
 	/*!
 	\brief 虚析构：类定义外默认实现。
 	\since build 586

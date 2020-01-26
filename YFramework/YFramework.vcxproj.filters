@@ -262,7 +262,7 @@
     <ClInclude Include="include\YSLib\UI\Button.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\UI\form.h">
+    <ClInclude Include="include\YSLib\UI\Form.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\UI\Scroll.h">
@@ -364,7 +364,7 @@
     <ClInclude Include="include\YSLib\UI\YFocus.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\UI\ypanel.h">
+    <ClInclude Include="include\YSLib\UI\YPanel.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Service\CharRenderer.h">

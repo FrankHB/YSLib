@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2019 FrankHB.
+	© 2011-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r791
+\version r809
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2019-07-08 19:58 +0800
+	2020-01-26 18:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,7 @@
 //	platform::sfmt;
 #include <ystdex/function.hpp> // for ystdex::function;
 #include YFM_YCLib_Mutex // for Concurrency;
+#include <ystdex/swap.hpp> // for ystdex::copy_and_swap;
 
 /*!	\defgroup diagnostic Diagnostic
 \brief 诊断设施。
@@ -138,9 +139,14 @@ public:
 	\see LWG 2062 。
 	*/
 	Logger(Logger&&) ynothrow;
-
-	DefDeCopyMoveAssignment(Logger)
 	//@}
+
+	//! \since build 879
+	PDefHOp(Logger&, =, const Logger& logger)
+		ImplRet(ystdex::copy_and_swap(*this, logger))
+	//! \since build 879
+	PDefHOp(Logger&, =, Logger&& logger) ynothrow
+		ImplRet(swap(*this, logger), *this)
 
 	//! \since build 628
 	DefGetter(const ynothrow, const Sender&, Sender, sender)
@@ -448,6 +454,9 @@ namespace platform
 \since build 702
 */
 template<typename _type>
+#if YB_Use_StrictNoThrow
+YB_PURE
+#endif
 inline _type&&
 Nonnull(_type&& p) ynothrowv
 {
@@ -461,6 +470,9 @@ Nonnull(_type&& p) ynothrowv
 \since build 702
 */
 template<typename _type>
+#if YB_Use_StrictNoThrow
+YB_PURE
+#endif
 inline _type&&
 FwdIter(_type&& i) ynothrowv
 {
@@ -477,6 +489,9 @@ FwdIter(_type&& i) ynothrowv
 \since build 553
 */
 template<typename _type>
+#if YB_Use_StrictNoThrow
+YB_PURE
+#endif
 yconstfn auto
 Deref(_type&& p) -> decltype(*p)
 {

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2019 FrankHB.
+# (C) 2014-2020 FrankHB.
 # Common options script for build YSLib using SHBuild.
 
 : ${SHBuild_ToolDir:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
@@ -71,12 +71,14 @@ if SHBuild_Put "$CXX" | grep clang++ > /dev/null; then
 		-Wshorten-64-to-32 \
 		-Wweak-vtables \
 		"}
-#	: ${CXXFLAGS_IMPL_OPT:='-flto'}
-	: ${LDFLAGS_IMPL_OPT:="$CXXFLAGS_IMPL_OPT"}
+	: ${CXXFLAGS_IMPL_OPT:='-flto'}
+	: ${LDFLAGS_IMPL_OPT:='-flto'}
 elif SHBuild_Put "$CXX" | grep g++ > /dev/null; then
 	: ${C_CXXFLAGS_IMPL_WARNING:=" \
 		-Wdouble-promotion \
 		-Wlogical-op \
+		-Wsuggest-attribute=const \
+		-Wsuggest-attribute=pure \
 		-Wtrampolines \
 		"}
 	: ${CXXFLAGS_IMPL_WARNING:=" \

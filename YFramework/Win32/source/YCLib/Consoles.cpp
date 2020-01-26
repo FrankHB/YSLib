@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 控制台。
-\version r335
+\version r340
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2016-07-30 19:42 +0800
+	2020-01-27 02:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,10 +49,10 @@ namespace
 {
 
 //! \since build 565
-int WINAPI
+YB_PURE int WINAPI
 ConsoleHandler(unsigned long ctrl)
 {
-	switch (ctrl)
+	switch(ctrl)
 	{
 	case CTRL_C_EVENT:
 	case CTRL_BREAK_EVENT:
@@ -115,7 +115,8 @@ void
 WConsole::SetCursorPosition(::COORD pos)
 {
 	// NOTE: %::SetConsoleCursorPosition expects 1-based.
-	YCL_CallF_Win32(SetConsoleCursorPosition, h_std, {short(pos.X + 1), short(pos.Y + 1)});
+	YCL_CallF_Win32(SetConsoleCursorPosition, h_std,
+		{short(pos.X + 1), short(pos.Y + 1)});
 }
 void
 WConsole::SetForeColor(std::uint8_t fc) ynothrow

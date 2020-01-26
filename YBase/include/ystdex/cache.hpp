@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2019 FrankHB.
+	© 2013-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cache.hpp
 \ingroup YStandardEx
 \brief 高速缓冲容器模板。
-\version r594
+\version r601
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-12-22 20:19:14 +0800
 \par 修改时间:
-	2019-11-04 18:04 +0800
+	2020-01-25 23:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -209,7 +209,14 @@ public:
 	used_list_cache(size_type s = yimpl(15U))
 		: used_list(), used_cache(), max_use(s)
 	{}
+	//! \note 强异常安全保证依赖模板参数指定的容器转移时都不抛出异常。
+	//@{
 	used_list_cache(used_list_cache&&) = default;
+
+	//! \since build 878
+	used_list_cache&
+	operator=(used_list_cache&&) = default;
+	//@}
 
 private:
 	//! \since build 595
