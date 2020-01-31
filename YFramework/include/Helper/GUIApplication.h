@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2019 FrankHB.
+	© 2012-2016, 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r560
+\version r563
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2019-11-25 21:46 +0800
+	2020-01-27 14:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -234,10 +234,10 @@ public:
 	~GUIApplication() override;
 
 	//! \since build 570
-	Environment&
+	YB_PURE Environment&
 	GetEnvironmentRef() const ynothrow;
 	//! \since build 570
-	GUIHost&
+	yimpl(YB_STATELESS) GUIHost&
 	GetGUIHostRef() const ynothrow;
 
 	/*!

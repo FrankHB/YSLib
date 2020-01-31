@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r7013
+\version r7015
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2020-01-22 20:59 +0800
+	2020-01-31 04:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1526,7 +1526,7 @@ struct ReferenceTermOp
 \since build 802
 */
 template<typename _func>
-auto
+YB_STATELESS auto
 ComposeReferencedTermOp(_func f)
 	-> yimpl(decltype(ystdex::compose_n(f, ReferenceTermOp())))
 {
@@ -1586,7 +1586,7 @@ enum class ReductionStatus : yimpl(size_t)
 在调试配置下，若发现不支持的状态视为不成功，输出警告。
 派生实现可使用类似的接口指定多个不同的状态。
 */
-YB_ATTR_nodiscard YF_API YB_PURE bool
+YB_ATTR_nodiscard YF_API YB_STATELESS bool
 CheckReducible(ReductionStatus);
 
 

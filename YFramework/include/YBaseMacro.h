@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018-2019 FrankHB.
+	© 2010-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2782
+\version r2802
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2019-12-18 08:27 +0800
+	2020-01-27 11:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -230,7 +230,7 @@ _t type
 	_spec DefCvt(const ynothrow, bool, __VA_ARGS__)
 
 #define DefPred(_q, _n, ...) \
-	bool \
+	YB_PURE bool \
 	YPP_Concat(Is, _n)() _q \
 		ImplRet(__VA_ARGS__)
 #define DefPredBase(_q, _n, _b) \
@@ -239,7 +239,7 @@ _t type
 	DefPred(_q, _n, (_m).YPP_Concat(Is, _n)())
 
 #define DefGetter(_q, _t, _n, ...) \
-	_t \
+	YB_PURE _t \
 	YPP_Concat(Get, _n)() _q \
 		ImplRet(__VA_ARGS__)
 #define DefGetterBase(_q, _t, _n, _b) \
@@ -473,7 +473,22 @@ public:
 		ynothrow \
 		ImplRet(_x = _x ^ _y)
 
-#define DefBitmaskOperations(_tBitmask, _tInt) \
+#if YB_IMPL_CLANGPP
+// NOTE: This may be used in an unnamed namespace. For other cases, let the user
+//	code to silent the warning.
+#	define DefBitmaskOperations(_tBitmask, _tInt) \
+	YB_Diag_Push \
+	YB_Diag_Ignore(unused-function) \
+	DefBitmaskAnd(_tBitmask, _tInt) \
+	DefBitmaskOr(_tBitmask, _tInt) \
+	DefBitmaskXor(_tBitmask, _tInt) \
+	DefBitmaskNot(_tBitmask, _tInt) \
+	DefBitmaskAndAssignment(_tBitmask, _tInt) \
+	DefBitmaskOrAssignment(_tBitmask, _tInt) \
+	DefBitmaskXorAssignment(_tBitmask, _tInt) \
+	YB_Diag_Pop
+#else
+#	define DefBitmaskOperations(_tBitmask, _tInt) \
 	DefBitmaskAnd(_tBitmask, _tInt) \
 	DefBitmaskOr(_tBitmask, _tInt) \
 	DefBitmaskXor(_tBitmask, _tInt) \
@@ -481,6 +496,7 @@ public:
 	DefBitmaskAndAssignment(_tBitmask, _tInt) \
 	DefBitmaskOrAssignment(_tBitmask, _tInt) \
 	DefBitmaskXorAssignment(_tBitmask, _tInt)
+#endif
 
 /*!
 \since build 421

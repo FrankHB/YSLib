@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018-2019 FrankHB.
+	© 2009-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3959
+\version r3963
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2019-11-29 03:14 +0800
+	2020-01-27 15:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -280,12 +280,12 @@ enum RecordLevel : std::uint8_t
 \since build 512
 */
 //@{
-inline PDefH(bool, IsPrint, char c)
+YB_STATELESS inline PDefH(bool, IsPrint, char c)
 	ImplRet(ystdex::isprint(c))
-inline PDefH(bool, IsPrint, wchar_t c)
+YB_STATELESS inline PDefH(bool, IsPrint, wchar_t c)
 	ImplRet(ystdex::iswprint(c))
 template<typename _tChar>
-bool
+YB_STATELESS bool
 IsPrint(_tChar c)
 {
 	return platform::IsPrint(wchar_t(c));

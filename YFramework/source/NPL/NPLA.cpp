@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3040
+\version r3042
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2020-01-17 19:01 +0800
+	2020-01-27 22:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1074,7 +1074,8 @@ Environment::ReplaceChecked(string_view id, ValueObject&& vo)
 {
 	if(const auto p = LookupName(id))
 		swap(p->Value, vo);
-	throw BadIdentifier(id, 0);
+	else
+		throw BadIdentifier(id, 0);
 }
 
 void

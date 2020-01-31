@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1559
+\version r1564
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2020-01-25 22:13 +0800
+	2020-01-27 22:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -241,7 +241,7 @@ public:
 	YSLib::Drawing::AlphaType
 	GetOpacity() const;
 	//! \since build 538
-	WindowReference
+	yimpl(YB_NORETURN) WindowReference
 	GetParent() const;
 	//! \exception 异常中立：由 YSLib::CheckArithmetic 抛出。
 	YSLib::Drawing::Size
@@ -477,7 +477,7 @@ public:
 
 #	if YCL_HostedUI_XCB || YCL_Android
 	//! \since build 492
-	YSLib::Drawing::BitmapPtr
+	YB_PURE YSLib::Drawing::BitmapPtr
 	GetBufferPtr() const ynothrow;
 	//! \since build 566
 	YSLib::Drawing::Graphics
@@ -486,7 +486,7 @@ public:
 	YSLib::Drawing::Size
 	GetSize() const ynothrow;
 	//! \since build 498
-	YSLib::SDst
+	YB_PURE YSLib::SDst
 	GetStride() const ynothrow;
 #	elif YCL_Win32
 	//! \since build 386
@@ -732,7 +732,7 @@ public:
 	\brief 判断背景是否仍然有效而无需整体重新绘制。
 	\since build 702
 	*/
-	bool
+	YB_PURE bool
 	IsBackgroundValid() const ynothrow;
 
 	/*!
@@ -941,7 +941,7 @@ public:
 		否则为相对窗口输入边界的当前点的坐标。
 	\since build 518
 	*/
-	virtual YSLib::Drawing::Point
+	YB_PURE virtual YSLib::Drawing::Point
 	MapPoint(const YSLib::Drawing::Point&) const;
 #		endif
 

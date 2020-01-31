@@ -78,7 +78,10 @@ elif SHBuild_Put "$CXX" | grep g++ > /dev/null; then
 		-Wdouble-promotion \
 		-Wlogical-op \
 		-Wsuggest-attribute=const \
+		-Wsuggest-attribute=noreturn \
 		-Wsuggest-attribute=pure \
+		-Wsuggest-final-types \
+		-Wsuggest-final-methods \
 		-Wtrampolines \
 		"}
 	: ${CXXFLAGS_IMPL_WARNING:=" \

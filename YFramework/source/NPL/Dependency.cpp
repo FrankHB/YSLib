@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3363
+\version r3429
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2020-01-19 17:47 +0800
+	2020-01-30 21:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,12 +28,11 @@
 #include "NPL/YModules.h"
 #include YFM_NPL_Dependency // for ystdex::isspace, std::istream,
 //	YSLib::unique_ptr, NPL::AllocateEnvironment, std::piecewise_construct,
-//	std::forward_as_tuple, LiftOther, ystdex::isdigit, Collapse,
-//	LiftOtherOrCopy, LiftTermValueOrCopy, ystdex::bind1, NPL::IsMovable,
-//	LiftTermOrCopy, ResolveTerm, NPL::TryAccessReferencedTerm, ystdex::plus,
-//	std::placeholders, NPL::ResolveRegular, ystdex::tolower,
-//	ystdex::swap_dependent, LiftOther, LiftTermRef, LiftTerm, NPL::Deref,
-//	NPL::Forms functions;
+//	std::forward_as_tuple, LiftOther, Collapse, LiftOtherOrCopy,
+//	LiftTermValueOrCopy, ystdex::bind1, NPL::IsMovable, LiftTermOrCopy,
+//	ResolveTerm, NPL::TryAccessReferencedTerm, ystdex::plus, std::placeholders,
+//	NPL::ResolveRegular, ystdex::tolower, ystdex::swap_dependent, LiftTermRef,
+//	LiftTerm, NPL::Deref, NPL::Forms functions;
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
 //	ystdex::make_transform;
@@ -117,7 +116,7 @@ DecomposeMakefileDepList(std::streambuf& sb)
 	ystdex::split_if(sbuf.begin(), sbuf.end(), ystdex::isspace,
 		[&](SmallString::const_iterator b, SmallString::const_iterator e){
 		lst.push_back(string(b, e));
-	}, [&](SmallString::const_iterator i){
+	}, [&](SmallString::const_iterator i) YB_PURE{
 		return !ystdex::exists(spaces, size_t(i - sbuf.cbegin()));
 	});
 	return lst;
@@ -334,68 +333,6 @@ DoAssign(_func f, TermNode& x)
 		f(nd);
 	}, x);
 	return ValueToken::Unspecified;
-}
-
-//! \since build 842
-void
-LoadBasicProcessing(ContextState& ctx)
-{
-	ctx.EvaluateLiteral
-		= [](TermNode& term, ContextNode&, string_view id) -> ReductionStatus{
-		YAssertNonnull(id.data());
-		if(!id.empty())
-		{
-			const char f(id.front());
-
-			// NOTE: Extended literals handling.
-			if(IsNPLAExtendedLiteralNonDigitPrefix(f) && id.size() > 1)
-			{
-				// TODO: Support numeric literal evaluation passes.
-				if(id == "#t" || id == "#true")
-					term.Value = true;
-				else if(id == "#f" || id == "#false")
-					term.Value = false;
-				else if(id == "#n" || id == "#null")
-					term.Value = nullptr;
-				// NOTE: This is named after '#inert' in Kernel, but essentially
-				//	unspecified in NPLA.
-				else if(id == "#inert")
-					term.Value = ValueToken::Unspecified;
-				// XXX: Redundant test?
-				else if(IsNPLAExtendedLiteral(id))
-					ThrowInvalidSyntaxError(ystdex::sfmt(f != '#'
-						? "Unsupported literal prefix found in literal '%s'."
-						: "Invalid literal '%s' found.", id.data()));
-				else
-					return ReductionStatus::Retrying;
-			}
-			else if(ystdex::isdigit(f))
-			{
-				errno = 0;
-
-				const auto ptr(id.data());
-				char* eptr;
-				const long ans(std::strtol(ptr, &eptr, 10));
-
-				if(size_t(eptr - ptr) == id.size() && errno != ERANGE)
-					// XXX: Conversion to 'int' might be implementation-defined.
-					term.Value = int(ans);
-				// TODO: Use more specific exception type like
-				//	%std::range_error?
-				else if(ystdex::isdigit(id.back()))
-					ThrowInvalidSyntaxError(ystdex::sfmt("Value of identifier"
-						" '%s' is out of the range of the supported integer.",
-						id.data()));
-				else
-					// TODO: Supported literal postfix?
-					ThrowInvalidSyntaxError(ystdex::sfmt("Literal postfix is"
-						" unsupported in identifier '%s'.", id.data()));
-			}
-			else
-				return ReductionStatus::Retrying;
-		}
-		return ReductionStatus::Clean;
-	};
 }
 
 //! \since build 834
@@ -1007,7 +944,6 @@ void
 LoadGroundContext(REPLContext& context)
 {
 	LoadSequenceSeparators(context.ListTermPreprocess),
-	LoadBasicProcessing(context.Root);
 	Ground::Load(context);
 }
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r16006
+\version r16114
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-01-26 01:45 +0800
+	2020-01-31 04:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,9 +43,12 @@
 //	YSLib::share_move, GetLValueTagsOf, NPL::TryAccessReferencedLeaf,
 //	ystdex::invoke_value_or, ystdex::call_value_or, ystdex::swap_guard,
 //	ystdex::make_transform, ystdex::try_emplace, ystdex::unique_guard,
-//	ResolveIdentifier, NPL::TryAccessTerm, LiteralHandler, LiftMovedOther,
-//	LiftCollapsed, NPL::AllocateEnvironment, std::mem_fn;
+//	IsNPLAExtendedLiteralNonDigitPrefix, CheckReducible, IsNPLAExtendedLiteral,
+//	ystdex::isdigit, ResolveIdentifier, NPL::TryAccessTerm, LiteralHandler,
+//	CategorizeBasicLexeme, DeliteralizeUnchecked, Deliteralize,
+//	LiftMovedOther, LiftCollapsed, NPL::AllocateEnvironment, std::mem_fn;
 #include YFM_NPL_SContext // for Session;
+#include <ystdex/ref.hpp> // for ystdex::unref;
 
 using namespace YSLib;
 
@@ -557,7 +560,9 @@ YB_ATTR(always_inline) inline auto
 RelayDirect(ContextNode& ctx, _fCurrent&& cur, TermNode& term)
 	-> decltype(cur(term, ctx))
 {
-	return cur(term, ctx);
+	// XXX: This workarounds %std::reference_wrapper in libstdc++ to function
+	//	type in C++2a mode with Clang++. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93470.
+	return ystdex::unref(cur)(term, ctx);
 }
 #endif
 YB_ATTR(always_inline) inline ReductionStatus
@@ -977,7 +982,7 @@ template<typename _func>
 void
 EqualTermReference(TermNode& term, _func f)
 {
-	EqualTerm(term, [f](const TermNode& x, const TermNode& y){
+	EqualTerm(term, [f](const TermNode& x, const TermNode& y) YB_PURE{
 		return IsLeaf(x) && IsLeaf(y) ? f(x.Value, y.Value)
 			: ystdex::ref_eq<>()(x, y);
 	}, static_cast<const TermNode&(&)(const TermNode&)>(ReferenceTerm));
@@ -3000,7 +3005,7 @@ ContextState::DefaultReduceOnce(TermNode& term, ContextNode& ctx)
 		return term.size() != 1 ? DoAdministratives(cs.EvaluateList, term, ctx)
 			: ReduceAgainLifted(term, ctx, AccessFirstSubterm(term));
 	}
-	return ReductionStatus::Regular;
+	return ReductionStatus::Retained;
 }
 
 ReductionStatus
@@ -3316,6 +3321,82 @@ RegisterSequenceContextTransformer(EvaluationPasses& passes,
 }
 
 
+TermNode
+ParseLeaf(string_view id, TermNode::allocator_type a)
+{
+	YAssertNonnull(id.data());
+	auto term(NPL::AsTermNode(a));
+
+	if(!id.empty())
+		switch(CategorizeBasicLexeme(id))
+		{
+		case LexemeCategory::Code:
+			// XXX: When do code literals need to be evaluated?
+			id = DeliteralizeUnchecked(id);
+			YB_ATTR_fallthrough;
+		case LexemeCategory::Symbol:
+			if(CheckReducible(A1::DefaultEvaluateLeaf(term, id)))
+				term.Value.emplace<TokenValue>(id, a);
+				// NOTE: This is to be evaluated as identifier later.
+			break;
+			// XXX: Empty token is ignored.
+			// XXX: Remained reducible?
+		case LexemeCategory::Data:
+			// XXX: This should be prevented being passed to second pass in
+			//	%TermToNamePtr normally. This is guarded by normal form handling
+			//	in the loop in %ContextNode::Rewrite with %ReduceOnce.
+			term.Value.emplace<string>(Deliteralize(id), a);
+			YB_ATTR_fallthrough;
+		default:
+			break;
+			// XXX: Handle other categories of literal?
+		}
+	return term;
+}
+
+ReductionStatus
+DefaultEvaluateLeaf(TermNode& term, string_view id)
+{
+	YAssertNonnull(id.data());
+	if(!id.empty())
+	{
+		const char f(id.front());
+
+		if(ystdex::isdigit(f))
+		{
+		    int ans(0);
+
+			for(auto p(id.begin()); p != id.end(); ++p)
+				if(ystdex::isdigit(*p))
+				{
+					if(unsigned((ans << 3) + (ans << 1) + *p - '0')
+						<= unsigned(INT_MAX))
+						ans = (ans << 3) + (ans << 1) + *p - '0';
+					else
+						ThrowInvalidSyntaxError(ystdex::sfmt("Value of"
+							" identifier '%s' is out of the range of the"
+							" supported integer.", id.data()));
+				}
+				else
+					ThrowInvalidSyntaxError(ystdex::sfmt("Literal postfix is"
+						" unsupported in identifier '%s'.", id.data()));
+			term.Value = ans;
+		}
+		else if(id == "#t" || id == "#true")
+			term.Value = true;
+		else if(id == "#f" || id == "#false")
+			term.Value = false;
+		else if(id == "#n" || id == "#null")
+			term.Value = nullptr;
+		else if(id == "#inert")
+			term.Value = ValueToken::Unspecified;
+		else
+			return ReductionStatus::Retrying;
+		return ReductionStatus::Clean;
+	}
+	return ReductionStatus::Retrying;
+}
+
 ReductionStatus
 EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 {
@@ -3372,42 +3453,22 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 
 	YAssertNonnull(id.data());
 	// NOTE: Only string node of identifier is tested.
-	if(!id.empty())
+	if(!id.empty() && (cs.EvaluateLiteral.empty()
+		|| CheckReducible(cs.EvaluateLiteral(term, cs, id))))
 	{
-		// NOTE: The term would be normalized by %ReduceCombined.
-		//	If necessary, there can be inserted some additional cleanup to
-		//	remove empty tokens, returning %ReductionStatus::Partial.
-		//	Separators should have been handled in appropriate preprocessing
-		//	passes.
-		const auto lcat(CategorizeBasicLexeme(id));
-
-		switch(lcat)
-		{
-		case LexemeCategory::Code:
-			// XXX: When do code literals need to be evaluated?
-			id = DeliteralizeUnchecked(id);
-			if(YB_UNLIKELY(id.empty()))
-				break;
-			YB_ATTR_fallthrough;
-		case LexemeCategory::Symbol:
-			YAssertNonnull(id.data());
-			// XXX: Asynchronous reduction is currently not supported.
-			return CheckReducible(cs.EvaluateLiteral(term, cs, id))
-				? EvaluateIdentifier(term, cs, id) : ReductionStatus::Clean;
-			// XXX: Empty token is ignored.
-			// XXX: Remained reducible?
-		case LexemeCategory::Data:
-			// XXX: This should be prevented being passed to second pass in
-			//	%TermToNamePtr normally. This is guarded by normal form handling
-			//	in the loop in %ContextNode::Rewrite with %ReduceOnce.
-			term.Value.emplace<string>(Deliteralize(id));
-			YB_ATTR_fallthrough;
-		default:
-			break;
-			// XXX: Handle other categories of literal?
-		}
+		// NOTE: The symbols are lexical results from analysis by %ParseLeaf.
+		//	The term would be normalized by %ReduceCombined. If necessary,
+		//	there can be inserted some additional cleanup to remove empty
+		//	tokens, returning %ReductionStatus::Partial. Separators should have
+		//	been handled in appropriate preprocessing passes.
+		// XXX: Asynchronous reduction is currently not supported.
+		if(!IsNPLAExtendedLiteral(id))
+			return EvaluateIdentifier(term, cs, id);
+		ThrowInvalidSyntaxError(ystdex::sfmt(id.front() != '#'
+			? "Unsupported literal prefix found in literal '%s'."
+			: "Invalid literal '%s' found.", id.data()));
 	}
-	return ReductionStatus::Clean;
+	return ReductionStatus::Retained;
 }
 
 ReductionStatus
@@ -3422,8 +3483,9 @@ ReduceLeafToken(TermNode& term, ContextNode& ctx)
 {
 	const auto res(ystdex::call_value_or([&](string_view id){
 		return EvaluateLeafToken(term, ctx, id);
-	// XXX: A term without token is ignored.
-	}, TermToNamePtr(term), ReductionStatus::Clean));
+	// XXX: A term without token is ignored. This is actually same to
+	//	%ReductionStatus::Regular in the current implementation.
+	}, TermToNamePtr(term), ReductionStatus::Retained));
 
 	return CheckReducible(res) ? ReduceAgain(term, ctx) : res;
 }
@@ -3570,7 +3632,9 @@ SetupDefaultInterpretation(ContextState& cs, EvaluationPasses passes)
 
 
 REPLContext::REPLContext(pmr::memory_resource& rsrc)
-	: Allocator(&rsrc), Root(rsrc)
+	: Allocator(&rsrc), Root(rsrc), ConvertLeaf([&](const SmallString& str){
+		return ParseLeaf(YSLib::make_string_view(str), Allocator);
+	})
 {
 	using namespace std::placeholders;
 
@@ -3608,13 +3672,12 @@ REPLContext::Perform(string_view unit, ContextNode& ctx)
 void
 REPLContext::Prepare(TermNode& term) const
 {
-	TokenizeTerm(term);
 	Preprocess(term);
 }
 TermNode
 REPLContext::Prepare(const TokenList& token_list) const
 {
-	auto term(SContext::Analyze(token_list));
+	auto term(SContext::Analyze(token_list, ConvertLeaf));
 
 	Prepare(term);
 	return term;
@@ -3622,7 +3685,7 @@ REPLContext::Prepare(const TokenList& token_list) const
 TermNode
 REPLContext::Prepare(const Session& session) const
 {
-	auto term(SContext::Analyze(session, Allocator));
+	auto term(SContext::Analyze(session, ConvertLeaf, Allocator));
 
 	Prepare(term);
 	return term;

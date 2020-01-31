@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2019 FrankHB.
+	© 2011-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ref.hpp
 \ingroup YStandardEx
 \brief 引用包装。
-\version r494
+\version r507
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:29:20 +0800
 \par 修改时间:
-	2019-11-02 22:59 +0800
+	2020-01-28 05:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,11 +47,13 @@ namespace ystdex
 \see WG21 N4277 。
 \see WG21 P0357R1 。
 \see LWG 2993 。
+\see LWG 3041 。
 
 类似 std::reference_wrapper 和 \c boost::reference_wrapper 公共接口兼容的
 	引用包装类实现。
 和 std::reference_wrapper 不同而和 \c boost::reference_wrapper 类似，
 	不提供 weak result type ，不要求模板参数为完整类型。
+使用 exclude_self_t 实现，不需要 LWG 3041 的解决方案但等效。
 */
 //@{
 template<typename _type>
@@ -233,7 +235,6 @@ public:
 /*!
 \brief 解除引用包装。
 \note 默认仅提供对 std::reference_wrapper 和 lref 的实例类型的重载。
-\note 使用 ADL 。
 \since build 348
 */
 //@{
@@ -243,10 +244,17 @@ unref(_type&& x) ynothrow
 {
 	return x;
 }
-//! \since build 554
+//! \since build 890
 template<typename _type>
 yconstfn _type&
-unref(const lref<_type>& x) ynothrow
+unref(std::reference_wrapper<_type> x) ynothrow
+{
+	return x.get();
+}
+//! \since build 890
+template<typename _type>
+yconstfn _type&
+unref(lref<_type> x) ynothrow
 {
 	return x.get();
 }

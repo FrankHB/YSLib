@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r3481
+\version r3507
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2020-01-19 22:40 +0800
+	2020-01-30 22:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -3548,6 +3548,32 @@ Some issues met with LTO are reviewed again, as $2019-08.
 			The using of static library are assumed across YBase, YFramework and client programs.
 			There may be other implicit options for options are effective besides inlining. It is yet unknown which presice set of options are effective.
 			It would be still broken if either 'YB_ATTR(noinline)' or 'YB_ATTR(optimize("O2"))' (or more low optimization level) is not present.
+Warnings to suggest attributes and other source-level micro optimizations are applied when using GCC.
+	Note the unrecognized warning options are ignored by GCC.
+		Compatibility may concens across different vesions of GCC being used. Some of options known incompatible to old supported versions of GCC.
+		However, as the policy in general, there is usually no effort to make newer warning options work with older toolchain versions.
+		Version check of the toolchain in the build tools is planned to be implemented in future.
+	GCC releases from 5 support "-Wsuggest-final-types and -Wsuggest-final-methods".
+		See https://www.gnu.org/software/gcc/gcc-5/changes.html.
+	GCC releases from 6 seem accept "--warn-suggest-attribute=const" "--warn-suggest-attribute=pure" "--warn-suggest-attribute=noreturn".
+		This style seems compatible in future releases.
+		However, the following shorter "-W" options are used instead in the build scripts for simplicity.
+			This is even true when the support for GCC 6 series are not dropped yet.
+			See the policy mentioned above.
+	GCC releases from 7 seem also accept "-Wsuggest-attribute=const" "-Wsuggest-attribute=pure" "-Wsuggest-attribute=noreturn".
+	GCC releases from 8 seem accept "-Wsuggest-attribute=cold".
+	Wrong ong suggestions by "-Wsuggest-attribute=const -Wsuggest-attribute=pure" on functions with 'void' return type (causing G++ 9.2 warning: "-Wattribute") are ignored.
+NPLA1 lexical analysis can be lifted reasonably reasonably ahead-of-time now.
+	This is done by adding support of tokenizer callbacks in YFramework module NPL::SContext.
+		For compatibility issues (e.g. used by NPL::Configuration), old ones are preserved and implemented with a default callback.
+	The REPL context now uses the callback by default.
+		The callback is exposed as a data member named 'ConvertLeaf'.
+			This allows the alternative optimal 'ConvertLeaf' to return 'string' values as self-reducing terms rather than lexemes.
+			It is also significantly more efficient by default.
+			Further, it avoids the nested call safety problem in the recursive call of 'TokenizeTerm'.
+		Alternatively, 'ConvertLeaf' can use a slightly different strategy to the default in 'NPL::SContext' one by converting 'NPL::TokenValue' as the result directly, instead of a separated call to 'TokenizeTerm' later in 'REPLContext::Prepare'.
+			This also has merits above.
+			It is not used to avoid complexity of radically different call paths and the modification of interface on 'REPLContext'.
 
 ////
 

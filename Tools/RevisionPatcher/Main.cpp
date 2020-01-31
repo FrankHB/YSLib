@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2017, 2019 FrankHB.
+	© 2015-2017, 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 版本补丁工具。
-\version r242
+\version r256
 \author FrankHB <frankhb1989@gmail.com>
 \since build 565
 \par 创建时间:
 	2015-01-11 14:20:05 +0800
 \par 修改时间:
-	2019-07-08 12:34 +0800
+	2020-01-27 21:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,10 @@ See readme file for details.
 
 
 #include <YSBuild.h>
-#include YFM_YCLib_FileSystem
+#include YFM_YCLib_FileSystem // for string, vector, size_t, pair,
+//	ystdex::string_length, ystdex::begins_with, ystdex::rtrim,
+//	ystdex::cond_prefix, ystdex::trim, ystdex::extract_line_cr,
+//	ystdex::erase_all_if;
 #include <iostream>
 
 using namespace YSLib;
@@ -41,9 +44,14 @@ using Entry = vector<string>;
 using EntryMap = map<size_t, Entry>;
 using PatchMap = map<string, pair<size_t, EntryMap>>;
 //! \since build 862
-//@{
 using ystdex::string_length;
+//! \since build 862
 using ystdex::begins_with;
+//! \since build 880
+//@{
+using ystdex::rtrim;
+using ystdex::cond_prefix;
+using ystdex::trim;
 //@}
 
 PatchMap
@@ -59,7 +67,7 @@ Analyze(std::istream& in)
 	auto at_blk(size_t(-1));
 	auto at_a(size_t(-1));
 
-	for(size_t n(0); extract_line_cr(in, line); ++n)
+	for(size_t n(0); ystdex::extract_line_cr(in, line); ++n)
 	{
 		if(line.empty())
 			continue;
@@ -139,7 +147,7 @@ CalcLines(EntryMap& m, size_t base, size_t limit = 2)
 				}
 			}
 	for(auto& item : m)
-		erase_all_if(item.second, [](const string& str){
+		ystdex::erase_all_if(item.second, [](const string& str){
 			return str.empty();
 		});
 	tie(n, n_empty) = std::accumulate(m.begin(), m.end(), make_pair(n, n_empty),

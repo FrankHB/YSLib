@@ -8,10 +8,9 @@ set -e
 # XXX: Some options for stage 1 SHBuild are fixed. Provide more separated
 #	options in future?
 CXXFLAGS_OPT_UseAssert=true
-C_CXXFLAGS_GC=''
-LD_CXXFLAGS_GC=''
-C_CXXFLAGS_STRIP=''
-LD_CXXFLAGS_STRIP=''
+C_CXXFLAGS_GC=' '
+LDFLAGS_GC=' '
+LDFLAGS_STRIP=' '
 CXXFLAGS_OPT_DBG='-Og -g'
 # XXX: This avoids clash between '-Og' with error 'Optimization level must be
 #	between 0 and 3' caused by options passed to the linker from Clang++ driver.

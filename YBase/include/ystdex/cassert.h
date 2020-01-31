@@ -11,13 +11,13 @@
 /*!	\file cassert.h
 \ingroup YStandardEx
 \brief ISO C 断言/调试跟踪扩展。
-\version r278
+\version r284
 \author FrankHB <frankhb1989@gmail.com>
 \since build 432
 \par 创建时间:
 	2013-07-27 04:11:53 +0800
 \par 修改时间:
-	2020-01-26 02:21 +0800
+	2020-01-27 17:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,18 +110,16 @@ ytrace(std::FILE*, std::uint8_t, std::uint8_t, const char*, int, const char*,
 #ifdef NDEBUG
 #	if YB_IMPL_CLANGPP >= 30401
 #		define yconstraint(_expr) \
-	((_Pragma("clang diagnostic push") \
-		_Pragma("clang diagnostic ignored \"-Wpointer-bool-conversion\"") \
-		YB_ASSUME(_expr) _Pragma("clang diagnostic pop")), void())
+	((YB_Diag_Push YB_Diag_Ignore(pointer-bool-conversion) YB_ASSUME(_expr) \
+		YB_Diag_Pop), void())
 #	else
 #		define yconstraint(_expr) (YB_ASSUME(_expr), void())
 #	endif
 #else
 #	if YB_IMPL_CLANGPP >= 30401
 #		define yconstraint(_expr) \
-	((_Pragma("clang diagnostic push") \
-		_Pragma("clang diagnostic ignored \"-Wpointer-bool-conversion\"") \
-		_expr _Pragma("clang diagnostic pop")) ? void() \
+	((YB_Diag_Push YB_Diag_Ignore(pointer-bool-conversion) _expr \
+		YB_Diag_Pop) ? void() \
 		: ystdex::yassert(#_expr, __FILE__, __LINE__, "Constraint violation."))
 #	else
 #		define yconstraint(_expr) \

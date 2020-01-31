@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2680
+\version r2716
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2020-01-25 21:38 +0800
+	2020-01-31 03:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -312,7 +312,7 @@ public:
 	DefDeMoveAssignment(TermNode)
 
 	//! \since build 853
-	DefBoolNeg(explicit, bool(Value) || !empty())
+	YB_PURE DefBoolNeg(YB_PURE explicit, bool(Value) || !empty())
 
 	//! \since build 853
 	//@{
@@ -447,7 +447,7 @@ public:
 		std::prev(container.end())))
 
 	//! \since build 853
-	YB_ATTR_nodiscard PDefH(bool, empty, ) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(bool, empty, ) const ynothrow
 		ImplRet(container.empty())
 
 	PDefH(iterator, erase, const_iterator i)
@@ -793,6 +793,12 @@ namespace SContext
 {
 
 /*!
+\brief 标记器：分析词素转换为可能包含记号的节点。
+\since build 880
+*/
+using Tokenizer = function<TermNode(const SmallString&)>;
+
+/*!
 \brief 遍历记号列表，验证基本合法性：圆括号是否对应。
 \param b 起始迭代器。
 \param e 终止迭代器。
@@ -815,9 +821,17 @@ Validate(TLCIter b, TLCIter e);
 \return e 或指向冗余的 ')' 的迭代器。
 \throw LoggedEvent 警报：找到冗余的 '(' 。
 */
+//@{
 YB_ATTR_nodiscard YF_API TLCIter
 Reduce(TermNode& term, TLCIter b, TLCIter e);
-
+/*!
+\brief 遍历规约记号列表，取抽象语法树分析结果储存至指定值类型节点。
+\param parse 记号分析器。
+\since build 880
+*/
+YB_ATTR_nodiscard YF_API TLCIter
+Reduce(TermNode& term, TLCIter b, TLCIter e, Tokenizer parse);
+//@}
 
 /*!
 \brief 分析指定源，取抽象语法树储存至指定值类型节点。
@@ -828,11 +842,16 @@ YF_API void
 Analyze(TermNode&, const TokenList&);
 YF_API void
 Analyze(TermNode&, const Session&);
+//! \since build 880
+YF_API void
+Analyze(TermNode&, Tokenizer, const TokenList&);
+//! \since build 880
+YF_API void
+Analyze(TermNode&, Tokenizer, const Session&);
 //@}
-/*!
-\note 调用 ADL Analyze 分析节点。
-\since build 867
-*/
+//! \note 调用 ADL Analyze 分析节点。
+//@{
+//! \since build 867
 template<typename _type>
 YB_ATTR_nodiscard TermNode
 Analyze(const _type& arg, const TermNode::allocator_type& a = {})
@@ -842,6 +861,18 @@ Analyze(const _type& arg, const TermNode::allocator_type& a = {})
 	Analyze(root, arg);
 	return root;
 }
+//! \since build 880
+template<typename _type>
+YB_ATTR_nodiscard TermNode
+Analyze(const _type& arg, Tokenizer parse,
+	const TermNode::allocator_type& a = {})
+{
+	TermNode root(a);
+
+	Analyze(root, std::move(parse), arg);
+	return root;
+}
+//@}
 //@}
 
 } // namespace SContext;

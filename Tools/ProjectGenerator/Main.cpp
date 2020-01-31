@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2019 FrankHB.
+	© 2015-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r846
+\version r848
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-18 20:45:11 +0800
 \par 修改时间:
-	2019-08-16 10:58 +0800
+	2020-01-27 21:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -377,7 +377,7 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 	HostHandler handler;
 
 	if(!custom_makefile)
-		handler = [&, btype](TermNode& tm, bool debug, bool is_static){
+		handler = [&](TermNode& tm, bool debug, bool is_static){
 			auto child(TransformToSyntaxNode(NodeLiteral("Compiler")));
 			const auto opt_add([&child](const string& str){
 				InsertAttributeNode(child, "Add", "option", str);

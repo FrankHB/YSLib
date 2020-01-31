@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2019 FrankHB.
+	© 2012-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1664
+\version r1688
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2019-07-13 11:22 +0800
+	2020-01-30 22:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -140,6 +140,16 @@ TLCIter
 Reduce(TermNode& term, TLCIter b, TLCIter e)
 {
 	const auto a(term.get_allocator());
+
+	return Reduce(term, b, e, [&](const SmallString& str){
+		return NPL::AsTermNode(a, std::allocator_arg, a,
+			string(YSLib::make_string_view(str), a));
+	});
+}
+TLCIter
+Reduce(TermNode& term, TLCIter b, TLCIter e, Tokenizer tokenize)
+{
+	const auto a(term.get_allocator());
 	stack<TermNode> tms(a);
 	const auto gd(ystdex::make_guard([&]() ynothrowv{
 		YAssert(!tms.empty(), "Invalid state found.");
@@ -153,8 +163,7 @@ Reduce(TermNode& term, TLCIter b, TLCIter e)
 		else if(*b != ")")
 		{
 			YAssert(!tms.empty(), "Invalid state found.");
-			tms.top().Add(NPL::AsTermNode(a, std::allocator_arg, a,
-				string(YSLib::make_string_view(*b), a)));
+			tms.top().Add(tokenize(*b));
 		}
 		else if(tms.size() != 1)
 		{
@@ -182,6 +191,18 @@ void
 Analyze(TermNode& root, const Session& session)
 {
 	Analyze(root, session.GetTokenList());
+}
+void
+Analyze(TermNode& root, Tokenizer tokenizer, const TokenList& token_list)
+{
+	if(Reduce(root, token_list.cbegin(), token_list.cend(),
+		std::move(tokenizer)) != token_list.cend())
+		throw LoggedEvent("Redundant ')' found.", Alert);
+}
+void
+Analyze(TermNode& root, Tokenizer tokenizer, const Session& session)
+{
+	Analyze(root, std::move(tokenizer), session.GetTokenList());
 }
 
 } // namespace SContext;

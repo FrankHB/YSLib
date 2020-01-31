@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2019 FrankHB.
+	© 2012-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1662
+\version r1664
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2019-09-05 21:58 +0800
+	2020-01-27 15:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -301,7 +301,7 @@ public:
 \brief 检查指定字符串是否为字面量。
 \return 若为字面量（首尾字符都为 '\'' 或 '"' 之一），则为首字符，否则为 char() 。
 */
-YF_API char
+YF_API YB_PURE char
 CheckLiteral(string_view) ynothrowv;
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r17229
+\version r17459
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-01-27 03:27 +0800
+	2020-01-31 13:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,228 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YDefinition $=
+		(
+			+ "macro %YPP_Stringize";
+			+ "diagnostic macros %(YB_Diag_Push, YB_Diag_Pop, YB_Diag_Ignore)";
+			/ DLDI "simplified macro %YB_ASSUME" @ 'YB_IMPL_CLANGPP'
+				^ "%(YB_Diag_Push, YB_Diag_Pop, YB_Diag_Ignore)"
+		),
+		/ %YStandardEx $=
+		(
+			/ DLDI "simplified macros %(yconstraint, yassume)"
+				@ 'YB_IMPL_CLANGPP' @ %CAssert ^ $dep_from
+				("%(YB_Diag_Push, YB_Diag_Pop, YB_Diag_Ignore)" @ %YDefinition),
+			/ DLI "ignored G++ warnings ('-Wsuggest-attribute=const', \
+				'-Wsuggest-attribute=pure')"
+				"functor macros" @ 'YB_IMPL_GNUCPP >= 70000' ^ $dep_from
+				("%(YB_Diag_Push, YB_Diag_Pop, YB_Diag_Ignore)" @ %YDefinition),
+			/ %MemoryResouce $=
+			(
+				/ $dev $lib 'yimpl(YB_PURE)'
+					@ "classes %(pool_resource, monotonic_buffer_resource)"
+					-> 'yimpl(YB_STATELESS)';
+					// Also to eliminate G++ 9.2 warning: \
+						[-Wsuggest-attribute=const].
+				* $comp $impl "conflict 'YB_STATELESS' implementation ignored \
+					by 'YB_PURE'" $since b879
+			),
+			/ "function templates %unref" @ %Ref $=
+			(
+				* "%lref not matched prior to fallback overload"
+					$orig (@ %Functional $since b348)
+					$= (/ "parameter type" -> "non-reference value type"),
+				+ $revert_ex(b554)
+					"overload for %std::reference_wrapper instances";
+				* $comp "wrong '\note' command" @ "Doxygen comment"
+					$mismatch $orig (@ %Functional $since b554)
+			),
+		)
+	),
+	/ %YFramework $=
+	(
+		+ $dev $lib 'YB_STATELESS' @ (("all 2 function and 1 function \
+			template %IsPrint" @ %YCommon, ("function %CategorizeNode",
+			"member function %FileDescriptor::SetTranslationMode"
+			!@ "platform %Win32") @ %FileIO) @ %YCLib,
+			"function template %ComposeReferencedTermOp" @ %NPL.NPLA),
+			// Also to eliminate G++ warning: [-Wsuggest-attribute=const].
+		/ $dev $lib 'YB_PURE' @ ("function %CheckReducible" @ %NPLA,
+			$revert_ex(b847) "function %Forms::SymbolToString" @ %NPLA1) @ %NPL,
+			"function %ClassifyKey" @ %YCLib.Keys) -> 'YB_STATELESS',
+			// Also to eliminate G++ 7.1 warning: [-Wsuggest-attribute=const].
+		/ %YBaseMacro $=
+		(
+			/ $dev "suppressed warning [-Wunused-function]" @ "macro \
+				%DefBitmaskOperations" @ 'YB_IMPL_CLANGPP'
+				^ $dep_from ("%(YB_Diag_Push, YB_Diag_Pop, \
+				YB_Diag_Ignore)" @ %YBase.YDefinition),
+			+ 'YB_PURE' @ "macros with prefixes ('DefPred', 'DefGetter')"
+				$= (+ 'YB_PURE' @ "macros %(DefPred, DefGetter)")
+				// This is now more restrictive as it requires the body \
+					compatible with 'YB_PURE' and similar attributes \
+					(including 'YB_STATELESS') cannot override it in all cases.
+		),
+		/ $dev $lib %YCLib $=
+		(
+			+ 'YB_NORETURN' @ "member functions \
+				%FileDescriptor::(GetFlags, SetBlocking, SetFlags, SetMode, \
+				SetNonblocking)" @ '!YCL_API_POSIXFileSystem' @ %FileIO,
+				// Also to eliminate G++ 7.1 warning: \
+					[-Wsuggest-attribute=noreturn].
+			+ 'yimpl(YB_NORETURN)'
+				@ "member function %WindowReference::GetParent" @ %HostedGUI,
+				// Also to eliminate G++ 7.1 warning: \
+					[-Wsuggest-attribute=noreturn].
+			+ 'YB_PURE' $effective @ ("static member function \
+				%Logger::DefaultFilter" @ %Debug, ("functions \
+				%FAT::LFN::(GenerateAliasChecksum, ValidateName)",
+				"member functions %HDirectory::(GetNativeName, operator \
+				(basic_string_view<NativeChar>, string, u16string, bool, !), \
+				begin, end)") @ %FileSystem, "functions %(FindFirstKey, \
+				FindNextKey, FindFirstKeyInCategroy)" @ %Keys,
+				("member functions %ScreenBuffer::(GetBufferPtr, GetStride)"
+				@ 'YCL_HostedUI_XCB || YCL_Android', "member function \
+				%HostWindow::MapPoint" @ "platform %Win32", "member function \
+				%WindowsRegionDeviceContext::IsBackgroundValid") @ %HostedGUI),
+				// Also to eliminate G++ 7.1 warning: \
+					[-Wsuggest-attribute=pure].
+			+ $dev $lib 'YB_ATTR_nodiscard' "member functions \
+				%HDirectory::(operator (basic_string_view<NativeChar>, string, \
+				u16string, bool, !), begin, end, GetNativeName, \
+				GetNodeCategory)") @ %FileSystem
+		),
+		/ %NPL $=
+		(
+			+ $dev $lib 'YB_PURE' $effective
+				@ ("function %CheckLiteral" @ %Lexical,
+				"member function %TermNode::(empty, operator(bool, !))"
+				@ %SContext, $impl "internal lambda-expression"
+				@ "functions %Forms::(Equal, EqualValue)" @ %NPLA1),
+				// Also to eliminate G++ 7.1 warning: \
+					[-Wsuggest-attribute=pure].
+			* "wrongly threw exception on successful lookup" @ "member \
+				function %Environment::ReplaceChecked" @ %NPLA $since b867,
+			/ %SContext $=
+			(
+				+ "type %Tokenizer";
+				+ "function %Reduce#2 with %Tokenizer parameter";
+				/ DLDI "simplified function %Reduce#1" ^ "%Reduce#2",
+				+ "(2 function overloads; function template overload) %Analyze \
+					with %Tokenizer parameter"
+			),
+			/ %NPLA1 $=
+			(
+				+ $impl "workaround of libstdc++ with Clang++ in C++2a mode"
+					^ $dep_from ("%ystdex::unref" @ %YBase.YStandardEx.Ref),
+					// See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93470.
+				+ "function %DefaultEvaluateLeaf",
+				/ DLI "default return value"
+					@ "static member function %ContextState::DefaultReduceOnce"
+					-> "%ReductionStatus::Retained"
+					~ "%ReductionStatus::Regular",
+					// This actually change nothing but the high-level meaning \
+						of the status, as %ReductionStatus::Regular is now \
+						equal to %ReductionStatus::Retained.
+				/ "default return value" @ "functions %(ReduceLeafToken, \
+					EvaluateLeafToken)" -> "%ReductionStatus::Retained"
+					~ "%ReductionStatus::Clean",
+					// To get more precise semantics of self-reducing terms \
+						and to simplify possible replacement of \
+						%ContextState::DefaultReduceOnce.
+				+ "function %ConvertLeaf",
+				/ @ "class %REPLContext" $=
+				(
+					// See $2020-01 @ %Documentation::Workflow.
+					+ "data member %ConvertLeaf" $dep_from
+						("%SContext::Tokenizer" @ %SContext);
+					/ "constructor intialized to specialized token parser for \
+						%ConvertLeaf" ^ $dep_from "%ConvertLeaf";
+					/ "2 functions %Prepare" ^ "%ConvertLeaf";
+					- "%TokenizeTerm call" @ "all functions %Prepare"
+				),
+				/ "function %EvaluateLeafToken" $=
+				(
+					- DLI "redundant assertion for case %LexemeCategory::Symbol"
+						@ "function %EvaluateLeafToken",
+					- "literal handling except for literal pass call and \
+						unsupported extend literal checks"
+						$dep_from "constructor %REPLContext"
+						// See $2020-01 @ %Documentation::Workflow.
+				)
+			),
+			/ %Dependency $=
+			(
+				+ DLDI 'YB_PURE' @ "lambda-expression"
+					@ "function %DecomposeMakefileDepList" @ %Dependency,
+					// To eliminate G++ 9.2 warning: [-Wsuggest-attribute=pure].
+				/ "literal parsing setup" @ "function %LoadGroundContext" $=
+				(
+					/ DLI "simplified with more efficient integer parsing"
+						^ $dep_from ("%DefaultEvaluateLeaf" @ %NPLA1)
+						$dep_from ("%EvaluateLeafToken" @ %NPLA1);
+						// This also does not pollute %errno. \
+							%EvaluateLeafToken is required for split checks of \
+							unsupportd extended literals.
+					* "wrong condition to throw exception of unsupported \
+						literal suffix" $since b855
+				)
+			)
+		),
+		/ %YSLib.Service $=
+		(
+			+ $dev $lib 'YB_PURE' $effective @ ("friend function %operator=="
+				@ "class %TextFileBuffer::iterator" @ %TextManager,
+				$design $impl "lambda-expression" @ "function template \
+				%FetchMaxTextWidth" @ %TextLayout, "functions \
+				%(CheckBOM#(1, 2, 3), DetectBOM#(1, 2))" @ %TextFile),
+			/ %TextLayout $=
+			(
+				+ DD "'\note' command' to clarify ADL %PrintString being \
+					used" @ "Doxygen comment"
+					@ "function template %FetchStringWidth#(1, 2)",
+					// Similar to %TextRenderer.
+				* "missing qualification 'Drawing::' for \
+					%FetchStringWidth calls" $since b197
+			),
+			+ $dev $lib 'YB_ATTR_nodiscard' @ ("all function and function \
+				templates %(CheckBOM, DetectBOM)",
+				"function template %OpenSkippedBOMtream") @ %TextFile
+		)
+	),
+	/ Tools $=
+	(
+		* "missing 'ystdex::' qualification" @ "call of %(rtrim, cond_prefix, \
+			trim, extract_line_cr, erase_all_if)" @ 'YB_Impl_String_has_P0254R2'
+			@ %RevisionPatcher.Main $since b862,
+			// ADL should not be relied on since both %basic_string and \
+				basic_string_view can be from %std rather than %ystdex. This \
+				is actually broken in C++17 mode using G++ 9 or Clang++ 9.
+		- DLDI "unused lambda-capture" @ %ProjectGenerator.Main,
+			// To eliminate Clang++ warning: [-Wunused-lambda-capture].
+		/ %Scripts $=
+		(
+			+ $re_add(b879) ("-Wsuggest-attribute=noreturn",
+				"-Wsuggest-final-types", "-Wsuggest-final-methods")
+				@ "%C_CXXFLAGS_IMPL_WARNING" @ "G++ warnings"
+				@ "%(SHBuild-YSLib-common.txt, SHBuild-common-options.sh)",
+				// See $2020-01 @ %Documentation::Workflow.
+			* "wrong variables for options used" @ "%SHBuild-build.sh"
+				$since b839 $=
+			(
+				/ "all empty overriding values ''" -> "' '",
+				- "%C_CXXFLAGS_STRIP",
+				/ "%LD_CXXFLAGS_GC" => "%LDFLAGS_GC",
+				/ "%LD_CXXFLAGS_STRIP" => "%LDFLAGS_STRIP"
+			)
+		)
+	)
+),
+
+b879
 (
 	/ %YBase $=
 	(
@@ -360,9 +582,7 @@ $now
 			+ ("-Wsuggest-attribute=const", "-Wsuggest-attribute=pure")
 				@ "%C_CXXFLAGS_IMPL_WARNING" @ "G++ warnings"
 				@ "%(SHBuild-YSLib-common.txt, SHBuild-common-options.sh)"
-				// This is known incompatible to old supported versions of \
-					GCC. Version check of the toolchain is planned to be \
-					implemented in future.
+				// See $2020-01 @ %Documentation::Workflow.
 		)
 	)
 ),
@@ -384,7 +604,7 @@ b878
 				// These cases should also have been covered by the workaround \
 					for G++ LTO. There are also some additional side effects \
 					due to toolchain issues to be worked around. See $2020-01 \
-					@ %Documentation::Workflow..
+					@ %Documentation::Workflow.
 				$= (+ "static function template %invoke_empty"
 					@ "class specializations %function_traits with specified \
 					template arguments")
@@ -498,8 +718,7 @@ b878
 					@ "function ReductionChildrenOrdered#1" $since b841,
 				(
 				/ DLI "optimized internal functions to return \
-					%ReductionStatus::Neutral"
-					~ "%ReductionStatus::Clean"
+					%ReductionStatus::Neutral" ~ "%ReductionStatus::Clean"
 					@ "functions %(ReduceChildren, ReduceArguments)",
 				/ "optimized functions to return %ReductionStatus::Neutral"
 					~ "%ReductionStatus::Clean"
@@ -3345,7 +3564,7 @@ b862
 			@ %Scripts $since b838,
 			// This was overlooked. The original script %install-sysroot.sh \
 				in %Tools was OK.
-		* "ill-formed for string types" @ %RevisionPatcher.Main $since b861
+		* "ill-formed use of string types" @ %RevisionPatcher.Main $since b861
 	),
 	* $re_add(b861) "wrong 'nonnull(1)' attribute used" $effective @ (("member \
 		function %Screen::Update" @ %YSLib.Core.YDevice, (("member functions \
@@ -3394,8 +3613,7 @@ b861
 			/ @ "class template %basic_string_view" $=
 			(
 				+ DD '\ingroup YBase_replacement_features' @ "Doxygen comment"
-				* "missing 'ynothrowv'" @ "constructor#3" @ %StringView $since
-					b640
+				* "missing 'ynothrowv'" @ "constructor#3" $since b640
 			),
 			+ DD '\ingroup YBase_replacement_extensions' @ "Doxygen comment"
 				@ "alias template %string_view_t"

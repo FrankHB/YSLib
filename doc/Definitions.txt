@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14227
+\version r14231
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2020-01-16 22:32 +0800
+	2020-01-27 18:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -107,7 +107,11 @@ YPP_Comma
 YPP_Concat(_x, _y)
 YPP_Join(_x, _y)
 YPP_Stringify(_x)
+YPP_Stringize(_x)
 yimpl
+YB_Diag_Push
+YB_Diag_Pop
+YB_Diag_Ignore(_opt)
 YB_HAS_ALIGNAS
 YB_HAS_ALIGNOF
 YB_HAS_BUILTIN_NULLPTR

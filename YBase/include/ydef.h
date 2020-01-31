@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 语言实现和系统环境相关特性及公用类型和宏的基础定义。
-\version r3689
+\version r3729
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2020-01-26 02:21 +0800
+	2020-01-27 18:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -381,10 +381,16 @@
 #define YPP_Join(_x, _y) YPP_Concat(_x, _y)
 
 /*!
-\brief 替换记号为字符串。
+\brief 替换预处理记号为字符串。
 \since build 715
 */
 #define YPP_Stringify(_x) #_x
+
+/*!
+\brief 替换被宏替换的预处理记号为字符串。
+\since build 880
+*/
+#define YPP_Stringize(_x) YPP_Stringify(_x)
 //@}
 
 
@@ -399,6 +405,38 @@
 以 \c yimpl() 的形式使用时可用于表示实现可选扩展的接口，用于序列末尾等。
 */
 #define yimpl(...) __VA_ARGS__
+
+
+//! \since build 880
+//@{
+/*!
+\def YPP_Diag_Push
+\brief 保存现有的诊断状态。
+*/
+/*!
+\def YPP_Diag_Pop
+\brief 恢复保存的诊断状态。
+*/
+/*!
+\def YPP_Diag_Ignore
+\brief 忽略诊断选项。
+*/
+#if YB_IMPL_CLANGPP
+#	define YB_Diag_Push _Pragma("clang diagnostic push")
+#	define YB_Diag_Pop _Pragma("clang diagnostic pop")
+#	define YB_Diag_Ignore(_opt) _Pragma( \
+	YPP_Stringize(clang diagnostic ignored YPP_Stringize(YPP_Concat(-W, _opt))))
+#elif YB_IMPL_GNUCPP >= 40600
+#	define YB_Diag_Push _Pragma("GCC diagnostic push")
+#	define YB_Diag_Pop _Pragma("GCC diagnostic pop")
+#	define YB_Diag_Ignore(_opt) _Pragma( \
+	YPP_Stringize(GCC diagnostic ignored YPP_Stringize(YPP_Concat(-W, _opt))))
+#else
+#	define YB_Diag_Push
+#	define YB_Diag_Pop
+#	define YB_Diag_Ignore
+#endif
+//@}
 
 
 /*!	\defgroup YBase_replacement_features YBase Replacement features
@@ -749,10 +787,7 @@ G++ 9.1 起，YB_ATTR_LAMBDA 中的 __attribute__ 暂不起效。
 #elif YB_IMPL_CLANGPP >= 30501
 // NOTE: The warning [-Wassume ]is largely useless with misleading diagnostics.
 #	define YB_ASSUME(_expr) \
-	_Pragma("clang diagnostic push") \
-	_Pragma("clang diagnostic ignored \"-Wassume\"") \
-	__builtin_assume(_expr) \
-	_Pragma("clang diagnostic pop")
+	YB_Diag_Push YB_Diag_Ignore(assume) __builtin_assume(_expr) YB_Diag_Pop
 #elif __has_builtin(__builtin_assume)
 #	define YB_ASSUME(_expr) __builtin_assume(_expr)
 #elif __has_builtin(__builtin_unreachable) || YB_IMPL_GNUCPP >= 40500

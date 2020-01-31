@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015, 2019 FrankHB.
+	© 2009-2015, 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextLayout.h
 \ingroup Service
 \brief 文本布局计算。
-\version r2890
+\version r2897
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2019-01-14 15:32 +0800
+	2020-01-28 11:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -273,6 +273,8 @@ FetchStringWidth(const Font& fnt, const _tString& str, size_t n)
 {
 	return Drawing::FetchStringWidth(fnt, str.data(), n);
 }
+//! \note 使用 ADL PrintString 和空文本渲染器渲染字符串。
+//@{
 /*!
 \brief 取迭代器指定的单行字符串在指定文本状态和高度限制时的显示宽度。
 \note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
@@ -307,6 +309,7 @@ FetchStringWidth(TextState& ts, SDst h, _tIter s, _tIter g, char32_t c = {})
 	PrintString(r, s, g, c);
 	return SDst(ts.Pen.X - x);
 }
+//@}
 /*!
 \brief 取单行字符串在指定文本状态和高度限制时的显示宽度。
 \note 字体由文本状态指定。
@@ -317,7 +320,7 @@ template<class _tString,
 YB_ATTR_nodiscard YB_PURE inline SDst
 FetchStringWidth(TextState& ts, SDst h, const _tString& str)
 {
-	return FetchStringWidth(ts, h, str.c_str());
+	return Drawing::FetchStringWidth(ts, h, str.c_str());
 }
 
 
@@ -331,8 +334,8 @@ YB_ATTR_nodiscard YB_PURE SDst
 FetchMaxTextWidth(const Font& font, _tIn first, _tIn last)
 {
 	return std::accumulate(first, last, SDst(),
-		[&](SDst val, decltype(*first) str){
-		return ystdex::max(val, FetchStringWidth(font, str));
+		[&](SDst val, decltype(*first) str) YB_PURE{
+		return ystdex::max(val, Drawing::FetchStringWidth(font, str));
 	});
 }
 

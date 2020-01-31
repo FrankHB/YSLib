@@ -227,7 +227,8 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 		(string-contains-ci? CXX "g++")
 		$set-if-empty! C_CXXFLAGS_IMPL_WARNING cons-cmd "-Wdouble-promotion"
 			"-Wlogical-op" "-Wtrampolines" "-Wsuggest-attribute=const"
-			"-Wsuggest-attribute=pure";
+			"-Wsuggest-attribute=noreturn" "-Wsuggest-attribute=pure"
+			"-Wsuggest-final-types" "-Wsuggest-final-methods";
 		$set-if-empty! CXXFLAGS_IMPL_WARNING cons-cmd
 			"-Wconditionally-supported" "-Wno-noexcept-type"
 			"-Wstrict-null-sentinel" "-Wzero-as-null-pointer-constant";

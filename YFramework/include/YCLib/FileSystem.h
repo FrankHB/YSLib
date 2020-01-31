@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3799
+\version r3811
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2020-01-27 01:46 +0800
+	2020-01-27 15:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -796,16 +796,19 @@ public:
 	\since build 561
 	*/
 #if YCL_Win32
-	DefBoolNeg(explicit, !dirent_str.empty())
+	YB_PURE DefBoolNeg(YB_PURE explicit, !dirent_str.empty())
 #else
-	DefBoolNeg(explicit, bool(p_dirent))
+	YB_PURE DefBoolNeg(YB_PURE explicit, bool(p_dirent))
 #endif
 
 	//! \since build 648
-	DefCvt(const ynothrow, basic_string_view<NativeChar>, GetNativeName())
+	YB_ATTR_nodiscard YB_PURE
+		DefCvt(const ynothrow, basic_string_view<NativeChar>, GetNativeName())
 	//! \since build 593
+	YB_ATTR_nodiscard YB_PURE
 	operator string() const;
 	//! \since build 648
+	YB_ATTR_nodiscard YB_PURE
 	operator u16string() const;
 
 	/*!
@@ -814,7 +817,7 @@ public:
 	\note 不同系统支持的可能不同。
 	\since build 474
 	*/
-	NodeCategory
+	YB_ATTR_nodiscard NodeCategory
 	GetNodeCategory() const ynothrow;
 	/*!
 	\brief 间接操作：取节点名称。
@@ -822,7 +825,7 @@ public:
 	\note 返回的结果在析构和下一次迭代前保持有效。
 	\since build 648
 	*/
-	YB_ATTR_returns_nonnull const NativeChar*
+	YB_ATTR_returns_nonnull YB_PURE const NativeChar*
 	GetNativeName() const ynothrow;
 
 	//! \brief 复位。
@@ -830,10 +833,10 @@ public:
 
 	//! \since build 713
 	//@{
-	PDefH(iterator, begin, )
+	YB_ATTR_nodiscard YB_PURE PDefH(iterator, begin, )
 		ImplRet(this)
 
-	PDefH(iterator, end, )
+	YB_ATTR_nodiscard YB_PURE PDefH(iterator, end, )
 		ImplRet(iterator())
 	//@}
 };
@@ -1172,7 +1175,7 @@ ConvertToMBCS(const char16_t* path);
 \pre 断言：参数非空。
 \see Microsoft FAT specification Section 7.2 。
 */
-YF_API YB_NONNULL(1) EntryDataUnit
+YF_API YB_NONNULL(1) YB_PURE EntryDataUnit
 GenerateAliasChecksum(const EntryDataUnit*) ynothrowv;
 
 /*!
@@ -1180,7 +1183,7 @@ GenerateAliasChecksum(const EntryDataUnit*) ynothrowv;
 \pre 断言：字符串参数的数据指针非空。
 \since build 657
 */
-YF_API bool
+YF_API YB_PURE bool
 ValidateName(string_view) ynothrowv;
 
 /*!

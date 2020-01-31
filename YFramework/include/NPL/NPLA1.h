@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r6263
+\version r6309
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-01-22 01:02 +0800
+	2020-01-30 22:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -338,7 +338,7 @@ public:
 	规约结果由以下规则确定：
 	对异步规约，返回 Reduction::Partial ；
 	否则，对枝节点，返回被调用的规约遍的求值结果；
-	否则，对非枝节点，返回的规约状态总是 ReductionStatus::Regular 。
+	否则，对非枝节点，返回的规约状态总是 ReductionStatus::Retained 。
 	*/
 	static ReductionStatus
 	DefaultReduceOnce(TermNode&, ContextNode&);
@@ -858,13 +858,43 @@ YB_ATTR_nodiscard YB_PURE inline
 	ImplRet(AssertBranch(term), term.size() - 1)
 
 
-//! \note 第一参数指定输入的项，其 Value 指定输出的值。
+/*!
+\brief 分析参数指定的叶节点词素。
+\pre 间接断言：字符串参数的数据指针非空。
+\since build 880
+
+依次进行以下求值操作。
+对代码字面量，去除字面量边界分隔符后进一步求值。
+对数据字面量，去除字面量边界分隔符作为字符串值。
+对其它字面量，规约为符号。
+*/
+YF_API TermNode
+ParseLeaf(string_view, TermNode::allocator_type);
+
+/*!
+\pre 间接断言：字符串参数的数据指针非空。
+\note 第一参数指定输入的项，其 Value 指定输出的值。
+*/
 //@{
+/*!
+\brief 字面量和数值的叶节点求值默认实现。
+\return 是否成功求值得到字面量或数值。
+\throw InvalidSyntax 语法错误：第二参数是不被支持的数值。
+\sa ContextState::EvaluateLiteral
+\since build 880
+
+判断第二参数是否可被解析和为被 NPLA1 对象语言语法支持的字面量或数值。
+返回 ReductionStatus::Clean 表示成功求值。
+返回 ReductionStatus::Retrying 表示不成功求值，需进一步被作为符号处理。
+可实现字面量遍。
+*/
+YF_API ReductionStatus
+DefaultEvaluateLeaf(TermNode&, string_view);
+
 //! \exception BadIdentifier 未在环境中找到指定标识符的绑定。
 //@{
 /*!
 \brief 求值标识符。
-\pre 间接断言：第三参数的数据指针非空。
 \note 不验证标识符是否为字面量；仅以字面量处理时可能需要重规约。
 \sa LiteralHandler
 \sa ReferenceTerm
@@ -895,7 +925,8 @@ EvaluateIdentifier(TermNode&, const ContextNode&, string_view);
 /*!
 \brief 求值叶节点记号。
 \pre 第二参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
-\pre 断言：第三参数的数据指针非空。
+\return 求值标识符的结果或 ReductionStatus::Retained 。
+\throw InvalidSyntax 语法错误：作为符号的记号是不被支持的扩展字面量。
 \warning 若不满足上下文状态类型要求，行为未定义。
 \sa CategorizeLexeme
 \sa ContextNode::EvaluateLiteral
@@ -904,11 +935,9 @@ EvaluateIdentifier(TermNode&, const ContextNode&, string_view);
 \since build 736
 
 处理非空字符串表示的节点记号。
-依次进行以下求值操作。
-对代码字面量，去除字面量边界分隔符后进一步求值。
-对数据字面量，去除字面量边界分隔符作为字符串值。
-对其它字面量，通过调用字面量遍处理。
-最后求值非字面量的标识符。
+被处理的记号视为符号。
+若字面量遍非空，通过调用字面量遍处理记号。
+若字面量遍为空或要求重规约，且记号不是不被支持的扩展字面量，求值非字面量的标识符。
 */
 YF_API ReductionStatus
 EvaluateLeafToken(TermNode&, ContextNode&, string_view);
@@ -937,7 +966,7 @@ ReduceCombined(TermNode&, ContextNode&);
 /*!
 \brief 规约提取名称的叶节点记号。
 \exception BadIdentifier 标识符未声明。
-\note 忽略名称查找失败，默认结果为 ReductionStatus::Clean 以保证强规范化性质。
+\note 忽略名称查找失败，默认结果为 ReductionStatus::Retained 。
 \sa EvaluateLeafToken
 \sa ReduceAgain
 \sa TermToNamePtr
@@ -1132,6 +1161,12 @@ public:
 	TermPasses Preprocess{Allocator};
 	//! \brief 列表项处理例程：每次翻译中规约回调处理调用的公共例程。
 	EvaluationPasses ListTermPreprocess{Allocator};
+	/*!
+	\brief 叶节点词素转换器。
+	\since build 880
+	\sa ParseLeaf
+	*/
+	SContext::Tokenizer ConvertLeaf;
 
 	/*!
 	\brief 构造：使用默认的解释和指定的存储资源。
@@ -1191,8 +1226,10 @@ public:
 	/*!
 	\brief 准备规约项：分析输入并标记记号节点和预处理。
 	\sa Preprocess
-	\sa TokenizeTerm
 	\since build 802
+
+	按需分析并调用预处理例程。
+	词素的处理由分析完成，不需单独调用 TokenizeTerm 转换。
 	*/
 	//@{
 	void
@@ -1323,7 +1360,7 @@ StringToSymbol(string&&);
 //@}
 
 //! \brief 取符号对应的名称字符串。
-YB_ATTR_nodiscard YF_API YB_PURE const string&
+YB_ATTR_nodiscard YF_API YB_STATELESS const string&
 SymbolToString(const TokenValue&) ynothrow;
 //@}
 

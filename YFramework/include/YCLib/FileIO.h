@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2019 FrankHB.
+	© 2011-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2846
+\version r2868
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2019-09-05 21:37 +0800
+	2020-01-27 22:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -129,7 +129,7 @@ enum class NodeCategory : std::uint_least32_t;
 \relates NodeCategory
 \since build 658
 */
-YB_ATTR_nodiscard YF_API NodeCategory
+YB_ATTR_nodiscard YF_API YB_STATELESS NodeCategory
 CategorizeNode(mode_t) ynothrow;
 
 
@@ -232,7 +232,11 @@ public:
 	\brief 取旗标。
 	\note 非 POSIX 平台：不支持操作。
 	*/
-	YB_ATTR_nodiscard int
+	YB_ATTR_nodiscard
+	#if !YCL_API_POSIXFileSystem
+	YB_NORETURN
+	#endif
+	int
 	GetFlags() const;
 	//! \brief 取模式。
 	YB_ATTR_nodiscard mode_t
@@ -294,12 +298,21 @@ public:
 	\return 是否需要并改变设置。
 	\see http://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html 。
 	*/
+	#if !YCL_API_POSIXFileSystem
+	YB_NORETURN
+	#endif
 	bool
 	SetBlocking() const;
 	//! \brief 设置旗标。
+	#if !YCL_API_POSIXFileSystem
+	YB_NORETURN
+	#endif
 	void
 	SetFlags(int) const;
 	//! \brief 设置访问模式。
+	#if !YCL_API_POSIXFileSystem
+	YB_NORETURN
+	#endif
 	void
 	SetMode(mode_t) const;
 	//@}
@@ -326,6 +339,9 @@ public:
 	\see http://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html 。
 	\since build 719
 	*/
+	#if !YCL_API_POSIXFileSystem
+	YB_NORETURN
+	#endif
 	bool
 	SetNonblocking() const;
 	//! \since build 625
@@ -346,6 +362,9 @@ public:
 	\note 其它平台：无作用。
 	\since build 637
 	*/
+#if !YCL_Win32
+	YB_STATELESS
+#endif
 	int
 	SetTranslationMode(int) const ynothrow;
 

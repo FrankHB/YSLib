@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2019 FrankHB.
+	© 2010-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r959
+\version r981
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2019-07-26 17:52 +0800
+	2020-01-27 17:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -226,6 +226,20 @@ struct is_equal
 	//@}
 };
 
+//! \since build 880
+//@{
+// XXX: See $2019-01 @ %Documentation::Workflow.
+#if YB_IMPL_GNUCPP >= 60000
+#	define YB_Impl_Functor_pushf YB_Diag_Push \
+	YB_Diag_Ignore(suggest-attribute=const) \
+	YB_Diag_Ignore(suggest-attribute=pure)
+#	define YB_Impl_Functor_popf YB_Diag_Pop
+#else
+#	define YB_Impl_Functor_pushf
+#	define YB_Impl_Functor_popf
+#endif
+//@}
+
 // NOTE: There is no 'constexpr' in WG21 N3936; but it is in ISO/IEC 14882:2014
 //	and drafts later.
 #define YB_Impl_Functor_Ops_Primary(_q, _n, _tRet, _using_stmt, _expr, ...) \
@@ -236,11 +250,13 @@ struct is_equal
 		_using_stmt \
 		using result_type = _tRet; \
 		\
+		YB_Impl_Functor_pushf \
 		yconstfn _tRet \
 		operator()(__VA_ARGS__) const _q \
 		{ \
 			return _expr; \
 		} \
+		YB_Impl_Functor_popf \
 	};
 
 #define YB_Impl_Functor_Ops_Spec(_q, _n, _tparams, _params, _expr) \
@@ -249,12 +265,14 @@ struct is_equal
 	{ \
 		using is_transparent = yimpl(void); \
 		\
+		YB_Impl_Functor_pushf \
 		template<_tparams> \
 		yconstfn auto \
 		operator()(_params) const _q -> decltype(_expr) \
 		{ \
 			return _expr; \
 		} \
+		YB_Impl_Functor_popf \
 	};
 
 // NOTE: Since ISO C++11, the standard does allow change to a stricter
@@ -269,11 +287,13 @@ struct is_equal
 		using second_argument_type = _type*; \
 		using result_type = bool; \
 		\
+		YB_Impl_Functor_pushf \
 		yconstfn bool \
 		operator()(_type* x, _type* y) const yimpl(ynothrow) \
 		{ \
 			return std::_n<_type*>()(x, y); \
 		} \
+		YB_Impl_Functor_popf \
 	};
 
 #define YB_Impl_Functor_Ops_using(_type2) using second_argument_type = _type2;
@@ -460,6 +480,8 @@ YB_Impl_Functor_Ops_Spec(ynothrow, second_of, typename _type, _type&& x,
 #undef YB_Impl_Functor_Ops_using
 #undef YB_Impl_Functor_Ops_Spec
 #undef YB_Impl_Functor_Ops_Primary
+#undef YB_Impl_Functor_popf
+#undef YB_Impl_Functor_pushf
 
 
 //! \brief 选择自增/自减运算仿函数。

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018-2019 FrankHB.
+	© 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1391
+\version r1394
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2019-09-23 15:32 +0800
+	2020-01-27 18:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -729,7 +729,7 @@ protected:
 	void
 	do_deallocate(void*, size_t, size_t) yimpl(ynothrowv) override;
 
-	YB_ATTR_nodiscard yimpl(YB_PURE) bool
+	YB_ATTR_nodiscard yimpl(YB_STATELESS) bool
 	do_is_equal(const memory_resource&) const ynothrow override;
 
 private:
@@ -864,7 +864,7 @@ protected:
 	do_deallocate(void*, size_t, size_t) override
 	{}
 
-	YB_ATTR_nodiscard yimpl(YB_PURE) bool
+	YB_ATTR_nodiscard yimpl(YB_STATELESS) bool
 	do_is_equal(const memory_resource&) const ynothrow override;
 };
 //@}

@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r809
+\version r810
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2020-01-26 18:03 +0800
+	2020-01-27 14:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -180,7 +180,7 @@ public:
 	}
 
 	//! \brief 默认过滤：仅允许等级不大于阈值的日志被记录。
-	static bool
+	YB_PURE static bool
 	DefaultFilter(Level, Logger&) ynothrow;
 
 	//! \pre 间接断言：第三参数非空。

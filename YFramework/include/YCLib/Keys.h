@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015, 2018-2019 FrankHB.
+	© 2011-2015, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r1492
+\version r1497
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2019-12-26 22:22 +0800
+	2020-01-27 15:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,7 +73,7 @@ using KeyInput = std::bitset<KeyBitsetWidth>;
 \since build 490
 \todo 支持 libstdc++ 以外的实现。
 */
-YF_API KeyIndex
+YF_API YB_PURE KeyIndex
 FindFirstKey(const KeyInput&) ynothrow;
 
 /*!
@@ -82,7 +82,7 @@ FindFirstKey(const KeyInput&) ynothrow;
 \since build 490
 \todo 支持 libstdc++ 以外的实现。
 */
-YF_API KeyIndex
+YF_API YB_PURE KeyIndex
 FindNextKey(const KeyInput&, KeyIndex) ynothrow;
 
 
@@ -149,14 +149,14 @@ DefBitmaskEnum(Category)
 \brief 取按键编码对应的按键类别。
 \pre 断言：参数小于 KeyBitsetWidth 。
 */
-YF_API YB_PURE Category
+YF_API YB_STATELESS Category
 ClassifyKey(KeyIndex) ynothrow;
 
 /*!
 \brief 找到第一个在指定类别的按键编码。
 \note 使用位与运算。
 */
-YF_API KeyIndex
+YF_API YB_PURE KeyIndex
 FindFirstKeyInCategroy(const KeyInput&, KeyIndex) ynothrow;
 
 //! \brief 判断指定按键编码是否通过多个物理按键组合构成。
