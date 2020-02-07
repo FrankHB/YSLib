@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r914
+\version r918
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2020-01-27 14:47 +0800
+	2020-01-31 15:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,28 +104,28 @@ public:
 	\pre 间接断言：内部指针非空。
 	\since build 383
 	*/
-	YB_PURE Devices::DSScreen&
+	YB_ATTR_nodiscard YB_PURE Devices::DSScreen&
 	GetDSScreenUp() const ynothrow;
 	/*!
 	\brief 取 DS 下屏幕。
 	\pre 间接断言：内部指针非空。
 	\since build 383
 	*/
-	YB_PURE Devices::DSScreen&
+	YB_ATTR_nodiscard YB_PURE Devices::DSScreen&
 	GetDSScreenDown() const ynothrow;
 	/*!
 	\brief 取上屏幕。
 	\note 使用 GetDSScreenUp 实现。
 	\since build 297
 	*/
-	YB_PURE Devices::Screen&
+	YB_ATTR_nodiscard YB_PURE Devices::Screen&
 	GetScreenUp() const ynothrow;
 	/*!
 	\brief 取下屏幕。
 	\note 使用 GetDSScreenDown 实现。
 	\since build 297
 	*/
-	YB_PURE Devices::Screen&
+	YB_ATTR_nodiscard YB_PURE Devices::Screen&
 	GetScreenDown() const ynothrow;
 
 	/*!

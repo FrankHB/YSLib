@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r4242
+\version r4258
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2020-01-25 17:14 +0800
+	2020-02-07 01:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -213,6 +213,24 @@ generalized_compose(_func f, _funcs... args)
 		std::tuple<_funcs...>>{f, make_tuple(args...)};
 }
 //@}
+
+
+/*!
+\brief 更新间接调用对象。
+\note 可配合跳板实现异步调用。
+\since build 881
+*/
+template<class _tThunk, typename _func>
+void
+update_thunk(_tThunk& thunk, _func&& f)
+{
+	// TODO: Blocked. Use C++14 lambda initializers to simplify the
+	//	implementation.
+	thunk = std::bind([&thunk](_tThunk& tnk, const _func& cur){
+		thunk = std::move(tnk);
+		cur();
+	}, std::move(thunk), yforward(f));
+}
 
 
 /*!

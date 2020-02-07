@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2018 FrankHB.
+	© 2009-2018, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextFile.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r1070
+\version r1085
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2018-08-20 07:54 +0800
+	2020-01-31 04:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,12 +45,12 @@ namespace Text
 \since build 621
 */
 //@{
-YB_NONNULL(1, 2) Text::Encoding
+YB_ATTR_nodiscard YB_NONNULL(1, 2) Text::Encoding
 VerifyEncoding(std::FILE*, char*, size_t, size_t, Encoding = CS_Default);
 //! \since build 743
-YB_NONNULL(2) Text::Encoding
+YB_ATTR_nodiscard YB_NONNULL(2) Text::Encoding
 VerifyEncoding(std::streambuf&, char*, size_t, size_t, Encoding = CS_Default);
-YB_NONNULL(2) Text::Encoding
+YB_ATTR_nodiscard YB_NONNULL(2) Text::Encoding
 VerifyEncoding(std::istream&, char*, size_t, size_t, Encoding = CS_Default);
 //@}
 
@@ -78,11 +78,11 @@ yconstexpr const char BOM_UTF_32BE[]{"\x00\x00\xFE\xFF"};
 \since build 619
 */
 //@{
-YB_NONNULL(1, 2) inline PDefH(bool, CheckBOM, const char* buf, const char* str,
-	size_t n)
+YB_ATTR_nodiscard YB_PURE YB_NONNULL(1, 2) inline
+	PDefH(bool, CheckBOM, const char* buf, const char* str, size_t n)
 	ImplRet(std::char_traits<char>::compare(Nonnull(buf), str, n) == 0)
 template<size_t _vN>
-YB_NONNULL(1) inline bool
+YB_ATTR_nodiscard YB_PURE YB_NONNULL(1) inline bool
 CheckBOM(const char* buf, const char(&str)[_vN])
 {
 	return CheckBOM(buf, str, _vN - 1);
@@ -92,7 +92,7 @@ CheckBOM(const char* buf, const char(&str)[_vN])
 //@{
 //! \pre 间接断言：参数的数据指针非空。
 template<size_t _vN>
-inline bool
+YB_ATTR_nodiscard YB_PURE inline bool
 CheckBOM(string_view sv, const char(&str)[_vN])
 {
 	return !(sv.length() < _vN - 1) && CheckBOM(sv.data(), str, _vN - 1);
@@ -103,10 +103,10 @@ CheckBOM(string_view sv, const char(&str)[_vN])
 */
 //@{
 //! \pre 断言：参数的数据指针非空。
-YF_API bool
+YB_ATTR_nodiscard YF_API bool
 CheckBOM(std::istream&, string_view);
 template<size_t _vN>
-inline bool
+YB_ATTR_nodiscard inline bool
 CheckBOM(std::istream& is, const char(&str)[_vN])
 {
 	return CheckBOM(is, {str, _vN - 1});
@@ -123,14 +123,14 @@ CheckBOM(std::istream& is, const char(&str)[_vN])
 \return 检查的编码和 BOM 长度，若失败为 <tt>{CharSet::Null, 0}</tt> 。
 \since build 619
 */
-YF_API YB_NONNULL(1) pair<Encoding, size_t>
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) YB_PURE pair<Encoding, size_t>
 DetectBOM(const char*);
 /*!
 \pre 断言：参数的数据指针非空。
 \return 检查的编码和 BOM 长度，若失败为 <tt>{CharSet::Null, 0}</tt> 。
 \since build 694
 */
-YF_API pair<Encoding, size_t>
+YB_ATTR_nodiscard YF_API YB_PURE pair<Encoding, size_t>
 DetectBOM(string_view);
 /*!
 \exception LoggedEvent 流在检查 BOM 时候读取的字符数不是非负数。
@@ -143,9 +143,9 @@ DetectBOM(string_view);
 */
 //@{
 //! \since build 743
-YF_API pair<Encoding, size_t>
+YB_ATTR_nodiscard YF_API pair<Encoding, size_t>
 DetectBOM(std::streambuf&, size_t, Encoding = CS_Default);
-YF_API pair<Encoding, size_t>
+YB_ATTR_nodiscard YF_API pair<Encoding, size_t>
 DetectBOM(std::istream&, size_t, Encoding = CS_Default);
 //@}
 //@}
@@ -185,7 +185,7 @@ SkipBOM(_type& is, const _tBOM& bom)
 \since build 805
 */
 template<class _type, typename _tBOM, typename... _tParams>
-unique_ptr<_type>
+YB_ATTR_nodiscard unique_ptr<_type>
 OpenSkippedBOMtream(const _tBOM& bom, _tParams&&... args)
 {
 	auto p(make_unique<_type>(yforward(args)...));

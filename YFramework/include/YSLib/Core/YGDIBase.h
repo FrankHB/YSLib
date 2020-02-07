@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2019 FrankHB.
+	© 2011-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2559
+\version r2568
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2019-07-07 06:31 +0800
+	2020-02-04 14:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -298,9 +298,11 @@ class GBinaryGroup : private ystdex::equality_comparable<GBinaryGroup<_type>>
 		"Invalid type found.");
 
 public:
-	static const GBinaryGroup Invalid; //!< 无效（不在屏幕坐标系中）对象。
+	//! \brief 无效（不在屏幕坐标系中）对象。
+	static const GBinaryGroup Invalid;
 
-	_type X = 0, Y = 0; //!< 分量。
+	//! \brief 分量。
+	_type X = 0, Y = 0; 
 
 	/*!
 	\brief 无参数构造。
@@ -539,7 +541,8 @@ public:
 	*/
 	static const Size Invalid;
 
-	SDst Width, Height; //!< 宽和高。
+	//! \brief 宽和高。
+	SDst Width, Height;
 
 	/*!
 	\brief 无参数构造。
@@ -723,7 +726,7 @@ get(const Size& s)
 \note 使用 ADL 。
 \since build 861
 */
-YB_ATTR_nodiscard YB_PURE YF_API std::string
+YB_ATTR_nodiscard YF_API YB_PURE std::string
 to_string(const Size&);
 //@}
 
@@ -1116,7 +1119,7 @@ get(const Rect& r)
 \note 使用 ADL 。
 \since build 861
 */
-YB_ATTR_nodiscard YB_PURE YF_API std::string
+YB_ATTR_nodiscard YF_API YB_PURE std::string
 to_string(const Rect&);
 //@}
 

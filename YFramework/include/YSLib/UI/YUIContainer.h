@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2019 FrankHB.
+	© 2011-2016, 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YUIContainer.h
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r2153
+\version r2156
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2019-01-14 17:56 +0800
+	2020-01-31 16:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -258,7 +258,7 @@ public:
 	\brief 判断是否包含指定部件。
 	\since build 495
 	*/
-	bool
+	YB_ATTR_nodiscard YB_PURE bool
 	Contains(IWidget&) const;
 
 	/*!
@@ -366,7 +366,7 @@ public:
 	/*!
 	\brief 判断是否包含指定部件。
 	*/
-	bool
+	YB_ATTR_nodiscard YB_PURE bool
 	Contains(IWidget&);
 
 	/*!

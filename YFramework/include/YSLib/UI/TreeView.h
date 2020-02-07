@@ -11,13 +11,13 @@
 /*!	\file TreeView.h
 \ingroup UI
 \brief 树形视图控件。
-\version r297
+\version r300
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-09-04 19:48:13 +0800
 \par 修改时间:
-	2020-01-25 16:26 +0800
+	2020-01-31 16:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -141,12 +141,12 @@ public:
 	DefGetter(const ynothrow, Size, IndentBoxSize, Size(16, GetItemHeight()))
 	//! \since build 532
 	DefGetter(const ynothrow, const IndentMap&, IndentMap, indent_map)
-	SDst
+	YB_ATTR_nodiscard YB_PURE SDst
 	GetIndentWidth(IndexType) const;
 	//! \since build 532
-	NodePath
+	YB_ATTR_nodiscard NodePath
 	GetNodePath(IndexType) const;
-	const ValueNode&
+	YB_ATTR_nodiscard const ValueNode&
 	GetNodeRef(IndexType) const;
 
 	/*!

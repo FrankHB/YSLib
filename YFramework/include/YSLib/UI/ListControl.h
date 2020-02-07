@@ -11,13 +11,13 @@
 /*!	\file ListControl.h
 \ingroup UI
 \brief 列表控件。
-\version r1649
+\version r1662
 \author FrankHB <frankhb1989@gmail.com>
 \since build 528
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2020-01-26 16:27 +0800
+	2020-02-04 14:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -106,7 +106,7 @@ public:
 	//! \since build 581
 	using AMUnitList::GetItemHeight;
 	//! \since build 527
-	IWidget&
+	YB_ATTR_nodiscard YB_PURE IWidget&
 	GetUnitRef() const ImplI(AMUnitList);
 	//! \since build 529
 	using AMUnitList::GetViewPosition;
@@ -124,7 +124,7 @@ public:
 	\note 非强异常安全：状态和最后一次调用此方法相关。
 	\since build 523
 	*/
-	WidgetIterator
+	YB_ATTR_nodiscard WidgetIterator
 	MakeIterator(size_t);
 };
 
@@ -137,12 +137,16 @@ public:
 class YF_API MTextList : public AMUnitControlList
 {
 public:
-	using ItemType = String; //!< 项目类型：字符串。
-	using ListType = vector<ItemType>; //!< 列表类型。
-	using IndexType = typename ListType::size_type; //!< 索引类型。
+	//! \brief 项目类型：字符串。
+	using ItemType = String;
+	//! \brief 列表类型。
+	using ListType = vector<ItemType>;
+	//! \brief 索引类型。
+	using IndexType = typename ListType::size_type;
 
 protected:
-	mutable shared_ptr<ListType> hList; //!< 文本列表句柄。
+	//! \brief 文本列表句柄。
+	mutable shared_ptr<ListType> hList;
 
 public:
 	//! \since build 529
@@ -174,12 +178,12 @@ protected:
 	\note 实现：断言：结果非空。
 	\since build 581
 	*/
-	SDst
+	YB_ATTR_nodiscard YB_PURE SDst
 	GetItemHeightCore() const override;
 
 public:
 	//! \since build 586
-	size_t
+	YB_ATTR_nodiscard YB_PURE size_t
 	GetTotal() const ImplI(AMUnitList);
 
 	/*!
@@ -271,7 +275,7 @@ public:
 	SetSelected(ListType::size_type);
 
 	/*!
-	\brief 按内容大小依次调整视图中选中和首个项目的索引，然后按需调整竖直偏移量。
+	\brief 按内容大小依次调整视图中选中和第一个项目的索引，然后按需调整竖直偏移量。
 	\warning 若视图大小变化后不调用此方法调整视图，可能引起选择项越界而行为未定义。
 	\since build 392
 	*/

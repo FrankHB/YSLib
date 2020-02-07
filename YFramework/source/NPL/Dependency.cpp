@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3429
+\version r3448
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2020-01-30 21:57 +0800
+	2020-02-06 15:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,12 +27,14 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_Dependency // for ystdex::isspace, std::istream,
-//	YSLib::unique_ptr, NPL::AllocateEnvironment, std::piecewise_construct,
-//	std::forward_as_tuple, LiftOther, Collapse, LiftOtherOrCopy,
-//	LiftTermValueOrCopy, ystdex::bind1, NPL::IsMovable, LiftTermOrCopy,
-//	ResolveTerm, NPL::TryAccessReferencedTerm, ystdex::plus, std::placeholders,
-//	NPL::ResolveRegular, ystdex::tolower, ystdex::swap_dependent, LiftTermRef,
-//	LiftTerm, NPL::Deref, NPL::Forms functions;
+//	YSLib::unique_ptr, TokenValue, SeparatorTransformer::ReplaceChildren,
+//	ystdex::bind1, std::allocator_arg, ContextHandler, ValueObject,
+//	NPL::AllocateEnvironment, std::piecewise_construct, std::forward_as_tuple,
+//	LiftOther, Collapse, LiftOtherOrCopy, NPL::IsMovable, LiftTermOrCopy,
+//	ResolveTerm, LiftTermValueOrCopy, NPL::TryAccessReferencedTerm,
+//	ystdex::plus, std::placeholders, NPL::ResolveRegular, ystdex::tolower,
+//	ystdex::swap_dependent, LiftTermRef, LiftTerm, NPL::Deref,
+//	NPL::Forms functions;
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
 //	ystdex::make_transform;
@@ -212,15 +214,6 @@ namespace Forms
 //! \since build 758
 namespace
 {
-
-//! \since build 823
-void
-LoadSequenceSeparators(EvaluationPasses& passes)
-{
-	// XXX: Allocators are inefficient for short strings here.
-	RegisterSequenceContextTransformer(passes, TokenValue(";"), true),
-	RegisterSequenceContextTransformer(passes, TokenValue(","));
-}
 
 //! \since build 872
 YB_ATTR_nodiscard ReductionStatus
@@ -943,7 +936,8 @@ Load(REPLContext& context)
 void
 LoadGroundContext(REPLContext& context)
 {
-	LoadSequenceSeparators(context.ListTermPreprocess),
+	// NOTE: Dynamic separator handling is lifted to %REPLContext::Preprocess.
+	//	See $2020-02 @ %Documentation::Workflow.
 	Ground::Load(context);
 }
 
@@ -1086,7 +1080,7 @@ LoadModule_std_io(REPLContext& context)
 
 	RegisterUnary<Strict, const string>(renv, "puts", [](const string& str){
 		// FIXME: Use %EncodeArg?
-		// XXX: Error is ignored.
+		// XXX: Error from 'std::puts' is ignored.
 		std::puts(str.c_str());
 		return ValueToken::Unspecified;
 	});

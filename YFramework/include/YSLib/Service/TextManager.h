@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2018 FrankHB.
+	© 2010-2018, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextManager.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3965
+\version r3967
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2018-08-17 05:58 +0800
+	2020-01-27 18:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,7 +110,7 @@ public:
 		/*!
 		\brief 比较：相等关系。
 		*/
-		YF_API friend bool
+		YF_API YB_PURE friend bool
 		operator==(const iterator&, const iterator&) ynothrow;
 
 		//! \since build 672

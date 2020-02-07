@@ -11,13 +11,13 @@
 /*!	\file TabControl.h
 \ingroup UI
 \brief 样式相关的图形用户界面标签页控件。
-\version r267
+\version r268
 \author FrankHB <frankhb1989@gmail.com>
 \since build 494
 \par 创建时间:
 	2014-04-19 11:21:43 +0800
 \par 修改时间:
-	2020-01-25 16:27 +0800
+	2020-02-04 14:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,7 @@ class YF_API TabBar : public Control, protected MLinearUIContainer
 public:
 	using TabPtrType = unique_ptr<Control>;
 
-	//! \brief 首个标签所在的起始偏移位置。
+	//! \brief 第一个标签所在的起始偏移位置。
 	SPos Offset = 0;
 	//! \brief 每个标签最小的位置。
 	SDst MinWidth = 12;

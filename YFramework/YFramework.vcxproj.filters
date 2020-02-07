@@ -837,7 +837,7 @@
     <ClCompile Include="source\YSLib\UI\YFocus.cpp">
       <Filter>source\YSLib\UI</Filter>
     </ClCompile>
-    <ClCompile Include="source\YSLib\UI\ypanel.cpp">
+    <ClCompile Include="source\YSLib\UI\YPanel.cpp">
       <Filter>source\YSLib\UI</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\Service\CharRenderer.cpp">

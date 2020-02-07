@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2015, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YRenderer.h
 \ingroup UI
 \brief 样式无关的 GUI 部件渲染器。
-\version r653
+\version r655
 \author FrankHB <frankhb1989@gmail.com>
 \since build 566
 \par 创建时间:
 	2011-09-03 23:47:32 +0800
 \par 修改时间:
-	2015-04-04 11:13 +0800
+	2020-01-31 15:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -139,7 +139,7 @@ public:
 	\brief 判断是否需要刷新。
 	\note 若无效区域长宽都不为零，则需要刷新。
 	*/
-	bool
+	YB_ATTR_nodiscard YB_PURE bool
 	RequiresRefresh() const;
 
 	//! \since build 406

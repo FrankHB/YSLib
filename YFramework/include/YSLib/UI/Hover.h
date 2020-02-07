@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2019 FrankHB.
+	© 2013-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Hover.h
 \ingroup UI
 \brief 样式无关的指针设备悬停相关功能。
-\version r203
+\version r205
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-09-28 12:50:42 +0800
 \par 修改时间:
-	2019-11-25 21:49 +0800
+	2020-01-31 16:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -140,7 +140,7 @@ public:
 	\brief 默认定位映射：恒等映射。
 	\since build 573
 	*/
-	static Point
+	YB_ATTR_nodiscard YB_PURE static Point
 	DefaultLocate(const CursorEventArgs&) ynothrow;
 
 	PDefH(bool, CheckShow, CursorEventArgs& e) ynothrow

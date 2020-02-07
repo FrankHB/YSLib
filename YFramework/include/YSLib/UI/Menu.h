@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2019 FrankHB.
+	© 2011-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1071
+\version r1074
 \author FrankHB <frankhb1989@gmail.com>
 \since build 573
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2019-03-05 22:20 +0800
+	2020-02-04 14:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -158,7 +158,7 @@ public:
 	ShowSub(IndexType);
 
 	/*!
-	\brief 尝试显示索引指定的子菜单并选择子菜单的首个菜单项。
+	\brief 尝试显示索引指定的子菜单并选择子菜单的第一个菜单项。
 	\return 是否进行操作。
 	\note 若不存在子菜单，不进行操作。
 	\sa ShowSub
@@ -240,7 +240,7 @@ public:
 	\brief 判断菜单组中是否存在指定的菜单。
 	\since build 531
 	*/
-	PDefH(bool, Contains, Menu& mnu) const
+	YB_ATTR_nodiscard YB_PURE PDefH(bool, Contains, Menu& mnu) const
 		ImplRet(ystdex::exists(menus, ystdex::ref(mnu)))
 
 	/*!

@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r3507
+\version r3541
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2020-01-30 22:52 +0800
+	2020-02-06 15:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -3574,6 +3574,42 @@ NPLA1 lexical analysis can be lifted reasonably reasonably ahead-of-time now.
 		Alternatively, 'ConvertLeaf' can use a slightly different strategy to the default in 'NPL::SContext' one by converting 'NPL::TokenValue' as the result directly, instead of a separated call to 'TokenizeTerm' later in 'REPLContext::Prepare'.
 			This also has merits above.
 			It is not used to avoid complexity of radically different call paths and the modification of interface on 'REPLContext'.
+
+$2020-02:
+
+report.impl:
+NPLA1 separator handling in YFramework modules NPL::NPLA1 and NPL::Dependency is optimized.
+	The separator handling API is now exposed as class with function templates instead of non-templated functions.
+	The old handling is implemented based on list evaluation passes.
+		As the first pass, it can convert lists being evaluated to prefix form.
+		This is now superseded by syntactic transformation in 'REPLContext::Preprocess'.
+		This is now stricter for non-evaluated expressions, because some terms previously not evaluated (like paramter trees) are now also transoformed.
+			Since ';' and ',' are never expected used as names of variables directly (without quotes indicating the code literals), this is not a breaking change.
+		This is also stricter in statements of <body> (e.g. in '$cond').
+			If a <body> has ';' or ',', it must have been enclosed in parenthese.
+				This is for the syntactic priority.
+				Otherwise, ';' or ',' will separate the <body> into two different <expression> at first, rather than two subexpression in the <body>.
+			This is also not a breaking change.
+				Instead, it is actually a fix to a missing diagnostics bug.
+				A bug in <body> of '$cond' of such use in YSLib tool script 'SHBuild-YSLib-common.txt' is fixed before this improvement to avoid break stage 1 library building.
+	The old handling in module NPL::Dependency is now moved to NPL::NPLA1 in 'REPLContext::Preprocess'.
+		The new handling scan the term recursively, instead one pass.
+			Along with non-evaluated expressions, this has some performance overhead.
+				The overall performance is still slighly better than ond one in general for less evaluation passes, though. 
+		Supposing 'passes' as a modifiable reference to a passes object (either of 'A1::EvaluationPasses' or of 'A1::TermPasses') and 'a' as the allocator, the old one can still be implemented (in C++) by new API (more efficiently) as:
+			passes += ystdex::bind1([](TermNode& term,
+				const ValueObject& pfx, const TokenValue& val,
+				const ValueObject& pfx2, const TokenValue& val2) YB_FLATTEN{
+				SeparatorTransformer::ReplaceChildren(term, pfx,
+					ystdex::bind1(HasValue<TokenValue>, std::ref(val)));
+				SeparatorTransformer::ReplaceChildren(term, pfx2,
+					ystdex::bind1(HasValue<TokenValue>, std::ref(val2)));
+				return ReductionStatus::Clean;
+			}, ValueObject(std::allocator_arg, a, ContextHandler(Forms::Sequence)),
+				// XXX: Allocators are inefficient for short strings here.
+				TokenValue(";"),
+				ValueObject(std::allocator_arg, a, ContextHandler(FormContextHandler(
+				ReduceBranchToList, 1))), TokenValue(","));
 
 ////
 

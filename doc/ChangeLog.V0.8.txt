@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r17459
+\version r17559
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-01-31 13:21 +0800
+	2020-02-07 19:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,106 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ DLDI %Any $=
+		(
+			/ "optimized emplacement operations" @ "class %any" $=
+			(
+				+ 'YB_ATTR(always_inline) inline' @ "internal functions",
+				/ "handler emplacement" !^ 'try'
+			),
+			/ "simplified storage type" @ "%value_handler"
+				@ "namspeace %any_ops"
+		),
+		+ "function template %update_thunk" @ %Functional
+	),
+	/ %YFramework $=
+	(
+		+ $dev $lib 'YB_ATTR_nodiscard YB_PURE' @ ("member functions \
+			%DSApplication::(GetScreenUp, GetScreenDown, GetDSScreenUp, \
+			GetDSScreenDown)" @ %'Helper(DS)'.DSMain, "member function \
+			%GUIApplication::GetEnvironmentRef"
+			@ %Helper.GUIApplication,
+			"friend function %operator==" @ "class %Message" @ %Core.YMessage,
+			("member function %BufferedRenderer::RequiresRefresh" @ %YRenderer,
+			"member functions %(MUIContainer, MLinearUIContainer)::Contains"
+			@ %YUIContainer, "static member function \
+			%TimedHoverState::DefaultLocate" @ %Hover, "member functions \
+			%(MTextList::(GetItemHeightCore, GetTotal), \
+			AMUnitControlList::GetUnitRef)" @ %ListControl, "member function \
+			%MenuHost::Contains" @ %Menu,
+			"member functions %SequenceViewer::(Contains, GetValid)" @ %Viewer,
+			"member function %TreeList::GetIndentWidth" @ %TreeView) @ %UI,
+			"function %Contains" @ "class template %GHandlerRegisterBase"
+			@ %Core.YFunc) @ %YSLib),
+			// Also to eliminate G++ 7.1 warning: [-Wsuggest-attribute=pure].
+		+ $dev $lib 'YB_ATTR_nodiscard' @ ("member function \
+			%GUIApplication::GetEnvironmentHostRef" @ %Helper.GUIApplication
+			("member functions %(GetFullViewHeight, GetItemHeight, \
+			GetItemHeightCore, GetLastLabelIndexClipped, GetUnitLocation, \
+			GetViewPosition, CheckPoint)" @ "class %AMUnitList"
+			@ %Viewer, "member function %AMUnitControlList::MakeIterator"
+			@ %ListControl, "member functions \
+			%TreeList::(GetNodePath, GetNodeRef)" @ %TreeView) @ %YSLib.UI),
+		+ $dev $lib 'yimpl(YB_STATELESS)' @ "member function \
+			%GUIApplication::GetGUIHostRef" @ %Helper.GUIApplication',
+			// To eliminate G++ 9.2 warning: [-Wsuggest-attribute=const].
+		/ %NPL $=
+		(
+			+ "function template %FetchValueFinder" @ %SContext,
+			/ %NPLA1 $=
+			(
+				/ @ "static member function %ContextState::DefaultReduceOnce" $=
+				(
+					/ DLI "iterated one subterm case in place";
+					* $comp "missing nested call safety in calling \
+						%ReduceAgainLifted for the thunked implementation with \
+						direct calls" $since b879
+						// The call to %ReduceAgain can be recursive.
+				),
+				/ DLI "function %ParseLeaf" ^ "%ValueNode::operator="
+					~ "%ValueNode::emplace",
+					// To be consistent with %EvaluateIdentifier, having \
+						strong exception guarantee (not gurarnteed in the \
+						interface though), and slightly more efficient.
+				/ "2 functions %(TransformForSeparator, \
+					TransformForSeparatorRecursive)"
+					-> "struct %SeparatorTransformer"
+					^ $dep_from "%FetchValueFinder" @ %SContext,
+				- "function %RegisterSequenceContextTransformer"
+					$dep_from %Dependency,
+				/ DLDI "simlified function %Forms::BindParameter"
+					^ $dep_from ("%ystdex::update_thunk" @ %Functional),
+				+ "separater handling by %Preprocess" @ "class %REPLContext"
+					$dep_from @ %Tools.Scripts
+			),
+			(
+			+ "macro %NPL_Impl_NPLA1_Enable_ThunkedSeparatorPass";
+			/ DLI "function %LoadGroundContext"
+				!^ ($dep_from "%SeparatorTransformer" @ %NPLA1
+				~ "%RegisterSequenceContextTransformer") $dep_from
+				"%REPLContext"
+			)
+		),
+		/ DLDI %YSLib.Core $=
+		(
+			/ 'YB_PURE YF_API' @ "2 functions %to_string"
+				@ %YGDIBase -> 'YF_API YB_PURE',
+			/ "optimized emplacement operations" @ "class %ValueObject"
+				@ %YObject ^ 'YB_ATTR(always_inline)'
+		),
+		* "missing %YFramework.YSLib.UI.YPanel file renaming"
+			@ "Microsoft VC++ project files" $since b672
+			$= (/ "%ypanel.cpp" => "%YPanel.cpp")
+	),
+	* "missing parenthese around <body> of '$cond' expressions"
+		@ "%SHBuild-YSLib-common.txt" @ %Tools.Scripts $since b798
+			// See $2020-01 @ %Documentation::Workflow.
+),
+
+b880
 (
 	/ %YBase $=
 	(
@@ -2773,7 +2873,7 @@ b865
 			/ "updated project files" @ "platform %Android" $=
 			(
 				(
-				- "%default_font.bin" @ "the .vcxproj file";
+				- "%default_font.bin" @ ".vcxproj file";
 				* $comp "redundant data file not included in the filter" $since
 					b492,
 				),

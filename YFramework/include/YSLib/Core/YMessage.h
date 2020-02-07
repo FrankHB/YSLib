@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2018 FrankHB.
+	© 2009-2018, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YMessage.h
 \ingroup Core
 \brief 消息处理。
-\version r2049
+\version r2051
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2018-11-05 07:39 +0800
+	2020-01-31 15:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -129,7 +129,7 @@ public:
 	\brief 比较：相等关系。
 	\since build 454
 	*/
-	YF_API friend bool
+	YB_ATTR_nodiscard YF_API YB_PURE friend bool
 	operator==(const Message&, const Message&);
 
 	DefGetter(const ynothrow, ID, MessageID, id) //!< 取消息标识。

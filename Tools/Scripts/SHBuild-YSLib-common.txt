@@ -214,31 +214,32 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 	$env-de! C_CXXFLAGS_IMPL_WARNING "";
 	$env-de! LDFLAGS_IMPL_OPT "";
 	$cond
-	(
-		(string-contains-ci? CXX "clang++")
-		$set-if-empty! C_CXXFLAGS_COMMON_IMPL_ "-fno-merge-all-constants";
-		$set-if-empty! CXXFLAGS_IMPL_WARNING cons-cmd "-Wno-deprecated-register"
-			"-Wno-mismatched-tags" "-Wno-missing-braces" "-Wshorten-64-to-32"
-			"-Wweak-vtables";
-		$set-if-empty! CXXFLAGS_IMPL_OPT "-flto";
-		$set-if-empty! LDFLAGS_IMPL_OPT "-flto"
-	)
-	(
-		(string-contains-ci? CXX "g++")
-		$set-if-empty! C_CXXFLAGS_IMPL_WARNING cons-cmd "-Wdouble-promotion"
-			"-Wlogical-op" "-Wtrampolines" "-Wsuggest-attribute=const"
-			"-Wsuggest-attribute=noreturn" "-Wsuggest-attribute=pure"
-			"-Wsuggest-final-types" "-Wsuggest-final-methods";
-		$set-if-empty! CXXFLAGS_IMPL_WARNING cons-cmd
-			"-Wconditionally-supported" "-Wno-noexcept-type"
-			"-Wstrict-null-sentinel" "-Wzero-as-null-pointer-constant";
-		$set-if-empty! CXXFLAGS_IMPL_OPT
-			"-fexpensive-optimizations -flto=jobserver";
-		"XXX", "Workarond for LTO bug on MinGW. See https://sourceware.org/bugzilla/show_bug.cgi?id=12762.";
-		$set-if-empty! LDFLAGS_IMPL_OPT $if (win32? env-os)
-			"-fexpensive-optimizations -flto -Wl,-allow-multiple-definition"
-			"-fexpensive-optimizations -flto"
-	);
+		((string-contains-ci? CXX "clang++")
+		(
+			$set-if-empty! C_CXXFLAGS_COMMON_IMPL_
+				"-fno-merge-all-constants";
+			$set-if-empty! CXXFLAGS_IMPL_WARNING cons-cmd
+				"-Wno-deprecated-register" "-Wno-mismatched-tags"
+				"-Wno-missing-braces" "-Wshorten-64-to-32" "-Wweak-vtables";
+			$set-if-empty! CXXFLAGS_IMPL_OPT "-flto";
+			$set-if-empty! LDFLAGS_IMPL_OPT "-flto"
+		))
+		((string-contains-ci? CXX "g++")
+		(
+			$set-if-empty! C_CXXFLAGS_IMPL_WARNING cons-cmd "-Wdouble-promotion"
+				"-Wlogical-op" "-Wtrampolines" "-Wsuggest-attribute=const"
+				"-Wsuggest-attribute=noreturn" "-Wsuggest-attribute=pure"
+				"-Wsuggest-final-types" "-Wsuggest-final-methods";
+			$set-if-empty! CXXFLAGS_IMPL_WARNING cons-cmd
+				"-Wconditionally-supported" "-Wno-noexcept-type"
+				"-Wstrict-null-sentinel" "-Wzero-as-null-pointer-constant";
+			$set-if-empty! CXXFLAGS_IMPL_OPT
+				"-fexpensive-optimizations -flto=jobserver";
+			"XXX", "Workarond for LTO bug on MinGW. See https://sourceware.org/bugzilla/show_bug.cgi?id=12762.";
+			$set-if-empty! LDFLAGS_IMPL_OPT $if (win32? env-os)
+				"-fexpensive-optimizations -flto -Wl,-allow-multiple-definition"
+				"-fexpensive-optimizations -flto"
+		));
 	$env-de! CFLAGS_STD "-std=c11";
 	$env-de! CFLAGS_WARNING cons-cmd C_CXXFLAGS_WARNING C_CXXFLAGS_IMPL_WARNING;
 	$env-de! CFLAGS_COMMON cons-cmd C_CXXFLAGS_COMMON CFLAGS_STD CFLAGS_WARNING;

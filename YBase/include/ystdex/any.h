@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r4814
+\version r4893
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2020-01-27 02:27 +0800
+	2020-02-05 00:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -444,6 +444,43 @@ using check_holder_t = and_<is_decayed<_tHolder>, is_class<_tHolder>,
 	is_base_of<holder, _tHolder>, is_convertible<_tHolder&, holder&>>;
 
 
+//! \since build 881
+namespace details
+{
+
+// TODO: Extract as %std::unique_ptr instance?
+template<typename _tValue>
+class memory_thunk : private noncopyable, private nonmovable
+{
+public:
+	using value_type = _tValue;
+
+private:
+	std::unique_ptr<value_type> p_val;
+
+public:
+	template<typename... _tParams,
+		yimpl(typename = exclude_self_params_t<memory_thunk, _tParams...>)>
+	inline
+	memory_thunk(_tParams&&... args)
+		: p_val(make_unique<value_type>(yforward(args)...))
+	{}
+
+	operator value_type&() const ynothrowv
+	{
+		return get();
+	}
+
+	value_type&
+	get() const ynothrowv
+	{
+		yassume(bool(p_val));
+		return *p_val;
+	}
+};
+
+} // namespace details;
+
 /*!	\defgroup any_handlers Any Operation Handlers
 \brief 动态泛型对象操作处理器。
 \warning 其中的类类型通常不使用对象，一般可被继承但非虚析构。
@@ -478,38 +515,13 @@ public:
 	//@}
 
 private:
+	//! \since build 881
+	using memory_thunk = details::memory_thunk<value_type>;
 	//! \since build 848
-	//@{
-	// TODO: Extract as %std::unique_ptr instance?
-	class memory_thunk : private noncopyable, private nonmovable
-	{
-	private:
-		std::unique_ptr<value_type> p_val;
-
-	public:
-		template<typename... _tParams,
-			yimpl(typename = exclude_self_params_t<memory_thunk, _tParams...>)>
-		inline
-		memory_thunk(_tParams&&... args)
-			: p_val(make_unique<value_type>(yforward(args)...))
-		{}
-
-		operator value_type&() const ynothrowv
-		{
-			return get();
-		}
-
-		value_type&
-		get() const ynothrowv
-		{
-			yassume(bool(p_val));
-			return *p_val;
-		}
-	};
 	static_assert(or_<local_storage, is_aligned_storable<any_storage,
 		memory_thunk>>(), "Invalid stored target found.");
+	//! \since build 848
 	using stored_type = cond_t<local_storage, value_type, memory_thunk>;
-	//@}
 
 public:
 	//! \since build 595
@@ -1330,7 +1342,7 @@ struct any_emplace
 	//@{
 	template<typename _type, typename... _tParams,
 		yimpl(typename = exclude_tagged_params_t<_tParams...>)>
-	inline decay_t<_type>&
+	YB_ATTR(always_inline) inline decay_t<_type>&
 	emplace(_tParams&&... args)
 	{
 		return emplace_within<_type>(yforward(args)...);
@@ -1340,14 +1352,14 @@ struct any_emplace
 	\since build 864
 	*/
 	template<typename _type, class _tAlloc, typename... _tParams>
-	inline decay_t<_type>&
+	YB_ATTR(always_inline) inline decay_t<_type>&
 	emplace(std::allocator_arg_t, const _tAlloc& a, _tParams&&... args)
 	{
 		return emplace_with_tag<_type>(opt_in_place_t<_type>(), a,
 			yforward(args)...);
 	}
 	template<typename _type, typename _tOther, typename... _tParams>
-	inline decay_t<_type>&
+	YB_ATTR(always_inline) inline decay_t<_type>&
 	emplace(std::initializer_list<_tOther> il, _tParams&&... args)
 	{
 		return emplace_within<_type>(il, yforward(args)...);
@@ -1358,7 +1370,7 @@ struct any_emplace
 	*/
 	template<typename _type, class _tAlloc, typename _tOther,
 		typename... _tParams>
-	inline decay_t<_type>&
+	YB_ATTR(always_inline) inline decay_t<_type>&
 	emplace(std::allocator_arg_t, const _tAlloc& a,
 		std::initializer_list<_tOther> il, _tParams&&... args)
 	{
@@ -1371,14 +1383,14 @@ struct any_emplace
 	//@{
 	//! \since build 848
 	template<typename _tHolder, typename... _tParams>
-	inline decay_t<_tHolder>&
+	YB_ATTR(always_inline) inline decay_t<_tHolder>&
 	emplace(any_ops::use_holder_t, _tParams&&... args)
 	{
 		return emplace_within<_tHolder>(any_ops::use_holder, yforward(args)...);
 	}
 	//! \since build 864
 	template<typename _tHolder, class _tAlloc, typename... _tParams>
-	inline decay_t<_tHolder>&
+	YB_ATTR(always_inline) inline decay_t<_tHolder>&
 	emplace(std::allocator_arg_t, const _tAlloc& a, any_ops::use_holder_t,
 		_tParams&&... args)
 	{
@@ -1394,6 +1406,12 @@ struct any_emplace
 		auto& a(static_cast<_tAny&>(*this));
 
 		a.checked_destroy();
+#if true
+		// NOTE: This is generally more efficient.
+		a.manager = {};
+		a.manager = any_ops::construct<decay_t<_tHandler>>(a.storage,
+			yforward(args)...);
+#else
 		try
 		{
 			a.manager = any_ops::construct<decay_t<_tHandler>>(a.storage,
@@ -1404,19 +1422,20 @@ struct any_emplace
 			a.manager = {};
 			throw;
 		}
+#endif
 	}
 
 private:
 	//! \since build 864
 	//@{
 	template<typename _type, class _tAlloc, typename... _tParams>
-	inline decay_t<_type>&
+	YB_ATTR(always_inline) inline decay_t<_type>&
 	emplace_with_tag(alloc_tag<true>, const _tAlloc&, _tParams&&... args)
 	{
 		return emplace_within<_type>(yforward(args)...);
 	}
 	template<typename _type, class _tAlloc, typename... _tParams>
-	decay_t<_type>&
+	YB_ATTR(always_inline) inline decay_t<_type>&
 	emplace_with_tag(alloc_tag<>, const _tAlloc& a, _tParams&&... args)
 	{
 		emplace_with_handler<any_ops::allocator_value_handler<_tAlloc,
@@ -1425,7 +1444,7 @@ private:
 	}
 	template<typename _type, class _tAlloc, typename _tOther,
 		typename... _tParams>
-	decay_t<_type>&
+	YB_ATTR(always_inline) inline decay_t<_type>&
 	emplace_with_tag(alloc_tag<>, const _tAlloc& a,
 		std::initializer_list<_tOther> il, _tParams&&... args)
 	{
@@ -1434,7 +1453,7 @@ private:
 		return unchecked_target_ref<_type>();
 	}
 	template<typename _tHolder, class _tAlloc, typename... _tParams>
-	decay_t<_tHolder>&
+	YB_ATTR(always_inline) inline decay_t<_tHolder>&
 	emplace_with_tag(alloc_tag<>, const _tAlloc& a, any_ops::use_holder_t,
 		_tParams&&... args)
 	{
@@ -1444,7 +1463,7 @@ private:
 	}
 
 	template<typename _type, typename... _tParams>
-	decay_t<_type>&
+	YB_ATTR(always_inline) inline decay_t<_type>&
 	emplace_within(_tParams&&... args)
 	{
 		emplace_with_handler<any_ops::value_handler<decay_t<_type>>>(
@@ -1452,7 +1471,7 @@ private:
 		return unchecked_target_ref<_type>();
 	}
 	template<typename _type, typename _tOther, typename... _tParams>
-	decay_t<_type>&
+	YB_ATTR(always_inline) inline decay_t<_type>&
 	emplace_within(std::initializer_list<_tOther> il, _tParams&&... args)
 	{
 		emplace_with_handler<any_ops::value_handler<decay_t<_type>>>(il,
@@ -1460,7 +1479,7 @@ private:
 		return unchecked_target_ref<_type>();
 	}
 	template<typename _tHolder, typename... _tParams>
-	decay_t<_tHolder>&
+	YB_ATTR(always_inline) inline decay_t<_tHolder>&
 	emplace_within(any_ops::use_holder_t, _tParams&&... args)
 	{
 		emplace_with_handler<any_ops::holder_handler<decay_t<_tHolder>>>(
@@ -1470,7 +1489,7 @@ private:
 
 public:
 	template<class _tHolder>
-	YB_ATTR_nodiscard YB_PURE decay_t<_tHolder>&
+	YB_ATTR_nodiscard YB_ATTR(always_inline) YB_PURE inline decay_t<_tHolder>&
 	unchecked_holder_ref()
 	{
 		const auto p_holder(static_cast<decay_t<_tHolder>*>(
@@ -1483,7 +1502,7 @@ public:
 
 	//! \since build 854
 	template<typename _type>
-	YB_ATTR_nodiscard YB_PURE decay_t<_type>&
+	YB_ATTR_nodiscard YB_ATTR(always_inline) YB_PURE inline decay_t<_type>&
 	unchecked_target_ref()
 	{
 		const auto p(static_cast<_tAny&>(*this).unchecked_get());

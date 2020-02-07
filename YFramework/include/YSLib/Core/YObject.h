@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r5942
+\version r5945
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2020-01-12 18:24 +0800
+	2020-02-01 10:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1182,7 +1182,7 @@ public:
 	//@{
 	template<typename _type, typename... _tParams,
 		yimpl(typename = ystdex::exclude_tagged_params_t<_tParams...>)>
-	inline void
+	YB_ATTR(always_inline) inline void
 	emplace(_tParams&&... args)
 	{
 		using Holder = ValueHolder<ystdex::decay_t<_type>>;
@@ -1191,7 +1191,7 @@ public:
 	}
 	//! \since build 863
 	template<typename _type, class _tAlloc, typename... _tParams>
-	inline void
+	YB_ATTR(always_inline) inline void
 	emplace(std::allocator_arg_t, const _tAlloc& a, _tParams&&... args)
 	{
 		using Holder = alloc_holder_t<_type, _tAlloc>;
@@ -1203,7 +1203,7 @@ public:
 			Holder(yforward(args)...));
 	}
 	template<typename _type>
-	inline void
+	YB_ATTR(always_inline) inline void
 	emplace(_type* p, PointerTag)
 	{
 		using Holder = PointerHolder<ystdex::decay_t<_type>>;

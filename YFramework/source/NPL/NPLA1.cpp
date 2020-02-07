@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r16114
+\version r16339
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-01-31 04:11 +0800
+	2020-02-07 15:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,27 +26,28 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA1 // for YSLib, ystdex::bind1, TokenValue,
-//	std::placeholders, std::make_move_iterator, NPL::AsTermNode, NPL::Deref,
-//	IsBranch, HasValue, ystdex::retry_on_cond, RelaySwitched, ContextHandler,
-//	Environment, shared_ptr, tuple, list, lref, observer_ptr, ystdex::ref_eq,
-//	set, ystdex::erase_all, ystdex::as_const, std::find_if,
-//	NPL::make_observer, ComposeSwitched, RelayNext, TermReference, ResolveTerm,
-//	AccessFirstSubterm, NPL::IsMovable, TermTags, NPL::TryAccessReferencedTerm,
-//	ystdex::value_or, RemoveHead, IsLeaf, unordered_map, IsBranchedList,
-//	NPL::TryAccessLeaf, any_ops::use_holder, weak_ptr, in_place_type,
-//	ystdex::type_id, YSLib::allocate_shared, InvalidReference, MoveFirstSubterm,
-//	vector, ShareMoveTerm, ystdex::ref, ystdex::exists, ystdex::id,
-//	ystdex::cast_mutable, EnvironmentSwitcher, ComposeActions, LiftOtherOrCopy,
+#include YFM_NPL_NPLA1 // for YSLib, RelaySwitched, ContextHandler, Environment,
+//	NPL::Deref, shared_ptr, tuple, list, lref, observer_ptr, ystdex::ref_eq,
+//	ystdex::erase_all, ystdex::as_const, std::find_if, NPL::make_observer,
+//	ComposeSwitched, RelayNext, TermReference, NPL::TryAccessLeaf, IsBranch,
+//	IsLeaf, IsBranchedList, AccessFirstSubterm, TermTags, ResolveTerm,
+//	NPL::IsMovable, NPL::TryAccessReferencedTerm, ystdex::update_thunk,
+//	ystdex::value_or, RemoveHead, std::placeholders, unordered_map, TokenValue,
+//	any_ops::use_holder, weak_ptr, in_place_type, ystdex::type_id,
+//	YSLib::allocate_shared, InvalidReference, MoveFirstSubterm, ShareMoveTerm,
+//	vector, ystdex::get_less, function, map, set, std::make_move_iterator,
+//	ystdex::exists, ystdex::id, ystdex::ref, ystdex::retry_on_cond, ystdex::id,
+//	ystdex::cast_mutable, NPL::AsTermNode, EnvironmentSwitcher, LiftOtherOrCopy,
 //	ystdex::equality_comparable, std::allocator_arg, NoContainer,
 //	ystdex::exchange, NPL::SwitchToFreshEnvironment, NPL::Access,
 //	YSLib::share_move, GetLValueTagsOf, NPL::TryAccessReferencedLeaf,
 //	ystdex::invoke_value_or, ystdex::call_value_or, ystdex::swap_guard,
-//	ystdex::make_transform, ystdex::try_emplace, ystdex::unique_guard,
-//	IsNPLAExtendedLiteralNonDigitPrefix, CheckReducible, IsNPLAExtendedLiteral,
-//	ystdex::isdigit, ResolveIdentifier, NPL::TryAccessTerm, LiteralHandler,
-//	CategorizeBasicLexeme, DeliteralizeUnchecked, Deliteralize,
-//	LiftMovedOther, LiftCollapsed, NPL::AllocateEnvironment, std::mem_fn;
+//	ystdex::bind1, ystdex::make_transform, ystdex::try_emplace,
+//	ystdex::unique_guard, IsNPLAExtendedLiteralNonDigitPrefix, CheckReducible,
+//	IsNPLAExtendedLiteral, ystdex::isdigit, ResolveIdentifier,
+//	NPL::TryAccessTerm, LiteralHandler, CategorizeBasicLexeme,
+//	DeliteralizeUnchecked, Deliteralize, LiftMovedOther, LiftCollapsed,
+//	NPL::AllocateEnvironment, std::mem_fn;
 #include YFM_NPL_SContext // for Session;
 #include <ystdex/ref.hpp> // for ystdex::unref;
 
@@ -72,6 +73,7 @@ namespace NPL
 //	supporting PTC are noted in implementations separatedly.
 #define NPL_Impl_NPLA1_Enable_TCO true
 #define NPL_Impl_NPLA1_Enable_Thunked true
+#define NPL_Impl_NPLA1_Enable_ThunkedSeparatorPass NPL_Impl_NPLA1_Enable_Thunked
 
 // NOTE: Use %RelaySwitched instead of %RelayNext without %ComposeSwitched as
 //	possible to be more friendly to TCO.
@@ -116,77 +118,6 @@ to_string(ValueToken vt)
 //! \since build 685
 namespace
 {
-
-//! \since build 852
-//@{
-template<typename _func, class _tTerm>
-YB_ATTR_nodiscard TermNode
-TransformForSeparatorCore(_func trans, _tTerm&& term, const ValueObject& pfx,
-	const TokenValue& delim)
-{
-	using namespace std::placeholders;
-	using it_t = decltype(std::make_move_iterator(term.end()));
-	const auto a(term.get_allocator());
-	auto res(NPL::AsTermNode(a, yforward(term).Value));
-
-	if(IsBranch(term))
-	{
-		res.Add(NPL::AsTermNode(a, pfx));
-		ystdex::split(std::make_move_iterator(term.begin()),
-			std::make_move_iterator(term.end()), ystdex::bind1(
-			HasValue<TokenValue>, std::ref(delim)), [&](it_t b, it_t e){
-				const auto add([&](TermNode& node, it_t i){
-					node.Add(trans(NPL::Deref(i)));
-				});
-
-				if(b != e)
-				{
-					// XXX: This guarantees a single element is converted with
-					//	no redundant parentheses according to NPLA1 syntax,
-					//	consistent to the trivial reduction for term with one
-					//	subnode in %ReduceOnce.
-					if(std::next(b) == e)
-						add(res, b);
-					else
-					{
-						auto child(NPL::AsTermNode(a));
-
-						ystdex::retry_on_cond([&]() ynothrow{
-							return b != e;
-						}, [&]{
-							add(child, b++);
-						});
-						res.Add(std::move(child));
-					}
-				}
-			});
-	}
-	return res;
-}
-
-//! \since build 852
-template<class _tTerm>
-YB_ATTR_nodiscard TermNode
-TransformForSeparatorTmpl(_tTerm&& term, const ValueObject& pfx,
-	const TokenValue& delim)
-{
-	return TransformForSeparatorCore([&](_tTerm&& tm) ynothrow{
-		return yforward(tm);
-	}, yforward(term), pfx, delim);
-}
-
-//! \since build 852
-template<class _tTerm>
-YB_ATTR_nodiscard TermNode
-TransformForSeparatorRecursiveTmpl(_tTerm&& term, const ValueObject& pfx,
-	const TokenValue& delim)
-{
-	return TransformForSeparatorCore([&](_tTerm&& tm){
-		return TransformForSeparatorRecursiveTmpl(yforward(tm), pfx, delim);
-	}, yforward(term), pfx, delim);
-}
-//@}
-
 
 //! \since build 868
 //@{
@@ -842,6 +773,83 @@ ReduceReturnUnspecified(TermNode& term) ynothrow
 	term.Value = ValueToken::Unspecified;
 	return ReductionStatus::Clean;
 }
+
+
+//! \since build 881
+//@{
+using Action = function<void()>;
+
+class SeparatorPass
+{
+private:
+	using Filter = decltype(ystdex::bind1(HasValue<TokenValue>,
+		std::declval<TokenValue&>()));
+
+	TermPasses::allocator_type alloc;
+	TokenValue delim{";"};
+	TokenValue delim2{","};
+	Filter filter{ystdex::bind1(HasValue<TokenValue>, delim)};
+	Filter filter2{ystdex::bind1(HasValue<TokenValue>, delim2)};
+	ValueObject pfx{std::allocator_arg, alloc, ContextHandler(Forms::Sequence)};
+	ValueObject pfx2{std::allocator_arg, alloc,
+		ContextHandler(FormContextHandler(ReduceBranchToList, 1))};
+#if NPL_Impl_NPLA1_Enable_ThunkedSeparatorPass
+	mutable stack<lref<TermNode>> remained{alloc};
+#endif
+
+public:
+	SeparatorPass(TermPasses& passes)
+		: alloc(passes.get_allocator())
+	{}
+
+	YB_FLATTEN ReductionStatus
+	operator()(TermNode& term) const
+	{
+#if NPL_Impl_NPLA1_Enable_ThunkedSeparatorPass
+		YAssert(remained.empty(), "Invalid state found.");
+		Transform(term, remained);
+		while(!remained.empty())
+		{
+			const auto term_ref(std::move(remained.top()));
+
+			remained.pop();
+			for(auto& tm : term_ref.get())
+				Transform(tm, remained);
+		}
+#else
+		Transform(term);
+#endif
+		return ReductionStatus::Clean;
+	}
+
+private:
+#if NPL_Impl_NPLA1_Enable_ThunkedSeparatorPass
+	void
+	Transform(TermNode& term, stack<lref<TermNode>>& remained) const
+	{
+		remained.push(term);
+		if(std::find_if(term.begin(), term.end(), filter) != term.end())
+			term = SeparatorTransformer::Process(std::move(term), pfx, filter);
+		if(std::find_if(term.begin(), term.end(), filter2) != term.end())
+			term = SeparatorTransformer::Process(std::move(term), pfx2,
+				filter2);
+	}
+#else
+	void
+	Transform(TermNode& term) const
+	{
+		if(std::find_if(term.begin(), term.end(), filter) != term.end())
+			term = SeparatorTransformer::Process(std::move(term), pfx, filter);
+		if(std::find_if(term.begin(), term.end(), filter2) != term.end())
+			term = SeparatorTransformer::Process(std::move(term), pfx2,
+				filter2);
+		for(auto& tm : term)
+			Transform(tm);
+	}
+#endif
+};
+//@}
+
 
 //! \since build 876
 YB_ATTR_nodiscard YB_PURE bool
@@ -2495,7 +2503,6 @@ class ParameterMatcher
 public:
 	template<typename... _tParams>
 	using GBinder = function<void(_tParams..., TermTags, Environment&)>;
-	using Action = function<void()>;
 
 	GBinder<TNIter, TNIter, const TokenValue&> BindTrailing;
 	GBinder<const TokenValue&, TermNode&> BindValue;
@@ -2617,7 +2624,7 @@ private:
 			const auto& tp(t.Value.type());
 		
 			if(tp == ystdex::type_id<TermReference>())
-				UpdateAction([&, o_tags]{
+				ystdex::update_thunk(act, [&, o_tags]{
 					Match(t.Value.GetObject<TermReference>().get(), o, o_tags,
 						env);
 				});
@@ -2639,13 +2646,14 @@ private:
 	{
 		if(i != last)
 		{
-			UpdateAction(std::bind(&ParameterMatcher::MatchSubterms, this,
-				std::next(i), last, std::next(j), o_last, tags, std::ref(env),
-				ellipsis
+			ystdex::update_thunk(act, [=, &env]{
+				return MatchSubterms(std::next(i), last, std::next(j), o_last,
 #if NPL_Impl_NPLA1_AssertParameterMatch
-				, t_end
+					tags, env, ellipsis, t_end);
+#else
+					tags, env, ellipsis);
 #endif
-				));
+			});
 			YAssert(j != o_last, "Invalid state of operand found.");
 			Match(NPL::Deref(i), NPL::Deref(j), tags, env);
 		}
@@ -2662,18 +2670,6 @@ private:
 		}
 	}
 	//@}
-
-	template<typename _func>
-	void
-	UpdateAction(_func f) const
-	{
-		// TODO: Blocked. Use C++14 lambda initializers to simplify
-		//	implementation.
-		act = std::bind([this, f](Action& a){
-			act = std::move(a);
-			f();
-		}, std::move(act));
-	}
 };
 
 
@@ -3002,8 +2998,20 @@ ContextState::DefaultReduceOnce(TermNode& term, ContextNode& ctx)
 	{
 		YAssert(term.size() != 0, "Invalid node found.");
 		// NOTE: List with single element shall be reduced as the element.
-		return term.size() != 1 ? DoAdministratives(cs.EvaluateList, term, ctx)
-			: ReduceAgainLifted(term, ctx, AccessFirstSubterm(term));
+		if(term.size() != 1)
+			return DoAdministratives(cs.EvaluateList, term, ctx);
+
+		// XXX: This may be slightly more efficient, and more importantly,
+		//	respecting to nested call safety on %ReduceAgain for the thunked
+		//	implementation well by only allow one level of direct recursion.
+		auto term_ref(ystdex::ref(term));
+
+		ystdex::retry_on_cond([&]{
+			return term_ref.get().size() == 1;
+		}, [&]{
+			term_ref = AccessFirstSubterm(term_ref);
+		});
+		return ReduceAgainLifted(term, ctx, term_ref);
 	}
 	return ReductionStatus::Retained;
 }
@@ -3226,43 +3234,6 @@ TransformNode(const TermNode& term, NodeMapper mapper, NodeMapper map_leaf_node,
 }
 
 
-TermNode
-TransformForSeparator(const TermNode& term, const ValueObject& pfx,
-	const TokenValue& delim)
-{
-	return TransformForSeparatorTmpl(term, pfx, delim);
-}
-TermNode
-TransformForSeparator(TermNode&& term, const ValueObject& pfx,
-	const TokenValue& delim)
-{
-	return TransformForSeparatorTmpl(std::move(term), pfx, delim);
-}
-
-TermNode
-TransformForSeparatorRecursive(const TermNode& term, const ValueObject& pfx,
-	const TokenValue& delim)
-{
-	return TransformForSeparatorRecursiveTmpl(term, pfx, delim);
-}
-TermNode
-TransformForSeparatorRecursive(TermNode&& term, const ValueObject& pfx,
-	const TokenValue& delim)
-{
-	return TransformForSeparatorRecursiveTmpl(std::move(term), pfx, delim);
-}
-
-ReductionStatus
-ReplaceSeparatedChildren(TermNode& term, const ValueObject& pfx,
-	const TokenValue& delim)
-{
-	if(std::find_if(term.begin(), term.end(),
-		ystdex::bind1(HasValue<TokenValue>, std::ref(delim))) != term.end())
-		term = TransformForSeparator(std::move(term), pfx, delim);
-	return ReductionStatus::Clean;
-}
-
-
 ReductionStatus
 FormContextHandler::CallN(size_t n, TermNode& term, ContextNode& ctx) const
 {
@@ -3308,19 +3279,6 @@ FormContextHandler::Equals(const FormContextHandler& fch) const
 }
 
 
-void
-RegisterSequenceContextTransformer(EvaluationPasses& passes,
-	const TokenValue& delim, bool ordered)
-{
-	const auto a(passes.get_allocator());
-
-	passes += ystdex::bind1(ReplaceSeparatedChildren, ValueObject(
-		std::allocator_arg, a, ordered ? ContextHandler(std::allocator_arg, a,
-		Forms::Sequence) : ContextHandler(std::allocator_arg, a,
-		FormContextHandler(ReduceBranchToList, 1))), delim);
-}
-
-
 TermNode
 ParseLeaf(string_view id, TermNode::allocator_type a)
 {
@@ -3336,7 +3294,7 @@ ParseLeaf(string_view id, TermNode::allocator_type a)
 			YB_ATTR_fallthrough;
 		case LexemeCategory::Symbol:
 			if(CheckReducible(A1::DefaultEvaluateLeaf(term, id)))
-				term.Value.emplace<TokenValue>(id, a);
+				term.Value = TokenValue(id, a);
 				// NOTE: This is to be evaluated as identifier later.
 			break;
 			// XXX: Empty token is ignored.
@@ -3345,7 +3303,7 @@ ParseLeaf(string_view id, TermNode::allocator_type a)
 			// XXX: This should be prevented being passed to second pass in
 			//	%TermToNamePtr normally. This is guarded by normal form handling
 			//	in the loop in %ContextNode::Rewrite with %ReduceOnce.
-			term.Value.emplace<string>(Deliteralize(id), a);
+			term.Value = string(Deliteralize(id), a);
 			YB_ATTR_fallthrough;
 		default:
 			break;
@@ -3636,10 +3594,8 @@ REPLContext::REPLContext(pmr::memory_resource& rsrc)
 		return ParseLeaf(YSLib::make_string_view(str), Allocator);
 	})
 {
-	using namespace std::placeholders;
-
-	SetupDefaultInterpretation(Root,
-		std::bind(std::ref(ListTermPreprocess), _1, _2));
+	SetupDefaultInterpretation(Root, EvaluationPasses(Allocator));
+	Preprocess += SeparatorPass(Preprocess);
 }
 
 bool

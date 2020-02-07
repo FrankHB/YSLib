@@ -453,7 +453,7 @@
     <ClCompile Include="source\YSLib\UI\YDesktop.cpp" />
     <ClCompile Include="source\YSLib\UI\YFocus.cpp" />
     <ClCompile Include="source\YSLib\UI\YGUI.cpp" />
-    <ClCompile Include="source\YSLib\UI\ypanel.cpp" />
+    <ClCompile Include="source\YSLib\UI\YPanel.cpp" />
     <ClCompile Include="source\YSLib\UI\YRenderer.cpp" />
     <ClCompile Include="source\YSLib\UI\YStyle.cpp" />
     <ClCompile Include="source\YSLib\UI\YUIContainer.cpp" />

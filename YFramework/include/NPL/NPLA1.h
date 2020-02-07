@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r6309
+\version r6415
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-01-30 22:28 +0800
+	2020-02-06 02:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,11 +31,13 @@
 #include "YModules.h"
 #include YFM_NPL_NPLA // for NPLATag, TermNode, ContextNode,
 //	CombineReductionResult, ystdex::exclude_self_t, ystdex::ref_eq, TNIter,
-//	ValueNode, LiftOther, LoggedEvent, ystdex::equality_comparable,
-//	ystdex::exclude_self_params_t, YSLib::AreEqualHeld,
-//	ystdex::make_parameter_list_t, ystdex::make_function_type_t,
-//	ystdex::decay_t, ystdex::expanded_caller, std::is_constructible,
-//	ystdex::or_, ystdex::enable_if_inconvertible_t, pmr, NPL::Deref,
+//	ValueNode, LiftOther, LoggedEvent, YSLib::Warning, NPL::AsTermNode,
+//	IsBranch, std::make_move_iterator, std::next, ystdex::retry_on_cond,
+//	std::find_if, ystdex::bind1, std::allocator_arg,
+//	ystdex::equality_comparable, ystdex::exclude_self_params_t,
+//	YSLib::AreEqualHeld, ystdex::make_parameter_list_t,
+//	ystdex::make_function_type_t, ystdex::decay_t, ystdex::expanded_caller,
+//	std::is_constructible, ystdex::or_, TokenValue, pmr, NPL::Deref,
 //	Environment, ystdex::expand_proxy, NPL::Access, std::ref,
 //	ystdex::make_expanded, ResolvedTermReferencePtr, NPL::AccessRegular,
 //	ystdex::invoke_nonvoid, NPL::ResolveRegular, std::accumulate, ystdex::bind1,
@@ -44,7 +46,8 @@
 //	YSLib::GEvent, YSLib::GCombinerInvoker, YSLib::GDefaultLastValueInvoker,
 //	ystdex::make_transform;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
-#include <ystdex/scope_guard.hpp> // for ystdex::guard,
+#include <ystdex/algorithm.hpp> // for ystdex::split;
+#include <ystdex/scope_guard.hpp> // for ystdex::guard;
 
 namespace NPL
 {
@@ -583,48 +586,98 @@ LoadNode(_type&& tree, _tParams&&... args)
 
 
 /*!
-\note ValueObject 参数分别指定替换添加的前缀和被替换的分隔符的值。
-\since build 852
-*/
-//@{
-/*!
-\brief 变换分隔符中缀表达式为前缀表达式。
+\brief 中缀分隔符变换器。
+\since build 881
 
+变换分隔符中缀表达式为对应的前缀表达式形式。
 移除子项中值和指定分隔符指定的项，并添加指定前缀值作为子项。
 被添加的子项若是只有一个子项的列表项，该项被提升直接加入转换后的项作为子项。
 最后一个参数指定返回值的名称。
 */
-//@{
-//! \note 非递归变换。
-//@{
-YB_ATTR_nodiscard YF_API YB_PURE TermNode
-TransformForSeparator(const TermNode&, const ValueObject&, const TokenValue&);
-YB_ATTR_nodiscard YF_API YB_PURE TermNode
-TransformForSeparator(TermNode&&, const ValueObject&, const TokenValue&);
-//@}
+struct SeparatorTransformer
+{
+	//! 最后两个参数分别指定替换添加的前缀和判断被替换的项的过滤条件。
+	//@{
+	template<typename _func, class _tTerm, class _fPred>
+	YB_ATTR_nodiscard TermNode
+	operator()(_func trans, _tTerm&& term, const ValueObject& pfx,
+		_fPred filter) const
+	{
+		using it_t = decltype(std::make_move_iterator(term.begin()));
 
-//! \note 递归变换。
-//@{
-YB_ATTR_nodiscard YF_API YB_PURE TermNode
-TransformForSeparatorRecursive(const TermNode&, const ValueObject&,
-	const TokenValue&);
-//! \since build 824
-YB_ATTR_nodiscard YF_API YB_PURE TermNode
-TransformForSeparatorRecursive(TermNode&&, const ValueObject&,
-	const TokenValue&);
-//@}
-//@}
+		return AddRange([&](TermNode& res, it_t b, it_t e){
+			const auto add([&](TermNode& node, it_t i){
+				node.Add(trans(NPL::Deref(i)));
+			});
 
-/*!
-\brief 查找项中的指定分隔符，若找到则替换项为去除分隔符并添加替换前缀的形式。
-\return 是否找到并替换了项。
-\note 子项的内容在替换时被转移。
-\sa EvaluationPasses
-\sa TransformForSeparator
-*/
-YF_API ReductionStatus
-ReplaceSeparatedChildren(TermNode&, const ValueObject&, const TokenValue&);
-//@}
+			if(b != e)
+			{
+				// XXX: This guarantees a single element is converted with
+				//	no redundant parentheses according to NPLA1 syntax,
+				//	consistent to the trivial reduction for term with one
+				//	subnode in %ContextState::DefaultReduceOnce.
+				if(std::next(b) == e)
+					add(res, b);
+				else
+				{
+					auto child(NPL::AsTermNode(res.get_allocator()));
+
+					ystdex::retry_on_cond([&]() ynothrow{
+						return b != e;
+					}, [&]{
+						add(child, b++);
+					});
+					res.Add(std::move(child));
+				}
+			}
+		}, yforward(term), pfx, filter);
+	}
+
+	template<typename _func, class _tTerm, class _fPred>
+	YB_ATTR_nodiscard TermNode
+	AddRange(_func add_range, _tTerm&& term, const ValueObject& pfx,
+		_fPred filter) const
+	{
+		using it_t = decltype(std::make_move_iterator(term.begin()));
+		const auto a(term.get_allocator());
+		auto res(NPL::AsTermNode(a, yforward(term).Value));
+
+		if(IsBranch(term))
+		{
+			res.Add(NPL::AsTermNode(a, pfx));
+			ystdex::split(std::make_move_iterator(term.begin()),
+				std::make_move_iterator(term.end()), filter,
+				[&](it_t b, it_t e){
+				add_range(res, b, e);
+			});
+		}
+		return res;
+	}
+
+	template<class _tTerm, class _fPred>
+	YB_ATTR_nodiscard static TermNode
+	Process(_tTerm&& term, const ValueObject& pfx, _fPred filter)
+	{
+		return SeparatorTransformer()([&](_tTerm&& tm) ynothrow{
+			return yforward(tm);
+		}, yforward(term), pfx, filter);
+	}
+
+	/*!
+	\brief 找到子项符合过滤条件的并替换项为添加替换前缀的形式。
+	\return 是否找到并替换了项。
+	\note 子项的内容在替换时被转移。
+	*/
+	template<class _fPred>
+	static void
+	ReplaceChildren(TermNode& term, const ValueObject& pfx,
+		_fPred filter)
+	{
+		if(std::find_if(term.begin(), term.end(), filter) != term.end())
+			term = Process(std::move(term), pfx, filter);
+	}
+	//@}
+};
 
 
 //! \since build 751
@@ -829,22 +882,6 @@ RegisterStrict(_tTarget& target, string_view name, _tParams&&... args)
 	A1::RegisterHandler<>(target, name, yforward(args)...);
 }
 //@}
-
-/*!
-\brief 注册分隔符转换变换和处理例程。
-\sa NPL::RegisterContextHandler
-\sa ReduceChildren
-\sa ReduceOrdered
-\sa ReplaceSeparatedChildren
-\since build 847
-
-变换带有中缀形式的分隔符记号的表达式为指定前缀对象并去除分隔符。
-最后一个参数指定是否有序，选择语法形式为 ReduceOrdered 或 ReduceChildren 之一。
-前缀名称不需要是记号支持的标识符。
-*/
-YF_API void
-RegisterSequenceContextTransformer(EvaluationPasses&, const TokenValue&,
-	bool = {});
 
 
 /*!

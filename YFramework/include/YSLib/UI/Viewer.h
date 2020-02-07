@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2015, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Viewer.h
 \ingroup UI
 \brief 样式无关的视图。
-\version r708
+\version r741
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-04-19 23:00:28 +0800
 \par 修改时间:
-	2015-09-28 00:59 +0800
+	2020-02-04 14:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,16 +46,21 @@ class YF_API SequenceViewer
 {
 private:
 	/*!
-	\brief 视图中首个项目的索引，大于序列大小时无效。
+	\brief 视图中第一个项目的索引，大于序列大小时无效。
 	\note 空序列时应等于 0 。
 	*/
 	size_t head = 0;
-	size_t selected = 0; //!< 选中项目的索引，大于等于序列大小时无效。
-	//! \since build 147
-	bool is_selected = {}; //!< 选中状态。
+	//! \brief 选中项目的索引，大于等于序列大小时无效。
+	size_t selected = 0; 
+	/*!
+	\brief 选中状态。
+	\since build 147
+	*/
+	bool is_selected = {};
 
 public:
-	size_t Length = 1; //!< 视图长度：最大可视项目数。
+	//! \brief 视图长度：最大可视项目数。
+	size_t Length = 1;
 
 	/*!
 	\brief 构造：使用指定容器。
@@ -74,24 +79,27 @@ public:
 	\brief 判断是否在有效范围内包含指定项目索引。
 	\since build 639
 	*/
-	bool
+	YB_ATTR_nodiscard YB_PURE bool
 	Contains(size_t) const ynothrow;
 
 	DefGetter(const ynothrow, size_t, HeadIndex, head)
 	DefGetter(const ynothrow, size_t, SelectedIndex, selected)
+	/*!
+	\brief 取选中的项目相对视图中第一个项目的的索引偏移。
+	\return 未选中时为 -1 ，否则为选中的索引相对第一个项的索引的差。
+	*/
 	DefGetter(const ynothrow, ptrdiff_t, Offset, IsSelected()
 		? ptrdiff_t(GetSelectedIndex()) - ptrdiff_t(GetHeadIndex()) : -1) \
-		//!< 取选中的项目相对视图中首个项目的的索引偏移（未选中时为 -1 ）。
 	/*!
 	\brief 取当前视图中有效项目个数。
 	\param total 外部列表长度。
-	\pre 断言：外部列表长度不小于首个项目的索引。
+	\pre 断言：外部列表长度不小于第一个项目的索引。
 	*/
-	size_t
+	YB_ATTR_nodiscard YB_PURE size_t
 	GetValid(size_t total) const ynothrow;
 
 	/*!
-	\brief 设置视图中首个项目的索引。
+	\brief 设置视图中第一个项目的索引。
 	\param t 设置的索引。
 	\param total 外部列表长度。
 	*/
@@ -106,11 +114,11 @@ public:
 	SetSelectedIndex(size_t t, size_t total);
 
 	/*!
-	\brief 按序列内容大小依次调整选中和首个项目的索引。
+	\brief 按序列内容大小依次调整选中和第一个项目的索引。
 	\post <tt>(total == 0 && !IsSelected()) || (GetSelectedIndex() < total
 		&& GetHeadIndex() < total)</tt> 。
 	\param total 外部列表长度。
-	\return 是否改变了视图中首个项目的索引。
+	\return 是否改变了视图中第一个项目的索引。
 	*/
 	bool
 	AdjustForContent(size_t total);
@@ -127,7 +135,7 @@ public:
 		ImplExpr(is_selected = {})
 
 	/*!
-	\brief 按偏移设置视图中首个项目的索引。
+	\brief 按偏移设置视图中第一个项目的索引。
 	\param d 增加的索引偏移值。
 	*/
 	SequenceViewer&
@@ -176,7 +184,7 @@ public:
 	\brief 约束视图包含被选中的元素。
 	\post <tt>(!(GetSelectedIndex() < GetHeadIndex())
 		&& GetSelectedIndex() < GetHeadIndex() + Length)</tt> 。
-	\return 是否改变了视图中首个项目的索引。
+	\return 是否改变了视图中第一个项目的索引。
 	\since build 147
 	*/
 	bool
@@ -216,7 +224,7 @@ public:
 	\note 依赖 GetItemHeight 的结果。
 	\since build 203
 	*/
-	SDst
+	YB_ATTR_nodiscard SDst
 	GetFullViewHeight() const;
 	/*!
 	\brief 取项目行高：调用 GetItemHeightCore 取结果。
@@ -224,7 +232,7 @@ public:
 	\throw LoggedEvent 调用 GetItemHeightCore 结果为 0 。
 	\since build 203
 	*/
-	SDst
+	YB_ATTR_nodiscard SDst
 	GetItemHeight() const;
 
 protected:
@@ -233,12 +241,12 @@ protected:
 	\note 默认实现为取单元部件的高。
 	\since build 581
 	*/
-	virtual SDst
+	YB_ATTR_nodiscard virtual SDst
 	GetItemHeightCore() const;
 
 public:
 	//! \since build 523
-	size_t
+	YB_ATTR_nodiscard size_t
 	GetLastLabelIndexClipped(SPos, SDst) const;
 	//! \since build 528
 	DefGetter(const ynothrow, size_t, SharedIndex, idxShared)
@@ -256,14 +264,14 @@ public:
 	\note 参数为项目索引。
 	\since build 523
 	*/
-	Point
+	YB_ATTR_nodiscard Point
 	GetUnitLocation(size_t) const;
 	/*!
 	\brief 取视图顶端竖直位置。
 	\note 依赖 GetItemHeight 的结果。
 	\since build 203
 	*/
-	SDst
+	YB_ATTR_nodiscard SDst
 	GetViewPosition() const;
 
 	/*!
@@ -294,7 +302,7 @@ public:
 	AdjustOffsetForHeight(SDst, bool);
 
 	/*!
-	\brief 按内容大小依次调整视图中选中和首个项目的索引，然后按需调整竖直偏移量。
+	\brief 按内容大小依次调整视图中选中和第一个项目的索引，然后按需调整竖直偏移量。
 	\note 参数指定视图可视区域的高。
 	\warning 若视图大小变化后不调用此方法调整视图，可能引起选择项越界而行为未定义。
 	*/
@@ -315,12 +323,12 @@ public:
 	\return 选择的项目索引，若无效则为 static_cast<size_t>(-1) 。
 	\since build 528
 	*/
-	size_t
+	YB_ATTR_nodiscard size_t
 	CheckPoint(const Size&, const Point&);
 
 	/*!
 	\brief 复位视图。
-	\note 若项目列表非空则选择首个项目。
+	\note 若项目列表非空则选择第一个项目。
 	*/
 	void
 	ResetView();

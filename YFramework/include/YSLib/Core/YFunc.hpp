@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018-2019 FrankHB.
+	© 2010-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YFunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r1299
+\version r1301
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-02-14 18:48:44 +0800
 \par 修改时间:
-	2019-11-25 22:09 +0800
+	2020-01-27 16:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,7 +78,7 @@ private:
 
 public:
 	//! \since build 495
-	PDefH(bool, Contains, const _tKey& key) const
+	YB_ATTR_nodiscard YB_PURE PDefH(bool, Contains, const _tKey& key) const
 		ImplRet(registered_map.count(key) != 0)
 
 	DeclSEntry(template<_type, _fHandler> _fHandler GetRegister() const)
