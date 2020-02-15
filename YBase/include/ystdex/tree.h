@@ -11,13 +11,13 @@
 /*!	\file tree.h
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r3343
+\version r3344
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2020-01-27 02:16 +0800
+	2020-02-10 23:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@
 #ifndef YB_INC_ystdex_tree_hpp_
 #define YB_INC_ystdex_tree_hpp_ 1
 
-#include "memory.hpp" // for allocator_traits, is_move_assignable,
+#include "allocator.hpp" // for allocator_traits, is_move_assignable,
 //	ystdex::swap_dependent, YAssert, yassume, yconstraint, true_, false_,
 //	std::pointer_traits, is_nothrow_copy_constructible, aligned_storage_t,
 //	standard_layout_storage, std::allocator, std::bidirectional_iterator_tag,

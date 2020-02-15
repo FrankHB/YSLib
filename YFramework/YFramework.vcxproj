@@ -88,6 +88,7 @@
     <ClInclude Include="include\NPL\NPL.h" />
     <ClInclude Include="include\NPL\NPLA.h" />
     <ClInclude Include="include\NPL\NPLA1.h" />
+    <ClInclude Include="include\NPL\NPLA1Forms.h" />
     <ClInclude Include="include\NPL\SContext.h" />
     <ClInclude Include="include\NPL\YModules.h" />
     <ClInclude Include="include\YBaseMacro.h" />
@@ -197,6 +198,7 @@
     <ClInclude Include="include\YSLib\UI\YWidgetView.h" />
     <ClInclude Include="include\YSLib\UI\YWidget.h" />
     <ClInclude Include="include\YSLib\UI\YWindow.h" />
+    <ClInclude Include="source\NPL\NPLA1Internals.h" />
     <ClInclude Include="Win32\include\Helper\Win32Control.h" />
     <ClInclude Include="Win32\include\YCLib\COM.h" />
     <ClInclude Include="Win32\include\YCLib\Consoles.h" />
@@ -252,6 +254,8 @@
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
     </ClCompile>
     <ClCompile Include="source\NPL\NPLA.cpp" />
+    <ClCompile Include="source\NPL\NPLA1Forms.cpp" />
+    <ClCompile Include="source\NPL\NPLA1Internals.cpp" />
     <ClCompile Include="Win32\source\Helper\Win32Control.cpp">
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>

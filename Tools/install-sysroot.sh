@@ -4,7 +4,7 @@
 
 set -e
 SHBuild_ToolDir=$(cd "`dirname "$0"`/Scripts"; pwd)
-. $SHBuild_ToolDir/SHBuild-common.sh # For SHBuild_Puts,
+. "$SHBuild_ToolDir/SHBuild-common.sh" # For SHBuild_Puts,
 #	SHBuild_CheckHostPlatform;
 
 # NOTE: Some variables are configurable. If not set or set to empty, the
@@ -32,7 +32,7 @@ export YSLib_BuildDir="$SHBuild_BuildDir"
 SHBuild_Puts Build directory is \"$YSLib_BuildDir\".
 SHBuild_CheckUName
 : ${AR:="gcc-ar"}
-. $SHBuild_ToolDir/SHBuild-common-toolchain.sh
+. "$SHBuild_ToolDir/SHBuild-common-toolchain.sh"
 if [[ -z ${SHBuild_UseRelease+x} ]]; then
 	SHBuild_UseRelease=true
 fi

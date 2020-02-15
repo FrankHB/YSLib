@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# (C) 2015-2017 FrankHB.
+# (C) 2015-2017, 2020 FrankHB.
 # Project generation script: generating Code::Blocks .cbp files using
 #	ProjectGenerator.
 
 : ${SHBuild_Bin:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
-. $SHBuild_Bin/SHBuild-common.sh
+. "$SHBuild_Bin/SHBuild-common.sh"
 
 TopLevel="$(hg root 2> /dev/null || (cd "$(git rev-parse --show-cdup)"; pwd))"
 TopLevel="$(SHBuild_2u $TopLevel)"

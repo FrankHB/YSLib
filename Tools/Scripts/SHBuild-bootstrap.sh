@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# (C) 2014-2019 FrankHB.
+# (C) 2014-2020 FrankHB.
 # Common source script: bootstrap configuration.
 
 SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
-. $SHBuild_ToolDir/SHBuild-common.sh
+. "$SHBuild_ToolDir/SHBuild-common.sh"
 SHBuild_Puts Bootstrap beginned.
 SHBuild_CheckUName
 : ${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}
@@ -18,8 +18,8 @@ SHBuild_Puts Configuring ...
 
 SHBuild_BuildDir="$SHBuild_BaseDir/.shbuild"
 
-. $SHBuild_ToolDir/SHBuild-common-toolchain.sh
-. $SHBuild_ToolDir/SHBuild-common-options.sh
+. "$SHBuild_ToolDir/SHBuild-common-toolchain.sh"
+. "$SHBuild_ToolDir/SHBuild-common-options.sh"
 
 INCLUDE_PCH="$YSLib_BaseDir/YBase/include/stdinc.h"
 INCLUDES=" \
@@ -32,7 +32,7 @@ INCLUDES=" \
 	-I$YSLib_BaseDir/YBase/include \
 	"
 
-# Coordinated at build 867.
+# Coordinated at build 882.
 LIBS=" \
 	$YSLib_BaseDir/YBase/source/ystdex/base.cpp \
 	$YSLib_BaseDir/YBase/source/ystdex/exception.cpp \
@@ -64,6 +64,8 @@ LIBS=" \
 	$YSLib_BaseDir/YFramework/source/NPL/SContext.cpp \
 	$YSLib_BaseDir/YFramework/source/NPL/NPLA.cpp \
 	$YSLib_BaseDir/YFramework/source/NPL/NPLA1.cpp \
+	$YSLib_BaseDir/YFramework/source/NPL/NPLA1Internals.cpp \
+	$YSLib_BaseDir/YFramework/source/NPL/NPLA1Forms.cpp \
 	$YSLib_BaseDir/YFramework/source/NPL/Dependency.cpp \
 	"
 if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then

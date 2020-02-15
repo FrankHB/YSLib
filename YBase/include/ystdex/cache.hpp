@@ -11,13 +11,13 @@
 /*!	\file cache.hpp
 \ingroup YStandardEx
 \brief 高速缓冲容器模板。
-\version r601
+\version r602
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-12-22 20:19:14 +0800
 \par 修改时间:
-	2020-01-25 23:09 +0800
+	2020-02-15 16:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_cache_hpp_
 #define YB_INC_ystdex_cache_hpp_ 1
 
-#include "memory.hpp" // for std::pair, yassume, allocator_traits, are_same,
+#include "allocator.hpp" // for std::pair, yassume, allocator_traits, are_same,
 //	rebind_alloc_t;
 #include <list> // for std::list;
 #include <unordered_map> // for std::unordered_map;

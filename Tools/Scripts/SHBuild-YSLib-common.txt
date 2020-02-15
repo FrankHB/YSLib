@@ -148,7 +148,7 @@ $defl! get-thread-option-silent (env-os cxx)
 	get-thread-option cxx (get-nul-dev env-os);
 $defl! get-SHBOPT_ (outdir shbopt-ext use-ld)
 (
-	$def! opt cons-cmd (++ "-xd," outdir) shbopt-ext;
+	$def! opt cons-cmd (++ "-xd,\"" outdir "\"") shbopt-ext;
 	$if use-ld (cons-cmd opt "-xmode,2") opt
 );
 $defl! SHB_SetupPlatformVars_ (e env-os)

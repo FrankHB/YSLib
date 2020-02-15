@@ -61,7 +61,7 @@ if [[ "$SHBuild_Conf" =~ .*static ]]; then
 fi
 
 SHBuild_Dest="$SHBuild_BuildPrefix.$SHBuild_Conf"
-SHBOPT="-xd,$SHBuild_Dest -xid,include -xmode,2 $@"
+SHBOPT="-xd,\"$SHBuild_Dest\" -xid,include -xmode,2 $@"
 
 SHBuild_setup_AR_()
 {

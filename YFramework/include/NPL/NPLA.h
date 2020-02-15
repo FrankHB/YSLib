@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r7015
+\version r7017
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2020-01-31 04:19 +0800
+	2020-02-09 04:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1098,9 +1098,10 @@ private:
 表示列表项的引用的中间求值结果的项。
 项引用可选地关联环境。
 当关联的环境不存在时，不提供对引入的对象内存安全的检查。
-为避免安全问题，不提供不关联环境的构造函数。若需不关联环境，需要显示构造空环境引用。
+为避免安全问题，不提供不关联环境的构造函数。若需不关联环境，需显式构造空环境引用。
 */
 class YF_API TermReference
+	: private ystdex::equality_comparable<TermReference>
 {
 private:
 	//! \since build 842

@@ -17,13 +17,13 @@ CXXFLAGS_OPT_DBG='-Og -g'
 #	See also https://bugs.llvm.org/show_bug.cgi?id=38305. Anyway LTO is not make
 #	it easy to debug as the intentional '-Og' here, so simply disable it.
 LDFLAGS_IMPL_OPT=' '
-. $SHBuild_ToolDir/SHBuild-bootstrap.sh
+. "$SHBuild_ToolDir/SHBuild-bootstrap.sh"
 
 : ${SHBuild_Output:=SHBuild}
 : ${SHBuild_PCH_stdinc_h:=stdinc.h}
 
 SHBuild_Pushd
-cd $SHBuild_BaseDir
+cd "$SHBuild_BaseDir"
 
 SHBuild_Puts Building ...
 

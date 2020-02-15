@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r3055
+\version r3062
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2020-01-27 01:46 +0800
+	2020-02-10 23:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_string_hpp_
 #define YB_INC_ystdex_string_hpp_ 1
 
-#include "memory.hpp" // for allocator_traits, enable_if_t, remove_cvref_t,
+#include "allocator.hpp" // for allocator_traits, enable_if_t, remove_cvref_t,
 //	false_, is_object, decay_t, std::declval, true_, nested_allocator, or_,
 //	is_same, is_enum, yconstraint, is_class, yassume, YAssert;
 #include "string_view.hpp" // for internal "string_view.hpp" (implying
@@ -836,7 +836,7 @@ struct is_string_like<_type, enable_if_t<
 
 //! \todo 支持 std::forward_iterator_tag 重载。
 template<typename _tFwd1, typename _tFwd2, typename _fPred>
-YB_ATTR_nodiscard bool
+YB_ATTR_nodiscard YB_PURE bool
 ends_with_iter_dispatch(_tFwd1 b, _tFwd1 e, _tFwd2 bt, _tFwd2 et,
 	_fPred comp, std::bidirectional_iterator_tag)
 {
@@ -1172,7 +1172,7 @@ string_length(std::initializer_list<_tElem> il)
 //@{
 //! \since build 519
 template<typename _tRange1, typename _tRange2, typename _fPred>
-YB_ATTR_nodiscard bool
+YB_ATTR_nodiscard YB_PURE bool
 begins_with(const _tRange1& input, const _tRange2& test, _fPred comp)
 {
 	return ystdex::string_length(test) <= ystdex::string_length(input)
@@ -1181,7 +1181,7 @@ begins_with(const _tRange1& input, const _tRange2& test, _fPred comp)
 }
 //! \since build 519
 template<typename _tRange1, typename _tRange2>
-YB_ATTR_nodiscard inline bool
+YB_ATTR_nodiscard YB_PURE inline bool
 begins_with(const _tRange1& input, const _tRange2& test)
 {
 	return ystdex::begins_with(input, test, is_equal());
@@ -1191,7 +1191,7 @@ begins_with(const _tRange1& input, const _tRange2& test)
 //! \brief 判断第一参数指定的串是否以第二参数结束。
 //@{
 template<typename _tRange1, typename _tRange2, typename _fPred>
-YB_ATTR_nodiscard inline bool
+YB_ATTR_nodiscard YB_PURE inline bool
 ends_with(const _tRange1& input, const _tRange2& test, _fPred comp)
 {
 	// NOTE: See $2014-07 @ %Documentation::Workflow.
@@ -1201,7 +1201,7 @@ ends_with(const _tRange1& input, const _tRange2& test, _fPred comp)
 		::iterator_category());
 }
 template<typename _tRange1, typename _tRange2>
-YB_ATTR_nodiscard inline bool
+YB_ATTR_nodiscard YB_PURE inline bool
 ends_with(const _tRange1& input, const _tRange2& test)
 {
 	return ystdex::ends_with(input, test, is_equal());
@@ -1560,7 +1560,7 @@ find_suffix(const _tString& str, _tParams&&... args)
 */
 //@{
 template<typename _tString>
-YB_ATTR_nodiscard yconstfn typename string_traits<_tString>::value_type
+YB_ATTR_nodiscard YB_PURE yconstfn typename string_traits<_tString>::value_type
 get_quote_mark_nonstrict(const _tString& str)
 {
 	return str.front() == str.back() ? str.front()

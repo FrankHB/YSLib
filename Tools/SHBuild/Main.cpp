@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2019 FrankHB.
+	© 2014-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3923
+\version r3934
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2019-08-17 05:42 +0800
+	2020-02-15 10:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -197,15 +197,19 @@ const struct Option
 		ImplRet(filter(arg))
 } OptionsTable[]{
 	{"-xd,", "output directory path", "DIR_PATH", [](string&& val){
-		PrintInfo("Output directory is switched to " + Quote(val) + '.');
-		OutputDir = std::move(val);
-	}, {"The name of output directory. Default value is '" OPT_build_path "'.",
-		OPT_des_mul}},
+		string raw(NPL::Deliteralize(val));
+
+		PrintInfo("Output directory is switched to " + Quote(raw) + '.');
+		OutputDir = std::move(raw);
+	}, {"The name of output directory (possibly quoted). Default value is '"
+		OPT_build_path "'.", OPT_des_mul}},
 	{"-xid,", "ignored directories", "DIR_NAME", [](string&& val){
-		PrintInfo("Subdirectory " + Quote(val) + " should be ignored.");
-		IgnoredDirs.emplace(std::move(val));
-	}, {"The name of subdirectory which should be ignored when scanning.",
-		OPT_des_mul}},
+		string raw(NPL::Deliteralize(val));
+
+		PrintInfo("Subdirectory " + Quote(raw) + " should be ignored.");
+		IgnoredDirs.emplace(std::move(raw));
+	}, {"The name of subdirectory (possibly quoted) which should be ignored"
+		" when scanning.", OPT_des_mul}},
 	{"-xcmd,", "command", "COMMAND", [](string&& val) ynothrow{
 		RequestedCommand = std::move(val);
 	}, {"Specified name of a command to run.", "If this option is set, all"

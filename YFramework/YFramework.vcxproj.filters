@@ -724,6 +724,12 @@
     <ClInclude Include="Android\source\Helper\AndroidScreen.h">
       <Filter>Android\source\Helper</Filter>
     </ClInclude>
+    <ClInclude Include="include\NPL\NPLA1Forms.h">
+      <Filter>include\NPL</Filter>
+    </ClInclude>
+    <ClInclude Include="source\NPL\NPLA1Internals.h">
+      <Filter>source\NPL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\YNew.cpp">
@@ -1070,6 +1076,12 @@
     </ClCompile>
     <ClCompile Include="Android\source\Helper\AndroidScreen.cpp">
       <Filter>Android\source\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="source\NPL\NPLA1Forms.cpp">
+      <Filter>source\NPL</Filter>
+    </ClCompile>
+    <ClCompile Include="source\NPL\NPLA1Internals.cpp">
+      <Filter>source\NPL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

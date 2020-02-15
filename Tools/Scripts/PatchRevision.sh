@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# (C) 2014-2016 FrankHB.
+# (C) 2014-2016, 2020 FrankHB.
 # Revision patching script: patching source revisions using RevisionPatcher.
 # Required: hg, sed.
 
 : ${SHBuild_Bin:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
-. $SHBuild_Bin/SHBuild-common.sh
+. "$SHBuild_Bin/SHBuild-common.sh"
 
 SHBuild_CheckedCallSilent hg root
 SHBuild_CheckedCallSilent SHBuild_Put x | sed 's/x/x/g'

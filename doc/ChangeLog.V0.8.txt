@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r17559
+\version r17700
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-02-07 19:28 +0800
+	2020-02-15 16:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,148 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		+ $dev $lib 'YB_PURE' @ ("function %empty" @ "class template %list"
+			@ %List, ("all 2 function templates %(begins_with, ends_with)",
+			"function template %get_quote_mark_nonstrict") @ %String),
+			// Also To eliminate G++ 7.1 warning: \
+				[-Wsuggest-attribute=pure].
+		+ %Allocator,
+		/ %Memory $=
+		(
+			/ "%(__cpp_lib_allocator_traits_is_always_equal, 'alloc_*_t', \
+				'is_allocat*', is_byte_allocator, nested_allocator_base, \
+				'allocator_*', '*_allocator', '*allocator_guard', 'alloc_on*', \
+				uses_allocator_construction_args, make_obj_using_allocator, \
+				uninitialized_construct_using_allocator)" >> $dep_from
+				%Allocator $dep_to "seperated allocator API header",
+				// The order of declarations is now also consistent to WG21 \
+					N4830 [memory.syn].
+			/ DLDI "header inclusion %Tuple" -> "%Apply"
+		),
+		+ DLDI 'YB_ATTR_nodiscard' @ "function template \
+			%uses_allocator_construction_args implementations" @ %Allocator
+			$dep_from "seperated allocator API header",
+			// G++ 7.1 warning: [-Wsuggest-attribute=const] is wrong here \
+				and %YB_STATELESS would cause crash.
+		(
+		/ DLDI ("simplified header inclusion %Memory" -> "%Allocator")
+			@ %(Tree, String, List, Cache)
+			$dep_from "seperated allocator API header";
+		/ DLDI "header inclusion %IteratorOperation" @ %List
+		)
+	),
+	/ %YFramework.NPL $=
+	(
+		+ "!= comparison" @ "class %TermReference" @ %NPLA
+			$= (/ $impl
+				^ "private base %ystdex::equality_comparable<TermReference>"),
+		(
+		+ "internal module %NPLA1Internals" $=
+		(
+			+ $dev $impl "inline namespace %Internals"
+				@ "namespace %NPL::A1" $=
+				(+ "internal functions %(FetchTailEnvironmentReference; \
+					ReduceForCombinerRef)"),
+			+ "exposed 'NPLA_Impl_*' macros";
+			+ "TCO actions and 'Relay*' function templates"
+				@ "inline namespace %Internals"
+		);
+		+ %NPLA1Forms
+		),
+		/ %NPLA1 $=
+		(
+			/ DLDI "separator handling" @ "constructor %REPLContext" $=
+				^ ("%vector" ~ "implicit %deque") @ "%stack",
+				// This is slightly more efficient. Also to eliminate G++ \
+					warning: [-Wshadow].
+			(
+			(
+			+ "function %ReduceCombinedBranch",
+			/ DLDI "functions %(ReduceCombined, Forms::Apply)"
+				^ "%ReduceCombinedBranch"
+			),
+			/ DLDI "functions %Forms::(Apply, ForwardListFirst)"
+				^ "%ystdex::expand_proxy" ~ "%ystdex::make_expanded";
+			/ "namespace %Forms" >> $dep_from %NPLA1Forms,
+			),
+			/ "TCO frame records compression" $=
+			(
+				/ DLDI "simplified traverse calls"
+					^ "%ystdex::expand_proxy",
+				/ "collection" $=
+				(
+					/ DLI "simplified collection loop condition" ^ 'bool'
+						~ 'size_t',
+					* "over aggresively collecting parent environments for \
+						environments having a list of parent environments"
+						$since b827
+				)
+			),
+			(
+			/ $revert_ex(b869) "parameter types" @ "function %MatchParameter"
+				-> 'const EnvironmentReference&' ~ 'Environment&';
+				// This is also slightly efficient for less environment \
+					resolutions in the term reference indirection \
+					operations in %BindParameter after the necessary \
+					modification in the internal implementation.
+			/ $forced $impl "simplified and supported tracing unsafe \
+				environment reference" @ "function %BindParameter"
+				!^ "%MatchParameter"
+				// This further improves performance a bit greater by \
+					avoiding relying on %function instances.
+			)
+		)
+	),
+	/ %Tools $=
+	(
+		* "missing protection of paths with quotes" @ ("%(SHBuild-self-host, \
+			SHBuild-self-host-dll).sh" @ %Scripts $since b556,
+			"argument of 'cd' command" @ "%SHBuild-build.sh" @ %Scripts
+			$since b538, "%make-clang-android.sh" $since b492,
+			"arguments of source commands" @ ("%SHBuild-bootstrap.sh"
+			$since b538, "%GenerateProjects.sh" $since b599,
+			"%PatchRevision.sh" $since b565, "%SHBuild-build.sh" $orig
+			(@ "%build.sh" $since b538), "%SHBuild-common-options.sh"
+			$since b562) @ %Scripts, "%install-sysroot.sh" $since b546),
+		/ "supported stage 1 SHBuild"
+			@ "%(SHBuild-self-host, SHBuild-self-host-dll).sh",
+			// Since b546 stage 1 SHBuild is available in a steady way. The \
+				original name './shbuild' has never adapted to this previously.
+		/ %Scripts $=
+		(
+			* "possible failure by missing definition of %::WinMain"
+				@ "platform %Win32" @ "%SHBuild-self-host.sh"
+				$since b474 $=
+			(
+				/ $impl ^"%CXX" ~ "%LD";
+					// Using '$CXX' is also more consistent here.
+				/ ^ "%Main.cpp.o" ~ "%SHBuild.a" @ "platform %Win32"
+			),
+			/ "used stage 2 default '.shbuild-dll' in platform directory for \
+				YSLib DLL search path by default" ~ '-L/usr/lib'
+				@ "%SHBuild-self-host-DLL.sh",
+				// This makes it work once stage 2 is built by default, \
+					without additional manual tweaks of library deployment.
+			/ $re_add(b867) $forced "updated %LIBS for \
+				%YFramework.NPL.(NPLA1Internal, NPLA1Forms)" $dep_from
+				%YFramework.NPL.NPLA1 $dep_from %YFramework.NPL.NPLA1Forms
+				// Also to work around i686 MinGW32 cc1plus out of memory \
+					error on compiling %NPLA1.cpp for stage 1 SHBuild.
+		),
+		(
+		+ "support of quoted values for '-xd,' and '-xid,' options"
+			@ %SHBuild.Main ^ "%NPL::Deliteralize";
+		+ "protected paths for '-xd,' option for SHBuild with '"'"
+			$effective @ "%(SHBuild-self-host.sh, SHBuild-self-host-DLL.sh, \
+			SHBuild-BuildApp.sh, SHBuild-YSLib-common.txt)" @ %Scripts
+		)
+	)
+),
+
+b881
 (
 	/ %YBase.YStandardEx $=
 	(

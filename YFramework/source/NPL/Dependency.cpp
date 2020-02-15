@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3448
+\version r3450
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2020-02-06 15:00 +0800
+	2020-02-15 12:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,8 +33,8 @@
 //	LiftOther, Collapse, LiftOtherOrCopy, NPL::IsMovable, LiftTermOrCopy,
 //	ResolveTerm, LiftTermValueOrCopy, NPL::TryAccessReferencedTerm,
 //	ystdex::plus, std::placeholders, NPL::ResolveRegular, ystdex::tolower,
-//	ystdex::swap_dependent, LiftTermRef, LiftTerm, NPL::Deref,
-//	NPL::Forms functions;
+//	ystdex::swap_dependent, LiftTermRef, LiftTerm, NPL::Deref;
+#include YFM_NPL_NPLA1Forms // for NPL::Forms functions;
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
 //	ystdex::make_transform;
