@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r18810
+\version r18916
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-02-15 15:12 +0800
+	2020-02-21 17:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,7 +101,7 @@ PushActionsRange(EvaluationPasses::const_iterator first,
 	if(first != last)
 	{
 		// NOTE: Retrying is recognized from the result since 1st administrative
-		//	pass is reduced. The non-skipped administractive reductions are
+		//	pass is reduced. The non-skipped administrative reductions are
 		//	reduced in the tail context, otherwise they are dropped by no-op.
 		if(ctx.LastStatus != ReductionStatus::Retrying)
 		{
@@ -153,38 +153,6 @@ ReduceChildrenOrderedAsync(TNIter first, TNIter last, ContextNode& ctx)
 }
 #endif
 
-
-//! \since build 858
-bool
-RegularizeForm(TermNode& fm)
-{
-	// XXX: As now, it needs to convert at first to save the subterm in the
-	//	irregular representation. See %ReduceForCombinerRef for the introduction
-	//	of the irregular representation.
-	if(const auto p_ref_fm = NPL::TryAccessLeaf<const TermReference>(fm))
-		if(IsBranch(fm))
-		{
-			YAssert(fm.size() == 1, "Invalid irregular representation of"
-				" reference with multiple subterms found.");
-			YAssert(IsLeaf(*fm.begin()), "Invalid irregular representation of"
-				" reference with non-leaf 1st subterm found.");
-
-			// XXX: Assume nonnull. This is guaranteed in construction
-			//	in %ReduceForCombinerRef.
-			const auto& referenced(p_ref_fm->get());
-
-			YAssert(ystdex::ref_eq<>()(NPL::Deref(NPL::Access<
-				shared_ptr<TermNode>>(*fm.begin())), referenced),
-				"Invalid subobject reference found.");
-			// XXX: %TermNode::SetContent cannot be used here due to subterm
-			//	invalidation.
-			fm.MoveContent(TermNode(referenced));
-			YAssert(IsLeaf(fm), "Wrong result of irregular"
-				" representation conversion found.");
-			return true;
-		}
-	return {};
-}
 
 //! \since build 821
 template<typename... _tParams>
@@ -1005,12 +973,6 @@ ContextState::GetNextTermRef() const
 	throw NPLException("No next term found to evaluation.");
 }
 
-void
-ContextState::SetNextTermRef(TermNode& term)
-{
-	next_term_ptr = NPL::make_observer(&term);
-}
-
 ReductionStatus
 ContextState::DefaultReduceOnce(TermNode& term, ContextNode& ctx)
 {
@@ -1422,13 +1384,12 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 			auto& env(pr.second.get());
 
 			p_rterm = &bound;
-			term.Value = TermReference(env.MakeTermTags(bound)
-				& ~TermTags::Unique, bound, env.shared_from_this());
+			[&]() YB_FLATTEN{
+				term.Value = TermReference(env.MakeTermTags(bound)
+					& ~TermTags::Unique, bound, env.shared_from_this());
+			}();
 		}
-		// NOTE: This is not guaranteed to be saved as %ContextHandler in
-		//	%ReduceCombined.
-		if(const auto p_handler = NPL::TryAccessTerm<LiteralHandler>(*p_rterm))
-			return (*p_handler)(ctx);
+		EvaluateLiteralHandler(term, ctx, *p_rterm);
 		// NOTE: Unevaluated term shall be detected and evaluated. See also
 		//	$2017-05 @ %Documentation::Workflow.
 		return ReductionStatus::Neutral;
@@ -1474,42 +1435,69 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 	YAssert(IsBranchedList(term), "Invalid term found for combined term.");
 
 	auto& fm(AccessFirstSubterm(term));
-	const bool irregular(RegularizeForm(fm));
+	const auto p_ref_fm(NPL::TryAccessLeaf<const TermReference>(fm));
 
-	// XXX: As now, it needs to convert at first to save the subterm in the
-	//	irregular representation. See %ReduceForCombinerRef for the introduction
-	//	of the irregular representation.
-	if(irregular || IsLeaf(fm))
-	{
-		if(irregular)
-			term.Tags &= ~TermTags::Temporary;
-		else
-			term.Tags |= TermTags::Temporary;
-		if(const auto p_handler = NPL::TryAccessLeaf<ContextHandler>(fm))
-#if NPL_Impl_NPLA1_Enable_TCO
-			return CombinerReturnThunk(*p_handler, term, ctx,
-				std::move(*p_handler));
-#elif NPL_Impl_NPLA1_Enable_Thunked
-		{
-			// XXX: Optimize for performance using context-dependent store?
-			// XXX: This should ideally be a member of handler. However, it
-			//	makes no sense before allowing %ContextHandler overload for
-			//	ref-qualifier '&&'.
-			auto p(YSLib::share_move(ctx.get_allocator(), *p_handler));
-
-			return CombinerReturnThunk(*p, term, ctx, std::move(p));
-		}
-#else
-			return CombinerReturnThunk(ContextHandler(std::move(*p_handler)),
-				term, ctx);
-#endif
-	}
-	// NOTE: This is neutral to %NPL_Impl_NPLA1_Enable_Thunked.
-	if(const auto p_handler = NPL::TryAccessReferencedTerm<ContextHandler>(fm))
+	// NOTE: The tag is intended to be consumed by %VauHandler in %NPLA1Forms.
+	//	As the irregular representation has a handler of %RefContextHandler,
+	//	the tag is consumed only by the underlying handler, so the irregular
+	//	representation behaves same to glvalue here. The value of %term.Tags may
+	//	indicate a temporary of %TermReference value of %fm. This shall be
+	//	cleared if the object represented by %fm is not a prvalue.
+	if(p_ref_fm)
 	{
 		term.Tags &= ~TermTags::Temporary;
-		return CombinerReturnThunk(*p_handler, term, ctx);
+#if false
+		// XXX: This converts the term with irregular representation at first.
+		//	See %ReduceForCombinerRef for the introduction of the irregular
+		//	representation.
+		if(IsBranch(fm))
+		{
+			YAssert(fm.size() == 1, "Invalid irregular representation of"
+				" reference with multiple subterms found.");
+			YAssert(IsLeaf(*fm.begin()), "Invalid irregular representation of"
+				" reference with non-leaf 1st subterm found.");
+
+			// XXX: Assume nonnull. This is guaranteed in construction
+			//	in %ReduceForCombinerRef.
+			const auto& referenced(p_ref_fm->get());
+
+			YAssert(ystdex::ref_eq<>()(NPL::Deref(NPL::Access<
+				shared_ptr<TermNode>>(*fm.begin())), referenced),
+				"Invalid subobject reference found.");
+			// XXX: %TermNode::SetContent cannot be used here due to subterm
+			//	invalidation.
+			fm.MoveContent(TermNode(referenced));
+			YAssert(IsLeaf(fm), "Wrong result of irregular"
+				" representation conversion found.");
+		}
+		else
+#endif
+		if(const auto p_handler
+			= NPL::TryAccessLeaf<const ContextHandler>(p_ref_fm->get()))
+			// NOTE: This is neutral to %NPL_Impl_NPLA1_Enable_Thunked.
+			return CombinerReturnThunk(*p_handler, term, ctx);
 	}
+	else
+		term.Tags |= TermTags::Temporary;
+	// NOTE: Converted terms are also handled here.
+	if(const auto p_handler = NPL::TryAccessTerm<ContextHandler>(fm))
+#if NPL_Impl_NPLA1_Enable_TCO
+		return
+			CombinerReturnThunk(*p_handler, term, ctx, std::move(*p_handler));
+#elif NPL_Impl_NPLA1_Enable_Thunked
+	{
+		// XXX: Optimize for performance using context-dependent store?
+		// XXX: This should ideally be a member of handler. However, it makes no
+		//	sense before allowing %ContextHandler overload for ref-qualifier
+		//	'&&'.
+		auto p(YSLib::share_move(ctx.get_allocator(), *p_handler));
+
+		return CombinerReturnThunk(*p, term, ctx, std::move(p));
+	}
+#else
+		return CombinerReturnThunk(ContextHandler(std::move(*p_handler)), term,
+			ctx);
+#endif
 	return ResolveTerm([&](const TermNode& nd, bool has_ref)
 		YB_ATTR_LAMBDA(noreturn) -> ReductionStatus{
 		// TODO: Capture contextual information in error.
@@ -1519,6 +1507,17 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 			TermToStringWithReferenceMark(nd, has_ref).c_str(),
 			FetchArgumentN(term)));
 	}, fm);
+}
+
+ReductionStatus
+ReduceCombinedReferent(TermNode& term, ContextNode& ctx, const TermNode& fm)
+{
+	term.Tags &= ~TermTags::Temporary;
+	if(const auto p_handler = NPL::TryAccessLeaf<const ContextHandler>(fm))
+		return CombinerReturnThunk(*p_handler, term, ctx);
+	throw ListReductionFailure(ystdex::sfmt("No matching combiner '%s'"
+		" for operand with %zu argument(s) found.",
+		TermToStringWithReferenceMark(fm, true).c_str(), FetchArgumentN(term)));
 }
 
 ReductionStatus
@@ -1669,11 +1668,13 @@ SetupDefaultInterpretation(ContextState& cs, EvaluationPasses passes)
 	passes += ReduceFirst;
 #	endif
 	// TODO: Insert more optional optimized lifted form evaluation passes.
+	// NOTE: This implies the %RegularizeTerm call when necessary.
 	// XXX: This should be the last of list pass for current TCO
 	//	implementation, assumed by TCO action.
 	passes += ReduceCombined;
 #endif
 	cs.EvaluateList = std::move(passes);
+	// NOTE: This implies the %RegularizeTerm call when necessary.
 	cs.EvaluateLeaf = ReduceLeafToken;
 }
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r7017
+\version r7040
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2020-02-09 04:20 +0800
+	2020-02-25 20:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -841,7 +841,7 @@ static_assert(ystdex::is_nothrow_move_constructible<AnchorPtr>(),
 \return 通过访问项的值取得的记号的指针，或空指针表示无法取得名称。
 \since build 782
 */
-YB_ATTR_nodiscard YF_API YB_PURE observer_ptr<const TokenValue>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<const TokenValue>
 TermToNamePtr(const TermNode&);
 
 /*!
@@ -948,6 +948,10 @@ TryAccessTerm(const TermNode& term)
 }
 //@}
 //@}
+
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(observer_ptr<const TokenValue>, TermToNamePtr, const TermNode& term)
+	ImplRet(NPL::TryAccessTerm<TokenValue>(term))
 
 
 /*!
@@ -1123,6 +1127,7 @@ public:
 	\since build 821
 	*/
 	template<typename _tParam, typename... _tParams>
+	inline
 	TermReference(TermNode& term, _tParam&& arg, _tParams&&... args)
 		: TermReference(TermToTags(term), term, yforward(arg),
 		yforward(args)...)
@@ -1131,6 +1136,7 @@ public:
 	//@{
 	//! \brief 构造：使用参数指定的标签及引用。
 	template<typename _tParam, typename... _tParams>
+	inline
 	TermReference(TermTags t, TermNode& term, _tParam&& arg, _tParams&&... args)
 		: term_ref(term), tags(t),
 		r_env(yforward(arg), yforward(args)...)
@@ -1274,11 +1280,16 @@ PrepareCollapse(TermNode&, Environment&);
 \sa TermReference
 \since build 854
 */
-YB_ATTR_nodiscard YF_API YB_PURE TermNode&
-ReferenceTerm(TermNode&) ynoexcept_spec(std::declval<TermReference>().get());
-YB_ATTR_nodiscard YF_API YB_PURE const TermNode&
-ReferenceTerm(const TermNode&)
-	ynoexcept_spec(std::declval<TermReference>().get());
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(TermNode&, ReferenceTerm, TermNode& term)
+	ynoexcept_spec(std::declval<TermReference>().get())
+	ImplRet(ystdex::invoke_value_or(&TermReference::get,
+		NPL::TryAccessLeaf<const TermReference>(term), term))
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(const TermNode&, ReferenceTerm, const TermNode& term)
+	ynoexcept_spec(std::declval<TermReference>().get())
+	ImplRet(ystdex::invoke_value_or(&TermReference::get,
+		NPL::TryAccessLeaf<const TermReference>(term), term))
 
 
 //! \since build 855
@@ -1840,7 +1851,7 @@ inline PDefH(void, LiftSubtermsToReturn, TermNode& term)
 //! \pre 断言：参数指定的项是枝节点。
 //@{
 /*!
-\brief 提升首项：使用首个子项替换项的内容。
+\brief 提升首项：使用第一个子项替换项的内容。
 \since build 685
 */
 inline PDefH(void, LiftFirst, TermNode& term)
@@ -2526,7 +2537,7 @@ public:
 	*/
 	//@{
 	/*!
-	\brief 转移首个定界动作为当前动作。
+	\brief 转移第一个定界动作为当前动作。
 	\pre 断言：\c !Delimited.empty() 。
 	\pre 间接断言：\c !Current 。
 	\post \c Current 。
@@ -2538,7 +2549,7 @@ public:
 	Pop() ynothrow;
 
 	/*!
-	\brief 转移当前动作为首个定界动作。
+	\brief 转移当前动作为第一个定界动作。
 	\pre 断言：\c Current 。
 	*/
 	//@{
@@ -2625,7 +2636,7 @@ public:
 	//@}
 
 	/*!
-	\brief 按需转移首个定界动作为当前动作。
+	\brief 按需转移第一个定界动作为当前动作。
 	\pre 间接断言：\c !Current 。
 	\return 是否可继续规约。
 	\sa Pop
@@ -2759,8 +2770,9 @@ EmplaceLeaf(ContextNode& ctx, string_view name, _tParams&&... args)
 解析指定上下文的当前环境中的名称。
 解析名称调用上下文的当前环境的 Environment::Resolve 实现。
 */
-YB_ATTR_nodiscard YF_API Environment::NameResolution
-ResolveName(const ContextNode&, string_view);
+YB_ATTR_nodiscard inline PDefH(Environment::NameResolution, ResolveName,
+	const ContextNode& ctx, string_view id)
+	ImplRet(YAssertNonnull(id.data()), ctx.GetRecordRef().Resolve(id))
 
 /*!
 \brief 解析标识符：解析名称并折叠引用。

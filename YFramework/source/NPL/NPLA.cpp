@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3042
+\version r3067
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2020-01-27 22:21 +0800
+	2020-02-21 17:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -570,12 +570,6 @@ IsNPLAExtendedLiteral(string_view id) ynothrowv
 }
 
 
-observer_ptr<const TokenValue>
-TermToNamePtr(const TermNode& term)
-{
-	return NPL::TryAccessTerm<TokenValue>(term);
-}
-
 string
 TermToString(const TermNode& term)
 {
@@ -651,21 +645,6 @@ PrepareCollapse(TermNode& term, Environment& env)
 		return term;
 	return NPL::AsTermNode(term.get_allocator(),
 		TermReference(env.MakeTermTags(term), term, env.shared_from_this()));
-}
-
-TermNode&
-ReferenceTerm(TermNode& term)
-	ynoexcept_spec(std::declval<TermReference>().get())
-{
-	return ystdex::invoke_value_or(&TermReference::get,
-		NPL::TryAccessLeaf<const TermReference>(term), term);
-}
-const TermNode&
-ReferenceTerm(const TermNode& term)
-	ynoexcept_spec(std::declval<TermReference>().get())
-{
-	return ystdex::invoke_value_or(&TermReference::get,
-		NPL::TryAccessLeaf<const TermReference>(term), term);
 }
 
 
@@ -1197,13 +1176,6 @@ swap(ContextNode& x, ContextNode& y) ynothrow
 	swap(x.Trace, y.Trace);
 }
 
-
-Environment::NameResolution
-ResolveName(const ContextNode& ctx, string_view id)
-{
-	YAssertNonnull(id.data());
-	return ctx.GetRecordRef().Resolve(id);
-}
 
 TermNode
 ResolveIdentifier(const ContextNode& ctx, string_view id)

@@ -243,7 +243,8 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 	$env-de! CFLAGS_STD "-std=c11";
 	$env-de! CFLAGS_WARNING cons-cmd C_CXXFLAGS_WARNING C_CXXFLAGS_IMPL_WARNING;
 	$env-de! CFLAGS_COMMON cons-cmd C_CXXFLAGS_COMMON CFLAGS_STD CFLAGS_WARNING;
-	$env-de! CXXFLAGS_IMPL_COMMON cxxflags_impl_common_thrd_;
+	$env-de! CXXFLAGS_IMPL_COMMON cons-cmd cxxflags_impl_common_thrd_
+		"-U__GXX_MERGED_TYPEINFO_NAMES" "-D__GXX_MERGED_TYPEINFO_NAMES=1";
 	$env-de! CXXFLAGS_STD "-std=c++11";
 	$env-de! CXXFLAGS_WARNING cons-cmd CFLAGS_WARNING "-Wctor-dtor-privacy"
 		"-Wnon-virtual-dtor" "-Woverloaded-virtual" "-Wsign-promo"

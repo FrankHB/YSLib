@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r19784
+\version r19793
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2020-02-15 13:48 +0800
+	2020-02-18 17:10 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -30,7 +30,8 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA1 // for ContextState, ReductionStatus, ContextNode,
-//	Reducer, YSLib::tuple, YSLib::get, EnvironmentReference, TermReference;
+//	Reducer, YSLib::tuple, YSLib::get, RegularizeTerm, EnvironmentReference,
+//	TermReference;
 #include <ystdex/ref.hpp> // for ystdex::unref;
 
 namespace NPL
@@ -320,7 +321,7 @@ YB_ATTR_nodiscard YB_PURE inline
 //	explicitly (by following %SetupTailAction rather than %EnsureTCOAction).
 
 //! \since build 840
-YB_ATTR_nodiscard TCOAction&
+YB_ATTR_nodiscard YB_FLATTEN TCOAction&
 EnsureTCOAction(ContextNode& ctx, TermNode& term);
 
 //! \since build 840
@@ -418,7 +419,12 @@ RelayCurrentOrDirect(ContextNode& ctx, _fCurrent&& cur, TermNode& term)
 #endif
 
 template<typename _fCurrent, typename _fNext>
-YB_FLATTEN inline ReductionStatus
+// XXX: This is a workaround for G++'s LTO bug.
+#if !YB_IMPL_GNUCPP || !NPL_Impl_NPLA1_Enable_Thunked \
+	|| NPL_Impl_NPLA1_Enable_TCO
+YB_FLATTEN 
+#endif
+inline ReductionStatus
 ReduceCurrentNext(TermNode& term, ContextNode& ctx, _fCurrent&& cur,
 	_fNext&& next)
 {

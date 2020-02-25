@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015 FrankHB.
+	© 2015, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ios.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准库输入/输出流基类扩展。
-\version r73
+\version r80
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2015-12-28 20:00:09 +0800
 \par 修改时间:
-	2015-12-28 20:37 +0800
+	2020-02-25 20:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,14 +53,14 @@ setstate(std::basic_ios<_tChar, _tTraits>& ios, std::ios_base::iostate state) yn
 /*!
 \brief 设置流状态并重新抛出当前异常。
 \note 一个主要用例为实现标准库要求的格式/非格式输入/输出函数。
-\see WG21/N4567 27.7.2.2.1[istream.formatted.reqmts] 。
-\see WG21/N4567 27.7.2.3[istream.unformatted]/1 。
-\see WG21/N4567 27.7.3.6.1[ostream.formatted.reqmts] 。
-\see WG21/N4567 27.7.3.7[ostream.unformatted]/1 。
-\see http://wg21.cmeerw.net/lwg/issue91 。
+\see WG21 N4567 27.7.2.2.1[istream.formatted.reqmts] 。
+\see WG21 N4567 27.7.2.3[istream.unformatted]/1 。
+\see WG21 N4567 27.7.3.6.1[ostream.formatted.reqmts] 。
+\see WG21 N4567 27.7.3.7[ostream.unformatted]/1 。
+\see LWG 91 。
 */
 template<typename _tChar, class _tTraits>
-void
+YB_NORETURN void
 rethrow_badstate(std::basic_ios<_tChar, _tTraits>& ios,
 	std::ios_base::iostate state = std::ios_base::badbit)
 {

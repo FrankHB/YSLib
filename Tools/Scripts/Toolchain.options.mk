@@ -1,5 +1,5 @@
 #
-#	(C) 2014-2015, 2017 FrankHB.
+#	(C) 2014-2015, 2017, 2020 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Makefile specifying common toolchain options
-# Version = r75
+# Version = r78
 # Created = 2014-12-06 17:24:04 +0800
-# Updated = 2017-08-06 14:39 +0800
+# Updated = 2020-02-25 19:09 +0800
 # Encoding = ANSI
 
 
@@ -45,6 +45,8 @@ CXXFLAGS_WARNING ?= $(CFLAGS_WARNING) -Wctor-dtor-privacy -Wnon-virtual-dtor \
 	-Woverloaded-virtual -Wsign-promo $(C_CXXFLAGS_IMPL_WARNING) \
 	$(CXXFLAGS_IMPL_WARNING)
 
+CXXFLAGS_IMPL_COMMON ?= \
+	-U__GXX_MERGED_TYPEINFO_NAMES -D__GXX_MERGED_TYPEINFO_NAMES=1
 CXXFLAGS_COMMON ?= $(C_CXXFLAGS_COMMON) $(CXXFLAGS_STD) \
 	$(CXXFLAGS_WARNING) $(CXXFLAGS_IMPL_COMMON)
 

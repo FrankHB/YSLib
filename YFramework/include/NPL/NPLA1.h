@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r7537
+\version r7568
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-02-15 13:29 +0800
+	2020-02-22 12:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,12 +32,13 @@
 #include YFM_NPL_NPLA // for NPLATag, TermNode, ContextNode,
 //	CombineReductionResult, ystdex::exclude_self_t, ystdex::ref_eq,
 //	pmr::memory_resource, TNIter, LiftOther, ValueNode, LoggedEvent,
-//	YSLib::Warning, NPL::AsTermNode, std::make_move_iterator, IsBranch,
-//	std::next, ystdex::retry_on_cond, std::find_if, ystdex::equality_comparable,
-//	ystdex::exclude_self_params_t, YSLib::AreEqualHeld,
-//	ystdex::make_parameter_list_t, ystdex::make_function_type_t,
-//	ystdex::decay_t, ystdex::expanded_caller, std::is_constructible,
-//	ystdex::or_, NPL::Deref, string_view, TermTags, TokenValue, Environment;
+//	YSLib::Warning, NPL::Deref, NPL::AsTermNode, std::make_move_iterator,
+//	IsBranch, std::next, ystdex::retry_on_cond, std::find_if,
+//	ystdex::equality_comparable, ystdex::exclude_self_params_t,
+//	YSLib::AreEqualHeld, ystdex::make_parameter_list_t,
+//	ystdex::make_function_type_t, ystdex::decay_t, ystdex::expanded_caller,
+//	std::is_constructible, ystdex::or_, string_view, TermTags, TokenValue,
+//	Environment;
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, ystdex::fast_any_of,
 //	YSLib::GEvent, YSLib::GCombinerInvoker, YSLib::GDefaultLastValueInvoker;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
@@ -294,9 +295,10 @@ public:
 	\brief 设置下一求值项的引用。
 	\throw NPLException 下一项指针为空。
 	\sa next_term_ptr
+	\since build 883
 	*/
-	void
-	SetNextTermRef(TermNode&);
+	PDefH(void, SetNextTermRef, TermNode& term) ynothrow
+		ImplExpr(next_term_ptr = NPL::make_observer(&term))
 
 	//! \brief 清除下一项指针。
 	PDefH(void, ClearNextTerm, ) ynothrow
@@ -976,6 +978,21 @@ EvaluateLeafToken(TermNode&, ContextNode&, string_view);
 //@}
 
 /*!
+\brief 若第三参数指定的项表示字面量处理器则调用并以结果其正规化第一参数指定的项。
+\sa LiteralHandler
+\sa RegularizeTerm
+\since build 883
+*/
+inline PDefH(void, EvaluateLiteralHandler, TermNode& term,
+	const ContextNode& ctx, const TermNode& tm)
+	// NOTE: This is optional, as it is not guaranteed to be saved as
+	//	%ContextHandler in %ReduceCombined.
+	ImplExpr([&]{
+		if(const auto p_handler = NPL::TryAccessTerm<const LiteralHandler>(tm))
+			RegularizeTerm(term, (*p_handler)(ctx));
+	}())
+
+/*!
 \brief 规约合并项：检查项的第一个子项尝试作为操作符进行函数应用，并规范化。
 \pre 断言：若第一个子项表示子对象引用，则符合子对象引用的非正规表示约定。
 \return 规约状态。
@@ -1003,6 +1020,14 @@ ReduceCombined(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 ReduceCombinedBranch(TermNode&, ContextNode&);
+
+/*!
+\brief 规约列表合并项：同 ReduceCombined ，但使用第三参数指定的值。
+\note 若第三参数不表示上下文处理器的宿主值，抛出的异常消息指定其为引用项。
+\since build 883
+*/
+YF_API ReductionStatus
+ReduceCombinedReferent(TermNode&, ContextNode&, const TermNode&);
 //@}
 
 /*!

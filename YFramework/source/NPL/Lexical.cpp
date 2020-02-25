@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1689
+\version r1752
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2020-01-25 01:44 +0800
+	2020-02-25 20:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,8 +59,11 @@ NPLUnescape(SmallString& buf, const UnescapeContext& uctx, char ld)
 {
 	const auto& escs(uctx.GetSequence());
 
-	if(uctx.IsHandling() && escs.length() == 1)
-	{
+	// NOTE: Blocked. Use ISO C++14 deduced lambda return type (cf. CWG 975)
+	//	compatible to G++ attribute.
+	return uctx.IsHandling() && escs.length() == 1 ? [&]() YB_FLATTEN{
+		bool res(true);
+
 		switch(escs[0])
 		{
 		case '\\':
@@ -97,11 +100,10 @@ NPLUnescape(SmallString& buf, const UnescapeContext& uctx, char ld)
 			}
 			YB_ATTR_fallthrough;
 		default:
-			return {};
+			res = {};
 		}
-		return true;
-	}
-	return {};
+		return res;
+	}() : false;
 }
 
 
@@ -175,42 +177,44 @@ LexicalAnalyzer::ParseByte(char c, Unescaper unescape,
 	PrefixHandler prefix_handler)
 {
 	if(FilterForParse(c, unescape, prefix_handler))
-		switch(c)
-		{
-			case '\'':
-			case '"':
-				if(ld == char())
-				{
-					ld = c;
-					left_qset.insert(cbuf.size()),
-					qlist.push_back(cbuf.size());
-					cbuf += c;
-				}
-				else if(ld == c)
-				{
-					ld = char();
-					cbuf += c;
-					qlist.push_back(cbuf.size());
-				}
-				else
-					cbuf += c;
-			case char():
-				break;
-			case ' ':
-			case '\f':
-			case '\n':
-		//	case '\r':
-			case '\t':
-			case '\v':
-				if(ld == char())
-				{
-					cbuf += ' ';
+		[&]() YB_FLATTEN{
+			switch(c)
+			{
+				case '\'':
+				case '"':
+					if(ld == char())
+					{
+						ld = c;
+						left_qset.insert(cbuf.size()),
+						qlist.push_back(cbuf.size());
+						cbuf += c;
+					}
+					else if(ld == c)
+					{
+						ld = char();
+						cbuf += c;
+						qlist.push_back(cbuf.size());
+					}
+					else
+						cbuf += c;
+				case char():
 					break;
-				}
-				YB_ATTR_fallthrough;
-			default:
-				cbuf += c;
-		}
+				case ' ':
+				case '\f':
+				case '\n':
+			//	case '\r':
+				case '\t':
+				case '\v':
+					if(ld == char())
+					{
+						cbuf += ' ';
+						break;
+					}
+					YB_ATTR_fallthrough;
+				default:
+					cbuf += c;
+			}
+		}();
 }
 
 void

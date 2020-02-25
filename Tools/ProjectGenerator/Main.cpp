@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r848
+\version r850
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-18 20:45:11 +0800
 \par 修改时间:
-	2020-01-27 21:26 +0800
+	2020-02-25 19:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -484,7 +484,8 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 			"-Wfloat-equal", "-Wlogical-op", "-Wsign-conversion",
 			"-Wtrampolines", "-Wconditionally-supported", "-Wno-noexcept-type",
 			"-Wstrict-null-sentinel", "-fdata-sections", "-ffunction-sections",
-			"-mthreads", "-pipe");
+			"-mthreads", "-pipe", "-U__GXX_MERGED_TYPEINFO_NAMES",
+			"-D__GXX_MERGED_TYPEINFO_NAMES=1");
 		if(project == "YFramework")
 			opt_add("-DFREEIMAGE_LIB");
 		dir_add("../include");

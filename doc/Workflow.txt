@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r3541
+\version r3566
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2020-02-06 15:29 +0800
+	2020-02-18 19:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -3610,6 +3610,31 @@ NPLA1 separator handling in YFramework modules NPL::NPLA1 and NPL::Dependency is
 				TokenValue(";"),
 				ValueObject(std::allocator_arg, a, ContextHandler(FormContextHandler(
 				ReduceBranchToList, 1))), TokenValue(","));
+A bug of missing regularization of leaf term reduction in NPLA1 is fixed.
+	The bug is effective because the literal handling in 'A1::EvaluateIdentifier' does not guarantee the result is regular, and 'A1::ReduceLeafToken' does not handle it properly.
+	This has been existed since the very early design, when the leaf pass and 'A1::ReduceLeafToken' are not present.
+		It has been introduced by 'A1::RewriteLiteral' since build 725, moved to 'A1::EvaluateIdentifier' in build 726.
+	Since build 807, 'A1::ReduceLeafToken' can call 'A1::ReduceAgain'.
+		For call delegated to list passes, the term can be regulized in 'A1::ReduceCombined' by default.
+		This does not change the other cases.
+	Since build 858, support of irregular representations has been added to the main reduction function 'A1::ReduceOnce'.
+		As a result, the input to leaf pass now does not guarantee it would be regular as before.
+		The regularzation is then always required when there is no knowledge about concrete value representations.
+Comparison of 'std::type_info' objects has been optimized by tuning options for the compiler.
+	The behavior is controlled by macro '__GXX_MERGED_TYPEINFO_NAMES' in libstdc++'s <typeinfo>.
+	This also has effect on hash (not used).
+		See https://cpptruths.blogspot.com/2018/11/non-colliding-efficient.html.
+	For platform configurations like x86_64-pc-linux, this changes the behavior and it has additional restrictions.
+		For example, 'dlopen' with 'RTLD_LOCAL' can behave differently.
+		See documented assumptions: https://bitbucket.org/FrankHB/yslib/wiki/Development.zh-CN.md.
+	This is implemented by options '-U__GXX_MERGED_TYPEINFO_NAMES -D__GXX_MERGED_TYPEINFO_NAMES=1' in the build scripts.
+		The user source files are also assumed to use these options.
+		For simplicity, no checks are added to detect libstdc++.
+			It should have no effects on other implementations like libc++ (which has no such changes).
+		The '-U' option is needed to avoid clashing with the predefined macro.
+			For example, with i686-w64-mingw-g++ 7.2:
+				<command-line>:0:0: error: "__GXX_MERGED_TYPEINFO_NAMES" redefined
+				<built-in>: note: this is the location of the previous definition
 
 ////
 

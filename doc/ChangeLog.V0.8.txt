@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r17700
+\version r17773
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-02-15 16:44 +0800
+	2020-02-25 20:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,79 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework.NPL $=
+	(
+		+ DLDI 'YB_FLATTEN' @ "some functions" @ %NPLA1Internals,
+		/ DLI ("optimized function %EvaluateIdentifier" @ %NPLA1,
+			("static member function %LexicalAnalyzer::ParseByte",
+			"function %NPLUnescape") @ %Lexical) ^ 'YB_FLATTEN'
+			// The tuned implementations of %EvaluateIdentifier and \
+				%LexicalAnalyzer::ParseByte are already slightly better than \
+				overall %NPLA1 before split (at b882) with x86_64-pc-linux-g++ \
+				9.2.1.
+		* "thunked implementation without TCO crash with LTO"
+			@ '!YB_IMPL_GNUCPP || !NPL_Impl_NPLA1_Enable_Thunked \
+			|| NPL_Impl_NPLA1_Enable_TCO' @ "%release configurations"
+			@ "function template %ReduceCurrentNext" @ %NPLA1Internals
+			$since b882,
+			// This has effects on at least i686-w64-mingw-g++ 7.2 and \
+				x86_64-pc-linux-g++-9.2.
+		/ DLI %NPLA $=
+		(
+			+ $design 'inline' @ "all 2 constructors %TermReference",
+			/ ("all functions %(ReferenceTerm, TermToNamePtr, ResolveName)")
+				-> "inline functions"
+		),
+		/ %NPLA1 $=
+		(
+			/ DLI @ "function %ReduceCombinedBranch" $=
+			(
+				(
+				/ $design "lifted and merged reference tests for irregular \
+					representations and glvalues";
+				/ "set %TermTags::Temporary based on reference test result",
+				/ "accessed glvalues" ^ "%TryAccessLeaf on the referenced \
+					object" ~ "%TryAccessReferencedTerm on the subterm"
+				),
+				/ $design ^ 'const'
+					@ "access of %ContextHandler for glvalue functions",
+				/ "avoided conversion of irregular representations"
+					// The representation should have been compatible to \
+						be called as a glvalue directly.
+			),
+			+ "function %ReduceCombinedReferent",
+			+ "function %EvaluateLiteralHandler",
+			/ @ "function %EvaluateIdentifier" $=
+			(
+				* "missing term regularization" @ "leaf token"
+					$orig (@ "function %RewriteLiteral" $since b725)
+					// See $2020-01 @ %Documentation::Workflow.
+					$= (/ ^ $dep_from "%EvaluateLiteralHandler"),
+						// This has a call of %RegularizeTerm if necessary.
+				/ DLDI ^ 'const' @ "access of %LiteralHandler"
+			),
+			/ @ "member function %ContextNode::SetNextTerm" $=
+			(
+				+ 'ynothorw',
+				/ DLI -> "inline function"
+			)
+		)
+	),
+	/ "enabled merged %std::type_info by default"
+		$= (+ $impl ('-U__GXX_MERGED_TYPEINFO_NAMES',
+			'-D__GXX_MERGED_TYPEINFO_NAMES=1') @ "default value" @ "variable \
+			%CXXFLAGS_IMPL_COMMON" $effective @ ("%(SHBuild-common-options.sh, \
+			SHBuild-YSLib-common.txt, Toolchain.options.mk)" @ %Tools.Scripts,
+			%Tools.ProjectGenerator.Main)),
+			// See $2020-02 @ %Documentation::Workflow.
+	+ $dev $lib 'YB_NORETURN' @ "function template %rethrow_badstate"
+		@ %YBase.YStandard.IOS
+		// Also to eliminate G++ 7.1 warning: \
+			[-Wsuggest-attribute=noreturn].
+),
+
+b882
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -269,7 +342,7 @@ b881
 	),
 	* "missing parenthese around <body> of '$cond' expressions"
 		@ "%SHBuild-YSLib-common.txt" @ %Tools.Scripts $since b798
-			// See $2020-01 @ %Documentation::Workflow.
+		// See $2020-02 @ %Documentation::Workflow.
 ),
 
 b880
