@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1454
+\version r1458
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2020-01-27 02:22 +0800
+	2020-03-02 22:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #include "ystdex/memory_resource.h" // for __cpp_aligned_new, is_trivial,
 //	std::align_val_t, std::align, __cpp_sized_deallocation, std::bad_alloc,
 //	::operator new, ::operator delete, std::unique_ptr, make_observer, YAssert,
-//	lref, yassume, ystdex::destruct_in, yconstraint, CHAR_BIT, ceiling_lb,
-//	std::piecewise_construct, std::forward_as_tuple, PTRDIFF_MAX;
+//	lref, yassume, ystdex::destruct_in, yconstraint, CHAR_BIT,
+//	is_positive_power_of_2, ceiling_lb, std::piecewise_construct,
+//	std::forward_as_tuple, PTRDIFF_MAX;
 #if YB_Has_memory_resource != 1
 #	include <atomic> // for std::atomic;
 #endif
@@ -346,7 +347,7 @@ adjust_pool_options(pool_options& opts)
 	//	resource by default.
 	yconstexpr const auto largest_required_pool_block_limit(
 		size_t((sizeof(size_t) * CHAR_BIT) << 18U));
-	static_assert(is_power_of_2(largest_required_pool_block_limit),
+	static_assert(is_positive_power_of_2(largest_required_pool_block_limit),
 		"Invalid limit value found.");
 
 	// TODO: Use interval arithmetic libraries.

@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5951
+\version r5969
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2020-01-16 01:31 +0800
+	2020-03-02 14:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 //	std::allocator_arg, ystdex::make_expanded, ystdex::default_last_value,
 //	std::piecewise_construct, std::forward_as_tuple;
 #include YFM_YSLib_Core_YFunc
-#include <ystdex/iterator.hpp> // for ystdex::get_value;
+#include <ystdex/iterator.hpp> // for ystdex::make_transform, ystdex::get_value;
 #include <ystdex/container.hpp> // for ystdex::erase_all_if;
 #include <ystdex/base.h> // for ystdex::cloneable;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
@@ -89,12 +89,12 @@ private:
 		\pre 参数储存的对象为 Decayed 类型。
 		\since build 768
 		*/
-		static bool
+		YB_ATTR_nodiscard YB_PURE static bool
 		AreEqual(const GHEvent& x, const GHEvent& y)
 			// TODO: Verify if it is a GCC bug. Since the resolution of CWG
-			//	1330 is in the working draft N4659, it likes to be. See also
-			//	https://stackoverflow.com/questions/35790350/noexcept-inheriting-constructors-and-the-invalid-use-of-an-incomplete-type-that.
-#if !(YB_IMPL_GNUC >= 70000)
+			//	1330 is in the working draft N4659, it is likely to be. See also
+			//	https://stackoverflow.com/questions/35790350.
+#if !(YB_IMPL_GNUCPP >= 70000)
 			ynoexcept_spec(ystdex::examiners::equal_examiner::are_equal(Deref(
 			x.template target<_fCallable>()),
 			Deref(y.template target<_fCallable>())))
@@ -112,20 +112,22 @@ private:
 		//! \since build 849
 		static_assert(ystdex::is_decayed<_fCallable>(), "Invalid type found.");
 
-		static bool
+		YB_ATTR_nodiscard YB_PURE static bool
 		AreEqual(const GHEvent& x, const GHEvent& y) ynoexcept_spec(
 			ystdex::examiners::equal_examiner::are_equal(std::declval<const
 			_fCallable&>(), std::declval<const _fCallable&>()))
 			// TODO: Exception specification?
 		{
-			const auto get_ref([](const GHEvent& h) ynothrowv
-				-> const _fCallable&{
-				return Deref(h.template target<ystdex::expanded_caller<
-					FuncType, _fCallable>>()).caller;
+			// NOTE: Blocked. Use ISO C++14 deduced lambda return type (cf. CWG
+			//	975) compatible to G++ attribute.
+			const auto get_ref(
+				[](const GHEvent& h) YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_PURE){
+				return std::ref(Deref(h.template target<ystdex::expanded_caller<
+					FuncType, _fCallable>>()).caller);
 			});
 
-			return ystdex::examiners::equal_examiner::are_equal(get_ref(x),
-				get_ref(y));
+			return ystdex::examiners::equal_examiner::are_equal(
+				get_ref(x).get(), get_ref(y).get());
 		}
 	};
 
@@ -181,7 +183,8 @@ public:
 	inline
 	GHEvent(_fCallable f)
 		: BaseType(ystdex::make_expanded<FuncType>(std::move(f))),
-		// XXX: Here lambda-expression is buggy in G++ LTO.
+		// XXX: Here lambda-expression is buggy on G++ LTO, at least G++ 7.1.0
+		//	(failure of multiple definitions).
 		comp_eq(GEqualityExpanded<_fCallable>::AreEqual)
 	{}
 	//! \brief 使用分配器和扩展函数对象。
@@ -191,7 +194,8 @@ public:
 	GHEvent(std::allocator_arg_t, const _tAlloc& a, _fCallable f)
 		: BaseType(std::allocator_arg, a,
 		ystdex::make_expanded<FuncType>(std::move(f))),
-		// XXX: Here lambda-expression is buggy in G++ LTO.
+		// XXX: Here lambda-expression is buggy on G++ LTO, at least G++ 7.1.0
+		//	(failure of multiple definitions).
 		comp_eq(GEqualityExpanded<_fCallable>::AreEqual)
 	{}
 	//@}
@@ -364,6 +368,7 @@ public:
 			return ystdex::make_transform(iter, f);
 		});
 #endif
+
 		return combiner(tr(first), tr(last));
 	}
 };

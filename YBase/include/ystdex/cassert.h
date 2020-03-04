@@ -11,13 +11,13 @@
 /*!	\file cassert.h
 \ingroup YStandardEx
 \brief ISO C 断言/调试跟踪扩展。
-\version r284
+\version r285
 \author FrankHB <frankhb1989@gmail.com>
 \since build 432
 \par 创建时间:
 	2013-07-27 04:11:53 +0800
 \par 修改时间:
-	2020-01-27 17:05 +0800
+	2020-03-02 14:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,7 +67,7 @@ ytrace(std::FILE*, std::uint8_t, std::uint8_t, const char*, int, const char*,
 
 // NOTE: Workaround for default warnings enabled by '-Wall'. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=17308.
 // TODO: Reevaluate for future versions of GCC.
-#if YB_IMPL_GNUC >= 60000
+#if YB_IMPL_GNUCPP >= 60000
 #	pragma GCC diagnostic ignored "-Wnonnull-compare"
 #endif
 

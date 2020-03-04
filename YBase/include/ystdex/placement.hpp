@@ -11,13 +11,13 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r912
+\version r918
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2020-01-12 18:21 +0800
+	2020-03-02 22:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,8 +35,8 @@
 //	ystdex::addressof, is_lvalue_reference, std::pair, std::allocator,
 //	std::allocator_traits, enable_if_convertible_t, std::unique_ptr,
 //	is_nothrow_destructible;
-#include "cstdint.hpp" // for is_power_of_2, yconstraint, YB_VerifyIterator,
-//	std::iterator_traits, vseq, ctor_of, when, _a;
+#include "cstdint.hpp" // for is_positive_power_of_2, yconstraint,
+//	YB_VerifyIterator, std::iterator_traits, vseq, ctor_of, when, _a;
 #include <new> // for placement ::operator new from standard library;
 // NOTE: The following code is necessary to check for <optional> header to
 //	ensure it have %in_place_t consistently. Other implementation is in
@@ -93,12 +93,12 @@ namespace ystdex
 \since build 843
 */
 template<typename _type>
-inline bool
+YB_ATTR_nodiscard YB_PURE inline bool
 is_aligned_ptr(_type* p, size_t alignment
 	= yalignof(cond_t<is_void<_type>, std::max_align_t, _type>)) ynothrow
 {
 	yconstraint(p);
-	yconstraint(is_power_of_2(alignment));
+	yconstraint(is_positive_power_of_2(alignment));
 
 	// XXX: This can be bit and of 'reinterpret_cast<std::uintptr_t>(ptr)' and
 	//	'alignment - 1'. However, for portability, %std::align is used instead,
@@ -320,7 +320,7 @@ construct_default_within(_tObj& obj)
 \param args 用于构造对象的参数包。
 */
 template<typename _type, typename _tObj, typename... _tParams>
-yconstfn _type*
+YB_ATTR(always_inline) yconstfn _type*
 construct_within(_tObj& obj, _tParams&&... args)
 {
 	return ::new(static_cast<void*>(
@@ -484,7 +484,7 @@ destroy_n(_tFwd first, _tSize n)
 \sa destroy_at
 */
 template<typename _type>
-yconstfn_relaxed void
+YB_ATTR(always_inline) yconstfn_relaxed void
 destruct_in(_type& obj)
 {
 	// XXX: See https://developercommunity.visualstudio.com/content/problem/431598/vc-fails-to-compile-the-noexcept-expression-inside.html.

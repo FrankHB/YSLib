@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r19793
+\version r19802
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2020-02-18 17:10 +0800
+	2020-03-03 22:05 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -452,6 +452,16 @@ ReduceSubsequent(TermNode& term, ContextNode& ctx, _fCurrent&& next)
 {
 	return A1::ReduceCurrentNext(term, ctx,
 		std::ref(ContextState::Access(ctx).ReduceOnce), yforward(next));
+}
+
+//! \since build 884
+template<typename _fCurrent>
+inline ReductionStatus
+ReduceSubsequentCombinedBranch(TermNode& term, ContextNode& ctx,
+	_fCurrent&& next)
+{
+	return A1::ReduceCurrentNext(term, ctx,
+		Continuation(std::ref(ReduceCombinedBranch), ctx), yforward(next));
 }
 
 

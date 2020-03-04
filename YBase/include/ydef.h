@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 语言实现和系统环境相关特性及公用类型和宏的基础定义。
-\version r3729
+\version r3826
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2020-01-27 18:16 +0800
+	2020-03-02 09:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,6 +48,8 @@
 \since build 595
 
 定义为 100 进位制的三重版本编号和。
+这个宏用于检查包括 GCC 和 Clang 等 GNU C 兼容实现的版本。
+因为 YBase 只支持 C++（而不包括 C ），不提供独立的 GCC 的 C 实现版本的检查。
 */
 
 /*!
@@ -66,6 +68,7 @@
 \since build 313
 
 定义为 100 进位制的三重版本编号和。
+包括 G++ ，不包括 Clang++ 实现。
 */
 
 /*!
@@ -589,7 +592,7 @@ G++ 9 之前可支持：
 <tt>[]() YB_ATTR() ynothrow -> void{}</tt> ；
 <tt>[]() YB_ATTR_STD() ynothrow -> void{}</tt> 。
 G++ 9.1 起可支持：
-<tt>[]() ynothrow YB_ATTR_STD() YB_ATTR() {}</tt> ；
+<tt>[]() ynothrow YB_ATTR_STD() YB_ATTR(){}</tt> ；
 <tt>[]() ynothrow YB_ATTR_STD() -> void{}</tt> 。
 显式返回类型在此和 YB_ATTR() 冲突而不能同时使用。
 作为变通，正确的 YB_ATTR 使用 YB_ATTR_LAMBDA 代替，此时，语法如以下之一：
@@ -652,11 +655,10 @@ G++ 9.1 起，YB_ATTR_LAMBDA 中的 __attribute__ 暂不起效。
 \since build 615
 \see https://clang.llvm.org/docs/AttributeReference.html#format 。
 */
-#if YB_IMPL_GNUC >= 40400 && !YB_IMPL_CLANGPP
+#if YB_IMPL_GNUCPP >= 40400
 #	define YB_ATTR_gnu_printf(...) \
 	YB_ATTR(__format__(__gnu_printf__, __VA_ARGS__))
-#elif __has_cpp_attribute(format) \
-	|| (YB_IMPL_GNUC >= 20604 && !YB_IMPL_CLANGPP)
+#elif __has_cpp_attribute(format) || YB_IMPL_GNUCPP >= 20604
 #	define YB_ATTR_gnu_printf(...) YB_ATTR(__format__(__printf__, __VA_ARGS__))
 #else
 #	define YB_ATTR_gnu_printf(...)
@@ -687,6 +689,7 @@ G++ 9.1 起，YB_ATTR_LAMBDA 中的 __attribute__ 暂不起效。
 \see WG21 P0189R1 。
 \see https://clang.llvm.org/docs/AttributeReference.html#nodiscard-warn-unused-result 。
 \see https://gcc.gnu.org/projects/cxx-status.html 。
+\see https://docs.microsoft.com/en-us/cpp/code-quality/annotating-function-behavior 。
 */
 #if __has_cpp_attribute(nodiscard) \
 	&& (!YB_IMPL_CLANGPP || __cplusplus >= 201703L)
@@ -698,6 +701,9 @@ G++ 9.1 起，YB_ATTR_LAMBDA 中的 __attribute__ 暂不起效。
 #	define YB_ATTR_nodiscard YB_ATTR_STD(gnu::warn_unused_result)
 #elif __has_attribute(__warn_unused_result__)
 #	define YB_ATTR_nodiscard YB_ATTR(__warn_unused_result__)
+#elif YB_IMPL_MSCPP >= 1700
+// XXX: Assume SAL is available.
+#	define YB_ATTR_nodiscard _Check_return_
 #else
 #	define YB_ATTR_nodiscard
 #endif
@@ -724,9 +730,10 @@ G++ 9.1 起，YB_ATTR_LAMBDA 中的 __attribute__ 暂不起效。
 当前 Microsoft VC++ 或 Clang++（使用 Microsoft ABI ）支持这项特性。
 对不支持的情形，近期版本 Clang++ 可直接忽略。
 */
-#if __has_cpp_attribute(novtable) || YB_IMPL_MSCPP >= 1100 \
-	|| (YB_IMPL_CLANGPP >= 30700 && YB_IMPL_MSCPP)
+#if __has_cpp_attribute(novtable)
 #	define YB_ATTR_novtable YB_ATTR(novtable)
+#elif YB_IMPL_MSCPP >= 1100 || (YB_IMPL_CLANGPP >= 30700 && YB_IMPL_MSCPP)
+#	define YB_ATTR_novtable __declspec(novtable)
 #else
 #	define YB_ATTR_novtable
 #endif
@@ -740,7 +747,7 @@ G++ 9.1 起，YB_ATTR_LAMBDA 中的 __attribute__ 暂不起效。
 \see http://reviews.llvm.org/rL199790 。
 \todo 确认 Clang++ 最低可用的版本。
 */
-#if __has_attribute(__returns_nonnull__) || YB_IMPL_GNUC >= 40900 \
+#if __has_attribute(__returns_nonnull__) || YB_IMPL_GNUCPP >= 40900 \
 	|| YB_IMPL_CLANGPP >= 30500
 #	define YB_ATTR_returns_nonnull YB_ATTR(__returns_nonnull__)
 #else
@@ -762,9 +769,9 @@ G++ 9.1 起，YB_ATTR_LAMBDA 中的 __attribute__ 暂不起效。
 且指针指向的存储内容不由其它存储决定。
 */
 #if YB_IMPL_MSCPP >= 1900 && !defined(__EDG__) && !defined _CORECRT_BUILD
-#	define YB_ALLOCATOR YB_ATTR(allocator) YB_ATTR(restrict)
+#	define YB_ALLOCATOR __declspec(allocator) __declspec(restrict)
 #elif YB_IMPL_MSCPP >= 1400
-#	define YB_ALLOCATOR YB_ATTR_nodiscard YB_ATTR(restrict)
+#	define YB_ALLOCATOR YB_ATTR_nodiscard __declspec(restrict)
 #elif __has_attribute(__malloc__) || YB_IMPL_GNUCPP >= 20296
 #	define YB_ALLOCATOR YB_ATTR_nodiscard YB_ATTR(__malloc__)
 #else
@@ -1272,20 +1279,67 @@ using std::ptrdiff_t;
 using std::size_t;
 using std::wint_t;
 
-#if YB_HAS_BUILTIN_NULLPTR
+#if YB_IMPL_MSCPP && defined(__cplusplus_cli)
+//! \see https://docs.microsoft.com/en-us/cpp/extensions/nullptr-cpp-component-extensions 。
+using nullptr_t = decltype(__nullptr);
+#elif YB_HAS_BUILTIN_NULLPTR
+//! \note ystdex 内的 nullptr 使用一般应符合兼容 nullptr_t 的模拟实现。
 using std::nullptr_t;
 #else
 /*!
 \brief 空指针类。
 \see https://en.wikibooks.org/wiki/More_C++_Idioms/nullptr 。
+
+模拟 std::nullptr_t 。
+和 std::nullptr_t 不同：
+不保证是基本类型；
+不保证大小和 void* 一致；
+不支持标准库类型特征判断；
+不支持使用整数 0 字面量（常量表达式）初始化（并可能因此存在更多的重载歧义）；
+作为左值不支持 & 操作符。
 */
-const class nullptr_t
+yconstexpr const class nullptr_t
 {
 public:
+	//! \brief 禁止取 nullptr 的指针。
+	void
+	operator&() const = delete;
+
+	//! \since build 884
+	//@{
+	//! \brief 重载关系操作符。
+	//@{
+	template<typename _type>
+	YB_ATTR_nodiscard YB_STATELESS friend yconstfn bool
+	operator==(nullptr_t, const _type& y)
+	{
+		return y == 0;
+	}
+	template<typename _type>
+	YB_ATTR_nodiscard YB_STATELESS friend yconstfn bool
+	operator==(const _type& x, nullptr_t)
+	{
+		return x == 0;
+	}
+
+	template<typename _type>
+	YB_ATTR_nodiscard YB_STATELESS friend yconstfn bool
+	operator!=(nullptr_t, const _type& y)
+	{
+		return !(y == 0);
+	}
+	template<typename _type>
+	YB_ATTR_nodiscard YB_STATELESS friend yconstfn bool
+	operator!=(const _type& x, nullptr_t)
+	{
+		return !(x == 0);
+	}
+	//@}
+
 	//! \brief 转换任意类型至空非成员或静态成员指针。
 	template<typename _type>
 	yconstfn
-	operator _type*() const
+	operator _type*() const ynothrow
 	{
 		return 0;
 	}
@@ -1293,50 +1347,12 @@ public:
 	//! \brief 转换任意类型至空非静态成员指针。
 	template<class _tClass, typename _type>
 	yconstfn
-	operator _type _tClass::*() const
+	operator _type _tClass::*() const ynothrow
 	{
 		return 0;
 	}
-	//! \brief 支持关系运算符重载。
-	template<typename _type>
-	yconstfn bool
-	equals(const _type& rhs) const
-	{
-		return rhs == 0;
-	}
-
-	//! \brief 禁止取 nullptr 的指针。
-	void operator&() const = delete;
+	//@}
 } nullptr = {};
-
-//! \since build 316
-//@{
-template<typename _type>
-yconstfn bool
-operator==(nullptr_t lhs, const _type& rhs)
-{
-	return lhs.equals(rhs);
-}
-template<typename _type>
-yconstfn bool
-operator==(const _type& lhs, nullptr_t rhs)
-{
-	return rhs.equals(lhs);
-}
-
-template<typename _type>
-yconstfn bool
-operator!=(nullptr_t lhs, const _type& rhs)
-{
-	return !lhs.equals(rhs);
-}
-template<typename _type>
-yconstfn bool
-operator!=(const _type& lhs, nullptr_t rhs)
-{
-	return !rhs.equals(lhs);
-}
-//@}
 #endif
 
 

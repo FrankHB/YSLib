@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3067
+\version r3186
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2020-02-21 17:11 +0800
+	2020-02-29 21:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,8 +34,9 @@
 //	ystdex::quote, ystdex::call_value_or, ystdex::begins_with, YSLib::get_raw,
 //	NPL::make_observer, ystdex::sfmt, NPL::TryAccessTerm, sfmt, GetLValueTagsOf,
 //	std::mem_fn, ystdex::compose, ystdex::invoke_value_or, NPL::TryAccessLeaf,
-//	NPL::IsMovable, ystdex::ref, YSLib::FilterExceptions, ystdex::retry_on_cond,
-//	ystdex::type_info, pair, ystdex::addrof, ystdex::second_of;
+//	NPL::IsMovable, ystdex::ref, YSLib::FilterExceptions, ystdex::id,
+//	ystdex::retry_on_cond, ystdex::type_info, pair, ystdex::addrof,
+//	ystdex::second_of;
 #include YFM_NPL_SContext
 
 using namespace YSLib;
@@ -374,49 +375,25 @@ RedirectToShared(string_view id, const shared_ptr<Environment>& p_env)
 }
 
 //! \since build 869
-//@{
 // XXX: Use other type without overhead of check on call of %operator()?
-using Redirector = function<observer_ptr<Environment>()>;
+using Redirector = function<observer_ptr<const ValueObject>()>;
 
-observer_ptr<Environment>
-RedirectParent(ValueObject&, string_view, Redirector&);
-
-observer_ptr<Environment>
-RedirectEnvironmentList(EnvironmentList::iterator first,
-	EnvironmentList::iterator last, string_view id, Redirector& cont)
+//! \since build 884
+observer_ptr<const ValueObject>
+RedirectEnvironmentList(EnvironmentList::const_iterator first,
+	EnvironmentList::const_iterator last, string_view id, Redirector& cont)
 {
 	if(first != last)
 	{
-		cont = std::bind([=, &cont](EnvironmentList::iterator i, Redirector& c){
+		cont = std::bind(
+			[=, &cont](EnvironmentList::const_iterator i, Redirector& c){
 			cont = std::move(c);
 			return RedirectEnvironmentList(i, last, id, cont);
 		}, std::next(first), std::move(cont));
-		if(const auto p = RedirectParent(*first, id, cont))
-			return p;
+		return NPL::make_observer(&*first);
 	}
 	return {};
 }
-
-observer_ptr<Environment>
-RedirectParent(ValueObject& parent, string_view id, Redirector& cont)
-{
-	const auto& tp(parent.type());
-
-	if(tp == ystdex::type_id<EnvironmentList>())
-	{
-		auto& envs(parent.GetObject<EnvironmentList>());
-
-		return RedirectEnvironmentList(envs.begin(), envs.end(), id, cont);
-	}
-	if(tp == ystdex::type_id<EnvironmentReference>())
-		return RedirectToShared(id,
-			parent.GetObject<EnvironmentReference>().Lock());
-	if(tp == ystdex::type_id<shared_ptr<Environment>>())
-		return RedirectToShared(id,
-			parent.GetObject<shared_ptr<Environment>>());
-	return {};
-}
-//@}
 
 //! \since build 857
 TermTags
@@ -956,36 +933,6 @@ Environment::Deduplicate(BindingMap& dst, const BindingMap& src)
 	return dst.empty();
 }
 
-Environment::NameResolution
-Environment::DefaultResolve(Environment& e, string_view id)
-{
-	NameResolution::first_type p;
-	auto env_ref(ystdex::ref<Environment>(e));
-	Redirector cont;
-
-	ystdex::retry_on_cond([&](observer_ptr<Environment> p_env) ynothrow{
-		if(p_env)
-			env_ref = ystdex::ref(NPL::Deref(p_env));
-		return p_env || cont;
-	}, [&, id]() -> observer_ptr<Environment>{
-		auto& env(env_ref.get());
-
-		p = env.LookupName(id);
-		if(p)
-			cont = Redirector();
-		else
-		{
-			const auto p_env(RedirectParent(env.Parent, id, cont));
-
-			// NOTE: This is like asynchronously called %ContextNode::ApplyTail.
-			return p_env ? p_env
-				: (cont ? ystdex::exchange(cont, Redirector())() : nullptr);
-		}
-		return {};
-	});
-	return {p, env_ref};
-}
-
 void
 Environment::Define(string_view id, ValueObject&& vo)
 {
@@ -1103,7 +1050,7 @@ ContextNode::ContextNode(const ContextNode& ctx,
 			return std::move(p_rec);
 		Environment::ThrowForInvalidValue(true);
 	}()),
-	Trace(ctx.Trace)
+	Resolve(ctx.Resolve), Trace(ctx.Trace)
 {}
 ContextNode::ContextNode(ContextNode&& ctx) ynothrow
 	: ContextNode(ctx.memory_rsrc)
@@ -1111,6 +1058,79 @@ ContextNode::ContextNode(ContextNode&& ctx) ynothrow
 	swap(ctx, *this);
 }
 ContextNode::ImplDeDtor(ContextNode)
+
+Environment::NameResolution
+ContextNode::DefaultResolve(Environment& e, string_view id)
+{
+	auto env_ref(ystdex::ref<Environment>(e));
+	Redirector cont;
+	// NOTE: Blocked. Use ISO C++14 deduced lambda return type (cf. CWG 975)
+	//	compatible to G++ attribute.
+	const auto p_obj(ystdex::retry_on_cond(
+		[&](Environment::NameResolution::first_type p) YB_FLATTEN
+	// XXX: This uses G++ extension to work around the compatible issue. See
+	//	also %YB_ATTR_LAMBDA_QUAL.
+#if !(YB_IMPL_GNUCPP >= 90000)
+		-> bool
+#endif
+	{
+		if(!p)
+		{
+			lref<const ValueObject> cur(env_ref.get().Parent);
+			observer_ptr<Environment> p_env{};
+
+			ystdex::retry_on_cond(ystdex::id<>(), [&]() YB_FLATTEN
+			// XXX: Ditto.
+#if !(YB_IMPL_GNUCPP >= 90000)
+				-> bool
+#endif
+			{
+				const ValueObject& parent(cur);
+				const auto& tp(parent.type());
+
+				p_env = [&, id]() -> observer_ptr<Environment>{
+					if(tp == ystdex::type_id<EnvironmentReference>())
+						return RedirectToShared(id,
+							parent.GetObject<EnvironmentReference>().Lock());
+					if(tp == ystdex::type_id<shared_ptr<Environment>>())
+						return RedirectToShared(id,
+							parent.GetObject<shared_ptr<Environment>>());
+					return {};
+				}();
+				if(p_env)
+					env_ref = ystdex::ref(NPL::Deref(p_env));
+				else
+				{
+					observer_ptr<const ValueObject> p_next{};
+
+					if(tp == ystdex::type_id<EnvironmentList>())
+					{
+						auto& envs(parent.GetObject<EnvironmentList>());
+
+						p_next = RedirectEnvironmentList(envs.cbegin(),
+							envs.cend(), id, cont);
+					}
+					while(!p_next && bool(cont))
+						p_next = ystdex::exchange(cont, Redirector())();
+					if(p_next)
+					{
+						YAssert(!ystdex::ref_eq<>()(cur.get(), *p_next),
+							"Cyclic parent found.");
+						cur = *p_next;
+						return true;
+					}
+				}
+				return false;
+			});
+			return bool(p_env);
+		}
+		return false;
+	}, [&, id]{
+		return env_ref.get().LookupName(id);
+	}));
+
+	return {p_obj, env_ref};
+}
 
 void
 ContextNode::Pop() ynothrow
@@ -1170,6 +1190,7 @@ void
 swap(ContextNode& x, ContextNode& y) ynothrow 
 {
 	swap(x.p_record, y.p_record),
+	swap(x.Resolve, y.Resolve), 
 	swap(x.Delimited, y.Delimited),
 	swap(x.Current, y.Current),
 	std::swap(x.LastStatus, y.LastStatus),

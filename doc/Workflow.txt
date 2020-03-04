@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r3566
+\version r3575
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2020-02-18 19:22 +0800
+	2020-02-26 01:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -3635,6 +3635,15 @@ Comparison of 'std::type_info' objects has been optimized by tuning options for 
 			For example, with i686-w64-mingw-g++ 7.2:
 				<command-line>:0:0: error: "__GXX_MERGED_TYPEINFO_NAMES" redefined
 				<built-in>: note: this is the location of the previous definition
+NPLA name resolver is simplified.
+	It is decided to include the 'Resolve' callback and its default implementation ('DefaultResolve') at 'NPL::ContextNode' instead of 'NPL::Environment'.
+		The callback is needed in 'NPL::ContextNode' to allow overriding.
+			As 'NPL::ResolveName' and other functions relying on the callback use non-default (other than 'DefaultResolve') implementations, it cannot be moved out of 'NPL::ContextNode'.
+			It is not necessary configured per environment, as the context always perform the name lookup within the current environment which is known by the context.
+		The change simplifies the initialization of 'Resolve', as now no environment argument need to be bound at that time.
+		This also reduces the cost of maintaining the copy of the callback in the environments, hence less allocations.
+	However, the change improves performance only after the optimization of 'std::type_info' above in x64 Linux.
+		Otherwise, the underlying call of '__strcmp_avx2' will occasionally hit the bad branch of crossing memory boundary too many times, with severely bad (actually worse than before) performance, despite less allocations.
 
 ////
 

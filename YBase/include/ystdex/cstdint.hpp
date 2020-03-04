@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013, 2015-2016, 2018-2019 FrankHB.
+	© 2012-2013, 2015-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型和相关扩展操作。
-\version r634
+\version r648
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2019-08-06 22:37 +0800
+	2020-03-03 08:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -266,10 +266,20 @@ struct have_same_modulo : bool_<std::uintmax_t(modular_arithmetic<
 //! \since build 842
 //@{
 //! \brief 判断无符号整数是否为 2 的整数次幂。
-YB_ATTR_nodiscard yconstfn bool
+YB_ATTR_nodiscard YB_STATELESS yconstfn bool
 is_power_of_2(std::uintmax_t n) ynothrow
 {
-	return n != 0 && (n & (n - 1)) == 0;
+	return (n & (n - 1)) == 0;
+}
+
+/*!
+\brief 判断无符号整数是否为 2 的正整数次幂。
+\since build 884
+*/
+YB_ATTR_nodiscard YB_FLATTEN YB_STATELESS yconstfn bool
+is_positive_power_of_2(std::uintmax_t n) ynothrow
+{
+	return n != 0 && is_power_of_2(n);
 }
 
 //! \since build 842
@@ -295,7 +305,7 @@ floor_lb_w(std::uintmax_t n, size_t_<_vN>) ynothrow
 {
 	yconstraint(n != 0);
 
-	// NOTE: This is like %is_power_of_2, but 0 is already excluded.
+	// NOTE: This is like %is_power_of_2. Note 0 is already excluded.
 	using is_pow_2_t = bool_<(_vN & (_vN - 1)) == 0>;
 	size_t res(0);
 	auto shifted(floor_lb_shift(_vN, is_pow_2_t()));
@@ -353,7 +363,7 @@ floor_lb_w(std::uint64_t n, size_t_<64>) ynothrow
 #if YB_IMPL_GNUCPP >= 30400 || (__has_builtin(__builtin_clz) \
 	&& __has_builtin(__builtin_clzl) && __has_builtin(__builtin_clzll))
 #	define YB_Impl_has_builtin_clz true
-// TODO: Extract %builtin_ciz_dispatch to some public header.
+// TODO: Extract %builtin_clz_dispatch to some public header.
 template<typename _type>
 struct builtin_clz_dispatch
 {

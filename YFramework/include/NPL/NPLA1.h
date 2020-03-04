@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r7568
+\version r7576
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-02-22 12:39 +0800
+	2020-03-03 18:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1020,6 +1020,15 @@ ReduceCombined(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 ReduceCombinedBranch(TermNode&, ContextNode&);
+
+/*!
+\brief 规约列表合并项：同 ReduceCombinedBranch ，但先设置 NPLA1 上下文的下一项。
+\pre 断言：项满足 IsBranchedList 。
+\since build 884
+*/
+YB_FLATTEN inline PDefH(ReductionStatus, ReduceNextCombinedBranch,
+	TermNode& term, ContextState& cs)
+	ImplRet(cs.SetNextTermRef(term), ReduceCombinedBranch(term, cs))
 
 /*!
 \brief 规约列表合并项：同 ReduceCombined ，但使用第三参数指定的值。

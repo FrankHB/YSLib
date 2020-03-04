@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r5945
+\version r5952
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2020-02-01 10:07 +0800
+	2020-02-25 22:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -801,6 +801,12 @@ public:
 	\since build 748
 	*/
 	using Content = any;
+	/*!
+	\brief 判断是否可不附加分配地原地存储。
+	\since build 882
+	*/
+	template<typename _type>
+	using InPlaceStorable = any_ops::is_in_place_storable<_type>;
 
 private:
 	//! \since build 848
@@ -916,7 +922,7 @@ public:
 		: content(any_ops::use_holder,
 		in_place_type<RefHolder<_type>>, ystdex::ref(obj))
 	{
-		static_assert(any_ops::is_in_place_storable<RefHolder<_type>>(),
+		static_assert(InPlaceStorable<RefHolder<_type>>(),
 			"Suboptimal holder found.");
 	}
 	/*!

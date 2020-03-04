@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r7040
+\version r7114
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2020-02-25 20:33 +0800
+	2020-03-04 18:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2061,42 +2061,8 @@ public:
 	//! \since build 788
 	mutable BindingMap Bindings;
 	/*!
-	\brief 解析名称：处理保留名称并查找名称。
-	\return 查找到的名称，或查找失败时的空值。
-	\pre 实现断言：第二参数的数据指针非空。
-	\exception NPLException 对实现异常中立的未指定派生类型的异常。
-	\note 失败时若抛出异常，条件由实现定义。
-	\sa LookupName
-	\sa NameResolution
-	\sa Parent
-	\since build 851
-
-	解析指定环境中的名称。
-	值指定的实现可被改变，应符合以下描述中的要求。
-	被解析的环境可能被重定向：解析失败时，尝试提供能进一步解析名称的环境。
-	重定向通常在局部解析失败时进行，也可对特定保留名称进行。
-	重定向的目标通常是父环境。
-	实现名称解析的一般步骤包括：
-	局部解析：对被处理的上下文查找名称，若成功则返回；
-	否则，若支持重定向，尝试重定向解析：在重定向后的环境中重新查找名称；
-	否则，名称解析失败。
-	名称解析失败时默认返回空值和未指定的环境引用值。对特定的失败，实现可约定抛出异常。
-	只有和名称解析的相关保留名称需被处理。其它保留名称被忽略。
-	是否支持重定向由实现指定。若实现支持重定向，应指定确定重定向的目标的规则。
-	除非实现另行指定，保留名称为空集；否则，保留名称的集合由实现指定。
-	解析名称重定向上下文时，可能找到被重定向的环境或被解析的对象的循环引用。
-	不保证检查对反复进入同一重定向环境的循环重定向的环境引用或被解析对象的循环引用。
-	调用名称解析接口需注意绑定中的状态不引起循环重定向。
-	若引起循环重定向，除非实现另行指定，行为未定义。
-	若循环重定向的行为被实现定义，则实现应能确定循环重定向存在；
-		此后，名称解析最终应失败或不终止。
-	若使用被解析的对象的循环引用，可在对象语言中引起未定义行为。
-	*/
-	function<NameResolution(string_view)> Resolve{
-		std::bind(DefaultResolve, std::ref(*this), std::placeholders::_1)};
-	/*!
 	\brief 父环境：被解释的重定向目标。
-	\sa DefaultResolve
+	\sa ContextNode::DefaultResolve
 	\since build 798
 	*/
 	ValueObject Parent{};
@@ -2168,7 +2134,7 @@ public:
 	//@{
 	Environment(const Environment& e)
 		: enable_shared_from_this<Environment>(e),
-		Bindings(e.Bindings), Resolve(e.Resolve), Parent(e.Parent)
+		Bindings(e.Bindings), Parent(e.Parent)
 	{}
 	DefDeMoveCtor(Environment)
 
@@ -2276,33 +2242,6 @@ public:
 	*/
 	static bool
 	Deduplicate(BindingMap&, const BindingMap&);
-
-	/*!
-	\brief 默认的名称解析算法。
-	\pre 断言：第二参数的数据指针非空。
-	\exception InvalidReference 访问共享重定向环境失败。
-	\sa Lookup
-	\sa NPL_NPLA_CheckParentEnvironment
-	\sa Parent
-	\sa Resolve
-	\since build 869
-
-	按默认环境解析规则解析名称。
-	局部解析失败时，重定向解析 Parent 储存的对象作为父环境的引用值。
-	不在其它条件下重定向。不重定向到其它目标。
-	重定向的候选目标是到有限个不同的环境。
-	支持的重定向项的宿主值的类型包括：
-	EnvironmentList ：环境列表；
-	EnvironmentReference 可能具有共享所有权的重定向环境；
-	shared_ptr<Environment> 具有共享所有权的重定向环境。
-	若重定向可能具有共享所有权的失败，则表示资源访问错误，如构成循环引用；
-		发现环境的循环引用视为失败，抛出异常；其它情形行为未定义。
-	以上支持的宿主值类型被依次尝试访问。若成功，则使用此宿主值类型访问环境。
-	对列表，使用 DFS （深度优先搜索）依次递归检查其元素。
-	循环重定向不终止。
-	*/
-	YB_ATTR_nodiscard static NameResolution
-	DefaultResolve(Environment&, string_view);
 	//@}
 
 	/*!
@@ -2411,8 +2350,8 @@ public:
 
 	//! \since build 746
 	friend PDefH(void, swap, Environment& x, Environment& y) ynothrow
-		ImplExpr(swap(x.Bindings, y.Bindings), swap(x.Resolve, y.Resolve),
-			swap(x.Parent, y.Parent), swap(x.p_anchor, y.p_anchor))
+		ImplExpr(swap(x.Bindings, y.Bindings), swap(x.Parent, y.Parent),
+			swap(x.p_anchor, y.p_anchor))
 };
 
 
@@ -2453,6 +2392,41 @@ private:
 		Environment::allocator_type(&memory_rsrc.get()))};
 
 public:
+	/*!
+	\brief 解析名称：处理保留名称并查找名称。
+	\return 查找到的名称，或查找失败时的空值。
+	\pre 实现断言：第二参数的数据指针非空。
+	\exception NPLException 对实现异常中立的未指定派生类型的异常。
+	\note 失败时若抛出异常，条件由实现定义。
+	\sa LookupName
+	\sa NameResolution
+	\sa Environment::Parent
+	\since build 883
+
+	解析指定环境中的名称。
+	值指定的实现可被改变，应符合以下描述中的要求。
+	被解析的环境可能被重定向：解析失败时，尝试提供能进一步解析名称的环境。
+	重定向通常在局部解析失败时进行，也可对特定保留名称进行。
+	重定向的目标通常是父环境。
+	实现名称解析的一般步骤包括：
+	局部解析：对被处理的上下文查找名称，若成功则返回；
+	否则，若支持重定向，尝试重定向解析：在重定向后的环境中重新查找名称；
+	否则，名称解析失败。
+	名称解析失败时默认返回空值和未指定的环境引用值。对特定的失败，实现可约定抛出异常。
+	只有和名称解析的相关保留名称需被处理。其它保留名称被忽略。
+	是否支持重定向由实现指定。若实现支持重定向，应指定确定重定向的目标的规则。
+	除非实现另行指定，保留名称为空集；否则，保留名称的集合由实现指定。
+	解析名称重定向上下文时，可能找到被重定向的环境或被解析的对象的循环引用。
+	不保证检查对反复进入同一重定向环境的循环重定向的环境引用或被解析对象的循环引用。
+	调用名称解析接口需注意绑定中的状态不引起循环重定向。
+	若引起循环重定向，除非实现另行指定，行为未定义。
+	若循环重定向的行为被实现定义，则实现应能确定循环重定向存在；
+		此后，名称解析最终应失败或不终止。
+	若使用被解析的对象的循环引用，可在对象语言中引起未定义行为。
+	*/
+	function<Environment::NameResolution(Environment&, string_view)>
+		Resolve{DefaultResolve};
+
 	/*!
 	\brief 定界动作：边界外的剩余动作。
 	\since build 810
@@ -2528,6 +2502,33 @@ public:
 		//	called?
 		ImplRet(YAssert(bool(Current), "No tail action found."),
 			LastStatus = Switch()(*this))
+
+	/*!
+	\brief 默认的名称解析算法。
+	\pre 断言：第二参数的数据指针非空。
+	\exception InvalidReference 访问共享重定向环境失败。
+	\sa Environment::LookupName
+	\sa Environment::Parent
+	\sa NPL_NPLA_CheckParentEnvironment
+	\sa Resolve
+	\since build 869
+
+	按默认环境解析规则解析名称。
+	局部解析失败时，重定向解析 Parent 储存的对象作为父环境的引用值。
+	不在其它条件下重定向。不重定向到其它目标。
+	重定向的候选目标是到有限个不同的环境。
+	支持的重定向项的宿主值的类型包括：
+	EnvironmentList ：环境列表；
+	EnvironmentReference 可能具有共享所有权的重定向环境；
+	shared_ptr<Environment> 具有共享所有权的重定向环境。
+	若重定向可能具有共享所有权的失败，则表示资源访问错误，如构成循环引用；
+		发现环境的循环引用视为失败，抛出异常；其它情形行为未定义。
+	以上支持的宿主值类型被依次尝试访问。若成功，则使用此宿主值类型访问环境。
+	对列表，使用 DFS （深度优先搜索）依次递归检查其元素。
+	循环重定向不终止。
+	*/
+	YB_ATTR_nodiscard static Environment::NameResolution
+	DefaultResolve(Environment&, string_view);
 
 	/*!
 	\sa Delimited
@@ -2764,15 +2765,15 @@ EmplaceLeaf(ContextNode& ctx, string_view name, _tParams&&... args)
 /*!
 \brief 解析名称：处理保留名称并查找名称。
 \pre 断言：第二参数的数据指针非空。
-\sa Environment::Resolve
+\sa ContextNode::Resolve
 \since build 821
 
 解析指定上下文的当前环境中的名称。
-解析名称调用上下文的当前环境的 Environment::Resolve 实现。
+解析名称以当前当前环境作为参数调用上下文的 ContextNode::Resolve 实现。
 */
 YB_ATTR_nodiscard inline PDefH(Environment::NameResolution, ResolveName,
 	const ContextNode& ctx, string_view id)
-	ImplRet(YAssertNonnull(id.data()), ctx.GetRecordRef().Resolve(id))
+	ImplRet(YAssertNonnull(id.data()), ctx.Resolve(ctx.GetRecordRef(), id))
 
 /*!
 \brief 解析标识符：解析名称并折叠引用。

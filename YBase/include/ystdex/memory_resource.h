@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1394
+\version r1398
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2020-01-27 18:56 +0800
+	2020-03-02 22:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,7 +87,7 @@ WG21 P0619R4 ：在 memory_resource 中显式声明默认构造函数和复制�
 #	include "operators.hpp" // for equality_comparable;
 #endif
 #include "base.h" // for noncopyable, nonmovable;
-#include "cstdint.hpp" // for is_power_of_2;
+#include "cstdint.hpp" // for is_positive_power_of_2;
 #include "list.hpp"// for list;
 #include <vector> // for std::vector;
 #include <unordered_map> // for std::unordered_map;
@@ -211,12 +211,12 @@ public:
 	allocate(size_t bytes, size_t alignment = max_align)
 	{
 		// NOTE: This is not specified directly by the specification, but the
-		//	resolution of LWG 2843 has made the requirement on alighment value
+		//	resolution of LWG 2843 has made the requirement on the alignment
 		//	same to %do_allocation. Microsoft VC++ 15.8.2 implements it using
 		//	an assertion here similarly. Libc++ experimental does not assert and
 		//	does silently round up the alignment value which is always the
 		//	maximul alignment in its %__resource_adaptor_imp::do_allocate.
-		yconstraint(is_power_of_2(alignment));
+		yconstraint(is_positive_power_of_2(alignment));
 
 		const auto p(do_allocate(bytes, alignment));
 
@@ -227,7 +227,7 @@ public:
 	deallocate(void* p, size_t bytes, size_t alignment = max_align)
 	{
 		// NOTE: The alignment requirement is same to %allocate.
-		yconstraint(is_power_of_2(alignment));
+		yconstraint(is_positive_power_of_2(alignment));
 		return do_deallocate(p, bytes, alignment);
 	}
 

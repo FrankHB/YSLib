@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1259
+\version r1262
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2020-01-25 23:00 +0800
+	2020-02-29 09:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -128,7 +128,9 @@ SaveImage(ImageFormat fmt, ::FIBITMAP* dib, std::FILE* fp,
 		if(!res)
 			throw GeneralEvent("Failed saving image");
 	}
-	throw std::invalid_argument("No valid bitmap data found on saving image.");
+	else
+		throw std::invalid_argument(
+			"No valid bitmap data found on saving image.");
 }
 void
 SaveImage(ImageFormat fmt, ::FIBITMAP* dib, const char* filename,

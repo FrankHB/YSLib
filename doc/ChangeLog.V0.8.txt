@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r17773
+\version r17899
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-02-25 20:54 +0800
+	2020-03-04 18:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,131 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YDefinition $=
+		(
+			+ "fallback condition 'YB_IMPL_MSCPP >= 1700'"
+				^ "%_Check_return_" @ "macro %YB_ATTR_nodiscard",
+			* "invalid %YB_ATTR used instead of '__declspec'"
+				@ ('YB_IMPL_MSCPP >= 1400' @ "macro %YB_ALLOCATOR",
+				"macro %YB_ATTR_novtable") $since b842,
+			+ 'using nullptr_t = decltype(__nullptr);'
+				@ 'YB_IMPL_MSCPP && defined(__cplusplus_cli)',
+			/ "%nullptr_t" @ '!YB_HAS_BUILTIN_NULLPTR' $=
+			(
+				- "member function %equals",
+				- $lib "all non-member %operator(==, !=)"
+					-> "friend function templates",
+				+ 'YB_ATTR_nodiscard ynothrow' @ "all member functions except \
+					%operator&"
+			)
+		),
+		/ %YStandardEx $=
+		(
+			/ %CStandardInteger $=
+			(
+				/ "function %is_power_of_2" $=
+				(
+					/ "accept 0 value as power value of 2",
+					+ $dev $lib 'YB_STATELESS',
+				),
+				+ "function %is_positive_power_of_2"
+			),
+			/ $forced "added 0 value check to all checks for alignment"
+				$dep_from ("%is_power_of_2" @ %CStandardInteger)
+				$effective @ %(Placement, MemoryResource)
+				$dep_to "alignment check zero",
+			+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+				@ "function template %is_aligned_ptr" @ %Placement,
+				// Also To eliminate G++ 7.1 warning: \
+					[-Wsuggest-attribute=pure].
+			+ DLDI 'YB_ATTR(always_inline)' @ "function templates \
+				%(construct_within, destruct_in)" @ %Placement
+				// This is usually better for %any, but inlining other \
+					function templates in %Placement or members of \
+					%standard_layout_storage is not helpful, if not even worse.
+		)
+	),
+	/ %YFramework $=
+	(
+		* "exception always thrown even on success"
+			@ "member function %HBitmap::SaveTo" @ %YSLib.Adaptor.Image
+			$since b556,
+			// Also to eliminate G++ 7.1 warning: \
+				[-Wsuggest-attribute=noreturn].
+		/ @ %YSLib.Core $=
+		(
+			/ @ "class %ValueObject" @ %YObject $=
+			(
+				+ "alias template %InPlaceStorable";
+				/ DLDI "simplified static assertion"
+					@ "constructor with parameter of %OwnershipTag<>"
+			),
+			+ DLI 'YB_ATTR_nodiscard YB_PURE' @ "internal comoparison funtions"
+				@ "class template specialization %GHEvent" @ %YEvent,
+				// Also To eliminate G++ 9.2.1 warning: \
+					[-Wsuggest-attribute=pure].
+			/ "friend function %operator==" @ "class %Message" @ %YMessage $=
+			(
+				/ DLI "out of line definition" -> "inline function";
+				* $comp "possible ill-formed attribute caused by \
+					%YB_ATTR_nodiscard" $since b881
+					// The standard attribute is not applicable on friend \
+						function declaration that is not a definition. This \
+						breaks building on Clang++ but not on G++. See \
+						https://stackoverflow.com/questions/52332203.
+			)
+		),
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				// See $2020-02 @ %Documentation::Workflow.
+				/ @ "class %Environment" $=
+				(
+					/ "function %DefaultResolve" >> "class %ContextNode"
+						$= (/ DLI "simplified");
+					/ "funciton %Resolve"
+						-> ("function" @ "class %ContextNode"),
+					/ $forced $impl
+						("copy constructor", "friend function %swap")
+				),
+				/ $forced $impl ("constructor#2", "friend function %swap")
+					@ "class %ContextNode" $dep_from
+						"%Environment::DefaultResolve"
+			),
+			+ "function %ReduceNextCombinedBranch" @ %NPLA1,
+			+ "function template %ReduceSubsequentCombinedBranch"
+				@ %NPLA1Internals,
+			/ @ "namespace %Forms" @ %NPLA1Forms $=
+			(
+				/ DLI "optimized retrying reduction" @ "functions %(And, Or)",
+					// This only has effect as optimization with the following \
+						bug fixed.
+				* "operand in the middle might be wrongly evaluated once"
+					@ "functions %Or" $orig (@ %NPLA1) $since b860
+			)
+		)
+	),
+	/ $dev "GCC version detection except for cases intended for Clang++"
+		^ 'YB_IMPL_GNUCPP' ~ 'YB_IMPL_GNUC' $=
+	(
+		// Since only C++ (rather than C) is supported, the use of GNU C \
+			detection is to including Clang++ specifically. The only valid \
+			case for %YB_IMPL_GUNCremained is the definition of %YB_ATTR.
+		/ "simplified" @ "macro %YB_ATTR_gnu_printf" @ %YBase.YDefinition
+		* "missing excluding Clang++" $effective
+			@ %(YBase.YStandardEx.CAssert $since b739,
+			YFramework.YSLib.Core.YEvent $since b792),
+	),
+	* $re_add(b866) $comp "build failure" @ "platform %Android" $since b850
+		$dep_from %YFramework.YSLib.Core.YMessage
+		// This causes armv7a-linux-androideabi21-clang++ fails to compile.
+),
+
+b883
 (
 	/ %YFramework.NPL $=
 	(
@@ -78,7 +203,7 @@ $now
 			(
 				* "missing term regularization" @ "leaf token"
 					$orig (@ "function %RewriteLiteral" $since b725)
-					// See $2020-01 @ %Documentation::Workflow.
+					// See $2020-02 @ %Documentation::Workflow.
 					$= (/ ^ $dep_from "%EvaluateLiteralHandler"),
 						// This has a call of %RegularizeTerm if necessary.
 				/ DLDI ^ 'const' @ "access of %LiteralHandler"
@@ -363,7 +488,7 @@ b880
 				("%(YB_Diag_Push, YB_Diag_Pop, YB_Diag_Ignore)" @ %YDefinition),
 			/ DLI "ignored G++ warnings ('-Wsuggest-attribute=const', \
 				'-Wsuggest-attribute=pure')"
-				"functor macros" @ 'YB_IMPL_GNUCPP >= 70000' ^ $dep_from
+				"functor macros" @ 'YB_IMPL_GNUCPP >= 60000' ^ $dep_from
 				("%(YB_Diag_Push, YB_Diag_Pop, YB_Diag_Ignore)" @ %YDefinition),
 			/ %MemoryResouce $=
 			(

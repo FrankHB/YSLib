@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r18026
+\version r18052
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2020-02-15 15:41 +0800
+	2020-03-04 18:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,6 +82,24 @@ using Forms::ThrowInvalidSyntaxError;
 using Forms::ThrowValueCategoryErrorForFirstArgument;
 //@}
 
+
+//! \since build 884
+ReductionStatus
+ReduceAgainCombined(TermNode& term, ContextNode& ctx)
+{
+#if NPL_Impl_NPLA1_Enable_TCO
+	EnsureTCOAction(ctx, term).RequestRetrying();
+	SetupNextTerm(ctx, term);
+	return A1::RelayCurrentOrDirect(ctx,
+		Continuation(std::ref(ReduceCombinedBranch), ctx), term);
+#elif NPL_Impl_NPLA1_Enable_Thunked
+	return ReduceSubsequentCombinedBranch(term, ctx, []() ynothrow{
+		return ReductionStatus::Retrying;
+	});
+#else
+	return ReduceNextCombinedBranch(term, ContextState::Access(ctx));
+#endif
+}
 
 //! \since build 874
 // XXX: This is more efficient, at least in code generation by x86_64-pc-linux
@@ -203,7 +221,7 @@ And2(TermNode& term, ContextNode& ctx, TNIter i)
 	if(ExtractBool(NPL::Deref(i)))
 	{
 		term.Remove(i);
-		return ReduceAgain(term, ctx);
+		return ReduceAgainCombined(term, ctx);
 	}
 	term.Value = false;
 	return ReductionStatus::Clean;
@@ -212,12 +230,15 @@ And2(TermNode& term, ContextNode& ctx, TNIter i)
 ReductionStatus
 Or2(TermNode& term, ContextNode& ctx, TNIter i)
 {
-	if(!ExtractBool(NPL::Deref(i)))
+	auto& tm(NPL::Deref(i));
+
+	if(!ExtractBool(tm))
 	{
 		term.Remove(i);
-		return ReduceAgain(term, ctx);
+		return ReduceAgainCombined(term, ctx);
 	}
-	return ReduceAgainLifted(term, ctx, NPL::Deref(i));
+	LiftOther(term, tm);
+	return ReductionStatus::Retained;
 }
 
 ReductionStatus
@@ -1144,9 +1165,9 @@ private:
 		// NOTE: Forming beta-reducible terms using parameter binding, to
 		//	substitute them as arguments for later closure reduction.
 		// XXX: Do not lift terms if provable to be safe?
-		// NOTE: Since now binding does not relying on temporaries stored
-		//	elsewhere (by using %TermTags::Temporary instead), this should be
-		//	safe even for TCO.
+		// NOTE: Since now binding does not rely on temporaries stored elsewhere
+		//	(by using %TermTags::Temporary instead), this should be safe even
+		//	with TCO.
 		BindParameter(ctx.GetRecordRef(), NPL::Deref(p_formals), term);
 #if NPL_Impl_NPLA1_TraceVauCall
 		ctx.Trace.Log(Debug, [&]{

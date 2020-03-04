@@ -11,13 +11,13 @@
 /*!	\file YMessage.h
 \ingroup Core
 \brief 消息处理。
-\version r2051
+\version r2058
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2020-01-31 15:59 +0800
+	2020-03-03 21:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -129,12 +129,14 @@ public:
 	\brief 比较：相等关系。
 	\since build 454
 	*/
-	YB_ATTR_nodiscard YF_API YB_PURE friend bool
-	operator==(const Message&, const Message&);
+	YB_ATTR_nodiscard YB_PURE friend
+		PDefHOp(bool, ==, const Message& x, const Message& y)
+		ImplRet(x.id == y.id && x.content == y.content)
 
-	DefGetter(const ynothrow, ID, MessageID, id) //!< 取消息标识。
+	//! \brief 取消息标识。
+	DefGetter(const ynothrow, ID, MessageID, id)
+	//! \brief 取消息内容。
 	DefGetter(const ynothrow, const ValueObject&, Content, content) \
-		//!< 取消息内容。
 
 	/*!
 	\brief 交换。

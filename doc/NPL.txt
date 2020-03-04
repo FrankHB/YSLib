@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r14549
+\version r14554
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2020-02-22 12:36 +0800
+	2020-02-26 18:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2708,10 +2708,7 @@ NPL::EnvironmentReference(@5.6.2) 表示环境弱引用。
 NPL::EnvironmentSwitcher 类型用于切换上下文(@6.9.2) 中的当前环境(@5.4.4) 。
 类 Environment 中，指定变量绑定的映射类型为 Environment::BindingMap 。
 Environment 包含以下相关的数据成员：
-Resolve ：名称解析算法；
 Parent ：作为可在运行时确定类型的父环境引用，用于重定向算法的实现。
-类 Environment 包含以下静态成员函数作为默认算法实现：
-DefaultResolve
 Environment::DefaultRedirect 依次检查重定向目标的宿主值(@5.5) 类型为如下之一：
 NPL::EnvironmentList(@6.9.1) ；
 shared_ptr<Environment> ；
@@ -2738,6 +2735,7 @@ NPL::EnvironmentReference 。
 @6.9.2 上下文 API ：
 类型 NPL::Reducer 是以上下文引用作为参数的应的规约动作(@5.4.4) 类型，用于抽象一遍规约的动作(@5.4.4) 。
 类 ContextNode 提供其它一些上下文 API 。
+数据成员 Resolve ：名称解析算法。
 数据成员 Current 即当前动作(@5.4.4) ，是类型为 NPL::Reducer 的一遍规约，一般不直接访问，可被作为尾动作(@5.4.4) 。
 数据成员 Delimited 即后继动作(@5.4.4) ，是 NPL::Reducer 的容器。不同的动作被容器内不同的元素表示。
 数据成员 LastStatus 保存最后一次规约状态。
@@ -2746,6 +2744,7 @@ Current 和 LastStatus 共同表示当前续延。
 成员函数 GetRecordRef
 成员函数 GetMemoryResourceRef 取存储资源(@5.7.1) 引用。
 成员函数 ApplyTail
+静态成员函数 DefaultResolve
 成员函数 Pop 和 Push 维护动作的迁移，在 Current 和 Delimited 之间转移动作。
 成员函数 Rewrite 以 Current 为条件的循环调用 ApplyTail ，作为跳板(@5.8.7.1) 实现一般规约重写。因为先设置当前动作，所以也有 Current 为空的前置条件。
 成员函数模板 SetupTail 设置 Current 。前置条件是 Current 为空以避免重复设置覆盖当前动作的原始状态。
