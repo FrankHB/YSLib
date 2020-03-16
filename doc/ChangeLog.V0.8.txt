@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r17899
+\version r18100
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-03-04 18:56 +0800
+	2020-03-17 00:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,208 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			* "wrongly depending on underlying operation" @ "%operator+= for \
+				string view type" @ "class template %basic_string"
+				@ 'YB_Impl_String_has_P0254R2' @ %String $since b833,
+			(
+			/ "function %is_positive_power_of_2" @ %CStandardInteger
+				=> "%is_power_of_2_positive";
+				// To avoid misleading meaning.
+			/ $forced DLDI %(Placement, MemoryResource)
+			),
+			/ %MemoryResource $=
+			(
+				* "redundant friend class declaration" @ "class %oversized_map"
+					$= (- "friend class %shared_pool_resource"),
+				/ @ "class %resource_pool" $=
+				(
+					/ @ "member function %resource_pool::deallocate" $=
+					(
+						/ DLI "optimized deallocation",
+						+ $lib "assertions for internal iterators"
+					),
+					* "missing checking and recovering invalidated end \
+						iterators" @ "move constructor %resource_pool"
+						$since b867
+						// This makes moved iterator invalidated and it would \
+							crash on allocation and deallocation using these \
+							iterator for cached resources once the referenced \
+							pool is moved.
+				),
+				* $comp "internal states corrupted on pool vector invalidation"
+					@ "member function %pool_resource::do_allocate" $since b867
+					$dep_from "move constructor %resource_pool"
+					// This would probably cause pool moving on vector element \
+						insertions.
+			),
+		),
+		/ %YDefinition $=
+		(
+			/ @ "macro %YB_HAS_THREAD_LOCAL" $=
+			(
+				+ 'YB_IMPL_MSCPP >= 1900' @ "conditions"
+				* "G++ detection did not respect to the '-std=' option"
+					$since b425
+			),
+			/ @ "pseudo keyword %ythread" $=
+			(
+				* "bogus %_MT" @ "condition for 'thread_local'"
+					@ !"platform %Win32",
+				+ "fallback '__declspec(thread)'"
+				+ "fallback '__thread'",
+				- 'static' @ "last fallback"
+					// This now allows 'extern ythread'.
+			),
+			/ $dev "condition for MinGW Clang++" @ "macro %YB_API"
+				^ 'YB_IMPL_GNUCPP' ~ 'YB_IMPL_GNUC'
+				// To avoid implicit effect of '--export-or-symbols'.
+		)
+	),
+	/ $re_ex(b700) "updated library %FreeImage" $=
+	(
+		/ $re_ex(b600) "updated base library 3.18.0" ~ "3.17.0";
+		(
+		^ "libjpeg-turbo 2.0.4" @ "%Source/LibJPEG"
+			$dep_to "libjpeg-turbo update";
+		/ $forced "updated %(jconfig.h, jconfigint.h) except for \
+			macro %WITH_SIMD" ^ 'cmake -G"MSYS makefiles"'
+			// By default, these files are only for %MinGW32 platform.
+		/ $forced "updated %(Makefile.srcs; Makefile.gnu, Makefile.mingw)"
+			// This including assembly source file lists refatctoring \
+				(notably, adapting to the 'simd' directory layout changes and \
+				adding support of AVX2), and adding %jdicc.c to the C source \
+				list to avoid redundant definition of the function \
+				%jpeg_read_icc_profile (available since libjpeg-turbo 1.5.90).
+		),
+		^ "libpng 1.6.7" @ "%Source/LibPNG";
+			// With prebuilt %pnglibconf.h unchanged.
+	),
+	- "%3rdparty/FreeImage/Source/LibJPEG/(simd/jsimdcfg.inc, config.h)"
+		$dep_from "libjpeg-turbo update",
+		// The file "jsimdcfg.inc" is already included in the libjpeg-turbo \
+			now, deployed at %Source/LibJPEG/simd/nasm in the FreeImaage \
+			source tree. The file "config.h" should now only used internally \
+			in the build process.
+	/ %Tools $=
+	(
+		/ %Scripts $=
+		(
+			/ $doc "clarified references to user documentation",
+				// This makes it easy to migrate with differenct source, since \
+					the documentation may be removed from the BitButcket \
+					project wiki in future (as BitBucket has decided to stop \
+					Mercurial support not late than 2020-06).
+			(
+			+ "functions %(SHBuild_Host_Platform_Detect, \
+				SHBuild_GetSystemPrefix)"
+				@ "%(SHBuild-common.sh, SHBuild-YSLib-common.txt)" $=
+			(
+				+ "detected environment variable %MSYSTEM with values \
+					%(MINGW64, MINGW32) mapped to ('MinGW64', 'MinGW32')";
+				/ "detected %SHBuild_Env_Arch value 'x86_64' and 'env-os' value \
+					'Win32' as 'MinGW64'";
+				/ "detected 'env-os' "
+			);
+			/ "supported MinGW64 detection for default value of \
+				%SHBuild_Host_Platform"
+				@ ("function %SHBuild_CheckHostPlatform" @ "%SHBuild-common.sh"
+				^ ("%SHBuild_Host_Platform_Detect" @ "%SHBuild-common.sh"),
+				"%SHBuild-YSLib-build.txt" ^ ("%SHBuild_Host_Platform_Detect"
+				@ "%SHBuild-YSLib-common.txt")),
+			/ "supported system prefix directory name instead of '/usr' \
+				with overridable variable %SHBuild_SystemPrefix"
+				@ ("%SHBuild-BuildApp.sh"
+				^ "functions %(SHBuild_Platform_Detect, \
+				SHBuild_CheckHostPlatform)" @ "%SHBuild-common.sh",
+				"%SHBuild-YSLib-build.txt" ^ ("%SHBuild_GetSystemPrefix"
+				@ "%SHBuild-YSLib-common.txt"))
+			),
+			/ @ "%SHBuild-YSLib-build.txt" $=
+			(
+				/ "changed YFramework host library directory without postfix of \
+					'-' and the name of host architecture"
+					$dep_to "host library directory",
+					// This changes effectively for %MinGW32 (from 'lib-i686' \
+						to 'lib') since previously this is the only formally \
+						supported platform here. For %MinGW64 now it works \
+						differently, as the parent path is also changed by \
+						%SHBuild_Host_Platform_Detect.
+				* "wrongly used '-DYB_BUILD_DLL' instead of 'YB_DLL'"
+					@ "%YFramework building" @ "%release configurations"
+					$orig (@ "%SHBuild-YSLib.sh" $since b546)
+			),
+			/ DLDI "renamed string argument name" @ "function 'system-or-puts'"
+				@ "%SHBuild-YSLib-common.txt",
+			/ @ "%SHBuild-BuildApp.sh" $=
+			(
+				/ @ !"platform %Win32" $=
+				(
+					* "missing quotes around '$SHBuild_SystemPrefix/include'"
+						"default value" @ "%SHBuild_YF_CFlags_freetype"
+						 @ "%SHBuild_YF_CFlags_freetype"
+						$since b885,
+					* "overriding of %SHBuild_YF_Libs_freetype value disabled \
+						by unexpected unconditional value assignment"
+						$since b563
+				),
+				* "missing quotes around '$SHBuild_SystemPrefix/lib'"
+					@ "linker search path"
+					@ "%SHBuild_Static" $since b885,
+				/ "updated host platform support" $=
+				(
+					/ "detected platform" -> $dep_from
+						("%SHBuild_CheckHostPlatform" @ "%SHBuild-common.sh")
+						~ "%SHBuild_CheckUName";
+					/ "default value" @ "variable %SHBuild_YSLib_Platform"
+						-> '$SHBuild_Host_Platform'
+				),
+				/ "uniformed libfreetype library detection for \
+					%SHBuild_YF_Libs_freetype" $=
+				(
+					+ "detected %libfreetype.a with prefix \
+						'$SHBuild_Bin/../lib/'"
+						$dep_from "%SHBuild_SystemPrefix";
+					* "missing library prefix '-L' option for static library \
+						building" $since b,
+					+ "support of dynamic libfreetype detection with \
+						'pkg-config' if %libfreetype.a is missing in the \
+						sysroot 'lib' directory" @ !"platform %Win32"
+					+ "support of static %libfreetype.a in the sysroot 'lib' \
+						directory"
+				)
+			),
+				+ $build "workaround for building %YFramework DLL"
+					@ "%debug configurations" @ "platform %MinGW64"
+					$dep_to "MinGW64 debug DLL workaround" $=
+				(
+					// Otherwise the linker will hang for 3 hours and fail for \
+						unresolved symbols of typeinfo name of base classes \
+						(e.g. classes in %YBase.YStandardEx.Operators).
+					/ "avoided using precompiled header",
+					+ "'-Og' to override '-O0'"
+				)
+		),
+		/ $forced "host library directory 'lib-i686'" -> 'lib'
+			$dep_from "host library directory";
+			// To take the actual change, run \
+				%Tools/Scripts/GenerateProjects.sh after the build of this tool.
+		+ $comp "class 3 support of platform %MinGW64"
+	),
+	/ $dev "condition for MinGW Clang++" @ "macro %YF_API"
+		@ %YFramework.Platform ^ 'YB_IMPL_GNUCPP' ~ 'YB_IMPL_GNUC',
+		// Similar to 'YB_API'.
+	+ "formal support" @ "platform %MinGW64"
+		$dep_from (("%SHBuild-YSLib-build.txt", "updated host platform support"
+		@ "%SHBuild-BuildApp.sh") @ %Tools.Scripts,
+		"updated library %FreeImage", "MinGW64 debug DLL workaround")
+),
+
+b884
 (
 	/ %YBase $=
 	(

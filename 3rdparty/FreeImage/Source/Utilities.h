@@ -22,7 +22,7 @@
 // ==========================================================
 
 // Modified by FrankHB <frankhb1989@gmail.com>, 2013-06-26:
-//	Removed "#include <memory.h>" in "Source/Utilities.h" to make it conforming to the ISO C/C++ standard.
+//	Removed "#include <memory.h>" in "Source/Utilities.h" to make it conforming to the ISO C/C++ standards.
 // Modified by FrankHB <frankhb1989@gmail.com>, 2013-07-20:
 //	Normalized all EOL marker as CR+LF.
 //	Removed all spaces at end of lines.
@@ -33,9 +33,15 @@
 //	Added declaration of function "RotateExif" from base version 3.16.0.
 // Modified by FrankHB <frankhb1989@gmail.com>, 2015-05-25:
 //	Merged changes from base version 3.17.0.
+// Modified by FrankHB <frankhb1989@gmail.com>, 2020-03-06:
+//	Normalized leading spaces to tabs.
+//	Normalized styles of function definitions and braces.
+//	Removed spaces after control keywords.
+//	Removed redundant preprocessing checks to "__cplusplus" as the header inclusions indicate this file is expected to be built using C++.
+//	Merged changes from base version 3.18.0, except for redundant braces and 'const' in the parameter declarations and.
 
-#ifndef UTILITIES_H
-#define UTILITIES_H
+#ifndef FREEIMAGE_UTILITIES_H
+#define FREEIMAGE_UTILITIES_H
 
 // ==========================================================
 //   Standard includes used by the library
@@ -72,12 +78,14 @@
 // Memory allocation on a specified alignment boundary
 // defined in BitmapAccess.cpp
 
-void* FreeImage_Aligned_Malloc(size_t amount, size_t alignment);
-void FreeImage_Aligned_Free(void* mem);
+void*
+FreeImage_Aligned_Malloc(size_t amount, size_t alignment);
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
+void
+FreeImage_Aligned_Free(void* mem);
+
+extern "C"
+{
 
 struct FI_PluginRec;
 typedef FI_PluginRec Plugin;
@@ -96,7 +104,8 @@ Allocate a FIBITMAP with possibly no pixel data
 @return Returns the allocated FIBITMAP
 @see FreeImage_AllocateT
 */
-DLL_API FIBITMAP * DLL_CALLCONV FreeImage_AllocateHeaderT(BOOL header_only, FREE_IMAGE_TYPE type, int width, int height, int bpp FI_DEFAULT(8), unsigned red_mask FI_DEFAULT(0), unsigned green_mask FI_DEFAULT(0), unsigned blue_mask FI_DEFAULT(0));
+DLL_API FIBITMAP* DLL_CALLCONV
+FreeImage_AllocateHeaderT(BOOL header_only, FREE_IMAGE_TYPE type, int width, int height, int bpp FI_DEFAULT(8), unsigned red_mask FI_DEFAULT(0), unsigned green_mask FI_DEFAULT(0), unsigned blue_mask FI_DEFAULT(0));
 
 /**
 Allocate a FIBITMAP of type FIT_BITMAP, with possibly no pixel data
@@ -111,7 +120,8 @@ Allocate a FIBITMAP of type FIT_BITMAP, with possibly no pixel data
 @return Returns the allocated FIBITMAP
 @see FreeImage_Allocate
 */
-DLL_API FIBITMAP * DLL_CALLCONV FreeImage_AllocateHeader(BOOL header_only, int width, int height, int bpp, unsigned red_mask FI_DEFAULT(0), unsigned green_mask FI_DEFAULT(0), unsigned blue_mask FI_DEFAULT(0));
+DLL_API FIBITMAP* DLL_CALLCONV
+FreeImage_AllocateHeader(BOOL header_only, int width, int height, int bpp, unsigned red_mask FI_DEFAULT(0), unsigned green_mask FI_DEFAULT(0), unsigned blue_mask FI_DEFAULT(0));
 
 /**
 Allocate a FIBITMAP with no pixel data and wrap a user provided pixel buffer
@@ -127,17 +137,17 @@ Allocate a FIBITMAP with no pixel data and wrap a user provided pixel buffer
 @return Returns the allocated FIBITMAP
 @see FreeImage_ConvertFromRawBitsEx
 */
-DLL_API FIBITMAP * DLL_CALLCONV FreeImage_AllocateHeaderForBits(BYTE *ext_bits, unsigned ext_pitch, FREE_IMAGE_TYPE type, int width, int height, int bpp, unsigned red_mask, unsigned green_mask, unsigned blue_mask);
+DLL_API FIBITMAP* DLL_CALLCONV
+FreeImage_AllocateHeaderForBits(BYTE *ext_bits, unsigned ext_pitch, FREE_IMAGE_TYPE type, int width, int height, int bpp, unsigned red_mask, unsigned green_mask, unsigned blue_mask);
 
 /**
 Helper for 16-bit FIT_BITMAP
 @see FreeImage_GetRGBMasks
 */
-DLL_API BOOL DLL_CALLCONV FreeImage_HasRGBMasks(FIBITMAP *dib);
+DLL_API BOOL DLL_CALLCONV
+FreeImage_HasRGBMasks(FIBITMAP *dib);
 
-#if defined(__cplusplus)
 }
-#endif
 
 
 // ==========================================================
@@ -153,20 +163,24 @@ DLL_API BOOL DLL_CALLCONV FreeImage_HasRGBMasks(FIBITMAP *dib);
 #pragma pack(1)
 #endif // _WIN32
 
-typedef struct tagFILE_RGBA {
-  unsigned char r,g,b,a;
+typedef struct tagFILE_RGBA
+{
+	 unsigned char r,g,b,a;
 } FILE_RGBA;
 
-typedef struct tagFILE_BGRA {
-  unsigned char b,g,r,a;
+typedef struct tagFILE_BGRA
+{
+	 unsigned char b,g,r,a;
 } FILE_BGRA;
 
-typedef struct tagFILE_RGB {
-  unsigned char r,g,b;
+typedef struct tagFILE_RGB
+{
+	 unsigned char r,g,b;
 } FILE_RGB;
 
-typedef struct tagFILE_BGR {
-  unsigned char b,g,r;
+typedef struct tagFILE_BGR
+{
+	 unsigned char b,g,r;
 } FILE_BGR;
 
 #ifdef _WIN32
@@ -180,52 +194,72 @@ typedef struct tagFILE_BGR {
 // ==========================================================
 
 /// Max function
-template <class T> T MAX(const T &a, const T &b) {
+template <class T>
+T
+MAX(const T &a, const T &b)
+{
 	return (a > b) ? a: b;
 }
 
 /// Min function
-template <class T> T MIN(const T &a, const T &b) {
+template <class T>
+T
+MIN(const T &a, const T &b)
+{
 	return (a < b) ? a: b;
 }
 
 /// INPLACESWAP adopted from codeguru.com
-template <class T> void INPLACESWAP(T& a, T& b) {
+template <class T>
+void
+INPLACESWAP(T& a, T& b)
+{
 	a ^= b; b ^= a; a ^= b;
 }
 
 /// Clamp function
-template <class T> T CLAMP(const T &value, const T &min_value, const T &max_value) {
+template<class T>
+T
+CLAMP(const T &value, const T &min_value, const T &max_value)
+{
 	return ((value < min_value) ? min_value : (value > max_value) ? max_value : value);
 }
 
 /** This procedure computes minimum min and maximum max
- of n numbers using only (3n/2) - 2 comparisons.
- min = L[i1] and max = L[i2].
- ref: Aho A.V., Hopcroft J.E., Ullman J.D.,
- The design and analysis of computer algorithms,
- Addison-Wesley, Reading, 1974.
+	of n numbers using only (3n/2) - 2 comparisons.
+	min = L[i1] and max = L[i2].
+	ref: Aho A.V., Hopcroft J.E., Ullman J.D.,
+	The design and analysis of computer algorithms,
+	Addison-Wesley, Reading, 1974.
 */
-template <class T> void
-MAXMIN(const T* L, long n, T& max, T& min) {
+template<class T>
+void
+MAXMIN(const T* L, long n, T& max, T& min)
+{
 	long i1, i2, i, j;
 	T x1, x2;
 	long k1, k2;
 
 	i1 = 0; i2 = 0; min = L[0]; max = L[0]; j = 0;
 	if((n % 2) != 0)  j = 1;
-	for(i = j; i < n; i+= 2) {
+	for(i = j; i < n; i+= 2)
+{
 		k1 = i; k2 = i+1;
 		x1 = L[k1]; x2 = L[k2];
-		if(x1 > x2)	{
+		if(x1 > x2)
+		{
 			k1 = k2;  k2 = i;
 			x1 = x2;  x2 = L[k2];
 		}
-		if(x1 < min) {
-			min = x1;  i1 = k1;
+		if(x1 < min)
+		{
+			min = x1;
+			i1 = k1;
 		}
-		if(x2 > max) {
-			max = x2;  i2 = k2;
+		if(x2 > max)
+		{
+			max = x2;
+			i2 = k2;
 		}
 	}
 }
@@ -236,24 +270,27 @@ MAXMIN(const T* L, long n, T& max, T& min) {
 
 #ifndef _WIN32
 inline char*
-i2a(unsigned i, char *a, unsigned r) {
-	if (i/r > 0) a = i2a(i/r,a,r);
+i2a(unsigned i, char *a, unsigned r)
+{
+	if(i/r > 0) a = i2a(i/r,a,r);
 	*a = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"[i%r];
 	return a+1;
 }
 
 /**
- Transforms integer i into an ascii string and stores the result in a;
- string is encoded in the base indicated by r.
- @param i Number to be converted
- @param a String result
- @param r Base of value; must be in the range 2 - 36
- @return Returns a
+	Transforms integer i into an ascii string and stores the result in a;
+	string is encoded in the base indicated by r.
+	@param i Number to be converted
+	@param a String result
+	@param r Base of value; must be in the range 2 - 36
+	@return Returns a
 */
 inline char *
-_itoa(int i, char *a, int r) {
+_itoa(int i, char *a, int r)
+{
 	r = ((r < 2) || (r > 36)) ? 10 : r;
-	if(i < 0) {
+	if(i < 0)
+{
 		*a = '-';
 		*i2a(-i, a+1, r) = 0;
 	}
@@ -264,24 +301,27 @@ _itoa(int i, char *a, int r) {
 #endif // !_WIN32
 
 inline unsigned char
-HINIBBLE (unsigned char byte) {
+HINIBBLE(unsigned char byte)
+{
 	return byte & 0xF0;
 }
 
 inline unsigned char
-LOWNIBBLE (unsigned char byte) {
+LOWNIBBLE(unsigned char byte)
+{
 	return byte & 0x0F;
 }
 
 inline int
-CalculateUsedBits(int bits) {
+CalculateUsedBits(int bits)
+{
 	int bit_count = 0;
 	unsigned bit = 1;
 
-	for (unsigned i = 0; i < 32; i++) {
-		if ((bits & bit) == bit) {
+	for (unsigned i = 0; i < 32; i++)
+	{
+		if((bits & bit) == bit)
 			bit_count++;
-		}
 
 		bit <<= 1;
 	}
@@ -290,25 +330,29 @@ CalculateUsedBits(int bits) {
 }
 
 inline unsigned
-CalculateLine(unsigned width, unsigned bitdepth) {
+CalculateLine(unsigned width, unsigned bitdepth)
+{
 	return (unsigned)( ((unsigned long long)width * bitdepth + 7) / 8 );
 }
 
 inline unsigned
-CalculatePitch(unsigned line) {
-	return line + 3 & ~3;
+CalculatePitch(unsigned line)
+{
+	return (line + 3) & ~3;
 }
 
 inline unsigned
-CalculateUsedPaletteEntries(unsigned bit_count) {
-	if ((bit_count >= 1) && (bit_count <= 8))
+CalculateUsedPaletteEntries(unsigned bit_count)
+{
+	if((bit_count >= 1) && (bit_count <= 8))
 		return 1 << bit_count;
 
 	return 0;
 }
 
-inline unsigned char *
-CalculateScanLine(unsigned char *bits, unsigned pitch, int scanline) {
+inline BYTE*
+CalculateScanLine(BYTE *bits, unsigned pitch, int scanline)
+{
 	return bits ? (bits + ((size_t)pitch * scanline)) : NULL;
 }
 
@@ -321,8 +365,10 @@ Fast generic assign (faster than for loop)
 @param bytesperpixel # of bytes per pixel
 */
 inline void
-AssignPixel(BYTE* dst, const BYTE* src, unsigned bytesperpixel) {
-	switch (bytesperpixel) {
+AssignPixel(BYTE* dst, const BYTE* src, unsigned bytesperpixel)
+{
+	switch(bytesperpixel)
+	{
 		case 1:	// FIT_BITMAP (8-bit)
 			*dst = *src;
 			break;
@@ -375,7 +421,8 @@ Swap red and blue channels in a 24- or 32-bit dib.
 @return Returns TRUE if successful, returns FALSE otherwise
 @see See definition in Conversion.cpp
 */
-BOOL SwapRedBlue32(FIBITMAP* dib);
+BOOL
+SwapRedBlue32(FIBITMAP* dib);
 
 /**
 Inplace convert CMYK to RGBA.(8- and 16-bit).
@@ -383,20 +430,23 @@ Alpha is filled with the first extra channel if any or white otherwise.
 @return Returns TRUE if successful, returns FALSE otherwise
 @see See definition in Conversion.cpp
 */
-BOOL ConvertCMYKtoRGBA(FIBITMAP* dib);
+BOOL
+ConvertCMYKtoRGBA(FIBITMAP* dib);
 
 /**
 Inplace convert CIELab to RGBA (8- and 16-bit).
 @return Returns TRUE if successful, returns FALSE otherwise
 @see See definition in Conversion.cpp
 */
-BOOL ConvertLABtoRGB(FIBITMAP* dib);
+BOOL
+ConvertLABtoRGB(FIBITMAP* dib);
 
 /**
 RGBA to RGB conversion
 @see See definition in Conversion.cpp
 */
-FIBITMAP* RemoveAlphaChannel(FIBITMAP* dib);
+FIBITMAP*
+RemoveAlphaChannel(FIBITMAP* dib);
 
 /**
 Rotate a dib according to Exif info
@@ -411,7 +461,8 @@ void RotateExif(FIBITMAP **dib);
 // ==========================================================
 
 inline WORD
-__SwapUInt16(WORD arg) {
+__SwapUInt16(WORD arg)
+{
 #if defined(_MSC_VER) && _MSC_VER >= 1310
 	return _byteswap_ushort(arg);
 #elif defined(__i386__) && defined(__GNUC__)
@@ -430,7 +481,8 @@ __SwapUInt16(WORD arg) {
 }
 
 inline DWORD
-__SwapUInt32(DWORD arg) {
+__SwapUInt32(DWORD arg)
+{
 #if defined(_MSC_VER) && _MSC_VER >= 1310
 	return _byteswap_ulong(arg);
 #elif defined(__i386__) && defined(__GNUC__)
@@ -451,11 +503,13 @@ __SwapUInt32(DWORD arg) {
 /**
 for later use ...
 inline uint64_t
-SwapInt64(uint64_t arg) {
+SwapInt64(uint64_t arg)
+{
 #if defined(_MSC_VER) && _MSC_VER >= 1310
 	return _byteswap_uint64(arg);
 #else
-	union Swap {
+	union Swap
+	{
 		uint64_t sv;
 		uint32_t ul[2];
 	} tmp, result;
@@ -468,13 +522,35 @@ SwapInt64(uint64_t arg) {
 */
 
 inline void
-SwapShort(WORD *sp) {
+SwapShort(WORD *sp)
+{
 	*sp = __SwapUInt16(*sp);
 }
 
 inline void
-SwapLong(DWORD *lp) {
+SwapLong(DWORD *lp)
+{
 	*lp = __SwapUInt32(*lp);
+}
+
+inline void
+SwapInt64(UINT64 *arg)
+{
+#if defined(_MSC_VER) && _MSC_VER >= 1310
+	*arg = _byteswap_uint64(*arg);
+#else
+	union Swap
+	{
+		UINT64 sv;
+		DWORD ul[2];
+	} tmp, result;
+	tmp.sv = *arg;
+	SwapLong(&tmp.ul[0]);
+	SwapLong(&tmp.ul[1]);
+	result.ul[0] = tmp.ul[1];
+	result.ul[1] = tmp.ul[0];
+	*arg = result.sv;
+#endif
 }
 
 // ==========================================================
@@ -506,12 +582,14 @@ A Standard Default Color Space for the Internet - sRGB.
 #define RGBQUAD_TO_WORD(dib, color) (IS_FORMAT_RGB565(dib) ? RGB565((color)->rgbBlue, (color)->rgbGreen, (color)->rgbRed) : RGB555((color)->rgbBlue, (color)->rgbGreen, (color)->rgbRed))
 
 #define CREATE_GREYSCALE_PALETTE(palette, entries) \
-	for (unsigned i = 0, v = 0; i < entries; i++, v += 0x00FFFFFF / (entries - 1)) { \
+	for (unsigned i = 0, v = 0; i < entries; i++, v += 0x00FFFFFF / (entries - 1)) \
+	{ \
 		((unsigned *)palette)[i] = v; \
 	}
 
 #define CREATE_GREYSCALE_PALETTE_REVERSE(palette, entries) \
-	for (unsigned i = 0, v = 0x00FFFFFF; i < entries; i++, v -= (0x00FFFFFF / (entries - 1))) { \
+	for (unsigned i = 0, v = 0x00FFFFFF; i < entries; i++, v -= (0x00FFFFFF / (entries - 1))) \
+	{ \
 		((unsigned *)palette)[i] = v; \
 	}
 
@@ -528,3 +606,4 @@ static const char *FI_MSG_ERROR_UNSUPPORTED_COMPRESSION = "Unsupported compressi
 static const char *FI_MSG_WARNING_INVALID_THUMBNAIL = "Warning: attached thumbnail cannot be written to output file (invalid format) - Thumbnail saving aborted";
 
 #endif // UTILITIES_H
+

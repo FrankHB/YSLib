@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r850
+\version r859
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-18 20:45:11 +0800
 \par 修改时间:
-	2020-02-25 19:08 +0800
+	2020-03-06 14:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -349,7 +349,11 @@ YB_ATTR_nodiscard YB_PURE TermNode
 MakeCBDocNode(const string& project, const string& platform, bool exe,
 	const set<string>& units, bool custom_makefile)
 {
-
+	// NOTE: This path shall be consistent to the source tree layout. It is used
+	//	only for %YFramework in platform %MinGW32. It can be extended to
+	//	%MinGW64, which is not supported by this tool currently. Also note the
+	//	directory name is previously 'lib-i686' before build 885.
+	const auto host_lib_dir = "lib";
 	auto doc(MakeXMLDoc({}, "1.0", "UTF-8", "yes"));
 	auto& file(Deref(
 		InsertChildSyntaxNode(doc, NodeLiteral("CodeBlocks_project_file"))));
@@ -411,8 +415,8 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 				if(project != "YBase")
 				{
 					const spath pfx_w32{"..", "..", "build", "MinGW32"};
-					const spath
-						w32lib{"..", "..", "YFramework", "MinGW32", "lib-i686"};
+					const spath w32lib{"..", "..", "YFramework", "MinGW32",
+						host_lib_dir};
 
 					if(project != "YFramework")
 					{
@@ -433,8 +437,8 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 							"-typeinfo");
 						if(project == "YFramework")
 							ystdex::seq_apply(lib_add,
-								spath{"lib-i686", "libFreeImage.a"},
-								spath{"lib-i686", "libfreetype.a"});
+								spath{host_lib_dir, "libFreeImage.a"},
+								spath{host_lib_dir, "libfreetype.a"});
 					}
 					if(platform == "MinGW32")
 					{

@@ -11,13 +11,13 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r918
+\version r920
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2020-03-02 22:07 +0800
+	2020-03-12 17:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 //	ystdex::addressof, is_lvalue_reference, std::pair, std::allocator,
 //	std::allocator_traits, enable_if_convertible_t, std::unique_ptr,
 //	is_nothrow_destructible;
-#include "cstdint.hpp" // for is_positive_power_of_2, yconstraint,
+#include "cstdint.hpp" // for is_power_of_2_positive, yconstraint,
 //	YB_VerifyIterator, std::iterator_traits, vseq, ctor_of, when, _a;
 #include <new> // for placement ::operator new from standard library;
 // NOTE: The following code is necessary to check for <optional> header to
@@ -98,7 +98,7 @@ is_aligned_ptr(_type* p, size_t alignment
 	= yalignof(cond_t<is_void<_type>, std::max_align_t, _type>)) ynothrow
 {
 	yconstraint(p);
-	yconstraint(is_positive_power_of_2(alignment));
+	yconstraint(is_power_of_2_positive(alignment));
 
 	// XXX: This can be bit and of 'reinterpret_cast<std::uintptr_t>(ptr)' and
 	//	'alignment - 1'. However, for portability, %std::align is used instead,

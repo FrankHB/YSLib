@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型和相关扩展操作。
-\version r648
+\version r651
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2020-03-03 08:50 +0800
+	2020-03-12 17:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -273,11 +273,11 @@ is_power_of_2(std::uintmax_t n) ynothrow
 }
 
 /*!
-\brief 判断无符号整数是否为 2 的正整数次幂。
-\since build 884
+\brief 判断无符号整数是否为 2 的整数次幂的正整数。
+\since build 885
 */
 YB_ATTR_nodiscard YB_FLATTEN YB_STATELESS yconstfn bool
-is_positive_power_of_2(std::uintmax_t n) ynothrow
+is_power_of_2_positive(std::uintmax_t n) ynothrow
 {
 	return n != 0 && is_power_of_2(n);
 }

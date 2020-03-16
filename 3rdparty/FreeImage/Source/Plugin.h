@@ -32,6 +32,10 @@
 //	Removed declaration of function "FreeImage_stricmp".
 //	Removed including "Utilities.h".
 //	Added typedef declaration of "PluginNode" to keep source compatibility.
+// Modified by FrankHB <frankhb1989@gmail.com>, 2020-03-06:
+//	Normalized leading spaces to tabs.
+//	Unified function declartion syltes. Added space lines between some function declarations.
+//	Merged changes from base version 3.18.0, except the declaration of function "FreeImage_stricmp".
 
 #ifdef _MSC_VER
 #pragma warning (disable : 4786) // identifier was truncated to 'number' characters
@@ -68,8 +72,10 @@ public :
 
 	PluginNode*
 	FindNodeFromFormat(const char *format);
+
 	PluginNode*
 	FindNodeFromMime(const char *mime);
+
 	PluginNode*
 	FindNodeFromFIF(int node_id);
 };
@@ -87,12 +93,15 @@ FreeImage_OutputMessage(int fif, const char *message, ...);
 
 extern "C" {
 	BOOL DLL_CALLCONV
-	FreeImage_Validate(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handle);
-    void* DLL_CALLCONV
+	FreeImage_ValidateFIF(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handle);
+
+	void* DLL_CALLCONV
 	FreeImage_Open(PluginNode *node, FreeImageIO *io, fi_handle handle, BOOL open_for_reading);
-    void DLL_CALLCONV
+
+	void DLL_CALLCONV
 	FreeImage_Close(PluginNode *node, FreeImageIO *io, fi_handle handle, void *data); // plugin.cpp
-    PluginList*
+
+	PluginList*
 	DLL_CALLCONV FreeImage_GetPluginList(); // plugin.cpp
 }
 
@@ -100,36 +109,104 @@ extern "C" {
 //   Internal plugins
 // ==========================================================
 
-void DLL_CALLCONV InitBMP(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitCUT(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitICO(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitIFF(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitJPEG(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitKOALA(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitLBM(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitMNG(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitPCD(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitPCX(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitPNG(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitPNM(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitPSD(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitRAS(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitTARGA(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitTIFF(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitWBMP(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitXBM(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitXPM(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitDDS(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitGIF(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitHDR(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitG3(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitSGI(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitEXR(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitJ2K(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitJP2(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitPFM(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitPICT(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitRAW(Plugin *plugin, int format_id);
-void DLL_CALLCONV InitJNG(Plugin *plugin, int format_id);
+void DLL_CALLCONV
+InitBMP(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitCUT(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitICO(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitIFF(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitJPEG(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitKOALA(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitLBM(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitMNG(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitPCD(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitPCX(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitPNG(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitPNM(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitPSD(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitRAS(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitTARGA(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitTIFF(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitWBMP(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitXBM(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitXPM(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitDDS(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitGIF(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitHDR(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitG3(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitSGI(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitEXR(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitJ2K(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitJP2(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitPFM(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitPICT(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitRAW(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitJNG(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitWEBP(Plugin *plugin, int format_id);
+
+void DLL_CALLCONV
+InitJXR(Plugin *plugin, int format_id);
 
 #endif //!PLUGIN_H
+

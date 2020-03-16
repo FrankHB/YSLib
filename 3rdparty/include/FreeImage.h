@@ -44,6 +44,10 @@
 //	Added function declarations from base version 3.16.0: "FreeImage_JPEGTransformFromHandle", "FreeImage_JPEGTransformCombined" and "FreeImage_JPEGTransformCombinedFromMemory" (but no functions with suffix "U").
 // Modified by FrankHB <frankhb1989@gmail.com>, 2015-05-25:
 //	Merged changes from base version 3.17.0.
+// Modified by FrankHB <frankhb1989@gmail.com>, 2020-03-06:
+//	Removed all spaces at end of lines.
+//	Normalized leading spaces to tabs.
+//	Merged changes from base version 3.18.0, except for the declaration of functions: "FreeImage_ValidateU", "FreeImage_JPEGTransformU", "FreeImage_JPEGCropU" and "FreeImage_JPEGTransformCombinedU".
 
 #ifndef FREEIMAGE_H
 #define FREEIMAGE_H
@@ -51,7 +55,7 @@
 // Version information ------------------------------------------------------
 
 #define FREEIMAGE_MAJOR_VERSION   3
-#define FREEIMAGE_MINOR_VERSION   17
+#define FREEIMAGE_MINOR_VERSION   18
 #define FREEIMAGE_RELEASE_SERIAL  0
 
 // Compiler options ---------------------------------------------------------
@@ -97,7 +101,7 @@
 // or define any of FREEIMAGE_BIGENDIAN and FREEIMAGE_LITTLEENDIAN directly
 // to specify the desired endianness.
 #if (!defined(FREEIMAGE_BIGENDIAN) && !defined(FREEIMAGE_LITTLEENDIAN))
-	#if (defined(BYTE_ORDER) && BYTE_ORDER==BIG_ENDIAN) || (defined(__BYTE_ORDER) && __BYTE_ORDER==__BIG_ENDIAN) || defined(__BIG_ENDIAN__)
+	#if (defined(BYTE_ORDER) && BYTE_ORDER==BIG_ENDIAN) || (defined(__BYTE_ORDER) && __BYTE_ORDER==__BIG_ENDIAN) || (defined(__BYTE_ORDER) && __BYTE_ORDER==__ORDER_BIG_ENDIAN__) || defined(__BIG_ENDIAN__)
 		#define FREEIMAGE_BIGENDIAN
 	#endif // BYTE_ORDER
 #endif // !FREEIMAGE_[BIG|LITTLE]ENDIAN
@@ -199,26 +203,26 @@ typedef unsigned __int64 UINT64;
 
 typedef struct tagRGBQUAD {
 #if FREEIMAGE_COLORORDER == FREEIMAGE_COLORORDER_BGR
-  BYTE rgbBlue;
-  BYTE rgbGreen;
-  BYTE rgbRed;
+	BYTE rgbBlue;
+	BYTE rgbGreen;
+	BYTE rgbRed;
 #else
-  BYTE rgbRed;
-  BYTE rgbGreen;
-  BYTE rgbBlue;
+	BYTE rgbRed;
+	BYTE rgbGreen;
+	BYTE rgbBlue;
 #endif // FREEIMAGE_COLORORDER
-  BYTE rgbReserved;
+	BYTE rgbReserved;
 } RGBQUAD;
 
 typedef struct tagRGBTRIPLE {
 #if FREEIMAGE_COLORORDER == FREEIMAGE_COLORORDER_BGR
-  BYTE rgbtBlue;
-  BYTE rgbtGreen;
-  BYTE rgbtRed;
+	BYTE rgbtBlue;
+	BYTE rgbtGreen;
+	BYTE rgbtRed;
 #else
-  BYTE rgbtRed;
-  BYTE rgbtGreen;
-  BYTE rgbtBlue;
+	BYTE rgbtRed;
+	BYTE rgbtGreen;
+	BYTE rgbtBlue;
 #endif // FREEIMAGE_COLORORDER
 } RGBTRIPLE;
 
@@ -229,22 +233,22 @@ typedef struct tagRGBTRIPLE {
 #endif // WIN32
 
 typedef struct tagBITMAPINFOHEADER{
-  DWORD biSize;
-  LONG  biWidth;
-  LONG  biHeight;
-  WORD  biPlanes;
-  WORD  biBitCount;
-  DWORD biCompression;
-  DWORD biSizeImage;
-  LONG  biXPelsPerMeter;
-  LONG  biYPelsPerMeter;
-  DWORD biClrUsed;
-  DWORD biClrImportant;
+	DWORD biSize;
+	LONG  biWidth;
+	LONG  biHeight;
+	WORD  biPlanes;
+	WORD  biBitCount;
+	DWORD biCompression;
+	DWORD biSizeImage;
+	LONG  biXPelsPerMeter;
+	LONG  biYPelsPerMeter;
+	DWORD biClrUsed;
+	DWORD biClrImportant;
 } BITMAPINFOHEADER, *PBITMAPINFOHEADER;
 
 typedef struct tagBITMAPINFO {
-  BITMAPINFOHEADER bmiHeader;
-  RGBQUAD          bmiColors[1];
+	BITMAPINFOHEADER bmiHeader;
+	RGBQUAD          bmiColors[1];
 } BITMAPINFO, *PBITMAPINFO;
 
 #endif // _WINDOWS_
@@ -294,10 +298,10 @@ typedef struct tagFIRGBAF {
 /** Data structure for COMPLEX type (complex number)
 */
 typedef struct tagFICOMPLEX {
-    /// real part
+	/// real part
 	double r;
 	/// imaginary part
-    double i;
+	double i;
 } FICOMPLEX;
 
 #if (defined(_WIN32) || defined(__WIN32__))
@@ -467,9 +471,9 @@ FI_ENUM(FREE_IMAGE_TYPE) {
 */
 FI_ENUM(FREE_IMAGE_COLOR_TYPE) {
 	FIC_MINISWHITE = 0,		//! min value is white
-    FIC_MINISBLACK = 1,		//! min value is black
-    FIC_RGB        = 2,		//! RGB color model
-    FIC_PALETTE    = 3,		//! color map indexed
+	FIC_MINISBLACK = 1,		//! min value is black
+	FIC_RGB        = 2,		//! RGB color model
+	FIC_PALETTE    = 3,		//! color map indexed
 	FIC_RGBALPHA   = 4,		//! RGB color model with alpha channel
 	FIC_CMYK       = 5		//! CMYK color model
 };
@@ -478,8 +482,8 @@ FI_ENUM(FREE_IMAGE_COLOR_TYPE) {
 Constants used in FreeImage_ColorQuantize.
 */
 FI_ENUM(FREE_IMAGE_QUANTIZE) {
-    FIQ_WUQUANT = 0,		//! Xiaolin Wu color quantization algorithm
-    FIQ_NNQUANT = 1,		//! NeuQuant neural-net quantization algorithm by Anthony Dekker
+	FIQ_WUQUANT = 0,		//! Xiaolin Wu color quantization algorithm
+	FIQ_NNQUANT = 1,		//! NeuQuant neural-net quantization algorithm by Anthony Dekker
 	FIQ_LFPQUANT = 2		//! Lossless Fast Pseudo-Quantization Algorithm by Carsten Klein
 };
 
@@ -487,7 +491,7 @@ FI_ENUM(FREE_IMAGE_QUANTIZE) {
 Constants used in FreeImage_Dither.
 */
 FI_ENUM(FREE_IMAGE_DITHER) {
-    FID_FS			= 0,	//! Floyd & Steinberg error diffusion
+	FID_FS			= 0,	//! Floyd & Steinberg error diffusion
 	FID_BAYER4x4	= 1,	//! Bayer ordered dispersed dot dithering (order 2 dithering matrix)
 	FID_BAYER8x8	= 2,	//! Bayer ordered dispersed dot dithering (order 3 dithering matrix)
 	FID_CLUSTER6x6	= 3,	//! Ordered clustered dot dithering (order 3 - 6x6 matrix)
@@ -514,7 +518,7 @@ FI_ENUM(FREE_IMAGE_JPEG_OPERATION) {
 Constants used in FreeImage_ToneMapping.
 */
 FI_ENUM(FREE_IMAGE_TMO) {
-    FITMO_DRAGO03	 = 0,	//! Adaptive logarithmic mapping (F. Drago, 2003)
+	FITMO_DRAGO03	 = 0,	//! Adaptive logarithmic mapping (F. Drago, 2003)
 	FITMO_REINHARD05 = 1,	//! Dynamic range reduction inspired by photoreceptor physiology (E. Reinhard, 2005)
 	FITMO_FATTAL02	 = 2	//! Gradient domain high dynamic range compression (R. Fattal, 2002)
 };
@@ -550,33 +554,33 @@ FI_ENUM(FREE_IMAGE_COLOR_CHANNEL) {
 // Metadata support ---------------------------------------------------------
 
 /**
-  Tag data type information (based on TIFF specifications)
+	Tag data type information (based on TIFF specifications)
 
-  Note: RATIONALs are the ratio of two 32-bit integer values.
+	Note: RATIONALs are the ratio of two 32-bit integer values.
 */
 FI_ENUM(FREE_IMAGE_MDTYPE) {
-	FIDT_NOTYPE		= 0,	//! placeholder 
-	FIDT_BYTE		= 1,	//! 8-bit unsigned integer 
-	FIDT_ASCII		= 2,	//! 8-bit bytes w/ last byte null 
-	FIDT_SHORT		= 3,	//! 16-bit unsigned integer 
-	FIDT_LONG		= 4,	//! 32-bit unsigned integer 
-	FIDT_RATIONAL	= 5,	//! 64-bit unsigned fraction 
-	FIDT_SBYTE		= 6,	//! 8-bit signed integer 
-	FIDT_UNDEFINED	= 7,	//! 8-bit untyped data 
-	FIDT_SSHORT		= 8,	//! 16-bit signed integer 
-	FIDT_SLONG		= 9,	//! 32-bit signed integer 
-	FIDT_SRATIONAL	= 10,	//! 64-bit signed fraction 
-	FIDT_FLOAT		= 11,	//! 32-bit IEEE floating point 
-	FIDT_DOUBLE		= 12,	//! 64-bit IEEE floating point 
-	FIDT_IFD		= 13,	//! 32-bit unsigned integer (offset) 
-	FIDT_PALETTE	= 14,	//! 32-bit RGBQUAD 
-	FIDT_LONG8		= 16,	//! 64-bit unsigned integer 
+	FIDT_NOTYPE		= 0,	//! placeholder
+	FIDT_BYTE		= 1,	//! 8-bit unsigned integer
+	FIDT_ASCII		= 2,	//! 8-bit bytes w/ last byte null
+	FIDT_SHORT		= 3,	//! 16-bit unsigned integer
+	FIDT_LONG		= 4,	//! 32-bit unsigned integer
+	FIDT_RATIONAL	= 5,	//! 64-bit unsigned fraction
+	FIDT_SBYTE		= 6,	//! 8-bit signed integer
+	FIDT_UNDEFINED	= 7,	//! 8-bit untyped data
+	FIDT_SSHORT		= 8,	//! 16-bit signed integer
+	FIDT_SLONG		= 9,	//! 32-bit signed integer
+	FIDT_SRATIONAL	= 10,	//! 64-bit signed fraction
+	FIDT_FLOAT		= 11,	//! 32-bit IEEE floating point
+	FIDT_DOUBLE		= 12,	//! 64-bit IEEE floating point
+	FIDT_IFD		= 13,	//! 32-bit unsigned integer (offset)
+	FIDT_PALETTE	= 14,	//! 32-bit RGBQUAD
+	FIDT_LONG8		= 16,	//! 64-bit unsigned integer
 	FIDT_SLONG8		= 17,	//! 64-bit signed integer
 	FIDT_IFD8		= 18	//! 64-bit unsigned integer (offset)
 };
 
 /**
-  Metadata models supported by FreeImage
+	Metadata models supported by FreeImage
 */
 FI_ENUM(FREE_IMAGE_MDMODEL) {
 	FIMD_NODATA			= -1,
@@ -595,12 +599,12 @@ FI_ENUM(FREE_IMAGE_MDMODEL) {
 };
 
 /**
-  Handle to a metadata model
+	Handle to a metadata model
 */
 FI_STRUCT (FIMETADATA) { void *data; };
 
 /**
-  Handle to a FreeImage tag
+	Handle to a FreeImage tag
 */
 FI_STRUCT (FITAG) { void *data; };
 
@@ -623,9 +627,9 @@ typedef long (DLL_CALLCONV *FI_TellProc) (fi_handle handle);
 
 FI_STRUCT(FreeImageIO) {
 	FI_ReadProc  read_proc;     //! pointer to the function used to read data
-    FI_WriteProc write_proc;    //! pointer to the function used to write data
-    FI_SeekProc  seek_proc;     //! pointer to the function used to seek
-    FI_TellProc  tell_proc;     //! pointer to the function used to aquire the current position
+	FI_WriteProc write_proc;    //! pointer to the function used to write data
+	FI_SeekProc  seek_proc;     //! pointer to the function used to seek
+	FI_TellProc  tell_proc;     //! pointer to the function used to aquire the current position
 };
 
 #if (defined(_WIN32) || defined(__WIN32__))
@@ -745,9 +749,9 @@ typedef void (DLL_CALLCONV *FI_InitProc)(FI_PluginRec* plugin, int format_id);
 #define JPEG_QUALITYAVERAGE 0x0400	//! save with average quality (25:1)
 #define JPEG_QUALITYBAD     0x0800	//! save with bad quality (10:1)
 #define JPEG_PROGRESSIVE	0x2000	//! save as a progressive-JPEG (use | to combine with other save flags)
-#define JPEG_SUBSAMPLING_411 0x1000		//! save with high 4x1 chroma subsampling (4:1:1) 
+#define JPEG_SUBSAMPLING_411 0x1000		//! save with high 4x1 chroma subsampling (4:1:1)
 #define JPEG_SUBSAMPLING_420 0x4000		//! save with medium 2x2 medium chroma subsampling (4:2:0) - default value
-#define JPEG_SUBSAMPLING_422 0x8000		//! save with low 2x1 chroma subsampling (4:2:2) 
+#define JPEG_SUBSAMPLING_422 0x8000		//! save with low 2x1 chroma subsampling (4:2:2)
 #define JPEG_SUBSAMPLING_444 0x10000	//! save with no chroma subsampling (4:4:4)
 #define JPEG_OPTIMIZE		0x20000		//! on saving, compute optimal Huffman coding tables (can reduce a few percent of file size)
 #define JPEG_BASELINE		0x40000		//! save basic JPEG, without metadata or any markers
@@ -774,6 +778,9 @@ typedef void (DLL_CALLCONV *FI_InitProc)(FI_PluginRec* plugin, int format_id);
 #define PSD_DEFAULT         0
 #define PSD_CMYK			1		//! reads tags for separated CMYK (default is conversion to RGB)
 #define PSD_LAB				2		//! reads tags for CIELab (default is conversion to RGB)
+#define PSD_NONE			0x0100	//! save without any compression
+#define PSD_RLE				0x0200	//! save using RLE compression
+#define PSD_PSB             0x2000  //! save using Adobe Large Document Format (use | to combine with other save flags)
 #define RAS_DEFAULT         0
 #define RAW_DEFAULT         0		//! load the file as linear RGB 48-bit
 #define RAW_PREVIEW			1		//! try to load the embedded JPEG preview with included Exif Data or default to RGB 24-bit
@@ -817,7 +824,7 @@ typedef void (DLL_CALLCONV *FI_InitProc)(FI_PluginRec* plugin, int format_id);
 // Constants used in FreeImage_RescaleEx
 
 #define FI_RESCALE_DEFAULT			0x00    //! default options; none of the following other options apply
-#define FI_RESCALE_TRUE_COLOR		0x01	//! for non-transparent greyscale images, convert to 24-bit if src bitdepth <= 8 (default is a 8-bit greyscale image). 
+#define FI_RESCALE_TRUE_COLOR		0x01	//! for non-transparent greyscale images, convert to 24-bit if src bitdepth <= 8 (default is a 8-bit greyscale image).
 #define FI_RESCALE_OMIT_METADATA	0x02	//! do not copy metadata to the rescaled image
 
 #ifdef __cplusplus
@@ -909,6 +916,9 @@ DLL_API BOOL DLL_CALLCONV FreeImage_GetLockedPageNumbers(FIMULTIBITMAP *bitmap, 
 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFileType(const char *filename, int size FI_DEFAULT(0));
 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFileTypeFromHandle(FreeImageIO *io, fi_handle handle, int size FI_DEFAULT(0));
 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFileTypeFromMemory(FIMEMORY *stream, int size FI_DEFAULT(0));
+DLL_API BOOL DLL_CALLCONV FreeImage_Validate(FREE_IMAGE_FORMAT fif, const char *filename);
+DLL_API BOOL DLL_CALLCONV FreeImage_ValidateFromHandle(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handle);
+DLL_API BOOL DLL_CALLCONV FreeImage_ValidateFromMemory(FREE_IMAGE_FORMAT fif, FIMEMORY *stream);
 
 // Image type request routine -----------------------------------------------
 
@@ -1009,8 +1019,11 @@ DLL_API void DLL_CALLCONV FreeImage_ConvertLine16To24_555(BYTE *target, BYTE *so
 DLL_API void DLL_CALLCONV FreeImage_ConvertLine16To24_565(BYTE *target, BYTE *source, int width_in_pixels);
 DLL_API void DLL_CALLCONV FreeImage_ConvertLine32To24(BYTE *target, BYTE *source, int width_in_pixels);
 DLL_API void DLL_CALLCONV FreeImage_ConvertLine1To32(BYTE *target, BYTE *source, int width_in_pixels, RGBQUAD *palette);
+DLL_API void DLL_CALLCONV FreeImage_ConvertLine1To32MapTransparency(BYTE *target, BYTE *source, int width_in_pixels, RGBQUAD *palette, BYTE *table, int transparent_pixels);
 DLL_API void DLL_CALLCONV FreeImage_ConvertLine4To32(BYTE *target, BYTE *source, int width_in_pixels, RGBQUAD *palette);
+DLL_API void DLL_CALLCONV FreeImage_ConvertLine4To32MapTransparency(BYTE *target, BYTE *source, int width_in_pixels, RGBQUAD *palette, BYTE *table, int transparent_pixels);
 DLL_API void DLL_CALLCONV FreeImage_ConvertLine8To32(BYTE *target, BYTE *source, int width_in_pixels, RGBQUAD *palette);
+DLL_API void DLL_CALLCONV FreeImage_ConvertLine8To32MapTransparency(BYTE *target, BYTE *source, int width_in_pixels, RGBQUAD *palette, BYTE *table, int transparent_pixels);
 DLL_API void DLL_CALLCONV FreeImage_ConvertLine16To32_555(BYTE *target, BYTE *source, int width_in_pixels);
 DLL_API void DLL_CALLCONV FreeImage_ConvertLine16To32_565(BYTE *target, BYTE *source, int width_in_pixels);
 DLL_API void DLL_CALLCONV FreeImage_ConvertLine24To32(BYTE *target, BYTE *source, int width_in_pixels);
@@ -1061,7 +1074,7 @@ DLL_API DWORD DLL_CALLCONV FreeImage_ZLibGUnzip(BYTE *target, DWORD target_size,
 DLL_API DWORD DLL_CALLCONV FreeImage_ZLibCRC32(DWORD crc, BYTE *source, DWORD source_size);
 
 // --------------------------------------------------------------------------
-// Metadata routines --------------------------------------------------------
+// Metadata routines
 // --------------------------------------------------------------------------
 
 // tag creation / destruction
@@ -1112,13 +1125,13 @@ DLL_API BOOL DLL_CALLCONV FreeImage_JPEGCrop(const char *src_file, const char *d
 DLL_API BOOL DLL_CALLCONV FreeImage_JPEGTransformFromHandle(FreeImageIO* src_io, fi_handle src_handle, FreeImageIO* dst_io, fi_handle dst_handle, FREE_IMAGE_JPEG_OPERATION operation, int* left, int* top, int* right, int* bottom, BOOL perfect FI_DEFAULT(TRUE));
 DLL_API BOOL DLL_CALLCONV FreeImage_JPEGTransformCombined(const char *src_file, const char *dst_file, FREE_IMAGE_JPEG_OPERATION operation, int* left, int* top, int* right, int* bottom, BOOL perfect FI_DEFAULT(TRUE));
 DLL_API BOOL DLL_CALLCONV FreeImage_JPEGTransformCombinedFromMemory(FIMEMORY* src_stream, FIMEMORY* dst_stream, FREE_IMAGE_JPEG_OPERATION operation, int* left, int* top, int* right, int* bottom, BOOL perfect FI_DEFAULT(TRUE));
+
+
 // --------------------------------------------------------------------------
 // Image manipulation toolkit
 // --------------------------------------------------------------------------
 
 // rotation and flipping
-/// @deprecated see FreeImage_Rotate
-DLL_API FIBITMAP *DLL_CALLCONV FreeImage_RotateClassic(FIBITMAP *dib, double angle);
 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Rotate(FIBITMAP *dib, double angle, const void *bkcolor FI_DEFAULT(nullptr));
 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_RotateEx(FIBITMAP *dib, double angle, double x_shift, double y_shift, double x_origin, double y_origin, BOOL use_mask);
 DLL_API BOOL DLL_CALLCONV FreeImage_FlipHorizontal(FIBITMAP *dib);

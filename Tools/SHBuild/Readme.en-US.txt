@@ -9,11 +9,12 @@ YSLib libraries should be put in proper directories to be found by the linker.
 YBase.dll and YFramework.dll should be found in PATH.
 Currently only windows host is supported.
 The source requires ISO C++11 support as it uses YSLib libraries. The build environment is same.
-See YSLib project wiki for details.
+See YSLib project user documentation for details.
+This is currently hosted at: https://bitbucket.org/FrankHB/yslib/wiki/.
 
 = Build
 See directory "../Scripts".
-See also YSLib project wiki for details.
+See also user documentation for details.
 
 = Test
 Currently only self host test script is provided.

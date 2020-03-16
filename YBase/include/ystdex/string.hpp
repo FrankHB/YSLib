@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r3062
+\version r3064
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2020-02-10 23:44 +0800
+	2020-03-10 22:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -233,8 +233,7 @@ public:
 	basic_string&
 	operator+=(sv_type sv)
 	{
-		static_cast<base&>(*this) += sv;
-		return *this;
+		return append(sv);
 	}
 	YB_NONNULL(2) basic_string&
 	operator+=(const _tChar* s)

@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 语言实现和系统环境相关特性及公用类型和宏的基础定义。
-\version r3826
+\version r3859
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2020-03-02 09:43 +0800
+	2020-03-16 10:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,7 +56,7 @@
 \def YB_IMPL_MSCPP
 \brief Microsoft C++ 实现支持版本。
 \since build 313
-\see https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros 。
+\see https://docs.microsoft.com/cpp/preprocessor/predefined-macros 。
 \see https://blogs.msdn.microsoft.com/vcblog/2016/10/05/visual-c-compiler-version/ 。
 
 定义为 _MSC_VER 描述的版本号。
@@ -84,6 +84,9 @@
 #	define YB_IMPL_GNUC \
 	(__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #endif
+// XXX: Some implementations may not properly support the macros. See
+//	https://docs.microsoft.com/cpp/build/reference/zc-cplusplus and
+//	https://gcc.gnu.org/bugzilla/show_bug.cgi?id=1773 for instance.
 #ifdef __cplusplus
 #	if defined(_MSC_VER) && !defined(__clang__)
 #		undef YB_IMPL_MSCPP
@@ -173,7 +176,7 @@
 #endif
 //@}
 
-//! \see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
+//! \see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
 //@{
 /*!
 \brief \c constexpr 特性测试宏。
@@ -256,7 +259,7 @@
 
 /*!
 \see WG21 P0941R2 2.2 。
-\see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
+\see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
 */
 //@{
 /*!
@@ -319,7 +322,7 @@
 //@}
 /*!
 \brief \c \<utility> 特性测试宏。
-\see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
+\see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
 \since build 628
 */
 //@{
@@ -511,13 +514,17 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 /*!
 \def YB_HAS_THREAD_LOCAL
 \brief thread_local 支持。
-\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=1773 。
+\see https://docs.microsoft.com/cpp/overview/visual-cpp-language-conformance 。
+\see https://gcc.gnu.org/projects/cxx-status.html 。
 \since build 425
 */
 #undef YB_HAS_THREAD_LOCAL
+// XXX: The macro %_GLIBCXX_HAVE_TLS is independ on the mode used. For all
+//	versions of G++ having unreliable %__cplusplus, 'thread_local' is assumed
+//	not supported.
 #define YB_HAS_THREAD_LOCAL \
 	(__has_feature(cxx_thread_local) || (__cplusplus >= 201103L \
-		&& !YB_IMPL_GNUCPP) || (YB_IMPL_GNUCPP >= 40800 && _GLIBCXX_HAVE_TLS))
+		&& (!YB_IMPL_GNUCPP || _GLIBCXX_HAVE_TLS)) || YB_IMPL_MSCPP >= 1900)
 //@}
 
 
@@ -689,7 +696,7 @@ G++ 9.1 起，YB_ATTR_LAMBDA 中的 __attribute__ 暂不起效。
 \see WG21 P0189R1 。
 \see https://clang.llvm.org/docs/AttributeReference.html#nodiscard-warn-unused-result 。
 \see https://gcc.gnu.org/projects/cxx-status.html 。
-\see https://docs.microsoft.com/en-us/cpp/code-quality/annotating-function-behavior 。
+\see https://docs.microsoft.com/cpp/code-quality/annotating-function-behavior 。
 */
 #if __has_cpp_attribute(nodiscard) \
 	&& (!YB_IMPL_CLANGPP || __cplusplus >= 201703L)
@@ -711,7 +718,7 @@ G++ 9.1 起，YB_ATTR_LAMBDA 中的 __attribute__ 暂不起效。
 /*!
 \brief 修饰类定义要求实现不生成初始化动态类型信息。
 \note 只适用于定义不在初始化派生类对象时的动态类型的类，否则行为未定义。
-\see https://docs.microsoft.com/en-us/cpp/cpp/novtable 。
+\see https://docs.microsoft.com/cpp/cpp/novtable 。
 \see http://releases.llvm.org/3.7.0/tools/clang/docs/AttributeReference.html 。
 \see https://clang.llvm.org/docs/AttributeReference.html#novtable 。
 \see http://lists.llvm.org/pipermail/cfe-commits/Week-of-Mon-20150720/133747.html 。
@@ -759,7 +766,7 @@ G++ 9.1 起，YB_ATTR_LAMBDA 中的 __attribute__ 暂不起效。
 \brief 指示返回指针的函数或函数模板若为非空值则对应的存储不和其它对象指针共享别名。
 \note 指示行为类似 std::malloc 或 std::calloc 等的函数。
 \warning 要求满足指示的假定，否则行为未定义。
-\see https://docs.microsoft.com/en-us/cpp/cpp/restrict?view=vs-2017 。
+\see https://docs.microsoft.com/cpp/cpp/restrict?view=vs-2017 。
 \see https://blogs.msdn.microsoft.com/vcblog/2015/10/21/memory-profiling-in-visual-c-2015/ 。
 \see https://blogs.msdn.microsoft.com/vcblog/2016/05/25/tracking-custom-memory-allocations-with-visual-studio-15-preview-2/ 。
 \see https://gitlab.gnome.org/GNOME/glib/issues/1465 。
@@ -783,6 +790,7 @@ G++ 9.1 起，YB_ATTR_LAMBDA 中的 __attribute__ 暂不起效。
 \brief 假定表达式的求值总是为真。
 \note 未指定表达式是否被求值。
 \note 可作为优化提示。可能影响控制流预测，一般接近对应条件被求值的位置局部使用。
+\note 一般应避免表达式求值的副作用。预期的求值性质和被 YB_PURE 的函数调用相同。
 \warning 若假定不成立则行为未定义。
 \see https://clang.llvm.org/docs/LanguageExtensions.html#builtin-assume 。
 \see https://reviews.llvm.org/rL217349 。
@@ -962,7 +970,7 @@ G++ 9.1 起，YB_ATTR_LAMBDA 中的 __attribute__ 暂不起效。
 #endif
 
 #if YB_IMPL_MSCPP \
-	|| (YB_IMPL_GNUCPP && (defined(__MINGW32__) || defined(__CYGWIN__)))
+	|| (YB_IMPL_GNUC && (defined(__MINGW32__) || defined(__CYGWIN__)))
 #	ifdef YB_DLL
 #		define YB_API __declspec(dllimport)
 #	elif defined(YB_BUILD_DLL)
@@ -1218,10 +1226,21 @@ G++ 9.1 起，YB_ATTR_LAMBDA 中的 __attribute__ 暂不起效。
 \since build 425
 \todo 加入 \c __thread 和 \c __declspec(thread) 。
 */
-#if YB_HAS_THREAD_LOCAL && defined(_MT)
+// XXX: %_MT is specific to Win32 and it is not considered a prerequisition of
+//	TLS now.
+#if YB_HAS_THREAD_LOCAL
 #	define ythread thread_local
+// TODO: Versions?
+#elif defined(_WIN32) && (YB_IMPL_MSCPP || defined(__ICL) || defined(__DMC__) \
+	|| defined(__BORLANDC__))
+#	define ythread __declspec(thread)
+// Old versions of Mac OS do not support '__thread'. Other platforms compatible
+//	to GNU C should support it.
+#elif (defined(__APPLE__) && YB_IMPL_CLANGPP && defined(MAC_OS_X_VERSION_10_7) \
+	&& (defined(__x86_64__) || defined(__i386__))) || YB_IMPL_GUNC
+#	define ythread __thread
 #else
-#	define ythread static
+#	define ythread
 #endif
 
 /*!
@@ -1280,7 +1299,7 @@ using std::size_t;
 using std::wint_t;
 
 #if YB_IMPL_MSCPP && defined(__cplusplus_cli)
-//! \see https://docs.microsoft.com/en-us/cpp/extensions/nullptr-cpp-component-extensions 。
+//! \see https://docs.microsoft.com/cpp/extensions/nullptr-cpp-component-extensions 。
 using nullptr_t = decltype(__nullptr);
 #elif YB_HAS_BUILTIN_NULLPTR
 //! \note ystdex 内的 nullptr 使用一般应符合兼容 nullptr_t 的模拟实现。
@@ -1444,7 +1463,7 @@ class offsetof_check
 \see ISO C++ 18.2/4 。
 \note 某些实现可直接使用 __builtin_offsetof 及 -Winvalid-offsetof 。
 \see https://gcc.gnu.org/onlinedocs/gcc-4.0.0/gcc/Offsetof.html 。
-\see https://docs.microsoft.com/en-us/cpp/cpp-conformance-improvements-2017?view=vs-2017 。
+\see https://docs.microsoft.com/cpp/cpp-conformance-improvements-2017?view=vs-2017 。
 \see https://reviews.llvm.org/rL46515 。
 \see https://bugs.llvm.org/show_bug.cgi?id=31178 。
 \since build 325

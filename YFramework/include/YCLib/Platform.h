@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018-2019 FrankHB.
+	© 2009-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r842
+\version r844
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2019-12-26 22:21 +0800
+	2020-03-16 10:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,7 +42,7 @@
 #endif
 
 #if YB_IMPL_MSCPP \
-	|| (YB_IMPL_GNUCPP && (defined(__MINGW32__) || defined(__CYGWIN__)))
+	|| (YB_IMPL_GNUC && (defined(__MINGW32__) || defined(__CYGWIN__)))
 #	ifdef YF_DLL
 #		define YF_API __declspec(dllimport)
 #	elif defined(YF_BUILD_DLL)

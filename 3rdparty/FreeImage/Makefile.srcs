@@ -1,45 +1,93 @@
 VER_MAJOR := 3
-VER_MINOR := 17.0
+VER_MINOR := 18.0
 
-libsimd_SOURCES := jsimdcpu jfdctflt-3dn jidctflt-3dn jquant-3dn jccolor-mmx \
-	jcgray-mmx jcsample-mmx jdcolor-mmx jdmerge-mmx jdsample-mmx jfdctfst-mmx \
-	jfdctint-mmx jidctfst-mmx jidctint-mmx jidctred-mmx jquant-mmx \
-	jfdctflt-sse jidctflt-sse jquant-sse jccolor-sse2 jcgray-sse2 \
+libjpeg_i686_srcs := jsimdcpu jfdctflt-3dn jidctflt-3dn jquant-3dn \
+	jccolor-mmx jcgray-mmx jcsample-mmx jdcolor-mmx jdmerge-mmx jdsample-mmx \
+	jfdctfst-mmx jfdctint-mmx jidctfst-mmx jidctint-mmx jidctred-mmx \
+	jquant-mmx jfdctflt-sse jidctflt-sse jquant-sse jccolor-sse2 jcgray-sse2 \
 	jcsample-sse2 jdcolor-sse2 jdmerge-sse2 jdsample-sse2 jfdctfst-sse2 \
 	jfdctint-sse2 jidctflt-sse2 jidctfst-sse2 jidctint-sse2 jidctred-sse2 \
-	jquantf-sse2 jquanti-sse2 jchuff-sse2
-libsimd_SOURCES := $(addsuffix .asm, $(libsimd_SOURCES))
-libsimd_SOURCES := jsimd_i386.c $(libsimd_SOURCES)
-libsimd_SOURCES := $(addprefix Source/LibJPEG/simd/, $(libsimd_SOURCES))
+	jquantf-sse2 jquanti-sse2 jchuff-sse2 jcphuff-sse2 jquanti-avx2 \
+	jccolor-avx2 jcgray-avx2 jcsample-avx2 jdcolor-avx2 jdmerge-avx2 \
+	jdsample-avx2 jfdctint-avx2 jidctint-avx2
+libjpeg_i686_srcs := $(addsuffix .asm, $(libjpeg_i686_srcs))
+libjpeg_i686_srcs := jsimd.c $(libjpeg_i686_srcs)
+libjpeg_i686_srcs := \
+	$(addprefix Source/LibJPEG/simd/i386/, $(libjpeg_i686_srcs))
 
-libsimd_64_SOURCES := jfdctflt-sse-64 jccolor-sse2-64 jcgray-sse2-64 \
-	jcsample-sse2-64 jdcolor-sse2-64 jdmerge-sse2-64 jdsample-sse2-64 \
-	jfdctfst-sse2-64 jfdctint-sse2-64 jidctflt-sse2-64 jidctfst-sse2-64 \
-	jidctint-sse2-64 jidctred-sse2-64 jquantf-sse2-64 jquanti-sse2-64 \
-	jchuff-sse2-64
-libsimd_64_SOURCES := $(addsuffix .asm, $(libsimd_64_SOURCES))
-libsimd_64_SOURCES := jsimd_x86_64.c $(libsimd_64_SOURCES)
-libsimd_64_SOURCES := $(addprefix Source/LibJPEG/simd/, $(libsimd_64_SOURCES))
+libjpeg_x86_64_srcs := jsimdcpu jfdctflt-sse jccolor-sse2 jcgray-sse2 \
+	jcsample-sse2 jdcolor-sse2 jdmerge-sse2 jdsample-sse2 jfdctfst-sse2 \
+	jfdctint-sse2 jidctflt-sse2 jidctfst-sse2 jidctint-sse2 jidctred-sse2 \
+	jquantf-sse2 jquanti-sse2 jchuff-sse2 jcphuff-sse2 jccolor-avx2 \
+	jcgray-avx2 jcsample-avx2 jdcolor-avx2 jdmerge-avx2 jdsample-avx2 \
+	jfdctint-avx2 jidctint-avx2 jquanti-avx2
+libjpeg_x86_64_srcs := $(addsuffix .asm, $(libjpeg_x86_64_srcs))
+libjpeg_x86_64_srcs := jsimd.c $(libjpeg_x86_64_srcs)
+libjpeg_x86_64_srcs := \
+	$(addprefix Source/LibJPEG/simd/x86_64/, $(libjpeg_x86_64_srcs))
 
-libsimd_ARM_SOURCES := Source/LibJPEG/simd/jsimd_arm.c Source/LibJPEG/simd/jsimd_arm_neon.S
+#libjpeg_arm_srcs := Source/LibJPEG/simd/arm/jsimd.c \
+	Source/LibJPEG/simd/arm/jsimd_neon.S
+
+#libjpeg_arm64_srcs := Source/LibJPEG/simd/arm64/jsimd.c \
+	Source/LibJPEG/simd/arm64/jsimd_neon.S
+
+#libjpeg_loongson_srcs := jsimd.c jccolext-mmi.c jccolor-mmi.c jcsample-mmi.c \
+	jdcolext-mmi.c jdcolor-mmi.c jdsample-mmi.c jfdctint-mmi.c jidctint-mmi.c \
+	jquanti-mmi.c
+#libjpeg_loongson_srcs := \
+	$(addprefix Source/LibJPEG/simd/loongson/, $(libjpeg_loongson_srcs))
 
 SRCS := BitmapAccess.cpp ColorLookup.cpp FreeImage.cpp \
 	FreeImageC.c FreeImageIO.cpp GetType.cpp MemoryIO.cpp PixelAccess.cpp \
-	Plugin.cpp PluginBMP.cpp PluginGIF.cpp PluginICO.cpp PluginJPEG.cpp PluginPNG.cpp \
-	tmoColorConvert.cpp tmoDrago03.cpp tmoFattal02.cpp tmoReinhard05.cpp ToneMapping.cpp NNQuantizer.cpp WuQuantizer.cpp LFPQuantizer.cpp \
-	Conversion.cpp Conversion16_555.cpp Conversion16_565.cpp Conversion24.cpp Conversion32.cpp Conversion4.cpp Conversion8.cpp \
-	ConversionFloat.cpp ConversionRGB16.cpp ConversionRGBF.cpp ConversionRGBAF.cpp ConversionRGBA16.cpp ConversionType.cpp ConversionUINT16.cpp \
+	Plugin.cpp PluginBMP.cpp PluginGIF.cpp PluginICO.cpp PluginJPEG.cpp \
+	PluginPNG.cpp \
+	tmoColorConvert.cpp tmoDrago03.cpp tmoFattal02.cpp tmoReinhard05.cpp \
+	ToneMapping.cpp NNQuantizer.cpp WuQuantizer.cpp LFPQuantizer.cpp \
+	Conversion.cpp Conversion16_555.cpp Conversion16_565.cpp Conversion24.cpp \
+	Conversion32.cpp Conversion4.cpp Conversion8.cpp \
+	ConversionFloat.cpp ConversionRGB16.cpp ConversionRGBF.cpp \
+	ConversionRGBAF.cpp ConversionRGBA16.cpp ConversionType.cpp \
+	ConversionUINT16.cpp \
 	ZLibInterface.cpp
 SRCS := $(addprefix Source/FreeImage/, $(SRCS))
 
-SRCS += Source/FreeImageToolkit/Background.cpp Source/FreeImageToolkit/BSplineRotate.cpp Source/FreeImageToolkit/Channels.cpp Source/FreeImageToolkit/ClassicRotate.cpp Source/FreeImageToolkit/Colors.cpp Source/FreeImageToolkit/CopyPaste.cpp Source/FreeImageToolkit/Display.cpp Source/FreeImageToolkit/Flip.cpp \
-Source/FreeImageToolkit/MultigridPoissonSolver.cpp Source/FreeImageToolkit/Rescale.cpp Source/FreeImageToolkit/Resize.cpp
+SRCS += Source/FreeImageToolkit/Background.cpp \
+	Source/FreeImageToolkit/BSplineRotate.cpp \
+	Source/FreeImageToolkit/Channels.cpp \
+	Source/FreeImageToolkit/ClassicRotate.cpp \
+	Source/FreeImageToolkit/Colors.cpp \
+	Source/FreeImageToolkit/CopyPaste.cpp \
+	Source/FreeImageToolkit/Display.cpp \
+	Source/FreeImageToolkit/Flip.cpp \
+	Source/FreeImageToolkit/MultigridPoissonSolver.cpp \
+	Source/FreeImageToolkit/Rescale.cpp \
+	Source/FreeImageToolkit/Resize.cpp
 
-SRCS += Source/LibJPEG/jaricom.c Source/LibJPEG/jcapimin.c Source/LibJPEG/jcapistd.c Source/LibJPEG/jcarith.c Source/LibJPEG/jccoefct.c Source/LibJPEG/jccolor.c Source/LibJPEG/jcdctmgr.c Source/LibJPEG/jchuff.c Source/LibJPEG/jcinit.c Source/LibJPEG/jcmainct.c Source/LibJPEG/jcmarker.c Source/LibJPEG/jcmaster.c Source/LibJPEG/jcomapi.c Source/LibJPEG/jcparam.c Source/LibJPEG/jcprepct.c Source/LibJPEG/jcsample.c Source/LibJPEG/jctrans.c Source/LibJPEG/jdapimin.c Source/LibJPEG/jdapistd.c Source/LibJPEG/jdarith.c Source/LibJPEG/jdatadst.c Source/LibJPEG/jdatasrc.c Source/LibJPEG/jdcoefct.c Source/LibJPEG/jdcolor.c Source/LibJPEG/jddctmgr.c Source/LibJPEG/jdhuff.c Source/LibJPEG/jdinput.c Source/LibJPEG/jdmainct.c Source/LibJPEG/jdmarker.c Source/LibJPEG/jdmaster.c Source/LibJPEG/jdmerge.c Source/LibJPEG/jdpostct.c Source/LibJPEG/jdsample.c Source/LibJPEG/jdtrans.c Source/LibJPEG/jerror.c Source/LibJPEG/jfdctflt.c Source/LibJPEG/jfdctfst.c Source/LibJPEG/jfdctint.c Source/LibJPEG/jidctflt.c Source/LibJPEG/jidctfst.c Source/LibJPEG/jidctint.c Source/LibJPEG/jmemmgr.c Source/LibJPEG/jmemnobs.c Source/LibJPEG/jquant1.c Source/LibJPEG/jquant2.c Source/LibJPEG/jutils.c Source/LibJPEG/transupp.c \
-Source/LibJPEG/jcphuff.c Source/LibJPEG/jdphuff.c Source/LibJPEG/jidctred.c \
-Source/LibPNG/png.c Source/LibPNG/pngerror.c Source/LibPNG/pngget.c Source/LibPNG/pngmem.c Source/LibPNG/pngpread.c Source/LibPNG/pngread.c Source/LibPNG/pngrio.c Source/LibPNG/pngrtran.c Source/LibPNG/pngrutil.c Source/LibPNG/pngset.c Source/LibPNG/pngtrans.c Source/LibPNG/pngwio.c Source/LibPNG/pngwrite.c Source/LibPNG/pngwtran.c Source/LibPNG/pngwutil.c \
-Source/ZLib/adler32.c Source/ZLib/compress.c Source/ZLib/crc32.c Source/ZLib/deflate.c Source/ZLib/gzclose.c Source/ZLib/gzlib.c Source/ZLib/gzread.c Source/ZLib/gzwrite.c Source/ZLib/infback.c Source/ZLib/inffast.c Source/ZLib/inflate.c Source/ZLib/inftrees.c Source/ZLib/trees.c Source/ZLib/uncompr.c Source/ZLib/zutil.c \
-Source/Metadata/Exif.cpp Source/Metadata/FIRational.cpp Source/Metadata/FreeImageTag.cpp Source/Metadata/IPTC.cpp Source/Metadata/TagConversion.cpp Source/Metadata/TagLib.cpp \
+libjpeg_c_srcs := jaricom.c jcapimin.c jcapistd.c jcarith.c jccoefct.c \
+	jccolor.c jcdctmgr.c jchuff.c jcinit.c jcmainct.c jcmarker.c jcmaster.c \
+	jcomapi.c jcparam.c jcprepct.c jcsample.c jctrans.c jdapimin.c jdapistd.c \
+	jdarith.c jdatadst.c jdatasrc.c jdcoefct.c jdcolor.c jddctmgr.c jdhuff.c \
+	jdicc.c jdinput.c jdmainct.c jdmarker.c jdmaster.c jdmerge.c jdpostct.c \
+	jdsample.c jdtrans.c jerror.c jfdctflt.c jfdctfst.c jfdctint.c jidctflt.c \
+	jidctfst.c jidctint.c jmemmgr.c jmemnobs.c jquant1.c jquant2.c jutils.c \
+	transupp.c jcphuff.c jdphuff.c jidctred.c
+libjpeg_c_srcs := $(addprefix Source/LibJPEG/, $(libjpeg_c_srcs))
+
+libpng_c_srcs := png.c pngerror.c pngget.c pngmem.c pngpread.c pngread.c \
+	pngrio.c pngrtran.c pngrutil.c pngset.c pngtrans.c pngwio.c pngwrite.c \
+	pngwtran.c pngwutil.c
+libpng_c_srcs := $(addprefix Source/LibPNG/, $(libpng_c_srcs))
+
+zlib_c_srcs := adler32.c compress.c crc32.c deflate.c gzclose.c gzlib.c \
+	gzread.c gzwrite.c infback.c inffast.c inflate.c inftrees.c trees.c \
+	uncompr.c zutil.c
+zlib_c_srcs := $(addprefix Source/ZLib/, $(zlib_c_srcs))
+
+SRCS += $(libjpeg_c_srcs) $(libpng_c_srcs) $(zlib_c_srcs) \
+	Source/Metadata/Exif.cpp Source/Metadata/FIRational.cpp \
+	Source/Metadata/FreeImageTag.cpp Source/Metadata/IPTC.cpp \
+	Source/Metadata/TagConversion.cpp Source/Metadata/TagLib.cpp \
 #Source/Metadata/XTIFF.cpp \
 #Source/FreeImageToolkit/JPEGTransform.cpp \
 #Source/FreeImage/Halftoning.cpp \
@@ -73,7 +121,6 @@ Source/Metadata/Exif.cpp Source/Metadata/FIRational.cpp Source/Metadata/FreeImag
 #Source/FreeImage/TIFFLogLuv.cpp \
 #Source/FreeImage/PluginJ2K.cpp \
 #Source/FreeImage/PSDParser.cpp \
-#Source/DeprecationManager/Deprecated.cpp Source/DeprecationManager/DeprecationMgr.cpp \
 #Source/FreeImage/CacheFile.cpp \
 #Source/FreeImage/MultiPage.cpp \
 #Source/OpenEXR/IlmImf/ImfAttribute.cpp Source/OpenEXR/IlmImf/ImfB44Compressor.cpp Source/OpenEXR/IlmImf/ImfBoxAttribute.cpp Source/OpenEXR/IlmImf/ImfChannelList.cpp Source/OpenEXR/IlmImf/ImfChannelListAttribute.cpp Source/OpenEXR/IlmImf/ImfChromaticities.cpp Source/OpenEXR/IlmImf/ImfChromaticitiesAttribute.cpp Source/OpenEXR/IlmImf/ImfCompressionAttribute.cpp Source/OpenEXR/IlmImf/ImfCompressor.cpp Source/OpenEXR/IlmImf/ImfConvert.cpp Source/OpenEXR/IlmImf/ImfCRgbaFile.cpp Source/OpenEXR/IlmImf/ImfDoubleAttribute.cpp Source/OpenEXR/IlmImf/ImfEnvmap.cpp Source/OpenEXR/IlmImf/ImfEnvmapAttribute.cpp Source/OpenEXR/IlmImf/ImfFloatAttribute.cpp Source/OpenEXR/IlmImf/ImfFrameBuffer.cpp Source/OpenEXR/IlmImf/ImfFramesPerSecond.cpp Source/OpenEXR/IlmImf/ImfHeader.cpp Source/OpenEXR/IlmImf/ImfHuf.cpp Source/OpenEXR/IlmImf/ImfInputFile.cpp Source/OpenEXR/IlmImf/ImfIntAttribute.cpp Source/OpenEXR/IlmImf/ImfIO.cpp Source/OpenEXR/IlmImf/ImfKeyCode.cpp Source/OpenEXR/IlmImf/ImfKeyCodeAttribute.cpp Source/OpenEXR/IlmImf/ImfLineOrderAttribute.cpp Source/OpenEXR/IlmImf/ImfLut.cpp Source/OpenEXR/IlmImf/ImfMatrixAttribute.cpp Source/OpenEXR/IlmImf/ImfMisc.cpp Source/OpenEXR/IlmImf/ImfOpaqueAttribute.cpp Source/OpenEXR/IlmImf/ImfOutputFile.cpp Source/OpenEXR/IlmImf/ImfPizCompressor.cpp Source/OpenEXR/IlmImf/ImfPreviewImage.cpp Source/OpenEXR/IlmImf/ImfPreviewImageAttribute.cpp Source/OpenEXR/IlmImf/ImfPxr24Compressor.cpp Source/OpenEXR/IlmImf/ImfRational.cpp Source/OpenEXR/IlmImf/ImfRationalAttribute.cpp Source/OpenEXR/IlmImf/ImfRgbaFile.cpp Source/OpenEXR/IlmImf/ImfRgbaYca.cpp Source/OpenEXR/IlmImf/ImfRleCompressor.cpp Source/OpenEXR/IlmImf/ImfScanLineInputFile.cpp Source/OpenEXR/IlmImf/ImfStandardAttributes.cpp Source/OpenEXR/IlmImf/ImfStdIO.cpp Source/OpenEXR/IlmImf/ImfStringAttribute.cpp Source/OpenEXR/IlmImf/ImfStringVectorAttribute.cpp Source/OpenEXR/IlmImf/ImfTestFile.cpp Source/OpenEXR/IlmImf/ImfThreading.cpp Source/OpenEXR/IlmImf/ImfTileDescriptionAttribute.cpp Source/OpenEXR/IlmImf/ImfTiledInputFile.cpp Source/OpenEXR/IlmImf/ImfTiledMisc.cpp Source/OpenEXR/IlmImf/ImfTiledOutputFile.cpp Source/OpenEXR/IlmImf/ImfTiledRgbaFile.cpp Source/OpenEXR/IlmImf/ImfTileOffsets.cpp Source/OpenEXR/IlmImf/ImfTimeCode.cpp Source/OpenEXR/IlmImf/ImfTimeCodeAttribute.cpp Source/OpenEXR/IlmImf/ImfVecAttribute.cpp Source/OpenEXR/IlmImf/ImfVersion.cpp Source/OpenEXR/IlmImf/ImfWav.cpp Source/OpenEXR/IlmImf/ImfZipCompressor.cpp Source/OpenEXR/Imath/ImathBox.cpp Source/OpenEXR/Imath/ImathColorAlgo.cpp Source/OpenEXR/Imath/ImathFun.cpp Source/OpenEXR/Imath/ImathMatrixAlgo.cpp Source/OpenEXR/Imath/ImathRandom.cpp Source/OpenEXR/Imath/ImathShear.cpp Source/OpenEXR/Imath/ImathVec.cpp Source/OpenEXR/Iex/IexBaseExc.cpp Source/OpenEXR/Iex/IexThrowErrnoExc.cpp Source/OpenEXR/Half/half.cpp Source/OpenEXR/IlmThread/IlmThread.cpp Source/OpenEXR/IlmThread/IlmThreadMutex.cpp Source/OpenEXR/IlmThread/IlmThreadPool.cpp Source/OpenEXR/IlmThread/IlmThreadSemaphore.cpp \
@@ -81,9 +128,9 @@ Source/Metadata/Exif.cpp Source/Metadata/FIRational.cpp Source/Metadata/FreeImag
 #Wrapper/FreeImagePlus/src/fipImage.cpp Wrapper/FreeImagePlus/src/fipMemoryIO.cpp Wrapper/FreeImagePlus/src/fipMetadataFind.cpp Wrapper/FreeImagePlus/src/fipMultiPage.cpp Wrapper/FreeImagePlus/src/fipTag.cpp Wrapper/FreeImagePlus/src/fipWinImage.cpp Wrapper/FreeImagePlus/src/FreeImagePlus.cpp
 
 INCLUDE := -I. -ISource -ISource/Metadata \
--ISource/LibJPEG \
--ISource/LibPNG \
--ISource/ZLib \
+	-ISource/LibJPEG \
+	-ISource/LibPNG \
+	-ISource/ZLib \
 #-ISource/LibTIFF4 \
 #-ISource/LibOpenJPEG \
 #-ISource/FreeImageToolkit \

@@ -105,17 +105,20 @@ fi
 export LDFLAGS
 
 # TODO: Merge with logic in %SHBuild-YSLib-build.txt.
-SHBuild_CheckUName
+SHBuild_CheckHostPlatform
+: ${SHBuild_YSLib_Platform:="$SHBuild_Host_Platform"}
 if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
-	: ${SHBuild_YSLib_Platform:='MinGW32'}
 	SHBuild_YF_SystemLibs='-lgdi32 -limm32'
-	: ${SHBuild_YF_Libs_freetype:='-lfreetype'}
 else
-	: ${SHBuild_YSLib_Platform:="$SHBuild_Env_OS"}
 	SHBuild_YF_SystemLibs='-Wl,-dy -lxcb -lpthread'
 	SHBuild_YF_CFlags_freetype="`pkg-config --cflags freetype2 2> /dev/null`"
-	: ${SHBuild_YF_CFlags_freetype:='-I/usr/include'}
-	SHBuild_YF_Libs_freetype="`pkg-config --libs freetype2 2> /dev/null`"
+	: ${SHBuild_YF_CFlags_freetype:="-I\"/$SHBuild_Bin/../include\""}
+fi
+if [[ -f "$SHBuild_Bin/../lib/libfreetype.a" ]]; then
+	: ${SHBuild_YF_Libs_freetype:='-lfreetype'}
+else
+	: ${SHBuild_YF_Libs_freetype:= \
+		"`pkg-config --libs freetype2 2> /dev/null`"}
 	: ${SHBuild_YF_Libs_freetype:='-lfreetype'}
 	SHBuild_YF_Libs_freetype="-Wl,-dy $SHBuild_YF_Libs_freetype"
 fi
@@ -135,7 +138,8 @@ else
 	SHBuild_YSLib_Flags="$SHBuild_YF_CFlags_freetype \
 		-I\"$SHBuild_Bin/../include\""
 	SHBuild_YSLib_LibNames="$SHBuild_YSLib_LibNames \
-		-lFreeImage $SHBuild_YF_Libs_freetype -L/usr/lib $SHBuild_YF_SystemLibs"
+		-lFreeImage $SHBuild_YF_Libs_freetype -L\"$SHBuild_Bin/../lib\" \
+		$SHBuild_YF_SystemLibs"
 	export LIBS="$LIBS -Wl,-dn $SHBuild_YSLib_LibNames"
 fi
 export SHBuild_CFLAGS="$CFLAGS"

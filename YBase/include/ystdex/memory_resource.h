@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1398
+\version r1402
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2020-03-02 22:07 +0800
+	2020-03-13 14:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,7 +87,7 @@ WG21 P0619R4 ：在 memory_resource 中显式声明默认构造函数和复制�
 #	include "operators.hpp" // for equality_comparable;
 #endif
 #include "base.h" // for noncopyable, nonmovable;
-#include "cstdint.hpp" // for is_positive_power_of_2;
+#include "cstdint.hpp" // for is_power_of_2_positive;
 #include "list.hpp"// for list;
 #include <vector> // for std::vector;
 #include <unordered_map> // for std::unordered_map;
@@ -216,7 +216,7 @@ public:
 		//	an assertion here similarly. Libc++ experimental does not assert and
 		//	does silently round up the alignment value which is always the
 		//	maximul alignment in its %__resource_adaptor_imp::do_allocate.
-		yconstraint(is_positive_power_of_2(alignment));
+		yconstraint(is_power_of_2_positive(alignment));
 
 		const auto p(do_allocate(bytes, alignment));
 
@@ -227,7 +227,7 @@ public:
 	deallocate(void* p, size_t bytes, size_t alignment = max_align)
 	{
 		// NOTE: The alignment requirement is same to %allocate.
-		yconstraint(is_positive_power_of_2(alignment));
+		yconstraint(is_power_of_2_positive(alignment));
 		return do_deallocate(p, bytes, alignment);
 	}
 
@@ -627,8 +627,6 @@ public:
 class YB_API oversized_map
 	: private yimpl(noncopyable), private yimpl(nonmovable)
 {
-	friend class shared_pool_resource;
-
 public:
 	using mapped_type = std::pair<size_t, size_t>;
 	using map_type = std::unordered_map<void*, mapped_type, std::hash<void*>,

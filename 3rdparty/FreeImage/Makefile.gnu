@@ -34,10 +34,10 @@ ifeq ($(shell sh -c 'uname -m 2>/dev/null || echo not'),x86_64)
 	CFLAGS += -fPIC
 	CXXFLAGS += -fPIC
 	NAFLAGS := -felf64 -DELF -D__x86_64__
-	MODULES := $(SRCS) $(libsimd_64_SOURCES)
+	MODULES := $(SRCS) $(libjpeg_x86_64_srcs)
 else ifeq ($(shell sh -c 'uname -m 2>/dev/null || echo not'),i686)
 	NAFLAGS := -felf -DELF
-	MODULES := $(SRCS) $(libsimd_SOURCES)
+	MODULES := $(SRCS) $(libjpeg_i686_srcs)
 else
 	$(error "Unsupported architecture found.")
 endif
@@ -74,11 +74,8 @@ FreeImage : $(STATICLIB) $(SHAREDLIB)
 %.cpp.o : %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-%.asm.o : %.asm ./Source/LibJPEG/simd/jsimdcfg.inc
-	$(NASM) $(NAFLAGS) -I./Source/LibJPEG/simd/ $< -o $@
-
-./Source/LibJPEG/simd/jsimdcfg.inc :
-	$(CC) -E -I$. -I$./Source/LibJPEG/simd/ $./jsimdcfg.inc.h | grep -e "^[\;%]|^\ %" | sed 's%_cpp_protection_%%' | sed 's@% define@%define@g' > $@
+%.asm.o : %.asm
+	$(NASM) $(NAFLAGS) -I./Source/LibJPEG/simd/nasm/ $< -o $@
 
 $(STATICLIB) : $(MODULES)
 	$(AR) r $@ $(MODULES)

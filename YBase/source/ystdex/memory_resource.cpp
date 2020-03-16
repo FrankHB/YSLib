@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1458
+\version r1480
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2020-03-02 22:07 +0800
+	2020-03-14 16:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 //	std::align_val_t, std::align, __cpp_sized_deallocation, std::bad_alloc,
 //	::operator new, ::operator delete, std::unique_ptr, make_observer, YAssert,
 //	lref, yassume, ystdex::destruct_in, yconstraint, CHAR_BIT,
-//	is_positive_power_of_2, ceiling_lb, std::piecewise_construct,
+//	is_power_of_2_positive, ceiling_lb, std::piecewise_construct,
 //	std::forward_as_tuple, PTRDIFF_MAX;
 #if YB_Has_memory_resource != 1
 #	include <atomic> // for std::atomic;
@@ -347,7 +347,7 @@ adjust_pool_options(pool_options& opts)
 	//	resource by default.
 	yconstexpr const auto largest_required_pool_block_limit(
 		size_t((sizeof(size_t) * CHAR_BIT) << 18U));
-	static_assert(is_positive_power_of_2(largest_required_pool_block_limit),
+	static_assert(is_power_of_2_positive(largest_required_pool_block_limit),
 		"Invalid limit value found.");
 
 	// TODO: Use interval arithmetic libraries.
@@ -546,7 +546,14 @@ resource_pool::resource_pool(resource_pool&& pl) ynothrow
 	i_empty(pl.i_empty), next_capacity(pl.next_capacity),
 	block_size(pl.block_size), extra_data(pl.extra_data)
 {
+	const bool no_stashed(pl.i_stashed == pl.chunks.end()),
+		no_empty(pl.i_empty == pl.chunks.end());
+		
 	std::swap(chunks, pl.chunks);
+	if(no_stashed)
+		i_stashed = chunks.end();
+	if(no_empty)
+		i_empty = chunks.end();
 }
 // XXX: The order destruction among chunks is unspecified.
 resource_pool::~resource_pool() = yimpl(default);
@@ -628,36 +635,36 @@ resource_pool::clear() ynothrow
 void
 resource_pool::deallocate(void* p) ynothrowv
 {
-	const auto& i_chunk(access_meta(p, block_size).i_chunk);
+	auto i_chunk(access_meta(p, block_size).i_chunk);
 
 	yassume(i_chunk != chunks.end());
+	yverify(i_chunk != i_empty);
 
 	const auto mid(i_chunk->first);
 	auto& cnk(i_chunk->second);
 	const bool full(cnk.is_full());
 
 	cnk.add_free(p);
-	if(full)
+	if(YB_UNLIKELY(full))
 	{
-		if(i_stashed == chunks.end() || i_stashed->first < mid)
+		if(YB_UNLIKELY(i_stashed == chunks.end() || i_stashed->first < mid))
 			i_stashed = i_chunk;
 	}
-	else if(cnk.is_empty())
+	else if(YB_UNLIKELY(cnk.is_empty()))
 	{
-		if(i_empty == chunks.end())
-			i_empty = i_chunk;
-		else
+		if(i_empty != chunks.end())
 		{
 			const auto eid(i_empty->first);
 
 			if(eid < mid)
-			{
-				chunks.erase(i_empty);
-				i_empty = i_chunk;
-			}
-			else
-				chunks.erase(i_chunk);
+				std::swap(i_chunk, i_empty);
+			if(i_stashed == i_chunk)
+				i_stashed = i_empty;
+			yverify(i_chunk->second.is_empty());
+			chunks.erase(i_chunk);
 		}
+		else
+			i_empty = i_chunk;
 	}
 }
 

@@ -38,6 +38,8 @@
 //	Added fake node as entries in base version 3.16.0: "WEBP" and "JXR".
 // Modified by FrankHB <frankhb1989@gmail.com>, 2015-05-25:
 //	Removed external plugin initialization for Windows.
+// Modified by FrankHB <frankhb1989@gmail.com>, 2020-03-06:
+//	Merged changes from base version 3.18.0.
 
 #ifdef _MSC_VER
 #pragma warning (disable : 4786) // identifier was truncated to 'number' characters
@@ -550,7 +552,7 @@ FreeImage_GetFIFFromFilename(const char *filename)
 }
 
 BOOL DLL_CALLCONV
-FreeImage_Validate(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handle)
+FreeImage_ValidateFIF(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handle)
 {
 	if(s_plugins)
 		if(const auto p_node = s_plugins->FindNodeFromFIF(fif))

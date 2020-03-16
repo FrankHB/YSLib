@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2018 FrankHB.
+# (C) 2014-2018, 2020 FrankHB.
 # Common source script.
 
 [[ "$INC_SHBuild_common" == '' ]] && INC_SHBuild_common=1 || return 0
@@ -217,17 +217,54 @@ SHBuild_BuildGCH()
 	fi
 }
 
+# Check host platform and set value of platform string based on input parameters
+#	indicating the operating system and architecture (as in host and target
+#	triplets in common build systems). See user documentation
+#	Tools/Scripts.zh-CN.md for details.
+# Params: $1 = variable of OS like $SHBuild_Env_OS,
+#	$2 = variable of OS like $SHBuild_Env_Arch.
+SHBuild_Platform_Detect()
+{
+	local result
+
+	if [[ "$MSYSTEM" == 'MINGW64' ]]; then
+		result='MinGW64'
+	elif [[ "$MSYSTEM" == 'MINGW32' ]]; then
+		result='MinGW32'
+	elif [[ "$1" == 'Win32' ]]; then
+		if [[ "$2" == 'x86_64' ]]; then
+			result='MinGW64'
+		else
+			result='MinGW32'
+		fi
+	else
+		result="$1"
+	fi
+	SHBuild_AssertNonempty result
+	echo "$result"
+}
+
+# Convert the platform string to the system prefix.
+# Params: $1 = platform string, typically from the result of
+#	%SHBuild_Platform_Detect.
+SHBuild_GetSystemPrefix()
+{
+	if [[ "$1" == 'MinGW64' ]]; then
+		echo '/mingw64'
+	elif [[ "$1" == 'MinGW32' ]]; then
+		echo '/mingw32'
+	else
+		echo '/usr'
+	fi
+}
+
 # Check host platform and set value of %SHBuild_Host_Platform if not set.
-#	For Win32 platforms, only 'MinGW32' is supported currently.
+#	This function use %SHBuild_Platform_Detect.
 SHBuild_CheckHostPlatform()
 {
 	SHBuild_CheckUName
-	if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
-		: ${SHBuild_Host_Platform:='MinGW32'}
-	else
-		: ${SHBuild_Host_Platform:=$SHBuild_Env_OS}
-	fi
-	SHBuild_AssertNonempty SHBuild_Host_Platform
+	: ${SHBuild_Host_Platform:=$(SHBuild_Platform_Detect "$SHBuild_Env_OS" \
+		"$SHBuild_Env_Arch")}
 }
 
 # Link and build precompiled header if %SHBuild_NoPCH is not set to nonnull

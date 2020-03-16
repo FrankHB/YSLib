@@ -49,7 +49,7 @@ $provide/d! (safeenv-get safeenv-set ss-verbose-puts) ext-env
 	$import! std.system env-empty?;
 
 	"NOTE", "Nonempty environment variable 'SS_*' would enable specific.",
-		"See https://bitbucket.org/FrankHB/yslib/wiki/Tools/Scripts.zh-CN.md.";
+		"See user documentation Tools/Scripts.zh-CN.md.";
 	$def! SS_DebugEnv env-empty? "SS_DebugEnv",
 	$def! SS_Verbose env-empty? "SS_Verbose";
 	$def! mods $bindings/p->environment
@@ -136,9 +136,9 @@ $defl! get-tmp-dir (env-os) $if (win32? env-os) "%TEMP%" "/tmp";
 $defl! get-tmp-nul (env-os) ++ (get-tmp-dir env-os) "/null";
 "NOTE",
 	"The output path cannot be '/dev/null'. See http://sourceforge.net/p/msys2/discussion/general/thread/2d6adff2/?limit=25.";
-$defl! system-or-puts (env-os cmd pth) $let (((rstr code .)
-	system-get (cons-cmd cmd (system-quote pth) "2>" (get-nul-dev env-os))))
-	$if (eqv? code 0) rstr pth;
+$defl! system-or-puts (env-os cmd str) $let (((rstr code .)
+	system-get (cons-cmd cmd (system-quote str) "2>" (get-nul-dev env-os))))
+	$if (eqv? code 0) rstr str;
 $defl! SHBuild_2m (env-os pth) system-or-puts env-os "cygpath -m" pth;
 $defl! SHBuild_2u (env-os pth) system-or-puts env-os "cygpath -au" pth;
 $defl! SHBuild_2w (env-os pth) system-or-puts env-os "cygpath -w" pth;
@@ -288,6 +288,8 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 	safeenv-set "LDFLAGS" LDFLAGS;
 	$def! SHBOPT get-SHBOPT_ outdir shbopt-ext ($or? dynamic app);
 	$defl! echo-var (var) SHBuild_EchoVar var (value-of var);
+	"XXX", "The values of following variables may be overriden in 'do-build'.";
+	"TODO", "Print actual values being used in 'do-build' as possible.";
 	echo-var "CXXFLAGS";
 	echo-var "LDFLAGS";
 	echo-var "SHBOPT";
@@ -304,6 +306,20 @@ $defl! SHBuild_GetPlatformStrings ()
 		SHBuild_CheckUNameM_Case_ SHBuild_Env_uname_m);
 	list SHBuild_Env_OS SHBuild_Env_Arch
 );
+$defl! SHBuild_Platform_Detect (env-os env-arch)
+(
+	$env-de! MSYSTEM;
+	$cond
+		((eqv? MSYSTEM "MINGW64") "MinGW64")
+		((eqv? MSYSTEM "MINGW32") "MinGW32")
+		(($and? (win32? env-os) (eqv? env-arch "x86_64")) "MinGW64")
+		((win32? env-os) "MinGW32")
+		(#t env-os)
+);
+$defl! SHBuild_GetSystemPrefix (platform) $cond
+	((eqv? platform "MinGW64") "/mingw64")
+	((eqv? platform "MinGW32") "/mingw32")
+	(#t "/usr");
 
 $defl! get_env_SHB_ (env-os)
 (

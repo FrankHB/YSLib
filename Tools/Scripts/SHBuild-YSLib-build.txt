@@ -16,6 +16,8 @@ $def! env_SHBuild_Common_ $provide! (
 	SHBuild_2m
 	SHBuild_EchoVar_N
 	SHBuild_GetPlatformStrings
+	SHBuild_GetSystemPrefix
+	SHBuild_Platform_Detect
 	build-with-conf-opt
 	cons-cmd
 	get_env_SHB_
@@ -52,13 +54,17 @@ $defl! SHBuild_EchoVar_E (env var) SHBuild_EchoVar var
 $def! extra-opts (restv (() cmd-get-args));
 $def! (env-os env-arch) () SHBuild_GetPlatformStrings;
 $assert-nonempty env-os, $assert-nonempty env-arch;
-$def! SHBuild_Host_Platform $if (win32? env-os) "MinGW32" env-os;
-$def! env-host-lib ++ SHBuild_Host_Platform "/lib-" env-arch;
+"XXX", "This is for the workaround in building YFramework on MinGW64,",
+	" which does not support configurable via the environment variable.";
+$def! host-platform_ SHBuild_Platform_Detect env-os env-arch;
+$env-de! SHBuild_Host_Platform host-platform_;
+$env-de! SHBuild_SystemPrefix SHBuild_GetSystemPrefix SHBuild_Host_Platform;
+$def! env-host-lib ++ SHBuild_Host_Platform "/lib";
 $def! env_SHB_ get_env_SHB_ env-os;
 $import! env_SHB_ e_S1_SHBuild_ BuildGCH_;
 
 "#", "SR = SHBuild SysRoot.";
-$def! SR_Prefix_ ++ SHBuild_SysRoot "/usr";
+$def! SR_Prefix_ ++ SHBuild_SysRoot SHBuild_SystemPrefix;
 $def! SR_Bin_ ++ SR_Prefix_ "/bin";
 $def! SR_Include_ ++ SR_Prefix_ "/include";
 $def! SR_Lib_ ++ SR_Prefix_ "/lib";
@@ -141,19 +147,27 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 					);
 					$defl! libdname (lib) ++ lib ($if debug "d" "");
 					$def! DFLAG_B_YB $if dynamic "-DYB_BUILD_DLL" "";
-					$defl! build-lib (lib-name opt-list)
+					$defl! build-lib (lib-name inc-pch .opts)
 						system-check (apply cons-cmd (append (list e_S1_SHBuild_
 						SHBOPT (++ "-xn," LIBPFX (libdname lib-name))) (restv
 						(() cmd-get-args)) (list (++ repo-base "/" lib-name)
-						CXXFLAGS) opt-list inc-pch));
-					build-lib "YBase" (list DFLAG_B_YB INCLUDES_YBase);
+						CXXFLAGS) opts inc-pch));
+					build-lib "YBase" inc-pch DFLAG_B_YB INCLUDES_YBase;
 					$if dynamic (safeenv-set "LIBS" (cons-cmd (++ "-L" outdir)
 						(++ "-l" (libdname "YBase")) LIBS_YFramework));
-					build-lib "YFramework"
-						(list ($if debug ($if dynamic "-DYB_DLL" "") DFLAG_B_YB)
+					"XXX", "The '-Og' is the workaround for the linking using",
+						" x86_64-w64-mingw32-ld which fails due to unresolved",
+						" '_ZTS*' symbols in '-O0' with '-D__NO_INLINE__'",
+						" after ~3 hours.";
+					$def! mingw64 $and? dynamic (eqv? host-platform_ "MinGW64");
+					"XXX", "Precompiled header is not available as it",
+						" requires '-D__NO_INLINE__ -U__OPTIMIZE__'.";
+					build-lib "YFramework" ($if mingw64 () inc-pch)
+						($if mingw64 "-Og" "")
+						($if dynamic "-DYB_DLL" "")
 						($if dynamic "-DYF_BUILD_DLL" "") "-DFREEIMAGE_LIB"
 						(SHBuild_TrimOptions_ (++ INCLUDES_YFramework " "
-						CFLAGS_freetype_other)))
+						CFLAGS_freetype_other))
 				)
 			);
 			putss "Finished building " target-name "."
@@ -268,7 +282,7 @@ $let ()
 );
 
 "NOTE", "Following settings are shared by stage 2 builds.",
-	"See https://bitbucket.org/FrankHB/yslib/wiki/Tools/Scripts.zh-CN.md.",
+	"See user documentation Tools/Scripts.zh-CN.md.",
 	"Only SHBuild environment variables not otherwise set need to be restored.";
 safeenv-restore "LDFLAGS";
 safeenv-set "LIBS" (SHBuild_TrimOptions_ (cons-cmd (safeenv-get "LIBS") "-L"
