@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r19802
+\version r19808
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2020-03-03 22:05 +0800
+	2020-03-26 09:12 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -74,7 +74,6 @@ inline namespace Internals
 //! \since build 820
 static_assert(!NPL_Impl_NPLA1_Enable_TCO || NPL_Impl_NPLA1_Enable_Thunked,
 	"Invalid combination of build options found.");
-
 
 //! \since build 842
 YB_FLATTEN inline PDefH(void, SetupNextTerm, ContextNode& ctx, TermNode& term)
@@ -312,9 +311,9 @@ public:
 	//@}
 };
 
-//! \since build 830
+//! \since build 886
 YB_ATTR_nodiscard YB_PURE inline
-	PDefH(TCOAction*, AccessTCOAction, ContextNode& ctx)
+	PDefH(TCOAction*, AccessTCOAction, ContextNode& ctx) ynothrow
 	ImplRet(ctx.Current.target<TCOAction>())
 // NOTE: There is no need to check term like 'if(&p->Term.get() == &term)'. It
 //	should be same to saved enclosing term unless a nested TCO action is needed
@@ -330,6 +329,11 @@ YB_ATTR_nodiscard inline PDefH(TCOAction&, RefTCOAction, ContextNode& ctx)
 	//	%EnsureTCOAction, typically in the call of %CombinerReturnThunk in
 	//	calling a combiner from %ReduceCombinedBranch.
 	ImplRet(NPL::Deref(AccessTCOAction(ctx)))
+
+//! \since build 886
+inline
+	PDefH(void, SetupTailTCOAction, ContextNode& ctx, TermNode& term, bool lift)
+	ImplExpr(SetupTailAction(ctx, TCOAction(ctx, term, lift)))
 #	endif
 #endif
 

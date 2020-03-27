@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016 FrankHB.
+	© 2015-2016, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup Tools
 \brief SXML 文档转换工具。
-\version r55
+\version r61
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-09 16:32:08 +0800
 \par 修改时间:
-	2016-04-26 21:57 +0800
+	2020-03-27 13:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,11 +40,13 @@ int
 main()
 {
 	return FilterExceptions([]{
-		using namespace std;
-
 		platform::SetupBinaryStdIO();
-		SXML::PrintSyntaxNode(cout, SContext::Analyze(Session(
-			istreambuf_iterator<char>(cin), istreambuf_iterator<char>())));
+
+		using namespace std;
+		Session sess{};
+
+		sess.Parse(istreambuf_iterator<char>(cin), istreambuf_iterator<char>());
+		SXML::PrintSyntaxNode(cout, SContext::Analyze(sess));
 		cout << endl;
 	}, yfsig) ? EXIT_FAILURE : EXIT_SUCCESS;
 }

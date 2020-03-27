@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2019 FrankHB.
+	© 2013-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r371
+\version r375
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2019-07-07 22:58 +0800
+	2020-03-17 22:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,8 +98,10 @@ ValueNode
 WidgetLoader::LoadUILayout(string_view sv)
 {
 	using namespace NPL;
+	Session sess{};
 
-	return TransformUILayout(A1::LoadNode(SContext::Analyze(sv)));
+	sess.Parse(sv);
+	return TransformUILayout(A1::LoadNode(SContext::Analyze(sess)));
 }
 
 ValueNode

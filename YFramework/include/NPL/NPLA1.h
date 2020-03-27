@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r7576
+\version r7611
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-03-03 18:32 +0800
+	2020-03-25 21:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -752,6 +752,35 @@ WrapContextHandler(_func&& h)
 		std::is_constructible<BaseType, ystdex::expanded_caller<
 		typename _tDst::FuncType, ystdex::decay_t<_func>>>>());
 }
+//! \since build 886
+//@{
+template<class _tDst, typename _func, class _tAlloc>
+YB_ATTR_nodiscard YB_PURE inline _tDst
+WrapContextHandler(_func&& h, const _tAlloc& a, ystdex::false_)
+{
+	return WrappedContextHandler<YSLib::GHEvent<ystdex::make_function_type_t<
+		void, ystdex::make_parameter_list_t<typename _tDst::BaseType>>>>(
+		std::allocator_arg, a, yforward(h));
+}
+template<class, typename _func, class _tAlloc>
+YB_ATTR_nodiscard YB_PURE inline _func
+WrapContextHandler(_func&& h, const _tAlloc&, ystdex::true_)
+{
+	return yforward(h);
+}
+template<class _tDst, typename _func, class _tAlloc>
+YB_ATTR_nodiscard YB_PURE inline _tDst
+WrapContextHandler(_func&& h, const _tAlloc& a)
+{
+	using BaseType = typename _tDst::BaseType;
+
+	// XXX: Ditto
+	return A1::WrapContextHandler<_tDst>(yforward(h), a, ystdex::or_<
+		std::is_constructible<BaseType, _func>,
+		std::is_constructible<BaseType, ystdex::expanded_caller<
+		typename _tDst::FuncType, ystdex::decay_t<_func>>>>());
+}
+//@}
 //@}
 
 
@@ -781,6 +810,13 @@ public:
 	FormContextHandler(_func&& f, size_t n = 0)
 		: Handler(A1::WrapContextHandler<ContextHandler>(yforward(f))),
 		Wrapping(n)
+	{}
+	//! \since build 886
+	template<typename _func, class _tAlloc>
+	FormContextHandler(std::allocator_arg_t, const _tAlloc& a, _func&& f,
+		size_t n = 0)
+		: Handler(std::allocator_arg, a, A1::WrapContextHandler<ContextHandler>(
+		yforward(f), a)), Wrapping(n)
 	{}
 	//@}
 	//! \since build 757

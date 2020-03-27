@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3450
+\version r3516
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2020-02-15 12:02 +0800
+	2020-03-22 15:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,9 +26,8 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_Dependency // for ystdex::isspace, std::istream,
-//	YSLib::unique_ptr, TokenValue, SeparatorTransformer::ReplaceChildren,
-//	ystdex::bind1, std::allocator_arg, ContextHandler, ValueObject,
+#include YFM_NPL_Dependency // for set, string, ystdex::isspace, std::istream,
+//	YSLib::unique_ptr, TokenValue, ystdex::bind1, ValueObject,
 //	NPL::AllocateEnvironment, std::piecewise_construct, std::forward_as_tuple,
 //	LiftOther, Collapse, LiftOtherOrCopy, NPL::IsMovable, LiftTermOrCopy,
 //	ResolveTerm, LiftTermValueOrCopy, NPL::TryAccessReferencedTerm,
@@ -73,52 +72,71 @@ DecomposeMakefileDepList(std::streambuf& sb)
 	using s_it_t = std::istreambuf_iterator<char>;
 	// NOTE: Escaped spaces would be saved to prevent being used as delimiter.
 	set<size_t> spaces;
-	const auto sbuf(Session(s_it_t(&sb), s_it_t(),
-		[&](LexicalAnalyzer& lexer, char c){
-		lexer.ParseQuoted(c,
-			[&](SmallString& buf, const UnescapeContext& uctx, char) -> bool{
-			const auto& escs(uctx.GetSequence());
+	Session sess{};
 
+	sess.Parse(s_it_t(&sb), s_it_t(),
+		[&](LexicalAnalyzer& lexer, char ch){
+		lexer.ParseQuoted(ch,
+			[&](string& buf, char c, UnescapeContext& uctx, char) -> bool{
 			// NOTE: See comments in %munge function of 'mkdeps.c' from libcpp
 			//	of GCC.
-			if(escs.length() == 1)
+			if(uctx.Length == 1)
 			{
-				if(uctx.Prefix == "\\")
-					switch(escs[0])
+				uctx.VerifyBufferLength(buf.length());
+
+				const auto i(uctx.Start);
+
+				YAssert(i == buf.length() - 1, "Invalid buffer found.");
+				if(buf[i] == '\\')
+					switch(c)
 					{
 					case ' ':
 						spaces.insert(buf.size());
 						YB_ATTR_fallthrough;
 					case '\\':
 					case '#':
-						buf += escs[0];
+						buf[i] = c;
+						uctx.Clear();
+						return true;
+					case '\n':
+						buf.pop_back();
+						uctx.Clear();
 						return true;
 					default:
-						;
+						uctx.Clear();
+						buf += c;
+						return {};
 					}
-				if(uctx.Prefix == "$" && escs[0] == '$')
+				if(buf[i] == '$' && c == '$')
 				{
-					buf += '$';
+					uctx.Clear();
+					return true;
+				}
+			}
+			buf += c;
+			return {};
+		}, [](string_view buf, UnescapeContext& uctx) -> bool{
+			YAssert(!buf.empty(), "Invalid buffer found.");
+			if(!uctx.IsHandling())
+			{
+				if(buf.back() == '\\' || buf.back() == '$')
+				{
+					yunseq(uctx.Start = buf.length() - 1,
+						uctx.Length = 1);
 					return true;
 				}
 			}
 			return {};
-		}, [](char ch, SmallString& pfx) -> bool{
-			if(ch == '\\')
-				pfx = "\\";
-			else if(ch == '$')
-				pfx = "$";
-			else
-				return {};
-			return true;
 		});
-	}).GetBuffer());
+	});
+
+	const auto sbuf(sess.GetBuffer());
 	vector<string> lst;
 
 	ystdex::split_if(sbuf.begin(), sbuf.end(), ystdex::isspace,
-		[&](SmallString::const_iterator b, SmallString::const_iterator e){
-		lst.push_back(string(b, e));
-	}, [&](SmallString::const_iterator i) YB_PURE{
+		[&](string::const_iterator b, string::const_iterator e){
+		lst.push_back({b, e});
+	}, [&](string::const_iterator i) YB_PURE{
 		return !ystdex::exists(spaces, size_t(i - sbuf.cbegin()));
 	});
 	return lst;
@@ -1230,17 +1248,25 @@ LoadModule_SHBuild(REPLContext& context)
 	RegisterUnary<Strict, const string>(renv, "SHBuild_TrimOptions_",
 		[](const string& src){
 		string res;
-		Session sess(src, [&](LexicalAnalyzer& lexer, char c){
-			lexer.ParseByte(c, NPLUnescape, IgnorePrefix);
+		Session sess{};
+		set<size_t> left_qset{};
+
+		sess.Parse(src, [&](LexicalAnalyzer& lexer, char c){
+			if(lexer.FilterChar(c, NPLUnescape, IgnorePrefix))
+			{
+				if((c == '\'' || c == '"') && lexer.GetDelimiter() == char())
+					left_qset.insert(lexer.GetBuffer().size() - 1),
+				lexer.ReplaceBack(c);
+			}
 		});
+
 		const auto& lexer(sess.Lexer);
-		const auto& left_qset(lexer.GetLeftQuotes());
 		typename string::size_type l(0);
 
 		for(const auto& str : lexer.Literalize())
 			if(!str.empty())
 			{
-				using iter_t = SmallString::const_iterator;
+				using iter_t = string_view::const_iterator;
 
 				// XXX: As %NPL::Tokenize.
 				if(str.front() != '\'' && str.front() != '"')

@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20139
+\version r20142
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2020-02-15 14:07 +0800
+	2020-03-25 12:52 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -48,7 +48,7 @@ EnsureTCOAction(ContextNode& ctx, TermNode& term)
 
 	if(!p)
 	{
-		SetupTailAction(ctx, TCOAction(ctx, term, {}));
+		SetupTailTCOAction(ctx, term, {});
 		p = AccessTCOAction(ctx);
 	}
 	return NPL::Deref(p);
@@ -80,9 +80,8 @@ ReduceForCombinerRef(TermNode& term, ContextNode& ctx,
 		r_env), n)))));
 	auto& sub(NPL::Deref(p_sub));
 	TermNode tm(std::allocator_arg, a, {{std::allocator_arg, a, NoContainer,
-		std::move(p_sub)}});
+		std::move(p_sub)}}, std::allocator_arg, a, TermReference(sub, r_env));
 
-	tm.Value = TermReference(sub, r_env);
 	term.SetContent(std::move(tm));
 	return ReductionStatus::Retained;
 }

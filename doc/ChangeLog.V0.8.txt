@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r18100
+\version r18451
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-03-17 00:51 +0800
+	2020-03-27 17:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,356 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx.Any $=
+	(
+		/ @ "namespace %any_ops" $=
+		(
+			+ DLI 'YB_ATTR_nodiscard YB_PURE' @ "internal funtions"
+				@ "class template %value_handler",
+				// Also To eliminate G++ 9.2.1 warning: \
+					[-Wsuggest-attribute=pure].
+			/ "constructor %pointer_holder#1 required %NullablePointer and \
+				explicit bool casting instead of member %get on %_tPointer",
+			/ @ "%class template %allocator_value_handler" $=
+			(
+				+ "type %local_storage",
+				* "wrong copy of moving owner pointers" @ "case \
+					%transfer_with_allocator" @ "function %manage" $since b848,
+					// This makes move-only values transferred in the allocator \
+						ill-formed and pessimizes allocator-aware move \
+						construction to copy for other values.
+				/ $re_add(b851) "%call of %init failed in SFINAE context"
+					// The return type of %ystdex::allocate_unique is not \
+						SFINAE-friendly by default.
+			),
+			+ "metafunction %is_handler_constructible_t"
+		),
+		/ DLDI "simplified class %any"
+			^ $dep_from "%any_ops::is_handler_constructible_t"
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib.Core.YObject $=
+		(
+			* "invalid use of 'base::base' for cases not allocated by \
+				allocator handlers" @ ("constructor#5", "function template \
+				%emplace#2") @ "class %ValueObject" $since b863 $dep_from
+				("%ystdex::any_ops::allocator_value_handler::local_storage"
+				@ %YBase.YStandardEx.Any)
+				// This was buggy for cases of %any::opt_in_place_t<_type> \
+					is true.
+			(
+			/ $re_add(b851) "improved SFINAE-friendly %AllocatorHolder \
+				constructor template",
+			* $comp "broken SFINAE" @ "function template %CreateInPlace with \
+				allocator parameter" @ "class template %HolderOperations" $since
+				b850 @ $dep_from ("function template %init" @ "class template \
+				%ystdex::any_ops::allocator_value_handler"
+				@ %YBase.YStandardEx.Any);
+			* $comp "broken %ValueObject holder creation with allocators for \
+				user code" $since b850
+				$dep_to "SFIANE-friendly allocation of ValueObject"
+			),
+			/ $dev $lib "strenthened static assertion"
+				@ "class template %HolderOperations"
+				^ "%any_ops::check_holder_t" ~ "%ystdex::is_decayed"
+		),
+		/ %NPL $=
+		(
+			/ %Lexical $=
+			(
+				/ @ "function %Decompose" $=
+				(
+					/ $revert(b862) "1st parameter type" -> "%string_view"
+						~ 'const SmallString&',
+					+ "2nd parameter of %TokenList::allocator_type with \
+						default argument to initialize the result"
+						$dep_to "decomposed with allocator"
+				),
+				/ DLI "initialized the result"
+					@ "all 2 functions %Tokenize" ^ "%TokenList::get_allocator"
+					$dep_from "decomposed with allocator",
+				+ "type %TokenViewList",
+				/ @ "class %UnescapeContext" $=
+				(
+					+ DLDI "brace-init-list '{}'" @ "private data member",
+					- "function %Done" $dep_from "inlined escaping cleanup",
+					(
+					/ $forced "type" @ "data member %Prefix"
+						-> "data members %(Start, Length)"
+						$dep_from "%HandleBackslashPrefix"
+						$dep_to "avoiding SmallString";
+					/ $forced DLDI "function %(IsHandling, Clear)",
+					+ "function %VerifyBufferLength"
+					),
+					- "all 2 functions %(PopIf, Push)" $dep_from
+						"avoiding in-context sequence modification",
+					- "function %GetSequence" $dep_all_from
+						"avoiding in-context sequence reference"
+				),
+				/ @ "class %LexicalAnalyzer" $=
+				(
+					(
+					/ "%Unescaper and internal buffer" ^ "%string"
+						~ "%SmallString" $dep_to "avoiding SmallString";
+					/ DLI "initialized the result" @ "functon %Literalize"
+						^ "internal list allocator",
+					/ $forced "return type" @ "member function %GetBuffer",
+					/ $forced DLDI "escaping check"
+						$dep_to "inlined escaping cleanup" $=
+						(/ DLI !^ "%UnescapeContext::Done")
+					),
+					/ "made %Unescaper context parameter modifiable"
+						$dep_to "modifiable context in unescaping"
+						// This also enables the support of incomplete \
+							sequence more than 1 byte which is previously \
+							unavailable.
+						$= (- 'const'
+							@ "parameter type 'const UnescapeContext&'"),
+					(
+					+ "function %ReplaceBack",
+					+ "function template %FilterChar" $dep_from
+						("inlined escaping cleanup", "in-buffer prefix") $=
+						// The function used in the default cases is optimized \
+							and now calls to filter routines can be inlined.
+					(
+						/ $impl "copied and simplified common logic of \
+							%(ParseByte, ParseQuoted)";
+						/ @ "escaping check" $=
+						(
+							/ $forced "assumed the escaping sequence in the \
+								buffer with prefix of single character"
+								$dep_from "%UnescapeContext::(Start, Length)"
+								$dep_to "in-buffer prefix",
+							- "short circuit check for extended characters \
+								(octet value not less than '0x80')",
+							- "all context handling" $dep_from
+								"simplified escaping context reset"
+						),
+						/ "prefix handler" ^ "%(string_view, UnescapeContext)"
+							~ "%(char, SmallString)"
+							$dep_to "avoiding SmallString",
+						+ "%char as 2nd parameter to split the buffer and \
+							the current character" @ "unescaper"
+							@ "%Unescaper" $dep_to
+							"unescaping current character",
+						- "separated handling of concatenation sequence"
+							$dep_from "unescaping concatenation support",
+						/ "simplified unescaping when accepted" $=
+						(
+							/ $forced "removal of trailing character" $dep_from
+								"%UnescapeContext::Prefix",
+								$= (/ ^ $dep_from
+									"%UnescapeContext::VerifyBufferLength")
+							/ $impl !^ "%UnescapeContext::(PopIf, Push)"
+								$dep_from "in-buffer prefix"
+								$dep_to "avoiding in-context sequence \
+								modification"
+						)
+					);
+					- "types %(PrefixHandler, Unescaper)",
+					/ "functions %(ParseByte, ParseQuoted)"
+						-> "function templates"
+						// They are also allowed inlined for better performance.
+					),
+					/ "function %Literalize returned view list" ^ $dep_from
+						"%TokenViewList" ~ "%TokenList",
+					* $doc "logical line joining" @ "Doxygen comment"
+						@ $mismatch $since b335,
+						// This is not available like ISO C++ without looking \
+							ahead of the new-line character after double \
+							backslashes and it is never implemented here.
+					+ "function %GetDelimiter",
+					/ "removed left quotes parsing support"
+						$dep_from "lift out of left quotes parsing" $=
+					(
+						- "function %GetLeftQuotes",
+						/ "simplified" $dep_from "%ReplaceBack";
+						- $impl "internal left quotes state"
+					)
+				),
+				/ $forced "functions %(HandleBackslashPrefix, IgnorePrefix)"
+					$dep_from "%LexicalAnalyzer::FilterChar",
+				/ "function %NPLUnescape" $=
+				(
+					(
+					/ $forced ^ "%string" ~ "%SmallString"
+						$dep_from "%LexicalAnalyzer::Unescaper"
+						$dep_to "avoiding SmallString";
+					+ "assertion";
+					/ $forced "optimized buffer overwriting and avoided \
+						insertion" $dep_from "in-buffer prefix"
+						/ $= ($impl !^ "%UnescapeContext::GetSequence"
+							$dep_to "avoiding in-context sequence reference")
+					),
+					+ $forced "%char as 2nd parameter to split the buffer and \
+						the current character" $dep_from
+						"unescaping current character",
+					+ "line concatenation"
+						$dep_to "unescaping concatenation support",
+					/ $forced ("modifiable context in unescaping",
+						"simplified escaping context reset")
+				),
+				(
+				/ $forced "all 2 functions %Tokenize" -> "funtion with \
+					'const TokenViewList&' parameter"
+					$dep_from "%LexicalAnalyzer::Literalize";
+				* $comp DLI "missing string moving optimization"
+					@ "function %Tokenize#2" $since b862
+				),
+				(
+				/ DLDI "%TokenList" !^ "%SmallString";
+				- $revert(b862) "type %SmallString"
+					$dep_all_from "avoiding SmallString"
+				),
+				+ $dev $lib 'YB_ATTR_nodiscard' @ "functions \
+					%(HandleBackslashPrefix, NPLUnescape, CheckLiteral, \
+					Deliteralize, DeliteralizeUnchecked, Escape, \
+					EscapeLiteral, EscapeXML, Literalize, \
+					IsGraphicalDelimiter, IsDelimiter, Decompose, Tokenize)",
+				+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+					@ "function %IgnorePrefix"
+			),
+			/ %SContext $=
+			(
+				/ @ "class %Session" $=
+				(
+					/ $forced "return type" @ "function %GetBuffer"
+						$dep_from ("%LexicalAnalyzer::GetBuffer" @ %Lexical),
+					/ "constructors cleanup" $=
+					(
+						* "missing definition" @ "constructor with single \
+							memory resource parameter" $since b861,
+						/ "constructor templates with range"
+							-> "function templates %Parse"
+					)
+				),
+				/ DLDI "alias %Tokenizer"
+					^ "%TokenList::value_type" ~ "%SmallString"
+					$dep_to "avoiding SmallString",
+				/ $comp "removed support of implicit parse of single argument \
+					by converting to session" @ "%SContext::Analyze"
+					$dep_from ("constructors cleanup" @ "class %Session")
+			),
+			/ DLDI ("constructor %REPLContext" @ %NPLA1,
+				"function %Reduce#1" @ %SContext)
+				^ "%TokenList::value_type" ~ "%SmallString"
+				$dep_to "avoiding SmallString",
+			/ $forced DLDI ("member functions %REPLContext::(Perform#3, \
+				ReadFrom#2)" @ %NPLA1, "function %operator>>" @ %Configuration,
+				("function %DecomposeMakefileDepList", "applicative \
+				'SHBuild_TrimOptions_'" @ "function %LoadModule_SHBuild")
+				@ %Dependency, "functions %Forms::(EvalString, EvalStringRef)"
+				@ %NPLA1Forms) $dep_from
+				("constructor cleanup" @ "class %Session" @ %SContext),
+			/ %Dependency $=
+			(
+				/ "function %DecomposeMakefileDepList" @ %Dependency
+					$=
+				(
+					/ $forced DLD $dep_from
+						("%LexicalAnalyzer::(PrefixHandler, Unescaper)"
+						@ %Lexical, "in-buffer prefix") $=
+					(
+						/ $impl ^ $dep_from "%UnescapeContext::VerifyBufferLength",
+						/ $impl !^ "%UnescapeContext::GetSequence"
+							$dep_to "avoiding in-context sequence reference",
+						+ $forced "%char as 2nd parameter to split the buffer and \
+							the current character",
+					),
+					+ DLI "line concatenation" @ "unescaping"
+						$dep_to "unescaping concatenation support",
+					/ $forced ("modifiable context in unescaping",
+						"simplified escaping context reset")
+					* "wrong handling of unespaced '$'" $since b623
+						// For '\$' it should not be a prefix of subsequent \
+							escape sequence.
+				),
+				/ @ "applicative 'SHBuild_TrimOptions_'"
+					@ "function %LoadModule_SHBuild" $=
+				(
+					/ $forced DLDI $dep_from
+						("%LexicalAnalyzer::Literalize" @ %Lexical),
+					/ DLDI ^ $dep_from ("%LexicalAnalyzer::(GetBuffer, \
+						FilterChar, ReplaceBack)"
+						~ "%LexicalAnalyzer::(ParseByte, GetLeftQuotes)"
+						@ %Lexical) $dep_to "lift out of left quotes parsing"
+				)
+			),
+			/ %NPLA $=
+			(
+				/ DLI ("all 2 function templates %ComposeActions", "destructor \
+					%Environment" @ 'NPL_NPLA_CheckEnvironmentReferenceCount')
+					^ "allocators",
+				- DLDI 'ystdex::' @ 'ystdex::in_place_type'
+					@ "function template %EmplaceLeaf",
+				/ "function template %SetupTail" @ "class %ContextNode"
+					-> "2 overloads to support allocators of %Reducer \
+					initialization",
+				/ DLDI "simplified function templates %ComposeActions"
+					^ "%ystdex::(enable_if_same_param_t, exclude_self_t)"
+					~ "%ystdex::(enable_if_t, is_decayed)"
+					// Also to be consistent to %ContextNode::SetupTail.
+			),
+			/ %NPLA1Internal $=
+			(
+				(
+				+ "function template %SetupTailTCOAction";
+					// This is optimal after the change on \
+						%ContextNode::SetupTail.
+				/ DLI "enabled allocator" @ "%EnsureTCOAction"
+					^ "%SetupTailTCOAction" ~ "%SetupTailAction"
+				),
+				+ 'ynothrow' @ "function %AccessTCOAction"
+				/ DLI "function %ReduceForCombinerRef" ^ "allocators"
+			),
+			/ %NPLA1 $=
+			(
+				/ DLI ^ "allocators"
+					@ ("member functions %REPLContext::ReadFrom#2",
+					"function %Reduce"),
+				/ DLI "member function %ContextState::RewriteGuarded"
+					^ "%std::move",
+				/ DLI "%ValueObject of %TokenValue construction"
+					@ "function %ParseLeaf" ^ "allocators",
+				(
+				+ "function template overloads %WrapContextHandler to support \
+					allocators";
+				+ "constructor template to support allocators"
+					@ "class template %FormContextHandler"
+				)
+			),
+			/ DLI %NPLA1Forms $=
+			(
+				/ "enabled allocator" @ "function %ForwardListFirst"
+					^ $dep_from "%SetupTailTCOAction" @ %NPLA1Internal
+					~ "%SetupTailAction",
+				/ "%TokenValue::Unspecified assignment" @ "functions \
+					%Forms::(Cond, Define*, SetWith*)" ^ "allocators" 
+					$dep_from
+					("constructor#5 %ValueObject" @ %YSLib.Core.YObject),
+				/ "function templates %(CallUnary, $comp CallUnaryAs, \
+					CallBinary, CallBinaryAs)" ^ "allocators" $dep_from
+					(("%ystdex::any_ops::allocator_value_handler::manage"
+					@ %YBase.YStandardEx.Any),
+					"SFIANE-friendly allocation of ValueObject")
+					// Although this will not cause ill-formed library \
+						directly, instantiation of user code with values of \
+						move-only types will be ill-formed with allocators if \
+						the bug of %ystdex::any_ops::allocator_value_handler \
+						is not fixed.
+			)
+		)
+	),
+	/ $forced DLDI (("member function %WidgetLoader::LoadUILayout"
+		@ %YSLib.UI.Loader, "function %FetchMIMEBiMapping"
+		@ %Helper.Initialization) @ %YFramework,
+		"main function" @ %Tools.SXML2XML.Main)
+		$dep_from ("%SContext::Analyze" @ %YFramework.NPL.SContext)
+),
+
+b885
 (
 	/ %YBase $=
 	(
@@ -7403,9 +7753,9 @@ b851,
 						@ %YObject
 						// To eliminate Clang++ warning: [-Wunused-function].
 					(
-						/ "improved SFINAE-friend %ValueHolder constructor \
+						/ "improved SFINAE-friendly %ValueHolder constructor \
 							templates" $dep_from "SFINAE-friendly boxed_value",
-						/ "improved SFINAE-friend %ValueObject constructor \
+						/ "improved SFINAE-friendly %ValueObject constructor \
 							templates with object parameter" $dep_from
 							%UI.YWidgetEvent,
 							// To avoid possible tag types used as values, \

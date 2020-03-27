@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r18052
+\version r18065
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2020-03-04 18:26 +0800
+	2020-03-25 14:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,12 +26,12 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA1Forms // for YSLib, TermReference,
-//	NPL::TryAccessReferencedTerm, function, ystdex::value_or, NPL::Deref,
+#include YFM_NPL_NPLA1Forms // for YSLib, TermReference, in_place_type,
+//	function, NPL::TryAccessReferencedTerm, ystdex::value_or, NPL::Deref,
 //	RemoveHead, IsBranch, std::placeholders, ystdex::as_const, IsLeaf,
 //	ystdex::ref_eq, ContextHandler, shared_ptr, string, unordered_map,
 //	Environment, lref, list, IsBranchedList, TokenValue, NPL::TryAccessLeaf,
-//	ValueObject, any_ops::use_holder, in_place_type, weak_ptr, ystdex::type_id,
+//	ValueObject, any_ops::use_holder, weak_ptr, ystdex::type_id,
 //	YSLib::allocate_shared, InvalidReference, MoveFirstSubterm, ShareMoveTerm,
 //	ystdex::get_less, map, set, std::make_move_iterator, ystdex::exists,
 //	ystdex::retry_on_cond, ystdex::id, ystdex::ref, ystdex::id,
@@ -134,7 +134,10 @@ ReduceSequenceOrderedAsync(TermNode& term, ContextNode& ctx, TNIter i)
 ReductionStatus
 ReduceReturnUnspecified(TermNode& term) ynothrow
 {
-	term.Value = ValueToken::Unspecified;
+	// XXX: This is slightly more efficient than direct assignment with
+	//	x86_64-pc-linux G++ 9.3 in this context.
+	term.Value = ValueObject(std::allocator_arg, term.get_allocator(),
+		in_place_type<ValueToken>, ValueToken::Unspecified);
 	return ReductionStatus::Clean;
 }
 
@@ -999,8 +1002,11 @@ EvalStringImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 	RetainN(term, 2);
 
 	auto& expr(*std::next(term.begin()));
-	auto unit(SContext::Analyze(Session(Deref(term.get_allocator().resource()),
-		NPL::ResolveRegular<const string>(expr)), term.get_allocator()));
+	Session sess(NPL::Deref(term.get_allocator().resource()));
+
+	sess.Parse(NPL::ResolveRegular<const string>(expr));
+
+	auto unit(SContext::Analyze(sess, term.get_allocator()));
 
 	unit.SwapContainer(expr);
 	return EvalImplUnchecked(term, ctx, no_lift);
@@ -1827,6 +1833,8 @@ public:
 				else
 				{
 					// XXX: Subterms cleanup is deferred.
+					// XXX: Allocators are not used here for performance in most
+					//	cases.
 					term.Value = TermReference(tm,
 						FetchTailEnvironmentReference(*p_ref, ctx));
 					return ReductionStatus::Clean;
@@ -2094,7 +2102,7 @@ ForwardListFirst(TermNode& term, ContextNode& ctx)
 				return RelayNext(ctx, [&]{
 #	if NPL_Impl_NPLA1_Enable_TCO
 					// TODO: See %ReduceCallSubsequent.
-					SetupTailAction(ctx, TCOAction(ctx, l, {}));
+					SetupTailTCOAction(ctx, l, {});
 #	endif
 					return RelayForCombine(ctx, l, env.shared_from_this());
 				}, ComposeSwitched(ctx, [&]{

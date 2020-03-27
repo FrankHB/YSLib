@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r7600
+\version r7606
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2020-02-15 11:50 +0800
+	2020-03-26 10:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -221,7 +221,7 @@ CallUnary(_func&& f, TermNode& term, _tParams&&... args)
 	Forms::CallRawUnary([&](TermNode& tm){
 		YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
 			ystdex::make_expanded<void(TermNode&, _tParams&&...)>(std::ref(f)),
-			tm, yforward(args)...));
+			tm, yforward(args)...), term.get_allocator());
 	}, term);
 }
 
@@ -254,7 +254,8 @@ CallBinary(_func&& f, TermNode& term, _tParams&&... args)
 
 	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
 		ystdex::make_expanded<void(TermNode&, TermNode&, _tParams&&...)>(
-		std::ref(f)), x, NPL::Deref(++i), yforward(args)...));
+		std::ref(f)), x, NPL::Deref(++i), yforward(args)...),
+		term.get_allocator());
 }
 
 //! \since build 835
@@ -270,7 +271,7 @@ CallBinaryAs(_func&& f, TermNode& term, _tParams&&... args)
 	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
 		ystdex::make_expanded<void(_type&, _type2&, _tParams&&...)>(
 		std::ref(f)), x, NPL::ResolveRegular<_type2>(NPL::Deref(++i)),
-		yforward(args)...));
+		yforward(args)...), term.get_allocator());
 }
 //@}
 //@}
@@ -293,7 +294,8 @@ CallBinaryFold(_func f, _type val, TermNode& term, _tParams&&... args)
 
 	YSLib::EmplaceCallResult(term.Value, std::accumulate(j, std::next(j,
 		typename std::iterator_traits<decltype(j)>::difference_type(n)), val,
-		ystdex::bind1(f, std::placeholders::_2, yforward(args)...)));
+		ystdex::bind1(f, std::placeholders::_2, yforward(args)...)),
+		term.get_allocator());
 }
 
 

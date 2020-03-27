@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r18916
+\version r18937
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-02-21 17:21 +0800
+	2020-03-26 09:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -245,6 +245,7 @@ private:
 	TokenValue delim2{","};
 	Filter filter{ystdex::bind1(HasValue<TokenValue>, delim)};
 	Filter filter2{ystdex::bind1(HasValue<TokenValue>, delim2)};
+	// XXX: More allocators are not used here for performance in most cases.
 	ValueObject pfx{std::allocator_arg, alloc, ContextHandler(Forms::Sequence)};
 	ValueObject pfx2{std::allocator_arg, alloc,
 		ContextHandler(FormContextHandler(ReduceBranchToList, 1))};
@@ -1015,7 +1016,7 @@ ContextState::RewriteGuarded(TermNode& term, Reducer reduce)
 {
 	const auto gd(Guard(term, *this));
 
-	return Rewrite(reduce);
+	return Rewrite(std::move(reduce));
 }
 
 
@@ -1029,7 +1030,8 @@ Reduce(TermNode& term, ContextNode& ctx)
 #endif
 	SetupNextTerm(ctx, term);
 	return ContextState::Access(ctx).RewriteGuarded(term,
-		std::ref(ContextState::Access(ctx).ReduceOnce));
+		Reducer(std::allocator_arg, ctx.get_allocator(),
+		std::ref(ContextState::Access(ctx).ReduceOnce)));
 }
 
 ReductionStatus
@@ -1287,8 +1289,9 @@ ParseLeaf(string_view id, TermNode::allocator_type a)
 			id = DeliteralizeUnchecked(id);
 			YB_ATTR_fallthrough;
 		case LexemeCategory::Symbol:
-			if(CheckReducible(A1::DefaultEvaluateLeaf(term, id)))
-				term.Value = TokenValue(id, a);
+			if(CheckReducible(DefaultEvaluateLeaf(term, id)))
+				term.Value = ValueObject(std::allocator_arg, a,
+					in_place_type<TokenValue>, id, a);
 				// NOTE: This is to be evaluated as identifier later.
 			break;
 			// XXX: Empty token is ignored.
@@ -1297,7 +1300,8 @@ ParseLeaf(string_view id, TermNode::allocator_type a)
 			// XXX: This should be prevented being passed to second pass in
 			//	%TermToNamePtr normally. This is guarded by normal form handling
 			//	in the loop in %ContextNode::Rewrite with %ReduceOnce.
-			term.Value = string(Deliteralize(id), a);
+			term.Value = ValueObject(std::allocator_arg, a,
+				in_place_type<string>, Deliteralize(id), a);
 			YB_ATTR_fallthrough;
 		default:
 			break;
@@ -1680,7 +1684,8 @@ SetupDefaultInterpretation(ContextState& cs, EvaluationPasses passes)
 
 
 REPLContext::REPLContext(pmr::memory_resource& rsrc)
-	: Allocator(&rsrc), Root(rsrc), ConvertLeaf([&](const SmallString& str){
+	: Allocator(&rsrc), Root(rsrc), ConvertLeaf(
+		[&](const TokenList::value_type& str){
 		return ParseLeaf(YSLib::make_string_view(str), Allocator);
 	})
 {
@@ -1711,7 +1716,12 @@ REPLContext::Perform(string_view unit, ContextNode& ctx)
 {
 	YAssertNonnull(unit.data());
 	if(!unit.empty())
-		return Process(Session(ctx.GetMemoryResourceRef(), unit), ctx);
+	{
+		Session sess(ctx.GetMemoryResourceRef());
+
+		sess.Parse(unit);
+		return Process(sess, ctx);
+	}
 	throw LoggedEvent("Empty token list found.", Alert);
 }
 
@@ -1751,8 +1761,7 @@ REPLContext::ReadFrom(std::istream& is) const
 	{
 		if(const auto p = is.rdbuf())
 			return ReadFrom(*p);
-		else
-			throw std::invalid_argument("Invalid stream buffer found.");
+		throw std::invalid_argument("Invalid stream buffer found.");
 	}
 	else
 		throw std::invalid_argument("Invalid stream found.");
@@ -1761,8 +1770,10 @@ TermNode
 REPLContext::ReadFrom(std::streambuf& buf) const
 {
 	using s_it_t = std::istreambuf_iterator<char>;
+	Session sess(NPL::Deref(Allocator.resource()));
 
-	return Prepare(Session(s_it_t(&buf), s_it_t()));
+	sess.Parse(s_it_t(&buf), s_it_t());
+	return Prepare(sess);
 }
 
 } // namesapce A1;

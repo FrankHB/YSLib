@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r7114
+\version r7151
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2020-03-04 18:36 +0800
+	2020-03-26 04:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,13 +39,13 @@
 //	observer_ptr, ystdex::type_id, std::addressof, NPL::make_observer,
 //	ystdex::equality_comparable, weak_ptr, ystdex::get_equal_to, pair,
 //	ystdex::expand_proxy, NPL::Access, ystdex::ref_eq, ValueObject,
-//	NPL::SetContentWith, AccessFirstSubterm, ystdex::less, YSLib::map, pmr,
-//	ystdex::copy_and_swap, NoContainer, ystdex::try_emplace,
+//	NPL::SetContentWith, std::for_each, AccessFirstSubterm, ystdex::less,
+//	YSLib::map, pmr, ystdex::copy_and_swap, NoContainer, ystdex::try_emplace,
 //	ystdex::try_emplace_hint, ystdex::insert_or_assign, ystdex::type_info,
-//	ystdex::expanded_function, YSLib::allocate_shared, ystdex::exchange,
+//	ystdex::expanded_function, YSLib::allocate_shared,
+//	ystdex::enable_if_same_param_t, ystdex::exclude_self_t, ystdex::exchange,
 //	ystdex::make_obj_using_allocator;
 #include <ystdex/base.h> // for ystdex::derived_entity;
-#include <algorithm> // for std::for_each;
 
 namespace NPL
 {
@@ -2591,23 +2591,26 @@ public:
 	\brief 设置当前动作以重规约。
 	\pre 断言：\c !Current 。
 	\pre 动作转移无异常抛出。
-	\since build 809
+	\since build 886
 	*/
+	//@{
 	template<typename _func>
-	YB_ATTR(always_inline) inline void
+	YB_ATTR(always_inline) inline yimpl(ystdex::enable_if_same_param_t)<
+		Reducer, _func>
 	SetupTail(_func&& f)
 	{
-#if false
-		// XXX: Not applicable for functor with %Reducer is captured.
-		using func_t = ystdex::decay_t<_func>;
-		static_assert(ystdex::or_<std::is_same<func_t, Reducer>,
-			ystdex::is_nothrow_move_constructible<func_t>>(),
-			"Invalid type found.");
-#endif
-
 		YAssert(!Current, "Old continuation is overriden.");
 		Current = yforward(f);
 	}
+	template<typename _func,
+		yimpl(typename = ystdex::exclude_self_t<Reducer, _func>)>
+	YB_ATTR(always_inline) inline void
+	SetupTail(_func&& f)
+	{
+		return SetupTail(
+			Reducer(std::allocator_arg, get_allocator(), yforward(f)));
+	}
+	//@}
 
 	/*!
 	\brief 切换当前动作。
@@ -2739,9 +2742,9 @@ EmplaceLeaf(Environment::BindingMap& m, string_view name, _tParams&&... args)
 	//	an alias of %ValueNode and it is same to %BindingMap currently.
 	// XXX: Allocators are not used on %ValueObject for performance in most
 	//	cases.
-	return ystdex::insert_or_assign(m, name, TermNode(std::allocator_arg,
-		m.get_allocator(), NoContainer, ystdex::in_place_type<_type>,
-		yforward(args)...)).second;
+	return ystdex::insert_or_assign(m, name,
+		TermNode(std::allocator_arg, m.get_allocator(), NoContainer,
+		in_place_type<_type>, yforward(args)...)).second;
 	// NOTE: The following code is incorrect because the subterms are not
 	//	cleared, as well as lacking of %bool return value of insertion result.
 //	m[name].Value.emplace<_type>(yforward(args)...);
@@ -2924,21 +2927,23 @@ struct GComposedAction final
 */
 //@{
 template<typename _fCurrent, typename _fNext>
-YB_ATTR_nodiscard YB_PURE inline yimpl(ystdex::enable_if_t)<
-	ystdex::is_decayed<_fCurrent, Reducer>::value, Reducer>
+YB_ATTR_nodiscard YB_PURE inline yimpl(ystdex::enable_if_same_param_t)<
+	Reducer, _fCurrent, Reducer>
 ComposeActions(ContextNode& ctx, _fCurrent&& cur, _fNext&& next)
 {
-	return cur ? GComposedAction<ystdex::remove_cvref_t<_fCurrent>,
-		ystdex::remove_cvref_t<_fNext>>(ctx, yforward(cur), yforward(next))
+	return cur ? Reducer(std::allocator_arg, ctx.get_allocator(),
+		GComposedAction<ystdex::remove_cvref_t<_fCurrent>,
+		ystdex::remove_cvref_t<_fNext>>(ctx, yforward(cur), yforward(next)))
 		: std::move(next);
 }
 template<typename _fCurrent, typename _fNext, yimpl(typename
-	= ystdex::enable_if_t<!ystdex::is_decayed<_fCurrent, Reducer>::value>)>
+	= ystdex::exclude_self_t<Reducer, _fCurrent>)>
 YB_ATTR_nodiscard YB_PURE inline Reducer
 ComposeActions(ContextNode& ctx, _fCurrent&& cur, _fNext&& next)
 {
-	return GComposedAction<ystdex::remove_cvref_t<_fCurrent>,
-		ystdex::remove_cvref_t<_fNext>>(ctx, yforward(cur), yforward(next));
+	return Reducer(std::allocator_arg, ctx.get_allocator(),
+		GComposedAction<ystdex::remove_cvref_t<_fCurrent>,
+		ystdex::remove_cvref_t<_fNext>>(ctx, yforward(cur), yforward(next)));
 }
 //@}
 
@@ -3022,7 +3027,7 @@ YB_FLATTEN inline ReductionStatus
 GComposedAction<_fCurrent, _fNext>::operator()(ContextNode& ctx) const
 {
 	NPL::RelaySwitched(ctx, std::move(Next));
-	// XXX: The context object passed here is inteded to be used by default.
+	// XXX: The context object passed here is intended to be used by default.
 	//	This can be overrided by a captured context reference same to this if
 	//	necessary (e.g. for performance).
 	return ystdex::expand_proxy<ReductionStatus(ContextNode&)>::call(

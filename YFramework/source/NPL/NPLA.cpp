@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3186
+\version r3190
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2020-02-29 21:14 +0800
+	2020-03-25 13:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -751,6 +751,7 @@ LiftToReference(TermNode& term, TermNode& tm)
 		else if(tm.Value.OwnsCount() > 1)
 			// XXX: This is unsafe and not checkable because the anchor is not
 			//	referenced.
+			// XXX: Allocators are not used here for performance in most cases.
 			term.Value = TermReference(TermTags::Unqualified, tm,
 				EnvironmentReference());
 		else
@@ -853,6 +854,7 @@ ReduceToReferenceAt(TermNode& term, TermNode& tm,
 	// XXX: Term tags on prvalues are reserved and should be ignored normally
 	//	except for future internal use. Since %term is a term, %Tags::Temporary
 	//	is not expected, the %GetLValueTagsOf is also not used.
+	// XXX: Allocators are not used here for performance in most cases.
 	term.Value = TermReference(tm.Tags, tm,
 		NPL::Deref(p_ref).GetEnvironmentReference());
 	return ReductionStatus::Clean;
@@ -875,8 +877,7 @@ Environment::~Environment()
 				YSLib::FilterExceptions([this, acnt, ecnt]{
 					const size_t n(Bindings.size());
 					size_t i(0);
-					// XXX: Allocator type is not available for %string yet.
-					string str;
+					string str(Bindings.get_allocator());
 					// XXX: The value is heuristic for common cases.
 					str.reserve(n * yimpl(8));
 

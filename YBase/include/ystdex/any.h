@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r4893
+\version r4931
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2020-02-05 00:15 +0800
+	2020-03-27 17:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -160,7 +160,7 @@ public:
 \brief 指针类型动态泛型持有者。
 \tparam _type 对象类型。
 \tparam _tPointer 智能指针类型。
-\pre _tPointer 具有 _type 对象所有权。
+\pre _tPointer 满足 \c NullablePointer 要求且具有 _type 对象的所有权。
 \pre 静态断言： <tt>is_object<_type>()</tt> 。
 \since build 555
 */
@@ -185,7 +185,7 @@ public:
 	\pre 断言：指针指向对象。
 	*/
 	pointer_holder(pointer value)
-		: p_held((yconstraint(value.get()), value))
+		: p_held((yconstraint(bool(value)), value))
 	{}
 	//! \since build 352
 	//@{
@@ -415,6 +415,17 @@ construct(any_storage& storage, _tParams&&... args) -> enable_if_t<
 	return _tHandler::manage;
 }
 
+/*!
+\ingroup metafunctions
+\brief 判断处理器是否能被指定参数构造。
+\sa construct
+\since build 886
+*/
+template<class _tHandler, typename... _tParams>
+using is_handler_constructible_t = is_constructible<any_ops::any_manager,
+	decltype(any_ops::construct<_tHandler>(
+	std::declval<any_ops::any_storage&>(), std::declval<_tParams>()...))>;
+
 
 /*!
 \ingroup unary_type_traits
@@ -466,12 +477,13 @@ public:
 		: p_val(make_unique<value_type>(yforward(args)...))
 	{}
 
+	YB_ATTR_nodiscard YB_PURE
 	operator value_type&() const ynothrowv
 	{
 		return get();
 	}
 
-	value_type&
+	YB_ATTR_nodiscard YB_PURE value_type&
 	get() const ynothrowv
 	{
 		yassume(bool(p_val));
@@ -791,6 +803,8 @@ private:
 
 public:
 	using base = value_handler<ator_owned_ptr>;
+	//! \since build 886
+	using local_storage = typename base::local_storage;
 
 	static void
 	copy(any_storage& d, const any_storage& s)
@@ -802,12 +816,22 @@ public:
 	}
 
 private:
+	//! \since build 886
+	template<typename _tAlloc, typename... _tParams>
+	YB_ATTR(always_inline) static auto
+	do_alloc_unique(const _tAlloc& a, _tParams&&... args)
+		-> enable_if_t<is_constructible<value_type, _tParams&&...>::value,
+		decltype(ystdex::allocate_unique<value_type>(a, yforward(args)...))>
+	{
+		return ystdex::allocate_unique<value_type>(a, yforward(args)...);
+	}
+
 	template<typename _func>
 	static void
 	do_with_allocator(any_storage& d, any_storage& s, _func f)
 	{
 		const auto p_a(d.access<rebound_ator_type*>());
-		const auto& p_owned(base::get_reference(s));
+		auto& p_owned(base::get_reference(s));
 
 		yassume(p_a);
 		yassume(bool(p_owned));
@@ -843,12 +867,13 @@ public:
 		return *get_pointer(s);
 	}
 
+	//! \since build 886
 	template<typename... _tParams>
 	YB_ATTR(always_inline) static auto
-	init(any_storage& d, _tParams&&... args) -> decltype(base::init(d,
-		ystdex::allocate_unique<value_type>(yforward(args)...)), void())
+	init(any_storage& d, _tParams&&... args) -> decltype(
+		yimpl(base::init(d, do_alloc_unique(yforward(args)...))), void())
 	{
-		base::init(d, ystdex::allocate_unique<value_type>(yforward(args)...));
+		base::init(d, do_alloc_unique(yforward(args)...));
 	}
 
 private:
@@ -904,7 +929,7 @@ public:
 			break;
 		case transfer_with_allocator:
 			do_with_allocator(d, s,
-				[&](const rebound_ator_type& a, const ator_owned_ptr& p_owned){
+				[&](const rebound_ator_type& a, ator_owned_ptr& p_owned){
 				if(typename allocator_traits<rebound_ator_type>
 					::is_always_equal() || rebound_ator_type(
 					p_owned.get_deleter().get_allocator()) == a)
@@ -1571,21 +1596,17 @@ private:
 	//! \since build 851
 	//@{
 	template<class _tHandler, typename... _tParams>
-	using is_handler_constructible_t = is_constructible<any_ops::any_manager,
-		decltype(any_ops::construct<_tHandler>(
-		std::declval<any_ops::any_storage&>(), std::declval<_tParams>()...))>;
-	template<class _tHandler, typename... _tParams>
 	using enable_with_handler_t = enable_if_t<is_constructible<
 		any_ops::any_manager, decltype(any_ops::construct<_tHandler>(
 		std::declval<any_ops::any_storage&>(), std::declval<_tParams>()...))>
 		::value>;
 	template<class _tCtor, class _tParamsList, typename... _tParams>
-	using is_handler_v_constructible_t = is_handler_constructible_t<
+	using is_handler_v_constructible_t = any_ops::is_handler_constructible_t<
 		vseq::defer_apply_t<_tCtor, _tParamsList>, _tParams...>;
-	template<class _bCond, template<typename...> class _gHolder,
+	template<class _bCond, template<typename...> class _gHandler,
 		class _tParamsList, typename... _tParams>
 	using enable_with_handler_params_t = enable_if_t<cond_or_t<_bCond, false_,
-		is_handler_v_constructible_t, vseq::_a<_gHolder>, _tParamsList,
+		is_handler_v_constructible_t, vseq::_a<_gHandler>, _tParamsList,
 		_tParams...>::value>;
 	template<typename _tParam>
 	using is_holder_arg_t = and_<details::not_tag_t<_tParam>,

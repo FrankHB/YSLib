@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1688
+\version r1689
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2020-01-30 22:33 +0800
+	2020-03-17 22:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -141,7 +141,7 @@ Reduce(TermNode& term, TLCIter b, TLCIter e)
 {
 	const auto a(term.get_allocator());
 
-	return Reduce(term, b, e, [&](const SmallString& str){
+	return Reduce(term, b, e, [&](const TokenList::value_type& str){
 		return NPL::AsTermNode(a, std::allocator_arg, a,
 			string(YSLib::make_string_view(str), a));
 	});

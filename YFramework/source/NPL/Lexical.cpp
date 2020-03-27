@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1752
+\version r1954
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2020-02-25 20:40 +0800
+	2020-03-22 15:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,213 +32,141 @@
 namespace NPL
 {
 
-SmallString
-UnescapeContext::Done()
-{
-	auto res(std::move(Prefix));
-
-	res += std::move(sequence);
-	Clear();
-	return res;
-}
-
-
 bool
-HandleBackslashPrefix(char c, SmallString& pfx)
+HandleBackslashPrefix(string_view buf, UnescapeContext& uctx)
 {
-	if(c == '\\')
+	YAssert(!buf.empty(), "Invalid buffer found.");
+	if(!uctx.IsHandling() && buf.back() == '\\')
 	{
-		pfx = "\\";
+		yunseq(uctx.Start = buf.length() - 1, uctx.Length = 1);
 		return true;
 	}
 	return {};
 }
 
 bool
-NPLUnescape(SmallString& buf, const UnescapeContext& uctx, char ld)
+NPLUnescape(string& buf, char c, UnescapeContext& uctx, char ld)
 {
-	const auto& escs(uctx.GetSequence());
+	if(uctx.Length == 1)
+	{
+		uctx.VerifyBufferLength(buf.length());
 
-	// NOTE: Blocked. Use ISO C++14 deduced lambda return type (cf. CWG 975)
-	//	compatible to G++ attribute.
-	return uctx.IsHandling() && escs.length() == 1 ? [&]() YB_FLATTEN{
-		bool res(true);
+		const auto i(uctx.Start);
 
-		switch(escs[0])
+		YAssert(i == buf.length() - 1, "Invalid buffer found.");
+		switch(c)
 		{
 		case '\\':
-			buf += '\\';
+			buf[i] = '\\';
 			break;
 		case 'a':
-			buf += '\a';
+			buf[i] = '\a';
 			break;
 		case 'b':
-			if(!buf.empty())
-				buf.pop_back();
+			buf.pop_back();
 			break;
 		case 'f':
-			buf += '\f';
+			buf[i] = '\f';
 			break;
 		case 'n':
-			buf += '\n';
+			buf[i] = '\n';
 			break;
 		case 'r':
-			buf += '\r';
+			buf[i] = '\r';
 			break;
 		case 't':
-			buf += '\t';
+			buf[i] = '\t';
 			break;
 		case 'v':
-			buf += '\v';
+			buf[i] = '\v';
+			break;
+		case '\n':
+			buf.pop_back();
 			break;
 		case '\'':
 		case '"':
-			if(escs[0] == ld)
+			if(c == ld)
 			{
-				buf += ld;
+				buf[i] = ld;
 				break;
 			}
 			YB_ATTR_fallthrough;
 		default:
-			res = {};
+			uctx.Clear();
+			buf += c;
+			return {};
 		}
-		return res;
-	}() : false;
+		uctx.Clear();
+		return true;
+	}
+	buf += c;
+	return {};
 }
 
 
 LexicalAnalyzer::DefDeCtor(LexicalAnalyzer)
 LexicalAnalyzer::LexicalAnalyzer(pmr::memory_resource& rsrc)
-	// NOTE: The allocator in %cbuf is not needed since it should be short
-	//	enough in most cases to have small string optimization. Setting an
-	//	allocator on %cbuf (of %string rather than %SmallString type) actually
-	//	makes the performance worse in typical tests.
-	: qlist(vector<size_t>::allocator_type(&rsrc)),
-	left_qset(YSLib::set<size_t>::allocator_type(&rsrc))
+	: cbuf(string::allocator_type(&rsrc)),
+	qlist(vector<size_t>::allocator_type(&rsrc))
 {}
 
-bool
-LexicalAnalyzer::CheckEscape(byte b, Unescaper unescape)
+void
+LexicalAnalyzer::ReplaceBack(char c)
 {
-	if(!(YSLib::octet(b) < 0x80))
-	{
-		// NOTE: Stop unescaping. The escaped sequence should have no
-		//	multibyte characters.
-		if(unescape_context.IsHandling())
-			cbuf += unescape_context.Done();
-		cbuf += char(b);
-	}
-	else if(unescape_context.IsHandling())
-	{
-		unescape_context.Push(b);
-		if(unescape(cbuf, unescape_context, ld))
-			unescape_context.Clear();
-		else
-			cbuf += unescape_context.Done();
-	}
-	else
-		return {};
-	return true;
-}
-
-bool
-LexicalAnalyzer::CheckLineConcatnater(char c, char concat, char newline)
-{
-	if(line_concat == concat && c == newline)
-	{
-		if(!unescape_context.PopIf(concat))
+	YAssert(!cbuf.empty(), "Invalid buffer found.");
+	[&]() YB_FLATTEN{
+		switch(c)
 		{
-			auto& pfx(unescape_context.Prefix);
-
-			if(!pfx.empty() && pfx.back() == concat)
-				pfx.pop_back();
-			else if(!cbuf.empty() && cbuf.back() == line_concat)
+			case char():
 				cbuf.pop_back();
-		}
-		return true;
-	}
-	else if(c == concat)
-		line_concat = concat;
-	else
-		line_concat = {};
-	return {};
-}
-
-bool
-LexicalAnalyzer::FilterForParse(char c, Unescaper unescape,
-	PrefixHandler prefix_handler)
-{
-	return !(CheckLineConcatnater(c) || CheckEscape(byte(c), unescape)
-		|| prefix_handler(c, unescape_context.Prefix));
-}
-
-void
-LexicalAnalyzer::ParseByte(char c, Unescaper unescape,
-	PrefixHandler prefix_handler)
-{
-	if(FilterForParse(c, unescape, prefix_handler))
-		[&]() YB_FLATTEN{
-			switch(c)
-			{
-				case '\'':
-				case '"':
-					if(ld == char())
-					{
-						ld = c;
-						left_qset.insert(cbuf.size()),
-						qlist.push_back(cbuf.size());
-						cbuf += c;
-					}
-					else if(ld == c)
-					{
-						ld = char();
-						cbuf += c;
-						qlist.push_back(cbuf.size());
-					}
-					else
-						cbuf += c;
-				case char():
+				break;
+			case '\'':
+			case '"':
+				if(ld == char())
+				{
+					ld = c;
+					qlist.push_back(cbuf.size() - 1);
+				}
+				else if(ld == c)
+				{
+					ld = char();
+					qlist.push_back(cbuf.size());
+				}
+				break;
+			// XXX: Case ' ' is equivalent in the default branch.
+		//	case ' ':
+			case '\f':
+			case '\n':
+			// XXX: Case '\r' is ignored.
+		//	case '\r':
+			case '\t':
+			case '\v':
+				if(ld == char())
+				{
+					cbuf.back() = ' ';
 					break;
-				case ' ':
-				case '\f':
-				case '\n':
-			//	case '\r':
-				case '\t':
-				case '\v':
-					if(ld == char())
-					{
-						cbuf += ' ';
-						break;
-					}
-					YB_ATTR_fallthrough;
-				default:
-					cbuf += c;
-			}
-		}();
+				}
+				YB_ATTR_fallthrough;
+			default:
+				break;
+		}
+	}();
 }
 
-void
-LexicalAnalyzer::ParseQuoted(char c, Unescaper unescape,
-	PrefixHandler prefix_handler)
-{
-	if(FilterForParse(c, unescape, prefix_handler))
-		cbuf += c;
-}
-
-TokenList
+TokenViewList
 LexicalAnalyzer::Literalize() const
 {
 	size_t i(0);
-	TokenList result;
+	TokenViewList result(cbuf.get_allocator());
 
 	std::for_each(qlist.cbegin(), qlist.cend(), [&](size_t s){
 		if(s != i)
 		{
-			result.push_back(cbuf.substr(i, s - i));
+			result.push_back(TokenViewList::value_type(&cbuf[i], s - i));
 			i = s;
 		}
 	});
-	result.push_back(cbuf.substr(i));
+	result.push_back(TokenViewList::value_type(&cbuf[i], cbuf.size() - i));
 	return result;
 }
 
@@ -402,10 +330,12 @@ Literalize(string_view sv, char c)
 
 
 TokenList
-Decompose(const SmallString& src)
+Decompose(string_view src, TokenList::allocator_type a)
 {
-	TokenList dst;
-	using iter_type = typename SmallString::const_iterator;
+	YAssertNonnull(src.data());
+
+	TokenList dst(a);
+	using iter_type = typename string_view::const_iterator;
 
 	ystdex::split_l(src.cbegin(), src.cend(), IsDelimiter,
 		// TODO: Blocked. Use C++14 generic lambda expressions.
@@ -428,32 +358,18 @@ Decompose(const SmallString& src)
 }
 
 TokenList
-Tokenize(const TokenList& src)
+Tokenize(const TokenViewList& src)
 {
-	TokenList dst;
+	const auto a(src.get_allocator());
+	TokenList dst(a);
 
-	for(const auto& str : src)
-		if(!str.empty())
+	for(const auto sv : src)
+		if(!sv.empty())
 		{
-			if(str.front() != '\'' && str.front() != '"')
-				dst.splice(dst.end(), Decompose(str));
+			if(sv.front() != '\'' && sv.front() != '"')
+				dst.splice(dst.end(), Decompose(sv, a));
 			else
-				dst.push_back(str);
-		}
-	return dst;
-}
-TokenList
-Tokenize(TokenList&& src)
-{
-	TokenList dst;
-
-	for(auto& str : src)
-		if(!str.empty())
-		{
-			if(str.front() != '\'' && str.front() != '"')
-				dst.splice(dst.end(), Decompose(std::move(str)));
-			else
-				dst.push_back(str);
+				dst.push_back(TokenList::value_type(sv.begin(), sv.end()));
 		}
 	return dst;
 }

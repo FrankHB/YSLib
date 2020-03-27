@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r5952
+\version r5981
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2020-02-25 22:04 +0800
+	2020-03-27 17:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,17 +30,18 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YCoreUtilities // for std::is_base_of,
-//	ystdex::is_decayed, ystdex::exclude_tagged_params_t,
+//	any_ops::check_holder_t, ystdex::exclude_tagged_params_t,
 //	ystdex::enable_if_t, any, any_ops::use_holder, in_place_type,
-//	std::allocator_arg_t, std::allocator_arg, ystdex::false_, ystdex::true_,
-//	any_ops::holder, ystdex::boxed_value, ystdex::exclude_self_t,
-//	std::is_constructible, ystdex::type_id, ystdex::is_allocatable,
-//	ystdex::is_byte_allocator, ystdex::exclude_self_params_t,
-//	any_ops::is_in_place_storable, ystdex::default_init,
-//	any_ops::get_allocator_type, any_ops::get_allocator_ptr, ystdex::is_sharing,
-//	ystdex::ref, ystdex::cond_t, ystdex::decay_t, ystdex::rebind_alloc_t,
-//	in_place_type_t, YSLib::unchecked_any_cast, YSLib::any_cast,
-//	YSLib::make_observer, ystdex::copy_or_move, ystdex::pseudo_output;
+//	ystdex::throw_invalid_construction, std::allocator_arg_t,
+//	std::allocator_arg, ystdex::false_, ystdex::true_, any_ops::holder,
+//	ystdex::boxed_value, ystdex::exclude_self_t, std::is_constructible,
+//	ystdex::type_id, ystdex::is_allocatable, ystdex::is_byte_allocator,
+//	ystdex::exclude_self_params_t, any_ops::is_in_place_storable,
+//	ystdex::default_init, any_ops::get_allocator_type,
+//	any_ops::get_allocator_ptr, ystdex::is_sharing, ystdex::ref, ystdex::cond_t,
+//	ystdex::decay_t, ystdex::rebind_alloc_t, in_place_type_t,
+//	YSLib::unchecked_any_cast, YSLib::any_cast, YSLib::make_observer,
+//	ystdex::copy_or_move, ystdex::pseudo_output;
 #include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
 
@@ -96,7 +97,8 @@ struct HasOwnershipOf : std::is_base_of<OwnershipTag<_type>, _tOwner>
 template<class _tHolder>
 struct HolderOperations
 {
-	static_assert(ystdex::is_decayed<_tHolder>(), "Invalid holder type found.");
+	static_assert(any_ops::check_holder_t<_tHolder>(),
+		"Invalid holder type found.");
 
 	template<typename... _tParams,
 		yimpl(typename = ystdex::exclude_tagged_params_t<_tParams...>)>
@@ -404,26 +406,26 @@ class AllocatorHolder : public ValueHolder<_type>
 
 public:
 	//! \since build 864
+	//@{
 	using Creation = IValueHolder::Creation;
 	//! \since build 847
 	using value_type = _type;
 
 private:
-	//! \since build 864
 	using base = ValueHolder<value_type>;
-	//! \since build 864
 	using base::value;
 
 public:
-	//! \since build 848
-	//@{
-	template<typename... _tParams, yimpl(typename
-		= ystdex::exclude_self_params_t<AllocatorHolder, _tParams...>)>
+	template<typename... _tParams,
+		yimpl(typename = ystdex::exclude_self_params_t<AllocatorHolder,
+		_tParams...>, typename = ystdex::enable_if_t<
+		std::is_constructible<_type, _tParams...>::value>)>
 	AllocatorHolder(_tParams&&... args)
 		: base(yforward(args)...)
 	{}
-	DefDeCopyMoveCtorAssignment(AllocatorHolder)
 	//@}
+	//! \since build 848
+	DefDeCopyMoveCtorAssignment(AllocatorHolder)
 
 	//! \since build 864
 	YB_ATTR_nodiscard any
@@ -460,11 +462,10 @@ private:
 				any_ops::get_allocator_ptr))));
 
 			if(c == Creation::Copy)
-				return HolderOperations<AllocatorHolder>
-					::CreateInPlace(std::allocator_arg, ra, value);
-			return HolderOperations<AllocatorHolder>
-				::CreateInPlace(std::allocator_arg, ra,
-				std::move(value));
+				return HolderOperations<AllocatorHolder>::CreateInPlace(
+					std::allocator_arg, ra, value);
+			return HolderOperations<AllocatorHolder>::CreateInPlace(
+				std::allocator_arg, ra, std::move(value));
 		}
 		// NOTE: It is more efficient to construct in place for %Indirect
 		//	case.
@@ -886,7 +887,7 @@ public:
 		in_place_type<alloc_holder_t<_type, _tAlloc>>, yforward(args)...)
 	{
 		static_assert(typename any::allocated_holder_handler_t<_tAlloc,
-			alloc_holder_t<_type, _tAlloc>>::base::base::local_storage(),
+			alloc_holder_t<_type, _tAlloc>>::base::local_storage(),
 			"Non-local storage found.");
 	}
 	//@}
@@ -1202,7 +1203,7 @@ public:
 	{
 		using Holder = alloc_holder_t<_type, _tAlloc>;
 		static_assert(typename any::allocated_holder_handler_t<_tAlloc,
-			alloc_holder_t<_type, _tAlloc>>::base::base::local_storage(),
+			alloc_holder_t<_type, _tAlloc>>::base::local_storage(),
 			"Non-local storage found.");
 
 		content.emplace<Holder>(std::allocator_arg, a, any_ops::use_holder,

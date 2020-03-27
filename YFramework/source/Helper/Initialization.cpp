@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2019 FrankHB.
+	© 2009-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3475
+\version r3479
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2019-08-01 12:58 +0800
+	2020-03-17 22:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -552,7 +552,10 @@ FetchMIMEBiMapping()
 	}, [](ValueNode& node, MIMEBiMapping& locked) -> MIMEBiMapping&{
 		AddMIMEItems(locked, LoadNPLA1File("MIME database", (AccessChild<string>
 			(node, "DataDirectory") + "MIMEExtMap.txt").c_str(), []{
-				return A1::LoadNode(SContext::Analyze(NPL::Session(TU_MIME)));
+				NPL::Session sess{};
+
+				sess.Parse(TU_MIME);
+				return A1::LoadNode(SContext::Analyze(sess));
 			}, true));
 		return locked;
 	});

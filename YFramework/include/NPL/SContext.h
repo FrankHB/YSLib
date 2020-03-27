@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2716
+\version r2765
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2020-01-31 03:23 +0800
+	2020-03-17 22:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,6 +40,7 @@
 //	std::is_convertible, ystdex::decay_t, ystdex::bool_, ystdex::cond_or_t,
 //	ystdex::not_, ystdex::enable_if_t, ystdex::call_value_or, ystdex::addrof,
 //	ystdex::compose;
+#include <algorithm> // for std::for_each;
 
 namespace NPL
 {
@@ -728,44 +729,13 @@ public:
 	//! \since build 618
 	DefDeCtor(Session)
 	//! \since build 861
-	Session(pmr::memory_resource&);
-	//! \since build 862
-	//@{
-	//! \throw LoggedEvent 关键失败：无法访问源内容。
-	//@{
-	template<typename _tIn, typename _tCharParser = CharParser>
-	Session(_tIn first, _tIn last, _tCharParser parse = DefaultParseByte)
-		: Lexer()
-	{
-		std::for_each(first, last,
-			std::bind(parse, std::ref(Lexer), std::placeholders::_1));
-	}
-	template<typename _tIn, typename _tCharParser = CharParser>
-	Session(pmr::memory_resource& rsrc, _tIn first, _tIn last,
-		_tCharParser parse = DefaultParseByte)
+	Session(pmr::memory_resource& rsrc)
 		: Lexer(rsrc)
-	{
-		std::for_each(first, last,
-			std::bind(parse, std::ref(Lexer), std::placeholders::_1));
-	}
-	//@}
-	template<typename _tRange, typename _tCharParser = CharParser,
-		yimpl(typename = ystdex::exclude_self_t<Session, _tRange>,
-		typename = ystdex::exclude_self_t<pmr::memory_resource, _tRange>)>
-	Session(const _tRange& c, _tCharParser parse = DefaultParseByte)
-		: Session(ystdex::begin(c), ystdex::end(c), parse)
 	{}
-	template<typename _tRange, typename _tCharParser = CharParser,
-		yimpl(typename = ystdex::exclude_self_t<Session, _tRange>)>
-	Session(pmr::memory_resource& rsrc, const _tRange& c,
-		_tCharParser parse = DefaultParseByte)
-		: Session(rsrc, ystdex::begin(c), ystdex::end(c), parse)
-	{}
-	//@}
 	DefDeCopyMoveCtorAssignment(Session)
 
-	//! \since build 862
-	DefGetterMem(const ynothrow, const SmallString&, Buffer, Lexer)
+	//! \since build 886
+	DefGetterMem(const ynothrow, const string&, Buffer, Lexer)
 	//@}
 	DefGetter(const, TokenList, TokenList, Tokenize(Lexer.Literalize()))
 
@@ -782,6 +752,27 @@ public:
 	*/
 	static void
 	DefaultParseQuoted(LexicalAnalyzer&, char);
+
+	/*!
+	\brief 解析输入范围。
+	\exception LoggedEvent 关键失败：无法访问源内容。
+	\since build 886
+	*/
+	//@{
+	template<typename _tIn, typename _tCharParser = CharParser>
+	YB_FLATTEN inline void
+	Parse(_tIn first, _tIn last, _tCharParser parse = DefaultParseByte)
+	{
+		std::for_each(first, last,
+			std::bind(parse, std::ref(Lexer), std::placeholders::_1));
+	}
+	template<typename _tRange, typename _tCharParser = CharParser>
+	inline void
+	Parse(const _tRange& c, _tCharParser parse = DefaultParseByte)
+	{
+		Parse(ystdex::begin(c), ystdex::end(c), parse);
+	}
+	//@}
 };
 
 
@@ -796,7 +787,7 @@ namespace SContext
 \brief 标记器：分析词素转换为可能包含记号的节点。
 \since build 880
 */
-using Tokenizer = function<TermNode(const SmallString&)>;
+using Tokenizer = function<TermNode(const TokenList::value_type&)>;
 
 /*!
 \brief 遍历记号列表，验证基本合法性：圆括号是否对应。

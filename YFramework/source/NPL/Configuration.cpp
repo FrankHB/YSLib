@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2016, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r951
+\version r954
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2016-01-22 15:39 +0800
+	2020-03-17 22:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,8 +46,9 @@ operator>>(std::istream& is, Configuration& conf)
 {
 	using sb_it_t = std::istreambuf_iterator<char>;
 	// TODO: Validate for S-expression?
-	Session sess(sb_it_t(is), sb_it_t{});
-
+	Session sess{};
+	
+	sess.Parse(sb_it_t(is), sb_it_t{});
 	TryExpr(conf.root = A1::LoadNode(SContext::Analyze(std::move(sess))))
 	CatchExpr(..., ystdex::rethrow_badstate(is, std::ios_base::failbit))
 	return is;
