@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r4931
+\version r5058
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2020-03-27 17:27 +0800
+	2020-04-06 18:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -434,8 +434,7 @@ using is_handler_constructible_t = is_constructible<any_ops::any_manager,
 \since build 848
 */
 template<typename _type>
-using is_in_place_storable = and_<is_nothrow_move_constructible<_type>,
-	is_aligned_storable<any_storage, _type>>;
+using is_in_place_storable = and_<is_aligned_storable<any_storage, _type>>;
 
 
 /*!
@@ -538,13 +537,13 @@ private:
 public:
 	//! \since build 595
 	//@{
-	YB_ATTR(always_inline) static void
+	static void
 	copy(any_storage& d, const any_storage& s)
 	{
 		init_or_throw(is_copy_constructible<value_type>(), d, get_reference(s));
 	}
 
-	YB_ATTR(always_inline) static void
+	static void
 	dispose(any_storage& d) ynothrowv
 	{
 		d.destroy<stored_type>();
@@ -553,24 +552,24 @@ public:
 
 	//! \since build 848
 	//@{
-	YB_ATTR_nodiscard YB_ATTR(always_inline) YB_PURE static value_type*
+	YB_ATTR_nodiscard YB_PURE static value_type*
 	get_pointer(any_storage& s) ynothrow
 	{
 		return std::addressof(get_reference(s));
 	}
-	YB_ATTR_nodiscard YB_ATTR(always_inline) YB_PURE static const value_type*
+	YB_ATTR_nodiscard YB_PURE static const value_type*
 	get_pointer(const any_storage& s) ynothrow
 	{
 		return std::addressof(get_reference(s));
 	}
 
 public:
-	YB_ATTR_nodiscard YB_ATTR(always_inline) YB_PURE static value_type&
+	YB_ATTR_nodiscard YB_PURE static value_type&
 	get_reference(any_storage& s) ynothrow
 	{
 		return s.access<stored_type>();
 	}
-	YB_ATTR_nodiscard YB_ATTR(always_inline) YB_PURE static const value_type&
+	YB_ATTR_nodiscard YB_PURE static const value_type&
 	get_reference(const any_storage& s) ynothrow
 	{
 		return s.access<stored_type>();
@@ -579,7 +578,7 @@ public:
 
 	//! \since build 851
 	template<typename... _tParams>
-	YB_ATTR(always_inline) static
+	static
 		enable_if_t<is_constructible<value_type, _tParams...>::value>
 	init(any_storage& d, _tParams&&... args)
 	{
@@ -589,14 +588,14 @@ public:
 private:
 	//! \since build 848
 	template<typename... _tParams>
-	YB_NORETURN YB_ATTR(always_inline) static void
+	YB_NORETURN static void
 	init_or_throw(false_, _tParams&&...)
 	{
 		throw_invalid_construction();
 	}
 	//! \since build 848
 	template<typename... _tParams>
-	YB_ATTR(always_inline) static void
+	static void
 	init_or_throw(true_, any_storage& d, _tParams&&... args)
 	{
 		init(d, yforward(args)...);
@@ -676,7 +675,7 @@ public:
 	//! \since build 678
 	template<class _tWrapper,
 		yimpl(typename = enable_if_t<is_reference_wrapper<_tWrapper>::value>)>
-	YB_ATTR(always_inline) static auto
+	static auto
 	init(any_storage& d, _tWrapper x)
 		-> decltype(base::init(d, std::addressof(x.get())))
 	{
@@ -728,13 +727,13 @@ public:
 
 private:
 	//! \since build 729
-	YB_ATTR(always_inline) static void
+	static void
 	init(false_, any_storage& d, std::unique_ptr<holder_type> p)
 	{
 		d.construct<holder_type*>(p.release());
 	}
 	//! \since build 729
-	YB_ATTR(always_inline) static void
+	static void
 	init(true_, any_storage& d, std::unique_ptr<holder_type> p)
 	{
 		d.construct<holder_type>(std::move(*p));
@@ -742,7 +741,7 @@ private:
 
 public:
 	//! \since build 851
-	YB_ATTR(always_inline) static auto
+	static auto
 	init(any_storage& d, std::unique_ptr<holder_type> p) -> decltype(
 		init(typename base::local_storage(), d, std::move(p)), void())
 	{
@@ -795,107 +794,145 @@ private:
 	using ator_type = rebind_alloc_t<_tByteAlloc, _tValue>;
 	using ator_traits = allocator_traits<ator_type>;
 	using deleter_type = allocator_delete<ator_type>;
-	using ator_owned_ptr = std::unique_ptr<value_type, deleter_type>;
+	// NOTE: Since the allocator used here is usually stateful (as opposite to
+	//	usual cases with explicitly typed allocators like allocator-aware
+	//	container classes), missing the empty base class optimization in
+	//	%deleter_type is usually less effective here.
+	// XXX: This does not support over-sized allocator which makes %ator_owner
+	//	not fit in %any_storage yet.
+	// XXX: The base is needed to avoid Clang++ warning: [-Wdeprecated].
+	//! \since build 887
+	//@{
+	struct ator_del final : deleter_type, noncopyable, nonmovable
+	{
+		value_type& ref;
+
+		ator_del(value_type& val, const ator_type& a) ynothrow
+			: deleter_type(a), ref(val)
+		{}
+		~ator_del()
+		{
+			(*this)(std::addressof(ref));
+		}
+	};
+#if false
+	// XXX: This is potentially efficient, but not enabled curretly to make the
+	//	real (profiled) performance better. See $2019-04 @ %Documentation::Workflow.
+	struct ator_inc final : noncopyable, nonmovable
+	{
+		value_type& ref;
+
+		ator_inc(value_type& val, const ator_type&) ynothrow
+			: ref(val)
+		{}
+		~ator_inc()
+		{
+			deleter_type(ystdex::as_const(ref).get_allocator())(
+				std::addressof(ref));
+		}
+	};
+	using ator_owner = cond_t<has_get_allocator<value_type>, ator_inc,
+		ator_del>;
+#else
+	using ator_owner = ator_del;
+#endif
+	//@}
 	using rebound_ator_type = rebind_alloc_t<ator_type, byte>;
-	//! \since build 864
-	static_assert(is_in_place_storable<ator_owned_ptr>(),
+	//! \since build 887
+	static_assert(is_in_place_storable<ator_owner>(),
 		"Insufficient storage for the owner pointer type found.");
 
 public:
-	using base = value_handler<ator_owned_ptr>;
+	using base = value_handler<ator_owner>;
 	//! \since build 886
 	using local_storage = typename base::local_storage;
 
 	static void
 	copy(any_storage& d, const any_storage& s)
 	{
-		const auto& p_owned(base::get_reference(s));
+		const auto& owned(base::get_reference(s));
 
 		init_or_throw(is_copy_constructible<value_type>(), d,
-			ator_type(p_owned.get_deleter().get_allocator()), p_owned);
+			ator_type(owned.get_allocator()), owned);
 	}
 
 private:
-	//! \since build 886
-	template<typename _tAlloc, typename... _tParams>
-	YB_ATTR(always_inline) static auto
-	do_alloc_unique(const _tAlloc& a, _tParams&&... args)
-		-> enable_if_t<is_constructible<value_type, _tParams&&...>::value,
-		decltype(ystdex::allocate_unique<value_type>(a, yforward(args)...))>
-	{
-		return ystdex::allocate_unique<value_type>(a, yforward(args)...);
-	}
-
 	template<typename _func>
 	static void
 	do_with_allocator(any_storage& d, any_storage& s, _func f)
 	{
 		const auto p_a(d.access<rebound_ator_type*>());
-		auto& p_owned(base::get_reference(s));
+		auto& owned(base::get_reference(s));
 
 		yassume(p_a);
-		yassume(bool(p_owned));
 		d.~any_storage();
 		::new(&d) any_storage;
-		f(ator_type(*p_a), p_owned);
+		f(ator_type(*p_a), owned);
 	}
 
 public:
 	YB_ATTR_nodiscard YB_PURE static value_type*
 	get_pointer(any_storage& s) ynothrow
 	{
-		return base::get_reference(s).get();
+		return std::addressof(get_reference(s));
 	}
 	YB_ATTR_nodiscard YB_PURE static const value_type*
 	get_pointer(const any_storage& s) ynothrow
 	{
-		return base::get_reference(s).get();
+		return std::addressof(get_reference(s));
 	}
 
-	// XXX: This is not used here, but for client code (e.g. %ystdex::function).
-	//	Extract as handler traits function template or free function template?
+	// NOTE: This is also used for client code (e.g. %ystdex::function).
+	// XXX: Extract it as handler traits function template or free function
+	//	template?
+	//! \since bulid 887
 	YB_ATTR_nodiscard YB_PURE static value_type&
-	get_reference(any_storage& s) ynothrowv
+	get_reference(any_storage& s) ynothrow
 	{
-		yassume(get_pointer(s));
-		return *get_pointer(s);
+		return base::get_reference(s).ref;
 	}
+	//! \since bulid 887
 	YB_ATTR_nodiscard YB_PURE static const value_type&
-	get_reference(const any_storage& s) ynothrowv
+	get_reference(const any_storage& s) ynothrow
 	{
-		yassume(get_pointer(s));
-		return *get_pointer(s);
+		return base::get_reference(s).ref;
 	}
 
-	//! \since build 886
+	//! \since build 887
 	template<typename... _tParams>
-	YB_ATTR(always_inline) static auto
-	init(any_storage& d, _tParams&&... args) -> decltype(
-		yimpl(base::init(d, do_alloc_unique(yforward(args)...))), void())
+	static auto
+	init(any_storage& d, ator_type a, _tParams&&... args)
+		-> yimpl(enable_if_t<is_constructible<value_type, _tParams&&...>::value,
+		decltype(base::init(d, std::declval<value_type&>(), a), void())>)
 	{
-		base::init(d, do_alloc_unique(yforward(args)...));
+		auto gd(ystdex::make_allocator_guard(a));
+
+		ator_traits::construct(a, gd.get(), yforward(args)...);
+		base::init(d, *gd.release(), a);
 	}
 
 private:
 	template<typename... _tParams>
-	YB_NORETURN YB_ATTR(always_inline) static void
+	YB_NORETURN static void
 	init_or_throw(false_, _tParams&&...)
 	{
 		throw_invalid_construction();
 	}
+	//! \since build 887
 	template<typename... _tParams>
-	YB_ATTR(always_inline) static void
+	static void
 	init_or_throw(true_, any_storage& d, const ator_type& a,
-		const ator_owned_ptr& p_owned)
+		const ator_owner& owned)
 	{
-		init(d, a, ystdex::as_const(*p_owned));
+		init(d, a, owned.ref);
 	}
+	//! \since build 887
 	template<typename... _tParams>
-	YB_ATTR(always_inline) static void
+	static void
 	init_or_throw(true_, any_storage& d, const ator_type& a,
-		ator_owned_ptr&& p_owned)
+		ator_owner&& owned)
 	{
-		init(d, a, std::move(*p_owned));
+		init(d, a, std::move(owned.ref));
 	}
 
 public:
@@ -917,26 +954,26 @@ public:
 			d = &ystdex::type_id<rebound_ator_type>();
 			break;
 		case get_allocator_ptr:
-			d = static_cast<void*>(std::addressof(
-				base::get_reference(s).get_deleter().get_allocator()));
+			d = static_cast<void*>(
+				std::addressof(base::get_reference(s).get_allocator()));
 			break;
 		case clone_with_allocator:
 			do_with_allocator(d, s,
-				[&](const rebound_ator_type& a, const ator_owned_ptr& p_owned){
+				[&](const rebound_ator_type& a, const ator_owner& owned){
 				init_or_throw(is_copy_constructible<value_type>(), d,
-					ator_type(a), p_owned);
+					ator_type(a), owned);
 			});
 			break;
 		case transfer_with_allocator:
 			do_with_allocator(d, s,
-				[&](const rebound_ator_type& a, ator_owned_ptr& p_owned){
-				if(typename allocator_traits<rebound_ator_type>
-					::is_always_equal() || rebound_ator_type(
-					p_owned.get_deleter().get_allocator()) == a)
+				[&](const rebound_ator_type& a, ator_owner& owned){
+				if(typename
+					allocator_traits<rebound_ator_type>::is_always_equal()
+					|| rebound_ator_type(owned.get_allocator()) == a)
 					std::swap(d, s);
 				else
 					init_or_throw(is_move_constructible<value_type>(), d,
-						ator_type(a), std::move(p_owned));
+						ator_type(a), std::move(owned));
 			});
 			break;
 		default:
@@ -1367,7 +1404,7 @@ struct any_emplace
 	//@{
 	template<typename _type, typename... _tParams,
 		yimpl(typename = exclude_tagged_params_t<_tParams...>)>
-	YB_ATTR(always_inline) inline decay_t<_type>&
+	inline decay_t<_type>&
 	emplace(_tParams&&... args)
 	{
 		return emplace_within<_type>(yforward(args)...);
@@ -1377,14 +1414,14 @@ struct any_emplace
 	\since build 864
 	*/
 	template<typename _type, class _tAlloc, typename... _tParams>
-	YB_ATTR(always_inline) inline decay_t<_type>&
+	inline decay_t<_type>&
 	emplace(std::allocator_arg_t, const _tAlloc& a, _tParams&&... args)
 	{
 		return emplace_with_tag<_type>(opt_in_place_t<_type>(), a,
 			yforward(args)...);
 	}
 	template<typename _type, typename _tOther, typename... _tParams>
-	YB_ATTR(always_inline) inline decay_t<_type>&
+	inline decay_t<_type>&
 	emplace(std::initializer_list<_tOther> il, _tParams&&... args)
 	{
 		return emplace_within<_type>(il, yforward(args)...);
@@ -1395,7 +1432,7 @@ struct any_emplace
 	*/
 	template<typename _type, class _tAlloc, typename _tOther,
 		typename... _tParams>
-	YB_ATTR(always_inline) inline decay_t<_type>&
+	inline decay_t<_type>&
 	emplace(std::allocator_arg_t, const _tAlloc& a,
 		std::initializer_list<_tOther> il, _tParams&&... args)
 	{
@@ -1408,14 +1445,14 @@ struct any_emplace
 	//@{
 	//! \since build 848
 	template<typename _tHolder, typename... _tParams>
-	YB_ATTR(always_inline) inline decay_t<_tHolder>&
+	inline decay_t<_tHolder>&
 	emplace(any_ops::use_holder_t, _tParams&&... args)
 	{
 		return emplace_within<_tHolder>(any_ops::use_holder, yforward(args)...);
 	}
 	//! \since build 864
 	template<typename _tHolder, class _tAlloc, typename... _tParams>
-	YB_ATTR(always_inline) inline decay_t<_tHolder>&
+	inline decay_t<_tHolder>&
 	emplace(std::allocator_arg_t, const _tAlloc& a, any_ops::use_holder_t,
 		_tParams&&... args)
 	{
@@ -1454,13 +1491,13 @@ private:
 	//! \since build 864
 	//@{
 	template<typename _type, class _tAlloc, typename... _tParams>
-	YB_ATTR(always_inline) inline decay_t<_type>&
+	inline decay_t<_type>&
 	emplace_with_tag(alloc_tag<true>, const _tAlloc&, _tParams&&... args)
 	{
 		return emplace_within<_type>(yforward(args)...);
 	}
 	template<typename _type, class _tAlloc, typename... _tParams>
-	YB_ATTR(always_inline) inline decay_t<_type>&
+	inline decay_t<_type>&
 	emplace_with_tag(alloc_tag<>, const _tAlloc& a, _tParams&&... args)
 	{
 		emplace_with_handler<any_ops::allocator_value_handler<_tAlloc,
@@ -1469,7 +1506,7 @@ private:
 	}
 	template<typename _type, class _tAlloc, typename _tOther,
 		typename... _tParams>
-	YB_ATTR(always_inline) inline decay_t<_type>&
+	inline decay_t<_type>&
 	emplace_with_tag(alloc_tag<>, const _tAlloc& a,
 		std::initializer_list<_tOther> il, _tParams&&... args)
 	{
@@ -1478,7 +1515,7 @@ private:
 		return unchecked_target_ref<_type>();
 	}
 	template<typename _tHolder, class _tAlloc, typename... _tParams>
-	YB_ATTR(always_inline) inline decay_t<_tHolder>&
+	inline decay_t<_tHolder>&
 	emplace_with_tag(alloc_tag<>, const _tAlloc& a, any_ops::use_holder_t,
 		_tParams&&... args)
 	{
@@ -1488,7 +1525,7 @@ private:
 	}
 
 	template<typename _type, typename... _tParams>
-	YB_ATTR(always_inline) inline decay_t<_type>&
+	inline decay_t<_type>&
 	emplace_within(_tParams&&... args)
 	{
 		emplace_with_handler<any_ops::value_handler<decay_t<_type>>>(
@@ -1496,7 +1533,7 @@ private:
 		return unchecked_target_ref<_type>();
 	}
 	template<typename _type, typename _tOther, typename... _tParams>
-	YB_ATTR(always_inline) inline decay_t<_type>&
+	inline decay_t<_type>&
 	emplace_within(std::initializer_list<_tOther> il, _tParams&&... args)
 	{
 		emplace_with_handler<any_ops::value_handler<decay_t<_type>>>(il,
@@ -1504,7 +1541,7 @@ private:
 		return unchecked_target_ref<_type>();
 	}
 	template<typename _tHolder, typename... _tParams>
-	YB_ATTR(always_inline) inline decay_t<_tHolder>&
+	inline decay_t<_tHolder>&
 	emplace_within(any_ops::use_holder_t, _tParams&&... args)
 	{
 		emplace_with_handler<any_ops::holder_handler<decay_t<_tHolder>>>(
@@ -1514,7 +1551,7 @@ private:
 
 public:
 	template<class _tHolder>
-	YB_ATTR_nodiscard YB_ATTR(always_inline) YB_PURE inline decay_t<_tHolder>&
+	YB_ATTR_nodiscard YB_PURE inline decay_t<_tHolder>&
 	unchecked_holder_ref()
 	{
 		const auto p_holder(static_cast<decay_t<_tHolder>*>(
@@ -1527,7 +1564,7 @@ public:
 
 	//! \since build 854
 	template<typename _type>
-	YB_ATTR_nodiscard YB_ATTR(always_inline) YB_PURE inline decay_t<_type>&
+	YB_ATTR_nodiscard YB_PURE inline decay_t<_type>&
 	unchecked_target_ref()
 	{
 		const auto p(static_cast<_tAny&>(*this).unchecked_get());
@@ -1550,7 +1587,7 @@ public:
 
 值传递语义的动态泛型对象包装。
 基本接口和语义同 ISO C++17 std::any 提议和 boost::any （对应接口以前者为准）。
-和 std::any 不同，支持不满足 CopyConstructible 但满足 MoveConstructible 的对象。
+和 std::any 不同，支持不满足 CopyConstructible 或 MoveConstructible 的对象。
 作为扩展，基于命名空间 any_ops 支持更多的可扩展的底层接口。
 和 std::any 类似，部分情形构造排除 in_place_type_t 的实例作为值类型对象。
 作为扩展，同时也排除 std::allocator_arg_t 、 any_ops::with_handler_t

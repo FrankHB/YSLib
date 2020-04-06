@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r7151
+\version r7231
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2020-03-26 04:39 +0800
+	2020-04-03 00:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2370,6 +2370,32 @@ class ContextNode;
 yimpl(using) Reducer = ystdex::expanded_function<ReductionStatus(ContextNode&)>;
 //@}
 
+/*!
+\relates Reducer
+\since build 887
+*/
+//@{
+template<class _tAlloc, class _func,
+	yimpl(typename = ystdex::enable_if_same_param_t<Reducer, _func>)>
+YB_FLATTEN inline _func&&
+ToReducer(const _tAlloc&, _func&& f)
+{
+	return yforward(f);
+}
+template<class _tAlloc, typename _tParam, typename... _tParams>
+inline
+	yimpl(ystdex::exclude_self_t)<Reducer, _tParam, Reducer>
+ToReducer(const _tAlloc& a, _tParam&& arg, _tParams&&... args)
+{
+#if true
+	return Reducer(std::allocator_arg, a, yforward(arg), yforward(args)...);
+#else
+	return ystdex::make_obj_using_allocator<Reducer>(a, yforward(arg),
+		yforward(args)...);
+#endif
+}
+//@}
+
 
 /*!
 \brief 上下文节点。
@@ -2433,7 +2459,7 @@ public:
 	*/
 	YSLib::deque<Reducer> Delimited{};
 	/*!
-	\brief 当前动作。
+	\brief 上下文中的当前动作：正在被规约的动作后等待规约的动作。
 	\note 为便于确保资源释放和异常安全，不使用 ystdex::one_shot 。
 	\sa Switch
 	\since build 806
@@ -2492,7 +2518,7 @@ public:
 
 	/*!
 	\brief 转移并应用作为尾动作的当前动作，并设置 LastStatus 。
-	\note 调用前切换 Current 以允许调用 SetupTail 设置新的尾调用。
+	\note 调用前切换 Current 以允许调用 SetupCurrent 设置新的尾调用。
 	\pre 断言：\c Current 。
 	\sa LastStatus
 	\since build 810
@@ -2532,7 +2558,7 @@ public:
 
 	/*!
 	\sa Delimited
-	\sa SetupTail
+	\sa SetupCurrent
 	\sa Current
 	\since build 810
 	*/
@@ -2543,7 +2569,7 @@ public:
 	\pre 间接断言：\c !Current 。
 	\post \c Current 。
 	\sa Delimited
-	\sa SetupTail
+	\sa SetupCurrent
 	\since build 810
 	*/
 	void
@@ -2573,7 +2599,7 @@ public:
 	\pre 间接断言：\c !Current 。
 	\post \c Current 。
 	\sa ApplyTail
-	\sa SetupTail
+	\sa SetupCurrent
 	\sa Transit
 	\note 不处理重规约。
 	\since build 810
@@ -2591,26 +2617,15 @@ public:
 	\brief 设置当前动作以重规约。
 	\pre 断言：\c !Current 。
 	\pre 动作转移无异常抛出。
-	\since build 886
+	\since build 887
 	*/
-	//@{
-	template<typename _func>
-	YB_ATTR(always_inline) inline yimpl(ystdex::enable_if_same_param_t)<
-		Reducer, _func>
-	SetupTail(_func&& f)
+	template<typename... _tParams>
+	inline void
+	SetupCurrent(_tParams&&... args)
 	{
 		YAssert(!Current, "Old continuation is overriden.");
-		Current = yforward(f);
+		Current = NPL::ToReducer(get_allocator(), yforward(args)...);
 	}
-	template<typename _func,
-		yimpl(typename = ystdex::exclude_self_t<Reducer, _func>)>
-	YB_ATTR(always_inline) inline void
-	SetupTail(_func&& f)
-	{
-		return SetupTail(
-			Reducer(std::allocator_arg, get_allocator(), yforward(f)));
-	}
-	//@}
 
 	/*!
 	\brief 切换当前动作。
@@ -2651,11 +2666,11 @@ public:
 
 	//! \since build 788
 	//@{
-	PDefH(shared_ptr<Environment>, ShareRecord, ) const
+	YB_ATTR_nodiscard PDefH(shared_ptr<Environment>, ShareRecord, ) const
 		ImplRet(GetRecordRef().shared_from_this())
 
 	//! \since build 823
-	PDefH(EnvironmentReference, WeakenRecord, ) const
+	YB_ATTR_nodiscard PDefH(EnvironmentReference, WeakenRecord, ) const
 		// TODO: Blocked. Use C++17 %weak_from_this to get more efficient
 		//	implementation.
 		ImplRet(ShareRecord())
@@ -2664,8 +2679,8 @@ public:
 	\brief 取用于初始化环境以外的对象使用的分配器。
 	\since build 851
 	*/
-	PDefH(pmr::polymorphic_allocator<yimpl(byte)>, get_allocator, ) const
-		ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(pmr::polymorphic_allocator<yimpl(byte)>,
+		get_allocator, ) const ynothrow
 		ImplRet(pmr::polymorphic_allocator<yimpl(byte)>(
 			&GetMemoryResourceRef()))
 
@@ -2918,39 +2933,24 @@ struct GComposedAction final
 \note 以参数声明的相反顺序捕获参数作为动作，结果以参数声明的顺序析构捕获的动作。
 */
 //@{
-//! \note 若当前动作为空，则直接使用后继动作作为结果。
-//@{
 /*!
-\brief 组合规约动作：创建指定上下文中的连续异步规约当前和后继动作的规约动作。
+\brief 组合规约动作：创建指定上下文中的连续异步规约当前动作和后继动作的规约动作。
 \sa GComposedAction
-\since build 841
+\since build 887
 */
-//@{
 template<typename _fCurrent, typename _fNext>
-YB_ATTR_nodiscard YB_PURE inline yimpl(ystdex::enable_if_same_param_t)<
-	Reducer, _fCurrent, Reducer>
+YB_ATTR_nodiscard YB_PURE inline GComposedAction<
+	ystdex::remove_cvref_t<_fCurrent>, ystdex::remove_cvref_t<_fNext>>
 ComposeActions(ContextNode& ctx, _fCurrent&& cur, _fNext&& next)
 {
-	return cur ? Reducer(std::allocator_arg, ctx.get_allocator(),
-		GComposedAction<ystdex::remove_cvref_t<_fCurrent>,
-		ystdex::remove_cvref_t<_fNext>>(ctx, yforward(cur), yforward(next)))
-		: std::move(next);
+	return GComposedAction<ystdex::remove_cvref_t<_fCurrent>,
+		ystdex::remove_cvref_t<_fNext>>(ctx, yforward(cur), yforward(next));
 }
-template<typename _fCurrent, typename _fNext, yimpl(typename
-	= ystdex::exclude_self_t<Reducer, _fCurrent>)>
-YB_ATTR_nodiscard YB_PURE inline Reducer
-ComposeActions(ContextNode& ctx, _fCurrent&& cur, _fNext&& next)
-{
-	return Reducer(std::allocator_arg, ctx.get_allocator(),
-		GComposedAction<ystdex::remove_cvref_t<_fCurrent>,
-		ystdex::remove_cvref_t<_fNext>>(ctx, yforward(cur), yforward(next)));
-}
-//@}
 
 //! \since build 856
 //@{
 /*!
-\brief 组合规约动作和上下文中非空的当前动作。
+\brief 组合当前动作和上下文中非空的当前动作。
 \sa ComposeActions
 */
 template<typename _fCurrent>
@@ -2958,11 +2958,13 @@ YB_ATTR_nodiscard YB_PURE inline Reducer
 ComposeSwitchedUnchecked(ContextNode& ctx, _fCurrent&& cur)
 {
 	YAssert(ctx.Current, "No action found to be the next action.");
-	return NPL::ComposeActions(ctx, yforward(cur), ctx.Switch());
+	return NPL::ToReducer(ctx.get_allocator(),
+		NPL::ComposeActions(ctx, yforward(cur), ctx.Switch()));
 }
 
 /*!
-\brief 组合规约动作和上下文中当前动作。
+\brief 组合当前动作和上下文中的当前动作。
+\note 若当前动作为空，则直接使用后继动作作为结果。
 \sa ComposeSwitchedUnchecked
 */
 template<typename _fCurrent>
@@ -2970,9 +2972,8 @@ YB_ATTR_nodiscard YB_PURE inline Reducer
 ComposeSwitched(ContextNode& ctx, _fCurrent&& cur)
 {
 	return ctx.Current ? ComposeSwitchedUnchecked(ctx, yforward(cur))
-		: yforward(cur);
+		: NPL::ToReducer(ctx.get_allocator(), yforward(cur));
 }
-//@}
 //@}
 
 /*!
@@ -2981,19 +2982,19 @@ ComposeSwitched(ContextNode& ctx, _fCurrent&& cur)
 */
 //@{
 /*!
-\brief 异步规约当前和后继动作。
+\brief 异步规约当前动作和后继动作。
 \sa ComposeActions
 */
 template<typename _fCurrent, typename _fNext>
-YB_ATTR(always_inline) inline ReductionStatus
+inline ReductionStatus
 RelayNext(ContextNode& ctx, _fCurrent&& cur, _fNext&& next)
 {
-	ctx.SetupTail(ComposeActions(ctx, yforward(cur), yforward(next)));
+	ctx.SetupCurrent(ComposeActions(ctx, yforward(cur), yforward(next)));
 	return ReductionStatus::Partial;
 }
 
 /*!
-\brief 异步规约指定动作和上下文中非空的当前动作。
+\brief 异步规约当前动作和上下文中非空的当前动作。
 \pre 断言：\c ctx.Current 。
 */
 template<typename _fCurrent>
@@ -3016,7 +3017,7 @@ RelaySwitched(ContextNode& ctx, _fCurrent&& cur)
 {
 	if(ctx.Current)
 		return RelaySwitchedUnchecked(ctx, yforward(cur));
-	ctx.SetupTail(yforward(cur));
+	ctx.SetupCurrent(yforward(cur));
 	return ReductionStatus::Partial;
 }
 //@}
@@ -3039,7 +3040,7 @@ GComposedAction<_fCurrent, _fNext>::operator()(ContextNode& ctx) const
 \since build 812
 */
 inline PDefH(void, MoveAction, ContextNode& ctx, Reducer&& act)
-	ImplExpr(!ctx.Current ? ctx.SetupTail(std::move(act))
+	ImplExpr(!ctx.Current ? ctx.SetupCurrent(std::move(act))
 		: ctx.Push(std::move(act)))
 
 } // namespace NPL;

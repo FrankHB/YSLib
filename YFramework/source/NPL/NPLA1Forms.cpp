@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r18065
+\version r18074
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2020-03-25 14:30 +0800
+	2020-03-31 16:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,12 +112,6 @@ MakeValueOrMove(ResolvedTermReferencePtr p_ref, _fCopy cp, _fMove mv)
 	return NPL::IsMovable(p_ref) ? mv() : cp();
 }
 
-//! \since build 869
-YB_ATTR_nodiscard YB_PURE inline
-	PDefH(TermReference, EnsureLValueReference, TermReference&& ref)
-	// XXX: Use %TermReference::SetTags is not efficient here.
-	ImplRet(TermReference(ref.GetTags() & ~TermTags::Unique, std::move(ref)))
-
 //! \since build 823
 ReductionStatus
 ReduceSequenceOrderedAsync(TermNode& term, ContextNode& ctx, TNIter i)
@@ -137,7 +131,7 @@ ReduceReturnUnspecified(TermNode& term) ynothrow
 	// XXX: This is slightly more efficient than direct assignment with
 	//	x86_64-pc-linux G++ 9.3 in this context.
 	term.Value = ValueObject(std::allocator_arg, term.get_allocator(),
-		in_place_type<ValueToken>, ValueToken::Unspecified);
+		ValueToken::Unspecified);
 	return ReductionStatus::Clean;
 }
 
@@ -1002,11 +996,11 @@ EvalStringImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 	RetainN(term, 2);
 
 	auto& expr(*std::next(term.begin()));
-	Session sess(NPL::Deref(term.get_allocator().resource()));
+	Session sess(ctx.get_allocator());
 
 	sess.Parse(NPL::ResolveRegular<const string>(expr));
 
-	auto unit(SContext::Analyze(sess, term.get_allocator()));
+	auto unit(SContext::Analyze(sess, ctx.get_allocator()));
 
 	unit.SwapContainer(expr);
 	return EvalImplUnchecked(term, ctx, no_lift);
@@ -1420,7 +1414,7 @@ ReduceCallSubsequent(TermNode& term, ContextNode& ctx,
 		// TODO: Optimize with known combiner calls. Ideally %EnsureTCOAction
 		//	should not be called later in %CombinerReturnThunk in %NPLA1 where
 		//	the term is actually a combiner call.
-		yunused(EnsureTCOAction(ctx, term));
+		yunused(EnsureTCOActionUnchecked(ctx, term));
 #	endif
 		return RelayForCombine(ctx, term, std::move(p_e));
 	}, std::move(p_env)), yforward(next));

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r18451
+\version r18631
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-03-27 17:51 +0800
+	2020-04-06 21:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,13 +32,180 @@ $import $HISTORY;
 
 $now
 (
+	/ %YBase.YStandardEx $=
+	(
+		* "wrong string template argument deduced for the 2nd template \
+			argument not equivalent to %std::ostringstream"
+			@ "function template %to_string for streams" @ %String $since b833,
+		/ %Allocator $=
+		(
+			+ DLDI 'YB_FLATTEN inline' @ "all function templates implementing \
+				%uses_allocator_construction_args" @ %Allocator,
+			* "missing 'ynothrow'" @ "function %get_allocator" 
+				@ "class templates %(allocator_delete, allocator_guard_delete)"
+				$since b846 $dep_to "allocator getter fix",
+			* "missing 'ynothrow'" @ "function %get_count"
+				@ "class template %allocator_guard_delete" $since b846,
+			+ "unary type trait %has_get_allocator"
+		),
+		/ %Any $=
+		(
+			/ @ "namespace %any_ops" $=
+			(
+				/ "allowed nonmovable object stored locally in %any_storage"
+					$= (- "movable requirement"
+						@ "unary type trait %is_in_place_storable");
+				/ DLI "internal value type" @ "class template \
+					%any_ops::allocator_value_handler" !^ "%std::unique_ptr"
+					// See $2020-04 @ %Documentation::Workflow.
+			),
+			- DLI "all 'YB_ATTR(always_inline)'"
+				// This actually improves performance a bit.
+		),
+		- DLI "all 6 'YB_ATTR(always_inline)'" @ %Function
+			// Similar to %Any.
+		/ @ "class %resource_pool" @ %MemoryResource $=
+		(
+			(
+			+ "static data member %default_capacity";
+			+ $dev
+				"static assertion to ensure %default_capacity greater than 1",
+			+ "parameter with default argument %default_capacity allowing \
+				specifiying the initial capacity" @ "constructor#1"
+			),
+			+ $dev $lib 'YB_PURE'
+				@ "functions %(get_block_size, get_extra_data)",
+			+ "functions %(get_capacity, set_capacity)",
+			/ DLI "function %deallocate" ^ "%yverify" ~ "%yassume"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ @ "class %LexicalAnalyzer" @ %Lexical $=
+			(
+				/ "constructor with memory resource parameter"
+					-> "constructor with allocator parameter",
+				+ "function %Reserve"
+			),
+			/ DLI "supported buffer reservation for random access iterators"
+				@ "function template %Parse" @ %SContext
+				^ $dep_from ("%LexicalAnalyazer::Reserve" @ %Lexical),
+			(
+			/ $forced "constructor %Session with memory resource parameter"
+				@ %SContext -> "constructor with allocator parameter"
+				$dep_from ("constructor %LexicalAnalyzer" @ %Lexical);
+			/ $forced DLDI "member functions \
+				%REPLContext::(Perform, ReadFrom)" @ %NPLA1,
+			/ @ "functions 'EvalString*'" @ "namespace %Forms" @ %NPLA1Forms
+			(
+				/ $forced DLI;
+				* $comp "wrong allocator sources" @ "functions 'EvalString*'"
+					@ "namespace %Forms" @ %NPLA1Forms $since b886
+			),
+			/ DLI "applicative 'SHBuild_TrimOptions_'"
+				@ "function %LoadModule_SHBuild" @ %Dependency ^ "allocators"
+			),
+			/ %NPLA1Internal $=
+			(
+				+ "function %EnsureTCOActionUnchecked",
+				+ "default fallback action if current action is empty"
+					@ "function %EnsureTCOAction",
+				+ "function %EnsureLValueReference"
+			),
+			/ %NPLA $=
+			(
+				(
+				+ "2 function templates %ToReducer";
+				/ DLI "enabled allocators for %Reducer arguments"
+					@ "function template %ComposeSwitched" ^ "%ToReducer",
+				/ DLDI "function templates %(ComposeSwitchedUnchecked, \
+					RelayNext)" ^ "%ToReducer"
+				),
+				/ @ "class %ContextNode" $=
+				(
+					+ $dev $lib 'YB_ATTR_nodiscard'
+						@ "functions %(ShareRecord, WeakenRecord)",
+					+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+						@ "function %get_allocator",
+					/ $revert_ex(b886) "2 function templates %SetupTail"
+						-> "function template %SetupCurrent with parameter \
+						packs"
+						$= (/ $impl ^ $dep_from "%ToReducer")
+				),
+				/ $revert_ex(b886) "2 function templates %SetupCurrent"
+					-> "function template %SetupCurrent with parameter packs",
+				(
+				/ "eliminated empty action handling of %Reducer"
+					@ "function template %ComposeActions#1"
+					$dep_from ("%ReduceAgain" @ %NPLA1);
+					// This should be safe after the fix of %ReduceAgain.
+				/ "merged 2 function templates %ComposeActions",
+				/ "returned type" @ "function template %ComposeActions"
+					-> "%GComposedAction instance" ~ "%Reducer"
+					$dep_from ("%ComposeSwitchedUnchecked", "%RelayNext")
+				),
+				/ DLDI @ 'NPL_NPLA_CheckParentEnvironment'
+					@ "function %RedirectToShared",
+					// To eliminate G++ 9.2.1 warning: \
+						[-Wsuggest-attribute=pure].
+				- DLI "all 3 'YB_ATTR(always_inline)'" @ "headers"
+					// Similar to %YBase.YStandardEx.Any.
+			),
+			/ %NPLA1 $=
+			(
+				* $comp "empty action relayed for TCO action"
+					@ ("function %ReduceAgain"; $comp
+					"functions %(ReduceTail, ReduceAgainLifted; ReduceOrdered)")
+					$orig (@ "function %ReduceAgain" @ %NPLA1 $since b820)
+					$= (/ $impl
+						^ $dep_from ("%EnsureTCOAction" @ %NPLA1Internal)),
+				/ DLI "initializations on non-collapsed %TermReference"
+					@ "function %BindParameter" ^ "allocators"
+			),
+			/ @ "namespace %Forms" @ %NPLA1Forms $=
+			(
+				/ DLDI "simplified function %ForwardListFirst"
+					^ $dep_from ("%EnsureTCOActionUnchecked" @ %NPLA1Internal),
+				/ $revert_ex(b886) DLDI "%TokenValue::Unspecified assignment"
+					@ "functions %Forms::(Cond, Define*, SetWith*)"
+					^ "%in_place_type"
+			)
+		),
+		/ %YSLib.Core.YObject $=
+		(
+			/ DLDI "decaed %in_place_type tag type" @ "constructor template \
+				%ValueObject with allocator and value but no explicit tag",
+				// To reduce some potential instantiation overhead on type \
+					qualifiers as the type in the tag is deduced from the type \
+					of the argument value instead of explicitly specified \
+					types in some tags.
+			+ DLDI 'inline'
+				@ "constructor templates %(ValueHolder, AllocatorHolder)",
+			- DLI "all 'YB_ATTR(always_inline)'" $effective @ "all 3 function \
+				template %emplace" @ "class %ValueObject",
+				// Similar to %YBase.YStandardEx.Any.
+			+ "function template %get_allocator" @ "class template \
+				%AllocatorHolder" ^ ($dep_from "%ystdex::has_get_allocator"
+				@ %YBase.YStandardEx.Allocator $dep_from "allocator getter fix"
+		)
+	),
+	+ $dev $lib "ensured all 'YB_ALLOCATOR' for allocator function returning \
+		nonnull value on success with 'YB_ATTR_returns_nonnull'"
+		$effective @ %(YBase.YStandardEx.(Allocator, MemoryResource),
+		YFramework.YSLib.YAdaptor)
+),
+
+b886
+(
 	/ %YBase.YStandardEx.Any $=
 	(
 		/ @ "namespace %any_ops" $=
 		(
 			+ DLI 'YB_ATTR_nodiscard YB_PURE' @ "internal funtions"
 				@ "class template %value_handler",
-				// Also To eliminate G++ 9.2.1 warning: \
+				// Also to eliminate G++ 9.2.1 warning: \
 					[-Wsuggest-attribute=pure].
 			/ "constructor %pointer_holder#1 required %NullablePointer and \
 				explicit bool casting instead of member %get on %_tPointer",
@@ -47,9 +214,9 @@ $now
 				+ "type %local_storage",
 				* "wrong copy of moving owner pointers" @ "case \
 					%transfer_with_allocator" @ "function %manage" $since b848,
-					// This makes move-only values transferred in the allocator \
-						ill-formed and pessimizes allocator-aware move \
-						construction to copy for other values.
+					// This makes move-only values transferred in the \
+						allocator ill-formed and pessimizes allocator-aware \
+						move construction to copy for other values.
 				/ $re_add(b851) "%call of %init failed in SFINAE context"
 					// The return type of %ystdex::allocate_unique is not \
 						SFINAE-friendly by default.
@@ -621,7 +788,7 @@ b884
 				$dep_to "alignment check zero",
 			+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
 				@ "function template %is_aligned_ptr" @ %Placement,
-				// Also To eliminate G++ 7.1 warning: \
+				// Also to eliminate G++ 7.1 warning: \
 					[-Wsuggest-attribute=pure].
 			+ DLDI 'YB_ATTR(always_inline)' @ "function templates \
 				%(construct_within, destruct_in)" @ %Placement
@@ -647,7 +814,7 @@ b884
 			),
 			+ DLI 'YB_ATTR_nodiscard YB_PURE' @ "internal comoparison funtions"
 				@ "class template specialization %GHEvent" @ %YEvent,
-				// Also To eliminate G++ 9.2.1 warning: \
+				// Also to eliminate G++ 9.2.1 warning: \
 					[-Wsuggest-attribute=pure].
 			/ "friend function %operator==" @ "class %Message" @ %YMessage $=
 			(
@@ -787,7 +954,7 @@ b882
 		+ $dev $lib 'YB_PURE' @ ("function %empty" @ "class template %list"
 			@ %List, ("all 2 function templates %(begins_with, ends_with)",
 			"function template %get_quote_mark_nonstrict") @ %String),
-			// Also To eliminate G++ 7.1 warning: \
+			// Also to eliminate G++ 7.1 warning: \
 				[-Wsuggest-attribute=pure].
 		+ %Allocator,
 		/ %Memory $=
@@ -1585,8 +1752,13 @@ b878
 	(
 		/ %Function $=
 		(
-			+ DLI 'inline' @ "constructors"
-				@ "class template specialization %function_base",
+			/ @ "class template specialization %function_base" $=
+			(
+				- DD $lib 'yimpl' @ "exception specification"
+					@ "defaulted move constructor",
+					// The non-throwing guarantee is a feature.
+				+ DLI 'inline' @ "constructors"
+			),
 			* "wrong specialization %make_function_type for %function_base \
 				specializations" %Function $since b851,
 			* $revert_add(b848) "missing workaround for invoker initialization"

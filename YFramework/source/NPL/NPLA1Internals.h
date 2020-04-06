@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r19808
+\version r19818
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2020-03-26 09:12 +0800
+	2020-03-31 07:34 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -106,9 +106,9 @@ template<typename _func>
 void
 SetupTailAction(ContextNode& ctx, _func&& act)
 {
-	// XXX: Avoid direct use of %ContextNode::SetupTail even though it is safe
+	// XXX: Avoid direct use of %ContextNode::SetupCurrent even though it is safe
 	//	because %Current is already saved in %act?
-	ctx.SetupTail(std::move(act));
+	ctx.SetupCurrent(std::move(act));
 }
 
 #	if NPL_Impl_NPLA1_Enable_TCO
@@ -323,6 +323,10 @@ YB_ATTR_nodiscard YB_PURE inline
 YB_ATTR_nodiscard YB_FLATTEN TCOAction&
 EnsureTCOAction(ContextNode& ctx, TermNode& term);
 
+//! \since build 887
+YB_ATTR_nodiscard YB_FLATTEN TCOAction&
+EnsureTCOActionUnchecked(ContextNode& ctx, TermNode& term);
+
 //! \since build 840
 YB_ATTR_nodiscard inline PDefH(TCOAction&, RefTCOAction, ContextNode& ctx)
 	// NOTE: The TCO action should have been created by a previous call of
@@ -467,6 +471,13 @@ ReduceSubsequentCombinedBranch(TermNode& term, ContextNode& ctx,
 	return A1::ReduceCurrentNext(term, ctx,
 		Continuation(std::ref(ReduceCombinedBranch), ctx), yforward(next));
 }
+
+
+//! \since build 869
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(TermReference, EnsureLValueReference, TermReference&& ref)
+	// XXX: Use %TermReference::SetTags is not efficient here.
+	ImplRet(TermReference(ref.GetTags() & ~TermTags::Unique, std::move(ref)))
 
 
 //! \since build 859

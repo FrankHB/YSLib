@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r18937
+\version r18955
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-03-26 09:29 +0800
+	2020-04-03 00:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -194,12 +194,6 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 #endif
 }
 
-
-//! \since build 869
-YB_ATTR_nodiscard YB_PURE inline
-	PDefH(TermReference, EnsureLValueReference, TermReference&& ref)
-	// XXX: Use %TermReference::SetTags is not efficient here.
-	ImplRet(TermReference(ref.GetTags() & ~TermTags::Unique, std::move(ref)))
 
 //! \since build 851
 YB_ATTR_nodiscard ReductionStatus
@@ -690,6 +684,8 @@ struct BindParameterObject
 					const auto ref_tags(sigil == '&' ? BindReferenceTags(*p)
 						: p->GetTags());
 
+					// XXX: Allocators are not used here on %TermReference for
+					//	performance in most cases.
 					if(can_modify && temp)
 						// NOTE: Reference collapsed by move.
 						mv(std::move(o.GetContainerRef()),
@@ -734,14 +730,17 @@ struct BindParameterObject
 					//	ignored normally except for future internal use. Note
 					//	that %TermTags::Temporary can be provided by a bound
 					//	object (indicated by %o) in an environment.
-					TermReference(GetLValueTagsOf(o.Tags | o_tags), o,
-					Referenced));
+					ValueObject(std::allocator_arg, o.get_allocator(),
+					in_place_type<TermReference>,
+					GetLValueTagsOf(o.Tags | o_tags), o, Referenced));
 			else
 				cp(o);
 		}
 		else if(!temp)
 			mv(TermNode::Container(o.get_allocator()),
-				TermReference(o_tags & TermTags::Nonmodifying, o, Referenced));
+				ValueObject(std::allocator_arg, o.get_allocator(),
+				in_place_type<TermReference>, o_tags & TermTags::Nonmodifying,
+				o, Referenced));
 		else
 			throw
 				InvalidReference("Invalid operand found on binding sigil '@'.");
@@ -1377,6 +1376,9 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 		//	also not touched when the result is not a reference.
 		// NOTE: Every reference to the object in the environment is assumed
 		//	aliased, so no %TermTags::Unique is preserved.
+		// XXX: Allocators are not used here on %TermReference to avoid G++ from
+		//	folding code with other basic blocks with more inefficient
+		//	implementations.
 		if(const auto p = NPL::TryAccessLeaf<const TermReference>(bound))
 		{
 			p_rterm = &p->get();
@@ -1386,7 +1388,6 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 		else
 		{
 			auto& env(pr.second.get());
-
 			p_rterm = &bound;
 			[&]() YB_FLATTEN{
 				term.Value = TermReference(env.MakeTermTags(bound)
@@ -1717,7 +1718,7 @@ REPLContext::Perform(string_view unit, ContextNode& ctx)
 	YAssertNonnull(unit.data());
 	if(!unit.empty())
 	{
-		Session sess(ctx.GetMemoryResourceRef());
+		Session sess(ctx.get_allocator());
 
 		sess.Parse(unit);
 		return Process(sess, ctx);
@@ -1770,7 +1771,7 @@ TermNode
 REPLContext::ReadFrom(std::streambuf& buf) const
 {
 	using s_it_t = std::istreambuf_iterator<char>;
-	Session sess(NPL::Deref(Allocator.resource()));
+	Session sess(Allocator);
 
 	sess.Parse(s_it_t(&buf), s_it_t());
 	return Prepare(sess);

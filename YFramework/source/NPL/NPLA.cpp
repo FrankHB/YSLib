@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3190
+\version r3193
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2020-03-25 13:00 +0800
+	2020-04-03 00:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -347,7 +347,7 @@ InitBadIdentifierExceptionString(string&& id, size_t n)
 
 
 #if NPL_NPLA_CheckParentEnvironment
-bool
+YB_ATTR_nodiscard YB_PURE bool
 IsReserved(string_view id) ynothrowv
 {
 	YAssertNonnull(id.data());
@@ -1137,7 +1137,7 @@ void
 ContextNode::Pop() ynothrow
 {
 	YAssert(!Delimited.empty(), "No continuation is delimited.");
-	SetupTail(std::move(Delimited.front()));
+	SetupCurrent(std::move(Delimited.front()));
 	Delimited.pop_front();
 }
 
@@ -1159,7 +1159,7 @@ ContextNode::Push(Reducer&& reducer)
 ReductionStatus
 ContextNode::Rewrite(Reducer reduce)
 {
-	SetupTail(std::move(reduce));
+	SetupCurrent(std::move(reduce));
 	// NOTE: Rewriting loop until no actions remain.
 	return ystdex::retry_on_cond(std::bind(&ContextNode::Transit, this), [&]{
 		return ApplyTail();

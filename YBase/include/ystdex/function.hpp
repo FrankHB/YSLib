@@ -11,13 +11,13 @@
 /*!	\file function.hpp
 \ingroup YStandardEx
 \brief 函数基本操作和调用包装对象。
-\version r4891
+\version r4897
 \author FrankHB <frankhb1989@gmail.com>
 \since build 847
 \par 创建时间:
 	2018-12-13 01:24:06 +0800
 \par 修改时间:
-	2020-01-19 22:38 +0800
+	2020-04-03 00:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -480,12 +480,12 @@ template<typename _tRet, typename... _tParams>
 struct function_traits<_tRet(_tParams...), empty_function_policy::no_check>
 {
 	template<class _tContent, typename _fInvoke>
-	YB_ATTR(always_inline) static yconstfn_relaxed void
+	static yconstfn_relaxed void
 	init_empty(const _tContent&, _fInvoke&) ynothrow
 	{}
 
 	template<class _tContent, typename _fInvoke>
-	YB_ATTR(always_inline) static _tRet
+	static _tRet
 	call(const _tContent& content, const _fInvoke& f, _tParams&&... args)
 	{
 		yconstraint(bool(content));
@@ -512,7 +512,7 @@ struct function_traits<_tRet(_tParams...), empty_function_policy::no_effect>
 	}
 
 	template<class _tContent, typename _fInvoke>
-	YB_ATTR(always_inline) static yconstfn_relaxed void
+	static yconstfn_relaxed void
 	init_empty(const _tContent&, _fInvoke& f) ynothrow
 	{
 		static_assert(is_nothrow_copy_assignable<_fInvoke>(),
@@ -523,7 +523,7 @@ struct function_traits<_tRet(_tParams...), empty_function_policy::no_effect>
 	}
 
 	template<class _tContent, typename _fInvoke>
-	YB_ATTR(always_inline) static _tRet
+	static _tRet
 	call(const _tContent& content, const _fInvoke& f, _tParams&&... args)
 	{
 		yassume(f);
@@ -549,7 +549,7 @@ struct function_traits<_tRet(_tParams...), empty_function_policy::throwing>
 	}
 
 	template<class _tContent, typename _fInvoke>
-	YB_ATTR(always_inline) static yconstfn_relaxed void
+	static yconstfn_relaxed void
 	init_empty(const _tContent&, _fInvoke& f)
 	{
 		// XXX: Here lambda-expression is buggy in G++ LTO.
@@ -557,7 +557,7 @@ struct function_traits<_tRet(_tParams...), empty_function_policy::throwing>
 	}
 
 	template<class _tContent, typename _fInvoke>
-	YB_ATTR(always_inline) static _tRet
+	static _tRet
 	call(const _tContent& content, const _fInvoke& f, _tParams&&... args)
 	{
 		yassume(f);

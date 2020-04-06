@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1480
+\version r1494
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2020-03-14 16:36 +0800
+	2020-04-06 19:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "ystdex/memory_resource.h" // for __cpp_aligned_new, is_trivial,
 //	std::align_val_t, std::align, __cpp_sized_deallocation, std::bad_alloc,
 //	::operator new, ::operator delete, std::unique_ptr, make_observer, YAssert,
-//	lref, yassume, ystdex::destruct_in, yconstraint, CHAR_BIT,
+//	lref, yassume, ystdex::destruct_in, yverify, yconstraint, CHAR_BIT,
 //	is_power_of_2_positive, ceiling_lb, std::piecewise_construct,
 //	std::forward_as_tuple, PTRDIFF_MAX;
 #if YB_Has_memory_resource != 1
@@ -81,7 +81,7 @@ new_delete_resource() ynothrow
 		using offset_n_t = size_t_<ystdex::max(sizeof(hdr_t), yalignof(hdr_t))>;
 #endif
 
-		YB_ALLOCATOR void*
+		YB_ALLOCATOR YB_ATTR_returns_nonnull void*
 		do_allocate(size_t bytes, size_t alignment) override
 		{
 #if YB_Impl_aligned_new
@@ -91,7 +91,7 @@ new_delete_resource() ynothrow
 #else
 			if(alignment > 1)
 			{
-				// TODO: Record sizeof debugging?
+				// TODO: Record 'sizeof' value for debugging?
 				// TODO: Extract as %::operator new with extended alignment?
 				auto space(offset_n_t::value + bytes + alignment);
 				auto ptr(make_unique_default_init<byte[]>(space));
@@ -327,15 +327,6 @@ monobuf_scale(size_t size) ynothrow
 //@}
 #endif
 
-//! \since build 864
-enum : size_t
-{
-	default_next_capacity = yimpl(4)
-};
-
-//! \since build 864
-static_assert(default_next_capacity > 1, "Invalid default value found.");
-
 } // unnamed namespace;
 
 void
@@ -532,9 +523,9 @@ resource_pool::chunk_t::operator=(chunk_t&& cnk) ynothrow
 }
 
 resource_pool::resource_pool(memory_resource& up_rsrc, size_t mbpc,
-	size_t blk_size, size_t extra) ynothrowv
+	size_t blk_size, size_t extra, size_t n_cap) ynothrowv
 	: max_blocks_per_chunk(mbpc), chunks(&up_rsrc), i_stashed(chunks.end()),
-	i_empty(i_stashed), next_capacity(default_next_capacity),
+	i_empty(i_stashed), next_capacity((yconstraint(n_cap > 1), n_cap)),
 	block_size((yconstraint(blk_size >= resource_pool::min_block_size),
 	blk_size)), extra_data(extra)
 {
@@ -628,7 +619,7 @@ void
 resource_pool::clear() ynothrow
 {
 	yunseq(i_empty = chunks.end(), i_stashed = chunks.end(),
-		next_capacity = default_next_capacity);
+		next_capacity = default_capacity);
 	chunks.clear();
 }
 
@@ -637,7 +628,7 @@ resource_pool::deallocate(void* p) ynothrowv
 {
 	auto i_chunk(access_meta(p, block_size).i_chunk);
 
-	yassume(i_chunk != chunks.end());
+	yverify(i_chunk != chunks.end());
 	yverify(i_chunk != i_empty);
 
 	const auto mid(i_chunk->first);

@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1859
+\version r1867
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2020-03-27 13:21 +0800
+	2020-04-06 20:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -193,8 +193,8 @@ private:
 
 public:
 	LexicalAnalyzer();
-	//! \since build 861
-	LexicalAnalyzer(pmr::memory_resource&);
+	//! \since build 887
+	LexicalAnalyzer(pmr::polymorphic_allocator<yimpl(byte)> a);
 	//! \since build 546
 	DefDeCopyMoveCtorAssignment(LexicalAnalyzer)
 
@@ -306,6 +306,13 @@ public:
 	*/
 	void
 	ReplaceBack(char);
+
+	/*!
+	\brief 字符解析中间结果预分配参数指定的空间。
+	\since build 887
+	*/
+	PDefH(void, Reserve, size_t n)
+		ImplExpr(cbuf.reserve(n))
 };
 
 

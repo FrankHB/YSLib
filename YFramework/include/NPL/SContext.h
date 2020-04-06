@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2765
+\version r2793
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2020-03-17 22:49 +0800
+	2020-04-06 20:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,9 @@
 //	ystdex::forward_like, ystdex::invoke, YSLib::AccessPtr, ystdex::false_,
 //	std::is_convertible, ystdex::decay_t, ystdex::bool_, ystdex::cond_or_t,
 //	ystdex::not_, ystdex::enable_if_t, ystdex::call_value_or, ystdex::addrof,
-//	ystdex::compose;
+//	ystdex::compose, std::placeholders;
+#include <iterator> // for std::iterator_traits, std::input_iterator_tag,
+//	std::random_access_iterator_tag;
 #include <algorithm> // for std::for_each;
 
 namespace NPL
@@ -728,9 +730,9 @@ public:
 
 	//! \since build 618
 	DefDeCtor(Session)
-	//! \since build 861
-	Session(pmr::memory_resource& rsrc)
-		: Lexer(rsrc)
+	//! \since build 887
+	Session(pmr::polymorphic_allocator<yimpl(byte)> a)
+		: Lexer(a)
 	{}
 	DefDeCopyMoveCtorAssignment(Session)
 
@@ -763,8 +765,8 @@ public:
 	YB_FLATTEN inline void
 	Parse(_tIn first, _tIn last, _tCharParser parse = DefaultParseByte)
 	{
-		std::for_each(first, last,
-			std::bind(parse, std::ref(Lexer), std::placeholders::_1));
+		ParseImpl(first, last, parse,
+			typename std::iterator_traits<_tIn>::iterator_category());
 	}
 	template<typename _tRange, typename _tCharParser = CharParser>
 	inline void
@@ -773,6 +775,27 @@ public:
 		Parse(ystdex::begin(c), ystdex::end(c), parse);
 	}
 	//@}
+
+private:
+	//! \since build 887
+	template<typename _tIn, typename _tCharParser>
+	inline void
+	ParseImpl(_tIn first, _tIn last, _tCharParser parse, std::input_iterator_tag)
+	{
+		std::for_each(first, last,
+			std::bind(parse, std::ref(Lexer), std::placeholders::_1));
+	}
+	//! \since build 887
+	template<typename _tRandom, typename _tCharParser>
+	inline void
+	ParseImpl(_tRandom first, _tRandom last, _tCharParser parse,
+		std::random_access_iterator_tag)
+	{
+		// XXX: This should be safe since there should be no more space out of
+		//	the range of %size_t.
+		Lexer.Reserve(size_t(last - first));
+		ParseImpl(first, last, parse, std::input_iterator_tag());
+	}
 };
 
 

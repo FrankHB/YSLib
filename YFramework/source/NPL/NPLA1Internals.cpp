@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20142
+\version r20160
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2020-03-25 12:52 +0800
+	2020-03-31 03:38 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -48,6 +48,25 @@ EnsureTCOAction(ContextNode& ctx, TermNode& term)
 
 	if(!p)
 	{
+		if(YB_UNLIKELY(!ctx.Current))
+			ctx.SetupCurrent([&]() ynothrow{
+				return ctx.LastStatus;
+			});
+		SetupTailTCOAction(ctx, term, {});
+		p = AccessTCOAction(ctx);
+	}
+	return NPL::Deref(p);
+}
+
+TCOAction&
+EnsureTCOActionUnchecked(ContextNode& ctx, TermNode& term)
+{
+	YAssertNonnull(ctx.Current);
+
+	auto p(AccessTCOAction(ctx));
+
+	if(!p)
+	{
 		SetupTailTCOAction(ctx, term, {});
 		p = AccessTCOAction(ctx);
 	}
@@ -58,8 +77,7 @@ EnsureTCOAction(ContextNode& ctx, TermNode& term)
 
 
 EnvironmentReference
-FetchTailEnvironmentReference(const TermReference& ref,
-	ContextNode& ctx)
+FetchTailEnvironmentReference(const TermReference& ref, ContextNode& ctx)
 {
 	auto r_env(ref.GetEnvironmentReference());
 

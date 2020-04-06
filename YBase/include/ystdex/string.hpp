@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r3064
+\version r3069
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2020-03-10 22:48 +0800
+	2020-03-28 04:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,8 @@
 //	is_same, is_enum, yconstraint, is_class, yassume, YAssert;
 #include "string_view.hpp" // for internal "string_view.hpp" (implying
 //	"range.hpp" and "<libdefect/string.h>"), basic_string_view,
-//	std::char_traits, std::initializer_list, std::to_string, ntctslen;
+//	std::char_traits, std::initializer_list, std::to_string, string,
+//	basic_string, ntctslen;
 #include "container.hpp" // for "container.hpp", enable_for_input_iterator_t,
 //	make_index_sequence, index_sequence, begin, end, size, sort_unique,
 //	underlying, std::hash;
@@ -1858,8 +1859,10 @@ to_string(_type val)
 
 	return to_string(ystdex::underlying(val));
 }
+//! \since build 887
 template<typename _type, class _tStream = std::ostringstream,
-	class _tString = string>
+	class _tString = basic_string<typename _tStream::char_type,
+	typename _tStream::traits_type, typename _tStream::allocator_type>>
 YB_ATTR_nodiscard yimpl(enable_if_t)<is_class<_type>::value,
 	_t<details::stream_str_det<_tStream, _tString>>>
 to_string(const _type& x)

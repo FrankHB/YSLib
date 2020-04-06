@@ -11,13 +11,13 @@
 /*!	\file allocator.hpp
 \ingroup YStandardEx
 \brief 分配器接口。
-\version r5561
+\version r5613
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-10 21:34:28 +0800
 \par 修改时间:
-	2020-02-10 23:48 +0800
+	2020-04-06 15:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,8 @@
 //	is_explicitly_constructible, is_implicitly_constructible, enable_if_t,
 //	detected_or_t, is_unqualified_object, is_copy_constructible, is_class_type,
 //	is_same, std::pointer_traits, std::declval, is_detected, detected_t,
-//	is_detected_exact, cond, is_lvalue_reference, exclude_self_t;
+//	is_detected_exact, cond, remove_cvref_t, bool_, is_lvalue_reference,
+//	exclude_self_t;
 #include "apply.hpp" // for std::tuple, std::forward_as_tuple,
 //	std::piecewise_construct_t, std::piecewise_construct, std::make_tuple,
 //	ystdex::apply;
@@ -126,57 +127,57 @@ struct uaa_func
 	const _tAlloc& a;
 
 	template<typename... _tParams>
-	YB_ATTR_nodiscard auto
-	operator()(_tParams&&...) const
-		-> uaca_res_t<_type, _tAlloc, _tParams...>;
+	YB_ATTR_nodiscard YB_FLATTEN inline auto
+	operator()(_tParams&&...) const -> uaca_res_t<_type, _tAlloc, _tParams...>;
 };
 
 
 template<typename, class _bPair, class _bPfx, class _tAlloc,
 	typename... _tParams>
-YB_ATTR_nodiscard std::tuple<_tParams&&...>
+YB_ATTR_nodiscard YB_FLATTEN inline std::tuple<_tParams&&...>
 uses_allocator_args(_bPair, false_, _bPfx, const _tAlloc&, _tParams&&... args)
 {
 	return std::forward_as_tuple(yforward(args)...);
 }
 template<typename, class _tAlloc, typename... _tParams>
-YB_ATTR_nodiscard
+YB_ATTR_nodiscard YB_FLATTEN inline
 	std::tuple<const std::allocator_arg_t&, const _tAlloc&, _tParams&&...>
 uses_allocator_args(false_, true_, true_, const _tAlloc& a, _tParams&&... args)
 {
 	return std::forward_as_tuple(std::allocator_arg, a, yforward(args)...);
 }
 template<typename, class _tAlloc, typename... _tParams>
-YB_ATTR_nodiscard std::tuple<_tParams&&..., const _tAlloc&>
+YB_ATTR_nodiscard YB_FLATTEN inline
+	std::tuple<_tParams&&..., const _tAlloc&>
 uses_allocator_args(false_, true_, false_, const _tAlloc& a, _tParams&&... args)
 {
 	return std::forward_as_tuple(yforward(args)..., a);
 }
 template<class _type, class _tAlloc>
-YB_ATTR_nodiscard auto
+YB_ATTR_nodiscard YB_FLATTEN inline auto
 uses_allocator_args(true_, true_, false_, const _tAlloc&)
 	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
 	std::tuple<>, std::tuple<>>;
 template<typename _type, class _tAlloc, typename _type1, typename _type2>
-YB_ATTR_nodiscard auto
+YB_ATTR_nodiscard YB_FLATTEN inline auto
 uses_allocator_args(true_, true_, false_, const _tAlloc&,
 	const std::pair<_type1, _type2>&)
 	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
 	std::tuple<const _type1&>, std::tuple<const _type2&>>;
 template<typename _type, class _tAlloc, typename _type1, typename _type2>
-YB_ATTR_nodiscard auto
+YB_ATTR_nodiscard YB_FLATTEN inline auto
 uses_allocator_args(true_, true_, false_, const _tAlloc& a,
 	std::pair<_type1, _type2>&&)
 	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
 	std::tuple<_type1&&>, std::tuple<_type2&&>>;
 template<typename _type, class _tAlloc, typename _type1, typename _type2>
-YB_ATTR_nodiscard auto
+YB_ATTR_nodiscard YB_FLATTEN inline auto
 uses_allocator_args(true_, true_, false_, const _tAlloc& a, _type1&&, _type2&&)
 	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
 	std::tuple<_type1&&>, std::tuple<_type2&&>>;
 //! \since build 861
 template<typename _type, class _tAlloc, class _tTuple1, class _tTuple2>
-YB_ATTR_nodiscard auto
+YB_ATTR_nodiscard YB_FLATTEN inline auto
 uses_allocator_args(true_, true_, false_, const _tAlloc& a,
 	std::piecewise_construct_t, _tTuple1&& x, _tTuple2&& y) -> decltype(
 	std::make_tuple(std::piecewise_construct, ystdex::apply(
@@ -195,7 +196,7 @@ uses_allocator_args(true_, true_, false_, const _tAlloc& a,
 // XXX: Blocked. 'yforward' in the trailing-return-type cause G++ 5.3 20151204
 //	crash: internal compiler error: Segmentation fault.
 template<typename _type, class _tAlloc, typename... _tParams>
-YB_ATTR_nodiscard auto
+YB_ATTR_nodiscard YB_FLATTEN inline auto
 uses_allocator_construction_args(const _tAlloc& a, _tParams&&... args) -> yimpl(
 	decltype(details::uses_allocator_args<_type>(details::is_pair<_type>(),
 	details::pair_has_allocator<_type, _tAlloc>(), is_constructible<_type,
@@ -219,7 +220,7 @@ struct uaca_res
 
 template<typename _type, class _tAlloc>
 	template<typename... _tParams>
-YB_ATTR_nodiscard auto
+YB_ATTR_nodiscard YB_FLATTEN inline auto
 uaa_func<_type, _tAlloc>::operator()(_tParams&&... args) const
 	-> uaca_res_t<_type, _tAlloc, _tParams...>
 {
@@ -228,7 +229,7 @@ uaa_func<_type, _tAlloc>::operator()(_tParams&&... args) const
 }
 
 template<class _type, class _tAlloc>
-YB_ATTR_nodiscard auto
+YB_ATTR_nodiscard YB_FLATTEN inline auto
 uses_allocator_args(true_, true_, false_, const _tAlloc& a) -> uaca_res_t<_type,
 	_tAlloc, const std::piecewise_construct_t&, std::tuple<>, std::tuple<>>
 {
@@ -236,7 +237,7 @@ uses_allocator_args(true_, true_, false_, const _tAlloc& a) -> uaca_res_t<_type,
 		std::piecewise_construct, std::tuple<>(), std::tuple<>());
 }
 template<typename _type, class _tAlloc, typename _type1, typename _type2>
-YB_ATTR_nodiscard auto
+YB_ATTR_nodiscard YB_FLATTEN inline auto
 uses_allocator_args(true_, true_, false_, const _tAlloc& a,
 	const std::pair<_type1, _type2>& arg)
 	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
@@ -247,7 +248,7 @@ uses_allocator_args(true_, true_, false_, const _tAlloc& a,
 		std::forward_as_tuple(arg.second));
 }
 template<typename _type, class _tAlloc, typename _type1, typename _type2>
-YB_ATTR_nodiscard auto
+YB_ATTR_nodiscard YB_FLATTEN inline auto
 uses_allocator_args(true_, true_, false_, const _tAlloc& a,
 	std::pair<_type1, _type2>&& arg)
 	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
@@ -258,7 +259,7 @@ uses_allocator_args(true_, true_, false_, const _tAlloc& a,
 		std::forward_as_tuple(yforward(arg.second)));
 }
 template<typename _type, class _tAlloc, typename _type1, typename _type2>
-YB_ATTR_nodiscard auto
+YB_ATTR_nodiscard YB_FLATTEN inline auto
 uses_allocator_args(true_, true_, false_, const _tAlloc& a, _type1&& arg1,
 	_type2&& arg2)
 	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
@@ -443,6 +444,17 @@ struct is_allocatable : is_unqualified_object<_type>
 namespace details
 {
 
+//! \since build 746
+//@{
+template<typename _type, typename... _tParams>
+using mem_new_t
+	= decltype(_type::operator new(std::declval<_tParams>()...));
+
+template<typename _type, typename... _tParams>
+using mem_delete_t
+	= decltype(_type::operator delete(std::declval<_tParams>()...));
+//@}
+
 template<typename _type>
 using is_copy_constructible_class
 	= and_<is_copy_constructible<_type>, is_class_type<_type>>;
@@ -532,16 +544,17 @@ using same_alloc_value_t = is_same<alloc_value_t<_type>, _tValue>;
 template<typename _type>
 using nested_allocator_t = typename _type::allocator_type;
 
-
-//! \since build 746
+//! \since build 887
 //@{
-template<typename _type, typename... _tParams>
-using mem_new_t
-	= decltype(_type::operator new(std::declval<_tParams>()...));
+template<typename _type>
+using mem_get_allocator_t
+	= decltype(std::declval<const _type&>().get_allocator());
 
-template<typename _type, typename... _tParams>
-using mem_delete_t
-	= decltype(_type::operator delete(std::declval<_tParams>()...));
+template<typename _type,
+	typename _tAlloc = remove_cvref_t<mem_get_allocator_t<_type>>>
+struct check_get_allocator : bool_<is_allocator<_tAlloc>::value
+	&& noexcept(std::declval<const _type&>().get_allocator())>
+{};
 //@}
 
 } // namespace details;
@@ -646,6 +659,17 @@ struct nested_allocator_base<_tCon, false>
 //@}
 
 
+/*!
+\ingroup unary_type_traits
+\brief 判断类型具有返回分配器的无异常抛出的 get_allocator 成员函数。
+\since build 887
+*/
+template<typename _type>
+struct has_get_allocator : cond_or_t<is_detected<details::mem_get_allocator_t>,
+	false_, details::check_get_allocator, _type>
+{};
+
+
 namespace details
 {
 
@@ -674,8 +698,9 @@ protected:
 	allocator_delete_base&
 	operator=(allocator_delete_base&&) = default;
 
+	//! \since build 887
 	YB_ATTR_nodiscard YB_PURE _tAlloc&
-	get_allocator() const
+	get_allocator() const ynothrow
 	{
 		return alloc;
 	}
@@ -779,8 +804,9 @@ public:
 	//! \since build 846
 	yimpl(using) base::get_allocator;
 
+	//! \since build 887
 	YB_ATTR_nodiscard YB_PURE size_type
-	get_count() const
+	get_count() const ynothrow
 	{
 		return count;
 	}
@@ -956,7 +982,7 @@ struct class_allocator : std::allocator<_type>
 	using std::allocator<_type>::allocator;
 	class_allocator(const class_allocator&) = default;
 
-	YB_ALLOCATOR _type*
+	YB_ALLOCATOR YB_ATTR_returns_nonnull _type*
 	allocate(size_t n)
 	{
 		return _type::operator new(n * sizeof(_type));

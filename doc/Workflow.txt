@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r3575
+\version r3601
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2020-02-26 01:09 +0800
+	2020-04-06 18:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2125,7 +2125,7 @@ Proper tail calls are considered to be implemented.
 				And it is expected to be not too inefficient by having predictable additional overhead in normal cases compared to the non-CPS'd direct style.
 			Conditional CPS has been considered.
 				See https://news.ycombinator.com/item?id=3961466 for example.
-				This is not planned to be done because the host language does not support proper tail calls, so it is necessary anyway, unless some platform-dependent factors (like stack size) are also considered to provide information allowing it configuarable in API.
+				This is not planned because the host language does not support proper tail calls, so it is necessary anyway, unless some platform-dependent factors (like stack size) are also considered to provide information allowing it configuarable in API.
 			The general way adopted is to setup a continuation of type that doing one-pass reduction in the NPLA context (called tail action) and then to translate direct style calls using the tail action object.
 				Each sequence evaluation of combined evaluation with multiple passes is transformed into a sequence of CPS calls as the tail action, with at most one active pass to be called.
 					Combination of reduction status is also rewritten and shared implementation with result combiner function object type 'PassesCombiner'.
@@ -2670,7 +2670,7 @@ Pool allocation has been implemented.
 		These pools do not guarantee to deallocate upstream resource unless totally released.
 			This is bad for long-running programs since it would likely lead to definitely memory leaks because the pools never shrink.
 				On systems having virtual memory, it would like waste swap space; otherwise it would waste RAM a lot.
-			Microsoft's implementation does not suffers from this, but it is not guaranteed portable.
+			Microsoft's implementation does not suffers from this, but it is not guaranteed portable for this property.
 			See also https://groups.google.com/a/isocpp.org/forum/#!topic/std-discussion/MKBWu8yzTOA.
 		The latter is inheriting the former publicly in Microsoft's implementation. This might be promatic.
 		So anyway, a new type seems necessary. This is done separatedly even when Microsoft's implementation is available.
@@ -2679,7 +2679,7 @@ Pool allocation has been implemented.
 		An empty chunk pointer is used to cache the empty chunk, thus it avoids some unnecessary immediate reallocations when there is a chunk with all blocks deallcated recently.
 		A heuristic strategy of growth is used in the pool chunks.
 			The growth factor is 2 is choosed mainly for simplicity.
-				Not same to 'std::vector', since the chunks are not inteneded to be reused (like reallocation in 'std::vector'), 2 does not suffer from cache missing issues.
+				Not same to 'std::vector', since the chunks are not inteneded to be reused (like reallocation in 'std::vector'), a factor of 2 does not suffer from cache missing issues.
 				See https://www.reddit.com/r/cpp/comments/2ezwee/stdvector_optimization_by_facebook/ about issues of vector reallocation.
 		All of the above implementation details are similar or same to Microsoft's current implementation but different to Boost.Container's.
 
@@ -3644,6 +3644,31 @@ NPLA name resolver is simplified.
 		This also reduces the cost of maintaining the copy of the callback in the environments, hence less allocations.
 	However, the change improves performance only after the optimization of 'std::type_info' above in x64 Linux.
 		Otherwise, the underlying call of '__strcmp_avx2' will occasionally hit the bad branch of crossing memory boundary too many times, with severely bad (actually worse than before) performance, despite less allocations.
+
+$2020-04:
+
+report.impl:
+Implementation of allocator value holder of 'ystdex::any' has been improved a bit.
+	Nonnull type is used as the owner value instead of 'std::unique_ptr' instance.
+		This improves performance a bit by omitting a bnch on destroying the object.
+		Note that the owner is nonmovable which requires the change on 'ystdex::any_ops::is_in_place_storable' avoid the static assertion failure.
+	The change on 'ystdex::any_ops::is_in_place_storable' effectively supports nonmovable type as the target.
+		The move constructor of 'ystdex::any' has the gurarntee to avoid the call of the move constructor of the target object as the extension, so there is no additional change required here for nonmovable targets.
+		This is not same to 'std::any' which requires noexcept-exception on the move.
+	It is considered that the new thunk as the owned value for 'ystdex::any_ops::allocator_value_handler' in the 'ystdex::any_ops::allocator_holder_handler' can be simplified by reusing the allocator from the allocated object.
+		To accomplish this, 'get_allocator' is required as a non-static 'noexcept' member function (accepting 0 arguments) of the type of the allocated value type, and this function shall return the allocator being used.
+			The allocator returned shall be equal to the allocator used in the initialization to prevent potential problems (esp. undefined behavior caused by inequal allocators among container objects).
+		A unary type trait 'ystdex::has_get_allocator' has been added to simplify the implementation.
+			The type trait has a 'value' data member as 'ture' if and only if the type being allocated has a 'get_alocator' satisfying the requirements above.
+		However, the code generated by x86_64-pc-linux G++ 9.3 shows this is actually a slightly worse.
+			As the consequence, this stratagy is not enabled currently.		
+Some 'YB_ATTR(always_inline)' has been removed to allow the generated code being actually more efficiently.
+	This includes instance in YBase module YStandardEx::Any, for example.
+	YBase module YStandardEx::Allocator also has no benefits from additional 'YB_ATTR(always_inline)'.
+	YFramework module NPL still keeps the fine-tuned ones.
+The client code (e.g. in YFramework module NPL::NPLA1) still keeps the allocator argument for 'TermNode::Value'.
+	Actually 'YSLib::AlloctorHolder' (due to the underlying 'ystdex::any_ops::allocator_holder_handler') can allow the omission the traling allocator argument for 'ystdex::pmr::polymorphic_allocator' instances.
+	However, omision of the trailing allocator agurments is generally a bit inefficient in the generated code.
 
 ////
 

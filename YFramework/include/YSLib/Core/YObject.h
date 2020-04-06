@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r5981
+\version r6005
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2020-03-27 17:39 +0800
+	2020-04-06 15:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,10 +38,10 @@
 //	ystdex::type_id, ystdex::is_allocatable, ystdex::is_byte_allocator,
 //	ystdex::exclude_self_params_t, any_ops::is_in_place_storable,
 //	ystdex::default_init, any_ops::get_allocator_type,
-//	any_ops::get_allocator_ptr, ystdex::is_sharing, ystdex::ref, ystdex::cond_t,
-//	ystdex::decay_t, ystdex::rebind_alloc_t, in_place_type_t,
-//	YSLib::unchecked_any_cast, YSLib::any_cast, YSLib::make_observer,
-//	ystdex::copy_or_move, ystdex::pseudo_output;
+//	any_ops::get_allocator_ptr, ystdex::has_get_allocator, ystdex::is_sharing,
+//	ystdex::ref, ystdex::cond_t, ystdex::decay_t, ystdex::rebind_alloc_t,
+//	in_place_type_t, YSLib::unchecked_any_cast, YSLib::any_cast,
+//	YSLib::make_observer, ystdex::copy_or_move, ystdex::pseudo_output;
 #include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
 
@@ -352,6 +352,7 @@ public:
 	template<typename _tParam, yimpl(typename = ystdex::exclude_self_t<
 		ValueHolder, _tParam>, typename = ystdex::enable_if_t<
 		std::is_constructible<_type, _tParam>::value>)>
+	inline
 	ValueHolder(_tParam&& arg)
 		ynoexcept(std::is_nothrow_constructible<_type, _tParam>())
 		: ystdex::boxed_value<_type>(yforward(arg))
@@ -420,6 +421,7 @@ public:
 		yimpl(typename = ystdex::exclude_self_params_t<AllocatorHolder,
 		_tParams...>, typename = ystdex::enable_if_t<
 		std::is_constructible<_type, _tParams...>::value>)>
+	inline
 	AllocatorHolder(_tParams&&... args)
 		: base(yforward(args)...)
 	{}
@@ -437,8 +439,8 @@ public:
 
 private:
 	//! \since build 864
-	YB_ATTR_nodiscard PDefH(any, CreateImpl, Creation c, const any& x,
-		ystdex::true_) const
+	YB_ATTR_nodiscard
+		PDefH(any, CreateImpl, Creation c, const any& x, ystdex::true_) const
 		ImplRet(base::Create(c, x))
 	/*!
 	\pre 断言：第二参数具有非空值。
@@ -467,9 +469,18 @@ private:
 			return HolderOperations<AllocatorHolder>::CreateInPlace(
 				std::allocator_arg, ra, std::move(value));
 		}
-		// NOTE: It is more efficient to construct in place for %Indirect
-		//	case.
+		// NOTE: It is more efficient to construct in place for %Indirect case.
 		return IValueHolder::CreateHolder(c, value);
+	}
+
+	//! \since build 887
+	template<class _tObj = _type, typename = ystdex::enable_if_t<
+		ystdex::has_get_allocator<_tObj>::value>>
+	YB_ATTR_nodiscard YB_PURE auto
+	get_allocator() const ynothrow
+		-> decltype(std::declval<const _tObj&>().get_allocator())
+	{
+		return value.get_allocator();
 	}
 };
 
@@ -854,8 +865,8 @@ public:
 	template<typename _type, class _tAlloc>
 	inline
 	ValueObject(std::allocator_arg_t, const _tAlloc& a, _type&& arg)
-		: ValueObject(std::allocator_arg, a, in_place_type<_type>,
-		yforward(arg))
+		: ValueObject(std::allocator_arg, a,
+		in_place_type<ystdex::decay_t<_type>>, yforward(arg))
 	{}
 	/*!
 	\tparam _type 目标类型。
@@ -1189,7 +1200,7 @@ public:
 	//@{
 	template<typename _type, typename... _tParams,
 		yimpl(typename = ystdex::exclude_tagged_params_t<_tParams...>)>
-	YB_ATTR(always_inline) inline void
+	inline void
 	emplace(_tParams&&... args)
 	{
 		using Holder = ValueHolder<ystdex::decay_t<_type>>;
@@ -1198,7 +1209,7 @@ public:
 	}
 	//! \since build 863
 	template<typename _type, class _tAlloc, typename... _tParams>
-	YB_ATTR(always_inline) inline void
+	inline void
 	emplace(std::allocator_arg_t, const _tAlloc& a, _tParams&&... args)
 	{
 		using Holder = alloc_holder_t<_type, _tAlloc>;
@@ -1210,7 +1221,7 @@ public:
 			Holder(yforward(args)...));
 	}
 	template<typename _type>
-	YB_ATTR(always_inline) inline void
+	inline void
 	emplace(_type* p, PointerTag)
 	{
 		using Holder = PointerHolder<ystdex::decay_t<_type>>;

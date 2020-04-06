@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1402
+\version r1442
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2020-03-13 14:15 +0800
+	2020-04-06 10:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -207,7 +207,7 @@ public:
 	\pre 断言：对齐值是 2 的整数次幂。
 	\post 断言：返回值符合参数指定的对齐值要求。
 	*/
-	YB_ALLOCATOR void*
+	YB_ALLOCATOR YB_ATTR_returns_nonnull void*
 	allocate(size_t bytes, size_t alignment = max_align)
 	{
 		// NOTE: This is not specified directly by the specification, but the
@@ -245,7 +245,7 @@ public:
 	//	is resolved after adoption of P0220R1.
 private:
 	//! \sa LWG 2843 。
-	YB_ALLOCATOR virtual void*
+	YB_ALLOCATOR YB_ATTR_returns_nonnull virtual void*
 	do_allocate(size_t, size_t) = 0;
 
 	virtual void
@@ -304,7 +304,7 @@ public:
 	operator=(const polymorphic_allocator&) = delete;
 
 	//! \see LWG 3038 。
-	YB_ALLOCATOR _type*
+	YB_ALLOCATOR YB_ATTR_returns_nonnull _type*
 	allocate(size_t n)
 	{
 		return static_cast<_type*>(memory_rsrc->allocate(
@@ -528,21 +528,32 @@ private:
 public:
 	//! \brief 最小区块大小。
 	static yconstexpr const size_t min_block_size = sizeof(block_meta_t) + 1;
+	//@}
+	//! \since build 887
+	//@{
+	//! \brief 块中的默认区块容量。
+	static yconstexpr const size_t default_capacity = yimpl(4);
+
+	static_assert(default_capacity > 1, "Invalid default value found.");
 
 	/*!
-	\brief 构造：使用上级存储资源、块中最大区块数、区块大小和附加数据。
+	\brief 构造：使用上级存储资源、块中最大区块数、区块大小、附加数据和起始区块容量。
 	\pre 断言：区块大小不小于 \c resource_pool::min_block_size 。
+	\pre 断言：区块大小不小于 \c resource_pool::min_block_size 。
+	\pre 断言：起始区块容量大于 1 。
 	\sa get_extra_data
 	\sa size_for_capacity
 
 	通过参数指定的上级存储资源和块属性构造块。
 	附加数据是可选的。使用以 2 为底的区块大小的对数可加速对数分布的池的查询过程。
 	*/
-	resource_pool(memory_resource&, size_t, size_t, size_t = 0) ynothrowv;
+	resource_pool(memory_resource&, size_t, size_t, size_t = 0,
+		size_t = default_capacity) ynothrowv;
 	//! \since build 867
 	resource_pool(resource_pool&&) ynothrow;
-	~resource_pool();
 	//@}
+	//! \since build 863
+	~resource_pool();
 
 	/*!
 	\pre 断言：分配器相等。
@@ -572,7 +583,7 @@ private:
 
 public:
 	//! \sa i_stashed
-	YB_ALLOCATOR void*
+	YB_ALLOCATOR YB_ATTR_returns_nonnull void*
 	allocate();
 
 	/*!
@@ -596,16 +607,35 @@ public:
 	deallocate(void*) ynothrowv;
 
 	//! \since build 845
-	YB_ATTR_nodiscard size_t
+	YB_ATTR_nodiscard YB_PURE size_t
 	get_block_size() const ynothrow
 	{
 		return block_size;
 	}
 
-	YB_ATTR_nodiscard size_t
+	//! \since build 887
+	YB_ATTR_nodiscard YB_PURE size_t
+	get_capacity() const ynothrow
+	{
+		return next_capacity;
+	}
+
+	YB_ATTR_nodiscard YB_PURE size_t
 	get_extra_data() const ynothrow
 	{
 		return extra_data;
+	}
+
+	/*!
+	\brief 设置下一个分配块使用的区块容量。
+	\pre 断言：区块容量大于 1 。
+	\since build 887
+	*/
+	void
+	set_capacity(size_t cap) ynothrowv
+	{
+		yconstraint(cap > 1);
+		next_capacity = cap;
 	}
 
 	//! \since build 863
@@ -651,7 +681,7 @@ public:
 		return *p_upstream;
 	}
 
-	YB_ALLOCATOR void*
+	YB_ALLOCATOR YB_ATTR_returns_nonnull void*
 	allocate(size_t, size_t);
 
 	void
@@ -721,7 +751,7 @@ public:
 	}
 
 protected:
-	YB_ALLOCATOR void*
+	YB_ALLOCATOR YB_ATTR_returns_nonnull void*
 	do_allocate(size_t, size_t) override;
 
 	void
@@ -788,7 +818,7 @@ public:
 	}
 
 protected:
-	YB_ALLOCATOR void*
+	YB_ALLOCATOR YB_ATTR_returns_nonnull void*
 	do_allocate(size_t bytes, size_t alignment) override
 	{
 		lock_guard<mutex> gd(mtx);
@@ -854,7 +884,7 @@ public:
 	}
 
 protected:
-	YB_ALLOCATOR void*
+	YB_ALLOCATOR YB_ATTR_returns_nonnull void*
 	do_allocate(size_t, size_t) override;
 
 	//! \note 实现定义：增长因子为 2 。
