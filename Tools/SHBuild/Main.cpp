@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3934
+\version r3943
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2020-02-15 10:37 +0800
+	2020-04-13 22:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,7 +112,7 @@ Quote(_tString&& str) -> decltype(quote(yforward(str), '\''))
 //! \since build 861
 yconstexpr const struct
 {
-	void
+	YB_NONNULL(1) void
 	operator()(const char* line, RecordLevel lv = Notice,
 		LogGroup grp = LogGroup::General) const
 	{
@@ -126,7 +126,7 @@ yconstexpr const struct
 		DoPrint(line.data(), lv, grp);
 	}
 
-	static void
+	YB_NONNULL(1) static void
 	DoPrint(const char* line, RecordLevel lv = Notice,
 		LogGroup grp = LogGroup::General)
 	{
@@ -539,14 +539,14 @@ public:
 	\since build 648
 	*/
 	//@{
-	PDefH(string, GetCommand, string_view ext) const
+	YB_ATTR_nodiscard YB_PURE PDefH(string, GetCommand, string_view ext) const
 		ImplRet(LookupCommand(GetCommandType(ext)))
 
 	//! \since build 837
-	static string_view
+	YB_ATTR_nodiscard YB_PURE static string_view
 	GetCommandType(string_view);
 
-	string
+	YB_ATTR_nodiscard YB_PURE string
 	LookupCommand(string_view) const;
 	//@}
 };
@@ -917,6 +917,7 @@ main(int argc, char* argv[])
 				Timers::FetchElapsed<steady_clock>()).count());
 
 			term_ref.RestoreAttributes();
+			// XXX: Errors from 'std::fprintf' are ignored.
 			std::fprintf(stream, "[%04u.%03u][%zu:%#02X]",
 				unsigned(dcnt / 1000U), unsigned(dcnt % 1000U),
 				size_t(LastLogGroup), unsigned(lv));
@@ -1089,8 +1090,8 @@ main(int argc, char* argv[])
 				std::putchar('\n');
 			}
 		}
-	}, {}, Err, [](const std::exception& e, RecordLevel l){
-		ExtractException([](const char* str, RecordLevel lv, size_t level)
+	}, {}, Err, [](const std::exception& e, RecordLevel lv){
+		ExtractException([lv](const char* str, size_t level)
 			YB_NONNULL(2){
 			const auto print([=](const std::string& s){
 				PrintInfo(std::string(level, ' ') + s, lv, LogGroup::General);
@@ -1104,7 +1105,7 @@ main(int argc, char* argv[])
 			CatchIgnore(std::exception&)
 			CatchExpr(..., YAssert(false, "Invalid exception found."))
 			print(std::string("ERROR: ") + str);
-		}, e, l, 0);
+		}, e);
 	}) ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 

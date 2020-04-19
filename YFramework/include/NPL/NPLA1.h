@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r7611
+\version r7620
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-03-25 21:41 +0800
+	2020-04-12 11:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1270,8 +1270,16 @@ public:
 	\since build 842
 	*/
 	ContextState Root;
-	//! \brief 预处理节点：每次翻译时预先处理调用的公共例程。
-	TermPasses Preprocess{Allocator};
+	/*!
+	\brief 预处理例程：每次翻译时预先处理调用的公共例程。
+	\sa Prepare
+	\since build 888
+
+	在遍历节点时调用的预处理例程。
+	只保留一个遍的处理器，以减小一般情形（包括 NPLA1 默认情形）的开销。
+	若需要多个遍，可使用 TermPasses 作为目标。
+	*/
+	TermPasses::HandlerType Preprocess{std::allocator_arg, Allocator};
 	//! \brief 列表项处理例程：每次翻译中规约回调处理调用的公共例程。
 	EvaluationPasses ListTermPreprocess{Allocator};
 	/*!

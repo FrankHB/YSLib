@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018-2019 FrankHB.
+	© 2010-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YException.cpp
 \ingroup Core
 \brief 异常处理模块。
-\version r387
+\version r418
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2019-07-07 15:26 +0800
+	2020-04-19 03:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,8 +26,10 @@
 
 
 #include "YSLib/Core/YModules.h"
-#include YFM_YSLib_Core_YException // for function, to_std_string;
+#include YFM_YSLib_Core_YException // for Nonnull, Logger, to_std_string,
+//	ystdex::bind1, std::placeholders::_2;
 #include <ystdex/exception.h> // for ystdex::handle_nested;
+#include <cstdio> // for std::fprintf, stderr;
 
 namespace YSLib
 {
@@ -49,17 +51,27 @@ ImplDeDtor(LoggedEvent)
 
 FatalError::FatalError(const char* t, string_view c)
 	: GeneralEvent(Nonnull(t)),
-	content((Nonnull(c.data()), make_shared<string>(string(c))))
+	content((yunused(Nonnull(c.data())), make_shared<string>(string(c))))
 {}
 ImplDeDtor(FatalError)
 
+
+void
+PrintCriticalFor(const ExtractedLevelPrinter& print, const char* str,
+	RecordLevel lv, size_t level) ynothrow
+{
+	TryExpr(print(Nonnull(str), level))
+	CatchExpr(..., YF_TraceRaw(lv < Critical ? lv : Critical,
+		"Failure @ PrintCriticalFor."))
+}
 
 void
 TraceException(const char* str, RecordLevel lv, size_t level) ynothrow
 {
 	TryExpr(
 		YF_TraceRaw(lv, "%s%s", std::string(level, ' ').c_str(), Nonnull(str)))
-	CatchExpr(..., YF_TraceRaw(Critical, "Failure @ TraceException."))
+	CatchExpr(..., YF_TraceRaw(lv < Critical ? lv : Critical,
+		"Failure @ TraceException."))
 }
 
 void
@@ -72,22 +84,23 @@ void
 ExtractAndTrace(const std::exception& e, RecordLevel lv) ynothrow
 {
 	TraceExceptionType(e, lv);
-	ExtractException(TraceException, e, lv);
+	ExtractException(ystdex::bind1(TraceException, lv, std::placeholders::_2),
+		e);
 }
 
 void
 ExtractException(const ExtractedLevelPrinter& print, const std::exception& e,
-	RecordLevel lv, size_t level) ynothrow
+	size_t level) ynothrow
 {
-	TryExpr(print(e.what(), lv, level))
-	CatchExpr(..., print("Exception occurred when printing @ ExtractException.",
-		Critical, level))
-	TryExpr(ystdex::handle_nested(e,
-		[&, lv, level](std::exception& ex) ynothrow{
-		ExtractException(print, ex, lv, level + 1);
+	TryExpr(print(e.what(), level))
+	CatchExpr(..., PrintCriticalFor(print, "Exception occurred when printing"
+		" @ ExtractException.", Critical, level))
+	TryExpr(ystdex::handle_nested(e, [&, level](std::exception& ex) ynothrow{
+		ExtractException(print, ex, level + 1);
 	}))
-	CatchExpr(..., print("Unknown nested exception found nested on calling"
-		" ystdex::handle_nested @ ExtractException.", Critical, level))
+	CatchExpr(..., PrintCriticalFor(print, "Unknown nested exception found"
+		" nested on calling ystdex::handle_nested @ ExtractException.",
+		Critical, level))
 }
 
 bool

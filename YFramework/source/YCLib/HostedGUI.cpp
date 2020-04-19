@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1963
+\version r1995
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2020-01-12 18:12 +0800
+	2020-04-19 01:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -416,7 +416,7 @@ UpdateContentTo(NativeWindowHandle h_wnd, const Rect& r, const ConstGraphics& g)
 	XCB::UpdatePixmapBuffer(Deref(h_wnd), r, g);
 }
 #	elif YCL_Win32
-YF_API ::HBITMAP
+::HBITMAP
 CreateCompatibleDIBSection(const YSLib::Drawing::Size& s, BitmapPtr& p_buffer)
 {
 	// NOTE: There is no resolution information created. See https://msdn.microsoft.com/en-us/library/dd183494.aspx.
@@ -649,21 +649,23 @@ void
 WindowMemorySurface::UpdateBounds(ScreenBuffer& sbuf, const Rect& r,
 	const Point& sp) ynothrow
 {
-	// NOTE: %Nonnull is for invariant check.
-	const auto h_old(::SelectObject(h_mem_dc, Nonnull(sbuf.GetNativeHandle())));
-
-	if(h_old)
+	if(const auto h_native = sbuf.GetNativeHandle())
 	{
-		YCL_TraceCallF_Win32(BitBlt, h_owner_dc, int(r.X), int(r.Y),
-			int(r.Width), int(r.Height), h_mem_dc, int(sp.X), int(sp.Y),
-			SRCCOPY);
-		if(YB_UNLIKELY(!::SelectObject(h_mem_dc, h_old)))
-			YTraceDe(Err, "Restoring GDI object failed"
+		const auto h_old(::SelectObject(h_mem_dc, h_native));
+
+		if(h_old)
+		{
+			YCL_TraceCallF_Win32(BitBlt, h_owner_dc, int(r.X), int(r.Y),
+				int(r.Width), int(r.Height), h_mem_dc, int(sp.X), int(sp.Y),
+				SRCCOPY);
+			if(YB_UNLIKELY(!::SelectObject(h_mem_dc, h_old)))
+				YTraceDe(Err, "Restoring GDI object failed"
+					" @ WindowMemorySurface::UpdateBounds.");
+		}
+		else
+			YTraceDe(Err, "Setting GDI object failed"
 				" @ WindowMemorySurface::UpdateBounds.");
 	}
-	else
-		YTraceDe(Err, "Setting GDI object failed"
-			" @ WindowMemorySurface::UpdateBounds.");
 }
 
 void
@@ -671,16 +673,19 @@ WindowMemorySurface::UpdatePremultiplied(ScreenBuffer& sbuf,
 	NativeWindowHandle h_wnd, YSLib::Drawing::AlphaType a, const Point& sp)
 	ynothrow
 {
-	const auto h_old(::SelectObject(h_mem_dc, sbuf.GetNativeHandle()));
-	auto rect(FetchWindowRect(h_wnd));
-	::SIZE size{rect.right - rect.left, rect.bottom - rect.top};
-	::POINT pt{sp.X, sp.Y};
-	::BLENDFUNCTION bfunc{AC_SRC_OVER, 0, a, AC_SRC_ALPHA};
+	if(const auto h_native = sbuf.GetNativeHandle())
+	{
+		const auto h_old(::SelectObject(h_mem_dc, h_native));
+		auto rect(FetchWindowRect(h_wnd));
+		::SIZE size{rect.right - rect.left, rect.bottom - rect.top};
+		::POINT pt{sp.X, sp.Y};
+		::BLENDFUNCTION bfunc{AC_SRC_OVER, 0, a, AC_SRC_ALPHA};
 
-	YCL_TraceCallF_Win32(UpdateLayeredWindow, h_wnd, h_owner_dc,
-		ystdex::aligned_store_cast<::POINT*>(&rect), &size, h_mem_dc, &pt, 0,
-		&bfunc, ULW_ALPHA);
-	::SelectObject(h_mem_dc, h_old);
+		YCL_TraceCallF_Win32(UpdateLayeredWindow, h_wnd, h_owner_dc,
+			ystdex::aligned_store_cast<::POINT*>(&rect), &size, h_mem_dc, &pt,
+			0, &bfunc, ULW_ALPHA);
+		::SelectObject(h_mem_dc, h_old);
+	}
 }
 
 
@@ -757,7 +762,7 @@ WindowClass::WindowClass(const ::WNDCLASSEXW& wc)
 {}
 WindowClass::WindowClass(wstring_view class_name,
 	unsigned short class_atom, ::HINSTANCE h_inst)
-	: name((Nonnull(class_name.data()), class_name)), atom(class_atom),
+	: name((yunused(Nonnull(class_name.data())), class_name)), atom(class_atom),
 	h_instance(h_inst)
 {
 	if(YB_UNLIKELY(atom == 0))

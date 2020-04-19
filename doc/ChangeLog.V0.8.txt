@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r18631
+\version r18814
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-04-06 21:40 +0800
+	2020-04-19 14:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,190 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx.Container $=
+	(
+		+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+			@ "all 4 function templates %search_map",
+			// Also to eliminate G++ 7.1 warning: \
+				[-Wsuggest-attribute=pure].
+		+ 'ynothrow' @ "function templates %(pop_back_val, pop_front_val)",
+		/ @ "function template %exists" $=
+		(
+			/ "preferred member %find over member %count",
+			+ "fallback using %std::find",
+			/ "iterator access" ^ "%ystdex::cend" ~ "%ystdex::end"
+		),
+		+ "function template %exists_if"
+	),
+	/ %YFramework $=
+	(
+		/ DLDI "unused %Nonnull result" ^ "%yunused"
+			$effective @ ((("constructor %AndroidLogSender" @ %Debug,
+			"constructor %WindowClass#4" @ "platform %Win32" @ %HostedGUI)
+			@ %YCLib), ("constructor %FatalError" @ %Core.YException,
+			"constructors WidgetNotFound#(1, 2)" @ %UI.Loader) @ %YSLib),
+			// To eliminate Clang++ warning: [-Wunused-value].
+		/ %YCLib $=
+		(
+			/ %Debug $=
+			(
+				+ $dev $lib "'YB_PURE' despite 'YB_Use_StrictNoThrow'"
+					@ "function templates %(Nonnull, FwdIter, Deref)",
+				+ $dev $lib 'YB_PURE' @ "all %ComposeMessageWithSignature",
+				+ $lib 'ynothrow' @ "lambda-expression" @ "%YCL_Log operand"
+					@ "macro %YF_TraceRaw",
+					// This does not change the exception specifier as \
+						%YCL_Log cannot be non-throwing due to the recursive \
+						mutex in the %Logger object initialized in the call of \
+						%FetchCommonLogger.
+				/ @ "class %Logger" $=
+				(
+					- "3rd parameter" @ "static functions \
+						%(SendLog, SendLogToFile)";
+					/ $forced DLDI "simplified functions %(DefaultSendLog, \
+						DefaultSendLogToFile)",
+					+ "static function %LogFailure"
+				),
+				/ "macros %(YF_TraceRaw; YF_Trace)" $=
+				(
+					* "exception from %YCL_Log not caught" $since b724,
+					+ "fallback" ^ $dep_from "%Logger::LogFailure"
+				),
+				* "wrong non-throwing exception specification"
+					@ "function %LogWithSource" $since b593
+					$= (- $revert(b566) 'ynothrow')
+			)
+		),
+		/ %YSLib $=
+		(
+			/ %Core $=
+			(
+				/ @ "function %Invoke" @ "class template %GHandlerRegisterBase"
+					@ %YFunc $=
+				(
+					/ "avoided modification of internal map";
+					+ 'const'
+				),
+				/ %YException $=
+				(
+					(
+					- "2nd parameter" @ "function type"
+						@ "type %ExtractedLevelPrinter";
+					/ $forced DLDI "function %ExtractAndTrace",
+					- $forced "3rd parameter" @ "function %ExtractException"
+						$dep_to "removal of record level for extraction"
+						// If needed, just do capture in the printer.
+					),
+					+ "function %PrintCriticalFor"
+						$dep_from ("%YTraceRaw" @ %YCLib.Debug),
+					* "possible termination caused by thrown exception"
+						@ "functions %(TraceException, ExtractAndTrace)"
+						$since b591
+						/ $= ($impl ^ $dep_from ("%YTraceRaw" @ %YCLib.Debug)),
+					* "possible termination caused by thrown exception"
+						@ "function %ExtractException" $since b591
+						/ $= ($impl ^ $dep_from "%PrintCriticalFor")
+				),
+				/ @ "class %MessageQueue" @ %YMessage $=
+				(
+					+ "function template %Emplace",
+					/ "removed message check" @ "all 2 functions %Push"
+						// To be conssitent to %Emplace. It is now the \
+							responsibility of client code to handle empty \
+							messages which are no longer considered invalid.
+				),
+				/ %YApplication $=
+				(
+					/ "assertion" @ "destructor %Application" -> "trace \
+						message with record level %Warning and a successive \
+						%hShell cleanup" @ %YApplication,
+						// See $2020-04 @ %Documentation::Workflow.
+					/ @ "function %PostQuitMessage" $=
+					(
+						/ DLDI "simplified"
+							^ $dep_from ("%MessageQueue::Emplace" @ %YMessage),
+						* "possibly interleaved messages caused by missing \
+							locking" $since b481
+							// The message should be handled together once the \
+								%SM_Set reset the shell, otherwise it can \
+								cause assertion failure for \
+								%GUIApplication::OnGotMessage.
+					)
+				)
+			),
+			+ 'const' @ "functions %(DetectWidgetNode; TransformUILayout; \
+				LoadUILayout)" @ "class %WigetLoader" @ %UI.Loader
+				$dep_from %Core.YFunc
+		),
+		/ %Helper $=
+		(
+			/ $forced DLDI "simplified exception handling"
+				@ "function %InitializeKeyModule" @ %Initialization
+				$dep_from "removal of record level for extraction",
+			/ %HostedGUI $=
+			(
+				/ DLDI "redundant 'YF_API'"
+					@ "function %CreateCompatibleDIBSection" @ 'YCL_Win32',
+				/ @ "class %ScreenBuffer" $=
+				(
+					+ DLDI "member brace-or-equal-initializers",
+					- $impl "invariant for internal handle";
+					+ "default constructor"
+				)
+			),
+			/ "ignored empty buffer"
+				@ "functions %(UpdateBounds, UpdatePremultiplied)"
+				@ "class %WindowMemorySurface"
+		),
+		/ %NPL $=
+		(
+			/ @ "class %Session" @ %SContext $=
+			(
+				(
+				/ "2 function template %Parse" -> "4 function templates"
+					!^ "%DefaultParseByte";
+				- "static function %DefaultParseByte" 
+				),
+				- "static function %DefaultParseQuoted" 
+			),
+			/ @ "class %REPLContext" @ %NPLA1 $=
+			(
+				/ "type" @ "data member %Preprocess"
+					-> "%TermPasses::HandlerType" ~ "%TermPasses";
+				/ DLDI "constructor"
+			),
+			/ %NPLA1Forms $=
+			(
+				/ "message string" @ "thrown exception"
+					@ "function %ThrowInsufficientTermsError"
+					^ 'terms' ~ 'term',
+				/ "thrown exception of %InvalidSyntax derived with nested \
+					%ParameterMismatch for cases of insufficient arguments"
+					@ "functions ('Define*', 'Lambda*', 'Vau*')",
+				/ "thrown exception of %InvalidSyntax derived with nested \
+					%InvalidSyntax for cases of <eformal> error"
+					@ "functions 'Vau*'",
+				/ "thrown exception of %InvalidSyntax derived with nested \
+					%InvalidSyntax for cases of \<environment> error"
+					@ "functions %(VauWithEnvironment, LambdaWithEnvironment)"
+					$dep_from %NPL.Documentation
+			)
+		)
+	),
+	/ %Tools.SHBuild.Main $=
+	(
+		+ DLI 'YB_ATTR_nodiscard YB_PURE' @ "internal functions for rules",
+			// Also to eliminate G++ 9.2.1 warning: [-Wsuggest-attribute=pure].
+		+ DLDI 'YB_NONNULL(1)' @ "internal log printing functions",
+		/ $forced DLDI "simplified exception handling" @ "function %::main"
+			$dep_from ("%ExtractException" @ %YFramework.YSLib.Core.YException)
+	),
+	/ $doc "relaxed requirement of error object type"
+		@ "applicative 'check-environment'" @ %Documentation.NPL
+),
+
+b887
 (
 	/ %YBase.YStandardEx $=
 	(

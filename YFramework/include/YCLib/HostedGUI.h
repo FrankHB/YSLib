@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1564
+\version r1587
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2020-01-27 22:23 +0800
+	2020-04-19 03:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -435,25 +435,27 @@ private:
 	\invariant bool(p_impl) 。
 	\since build 593
 	*/
-	unique_ptr<ScreenBufferData> p_impl;
+	unique_ptr<ScreenBufferData> p_impl{};
 	/*!
 	\brief 宽：以像素数计量的缓冲区的实际宽度。
 	\since build 498
 	*/
-	YSLib::SDst width;
+	YSLib::SDst width = 0;
 #	elif YCL_Win32
 	//! \since build 386
-	YSLib::Drawing::Size size;
+	YSLib::Drawing::Size size{};
 	//! \since build 593
-	YSLib::Drawing::BitmapPtr p_buffer;
-	/*!
-	\invariant \c bool(p_bitmap) 。
-	\since build 671
-	*/
-	unique_ptr_from<GDIObjectDelete> p_bitmap;
+	YSLib::Drawing::BitmapPtr p_buffer = {};
+	//! \since build 671
+	unique_ptr_from<GDIObjectDelete> p_bitmap{};
 #	endif
 
 public:
+	/*!
+	\brief 无参数构造：空缓冲区。
+	\since build 888
+	*/
+	DefDeCtor(ScreenBuffer)
 	//! \brief 构造：使用指定的缓冲区大小和等于缓冲区宽的像素跨距。
 	ScreenBuffer(const YSLib::Drawing::Size&);
 #	if YCL_HostedUI_XCB || YCL_Android
@@ -464,7 +466,10 @@ public:
 	*/
 	ScreenBuffer(const YSLib::Drawing::Size&, YSLib::SDst);
 #	endif
-	//! \since build 386
+	/*!
+	\post 转移后的参数为空缓冲区。
+	\since build 386
+	*/
 	ScreenBuffer(ScreenBuffer&&) ynothrow;
 	~ScreenBuffer();
 
@@ -637,16 +642,20 @@ public:
 	DefGetter(const ynothrow, ::HDC, OwnerHandle, h_owner_dc)
 	DefGetter(const ynothrow, ::HDC, NativeHandle, h_mem_dc)
 
-	//! \since build 591
+	/*!
+	\note 忽略空缓冲区。
+	\since build 591
+	*/
+	//@{
 	void
 	UpdateBounds(ScreenBuffer&, const YSLib::Drawing::Rect&,
 		const YSLib::Drawing::Point& = {}) ynothrow;
 
-	//! \since build 591
 	void
 	UpdatePremultiplied(ScreenBuffer&, NativeWindowHandle,
 		YSLib::Drawing::AlphaType = 0xFF, const YSLib::Drawing::Point& = {})
 		ynothrow;
+	//@}
 };
 
 

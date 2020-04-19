@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r7606
+\version r7612
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2020-03-26 10:10 +0800
+	2020-04-13 18:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1049,6 +1049,8 @@ UndefineChecked(TermNode&, ContextNode&);
 
 
 /*!
+\exception InvalidSyntax 语法错误：缺少项。
+\exception InvalidSyntax 语法错误：\<formals> 不是形式参数树。
 \exception ParameterMismatch 异常中立：由 BindParameter 抛出。
 \sa EvaluateIdentifier
 \sa ExtractParameters
@@ -1094,7 +1096,7 @@ LambdaRef(TermNode&, ContextNode&);
 \note 动态环境的上下文参数被捕获为一个 lref<ContextNode> 对象。
 \note 初始化的 \<eformal> 表示动态环境的上下文参数，应为一个符号或 #ignore 。
 \note 引入的处理器的 operator() 支持保存当前动作。
-\throw InvalidSyntax \<eformal> 不符合要求。
+\exception InvalidSyntax 语法错误：\<eformal> 不是符号。
 
 上下文中环境以外的数据成员总是被复制而不被转移，
 	以避免求值过程中继续访问这些成员引起未定义行为。
@@ -1132,7 +1134,7 @@ VauRef(TermNode&, ContextNode&);
 \brief 带环境的 vau 抽象：求值为一个捕获当前上下文的非严格求值的函数。
 \sa ResolveEnvironment
 
-捕获的静态环境由环境参数 \<env> 求值后指定。
+捕获的静态环境由环境参数 \<environment> 求值后指定。
 根据环境参数的类型为 \c shared_ptr<Environment> 或 \c weak_ptr<Environment>
 	决定是否保留所有权。
 */
@@ -1141,7 +1143,7 @@ VauRef(TermNode&, ContextNode&);
 按值传递返回值：提升项以避免返回引用造成内存安全问题。
 
 参考调用文法：
-<pre>$vau/e \<env> \<formals> \<eformal> \<body></pre>
+<pre>$vau/e \<environment> \<formals> \<eformal> \<body></pre>
 */
 YF_API ReductionStatus
 VauWithEnvironment(TermNode&, ContextNode&);
@@ -1150,7 +1152,7 @@ VauWithEnvironment(TermNode&, ContextNode&);
 在返回时不提升项，允许返回引用。
 
 参考调用文法：
-<pre>$vau/e% \<env> \<formals> \<eformal> \<body></pre>
+<pre>$vau/e% \<environment> \<formals> \<eformal> \<body></pre>
 */
 YF_API ReductionStatus
 VauWithEnvironmentRef(TermNode&, ContextNode&);

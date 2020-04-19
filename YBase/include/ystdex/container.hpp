@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r2255
+\version r2330
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2020-01-27 03:00 +0800
+	2020-04-13 00:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -257,19 +257,49 @@ seq_insert(_tCon& con, _tParams&&... args)
 namespace details
 {
 
+//! \since build 888
+//@{
+template<class _type, typename _tKey>
+using mem_count_t = decltype(std::declval<const _type&>().count(
+	std::declval<const _tKey&>()));
+
+template<typename _type, typename _tKey>
+using has_mem_count
+	= is_detected_convertible<size_t, mem_count_t, _type, _tKey>;
+
+template<class _type, typename _tKey>
+using mem_find_t = decltype(std::declval<const _type&>().find(
+	std::declval<const _tKey&>()) == ystdex::end(std::declval<const _type&>()));
+
+template<typename _type, typename _tKey>
+using has_mem_find = is_detected_convertible<bool, mem_count_t, _type, _tKey>;
+
 template<class _tCon, typename _tKey>
-YB_PURE bool
-exists(const _tCon& con, const _tKey& key,
-	decltype(std::declval<_tCon>().count()) = 1U)
+YB_ATTR_nodiscard YB_PURE bool
+exists(const _tCon& con, const _tKey& key, false_, false_)
+{
+	return std::find(ystdex::cbegin(con), ystdex::cend(con), key)
+		!= ystdex::cend(con);
+}
+template<class _tCon, typename _tKey>
+YB_ATTR_nodiscard YB_PURE bool
+exists(const _tCon& con, const _tKey& key, false_, true_)
 {
 	return con.count(key) != 0;
 }
 template<class _tCon, typename _tKey>
-YB_PURE bool
-exists(const _tCon& con, const _tKey& key, ...)
+YB_ATTR_nodiscard YB_PURE bool
+exists(const _tCon& con, const _tKey& key, false_)
 {
-	return con.find(key) != ystdex::end(con);
+	return details::exists(con, key, false_(), has_mem_count<_tCon, _tKey>());
 }
+template<class _tCon, typename _tKey>
+YB_ATTR_nodiscard YB_PURE bool
+exists(const _tCon& con, const _tKey& key, true_)
+{
+	return con.find(key) != ystdex::cend(con);
+}
+//@}
 
 
 //! \since build 663
@@ -356,12 +386,13 @@ template<typename _tCon, typename _type>
 inline void
 erase_all(_tCon& con, const _type& value, true_)
 {
-	details::erase_all(con, ystdex::cbegin(con), ystdex::cend(con), value, true_());
+	details::erase_all(con, ystdex::cbegin(con), ystdex::cend(con), value,
+		true_());
 }
 template<typename _tCon, typename _type>
 inline void
-erase_all(_tCon& con, decltype(ystdex::begin(con)) first, decltype(ystdex::end(con)) last,
-	const _type& value, false_)
+erase_all(_tCon& con, decltype(ystdex::begin(con)) first,
+	decltype(ystdex::end(con)) last, const _type& value, false_)
 {
 	details::erase_remove(con, first, last, value);
 }
@@ -411,18 +442,41 @@ erase_all_if(_tCon& con, _fPred pred, false_)
 //! \ingroup algorithms
 //@{
 /*!
+\sa ystdex::cbegin
+\sa ystdex::cend
+*/
+//@{
+/*!
 \brief 判断指定的容器中存在指定的键。
-\note 当容器对象右值可使用返回以整数初始化的类型的成员 \c count 时使用
-	成员 \c count 实现；否则使用 ystdex::end 指定的容器迭代器，
-	使用成员 \c find 实现。
 \since build 488
+
+按容器类型支持的操作判断参数指定的键的存在性。
+按以下顺序查找支持的操作：
+尝试使用 find 非静态成员函数，返回可比较的迭代器，迭代器比较结果类型可转换为 bool ；
+尝试使用 count 非静态成员函数返回可转换为 size_t 的整数类型的值；
+使用 std::find 在容器中查找键。
+优先使用成员 find 而不是 count 以提升一般性能。
 */
 template<class _tCon, typename _tKey>
-YB_PURE inline bool
+YB_ATTR_nodiscard YB_PURE inline bool
 exists(const _tCon& con, const _tKey& key)
 {
-	return details::exists(con, key);
+	return details::exists(con, key, details::has_mem_find<_tCon, _tKey>());
 }
+
+/*!
+\brief 判断指定的容器中存在满足指定谓词的键。
+\since build 888
+
+使用 std::find_if 判断参数满足指定的谓词的键的存在性。
+*/
+template<class _tCon, typename _fPred>
+YB_ATTR_nodiscard YB_PURE inline bool
+exists_if(const _tCon& con, _fPred pred)
+{
+	return std::find_if(ystdex::cbegin(con), ystdex::cend(con), pred);
+}
+//@}
 
 
 /*!
@@ -627,13 +681,15 @@ trail(_tCon&& con, _tParam1&& arg1, _tParam2&& arg2, _tParams&&... args)
 //@}
 
 
+//! \since build 885
+//@{
 /*!
 \brief 若容器末尾存在指定值的元素则移除。
-\since build 545
+\pre 容器支持无异常抛出的 empty 、back 和 pop_back 操作。
 */
 template<class _tCon>
 bool
-pop_back_val(_tCon& con, const typename _tCon::value_type& value)
+pop_back_val(_tCon& con, const typename _tCon::value_type& value) ynothrow
 {
 	if(!con.empty() && con.back() == value)
 	{
@@ -645,11 +701,11 @@ pop_back_val(_tCon& con, const typename _tCon::value_type& value)
 
 /*!
 \brief 若容器起始存在指定值的元素则移除。
-\since build 545
+\pre 容器支持无异常抛出的 empty 、front 和 pop_front 操作。
 */
 template<class _tCon>
 bool
-pop_front_val(_tCon& con, const typename _tCon::value_type& value)
+pop_front_val(_tCon& con, const typename _tCon::value_type& value) ynothrow
 {
 	if(!con.empty() && con.front() == value)
 	{
@@ -658,6 +714,7 @@ pop_front_val(_tCon& con, const typename _tCon::value_type& value)
 	}
 	return {};
 }
+//@}
 
 
 /*!
@@ -885,7 +942,7 @@ insert_or_assign(std::pair<typename _tAssocCon::iterator, bool> pr,
 */
 //@{
 template<class _tAssocCon, typename _tKey>
-std::pair<typename _tAssocCon::const_iterator, bool>
+YB_ATTR_nodiscard YB_PURE std::pair<typename _tAssocCon::const_iterator, bool>
 search_map(const _tAssocCon& con, const _tKey& k)
 {
 	const auto i(con.lower_bound(k));
@@ -894,7 +951,7 @@ search_map(const _tAssocCon& con, const _tKey& k)
 		|| con.key_comp()(k, extract_key<_tAssocCon>(*i))};
 }
 template<class _tAssocCon, typename _tKey>
-inline std::pair<typename _tAssocCon::iterator, bool>
+YB_ATTR_nodiscard YB_PURE inline std::pair<typename _tAssocCon::iterator, bool>
 search_map(_tAssocCon& con, const _tKey& k)
 {
 	return
@@ -910,7 +967,7 @@ search_map(_tAssocCon& con, const _tKey& k)
 */
 //@{
 template<class _tAssocCon, typename _tKey>
-std::pair<typename _tAssocCon::const_iterator, bool>
+YB_ATTR_nodiscard YB_PURE std::pair<typename _tAssocCon::const_iterator, bool>
 search_map(const _tAssocCon& con, typename _tAssocCon::const_iterator hint,
 	const _tKey& k)
 {
@@ -930,7 +987,7 @@ search_map(const _tAssocCon& con, typename _tAssocCon::const_iterator hint,
 	return {hint, true};
 }
 template<class _tAssocCon, typename _tKey>
-inline std::pair<typename _tAssocCon::iterator, bool>
+YB_ATTR_nodiscard YB_PURE inline std::pair<typename _tAssocCon::iterator, bool>
 search_map(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
 	const _tKey& k)
 {

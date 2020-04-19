@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r375
+\version r378
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2020-03-17 22:50 +0800
+	2020-04-07 00:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,7 +75,7 @@ AccessWidget(const ValueNode& node)
 
 
 unique_ptr<IWidget>
-WidgetLoader::DetectWidgetNode(const ValueNode& node)
+WidgetLoader::DetectWidgetNode(const ValueNode& node) const
 {
 	const auto& child(AccessNode(node, "$type"));
 
@@ -95,7 +95,7 @@ WidgetLoader::DetectWidgetNode(const ValueNode& node)
 }
 
 ValueNode
-WidgetLoader::LoadUILayout(string_view sv)
+WidgetLoader::LoadUILayout(string_view sv) const
 {
 	using namespace NPL;
 	Session sess{};
@@ -105,7 +105,7 @@ WidgetLoader::LoadUILayout(string_view sv)
 }
 
 ValueNode
-WidgetLoader::TransformUILayout(const ValueNode& node)
+WidgetLoader::TransformUILayout(const ValueNode& node) const
 {
 	if(unique_ptr<IWidget> p_new_widget{DetectWidgetNode(node)})
 	{

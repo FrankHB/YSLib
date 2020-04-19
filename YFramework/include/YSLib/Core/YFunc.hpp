@@ -11,13 +11,13 @@
 /*!	\file YFunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r1301
+\version r1316
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-02-14 18:48:44 +0800
 \par 修改时间:
-	2020-01-27 16:11 +0800
+	2020-04-08 01:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,20 +83,22 @@ public:
 
 	DeclSEntry(template<_type, _fHandler> _fHandler GetRegister() const)
 
-	//! \since build 832
+	//! \since build 888
 	template<typename... _tParams>
 	auto
-	Invoke(const _tKey& key, _tParams&&... args)
+	Invoke(const _tKey& key, _tParams&&... args) const
 		-> ystdex::invoke_result_t<_fHandler&, _tParams&&...>
 	{
-		if(const auto f = registered_map[key])
-		{
-			// TODO: Do right trace.
-		//	YTraceDe(Notice, "Found registered handler: %s.",
-		//		to_string(key).c_str());
+		const auto i(registered_map.find(key));
 
-			return ystdex::invoke(f, yforward(args)...);
-		}
+		if(i != registered_map.cend())
+			if(const auto& f = i->second)
+			{
+				// TODO: Do right trace?
+			//	YTraceDe(Notice, "Found registered handler: %s.",
+			//		to_string(key).c_str());
+				return ystdex::invoke(f, yforward(args)...);
+			}
 		return ystdex::invoke_result_t<_fHandler&, _tParams&&...>();
 	}
 

@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r3601
+\version r3607
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2020-04-06 18:38 +0800
+	2020-04-16 04:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -3669,6 +3669,12 @@ Some 'YB_ATTR(always_inline)' has been removed to allow the generated code being
 The client code (e.g. in YFramework module NPL::NPLA1) still keeps the allocator argument for 'TermNode::Value'.
 	Actually 'YSLib::AlloctorHolder' (due to the underlying 'ystdex::any_ops::allocator_holder_handler') can allow the omission the traling allocator argument for 'ystdex::pmr::polymorphic_allocator' instances.
 	However, omision of the trailing allocator agurments is generally a bit inefficient in the generated code.
+The assertion in the destructor of application class 'YSLib::Application' has been relaxed.
+	The cleanup of all shells cannot be reliably implemented in all cases, since the cleanup code can live in the different thread than the application object.
+		In cases where the application object is a static object hidden in a library, the cleanup code may be ignored due to termination of the program.
+		The handled shell is explicitly cleanup to make the resource before the call of exit guard callbacks.
+	It is still better make sure all shells are destroyed before the destruction in general.
+		There should usually be at most one shell handle used in the application object.
 
 ////
 

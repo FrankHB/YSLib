@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2019 FrankHB.
+	© 2013-2016, 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Loader.h
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r666
+\version r676
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:37:16 +0800
 \par 修改时间:
-	2019-01-16 06:03 +0800
+	2020-04-07 00:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,12 +97,12 @@ public:
 	WidgetNotFound(string_view name, const char* s,
 		RecordLevel lv = Warning)
 		: LoggedEvent(s, lv),
-		NodeName((Nonnull(name.data()), name))
+		NodeName((yunused(Nonnull(name.data())), name))
 	{}
 	WidgetNotFound(string_view name, const string_view sv,
 		RecordLevel lv = Warning)
 		: LoggedEvent(sv, lv),
-		NodeName((Nonnull(name.data()), name))
+		NodeName((yunused(Nonnull(name.data())), name))
 	{}
 
 	//! \since build 586
@@ -243,18 +243,19 @@ public:
 	//! \since build 555
 	GWidgetInserterRegister<IWidget&, const ZOrder&> InsertZOrdered{};
 
+	//! \since build 888
+	//@{
 	//! \exception std::out_of_range 异常中立：找不到内部类型节点。
 	unique_ptr<IWidget>
-	DetectWidgetNode(const ValueNode&);
+	DetectWidgetNode(const ValueNode&) const;
 
 	/*!
 	\brief 加载 NPLA1 翻译单元，翻译后变换为 UI 布局树。
 	\pre 间接断言：参数的数据指针非空。
 	\sa TransformUILayout
-	\since build 659
 	*/
 	ValueNode
-	LoadUILayout(string_view);
+	LoadUILayout(string_view) const;
 
 	/*!
 	\brief 变换 UI 布局树：根据 NPLA1 中间表示动态创建部件树。
@@ -268,7 +269,8 @@ public:
 	可选 $z 指定 Z 顺序值。
 	*/
 	ValueNode
-	TransformUILayout(const ValueNode&);
+	TransformUILayout(const ValueNode&) const;
+	//@}
 };
 
 

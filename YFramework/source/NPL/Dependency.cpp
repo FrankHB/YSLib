@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3516
+\version r3521
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2020-03-22 15:29 +0800
+	2020-04-16 14:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1246,10 +1246,11 @@ LoadModule_SHBuild(REPLContext& context)
 		return IO::IsAbsolute(str);
 	});
 	RegisterUnary<Strict, const string>(renv, "SHBuild_TrimOptions_",
-		[](const string& src){
-		string res;
-		Session sess{};
-		set<size_t> left_qset{};
+		[](const string& src, const ContextNode& ctx){
+		string res(src.get_allocator());
+		const auto a(ctx.get_allocator());
+		Session sess(a);
+		set<size_t> left_qset(a);
 
 		sess.Parse(src, [&](LexicalAnalyzer& lexer, char c){
 			if(lexer.FilterChar(c, NPLUnescape, IgnorePrefix))

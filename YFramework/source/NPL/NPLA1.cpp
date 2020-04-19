@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r18955
+\version r18961
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-04-03 00:30 +0800
+	2020-04-12 11:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -252,8 +252,9 @@ private:
 #endif
 
 public:
-	SeparatorPass(TermPasses& passes)
-		: alloc(passes.get_allocator())
+	//! \since build 888
+	SeparatorPass(TermPasses::allocator_type a)
+		: alloc(a)
 	{}
 
 	YB_FLATTEN ReductionStatus
@@ -1685,13 +1686,12 @@ SetupDefaultInterpretation(ContextState& cs, EvaluationPasses passes)
 
 
 REPLContext::REPLContext(pmr::memory_resource& rsrc)
-	: Allocator(&rsrc), Root(rsrc), ConvertLeaf(
-		[&](const TokenList::value_type& str){
+	: Allocator(&rsrc), Root(rsrc), Preprocess(SeparatorPass(Allocator)),
+	ConvertLeaf([&](const TokenList::value_type& str){
 		return ParseLeaf(YSLib::make_string_view(str), Allocator);
 	})
 {
 	SetupDefaultInterpretation(Root, EvaluationPasses(Allocator));
-	Preprocess += SeparatorPass(Preprocess);
 }
 
 bool

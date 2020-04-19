@@ -11,13 +11,13 @@
 /*!	\file YMessage.h
 \ingroup Core
 \brief 消息处理。
-\version r2058
+\version r2072
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2020-03-03 21:05 +0800
+	2020-04-18 23:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -183,13 +183,25 @@ public:
 		empty() ? 0 : cbegin()->first)
 
 	/*!
+	\brief 以参数指定的优先级插入按指定的参数构造的消息。
+	\since build 888
+	*/
+	template<typename... _tParams>
+	void
+	Emplace(Priority prior, _tParams&&... args)
+	{
+		emplace(std::piecewise_construct, std::tuple<Priority>(prior),
+			std::forward_as_tuple(yforward(args)...));
+	}
+
+	/*!
 	\brief 合并消息队列：移动指定消息队列中的所有消息至此消息队列中。
 	*/
 	void
 	Merge(MessageQueue&);
 
 	/*!
-	\brief 从消息队列中取优先级最高的消息存至 msg 中。
+	\brief 从消息队列中取优先级最高的消息存至参数指定的消息中。
 	\note 在队列中保留消息；不检查消息是否有效。
 	\since build 271
 	*/
@@ -204,13 +216,13 @@ public:
 	Pop();
 
 	/*!
-	\brief 若消息有效，以指定优先级插入至消息队列中。
+	\brief 以指定优先级插入参数指定的消息至消息队列中。
 	\since build 317
 	*/
 	void
 	Push(const Message&, Priority);
 	/*!
-	\brief 若消息有效，以指定优先级插入至消息队列中。
+	\brief 以指定优先级插入参数指定的消息至消息队列中。
 	\since build 454
 	*/
 	void

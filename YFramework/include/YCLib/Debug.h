@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r810
+\version r857
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2020-01-27 14:58 +0800
+	2020-04-19 03:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -187,6 +187,7 @@ public:
 	//@{
 	/*!
 	\brief 默认发送器：使用 std::cerr 输出。
+	\pre 非 DS 平台：std::cerr 不设置在错误时抛出异常。
 	\note DS 平台：空操作。
 	*/
 	static YB_NONNULL(3) void
@@ -256,17 +257,26 @@ public:
 	}
 
 	/*!
+	\brief 记录失败输出。
+	\note 用于保证无异常抛出的日志输出的失败操作。
+	\since build 888
+	*/
+	static void
+	LogFailure() ynothrow;
+
+	/*!
 	\brief 默认发送器：使用第一参数指定的流输出。
 	\pre 间接断言：字符串参数非空。
-	\since build 626
+	\since build 888
 	*/
 	//@{
-	static YB_NONNULL(4) void
-	SendLog(std::ostream&, Level, Logger&, const char*) ynothrowv;
+	//! \pre 第一参数不设置在错误时抛出异常。
+	static YB_NONNULL(3) void
+	SendLog(std::ostream&, Level, const char*) ynothrowv;
 
 	//! \pre 断言：流指针非空。
-	static YB_NONNULL(1, 4) void
-	SendLogToFile(std::FILE*, Level, Logger&, const char*) ynothrowv;
+	static YB_NONNULL(1, 3) void
+	SendLogToFile(std::FILE*, Level, const char*) ynothrowv;
 	//@}
 
 	/*!
@@ -291,10 +301,10 @@ FetchCommonLogger();
 \pre 间接断言：第三参数非空。
 \note 允许第一参数为空指针，视为未知。
 \note 当失败时调用 ystdex::trace 记录，但只保留参数中的文件名和行号。
-\since build 593
+\since build 888
 */
 YF_API YB_ATTR_gnu_printf(3, 4) YB_NONNULL(1, 3) string
-LogWithSource(const char*, int, const char*, ...) ynothrow;
+LogWithSource(const char*, int, const char*, ...);
 
 
 /*!
@@ -307,31 +317,38 @@ LogWithSource(const char*, int, const char*, ...) ynothrow;
 	platform::FetchCommonLogger().Log( \
 		platform::Descriptions::RecordLevel(_lv), __VA_ARGS__)
 
+//! \note 无异常抛出。
+//@{
 /*!
 \brief YFramework 跟踪。
 \note 直接按格式字符串的输出跟踪，不带源代码信息。
 \since build 724
 */
 #define YF_TraceRaw(_lv, ...) \
-	YCL_Log(_lv, [&]() -> platform::string { \
-		TryRet(ystdex::sfmt<platform::string>(__VA_ARGS__)) \
-		CatchRet(..., {}) \
-	})
+	[&]() ynothrow{ \
+		TryExpr(YCL_Log(_lv, [&]{ \
+			return ystdex::sfmt<platform::string>(__VA_ARGS__); \
+		})) \
+		CatchExpr(..., platform::Logger::LogFailure()) \
+	}()
 
 /*!
 \def YF_Trace
 \brief YCLib 默认调试跟踪。
-\note 无异常抛出。
 \since build 724
 */
 #if YF_Use_TraceSrc
 #	define YF_Trace(_lv, ...) \
-	YCL_Log(_lv, [&]{ \
-		return platform::LogWithSource(__FILE__, __LINE__, __VA_ARGS__); \
-	})
+	[&]() ynothrow{ \
+		TryExpr(YCL_Log(_lv, [&]{ \
+			return platform::LogWithSource(__FILE__, __LINE__, __VA_ARGS__); \
+		})) \
+		CatchExpr(..., platform::Logger::LogFailure()) \
+	}()
 #else
 #	define YF_Trace(_lv, ...) YF_TraceRaw(_lv, __VA_ARGS__)
 #endif
+//@}
 
 
 /*!
@@ -454,10 +471,7 @@ namespace platform
 \since build 702
 */
 template<typename _type>
-#if YB_Use_StrictNoThrow
-YB_PURE
-#endif
-inline _type&&
+YB_PURE inline _type&&
 Nonnull(_type&& p) ynothrowv
 {
 	YAssertNonnull(p);
@@ -470,10 +484,7 @@ Nonnull(_type&& p) ynothrowv
 \since build 702
 */
 template<typename _type>
-#if YB_Use_StrictNoThrow
-YB_PURE
-#endif
-inline _type&&
+YB_PURE inline _type&&
 FwdIter(_type&& i) ynothrowv
 {
 	using ystdex::is_undereferenceable;
@@ -489,10 +500,7 @@ FwdIter(_type&& i) ynothrowv
 \since build 553
 */
 template<typename _type>
-#if YB_Use_StrictNoThrow
-YB_PURE
-#endif
-yconstfn auto
+YB_PURE yconstfn auto
 Deref(_type&& p) -> decltype(*p)
 {
 	return *FwdIter(yforward(p));
@@ -506,14 +514,14 @@ Deref(_type&& p) -> decltype(*p)
 \since build 861
 */
 //@{
-YB_NONNULL(2) inline PDefH(std::string, ComposeMessageWithSignature,
+YB_NONNULL(2) YB_PURE inline PDefH(std::string, ComposeMessageWithSignature,
 	const std::string& msg, const char* sig)
 	ImplRet(msg + " @ " + Nonnull(sig))
-YB_NONNULL(1, 2) inline PDefH(std::string, ComposeMessageWithSignature,
+YB_NONNULL(1, 2) YB_PURE inline PDefH(std::string, ComposeMessageWithSignature,
 	const char* msg, const char* sig)
 	ImplRet(std::string(Nonnull(msg)) + " @ " + Nonnull(sig))
 template<class _type>
-YB_NONNULL(2) inline std::string
+YB_NONNULL(2) YB_PURE inline std::string
 ComposeMessageWithSignature(const _type& msg, const char* sig)
 {
 	using ystdex::to_string;

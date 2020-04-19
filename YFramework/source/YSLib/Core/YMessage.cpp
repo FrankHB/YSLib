@@ -11,13 +11,13 @@
 /*!	\file YMessage.cpp
 \ingroup Core
 \brief 消息处理。
-\version r1259
+\version r1263
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2020-03-03 21:04 +0800
+	2020-04-18 23:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,14 +69,12 @@ MessageQueue::Pop()
 void
 MessageQueue::Push(const Message& msg, Priority prior)
 {
-	if(msg)
-		emplace(prior, msg);
+	emplace(prior, msg);
 }
 void
 MessageQueue::Push(Message&& msg, Priority prior)
 {
-	if(msg)
-		emplace(prior, std::move(msg));
+	emplace(prior, std::move(msg));
 }
 
 void

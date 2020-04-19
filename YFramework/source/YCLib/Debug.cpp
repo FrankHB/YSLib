@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2019 FrankHB.
+	© 2011-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r862
+\version r889
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2019-11-29 03:32 +0800
+	2020-04-19 03:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,8 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_Debug // for wstring, string_view, std::puts, std::fflush;
+#include YFM_YCLib_Debug // for wstring, string_view, std::puts, std::fflush,
+//	stderr;
 #if YCL_Win32
 #	include YFM_Win32_YCLib_Consoles // for platform_ex::WConsole,
 //	STD_OUTPUT_HANDLE, STD_ERROR_HANDLE, platform_ex::Win32Exception;
@@ -146,20 +147,20 @@ Logger::DefaultFilter(Level lv, Logger& logger) ynothrow
 }
 
 void
-Logger::DefaultSendLog(Level lv, Logger& logger, const char* str) ynothrowv
+Logger::DefaultSendLog(Level lv, Logger&, const char* str) ynothrowv
 {
 #if YCL_DS
-	yunused(lv), yunused(logger), yunused(str);
+	yunused(lv), yunused(str);
 #else
-	SendLog(std::cerr, lv, logger, str);
+	SendLog(std::cerr, lv, str);
 #endif
 }
 
 void
-Logger::DefaultSendLogToFile(Level lv, Logger& logger, const char* str)
+Logger::DefaultSendLogToFile(Level lv, Logger&, const char* str)
 	ynothrowv
 {
-	SendLogToFile(stderr, lv, logger, str);
+	SendLogToFile(stderr, lv, str);
 }
 
 void
@@ -233,7 +234,13 @@ Logger::FetchDefaultSender(string_view tag)
 }
 
 void
-Logger::SendLog(std::ostream& os, Level lv, Logger&, const char* str)
+Logger::LogFailure() ynothrow
+{
+	SendLogToFile(stderr, Descriptions::Emergent, "Log failure.");
+}
+
+void
+Logger::SendLog(std::ostream& os, Level lv, const char* str)
 	ynothrowv
 {
 	try
@@ -242,18 +249,21 @@ Logger::SendLog(std::ostream& os, Level lv, Logger&, const char* str)
 		const auto& t_id(FetchCurrentThreadID());
 
 		if(!t_id.empty())
+			// XXX: Error is ignored.
 			os << ystdex::sfmt("[%s:%#X]: %s\n", t_id.c_str(), unsigned(lv),
 				Nonnull(str));
 		else
 #endif
+			// XXX: Error is ignored.
 			os << ystdex::sfmt("[%#X]: %s\n", unsigned(lv), Nonnull(str));
+		// XXX: Error is ignored.
 		os.flush();
 	}
 	CatchIgnore(...)
 }
 
 void
-Logger::SendLogToFile(std::FILE* stream, Level lv, Logger&, const char* str)
+Logger::SendLogToFile(std::FILE* stream, Level lv, const char* str)
 	ynothrowv
 {
 	YAssertNonnull(stream);
@@ -261,11 +271,14 @@ Logger::SendLogToFile(std::FILE* stream, Level lv, Logger&, const char* str)
 	const auto& t_id(FetchCurrentThreadID());
 
 	if(!t_id.empty())
+		// XXX: Error from 'std::fprintf' is ignored.
 		std::fprintf(stream, "[%s:%#X]: %s\n", t_id.c_str(), unsigned(lv),
 			Nonnull(str));
 	else
 #endif
+		// XXX: Error from 'std::fprintf' is ignored.
 		std::fprintf(stream, "[%#X]: %s\n", unsigned(lv), Nonnull(str));
+	// XXX: Error is ignored.
 	std::fflush(stream);
 }
 
@@ -288,7 +301,7 @@ FetchCommonLogger()
 
 
 string
-LogWithSource(const char* file, int line, const char* fmt, ...) ynothrow
+LogWithSource(const char* file, int line, const char* fmt, ...)
 {
 	try
 	{
@@ -363,7 +376,9 @@ LogAssert(const char* expr_str, const char* file, int line,
 	}))
 	catch(...)
 	{
+		// XXX: Error from 'std::fprintf' is ignored.
 		std::fprintf(stderr, "Fetch logger failed.");
+		// XXX: Error is ignored.
 		std::fflush(stderr);
 	}
 	ystdex::yassert(expr_str, file, line, msg);
@@ -397,7 +412,7 @@ MapAndroidLogLevel(Descriptions::RecordLevel lv)
 
 
 AndroidLogSender::AndroidLogSender(string_view sv)
-	: tag((Nonnull(sv.data()), sv))
+	: tag((yunused(Nonnull(sv.data())), sv))
 {}
 ImplDeDtor(AndroidLogSender)
 
@@ -406,8 +421,8 @@ AndroidLogSender::operator()(Level lv, Logger& logger, const char* str) const
 {
 	Logger::DefaultSendLog(lv, logger, str);
 	if(lv < Descriptions::Critical)
-		::__android_log_assert("", "YFramework", "[%#X]: %s\n",
-			unsigned(lv), str);
+		::__android_log_assert("", "YFramework", "[%#X]: %s\n", unsigned(lv),
+			str);
 	else
 		PrintAndroidLog(lv, tag.c_str(), "[%#X]: %s\n", unsigned(lv), str);
 }

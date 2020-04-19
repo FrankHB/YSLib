@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3479
+\version r3480
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2020-03-17 22:50 +0800
+	2020-04-13 21:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -347,7 +347,7 @@ InitializeKeyModule(function<void()> f, const char* sig,
 		return;
 	}
 	CatchExpr(std::exception& e, ExtractException(
-		[&](const string& str, RecordLevel, size_t level){
+		[&](const string& str, size_t level){
 		res += string(level, ' ') + "ERROR: " + str + '\n';
 	}, e))
 	CatchExpr(..., res += string("Unknown exception @ ") + sig + ".\n")

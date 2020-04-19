@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018-2019 FrankHB.
+	© 2010-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r632
+\version r661
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2019-07-07 15:28 +0800
+	2020-04-19 03:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -127,19 +127,35 @@ public:
 \brief 打印带有层次信息的函数类型。
 \note 约定第一参数非空。
 */
-using ExtractedLevelPrinter
-	= function<void(const char*, RecordLevel, size_t)>;
+using ExtractedLevelPrinter = function<void(const char*, size_t)>;
 template<typename _type>
 using GLevelTracer = function<void(_type, RecordLevel)>;
 using ExceptionTracer = GLevelTracer<const std::exception&>;
 
 
+//! \sa YF_TraceRaw
+//@{
+//! \note 若抛出异常，放弃层次信息，通过 YF_TraceRaw 打印错误消息。
+//@{
+/*!
+\brief 打印带有层次信息的需要保证无异常抛出的错误。
+\pre 间接断言：第二参数非空。
+\since build 888
+
+调用第一参数打印异常消息。
+*/
+YF_API YB_NONNULL(2) void
+PrintCriticalFor(const ExtractedLevelPrinter&, const char*, RecordLevel = Err,
+	size_t = 0) ynothrow;
+
 /*!
 \brief 通过 YF_TraceRaw 跟踪带空格缩进层次的异常信息的函数类型。
-\pre 断言：第一参数非空。
+\pre 间接断言：第一参数非空。
 */
 YF_API YB_NONNULL(1) void
 TraceException(const char*, RecordLevel = Err, size_t level = 0) ynothrow;
+//@}
+//@}
 
 /*!
 \brief 通过 YF_TraceRaw 跟踪记录异常类型。
@@ -148,6 +164,7 @@ TraceException(const char*, RecordLevel = Err, size_t level = 0) ynothrow;
 */
 YF_API void
 TraceExceptionType(const std::exception&, RecordLevel = Err) ynothrow;
+//@}
 
 /*!
 \brief 使用 TraceException 展开和跟踪异常类型和信息。
@@ -159,11 +176,14 @@ TraceExceptionType(const std::exception&, RecordLevel = Err) ynothrow;
 YF_API void
 ExtractAndTrace(const std::exception&, RecordLevel = Err) ynothrow;
 
-//! \brief 展开指定层次的异常并使用指定参数记录。
+/*!
+\brief 展开指定层次的异常并使用指定参数记录。
+\sa PrintCriticalFor
+\since build 888
+*/
 YF_API void
-ExtractException(const ExtractedLevelPrinter&,
-	const std::exception&, RecordLevel = Err, size_t = 0) ynothrow;
-//@}
+ExtractException(const ExtractedLevelPrinter&, const std::exception&,
+	size_t = 0) ynothrow;
 
 //! \return 是否发生并捕获异常。
 //@{
@@ -197,6 +217,8 @@ TryInvoke(_fCallable&& f, _tParams&&... args) ynothrow
 \since build 624
 
 对参数指定的函数求值，并捕获和跟踪记录所有异常。
+若第二参数非空，则在捕获和跟踪异常前，
+	调用 YF_TraceRaw 以 Notice 记录等级接打印指示过滤的消息。
 */
 template<typename _func>
 bool

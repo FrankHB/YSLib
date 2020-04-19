@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2793
+\version r2844
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2020-04-06 20:06 +0800
+	2020-04-12 00:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -742,50 +742,65 @@ public:
 	DefGetter(const, TokenList, TokenList, Tokenize(Lexer.Literalize()))
 
 	/*!
-	\brief 默认字符解析实现：直接使用 LexicalAnalyzer::ParseByte 。
-	\since build 546
-	*/
-	static void
-	DefaultParseByte(LexicalAnalyzer&, char);
-
-	/*!
-	\brief 默认字符解析实现：直接使用 LexicalAnalyzer::ParseQuoted 。
-	\since build 546
-	*/
-	static void
-	DefaultParseQuoted(LexicalAnalyzer&, char);
-
-	/*!
 	\brief 解析输入范围。
 	\exception LoggedEvent 关键失败：无法访问源内容。
-	\since build 886
+	\since build 888
 	*/
 	//@{
-	template<typename _tIn, typename _tCharParser = CharParser>
+	template<typename _tIn>
 	YB_FLATTEN inline void
-	Parse(_tIn first, _tIn last, _tCharParser parse = DefaultParseByte)
+	Parse(_tIn first, _tIn last)
+	{
+		ParseImpl(first, last,
+			typename std::iterator_traits<_tIn>::iterator_category());
+	}
+	template<typename _tIn, typename _tCharParser>
+	YB_FLATTEN inline void
+	Parse(_tIn first, _tIn last, _tCharParser parse)
 	{
 		ParseImpl(first, last, parse,
 			typename std::iterator_traits<_tIn>::iterator_category());
 	}
-	template<typename _tRange, typename _tCharParser = CharParser>
+	template<typename _tRange>
 	inline void
-	Parse(const _tRange& c, _tCharParser parse = DefaultParseByte)
+	Parse(const _tRange& c)
+	{
+		Parse(ystdex::begin(c), ystdex::end(c));
+	}
+	template<typename _tRange, typename _tCharParser>
+	inline void
+	Parse(const _tRange& c, _tCharParser parse)
 	{
 		Parse(ystdex::begin(c), ystdex::end(c), parse);
 	}
-	//@}
 
 private:
-	//! \since build 887
+	template<typename _tIn>
+	inline void
+	ParseImpl(_tIn first, _tIn last, std::input_iterator_tag)
+	{
+		std::for_each(first, last, [this](char c){
+			Lexer.ParseByte(c);
+		});
+	}
 	template<typename _tIn, typename _tCharParser>
 	inline void
-	ParseImpl(_tIn first, _tIn last, _tCharParser parse, std::input_iterator_tag)
+	ParseImpl(_tIn first, _tIn last, _tCharParser parse,
+		std::input_iterator_tag)
 	{
 		std::for_each(first, last,
 			std::bind(parse, std::ref(Lexer), std::placeholders::_1));
 	}
-	//! \since build 887
+	template<typename _tRandom>
+	inline void
+	ParseImpl(_tRandom first, _tRandom last,
+		std::random_access_iterator_tag)
+	{
+		// XXX: This should be safe since there should be no more space out of
+		//	the range of %size_t.
+		Lexer.Reserve(size_t(last - first));
+		ParseImpl(first, last, std::input_iterator_tag());
+	}
 	template<typename _tRandom, typename _tCharParser>
 	inline void
 	ParseImpl(_tRandom first, _tRandom last, _tCharParser parse,
@@ -796,6 +811,7 @@ private:
 		Lexer.Reserve(size_t(last - first));
 		ParseImpl(first, last, parse, std::input_iterator_tag());
 	}
+	//@}
 };
 
 

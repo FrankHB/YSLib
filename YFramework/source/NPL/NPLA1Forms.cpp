@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r18074
+\version r18117
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2020-03-31 16:15 +0800
+	2020-04-13 17:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -415,6 +415,14 @@ YB_ATTR_nodiscard inline PDefH(Environment&, FetchDefineOrSetEnvironment,
 	ContextNode&, const shared_ptr<Environment>& p_env)
 	ImplRet(Environment::EnsureValid(p_env))
 
+//! \since build 888
+YB_NORETURN inline void
+ThrowInsufficientTermsErrorFor(InvalidSyntax&& e)
+{
+	TryExpr(ThrowInsufficientTermsError())
+	CatchExpr(..., std::throw_with_nested(std::move(e)))
+}
+
 template<typename _func>
 auto
 DoDefineSet(TermNode& term, size_t n, _func f) -> decltype(f())
@@ -422,7 +430,8 @@ DoDefineSet(TermNode& term, size_t n, _func f) -> decltype(f())
 	Retain(term);
 	if(term.size() > n)
 		return f();
-	ThrowInvalidSyntaxError("Insufficient terms in definition.");
+	ThrowInsufficientTermsErrorFor(
+		InvalidSyntax("Invalid syntax found in definition."));
 }
 
 // XXX: Both %YB_FLATTEN are needed in the following code. Otherwise,
@@ -1008,6 +1017,12 @@ EvalStringImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 //@}
 
 
+//! \since build 888
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(InvalidSyntax, MakeFunctionAbstractionError, )
+	ImplRet(InvalidSyntax("Invalid syntax found in function abstraction."))
+
+
 //! \since build 767
 class VauHandler final : private ystdex::equality_comparable<VauHandler>
 {
@@ -1546,6 +1561,15 @@ UndefineImpl(TermNode& term, _func f)
 			"Expected exact one term as name to be undefined.");
 }
 
+//! \since build 888
+template<typename _func>
+inline auto
+CheckFunctionCreation(_func f) -> decltype(f())
+{
+	TryRet(f())
+	CatchExpr(..., std::throw_with_nested(MakeFunctionAbstractionError()))
+}
+
 //! \since build 840
 //@{
 template<typename _func>
@@ -1555,22 +1579,24 @@ CreateFunction(TermNode& term, _func f, size_t n)
 	Retain(term);
 	if(term.size() > n)
 		return f();
-	ThrowInvalidSyntaxError("Insufficient terms in function abstraction.");
+	ThrowInsufficientTermsErrorFor(MakeFunctionAbstractionError());
 }
 
 ReductionStatus
 LambdaImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 {
 	return CreateFunction(term, [&, no_lift]{
-		auto p_env(ctx.ShareRecord());
-		auto i(term.begin());
-		auto formals(ShareMoveTerm(NPL::Deref(++i)));
+		term.Value = CheckFunctionCreation([&]() -> ContextHandler{
+			auto p_env(ctx.ShareRecord());
+			auto i(term.begin());
+			auto formals(ShareMoveTerm(NPL::Deref(++i)));
 
-		term.erase(term.begin(), ++i);
-		// NOTE: The wrapping count 1 implies strict evaluation of arguments in
-		//	%FormContextHandler::operator().
-		term.Value = ContextHandler(FormContextHandler(VauHandler({},
-			std::move(formals), std::move(p_env), {}, term, no_lift), 1));
+			term.erase(term.begin(), ++i);
+			// NOTE: The wrapping count 1 implies strict evaluation of arguments
+			//	in %FormContextHandler::operator().
+			return FormContextHandler(VauHandler({},
+				std::move(formals), std::move(p_env), {}, term, no_lift), 1);
+		});
 		return ReductionStatus::Clean;
 	}, 1);
 }
@@ -1592,8 +1618,10 @@ ReductionStatus
 VauImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 {
 	return CreateFunction(term, [&, no_lift]{
-		term.Value = CreateVau(term, no_lift, term.begin(), ctx.ShareRecord(),
-			{});
+		term.Value = CheckFunctionCreation([&]{
+			return
+				CreateVau(term, no_lift, term.begin(), ctx.ShareRecord(), {});
+		});
 		return ReductionStatus::Clean;
 	}, 2);
 }
@@ -1606,11 +1634,13 @@ VauWithEnvironmentImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 		auto& tm(NPL::Deref(++i));
 
 		return ReduceSubsequent(tm, ctx, [&, i, no_lift]{
-			// XXX: List components are ignored.
-			auto p_env_pr(ResolveEnvironment(tm));
+			term.Value = CheckFunctionCreation([&]{
+				// XXX: List components are ignored.
+				auto p_env_pr(ResolveEnvironment(tm));
 
-			term.Value = CreateVau(term, no_lift, i,
-				std::move(p_env_pr.first), p_env_pr.second);
+				return CreateVau(term, no_lift, i,
+					std::move(p_env_pr.first), p_env_pr.second);
+			});
 			return ReductionStatus::Clean;
 		});
 	}, 3);
@@ -2457,7 +2487,7 @@ Unwrap(TermNode& term, ContextNode& ctx)
 void
 ThrowInsufficientTermsError()
 {
-	throw ParameterMismatch("Insufficient term found for list parameter.");
+	throw ParameterMismatch("Insufficient terms found for list parameter.");
 }
 
 void
