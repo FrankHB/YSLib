@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2018-2019 FrankHB.
+	© 2014-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r749
+\version r751
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2019-01-14 14:25 +0800
+	2020-05-12 17:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -257,7 +257,7 @@ TextBox::GetCaretLocation() const
 		MaskChar) * cur_pos.X), SPos(cur_pos.Y * lh) + pen_offset.Y};
 }
 TextSelection::Position
-TextBox::GetCaretPosition(const Point& pt)
+TextBox::GetCaretPosition(const Point& pt) const
 {
 	// XXX: Conversion to 'SPos' might be implementation-defined.
 	const auto max_w(size_t(

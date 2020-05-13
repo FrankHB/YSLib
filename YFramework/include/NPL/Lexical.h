@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1867
+\version r1935
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2020-04-06 20:04 +0800
+	2020-05-13 13:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,15 +58,10 @@ using YSLib::string_view;
 using YSLib::vector;
 
 /*!
-\brief 记号列表：不需要提供分配器的短字符串列表。
-\since build 304
+\brief 词素列表：待被处理为记号短字符串列表。
+\since build 889
 */
-using TokenList = list<yimpl(std::string)>;
-/*!
-\brief 记号视图列表：保存字符串中间结果的列表。
-\since build 886
-*/
-using TokenViewList = vector<string_view>;
+using LexemeList = list<yimpl(std::string)>;
 
 
 /*!
@@ -185,11 +180,6 @@ private:
 	\since build 886
 	*/
 	string cbuf{};
-	/*!
-	\brief 字符解析中间结果中非转义的引号出现的位置的有序列表。
-	\since build 545
-	*/
-	vector<size_t> qlist{};
 
 public:
 	LexicalAnalyzer();
@@ -202,8 +192,15 @@ public:
 	DefGetter(const ynothrow, const string&, Buffer, cbuf)
 	//! \since build 886
 	DefGetter(const ynothrow, char, Delimiter, ld)
-	//! \since build 545
-	DefGetter(const ynothrow, const vector<size_t>&, Quotes, qlist)
+	/*!
+	\brief 取最后取得的分隔符划分的区间位置。
+	\sa UpdateBack
+	\since build 889
+
+	假定当前已更新缓冲区最后的字符取得分隔符，取对应的缓冲区索引边界。
+	*/
+	DefGetter(const ynothrow, size_t, LastDelimited,
+		cbuf.length() - (ld != char() ? 1 : 0))
 
 	/*!
 	\brief 过滤解析的字符。
@@ -239,12 +236,13 @@ public:
 		数据指定空串，或其结尾应已经添加前缀字符。
 	*/
 	template<typename _fUnescape = decltype(NPLUnescape),
-		typename _fHandlerPrefix = decltype(HandleBackslashPrefix)>
+		typename _fPrefixHandler = decltype(HandleBackslashPrefix)>
 	YB_ATTR_nodiscard bool
 	FilterChar(char c, _fUnescape unescape = NPLUnescape,
-		_fHandlerPrefix handle_prefix = HandleBackslashPrefix)
+		_fPrefixHandler handle_prefix = HandleBackslashPrefix)
 	{
 		// XXX: Incomplete escape sequence at end is ignored at current.
+		// XXX: Null characters are consistently unhandled here.
 		if(!unescape_context.IsHandling())
 		{
 			cbuf += c;
@@ -260,18 +258,6 @@ public:
 	\since build 588
 	*/
 	//@{
-	/*!
-	\brief 解析单个字符并添加至字符解析结果。
-	\note 记录引号并忽略空字符。
-	*/
-	template<typename... _tParams>
-	inline void
-	ParseByte(char c, _tParams&&... args)
-	{
-		if(FilterChar(c, yforward(args)...))
-			ReplaceBack(c);
-	}
-
 	//! \brief 解析单个字面量字符并添加至字符解析结果：反转义以外无视边界字符。
 	template<typename... _tParams>
 	inline void
@@ -289,30 +275,23 @@ public:
 	//@}
 
 	/*!
-	\brief 根据中间结果取字符串列表。
-	\note 其中每一项是引用字符解析中间结果的完整的字面量或非字面量。
-	\warning 结果应在修改字符解析中间结果的操作前使用，否则失效访问引起未定义行为。
-	\since build 886
-	*/
-	TokenViewList
-	Literalize() const;
-
-	/*!
-	\brief 替换缓冲区最后的单个字节的字符解析结果。
-	\pre 断言：缓冲区非空。
-	\note 假定缓冲区最后一个字符等于参数。
-	\note 解析时处理引号和空白符。空格和回车符以外的空白符解析为空格。
-	\since build 886
-	*/
-	void
-	ReplaceBack(char);
-
-	/*!
 	\brief 字符解析中间结果预分配参数指定的空间。
 	\since build 887
 	*/
 	PDefH(void, Reserve, size_t n)
 		ImplExpr(cbuf.reserve(n))
+
+	/*!
+	\brief 更新缓冲区最后的单个字节的字符解析结果。
+	\pre 断言：缓冲区非空。
+	\invariant 缓冲区长度。
+	\return 参数是引号。
+	\note 假定缓冲区最后一个字符等于参数。
+	\note 解析时处理引号和空白符。空格和回车符以外的空白符解析为空格。
+	\since build 889
+	*/
+	bool
+	UpdateBack(char);
 };
 
 
@@ -402,18 +381,10 @@ YB_ATTR_nodiscard inline PDefH(bool, IsDelimiter, char c) ynothrow
 \brief 分解字符串为记号。
 \pre 断言：字符串参数的数据指针非空。
 \post 结果中字符串两端不包括 "C" 区域 \tt std::isspace 返回非零的字符。
-\since build 886
+\since build 889
 */
-YB_ATTR_nodiscard YF_API TokenList
-Decompose(string_view, TokenList::allocator_type = {});
-
-/*!
-\brief 记号化：提取字符串列表中的记号。
-\note 排除字面量，分解其余字符串为记号列表。
-\since build 886
-*/
-YB_ATTR_nodiscard YF_API TokenList
-Tokenize(const TokenViewList&);
+YB_ATTR_nodiscard YF_API LexemeList
+Decompose(string_view, LexemeList::allocator_type = {});
 
 } // namespace NPL;
 

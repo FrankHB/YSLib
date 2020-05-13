@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1957
+\version r2039
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2020-03-28 02:27 +0800
+	2020-05-13 13:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,9 +62,6 @@ NPLUnescape(string& buf, char c, UnescapeContext& uctx, char ld)
 		case 'a':
 			buf[i] = '\a';
 			break;
-		case 'b':
-			buf.pop_back();
-			break;
 		case 'f':
 			buf[i] = '\f';
 			break;
@@ -80,6 +77,7 @@ NPLUnescape(string& buf, char c, UnescapeContext& uctx, char ld)
 		case 'v':
 			buf[i] = '\v';
 			break;
+		case 'b':
 		case '\n':
 			buf.pop_back();
 			break;
@@ -106,67 +104,46 @@ NPLUnescape(string& buf, char c, UnescapeContext& uctx, char ld)
 
 LexicalAnalyzer::DefDeCtor(LexicalAnalyzer)
 LexicalAnalyzer::LexicalAnalyzer(pmr::polymorphic_allocator<yimpl(byte)> a)
-	: cbuf(a), qlist(a)
+	: cbuf(a)
 {}
 
-void
-LexicalAnalyzer::ReplaceBack(char c)
+bool
+LexicalAnalyzer::UpdateBack(char c)
 {
 	YAssert(!cbuf.empty(), "Invalid buffer found.");
-	[&]() YB_FLATTEN{
-		switch(c)
-		{
-			case char():
-				cbuf.pop_back();
+	switch(c)
+	{
+		case '\'':
+		case '"':
+			if(ld == char())
+			{
+				ld = c;
+				return true;
+			}
+			else if(ld == c)
+			{
+				ld = char();
+				return true;
+			}
+			break;
+		// XXX: Case ' ' is equivalent in the default branch.
+	//	case ' ':
+		case '\f':
+		case '\n':
+		// XXX: Case '\r' is ignored.
+	//	case '\r':
+		case '\t':
+		case '\v':
+			if(ld == char())
+			{
+				cbuf.back() = ' ';
 				break;
-			case '\'':
-			case '"':
-				if(ld == char())
-				{
-					ld = c;
-					qlist.push_back(cbuf.size() - 1);
-				}
-				else if(ld == c)
-				{
-					ld = char();
-					qlist.push_back(cbuf.size());
-				}
-				break;
-			// XXX: Case ' ' is equivalent in the default branch.
-		//	case ' ':
-			case '\f':
-			case '\n':
-			// XXX: Case '\r' is ignored.
-		//	case '\r':
-			case '\t':
-			case '\v':
-				if(ld == char())
-				{
-					cbuf.back() = ' ';
-					break;
-				}
-				YB_ATTR_fallthrough;
-			default:
-				break;
-		}
-	}();
-}
-
-TokenViewList
-LexicalAnalyzer::Literalize() const
-{
-	size_t i(0);
-	TokenViewList result(cbuf.get_allocator());
-
-	std::for_each(qlist.cbegin(), qlist.cend(), [&](size_t s){
-		if(s != i)
-		{
-			result.push_back(TokenViewList::value_type(&cbuf[i], s - i));
-			i = s;
-		}
-	});
-	result.push_back(TokenViewList::value_type(&cbuf[i], cbuf.size() - i));
-	return result;
+			}
+			YB_ATTR_fallthrough;
+		default:
+			break;
+	}
+	return {};
 }
 
 
@@ -328,12 +305,12 @@ Literalize(string_view sv, char c)
 }
 
 
-TokenList
-Decompose(string_view src, TokenList::allocator_type a)
+LexemeList
+Decompose(string_view src, LexemeList::allocator_type a)
 {
 	YAssertNonnull(src.data());
 
-	TokenList dst(a);
+	LexemeList dst(a);
 	using iter_type = typename string_view::const_iterator;
 
 	ystdex::split_l(src.cbegin(), src.cend(), IsDelimiter,
@@ -353,23 +330,6 @@ Decompose(string_view src, TokenList::allocator_type a)
 		if(!sv.empty())
 			dst.push_back({sv.data(), sv.size()});
 	});
-	return dst;
-}
-
-TokenList
-Tokenize(const TokenViewList& src)
-{
-	const auto a(src.get_allocator());
-	TokenList dst(a);
-
-	for(const auto sv : src)
-		if(!sv.empty())
-		{
-			if(sv.front() != '\'' && sv.front() != '"')
-				dst.splice(dst.end(), Decompose(sv, a));
-			else
-				dst.push_back(TokenList::value_type(sv.begin(), sv.end()));
-		}
 	return dst;
 }
 

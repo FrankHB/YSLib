@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r18117
+\version r18120
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2020-04-13 17:59 +0800
+	2020-05-13 18:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1007,11 +1007,9 @@ EvalStringImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 	auto& expr(*std::next(term.begin()));
 	Session sess(ctx.get_allocator());
 
-	sess.Parse(NPL::ResolveRegular<const string>(expr));
-
-	auto unit(SContext::Analyze(sess, ctx.get_allocator()));
-
-	unit.SwapContainer(expr);
+	SContext::Analyze(std::allocator_arg, ctx.get_allocator(), sess,
+		sess.Process(NPL::ResolveRegular<const string>(expr)))
+		.SwapContainer(expr);
 	return EvalImplUnchecked(term, ctx, no_lift);
 }
 //@}

@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r378
+\version r380
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2020-04-07 00:20 +0800
+	2020-05-13 17:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,8 +100,8 @@ WidgetLoader::LoadUILayout(string_view sv) const
 	using namespace NPL;
 	Session sess{};
 
-	sess.Parse(sv);
-	return TransformUILayout(A1::LoadNode(SContext::Analyze(sess)));
+	return TransformUILayout(
+		A1::LoadNode(SContext::Analyze(sess, sess.Process(sv))));
 }
 
 ValueNode

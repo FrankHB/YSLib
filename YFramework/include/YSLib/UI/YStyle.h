@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015, 2018-2019 FrankHB.
+	© 2010-2015, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YStyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r856
+\version r867
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2019-12-26 22:39 +0800
+	2020-05-12 17:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -226,7 +226,7 @@ public:
 	\pre 断言： <tt>std::isfinite(GetS())</tt> 。
 	\note 结果的 Alpha 使用默认初始化值。
 	*/
-	explicit
+	YB_ATTR_nodiscard YB_PURE explicit
 	operator Color() const ynothrow;
 
 	using HS::GetH;
@@ -272,7 +272,7 @@ public:
 	\brief 转换为 RGB 颜色。
 	\note 结果的 Alpha 使用默认初始化值。
 	*/
-	explicit
+	YB_ATTR_nodiscard YB_PURE explicit
 	operator Color() const ynothrow;
 
 	using HS::GetH;
@@ -344,11 +344,14 @@ enum Area
 class YF_API Palette
 {
 public:
-	using ItemType = Drawing::Color; //项目类型。
-	using ColorListType = vector<ItemType>; //颜色组类型。
+	//! \brief 项目类型。
+	using ItemType = Drawing::Color;
+	//! \brief 颜色组类型。
+	using ColorListType = vector<ItemType>;
 
 private:
-	ColorListType colors; //颜色组。
+	//! \brief 颜色组。
+	ColorListType colors;
 
 public:
 	//! \brief 无参数构造：初始化包含默认界面颜色配置的调色板。
@@ -363,7 +366,7 @@ public:
 	/*!
 	\brief 取指定下标的颜色对。
 	*/
-	pair<Drawing::Color, Drawing::Color>
+	YB_ATTR_nodiscard YB_PURE pair<Drawing::Color, Drawing::Color>
 	GetPair(ColorListType::size_type, ColorListType::size_type) const;
 };
 
@@ -545,7 +548,7 @@ public:
 \brief 取默认样式处理器表。
 \note 全局共享。
 */
-YF_API HandlerTable&
+YB_ATTR_nodiscard YB_PURE YF_API HandlerTable&
 FetchDefault();
 //@}
 

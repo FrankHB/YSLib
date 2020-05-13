@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r18961
+\version r18979
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-04-12 11:54 +0800
+	2020-05-13 17:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1686,10 +1686,14 @@ SetupDefaultInterpretation(ContextState& cs, EvaluationPasses passes)
 
 
 REPLContext::REPLContext(pmr::memory_resource& rsrc)
-	: Allocator(&rsrc), Root(rsrc), Preprocess(SeparatorPass(Allocator)),
-	ConvertLeaf([&](const TokenList::value_type& str){
+	: REPLContext([this](const LexemeList::value_type& str){
 		return ParseLeaf(YSLib::make_string_view(str), Allocator);
-	})
+	}, rsrc)
+{}
+REPLContext::REPLContext(SContext::Tokenizer leaf_conv,
+	pmr::memory_resource& rsrc)
+	: Allocator(&rsrc), Root(rsrc), Preprocess(SeparatorPass(Allocator)),
+	ConvertLeaf(std::move(leaf_conv))
 {
 	SetupDefaultInterpretation(Root, EvaluationPasses(Allocator));
 }
@@ -1720,8 +1724,7 @@ REPLContext::Perform(string_view unit, ContextNode& ctx)
 	{
 		Session sess(ctx.get_allocator());
 
-		sess.Parse(unit);
-		return Process(sess, ctx);
+		return ProcessWith(ctx, sess, sess.Process(unit));
 	}
 	throw LoggedEvent("Empty token list found.", Alert);
 }
@@ -1732,24 +1735,25 @@ REPLContext::Prepare(TermNode& term) const
 	Preprocess(term);
 }
 TermNode
-REPLContext::Prepare(const TokenList& token_list) const
+REPLContext::Prepare(const LexemeList& token_list) const
 {
-	auto term(SContext::Analyze(token_list, ConvertLeaf));
+	auto term(SContext::Analyze(ConvertLeaf, token_list));
 
 	Prepare(term);
 	return term;
 }
 TermNode
-REPLContext::Prepare(const Session& session) const
+REPLContext::Prepare(const Session& session, const ByteParser& parse) const
 {
-	auto term(SContext::Analyze(session, ConvertLeaf, Allocator));
+	auto term(SContext::Analyze(std::allocator_arg, Allocator, ConvertLeaf,
+		session, parse));
 
 	Prepare(term);
 	return term;
 }
 
 void
-REPLContext::Process(TermNode& term, ContextNode& ctx) const
+REPLContext::ProcessWith(ContextNode& ctx, TermNode& term) const
 {
 	Prepare(term);
 	ReduceAndFilter(term, ctx);
@@ -1773,8 +1777,7 @@ REPLContext::ReadFrom(std::streambuf& buf) const
 	using s_it_t = std::istreambuf_iterator<char>;
 	Session sess(Allocator);
 
-	sess.Parse(s_it_t(&buf), s_it_t());
-	return Prepare(sess);
+	return Prepare(sess, sess.Process(s_it_t(&buf), s_it_t()));
 }
 
 } // namesapce A1;

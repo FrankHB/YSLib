@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3521
+\version r3584
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2020-04-16 14:23 +0800
+	2020-05-13 17:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,9 +73,9 @@ DecomposeMakefileDepList(std::streambuf& sb)
 	// NOTE: Escaped spaces would be saved to prevent being used as delimiter.
 	set<size_t> spaces;
 	Session sess{};
+	auto& lexer(sess.Lexer);
 
-	sess.Parse(s_it_t(&sb), s_it_t(),
-		[&](LexicalAnalyzer& lexer, char ch){
+	yunused(sess.Process(s_it_t(&sb), s_it_t(), [&](char ch){
 		lexer.ParseQuoted(ch,
 			[&](string& buf, char c, UnescapeContext& uctx, char) -> bool{
 			// NOTE: See comments in %munge function of 'mkdeps.c' from libcpp
@@ -128,7 +128,7 @@ DecomposeMakefileDepList(std::streambuf& sb)
 			}
 			return {};
 		});
-	});
+	}));
 
 	const auto sbuf(sess.GetBuffer());
 	vector<string> lst;
@@ -1251,47 +1251,57 @@ LoadModule_SHBuild(REPLContext& context)
 		const auto a(ctx.get_allocator());
 		Session sess(a);
 		set<size_t> left_qset(a);
+		vector<size_t> qlist(a);
+		typename string::size_type l(0);
+		const auto decomp([&](string_view sv){
+			using iter_t = string_view::const_iterator;
 
-		sess.Parse(src, [&](LexicalAnalyzer& lexer, char c){
+			// XXX: As %Session::GetTokenList.
+			if(sv.front() != '\'' && sv.front() != '"')
+				ystdex::split_l(sv.cbegin(), sv.cend(), ystdex::isspace,
+					[&](iter_t b, iter_t e){
+					string s(b, e);
+
+					ystdex::trim(s);
+					if(!s.empty())
+					{
+						res += s;
+						res += ' ';
+					}
+				});
+			else
+			{
+				if(!res.empty() && l != 0 && left_qset.count(l) != 0
+					&& !ystdex::isspace(src[l - 1]))
+					res.pop_back();
+				res += string(YSLib::make_string_view(sv));
+				res += ' ';
+			}
+			l += sv.length();
+		});
+		auto& lexer(sess.Lexer);
+		const auto& cbuf(lexer.GetBuffer());
+		size_t i(0);
+
+		yunused(sess.Process(src, [&](char c){
 			if(lexer.FilterChar(c, NPLUnescape, IgnorePrefix))
 			{
 				if((c == '\'' || c == '"') && lexer.GetDelimiter() == char())
-					left_qset.insert(lexer.GetBuffer().size() - 1),
-				lexer.ReplaceBack(c);
-			}
-		});
-
-		const auto& lexer(sess.Lexer);
-		typename string::size_type l(0);
-
-		for(const auto& str : lexer.Literalize())
-			if(!str.empty())
-			{
-				using iter_t = string_view::const_iterator;
-
-				// XXX: As %NPL::Tokenize.
-				if(str.front() != '\'' && str.front() != '"')
-					ystdex::split_l(str.cbegin(), str.cend(), ystdex::isspace,
-						[&](iter_t b, iter_t e){
-						string s(b, e);
-
-						ystdex::trim(s);
-						if(!s.empty())
-						{
-							res += s;
-							res += ' ';
-						}
-					});
-				else
+					left_qset.insert(lexer.GetBuffer().size() - 1);
+				if(lexer.UpdateBack(c))
 				{
-					if(!res.empty() && l != 0 && left_qset.count(l) != 0
-						&& !ystdex::isspace(src[l - 1]))
-						res.pop_back();
-					res += string(YSLib::make_string_view(str));
-					res += ' ';
+					const auto s(lexer.GetLastDelimited());
+
+					if(s != i)
+					{
+						decomp(string_view(&cbuf[i], s - i));
+						i = s;
+					}
 				}
-				l += str.length();
 			}
+		}));
+		if(cbuf.size() != i)
+			decomp(string_view(&cbuf[i], cbuf.size() - i));
 		if(!res.empty())
 			res.pop_back();
 		return res;

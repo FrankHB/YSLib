@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3480
+\version r3484
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2020-04-13 21:46 +0800
+	2020-05-13 17:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 #include YFM_YSLib_Core_YException // for ExtractException, ExtractAndTrace;
 #include YFM_CHRLib_MappingEx // for CHRLib::cp113_lkp;
 #include YFM_YSLib_Service_TextFile // for Text::BOM_UTF_8, Text::CheckBOM;
-#include YFM_NPL_Configuration // for NPL::Configuration;
+#include YFM_NPL_Configuration // for NPL::Configuration, NPL::Session,
+//	NPL::ByteParser;
 #include <ystdex/string.hpp> // for ystdex::write_literal, ystdex::sfmt;
 #include <ystdex/scope_guard.hpp> // for ystdex::swap_guard;
 #include <cerrno> // for errno;
@@ -554,8 +555,8 @@ FetchMIMEBiMapping()
 			(node, "DataDirectory") + "MIMEExtMap.txt").c_str(), []{
 				NPL::Session sess{};
 
-				sess.Parse(TU_MIME);
-				return A1::LoadNode(SContext::Analyze(sess));
+				return A1::LoadNode(
+					SContext::Analyze(sess, sess.Process(TU_MIME)));
 			}, true));
 		return locked;
 	});

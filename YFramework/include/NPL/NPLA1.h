@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r7620
+\version r7663
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-04-12 11:50 +0800
+	2020-05-13 17:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -565,21 +565,6 @@ InsertChild(ValueNode&&, ValueNode::Container&);
 YF_API ValueNode
 TransformNode(const TermNode&, NodeMapper = {}, NodeMapper = MapNPLALeafNode,
 	TermNodeToString = ParseNPLATermString, NodeInserter = InsertChild);
-
-/*!
-\brief 加载 NPLA1 翻译单元。
-\throw LoggedEvent 警告：被加载配置中的实体转换失败。
-\since build 665
-*/
-template<typename _type, typename... _tParams>
-YB_ATTR_nodiscard ValueNode
-LoadNode(_type&& tree, _tParams&&... args)
-{
-	TryRet(A1::TransformNode(std::forward<TermNode>(tree), yforward(args)...))
-	CatchThrow(bad_any_cast& e, LoggedEvent(YSLib::sfmt(
-		"Bad NPLA1 tree found: cast failed from [%s] to [%s] .", e.from(),
-		e.to()), YSLib::Warning))
-}
 
 
 /*!
@@ -1290,12 +1275,23 @@ public:
 	SContext::Tokenizer ConvertLeaf;
 
 	/*!
-	\brief 构造：使用默认的解释和指定的存储资源。
 	\sa ListTermPreprocess
 	\sa SetupDefaultInterpretation
+	*/
+	//@{
+	/*!
+	\brief 构造：使用默认的解释、指定的存储资源和默认的叶节点词素转换器。
+	\sa ParseLeaf
 	\since build 879
 	*/
 	REPLContext(pmr::memory_resource& = NPL::Deref(pmr::new_delete_resource()));
+	/*!
+	\brief 构造：使用默认的解释、指定的存储资源和叶节点词素转换器。
+	\since build 889
+	*/
+	REPLContext(SContext::Tokenizer,
+		pmr::memory_resource& = NPL::Deref(pmr::new_delete_resource()));
+	//@}
 
 	/*!
 	\brief 判断当前实现是否为异步实现。
@@ -1358,12 +1354,13 @@ public:
 	/*!
 	\return 从参数输入读取的准备的项。
 	\sa SContext::Analyze
+	\since build 889
 	*/
 	//@{
 	YB_ATTR_nodiscard TermNode
-	Prepare(const TokenList&) const;
+	Prepare(const LexemeList&) const;
 	YB_ATTR_nodiscard TermNode
-	Prepare(const Session&) const;
+	Prepare(const Session&, const ByteParser&) const;
 	//@}
 	//@}
 
@@ -1371,31 +1368,27 @@ public:
 	\brief 处理：准备规约项并进行规约。
 	\sa Prepare
 	\sa ReduceAndFilter
-	\since build 742
+	\since build 889
 	*/
 	//@{
-	PDefH(void, Process, TermNode& term)
-		ImplExpr(Process(term, Root))
-	//! \since build 802
-	//@{
-	void
-	Process(TermNode&, ContextNode&) const;
-	template<class _type>
+	template<typename... _tParams>
 	YB_ATTR_nodiscard TermNode
-	Process(const _type& input)
+	Process(const _tParams&... args)
 	{
-		return Process(input, Root);
+		return ProcessWith(Root, args...);
 	}
-	template<class _type>
+
+	void
+	ProcessWith(ContextNode&, TermNode&) const;
+	template<typename _tParam, typename... _tParams>
 	YB_ATTR_nodiscard TermNode
-	Process(const _type& input, ContextNode& ctx) const
+	ProcessWith(ContextNode& ctx, const _tParam& arg, const _tParams&... args)
 	{
-		auto term(Prepare(input));
+		auto term(Prepare(arg, args...));
 
 		ReduceAndFilter(term, ctx);
 		return term;
 	}
-	//@}
 	//@}
 
 	/*!

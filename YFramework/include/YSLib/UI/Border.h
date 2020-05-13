@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015, 2018 FrankHB.
+	© 2013-2015, 2018, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Border.h
 \ingroup UI
 \brief 图形用户界面边框。
-\version r189
+\version r196
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-09-06 23:23:56 +0800
 \par 修改时间:
-	2018-12-14 06:17 +0800
+	2020-05-12 15:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -162,9 +162,12 @@ public:
 
 	DefGetter(const ynothrow, IWidget&, WidgetRef, widget)
 
-	//! \brief 检查相对部件点指定区域。
-	Area
-	CheckArea(const Point&);
+	/*!
+	\brief 检查相对部件点指定区域。
+	\since build 889
+	*/
+	YB_ATTR_nodiscard YB_PURE Area
+	CheckArea(const Point&) const;
 
 private:
 	/*!

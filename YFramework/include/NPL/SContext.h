@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2844
+\version r2975
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2020-04-12 00:15 +0800
+	2020-05-13 17:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define NPL_INC_SContext_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_Lexical // for function, pmr, TokenList;
+#include YFM_NPL_Lexical // for function, pmr, LexemeList;
 #include YFM_YSLib_Core_ValueNode // for YSLib::Deref, YSLib::LoggedEvent,
 //	YSLib::MakeIndex, YSLib::NoContainer, YSLib::NoContainerTag,
 //	YSLib::ValueNode, YSLib::ValueObject, YSLib::make_observer,
@@ -57,10 +57,8 @@ using YSLib::MakeIndex;
 using YSLib::NoContainer;
 //! \since build 852
 using YSLib::NoContainerTag;
-//! \since build 304
-using TLIter = TokenList::iterator;
-//! \since build 304
-using TLCIter = TokenList::const_iterator;
+//! \since build 889
+using LLCIter = LexemeList::const_iterator;
 //! \since build 335
 using YSLib::ValueNode;
 //! \since build 675
@@ -77,6 +75,8 @@ using YSLib::make_weak;
 using YSLib::observer_ptr;
 //! \since build 598
 using YSLib::pair;
+//! \since build 842
+using YSLib::lref;
 //! \since build 788
 using YSLib::shared_ptr;
 //! \since build 788
@@ -714,6 +714,49 @@ HasValue(const TermNode& term, const _type& x)
 }
 
 
+//! \warning 非虚析构。
+//@{
+/*!
+\brief 字节解析器。
+\since build 889
+*/
+class YF_API ByteParser
+{
+private:
+	lref<LexicalAnalyzer> lexer_ref;
+	//! \brief 字符解析中间结果中非转义的引号出现的位置的有序列表。
+	vector<size_t> qlist{};
+
+public:
+	ByteParser(LexicalAnalyzer& lexer)
+		: lexer_ref(lexer), qlist(lexer.GetBuffer().get_allocator())
+	{}
+	DefDeCopyMoveCtorAssignment(ByteParser)
+
+	/*!
+	\brief 解析单个字符并添加至字符解析结果。
+	\note 记录引号并忽略空字符。
+	\note 参数指定词法分析的反转义算法。
+	\warning 同一个分析器对象上使用不等价的多种解析方法或反转义算法的结果未指定。
+	*/
+	template<typename... _tParams>
+	inline void
+	operator()(char c, _tParams&&... args)
+	{
+		auto& lexer(lexer_ref.get());
+
+		if(lexer.FilterChar(c, yforward(args)...))
+		{
+			if(lexer.UpdateBack(c))
+				qlist.push_back(lexer.GetLastDelimited());
+		}
+	}
+
+	DefGetter(const ynothrow, LexicalAnalyzer&, LexerRef, lexer_ref)
+	DefGetter(const ynothrow, const vector<size_t>&, Quotes, qlist)
+};
+
+
 /*!
 \brief 会话：分析组成 NPL 基本翻译单元的源代码。
 \since build 304
@@ -721,10 +764,6 @@ HasValue(const TermNode& term, const _type& x)
 class YF_API Session
 {
 public:
-	//! \since build 546
-	//@{
-	using CharParser = void(&)(LexicalAnalyzer&, char);
-
 	//! \since build 592
 	LexicalAnalyzer Lexer;
 
@@ -738,81 +777,92 @@ public:
 
 	//! \since build 886
 	DefGetterMem(const ynothrow, const string&, Buffer, Lexer)
-	//@}
-	DefGetter(const, TokenList, TokenList, Tokenize(Lexer.Literalize()))
+	//! \since build 889
+	//@{
+	/*!
+	\brief 取记号列表。
+
+	根据参数保存的词法分析器中间结果取字符串列表并记号化。
+	记号化提取字符串列表中的记号，排除字面量，分解其余字符串为记号列表。
+	*/
+	LexemeList
+	GetTokenList(const ByteParser&) const;
 
 	/*!
-	\brief 解析输入范围。
+	\brief 使用解析器处理输入范围。
 	\exception LoggedEvent 关键失败：无法访问源内容。
-	\since build 888
 	*/
 	//@{
 	template<typename _tIn>
-	YB_FLATTEN inline void
-	Parse(_tIn first, _tIn last)
+	YB_ATTR_nodiscard YB_FLATTEN inline ByteParser
+	Process(_tIn first, _tIn last)
 	{
-		ParseImpl(first, last,
+		return ProcessImpl(first, last,
 			typename std::iterator_traits<_tIn>::iterator_category());
 	}
-	template<typename _tIn, typename _tCharParser>
-	YB_FLATTEN inline void
-	Parse(_tIn first, _tIn last, _tCharParser parse)
+	template<typename _tIn, typename _tParser>
+	YB_ATTR_nodiscard YB_FLATTEN inline _tParser
+	Process(_tIn first, _tIn last, _tParser parse)
 	{
-		ParseImpl(first, last, parse,
+		return ProcessImpl(first, last, parse,
 			typename std::iterator_traits<_tIn>::iterator_category());
 	}
 	template<typename _tRange>
-	inline void
-	Parse(const _tRange& c)
+	YB_ATTR_nodiscard inline ByteParser
+	Process(const _tRange& c)
 	{
-		Parse(ystdex::begin(c), ystdex::end(c));
+		return Process(ystdex::begin(c), ystdex::end(c));
 	}
-	template<typename _tRange, typename _tCharParser>
-	inline void
-	Parse(const _tRange& c, _tCharParser parse)
+	template<typename _tRange, typename _tParser>
+	YB_ATTR_nodiscard inline _tParser
+	Process(const _tRange& c, _tParser parse)
 	{
-		Parse(ystdex::begin(c), ystdex::end(c), parse);
+		return Process(ystdex::begin(c), ystdex::end(c), parse);
 	}
 
 private:
 	template<typename _tIn>
-	inline void
-	ParseImpl(_tIn first, _tIn last, std::input_iterator_tag)
+	YB_ATTR_nodiscard inline ByteParser
+	ProcessImpl(_tIn first, _tIn last, std::input_iterator_tag)
 	{
-		std::for_each(first, last, [this](char c){
-			Lexer.ParseByte(c);
-		});
+		ByteParser parse(Lexer);
+
+		std::for_each(first, last, ystdex::ref(parse));
+		return parse;
 	}
-	template<typename _tIn, typename _tCharParser>
-	inline void
-	ParseImpl(_tIn first, _tIn last, _tCharParser parse,
+	template<typename _tIn, typename _tParser>
+	YB_ATTR_nodiscard inline _tParser
+	ProcessImpl(_tIn first, _tIn last, _tParser parse,
 		std::input_iterator_tag)
 	{
-		std::for_each(first, last,
-			std::bind(parse, std::ref(Lexer), std::placeholders::_1));
+		std::for_each(first, last, ystdex::ref(parse));
+		return parse;
 	}
 	template<typename _tRandom>
-	inline void
-	ParseImpl(_tRandom first, _tRandom last,
+	YB_ATTR_nodiscard inline ByteParser
+	ProcessImpl(_tRandom first, _tRandom last,
 		std::random_access_iterator_tag)
 	{
 		// XXX: This should be safe since there should be no more space out of
 		//	the range of %size_t.
 		Lexer.Reserve(size_t(last - first));
-		ParseImpl(first, last, std::input_iterator_tag());
+		return ProcessImpl(first, last, std::input_iterator_tag());
 	}
-	template<typename _tRandom, typename _tCharParser>
-	inline void
-	ParseImpl(_tRandom first, _tRandom last, _tCharParser parse,
+	template<typename _tRandom, typename _tParser>
+	YB_ATTR_nodiscard inline _tParser
+	ProcessImpl(_tRandom first, _tRandom last, _tParser parse,
 		std::random_access_iterator_tag)
 	{
 		// XXX: This should be safe since there should be no more space out of
 		//	the range of %size_t.
 		Lexer.Reserve(size_t(last - first));
-		ParseImpl(first, last, parse, std::input_iterator_tag());
+		return ProcessImpl(first, last, ystdex::ref(parse),
+			std::input_iterator_tag());
 	}
 	//@}
+	//@}
 };
+//@}
 
 
 /*!
@@ -826,7 +876,7 @@ namespace SContext
 \brief 标记器：分析词素转换为可能包含记号的节点。
 \since build 880
 */
-using Tokenizer = function<TermNode(const TokenList::value_type&)>;
+using Tokenizer = function<TermNode(const LexemeList::value_type&)>;
 
 /*!
 \brief 遍历记号列表，验证基本合法性：圆括号是否对应。
@@ -835,13 +885,11 @@ using Tokenizer = function<TermNode(const TokenList::value_type&)>;
 \pre 迭代器是同一个记号列表的迭代器，其中 b 必须可解引用，且在 e 之前。
 \return e 或指向冗余的 ')' 的迭代器。
 \throw LoggedEvent 警报：找到冗余的 '(' 。
-\since build 335
+\since build 889
 */
-YB_ATTR_nodiscard YF_API TLCIter
-Validate(TLCIter b, TLCIter e);
+YB_ATTR_nodiscard YF_API LLCIter
+Validate(LLCIter b, LLCIter e);
 
-//! \since build 674
-//@{
 /*!
 \brief 遍历规约记号列表，取抽象语法树储存至指定值类型节点。
 \param term 项节点。
@@ -850,59 +898,58 @@ Validate(TLCIter b, TLCIter e);
 \pre 迭代器是同一个记号列表的迭代器，其中 b 必须可解引用，且在 e 之前。
 \return e 或指向冗余的 ')' 的迭代器。
 \throw LoggedEvent 警报：找到冗余的 '(' 。
+\since build 889
 */
 //@{
-YB_ATTR_nodiscard YF_API TLCIter
-Reduce(TermNode& term, TLCIter b, TLCIter e);
+YB_ATTR_nodiscard YF_API LLCIter
+Reduce(TermNode& term, LLCIter b, LLCIter e);
 /*!
 \brief 遍历规约记号列表，取抽象语法树分析结果储存至指定值类型节点。
 \param parse 记号分析器。
-\since build 880
 */
-YB_ATTR_nodiscard YF_API TLCIter
-Reduce(TermNode& term, TLCIter b, TLCIter e, Tokenizer parse);
+YB_ATTR_nodiscard YF_API LLCIter
+Reduce(TermNode& term, LLCIter b, LLCIter e, Tokenizer parse);
 //@}
 
 /*!
 \brief 分析指定源，取抽象语法树储存至指定值类型节点。
 \throw LoggedEvent 警报：找到冗余的 ')' 。
+\since build 889
 */
 //@{
 YF_API void
-Analyze(TermNode&, const TokenList&);
+Analyze(TermNode&, const LexemeList&);
 YF_API void
-Analyze(TermNode&, const Session&);
-//! \since build 880
+Analyze(TermNode&, const Session&, const ByteParser&);
 YF_API void
-Analyze(TermNode&, Tokenizer, const TokenList&);
-//! \since build 880
+Analyze(TermNode&, Tokenizer, const LexemeList&);
 YF_API void
-Analyze(TermNode&, Tokenizer, const Session&);
+Analyze(TermNode&, Tokenizer, const Session&, const ByteParser&);
 //@}
 //! \note 调用 ADL Analyze 分析节点。
 //@{
-//! \since build 867
-template<typename _type>
+//! \since build 889
+template<typename _tParam, typename... _tParams,
+	yimpl(ystdex::exclude_self_t<TermNode, _tParam, int> = 0)>
+YB_ATTR_nodiscard
+	yimpl(ystdex::exclude_self_t)<std::allocator_arg_t, _tParam, TermNode>
+Analyze(_tParam&& arg, _tParams&&... args)
+{
+	TermNode root;
+
+	Analyze(root, yforward(arg), yforward(args)...);
+	return root;
+}
+template<typename... _tParams>
 YB_ATTR_nodiscard TermNode
-Analyze(const _type& arg, const TermNode::allocator_type& a = {})
+Analyze(std::allocator_arg_t, const TermNode::allocator_type& a,
+	_tParams&&... args)
 {
 	TermNode root(a);
 
-	Analyze(root, arg);
+	Analyze(root, yforward(args)...);
 	return root;
 }
-//! \since build 880
-template<typename _type>
-YB_ATTR_nodiscard TermNode
-Analyze(const _type& arg, Tokenizer parse,
-	const TermNode::allocator_type& a = {})
-{
-	TermNode root(a);
-
-	Analyze(root, std::move(parse), arg);
-	return root;
-}
-//@}
 //@}
 
 } // namespace SContext;

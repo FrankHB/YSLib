@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r6108
+\version r6135
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2020-01-12 18:22 +0800
+	2020-05-12 15:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,12 +98,12 @@ public:
 	//! \brief 满足前向迭代器要求。
 	//@{
 	//! \since build 583
-	reference
+	YB_ATTR_nodiscard YB_PURE reference
 	operator*() ynothrow
 	{
 		return value;
 	}
-	yconstfn reference
+	YB_ATTR_nodiscard YB_PURE yconstfn reference
 	operator*() const ynothrow
 	{
 		return value;
@@ -312,7 +312,7 @@ public:
 	}
 
 	//! \since build 585
-	reference
+	YB_ATTR_nodiscard reference
 	operator*() const
 		ynoexcept_spec(reference(std::declval<transformed_iterator&>().
 		transformer(std::declval<transformed_iterator&>().get())))
@@ -672,7 +672,7 @@ public:
 
 	//! \brief 满足输入迭代器要求。
 	//@{
-	yconstfn reference
+	YB_ATTR_nodiscard yconstfn reference
 	operator*() const
 		ynoexcept_spec(reference(*std::declval<tuple_iterator&>().get()))
 	{
@@ -826,7 +826,7 @@ public:
 	\pre 断言：满足 YB_VerifyIterator 。
 	\since build 461
 	*/
-	reference
+	YB_ATTR_nodiscard YB_PURE reference
 	operator*() const
 	{
 		YB_VerifyIterator(iter);
@@ -949,7 +949,7 @@ public:
 		return *this += -n;
 	}
 
-	reference
+	YB_ATTR_nodiscard reference
 	operator*() const
 	{
 		YB_VerifyIterator(*this);
@@ -983,14 +983,14 @@ public:
 		return x.iter == y.iter && x.get_index() == y.get_index();
 	}
 
-	friend bool
+	YB_ATTR_nodiscard YB_PURE friend bool
 	operator<(const transposed_iterator& x, const transposed_iterator& y)
 	{
 		yconstraint(x.share_sequence(y));
 		return x.row < y.row || (x.row == y.row && x.col < y.col);
 	}
 
-	friend difference_type
+	YB_ATTR_nodiscard YB_PURE friend difference_type
 	operator-(const transposed_iterator& x, const transposed_iterator& y)
 	{
 		yconstraint(x.share_sequence(y));
@@ -998,13 +998,13 @@ public:
 		return difference_type((x.col - y.col) * x.height + x.row - y.row);
 	}
 
-	yconstfn const iterator_type&
+	YB_ATTR_nodiscard YB_PURE yconstfn const iterator_type&
 	base() const ynothrow
 	{
 		return iter;
 	}
 
-	iterator_type
+	YB_ATTR_nodiscard YB_PURE iterator_type
 	get() const ynothrowv
 	{
 		ynoexcept_assert("Invalid type found.", iter + row * width + col);
@@ -1013,7 +1013,7 @@ public:
 		return iter + difference_type(get_index());
 	}
 
-	friend bool
+	YB_ATTR_nodiscard YB_PURE friend bool
 	is_undereferenceable(const transposed_iterator& i) ynothrow
 	{
 		using ystdex::is_undereferenceable;
@@ -1022,19 +1022,19 @@ public:
 			|| !(i.row < i.height && i.col < i.width);
 	}
 
-	yconstfn size_type
+	YB_ATTR_nodiscard YB_PURE yconstfn size_type
 	get_column() const ynothrow
 	{
 		return col;
 	}
 
-	yconstfn size_type
+	YB_ATTR_nodiscard YB_PURE yconstfn size_type
 	get_height() const ynothrow
 	{
 		return height;
 	}
 
-	yconstfn size_type
+	YB_ATTR_nodiscard YB_PURE yconstfn size_type
 	get_index() const ynothrowv
 	{
 		ynoexcept_assert("Invalid type found.", row * width + col);
@@ -1042,19 +1042,19 @@ public:
 		return row * width + col;
 	}
 
-	yconstfn size_type
+	YB_ATTR_nodiscard YB_PURE yconstfn size_type
 	get_row() const ynothrow
 	{
 		return row;
 	}
 
-	yconstfn size_type
+	YB_ATTR_nodiscard YB_PURE yconstfn size_type
 	get_width() const ynothrow
 	{
 		return width;
 	}
 
-	bool
+	YB_ATTR_nodiscard YB_PURE bool
 	share_sequence(const transposed_iterator& i) const ynothrow
 	{
 		yverify(!is_undereferenceable(*this) || (row == 0 && col == width)),
@@ -1071,7 +1071,7 @@ public:
 //@{
 template<typename _tIter, typename _tSize = make_unsigned_t<
 	typename std::iterator_traits<decay_t<_tIter>>::difference_type>>
-inline transposed_iterator<decay_t<_tIter>>
+YB_ATTR_nodiscard YB_PURE inline transposed_iterator<decay_t<_tIter>>
 make_transposed(_tIter&& i, _tSize w, _tSize h)
 {
 	return transposed_iterator<decay_t<_tIter>>(yforward(i), w, h);
@@ -1079,7 +1079,7 @@ make_transposed(_tIter&& i, _tSize w, _tSize h)
 template<typename _tIter, typename _tSize = make_unsigned_t<
 	typename std::iterator_traits<decay_t<_tIter>>::difference_type>,
 	typename _tIndex = _tSize>
-inline transposed_iterator<decay_t<_tIter>>
+YB_ATTR_nodiscard YB_PURE inline transposed_iterator<decay_t<_tIter>>
 make_transposed(_tIter&& i, _tSize w, _tSize h, _tIndex idx)
 {
 	return transposed_iterator<decay_t<_tIter>>(yforward(i), w, h, idx);
@@ -1132,7 +1132,7 @@ public:
 		return *this;
 	}
 
-	reference
+	YB_ATTR_nodiscard reference
 	operator*() const
 	{
 		updater(proto_ref.get(), idx);
@@ -1238,7 +1238,7 @@ public:
 
 	//! \since build 461
 	//@{
-	reference
+	YB_ATTR_nodiscard YB_PURE reference
 	operator*() const ynothrowv
 	{
 		YB_VerifyIterator(*this);
@@ -1261,7 +1261,7 @@ public:
 	//@}
 
 	//! \since build 577
-	friend bool
+	YB_ATTR_nodiscard YB_PURE friend bool
 	operator==(const subscriptive_iterator& x, const subscriptive_iterator& y)
 		ynothrow
 	{
@@ -1270,7 +1270,7 @@ public:
 	}
 
 	//! \since build 577
-	friend bool
+	YB_ATTR_nodiscard YB_PURE friend bool
 	operator<(const subscriptive_iterator& x, const subscriptive_iterator& y)
 		ynothrow
 	{
@@ -1279,7 +1279,7 @@ public:
 	}
 
 	//! \since build 600
-	friend _tDifference
+	YB_ATTR_nodiscard YB_PURE friend _tDifference
 	operator-(const subscriptive_iterator& x, const subscriptive_iterator& y)
 		ynothrow
 	{
@@ -1288,20 +1288,20 @@ public:
 	}
 
 	//! \since build 461
-	yconstfn _tCon*
+	YB_ATTR_nodiscard YB_PURE yconstfn _tCon*
 	container() const ynothrow
 	{
 		return container_ptr;
 	}
 
-	yconstfn size_t
+	YB_ATTR_nodiscard YB_PURE yconstfn size_t
 	get_index() const ynothrow
 	{
 		return index;
 	}
 
 	//! \since build 556
-	friend bool
+	YB_ATTR_nodiscard YB_PURE friend bool
 	is_undereferenceable(const subscriptive_iterator& i) ynothrow
 	{
 		return !i.container_ptr;

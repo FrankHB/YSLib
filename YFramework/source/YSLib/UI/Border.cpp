@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015, 2018-2019 FrankHB.
+	© 2013-2015, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Border.cpp
 \ingroup UI
 \brief 图形用户界面边框。
-\version r213
+\version r215
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-09-06 23:25:42 +0800
 \par 修改时间:
-	2019-01-14 14:37 +0800
+	2020-05-12 15:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,7 +56,7 @@ BorderBrush::operator()(PaintEventArgs&& e) const
 
 
 BorderResizer::Area
-BorderResizer::CheckArea(const Point& pt)
+BorderResizer::CheckArea(const Point& pt) const
 {
 	const auto comp([](SPos q, SPos left, SDst left2) ynothrow{
 		if(q >= 0)

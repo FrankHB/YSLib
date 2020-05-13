@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2019 FrankHB.
+	© 2015-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r323
+\version r336
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2019-11-05 01:12 +0800
+	2020-04-24 17:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,6 +155,20 @@ OpenFile(const char*);
 
 namespace Forms
 {
+
+/*!
+\brief 加载代码调用。
+\since build 889
+*/
+template<typename _fCallable>
+void
+InvokeIn(ContextNode& ctx, _fCallable&& f)
+{
+	ystdex::guard<EnvironmentSwitcher> gd(ctx,
+		NPL::SwitchToFreshEnvironment(ctx, ValueObject(ctx.WeakenRecord())));
+
+	ystdex::invoke(f);
+}
 
 /*!
 \brief 加载代码作为模块。

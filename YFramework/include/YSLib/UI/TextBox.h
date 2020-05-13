@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r429
+\version r434
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2020-01-25 16:26 +0800
+	2020-05-12 17:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -259,21 +259,21 @@ public:
 	\return 插入符光标左上角相对部件左上角的偏移。
 	\since build 512
 	*/
-	Point
+	YB_ATTR_nodiscard YB_PURE Point
 	GetCaretLocation() const;
 	/*!
 	\brief 取指定点所在的插入符光标逻辑位置。
 	\note 参数为相对部件左上角偏移。
-	\since build 484
+	\since build 889
 	\todo AutoWrap 为 true 时判断行数。
 	*/
-	TextSelection::Position
-	GetCaretPosition(const Point&);
+	YB_ATTR_nodiscard YB_PURE TextSelection::Position
+	GetCaretPosition(const Point&) const;
 	/*!
 	\brief 取按字体和边距计算的起始笔偏移。
 	\since build 582
 	*/
-	Point
+	YB_ATTR_nodiscard YB_PURE Point
 	GetPenOffset() const;
 
 	/*!

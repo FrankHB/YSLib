@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r954
+\version r957
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2020-03-17 22:50 +0800
+	2020-05-13 17:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,10 +46,11 @@ operator>>(std::istream& is, Configuration& conf)
 {
 	using sb_it_t = std::istreambuf_iterator<char>;
 	// TODO: Validate for S-expression?
+	// TODO: Use allocator?
 	Session sess{};
-	
-	sess.Parse(sb_it_t(is), sb_it_t{});
-	TryExpr(conf.root = A1::LoadNode(SContext::Analyze(std::move(sess))))
+
+	TryExpr(conf.root = A1::LoadNode(
+		SContext::Analyze(sess, sess.Process(sb_it_t(is), sb_it_t{}))))
 	CatchExpr(..., ystdex::rethrow_badstate(is, std::ios_base::failbit))
 	return is;
 }

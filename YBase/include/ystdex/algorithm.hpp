@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r1191
+\version r1199
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2020-01-27 03:03 +0800
+	2020-05-12 16:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -238,7 +238,7 @@ equal(_tIn1 first1, _tIn1 last1, _tIn2 first2, _tIn2 last2)
 \note 同 std::lower_bound 但使用起始迭代器和距离指定范围。
 */
 template<typename _tFwd, typename _type, typename _fComp = less<_type>>
-_tFwd
+YB_ATTR_nodiscard YB_PURE _tFwd
 lower_bound_n(_tFwd first, typename std::iterator_traits<
 	_tFwd>::difference_type n, const _type& value, _fComp comp = less<_type>())
 {
@@ -268,7 +268,7 @@ lower_bound_n(_tFwd first, typename std::iterator_traits<
 \note 同 std::upper_bound 但使用起始迭代器和距离指定范围。
 */
 template<typename _tFwd, typename _type, typename _fComp = less<_type>>
-_tFwd
+YB_ATTR_nodiscard YB_PURE _tFwd
 upper_bound_n(_tFwd first, typename std::iterator_traits<
 	_tFwd>::difference_type n, const _type& value, _fComp comp = less<_type>())
 {
@@ -610,13 +610,13 @@ using std::max;
 */
 //@{
 template<typename _type, typename _fComp = less<_type>>
-YB_PURE yconstfn const _type&
+YB_ATTR_nodiscard YB_PURE yconstfn const _type&
 min(const _type& a, const _type& b, _fComp comp = less<_type>())
 {
 	return comp(b, a) ? b : a;
 }
 template<typename _type, typename _fComp = less<_type>>
-YB_PURE yconstfn const _type&
+YB_ATTR_nodiscard YB_PURE yconstfn const _type&
 min(std::initializer_list<_type> t, _fComp comp = less<_type>(),
 	yimpl(size_t n = 0))
 {
@@ -631,13 +631,13 @@ min(std::initializer_list<_type> t, _fComp comp = less<_type>(),
 */
 //@{
 template<typename _type, typename _fComp = less<_type>>
-YB_PURE yconstfn const _type&
+YB_ATTR_nodiscard YB_PURE yconstfn const _type&
 max(const _type& a, const _type& b, _fComp comp = less<_type>())
 {
 	return comp(a, b) ? b : a;
 }
 template<typename _type, typename _fComp = less<_type>>
-YB_PURE yconstfn const _type&
+YB_ATTR_nodiscard YB_PURE yconstfn const _type&
 max(std::initializer_list<_type> t, _fComp comp = less<_type>(),
 	yimpl(size_t n = 0))
 {
@@ -670,13 +670,13 @@ using std::clamp;
 //! \ingroup YBase_replacement_features
 //@{
 template<typename _type, typename _fComp>
-yconstfn const _type&
+YB_ATTR_nodiscard YB_PURE yconstfn const _type&
 clamp(const _type& v, const _type& lo, const _type& hi, _fComp comp)
 {
 	return yconstraint(!comp(hi, lo)), comp(v, lo) ? lo : comp(hi, v) ? hi : v;
 }
 template<typename _type>
-yconstfn const _type&
+YB_ATTR_nodiscard YB_PURE yconstfn const _type&
 clamp(const _type& v, const _type& lo, const _type& hi)
 {
     return ystdex::clamp(v, lo, hi, less<_type>());

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r18814
+\version r18983
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-04-19 14:25 +0800
+	2020-05-13 18:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,12 +32,169 @@ $import $HISTORY;
 
 $now
 (
+	/ %YBase.YStandardEx $=
+	(
+		+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+			@ "function templates %(lower_bound_n, upper_bound_n)"
+			@ %Algorithm,
+			// Also to eliminate G++ 7.1 warning: [-Wsuggest-attribute=pure].
+		+ $dev $lib 'YB_PURE' @ ("all 10 string search function templates with \
+			name prefix 'str_'" @ %CString, "all function %operator*"
+			@ "class templates %(indirect_input_iterator, pseudo_iterator, \
+			subscriptive_iterator)" @ %Iterator),
+			// Also to eliminate G++ 7.1 warning: [-Wsuggest-attribute=pure].
+		+ $dev $lib 'YB_ATTR_nodiscard' @ ("all 35 pure function or function \
+			templates with name prefix 'const_' or 'ntcts'" @ %CString,
+			"all 8 member function %operator*" @ %Iterator,
+			"all 2 function templates %(min, max, clamp)" @ %Algorithm,
+			"all 14 function and function templates" @ %CCharacterType),
+		+ $dev $lib 'YB_PURE' @ "all 2 function templates clamp" @ %Algorithm,
+			// To eliminate G++ 10.1 warning: [-Wsuggest-attribute=pure].
+		+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+			@ (("all friend functions", "all const functions")
+			@ "class templates %(transposed_iterator, subscriptive_iterator)",
+			"all 2 function templates %make_transposed") @ %Iterator,
+			// Also to eliminate G++ 10.1 warning: [-Wsuggest-attribute=pure].
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib.UI $=
+		(
+			+ 'const' @ ("member function %BorderResizer::CheckArea" @ %Border,
+				"member function %TextBox::GetCaretPosition" @ %TextBox),
+			+ $dev $lib 'YB_ATTR_nodiscard YB_PURE' @ "function %CheckArea"
+				@ ("member function %BorderResizer::CheckArea" @ %Border,
+				"member functions %TextBox::(GetCaretLocation, \
+				GetCaretPosition, GetPenOffset)" @ %TextBox,
+				("member functions %((HSL, HSV)::operator Color, \
+				Palette::GetPair)", "function %FetchDefault") @ %YStyle),
+				// Also to eliminate G++ 10.1 warning: \
+					[-Wsuggest-attribute=pure].
+			+ DD "Doxygen comments" @ "data members" @ "class %Palette"
+				@ %YStyle
+		),
+		/ %NPL $=
+		(
+			/ %Lexical $=
+			(
+				/ @ "class %LexicalAnalyzer" $=
+				(
+					+ "function %GetLastDelimited",
+					(
+					+ "function %UpdateBack",
+						// No null character is handled like %ReplaceBack.
+					- "function %GetQuotes";
+					- ("quotes handling", "function template %ParseByte")
+						$dep_from "removal of lexer quote list";
+					- "function %ReplaceBack"
+					),
+					- "function %Literalize" $dep_from
+						"removal of lexer literalization"
+				),
+				/ DLDI "simplified function %NPLUnescape",
+				(
+				- "function %Tokenize"
+					$dep_from ("%Session::GetTokenList" @ %SContext);
+				- "type %TokenViewList"
+					$dep_from "removal of value view list type"
+				),
+				/ "alias %TokenList" => "%LexemeList"
+			),
+			/ 'using YSLib::lref;' @ %NPLA >> %SContext,
+			/ %SContext $=
+			(
+				+ "class %ByteParser" ^ $dep_from ("%lref" @ %NPLA,
+					"%LexicalAnalyzer::GetLastDelimited"),
+				/ @ "class %Session" $=
+				(
+					/ "function templates %Parse with character parser \
+						parameter" ^ "parser call" ~ "binding with lexer"
+						$dep_to "parser parameter type",
+					(
+					/ $forced DLDI "function templates %Parse without \
+						additional function parameter" ^ $dep_from
+						"%ByteParser" $dep_from "%LexicalAnalyzer::ParseByte"
+						$dep_from "removal of lexer quote list";
+					/ "function %GetTokenList" ^ "%ByteParser parameter"
+						~ "%LexicalAnalyzer::Literalize"
+						$dep_to "removal of lexer literalization"
+					),
+					- "alias %CharParser",
+					/ "overloads %Parse" => "%Process"
+				),
+				- "alias %TLIter",
+				/ "alias %TLCIter" => "%LLCIter",
+				/ @ "%Analyze overloads" $=
+				(
+					+ "%ByteParser parameter"
+						^ $dep_from "%Session::GetTokenList",
+					/ "2 function templates"
+						-> "overload with or without allocator parameter"
+						^ "%std::allocator_arg_t"
+				)
+			),
+			/ %Dependency $=
+			(
+				+ "function template %InvokeIn",
+				/ @ "applicative %SHBuild_TrimOptions_"
+					@ "function %LoadModule_SHBuild" $=
+				(
+					* "missing handling of characters not as left quotes for \
+						parsing" $since b886,
+					/ "removed special handling for null character"
+						^ $dep_from ("%LexicalAnalyzer::UpdateBack" @ %Lexical)
+						~ "%LexicalAnalyzer::ReplaceBack",
+					/ DLI "simplified" !^ "%LexicalAnalyzer::Literalize"
+						$dep_to "removal of lexer literalization",
+					/ DLDI ^ $dep_from "%LexicalAnalyzer::GetLastDelimited"
+						!^ "%LexicalAnalyzer::TokenViewList"
+						$dep_to "removal of value view list type",
+					/ $forced DLDI "simplified lexer binding"
+						$dep_from "parser parameter type",
+					/ $forced DLDI $dep_from ("%Session::Parse" @ %SContext)
+				)
+			),
+			/ %NPLA1 $=
+			(
+				/ "function template %LoadNode" >> %Configuration,
+				/ @ "class %REPLContext" $=
+				(
+					+ "constructor with token converter parameter";
+					/ DLDI "simplified constructor#1"
+				),
+				/ @ "class %REPLContext" $=
+				(
+					/ $forced "added parameter for byte parser"
+						@ "function %Prepare#3" ^ $dep_from
+						("%(ByteParser, Session::Parse)" @ %SContext),
+					(
+					/ "function %Process#2" -> "function %ProcessWith",
+					+ "function template %ProcessWith";
+						// Like parameter pack support of %NPL::Analyaze, but \
+							a bit different.
+					/ "merged all overloads of %Process"
+						-> "function template Process";					/ 
+					/ $forced DLDI "function %Perform#2"
+					)
+				)
+			)
+		)
+	),
+	/ $forced DLDI $dep_from ("%Session::Parse" @ %YFramework.NPL.SContext)
+		$effective @ ((("member functions %REPLContext::(Perform, ReadFrom)#2"
+		@ %NPLA1, "function %operator>>" @ %Configuration,
+		"functions %(EvalString, EvalStringRef)" @ %NPLA1Forms) @ %NPL,
+		"function %FetchMIMEBiMapping" @ %Helper.Initialization) @ %YFramework,
+		"function %::main" @ %Tools.SXML2XML.Main)
+),
+
+b888
+(
 	/ %YBase.YStandardEx.Container $=
 	(
 		+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
 			@ "all 4 function templates %search_map",
-			// Also to eliminate G++ 7.1 warning: \
-				[-Wsuggest-attribute=pure].
+			// Also to eliminate G++ 7.1 warning: [-Wsuggest-attribute=pure].
 		+ 'ynothrow' @ "function templates %(pop_back_val, pop_front_val)",
 		/ @ "function template %exists" $=
 		(
@@ -49,10 +206,10 @@ $now
 	),
 	/ %YFramework $=
 	(
-		/ DLDI "unused %Nonnull result" ^ "%yunused"
-			$effective @ ((("constructor %AndroidLogSender" @ %Debug,
-			"constructor %WindowClass#4" @ "platform %Win32" @ %HostedGUI)
-			@ %YCLib), ("constructor %FatalError" @ %Core.YException,
+		/ DLDI "unused %Nonnull result" ^ "%yunused" @ ((("constructor \
+			%AndroidLogSender" @ %Debug, "constructor %WindowClass#4"
+			@ "platform %Win32" @ %HostedGUI) @ %YCLib),
+			("constructor %FatalError" @ %Core.YException,
 			"constructors WidgetNotFound#(1, 2)" @ %UI.Loader) @ %YSLib),
 			// To eliminate Clang++ warning: [-Wunused-value].
 		/ %YCLib $=
@@ -1127,8 +1284,7 @@ b883
 			// See $2020-02 @ %Documentation::Workflow.
 	+ $dev $lib 'YB_NORETURN' @ "function template %rethrow_badstate"
 		@ %YBase.YStandard.IOS
-		// Also to eliminate G++ 7.1 warning: \
-			[-Wsuggest-attribute=noreturn].
+		// Also to eliminate G++ 7.1 warning: [-Wsuggest-attribute=noreturn].
 ),
 
 b882
@@ -1138,8 +1294,7 @@ b882
 		+ $dev $lib 'YB_PURE' @ ("function %empty" @ "class template %list"
 			@ %List, ("all 2 function templates %(begins_with, ends_with)",
 			"function template %get_quote_mark_nonstrict") @ %String),
-			// Also to eliminate G++ 7.1 warning: \
-				[-Wsuggest-attribute=pure].
+			// Also to eliminate G++ 7.1 warning: [-Wsuggest-attribute=pure].
 		+ %Allocator,
 		/ %Memory $=
 		(
@@ -1390,8 +1545,8 @@ b880
 				@ 'YB_IMPL_CLANGPP' @ %CAssert ^ $dep_from
 				("%(YB_Diag_Push, YB_Diag_Pop, YB_Diag_Ignore)" @ %YDefinition),
 			/ DLI "ignored G++ warnings ('-Wsuggest-attribute=const', \
-				'-Wsuggest-attribute=pure')"
-				"functor macros" @ 'YB_IMPL_GNUCPP >= 60000' ^ $dep_from
+				'-Wsuggest-attribute=pure')" "functor macros"
+				@ 'YB_IMPL_GNUCPP >= 60000' @ %Functor ^ $dep_from
 				("%(YB_Diag_Push, YB_Diag_Pop, YB_Diag_Ignore)" @ %YDefinition),
 			/ %MemoryResouce $=
 			(

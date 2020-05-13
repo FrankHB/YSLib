@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2019 FrankHB.
+	© 2012-2016, 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Configuration.h
 \ingroup NPL
 \brief 配置设置。
-\version r385
+\version r404
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:08 +0800
 \par 修改时间:
-	2019-02-02 08:29 +0800
+	2020-04-22 02:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,28 @@
 
 namespace NPL
 {
+
+//! \since build 889
+namespace A1
+{
+
+/*!
+\brief 加载 NPLA1 翻译单元。
+\throw LoggedEvent 警告：被加载配置中的实体转换失败。
+\since build 665
+*/
+template<typename _type, typename... _tParams>
+YB_ATTR_nodiscard ValueNode
+LoadNode(_type&& tree, _tParams&&... args)
+{
+	TryRet(A1::TransformNode(std::forward<TermNode>(tree), yforward(args)...))
+	CatchThrow(bad_any_cast& e, LoggedEvent(YSLib::sfmt(
+		"Bad NPLA1 tree found: cast failed from [%s] to [%s] .", e.from(),
+		e.to()), YSLib::Warning))
+}
+
+} // namespace A1;
+
 
 /*!
 \brief 设置：使用 S 表达式存储外部状态。

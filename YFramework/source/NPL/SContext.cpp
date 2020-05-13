@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1699
+\version r1739
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2020-04-12 00:15 +0800
+	2020-05-13 13:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,11 +100,39 @@ swap(TermNode& x, TermNode& y) ynothrowv
 }
 
 
+LexemeList
+Session::GetTokenList(const ByteParser& parse) const
+{
+	const auto& cbuf(Lexer.GetBuffer());
+	const auto a(cbuf.get_allocator());
+	LexemeList res(a);
+	const auto decomp([&](string_view sv){
+		if(sv.front() != '\'' && sv.front() != '"')
+			res.splice(res.end(), Decompose(sv, a));
+		else
+			res.push_back(LexemeList::value_type(sv.begin(), sv.end()));
+	});
+	size_t i(0);
+	const auto& qlist(parse.GetQuotes());
+
+	std::for_each(qlist.cbegin(), qlist.cend(), [&](size_t s){
+		if(s != i)
+		{
+			decomp(string_view(&cbuf[i], s - i));
+			i = s;
+		}
+	});
+	if(cbuf.size() != i)
+		decomp(string_view(&cbuf[i], cbuf.size() - i));
+	return res;
+}
+
+
 namespace SContext
 {
 
-TLCIter
-Validate(TLCIter b, TLCIter e)
+LLCIter
+Validate(LLCIter b, LLCIter e)
 {
 	size_t left(0);
 
@@ -123,18 +151,18 @@ Validate(TLCIter b, TLCIter e)
 	throw LoggedEvent("Redundant '(' found.", Alert);
 }
 
-TLCIter
-Reduce(TermNode& term, TLCIter b, TLCIter e)
+LLCIter
+Reduce(TermNode& term, LLCIter b, LLCIter e)
 {
 	const auto a(term.get_allocator());
 
-	return Reduce(term, b, e, [&](const TokenList::value_type& str){
+	return Reduce(term, b, e, [&](const LexemeList::value_type& str){
 		return NPL::AsTermNode(a, std::allocator_arg, a,
 			string(YSLib::make_string_view(str), a));
 	});
 }
-TLCIter
-Reduce(TermNode& term, TLCIter b, TLCIter e, Tokenizer tokenize)
+LLCIter
+Reduce(TermNode& term, LLCIter b, LLCIter e, Tokenizer tokenize)
 {
 	const auto a(term.get_allocator());
 	stack<TermNode> tms(a);
@@ -168,28 +196,29 @@ Reduce(TermNode& term, TLCIter b, TLCIter e, Tokenizer tokenize)
 }
 
 void
-Analyze(TermNode& root, const TokenList& token_list)
+Analyze(TermNode& root, const LexemeList& token_list)
 {
 	if(Reduce(root, token_list.cbegin(), token_list.cend())
 		!= token_list.cend())
 		throw LoggedEvent("Redundant ')' found.", Alert);
 }
 void
-Analyze(TermNode& root, const Session& session)
+Analyze(TermNode& root, const Session& sess, const ByteParser& parse)
 {
-	Analyze(root, session.GetTokenList());
+	Analyze(root, sess.GetTokenList(parse));
 }
 void
-Analyze(TermNode& root, Tokenizer tokenizer, const TokenList& token_list)
+Analyze(TermNode& root, Tokenizer tokenize, const LexemeList& token_list)
 {
 	if(Reduce(root, token_list.cbegin(), token_list.cend(),
-		std::move(tokenizer)) != token_list.cend())
+		std::move(tokenize)) != token_list.cend())
 		throw LoggedEvent("Redundant ')' found.", Alert);
 }
 void
-Analyze(TermNode& root, Tokenizer tokenizer, const Session& session)
+Analyze(TermNode& root, Tokenizer tokenize, const Session& sess,
+	const ByteParser& parse)
 {
-	Analyze(root, std::move(tokenizer), session.GetTokenList());
+	Analyze(root, std::move(tokenize), sess.GetTokenList(parse));
 }
 
 } // namespace SContext;
