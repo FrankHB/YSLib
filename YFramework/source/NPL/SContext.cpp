@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1739
+\version r1839
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2020-05-13 13:05 +0800
+	2020-05-24 10:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,31 +100,106 @@ swap(TermNode& x, TermNode& y) ynothrowv
 }
 
 
-LexemeList
-Session::GetTokenList(const ByteParser& parse) const
+void
+ByteParser::Update(bool got_delim)
 {
-	const auto& cbuf(Lexer.GetBuffer());
+	auto& lexer(GetLexerRef());
+	const auto& cbuf(GetBuffer());
+	const auto len(cbuf.length());
+
+	if(old_length < len)
+	{
+		if(!lexer.GetUnescapeContext().IsHandling())
+		{
+			if(YB_UNLIKELY(!update_current))
+			{
+				lexemes.emplace_back();
+				update_current = true;
+			}
+
+			auto& cur(lexemes.back());
+
+			if(old_length + 1 == len)
+			{
+				const char c(cbuf.back());
+
+ 				if(got_delim)
+				{
+					cur += c;
+					if(lexer.GetDelimiter() == char())
+						update_current = {};
+				}
+				else if(lexer.GetDelimiter() == char() && IsDelimiter(c))
+				{
+					if(IsGraphicalDelimiter(c))
+					{
+						if(cur.empty())
+						{
+							cur = string({c}, cur.get_allocator());
+							update_current = {};
+						}
+						else
+							lexemes.push_back(string({c}, cur.get_allocator()));
+					}
+					else if(!cur.empty())
+						update_current = {};
+				}
+				else
+					cur += c;
+			}
+			else
+				cur += cbuf.substr(old_length, len - old_length);
+			old_length = len;
+		}
+	}
+	else if(len + 1 == old_length)
+	{
+		if(!lexemes.empty())
+		{
+			auto& cur(lexemes.back());
+
+			if(!cur.empty())
+				cur.pop_back();
+			else
+				lexemes.pop_back();
+			--old_length;
+		}
+		// XXX: Invalid popping back is ignored.
+	}
+	else if(old_length != len)
+		throw LoggedEvent("Invalid parser modified the internal buffer"
+			" with other than 0, -1 or 1 character(s).", Alert);
+}
+
+
+LexemeList
+DelimitedByteParser::GetTokenList() const
+{
+	const auto& cbuf(GetBuffer());
 	const auto a(cbuf.get_allocator());
 	LexemeList res(a);
-	const auto decomp([&](string_view sv){
-		if(sv.front() != '\'' && sv.front() != '"')
-			res.splice(res.end(), Decompose(sv, a));
-		else
-			res.push_back(LexemeList::value_type(sv.begin(), sv.end()));
-	});
 	size_t i(0);
-	const auto& qlist(parse.GetQuotes());
 
 	std::for_each(qlist.cbegin(), qlist.cend(), [&](size_t s){
 		if(s != i)
 		{
-			decomp(string_view(&cbuf[i], s - i));
+			DecomposeString(res, string_view(&cbuf[i], s - i));
 			i = s;
 		}
 	});
-	if(cbuf.size() != i)
-		decomp(string_view(&cbuf[i], cbuf.size() - i));
+	if(cbuf.length() != i)
+		DecomposeString(res, string_view(&cbuf[i], cbuf.length() - i));
 	return res;
+}
+
+void
+DelimitedByteParser::DecomposeString(LexemeList& lst, bool not_quoted,
+	string_view sv)
+{
+	if(not_quoted)
+		lst.splice(lst.end(), Decompose(sv, lst.get_allocator()));
+	else
+		lst.push_back(LexemeList::value_type(sv.begin(), sv.end()));
 }
 
 
@@ -196,29 +271,18 @@ Reduce(TermNode& term, LLCIter b, LLCIter e, Tokenizer tokenize)
 }
 
 void
-Analyze(TermNode& root, const LexemeList& token_list)
+Analyze(TermNode& root, const LexemeList& lexeme_list)
 {
-	if(Reduce(root, token_list.cbegin(), token_list.cend())
-		!= token_list.cend())
+	if(Reduce(root, lexeme_list.cbegin(), lexeme_list.cend())
+		!= lexeme_list.cend())
 		throw LoggedEvent("Redundant ')' found.", Alert);
 }
 void
-Analyze(TermNode& root, const Session& sess, const ByteParser& parse)
+Analyze(TermNode& root, Tokenizer tokenize, const LexemeList& lexeme_list)
 {
-	Analyze(root, sess.GetTokenList(parse));
-}
-void
-Analyze(TermNode& root, Tokenizer tokenize, const LexemeList& token_list)
-{
-	if(Reduce(root, token_list.cbegin(), token_list.cend(),
-		std::move(tokenize)) != token_list.cend())
+	if(Reduce(root, lexeme_list.cbegin(), lexeme_list.cend(),
+		std::move(tokenize)) != lexeme_list.cend())
 		throw LoggedEvent("Redundant ')' found.", Alert);
-}
-void
-Analyze(TermNode& root, Tokenizer tokenize, const Session& sess,
-	const ByteParser& parse)
-{
-	Analyze(root, std::move(tokenize), sess.GetTokenList(parse));
 }
 
 } // namespace SContext;

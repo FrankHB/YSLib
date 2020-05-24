@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r18983
+\version r19128
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-05-13 18:47 +0800
+	2020-05-24 11:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,152 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		+ $dev $lib 'YB_PURE' @ "all function templates %(polymorphic_cast, \
+			polymorphic_downcast, polymorphic_crosscast, narrow_cast, narrow, \
+			not_widen_cast, not_widen)" @ %Cast,
+			// Also to eliminate G++ 9.2.1 warning: [-Wsuggest-attribute=pure].
+		+ $dev $lib 'YB_ATTR_nodiscard' @ ("all function templates" @ %Cast,
+			("all non-special member functions"
+			@ "class templates %(boxed_value, nifty_counter, call_once_init)",
+			"all non-deleted function templates") @ %Utilities),
+		+ $dev $lib 'YB_STATELESS' @ "function templates %(as_const, \
+			underlying)" @ %Utilities
+	),
+	/ %YFramework.NPL $=
+	(
+		/ @ "class %LexicalAnalyzer" @ %Lexical $=
+		(
+			(
+			- $revert(b763) "function %ParseRaw";
+			/ "inserted 2nd parameter as buffer"
+				@ "function template %FilterChar",
+				// %ParseQuoted needs no modification occasionally.
+			- "function %(Reserve, GetBuffer, GetLastDelimited)";
+			/ $dev $impl "internal buffer"
+				$dep_to "removal of lexical internal buffer";
+			/ "merged 2 constructors" ^ "%DefDeCtor"
+			),
+			/ @ "function %UpdateBack" $=
+			(
+				- "assertion";
+				/ "inserted 1st parameter as output"
+			),
+			+ "function %GetUnescapeContext",
+			/ DLI "type %LexemeList" ^ "%string" ~ "%std::string"
+		),
+		/ %SContext $=
+		(
+			/ "function overloads %Analyze with 'const ByteParser&' parameter"
+				-> "function templates with parameterized parser parameter",
+			+ "class %BufferedByteParserBase",
+			/ @ "class %ByteParser" $=
+			(
+				(
+				+ "function %GetTokenList";
+				- "function %GetQuotes"
+				),
+				(
+				(
+				+ $forced "buffer for character sequence in parsing"
+					$dep_from ("removal of lexical internal buffer",
+					"%Session::GetBuffer") $=
+				(
+					(
+					+ "internal buffer"
+						$= (+ $impl "private base"
+							^ $dep_from "%%BufferedByteParserBase"),
+					+ "function %GetBuffer"
+					),
+					+ "allocator parameter" @ "constructor#1";
+					(
+					+ "friend function %swap";
+					/ "copy constructor copied buffers using allocators"
+					),
+					/ $forced DLDI "function %GetLeerRef"
+						^ "%DefGetterBase" ~ "%DefGetter",
+					/ $forced DLDI "function template %operator()" $dep_from
+						("%LexicalAnalyzer::(FilterChar, GetLastDelimited)"
+						@ %Lexical),
+					(
+					/ $impl "saved allocator"
+						@ "private data member %Allocator";
+						// For %ByteParser construction
+					+ "fucntion %get_allocator"
+					)
+				);
+				/ "function %GetLexerRef"
+					-> 'using BufferedByteParserBase::GetLexerRef'
+				);
+				+ 'using BufferedByteParserBase::reserve;',
+				+ 'using BufferedByteParserBase::GetBuffer;',
+				+ 'using BufferedByteParserBase::GetBufferRef;'
+				),
+				/ "constructor#1 supported default argument for the \
+					allocator"
+			),
+			/ @ "class %Session" $=
+			(
+				/ "function %GetTokenList" -> "function \
+					template" $dep_from "%ByteParser::GetTokenList",
+				/ @ "function templates %Process" $=
+				(
+					- DLI 'YB_FLATTEN',
+						// This is a slightly better at least with GCC 10 \
+							which has imporved inlining heuristics.
+					/ DLI "simplified overloads",
+					/ $forced "reservation for random iterators"
+						$dep_from ("%ByteParser" @ %Lexical)
+						$= (/ $impl ^ ("member %reserve on the parser"
+							~ "%ByteParser::Reserve"
+							$dep_from "%ByteParser::reserve") @ %Lexical)
+				),
+				- "function %GetBuffer",
+				(
+				+ 'using DefaultParser = ByteParser;';
+				/ "function templates %Process without explicit parser \
+					parameter" ^ "%DefaultParser" ~ "%ByteParser"
+					// This makes chaning the implicit parser far easier.
+				)
+			),
+			+ "class %DelimitedByteParser"
+				// This now preserves the old %ByteParser interface with \
+					an internal buffer inside.
+		),
+		/ @ "class %REPLContext" @ %NPLA1 $=
+		(
+			/ @ "overloads %Prepare" $=
+			(
+				+ "return type %TermNode",
+				(
+				/ "support parameter forwarding to %SContext::Analyze by \
+					merged overloads except for case with single term node \
+					parameter as a function template";
+				/ $comp "case of lexeme list" ^ "allocator"
+				)
+			);
+			/ $dev "simplified function template %ProcessWith with full \
+				forwarding support"
+		),
+		/ $forced DLDI %Dependency $=
+		(
+			/ "applicative %SHBuild_TrimOptions_"
+				@ "function %LoadModule_SHBuild" $dep_from
+				("%LexicalAnalyzer::(FilterChar, UpdateBack)" @ %Lexical),
+			/ "funtion %DecomposeMakefileDepList"
+				$dep_from ("%Session::GetBuffer" @ %SContext,
+				"LexicalAnalyzer::FilterChar" @ %Lexical
+		),
+		/ DLI "ignored 'suggest-attribute=pure'"
+			@ 'defined(NDEBUG) && YB_IMPL_GNUCPP >= 100000'
+			@ "function %Retain" @ %NPLA1Forms
+			^ "%(YB_Diag_Push, YB_Diag_Ignore, YB_Diag_Pop)"
+	)
+),
+
+b889
 (
 	/ %YBase.YStandardEx $=
 	(

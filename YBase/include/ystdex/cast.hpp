@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2017, 2019 FrankHB.
+	© 2010-2017, 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r1424
+\version r1449
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2019-08-06 20:38 +0800
+	2020-05-24 11:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,7 @@ namespace ystdex
 */
 //! \brief 允许添加限定符转换。
 template<typename _tSrc, typename _tDst = const decay_t<_tSrc>&&>
-yconstfn _tDst
+YB_ATTR_nodiscard yconstfn _tDst
 qualify(_tSrc&& arg) ynothrow
 {
 	static_assert(is_same<decay_t<_tSrc>, decay_t<_tDst>>(),
@@ -90,7 +90,7 @@ struct narrow_test
 	_tDst i;
 
 	//! \since build 730
-	yconstfn false_
+	YB_ATTR_nodiscard yconstfn false_
 	get() const ynothrow
 	{
 		return {};
@@ -98,14 +98,14 @@ struct narrow_test
 };
 
 template<typename _tDst, typename _tSrc>
-yconstfn auto
+YB_ATTR_nodiscard yconstfn auto
 test_narrow(_tSrc v) ynothrow -> decltype(narrow_test<_tDst>{v}.get())
 {
 	return narrow_test<_tDst>{v}.get();
 }
 //! \since build 730
 template<typename>
-yconstfn true_
+YB_ATTR_nodiscard yconstfn true_
 test_narrow(...) ynothrow
 {
 	return {};
@@ -118,7 +118,7 @@ test_narrow(...) ynothrow
 //@{
 //! \brief 可能缩小数值范围的显式转换。
 template<typename _tDst, typename _tSrc>
-yconstfn _tDst
+YB_ATTR_nodiscard YB_PURE yconstfn _tDst
 narrow_cast(_tSrc v) ynothrow
 {
 	static_assert(is_arithmetic<_tDst>(), "Invalid destination type found.");
@@ -133,7 +133,7 @@ narrow_cast(_tSrc v) ynothrow
 
 //! \note 使用 ADL narrow_cast 。
 template<typename _tDst, typename _tSrc>
-inline _tDst
+YB_ATTR_nodiscard YB_PURE inline _tDst
 narrow(_tSrc v)
 {
 	const auto d(narrow_cast<_tDst>(v));
@@ -151,13 +151,13 @@ namespace details
 {
 
 template<typename _tDst, typename _tSrc>
-yconstfn _tDst
+YB_ATTR_nodiscard YB_PURE yconstfn _tDst
 not_widen_cast(_tSrc v, true_) ynothrow
 {
 	return narrow_cast<_tDst>(v);
 }
 template<typename _tDst, typename _tSrc>
-yconstfn _tDst
+YB_ATTR_nodiscard YB_PURE yconstfn _tDst
 not_widen_cast(_tSrc v, false_) ynothrow
 {
 	static_assert(is_arithmetic<_tDst>(), "Invalid destination type found.");
@@ -175,7 +175,7 @@ not_widen_cast(_tSrc v, false_) ynothrow
 \note 使用 ADL narrow_cast 。
 */
 template<typename _tDst, typename _tSrc>
-yconstfn _tDst
+YB_ATTR_nodiscard YB_PURE yconstfn _tDst
 not_widen_cast(_tSrc v) ynothrow
 {
 	return details::not_widen_cast<_tDst>(v,
@@ -186,7 +186,7 @@ not_widen_cast(_tSrc v) ynothrow
 
 //! \note 使用 ADL not_widen_cast 。
 template<typename _tDst, typename _tSrc>
-inline _tDst
+YB_ATTR_nodiscard YB_PURE inline _tDst
 not_widen(_tSrc v)
 {
 	const auto d(not_widen_cast<_tDst>(v));
@@ -209,7 +209,7 @@ not_widen(_tSrc v)
 \since build 175
 */
 template<typename _pDst, class _tSrc>
-inline _pDst
+YB_ATTR_nodiscard YB_PURE inline _pDst
 polymorphic_cast(_tSrc* v)
 {
 	static_assert(is_polymorphic<_tSrc>(), "Non-polymorphic class found.");
@@ -234,7 +234,7 @@ polymorphic_cast(_tSrc* v)
 \pre 断言： dynamic_cast 成功。
 */
 template<typename _pDst, class _tSrc>
-inline _pDst
+YB_ATTR_nodiscard YB_PURE inline _pDst
 polymorphic_downcast(_tSrc* v) ynothrowv
 {
 	static_assert(is_polymorphic<_tSrc>(), "Non-polymorphic class found.");
@@ -251,7 +251,8 @@ polymorphic_downcast(_tSrc* v) ynothrowv
 \pre 静态断言： _rDst 是左值引用。
 */
 template<typename _rDst, class _tSrc>
-yconstfn yimpl(enable_if_t)<is_lvalue_reference<_rDst>::value, _rDst>
+YB_ATTR_nodiscard YB_PURE yconstfn
+	yimpl(enable_if_t)<is_lvalue_reference<_rDst>::value, _rDst>
 polymorphic_downcast(_tSrc& v) ynothrowv
 {
 	return *ystdex::polymorphic_downcast<remove_reference_t<_rDst>*>(
@@ -263,8 +264,8 @@ polymorphic_downcast(_tSrc& v) ynothrowv
 \pre 静态断言： _rDst 是右值引用。
 */
 template<typename _rDst, class _tSrc>
-yconstfn yimpl(enable_if_t)<is_rvalue_reference<_rDst>::value
-	&& !is_reference<_tSrc>::value, _rDst>
+YB_ATTR_nodiscard YB_PURE yconstfn yimpl(enable_if_t)<
+	is_rvalue_reference<_rDst>::value && !is_reference<_tSrc>::value, _rDst>
 polymorphic_downcast(_tSrc&& v) ynothrowv
 {
 	return std::move(ystdex::polymorphic_downcast<_rDst&>(v));
@@ -278,7 +279,7 @@ polymorphic_downcast(_tSrc&& v) ynothrowv
 \note 使用 ADL 调用 polymorphic_downcast 转换 \c release() 取得的指针。
 */
 template<class _tDst, typename _tSrc, typename _tDeleter>
-inline yimpl(enable_if_t)<!is_reference<_tDst>::value
+YB_ATTR_nodiscard YB_PURE inline yimpl(enable_if_t)<!is_reference<_tDst>::value
 	&& !is_array<_tDst>::value, std::unique_ptr<_tDst, _tDeleter>>
 polymorphic_downcast(std::unique_ptr<_tSrc, _tDeleter>&& v) ynothrowv
 {
@@ -297,7 +298,7 @@ polymorphic_downcast(std::unique_ptr<_tSrc, _tDeleter>&& v) ynothrowv
 \pre _tDst 可通过 \c get() 取得的指针和删除器右值构造。
 */
 template<class _tDst, typename _tSrc>
-inline yimpl(enable_if_t)<!is_reference<_tDst>::value
+YB_ATTR_nodiscard YB_PURE inline yimpl(enable_if_t)<!is_reference<_tDst>::value
 	&& !is_array<_tDst>::value, std::shared_ptr<_tDst>>
 polymorphic_downcast(const std::unique_ptr<_tSrc>& v) ynothrowv
 {
@@ -320,7 +321,7 @@ polymorphic_downcast(const std::unique_ptr<_tSrc>& v) ynothrowv
 \since build 179
 */
 template<typename _pDst, class _tSrc>
-inline _pDst
+YB_ATTR_nodiscard YB_PURE inline _pDst
 polymorphic_crosscast(_tSrc* v)
 {
 	static_assert(is_polymorphic<_tSrc>(), "Non-polymorphic class found.");
@@ -338,7 +339,7 @@ polymorphic_crosscast(_tSrc* v)
 \since build 496
 */
 template<typename _rDst, class _tSrc>
-yconstfn _rDst
+YB_ATTR_nodiscard YB_PURE yconstfn _rDst
 polymorphic_crosscast(_tSrc& v)
 {
 	static_assert(is_lvalue_reference<_rDst>(),
@@ -354,7 +355,8 @@ polymorphic_crosscast(_tSrc& v)
 \since build 496
 */
 template<typename _rDst, class _tSrc>
-yconstfn enable_if_t<!is_reference<_tSrc>::value, _rDst>
+YB_ATTR_nodiscard YB_PURE yconstfn
+	enable_if_t<!is_reference<_tSrc>::value, _rDst>
 polymorphic_crosscast(_tSrc&& v)
 {
 	static_assert(is_rvalue_reference<_rDst>(),
@@ -373,7 +375,7 @@ namespace details
 template<typename _tFrom, typename _tTo, bool _bNonVirtualDownCast>
 struct general_polymorphic_cast_helper
 {
-	static yconstfn _tTo
+	YB_ATTR_nodiscard YB_PURE static yconstfn _tTo
 	cast(_tFrom v)
 	{
 		return ystdex::polymorphic_downcast<_tTo>(v);
@@ -383,7 +385,7 @@ struct general_polymorphic_cast_helper
 template<typename _tFrom, typename _tTo>
 struct general_polymorphic_cast_helper<_tFrom, _tTo, false>
 {
-	static yconstfn _tTo
+	YB_ATTR_nodiscard YB_PURE static yconstfn _tTo
 	cast(_tFrom v)
 	{
 		return dynamic_cast<_tTo>(v);

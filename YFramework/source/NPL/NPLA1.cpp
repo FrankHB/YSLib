@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r18979
+\version r19005
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-05-13 17:49 +0800
+	2020-05-14 07:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1727,36 +1727,6 @@ REPLContext::Perform(string_view unit, ContextNode& ctx)
 		return ProcessWith(ctx, sess, sess.Process(unit));
 	}
 	throw LoggedEvent("Empty token list found.", Alert);
-}
-
-void
-REPLContext::Prepare(TermNode& term) const
-{
-	Preprocess(term);
-}
-TermNode
-REPLContext::Prepare(const LexemeList& token_list) const
-{
-	auto term(SContext::Analyze(ConvertLeaf, token_list));
-
-	Prepare(term);
-	return term;
-}
-TermNode
-REPLContext::Prepare(const Session& session, const ByteParser& parse) const
-{
-	auto term(SContext::Analyze(std::allocator_arg, Allocator, ConvertLeaf,
-		session, parse));
-
-	Prepare(term);
-	return term;
-}
-
-void
-REPLContext::ProcessWith(ContextNode& ctx, TermNode& term) const
-{
-	Prepare(term);
-	ReduceAndFilter(term, ctx);
 }
 
 TermNode

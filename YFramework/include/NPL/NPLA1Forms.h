@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r7612
+\version r7621
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2020-04-13 18:39 +0800
+	2020-05-20 17:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,9 +104,18 @@ SymbolToString(const TokenValue&) ynothrow;
 $retain|$retainN \<expression>
 */
 //@{
+// XXX: G++ will warn with [-Wunused-value] if it is pure. See also $2019-01
+//	@ %Documentation::Workflow.
+#if defined(NDEBUG) && YB_IMPL_GNUCPP >= 100000
+	YB_Diag_Push
+	YB_Diag_Ignore(suggest-attribute=pure)
+#endif
 //! \brief 保留项：保留求值。
 inline PDefH(ReductionStatus, Retain, const TermNode& term) ynothrowv
 	ImplRet(AssertBranch(term), ReductionStatus::Retained)
+#if defined(NDEBUG) && YB_IMPL_GNUCPP >= 100000
+	YB_Diag_Pop
+#endif
 
 /*!
 \brief 保留经检查确保具有指定个数参数的项：保留求值。

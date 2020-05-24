@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1935
+\version r1982
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2020-05-13 13:03 +0800
+	2020-05-24 00:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,7 @@ using YSLib::vector;
 \brief 词素列表：待被处理为记号短字符串列表。
 \since build 889
 */
-using LexemeList = list<yimpl(std::string)>;
+using LexemeList = list<string>;
 
 
 /*!
@@ -87,7 +87,6 @@ public:
 	size_t Length = 0;
 	//@}
 
-public:
 	//! \post <tt>Prefix.empty() && sequence.empty()</tt> 。
 	DefDeCtor(UnescapeContext)
 	DefDeCopyMoveCtorAssignment(UnescapeContext)
@@ -165,7 +164,7 @@ class YF_API LexicalAnalyzer
 {
 private:
 	/*!
-	\brief 反转移上下文：储存反转义中间结果。
+	\brief 反转义上下文：储存反转义中间结果。
 	\note 若前缀非空表示正在处理反转义。
 	\since build 545
 	*/
@@ -175,38 +174,24 @@ private:
 	\note 值为空字符时表示当前不处理字面量。
 	*/
 	char ld = {};
-	/*!
-	\brief 字符解析中间结果。
-	\since build 886
-	*/
-	string cbuf{};
 
 public:
-	LexicalAnalyzer();
-	//! \since build 887
-	LexicalAnalyzer(pmr::polymorphic_allocator<yimpl(byte)> a);
+	//! \since build 889
+	DefDeCtor(LexicalAnalyzer)
 	//! \since build 546
 	DefDeCopyMoveCtorAssignment(LexicalAnalyzer)
 
 	//! \since build 886
-	DefGetter(const ynothrow, const string&, Buffer, cbuf)
-	//! \since build 886
 	DefGetter(const ynothrow, char, Delimiter, ld)
-	/*!
-	\brief 取最后取得的分隔符划分的区间位置。
-	\sa UpdateBack
-	\since build 889
-
-	假定当前已更新缓冲区最后的字符取得分隔符，取对应的缓冲区索引边界。
-	*/
-	DefGetter(const ynothrow, size_t, LastDelimited,
-		cbuf.length() - (ld != char() ? 1 : 0))
+	//! \since build 890
+	DefGetter(const ynothrow, const UnescapeContext&, UnescapeContext,
+		unescape_context)
 
 	/*!
 	\brief 过滤解析的字符。
 	\pre 参数满足以下签名和行为的要求的可调用对象。
 	\return 字符未被转义处理。
-	\since build 886
+	\since build 890
 
 	检查转义序列并处理转义序列前缀。
 	第二和第三参数分别指定反转义算法和转义序列前缀处理器；
@@ -235,10 +220,11 @@ public:
 		数据指针非空；
 		数据指定空串，或其结尾应已经添加前缀字符。
 	*/
-	template<typename _fUnescape = decltype(NPLUnescape),
+	template<class _tCharBuffer,
+		typename _fUnescape = decltype(NPLUnescape),
 		typename _fPrefixHandler = decltype(HandleBackslashPrefix)>
 	YB_ATTR_nodiscard bool
-	FilterChar(char c, _fUnescape unescape = NPLUnescape,
+	FilterChar(char c, _tCharBuffer& cbuf, _fUnescape unescape = NPLUnescape,
 		_fPrefixHandler handle_prefix = HandleBackslashPrefix)
 	{
 		// XXX: Incomplete escape sequence at end is ignored at current.
@@ -253,12 +239,11 @@ public:
 	}
 
 	/*!
-	\note 参数指定反转义算法。
+	\brief 解析单个字面量字符并添加至字符解析结果：反转义以外无视边界字符。
+	\note 参数指定缓冲区和反转义算法。
 	\warning 在同一个分析器对象上混用不等价的多种解析方法或反转义算法的结果未指定。
 	\since build 588
 	*/
-	//@{
-	//! \brief 解析单个字面量字符并添加至字符解析结果：反转义以外无视边界字符。
 	template<typename... _tParams>
 	inline void
 	ParseQuoted(char c, _tParams&&... args)
@@ -267,31 +252,15 @@ public:
 	}
 
 	/*!
-	\brief 直接添加字符。
-	\since build 763
-	*/
-	PDefH(void, ParseRaw, char c)
-		ImplExpr(cbuf += c);
-	//@}
-
-	/*!
-	\brief 字符解析中间结果预分配参数指定的空间。
-	\since build 887
-	*/
-	PDefH(void, Reserve, size_t n)
-		ImplExpr(cbuf.reserve(n))
-
-	/*!
 	\brief 更新缓冲区最后的单个字节的字符解析结果。
-	\pre 断言：缓冲区非空。
 	\invariant 缓冲区长度。
-	\return 参数是引号。
-	\note 假定缓冲区最后一个字符等于参数。
+	\return 第二参数是引号。
+	\note 第一参数指定缓冲区的字符。第二参数指定要更新的值。
 	\note 解析时处理引号和空白符。空格和回车符以外的空白符解析为空格。
-	\since build 889
+	\since build 890
 	*/
 	bool
-	UpdateBack(char);
+	UpdateBack(char&, char);
 };
 
 

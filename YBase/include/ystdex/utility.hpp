@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3554
+\version r3570
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2020-01-27 03:26 +0800
+	2020-05-24 11:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,7 +53,7 @@ using forward_like_t = conditional_t<is_lvalue_reference<_type>::value,
 
 //! \brief 按第一模板参数指定类型蕴含的值类别传递参数。
 template<typename _type, typename _type2>
-YB_STATELESS forward_like_t<_type, _type2>
+YB_ATTR_nodiscard YB_STATELESS forward_like_t<_type, _type2>
 forward_like(_type2&& x)
 {
 	return std::forward<forward_like_t<_type, _type2>>(yforward(x));
@@ -73,7 +73,7 @@ using std::as_const;
 #else
 //! \since build 593
 template<typename _type>
-inline add_const_t<_type>&
+YB_ATTR_nodiscard YB_STATELESS inline add_const_t<_type>&
 as_const(_type& t)
 {
 	return t;
@@ -92,7 +92,7 @@ as_const(const _type&&) = delete;
 \since build 787
 */
 template<typename _type, typename _type2 = _type>
-inline _type
+YB_ATTR_nodiscard inline _type
 copy_or_move(bool copy, _type& obj)
 {
 	if(copy)
@@ -109,7 +109,8 @@ copy_or_move(bool copy, _type& obj)
 \since build 650
 */
 template<typename _type>
-yconstfn yimpl(enable_if_convertible_t)<_type, decay_t<_type>, decay_t<_type>>
+YB_ATTR_nodiscard yconstfn
+	yimpl(enable_if_convertible_t)<_type, decay_t<_type>, decay_t<_type>>
 decay_copy(_type&& arg)
 {
 	return yforward(arg);
@@ -121,7 +122,7 @@ decay_copy(_type&& arg)
 \since build 629
 */
 template<typename _type, yimpl(typename = enable_if_t<is_enum<_type>::value>)>
-yconstfn underlying_type_t<_type>
+YB_ATTR_nodiscard YB_STATELESS yconstfn underlying_type_t<_type>
 underlying(_type val) ynothrow
 {
 	return underlying_type_t<_type>(val);
@@ -196,11 +197,13 @@ struct boxed_value
 	operator=(boxed_value&&) = default;
 	//@}
 
+	YB_ATTR_nodiscard
 	operator _type&() ynothrow
 	{
 		return value;
 	}
 
+	YB_ATTR_nodiscard
 	operator const _type&() const ynothrow
 	{
 		return value;
@@ -225,7 +228,7 @@ using classify_value_t = cond_t<std::is_class<_type>, _type,
 \since build 303
 */
 template<typename _type, typename, typename...>
-inline _type&
+YB_ATTR_nodiscard inline _type&
 parameterize_static_object()
 {
 	static _type obj;
@@ -240,7 +243,7 @@ parameterize_static_object()
 \since build 301
 */
 template<typename _type, size_t...>
-inline _type&
+YB_ATTR_nodiscard _type&
 parameterize_static_object()
 {
 	static _type obj;
@@ -335,7 +338,7 @@ public:
 			delete get_object_ptr();
 	}
 
-	static object_type&
+	YB_ATTR_nodiscard static object_type&
 	get() ynothrow
 	{
 		yassume(get_object_ptr());
@@ -343,14 +346,14 @@ public:
 	}
 
 private:
-	static size_t&
+	YB_ATTR_nodiscard static size_t&
 	get_count() ynothrow
 	{
 		ythread size_t count;
 
 		return count;
 	}
-	static object_type*&
+	YB_ATTR_nodiscard static object_type*&
 	get_object_ptr() ynothrow
 	{
 		ythread object_type* ptr;
@@ -359,7 +362,7 @@ private:
 	}
 
 public:
-	static size_t
+	YB_ATTR_nodiscard static size_t
 	use_count() ynothrow
 	{
 		return get_count();
@@ -415,13 +418,13 @@ public:
 	}
 
 	//! \since build 693
-	object_type&
+	YB_ATTR_nodiscard object_type&
 	get() ynothrow
 	{
 		return storage.template access<object_type>();
 	}
 	//! \since build 693
-	const object_type&
+	YB_ATTR_nodiscard const object_type&
 	get() const ynothrow
 	{
 		return storage.template access<const object_type>();

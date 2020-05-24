@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3584
+\version r3598
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2020-05-13 17:54 +0800
+	2020-05-22 14:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,9 +74,10 @@ DecomposeMakefileDepList(std::streambuf& sb)
 	set<size_t> spaces;
 	Session sess{};
 	auto& lexer(sess.Lexer);
+	string cbuf{};
 
 	yunused(sess.Process(s_it_t(&sb), s_it_t(), [&](char ch){
-		lexer.ParseQuoted(ch,
+		lexer.ParseQuoted(ch, cbuf,
 			[&](string& buf, char c, UnescapeContext& uctx, char) -> bool{
 			// NOTE: See comments in %munge function of 'mkdeps.c' from libcpp
 			//	of GCC.
@@ -130,14 +131,13 @@ DecomposeMakefileDepList(std::streambuf& sb)
 		});
 	}));
 
-	const auto sbuf(sess.GetBuffer());
 	vector<string> lst;
 
-	ystdex::split_if(sbuf.begin(), sbuf.end(), ystdex::isspace,
+	ystdex::split_if(cbuf.begin(), cbuf.end(), ystdex::isspace,
 		[&](string::const_iterator b, string::const_iterator e){
 		lst.push_back({b, e});
 	}, [&](string::const_iterator i) YB_PURE{
-		return !ystdex::exists(spaces, size_t(i - sbuf.cbegin()));
+		return !ystdex::exists(spaces, size_t(i - cbuf.cbegin()));
 	});
 	return lst;
 }
@@ -1256,7 +1256,7 @@ LoadModule_SHBuild(REPLContext& context)
 		const auto decomp([&](string_view sv){
 			using iter_t = string_view::const_iterator;
 
-			// XXX: As %Session::GetTokenList.
+			// XXX: As %DelimitedByteParser::DecomposeString.
 			if(sv.front() != '\'' && sv.front() != '"')
 				ystdex::split_l(sv.cbegin(), sv.cend(), ystdex::isspace,
 					[&](iter_t b, iter_t e){
@@ -1280,17 +1280,20 @@ LoadModule_SHBuild(REPLContext& context)
 			l += sv.length();
 		});
 		auto& lexer(sess.Lexer);
-		const auto& cbuf(lexer.GetBuffer());
+		string cbuf(a);
 		size_t i(0);
 
 		yunused(sess.Process(src, [&](char c){
-			if(lexer.FilterChar(c, NPLUnescape, IgnorePrefix))
+			if(lexer.FilterChar(c, cbuf, NPLUnescape, IgnorePrefix))
 			{
 				if((c == '\'' || c == '"') && lexer.GetDelimiter() == char())
-					left_qset.insert(lexer.GetBuffer().size() - 1);
-				if(lexer.UpdateBack(c))
+					left_qset.insert(cbuf.length() - 1);
+				YAssert(!cbuf.empty(), "Invalid buffer found.");
+				if(lexer.UpdateBack(cbuf.back(), c))
 				{
-					const auto s(lexer.GetLastDelimited());
+					// NOTE: As %BufferedByteParserBase::QueryLastDelimited.
+					const auto s(cbuf.length()
+						- (lexer.GetDelimiter() != char() ? 1 : 0));
 
 					if(s != i)
 					{

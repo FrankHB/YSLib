@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r7663
+\version r7679
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-05-13 17:58 +0800
+	2020-05-14 07:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1342,26 +1342,27 @@ public:
 
 	/*!
 	\brief 准备规约项：分析输入并标记记号节点和预处理。
+	\return 预处理后的项。
 	\sa Preprocess
-	\since build 802
+	\since build 890
 
 	按需分析并调用预处理例程。
 	词素的处理由分析完成，不需单独调用 TokenizeTerm 转换。
 	*/
 	//@{
-	void
-	Prepare(TermNode&) const;
+	YB_ATTR_nodiscard PDefH(TermNode, Prepare, TermNode&& term) const
+		ImplRet(Preprocess(term), std::move(term))
 	/*!
 	\return 从参数输入读取的准备的项。
 	\sa SContext::Analyze
-	\since build 889
 	*/
-	//@{
+	template<typename... _tParams>
 	YB_ATTR_nodiscard TermNode
-	Prepare(const LexemeList&) const;
-	YB_ATTR_nodiscard TermNode
-	Prepare(const Session&, const ByteParser&) const;
-	//@}
+	Prepare(_tParams&&... args) const
+	{
+		return Prepare(SContext::Analyze(std::allocator_arg, Allocator,
+			ConvertLeaf, yforward(args)...));
+	}
 	//@}
 
 	/*!
@@ -1378,13 +1379,12 @@ public:
 		return ProcessWith(Root, args...);
 	}
 
-	void
-	ProcessWith(ContextNode&, TermNode&) const;
-	template<typename _tParam, typename... _tParams>
+	//! \since build 890
+	template<typename... _tParams>
 	YB_ATTR_nodiscard TermNode
-	ProcessWith(ContextNode& ctx, const _tParam& arg, const _tParams&... args)
+	ProcessWith(ContextNode& ctx, _tParams&&... args)
 	{
-		auto term(Prepare(arg, args...));
+		auto term(Prepare(yforward(args)...));
 
 		ReduceAndFilter(term, ctx);
 		return term;
