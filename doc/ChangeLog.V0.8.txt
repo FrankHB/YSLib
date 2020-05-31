@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r19128
+\version r19373
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-05-24 11:56 +0800
+	2020-05-31 20:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,252 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ $dev $lib %YCLib.YCommon $=
+		(
+			/ $re_ex(b880) "ignored G++ warnings \
+				('-Wsuggest-attribute=const', '-Wsuggest-attribute=pure')"
+				@ "macro %YCL_DefPlatformFwdTmpl"
+				@ 'YB_IMPL_GNUCPP >= 60000'
+				^ "%(YB_Diag_Push, YB_Diag_Pop, YB_Diag_Ignore)",
+			/ $design $impl "alias template %MetaID"
+				^ "%std::integral_constant" ~ "%ystdex::integral_constant"
+				// This should be same.
+		),
+		/ %YSLib.Core.YObject $=
+		(
+			/ @ "interface %IValueObject" $=
+			(
+				/ $dev $lib "reordered abstract method %Create",
+				+ "abstract method %Query"
+			),
+			+ $forced "overrider %Query"
+				@ "class templates %(ValueHolder, PointerHolder, RefHolder)",
+			/ @ "class %ValueObject" $=
+			(
+				- 'explicit' @ "constructor with allocator parameter and \
+					in-place value tag",
+					// To be consistent to %any.
+				+ $dev "static assert to ensure reference to the holder type \
+					convertible to 'IValueHolder&'"
+					@ "constructor template with holder tag",
+				+ "constuctor template with allocator parameter and in-place \
+					holder tag",
+				+ "function %Query" $dep_from "%IValueHolder::Query",
+				+ 'YB_PURE' @ "functions %(Create, MakeCopy, MakeMove, \
+					MakeMoveCopy, MakeIndirect)"
+			),
+			+ "class template %AllocatedHolderOperations",
+			/ @ "class template %AlloatorHolder" $=
+			(
+				(
+				/ "access specifier 'private'" @ ('using base::value;',
+					"function %get_allocator") -> 'public';
+				* $comp "inaccessible %get_allocator" $since b887
+				),
+				/ DLDI "overrider %Create"
+					^ $dep_from "%AllocatedHoderOperations"
+			)
+		),
+		/ %NPL $=
+		(
+			/ %Lexical $=
+			(
+				* "wrong handling of '\b' unescaping" @ "function %NPLUnescape"
+					$orig (@ "member function %LexicalAnalyzer::HandleEscape"
+					$since b335),
+				(
+				+ DD "Doxygen group %LexicalParsers";
+				+ DD "Doxygen command '\ingroup LexicalParsers'"
+					@ $dep_from "classes %(ByteParser, DelimitedByteParser)"
+				),
+				+ "metafunctions %(MemberParseResult, ParserClassOf; \
+					ParseResultOf; GParserResult)",
+				/ $forced ("function %GetTokenList" => "%GetResult")
+					@ $dep_from ("classes %(ByteParser, DelimitedByteParser)",
+					"%Session::GetResult" @ %SContext)
+					$dep_to "renaming parse result getter",
+				(
+				+ "final struct %SourceLocation";
+				+ "class %SourcedByteParser"
+				),
+				(
+				+ "alias %SourceName" $dep_from "%shared_ptr";
+				+ "alias %SourceInformation" $dep_from "%SourceLocation"
+				)
+			),
+			/ %SContext $=
+			(
+				/ ('using YSLib::pair;', 'using YSLib::shared_ptr;')
+					>> %Lexical,
+				/ "class %ByteParser" >> %Lexical $=
+				(
+					/ "character update" @ "function template %operator()" $=
+					(
+						/ DLI "simplified buffer length check",
+							// Now support of shrinked string buffer is \
+								dropped. This is never supported formally, as \
+								'\b' handling is never correctly implemented \
+								by buffer 'pop_back'.
+						+ $lib $impl "assertion for invariant",
+						* "strong exception safety" $since b890
+					),
+					/ DLI "simplified buffer management by dropping the \
+						previously handled sequence",
+						// The old position is also removed. Note %reserve is \
+							preserved even though the full sequence is not \
+							saved now because it is still useful for other \
+							filters and actually a slightly more efficient for \
+							the default case.
+					(
+					+ "alias %ParseResult";
+					/ "%GetResult" ^ "%ParseResult" $dep_from
+						("renaming parse result getter", "%SContext::Analyze")
+						// This does not relies on %Decompose, so it is \
+							suboptimal to use %list instead of %vector.
+					),
+				),
+				+ "alias %TermByteAllocator",
+				/ @ "class %Session" $=
+				(
+					/ "function %GetTokenList" @ "class %Session"
+						-> "%GetResult"
+						^ $dep_from ("%GParserResult" @ %Lexical),
+					- 'DefDeCopyMoveCtorAssignment(Session)',
+						// Also to eliminate Clang++ 10.0 warning: \
+							[-Wdefaulted-function-deleted].
+					/ DLDI ("internal types", "constructor",
+						"function %get_allocator")
+						^ $dep_from "%TermByteAllocator"
+						~ 'pmr::polymorphic_allocator<yimpl(byte)>'
+						// The type is actually not changed.
+				),
+				/ @ "namespace %SContext" $=
+				(
+					(
+					+ "function template %ToLexeme",
+					/ DLDI "qualified %Reduce calls with prefix 'SContext::'"
+						@ "all overloads %Analyze";
+						// To avoid unexpected ADL.
+					/ "functions %SContext::(Validate, all 2 %Reduce)"
+						-> "function template with 2 input iterator parameters"
+						^ "%ToLexeme"
+						$dep_to "avoided concrete token list iterators";
+					+ "struct %LexemeTokenizer";
+					/ "simplified overload %Reduce without explicit tokenizer \
+						parameter" ^ "%LexeTokenizer"
+					),
+					/ "parameterized %Tokenizer parameter as function template \
+						parameter" @ "overloads %(Reduce, Analyze)",
+					(
+					/ "all 2 functions %Analyze"
+						-> "2 function templates with parse result parameter";
+					/ "alias %Tokenizer" >> ("namespace %NPL" @ %NPLA1),
+					+ DLDI 'inline' @ "all overloaded function templates \
+						%Analyze implemented with single call of %Analyze"
+					)
+				),
+				- "alias %LLCIter"
+					$dep_from "avoided concrete token list iterators",
+				(
+				+ "function %SContext::ToLexeme with \
+					%SourcedByteParser::ParseResult::value_type parameter"
+					$dep_from ("%SourcedByteParser" @ %Lexical)
+				),
+				/ DLD ("parameter type 'const TermNode::allocator&'"
+					-> 'TermNode::allocator') @ "function templates \
+					%(AsTermNode, SContext::Analyze) with allocator parameter"
+					// This is more consistent with other uses of \
+						%TermNode::allocator_type.
+			),
+			/ %NPLA1 $=
+			(
+				(
+				+ "alias template %GTokenizer"
+					^ $dep_from ("%GParserResult" @ %SContext);
+				/ $dev $lib $dep_from "%Tokenizer" ^ "%GTokenizer",
+				+ "alias %SourcedTokenizer"
+				),
+				+ "function %ParseLeafWithSourceInformation"
+					$= (/ $impl ^ $dep_from
+						("%AllocatedHoderOperations" @ %YSLib.YObject)),
+				/ "function template %ProcessWith"
+					-> "2 overloads with parameterized tokenizer support",
+				/ @ "class %REPLContext" $=
+				(
+					/ "parameterized %Tokenizer parameter as function template \
+						parameter" @ "%Prepare#2"
+						$dep_from ("%SContext::Analyze" @ %SContext),
+					(
+					+ "support of tokenizer type other than %Tokenizer"
+						@ "function template %Prepare" $dep_from
+						("%SContext::(Analyze, ToLexeme)" @ %SContext),
+					(
+					+ "enum %LoadOption";
+					+ "alias template %LoadOptionTag";
+					),
+					+ "3 functions and 1 function template %Perform with \
+						parameter of %LoadOptionTag instance type",
+					/ "old 2 functions %Perform depended on %Use"
+					),
+					/ $forced $dev $lib ("data member %ConvertLeaf",
+						"constructor#2")
+						^ $dep_from ("%Tokenizer" ~ "%SContext::Tokenizer"),
+					(
+					+ "data member %ConvertLeafSourced"
+						^ $dep_from "%SourcedTokenizer";
+					/ "added 2nd parameter" @ "constructor#2"
+						^ $dep_from "%ParseLeafWithSourceInformation"
+					),
+					(
+					+ "data member %UseSourceLocation";
+					/ "functions %Perform#(1, 2) conditionally used source \
+						location"
+						// Use %LoadOptionTag to change the behavior, include \
+							the old one.
+					),
+					/ @ "all overloads %Perform" $=
+					(
+						- "check for empty string literals",
+							// This check is at least still not enough for \
+								strings with only delimiters. Better check it \
+								elsewhere in the client code.
+						/ $impl ^ "%ReduceAndFilter" ~ "%ProcessWith"
+							$dep_to "removal of ProcessWith"
+					),
+					(
+					- "function template %ProcessWith"
+						$dep_from "removal of ProcessWith";
+					- "function template %Process"
+					),
+					(
+					+ "%ReadFrom overloads with %string_view parameter",
+					+ "%ReadFrom overloads with context parameter",
+					+ "%ReadFrom overloads with load option tag parameter"
+						$dep_from "%LoadOptionTag",
+					+ "%LoadFrom overloads" @ "%LoadFrom",
+					(
+					/ "simplified overloads with function templates";
+					/ DLDI "simplified %Perform" ^ "%LoadFrom",
+					/ "supported forwarding input type other than %string_view"
+						@ "%Perform overloads"
+						// The only differences of %Perform to %LoadFrom now \
+							is the result is not discarded immediately. There \
+							may be more different loading options for \
+							%LoadFrom in future.
+					)
+					)
+				),
+				+ "function %QuerySourceInformation"
+					$dep_from ("%SourceInformation" @ %Lexical)
+			)
+		)
+	)
+),
+
+b890
 (
 	/ %YBase.YStandardEx $=
 	(

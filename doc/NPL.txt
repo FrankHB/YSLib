@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r14708
+\version r14755
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2020-05-12 11:14 +0800
+	2020-05-29 20:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1730,7 +1730,20 @@ weak_ptr
 Lexical 模块在 namespace NPL 通过别名声明引入 YSLib::string 类型和 YSLib::string_view 类型。
 Lexical 模块的词法分析器支持分析表示 S 表达式的文本流，但源语言中不包含点(dot) 记号，且支持同宿主语言相同的断行连接和转义字符。和宿主语言不同，不支持的转义前的 \ 不需要被重复，且不支持字符串字面量的直接并置连接。
 词法分析的结果是记号的序列，以记号列表类型 TokenList 表示。
-记号列表中的元素是在词法分析阶段中表示记号(@3.3.1) 的短字符串，不需要提供分配器(@5.7.1) 支持。
+Lexical 模块提供类型别名和以下类型：
+LexemeList ：词素列表。
+词素列表中的元素是在词法分析阶段中表示记号(@3.3.1) 的短字符串。虽然逻辑上并不依赖，但为便于实现，提供分配器(@5.7.1) 支持。
+SourceLocation ：源代码位置。
+词法分析提供以下元函数访问词法解析器中的类型：
+MemberParseResult
+ParserClassOf
+ParseResultOf
+GParserResult
+词法分析提供以下类实现或作为词法解析器：
+BufferedByteParserBase
+ByteParser
+DelimitedByteParser
+其中，DelimitedByteParser 保留更多的中间结果。
 
 @5.3.2 语法分析：
 参考实现模块 SContext ，提供源代码的文本流或其词法分析结果(@5.3.1) 转换到分析结果的转换接口。
@@ -1746,12 +1759,26 @@ Lexical 模块的词法分析器支持分析表示 S 表达式的文本流，但
 SContext 模块在 namespace NPL 通过别名声明引入若干 YSLib 类型名称，包括（但不限于）：
 ValueObject 、ValueNode 、observer_ptr 和 LoggedEvent 。
 关于这些类型，另见 [Documentation::YSLib @@3.16] 和 [Documentation::YSLib @@3.2] 。
-SContext 模块的其它 API 在 namespace NPL::SContext 中提供。
 语法分析提供 TermNode 类型(@5.4.2) 作为表示分析树（根据以上讨论，同时也是语法对象和后续使用的 AST ）的输出类型，及其相关操作。
-语法分析提供 Session 类型表示分析处理一个翻译单元(@3.1) 的 NPL 源代码的会话。
-会话利用词法分析器提取源代码中可被分析的信息，并提供取 TokenList 类型表示的记号列表结果的 API 。
-以下 API 递归遍历记号列表以转换其中的结构化数据为表示的语法树：
-函数 Reduce
+以下类型和 TermNode 关联：
+TNCIter
+TNIter
+TermByteAllocator
+SContext 模块的其它 API，详见以下小节和 @6.2.1 。
+
+@5.3.2.1 NPL 源代码分析会话(session) ：
+语法分析提供类 Session 表示分析处理一个翻译单元(@3.1) 的 NPL 源代码的会话。
+会话利用词法分析器提取源代码中可被分析的信息，并提供使用指定词法解析器(@5.3.1) 取解析结果的 API 。
+若不指定词法解析器，默认使用的词法解析器是 ByteParser(@5.3.1) 。
+
+@5.3.2.2 命名空间 NPL::SContext ：
+命名空间 NPL::SContext 提供转换节点相关数据和遍历节点的 API 。
+以下命名空间 NPL::SContext 中的 API 提供词素相关的转换：
+函数模板和函数 ToLexeme
+仿函数 LexemeTokenizer
+以下命名空间 NPL::SContext 中的 API 递归遍历参数指定的记号范围以转换其中的结构化数据为表示的语法树：
+函数模板 Validate
+函数模板 Reduce
 函数和函数模板 Analyze
 
 @5.4 NPLA 公共语言实现数据结构：
@@ -3292,6 +3319,12 @@ A1::EvaluateIdentifier(@7.5.4) 保证被绑定的对象名称解析的引用标�
 NPLA1 提供 API 通过解释器的各个子模块组装 REPL(read-eval-print loop) 的交互式界面。
 A1::SetupDefaultInterpretation 初始化默认解释，包括一般事件处理例程。
 默认解释初始化的处理器(@7.2.1) 应符合 @7.2.1.1 的约定。若参数的处理器不符合约定，可能不满足 @5.7.5.1 并可能引起未定义行为。
+别名模板 A1::GParsedValue 提供词法解析器(@5.3.1) 的解析结果类型中的元素类型。
+别名模板 A1::GTokenizer 提供标记器，即和解析器的解析结果类型中的元素类型为参数的转换为 TermNode 的例程。对应解析器类型提供以下实例：
+A1::Tokenizer
+A1::SourcedTokenizer
+以下 API 辅助 REPL 诊断：
+函数 A1::QuerySourceInformation
 类 A1::REPLContext 可直接作为 REPL 原型。
 A1::REPLContext 以 ContextNode::EvaluateList(@6.9.2) 为第二参数调用 A1::SetupDefaultInterpretation 初始化，之后默认解释配置 ContextNode 具有以下能在 A1::ReduceOnce(@7.3.4) 运行的规约算法：
 若项是具有一个子项的列表节点，则规约为这个子项；
@@ -3832,6 +3865,16 @@ NPLA1 和 Kernel （参见 Revised Report on the Kernel Programming Language ）
 部分名称指定的操作和 [RnRS] 或 klisp (http://klisp.org/docs/index.html) 指定的类似。
 以下接口主要介绍和 Kernel 约定不同的设计。各节的通用约定不再在之后的各个接口单独说明。
 
+@8.1.1 外部环境(@2.3.2) ：
+基于 @5.2 约定，由 @2.7.1 ，NPLA 的实现不假定存在多线程执行环境。
+但是，宿主语言可支持多线程环境执行，在没有适当同步下可引起宿主语言的未定义行为(@5.2.2) 。
+作为 NPLA 的派生，NPLA1 对象语言程序也具有相同的性质，除非另行指定需要和外部环境交互的特定操作，不需要假定 NPLA1 引入存在多线程执行环境。
+
+@8.1.2 附加元数据(extra metadata) ：
+NPLA1 实现可提供和实现环境(@2.3.2) 或具体 NPLA 对象关联的附加的资源，用于提供程序运行时可得到的附加信息，如源代码位置。
+是否存在附加元数据和附加元数据的具体内容可影响特定的行为，如符合 @8.4.3 中要求的实现的具体行为。
+这些影响是未指定的，但除 NPLA1 程序直接依赖具体数据而进行的操作外，不应影响程序的其它语义（例如，引起程序终止）。
+
 @8.2 规约文法约定：
 为描述语言规则，约定适用 @8 的文法(@2.3.2) 形式。注意这不需依赖 NPL 语言的基本文法(@3) 。
 规约操作中项的约束通过以 <> 中的同类名称表示。
@@ -4099,7 +4142,7 @@ NPLA1 的赋值操作专指以引用值操作数指定对象且不引起同一�
 ($define! (f g) (list ($lambda (x) (g (- x 1))) ($lambda (x) (f (- x 1)))))
 对应 NPLA1 程序（设 - 是保证能终止计算的减法）：
 $def! (f g) (list ($lambda (x) (g (- x 1))) ($lambda (x) (f (- x 1))))
-使用任意数值作为参数调用 f 时，若实现不支持 TCO ，以数值调用函数 f 或 g 可能导致宿主语言的未定义行为（非异步规约(@7.8) ）或最终无法分配存储（异步规约）而不是保持不终止求值。
+使用任意数值作为参数调用 f 时，若实现不支持 TCO ，以数值调用函数 f 或 g 可引起宿主语言的未定义行为（非异步规约(@7.8) ）或最终无法分配存储（异步规约）而不是保持不终止求值。
 实际实现当前支持这个例子的 TCO 。
 
 @8.5 表达式(@4.1) 语义：

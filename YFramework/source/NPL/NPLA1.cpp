@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r19005
+\version r19157
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-05-14 07:03 +0800
+	2020-05-31 19:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,13 +27,13 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLA1Forms // for YSLib, NPL, Forms, RelaySwitched,
-//	NPL::TryAccessLeaf, TermReference, IsBranch, NPL::Access, shared_ptr,
-//	NPL::Deref, ystdex::ref_eq, IsLeaf, ContextHandler, NPL::make_observer,
-//	ComposeSwitched, RelayNext, TermTags, TokenValue, std::allocator_arg, lref,
-//	stack, vector, function, std::find_if, Environment, map, set,
-//	ystdex::get_less, list, ystdex::type_id, InvalidReference,
-//	std::make_move_iterator, ystdex::exists, ystdex::id, ystdex::ref,
-//	ystdex::retry_on_cond, ystdex::id, ystdex::cast_mutable,
+//	YSLib::AllocatedHolderOperations, NPL::TryAccessLeaf, TermReference,
+//	IsBranch, NPL::Access, shared_ptr, NPL::Deref, ystdex::ref_eq, IsLeaf,
+//	ContextHandler, NPL::make_observer, ComposeSwitched, RelayNext, TermTags,
+//	TokenValue, std::allocator_arg, lref, stack, vector, function, std::find_if,
+//	Environment, map, set, ystdex::get_less, list, ystdex::type_id,
+//	InvalidReference, std::make_move_iterator, ystdex::exists, ystdex::id,
+//	ystdex::ref, ystdex::retry_on_cond, ystdex::id, ystdex::cast_mutable,
 //	ystdex::expand_proxy, EnvironmentSwitcher, std::placeholders,
 //	GetLValueTagsOf, NPL::IsMovable, ResolveTerm, ystdex::update_thunk,
 //	AccessFirstSubterm, ystdex::swap_guard, ystdex::bind1, IsBranchedList,
@@ -42,7 +42,7 @@
 //	DeliteralizeUnchecked, CheckReducible, Deliteralize, ystdex::isdigit,
 //	ResolveIdentifier, NPL::TryAccessTerm, LiteralHandler,
 //	IsNPLAExtendedLiteral, YSLib::share_move, NPL::TryAccessReferencedTerm,
-//	ystdex::call_value_or;
+//	ystdex::call_value_or, bad_any_cast;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_SContext // for Session;
 
@@ -222,6 +222,58 @@ ReduceSequenceOrderedAsync(TermNode& term, ContextNode& ctx, TNIter i)
 		return ReduceSequenceOrderedAsync(term, c, term.erase(i));
 	});
 }
+
+
+//! \since build 891
+//@{
+using SourcedByteAllocator = pmr::polymorphic_allocator<yimpl(byte)>;
+
+using SourceInfoMetadata = lref<const SourceInformation>;
+
+
+template<typename _type, class _tByteAlloc = SourcedByteAllocator>
+class SourcedHolder : public AllocatorHolder<_type, _tByteAlloc>
+{
+public:
+	using Creation = IValueHolder::Creation;
+	using value_type = _type;
+
+private:
+	using base = AllocatorHolder<_type, _tByteAlloc>;
+
+	SourceInformation source_information;
+
+public:
+	using base::value;
+
+	template<typename... _tParams>
+	inline
+	SourcedHolder(const SourceName& name, const SourceLocation& src_loc,
+		_tParams&&... args)
+		: base(yforward(args)...), source_information(name, src_loc)
+	{}
+	template<typename... _tParams>
+	inline
+	SourcedHolder(const SourceInformation& src_info, _tParams&&... args)
+		: base(yforward(args)...), source_information(src_info)
+	{}
+	DefDeCopyMoveCtorAssignment(SourcedHolder)
+
+	YB_ATTR_nodiscard any
+	Create(Creation c, const any& x) const ImplI(IValueHolder)
+	{
+		// XXX: Always use the allocator to hold the source information.
+		return YSLib::AllocatedHolderOperations<SourcedHolder,
+			_tByteAlloc>::CreateHolder(c, x, value, source_information, value);
+	}
+
+	YB_ATTR_nodiscard YB_PURE PDefH(any, Query, uintmax_t) const ynothrow
+		ImplI(IValueHolder)
+		ImplRet(ystdex::ref(source_information))	
+
+	using base::get_allocator;
+};
+//@}
 
 
 //! \since build 881
@@ -1310,6 +1362,38 @@ ParseLeaf(string_view id, TermNode::allocator_type a)
 	return term;
 }
 
+TermNode
+ParseLeafWithSourceInformation(string_view id, const shared_ptr<string>& name,
+	const SourceLocation& src_loc, TermNode::allocator_type a)
+{
+	// NOTE: Most are %ParseLeaf, except for additional source information mixed
+	//	into the values of %TokenValue.
+	YAssertNonnull(id.data());
+	auto term(NPL::AsTermNode(a));
+
+	if(!id.empty())
+		switch(CategorizeBasicLexeme(id))
+		{
+		case LexemeCategory::Code:
+			id = DeliteralizeUnchecked(id);
+			YB_ATTR_fallthrough;
+		case LexemeCategory::Symbol:
+			if(CheckReducible(DefaultEvaluateLeaf(term, id)))
+				term.Value = ValueObject(std::allocator_arg, a,
+					any_ops::use_holder, in_place_type<SourcedHolder<
+					TokenValue>>, name, src_loc, id, a);
+			break;
+		case LexemeCategory::Data:
+			term.Value = ValueObject(std::allocator_arg, a, any_ops::use_holder,
+				in_place_type<SourcedHolder<string>>, name, src_loc,
+				Deliteralize(id), a);
+			YB_ATTR_fallthrough;
+		default:
+			break;
+		}
+	return term;
+}
+
 ReductionStatus
 DefaultEvaluateLeaf(TermNode& term, string_view id)
 {
@@ -1685,15 +1769,30 @@ SetupDefaultInterpretation(ContextState& cs, EvaluationPasses passes)
 }
 
 
+observer_ptr<const SourceInformation>
+QuerySourceInformation(const ValueObject& vo)
+{
+	const auto val(vo.Query());
+
+	return ystdex::call_value_or([](const SourceInfoMetadata& r) ynothrow{
+		return make_observer(&r.get());
+	}, val.try_get_object_ptr<SourceInfoMetadata>());
+}
+
+
 REPLContext::REPLContext(pmr::memory_resource& rsrc)
-	: REPLContext([this](const LexemeList::value_type& str){
+	: REPLContext([this](const GParsedValue<ByteParser>& str){
 		return ParseLeaf(YSLib::make_string_view(str), Allocator);
+	}, [this](const GParsedValue<SourcedByteParser>& val){
+		return ParseLeafWithSourceInformation(YSLib::make_string_view(
+			val.second), CurrentSource, val.first, Allocator);
 	}, rsrc)
 {}
-REPLContext::REPLContext(SContext::Tokenizer leaf_conv,
-	pmr::memory_resource& rsrc)
+REPLContext::REPLContext(Tokenizer leaf_conv,
+	SourcedTokenizer sourced_leaf_conv, pmr::memory_resource& rsrc)
 	: Allocator(&rsrc), Root(rsrc), Preprocess(SeparatorPass(Allocator)),
-	ConvertLeaf(std::move(leaf_conv))
+	ConvertLeaf(std::move(leaf_conv)),
+	ConvertLeafSourced(std::move(sourced_leaf_conv))
 {
 	SetupDefaultInterpretation(Root, EvaluationPasses(Allocator));
 }
@@ -1717,37 +1816,75 @@ REPLContext::ReduceAndFilter(TermNode& term, ContextNode& ctx)
 }
 
 TermNode
-REPLContext::Perform(string_view unit, ContextNode& ctx)
-{
-	YAssertNonnull(unit.data());
-	if(!unit.empty())
-	{
-		Session sess(ctx.get_allocator());
-
-		return ProcessWith(ctx, sess, sess.Process(unit));
-	}
-	throw LoggedEvent("Empty token list found.", Alert);
-}
-
-TermNode
-REPLContext::ReadFrom(std::istream& is) const
-{
-	if(is)
-	{
-		if(const auto p = is.rdbuf())
-			return ReadFrom(*p);
-		throw std::invalid_argument("Invalid stream buffer found.");
-	}
-	else
-		throw std::invalid_argument("Invalid stream found.");
-}
-TermNode
-REPLContext::ReadFrom(std::streambuf& buf) const
+REPLContext::ReadFrom(LoadOptionTag<>, std::streambuf& buf, ContextNode& ctx)
+	const
 {
 	using s_it_t = std::istreambuf_iterator<char>;
-	Session sess(Allocator);
+	Session sess(ctx.get_allocator());
+
+	if(UseSourceLocation)
+	{
+		SourcedByteParser parse(sess.Lexer, sess.get_allocator());
+
+		return Prepare(sess,
+			sess.Process(s_it_t(&buf), s_it_t(), ystdex::ref(parse)));
+	}
+	return Prepare(sess, sess.Process(s_it_t(&buf), s_it_t()));
+}
+TermNode
+REPLContext::ReadFrom(LoadOptionTag<WithSourceLocation>, std::streambuf& buf,
+	ContextNode& ctx) const
+{
+	using s_it_t = std::istreambuf_iterator<char>;
+	Session sess(ctx.get_allocator());
+	SourcedByteParser parse(sess.Lexer, sess.get_allocator());
+
+	return
+		Prepare(sess, sess.Process(s_it_t(&buf), s_it_t(), ystdex::ref(parse)));
+}
+TermNode
+REPLContext::ReadFrom(LoadOptionTag<NoSourceInformation>, std::streambuf& buf,
+	ContextNode& ctx) const
+{
+	using s_it_t = std::istreambuf_iterator<char>;
+	Session sess(ctx.get_allocator());
 
 	return Prepare(sess, sess.Process(s_it_t(&buf), s_it_t()));
+}
+TermNode
+REPLContext::ReadFrom(LoadOptionTag<>, string_view unit, ContextNode& ctx) const
+{
+	YAssertNonnull(unit.data());
+	Session sess(ctx.get_allocator());
+
+	if(UseSourceLocation)
+	{
+		SourcedByteParser parse(sess.Lexer, sess.get_allocator());
+
+		return Prepare(sess, sess.Process(unit, ystdex::ref(parse)));
+	}
+	return Prepare(sess, sess.Process(unit));
+}
+TermNode
+REPLContext::ReadFrom(LoadOptionTag<WithSourceLocation>, string_view unit,
+	ContextNode& ctx) const
+{
+	YAssertNonnull(unit.data());
+
+	Session sess(ctx.get_allocator());
+	SourcedByteParser parse(sess.Lexer, sess.get_allocator());
+
+	return Prepare(sess, sess.Process(unit, ystdex::ref(parse)));
+}
+TermNode
+REPLContext::ReadFrom(LoadOptionTag<NoSourceInformation>, string_view unit,
+	ContextNode& ctx) const
+{
+	YAssertNonnull(unit.data());
+
+	Session sess(ctx.get_allocator());
+
+	return Prepare(sess, sess.Process(unit));
 }
 
 } // namesapce A1;

@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r2046
+\version r2179
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2020-05-20 16:39 +0800
+	2020-05-29 03:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,6 +62,9 @@ NPLUnescape(string& buf, char c, UnescapeContext& uctx, char ld)
 		case 'a':
 			buf[i] = '\a';
 			break;
+		case 'b':
+			buf[i] = '\b';
+			break;
 		case 'f':
 			buf[i] = '\f';
 			break;
@@ -77,7 +80,6 @@ NPLUnescape(string& buf, char c, UnescapeContext& uctx, char ld)
 		case 'v':
 			buf[i] = '\v';
 			break;
-		case 'b':
 		case '\n':
 			buf.pop_back();
 			break;
@@ -325,6 +327,155 @@ Decompose(string_view src, LexemeList::allocator_type a)
 			dst.push_back({sv.data(), sv.size()});
 	});
 	return dst;
+}
+
+
+//! \since build 891
+namespace
+{
+
+template<typename _fAdd, typename _fAppend, class _tParseResult>
+void
+UpdateByteRaw(_fAdd add, _fAppend append, _tParseResult& res, bool got_delim,
+	const LexicalAnalyzer& lexer, string& cbuf, bool& update_current)
+{
+	const auto len(cbuf.length());
+
+	YAssert(!(res.empty() && update_current), "Invalid state found.");
+	if(len > 0 && !lexer.GetUnescapeContext().IsHandling())
+	{
+		if(len == 1)
+		{
+			const auto update_c([&](char c){
+				if(update_current)
+					append(res, c);
+				else
+					add(res, string({c}, res.get_allocator()));
+			});
+			const char c(cbuf.back());
+			const bool unquoted(lexer.GetDelimiter() == char());
+
+ 			if(got_delim)
+			{
+				update_c(c);
+				update_current = !unquoted;
+			}
+			else if(unquoted && IsDelimiter(c))
+			{
+				if(IsGraphicalDelimiter(c))
+					add(res, string({c}, res.get_allocator()));
+				update_current = {};
+			}
+			else
+			{
+				update_c(c);
+				update_current = true;
+			}
+		}
+		else if(update_current)
+			append(res, cbuf.substr(0, len));
+		else
+			add(res, std::move(cbuf));
+		cbuf.clear();
+	}
+}
+
+template<class _tParseResult>
+struct SequenceAdd final
+{
+	template<typename _tParam>
+	void
+	operator()(_tParseResult& res, _tParam&& arg) const
+	{
+		res.push_back(yforward(arg));
+	}
+};
+
+template<class _tParseResult>
+struct SequenceAppend final
+{
+	template<typename _tParam>
+	void
+	operator()(_tParseResult& res, _tParam&& arg) const
+	{
+		res.back() += yforward(arg);
+	}
+};
+
+template<class _tParseResult>
+struct SourcedSequenceAdd final
+{
+	const SourcedByteParser& Parser;
+
+	template<typename _tParam>
+	void
+	operator()(_tParseResult& res, _tParam&& arg) const
+	{
+		res.emplace_back(Parser.GetSourceLocation(), yforward(arg));
+	}
+};
+
+template<class _tParseResult>
+struct SourcedSequenceAppend final
+{
+	template<typename _tParam>
+	void
+	operator()(_tParseResult& res, _tParam&& arg) const
+	{
+		res.back().second += yforward(arg);
+	}
+};
+
+} // unnamed namespace;
+
+
+void
+ByteParser::Update(bool got_delim)
+{
+	// TODO: Blocked. Use C++14 generic lambda expressions.
+	UpdateByteRaw(SequenceAdd<ParseResult>(), SequenceAppend<ParseResult>(),
+		lexemes, got_delim, GetLexerRef(), GetBufferRef(), update_current);
+}
+
+
+void
+SourcedByteParser::Update(bool got_delim)
+{
+	// TODO: Blocked. Use C++14 generic lambda expressions.
+	UpdateByteRaw(SourcedSequenceAdd<ParseResult>{*this},
+		SourcedSequenceAppend<ParseResult>(), lexemes, got_delim, GetLexerRef(),
+		GetBufferRef(), update_current);
+}
+
+
+LexemeList
+DelimitedByteParser::GetResult() const
+{
+	const auto& cbuf(GetBuffer());
+	const auto a(cbuf.get_allocator());
+	LexemeList res(a);
+	size_t i(0);
+
+	std::for_each(qlist.cbegin(), qlist.cend(), [&](size_t s){
+		if(s != i)
+		{
+			DecomposeString(res, string_view(&cbuf[i], s - i));
+			i = s;
+		}
+	});
+	if(cbuf.length() != i)
+		DecomposeString(res, string_view(&cbuf[i], cbuf.length() - i));
+	return res;
+}
+
+void
+DelimitedByteParser::DecomposeString(LexemeList& lst, bool not_quoted,
+	string_view sv)
+{
+	if(not_quoted)
+		lst.splice(lst.end(), Decompose(sv, lst.get_allocator()));
+	else
+		lst.push_back(LexemeList::value_type(sv.begin(), sv.end()));
 }
 
 } // namespace NPL;

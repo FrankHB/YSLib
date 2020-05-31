@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r3240
+\version r3587
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2020-05-23 16:44 +0800
+	2020-05-29 19:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,20 +29,22 @@
 #define NPL_INC_SContext_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_Lexical // for function, pmr, LexemeList, ystdex::expand_proxy;
+#include YFM_NPL_Lexical // for function, pmr, ByteParser, ystdex::expand_proxy,
+//	ystdex::unref, ystdex::as_const, LexemeList;
 #include YFM_YSLib_Core_ValueNode // for YSLib::Deref, YSLib::LoggedEvent,
 //	YSLib::MakeIndex, YSLib::NoContainer, YSLib::NoContainerTag,
 //	YSLib::ValueNode, YSLib::ValueObject, YSLib::make_observer,
 //	YSLib::make_pair, YSLib::share_move, YSLib::make_shared, YSLib::make_weak,
-//	YSLib::observer_ptr, YSLib::pair, YSLib::shared_ptr, YSLib::weak_ptr, list,
-//	YSLib::ListContainerTag, std::initializer_list, ystdex::create_and_swap,
-//	ystdex::forward_like, ystdex::invoke, YSLib::AccessPtr, ystdex::false_,
-//	std::is_convertible, ystdex::decay_t, ystdex::bool_, ystdex::cond_or_t,
-//	ystdex::not_, ystdex::enable_if_t, ystdex::call_value_or, ystdex::addrof,
-//	ystdex::compose, std::placeholders;
+//	YSLib::observer_ptr, YSLib::weak_ptr, list, YSLib::ListContainerTag,
+//	std::initializer_list, ystdex::create_and_swap, ystdex::forward_like,
+//	ystdex::invoke, YSLib::AccessPtr, ystdex::false_, std::is_convertible,
+//	ystdex::decay_t, ystdex::bool_, ystdex::cond_or_t, ystdex::not_,
+//	ystdex::enable_if_t, ystdex::call_value_or, ystdex::addrof, ystdex::compose,
+//	YSLib::Alert, YSLib::stack;
 #include <iterator> // for std::iterator_traits, std::input_iterator_tag,
 //	std::random_access_iterator_tag;
 #include <algorithm> // for std::for_each;
+#include <ystdex/scope_guard.hpp> // for ystdex::make_guard;
 
 namespace NPL
 {
@@ -57,8 +59,6 @@ using YSLib::MakeIndex;
 using YSLib::NoContainer;
 //! \since build 852
 using YSLib::NoContainerTag;
-//! \since build 889
-using LLCIter = LexemeList::const_iterator;
 //! \since build 335
 using YSLib::ValueNode;
 //! \since build 675
@@ -73,12 +73,6 @@ using YSLib::make_shared;
 using YSLib::make_weak;
 //! \since build 674
 using YSLib::observer_ptr;
-//! \since build 598
-using YSLib::pair;
-//! \since build 842
-using YSLib::lref;
-//! \since build 788
-using YSLib::shared_ptr;
 //! \since build 788
 using YSLib::weak_ptr;
 
@@ -598,10 +592,10 @@ AsTermNode(_tParams&&... args)
 {
 	return TermNode(NoContainer, yforward(args)...);
 }
-//! \since build 867
+//! \since build 891
 template<typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline TermNode
-AsTermNode(const TermNode::allocator_type& a, _tParams&&... args)
+AsTermNode(TermNode::allocator_type a, _tParams&&... args)
 {
 	return TermNode(std::allocator_arg, a, NoContainer, yforward(args)...);
 }
@@ -717,221 +711,6 @@ HasValue(const TermNode& term, const _type& x)
 //! \warning 非虚析构。
 //@{
 /*!
-\brief 具有字符缓冲的字符解析器基类。
-\since build 890
-*/
-class BufferedByteParserBase
-{
-private:
-	lref<LexicalAnalyzer> lexer_ref;
-	//! \brief 字符解析中间结果。
-	string buffer{};
-
-public:
-	BufferedByteParserBase(LexicalAnalyzer& lexer,
-		pmr::polymorphic_allocator<yimpl(byte)> a = {})
-		: lexer_ref(lexer), buffer(a)
-	{}
-
-	DefDeCopyMoveCtorAssignment(BufferedByteParserBase)
-
-	DefGetter(const ynothrow, const string&, Buffer, buffer)
-	DefGetter(ynothrow, string&, BufferRef, buffer)
-	DefGetter(const ynothrow, LexicalAnalyzer&, LexerRef, lexer_ref)
-	DefGetter(ynothrow, char&, BackRef, buffer.back())
-
-	/*!
-	\brief 取最后取得的分隔符划分的区间位置。
-	\sa UpdateBack
-	\since build 889
-
-	假定当前已更新缓冲区最后的字符取得分隔符，取对应的缓冲区索引边界。
-	*/
-	PDefH(size_t, QueryLastDelimited, char ld) const ynothrow
-		ImplRet(buffer.length() - (ld != char() ? 1 : 0))
-
-	/*!
-	\brief 字符解析中间结果预分配参数指定的空间。
-	\since build 887
-	*/
-	PDefH(void, reserve, size_t n)
-		ImplExpr(buffer.reserve(n))
-
-	friend DefSwap(ynothrow, BufferedByteParserBase,
-		std::swap(_x.lexer_ref, _y.lexer_ref), std::swap(_x.buffer, _y.buffer))
-};
-
-
-/*!
-\brief 字节解析器。
-\since build 889
-
-添加单个 char 作为字节数据的解析器。
-解析结果为取字符串列表并记号化的记号列表。
-记号化提取字符串列表中的记号，排除字面量，分解其余字符串为记号列表。
-记号化的记号列表以词素列表类型表示，不保存词素外的信息。
-*/
-class YF_API ByteParser : private BufferedByteParserBase
-{
-private:
-	//! \since build 890
-	//@{
-	mutable LexemeList lexemes{};
-	bool update_current = {};
-	size_t old_length = 0;
-	//@}
-
-public:
-	ByteParser(LexicalAnalyzer& lexer,
-		pmr::polymorphic_allocator<yimpl(byte)> a = {})
-		: BufferedByteParserBase(lexer, a), lexemes(a)
-	{}
-	//! \since build 890
-	//@{
-	ByteParser(const ByteParser& parse)
-		: BufferedByteParserBase(parse),
-		lexemes(parse.lexemes, parse.lexemes.get_allocator()),
-		update_current(parse.update_current), old_length(parse.old_length)
-	{}
-	DefDeMoveCtor(ByteParser)
-
-	//! \brief 复制赋值：使用参数的分配器构造的副本和交换操作。
-	PDefHOp(ByteParser&, =, const ByteParser& parse)
-		ImplRet(ystdex::copy_and_swap(*this, parse))
-	DefDeMoveAssignment(ByteParser)
-	//@}
-
-	/*!
-	\brief 解析单个字符并更新字符解析结果。
-	\note 记录引号并忽略空字符。
-	\note 参数指定词法分析的反转义算法。
-	\warning 同一个分析器对象上使用不等价的多种解析方法或反转义算法的结果未指定。
-	*/
-	template<typename... _tParams>
-	inline void
-	operator()(char c, _tParams&&... args)
-	{
-		auto& lexer(GetLexerRef());
-
-		Update(lexer.FilterChar(c, GetBufferRef(), yforward(args)...)
-			&& lexer.UpdateBack(GetBackRef(), c));
-	}
-
-	//! \since build 890
-	//@{
-	using BufferedByteParserBase::GetBuffer;
-	using BufferedByteParserBase::GetBufferRef;
-	using BufferedByteParserBase::GetLexerRef;
-	/*!
-	\brief 取记号列表。
-
-	根据参数保存的词法分析器中间结果更新：添加字符串列表的最后一项并记号化。
-	*/
-	DefGetter(const ynothrow, const LexemeList&, TokenList, lexemes)
-
-private:
-	YB_FLATTEN void
-	Update(bool);
-
-public:
-	using BufferedByteParserBase::reserve;
-
-	friend DefSwap(ynothrow, ByteParser,
-		swap(static_cast<BufferedByteParserBase&>(_x),
-		static_cast<BufferedByteParserBase&>(_y)), swap(_x.lexemes, _y.lexemes),
-		std::swap(_x.update_current, _y.update_current),
-		std::swap(_x.old_length, _y.old_length))
-	//@}
-};
-
-
-/*!
-\brief 保存分隔符中间结果字节解析器。
-\sa ByteParser
-\since build 890
-
-处理逻辑和 ByteParser 一致的解析器，但解析添加字符时先保存中间结果。
-保存的中间结果是分隔符（非转义的引号）出现的位置的有序列表。
-*/
-class YF_API DelimitedByteParser : private BufferedByteParserBase
-{
-private:
-	//! \brief 保存的字符解析中间结果。
-	vector<size_t> qlist{};
-
-public:
-	DelimitedByteParser(LexicalAnalyzer& lexer,
-		pmr::polymorphic_allocator<yimpl(byte)> a)
-		: BufferedByteParserBase(lexer, a), qlist(a)
-	{}
-	DelimitedByteParser(const DelimitedByteParser& parse)
-		: BufferedByteParserBase(parse),
-		qlist(parse.qlist, parse.qlist.get_allocator())
-	{}
-
-	DefDeMoveCtor(DelimitedByteParser)
-
-	//! \brief 复制赋值：使用参数的分配器构造的副本和交换操作。
-	PDefHOp(DelimitedByteParser&, =, const DelimitedByteParser& parse)
-		ImplRet(ystdex::copy_and_swap(*this, parse))
-	DefDeMoveAssignment(DelimitedByteParser)
-
-	/*!
-	\brief 解析单个字符并添加至字符解析结果。
-	\note 记录引号并忽略空字符。
-	\note 参数指定词法分析的反转义算法。
-	\warning 同一个分析器对象上使用不等价的多种解析方法或反转义算法的结果未指定。
-	*/
-	template<typename... _tParams>
-	inline void
-	operator()(char c, _tParams&&... args)
-	{
-		auto& lexer(GetLexerRef());
-
-		if(lexer.FilterChar(c, GetBufferRef(), yforward(args)...))
-		{
-			if(lexer.UpdateBack(GetBackRef(), c))
-				qlist.push_back(QueryLastDelimited(lexer.GetDelimiter()));
-		}
-	}
-
-	using BufferedByteParserBase::GetBuffer;
-	using BufferedByteParserBase::GetBufferRef;
-	using BufferedByteParserBase::GetLexerRef;
-	DefGetter(const ynothrow, const vector<size_t>&, Quotes, qlist)
-	/*!
-	\brief 取记号列表。
-
-	根据参数保存的词法分析器中间结果更新：取字符串列表并记号化。
-	*/
-	LexemeList
-	GetTokenList() const;
-
-	/*!
-	\brief 把拆分非分隔符为边界的字符串后的词素列表添加到参数指定的列表。
-	\note 第一参数指定列表，最后一个参数指定源字符串。
-	\sa Decompose
-	*/
-	//@{
-	//! \note 第二参数指定直接分隔，第三参数指定源字符串。
-	static void
-	DecomposeString(LexemeList&, bool, string_view);
-	//! \note 字符串中第一个字符是引号时，视为字符串以分隔符为边界。
-	static PDefH(void, DecomposeString, LexemeList& lst, string_view sv)
-		ImplExpr(DecomposeString(lst, sv.front() != '\'' && sv.front() != '"',
-			sv))
-	//@}
-
-	using BufferedByteParserBase::reserve;
-
-	friend DefSwap(ynothrow, DelimitedByteParser,
-		swap(static_cast<BufferedByteParserBase&>(_x),
-		static_cast<BufferedByteParserBase&>(_y)),
-		swap(_x.qlist, _y.qlist))
-};
-
-
-/*!
 \brief 会话：分析组成 NPL 基本翻译单元的源代码。
 \since build 304
 */
@@ -954,38 +733,40 @@ public:
 	Session(pmr::polymorphic_allocator<yimpl(byte)> a)
 		: allocator(a)
 	{}
-	DefDeCopyMoveCtorAssignment(Session)
 
 	/*!
-	\brief 取记号列表。
-	\since build 890
+	\brief 取解析结果。
+	\since build 891
 
-	调用参数指定的解析器的对应函数取记号列表。
+	调用参数指定的解析器的对应函数取解析结果列表。
 	*/
 	template<typename _fParse>
 	auto
-	GetTokenList(const _fParse& parse) const
-		-> decltype(ystdex::expand_proxy<LexemeList(const _fParse&,
-		const Session&)>::invoke(&_fParse::GetTokenList,
-		std::declval<const _fParse&>(), std::declval<const Session&>()))
+	GetResult(const _fParse& parse) const -> decltype(ystdex::expand_proxy<
+		GParserResult<_fParse>(const decltype(ystdex::as_const(
+		ystdex::unref(std::declval<const _fParse&>())))&,
+		const Session&)>::invoke(&ParserClassOf<_fParse>::GetResult,
+		ystdex::as_const(ystdex::unref(std::declval<const _fParse&>())),
+		std::declval<const Session&>()))
 	{
-		return ystdex::expand_proxy<LexemeList(const _fParse&,
-			const Session&)>::invoke(&_fParse::GetTokenList, parse, *this);
+		return ystdex::expand_proxy<GParserResult<_fParse>(const
+			decltype(ystdex::as_const(ystdex::unref(
+			std::declval<const _fParse&>())))&, const Session&)>::invoke(
+			&ParserClassOf<_fParse>::GetResult,
+			ystdex::as_const(ystdex::unref(parse)), *this);
 	}
 
 	/*!
 	\brief 使用解析器处理输入范围。
 	\exception LoggedEvent 关键失败：无法访问源内容。
 	\sa DefaultParser
+	\sa SContextParsers
 	\since build 889
 
 	前两个迭代器参数或第一个范围参数指定要处理的输入序列。
 	之后可选的解析器参数指定使用的解析器。
 	对没有使用解析器的参数，使用新创建的 DefaultParser 的引用。
-	解析器参数应指定满足以下条件的类型或其引用包装类型的对象：
-	是可以非 const 左值调用的函数或函数对象类型；
-	若为类类型，可具有可选的 reserve 成员函数，
-		接受一个 size_t 值表示提示预留缓存的大小。
+	解析器参数应指定 SContext 语法解析器、其兼容的函数或这些类型对应的引用包装类型。
 	*/
 	//@{
 	//! \since build 890
@@ -1083,68 +864,165 @@ public:
 namespace SContext
 {
 
+//! \since build 891
+//@{
 /*!
-\brief 标记器：分析词素转换为可能包含记号的节点。
-\since build 880
+\brief 转换参数为词素。
+\note 可配合其它不能直接转换为词素的参数类型的 ADL 重载使用。
 */
-using Tokenizer = function<TermNode(const LexemeList::value_type&)>;
+//@{
+template<class _type, yimpl(typename = ystdex::enable_if_convertible_t<
+	const _type&, const LexemeList::value_type&>)>
+YB_ATTR_nodiscard YB_STATELESS const _type&
+ToLexeme(const _type& val) ynothrow
+{
+	return val;
+}
+YB_ATTR_nodiscard YB_PURE inline PDefH(const string&, ToLexeme,
+	const SourcedByteParser::ParseResult::value_type& val) ynothrow
+	ImplRet(val.second)
+//@}
+
 
 /*!
-\brief 遍历记号列表，验证基本合法性：圆括号是否对应。
-\param b 起始迭代器。
-\param e 终止迭代器。
-\pre 迭代器是同一个记号列表的迭代器，其中 b 必须可解引用，且在 e 之前。
-\return e 或指向冗余的 ')' 的迭代器。
-\throw LoggedEvent 警报：找到冗余的 '(' 。
-\since build 889
+\ingroup functors
+\brief 转换记号为词素。
 */
-YB_ATTR_nodiscard YF_API LLCIter
-Validate(LLCIter b, LLCIter e);
+struct LexemeTokenizer
+{
+	TermNode::allocator_type Allocator;
+
+	LexemeTokenizer(TermNode::allocator_type a = {})
+		: Allocator(a)
+	{}
+
+	//! \note 使用 ADL ToLexeme 转换访问的迭代器值为词素值。
+	template<class _type>
+	YB_ATTR_nodiscard YB_PURE TermNode
+	operator()(const _type& val) const
+	{
+		return NPL::AsTermNode(Allocator, std::allocator_arg, Allocator,
+			ToLexeme(val));
+	}
+};
+
+
+/*!
+\param first 起始迭代器。
+\param last 终止迭代器。
+\pre <tt>[first, last)</tt> 是可访问的记号值范围。
+\return last 或对应冗余的 ')' 的迭代器。
+\throw LoggedEvent 警报：找到冗余的 '(' 。
+\note 使用 ADL ToLexeme 转换访问的迭代器值为词素值。
+\sa ToLexeme
+*/
+//@{
+//! \brief 遍历记号列表，验证基本合法性：圆括号是否对应。
+template<typename _tIn>
+YB_ATTR_nodiscard _tIn
+Validate(_tIn first, _tIn last)
+{
+	size_t left(0);
+
+	for(; first != last; ++first)
+		if(ToLexeme(*first) == "(")
+			++left;
+		else if(ToLexeme(*first) == ")")
+		{
+			if(left != 0)
+				--left;
+			else
+				return first;
+		}
+	if(left == 0)
+		return first;
+	throw LoggedEvent("Redundant '(' found.", YSLib::Alert);
+}
 
 /*!
 \brief 遍历规约记号列表，取抽象语法树储存至指定值类型节点。
 \param term 项节点。
-\param b 起始迭代器。
-\param e 终止迭代器。
-\pre 迭代器是同一个记号列表的迭代器，其中 b 必须可解引用，且在 e 之前。
-\return e 或指向冗余的 ')' 的迭代器。
-\throw LoggedEvent 警报：找到冗余的 '(' 。
-\since build 889
 */
 //@{
-YB_ATTR_nodiscard YF_API LLCIter
-Reduce(TermNode& term, LLCIter b, LLCIter e);
-/*!
-\brief 遍历规约记号列表，取抽象语法树分析结果储存至指定值类型节点。
-\param parse 记号分析器。
-*/
-YB_ATTR_nodiscard YF_API LLCIter
-Reduce(TermNode& term, LLCIter b, LLCIter e, Tokenizer parse);
+template<typename _tIn>
+YB_ATTR_nodiscard inline _tIn
+Reduce(TermNode& term, _tIn first, _tIn last)
+{
+	return Reduce(term, first, last, LexemeTokenizer{term.get_allocator()});
+}
+//! \param tokenize 标记器。
+template<typename _tIn, typename _fTokenize>
+YB_ATTR_nodiscard _tIn
+Reduce(TermNode& term, _tIn first, _tIn last, _fTokenize tokenize)
+{
+	const auto a(term.get_allocator());
+	YSLib::stack<TermNode> tms(a);
+	const auto gd(ystdex::make_guard([&]() ynothrowv{
+		YAssert(!tms.empty(), "Invalid state found.");
+		term = std::move(tms.top());
+	}));
+
+	tms.push(std::move(term));
+	for(; first != last; ++first)
+		if(ToLexeme(*first) == "(")
+			tms.push(NPL::AsTermNode(a));
+		else if(ToLexeme(*first) != ")")
+		{
+			YAssert(!tms.empty(), "Invalid state found.");
+			tms.top().Add(tokenize(*first));
+		}
+		else if(tms.size() != 1)
+		{
+			auto tm(std::move(tms.top()));
+
+			tms.pop();
+			YAssert(!tms.empty(), "Invalid state found.");
+			tms.top().Add(std::move(tm));
+		}
+		else
+			return first;
+	if(tms.size() == 1)
+		return first;
+	throw LoggedEvent("Redundant '(' found.", YSLib::Alert);
+}
+//@}
+//@}
 //@}
 
 /*!
 \brief 分析指定源，取抽象语法树储存至指定值类型节点。
 \throw LoggedEvent 警报：找到冗余的 ')' 。
-\since build 889
 */
 //@{
-YF_API void
-Analyze(TermNode&, const LexemeList&);
+template<class _tParseResult>
+void
+Analyze(TermNode& root, const _tParseResult& parse_result)
+{
+	if(SContext::Reduce(root, parse_result.cbegin(), parse_result.cend())
+		!= parse_result.cend())
+		throw LoggedEvent("Redundant ')' found.", YSLib::Alert);
+}
 //! \since build 890
 template<typename _fParse>
-void
+inline void
 Analyze(TermNode& root, const Session& sess, const _fParse& parse)
 {
-	Analyze(root, sess.GetTokenList(parse));
+	Analyze(root, sess.GetResult(parse));
 }
-YF_API void
-Analyze(TermNode&, Tokenizer, const LexemeList&);
-template<typename _fParse>
+template<class _tParseResult, typename _fTokenize>
 void
-Analyze(TermNode& root, Tokenizer tokenize, const Session& sess,
+Analyze(TermNode& root, _fTokenize tokenize, const _tParseResult& parse_result)
+{
+	if(SContext::Reduce(root, parse_result.cbegin(), parse_result.cend(),
+		std::move(tokenize)) != parse_result.cend())
+		throw LoggedEvent("Redundant ')' found.", YSLib::Alert);
+}
+template<typename _fParse, typename _fTokenize>
+inline void
+Analyze(TermNode& root, _fTokenize tokenize, const Session& sess,
 	const _fParse& parse)
 {
-	Analyze(root, std::move(tokenize), sess.GetTokenList(parse));
+	Analyze(root, std::move(tokenize), sess.GetResult(parse));
 }
 //@}
 //! \note 调用 ADL Analyze 分析节点。
@@ -1161,10 +1039,10 @@ Analyze(_tParam&& arg, _tParams&&... args)
 	Analyze(root, yforward(arg), yforward(args)...);
 	return root;
 }
+//! \since build 891
 template<typename... _tParams>
 YB_ATTR_nodiscard TermNode
-Analyze(std::allocator_arg_t, const TermNode::allocator_type& a,
-	_tParams&&... args)
+Analyze(std::allocator_arg_t, TermNode::allocator_type a, _tParams&&... args)
 {
 	TermNode root(a);
 

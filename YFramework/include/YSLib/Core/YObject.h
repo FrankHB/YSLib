@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r6005
+\version r6166
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2020-04-06 15:05 +0800
+	2020-05-31 12:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -230,23 +230,6 @@ DeclDerivedI(YF_API, IValueHolder, any_ops::holder)
 	};
 
 	/*!
-	\brief 判断相等。
-	\pre 参数为空指针值或持有的对象去除 const 后具有和参数相同动态类型的对象。
-	\return 持有的对象相等，或持有空对象且参数为空指针值。
-	\since bulid 752
-
-	比较参数和持有的对象。
-	派生实现应保证返回的值满足 EqualityComparable 中对 == 操作的要求。
-	*/
-	YB_ATTR_nodiscard YB_PURE DeclIEntry(bool Equals(const void*) const)
-	/*!
-	\brief 取被持有对象的共享所有者总数。
-	\since build 786
-	*/
-	YB_ATTR_nodiscard YB_PURE DeclIEntry(size_t OwnsCount() const ynothrow)
-	//! \sa Creation
-	//@{
-	/*!
 	\brief 创建新的持有者。
 	\pre 若使用分配器，第二参数指定具有和覆盖实现蕴含的类型一致的分配器的非空值。
 	\return 包含新创建的持有者的动态泛型对象。
@@ -261,6 +244,28 @@ DeclDerivedI(YF_API, IValueHolder, any_ops::holder)
 	除 mutable 的数据成员可被转移；否则，应抛出异常。
 	*/
 	YB_ATTR_nodiscard DeclIEntry(any Create(Creation, const any&) const)
+	/*!
+	\brief 判断相等。
+	\pre 参数为空指针值或持有的对象去除 const 后具有和参数相同动态类型的对象。
+	\return 持有的对象相等，或持有空对象且参数为空指针值。
+	\since bulid 752
+
+	比较参数和持有的对象。
+	派生实现应保证返回的值满足 EqualityComparable 中对 == 操作的要求。
+	*/
+	YB_ATTR_nodiscard YB_PURE DeclIEntry(bool Equals(const void*) const)
+	/*!
+	\brief 取被持有对象的共享所有者总数。
+	\since build 786
+	*/
+	YB_ATTR_nodiscard YB_PURE DeclIEntry(size_t OwnsCount() const ynothrow)
+	/*!
+	\brief 查询和持有者关联的数据。
+	\note 参数的含义和使用方式由具体实现约定。
+	\return 和持有者关联的数据或空值。
+	\since build 891
+	*/
+	YB_ATTR_nodiscard YB_PURE DeclIEntry(any Query(uintmax_t) const)
 
 	/*!
 	\brief 提供创建持有者的默认实现。
@@ -270,7 +275,6 @@ DeclDerivedI(YF_API, IValueHolder, any_ops::holder)
 	template<typename _type>
 	YB_ATTR_nodiscard static any
 	CreateHolder(Creation, _type&);
-	//@}
 EndDecl
 
 
@@ -322,6 +326,75 @@ AreEqualHeld(const _type1& x, const _type2& y)
 	return HeldEqual<_type1, _type2>::are_equal(x, y);
 }
 //@}
+
+
+/*!
+\brief 带有分配器的持有者操作。
+\since build 891
+*/
+template<class _tHolder, class _tByteAlloc>
+struct AllocatedHolderOperations
+{
+	static_assert(ystdex::is_byte_allocator<_tByteAlloc>(),
+		"Invalid byte allocator found.");
+
+	using Creation = IValueHolder::Creation;
+
+	template<typename _tValue, typename... _tParams>
+	YB_ATTR_nodiscard static inline any
+	Create(Creation c, const any& x, _tValue& val, _tParams&&... args)
+	{
+		return CreateDispatched(c, x, any_ops::is_in_place_storable<_tValue>(),
+			val, yforward(args)...);
+	}
+
+	template<typename _tValue, typename... _tParams>
+	YB_ATTR_nodiscard YB_PURE static inline any
+	CreateDispatched(Creation c, const any& x, ystdex::false_, _tValue& val,
+		_tParams&&... args)
+	{
+		return CreateHolder(c, x, val, yforward(args)...);
+	}
+	template<typename _tValue, typename... _tParams>
+	YB_ATTR_nodiscard YB_PURE static inline any
+	CreateDispatched(Creation c, const any&, ystdex::true_, _tValue& val,
+		_tParams&&...)
+	{
+		return IValueHolder::CreateHolder(c, val);
+	}
+
+	/*!
+	\pre 断言：第二参数具有非空值。
+	\pre 断言：第二参数具有和模板参数绑定的字节分配器类型相同。
+	*/
+	template<typename _tValue, typename... _tParams>
+	YB_ATTR_nodiscard YB_PURE static any
+	CreateHolder(Creation c, const any& x, _tValue& val, _tParams&&... args)
+	{
+		if(c == Creation::Copy || c == Creation::Move)
+		{
+			using ystdex::default_init;
+
+			YAssert(x.has_value(), "Invalid state found.");
+			YAssert(*x.unchecked_access<const type_info*>(
+				default_init, any_ops::get_allocator_type)
+				== ystdex::type_id<_tByteAlloc>(), "Invalid allocator found.");
+
+			const auto& ra(Deref(static_cast<const _tByteAlloc*>(
+				x.unchecked_access<void*>(default_init,
+				any_ops::get_allocator_ptr))));
+
+			if(c == Creation::Copy)
+				return HolderOperations<_tHolder>::CreateInPlace(
+					std::allocator_arg, ra, yforward(args)...);
+			return HolderOperations<_tHolder>::CreateInPlace(
+				std::allocator_arg, ra, yforward(args)...);
+		}
+		// NOTE: It is more efficient to construct in place for %Indirect case.
+		return IValueHolder::CreateHolder(c, val);
+	}
+};
+
 
 
 /*!
@@ -378,6 +451,11 @@ public:
 		ImplI(IValueHolder)
 		ImplRet(1)
 
+	//! \since build 891
+	YB_ATTR_nodiscard YB_PURE PDefH(any, Query, uintmax_t) const ynothrow
+		ImplI(IValueHolder)
+		ImplRet({})
+
 	//! \since build 854
 	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE PDefH(void*, get, ) const
 		ynothrow ImplI(IValueHolder)
@@ -414,9 +492,11 @@ public:
 
 private:
 	using base = ValueHolder<value_type>;
-	using base::value;
 
 public:
+	//! \since build 891
+	using base::value;
+
 	template<typename... _tParams,
 		yimpl(typename = ystdex::exclude_self_params_t<AllocatorHolder,
 		_tParams...>, typename = ystdex::enable_if_t<
@@ -433,47 +513,11 @@ public:
 	YB_ATTR_nodiscard any
 	Create(Creation c, const any& x) const ImplI(IValueHolder)
 	{
-		return CreateImpl(c, x,
-			any_ops::is_in_place_storable<value_type>());
+		return AllocatedHolderOperations<AllocatorHolder, _tByteAlloc>::Create(
+			c, x, value, value);
 	}
 
-private:
-	//! \since build 864
-	YB_ATTR_nodiscard
-		PDefH(any, CreateImpl, Creation c, const any& x, ystdex::true_) const
-		ImplRet(base::Create(c, x))
-	/*!
-	\pre 断言：第二参数具有非空值。
-	\pre 断言：第二参数具有和模板参数绑定的字节分配器类型相同。
-	\since build 864
-	*/
-	YB_ATTR_nodiscard any
-	CreateImpl(Creation c, const any& x, ystdex::false_) const
-	{
-		if(c == Creation::Copy || c == Creation::Move)
-		{
-			using ystdex::default_init;
-
-			YAssert(x.has_value(), "Invalid state found.");
-			YAssert(*x.unchecked_access<const type_info*>(
-				default_init, any_ops::get_allocator_type)
-				== ystdex::type_id<_tByteAlloc>(), "Invalid allocator found.");
-
-			const auto& ra(Deref(static_cast<const _tByteAlloc*>(
-				x.unchecked_access<void*>(default_init,
-				any_ops::get_allocator_ptr))));
-
-			if(c == Creation::Copy)
-				return HolderOperations<AllocatorHolder>::CreateInPlace(
-					std::allocator_arg, ra, value);
-			return HolderOperations<AllocatorHolder>::CreateInPlace(
-				std::allocator_arg, ra, std::move(value));
-		}
-		// NOTE: It is more efficient to construct in place for %Indirect case.
-		return IValueHolder::CreateHolder(c, value);
-	}
-
-	//! \since build 887
+	//! \since build 891
 	template<class _tObj = _type, typename = ystdex::enable_if_t<
 		ystdex::has_get_allocator<_tObj>::value>>
 	YB_ATTR_nodiscard YB_PURE auto
@@ -680,6 +724,11 @@ public:
 		ImplI(IValueHolder)
 		ImplRet(traits_type::count_owner(p_held))
 
+	//! \since build 891
+	YB_ATTR_nodiscard YB_PURE PDefH(any, Query, uintmax_t) const ynothrow
+		ImplI(IValueHolder)
+		ImplRet({})
+
 	/*!
 	\pre 间接断言：持有非空指针。
 	\since build 348
@@ -751,6 +800,11 @@ public:
 	YB_ATTR_nodiscard YB_PURE PDefH(size_t, OwnsCount, ) const ynothrow
 		ImplI(IValueHolder)
 		ImplRet(0)
+
+	//! \since build 891
+	YB_ATTR_nodiscard YB_PURE PDefH(any, Query, uintmax_t) const ynothrow
+		ImplI(IValueHolder)
+		ImplRet({})
 
 	YB_ATTR_nodiscard YB_PURE PDefH(void*, get, ) const ImplI(IValueHolder)
 		ImplRet(ystdex::pvoid(std::addressof(ref.get())))
@@ -868,16 +922,15 @@ public:
 		: ValueObject(std::allocator_arg, a,
 		in_place_type<ystdex::decay_t<_type>>, yforward(arg))
 	{}
+	//! \tparam _tParams 目标类型初始化参数类型。
+	//@{
 	/*!
 	\tparam _type 目标类型。
-	\tparam _tParams 目标类型初始化参数类型。
+	\pre _type 可被 _tParams 参数初始化。
 	*/
 	//@{
 	/*!
 	\brief 构造：使用对象初始化参数。
-	\tparam _type 目标类型。
-	\tparam _tParams 目标类型初始化参数类型。
-	\pre _type 可被 _tParams 参数初始化。
 	\since build 678
 	*/
 	template<typename _type, typename... _tParams>
@@ -891,7 +944,7 @@ public:
 	\since build 853
 	*/
 	template<typename _type, class _tAlloc, typename... _tParams>
-	explicit inline
+	inline
 	ValueObject(std::allocator_arg_t, const _tAlloc& a, in_place_type_t<_type>,
 		_tParams&&... args)
 		: content(std::allocator_arg, a, any_ops::use_holder,
@@ -902,6 +955,8 @@ public:
 			"Non-local storage found.");
 	}
 	//@}
+	//! \pre 持有者实现 IValueHolder 。
+	//@{
 	/*!
 	\brief 构造：使用持有者。
 	\since builld 783
@@ -912,7 +967,26 @@ public:
 		_tParams&&... args)
 		: content(any_ops::use_holder, in_place_type<_tHolder>,
 		yforward(args)...)
-	{}
+	{
+		static_assert(ystdex::is_convertible<_tHolder&, IValueHolder&>(),
+			"Invalid holder found.");
+	}
+	/*!
+	\brief 构造：使用持有者和分配器。
+	\since builld 891
+	*/
+	template<typename _tHolder, class _tAlloc, typename... _tParams>
+	inline
+	ValueObject(std::allocator_arg_t, const _tAlloc& a, any_ops::use_holder_t,
+		in_place_type_t<_tHolder>, _tParams&&... args)
+		: content(std::allocator_arg, a, any_ops::use_holder,
+		in_place_type<_tHolder>, yforward(args)...)
+	{
+		static_assert(ystdex::is_convertible<_tHolder&, IValueHolder&>(),
+			"Invalid holder found.");
+	}
+	//@}
+	//@}
 
 private:
 	/*!
@@ -1119,7 +1193,7 @@ public:
 	\brief 取以指定持有者选项创建的副本。
 	\since build 761
 	*/
-	YB_ATTR_nodiscard ValueObject
+	YB_ATTR_nodiscard YB_PURE ValueObject
 	Create(IValueHolder::Creation) const;
 
 	/*!
@@ -1158,29 +1232,29 @@ public:
 	\brief 取引用的值对象的副本。
 	\since build 761
 	*/
-	YB_ATTR_nodiscard PDefH(ValueObject, MakeCopy, ) const
+	YB_ATTR_nodiscard YB_PURE PDefH(ValueObject, MakeCopy, ) const
 		ImplRet(Create(IValueHolder::Copy))
+
+	/*!
+	\brief 取间接引用的值对象。
+	\since build 747
+	*/
+	YB_ATTR_nodiscard YB_PURE PDefH(ValueObject, MakeIndirect, ) const
+		ImplRet(Create(IValueHolder::Indirect))
 
 	/*!
 	\brief 取引用的值对象的转移副本。
 	\since build 761
 	*/
-	YB_ATTR_nodiscard PDefH(ValueObject, MakeMove, ) const
+	YB_ATTR_nodiscard YB_PURE PDefH(ValueObject, MakeMove, ) const
 		ImplRet(Create(IValueHolder::Move))
 
 	/*!
 	\brief 取引用的值对象的初始化副本：按是否具有唯一所有权选择转移或复制对象副本。
 	\since build 764
 	*/
-	YB_ATTR_nodiscard PDefH(ValueObject, MakeMoveCopy, ) const
+	YB_ATTR_nodiscard YB_PURE PDefH(ValueObject, MakeMoveCopy, ) const
 		ImplRet(Create(OwnsUnique() ? IValueHolder::Move : IValueHolder::Copy))
-
-	/*!
-	\brief 取间接引用的值对象。
-	\since build 747
-	*/
-	YB_ATTR_nodiscard PDefH(ValueObject, MakeIndirect, ) const
-		ImplRet(Create(IValueHolder::Indirect))
 
 	/*!
 	\brief 取所有者持有的对象的共享所有者的总数。
@@ -1195,6 +1269,18 @@ public:
 	*/
 	YB_ATTR_nodiscard YB_PURE PDefH(bool, OwnsUnique, ) const ynothrow
 		ImplRet(OwnsCount() == 1)
+
+	/*!
+	\brief 取以持有者确定的对象。
+	\return 同 IValueHolder::Query 约定的对象。
+	\since build 891
+
+	取依赖持有者的对象。
+	用于取不影响 \c type 结果的对象附加元数据。
+	参数和返回值约定同 IValueHolder::Query 的约定。
+	*/
+	YB_ATTR_nodiscard YB_PURE any
+	Query(uintmax_t = 0) const;
 
 	//! \since build 759
 	//@{

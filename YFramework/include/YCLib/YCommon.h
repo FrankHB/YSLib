@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3963
+\version r3977
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2020-01-27 15:09 +0800
+	2020-05-31 18:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,7 +55,7 @@ using ID = std::uintmax_t;
 
 //! \brief \c YF_Platform_* 宏替换值的对应的元类型。
 template<ID _vN>
-using MetaID = ystdex::integral_constant<ID, _vN>;
+using MetaID = std::integral_constant<ID, _vN>;
 
 //! \brief 平台标识的公共标记类型：指定任意平台。
 struct IDTagBase
@@ -123,8 +123,20 @@ struct IDTagSet : virtual IDTag<_vN>...
 \note 使用 ADL 调用第二参数。
 \since build 652
 */
-#define YCL_DefPlatformFwdTmpl(_n, _fn) \
+//@{
+// XXX: See $2019-01 @ %Documentation::Workflow.
+#if YB_IMPL_GNUCPP >= 60000
+#	define YCL_DefPlatformFwdTmpl(_n, _fn) \
+	YB_Diag_Push \
+	YB_Diag_Ignore(suggest-attribute=const) \
+	YB_Diag_Ignore(suggest-attribute=pure) \
+	DefFwdTmplAuto(_n, _fn(platform::IDTag<YF_Platform>(), yforward(args)...)) \
+	YB_Diag_Pop
+#else
+#	define YCL_DefPlatformFwdTmpl(_n, _fn) \
 	DefFwdTmplAuto(_n, _fn(platform::IDTag<YF_Platform>(), yforward(args)...))
+#endif
+//@}
 
 
 /*!
