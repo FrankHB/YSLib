@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r6166
+\version r6169
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2020-05-31 12:15 +0800
+	2020-06-12 21:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,6 +42,7 @@
 //	ystdex::ref, ystdex::cond_t, ystdex::decay_t, ystdex::rebind_alloc_t,
 //	in_place_type_t, YSLib::unchecked_any_cast, YSLib::any_cast,
 //	YSLib::make_observer, ystdex::copy_or_move, ystdex::pseudo_output;
+#include <ystdex/typeindex.h> // for ystdex::type_info, ystdex::type_index;
 #include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
 
@@ -50,6 +51,8 @@ namespace YSLib
 
 //! \since build 683
 using ystdex::type_info;
+//! \since build 892
+using ystdex::type_index;
 
 
 //! \ingroup tags

@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r19818
+\version r19838
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2020-03-31 07:34 +0800
+	2020-06-06 05:23 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -51,7 +51,7 @@ inline namespace Internals
 
 // NOTE: The inlined synchronous calls are more effecient than asynchronous
 //	ones. It is intended to prevent unneeded uncapturable continuation being
-//	construced by reduction action composition calls (e.g. of %RelayNext).
+//	construced by reduction action composition calls (e.g. of %RelaySwitched).
 //	However, they are only safe where they are not directly called by
 //	asynchronous implementations which expect the actions in these direct calls
 //	are always strictly asynchronous. In thunked implementations, they shall
@@ -67,9 +67,6 @@ inline namespace Internals
 #define NPL_Impl_NPLA1_Enable_TCO true
 #define NPL_Impl_NPLA1_Enable_Thunked true
 #define NPL_Impl_NPLA1_Enable_ThunkedSeparatorPass NPL_Impl_NPLA1_Enable_Thunked
-
-// NOTE: Use %RelaySwitched instead of %RelayNext without %ComposeSwitched as
-//	possible to be more friendly to TCO.
 
 //! \since build 820
 static_assert(!NPL_Impl_NPLA1_Enable_TCO || NPL_Impl_NPLA1_Enable_Thunked,
@@ -106,9 +103,7 @@ template<typename _func>
 void
 SetupTailAction(ContextNode& ctx, _func&& act)
 {
-	// XXX: Avoid direct use of %ContextNode::SetupCurrent even though it is safe
-	//	because %Current is already saved in %act?
-	ctx.SetupCurrent(std::move(act));
+	ctx.SetupFront(std::move(act));
 }
 
 #	if NPL_Impl_NPLA1_Enable_TCO
@@ -145,8 +140,6 @@ class TCOAction final
 {
 public:
 	lref<TermNode> Term;
-	//! \since build 821
-	mutable Reducer Next;
 
 private:
 	//! \since build 854
@@ -169,16 +162,15 @@ public:
 
 	//! \since build 819
 	TCOAction(ContextNode& ctx, TermNode& term, bool lift)
-		: Term(term), Next(ctx.Switch()), req_lift_result(lift),
-		xgds(ctx.get_allocator()), EnvGuard(ctx),
-		RecordList(ctx.get_allocator())
+		: Term(term), req_lift_result(lift), xgds(ctx.get_allocator()),
+		EnvGuard(ctx), RecordList(ctx.get_allocator())
 	{}
 	// XXX: Not used, but provided for well-formness.
 	//! \since build 819
 	TCOAction(const TCOAction& a)
 		// XXX: Some members are moved. This is only safe when newly constructed
 		//	object always live longer than the older one.
-		: Term(a.Term), Next(a.Next), req_combined(a.req_combined),
+		: Term(a.Term), req_combined(a.req_combined),
 		req_lift_result(a.req_lift_result), req_retrying(a.req_retrying),
 		xgds(std::move(a.xgds)), EnvGuard(std::move(a.EnvGuard))
 	{}
@@ -192,8 +184,6 @@ public:
 	{
 		YAssert(ystdex::ref_eq<>()(EnvGuard.func.Context.get(), ctx),
 			"Invalid context found.");
-
-		RelaySwitched(ctx, std::move(Next));
 
 		// NOTE: Lifting is optional, but is shall be performed before release
 		//	of guards. See also $2018-02 @ %Documentation::Workflow.
@@ -314,7 +304,7 @@ public:
 //! \since build 886
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TCOAction*, AccessTCOAction, ContextNode& ctx) ynothrow
-	ImplRet(ctx.Current.target<TCOAction>())
+	ImplRet(ctx.AccessCurrentAs<TCOAction>())
 // NOTE: There is no need to check term like 'if(&p->Term.get() == &term)'. It
 //	should be same to saved enclosing term unless a nested TCO action is needed
 //	explicitly (by following %SetupTailAction rather than %EnsureTCOAction).
@@ -348,12 +338,12 @@ inline
 YB_ATTR(always_inline) inline ReductionStatus
 RelayCurrent(ContextNode& ctx, Continuation&& cur)
 {
-	return RelaySwitchedUnchecked(ctx, std::move(cur));
+	return RelaySwitched(ctx, std::move(cur));
 }
 YB_ATTR(always_inline) inline ReductionStatus
 RelayCurrent(ContextNode& ctx, std::reference_wrapper<Continuation> cur)
 {
-	return RelaySwitchedUnchecked(ctx, cur);
+	return RelaySwitched(ctx, cur);
 }
 template<typename _fCurrent>
 YB_ATTR(always_inline) inline auto
@@ -367,14 +357,16 @@ template<typename _fNext>
 YB_ATTR(always_inline) inline ReductionStatus
 RelayNextOrDirect(ContextNode& ctx, Continuation&& cur, _fNext&& next)
 {
-	return RelayNext(ctx, yforward(cur), ComposeSwitched(ctx, yforward(next)));
+	RelaySwitched(ctx, yforward(next));
+	return RelaySwitched(ctx, yforward(cur));
 }
 template<typename _fNext>
 YB_ATTR(always_inline) inline ReductionStatus
 RelayNextOrDirect(ContextNode& ctx,
 	std::reference_wrapper<Continuation> cur, _fNext&& next)
 {
-	return RelayNext(ctx, cur, ComposeSwitched(ctx, yforward(next)));
+	RelaySwitched(ctx, yforward(next));
+	return RelaySwitched(ctx, cur);
 }
 template<typename _fCurrent, typename _fNext>
 YB_ATTR(always_inline) inline auto

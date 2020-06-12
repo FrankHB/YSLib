@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r3607
+\version r3635
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2020-04-16 04:09 +0800
+	2020-06-10 23:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -3675,6 +3675,36 @@ The assertion in the destructor of application class 'YSLib::Application' has be
 		The handled shell is explicitly cleanup to make the resource before the call of exit guard callbacks.
 	It is still better make sure all shells are destroyed before the destruction in general.
 		There should usually be at most one shell handle used in the application object.
+
+$2020-06:
+
+report.impl:
+Actions in NPLA context node ('NPL::ContextNode' in YFramework module NPL::NPLA1) has been redesigned.
+	The actions now are composed based on a sequence basis, rather than composited object over a single reducer object.
+		Since the sequence of the current action is now saved directly, it is possible to inspect the actions in the sequence by iteration, as per the dynamic target type of the reducer oejects.
+		This allows backtrace based on the continuation (the action sequence) inspection.
+		The corresponding composed actions API are adjusted.
+			Actions for TCO and other previously composed actions now do not have to save the trailing sequence of the subsequent actions.
+			The call to 'A1::RelaySwitched' now simply insert the action at the front of the current action sequence.
+			The call to 'A1::RelayNext' is now removed and replaced by multiple other calls.
+				This is safe because there has been also no strong exception safety previously.
+		This is also more efficient in implementation.
+			Although the direct transitions of calls like 'A1::RelaySwitched' are even more inefficient, it makes the possibility to cache the recently dropped (empty) actions in a stashed sequence, which boost the performance significantly.
+			The stashed sequence uses 'YSLib::forward_list' for efficiency.
+		The action sequence is exposed as a new class 'ReducerSequence' in 'ContextNode' based on 'YSLib::forward_list'.
+			The cleanup is specicically handled to ensure the destruction order of the actions, since 'YSLib::forward_list' has no guarantee on the order in the destruction.
+		Another action sequence is internally handled as the stacked action. 
+	A guard type 'ReductionGuard' is also provided in class 'ContextNode' to be used in the derived code with 'A1::Guard'.
+		The guard is basically dyanmic to incoperate with other guards more effeciently.
+			The guard uses the stacked action to manage the protected actions in the outer continuations.
+			The use of the stacked action avoids the need to create a new object per guard while preserving the necessarily ability of reentrancy.
+		The dynamic guard is not responsive to cleanup the current action sequence in 'ContextState::RewriteGuarded'.
+			If not cleanup, this would cause failure on exception when loading modules due to danling references used in the remained current actions.
+			There remains the unwinder as the guard to cleanup at first.
+	The current action object (being as the internal action sequence rather than the old 'ContextNode::Current') is now read-only out of 'ContextNode', except for a few cases.
+		The current action sequence is allowed to be cached and guarded.
+		The current action sequence is allowed to be cleanup in a whole.
+			The cleanup order of the actions is specifcically handled, see above.
 
 ////
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r18120
+\version r18132
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2020-05-13 18:27 +0800
+	2020-06-06 05:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,9 +41,8 @@
 //	std::allocator_arg, NoContainer, ystdex::exchange,
 //	NPL::SwitchToFreshEnvironment, TermTags, GetLValueTagsOf, NPL::AsTermNode,
 //	AccessFirstSubterm, NPL::TryAccessReferencedLeaf, ystdex::invoke_value_or,
-//	ystdex::call_value_or, ComposeSwitched, RelayNext, LiftMovedOther,
-//	ystdex::make_transform, NPL::TryAccessTerm, LiftCollapsed,
-//	NPL::AllocateEnvironment, std::mem_fn;
+//	ystdex::call_value_or, LiftMovedOther, ystdex::make_transform,
+//	NPL::TryAccessTerm, LiftCollapsed, NPL::AllocateEnvironment, std::mem_fn;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_SContext // for Session;
 
@@ -2121,16 +2120,17 @@ ForwardListFirst(TermNode& term, ContextNode& ctx)
 				l = TermNode(std::allocator_arg, a, {std::move(comb),
 					EvaluateBoundValue(head, env)});
 #if NPL_Impl_NPLA1_Enable_Thunked
-				return RelayNext(ctx, [&]{
+				return RelaySwitched(ctx, [&]{
+					RelaySwitched(ctx, [&]{
+						LiftOther(term, l);
+						return ReductionStatus::Retained;
+					});
 #	if NPL_Impl_NPLA1_Enable_TCO
 					// TODO: See %ReduceCallSubsequent.
 					SetupTailTCOAction(ctx, l, {});
 #	endif
 					return RelayForCombine(ctx, l, env.shared_from_this());
-				}, ComposeSwitched(ctx, [&]{
-					LiftOther(term, l);
-					return ReductionStatus::Retained;
-				}));
+				});
 #else
 				RelayForCombine(ctx, l, ctx.ShareRecord());
 				LiftOther(term, l);

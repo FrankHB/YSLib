@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r7233
+\version r7624
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2020-05-13 16:17 +0800
+	2020-06-12 21:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,18 +33,18 @@
 //	YSLib::bad_any_cast, YSLib::enable_shared_from_this, YSLib::in_place_type,
 //	YSLib::lref, YSLib::to_string, NPLTag, string, ValueNode, function,
 //	NPL::GetNodeNameOf, YSLib::IsPrefixedIndex, TraverseSubnodes, TermNode,
-//	YSLib::MakeIndex, LoggedEvent, shared_ptr, NPL::Deref, ystdex::isdigit,
-//	ystdex::is_nothrow_copy_constructible, ystdex::is_nothrow_copy_assignable,
-//	ystdex::is_nothrow_move_constructible, ystdex::is_nothrow_move_assignable,
-//	observer_ptr, ystdex::type_id, std::addressof, NPL::make_observer,
-//	ystdex::equality_comparable, weak_ptr, ystdex::get_equal_to, pair,
-//	ystdex::expand_proxy, NPL::Access, ystdex::ref_eq, ValueObject,
-//	NPL::SetContentWith, std::for_each, AccessFirstSubterm, ystdex::less,
-//	YSLib::map, pmr, ystdex::copy_and_swap, NoContainer, ystdex::try_emplace,
-//	ystdex::try_emplace_hint, ystdex::insert_or_assign, ystdex::type_info,
-//	ystdex::expanded_function, YSLib::allocate_shared,
-//	ystdex::enable_if_same_param_t, ystdex::exclude_self_t, ystdex::exchange,
-//	ystdex::make_obj_using_allocator;
+//	YSLib::MakeIndex, std::initializer_list, LoggedEvent, shared_ptr,
+//	NPL::Deref, ystdex::isdigit, ystdex::is_nothrow_copy_constructible,
+//	ystdex::is_nothrow_copy_assignable, ystdex::is_nothrow_move_constructible,
+//	ystdex::is_nothrow_move_assignable, observer_ptr, ystdex::type_id,
+//	std::addressof, NPL::make_observer, ystdex::equality_comparable, weak_ptr,
+//	ystdex::get_equal_to, pair, ystdex::expand_proxy, NPL::Access,
+//	ystdex::ref_eq, ValueObject, NPL::SetContentWith, std::for_each,
+//	AccessFirstSubterm, ystdex::less, YSLib::map, pmr, ystdex::copy_and_swap,
+//	NoContainer, ystdex::try_emplace, ystdex::try_emplace_hint,
+//	ystdex::insert_or_assign, ystdex::type_info, ystdex::expanded_function,
+//	YSLib::forward_list, YSLib::allocate_shared, ystdex::enable_if_same_param_t,
+//	ystdex::exclude_self_t, ystdex::exchange, ystdex::make_obj_using_allocator;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 
 namespace NPL
@@ -2403,6 +2403,73 @@ class YF_API ContextNode
 {
 private:
 	/*!
+	\warning 非虚析构。
+	\since build 892
+	*/
+	//@{
+	using ReducerSequenceBase = YSLib::forward_list<Reducer>;
+
+public:
+	//! \brief 动作序列类型：蕴含当前上下文的续延。
+	class YF_API ReducerSequence : public ReducerSequenceBase
+	{
+	public:
+		using ReducerSequenceBase::ReducerSequenceBase;
+		// XXX: This ignores %select_on_container_copy_construction.
+		ReducerSequence(const ReducerSequence& act)
+			: ReducerSequenceBase(act, act.get_allocator())
+		{}
+		DefDeMoveCtor(ReducerSequence)
+		~ReducerSequence()
+		{
+			clear();
+		}
+
+		DefDeCopyMoveAssignment(ReducerSequence)
+
+		void
+		clear() ynothrow
+		{
+			while(!empty())
+				pop_front();
+		}
+	};
+
+	//! \brief 规约守卫：暂存当前动作序列。
+	class YF_API ReductionGuard
+	{
+	private:
+		observer_ptr<ContextNode> p_ctx;
+		ReducerSequence::const_iterator i_stacked;
+
+	public:
+		ReductionGuard(ContextNode& ctx) ynothrow
+			: p_ctx(NPL::make_observer(&ctx)), i_stacked(ctx.stacked.cbegin())
+		{
+			ctx.stacked.splice_after(ctx.stacked.cbefore_begin(),
+				ctx.current);
+		}
+		ReductionGuard(ReductionGuard&& gd) ynothrow
+			: p_ctx(gd.p_ctx), i_stacked(gd.i_stacked)
+		{
+			gd.p_ctx = {};
+		}
+		//! \note 恢复暂存的动作序列时不修改当前动作序列。
+		~ReductionGuard()
+		{
+			if(p_ctx)
+			{
+				auto& ctx(*p_ctx);
+
+				ctx.current.splice_after(ctx.current.cbefore_begin(),
+					ctx.stacked, ctx.stacked.cbefore_begin(), i_stacked);
+			}
+		}
+	};
+	//@}
+
+private:
+	/*!
 	\brief 内部存储资源。
 	\since build 845
 	*/
@@ -2451,18 +2518,29 @@ public:
 	function<Environment::NameResolution(Environment&, string_view)>
 		Resolve{DefaultResolve};
 
+private:
+	//! \since build 892
+	//@{
 	/*!
-	\brief 定界动作：边界外的剩余动作。
-	\since build 810
-	*/
-	YSLib::deque<Reducer> Delimited{};
-	/*!
-	\brief 上下文中的当前动作：正在被规约的动作后等待规约的动作。
+	\brief 上下文中的当前动作：已被激活的规约操作调用后等待规约的动作序列。
 	\note 为便于确保资源释放和异常安全，不使用 ystdex::one_shot 。
-	\sa Switch
-	\since build 806
 	*/
-	Reducer Current{};
+	ReducerSequence
+		current{ReducerSequence::allocator_type(&memory_rsrc.get())};
+	/*!
+	\brief 空动作序列缓存。
+	\sa ApplyTail
+	\sa SetupFront
+	*/
+	ReducerSequenceBase stashed{current.get_allocator()};
+	/*!
+	\brief 被调用以先入后出顺序保存的上下文的动作序列。
+	\sa MakeCurrentActionGuard
+	*/
+	ReducerSequence stacked{current.get_allocator()};
+	//@}
+
+public:
 	/*!
 	\brief 最后一次规约状态。
 	\sa ApplyTail
@@ -2481,12 +2559,24 @@ public:
 	*/
 	ContextNode(pmr::memory_resource&);
 	/*!
+	\brief 构造：使用对象副本和环境指针。 
 	\throw std::invalid_argument 参数指针为空。
-	\note 遍和日志追踪对象被复制。
+	\sa Environment::ThrowForInvalidValue
 	\since build 788
+
+	使用参数指定的对象的部分的子对象值初始化。
+	第二参数被检查后转移构造记录指针。
+	遍、非缓存动作和日志追踪对象被复制。
 	*/
 	ContextNode(const ContextNode&, shared_ptr<Environment>&&);
-	DefDeCopyCtor(ContextNode)
+	/*!
+	\brief 复制构造。
+	\since build 892
+
+	使用参数指定的对象的部分的子对象值初始化。
+	内存资源、记录指针、遍、非缓存动作、日志追踪对象和规约状态被复制。
+	*/
+	ContextNode(const ContextNode&);
 	/*!
 	\brief 转移构造。
 	\post <tt>p_record->Bindings.empty()</tt> 。
@@ -2494,7 +2584,8 @@ public:
 	*/
 	ContextNode(ContextNode&&) ynothrow;
 	/*!
-	\brief 虚析构：类定义外默认实现。
+	\brief 虚析构：顺序移除当前序列中的动作。
+	\sa UnwindCurrent
 	\since build 842
 	*/
 	virtual
@@ -2502,9 +2593,19 @@ public:
 
 	DefDeCopyMoveAssignment(ContextNode)
 
+	//! \since build 892
+	//@{
+	DefPred(const ynothrow, Alive, !current.empty())
+
 	//! \since build 788
 	DefGetter(const ynothrow, Environment::BindingMap&, BindingsRef,
 		GetRecordRef().GetMapRef())
+	DefGetter(const ynothrow, const ReducerSequence&, Current, current)
+	DefGetter(const ynothrow
+		-> decltype(std::declval<Reducer>().target_type()), auto,
+		CurrentActionType, IsAlive() ? current.front().target_type()
+		: ystdex::type_id<void>())
+	//@}
 	/*!
 	\brief 取环境记录引用。
 	\since build 788
@@ -2515,17 +2616,31 @@ public:
 		memory_rsrc)
 
 	/*!
+	\brief 访问指定类型的当前动作目标。
+	\since build 892
+	\todo 添加 const 重载。
+	*/
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE _type*
+	AccessCurrentAs()
+	{
+		return IsAlive() ? current.front().template target<_type>() : nullptr;
+	}
+
+	/*!
 	\brief 转移并应用作为尾动作的当前动作，并设置 LastStatus 。
-	\note 调用前切换 Current 以允许调用 SetupCurrent 设置新的尾调用。
-	\pre 断言：\c Current 。
+	\note 非强异常安全：当动作调用抛出异常，不恢复已转移的动作。
+	\note 不无效化作序列中第一个动作以外的元素。
+	\pre 断言：\c IsAlive() 。
 	\sa LastStatus
 	\since build 810
+
+	转移当前动作序列的第一个动作，然后调用。
+	调用前的转移允许调用 SetupCurrent 或 SetupFront 等设置新的尾调用。
+	此时，不需要处理已被转移的即已激活的动作。
 	*/
-	PDefH(ReductionStatus, ApplyTail, )
-		// TODO: Add check to avoid stack overflow when current action is
-		//	called?
-		ImplRet(YAssert(bool(Current), "No tail action found."),
-			LastStatus = Switch()(*this))
+	ReductionStatus
+	ApplyTail();
 
 	/*!
 	\brief 默认的名称解析算法。
@@ -2555,65 +2670,27 @@ public:
 	DefaultResolve(Environment&, string_view);
 
 	/*!
-	\sa Delimited
-	\sa SetupCurrent
-	\sa Current
-	\since build 810
-	*/
-	//@{
-	/*!
-	\brief 转移第一个定界动作为当前动作。
-	\pre 断言：\c !Delimited.empty() 。
-	\pre 间接断言：\c !Current 。
-	\post \c Current 。
-	\sa Delimited
-	\sa SetupCurrent
-	\since build 810
-	*/
-	void
-	Pop() ynothrow;
-
-	/*!
-	\brief 转移当前动作为第一个定界动作。
-	\pre 断言：\c Current 。
-	*/
-	//@{
-	//! \since build 812
-	//@{
-	void
-	Push(const Reducer&);
-	void
-	Push(Reducer&&);
-	//@}
-	PDefH(void, Push, )
-		ImplExpr(Push(Reducer()))
-	//@}
-	//@}
-
-	//! \exception std::bad_function_call Reducer 参数为空。
-	//@{
-	/*!
 	\brief 重写项。
-	\pre 间接断言：\c !Current 。
-	\post \c Current 。
+	\pre 间接断言：\c !IsAlive() 。
+	\post \c IsAlive() 。
+	\exception std::bad_function_call Reducer 参数为空。
+	\throw 嵌套 TypeError ：类型不匹配，由 Reduce 抛出的 bad_any_cast 转换。
+	\note 不处理重规约。
 	\sa ApplyTail
 	\sa SetupCurrent
-	\sa Transit
-	\note 不处理重规约。
 	\since build 810
 
-	调用 Transit 转变状态，当可规约时调用 ApplyTail 迭代规约重写。
-	因为递归重写平摊到单一的循环， CheckReducible 不用于判断是否需要继续重写循环。
-	每次调用 Current 的结果同步到 TailResult 。
-	返回值为最后一次 Current 调用结果。
+	调用 IsAlive 判断状态，当可规约时调用 ApplyTail 迭代规约重写。
+	因为递归重写平摊到单一的循环 CheckReducible 不用于判断是否需要继续重写循环。
+	每次调用当前动作的结果同步到 TailResult 。
+	返回值为最后一次当前动作调用结果。
 	*/
-	ReductionStatus
+	YB_FLATTEN ReductionStatus
 	Rewrite(Reducer);
-	//@}
 
 	/*!
 	\brief 设置当前动作以重规约。
-	\pre 断言：\c !Current 。
+	\pre 断言：\c !IsAlive() 。
 	\pre 动作转移无异常抛出。
 	\since build 887
 	*/
@@ -2621,18 +2698,39 @@ public:
 	inline void
 	SetupCurrent(_tParams&&... args)
 	{
-		YAssert(!Current, "Old continuation is overriden.");
-		Current = NPL::ToReducer(get_allocator(), yforward(args)...);
+		YAssert(!IsAlive(), "Old continuation is overriden.");
+		return SetupFront(yforward(args)...);
 	}
 
 	/*!
-	\brief 切换当前动作。
-	\since build 807
-
-	交换 Current 并返回旧的值。
+	\brief 在当前动作序列中添加动作以重规约。
+	\pre 动作转移无异常抛出。
+	\since build 892
 	*/
-	PDefH(Reducer, Switch, Reducer f = {})
-		ImplRet(ystdex::exchange(Current, std::move(f)))
+	template<typename... _tParams>
+	inline void
+	SetupFront(_tParams&&... args)
+	{
+		if(!stashed.empty())
+		{
+			stashed.front()
+				= NPL::ToReducer(get_allocator(), yforward(args)...);
+			current.splice_after(current.cbefore_begin(), stashed,
+				stashed.cbefore_begin());
+		}
+		else
+			current.push_front(
+				NPL::ToReducer(get_allocator(), yforward(args)...));
+	}
+
+ 	/*!
+	\brief 切换当前动作序列。
+	\since build 892
+
+	交换当前动作序列并返回旧的值。
+ 	*/
+	PDefH(ReducerSequence, Switch, ReducerSequence acts = {})
+		ImplRet(ystdex::exchange(current, std::move(acts)))
 
 	/*!
 	\brief 切换环境。
@@ -2652,20 +2750,16 @@ public:
 		ImplRet(YAssertNonnull(p_env), ystdex::exchange(p_record, p_env))
 	//@}
 
-	/*!
-	\brief 按需转移第一个定界动作为当前动作。
-	\pre 间接断言：\c !Current 。
-	\return 是否可继续规约。
-	\sa Pop
-	\since build 811
-	*/
-	bool
-	Transit() ynothrow;
-
 	//! \since build 788
-	//@{
 	YB_ATTR_nodiscard PDefH(shared_ptr<Environment>, ShareRecord, ) const
 		ImplRet(GetRecordRef().shared_from_this())
+
+	/*!
+	\brief 顺序移除当前动作序列中的所有动作。
+	\since build 892
+	*/
+	PDefH(void, UnwindCurrent, ) ynothrow
+		ImplExpr(current.clear())
 
 	//! \since build 823
 	YB_ATTR_nodiscard PDefH(EnvironmentReference, WeakenRecord, ) const
@@ -2682,9 +2776,20 @@ public:
 		ImplRet(pmr::polymorphic_allocator<yimpl(byte)>(
 			&GetMemoryResourceRef()))
 
+	/*!
+	\brief 缩小存储资源占用：清空缓存。
+	\sa stashed
+	\since build 892
+	*/
+	PDefH(void, shrink_to_fit, )
+		ImplExpr(stashed.clear())
+
+	/*!
+	\pre 分配器相等。
+	\since build 788
+	*/
 	YF_API friend void
 	swap(ContextNode&, ContextNode&) ynothrow;
-	//@}
 };
 
 
@@ -2862,184 +2967,21 @@ struct EnvironmentSwitcher
 
 
 /*!
-\brief 组合动作。
-\note 不直接使用 lambda 表达式，以避免对捕获的动作的未指定的析构顺序。
-\note 相对 pair 值作为捕获的 lambda 表达式预期有更好的翻译性能。
-\since build 841
-*/
-template<typename _fCurrent, typename _fNext>
-struct GComposedAction final
-{
-	//! \since build 851
-	static_assert(std::is_object<_fCurrent>(),
-		"Current action shall be an object.");
-	//! \since build 851
-	static_assert(std::is_object<_fCurrent>(),
-		"Next action shall be an object.");
-
-	//! \since build 877
-	using allocator_type
-		= decltype(std::declval<const ContextNode&>().get_allocator());
-
-	// NOTE: Lambda is not used to avoid unspecified destruction order of
-	//	captured component and better performance (compared to the case of
-	//	%pair used to keep the order).
-	// NOTE: The destruction order of captured component is significant.
-	mutable _fNext Next;
-	// XXX: To support function objects like %std::bind result with mutable
-	//	bound parameters.
-	mutable _fCurrent Current;
-
-	template<typename _tParam1, typename _tParam2>
-	inline
-	GComposedAction(const ContextNode& ctx, _tParam1&& cur, _tParam2&& next)
-		: GComposedAction(yforward(cur), yforward(next), ctx.get_allocator())
-	{}
-	//! \since build 877
-	template<typename _tParam1, typename _tParam2>
-	inline
-	GComposedAction(_tParam1&& cur, _tParam2&& next, allocator_type a)
-		: Next(ystdex::make_obj_using_allocator<_fNext>(a,
-		yforward(next))), Current(ystdex::make_obj_using_allocator<_fCurrent>(
-		a, yforward(cur)))
-	{}
-	// XXX: Copy is not intended used directly, but for well-formness.
-	DefDeCopyMoveCtor(GComposedAction)
-	//! \since build 877
-	GComposedAction(const GComposedAction& act, allocator_type a)
-		: Next(ystdex::make_obj_using_allocator<_fNext>(a, act.Next)),
-		Current(ystdex::make_obj_using_allocator<_fCurrent>(a, act.Current))
-	{}
-	//! \since build 877
-	GComposedAction(GComposedAction&& act, allocator_type a)
-		: Next(ystdex::make_obj_using_allocator<_fNext>(a,
-		std::move(act.Next))), Current(ystdex::make_obj_using_allocator<
-		_fCurrent>(a, std::move(act.Current)))
-	{}
-
-	DefDeMoveAssignment(GComposedAction)
-
-	//! \since build 877
-	YB_FLATTEN inline ReductionStatus
-	operator()(ContextNode& ctx) const;
-};
-
-
-/*!
-\note 第一和第二参数分别为上下文和捕获的当前动作。
-\note 若存在第三参数，为捕获的后继动作。
-\note 以参数声明的相反顺序捕获参数作为动作，结果以参数声明的顺序析构捕获的动作。
-*/
-//@{
-/*!
-\brief 组合规约动作：创建指定上下文中的连续异步规约当前动作和后继动作的规约动作。
-\sa GComposedAction
-\since build 887
-*/
-template<typename _fCurrent, typename _fNext>
-YB_ATTR_nodiscard YB_PURE inline GComposedAction<
-	ystdex::remove_cvref_t<_fCurrent>, ystdex::remove_cvref_t<_fNext>>
-ComposeActions(ContextNode& ctx, _fCurrent&& cur, _fNext&& next)
-{
-	return GComposedAction<ystdex::remove_cvref_t<_fCurrent>,
-		ystdex::remove_cvref_t<_fNext>>(ctx, yforward(cur), yforward(next));
-}
-
-//! \since build 856
-//@{
-/*!
-\brief 组合当前动作和上下文中非空的当前动作。
-\sa ComposeActions
-*/
-template<typename _fCurrent>
-YB_ATTR_nodiscard YB_PURE inline Reducer
-ComposeSwitchedUnchecked(ContextNode& ctx, _fCurrent&& cur)
-{
-	YAssert(ctx.Current, "No action found to be the next action.");
-	return NPL::ToReducer(ctx.get_allocator(),
-		NPL::ComposeActions(ctx, yforward(cur), ctx.Switch()));
-}
-
-/*!
-\brief 组合当前动作和上下文中的当前动作。
-\note 若当前动作为空，则直接使用后继动作作为结果。
-\sa ComposeSwitchedUnchecked
-*/
-template<typename _fCurrent>
-YB_ATTR_nodiscard YB_PURE inline Reducer
-ComposeSwitched(ContextNode& ctx, _fCurrent&& cur)
-{
-	return ctx.Current ? ComposeSwitchedUnchecked(ctx, yforward(cur))
-		: NPL::ToReducer(ctx.get_allocator(), yforward(cur));
-}
-//@}
-
-/*!
+\brief 异步规约指定动作和上下文中的当前动作。
 \return ReductionStatus::Partial 。
 \since build 841
-*/
-//@{
-/*!
-\brief 异步规约当前动作和后继动作。
-\sa ComposeActions
-*/
-template<typename _fCurrent, typename _fNext>
-inline ReductionStatus
-RelayNext(ContextNode& ctx, _fCurrent&& cur, _fNext&& next)
-{
-	ctx.SetupCurrent(ComposeActions(ctx, yforward(cur), yforward(next)));
-	return ReductionStatus::Partial;
-}
 
-/*!
-\brief 异步规约当前动作和上下文中非空的当前动作。
-\pre 断言：\c ctx.Current 。
-*/
-template<typename _fCurrent>
-// XXX: Forcing inlining this (either by 'YB_ATTR(always_inline)' or
-//	'YB_FLATTEN') would crash with code generated by x86_64-pc-linux G++ 9.2.
-inline ReductionStatus
-RelaySwitchedUnchecked(ContextNode& ctx, _fCurrent&& cur)
-{
-	YAssert(ctx.Current, "No action found to be the next action.");
-	return RelayNext(ctx, yforward(cur), ctx.Switch());
-}
-
-/*!
-\brief 异步规约指定动作和上下文中的当前动作。
-\sa RelaySwitchedUnchecked
+异步规约参数指定的动作作为当前动作序列的前缀。
+第一和第二参数分别为上下文和捕获的当前动作。
+以参数声明的相反顺序捕获参数作为动作，结果以参数声明的顺序析构捕获的动作。
 */
 template<typename _fCurrent>
 inline ReductionStatus
 RelaySwitched(ContextNode& ctx, _fCurrent&& cur)
 {
-	if(ctx.Current)
-		return RelaySwitchedUnchecked(ctx, yforward(cur));
-	ctx.SetupCurrent(yforward(cur));
+	ctx.SetupFront(yforward(cur));
 	return ReductionStatus::Partial;
 }
-//@}
-//@}
-
-template<typename _fCurrent, typename _fNext>
-YB_FLATTEN inline ReductionStatus
-GComposedAction<_fCurrent, _fNext>::operator()(ContextNode& ctx) const
-{
-	NPL::RelaySwitched(ctx, std::move(Next));
-	// XXX: The context object passed here is intended to be used by default.
-	//	This can be overrided by a captured context reference same to this if
-	//	necessary (e.g. for performance).
-	return ystdex::expand_proxy<ReductionStatus(ContextNode&)>::call(
-		Current, ctx);
-}
-
-/*!
-\brief 转移动作到当前动作及定界动作。
-\since build 812
-*/
-inline PDefH(void, MoveAction, ContextNode& ctx, Reducer&& act)
-	ImplExpr(!ctx.Current ? ctx.SetupCurrent(std::move(act))
-		: ctx.Push(std::move(act)))
 
 } // namespace NPL;
 

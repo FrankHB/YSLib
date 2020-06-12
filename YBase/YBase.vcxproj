@@ -81,6 +81,7 @@
     <ClInclude Include="include\ystdex\tree.h" />
     <ClInclude Include="include\ystdex\tstring_view.hpp" />
     <ClInclude Include="include\ystdex\tuple.hpp" />
+    <ClInclude Include="include\ystdex\typeindex.h" />
     <ClInclude Include="include\ystdex\typeinfo.h" />
     <ClInclude Include="include\ystdex\type_inspection.hpp" />
     <ClInclude Include="include\ystdex\type_op.hpp" />

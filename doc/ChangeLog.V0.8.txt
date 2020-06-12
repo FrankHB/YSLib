@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r19373
+\version r19544
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-05-31 20:31 +0800
+	2020-06-12 21:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,171 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	+ %TypeIndex @ %YBase.YStandardEx,
+	/ %YFramework $=
+	(
+		+ 'using ystdex::type_index;' @ %YSLib.Core.YObject
+			$dep_from %YBase.YStandardEx.TypeIndex,
+		/ %NPL $=
+		(
+			/ DLDI "avoided access of %Context::Current directly"
+				@ %NPLA1Internal
+				^ $dep_from ("%ContextNode::(AccessCurrentAs, IsAlive)" @ %NPLA)
+				$dep_to "avoiding direct access of the current action",
+			/ "merged all call sites of %(RelayNext, ComposeSwitched)"
+				$effecitve @ %(NPLA1Internal, NPLA1, NPLA1Forms)
+				$dep_from "sequenced current action"
+				$dep_to "avoiding directly composed actions",
+			/ %NPLA $=
+			(
+				/ "enabled ADL %RelaySwitched" @ "%operator()"
+					@ "class template %GCompasedAction",
+				- "function %MoveAction"
+					$dep_to "avoiding direct access of the current action",
+				/ @ "class %ContextNode" $=
+				(
+					// See $2020-06 @ %Documentation::Workflow.
+					+ "function %UnwindCurrent",
+					+ "function template %AccessCurrentAs",
+					+ "functions %(IsAlive, GetCurrentActionType)",
+					/ "hid public data member %Current" 
+						$dep_all_from "avoiding direct access of the current \
+						action",
+					(
+					- "all 3 functions %Push" $dep_from "%MoveAction",
+					(
+					/ "simplified function %Rewrite"
+						^ $dep_from "%IsAlive" ~ "%Transit";
+					- "function %Transit";
+					- "function %Pop",
+					),
+					- "avoided swapping %Delimited" @ "friend function %swap";
+					- "data member %Delimited"
+					);
+					/ "sequenced current action" $=
+					(
+						+ "class %ReducerSequence"
+							^ "%YSLib::forward_list<Reducer>",
+						/ DLDI "explicitly removed all actions" @ "destructor"
+							^ $dep_from "%UnwindCurrent";
+						/ "current action with type %Reducer"
+							-> "action sequence of %ReduceSequence";
+						/ $forced "function template %SetupCurrent",
+						+ "function template %SetupFront",
+						/ "function %Switch accepted and returned \
+							%ReducerSequence" $dep_from
+							"avoiding direct access of the current action",
+						/ $forced DLDI "functions %(IsAlive, \
+							GetCurrentActionType)";
+						/ $forced "function %ApplyTail"
+					);
+					+ "class %ReductionGuard",
+					+ $doc "guarantee of the postfix in the current action \
+						sequence not invalidated in the tail action application"
+						@ "function %ApplyTail",
+						// This allows action inspection and continuation marks.
+					(
+					+ DLI "stashed empty action sequence"
+						^ 'YSLib::forward_list';
+						// This improves perforamnce significantly.
+					+ $foced DLDI "swapped stashed empty action sequence"
+						@ "friend function %swap",
+					+ "function %shrink_to_fit"
+					),
+					+ "function %GetCurrent",
+					/ DLI "copy constructor" ^ "%DefDeCopyCtor",
+						// Stashed actions need not be copied.
+					/ "handled exception %bad_any_cast and converted to \
+						%TypeError" @ "function %Rewrite"
+				),
+				/ "avoided access of %Context::Current directly"
+					$effective @ ("function templates \
+					%(ComposeSwitchedUnchecked, ComposeSwitched, \
+					RelaySwitchedUnchecked, RelaySwitched)")
+					^ $dep_from "%ContextNode::SetupFront"
+					~ "%ContextNode::(Current, Switch)"
+					$dep_to "avoiding direct access of the current action",
+				- "function template %RelaySwitchedUnchecked"
+					$dep_from "avoiding RelaySwitchedUnchecked",
+				- "function templates %(RelayNext, ComposeSwitched)"
+					$dep_from "avoiding directly composed actions";
+				- "function template %ComposeSwitchedUnchecked";
+				- "function template %ComposeActions";
+				* $re_add(b865) $comp "missing qualified 'NPL::'" @ ("call of \
+					%ComposeSwitchedUnchecked" @ "function template \
+					%ComposeSwitched" @ $since b856, ("call of %ComposeActions"
+					@ "function template %RelayNext", "call of %RelayNext"
+					@ "function template %RelaySwitchedUnchecked",
+					"call of %RelaySwitchedUnchecked"
+					@ "function template %RelaySwitched") @ $since b841),
+					// ADL is not intended here.
+				- "class template %GComposedAction"
+			),
+			/ %NPLA1 $=
+			(
+				/ "function %Reduce" $=
+				(
+					/ $impl
+						^ $dep_from ("%ContextNode::AccessWithGuard" @ %NPLA);
+					/ $comp DLDI "avoided access of %Context::Current directly"
+						$dep_to "avoiding direct access of the current action",
+					/ $comp "perserved the current action on exit by exceptions"
+						@ 'NPL_Impl_NPLA1_Enable_Thunked'
+						// This allows the further inspection of the current \
+							action on exit by exceptions.
+				),
+				/ "setup pass using appending instead of overwritng"
+					@ "function %SetupTraceDepth",
+				/ @ "class %ContextState" $=
+				(
+					+ "function %RewriteTerm",
+					+ "function %RewriteTermGuarded",
+					* "missing copying of %ReduceOnce"
+						@ "(copy, move) constructors" $since b877,
+					(
+					/ "intialized guard" @ "constructor#1"
+						^ "%ContextNode::ReductionGuard";
+					/ DLDI "function %RewriteGuarded"
+						^ $dep_from ("%ContextNode::UnwindCurrent" @ %NPLA)
+						// See $2020-06 @ %Documentation::Workflow.
+					)
+				),
+				/ DLDI "simplified function %Reduce"
+					^ $dep_from "%ContextState::RewriteTermGuarded"
+					~ "%ContextState::RewriteGuarded",
+				/ @ "class %REPLContext" $=
+				(
+					/ @ "static function %ReduceAndFilter" $=
+					(
+						/ "threw type error" ^ "%(std::throw_with_nested, \
+							TypeError)" ~ "%LoggedEvent",
+						- "handling of other exceptions"
+					),
+					(
+					/ "function templates %(LoadFrom, Perform)" ^ "%Reduce"
+						~ "%ReduceAndFilter";
+						// The error of %bad_any_cast is now filtered at \
+							%ContextNode::Rewrite.
+					- "static function %ReduceAndFilter"
+					)
+				),
+				+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+					@ "function %QuerySourceInformation",
+				(
+				+ DLI "internal continuation names" ^ $dep_from \
+					%(YSLib.Core.YObject, YBase.YStandardEx.TypeIndex);
+				+ "function %QueryContinuationName"
+				)
+			),
+			/ "all call sites of %RelaySwitchedUnchecked" ^ "%RelaySwitched"
+				$effective @ %(NPLA1Internal, NPLA)
+				$dep_to "avoiding RelaySwitchedUnchecked"
+		)
+	)
+),
+
+b891
 (
 	/ %YFramework $=
 	(
@@ -111,6 +276,9 @@ $now
 			(
 				/ ('using YSLib::pair;', 'using YSLib::shared_ptr;')
 					>> %Lexical,
+				(
+				/ $revert_ex(b889) 'using YSLib::lref;' >> %Lexical;
+				/ "class %BufferedByteParserBase" >> %Lexical;
 				/ "class %ByteParser" >> %Lexical $=
 				(
 					/ "character update" @ "function template %operator()" $=
@@ -137,6 +305,7 @@ $now
 						// This does not relies on %Decompose, so it is \
 							suboptimal to use %list instead of %vector.
 					),
+				)
 				),
 				+ "alias %TermByteAllocator",
 				/ @ "class %Session" $=
@@ -2105,8 +2274,8 @@ b880
 					used" @ "Doxygen comment"
 					@ "function template %FetchStringWidth#(1, 2)",
 					// Similar to %TextRenderer.
-				* "missing qualification 'Drawing::' for \
-					%FetchStringWidth calls" $since b197
+				* "missing qualified 'Drawing::'" @ "calls of %FetchStringWidth"
+					$since b197
 			),
 			+ $dev $lib 'YB_ATTR_nodiscard' @ ("all function and function \
 				templates %(CheckBOM, DetectBOM)",
@@ -4639,7 +4808,7 @@ b865
 		(
 			* DD "wrong '\pre' command" @ "Doxygen comment"
 				@ "member function %ContextNode::Push#2" @ $since b812,
-			* "missing qualified 'NPL::' for %AllocateEnvironment call"
+			* "missing qualified 'NPL::'" @ "call of %AllocateEnvironment"
 				@ "function template %AllocateEnvironment#2" @ %NPLA $since
 				b847
 				// ADL is not intended here.

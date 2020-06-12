@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20160
+\version r20162
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2020-03-31 03:38 +0800
+	2020-06-05 21:53 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -48,7 +48,7 @@ EnsureTCOAction(ContextNode& ctx, TermNode& term)
 
 	if(!p)
 	{
-		if(YB_UNLIKELY(!ctx.Current))
+		if(YB_UNLIKELY(!ctx.IsAlive()))
 			ctx.SetupCurrent([&]() ynothrow{
 				return ctx.LastStatus;
 			});
@@ -61,7 +61,7 @@ EnsureTCOAction(ContextNode& ctx, TermNode& term)
 TCOAction&
 EnsureTCOActionUnchecked(ContextNode& ctx, TermNode& term)
 {
-	YAssertNonnull(ctx.Current);
+	YAssertNonnull(ctx.IsAlive());
 
 	auto p(AccessTCOAction(ctx));
 

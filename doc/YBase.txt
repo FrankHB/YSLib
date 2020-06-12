@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r1572
+\version r1577
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2020-02-10 22:41 +0800
+	2020-06-11 20:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -325,6 +325,7 @@ YStandardEx 及其实现保持兼容 ISO C++11 。
 "functional.hpp" 依赖 "functor.hpp" 、 "function.hpp" 和 "swap.hpp" ；
 "any.h" 内部依赖 "typeinfo.h" 和 "utility.hpp" ；
 "any_iterator.hpp" 依赖 "any.h" ；
+"typeindex.h" 依赖 "typeinfo.h" ；
 "container.hpp" 依赖 "range.hpp" ；
 "tree.hpp" 和 "string_view.hpp" 依赖 "range.hpp" ；
 "string.hpp" 依赖 "container.hpp" ；
@@ -453,7 +454,10 @@ ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证�
 扩展标准库头 <exception> 、 <stdexcept> 和 <system_error> ，提供便利接口和若干异常基类。
 
 @2.5.6.3 ISO C++ 类型信息扩展 TypeInfo ：
-扩展标准库头 <typeinfo> ，提供了无 RTTI 开销的静态类型信息类和兼容接口。
+头文件扩展标准库头 <typeinfo> ，提供了无 RTTI 开销的静态类型信息类和兼容接口。
+
+@2.5.6.4 ISO C++ 类型信息扩展 TypeIndex ：
+头文件扩展标准库头 <typeindex> ，提供了无 RTTI 开销的静态类型索引类和兼容接口。
 
 @2.5.7 基本 ISO C++ 标准库扩展和替代：
 扩展或替代标准库文件，提供和标准库对应的相似接口，但不包含 @2.5.8 。
@@ -662,7 +666,7 @@ YBase 不重载 operator, ，也不对其它代码是否重载 operator, 做出�
 除基本例外([Documentation::LanguageConvention @@5.10.5.3.6]) 约定，（包括上述情形）所有公开接口具有基本异常安全保证([Documentation::LanguageConvention @@5.10.5.3.1]) 。
 
 @3.3.2 抛出异常明确性：
-在明确异常基类的基础上， YBase 保证 API 中抛出的异常在文档（若存在）中明确：不抛出被文档描述外的异常。
+在明确异常基类的基础上，YBase 保证 API 中抛出的异常在文档（若存在）中明确：不抛出被文档描述外的异常。
 若实现在公开头文件可见，文档可仅指出异常中立而不需要明确具体异常；否则应明确异常类型。
 
 @3.3.3 捕获异常明确性：

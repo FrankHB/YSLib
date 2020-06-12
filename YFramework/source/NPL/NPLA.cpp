@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3193
+\version r3256
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2020-04-03 00:06 +0800
+	2020-06-11 01:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@
 //	std::mem_fn, ystdex::compose, ystdex::invoke_value_or, NPL::TryAccessLeaf,
 //	NPL::IsMovable, ystdex::ref, YSLib::FilterExceptions, ystdex::id,
 //	ystdex::retry_on_cond, ystdex::type_info, pair, ystdex::addrof,
-//	ystdex::second_of;
+//	ystdex::second_of, std::throw_with_nested;
 #include YFM_NPL_SContext
 
 using namespace YSLib;
@@ -1051,14 +1051,39 @@ ContextNode::ContextNode(const ContextNode& ctx,
 			return std::move(p_rec);
 		Environment::ThrowForInvalidValue(true);
 	}()),
-	Resolve(ctx.Resolve), Trace(ctx.Trace)
+	Resolve(ctx.Resolve), current(ctx.current, &memory_rsrc.get()),
+	stacked(ctx.stacked, &memory_rsrc.get()),
+	Trace(ctx.Trace)
+{}
+ContextNode::ContextNode(const ContextNode& ctx)
+	: memory_rsrc(ctx.memory_rsrc), p_record(ctx.p_record),
+	Resolve(ctx.Resolve), current(ctx.current, &memory_rsrc.get()),
+	stacked(ctx.stacked, &memory_rsrc.get()),
+	LastStatus(ctx.LastStatus), Trace(ctx.Trace)
 {}
 ContextNode::ContextNode(ContextNode&& ctx) ynothrow
 	: ContextNode(ctx.memory_rsrc)
 {
 	swap(ctx, *this);
 }
-ContextNode::ImplDeDtor(ContextNode)
+ContextNode::~ContextNode()
+{
+	UnwindCurrent();
+}
+
+ReductionStatus
+ContextNode::ApplyTail()
+{
+	// TODO: Add check to avoid stack overflow when the current action is
+	//	called?
+	YAssert(IsAlive(), "No tail action found.");
+
+	const auto act(std::move(current.front()));
+
+	stashed.splice_after(stashed.cbefore_begin(), current,
+		current.cbefore_begin());
+	return LastStatus = act(*this);
+}
 
 Environment::NameResolution
 ContextNode::DefaultResolve(Environment& e, string_view id)
@@ -1133,37 +1158,17 @@ ContextNode::DefaultResolve(Environment& e, string_view id)
 	return {p_obj, env_ref};
 }
 
-void
-ContextNode::Pop() ynothrow
-{
-	YAssert(!Delimited.empty(), "No continuation is delimited.");
-	SetupCurrent(std::move(Delimited.front()));
-	Delimited.pop_front();
-}
-
-void
-ContextNode::Push(const Reducer& reducer)
-{
-	YAssert(Current, "No continuation can be captured.");
-	Delimited.push_front(reducer);
-	std::swap(Current, Delimited.front());
-}
-void
-ContextNode::Push(Reducer&& reducer)
-{
-	YAssert(Current, "No continuation can be captured.");
-	Delimited.push_front(std::move(reducer));
-	std::swap(Current, Delimited.front());
-}
-
 ReductionStatus
 ContextNode::Rewrite(Reducer reduce)
 {
 	SetupCurrent(std::move(reduce));
-	// NOTE: Rewriting loop until no actions remain.
-	return ystdex::retry_on_cond(std::bind(&ContextNode::Transit, this), [&]{
+	// NOTE: Rewrite until no actions remain.
+
+	TryRet(ystdex::retry_on_cond(std::bind(&ContextNode::IsAlive, this), [&]{
 		return ApplyTail();
-	});
+	}))
+	CatchExpr(bad_any_cast& e,
+		std::throw_with_nested(TypeError("Mismatched type found.")))
 }
 
 shared_ptr<Environment>
@@ -1174,26 +1179,13 @@ ContextNode::SwitchEnvironment(const shared_ptr<Environment>& p_env)
 	Environment::ThrowForInvalidValue(true);
 }
 
-bool
-ContextNode::Transit() ynothrow
-{
-	if(!Current)
-	{
-		if(!Delimited.empty())
-			Pop();
-		else
-			return {};
-	}
-	return true;
-}
-
 void
 swap(ContextNode& x, ContextNode& y) ynothrow 
 {
 	swap(x.p_record, y.p_record),
 	swap(x.Resolve, y.Resolve), 
-	swap(x.Delimited, y.Delimited),
-	swap(x.Current, y.Current),
+	swap(x.current, y.current),
+	swap(x.stashed, y.stashed),
 	std::swap(x.LastStatus, y.LastStatus),
 	swap(x.Trace, y.Trace);
 }
