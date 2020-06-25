@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r7621
+\version r7626
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2020-05-20 17:38 +0800
+	2020-06-14 14:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1235,7 +1235,7 @@ Unwrap(TermNode&, ContextNode&);
 \brief 抛出缺少项的异常。
 \throw ParameterMismatch 缺少项的错误。
 */
-YF_API YB_NORETURN void
+YB_NORETURN YF_API void
 ThrowInsufficientTermsError();
 
 /*!
@@ -1244,9 +1244,9 @@ ThrowInsufficientTermsError();
 */
 //@{
 //! \pre 间接断言：第一参数非空。
-YF_API YB_NORETURN YB_NONNULL(1) void
+YB_NORETURN YF_API YB_NONNULL(1) void
 ThrowInvalidSyntaxError(const char*);
-YF_API YB_NORETURN void
+YB_NORETURN YF_API void
 ThrowInvalidSyntaxError(string_view);
 //@}
 
@@ -1254,14 +1254,14 @@ ThrowInvalidSyntaxError(string_view);
 \brief 抛出被赋值操作数不可修改的异常。
 \throw TypeError 被赋值操作数不可修改错误。
 */
-YF_API YB_NORETURN void
+YB_NORETURN YF_API void
 ThrowNonmodifiableErrorForAssignee();
 
 /*!
 \brief 抛出第一参数不符合预期值类别的异常。
 \throw ValueCategory 第一参数值类别错误。
 */
-YF_API YB_NORETURN void
+YB_NORETURN YF_API void
 ThrowValueCategoryErrorForFirstArgument(const TermNode&);
 
 //! \return ReductionStatus::Regular 。

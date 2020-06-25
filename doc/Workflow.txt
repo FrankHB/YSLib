@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r3635
+\version r3733
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2020-06-10 23:20 +0800
+	2020-06-22 13:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -3705,6 +3705,104 @@ Actions in NPLA context node ('NPL::ContextNode' in YFramework module NPL::NPLA1
 		The current action sequence is allowed to be cached and guarded.
 		The current action sequence is allowed to be cleanup in a whole.
 			The cleanup order of the actions is specifcically handled, see above.
+	All actions in the same sequence of actions are now subobjects of that sequence.
+		Different to composed actions directly by action objects, now the composed objects are decoupled with ownership between objects.
+		If needed, reference wrappers can be used to alter the ownership.
+		This is also more compatible with related notions in the Kernel language.
+			In Kernel, the composition of suffix of continuations implies parentage of the continuations.
+			Previously, the ownership semantics is inconsistent with Kernel.
+				Parent of a continuation is always its subobject, which is intuitive compared to the parentage.
+				There can be no shared parent continuations.
+					Althouth it can be implemented with reference wrappers elsewhere, it still relies on some external owners which do not exist in the previous design. not known.
+			Even if 'A1::Continuation' can store a reference to some other continuation, it is error-prone in resource management.
+			Moreover, guard continuation in Kernel relies on the notion of dynamic extent.
+				Specifically, entry and exit guards use selectors as a structrual way identifying continuations which relies on the "containing" relationship based on dynamic extents.
+					This implies both the child and the parent continuations should be the (shared) owner naturally if there is no common extenal owner (like a GC root, which is not available in NPLA1).
+				The sequence of actions as a container now makes there are not implied ownership among different actions, which is more sane.
+	As a side effect, 'A1::Continuation' in a reduction action now becomes a continuation frame. This is also somewhat preferred.
+		The concept of continuation frame is first well-known in Racket, which also provides continuation marks as a nominal way identifying continuation frames.
+			See https://docs.racket-lang.org/reference/eval-model.html#(part._mark-model).
+		See also https://srfi.schemers.org/srfi-157/srfi-157.html.
+		The technique used in compilers for frame recovery is similar to TCO action in NPLA1.
+			See the recently published paper in PLDI 2020: https://doi.org/10.1145/3385412.3385981.
+	The notion of reducer in NPLA is clarified based on the current design.
+		It has type 'NPL::Reducer' in NPLA API.
+		When not empty, it has one action as its target. The action can have different type and optionally accepts a parameter of type 'NPL::ContextNode&'.
+		'A1::Continutation' in NPLA1 is now consisdered targetting reducers only, rather than a full continuation by itself.
+		However, reducers are not exposed into the object language.
+			This may cause some inconsistencies depending on the conceptional model of continuations. See below.
+The (formerly informally and not public) design plan of continuation and error handling is revised.
+	Though not implemented, first-class continuations available in the NPLA1 object language are always in the plan.
+		There are some caveats of use for users with a language without GC in mind, though.
+		The simplest, most "intuitive" and most direct high-level implementation strategy of first-class continuations is to capture the continuation frames as an object directly.
+			The capture is simply an assignment once the context has saved the current continuation object all the time.
+			This does not support operations relying on the relationship among different continuations directly, e.g. access of the subcomputation implied in a continuation.
+				So, to make the continuations useful, there are additonal complexities around with this approach.
+	The Kernel's and Racket's conceptual model are referenced.
+		Modern Scheme specified in RnRK does have different key features on continuations captured by 'call-with-current-continuation'.
+			Specifically, thunk calls are specialized having different dynamic extents to normal procedures calls. Thunks are specified by calling 'dynamic-wind'.
+			Racket follows Scheme here, but with more powerful abstractions to make the continuation delimited and composable.
+		Similarly, RnRK implies the abnormal passes of values continuation calls.
+		The RnRK concepts is neat and they have been adopted with modifications in the NPL specification (by having a more broadly extent).
+			The concept of "abnormal" computation is extended to all reductions not concluded by the default evaluation calls.
+			The distinction of "normal" and "abnormal" property is effectively specified on the reduction semantics rather than the evaluation calls.
+	Kernel's continuations are somewhat simpler, at the cost of the complexity in the implementation for practice.
+		RnRK specifies a mechanism of selection and interception on the continuation calls, as a more fundamental base to replace the exception handling in other languages.
+			This makes calling a first-class continuation effectively behave differently than the simplest design, because the captured continuation are now effetively delimited.
+				The delimiter is either a guard specified in 'guard-continuation', or by the default root continuation named 'root-continuation' specified in RnRK.
+			This is somewhat good to have, but there are costs. Notably, this requires some other facilities to make sure the parantage is always known.
+				In klisp's implementation, the 'Continuation' type always has a pointer to the parent continuation.
+				This allows interception without keys from Racket-style continuation marks and prompts.
+					It is considered structrual rather than nominal (specified by the key).
+				Unfortunately, this seems algorithmatic costly in the selector searching to implement the abnormal control handling.
+			The interceptors of entry guards seem not useful as exit guards in practice, too.
+				Since the resources cleanup only requires the exit guards consistent to normal and abnormal executions.
+				Entry guards play no effect roles here like exit guares, since the operations in the entry guards can be specified out of the call normally (not exceptionally where the resources need to be cleanup).
+				Otherwise, entry guards can intercept calls in general. This has far fewer cases compared to the resource cleanup.
+				RnRK notes the 'dynamic-wind' can be implemented neatly, but it seems that 'dynamic-wind' itself is over-designed and debatable.
+					Note that parameters in RnRS (relying on 'dynamic-wind') are replaced by keyed variables in RnRK.
+				The merit of reusing the selector searching algorithm mentioned in the specification has no effect if there are only exit guards.
+		This also need shared frames in some cases.
+			For example, all other continuations have a common prefix of 'root-continuation', and at least 'error-continuation' is disjoint from others, specified in RnRK).
+			This cannot be supported by the current design directly, since all neither 'NPL::ContextNode::ReducerSequence' nor 'A1::Continuation' has shared resource semantics.
+	Racket's design is more complicated and powerful in some degrees.
+		Racket has continuation frames, which is similar to current NPLA design. Moerover, it seems to avoid the continuation frames as first-class objects.
+			All continuation objects has subject to the predicate 'continuation?' which names the the (full) continuation rather than a frame.
+			Racket also has some built-in exception handling mechanism.
+				This is conceptionally based on the continuation marks and prompts, but actually with magics in the implementation.
+		Racket has continuation barriers, which is similar to 'NPL::ContextNode::ReductionGuard' in effects.
+			This is not planned to exposed to the object language yet, though.
+			As per https://docs.racket-lang.org/reference/cont.html, Racket inserts continuation barriers in many cases.
+				There are not many desires to insert more barriers without careful design of interoperation features.
+				Currently only 'NPL::Reduce' calls guard the continuations.
+					They occur in REPL sessions, as well as loads of the external units.
+				Note that klisp which only uses explicit run of loop on FFI.
+					REPL and loading a source file all do not create new barrier in this sense.  
+						Missing barriers may be simpler and more flexible here, albeit less security in the aspect of the stability of the REPL environment.
+					It seems worth a try.
+					To make it easily configurable by users, at least the operation to setup continuation barriers is needed to be available in the object language.
+		In NPLA1, no 'call/ec' like Racket is required.
+			There is no GC, so users have to handle the lifetime of the captured continuation explicitly.
+			There is no compatibililty issues like Racket.
+	Both are insufficient to address the problem of building a succinct exception handling mechanism by language derivation.
+		In fact, all continuations in NPLA1 are essentially one-shot before sharing and/or copying of continuation objects are generally supported.
+			However, copying is subtle to support in particular there can be non-copyable resources with native (C++) interoperations, like 'std::fstream'.
+			So, sharing is somewhat necessary to support the general cases, if needed.
+			Operations like 'lock-environment' and 'lock-current-environment' for environments seem insufficient for continuations in this stlye (without weak references by default).
+			Ownership also exposes restrictions.
+				'A1::Continuation' should be safe of term resetting because it will access the term from 'A1::ContextState' laterly on the call, which should be immediately after the setup where the term is still alive for a while.
+				But reducers with other target types may have troubles of danling reference if the term is captured by reference.
+				Cyclic reference cannot be avoided easily without checks enforced.
+					This needs weak reference by default, which is never the case in current NPLA.
+			For the sake of the reason above, weak references seem necessary if sharing needs to be supported.
+				there can be some different type to 'A1::Continuation'.
+				This will be surely more complex and more inefficient even when the feature is not used.
+				Not sure it is worth at current.
+		As a result, currently the underlying design of NPLA follows more like Racket's, but exception handling exception mechanism will be built upon the continuations.
+			No built-in exception handling mechanism will be adopted.
+		There can stil be some Kernel-style operations ('extend-continuation' to extend continuations remotely, for example of the interest) exposed in the object language in a limited way.
+		Racket's additional control operators (in package 'racket/control') are also interested to provide the vocabulary of the operations for the historical significance.
+			This may be considered as some library work in future.
 
 ////
 

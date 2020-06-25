@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r19257
+\version r19326
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-06-12 21:29 +0800
+	2020-06-25 21:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -123,9 +123,16 @@ PushActionsRange(EvaluationPasses::const_iterator first,
 		}
 	}
 	else
-		ctx.LastStatus = ReductionStatus::Neutral;
+		// NOTE: This skips the remained incompleted sequence of passes in the
+		//	subsequent evaluation (if any). Otherwise, %ReductionStatus::Neutral
+		//	will be set before the 1st pass at %DoAdministratives for a complete
+		//	evaluation.
+		ctx.LastStatus = ReductionStatus::Retrying;
 }
 #endif
+
+//! \since build 893
+YSLib::mutex NameTableMutex;
 
 //! \since build 892
 //@{
@@ -148,6 +155,8 @@ NameHandler(_type&& x, const char* desc)
 	{
 		Init(string_view sv)
 		{
+			YSLib::lock_guard<YSLib::mutex> gd(NameTableMutex);
+
 			FetchNameTableRef<NPLA1Tag>().emplace(std::piecewise_construct,
 				std::forward_as_tuple(ystdex::type_id<_type>()),
 				std::forward_as_tuple(sv));
@@ -243,16 +252,31 @@ DoAdministratives(const EvaluationPasses& passes, TermNode& term,
 #endif
 }
 
+//! \since build 893
+struct EvalSequence final
+{
+	lref<TermNode> TermRef;
+	TNIter Iter;
+
+	ReductionStatus
+	operator()(ContextNode&);
+};
+
 //! \since build 823
 ReductionStatus
 ReduceSequenceOrderedAsync(TermNode& term, ContextNode& ctx, TNIter i)
 {
 	YAssert(i != term.end(), "Invalid iterator found for sequence reduction.");
 	// TODO: Allow capture next sequenced evaluations as a single continuation?
-	return std::next(i) == term.end() ? ReduceAgainLifted(term, ctx, *i)
-		: ReduceSubsequent(*i, ctx, [&, i](ContextNode& c){
-		return ReduceSequenceOrderedAsync(term, c, term.erase(i));
-	});
+	return std::next(i) == term.end() ? ReduceOnceLifted(term, ctx, *i)
+		: ReduceSubsequent(*i, ctx,
+		NameHandler(EvalSequence{term, i}, "eval-sequence"));
+}
+
+ReductionStatus
+EvalSequence::operator()(ContextNode& ctx)
+{
+	return ReduceSequenceOrderedAsync(TermRef, ctx, TermRef.get().erase(Iter));
 }
 
 
@@ -628,7 +652,7 @@ PrepareTCOEvaluation(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd)
 	// NOTE: The lift is handled according to the previous status of
 	//	%act.LiftCallResult, rather than a seperated boolean value (e.g.
 	//	the parameter %no_lift in %RelayForEval).
-	act.HandleResultLiftRequest(term, ctx);
+	act.HandleResultRequests(term, ctx);
 	return act;
 }
 
@@ -641,10 +665,10 @@ void
 SetupTCOLift(TCOAction& act, bool no_lift)
 {
 	// NOTE: The %act.LiftCallResult indicates a request for handling during
-	//	next time (by %TCOAction::HandleResultLiftRequest call above before the
+	//	next time (by %TCOAction::HandleResultRequests call above before the
 	//	last one) before %TCOAction is finished. The last request would be
 	//	handled by %TCOAction::operator(), which also calls
-	//	%TCOAction::HandleResultLiftRequest.
+	//	%TCOAction::HandleResultRequests.
 	if(!no_lift)
 		act.RequestLiftResult();
 }
@@ -1039,7 +1063,7 @@ ContextState::ContextState(pmr::memory_resource& rsrc)
 	Guard += [](TermNode&, ContextNode& ctx){
 		// TODO: Support guarding for other states?
 		return A1::Guard(std::allocator_arg, ctx.get_allocator(),
-			in_place_type<ContextNode::ReductionGuard>, ctx);
+			in_place_type<ReductionGuard>, ctx);
 	};
 #endif
 }
@@ -1092,7 +1116,7 @@ ContextState::DefaultReduceOnce(TermNode& term, ContextNode& ctx)
 			return DoAdministratives(cs.EvaluateList, term, ctx);
 
 		// XXX: This may be slightly more efficient, and more importantly,
-		//	respecting to nested call safety on %ReduceAgain for the thunked
+		//	respecting to nested call safety on %ReduceOnce for the thunked
 		//	implementation well by only allow one level of direct recursion.
 		auto term_ref(ystdex::ref(term));
 
@@ -1101,7 +1125,7 @@ ContextState::DefaultReduceOnce(TermNode& term, ContextNode& ctx)
 		}, [&]{
 			term_ref = AccessFirstSubterm(term_ref);
 		});
-		return ReduceAgainLifted(term, ctx, term_ref);
+		return ReduceOnceLifted(term, ctx, term_ref);
 	}
 	return ReductionStatus::Retained;
 }
@@ -1136,23 +1160,6 @@ ReductionStatus
 Reduce(TermNode& term, ContextNode& ctx)
 {
 	return ContextState::Access(ctx).RewriteTermGuarded(term);
-}
-
-ReductionStatus
-ReduceAgain(TermNode& term, ContextNode& ctx)
-{
-#if NPL_Impl_NPLA1_Enable_TCO
-	EnsureTCOAction(ctx, term).RequestRetrying();
-	SetupNextTerm(ctx, term);
-	return A1::RelayCurrentOrDirect(ctx,
-		std::ref(ContextState::Access(ctx).ReduceOnce), term);
-#elif NPL_Impl_NPLA1_Enable_Thunked
-	return ReduceSubsequent(term, ctx, []() ynothrow{
-		return ReductionStatus::Retrying;
-	});
-#else
-	return ReduceOnce(term, ctx);
-#endif
 }
 
 void
@@ -1252,7 +1259,7 @@ ReduceTail(TermNode& term, ContextNode& ctx, TNIter i)
 {
 	term.erase(term.begin(), i);
 	// NOTE: This is neutral to %NPL_Impl_NPLA1_Enable_Thunked.
-	return ReduceAgain(term, ctx);
+	return ReduceOnce(term, ctx);
 }
 
 
@@ -1666,12 +1673,18 @@ ReductionStatus
 ReduceLeafToken(TermNode& term, ContextNode& ctx)
 {
 	const auto res(ystdex::call_value_or([&](string_view id){
-		return EvaluateLeafToken(term, ctx, id);
+		TryRet(EvaluateLeafToken(term, ctx, id))
+		catch(BadIdentifier& e)
+		{
+			if(const auto p_si = QuerySourceInformation(term.Value))
+				e.Source = *p_si;
+			throw;
+		}
 	// XXX: A term without token is ignored. This is actually same to
 	//	%ReductionStatus::Regular in the current implementation.
 	}, TermToNamePtr(term), ReductionStatus::Retained));
 
-	return CheckReducible(res) ? ReduceAgain(term, ctx) : res;
+	return CheckReducible(res) ? ReduceOnce(term, ctx) : res;
 }
 
 
@@ -1832,18 +1845,28 @@ QuerySourceInformation(const ValueObject& vo)
 }
 
 string_view
-QueryContinuationName(const Continuation& cont)
+QueryContinuationName(const Reducer& act)
 {
-	const auto& tbl(FetchNameTableRef<NPLA1Tag>());
-	const auto& t_info(cont.Handler.target_type());
+	if(const auto p_cont = act.target<Continuation>())
+	{
+		const auto& tbl(FetchNameTableRef<NPLA1Tag>());
+		const auto& handler(p_cont->Handler);
+		const auto& t_info(handler.target_type());
 
-	if(t_info == ystdex::type_id<ContextHandler>())
-		return "eval-combine-operands";
+		if(t_info == ystdex::type_id<ContextHandler>())
+			return "eval-combine-operands";
 
-	const auto i(tbl.find(cont.Handler.target_type()));
+		const auto i(tbl.find(handler.target_type()));
 
-	if(i != tbl.cend())
-		return i->second;
+		if(i != tbl.cend())
+			return i->second;
+	}
+#if NPL_Impl_NPLA1_Enable_TCO
+	if(act.target_type() == ystdex::type_id<TCOAction>())
+		return "eval-tail";
+#endif
+	if(act.target_type() == ystdex::type_id<EvalSequence>())
+		return "eval-sequence";
 	return {};
 }
 

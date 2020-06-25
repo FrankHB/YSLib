@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r7624
+\version r7687
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2020-06-12 21:29 +0800
+	2020-06-25 20:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,8 +43,9 @@
 //	AccessFirstSubterm, ystdex::less, YSLib::map, pmr, ystdex::copy_and_swap,
 //	NoContainer, ystdex::try_emplace, ystdex::try_emplace_hint,
 //	ystdex::insert_or_assign, ystdex::type_info, ystdex::expanded_function,
-//	YSLib::forward_list, YSLib::allocate_shared, ystdex::enable_if_same_param_t,
-//	ystdex::exclude_self_t, ystdex::exchange, ystdex::make_obj_using_allocator;
+//	YSLib::forward_list, ystdex::swap_dependent, YSLib::allocate_shared,
+//	ystdex::enable_if_same_param_t, ystdex::exclude_self_t, ystdex::exchange,
+//	ystdex::make_obj_using_allocator;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 
 namespace NPL
@@ -676,6 +677,12 @@ private:
 	shared_ptr<string> p_identifier;
 
 public:
+	/*!
+	\brief 标识符关联的源代码信息。
+	\since build 893
+	*/
+	SourceInformation Source{};
+
 	/*!
 	\brief 构造：使用作为标识符的字符串、已知实例数和和记录等级。
 	\pre 间接断言：第一参数的数据指针非空。
@@ -2358,11 +2365,11 @@ class ContextNode;
 
 
 /*!
-\brief 规约动作类型：和绑定上下文以外参数的求值遍的处理器具有等价签名的多态函数。
+\brief 规约器：和绑定上下文以外参数的求值遍的处理器具有等价签名的多态函数。
 \warning 假定转移不抛出异常。
 \since build 841
 
-对应遍处理器的调用包装类型。
+对应遍处理器的调用包装类型，保存规约动作。
 动作有效当前仅当 NPL::Reducer 类型的值能上下文转换为 bool 类型后为真。
 */
 yimpl(using) Reducer = ystdex::expanded_function<ReductionStatus(ContextNode&)>;
@@ -2411,9 +2418,36 @@ private:
 
 public:
 	//! \brief 动作序列类型：蕴含当前上下文的续延。
-	class YF_API ReducerSequence : public ReducerSequenceBase
+	class YF_API ReducerSequence : public ReducerSequenceBase,
+		private ystdex::equality_comparable<ReducerSequence>
 	{
 	public:
+		//! \since build 893
+		//@{
+		/*!
+		\brief 父动作：关联的后继动作。
+
+		保留给实现解释的父动作对象。
+		NPLA 的实现不访问此对象。
+		若需进行处理，派生实现可在动作序列的最后一帧内访问。
+		预期的对象内容由派生实现实现指定。
+		*/
+		ValueObject Parent{};
+
+		//! \since build 893
+#if YB_IMPL_CLANGPP || YB_IMPL_GNUCPP >= 100000
+		// XXX: See https://bugs.llvm.org/show_bug.cgi?id=36684.
+		// XXX: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88165.
+		// XXX: If the default constructor is not existed, G++ 10.1 crash on
+		//	the default argument of a default constructed %ReducerSequence:
+		//	internal compiler error. G++ 7.1 works.
+		ReducerSequence() ynoexcept_spec(ReducerSequenceBase())
+			: ReducerSequenceBase()
+		{}
+#elif __cpp_inheriting_constructors < 201511L
+		DefDeCtor(ReducerSequence)
+#endif
+		//@}
 		using ReducerSequenceBase::ReducerSequenceBase;
 		// XXX: This ignores %select_on_container_copy_construction.
 		ReducerSequence(const ReducerSequence& act)
@@ -2425,7 +2459,12 @@ public:
 			clear();
 		}
 
-		DefDeCopyMoveAssignment(ReducerSequence)
+		//! \since build 893
+		DefDeCopyAssignment(ReducerSequence)
+		//! \since build 893
+		PDefHOp(ReducerSequence&, =, ReducerSequence&& rs) ynothrowv
+			ImplRet(YAssert(get_allocator() == rs.get_allocator(),
+				"Invalid allocator found."), swap(rs), *this)
 
 		void
 		clear() ynothrow
@@ -2433,6 +2472,18 @@ public:
 			while(!empty())
 				pop_front();
 		}
+
+		//! \since build 893
+		friend
+			PDefH(void, swap, ReducerSequence& x, ReducerSequence& y) ynothrowv
+			ImplExpr(YAssert(x.get_allocator() == y.get_allocator(),
+				"Invalid allocator found."), x.swap(y),
+				ystdex::swap_dependent(x.Parent, y.Parent))
+
+		//! \since build 893
+		YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
+			const ReducerSequence& x, const ReducerSequence& y) ynothrow
+			ImplRet(ystdex::ref_eq<>()(x, y))
 	};
 
 	//! \brief 规约守卫：暂存当前动作序列。
@@ -2461,6 +2512,9 @@ public:
 			{
 				auto& ctx(*p_ctx);
 
+				// XXX: The actions are inserted in the front for efficiency. If
+				//	necessary, the current action sequence can be saved
+				//	elsewhere before the guard destruction.
 				ctx.current.splice_after(ctx.current.cbefore_begin(),
 					ctx.stacked, ctx.stacked.cbefore_begin(), i_stacked);
 			}
@@ -2595,6 +2649,7 @@ public:
 
 	//! \since build 892
 	//@{
+	//! \brief 判断当前动作序列非空。
 	DefPred(const ynothrow, Alive, !current.empty())
 
 	//! \since build 788
@@ -2725,12 +2780,17 @@ public:
 
  	/*!
 	\brief 切换当前动作序列。
-	\since build 892
+	\since build 893
 
 	交换当前动作序列并返回旧的值。
  	*/
-	PDefH(ReducerSequence, Switch, ReducerSequence acts = {})
+	//@{
+	PDefH(ReducerSequence, Switch, ) ynothrowv
+		ImplRet(Switch(ReducerSequence(get_allocator())))
+	//! \pre 参数的分配器和当前动作的分配器相等。
+	PDefH(ReducerSequence, Switch, ReducerSequence acts) ynothrowv
 		ImplRet(ystdex::exchange(current, std::move(acts)))
+	//@}
 
 	/*!
 	\brief 切换环境。

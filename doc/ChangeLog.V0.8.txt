@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r19544
+\version r19675
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-06-12 21:33 +0800
+	2020-06-25 21:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,133 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		* "possible ill-formed deduced state type"
+			@ "function template %extract" @ %String $since b565
+			$= (/ $impl ^ 'std::basic_ios::iostate' ~ 'auto'),
+			// To avoid Microsoft VC++ 2019 16.6.2 (cl 14.26.28801) error: \
+				C2678.
+		* "missing qualified 'ystdex::'" @ "call of %create_and_swap"
+			@ "function template %copy_and_swap" @ %Swap $since b879
+	),
+	/ %YFramework.NPL $=
+	(
+		/ DLDI ("term reference name %Term" -> "%TermRef")
+			$effective @ %(NPLA1Internal, NPLA1Forms),
+		/ "namespace %Forms" @ %NPLA1Forms $=
+		(
+			* "wrong order of pseudo keywords" @ "function 'Throw*'"
+				$orig (@ %NPLA1 $since b859)
+				/ $= (/ 'YF_API YB_NORETURN' -> 'YB_NORETURN YF_API'),
+				// To avoid Clang++ error.
+			/ @ "function %ForwardListFirst" $since b879 $=
+			(
+				* "internal function template call",
+					// This should have been SFINAE'd away in the overload of \
+						%A1::RelayDirecct requiring 2 parameters, but it \
+						seems that any type of argument can typecheck with \
+						either G++ or Clang++ when %_fCurrent is a result from \
+						%std::bind of libstdc++.
+				/ DLDI ^ "simplified TCO action access"
+					$dep_to "simplified ForwardListFirst TCO call access"
+			),
+			/ DLI "simplified retrying" @ 'NPL_Impl_NPLA1_Enable_Thunked'
+				@ "functions %(And, Or)"
+				$dep_from "simplified evaluation passes skip"
+				// As the removal of %ReduceAgain.
+		),
+		/ %NPLA1Internal $=
+		(
+			* "wrong idempotent term clearning handled" @ "TCO action"
+				$orig (@ %NPLA1 $since b820),
+			/ DLDI "simplified TCO action access without checks"
+				$dep_from "simplified ForwardListFirst TCO call access"
+		),
+		/ @ "class %ContextNode" @ %NPLA $=
+		(
+			/ DLDI "removed unused exception variable %e"
+				@ "member function %Rewrite",
+			/ @ "class %ReducerSequence" $=
+			(
+				/ "satisfied EqualityComparable" $=
+				(
+					// Similar to %Environment, following Kernel's treatment \
+						on 'eq?' and 'equal?' of environment and continuation \
+						types, as weill as WG21 P0534R3.
+					+ "friend function operator==";
+					+ $dev "base class \
+						%ystdex::equality_comparable<ReducerSequence>"
+				),
+				(
+				* "missing default constructor"
+					@ '__cpp_inheriting_constructors < 201511L' $since b892
+					$= (+ "defaulted constructor" ^ "%DefDeCtor"),
+				+ "default constructor" !^ "%DefDeCtor"
+					@ 'YB_IMPL_CLANGPP || YB_IMPL_GNUCPP >= 100000';
+					// This is a workaround.
+				+ "public data member %Parent"
+				),
+				/ DLDI "simplified %ReduceSequence copying" @ "constructors"
+					// Since the allocator is handled in the copy \
+						constructor of %ReducerSequence, no additional \
+						memory resource argument is needed.
+				(
+				+ "friend function %swap";
+				+ "move %operator= required allocator equality and ignored \
+					POCMA";
+				/ "function %Switch" $=
+				(
+					/ "function" -> "2 overloads" !^ "default argument";
+					/ "call without argument implied allocator of the \
+						context"
+				)
+				)
+			),
+			+ "data member 'SourceInformation Source;'"
+				@ "class %BadIdentifier"
+		),
+		/ %NPLA1 $=
+		(
+			/ @ "function %QueryContinuationName" $=
+			(
+				* "unsafe concurrent initialization of %Continuation name \
+					table insertions" $since b892,
+				/ "supported %Reducer with %TCOAction and other internal types"
+					$dep_to "reducer name support",
+				* "ill-formed for TCO action" @ !'NPL_Impl_NPLA1_Enable_TCO'
+					$since b892
+			),
+			/ "supported continuation capture and continuation name handling"
+				@ "function %ReduceChildrenOrdered"
+				$dep_from "reducer name support",
+			(
+			/ DLI "set skip at end of evaluation passes"
+				@ "function %ReduceOnce" ^ "%ReductionStatus::Retrying"
+				~ "%ReductionStatus::Neutral"
+				$dep_to "simplified evaluation passes skip";
+			/ DLI "simplified retrying" @ 'NPL_Impl_NPLA1_Enable_Thunked'
+				@ "function %ReduceAgain"
+			),
+			(
+			/ "function %ReduceAgainLifted" -> "%ReduceOnceLifted"
+				^ "%ReduceOnce" ~ "%ReduceAgain",
+			/ DLDI "functions %(ReduceTail, ReduceLeafToken)"
+				^ "%ReduceOnce" ~ "%ReduceAgain";
+			- $revert(b807) "function %ReduceAgain"
+			),
+			/ DLDI "simplified guard creation"
+				@ 'NPL_Impl_NPLA1_Enable_Thunked'
+				@ "constructor %ContextState#1" !^ 'ContextNode::',
+			/ "set source information on exception %BadIdenfier"
+				@ "function %ReduceLeafToken"
+				$dep_from ("%BadIdentifier" @ %NPLA)
+		)
+	)
+),
+
+b892
 (
 	+ %TypeIndex @ %YBase.YStandardEx,
 	/ %YFramework $=
@@ -457,8 +584,8 @@ b890
 			("all non-special member functions"
 			@ "class templates %(boxed_value, nifty_counter, call_once_init)",
 			"all non-deleted function templates") @ %Utilities),
-		+ $dev $lib 'YB_STATELESS' @ "function templates %(as_const, \
-			underlying)" @ %Utilities
+		+ $dev $lib 'YB_STATELESS'
+			@ "function templates %(as_const, underlying)" @ %Utilities
 	),
 	/ %YFramework.NPL $=
 	(
@@ -14512,8 +14639,8 @@ b833
 		@ %YBase.YStandardEx), "function %empty" @ ("class template %GEvent"
 		@ %YEvent, "class %ValueNode" @ %ValueNode) @ %YFramework.YSLib.Core),
 		// As WG21 P0600R1.
-	/ $dev $lib "normailized attribute in lexicographic order even with linkage"
-		$effective %(Documentation.LanguageConvention, ("function \
+	/ $dev $lib "normailized attributes in lexicographic order even with \
+		linkage" $effective %(Documentation.LanguageConvention, ("function \
 		%CheckReducible" @ %NPL.NPLA, ("functions %(MBCSToWCS, WCSToMBCS)"
 		@ %NLS, "functions %MakeFile" @ %MinGW32) @ 'YCLib_(Win32)',
 		(("function template %CheckBOM" @ TextFile, "function template \
@@ -16586,7 +16713,7 @@ b816
 (
 	/ %YFramework.NPL.NPLA1 $=
 	(
-		* "missing restoring environment at current context on exit by \
+		* "missing restoring environment at the current context on exit by \
 			exception" @ "%operator()" @ "vau handlers" $since b815,
 		- DLI "redundant guard" @ "functions %(ReduceChecked, ReduceChildren)",
 		* "missing saving %Context::SkipToNextEvaluation in guard"

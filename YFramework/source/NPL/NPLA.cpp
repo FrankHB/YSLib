@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3256
+\version r3261
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2020-06-11 01:21 +0800
+	2020-06-24 09:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1051,14 +1051,12 @@ ContextNode::ContextNode(const ContextNode& ctx,
 			return std::move(p_rec);
 		Environment::ThrowForInvalidValue(true);
 	}()),
-	Resolve(ctx.Resolve), current(ctx.current, &memory_rsrc.get()),
-	stacked(ctx.stacked, &memory_rsrc.get()),
+	Resolve(ctx.Resolve), current(ctx.current), stacked(ctx.stacked),
 	Trace(ctx.Trace)
 {}
 ContextNode::ContextNode(const ContextNode& ctx)
 	: memory_rsrc(ctx.memory_rsrc), p_record(ctx.p_record),
-	Resolve(ctx.Resolve), current(ctx.current, &memory_rsrc.get()),
-	stacked(ctx.stacked, &memory_rsrc.get()),
+	Resolve(ctx.Resolve), current(ctx.current), stacked(ctx.stacked),
 	LastStatus(ctx.LastStatus), Trace(ctx.Trace)
 {}
 ContextNode::ContextNode(ContextNode&& ctx) ynothrow
@@ -1167,7 +1165,7 @@ ContextNode::Rewrite(Reducer reduce)
 	TryRet(ystdex::retry_on_cond(std::bind(&ContextNode::IsAlive, this), [&]{
 		return ApplyTail();
 	}))
-	CatchExpr(bad_any_cast& e,
+	CatchExpr(bad_any_cast&,
 		std::throw_with_nested(TypeError("Mismatched type found.")))
 }
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r7925
+\version r7971
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-06-12 20:11 +0800
+	2020-06-25 21:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -170,10 +170,12 @@ using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
 
 
 /*!
-\brief 续延。
+\brief NPLA1 一等续延。
 \warning 非虚析构。
 \since build 841
 \todo 支持一等续延捕获。
+
+利用 ContextState 接口，表示续延的一个帧的对象。
 */
 class YF_API Continuation
 {
@@ -318,7 +320,6 @@ public:
 	\warning 若不满足上下文状态类型要求，行为未定义。
 	\sa EvaluateLeaf
 	\sa EvaluateList
-	\sa ReduceAgain
 	\sa ReduceOnce
 	\sa ValueToken
 	\since build 878
@@ -414,36 +415,6 @@ inline PDefH(ReductionStatus, Continuation::operator(), ContextNode& ctx) const
 YF_API ReductionStatus
 Reduce(TermNode&, ContextNode&);
 
-//! \return 若支持异步规约则为 ReductionStatus::Partial ，否则同 Reduce 。
-//@{
-/*!
-\brief 再次规约。
-\return ReductionStatus::Partial 。
-\sa ReduceOnce
-\sa RelayNext
-\sa RelaySwitched
-\since build 807
-
-确保再次 ReduceOnce 调用并返回要求重规约的结果。
-若使用异步实现，指定重规约，且可在尾上下文支持尾调用优化；否则同 ReduceOnce 。
-*/
-YF_API ReductionStatus
-ReduceAgain(TermNode&, ContextNode&);
-
-/*!
-\brief 再次规约提升后的项。
-\pre 间接断言：第一和第三参数指定不相同的项。
-\sa LiftOther
-\sa ReduceAgain
-\since build 869
-
-调用 LiftOther 提升项，再调用 ReduceAgain 规约。
-*/
-inline PDefH(ReductionStatus, ReduceAgainLifted, TermNode& term,
-	ContextNode& ctx, TermNode& tm)
-	ImplRet(LiftOther(term, tm), ReduceAgain(term, ctx))
-//@}
-
 /*!
 \note 可能使参数中容器的迭代器失效。
 \sa Reduce
@@ -521,9 +492,24 @@ ReduceFirst(TermNode&, ContextNode&);
 \since build 806
 
 转换第二参数为 NPLA1 上下文状态引用，访问其中的 NPLA1 表达式节点一次规约续延并调用。
+若使用异步实现，在尾上下文支持尾调用优化。
 */
 YF_API ReductionStatus
 ReduceOnce(TermNode&, ContextNode&);
+
+/*!
+\brief 再次规约提升后的项。
+\pre 间接断言：第一和第三参数指定不相同的项。
+\return 同 ReduceOnce 。
+\sa LiftOther
+\sa ReduceOnce
+\since build 869
+
+调用 LiftOther 提升项，再调用 ReduceOnce 规约。
+*/
+inline PDefH(ReductionStatus, ReduceOnceLifted, TermNode& term,
+	ContextNode& ctx, TermNode& tm)
+	ImplRet(LiftOther(term, tm), ReduceOnce(term, ctx))
 
 /*!
 \brief 规约有序序列：顺序规约子项，结果为最后一个子项的规约结果。
@@ -538,7 +524,7 @@ ReduceOrdered(TermNode&, ContextNode&);
 \pre 断言：参数指定的上下文中的尾动作为空。
 \return ReductionStatus::Partial 。
 \note 按语言规范，子项规约顺序未指定。
-\sa ReduceAgain
+\sa ReduceOnce
 \since build 733
 */
 YF_API ReductionStatus
@@ -1106,8 +1092,10 @@ ReduceCombinedReferent(TermNode&, ContextNode&, const TermNode&);
 \brief 规约提取名称的叶节点记号。
 \exception BadIdentifier 标识符未声明。
 \note 忽略名称查找失败，默认结果为 ReductionStatus::Retained 。
+\note 当抛出 BadIdentifier 异常时，无条件查询源代码信息，若存在则设置到异常对像。
 \sa EvaluateLeafToken
-\sa ReduceAgain
+\sa QuerySourceInformation
+\sa ReduceOnce
 \sa TermToNamePtr
 */
 YF_API ReductionStatus
@@ -1307,12 +1295,18 @@ YB_ATTR_nodiscard YB_PURE YF_API observer_ptr<const SourceInformation>
 QuerySourceInformation(const ValueObject&);
 
 /*!
-\brief 取需要对象中的名称信息。
+\brief 取续延中的名称信息。
 \return 若存在名称则为内部指定来源的名称字符字符串，否则是数据指针为空的结果。
-\since build 892
+\since build 893
+
+取参数指定的动作对应的续延中的名称信息。
+支持的目标类型包括：
+特定目标的 Continuation ；
+TCO 动作；
+特定的其它实现续延的内部类型。
 */
 YB_ATTR_nodiscard YB_PURE YF_API string_view
-QueryContinuationName(const Continuation&);
+QueryContinuationName(const Reducer&);
 
 
 /*

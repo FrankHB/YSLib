@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r3069
+\version r3071
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2020-03-28 04:36 +0800
+	2020-06-14 12:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1635,7 +1635,8 @@ extract(std::basic_istream<_tChar, _tTraits>& is,
 	std::basic_string<_tChar, _tTraits, _tAlloc>& str, _func f)
 {
 	typename std::basic_string<_tChar, _tTraits, _tAlloc>::size_type n(0);
-	auto st(std::ios_base::goodbit);
+	// NOTE: The type shall be explicit.
+	std::ios_base::iostate st(std::ios_base::goodbit);
 
 	if(const auto k
 		= typename std::basic_istream<_tChar, _tTraits>::sentry(is, true))

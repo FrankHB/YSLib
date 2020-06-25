@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r18132
+\version r18175
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2020-06-06 05:20 +0800
+	2020-06-23 10:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,24 +82,6 @@ using Forms::ThrowValueCategoryErrorForFirstArgument;
 //@}
 
 
-//! \since build 884
-ReductionStatus
-ReduceAgainCombined(TermNode& term, ContextNode& ctx)
-{
-#if NPL_Impl_NPLA1_Enable_TCO
-	EnsureTCOAction(ctx, term).RequestRetrying();
-	SetupNextTerm(ctx, term);
-	return A1::RelayCurrentOrDirect(ctx,
-		Continuation(std::ref(ReduceCombinedBranch), ctx), term);
-#elif NPL_Impl_NPLA1_Enable_Thunked
-	return ReduceSubsequentCombinedBranch(term, ctx, []() ynothrow{
-		return ReductionStatus::Retrying;
-	});
-#else
-	return ReduceNextCombinedBranch(term, ContextState::Access(ctx));
-#endif
-}
-
 //! \since build 874
 // XXX: This is more efficient, at least in code generation by x86_64-pc-linux
 //	G++ 9.2 for %WrapN.
@@ -117,7 +99,7 @@ ReduceSequenceOrderedAsync(TermNode& term, ContextNode& ctx, TNIter i)
 {
 	YAssert(i != term.end(), "Invalid iterator found for sequence reduction.");
 	// TODO: Allow capture next sequenced evaluations as a single continuation?
-	return std::next(i) == term.end() ? ReduceAgainLifted(term, ctx, *i)
+	return std::next(i) == term.end() ? ReduceOnceLifted(term, ctx, *i)
 		: ReduceSubsequent(*i, ctx, [&, i](ContextNode& c){
 		return ReduceSequenceOrderedAsync(term, c, term.erase(i));
 	});
@@ -179,7 +161,7 @@ CondImpl(TermNode& term, ContextNode& ctx, TNIter i)
 		// NOTE: This also supports TCO.
 		return ReduceSubsequent(Deref(j), ctx, [&, i, j](ContextNode& c){
 			if(CondTest(clause, j))
-				return ReduceAgainLifted(term, c, clause);
+				return ReduceOnceLifted(term, c, clause);
 			return CondImpl(term, c, std::next(i));
 		});
 	}
@@ -217,7 +199,7 @@ And2(TermNode& term, ContextNode& ctx, TNIter i)
 	if(ExtractBool(NPL::Deref(i)))
 	{
 		term.Remove(i);
-		return ReduceAgainCombined(term, ctx);
+		return ReduceNextCombinedBranch(term, ContextState::Access(ctx));
 	}
 	term.Value = false;
 	return ReductionStatus::Clean;
@@ -231,7 +213,7 @@ Or2(TermNode& term, ContextNode& ctx, TNIter i)
 	if(!ExtractBool(tm))
 	{
 		term.Remove(i);
-		return ReduceAgainCombined(term, ctx);
+		return ReduceNextCombinedBranch(term, ContextState::Access(ctx));
 	}
 	LiftOther(term, tm);
 	return ReductionStatus::Retained;
@@ -246,7 +228,7 @@ AndOr(TermNode& term, ContextNode& ctx, ReductionStatus
 	auto i(term.begin());
 
 	if(++i != term.end())
-		return std::next(i) == term.end() ? ReduceAgainLifted(term, ctx, *i)
+		return std::next(i) == term.end() ? ReduceOnceLifted(term, ctx, *i)
 			: ReduceSubsequent(*i, ctx,
 			std::bind(and_or, std::ref(term), std::placeholders::_1, i));
 	term.Value = and_or == And2;
@@ -301,14 +283,14 @@ private:
 public:
 	//! \since build 840
 	lref<Environment> Record;
-	//! \since build 840
-	lref<const TermNode> Term;
+	//! \since build 893
+	lref<const TermNode> TermRef;
 
 	//! \since build 868
 	RecursiveThunk(Environment& env, const TermNode& t)
-		: Record(env), Term(t)
+		: Record(env), TermRef(t)
 	{
-		Fix(Record, Term);
+		Fix(Record, TermRef);
 	}
 	//! \since build 841
 	DefDeMoveCtor(RecursiveThunk)
@@ -400,7 +382,7 @@ private:
 
 public:
 	PDefH(void, Commit, )
-		ImplExpr(Restore(Record, Term))
+		ImplExpr(Restore(Record, TermRef))
 };
 
 
@@ -532,7 +514,7 @@ struct DoDefineOrSet<true> final
 		return ReduceSubsequent(term, ctx,
 			std::bind([&](const shared_ptr<TermNode>&,
 			const shared_ptr<RecursiveThunk>& p_gd, const _tParams&...){
-			BindParameter(env, p_gd->Term, term);
+			BindParameter(env, p_gd->TermRef, term);
 			// NOTE: This cannot support PTC because only the implicit commit
 			//	operation is in the tail context.
 			p_gd->Commit();
@@ -557,14 +539,14 @@ struct DoDefineOrSet<true> final
 template<bool _bRecur = false>
 struct DefineOrSetDispatcher final
 {
-	TermNode& Term;
+	TermNode& TermRef;
 	ContextNode& Context;
 
 	template<typename... _tParams>
 	inline ReductionStatus
 	operator()(TermNode& formals, _tParams&&... args) const
 	{
-		return DoDefineOrSet<_bRecur>::Call(Term, Context,
+		return DoDefineOrSet<_bRecur>::Call(TermRef, Context,
 			FetchDefineOrSetEnvironment(Context, args...), formals,
 			yforward(args)...);
 	}
@@ -856,7 +838,7 @@ PrepareTCOEvaluation(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd)
 	// NOTE: The lift is handled according to the previous status of
 	//	%act.LiftCallResult, rather than a seperated boolean value (e.g.
 	//	the parameter %no_lift in %RelayForEval).
-	act.HandleResultLiftRequest(term, ctx);
+	act.HandleResultRequests(term, ctx);
 	return act;
 }
 
@@ -869,10 +851,10 @@ void
 SetupTCOLift(TCOAction& act, bool no_lift)
 {
 	// NOTE: The %act.LiftCallResult indicates a request for handling during
-	//	next time (by %TCOAction::HandleResultLiftRequest call above before the
+	//	next time (by %TCOAction::HandleResultRequests call above before the
 	//	last one) before %TCOAction is finished. The last request would be
 	//	handled by %TCOAction::operator(), which also calls
-	//	%TCOAction::HandleResultLiftRequest.
+	//	%TCOAction::HandleResultRequests.
 	if(!no_lift)
 		act.RequestLiftResult();
 }
@@ -1418,18 +1400,20 @@ ReductionStatus
 ReduceCallSubsequent(TermNode& term, ContextNode& ctx,
 	shared_ptr<Environment> p_env, _fCurrent&& next)
 {
+	using namespace std::placeholders;
+
 	// TODO: Blocked. Use C++14 lambda initializers to simplify the
 	//	implementation.
 	return A1::ReduceCurrentNext(term, ctx,
-		std::bind([&](shared_ptr<Environment>& p_e){
+		std::bind([](shared_ptr<Environment>& p_e, TermNode& t, ContextNode& c){
 #	if NPL_Impl_NPLA1_Enable_TCO
 		// TODO: Optimize with known combiner calls. Ideally %EnsureTCOAction
 		//	should not be called later in %CombinerReturnThunk in %NPLA1 where
 		//	the term is actually a combiner call.
-		yunused(EnsureTCOActionUnchecked(ctx, term));
+		yunused(EnsureTCOAction(c, t));
 #	endif
-		return RelayForCombine(ctx, term, std::move(p_e));
-	}, std::move(p_env)), yforward(next));
+		return RelayForCombine(c, t, std::move(p_e));
+	}, std::move(p_env), _1, _2), yforward(next));
 }
 
 //! \since build 874
@@ -1761,10 +1745,10 @@ public:
 class Encapsulation final : private EncapsulationBase
 {
 public:
-	mutable TermNode Term;
+	mutable TermNode TermRef;
 
 	Encapsulation(shared_ptr<void> p, TermNode term)
-		: EncapsulationBase(std::move(p)), Term(std::move(term))
+		: EncapsulationBase(std::move(p)), TermRef(std::move(term))
 	{}
 	DefDeCopyMoveCtorAssignment(Encapsulation)
 
@@ -1844,7 +1828,7 @@ public:
 	{
 		return CallRegularUnaryAs<const Encapsulation>(
 			[&](const Encapsulation& enc, ResolvedTermReferencePtr p_ref){
-			auto& tm(enc.Term);
+			auto& tm(enc.TermRef);
 
 			return MakeValueOrMove(p_ref, [&]() -> ReductionStatus{
 				// NOTE: As lvalue references, the object in %tm cannot be
@@ -2001,7 +1985,7 @@ If(TermNode& term, ContextNode& ctx)
 
 			if(!ExtractBool(*j))
 				++j;
-			return ++j != term.end() ? ReduceAgainLifted(term, ctx, *j)
+			return ++j != term.end() ? ReduceOnceLifted(term, ctx, *j)
 				: ReduceReturnUnspecified(term);
 		});
 	}
@@ -2024,7 +2008,7 @@ Cond(TermNode& term, ContextNode& ctx)
 
 		ReduceOnce(Deref(j), ctx);
 		if(CondTest(clause, j))
-			return ReduceAgainLifted(term, ctx, clause);
+			return ReduceOnceLifted(term, ctx, clause);
 	}
 	return ReduceReturnUnspecified(term);
 #endif

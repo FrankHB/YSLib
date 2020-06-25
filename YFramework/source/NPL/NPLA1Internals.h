@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r19838
+\version r19864
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2020-06-06 05:23 +0800
+	2020-06-19 18:48 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -139,14 +139,14 @@ using FrameRecordList = yimpl(list)<FrameRecord>;
 class TCOAction final
 {
 public:
-	lref<TermNode> Term;
+	//! \since build 893
+	lref<TermNode> TermRef;
 
 private:
 	//! \since build 854
 	//@{
 	bool req_combined = {};
 	bool req_lift_result = {};
-	bool req_retrying = {};
 	//@}
 	//! \since build 827
 	mutable list<ContextHandler> xgds{};
@@ -162,7 +162,7 @@ public:
 
 	//! \since build 819
 	TCOAction(ContextNode& ctx, TermNode& term, bool lift)
-		: Term(term), req_lift_result(lift), xgds(ctx.get_allocator()),
+		: TermRef(term), req_lift_result(lift), xgds(ctx.get_allocator()),
 		EnvGuard(ctx), RecordList(ctx.get_allocator())
 	{}
 	// XXX: Not used, but provided for well-formness.
@@ -170,9 +170,9 @@ public:
 	TCOAction(const TCOAction& a)
 		// XXX: Some members are moved. This is only safe when newly constructed
 		//	object always live longer than the older one.
-		: Term(a.Term), req_combined(a.req_combined),
-		req_lift_result(a.req_lift_result), req_retrying(a.req_retrying),
-		xgds(std::move(a.xgds)), EnvGuard(std::move(a.EnvGuard))
+		: TermRef(a.TermRef), req_combined(a.req_combined),
+		req_lift_result(a.req_lift_result), xgds(std::move(a.xgds)),
+		EnvGuard(std::move(a.EnvGuard))
 	{}
 	DefDeMoveCtor(TCOAction)
 
@@ -187,7 +187,7 @@ public:
 
 		// NOTE: Lifting is optional, but is shall be performed before release
 		//	of guards. See also $2018-02 @ %Documentation::Workflow.
-		const auto res(HandleResultLiftRequest(Term, ctx));
+		const auto res(HandleResultRequests(TermRef, ctx));
 
 		// NOTE: The order here is significant. The environment in the guards
 		//	should be hold until lifting is completed.
@@ -196,8 +196,6 @@ public:
 		}
 		while(!xgds.empty())
 			xgds.pop_back();
-		if(req_combined)
-			RegularizeTerm(Term, res);
 		// NOTE: This should be after the guards to ensure there is no term
 		//	references the environment.
 		while(!RecordList.empty())
@@ -210,7 +208,7 @@ public:
 			get<ActiveCombiner>(front) = {};
 			RecordList.pop_front();
 		}
-		return req_retrying ? ReductionStatus::Retrying : res;
+		return res;
 	}
 
 	//! \since build 857
@@ -238,9 +236,9 @@ public:
 		return ystdex::as_const(xgds.back());
 	}
 
-	//! \since build 854
+	//! \since build 893
 	ReductionStatus
-	HandleResultLiftRequest(TermNode& term, ContextNode& ctx) const
+	HandleResultRequests(TermNode& term, ContextNode& ctx) const
 	{
 		// NOTE: This implies the call of %RegularizeTerm before lifting. Since
 		//	the call of %RegularizeTerm is idempotent without term modification
@@ -253,6 +251,8 @@ public:
 			RegularizeTerm(term, ctx.LastStatus);
 			return ReduceForLiftedResult(term);
 		}
+		if(req_combined)
+			RegularizeTerm(term, ctx.LastStatus);
 		return ctx.LastStatus;
 	}
 
@@ -292,12 +292,6 @@ public:
 	{
 		req_lift_result = true;
 	}
-
-	void
-	RequestRetrying()
-	{
-		req_retrying = true;
-	}
 	//@}
 };
 
@@ -305,17 +299,13 @@ public:
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TCOAction*, AccessTCOAction, ContextNode& ctx) ynothrow
 	ImplRet(ctx.AccessCurrentAs<TCOAction>())
-// NOTE: There is no need to check term like 'if(&p->Term.get() == &term)'. It
+// NOTE: There is no need to check term like 'if(&p->TermRef.get() == &term)'. It
 //	should be same to saved enclosing term unless a nested TCO action is needed
 //	explicitly (by following %SetupTailAction rather than %EnsureTCOAction).
 
 //! \since build 840
 YB_ATTR_nodiscard YB_FLATTEN TCOAction&
 EnsureTCOAction(ContextNode& ctx, TermNode& term);
-
-//! \since build 887
-YB_ATTR_nodiscard YB_FLATTEN TCOAction&
-EnsureTCOActionUnchecked(ContextNode& ctx, TermNode& term);
 
 //! \since build 840
 YB_ATTR_nodiscard inline PDefH(TCOAction&, RefTCOAction, ContextNode& ctx)
@@ -388,6 +378,9 @@ RelayDirect(ContextNode& ctx, _fCurrent&& cur)
 {
 	return cur(ctx);
 }
+// XXX: This fails to exclude ill-formed overloads not qualified to
+//	'cur(term, ctx)' with 'std::bind' result from libstdc++, either with G++ or
+//	Clang++. Make sure %_fCurrent accept two proper parameters.
 template<typename _fCurrent>
 YB_ATTR(always_inline) inline auto
 RelayDirect(ContextNode& ctx, _fCurrent&& cur, TermNode& term)

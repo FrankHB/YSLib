@@ -11,13 +11,13 @@
 /*!	\file swap.hpp
 \ingroup YStandardEx
 \brief 交换操作。
-\version r632
+\version r633
 \author FrankHB <frankhb1989@gmail.com>
 \since build 831
 \par 创建时间:
 	2018-07-12 16:38:36 +0800
 \par 修改时间:
-	2020-01-25 17:41 +0800
+	2020-06-25 21:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -513,7 +513,7 @@ template<typename _type, typename _type2 = _type>
 YB_ATTR(always_inline) inline _type&
 copy_and_swap(_type& obj, const _type2& new_val)
 {
-	return create_and_swap(obj, new_val);
+	return ystdex::create_and_swap(obj, new_val);
 }
 //@}
 
