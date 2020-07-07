@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3261
+\version r3293
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2020-06-24 09:42 +0800
+	2020-07-08 00:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -355,8 +355,9 @@ IsReserved(string_view id) ynothrowv
 }
 #endif
 
-observer_ptr<Environment>
-RedirectToShared(string_view id, const shared_ptr<Environment>& p_env)
+//! \since build 894
+shared_ptr<Environment>
+RedirectToShared(string_view id, shared_ptr<Environment> p_env)
 {
 #if NPL_NPLA_CheckParentEnvironment
 	if(p_env)
@@ -364,7 +365,7 @@ RedirectToShared(string_view id, const shared_ptr<Environment>& p_env)
 	yunused(id);
 	YAssertNonnull(p_env);
 #endif
-		return NPL::make_observer(YSLib::get_raw(p_env));
+		return p_env;
 #if NPL_NPLA_CheckParentEnvironment
 	// XXX: Consider use more concrete semantic failure exception.
 	throw InvalidReference(ystdex::sfmt("Invalid reference found for%s name"
@@ -616,12 +617,12 @@ Collapse(TermReference ref)
 }
 
 TermNode
-PrepareCollapse(TermNode& term, Environment& env)
+PrepareCollapse(TermNode& term, const shared_ptr<Environment>& p_env)
 {
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
 		return term;
 	return NPL::AsTermNode(term.get_allocator(),
-		TermReference(env.MakeTermTags(term), term, env.shared_from_this()));
+		TermReference(p_env->MakeTermTags(term), term, NPL::Nonnull(p_env)));
 }
 
 
@@ -1022,6 +1023,7 @@ Environment::ThrowForInvalidValue(bool record)
 
 
 EnvironmentReference::EnvironmentReference(const shared_ptr<Environment>& p_env)
+	ynothrow
 	// TODO: Blocked. Use C++17 %weak_from_this and throw-expression?
 	: EnvironmentReference(p_env, p_env ? p_env->GetAnchorPtr() : nullptr)
 {}
@@ -1075,18 +1077,18 @@ ContextNode::ApplyTail()
 	// TODO: Add check to avoid stack overflow when the current action is
 	//	called?
 	YAssert(IsAlive(), "No tail action found.");
-
-	const auto act(std::move(current.front()));
-
+	tail_action = std::move(current.front());
 	stashed.splice_after(stashed.cbefore_begin(), current,
 		current.cbefore_begin());
-	return LastStatus = act(*this);
+	LastStatus = tail_action(*this);
+	return LastStatus;
 }
 
 Environment::NameResolution
-ContextNode::DefaultResolve(Environment& e, string_view id)
+ContextNode::DefaultResolve(shared_ptr<Environment> p_env, string_view id)
 {
-	auto env_ref(ystdex::ref<Environment>(e));
+	YAssertNonnull(p_env);
+
 	Redirector cont;
 	// NOTE: Blocked. Use ISO C++14 deduced lambda return type (cf. CWG 975)
 	//	compatible to G++ attribute.
@@ -1100,8 +1102,8 @@ ContextNode::DefaultResolve(Environment& e, string_view id)
 	{
 		if(!p)
 		{
-			lref<const ValueObject> cur(env_ref.get().Parent);
-			observer_ptr<Environment> p_env{};
+			lref<const ValueObject> cur(p_env->Parent);
+			shared_ptr<Environment> p_redirected{};
 
 			ystdex::retry_on_cond(ystdex::id<>(), [&]() YB_FLATTEN
 			// XXX: Ditto.
@@ -1112,17 +1114,18 @@ ContextNode::DefaultResolve(Environment& e, string_view id)
 				const ValueObject& parent(cur);
 				const auto& tp(parent.type());
 
-				p_env = [&, id]() -> observer_ptr<Environment>{
-					if(tp == ystdex::type_id<EnvironmentReference>())
-						return RedirectToShared(id,
-							parent.GetObject<EnvironmentReference>().Lock());
-					if(tp == ystdex::type_id<shared_ptr<Environment>>())
-						return RedirectToShared(id,
-							parent.GetObject<shared_ptr<Environment>>());
-					return {};
-				}();
-				if(p_env)
-					env_ref = ystdex::ref(NPL::Deref(p_env));
+				if(tp == ystdex::type_id<EnvironmentReference>())
+				{
+					p_redirected = RedirectToShared(id,
+						parent.GetObject<EnvironmentReference>().Lock());
+					p_env.swap(p_redirected);
+				}
+				else if(tp == ystdex::type_id<shared_ptr<Environment>>())
+				{
+					p_redirected = RedirectToShared(id,
+						parent.GetObject<shared_ptr<Environment>>());
+					p_env.swap(p_redirected);
+				}
 				else
 				{
 					observer_ptr<const ValueObject> p_next{};
@@ -1146,14 +1149,14 @@ ContextNode::DefaultResolve(Environment& e, string_view id)
 				}
 				return false;
 			});
-			return bool(p_env);
+			return bool(p_redirected);
 		}
 		return false;
 	}, [&, id]{
-		return env_ref.get().LookupName(id);
+		return p_env->LookupName(id);
 	}));
 
-	return {p_obj, env_ref};
+	return {p_obj, std::move(p_env)};
 }
 
 ReductionStatus
@@ -1161,6 +1164,10 @@ ContextNode::Rewrite(Reducer reduce)
 {
 	SetupCurrent(std::move(reduce));
 	// NOTE: Rewrite until no actions remain.
+
+	const auto unwind(ystdex::make_guard([this]() ynothrow{
+		tail_action = nullptr;
+	}));
 
 	TryRet(ystdex::retry_on_cond(std::bind(&ContextNode::IsAlive, this), [&]{
 		return ApplyTail();

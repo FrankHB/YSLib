@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r3733
+\version r3746
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2020-06-22 13:43 +0800
+	2020-07-05 17:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -3803,6 +3803,21 @@ The (formerly informally and not public) design plan of continuation and error h
 		There can stil be some Kernel-style operations ('extend-continuation' to extend continuations remotely, for example of the interest) exposed in the object language in a limited way.
 		Racket's additional control operators (in package 'racket/control') are also interested to provide the vocabulary of the operations for the historical significance.
 			This may be considered as some library work in future.
+
+$2020-07:
+
+report.impl:
+Reference counting interface of 'NPL::Environment' in YFramework module NPL::NPLA has been reworked.
+	Now environments object cannot call 'shared_from_this' to get the pointer value retaining the strong reference.
+		This resolve the issue about unsafe constructor calls (without 'new').
+		It is not easy to resolve by just making them 'private' due to 'YSLib::allocated_shared' calls.
+	Related API has been updated to get rid of 'shared_from_this'.
+		The name resolution is in general more costly due to tracing on the pointer values instead of the raw references ('lref<Environment>').
+		In some other sites this can be more efficient for less constructions of 'shared_ptr<Environment>' values from 'weak_ptr<Environment>' value and less space occupied by the 'weak_ptr<Environment>' stored in the environment object.
+		Some call sites now need to check against the null pointer value of 'shared_ptr<Environment>'.
+	The frame record compressor used by TCO has also been effected.
+		The vector for collected object has been removed for simplicity, as well as the more determinism of the order of destruction among the collected environment objects, based on the parantage.
+		The references kept in traversal calls are adjusted carefully to make the counts still sane.
 
 ////
 

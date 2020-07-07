@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r889
+\version r892
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2020-04-19 03:08 +0800
+	2020-06-26 16:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,8 @@
 #if YCL_Win32
 #	include YFM_Win32_YCLib_Consoles // for platform_ex::WConsole,
 //	STD_OUTPUT_HANDLE, STD_ERROR_HANDLE, platform_ex::Win32Exception;
-#	include YFM_Win32_YCLib_NLS // for platform_ex::UTF8ToWCS;
+#	include YFM_Win32_YCLib_NLS // for platform_ex::UTF8ToWCS,
+//	platform_ex::WCSToUTF8;
 #	include YFM_YCLib_NativeAPI // for ::OutputDebugStringA, ::MessageBoxA;
 #	include <csignal> // for std::raise, SIGABRT;
 #elif YCL_Android
@@ -107,7 +108,7 @@ Echo(string_view sv) ynoexcept(YF_Platform == YF_Platform_DS)
 	TryExpr(n = WConsoleOutput(wstr, STD_OUTPUT_HANDLE, sv.data()))
 	CatchIgnore(platform_ex::Win32Exception&)
 	if(n < wstr.length())
-		std::cout << &wstr[n];
+		std::cout << platform_ex::EncodeArg(platform_ex::WCSToUTF8(&wstr[n]));
 	return bool(std::cout.flush());
 #elif YF_Hosted
 	return bool(std::cout << platform_ex::EncodeArg(sv) << std::endl);

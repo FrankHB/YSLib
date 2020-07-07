@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r19864
+\version r20122
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2020-06-19 18:48 +0800
+	2020-07-04 11:11 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -30,8 +30,9 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA1 // for ContextState, ReductionStatus, ContextNode,
-//	Reducer, YSLib::tuple, YSLib::get, RegularizeTerm, EnvironmentReference,
-//	TermReference;
+//	Reducer, YSLib::tuple, YSLib::get, list, RegularizeTerm,
+//	EnvironmentReference, TermReference, ystdex::get_less, YSLib::map, set,
+//	std::make_move_iterator, ystdex::exists, ystdex::retry_on_cond, ystdex::id;
 #include <ystdex/ref.hpp> // for ystdex::unref;
 
 namespace NPL
@@ -149,7 +150,7 @@ private:
 	bool req_lift_result = {};
 	//@}
 	//! \since build 827
-	mutable list<ContextHandler> xgds{};
+	mutable list<ContextHandler> xgds;
 
 public:
 	// See $2018-06 @ %Documentation::Workflow for details.
@@ -180,36 +181,7 @@ public:
 
 	//! \since build 877
 	ReductionStatus
-	operator()(ContextNode& ctx) const
-	{
-		YAssert(ystdex::ref_eq<>()(EnvGuard.func.Context.get(), ctx),
-			"Invalid context found.");
-
-		// NOTE: Lifting is optional, but is shall be performed before release
-		//	of guards. See also $2018-02 @ %Documentation::Workflow.
-		const auto res(HandleResultRequests(TermRef, ctx));
-
-		// NOTE: The order here is significant. The environment in the guards
-		//	should be hold until lifting is completed.
-		{
-			const auto egd(std::move(EnvGuard));
-		}
-		while(!xgds.empty())
-			xgds.pop_back();
-		// NOTE: This should be after the guards to ensure there is no term
-		//	references the environment.
-		while(!RecordList.empty())
-		{
-			// NOTE: The order is significant, as %FrameRecord destruction now
-			//	is unspecified, and temporary objects have dependencies on
-			//	environments.
-			auto& front(RecordList.front());
-
-			get<ActiveCombiner>(front) = {};
-			RecordList.pop_front();
-		}
-		return res;
-	}
+	operator()(ContextNode&) const;
 
 	//! \since build 857
 	void
@@ -260,7 +232,7 @@ public:
 	YB_ATTR_nodiscard ContextHandler
 	MoveFunction()
 	{
-		ContextHandler res;
+		ContextHandler res(std::allocator_arg, xgds.get_allocator());
 
 		if(LastFunction)
 		{
@@ -271,7 +243,8 @@ public:
 
 			if(i != xgds.rend())
 			{
-				res = std::move(*i);
+				res = ContextHandler(std::allocator_arg, xgds.get_allocator(),
+					std::move(*i));
 				xgds.erase(std::next(i).base());
 			}
 			LastFunction = {};
@@ -318,6 +291,219 @@ YB_ATTR_nodiscard inline PDefH(TCOAction&, RefTCOAction, ContextNode& ctx)
 inline
 	PDefH(void, SetupTailTCOAction, ContextNode& ctx, TermNode& term, bool lift)
 	ImplExpr(SetupTailAction(ctx, TCOAction(ctx, term, lift)))
+
+
+//! \since build 827
+struct RecordCompressor final
+{
+	using RecordInfo
+		= YSLib::map<lref<Environment>, size_t, ystdex::get_less<>>;
+	using ReferenceSet = set<lref<Environment>, ystdex::get_less<>>;
+
+	//! \since build 894
+	weak_ptr<Environment> RootPtr;
+	ReferenceSet Reachable, NewlyReachable;
+	RecordInfo Universe;
+
+	//! \since build 894
+	RecordCompressor(const shared_ptr<Environment>& p_root)
+		: RecordCompressor(p_root, NPL::Deref(p_root).Bindings.get_allocator())
+	{}
+	//! \since build 894
+	RecordCompressor(const shared_ptr<Environment>& p_root,
+		Environment::allocator_type a)
+		: RootPtr(p_root), Reachable({NPL::Deref(p_root)}, a),
+		NewlyReachable(a), Universe(a)
+	{
+		AddParents(NPL::Deref(p_root));
+	}
+
+	// XXX: All checks rely on recursive calls which do not respect nested
+	//	safety currently.
+	//! \since build 860
+	void
+	AddParents(Environment& e)
+	{
+		Traverse(e, e.Parent,
+			[this](const shared_ptr<Environment>& p_dst, const Environment&){
+			return Universe.emplace(NPL::Deref(p_dst),
+				CountReferences(p_dst)).second;
+		});
+	}
+
+	void
+	Compress();
+
+	//! \since build 894
+	YB_ATTR_nodiscard YB_PURE static size_t
+	CountReferences(const shared_ptr<Environment>& p) ynothrowv
+	{
+		const auto acnt(NPL::Deref(p).GetAnchorCount());
+
+		YAssert(acnt > 0, "Zero anchor count found for environment.");
+		return CountStrong(p) + size_t(acnt) - 2;
+	}
+
+	//! \since build 894
+	YB_ATTR_nodiscard YB_PURE static size_t
+	CountStrong(const shared_ptr<Environment>& p) ynothrowv
+	{
+		const long scnt(p.use_count());
+
+		YAssert(scnt > 0, "Zero shared count found for environment.");
+		return size_t(scnt);
+	}
+
+	//! \since build 882
+	template<typename _fTracer>
+	static void
+	Traverse(Environment& e, ValueObject& parent, const _fTracer& trace)
+	{
+		const auto& tp(parent.type());
+
+		if(tp == ystdex::type_id<EnvironmentList>())
+		{
+			for(auto& vo : parent.GetObject<EnvironmentList>())
+				Traverse(e, vo, trace);
+		}
+		else if(tp == ystdex::type_id<EnvironmentReference>())
+		{
+			if(auto p = parent.GetObject<EnvironmentReference>().Lock())
+				TraverseForSharedPtr(e, parent, trace, p);
+		}
+		else if(tp == ystdex::type_id<shared_ptr<Environment>>())
+		{
+			if(auto p = parent.GetObject<shared_ptr<Environment>>())
+				TraverseForSharedPtr(e, parent, trace, p);
+		}
+	}
+
+private:
+	//! \since build 894
+	template<typename _fTracer>
+	static void
+	TraverseForSharedPtr(Environment& e, ValueObject& parent,
+		const _fTracer& trace, shared_ptr<Environment>& p)
+	{
+		if(ystdex::expand_proxy<void(const shared_ptr<Environment>&,
+			Environment&, ValueObject&)>::call(trace, p, e, parent))
+		{
+			auto& dst(*p);
+
+			// NOTE: The shared pointer should not be locked to ensure it
+			//	neutral to nested calls.
+			p.reset();
+			Traverse(dst, dst.Parent, trace);
+		}
+	}
+};
+
+// NOTE: See $2018-06 @ %Documentation::Workflow and $2019-06 @
+//	%Documentation::Workflow for details.
+//! \since build 861
+inline void
+CompressTCOFrames(ContextNode& ctx, TCOAction& act)
+{
+	auto& record_list(act.RecordList);
+	auto i(record_list.cbegin());
+
+	ystdex::retry_on_cond(ystdex::id<>(), [&]() -> bool{
+		const auto orig_size(record_list.size());
+
+		// NOTE: The following code searches the frames to be removed, in the
+		//	order from new to old. After merging, the guard slot %EnvGuard owns
+		//	the resources of the expression (and its enclosed subexpressions)
+		//	being TCO'd.
+		i = record_list.cbegin();
+		while(i != record_list.cend())
+		{
+			auto& p_frame_env_ref(get<ActiveEnvironmentPtr>(
+				*ystdex::cast_mutable(record_list, i)));
+
+			if(p_frame_env_ref.use_count() != 1
+				|| NPL::Deref(p_frame_env_ref).IsOrphan())
+				// NOTE: The whole frame is to be removed. The function prvalue
+				//	is expected to live only in the subexpression evaluation.
+				//	This has equivalent effects of evlis tail recursion.
+				i = record_list.erase(i);
+			else
+				++i;
+		}
+		return record_list.size() != orig_size;
+	});
+	RecordCompressor(ctx.GetRecordPtr()).Compress();
+}
+
+//! \since build 878
+//@{
+/*!
+\brief 准备 TCO 求值。
+\param ctx 规约上下文。
+\param term 被规约的项。
+\param act TCO 动作。
+*/
+inline TCOAction&
+PrepareTCOEvaluation(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd)
+{
+	auto& act(RefTCOAction(ctx));
+
+	[&]{
+		// NOTE: If there is no environment set in %act.EnvGuard yet, there is
+		//	ideally no need to save the components to the frame record list
+		//	for recursive calls. In such case, each operation making
+		//	potentionally overwriting of %act.LastFunction will always get into
+		//	this call and that time %act.EnvGuard should be set.
+		if(act.EnvGuard.func.SavedPtr)
+		{
+			// NOTE: Operand saving is performed whether the frame compression
+			//	is needed, once there is a saved environment set.
+			if(auto& p_saved = gd.func.SavedPtr)
+			{
+				CompressTCOFrames(ctx, act);
+				act.AddRecord(std::move(p_saved));
+				return;
+			}
+			// XXX: Normally this should not occur, but this is allowed by the
+			//	interface (for an object %EnvironmentSwitcher initialized
+			//	without an environment).
+		}
+		else
+			act.EnvGuard = std::move(gd);
+		act.AddRecord({});
+	}();
+	// NOTE: The lift is handled according to the previous status of
+	//	%act.LiftCallResult, rather than a seperated boolean value (e.g.
+	//	the parameter %no_lift in %RelayForEval).
+	act.HandleResultRequests(term, ctx);
+	return act;
+}
+
+/*!
+\brief 按参数设置 TCO 动作提升请求。
+\param act TCO 动作。
+\param no_lift 指定是否避免保证规约后提升结果。
+*/
+inline void
+SetupTCOLift(TCOAction& act, bool no_lift)
+{
+	// NOTE: The %act.LiftCallResult indicates a request for handling during
+	//	next time (by %TCOAction::HandleResultRequests call above before the
+	//	last one) before %TCOAction is finished. The last request would be
+	//	handled by %TCOAction::operator(), which also calls
+	//	%TCOAction::HandleResultRequests.
+	if(!no_lift)
+		act.RequestLiftResult();
+}
+//@}
+#	else
+//! \since build 879
+ReductionStatus
+MoveGuard(EnvironmentGuard& gd, ContextNode& ctx) ynothrow
+{
+	const auto egd(std::move(gd));
+
+	return ctx.LastStatus;
+}
 #	endif
 #endif
 
@@ -436,6 +622,49 @@ ReduceCurrentNext(TermNode& term, ContextNode& ctx, _fCurrent&& cur,
 #endif
 }
 //@}
+
+//! \since build 878
+template<typename _fNext>
+ReductionStatus
+RelayForEvalOrDirect(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
+	bool no_lift, _fNext&& next)
+{
+	// XXX: For thunked code, %next shall likely be a %Continuation before being
+	//	captured and it is not capturable here. No %SetupNextTerm needs to be
+	//	called here. Otherwise, %next is not a %Contiuation and it shall still
+	//	handle the capture of the term by itself. The %term is optinonally used
+	//	in direct calls instead of the setup next term, while they shall be
+	//	equivalent.
+#if NPL_Impl_NPLA1_Enable_TCO
+	SetupNextTerm(ctx, term);
+	SetupTCOLift(PrepareTCOEvaluation(ctx, term, std::move(gd)), no_lift);
+	return A1::RelayCurrentOrDirect(ctx, yforward(next), term);
+#elif NPL_Impl_NPLA1_Enable_Thunked
+	// TODO: Blocked. Use C++14 lambda initializers to simplify the
+	//	implementation.
+	auto act(std::bind(MoveGuard, std::move(gd), std::placeholders::_1));
+
+	if(no_lift)
+		return ReduceCurrentNext(term, ctx, yforward(next), std::move(act));
+
+	// XXX: Term reused. Call of %SetupNextTerm is not needed as the next
+	//	term is guaranteed not changed when %next is a continuation.
+	Continuation cont([&]{
+		// TODO: Avoid fixed continuation parameter.
+		return ReduceForLiftedResult(term);
+	}, ctx);
+
+	RelaySwitched(ctx, std::move(act));
+	return ReduceCurrentNext(term, ctx, yforward(next), std::move(cont));
+#else
+	yunused(gd);
+	SetupNextTerm(ctx, term);
+
+	const auto res(RelayDirect(ctx, next, term));
+
+	return no_lift ? res : ReduceForLiftedResult(term);
+#endif
+}
 
 
 //! \since build 821

@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20178
+\version r20278
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2020-06-19 19:13 +0800
+	2020-07-04 11:11 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -41,6 +41,39 @@ inline namespace Internals
 
 #if NPL_Impl_NPLA1_Enable_Thunked
 #	if NPL_Impl_NPLA1_Enable_TCO
+ReductionStatus
+TCOAction::operator()(ContextNode& ctx) const
+{
+	YAssert(ystdex::ref_eq<>()(EnvGuard.func.Context.get(), ctx),
+		"Invalid context found.");
+
+	// NOTE: Lifting is optional, but is shall be performed before release
+	//	of guards. See also $2018-02 @ %Documentation::Workflow.
+	const auto res(HandleResultRequests(TermRef, ctx));
+
+	// NOTE: The order here is significant. The environment in the guards
+	//	should be hold until lifting is completed.
+	{
+		const auto egd(std::move(EnvGuard));
+	}
+	while(!xgds.empty())
+		xgds.pop_back();
+	// NOTE: This should be after the guards to ensure there is no term
+	//	references the environment.
+	while(!RecordList.empty())
+	{
+		// NOTE: The order is significant, as %FrameRecord destruction now
+		//	is unspecified, and temporary objects have dependencies on
+		//	environments.
+		auto& front(RecordList.front());
+
+		get<ActiveCombiner>(front) = {};
+		RecordList.pop_front();
+	}
+	return res;
+}
+
+
 TCOAction&
 EnsureTCOAction(ContextNode& ctx, TermNode& term)
 {
@@ -53,6 +86,86 @@ EnsureTCOAction(ContextNode& ctx, TermNode& term)
 	}
 	return NPL::Deref(p);
 }
+
+
+void
+RecordCompressor::Compress()
+{
+	// NOTE: This is need to keep the root as external reference.
+	const auto p_root(NPL::Nonnull(RootPtr.lock()));
+
+	// NOTE: Trace.
+	for(auto& pr : Universe)
+	{
+		auto& e(pr.first.get());
+
+		Traverse(e, e.Parent, [this](const shared_ptr<Environment>& p_dst){
+			auto& count(Universe.at(NPL::Deref(p_dst)));
+
+			YAssert(count > 0, "Invalid count found in trace record.");
+			--count;
+			return false;
+		});
+	}
+	for(auto i(Universe.cbegin()); i != Universe.cend(); )
+		if(i->second > 0)
+		{
+			// TODO: Blocked. Use ISO C++17 container node API for efficient
+			//	implementation.
+			NewlyReachable.insert(i->first);
+			i = Universe.erase(i);
+		}
+		else
+			++i;
+	for(ReferenceSet rs; !NewlyReachable.empty();
+		NewlyReachable = std::move(rs))
+	{
+		for(const auto& e : NewlyReachable)
+			Traverse(e, e.get().Parent,
+				[&](const shared_ptr<Environment>& p_dst) ynothrowv{
+				auto& dst(NPL::Deref(p_dst));
+
+				rs.insert(dst);
+				Universe.erase(dst);
+				return false;
+			});
+		Reachable.insert(std::make_move_iterator(NewlyReachable.begin()),
+			std::make_move_iterator(NewlyReachable.end()));
+		for(auto i(rs.cbegin()); i != rs.cend(); )
+			if(ystdex::exists(Reachable, *i))
+				i = rs.erase(i);
+			else
+				++i;
+	}
+
+	// TODO: Full support of PTC by direct DFS traverse.
+	ReferenceSet accessed;
+
+	ystdex::retry_on_cond(ystdex::id<>(), [&]() -> bool{
+		bool collected = {};
+
+		Traverse(*p_root, p_root->Parent,
+			[&](const shared_ptr<Environment>& p_dst, Environment& src,
+			ValueObject& parent) -> bool{
+			auto& dst(NPL::Deref(p_dst));
+
+			if(accessed.insert(src).second)
+			{
+				if(!ystdex::exists(Universe, ystdex::ref(dst)))
+					return true;
+				// NOTE: Variable %parent can be a single parent in a list
+				//	of parent environments not equal to %src.Parent.
+				// XXX: The envionment would be finally collected after the last
+				//	reference is destroyed. The order of destruction of
+				//	environments is unspecified but determined by the parentage.
+				parent = dst.Parent;
+				collected = true;
+			}
+			return {};
+		});
+		return collected;
+	});
+}
 #	endif
 #endif
 
@@ -64,8 +177,8 @@ FetchTailEnvironmentReference(const TermReference& ref, ContextNode& ctx)
 
 	// NOTE: Unsafe term reference is enforced to be safe with current
 	//	environment as the holder.
-	return r_env.GetAnchorPtr() ? r_env
-		: EnvironmentReference(ctx.GetRecordRef().shared_from_this());
+	return
+		r_env.GetAnchorPtr() ? r_env : EnvironmentReference(ctx.GetRecordPtr());
 }
 
 ReductionStatus

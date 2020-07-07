@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2019 FrankHB.
+	© 2011-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4341
+\version r4355
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2019-11-29 03:22 +0800
+	2019-06-26 16:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -244,15 +244,21 @@ ReadLink(const char* path)
 	{
 		auto n(st.st_size);
 
-		// NOTE: Some file systems like procfs on Linux are not
-		//	conforming to POSIX, thus %st.st_size is not always reliable. In
-		//	most cases, it is 0. Only 0 is currently supported.
+		// NOTE: Some file systems like procfs on Linux are not conforming to
+		//	POSIX, thus %st.st_size is not always reliable. In most cases, it is
+		//	0. Only 0 is currently supported.
 		if(n >= 0)
 		{
-			// FIXME: Blocked. TOCTTOU access.
+			// FIXME: Blocked. TOCTTOU access. The race between %::lstat and
+			//	%::readlink is not fixable solely by '*at' functions of
+			//	POSIX.1-2008.
+			// TODO: Evaluate whether platform-specific extensions can be used
+			//	here. Linux 2.6.39 introduces %O_PATH for %::open. This is
+			//	possible the race with %::fstatfs (since Linux 3.12) and
+			//	%::readlinkat by specifying 'O_PATH | O_NOFOLLOW'. See https://man7.org/linux/man-pages/man2/open.2.html.
 			if(n == 0)
-				// TODO: Use %::pathconf to determine initial length instead
-				//	of magic number.
+				// TODO: Use %::pathconf to determine initial length instead of
+				//	a magic number.
 				n = yimpl(1024);
 			return ystdex::retry_for_vector<string>(size_t(n),
 				[&](string& res, size_t s) -> bool{
@@ -268,7 +274,7 @@ ReadLink(const char* path)
 							" Specified file is not a link.");
 					YCL_RaiseZ_SysE(, err, "::readlink", yfsig);
 					throw std::runtime_error(
-						"Unknown error @ ::readlink.");
+						"Failed reading link: Unknown error.");
 				}
 				if(size_t(r) <= s)
 				{

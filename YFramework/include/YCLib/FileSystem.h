@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3811
+\version r3840
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2020-01-27 15:06 +0800
+	2020-07-08 01:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,14 +58,14 @@ namespace platform
 //! \since build 654
 //@{
 template<typename _tChar>
-yconstfn bool
+YB_ATTR_nodiscard YB_STATELESS yconstfn bool
 IsColon(_tChar c) ynothrow
 {
 	return c == _tChar(':');
 }
 
 template<typename _tChar>
-YB_NONNULL(1) inline const _tChar*
+YB_ATTR_nodiscard YB_PURE YB_NONNULL(1) inline const _tChar*
 FindColon(const _tChar* p) ynothrowv
 {
 	return ystdex::ntctschr(Nonnull(p), _tChar(':'));
@@ -132,7 +132,7 @@ YCL_DefPlatformFwdTmpl(IsSeparator, IsSeparator_P)
 */
 //@{
 template<typename _tChar>
-YB_NONNULL(2) inline bool
+YB_ATTR_nodiscard YB_PURE YB_NONNULL(2) inline bool
 IsAbsolute_P(IDTag<YF_Platform_DS> tag, const _tChar* path) ynothrowv
 {
 	// XXX: Separator used in root.
@@ -140,7 +140,7 @@ IsAbsolute_P(IDTag<YF_Platform_DS> tag, const _tChar* path) ynothrowv
 		platform::IsSeparator_P(tag, Deref(path)) || platform::FindColon(path);
 }
 template<typename _tChar>
-inline bool
+YB_ATTR_nodiscard YB_PURE inline bool
 IsAbsolute_P(IDTag<YF_Platform_DS> tag, basic_string_view<_tChar> path)
 	ynothrowv
 {
@@ -150,14 +150,14 @@ IsAbsolute_P(IDTag<YF_Platform_DS> tag, basic_string_view<_tChar> path)
 		|| path.find(_tChar(':')) != basic_string_view<_tChar>::npos);
 }
 template<typename _tChar>
-YB_NONNULL(2) inline bool
+YB_ATTR_nodiscard YB_PURE YB_NONNULL(2) inline bool
 IsAbsolute_P(IDTag<YF_Platform_Win32> tag, const _tChar* path) ynothrowv
 {
 	return platform::IsSeparator_P(tag, Deref(path))
 		|| (!ystdex::is_null(*path) && IsColon(*++path));
 }
 template<typename _tChar>
-inline bool
+YB_ATTR_nodiscard YB_PURE inline bool
 IsAbsolute_P(IDTag<YF_Platform_Win32> tag, basic_string_view<_tChar> path)
 	ynothrowv
 {
@@ -166,13 +166,13 @@ IsAbsolute_P(IDTag<YF_Platform_Win32> tag, basic_string_view<_tChar> path)
 		&& (platform::IsSeparator_P(tag, path.front()) || IsColon(path[1]));
 }
 template<typename _tChar>
-YB_NONNULL(2) inline bool
+YB_ATTR_nodiscard YB_PURE YB_NONNULL(2) inline bool
 IsAbsolute_P(IDTagBase tag, const _tChar* path) ynothrowv
 {
 	return platform::IsSeparator_P(tag, Deref(path));
 }
 template<typename _tChar>
-inline bool
+YB_ATTR_nodiscard YB_PURE inline bool
 IsAbsolute_P(IDTagBase tag, basic_string_view<_tChar> path) ynothrowv
 {
 	YAssertNonnull(path.data());
@@ -200,7 +200,8 @@ YCL_DefPlatformFwdTmpl(IsAbsolute, IsAbsolute_P)
 */
 //@{
 template<typename _tChar>
-YB_ATTR_returns_nonnull YB_NONNULL(2) inline const _tChar*
+YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_NONNULL(2) YB_PURE inline
+	const _tChar*
 FetchRootNameEnd_P(IDTag<YF_Platform_DS>, const _tChar* path) ynothrowv
 {
 	const auto p(platform::FindColon(path));
@@ -208,13 +209,13 @@ FetchRootNameEnd_P(IDTag<YF_Platform_DS>, const _tChar* path) ynothrowv
 	return p ? p : path;
 }
 template<typename _tChar>
-YB_NONNULL(2) inline const _tChar*
+YB_ATTR_nodiscard YB_PURE YB_NONNULL(2) inline const _tChar*
 FetchRootNameEnd_P(IDTag<YF_Platform_Win32>, const _tChar*) ynothrowv;
 template<class _tTag, typename _tChar>
-typename basic_string_view<_tChar>::const_iterator
+YB_ATTR_nodiscard YB_PURE typename basic_string_view<_tChar>::const_iterator
 FetchRootNameEnd_P(_tTag, basic_string_view<_tChar>) ynothrowv;
 template<typename _tChar>
-YB_NONNULL(2) inline const _tChar*
+YB_ATTR_nodiscard YB_PURE YB_NONNULL(2) inline const _tChar*
 FetchRootNameEnd_P(IDTagBase, const _tChar*) ynothrowv;
 YCL_Impl_DefPlatformStringFwdTmpl(FetchRootNameEnd_P)
 
@@ -227,13 +228,13 @@ YCL_DefPlatformFwdTmpl(FetchRootNameEnd, FetchRootNameEnd_P)
 */
 //@{
 template<typename _tChar>
-YB_NONNULL(2) inline size_t
+YB_ATTR_nodiscard YB_PURE YB_NONNULL(2) inline size_t
 FetchRootNameLength_P(IDTag<YF_Platform_DS> tag, const _tChar* path) ynothrowv
 {
 	return size_t(platform::FetchRootNameEnd_P(tag, path) - path);
 }
 template<typename _tChar>
-size_t
+YB_ATTR_nodiscard YB_PURE size_t
 FetchRootNameLength_P(IDTag<YF_Platform_DS>, basic_string_view<_tChar> path)
 	ynothrowv
 {
@@ -244,7 +245,7 @@ FetchRootNameLength_P(IDTag<YF_Platform_DS>, basic_string_view<_tChar> path)
 	return n != basic_string_view<_tChar>::npos ? n : 0;
 }
 template<typename _tChar>
-YB_NONNULL(2) size_t
+YB_ATTR_nodiscard YB_PURE YB_NONNULL(2) size_t
 FetchRootNameLength_P(IDTag<YF_Platform_Win32> tag, const _tChar* path)
 	ynothrowv
 {
@@ -276,7 +277,7 @@ FetchRootNameLength_P(IDTag<YF_Platform_Win32> tag, const _tChar* path)
 	return 0;
 }
 template<typename _tChar>
-YB_PURE size_t
+YB_ATTR_nodiscard YB_PURE YB_PURE size_t
 FetchRootNameLength_P(IDTag<YF_Platform_Win32> tag,
 	basic_string_view<_tChar> path) ynothrowv
 {
@@ -309,13 +310,13 @@ FetchRootNameLength_P(IDTag<YF_Platform_Win32> tag,
 	return 0;
 }
 template<typename _tChar>
-YB_NONNULL(2) inline size_t
+YB_ATTR_nodiscard YB_PURE YB_NONNULL(2) inline size_t
 FetchRootNameLength_P(IDTagBase tag, const _tChar* path) ynothrowv
 {
 	return platform::IsSeparator_P(tag, Deref(path)) ? 1 : 0;
 }
 template<typename _tChar>
-inline size_t
+YB_ATTR_nodiscard YB_PURE inline size_t
 FetchRootNameLength_P(IDTagBase tag, basic_string_view<_tChar> path)
 	ynothrowv
 {
@@ -332,19 +333,19 @@ YCL_DefPlatformFwdTmpl(FetchRootNameLength, FetchRootNameLength_P)
 //! \since build 836
 //@{
 template<typename _tChar>
-YB_NONNULL(2) inline const _tChar*
+YB_ATTR_nodiscard YB_PURE YB_NONNULL(2) inline const _tChar*
 FetchRootNameEnd_P(IDTag<YF_Platform_Win32> tag, const _tChar* path) ynothrowv
 {
 	return path + platform::FetchRootNameLength_P(tag, path);
 }
 template<class _tTag, typename _tChar>
-typename basic_string_view<_tChar>::const_iterator
+YB_ATTR_nodiscard YB_PURE typename basic_string_view<_tChar>::const_iterator
 FetchRootNameEnd_P(_tTag tag, basic_string_view<_tChar> path) ynothrowv
 {
 	return path.cbegin() + platform::FetchRootNameLength_P(tag, path);
 }
 template<typename _tChar>
-YB_NONNULL(2) inline const _tChar*
+YB_ATTR_nodiscard YB_PURE YB_NONNULL(2) inline const _tChar*
 FetchRootNameEnd_P(IDTagBase tag, const _tChar* path) ynothrowv
 {
 	return path + platform::FetchRootNameLength_P(tag, path);
@@ -356,7 +357,7 @@ FetchRootNameEnd_P(IDTagBase tag, const _tChar* path) ynothrowv
 */
 //@{
 template<typename _tChar>
-YB_NONNULL(2) size_t
+YB_ATTR_nodiscard YB_NONNULL(2) YB_PURE size_t
 FetchRootPathLength_P(IDTag<YF_Platform_DS> tag, const _tChar* path) ynothrowv
 {
 	auto p(platform::FindColon(path));
@@ -368,7 +369,7 @@ FetchRootPathLength_P(IDTag<YF_Platform_DS> tag, const _tChar* path) ynothrowv
 	return size_t(p - path);
 }
 template<typename _tChar>
-size_t
+YB_ATTR_nodiscard YB_PURE size_t
 FetchRootPathLength_P(IDTag<YF_Platform_DS>, basic_string_view<_tChar> path)
 	ynothrowv
 {
@@ -381,7 +382,7 @@ FetchRootPathLength_P(IDTag<YF_Platform_DS>, basic_string_view<_tChar> path)
 	return n != basic_string_view<_tChar>::npos ? n : 0;
 }
 template<typename _tChar>
-YB_NONNULL(2) size_t
+YB_ATTR_nodiscard YB_NONNULL(2) YB_PURE size_t
 FetchRootPathLength_P(IDTag<YF_Platform_Win32> tag, const _tChar* path)
 	ynothrowv
 {
@@ -399,7 +400,7 @@ FetchRootPathLength_P(IDTag<YF_Platform_Win32> tag, const _tChar* path)
 	return l;
 }
 template<typename _tChar>
-size_t
+YB_ATTR_nodiscard YB_PURE size_t
 FetchRootPathLength_P(IDTag<YF_Platform_Win32> tag,
 	basic_string_view<_tChar> path) ynothrowv
 {
@@ -416,13 +417,13 @@ FetchRootPathLength_P(IDTag<YF_Platform_Win32> tag,
 	return l;
 }
 template<typename _tChar>
-YB_NONNULL(2) inline size_t
+YB_ATTR_nodiscard YB_NONNULL(2) YB_PURE inline size_t
 FetchRootPathLength_P(IDTagBase tag, const _tChar* path) ynothrowv
 {
 	return platform::IsSeparator_P(tag, Deref(path)) ? 1 : 0;
 }
 template<typename _tChar>
-inline size_t
+YB_ATTR_nodiscard YB_PURE inline size_t
 FetchRootPathLength_P(IDTagBase tag, basic_string_view<_tChar> path)
 	ynothrowv
 {
@@ -445,7 +446,7 @@ YCL_DefPlatformFwdTmpl(FetchRootPathLength, FetchRootPathLength_P)
 */
 //@{
 template<class _tString>
-yconstfn bool
+YB_ATTR_nodiscard YB_PURE yconstfn bool
 EndsWithNonSeperator_P(IDTagBase tag, const _tString& path) ynothrow
 {
 	return !path.empty() && !platform::IsSeparator_P(tag, path.back());

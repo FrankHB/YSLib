@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r19675
+\version r19827
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-06-25 21:33 +0800
+	2020-07-08 01:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,158 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		+ DD "Doxygen command '\ingroup binary_type_traits'"
+			@ "comment" @ "type trait %HasOwnershipOf" @ %YSLib.Core.YObject,
+		/ %YCLib $=
+		(
+			/ $lib %FileSystem $=
+			(
+				+ $dev 'YB_ATTR_nodiscard YB_STATELESS'
+					@ "function template %IsColon",
+				+ $dev 'YB_ATTR_nodiscard YB_PURE' @ "all explictly declared \
+					function templates %(FindColon, IsAbsolute_P, \
+					FetchRootNameEnd_P, FetchRootPathLength_P, \
+					EndsWithNonSeperator_P)",
+					// Also to eliminate G++ 9.2.1 warning: \
+						[-Wsuggest-attribute=pure].
+				/ $lib @ "exception message on unknown error"
+					@ !"platforms %(YCL_DS, YCL_Win32)" @ "function %ReadLink"
+					@ %FileSystem
+			),
+			/ %Debug $=
+			(
+				* "ill-formed wide string to %std::cout without conversion as \
+					fallback for incomplete output " @ "platform %Win32"
+					@ "function %Echo" @ %YCLib.Debug $since b742,
+					// Also To avoid Microsoft VC++ 2019 16.6.2 \
+						(cl 14.26.28801) error: C2280.
+				/ @ "class %Logger" $=
+				(
+					(
+					+ "functor %Formatter",
+					+ "function template %Trace";
+					+ "function template %TraceFormat"
+					),
+					+ DLDI 'mutable' @ "internal mutex"
+						// This does not prevent 'const' on %DoLog because the \
+							log sender still require non-const '*this'.
+				),
+				/ DLDI "simplified macro %YF_TraceRaw"
+					^ $dep_from "%Logger::TraceFormat" ~ "%YCL_Log",
+				/ DLDI "simplified macro %YF_TraceRawSrc" @ 'YF_Use_TraceSrc'
+					^ ("%LogWithSource", $dep_From "%Logger::Trace")
+					~ "%YCL_Log";
+				- "macro %YCL_Log"
+			),
+			/ $dev "required !'_POSIX_C_SOURCE < 200809L'"
+				@ 'YF_Hosted && YCL_API_POSIXFileSystem' @ %Platform,
+			/ @ "functions %platform_ex::cstat" @ %NativeAPI $=
+			(
+				- DLDI "redundant attributes on definitions",
+				/ @ "overload#2" $=
+				(
+					/ DLDI "simplified" ^ "%YCL_Call_CAPI";
+					* $comp "wrong function" @ "exception" $since b719
+				)
+			)
+		),
+		/ %NPL $=
+		(
+			+ 'using YSLib::Nonnull;' @ %SContext,
+				// Consistent to %YSLib::Deref, though not used in %SContext.
+			/ %NPLA $=
+			(
+				(
+				+ 'ynothrow' @ "all 3 user-provided constructors"
+					@ "class %EnvironmentReference";
+				+ 'ynothrow' @ "all 2 user-provided constructor templates \
+					without 'ynothrow'" @ "class %TermReference"
+				),
+				/ @ "class %ContextNode" $=
+				(
+					/ @ "function %ShareRecord" $=
+					(
+						(
+						/ DLDI "simplified" !^ "%(ContextNode::GetRecordRef, \
+							Environment::shared_from_this)";
+						+ 'ynothrow'
+						),
+						+ $dev $lib 'YB_PURE'
+					),
+					/ @ "function %WeakenRecord" $=
+					(
+						+ 'ynothrow' $dep_from "%EnvironmentReference",
+						+ $dev $lib 'YB_PURE'
+					),
+					+ "function %GetRecordPtr"
+						// This is similar to %ShareRecord, without touching \
+							of the reference count.
+				),
+				/ ("type %NameResolution", "static function %DefaultResolve")
+					^ 'shared_ptr<Environment>' ~ 'Environment&'
+					$dep_to "sharing environments in parameters",
+				(
+				- "base class %enable_shared_from_this<Environment>"
+					@ "class %Environment"
+					($dep_all_from "sharing environments in parameters",
+					"avoiding sharing from enviornments");
+				- $revert(b788) 'using YSLib::enable_shared_from_this;'
+				),
+				(
+				/ "tail action" @ "function %ApplyTail"
+					-> "private data member to be cleanup at %Rewrite";
+					// This is also a bit more efficient.
+				+ "function %GetTailAction"
+				)
+			),
+			/ %NPLA1 $=
+			(
+				* "missing %Guard initialization"
+					@ !'NPL_Impl_NPLA1_Enable_Thunked'
+					@ "constructor %ContextState" $since b892,
+				/ $forced DLDI "function %EvaluateIdentifier"
+					$dep_from ("%PrepareCollapse" @ %NPLA)
+			),
+			/ DLDI ("funcion %FetchTailEnvironmentReference" @ %NPLA1Internal,
+				"functions %Forms::(ForwardListFirst, 'DefineW*', 'SetW*')"
+				@ %NPLA1Forms, "function %SetupTraceDepth" @ %NPLA1)
+				^ $dep_from ("%ContextNode::GetRecordPtr" @ %NPLA)
+				~ "%(ContextNode::GetRecordRef, Environment::shared_from_this)"
+				$dep_to "avoiding sharing from enviornments",
+			/ @ "namespace %Forms" @ %NPLA1Forms $=
+			(
+				/ DLDI "function %ForwardListFirst"
+					^ $dep_from ("%NPL::Nonnull" @ %SContext)
+					$dep_from "avoiding sharing from enviornments",
+				/ $forced DLDI ("functions %(ForwardListFirst, 'DefineW*', \
+					'SetW*')", "%operator()" @ "vau handler")
+					$dep_from ("%BindParameter" @ %NPLA1)
+			),
+			(
+			/ DLDI "simplified common reduction for evaluation"
+				@ %(NPLA1, NPLAForms)
+				$= (/ "common reduction" >> %NPLA1Forms);
+			/ "frame record compressor" @ %NPLA1 $=
+			(
+				* "destruction of collected environment depended universe \
+					insertion order instead of parentage relationships"
+					$orig (@ %NPLA1 $since b827);
+				/ "avoided environment count referenced from environment \
+					objects" $dep_to "avoiding sharing from enviornments"
+			)
+			),
+			/ "environment parameter" @ ("function %PrepareCollapse" @ %NPLA,
+				"function %BindParameter" @ %NPLA1)
+				-> 'const shared_ptr<Environment>&'
+				~ 'Environment&' $dep_to "sharing environments in parameters"
+		)
+	)
+),
+
+b893
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -12647,7 +12799,7 @@ b840
 	)
 ),
 
-b840
+b839
 (
 	/ %YBase.YStandardEx $=
 	(

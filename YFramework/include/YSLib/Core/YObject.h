@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r6169
+\version r6170
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2020-06-12 21:08 +0800
+	2020-06-29 20:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,6 +85,7 @@ struct PointerTag
 
 
 /*!
+\ingroup binary_type_tratis
 \brief 标签类型元运算。
 \since build 218
 */

@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r7687
+\version r7759
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2020-06-25 20:23 +0800
+	2020-07-08 00:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,22 +30,22 @@
 
 #include "YModules.h"
 #include YFM_NPL_SContext // for YSLib::any_ops, YSLib::NodeLiteral, YSLib::any,
-//	YSLib::bad_any_cast, YSLib::enable_shared_from_this, YSLib::in_place_type,
-//	YSLib::lref, YSLib::to_string, NPLTag, string, ValueNode, function,
-//	NPL::GetNodeNameOf, YSLib::IsPrefixedIndex, TraverseSubnodes, TermNode,
-//	YSLib::MakeIndex, std::initializer_list, LoggedEvent, shared_ptr,
+//	YSLib::bad_any_cast, YSLib::in_place_type, YSLib::to_string, NPLTag, string,
+//	ValueNode, function, std::ostream, NPL::GetNodeNameOf,
+//	YSLib::IsPrefixedIndex, TraverseSubnodes, TermNode, YSLib::MakeIndex,
+//	std::initializer_list, LoggedEvent, YSLib::RecordLevel, shared_ptr,
 //	NPL::Deref, ystdex::isdigit, ystdex::is_nothrow_copy_constructible,
 //	ystdex::is_nothrow_copy_assignable, ystdex::is_nothrow_move_constructible,
 //	ystdex::is_nothrow_move_assignable, observer_ptr, ystdex::type_id,
 //	std::addressof, NPL::make_observer, ystdex::equality_comparable, weak_ptr,
-//	ystdex::get_equal_to, pair, ystdex::expand_proxy, NPL::Access,
+//	lref, ystdex::get_equal_to, pair, ystdex::expand_proxy, NPL::Access,
 //	ystdex::ref_eq, ValueObject, NPL::SetContentWith, std::for_each,
 //	AccessFirstSubterm, ystdex::less, YSLib::map, pmr, ystdex::copy_and_swap,
 //	NoContainer, ystdex::try_emplace, ystdex::try_emplace_hint,
 //	ystdex::insert_or_assign, ystdex::type_info, ystdex::expanded_function,
 //	YSLib::forward_list, ystdex::swap_dependent, YSLib::allocate_shared,
-//	ystdex::enable_if_same_param_t, ystdex::exclude_self_t, ystdex::exchange,
-//	ystdex::make_obj_using_allocator;
+//	ystdex::enable_if_same_param_t, ystdex::exclude_self_t,
+//	ystdex::make_obj_using_allocator, ystdex::exchange;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 
 namespace NPL
@@ -67,14 +67,10 @@ using YSLib::NodeLiteral;
 using YSLib::any;
 //! \since build 851
 using YSLib::bad_any_cast;
-//! \since build 788
-//@{
-using YSLib::enable_shared_from_this;
 //! \since build 851
 using YSLib::in_place_type;
 //! \since build 598
 using YSLib::to_string;
-//@}
 
 
 /*!
@@ -1044,14 +1040,16 @@ private:
 public:
 	//! \since build 869
 	DefDeCtor(EnvironmentReference)
+	//! \since build 894
+	//@{
 	//! \brief 构造：使用指定的环境指针和此环境的锚对象指针。
-	EnvironmentReference(const shared_ptr<Environment>&);
+	EnvironmentReference(const shared_ptr<Environment>&) ynothrow;
 	/*!
 	\brief 构造：使用指定的环境指针和锚对象指针。
 	\pre 第二参数表示由环境提供的锚对象指针。
 	*/
 	template<typename _tParam1, typename _tParam2>
-	EnvironmentReference(_tParam1&& arg1, _tParam2&& arg2)
+	EnvironmentReference(_tParam1&& arg1, _tParam2&& arg2) ynothrow
 		: p_weak(yforward(arg1)), p_anchor(yforward(arg2))
 	{
 #if NPL_NPLA_CheckEnvironmentReferenceCount
@@ -1061,11 +1059,12 @@ public:
 #if NPL_NPLA_CheckEnvironmentReferenceCount
 	//! \since build 856
 	//@{
-	EnvironmentReference(const EnvironmentReference& env_ref)
+	EnvironmentReference(const EnvironmentReference& env_ref) ynothrow
 		: p_weak(env_ref.p_weak), p_anchor(env_ref.p_anchor)
 	{
 		ReferenceEnvironmentAnchor();
 	}
+	//@}
 	DefDeMoveCtor(EnvironmentReference)
 
 	~EnvironmentReference();
@@ -1129,24 +1128,29 @@ private:
 public:
 	/*!
 	\brief 构造：使用参数指定的项并自动判断是否使用引用值初始化。
-	\since build 821
+	\since build 894
 	*/
 	template<typename _tParam, typename... _tParams>
 	inline
-	TermReference(TermNode& term, _tParam&& arg, _tParams&&... args)
+	TermReference(TermNode& term, _tParam&& arg, _tParams&&... args) ynothrow
 		: TermReference(TermToTags(term), term, yforward(arg),
 		yforward(args)...)
 	{}
-	//! \since build 857
-	//@{
-	//! \brief 构造：使用参数指定的标签及引用。
+	/*!
+	\brief 构造：使用参数指定的标签及引用。
+	\since build 894
+	*/
 	template<typename _tParam, typename... _tParams>
 	inline
 	TermReference(TermTags t, TermNode& term, _tParam&& arg, _tParams&&... args)
+		ynothrow
 		: term_ref(term), tags(t),
 		r_env(yforward(arg), yforward(args)...)
 	{}
-	//! \brief 构造：使用参数指定的标签及现有的项引用。
+	/*!
+	\brief 构造：使用参数指定的标签及现有的项引用。
+	\since build 857
+	*/
 	//@{
 	TermReference(TermTags t, const TermReference& ref) ynothrow
 		: term_ref(ref.term_ref), tags(t), r_env(ref.r_env)
@@ -1154,7 +1158,6 @@ public:
 	TermReference(TermTags t, TermReference&& ref) ynothrow
 		: term_ref(ref.term_ref), tags(t), r_env(std::move(ref.r_env))
 	{}
-	//@}
 	//@}
 	//! \since build 855
 	DefDeCopyMoveCtorAssignment(TermReference)
@@ -1264,8 +1267,9 @@ Collapse(TermReference);
 
 /*!
 \brief 准备折叠项引用。
+\pre 间接断言：第一参数不指定引用值时第二参数非空。
 \sa Environment::MakeTermTags
-\since build 876
+\since build 894
 
 返回由以下方式确定的引用项：
 当第一参数表示项引用时，返回这个引用项；
@@ -1276,7 +1280,7 @@ Collapse(TermReference);
 第二参数指定通过参数初始化项引用时关联的环境。
 */
 YB_ATTR_nodiscard YF_API TermNode
-PrepareCollapse(TermNode&, Environment&);
+PrepareCollapse(TermNode&, const shared_ptr<Environment>&);
 //@}
 
 /*!
@@ -2041,8 +2045,7 @@ using EnvironmentList = vector<ValueObject>;
 \warning 避免 shared_ptr 析构方式不兼容的初始化。
 \since build 787
 */
-class YF_API Environment : private ystdex::equality_comparable<Environment>,
-	public enable_shared_from_this<Environment>
+class YF_API Environment : private ystdex::equality_comparable<Environment>
 {
 public:
 	// TODO: Wait for %unordered_set to support transparent keys.
@@ -2055,7 +2058,7 @@ public:
 	名称解析的返回结果是环境中的绑定目标的对象指针和直接保存绑定目标的环境的引用。
 	*/
 	using NameResolution
-		= pair<observer_ptr<BindingMap::mapped_type>, lref<Environment>>;
+		= pair<observer_ptr<BindingMap::mapped_type>, shared_ptr<Environment>>;
 	/*!
 	\brief 分配器类型。
 	\note 支持 uses-allocator 构造。
@@ -2138,8 +2141,7 @@ public:
 	//! \since build 847
 	//@{
 	Environment(const Environment& e)
-		: enable_shared_from_this<Environment>(e),
-		Bindings(e.Bindings), Parent(e.Parent)
+		: Bindings(e.Bindings), Parent(e.Parent)
 	{}
 	DefDeMoveCtor(Environment)
 
@@ -2229,12 +2231,11 @@ public:
 			yforward(tm)).first).second;
 	}
 
-	//! \since build 798
-	//@{
 	/*!
 	\brief 检查可作为父环境的宿主对象。
 	\note 若存在父环境，首先对父环境递归检查。
 	\exception NPLException 异常中立：由 ThrowForInvalidType 抛出。
+	\since build 798
 	\todo 使用专用的异常类型。
 	*/
 	static void
@@ -2247,7 +2248,6 @@ public:
 	*/
 	static bool
 	Deduplicate(BindingMap&, const BindingMap&);
-	//@}
 
 	/*!
 	\pre 断言：第一参数的数据指针非空。
@@ -2540,13 +2540,13 @@ public:
 	/*!
 	\brief 解析名称：处理保留名称并查找名称。
 	\return 查找到的名称，或查找失败时的空值。
-	\pre 实现断言：第二参数的数据指针非空。
+	\pre 实现断言：第一参数和第二参数的数据指针非空。
 	\exception NPLException 对实现异常中立的未指定派生类型的异常。
 	\note 失败时若抛出异常，条件由实现定义。
 	\sa LookupName
 	\sa NameResolution
 	\sa Environment::Parent
-	\since build 883
+	\since build 894
 
 	解析指定环境中的名称。
 	值指定的实现可被改变，应符合以下描述中的要求。
@@ -2569,7 +2569,7 @@ public:
 		此后，名称解析最终应失败或不终止。
 	若使用被解析的对象的循环引用，可在对象语言中引起未定义行为。
 	*/
-	function<Environment::NameResolution(Environment&, string_view)>
+	function<Environment::NameResolution(shared_ptr<Environment>, string_view)>
 		Resolve{DefaultResolve};
 
 private:
@@ -2593,6 +2593,11 @@ private:
 	*/
 	ReducerSequence stacked{current.get_allocator()};
 	//@}
+	/*!
+	\brief 尾动作。
+	\since build 894
+	*/
+	Reducer tail_action{};
 
 public:
 	/*!
@@ -2661,14 +2666,25 @@ public:
 		CurrentActionType, IsAlive() ? current.front().target_type()
 		: ystdex::type_id<void>())
 	//@}
+	//! \since build 845
+	DefGetter(const ynothrow, pmr::memory_resource&, MemoryResourceRef,
+		memory_rsrc)
 	/*!
 	\brief 取环境记录引用。
 	\since build 788
 	*/
 	DefGetter(const ynothrow, Environment&, RecordRef, *p_record)
-	//! \since build 845
-	DefGetter(const ynothrow, pmr::memory_resource&, MemoryResourceRef,
-		memory_rsrc)
+	/*!
+	\brief 取环境记录指针的引用。
+	\since build 894
+	*/
+	DefGetter(const ynothrow, const shared_ptr<Environment>&, RecordPtr,
+		p_record)
+	/*!
+	\brief 取尾动作。
+	\since build 894
+	*/
+	DefGetter(const ynothrow, const Reducer&, TailAction, tail_action)
 
 	/*!
 	\brief 访问指定类型的当前动作目标。
@@ -2705,7 +2721,7 @@ public:
 	\sa Environment::Parent
 	\sa NPL_NPLA_CheckParentEnvironment
 	\sa Resolve
-	\since build 869
+	\since build 894
 
 	按默认环境解析规则解析名称。
 	局部解析失败时，重定向解析 Parent 储存的对象作为父环境的引用值。
@@ -2722,7 +2738,7 @@ public:
 	循环重定向不终止。
 	*/
 	YB_ATTR_nodiscard static Environment::NameResolution
-	DefaultResolve(Environment&, string_view);
+	DefaultResolve(shared_ptr<Environment>, string_view);
 
 	/*!
 	\brief 重写项。
@@ -2810,9 +2826,10 @@ public:
 		ImplRet(YAssertNonnull(p_env), ystdex::exchange(p_record, p_env))
 	//@}
 
-	//! \since build 788
-	YB_ATTR_nodiscard PDefH(shared_ptr<Environment>, ShareRecord, ) const
-		ImplRet(GetRecordRef().shared_from_this())
+	//! \since build 894
+	YB_ATTR_nodiscard YB_PURE
+		PDefH(shared_ptr<Environment>, ShareRecord, ) const ynothrow
+		ImplRet(p_record)
 
 	/*!
 	\brief 顺序移除当前动作序列中的所有动作。
@@ -2821,8 +2838,9 @@ public:
 	PDefH(void, UnwindCurrent, ) ynothrow
 		ImplExpr(current.clear())
 
-	//! \since build 823
-	YB_ATTR_nodiscard PDefH(EnvironmentReference, WeakenRecord, ) const
+	//! \since build 894
+	YB_ATTR_nodiscard YB_PURE
+		PDefH(EnvironmentReference, WeakenRecord, ) const ynothrow
 		// TODO: Blocked. Use C++17 %weak_from_this to get more efficient
 		//	implementation.
 		ImplRet(ShareRecord())
@@ -2954,7 +2972,7 @@ EmplaceLeaf(ContextNode& ctx, string_view name, _tParams&&... args)
 */
 YB_ATTR_nodiscard inline PDefH(Environment::NameResolution, ResolveName,
 	const ContextNode& ctx, string_view id)
-	ImplRet(YAssertNonnull(id.data()), ctx.Resolve(ctx.GetRecordRef(), id))
+	ImplRet(YAssertNonnull(id.data()), ctx.Resolve(ctx.GetRecordPtr(), id))
 
 /*!
 \brief 解析标识符：解析名称并折叠引用。

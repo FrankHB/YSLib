@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r857
+\version r934
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2020-04-19 03:24 +0800
+	2020-06-29 22:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,6 +96,23 @@ Echo(string_view) ynoexcept(YF_Platform == YF_Platform_DS);
 class YF_API Logger
 {
 public:
+	/*!
+	\ingroup functors
+	\brief 日志格式化器。
+	\since build 894
+	*/
+	template<class _tString = platform::string>
+	struct Formatter
+	{
+		using value_type = _tString;
+
+		template<typename... _tParams>
+		inline value_type
+		operator()(_tParams&&... args)
+		{
+			return ystdex::sfmt<value_type>(yforward(args)...);
+		}
+	};
 	using Level = Descriptions::RecordLevel;
 	using Filter = ystdex::function<bool(Level, Logger&)>;
 	//! \note 传递的第三参数非空。
@@ -115,12 +132,12 @@ private:
 	Sender sender{FetchDefaultSender()};
 	/*!
 	\brief 日志记录互斥量。
-	\since build 551
+	\since build 894
 
 	仅 DoLog 和 DoLogException 在发送日志时使用的锁。
 	使用递归锁以允许用户在发送器中间接递归调用 DoLog 和 DoLogException 。
 	*/
-	Concurrency::recursive_mutex record_mutex{};
+	mutable Concurrency::recursive_mutex record_mutex{};
 
 public:
 	//! \since build 803
@@ -247,6 +264,12 @@ public:
 	static Sender
 	FetchDefaultSender(string_view = "YFramework");
 
+	/*!
+	\brief 以参数指定的等级和调用结果记录日志。
+	\note 第一参数指定的等级决定过滤条件。	日志内容由第一参数以外的参数调用决定。
+
+	若符合过滤条件，则调用 DoLog 记录日志。
+	*/
 	template<typename _fCaller, typename... _tParams>
 	void
 	Log(Level level, _fCaller&& f, _tParams&&... args)
@@ -280,6 +303,41 @@ public:
 	//@}
 
 	/*!
+	\note 第一参数指定的等级决定过滤条件。	日志内容由第一参数以外的参数调用决定。
+	\sa Log
+	\sa LogFailure
+	\since build 894
+	*/
+	//@{
+	/*!
+	\brief 以参数指定的等级和参数指定的函数调用结果记录日志并保证无异常抛出。
+
+	调用 Log 记录日志。
+	若抛出异常，则捕获并使用 LogFilure 记录失败。
+	*/
+	template<typename _fCaller, typename... _tParams>
+	inline void
+	Trace(Level level, _fCaller&& f, _tParams&&... args) ynothrow
+	{
+		TryExpr(Log(level, yforward(f), yforward(args)...))
+		CatchExpr(..., LogFailure())
+	}
+
+	/*!
+	\brief 以参数指定的等级和参数指定的格式记录日志并保证无异常抛出。
+
+	调用 Log 记录日志。
+	若抛出异常，则捕获并使用 LogFilure 记录失败。
+	*/
+	template<typename... _tParams>
+	inline void
+	TraceFormat(Level level, _tParams&&... args) ynothrow
+	{
+		Trace(level, Formatter<>(), yforward(args)...);
+	}
+	//@}
+
+	/*!
 	\brief 交换：交换所有互斥量以外的数据成员。
 	\since build 804
 	*/
@@ -308,43 +366,28 @@ LogWithSource(const char*, int, const char*, ...);
 
 
 /*!
-\brief 使用公共日志记录器记录日志格式字符串。
-\note 支持格式同 std::fprintf 。
-\note 使用 FetchCommonLogger 保证串行输出。
-\since build 498
+\note 使用 FetchCommonLogger 保证串行输出
+\note 无异常抛出。
 */
-#define YCL_Log(_lv, ...) \
-	platform::FetchCommonLogger().Log( \
-		platform::Descriptions::RecordLevel(_lv), __VA_ARGS__)
-
-//! \note 无异常抛出。
 //@{
 /*!
-\brief YFramework 跟踪。
-\note 直接按格式字符串的输出跟踪，不带源代码信息。
+\brief YFramework 直接日志追踪。
+\note 直接按格式字符串的输出追踪，不带源代码信息。
 \since build 724
 */
 #define YF_TraceRaw(_lv, ...) \
-	[&]() ynothrow{ \
-		TryExpr(YCL_Log(_lv, [&]{ \
-			return ystdex::sfmt<platform::string>(__VA_ARGS__); \
-		})) \
-		CatchExpr(..., platform::Logger::LogFailure()) \
-	}()
+	platform::FetchCommonLogger().TraceFormat( \
+		platform::Descriptions::RecordLevel(_lv), __VA_ARGS__) \
 
 /*!
 \def YF_Trace
-\brief YCLib 默认调试跟踪。
+\brief YCLib 默认调试日志追踪。
 \since build 724
 */
 #if YF_Use_TraceSrc
 #	define YF_Trace(_lv, ...) \
-	[&]() ynothrow{ \
-		TryExpr(YCL_Log(_lv, [&]{ \
-			return platform::LogWithSource(__FILE__, __LINE__, __VA_ARGS__); \
-		})) \
-		CatchExpr(..., platform::Logger::LogFailure()) \
-	}()
+	platform::FetchCommonLogger().Trace(platform::Descriptions::RecordLevel( \
+		_lv), platform::LogWithSource, __FILE__, __LINE__, __VA_ARGS__)
 #else
 #	define YF_Trace(_lv, ...) YF_TraceRaw(_lv, __VA_ARGS__)
 #endif

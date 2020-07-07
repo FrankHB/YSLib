@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2019 FrankHB.
+	© 2012-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1107
+\version r1115
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-26 13:36:28 +0800
 \par 修改时间:
-	2019-09-06 00:32 +0800
+	2020-06-26 15:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,7 +71,7 @@ namespace
 namespace platform_ex
 {
 
-YF_API YB_NONNULL(2) void
+void
 cstat(struct ::stat& st, const char* path, bool follow_link, const char* sig)
 {
 	const int res(estat(st, path, follow_link));
@@ -91,14 +91,10 @@ cstat(struct ::stat& st, const char* path, bool follow_link, const char* sig)
 void
 cstat(struct ::stat& st, int fd, const char* sig)
 {
-	const int res(::fstat(fd, &st));
-
-	if(res < 0)
-		YCL_Raise_SysE(, "::stat", sig);
+	YCL_Call_CAPI(, ::fstat, sig, fd, &st);
 }
 
-
-YB_NONNULL(2) int
+int
 estat(struct ::stat& st, const char* path, bool follow_link) ynothrowv
 {
 	using platform::Nonnull;
@@ -126,7 +122,7 @@ FileSystem::FileSystem(size_t pages)
 	: root([pages]() ynothrow -> RootKind{
 		const auto init([=](const char* name, const ::DISC_INTERFACE& disc_io)
 			ynothrow -> bool{
-			// NOTE: %DEFAULT_SECTORS_PAGE is 8 in "common.h" in libfat source.
+			// NOTE: %DEFAULT_SECTORS_PAGE is 8 in "common.h" in LibFAT source.
 			//	This is also the minimal value used by the cache. So the shift
 			//	is 3.
 			TryRet(platform_ex::FAT::Mount(name, disc_io, 0, pages, 3))
@@ -166,7 +162,7 @@ FileSystem::FileSystem(size_t pages)
 		throw std::runtime_error("Failed initializing file system.");
 	}())
 {
-	// NOTE: No %ARGV_MAGIC here as libfat does.
+	// NOTE: No %ARGV_MAGIC here as LibFAT does.
 	// NOTE: Call of %::chdir also sets default device in I/O support code. This
 	//	enables relative paths available for %::GetDeviceOpTab and
 	//	%platform_ex::FAT::FetchPartitionFromPath for platform %DS.

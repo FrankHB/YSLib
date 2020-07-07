@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r18175
+\version r18527
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2020-06-23 10:11 +0800
+	2020-07-05 15:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,8 +33,6 @@
 //	Environment, lref, list, IsBranchedList, TokenValue, NPL::TryAccessLeaf,
 //	ValueObject, any_ops::use_holder, weak_ptr, ystdex::type_id,
 //	YSLib::allocate_shared, InvalidReference, MoveFirstSubterm, ShareMoveTerm,
-//	ystdex::get_less, map, set, std::make_move_iterator, ystdex::exists,
-//	ystdex::retry_on_cond, ystdex::id, ystdex::ref, ystdex::id,
 //	ystdex::expand_proxy, ystdex::cast_mutable, RelaySwitched,
 //	ReduceCombinedBranch, ResolvedTermReferencePtr, LiftOtherOrCopy,
 //	NPL::IsMovable, ResolveTerm, NPL::Access, ystdex::equality_comparable,
@@ -281,16 +279,17 @@ private:
 	unordered_map<string, shared_ptr_t> store{};
 
 public:
-	//! \since build 840
-	lref<Environment> Record;
+	//! \since build 894
+	shared_ptr<Environment> RecordPtr;
 	//! \since build 893
 	lref<const TermNode> TermRef;
 
-	//! \since build 868
-	RecursiveThunk(Environment& env, const TermNode& t)
-		: Record(env), TermRef(t)
+	//! \since build 894
+	RecursiveThunk(const shared_ptr<Environment>& p_env, const TermNode& t)
+		ynothrow
+		: RecordPtr(p_env), TermRef(t)
 	{
-		Fix(Record, TermRef);
+		Fix(RecordPtr, TermRef);
 	}
 	//! \since build 841
 	DefDeMoveCtor(RecursiveThunk)
@@ -301,11 +300,13 @@ public:
 private:
 	//! \since build 853
 	void
-	Fix(Environment& env, const TermNode& t)
+	Fix(const shared_ptr<Environment>& p_env, const TermNode& t)
 	{
+		auto& env(NPL::Deref(p_env));
+
 		if(IsBranchedList(t))
 			for(const auto& tm : t)
-				Fix(env, tm);
+				Fix(p_env, tm);
 		else if(const auto p = NPL::TryAccessLeaf<TokenValue>(t))
 		{
 			const auto& n(*p);
@@ -325,11 +326,13 @@ private:
 
 	//! \since build 787
 	void
-	Restore(Environment& env, const TermNode& t)
+	Restore(const shared_ptr<Environment>& p_env, const TermNode& t)
 	{
+		auto& env(NPL::Deref(p_env));
+
 		if(IsBranchedList(t))
 			for(const auto& tm : t)
-				Restore(env, tm);
+				Restore(p_env, tm);
 		else if(const auto p = NPL::TryAccessLeaf<TokenValue>(t))
 			FilterExceptions([&]{
 				const auto& n(*p);
@@ -348,7 +351,7 @@ private:
 							//	to simplify the implementation.
 							NPL::Deref(p_strong) = std::bind(RestoredThunk,
 								std::placeholders::_1, std::placeholders::_2, n,
-								env.shared_from_this());
+								p_env);
 						// NOTE: Entry shall be removed to prevent duplicate
 						//	symbol access to state after being moved.
 						store.erase(i);
@@ -382,19 +385,19 @@ private:
 
 public:
 	PDefH(void, Commit, )
-		ImplExpr(Restore(Record, TermRef))
+		ImplExpr(Restore(RecordPtr, TermRef))
 };
 
 
-//! \since build 868
-//@{
-YB_ATTR_nodiscard inline PDefH(Environment&, FetchDefineOrSetEnvironment,
-	ContextNode& ctx) ynothrow
-	ImplRet(ctx.GetRecordRef())
-//! \since build 872
-YB_ATTR_nodiscard inline PDefH(Environment&, FetchDefineOrSetEnvironment,
-	ContextNode&, const shared_ptr<Environment>& p_env)
-	ImplRet(Environment::EnsureValid(p_env))
+//! \since build 894
+YB_ATTR_nodiscard inline PDefH(const shared_ptr<Environment>&,
+	FetchDefineOrSetEnvironment, ContextNode& ctx) ynothrow
+	ImplRet(ctx.GetRecordPtr())
+//! \since build 894
+YB_ATTR_nodiscard inline PDefH(const shared_ptr<Environment>&,
+	FetchDefineOrSetEnvironment, ContextNode&,
+	const shared_ptr<Environment>& p_env)
+	ImplRet(Environment::EnsureValid(p_env), p_env)
 
 //! \since build 888
 YB_NORETURN inline void
@@ -404,6 +407,8 @@ ThrowInsufficientTermsErrorFor(InvalidSyntax&& e)
 	CatchExpr(..., std::throw_with_nested(std::move(e)))
 }
 
+//! \since build 868
+//@{
 template<typename _func>
 auto
 DoDefineSet(TermNode& term, size_t n, _func f) -> decltype(f())
@@ -463,35 +468,37 @@ DoSet(TermNode& term, ContextNode& ctx, _func f)
 template<bool = false>
 struct DoDefineOrSet final
 {
+	//! \since build 894
 	template<typename... _tParams>
 	static ReductionStatus
-	Call(TermNode& term, ContextNode& ctx, Environment& env,
+	Call(TermNode& term, ContextNode& ctx, shared_ptr<Environment> p_env,
 		TermNode& formals, _tParams&&... args)
 	{
 #if NPL_Impl_NPLA1_Enable_Thunked
 		// XXX: Terms shall be moved and saved into the actions.
 		// TODO: Blocked. Use C++14 lambda initializers to simplify
 		//	implementation.
-		return ReduceSubsequent(term, ctx,
-			std::bind([&](const TermNode& saved, const _tParams&...){
-			BindParameter(env, saved, term);
+		return ReduceSubsequent(term, ctx, std::bind([&](const TermNode& saved,
+			const shared_ptr<Environment>& p_e, const _tParams&...){
+			BindParameter(p_e, saved, term);
 			return ReduceReturnUnspecified(term);
-		}, std::move(formals), std::move(args)...));
+		}, std::move(formals), std::move(p_env), std::move(args)...));
 #else
 		yunseq(0, args...);
 		// NOTE: This does not support PTC.
-		CallImpl(term, ctx, env, formals);
+		CallImpl(term, ctx, p_env, formals);
 		return ReduceReturnUnspecified(term);
 #endif
 	}
 
 #if !NPL_Impl_NPLA1_Enable_Thunked
+	//! \since build 894
 	static void
-	CallImpl(TermNode& term, ContextNode& ctx, Environment& env,
-		TermNode& formals)
+	CallImpl(TermNode& term, ContextNode& ctx,
+		const shared_ptr<Environment>& p_env, TermNode& formals)
 	{
 		ReduceOnce(term, ctx);
-		BindParameter(env, formals, term);
+		BindParameter(p_env, formals, term);
 	}
 #endif
 };
@@ -499,9 +506,10 @@ struct DoDefineOrSet final
 template<>
 struct DoDefineOrSet<true> final
 {
+	//! \since build 894
 	template<typename... _tParams>
 	static ReductionStatus
-	Call(TermNode& term, ContextNode& ctx, Environment& env,
+	Call(TermNode& term, ContextNode& ctx, shared_ptr<Environment> p_env,
 		TermNode& formals, _tParams&&... args)
 	{
 #if NPL_Impl_NPLA1_Enable_Thunked
@@ -511,22 +519,23 @@ struct DoDefineOrSet<true> final
 		// TODO: Avoid %shared_ptr.
 		// TODO: Blocked. Use C++14 lambda initializers to simplify
 		//	implementation.
-		return ReduceSubsequent(term, ctx,
-			std::bind([&](const shared_ptr<TermNode>&,
-			const shared_ptr<RecursiveThunk>& p_gd, const _tParams&...){
-			BindParameter(env, p_gd->TermRef, term);
+		return ReduceSubsequent(term, ctx, std::bind([&](const
+			shared_ptr<TermNode>&, const shared_ptr<RecursiveThunk>& p_gd,
+			const _tParams&...){
+			BindParameter(p_gd->RecordPtr, p_gd->TermRef, term);
 			// NOTE: This cannot support PTC because only the implicit commit
 			//	operation is in the tail context.
 			p_gd->Commit();
 			return ReduceReturnUnspecified(term);
 		}, std::move(p_saved), YSLib::allocate_shared<RecursiveThunk>(
-			term.get_allocator(), env, *p_saved), std::move(args)...));
+			term.get_allocator(), std::move(p_env), *p_saved),
+			std::move(args)...));
 #else
 		// NOTE: This does not support PTC.
-		RecursiveThunk gd(env, formals);
+		RecursiveThunk gd(std::move(p_env), formals);
 
 		yunseq(0, args...);
-		DoDefineOrSet<>::CallImpl(term, ctx, env, formals);
+		DoDefineOrSet<>::CallImpl(term, ctx, gd.RecordPtr, formals);
 		// NOTE: This cannot support PTC because only the implicit commit
 		//	operation is in the tail context.
 		gd.Commit();
@@ -601,320 +610,9 @@ CheckEnvFormal(const TermNode& eterm)
 	return {};
 }
 
-#if NPL_Impl_NPLA1_Enable_TCO
-//! \since build 827
-struct RecordCompressor final
-{
-	using RecordInfo = map<lref<Environment>, size_t, ystdex::get_less<>>;
-	using ReferenceSet = set<lref<Environment>, ystdex::get_less<>>;
-
-	// XXX: The order of destruction is unspecified.
-	vector<shared_ptr<Environment>> Collected;
-	lref<Environment> Root;
-	ReferenceSet Reachable, NewlyReachable;
-	RecordInfo Universe;
-
-	RecordCompressor(Environment& root)
-		: RecordCompressor(root, root.Bindings.get_allocator())
-	{}
-	//! \since build 851
-	RecordCompressor(Environment& root, Environment::allocator_type a)
-		: Collected(a), Root(root), Reachable({root}, a), NewlyReachable(a),
-		Universe(a)
-	{
-		AddParents(root);
-	}
-
-	// XXX: All checks rely on recursive calls which do not respect nested
-	//	safety currently.
-	//! \since build 860
-	void
-	AddParents(Environment& e)
-	{
-		Traverse(e, e.Parent, [this](Environment& dst, const Environment&){
-			return Universe.emplace(dst, CountReferences(dst)).second;
-		});
-	}
-
-	void
-	Compress()
-	{
-		// NOTE: This is need to keep the root as external reference.
-		const auto p_root(Root.get().shared_from_this());
-
-		// NOTE: Trace.
-		for(auto& pr : Universe)
-		{
-			auto& e(pr.first.get());
-
-			Traverse(e, e.Parent, [this](Environment& dst){
-				auto& count(Universe.at(dst));
-
-				YAssert(count > 0, "Invalid count found in trace record.");
-				--count;
-				return false;
-			});
-		}
-		for(auto i(Universe.cbegin()); i != Universe.cend(); )
-			if(i->second > 0)
-			{
-				// TODO: Blocked. Use ISO C++17 container node API for efficient
-				//	implementation.
-				NewlyReachable.insert(i->first);
-				i = Universe.erase(i);
-			}
-			else
-				++i;
-		for(ReferenceSet rs; !NewlyReachable.empty();
-			NewlyReachable = std::move(rs))
-		{
-			for(const auto& e : NewlyReachable)
-				Traverse(e, e.get().Parent, [&](Environment& dst) ynothrow{
-					rs.insert(dst);
-					Universe.erase(dst);
-					return false;
-				});
-			Reachable.insert(std::make_move_iterator(NewlyReachable.begin()),
-				std::make_move_iterator(NewlyReachable.end()));
-			for(auto i(rs.cbegin()); i != rs.cend(); )
-				if(ystdex::exists(Reachable, *i))
-					i = rs.erase(i);
-				else
-					++i;
-		}
-		// NOTE: Move to collect.
-		for(const auto& pr : Universe)
-			// XXX: The envionment would be finally collected after the last
-			//	reference is destroyed.
-			Collected.push_back(pr.first.get().shared_from_this());
-
-		// TODO: Full support of PTC by direct DFS traverse.
-		ReferenceSet accessed;
-
-		ystdex::retry_on_cond(ystdex::id<>(), [&]() -> bool{
-			bool collected = {};
-
-			Traverse(Root, Root.get().Parent, [&](Environment& dst,
-				Environment& src, ValueObject& parent) -> bool{
-				if(accessed.insert(src).second)
-				{
-					if(!ystdex::exists(Universe, ystdex::ref(dst)))
-						return true;
-					// NOTE: Variable %parent can be a single parent in a list
-					//	of parent environments not equal to %src.Parent.
-					parent = dst.Parent;
-					collected = true;
-				}
-				return {};
-			});
-			return collected;
-		});
-	}
-
-	static size_t
-	CountReferences(const Environment& e) ynothrowv
-	{
-		const auto acnt(e.GetAnchorCount());
-
-		YAssert(acnt > 0, "Zero anchor count found for environment.");
-		return CountStrong(e.shared_from_this()) + size_t(acnt) - 2;
-	}
-
-	static size_t
-	CountStrong(const shared_ptr<const Environment>& p) ynothrowv
-	{
-		const long scnt(p.use_count());
-
-		YAssert(scnt > 0, "Zero shared count found for environment.");
-		return size_t(scnt);
-	}
-
-	//! \since build 882
-	template<typename _fTracer>
-	static void
-	Traverse(Environment& e, ValueObject& parent, const _fTracer& trace)
-	{
-		using proxy_t = ystdex::expand_proxy<void(Environment&, Environment&,
-			ValueObject&)>;
-		const auto& tp(parent.type());
-
-		if(tp == ystdex::type_id<EnvironmentList>())
-		{
-			for(auto& vo : parent.GetObject<EnvironmentList>())
-				Traverse(e, vo, trace);
-		}
-		else if(tp == ystdex::type_id<EnvironmentReference>())
-		{
-			// XXX: The shared pointer should not be locked to ensure it neutral
-			//	to nested calls.
-			if(const auto p
-				= parent.GetObject<EnvironmentReference>().Lock().get())
-				if(proxy_t::call(trace, *p, e, parent))
-					Traverse(*p, p->Parent, trace);
-		}
-		else if(tp == ystdex::type_id<shared_ptr<Environment>>())
-		{
-			// NOTE: The reference counts should not be effected here.
-			if(const auto p = parent.GetObject<shared_ptr<Environment>>().get())
-				if(proxy_t::call(trace, *p, e, parent))
-					Traverse(*p, p->Parent, trace);
-		}
-	}
-};
-
-// NOTE: See $2018-06 @ %Documentation::Workflow and $2019-06 @
-//	%Documentation::Workflow for details.
-//! \since build 861
-void
-CompressTCOFrames(ContextNode& ctx, TCOAction& act)
-{
-	auto& record_list(act.RecordList);
-	auto i(record_list.cbegin());
-
-	ystdex::retry_on_cond(ystdex::id<>(), [&]() -> bool{
-		const auto orig_size(record_list.size());
-
-		// NOTE: The following code searches the frames to be removed, in the
-		//	order from new to old. After merging, the guard slot %EnvGuard owns
-		//	the resources of the expression (and its enclosed subexpressions)
-		//	being TCO'd.
-		i = record_list.cbegin();
-		while(i != record_list.cend())
-		{
-			auto& p_frame_env_ref(get<ActiveEnvironmentPtr>(
-				*ystdex::cast_mutable(record_list, i)));
-
-			if(p_frame_env_ref.use_count() != 1
-				|| NPL::Deref(p_frame_env_ref).IsOrphan())
-				// NOTE: The whole frame is to be removed. The function prvalue
-				//	is expected to live only in the subexpression evaluation.
-				//	This has equivalent effects of evlis tail recursion.
-				i = record_list.erase(i);
-			else
-				++i;
-		}
-		return record_list.size() != orig_size;
-	});
-	RecordCompressor(ctx.GetRecordRef()).Compress();
-}
-
-//! \since build 878
-//@{
-/*!
-\brief 准备 TCO 求值。
-\param ctx 规约上下文。
-\param term 被规约的项。
-\param act TCO 动作。
-*/
-TCOAction&
-PrepareTCOEvaluation(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd)
-{
-	auto& act(RefTCOAction(ctx));
-
-	[&]{
-		// NOTE: If there is no environment set in %act.EnvGuard yet, there is
-		//	ideally no need to save the components to the frame record list
-		//	for recursive calls. In such case, each operation making
-		//	potentionally overwriting of %act.LastFunction will always get into
-		//	this call and that time %act.EnvGuard should be set.
-		if(act.EnvGuard.func.SavedPtr)
-		{
-			// NOTE: Operand saving is performed whether the frame compression
-			//	is needed, once there is a saved environment set.
-			if(auto& p_saved = gd.func.SavedPtr)
-			{
-				CompressTCOFrames(ctx, act);
-				act.AddRecord(std::move(p_saved));
-				return;
-			}
-			// XXX: Normally this should not occur, but this is allowed by the
-			//	interface (for an object %EnvironmentSwitcher initialized
-			//	without an environment).
-		}
-		else
-			act.EnvGuard = std::move(gd);
-		act.AddRecord({});
-	}();
-	// NOTE: The lift is handled according to the previous status of
-	//	%act.LiftCallResult, rather than a seperated boolean value (e.g.
-	//	the parameter %no_lift in %RelayForEval).
-	act.HandleResultRequests(term, ctx);
-	return act;
-}
-
-/*!
-\brief 按参数设置 TCO 动作提升请求。
-\param act TCO 动作。
-\param no_lift 指定是否避免保证规约后提升结果。
-*/
-void
-SetupTCOLift(TCOAction& act, bool no_lift)
-{
-	// NOTE: The %act.LiftCallResult indicates a request for handling during
-	//	next time (by %TCOAction::HandleResultRequests call above before the
-	//	last one) before %TCOAction is finished. The last request would be
-	//	handled by %TCOAction::operator(), which also calls
-	//	%TCOAction::HandleResultRequests.
-	if(!no_lift)
-		act.RequestLiftResult();
-}
-//@}
-#elif NPL_Impl_NPLA1_Enable_Thunked
-//! \since build 879
-ReductionStatus
-MoveGuard(EnvironmentGuard& gd, ContextNode& ctx) ynothrow
-{
-	const auto egd(std::move(gd));
-
-	return ctx.LastStatus;
-}
-#endif
-
-//! \since build 878
-//@{
-template<typename _fNext>
-ReductionStatus
-RelayForEvalOrDirect(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
-	bool no_lift, _fNext&& next)
-{
-	// XXX: For thunked code, %next shall likely be a %Continuation before being
-	//	captured and it is not capturable here. No %SetupNextTerm needs to be
-	//	called here. Otherwise, %next is not a %Contiuation and it shall still
-	//	handle the capture of the term by itself. The %term is optinonally used
-	//	in direct calls instead of the setup next term, while they shall be
-	//	equivalent.
-#if NPL_Impl_NPLA1_Enable_TCO
-	SetupNextTerm(ctx, term);
-	SetupTCOLift(PrepareTCOEvaluation(ctx, term, std::move(gd)), no_lift);
-	return A1::RelayCurrentOrDirect(ctx, yforward(next), term);
-#elif NPL_Impl_NPLA1_Enable_Thunked
-	// TODO: Blocked. Use C++14 lambda initializers to simplify the
-	//	implementation.
-	auto act(std::bind(MoveGuard, std::move(gd), std::placeholders::_1));
-
-	if(no_lift)
-		return ReduceCurrentNext(term, ctx, yforward(next), std::move(act));
-
-	// XXX: Term reused. Call of %SetupNextTerm is not needed as the next
-	//	term is guaranteed not changed when %next is a continuation.
-	Continuation cont([&]{
-		// TODO: Avoid fixed continuation parameter.
-		return ReduceForLiftedResult(term);
-	}, ctx);
-
-	RelaySwitched(ctx, std::move(act));
-	return ReduceCurrentNext(term, ctx, yforward(next), std::move(cont));
-#else
-	yunused(gd);
-	SetupNextTerm(ctx, term);
-
-	const auto res(RelayDirect(ctx, next, term));
-
-	return no_lift ? res : ReduceForLiftedResult(term);
-#endif
-}
 
 // XXX: Same to %RelayForEvalOrDirect, except that %no_lift is always %true.
+//! \since build 878
 template<typename _fNext>
 ReductionStatus
 RelayForEvalOrDirectNoLift(ContextNode& ctx, TermNode& term,
@@ -936,7 +634,6 @@ RelayForEvalOrDirectNoLift(ContextNode& ctx, TermNode& term,
 	return A1::RelayDirect(ctx, next, term);
 #endif
 }
-//@}
 
 //! \since build 876
 ReductionStatus
@@ -1162,7 +859,7 @@ private:
 		// NOTE: Since now binding does not rely on temporaries stored elsewhere
 		//	(by using %TermTags::Temporary instead), this should be safe even
 		//	with TCO.
-		BindParameter(ctx.GetRecordRef(), NPL::Deref(p_formals), term);
+		BindParameter(ctx.GetRecordPtr(), NPL::Deref(p_formals), term);
 #if NPL_Impl_NPLA1_TraceVauCall
 		ctx.Trace.Log(Debug, [&]{
 			return sfmt<string>("Function called, with %ld shared term(s), %ld"
@@ -1358,20 +1055,23 @@ BindNonmovableLocalReference(TermTags o_tags, TermNode& o, _fMove mv,
 		return TermReference(GetLValueTagsOf(o.Tags | o_tags), o, r_env);
 	}());
 }
+//@}
 
+//! \since build 894
+//@{
 // NOTE: As %PrepareCollapse without frozen environment protection and no
 //	preservation of the operand term.
 TermNode
-EvaluateBoundValue(TermNode& term, Environment& env)
+EvaluateBoundValue(TermNode& term, const shared_ptr<Environment>& p_env)
 {
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
 		return std::move(term);
 	return NPL::AsTermNode(term.get_allocator(), TermReference(term.Tags, term,
-		env.shared_from_this()));
+		NPL::Nonnull(p_env)));
 }
 
 TermNode
-EvaluateBoundLValue(TermNode& term, Environment& env)
+EvaluateBoundLValue(TermNode& term, const shared_ptr<Environment>& p_env)
 {
 	if(const auto p = NPL::TryAccessLeaf<TermReference>(term))
 	{
@@ -1379,7 +1079,7 @@ EvaluateBoundLValue(TermNode& term, Environment& env)
 		return std::move(term);
 	}
 	return NPL::AsTermNode(term.get_allocator(), EnsureLValueReference(
-		TermReference(term.Tags, term, env.shared_from_this())));
+		TermReference(term.Tags, term, NPL::Nonnull(p_env))));
 }
 //@}
 
@@ -1568,6 +1268,7 @@ LambdaImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 {
 	return CreateFunction(term, [&, no_lift]{
 		term.Value = CheckFunctionCreation([&]() -> ContextHandler{
+			// NOTE: Protect the reference count of the environment at first.
 			auto p_env(ctx.ShareRecord());
 			auto i(term.begin());
 			auto formals(ShareMoveTerm(NPL::Deref(++i)));
@@ -2071,7 +1772,7 @@ ForwardListFirst(TermNode& term, ContextNode& ctx)
 	auto& comb(*++i);
 	auto& l(*++i);
 	const auto a(term.get_allocator());
-	auto& env(ctx.GetRecordRef());
+	const auto& p_env(ctx.GetRecordPtr());
 	const auto assign_head([&, a](TermNode::Container&& c, ValueObject&& vo)
 		-> TermNode&{
 		// XXX: The term %head is reused as the bound operand.
@@ -2081,13 +1782,15 @@ ForwardListFirst(TermNode& term, ContextNode& ctx)
 
 	BindMoveLocalReference(l, assign_head);
 
-	TermNode::Container con({EvaluateBoundLValue(head, env)}, a);
+	TermNode::Container con({EvaluateBoundLValue(head, p_env)}, a);
 
 	ForwardCombiner(*i_list_comb, ctx);
 	con.splice(con.cbegin(), term.GetContainerRef(), i_list_comb);
 	l = TermNode(std::allocator_arg, a, std::move(con));
-	return ReduceCallSubsequent(l, ctx, env.shared_from_this(),
-		[&, a, assign_head]{
+	// TODO: Blocked. Use C++14 lambda initializers to simplify the
+	//	implementation.
+	return ReduceCallSubsequent(l, ctx, p_env,
+		std::bind([&, a, assign_head, p_env](shared_ptr<Environment>& p_e0){
 		return NPL::ResolveTerm(
 			[&](TermNode& nd, ResolvedTermReferencePtr p_ref){
 			if(IsBranchedList(nd))
@@ -2102,9 +1805,12 @@ ForwardListFirst(TermNode& term, ContextNode& ctx)
 					BindMoveLocalReference(x, assign_head);
 				ForwardCombiner(comb, ctx);
 				l = TermNode(std::allocator_arg, a, {std::move(comb),
-					EvaluateBoundValue(head, env)});
+					EvaluateBoundValue(head, p_e0)});
 #if NPL_Impl_NPLA1_Enable_Thunked
-				return RelaySwitched(ctx, [&]{
+				// TODO: Blocked. Use C++14 lambda initializers to simplify the
+				//	implementation.
+				return RelaySwitched(ctx,
+					std::bind([&](shared_ptr<Environment>& p_e){
 					RelaySwitched(ctx, [&]{
 						LiftOther(term, l);
 						return ReductionStatus::Retained;
@@ -2113,8 +1819,8 @@ ForwardListFirst(TermNode& term, ContextNode& ctx)
 					// TODO: See %ReduceCallSubsequent.
 					SetupTailTCOAction(ctx, l, {});
 #	endif
-					return RelayForCombine(ctx, l, env.shared_from_this());
-				});
+					return RelayForCombine(ctx, l, std::move(p_e));
+				}, std::move(p_e0)));
 #else
 				RelayForCombine(ctx, l, ctx.ShareRecord());
 				LiftOther(term, l);
@@ -2124,7 +1830,7 @@ ForwardListFirst(TermNode& term, ContextNode& ctx)
 			else
 				ThrowInsufficientTermsError();
 		}, l);
-	});
+	}, p_env));
 }
 
 ReductionStatus
@@ -2338,7 +2044,7 @@ ValueOf(TermNode& term, const ContextNode& ctx)
 ReductionStatus
 DefineLazy(TermNode& term, ContextNode& ctx)
 {
-	DoDefine(term, std::bind(BindParameter, std::ref(ctx.GetRecordRef()),
+	DoDefine(term, std::bind(BindParameter, ctx.GetRecordPtr(),
 		std::placeholders::_1, std::ref(term)));
 	return ReduceReturnUnspecified(term);
 }

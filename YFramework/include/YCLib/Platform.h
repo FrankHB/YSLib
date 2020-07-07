@@ -11,13 +11,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r844
+\version r851
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2020-03-16 10:17 +0800
+	2020-06-26 12:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -378,6 +378,14 @@
 #	define YCL_API_Has_unistd_h 1
 #else
 #	error "Unsupported platform found."
+#endif
+
+#if YF_Hosted && YCL_API_POSIXFileSystem
+#	if _POSIX_C_SOURCE < 200809L
+// NOTE: This is required at least for 'at*' functions.
+#		error "POSIX.1-2008 is required for hosted implementations using POSIX \
+file systems."
+#	endif
 #endif
 
 #ifndef YCL_HostedUI_XCB

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r19326
+\version r19638
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-06-25 21:05 +0800
+	2020-07-05 15:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,25 +27,21 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLA1Forms // for YSLib, NPL, Forms, RelaySwitched,
-//	type_index, std::hash, ystdex::equal_to, YSLib::unordered_map,
-//	YSLib::AllocatedHolderOperations, NPL::TryAccessLeaf, TermReference,
-//	IsBranch, NPL::Access, shared_ptr, NPL::Deref, ystdex::ref_eq, IsLeaf,
-//	ContextHandler, NPL::make_observer, TermTags, TokenValue,
-//	std::allocator_arg, lref, stack, vector, function, std::find_if,
-//	Environment, map, set, ystdex::get_less, list, ystdex::type_id,
-//	InvalidReference, std::make_move_iterator, ystdex::exists, ystdex::id,
-//	ystdex::ref, ystdex::retry_on_cond, ystdex::id, ystdex::cast_mutable,
-//	ystdex::expand_proxy, EnvironmentSwitcher, std::placeholders,
-//	GetLValueTagsOf, NPL::IsMovable, ResolveTerm, ystdex::update_thunk,
-//	AccessFirstSubterm, ystdex::bind1, IsBranchedList, NoContainer,
-//	in_place_type, ystdex::make_transform, ystdex::try_emplace,
-//	ystdex::unique_guard, NPL::AsTermNode, CategorizeBasicLexeme,
+//	type_index, string_view, std::hash, ystdex::equal_to, YSLib::unordered_map,
+//	std::piecewise_construct, ystdex::type_id, ContextHandler,
+//	NPL::make_observer, ystdex::ref, lref, IValueHolder,
+//	YSLib::AllocatedHolderOperations, any, uintmax_t, TokenValue,
+//	function, std::allocator_arg, stack, vector, std::find_if, TermTags,
+//	TermReference, GetLValueTagsOf, NPL::TryAccessLeaf, NPL::IsMovable,
+//	in_place_type, InvalidReference, IsBranch, NPL::Deref, IsLeaf, ResolveTerm,
+//	ystdex::update_thunk, NPL::Access, ystdex::retry_on_cond,
+//	AccessFirstSubterm, ystdex::bind1, ystdex::make_transform, IsBranchedList,
+//	std::placeholders, NoContainer, ystdex::try_emplace, Environment,
+//	shared_ptr, ystdex::unique_guard, NPL::AsTermNode, CategorizeBasicLexeme,
 //	DeliteralizeUnchecked, CheckReducible, Deliteralize, ystdex::isdigit,
-//	ResolveIdentifier, NPL::TryAccessTerm, LiteralHandler,
-//	IsNPLAExtendedLiteral, YSLib::share_move, NPL::TryAccessReferencedTerm,
-//	ystdex::call_value_or, bad_any_cast;
+//	ResolveIdentifier, IsNPLAExtendedLiteral, ystdex::ref_eq,
+//	NPL::TryAccessTerm, YSLib::share_move, ystdex::call_value_or, Session;
 #include "NPLA1Internals.h" // for A1::Internals API;
-#include YFM_NPL_SContext // for Session;
 
 using namespace YSLib;
 
@@ -415,319 +411,6 @@ private:
 //@}
 
 
-#if NPL_Impl_NPLA1_Enable_TCO
-//! \since build 827
-struct RecordCompressor final
-{
-	using RecordInfo = map<lref<Environment>, size_t, ystdex::get_less<>>;
-	using ReferenceSet = set<lref<Environment>, ystdex::get_less<>>;
-
-	// XXX: The order of destruction is unspecified.
-	vector<shared_ptr<Environment>> Collected;
-	lref<Environment> Root;
-	ReferenceSet Reachable, NewlyReachable;
-	RecordInfo Universe;
-
-	RecordCompressor(Environment& root)
-		: RecordCompressor(root, root.Bindings.get_allocator())
-	{}
-	//! \since build 851
-	RecordCompressor(Environment& root, Environment::allocator_type a)
-		: Collected(a), Root(root), Reachable({root}, a), NewlyReachable(a),
-		Universe(a)
-	{
-		AddParents(root);
-	}
-
-	// XXX: All checks rely on recursive calls which do not respect nested
-	//	safety currently.
-	//! \since build 860
-	void
-	AddParents(Environment& e)
-	{
-		Traverse(e, e.Parent, [this](Environment& dst, const Environment&){
-			return Universe.emplace(dst, CountReferences(dst)).second;
-		});
-	}
-
-	void
-	Compress()
-	{
-		// NOTE: This is need to keep the root as external reference.
-		const auto p_root(Root.get().shared_from_this());
-
-		// NOTE: Trace.
-		for(auto& pr : Universe)
-		{
-			auto& e(pr.first.get());
-
-			Traverse(e, e.Parent, [this](Environment& dst){
-				auto& count(Universe.at(dst));
-
-				YAssert(count > 0, "Invalid count found in trace record.");
-				--count;
-				return false;
-			});
-		}
-		for(auto i(Universe.cbegin()); i != Universe.cend(); )
-			if(i->second > 0)
-			{
-				// TODO: Blocked. Use ISO C++17 container node API for efficient
-				//	implementation.
-				NewlyReachable.insert(i->first);
-				i = Universe.erase(i);
-			}
-			else
-				++i;
-		for(ReferenceSet rs; !NewlyReachable.empty();
-			NewlyReachable = std::move(rs))
-		{
-			for(const auto& e : NewlyReachable)
-				Traverse(e, e.get().Parent, [&](Environment& dst) ynothrow{
-					rs.insert(dst);
-					Universe.erase(dst);
-					return false;
-				});
-			Reachable.insert(std::make_move_iterator(NewlyReachable.begin()),
-				std::make_move_iterator(NewlyReachable.end()));
-			for(auto i(rs.cbegin()); i != rs.cend(); )
-				if(ystdex::exists(Reachable, *i))
-					i = rs.erase(i);
-				else
-					++i;
-		}
-		// NOTE: Move to collect.
-		for(const auto& pr : Universe)
-			// XXX: The envionment would be finally collected after the last
-			//	reference is destroyed.
-			Collected.push_back(pr.first.get().shared_from_this());
-
-		// TODO: Full support of PTC by direct DFS traverse.
-		ReferenceSet accessed;
-
-		ystdex::retry_on_cond(ystdex::id<>(), [&]() -> bool{
-			bool collected = {};
-
-			Traverse(Root, Root.get().Parent, [&](Environment& dst,
-				Environment& src, ValueObject& parent) -> bool{
-				if(accessed.insert(src).second)
-				{
-					if(!ystdex::exists(Universe, ystdex::ref(dst)))
-						return true;
-					// NOTE: Variable %parent can be a single parent in a list
-					//	of parent environments not equal to %src.Parent.
-					parent = dst.Parent;
-					collected = true;
-				}
-				return {};
-			});
-			return collected;
-		});
-	}
-
-	static size_t
-	CountReferences(const Environment& e) ynothrowv
-	{
-		const auto acnt(e.GetAnchorCount());
-
-		YAssert(acnt > 0, "Zero anchor count found for environment.");
-		return CountStrong(e.shared_from_this()) + size_t(acnt) - 2;
-	}
-
-	static size_t
-	CountStrong(const shared_ptr<const Environment>& p) ynothrowv
-	{
-		const long scnt(p.use_count());
-
-		YAssert(scnt > 0, "Zero shared count found for environment.");
-		return size_t(scnt);
-	}
-
-	//! \since build 882
-	template<typename _fTracer>
-	static void
-	Traverse(Environment& e, ValueObject& parent, const _fTracer& trace)
-	{
-		using proxy_t = ystdex::expand_proxy<void(Environment&, Environment&,
-			ValueObject&)>;
-		const auto& tp(parent.type());
-
-		if(tp == ystdex::type_id<EnvironmentList>())
-		{
-			for(auto& vo : parent.GetObject<EnvironmentList>())
-				Traverse(e, vo, trace);
-		}
-		else if(tp == ystdex::type_id<EnvironmentReference>())
-		{
-			// XXX: The shared pointer should not be locked to ensure it neutral
-			//	to nested calls.
-			if(const auto p
-				= parent.GetObject<EnvironmentReference>().Lock().get())
-				if(proxy_t::call(trace, *p, e, parent))
-					Traverse(*p, p->Parent, trace);
-		}
-		else if(tp == ystdex::type_id<shared_ptr<Environment>>())
-		{
-			// NOTE: The reference counts should not be effected here.
-			if(const auto p = parent.GetObject<shared_ptr<Environment>>().get())
-				if(proxy_t::call(trace, *p, e, parent))
-					Traverse(*p, p->Parent, trace);
-		}
-	}
-};
-
-// NOTE: See $2018-06 @ %Documentation::Workflow and $2019-06 @
-//	%Documentation::Workflow for details.
-//! \since build 861
-void
-CompressTCOFrames(ContextNode& ctx, TCOAction& act)
-{
-	auto& record_list(act.RecordList);
-	auto i(record_list.cbegin());
-
-	ystdex::retry_on_cond(ystdex::id<>(), [&]() -> bool{
-		const auto orig_size(record_list.size());
-
-		// NOTE: The following code searches the frames to be removed, in the
-		//	order from new to old. After merging, the guard slot %EnvGuard owns
-		//	the resources of the expression (and its enclosed subexpressions)
-		//	being TCO'd.
-		i = record_list.cbegin();
-		while(i != record_list.cend())
-		{
-			auto& p_frame_env_ref(get<ActiveEnvironmentPtr>(
-				*ystdex::cast_mutable(record_list, i)));
-
-			if(p_frame_env_ref.use_count() != 1
-				|| NPL::Deref(p_frame_env_ref).IsOrphan())
-				// NOTE: The whole frame is to be removed. The function prvalue
-				//	is expected to live only in the subexpression evaluation.
-				//	This has equivalent effects of evlis tail recursion.
-				i = record_list.erase(i);
-			else
-				++i;
-		}
-		return record_list.size() != orig_size;
-	});
-	RecordCompressor(ctx.GetRecordRef()).Compress();
-}
-
-//! \since build 878
-//@{
-/*!
-\brief 准备 TCO 求值。
-\param ctx 规约上下文。
-\param term 被规约的项。
-\param act TCO 动作。
-*/
-TCOAction&
-PrepareTCOEvaluation(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd)
-{
-	auto& act(RefTCOAction(ctx));
-
-	[&]{
-		// NOTE: If there is no environment set in %act.EnvGuard yet, there is
-		//	ideally no need to save the components to the frame record list
-		//	for recursive calls. In such case, each operation making
-		//	potentionally overwriting of %act.LastFunction will always get into
-		//	this call and that time %act.EnvGuard should be set.
-		if(act.EnvGuard.func.SavedPtr)
-		{
-			// NOTE: Operand saving is performed whether the frame compression
-			//	is needed, once there is a saved environment set.
-			if(auto& p_saved = gd.func.SavedPtr)
-			{
-				CompressTCOFrames(ctx, act);
-				act.AddRecord(std::move(p_saved));
-				return;
-			}
-			// XXX: Normally this should not occur, but this is allowed by the
-			//	interface (for an object %EnvironmentSwitcher initialized
-			//	without an environment).
-		}
-		else
-			act.EnvGuard = std::move(gd);
-		act.AddRecord({});
-	}();
-	// NOTE: The lift is handled according to the previous status of
-	//	%act.LiftCallResult, rather than a seperated boolean value (e.g.
-	//	the parameter %no_lift in %RelayForEval).
-	act.HandleResultRequests(term, ctx);
-	return act;
-}
-
-/*!
-\brief 按参数设置 TCO 动作提升请求。
-\param act TCO 动作。
-\param no_lift 指定是否避免保证规约后提升结果。
-*/
-void
-SetupTCOLift(TCOAction& act, bool no_lift)
-{
-	// NOTE: The %act.LiftCallResult indicates a request for handling during
-	//	next time (by %TCOAction::HandleResultRequests call above before the
-	//	last one) before %TCOAction is finished. The last request would be
-	//	handled by %TCOAction::operator(), which also calls
-	//	%TCOAction::HandleResultRequests.
-	if(!no_lift)
-		act.RequestLiftResult();
-}
-//@}
-#elif NPL_Impl_NPLA1_Enable_Thunked
-//! \since build 879
-ReductionStatus
-MoveGuard(EnvironmentGuard& gd, ContextNode& ctx) ynothrow
-{
-	const auto egd(std::move(gd));
-
-	return ctx.LastStatus;
-}
-#endif
-
-//! \since build 878
-template<typename _fNext>
-ReductionStatus
-RelayForEvalOrDirect(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
-	bool no_lift, _fNext&& next)
-{
-	// XXX: For thunked code, %next shall likely be a %Continuation before being
-	//	captured and it is not capturable here. No %SetupNextTerm needs to be
-	//	called here. Otherwise, %next is not a %Contiuation and it shall still
-	//	handle the capture of the term by itself. The %term is optinonally used
-	//	in direct calls instead of the setup next term, while they shall be
-	//	equivalent.
-#if NPL_Impl_NPLA1_Enable_TCO
-	SetupNextTerm(ctx, term);
-	SetupTCOLift(PrepareTCOEvaluation(ctx, term, std::move(gd)), no_lift);
-	return A1::RelayCurrentOrDirect(ctx, yforward(next), term);
-#elif NPL_Impl_NPLA1_Enable_Thunked
-	// TODO: Blocked. Use C++14 lambda initializers to simplify the
-	//	implementation.
-	auto act(std::bind(MoveGuard, std::move(gd), std::placeholders::_1));
-
-	if(no_lift)
-		return ReduceCurrentNext(term, ctx, yforward(next), std::move(act));
-
-	// XXX: Term reused. Call of %SetupNextTerm is not needed as the next
-	//	term is guaranteed not changed when %next is a continuation.
-	Continuation cont([&]{
-		// TODO: Avoid fixed continuation parameter.
-		return ReduceForLiftedResult(term);
-	}, ctx);
-
-	RelaySwitched(ctx, std::move(act));
-	return ReduceCurrentNext(term, ctx, yforward(next), std::move(cont));
-#else
-	yunused(gd);
-	SetupNextTerm(ctx, term);
-
-	const auto res(RelayDirect(ctx, next, term));
-
-	return no_lift ? res : ReduceForLiftedResult(term);
-#endif
-}
-
-
 //! \since build 876
 YB_ATTR_nodiscard YB_PURE TermTags
 BindReferenceTags(const TermReference& ref) ynothrow
@@ -1044,11 +727,10 @@ private:
 //! \relates GParameterMatcher
 template<typename _fBindTrailing, typename _fBindValue>
 YB_ATTR_nodiscard inline GParameterMatcher<_fBindTrailing, _fBindValue>
-MakeParameterMatcher(_fBindTrailing bind_trailing_seq,
-	_fBindValue bind_value)
+MakeParameterMatcher(_fBindTrailing bind_trailing_seq, _fBindValue bind_value)
 {
-	return GParameterMatcher<_fBindTrailing, _fBindValue>(std::move(
-		bind_trailing_seq), std::move(bind_value));
+	return GParameterMatcher<_fBindTrailing, _fBindValue>(
+		std::move(bind_trailing_seq), std::move(bind_value));
 }
 //@}
 
@@ -1058,14 +740,12 @@ MakeParameterMatcher(_fBindTrailing bind_trailing_seq,
 ContextState::ContextState(pmr::memory_resource& rsrc)
 	: ContextNode(rsrc)
 {
-#if NPL_Impl_NPLA1_Enable_Thunked
 	// NOTE: The guard object shall be fresh on the calls for reentrancy.
 	Guard += [](TermNode&, ContextNode& ctx){
 		// TODO: Support guarding for other states?
 		return A1::Guard(std::allocator_arg, ctx.get_allocator(),
 			in_place_type<ReductionGuard>, ctx);
 	};
-#endif
 }
 ContextState::ContextState(const ContextState& ctx)
 	: ContextNode(ctx),
@@ -1267,7 +947,7 @@ void
 SetupTraceDepth(ContextState& cs, const string& name)
 {
 	using namespace std::placeholders;
-	auto p_env(cs.GetRecordRef().shared_from_this());
+	auto p_env(cs.ShareRecord());
 
 	ystdex::try_emplace(p_env->GetMapRef(), name, NoContainer,
 		in_place_type<size_t>);
@@ -1531,11 +1211,12 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 		}
 		else
 		{
-			auto& env(pr.second.get());
+			auto p_env(NPL::Nonnull(pr.second));
+
 			p_rterm = &bound;
 			[&]() YB_FLATTEN{
-				term.Value = TermReference(env.MakeTermTags(bound)
-					& ~TermTags::Unique, bound, env.shared_from_this());
+				term.Value = TermReference(p_env->MakeTermTags(bound)
+					& ~TermTags::Unique, bound, std::move(p_env));
 			}();
 		}
 		EvaluateLiteralHandler(term, ctx, *p_rterm);
@@ -1722,8 +1403,10 @@ MatchParameter(const TermNode& t, TermNode& o, function<void(TNIter, TNIter,
 }
 
 void
-BindParameter(Environment& env, const TermNode& t, TermNode& o)
+BindParameter(const shared_ptr<Environment>& p_env, const TermNode& t,
+	TermNode& o)
 {
+	auto& env(NPL::Deref(p_env));
 	const auto check_sigil([&](string_view& id){
 		char sigil(id.front());
 
@@ -1786,7 +1469,7 @@ BindParameter(Environment& env, const TermNode& t, TermNode& o)
 					});
 			}
 		});
-	})(t, o, TermTags::Temporary, env.shared_from_this());
+	})(t, o, TermTags::Temporary, p_env);
 }
 
 

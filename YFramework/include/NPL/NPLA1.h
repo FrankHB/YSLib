@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r7971
+\version r7974
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-06-25 21:05 +0800
+	2020-07-05 15:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1216,12 +1216,13 @@ MatchParameter(const TermNode&, TermNode&, function<void(TNIter, TNIter, const
 
 /*!
 \brief 使用操作数结构化匹配并绑定参数。
+\pre 间接断言：第一参数非空。
 \throw ArityMismatch 子项数匹配失败。
 \throw InvalidReference 非法的 @ 引用标记字符绑定。
 \note 第一参数指定绑定所在的环境。
 \sa MatchParameter
 \sa TermReference
-\since build 868
+\since build 894
 
 形式参数和操作数为项指定的表达式树。
 第二参数指定形式参数，第三参数指定操作数。
@@ -1240,7 +1241,7 @@ MatchParameter(const TermNode&, TermNode&, function<void(TNIter, TNIter, const
 按引用传递绑定直接转移该项的内容。
 */
 YF_API void
-BindParameter(Environment&, const TermNode&, TermNode&);
+BindParameter(const shared_ptr<Environment>&, const TermNode&, TermNode&);
 //@}
 //@}
 
