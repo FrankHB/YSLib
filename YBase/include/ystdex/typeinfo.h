@@ -11,13 +11,13 @@
 /*!	\file typeinfo.h
 \ingroup YStandardEx
 \brief ISO C++ 类型信息扩展。
-\version r165
+\version r176
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2016-04-01 08:56:47 +0800
 \par 修改时间:
-	2020-01-27 01:55 +0800
+	2020-07-17 01:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,51 +57,51 @@ private:
 	{}
 
 public:
-	yimpl(yconstfn) bool
+	YB_ATTR_nodiscard YB_PURE yimpl(yconstfn) bool
 	operator==(const type_id_info& rhs) const ynothrow
 	{
 		return id == rhs.id;
 	}
 
-	yimpl(yconstfn) bool
+	YB_ATTR_nodiscard YB_PURE yimpl(yconstfn) bool
 	operator!=(const type_id_info& rhs) const ynothrow
 	{
 		return id != rhs.id;
 	}
 
-	yimpl(yconstfn) bool
+	YB_ATTR_nodiscard YB_PURE yimpl(yconstfn) bool
 	before(const type_id_info& rhs) const ynothrow
 	{
 		return id < rhs.id;
 	}
 
-	id_t
+	YB_ATTR_nodiscard YB_PURE id_t
 	get() const ynothrow
 	{
 		return id;
 	}
 
-	size_t
+	YB_ATTR_nodiscard YB_PURE size_t
 	hash_code() const ynothrow
 	{
 		return std::hash<id_t>()(id);
 	}
 
 	template<typename _type>
-	static const type_id_info&
+	YB_ATTR_nodiscard YB_STATELESS static const type_id_info&
 	make()
 	{
 		return is_void<_type>() ? xref_void() : xref<remove_cv_t<_type>>();
 	}
 
-	yimpl(yconstfn) const char*
+	YB_ATTR_nodiscard YB_STATELESS yimpl(yconstfn) const char*
 	name() const ynothrow
 	{
 		return "<unknown>";
 	}
 
 private:
-	static id_t
+	YB_ATTR_nodiscard static id_t
 	push()
 	{
 		static id_t id;
@@ -110,7 +110,7 @@ private:
 	}
 
 	template<typename _type>
-	static const type_id_info&
+	YB_ATTR_nodiscard static const type_id_info&
 	xref()
 	{
 		static_assert(is_same<_type, remove_cv_t<_type>>(),
@@ -120,7 +120,7 @@ private:
 		return info;
 	}
 
-	static const type_id_info&
+	YB_ATTR_nodiscard static const type_id_info&
 	xref_void()
 	{
 		static type_id_info info;
@@ -145,7 +145,7 @@ using std::type_info;
 
 //! \sa type_info
 template<typename _type>
-YB_STATELESS const type_info&
+YB_ATTR_nodiscard YB_STATELESS const type_info&
 type_id()
 {
 #if YB_Use_LightweightTypeID

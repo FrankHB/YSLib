@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3293
+\version r3312
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2020-07-08 00:56 +0800
+	2020-07-13 17:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@
 //	std::mem_fn, ystdex::compose, ystdex::invoke_value_or, NPL::TryAccessLeaf,
 //	NPL::IsMovable, ystdex::ref, YSLib::FilterExceptions, ystdex::id,
 //	ystdex::retry_on_cond, ystdex::type_info, pair, ystdex::addrof,
-//	ystdex::second_of, std::throw_with_nested;
+//	ystdex::second_of, std::rethrow_exception, std::throw_with_nested;
 #include YFM_NPL_SContext
 
 using namespace YSLib;
@@ -1077,11 +1077,21 @@ ContextNode::ApplyTail()
 	// TODO: Add check to avoid stack overflow when the current action is
 	//	called?
 	YAssert(IsAlive(), "No tail action found.");
-	tail_action = std::move(current.front());
+	TailAction = std::move(current.front());
 	stashed.splice_after(stashed.cbefore_begin(), current,
 		current.cbefore_begin());
-	LastStatus = tail_action(*this);
+	TryExpr(LastStatus = TailAction(*this))
+	CatchExpr(..., HandleException(std::current_exception()))
 	return LastStatus;
+}
+
+void
+ContextNode::DefaultHandleException(std::exception_ptr p)
+{
+	YAssertNonnull(p);
+	TryExpr(std::rethrow_exception(std::move(p)))
+	CatchExpr(bad_any_cast&,
+		std::throw_with_nested(TypeError("Mismatched type found.")))
 }
 
 Environment::NameResolution
@@ -1160,20 +1170,13 @@ ContextNode::DefaultResolve(shared_ptr<Environment> p_env, string_view id)
 }
 
 ReductionStatus
-ContextNode::Rewrite(Reducer reduce)
+ContextNode::RewriteLoop()
 {
-	SetupCurrent(std::move(reduce));
+	YAssert(IsAlive(), "No action to reduce.");
 	// NOTE: Rewrite until no actions remain.
-
-	const auto unwind(ystdex::make_guard([this]() ynothrow{
-		tail_action = nullptr;
-	}));
-
-	TryRet(ystdex::retry_on_cond(std::bind(&ContextNode::IsAlive, this), [&]{
+	return ystdex::retry_on_cond(std::bind(&ContextNode::IsAlive, this), [&]{
 		return ApplyTail();
-	}))
-	CatchExpr(bad_any_cast&,
-		std::throw_with_nested(TypeError("Mismatched type found.")))
+	});
 }
 
 shared_ptr<Environment>

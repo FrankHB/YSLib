@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r19638
+\version r19701
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-07-05 15:58 +0800
+	2020-07-17 00:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -202,6 +202,8 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	auto& act(EnsureTCOAction(ctx, term));
 	auto& lf(act.LastFunction);
 
+	ContextState::Access(ctx).ClearCombiningTerm();
+	term.Value.Clear();
 	lf = {};
 	// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
 	//	error: Segmentation fault.
@@ -214,6 +216,8 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	return RelaySwitched(ctx, Continuation(std::ref(lf ? *lf : h), ctx));
 #elif NPL_Impl_NPLA1_Enable_Thunked
 
+	ContextState::Access(ctx).ClearCombiningTerm();
+	term.Value.Clear();
 	// XXX: %A1::ReduceCurrentNext is not used to allow the underlying
 	//	handler optimized with %NPL_Impl_NPLA1_Enable_InlineDirect.
 	SetupNextTerm(ctx, term);
@@ -227,6 +231,8 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 #else
 
 	yunseq(0, args...);
+	ContextState::Access(ctx).ClearCombiningTerm();
+	term.Value.Clear();
 	return RegularizeTerm(term, h(term, ctx));
 #endif
 }
@@ -815,6 +821,7 @@ ContextState::RewriteGuarded(TermNode& term, Reducer reduce)
 {
 	const auto gd(Guard(term, *this));
 	const auto unwind(ystdex::make_guard([this]() ynothrow{
+		TailAction = nullptr;
 		UnwindCurrent();
 	}));
 
@@ -1255,14 +1262,14 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 ReductionStatus
 ReduceCombined(TermNode& term, ContextNode& ctx)
 {
-	return IsBranchedList(term) ? ReduceCombinedBranch(term, ctx)
+	return IsCombiningTerm(term) ? ReduceCombinedBranch(term, ctx)
 		: ReductionStatus::Clean;
 }
 
 ReductionStatus
 ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 {
-	YAssert(IsBranchedList(term), "Invalid term found for combined term.");
+	YAssert(IsCombiningTerm(term), "Invalid term found for combined term.");
 
 	auto& fm(AccessFirstSubterm(term));
 	const auto p_ref_fm(NPL::TryAccessLeaf<const TermReference>(fm));
@@ -1276,6 +1283,8 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 	if(p_ref_fm)
 	{
 		term.Tags &= ~TermTags::Temporary;
+		// XXX: The following irregular term conversion is not necessary. It is
+		//	even better to be avoid for easier handling of reference values.
 #if false
 		// XXX: This converts the term with irregular representation at first.
 		//	See %ReduceForCombinerRef for the introduction of the irregular
@@ -1310,6 +1319,7 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 	else
 		term.Tags |= TermTags::Temporary;
 	// NOTE: Converted terms are also handled here.
+	// NOTE: This shall be not 'const' to be moved.
 	if(const auto p_handler = NPL::TryAccessTerm<ContextHandler>(fm))
 #if NPL_Impl_NPLA1_Enable_TCO
 		return
@@ -1363,7 +1373,7 @@ ReduceLeafToken(TermNode& term, ContextNode& ctx)
 		}
 	// XXX: A term without token is ignored. This is actually same to
 	//	%ReductionStatus::Regular in the current implementation.
-	}, TermToNamePtr(term), ReductionStatus::Retained));
+	}, SetupTailOperatorName(term, ctx), ReductionStatus::Retained));
 
 	return CheckReducible(res) ? ReduceOnce(term, ctx) : res;
 }
@@ -1482,12 +1492,12 @@ SetupDefaultInterpretation(ContextState& cs, EvaluationPasses passes)
 		ReduceHeadEmptyList(term);
 		if(IsBranchedList(term))
 		{
-			auto& fm(AccessFirstSubterm(term));
-
+			ContextState::Access(ctx).SetCombiningTermRef(term);
 			// XXX: Without %NPL_Impl_NPLA1_Enable_InlineDirect, the
 			//	asynchronous calls are actually more inefficient than separated
 			//	calls.
-			return ReduceSubsequent(fm, ctx, [&](ContextNode& c){
+			return ReduceSubsequent(AccessFirstSubterm(term), ctx,
+				[&](ContextNode& c){
 				SetupNextTerm(c, term);
 				return ReduceCombinedBranch(term, c);
 			});
@@ -1499,10 +1509,16 @@ SetupDefaultInterpretation(ContextState& cs, EvaluationPasses passes)
 	// XXX: Optimized based synchronous call of %ReduceHeadEmptyList.
 	passes += [](TermNode& term, ContextNode& ctx){
 		ReduceHeadEmptyList(term);
+		if(IsBranchedList(term))
+			ContextState::Access(ctx).SetCombiningTermRef(term);
 		return ReduceFirst(term, ctx);
 	};
 #	else
 	passes += ReduceHeadEmptyList;
+	passes += [](TermNode& term, ContextNode& ctx){
+		if(IsBranchedList(term))
+			ContextState::Access(ctx).SetCombiningTermRef(term);
+	};
 	passes += ReduceFirst;
 #	endif
 	// TODO: Insert more optional optimized lifted form evaluation passes.
@@ -1514,6 +1530,16 @@ SetupDefaultInterpretation(ContextState& cs, EvaluationPasses passes)
 	cs.EvaluateList = std::move(passes);
 	// NOTE: This implies the %RegularizeTerm call when necessary.
 	cs.EvaluateLeaf = ReduceLeafToken;
+}
+
+void
+SetupTailContext(ContextNode& ctx, TermNode& term)
+{
+#if NPL_Impl_NPLA1_Enable_TCO
+	yunused(EnsureTCOAction(ctx, term));
+#else
+	yunused(ctx), yunused(term);
+#endif
 }
 
 
@@ -1550,6 +1576,40 @@ QueryContinuationName(const Reducer& act)
 #endif
 	if(act.target_type() == ystdex::type_id<EvalSequence>())
 		return "eval-sequence";
+	return {};
+}
+
+string_view
+QueryTailOperatorName(const Reducer& act)
+{
+#if NPL_Impl_NPLA1_Enable_TCO
+	if(const auto p_act = act.target<TCOAction>())
+		if(!p_act->OperatorName.empty())
+			return p_act->OperatorName;
+#else
+	yunused(act);
+#endif
+	return {};
+}
+
+observer_ptr<const TokenValue>
+SetupTailOperatorName(TermNode& term, ContextNode& ctx)
+{
+	if(const auto p = TermToNamePtr(term))
+	{
+		if(const auto p_combining
+			= ContextState::Access(ctx).GetCombiningTermPtr())
+		{
+			if(!p_combining->empty()
+				&& ystdex::ref_eq<>()(AccessFirstSubterm(*p_combining), term))
+			{
+				p_combining->Value = std::move(term.Value);
+				return NPL::make_observer(
+					&p_combining->Value.GetObject<TokenValue>());
+			}
+		}
+		return p;
+	}
 	return {};
 }
 

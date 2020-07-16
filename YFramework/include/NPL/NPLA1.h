@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r7974
+\version r8052
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-07-05 15:58 +0800
+	2020-07-17 00:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -254,10 +254,15 @@ public:
 
 private:
 	/*!
-	\brief 待求值的下一项的指针。
+	\brief 下一求值项指针。
 	\note 可被续延访问。
 	*/
 	observer_ptr<TermNode> next_term_ptr{};
+	/*!
+	\brief 规约合并项指针。
+	\since build 895
+	*/
+	observer_ptr<TermNode> combining_term_ptr{};
 
 public:
 	/*!
@@ -289,7 +294,14 @@ public:
 	//@}
 
 	/*!
-	\brief 取下一求值项的引用。
+	\brief 取规约合并项指针。
+	\sa combining_term_ptr
+	\since build 895
+	*/
+	DefGetter(const ynothrow, observer_ptr<TermNode>, CombiningTermPtr,
+		combining_term_ptr)
+	/*!
+	\brief 取下一求值项引用。
 	\throw NPLException 下一求值项的指针为空。
 	\sa next_term_ptr
 	*/
@@ -297,15 +309,32 @@ public:
 	GetNextTermRef() const;
 
  	/*!
-	\brief 设置下一求值项的引用。
-	\throw NPLException 下一项指针为空。
+	\brief 设置规约合并项引用。
+	\sa combining_term_ptr
+	\since build 895
+	*/
+	PDefH(void, SetCombiningTermRef, TermNode& term) ynothrow
+		ImplExpr(combining_term_ptr = NPL::make_observer(&term))
+ 	/*!
+	\brief 设置下一求值项引用。
 	\sa next_term_ptr
 	\since build 883
 	*/
 	PDefH(void, SetNextTermRef, TermNode& term) ynothrow
 		ImplExpr(next_term_ptr = NPL::make_observer(&term))
 
-	//! \brief 清除下一项指针。
+	/*!
+	\brief 清除规约合并项指针。
+	\sa combining_term_ptr
+	\since build 895
+	*/
+	PDefH(void, ClearCombiningTerm, ) ynothrow
+		ImplExpr(combining_term_ptr = {})
+
+	/*!
+	\brief 清除下一求值项指针。
+	\sa next_term_ptr
+	*/
 	PDefH(void, ClearNextTerm, ) ynothrow
 		ImplExpr(next_term_ptr = {})
 
@@ -382,10 +411,10 @@ public:
 	//@}
 
 	friend PDefH(void, swap, ContextState& x, ContextState& y) ynothrow
-		ImplExpr(swap(static_cast<ContextNode&>(x),
-			static_cast<ContextNode&>(y)), swap(x.next_term_ptr,
-			y.next_term_ptr), swap(x.EvaluateLeaf, y.EvaluateLeaf),
-			swap(x.EvaluateList, y.EvaluateList),
+		ImplExpr(swap(static_cast<ContextNode&>(x), static_cast<ContextNode&>(
+			y)), swap(x.combining_term_ptr, y.combining_term_ptr),
+			swap(x.next_term_ptr, y.next_term_ptr), swap(x.EvaluateLeaf,
+			y.EvaluateLeaf), swap(x.EvaluateList, y.EvaluateList),
 			swap(x.EvaluateLiteral, y.EvaluateLiteral), swap(x.Guard, y.Guard))
 };
 
@@ -1042,6 +1071,15 @@ inline PDefH(void, EvaluateLiteralHandler, TermNode& term,
 	}())
 
 /*!
+\brief 判断项是规约合并项。
+\since build 895
+*/
+YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsCombiningTerm,
+	const TermNode& term) ynothrow
+	ImplRet(!(term.empty() || (term.Value
+		&& term.Value.type() != ystdex::type_id<TokenValue>())))
+
+/*!
 \brief 规约合并项：检查项的第一个子项尝试作为操作符进行函数应用，并规范化。
 \pre 断言：若第一个子项表示子对象引用，则符合子对象引用的非正规表示约定。
 \return 规约状态。
@@ -1064,7 +1102,7 @@ ReduceCombined(TermNode&, ContextNode&);
 
 /*!
 \brief 规约列表合并项：同 ReduceCombined ，但只适用于枝节点。
-\pre 断言：项满足 IsBranchedList 。
+\pre 断言：项满足 IsCombiningTerm 。
 \since build 882
 */
 YF_API ReductionStatus
@@ -1072,7 +1110,7 @@ ReduceCombinedBranch(TermNode&, ContextNode&);
 
 /*!
 \brief 规约列表合并项：同 ReduceCombinedBranch ，但先设置 NPLA1 上下文的下一项。
-\pre 断言：项满足 IsBranchedList 。
+\pre 间接断言：项满足 IsCombiningTerm 。
 \since build 884
 */
 YB_FLATTEN inline PDefH(ReductionStatus, ReduceNextCombinedBranch,
@@ -1263,6 +1301,14 @@ BindParameter(const shared_ptr<Environment>&, const TermNode&, TermNode&);
 YF_API void
 SetupDefaultInterpretation(ContextState&, EvaluationPasses);
 
+/*!
+\brief 设置参数指定的上下文为尾上下文。
+\note 在不支持 TCO 的实现忽略。
+\since build 895
+*/
+YF_API void
+SetupTailContext(ContextNode&, TermNode&);
+
 
 /*!
 \ingroup metafunctions
@@ -1289,15 +1335,15 @@ using SourcedTokenizer = GTokenizer<SourcedByteParser>;
 
 
 /*!
-\brief 取对象中的源代码信息。
+\brief 查询对象中的源代码信息。
 \since build 891
 */
 YB_ATTR_nodiscard YB_PURE YF_API observer_ptr<const SourceInformation>
 QuerySourceInformation(const ValueObject&);
 
 /*!
-\brief 取续延中的名称信息。
-\return 若存在名称则为内部指定来源的名称字符字符串，否则是数据指针为空的结果。
+\brief 查询续延中的名称信息。
+\return 若存在名称则为内部指定来源的名称字符串，否则是数据指针为空的结果。
 \since build 893
 
 取参数指定的动作对应的续延中的名称信息。
@@ -1308,6 +1354,29 @@ TCO 动作；
 */
 YB_ATTR_nodiscard YB_PURE YF_API string_view
 QueryContinuationName(const Reducer&);
+
+/*!
+\note 仅在 TCO 动作存在时支持。
+\since build 895
+*/
+//@{
+/*!
+\brief 查询续延指定的当前尾动作规约的操作符名称。
+\note 当参数指定 TCO 时且保存非空记号值时保存的值即为名称，否则名称不存在。
+\return 若存在名称则为内部保存的名称字符串，否则是数据指针为空的结果。
+*/
+YB_ATTR_nodiscard YB_PURE YF_API string_view
+QueryTailOperatorName(const Reducer&);
+
+/*!
+\brief 设置当前尾动作规约的操作符名称。
+\return 第一参数指定的项中保存的名称。
+\warning 若不满足上下文状态类型要求，行为未定义。
+\sa TermToNamePtr
+*/
+YB_ATTR_nodiscard YF_API observer_ptr<const TokenValue>
+SetupTailOperatorName(TermNode&, ContextNode&);
+//@}
 
 
 /*

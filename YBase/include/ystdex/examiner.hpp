@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013, 2015-2016, 2018-2019 FrankHB.
+	© 2012-2013, 2015-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file examiner.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作检测。
-\version r123
+\version r126
 \author FrankHB <frankhb1989@gmail.com>
 \since build 348
 \par 创建时间:
 	2012-10-17 01:21:01 +0800
 \par 修改时间:
-	2019-09-13 13:25 +0800
+	2020-07-17 01:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,7 +49,7 @@ struct equal
 {
 	//! \since build 668
 	template<typename _type, typename _type2>
-	static YB_PURE yconstfn auto
+	YB_PURE yconstfn static auto
 	are_equal(_type&& x, _type2&& y)
 		ynoexcept_spec(bool(x == y)) -> decltype(bool(x == y))
 	{
@@ -67,7 +67,7 @@ struct always_equal
 	//! \since build 675
 	template<typename _type, typename _type2, yimpl(typename
 		= enable_if_t<!has_equality_operator<_type&&, _type2&&>::value>)>
-	static YB_STATELESS yconstfn bool
+	YB_STATELESS yconstfn static bool
 	are_equal(_type&&, _type2&&) ynothrow
 	{
 		return true;

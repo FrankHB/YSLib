@@ -11,13 +11,13 @@
 /*!	\file list.hpp
 \ingroup YStandardEx
 \brief 列表容器。
-\version r1619
+\version r1633
 \author FrankHB <frankhb1989@gmail.com>
 \since build 864
 \par 创建时间:
 	2019-08-14 14:48:52 +0800
 \par 修改时间:
-	2020-02-10 23:43 +0800
+	2020-07-17 01:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,13 +71,15 @@ private:
 		storage;
 
 public:
+	//! \since build 855
 	YB_ATTR_nodiscard YB_PURE yconstfn_relaxed _type*
-	access_ptr()
+	access_ptr() ynothrow
 	{
 		return static_cast<_type*>(storage.access());
 	}
+	//! \since build 855
 	YB_ATTR_nodiscard YB_PURE yconstfn const _type*
-	access_ptr() const
+	access_ptr() const ynothrow
 	{
 		return static_cast<const _type*>(storage.access());
 	}
@@ -261,6 +263,7 @@ private:
 		typename node_ator_traits::propagate_on_container_move_assignment>;
 
 protected:
+	// TODO: Resolve LWG 2112 with %is_final support.
 	struct components : node_allocator
 	{
 		list_header header{};
@@ -295,6 +298,10 @@ private:
 		node_remove(list_rep& l) ynothrow
 			: list(l), head(&list.objects.header), p_tail(std::addressof(head))
 		{}
+		~node_remove()
+		{
+			list.clear_nodes_from(head);
+		}
 
 		// NOTE: Track pending nodes in a singly linked list.
 		void
@@ -308,11 +315,6 @@ private:
 			removed->next = &list.objects.header;
 			*p_tail = removed;
 			p_tail = &removed->next;
-		}
-
-		~node_remove()
-		{
-			list.clear_nodes_from(head);
 		}
 	};
 
@@ -516,6 +518,7 @@ public:
 		catch(...)
 		{
 			auto cur(objects.header.prev);
+
 			for(; i != 0; --i)
 			{
 				yverify(&objects.header.prev != &objects.header);
@@ -990,11 +993,11 @@ public:
 				if(comp(*mid, *first))
 				{
 					// NOTE: Note %mid will be spliced before %first. As the
-					//	result of %transfer_range, the range needs to be sorted
-					//	(and guaranteed sorted after this call) is expanded.
-					//	This only needs to be updated at the first iteration,
-					//	since all other operations do not expand the range any
-					//	more.
+					//	result of %transfer_range, the range needing to be
+					//	sorted (and guaranteed sorted after this call) is
+					//	expanded. This only requires the update at the first
+					//	iteration, since all other operations do not expand the
+					//	range any more.
 					if(init)
 						next = mid;
 					{

@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r4927
+\version r4930
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2020-02-10 23:52 +0800
+	2020-07-17 01:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -827,15 +827,15 @@ make_unique_with(_tDeleter&& d, _tParams&&... args)
 		yforward(d));
 }
 template<typename _type, typename _tDeleter, typename... _tParams>
-YB_ATTR_nodiscard yconstfn yimpl(enable_if_t<is_array<_type>::value
-	&& extent<_type>::value == 0, std::unique_ptr<_type>>)
+YB_ATTR_nodiscard yconstfn yimpl(enable_if_t<is_array<_type>()
+	&& extent<_type>() == 0, std::unique_ptr<_type>>)
 make_unique_with(_tDeleter&& d, size_t size)
 {
 	return std::unique_ptr<_type, _tDeleter>(new remove_extent_t<_type>[size],
 		yforward(d));
 }
 template<typename _type, typename _tDeleter, typename... _tParams>
-yimpl(enable_if_t<is_array<_type>::value && extent<_type>::value != 0>)
+yimpl(enable_if_t<is_array<_type>() && extent<_type>() != 0>)
 make_unique_with(_tDeleter&&, _tParams&&...) = delete;
 //@}
 //@}

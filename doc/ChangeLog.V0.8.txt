@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r19827
+\version r19950
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-07-08 01:16 +0800
+	2020-07-17 01:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,130 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		* "wrong flag used" @ "destructor" @ "class template %call_once_init"
+			@ %Utilities $since b693,
+		/ DD "Doxygen group %NTCTSUtil" => "%NTCTS_utils" @ %CString,
+		/ $re_add(b833) $dev $lib "normalized attributes order" @ %Examiner
+			$= (/ "adjusted 'static' order with 'YB_*'"
+				@ "structs %(equal, always_equal)"),
+		/ $dev $lib %StringView $=
+		(
+			// Also to eliminate G++ 7.1 warning: [-Wsuggest-attribute=pure].
+			+ 'YB_ATTR_nodiscard YB_PURE' @ (("functions %(begin, end, \
+				cbegin, cend, rbegin, rend, crbegin, crend, size, length, \
+				max_size, operator[], front, back, data, substr, compare)",
+				"all search function templates")
+				@ "class template %ystddex::basic_string_view",
+				"all function templates %operator(<, ==)",
+				"%operator()" @ "%std::hash specialization for \
+				%ystddex::basic_string_view"),
+			+ 'YB_PURE' @ "function %empty"
+				@ "class template %ystdex::basic_string_view"
+		),
+		+ $dev $lib 'YB_ATTR_nodiscard YB_STATELESS' @ "function templates \
+			%(make_reverse_iterator, make_move_if_noexcept_iterator, \
+			2 make_move_iterator_pair)" @ %IteratorOperation,
+			// Also to eliminate G++ 7.1 warning: [-Wsuggest-attribute=const].
+		/ $dev $lib %TypeInfo $=
+		(
+			+ 'YB_ATTR_nodiscard' @ "all functions and function templates \
+				except for special member functions",
+			/ @ "class %type_id_info" $=
+			(
+				+ 'YB_STATELESS' @ "functions %(make, name)";
+				+ 'YB_PURE' @ "all non-static non-special member functions \
+					without 'YB_STATELESS'"
+			)
+		),
+		/ $dev $lib "all specializations" @ "functor %id" @ %Functor $=
+		(
+			+ 'YB_PURE' @ "%operator()",
+			+ 'YB_STATELESS' @ "conversion operator"
+		),
+		+ $dev $lib 'YB_PURE' @ "'.*' dispatch" @ "function template %invoke"
+			@ %Invoke,
+			// To eliminate G++ 10.1 warning: [-Wsuggest-attribute=pure].
+		/ DLDI "simplified %enable_if_t condition"
+			@ "function templates %make_unique_with#(2, 3)" @ %Memory
+			!^ '::value',
+		+ DLDI 'ynothrow' @ "internal access" @ %List,
+		+ DLDI 'YB_ATTR_nodiscard YB_PURE' @ "internal functions" @ %Tree
+			// Also to eliminate G++ 10.1 warning: [-Wsuggest-attribute=pure].
+	),
+	/ %YFramework.NPL $=
+	(
+		/ $dev $lib %Lexical $=
+		(
+			+ 'YB_PURE' @ "functions %(Deliteralize, DeliteralizeChecked, \
+				IsDelimiter, Escape, EscapeLiteral, EscapeXML, Literalize, \
+				Decompose",
+			+ 'YB_STATELESS' @ "function %IsGraphicalDelimiter",
+			/ $design $impl "simplified member functions %(ByteParser, \
+				SourcedByteParser)::Update"
+				// Now moving seems same to %substr in performance with \
+					inlining by G++ 10.
+		),
+		/ @ "class %ContextNode" @ %NPLA $=
+		(
+			/ $revert_ex(b894) "function %GetTailAction"
+				-> "exposed tail action as data member %TailAction";
+			- $revert(b894) "unwinding tail action" @ "function %Rewrite"
+			(
+			+ "alias %ExceptionHandler",
+			+ "static function %DefaultHandleException";
+			+ "data member %HandleExcepton";
+			(
+			/ "handled exception" ^ "%HandleException";
+			/ $revert(b893) DLDI "simplified function %Rewrite"
+			),
+			+ "function %SaveExceptionHandler"
+			),
+			+ "function %Shift"
+		),
+		/ "saved operator name" @ "TCO action" @ %NPLA1Internal,
+		/ %NPLA1 $=
+		(
+			/ @ "class %ContextState" $=
+			(
+				/ $forced DLDI "unwound tail action"
+					@ "function %RewriteGuarded"
+					$dep_from "%ContextNode::Rewrite",
+				- $comp "unwinding tail action" @ "function %RewriteTerm"
+					$dep_from "%ContextNode::Rewrite",
+				+ "functions %(GetCombiningTermPtr, SetCombiningTermRef, \
+					ClearCombiningTerm)"
+			),
+			+ "function %QueryTailOperatorName",
+			(
+			+ "function %SetupTailOperatorName" ^ ($dep_from
+				"%ContextState::GetCombiningTermPtr", %NPLA1Internal),
+			(
+			+ "function %IsCombiningTerm";
+			/ @ "functions %(ReduceCombined, ReduceCombinedBranch, \
+				ReduceNextCombinedBranch)" $=
+			(
+				/ "relaxed term precondition or check" ^ "%IsCombiningTerm"
+					~ "%IsBranchedList";
+				/ "saved irregular value" @ 'NPL_Impl_NPLA1_Enable_TCO';
+				/ "cleaned irregular value and state"
+					^ $dep_from "%ContextState::ClearCombiningTerm"
+			)
+			),
+			/ "setting combining term"
+				@ "function %SetupDefaultInterpretation"
+				^ $dep_from "%ContextState::SetCombiningTermRef";
+			/ "supported tracking name of operators"
+				@ "function %ReduceLeafToken"
+				^ "%SetupTailOperatorName" ~ "%TermToNamePtr"
+			)
+		)
+	)
+),
+
+b894
 (
 	/ %YFramework $=
 	(

@@ -11,13 +11,13 @@
 /*!	\file tree.h
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r3344
+\version r3356
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2020-02-10 23:44 +0800
+	2020-07-17 01:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -407,7 +407,7 @@ struct tree_node_base
 };
 
 
-// NOTE: This should be optimized once %is_final is supported.
+// TODO: Optimize once %is_final is supported.
 template<typename _tKeyComp>
 struct tree_key_compare
 {
@@ -820,6 +820,7 @@ private:
 		= tree<_tKey, _type, _fKeyOfValue, _fComp2, _tAlloc>;
 
 protected:
+	// TODO: Resolve LWG 2112 with %is_final support.
 	template<typename _tKeyComp>
 	struct components : node_allocator, tree_key_compare<_tKeyComp>
 	{
@@ -1459,7 +1460,7 @@ private:
 	}
 
 	template<typename _tIter, class _tTree, typename _tLink, typename _tBasePtr>
-	static _tIter
+	YB_ATTR_nodiscard YB_PURE static _tIter
 	lower_bound_impl(_tTree& t, _tLink x, _tBasePtr y, const _tKey& k)
 	{
 		while(x)
@@ -1473,14 +1474,14 @@ private:
 		return _tIter(y);
 	}
 	template<typename _tIter, class _tTree>
-	static inline _tIter
+	YB_ATTR_nodiscard YB_PURE static inline _tIter
 	lower_bound_impl(_tTree& t, const key_type& k)
 	{
 		return lower_bound_impl<_tIter>(t, t.node_begin(), t.node_end(), k);
 	}
 
 	template<typename _tIter, class _tTree, typename _tLink, typename _tBasePtr>
-	static _tIter
+	YB_ATTR_nodiscard YB_PURE static _tIter
 	upper_bound_impl(_tTree& t, _tLink x, _tBasePtr y, const _tKey& k)
 	{
 		while(x)
@@ -1494,7 +1495,7 @@ private:
 		return _tIter(y);
 	}
 	template<typename _tIter, class _tTree>
-	static inline _tIter
+	YB_ATTR_nodiscard YB_PURE static inline _tIter
 	upper_bound_impl(_tTree& t, const key_type& k)
 	{
 		return lower_bound_impl<_tIter>(t, t.node_begin(), t.node_end(), k);
@@ -1502,7 +1503,7 @@ private:
 
 	//! \since build 840
 	template<typename _tIter, class _tTree>
-	std::pair<_tIter, _tIter>
+	YB_ATTR_nodiscard YB_PURE std::pair<_tIter, _tIter>
 	equal_range_impl(_tTree& t, const key_type& k)
 	{
 		using pr_t = std::pair<_tIter, _tIter>;
@@ -1536,7 +1537,7 @@ private:
 	}
 
 	template<typename _tIter, class _tTree>
-	static _tIter
+	YB_ATTR_nodiscard YB_PURE static _tIter
 	find_impl(_tTree& t, const key_type& k)
 	{
 		const auto
@@ -1569,7 +1570,7 @@ private:
 	}
 
 public:
-	std::pair<base_ptr, base_ptr>
+	YB_ATTR_nodiscard YB_PURE std::pair<base_ptr, base_ptr>
 	get_insert_unique_pos(const key_type& k)
 	{
 		using res_t = std::pair<base_ptr, base_ptr>;
@@ -1598,7 +1599,7 @@ public:
 		return res_t(j.p_node, {});
 	}
 
-	std::pair<base_ptr, base_ptr>
+	YB_ATTR_nodiscard YB_PURE std::pair<base_ptr, base_ptr>
 	get_insert_equal_pos(const key_type& k)
 	{
 		auto x(node_begin());
@@ -1613,7 +1614,7 @@ public:
 		return std::pair<base_ptr, base_ptr>(x, y);
 	}
 
-	std::pair<base_ptr, base_ptr>
+	YB_ATTR_nodiscard YB_PURE std::pair<base_ptr, base_ptr>
 	get_insert_hint_unique_pos(const_iterator position, const key_type& k)
 	{
 		// TODO: Simplify.
@@ -1655,7 +1656,7 @@ public:
 			return res_t(mpos.p_node, {});
 	}
 
-	std::pair<base_ptr, base_ptr>
+	YB_ATTR_nodiscard YB_PURE std::pair<base_ptr, base_ptr>
 	get_insert_hint_equal_pos(const_iterator position, const key_type& k)
 	{
 		using res_t = std::pair<base_ptr, base_ptr>;

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2019 FrankHB.
+	© 2013-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file iterator_op.hpp
 \ingroup YStandardEx
 \brief 迭代器操作。
-\version r269
+\version r274
 \author FrankHB <frankhb1989@gmail.com>
 \since build 576
 \par 创建时间:
 	2015-02-09 11:28:52 +0800
 \par 修改时间:
-	2019-08-25 02:08 +0800
+	2020-07-17 01:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -106,7 +106,7 @@ using std::make_reverse_iterator;
 #else
 //! \since build 833
 template<typename _tIter>
-reverse_iterator<_tIter>
+YB_ATTR_nodiscard YB_STATELESS reverse_iterator<_tIter>
 make_reverse_iterator(_tIter i)
 {
 	return reverse_iterator<_tIter>(i);
@@ -124,7 +124,7 @@ make_reverse_iterator(_tIter i)
 template<typename _tIter, typename _tRet = cond_t<is_throwing_move_copyable<
 	typename std::iterator_traits<_tIter>::value_type>, _tIter,
 	std::move_iterator<_tIter>>>
-yconstfn _tRet
+YB_ATTR_nodiscard YB_STATELESS yconstfn _tRet
 make_move_if_noexcept_iterator(_tIter it)
 {
 	return _tRet(it);
@@ -135,7 +135,7 @@ make_move_if_noexcept_iterator(_tIter it)
 \since build 337
 */
 template<typename _tIter1, typename _tIter2>
-inline auto
+YB_ATTR_nodiscard YB_STATELESS inline auto
 make_move_iterator_pair(_tIter1 it1, _tIter2 it2) -> decltype(
 	std::make_pair(std::make_move_iterator(it1), std::make_move_iterator(it2)))
 {
@@ -149,7 +149,7 @@ make_move_iterator_pair(_tIter1 it1, _tIter2 it2) -> decltype(
 \since build 337
 */
 template<typename _tRange>
-inline auto
+YB_ATTR_nodiscard YB_STATELESS inline auto
 make_move_iterator_pair(_tRange& c)
 	-> decltype(ystdex::make_move_iterator_pair(c.begin(), c.end()))
 {

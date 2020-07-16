@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r7759
+\version r7825
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2020-07-08 00:50 +0800
+	2020-07-14 00:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,6 +47,7 @@
 //	ystdex::enable_if_same_param_t, ystdex::exclude_self_t,
 //	ystdex::make_obj_using_allocator, ystdex::exchange;
 #include <ystdex/base.h> // for ystdex::derived_entity;
+#include <libdefect/exception.h> // for std::exception_ptr;
 
 namespace NPL
 {
@@ -2408,6 +2409,13 @@ ToReducer(const _tAlloc& a, _tParam&& arg, _tParams&&... args)
 */
 class YF_API ContextNode
 {
+public:
+	/*!
+	\brief 异常处理器类型。
+	\since build 895
+	*/
+	using ExceptionHandler = function<void(std::exception_ptr)>;
+
 private:
 	/*!
 	\warning 非虚析构。
@@ -2593,13 +2601,19 @@ private:
 	*/
 	ReducerSequence stacked{current.get_allocator()};
 	//@}
-	/*!
-	\brief 尾动作。
-	\since build 894
-	*/
-	Reducer tail_action{};
 
 public:
+	/*!
+	\brief 尾动作。
+	\since build 895
+	*/
+	Reducer TailAction{};
+	/*!
+	\brief 本机异常处理例程。
+	\sa ApplyTail
+	\since build 895
+	*/
+	ExceptionHandler HandleException{DefaultHandleException};
 	/*!
 	\brief 最后一次规约状态。
 	\sa ApplyTail
@@ -2680,11 +2694,6 @@ public:
 	*/
 	DefGetter(const ynothrow, const shared_ptr<Environment>&, RecordPtr,
 		p_record)
-	/*!
-	\brief 取尾动作。
-	\since build 894
-	*/
-	DefGetter(const ynothrow, const Reducer&, TailAction, tail_action)
 
 	/*!
 	\brief 访问指定类型的当前动作目标。
@@ -2703,6 +2712,8 @@ public:
 	\note 非强异常安全：当动作调用抛出异常，不恢复已转移的动作。
 	\note 不无效化作序列中第一个动作以外的元素。
 	\pre 断言：\c IsAlive() 。
+	\sa TailAction
+	\sa HandleException
 	\sa LastStatus
 	\since build 810
 
@@ -2712,6 +2723,15 @@ public:
 	*/
 	ReductionStatus
 	ApplyTail();
+
+	/*!
+	\brief 默认本机异常处理例程：重新抛出并转换 bad_any_cast 异常为类型错误。
+	\pre 断言：参数非空。
+	\throw 嵌套 TypeError ：类型不匹配，由 Reduce 抛出的 bad_any_cast 转换。
+	\since build 895
+	*/
+	YB_NORETURN static void
+	DefaultHandleException(std::exception_ptr);
 
 	/*!
 	\brief 默认的名称解析算法。
@@ -2741,15 +2761,28 @@ public:
 	DefaultResolve(shared_ptr<Environment>, string_view);
 
 	/*!
-	\brief 重写项。
-	\pre 间接断言：\c !IsAlive() 。
 	\post \c IsAlive() 。
 	\exception std::bad_function_call Reducer 参数为空。
-	\throw 嵌套 TypeError ：类型不匹配，由 Reduce 抛出的 bad_any_cast 转换。
 	\note 不处理重规约。
 	\sa ApplyTail
+	*/
+	//@{
+	/*!
+	\brief 重写项。
+	\pre 间接断言：\c !IsAlive() 。
+	\sa RewriteLoop
 	\sa SetupCurrent
 	\since build 810
+
+	调用 SetupCurrent 设置当前动作，然后返回调用 RewriteLoop 的结果。
+	*/
+	YB_FLATTEN PDefH(ReductionStatus, Rewrite, Reducer reduce)
+		ImplRet(SetupCurrent(std::move(reduce)), RewriteLoop())
+
+	/*!
+	\brief 重写项循环。
+	\pre 断言：\c IsAlive() 。
+	\since build 895
 
 	调用 IsAlive 判断状态，当可规约时调用 ApplyTail 迭代规约重写。
 	因为递归重写平摊到单一的循环 CheckReducible 不用于判断是否需要继续重写循环。
@@ -2757,7 +2790,22 @@ public:
 	返回值为最后一次当前动作调用结果。
 	*/
 	YB_FLATTEN ReductionStatus
-	Rewrite(Reducer);
+	RewriteLoop();
+	//@}
+
+	/*!
+	\brief 保存异常处理器的恢复例程到当前动作序列。
+	\sa HandleException
+	\sa SetupFront
+	\since build 895
+	*/
+	PDefH(void, SaveExceptionHandler, )
+		// TODO: Blocked. Use C++14 lambda initializers to simplify the
+		//	implementation.
+		ImplExpr(SetupFront(std::bind([this](ExceptionHandler& h) ynothrow{
+			HandleException = std::move(h);
+			return LastStatus;
+		}, std::move(HandleException))))
 
 	/*!
 	\brief 设置当前动作以重规约。
@@ -2794,6 +2842,14 @@ public:
 				NPL::ToReducer(get_allocator(), yforward(args)...));
 	}
 
+	/*!
+	\brief 转移当第二参数指定的位置之前的当前动作序列的动作到第一参数。
+	\since build 895
+	*/
+	PDefH(void, Shift, ReducerSequence& rs, ReducerSequence::const_iterator i)
+		ynothrow
+		ImplExpr(rs.splice_after(rs.cbefore_begin(), current,
+			current.cbefore_begin(), i))
  	/*!
 	\brief 切换当前动作序列。
 	\since build 893

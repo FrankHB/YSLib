@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20122
+\version r20134
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2020-07-04 11:11 +0800
+	2020-07-14 03:08 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -160,12 +160,19 @@ public:
 	mutable EnvironmentGuard EnvGuard;
 	//! \since build 825
 	mutable FrameRecordList RecordList;
+	//! \since build 895
+	mutable TokenValue OperatorName;
 
 	//! \since build 819
 	TCOAction(ContextNode& ctx, TermNode& term, bool lift)
 		: TermRef(term), req_lift_result(lift), xgds(ctx.get_allocator()),
-		EnvGuard(ctx), RecordList(ctx.get_allocator())
-	{}
+		EnvGuard(ctx), RecordList(ctx.get_allocator()),
+		OperatorName(ctx.get_allocator())
+	{
+		if(const auto p = term.Value.AccessPtr<TokenValue>())
+			OperatorName = std::move(*p);
+			// XXX: After the move, %term.Value is unspecified.
+	}
 	// XXX: Not used, but provided for well-formness.
 	//! \since build 819
 	TCOAction(const TCOAction& a)
@@ -187,9 +194,8 @@ public:
 	void
 	AddRecord(shared_ptr<Environment>&& p_env)
 	{
-		// NOTE: The temporary function, the environment and the
-		//	temporary operand are saved in the frame record list as a new
-		//	entry.
+		// NOTE: The temporary function and the environment are saved in the
+		//	frame record list as a new entry.
 		RecordList.emplace_front(MoveFunction(), std::move(p_env));
 	}
 

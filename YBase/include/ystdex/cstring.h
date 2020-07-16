@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r2656
+\version r2657
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2020-05-13 14:46 +0800
+	2020-07-17 01:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -130,7 +130,7 @@ is_null(_tChar c) ynothrow
 }
 
 
-/*!	\defgroup NTCTSUtil null-terminated character string utilities
+/*!	\defgroup NTCTS_utils Null-terminated Character String Utilities
 \ingroup nonmodifying_algorithms
 \ingroup string_algorithms
 \brief 简单 NTCTS 操作。

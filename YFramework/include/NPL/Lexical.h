@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r2317
+\version r2327
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2020-05-30 10:14 +0800
+	2020-07-10 21:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -325,11 +325,11 @@ CheckLiteral(string_view) ynothrowv;
 */
 //@{
 //! \note 使用 CheckLiteral 判断。
-YB_ATTR_nodiscard YF_API string_view
+YB_ATTR_nodiscard YF_API YB_PURE string_view
 Deliteralize(string_view) ynothrowv;
 
 //! \since build 731
-YB_ATTR_nodiscard inline
+YB_ATTR_nodiscard YB_PURE inline
 	PDefH(string_view, DeliteralizeUnchecked, string_view sv) ynothrowv
 	ImplRet(YAssertNonnull(sv.data()), ystdex::get_mid(sv))
 //@}
@@ -338,7 +338,7 @@ YB_ATTR_nodiscard inline
 \brief 编码转义字符串：替换指定字符串中的可转义字符为转义序列。
 \sa LexicalAnalyzer
 */
-YB_ATTR_nodiscard YF_API string
+YB_ATTR_nodiscard YF_API YB_PURE string
 Escape(string_view);
 
 /*!
@@ -348,7 +348,7 @@ Escape(string_view);
 \note 若转义后最后一个字符为 '\\' 则添加一个 '\\' 以避免转义末尾分隔符。
 \sa LexicalAnalyzer
 */
-YB_ATTR_nodiscard YF_API string
+YB_ATTR_nodiscard YF_API YB_PURE string
 EscapeLiteral(string_view);
 
 /*!
@@ -358,7 +358,7 @@ EscapeLiteral(string_view);
 允许 XML 1.1 字符，仅对空字符使用 YTraceDe 进行警告。
 仅对 XML 1.0 和 XML 1.1 规定的有条件使用字符 \c & 、 \c < 和 \c > 生成转义序列。
 */
-YB_ATTR_nodiscard YF_API string
+YB_ATTR_nodiscard YF_API YB_PURE string
 EscapeXML(string_view);
 
 /*!
@@ -367,7 +367,7 @@ EscapeXML(string_view);
 	否则为首尾加上第二参数字符的串。
 \since build 597
 */
-YB_ATTR_nodiscard YF_API string
+YB_ATTR_nodiscard YF_API YB_PURE string
 Literalize(string_view, char = '"');
 //@}
 
@@ -375,11 +375,12 @@ Literalize(string_view, char = '"');
 //! \since build 825
 //@{
 //! \brief 判断参数是否为 NPL 图形分隔符。
-YB_ATTR_nodiscard yconstfn PDefH(bool, IsGraphicalDelimiter, char c) ynothrow
+YB_ATTR_nodiscard YB_STATELESS yconstfn
+	PDefH(bool, IsGraphicalDelimiter, char c) ynothrow
 	ImplRet(c == '(' || c == ')' || c == ',' || c == ';')
 
 //! \brief 判断参数是否为 NPL 分隔符。
-YB_ATTR_nodiscard inline PDefH(bool, IsDelimiter, char c) ynothrow
+YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsDelimiter, char c) ynothrow
 #if CHAR_MIN < 0
 	ImplRet(c >= 0 && (!std::isgraph(c) || IsGraphicalDelimiter(c)))
 #else
@@ -394,7 +395,7 @@ YB_ATTR_nodiscard inline PDefH(bool, IsDelimiter, char c) ynothrow
 \post 结果中字符串两端不包括 "C" 区域 \tt std::isspace 返回非零的字符。
 \since build 889
 */
-YB_ATTR_nodiscard YF_API LexemeList
+YB_ATTR_nodiscard YF_API YB_PURE LexemeList
 Decompose(string_view, LexemeList::allocator_type = {});
 
 

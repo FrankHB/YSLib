@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2019 FrankHB.
+	© 2010-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file invoke.hpp
 \ingroup YStandardEx
 \brief 可调用对象和调用包装接口。
-\version r4615
+\version r4617
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-24 05:03:12 +0800
 \par 修改时间:
-	2019-01-22 01:02 +0800
+	2020-07-17 01:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -485,7 +485,7 @@ invoke_impl(_fCallable&& f, _type&& obj, _tParams&&... args)
 }
 //! \since build 763
 template<typename _fCallable, typename _type>
-yconstfn auto
+YB_PURE yconstfn auto
 invoke_impl(_fCallable&& f, _type&& obj)
 	-> enable_if_t<is_callable_case3<decay_t<_fCallable>, _type>::value,
 	decltype(yforward(obj).*f)>

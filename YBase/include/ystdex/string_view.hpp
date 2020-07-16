@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2019 FrankHB.
+	© 2015-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file string_view.hpp
 \ingroup YStandardEx
 \brief 只读字符串视图。
-\version r603
+\version r636
 \author FrankHB <frankhb1989@gmail.com>
 \since build 640
 \par 创建时间:
 	2015-09-28 12:04:58 +0800
 \par 修改时间:
-	2019-07-07 15:46 +0800
+	2020-07-17 01:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -132,80 +132,80 @@ public:
 	yconstfn_relaxed basic_string_view&
 	operator=(const basic_string_view&) ynothrow = default;
 
-	yconstfn const_iterator
+	YB_ATTR_nodiscard YB_PURE yconstfn const_iterator
 	begin() const ynothrow
 	{
 		return data_;
 	}
 
-	yconstfn const_iterator
+	YB_ATTR_nodiscard YB_PURE yconstfn const_iterator
 	end() const ynothrow
 	{
 		return data_ + size_;
 	}
 
-	yconstfn const_iterator
+	YB_ATTR_nodiscard YB_PURE yconstfn const_iterator
 	cbegin() const ynothrow
 	{
 		return data_;
 	}
 
-	yconstfn const_iterator
+	YB_ATTR_nodiscard YB_PURE yconstfn const_iterator
 	cend() const ynothrow
 	{
 		return data_ + size_;
 	}
 
-	yconstfn const_reverse_iterator
+	YB_ATTR_nodiscard YB_PURE yconstfn const_reverse_iterator
 	rbegin() const ynothrow
 	{
 		return const_reverse_iterator(end());
 	}
 
-	yconstfn const_reverse_iterator
+	YB_ATTR_nodiscard YB_PURE yconstfn const_reverse_iterator
 	rend() const ynothrow
 	{
 		return const_reverse_iterator(begin());
 	}
 
-	yconstfn const_reverse_iterator
+	YB_ATTR_nodiscard YB_PURE yconstfn const_reverse_iterator
 	crbegin() const ynothrow
 	{
 		return const_reverse_iterator(cend());
 	}
 
-	yconstfn const_reverse_iterator
+	YB_ATTR_nodiscard YB_PURE yconstfn const_reverse_iterator
 	crend() const ynothrow
 	{
 		return const_reverse_iterator(cbegin());
 	}
 
-	yconstfn size_type
+	YB_ATTR_nodiscard YB_PURE yconstfn size_type
 	size() const ynothrow
 	{
 		return size_;
 	}
 
-	yconstfn size_type
+	YB_ATTR_nodiscard YB_PURE yconstfn size_type
 	length() const ynothrow
 	{
 		return size_;
 	}
 
-	yconstfn size_type
+	YB_ATTR_nodiscard YB_PURE yconstfn size_type
 	max_size() const ynothrow
 	{
 		// NOTE: This is same to libc++ but not libstdc++.
 		return std::numeric_limits<size_type>::max();
 	}
 
-	YB_ATTR_nodiscard yconstfn bool
+	YB_ATTR_nodiscard YB_PURE yconstfn bool
 	empty() const ynothrow
 	{
 		return size_ == 0;
 	}
 
-	yconstfn const_reference
+	YB_ATTR_nodiscard YB_PURE yconstfn const_reference
 	operator[](size_type pos) const
 	{
 		return yconstraint(pos < size_), data_[pos];
@@ -218,19 +218,19 @@ public:
 			: (throw std::out_of_range("string_view::at"), data_[0]);
 	}
 
-	yconstfn const_reference
+	YB_ATTR_nodiscard YB_PURE yconstfn const_reference
 	front() const
 	{
 		return yconstraint(0 < size_), data_[0];
 	}
 
-	yconstfn const_reference
+	YB_ATTR_nodiscard YB_PURE yconstfn const_reference
 	back() const
 	{
 		return yconstraint(0 < size_), data_[size_ - 1];
 	}
 
-	yconstfn const_pointer
+	YB_ATTR_nodiscard YB_PURE yconstfn const_pointer
 	data() const ynothrow
 	{
 		return data_;
@@ -269,7 +269,7 @@ public:
 		throw std::out_of_range("string_view::copy");
 	}
 
-	yconstfn basic_string_view
+	YB_ATTR_nodiscard yconstfn basic_string_view
 	substr(size_type pos = 0, size_type n = npos) const
 	{
 		return pos <= size_ ? basic_string_view(data_ + pos,
@@ -277,41 +277,41 @@ public:
 			: throw std::out_of_range("string_view::substr");
 	}
 
-	yconstfn int
+	YB_ATTR_nodiscard yconstfn int
 	compare(basic_string_view s) const ynothrow
 	{
 		return compare_remained(s, _tTraits::compare(data(), s.data(),
 			std::min<size_type>(size(), s.size())));
 	}
-	yconstfn int
+	YB_ATTR_nodiscard yconstfn int
 	compare(size_type pos1, size_type n1, basic_string_view s) const
 	{
 		return substr(pos1, n1).compare(s);
 	}
-	yconstfn int
+	YB_ATTR_nodiscard yconstfn int
 	compare(size_type pos1, size_type n1, basic_string_view s, size_type pos2,
 		size_type n2) const
 	{
 		return substr(pos1, n1).compare(s.substr(pos2, n2));
 	}
-	YB_NONNULL(2) yconstfn int
+	YB_ATTR_nodiscard YB_NONNULL(2) yconstfn int
 	compare(const _tChar* s) const
 	{
 		return compare(basic_string_view(s));
 	}
-	YB_NONNULL(4) yconstfn int
+	YB_ATTR_nodiscard YB_NONNULL(4) yconstfn int
 	compare(size_type pos1, size_type n1, const _tChar* s) const
 	{
 		return substr(pos1, n1).compare(basic_string_view(s));
 	}
-	YB_NONNULL(4) yconstfn int
+	YB_ATTR_nodiscard YB_NONNULL(4) yconstfn int
 	compare(size_type pos1, size_type n1, const _tChar* s, size_type n2) const
 	{
 		return substr(pos1, n1).compare(basic_string_view(s, n2));
 	}
 
 private:
-	yconstfn int
+	YB_ATTR_nodiscard yconstfn int
 	compare_remained(basic_string_view s, int ret) const ynothrow
 	{
 		return ret == 0 ? (size() == s.size() ? 0
@@ -320,7 +320,7 @@ private:
 
 public:
 #define YB_Impl_StringView_search_fn_head(_n, _attr, _spec, ...) \
-	yconstfn_relaxed _attr size_type \
+	YB_ATTR_nodiscard YB_PURE yconstfn_relaxed _attr size_type \
 	_n(__VA_ARGS__) const _spec \
 	{
 #define YB_Impl_StringView_search1(_n, _arg) \
@@ -376,14 +376,14 @@ public:
 //! \relates basic_string_view
 //@{
 template<typename _tChar, class _tTraits>
-yconstfn bool
+YB_ATTR_nodiscard YB_PURE yconstfn bool
 operator==(basic_string_view<_tChar, _tTraits> x,
 	basic_string_view<_tChar, _tTraits> y) ynothrow
 {
 	return x.compare(y) == 0;
 }
 template<typename _tChar, class _tTraits>
-yconstfn bool
+YB_ATTR_nodiscard YB_PURE yconstfn bool
 operator==(basic_string_view<_tChar, _tTraits> x,
 	yimpl(decay_t<basic_string_view<_tChar, _tTraits>>) y) ynothrow
 {
@@ -391,7 +391,7 @@ operator==(basic_string_view<_tChar, _tTraits> x,
 }
 //! \since build 642
 template<typename _tChar, class _tTraits>
-yconstfn bool
+YB_ATTR_nodiscard YB_PURE yconstfn bool
 operator==(yimpl(decay_t<basic_string_view<_tChar, _tTraits>>) x,
 	basic_string_view<_tChar, _tTraits> y) ynothrow
 {
@@ -399,7 +399,7 @@ operator==(yimpl(decay_t<basic_string_view<_tChar, _tTraits>>) x,
 }
 
 template<typename _tChar, class _tTraits>
-yconstfn bool
+YB_ATTR_nodiscard YB_PURE yconstfn bool
 operator<(basic_string_view<_tChar, _tTraits> x,
 	basic_string_view<_tChar, _tTraits> y) ynothrow
 {
@@ -407,7 +407,7 @@ operator<(basic_string_view<_tChar, _tTraits> x,
 }
 //! \since build 642
 template<typename _tChar, class _tTraits>
-yconstfn bool
+YB_ATTR_nodiscard YB_PURE yconstfn bool
 operator<(basic_string_view<_tChar, _tTraits> x,
 	yimpl(decay_t<basic_string_view<_tChar, _tTraits>>) y) ynothrow
 {
@@ -415,7 +415,7 @@ operator<(basic_string_view<_tChar, _tTraits> x,
 }
 //! \since build 642
 template<typename _tChar, class _tTraits>
-yconstfn bool
+YB_ATTR_nodiscard YB_PURE yconstfn bool
 operator<(yimpl(decay_t<basic_string_view<_tChar, _tTraits>>) x,
 	basic_string_view<_tChar, _tTraits> y) ynothrow
 {
@@ -463,7 +463,7 @@ namespace std
 template<typename _tChar, class _tTraits>
 struct hash<ystdex::basic_string_view<_tChar, _tTraits>>
 {
-	size_t
+	YB_ATTR_nodiscard YB_PURE size_t
 	operator()(const ystdex::string_view& k) const yimpl(ynothrow)
 	{
 		return ystdex::hash_range(k.data(), k.data() + k.size());

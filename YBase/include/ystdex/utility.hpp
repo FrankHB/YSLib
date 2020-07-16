@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3570
+\version r3575
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2020-05-24 11:54 +0800
+	2020-07-08 17:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -399,21 +399,23 @@ public:
 
 private:
 	//! \since build 693
-	flag_type init_flag, uninit_flag;
+	flag_type init_flag;
+	//! \since build 894
+	flag_type deinit_flag;
 	//! \since build 693
 	replace_storage_t<_type> storage;
 
 public:
 	template<typename... _tParams>
 	call_once_init(_tParams&&... args)
-		: init_flag(), uninit_flag()
+		: init_flag(), deinit_flag()
 	{
 		call_once(init_flag, std::bind(ystdex::construct_in<_type,
 			_tParams&&...>, std::ref(get()), std::ref(args)...));
 	}
 	~call_once_init()
 	{
-		call_once(init_flag, std::bind(ystdex::destruct_in<_type>,
+		call_once(deinit_flag, std::bind(ystdex::destruct_in<_type>,
 			std::ref(get())));
 	}
 

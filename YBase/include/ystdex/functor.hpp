@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r981
+\version r987
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2020-01-27 17:05 +0800
+	2020-07-17 01:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,7 +78,9 @@ using enable_if_transparent_t
 
 /*!	\defgroup functors General Functors
 \brief 仿函数。
+\warning 可能非虚析构。
 \note 函数对象包含函数指针和仿函数。
+\warning 其中的类类型一般可被继承但非虚析构。
 \since build 243
 */
 //@{
@@ -90,14 +92,14 @@ using enable_if_transparent_t
 template<typename _type = void>
 struct id
 {
-	yconstfn _type
+	YB_PURE yconstfn _type
 	operator()(const _type& x) const ynothrow
 	{
 		return x;
 	}
 
 	//! \since build 756
-	yconstfn
+	YB_STATELESS yconstfn
 	operator add_ptr_t<_type(_type)>() const ynothrow
 	{
 		return [](_type x) ynothrow -> _type{
@@ -110,7 +112,7 @@ template<>
 struct id<void>
 {
 	template<typename _type>
-	yconstfn _type
+	YB_PURE yconstfn _type
 	operator()(_type&& x) const ynothrow
 	{
 		return yforward(x);
@@ -118,7 +120,7 @@ struct id<void>
 
 	//! \since build 756
 	template<typename _type>
-	yconstfn
+	YB_STATELESS yconstfn
 	operator add_ptr_t<_type(_type)>() const ynothrow
 	{
 		return [](_type x) ynothrow -> _type{
