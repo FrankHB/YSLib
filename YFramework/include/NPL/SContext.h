@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r3589
+\version r3597
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2020-07-04 16:56 +0800
+	2020-07-24 00:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -603,13 +603,6 @@ AsTermNode(TermNode::allocator_type a, _tParams&&... args)
 }
 //@}
 
-//! \since build 853
-inline PDefH(const string&, GetNodeNameOf, const ValueNode& node) ynothrow
-	ImplRet(node.GetName())
-//! \since build 853
-inline PDefH(string, GetNodeNameOf, const TermNode&) ynothrow
-	ImplRet(string("[TermNode]"))
-
 //! \since build 852
 //@{
 // NOTE: Like %YSLib::GetValueOf.
@@ -681,8 +674,8 @@ SetContentWith(TermNode& dst, _tNode&& node, _fCallable f)
 \note 使用 ADL AccessPtr 。
 \since build 803
 
-遍历节点容器中的子节点。
-直接作为节点容器访问。
+使用第一参数指定的遍历函数访问第二参数指定的节点容器中的子节点。
+兼容 TermNode 和 ValueNode ，主要用于语法变换。
 */
 template<typename _fCallable, class _tNode>
 void

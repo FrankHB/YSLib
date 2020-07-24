@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r2180
+\version r2185
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2020-07-12 03:44 +0800
+	2020-07-17 19:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -154,12 +154,6 @@ CheckLiteral(string_view sv) ynothrowv
 				return c;
 		}
 	return {};
-}
-
-string_view
-Deliteralize(string_view sv) ynothrowv
-{
-	return CheckLiteral(sv) != char() ? DeliteralizeUnchecked(sv) : sv;
 }
 
 string

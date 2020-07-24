@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r18527
+\version r18595
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2020-07-05 15:57 +0800
+	2020-07-22 23:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,21 +26,24 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA1Forms // for YSLib, TermReference, in_place_type,
-//	function, NPL::TryAccessReferencedTerm, ystdex::value_or, NPL::Deref,
+#include YFM_NPL_NPLA1Forms // for YSLib, NPL::IsMovable,
+//	function, NPL::TryAccessReferencedTerm, ystdex::value_or,
+//	ThrowInsufficientTermsError, NPL::Deref, ReduceReturnUnspecified,
 //	RemoveHead, IsBranch, std::placeholders, ystdex::as_const, IsLeaf,
 //	ystdex::ref_eq, ContextHandler, shared_ptr, string, unordered_map,
 //	Environment, lref, list, IsBranchedList, TokenValue, NPL::TryAccessLeaf,
-//	ValueObject, any_ops::use_holder, weak_ptr, ystdex::type_id,
-//	YSLib::allocate_shared, InvalidReference, MoveFirstSubterm, ShareMoveTerm,
-//	ystdex::expand_proxy, ystdex::cast_mutable, RelaySwitched,
+//	ValueObject, weak_ptr, any_ops::use_holder, in_place_type, ystdex::type_id,
+//	YSLib::allocate_shared, InvalidReference, MoveFirstSubterm,
+//	A1::NameTypedReducerHandler, ShareMoveTerm, ThrowInvalidSyntaxError,
 //	ReduceCombinedBranch, ResolvedTermReferencePtr, LiftOtherOrCopy,
-//	NPL::IsMovable, ResolveTerm, NPL::Access, ystdex::equality_comparable,
-//	std::allocator_arg, NoContainer, ystdex::exchange,
-//	NPL::SwitchToFreshEnvironment, TermTags, GetLValueTagsOf, NPL::AsTermNode,
-//	AccessFirstSubterm, NPL::TryAccessReferencedLeaf, ystdex::invoke_value_or,
-//	ystdex::call_value_or, LiftMovedOther, ystdex::make_transform,
-//	NPL::TryAccessTerm, LiftCollapsed, NPL::AllocateEnvironment, std::mem_fn;
+//	ResolveTerm, ystdex::equality_comparable, std::allocator_arg, NoContainer,
+//	ystdex::exchange, NPL::SwitchToFreshEnvironment, TermTags,
+//	ystdex::expand_proxy, NPL::Access, GetLValueTagsOf, NPL::AsTermNode,
+//	AccessFirstSubterm, ThrowValueCategoryErrorForFirstArgument, TermReference,
+//	NPL::TryAccessReferencedLeaf, ystdex::invoke_value_or,
+//	ystdex::call_value_or, RelaySwitched, LiftMovedOther, LiftCollapsed,
+//	ystdex::make_transform, NPL::AllocateEnvironment, NPL::TryAccessTerm,
+//	std::mem_fn;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_SContext // for Session;
 
@@ -73,10 +76,6 @@ using Forms::CallResolvedUnary;
 using Forms::CallUnary;
 using Forms::Retain;
 using Forms::RetainN;
-using Forms::ThrowInsufficientTermsError;
-//! \since build 859
-using Forms::ThrowInvalidSyntaxError;
-using Forms::ThrowValueCategoryErrorForFirstArgument;
 //@}
 
 
@@ -101,17 +100,6 @@ ReduceSequenceOrderedAsync(TermNode& term, ContextNode& ctx, TNIter i)
 		: ReduceSubsequent(*i, ctx, [&, i](ContextNode& c){
 		return ReduceSequenceOrderedAsync(term, c, term.erase(i));
 	});
-}
-
-//! \since build 861
-ReductionStatus
-ReduceReturnUnspecified(TermNode& term) ynothrow
-{
-	// XXX: This is slightly more efficient than direct assignment with
-	//	x86_64-pc-linux G++ 9.3 in this context.
-	term.Value = ValueObject(std::allocator_arg, term.get_allocator(),
-		ValueToken::Unspecified);
-	return ReductionStatus::Clean;
 }
 
 
@@ -153,11 +141,11 @@ CondImpl(TermNode& term, ContextNode& ctx, TNIter i)
 {
 	if(i != term.end())
 	{
-		auto& clause(Deref(i));
+		auto& clause(NPL::Deref(i));
 		auto j(CondClauseCheck(clause));
 
 		// NOTE: This also supports TCO.
-		return ReduceSubsequent(Deref(j), ctx, [&, i, j](ContextNode& c){
+		return ReduceSubsequent(NPL::Deref(j), ctx, [&, i, j](ContextNode& c){
 			if(CondTest(clause, j))
 				return ReduceOnceLifted(term, c, clause);
 			return CondImpl(term, c, std::next(i));
@@ -476,13 +464,15 @@ struct DoDefineOrSet final
 	{
 #if NPL_Impl_NPLA1_Enable_Thunked
 		// XXX: Terms shall be moved and saved into the actions.
-		// TODO: Blocked. Use C++14 lambda initializers to simplify
+		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
-		return ReduceSubsequent(term, ctx, std::bind([&](const TermNode& saved,
+		return ReduceSubsequent(term, ctx,
+			A1::NameTypedReducerHandler(std::bind([&](const TermNode& saved,
 			const shared_ptr<Environment>& p_e, const _tParams&...){
 			BindParameter(p_e, saved, term);
 			return ReduceReturnUnspecified(term);
-		}, std::move(formals), std::move(p_env), std::move(args)...));
+		}, std::move(formals), std::move(p_env), std::move(args)...),
+			"match-ptree"));
 #else
 		yunseq(0, args...);
 		// NOTE: This does not support PTC.
@@ -517,9 +507,10 @@ struct DoDefineOrSet<true> final
 		auto p_saved(ShareMoveTerm(formals));
 
 		// TODO: Avoid %shared_ptr.
-		// TODO: Blocked. Use C++14 lambda initializers to simplify
+		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
-		return ReduceSubsequent(term, ctx, std::bind([&](const
+		return ReduceSubsequent(term, ctx,
+			A1::NameTypedReducerHandler(std::bind([&](const
 			shared_ptr<TermNode>&, const shared_ptr<RecursiveThunk>& p_gd,
 			const _tParams&...){
 			BindParameter(p_gd->RecordPtr, p_gd->TermRef, term);
@@ -529,7 +520,7 @@ struct DoDefineOrSet<true> final
 			return ReduceReturnUnspecified(term);
 		}, std::move(p_saved), YSLib::allocate_shared<RecursiveThunk>(
 			term.get_allocator(), std::move(p_env), *p_saved),
-			std::move(args)...));
+			std::move(args)...), "match-ptree-recursive"));
 #else
 		// NOTE: This does not support PTC.
 		RecursiveThunk gd(std::move(p_env), formals);
@@ -1638,9 +1629,9 @@ RetainN(const TermNode& term, size_t m)
 {
 	const auto n(FetchArgumentN(term));
 
-	if(n != m)
-		throw ArityMismatch(m, n);
-	return n;
+	if(n == m)
+		return n;
+	throw ArityMismatch(m, n);
 }
 
 
@@ -2171,36 +2162,6 @@ Unwrap(TermNode& term, ContextNode& ctx)
 		std::ref(ctx), _1, _2), ThrowForUnwrappingFailure);
 }
 
-
-void
-ThrowInsufficientTermsError()
-{
-	throw ParameterMismatch("Insufficient terms found for list parameter.");
-}
-
-void
-ThrowInvalidSyntaxError(const char* str)
-{
-	throw InvalidSyntax(str);
-}
-void
-ThrowInvalidSyntaxError(string_view sv)
-{
-	throw InvalidSyntax(sv);
-}
-
-void
-ThrowNonmodifiableErrorForAssignee()
-{
-	throw TypeError("Destination operand of assignment shall be modifiable.");
-}
-
-void
-ThrowValueCategoryErrorForFirstArgument(const TermNode& term)
-{
-	throw ValueCategoryMismatch(ystdex::sfmt("Expected a reference for the 1st "
-		"argument, got '%s'.", TermToString(term).c_str()));
-}
 
 ReductionStatus
 CheckEnvironment(TermNode& term)

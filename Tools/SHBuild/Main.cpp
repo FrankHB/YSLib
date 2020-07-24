@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3943
+\version r3948
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2020-04-13 22:14 +0800
+	2020-07-21 22:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,7 +112,7 @@ Quote(_tString&& str) -> decltype(quote(yforward(str), '\''))
 //! \since build 861
 yconstexpr const struct
 {
-	YB_NONNULL(1) void
+	YB_NONNULL(2) void
 	operator()(const char* line, RecordLevel lv = Notice,
 		LogGroup grp = LogGroup::General) const
 	{
@@ -385,7 +385,7 @@ RunNPLFromStream(const char* name, std::istream&& is)
 	load_std_module("environments", LoadModule_std_environments),
 	load_std_module("io", LoadModule_std_io),
 	load_std_module("system", LoadModule_std_system);
-	GetModuleFor(rctx, [&]{
+	InvokeIn(rctx, [&]{
 		context.Root.GetRecordRef().DefineChecked("env_SHBuild_",
 			GetModuleFor(rctx, [&]{
 			LoadModule_SHBuild(context);
@@ -787,10 +787,10 @@ BuildContext::Build()
 
 			if(Mode == BuildMode::AR)
 				target += ".a";
-			// FIXME: Find extension properly.
+			// TODO: Find extension properly.
 			else
-				// FIXME: Parse %LDFLAGS.
-// FIXME: Support cross compiling.
+				// TODO: Parse %LDFLAGS.
+				// TODO: Support cross compiling.
 				target += ystdex::exists_substr(LDFLAGS, "-Bdynamic")
 					|| ystdex::exists_substr(LDFLAGS, "-shared")
 #if YCL_Win32

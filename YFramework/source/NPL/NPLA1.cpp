@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r19701
+\version r19909
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-07-17 00:09 +0800
+	2020-07-21 18:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLA1Forms // for YSLib, NPL, Forms, RelaySwitched,
 //	type_index, string_view, std::hash, ystdex::equal_to, YSLib::unordered_map,
-//	std::piecewise_construct, ystdex::type_id, ContextHandler,
-//	NPL::make_observer, ystdex::ref, lref, IValueHolder,
+//	std::piecewise_construct, YSLib::lock_guard, YSLib::mutex, ystdex::type_id,
+//	ContextHandler, NPL::make_observer, ystdex::ref, lref, IValueHolder,
 //	YSLib::AllocatedHolderOperations, any, uintmax_t, TokenValue,
 //	function, std::allocator_arg, stack, vector, std::find_if, TermTags,
 //	TermReference, GetLValueTagsOf, NPL::TryAccessLeaf, NPL::IsMovable,
@@ -82,12 +82,6 @@ to_string(ValueToken vt)
 //! \since build 685
 namespace
 {
-
-//! \since build 868
-using Forms::ThrowInsufficientTermsError;
-//! \since build 859
-using Forms::ThrowInvalidSyntaxError;
-
 
 #if NPL_Impl_NPLA1_Enable_Thunked
 //! \since build 841
@@ -142,25 +136,6 @@ FetchNameTableRef()
 {
 	return ystdex::parameterize_static_object<NameTable, _tKey>();
 }
-
-template<typename _type>
-YB_ATTR_nodiscard YB_NONNULL(2) YB_PURE inline _type
-NameHandler(_type&& x, const char* desc)
-{
-	static struct Init final
-	{
-		Init(string_view sv)
-		{
-			YSLib::lock_guard<YSLib::mutex> gd(NameTableMutex);
-
-			FetchNameTableRef<NPLA1Tag>().emplace(std::piecewise_construct,
-				std::forward_as_tuple(ystdex::type_id<_type>()),
-				std::forward_as_tuple(sv));
-		}
-	} init(desc);
-
-	return yforward(x);
-}
 //@}
 
 #if NPL_Impl_NPLA1_Enable_Thunked
@@ -176,8 +151,8 @@ ReduceChildrenOrderedAsyncUnchecked(TNIter first, TNIter last, ContextNode& ctx)
 
 	auto& term(*first++);
 
-	return ReduceSubsequent(term, ctx,
-		Continuation(NameHandler([first, last](TermNode&, ContextNode& c){
+	return ReduceSubsequent(term, ctx, Continuation(
+		NameTypedContextHandler([first, last](TermNode&, ContextNode& c){
 		return ReduceChildrenOrderedAsync(first, last, c);
 	}, "eval-argument-list"), ctx));
 }
@@ -223,10 +198,11 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	SetupNextTerm(ctx, term);
 	// TODO: Blocked. Use C++14 lambda initializers to simplify the
 	//	implementation.
-	RelaySwitched(ctx, std::bind([&](const _tParams&...){
+	RelaySwitched(ctx,
+		A1::NameTypedReducerHandler(std::bind([&](const _tParams&...){
 		// NOTE: Captured argument pack is only needed when %h actually shares.
 		return RegularizeTerm(term, ctx.LastStatus);
-	}, std::move(args)...));
+	}, std::move(args)...), "eval-combine-return"));
 	return RelaySwitched(ctx, Continuation(std::ref(h), ctx));
 #else
 
@@ -254,6 +230,7 @@ DoAdministratives(const EvaluationPasses& passes, TermNode& term,
 #endif
 }
 
+#if NPL_Impl_NPLA1_Enable_TCO
 //! \since build 893
 struct EvalSequence final
 {
@@ -272,7 +249,7 @@ ReduceSequenceOrderedAsync(TermNode& term, ContextNode& ctx, TNIter i)
 	// TODO: Allow capture next sequenced evaluations as a single continuation?
 	return std::next(i) == term.end() ? ReduceOnceLifted(term, ctx, *i)
 		: ReduceSubsequent(*i, ctx,
-		NameHandler(EvalSequence{term, i}, "eval-sequence"));
+		NameTypedReducerHandler(EvalSequence{term, i}, "eval-sequence"));
 }
 
 ReductionStatus
@@ -280,6 +257,17 @@ EvalSequence::operator()(ContextNode& ctx)
 {
 	return ReduceSequenceOrderedAsync(TermRef, ctx, TermRef.get().erase(Iter));
 }
+#else
+//! \since build 896
+void
+ReduceOrderedResult(TermNode& term)
+{
+	if(IsBranch(term))
+		LiftTerm(term, *term.rbegin());
+	else
+		term.Value = ValueToken::Unspecified;
+}
+#endif
 
 
 //! \since build 891
@@ -354,6 +342,7 @@ private:
 	ValueObject pfx2{std::allocator_arg, alloc,
 		ContextHandler(FormContextHandler(ReduceBranchToList, 1))};
 #if NPL_Impl_NPLA1_Enable_ThunkedSeparatorPass
+
 	//! \since build 882
 	using TermStack = stack<lref<TermNode>, vector<lref<TermNode>>>;
 
@@ -743,6 +732,45 @@ MakeParameterMatcher(_fBindTrailing bind_trailing_seq, _fBindValue bind_value)
 } // unnamed namespace;
 
 
+void
+ThrowInsufficientTermsError()
+{
+	throw ParameterMismatch("Insufficient terms found for list parameter.");
+}
+
+void
+ThrowInvalidSyntaxError(const char* str)
+{
+	throw InvalidSyntax(str);
+}
+void
+ThrowInvalidSyntaxError(string_view sv)
+{
+	throw InvalidSyntax(sv);
+}
+
+void
+ThrowNonmodifiableErrorForAssignee()
+{
+	throw TypeError("Destination operand of assignment shall be modifiable.");
+}
+
+void
+ThrowUnsupportedLiteralError(const char* id)
+{
+	throw InvalidSyntax(ystdex::sfmt(
+		id[0] != '#' ? "Unsupported literal prefix found in literal '%s'."
+		: "Invalid literal '%s' found.", id));
+}
+
+void
+ThrowValueCategoryErrorForFirstArgument(const TermNode& term)
+{
+	throw ValueCategoryMismatch(ystdex::sfmt("Expected a reference for the 1st "
+		"argument, got '%s'.", TermToString(term).c_str()));
+}
+
+
 ContextState::ContextState(pmr::memory_resource& rsrc)
 	: ContextNode(rsrc)
 {
@@ -920,23 +948,17 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 	term.Value = ValueToken::Unspecified;
 	return ReductionStatus::Retained;
 #	else
-	return A1::ReduceCurrentNext(term, ctx,
-		Continuation(static_cast<ReductionStatus(&)(TermNode&,
-		ContextNode&)>(ReduceChildrenOrdered), ctx), [&]{
-		if(IsBranch(term))
-			LiftTerm(term, *term.rbegin());
-		else
-			term.Value = ValueToken::Unspecified;
+	return A1::ReduceCurrentNext(term, ctx, Continuation(
+		static_cast<ReductionStatus(&)(TermNode&, ContextNode&)>(
+		ReduceChildrenOrdered), ctx), A1::NameTypedReducerHandler([&]{
+		ReduceOrderedResult(term);
 		return ReductionStatus::Regular;
-	});
+	}, "eval-sequence-return"));
 #	endif
 #else
 	const auto res(ReduceChildrenOrdered(term, ctx));
 
-	if(IsBranch(term))
-		LiftTerm(term, *term.rbegin());
-	else
-		term.Value = ValueToken::Unspecified;
+	ReduceOrderedResult(term);
 	return res;
 #endif
 }
@@ -1027,56 +1049,11 @@ TransformNode(const TermNode& term, NodeMapper mapper, NodeMapper map_leaf_node,
 }
 
 
-ReductionStatus
-FormContextHandler::CallN(size_t n, TermNode& term, ContextNode& ctx) const
-{
-	// NOTE: This implementes arguments evaluation in applicative order when
-	//	%Wrapping is not zero.
-#if NPL_Impl_NPLA1_Enable_Thunked
-	// XXX: Optimize for cases with no argument.
-	if(n == 0 || term.size() <= 1)
-		// XXX: Assume the term has been setup by the caller.
-		return RelayCurrentOrDirect(ctx, Continuation(std::ref(Handler), ctx),
-			term);
-	return A1::ReduceCurrentNext(term, ctx,
-		Continuation(NameHandler([&](TermNode& t, ContextNode& c){
-		YAssert(!t.empty(), "Invalid term found.");
-		ReduceChildrenOrderedAsyncUnchecked(std::next(t.begin()), t.end(), c);
-		return ReductionStatus::Partial;
-	}, "eval-combine-operator"), ctx),
-		NPL::ToReducer(ctx.get_allocator(), [&, n](ContextNode& c){
-		SetupNextTerm(c, term);
-		return CallN(n - 1, term, c);
-	}));
-#else
-	// NOTE: This does not support PTC. However, the loop among the wrapping
-	//	calls is almost PTC in reality.
-	while(n-- != 0)
-		ReduceArguments(term, ctx);
-	return Handler(term, ctx);
-#endif
-}
-
-bool
-FormContextHandler::Equals(const FormContextHandler& fch) const
-{
-	if(Wrapping == fch.Wrapping)
-	{
-		if(Handler == fch.Handler)
-			return true;
-		if(const auto p = Handler.target<RefContextHandler>())
-			return p->HandlerRef.get() == fch.Handler;
-		if(const auto p = fch.Handler.target<RefContextHandler>())
-			return Handler == p->HandlerRef.get();
-	}
-	return {};
-}
-
-
 TermNode
 ParseLeaf(string_view id, TermNode::allocator_type a)
 {
 	YAssertNonnull(id.data());
+
 	auto term(NPL::AsTermNode(a));
 
 	if(!id.empty())
@@ -1112,9 +1089,10 @@ TermNode
 ParseLeafWithSourceInformation(string_view id, const shared_ptr<string>& name,
 	const SourceLocation& src_loc, TermNode::allocator_type a)
 {
-	// NOTE: Most are %ParseLeaf, except for additional source information mixed
-	//	into the values of %TokenValue.
+	// NOTE: Most are same to %ParseLeaf, except for additional source
+	//	information mixed into the values of %TokenValue.
 	YAssertNonnull(id.data());
+
 	auto term(NPL::AsTermNode(a));
 
 	if(!id.empty())
@@ -1139,6 +1117,53 @@ ParseLeafWithSourceInformation(string_view id, const shared_ptr<string>& name,
 		}
 	return term;
 }
+
+
+ReductionStatus
+FormContextHandler::CallN(size_t n, TermNode& term, ContextNode& ctx) const
+{
+	// NOTE: This implementes arguments evaluation in applicative order when
+	//	%Wrapping is not zero.
+#if NPL_Impl_NPLA1_Enable_Thunked
+	// XXX: Optimize for cases with no argument.
+	if(n == 0 || term.size() <= 1)
+		// XXX: Assume the term has been setup by the caller.
+		return RelayCurrentOrDirect(ctx, Continuation(std::ref(Handler), ctx),
+			term);
+	return A1::ReduceCurrentNext(term, ctx,
+		Continuation([&](TermNode& t, ContextNode& c){
+		YAssert(!t.empty(), "Invalid term found.");
+		ReduceChildrenOrderedAsyncUnchecked(std::next(t.begin()), t.end(), c);
+		return ReductionStatus::Partial;
+	}, ctx), NPL::ToReducer(ctx.get_allocator(),
+		A1::NameTypedReducerHandler([&, n](ContextNode& c){
+		SetupNextTerm(c, term);
+		return CallN(n - 1, term, c);
+	}, "eval-combine-operator")));
+#else
+	// NOTE: This does not support PTC. However, the loop among the wrapping
+	//	calls is almost PTC in reality.
+	while(n-- != 0)
+		ReduceArguments(term, ctx);
+	return Handler(term, ctx);
+#endif
+}
+
+bool
+FormContextHandler::Equals(const FormContextHandler& fch) const
+{
+	if(Wrapping == fch.Wrapping)
+	{
+		if(Handler == fch.Handler)
+			return true;
+		if(const auto p = Handler.target<RefContextHandler>())
+			return p->HandlerRef.get() == fch.Handler;
+		if(const auto p = fch.Handler.target<RefContextHandler>())
+			return Handler == p->HandlerRef.get();
+	}
+	return {};
+}
+
 
 ReductionStatus
 DefaultEvaluateLeaf(TermNode& term, string_view id)
@@ -1201,6 +1226,7 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 		auto& bound(*pr.first);
 		TermNode* p_rterm;
 
+		SetupTailOperatorName(term, ctx);
 		// NOTE: This is essentially similar to a successful call to
 		//	%ResolveIdentifier plus a call to %EnsureLValueReference, except
 		//	that the term tags are always not touched and the term container is
@@ -1245,16 +1271,14 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 		|| CheckReducible(cs.EvaluateLiteral(term, cs, id))))
 	{
 		// NOTE: The symbols are lexical results from analysis by %ParseLeaf.
-		//	The term would be normalized by %ReduceCombined. If necessary,
-		//	there can be inserted some additional cleanup to remove empty
-		//	tokens, returning %ReductionStatus::Partial. Separators should have
-		//	been handled in appropriate preprocessing passes.
+		//	The term would be normalized by %ReduceCombined. If necessary, there
+		//	can be inserted some additional cleanup to remove empty tokens,
+		//	returning %ReductionStatus::Partial. Separators should have been
+		//	handled in appropriate preprocessing passes.
 		// XXX: Asynchronous reduction is currently not supported.
 		if(!IsNPLAExtendedLiteral(id))
 			return EvaluateIdentifier(term, cs, id);
-		ThrowInvalidSyntaxError(ystdex::sfmt(id.front() != '#'
-			? "Unsupported literal prefix found in literal '%s'."
-			: "Invalid literal '%s' found.", id.data()));
+		ThrowUnsupportedLiteralError(id);
 	}
 	return ReductionStatus::Retained;
 }
@@ -1319,7 +1343,7 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 	else
 		term.Tags |= TermTags::Temporary;
 	// NOTE: Converted terms are also handled here.
-	// NOTE: This shall be not 'const' to be moved.
+	// NOTE: To allow being moved, this shall be not qualified by 'const'.
 	if(const auto p_handler = NPL::TryAccessTerm<ContextHandler>(fm))
 #if NPL_Impl_NPLA1_Enable_TCO
 		return
@@ -1373,7 +1397,7 @@ ReduceLeafToken(TermNode& term, ContextNode& ctx)
 		}
 	// XXX: A term without token is ignored. This is actually same to
 	//	%ReductionStatus::Regular in the current implementation.
-	}, SetupTailOperatorName(term, ctx), ReductionStatus::Retained));
+	}, TermToNamePtr(term), ReductionStatus::Retained));
 
 	return CheckReducible(res) ? ReduceOnce(term, ctx) : res;
 }
@@ -1543,6 +1567,36 @@ SetupTailContext(ContextNode& ctx, TermNode& term)
 }
 
 
+bool
+AddTypeNameTableEntry(const ystdex::type_info& ti, string_view sv)
+{
+	YAssertNonnull(sv.data());
+
+	YSLib::lock_guard<YSLib::mutex> gd(NameTableMutex);
+
+	return FetchNameTableRef<NPLA1Tag>().emplace(std::piecewise_construct,
+		std::forward_as_tuple(ti), std::forward_as_tuple(sv)).second;
+}
+
+string_view
+QueryContinuationName(const Reducer& act)
+{
+	if(const auto p_cont = act.target<Continuation>())
+	{
+		const auto& h(p_cont->Handler);
+
+		return h.target_type() == ystdex::type_id<ContextHandler>()
+			? "eval-combine-operands" : QueryTypeName(h.target_type());
+	}
+#if NPL_Impl_NPLA1_Enable_TCO
+	if(act.target_type() == ystdex::type_id<TCOAction>())
+		return "eval-tail";
+	if(act.target_type() == ystdex::type_id<EvalSequence>())
+		return "eval-sequence";
+#endif
+	return QueryTypeName(act.target_type());
+}
+
 observer_ptr<const SourceInformation>
 QuerySourceInformation(const ValueObject& vo)
 {
@@ -1553,62 +1607,42 @@ QuerySourceInformation(const ValueObject& vo)
 	}, val.try_get_object_ptr<SourceInfoMetadata>());
 }
 
-string_view
-QueryContinuationName(const Reducer& act)
-{
-	if(const auto p_cont = act.target<Continuation>())
-	{
-		const auto& tbl(FetchNameTableRef<NPLA1Tag>());
-		const auto& handler(p_cont->Handler);
-		const auto& t_info(handler.target_type());
-
-		if(t_info == ystdex::type_id<ContextHandler>())
-			return "eval-combine-operands";
-
-		const auto i(tbl.find(handler.target_type()));
-
-		if(i != tbl.cend())
-			return i->second;
-	}
-#if NPL_Impl_NPLA1_Enable_TCO
-	if(act.target_type() == ystdex::type_id<TCOAction>())
-		return "eval-tail";
-#endif
-	if(act.target_type() == ystdex::type_id<EvalSequence>())
-		return "eval-sequence";
-	return {};
-}
-
-string_view
+observer_ptr<const ValueObject>
 QueryTailOperatorName(const Reducer& act)
 {
 #if NPL_Impl_NPLA1_Enable_TCO
 	if(const auto p_act = act.target<TCOAction>())
-		if(!p_act->OperatorName.empty())
-			return p_act->OperatorName;
+		if(p_act->OperatorName.type() == ystdex::type_id<TokenValue>())
+			return NPL::make_observer(&p_act->OperatorName);
 #else
 	yunused(act);
 #endif
 	return {};
 }
 
-observer_ptr<const TokenValue>
-SetupTailOperatorName(TermNode& term, ContextNode& ctx)
+string_view
+QueryTypeName(const ystdex::type_info& ti)
 {
-	if(const auto p = TermToNamePtr(term))
+	YSLib::lock_guard<YSLib::mutex> gd(NameTableMutex);
+	const auto& tbl(FetchNameTableRef<NPLA1Tag>());
+	const auto i(tbl.find(ti));
+
+	if(i != tbl.cend())
+		return i->second;
+	return {};
+}
+
+bool
+SetupTailOperatorName(TermNode& term, const ContextNode& ctx)
+{
+	if(const auto p_combining = ContextState::Access(ctx).GetCombiningTermPtr())
 	{
-		if(const auto p_combining
-			= ContextState::Access(ctx).GetCombiningTermPtr())
+		if(!p_combining->empty()
+			&& ystdex::ref_eq<>()(AccessFirstSubterm(*p_combining), term))
 		{
-			if(!p_combining->empty()
-				&& ystdex::ref_eq<>()(AccessFirstSubterm(*p_combining), term))
-			{
-				p_combining->Value = std::move(term.Value);
-				return NPL::make_observer(
-					&p_combining->Value.GetObject<TokenValue>());
-			}
+			p_combining->Value = std::move(term.Value);
+			return true;
 		}
-		return p;
 	}
 	return {};
 }

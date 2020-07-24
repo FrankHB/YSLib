@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r19950
+\version r20153
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-07-17 01:53 +0800
+	2020-07-24 12:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,189 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib.Container $=
+		(
+			/ $dev "optimized overloads for %to_string with conversion \
+				detection",
+				// This is efficient where %basic_string instance is based \
+					on %std::basic_string with compatible allocators, as \
+					the current implementation using %ystdex::string in \
+					pre-C++17 modes.
+			+ "3 function templates %to_pmr_string"
+		),
+		/ %YSLib $=
+		(
+			+ 'using platform::to_pmr_string;' @ %Adaptor.YAdaptor
+				$dep_from ("%to_pmr_string" @ %YCLib.Container),
+			* "unexpected different string type mismatch between the result \
+				and %string" @ "function templates %StringifyToNode"
+				@ %Core.ValueNode $since b833 $=
+				(/ $impl "ADL %to_pmr_string" $dep_from %YSLib.Adapator),
+			/ "supported string result to %string instead of %std::string"
+				@ "%string",
+			+ $dev $lib 'YB_ATTR_nodiscard YB_PURE' @ "function %CheckArea"
+				@ ("member functions %(ATrack::CheckArea, \
+				ScrollBar::GetBoundControlPtr)" @ %Scroll,
+				"member function %GetAlignedPenOffset" @ %Label,
+				"member function %MenuHost::IsShowing" @ %Menu,
+				"member function %TabControl::Find" @ %TabControl) @ %UI
+				// Also to eliminate G++ 10.1 warning: \
+					[-Wsuggest-attribute=pure].
+		),
+		/ %NPL $=
+		(
+			/ $dev $lib %Lexical $=
+			(
+				/ DLI "inlined function %Deliteralize",
+				+ "copy constructor" @ "class %SourceLocation"
+					// Also to eliminate Clang++ warning: [-Wdeprecated].
+			),
+			/ @ !'NPL_Impl_NPLA1_Enable_TCO' %NPLA1Internals $=
+			(
+				* "multiplede definitions due to missing 'inline'"
+					@ "function %MoveGuard" $since b894,
+				+ "reducer names" @ "function template %RelayForEvalOrDirect"
+					^ $dep_from ("%A1::(NameTypedReducerHandler, \
+					NameTypedContextHandler)" @ %NPLA1)
+			),
+			/ %NPLA1 $=
+			(
+				+ "2 functions %ThrowUnsupportedLiteralError",
+				/ "simplified function %EvaluateLeafToken"
+					^ "%ThrowUnsupportedLiteralError",
+				(
+				+ "function %AddTypeNameTableEntry";
+				+ "function template %InitializeTypeNameTableEntry";
+				(
+				+ "function template %NameExpandedHandler";
+				+ "function template %NameTypedContextHandler",
+				+ "function template %NameTypedReducerHandler";
+				/ DLDI "continuation names"
+					^ "%(NameTypedContextHandler, NameTypedReducerHandler)",
+				* "wrong name for handler positioned"
+					@ "member function %Forms::operator()" $since b892,
+					// The reducer type was always wrongly replaced by the \
+						subsequent argument evaluation in the current action.
+				+ "reducer names" @ 'NPL_Impl_NPLA1_Enable_Thunk \
+					&& !NPL_Impl_NPLA1_Enable_TCO' @ "functions \
+					%(ReduceCombinedBranch, ReduceCombinedReferent, \
+					ReduceOrdered)"
+				),
+				+ "function template %NameTypedObject"
+					^ $dep_from "%NameExpandedHandler"
+				),
+				(
+				+ "function %QueryTypeName";
+				/ "function %QueryContinuationName" $=
+				(
+					/ "supported raw reducer queries" ^ "%QueryTypeName;
+					* $comp "unsafe concurrent access of name table"
+						$since b892
+				)
+				),
+				(
+				/ "function %SetTailOperatorName" $=
+				(
+					+ 'const' @ "2nd parameter",
+					- "check with %TermToNodePtr",
+					- "return value"
+				);
+				/ "set tail operator name on success of name resolution"
+					@ "function %EvaluateIdentifier"
+				),
+				* "function %ReduceLeafToken" $=
+				(
+					/ $forced $revert(b895) "arugment" ^ "%TermToNamePtr"
+						~ "%SetupTailOperatorName";
+					* $comp "source location not preserved on throwing"
+						$dep_from "%EvaluateIdentifier"
+				),
+				/ DLDI "simplified functions %(QueryContinuationName; \
+					ReduceOrdered)" @ !'NPL_Impl_NPLA1_Enable_TCO',
+				/ DLDI "reordered declarations of functions 'Parse*'",
+				+ "function %ReduceReturnUnspecified",
+				- "data member %ListTermPreprocess" @ "class %REPLContext"
+			),
+			/ %NPLA1Forms $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					+ "reducer names for %(Define*, SetW*)"
+						^ $dep_from "%NameTypedReducerHandler",
+					/ "all functions %(ThrowInsufficientTermsError, \
+						ThrowInvalidSyntaxError, \
+						ThrowNonmodifiableErrorForAssignee, \
+						ThrowValueCategoryErrorForFirstArgument)"
+						>> ("namespace %A1" @ %NPLA1),
+					/ DLDI "branch order" @ "function %RetainN"
+				),
+				/ DLDI "simplified"
+					$dep_from ("%ReduceReturnUnspecified" @ %NPLA1)
+			),
+			/ %NPLA $=
+			(
+				/ $dev $lib 'YB_PURE'
+					@ "functions %(IsNPLAExtendedLiteralNonDigitPrefix, \
+					IsNPLAExtendedLiteralPrefix)" -> 'YB_STATELESS',
+				* "wrong 'ynothrow'" @ "copy %operator=" @ "class %Environment"
+					$since b847,
+				(
+				+ "alias %ReducerFunctionType";
+				/ DLDI "simplified %Reducer" ^ "%ReducerFunctionType"
+				),
+				/ "newline printing" @ "function %PrintNode"
+					>> "function %PrintNodeString",
+				/ "removed newlines"
+					@ "functions %(PrintNodeString, PrintNode)",
+				/ "simpified %PrintContainedNodes" $=
+				(
+					/ "2nd parameter" -> "function template parameter with \
+						parameter of a character";
+					/ "passed the boundary character to the the templated \
+						function parameter";
+					- "1st parameter"
+				),
+				* "wrong 'ynothrow'"
+					@ "function template %SwitchToFreshEnvironment" $since b838,
+				/ DLI "inlined constructor %EnvironmentReference",
+				(
+				/ DLDI "function %PrintNode" !^ "%TraverseNodeChildAndPrint";
+				- $revert(b851) "function template %TraverseNodeChildAndPrint"
+				)
+			),
+			- $revert(b853) "all 2 functions %GetNodeNameOf" @ %SContext
+				$dep_from ("%TraverseNodeChildAndPrint" @ %NPLA)
+		)
+	),
+	/ %Tools.SHBuild.Main $=
+	(
+		/ DLDI "simplified" ^ ("%InvokeIn" @ %YFramework.NPL.Dependency),
+		* $revert_ex(b888) "wrong 'YB_NONNULL(1)'" @ "member function \
+			%operator()" @ "internal log printing functions" $since b888
+			$= (/ $impl 'YB_NONNULL(1)' -> 'YB_NONNULL(2)')
+			// Also to prevent Clang++ error.
+	),
+	/ %YReader $=
+	(
+		* "failed to conversion of terms with strings" @ %ReaderSetting $since b833
+			$dep_from %YSLib.ValueNode
+			$=
+		(
+			* $comp "failed conversion of strings",
+			* "failed conversion of %Color nodes"
+				^ $dep_from ("%to_pmr_string" @ %YSLib.Core.ValueNode)
+		),
+		+ $dev $lib 'YB_ATTR_nodiscard YB_PURE' @ ("functions \
+			%(FetchImageLoadTime, FetchWidgetLoader)" @ %Shells,
+			"member function %BookMarkPanel::GetSelected" @ %BookmarkUI),
+		+ $dev $lib 'YB_ATTR_nodiscard' @ "function %FetchImage" @ %Shells
+	)
+),
+
+b895
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -114,7 +297,7 @@ $now
 			),
 			+ "function %Shift"
 		),
-		/ "saved operator name" @ "TCO action" @ %NPLA1Internal,
+		/ "saved operator name" @ "TCO action" @ %NPLA1Internals,
 		/ %NPLA1 $=
 		(
 			/ @ "class %ContextState" $=
@@ -130,7 +313,7 @@ $now
 			+ "function %QueryTailOperatorName",
 			(
 			+ "function %SetupTailOperatorName" ^ ($dep_from
-				"%ContextState::GetCombiningTermPtr", %NPLA1Internal),
+				"%ContextState::GetCombiningTermPtr", %NPLA1Internals),
 			(
 			+ "function %IsCombiningTerm";
 			/ @ "functions %(ReduceCombined, ReduceCombinedBranch, \
@@ -270,7 +453,7 @@ b894
 				/ $forced DLDI "function %EvaluateIdentifier"
 					$dep_from ("%PrepareCollapse" @ %NPLA)
 			),
-			/ DLDI ("funcion %FetchTailEnvironmentReference" @ %NPLA1Internal,
+			/ DLDI ("funcion %FetchTailEnvironmentReference" @ %NPLA1Internals,
 				"functions %Forms::(ForwardListFirst, 'DefineW*', 'SetW*')"
 				@ %NPLA1Forms, "function %SetupTraceDepth" @ %NPLA1)
 				^ $dep_from ("%ContextNode::GetRecordPtr" @ %NPLA)
@@ -321,7 +504,7 @@ b893
 	/ %YFramework.NPL $=
 	(
 		/ DLDI ("term reference name %Term" -> "%TermRef")
-			$effective @ %(NPLA1Internal, NPLA1Forms),
+			$effective @ %(NPLA1Internals, NPLA1Forms),
 		/ "namespace %Forms" @ %NPLA1Forms $=
 		(
 			* "wrong order of pseudo keywords" @ "function 'Throw*'"
@@ -344,7 +527,7 @@ b893
 				$dep_from "simplified evaluation passes skip"
 				// As the removal of %ReduceAgain.
 		),
-		/ %NPLA1Internal $=
+		/ %NPLA1Internals $=
 		(
 			* "wrong idempotent term clearning handled" @ "TCO action"
 				$orig (@ %NPLA1 $since b820),
@@ -443,11 +626,11 @@ b892
 		/ %NPL $=
 		(
 			/ DLDI "avoided access of %Context::Current directly"
-				@ %NPLA1Internal
+				@ %NPLA1Internals
 				^ $dep_from ("%ContextNode::(AccessCurrentAs, IsAlive)" @ %NPLA)
 				$dep_to "avoiding direct access of the current action",
 			/ "merged all call sites of %(RelayNext, ComposeSwitched)"
-				$effecitve @ %(NPLA1Internal, NPLA1, NPLA1Forms)
+				$effecitve @ %(NPLA1Internals, NPLA1, NPLA1Forms)
 				$dep_from "sequenced current action"
 				$dep_to "avoiding directly composed actions",
 			/ %NPLA $=
@@ -592,7 +775,7 @@ b892
 				)
 			),
 			/ "all call sites of %RelaySwitchedUnchecked" ^ "%RelaySwitched"
-				$effective @ %(NPLA1Internal, NPLA)
+				$effective @ %(NPLA1Internals, NPLA)
 				$dep_to "avoiding RelaySwitchedUnchecked"
 		)
 	)
@@ -1412,7 +1595,7 @@ b887
 			/ DLI "applicative 'SHBuild_TrimOptions_'"
 				@ "function %LoadModule_SHBuild" @ %Dependency ^ "allocators"
 			),
-			/ %NPLA1Internal $=
+			/ %NPLA1Internals $=
 			(
 				+ "function %EnsureTCOActionUnchecked",
 				+ "default fallback action if current action is empty"
@@ -1465,14 +1648,14 @@ b887
 					"functions %(ReduceTail, ReduceAgainLifted; ReduceOrdered)")
 					$orig (@ "function %ReduceAgain" @ %NPLA1 $since b820)
 					$= (/ $impl
-						^ $dep_from ("%EnsureTCOAction" @ %NPLA1Internal)),
+						^ $dep_from ("%EnsureTCOAction" @ %NPLA1Internals)),
 				/ DLI "initializations on non-collapsed %TermReference"
 					@ "function %BindParameter" ^ "allocators"
 			),
 			/ @ "namespace %Forms" @ %NPLA1Forms $=
 			(
 				/ DLDI "simplified function %ForwardListFirst"
-					^ $dep_from ("%EnsureTCOActionUnchecked" @ %NPLA1Internal),
+					^ $dep_from ("%EnsureTCOActionUnchecked" @ %NPLA1Internals),
 				/ $revert_ex(b886) DLDI "%TokenValue::Unspecified assignment"
 					@ "functions %Forms::(Cond, Define*, SetWith*)"
 					^ "%in_place_type"
@@ -1795,7 +1978,7 @@ b886
 					~ "%ystdex::(enable_if_t, is_decayed)"
 					// Also to be consistent to %ContextNode::SetupTail.
 			),
-			/ %NPLA1Internal $=
+			/ %NPLA1Internals $=
 			(
 				(
 				+ "function template %SetupTailTCOAction";
@@ -1826,7 +2009,7 @@ b886
 			/ DLI %NPLA1Forms $=
 			(
 				/ "enabled allocator" @ "function %ForwardListFirst"
-					^ $dep_from "%SetupTailTCOAction" @ %NPLA1Internal
+					^ $dep_from "%SetupTailTCOAction" @ %NPLA1Internals
 					~ "%SetupTailAction",
 				/ "%TokenValue::Unspecified assignment" @ "functions \
 					%Forms::(Cond, Define*, SetWith*)" ^ "allocators" 
@@ -2377,7 +2560,7 @@ b882
 				// This makes it work once stage 2 is built by default, \
 					without additional manual tweaks of library deployment.
 			/ $re_add(b867) $forced "updated %LIBS for \
-				%YFramework.NPL.(NPLA1Internal, NPLA1Forms)" $dep_from
+				%YFramework.NPL.(NPLA1Internals, NPLA1Forms)" $dep_from
 				%YFramework.NPL.NPLA1 $dep_from %YFramework.NPL.NPLA1Forms
 				// Also to work around i686 MinGW32 cc1plus out of memory \
 					error on compiling %NPLA1.cpp for stage 1 SHBuild.
@@ -2465,8 +2648,13 @@ b881
 					$dep_from %Dependency,
 				/ DLDI "simlified function %Forms::BindParameter"
 					^ $dep_from ("%ystdex::update_thunk" @ %Functional),
-				+ "separater handling by %Preprocess" @ "class %REPLContext"
-					$dep_from @ %Tools.Scripts
+				/ @ "constructor %REPLContext" $=
+				(
+					+ "separater handling by %Preprocess" @ 
+						$dep_from @ %Tools.Scripts
+					/ "intialization for %SetupDefaultInterpretation"
+						!^ "%ListTermPreprocess"
+				)
 			),
 			(
 			+ "macro %NPL_Impl_NPLA1_Enable_ThunkedSeparatorPass";

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013, 2015 FrankHB.
+	© 2013, 2015, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file BookmarkUI.h
 \ingroup YReader
 \brief 书签界面。
-\version r113
+\version r115
 \author FrankHB <frankhb1989@gmail.com>
 \since build 391
 \par 创建时间:
 	2013-03-20 22:11:46 +0800
 \par 修改时间:
-	2015-05-29 21:20 +0800
+	2020-07-24 11:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,7 +70,7 @@ public:
 	~BookmarkPanel() override;
 
 	//! \since build 392
-	BookmarkList::difference_type
+	YB_ATTR_nodiscard YB_PURE BookmarkList::difference_type
 	GetSelected() const;
 
 	//! \since build 399

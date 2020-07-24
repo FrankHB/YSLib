@@ -11,13 +11,13 @@
 /*!	\file Scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2798
+\version r2800
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2020-01-25 16:29 +0800
+	2020-07-24 11:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -233,7 +233,7 @@ protected:
 	/*!
 	\brief 检查轨道方向指定位置所在的区域。
 	*/
-	Area
+	YB_ATTR_nodiscard YB_PURE Area
 	CheckArea(SPos) const;
 
 public:
@@ -364,7 +364,7 @@ public:
 
 protected:
 	//! \since build 671
-	observer_ptr<IWidget>
+	YB_ATTR_nodiscard YB_PURE observer_ptr<IWidget>
 	GetBoundControlPtr(const KeyInput&) override;
 
 public:

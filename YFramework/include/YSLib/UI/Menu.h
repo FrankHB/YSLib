@@ -11,13 +11,13 @@
 /*!	\file Menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1074
+\version r1075
 \author FrankHB <frankhb1989@gmail.com>
 \since build 573
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2020-02-04 14:48 +0800
+	2020-07-24 11:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -233,7 +233,7 @@ public:
 	\brief 判断窗口中是否正在显示指定的菜单。
 	\since build 537
 	*/
-	bool
+	YB_ATTR_nodiscard YB_PURE bool
 	IsShowing(Menu&) const;
 
 	/*!

@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20134
+\version r20153
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2020-07-14 03:08 +0800
+	2020-07-21 18:41 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -31,8 +31,10 @@
 #include "YModules.h"
 #include YFM_NPL_NPLA1 // for ContextState, ReductionStatus, ContextNode,
 //	Reducer, YSLib::tuple, YSLib::get, list, RegularizeTerm,
-//	EnvironmentReference, TermReference, ystdex::get_less, YSLib::map, set,
-//	std::make_move_iterator, ystdex::exists, ystdex::retry_on_cond, ystdex::id;
+//	EnvironmentReference, ystdex::cast_mutable, TermReference, ystdex::get_less,
+//	YSLib::map, set, std::make_move_iterator, ystdex::exists,
+//	ystdex::retry_on_cond, ystdex::id, A1::NameTypedReducerHandler,
+//	A1::NameTypedContextHandler;
 #include <ystdex/ref.hpp> // for ystdex::unref;
 
 namespace NPL
@@ -160,8 +162,8 @@ public:
 	mutable EnvironmentGuard EnvGuard;
 	//! \since build 825
 	mutable FrameRecordList RecordList;
-	//! \since build 895
-	mutable TokenValue OperatorName;
+	//! \since build 896
+	mutable ValueObject OperatorName;
 
 	//! \since build 819
 	TCOAction(ContextNode& ctx, TermNode& term, bool lift)
@@ -169,9 +171,10 @@ public:
 		EnvGuard(ctx), RecordList(ctx.get_allocator()),
 		OperatorName(ctx.get_allocator())
 	{
-		if(const auto p = term.Value.AccessPtr<TokenValue>())
-			OperatorName = std::move(*p);
-			// XXX: After the move, %term.Value is unspecified.
+		YAssert(term.Value.type() == ystdex::type_id<TokenValue>()
+			|| !term.Value, "Invalid value for combining term found.");
+		OperatorName = std::move(term.Value);
+		// XXX: After the move, %term.Value is unspecified.
 	}
 	// XXX: Not used, but provided for well-formness.
 	//! \since build 819
@@ -278,9 +281,10 @@ public:
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TCOAction*, AccessTCOAction, ContextNode& ctx) ynothrow
 	ImplRet(ctx.AccessCurrentAs<TCOAction>())
-// NOTE: There is no need to check term like 'if(&p->TermRef.get() == &term)'. It
-//	should be same to saved enclosing term unless a nested TCO action is needed
-//	explicitly (by following %SetupTailAction rather than %EnsureTCOAction).
+// NOTE: There is no need to check term like 'if(&p->TermRef.get() == &term)'.
+//	It should be same to saved enclosing term unless a nested TCO action is
+//	needed explicitly (by following %SetupTailAction rather than
+//	%EnsureTCOAction).
 
 //! \since build 840
 YB_ATTR_nodiscard YB_FLATTEN TCOAction&
@@ -503,7 +507,7 @@ SetupTCOLift(TCOAction& act, bool no_lift)
 //@}
 #	else
 //! \since build 879
-ReductionStatus
+inline ReductionStatus
 MoveGuard(EnvironmentGuard& gd, ContextNode& ctx) ynothrow
 {
 	const auto egd(std::move(gd));
@@ -648,17 +652,18 @@ RelayForEvalOrDirect(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 #elif NPL_Impl_NPLA1_Enable_Thunked
 	// TODO: Blocked. Use C++14 lambda initializers to simplify the
 	//	implementation.
-	auto act(std::bind(MoveGuard, std::move(gd), std::placeholders::_1));
+	auto act(A1::NameTypedReducerHandler(std::bind(MoveGuard, std::move(gd),
+		std::placeholders::_1), "eval-guard"));
 
 	if(no_lift)
 		return ReduceCurrentNext(term, ctx, yforward(next), std::move(act));
 
 	// XXX: Term reused. Call of %SetupNextTerm is not needed as the next
 	//	term is guaranteed not changed when %next is a continuation.
-	Continuation cont([&]{
+	Continuation cont(A1::NameTypedContextHandler([&]{
 		// TODO: Avoid fixed continuation parameter.
 		return ReduceForLiftedResult(term);
-	}, ctx);
+	}, "eval-lift-result"), ctx);
 
 	RelaySwitched(ctx, std::move(act));
 	return ReduceCurrentNext(term, ctx, yforward(next), std::move(cont));

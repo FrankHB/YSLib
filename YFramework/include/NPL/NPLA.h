@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r7825
+\version r7891
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2020-07-14 00:24 +0800
+	2020-07-23 16:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,8 +31,7 @@
 #include "YModules.h"
 #include YFM_NPL_SContext // for YSLib::any_ops, YSLib::NodeLiteral, YSLib::any,
 //	YSLib::bad_any_cast, YSLib::in_place_type, YSLib::to_string, NPLTag, string,
-//	ValueNode, function, std::ostream, NPL::GetNodeNameOf,
-//	YSLib::IsPrefixedIndex, TraverseSubnodes, TermNode, YSLib::MakeIndex,
+//	ValueNode, function, std::ostream, TermNode, YSLib::MakeIndex,
 //	std::initializer_list, LoggedEvent, YSLib::RecordLevel, shared_ptr,
 //	NPL::Deref, ystdex::isdigit, ystdex::is_nothrow_copy_constructible,
 //	ystdex::is_nothrow_copy_assignable, ystdex::is_nothrow_move_constructible,
@@ -133,7 +132,7 @@ ParseNPLANodeString(const ValueNode&);
 //! \brief 生成前缀缩进的函数类型。
 using IndentGenerator = function<string(size_t)>;
 
-//! \brief 生成水平制表符为单位的缩进。
+//! \brief 默认生成缩进：生成水平制表符为单位的缩进。
 YB_ATTR_nodiscard YF_API YB_PURE string
 DefaultGenerateIndent(size_t);
 
@@ -148,63 +147,30 @@ PrintIndent(std::ostream&, IndentGenerator = DefaultGenerateIndent, size_t = 1);
 
 /*!
 \brief 打印容器边界和其中的 NPLA 节点，且在打印边界前调用前置操作。
-\since build 851
+\since build 896
 */
-template<typename _fCallable>
+template<typename _func, typename _fCallable>
 void
-PrintContainedNodes(std::ostream& os, function<void()> pre, _fCallable f)
+PrintContainedNodes(_func print_bound, _fCallable f)
 {
-	pre();
-	os << '(' << '\n';
+	print_bound('(');
 	TryExpr(ystdex::invoke(f))
 	CatchIgnore(std::out_of_range&)
-	pre();
-	os << ')' << '\n';
-}
-
-/*!
-\brief 打印有索引前缀的节点或遍历子节点并打印。
-\sa TraverseSubnodes
-\sa YSLib::IsPrefixedIndex
-\since build 851
-
-以第三参数作为边界前置操作，调用 PrintContainedNodes 逐个打印子节点内容。
-调用第四参数输出最后一个参数决定的缩进作为前缀，然后打印子节点内容。
-对满足 IsPrefixedIndex 的节点调用第四参数作为节点字符串打印；
-否则，调用第五参数递归打印子节点，忽略此过程中的 std::out_of_range 异常。
-其中，遍历子节点通过调用 TraverseSubnodes 实现。
-*/
-template<class _tNode, typename _fCallable, typename _fCallable2>
-void
-TraverseNodeChildAndPrint(std::ostream& os, const _tNode& node,
-	function<void()> pre, _fCallable print_node_str,
-	_fCallable2 print_term_node)
-{
-	TraverseSubnodes([&](const _tNode& nd){
-		if(YSLib::IsPrefixedIndex(NPL::GetNodeNameOf(nd)))
-		{
-			pre();
-			ystdex::invoke(print_node_str, nd);
-		}
-		else
-			PrintContainedNodes(os, pre, [&]{
-				ystdex::invoke(print_term_node, nd);
-			});
-	}, node);
+	print_bound(')');
 }
 
 /*!
 \brief 打印 NPLA 节点。
 \sa DecodeNodeIndex
 \sa PrintIdent
-\sa PrintNodeChild
 \sa PrintNodeString
 \sa TraverseNodeChildAndPrint
 
 调用第四参数输出最后一个参数决定的缩进作为前缀和一个空格，然后打印节点内容：
 先尝试调用 PrintNodeString 打印节点字符串，若成功直接返回；
-否则打印换行，对非空节点调用 TraverseNodeChildAndPrint 打印子节点内容。
-其中，使用的边界前置操作为调用第四参数输出最后一个参数决定的缩进作为前缀输出。
+否则打印换行，并调用 PrintContainedNodes 逐个打印子节点内容。
+其中，对满足 IsPrefixedIndex 的子节点调用第四参数作为节点字符串打印；
+否则，递归打印子节点，忽略此过程中的 std::out_of_range 异常。
 打印节点内容中的节点名称时，首先尝试使用 YSLib::DecodeIndex 解码索引。
 输出的节点名称使用 DecodeNodeIndex 解码。
 */
@@ -218,8 +184,9 @@ PrintNode(std::ostream&, const ValueNode&, NodeToString = EscapeNodeLiteral,
 \note bad_any_cast 外异常中立。
 \sa PrintNode
 
-使用最后一个参数指定的访问节点，打印得到的字符串和换行符。
-忽略 bad_any_cast 。
+使用最后一个参数指定的访问节点，打印得到的字符串。
+忽略 bad_any_cast ，视为失败。
+无论是否成功都在最后打印换行符。
 */
 YF_API bool
 PrintNodeString(std::ostream&, const ValueNode&,
@@ -781,12 +748,12 @@ IsNPLAExtendedLiteral(string_view) ynothrowv;
 \brief 判断字符是否为 NPLA 扩展字面量非数字前缀。
 \since build 771
 */
-YB_ATTR_nodiscard YB_PURE yconstfn
+YB_ATTR_nodiscard YB_STATELESS yconstfn
 	PDefH(bool, IsNPLAExtendedLiteralNonDigitPrefix, char c) ynothrow
 	ImplRet(c == '#'|| c == '+' || c == '-')
 
 //! \brief 判断字符是否为 NPLA 扩展字面量前缀。
-YB_ATTR_nodiscard YB_PURE inline
+YB_ATTR_nodiscard YB_STATELESS inline
 	PDefH(bool, IsNPLAExtendedLiteralPrefix, char c) ynothrow
 	ImplRet(ystdex::isdigit(c) || IsNPLAExtendedLiteralNonDigitPrefix(c))
 
@@ -2146,7 +2113,8 @@ public:
 	{}
 	DefDeMoveCtor(Environment)
 
-	PDefHOp(Environment&, =, const Environment& e) ynothrow
+	//! \since build 896
+	PDefHOp(Environment&, =, const Environment& e)
 		ImplRet(ystdex::copy_and_swap(*this, e))
 	/*!
 	\brief 析构。
@@ -2360,10 +2328,22 @@ public:
 			swap(x.p_anchor, y.p_anchor))
 };
 
+inline
+EnvironmentReference::EnvironmentReference(const shared_ptr<Environment>& p_env)
+	ynothrow
+	: EnvironmentReference(p_env, p_env ? p_env->GetAnchorPtr() : nullptr)
+{}
+
 
 //! \since build 877
 class ContextNode;
 
+
+/*!
+\brief 规约器函数原型。
+\since build 896
+*/
+using ReducerFunctionType = ReductionStatus(ContextNode&);
 
 /*!
 \brief 规约器：和绑定上下文以外参数的求值遍的处理器具有等价签名的多态函数。
@@ -2373,7 +2353,7 @@ class ContextNode;
 对应遍处理器的调用包装类型，保存规约动作。
 动作有效当前仅当 NPL::Reducer 类型的值能上下文转换为 bool 类型后为真。
 */
-yimpl(using) Reducer = ystdex::expanded_function<ReductionStatus(ContextNode&)>;
+yimpl(using) Reducer = ystdex::expanded_function<ReducerFunctionType>;
 //@}
 
 /*!
@@ -2897,8 +2877,6 @@ public:
 	//! \since build 894
 	YB_ATTR_nodiscard YB_PURE
 		PDefH(EnvironmentReference, WeakenRecord, ) const ynothrow
-		// TODO: Blocked. Use C++17 %weak_from_this to get more efficient
-		//	implementation.
 		ImplRet(ShareRecord())
 
 	/*!
@@ -2938,7 +2916,7 @@ template<typename... _tParams>
 inline shared_ptr<Environment>
 AllocateEnvironment(const Environment::allocator_type& a, _tParams&&... args)
 {
-	return YSLib::allocate_shared<NPL::Environment>(a, yforward(args)...);
+	return YSLib::allocate_shared<Environment>(a, yforward(args)...);
 }
 template<typename... _tParams>
 inline shared_ptr<Environment>
@@ -2963,14 +2941,14 @@ AllocateEnvironment(TermNode& term, ContextNode& ctx, _tParams&&... args)
 /*!
 \brief 切换到参数指定的新创建的环境。
 \relates ContextNode
-\since build 838
+\since build 896
 */
 template<typename... _tParams>
 inline shared_ptr<Environment>
-SwitchToFreshEnvironment(ContextNode& ctx, _tParams&&... args) ynothrow
+SwitchToFreshEnvironment(ContextNode& ctx, _tParams&&... args)
 {
-	return ctx.SwitchEnvironmentUnchecked(NPL::AllocateEnvironment(ctx,
-		yforward(args)...));
+	return ctx.SwitchEnvironmentUnchecked(
+		NPL::AllocateEnvironment(ctx, yforward(args)...));
 }
 
 

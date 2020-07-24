@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r4132
+\version r4141
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2020-01-25 21:38 +0800
+	2020-07-24 10:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,12 +31,13 @@
 #include "YModules.h"
 #include YFM_YSLib_Core_YObject // for pmr, ystdex::invoke,
 //	ystdex::is_interoperable, ystdex::enable_if_t, std::allocator_arg_t,
-//	std::allocator_arg, ystdex::and_, ystdex::remove_cvref_t, in_place_type;
+//	std::allocator_arg, ystdex::and_, ystdex::remove_cvref_t, in_place_type,
+//	to_string, to_pmr_string;
 #include <ystdex/operators.hpp> // for ystdex::totally_ordered;
 #include <ystdex/set.hpp> // for ystdex::mapped_set;
 #include <ystdex/variadic.hpp> // for ystdex::vseq;
 #include <ystdex/tuple.hpp> // for ystdex::make_from_tuple;
-#include <ystdex/swap.hpp> // for ystdex::create_and_swap;
+#include <ystdex/swap.hpp> // for ystdex::copy_and_swap;
 #include <ystdex/path.hpp> // for ystdex::path;
 #include <ystdex/utility.hpp> // for ystdex::forward_like;
 #include <numeric> // for std::accumulate;
@@ -1328,7 +1329,8 @@ MakeNode(const ValueNode::allocator_type& a, _tString&& str, _tParams&&... args)
 
 /*!
 \brief 取指定名称和转换为字符串的值类型节点。
-\note 使用非限定 to_string 转换。
+\note 使用 ADL to_string 和 ADL to_pmr_string 转换。
+\todo 对特定的已被 std::to_string 支持的类型使用更高效的字符串转换算法实现。
 */
 //@{
 template<typename _tString, typename... _tParams,
@@ -1337,7 +1339,8 @@ template<typename _tString, typename... _tParams,
 YB_ATTR_nodiscard YB_PURE inline ValueNode
 StringifyToNode(_tString&& str, _tParams&&... args)
 {
-	return {NoContainer, yforward(str), to_string(yforward(args)...)};
+	return {NoContainer, yforward(str),
+		to_pmr_string(to_string(yforward(args)...))};
 }
 template<typename _tString, typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline ValueNode
@@ -1345,7 +1348,7 @@ StringifyToNode(const ValueNode::allocator_type& a, _tString&& str,
 	_tParams&&... args)
 {
 	return {std::allocator_arg, a, NoContainer, yforward(str),
-		to_string(yforward(args)...)};
+		to_pmr_string(to_string(yforward(args)...))};
 }
 //@}
 //@}
@@ -1414,7 +1417,7 @@ YF_API void
 RemoveEmptyChildren(ValueNode::Container&) ynothrow;
 
 /*!
-\brief 移除首个子节点。
+\brief 移除第一个子节点。
 \pre 断言：节点容器非空。
 */
 //@{

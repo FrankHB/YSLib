@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2016, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -15,13 +15,13 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r2937
+\version r2941
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2016-04-24 21:55 +0800
+	2020-07-24 11:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,16 +78,16 @@ yconstexpr const size_t Image_N(3);
 void
 Cleanup();
 
-shared_ptr<Image>&
+YB_ATTR_nodiscard shared_ptr<Image>&
 FetchImage(size_t);
 
 //! \since build 390
-double
+YB_ATTR_nodiscard YB_PURE double
 FetchImageLoadTime();
 
 
 //! \since build 434
-WidgetLoader&
+YB_ATTR_nodiscard YB_PURE WidgetLoader&
 FetchWidgetLoader();
 
 /*!

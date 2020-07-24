@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20278
+\version r20282
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2020-07-04 11:11 +0800
+	2020-07-18 18:37 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -77,14 +77,14 @@ TCOAction::operator()(ContextNode& ctx) const
 TCOAction&
 EnsureTCOAction(ContextNode& ctx, TermNode& term)
 {
-	auto p(AccessTCOAction(ctx));
+	auto p_act(AccessTCOAction(ctx));
 
-	if(!p)
+	if(!p_act)
 	{
 		SetupTailTCOAction(ctx, term, {});
-		p = AccessTCOAction(ctx);
+		p_act = AccessTCOAction(ctx);
 	}
-	return NPL::Deref(p);
+	return NPL::Deref(p_act);
 }
 
 

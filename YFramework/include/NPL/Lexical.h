@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r2327
+\version r2336
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2020-07-10 21:41 +0800
+	2020-07-21 22:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -91,6 +91,9 @@ struct YF_API SourceLocation final
 	SourceLocation(size_t line, size_t col)
 		: Line(line), Column(col)
 	{}
+	//! \since build 896
+	DefDeCopyCtor(SourceLocation)
+
 	DefDeCopyAssignment(SourceLocation)
 
 	PDefH(void, Newline, ) ynothrow
@@ -324,14 +327,15 @@ CheckLiteral(string_view) ynothrowv;
 \return 若标识符是字面量，则为去除首尾字符之后的副本；否则为原串。
 */
 //@{
-//! \note 使用 CheckLiteral 判断。
-YB_ATTR_nodiscard YF_API YB_PURE string_view
-Deliteralize(string_view) ynothrowv;
-
 //! \since build 731
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(string_view, DeliteralizeUnchecked, string_view sv) ynothrowv
 	ImplRet(YAssertNonnull(sv.data()), ystdex::get_mid(sv))
+
+//! \note 首先使用 CheckLiteral 判断是否具有分隔符，若不存在则不移除。
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(string_view, Deliteralize, string_view sv) ynothrowv
+	ImplRet(CheckLiteral(sv) != char() ? DeliteralizeUnchecked(sv) : sv)
 //@}
 
 /*!

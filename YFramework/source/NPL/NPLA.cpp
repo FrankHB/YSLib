@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3312
+\version r3335
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2020-07-13 17:49 +0800
+	2020-07-23 16:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLA // for YSLib, string, YSLib::DecodeIndex, std::to_string,
 //	YSLib::make_string_view, std::invalid_argument, ValueNode, NPL::Access,
-//	EscapeLiteral, Literalize, NPL::AccessPtr, ystdex::value_or,
-//	ystdex::write, bad_any_cast, std::allocator_arg, YSLib::NodeSequence,
+//	EscapeLiteral, Literalize, NPL::AccessPtr, ystdex::value_or, ystdex::write,
+//	TraverseSubnodes, bad_any_cast, std::allocator_arg, YSLib::NodeSequence,
 //	NPL::Deref, AccessFirstSubterm, ystdex::unimplemented, ystdex::type_id,
 //	ystdex::quote, ystdex::call_value_or, ystdex::begins_with, YSLib::get_raw,
 //	NPL::make_observer, ystdex::sfmt, NPL::TryAccessTerm, sfmt, GetLValueTagsOf,
@@ -102,15 +102,21 @@ PrintNode(std::ostream& os, const ValueNode& node, NodeToString node_to_str,
 	const auto print_node_str(std::bind(PrintNodeString, std::ref(os),
 		std::placeholders::_1, std::ref(node_to_str)));
 
-	if(print_node_str(node))
-		return;
-	os << '\n';
-	if(node)
-		TraverseNodeChildAndPrint(os, node, [&]{
-			PrintIndent(os, igen, depth);
-		}, print_node_str, [&](const ValueNode& nd){
-			return PrintNode(os, nd, node_to_str, igen, depth + 1);
-		});
+	if(!print_node_str(node) && node)
+		TraverseSubnodes([&](const ValueNode& nd){
+			if(YSLib::IsPrefixedIndex(nd.GetName()))
+			{
+				PrintIndent(os, igen, depth);
+				ystdex::invoke(print_node_str, nd);
+			}
+			else
+				PrintContainedNodes([&](char b){
+					PrintIndent(os, igen, depth);
+					os << b << '\n';
+				}, [&]{
+					PrintNode(os, nd, node_to_str, igen, depth + 1);
+				});
+		}, node);
 }
 
 bool
@@ -118,7 +124,7 @@ PrintNodeString(std::ostream& os, const ValueNode& node,
 	NodeToString node_to_str)
 {
 	TryRet(os << node_to_str(node) << '\n', true)
-	CatchIgnore(bad_any_cast&)
+	CatchExpr(bad_any_cast&, os << '\n')
 	return {};
 }
 
@@ -1022,11 +1028,6 @@ Environment::ThrowForInvalidValue(bool record)
 }
 
 
-EnvironmentReference::EnvironmentReference(const shared_ptr<Environment>& p_env)
-	ynothrow
-	// TODO: Blocked. Use C++17 %weak_from_this and throw-expression?
-	: EnvironmentReference(p_env, p_env ? p_env->GetAnchorPtr() : nullptr)
-{}
 #if NPL_NPLA_CheckEnvironmentReferenceCount
 EnvironmentReference::~EnvironmentReference()
 {

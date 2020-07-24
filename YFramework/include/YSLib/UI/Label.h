@@ -11,13 +11,13 @@
 /*!	\file Label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1546
+\version r1547
 \author FrankHB <frankhb1989@gmail.com>
 \since build 573
 \par 创建时间:
 	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2020-01-25 16:28 +0800
+	2020-07-24 11:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,7 +112,7 @@ public:
 	\brief 按参数指定的边界大小和当前状态计算笔的偏移位置。
 	\since build 515
 	*/
-	Point
+	YB_ATTR_nodiscard YB_PURE Point
 	GetAlignedPenOffset(const Size&) const;
 	//! \since build 526
 	DefGetter(const ynothrow, SDst, ItemHeight,

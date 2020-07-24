@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2019 FrankHB.
+	© 2010-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2397
+\version r2400
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2019-07-07 23:11 +0800
+	2020-07-24 10:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -177,8 +177,11 @@ using platform::vsfmt;
 //! \since build 861
 using ystdex::make_string_view;
 
+//! \since build 896
+using platform::to_pmr_string;
 //! \since build 861
 using platform::to_std_string;
+
 using platform::to_string;
 using platform::to_wstring;
 //@}

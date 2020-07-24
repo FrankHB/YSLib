@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r7626
+\version r7657
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2020-06-14 14:53 +0800
+	2020-07-18 17:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1229,42 +1229,10 @@ Unwrap(TermNode&, ContextNode&);
 //@}
 
 
-//! \since build 859
-//@{
 /*!
-\brief 抛出缺少项的异常。
-\throw ParameterMismatch 缺少项的错误。
+\since build 859
+\return ReductionStatus::Regular 。
 */
-YB_NORETURN YF_API void
-ThrowInsufficientTermsError();
-
-/*!
-\brief 抛出参数指定消息的语法错误异常。
-\throw InvalidSyntax 语法错误。
-*/
-//@{
-//! \pre 间接断言：第一参数非空。
-YB_NORETURN YF_API YB_NONNULL(1) void
-ThrowInvalidSyntaxError(const char*);
-YB_NORETURN YF_API void
-ThrowInvalidSyntaxError(string_view);
-//@}
-
-/*!
-\brief 抛出被赋值操作数不可修改的异常。
-\throw TypeError 被赋值操作数不可修改错误。
-*/
-YB_NORETURN YF_API void
-ThrowNonmodifiableErrorForAssignee();
-
-/*!
-\brief 抛出第一参数不符合预期值类别的异常。
-\throw ValueCategory 第一参数值类别错误。
-*/
-YB_NORETURN YF_API void
-ThrowValueCategoryErrorForFirstArgument(const TermNode&);
-
-//! \return ReductionStatus::Regular 。
 //@{
 /*!
 \brief 检查参数指定的项表示环境。
@@ -1295,7 +1263,6 @@ CheckEnvironment(TermNode&);
 */
 YF_API ReductionStatus
 CheckListReference(TermNode&);
-//@}
 //@}
 
 

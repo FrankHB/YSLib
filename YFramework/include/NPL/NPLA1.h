@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8052
+\version r8300
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-07-17 00:18 +0800
+	2020-07-23 00:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@
 //	ystdex::make_function_type_t, ystdex::decay_t, ystdex::expanded_caller,
 //	std::is_constructible, ystdex::or_, string_view, TermTags, TokenValue,
 //	Environment, ParseResultOf, ByteParser, SourcedByteParser,
-//	SourceInformation, std::integral_constant, SourceName;
+//	ystdex::type_info, SourceInformation, std::integral_constant, SourceName;
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, ystdex::fast_any_of,
 //	YSLib::GEvent, YSLib::GCombinerInvoker, YSLib::GDefaultLastValueInvoker;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
@@ -106,6 +106,111 @@ YB_ATTR_nodiscard YF_API YB_PURE string
 to_string(ValueToken);
 
 
+/*!
+\brief NPLA1 一等续延。
+\warning 非虚析构。
+\since build 841
+\todo 支持一等续延捕获。
+
+利用 ContextState 接口，表示续延的一个帧的对象。
+*/
+class YF_API Continuation
+{
+public:
+	//! \since build 877
+	using allocator_type
+		= decltype(std::declval<const ContextNode&>().get_allocator());
+
+	ContextHandler Handler;
+
+	//! \since build 877
+	//@{
+	template<typename _func, yimpl(typename
+		= ystdex::exclude_self_t<Continuation, _func>)>
+	inline
+	Continuation(_func&& handler, allocator_type a)
+		: Handler(ystdex::make_obj_using_allocator<ContextHandler>(a,
+		yforward(handler)))
+	{}
+	template<typename _func, yimpl(typename
+		= ystdex::exclude_self_t<Continuation, _func>)>
+	inline
+	Continuation(_func&& handler, const ContextNode& ctx)
+		: Continuation(yforward(handler), ctx.get_allocator())
+	{}
+	Continuation(const Continuation& cont, allocator_type a)
+		: Handler(ystdex::make_obj_using_allocator<ContextHandler>(a,
+		cont.Handler))
+	{}
+	Continuation(Continuation&& cont, allocator_type a)
+		: Handler(ystdex::make_obj_using_allocator<ContextHandler>(a,
+		std::move(cont.Handler)))
+	{}
+	//@}
+	DefDeCopyMoveCtorAssignment(Continuation)
+
+	friend PDefHOp(bool, ==, const Continuation& x, const Continuation& y)
+		ynothrow
+		ImplRet(ystdex::ref_eq<>()(x, y))
+
+	//! \since build 877
+	ReductionStatus
+	operator()(ContextNode&) const;
+
+	friend DefSwap(ynothrow, Continuation, swap(_x.Handler, _y.Handler))
+};
+
+
+//! \since build 859
+//@{
+/*!
+\brief 抛出缺少项的异常。
+\throw ParameterMismatch 缺少项的错误。
+*/
+YB_NORETURN YF_API void
+ThrowInsufficientTermsError();
+
+/*!
+\brief 抛出参数指定消息的语法错误异常。
+\throw InvalidSyntax 语法错误：参数指定的标识符是不被支持的字面量。
+*/
+//@{
+//! \pre 间接断言：第一参数非空。
+YB_NORETURN YF_API YB_NONNULL(1) void
+ThrowInvalidSyntaxError(const char*);
+YB_NORETURN YF_API void
+ThrowInvalidSyntaxError(string_view);
+//@}
+
+/*!
+\brief 抛出被赋值操作数不可修改的异常。
+\throw TypeError 被赋值操作数不可修改错误。
+*/
+YB_NORETURN YF_API void
+ThrowNonmodifiableErrorForAssignee();
+
+/*!
+\brief 抛出参数指定值的不支持的字面量语法错误异常。
+\throw InvalidSyntax 语法错误。
+\since build 896
+*/
+//@{
+//! \pre 间接断言：第一参数非空。
+YB_NORETURN YF_API YB_NONNULL(1) void
+ThrowUnsupportedLiteralError(const char*);
+YB_NORETURN inline PDefH(void, ThrowUnsupportedLiteralError, string_view sv)
+	ImplExpr(ThrowUnsupportedLiteralError(sv.data()))
+//@}
+
+/*!
+\brief 抛出第一参数不符合预期值类别的异常。
+\throw ValueCategory 第一参数值类别错误。
+*/
+YB_NORETURN YF_API void
+ThrowValueCategoryErrorForFirstArgument(const TermNode&);
+//@}
+
+
 //! \since build 676
 //@{
 /*!
@@ -167,61 +272,6 @@ using Guard = any;
 using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
 	YSLib::GDefaultLastValueInvoker<Guard>>;
 //@}
-
-
-/*!
-\brief NPLA1 一等续延。
-\warning 非虚析构。
-\since build 841
-\todo 支持一等续延捕获。
-
-利用 ContextState 接口，表示续延的一个帧的对象。
-*/
-class YF_API Continuation
-{
-public:
-	//! \since build 877
-	using allocator_type
-		= decltype(std::declval<const ContextNode&>().get_allocator());
-
-	ContextHandler Handler;
-
-	//! \since build 877
-	//@{
-	template<typename _func, yimpl(typename
-		= ystdex::exclude_self_t<Continuation, _func>)>
-	inline
-	Continuation(_func&& handler, allocator_type a)
-		: Handler(ystdex::make_obj_using_allocator<ContextHandler>(a,
-		yforward(handler)))
-	{}
-	template<typename _func, yimpl(typename
-		= ystdex::exclude_self_t<Continuation, _func>)>
-	inline
-	Continuation(_func&& handler, const ContextNode& ctx)
-		: Continuation(yforward(handler), ctx.get_allocator())
-	{}
-	Continuation(const Continuation& cont, allocator_type a)
-		: Handler(ystdex::make_obj_using_allocator<ContextHandler>(a,
-		cont.Handler))
-	{}
-	Continuation(Continuation&& cont, allocator_type a)
-		: Handler(ystdex::make_obj_using_allocator<ContextHandler>(a,
-		std::move(cont.Handler)))
-	{}
-	//@}
-	DefDeCopyMoveCtorAssignment(Continuation)
-
-	friend PDefHOp(bool, ==, const Continuation& x, const Continuation& y)
-		ynothrow
-		ImplRet(ystdex::ref_eq<>()(x, y))
-
-	//! \since build 877
-	ReductionStatus
-	operator()(ContextNode&) const;
-
-	friend DefSwap(ynothrow, Continuation, swap(_x.Handler, _y.Handler))
-};
 
 
 /*!
@@ -563,6 +613,16 @@ ReduceTail(TermNode&, ContextNode&, TNIter);
 
 
 /*!
+\brief 规约至确定的未指定值。
+\sa ValueToken::Unspecified
+\since build 896
+*/
+inline PDefH(ReductionStatus, ReduceReturnUnspecified, TermNode& term) ynothrow
+	ImplRet((term.Value = ValueObject(std::allocator_arg, term.get_allocator(),
+		ValueToken::Unspecified)), ReductionStatus::Clean)
+
+
+/*!
 \brief 设置跟踪深度节点：调用规约时显示深度和上下文等信息。
 \note 主要用于调试。
 \sa ContextState::Guard
@@ -702,6 +762,38 @@ struct SeparatorTransformer
 	}
 	//@}
 };
+
+
+/*!
+\pre 间接断言：字符串参数的数据指针非空。
+\return 分析结果。
+*/
+//@{
+/*!
+\brief 分析参数指定的叶节点词素。
+\since build 880
+
+以第二参数初始化空项，依次进行以下转换操作确定值数据成员后返回：
+对代码字面量，去除字面量边界分隔符后进一步求值；
+对数据字面量，去除字面量边界分隔符作为字符串值；
+对其它字面量，转换为符号。
+*/
+YF_API TermNode
+ParseLeaf(string_view, TermNode::allocator_type);
+
+/*!
+\brief 分析参数指定的带有源代码信息和叶节点词素。
+\pre 间接断言：字符串参数的数据指针非空。
+\since build 891
+
+同 ParseLeaf ，但同时在分析结果的记号中包含源代码信息。
+第二参数表示源代码来源。
+第三参数表示记号在源代码中的位置。
+*/
+YF_API TermNode
+ParseLeafWithSourceInformation(string_view, const shared_ptr<string>&,
+	const SourceLocation&, TermNode::allocator_type);
+//@}
 
 
 //! \since build 751
@@ -955,34 +1047,6 @@ YB_ATTR_nodiscard YB_PURE inline
 	ImplRet(AssertBranch(term), term.size() - 1)
 
 
-//! \pre 间接断言：字符串参数的数据指针非空。
-//@{
-/*!
-\brief 分析参数指定的叶节点词素。
-\since build 880
-
-依次进行以下求值操作。
-对代码字面量，去除字面量边界分隔符后进一步求值。
-对数据字面量，去除字面量边界分隔符作为字符串值。
-对其它字面量，规约为符号。
-*/
-YF_API TermNode
-ParseLeaf(string_view, TermNode::allocator_type);
-
-/*!
-\brief 分析参数指定的带有源代码信息和叶节点词素。
-\pre 间接断言：字符串参数的数据指针非空。
-\since build 891
-
-同 ParseLeaf ，但同时在分析结果的记号中包含源代码信息。
-第二参数表示源代码来源。
-第三参数表示记号在源代码中的位置。
-*/
-YF_API TermNode
-ParseLeafWithSourceInformation(string_view, const shared_ptr<string>&,
-	const SourceLocation&, TermNode::allocator_type);
-//@}
-
 /*!
 \pre 间接断言：字符串参数的数据指针非空。
 \note 第一参数指定输入的项，其 Value 指定输出的值。
@@ -1011,6 +1075,7 @@ DefaultEvaluateLeaf(TermNode&, string_view);
 \sa LiteralHandler
 \sa ReferenceTerm
 \sa ResolveIdentifier
+\sa SetupTailOperatorName
 \sa TermReference
 \since build 745
 
@@ -1019,6 +1084,7 @@ DefaultEvaluateLeaf(TermNode&, string_view);
 解析名称并初始化目标项的值；然后检查字面量处理器，若存在则调用。
 具体依次进行以下求值操作：
 调用 ResolveIdentifier 解析指定的标识符，若失败则抛出异常；
+调用 SetupTailOperatorName 检查操作符项，可能设置第一参数的值数据成员；
 解析的结果进行引用折叠后重新引用为左值，并赋值到第一参数指定的项的值数据成员；
 以 LiteralHandler 访问字面量处理器，若成功调用并返回字面量处理器的处理结果；
 否则，返回 ReductionStatus::Neutral 。
@@ -1044,6 +1110,7 @@ EvaluateIdentifier(TermNode&, const ContextNode&, string_view);
 \sa ContextNode::EvaluateLiteral
 \sa DeliteralizeUnchecked
 \sa EvaluateIdentifier
+\sa ThrowUnsupportedLiteralError
 \since build 736
 
 处理非空字符串表示的节点记号。
@@ -1335,15 +1402,89 @@ using SourcedTokenizer = GTokenizer<SourcedByteParser>;
 
 
 /*!
-\brief 查询对象中的源代码信息。
-\since build 891
+\pre 断言：参数的数据指针非空。
+\note 不对名称参数指向的数据具有所有权。一般需要使用字符串字面量。
+\since build 896
 */
-YB_ATTR_nodiscard YB_PURE YF_API observer_ptr<const SourceInformation>
-QuerySourceInformation(const ValueObject&);
+//@{
+/*!
+\brief 添加全局类型名称表项。
+\return 是否添加成功。
+*/
+YB_ATTR_nodiscard YF_API bool
+AddTypeNameTableEntry(const ystdex::type_info&, string_view);
+
+/*!
+\brief 初始化全局类型名称表项。
+\pre 类型在全局类型名称表中非重复。
+*/
+template<typename _type>
+inline void
+InitializeTypeNameTableEntry(string_view desc)
+{
+	YAssertNonnull(desc.data());
+
+	static struct Init final
+	{
+		Init(string_view sv)
+		{
+			const auto res(AddTypeNameTableEntry(ystdex::type_id<_type>(), sv));
+
+			yunused(res);
+			YAssert(res, "Duplicated name found.");
+		}
+	} init(desc);
+}
+
+//! \brief 初始化作为扩展调用者的全局类型名称表项并转发参数。
+template<class _tTarget, typename _func, typename _fCallable>
+YB_ATTR_nodiscard YB_PURE inline _fCallable
+NameExpandedHandler(_fCallable&& x, string_view desc)
+{
+	static_assert(std::is_constructible<_tTarget, _fCallable>(),
+		"Invalid callable type found.");
+	using expanded_t = ystdex::expanded_caller<_func, _fCallable>;
+
+	A1::InitializeTypeNameTableEntry<ystdex::cond_t<ystdex::and_<
+		ystdex::not_<std::is_constructible<function<_func>, _fCallable>>,
+		std::is_constructible<expanded_t, _fCallable>>,
+		expanded_t, ystdex::remove_cvref_t<_fCallable>>>(desc);
+	return yforward(x);
+}
+
+//! \brief 初始化作为上下文处理器的全局类型名称表项并转发参数。
+template<typename _fCallable>
+YB_ATTR_nodiscard YB_PURE inline _fCallable
+NameTypedContextHandler(_fCallable&& x, string_view desc)
+{
+	return A1::NameExpandedHandler<ContextHandler,
+		ContextHandler::FuncType>(yforward(x), desc);
+}
+
+//! \brief 初始化全局类型名称表项并转发参数。
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE inline _type
+NameTypedObject(_type&& x, string_view desc)
+{
+	InitializeTypeNameTableEntry<ystdex::remove_cvref_t<_type>>(desc);
+	return yforward(x);
+}
+
+//! \brief 初始化作为规约器处理器的全局类型名称表项并转发参数。
+template<typename _fCallable>
+YB_ATTR_nodiscard YB_PURE inline _fCallable
+NameTypedReducerHandler(_fCallable&& x, string_view desc)
+{
+	return A1::NameExpandedHandler<Reducer,
+		ReducerFunctionType>(yforward(x), desc);
+}
+//@}
 
 /*!
 \brief 查询续延中的名称信息。
 \return 若存在名称则为内部指定来源的名称字符串，否则是数据指针为空的结果。
+\sa InitializeTypeNameTableEntry
+\sa QueryTypeName
 \since build 893
 
 取参数指定的动作对应的续延中的名称信息。
@@ -1351,32 +1492,48 @@ QuerySourceInformation(const ValueObject&);
 特定目标的 Continuation ；
 TCO 动作；
 特定的其它实现续延的内部类型。
+若非特定目标类型，使用全局类型名称表查询。
+实现和用户操作全局类型名称表直接添加的类型信息不冲突。
 */
 YB_ATTR_nodiscard YB_PURE YF_API string_view
 QueryContinuationName(const Reducer&);
 
 /*!
-\note 仅在 TCO 动作存在时支持。
-\since build 895
+\brief 查询对象中的源代码信息。
+\since build 891
 */
-//@{
+YB_ATTR_nodiscard YB_PURE YF_API observer_ptr<const SourceInformation>
+QuerySourceInformation(const ValueObject&);
+
 /*!
-\brief 查询续延指定的当前尾动作规约的操作符名称。
-\note 当参数指定 TCO 时且保存非空记号值时保存的值即为名称，否则名称不存在。
+\brief 查询续延指定的当前尾动作规约的操作符名称项。
+\note 当参数指定 TCO 时且保存记号值时保存的值即为名称，否则名称不存在。
 \return 若存在名称则为内部保存的名称字符串，否则是数据指针为空的结果。
+\note 仅在 TCO 动作存在时支持。
+\since build 896
 */
-YB_ATTR_nodiscard YB_PURE YF_API string_view
+YB_ATTR_nodiscard YB_PURE YF_API observer_ptr<const ValueObject>
 QueryTailOperatorName(const Reducer&);
 
 /*!
-\brief 设置当前尾动作规约的操作符名称。
-\return 第一参数指定的项中保存的名称。
-\warning 若不满足上下文状态类型要求，行为未定义。
-\sa TermToNamePtr
+\brief 查询全局类型名称表。
+\since build 896
 */
-YB_ATTR_nodiscard YF_API observer_ptr<const TokenValue>
-SetupTailOperatorName(TermNode&, ContextNode&);
-//@}
+YB_ATTR_nodiscard YB_PURE YF_API string_view
+QueryTypeName(const ystdex::type_info&);
+
+/*!
+\brief 设置当前尾动作规约的操作符名称。
+\return 是否成功。
+\warning 若不满足上下文状态类型要求，行为未定义。
+\sa ContextState::GetCombiningTermPtr
+\since build 896
+
+检查第一参数指定的项是否同第二参数保存的规约合并项的第一项，若成功视为操作符项，
+	并转移操作符项的值数据成员到规约合并项。
+*/
+YF_API bool
+SetupTailOperatorName(TermNode&, const ContextNode&);
 
 
 /*
@@ -1440,8 +1597,6 @@ public:
 	若需要多个遍，可使用 TermPasses 作为目标。
 	*/
 	TermPasses::HandlerType Preprocess{std::allocator_arg, Allocator};
-	//! \brief 列表项处理例程：每次翻译中规约回调处理调用的公共例程。
-	EvaluationPasses ListTermPreprocess{Allocator};
 	//! \since build 891
 	//@{
 	/*!

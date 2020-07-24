@@ -11,13 +11,13 @@
 /*!	\file TabControl.h
 \ingroup UI
 \brief 样式相关的图形用户界面标签页控件。
-\version r268
+\version r269
 \author FrankHB <frankhb1989@gmail.com>
 \since build 494
 \par 创建时间:
 	2014-04-19 11:21:43 +0800
 \par 修改时间:
-	2020-02-04 14:48 +0800
+	2020-07-24 11:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -175,7 +175,7 @@ public:
 	\return 若找到则为页面部件的索引，否则等于页面数。
 	\since build 495
 	*/
-	size_t
+	YB_ATTR_nodiscard YB_PURE size_t
 	Find(IWidget&) const;
 
 	/*!
