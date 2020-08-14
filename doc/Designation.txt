@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2019 FrankHB.
+	© 2009-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 项目设计规则指定和说明。
-\version r9924
+\version r9933
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2019-12-18 08:19 +0800
+	2020-07-25 15:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 @0 体例和适用范围：
 引用标记参见 [Documentation::CommonRules @@0.1] 。
 项目规则、整体结构和适用范围参见 [Documentation::ProjectRules] 。本文档是其具体实现和补充。
-其它说明和使用方法参见 https://bitbucket.org/FrankHB/yslib/wiki 。
+其它说明和使用方法参见 https://frankhb.github.io/YSLib-book 。
 
 @1 需求(requirements) 和可行性(feasibility) ：
 
@@ -103,11 +103,11 @@ YSLib 的源代码的本体([Documentation::YFramework @@2.1]) 是平台中立([
 其中的一部分在冯·诺依曼体系结构的现代数字式电子计算机的范畴内是平台无关的。
 
 @2.3.1.1 实现要求：
-依赖的语言实现要求参见 https://bitbucket.org/FrankHB/yslib/wiki/Development.zh-CN.md 。
+依赖的语言实现要求参见 https://frankhb.github.io/YSLib-book/Development.zh-CN.html 。
 实际使用的具体语言实现参见 @5.2 。
 
 @2.3.1.2 平台模拟支持：
-概念参见 https://bitbucket.org/FrankHB/yslib/wiki/Development.zh-CN.md  。
+概念参见 https://frankhb.github.io/YSLib-book/Development.zh-CN.html  。
 库提供程序模拟的接口（一般是 API ，也可以是 UI 等）支持平台模拟，包括以下形式：
 平台中立([Documentation::CommonRules @@2.2.2.1]) 接口：适合所有平台但针对不同平台指定不同的行为实现。
 非平台中立接口：适合特定的平台，不保证平台中立。
@@ -158,7 +158,7 @@ YSLib 基于基本的底层系统接口（由 YFramework/YCLib[Documentation::YC
 注意，库中的定义是否声明为 inline （而不是实际内联）影响二进制兼容性。
 
 @2.4 文本文件形式：
-基本规则参见 https://bitbucket.org/FrankHB/yslib/wiki/WikiRules.en-US.md 。
+基本规则参见 https://frankhb.github.io/YSLib-book/WikiRules.en-US.html 。
 因 DrMemory 不支持 BOM 所以使用的文件省略 BOM 。
 
 @3 API 设计和风格概述：
@@ -260,6 +260,10 @@ _tKey ：关联容器和无序关联容器的键类型；
 _tTransKey ：关联容器和无序关联容器的透明键类型（用于查找时替代键的不同类型）；
 _fComp ：关联容器或算法使用的基于序关系比较的二元操作函数对象类型（同 ISO C++17 [alg.sorting] 的 Compare ）；
 _tChar ：适合作为 std::char_traits 的第一参数的字符类型。
+此外，使用 _tParam 表示（非特定以上情形的）参数类型。
+使用 Param(parameter) 而非 Arg(argument) 表示强调推导后具有的类型约束形式参数而非实际参数，因为按语言规则，形式参数通过实际参数初始化是不同的实体，不保证带有实际参数的所有信息（如考虑 C++ 转发通用引用(universal reference) 时实际参数的类型）。
+注意作为实际参数在函数参数中也是流行的误用，如 FreeType 和 Firefox 等使用的以 a 为前缀的参数命名：
+https://firefox-source-docs.mozilla.org/tools/lint/coding-style/coding_style_cpp.html#variable-prefixes
 以上非数字结尾的类型参数加后缀 s 表示可变模板参数中的多个类型。
 使用以下非 ISO C++11 的要求中出现的其它成员名称：
 clone ：动态复制函数，返回类型为被复制的对象的指针。

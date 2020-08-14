@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r1434
+\version r1436
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2020-03-15 22:37 +0800
+	2020-07-25 16:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,8 +34,8 @@
 本文档用于描述 YSLib 的外部依赖([Documentation::CommonRules @@1]) 。
 
 @1 实现环境和库部署：
-基准实现要求参见 https://bitbucket.org/FrankHB/yslib/wiki/Development.zh-CN.md ；
-使用的标准特性参见 https://bitbucket.org/FrankHB/yslib/wiki/StandardUsing.en-US.md 。
+基准实现要求参见 https://frankhb.github.io/YSLib-book/Development.zh-CN.html ；
+使用的标准特性参见 https://frankhb.github.io/YSLib-book/StandardUsing.en-US.html 。
 除非另行指定，使用同基准实现要求的默认配置的 ABI 。
 本章内列出的构建环境经过测试并用于发布。可能有其它可用兼容环境，不在此列出。
 未来可能会提升实现的最低支持版本要求，并移除针对特定版本的变通(workaround) 代码。

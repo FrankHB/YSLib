@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2019 FrankHB.
+	© 2013-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ProjectRules.txt
 \ingroup Documentation
 \brief 项目组织和管理规则。
-\version r1152
+\version r1172
 \author FrankHB <frankhb1989@gmail.com>
 \since build 381
 \par 创建时间:
 	2013-02-14 17:59:49 +0800
 \par 修改时间:
-	2019-12-18 08:20 +0800
+	2020-07-25 15:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,18 +36,18 @@ YSLib 项目(the YSLib project) 是以程序库(@3) 为主要产出的项目。
 除非另行指定，本文档在任意修订后对同一项目构建版本(@2.2) 及之后的版本生效；本条规则适用追溯无限制。
 
 @1.1 依赖管理：
-基本内容参见 https://bitbucket.org/FrankHB/yslib/wiki/Terminology.zh-CN.md 。
+基本内容参见 https://frankhb.github.io/YSLib-book/Terminology.zh-CN.html 。
 依赖项作为对象([Documentation::CommonRules @@2.3.3.3]) ，之间具有的引用关系称为依赖关系([Documentation::CommonRules @@2.3.6]) 。
 关于当前 YSLib 的具体外部依赖，参见 [Documentation::Dependencies] 。
 
 @1.2 平台(platform) 环境：
-基本概念和约定参见 https://bitbucket.org/FrankHB/yslib/wiki/Terminology.zh-CN.md 。
-YSLib 项目中使用的概念和一般规则参见 https://bitbucket.org/FrankHB/yslib/wiki/Development.zh-CN.md 有关平台环境的说明。
+基本概念和约定参见 https://frankhb.github.io/YSLib-book/Terminology.zh-CN.html 。
+YSLib 项目中使用的概念和一般规则参见 https://frankhb.github.io/YSLib-book/Development.zh-CN.html 有关平台环境的说明。
 配置管理(@2.1) 需另行指定，其它由 YFramework 特定部分的实现定义。另行指定(@3.3) 外的其它部分都保持平台中立。
 使用的语言和具体环境（语言版本和语言实现等）参见 @1.2.1 。
 
 @1.2.1 语言使用和实现要求：
-基本规则及适用性参见 https://bitbucket.org/FrankHB/yslib/wiki/Development.zh-CN.md ，其中依赖项的概念适用 @1 。
+基本规则及适用性参见 https://frankhb.github.io/YSLib-book/Development.zh-CN.html ，其中依赖项的概念适用 @1 。
 在 YBase([Documentation::YBase]) 中有约定的部分，适用相应规则；项目中的其它部分适用本节以下规则。
 标识符使用参见 [CommonRules @@4] 。
 
@@ -73,7 +73,7 @@ YSTest 依赖 YBase 和 YFramework 。
 文件组织依赖见 @3.3 。
 
 @1.4 项目组和项目边界：
-本项目和附属 wiki https://bitbucket.org/FrankHB/yslib/wiki/ 属于共享项目过程的项目组。
+本项目和附属 wiki https://frankhb.github.io/YSLib-book/ 属于共享项目过程的项目组。
 项目代码使用 Doxygen 生成 API 文档，提供面向开发者的以下内容：
 API 功能规格说明；
 使用的注意事项；
@@ -92,11 +92,11 @@ API 功能规格说明；
 除非另行指定，不修改外部依赖项(@1.1.2) 。
 以下是非外部依赖项设计和管理约定。
 注意具体的 IDE （集成开发环境）等工具不一定支持以下所有项。
-关于开发阶段的定义，参见 https://bitbucket.org/FrankHB/yslib/wiki/Releases.zh-CN.md 。
+关于开发阶段的定义，参见 https://frankhb.github.io/YSLib-book/Releases.zh-CN.html 。
 
 @2.1 配置管理：
 适用于各个子项目。
-各目标平台统一包含的基本配置为 debug 和 release （注意大小写），分别对应调试和发布。
+各目标平台统一包含的基本配置为 debug 和 release（注意大小写），分别对应调试和发布。
 对有其它生成目标的平台可以追加配置。
 
 @2.1.1 支持等级：
@@ -105,11 +105,12 @@ API 功能规格说明；
 通过特定于更改相关范围内的现有的可构建、示例项目的可运行及测试项目的正确性测试(@3.3.2) ，对应提供可构建、可运行和正确性支持。
 支持的配置可能在开发过程中被计划性地验证，据此按支持程度从高到低划分为以下验证支持等级(tier) ：
 第一类支持：每个提交版本(@2.2.4.2) 提供可构建、可运行和正确性支持，且构建版本(@2.2.4.1) 对此造成的影响应立刻解决；
-第二类支持：每个提交版本提供可构建和可运行支持，但除非涉及此配置的代码被修改，不要求在构建版本进行验证；
-第三类支持：每个提交版本提供可构建和可运行支持，但除非涉及此配置的代码被修改，不要求在非发布版本(@2.2.4.5) 进行验证；
+第二类支持：每个提交版本提供可构建和可运行支持，但除非包含此配置使用的配置相关特定代码被修改，不要求在构建版本进行验证；
+第三类支持：每个提交版本提供可构建和可运行支持，但除非包含此配置使用的配置相关特定代码被修改，不要求在非发布版本(@2.2.4.5) 进行验证；
 第四类支持：已验证存在可构建和正常运行的程序，但不保证构建和指定的功能在运行时可用，也不要求在任意版本进行验证。
-第五类支持：未被完整(completed) 实现或当前明确不支持，未测试，但在代码中保留已知平台的占位符（如条件分支选项）。
+第五类支持：未被完整地实现或当前明确不支持，未测试，但在代码中保留已知平台的占位符（如条件分支选项）。
 第一类至第三类支持是正式支持。
+正式支持的宿主平台外部依赖二进制文件被归档。不保证提供非正式支持的宿主平台的二进制文件。
 基于支持涵盖项目内容和功能范围的不完整性(incompleteness) ，非第一类的正式支持可明确提供为待定(pending) 支持。其它正式支持是完整(complete) 支持。
 待定支持和非正式支持可用于正在移植中的目标。
 具体配置的支持等级可能会在项目中变更。
@@ -149,7 +150,7 @@ API 功能规格说明；
 @2.2.2.1 产品版本号(product version number) ：
 不同的里程碑版本具有不同的产品版本号。
 项目构建中连续的历史版本具有和某个里程碑版本相同的产品版本号，作为追溯产品分支的依据之一。
-按 https://bitbucket.org/FrankHB/yslib/wiki/Release.zh-CN.md 的要求，产品版本号的默认格式为 Vx.y.z ，其中 x.y.z 使用语义化版本(semantic versioning) 约定。
+按 https://frankhb.github.io/YSLib-book/Release.zh-CN.html 的要求，产品版本号的默认格式为 Vx.y.z ，其中 x.y.z 使用语义化版本(semantic versioning) 约定。
 
 @2.2.3 发布(releasing) ：
 计划性的发布应存在存档的规划。具体约定的规划形式可使用计划(plan) 或路线图(roadmap) 。
@@ -185,10 +186,13 @@ API 功能规格说明；
 i 对应被正式支持(@2.1.1) 的配置的具体平台。
 A 是 i 的函数，为演进(evolution) 构建数，表示对某个配置在发布或提交之前迭代开发时构建数。
 演进构建数的总和用于度量迭代构建规模；不要求任一具体配置的构建数不小于其演进构建数。
-对独立实现， A(i) = 4 ；对宿主环境（操作系统内核及应用虚拟机等运行时环境其中任一）和已被相同或更高支持等级支持的宿主平台不共享实现的新的宿主实现， A(i) = 3 ；否则 A(i) = 2 。
-对不存在第一类支持(@2.1.1) 的配置的平台，以上 A(i) 值取乘以修正系数 0.5 后向下取整的值。
+对独立实现， A(i) = 4 ；
+对宿主环境（操作系统内核及应用虚拟机等运行时环境其中任一）和与已被相同或更高支持等级支持的宿主平台不共享实现的新的宿主实现， A(i) = 3 ；
+否则，A(i) = 2 。
+对不存在第一类支持(@2.1.1) 的配置的平台，最终 A(i) 的值以上基础上取乘以修正系数 0.5 后向下取整的值。
 B 是 i 的函数，为提交版本包含的各平台的提交构建数，表示平台上被支持的第一类和第二类支持的配置数。
-当前状态的具体值详见测试说明([Documentation::Test @@1.4.2]) 。
+易知，对某个提交版本中的任意的 i ，B(i) 不大于 A(i) 。
+当前状态的具体值详见测试说明([Documentation::Test @@1.4.4]) 。
 
 @2.2.4.3 库提交版本：
 包含库源代码的文件的修改，构建目标项目包括库重新构建的提交版本称为库提交版本。
@@ -603,7 +607,7 @@ YSLib 项目中各个库对命名空间的使用由库约定。
 项目过程是项目生存期中计划和被经历的工程学意义上的明确阶段。
 具有顺序约束的过程的总体称为流程。不包含于任何其它流程的流程是完整流程。
 流程中的过程可能非必须，由具体流程定义。
-对项目过程的实现参见 https://bitbucket.org/FrankHB/yslib/wiki/Development.zh-CN.md 。
+对项目过程的实现参见 https://frankhb.github.io/YSLib-book/Development.zh-CN.html 。
 
 @4.1 抽象规则：
 使用过程式语言的语义，项目过程被抽象为程序过程(procedure) 。

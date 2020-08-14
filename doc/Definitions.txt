@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14231
+\version r14245
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2020-01-27 18:07 +0800
+	2020-07-25 15:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,7 +49,7 @@ $unit $unit_n //单元：指称一个编译单元（一般应为语言规范中�
 
 $region $synopsis $begin
 
-// 保留名称规则参照 https://bitbucket.org/FrankHB/yslib/wiki/Development.zh-CN.md 。另见 [Documentation::Designation @@4.2] 。
+// 保留名称规则参照 https://frankhb.github.io/YSLib-book/Development.zh-CN.html 。另见 [Documentation::Designation @@4.2] 。
 // 以下为既定宏名和生成标识符污染列表（内部使用的宏名不逐一列出）。
 // ! 默认由外部（如预定义标识符、编译器命令行或标准库头）提供。
 // # 可能由外部提供。
@@ -486,6 +486,7 @@ $unit NPLA1
 NPL_Impl_NPLA1_Enable_InlineDirect
 NPL_Impl_NPLA1_Enable_TCO
 NPL_Impl_NPLA1_Enable_Thunked
+NPL_Impl_NPLA1_Enable_ThunkedSeparatorPass
 }
 $unit Dependency
 {
@@ -834,16 +835,26 @@ $impl Caret::caret_animation;
 ///
 
 // Contextually reserved identifiers.
-// The following indentifier used in arguments of macro 'YB_ATTR' shall not be defined as macros.
+// The following indentifier used in arguments of macro 'YB_ATTR' and other implementation-defined attribute syntax extensions (notably '__attribute__' and '__declspec') shall not be defined as macros. Note some may be already disallowed by ISO C++.
 $attr $=
 (
+	aligned,
+	allocator,
 	always_inline,
+	dllimport,
+	dllexport,
+	noinline,
+	nonnull,
 	noreturn,
 	novtable,
+	optimize,
 	packed,
+	restrict,
 	returns_nonnull,
+	thread,
 	unused,
-	warn_unused_result
+	warn_unused_result,
+	weak
 );
 
 ///

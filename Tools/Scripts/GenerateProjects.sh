@@ -3,30 +3,33 @@
 # Project generation script: generating Code::Blocks .cbp files using
 #	ProjectGenerator.
 
-: ${SHBuild_Bin:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
+: "${SHBuild_Bin:=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+# shellcheck source=./SHBuild-common.sh
 . "$SHBuild_Bin/SHBuild-common.sh"
 
-TopLevel="$(hg root 2> /dev/null || (cd "$(git rev-parse --show-cdup)"; pwd))"
-TopLevel="$(SHBuild_2u $TopLevel)"
-: ${ProjectGenerator:="`which ProjectGenerator`"}
+# XXX: The error is ignored.
+# shellcheck disable=2164
+TopLevel=$(hg root 2> /dev/null || (cd "$(git rev-parse --show-cdup)"; pwd))
+TopLevel=$(SHBuild_2u "$TopLevel")
+: "${ProjectGenerator:="$(which ProjectGenerator)"}"
 
 if [[ "$TopLevel" == '' ]]; then
 	SHBuild_Puts \
-		ERROR: Cannot find top level directory. Make sure hg or git in PATH.
+		'ERROR: Cannot find top level directory. Make sure hg or git in PATH.'
 	exit 1;
 else
-	SHBuild_Puts Found top level directory \"$TopLevel\".
+	SHBuild_Puts "Found top level directory \"$TopLevel\"."
 fi
 
-SHBuild_Pushd $TopLevel
+SHBuild_Pushd "$TopLevel"
 
 
 SHBuild_GenerateCBP_()
 {
 	declare -r target="$1"
 	shift
-	SHBuild_Puts Writing \"$target\" ...
-	$ProjectGenerator "$@" > $target
+	SHBuild_Puts "Writing \"$target\" ..."
+	$ProjectGenerator "$@" > "$target"
 }
 
 SHBuild_GenerateCBP_Wrap_()

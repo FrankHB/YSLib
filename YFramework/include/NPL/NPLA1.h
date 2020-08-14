@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8300
+\version r8327
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-07-23 00:47 +0800
+	2020-08-09 11:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,20 +30,20 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA // for NPLATag, TermNode, ContextNode,
-//	CombineReductionResult, ystdex::exclude_self_t, ystdex::ref_eq,
-//	pmr::memory_resource, TNIter, LiftOther, ValueNode, LoggedEvent,
-//	YSLib::Warning, std::declval, NPL::make_observer, NPL::Deref,
+//	ystdex::equality_comparable, std::declval, ystdex::exclude_self_t,
+//	ystdex::ref_eq, CombineReductionResult, pmr::memory_resource,
+//	NPL::make_observer, TNIter, LiftOther, ValueNode, NPL::Deref,
 //	NPL::AsTermNode, std::make_move_iterator, IsBranch, std::next,
-//	ystdex::retry_on_cond, std::find_if, ystdex::equality_comparable,
-//	YSLib::AreEqualHeld, ystdex::make_parameter_list_t,
-//	ystdex::make_function_type_t, ystdex::decay_t, ystdex::expanded_caller,
-//	std::is_constructible, ystdex::or_, string_view, TermTags, TokenValue,
-//	Environment, ParseResultOf, ByteParser, SourcedByteParser,
-//	ystdex::type_info, SourceInformation, std::integral_constant, SourceName;
-#include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, ystdex::fast_any_of,
-//	YSLib::GEvent, YSLib::GCombinerInvoker, YSLib::GDefaultLastValueInvoker;
+//	ystdex::retry_on_cond, std::find_if, YSLib::AreEqualHeld,
+//	ystdex::make_parameter_list_t, ystdex::make_function_type_t,
+//	ystdex::decay_t, ystdex::expanded_caller, std::is_constructible,
+//	ystdex::or_, string_view, TermTags, TokenValue, Environment, ParseResultOf,
+//	ByteParser, SourcedByteParser, ystdex::type_info, SourceInformation,
+//	std::integral_constant, SourceName;
+#include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, YSLib::GEvent,
+//	YSLib::GCombinerInvoker, YSLib::GDefaultLastValueInvoker;
+#include <ystdex/algorithm.hpp> // for ystdex::fast_any_of, ystdex::split;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
-#include <ystdex/algorithm.hpp> // for ystdex::split;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard;
 
 namespace NPL
@@ -114,7 +114,7 @@ to_string(ValueToken);
 
 利用 ContextState 接口，表示续延的一个帧的对象。
 */
-class YF_API Continuation
+class YF_API Continuation : private ystdex::equality_comparable<Continuation>
 {
 public:
 	//! \since build 877
@@ -149,8 +149,8 @@ public:
 	//@}
 	DefDeCopyMoveCtorAssignment(Continuation)
 
-	friend PDefHOp(bool, ==, const Continuation& x, const Continuation& y)
-		ynothrow
+	YB_ATTR_nodiscard YB_STATELESS friend
+		PDefHOp(bool, ==, const Continuation& x, const Continuation& y) ynothrow
 		ImplRet(ystdex::ref_eq<>()(x, y))
 
 	//! \since build 877
@@ -649,24 +649,26 @@ InsertChild(ValueNode&&, ValueNode::Container&);
 \brief 变换 NPLA1 节点 S 表达式抽象语法树为 NPLA1 语义结构。
 \exception std::bad_function_call 第三至五参数为空。
 \return 变换后的新节点（及子节点）。
-\since build 852
+\sa InsertChild
+\sa MapNPLALeafNode
+\sa ParseNPLATermString
+\since build 897
 
 第一参数指定源节点，其余参数指定部分变换规则。
-当被调用的第二至第四参数不修改传入的节点参数时变换不修改源节点。
+当被调用的第三参数不修改传入的节点参数时变换不修改源节点。
 过程如下：
-若源节点为叶节点，直接返回使用第三参数创建映射的节点。
+若源节点为叶节点，直接返回使用 MapNPLALeafNode 创建映射的节点。
 若源节点只有一个子节点，直接返回这个子节点的变换结果。
-否则，使用第四参数从第一个子节点取作为变换结果名称的字符串。
+否则，使用 ParseNPLATermString 从第一个子节点取作为变换结果名称的字符串。
 	若名称非空则忽略第一个子节点，只变换剩余子节点。
 		当剩余一个子节点（即源节点有两个子节点）时，直接递归变换这个节点并返回。
 		若变换后的结果名称非空，则作为结果的值；否则，结果作为容器内单一的值。
 	否则，新建节点容器，遍历并变换剩余的节点插入其中，返回以之构造的节点。
-		第二参数指定此时的映射操作，若为空则默认使用递归 TransformNode 调用。
-		调用第五参数插入映射的结果到容器。
+		调用 InsertChild 插入映射的结果到容器。
+子节点的映射操作使用递归 TransformNode 调用。
 */
 YF_API ValueNode
-TransformNode(const TermNode&, NodeMapper = {}, NodeMapper = MapNPLALeafNode,
-	TermNodeToString = ParseNPLATermString, NodeInserter = InsertChild);
+TransformNode(const TermNode&);
 
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r3746
+\version r3791
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2020-07-05 17:21 +0800
+	2020-08-10 15:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2084,7 +2084,7 @@ Safety of 'eval' should be carefully maintained in NPL.
 	The reevaluation should be limited in one environment.
 		Or simply be forbidden, if different evaluations are not guanteed to be in the same environment.
 	These security wholes prsented since build 772 in function 'NPL::A1::Forms::Eval'.
-		Both defects have been fixed in build 802 by using 'NPL::A1::ReduceCheckedClosure' with addtional call to 'NPL::CheckNorm'.
+		Both defects have been fixed in build 802 by using 'NPL::A1::ReduceCheckedClosure' with an addtional call to 'NPL::CheckNorm'.
 	The fix makes Kernel-style applicative 'get-module' can now work properly (though it is not provided in YFramework yet).
 Tracing output for NPLA is reimplemented. Changes are dealt with cautions.
 	It is now based on separated logger in the context object since build 803.
@@ -2502,13 +2502,13 @@ TCO (tail call optimization) algorithm in NPLA1 to support PTC (proper tail call
 			$defl! f (n) ($vau (x y) env eval (list $sequence x y) env) n (f (- n 1)); f 1;
 		Case 3 (derivation of '$sequence'):
 			$def! $sequence
-				($lambda (&cenv)
-					($lambda #ignore $vaue cenv &body env
-						$if (null? body) inert (eval (cons $aux body) env))
-					($set! cenv $aux $vaue (weaken-environment cenv) (&head .&tail)
-						env $if (null? tail) (eval head env)
+				($lambda (&se)
+					($lambda #ignore $vaue se &body d
+						$if (null? body) inert (eval (cons $aux body) d))
+					($set! se $aux $vaue (weaken-environment se) (&head .&tail) d
+						$if (null? tail) (eval head d)
 							(($vau (&t) e ($lambda #ignore (eval t e))
-								(eval head env)) (eval (cons $aux tail) env))))
+								(eval head d)) (eval (cons $aux tail) d))))
 				(make-environment (() get-current-environment));
 			$defl! f (n) $sequence n (f (- n 1)); f 1;
 			Note that this would not work even with growing instance of environment objects, before the tracing and collecting of indirect referent is supported here by the design above.
@@ -3030,10 +3030,10 @@ report.impl:
 Pointer holder in module YSLib::Core::YObject is reworked.
 	Semantic properties on lifetime have changed.
 		Based on clarification of allowing exception in holder 'get' function in module YStandardEx::Any, getting an object may throw an exception if the object is not existed.
-		Since the getter may throw, some 'ystdex::any' API as well as 'GetObject' overloads for 'ValueObject' do not have noexcept-specifier any longer.
+		Since the getter may throw, some 'ystdex::any' API as well as 'GetObject' overloads for 'ValueObject' do not have non-throwing specifier any longer.
 	For weak pointers ('NPL::weak_ptr' instances), the getter can throw on expired now.
 	However, the 'type' function in the pointer holder still does not throw. But the behavior is also changed.
-		Now it does not reilies on owner judgement.
+		Now it does not reilies on the judgement of the owner.
 		For weak pointers, it does not need to get strong pointers to get the type.
 			An expired value might lead to 'void' type previously. This is changed to getting 'void' only when the pointer value is null despite the owner.
 			User code should be careful in this case.
@@ -3044,17 +3044,17 @@ NPL objects involved with pointer holders are effected by the change of pointer 
 	This is now changed to improve the interoperbility.
 		See the discussions of pointer holder modification for weak pointers above for reasons.
 	Keeping some strong references elsewhere is however difficult after the whole evaluation without special handling using centralized storage (e.g. in 'NPL::ContextNode').
-Internal recursive thunk as the part of implementation of function 'NPL::A1::Forms::DefineWithRecursion' is reworked.
+The internal recursive thunk as the part of implementation of function 'NPL::A1::Forms::DefineWithRecursion' is reworked.
 	To allow identifying the situation of cyclic references, default objects still use weak references, but the behavior is slightly changed. See the discussions concerned with pointer holders above.
-	Now newly bound variables are stable, i.e. they do not be restored to another values in the call of 'NPL::Forms::DefineWithRecursion' after the evaluation of the expression as the binding source.
+	Now newly bound variables are stable, i.e. they will not be restored to other values in the call of 'NPL::Forms::DefineWithRecursion' after the evaluation of the expression as the binding source.
 		This ensures references to these variables do not go out of their lifetime unexpectedly.
 		After defining, the default objects are recovered as thunks which access the environment by name for the real caller when called.
-			This allows check and exceptions can be thrown on failure.
+			This allows checks and exceptions can be thrown on failure.
 	Expired 'weak_ptr<ContextNode>' value in a default object is a corruptied value.
-		This is now handled generally by by improved implementation in modules NPL::NPLA and NPL::NPLA1 with API provided by module NPL::NPLA.
+		This is now handled generally by the improved implementation in module NPL::NPLA1 with API provided by module NPL::NPLA.
 		If the default object is corruptied and called, it would throw a different exception ('bad_weak_ptr') from default ones.
 			This is undefined behavior in the object language.
-				The current behavior is for ease of debugging.
+				This is now easier to debug.
 				Although it will not changed frequently, the behavior is not guaranteed stable.
 	Implementation of operative '$defrec!' (by 'Forms::DefineWithRecursion') is revised.
 		To avoid undefined behavior caused by recursive reference with ownership, the weak reference of target bindings is kept.
@@ -3065,29 +3065,29 @@ Internal recursive thunk as the part of implementation of function 'NPL::A1::For
 			See the values of shared variable '$aux' in the following cases.
 		Case 1 (an alternative derivation of '$sequence'):
 			$def! $sequence
-				($lambda (&cenv) ($lambda #ignore $vau/e cenv body env
-					$if (null? body) inert (eval (cons $aux body) env))
-					($setrec! cenv $aux $vau/e (weaken-environment cenv)
-						(&head .&tail) env
-						$if (null? tail) (eval head env) (($lambda #ignore
-							(eval (cons $aux tail) env)) (eval head env)))
+				($lambda (&se) ($lambda #ignore $vau/e se exprseq d
+					$if (null? exprseq) inert (eval (cons $aux exprseq) d))
+					($setrec! se $aux $vau/e (weaken-environment se)
+						(&head .&tail) d
+						$if (null? tail) (eval head d) (($lambda #ignore
+							(eval (cons $aux tail) d)) (eval head d)))
 				)
 				(() make-standard-environment);
 			$sequence "a" "b";
-			The case above will not work without deep copy in 'NPL::LiftToReturn' of the shared values if '$aux' is not stable.
-				Alternatively, lift specifically configured in implementation of 'cons' or wrapping '$aux' with a native deep copy identity function for both occurences is also OK.
+			The case above will not work without the deep copy in 'NPL::LiftToReturn' of the shared values if '$aux' is not stable.
+				Alternatively, the lift specifically configured in implementation of 'cons' or wrapping '$aux' with a native deep copy identity function for both occurences is also OK.
 		Case 2 (an invalid derivation of '$sequence'):
 			$def! $sequence
 				(wrap
 					($vau (&$seq2) #ignore $seq2
-						($defrec! $aux $vau/e (() copy-environment) (&first .&rest) env
-							($if (null? rest) (eval first env)
-								($seq2 (eval first env)
-									(eval (cons $aux rest) env))))
-						($vau/e (() copy-environment) &body env
-							($if (null? body) inert
-								(eval (cons $aux body) env)))))
-				($vau (first second) env (wrap ($vau #ignore #ignore (eval second env))) (eval first env));
+						($defrec! $aux $vau/e (() copy-environment) (&first .&rest) d
+							($if (null? rest) (eval first d)
+								($seq2 (eval first d)
+									(eval (cons $aux rest) d))))
+						($vau/e (() copy-environment) &exprseq d
+							($if (null? exprseq) inert
+								(eval (cons $aux exprseq) d)))))
+				($vau (first second) d (wrap ($vau #ignore #ignore (eval second d))) (eval first d));
 			$sequence "a" "b";
 			The derivation is invalid because of cyclic references, which implies undefined behavior in NPLA1.
 				With the deep copy (likewise in Case 1), it will occasionally work as the '$aux' is unshared before calling.
@@ -3099,18 +3099,18 @@ Internal recursive thunk as the part of implementation of function 'NPL::A1::For
 				The applicative 'deshare' is provided to restore the deep copy locally. It is not needed in most cases.
 			The workable derivation is:
 				$def! $sequence
-				(wrap
-					($vau (&$seq2) #ignore $seq2
-						($defrec! $aux $vau/e (make-environment (() lock-current-environment) (() copy-environment)) (&first .&rest) env
-							($if (null? rest) (eval first env)
-								($seq2 (eval first env)
-									(eval (cons $aux rest) env))))
-						($vau/e (make-environment (() lock-current-environment) (() copy-environment)) &body env
-							($if (null? body) inert
-								(eval (cons $aux body) env)))
+					(wrap
+						($vau (&$seq2) #ignore $seq2
+							($defrec! $aux $vau/e (make-environment (() lock-current-environment) (() copy-environment)) (&first .&rest) d
+								($if (null? rest) (eval first d)
+									($seq2 (eval first d)
+										(eval (cons $aux rest) d))))
+							($vau/e (make-environment (() lock-current-environment) (() copy-environment)) &exprseq d
+								($if (null? exprseq) inert
+									(eval (cons $aux exprseq) d)))
+						)
 					)
-				)
-				($vau (first second) env (wrap ($vau #ignore #ignore (eval second env))) (eval first env));
+					($vau (first second) d (wrap ($vau #ignore #ignore (eval second d))) (eval first d));
 Memory safety of NPL environment is taken cared.
 	Anchors in 'NPL::A1::Forms::BindParameter' are fixed.
 		This fixes a bug that releasing TCO frames too eary.
@@ -3173,8 +3173,8 @@ Memory safety of NPL environment is taken cared.
 					6e. ($lambda (x) ($lambda (.) ()) x) ();
 					6f. ($lambda (x) ($lambda (y) y) x) ();
 					6g. ($lambda (x) ($lambda (y) (idv y)) x) ();
-					6h. $def! foo $lambda% (z) z; ($lambda (x) ($lambda (y) foo y) x) ();
-					6i. ($lambda (x) ($lambda (y) ($lambda% (z) z) y) x) ();
+					6h. $def! foo $lambda (z) z; ($lambda (x) ($lambda (y) foo y) x) ();
+					6i. ($lambda (x) ($lambda (y) ($lambda (z) z) y) x) ();
 				This is fixed by explicitly clear of the components in the frame before the removal.
 			The case 7, 8 and 9 are caused by the bug of '&' reference using wrong anchor from 'NPL::BindParameter'.
 
@@ -3626,7 +3626,7 @@ Comparison of 'std::type_info' objects has been optimized by tuning options for 
 		See https://cpptruths.blogspot.com/2018/11/non-colliding-efficient.html.
 	For platform configurations like x86_64-pc-linux, this changes the behavior and it has additional restrictions.
 		For example, 'dlopen' with 'RTLD_LOCAL' can behave differently.
-		See documented assumptions: https://bitbucket.org/FrankHB/yslib/wiki/Development.zh-CN.md.
+		See documented assumptions: https://frankhb.github.io/YSLib-book/Development.zh-CN.html.
 	This is implemented by options '-U__GXX_MERGED_TYPEINFO_NAMES -D__GXX_MERGED_TYPEINFO_NAMES=1' in the build scripts.
 		The user source files are also assumed to use these options.
 		For simplicity, no checks are added to detect libstdc++.

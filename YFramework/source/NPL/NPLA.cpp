@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3335
+\version r3347
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2020-07-23 16:26 +0800
+	2020-08-09 21:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1199,6 +1199,20 @@ swap(ContextNode& x, ContextNode& y) ynothrow
 	swap(x.Trace, y.Trace);
 }
 
+
+TermNode
+MoveResolved(const ContextNode& ctx, string_view id)
+{
+	auto pr(ResolveName(ctx, id));
+
+	if(const auto p = pr.first)
+	{
+		if(NPL::Deref(pr.second).Frozen)
+			return *p;
+		return std::move(*p);
+	}
+	throw BadIdentifier(id);
+}
 
 TermNode
 ResolveIdentifier(const ContextNode& ctx, string_view id)

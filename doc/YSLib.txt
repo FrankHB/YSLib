@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2019 FrankHB.
+	© 2009-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r3233
+\version r3241
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2019-11-25 22:14 +0800
+	2020-08-09 13:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -107,12 +107,12 @@ UI::YStyle 包含 <typeindex> 。
 
 @1.2.6 YSLib 头文件对 YBase 依赖性：
 Adapor::YAdaptor 需确保以下 YBase::YStandardEx([Documentation::YBase @@2.5]) 头文件被包含：
-<ystdex/algorithm.hpp> ；
-<ystdex/any.hpp> ；
-<ystdex/functional.hpp> ；
 <ystdex/memory_resource.h> 。
 本体头文件对 YBase 依赖性：
+Core::YObject 依赖 <ystdex/any.h> ；
+Core::YFunc 依赖 <ystdex/functional.hpp> ；
 Service::YBlit 依赖 <ystdex/iterator.hpp> 。
+以上部分 YBase 中的 ystdex API 因为提供标准库同名接口不具备的功能，不能被 std 替代。
 
 @1.2.7 内部头文件依赖性：
 Core 的头文件仅包含 Adaptor 或 Core 的头文件。
@@ -174,7 +174,7 @@ YDesktop 依赖 YWindow 和 Core::YDevice 。
 被适配的外部库的接口通过别名声明、别名模板声明或命名空间别名声明的形式引入名称。
 若引入的名称适合被 using 指令引入，则使用 using 指令简化以上声明。
 部分引入名称提供对应某些除被命名空间限定外相同名称作为替代(replacement) 的接口，可根据需要切换不同的外部库提供的实现而不影响用户代码的源代码兼容性（但不保证二进制兼容性）。
-以上替代的约定同 https://bitbucket.org/FrankHB/yslib/wiki/StandardUsing.en-US.md ，而不保证 C++ 语言意义上的类型等价性。
+以上替代的约定同 https://frankhb.github.io/YSLib-book/StandardUsing.en-US.html ，而不保证 C++ 语言意义上的类型等价性。
 和 YBase ([Documentation::YBase @@2.1.1]) 不同，因为替代由不特定的外部库提供，自身不受 YSLib 文档规则限制，可能是标准库实现提供的保留名称提供的扩展。由于本体对保留名称和依赖兼容性的限制，仅可通过在 Adaptor 中提供这些名称使用这些特性。
 提供替代的接口应保证相对稳定以避免频繁维护。
 

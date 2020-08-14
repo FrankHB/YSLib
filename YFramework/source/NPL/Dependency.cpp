@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3598
+\version r3638
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2020-05-22 14:17 +0800
+	2020-08-09 01:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 //	YSLib::unique_ptr, TokenValue, ystdex::bind1, ValueObject,
 //	NPL::AllocateEnvironment, std::piecewise_construct, std::forward_as_tuple,
 //	LiftOther, Collapse, LiftOtherOrCopy, NPL::IsMovable, LiftTermOrCopy,
-//	ResolveTerm, LiftTermValueOrCopy, NPL::TryAccessReferencedTerm,
+//	ResolveTerm, LiftTermValueOrCopy, MoveResolved, ResolveIdentifier,
 //	ystdex::plus, std::placeholders, NPL::ResolveRegular, ystdex::tolower,
 //	ystdex::swap_dependent, LiftTermRef, LiftTerm, NPL::Deref;
 #include YFM_NPL_NPLA1Forms // for NPL::Forms functions;
@@ -330,8 +330,7 @@ CheckForAssignment(TermNode& nd, ResolvedTermReferencePtr p_ref)
 			return;
 		ThrowNonmodifiableErrorForAssignee();
 	}
-	else
-		ThrowValueCategoryErrorForFirstArgument(nd);
+	ThrowValueCategoryErrorForFirstArgument(nd);
 }
 
 //! \since build 856
@@ -344,6 +343,17 @@ DoAssign(_func f, TermNode& x)
 		f(nd);
 	}, x);
 	return ValueToken::Unspecified;
+}
+
+//! \since build 897
+YB_ATTR_nodiscard YB_FLATTEN ReductionStatus
+DoResolve(TermNode(&f)(const ContextNode&, string_view), TermNode& term,
+	const ContextNode& c)
+{
+	Forms::CallRegularUnaryAs<const TokenValue>([&](string_view id) YB_FLATTEN{
+		term = CheckSymbol(id, std::bind(f, std::ref(c), id));
+	}, term);
+	return ReductionStatus::Retained;
 }
 
 //! \since build 834
@@ -440,19 +450,16 @@ LoadLists(ContextNode& ctx)
 void
 LoadEnvironments(ContextNode& ctx)
 {
+	using namespace std::placeholders;
+
 	// NOTE: The applicative 'copy-es-immutable' is unsupported currently due to
 	//	different implementation of control primitives.
 	RegisterStrict(ctx, "eval", Eval);
 	RegisterStrict(ctx, "eval%", EvalRef);
 	RegisterForm(ctx, "$resolve-identifier",
-		[](TermNode& term, const ContextNode& c){
-		Forms::CallRegularUnaryAs<const TokenValue>([&](string_view id){
-			term = CheckSymbol(id, [&]{
-				return ResolveIdentifier(c, id);
-			});
-		}, term);
-		return ReductionStatus::Retained;
-	});
+		std::bind(DoResolve, std::ref(ResolveIdentifier), _1, _2));
+	RegisterForm(ctx, "$move-resolved!",
+		std::bind(DoResolve, std::ref(MoveResolved), _1, _2));
 	// NOTE: This is now be primitive since in NPL environment capture is more
 	//	basic than vau.
 	RegisterStrict(ctx, "copy-environment", CopyEnvironment);
@@ -735,7 +742,7 @@ LoadGroundedDerived(REPLContext& context)
 			eval (list $set! d f wrap (list* $vau% formals ef (move! body))) d;
 		$defw%! forward-list-first% (&list-appv &appv &l) d
 			($lambda% ((&x .))
-				eval% (list% (forward! appv) ($resolve-identifier x)) d)
+				eval% (list% (forward! appv) ($move-resolved! x)) d)
 				(eval% (list% (forward! list-appv) l) d);
 		$defl%! first@ (&l) ($lambda% ((@x .)) x) (check-list-reference l);
 		$defl%! first (%l)
@@ -853,6 +860,9 @@ LoadCore(REPLContext& context)
 				(apply appv (list% (forward! x)) d) xs) () (forward! l);
 		$defl! list-concat (&x &y) foldr1 cons% y (forward! x);
 		$defl! append (.&ls) foldr1 list-concat () (move! ls);
+		$defl%! assv (&object &alist) $cond ((null? alist) ())
+			((eqv? object (first& (first& alist))) first alist)
+			(#t assv (forward! object) (rest% alist));
 		$defv%! $let (&bindings .&body) d
 			eval% (list*% () (list*% $lambda (map1 firstv bindings)
 				(list (move! body))) (map1 list-rest% bindings)) d;
@@ -914,6 +924,8 @@ LoadCore(REPLContext& context)
 			($lambda% (&l) forward-list-first% expire extr l) rest% cons%;
 		$defl%! list-extract-first (&l) list-extract l first;
 		$defl%! list-extract-rest% (&l) list-extract l rest%;
+		$defl! list-push-front! (&l &x)
+			assign! l (cons% (forward! x) (move! l));
 		$defw%! map-reverse (&appv .&ls) d
 			accl (move! ls) unfoldable? () list-extract-first
 				list-extract-rest%
@@ -964,13 +976,11 @@ LoadModule_std_environments(REPLContext& context)
 {
 	auto& renv(context.Root.GetRecordRef());
 
-	RegisterUnary<>(renv, "bound?",
-		[](TermNode& term, const ContextNode& ctx){
-		return ystdex::call_value_or([&](string_view id){
-			return CheckSymbol(id, [&]{
-				return bool(ResolveName(ctx, id).first);
-			});
-		}, NPL::TryAccessReferencedTerm<string>(term));
+	RegisterUnary<Strict, const string>(renv, "bound?",
+		[](const string& id, ContextNode& ctx){
+		return CheckSymbol(id, [&]{
+			return bool(ResolveName(ctx, id).first);
+		});
 	});
 	context.Perform(R"NPL(
 		$defv/e! $binds1? (make-environment
@@ -1183,10 +1193,6 @@ LoadModule_SHBuild(REPLContext& context)
 			return file->GetSize() > 0;
 		return {};
 	});
-	RegisterUnary<Strict, const string>(renv, "SHBuild_EnsureDirectory_",
-		[](const string& str){
-		EnsureDirectory(IO::Path(str));
-	});
 	RegisterUnary<Strict, const string>(renv, "SHBuild_BuildGCH_mkpdirp_",
 		[](const string& str){
 		IO::Path pth(str);
@@ -1196,6 +1202,10 @@ LoadModule_SHBuild(REPLContext& context)
 			pth.pop_back();
 			EnsureDirectory(pth);
 		}
+	});
+	RegisterUnary<Strict, const string>(renv, "SHBuild_EnsureDirectory_",
+		[](const string& str){
+		EnsureDirectory(IO::Path(str));
 	});
 	RegisterStrict(renv, "SHBuild_EchoVar", [&](TermNode& term){
 		// XXX: To be overriden if %Terminal is usable (platform specific).
@@ -1274,7 +1284,7 @@ LoadModule_SHBuild(REPLContext& context)
 				if(!res.empty() && l != 0 && left_qset.count(l) != 0
 					&& !ystdex::isspace(src[l - 1]))
 					res.pop_back();
-				res += string(YSLib::make_string_view(sv));
+				res += sv;
 				res += ' ';
 			}
 			l += sv.length();

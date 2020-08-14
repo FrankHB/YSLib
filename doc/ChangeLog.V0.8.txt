@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r20153
+\version r20591
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-07-24 12:24 +0800
+	2020-08-15 02:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,411 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ $doc "prefix of user document 'https://bitbucket.org/FrankHB/yslib/wiki/'"
+		-> "https://frankhb.github.io/YSLib-book/",
+	/ %YFramework $=
+	(
+		/ %YSLib.Core.YEvent $=
+		(
+			* "missing exclusion of %HandlerType" @ ("function template \
+				%Emplace" $since b850; "function template %operator(+=, -=)"
+				$since b207) @ "class template specialization %GEvent",
+				// The fix is also good for performance in general.
+			/ @ "class template specialization %GHEvent" $=
+			(
+				/ @ "friend function %operator==" $=
+				(
+					+ 'YB_ATTR_nodiscard YB_PURE',
+					* "wrong 'constexpr'"
+						$orig (@ "member function %operator==" $since b246)
+				),
+				(
+				+ "static function %HaveSameTargetType";
+				+ "function and functon tepmlates %Equals";
+				+ "friend function templates %operator(==; !=)",
+				/ DLDI "simplified friend function %operator==" ^ "%Equals"
+				)
+			)
+		),
+		/ %NPL $=
+		(
+			/ %NPLA1Internals $=
+			(
+				/ DLDI "simplified function %ReduceForCombinerRef"
+					^ "%NPL::AsTermNode",
+				+ "2 inline functions %BindReferenceTags",
+				+ "inline function overload %EnsureLValueReference"
+			),
+			/ %NPLA1 $=
+			(
+				- "2nd to 5th parameters" @ "function %TransformNode",
+				(
+				+ "reducer name" @ "function %SetupDefaultInterpretation";
+				/ "removed %ContextHandler for %Continuation names"
+					@ "function %QueryContinuationName"
+				),
+				(
+				/ DLDI "supported reduce names by named type"
+					~ "lambda-expression" @ 'NPL_Impl_NPLA1_Enable_Thunked'
+					@ "member function %ContextState::DefaultReduceOnce";
+				+ "reducer name handling" @ 'NPL_Impl_NPLA1_Enable_Thunked'
+					@ "function %QueryContinuationName"
+				),
+				/ @ "class %Continuation" $=
+				(
+					+ "!= comparison"
+						$= (/ $impl ^ "private base \
+							%ystdex::equality_comparable<Continuation>"),
+					+ $dev $lib 'YB_ATTR_nodiscard YB_STATELESS'
+						@ "friend operator=="
+				),
+				/ DLDI "simplified function %BindParameter"
+					^ ("%BindReferenceTags" @ %NPLA1Internals)
+			),
+			/ %NPLA $=
+			(
+				- "aliases %(NodeMapper, TermNodeToString, NodeInserter)"
+					$dep_from ("%TransformNode" @ %NPLA1),
+				/ DLDI "simplified function template %EmplaceLeaf#1"
+					^ "%NPL::AsTermNode",
+				- "default constructor" @ "class %ArityMismatch",
+					// The default constructor is nonsence and dangernous to \
+						leave uninitialized values.
+				+ "function %MoveResolved"
+			),
+			/ %Dependency $=
+			(
+				/ DLDI "order of applicatives" @ "function %LoadModule_SHBuild",
+				/ @ "function %LoadGroundContext" $=
+				(
+					+ "applicative %assv",
+					+ "applicative 'list-push-front!'",
+					(
+					+ "operative '$move-resolved!'"
+						^ $dep_from ("%MoveResolved" @ %NPLA);
+					/ DLDI "simplified operative '$resolve-identifier'",
+					/ "last application call" @ "applicative \
+						forward-list-first%" ^ $dep_from '$move-resoved!'
+						~ '$resolve-identifier'
+						$dep_from ("%ForwardListFirst" @ %NPLA1Forms)
+					)
+				),
+				* "missing typecheck on the parameter" @ "applicative 'bound?'"
+					@ "function %LoadModule_std_environments"
+					$mismatch(Documentation.NPL) $since b798,
+					// Although the type in the document is changed from \
+						'<symbol>' to '<string>', neither check was \
+						implemented previously. 
+				/ "simplified applicative %SHBuild_TrimOptions_"
+					@ "function %SHBuildModule_LoadSHBuild"
+					!^ "%YSLib::make_string_view"
+			),
+			/ @ "namespace %Forms" @ %NPLA1Forms $=
+			(
+				/ DLDI "simplified vau handler constructor and functions \
+					%MakeEncapsulationType" ^ "%NPL::AsTermNode",
+				+ "reducer names" @ "functions %(Cond, If, Unless, When)"
+					^ "%A1::NameTypedReducerHandler",
+				/ @ "function %DefineWithRecursion" $=
+				(
+					/ DLI "removed thunk restore" !^ "%weak_ptr";
+					/ $comp "supported PTC when no thunk cleanup presented",
+					* $comp "always %bad_weak_ptr of calls on resulted invalid \
+						thunks" $since b855
+						// Since b853, %InvalidReference is supported but the \
+							thunk objects are not fixed.
+				),
+				* "invalid subterm access when the operand is an empty list"
+					@ "functions %(ListAsterisk, ListAsteriskRef)"
+					$orig (@ %NPLA1 $since b860),
+				+ DLDI 'ynothrow' @ "making exception for internal function \
+					creation",
+				/ DLI "internal '#ignore' check" ^ "explicit %string_view cast",
+				/ @ "function %ForwardListFirst" $=
+				(
+					(
+					/ "simplified without %LiftOther at the end";
+					* $comp "out of the tail context at the last call"
+						$since b876,
+					// This also make it unnecessary to add another reducer \
+						name for the action of %LiftOther call.
+					),
+					/ DLDI "simplified"
+						^ ("%BindReferenceTags" @ %NPLA1Internals)
+				)
+			)
+		)
+	),
+	/ DLI "shell subcommand calls" ^ "$(...)" ~ "legacy `...`" $effective
+		@ "all shell scripts except %msys2-pacman-update.sh @ %Tools and \
+		%SHBuild-common-toolchains.sh @ %Tools.Script",
+		// Also to eliminate ShellCheck issue: SC2006.
+	+ DLD "ShellCheck directive for souce inclusions"
+		$effective @ (("%install-sysroot.sh", "%(SHBuild-common-options.sh, \
+		SHBuild-build.sh, SHBuild-bootstrap.sh, SHBuild-BuildApp.sh, \
+		GenerateProjects.sh, PatchRevision" $since b599, "%PatchRevision.sh")"
+		@ %Scripts), "%SHBuild-YSTest.sh" @ %YSTest),
+		// To eliminate ShellCheck warning SC1090. Note this relies on \
+			'shellcheck -x -P SCRIPTDIR', or there is issue SC1091.
+	* "missing quotes on default values for assignments" $effective
+		@ (("%install-sysroot.sh" $orig (@ %Scripts $since b546),
+		("%(SHBuild-common.sh, SHBuild-common-options.sh, \
+		SHBuild-common-toolchain.sh, SHBuild-build.sh, SHBuild-bootstrap.sh, \
+		SHBuild-self-host.sh)" $since b546, "%SHBuild-self-host-DLL.sh" $since
+		b556, "%SHBuild-BuildApp.sh" $orig (@ "%SHBuild-appconf.sh" $since
+		b546), "%GenerateProjects.sh" $since b599, "%PatchRevision.sh" $since
+		b566) @ %Scripts) @ %Tools, "%SHBuild-YSTest.sh" @ %YSTest $since b879),
+		// Also to eliminate ShellCheck issue: SC2223.
+	/ %Tools $=
+	(
+		* $revert(b563) "nonconforming use of '[[' and ']]' for POSIX shell"
+			$since b563 $effecite @ "%create-android-debug-keystore.sh",
+			// Also to eliminate ShellCheck warning: SC2039.
+		* "missing quotes on '$0'" $effective @ ("%make-clang-android.sh" $since
+			b492, "%(install-headers.sh, create-android-debug-keystore.sh)"
+			$since b547),
+			// Also to eliminate ShellCheck issue: SC2086.
+		* "missing quotes on the result of %dirname command as command or \
+			argument" $effective @ (("%install-headers.sh" $since b547,
+			"%create-android-debug-keystore.sh" $since 497),
+			("%SHBuild-common-options.sh" $orig (@ %Tools.SHBuild $since b562),
+			"%(SHBuild-build.sh, SHBuild-self-host.sh)" $since b546,
+			"%SHBuild-bootstrap.sh" $orig @ ("%common-bootstrap.sh"
+			@ %Tools.SHBuild $since b540), "%SHBuild-self-host-DLL.sh"
+			$since b556, "%SHBuild-BuildApp.sh"
+			$orig (@ "%SHBuild-appconf.sh" $since b546)) @ %Scripts),
+			// Also to eliminate ShellCheck warning: SC2046.
+		- DLDI "all redundant quotes on the result of command for assignment"
+			$effective @ ("%(SHBuild-common-options.sh, SHBuild-BuildApp.sh, \
+			GenerateProjects.sh, PatchRevision.sh)" @ %Scripts,
+			"%(make-clang-android.sh, create-android-debug-keystore.sh)"),
+		+ DLD "ShellCheck directive for default value from %cd command result"
+			$effective "%(SHBuild-common-options.sh, SHBuild-bootstrap.sh, \
+			SHBuild-BuildApp.sh, GenerateProjects.sh)" @ %Scripts,
+			// To eliminate ShellCheck warning: SC2164.
+		/ DLD "quoted arguments of %SHBuild_Puts" $effective
+			@ ("%install-sysroot.sh", "%(SHBuild-common.sh, PatchRevision.sh, \
+			GenerateProjects.sh, SHBuild-BuildApp.sh)" @ %Scripts),
+			// Also to eliminate ShellCheck issue: SC2086.
+		/ @ "%create-android-debug-keystore.sh" $=
+		(
+			- "redunant internal $result output" @ "function %is_in_path",
+			* "missing quotes on arguments for 'echo'" $since b497,
+				// Also to eliminate ShellCheck issue: SC2086.
+			* "incorrectly restoring %IFS" $since b497,
+				// Also to eliminate ShellCheck warning: SC2034.
+			* "invalid shell function call to %is_in_path" @ $since b497,
+				// Also to eliminate ShellCheck warnings: SC2091, SC2039.
+			/ "exported %JAVA separatedly"
+				// Also to eliminate ShellCheck warning: SC2155.
+		),
+		/ @ "%install-sysroot.sh" $=
+		(
+			* "missing quotes on assignments on path for %mkdir" $since b740,
+				// Also to eliminate ShellCheck issue: SC2086.
+			/ "exported %YSLib_BaseDir separatedly",
+				// Also to eliminate ShellCheck warning: SC2155.
+			+ DLD "ShellCheck directive for %SHBuild_Rebuild_S1",
+				// To eliminate ShellCheck warning: SC2154.
+			+ DLD "ShellCheck directive on the last command"
+				// To eliminate ShellCheck issue SC2086 and warning SC2097, \
+					SC2098, SC2154.
+		),
+		+ "support %std.promises environment" @ %SHBuild.Main
+			$= (/ $impl ^ "%LoadModule_std_promises"),
+		/ %Scripts $=
+		(
+			- "redundant single quotes" @ "default values" $effective
+				@ "%(SHBuild-common-toolchain.sh, SHBuild-common-options, \
+				SHBuild-BuildApp.sh)" $dep_to "inline quotes cleanup",
+				// This is necessary to make more quotes on the commands. \
+					Otherwise, command and arguments may contain unexpected \
+					quotes.
+			/ @ "%SHBuild-common.sh" $=
+			(
+				/ DLDI "quoted arguments of %echo" $effective
+					@ "functions %(SHBuild_AssertNonempty, \
+					SHBuild_CheckedCall, SHBuild_CheckedCallSilent, \
+					SHBuild_InitReadonly, SHBuild_EchoEscape)",
+					// Also to eliminate ShellCheck issue: SC2086.
+				+ "function %SHBuild_2m",
+				+ DLD "ShellCheck directive for %(SHBuild_EOL, SHBuild_OS, \
+					SHBuild_Env_uname, SHBuild_Env_Arch, SHBuild_Env_uname_m, \
+					SHBuild_NoPCH)",
+					// To eliminate ShellCheck warning: SC2154.
+				/ "quoted arguments" @ ("%eval call"
+					@ "function %SHBuild_InitReadonly", "%SHBuild_Put call"
+					@ "function %SHBuild_CheckUNameM_Case_")
+					$dep_from "inline quotes cleanup",
+					// Also to eliminate ShellCheck issue: SC2086.
+				(
+				/ "all '$*' not in strings except ones in functions \
+					%(SHBuild_Put, SHBuild_Puts)" -> "double qutoed '$@'",
+				/ "'$*' in the string" @ "function SHBuild_InitReadonly"
+					-> "escaped double qutoed '$*'";
+				* $comp "possibly wrong argument split by spaces used"
+					@ "functions %(SHBuild_CheckedCall, \
+					SHBuild_CheckedCallSilent, SHBuild_InitReadonly)"
+					$since b562
+					// Also to eliminate ShellCheck warning: SC2048.
+				),
+				+ DLD "ShellCheck directive"
+					@ "functions %(SHBUSHBuild_Pushd, SHBuild_Popd)",
+					// To eliminate ShellCheck warning: SC2164.
+				+ DLD "ShellCheck directive"
+					@ "functions %(SHBuild_Install, SHBuild_InstallDir)",
+					// To eliminate ShellCheck issue: SC2015.
+				+ DLD "ShellCheck directive for %SHBuild_CheckPCH",
+					// To eliminate ShellCheck warning: SC2034.
+				* "missing quotes on the command name and 2nd argument for \
+					building" @ "function %SHBuild_BuildGCH" $since b564,
+					// Also to eliminate ShellCheck issue: SC2086.
+				* "error messages output in the normal result" @ "functions \
+					%(SHBuild_AssertNonempty, SHBuild_CheckedCall, \
+					SHBuild_CheckedCallSilent)" $since b562
+				/ "redirected message to error stream"
+					@ "function %SHBuild_InitReadonly"
+			),
+			+ DLDI "'.' as argument to %SHBuild_Pushd" @ "%(SHBuild-build.sh, \
+				SHBuild-self-host.sh, SHBuild-self-host-DLL.sh)",
+				// Also to eliminate ShellCheck issue: SC2119.
+			/ @ "%SHBuild-build.sh" $=
+			(
+				+ DLD "ShellCheck directive for %(CXXFLAGS_OPT_UseAssert, \
+					C_CXXFLAGS_GC, LDFLAGS_GC, LDFLAGS_STRIP, \
+					CXXFLAGS_OPT_DBG, LDFLAGS_IMPL_OPT)",
+					// To eliminate ShellCheck warning: SC2034.
+				+ DLD "ShellCheck directive for %SHBuild_Verbose",
+					// To eliminate ShellCheck warning: SC2154.
+				* "missing quotes on command arguments"
+					$orig (@ "%build.sh" @ %Tools.SHBuild $since b474)
+					$dep_from "inline quotes cleanup",
+					// To eliminate ShellCheck issue: SC2086.
+				* "wrong '$@' used" @ "value assigned to %SHBOPT"
+					$orig (@ "%SHBuild-appconf.sh" $since b546)
+					$= (/ $impl ^ '$*' ~ '$@'),
+					// Also to eliminate ShellCheck warning: SC2124.
+				+ DLD "ShellCheck directive for %SHBuild_YF_CFlags_freetype \
+					and the value assigned to %SHBOPT",
+					// To eliminate ShellCheck warning: SC2089.
+				+ DLD "ShellCheck directive for %SHBOPT used in the command",
+					// To eliminate ShellCheck issue SC2086 and warning SC2090.
+			),
+			/ DLD "%SHBuild-bootstrap.sh" $=
+			(
+				+ "ShellCheck directive for %SHBuild_Env_OS",
+					// To eliminate ShellCheck warning: SC2154.
+				+ "ShellCheck directive for %(SHBuild_BuildDir, INCLUDE_PCH, \
+					INCLUDES)"
+					// To eliminate ShellCheck warning: SC2034.
+			),
+			/ @ "%SHBuild-common-options.sh" $=
+			(
+				+ DLD "ShellCheck directive for %(SHBuild_Env_OS, \
+					CXXFLAGS_OPT_UseAssert)",
+					// To eliminate ShellCheck warning: SC2154.
+				* "missing quotes on '$C_CXXFLAGS_GC' and '$LDFLAGS_GC'"
+					$since b561
+					// Also to eliminate ShellCheck issue: SC2086.
+			),
+			/ @ "%(SHBuild-common.sh, SHBuild-YSLib-common.txt)" $=
+			(
+				+ "normalized 'i*86-64' to 'x86_64'"
+					@ "function %SHBuild_CheckUName",
+				(
+				+ "%aarch64 support" @ "function %SHBuild_CheckUName";
+				/ "rejected %aarch64 for %Win32"
+					@ "function %SHBuild_Platform_Detect"
+				),
+				+ "function %SHBuild_GetTempDir"
+					$dep_from ("function %SHBuild_2m" @ "%SHBuild-common.sh")
+			),
+			/ @ "%SHBuild-common-toolchain.sh" $=
+			(
+				+ "functions %(SHBuild_CheckCC, SHBuild_CheckCXX)"
+					$dep_from
+					("%(SHBuild_GetTempDir, SHBuild_InitReadonly)"
+				@ "%SHBuild-common.sh"),
+					// This imporves the precision in cases like redirection \
+						of 'g++' to 'clang++' by a symbolic link.
+				+ "function %SHBuild_GetAR_" $dep_from "%SHBuild_CheckCXX"
+			),
+			(
+			/ DLI "%SHBuild-YSLib-common.txt" $=
+			(
+				+ "imported 'bound?' from 'std.environments'",
+				+ "imported ('$lazy', 'force?') from 'std.promises'"
+					$dep_from %SHBuild;
+				+ DLI "internal command cache" $dep_from
+					("%LoadGroundContext" @ %YFramework.NPL.Dependency),
+				- DLDI "import of 'string-contains-ci?' from 'std.string'"
+					$dep_from "avoiding comparison by compiler names"
+			);
+			/ "improved compiler detection" @ "%(SHBuild-common-options.sh, \
+				SHBuild-YSLib-common.txt)"
+				^ $dep_from "%SHBuild_CheckCXX" @ "%SHBuild-common-toolchain.sh"
+				$dep_to "avoiding comparison by compiler names" $=
+			(
+				/ "supported temporary directory detection used in the test",
+				/ "supported correct recognition of 'g++' linked to Clang++"
+			)
+			),
+			/ "%SHBuild-BuildApp.sh" $=
+			(
+				/ DLDI "simplifed %AR setup" ^ $dep_from
+					("%SHBuild_GetAR_" @ "%SHBuild-common-toolchain.sh"),
+				+ DLD "ShellCheck directive for %(SHBuild_BuildPrefix, \
+					SHBuild_NoAdjustSubsystem)",
+					// To eliminate ShellCheck warning: SC2154.
+				/ "exported %AR separatedly"
+					// Also to eliminate ShellCheck warning: SC2155.
+			),
+			+ "ShellCheck directive for command options"
+				@ "%(SHBuild-build.sh, SHBuild-self-host.sh, \
+				SHBuild-self-host-DLL.sh)",
+				// To eliminate ShellCheck warning: SC2086.
+			+ "ShellCheck directive for %SHBuild_Output"
+				@ "%SHBuild-self-host-DLL.sh"
+				// To eliminate ShellCheck warning: SC2034.
+			/ @ "%PatchRevision.sh" $=
+			(
+				* "missing quotes on the argument of %SHBuild_Pushd and \
+					%SHBuild_2u" $since b565,
+					// Also to eliminate ShellCheck warning: SC2046.
+				/ DLI "getting version" ^ "redirection" ~ 'cat',
+					// Also to eliminate ShellCheck issue: SC2002.
+				/ DLI "conversion version output to array"
+					^ 'mapfile' ~ "builtin command expansion"
+					// This should be safe since the output is should immune \
+						to the sloppy word splitting and glob expansion and \
+						'IFS' is guaranteed handled as documented in wiki. \
+						However, more explicity seems better. With Bash \
+						version requirement set by the wiki, it is safe to \
+						use 'mapfile'. Also to eliminate ShellCheck warning: \
+						SC2207.
+			),
+			* "missing quotes" @ "%GenerateProjects.sh" $since b599 $=
+			(
+				* "on the argument of %SHBuild_Pushd and %SHBuild_2u",
+					// Also to eliminate ShellCheck warning: SC2086.
+				* "on the target for redirection"
+			)
+		)
+	),
+	/ @ "%SHBuild-YSTest.sh" @ %YSTest $=
+	(
+		+ DLD "ShellCheck directive on the last command",
+			// To eliminate ShellCheck issue SC2086.
+		(
+		/ "set interpreter name of shebang to 'bash'" ~ 'sh';
+		* $comp "POSIX shell conformance broken by the argument of '.' command"
+			// Also to eeliminate ShellCheck issue SC2240.
+		)
+	)
+),
+
+b896
 (
 	/ %YFramework $=
 	(
@@ -210,7 +615,10 @@ $now
 			%(FetchImageLoadTime, FetchWidgetLoader)" @ %Shells,
 			"member function %BookMarkPanel::GetSelected" @ %BookmarkUI),
 		+ $dev $lib 'YB_ATTR_nodiscard' @ "function %FetchImage" @ %Shells
-	)
+	),
+	- $doc "resource URLs on bitbucket.org" @ "%Readme.zh-CN.txt"
+		// Bitbucket has removed mercurial support and the wiki repo can not \
+			be updated now. 
 ),
 
 b895
@@ -579,12 +987,15 @@ b893
 		),
 		/ %NPLA1 $=
 		(
+			/ DLDI "supported reduce names by named type"
+				~ "lambda-expression" @ 'NPL_Impl_NPLA1_Enable_TCO'
+				@ "function %ReduceOrdered",
 			/ @ "function %QueryContinuationName" $=
 			(
 				* "unsafe concurrent initialization of %Continuation name \
 					table insertions" $since b892,
 				/ "supported %Reducer with %TCOAction and other internal types"
-					$dep_to "reducer name support",
+					$dep_from "%ReduceOrdered" $dep_to "reducer name support",
 				* "ill-formed for TCO action" @ !'NPL_Impl_NPLA1_Enable_TCO'
 					$since b892
 			),
@@ -3448,9 +3859,8 @@ b877
 				- "data member %Context",
 				- "member type %BaseType"
 			);
-			/ $forced "passed 1st parameter type 'ContextNode&'"
-				@ "member function %operator()"
-				@ "class template %GComposedAction"
+			/ $forced "passed 1st parameter type 'ContextNode&'" @ "member \
+				function %operator()" @ "class template %GComposedAction"
 				$= (/ $impl "passed optional argument"
 					^ "%ystdex::expand_proxy"),
 					// This must be optional, otherwise there would need more \
@@ -7716,8 +8126,7 @@ b856
 						(+ $lib "optional anchor count check and diagnostics"
 							@ 'NPL_NPLA_CheckEnvironmentReferenceCount'
 							^ "%YSLib::FilterExceptions")
-							// See $2019-03 @ \
-								%Documentation::Workflow.
+							// See $2019-03 @ %Documentation::Workflow.
 					)
 				),
 				/ $forced DLDI ("function %Collapse#2", "constructor \
@@ -8328,16 +8737,14 @@ b854
 				+ "function %(IsLValueLeaf, IsReferenceLeaf)",
 				/ "enhanced handling to corruptied values"
 					@ ("function %IsLValueTerm", "function %IsReferenceTerm"
-					$dep_from "constructors %TermReference")
-					$dep_to "enhanced handling to corruptied values" $=
+					$dep_from "constructors %TermReference") $=
 				(
 					- 'ynothrow';
 					/ $impl ^ "%"
 				),
 				/ $comp "enhanced handling to corruptied values"
 					@ "function %ThrowListTypeErrorForInvalidType"
-					$dep_from "%IsReferenceTerm" $dep_to
-					"enhanced handling to corruptied values",
+					$dep_from "%IsReferenceTerm",
 				/ @ "class %ContextNode" $=
 				(
 					/ "reordered data members %Current and %Delimited",
@@ -8382,23 +8789,20 @@ b854
 					/ "enhanced handling to corruptied values" @ "functions \
 						%(DefineWithRecursion, MatchParameter)" ^ $dep_from
 						("%NPL::TryAccessLeaf" @ %NPLA) ~ "%NPL::AccessPtr"
-						$dep_to "enhanced handling to corruptied values"
 				),
 				(
 				/ $forced "enhanced handling to corruptied values"
 					@ "%functions %(Forms::(And, If, MakeEncapsulationType, \
 					Or), ReduceCombined)"
 					^ $dep_from ("%NPL::TryAccessReferencedLeaf" @ %NPLA)
-					$dep_from ("%NPL::AccessTermPtr" @ %NPLA) $dep_to
-					"enhanced handling to corruptied values";
+					$dep_from ("%NPL::AccessTermPtr" @ %NPLA);
 				/ $comp "avoided redundant call to %ReferenceTerm"
 					@ "functions %Forms(And, If, Or)"
 				),
 				/ $forced "enhanced handling to corruptied values"
 					@ "%function %EvaluateIdentifier"
 					^ $dep_from ("%NPL::TryAccessTerm" @ %NPLA)
-					$dep_from ("%NPL::AccessTermPtr" @ %NPLA) $dep_to
-					"enhanced handling to corruptied values",
+					$dep_from ("%NPL::AccessTermPtr" @ %NPLA),
 				/ @ "function %ReduceCombined" $=
 				(
 					(
@@ -8413,8 +8817,7 @@ b854
 					%(Forms::(Eval, EvalRef, SetFirst, SetFirstRef, \
 					BindParameter, MatchParameter, ValueOf), EvaluateDelayed#1)"
 					^ $dep_from ("%NPL::TryAccessTerm" @ %NPLA)
-					~ "%NPL::AccessPtr" $dep_to
-					"enhanced handling to corruptied values",
+					~ "%NPL::AccessPtr",
 				(
 				/ "exception filtering" @ "member function \
 					%FormContextHandler::operator()"
@@ -8455,10 +8858,10 @@ b854
 					^ $dep_from ("%TryAccessReferencedLeaf" @ %NPLA)
 					$dep_from ("%NPL::AccessTermPtr" @ %NPLA),
 				/ $comp "derivation of various functions supported corruptied \
-					values detection" ($dep_all_from "enhanced handling to \
-					corruptied values", $dep_from ("%any::any_cast"
-					@ %YBase.YStandardEx.Any, "%PointerHolder"
-					@ %YSLib.Core.YObject))
+					values detection"
+					($dep_all_from "enhanced handling to corruptied values",
+					$dep_from ("%any::any_cast" @ %YBase.YStandardEx.Any,
+					"%PointerHolder" @ %YSLib.Core.YObject))
 			)
 		)
 	)
@@ -8772,10 +9175,10 @@ b853
 						"avoided GetLastIndexOf",
 					/ DLI "optimized term move" @ "functions %(SetRest, \
 						SetRestRef)" ^ "%TermNode::Container::splice",
-					/ @ "function %DefindWithRecursion" $=
+					/ @ "function %DefineWithRecursion" $=
 					(
-						* "unexpected overwirtten of default value for \
-							invalid handler after more than one symbol binding"
+						* "unexpected overwritten default value for invalid \
+							handler after more than one symbol binding"
 							$since b784,
 						* "crash on referencing duplicated symbols in the \
 							parameter tree during evaluation of expression"
@@ -13606,8 +14009,8 @@ b838
 					'env-host-lib')";
 				(
 				/ $impl "simplified stage 1 library build code"
-					!^ "%SHBuild_BuildGCH" $dep_to
-					"avoided SHBuild_Install_HardLink";
+					!^ "%SHBuild_BuildGCH"
+					$dep_to "avoided SHBuild_Install_HardLink";
 				/ "imporved robustness of quoted on path and tools in command"
 					^ 'system-quote'
 				),

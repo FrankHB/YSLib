@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20153
+\version r20171
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2020-07-21 18:41 +0800
+	2020-08-10 16:15 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -479,6 +479,8 @@ PrepareTCOEvaluation(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd)
 		}
 		else
 			act.EnvGuard = std::move(gd);
+		// XXX: Not with a guarded tail environment, setting the environment to
+		//	empty.
 		act.AddRecord({});
 	}();
 	// NOTE: The lift is handled according to the previous status of
@@ -679,9 +681,9 @@ RelayForEvalOrDirect(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 
 
 //! \since build 821
-template<typename _fCurrent>
+template<typename _fNext>
 inline ReductionStatus
-ReduceSubsequent(TermNode& term, ContextNode& ctx, _fCurrent&& next)
+ReduceSubsequent(TermNode& term, ContextNode& ctx, _fNext&& next)
 {
 	return A1::ReduceCurrentNext(term, ctx,
 		std::ref(ContextState::Access(ctx).ReduceOnce), yforward(next));
@@ -698,11 +700,27 @@ ReduceSubsequentCombinedBranch(TermNode& term, ContextNode& ctx,
 }
 
 
+//! \since build 897
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(TermReference, EnsureLValueReference, const TermReference& ref)
+	// XXX: Use %TermReference::SetTags is not efficient here.
+	ImplRet(TermReference(ref.GetTags() & ~TermTags::Unique, ref))
 //! \since build 869
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TermReference, EnsureLValueReference, TermReference&& ref)
 	// XXX: Use %TermReference::SetTags is not efficient here.
 	ImplRet(TermReference(ref.GetTags() & ~TermTags::Unique, std::move(ref)))
+
+
+//! \since build 897
+YB_ATTR_nodiscard YB_STATELESS yconstfn
+	PDefH(TermTags, BindReferenceTags, TermTags ref_tags) ynothrow
+	ImplRet(bool(ref_tags & TermTags::Unique) ? ref_tags | TermTags::Temporary
+		: ref_tags)
+//! \since build 876
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(TermTags, BindReferenceTags, const TermReference& ref) ynothrow
+	ImplRet(BindReferenceTags(GetLValueTagsOf(ref.GetTags())))
 
 
 //! \since build 859

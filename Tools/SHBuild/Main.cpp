@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3948
+\version r3952
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2020-07-21 22:53 +0800
+	2020-08-07 17:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -384,7 +384,8 @@ RunNPLFromStream(const char* name, std::istream&& is)
 	load_std_module("strings", LoadModule_std_strings);
 	load_std_module("environments", LoadModule_std_environments),
 	load_std_module("io", LoadModule_std_io),
-	load_std_module("system", LoadModule_std_system);
+	load_std_module("system", LoadModule_std_system),
+	load_std_module("promises", LoadModule_std_promises);
 	InvokeIn(rctx, [&]{
 		context.Root.GetRecordRef().DefineChecked("env_SHBuild_",
 			GetModuleFor(rctx, [&]{
@@ -1091,8 +1092,7 @@ main(int argc, char* argv[])
 			}
 		}
 	}, {}, Err, [](const std::exception& e, RecordLevel lv){
-		ExtractException([lv](const char* str, size_t level)
-			YB_NONNULL(2){
+		ExtractException([lv](const char* str, size_t level) YB_NONNULL(2){
 			const auto print([=](const std::string& s){
 				PrintInfo(std::string(level, ' ') + s, lv, LogGroup::General);
 			});

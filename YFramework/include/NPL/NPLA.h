@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r7891
+\version r7918
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2020-07-23 16:30 +0800
+	2020-08-09 00:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,7 @@
 //	ystdex::insert_or_assign, ystdex::type_info, ystdex::expanded_function,
 //	YSLib::forward_list, ystdex::swap_dependent, YSLib::allocate_shared,
 //	ystdex::enable_if_same_param_t, ystdex::exclude_self_t,
-//	ystdex::make_obj_using_allocator, ystdex::exchange;
+//	ystdex::make_obj_using_allocator, ystdex::exchange, NPL::AsTermNode;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include <libdefect/exception.h> // for std::exception_ptr;
 
@@ -192,14 +192,8 @@ YF_API bool
 PrintNodeString(std::ostream&, const ValueNode&,
 	NodeToString = EscapeNodeLiteral);
 //@}
-
-
-using NodeInserter = function<void(ValueNode&&, ValueNode::Container&)>;
 //@}
 
-
-//! \since build 852
-using TermNodeToString = function<string(const TermNode&)>;
 
 /*!
 \brief 解析 NPLA 项节点字符串。
@@ -210,12 +204,6 @@ using TermNodeToString = function<string(const TermNode&)>;
 YB_ATTR_nodiscard YF_API YB_PURE string
 ParseNPLATermString(const TermNode&);
 
-
-/*!
-\brief 节点映射操作类型：变换项节点为值节点。
-\since buld 501
-*/
-using NodeMapper = function<ValueNode(const TermNode&)>;
 
 /*!
 \brief 映射 NPLA 叶节点。
@@ -610,7 +598,6 @@ private:
 	size_t received;
 
 public:
-	DefDeCtor(ArityMismatch)
 	/*!
 	\note 前两个参数表示期望和实际的元数。
 	\since build 726
@@ -2972,8 +2959,7 @@ EmplaceLeaf(Environment::BindingMap& m, string_view name, _tParams&&... args)
 	//	an alias of %ValueNode and it is same to %BindingMap currently.
 	// XXX: Allocators are not used on %ValueObject for performance in most
 	//	cases.
-	return ystdex::insert_or_assign(m, name,
-		TermNode(std::allocator_arg, m.get_allocator(), NoContainer,
+	return ystdex::insert_or_assign(m, name, NPL::AsTermNode(m.get_allocator(),
 		in_place_type<_type>, yforward(args)...)).second;
 	// NOTE: The following code is incorrect because the subterms are not
 	//	cleared, as well as lacking of %bool return value of insertion result.
@@ -3009,12 +2995,27 @@ YB_ATTR_nodiscard inline PDefH(Environment::NameResolution, ResolveName,
 	ImplRet(YAssertNonnull(id.data()), ctx.Resolve(ctx.GetRecordPtr(), id))
 
 /*!
-\brief 解析标识符：解析名称并折叠引用。
 \pre 间接断言：第二参数的数据指针非空。
-\return 标识符指称的对象的引用。
 \throw BadIdentifier 标识符未在环境中找到。
-\sa PrepareCollapse
 \sa ResolveName
+*/
+//@{
+/*!
+\brief 转移解析标识符的对象：解析名称并从环境中转移被绑定的对象。
+\return 标识符指称的对象。
+\since build 897
+
+同 ResolveIdentifier ，但结果是被转移的直接指称的对象，不引入新的引用值。
+若被绑定的对象不可修改或环境被冻结，则复制所在的项；否则直接转移项。
+不区分和折叠对象引用。
+*/
+YB_ATTR_nodiscard YF_API TermNode
+MoveResolved(const ContextNode&, string_view);
+
+/*!
+\brief 解析标识符：解析名称并折叠引用。
+\return 标识符指称的对象的引用。
+\sa PrepareCollapse
 \since build 876
 
 解析指定上下文的当前环境中的标识符，若不存在绑定则抛出异常。
@@ -3024,6 +3025,7 @@ YB_ATTR_nodiscard inline PDefH(Environment::NameResolution, ResolveName,
 */
 YB_ATTR_nodiscard YF_API TermNode
 ResolveIdentifier(const ContextNode&, string_view);
+//@}
 //@}
 
 /*!

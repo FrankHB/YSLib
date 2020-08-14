@@ -2,12 +2,17 @@
 # (C) 2014-2020 FrankHB.
 # Common source script: bootstrap configuration.
 
-SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
+# XXX: For locality of ShellCheck directives.
+true
+# XXX: The error is ignored.
+# shellcheck disable=2164
+SHBuild_ToolDir=$(cd "$(dirname "$0")"; pwd)
+# shellcheck source=./SHBuild-common.sh
 . "$SHBuild_ToolDir/SHBuild-common.sh"
 SHBuild_Puts Bootstrap beginned.
 SHBuild_CheckUName
-: ${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}
-: ${YSLib_BaseDir:="$SHBuild_ToolDir/../.."}
+: "${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}"
+: "${YSLib_BaseDir:="$SHBuild_ToolDir/../.."}"
 SHBuild_BaseDir=$(cd "$SHBuild_BaseDir" && pwd)
 YSLib_BaseDir=$(cd "$YSLib_BaseDir" && pwd)
 
@@ -16,12 +21,19 @@ SHBuild_EchoVar_N 'SHBuild.ToolDir'
 
 SHBuild_Puts Configuring ...
 
+# XXX: %SHBuild_BuildDir is internal.
+# shellcheck disable=2034
 SHBuild_BuildDir="$SHBuild_BaseDir/.shbuild"
 
+# shellcheck source=./SHBuild-common-toolchain.sh
 . "$SHBuild_ToolDir/SHBuild-common-toolchain.sh"
+# shellcheck source=./SHBuild-common-options.sh
 . "$SHBuild_ToolDir/SHBuild-common-options.sh"
 
+# XXX: %INCLUDE_PCH and %INCLUDES are internal.
+# shellcheck disable=2034
 INCLUDE_PCH="$YSLib_BaseDir/YBase/include/stdinc.h"
+# shellcheck disable=2034
 INCLUDES=" \
 	-I$YSLib_BaseDir/YFramework/include \
 	-I$YSLib_BaseDir/YFramework/Android/include \
@@ -68,6 +80,8 @@ LIBS=" \
 	$YSLib_BaseDir/YFramework/source/NPL/NPLA1Forms.cpp \
 	$YSLib_BaseDir/YFramework/source/NPL/Dependency.cpp \
 	"
+# XXX: %SHBuild_Env_OS is external.
+# shellcheck disable=2154
 if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
 	LIBS="$LIBS \
 		$YSLib_BaseDir/YFramework/Win32/source/YCLib/MinGW32.cpp \

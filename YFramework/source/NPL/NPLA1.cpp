@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r19909
+\version r19985
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-07-21 18:36 +0800
+	2020-08-08 20:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,6 +84,18 @@ namespace
 {
 
 #if NPL_Impl_NPLA1_Enable_Thunked
+//! \since build 897
+struct PushedAction final
+{
+	EvaluationPasses::const_iterator First, Last;
+	lref<const ContextHandler> HandlerRef;
+	lref<TermNode> TermRef;
+	lref<ContextNode> ContextRef;
+
+	ReductionStatus
+	operator()(ContextNode&) const;
+};
+
 //! \since build 841
 void
 PushActionsRange(EvaluationPasses::const_iterator first,
@@ -100,16 +112,7 @@ PushActionsRange(EvaluationPasses::const_iterator first,
 
 			++first;
 			SetupNextTerm(ctx, term);
-			RelaySwitched(ctx, [=, &f, &term, &ctx]{
-				PushActionsRange(first, last, term, ctx);
-
-				const auto res(f(term, ctx));
-
-				if(res != ReductionStatus::Partial)
-					ctx.LastStatus
-						= CombineSequenceReductionResult(ctx.LastStatus, res);
-				return ctx.LastStatus;
-			});
+			RelaySwitched(ctx, PushedAction{first, last, f, term, ctx});
 		}
 	}
 	else
@@ -118,6 +121,22 @@ PushActionsRange(EvaluationPasses::const_iterator first,
 		//	will be set before the 1st pass at %DoAdministratives for a complete
 		//	evaluation.
 		ctx.LastStatus = ReductionStatus::Retrying;
+}
+
+ReductionStatus
+PushedAction::operator()(ContextNode&) const
+{
+	auto& term(TermRef.get());
+	auto& ctx(ContextRef.get());
+
+	PushActionsRange(First, Last, term, ctx);
+
+	const auto res(HandlerRef(term, ctx));
+
+	if(res != ReductionStatus::Partial)
+		ctx.LastStatus
+			= CombineSequenceReductionResult(ctx.LastStatus, res);
+	return ctx.LastStatus;
 }
 #endif
 
@@ -237,8 +256,9 @@ struct EvalSequence final
 	lref<TermNode> TermRef;
 	TNIter Iter;
 
+	//! \since build 897
 	ReductionStatus
-	operator()(ContextNode&);
+	operator()(ContextNode&) const;
 };
 
 //! \since build 823
@@ -253,7 +273,7 @@ ReduceSequenceOrderedAsync(TermNode& term, ContextNode& ctx, TNIter i)
 }
 
 ReductionStatus
-EvalSequence::operator()(ContextNode& ctx)
+EvalSequence::operator()(ContextNode& ctx) const
 {
 	return ReduceSequenceOrderedAsync(TermRef, ctx, TermRef.get().erase(Iter));
 }
@@ -406,19 +426,6 @@ private:
 //@}
 
 
-//! \since build 876
-YB_ATTR_nodiscard YB_PURE TermTags
-BindReferenceTags(const TermReference& ref) ynothrow
-{
-	auto ref_tags(GetLValueTagsOf(ref.GetTags()));
-
-	// NOTE: An xvalue should also be bindable as a prvalue. Note xvalue is
-	//	still distinguishable by both tag enumerators than one, which is not
-	//	like variables bound by universal references in C++.
-	return bool(ref_tags & TermTags::Unique) ? ref_tags | TermTags::Temporary
-		: ref_tags;
-}
-
 //! \since build 873
 inline PDefH(void, CopyTermTags, TermNode& term, const TermNode& tm) ynothrow
 	ImplExpr(term.Tags = GetLValueTagsOf(tm.Tags))
@@ -453,6 +460,9 @@ struct BindParameterObject
 	operator()(char sigil, TermTags o_tags, TermNode& o, _fCopy cp, _fMove mv)
 		const
 	{
+		// NOTE: This shall be %true if the operand is stored in a term tree to
+		//	be reduced (and eventually cleanup). See also
+		//	%GParameterMatcher::Match.
 		const bool temp(bool(o_tags & TermTags::Temporary));
 
 		// NOTE: The binding rules here should be carefully tweaked to make them
@@ -495,13 +505,19 @@ struct BindParameterObject
 							std::move(src.Value));
 				}
 			}
+			// NOTE: This saves non-reference temporary objects into the
+			//	environment. No temporary objects outside the environment (in
+			//	the tree being reduced) can be referenced in the object language
+			//	later. There is no need to save them elsewhere even in the TCO
+			//	implementation.
 			else if((can_modify || sigil == '%') && temp)
 				// XXX: The object is bound to reference as temporary, implying
 				//	copy elision in the object language.
 				MarkTemporaryTerm(mv(std::move(o.GetContainerRef()),
 					std::move(o.Value)), sigil);
-			// NOTE: Binding on list prvalues is always unsafe. However,
-			//	not %can_modify currently implies some ancestor of %o is a
+			// NOTE: Binding on list prvalues is always unsafe. However, since
+			//	%TermTags::Nonmodifying is not allowed on prvalues, being not
+			//	%can_modify currently implies some ancestor of %o is a
 			//	referenceable object, albeit not always an lvalue (which implies
 			//	undefined behavior if used as an lvalue).
 			else if(sigil == '&')
@@ -590,6 +606,9 @@ public:
 	}
 
 private:
+	// XXX: The initial %o_tags shall have %TermTags::Temporary unless it is
+	//	known to bound to some non-temporary objects not stroed in the term tree
+	//	to be reduced.
 	void
 	Match(const TermNode& t, TermNode& o, TermTags o_tags,
 		const EnvironmentReference& r_env) const
@@ -1009,28 +1028,25 @@ InsertChild(ValueNode&& node, ValueNode::Container& con)
 }
 
 ValueNode
-TransformNode(const TermNode& term, NodeMapper mapper, NodeMapper map_leaf_node,
-	TermNodeToString term_to_str, NodeInserter insert_child)
+TransformNode(const TermNode& term)
 {
 	auto s(term.size());
 
 	if(s == 0)
-		return map_leaf_node(term);
+		return MapNPLALeafNode(term);
 
 	auto i(term.begin());
-	const auto nested_call(ystdex::bind1(TransformNode, mapper, map_leaf_node,
-		term_to_str, insert_child));
 
 	if(s == 1)
-		return nested_call(*i);
+		return TransformNode(*i);
 
-	const auto& name(term_to_str(*i));
+	const auto& name(ParseNPLATermString(*i));
 
 	if(!name.empty())
 		yunseq(++i, --s);
 	if(s == 1)
 	{
-		auto&& nd(nested_call(*i));
+		auto&& nd(TransformNode(*i));
 
 		if(nd.GetName().empty())
 			return YSLib::AsNode(ValueNode::allocator_type(
@@ -1042,7 +1058,7 @@ TransformNode(const TermNode& term, NodeMapper mapper, NodeMapper map_leaf_node,
 	ValueNode::Container node_con;
 
 	std::for_each(i, term.end(), [&](const TermNode& tm){
-		insert_child(mapper ? mapper(tm) : nested_call(tm), node_con);
+		InsertChild(TransformNode(tm), node_con);
 	});
 	return
 		{std::allocator_arg, term.get_allocator(), std::move(node_con), name};
@@ -1125,7 +1141,7 @@ FormContextHandler::CallN(size_t n, TermNode& term, ContextNode& ctx) const
 	// NOTE: This implementes arguments evaluation in applicative order when
 	//	%Wrapping is not zero.
 #if NPL_Impl_NPLA1_Enable_Thunked
-	// XXX: Optimize for cases with no argument.
+	// NOTE: Optimize for cases with no argument.
 	if(n == 0 || term.size() <= 1)
 		// XXX: Assume the term has been setup by the caller.
 		return RelayCurrentOrDirect(ctx, Continuation(std::ref(Handler), ctx),
@@ -1521,10 +1537,10 @@ SetupDefaultInterpretation(ContextState& cs, EvaluationPasses passes)
 			//	asynchronous calls are actually more inefficient than separated
 			//	calls.
 			return ReduceSubsequent(AccessFirstSubterm(term), ctx,
-				[&](ContextNode& c){
+				A1::NameTypedReducerHandler([&](ContextNode& c){
 				SetupNextTerm(c, term);
 				return ReduceCombinedBranch(term, c);
-			});
+			}, "eval-combine-operands"));
 		}
 		return ReductionStatus::Clean;
 	};
@@ -1582,12 +1598,16 @@ string_view
 QueryContinuationName(const Reducer& act)
 {
 	if(const auto p_cont = act.target<Continuation>())
+		return QueryTypeName(p_cont->Handler.target_type());
+#if NPL_Impl_NPLA1_Enable_Thunked
+	if(const auto p_act = act.target<PushedAction>())
 	{
-		const auto& h(p_cont->Handler);
-
-		return h.target_type() == ystdex::type_id<ContextHandler>()
-			? "eval-combine-operands" : QueryTypeName(h.target_type());
+		if(p_act->HandlerRef.get() == ReduceCombined)
+			return "eval-combine-operands";
+		// XXX: These type names are not normally used.
+		return QueryTypeName(p_act->HandlerRef.get().target_type());
 	}
+#endif
 #if NPL_Impl_NPLA1_Enable_TCO
 	if(act.target_type() == ystdex::type_id<TCOAction>())
 		return "eval-tail";

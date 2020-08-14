@@ -1,11 +1,11 @@
 #!/usr/bin/env sh
-# (C) 2014-2015 FrankHB.
+# (C) 2014-2015, 2020 FrankHB.
 # Script for installing headers at default location (/usr/include).
 # Requires: rsync.
 
 set -e
 
-cd `dirname $0`/..
+cd "$(dirname "$0")/.."
 
 # FIXME: Possibly header pollution.
 rsync -av 3rdparty/include/ /usr/include

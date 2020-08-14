@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5969
+\version r6093
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2020-03-02 14:52 +0800
+	2020-07-31 15:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,8 @@
 //	std::allocator_arg, ystdex::make_expanded, ystdex::default_last_value,
 //	std::piecewise_construct, std::forward_as_tuple;
 #include YFM_YSLib_Core_YFunc
+#include <ystdex/type_op.hpp> // for ystdex::exclude_self_t,
+//	ystdex::exclude_self_params_t;
 #include <ystdex/iterator.hpp> // for ystdex::make_transform, ystdex::get_value;
 #include <ystdex/container.hpp> // for ystdex::erase_all_if;
 #include <ystdex/base.h> // for ystdex::cloneable;
@@ -70,7 +72,7 @@ public:
 private:
 	// XXX: Clang++ 7.1 behaves weirdly with %lref<GHEvent> when using combined
 	//	traits by %ystdex::not_ and %ystdex::and_. It seems related to https://bugs.llvm.org/show_bug.cgi?id=38033,
-	//	but this dost not work whether '-std=c++17' is used.
+	//	but this does not work whether '-std=c++17' is used.
 	//! \since build 850
 	template<typename _fCallable>
 	using enable_if_expandable_t = ystdex::enable_if_t<
@@ -246,24 +248,115 @@ public:
 	//@}
 	DefDeCopyMoveCtorAssignment(GHEvent)
 
-	//! \since build 520
-	friend yconstfn bool
-	operator==(const GHEvent& x, const GHEvent& y)
+	//! \sa Equals
+	//@{
+	/*!
+	\brief 比较相等：参数都为空或都非空且存储的对象相等。
+	\since build 520
+	*/
+	YB_ATTR_nodiscard YB_PURE friend
+		PDefHOp(bool, ==, const GHEvent& x, const GHEvent& y)
+		ImplRet(x.Equals(y))
+	//! \since build 897
+	//@{
+	//! \brief 比较相等：等于空值。
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE friend inline bool
+	operator==(const GHEvent& x, nullptr_t y)
 	{
-		return
-#if defined(YF_DLL) || defined(YF_BUILD_DLL)
-			x.target_type() == y.target_type()
-#else
-			x.comp_eq == y.comp_eq
-#endif
-			&& (!bool(x) || x.comp_eq(x, y));
+		return x.Equals(y);
 	}
+	//! \brief 比较相等：存储的对象值相等。
+	//@{
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE friend inline bool
+	operator==(const GHEvent& x, const _type& y)
+	{
+		return x.Equals(y);
+	}
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE friend inline bool
+	operator==(const _type& x, const GHEvent& y)
+	{
+		return y.Equals(x);
+	}
+	//@}
+
+	//! \brief 比较不等：存储的对象值不等。
+	//@{
+	template<typename _type>
+	YB_ATTR_nodiscard friend inline bool
+	operator!=(const GHEvent& x, const _type& y)
+	{
+		return !(x == y);
+	}
+	template<typename _type>
+	YB_ATTR_nodiscard friend inline bool
+	operator!=(const _type& x, const GHEvent& y)
+	{
+		return !(x == y);
+	}
+	//@}
+	//@}
+	//@}
 
 	//! \brief 调用。
 	using BaseType::operator();
 
 	//! \since build 516
 	using BaseType::operator bool;
+
+	//! \since bulid 897
+	//@{
+	/*!
+	\brief 判断相等。
+
+	比较参数和持有的对象。
+	*/
+	//@{
+	YB_ATTR_nodiscard YB_PURE bool
+	Equals(nullptr_t) const
+	{
+		return !bool(*this);
+	}
+	//! \sa HaveSameTargetType
+	YB_ATTR_nodiscard YB_PURE bool
+	Equals(const GHEvent& x) const
+	{
+		return HaveSameTargetType(*this, x) && EqualsUnchecked(x);
+	}
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE bool
+	Equals(const _type& x) const
+	{
+		if(const auto p = this->template target<ystdex::decay_t<_type>>())
+			return *p == x;
+		return {};
+	}
+
+	/*!
+	\pre 断言：持有对象的动态类型相同。
+	\sa HaveSameTargetType
+	*/
+	YB_ATTR_nodiscard YB_PURE bool
+	EqualsUnchecked(const GHEvent& x) const
+	{
+		YAssert(HaveSameTargetType(*this, x), "Invalid target found.");
+		return !bool(*this) || comp_eq(*this, x);
+	}
+	//@}
+
+	//! \brief 判断持有的对象具有相同的动态类型。
+	YB_ATTR_nodiscard YB_PURE static bool
+	HaveSameTargetType(const GHEvent& x, const GHEvent& y)
+	{
+#if defined(YF_DLL) || defined(YF_BUILD_DLL)
+			return x.target_type() == y.target_type();
+#else
+			return x.comp_eq == y.comp_eq;
+#endif
+	}
+	//@}
 
 	//! \since build 834
 	friend yconstfn_relaxed
@@ -529,12 +622,14 @@ public:
 	/*!
 	\brief 添加事件响应：目标为单一构造参数指定的指定事件处理器。
 	\note 不检查是否已经在列表中。
+	\since build 897
 	*/
-	template<typename _type>
+	template<typename _type,
+		yimpl(typename = ystdex::exclude_self_t<HandlerType, _type>)>
 	inline GEvent&
-	operator+=(_type&& _arg)
+	operator+=(_type&& arg)
 	{
-		return Add(HandlerType(yforward(_arg)));
+		return Add(HandlerType(yforward(arg)));
 	}
 
 	//! \brief 移除事件响应：指定 const 事件处理器。
@@ -555,13 +650,14 @@ public:
 		ImplRet(*this -= static_cast<const HandlerType&>(h))
 	/*!
 	\brief 移除事件响应：目标为单一构造参数指定的指定事件处理器。
-	\since build 293
+	\since build 897
 	*/
-	template<typename _type>
+	template<typename _type,
+		yimpl(typename = ystdex::exclude_self_t<HandlerType, _type>)>
 	inline GEvent&
-	operator-=(_type&& _arg)
+	operator-=(_type&& arg)
 	{
-		return *this -= HandlerType(yforward(_arg));
+		return *this -= HandlerType(yforward(arg));
 	}
 	//@}
 
@@ -594,8 +690,18 @@ public:
 	}
 	//@}
 
-	//! \since build 850
-	template<typename... _tEmplaceParams>
+	//! \since build 897
+	//@{
+	PDefH(typename ContainerType::iterator, Emplace, EventPriority prior,
+		const HandlerType& h)
+		ImplRet(handlers.emplace(std::piecewise_construct,
+			std::forward_as_tuple(prior), std::forward_as_tuple(h)))
+	PDefH(typename ContainerType::iterator, Emplace, EventPriority prior,
+		HandlerType&& h)
+		ImplRet(handlers.emplace(std::piecewise_construct,
+			std::forward_as_tuple(prior), std::forward_as_tuple(std::move(h))))
+	template<typename... _tEmplaceParams, yimpl(typename
+		= ystdex::exclude_self_params_t<HandlerType, _tEmplaceParams...>)>
 	inline typename ContainerType::iterator
 	Emplace(EventPriority prior, _tEmplaceParams&&... args)
 	{
@@ -603,6 +709,7 @@ public:
 			std::forward_as_tuple(prior), std::forward_as_tuple(
 			std::allocator_arg, handlers.get_allocator(), yforward(args)...));
 	}
+	//@}
 
 	/*!
 	\brief 插入事件响应。
@@ -656,9 +763,9 @@ public:
 	*/
 	template<typename _type>
 	inline bool
-	Contains(_type&& _arg) const
+	Contains(_type&& arg) const
 	{
-		return Contains(HandlerType(yforward(_arg)));
+		return Contains(HandlerType(yforward(arg)));
 	}
 
 	/*!

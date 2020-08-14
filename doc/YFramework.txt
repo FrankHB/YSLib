@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2019 FrankHB.
+	© 2009-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1457
+\version r1462
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2019-03-17 06:34 +0800
+	2020-07-25 15:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,7 +62,7 @@ YSLib 项目的框架容器。
 
 @1.4.1 运行时程序模型：
 除以下部分外由具体派生项目定义。
-YFramework 对多线程环境的依赖和平台相关，参见 https://bitbucket.org/FrankHB/yslib/wiki/Prerequisitions.zh-CN.md 。
+YFramework 对多线程环境的依赖和平台相关，参见 https://frankhb.github.io/YSLib-book/Prerequisitions.zh-CN.html 。
 除非 [Documentation] 中具体库的文档或具体 API 的文档指定，库中平台中立的部分(@2.1.3) 不依赖多线程环境。
 
 @1.4.1.1 运行时程序结构和部署模型：
@@ -356,7 +356,7 @@ YSLib 本身不提供大量成熟的控件，而是着重提供可供组装为�
 @2.1 框架组成和依赖项规则：
 基本目录和文件组织规则以及原始目录的概念参见 [Documentation::ProjectRules @@3.3] 。
 YFramework 可分为几个目录表示具有特定功能集合的库的子集。在讨论具体目录下的库时，路径表示以此库的根目录。
-除非另行指定，仅保证非成员函数（排除声明紧随在某个类之后，首个参数为该类类型引用的人本接口）和静态成员函数的可重入性和线程安全性。
+除非另行指定，仅保证非成员函数（排除声明紧随在某个类之后，第一个参数为该类类型引用的人本接口）和静态成员函数的可重入性和线程安全性。
 关于 YBase 的文件依赖性参见 [Documentation::YBase @@2.2] 。
 YFramework 提供的实体或宏不依赖 YBase 是否已提供特定扩展实现宏([Documentation::YBase @@2.2.2]) 。
 
@@ -771,14 +771,14 @@ YLSib 和 YFramework 中依赖 YSLib 的项目尽可能使用 YFramework::YBaseM
 使用默认字体缓存或 MIME 数据时自动调用。
 
 @5.1 运行时环境：
-基本内容参见 https://bitbucket.org/FrankHB/yslib/wiki/Run.zh-CN.md 。
+基本内容参见 https://frankhb.github.io/YSLib-book/Run.zh-CN.html 。
 
 @5.2 基本配置：
 基本配置是必要的。
 自 build 300 起，配置不再硬编码，初始化时读取框架公共配置文件的内容。
 不被支持的配置在读取时出错，但以下说明外具体形式未指定。
 读取行为、配置文件格式和默认配置见以下说明。
-关于当前支持的配置，另见 https://bitbucket.org/FrankHB/yslib/wiki/Run.zh-CN.md 。
+关于当前支持的配置，另见 https://frankhb.github.io/YSLib-book/Run.zh-CN.html 。
 
 @5.2.1 build 343 前：
 配置文件路径 "config.txt" 。

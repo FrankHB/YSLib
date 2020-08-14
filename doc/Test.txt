@@ -11,13 +11,13 @@
 /*!	\file Test.txt
 \ingroup Documentation
 \brief 测试项目说明。
-\version r318
+\version r320
 \author FrankHB <frankhb1989@gmail.com>
 \since build 597
 \par 创建时间:
 	2015-05-09 13:10:21 +0800
 \par 修改时间:
-	2020-03-17 01:01 +0800
+	2020-07-25 15:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -205,7 +205,7 @@ b429 起选择文件界面支持按组合键 L+R 或右下角按钮切换上下�
 追加书签读取和写入支持，保存至 YReader 下 Bookmarks 节点，形如：
 Bookmarks
 (
-	"F:\Programing\NDS\YSTest\CC BY-SA 3.0 legalcode.txt" "173 743 0 3578 "
+	"F:\Programing\YSLib\CC BY-SA 3.0 legalcode.txt" "173 743 0 3578 "
 )
 整数值表示在文件的字节位置。
 空白符除了作为间隔以外会被忽略。以空白符分组后，非整数值起始的项时此项和之后所有项都会被删除。
@@ -226,7 +226,7 @@ MinGW32 平台支持 UNC 路径，可以在局域网中远程启动。
 @5 测试注记：
 以下注记仅适用提交版本([Documentation::ProjectRules @@3.2.1.2]) ，对已提交的版本为测试记录，未提交的版本为测试计划。
 示例测试项目 YSTest 包含 @3 和 @4 提到的测试。
-测试使用的二进制文件构建方式和发布版本相同，参见 https://bitbucket.org/FrankHB/yslib/wiki/Run.zh-CN.md 。
+测试使用的二进制文件构建方式和发布版本相同，参见 https://frankhb.github.io/YSLib-book/Run.zh-CN.html 。
 以下支持平台为运行时支持，蕴含可被构建。关于仅部分提供可构建但不保证可运行的构建支持的平台及对应可被构建的部分，参见 [Documentation::Dependencies @@1.2] 。
 
 @5.1 执行覆盖：

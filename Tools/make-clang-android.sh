@@ -4,8 +4,8 @@
 
 set -e
 
-BASE_DIRECTORY="`dirname $0`"
-BASE_DIRECTORY=`(cd "$BASE_DIRECTORY"; pwd)`
+BASE_DIRECTORY=$(dirname "$0")
+BASE_DIRECTORY=$(cd "$BASE_DIRECTORY"; pwd)
 
 # Prerequisition: bash, tar, etc. Set $NDK to the Android NDK root directory.
 # Make sure '/tmp' is writable and large enough (at least ~300MiB).

@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20282
+\version r20290
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2020-07-18 18:37 +0800
+	2020-08-11 14:20 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -26,7 +26,8 @@
 
 
 #include "NPL/YModules.h"
-#include "NPLA1Internals.h"
+#include "NPLA1Internals.h" // for NPL::Deref, Environment, shared_ptr,
+//	std::make_move_iterator, NPL::AsTermNode;
 
 using namespace YSLib;
 
@@ -138,7 +139,7 @@ RecordCompressor::Compress()
 				++i;
 	}
 
-	// TODO: Full support of PTC by direct DFS traverse.
+	// XXX: Need full support of PTC by direct DFS traverse?
 	ReferenceSet accessed;
 
 	ystdex::retry_on_cond(ystdex::id<>(), [&]() -> bool{
@@ -187,12 +188,11 @@ ReduceForCombinerRef(TermNode& term, ContextNode& ctx,
 {
 	const auto& r_env(FetchTailEnvironmentReference(ref, ctx));
 	const auto a(term.get_allocator());
-	auto p_sub(YSLib::allocate_shared<TermNode>(a, TermNode(std::allocator_arg,
-		a, NoContainer, ContextHandler(FormContextHandler(RefContextHandler(h,
-		r_env), n)))));
+	auto p_sub(YSLib::allocate_shared<TermNode>(a, NPL::AsTermNode(a,
+		ContextHandler(FormContextHandler(RefContextHandler(h, r_env), n)))));
 	auto& sub(NPL::Deref(p_sub));
-	TermNode tm(std::allocator_arg, a, {{std::allocator_arg, a, NoContainer,
-		std::move(p_sub)}}, std::allocator_arg, a, TermReference(sub, r_env));
+	TermNode tm(std::allocator_arg, a, {NPL::AsTermNode(a, std::move(p_sub))},
+		std::allocator_arg, a, TermReference(sub, r_env));
 
 	term.SetContent(std::move(tm));
 	return ReductionStatus::Retained;

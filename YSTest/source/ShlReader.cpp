@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2019 FrankHB.
+	© 2011-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4912
+\version r4920
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2019-08-01 18:20 +0800
+	2020-08-09 11:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "ShlReader.h" // for ystdex::ltrim, make_string_view;
 #include "ShlExplorer.h"
 #include <ystdex/functional.hpp> // for ystdex::bind1;
-#include <sys/stat.h> // for ::stat;
+#include <ystdex/algorithm.hpp> // for ystdex::split;
 
 namespace YReader
 {
@@ -213,15 +213,14 @@ ShlReader::LoadBookmarks(const string& group)
 		const auto& value(Access<string>(AccessNode(AccessNode(FetchRoot(),
 			"YReader")["Bookmarks"], ystdex::quote(group))));
 
-		YTraceDe(Informative, "Loaded bookmark value '%s'.",
-			value.c_str());
+		YTraceDe(Informative, "Loaded bookmark value '%s'.", value.c_str());
 		ystdex::split(value.cbegin(), value.cend(), static_cast<int(&)(int)>(
 			std::isspace),
 			[&](string::const_iterator b, string::const_iterator e){
-				TryExpr(bookmarks.push_back(
-					stoul(ystdex::ltrim(std::string(b, e)))))
-				CatchIgnore(std::invalid_argument&)
-				CatchIgnore(std::out_of_range&)
+			TryExpr(
+				bookmarks.push_back(stoul(ystdex::ltrim(std::string(b, e)))))
+			CatchIgnore(std::invalid_argument&)
+			CatchIgnore(std::out_of_range&)
 		});
 		YTraceDe(Notice, "Bookmark value '%s' parsed and stored successfully.",
 			value.c_str());
