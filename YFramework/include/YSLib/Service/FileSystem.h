@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r3475
+\version r3488
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2020-01-12 18:14 +0800
+	2020-08-30 19:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include YFM_YSLib_Service_File // for YSLib::CheckNonnegative, function,
 //	IO::Remove;
 #include YFM_YSLib_Core_YString
+#include <ystdex/algorithm.hpp> // for ystdex::split;
 #include <ystdex/path.hpp> // for ystdex::path;
 
 namespace YSLib
@@ -354,8 +355,7 @@ private:
 	}
 	template<typename _tParam, yimpl(typename = ystdex::enable_if_t<
 		ystdex::and_<ystdex::not_<std::is_constructible<u16string_view,
-		_tParam>>, std::is_constructible<String, _tParam>>::value
-	>)>
+		_tParam>>, std::is_constructible<String, _tParam>>::value>)>
 	String
 	AsStringArg(_tParam&& arg)
 	{
@@ -734,7 +734,6 @@ TraverseTree(_func f, const Path& dst, const Path& src, _tParams&&... args)
 /*!
 \brief 复制文件处理器：通知文件复制事件。
 \note 函数参数分别对应目标和源。
-\since build 651
 */
 using CopyFileHandler = function<void(FileDescriptor, FileDescriptor)>;
 
@@ -754,11 +753,11 @@ const auto PreserveModificationAndAccessTime(
 /*!
 \brief 复制文件。
 \pre 间接断言：表示目标和源的参数非空。
-\note 第一参数表示目标，第二参数表示源。
 \note mode_t 参数依次表示打开目标和源的权限模式。
-\note 不复制元数据。
 \see $2015-09 @ %Documentation::Workflow.
-\since build 648
+
+以第一参数表示目标，第二参数表示源，复制文件内容。
+不复制文件元数据。
 */
 //@{
 /*!
@@ -769,7 +768,10 @@ YF_API void
 CopyFile(UniqueFile, FileDescriptor);
 //! \exception std::system_error 打开文件失败。
 //@{
-//! \note 不清空目标。
+/*!
+\note 不清空目标。
+\since build 648
+*/
 YF_API YB_NONNULL(2) void
 CopyFile(UniqueFile, const char*);
 //! \sa EnsureUniqueFile
@@ -780,6 +782,7 @@ CopyFile(UniqueFile, const char*);
 YF_API YB_NONNULL(1) void
 CopyFile(const char*, FileDescriptor, mode_t = DefaultPMode(),
 	size_t = 1, bool = {});
+//! \since build 648
 YF_API YB_NONNULL(1, 2) void
 CopyFile(const char*, const char*, mode_t = DefaultPMode(), size_t = 1,
 	bool = {});

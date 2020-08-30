@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r2336
+\version r2337
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2020-07-21 22:48 +0800
+	2020-08-09 14:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include "YModules.h"
 #include YFM_NPL_NPL // for byte, CHAR_MIN, ystdex::unwrap_ref_decay_t,
 //	ystdex::remove_reference_t, ystdex::detected_or_t, YSLib::lref, YSLib::pair;
+#include YFM_YSLib_Core_YFunc // for YSLib::function;
 #include YFM_YSLib_Adaptor_YTextBase // for YSLib::pmr, YSLib::begin,
 //	YSLib::end, YSLib::function, YSLib::list, YSLib::set, YSLib::shared_ptr,
 //	YSLib::string, YSLib::string_view, YSLib::vector;

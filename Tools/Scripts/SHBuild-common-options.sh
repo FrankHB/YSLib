@@ -100,7 +100,11 @@ elif [[ $SHBuild_CXX_Style_ == "G++" ]]; then
 		-Wstrict-null-sentinel \
 		-Wzero-as-null-pointer-constant \
 		"}"
-	: "${CXXFLAGS_IMPL_OPT:=-fexpensive-optimizations -flto=jobserver}"
+	: "${CXXFLAGS_IMPL_OPT:=" \
+		-fexpensive-optimizations \
+		-flto=jobserver \
+		-fno-enforce-eh-specs \
+		"}"
 	# XXX: Workarond for LTO bug on MinGW. See https://sourceware.org/bugzilla/show_bug.cgi?id=12762.
 	# XXX: %SHBuild_Env_OS is external.
 	# shellcheck disable=2154

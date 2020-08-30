@@ -1,4 +1,4 @@
-# (C) 2016, 2018 FrankHB.
+# (C) 2016, 2018, 2020 FrankHB.
 # See http://clang.llvm.org/docs/ClangFormatStyleOptions.html.
 # NOTE: http://clangformat.com/ may be outdated.
 
@@ -62,7 +62,7 @@ IndentCaseLabels: false
 IndentPPDirectives: AfterHash
 IndentWidth: 4
 IndentWrappedFunctionNames: false
-KeepEmptyLinesAtTheStartOfBlocks: true # This seems to also apply to namespaces.
+KeepEmptyLinesAtTheStartOfBlocks: true # This also seems to apply to namespaces.
 #MacroBlockBegin: '^\t*(Decl|Def|Impl|PDefH|Try|YInterface|YB_LibDefect_CMath_builtin)'
 MacroBlockBegin: '^\t*YInterface'
 MacroBlockEnd: '^\t*EndDecl'
@@ -78,6 +78,7 @@ PenaltyBreakString: 160
 PenaltyExcessCharacter: 320
 PenaltyReturnTypeOnItsOwnLine: 0
 PointerAlignment: Left
+SortIncludes: false
 SortUsingDeclarations: false
 SpaceAfterCStyleCast: false
 SpaceAfterTemplateKeyword: false # Requires > r278121.

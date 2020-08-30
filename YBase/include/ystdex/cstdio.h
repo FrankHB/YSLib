@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2019 FrankHB.
+	© 2011-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r710
+\version r719
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2019-07-22 10:57 +0800
+	2020-08-30 19:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,9 +45,9 @@ namespace ystdex
 \since build 564
 */
 //@{
-YB_API YB_NONNULL(1) size_t
+YB_ATTR_nodiscard YB_API YB_NONNULL(1) YB_PURE size_t
 vfmtlen(const char*, std::va_list) ynothrow;
-YB_API YB_NONNULL(1) size_t
+YB_ATTR_nodiscard YB_API YB_NONNULL(1) YB_PURE size_t
 vfmtlen(const wchar_t*, std::va_list) ynothrow;
 //@}
 
@@ -71,7 +71,7 @@ setnbuf(std::FILE* stream) ynothrow
 \pre 断言：参数非空。
 \since build 326
 */
-YB_API bool
+YB_ATTR_nodiscard YB_API bool
 fexists(const char*) ynothrow;
 
 
@@ -116,7 +116,7 @@ read_all_with_buffer(std::FILE* fp, char* p_buf, size_t len, _func append)
 \note 返回值未指定，但返回值指向的内容是确定的，且无副作用，因此可用 YB_STATELESS 。
 \see LWG 596 。
 */
-YB_API YB_STATELESS const char*
+YB_ATTR_nodiscard YB_API YB_STATELESS const char*
 openmode_conv(std::ios_base::openmode) ynothrow;
 /*!
 \brief ISO C/C++ 标准输入输出接口打开模式转换。
@@ -126,7 +126,7 @@ openmode_conv(std::ios_base::openmode) ynothrow;
 \note 支持 x 转换。
 \since build 326
 */
-YB_API YB_PURE std::ios_base::openmode
+YB_ATTR_nodiscard YB_API YB_PURE std::ios_base::openmode
 openmode_conv(const char*) ynothrow;
 //@}
 
@@ -143,9 +143,9 @@ public:
 	//@{
 	using iterator_category = std::input_iterator_tag;
 	using value_type = byte;
-	using difference_type = ptrdiff_t;
 	using pointer = const byte*;
 	using reference = const byte&;
+	using difference_type = ptrdiff_t;
 	//@}
 	using char_type = byte;
 	//! \since build 607
@@ -328,13 +328,13 @@ public:
 		need_flush = {};
 	}
 
-	byte*
+	YB_ATTR_nodiscard YB_PURE byte*
 	get() const ynothrow
 	{
 		return content.get();
 	}
 
-	bool
+	YB_ATTR_nodiscard YB_PURE bool
 	modified() const ynothrow
 	{
 		return need_flush;

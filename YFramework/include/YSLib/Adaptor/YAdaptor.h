@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2400
+\version r2430
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2020-07-24 10:45 +0800
+	2020-08-30 19:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,15 +32,12 @@
 #include YFM_YSLib_Adaptor_YNew // for <cstddef>, <cstdint>, <climits>,
 //	<new>, <initializer_list>, <string>, <list>, <map>, <utility>, std::abs;
 #include <libdefect/cmath.h> // for <cmath>, std::abs, std::round;
-#include <ystdex/algorithm.hpp> // for <ystdex/algorithm.hpp>, <type_traits>,
-//	<algorithm>;
-#include <ystdex/any.h> // for <ystdex/any.h>, ystdex::any, ystdex::any_ops,
-//	ystdex::in_place_type, ystdex::in_place_type_t, ystdex::any_cast,
-//	ystdex::unchecked_any_cast, ystdex::unsafe_any_cast;
-#include YFM_YCLib_FileIO // for <ystdex/functional.hpp>, <functional>,
-//	<ystdex/memory_resource.h>, <array>, <deque>, <forward_list>, <iosfwd>,
-//	<istream>, <ostream>, <queue>, <set>, <stack>, <unordered_map>,
-//	<unordered_set>, YFM_YCLib_Container, <vector>, platform::basic_types,
+#include <type_traits>
+#include <algorithm>
+#include YFM_YCLib_FileIO // for <type_traits>, <algorithm>, <functional>,
+//	<array>, <deque>, <forward_list>, <iosfwd>, <istream>, <ostream>, <queue>,
+//	<set>, <stack>, <unordered_map>, <unordered_set>, <vector>,
+//	<ystdex/memory_resource.h>, platform::basic_types, YFM_YCLib_Container,
 //	platform::basic_utilities, platform::containers, '*string_view', uopen,
 //	'uf*', 'up*', etc;
 #include YFM_YCLib_Reference // for YFM_YCLib_Reference, platform::references,
@@ -102,12 +99,6 @@ using platform::wstring_view;
 \note 因为提供标准库同名接口不具备的功能，不能被 std 替代。
 */
 //@{
-//! \since build 850
-//@{
-using ystdex::any;
-using ystdex::function;
-//@}
-
 //! \since build 861
 using namespace platform::ios;
 
@@ -141,25 +132,6 @@ using ystdex::_t;
 using ystdex::noncopyable;
 //! \since build 373
 using ystdex::nonmovable;
-
-/*!
-\sa any
-\since build 850
-*/
-//@{
-namespace any_ops = ystdex::any_ops;
-
-using ystdex::bad_any_cast;
-using ystdex::in_place_type;
-using ystdex::in_place_type_t;
-
-//! \note 可能使用 ADL 。
-//@{
-using ystdex::any_cast;
-using ystdex::unchecked_any_cast;
-using ystdex::unsafe_any_cast;
-//@}
-//@}
 
 //! \since build 836
 using platform::string_view_t;

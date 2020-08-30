@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r859
+\version r860
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-18 20:45:11 +0800
 \par 修改时间:
-	2020-03-06 14:36 +0800
+	2020-08-30 16:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -253,7 +253,7 @@ GetCompilerOptionList(bool debug)
 	if(debug)
 		return {"-g", "-D_GLIBCXX_DEBUG", "-D_GLIBCXX_DEBUG_PEDANTIC"};
 	return {"-fomit-frame-pointer", "-fexpensive-optimizations", "-O3",
-		"-flto=jobserver", "-DNDEBUG"};
+		"-flto=jobserver", "-fno-enforce-eh-specs", "-DNDEBUG"};
 }
 
 YB_ATTR_nodiscard bool

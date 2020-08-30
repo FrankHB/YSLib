@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r6170
+\version r6199
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2020-06-29 20:33 +0800
+	2020-08-30 19:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,24 +30,47 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YCoreUtilities // for std::is_base_of,
-//	any_ops::check_holder_t, ystdex::exclude_tagged_params_t,
-//	ystdex::enable_if_t, any, any_ops::use_holder, in_place_type,
+//	ystdex::exclude_tagged_params_t, ystdex::enable_if_t,
 //	ystdex::throw_invalid_construction, std::allocator_arg_t,
-//	std::allocator_arg, ystdex::false_, ystdex::true_, any_ops::holder,
+//	std::allocator_arg, ystdex::false_, ystdex::true_,
 //	ystdex::boxed_value, ystdex::exclude_self_t, std::is_constructible,
 //	ystdex::type_id, ystdex::is_allocatable, ystdex::is_byte_allocator,
-//	ystdex::exclude_self_params_t, any_ops::is_in_place_storable,
-//	ystdex::default_init, any_ops::get_allocator_type,
-//	any_ops::get_allocator_ptr, ystdex::has_get_allocator, ystdex::is_sharing,
-//	ystdex::ref, ystdex::cond_t, ystdex::decay_t, ystdex::rebind_alloc_t,
-//	in_place_type_t, YSLib::unchecked_any_cast, YSLib::any_cast,
+//	ystdex::exclude_self_params_t, ystdex::default_init,
+//	ystdex::has_get_allocator, ystdex::is_sharing, ystdex::ref, ystdex::cond_t,
+//	ystdex::decay_t, ystdex::rebind_alloc_t, in_place_type_t,
 //	YSLib::make_observer, ystdex::copy_or_move, ystdex::pseudo_output;
+#include <ystdex/any.h> // for ystdex::any, ystdex::any_ops,
+//	ystdex::in_place_type, ystdex::in_place_type_t, ystdex::any_cast,
+//	ystdex::unchecked_any_cast, ystdex::unsafe_any_cast;
 #include <ystdex/typeindex.h> // for ystdex::type_info, ystdex::type_index;
 #include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
 
 namespace YSLib
 {
+
+//! \since build 850
+using ystdex::any;
+
+/*!
+\sa any
+\since build 850
+*/
+//@{
+namespace any_ops = ystdex::any_ops;
+
+using ystdex::bad_any_cast;
+using ystdex::in_place_type;
+using ystdex::in_place_type_t;
+
+//! \note 可能使用 ADL 。
+//@{
+using ystdex::any_cast;
+using ystdex::unchecked_any_cast;
+using ystdex::unsafe_any_cast;
+//@}
+//@}
+
 
 //! \since build 683
 using ystdex::type_info;

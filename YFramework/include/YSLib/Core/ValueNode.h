@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r4141
+\version r4142
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2020-07-24 10:59 +0800
+	2020-08-30 19:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,6 +40,7 @@
 #include <ystdex/swap.hpp> // for ystdex::copy_and_swap;
 #include <ystdex/path.hpp> // for ystdex::path;
 #include <ystdex/utility.hpp> // for ystdex::forward_like;
+#include <ystdex/algorithm.hpp> // for std::for_each_if;
 #include <numeric> // for std::accumulate;
 
 namespace YSLib

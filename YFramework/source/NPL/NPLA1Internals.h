@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20171
+\version r20201
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2020-08-10 16:15 +0800
+	2020-08-25 13:33 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -507,7 +507,8 @@ SetupTCOLift(TCOAction& act, bool no_lift)
 		act.RequestLiftResult();
 }
 //@}
-#	else
+#	endif
+
 //! \since build 879
 inline ReductionStatus
 MoveGuard(EnvironmentGuard& gd, ContextNode& ctx) ynothrow
@@ -516,7 +517,16 @@ MoveGuard(EnvironmentGuard& gd, ContextNode& ctx) ynothrow
 
 	return ctx.LastStatus;
 }
-#	endif
+
+//! \since build 898
+using MoveGuardAction = decltype(std::bind(MoveGuard,
+	std::declval<EnvironmentGuard>(), std::placeholders::_1));
+
+//! \since build 898
+YB_ATTR_nodiscard inline
+	PDefH(MoveGuardAction, MakeMoveGuard, EnvironmentGuard& gd)
+	ImplRet(A1::NameTypedReducerHandler(std::bind(MoveGuard, std::move(gd),
+		std::placeholders::_1), "eval-guard"))
 #endif
 
 
@@ -595,31 +605,24 @@ RelayDirect(ContextNode& ctx, const Continuation& cur, TermNode& term)
 	return cur.Handler(term, ctx);
 }
 
-#if NPL_Impl_NPLA1_Enable_Thunked
 template<typename _fCurrent>
 YB_ATTR(always_inline) inline ReductionStatus
 RelayCurrentOrDirect(ContextNode& ctx, _fCurrent&& cur, TermNode& term)
 {
-#	if NPL_Impl_NPLA1_Enable_InlineDirect
+#	if !NPL_Impl_NPLA1_Enable_Thunked || NPL_Impl_NPLA1_Enable_InlineDirect
 	return A1::RelayDirect(ctx, yforward(cur), term);
 #	else
 	yunused(term);
 	return A1::RelayCurrent(ctx, yforward(cur));
 #	endif
 }
-#endif
 
+//! \since build 898
 template<typename _fCurrent, typename _fNext>
-// XXX: This is a workaround for G++'s LTO bug.
-#if !YB_IMPL_GNUCPP || !NPL_Impl_NPLA1_Enable_Thunked \
-	|| NPL_Impl_NPLA1_Enable_TCO
-YB_FLATTEN 
-#endif
-inline ReductionStatus
-ReduceCurrentNext(TermNode& term, ContextNode& ctx, _fCurrent&& cur,
+YB_FLATTEN inline ReductionStatus
+RelayCurrentNext(TermNode& term, ContextNode& ctx, _fCurrent&& cur,
 	_fNext&& next)
 {
-	SetupNextTerm(ctx, term);
 #if NPL_Impl_NPLA1_Enable_Thunked
 #	if NPL_Impl_NPLA1_Enable_InlineDirect
 	RelaySwitched(ctx, yforward(next));
@@ -632,6 +635,20 @@ ReduceCurrentNext(TermNode& term, ContextNode& ctx, _fCurrent&& cur,
 	return ystdex::expand_proxy<ReductionStatus(ContextNode&)>::call(
 		yforward(next), ctx);
 #endif
+}
+
+template<typename _fCurrent, typename _fNext>
+// XXX: This is a workaround for G++'s LTO bug.
+#if YB_IMPL_GNUCPP >= 100000 || !NPL_Impl_NPLA1_Enable_Thunked \
+	|| NPL_Impl_NPLA1_Enable_TCO
+YB_FLATTEN 
+#endif
+inline ReductionStatus
+ReduceCurrentNext(TermNode& term, ContextNode& ctx, _fCurrent&& cur,
+	_fNext&& next)
+{
+	SetupNextTerm(ctx, term);
+	return RelayCurrentNext(term, ctx, yforward(cur), yforward(next));
 }
 //@}
 
@@ -654,8 +671,7 @@ RelayForEvalOrDirect(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 #elif NPL_Impl_NPLA1_Enable_Thunked
 	// TODO: Blocked. Use C++14 lambda initializers to simplify the
 	//	implementation.
-	auto act(A1::NameTypedReducerHandler(std::bind(MoveGuard, std::move(gd),
-		std::placeholders::_1), "eval-guard"));
+	auto act(MakeMoveGuard(gd));
 
 	if(no_lift)
 		return ReduceCurrentNext(term, ctx, yforward(next), std::move(act));

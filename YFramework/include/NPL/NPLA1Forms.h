@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r7657
+\version r7682
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2020-07-18 17:44 +0800
+	2020-08-29 23:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1334,6 +1334,36 @@ ListAsterisk(TermNode&);
 */
 YF_API ReductionStatus
 ListAsteriskRef(TermNode&);
+//@}
+
+/*!
+\since build 898
+
+对 <object1> 指定的抽象列表进行处理，取得部分和。
+当谓词 <predicate> 成立时结果为参数指定的对象，否则继续处理抽象列表中余下的元素。
+处理抽象的列表的操作通过余下的应用子分别定义：
+取列表头、取列表尾和部分和的二元合并操作。
+*/
+//@{
+/*!
+\brief 在抽象列表元素上应用左结合的二元操作。
+
+参考调用文法：
+<pre>accl \<object1> \<predicate> \<object2> \<applicative1></pre>
+	<pre>\<applicative2> \<applicative3></pre>
+*/
+YF_API ReductionStatus
+AccL(TermNode&, ContextNode&);
+
+/*!
+\brief 在抽象列表元素上应用右结合的二元操作。
+
+参考调用文法：
+<pre>accr \<object1> \<predicate> \<object2> \<applicative1></pre>
+	<pre>\<applicative2> \<applicative3></pre>
+*/
+YF_API ReductionStatus
+AccR(TermNode&, ContextNode&);
 //@}
 
 

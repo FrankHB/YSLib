@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r19985
+\version r20028
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-08-08 20:22 +0800
+	2020-08-30 14:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -559,7 +559,8 @@ struct BindParameterObject
 using GParameterBinder
 	= function<void(_tParams..., TermTags, const EnvironmentReference&)>;
 
-using _fBindTrailing = GParameterBinder<TNIter, TNIter, const TokenValue&>;
+using _fBindTrailing
+	= GParameterBinder<TermNode::Container&, TNIter, const TokenValue&>;
 using _fBindValue = GParameterBinder<const TokenValue&, TermNode&>;
 #endif
 
@@ -663,9 +664,9 @@ private:
 								| (ref_tags & TermTags::Unique);
 							tags |= ref_tags & TermTags::Nonmodifying;
 						}
-						MatchSubterms(t.begin(), last, nd.begin(), nd.end(),
-							tags, p_ref ? p_ref->GetEnvironmentReference()
-							: r_env, ellipsis
+						MatchSubterms(t.begin(), last, nd, nd.begin(), tags,
+							p_ref ? p_ref->GetEnvironmentReference() : r_env,
+							ellipsis
 #if NPL_Impl_NPLA1_AssertParameterMatch
 							, t.end()
 #endif
@@ -703,8 +704,9 @@ private:
 		}
 	}
 
+	//! \since build 898
 	void
-	MatchSubterms(TNCIter i, TNCIter last, TNIter j, TNIter o_last,
+	MatchSubterms(TNCIter i, TNCIter last, TermNode& o_tm, TNIter j,
 		TermTags tags, const EnvironmentReference& r_env, bool ellipsis
 #if NPL_Impl_NPLA1_AssertParameterMatch
 		, TNCIter t_end
@@ -713,15 +715,15 @@ private:
 	{
 		if(i != last)
 		{
-			ystdex::update_thunk(act, [=, &r_env]{
-				return MatchSubterms(std::next(i), last, std::next(j), o_last,
+			ystdex::update_thunk(act, [=, &o_tm, &r_env]{
+				return MatchSubterms(std::next(i), last, o_tm, std::next(j),
 #if NPL_Impl_NPLA1_AssertParameterMatch
 					tags, r_env, ellipsis, t_end);
 #else
 					tags, r_env, ellipsis);
 #endif
 			});
-			YAssert(j != o_last, "Invalid state of operand found.");
+			YAssert(j != o_tm.end(), "Invalid state of operand found.");
 			Match(NPL::Deref(i), NPL::Deref(j), tags, r_env);
 		}
 		else if(ellipsis)
@@ -730,7 +732,7 @@ private:
 
 			YAssert(lastv.type() == ystdex::type_id<TokenValue>(),
 				"Invalid ellipsis sequence token found.");
-			BindTrailing(j, o_last, lastv.GetObject<TokenValue>(), tags, r_env);
+			BindTrailing(o_tm, j, lastv.GetObject<TokenValue>(), tags, r_env);
 #if NPL_Impl_NPLA1_AssertParameterMatch
 			YAssert(std::next(last) == t_end, "Invalid state found.");
 #endif
@@ -1311,6 +1313,8 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 {
 	YAssert(IsCombiningTerm(term), "Invalid term found for combined term.");
 
+	SetupNextTerm(ctx, term);
+
 	auto& fm(AccessFirstSubterm(term));
 	const auto p_ref_fm(NPL::TryAccessLeaf<const TermReference>(fm));
 
@@ -1392,6 +1396,7 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 ReductionStatus
 ReduceCombinedReferent(TermNode& term, ContextNode& ctx, const TermNode& fm)
 {
+	SetupNextTerm(ctx, term);
 	term.Tags &= ~TermTags::Temporary;
 	if(const auto p_handler = NPL::TryAccessLeaf<const ContextHandler>(fm))
 		return CombinerReturnThunk(*p_handler, term, ctx);
@@ -1442,7 +1447,7 @@ RelayForCall(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 
 
 void
-MatchParameter(const TermNode& t, TermNode& o, function<void(TNIter, TNIter,
+MatchParameter(const TermNode& t, TermNode& o, function<void(TermNode&, TNIter,
 	const TokenValue&, TermTags, const EnvironmentReference&)>
 	bind_trailing_seq, function<void(const TokenValue&, TermNode&, TermTags,
 	const EnvironmentReference&)> bind_value, TermTags o_tags,
@@ -1472,8 +1477,9 @@ BindParameter(const shared_ptr<Environment>& p_env, const TermNode& t,
 	//	behavior?
 	// NOTE: The call is essentially same as %MatchParameter, with a bit better
 	//	performance by avoiding %function instances.
-	MakeParameterMatcher([&, check_sigil](TNIter first, TNIter last,
-		string_view id, TermTags o_tags, const EnvironmentReference& r_env){
+	MakeParameterMatcher([&, check_sigil](TermNode& o_tm,
+		TNIter first, string_view id, TermTags o_tags,
+		const EnvironmentReference& r_env){
 		YAssert(ystdex::begins_with(id, "."), "Invalid symbol found.");
 		id.remove_prefix(1);
 		if(!id.empty())
@@ -1482,19 +1488,30 @@ BindParameter(const shared_ptr<Environment>& p_env, const TermNode& t,
 
 			if(!id.empty())
 			{
+				const auto last(o_tm.end());
 				TermNode::Container con(t.get_allocator());
 
-				for(; first != last; ++first)
-					// TODO: Blocked. Use C++17 sequence container return value.
-					BindParameterObject{r_env}(sigil, o_tags,
-						NPL::Deref(first), [&](const TermNode& tm){
-						con.emplace_back(tm.GetContainer(), tm.Value);
-						CopyTermTags(con.back(), tm);
-					}, [&](TermNode::Container&& c, ValueObject&& vo)
-						-> TermNode&{
-						con.emplace_back(std::move(c), std::move(vo));
-						return con.back();
-					});
+				if(bool(o_tags & (TermTags::Unique | TermTags::Temporary)))
+				{
+					if(sigil == char())
+						LiftSubtermsToReturn(o_tm);
+					con.splice(con.end(), o_tm.GetContainerRef(), first, last);
+				}
+				else
+				{
+					for(; first != last; ++first)
+						// TODO: Blocked. Use C++17 sequence container return
+						//	value.
+						BindParameterObject{r_env}(sigil, o_tags,
+							NPL::Deref(first), [&](const TermNode& tm){
+							con.emplace_back(tm.GetContainer(), tm.Value);
+							CopyTermTags(con.back(), tm);
+						}, [&](TermNode::Container&& c, ValueObject&& vo)
+							-> TermNode&{
+							con.emplace_back(std::move(c), std::move(vo));
+							return con.back();
+						});
+				}
 				MarkTemporaryTerm(env.Bind(id, TermNode(std::move(con))),
 					sigil);
 			}
@@ -1537,10 +1554,9 @@ SetupDefaultInterpretation(ContextState& cs, EvaluationPasses passes)
 			//	asynchronous calls are actually more inefficient than separated
 			//	calls.
 			return ReduceSubsequent(AccessFirstSubterm(term), ctx,
-				A1::NameTypedReducerHandler([&](ContextNode& c){
-				SetupNextTerm(c, term);
-				return ReduceCombinedBranch(term, c);
-			}, "eval-combine-operands"));
+				A1::NameTypedReducerHandler(std::bind(ReduceCombinedBranch,
+				std::ref(term), std::placeholders::_1),
+				"eval-combine-operands"));
 		}
 		return ReductionStatus::Clean;
 	};

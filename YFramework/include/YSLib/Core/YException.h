@@ -11,13 +11,13 @@
 /*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r661
+\version r663
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2020-04-19 03:31 +0800
+	2020-08-30 19:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_Core_YException_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YShellDefinition // for function;
+#include YFM_YSLib_Core_YFunc // for function;
 #include <exception> // for mandated header;
 #include <stdexcept> // for mandated header;
 #include YFM_YSLib_Adaptor_YTextBase // for string_view;
@@ -213,7 +213,7 @@ TryInvoke(_fCallable&& f, _tParams&&... args) ynothrow
 
 /*!
 \brief 调用函数并过滤宿主异常。
-\note 使用 ADL TryInvoke 和 TryExecute 。
+\note 使用 ADL TryExecute 。
 \since build 624
 
 对参数指定的函数求值，并捕获和跟踪记录所有异常。

@@ -11,13 +11,13 @@
 /*!	\file cctype.h
 \ingroup YStandardEx
 \brief ISO C 字符分类操作扩展。
-\version r274
+\version r284
 \author FrankHB <frankhb1989@gmail.com>
 \since build 513
 \par 创建时间:
 	2014-06-29 13:42:39 +0800
 \par 修改时间:
-	2020-05-13 16:40 +0800
+	2020-08-30 19:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,7 @@ namespace ystdex
 */
 //@{
 //! \brief 判断指定字符是否为 ISO/IEC 2022 定义的 C0 控制字符。
-YB_ATTR_nodiscard yconstfn bool
+YB_ATTR_nodiscard YB_STATELESS yconstfn bool
 iscntrl_C0(char c) ynothrow
 {
 #if CHAR_MIN < 0
@@ -56,7 +56,7 @@ iscntrl_C0(char c) ynothrow
 }
 
 //! \brief 判断指定字符是否为 ISO/IEC 2022 定义的 C1 控制字符。
-YB_ATTR_nodiscard yconstfn bool
+YB_ATTR_nodiscard YB_STATELESS yconstfn bool
 iscntrl_C1(char c) ynothrow
 {
 	return (unsigned(c) & 0xFFU) >= 0x80 && (unsigned(c) & 0xFFU) < 0xA0;
@@ -66,14 +66,14 @@ iscntrl_C1(char c) ynothrow
 \brief 使用 US-ASCII 字符集的 std::isprint 。
 \see ISO C11 7.4/3 脚注。
 */
-YB_ATTR_nodiscard yconstfn bool
+YB_ATTR_nodiscard YB_STATELESS yconstfn bool
 iscntrl_ASCII(char c) ynothrow
 {
 	return iscntrl_C0(c) || c == 0x7F;
 }
 
 //! \brief 使用 ISO/IEC 8859-11(Latin/Thai) 字符集的 std::iscntrl 。
-YB_ATTR_nodiscard yconstfn bool
+YB_ATTR_nodiscard YB_STATELESS yconstfn bool
 iscntrl_ISO8859_11(char c) ynothrow
 {
 	return iscntrl_C0(c)
@@ -81,7 +81,7 @@ iscntrl_ISO8859_11(char c) ynothrow
 }
 
 //! \brief 使用 ISO/IEC 8859-1 字符集的 std::iscntrl 。
-YB_ATTR_nodiscard yconstfn bool
+YB_ATTR_nodiscard YB_STATELESS yconstfn bool
 iscntrl_ISO8859_1(char c) ynothrow
 {
 	return iscntrl_ISO8859_11(c) || (unsigned(c) & 0xFFU) == 0xAD;
@@ -92,14 +92,14 @@ iscntrl_ISO8859_1(char c) ynothrow
 \brief 使用 US-ASCII 字符集的 std::isprint 。
 \see ISO C11 7.4/3 脚注。
 */
-YB_ATTR_nodiscard yconstfn bool
+YB_ATTR_nodiscard YB_STATELESS yconstfn bool
 isprint_ASCII(char c) ynothrow
 {
 	return c >= 0x20 && c < 0x7F;
 }
 
 //! \brief 使用 ISO/IEC 8859-1 字符集的 std::isprint 。
-YB_ATTR_nodiscard yconstfn bool
+YB_ATTR_nodiscard YB_STATELESS yconstfn bool
 isprint_ISO8859_1(char c) ynothrow
 {
 	return isprint_ASCII(c) || unsigned(c) > 0xA0;
@@ -111,7 +111,7 @@ isprint_ISO8859_1(char c) ynothrow
 \note 可作为替代 MSVCRT 的实现的部分变通。
 \sa https://connect.microsoft.com/VisualStudio/feedback/details/799287/isprint-incorrectly-classifies-t-as-printable-in-c-locale
 */
-YB_ATTR_nodiscard yconstfn bool
+YB_ATTR_nodiscard YB_STATELESS yconstfn bool
 isprint(char c) ynothrow
 {
 	return yimpl(isprint_ISO8859_1(c));
@@ -125,7 +125,7 @@ isprint(char c) ynothrow
 \see ISO C11 5.2.1/3 。
 \see ISO C++11 2.3/3 。
 */
-YB_ATTR_nodiscard yconstfn bool
+YB_ATTR_nodiscard YB_STATELESS yconstfn bool
 isdigit(char c) ynothrow
 {
 	return (unsigned(c) - '0') < 10U;
@@ -136,7 +136,7 @@ isdigit(char c) ynothrow
 \see ISO C11 7.4.1.10 。
 \since build 823
 */
-YB_ATTR_nodiscard yconstfn bool
+YB_ATTR_nodiscard YB_STATELESS yconstfn bool
 isspace(char c) ynothrow
 {
 	return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\v';

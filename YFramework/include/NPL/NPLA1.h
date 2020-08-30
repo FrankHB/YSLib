@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8327
+\version r8334
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-08-09 11:08 +0800
+	2020-08-30 14:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1287,7 +1287,7 @@ CheckParameterLeafToken(string_view n, _func f) -> decltype(f())
 \brief 匹配参数。
 \exception std::bad_function_call 异常中立：参数指定的处理器为空。
 \sa TermTags
-\since build 882
+\since build 898
 
 进行匹配的算法递归搜索形式参数及其子项。
 若匹配成功，调用参数指定的匹配处理器。
@@ -1304,6 +1304,8 @@ Temporary 表示不被共享的项（在此即纯右值或没有匹配列表的�
 处理器参数列表中的记号值为匹配的名称；
 处理器最后的参数指定按值传递时的复制（而非转移）；
 其余参数指定被匹配的操作数子项。
+其中，序列处理器的前两个参数指定操作数项和起始迭代器；
+	操作数子项以起始迭代器到项的容器终止作为范围。
 若操作数的某一个需匹配的列表子项是 TermReference 或复制标识为 true ，
 	序列处理器中需要进行复制。
 结尾序列处理器传入的字符串参数表示需绑定的表示结尾序列的列表标识符。
@@ -1316,10 +1318,10 @@ Temporary 表示不被共享的项（在此即纯右值或没有匹配列表的�
 否则，匹配非列表项。
 */
 YF_API void
-MatchParameter(const TermNode&, TermNode&, function<void(TNIter, TNIter, const
-	TokenValue&, TermTags, const EnvironmentReference&)>,
-	function<void(const TokenValue&, TermNode&, TermTags,
-	const EnvironmentReference&)>, TermTags, const EnvironmentReference&);
+MatchParameter(const TermNode&, TermNode&, function<void(TermNode&, TNIter,
+	const TokenValue&, TermTags, const EnvironmentReference&)>, function<
+	void(const TokenValue&, TermNode&, TermTags, const EnvironmentReference&)>,
+	TermTags, const EnvironmentReference&);
 
 /*!
 \brief 使用操作数结构化匹配并绑定参数。

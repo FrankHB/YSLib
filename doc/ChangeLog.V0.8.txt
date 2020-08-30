@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r20591
+\version r20748
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-08-15 02:01 +0800
+	2020-08-30 19:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,164 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	+ $fmt 'SortIncludes: false' @ "%.clang-format",
+	/ $doc "%Readme.zh-CN.txt" -> "%Readme.zh-CN.md",
+	/ %YBase.YStandardEx $=
+	(
+		+ $dev $lib 'YB_STATELESS' @ "all function 'is*'" @ %CCharacterType,
+		/ $dev $lib %CStandardIO $=
+		(
+			+ 'YB_ATTR_nodiscard'
+				@ ("function %fexists", "all 2 functions %openmode_conv",
+			+ 'YB_ATTR_nodiscard YB_PURE'
+				@ "functions %block_buffer(get, modified), all 2 vmtlen"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ @ %Adaptor.YAdaptor $=
+			(
+				(
+				/ "header inclusion %YBase.YStandardEx.Algorithm"
+					>> %(Core.ValueNode, Service.FileSystem, YReader.ShlReader);
+				+ $forced "header inclusions (<type_traits>, <algorithm>)"
+				),
+				/ ("aliases %(any, bad_any_caset, in_place_type, \
+					in_place_type_t, any_cast, unchecked_any_cast, \
+					unsafe_any_cast)", "namespace %any_ops";
+					"header inclusion %YBase.YStandarEx.Any") >> %Core.YObject,
+				/ ("alias %function";
+					"header inclusion %YSLib.YStandeardEx.Functional")
+					>> %Core.YFunc $dep_from %(Core.YException, NPL.Lexical)
+			),
+			/ %Core $=
+			(
+				/ $dev "header inclusion %ShellDefinition" @ %YException
+					-> "%YFunc"
+			)
+		),
+		/ %NPL $=
+		(
+			+ DLDI "header inclusion %YSLib.Core.YFunc" @ %Lexical,
+			/ %NPLA1 $=
+			(
+				/ "set next term before further reduction"
+					@ "all reducer function with 'Reduce*'"
+					$effective @ "functions %(ReduceCombinedBranch, \
+					ReduceCombinedReferent)",
+				(
+				/ $comp "set next term on branch term"
+					@ "function %(ReduceCombined, ReduceNextCombinedBranch)"
+					$dep_from "%ReduceCombinedBranch",
+				/ DLDI "simplified function %SetupDefaultInterpretation" $=
+				(
+					- "set next term";
+					^ "%std::bind"
+				)
+				),
+				- $revert(b884) "function %ReduceNextCombinedBranch",
+					// This is now %ReduceCombinedBranch.
+				(
+				/ "supported elision of trailing list operands"
+					@ "function %BindParameter";
+				/ $forced "1st parameter type" @ "function %MatchParameter"
+				)
+			),
+			/ %NPLA1Internals $=
+			(
+				(
+				+ "function template %RelayCurrentNext";
+				/ DLDI "simplified function template %ReduceCurrentNext"
+					^ "%RelayCurrentNext"
+				),
+				/ "enabled function template %RelayCurrentOrDirect"
+					@ '!NPL_Impl_NPLA1_Enable_Thunked',
+				/ @ 'NPL_Impl_NPLA1_Enable_Thunked' $=
+				(
+					/ "enabled function %MoveGuard"
+						@ 'NPL_Impl_NPLA1_Enable_TCO',
+					+ "type %MoveGuardAction";
+					+ "function %MakeMoveGuard";
+					/ "simplified function template %RelayForEvalOrDirect"
+						^ "%MakeMoveGuard" ~ "%MoveGuard"
+				)
+			),
+			/ %NPLA1Forms $=
+			(
+				/ DLDI "simplified call reduction" ^ "%SetupTailContext"
+				+ "reducer name" @ "functions %(And, Or, ForwardListFirst)";
+				+ "functions %(AccL, AccR)",
+				/ DLDI "simplified native calls" $=
+				(
+					- "set next term" @ 'NPL_Impl_NPLA1_Enable_TCO \
+						|| !NPL_Impl_NPLA1_Enable_Thunked',
+					@ 'NPL_Impl_NPLA1_Enable_Thunked \
+						&& !NPL_Impl_NPLA1_Enable_TCO'
+						^ $dep_from ("%RelayCurrentNext" @ %NPLA1Internals)
+						~ "%ReduceCurrentNext"
+				),
+				/ DLI "simplified non-tail context inner calls"
+					^ $dep_from ("%MakeMoveGuard" @ %NPLA1Internals),
+				/ DLDi "simplified function %CheckEnvironment"
+					^ "%MoveRValueToReturn" ~ "%ReduceToValue",
+				/ DLI "moved rvalues of arguments" @ "function %MakeEnvironment"
+			),
+			/ @ "function %LoadGroundContext" @ %Dependency $=
+			(
+				* "duplicated evaluation for matched subexpression not at the \
+					last position" @ "derivation" @ "operative '$or?'"
+					$since b860,
+				+ "native derivation" @ "applicative %accl and enabled \
+					by default" ^ $dep_from ("%AccL" @ %NPLA1Forms),
+				(
+				/ "applicative 'unfoldable?'" -> "'nonfoldable?' allowing an \
+					empty list argument" ^ '$if' ~ ("%accr", '$or?');
+					// The old name is ambiguous in un-foldable vs. \
+						unfold-able, though all gramatically correct, cf. \
+						https://en.wiktionary.org/wiki/unfoldable#English. This \
+						is sometimes annoying, e.g. as "unfoldability" is used \
+						in the title of a normative reference in \
+						%Documentation::NPL. Allowing the empty list \
+						simplifies the implementation.
+				(
+				* $comp "operative used as an argument of %accl call"
+					@ "applicative 'unfoldable?'" $since b791;
+				+ "native derivation" @ "applicative %accr and enabled \
+					by default" ^ $dep_from ("%AccR" @ %NPLA1Forms)
+				),
+				* "missing unwrapping on applicative arguments" @ "derivation"
+					@ ("applicative 'forward-list-first%'" $orig
+					(@ "derivation" @ "applicative 'forward-list-first'"),
+					"applicatives %(accl, accr)") $since b876,
+					$= (/ $impl ^ "%apply" ~ 'eval%')
+					// This would cause unexpected acception for operative \
+						arguments and unexpected evaluation on the result \
+						object.
+				),
+				/ DLI "operative '$let*'" $=
+				(
+					^ 'firstv' ~ 'first';
+					^ 'list%' ~ 'list'
+				),
+				/ $comp "supported moving rvalues"
+					@ "combiners derivation trailing parameters with a sigil"
+					$dep_from ("%BindParameter" @ %NPLA1)
+					// In particular, 'rest%' now moves the traling rvalues in \
+						the list.
+			)
+		)
+	),
+	- DLI "unused header inclusion '<sys/stat.h>'" @ %YReader.ShlReader,
+	+ '-fno-enforce-eh-specs' @ ("default value" @ "variable \
+		%CXXFLAGS_IMPL_OPT for G++" @ ("%SHBuild-YSLib-common.txt",
+		"%SHBuild-common-options.sh") @ %Scripts, "non-debug mode options"
+		@ %ProjectGenerator.Main) @ %Tools
+),
+
+b897
 (
 	/ $doc "prefix of user document 'https://bitbucket.org/FrankHB/yslib/wiki/'"
 		-> "https://frankhb.github.io/YSLib-book/",
