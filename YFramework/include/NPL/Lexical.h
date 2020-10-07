@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r2337
+\version r2341
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2020-08-09 14:34 +0800
+	2020-10-06 00:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -567,6 +567,9 @@ public:
 			&& lexer.UpdateBack(GetBackRef(), c));
 	}
 
+	//! \since build 899
+	DefPred(const ynothrow, Updating, update_current)
+
 	//! \since build 890
 	//@{
 	using BufferedByteParserBase::GetBuffer;
@@ -648,6 +651,9 @@ public:
 		else
 			source_location.Newline();
 	}
+
+	//! \since build 899
+	DefPred(const ynothrow, Updating, update_current)
 
 	using BufferedByteParserBase::GetBuffer;
 	using BufferedByteParserBase::GetBufferRef;

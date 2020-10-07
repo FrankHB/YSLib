@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2019 FrankHB.
+	© 2013-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1908
+\version r1919
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2019-11-29 03:35 +0800
+	2020-10-03 14:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,9 +26,9 @@
 
 
 #include "Helper/YModules.h"
-#include YFM_Helper_Environment
+#include YFM_Helper_Environment // for in_place_type, any;
 #include YFM_Helper_Initialization // for InitializeEnvironment,
-//	ShowInitializedLog, InitializeKeyModule, LoadComponents;
+//	ShowInitializedLog, PerformKeyAction, LoadComponents;
 #if YCL_DS
 #	include YFM_YCLib_NativeAPI // for ::powerOn, ::defaultExceptionHandler,
 //	platform_ex::InitializeFileSystem;
@@ -53,9 +53,10 @@ Environment::Environment(Application& app)
 {
 #if !YF_Hosted
 	// NOTE: This only effects freestanding implementations now, which may need
-	//	different behavior than default implementation. Hosted implemenations
-	//	are expected to have termination handlers friendly to debug, which can
-	//	be overriden before the construction of %Environment if needed.
+	//	different behavior than the default implementation. Hosted
+	//	implemenations are expected to have termination handlers friendly to
+	//	debugging, which can be overriden before the construction of
+	//	%Environment if needed.
 	std::set_terminate(terminate);
 #endif
 #if YCL_DS
@@ -80,12 +81,13 @@ Environment::Environment(Application& app)
 					}
 				} init;
 			}
+			// XXX: Error is ignored.
 			std::fprintf(stderr, "%s\n", Nonnull(str));
 			std::fflush(stderr);
 		}
 	});
-	InitializeKeyModule([&]{
-		app.AddExit(ystdex::any(ystdex::in_place_type<FileSystem>));
+	PerformKeyAction([&]{
+		app.AddExit(any(in_place_type<FileSystem>));
 	}, yfsig, "         LibFAT Failure         ",
 		" An error is preventing the\n"
 		" program from accessing\n"
@@ -132,7 +134,7 @@ Environment::Environment(Application& app)
 	string res;
 
 	YTraceDe(Notice, "Checking installation...");
-	InitializeKeyModule([&]{
+	PerformKeyAction([&]{
 		Root = LoadConfiguration(true);
 		if(Root.GetName() == "YFramework")
 			Root = PackNodes(string(), std::move(Root));

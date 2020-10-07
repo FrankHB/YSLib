@@ -11,13 +11,13 @@
 /*!	\file TextFile.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r1085
+\version r1091
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2020-01-31 04:16 +0800
+	2020-09-26 15:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Service_File // for string, File;
+#include <ios> // for std::ios_base::eofbit;
 
 namespace YSLib
 {
@@ -172,8 +173,12 @@ SkipBOM(_type& is, const _tBOM& bom)
 	if(bool(is))
 	{
 		if(!Text::CheckBOM(is, bom))
-			// NOTE: EOF bit is cleared implicitly since WG21 N3168.
+		{
+			// NOTE: The EOF bit is cleared implicitly since WG21 N3168. This is
+			//	not relied on.
+			is.clear(std::ios_base::eofbit);
 			is.seekg(0);
+		}
 		else
 			is.clear();
 	}

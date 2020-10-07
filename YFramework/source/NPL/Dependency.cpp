@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3683
+\version r3776
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2020-08-29 23:00 +0800
+	2020-09-27 16:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,12 +27,12 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_Dependency // for set, string, ystdex::isspace, std::istream,
-//	YSLib::unique_ptr, TokenValue, ystdex::bind1, ValueObject,
-//	NPL::AllocateEnvironment, std::piecewise_construct, std::forward_as_tuple,
-//	LiftOther, Collapse, LiftOtherOrCopy, NPL::IsMovable, LiftTermOrCopy,
-//	ResolveTerm, LiftTermValueOrCopy, MoveResolved, ResolveIdentifier,
-//	ystdex::plus, std::placeholders, NPL::ResolveRegular, ystdex::tolower,
-//	ystdex::swap_dependent, LiftTermRef, LiftTerm, NPL::Deref;
+//	YSLib::unique_ptr, YSLib::share_move, TokenValue, ystdex::bind1,
+//	ValueObject, NPL::AllocateEnvironment, std::piecewise_construct,
+//	NPL::forward_as_tuple, LiftOther, Collapse, LiftOtherOrCopy, NPL::IsMovable,
+//	LiftTermOrCopy, ResolveTerm, LiftTermValueOrCopy, MoveResolved,
+//	ResolveIdentifier, ystdex::plus, std::placeholders, NPL::ResolveRegular,
+//	ystdex::tolower, ystdex::swap_dependent, LiftTermRef, LiftTerm, NPL::Deref;
 #include YFM_NPL_NPLA1Forms // for NPL::Forms functions;
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
@@ -42,6 +42,7 @@
 #include <cerrno> // for errno, ERANGE;
 #include <cstdio> // for std::puts;
 #include <regex> // for std::regex, std::regex_match;
+#include "NPLA1Internals.h" // for NPL_Impl_NPLA1_Enable_Thunked;
 #include YFM_YSLib_Core_YCoreUtilities // for FetchCommandOutput;
 #include <ystdex/string.hpp> // for ystdex::begins_with;
 
@@ -219,11 +220,46 @@ InstallExecutable(const char* dst, const char* src)
 namespace A1
 {
 
-YB_NONNULL(1) YSLib::unique_ptr<std::istream>
+YSLib::unique_ptr<std::istream>
 OpenFile(const char* filename)
 {
 	return Text::OpenSkippedBOMtream<IO::SharedInputMappedFileStream>(
 		Text::BOM_UTF_8, filename);
+}
+
+YSLib::unique_ptr<std::istream>
+OpenUnique(REPLContext& context, string filename)
+{
+	auto p_is(A1::OpenFile(filename.c_str()));
+
+	// NOTE: Swap guard for %Context.CurrentSource is not used to support PTC.
+	context.CurrentSource = YSLib::share_move(filename);
+	return p_is;
+}
+
+
+void
+PreloadExternal(REPLContext& context, const char* filename)
+{
+	TryLoadSource(context, filename,
+		*OpenUnique(context, string(filename, context.Allocator)));
+}
+
+ReductionStatus
+ReduceToLoadExternal(TermNode& term, ContextNode& ctx, REPLContext& context)
+{
+	term = context.Load(context, ctx,
+		NPL::ResolveRegular<string>(NPL::Deref(std::next(term.begin()))));
+	// NOTE: This is explicitly not same to klisp. This is also friendly to PTC.
+	return A1::ReduceOnce(term, ctx);
+}
+
+ReductionStatus
+RelayToLoadExternal(ContextNode& ctx, TermNode& term, REPLContext& context)
+{
+	return RelaySwitched(ctx,
+		A1::NameTypedReducerHandler(std::bind(ReduceToLoadExternal,
+		std::ref(term), std::ref(ctx), std::ref(context)), "load-external"));
 }
 
 namespace Forms
@@ -285,8 +321,8 @@ CopyEnvironmentDFS(Environment& d, const Environment& e)
 		return d;
 	}, e.Parent);
 	for(const auto& b : e.GetMapRef())
-		m.emplace(std::piecewise_construct, std::forward_as_tuple(b.first),
-			std::forward_as_tuple(b.second.CreateWith(
+		m.emplace(std::piecewise_construct, NPL::forward_as_tuple(b.first),
+			NPL::forward_as_tuple(b.second.CreateWith(
 			[&](const ValueObject& vo) -> ValueObject{
 			shared_ptr<Environment> p_env;
 
@@ -633,6 +669,8 @@ LoadGroundedDerived(REPLContext& context)
 	RegisterForm(renv, "$or?", Or);
 	RegisterStrict(renv, "accl", AccL);
 	RegisterStrict(renv, "accr", AccR);
+	RegisterStrict(renv, "foldr1", FoldR1);
+	RegisterStrict(renv, "map1", Map1);
 #else
 #	if NPL_Impl_NPLA1_Native_EnvironmentPrimitives
 	context.Perform(R"NPL(
@@ -705,7 +743,7 @@ LoadGroundedDerived(REPLContext& context)
 	// XXX: The operatives '$defl!', '$defl%!', '$defw%!', and '$defv%!', as
 	//	well as the applicatives 'rest&' and 'rest%' are same to following
 	//	derivations in %LoadCore.
-	// NOTE: Use of 'eql?' is more efficient than '$if'.
+	// NOTE: Use of 'eqv?' is more efficient than '$if'.
 	context.Perform(R"NPL(
 		$def! $sequence
 			($lambda (&se)
@@ -772,7 +810,7 @@ LoadGroundedDerived(REPLContext& context)
 			$if (eval test d) (eval% (list*% () $sequence exprseq) d);
 		$defv%! $unless (&test .&exprseq) d
 			$if (eval test d) #inert (eval% (list*% () $sequence exprseq) d);
-		$defl! not? (&x) eql? x #f;
+		$defl! not? (&x) eqv? x #f;
 		$defv%! $and? &x d $cond
 			((null? x) #t)
 			((nullv? (rest& x)) eval% (first (forward! x)) d)
@@ -793,6 +831,12 @@ LoadGroundedDerived(REPLContext& context)
 				(apply sum (list% (apply head (list% l) d)
 					(apply accr (list% (apply tail (list% l) d)
 					pred? (forward! base) head tail sum) d)) d);
+		$defw%! foldr1 (&kons &knil &l) d
+			apply accr
+				(list% (forward! l) null? (forward! knil) first rest% kons) d;
+		$defw%! map1 (&appv &l) d
+			foldr1 ($lambda (&x &xs) cons%
+				(apply appv (list% (forward! x)) d) xs) () (forward! l);
 	)NPL");
 #endif
 }
@@ -857,17 +901,11 @@ LoadCore(REPLContext& context)
 		$defl! box (&x) box% x;
 		$defl! first-null? (&l) null? (first l);
 		$defl! list-rest% (&x) list% (rest% x);
-		$defw%! foldr1 (&kons &knil &l) d
-			apply accr
-				(list% (forward! l) null? (forward! knil) first rest% kons) d;
-		$defw%! map1 (&appv &l) d
-			foldr1 ($lambda (&x &xs) cons%
-				(apply appv (list% (forward! x)) d) xs) () (forward! l);
 		$defl! list-concat (&x &y) foldr1 cons% y (forward! x);
 		$defl! append (.&ls) foldr1 list-concat () (move! ls);
-		$defl%! assv (&object &alist) $cond ((null? alist) ())
-			((eqv? object (first& (first& alist))) first alist)
-			(#t assv (forward! object) (rest% alist));
+		$defl%! assv (&x &alist) $cond ((null? alist) ())
+			((eqv? x (first& (first& alist))) first alist)
+			(#t assv (forward! x) (rest% alist));
 		$defv%! $let (&bindings .&body) d
 			eval% (list*% () (list*% $lambda (map1 firstv bindings)
 				(list (move! body))) (map1 list-rest% bindings)) d;
@@ -910,12 +948,12 @@ LoadCore(REPLContext& context)
 			eval (list*% $bindings/p->environment
 				(list (() make-standard-environment)) bindings) d;
 		$defv! $provide! (&symbols .&body) d
-			$sequence (eval (list% $def! symbols (list $let () $sequence
+			$sequence (eval% (list% $def! symbols (list $let () $sequence
 				(list% ($vau% (&e) d $set! e res (lock-environment d))
 				(() get-current-environment)) (move! body)
 				(list* () list symbols))) d) res;
 		$defv! $provide/d! (&symbols &ef .&body) d
-			$sequence (eval (list% $def! symbols (list $let/d () ef $sequence
+			$sequence (eval% (list% $def! symbols (list $let/d () ef $sequence
 				(list% ($vau% (&e) d $set! e res (lock-environment d))
 				(() get-current-environment)) (move! body)
 				(list* () list symbols))) d) res;
@@ -1007,20 +1045,19 @@ LoadModule_std_promises(REPLContext& context)
 	// NOTE: Call of 'set-first%!' does not check cyclic references. This is
 	//	kept safe since it can occur only with NPLA1 undefined behavior.
 	context.Perform(R"NPL(
-		$def! std.promises $provide! (promise? memoize $lazy $lazy/e force)
+		$def! __ $provide! (promise? memoize $lazy $lazy/e force)
 		(
 			$def! (encapsulate promise? decapsulate) () make-encapsulation-type,
-			$defl%! memoize (&value)
-				encapsulate (list (list% (forward! value) ())),
+			$defl%! memoize (&x) encapsulate (list (list% (forward! x) ())),
 			$defv%! $lazy (.&expr) d encapsulate (list (list expr d)),
 			$defv%! $lazy/e (&e .&expr) d
 				encapsulate (list (list expr (check-environment (eval e d)))),
 			$defl%! force (&x)
 				$if (promise? x) (force-promise (decapsulate x)) (forward! x),
-			$defl%! force-promise (&x) $let ((((&object &env)) x))
-				$if (null? env) (forward! object)
+			$defl%! force-promise (&x) $let ((((&o &env)) x))
+				$if (null? env) (forward! o)
 				(
-					$let% ((&y eval% object env)) $cond
+					$let% ((&y eval% o env)) $cond
 						((null? (first (rest& (first& x)))) first& (first& x))
 						((promise? y) $sequence
 							(set-first%! x (first (decapsulate (forward! y))))
@@ -1116,13 +1153,26 @@ LoadModule_std_io(REPLContext& context)
 		std::puts(str.c_str());
 		return ValueToken::Unspecified;
 	});
-	RegisterUnary<Strict, const string>(renv, "load",
-		[&](const string& filename){
-		auto p_is(OpenFile(filename.c_str()));
+#if true
+	RegisterStrict(renv, "load", [&](TermNode& term, ContextNode& ctx){
+		RetainN(term);
+#	if NPL_Impl_NPLA1_Enable_Thunked
+		return RelayToLoadExternal(ctx, term, context);
+#	else
+		return ReduceToLoadExternal(term, ctx, context);
+#	endif
+	});
+#else
+	RegisterUnary<Strict, string>(renv, "load", [&](string& filename){
+		// NOTE: This is not applicable since %load has no additional barrier
+		//	here.
+		// XXX: As %PreloadExternal.
+		const auto p_is(OpenUnique(context, std::move(filename)));
 
-		TryLoadSource(context, filename.c_str(), *p_is);
+		TryLoadSource(context, context.CurrentSource->c_str(), *p_is);
 		return ValueToken::Unspecified;
 	});
+#endif
 }
 
 void
@@ -1323,6 +1373,25 @@ LoadModule_SHBuild(REPLContext& context)
 			res.pop_back();
 		return res;
 	});
+}
+
+void
+LoadStandardContext(REPLContext& context)
+{
+	LoadGroundContext(context);
+
+	auto& rctx(context.Root);
+	const auto load_std_module([&](string_view module_name,
+		void(&load_module)(REPLContext&)){
+		LoadModuleChecked(rctx, "std." + string(module_name),
+			std::bind(load_module, std::ref(context)));
+	});
+
+	load_std_module("strings", LoadModule_std_strings);
+	load_std_module("environments", LoadModule_std_environments),
+	load_std_module("io", LoadModule_std_io),
+	load_std_module("system", LoadModule_std_system),
+	load_std_module("promises", LoadModule_std_promises);
 }
 
 } // namespace Forms;

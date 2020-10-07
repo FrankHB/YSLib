@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r7918
+\version r7931
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2020-08-09 00:22 +0800
+	2020-09-30 12:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -586,7 +586,7 @@ public:
 
 
 /*!
-\brief 元数不匹配错误。
+\brief 元数不匹配。
 \todo 支持范围匹配。
 
 操作数子项个数不匹配的错误。
@@ -1794,7 +1794,7 @@ MoveRValueToForward(TermNode&, TermNode&);
 效果同先提升第二参数到第一参数，然后对结果进行处理以传递返回值：
 提升表示右值的项的值数据成员可能包含的引用值以满足返回值的内存安全要求；
 传递提升后的值。
-传递操作由一般表达式的值确定可转移：
+传递操作由被传递表达式的值确定可转移：
 对左值不进行修改，否则同 LiftToReturn 。
 因允许减少提升，实现可较无条件转移参数指定的项后转换返回值高效。
 可在对象语言中实现类似 C++ 的 std::forward 的转发操作，
@@ -2207,8 +2207,6 @@ public:
 
 	/*!
 	\pre 断言：第一参数的数据指针非空。
-	\throw BadIdentifier 非强制调用时发现标识符不存在或冲突。
-	\warning 应避免对被替换或移除的值的悬空引用。
 	\since build 867
 	*/
 	//@{
@@ -2226,6 +2224,7 @@ public:
 	*/
 	void
 	DefineChecked(string_view, ValueObject&&);
+	//@}
 
 	/*!
 	\brief 确保环境指针有效。
@@ -2264,6 +2263,12 @@ public:
 		ImplRet(Frozen ? term.Tags | TermTags::Nonmodifying : term.Tags)
 
 	/*!
+	\pre 断言：第一参数的数据指针非空。
+	\warning 应避免对被替换或移除的值的悬空引用。
+	\since build 867
+	*/
+	//@{
+	/*!
 	\brief 以字符串为标识符在指定上下文移除定义。
 	\return 是否成功移除。
 	*/
@@ -2279,8 +2284,10 @@ public:
 	/*!
 	\brief 以字符串为标识符在指定上下文的名称查找结果中替换定义。
 	\note 若定义不存在则忽略。
+	\return 是否成功替换。
+	\since build 899
 	*/
-	void
+	bool
 	Replace(string_view, ValueObject&&);
 
 	/*!

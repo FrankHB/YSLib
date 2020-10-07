@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r20748
+\version r21079
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-08-30 19:40 +0800
+	2020-10-07 16:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,298 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	* $doc "wrong operand specification" @ "operative '$cond'"
+		@ %Documentation.NPL $since b792,
+	/ %Tools $=
+	(
+		/ DLDI "simplified" @ %SHBuild.Main
+			^ $dep_from ("%LoadStandardContext" @ %YFramework.NPL.Dependency),
+		* @ "%SHBuild-common.sh" @ %Scripts $since b897 $=
+		(
+			* "wrong quotes on '$3' command" @ "function %SHBuild_BuildGCH"
+			* $comp "wrong command called" @ "function %SHBuild_CheckPCH"
+		),
+	),
+	* "i686 MinGW32 cc1plus out of memory on compiling %NPLA1Forms.cpp for \
+		stage 1 SHBuild" $since b898
+		$= (/ $revert_ex(b839) "default value" @ "variable %CXXFLAGS_OPT_DBG"
+			@ "%SHBuild-build.sh" @ %Tools.Scripts -> '-O0 -g' ~ '-Og -g'),
+			// See $2020-01 @ %Documentation::Workflow.
+	/ %YBase.YStandardEx $=
+	(
+		+ "metafunctions %(range_iterator_t, range_const_iterator_t)" @ %Range,
+		/ %Any $=
+		(
+			* "missing cleanup the state of moved-after object"
+				@ "allocator-aware move constructor %any" @ %Any $since b848,
+				// This would cause double free.
+			(
+			+ DD "Doxygen group %any_holders";
+			+ DD ("class %holder", "class template %pointer_holder")
+				@ "Doxygen group %any_holders"
+			)
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %Helper $=
+		(
+			/ %Initialization $=
+			(
+				(
+				+ "function %FetchRootPathString";
+				(
+				/ "setup root directory to current working directory at first \
+					call" !@ 'YCL_Win32 || YCL_Android';
+					// This avoids the change of the configuration path \
+						between %SaveConfiguration calls when there are \
+						changes on the current working directory between these \
+						calls.
+				/ DLI "check existence of internal macros for configuration \
+					path and data directory" @ "preprocessing directives"
+				),
+				+ "function %CheckLocalFHSLayout";
+				+ "function %GetLocalFHSRootPathOf"
+				),
+				+ $dev $lib 'YB_ATTR_nodiscard' @ "function %LoadNPLA1File",
+				/ DLDI "reserved names on internal macros of configuration \
+					entries",
+				/ @ 'YCL_Win || (YCL_Linux && !YCL_Android)' $=
+				(
+					// See https://frankhb.github.io/YSLib-book/Run.zh-CN.html.
+					+ "fallback configuration paths"
+						@ "function %LoadConfiguration";
+					/ "checked fallback configurations by preferred path \
+						with alternative location on checked FHS layout"
+						@ "functions %(LoadConfiguration, SaveConfiguration)";
+				),
+				(
+				/ "function %InitializeKeyModule" -> ("function \
+					%PerformKeyAction" @ %YSLib.Core.YCoreUtilities);
+				/ $forced DLDI "function %InitializeSystemFontCache"
+				)
+			),
+			/ DLD %Environment $=
+			(
+				/ $forced $impl "constructor %Environment"
+					$dep_from ("%InitializeKeyModule" @ %Initialization)
+				/ $re_add(b862) "simplified without 'ystdex::'"
+					^ "%(any, any_ops, in_place_type)"
+			)
+		),
+		/ %YSLib.Service $=
+		(
+			/ %Service $=
+			(
+				/ "ensured EOF bit cleared on failure" @ "function %SkipBOM"
+					@ %TextFile,
+					// This unifies the behavior regardless of WG21 N3168.
+				/ @ "function %EnsureDirectory" @ %FileSystem $=
+				(
+					* "improper duplicated %errno accesses" $since b476,
+					* "redundant separator added after the root path"
+						$since b476
+				)
+			),
+			/ %Core.YObject $=
+			(
+				+ DD "all holder class templates" @ $dep_from
+					("Doxygen group %any_holders" @ %YBase.YStandardEx.Any),
+				(
+				* "disabled distinguishing copy and move arguments"
+					@ "function template %CreateHolder"
+					@ "class template %AllocatedHolderOperations" $since b891;
+				/ $forced "overrider %Create" @ "class template \
+					%AllocatorHolder" ^ "%YSLib::forward_as_tuple";
+				+ "class template %PolymorphicAllocatorHolder"
+				),
+				(
+				/ @ "class %ValueObject" $=
+				(
+					/ "excluded self type" @ "allocator-aware constructor \
+						template",
+					+ "allocator-aware (copy, move) constructors"
+						// This is consistent to %any.
+				);
+				/ @ "function template %EmplaceCallResult with allocator \
+					parameter" $=
+				(
+					* $comp "initialized nested %ValueObject" $since b863
+						$dep_from %YBase.YStandardEx.Any;
+						// This already resolves the bug, but it is still \
+							inefficient with unnecessary on the allocator type.
+					/ "ignored the allocator argument"
+				)
+				),
+				(
+				/ DLDI "declaration order" @ "class template %HolderOperations";
+				/ @ "class template %HolderOperations" $=
+				(
+					+ 'using Creation = IValueHolder::Creation;';
+					+ "function template %CreateHolder"
+				);
+				+ "class template %PolymorphicValueHolder"
+					^ "%HolderOperations::CreateHolder"
+				)
+			)
+		),
+		/ %NPL $=
+		(
+			(
+			+ "alias %Action" @ %NPLA1Internals;
+			/ DLDI "simplified by removing %Action" %(NPLA1, NPLA1Forms)
+			),
+			/ @ "class %Environment" @ %NPLA $=
+			(
+				+ "return value of %bool" @ "function %Replace";
+				/ DLDI "simplified function %ReplaceChecked" ^ "%Replace"
+					// As %Remove and %RemoveChecked.
+			),
+			/ %NPLA1Forms $=
+			(
+				/ DLDI "wrapping and unwrapping"
+					^ "%NPL::AccessRegular" ~ "%NPL::(CheckRegular, Access)",
+				/ DLDI "simplified %Apply",
+				- DLDI "unused function definition %ReduceSequenceOrderedAsync",
+				/ DLDI "simplified functions %(AccL, AccR)"
+					$dep_to "binding object optimization",
+				+ "functions %(FoldR1, Map1)"
+					$dep_from "binding object optimization",
+				* "missing lvalue-to-rvalue conversion on the parameter"
+					@ "function %Not" $since b861,
+				+ DLDI 'YB_nodiscard YB_PURE' @ "friend function %operator=="
+					@ "%(Encapsulation, Encapsulate)",
+				+ "check for frozen environment with %TypeError on failure"
+					@ "functions %(DefineLazy, DefineWithRecursion, \
+					DefineWithNoRecursion, SetWithNoRecursion, \
+					SetWithRecursion, Undefine, UndefineChecked)",
+				* "missing type check for different encapsulation types"
+					@ "decapsulation" @ "decapsulation applicative"
+					@ "function %MakeEncapsulationType"
+					$orig (@ %NPLA1 $since b834)
+			),
+			/ %Dependency $=
+			(
+				+ $dev 'YB_ATTR_nodiscard' @ "function %OpenFile",
+				(
+				+ "function %OpenUnique"
+					^ $dep_from ("%REPLContext::ShareCurrentSource" @ %NPLA1);
+				+ "function %PreloadExternal",
+				(
+				+ "function %ReduceToLoadExternal"
+					$dep_from %YSLib.Service.TextFile;
+					// The dependency ensures an empty file with no UTF-8 BOM \
+						handled as a valid input stream, avoiding thrwoing the \
+						exception instead.
+				+ "function %RelayToLoadExternal"
+				)
+				),
+				/ @ "namespace %Forms" $=
+				(
+					/ @ "function %LoadGroundContext" $=
+					(
+						+ "native derivation" @ "applicative %foldr1 and \
+							enabled by default"
+							^ $dep_from ("%FoldR1" @ %NPLA1Forms),
+						+ "native derivation" @ "applicative %map1 and enabled \
+							by default" ^ $dep_from ("%Map1" @ %NPLA1Forms),
+						/ DLI "alternative derivation" @ "applicative 'not?'"
+							^ 'eqv?' ~ 'eql?',
+							// This is more compatible to the irregular \
+								representations, although currently using of \
+								'eql?' is still safe.
+						/ DLI "operatives ('$provide!', '$provide/d!')"
+							^ 'eval%' ~ 'eval'
+					),
+					+ "function %LoadStandardContext",
+					/ "removed barrier" @ "applicative %load"
+						@ "function %LoadModule_std_io" ^ $dep_from
+						"%(ReduceToLoadExternal, ReduceToLoadExternal)",
+					/ "froze environments being loaded"
+						@ ("function template %GetModuleFor";
+						$comp "function %LoadStandardContext"),
+					/ DLI "simplified applicative parameter names"
+						@ "functions %(LoadGroundContext, \
+						LoadModule_std_promises)",
+					* "wrong non-reserved name 'std.promises' bound as a \
+						nested member" @ "function %LoadModule_std_promises"
+						$since b856
+						// This leak hidden names.
+				),
+				+ "function %IsUpdating"
+					@ "classes %(ByteParser, SourcedByteParser)" @ %Lexical,
+				/ %Scontext $=
+				(
+					+ $dev $lib 'YB_PURE'
+						@ "all 2 function templates %(Access, AccessPtr)",
+					(
+					(
+					* "missing 'SContext::' prefix" @ "call to %Reduce"
+						@ "function template %SContext::Reduce with 3 \
+						parameters" $since b891;
+					/ $forced "%SContext::Reduce declared order"
+						// Now no ADL is relied on and the 2-phase lookup does \
+							not work like before.
+					);
+					/ "function and function templates %ToLexeme"
+						@ "namespace %SContext" >> "namespace %NPL";
+					+ "class %ReaderState";
+					+ "function templates %ProcessOne" @ "class %Session"
+						^ $dep_from ("%ystdex::range_iterator_t"
+						@ %YBase.YStandardEx.Range, %Lexical)
+					),
+					/ "functor %LexemeTokenizer" @ "namespace %SContext"
+						>> "namespace %NPL",
+					+ 'using YSLib::forward_as_tuple;',
+					+ 'using YSLib::tuple;',
+					+ 'using YSLib::get;'
+				)
+			),
+			/ %NPLA1 $=
+			(
+				/ @ "class %REPLContext" $=
+				(
+					+ "function template %ShareCurrentSource",
+					(
+					+ "type %Loader",
+					+ "static function %DefaultLoad"
+						^ $dep_from ("%OpenUnique" @ %Dependency);
+					+ "data member %Load"
+					),
+					+ "support of partial read" @ "%ReadFrom"
+						^ $dep_from ("%ReaderState" @ %SContext) $=
+					(
+						+ "3 overloads for stream input with %ReaderState \
+							reference parameter";
+						+ "3 overloads for parameterized input parameter with \
+							%ReaderState reference parameter";
+						/ "supported variadic parameters" @ "1 overload"
+					)
+				),
+				+ DLDI 'const' @ "guard"
+					@ "functions %(AddTypeNameTableEntry, QueryTypeName)",
+				/ $forced "sourced holder" @ "function \
+					%ParseLeafWithSourceInformation" $dep_from
+					("%AllocatedHolderOperations" @ %YSLib.Core.YObject)
+			),
+			/ DLDI "all %std::forward_as_tuple"
+				-> $dep_from ("%NPL::forward_as_tuple" @ %SContext)
+				$effective @ %(NPLA1, Dependency)
+			/ DLDI "all %std::tuple" -> $dep_from ("%NPL::tuple" @ %SContext)
+				$effective @ %NPLA1,
+			/ DLDI "all %YSLib::tuple" -> $dep_from ("%NPL::tuple" @ %SContext)
+				$effective @ %NPLA1Internals,
+			/ DLDI %NPLA1Internals $=
+			(
+				/ 'using YSLib::get;' >> %SContext;
+				/ "all %get" -> "%NPL::get"
+			)
+		)
+	)
+),
+
+b898
 (
 	+ $fmt 'SortIncludes: false' @ "%.clang-format",
 	/ $doc "%Readme.zh-CN.txt" -> "%Readme.zh-CN.md",
@@ -173,8 +465,8 @@ $now
 					^ 'firstv' ~ 'first';
 					^ 'list%' ~ 'list'
 				),
-				/ $comp "supported moving rvalues"
-					@ "combiners derivation trailing parameters with a sigil"
+				/ $comp "supported transferring rvalues" @ "combiners \
+					derivation trailing parameters"
 					$dep_from ("%BindParameter" @ %NPLA1)
 					// In particular, 'rest%' now moves the traling rvalues in \
 						the list.
@@ -512,9 +804,8 @@ b897
 			/ @ "%SHBuild-common-toolchain.sh" $=
 			(
 				+ "functions %(SHBuild_CheckCC, SHBuild_CheckCXX)"
-					$dep_from
-					("%(SHBuild_GetTempDir, SHBuild_InitReadonly)"
-				@ "%SHBuild-common.sh"),
+					$dep_from ("%(SHBuild_GetTempDir, SHBuild_InitReadonly)"
+					@ "%SHBuild-common.sh"),
 					// This imporves the precision in cases like redirection \
 						of 'g++' to 'clang++' by a symbolic link.
 				+ "function %SHBuild_GetAR_" $dep_from "%SHBuild_CheckCXX"
@@ -2780,16 +3071,16 @@ b885
 						directory"
 				)
 			),
-				+ $build "workaround for building %YFramework DLL"
-					@ "%debug configurations" @ "platform %MinGW64"
-					$dep_to "MinGW64 debug DLL workaround" $=
-				(
-					// Otherwise the linker will hang for 3 hours and fail for \
-						unresolved symbols of typeinfo name of base classes \
-						(e.g. classes in %YBase.YStandardEx.Operators).
-					/ "avoided using precompiled header",
-					+ "'-Og' to override '-O0'"
-				)
+			+ $build "workaround for building %YFramework DLL"
+				@ "%debug configurations" @ "platform %MinGW64"
+				$dep_to "MinGW64 debug DLL workaround" $=
+			(
+				// Otherwise the linker will hang for 3 hours and fail for \
+					unresolved symbols of typeinfo name of base classes \
+					(e.g. classes in %YBase.YStandardEx.Operators).
+				/ "avoided using precompiled header",
+				+ "'-Og' to override '-O0'"
+			)
 		),
 		/ $forced "host library directory 'lib-i686'" -> 'lib'
 			$dep_from "host library directory";
@@ -13942,8 +14233,9 @@ b839
 			(
 				/ "'$import!' statement" $=
 				(
-					* "missing ('SHBuild_QuoteS_!', 'SHBuild_RaiseError_', \
-						'SHBuild_BuildGCH_mkpdirp_')" $since b839,
+					* "missing imports of ('SHBuild_QuoteS_!',
+						'SHBuild_RaiseError_', 'SHBuild_BuildGCH_mkpdirp_')"
+						$since b838,
 					- "redundant 'SHBuild_EnsureDirectory_'"
 				),
 				/ "applicative 'build-with-conf-opt' detected variables \
@@ -14187,7 +14479,7 @@ b838
 				/ "improved quotes" $dep_from
 					"added applicative for protected quotes"
 			),
-			+ $forced DLDI "importing statement from SHBuild environment \
+			+ $forced DLDI "import statement from SHBuild environment \
 				%env_SHBuild_ at first" $dep_from "SHBuild environment object"
 				^ ('$import!' @ %YFramework.NPL.Dependency)
 		),
@@ -16752,11 +17044,15 @@ b826
 		@ %YBase.YStandardEx.Optional,
 		// To eliminate G++ 8.1.0 warning: [-Wctor-dtor-privacy]. See \
 			https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85792.
-	/ DLB "file %3rdparty/freetype/build/config.mk" $=
+	/ DLB "file %3rdparty/freetype/build/ds/config.mk" $=
 	(
-		+ "support of non-Windows toolchains"
-			$= (- "removed '.exe' postfix on commands"),
-		/ $impl ^ "prefix"
+		/ "supported toolchains of non-Windows hosts"
+			$= (- "removed '.exe' postfix" @ "%(CC, AR)"),
+		(
+		+ "%PREFIX";
+		/ $impl ^ "prefix",
+		),
+		+ '-DNDEBUG' @ "%CFLAGS"
 	),
 	/ %YFramework $=
 	(
@@ -16764,15 +17060,17 @@ b826
 			@ "trait template %PathTraits" @ %YSLib.Core.FileSystem,
 			// To eliminate G++ 8.1.0 warning: [-Wshadow].
 		/ $forced DLDI ^ ('void*' ~ 'int') @ "opaque file information \
-			descriptor" @ "device operation table" @ "platform %DS"
-			@ %'YCLib_(DS)'.DSIO $dep_from "devkitARM r48",
+			descriptor" @ "types of hanlders for %::devoptab_t members \
+			%(close_r, write_r, read_r, seek_r, fstat_r, ftruncate_r, \
+			fsync_r)" @ "platform %DS" @ %'YCLib_(DS)'.DSIO
+			$dep_from "devkitARM r48",
 			// NOTE: The %DSIO implementation change is required since \
 				devkitARM r46 (otherwise it would not compile).
 		/ DLB $impl @ "platform %DS" @ %YCLib.NativeAPI $=
 		(
-			+ $forced "declaration %__io_dsisd",
-			/ $forced ^ ("%::isDSiMode" ~ "%::__dsimode") $dep_from
-				"devkitARM r48",
+			+ "declaration %__io_dsisd",
+			/ $forced ^ ("%::isDSiMode" ~ "%::__dsimode")
+				$dep_from "devkitARM r48",
 				// NOTE: %::get_io_dsisd is not used due to linking problem. \
 					The %DSIO implementation change is required since \
 					devkitARM r46 (otherwise it would not compile).
@@ -16783,11 +17081,11 @@ b826
 	(
 	(
 	/ DLB "removed targets generated from 'objcopy -O binary'"
-		@ "all DS makefiles";
-		// See $2018-02 @ %Documentation::Workflow.
+		@ "makefile" @ "project %YSTest_ARM7" @ "platform %DS";
+		// See $2018-05 @ %Documentation::Workflow.
 	+ $forced $build '-h 0x200' @ "%ndstool command" @ "makefile"
 		@ "platform %DS" @ %YSTest,
-		// See $2018-02 @ %Documentation::Workflow.
+		// See $2018-05 @ %Documentation::Workflow.
 	),
 	+ "touch screen initialization" @ "main function" @ %YReader.Main_ARM7
 		@ "project %YSTest_ARM7";
@@ -19066,7 +19364,7 @@ b800
 			(
 				/ $impl "simplified" ^ "%OpenMode::CreateExclusive"
 					~ "%OpenMode::(Create, Exclusive)";
-				* "wrong result for %platform::ios_nocreate"  $since b722
+				* "wrong result for %platform::ios_nocreate" $since b722
 			),
 			/ $re_add(b793) "marked fallthrough" @ "function \
 				%ExecuteShellCommand" @ "platform %Win32" @ %HostedGUI
@@ -19160,7 +19458,7 @@ b800
 		^ $re_ex(b700) "mingw-w64-i686-binutils 2.28-2 from MSYS2"
 			~ "mingw-w64-i686-binutils 2.25.1-5"
 	),
-	/ $re_ex(b700) "updated %SUBTITLE2 year" @ "makefile" @ "platform %DS"
+	/ $re_ex(b700) "updated year" @ "%SUBTITLE2" @ "makefile" @ "platform %DS"
 		@ "project %YSTest",
 	/ $re_ex(b700) "regenerated Code::Blocks projects"
 		^ ("%GenerateProjects.sh" @ %Tools.Scripts)

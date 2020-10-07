@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3484
+\version r3946
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2020-05-13 17:19 +0800
+	2020-10-05 09:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,26 +26,35 @@
 
 
 #include "Helper/YModules.h"
-#include YFM_Helper_Initialization // for ystdex::nptr, function;
-#include YFM_YSLib_Core_YException // for ExtractException, ExtractAndTrace;
-#include YFM_CHRLib_MappingEx // for CHRLib::cp113_lkp;
-#include YFM_YSLib_Service_TextFile // for Text::BOM_UTF_8, Text::CheckBOM;
-#include YFM_NPL_Configuration // for NPL::Configuration, NPL::Session,
-//	NPL::ByteParser;
-#include <ystdex/string.hpp> // for ystdex::write_literal, ystdex::sfmt;
-#include <ystdex/scope_guard.hpp> // for ystdex::swap_guard;
-#include <cerrno> // for errno;
-#include YFM_YSLib_Service_FileSystem // for IO::TraverseChildren,
-//	NativePathView;
-#include YFM_Helper_GUIApplication // for FetchEnvironment, FetchAppInstance,
-//	Application::AddExit, Application::AddExitGuard;
-#include YFM_Helper_Environment // for Environment;
+#include YFM_Helper_Initialization // for IO::Path, IO::FetchSeparator,
+//	IO::MaxPathLength, FetchCurrentWorkingDirectory, ystdex::nptr, pair, map,
+//	mutex, lock_guard, IO::EnsureDirectory, IO::VerifyDirectory,
+//	PerformKeyAction, IO::TraverseChildren, NativePathView;
+#if !(YCL_Win32 || YCL_Linux)
+#	include <ystdex/string.hpp> // for ystdex::rtrim;
+#	include YFM_YCLib_FileSystem // for platform::EndsWithNonSeperator;
+#endif
+#include <ystdex/range.hpp> // for ystdex::begin, ystdex::end;
+#include <ystdex/algorithm.hpp> // for ystdex::fast_all_of;
 #if YCL_Win32
 #	include YFM_Win32_YCLib_NLS // for platform_ex::FetchDBCSOffset,
 //	platform_ex::WCSToUTF8, platform_ex::UTF8ToWCS;
 #endif
+#include YFM_CHRLib_MappingEx // for CHRLib::cp113_lkp;
+#include YFM_NPL_Configuration // for NPL::Configuration, NPL::Session,
+//	A1::LoadNode;
+#include YFM_YSLib_Service_TextFile // for Text::BOM_UTF_8, Text::CheckBOM;
+#include <ystdex/string.hpp> // for ystdex::write_literal, ystdex::sfmt;
+#include <cerrno> // for errno;
+#include <ystdex/scope_guard.hpp> // for ystdex::swap_guard;
+#include YFM_YSLib_Core_YCoreUtilities // for FetchEnvironmentVariable;
+#include YFM_Helper_GUIApplication // for FetchAppInstance,
+//	Application::AddExit, FetchEnvironment;
+#include YFM_YSLib_Core_YException // for ExtractAndTrace;
+#include YFM_YSLib_Core_YStorage // for FetchStaticRef;
+#include YFM_Helper_Environment // for complete type Environment introduced by
+//	FetchEnvironment;
 
-using namespace ystdex;
 using namespace platform;
 //! \since build 600
 using namespace NPL;
@@ -95,112 +104,193 @@ yconstexpr const char TU_MIME[]{R"NPLA1(
 )
 )NPLA1"};
 
-#undef CONF_PATH
-#undef DATA_DIRECTORY
-#undef DEF_FONT_DIRECTORY
-#undef DEF_FONT_PATH
-#if YCL_Win32 || YCL_Linux
-//! \since build 695
-const string&
-FetchWorkingRoot()
+//! \since build 899
+//@{
+#if YCL_Win32 || (YCL_Linux && !YCL_Android)
+#	define YF_Helper_Initialization_UseFallbackConf_ true
+#endif
+
+struct RootPathCache
 {
-	static const struct Init
+	string PathString;
+	IO::Path Path;
+	IO::Path Parent;
+
+	// XXX: Similar to %FetchConfPaths as of the concurrent execution.
+	RootPathCache()
+		: PathString([]{
+#if YCL_Win32
+			IO::Path image(platform::ucast(
+				platform_ex::FetchModuleFileName().data()));
+
+			if(!image.empty())
+			{
+				image.pop_back();
+
+				const auto& dir(image.Verify());
+
+				if(!dir.empty() && dir.back() == FetchSeparator<char16_t>())
+					return dir.GetMBCS();
+			}
+#elif YCL_Android
+			const char*
+				sd_paths[]{"/sdcard/", "/mnt/sdcard/", "/storage/sdcard0/"};
+
+			for(const auto& path : sd_paths)
+				if(IO::VerifyDirectory(path))
+				{
+					YTraceDe(Informative, "Successfully found SD card path"
+						" '%s' as root path.", path);
+					return path;
+				}
+				else
+					YTraceDe(Informative,
+						"Failed accessing SD card path '%s'.", path);
+#elif YCL_Linux
+			// FIXME: What if link reading failed (i.e. permission denied)?
+			// XXX: Link content like 'node_type:[inode]' is not supported.
+			auto image(IO::ResolvePath<ystdex::path<vector<string>,
+				IO::PathTraits>>(string_view("/proc/self/exe")));
+
+			if(!image.empty())
+			{
+				image.pop_back();
+
+				const auto& dir(IO::VerifyDirectoryPathTail(
+					ystdex::to_string_d(image)));
+
+				if(!dir.empty() && dir.back() == FetchSeparator<char>())
+					return dir;
+			}
+#else
+			// XXX: Trimming is necessary, because it is unspecified to have
+			//	trailing slashes with %platform::ugetcwd as POSIX.1 2004.
+			auto root_path(ystdex::rtrim(FetchCurrentWorkingDirectory<char>(
+				IO::MaxPathLength), IO::FetchSeparator<char>()));
+
+			YAssert(platform::EndsWithNonSeperator(root_path),
+				"Invalid argument found.");
+			root_path += IO::FetchSeparator<char>();
+			return root_path;
+// TODO: Add similar implemnetation for BSD family OS, etc.
+#endif
+			throw GeneralEvent("Failed finding working root path.");
+		}()), Path(PathString), Parent(Path / u"..")
 	{
-		string Path;
+		YTraceDe(Informative, "Initialized root directory path '%s'.",
+			PathString.c_str());
+	}
+};
 
-		Init()
-			: Path([]{
-#	if YCL_Win32
-				IO::Path image(platform::ucast(
-					platform_ex::FetchModuleFileName().data()));
+YB_ATTR_nodiscard YB_PURE const RootPathCache&
+FetchRootPathCache()
+{
+	static const RootPathCache cache;
 
-				if(!image.empty())
-				{
-					image.pop_back();
-
-					const auto& dir(image.Verify());
-
-					if(!dir.empty() && dir.back() == FetchSeparator<char16_t>())
-						return dir.GetMBCS();
-				}
-#	elif YCL_Android
-				const char*
-					sd_paths[]{"/sdcard/", "/mnt/sdcard/", "/storage/sdcard0/"};
-
-				for(const auto& path : sd_paths)
-					if(IO::VerifyDirectory(path))
-					{
-						YTraceDe(Informative, "Successfully found SD card path"
-							" '%s' as root path.", path);
-						return path;
-					}
-					else
-						YTraceDe(Informative,
-							"Failed accessing SD card path '%s'.", path);
-#	elif YCL_Linux
-				// FIXME: What if link reading failed (i.e. permission denied)?
-				// XXX: Link content like 'node_type:[inode]' is not supported.
-				// TODO: Use implemnetation for BSD family OS, etc.
-				auto image(IO::ResolvePath<ystdex::path<vector<string>,
-					IO::PathTraits>>(string_view("/proc/self/exe")));
-
-				if(!image.empty())
-				{
-					image.pop_back();
-
-					const auto& dir(IO::VerifyDirectoryPathTail(
-						ystdex::to_string_d(image)));
-
-					if(!dir.empty() && dir.back() == FetchSeparator<char>())
-						return dir;
-				}
-#	else
-#		error "Unsupported platform found."
-#	endif
-				throw GeneralEvent("Failed finding working root path.");
-			}())
-		{
-			YTraceDe(Informative, "Initialized root directory path '%s'.",
-				Path.c_str());
-		}
-	} init;
-
-	return init.Path;
+	return cache;
 }
 
-// TODO: Reduce overhead?
-#	define CONF_PATH (FetchWorkingRoot() + "yconf.txt").c_str()
+#if YF_Helper_Initialization_UseFallbackConf_
+// XXX: Currently all platforms using fallback configurations have the same
+//	image path and root path.
+YB_ATTR_nodiscard YB_PURE inline const RootPathCache&
+FetchImagePathCache()
+{
+	return FetchRootPathCache();
+}
 #endif
+
+template<class _tRange>
+YB_ATTR_nodiscard YB_PURE bool
+CheckLocalFHSLayoutOn(const _tRange& c)
+{
+	return ystdex::fast_all_of(ystdex::begin(c), ystdex::end(c),
+		[](const IO::Path& pth) ynothrow -> bool{
+		TryRet(IO::VerifyDirectory(pth))
+		CatchRet(..., {})
+	});
+}
+
+YB_ATTR_nodiscard YB_PURE bool
+CheckLocalFHSLayoutImpl(const IO::Path& prefix, IO::Path bin)
+{
+	if(bin != prefix)
+	{
+		const IO::Path
+			paths[]{prefix, std::move(bin), prefix / u"lib", prefix / u"share"};
+
+		return CheckLocalFHSLayoutOn(paths);
+	}
+	return {};
+}
+
+YB_ATTR_nodiscard YB_PURE bool
+CheckLocalFHSLayoutWithCache(const RootPathCache& cache)
+{
+#	if true
+	// XXX: This is more efficient.
+	return CheckLocalFHSLayoutImpl(cache.Parent, cache.Path);
+#	else
+	return CheckLocalFHSLayout(cache.PathString);
+#	endif
+}
+
+YB_ATTR_nodiscard YB_PURE const string&
+FetchPreferredConfPath()
+{
+#if YF_Helper_Initialization_UseFallbackConf_
+	static string conf_path([]() -> string{
+		auto& cache(FetchImagePathCache());
+
+		if(CheckLocalFHSLayoutWithCache(cache))
+		{
+			YTraceDe(Informative, "FHS layout is detected, using"
+				" '../var/YSLib/' relative to the program image path as the"
+				" preferred configuration path.");
+			return (cache.Parent / u"var" / u"YSLib").GetString().GetMBCS();
+		}
+		YTraceDe(Informative, "FHS layout is not detected, using the root path"
+			" as the preferred configuration path.");
+		return FetchRootPathString();
+	}());
+
+	return conf_path;
+#else
+	return FetchRootPathString();
+#endif
+}
+//@}
+
 #if YCL_DS
-#	define DATA_DIRECTORY "/Data/"
-#	define DEF_FONT_DIRECTORY "/Font/"
-#	define DEF_FONT_PATH "/Font/FZYTK.TTF"
+#	define YF_Helper_Initialization_DataDirectory_ "/Data/"
+#	define YF_Helper_Initialization_FontDirectory_ "/Font/"
+#	define YF_Helper_Initialization_FontFile_ "/Font/FZYTK.TTF"
 #elif YCL_Win32
-#	define DATA_DIRECTORY FetchWorkingRoot()
-#	define DEF_FONT_PATH (FetchSystemFontDirectory_Win32() + "SimSun.ttc")
+#	define YF_Helper_Initialization_DataDirectory_ FetchRootPathString()
+#	define YF_Helper_Initialization_FontFile_ \
+	(FetchSystemFontDirectory_Win32() + "SimSun.ttc")
 //! \since build 693
 inline PDefH(string, FetchSystemFontDirectory_Win32, )
 	// NOTE: Hard-coded as Shell32 special path with %CSIDL_FONTS or
 	//	%CSIDL_FONTS. See https://msdn.microsoft.com/en-us/library/dd378457.aspx.
 	ImplRet(platform_ex::WCSToUTF8(platform_ex::FetchWindowsPath()) + "Fonts\\")
 #elif YCL_Android
-#	define DATA_DIRECTORY (FetchWorkingRoot() + "Data/")
-#	define DEF_FONT_DIRECTORY "/system/fonts/"
-#	define DEF_FONT_PATH "/system/fonts/DroidSansFallback.ttf"
+#	define YF_Helper_Initialization_DataDirectory_ (FetchRootPathString() + "Data/")
+#	define YF_Helper_Initialization_FontDirectory_ "/system/fonts/"
+#	define YF_Helper_Initialization_FontFile_ \
+	"/system/fonts/DroidSansFallback.ttf"
 #elif YCL_Linux
-#	define DATA_DIRECTORY FetchWorkingRoot()
-#	define DEF_FONT_PATH "./SimSun.ttc"
+#	define YF_Helper_Initialization_DataDirectory_ FetchRootPathString()
+#	define YF_Helper_Initialization_FontFile_ "./SimSun.ttc"
 #else
 #	error "Unsupported platform found."
 #endif
-#ifndef CONF_PATH
-#	define CONF_PATH "yconf.txt"
+#ifndef YF_Helper_Initialization_DataDirectory_
+#	error "Data directory shall be defined."
 #endif
-#ifndef DATA_DIRECTORY
-#	define DATA_DIRECTORY "./"
-#endif
-#ifndef DEF_FONT_DIRECTORY
-#	define DEF_FONT_DIRECTORY DATA_DIRECTORY
+#ifndef YF_Helper_Initialization_FontDirectory_
+#	define YF_Helper_Initialization_FontDirectory_ \
+	YF_Helper_Initialization_DataDirectory_
 #endif
 
 #if !CHRLib_NoDynamic_Mapping
@@ -291,14 +381,14 @@ public:
 #endif
 
 //! \since build 721
-void
+inline void
 WriteNPLA1Stream(std::ostream& os, NPL::Configuration&& conf)
 {
 	ystdex::write_literal(os, Text::BOM_UTF_8) << std::move(conf);
 }
 
 //! \since build 724
-ValueNode
+YB_ATTR_nodiscard ValueNode
 TryReadRawNPLStream(std::istream& is)
 {
 	NPL::Configuration conf;
@@ -310,6 +400,195 @@ TryReadRawNPLStream(std::istream& is)
 	YTraceDe(Warning, "Empty configuration found.");
 	throw GeneralEvent("Invalid stream found when reading configuration.");
 }
+
+//! \since build 899
+//@{
+YB_ATTR_nodiscard YB_NONNULL(1, 2) ValueNode
+LoadNPLA1FileDirect(const char* disp, const char* path, bool show_info)
+{
+	if(show_info)
+		YTraceDe(Notice, "Found %s '%s'.", Nonnull(disp), path);
+	// XXX: Race condition may cause failure, though file would not be
+	//	corrupted now.
+	if(SharedInputMappedFileStream sifs{path})
+	{
+		YTraceDe(Debug, "Accessible configuration file found.");
+		if(Text::CheckBOM(sifs, Text::BOM_UTF_8))
+			return TryReadRawNPLStream(sifs);
+		YTraceDe(Warning, "Wrong encoding of configuration file found.");
+	}
+	YTraceDe(Err, "Configuration corrupted.");
+	return {};
+}
+
+YB_ATTR_nodiscard YB_NONNULL(1, 2, 3) ValueNode
+LoadNPLA1FileCreate(const char* disp, const char* path,
+	ValueNode(*creator)(), bool show_info)
+{
+	if(show_info)
+		YTraceDe(Notice, "Creating %s '%s'...", disp, path);
+
+	ystdex::swap_guard<int, void, decltype(errno)&> gd(errno, 0);
+
+	// XXX: Failed on race condition detected.
+	if(UniqueLockedOutputFileStream uofs{path, std::ios_base::out
+		| std::ios_base::trunc | platform::ios_noreplace})
+		WriteNPLA1Stream(uofs, Nonnull(creator)());
+	else
+	{
+		int err(errno);
+
+		YTraceDe(Warning, "Cannot create file, possible error"
+			" (from errno) = %d: %s.", err, std::strerror(err));
+		YTraceDe(Warning,"Creating default file failed.");
+		return {};
+	}
+	YTraceDe(Debug, "Created configuration.");
+	return LoadNPLA1FileDirect(disp, path, show_info);
+}
+
+YB_ATTR_nodiscard YB_NONNULL(1) ValueNode
+LoadNPLA1MemoryFallback(ValueNode(*creator)())
+{
+	YTraceDe(Notice, "Trying fallback in memory...");
+
+	std::stringstream ss;
+
+	ss << Nonnull(creator)();
+	return TryReadRawNPLStream(ss);
+}
+
+yconstexpr const char* ConfFileDisp("configuration file");
+
+#if YF_Helper_Initialization_UseFallbackConf_
+using ValueNodeLoadEntry = pair<string, ValueNode(*)()>;
+using VecRecordMap = map<string, string>;
+
+mutex NPLA1PathVecRecordMutex;
+
+YB_ATTR_nodiscard YB_PURE VecRecordMap&
+FetchNPLA1PathVecRecordRef()
+{
+	static VecRecordMap m;
+
+	return m;
+}
+
+inline YB_NONNULL(1) void
+AddNPLA1FileVecRecordItem(const char* disp, const string& conf_path)
+{
+	FetchNPLA1PathVecRecordRef().emplace(disp, conf_path);
+}
+
+YB_ATTR_nodiscard YB_NONNULL(1, 3, 4) ValueNode
+LoadNPLA1FileVec(const char* disp, const vector<string>& conf_paths,
+	const char* filename, ValueNode(*creator)(), bool show_info)
+{
+	auto res(TryInvoke([=]() -> ValueNode{
+		for(const auto& conf_path : conf_paths)
+		{
+			const auto e(conf_path + filename);
+			const auto path(e.c_str());
+
+			if(ufexists(path))
+			{
+				const lock_guard<mutex> gd(NPLA1PathVecRecordMutex);
+				auto r(LoadNPLA1FileDirect(disp, path, show_info));
+
+				if(r)
+					AddNPLA1FileVecRecordItem(disp, conf_path);
+				return r;
+			}
+			YTraceDe(Debug, "Path '%s' access failed.", path);
+		}
+		for(const auto& conf_path : conf_paths)
+		{
+			TryExpr(IO::EnsureDirectory(conf_path))
+			catch(std::system_error&)
+			{
+				continue;
+			}
+
+			const auto e(conf_path + filename);
+			const lock_guard<mutex> gd(NPLA1PathVecRecordMutex);
+			auto conf(LoadNPLA1FileCreate(disp, e.c_str(), creator, show_info));
+
+			if(conf)
+			{
+				AddNPLA1FileVecRecordItem(disp, conf_path);
+				return conf;
+			}
+		}
+		return {};
+	}));
+
+	return res ? res : LoadNPLA1MemoryFallback(creator);
+}
+
+const vector<string>&
+FetchConfPaths()
+{
+	static const struct Init
+	{
+		vector<string> Paths;
+
+		// XXX: This may be concurrently executed across multiple threads
+		//	without %call_once. This is still assumed safe (free of race)
+		//	because the result shall be the same in each thread.
+		Init()
+			: Paths([]() -> vector<string>{
+				vector<string> res{FetchPreferredConfPath()};
+				string var;
+
+				if(FetchEnvironmentVariable(var, "HOME") && !var.empty())
+				{
+					AddPostfix(var);
+					res.push_back(std::move(var));
+					var.clear();
+				}
+#if YCL_Win32
+				if(FetchEnvironmentVariable(var, "USERPROFILE") && !var.empty())
+				{
+					AddPostfix(var);
+					res.push_back(std::move(var));
+					var.clear();
+				}
+#endif
+				return res;
+			}())
+		{
+			YTraceDe(Informative,
+				"Initialized enumerated configuration root paths.");
+		}
+
+	private:
+		static inline void
+		AddPostfix(string& var)
+		{
+			var += FetchSeparator<char>();
+			var += ".YSLib";
+			var += FetchSeparator<char>();
+		}
+	} init;
+
+	return init.Paths;
+}
+#endif
+
+YB_ATTR_nodiscard YB_PURE const string&
+FetchConfPathForSave()
+{
+#if YF_Helper_Initialization_UseFallbackConf_
+	const auto& vr(FetchNPLA1PathVecRecordRef());
+	const lock_guard<mutex> gd(NPLA1PathVecRecordMutex);
+	const auto i(vr.find(ConfFileDisp));
+
+	return i != vr.end() ? i->second : FetchPreferredConfPath();
+#else
+	return FetchPreferredConfPath();
+#endif
+}
+//@}
 
 //! \since build 725
 template<typename _type, typename _fLoader, typename _func>
@@ -337,25 +616,6 @@ FetchDefaultResource(_fLoader load, _func f)
 } // unnamed namespace;
 
 void
-InitializeKeyModule(function<void()> f, const char* sig,
-	const char* t, string_view sv)
-{
-	string res;
-
-	try
-	{
-		f();
-		return;
-	}
-	CatchExpr(std::exception& e, ExtractException(
-		[&](const string& str, size_t level){
-		res += string(level, ' ') + "ERROR: " + str + '\n';
-	}, e))
-	CatchExpr(..., res += string("Unknown exception @ ") + sig + ".\n")
-	throw FatalError(t, string(sv) + res);
-}
-
-void
 TraceForOutermost(const std::exception& e, RecordLevel lv) ynothrow
 {
 #if YCL_DS
@@ -378,57 +638,69 @@ TraceForOutermost(const std::exception& e, RecordLevel lv) ynothrow
 		ExtractAndTrace(e, lv);
 }
 
+
+bool
+CheckLocalFHSLayout(const string& path_string)
+{
+	IO::Path bin(path_string);
+	const auto prefix(bin / u"..");
+
+	return CheckLocalFHSLayoutImpl(prefix, std::move(bin));
+}
+
+const IO::Path&
+FetchLocalFHSRootPath()
+{
+#if true
+	// XXX: This is more efficient.
+	auto& cache(FetchRootPathCache());
+
+	if(CheckLocalFHSLayoutWithCache(cache))
+		return cache.Parent;
+	return FetchStaticRef<const IO::Path>();
+#else
+	static const auto path(GetLocalFHSRootPathOf(FetchRootPathString()));
+
+	return path;
+#endif
+}
+
+const string&
+FetchRootPathString()
+{
+	return FetchRootPathCache().PathString;
+}
+
+IO::Path
+GetLocalFHSRootPathOf(const string& path_string)
+{
+#if true
+	// XXX: This is more efficient.
+	IO::Path bin(path_string);
+	auto prefix(bin / u"..");
+
+	if(CheckLocalFHSLayoutImpl(prefix, std::move(bin)))
+		return prefix;
+#else
+	if(CheckLocalFHSLayout(path_string))
+		return IO::Path(path_string) / u"..";
+#endif
+	return {};
+}
+
+
 ValueNode
 LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
 	bool show_info)
 {
 	auto res(TryInvoke([=]() -> ValueNode{
-		if(!ufexists(path))
-		{
-			YTraceDe(Debug, "Path '%s' access failed.", path);
-			if(show_info)
-				YTraceDe(Notice, "Creating %s '%s'...", disp, path);
-
-			ystdex::swap_guard<int, void, decltype(errno)&> gd(errno, 0);
-
-			// XXX: Failed on race condition detected.
-			if(UniqueLockedOutputFileStream uofs{path, std::ios_base::out
-				| std::ios_base::trunc | platform::ios_noreplace})
-				WriteNPLA1Stream(uofs, Nonnull(creator)());
-			else
-			{
-				int err(errno);
-
-				YTraceDe(Warning, "Cannot create file, possible error"
-					" (from errno) = %d: %s.", err, std::strerror(err));
-				YTraceDe(Warning,"Creating default file failed.");
-				return {};
-			}
-			YTraceDe(Debug, "Created configuration.");
-		}
-		if(show_info)
-			YTraceDe(Notice, "Found %s '%s'.", Nonnull(disp), path);
-		// XXX: Race condition may cause failure, though file would not be
-		//	corrupted now.
-		if(SharedInputMappedFileStream sifs{path})
-		{
-			YTraceDe(Debug, "Accessible configuration file found.");
-			if(Text::CheckBOM(sifs, Text::BOM_UTF_8))
-				return TryReadRawNPLStream(sifs);
-			YTraceDe(Warning, "Wrong encoding of configuration file found.");
-		}
-		YTraceDe(Err, "Configuration corrupted.");
-		return {};
+		if(ufexists(path))
+			return LoadNPLA1FileDirect(disp, path, show_info);
+		YTraceDe(Debug, "Path '%s' access failed.", path);
+		return LoadNPLA1FileCreate(disp, path, creator, show_info);
 	}));
 
-	if(res)
-		return res;
-	YTraceDe(Notice, "Trying fallback in memory...");
-
-	std::stringstream ss;
-
-	ss << Nonnull(creator)();
-	return TryReadRawNPLStream(ss);
+	return res ? std::move(res) : LoadNPLA1MemoryFallback(creator);
 }
 
 void
@@ -457,18 +729,29 @@ LoadComponents(Application& app, const ValueNode& node)
 ValueNode
 LoadConfiguration(bool show_info)
 {
-	return LoadNPLA1File("configuration file", CONF_PATH, []{
+	ValueNode(*creator)()([]{
 		return ValueNode(NodeLiteral{"YFramework",
-			{{"DataDirectory", DATA_DIRECTORY}, {"FontFile", DEF_FONT_PATH},
-			{"FontDirectory", DEF_FONT_DIRECTORY}}});
-	}, show_info);
+			{{"DataDirectory", YF_Helper_Initialization_DataDirectory_},
+			{"FontFile", YF_Helper_Initialization_FontFile_},
+			{"FontDirectory", YF_Helper_Initialization_FontDirectory_}}});
+	});
+
+#if YF_Helper_Initialization_UseFallbackConf_
+	return LoadNPLA1FileVec(ConfFileDisp, FetchConfPaths(), "yconf.txt",
+		creator, show_info);
+#else
+	return LoadNPLA1File(ConfFileDisp,
+		(FetchPreferredConfPath() + "yconf.txt").c_str(), creator, show_info);
+#endif
+#undef YF_Helper_Initialization_UseFallbackConf_
 }
 
 void
 SaveConfiguration(const ValueNode& node)
 {
-	if(UniqueLockedOutputFileStream
-		uofs{CONF_PATH, std::ios_base::out | std::ios_base::trunc})
+	if(UniqueLockedOutputFileStream uofs{
+		(FetchConfPathForSave() + "yconf.txt").c_str(),
+		std::ios_base::out | std::ios_base::trunc})
 	{
 		YTraceDe(Debug, "Writing configuration...");
 		WriteNPLA1Stream(uofs, ValueNode(node.GetContainer()));
@@ -478,6 +761,10 @@ SaveConfiguration(const ValueNode& node)
 	YTraceDe(Debug, "Writing configuration done.");
 }
 
+#undef YF_Helper_Initialization_DataDirectory_
+#undef YF_Helper_Initialization_FontDirectory_
+#undef YF_Helper_Initialization_FontFile_
+
 
 void
 InitializeSystemFontCache(FontCache& fc, const string& font_file,
@@ -486,7 +773,7 @@ InitializeSystemFontCache(FontCache& fc, const string& font_file,
 	string res;
 
 	YTraceDe(Notice, "Loading font files...");
-	InitializeKeyModule([&]{
+	PerformKeyAction([&]{
 		size_t loaded(fc.LoadTypefaces(font_file) != 0 ? 1 : 0);
 
 		if(!font_dir.empty())

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2019 FrankHB.
+	© 2010-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2578
+\version r2589
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2019-02-15 21:02 +0800
+	2020-10-03 14:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YSL_INC_Core_YCoreUtilities_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YException // for std::string, LoggedEvent, string;
+#include YFM_YSLib_Core_YException // for LoggedEvent, string, function,
+//	string_view;
 #include <ystdex/algorithm.hpp> // for ystdex::clamp;
 
 namespace YSLib
@@ -364,6 +365,16 @@ ClearSequence(_tOut dst, size_t n) ynothrowv
 
 	std::fill_n(dst, n, _type());
 }
+
+
+/*!
+\brief 执行关键动作。
+\throw FatalError 调用失败。
+\note 第二参数表示调用签名；后两个参数用于抛出异常。
+\since build 899
+*/
+YF_API void
+PerformKeyAction(function<void()>, const char*, const char*, string_view);
 
 
 /*!

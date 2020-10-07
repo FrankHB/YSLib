@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3952
+\version r3963
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2020-08-07 17:37 +0800
+	2020-09-06 15:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -372,20 +372,10 @@ RunNPLFromStream(const char* name, std::istream&& is)
 	// NOTE: Force filter level to avoid uninterested NPLA messages. This is
 	//	necessary at least in stage 1.
 	context.Root.Trace.FilterLevel = Logger::Level::Informative;
-	LoadGroundContext(context);
+	LoadStandardContext(context);
 
 	auto& rctx(context.Root);
-	const auto load_std_module([&](string_view module_name,
-		void(&load_module)(REPLContext&)){
-		LoadModuleChecked(rctx, "std." + string(module_name),
-			std::bind(load_module, std::ref(context)));
-	});
 
-	load_std_module("strings", LoadModule_std_strings);
-	load_std_module("environments", LoadModule_std_environments),
-	load_std_module("io", LoadModule_std_io),
-	load_std_module("system", LoadModule_std_system),
-	load_std_module("promises", LoadModule_std_promises);
 	InvokeIn(rctx, [&]{
 		context.Root.GetRecordRef().DefineChecked("env_SHBuild_",
 			GetModuleFor(rctx, [&]{

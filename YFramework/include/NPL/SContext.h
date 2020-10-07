@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r3597
+\version r3805
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2020-07-24 00:53 +0800
+	2020-10-06 21:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,16 +33,18 @@
 //	ystdex::unref, ystdex::as_const, LexemeList;
 #include YFM_YSLib_Core_ValueNode // for YSLib::Deref, YSLib::LoggedEvent,
 //	YSLib::MakeIndex, YSLib::NoContainer, YSLib::NoContainerTag,
-//	YSLib::ValueNode, YSLib::ValueObject, YSLib::make_observer,
-//	YSLib::make_pair, YSLib::share_move, YSLib::make_shared, YSLib::make_weak,
-//	YSLib::observer_ptr, YSLib::weak_ptr, list, YSLib::ListContainerTag,
-//	std::initializer_list, ystdex::create_and_swap, ystdex::forward_like,
-//	ystdex::invoke, YSLib::AccessPtr, ystdex::false_, std::is_convertible,
-//	ystdex::decay_t, ystdex::bool_, ystdex::cond_or_t, ystdex::not_,
-//	ystdex::enable_if_t, ystdex::call_value_or, ystdex::addrof, ystdex::compose,
-//	YSLib::Alert, YSLib::stack;
-#include <iterator> // for std::iterator_traits, std::input_iterator_tag,
-//	std::random_access_iterator_tag;
+//	YSLib::ValueNode, YSLib::ValueObject, YSLib::forward_as_tuple, YSLib::get,
+//	YSLib::make_observer, YSLib::make_pair, YSLib::share_move,
+//	YSLib::make_shared, YSLib::make_weak, YSLib::observer_ptr, YSLib::tuple,
+//	YSLib::weak_ptr, list, YSLib::ListContainerTag, std::initializer_list,
+//	ystdex::create_and_swap, ystdex::forward_like, ystdex::invoke,
+//	YSLib::AccessPtr, ystdex::false_, std::is_convertible, ystdex::decay_t,
+//	ystdex::bool_, ystdex::cond_or_t, ystdex::not_, ystdex::enable_if_t,
+//	ystdex::call_value_or, ystdex::addrof, ystdex::compose, pair,
+//	std::is_lvalue_reference, YSLib::Alert, YSLib::stack;
+#include <ystdex/range.hpp> // for std::iterator_traits,
+//	ystdex::range_iterator_t, ystdex::begin, ystdex::end,
+//	std::input_iterator_tag, std::random_access_iterator_tag;
 #include <algorithm> // for std::for_each;
 #include <ystdex/scope_guard.hpp> // for ystdex::make_guard;
 
@@ -65,6 +67,10 @@ using YSLib::Nonnull;
 using YSLib::ValueNode;
 //! \since build 675
 using YSLib::ValueObject;
+//! \since build 899
+using YSLib::forward_as_tuple;
+//! \since build 882
+using YSLib::get;
 //! \since build 852
 using YSLib::make_observer;
 //! \since build 852
@@ -75,6 +81,8 @@ using YSLib::make_shared;
 using YSLib::make_weak;
 //! \since build 674
 using YSLib::observer_ptr;
+//! \since build 899
+using YSLib::tuple;
 //! \since build 788
 using YSLib::weak_ptr;
 
@@ -543,14 +551,14 @@ YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsList, const TermNode& term)
 using YSLib::Access;
 //! \since build 854
 template<typename _type>
-YB_ATTR_nodiscard inline _type&
+YB_ATTR_nodiscard YB_PURE inline _type&
 Access(TermNode& term)
 {
 	return term.Value.Access<_type>();
 }
 //! \since build 854
 template<typename _type>
-YB_ATTR_nodiscard inline const _type&
+YB_ATTR_nodiscard YB_PURE inline const _type&
 Access(const TermNode& term)
 {
 	return term.Value.Access<_type>();
@@ -560,14 +568,14 @@ Access(const TermNode& term)
 using YSLib::AccessPtr;
 //! \since build 852
 template<typename _type>
-YB_ATTR_nodiscard inline observer_ptr<_type>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
 AccessPtr(TermNode& term) ynothrow
 {
 	return term.Value.AccessPtr<_type>();
 }
 //! \since build 852
 template<typename _type>
-YB_ATTR_nodiscard inline observer_ptr<const _type>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<const _type>
 AccessPtr(const TermNode& term) ynothrow
 {
 	return term.Value.AccessPtr<_type>();
@@ -703,6 +711,82 @@ HasValue(const TermNode& term, const _type& x)
 }
 
 
+//! \since build 891
+//@{
+/*!
+\brief 转换参数为词素。
+\note 可配合其它不能直接转换为词素的参数类型的 ADL 重载使用。
+*/
+//@{
+template<class _type, yimpl(typename = ystdex::enable_if_convertible_t<
+	const _type&, const LexemeList::value_type&>)>
+YB_ATTR_nodiscard YB_STATELESS const _type&
+ToLexeme(const _type& val) ynothrow
+{
+	return val;
+}
+YB_ATTR_nodiscard YB_PURE inline PDefH(const string&, ToLexeme,
+	const SourcedByteParser::ParseResult::value_type& val) ynothrow
+	ImplRet(val.second)
+//@}
+
+/*!
+\ingroup functors
+\brief 词素标记器：转换输入为以词素为作为值数据成员的节点。
+*/
+struct LexemeTokenizer
+{
+	TermNode::allocator_type Allocator;
+
+	LexemeTokenizer(TermNode::allocator_type a = {})
+		: Allocator(a)
+	{}
+
+	//! \note 使用 ADL ToLexeme 转换访问的迭代器值为词素值。
+	template<class _type>
+	YB_ATTR_nodiscard YB_PURE TermNode
+	operator()(const _type& val) const
+	{
+		return NPL::AsTermNode(Allocator, std::allocator_arg, Allocator,
+			ToLexeme(val));
+	}
+};
+
+
+/*!
+\brief 读取器状态：支持解析一个记号或列表的解析器的辅助状态。
+\warning 非虚析构。
+\since build 899
+*/
+class YF_API ReaderState
+{
+public:
+	char LeftDelimiter = '(';
+	char RightDelimiter = ')';
+	size_t LeftDelimiterCount = 0;
+	size_t RightDelimiterCount = 0;
+
+	DefDeCtor(ReaderState)
+
+	DefPred(const ynothrow, Balanced, LeftDelimiterCount == RightDelimiterCount)
+	DefPred(const ynothrow, Valid, LeftDelimiterCount >= RightDelimiterCount)
+
+	PDefH(void, Reset, ) ynothrow
+		ImplExpr(*this = ReaderState())
+
+	//! \note 使用 ADL ToLexeme 。
+	template<class _type>
+	void
+	Update(const _type& val)
+	{
+		UpdateLexeme(ToLexeme(val));
+	}
+
+	void
+	UpdateLexeme(const string&);
+};
+
+
 //! \warning 非虚析构。
 //@{
 /*!
@@ -752,10 +836,13 @@ public:
 	}
 
 	/*!
-	\brief 使用解析器处理输入范围。
 	\exception LoggedEvent 关键失败：无法访问源内容。
 	\sa DefaultParser
 	\sa SContextParsers
+	*/
+	//@{
+	/*!
+	\brief 使用解析器处理输入范围。
 	\since build 889
 
 	前两个迭代器参数或第一个范围参数指定要处理的输入序列。
@@ -769,14 +856,14 @@ public:
 	YB_ATTR_nodiscard inline DefaultParser
 	Process(_tIn first, _tIn last)
 	{
-		return ProcessImpl(first, last,
+		return ProcessSequence(first, last,
 			typename std::iterator_traits<_tIn>::iterator_category());
 	}
 	template<typename _tIn, typename _fParse>
 	YB_ATTR_nodiscard inline _fParse
 	Process(_tIn first, _tIn last, _fParse parse)
 	{
-		return ProcessImpl(first, last, parse,
+		return ProcessSequence(first, last, parse,
 			typename std::iterator_traits<_tIn>::iterator_category());
 	}
 	//! \since build 890
@@ -794,38 +881,45 @@ public:
 	}
 	//@}
 
-private:
-	//! \since build 890
-	//@{
-	template<typename _tIn, class _tTag>
-	YB_ATTR_nodiscard inline DefaultParser
-	ProcessImpl(_tIn first, _tIn last, _tTag)
-	{
-		DefaultParser parse(Lexer, allocator);
+	/*!
+	\brief 使用解析器处理输入范围读取列表或元素。
+	\since build 899
 
-		yunused(ProcessImpl(first, last, ystdex::ref(parse), _tTag()));
-		// NOTE: Return the parser object with copy elimination.
-		return parse;
+	同 Process ，但维护读取器状态，当读取完整的列表或元素时终止，返回解析器和迭代器。
+	*/
+	//@{
+	template<typename _tIn>
+	YB_ATTR_nodiscard inline pair<DefaultParser, _tIn>
+	ProcessOne(ReaderState& rs, _tIn first, _tIn last)
+	{
+		return ProcessSequenceOne(rs, first, last,
+			typename std::iterator_traits<_tIn>::iterator_category());
 	}
 	template<typename _tIn, typename _fParse>
-	YB_ATTR_nodiscard inline _fParse
-	ProcessImpl(_tIn first, _tIn last, _fParse parse, std::input_iterator_tag)
+	YB_ATTR_nodiscard inline pair<_fParse, _tIn>
+	ProcessOne(ReaderState& rs, _tIn first, _tIn last, _fParse parse)
 	{
-		std::for_each(first, last, parse);
-		return parse;
+		return ProcessSequenceOne(rs, first, last, parse,
+			typename std::iterator_traits<_tIn>::iterator_category());
 	}
-	template<typename _tRandom, typename _fParse>
-	YB_ATTR_nodiscard inline _fParse
-	ProcessImpl(_tRandom first, _tRandom last, _fParse parse,
-		std::random_access_iterator_tag)
+	template<typename _tRange>
+	YB_ATTR_nodiscard inline
+		pair<DefaultParser, ystdex::range_iterator_t<const _tRange>>
+	ProcessOne(ReaderState& rs, const _tRange& c)
 	{
-		// XXX: This should be safe since there should be no more space out of
-		//	the range of %size_t.
-		ProcessReserve(parse, size_t(last - first));
-		return ProcessImpl(first, last, parse, std::input_iterator_tag());
+		return ProcessOne(rs, ystdex::begin(c), ystdex::end(c));
+	}
+	template<typename _tRange, typename _fParse>
+	YB_ATTR_nodiscard inline
+		pair<_fParse, ystdex::range_iterator_t<const _tRange>>
+	ProcessOne(ReaderState& rs, const _tRange& c, _fParse parse)
+	{
+		return ProcessOne(rs, ystdex::begin(c), ystdex::end(c), parse);
 	}
 	//@}
+	//@}
 
+private:
 	//! \since build 890
 	template<class _tParser>
 	static auto
@@ -839,6 +933,87 @@ private:
 	static void
 	ProcessReserve(_tParams&&...)
 	{}
+
+	//! \since build 899
+	//@{
+	template<typename _tIn, class _tTag>
+	YB_ATTR_nodiscard inline DefaultParser
+	ProcessSequence(_tIn first, _tIn last, _tTag)
+	{
+		DefaultParser parse(Lexer, allocator);
+
+		yunused(ProcessSequence(first, last, ystdex::ref(parse), _tTag()));
+		// NOTE: Return the parser object with copy elimination.
+		return parse;
+	}
+	template<typename _tIn, typename _fParse>
+	YB_ATTR_nodiscard inline _fParse
+	ProcessSequence(_tIn first, _tIn last, _fParse parse,
+		std::input_iterator_tag)
+	{
+		std::for_each(first, last, parse);
+		return parse;
+	}
+	template<typename _tRandom, typename _fParse>
+	YB_ATTR_nodiscard inline _fParse
+	ProcessSequence(_tRandom first, _tRandom last, _fParse parse,
+		std::random_access_iterator_tag)
+	{
+		// XXX: This should be safe since there should be no more space out of
+		//	the range of %size_t.
+		ProcessReserve(parse, size_t(last - first));
+		return ProcessSequence(first, last, parse, std::input_iterator_tag());
+	}
+
+	template<typename _tIn, class _tTag>
+	YB_ATTR_nodiscard inline pair<DefaultParser, _tIn>
+	ProcessSequenceOne(ReaderState& rs, _tIn first, _tIn last, _tTag)
+	{
+		DefaultParser parse(Lexer, allocator);
+
+		return {std::move(parse), ProcessSequenceOne(rs, first, last,
+			ystdex::ref(parse), _tTag()).second};
+	}
+	template<typename _tIn, typename _fParse>
+	YB_ATTR_nodiscard inline pair<_fParse, _tIn>
+	ProcessSequenceOne(ReaderState& rs, _tIn first, _tIn last, _fParse parse,
+		std::input_iterator_tag)
+	{
+		static_assert(std::is_lvalue_reference<decltype(GetResult(parse))>(),
+			"Reader requires a parser has the result in a fixed location.");
+
+		const auto& res(GetResult(parse));
+		auto size(res.size());
+
+		while(first != last)
+		{
+			parse(*first);
+
+			const auto new_size(res.size());
+
+			if(new_size != size)
+			{
+				rs.Update(res.back());
+				if(rs.IsBalanced() && !ystdex::unref(parse).IsUpdating())
+					break;
+				size = new_size;
+			}
+			++first;
+		}
+		return {parse, first};
+	}
+	template<typename _tRandom, typename _fParse>
+	YB_ATTR_nodiscard inline pair<_fParse, _tRandom>
+	ProcessSequenceOne(ReaderState& rs, _tRandom first, _tRandom last,
+		_fParse parse, std::random_access_iterator_tag)
+	{
+		// XXX: This should be safe since there should be no more space out of
+		//	the range of %size_t.
+		ProcessReserve(parse, size_t(last - first));
+		return ProcessSequenceOne(rs, first, last, parse,
+			std::input_iterator_tag());
+	}
+	//@}
 
 public:
 	/*!
@@ -858,49 +1033,6 @@ public:
 */
 namespace SContext
 {
-
-//! \since build 891
-//@{
-/*!
-\brief 转换参数为词素。
-\note 可配合其它不能直接转换为词素的参数类型的 ADL 重载使用。
-*/
-//@{
-template<class _type, yimpl(typename = ystdex::enable_if_convertible_t<
-	const _type&, const LexemeList::value_type&>)>
-YB_ATTR_nodiscard YB_STATELESS const _type&
-ToLexeme(const _type& val) ynothrow
-{
-	return val;
-}
-YB_ATTR_nodiscard YB_PURE inline PDefH(const string&, ToLexeme,
-	const SourcedByteParser::ParseResult::value_type& val) ynothrow
-	ImplRet(val.second)
-//@}
-
-
-/*!
-\ingroup functors
-\brief 转换记号为词素。
-*/
-struct LexemeTokenizer
-{
-	TermNode::allocator_type Allocator;
-
-	LexemeTokenizer(TermNode::allocator_type a = {})
-		: Allocator(a)
-	{}
-
-	//! \note 使用 ADL ToLexeme 转换访问的迭代器值为词素值。
-	template<class _type>
-	YB_ATTR_nodiscard YB_PURE TermNode
-	operator()(const _type& val) const
-	{
-		return NPL::AsTermNode(Allocator, std::allocator_arg, Allocator,
-			ToLexeme(val));
-	}
-};
-
 
 /*!
 \param first 起始迭代器。
@@ -939,12 +1071,6 @@ Validate(_tIn first, _tIn last)
 \param term 项节点。
 */
 //@{
-template<typename _tIn>
-YB_ATTR_nodiscard inline _tIn
-Reduce(TermNode& term, _tIn first, _tIn last)
-{
-	return Reduce(term, first, last, LexemeTokenizer{term.get_allocator()});
-}
 //! \param tokenize 标记器。
 template<typename _tIn, typename _fTokenize>
 YB_ATTR_nodiscard _tIn
@@ -979,6 +1105,13 @@ Reduce(TermNode& term, _tIn first, _tIn last, _fTokenize tokenize)
 	if(tms.size() == 1)
 		return first;
 	throw LoggedEvent("Redundant '(' found.", YSLib::Alert);
+}
+template<typename _tIn>
+YB_ATTR_nodiscard inline _tIn
+Reduce(TermNode& term, _tIn first, _tIn last)
+{
+	return SContext::Reduce(term, first, last,
+		LexemeTokenizer{term.get_allocator()});
 }
 //@}
 //@}

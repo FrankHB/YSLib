@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016, 2018-2019 FrankHB.
+	© 2015-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file range.hpp
 \ingroup YStandardEx
 \brief 范围操作。
-\version r933
+\version r945
 \author FrankHB <frankhb1989@gmail.com>
 \since build 624
 \par 创建时间:
 	2015-08-18 22:33:54 +0800
 \par 修改时间:
-	2019-11-04 17:42 +0800
+	2020-10-05 22:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -657,6 +657,19 @@ crend(std::initializer_list<_tElem> il) ynothrow
 //@}
 
 } // inline namespace cpp2014;
+
+/*!
+\ingroup metafunctions
+\since build 899
+*/
+//@{
+template<typename _tRange>
+using range_iterator_t = decltype(ystdex::begin(std::declval<_tRange&>()));
+
+template<typename _tRange>
+using range_const_iterator_t
+	= decltype(ystdex::cbegin(std::declval<const _tRange&>()));
+//@}
 
 } // namespace ystdex;
 

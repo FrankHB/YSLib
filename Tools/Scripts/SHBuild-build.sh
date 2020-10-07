@@ -16,12 +16,14 @@ C_CXXFLAGS_GC=' '
 LDFLAGS_GC=' '
 # shellcheck disable=2034
 LDFLAGS_STRIP=' '
+# NOTE: '-Og -g' is not supported. See $2020-09 @ %Documentation::Workflow.
 # shellcheck disable=2034
-CXXFLAGS_OPT_DBG='-Og -g'
+CXXFLAGS_OPT_DBG='-O0 -g'
 # XXX: This avoids clash between '-Og' with error 'Optimization level must be
 #	between 0 and 3' caused by options passed to the linker from Clang++ driver.
 #	See also https://bugs.llvm.org/show_bug.cgi?id=38305. Anyway LTO is not make
-#	it easy to debug as the intentional '-Og' here, so simply disable it.
+#	it easy to debug as the intentional '-Og' or '-O0' here, so simply disable
+#	it.
 # shellcheck disable=2034
 LDFLAGS_IMPL_OPT=' '
 # shellcheck source=./SHBuild-bootstrap.sh

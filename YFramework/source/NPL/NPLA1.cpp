@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r20028
+\version r20086
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-08-30 14:51 +0800
+	2020-10-06 22:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,18 +30,20 @@
 //	type_index, string_view, std::hash, ystdex::equal_to, YSLib::unordered_map,
 //	std::piecewise_construct, YSLib::lock_guard, YSLib::mutex, ystdex::type_id,
 //	ContextHandler, NPL::make_observer, ystdex::ref, lref, IValueHolder,
-//	YSLib::AllocatedHolderOperations, any, uintmax_t, TokenValue,
-//	function, std::allocator_arg, stack, vector, std::find_if, TermTags,
-//	TermReference, GetLValueTagsOf, NPL::TryAccessLeaf, NPL::IsMovable,
-//	in_place_type, InvalidReference, IsBranch, NPL::Deref, IsLeaf, ResolveTerm,
-//	ystdex::update_thunk, NPL::Access, ystdex::retry_on_cond,
-//	AccessFirstSubterm, ystdex::bind1, ystdex::make_transform, IsBranchedList,
-//	std::placeholders, NoContainer, ystdex::try_emplace, Environment,
-//	shared_ptr, ystdex::unique_guard, NPL::AsTermNode, CategorizeBasicLexeme,
-//	DeliteralizeUnchecked, CheckReducible, Deliteralize, ystdex::isdigit,
-//	ResolveIdentifier, IsNPLAExtendedLiteral, ystdex::ref_eq,
-//	NPL::TryAccessTerm, YSLib::share_move, ystdex::call_value_or, Session;
+//	YSLib::AllocatedHolderOperations, any, ystdex::as_const,
+//	NPL::forward_as_tuple, uintmax_t, TokenValue, function, std::allocator_arg,
+//	stack, vector, std::find_if, TermTags, TermReference, GetLValueTagsOf,
+//	NPL::TryAccessLeaf, NPL::IsMovable, in_place_type, InvalidReference,
+//	IsBranch, NPL::Deref, IsLeaf, ResolveTerm, ystdex::update_thunk,
+//	NPL::Access, ystdex::retry_on_cond, AccessFirstSubterm, ystdex::bind1,
+//	ystdex::make_transform, IsBranchedList, std::placeholders, NoContainer,
+//	ystdex::try_emplace, Environment, shared_ptr, ystdex::unique_guard,
+//	NPL::AsTermNode, CategorizeBasicLexeme, DeliteralizeUnchecked,
+//	CheckReducible, Deliteralize, ystdex::isdigit, ResolveIdentifier,
+//	IsNPLAExtendedLiteral, ystdex::ref_eq, NPL::TryAccessTerm,
+//	YSLib::share_move, ystdex::call_value_or, Session;
 #include "NPLA1Internals.h" // for A1::Internals API;
+#include YFM_NPL_Dependency // for A1::OpenUnique;
 
 using namespace YSLib;
 
@@ -330,7 +332,9 @@ public:
 	{
 		// XXX: Always use the allocator to hold the source information.
 		return YSLib::AllocatedHolderOperations<SourcedHolder,
-			_tByteAlloc>::CreateHolder(c, x, value, source_information, value);
+			_tByteAlloc>::CreateHolder(c, x, value, NPL::forward_as_tuple(
+			source_information, ystdex::as_const(value)), NPL::forward_as_tuple(
+			source_information, std::move(value)));
 	}
 
 	YB_ATTR_nodiscard YB_PURE PDefH(any, Query, uintmax_t) const ynothrow
@@ -344,8 +348,6 @@ public:
 
 //! \since build 881
 //@{
-using Action = function<void()>;
-
 class SeparatorPass
 {
 private:
@@ -1604,10 +1606,10 @@ AddTypeNameTableEntry(const ystdex::type_info& ti, string_view sv)
 {
 	YAssertNonnull(sv.data());
 
-	YSLib::lock_guard<YSLib::mutex> gd(NameTableMutex);
+	const YSLib::lock_guard<YSLib::mutex> gd(NameTableMutex);
 
 	return FetchNameTableRef<NPLA1Tag>().emplace(std::piecewise_construct,
-		std::forward_as_tuple(ti), std::forward_as_tuple(sv)).second;
+		NPL::forward_as_tuple(ti), NPL::forward_as_tuple(sv)).second;
 }
 
 string_view
@@ -1659,7 +1661,7 @@ QueryTailOperatorName(const Reducer& act)
 string_view
 QueryTypeName(const ystdex::type_info& ti)
 {
-	YSLib::lock_guard<YSLib::mutex> gd(NameTableMutex);
+	const YSLib::lock_guard<YSLib::mutex> gd(NameTableMutex);
 	const auto& tbl(FetchNameTableRef<NPLA1Tag>());
 	const auto i(tbl.find(ti));
 
@@ -1708,6 +1710,13 @@ REPLContext::IsAsynchronous() const ynothrow
 }
 
 TermNode
+REPLContext::DefaultLoad(REPLContext& context, ContextNode& ctx,
+	string filename)
+{
+	return context.ReadFrom(*A1::OpenUnique(context, std::move(filename)), ctx);
+}
+
+TermNode
 REPLContext::ReadFrom(LoadOptionTag<>, std::streambuf& buf, ContextNode& ctx)
 	const
 {
@@ -1724,6 +1733,22 @@ REPLContext::ReadFrom(LoadOptionTag<>, std::streambuf& buf, ContextNode& ctx)
 	return Prepare(sess, sess.Process(s_it_t(&buf), s_it_t()));
 }
 TermNode
+REPLContext::ReadFrom(LoadOptionTag<>, std::streambuf& buf, ReaderState& rs,
+	ContextNode& ctx) const
+{
+	using s_it_t = std::istreambuf_iterator<char>;
+	Session sess(ctx.get_allocator());
+
+	if(UseSourceLocation)
+	{
+		SourcedByteParser parse(sess.Lexer, sess.get_allocator());
+
+		return Prepare(sess, sess.ProcessOne(rs, s_it_t(&buf), s_it_t(),
+			ystdex::ref(parse)).first);
+	}
+	return Prepare(sess, sess.ProcessOne(rs, s_it_t(&buf), s_it_t()).first);
+}
+TermNode
 REPLContext::ReadFrom(LoadOptionTag<WithSourceLocation>, std::streambuf& buf,
 	ContextNode& ctx) const
 {
@@ -1735,6 +1760,17 @@ REPLContext::ReadFrom(LoadOptionTag<WithSourceLocation>, std::streambuf& buf,
 		Prepare(sess, sess.Process(s_it_t(&buf), s_it_t(), ystdex::ref(parse)));
 }
 TermNode
+REPLContext::ReadFrom(LoadOptionTag<WithSourceLocation>, std::streambuf& buf,
+	ReaderState& rs, ContextNode& ctx) const
+{
+	using s_it_t = std::istreambuf_iterator<char>;
+	Session sess(ctx.get_allocator());
+	SourcedByteParser parse(sess.Lexer, sess.get_allocator());
+
+	return Prepare(sess,
+		sess.ProcessOne(rs, s_it_t(&buf), s_it_t(), ystdex::ref(parse)).first);
+}
+TermNode
 REPLContext::ReadFrom(LoadOptionTag<NoSourceInformation>, std::streambuf& buf,
 	ContextNode& ctx) const
 {
@@ -1742,6 +1778,15 @@ REPLContext::ReadFrom(LoadOptionTag<NoSourceInformation>, std::streambuf& buf,
 	Session sess(ctx.get_allocator());
 
 	return Prepare(sess, sess.Process(s_it_t(&buf), s_it_t()));
+}
+TermNode
+REPLContext::ReadFrom(LoadOptionTag<NoSourceInformation>, std::streambuf& buf,
+	ReaderState& rs, ContextNode& ctx) const
+{
+	using s_it_t = std::istreambuf_iterator<char>;
+	Session sess(ctx.get_allocator());
+
+	return Prepare(sess, sess.ProcessOne(rs, s_it_t(&buf), s_it_t()).first);
 }
 TermNode
 REPLContext::ReadFrom(LoadOptionTag<>, string_view unit, ContextNode& ctx) const

@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r3791
+\version r3842
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2020-08-10 15:50 +0800
+	2020-09-29 21:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2002,11 +2002,11 @@ $2017-07:
 
 report.impl:
 Code bloat of exception message is still not resolved in the devkitARM release 46 toolchain.
-	See $2015-12 for previous status.
+	See $2015-12 for the previous status.
 	See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60936.
 		This is not backported for GCC 6.
-	This may be better in upcoming devkitARM release 47 since it would update to GCC 7.
-Use of direct evaluation is general preferred, even '$quote' has been now introduced.
+	This may be better in the upcoming devkitARM release 47 since it would update to GCC 7.
+Use of direct evaluation is general preferred in NPL, even '$quote' has been now introduced.
 	This is as the same style as in Kernel.
 	In general, there are no need to '$quote' since 'eval' handles lists well.
 		Lists are constructed by 'cons', 'list', 'list*' or other constructors.
@@ -2043,13 +2043,21 @@ Transformation of lvalue expressions support in NPLA1 implemented carefully.
 			This is not necessary after call of 'NPL::LiftTermOrRef' or similar functions.
 	For operations only require immutable reference, new underline expression categories are to be introduced.
 		They are not in schedule.
-Update of devkitARM is carefully handled.
-	The build system is modified a little to adapt to devkitARM r47.
-		The command 'objcopy -O binary' would not work properly.
-			It would produce a large binary with all sections and made it failed to link.
-		This would actually not work since devkitARM r46 after update of linker script and crt0 objects.
+Update of code for DS platform is carefully evaluated.
+	A try of update to devkitARM r47 is performed.
+		The build system is modified a little to adapt to devkitARM r47.
+			To work around the binary bloat, the image files are produced by linking directly with .elf instead of .bin files.
+				See $2018-07 for the previous status.
+				The command 'objcopy -O binary' would not work properly.
+					It would produce a large binary with all sections and made it fail to link.
+					This would actually not work since devkitARM r46 after the update of linker script and crt0 objects.
+				Note that the removal of the 'objcopy' command bloats binary 975 KiB to 1029 KiB with devkitARM r45.
+		This also requires some other changes in the code.
+			Some types of hanlders for '::devoptab_t' members are required to be changed due to the change in the libsysbase interface.
+		As per https://devkitpro.org/viewtopic.php?f=13&t=8643, all libraries are better to be rebuilt. This is never done at this time.
+		This is eventually reverted. Update of some new version of devkitARM in future is planned.
 	In FAT implementation in YFramework on platform DS, max lengths of name have been changed.
-		This is caused by upstream change of value of 'NAME_MAX' macro in header <sys/syslimit.h>.
+		This is caused by the upstream change of value of 'NAME_MAX' macro in the header <sys/syslimit.h>.
 			The value previously in devkitARM r44 (as used by b611) is 768, and was changed to 255.
 			See https://github.com/devkitPro/newlib/commit/770821c9e4745d69c2df69624f0e4b1f759ecfb6.
 		The value of 'platform::FAT::LFN::MaxMBCSLength' is adapted in 'YCLib.FileSystem' for 2 reasons:
@@ -2134,7 +2142,7 @@ Proper tail calls are considered to be implemented.
 					So when needed, guard is used to hold the old one and recover the state when necessary (e.g. on exception).
 				Host exceptions in loops are not guaranteed being handled like them in direct style (esp. stack unwinding), except that basic exception guarantee is still held.
 					Anyway, this is unspecified previously, and can be adjusted later.
-	First-class continutation is still not supported, but it can be implemented based on current work.
+	First-class continutations are still not supported, but it can be implemented based on current work.
 	The top-level loop is adjusted to these changes.
 		Now the loop is flat for all descendant reductions of subnodes previously introduced recursively.
 		The loop now comes after setting of default tail action to make it more natural with CPS.
@@ -2197,7 +2205,7 @@ Implementation of delimited continuation supported has been considered.
 $2018-02:
 
 report.impl:
-Term lifting at end of returning from closure is reconsidered.
+NPLA term lifting at end of returning from closure is reconsidered.
 	The no-op (instead of lifting) returning of term is the copy elision (unconditionally).
 		It is equivalent to returning by reference, which can be dangerous.
 		It is not always detectable reliably without tracing lifetime of all objects since the referenced term may be not hold by 'shared_ptr', etc.
@@ -2223,8 +2231,9 @@ $report.impl:
 Several DS buidling problem concerned with compatibility issues in devkitPro has been addressed.
 	The update of libnds 1.6.0 changes minor internal interfaces, which has been adapted in module YCLib::NativeAPI.
 	The update of devkitARM r46 changes libgloss I/O interface in newlib, using 'void*' instead of 'int' as internal representation of file descriptor.
-		Module 'YCLib_(DS).DSIO' is adapted to use 'void*' type file handle instead of raw file descriptor.
+		The module 'YCLib_(DS).DSIO' is adapted to use 'void*' type file handle instead of raw file descriptor.
 			This also reduces casts between pointers and 'int'.
+		See also $2015-12 for the changes.
 	The ndstool distributed with devkitARM r46 and later versions has added DSi ROM generation, which would cause problems.
 		This is not documented.
 			See https://github.com/devkitPro/ndstool/commit/18d3c00df65a2b7a9c9f0312eaac518678869345 for the change.
@@ -2238,11 +2247,12 @@ Several DS buidling problem concerned with compatibility issues in devkitPro has
 					For instance, font loading would fail at 'FT_NewFace' with unknown format error, while the previous reading operations seem to be normal.
 			Nevertheless, even the newest official stable release would support DSi, the version used to test in YSLib (without disabling homebrew capability) would still not support DSi.
 				So DSi ROM generation need to be disabled.
-		Removal 'objcopy -O binary' and using ELF object to be packaged directly instead of raw binary ARM7/ARM9 image may change the result.
-			At least one removal in either ARM7 or ARM9 has to be existed, to enforce the new versions of ndstool generating DS ROM instead of DSi ROM (with "unitcode" value 0 instead 2 in the header).
-			Note that since devkitARM r46, raw images generated by 'objcopy -O binary' do not work at all, so single removal is not enough.
+		Removing 'objcopy -O binary' and using ELF object to be packaged directly instead of raw binary ARM7/ARM9 image may change the result.
+			At least one removal in the image of either ARM7 or ARM9 has to be performed, to enforce the new versions of ndstool generating DS ROM instead of DSi ROM (with "unitcode" value 0 instead 2 in the header).
+			Note that since devkitARM r46, raw images generated by 'objcopy -O binary' do not work at all, so a single removal is not enough.
 				It would lead to white screen on DeSmuME, even it is a DS (not DSi) ROM.
-				It would also bloat significantly (the arm7/arm9 file size, about ~100x of .nds file) in resulted ROM file.
+				It would also bloat significantly (the arm7/arm9 file size, about ~100x of .nds file) in the resulted ROM file.
+			See also $2015-12.
 		Note all devkitProm versions after r45 has same problem above (even with newer libnds).
 			Thus, the only viable solution with updated devkitARM is to change the makefiles without 'objcopy -O binary' operations and using '-h 0x200' in the 'ndstool' command.
 				Note that ELF objects can work with old ndstool, so using an old version of ndstool can also work.
@@ -3818,6 +3828,33 @@ Reference counting interface of 'NPL::Environment' in YFramework module NPL::NPL
 	The frame record compressor used by TCO has also been effected.
 		The vector for collected object has been removed for simplicity, as well as the more determinism of the order of destruction among the collected environment objects, based on the parantage.
 		The references kept in traversal calls are adjusted carefully to make the counts still sane.
+
+$2020-09:
+
+report.impl:
+A problem of memory comsumption in the compilation has been worked around.
+	GCC uses huge memory on stage 1 SHBuild of some translation units containing complicated code.
+		The concrete instance is the compilation on some functions with deep nested lambda expressions (e.g. AccL) in the YFramework module NPL::NPLA1Forms.
+		With i686 target, it leads to crash of the compiler due to running out of the available address space.
+		With x86_64 target, the translation unit containing the definitions of the 4 offending functions (AccL, AccR, FoldR1 and Map1) needs more than 5.3 GiB for the frontend (cc1plus) and more than 2.1 GiB for the assembler (as).
+			There are also warnings "variable tracking size limit exceeded with ‘-fvar-tracking-assignments’".
+				Variable tracking causes huge memory used in the compilation in debug with optimization modes.
+			For VTA, see https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/developer_guide/ch-debug-vta.
+		This is also rather bad on compilation time.
+	Debug mode (-O0) and release mode (without debug information) seem OK.
+		Optimization '-Og' acts like a release mode.
+		However, removal of '-g' makes '-Og' little sense.
+		So, there is actually no need to support the configurations of relase mode with debug information.
+	To solve the problem, the compiler option '-Og' has been replaced by '-O0' on the command line options in the stage 1 build script.
+		As tested, '-fno-var-tracking-assignments' or (undocumented) '-fno-var-tracking' in the command line options do not help.
+			Note it is assumed that the version of the compiler used is new enough for '-fno-var-tracking-assignments' (if used), though the precise version is not determined.
+				For GCC, it seems to be at least 4.9. See https://github.com/lammps/lammps/issues/1523.
+				For Clang, see https://reviews.llvm.org/D39116.
+			Not sure if Clang++ should use this workaround, though.
+		It is currently used only for stage 1 build command because no other places use the combination of the optimization and the debug information.
+	Also note using GCC pragmas in the source code does not work.
+		There are no pragmas or macros to detect the debug information.
+		The pragma GCC optimize("no-var-tracking") easily causes internal compiler errors even used for a whole translation unit.
 
 ////
 

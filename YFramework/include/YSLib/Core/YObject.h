@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r6199
+\version r6578
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2020-08-30 19:37 +0800
+	2020-10-07 09:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,11 +34,12 @@
 //	ystdex::throw_invalid_construction, std::allocator_arg_t,
 //	std::allocator_arg, ystdex::false_, ystdex::true_,
 //	ystdex::boxed_value, ystdex::exclude_self_t, std::is_constructible,
-//	ystdex::type_id, ystdex::is_allocatable, ystdex::is_byte_allocator,
-//	ystdex::exclude_self_params_t, ystdex::default_init,
-//	ystdex::has_get_allocator, ystdex::is_sharing, ystdex::ref, ystdex::cond_t,
-//	ystdex::decay_t, ystdex::rebind_alloc_t, in_place_type_t,
-//	YSLib::make_observer, ystdex::copy_or_move, ystdex::pseudo_output;
+//	ystdex::default_init, ystdex::type_id, ystdex::is_allocatable,
+//	ystdex::is_byte_allocator, ystdex::exclude_self_params_t, ystdex::as_const,
+//	YSLib::forward_as_tuple, ystdex::has_get_allocator, ystdex::is_sharing,
+//	ystdex::ref, ystdex::cond_t, ystdex::decay_t, ystdex::rebind_alloc_t,
+//	in_place_type_t, YSLib::make_observer, ystdex::copy_or_move,
+//	ystdex::pseudo_output;
 #include <ystdex/any.h> // for ystdex::any, ystdex::any_ops,
 //	ystdex::in_place_type, ystdex::in_place_type_t, ystdex::any_cast,
 //	ystdex::unchecked_any_cast, ystdex::unsafe_any_cast;
@@ -115,106 +116,6 @@ struct PointerTag
 template<class _tOwner, typename _type>
 struct HasOwnershipOf : std::is_base_of<OwnershipTag<_type>, _tOwner>
 {};
-
-
-/*!
-\brief 持有者操作。
-\since build 850
-*/
-template<class _tHolder>
-struct HolderOperations
-{
-	static_assert(any_ops::check_holder_t<_tHolder>(),
-		"Invalid holder type found.");
-
-	template<typename... _tParams,
-		yimpl(typename = ystdex::exclude_tagged_params_t<_tParams...>)>
-	YB_ATTR_nodiscard static any
-	CreateInPlace(_tParams&&... args)
-	{
-		return CreateInPlaceImpl(nullptr, yforward(args)...);
-	}
-	template<class _tAlloc, typename... _tParams>
-	YB_ATTR_nodiscard static any
-	CreateInPlace(std::allocator_arg_t, const _tAlloc& a,
-		_tParams&&... args)
-	{
-		return CreateInPlaceWithAllocatorImpl(nullptr, a, yforward(args)...);
-	}
-
-private:
-	template<typename... _tParams>
-	YB_ATTR_nodiscard static auto
-	CreateInPlaceImpl(nullptr_t, _tParams&&... args)
-		-> decltype(any(any_ops::use_holder, in_place_type<_tHolder>,
-		yforward(args)...))
-	{
-		return any(any_ops::use_holder, in_place_type<_tHolder>,
-			yforward(args)...);
-	}
-	//! \since build 851
-	template<typename... _tParams>
-	YB_ATTR_nodiscard YB_NORETURN static any
-	CreateInPlaceImpl(void*, _tParams&&...)
-	{
-		ystdex::throw_invalid_construction();
-	}
-
-	template<class _tAlloc, typename... _tParams>
-	YB_ATTR_nodiscard static auto
-	CreateInPlaceWithAllocatorImpl(nullptr_t, const _tAlloc& a,
-		_tParams&&... args)
-		-> decltype(any(std::allocator_arg, a, any_ops::use_holder,
-		in_place_type<_tHolder>, yforward(args)...))
-	{
-		return any(std::allocator_arg, a, any_ops::use_holder,
-			in_place_type<_tHolder>, yforward(args)...);
-	}
-	//! \since build 851
-	template<typename... _tParams>
-	YB_ATTR_nodiscard YB_NORETURN static any
-	CreateInPlaceWithAllocatorImpl(void*, _tParams&&...)
-	{
-		ystdex::throw_invalid_construction();
-	}
-
-public:
-	//! \note ystdex::false_ 或 ystdex::true_ 指定的选项创建持有者或抛出异常。
-	//@{
-	//! \exception ystdex::invalid_construction 参数类型无法用于初始化持有者。
-	//@{
-	template<typename... _tParams>
-	YB_ATTR_nodiscard YB_NORETURN static any
-	CreateInPlaceConditionally(ystdex::false_, _tParams&&...)
-	{
-		ystdex::throw_invalid_construction();
-	}
-	//! \since build 848
-	template<class _tAlloc, typename... _tParams>
-	YB_ATTR_nodiscard YB_NORETURN static any
-	CreateInPlaceConditionally(std::allocator_arg_t, const _tAlloc&,
-		ystdex::false_, _tParams&&...)
-	{
-		ystdex::throw_invalid_construction();
-	}
-	//@}
-	template<typename... _tParams>
-	YB_ATTR_nodiscard static any
-	CreateInPlaceConditionally(ystdex::true_, _tParams&&... args)
-	{
-		return any(any_ops::use_holder, in_place_type<_tHolder>,
-			yforward(args)...);
-	}
-	template<class _tAlloc, typename... _tParams>
-	YB_ATTR_nodiscard static any
-	CreateInPlaceConditionally(std::allocator_arg_t, const _tAlloc& a,
-		ystdex::true_, _tParams&&... args)
-	{
-		return any(std::allocator_arg, a, any_ops::use_holder,
-			in_place_type<_tHolder>, yforward(args)...);
-	}
-	//@}
-};
 
 
 /*!
@@ -356,6 +257,137 @@ AreEqualHeld(const _type1& x, const _type2& y)
 
 
 /*!
+\brief 持有者操作。
+\since build 850
+*/
+template<class _tHolder>
+struct HolderOperations
+{
+	static_assert(any_ops::check_holder_t<_tHolder>(),
+		"Invalid holder type found.");
+
+	//! \since build 899
+	using Creation = IValueHolder::Creation;
+
+	template<typename... _tParams,
+		yimpl(typename = ystdex::exclude_tagged_params_t<_tParams...>)>
+	YB_ATTR_nodiscard static any
+	CreateInPlace(_tParams&&... args)
+	{
+		return CreateInPlaceImpl(nullptr, yforward(args)...);
+	}
+	template<class _tAlloc, typename... _tParams>
+	YB_ATTR_nodiscard static any
+	CreateInPlace(std::allocator_arg_t, const _tAlloc& a,
+		_tParams&&... args)
+	{
+		return CreateInPlaceWithAllocatorImpl(nullptr, a, yforward(args)...);
+	}
+
+private:
+	template<typename... _tParams>
+	YB_ATTR_nodiscard static auto
+	CreateInPlaceImpl(nullptr_t, _tParams&&... args)
+		-> decltype(any(any_ops::use_holder, in_place_type<_tHolder>,
+		yforward(args)...))
+	{
+		return any(any_ops::use_holder, in_place_type<_tHolder>,
+			yforward(args)...);
+	}
+	//! \since build 851
+	template<typename... _tParams>
+	YB_ATTR_nodiscard YB_NORETURN static any
+	CreateInPlaceImpl(void*, _tParams&&...)
+	{
+		ystdex::throw_invalid_construction();
+	}
+
+	template<class _tAlloc, typename... _tParams>
+	YB_ATTR_nodiscard static auto
+	CreateInPlaceWithAllocatorImpl(nullptr_t, const _tAlloc& a,
+		_tParams&&... args)
+		-> decltype(any(std::allocator_arg, a, any_ops::use_holder,
+		in_place_type<_tHolder>, yforward(args)...))
+	{
+		return any(std::allocator_arg, a, any_ops::use_holder,
+			in_place_type<_tHolder>, yforward(args)...);
+	}
+	//! \since build 851
+	template<typename... _tParams>
+	YB_ATTR_nodiscard YB_NORETURN static any
+	CreateInPlaceWithAllocatorImpl(void*, _tParams&&...)
+	{
+		ystdex::throw_invalid_construction();
+	}
+
+public:
+	//! \note ystdex::false_ 或 ystdex::true_ 指定的选项创建持有者或抛出异常。
+	//@{
+	//! \exception ystdex::invalid_construction 参数类型无法用于初始化持有者。
+	//@{
+	template<typename... _tParams>
+	YB_ATTR_nodiscard YB_NORETURN static any
+	CreateInPlaceConditionally(ystdex::false_, _tParams&&...)
+	{
+		ystdex::throw_invalid_construction();
+	}
+	//! \since build 848
+	template<class _tAlloc, typename... _tParams>
+	YB_ATTR_nodiscard YB_NORETURN static any
+	CreateInPlaceConditionally(std::allocator_arg_t, const _tAlloc&,
+		ystdex::false_, _tParams&&...)
+	{
+		ystdex::throw_invalid_construction();
+	}
+	//@}
+	template<typename... _tParams>
+	YB_ATTR_nodiscard static any
+	CreateInPlaceConditionally(ystdex::true_, _tParams&&... args)
+	{
+		return any(any_ops::use_holder, in_place_type<_tHolder>,
+			yforward(args)...);
+	}
+	template<class _tAlloc, typename... _tParams>
+	YB_ATTR_nodiscard static any
+	CreateInPlaceConditionally(std::allocator_arg_t, const _tAlloc& a,
+		ystdex::true_, _tParams&&... args)
+	{
+		return any(std::allocator_arg, a, any_ops::use_holder,
+			in_place_type<_tHolder>, yforward(args)...);
+	}
+	//@}
+
+private:
+	//! \since build 899
+	struct CreateInPlaceFunctor final
+	{
+		template<typename... _tParams>
+		auto
+		operator()(_tParams&&... args)
+			-> decltype(CreateInPlace(yforward(args)...))
+		{
+			return CreateInPlace(yforward(args)...);
+		}
+	};
+
+public:
+	//! \since build 899
+	template<typename _tValue, class _tCopyParams, class _tMoveParams>
+	YB_ATTR_nodiscard YB_PURE static any
+	CreateHolder(Creation c, _tValue& val, _tCopyParams&& args_copy,
+		_tMoveParams&& args_move)
+	{
+		if(c == Creation::Copy)
+			return ystdex::apply(CreateInPlaceFunctor{}, yforward(args_copy));
+		if(c == Creation::Move)
+			return ystdex::apply(CreateInPlaceFunctor{}, yforward(args_move));
+		// NOTE: It is more efficient to construct in place for %Indirect case.
+		return IValueHolder::CreateHolder(c, val);
+	}
+};
+
+
+/*!
 \brief 带有分配器的持有者操作。
 \since build 891
 */
@@ -365,6 +397,24 @@ struct AllocatedHolderOperations
 	static_assert(ystdex::is_byte_allocator<_tByteAlloc>(),
 		"Invalid byte allocator found.");
 
+private:
+	//! \since build 899
+	struct CreateInPlaceFunctor final
+	{
+		const _tByteAlloc& Allocator;
+
+		template<typename... _tParams>
+		auto
+		operator()(_tParams&&... args)
+			-> decltype(HolderOperations<_tHolder>::CreateInPlace(
+			std::allocator_arg, Allocator, yforward(args)...))
+		{
+			return HolderOperations<_tHolder>::CreateInPlace(std::allocator_arg,
+				Allocator, yforward(args)...);
+		}
+	};
+
+public:
 	using Creation = IValueHolder::Creation;
 
 	template<typename _tValue, typename... _tParams>
@@ -393,40 +443,100 @@ struct AllocatedHolderOperations
 	/*!
 	\pre 断言：第二参数具有非空值。
 	\pre 断言：第二参数具有和模板参数绑定的字节分配器类型相同。
+	\since build 899
 	*/
-	template<typename _tValue, typename... _tParams>
+	template<typename _tValue, class _tCopyParams, class _tMoveParams>
 	YB_ATTR_nodiscard YB_PURE static any
-	CreateHolder(Creation c, const any& x, _tValue& val, _tParams&&... args)
+	CreateHolder(Creation c, const any& x, _tValue& val,
+		_tCopyParams&& args_copy, _tMoveParams&& args_move)
 	{
 		if(c == Creation::Copy || c == Creation::Move)
 		{
-			using ystdex::default_init;
-
-			YAssert(x.has_value(), "Invalid state found.");
-			YAssert(*x.unchecked_access<const type_info*>(
-				default_init, any_ops::get_allocator_type)
-				== ystdex::type_id<_tByteAlloc>(), "Invalid allocator found.");
-
-			const auto& ra(Deref(static_cast<const _tByteAlloc*>(
-				x.unchecked_access<void*>(default_init,
-				any_ops::get_allocator_ptr))));
+			const auto& ra(GetByteAllocatorOf(x));
 
 			if(c == Creation::Copy)
-				return HolderOperations<_tHolder>::CreateInPlace(
-					std::allocator_arg, ra, yforward(args)...);
-			return HolderOperations<_tHolder>::CreateInPlace(
-				std::allocator_arg, ra, yforward(args)...);
+				return ystdex::apply(CreateInPlaceFunctor{ra},
+					yforward(args_copy));
+			return ystdex::apply(CreateInPlaceFunctor{ra}, yforward(args_move));
 		}
 		// NOTE: It is more efficient to construct in place for %Indirect case.
 		return IValueHolder::CreateHolder(c, val);
 	}
+
+private:
+	//! \since build 899
+	YB_ATTR_nodiscard YB_PURE static const _tByteAlloc&
+	GetByteAllocatorOf(const any& x) ynothrowv
+	{
+		using ystdex::default_init;
+
+		YAssert(x.has_value(), "Invalid state found.");
+		YAssert(*x.unchecked_access<const type_info*>(
+			default_init, any_ops::get_allocator_type)
+			== ystdex::type_id<_tByteAlloc>(), "Invalid allocator found.");
+
+		return Deref(static_cast<const _tByteAlloc*>(
+			x.unchecked_access<void*>(default_init,
+			any_ops::get_allocator_ptr)));
+	}
 };
 
 
+/*!
+\brief 判断指针值是否为有效的空值。
+\since build 854
+*/
+//@{
+//! \note 使用 ADL get_raw 。
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE yconstfn bool
+IsNullPointer(const _type& p) ynothrow
+{
+	return !bool(get_raw(p));
+}
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE inline bool
+IsNullPointer(const weak_ptr<_type>& p) ynothrow
+{
+	TryRet(!shared_ptr<_type>(p).get())
+	CatchIgnore(bad_weak_ptr&)
+	CatchExpr(..., yassume(false))
+	return {};
+}
+//@}
 
 /*!
+\ingroup get_raw
+\brief 取内建指针。
+\since build 853
+*/
+//@{
+//! \note 使用 ADL get_raw 。
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE yconstfn auto
+GetRawPtrOf(const _type& p) ynothrow -> decltype(get_raw(p))
+{
+	return get_raw(p);
+}
+//! \exception bad_weak_ptr 异常中立：由 shared_ptr 构造函数抛出。
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE yconstfn _type*
+GetRawPtrOf(const weak_ptr<_type>& p)
+{
+	return shared_ptr<_type>(p).get();
+}
+//@}
+
+
+/*!
+\ingroup any_holders
 \note 比较使用 ADL AreEqualHeld 。
 \sa AreEqualHeld
+*/
+//@{
+/*!
+\tparam _type 持有的值类型。
+\sa ystdex::value_holder
 */
 //@{
 /*!
@@ -496,9 +606,56 @@ public:
 
 
 /*!
+\brief 带等于接口的值类型多态动态泛型持有者。
+\since build 899
+*/
+template<class _type, class _tTarget>
+class PolymorphicValueHolder : public ValueHolder<_tTarget>
+{
+public:
+	using Creation = IValueHolder::Creation;
+	using value_type = _type;
+
+private:
+	using base = ValueHolder<_tTarget>;
+
+public:
+	using base::value;
+
+	template<typename... _tParams, yimpl(typename
+		= ystdex::exclude_self_params_t<PolymorphicValueHolder, _tParams...>,
+		typename = ystdex::enable_if_t<
+		std::is_constructible<base, _tParams&&...>::value>)>
+	inline
+	PolymorphicValueHolder(_tParams&&... args)
+		: base(yforward(args)...)
+	{}
+	DefDeCopyMoveCtorAssignment(PolymorphicValueHolder)
+
+	YB_ATTR_nodiscard PDefH(any, Create, Creation c, const any&) const
+		ImplI(IValueHolder)
+		ImplRet(HolderOperations<PolymorphicValueHolder>::CreateHolder(c,
+			value, YSLib::forward_as_tuple(ystdex::as_const(value)),
+			YSLib::forward_as_tuple(std::move(value))))
+
+	YB_ATTR_nodiscard YB_PURE PDefH(bool, Equals, const void* p) const
+		ImplI(IValueHolder)
+		ImplRet(bool(p) && base::type() == ystdex::type_id<value_type>()
+			&& AreEqualHeld(this->value,
+			Deref(static_cast<const value_type*>(p))))
+
+	YB_ATTR_nodiscard YB_PURE PDefH(const type_info&, type, ) const ynothrow
+		override
+		ImplRet(ystdex::type_id<_type>())
+};
+//@}
+
+
+//! \note 分配器通过配合 any::allocated_holder_handler_t 被使用。
+//@{
+/*!
 \brief 保存分配器的值持有者。
-\note 分配器通过配合 any::allocated_holder_handler_t 被使用。
-\note 模板参数指定分配器。
+\note 模板参数指定值类型和分配器。
 \since build 867
 */
 template<typename _type, class _tByteAlloc>
@@ -541,7 +698,8 @@ public:
 	Create(Creation c, const any& x) const ImplI(IValueHolder)
 	{
 		return AllocatedHolderOperations<AllocatorHolder, _tByteAlloc>::Create(
-			c, x, value, value);
+			c, x, value, YSLib::forward_as_tuple(ystdex::as_const(value)),
+			YSLib::forward_as_tuple(std::move(value)));
 	}
 
 	//! \since build 891
@@ -557,48 +715,52 @@ public:
 
 
 /*!
-\brief 判断指针值是否为有效的空值。
-\since build 854
+\brief 保存分配器的多态值持有者。
+\note 模板参数指定值类型、目标类型和分配器。
+\since build 899
 */
-//@{
-//! \note 使用 ADL get_raw 。
-template<typename _type>
-YB_ATTR_nodiscard YB_PURE yconstfn bool
-IsNullPointer(const _type& p) ynothrow
+template<class _type, class _tTarget, class _tByteAlloc>
+class PolymorphicAllocatorHolder : public AllocatorHolder<_tTarget, _tByteAlloc>
 {
-	return !bool(get_raw(p));
-}
-template<typename _type>
-YB_ATTR_nodiscard YB_PURE inline bool
-IsNullPointer(const weak_ptr<_type>& p) ynothrow
-{
-	TryRet(!shared_ptr<_type>(p).get())
-	CatchIgnore(bad_weak_ptr&)
-	CatchExpr(..., yassume(false))
-	return {};
-}
-//@}
+public:
+	using Creation = IValueHolder::Creation;
+	using value_type = _type;
 
-/*!
-\ingroup get_raw
-\brief 取内建指针。
-\since build 853
-*/
-//@{
-//! \note 使用 ADL get_raw 。
-template<typename _type>
-YB_ATTR_nodiscard YB_PURE yconstfn auto
-GetRawPtrOf(const _type& p) ynothrow -> decltype(get_raw(p))
-{
-	return get_raw(p);
-}
-//! \exception bad_weak_ptr 异常中立：由 shared_ptr 构造函数抛出。
-template<typename _type>
-YB_ATTR_nodiscard YB_PURE yconstfn _type*
-GetRawPtrOf(const weak_ptr<_type>& p)
-{
-	return shared_ptr<_type>(p).get();
-}
+private:
+	using base = AllocatorHolder<_tTarget, _tByteAlloc>;
+
+public:
+	using base::value;
+
+	template<typename... _tParams, yimpl(typename
+		= ystdex::exclude_self_params_t<PolymorphicAllocatorHolder, _tParams...>,
+		typename = ystdex::enable_if_t<
+		std::is_constructible<base, _tParams&&...>::value>)>
+	inline
+	PolymorphicAllocatorHolder(_tParams&&... args)
+		: base(yforward(args)...)
+	{}
+	DefDeCopyMoveCtorAssignment(PolymorphicAllocatorHolder)
+
+	YB_ATTR_nodiscard PDefH(any, Create, Creation c, const any& x) const
+		ImplI(IValueHolder)
+		ImplRet(AllocatedHolderOperations<PolymorphicAllocatorHolder,
+			_tByteAlloc>::CreateHolder(c, x, value, YSLib::forward_as_tuple(
+			ystdex::as_const(value)),
+			YSLib::forward_as_tuple(std::move(value))))
+
+	YB_ATTR_nodiscard YB_PURE PDefH(bool, Equals, const void* p) const
+		ImplI(IValueHolder)
+		ImplRet(bool(p) && base::type() == ystdex::type_id<value_type>()
+			&& AreEqualHeld(this->value,
+			Deref(static_cast<const value_type*>(p))))
+
+	using base::get_allocator;
+
+	YB_ATTR_nodiscard YB_PURE PDefH(const type_info&, type, ) const ynothrow
+		override
+		ImplRet(ystdex::type_id<_type>())
+};
 //@}
 
 
@@ -771,15 +933,6 @@ public:
 			: ystdex::type_id<void>())
 };
 
-/*!
-\ingroup metafunctions
-\relates PointerHolder
-\since build 793
-*/
-template<typename _tPointer>
-using HolderFromPointer = PointerHolder<typename PointerHolderTraits<
-	_tPointer>::element_type, PointerHolderTraits<_tPointer>>;
-
 
 /*!
 \brief 带等于接口的引用动态泛型持有者。
@@ -841,6 +994,17 @@ public:
 		ImplRet(ystdex::type_id<value_type>())
 };
 //@}
+
+
+/*!
+\ingroup metafunctions
+\relates PointerHolder
+\since build 793
+*/
+template<typename _tPointer>
+using HolderFromPointer = PointerHolder<typename PointerHolderTraits<
+	_tPointer>::element_type, PointerHolderTraits<_tPointer>>;
+
 
 template<typename _type>
 any
@@ -941,9 +1105,10 @@ public:
 	/*!
 	\brief 构造：使用对象引用和分配器。
 	\pre obj 可作为转移构造参数。
-	\since build 847
+	\since build 899
 	*/
-	template<typename _type, class _tAlloc>
+	template<typename _type, class _tAlloc,
+		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
 	inline
 	ValueObject(std::allocator_arg_t, const _tAlloc& a, _type&& arg)
 		: ValueObject(std::allocator_arg, a,
@@ -1067,6 +1232,18 @@ public:
 	//@}
 	//! \since build 332
 	DefDeCopyMoveCtorAssignment(ValueObject)
+	//! \since build 899
+	template<class _tAlloc>
+	inline
+	ValueObject(std::allocator_arg_t, const _tAlloc& a, const ValueObject& vo)
+		: content(std::allocator_arg, a, vo.content)
+	{}
+	//! \since build 899
+	template<class _tAlloc>
+	inline
+	ValueObject(std::allocator_arg_t, const _tAlloc& a, ValueObject&& vo)
+		: content(std::allocator_arg, a, std::move(vo.content))
+	{}
 	/*!
 	\brief 析构：默认实现。
 	\since build 332
@@ -1400,13 +1577,17 @@ EmplaceCallResult(ValueObject& vo, _type&& res, ystdex::true_, ystdex::true_)
 {
 	vo = yforward(res);
 }
+//! \since build 899
 template<typename _type, class _tAlloc>
 inline void
 EmplaceCallResult(ValueObject& vo, _type&& res, ystdex::true_, ystdex::true_,
-	const _tAlloc& a)
-	ynoexcept_spec(vo = ValueObject(std::allocator_arg, a, yforward(res)))
+	const _tAlloc&)
+	ynoexcept_spec(vo = yforward(res))
 {
-	vo = ValueObject(std::allocator_arg, a, yforward(res));
+	// XXX: The allocator argument is ignored. This is more efficient and there
+	//	is no allocation type limitation on the value as the allocator-aware
+	//	move constructor.
+	vo = yforward(res);
 }
 template<typename _type, class _tAlloc>
 inline void

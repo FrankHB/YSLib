@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r336
+\version r390
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2020-04-24 17:32 +0800
+	2020-09-30 12:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,8 +150,42 @@ namespace A1
 \note 编码假定为 UTF-8 。允许可选的 BOM 。以共享只读方式打开。
 \since build 839
 */
-YF_API YB_NONNULL(1) YSLib::unique_ptr<std::istream>
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) YSLib::unique_ptr<std::istream>
 OpenFile(const char*);
+
+//! \since build 899
+//@{
+//! \brief 打开指定路径的文件作为 NPL 输入流并在上下文设置名称。
+YB_ATTR_nodiscard YF_API YSLib::unique_ptr<std::istream>
+OpenUnique(REPLContext&, string);
+
+
+/*!
+\brief 在 REPL 上下文中加载指定名称的外部翻译单元。
+\note 使用跳板，不直接改变上下文中的续延。
+\sa Reduce
+\since build 899
+*/
+YB_NONNULL(2) YF_API void
+PreloadExternal(REPLContext&, const char*);
+
+//! \note 以参数指定的项的第一个子项作为 string 类型的名称指定翻译单元。
+//@{
+/*!
+\brief 规约加载外部翻译单元。
+\sa OpenUnique
+*/
+YF_API ReductionStatus
+ReduceToLoadExternal(TermNode&, ContextNode&, REPLContext&);
+
+/*!
+\brief 异步规约加载外部翻译单元。
+\sa ReduceToLoadExternal
+*/
+YF_API ReductionStatus
+RelayToLoadExternal(ContextNode&, TermNode&, REPLContext&);
+//@}
+//@}
 
 namespace Forms
 {
@@ -173,7 +207,7 @@ InvokeIn(ContextNode& ctx, _fCallable&& f)
 /*!
 \brief 加载代码作为模块。
 \return 作为环境模块的环境对象强引用。
-\post 返回值非空。
+\post 返回值非空，指定冻结的环境。
 \since build 838
 */
 template<typename _fCallable>
@@ -184,6 +218,7 @@ GetModuleFor(ContextNode& ctx, _fCallable&& f)
 		NPL::SwitchToFreshEnvironment(ctx, ValueObject(ctx.WeakenRecord())));
 
 	ystdex::invoke(f);
+	ctx.GetRecordRef().Frozen = true;
 	return ctx.ShareRecord();
 }
 
@@ -222,18 +257,18 @@ LoadModuleChecked(ContextNode& ctx, string_view module_name, _fCallable&& f)
 */
 //@{
 /*!
-\brief 加载基础 NPL 上下文。
-\sa LoadSequenceSeparators
+\brief 加载 NPLA1 基础上下文。
 
-加载序列中缀分隔符和 NPL 基础环境使用的公共语法形式。
+加载序列中缀分隔符和 NPLA1 基础环境使用的公共语法形式。
 支持的语法形式包括预定义对象、基本操作和定义在基础环境中的派生操作。
 其中，派生操作包括基本派生操作和核心库函数。
+加载的基础环境被冻结。
 */
 YF_API void
 LoadGroundContext(REPLContext&);
 
 /*!
-\pre 已加载基础 NPL 上下文或等价方式初始化。
+\pre 已加载基础 NPLA1 上下文或等价方式初始化。
 \exception NPLException 异常中立：初始化失败。
 \warning 若不满足加载的前置条件，可能调用失败，抛出异常。
 \sa LoadGroundContext
@@ -251,7 +286,7 @@ LoadModule_std_environments(REPLContext&);
 
 /*!
 \brief 加载代理求值模块。
-\note 当前实现：加载为模块 std.promise 。
+\note 当前实现：加载时占用当前环境的实现保留变量 __ 。
 \since build 856
 
 加载 promise 等类型和延迟求值等操作。
@@ -295,6 +330,24 @@ YF_API void
 LoadModule_SHBuild(REPLContext&);
 //@}
 //@}
+
+/*!
+\brief 加载 NPLA1 基础上下文和标准模块。
+\sa LoadGroundContext
+\sa LoadModule_std_environments
+\sa LoadModule_std_io
+\sa LoadModule_std_promises
+\sa LoadModule_std_strings
+\sa LoadModule_std_system
+\since build 898
+
+调用 LoadGroundContext 并加载标准库模块。
+加载的标准库模块名称符合 NPLA1 参考实现扩展环境约定。
+模块初始化调用的顺序未指定，但满足必要的内部逻辑顺序。
+加载的标准库模块被冻结。
+*/
+YF_API void
+LoadStandardContext(REPLContext&);
 
 } // namespace Forms;
 

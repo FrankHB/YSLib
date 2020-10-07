@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2019 FrankHB.
+	© 2010-2016, 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2232
+\version r2259
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2019-07-07 06:25 +0800
+	2020-10-02 21:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -105,15 +105,36 @@ VerifyDirectory(const char16_t* path)
 void
 EnsureDirectory(const Path& pth)
 {
-	string upath;
-
-	for(const auto& name : pth)
+	// NOTE: Similar to %ystdex::to_string_d for %ystdex::path.
+	if(!pth.empty())
 	{
-		upath += MakeMBCS<string>(name.c_str()) + FetchSeparator<char>();
-		if(!VerifyDirectory(upath) && !umkdir(upath.c_str()) && errno != EEXIST)
+		auto i(pth.begin());
+		string res(MakeMBCS<string>(*i));
+		const auto delimiter(FetchSeparator<char>());
+		const auto ensure([&]{
+			if(!VerifyDirectory(res) && !umkdir(res.c_str()))
+			{
+				const int err(errno);
+
+				if(err != EEXIST)
+				{
+					YTraceDe(Err, "Failed making directory path '%s'",
+						res.c_str());
+					ystdex::throw_error(err, yfsig);
+				}
+			}
+		});
+
+		if(!PathTraits::has_root_path(res))
 		{
-			YTraceDe(Err, "Failed making directory path '%s'", upath.c_str());
-			ystdex::throw_error(errno, yfsig);
+			res += delimiter;
+			ensure();
+		}
+		while(++i != pth.end())
+		{
+			res += MakeMBCS<string>(*i);
+			res += delimiter;
+			ensure();
 		}
 	}
 }

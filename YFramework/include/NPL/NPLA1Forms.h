@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r7682
+\version r7711
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2020-08-29 23:21 +0800
+	2020-09-29 12:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,7 +73,7 @@ IsSymbol(const string&) ynothrow;
 //@{
 /*!
 \brief 创建等于指定字符串值的记号值。
-\note 不检查值是否符合符号要求。
+\note 不检查值是否符合符号要求。若能构成符号，则名称为指定字符串。
 */
 //@{
 YB_ATTR_nodiscard YF_API YB_PURE TokenValue
@@ -614,7 +614,7 @@ Not(TermNode&);
 */
 //@{
 /*!
-\brief 逻辑与。
+\brief 支持短路求值的逻辑与。
 
 非严格求值若干个子项，返回求值结果的逻辑与：
 除第一个子项，没有其它子项时，返回 true ；否则从左到右逐个求值子项。
@@ -627,7 +627,7 @@ YF_API ReductionStatus
 And(TermNode&, ContextNode&);
 
 /*!
-\brief 逻辑或。
+\brief 支持短路求值的逻辑或。
 
 非严格求值若干个子项，返回求值结果的逻辑或：
 除第一个子项，没有其它子项时，返回 false ；否则从左到右逐个求值子项。
@@ -1025,6 +1025,7 @@ SetWithRecursion(TermNode&, ContextNode&);
 
 /*!
 \throw InvalidSyntax 标识符不是符号。
+\throw TypeError 当前环境被冻结。
 \sa IsNPLASymbol
 \sa RemoveIdentifier
 \since build 867
@@ -1340,7 +1341,8 @@ ListAsteriskRef(TermNode&);
 \since build 898
 
 对 <object1> 指定的抽象列表进行处理，取得部分和。
-当谓词 <predicate> 成立时结果为参数指定的对象，否则继续处理抽象列表中余下的元素。
+当谓词 <predicate> 对列表应用结果不为假时，处理的结果为参数 <object2> 指定的对象；
+	否则，继续处理抽象列表中余下的元素。
 处理抽象的列表的操作通过余下的应用子分别定义：
 取列表头、取列表尾和部分和的二元合并操作。
 */
@@ -1364,6 +1366,35 @@ AccL(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 AccR(TermNode&, ContextNode&);
+//@}
+
+//! \since build 899
+//@{
+/*!
+\brief 在列表元素上应用右结合的二元操作。
+
+对 <list> 指定的列表进行处理，取得部分和。
+当列表非空时，处理的结果为参数 <object> 指定的对象；
+	否则，继续处理列表中余下的元素。
+参数 <applicative> 定义部分和的二元合并操作，应为列表构造器。
+名称中的 1 指 <list> 参数的个数。
+
+参考调用文法：
+<pre>foldr1 \<applicative> \<object> \<list></pre>
+*/
+YF_API ReductionStatus
+FoldR1(TermNode&, ContextNode&);
+
+/*!
+\brief 单列表映射操作。
+
+使用指定应用子对列表中每个参数进行调用，结果为调用结果的列表。
+
+参考调用文法：
+<pre>map1 \<applicative> \<list></pre>
+*/
+YF_API ReductionStatus
+Map1(TermNode&, ContextNode&);
 //@}
 
 

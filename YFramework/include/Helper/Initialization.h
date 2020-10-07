@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2019 FrankHB.
+	© 2009-2016, 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 框架初始化。
-\version r843
+\version r893
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2019-06-23 17:04 +0800
+	2020-10-05 09:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define INC_Helper_Initialization_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_ValueNode // for function, FilterExceptions, ValueNode;
+#include YFM_YSLib_Core_ValueNode // for string, ValueNode;
+#include YFM_YSLib_Service_FileSystem // for IO::Path;
 #include YFM_YSLib_Core_YApplication // for Application;
 #include YFM_YSLib_Adaptor_Font // for Drawing::FontCache;
 #include YFM_YSLib_Service_ContentType // for MIMEBiMapping;
@@ -45,14 +46,6 @@ namespace YSLib
 extern bool ShowInitializedLog;
 #endif
 
-/*!
-\brief 初始化关键模块。
-\throw FatalError 初始化失败。
-\note 第二参数表示调用签名；后两个参数用于抛出异常。
-\since build 860
-*/
-YF_API void
-InitializeKeyModule(function<void()>, const char*, const char*, string_view);
 
 /*!
 \brief 处理最外层边界的异常，若捕获致命错误则在之后终止程序。
@@ -64,6 +57,53 @@ YF_API void
 TraceForOutermost(const std::exception&, RecordLevel) ynothrow;
 
 
+//! \since build 899
+//@{
+/*!
+\brief 判断指定程序映像的路径字符串指示的位置是否符合局部 FHS 目录布局。
+\see https://refspecs.linuxfoundation.org/FHS_3.0/fhs-3.0.html 。
+
+以 POSIX 环境变量语法，预期的局部用户目录布局为：
+$PREFIX/
+$PREFIX/$BIN/
+$PREFIX/lib/
+$PREFIX/share/
+其中，$PREFIX 为路径前缀，$BIN 是任意非空的目录名。
+当参数指定 $PREFIX/$BIN/ 目录，且以上路径以目录存在时，检查通过。
+假定检查目录时，布局不改变。
+实现可分别检查各项路径，而不要求避免外部并发访问的竞争。
+*/
+YB_ATTR_nodiscard YF_API YB_PURE bool
+CheckLocalFHSLayout(const string&);
+
+/*!
+\brief 取根路径字符串对应的局部 FHS 根路径。
+\sa FetchRootPathString
+\sa GetLocalFHSRootPathOf
+*/
+YB_ATTR_nodiscard YF_API YB_PURE const IO::Path&
+FetchLocalFHSRootPath();
+
+/*!
+\brief 取框架根路径字符串。
+\return 以平台路径分隔符结尾的目录路径字符串。
+*/
+YB_ATTR_nodiscard YF_API YB_PURE const string&
+FetchRootPathString();
+
+/*!
+\brief 取指定程序映像的路径字符串对应的局部 fHS 根路径。
+\sa CheckLocalFHSLayout
+\sa FetchRootPathString
+
+若框架根路径的 CheckLocalFHSLayout 检查通过，局部 fHS 根路径为对应的 $PREFIX ；
+否则，局部 fHS 根路径路径为空。
+*/
+YB_ATTR_nodiscard YF_API YB_PURE IO::Path
+GetLocalFHSRootPathOf(const string&);
+//@}
+
+
 /*!
 \brief 载入 NPLA1 配置文件。
 \param show_info 是否在标准输出中显示信息。
@@ -72,7 +112,7 @@ TraceForOutermost(const std::exception&, RecordLevel) ynothrow;
 \note 预设行为、配置文件和配置项参考 Documentation::YSLib 。
 \since build 450
 */
-YF_API YB_NONNULL(1, 2) ValueNode
+YB_ATTR_nodiscard YF_API YB_NONNULL(1, 2) ValueNode
 LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
 	bool show_info = {});
 

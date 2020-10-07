@@ -314,7 +314,7 @@ SHBuild_BuildGCH()
 		mkdir -p "$(dirname "$SHBOUT_PCH")"
 		SHBuild_Puts "Building precompiled file \"$SHBOUT_PCH\" ..."
 		SHBuild_Install_HardLink "$1" "$2"
-		"$3" "$1" -o"$SHBOUT_PCH"
+		$3 "$1" -o"$SHBOUT_PCH"
 		SHBuild_Puts "Building precompiled file \"$SHBOUT_PCH\" done."
 	fi
 }

@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2007
+\version r2019
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2020-05-29 03:20 +0800
+	2020-10-05 23:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,6 +96,21 @@ void
 swap(TermNode& x, TermNode& y) ynothrowv
 {
 	x.SwapContent(y);
+}
+
+
+void
+ReaderState::UpdateLexeme(const string& lexeme)
+{
+	if(lexeme.length() == 1)
+	{
+		const char c(lexeme.front());
+
+		if(c == LeftDelimiter)
+			++LeftDelimiterCount;
+		else if(c == RightDelimiter)
+			++RightDelimiterCount;
+	}
 }
 
 } // namespace NPL;

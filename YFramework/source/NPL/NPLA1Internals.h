@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20201
+\version r20213
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2020-08-25 13:33 +0800
+	2020-10-06 21:22 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -29,12 +29,11 @@
 #define NPL_INC_NPLA1Internals_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_NPLA1 // for ContextState, ReductionStatus, ContextNode,
-//	Reducer, YSLib::tuple, YSLib::get, list, RegularizeTerm,
-//	EnvironmentReference, ystdex::cast_mutable, TermReference, ystdex::get_less,
-//	YSLib::map, set, std::make_move_iterator, ystdex::exists,
-//	ystdex::retry_on_cond, ystdex::id, A1::NameTypedReducerHandler,
-//	A1::NameTypedContextHandler;
+#include YFM_NPL_NPLA1 // for ContextNode, TermNode, ContextState,
+//	ReductionStatus, Reducer, NPL::tuple, YSLib::get, list, EnvironmentGuard,
+//	RegularizeTerm, EnvironmentReference, ystdex::cast_mutable, TermReference,
+//	ystdex::get_less, YSLib::map, set, ystdex::retry_on_cond, ystdex::id,
+//	A1::NameTypedReducerHandler, A1::NameTypedContextHandler;
 #include <ystdex/ref.hpp> // for ystdex::unref;
 
 namespace NPL
@@ -127,9 +126,7 @@ enum RecordFrameIndex : size_t
 \since build 842
 \sa RecordFrameIndex
 */
-using FrameRecord = YSLib::tuple<ContextHandler, shared_ptr<Environment>>;
-//! \since build 882
-using YSLib::get;
+using FrameRecord = NPL::tuple<ContextHandler, shared_ptr<Environment>>;
 
 /*!
 \brief 帧记录列表。
@@ -427,7 +424,7 @@ CompressTCOFrames(ContextNode& ctx, TCOAction& act)
 		i = record_list.cbegin();
 		while(i != record_list.cend())
 		{
-			auto& p_frame_env_ref(get<ActiveEnvironmentPtr>(
+			auto& p_frame_env_ref(NPL::get<ActiveEnvironmentPtr>(
 				*ystdex::cast_mutable(record_list, i)));
 
 			if(p_frame_env_ref.use_count() != 1
@@ -797,6 +794,10 @@ FetchTailEnvironmentReference(const TermReference&, ContextNode&);
 ReductionStatus
 ReduceForCombinerRef(TermNode&, ContextNode&,
 	const TermReference&, const ContextHandler&, size_t);
+
+
+//! \since build 881
+using Action = function<void()>;
 
 } // inline namespace Internals;
 

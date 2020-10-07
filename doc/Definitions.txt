@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14245
+\version r14302
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2020-07-25 15:54 +0800
+	2020-10-05 11:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -705,7 +705,7 @@ FetchGUIConfiguration()
 } // $dir YFramework;
 
 
-// 非 constexpr 的命名空间作用域变量和类静态变量列表。
+// 非 constexpr 的命名空间作用域变量和类静态存储期变量列表。
 
 $dir YFramework
 {
@@ -829,6 +829,67 @@ $impl Caret::caret_animation;
 } // $dir UI;
 
 } // $dir YSLib;
+
+$dir Helper
+{
+
+$unit Initialization
+{
+
+#if YCL_DS
+extern bool ShowInitializedLog;
+#endif
+
+namespace
+{
+$unit.impl:
+class RootPathCache;
+const RootPathCache&
+FetchRootPathCache()
+{
+	static const RootPathCache cache;
+}
+const string&
+FetchPreferredConfPath()
+{
+#if YF_Helper_Initialization_UseFallbackConf_
+	static string conf_path;
+#endif
+}
+#if YCL_Win32
+const unsigned short* p_dbcs_off_936;
+#endif
+#if YF_Helper_Initialization_UseFallbackConf_
+using VecRecordMap;
+VecRecordMap&
+FetchNPLA1PathVecRecordRef()
+{
+	static VecRecordMap m;
+}
+const vector<string>&
+FetchConfPaths()
+{
+	static const struct Init init;
+}
+#endif
+template<typename, typename _fLoader, typename _func>
+_type&
+FetchDefaultResource(_fLoader, _func)
+{
+	static mutex mtx;
+	static observer_ptr<_type> p_res;
+}
+}
+const IO::Path&
+FetchLocalFHSRootPath()
+{
+#if false
+	static const IO::Path path;
+#endif
+}
+}
+
+}
 
 } // $dir YFramework;
 

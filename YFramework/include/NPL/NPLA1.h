@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8334
+\version r8439
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-08-30 14:50 +0800
+	2020-10-05 22:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,12 +34,14 @@
 //	ystdex::ref_eq, CombineReductionResult, pmr::memory_resource,
 //	NPL::make_observer, TNIter, LiftOther, ValueNode, NPL::Deref,
 //	NPL::AsTermNode, std::make_move_iterator, IsBranch, std::next,
-//	ystdex::retry_on_cond, std::find_if, YSLib::AreEqualHeld,
-//	ystdex::make_parameter_list_t, ystdex::make_function_type_t,
-//	ystdex::decay_t, ystdex::expanded_caller, std::is_constructible,
-//	ystdex::or_, string_view, TermTags, TokenValue, Environment, ParseResultOf,
-//	ByteParser, SourcedByteParser, ystdex::type_info, SourceInformation,
-//	std::integral_constant, SourceName;
+//	ystdex::retry_on_cond, std::find_if, ystdex::exclude_self_params_t,
+//	YSLib::AreEqualHeld, ystdex::make_parameter_list_t,
+//	ystdex::make_function_type_t, ystdex::decay_t, ystdex::expanded_caller,
+//	std::is_constructible, ystdex::or_, string_view, TermTags, TokenValue,
+//	Environment, ParseResultOf, ByteParser, SourcedByteParser,
+//	ystdex::type_info, SourceInformation, std::integral_constant, SourceName,
+//	NPL::tuple, NPL::get, NPL::forward_as_tuple, ReaderState,
+//	YSLib::allocate_shared;
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, YSLib::GEvent,
 //	YSLib::GCombinerInvoker, YSLib::GDefaultLastValueInvoker;
 #include <ystdex/algorithm.hpp> // for ystdex::fast_any_of, ystdex::split;
@@ -1568,6 +1570,13 @@ public:
 	template<LoadOption _vOpt = Contextual>
 	using LoadOptionTag = std::integral_constant<LoadOption, _vOpt>;
 	//@}
+	/*!
+	\brief 加载器。
+	\since build 899
+
+	接受 REPL 上下文、规约上下文和指定名称，转换翻译单元内容为待求值节点的例程。
+	*/
+	using Loader = function<TermNode(REPLContext&, ContextNode&, string)>;
 
 private:
 	struct LeafConverter final
@@ -1623,6 +1632,14 @@ public:
 	//@}
 
 	/*!
+	\brief 加载例程。
+	\since build 899
+
+	指定字符串参数作为加载对象描述，结合自身状态加载输入为待求值的项。
+	*/
+	Loader Load{DefaultLoad};
+
+	/*!
 	\sa ListTermPreprocess
 	\sa SetupDefaultInterpretation
 	*/
@@ -1641,23 +1658,6 @@ public:
 		pmr::memory_resource& = NPL::Deref(pmr::new_delete_resource()));
 	//@}
 
-private:
-	//! \since build 891
-	template<typename _tParam>
-	YB_ATTR_nodiscard inline ContextNode&
-	FetchContextParameter(_tParam&&)
-	{
-		return Root;
-	}
-	//! \since build 891
-	template<typename... _tParams>
-	YB_ATTR_nodiscard inline ContextNode&
-	FetchContextParameter(std::tuple<_tParams..., ContextNode&> args)
-	{
-		return std::get<sizeof...(_tParams)>(args);
-	}
-
-public:
 	/*!
 	\brief 判断当前实现是否为异步实现。
 	\since build 879
@@ -1668,6 +1668,34 @@ public:
 	YB_STATELESS bool
 	IsAsynchronous() const ynothrow;
 
+	/*!
+	\brief 默认加载。
+	\since build 899
+
+	以参数作为文件名读取内容并转换。
+	不处理文件名。
+	若被平台支持，使用相对路径文件名指定的文件位置可能和当前工作目录相关。
+	*/
+	YB_ATTR_nodiscard static TermNode
+	DefaultLoad(REPLContext&, ContextNode&, string);
+
+private:
+	//! \since build 891
+	template<typename _tParam>
+	YB_ATTR_nodiscard inline ContextNode&
+	FetchContextParameter(_tParam&&)
+	{
+		return Root;
+	}
+	//! \since build 899
+	template<typename... _tParams>
+	YB_ATTR_nodiscard inline ContextNode&
+	FetchContextParameter(NPL::tuple<_tParams..., ContextNode&> args)
+	{
+		return NPL::get<sizeof...(_tParams)>(args);
+	}
+
+public:
 	/*!
 	\exception std::invalid_argument 异常中立：由 ReadFrom 抛出。
 	\sa ReadFrom
@@ -1684,7 +1712,7 @@ public:
 		auto term(ReadFrom(yforward(args)...));
 
 		Reduce(term,
-			FetchContextParameter(std::forward_as_tuple(yforward(args)...)));
+			FetchContextParameter(NPL::forward_as_tuple(yforward(args)...)));
 	}
 	//@}
 
@@ -1697,7 +1725,7 @@ public:
 		auto term(ReadFrom(yforward(args)...));
 
 		Reduce(term,
-			FetchContextParameter(std::forward_as_tuple(yforward(args)...)));
+			FetchContextParameter(NPL::forward_as_tuple(yforward(args)...)));
 		return term;
 	}
 	//@}
@@ -1740,11 +1768,25 @@ public:
 	{
 		return ReadFrom(yforward(input), Root);
 	}
+	//! \since bulid 899
+	template<class _type>
+	YB_ATTR_nodiscard inline TermNode
+	ReadFrom(_type&& input, ReaderState& rs)
+	{
+		return ReadFrom(yforward(input), rs, Root);
+	}
 	template<class _type>
 	YB_ATTR_nodiscard inline TermNode
 	ReadFrom(_type&& input, ContextNode& ctx) const
 	{
 		return ReadFrom(LoadOptionTag<>(), yforward(input), ctx);
+	}
+	//! \since build 899
+	template<class _type>
+	YB_ATTR_nodiscard inline TermNode
+	ReadFrom(_type&& input, ReaderState& rs, ContextNode& ctx) const
+	{
+		return ReadFrom(LoadOptionTag<>(), yforward(input), rs, ctx);
 	}
 	template<LoadOption _vOpt, class _type>
 	YB_ATTR_nodiscard inline TermNode
@@ -1752,15 +1794,26 @@ public:
 	{
 		return ReadFrom(opt, yforward(input), Root);
 	}
-	//! \throw std::invalid_argument 流状态错误或缓冲区不存在。
-	template<LoadOption _vOpt>
+	//! \since build 899
+	template<LoadOption _vOpt, class _type>
+	YB_ATTR_nodiscard inline TermNode
+	ReadFrom(LoadOptionTag<_vOpt> opt, _type&& input, ReaderState& rs)
+	{
+		return ReadFrom(opt, yforward(input), rs, Root);
+	}
+	/*!
+	\throw std::invalid_argument 流状态错误或缓冲区不存在。
+	\since build 899
+	*/
+	template<LoadOption _vOpt, typename... _tParams>
 	YB_ATTR_nodiscard TermNode
-	ReadFrom(LoadOptionTag<_vOpt> opt, std::istream& is, ContextNode& ctx) const
+	ReadFrom(LoadOptionTag<_vOpt> opt, std::istream& is, _tParams&&... args)
+		const
 	{
 		if(is)
 		{
 			if(const auto p = is.rdbuf())
-				return ReadFrom(opt, *p, ctx);
+				return ReadFrom(opt, *p, yforward(args)...);
 			throw std::invalid_argument("Invalid stream buffer found.");
 		}
 		else
@@ -1768,12 +1821,24 @@ public:
 	}
 	YB_ATTR_nodiscard TermNode
 	ReadFrom(LoadOptionTag<>, std::streambuf&, ContextNode&) const;
+	//! \since build 899
+	YB_ATTR_nodiscard TermNode
+	ReadFrom(LoadOptionTag<>, std::streambuf&, ReaderState&, ContextNode&)
+		const;
 	YB_ATTR_nodiscard TermNode
 	ReadFrom(LoadOptionTag<WithSourceLocation>, std::streambuf&, ContextNode&)
 		const;
+	//! \since build 899
+	YB_ATTR_nodiscard TermNode
+	ReadFrom(LoadOptionTag<WithSourceLocation>, std::streambuf&, ReaderState&,
+		ContextNode&) const;
 	YB_ATTR_nodiscard TermNode
 	ReadFrom(LoadOptionTag<NoSourceInformation>, std::streambuf&, ContextNode&)
 		const;
+	//! \since build 899
+	YB_ATTR_nodiscard TermNode
+	ReadFrom(LoadOptionTag<NoSourceInformation>, std::streambuf&, ReaderState&,
+		ContextNode&) const;
 	//! \pre 断言：字符串的数据指针非空。
 	//@{
 	YB_ATTR_nodiscard TermNode
@@ -1786,6 +1851,18 @@ public:
 		const;
 	//@}
 	//@}
+
+	/*!
+	\brief 设置当前源代码名称为参数指定初始化的新分配的共享名称。
+	\since build 899
+	*/
+	template<typename... _tParams>
+	void
+	ShareCurrentSource(_tParams&&... args)
+	{
+		CurrentSource
+			= YSLib::allocate_shared<string>(Allocator, yforward(args)...);
+	}
 };
 
 /*!

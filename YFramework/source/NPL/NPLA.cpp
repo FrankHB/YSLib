@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3347
+\version r3361
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2020-08-09 21:45 +0800
+	2020-09-30 12:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -776,14 +776,8 @@ LiftToReturn(TermNode& term)
 	//	should be neutral here due to copy elision in the object language. Note
 	//	the operation here is idempotent for qualified expressions.
 	// TODO: Detect lifetime escape to perform copy elision?
-	// NOTE: Only outermost one level is referenced.
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
 		LiftMoved(term, *p, p->IsMovable());
-	// NOTE: On the other hand, the references captured by vau handlers (which
-	//	requires recursive copy of vau handler members if forced) are not
-	//	blessed here to avoid leaking abstraction of detailed implementation
-	//	of vau handlers; it can be checked by the vau handler itself, if
-	//	necessary.
 }
 
 void
@@ -996,19 +990,21 @@ Environment::RemoveChecked(string_view id)
 		throw BadIdentifier(id, 0);
 }
 
-void
+bool
 Environment::Replace(string_view id, ValueObject&& vo)
 {
 	if(const auto p = LookupName(id))
+	{
 		swap(p->Value, vo);
+		return true;
+	}
+	return {};
 }
 
 void
 Environment::ReplaceChecked(string_view id, ValueObject&& vo)
 {
-	if(const auto p = LookupName(id))
-		swap(p->Value, vo);
-	else
+	if(!Replace(id, std::move(vo)))
 		throw BadIdentifier(id, 0);
 }
 

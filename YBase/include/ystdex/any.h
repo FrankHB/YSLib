@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r5058
+\version r5070
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2020-04-06 18:15 +0800
+	2020-10-07 09:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,6 +52,13 @@
 namespace ystdex
 {
 
+/*!	\defgroup any_holders Any Handlers
+\brief 动态泛型对象持有者。
+\note 持有者是实现泛型持有者接口的类或类模板。
+\sa any_holders
+\since build 899
+*/
+
 /*!
 \ingroup YBase_replacement_extensions
 \sa any
@@ -67,6 +74,7 @@ struct with_handler_t
 
 
 /*!
+\ingroup any_holders
 \brief 抽象动态泛型持有者接口。
 \since build 454
 */
@@ -157,6 +165,7 @@ public:
 
 
 /*!
+\ingroup any_holders
 \brief 指针类型动态泛型持有者。
 \tparam _type 对象类型。
 \tparam _tPointer 智能指针类型。
@@ -817,7 +826,8 @@ private:
 	};
 #if false
 	// XXX: This is potentially efficient, but not enabled curretly to make the
-	//	real (profiled) performance better. See $2019-04 @ %Documentation::Workflow.
+	//	real (profiled) performance better. See $2019-04
+	//	@ %Documentation::Workflow.
 	struct ator_inc final : noncopyable, nonmovable
 	{
 		value_type& ref;
@@ -1942,6 +1952,7 @@ public:
 		: any_base(x)
 	{
 		do_alloc_init(a, x, any_ops::transfer_with_allocator);
+		x.manager = {};
 	}
 	//@}
 	//! \since build 382
@@ -1971,7 +1982,7 @@ public:
 		return *this = any(a);
 	}
 	/*!
-	\brief 转移赋值：使用复制和交换。
+	\brief 转移赋值。
 	\post YStandardEx 扩展：转移后被转移的参数值满足 !has_value() 。
 	\note YStandardEx 扩展：若存在值被转移，不从值初始化新的对象。
 	\since build 332
