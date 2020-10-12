@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r19451
+\version r19493
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2020-09-25 18:28 +0800
+	2020-10-11 21:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1828,42 +1828,47 @@ FoldRMap1Impl(TermNode& term, TermNode& nd, ResolvedTermReferencePtr p_ref,
 {
 	auto& con(term.GetContainerRef());
 	auto& nterm(con.back());
-	auto& tm_first(AccessFirstSubterm(nd));
-
-	YAssert(nterm.empty(), "Invalid term found.");
-	if(NPL::Deref(p_ref).IsReferencedLValue())
+	if(IsBranchedList(nd))
 	{
-		if(const auto p
-			= NPL::TryAccessLeaf<const TermReference>(tm_first))
-			nterm.SetContent(tm_first);
-		else
-			ReduceToReferenceAt(nterm, tm_first, p_ref);
+		auto& tm_first(AccessFirstSubterm(nd));
 
-		const auto a(nd.get_allocator());
-		TermNode::Container ncon(a);
-		auto j(nd.begin());
-
-		while(++j != nd.end())
+		YAssert(nterm.empty(), "Invalid term found.");
+		if(NPL::Deref(p_ref).IsReferencedLValue())
 		{
-			auto& tm(*j);
-	
-			if(IsReferenceTerm(tm))
-				ncon.emplace_back(tm);
+			if(const auto p
+				= NPL::TryAccessLeaf<const TermReference>(tm_first))
+				nterm.SetContent(tm_first);
 			else
-				// XXX: Same to %ReduceToReferenceAt.
-				ncon.emplace_back(NPL::AsTermNode(TermReference(
-					tm.Tags, tm,
-					NPL::Deref(p_ref).GetEnvironmentReference())));
+				ReduceToReferenceAt(nterm, tm_first, p_ref);
+
+			const auto a(nd.get_allocator());
+			TermNode::Container ncon(a);
+			auto j(nd.begin());
+
+			while(++j != nd.end())
+			{
+				auto& tm(*j);
+	
+				if(IsReferenceTerm(tm))
+					ncon.emplace_back(tm);
+				else
+					// XXX: Same to %ReduceToReferenceAt.
+					ncon.emplace_back(NPL::AsTermNode(TermReference(
+						tm.Tags, tm,
+						NPL::Deref(p_ref).GetEnvironmentReference())));
+			}
+			l.Value.Clear();
+			l.GetContainerRef() = std::move(ncon);
 		}
-		l.Value.Clear();
-		l.GetContainerRef() = std::move(ncon);
+		else
+		{
+			LiftFirst(nterm, tm_first, !p_ref || p_ref->IsModifiable());
+			nd.GetContainerRef().pop_front();
+		}
+		return nterm;
 	}
 	else
-	{
-		LiftFirst(nterm, tm_first, !p_ref || p_ref->IsModifiable());
-		nd.GetContainerRef().pop_front();
-	}
-	return nterm;
+		ThrowInsufficientTermsError();
 }
 
 YB_FLATTEN ReductionStatus

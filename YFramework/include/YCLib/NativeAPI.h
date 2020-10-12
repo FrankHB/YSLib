@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1653
+\version r1659
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2019-09-06 00:32 +0800
+	2019-10-10 18:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -617,6 +617,12 @@ public:
 #	endif
 
 #	include <Windows.h>
+#	if __has_include(<specstrings_undef.h>)
+#		include <specstrings_undef.h>
+#	else
+// NOTE: Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=97362.
+#		undef __deref
+#	endif
 #	include <direct.h>
 #	include <io.h> // for ::_get_osfhandle;
 

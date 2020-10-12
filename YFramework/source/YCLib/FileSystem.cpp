@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4355
+\version r4403
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2019-06-26 16:15 +0800
+	2020-10-08 12:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -509,6 +509,58 @@ HDirectory::GetNativeName() const ynothrow
 namespace FAT
 {
 
+bool
+CheckValidMBR(const byte* sec_buf)
+{
+	return ((sec_buf[BS_jmpBoot + 0] == byte(0xEB) && sec_buf[BS_jmpBoot + 2]
+		== byte(0x90)) || sec_buf[BS_jmpBoot + 0] == byte(0xE9))
+		&& (MatchFATSignature(sec_buf + FAT16::BS_FilSysType)
+		|| MatchFATSignature(sec_buf + FAT32::BS_FilSysType));
+}
+
+
+std::time_t
+ConvertFileTime(Timestamp d, Timestamp t) ynothrow
+{
+	struct std::tm time_parts;
+
+	yunseq(
+	time_parts.tm_hour = t >> 11,
+	time_parts.tm_min = (t >> 5) & 0x3F,
+	time_parts.tm_sec = (t & 0x1F) << 1,
+	time_parts.tm_mday = d & 0x1F,
+	time_parts.tm_mon = ((d >> 5) & 0x0F) - 1,
+	time_parts.tm_year = (d >> 9) + 80,
+	time_parts.tm_isdst = 0
+	);
+	return std::mktime(&time_parts);
+}
+
+pair<Timestamp, Timestamp>
+FetchDateTime() ynothrow
+{
+	struct std::tm tmp;
+	std::time_t epoch;
+
+	if(std::time(&epoch) != std::time_t(-1))
+	{
+#if YCL_Win32
+		// NOTE: The return type and parameter order differs than ISO C11
+		//	library extension.
+		::localtime_s(&tmp, &epoch);
+#else
+		::localtime_r(&epoch, &tmp);
+		// FIXME: For platforms without %::(localtime_r, localtime_s).
+#endif
+		// NOTE: Microsoft FAT base year is 1980.
+		return {ystdex::is_date_range_valid(tmp) ? ((tmp.tm_year - 80) & 0x7F)
+			<< 9 | ((tmp.tm_mon + 1) & 0xF) << 5 | (tmp.tm_mday & 0x1F) : 0,
+			ystdex::is_time_no_leap_valid(tmp) ? (tmp.tm_hour & 0x1F) << 11
+			| (tmp.tm_min & 0x3F) << 5 | ((tmp.tm_sec >> 1) & 0x1F) : 0};
+	}
+	return {0, 0};
+}
+
 namespace LFN
 {
 
@@ -622,49 +674,6 @@ WriteNumericTail(string& alias, size_t k) ynothrowv
 }
 
 } // namespace LFN;
-
-std::time_t
-ConvertFileTime(Timestamp d, Timestamp t) ynothrow
-{
-	struct std::tm time_parts;
-
-	yunseq(
-	time_parts.tm_hour = t >> 11,
-	time_parts.tm_min = (t >> 5) & 0x3F,
-	time_parts.tm_sec = (t & 0x1F) << 1,
-	time_parts.tm_mday = d & 0x1F,
-	time_parts.tm_mon = ((d >> 5) & 0x0F) - 1,
-	time_parts.tm_year = (d >> 9) + 80,
-	time_parts.tm_isdst = 0
-	);
-	return std::mktime(&time_parts);
-}
-
-pair<Timestamp, Timestamp>
-FetchDateTime() ynothrow
-{
-	struct std::tm tmp;
-	std::time_t epoch;
-
-	if(std::time(&epoch) != std::time_t(-1))
-	{
-#if YCL_Win32
-		// NOTE: The return type and parameter order differs than ISO C11
-		//	library extension.
-		::localtime_s(&tmp, &epoch);
-#else
-		::localtime_r(&epoch, &tmp);
-		// FIXME: For platforms without %::(localtime_r, localtime_s).
-#endif
-		// NOTE: Microsoft FAT base year is 1980.
-		return {ystdex::is_date_range_valid(tmp) ? ((tmp.tm_year - 80) & 0x7F)
-			<< 9 | ((tmp.tm_mon + 1) & 0xF) << 5 | (tmp.tm_mday & 0x1F) : 0,
-			ystdex::is_time_no_leap_valid(tmp) ? (tmp.tm_hour & 0x1F) << 11
-			| (tmp.tm_min & 0x3F) << 5 | ((tmp.tm_sec >> 1) & 0x1F) : 0};
-	}
-	return {0, 0};
-}
-
 
 void
 EntryData::CopyLFN(char16_t* str) const ynothrowv

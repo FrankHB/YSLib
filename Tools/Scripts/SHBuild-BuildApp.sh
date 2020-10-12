@@ -91,6 +91,10 @@ else
 	unset LDFLAGS
 	# shellcheck source=./SHBuild-common-options.sh
 	. "$SHBuild_Bin/SHBuild-common-options.sh"
+	if [[ "$SHBuild_Env_OS" == 'Win32' && "$SHBuild_Env_Arch" == 'i686' ]]; then
+		# XXX: Workaround to linking error.
+		CXXFLAGS="$CXXFLAGS -fno-lto"
+	fi
 	# XXX: %SHBuild_NoAdjustSubsystem is external.
 	# shellcheck disable=2154
 	if [[ "$SHBuild_Env_OS" == 'Win32' \
@@ -113,7 +117,7 @@ else
 	# XXX: The default value of %SHBuild_YF_CFlags_freetype is known having
 	#	quotes.
 	# shellcheck disable=2089
-	: "${SHBuild_YF_CFlags_freetype:="-I\"/$SHBuild_Bin/../include\""}"
+	: "${SHBuild_YF_CFlags_freetype:="-I\"$SHBuild_Bin/../include\""}"
 fi
 if [[ -f "$SHBuild_Bin/../lib/libfreetype.a" ]]; then
 	: "${SHBuild_YF_Libs_freetype:=-lfreetype}"
@@ -122,6 +126,11 @@ else
 		"$(pkg-config --libs freetype2 2> /dev/null)"}"
 	: "${SHBuild_YF_Libs_freetype:=-lfreetype}"
 	SHBuild_YF_Libs_freetype="-Wl,-dy $SHBuild_YF_Libs_freetype"
+fi
+if [[ "$SHBuild_Debug" != '' ]]; then
+	: "${SHBuild_YF_Libs_FreeImage:=-lFreeImaged}"
+else
+	: "${SHBuild_YF_Libs_FreeImage:=-lFreeImage}"
 fi
 
 LIBS="$LIBS_RPATH -L\"$(SHBuild_2w "$SHBuild_Bin/../lib")\""
@@ -134,12 +143,14 @@ else
 	# XXX: Use 'g++' even when %CXX is 'clang++' to work around LTO issue for
 	#	static executables in Linux.
 	if SHBuild_Put "$CXX" | grep clang++ > /dev/null; then
+		# XXX: No prefix and postfix of %CXX are supported yet.
 		LD=g++
 	fi
 	SHBuild_YSLib_Flags="$SHBuild_YF_CFlags_freetype \
 		-I\"$SHBuild_Bin/../include\""
 	SHBuild_YSLib_LibNames="$SHBuild_YSLib_LibNames \
-		-lFreeImage $SHBuild_YF_Libs_freetype -L\"$SHBuild_Bin/../lib\" \
+		$SHBuild_YF_Libs_FreeImage $SHBuild_YF_Libs_freetype \
+		-L\"$SHBuild_Bin/../lib\" \
 		$SHBuild_YF_SystemLibs"
 	export LIBS="$LIBS -Wl,-dn $SHBuild_YSLib_LibNames"
 fi

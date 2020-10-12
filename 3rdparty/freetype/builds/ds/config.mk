@@ -19,6 +19,7 @@ I := -I
 D := -D
 L := -l
 T := -o$(space)
+CPPFLAGS += -DFT_CONFIG_MODULES_H="<ftmodule.h>"
 CFLAGS ?= -c -Os -Wall -fdata-sections -ffunction-sections \
 	-DFT_CONFIG_OPTION_OLD_INTERNALS -DNDEBUG
 ANSIFLAGS :=

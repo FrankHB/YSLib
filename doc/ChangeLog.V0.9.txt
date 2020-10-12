@@ -1,0 +1,383 @@
+﻿/*
+	© 2020 FrankHB.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file ChangeLog.V0.9.txt
+\ingroup Documentation
+\brief 版本更新历史记录 - V0.9 。
+\version r382
+\author FrankHB <frankhb1989@gmail.com>
+\since build 800
+\par 创建时间:
+	2020-10-12 17:19:23 +0800
+\par 修改时间:
+	2020-10-12 18:26 +0800
+\par 文本编码:
+	UTF-8
+\par 模块名称:
+	Documentation::ChangeLog::'V0.8'
+*/
+
+// See %Documentation::Meta for meta descriptions.
+
+$import $HISTORY;
+
+// Scope: [b900, $now];
+
+$now
+(
+	/ $re_add(b826) DLB "removed targets generated from 'objcopy -O binary'"
+		@ "makefile" @ "project %YSTest_ARM9" @ "platform %DS",
+		// This is not used since b826. See $2018-05 @ %Documentation::Workflow.
+	/ $re_ex(b800) "updated year" @ "%SUBTITLE2" @ "makefile" @ "platform %DS"
+		@ "project %YSTest",
+	/ %YFramework $=
+	(
+		/ @ "platform %DS" @ %'YCLib_(DS)'.DSIO $=
+		(
+			/ @ "member function %Partition::StatFromEntry" $=
+			(
+				/ "removed assignments to implementation-specific 'st_spare*' \
+					data members" $dep_to "newlib compatibility",
+					// This is also compatible to newlib > 3.1.
+				/ "set .tv_nsec to 0" @ 'st_*time'
+					@ "newlib version greater than 3.1"
+					// See also https://github.com/devkitPro/libfat/issues/19.
+			),
+			/ "read FSInfo for FAT32 unconditionally"
+				@ "member function %Partition::StatFS"
+				~ "creation of FSInfo on the special 'SCAN' command magic",
+				// Same to https://github.com/devkitPro/libfat/commit/42fe5af38d0d48a1a3a874c96ee89ecb62f7a4a1.
+			/ $dev "type of all free count value" ^ $dep_from
+				("%ClusterCount" @ "namespace %FAT" @ %FileSystem) ~ "%size_t",
+			+ DLDI 'YB_ATTR_nodiscard' @ "internal functions",
+			/ @ "class %AllocationTable" $=
+			(
+				(
+				+ "function %UpdateFSInfo";
+				+ "function %SynchronizeClusters" ^ $dep_from
+					("%FAT::Clusters::UnknownFreeCount" @ %YCLib.FileSystem)
+				),
+				- "function %WriteFSInfo" $dep_from "%Partition::CreateFSInfo",
+				- "function %ReadClusters"
+					$dep_from "%Partition::SynchronizeClusters",
+				+ $dev $lib 'YB_ATTR_nodiscard' @ "functions %(QueryNext, \
+					QueryLast, LinkFreeCleared, CountFreeCluster, TrimChain)",
+				+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+					@ "function %IsFreeOrValid",
+			),
+			+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+				@ ("functions %IsFATRoot16Cluster",
+				"friend function %operator==") @ "class %DEntryPosition",
+			/ @ "class %Partition" $=
+			(
+				/ DLDI "simplified function %CreateFSInfo"
+					^ $dep_from "%AllocationTable::UpdateFSInfo"
+					~ "%AllocationTable::WriteFSInfo",
+				/ "updated FSInfo on reading" @ "function %ReadFSInfo"
+					^ $dep_from "%AllocationTable::SynchronizeClusters"
+					~ "%AllocationTable::ReadClusters",
+					// Same to https://github.com/devkitPro/libfat/commit/42fe5af38d0d48a1a3a874c96ee89ecb62f7a4a1.
+				/ "consolidated MBR sector check" @ ("constructor#2",
+					"function %FindFirstValidPartition") ^ $dep_from
+					("%(CheckValidMBR, MatchSignature)" @ "namespace %FAT"
+					@ %YCLib.FileSystem),
+					// Different to LibFAT 1.1.2. See the comments in the source
+					//	code for details.
+				+ DLDI 'YB_ATTR_nodiscard' @ "private function",
+				+ $dev $lib 'YB_ATTR_nodiscard' @ "functions %(EntryExists, \
+					ExtensionResult, LockOpenFiles, ReadFSInfoSector, \
+					ReadSector, WriteSector)",
+				/ DLI "cached file system type by initialization of cluster \
+					reader"
+					$= (/ "function %ReadClusterFromEntry" -> "data member")
+			),
+			/ @ "member function %DirState::Iterate" $=
+			(
+				/ "throwing" -> "return value %int";
+					// This now follows the corresponding change in \
+						https://github.com/devkitPro/libfat/pull/9. Note there \
+						is no need to change elsewhere, as the %::devoptab_t \
+						handler is already self adapted to both cases.
+				+ $dev $lib 'YB_ATTR_nodiscard'
+			),
+			/ $dev $lib @ "class %FileInfo" $=
+			(
+				+ 'YB_ATTR_nodiscard YB_PURE'
+					@ "functions %(CanAppend, CanRead, CanWrite)"
+				+ 'YB_ATTR_nodiscard' @ "function %(Read, Seek, Write)"
+			),
+			+ $dev $lib 'YB_ATTR_nodiscard'
+				@ "functions %(FetchPartitionFromPath, Mount, Unmount)",
+			+ "function %IsSimpleAbsolute",
+			/ @ "class %DEntry" $=
+			(
+				(
+				+ "function %IsFAT32Root";
+				/ "split constructor %DEntry#4" -> "2 constructors"
+					^ ($dep_from "%IsSimpleAbsolute", "%IsFAT32Root")
+					$dep_to "DEntry constructor split";
+				/ $comp DLDI "avoided unused variable"
+					@ "release configurations"
+					@ "constructor %DEntry with 5 parameters" ^ 'yunused',
+					// To eliminate G++ warning: [-Wunused-variable].
+				),
+				+ "default move (constructor, %operator=)",
+					// To avoid unexpected copies.
+				+ 'const' @ "parameter" @ "constructor#1"
+			),
+			/ $forced DLDI "simplified (member function %Partition::ChangeDir, \
+				constructor %DirState)" $dep_from "DEntry constructor split",
+			+ DLD "2 'nullptr' at end of %devoptab_t object"
+				$dep_from "devkitARM update"
+				// To eliminate G++ warning: [-Wmissing-field-initializers].
+		),
+		/ %YSLib $=
+		(
+			+ $dev $lib "friend functions %operator(==, <)" @ "class %Path"
+				@ %Service.FileSystem,
+				// Also to eliminate G++ 7.1 warning: \
+					[-Wsuggest-attribute=pure].
+			/ DLDI "%std::forward_as_tuple" -> "%YSLib::forward_as_tuple"
+				$effective @ %Core.(YMessage, YEvent),
+			/ DLDI "%std::tuple" -> "%YSLib::tuple" $effective @ %Core.YEvent,
+			* "missing overrider %get" @ "class templates \
+				%(PolymorphicValueHolder, PolymorphicAllocatorHolder)"
+				$since b899
+		),
+		/ %YCLib $=
+		(
+			/ %FileSystem $=
+			(
+				/ DLDI "cast to 'std::wint_t'" @ "function template \
+					%FetchRootNameLength_P#(3, 4)",
+					// To eliminate G++ 7.1 warning: [-Wsign-conversion].
+				/ @ "namespace %FAT" $=
+				(
+					(
+					+ "alias %ClusterCount";
+					+ "static yconstfn object %UnknownFreeCount"
+						@ "namespace %Clusters"
+					),
+					(
+					+ "static yconstfn object %FATSignature";
+					+ "function %MatchSignature";
+					+ "function %CheckValidMBR"
+					),
+					+ $dev $lib 'YB_ATTR_nodiscard'
+						@ ("functions %(ConvertFileTime, FetchDateTime, \
+						ConvertToAlias, FetchLongNameOffset, ConvertToMBCS, \
+						GenerateAliasChecksum, ValidateName)", "functions \
+						%(FindAlias, GenerateAlias)" @ "class %EntryData")
+				),
+				+ $dev $lib 'YB_ATTR_nodiscard' @ ("all 2 functions \
+					%(IsDirectory, ReadLink)",
+					"function %GetNativeName" @ "class %HDirectory")
+			)
+			+ DLB "workaround to prevent reserved identifier %__deref clash"
+				@ "platform %Win32" @ %YCLib.NativeAPI,
+				// Without the workaround, %__deref in libstdc++ <functional> \
+					of G++ 10.2 in debug mode (with %_GLIBCXX_DEBUG defined) \
+					clashes with macro (defined empty) from MinGW-w64's \
+					<sal.h>. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=97362.
+			* $comp $build "%_POSIX_C_SOURCE check failed" @ %Platform
+				@ "platform %Android" $since b894
+				$dep_from ("%Toolchain.Android.mk" @ %Tools.Scripts)
+		),
+		/ %NPL $=
+		(
+			* "assertion failure for terms of leaf nodes caused by missing \
+				%IsBranchedList check" @ "functions %Forms::(FoldR1, Map1)"
+				@ %NPL.NPLA1Forms $since b899,
+			+ "applicative %SHBuild_DirectoryOf_"
+				@ "function %LoadModule_SHBuild" @ %Dependency
+		)
+	),
+	/ DLP "toolchain and library using" $=
+	(
+		/ $re_ex(b800) "platform %MinGW32 toolchain"
+		(
+			^ "MinGW[gcc version 10.2.0 (Rev3, Built by \
+				MSYS2 project)] mingw32/mingw-w64-i686-gcc-10.2.0-3"
+				~ "MinGW[gcc version 7.1.0 (Rev2, Built by MSYS2 project)] \
+				mingw32/mingw-w64-i686-gcc-7.1.0-2" @ "platform %MinGW32"
+				$dep_from %YFramework.YCLib.NativeAPI,
+				// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
+					Exceptions implementation: Dwarf2.
+			^ $re_ex(b800) "mingw-w64-i686-binutils 2.35-1 from MSYS2"
+				~ "mingw-w64-i686-binutils 2.28-2";
+			/ $forced "rebuilt library %FreeImage";
+				// If seems not working without rebuilding even with the old \
+					library binary, as the linking would fail in %release \
+					configurations.
+			/ $forced "disabled LTO by adding '-flto'"
+				@ "static release configuration" @ "platform %MinGW32"
+				// To work around linking failure.
+		),
+		/ $re_ex(b826) DLP @ "platform %DS" $=
+		(
+			(
+			^ "updated devkitARM release 55" ~ "devkitARM release 48"
+				$dep_to "devkitARM r55" $dep_from "newlib compatibility"
+				$dep_to "devkitARM update";
+			/ $forced "rebuilt library %freetype"
+				// If seems not working without rebuilding even with the old \
+					library binary, as the font loading would always fail \
+					(though the %FT_Library initialized without errors).
+			),
+			^ "updated libnds 1.8.1" ~ "libnds 1.7.2"
+			// The final .nds file bloats from 979 KiB to 1003 KiB, and new \
+				changes on %'YCLib(DS)_DSIO' makes more 1 KiB.
+		),
+		(
+		/ DLP "updated platform %Linux toolchain",
+		/ @ "%3rdparty/FreeImage" $=
+		(
+			* "missing local inclusion directory" @ "assembler command"
+				@ "makefiles with %asm rules" @ $since b885,
+				// This is at least necessary for %NASM, which is default in \
+					%Makefile.gnu.
+			(
+			/ $doc "%Readme.en-US.txt" -> "%Readme.en-US.md";
+			/ $doc "clarified the library file location" @ "platform %Linux"
+				@ "%Readme.en-US.txt",
+			)
+			/ DLI "replaces space to tabs" @ "%Makefile.mingw"
+				// In this context it does not have undesired effects.
+			/ @ "makefile" @ "plaform %DS" $=
+			(
+				/ "renamed %MODULE";
+				+ "rules for '%.c' and '%.cpp'";
+				+ '.SUFFIXES:'
+			),
+			(
+			+ "variables %(CC, CXX, LD) with default value" @ "%Makefile.gnu";
+			+ $doc "'-R' in make commands" @ $dep_from "%Readme.en-US.md",
+				// For some reasons, 'MAKEFLAGS += -R' in makefiles does work; \
+					it just wipes out any default variables in spite of '?='.
+			* "misspelled 'C_CXXFLAGS' as 'C_CXX_FLAGS'" $effective
+				@ "%(Makefile.gnu, Makefile.mingw)" $since b562;
+				// This does work only in %Makefile.gnu, because all instances \
+					in %Makefile.mingw are wrong.
+			(
+			* "missing set %AR as 'gcc-ar' by default" @ "makefiles"
+				$since b562,
+			+ "%debug library builds with 'CONF=debug' and expected used the \
+				output library file as %lib/libFreeImaged.a"
+				$dep_to "libFreeImaged";
+				// See $2020-10 @ %Documentation::Workflow.
+			* "missing '-flto'" @ "default value of" @ "%C_CXXFLAGS"
+				$since b562
+				// See $2020-10 @ %Documentation::Workflow.
+			)
+			)
+		);
+		/ "rebuilt library %FreeImage" @ !"platform %Android"
+		),
+		/ "updated library %freetype" @ "library using" $=
+		(
+			+ "empty file %3rdparty/freetype/src/smooth/ftspic.h",
+				// Used by the old %ftgrays.c.
+			+ "%3rdparty/freetype/include/ftcolor.h from freetype 2.10.2",
+				// Used by %FT_BITMAP_H.
+			(
+			/ $doc "%Readme.en-US.txt" -> "%Readme.en-US.md";
+			/ $doc "updated build command for plaform %Win32"
+				// See the %Readme.en-US.md document.
+			),
+			+ 'CPPFLAGS += -DFT_CONFIG_MODULES_H="<ftmodule.h>"'
+				@ "%3rdparty/freetype/builds/ds/build.mk";
+				// Ditto.
+			^ $re_ex(b700) "updated freetype 2.10.2 with several files \
+				remained from freetype 2.4.11" ~ "freetype 2.9.1";
+			/ "rebuilt library %freetype" @ "platforms %(DS, MinGW32)"
+			// See [Documentation::Dependencies @@2.2.6].
+		)
+	),
+	/ %Tools.Scripts $=
+	(
+		+ '-D_POSIX_C_SOURCE=200809L' @ "%C_CXXFLAGS_COMMON"
+			@ "%Toolchain.Android.mk",
+		/ $forced "supported '-lFreeImaged'" @ "%SHBuild-BuildApp.sh"
+			$dep_from "libFreeImaged"
+			$= (+ $dev "overridable variable %SHBuild_YF_Libs_FreeImage"),
+		* "wrong leading '/' on default value" @ "variable \
+			%SHBuild_YF_CFlags_freetype when 'pkg-config' failed"
+			@ !"platform %Win32" @ "%SHBuild-BuildApp.sh" $since b885,
+		/ @ "%SHBuild-YSLib-common.txt" $=
+		(
+			* "missing import 'string->symbol' from 'std.strings'" $since b840,
+				// %SHBuild-YSLib accidentally works because it imports \
+					'string->symbol'.
+			* "missing import %SHBuild_TrimOptions_ from %env_SHBuild_"
+				$since b838,
+				// Ditto.
+			* DLDI "wrong handling of negation %SS_Debg" $since b840,
+				// This did not expose wrong behavior because the consumption \
+					of the value is also wrong.
+			* @ "applicative ''ss-verbose-puts''" $since b840 $=
+			(
+				* "wrong handling of negation %SS_Verbose",
+				* "missing copying the variable to the static environment"
+			),
+			(
+			/ DLDI "simplfied 'chmod' invocation";
+			/ "avoid 'chmod' command invocations" @ "platform %Win32";
+			* "missing invoking 'chmod' on executables"
+				@ "applicative %InstSHBuild" $since b838
+			)
+		),
+		/ "%MSYSTEM wrongly applied to non-Windows host environments"
+			@ "function %SHBuild_Platform_Detect" @ "%(SHBuild-common.sh, \
+			SHBuild-YSLib-common.txt)" $mismath $since b885,
+			// %MSYSTEM can be defined natually in other environments, e.g. WSL.
+		(
+		+ "NPLA1 script %SHBuild-BuildApp.txt"
+			$dep_from ("%SHBuild-YSLib-common.txt", %YFramework.NPL.Dependency);
+		+ "shell script %SHBuild-BuildPkg.sh"
+		),
+		/ @ "%SHBuild-YSLib-build.txt" $=
+		(
+			+ $forced "libFreeImaged support" $dep_from "libFreeImaged",
+			/ "checked %(SHBuild_UseDebug, SHBuild_UseRelease)"
+				@ "3rdparty library installation",
+			+ $re_add(b885) $re_ex(b897) "'-gdwarf-3' as workaround after '-Og'"
+				@ "platform %MinGW64" @ "YFramework DLL build",
+				// See $2020-10 @ %Documentation::Workflow.
+			* "missing restoring %LIBS before %YBase build" $since b796,
+				// This makes dynamic library in %release configuration having \
+					polluted %LIBS by the %debug configuration of YFramework \
+					(so YBase release dynamic library would be then linked to \
+					YBase debug dynamic library) when both %debug and \
+					%release configurations are enabled in the same script run.
+			* "missing restoring %LIBS before stage 2 %SHBuild build"
+				$since b838,
+				// Ditto, although this is only bad when after a debug-only \
+					build of YBase + YFramework if YBase dynamic library are \
+					built correctly.
+			(
+			+ $deploy "installing directory %var/NPLA1 under SysRoot";
+			/ "NPLA1 module directory" -> "%var/NPLA1" ~ "%bin";
+			+ $deploy "installing new files" @ !"%SHBuild_NoDev"
+				$dep_from "%(SHBuild-BuildApp.txt, SHBuild-BuildPkg.sh)"
+			),
+			+ $build "options '-O1 -g -fno-var-tracking-assignments' as \
+				workaround"
+				@ "%YFramework static library build" @ "configuration% debug"
+				@ "platform %MinGW64" -> '-O1'
+				// See $2020-10 @ %Documentation::Workflow.
+		)
+	),
+	/ $re_ex(b800) "regenerated Code::Blocks projects"
+		^ ("%GenerateProjects.sh" @ %Tools.Scripts),
+	/ $doc $deploy "updated version" @ "%Doxyfile"
+);
+
+////
+

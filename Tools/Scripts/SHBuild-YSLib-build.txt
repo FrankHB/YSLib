@@ -69,6 +69,7 @@ $def! SR_Bin_ ++ SR_Prefix_ "/bin";
 $def! SR_Include_ ++ SR_Prefix_ "/include";
 $def! SR_Lib_ ++ SR_Prefix_ "/lib";
 $def! SR_Share_ ++ SR_Prefix_ "/share";
+$def! SR_Var_NPLA1_ ++ SR_Prefix_ "/var/NPLA1";
 $def! SR_SHBuild_ ++ SHBuild_SysRoot "/.shbuild";
 
 "#", "BD = YSLib Base Directory.";
@@ -101,6 +102,7 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 )
 (
 	$if debug ($redef! target-name ++ "debug " target-name);
+	$defl! libdname (lib) ++ lib ($if debug "d" "");
 	$if nskip ($let*
 	(
 		(repo-base SHBuild_2m env-os YSLib_BaseDir)
@@ -109,7 +111,7 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 		(DIR_YFramework ++ repo-base "/YFramework")
 		(LIBS_YFramework SHBuild_TrimOptions_ (++ " -L\"" (SHBuild_2m env-os
 			(++ DIR_YFramework "/" env-host-lib))
-			"\" -lFreeImage -lfreetype " YF_SystemLibs))
+			"\" -l" (libdname "FreeImage") " -lfreetype " YF_SystemLibs))
 	)
 	(
 		$defl! incsub (dir) ++ "-I\"" (SHBuild_2m env-os dir) "\"";
@@ -145,26 +147,34 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 						puts "Skipped building precompiled file.";
 						$def! inc-pch ()
 					);
-					$defl! libdname (lib) ++ lib ($if debug "d" "");
 					$def! DFLAG_B_YB $if dynamic "-DYB_BUILD_DLL" "";
 					$defl! build-lib (lib-name inc-pch .opts)
 						system-check (apply cons-cmd (append (list e_S1_SHBuild_
 						SHBOPT (++ "-xn," LIBPFX (libdname lib-name))) (restv
 						(() cmd-get-args)) (list (++ repo-base "/" lib-name)
 						CXXFLAGS) opts inc-pch));
-					build-lib "YBase" inc-pch DFLAG_B_YB INCLUDES_YBase;
+					safeenv-restore "LIBS";
+					$def! mingw32r $and? (eqv? host-platform_ "MinGW32")
+						(not? debug);
+					build-lib "YBase" inc-pch DFLAG_B_YB INCLUDES_YBase
+						($if mingw32r "-fno-lto" "");
 					$if dynamic (safeenv-set "LIBS" (cons-cmd (++ "-L" outdir)
 						(++ "-l" (libdname "YBase")) LIBS_YFramework));
-					"XXX", "The '-Og' is the workaround for the linking using",
-						" x86_64-w64-mingw32-ld which fails due to unresolved",
-						" '_ZTS*' symbols in '-O0' with '-D__NO_INLINE__'",
-						" after ~3 hours.";
-					$def! mingw64 $and? dynamic (eqv? host-platform_ "MinGW64");
 					"XXX", "Precompiled header is not available as it",
 						" requires '-D__NO_INLINE__ -U__OPTIMIZE__'.";
+					"XXX", "See $2020-10 @ doc/Workflow.txt.";
+					$def! mingw64 eqv? host-platform_ "MinGW64";
+					$defl! fix-flags ()
+					(
+						$cond
+							(mingw64 $if dynamic
+								"-Og -g -fno-var-tracking-assignments"
+								"-O1 -g -fno-var-tracking-assignments")
+							(mingw32r "-fno-lto")
+							(#t "")
+					);
 					build-lib "YFramework" ($if mingw64 () inc-pch)
-						($if mingw64 "-Og" "")
-						($if dynamic "-DYB_DLL" "")
+						(() fix-flags) ($if dynamic "-DYB_DLL" "")
 						($if dynamic "-DYF_BUILD_DLL" "") "-DFREEIMAGE_LIB"
 						(SHBuild_TrimOptions_ (++ INCLUDES_YFramework " "
 						CFLAGS_freetype_other))
@@ -184,7 +194,8 @@ $let (
 		build-conf $lambda (debug)
 		(
 			$def! conf-name $if debug "debug" "release";
-			$if (safeenv-empty? ($if debug "SHBuild_UseDebug" "SHBuild_UseRelease"))
+			$if (safeenv-empty?
+				($if debug "SHBuild_UseDebug" "SHBuild_UseRelease"))
 			(putss "Skipped building " conf-name " libraries.")
 			(
 				putss "Building " conf-name " libraries ...";
@@ -214,12 +225,12 @@ $let ()
 		InstLibD build-dir name SR_Lib_ SR_DSO_Dest SR_DSO_Imp;
 
 	for-each-ltr SHBuild_EnsureDirectory_
-		(list SR_Bin_ SR_Include_ SR_Lib_ SR_Share_);
+		(list SR_Bin_ SR_Include_ SR_Lib_ SR_Share_ SR_Var_NPLA1_);
 
 	$if (safeenv-empty? "SHBuild_No3rd")
 	(
 		$unless (string-empty? INCLUDES_freetype)
-			SHB_InstInc (++ BD_3rdparty_freetype_inc_ "/");
+			(SHB_InstInc (++ BD_3rdparty_freetype_inc_ "/"));
 		SHB_InstInc (++ BD_3rdparty_ "/include/")
 	);
 	for-each-ltr SHB_InstInc (list (++ YSLib_BaseDir "/YBase/include/")
@@ -230,9 +241,10 @@ $let ()
 	$def! SR_S1_SHBuild_debug ++ YSLib_BuildDir "/.shbuild-debug";
 	$def! SR_S1_SHBuild_DLL ++ YSLib_BuildDir "/.shbuild-dll";
 	$def! SR_S1_SHBuild_DLL_debug ++ YSLib_BuildDir "/.shbuild-dll-debug";
+	$def! use-debug not? (safeenv-empty? "SHBuild_UseDebug"),
+	$def! use-release not? (safeenv-empty? "SHBuild_UseRelease");
 
-	$if (safeenv-empty? "SHBuild_UseDebug")
-		(puts "Skipped installing debug libraries.")
+	$if (use-debug)
 	(
 		$if (safeenv-empty? "SHBuild_NoStatic")
 		(
@@ -246,9 +258,8 @@ $let ()
 			SHB_InstLibD SR_S1_SHBuild_DLL_debug "YFrameworkd"
 		)
 		(puts "Skipped installing debug static libraries.");
-	);
-	$if (safeenv-empty? "SHBuild_UseRelease")
-		(puts "Skipped installing release libraries.")
+	) (puts "Skipped installing debug libraries.");
+	$if (use-release)
 	(
 		$if (safeenv-empty? "SHBuild_NoStatic")
 		(
@@ -262,19 +273,21 @@ $let ()
 			SHB_InstLibD SR_S1_SHBuild_DLL "YFramework"
 		)
 		(puts "Skipped installing release static libraries.");
-	);
+	) (puts "Skipped installing release libraries.");
 
 	$if (safeenv-empty? "SHBuild_No3rd")
 	(
 		$let ((InstLib_YF_ $lambda (name) InstSHBuild "HardLink"
-			(++ SR_Lib_ "/" name) (++ BD_YFramework_ "/" env-host-lib "/" name)))
+			(++ SR_Lib_ "/" name)
+			(++ BD_YFramework_ "/" env-host-lib "/" name)))
 		(
 			$unless (string-empty? INCLUDES_freetype)
 			(
 				"TODO", "Check file existence even if optional in some cases.";
-				InstLib_YF_ "libfreetype.a"
+				$if ($or? use-debug use-release) (InstLib_YF_ "libfreetype.a")
 			);
-			InstLib_YF_ "libFreeImage.a"
+			$if (use-debug) (InstLib_YF_ "libFreeImaged.a"),
+			$if (use-release) (InstLib_YF_ "libFreeImage.a")
 		)
 	)
 	(puts "Skipped installing 3rd party libraries.");
@@ -284,7 +297,8 @@ $let ()
 "NOTE", "Following settings are shared by stage 2 builds.",
 	"See user documentation Tools/Scripts.zh-CN.md.",
 	"Only SHBuild environment variables not otherwise set need to be restored.";
-safeenv-restore "LDFLAGS";
+safeenv-restore "LDFLAGS",
+safeenv-restore "LIBS";
 safeenv-set "LIBS" (SHBuild_TrimOptions_ (cons-cmd (safeenv-get "LIBS") "-L"
 	(system-quote (SHBuild_2m env-os SR_Lib_)) "-lYFramework -lYBase"));
 $def! INCLUDES_ ++ (safeenv-get "INCLUDES") " -I"
@@ -305,16 +319,18 @@ $let ((target-name "Stage 2 SHBuild"))
 	);
 	putss "Installing " target-name " ...";
 	$assert-absolute-path SHBuild_ToolDir;
-	$import! env_SHB_ InstHardLinkExe InstNPLA1Module_ InstTool;
+	$import! env_SHB_ InstHardLinkExe InstNPLA1Module_ InstTool InstSHBuild;
 	$defl! SHB_InstNPLA1Module_ (name)
-		InstNPLA1Module_ SHBuild_ToolDir SR_Bin_ name;
+		InstNPLA1Module_ SHBuild_ToolDir SR_Var_NPLA1_ name;
 	$defl! SHB_InstTool (name)
 		InstTool SHBuild_ToolDir SR_Bin_ name;
 	InstHardLinkExe SR_SHBuild_ SR_Bin_ "SHBuild";
 	SHB_InstNPLA1Module_ "SHBuild-YSLib-common.txt";
+	SHB_InstNPLA1Module_ "SHBuild-BuildApp.txt";
 	for-each-ltr SHB_InstTool
 		(list "SHBuild-common.sh" "SHBuild-common-options.sh"
-		"SHBuild-common-toolchain.sh" "SHBuild-BuildApp.sh");
+		"SHBuild-common-toolchain.sh" "SHBuild-BuildApp.sh"
+		"SHBuild-BuildPkg.sh");
 	putss "Finished installing " target-name "."
 );
 
@@ -323,6 +339,8 @@ $if (safeenv-empty? "SHBuild_NoDev")
 	puts "Building other development tools using stage2 SHBuild ...";
 	$def! e_S2_SHBuild_ system-quote (++ SR_Bin_ "/SHBuild");
 	$def! tools-list list "RevisionPatcher" "SXML2XML" "ProjectGenerator";
+	"XXX", "'SHBuild_BaseDir' is fixed in parallel to these directories of",
+		" these tools, while 'SHBuild_ToolDir' is expected more portable.";
 	build-with-conf-opt SR_SHBuild_ env-os #f #t "" #t
 		ld-ext-noadjust_ ($lambda (CXX CXXFLAGS SHBOPT LIBPFX) for-each-ltr
 			($lambda (name)

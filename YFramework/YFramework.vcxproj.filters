@@ -1124,5 +1124,8 @@
     <Text Include="..\doc\Workflow.txt">
       <Filter>doc</Filter>
     </Text>
+    <Text Include="..\doc\ChangeLog.V0.9.txt">
+      <Filter>doc</Filter>
+    </Text>
   </ItemGroup>
 </Project>

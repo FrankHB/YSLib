@@ -20,8 +20,8 @@
 				</Compiler>
 				<Linker>
 					<Add library="../../build/MinGW32/YFramework/debug/libYFrameworkd.a" />
-					<Add library="../../YFramework/MinGW32/lib-i686/libFreeImage.a" />
-					<Add library="../../YFramework/MinGW32/lib-i686/libfreetype.a" />
+					<Add library="../../YFramework/MinGW32/lib/libFreeImage.a" />
+					<Add library="../../YFramework/MinGW32/lib/libfreetype.a" />
 					<Add library="../../build/MinGW32/YBase/debug/libYBased.a" />
 					<Add library="gdi32" />
 					<Add library="imm32" />
@@ -38,13 +38,16 @@
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
 					<Add option="-flto=jobserver" />
+					<Add option="-fno-enforce-eh-specs" />
 					<Add option="-DNDEBUG" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-flto" />
+					<Add option="-Wl,-allow-multiple-definition" />
 					<Add library="../../build/MinGW32/YFramework/release/libYFramework.a" />
-					<Add library="../../YFramework/MinGW32/lib-i686/libFreeImage.a" />
-					<Add library="../../YFramework/MinGW32/lib-i686/libfreetype.a" />
+					<Add library="../../YFramework/MinGW32/lib/libFreeImage.a" />
+					<Add library="../../YFramework/MinGW32/lib/libfreetype.a" />
 					<Add library="../../build/MinGW32/YBase/release/libYBase.a" />
 					<Add library="gdi32" />
 					<Add library="imm32" />
@@ -86,12 +89,15 @@
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
 					<Add option="-flto=jobserver" />
+					<Add option="-fno-enforce-eh-specs" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DYB_DLL" />
 					<Add option="-DYF_DLL" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-flto" />
+					<Add option="-Wl,-allow-multiple-definition" />
 					<Add library="../../build/MinGW32/YFramework/release/YFramework.dll" />
 					<Add library="../../build/MinGW32/YBase/release/YBase.dll" />
 				</Linker>
@@ -135,6 +141,8 @@
 			<Add option="-ffunction-sections" />
 			<Add option="-mthreads" />
 			<Add option="-pipe" />
+			<Add option="-U__GXX_MERGED_TYPEINFO_NAMES" />
+			<Add option="-D__GXX_MERGED_TYPEINFO_NAMES=1" />
 			<Add directory="../include" />
 			<Add directory="../../YFramework/DS/include" />
 			<Add directory="../../YFramework/Win32/include" />

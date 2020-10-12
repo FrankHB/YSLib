@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r3488
+\version r3492
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2020-08-30 19:38 +0800
+	2020-10-10 18:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -305,10 +305,12 @@ public:
 	}
 	//@}
 
-	friend PDefHOp(bool, ==, const Path& x, const Path& y)
+	YB_ATTR_nodiscard YB_PURE friend
+		PDefHOp(bool, ==, const Path& x, const Path& y)
 		ImplRet(x.GetBase() == y.GetBase())
 
-	friend PDefHOp(bool, <, const Path& x, const Path& y)
+	YB_ATTR_nodiscard YB_PURE friend
+		PDefHOp(bool, <, const Path& x, const Path& y)
 		ImplRet(x.GetBase() < y.GetBase())
 
 	/*!

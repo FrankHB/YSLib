@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规范和实现规格说明。
-\version r17147
+\version r17149
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2020-10-07 09:07 +0800
+	2020-10-11 21:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -5554,6 +5554,8 @@ system-quote <string> ：检查参数，按需返回以半角双引号引用的�
 SHBuild_BaseTerminalHook_ ：内部对象，用于终端控制。
 SHBuild_BuildGCH_existed_ <string> ：判断参数指定路径的预编译头文件是否存在。
 SHBuild_BuildGCH_mkpdirp_ <string> ：在预编译头文件构建时按需创建参数指定的路径的父目录。
+SHBuild_DirectoryOf_ <string> ：参数字符串视为路径，返回字符串指定的路径所在的父目录（当路径非根目录），或路径自身转换到的字符串。
+返回的路径不带有结尾分隔符。不检查路径实际存在。
 SHBuild_EchoVar <string1> <string2> ：在终端输出变量及其值。
 SHBuild_EnsureDirectory_ <string> ：按需创建参数指定的路径的目录。
 SHBuild_Install_HardLink <string> ：以参数为路径安装硬链接。

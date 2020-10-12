@@ -1,5 +1,5 @@
 #
-#	(C) 2014, 2016-2017, 2019 FrankHB.
+#	(C) 2014, 2016-2017, 2019-2020 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Makefile for Android toolchain
-# Version = r104
+# Version = r108
 # Created = 2014-12-06 16:51:13 +0800
-# Updated = 2019-09-11 21:22 +0800
+# Updated = 2020-10-11 03:20 +0800
 # Encoding = ANSI
 
 
@@ -24,8 +24,8 @@ LDFLAGS_IMPL_OPT ?= -s -flto
 
 include $(dir $(lastword $(MAKEFILE_LIST)))/Toolchain.options.mk
 
-# NOTE: This is required by API level 21.
-C_CXXFLAGS_COMMON := $(C_CXXFLAGS_COMMON) -fPIC
+# NOTE: '-fPIC' is required by API level 21.
+C_CXXFLAGS_COMMON := $(C_CXXFLAGS_COMMON) -fPIC -D_POSIX_C_SOURCE=200809L
 
 # NOTE: Wordaround for client makefiles.
 CFLAGS_WARNING := $(CFLAGS_WARNING) -Wno-missing-include-dirs
@@ -51,7 +51,7 @@ ifeq ($(PLATFORM),Android)
 #	export JAVA := $(shell cygpath "$(java_d)")
 	export JAVA := java
 	export JARSIGNER := jarsigner
-	# See https://code.google.com/p/android/issues/detail?id=19567 .
+	# See https://code.google.com/p/android/issues/detail?id=19567.
 	export JARSIGN_ALGO ?= -digestalg SHA1 -sigalg MD5withRSA
 	APK_KEYSTORE ?= ~/.android/debug.keystore
 	APK_KEYSTORE_ALIAS ?= androiddebugkey

@@ -45,6 +45,7 @@ ifeq ($(CC), cc)
 endif
 CXX ?= g++
 LD ?= g++
+AR ?= gcc-ar
 NASM ?= yasm
 DLLTOOL := dlltool
 RC := windres
@@ -71,28 +72,34 @@ WIN32_CXXFLAGS += -include stdexcept
 WIN32_LDFLAGS := -Wl,--subsystem,windows:5.0,--major-os-version,5
 
 RESOURCE := $(RCFILE:.rc=.coff)
-C_CXX_FLAGS ?= -O3 -fdata-sections -ffunction-sections -pipe -Wno-attributes -fexceptions -DNDEBUG
-CFLAGS ?= $(C_CXX_FLAGS) -DDISABLE_PERF_MEASUREMENT $(WIN32_CFLAGS)
+ifeq ($(CONF), debug)
+	C_LTO :=
+else
+	C_LTO := -flto
+endif
+C_CXXFLAGS ?= -O3 $(C_LTO) -fdata-sections -ffunction-sections -pipe -Wno-attributes -fexceptions -DNDEBUG
+CFLAGS ?= $(C_CXXFLAGS) -DDISABLE_PERF_MEASUREMENT $(WIN32_CFLAGS)
 CFLAGS += $(INCLUDE)
-CXXFLAGS ?= -std=c++11 $(C_CXX_FLAGS) -Wno-ctor-dtor-privacy $(WIN32_CXXFLAGS)
+CXXFLAGS ?= -std=c++11 $(C_CXXFLAGS) -Wno-ctor-dtor-privacy $(WIN32_CXXFLAGS)
 CXXFLAGS += $(INCLUDE)
 RCFLAGS ?= -DNDEBUG
 LDFLAGS ?= -s -shared -static -Wl,-soname,$(SOLIBNAME) $(WIN32_LDFLAGS)
 DLLTOOLFLAGS ?= --add-stdcall-underscore
 
 ifeq ($(MSYSTEM), MINGW64)
- 	NAFLAGS := -fwin64 -DWIN64 -D__x86_64__
- 	MODULES := $(SRCS) $(libjpeg_x86_64_srcs)
+	NAFLAGS := -fwin64 -DWIN64 -D__x86_64__
+	MODULES := $(SRCS) $(libjpeg_x86_64_srcs)
 else ifeq ($(MSYSTEM), MINGW32)
- 	NAFLAGS := -fwin32 -DWIN32
- 	MODULES := $(SRCS) $(libjpeg_i686_srcs)
+	NAFLAGS := -fwin32 -DWIN32
+	MODULES := $(SRCS) $(libjpeg_i686_srcs)
 else
- 	$(error "Unsupported architecture found. MSYSTEM shall be set either 'MINGW32' or 'MINGW64'.")
+	$(error "Unsupported architecture found. MSYSTEM shall be set either 'MINGW32' or 'MINGW64'.")
 endif
 
 MODULES := $(MODULES:.asm=.asm.o)
 MODULES := $(MODULES:.c=.c.o)
 MODULES := $(MODULES:.cpp=.cpp.o)
+
 
 default : all
 

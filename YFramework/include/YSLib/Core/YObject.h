@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r6578
+\version r6594
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2020-10-07 09:45 +0800
+	2020-10-09 11:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -644,6 +644,11 @@ public:
 			&& AreEqualHeld(this->value,
 			Deref(static_cast<const value_type*>(p))))
 
+	//! \since build 900
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE PDefH(void*, get, ) const
+		ynothrow ImplI(IValueHolder)
+		ImplRet(std::addressof(static_cast<_type&>(this->value)))
+
 	YB_ATTR_nodiscard YB_PURE PDefH(const type_info&, type, ) const ynothrow
 		override
 		ImplRet(ystdex::type_id<_type>())
@@ -651,10 +656,14 @@ public:
 //@}
 
 
-//! \note 分配器通过配合 any::allocated_holder_handler_t 被使用。
+/*!
+\note 分配器通过配合 any::allocated_holder_handler_t 被使用。
+\note 分配器传播需动态取得未知类型的值而影响性能。
+\note 一般配合使用 uses-allocator 构造的存储的值类型。
+*/
 //@{
 /*!
-\brief 保存分配器的值持有者。
+\brief 在复制初始化时传播分配器的值持有者。
 \note 模板参数指定值类型和分配器。
 \since build 867
 */
@@ -715,8 +724,8 @@ public:
 
 
 /*!
-\brief 保存分配器的多态值持有者。
-\note 模板参数指定值类型、目标类型和分配器。
+\brief 在复制初始化时传播分配器的多态值持有者。
+\note 模板参数指定值类型、存储的目标类型和分配器。
 \since build 899
 */
 template<class _type, class _tTarget, class _tByteAlloc>
@@ -754,6 +763,11 @@ public:
 		ImplRet(bool(p) && base::type() == ystdex::type_id<value_type>()
 			&& AreEqualHeld(this->value,
 			Deref(static_cast<const value_type*>(p))))
+
+	//! \since build 900
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE PDefH(void*, get, ) const
+		ynothrow ImplI(IValueHolder)
+		ImplRet(std::addressof(static_cast<_type&>(this->value)))
 
 	using base::get_allocator;
 

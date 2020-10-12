@@ -4,15 +4,15 @@
 "XXX", "'SHBuild_2*' depend on 'cygpath' optionally.";
 "XXX", "'SHBuild_CheckUName_*' depend on 'uname'.";
 
-$import! std.strings regex-match? string->regex ++ symbol->string string-empty?
-	string<-,
+$import! std.strings regex-match? string->regex ++ string->symbol symbol->string
+	string-empty? string<-,
 $import! std.environments bound? $binds1? value-of,
 $import! std.io puts,
 $import! std.system system system-get system-quote,
 $import! std.promises $lazy force;
-$import! env_SHBuild_ SHBuild_String_absolute_path?_ SHBuild_QuoteS_
-	SHBuild_RaiseError_ SHBuild_EchoVar SHBuild_SDot_ SHBuild_BuildGCH_existed_
-	SHBuild_BuildGCH_mkpdirp_;
+$import! env_SHBuild_ SHBuild_RaiseError_ SHBuild_EchoVar SHBuild_QuoteS_
+	SHBuild_String_absolute_path?_  SHBuild_TrimOptions_ SHBuild_SDot_
+	SHBuild_BuildGCH_existed_ SHBuild_BuildGCH_mkpdirp_;
 
 "NOTE", "Prelude:", "Unsafe functions not friendly to environment stability",
 	" or dangerous to environments except 'assign!' and",
@@ -51,15 +51,17 @@ $provide/d! (safeenv-get safeenv-set ss-verbose-puts) ext-env
 
 	"NOTE", "Nonempty environment variable 'SS_*' would enable specifically.",
 		"See user documentation Tools/Scripts.zh-CN.md.";
-	$def! SS_DebugEnv env-empty? "SS_DebugEnv",
-	$def! SS_Verbose env-empty? "SS_Verbose";
+	$def! SS_DebugEnv not? (env-empty? "SS_DebugEnv"),
+	$def! SS_Verbose not? (env-empty? "SS_Verbose");
 	$def! mods $bindings/p->environment
 		(std.environments std.strings std.system std.io)
 		(emap () make-environment)
 		(SS_DebugEnv SS_DebugEnv)
-		(log-set $if SS_DebugEnv ($lambda .)
+		(SS_Verbose SS_Verbose)
+		(log-set $if SS_DebugEnv
 			($lambda/e ext-env (name value)
-				(puts "SS_DebugEnv: "; SHBuild_EchoVar name value)));
+				(puts "SS_DebugEnv: "; SHBuild_EchoVar name value))
+			($lambda .));
 
 	"TODO", "Optimize with continuations.";
 	$defl/e! safeenv-get mods (name)
@@ -171,14 +173,13 @@ $defl! SHBuild_Platform_Detect (env-os env-arch)
 (
 	$env-de! MSYSTEM;
 	$cond
-		((eqv? MSYSTEM "MINGW64") "MinGW64")
-		((eqv? MSYSTEM "MINGW32") "MinGW32")
 		((win32? env-os) $cond
+			((eqv? MSYSTEM "MINGW64") "MinGW64")
+			((eqv? MSYSTEM "MINGW32") "MinGW32")
 			((eqv? env-arch "x86_64") "MinGW64")
 			((eqv? env-arch "aarch64") (SHBuild_RaiseError_
 				"ERROR: The architecture aarch64 is not supported in MinGW."))
 			(#t "MinGW32"))
-		((win32? env-os) "MinGW32")
 		(#t env-os)
 );
 
@@ -253,6 +254,7 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 	$def! CXXFLAGS_OPT_DBG
 		$if debug ("-O0 -g -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC") "";
 	($env-de! CXX "g++"; safeenv-set "CXX" CXX),
+	"TODO", "Implement SHBuild_GetAR_.";
 	($env-de! AR "ar"; safeenv-set "AR" AR),
 	($env-de! ARFLAGS "rcs"; safeenv-set "ARFLAGS" ARFLAGS),
 	($env-de! LD CXX; safeenv-set "LD" LD);
@@ -331,7 +333,7 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 	"XXX", "Rename %CXXFLAGS_OPT_DBG -> CFLAGS_OPT_DBG/C_CXXFLAGS_OPT_DBG?";
 	$defl! get-lang-flags (var flags-common)
 		(SHBuild_GetLangFlags_ var C_CXXFLAGS_PIC flags-common
-				C_CXXFLAGS_COMMON_IMPL_ CXXFLAGS_OPT_DBG);
+			C_CXXFLAGS_COMMON_IMPL_ CXXFLAGS_OPT_DBG);
 	$def! CFLAGS get-lang-flags "CFLAGS" CFLAGS_COMMON;
 	$def! CXXFLAGS get-lang-flags "CXXFLAGS" CXXFLAGS_COMMON;
 	"#", "%LDFLAGS_OPT_DBG is always set despite %debug configuration in",
@@ -384,6 +386,15 @@ $defl! get_env_SHB_ (env-os)
 		"XXX", "This relies on 'rm'", "Error is ignored.";
 		system (cons-cmd "rm" (system-quote pth) cmd_noerr_)
 	);
+	$if (win32? env-os)
+		($defl! e_add_x_ (#ignore));
+	(
+		$defl! e_add_x_ (pth)
+		(
+			"XXX", "This relies on 'chmod'", "Error is ignored.";
+			system-check (cons-cmd "chmod" "+x" pth)
+		)
+	);
 	$defl! InstSHBuild (type dst src)
 	(
 		$assert-nonempty dst,
@@ -402,8 +413,10 @@ $defl! get_env_SHB_ (env-os)
 			$unless (system-ok (cons-cmd e_S1_SHBuild_ "-xcmd,InstallHardLink"
 				dst src cmd_noerr_)) InstSHBuild "File" dst src
 		))
-		(#t system-check
-			(cons-cmd e_S1_SHBuild_ (++ "-xcmd,Install" type) dst src));
+		(#t (system-check
+			(cons-cmd e_S1_SHBuild_ (++ "-xcmd,Install" type) dst src);
+			$if (eqv? type "Executable") (e_add_x_ dst))
+		);
 	);
 	"NOTE",
 		"This is basically same to %SHBuild_BuildGCH in %SHBuild-common.sh.",
@@ -459,8 +472,7 @@ $defl! get_env_SHB_ (env-os)
 		$def! dst ++ to-dir "/" name EXESFX;
 		$def! src ++ from-dir "/" name ".exe";
 		InstSHBuild "HardLink" dst src;
-		"XXX", "This relies on 'rm'", "Error is ignored.";
-		system-check (cons-cmd "chmod" "+x" dst)
+		e_add_x_ dst
 	);
 	$defl! InstNPLA1Module_ (from-dir to-dir name)
 	(

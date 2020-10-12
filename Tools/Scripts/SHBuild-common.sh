@@ -270,12 +270,12 @@ SHBuild_Platform_Detect()
 {
 	local result
 
-	if [[ "$MSYSTEM" == 'MINGW64' ]]; then
-		result='MinGW64'
-	elif [[ "$MSYSTEM" == 'MINGW32' ]]; then
-		result='MinGW32'
-	elif [[ "$1" == 'Win32' ]]; then
-		if [[ "$2" == 'x86_64' ]]; then
+	if [[ "$1" == 'Win32' ]]; then
+		if [[ "$MSYSTEM" == 'MINGW64' ]]; then
+			result='MinGW64'
+		elif [[ "$MSYSTEM" == 'MINGW32' ]]; then
+			result='MinGW32'
+		elif [[ "$2" == 'x86_64' ]]; then
 			result='MinGW64'
 		elif [[ "$2" == 'aarch64' ]]; then
 			SHBuild_Puts \

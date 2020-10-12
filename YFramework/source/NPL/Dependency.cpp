@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3776
+\version r3783
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2020-09-27 16:06 +0800
+	2020-10-11 21:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1256,6 +1256,14 @@ LoadModule_SHBuild(REPLContext& context)
 			pth.pop_back();
 			EnsureDirectory(pth);
 		}
+	});
+	RegisterUnary<Strict, const string>(renv, "SHBuild_DirectoryOf_",
+		[](const string& str){
+		IO::Path pth(str);
+
+		if(!pth.empty())
+			pth.pop_back();
+		return string(pth);
 	});
 	RegisterUnary<Strict, const string>(renv, "SHBuild_EnsureDirectory_",
 		[](const string& str){

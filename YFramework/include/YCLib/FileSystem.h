@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3840
+\version r3889
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2020-07-08 01:11 +0800
+	2020-10-08 13:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,9 @@
 
 #include "YModules.h"
 #include YFM_YCLib_Container // for basic_string_view, ystdex::is_null,
-//	string_view_t, ystdex::exclude_self_t, ystdex::to_array,
+//	string_view_t, ystdex::exclude_self_t, std::wint_t, ystdex::to_array,
 //	ystdex::string_traits, ystdex::rtrim, string, u16string, std::uint8_t,
-//	std::uint32_t, size, pair, tuple;
+//	std::uint32_t, std::memcmp, pair, size, tuple;
 #include YFM_YCLib_Reference // for unique_ptr_from, tidy_ptr;
 #include <system_error> // for std::system_error;
 #include <ystdex/base.h> // for ystdex::deref_self;
@@ -251,7 +251,8 @@ FetchRootNameLength_P(IDTag<YF_Platform_Win32> tag, const _tChar* path)
 {
 	if(!ystdex::is_null(path[0]))
 	{
-		if(IsColon(path[1]) && std::iswalpha(path[0]))
+		// XXX: Conversion to 'std::wint_t' might be implementation-defined.
+		if(IsColon(path[1]) && std::iswalpha(std::wint_t(path[0])))
 			return 2;
 		if(platform::IsSeparator_P(tag, path[0]) && !ystdex::is_null(path[1])
 			&& !ystdex::is_null(path[2]))
@@ -289,7 +290,8 @@ FetchRootNameLength_P(IDTag<YF_Platform_Win32> tag,
 	{
 		// NOTE: Name with prefix of form 'X:'.
 		// TODO: Memory load can be fused.
-		if(IsColon(path[1]) && std::iswalpha(path[0]))
+		// XXX: Conversion to 'std::wint_t' might be implementation-defined.
+		if(IsColon(path[1]) && std::iswalpha(std::wint_t(path[0])))
 			return 2;
 		if(platform::IsSeparator_P(tag, path[0]))
 		{
@@ -530,9 +532,9 @@ DefBitmaskEnum(NodeCategory)
 \since build 707
 */
 //@{
-YF_API YB_NONNULL(1) bool
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) bool
 IsDirectory(const char*);
-YF_API YB_NONNULL(1) bool
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) bool
 IsDirectory(const char16_t*);
 //@}
 
@@ -598,11 +600,13 @@ CreateSymbolicLink(const char16_t*, const char16_t*, bool = {});
 \since build 660
 */
 //@{
+YB_ATTR_nodiscard
 #if YCL_DS
 YB_NORETURN
 #endif
 YF_API YB_NONNULL(1) string
 ReadLink(const char*);
+YB_ATTR_nodiscard
 #if YCL_DS
 YB_NORETURN
 #endif
@@ -826,7 +830,7 @@ public:
 	\note 返回的结果在析构和下一次迭代前保持有效。
 	\since build 648
 	*/
-	YB_ATTR_returns_nonnull YB_PURE const NativeChar*
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE const NativeChar*
 	GetNativeName() const ynothrow;
 
 	//! \brief 复位。
@@ -873,6 +877,8 @@ namespace FAT
 
 using EntryDataUnit = byte;
 using ClusterIndex = std::uint32_t;
+//! \since build 900
+using ClusterCount = std::uint32_t;
 
 //! \since build 844
 static_assert(ystdex::is_trivially_replaceable<EntryDataUnit, std::uint8_t>(),
@@ -960,6 +966,29 @@ enum BPB : size_t
 } // inline namespace FAT32;
 
 /*!
+\see Microsoft FAT Specification Section 3.2 。
+\since build 900
+*/
+//@{
+//! \brief FAT 签名：扩展 BPB 中的 BS_FilSysType 公共前缀。
+yconstexpr const char FATSignature[]{'F', 'A', 'T'};
+
+//! \brief 判断参数是否匹配 FAT 签名。
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE inline
+PDefH(bool, MatchFATSignature, const void* p)
+	ImplRet(std::memcmp(p, FATSignature, sizeof(FATSignature)) == 0)
+
+/*!
+\brief 判断参数指定的扇区内容是否可构成合法的主引导记录。
+\note 匹配 BS_jmpBoot 和 FAT 签名。
+\sa MatchFATSignature
+\see Microsoft FAT Specification Section 3.1 。
+*/
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE bool
+CheckValidMBR(const byte*);
+//@}
+
+/*!
 \brief 卷标数据类型。
 \see Microsoft FAT Specification Section 3.2 。
 \since build 610
@@ -1043,6 +1072,13 @@ enum : ClusterIndex
 inline PDefH(bool, IsFreeOrEOF, ClusterIndex c) ynothrow
 	ImplRet(c == Clusters::Free || c == Clusters::EndOfFile)
 
+/*!
+\brief 未知自由簇数。
+\see Microsoft FAT Specification Section 5 。
+\since build 900
+*/
+static yconstexpr const ClusterCount UnknownFreeCount(0xFFFFFFFF);
+
 } // namespace Clusters;
 
 
@@ -1064,11 +1100,11 @@ static yconstexpr const auto MaxFileSize(FileSize(0xFFFFFFFF));
 using Timestamp = std::uint16_t;
 
 //! \brief 转换日期和时间的时间戳为标准库时间类型。
-YF_API std::time_t
+YB_ATTR_nodiscard YF_API std::time_t
 ConvertFileTime(Timestamp, Timestamp) ynothrow;
 
 //! \brief 取以实时时钟的文件日期和时间。
-YF_API pair<Timestamp, Timestamp>
+YB_ATTR_nodiscard YF_API pair<Timestamp, Timestamp>
 FetchDateTime() ynothrow;
 
 
@@ -1156,11 +1192,12 @@ const char IllegalCharacters[]{"\\/:*?\"<>|"};
 \note 返回的文件名长度分别不大于 MaxAliasMainPartLength
 	和 MaxAliasExtensionLength 。
 */
-YF_API tuple<string, string, bool>
+YB_ATTR_nodiscard YF_API tuple<string, string, bool>
 ConvertToAlias(const u16string&);
 
 //! \brief 按指定序数取长文件名偏移。
-inline PDefH(size_t, FetchLongNameOffset, EntryDataUnit ord) ynothrow
+YB_ATTR_nodiscard inline PDefH(size_t, FetchLongNameOffset, EntryDataUnit ord)
+	ynothrow
 	ImplRet((size_t(std::uint8_t(ord) & ~LastLongEntry) - 1U) * EntryLength)
 //@}
 
@@ -1168,7 +1205,7 @@ inline PDefH(size_t, FetchLongNameOffset, EntryDataUnit ord) ynothrow
 \brief 转换 UCS-2 路径字符串为多字节字符串。
 \since build 610
 */
-YF_API string
+YB_ATTR_nodiscard YF_API string
 ConvertToMBCS(const char16_t* path);
 
 /*!
@@ -1176,7 +1213,7 @@ ConvertToMBCS(const char16_t* path);
 \pre 断言：参数非空。
 \see Microsoft FAT specification Section 7.2 。
 */
-YF_API YB_NONNULL(1) YB_PURE EntryDataUnit
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) YB_PURE EntryDataUnit
 GenerateAliasChecksum(const EntryDataUnit*) ynothrowv;
 
 /*!
@@ -1184,7 +1221,7 @@ GenerateAliasChecksum(const EntryDataUnit*) ynothrowv;
 \pre 断言：字符串参数的数据指针非空。
 \since build 657
 */
-YF_API YB_PURE bool
+YB_ATTR_nodiscard YF_API YB_PURE bool
 ValidateName(string_view) ynothrowv;
 
 /*!
@@ -1291,10 +1328,10 @@ public:
 	\pre 间接断言：参数的数据指针非空。
 	\since build 656
 	*/
-	bool
+	YB_ATTR_nodiscard bool
 	FindAlias(string_view) const;
 
-	string
+	YB_ATTR_nodiscard string
 	GenerateAlias() const;
 
 	PDefH(std::uint32_t, ReadFileSize, ) ynothrow

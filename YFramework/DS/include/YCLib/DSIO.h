@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2019 FrankHB.
+	© 2011-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r1454
+\version r1607
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2019-06-23 17:18 +0800
+	2020-10-08 18:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,8 +38,8 @@
 #	include <ystdex/cache.hpp> // for ystdex::used_list_cache;
 #	include <ystdex/cstdio.h> //for ystdex::block_buffer;
 #	include YFM_YCLib_FileSystem // for platform::FAT, platform::Deref,
-//	platform::Concurrency, platform::FileSystemType, std::system_error, array,
-//	string, string_view;
+//	platform::Concurrency, platform::FileSystemType, std::system_error,
+//	string_view, platform::FetchSeparator, array, string;
 #	include <sys/syslimits.h> // for NAME_MAX.
 #	include <ystdex/function.hpp> // for ystdex::function;
 #	include <ystdex/optional.h> // for ystdex::ref_opt;
@@ -253,7 +253,8 @@ private:
 	size_t data_sectors_num;
 	//! \invariant \c IsValid(first_free) 。
 	ClusterIndex first_free = Clusters::First;
-	ClusterIndex free_cluster = 0;
+	//! \since build 900
+	std::uint32_t free_count = 0;
 	//! \invariant \c IsValid(last_alloc_cluster) 。
 	ClusterIndex last_alloc_cluster = 0;
 	//! \invariant <tt>Clusters::First <= last_cluster</tt> 。
@@ -270,7 +271,8 @@ public:
 	DefDeCopyAssignment(AllocationTable)
 
 	//! \since build 657
-	PDefH(bool, IsFreeOrValid, ClusterIndex c) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(bool, IsFreeOrValid, ClusterIndex c) const
+		ynothrow
 		ImplRet(c == Clusters::Free || IsValid(c))
 	//! \since build 657
 	PDefH(bool, IsValid, ClusterIndex c) const ynothrow
@@ -280,8 +282,9 @@ public:
 	DefGetter(const ynothrow, size_t, BytesPerCluster, bytes_per_cluster)
 	DefGetter(const ynothrow, size_t, BytesPerSector, bytes_per_sector)
 	DefGetter(const ynothrow, FileSystemType, FileSystemType, fs_type)
-	DefGetter(const ynothrow, size_t, FreeClusters,
-		fs_type == FileSystemType::FAT32 ? free_cluster : CountFreeCluster())
+	//! \since build 900
+	DefGetter(const ynothrow, ClusterCount, FreeClusters,
+		fs_type == FileSystemType::FAT32 ? free_count : CountFreeCluster())
 	DefGetter(const ynothrow, mutex&, MutexRef, part_mutex)
 	DefGetter(const ynothrow, ClusterIndex, RootDirCluster, root_dir_cluster)
 	DefGetter(const ynothrow, ClusterIndex, RootDirSectorsNum,
@@ -304,7 +307,8 @@ public:
 	bool
 	ClearLinks(ClusterIndex) ynothrow;
 
-	ClusterIndex
+	//! \since build 900
+	YB_ATTR_nodiscard ClusterCount
 	CountFreeCluster() const ynothrow;
 
 	/*!
@@ -327,25 +331,30 @@ public:
 		\li std::errc::io_error 写错误。
 	\sa LinkFree
 	*/
-	ClusterIndex
+	YB_ATTR_nodiscard ClusterIndex
 	LinkFreeCleared(ClusterIndex) ythrow(std::system_error);
 	//@}
 
 	/*!
 	\brief 查询参数指定的簇的下一簇。
-	\pre 断言： <tt>IsFreeOrValid(c)</tt> 。
+	\pre 断言：<tt>IsFreeOrValid(c)</tt> 。
 	\return 若指定空闲簇则为空闲簇；若文件系统类型非法则为错误簇；
 		否则为读取的下一簇。
 	\since build 657
 	*/
-	ClusterIndex
+	YB_ATTR_nodiscard ClusterIndex
 	QueryNext(ClusterIndex c) const ynothrowv;
 
-	ClusterIndex
+	YB_ATTR_nodiscard ClusterIndex
 	QueryLast(ClusterIndex) const ynothrow;
 
-	YB_NONNULL(2) void
-	ReadClusters(const byte*) ynothrowv;
+	/*!
+	\brief 同步：读取并按需更新簇信息。
+	\return 参数指定的缓冲区被更新。
+	\since build 900
+	*/
+	YB_ATTR_nodiscard YB_NONNULL(2) bool
+	SynchronizeClusters(byte*) ynothrowv;
 
 	/*!
 	\brief 修剪存储的簇链：跳过指定保留的簇，移除之后链接的所有簇。
@@ -358,17 +367,18 @@ public:
 	以 ClearLinks 调用清除连续的簇。
 	若保留簇，标记参数指定的为文件结束。
 	*/
-	ClusterIndex
+	YB_ATTR_nodiscard ClusterIndex
 	TrimChain(ClusterIndex, size_t) ythrow(std::system_error);
+
+	//! \since build 900
+	YB_NONNULL(2) void
+	UpdateFSInfo(byte*) ynothrowv;
 
 	YB_NONNULL(2) void
 	WriteClusters(byte*) const ynothrowv;
 
 	bool
 	WriteEntry(ClusterIndex, std::uint32_t) const ynothrow;
-
-	YB_NONNULL(2) void
-	WriteFSInfo(byte*) ynothrowv;
 };
 
 
@@ -397,11 +407,13 @@ public:
 	DefDeCopyAssignment(FilePosition)
 
 	DefGetter(const ynothrow, size_t, Byte, byte)
-	DefGetter(const ynothrow, size_t, Cluster, cluster)
+	//! \since build 900
+	DefGetter(const ynothrow, ClusterIndex, Cluster, cluster)
 	DefGetter(const ynothrow, ::sec_t, Sector, sector)
 
 	DefSetter(ynothrow, size_t, Byte, byte)
-	DefSetter(ynothrow, size_t, Cluster, cluster)
+	//! \since build 900
+	DefSetter(ynothrow, ClusterIndex, Cluster, cluster)
 	DefSetter(ynothrow, ::sec_t, Sector, sector)
 
 	PDefH(void, AddByte, size_t x) ynothrow
@@ -440,14 +452,16 @@ public:
 
 	DefDeCopyAssignment(DEntryPosition)
 
-	PDefH(bool, IsFAT16RootCluster) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(bool, IsFAT16RootCluster) const ynothrow
 		ImplRet(cluster == Clusters::FAT16RootDirectory)
 
 	DefGetter(const ynothrow, size_t, Byte, offset * EntryDataSize)
-	DefGetter(const ynothrow, size_t, Cluster, cluster)
+	//! \since build 900
+	DefGetter(const ynothrow, ClusterIndex, Cluster, cluster)
 	DefGetter(const ynothrow, ::sec_t, Sector, sector)
 
-	DefSetter(ynothrow, size_t, Cluster, cluster)
+	//! \since build 900
+	DefSetter(ynothrow, ClusterIndex, Cluster, cluster)
 	DefSetter(ynothrow, ::sec_t, Sector, sector)
 
 	PDefH(size_t, IncOffset, ) ynothrow
@@ -456,7 +470,7 @@ public:
 	PDefH(void, IncSectorAndResetOffset, ) ynothrow
 		ImplUnseq(offset = 0, ++sector)
 
-	friend PDefHOp(bool, ==, const DEntryPosition& x,
+	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==, const DEntryPosition& x,
 		const DEntryPosition& y) ynothrow
 		ImplRet(x.cluster == y.cluster && x.sector == y.sector
 			&& x.offset == y.offset)
@@ -494,6 +508,18 @@ enum class ExtensionResult
 	EndOfFile,
 	NoSpace
 };
+
+
+/*!
+\brief 判断简化的绝对路径。
+\pre 参数的数据指针非空。
+\note 只检查路径非空和首个字符是分隔符。
+\since 900
+*/
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, IsSimpleAbsolute, string_view sv) ynothrow
+	ImplRet(YAssertNonnull(sv.data()),
+		!sv.empty() && sv.front() == platform::FetchSeparator<char>())
 
 
 class Partition;
@@ -538,42 +564,96 @@ public:
 		\li std::errc::io_error 写错误。
 	\sa Partition::ExtendPosition
 	*/
-	DEntry(Partition&);
+	DEntry(const Partition&);
 	/*!
 	\brief 构造：使用分区上的指定名称位置。
 	\exception std::system_error 调用失败。
 		\li std::errc::io_error 读错误。
 	*/
 	DEntry(Partition&, const NamePosition&);
+	//! \since build 900
+	//@{
 	/*!
-	\brief 构造：使用分区上的指定路径，必要时添加项。
 	\pre 断言：路径参数的数据指针非空。
+	\exception std::system_error 调用失败。
+		\li std::errc::file_exists 指定最终项或添加项时项已存在。
+		\li std::errc::filename_too_long 路径太长。
+		\li std::errc::io_error 读取的项指定错误的簇。
+		\li std::errc::no_such_file_or_directory
+			路径前缀的项或添加时指定的最终项不存在。
+	\note 路径相对分区，无根前缀，空串路径视为当前工作目录。
+	\note 最后一个参数保存成功遍历的父目录簇（不包括根目录簇）。
+	*/
+	//@{
+	/*!
+	\brief 构造：使用分区上的指定路径和叶节点动作。
+	\exception std::system_error 调用失败。
+		\li std::errc::not_a_directory 非叶节点非目录项；
+			或动作指定为 LeafAction::EnsureDirectory 时，叶节点非目录项。
+	\note 动作指定为 LeafAction::EnsureDirectory 时最后一个参数保存根目录簇。
+	*/
+	DEntry(Partition&, string_view, LeafAction = LeafAction::Return,
+		ClusterIndex& = ystdex::ref_opt<ClusterIndex>());
+	/*!
+	\brief 构造：使用分区上的指定路径和叶节点动作，必要时通过回调函数添加项。
+	\pre <tt>act != LeafAction::EnsureDirectory</tt> 。
 	\exception std::system_error 调用失败。
 		\li std::errc::file_exists 指定最终项或添加项时项已存在。
 		\li std::errc::invalid_argument
 			添加项时，去除右端空格的名称为空，
 			或含有 LFN::IllegalCharacters 中的字符，
-			或非法导致生成后缀失败。
+			或非法导致生成后缀失败；
+			或项已存在且指定分区根目录。
 		\li std::errc::filename_too_long 路径太长。
 		\li std::errc::io_error 添加项时读写错误或读取的项指定错误的簇。
 		\li std::errc::no_space_on_device 添加项时空间不足。
 		\li std::errc::no_such_file_or_directory
 			路径前缀的项或添加时指定的最终项不存在。
-		\li std::errc::not_a_directory 非目录项。
-	\note 路径相对分区，无根前缀，空串路径视为当前工作目录。
-	\note 当最后一个参数非空时初始化和添加新文件并输出父目录簇，忽略第三参数。
+		\li std::errc::not_a_directory 非叶节点非目录项。
 	\note 若添加项，长短文件名由 FindEntryGap 调用设置。
-	\since build 860
 	*/
-	DEntry(Partition&, string_view, LeafAction = LeafAction::Return,
-		ystdex::function<void(DEntry&)> = {},
+	DEntry(Partition&, string_view, LeafAction, ystdex::function<void(DEntry&)>,
 		ClusterIndex& = ystdex::ref_opt<ClusterIndex>());
+	//@}
+	DefDeMoveCtor(DEntry)
+
+	DefDeMoveAssignment(DEntry)
+	//@}
 
 	DefPred(const ynothrow, Dot, name == "." || name == "..")
+	/*!
+	\brief 判断分区类型是 FAT32 且 Data 表示根目录。
+	\exception std::system_error 调用失败。
+		\li std::errc::io_error 读取的项指定错误的簇。
+	\since build 900
+	*/
+	YB_ATTR_nodiscard bool
+	IsFAT32Root(const Partition&) const;
 
 	DefGetter(const ynothrow, const string&, Name, name)
 	DefGetter(ynothrow, string&, NameRef, name)
 
+private:
+	//! \since build 900
+	//@{
+	YB_ATTR_nodiscard bool
+	ConsBranch(Partition&, string_view&, size_t, ClusterIndex&);
+
+	void
+	ConsCheckDirectory(const Partition&, ClusterIndex&);
+
+	void
+	ConsLeafNoCallback(Partition&, string_view, LeafAction, ClusterIndex&);
+
+	//! \pre <tt>act != LeafAction::EnsureDirectory</tt> 。
+	void
+	ConsLeafWithCallback(Partition&, string_view, LeafAction, ClusterIndex&);
+
+	PDefH(void, ConsReset, const Partition& part)
+		ImplExpr(this->~DEntry(), ::new(this) DEntry(part))
+	//@}
+
+public:
 	/*!
 	\brief 查找指定簇后的空闲空间并分配位置。
 	\pre 参数指定的分区和之前所有成员函数调用一致。
@@ -628,6 +708,14 @@ private:
 
 public:
 	AllocationTable Table;
+	/*!
+	\brief 从项数据中读取簇索引并校验有效性。
+	\exception std::system_error 调用失败。
+		\li std::errc::io_error 校验失败：读取的项指定错误的簇。
+	\since build 900
+	*/
+	lref<ClusterIndex(const AllocationTable&, const EntryData&)
+		ythrow(std::system_error)> ReadClusterFromEntry;
 
 private:
 	::sec_t fs_info_sector;
@@ -705,7 +793,7 @@ private:
 	\return 找到的分区扇区，或 0 。
 	\since build 801
 	*/
-	YB_NONNULL(1) ::sec_t
+	YB_ATTR_nodiscard YB_NONNULL(1) ::sec_t
 	FindFirstValidPartition(byte*) const ythrow(std::system_error);
 
 public:
@@ -724,12 +812,12 @@ public:
 		\li std::errc::io_error 查询项时读错误。
 	\since build 642
 	*/
-	bool
+	YB_ATTR_nodiscard bool
 	EntryExists(string_view, ClusterIndex) ythrow(system_error);
 
 	/*!
 	\brief 移动目录项位置至下一个项，当遇到文件结束时扩展。
-	\pre 间接断言： <tt>Table.IsFreeOrValid(pos.GetCluster())</tt> 。
+	\pre 间接断言：<tt>Table.IsFreeOrValid(pos.GetCluster())</tt> 。
 	\exception std::system_error 调用失败。
 		\li std::errc::no_space_on_device 空间不足。
 		\li std::errc::io_error 写错误。
@@ -750,15 +838,15 @@ public:
 
 	/*!
 	\brief 移动目录项位置至下一个项。
-	\pre 断言： <tt>Table.IsFreeOrValid(pos.GetCluster())</tt> 。
+	\pre 断言：<tt>Table.IsFreeOrValid(pos.GetCluster())</tt> 。
 	\invariant <tt>Table.IsFreeOrValid(pos.GetCluster())<tt> 。
 	\note 读到的无效簇视为文件结束标记。
 	\since build 657
 	*/
-	ExtensionResult
+	YB_ATTR_nodiscard ExtensionResult
 	IncrementPosition(DEntryPosition& pos) ynothrowv;
 
-	PDefH(locked_ptr<OpenFilesSet>, LockOpenFiles, )
+	YB_ATTR_nodiscard PDefH(locked_ptr<OpenFilesSet>, LockOpenFiles, )
 		ImplRet({&open_files, GetMutexRef()})
 
 	/*!
@@ -776,26 +864,21 @@ public:
 	void
 	MakeDir(string_view) ythrow(std::system_error);
 
-	/*!
-	\brief 从项数据中读取簇索引并校验有效性。
-	\exception std::system_error 调用失败。
-		\li std::errc::io_error 校验失败：读取的项指定错误的簇。
-	\since build 713
-	*/
-	ClusterIndex
-	ReadClusterFromEntry(const EntryData&) const ythrow(std::system_error);
-
 private:
-	//! \pre 断言：文件系统类型为 FAT32 。
+	/*!
+	\pre 断言：文件系统类型为 FAT32 。
+	\see Microsoft FAT Specification Section 5 。
+	*/
 	void
 	ReadFSInfo();
 
 public:
-	YB_NONNULL(1) PDefH(bool, ReadFSInfoSector, byte* sec_buf) const ynothrowv
+	YB_ATTR_nodiscard YB_NONNULL(1) PDefH(bool, ReadFSInfoSector, byte* sec_buf)
+		const ynothrowv
 		ImplRet(ReadSector(fs_info_sector, sec_buf))
 
-	YB_NONNULL(1) PDefH(bool, ReadSector, ::sec_t sector, byte* sec_buf) const
-		ynothrowv
+	YB_ATTR_nodiscard YB_NONNULL(1)
+		PDefH(bool, ReadSector, ::sec_t sector, byte* sec_buf) const ynothrowv
 		ImplRet(disc.ReadSectors(sector, 1, sec_buf))
 
 	/*!
@@ -867,12 +950,15 @@ public:
 	void
 	Unlink(string_view) ythrow(std::system_error);
 
-	//! \pre 断言：文件系统类型为 FAT32 。
+	/*!
+	\pre 断言：文件系统类型为 FAT32 。
+	\see Microsoft FAT Specification Section 5 。
+	*/
 	void
 	WriteFSInfo() const;
 
-	YB_NONNULL(3) PDefH(bool, WriteSector, ::sec_t sector, const byte* sec_buf)
-		const ynothrowv
+	YB_ATTR_nodiscard YB_NONNULL(3) PDefH(bool, WriteSector, ::sec_t sector,
+		const byte* sec_buf) const ynothrowv
 		ImplRet(disc.WriteSectors(sector, 1, sec_buf))
 };
 
@@ -881,7 +967,7 @@ public:
 \brief 取参数指定的路径对应的分区。
 \pre 间接断言：参数非空。
 */
-YF_API YB_NONNULL(1) Partition*
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) Partition*
 FetchPartitionFromPath(const char*) ynothrowv;
 
 
@@ -924,10 +1010,13 @@ public:
 	\exception std::system_error 迭代失败。
 		\li std::errc::no_such_device 无法访问路径指定的分区。
 		\li std::errc::io_error 查询项时读错误或读取的项指定错误的簇。
+	\return 0 表示迭代成功，-1 表示没有更多项可迭代。
+	\note 没有更多项可迭代时，不需要区分原因，不视为错误，可总是视为到目录结尾。
 	\note ::stat 指针参数指定需要更新的项信息，为空时忽略。
 	\sa Partition::StatFromEntry
+	\since build 900
 	*/
-	YB_NONNULL(2) void
+	YB_ATTR_nodiscard YB_NONNULL(2) int
 	Iterate(char*, struct ::stat*) ythrow(std::system_error);
 
 	/*!
@@ -980,17 +1069,17 @@ public:
 		\lic std::errc::read_only_file_system 创建文件但文件系统只读。
 		\lic std::errc::no_such_file_or_directory 文件不存在。
 	\note 路径相对分区，无根前缀，空串路径视为当前工作目录。
-	\note 访问标识包含 O_RDONLY 、 O_WRONLY 或 O_RDWR 指定读写权限。
+	\note 访问标识包含 O_RDONLY 、O_WRONLY 或 O_RDWR 指定读写权限。
 	\note 锁定分区访问。
 	\since build 643
 	*/
 	FileInfo(Partition&, string_view, int);
 
-	PDefH(bool, CanAppend) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(bool, CanAppend) const ynothrow
 		ImplRet(attr[AppendBit])
-	PDefH(bool, CanRead) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(bool, CanRead) const ynothrow
 		ImplRet(attr[ReadBit])
-	PDefH(bool, CanWrite) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(bool, CanWrite) const ynothrow
 		ImplRet(attr[WriteBit])
 	DefPred(const ynothrow, Modified, attr[ModifiedBit])
 
@@ -1030,7 +1119,7 @@ public:
 		\li std::errc::io_error 读错误。
 	\since build 713
 	*/
-	YB_NONNULL(2) ::ssize_t
+	YB_ATTR_nodiscard YB_NONNULL(2) ::ssize_t
 	Read(char*, size_t) ythrow(std::system_error);
 
 	/*!
@@ -1041,7 +1130,7 @@ public:
 	\note 第二参数取值为 SEEK_SET 、 SEEK_CUR 和 SEEK_END 之一。
 	\since build 713
 	*/
-	::off_t
+	YB_ATTR_nodiscard ::off_t
 	Seek(::off_t, int) ythrow(std::system_error);
 
 	/*!
@@ -1080,7 +1169,7 @@ public:
 		\li std::errc::io_error 写错误。
 	\since build 713
 	*/
-	YB_NONNULL(2) ::ssize_t
+	YB_ATTR_nodiscard YB_NONNULL(2) ::ssize_t
 	Write(const char*, size_t) ythrow(std::system_error);
 
 	PDefH(void, UpdateSize, std::uint32_t size) ynothrow
@@ -1100,7 +1189,7 @@ public:
 错误 EINVAL 表示路径参数中有超过一个冒号；
 错误 EIO 可能在迭代目录时发生。
 */
-YF_API bool
+YB_ATTR_nodiscard YF_API bool
 Mount(string_view, const ::DISC_INTERFACE&, ::sec_t, size_t, size_t);
 
 /*!
@@ -1108,12 +1197,11 @@ Mount(string_view, const ::DISC_INTERFACE&, ::sec_t, size_t, size_t);
 \pre 间接断言：参数非空。
 \return 是否找到已挂载的 FAT 分区并执行卸载。
 */
-YF_API YB_NONNULL(1) bool
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) bool
 Unmount(const char* name = "fat") ynothrow;
 //@}
 
 } // namespace FAT;
-
 #endif
 
 } // namespace platform_ex;

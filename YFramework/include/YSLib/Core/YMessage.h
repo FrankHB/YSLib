@@ -11,13 +11,13 @@
 /*!	\file YMessage.h
 \ingroup Core
 \brief 消息处理。
-\version r2072
+\version r2076
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2020-04-18 23:14 +0800
+	2020-10-06 21:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YSL_INC_Core_YMessage_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YObject
+#include YFM_YSLib_Core_YObject // for std::piecewise_construct,
+//	YSLib::tuple<Priority, YSLib::forward_as_tuple;
 #include <ctime>
 
 namespace YSLib
@@ -190,8 +191,8 @@ public:
 	void
 	Emplace(Priority prior, _tParams&&... args)
 	{
-		emplace(std::piecewise_construct, std::tuple<Priority>(prior),
-			std::forward_as_tuple(yforward(args)...));
+		emplace(std::piecewise_construct, YSLib::tuple<Priority>(prior),
+			YSLib::forward_as_tuple(yforward(args)...));
 	}
 
 	/*!

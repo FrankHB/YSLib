@@ -29,10 +29,13 @@
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
 					<Add option="-flto=jobserver" />
+					<Add option="-fno-enforce-eh-specs" />
 					<Add option="-DNDEBUG" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-flto" />
+					<Add option="-Wl,-allow-multiple-definition" />
 				</Linker>
 			</Target>
 			<Target title="debug_DLL">
@@ -59,11 +62,14 @@
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
 					<Add option="-flto=jobserver" />
+					<Add option="-fno-enforce-eh-specs" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DYB_BUILD_DLL" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-flto" />
+					<Add option="-Wl,-allow-multiple-definition" />
 				</Linker>
 			</Target>
 		</Build>
@@ -99,6 +105,8 @@
 			<Add option="-ffunction-sections" />
 			<Add option="-mthreads" />
 			<Add option="-pipe" />
+			<Add option="-U__GXX_MERGED_TYPEINFO_NAMES" />
+			<Add option="-D__GXX_MERGED_TYPEINFO_NAMES=1" />
 			<Add directory="../include" />
 		</Compiler>
 		<Linker>
@@ -113,8 +121,10 @@
 		<Unit filename="../include/ydef.h" />
 		<Unit filename="../include/ystdex/addressof.hpp" />
 		<Unit filename="../include/ystdex/algorithm.hpp" />
+		<Unit filename="../include/ystdex/allocator.hpp" />
 		<Unit filename="../include/ystdex/any.h" />
 		<Unit filename="../include/ystdex/any_iterator.hpp" />
+		<Unit filename="../include/ystdex/apply.hpp" />
 		<Unit filename="../include/ystdex/array.hpp" />
 		<Unit filename="../include/ystdex/base.h" />
 		<Unit filename="../include/ystdex/bitseg.hpp" />
@@ -134,18 +144,26 @@
 		<Unit filename="../include/ystdex/enum.hpp" />
 		<Unit filename="../include/ystdex/examiner.hpp" />
 		<Unit filename="../include/ystdex/exception.h" />
+		<Unit filename="../include/ystdex/function.hpp" />
 		<Unit filename="../include/ystdex/functional.hpp" />
 		<Unit filename="../include/ystdex/functor.hpp" />
 		<Unit filename="../include/ystdex/future.hpp" />
 		<Unit filename="../include/ystdex/hash.hpp" />
 		<Unit filename="../include/ystdex/integer_sequence.hpp" />
+		<Unit filename="../include/ystdex/integral_constant.hpp" />
+		<Unit filename="../include/ystdex/invoke.hpp" />
 		<Unit filename="../include/ystdex/ios.hpp" />
 		<Unit filename="../include/ystdex/istream.hpp" />
 		<Unit filename="../include/ystdex/iterator.hpp" />
 		<Unit filename="../include/ystdex/iterator_op.hpp" />
 		<Unit filename="../include/ystdex/iterator_trait.hpp" />
+		<Unit filename="../include/ystdex/list.hpp" />
+		<Unit filename="../include/ystdex/map.hpp" />
 		<Unit filename="../include/ystdex/memory.hpp" />
+		<Unit filename="../include/ystdex/memory_resource.h" />
+		<Unit filename="../include/ystdex/meta.hpp" />
 		<Unit filename="../include/ystdex/mixin.hpp" />
+		<Unit filename="../include/ystdex/node_base.h" />
 		<Unit filename="../include/ystdex/operators.hpp" />
 		<Unit filename="../include/ystdex/optional.h" />
 		<Unit filename="../include/ystdex/path.hpp" />
@@ -160,12 +178,16 @@
 		<Unit filename="../include/ystdex/streambuf.hpp" />
 		<Unit filename="../include/ystdex/string.hpp" />
 		<Unit filename="../include/ystdex/string_view.hpp" />
+		<Unit filename="../include/ystdex/swap.hpp" />
 		<Unit filename="../include/ystdex/thunk.hpp" />
+		<Unit filename="../include/ystdex/tree.h" />
 		<Unit filename="../include/ystdex/tstring_view.hpp" />
 		<Unit filename="../include/ystdex/tuple.hpp" />
+		<Unit filename="../include/ystdex/type_inspection.hpp" />
 		<Unit filename="../include/ystdex/type_op.hpp" />
 		<Unit filename="../include/ystdex/type_pun.hpp" />
 		<Unit filename="../include/ystdex/type_traits.hpp" />
+		<Unit filename="../include/ystdex/typeindex.h" />
 		<Unit filename="../include/ystdex/typeinfo.h" />
 		<Unit filename="../include/ystdex/utility.hpp" />
 		<Unit filename="../include/ystdex/variadic.hpp" />
@@ -181,7 +203,10 @@
 		<Unit filename="../source/ystdex/cstring.cpp" />
 		<Unit filename="../source/ystdex/cwctype.cpp" />
 		<Unit filename="../source/ystdex/exception.cpp" />
+		<Unit filename="../source/ystdex/memory_resource.cpp" />
+		<Unit filename="../source/ystdex/node_base.cpp" />
 		<Unit filename="../source/ystdex/optional.cpp" />
+		<Unit filename="../source/ystdex/tree.cpp" />
 		<Unit filename="../source/ytest/test.cpp" />
 	</Project>
 </CodeBlocks_project_file>

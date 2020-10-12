@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r6093
+\version r6098
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2020-07-31 15:05 +0800
+	2020-10-10 18:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include YFM_YSLib_Core_YObject // for ystdex::is_expandable,
 //	ystdex::is_decayed, ystdex::examiners::equal_examiner, std::allocator_arg_t,
 //	std::allocator_arg, ystdex::make_expanded, ystdex::default_last_value,
-//	std::piecewise_construct, std::forward_as_tuple;
+//	std::piecewise_construct, YSLib::forward_as_tuple;
 #include YFM_YSLib_Core_YFunc
 #include <ystdex/type_op.hpp> // for ystdex::exclude_self_t,
 //	ystdex::exclude_self_params_t;
@@ -695,18 +695,19 @@ public:
 	PDefH(typename ContainerType::iterator, Emplace, EventPriority prior,
 		const HandlerType& h)
 		ImplRet(handlers.emplace(std::piecewise_construct,
-			std::forward_as_tuple(prior), std::forward_as_tuple(h)))
+			YSLib::forward_as_tuple(prior), YSLib::forward_as_tuple(h)))
 	PDefH(typename ContainerType::iterator, Emplace, EventPriority prior,
 		HandlerType&& h)
 		ImplRet(handlers.emplace(std::piecewise_construct,
-			std::forward_as_tuple(prior), std::forward_as_tuple(std::move(h))))
+			YSLib::forward_as_tuple(prior),
+			YSLib::forward_as_tuple(std::move(h))))
 	template<typename... _tEmplaceParams, yimpl(typename
 		= ystdex::exclude_self_params_t<HandlerType, _tEmplaceParams...>)>
 	inline typename ContainerType::iterator
 	Emplace(EventPriority prior, _tEmplaceParams&&... args)
 	{
 		return handlers.emplace(std::piecewise_construct,
-			std::forward_as_tuple(prior), std::forward_as_tuple(
+			YSLib::forward_as_tuple(prior), YSLib::forward_as_tuple(
 			std::allocator_arg, handlers.get_allocator(), yforward(args)...));
 	}
 	//@}

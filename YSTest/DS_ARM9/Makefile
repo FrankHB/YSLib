@@ -1,5 +1,5 @@
 #
-#	(C) 2009-2016 FrankHB.
+#	(C) 2009-2016, 2020 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YShell Test -> ARM9
-# Version = r1399
+# Version = r1407
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2016-04-01 10:11 +0800
+# Updated = 2020-10-10 18:42 +0800
 # Encoding = ANSI
 
 
@@ -91,8 +91,7 @@ LIBDIRS	:=	$(LIBNDS)
 
 ifneq ($(CONF),$(notdir $(CURDIR)))
 
-export ARM9BIN	:=	$(RELEASEDIR)/$(PROJNAME).arm9
-export ARM9ELF	:=	$(BUILDDIR)/$(PROJNAME).arm9.elf
+export ARM9ELF	:=	$(RELEASEDIR)/$(PROJNAME).arm9.elf
 export DEPSDIR	:=	$(BUILDDIR)
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
@@ -170,7 +169,6 @@ clean:
 	@echo Cleaning $(TARGET) ...
 	@rm -f $(BUILDDIR)/*.d
 	@rm -f $(BUILDDIR)/*.o
-	@rm -f $(ARM9BIN)
 	@rm -f $(ARM9ELF)
 
 rebuild: all
@@ -186,13 +184,10 @@ DEPENDS	:= $(OFILES:.o=.d)
 # main targets
 #----
 
-$(ARM9BIN)	:	$(ARM9ELF)
-	@$(OBJCOPY) -O binary $< $@
-	@echo Built $(notdir $@) .
-
 $(ARM9ELF)	:	$(OFILES) $(YFRAMEWORK_A) $(YBASE_A)
 	@echo Linking $(notdir $@) ...
 	$(LD) $(LDFLAGS) $(OFILES) $(YFRAMEWORK_A) $(YBASE_A) $(LIBPATHS) $(LIBS) $(LIBPATHEX) $(LIBEX) -o $@
+	@echo Built $(notdir $@) .
 # IMPORTANT: the order of files is significant.
 
 #----

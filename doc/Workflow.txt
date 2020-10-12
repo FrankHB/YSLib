@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r3842
+\version r3895
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2020-09-29 21:40 +0800
+	2020-10-12 16:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -672,7 +672,7 @@ The SHBuild tool might encounter 0xC0000005 error.
 		It should be a bug of Windows. See https://code.google.com/p/conemu-maximus5/wiki/MicrosoftBugs.
 		Check "Inject ConEmuHk" as workaround, as suggested by the above page.
 		Make sure ConEmu has been updated. As tested on Windows 2012 R2, ConEmu x64 140104 doesn't work even with this workaround, but ConEmu x64 140707 works well.
-From the source of GCC LTO wrapper, the job server code is hard coded to call make.
+From the source of GCC LTO wrapper (in file 'gcc/gcc/lto-wrapper.c'), the job server code is hard coded to call make.
 	GNU make is actually expected since there seems rare similar support.
 	It seems be OK to call with '-flto=jobserver' without GNU make.
 On Windows, CPU usage is not the same in performance monitor(perfmon.exe) and task manager(taskmgr.exe). It's the normal case.
@@ -2230,7 +2230,7 @@ $2018-05:
 $report.impl:
 Several DS buidling problem concerned with compatibility issues in devkitPro has been addressed.
 	The update of libnds 1.6.0 changes minor internal interfaces, which has been adapted in module YCLib::NativeAPI.
-	The update of devkitARM r46 changes libgloss I/O interface in newlib, using 'void*' instead of 'int' as internal representation of file descriptor.
+	The update of devkitARM r46 changes the libgloss/libsysbase I/O interface in newlib, using 'void*' instead of 'int' as the internal representation of the file descriptor.
 		The module 'YCLib_(DS).DSIO' is adapted to use 'void*' type file handle instead of raw file descriptor.
 			This also reduces casts between pointers and 'int'.
 		See also $2015-12 for the changes.
@@ -3654,6 +3654,9 @@ NPLA name resolver is simplified.
 		This also reduces the cost of maintaining the copy of the callback in the environments, hence less allocations.
 	However, the change improves performance only after the optimization of 'std::type_info' above in x64 Linux.
 		Otherwise, the underlying call of '__strcmp_avx2' will occasionally hit the bad branch of crossing memory boundary too many times, with severely bad (actually worse than before) performance, despite less allocations.
+A workaround to MinGW64 is added for building YFramework dynamic library.
+	The debug build with G++ 9.3 fails due to unresolved '_ZTS*' symbols with '-O0' (implying '-D__NO_INLINE__') after ~3 hours.
+	The '-Og' is instead used as the workaround to make it works.
 
 $2020-04:
 
@@ -3855,6 +3858,55 @@ A problem of memory comsumption in the compilation has been worked around.
 	Also note using GCC pragmas in the source code does not work.
 		There are no pragmas or macros to detect the debug information.
 		The pragma GCC optimize("no-var-tracking") easily causes internal compiler errors even used for a whole translation unit.
+
+$2020-10:
+3rdparty libraries are massively rebuilt.
+	FreeImage for platform Android is an exception, as it is not actively used.
+	FreeImage now supports different configurations in its makefile, to support different configurations of YFramework builds.
+		This is to support coexistence of different external .a files with different configurations.
+			Since the debug configurations uses no LTO but the release configurations uses '-flto', there can be problems to use a same library file.
+				At least with MinGW32 G++ 10.2, it fails to link under both type of configurations, with undefined C++ symbols in the gnu.linkonce sections being discarded by LTO.
+				The old versions work only by accident.
+					On platforms like DS, YSTest on DS actually does not rely on FreeImage.
+				Note GCC's '-ffat-lto-objects' does not help.
+					This is a restriction in the interface of the current binutils. LTO and non-LTO objects cannot be mixed.
+						See https://gcc.gnu.org/onlinedocs/gcc/Link-Options.html.
+		The configuration is specified by the command line of 'make' as 'CONF=debug'.
+		LTO bloats the built static library files significantly.
+			For example, With MinGW32 G++ 10.2, a non-LTO library file is less than 2000KiB; however, it bloats to 6796KiB or more than 8000KiB (also with '-ffat-lto-objects') with '-flto' in the compiler command line.
+			As a result, the files bloats more without 'CONF=debug'. This is excepted.
+	FreeType does not use different configurations like FreeImage because it still work (without C++ symbols).
+		Note the external FreeType is available only by the dynamic library.
+MinGW64 builds are revised after the toolchain update.
+	The mysterious linking failure when building the debug DLL configuration (with '-O0 -g') of YFramework still exists.
+		See also $2020-03 report.impl for the original issue.
+		This time it starts to output error messages (undefined reference to symbols) from 10~20 minutes.
+		However, there are far more messages now. Some are about symbols after enabling '_GLIBCXX_DEBUG', some are not.
+		So, '-O0' is still unusable.
+	To work around the high resources comsumption during the compilation on 'NPLA1Forms.cpp' caused by '-Og -g', now '-fvar-tracking-assignments' is added.
+		See $2020-09 report.impl for the original issue.
+			This is fatal on i686 because cc1plus run out of the 32-bit address space. It is not that bad in x86-64, but annoying enough.
+		This time the compiler does not crash.
+			As a result, no excessive resources are comsumed as before.
+			Thus, the issue is worked around (better than '-O0').
+		The situation in the stage 1 SHBuild script (the original issue) might be resolved similarily, but not investigated this time.
+		Other workaround like changing '-g' to other debug option are considered.
+			For example, the option '-gdwarf-3' (meaning using DWARF level 3 debug information format) is tested.
+				It overrides the default (which should be DWARF level 4).
+				Hopefully, '-fvar-tracking-assignments' can be disabled.
+				But finally it does not work.
+			See https://gcc.gnu.org/onlinedocs/gcc/Debugging-Options.html#Debugging-Options for more details.
+	Further, there is one more problematic issue of static debug library building, due to the of limit of PE/COFF.
+		This would cause compiler error like 'string table overflow at offset 10000042' on 'Dependency.cpp.o'.
+		See https://stackoverflow.com/a/29479701/2307646.
+		So, '-O1' replaces '-Og' in this case.
+		Same to the dynamic library case, the precompiled header is not usable because it has different options to the ones acually being used.
+MinGW32 also disable LTO for workaround.
+	MinGW32 static release build also has a linking failure in the final binary 'YSTest.exe'.
+		This is worked around by disabling LTO in all compiler options in this configuration.
+	MinGW32 dynamic release build miscompiles someting/fails to link 'YFramework.dll' and the final binary crashes on opening.
+		There is a SIGSEGV in 0x646469d0 in ZN5YSLib2UI7ListBoxC2ERKNS_7Drawing4RectESt10unique_ptrINS0_8TextListESt14default_deleteIS7_EE.constprop.1.
+		This is also worked around by disabling LTO in all compiler options in this configuration.
 
 ////
 

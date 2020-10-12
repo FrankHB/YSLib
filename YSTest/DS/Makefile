@@ -1,5 +1,5 @@
 #
-#	(C) 2009-2018 FrankHB.
+#	(C) 2009-2020 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YSTest by FrankHB
-# Version = r1223
+# Version = r1225
 # Created = 2009-11-12 21:26:30 +0800
-# Updated = 2018-05-23 15:34 +0800
+# Updated = 2020-10-07 20:56 +0800
 # Encoding = ANSI
 
 
@@ -46,7 +46,7 @@ export OUTPUT		=	$(RELEASEDIR)/$(TARGET)
 
 TITLE		:= $(PROJNAME)
 SUBTITLE1 	:= FrankHB
-SUBTITLE2 	:= 2009-2018
+SUBTITLE2 	:= 2009-2020
 ICON		:= -b $(CURDIR)/data/logo.bmp
 
 ARM7ELF := $(BUILDDIR)/../../$(TARGET)_ARM7/$(CONF)/$(TARGET)_ARM7.arm7.elf

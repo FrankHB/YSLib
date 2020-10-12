@@ -1,22 +1,9 @@
 # DS makefile for FreeImage
-# Required: devkitPro
+# Required: devkitARM
+
+.SUFFIXES:
 
 include Makefile.srcs
-
-DELETE    := rm -fr
-CAT       := cat
-SEP       := /
-
-CC := $(DEVKITARM)/bin/arm-none-eabi-gcc.exe
-CXX := $(DEVKITARM)/bin/arm-none-eabi-g++.exe
-AR := $(DEVKITARM)/bin/arm-none-eabi-ar.exe
-COMPILER_SEP := /
-O  := o
-A  := a
-I := -I
-D := -D
-L := -l
-T := -o$(space)
 
 DIST ?= Dist
 
@@ -25,12 +12,33 @@ DESTDIR ?= /
 INCDIR ?= $(DESTDIR)/usr/include
 #INSTALLDIR ?= $(DESTDIR)/usr/lib
 
-MODULES := $(SRCS:.c=.o)
-MODULES := $(MODULES:.cpp=.o)
-CFLAGS ?= -c -O3 -pipe -Wno-attributes -fvisibility=hidden -DNO_LCMS
+DELETE    := rm -fr
+CAT       := cat
+SEP       := /
+
+CC := $(DEVKITARM)/bin/arm-none-eabi-gcc.exe
+CXX := $(DEVKITARM)/bin/arm-none-eabi-g++.exe
+AR := $(DEVKITARM)/bin/arm-none-eabi-gcc-ar.exe
+COMPILER_SEP := /
+O  := o
+A  := a
+I := -I
+D := -D
+L := -l
+T := -o$(space)
+
+ifeq ($(CONF), debug)
+	C_LTO :=
+else
+	C_LTO := -flto
+endif
+CFLAGS ?= -c -O3 $(C_LTO) -pipe -Wno-attributes -fvisibility=hidden -DNO_LCMS
 CFLAGS += $(INCLUDE)
 CXXFLAGS ?= -std=c++11 -c -O3 -pipe -Wno-attributes -fvisibility=hidden -Wno-ctor-dtor-privacy
 CXXFLAGS += $(INCLUDE)
+
+MODULES := $(SRCS:.c=.c.o)
+MODULES := $(MODULES:.cpp=.cpp.o)
 
 TARGET := FreeImage
 STATICLIB := lib$(TARGET).a
@@ -47,10 +55,10 @@ dist: FreeImage
 
 FreeImage : $(STATICLIB)
 
-.c.o :
+%.c.o : %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-.cpp.o :
+%.cpp.o : %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(STATICLIB) : $(MODULES)

@@ -12,11 +12,24 @@ INSTALLDIR ?= $(DESTDIR)/usr/lib
 # Converts cr/lf to just lf
 DOS2UNIX := dos2unix
 
+CC ?= gcc
+ifeq ($(CC), cc)
+	CC := gcc
+endif
+CXX ?= g++
+LD ?= g++
+AR ?= gcc-ar
+NASM ?= nasm
+
 LIBRARIES := -lstdc++
 
-NASM ?= nasm
 C_CXXFLAGS_GC ?= -fdata-sections -ffunction-sections
-C_CXXFLAGS ?= -O3 -fPIC -pipe -Wno-attributes -fexceptions $(C_CXXFLAGS_GC)
+ifeq ($(CONF), debug)
+	C_LTO :=
+else
+	C_LTO := -flto
+endif
+C_CXXFLAGS ?= -O3 $(C_LTO) -fPIC -pipe -Wno-attributes -fexceptions $(C_CXXFLAGS_GC)
 CFLAGS ?= $(C_CXXFLAGS)
 # OpenJPEG
 CFLAGS += -DOPJ_STATIC
@@ -25,7 +38,7 @@ CFLAGS += -DNO_LCMS
 # LibJXR
 CFLAGS += -DDISABLE_PERF_MEASUREMENT -D__ANSI__
 CFLAGS += $(INCLUDE)
-CXXFLAGS ?= -std=c++11 $(C_CXX_FLAGS) -Wno-ctor-dtor-privacy -DNDEBUG
+CXXFLAGS ?= -std=c++11 $(C_CXXFLAGS) -Wno-ctor-dtor-privacy -DNDEBUG
 # LibJXR
 CXXFLAGS += -D__ANSI__
 CXXFLAGS += $(INCLUDE)
@@ -35,9 +48,11 @@ ifeq ($(shell sh -c 'uname -m 2>/dev/null || echo not'),x86_64)
 	CXXFLAGS += -fPIC
 	NAFLAGS := -felf64 -DELF -D__x86_64__
 	MODULES := $(SRCS) $(libjpeg_x86_64_srcs)
+	ASMSRCPFX := ./Source/LibJPEG/simd/x86_64/
 else ifeq ($(shell sh -c 'uname -m 2>/dev/null || echo not'),i686)
 	NAFLAGS := -felf -DELF
 	MODULES := $(SRCS) $(libjpeg_i686_srcs)
+	ASMSRCPFX := ./Source/LibJPEG/simd/i386/
 else
 	$(error "Unsupported architecture found.")
 endif
@@ -75,7 +90,7 @@ FreeImage : $(STATICLIB) $(SHAREDLIB)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 %.asm.o : %.asm
-	$(NASM) $(NAFLAGS) -I./Source/LibJPEG/simd/nasm/ $< -o $@
+	$(NASM) $(NAFLAGS) -I./Source/LibJPEG/simd/nasm/ -I$(ASMSRCPFX) $< -o $@
 
 $(STATICLIB) : $(MODULES)
 	$(AR) r $@ $(MODULES)
