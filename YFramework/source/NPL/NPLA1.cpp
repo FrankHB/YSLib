@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r20086
+\version r20096
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-10-06 22:04 +0800
+	2020-10-19 05:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,6 +44,7 @@
 //	YSLib::share_move, ystdex::call_value_or, Session;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_Dependency // for A1::OpenUnique;
+#include <ystdex/exception.h> // for ystdex::unsupported;
 
 using namespace YSLib;
 
@@ -823,8 +824,8 @@ ContextState::ImplDeDtor(ContextState)
 TermNode&
 ContextState::GetNextTermRef() const
 {
-	if(const auto p = next_term_ptr)
-		return *p;
+	if(next_term_ptr)
+		return *next_term_ptr;
 	// NOTE: This should not occur unless there exists some invalid low-level
 	//	interoperations on the next term pointer in the context.
 	throw NPLException("No next term found to evaluation.");
@@ -1707,6 +1708,14 @@ bool
 REPLContext::IsAsynchronous() const ynothrow
 {
 	return NPL_Impl_NPLA1_Enable_Thunked;
+}
+
+std::ostream&
+REPLContext::GetOutputStreamRef() const
+{
+	if(OutputStreamPtr)
+		return *OutputStreamPtr;
+	throw ystdex::unsupported("Unsupported output stream found.");
 }
 
 TermNode

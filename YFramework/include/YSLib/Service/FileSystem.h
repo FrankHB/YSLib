@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r3492
+\version r3498
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2020-10-10 18:46 +0800
+	2020-10-23 04:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -743,12 +743,14 @@ using CopyFileHandler = function<void(FileDescriptor, FileDescriptor)>;
 //@{
 //! \brief 保持修改时间。
 const auto PreserveModificationTime(
-	ystdex::bind_forward(&FileDescriptor::SetModificationTime,
-	&FileDescriptor::GetModificationTime));
+	ystdex::bind_forward(SetFileModificationTimeOf,
+	static_cast<FileTime(&)(const FileDescriptor&)>(
+	GetFileModificationTimeOf)));
 //! \brief 保持修改和访问时间。
 const auto PreserveModificationAndAccessTime(
-	ystdex::bind_forward(&FileDescriptor::SetModificationAndAccessTime,
-	&FileDescriptor::GetModificationAndAccessTime));
+	ystdex::bind_forward(SetFileModificationAndAccessTimeOf,
+	static_cast<array<FileTime,
+	2>(&)(const FileDescriptor&)>(GetFileModificationAndAccessTimeOf)));
 //@}
 //@}
 

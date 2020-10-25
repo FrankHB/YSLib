@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2430
+\version r2444
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2020-08-30 19:37 +0800
+	2020-10-23 05:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,15 +38,16 @@
 //	<array>, <deque>, <forward_list>, <iosfwd>, <istream>, <ostream>, <queue>,
 //	<set>, <stack>, <unordered_map>, <unordered_set>, <vector>,
 //	<ystdex/memory_resource.h>, platform::basic_types, YFM_YCLib_Container,
-//	platform::basic_utilities, platform::containers, '*string_view', uopen,
-//	'uf*', 'up*', etc;
+//	platform::basic_utilities, platform::containers, '*string_view',
+//	MakePathString, uopen, 'uf*', 'up*', 'omode_conv*', StreamPut, etc;
 #include YFM_YCLib_Reference // for YFM_YCLib_Reference, platform::references,
 //	<memory>, '*_ptr', 'make*_ptr', lref;
 #include YFM_YCLib_Keys // for <bitset>, YCLib key space;
 #include YFM_YCLib_Timer
 #include YFM_YCLib_Mutex // for YFM_YCLib_Mutex, ystdex::noncopyable,
 //	ystdex::nonmovable, Threading, Concurrency;
-#include YFM_YCLib_FileSystem
+#include YFM_YCLib_FileSystem // for 'u*dir', platform::FileTime, 'GetFile*Of',
+//	'SetFile*Of', etc;
 #include YFM_YCLib_MemoryMapping // for MappedFile;
 #include YFM_YCLib_Video // for MonoType, AlphaType, Color;
 
@@ -321,12 +322,22 @@ using platform::UniqueFile;
 using platform::DefaultPMode;
 using platform::omode_conv;
 using platform::omode_convb;
+//! \since build 901
+using platform::StreamPut;
+//! \since build 901
+using platform::FileTime;
 //! \since build 631
 using platform::GetFileAccessTimeOf;
 //! \since build 547
 using platform::GetFileModificationTimeOf;
 //! \since build 631
 using platform::GetFileModificationAndAccessTimeOf;
+//! \since build 901
+//@{
+using platform::SetFileAccessTimeOf;
+using platform::SetFileModificationTimeOf;
+using platform::SetFileModificationAndAccessTimeOf;
+//@}
 using platform::FetchNumberOfLinks;
 using platform::EnsureUniqueFile;
 //! \since build 659

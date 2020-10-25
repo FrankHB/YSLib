@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r3895
+\version r3935
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2020-10-12 16:36 +0800
+	2020-10-24 07:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -3860,6 +3860,8 @@ A problem of memory comsumption in the compilation has been worked around.
 		The pragma GCC optimize("no-var-tracking") easily causes internal compiler errors even used for a whole translation unit.
 
 $2020-10:
+
+report.impl:
 3rdparty libraries are massively rebuilt.
 	FreeImage for platform Android is an exception, as it is not actively used.
 	FreeImage now supports different configurations in its makefile, to support different configurations of YFramework builds.
@@ -3907,6 +3909,45 @@ MinGW32 also disable LTO for workaround.
 	MinGW32 dynamic release build miscompiles someting/fails to link 'YFramework.dll' and the final binary crashes on opening.
 		There is a SIGSEGV in 0x646469d0 in ZN5YSLib2UI7ListBoxC2ERKNS_7Drawing4RectESt10unique_ptrINS0_8TextListESt14default_deleteIS7_EE.constprop.1.
 		This is also worked around by disabling LTO in all compiler options in this configuration.
+NPL I/O library now has different basic abstract backend model.
+	C++ streams are now used to enable the support of Scheme/Kernel style ports.
+		This is basically by using 'std::ios_base' as the polymorphic value type in the object model.
+			The actual value in such an object is usually stored in the polymorphic value holder.
+		The backend for output now directly uses a 'std::ostream' pointer as 'REPLContext' data member.
+			Instead of 'std::ios_base', this avoids the unnecessary dynamic cast. (It can't be 'static_cast' due to the virtual base.)
+			The applicative 'puts' in module 'std.io' is changed to adapt to it, without dependency to <cstdio> any longer.
+				This may have overhead, but usually negligible.
+			Note that as usual (documented by 'doc/YSLib.txt'), the standard header <iostream> should be avoid in the library, esp. for some resource-constrained platforms.
+				Basically this requires an additional initialization in the client code.
+				The additional requirement can be also useful to make sure that the <iostream> interface separates from the one in <cstdio>, even with 'std::ios_base::sync_with_stdio' calls.
+The use of encoding conversion in Windows is revised.
+	Bug of the confusion between the ANSI code page ('CP_ACP') and the console code pages (configurable by 'chcp' in the command line or the Wni32 API '::SetConsoleCP'/'::SetConsoleOutputCP') is fixed.
+		There are some caveats on changing the console code pages.
+			The command 'chcp' set both input and output pages of a console when called with an argument. It displays only the input console without an argument.
+			The '::SetConsoleCP' and '::SetConsoleOutputCP' can have the effect after the program exit.
+			The traditional Windows console (backed by 'conhost.exe' since Windows Vista) still cannot handle the non-DBCS MBCS well.
+				Examples of non-DBCS MBCS encoding include UTF-8 and GB-18030. They are not compatible to 'CP_ACP' used internally.
+					See http://archives.miloush.net/michkap/archive/2006/10/11/816996.html.
+					See also http://archives.miloush.net/michkap/archive/2007/01/03/1392379.html.
+				Windows Terminal should overcome the problem.
+					See https://github.com/microsoft/terminal.
+					However, it requires Windows 10 1903 (build 18362) or later.
+		The code pages of a console can be set separatedly, so they do not necessarily equal to the ANSI code page, hence the bug.
+		The improper calls of 'platform_ex::Encode' and 'platform_ex::Decode' with 'CP_ACP' or a default argument (of 'CP_ACP') can lead the bug.
+			Currently, the bug has effects on the 'SHBuild' tool in the YSLib project.
+				This is effected by calls of 'EncodeArg' and 'DecodeArg' since build 561 which had replaced calls of 'MBCSToMBCS' since build 476.
+			Client code should also be careful.
+		In general, client programs should better leave the code pages untouched (without calls to '::SetConsoleCP' and '::SetConsoleOutputCP') unless some encodings are explicitly depended on by design. 
+	Command line vector should be use UTF-16 encoding instead of the deprecated ANSI code page.
+	For the reasons above, handling of the command line for Win32 platforms is reimplemented in YFramework.
+		This is now implemented by getting the platform-specific command line and parsing it according to the initialization of UCRT implementation, exposed by 'platform_ex::ParseCommandArguments' in YFramework module 'YCLib_(Win32).MinGW32'.
+			There can be some subtle behavior differences between the UCRT implementation and the old implementation using '::CommandLineToArgvW' in Shlwapi.
+				See https://github.com/rust-lang/rust/issues/44650.
+				The new behavior is mandated here, despite the CRT implementation being linked to the problem.
+			The globbing is disabled by default as the MinGW-W64 runtime.
+		Since the C++ implementation can be referenced, this is not strictly necessary, in contrast to freestanding environments without aid of CRT (like Rust).
+			However, the reimplementation provides better compatibility by avoiding referencing the internal interface of the CRT implementations.
+		Note it can also serve to 'YSLib::ArgumentsVector' in module YSLib::Core::YCoreUtility by direct accesses to its member.
 
 ////
 

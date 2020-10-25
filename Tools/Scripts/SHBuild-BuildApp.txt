@@ -8,7 +8,7 @@ $import! env_SHBuild_
 	SHBuild_DirectoryOf_ SHBuild_RaiseError_ SHBuild_TrimOptions_;
 
 $def! (prog .args) () cmd-get-args;
-$def! SR_Var_NPLA1_ SHBuild_DirectoryOf_ prog;
+$def! SR_Share_NPLA1_ SHBuild_DirectoryOf_ prog;
 
 $def! env_SHBuild_Common_ $provide! (
 	$assert-nonempty
@@ -28,7 +28,7 @@ $def! env_SHBuild_Common_ $provide! (
 	system-or-puts
 	system-check
 	win32?
-) load (++ SR_Var_NPLA1_ "/SHBuild-YSLib-common.txt");
+) load (++ SR_Share_NPLA1_ "/SHBuild-YSLib-common.txt");
 
 "TODO", "Merge more with logic in %SHBuild-YSLib-build.txt.";
 $def! (env-os env-arch) () SHBuild_GetPlatformStrings;

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r1607
+\version r1609
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2020-10-08 18:51 +0800
+	2020-10-16 21:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,6 +43,7 @@
 #	include <sys/syslimits.h> // for NAME_MAX.
 #	include <ystdex/function.hpp> // for ystdex::function;
 #	include <ystdex/optional.h> // for ystdex::ref_opt;
+#	include <ystdex/path.hpp> // for ystdex::is_parent_or_self;
 #	include <bitset> // for std::bitset;
 #endif
 
@@ -620,7 +621,7 @@ public:
 	DefDeMoveAssignment(DEntry)
 	//@}
 
-	DefPred(const ynothrow, Dot, name == "." || name == "..")
+	DefPred(const ynothrow, Dot, ystdex::is_parent_or_self(name))
 	/*!
 	\brief 判断分区类型是 FAT32 且 Data 表示根目录。
 	\exception std::system_error 调用失败。

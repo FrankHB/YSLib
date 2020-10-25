@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3180
+\version r3696
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2020-01-12 18:14 +0800
+	2020-10-25 06:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,12 +32,13 @@
 //	std::errc::function_not_supported, YCL_CallF_CAPI, std::is_integral,
 //	ystdex::invoke, Nonnull, ystdex::temporary_buffer;
 #include YFM_YCLib_NativeAPI // for Mode, ::HANDLE, struct ::stat,
-//	platform_ex::cstat, platform_ex::estat, ::futimens, OpenMode,
+//	platform_ex::cstat, platform_ex::estat ::GetConsoleMode, OpenMode,
 //	YCL_CallGlobal, ::close, ::fcntl, F_GETFL, ::setmode, ::fchmod, ::_chsize,
 //	::ftruncate, ::fsync, ::_wgetcwd, ::getcwd, ::chdir, ::rmdir, ::unlink,
 //	!defined(__STRICT_ANSI__) API, ::GetCurrentDirectoryW;
 #include YFM_YCLib_FileSystem // for NodeCategory::*, CategorizeNode;
 #include <ystdex/functional.hpp> // for ystdex::compose, ystdex::addrof;
+#include <ystdex/string.hpp> // for ystdex::write_ntcts;
 #include <ystdex/streambuf.hpp> // for ystdex::streambuf_equal;
 #if YCL_DS
 #	include "CHRLib/YModules.h"
@@ -51,27 +52,18 @@
 //	available if it is really being used.
 #		undef _fileno
 #	endif
-#	include YFM_Win32_YCLib_MinGW32 // for platform_ex::FileAttributes,
-//	platform_ex::GetErrnoFromWin32, platform_ex::QueryFileLinks,
-//	platform_ex::QueryFileNodeID, platform_ex::QueryFileTime,
-//	platform_ex::ConvertTime, platform_ex::SetFileTime, platform_ex::UnlockFile,
-//	platform_ex::LockFile, platform_ex::TryLockFile;
+#	if __GLIBCXX__
+#		include <ystdex/ios.hpp> // for ystdex::rethrow_badstate;
+#		include YFM_Win32_YCLib_Consoles // for platform_ex::WConsole;
+#		include <ext/stdio_sync_filebuf.h> // for __gnu_cxx::stdio_sync_filebuf;
+#	endif
+#	include YFM_Win32_YCLib_MinGW32 // for 
+//	platform_ex::UnlockFile, platform_ex::LockFile, platform_ex::TryLockFile;
 #	include YFM_Win32_YCLib_NLS // for platform_ex::UTF8ToWCS,
 //	platform_ex::WCSToUTF8;
 
-//! \since build 639
-using platform_ex::FileAttributes;
-using platform_ex::GetErrnoFromWin32;
-//! \since build 639
-using platform_ex::QueryFileLinks;
-//! \since build 632
-//@{
-using platform_ex::QueryFileNodeID;
-using platform_ex::QueryFileTime;
 //! \since build 540
 using platform_ex::UTF8ToWCS;
-using platform_ex::ConvertTime;
-//@}
 //! \since build 706
 using platform_ex::MakePathStringW;
 #elif YCL_API_POSIXFileSystem
@@ -103,157 +95,7 @@ using platform_ex::cstat;
 #if YCL_Win32
 //! \since build 704
 using platform_ex::ToHandle;
-
-//! \since build 660
-void
-QueryFileTime(const char* path, ::FILETIME* p_ctime, ::FILETIME* p_atime,
-	::FILETIME* p_mtime, bool follow_reparse_point)
-{
-	QueryFileTime(MakePathStringW(path).c_str(), p_ctime, p_atime, p_mtime,
-		follow_reparse_point);
-}
-//! \since build 632
-//@{
-void
-QueryFileTime(int fd, ::FILETIME* p_ctime, ::FILETIME* p_atime,
-	::FILETIME* p_mtime)
-{
-	QueryFileTime(ToHandle(fd), p_ctime, p_atime, p_mtime);
-}
-
-// TODO: Blocked. Use C++14 generic lambda expressions.
-yconstexpr const struct
-{
-	template<typename _tParam, typename... _tParams>
-	FileTime
-	operator()(_tParam arg, _tParams... args) const
-	{
-		::FILETIME atime{};
-
-		QueryFileTime(arg, {}, &atime, {}, args...);
-		return ConvertTime(atime);
-	}
-} get_st_atime{};
-yconstexpr const struct
-{
-	template<typename _tParam, typename... _tParams>
-	FileTime
-	operator()(_tParam arg, _tParams... args) const
-	{
-		::FILETIME mtime{};
-
-		QueryFileTime(arg, {}, {}, &mtime, args...);
-		return ConvertTime(mtime);
-	}
-} get_st_mtime{};
-yconstexpr const struct
-{
-	template<typename _tParam, typename... _tParams>
-	array<FileTime, 2>
-	operator()(_tParam arg, _tParams... args) const
-	{
-		::FILETIME mtime{}, atime{};
-
-		QueryFileTime(arg, {}, &atime, &mtime, args...);
-		return array<FileTime, 2>{ConvertTime(mtime), ConvertTime(atime)};
-	}
-} get_st_matime{};
-//@}
-
-//! \since build 639
-//@{
-YB_NONNULL(1) bool
-UnlinkWithAttr(const wchar_t* path, FileAttributes attr) ynothrow
-{
-	return !(attr & FileAttributes::ReadOnly) || ::SetFileAttributesW(path,
-		attr & ~FileAttributes::ReadOnly) ? ::_wunlink(path) == 0
-		: (errno = GetErrnoFromWin32(), false);
-}
-
-template<typename _func>
-YB_NONNULL(2) bool
-CallFuncWithAttr(_func f, const char* path)
-{
-	const auto& wpath(MakePathStringW(path));
-	const auto& wstr(wpath.c_str());
-	const auto attr(FileAttributes(::GetFileAttributesW(wstr)));
-
-	return attr != platform_ex::Invalid ? f(wstr, attr)
-		: (errno = GetErrnoFromWin32(), false);
-}
-//@}
-#else
-inline PDefH(::timespec, ToTimeSpec, FileTime ft) ynothrow
-	ImplRet({std::time_t(ft.count() / 1000000000LL),
-		long(ft.count() % 1000000000LL)})
-
-//! \since build 719
-void
-SetFileTime(int fd, const ::timespec(&times)[2])
-{
-#if YCL_DS
-	// XXX: Hack.
-#ifndef UTIME_OMIT
-#	define UTIME_OMIT (-1L)
 #endif
-	yunused(fd), yunused(times);
-	ystdex::throw_error(std::errc::function_not_supported, yfsig);
-#else
-	YCL_CallF_CAPI(, ::futimens, fd, times);
-#endif
-}
-
-//! \since build 631
-//@{
-const auto get_st_atime([](struct ::stat& st){
-	return FileTime(st.st_atime);
-});
-const auto get_st_mtime([](struct ::stat& st){
-	return FileTime(st.st_mtime);
-});
-const auto get_st_matime([](struct ::stat& st){
-	return array<FileTime, 2>{FileTime(st.st_mtime), FileTime(st.st_atime)};
-});
-//@}
-
-//! \since build 638
-//@{
-static_assert(std::is_integral<::dev_t>(),
-	"Nonconforming '::dev_t' type found.");
-static_assert(std::is_unsigned<::ino_t>(),
-	"Nonconforming '::ino_t' type found.");
-
-inline PDefH(FileNodeID, get_file_node_id, struct ::stat& st) ynothrow
-	ImplRet({std::uint64_t(st.st_dev), std::uint64_t(st.st_ino)})
-//@}
-//! \since build 719
-YB_NONNULL(2, 4) inline PDefH(void, cstat, struct ::stat& st,
-	const char16_t* path, bool follow_link, const char* sig)
-	ImplRet(cstat(st, MakePathString(path).c_str(), follow_link, sig))
-#endif
-
-//! \since build 632
-template<typename _func, typename... _tParams>
-auto
-FetchFileTime(_func f, _tParams... args)
-#if YCL_Win32
-	-> ystdex::invoke_result_t<_func, _tParams&...>
-#else
-	-> ystdex::invoke_result_t<_func, struct ::stat&>
-#endif
-{
-#if YCL_Win32
-	// NOTE: The %::FILETIME has resolution of 100 nanoseconds.
-	// XXX: Error handling for indirect calls.
-	return f(args...);
-#else
-	// TODO: Get more precise time count.
-	struct ::stat st;
-
-	cstat(st, args..., yfsig);
-	return ystdex::invoke(f, st);
-#endif
-}
 
 //! \since build 765
 template<int _vErr, typename _fCallable, class _tObj, typename _tByteBuf,
@@ -317,44 +159,46 @@ UnlockFileDescriptor(int fd, const char* sig) ynothrowv
 }
 #endif
 
-//! \since build 660
-bool
-IsNodeShared_Impl(const char* a, const char* b, bool follow_link) ynothrow
+#if YCL_Win32 && __GLIBCXX__
+YB_NONNULL(3) bool
+StreamPutToFileDescriptor(std::ostream& os, int fd, const char* s)
 {
-#if YCL_Win32
-	return CallNothrow({}, [=]{
-		return QueryFileNodeID(MakePathStringW(a).c_str(), follow_link)
-			== QueryFileNodeID(MakePathStringW(b).c_str(), follow_link);
-	});
-#else
-	struct ::stat st;
+	const auto h(ToHandle(fd));
 
-	if(estat(st, a, follow_link) != 0)
-		return {};
+	if(h != INVALID_HANDLE_VALUE)
+	{
+		unsigned long mode;
 
-	const auto id(get_file_node_id(st));
+		if(::GetConsoleMode(h, &mode))
+		{
+			if(os.flush())
+			{
+				std::ios_base::iostate st(std::ios_base::goodbit);
 
-	if(estat(st, b, follow_link) != 0)
-		return {};
+				if(const auto k{typename std::ostream::sentry(os)})
+				{
+					if(*s != '\0')
+						try
+						{
+							const auto wstr(platform_ex::UTF8ToWCS(s));
+							const auto n(wstr.length());
 
-	return IsNodeShared(id, get_file_node_id(st));
-#endif
+							if(platform_ex::WConsole(h).WriteString(wstr) != n)
+								st |= std::ios_base::badbit;
+						}
+						CatchExpr(...,
+							ystdex::rethrow_badstate(os, std::ios_base::badbit))
+				}
+				else
+					st |= std::ios_base::badbit;
+				os.setstate(st);
+			}
+			return true;
+		}
+	}
+	return {};
 }
-//! \since build 660
-bool
-IsNodeShared_Impl(const char16_t* a, const char16_t* b, bool follow_link)
-	ynothrow
-{
-#if YCL_Win32
-	return CallNothrow({}, [=]{
-		return QueryFileNodeID(wcast(a), follow_link)
-			== QueryFileNodeID(wcast(b), follow_link);
-	});
-#else
-	return IsNodeShared_Impl(MakePathString(a).c_str(),
-		MakePathString(b).c_str(), follow_link);
 #endif
-}
 
 //! \since build 701
 template<typename _tChar>
@@ -426,11 +270,6 @@ FileDescriptor::FileDescriptor(std::FILE* fp) ynothrow
 	: desc(fp ? YCL_CallGlobal(fileno, fp) : -1)
 {}
 
-FileTime
-FileDescriptor::GetAccessTime() const
-{
-	return FetchFileTime(get_st_atime, desc);
-}
 NodeCategory
 FileDescriptor::GetCategory() const ynothrow
 {
@@ -460,44 +299,6 @@ FileDescriptor::GetMode() const
 	cstat(st, desc, yfsig);
 	return st.st_mode;
 }
-FileTime
-FileDescriptor::GetModificationTime() const
-{
-	return FetchFileTime(get_st_mtime, desc);
-}
-array<FileTime, 2>
-FileDescriptor::GetModificationAndAccessTime() const
-{
-	return FetchFileTime(get_st_matime, desc);
-}
-FileNodeID
-FileDescriptor::GetNodeID() const ynothrow
-{
-#if YCL_Win32
-	return CallNothrow({}, [this]{
-		return QueryFileNodeID(ToHandle(desc));
-	});
-#else
-	struct ::stat st;
-
-	return estat(st, desc) == 0 ? get_file_node_id(st) : FileNodeID();
-#endif
-}
-size_t
-FileDescriptor::GetNumberOfLinks() const ynothrow
-{
-#if YCL_Win32
-	return CallNothrow({}, [this]{
-		return QueryFileLinks(ToHandle(desc));
-	});
-#else
-	struct ::stat st;
-	static_assert(std::is_unsigned<decltype(st.st_nlink)>(),
-		"Unsupported 'st_nlink' type found.");
-
-	return estat(st, desc) == 0 ? size_t(st.st_nlink) : size_t();
-#endif
-}
 std::uint64_t
 FileDescriptor::GetSize() const
 {
@@ -516,19 +317,6 @@ FileDescriptor::GetSize() const
 #endif
 }
 
-void
-FileDescriptor::SetAccessTime(FileTime ft) const
-{
-#if YCL_Win32
-	auto atime(ConvertTime(ft));
-
-	platform_ex::SetFileTime(ToHandle(desc), {}, &atime, {});
-#else
-	const ::timespec times[]{ToTimeSpec(ft), {yimpl(0), UTIME_OMIT}};
-
-	SetFileTime(desc, times);
-#endif
-}
 bool
 FileDescriptor::SetBlocking() const
 {
@@ -562,32 +350,6 @@ FileDescriptor::SetMode(mode_t mode) const
 #else
 	yunused(mode);
 	ystdex::throw_error(std::errc::function_not_supported, yfsig);
-#endif
-}
-void
-FileDescriptor::SetModificationTime(FileTime ft) const
-{
-#if YCL_Win32
-	auto mtime(ConvertTime(ft));
-
-	platform_ex::SetFileTime(ToHandle(desc), {}, {}, &mtime);
-#else
-	const ::timespec times[]{{yimpl(0), UTIME_OMIT}, ToTimeSpec(ft)};
-
-	SetFileTime(desc, times);
-#endif
-}
-void
-FileDescriptor::SetModificationAndAccessTime(array<FileTime, 2> fts) const
-{
-#if YCL_Win32
-	auto atime(ConvertTime(fts[0])), mtime(ConvertTime(fts[1]));
-
-	platform_ex::SetFileTime(ToHandle(desc), {}, &atime, &mtime);
-#else
-	const ::timespec times[]{ToTimeSpec(fts[0]), ToTimeSpec(fts[1])};
-
-	SetFileTime(desc, times);
 #endif
 }
 bool
@@ -844,31 +606,6 @@ omode_convb(std::ios_base::openmode mode) ynothrow
 
 
 int
-uaccess(const char* path, int amode) ynothrowv
-{
-	YAssertNonnull(path);
-#if YCL_Win32
-	return CallNothrow(-1, [=]{
-		return ::_waccess(MakePathStringW(path).c_str(), amode);
-	});
-#else
-	return ::access(path, amode);
-#endif
-}
-int
-uaccess(const char16_t* path, int amode) ynothrowv
-{
-	YAssertNonnull(path);
-#if YCL_Win32
-	return ::_waccess(wcast(path), amode);
-#else
-	return CallNothrow(-1, [=]{
-		return ::access(MakePathString(path).c_str(), amode);
-	});
-#endif
-}
-
-int
 uopen(const char* filename, int oflag, mode_t pmode) ynothrowv
 {
 	YAssertNonnull(filename);
@@ -1009,239 +746,31 @@ upclose(std::FILE* fp) ynothrowv
 #endif
 }
 
-char*
-ugetcwd(char* buf, size_t size) ynothrowv
+
+void
+StreamPut(std::ostream& os, const char* s)
 {
-	YAssertNonnull(buf);
-	if(size != 0)
-	{
-		using namespace std;
-
+	YAssertNonnull(s);
 #if YCL_Win32
-		try
+	if(const auto p_sb = os.rdbuf())
+	{
+	// TODO: Implement for other standard library implementations.
+#	if __GLIBCXX__
+		if(const auto p = dynamic_cast<__gnu_cxx::stdio_filebuf<char>*>(p_sb))
 		{
-			const auto p(make_unique<wchar_t[]>(size));
-
-			if(const auto cwd = ::_wgetcwd(p.get(), int(size)))
-			{
-				const auto res(MakePathString(ucast(cwd)));
-				const auto len(res.length());
-
-				if(size < len + 1)
-					errno = ERANGE;
-				else
-					return ystdex::ntctscpy(buf, res.data(), len);
-			}
+			if(StreamPutToFileDescriptor(os, p->fd(), s))
+				return;
 		}
-		CatchExpr(std::bad_alloc&, errno = ENOMEM);
-#else
-		// NOTE: POSIX.1 2004 has no guarantee about slashes. POSIX.1 2013
-		//	mandates there are no redundant slashes. See http://pubs.opengroup.org/onlinepubs/009695399/functions/getcwd.html.
-		return ::getcwd(buf, size);
+		if(const auto p
+			= dynamic_cast<__gnu_cxx::stdio_sync_filebuf<char>*>(p_sb))
+		{
+			if(StreamPutToFileDescriptor(os, ::_fileno(p->file()), s))
+				return;
+		}
 #endif
 	}
-	else
-		errno = EINVAL;
-	return {};
-}
-char16_t*
-ugetcwd(char16_t* buf, size_t len) ynothrowv
-{
-	YAssertNonnull(buf);
-	if(len != 0)
-	{
-		using namespace std;
-
-#if YCL_Win32
-		// NOTE: Win32 guarantees there will be a separator if and only if when
-		//	the result is root directory for ::_wgetcwd, and actually it is
-		//	the same in ::%GetCurrentDirectoryW.
-		const auto n(::GetCurrentDirectoryW(len, wcast(buf)));
-
-		if(n != 0)
-			return buf;
-		errno = GetErrnoFromWin32();
-		return {};
-#else
-		// XXX: Alias by %char array is safe.
-		if(const auto cwd
-			= ::getcwd(ystdex::aligned_store_cast<char*>(buf), len))
-			try
-			{
-				const auto res(platform_ex::MakePathStringU(cwd));
-				const auto rlen(res.length());
-
-				if(len < rlen + 1)
-					errno = ERANGE;
-				else
-					return ystdex::ntctscpy(buf, res.data(), rlen);
-			}
-			CatchExpr(std::bad_alloc&, errno = ENOMEM)
 #endif
-	}
-	else
-		errno = EINVAL;
-	return {};
-}
-
-#define YCL_Impl_FileSystem_ufunc_1(_n) \
-bool \
-_n(const char* path) ynothrowv \
-{ \
-	YAssertNonnull(path); \
-
-#if YCL_Win32
-#	define YCL_Impl_FileSystem_ufunc_2(_fn, _wfn) \
-	return CallNothrow({}, [&]{ \
-		return _wfn(MakePathStringW(path).c_str()) == 0; \
-	}); \
-}
-#else
-#	define YCL_Impl_FileSystem_ufunc_2(_fn, _wfn) \
-	return _fn(path) == 0; \
-}
-#endif
-
-#define YCL_Impl_FileSystem_ufunc(_n, _fn, _wfn) \
-	YCL_Impl_FileSystem_ufunc_1(_n) \
-	YCL_Impl_FileSystem_ufunc_2(_fn, _wfn)
-
-YCL_Impl_FileSystem_ufunc(uchdir, ::chdir, ::_wchdir)
-
-YCL_Impl_FileSystem_ufunc_1(umkdir)
-#if YCL_Win32
-	YCL_Impl_FileSystem_ufunc_2(_unused_, ::_wmkdir)
-#else
-	return ::mkdir(path, mode_t(Mode::Access)) == 0;
-}
-#endif
-
-YCL_Impl_FileSystem_ufunc(urmdir, ::rmdir, ::_wrmdir)
-
-YCL_Impl_FileSystem_ufunc_1(uunlink)
-#if YCL_Win32
-	return CallNothrow({}, [=]{
-		return CallFuncWithAttr(UnlinkWithAttr, path);
-	});
-}
-#else
-YCL_Impl_FileSystem_ufunc_2(::unlink, )
-#endif
-
-YCL_Impl_FileSystem_ufunc_1(uremove)
-#if YCL_Win32
-	// NOTE: %::_wremove is same to %::_wunlink on Win32 which cannot delete
-	//	empty directories.
-	return CallNothrow({}, [=]{
-		return CallFuncWithAttr([](const wchar_t* wstr, FileAttributes attr)
-			YB_ATTR_LAMBDA_QUAL(ynothrow, YB_NONNULL(1)){
-			return attr & FileAttributes::Directory ? ::_wrmdir(wstr) == 0
-				: UnlinkWithAttr(wstr, attr);
-		}, path);
-	});
-}
-#else
-YCL_Impl_FileSystem_ufunc_2(std::remove, )
-#endif
-
-#undef YCL_Impl_FileSystem_ufunc_1
-#undef YCL_Impl_FileSystem_ufunc_2
-#undef YCL_Impl_FileSystem_ufunc
-
-
-#if YCL_Win32
-template<>
-YF_API string
-FetchCurrentWorkingDirectory(size_t init)
-{
-	return MakePathString(FetchCurrentWorkingDirectory<char16_t>(init));
-}
-template<>
-YF_API u16string
-FetchCurrentWorkingDirectory(size_t)
-{
-	u16string res;
-	unsigned long len, rlen(0);
-
-	// NOTE: Retry is necessary to prevent failure due to modification of
-	//	current directory from other threads.
-	ystdex::retry_on_cond([&]() -> bool{
-		if(rlen < len)
-		{
-			res.pop_back();
-			return {};
-		}
-		if(rlen != 0)
-			return true;
-		YCL_Raise_Win32E("GetCurrentDirectoryW", yfsig);
-	}, [&]{
-		if((len = ::GetCurrentDirectoryW(0, {})) != 0)
-		{
-			res.resize(size_t(len + 1));
-			rlen = ::GetCurrentDirectoryW(len, wcast(&res[0]));
-		}
-	});
-	res.resize(rlen);
-	return res;
-}
-#endif
-
-
-FileTime
-GetFileAccessTimeOf(const char* filename, bool follow_link)
-{
-	return FetchFileTime(get_st_atime, filename, follow_link);
-}
-FileTime
-GetFileAccessTimeOf(const char16_t* filename, bool follow_link)
-{
-	return FetchFileTime(get_st_atime, wcast(filename), follow_link);
-}
-
-FileTime
-GetFileModificationTimeOf(const char* filename, bool follow_link)
-{
-	return FetchFileTime(get_st_mtime, filename, follow_link);
-}
-FileTime
-GetFileModificationTimeOf(const char16_t* filename, bool follow_link)
-{
-	return FetchFileTime(get_st_mtime, wcast(filename), follow_link);
-}
-
-array<FileTime, 2>
-GetFileModificationAndAccessTimeOf(const char* filename, bool follow_link)
-{
-	return FetchFileTime(get_st_matime, filename, follow_link);
-}
-array<FileTime, 2>
-GetFileModificationAndAccessTimeOf(const char16_t* filename, bool follow_link)
-{
-	return FetchFileTime(get_st_matime, wcast(filename), follow_link);
-}
-
-YB_NONNULL(1) size_t
-FetchNumberOfLinks(const char* path, bool follow_link)
-{
-#if YCL_Win32
-	return QueryFileLinks(MakePathStringW(path).c_str(), follow_link);
-#else
-	struct ::stat st;
-	static_assert(std::is_unsigned<decltype(st.st_nlink)>(),
-		"Unsupported 'st_nlink' type found.");
-
-	cstat(st, path, follow_link, yfsig);
-	return st.st_nlink;
-#endif
-}
-YB_NONNULL(1) size_t
-FetchNumberOfLinks(const char16_t* path, bool follow_link)
-{
-#if YCL_Win32
-	return QueryFileLinks(wcast(path), follow_link);
-#else
-	return FetchNumberOfLinks(MakePathString(path).c_str(), follow_link);
-#endif
+	ystdex::write_ntcts(os, s);
 }
 
 
@@ -1315,26 +844,6 @@ HaveSameContents(UniqueFile p_a, UniqueFile p_b, const char* name_a,
 		return ystdex::streambuf_equal(fb_a, fb_b);
 	}
 	return {};
-}
-
-bool
-IsNodeShared(const char* a, const char* b, bool follow_link) ynothrowv
-{
-	return a == b || ystdex::ntctscmp(Nonnull(a), Nonnull(b)) == 0
-		|| IsNodeShared_Impl(a, b, follow_link);
-}
-bool
-IsNodeShared(const char16_t* a, const char16_t* b, bool follow_link) ynothrowv
-{
-	return a == b || ystdex::ntctscmp(Nonnull(a), Nonnull(b)) == 0
-		|| IsNodeShared_Impl(a, b, follow_link);
-}
-bool
-IsNodeShared(FileDescriptor x, FileDescriptor y) ynothrow
-{
-	const auto id(x.GetNodeID());
-
-	return id != FileNodeID() && id == y.GetNodeID();
 }
 
 } // namespace platform;

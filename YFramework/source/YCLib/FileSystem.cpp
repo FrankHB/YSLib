@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4403
+\version r4947
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2020-10-08 12:17 +0800
+	2020-10-25 06:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,17 +33,22 @@
 #include YFM_YCLib_FileIO // for platform_ex::MakePathStringW,
 //	platform_Ex::MakePathStringU, MakePathString, Deref, ystdex::throw_error,
 //	std::invalid_argument, std::errc::function_not_supported, YCL_CallF_CAPI,
-//	CategorizeNode, ystdex::ntctslen, std::wctob, std::towupper,
-//	ystdex::restrict_length, std::min, ystdex::ntctsicmp,
-//	std::errc::invalid_argument, std::strchr; , std::errc::invalid_argument
+//	CategorizeNode, complete FileDescriptor, ystdex::ntctslen, std::wctob,
+//	std::towupper, ystdex::restrict_length, std::min, ystdex::ntctsicmp,
+//	std::errc::invalid_argument, std::strchr;
 #include YFM_YCLib_NativeAPI // for Mode, struct ::stat, ::stat,
-//	::GetFileAttributesW, ::linkat, ::symlink, ::lstat, ::readlink;
+//	::GetFileAttributesW, platform_ex::cstat, platform_ex::estat, ::futimens,
+//	::linkat, ::symlink, ::lstat, ::readlink;
 #include "CHRLib/YModules.h"
 #include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeUCS2LE;
 #include <ystdex/ctime.h> // for ystdex::is_date_range_valid,
 //	ystdex::is_time_no_leap_valid;
 #if YCL_Win32
-#	include YFM_Win32_YCLib_MinGW32 // for platform_ex::Invalid,
+#	include YFM_Win32_YCLib_MinGW32 // for platform_ex::FileAttributes,
+//	platform_ex::GetErrnoFromWin32, platform_ex::Invalid,
+//	platform_ex::ConvertTime, platform_ex::ToHandle,
+//	platform_ex::QueryFileNodeID, platform_ex::QueryFileLinks,
+//	platform_ex::QueryFileTime, platform_ex::SetFileTime,
 //	platform_ex::ResolveReparsePoint, platform_ex::DirectoryFindData;
 #	include <time.h> // for ::localtime_s;
 
@@ -136,6 +141,219 @@ CreateDirectoryDataPtr(_tParam&& arg)
 }
 #endif
 
+#if YCL_Win32
+//! \since build 639
+//@{
+using platform_ex::FileAttributes;
+using platform_ex::GetErrnoFromWin32;
+
+YB_NONNULL(1) bool
+UnlinkWithAttr(const wchar_t* path, FileAttributes attr) ynothrow
+{
+	return !(attr & FileAttributes::ReadOnly) || ::SetFileAttributesW(path,
+		attr & ~FileAttributes::ReadOnly) ? ::_wunlink(path) == 0
+		: (errno = GetErrnoFromWin32(), false);
+}
+
+template<typename _func>
+YB_NONNULL(2) bool
+CallFuncWithAttr(_func f, const char* path)
+{
+	const auto& wpath(MakePathStringW(path));
+	const auto& wstr(wpath.c_str());
+	const auto attr(FileAttributes(::GetFileAttributesW(wstr)));
+
+	return attr != platform_ex::Invalid ? f(wstr, attr)
+		: (errno = GetErrnoFromWin32(), false);
+}
+//@}
+#endif
+
+#if YCL_Win32
+//! \since build 632
+using platform_ex::ConvertTime;
+//! \since build 704
+using platform_ex::ToHandle;
+//! \since build 632
+using platform_ex::QueryFileNodeID;
+//! \since build 639
+using platform_ex::QueryFileLinks;
+
+//! \since build 632
+using platform_ex::QueryFileTime;
+//! \since build 660
+void
+QueryFileTime(const char* path, ::FILETIME* p_ctime, ::FILETIME* p_atime,
+	::FILETIME* p_mtime, bool follow_reparse_point)
+{
+	QueryFileTime(MakePathStringW(path).c_str(), p_ctime, p_atime, p_mtime,
+		follow_reparse_point);
+}
+//! \since build 632
+//@{
+void
+QueryFileTime(int fd, ::FILETIME* p_ctime, ::FILETIME* p_atime,
+	::FILETIME* p_mtime)
+{
+	QueryFileTime(ToHandle(fd), p_ctime, p_atime, p_mtime);
+}
+
+// TODO: Blocked. Use C++14 generic lambda expressions.
+yconstexpr const struct
+{
+	template<typename _tParam, typename... _tParams>
+	FileTime
+	operator()(_tParam arg, _tParams... args) const
+	{
+		::FILETIME atime{};
+
+		QueryFileTime(arg, {}, &atime, {}, args...);
+		return ConvertTime(atime);
+	}
+} get_st_atime{};
+yconstexpr const struct
+{
+	template<typename _tParam, typename... _tParams>
+	FileTime
+	operator()(_tParam arg, _tParams... args) const
+	{
+		::FILETIME mtime{};
+
+		QueryFileTime(arg, {}, {}, &mtime, args...);
+		return ConvertTime(mtime);
+	}
+} get_st_mtime{};
+yconstexpr const struct
+{
+	template<typename _tParam, typename... _tParams>
+	array<FileTime, 2>
+	operator()(_tParam arg, _tParams... args) const
+	{
+		::FILETIME mtime{}, atime{};
+
+		QueryFileTime(arg, {}, &atime, &mtime, args...);
+		return array<FileTime, 2>{ConvertTime(mtime), ConvertTime(atime)};
+	}
+} get_st_matime{};
+//@}
+#else
+//! \since build 901
+using platform_ex::cstat;
+//! \since build 719
+YB_NONNULL(2, 4) inline PDefH(void, cstat, struct ::stat& st,
+	const char16_t* path, bool follow_link, const char* sig)
+	ImplRet(cstat(st, MakePathString(path).c_str(), follow_link, sig))
+
+//! \since build 901
+using platform_ex::estat;
+
+//! \since build 638
+//@{
+static_assert(std::is_integral<::dev_t>(),
+	"Nonconforming '::dev_t' type found.");
+static_assert(std::is_unsigned<::ino_t>(),
+	"Nonconforming '::ino_t' type found.");
+
+inline PDefH(FileNodeID, get_file_node_id, struct ::stat& st) ynothrow
+	ImplRet({std::uint64_t(st.st_dev), std::uint64_t(st.st_ino)})
+//@}
+
+inline PDefH(::timespec, ToTimeSpec, FileTime ft) ynothrow
+	ImplRet({std::time_t(ft.count() / 1000000000LL),
+		long(ft.count() % 1000000000LL)})
+
+//! \since build 719
+void
+SetFileTime(int fd, const ::timespec(&times)[2])
+{
+#if YCL_DS
+	// XXX: Hack.
+#ifndef UTIME_OMIT
+#	define UTIME_OMIT (-1L)
+#endif
+	yunused(fd), yunused(times);
+	ystdex::throw_error(std::errc::function_not_supported, yfsig);
+#else
+	YCL_CallF_CAPI(, ::futimens, fd, times);
+#endif
+}
+
+//! \since build 631
+//@{
+const auto get_st_atime([](struct ::stat& st){
+	return FileTime(st.st_atime);
+});
+const auto get_st_mtime([](struct ::stat& st){
+	return FileTime(st.st_mtime);
+});
+const auto get_st_matime([](struct ::stat& st){
+	return array<FileTime, 2>{FileTime(st.st_mtime), FileTime(st.st_atime)};
+});
+//@}
+#endif
+
+//! \since build 660
+bool
+IsNodeShared_Impl(const char* a, const char* b, bool follow_link) ynothrow
+{
+#if YCL_Win32
+	return CallNothrow({}, [=]{
+		return QueryFileNodeID(MakePathStringW(a).c_str(), follow_link)
+			== QueryFileNodeID(MakePathStringW(b).c_str(), follow_link);
+	});
+#else
+	struct ::stat st;
+
+	if(estat(st, a, follow_link) != 0)
+		return {};
+
+	const auto id(get_file_node_id(st));
+
+	if(estat(st, b, follow_link) != 0)
+		return {};
+
+	return IsNodeShared(id, get_file_node_id(st));
+#endif
+}
+//! \since build 660
+bool
+IsNodeShared_Impl(const char16_t* a, const char16_t* b, bool follow_link)
+	ynothrow
+{
+#if YCL_Win32
+	return CallNothrow({}, [=]{
+		return QueryFileNodeID(wcast(a), follow_link)
+			== QueryFileNodeID(wcast(b), follow_link);
+	});
+#else
+	return IsNodeShared_Impl(MakePathString(a).c_str(),
+		MakePathString(b).c_str(), follow_link);
+#endif
+}
+
+//! \since build 632
+template<typename _func, typename... _tParams>
+auto
+FetchFileTime(_func f, _tParams... args)
+#if YCL_Win32
+	-> ystdex::invoke_result_t<_func, _tParams&...>
+#else
+	-> ystdex::invoke_result_t<_func, struct ::stat&>
+#endif
+{
+#if YCL_Win32
+	// NOTE: The %::FILETIME has resolution of 100 nanoseconds.
+	// XXX: Error handling for indirect calls.
+	return f(args...);
+#else
+	// TODO: Get more precise time count.
+	struct ::stat st;
+
+	cstat(st, args..., yfsig);
+	return ystdex::invoke(f, st);
+#endif
+}
+
 } // unnamed namespace;
 
 bool
@@ -161,6 +379,45 @@ IsDirectory(const char16_t* path)
 		&& (platform_ex::FileAttributes(attr) & platform_ex::Directory);
 #else
 	return IsDirectory(MakePathString(path).c_str());
+#endif
+}
+
+
+size_t
+FetchNumberOfLinks(const FileDescriptor& fd)
+{
+#if YCL_Win32
+	return QueryFileLinks(ToHandle(*fd));
+#else
+	struct ::stat st;
+	static_assert(std::is_unsigned<decltype(st.st_nlink)>(),
+		"Unsupported 'st_nlink' type found.");
+
+	cstat(st, *fd, yfsig);
+	return size_t(st.st_nlink);
+#endif
+}
+size_t
+FetchNumberOfLinks(const char* path, bool follow_link)
+{
+#if YCL_Win32
+	return QueryFileLinks(MakePathStringW(path).c_str(), follow_link);
+#else
+	struct ::stat st;
+	static_assert(std::is_unsigned<decltype(st.st_nlink)>(),
+		"Unsupported 'st_nlink' type found.");
+
+	cstat(st, path, follow_link, yfsig);
+	return size_t(st.st_nlink);
+#endif
+}
+size_t
+FetchNumberOfLinks(const char16_t* path, bool follow_link)
+{
+#if YCL_Win32
+	return QueryFileLinks(wcast(path), follow_link);
+#else
+	return FetchNumberOfLinks(MakePathString(path).c_str(), follow_link);
 #endif
 }
 
@@ -502,6 +759,352 @@ HDirectory::GetNativeName() const ynothrow
 		dirent_str.data() : u".";
 #else
 		p_dirent->d_name : ".";
+#endif
+}
+
+
+int
+uaccess(const char* path, int amode) ynothrowv
+{
+	YAssertNonnull(path);
+#if YCL_Win32
+	return CallNothrow(-1, [=]{
+		return ::_waccess(MakePathStringW(path).c_str(), amode);
+	});
+#else
+	return ::access(path, amode);
+#endif
+}
+int
+uaccess(const char16_t* path, int amode) ynothrowv
+{
+	YAssertNonnull(path);
+#if YCL_Win32
+	return ::_waccess(wcast(path), amode);
+#else
+	return CallNothrow(-1, [=]{
+		return ::access(MakePathString(path).c_str(), amode);
+	});
+#endif
+}
+
+char*
+ugetcwd(char* buf, size_t size) ynothrowv
+{
+	YAssertNonnull(buf);
+	if(size != 0)
+	{
+		using namespace std;
+
+#if YCL_Win32
+		try
+		{
+			const auto p(make_unique<wchar_t[]>(size));
+
+			if(const auto cwd = ::_wgetcwd(p.get(), int(size)))
+			{
+				const auto res(MakePathString(ucast(cwd)));
+				const auto len(res.length());
+
+				if(size < len + 1)
+					errno = ERANGE;
+				else
+					return ystdex::ntctscpy(buf, res.data(), len);
+			}
+		}
+		CatchExpr(std::bad_alloc&, errno = ENOMEM);
+#else
+		// NOTE: POSIX.1 2004 has no guarantee about slashes. POSIX.1 2013
+		//	mandates there are no redundant slashes. See http://pubs.opengroup.org/onlinepubs/009695399/functions/getcwd.html.
+		//	At least platform %DS (implemented in devkitPro newlib's libsysbase)
+		//	may have trailing slashes or not, depending on the last successful
+		//	%::chdir call.
+		return ::getcwd(buf, size);
+#endif
+	}
+	else
+		errno = EINVAL;
+	return {};
+}
+char16_t*
+ugetcwd(char16_t* buf, size_t len) ynothrowv
+{
+	YAssertNonnull(buf);
+	if(len != 0)
+	{
+		using namespace std;
+
+#if YCL_Win32
+		// NOTE: Win32 guarantees there will be a separator if and only if when
+		//	the result is root directory for ::_wgetcwd, and actually it is
+		//	the same in ::%GetCurrentDirectoryW.
+		const auto n(::GetCurrentDirectoryW(len, wcast(buf)));
+
+		if(n != 0)
+			return buf;
+		errno = GetErrnoFromWin32();
+		return {};
+#else
+		// XXX: Alias by %char array is safe.
+		if(const auto cwd
+			= ::getcwd(ystdex::aligned_store_cast<char*>(buf), len))
+			try
+			{
+				const auto res(platform_ex::MakePathStringU(cwd));
+				const auto rlen(res.length());
+
+				if(len < rlen + 1)
+					errno = ERANGE;
+				else
+					return ystdex::ntctscpy(buf, res.data(), rlen);
+			}
+			CatchExpr(std::bad_alloc&, errno = ENOMEM)
+#endif
+	}
+	else
+		errno = EINVAL;
+	return {};
+}
+
+#define YCL_Impl_FileSystem_ufunc_1(_n) \
+bool \
+_n(const char* path) ynothrowv \
+{ \
+	YAssertNonnull(path); \
+
+#if YCL_Win32
+#	define YCL_Impl_FileSystem_ufunc_2(_fn, _wfn) \
+	return CallNothrow({}, [&]{ \
+		return _wfn(MakePathStringW(path).c_str()) == 0; \
+	}); \
+}
+#else
+#	define YCL_Impl_FileSystem_ufunc_2(_fn, _wfn) \
+	return _fn(path) == 0; \
+}
+#endif
+
+#define YCL_Impl_FileSystem_ufunc(_n, _fn, _wfn) \
+	YCL_Impl_FileSystem_ufunc_1(_n) \
+	YCL_Impl_FileSystem_ufunc_2(_fn, _wfn)
+
+YCL_Impl_FileSystem_ufunc(uchdir, ::chdir, ::_wchdir)
+
+YCL_Impl_FileSystem_ufunc_1(umkdir)
+#if YCL_Win32
+	YCL_Impl_FileSystem_ufunc_2(_unused_, ::_wmkdir)
+#else
+	return ::mkdir(path, mode_t(Mode::Access)) == 0;
+}
+#endif
+
+YCL_Impl_FileSystem_ufunc(urmdir, ::rmdir, ::_wrmdir)
+
+YCL_Impl_FileSystem_ufunc_1(uunlink)
+#if YCL_Win32
+	return CallNothrow({}, [=]{
+		return CallFuncWithAttr(UnlinkWithAttr, path);
+	});
+}
+#else
+YCL_Impl_FileSystem_ufunc_2(::unlink, )
+#endif
+
+YCL_Impl_FileSystem_ufunc_1(uremove)
+#if YCL_Win32
+	// NOTE: %::_wremove is same to %::_wunlink on Win32 which cannot delete
+	//	empty directories.
+	return CallNothrow({}, [=]{
+		return CallFuncWithAttr([](const wchar_t* wstr, FileAttributes attr)
+			YB_ATTR_LAMBDA_QUAL(ynothrow, YB_NONNULL(1)){
+			return attr & FileAttributes::Directory ? ::_wrmdir(wstr) == 0
+				: UnlinkWithAttr(wstr, attr);
+		}, path);
+	});
+}
+#else
+YCL_Impl_FileSystem_ufunc_2(std::remove, )
+#endif
+
+#undef YCL_Impl_FileSystem_ufunc_1
+#undef YCL_Impl_FileSystem_ufunc_2
+#undef YCL_Impl_FileSystem_ufunc
+
+
+#if YCL_Win32
+template<>
+YF_API string
+FetchCurrentWorkingDirectory(size_t init)
+{
+	return MakePathString(FetchCurrentWorkingDirectory<char16_t>(init));
+}
+template<>
+YF_API u16string
+FetchCurrentWorkingDirectory(size_t)
+{
+	u16string res;
+	unsigned long len, rlen(0);
+
+	// NOTE: Retry is necessary to prevent failure due to modification of
+	//	current directory from other threads.
+	ystdex::retry_on_cond([&]() -> bool{
+		if(rlen < len)
+		{
+			res.pop_back();
+			return {};
+		}
+		if(rlen != 0)
+			return true;
+		YCL_Raise_Win32E("GetCurrentDirectoryW", yfsig);
+	}, [&]{
+		if((len = ::GetCurrentDirectoryW(0, {})) != 0)
+		{
+			res.resize(size_t(len + 1));
+			rlen = ::GetCurrentDirectoryW(len, wcast(&res[0]));
+		}
+	});
+	res.resize(rlen);
+	return res;
+}
+#endif
+
+
+FileNodeID
+GetFileNodeIDOf(const FileDescriptor& fd) ynothrow
+{
+#if YCL_Win32
+	return CallNothrow({}, [=]{
+		return QueryFileNodeID(ToHandle(*fd));
+	});
+#else
+	struct ::stat st;
+
+	return estat(st, *fd) == 0 ? get_file_node_id(st) : FileNodeID();
+#endif
+}
+
+bool
+IsNodeShared(const char* a, const char* b, bool follow_link) ynothrowv
+{
+	return a == b || ystdex::ntctscmp(Nonnull(a), Nonnull(b)) == 0
+		|| IsNodeShared_Impl(a, b, follow_link);
+}
+bool
+IsNodeShared(const char16_t* a, const char16_t* b, bool follow_link) ynothrowv
+{
+	return a == b || ystdex::ntctscmp(Nonnull(a), Nonnull(b)) == 0
+		|| IsNodeShared_Impl(a, b, follow_link);
+}
+bool
+IsNodeShared(FileDescriptor x, FileDescriptor y) ynothrow
+{
+	const auto id(GetFileNodeIDOf(x));
+
+	return id != FileNodeID() && id == GetFileNodeIDOf(y);
+}
+
+
+FileTime
+GetFileAccessTimeOf(const FileDescriptor& fd)
+{
+	return FetchFileTime(get_st_atime, *fd);
+}
+FileTime
+GetFileAccessTimeOf(std::FILE* fp)
+{
+	return GetFileAccessTimeOf(FileDescriptor(fp));
+}
+FileTime
+GetFileAccessTimeOf(const char* filename, bool follow_link)
+{
+	return FetchFileTime(get_st_atime, filename, follow_link);
+}
+FileTime
+GetFileAccessTimeOf(const char16_t* filename, bool follow_link)
+{
+	return FetchFileTime(get_st_atime, wcast(filename), follow_link);
+}
+
+FileTime
+GetFileModificationTimeOf(const FileDescriptor& fd)
+{
+	return FetchFileTime(get_st_mtime, *fd);
+}
+FileTime
+GetFileModificationTimeOf(std::FILE* fp)
+{
+	return GetFileModificationTimeOf(FileDescriptor(fp));
+}
+FileTime
+GetFileModificationTimeOf(const char* filename, bool follow_link)
+{
+	return FetchFileTime(get_st_mtime, filename, follow_link);
+}
+FileTime
+GetFileModificationTimeOf(const char16_t* filename, bool follow_link)
+{
+	return FetchFileTime(get_st_mtime, wcast(filename), follow_link);
+}
+
+array<FileTime, 2>
+GetFileModificationAndAccessTimeOf(const FileDescriptor& fd)
+{
+	return FetchFileTime(get_st_matime, *fd);
+}
+array<FileTime, 2>
+GetFileModificationAndAccessTimeOf(std::FILE* fp)
+{
+	return GetFileModificationAndAccessTimeOf(FileDescriptor(fp));
+}
+array<FileTime, 2>
+GetFileModificationAndAccessTimeOf(const char* filename, bool follow_link)
+{
+	return FetchFileTime(get_st_matime, filename, follow_link);
+}
+array<FileTime, 2>
+GetFileModificationAndAccessTimeOf(const char16_t* filename, bool follow_link)
+{
+	return FetchFileTime(get_st_matime, wcast(filename), follow_link);
+}
+
+void
+SetFileAccessTimeOf(const FileDescriptor& fd, FileTime ft)
+{
+#if YCL_Win32
+	auto atime(ConvertTime(ft));
+
+	platform_ex::SetFileTime(ToHandle(*fd), {}, &atime, {});
+#else
+	const ::timespec times[]{ToTimeSpec(ft), {yimpl(0), UTIME_OMIT}};
+
+	SetFileTime(*fd, times);
+#endif
+}
+void
+SetFileModificationTimeOf(const FileDescriptor& fd, FileTime ft)
+{
+#if YCL_Win32
+	auto mtime(ConvertTime(ft));
+
+	platform_ex::SetFileTime(ToHandle(*fd), {}, {}, &mtime);
+#else
+	const ::timespec times[]{{yimpl(0), UTIME_OMIT}, ToTimeSpec(ft)};
+
+	SetFileTime(*fd, times);
+#endif
+}
+void
+SetFileModificationAndAccessTimeOf(const FileDescriptor& fd,
+	array<FileTime, 2> fts)
+{
+#if YCL_Win32
+	auto atime(ConvertTime(fts[0])), mtime(ConvertTime(fts[1]));
+
+	platform_ex::SetFileTime(ToHandle(*fd), {}, &atime, &mtime);
+#else
+	const ::timespec times[]{ToTimeSpec(fts[0]), ToTimeSpec(fts[1])};
+
+	SetFileTime(*fd, times);
 #endif
 }
 

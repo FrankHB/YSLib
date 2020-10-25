@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3963
+\version r3984
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2020-09-06 15:03 +0800
+	2020-10-21 04:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,6 @@ See readme file for details.
 //	std::lock_guard, function, vector, std::initializer_list, to_std_string,
 //	string_view, uspawn, ystdex::sfmt, istringstream;
 #include YFM_YCLib_Host // for namespace platform_ex, platform_ex::Terminal,
-//	platform_ex::EncodeArg, platform_ex::DecodeArg,
 //	platform_ex::SetEnvironmentVariable;
 #include YFM_YSLib_Service_YTimer // for namespace std::chrono,
 //	YSLib::Timers::FetchElapsed;
@@ -44,8 +43,12 @@ See readme file for details.
 #include YFM_NPL_Dependency // for NPL::DepsEventType, NPL, A1, Forms,
 //	NPL::DecomposeMakefileDepList, NPL::FilterMakefileDependencies,
 //	NPL::Install*;
+#include <iostream> // for std::cout;
 #include YFM_YSLib_Core_YConsole // for YSLib::Consoles;
 #include <ystdex/concurrency.h> // for ystdex::task_pool;
+#if YCL_Win32
+#	include YFM_Win32_YCLib_MinGW32 // for platform_ex::ParseCommandArguments;
+#endif
 #include <sstream> // for complete istringstream;
 
 //! \since build 837
@@ -373,6 +376,7 @@ RunNPLFromStream(const char* name, std::istream&& is)
 	//	necessary at least in stage 1.
 	context.Root.Trace.FilterLevel = Logger::Level::Informative;
 	LoadStandardContext(context);
+	context.OutputStreamPtr = NPL::make_observer(&std::cout);
 
 	auto& rctx(context.Root);
 
@@ -916,20 +920,31 @@ main(int argc, char* argv[])
 				Terminal::Guard
 					guard(term_ref, std::bind(UpdateForeColorByLevel, _1, lv));
 
-				std::fprintf(stream, "%s", &EncodeArg(Nonnull(str))[0]);
+				std::fprintf(stream, "%s", &Nonnull(str)[0]);
 			}
 			std::fputc('\n', stream);
 		});
-		if(argc > 1)
+
+#if YCL_Win32
+			yunused(argc), yunused(argv);
+
+			auto xargv(platform_ex::ParseCommandArguments());
+			const auto xargc(xargv.size());
+#else
+			const auto xargc(static_cast<size_t>(argc));
+			const auto xargv(argv);
+#endif
+
+		if(xargc > 1)
 		{
 			vector<string> args;
 			bool opt_trans(true);
 
-			for(int i(1); i < argc; ++i)
+			for(size_t i(1); i < xargc; ++i)
 			{
-				string arg(DecodeArg(argv[i]));
+				string arg(xargv[i]);
 
-				if(opt_trans && string(argv[i]) == "--")
+				if(opt_trans && string(xargv[i]) == "--")
 					opt_trans = {};
 				else if(!opt_trans || (!arg.empty()
 					&& std::none_of(begin(OptionsTable), end(OptionsTable),
@@ -1036,10 +1051,10 @@ main(int argc, char* argv[])
 				bctx.Build();
 			}
 		}
-		else if(argc == 1)
+		else if(xargc == 1)
 		{
 			std::printf("%s%s%s", "Usage: [ENV ...] ",
-				quote(string(*argv)).c_str(),
+				quote(string(xargv[0])).c_str(),
 				" SRCPATH [OPTIONS ... [-- ARGS...]]\n"
 				"\tThis program is a tool to build the source tree, with some"
 				" additional functionalities. It has two execution mode,"

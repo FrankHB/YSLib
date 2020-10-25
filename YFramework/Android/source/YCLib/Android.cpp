@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2016, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r564
+\version r567
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2016-06-19 19:27 +0800
+	2020-10-14 05:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,7 @@ namespace platform_ex
 
 #if YCL_Android
 
-namespace Android
+inline namespace Android
 {
 
 InputQueue::InputQueue(::ALooper& looper, ::AInputQueue& input_queue)
@@ -116,7 +116,7 @@ TraceConfiguration(::AConfiguration& cfg, platform::Logger::Level lv)
 		int(::AConfiguration_getUiModeNight(&cfg)));
 }
 
-} // namespace Android;
+} // inline namespace Android;
 
 #endif
 

@@ -11,13 +11,13 @@
 /*!	\file ios.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准库输入/输出流基类扩展。
-\version r80
+\version r86
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2015-12-28 20:00:09 +0800
 \par 修改时间:
-	2020-02-25 20:48 +0800
+	2020-10-25 05:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,8 @@ namespace ystdex
 */
 template<typename _tChar, class _tTraits>
 void
-setstate(std::basic_ios<_tChar, _tTraits>& ios, std::ios_base::iostate state) ynothrow
+setstate(std::basic_ios<_tChar, _tTraits>& ios, std::ios_base::iostate state)
+	ynothrow
 {
 	const auto except(ios.exceptions());
 
@@ -51,7 +52,7 @@ setstate(std::basic_ios<_tChar, _tTraits>& ios, std::ios_base::iostate state) yn
 }
 
 /*!
-\brief 设置流状态并重新抛出当前异常。
+\brief 设置流状态，并在必要时重新抛出当前异常。
 \note 一个主要用例为实现标准库要求的格式/非格式输入/输出函数。
 \see WG21 N4567 27.7.2.2.1[istream.formatted.reqmts] 。
 \see WG21 N4567 27.7.2.3[istream.unformatted]/1 。
@@ -60,12 +61,13 @@ setstate(std::basic_ios<_tChar, _tTraits>& ios, std::ios_base::iostate state) yn
 \see LWG 91 。
 */
 template<typename _tChar, class _tTraits>
-YB_NORETURN void
+void
 rethrow_badstate(std::basic_ios<_tChar, _tTraits>& ios,
 	std::ios_base::iostate state = std::ios_base::badbit)
 {
 	setstate(ios, state);
-	throw;
+	if(ios.exceptions() & state)
+		throw;
 }
 
 } // namespace ystdex;

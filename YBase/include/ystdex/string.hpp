@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r3071
+\version r3120
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2020-06-14 12:03 +0800
+	2020-10-25 07:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,10 +34,11 @@
 #include "string_view.hpp" // for internal "string_view.hpp" (implying
 //	"range.hpp" and "<libdefect/string.h>"), basic_string_view,
 //	std::char_traits, std::initializer_list, std::to_string, string,
-//	basic_string, ntctslen;
+//	basic_string;
 #include "container.hpp" // for "container.hpp", enable_for_input_iterator_t,
 //	make_index_sequence, index_sequence, begin, end, size, sort_unique,
 //	underlying, std::hash;
+#include "cstring.h" // for ystdex::ntctslen;
 #include "cstdio.h" // for vfmtlen, ystdex::is_null;
 #include "array.hpp" // for std::bidirectional_iterator_tag, to_array;
 #include <istream> // for std::basic_istream;
@@ -1628,7 +1629,7 @@ get_mid(const _tString& str, typename _tString::size_type l,
 \since build 565
 */
 //@{
-//! \note 同 std::getline ，除判断分隔符及附带的副作用由参数的函数对象决定。
+//! \note 同 std::getline ，除判断分隔符及附带的副作用由参数中的函数对象决定。
 template<typename _tChar, class _tTraits, class _tAlloc, typename _func>
 std::basic_istream<_tChar, _tTraits>&
 extract(std::basic_istream<_tChar, _tTraits>& is,
@@ -1638,8 +1639,8 @@ extract(std::basic_istream<_tChar, _tTraits>& is,
 	// NOTE: The type shall be explicit.
 	std::ios_base::iostate st(std::ios_base::goodbit);
 
-	if(const auto k
-		= typename std::basic_istream<_tChar, _tTraits>::sentry(is, true))
+	if(const auto
+		k{typename std::basic_istream<_tChar, _tTraits>::sentry(is, true)})
 	{
 		const auto msize(str.max_size());
 		const auto p_buf(is.rdbuf());
@@ -1751,16 +1752,38 @@ extract_line_cr(std::basic_istream<_tChar, _tTraits>& is,
 //@}
 
 
-/*!
-\brief 非格式输出。
-\since build 599
-*/
+//! \brief 无格式字符串输出。
 //@{
-template<typename _tChar, class _tString>
+//! \since build 901
+//@{
+template<typename _tChar, typename _tString>
 std::basic_ostream<_tChar, typename _tString::traits_type>&
 write(std::basic_ostream<_tChar, typename _tString::traits_type>& os,
-	const _tString& str, typename _tString::size_type pos = 0,
-	typename _tString::size_type n = _tString::npos)
+	const _tString& str)
+{
+	const auto len(str.length());
+
+	if(len != 0)
+		// XXX: Here %str is not necessarily of a class type.
+		os.write(&str[0], std::streamsize(len));
+	return os;
+}
+template<typename _tChar, typename _tString>
+std::basic_ostream<_tChar, typename _tString::traits_type>&
+write(std::basic_ostream<_tChar, typename _tString::traits_type>& os,
+	const _tString& str, typename _tString::size_type pos)
+{
+	const auto len(str.length());
+
+	if(pos < len)
+		os.write(&str[pos], std::streamsize(len - pos));
+	return os;
+}
+template<typename _tChar, typename _tString>
+std::basic_ostream<_tChar, typename _tString::traits_type>&
+write(std::basic_ostream<_tChar, typename _tString::traits_type>& os,
+	const _tString& str, typename _tString::size_type pos,
+	typename _tString::size_type n)
 {
 	const auto len(str.length());
 
@@ -1768,13 +1791,7 @@ write(std::basic_ostream<_tChar, typename _tString::traits_type>& os,
 		os.write(&str[pos], std::streamsize(std::min(n, len - pos)));
 	return os;
 }
-//! \since build 619
-template<typename _tChar, class _tTraits, size_t _vN>
-std::basic_ostream<_tChar, _tTraits>&
-write(std::basic_ostream<_tChar, _tTraits>& os, const _tChar(&s)[_vN])
-{
-	return os.write(std::addressof(s[0]), std::streamsize(size(s)));
-}
+//@}
 
 /*!
 \note 参数数组作为字符串字面量。
@@ -1788,6 +1805,18 @@ write_literal(std::basic_ostream<_tChar, _tTraits>& os, const _tChar(&s)[_vN])
 
 	return
 		os.write(std::addressof(s[0]), std::streamsize(size(s) - 1));
+}
+
+/*!
+\note 参数作为 NTCTS 输出。
+\pre 间接断言：第二参数非空。
+\since build 901
+*/
+template<typename _tChar, class _tTraits>
+YB_NONNULL(2) std::basic_ostream<_tChar, _tTraits>&
+write_ntcts(std::basic_ostream<_tChar, _tTraits>& os, const _tChar* s)
+{
+	return os.write(s, std::streamsize(ystdex::ntctslen(s)));
 }
 //@}
 

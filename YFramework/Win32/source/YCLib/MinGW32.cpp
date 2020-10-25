@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2200
+\version r2286
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2020-01-12 18:09 +0800
+	2020-10-21 04:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -173,10 +173,10 @@ namespace
 class Win32ErrorCategory : public std::error_category
 {
 public:
-	PDefH(const char*, name, ) const ynothrow override
+	YB_PURE PDefH(const char*, name, ) const ynothrow override
 		ImplRet("Win32Error")
 	//! \since build 564
-	PDefH(std::string, message, int ev) const override
+	YB_PURE PDefH(std::string, message, int ev) const override
 		// NOTE: For Win32 a %::DWORD can be mapped one-to-one for 32-bit %int.
 		ImplRet("Error " + std::to_string(ev) + ": "
 			+ Win32Exception::FormatMessage(ErrorCode(ev)))
@@ -206,7 +206,7 @@ MakeFileToDo(_func f, _tParams&&... args)
 	YCL_Raise_Win32E("CreateFileW", yfsig);
 }
 
-yconstfn
+YB_ATTR_nodiscard YB_STATELESS yconstfn
 PDefH(FileAttributesAndFlags, FollowToAttr, bool follow_reparse_point) ynothrow
 	ImplRet(follow_reparse_point ? FileAttributesAndFlags::NormalWithDirectory
 		: FileAttributesAndFlags::NormalAll)
@@ -220,10 +220,12 @@ yconstexpr const auto FSCTL_GET_REPARSE_POINT(0x000900A8UL);
 //! \since build 721
 //@{
 // TODO: Extract to %YCLib.NativeAPI?
-yconstfn PDefH(unsigned long, High32, std::uint64_t val) ynothrow
+YB_ATTR_nodiscard yconstfn YB_STATELESS
+	PDefH(unsigned long, High32, std::uint64_t val) ynothrow
 	ImplRet(static_cast<unsigned long>(val >> 32UL))
 
-yconstfn PDefH(unsigned long, Low32, std::uint64_t val) ynothrow
+YB_ATTR_nodiscard yconstfn YB_STATELESS
+	PDefH(unsigned long, Low32, std::uint64_t val) ynothrow
 	ImplRet(static_cast<unsigned long>(val))
 
 template<typename _func>
@@ -246,7 +248,7 @@ enum class SystemPaths
 	Windows
 };
 
-wstring
+YB_ATTR_nodiscard wstring
 FetchFixedSystemPath(SystemPaths e, size_t s)
 {
 	// XXX: Depends right behavior on external API.
@@ -371,7 +373,7 @@ GlobalLocked::~GlobalLocked()
 void
 LocalDelete::operator()(pointer h) const ynothrow
 {
-	// FIXME: For some platforms, no %::LocalFree available. See https://msdn.microsoft.com/zh-cn/library/windows/desktop/ms679351(v=vs.85).aspx.
+	// FIXME: For some platforms, no %::LocalFree is available. See https://msdn.microsoft.com/zh-cn/library/windows/desktop/ms679351(v=vs.85).aspx.
 	// NOTE: %::LocalFree ignores null handle value.
 	if(YB_UNLIKELY(::LocalFree(h)))
 		YCL_Trace_Win32E(Warning, LocalFree, yfsig);
@@ -668,6 +670,88 @@ ExpandEnvironmentStrings(const wchar_t* p_src)
 
 	YCL_CallF_Win32(ExpandEnvironmentStringsW, p_src, &wstr[0], w_len);
 	return wstr;
+}
+
+vector<string>
+ParseCommandArguments()
+{
+	return ParseCommandArguments(::GetCommandLineW());
+}
+vector<string>
+ParseCommandArguments(const wchar_t* p)
+{
+	YAssertNonnull(p);
+	if(p[0] == '\0')
+	{
+		wchar_t program_name[MAX_PATH + 1];
+
+		::GetModuleFileNameW({}, program_name, MAX_PATH);
+		p = program_name;
+		if(p[0] == '\0')
+			throw std::runtime_error("Failed getting module file name.");
+	}
+
+	vector<string> args;
+	wstring cbuf;
+	wchar_t c;
+	bool quoted = {};
+	const auto add([&]{
+		args.push_back(WCSToMBCS(std::move(cbuf)));
+	});
+
+	do
+	{
+		if(*p == '"')
+			quoted = !quoted;
+		else
+			cbuf += *p;
+		c = *p++;
+	}while(c != '\0' && (quoted || (c != ' ' && c != '\t')));
+	add();
+	if(c == '\0')
+		return args;
+	cbuf.clear();
+	quoted = {};
+	while(true)
+	{
+		if(*p != '\0')
+			while(*p == ' ' || *p == '\t')
+				++p;
+		if(*p == '\0')
+			break;
+		while(true)
+		{
+			bool copy_char(true);
+			unsigned n_slash(0);
+
+			while(*p == '\\')
+				yunseq(++p, ++n_slash);
+			if(*p == '"')
+			{
+				if(n_slash % 2 == 0)
+				{
+					if(quoted && p[1] == '"')
+						++p;
+					else
+					{
+						copy_char = {};
+						quoted = !quoted;
+					}
+				}
+				n_slash /= 2;
+			}
+			while(n_slash-- != 0)
+				cbuf += '\\';
+			if(*p == '\0' || (!quoted && (*p == ' ' || *p == '\t')))
+				break;
+			if(copy_char)
+				cbuf += *p;
+			++p;
+		}
+		add();
+		cbuf.clear();
+	}
+	return args;
 }
 
 

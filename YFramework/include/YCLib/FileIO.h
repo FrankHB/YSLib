@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2868
+\version r3176
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2020-01-27 22:15 +0800
+	2020-10-24 04:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,14 +29,10 @@
 #define YCL_INC_FileIO_h_ 1
 
 #include "YModules.h"
-#include YFM_YCLib_Platform
-#include YFM_YBaseMacro
 #include YFM_YCLib_Debug // for YB_NONNULL, string, Nonnull, u16string_view,
 //	std::uint32_t, std::uint64_t, ynothrow, ystdex::totally_ordered, std::FILE,
-//	ystdex::enable_for_string_class_t, ystdex::retry_for_vector, errno,
-//	ystdex::throw_error, u16string, std::system_error, YTraceDe, array, wstring,
-//	string_view;
-#include <chrono> // for std::chrono::nanoseconds;
+//	ystdex::enable_for_string_class_t, errno, ystdex::throw_error, u16string,
+//	std::system_error, YTraceDe, array, wstring, string_view;
 #include YFM_YCLib_Reference // for unique_ptr_from;
 #include <ios> // for std::ios_base::sync_with_stdio;
 #include <fstream> // for std::filebuf;
@@ -47,6 +43,7 @@
 #	include <ystdex/cstdio.h> // for ystdex::openmode_conv;
 #	include <locale> // for std::use_facet, std::codecvt;
 #endif
+#include <iosfwd> // for std::ostream;
 
 namespace platform
 {
@@ -73,36 +70,6 @@ YB_ATTR_nodiscard inline PDefH(string, MakePathString, u16string_view sv)
 	ImplRet(MakePathString(sv.data()))
 //@}
 //@}
-
-
-//! \since build 638
-//@{
-//! \brief 文件节点标识类型。
-//@{
-#if YCL_Win32
-using FileNodeID = pair<std::uint32_t, std::uint64_t>;
-#else
-using FileNodeID = pair<std::uint64_t, std::uint64_t>;
-#endif
-//@}
-
-/*!
-\bug 结构化类型污染。
-\relates FileNodeID
-*/
-//@{
-YB_ATTR_nodiscard yconstfn
-	PDefHOp(bool, ==, const FileNodeID& x, const FileNodeID& y)
-	ImplRet(x.first == y.first && x.second == y.second)
-YB_ATTR_nodiscard yconstfn
-	PDefHOp(bool, !=, const FileNodeID& x, const FileNodeID& y)
-	ImplRet(!(x == y))
-//@}
-//@}
-
-
-//! \since build 628
-using FileTime = std::chrono::nanoseconds;
 
 
 /*!
@@ -212,14 +179,6 @@ public:
 	//! \exception std::system_error 参数无效或调用失败。
 	//@{
 	/*!
-	\brief 取访问时间。
-	\return 以 POSIX 时间相同历元的时间间隔。
-	\note 当前 Windows 使用 \c ::GetFileTime 实现，其它只保证最高精确到秒。
-	\since build 628
-	*/
-	YB_ATTR_nodiscard FileTime
-	GetAccessTime() const;
-	/*!
 	\brief 取节点类别。
 	\return 失败时为 NodeCategory::Invalid ，否则为对应类别。
 	\since build 638
@@ -242,31 +201,6 @@ public:
 	YB_ATTR_nodiscard mode_t
 	GetMode() const;
 	//@}
-	/*!
-	\return 以 POSIX 时间相同历元的时间间隔。
-	\note 当前 Windows 使用 \c ::GetFileTime 实现，其它只保证最高精确到秒。
-	\since build 628
-	*/
-	//@{
-	//! \brief 取修改时间。
-	YB_ATTR_nodiscard FileTime
-	GetModificationTime() const;
-	//! \brief 取修改和访问时间。
-	YB_ATTR_nodiscard array<FileTime, 2>
-	GetModificationAndAccessTime() const;
-	//@}
-	//@}
-	/*!
-	\note 若存储分配失败，设置 errno 为 \c ENOMEM 。
-	\since build 638
-	*/
-	//@{
-	//! \brief 取文件系统节点标识。
-	YB_ATTR_nodiscard FileNodeID
-	GetNodeID() const ynothrow;
-	//! \brief 取链接数。
-	YB_ATTR_nodiscard size_t
-	GetNumberOfLinks() const ynothrow;
 	//@}
 	/*!
 	\brief 取大小。
@@ -280,14 +214,6 @@ public:
 	GetSize() const;
 
 	/*!
-	\brief 设置访问时间。
-	\throw std::system_error 设置失败。
-	\note DS 平台：不支持操作。
-	\since build 651
-	*/
-	void
-	SetAccessTime(FileTime) const;
-	/*!
 	\throw std::system_error 调用失败或不支持操作。
 	\note 非 POSIX 平台：不支持操作。
 	\since build 719
@@ -298,37 +224,23 @@ public:
 	\return 是否需要并改变设置。
 	\see http://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html 。
 	*/
-	#if !YCL_API_POSIXFileSystem
+#if !YCL_API_POSIXFileSystem
 	YB_NORETURN
-	#endif
+#endif
 	bool
 	SetBlocking() const;
 	//! \brief 设置旗标。
-	#if !YCL_API_POSIXFileSystem
+#if !YCL_API_POSIXFileSystem
 	YB_NORETURN
-	#endif
+#endif
 	void
 	SetFlags(int) const;
 	//! \brief 设置访问模式。
-	#if !YCL_API_POSIXFileSystem
+#if !YCL_API_POSIXFileSystem
 	YB_NORETURN
-	#endif
+#endif
 	void
 	SetMode(mode_t) const;
-	//@}
-	/*!
-	\throw std::system_error 设置失败。
-	\note DS 平台：不支持操作。
-	\note Win32 平台：要求打开的文件具有写权限。
-	\since build 651
-	*/
-	//@{
-	//! \brief 设置修改时间。
-	void
-	SetModificationTime(FileTime) const;
-	//! \brief 设置修改和访问时间。
-	void
-	SetModificationAndAccessTime(array<FileTime, 2>) const;
 	//@}
 	/*!
 	\brief 设置非阻塞模式。
@@ -339,9 +251,9 @@ public:
 	\see http://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html 。
 	\since build 719
 	*/
-	#if !YCL_API_POSIXFileSystem
+#if !YCL_API_POSIXFileSystem
 	YB_NORETURN
-	#endif
+#endif
 	bool
 	SetNonblocking() const;
 	//! \since build 625
@@ -535,23 +447,9 @@ omode_convb(std::ios_base::openmode) ynothrow;
 
 /*!
 \pre 断言：第一参数非空。
-\note 若存储分配失败，设置 errno 为 \c ENOMEM 。
-\since build 669
+\note 若在发生其它错误前存储分配失败，设置 errno 为 \c ENOMEM 。
 */
 //@{
-/*!
-\brief 测试路径可访问性。
-\param path 路径，意义同 POSIX <tt>::open</tt> 。
-\param amode 模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。 。
-\note errno 在出错时会被设置，具体值由实现定义。
-*/
-//@{
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) int
-uaccess(const char* path, int amode) ynothrowv;
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) int
-uaccess(const char16_t* path, int amode) ynothrowv;
-//@}
-
 /*!
 \param filename 文件名，意义同 POSIX \c ::open 。
 \param oflag 打开旗标，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
@@ -571,7 +469,7 @@ uopen(const char16_t* filename, int oflag, mode_t pmode = DefaultPMode())
 
 /*!
 \param filename 文件名，意义同 std::fopen 。
-\note 若存储分配失败，设置 errno 为 \c ENOMEM 。
+\since build 669
 */
 //@{
 /*!
@@ -634,74 +532,6 @@ upopen(const char16_t* filename, const char16_t* mode) ynothrowv;
 */
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) int
 upclose(std::FILE*) ynothrowv;
-
-/*!
-\brief 取当前工作目录复制至指定缓冲区中。
-\param size 缓冲区长。
-\return 若成功为第一参数，否则为空指针。
-\note 基本语义同 POSIX.1 2004 的 \c ::getcwd 。
-\note 若存储分配失败，设置 errno 为 \c ENOMEM 。
-\note Win32 平台：当且仅当结果为根目录时以分隔符结束。
-\note 其它平台：未指定结果是否以分隔符结束。
-\since build 699
-*/
-//@{
-//! \param buf UTF-8 缓冲区起始指针。
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) char*
-ugetcwd(char* buf, size_t size) ynothrowv;
-//! \param buf UCS-2 缓冲区起始指针。
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) char16_t*
-ugetcwd(char16_t* buf, size_t size) ynothrowv;
-//@}
-
-/*!
-\pre 断言：参数非空。
-\return 操作是否成功。
-\note errno 在出错时会被设置，具体值除以上明确的外，由实现定义。
-\note 参数表示路径，使用 UTF-8 编码。
-\note DS 使用 newlib 实现。 MinGW32 使用 MSVCRT 实现。 Android 使用 bionic 实现。
-	其它 Linux 使用 GLibC 实现。
-*/
-//@{
-/*!
-\brief 切换当前工作路径至指定路径。
-\note POSIX 平台：除路径和返回值外语义同 \c ::chdir 。
-*/
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) bool
-uchdir(const char*) ynothrowv;
-
-/*!
-\brief 按路径以默认权限新建一个目录。
-\note 权限由实现定义： DS 使用最大权限； MinGW32 使用 \c ::_wmkdir 指定的默认权限。
-*/
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) bool
-umkdir(const char*) ynothrowv;
-
-/*!
-\brief 按路径删除一个空目录。
-\note POSIX 平台：除路径和返回值外语义同 \c ::rmdir 。
-*/
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) bool
-urmdir(const char*) ynothrowv;
-
-/*!
-\brief 按路径删除一个非目录文件。
-\note POSIX 平台：除路径和返回值外语义同 \c ::unlink 。
-\note Win32 平台：支持移除只读文件，但删除打开的文件总是失败。
-*/
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) bool
-uunlink(const char*) ynothrowv;
-
-/*!
-\brief 按路径移除一个文件。
-\note POSIX 平台：除路径和返回值外语义同 \c ::remove 。移除非空目录总是失败。
-\note Win32 平台：支持移除空目录和只读文件，但删除打开的文件总是失败。
-\see https://msdn.microsoft.com/en-us/library/kc07117k.aspx 。
-*/
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) bool
-uremove(const char*) ynothrowv;
-//@}
-//@}
 //@}
 
 
@@ -1210,124 +1040,18 @@ using std::wfstream;
 //@}
 
 
-//! \since build 713
-//@{
 /*!
-\brief 尝试按指定的起始缓冲区大小取当前工作目录的路径。
-\pre 间接断言：参数不等于 0 。
-\note 未指定结果是否以分隔符结束。
+\brief 向流中输出字符串。
+\pre 断言：第二参数非空。
+\note Win32 平台：检查流是否使用控制台。若使用控制台，刷新流并使用控制台输出。
+\sa ystdex::write_ntcts
+\since build 901
+
+无格式输出字符串。
+默认使用 ystdex::write_ntcts ，但可对特定的流实现检查并使用不同的方式。
 */
-template<typename _tChar>
-YB_ATTR_nodiscard basic_string<_tChar>
-FetchCurrentWorkingDirectory(size_t init)
-{
-	return ystdex::retry_for_vector<basic_string<_tChar>>(init,
-		[](basic_string<_tChar>& res, size_t) -> bool{
-		const auto r(platform::ugetcwd(&res[0], res.length()));
-
-		if(r)
-		{
-			res = r;
-			return {};
-		}
-
-		const int err(errno);
-
-		if(err != ERANGE)
-			ystdex::throw_error(err, yfsig);
-		return true;
-	});
-}
-#if YCL_Win32
-//! \note 参数被忽略。
-//@{
-template<>
-YB_ATTR_nodiscard YF_API string
-FetchCurrentWorkingDirectory(size_t);
-template<>
-YB_ATTR_nodiscard YF_API u16string
-FetchCurrentWorkingDirectory(size_t);
-//@}
-#endif
-//@}
-
-
-//! \exception std::system_error 参数无效或文件时间查询失败。
-//@{
-/*!
-\sa FileDescriptor::GetAccessTime
-\since build 631
-*/
-//@{
-YB_ATTR_nodiscard YB_NONNULL(1) inline
-	PDefH(FileTime, GetFileAccessTimeOf, std::FILE* fp)
-	ImplRet(FileDescriptor(fp).GetAccessTime())
-/*!
-\pre 断言：第一参数非空。
-\note 最后参数表示跟随连接：若文件系统支持，访问链接的文件而不是链接自身。
-*/
-//@{
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) FileTime
-GetFileAccessTimeOf(const char*, bool = {});
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) FileTime
-GetFileAccessTimeOf(const char16_t*, bool = {});
-//@}
-//@}
-
-/*!
-\sa FileDescriptor::GetModificationTime
-\since build 628
-*/
-//@{
-YB_ATTR_nodiscard YB_NONNULL(1) inline
-	PDefH(FileTime, GetFileModificationTimeOf, std::FILE* fp)
-	ImplRet(FileDescriptor(fp).GetModificationTime())
-
-/*!
-\pre 断言：第一参数非空。
-\note 最后参数表示跟随连接：若文件系统支持，访问链接的文件而不是链接自身。
-*/
-//@{
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) FileTime
-GetFileModificationTimeOf(const char*, bool = {});
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) FileTime
-GetFileModificationTimeOf(const char16_t*, bool = {});
-//@}
-//@}
-
-/*!
-\sa FileDescriptor::GetModificationAndAccessTime
-\since build 631
-*/
-//@{
-YB_ATTR_nodiscard YB_NONNULL(1) inline PDefH(array<FileTime YPP_Comma 2>,
-	GetFileModificationAndAccessTimeOf, std::FILE* fp)
-	ImplRet(FileDescriptor(fp).GetModificationAndAccessTime())
-/*!
-\pre 断言：第一参数非空。
-\note 最后参数表示跟随连接：若文件系统支持，访问链接的文件而不是链接自身。
-*/
-//@{
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) array<FileTime, 2>
-GetFileModificationAndAccessTimeOf(const char*, bool = {});
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) array<FileTime, 2>
-GetFileModificationAndAccessTimeOf(const char16_t*, bool = {});
-//@}
-//@}
-//@}
-
-/*!
-\brief 取路径指定的文件链接数。
-\return 若成功为连接数，否则若文件不存在时为 0 。
-\note 最后参数表示跟随连接：若文件系统支持，访问链接的文件而不是链接自身。
-\since build 846
-*/
-//@{
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) size_t
-FetchNumberOfLinks(const char*, bool = {});
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) size_t
-FetchNumberOfLinks(const char16_t*, bool = {});
-//@}
+YF_API YB_NONNULL(2) void
+StreamPut(std::ostream&, const char*);
 
 
 /*!
@@ -1343,7 +1067,6 @@ FetchNumberOfLinks(const char16_t*, bool = {});
 */
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) UniqueFile
 EnsureUniqueFile(const char*, mode_t = DefaultPMode(), size_t = 1, bool = {});
-//@}
 
 /*!
 \brief 比较文件内容相等。
@@ -1371,35 +1094,6 @@ HaveSameContents(const char16_t*, const char16_t*, mode_t = DefaultPMode());
 */
 YB_ATTR_nodiscard YF_API bool
 HaveSameContents(UniqueFile, UniqueFile, const char*, const char*);
-//@}
-
-/*!
-\brief 判断参数是否表示共享的文件节点。
-\note 可能设置 errno 。
-\since build 638
-*/
-//@{
-YB_ATTR_nodiscard YB_PURE yconstfn
-	PDefH(bool, IsNodeShared, const FileNodeID& x, const FileNodeID& y) ynothrow
-	ImplRet(x != FileNodeID() && x == y)
-/*!
-\pre 间接断言：字符串参数非空。
-\note 最后参数表示跟踪连接。
-\since build 660
-*/
-//@{
-YB_ATTR_nodiscard YF_API YB_NONNULL(1, 2) bool
-IsNodeShared(const char*, const char*, bool = true) ynothrowv;
-YB_ATTR_nodiscard YF_API YB_NONNULL(1, 2) bool
-IsNodeShared(const char16_t*, const char16_t*, bool = true) ynothrowv;
-//@}
-/*!
-\note 取节点失败视为不共享。
-\sa FileDescriptor::GetNodeID
-\since build 846
-*/
-YB_ATTR_nodiscard YF_API bool
-IsNodeShared(FileDescriptor, FileDescriptor) ynothrow;
 //@}
 
 } // namespace platform;

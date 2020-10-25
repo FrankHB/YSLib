@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8439
+\version r8452
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-10-05 22:33 +0800
+	2020-10-19 06:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,6 +47,7 @@
 #include <ystdex/algorithm.hpp> // for ystdex::fast_any_of, ystdex::split;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard;
+#include <iosfwd> // for std::ostream;
 
 namespace NPL
 {
@@ -1638,6 +1639,11 @@ public:
 	指定字符串参数作为加载对象描述，结合自身状态加载输入为待求值的项。
 	*/
 	Loader Load{DefaultLoad};
+	/*!
+	\brief 默认输出流指针。
+	\since build 901
+	*/
+	observer_ptr<std::ostream> OutputStreamPtr{};
 
 	/*!
 	\sa ListTermPreprocess
@@ -1667,6 +1673,14 @@ public:
 	*/
 	YB_STATELESS bool
 	IsAsynchronous() const ynothrow;
+
+	/*!
+	\brief 取输出流引用。
+	\throw ystdex::unsupported 不支持的输出流：流指针为空。
+	\sa OutputStreamPtr
+	*/
+	YB_ATTR_nodiscard YB_PURE std::ostream&
+	GetOutputStreamRef() const;
 
 	/*!
 	\brief 默认加载。

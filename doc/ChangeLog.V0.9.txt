@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r382
+\version r592
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2020-10-12 18:26 +0800
+	2020-10-25 09:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,212 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		+ $re_ex(b178) $dev $lib "#pragma directive"
+			@ 'YB_IMPL_GNUCPP >= 100000' @ "metafunction \
+			%have_common_nonempty_virtual_base" @ %TypeOperation,
+			// To eliminate G++ 10 warning: [-Winaccessible-base].
+		/ %Path $=
+		(
+			/ @ "class template %path_traits" $=
+			(
+				(
+				+ "specialization for %basic_string_view instantiations";
+				/ "simplified specialization for %basic_string  instantiations",
+				),
+				+ $dev $lib 'YB_ATTR_nodiscard'
+					@ "all static memeber functions"
+			),
+			+ "function template %is_parent_or_self"
+		),
+		* "missing check exceptions mask"
+			@ "function template %rethrow_badstate" @ %IOS $since b663,
+		/ %String $=
+		(
+			/ DLI @ "function templates %write" $=
+			(
+				/ "overload %write#1"
+					-> "3 function templates without default arguments",
+					// This is more efficient.
+				- "overload for arrays",
+					// This should be already covered by other overloads.
+				/ $impl "all 'class _tString'" -> 'typename _tString'
+					// The string objects of array type are also supported \
+						uniformly.
+			),
+			(
+			* "missing inclusion %CString" @ 'YB_Has_string_view == 1'
+				$since b833;
+			+ "function template %write_ntcts"
+			),
+			/ DLDI "sentry" @ "function template %extract#1"
+				^ "direct initialization"
+		)
+	),
+	/ %YFramework $=
+	(
+
+		* "missing 'inline'" @ "namespace %Android" @ ".cpp file"
+			@ %'YCLib_(Android)'.Android $since b492,
+			// Also to eliminate Clang++ warning.
+		* "missing return value" @ "branch traversal"
+			@ "constructor %DEntry#5" @ %'YCLib(DS)'.DSIO $since b900,
+			// Also to eliminate G++ warning: [-Wno-unused-result].
+		/ %'YCLib(Win32)'.MinGW32 $=
+		(
+			+ "2 functions %ParseCommandArguments",
+				// See $2020-10 @ %Documentation::Workflow.
+			* "missing 'YF_API'"
+				@ "functions %(LockFile, TryLockFile, UnlockFile)",
+			+ $dev $lib 'YB_ATTR_nodiscard' @ "all functions with non-void \
+				return type and without 'YF_ATTR_nodiscard' other than \
+				declared by 'Def*' or %(DirectoryFindData::Read, UnlockFile)",
+			+ $dev $lib 'YB_PURE' @ ("functions %(Win32Exception::( \
+				GetErrorCategory, FormatMessage), CategorizeNode#4)",
+				$impl "internal error category member functions")
+		),
+		/ %YCLib $=
+		(
+			+ "class name declaration %FileDescriptor" @ %FileSystem,
+			/ %FileIO $=
+			(
+				/ ("all functions %(uaccess, ugetcwd, uchdir, umkdir, urmdir, \
+					uunlink, uremove)",
+					"function template %FetchCurrentWorkingDirectory and its \
+					specializations") >> %FileSystem,
+				(
+				/ "member functions %FileDescriptor::(GetAccessTime, \
+					GetModificationTime, GetModificationAndAccessTime, \
+					SetAccessTime, SetModificationTime, \
+					SetModificationAndAccessTime)" -> "functions \
+					%(GetFileAccessTimeOf, GetFileModificationTimeOf, \
+					GetFileModificationAndAccessTimeOf, SetFileAccessTimeOf, \
+					SetFileModificationTimeOf, \
+					SetFileModificationAndAccessTimeOf)";
+				/ "all functions ('SetFile*TimeOf, 'GetFile*TimeOf'))"
+					>> %FileSystem $dep_from ("%FileDescriptor" @ %FileSystem)
+				),
+				(
+				/ "member function %FileDescriptor::GetNumberOfLinks"
+					-> "function %FetchNumberOfLinks";
+				/ "all functions %FetchNumberOfLinks"
+					>> %FileSystem $dep_from ("%FileDescriptor" @ %FileSystem)
+				),
+				(
+				+ 'ynothrow' @ "%operator(==, !=) for %FileNodeID",
+				/ "member function %FileDescriptor::GetNodeID"
+					-> "function %GetFileNodeIDOf";
+				/ "type %NodeID"; "functions %operator(==, !=) for %NodeID",
+					"functions %(GetFileNodeIDOf, IsNodeShared)"
+					>> %FileSystem
+				),
+				+ "function %StreamPut" $dep_from (%YBase.YStandardEx.IOS,
+					"%ystdex::write_ntcts" @ %YBase.YStandardEx.String)
+			),
+			/ @ "platform %Win32" @ %NativeAPI $=
+			(
+				* "'__has_include(<specstrings_undef.h>)' broke Visual C++ \
+					builds" $since b900
+					$= (/ "commented out the check"),
+				/ @ "namespace %platform_ex" $=
+				(
+					+ "function %IntPtrToHandle";
+					+ "check for special invalid return value '-2'"
+						@ "function %ToHandle"
+						// This is not a bug since the special value is \
+							documented recently. Note the earliest \
+							implementation in this project dates back to b475 \
+							in %YCLib.FileSystem.
+				)
+			)
+		),
+		/ %YSLib $=
+		(
+			/ @ "namespace %YSLib::IO" @ %Adaptor.YAdaptor $=
+			(
+				+ 'using platform::FileTime;',
+				+ 'using platform::SetFileAccessTimeOf;'
+					$dep_from ("%FileDescriptor::SetAccessTime" @ %FileIO),
+				+ 'using platform::SetFileModificationTimeOf;' $dep_from
+					("%FileDescriptor::SetModificationTime" @ %FileIO),
+				+ 'using platform::SetFileModificationAndAccessTimeOf;'
+					$dep_from
+					("%FileDescriptor::SetModificationAndAccessTime"
+					@ %FileIO),
+				+ 'using platform::StreamPut;'
+					$dep_from ("%StreamPut" @ %FileIO)
+			),
+			* $forced DLDI "object definitions %(PreserveModificationTime, \
+				PreserveModificationAndAccessTime)" @ %YSLib.Service.FileSystem
+				$dep_from ("%FileDescriptor" @ %YCLib.FileIO)
+				$= (/ $impl ^ "%(SetFileModificationTimeOf, \
+					GetFileModificationTimeOf, \
+					SetFileModificationAndAccessTimeOf, \
+					GetFileModificationAndAccessTimeOf)"
+					$dep_from %YAdaptor.Adaptor)
+		),
+		/ %NPL $=
+		(
+			+ "common reducer name" @ "functions %(AccR, FoldR1, Map1)"
+				^ "%A1::NameTypedReducerHandler" @ %NPLA1Forms,
+			/ %NPLA1 $=
+			(
+				/ DLDI
+					"simplified member function %Continuation::GetNextTermRef",
+				/ @ "class %REPLContext" $=
+				(
+					+ "data member %OutputStreamPtr";
+					+ "function %GetOutputStreamRef"
+				)
+			),
+			/ "applicative %puts" @ "function %LoadModule_std_io" @ %Dependency
+				^ ($dep_from "%REPLContext::GetOutputStreamRef" @ %NPLA1,
+				"%YSLib::IO::StreamPut" @ %YSLib.Adaptor.YAdaptor)
+				~ "%std::puts"
+				// This hack makes it possible to work for priting Unicode BMP \
+					codepoints from a UTF-8 input on the traditional (broken) \
+					Windows console in %MinGW32 platforms when libstdc++ is \
+					used, though it still chokes from the console input;
+		)
+	),
+	/ %Tools $=
+	(
+		/ %Scripts $=
+		(
+			/ "relocated installed NPLA1 scripts to 'share/NPLA1'" ~ 'var/NPLA1'
+				@ %SHBuild-build-YSLib.txt,
+				// This should be better read-only.
+			/ DLDI "renamed internal path prefix variable for loading"
+				// Ditto, but actually not sensitive to the actual behavior, \
+					as the loaded script %SHBuild-YSLib-common.txt is still in \
+					the same directory to %SHBuild-BuildApp.txt.
+		),
+		/ %SHBuild.Main $=
+		(
+			/ $forced DLI "registered %std::cout as the output stream"
+				@ "NPLA1 context initialization"
+				$dep_from %YFramework.NPL.Dependency,
+			* "wrong ANSI code page assumptions on handling external command \
+				arguments" @ "platform %Win32" $since b476
+				$= (/ $impl ^ "%platform_ex::ParseCommandArguments"
+					~ "%platform_ex::(EncodeArg, DecodeArg)")
+					// See $2020-10 @ %Documentation::Workflow.
+		)
+	),
+	/ DLI "optimized dot strings comparision"
+		^ $dep_from ("%ystdex::is_parent_or_self" @ %YBase.YStandardEx.Path)
+		$dep_from ("ystdex::path_traits specialization for %basic_string_view \
+		instantiations" @ %YBase.YStandardEx.Path)
+		$effective @ ("constructors#(4, 5)", "function %IsDot")
+		@ "class %DEntry" @ %'YCLib_(DS).DSIO'
+		// This is in general more efficient than comparing to string literals \
+			more than 3 by times when dot and dot-dot string are all compared \
+			(also having significantly improving in a string string comparison).
+),
+
+b900
 (
 	/ $re_add(b826) DLB "removed targets generated from 'objcopy -O binary'"
 		@ "makefile" @ "project %YSTest_ARM9" @ "platform %DS",
@@ -321,7 +527,7 @@ $now
 			* DLDI "wrong handling of negation %SS_Debg" $since b840,
 				// This did not expose wrong behavior because the consumption \
 					of the value is also wrong.
-			* @ "applicative ''ss-verbose-puts''" $since b840 $=
+			* @ "applicative 'ss-verbose-puts'" $since b840 $=
 			(
 				* "wrong handling of negation %SS_Verbose",
 				* "missing copying the variable to the static environment"
@@ -376,7 +582,11 @@ $now
 	),
 	/ $re_ex(b800) "regenerated Code::Blocks projects"
 		^ ("%GenerateProjects.sh" @ %Tools.Scripts),
-	/ $doc $deploy "updated version" @ "%Doxyfile"
+	/ $doc "%Doxyfile" $=
+	(
+		/ $deploy "updated version";
+		/ DLDI "saved with some new default configurations"
+	)
 );
 
 ////

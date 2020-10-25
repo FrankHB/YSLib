@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r19493
+\version r19495
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2020-10-11 21:44 +0800
+	2020-10-15 03:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1957,10 +1957,10 @@ AccFoldR1(TermNode& term, ContextNode& ctx, TermNode& rterm, ptrdiff_t n)
 	term.emplace(std::move(sum));
 	sum.Value.Clear();
 	rterm.GetContainerRef().emplace_back();
-	RelaySwitched(ctx, [&]{
+	RelaySwitched(ctx, A1::NameTypedReducerHandler([&]{
 		LiftOther(term, rterm);
 		return ctx.LastStatus;	
-	});
+	}, "eval-lift-sum"));
 }
 
 template<typename _func>

@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1659
+\version r1671
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2019-10-10 18:38 +0800
+	2019-10-25 08:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -617,7 +617,8 @@ public:
 #	endif
 
 #	include <Windows.h>
-#	if __has_include(<specstrings_undef.h>)
+// XXX: This may have effects on the system headers included later.
+#	if false && __has_include(<specstrings_undef.h>)
 #		include <specstrings_undef.h>
 #	else
 // NOTE: Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=97362.
@@ -669,11 +670,21 @@ namespace platform_ex
 {
 
 /*!
+\brief 取 ::_get_osfhandle 返回值对应的句柄。
+\note 检查特殊值 -2 。这个值仅在较新版本的 CRT 文档中被明确。
+\since build 901
+\see https://docs.microsoft.com/en-us/previous-versions/ks2530z6(v=vs.140) 。
+\see https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/get-osfhandle?view=vs-2019 。
+*/
+inline PDefH(::HANDLE, IntPtrToHandle, std::intptr_t h) ynothrow
+	ImplRet(h != -2 ? ::HANDLE(h) : INVALID_HANDLE_VALUE)
+
+/*!
 \brief 取文件描述符对应的句柄。
 \since build 704
 */
 inline PDefH(::HANDLE, ToHandle, int fd) ynothrow
-	ImplRet(::HANDLE(::_get_osfhandle(fd)))
+	ImplRet(IntPtrToHandle(::_get_osfhandle(fd)))
 
 } // namespace platform_ex;
 

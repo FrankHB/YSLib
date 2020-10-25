@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2050
+\version r2132
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2020-01-27 02:40 +0800
+	2020-10-21 05:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,8 +26,8 @@
 */
 
 
-#ifndef YCL_MinGW32_INC_MinGW32_h_
-#define YCL_MinGW32_INC_MinGW32_h_ 1
+#ifndef YCL_Win32_INC_MinGW32_h_
+#define YCL_Win32_INC_MinGW32_h_ 1
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host // for string, ystdex::remove_reference_t, wstring,
@@ -62,14 +62,14 @@ using ErrorCode = unsigned long;
 \return 当对应不存在时 EINVAL ，否则参数对应的 errno 。
 \since build 639
 */
-YF_API YB_STATELESS int
+YB_ATTR_nodiscard YF_API YB_STATELESS int
 ConvertToErrno(ErrorCode) ynothrow;
 
 /*!
 \brief 取转换为 errno 的 Win32 错误。
 \since build 622
 */
-inline PDefH(int, GetErrnoFromWin32, ) ynothrow
+YB_ATTR_nodiscard inline PDefH(int, GetErrnoFromWin32, ) ynothrow
 	ImplRet(ConvertToErrno(::GetLastError()))
 
 
@@ -125,14 +125,14 @@ public:
 	\return std::error_category 派生类的 const 引用。
 	\since build 545
 	*/
-	static const std::error_category&
+	YB_ATTR_nodiscard YB_PURE static const std::error_category&
 	GetErrorCategory();
 
 	/*!
 	\brief 格式化错误消息字符串。
 	\return 若发生异常则结果为空，否则为区域固定为 en-US 的系统消息字符串。
 	*/
-	static std::string
+	YB_ATTR_nodiscard YB_PURE static std::string
 	FormatMessage(ErrorCode) ynothrow;
 	//@}
 };
@@ -238,18 +238,20 @@ using ModuleProc
 /*!
 \brief 从模块加载指定过程的指针。
 \pre 参数非空。
+\exception Win32Exception 动态加载失败。
+\todo 支持缓存加载结果。
 */
 //@{
-YF_API YB_ATTR_returns_nonnull YB_NONNULL(2) ModuleProc*
+YB_ATTR_nodiscard YF_API YB_ATTR_returns_nonnull YB_NONNULL(2) ModuleProc*
 LoadProc(::HMODULE, const char*);
 template<typename _func>
-YB_NONNULL(2) inline _func&
+YB_ATTR_nodiscard YB_NONNULL(2) inline _func&
 LoadProc(::HMODULE h_module, const char* proc)
 {
 	return platform::Deref(reinterpret_cast<_func*>(LoadProc(h_module, proc)));
 }
 template<typename _func>
-YB_NONNULL(1, 2) inline _func&
+YB_ATTR_nodiscard YB_NONNULL(1, 2) inline _func&
 LoadProc(const wchar_t* module, const char* proc)
 {
 	return LoadProc<_func>(YCL_CallF_Win32(GetModuleHandleW, module), proc);
@@ -299,7 +301,7 @@ LoadProc(const wchar_t* module, const char* proc)
 \brief 取模块映像路径。
 \since build 701
 */
-YF_API wstring
+YB_ATTR_nodiscard YF_API wstring
 FetchModuleFileName(::HMODULE = {}, YSLib::RecordLevel = YSLib::Err);
 
 
@@ -338,7 +340,7 @@ public:
 	~GlobalLocked();
 
 	template<typename _type = void>
-	observer_ptr<_type>
+	YB_ATTR_nodiscard observer_ptr<_type>
 	GetPtr() const ynothrow
 	{
 		return make_observer(static_cast<_type*>(p_locked));
@@ -554,14 +556,14 @@ YB_ATTR_nodiscard YB_STATELESS inline
 \brief 按打开的文件句柄归类节点从属的属性类别。
 \return 指定句柄为字符、管道或未知类别。
 */
-YF_API platform::NodeCategory
+YB_ATTR_nodiscard YF_API platform::NodeCategory
 TryCategorizeNodeAttributes(UniqueHandle::pointer);
 
 /*!
 \brief 按打开的文件句柄归类节点从属的设备类别。
 \return 指定句柄为字符、管道或未知类别。
 */
-YF_API platform::NodeCategory
+YB_ATTR_nodiscard YF_API platform::NodeCategory
 TryCategorizeNodeDevice(UniqueHandle::pointer);
 //@}
 
@@ -573,18 +575,18 @@ TryCategorizeNodeDevice(UniqueHandle::pointer);
 */
 //@{
 //! \brief 按 FileAttributes 和重解析标签归类节点类别。
-YF_API YB_STATELESS platform::NodeCategory
+YB_ATTR_nodiscard YF_API YB_STATELESS platform::NodeCategory
 CategorizeNode(FileAttributes, unsigned long = 0) ynothrow;
 //! \brief 按 \c ::WIN32_FIND_DATAA 归类节点类别。
-YB_STATELESS inline PDefH(platform::NodeCategory, CategorizeNode,
-	const ::WIN32_FIND_DATAA& d) ynothrow
+YB_ATTR_nodiscard YB_STATELESS inline PDefH(platform::NodeCategory,
+	CategorizeNode, const ::WIN32_FIND_DATAA& d) ynothrow
 	ImplRet(CategorizeNode(FileAttributes(d.dwFileAttributes), d.dwReserved0))
 /*!
 \brief 按 \c ::WIN32_FIND_DATAW 归类节点类别。
 \since build 658
 */
-YB_STATELESS inline PDefH(platform::NodeCategory, CategorizeNode,
-	const ::WIN32_FIND_DATAW& d) ynothrow
+YB_ATTR_nodiscard YB_STATELESS inline PDefH(platform::NodeCategory,
+	CategorizeNode, const ::WIN32_FIND_DATAW& d) ynothrow
 	ImplRet(CategorizeNode(FileAttributes(d.dwFileAttributes), d.dwReserved0))
 //@}
 /*!
@@ -595,7 +597,7 @@ YB_STATELESS inline PDefH(platform::NodeCategory, CategorizeNode,
 \sa TryCategorizeNodeDevice
 \since build 701
 */
-YF_API platform::NodeCategory
+YB_ATTR_nodiscard YF_API YB_PURE platform::NodeCategory
 CategorizeNode(UniqueHandle::pointer) ynothrow;
 
 
@@ -606,50 +608,52 @@ CategorizeNode(UniqueHandle::pointer) ynothrow;
 \since build 632
 */
 //@{
-YF_API YB_NONNULL(1) UniqueHandle
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) UniqueHandle
 MakeFile(const wchar_t*, FileAccessRights = AccessRights::None,
 	FileShareMode = FileShareMode::All, CreationDisposition
 	= CreationDisposition::OpenExisting,
 	FileAttributesAndFlags = FileAttributesAndFlags::NormalAll) ynothrowv;
 //! \since build 660
-YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile, const wchar_t* path,
-	FileAccessRights desired_access, FileShareMode shared_mode,
-	FileAttributesAndFlags attributes_and_flags) ynothrowv
+YB_ATTR_nodiscard YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile,
+	const wchar_t* path, FileAccessRights desired_access, FileShareMode
+	shared_mode, FileAttributesAndFlags attributes_and_flags) ynothrowv
 	ImplRet(MakeFile(path, desired_access, shared_mode,
 		CreationDisposition::OpenExisting, attributes_and_flags))
-YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile, const wchar_t* path,
+YB_ATTR_nodiscard YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile, const wchar_t* path,
 	FileAccessRights desired_access, CreationDisposition creation_disposition,
 	FileAttributesAndFlags attributes_and_flags
 	= FileAttributesAndFlags::NormalAll) ynothrowv
 	ImplRet(MakeFile(path, desired_access, FileShareMode::All,
 		creation_disposition, attributes_and_flags))
 //! \since build 637
-YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile, const wchar_t* path,
-	FileAccessRights desired_access,
+YB_ATTR_nodiscard YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile,
+	const wchar_t* path, FileAccessRights desired_access,
 	FileAttributesAndFlags attributes_and_flags) ynothrowv
 	ImplRet(MakeFile(path, desired_access, FileShareMode::All,
 		CreationDisposition::OpenExisting, attributes_and_flags))
 //! \since build 660
 //@{
-YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile, const wchar_t* path,
-	FileShareMode shared_mode, CreationDisposition creation_disposition
-	= CreationDisposition::OpenExisting, FileAttributesAndFlags
-	attributes_and_flags = FileAttributesAndFlags::NormalAll) ynothrowv
+YB_ATTR_nodiscard YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile,
+	const wchar_t* path, FileShareMode shared_mode, CreationDisposition
+	creation_disposition = CreationDisposition::OpenExisting,
+	FileAttributesAndFlags attributes_and_flags
+	= FileAttributesAndFlags::NormalAll) ynothrowv
 	ImplRet(MakeFile(path, AccessRights::None, shared_mode,
 		creation_disposition, attributes_and_flags))
 //! \since build 701
-YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile, const wchar_t* path,
-	CreationDisposition creation_disposition, FileAttributesAndFlags
-	attributes_and_flags = FileAttributesAndFlags::NormalAll) ynothrowv
+YB_ATTR_nodiscard YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile,
+	const wchar_t* path, CreationDisposition creation_disposition,
+	FileAttributesAndFlags attributes_and_flags
+	= FileAttributesAndFlags::NormalAll) ynothrowv
 	ImplRet(MakeFile(path, AccessRights::None, FileShareMode::All,
 		creation_disposition, attributes_and_flags))
-YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile, const wchar_t* path,
-	FileShareMode shared_mode, FileAttributesAndFlags
+YB_ATTR_nodiscard YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile,
+	const wchar_t* path, FileShareMode shared_mode, FileAttributesAndFlags
 	attributes_and_flags = FileAttributesAndFlags::NormalAll) ynothrowv
 	ImplRet(MakeFile(path, AccessRights::None, shared_mode,
 		CreationDisposition::OpenExisting, attributes_and_flags))
-YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile, const wchar_t* path,
-	FileAttributesAndFlags attributes_and_flags) ynothrowv
+YB_ATTR_nodiscard YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile,
+	const wchar_t* path, FileAttributesAndFlags attributes_and_flags) ynothrowv
 	ImplRet(MakeFile(path, AccessRights::None, FileShareMode::All,
 		CreationDisposition::OpenExisting, attributes_and_flags))
 //@}
@@ -662,7 +666,7 @@ YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile, const wchar_t* path,
 	下的 <tt>Software\Wine</tt> 键实现。
 \since build 435
 */
-YF_API bool
+YB_ATTR_nodiscard YF_API bool
 CheckWine();
 
 
@@ -753,7 +757,7 @@ public:
 	处理文件信息时，首先调用 CategorizeNode 对查找数据归类；
 	然后打开名称指定的文件进一步调用 CategorizeNode 对打开的文件判断归类。
 	*/
-	platform::NodeCategory
+	YB_ATTR_nodiscard platform::NodeCategory
 	GetNodeCategory() const ynothrow;
 
 	/*!
@@ -815,10 +819,10 @@ public:
 */
 //@{
 //! \since build 660
-YF_API YB_NONNULL(1) wstring
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) wstring
 ResolveReparsePoint(const wchar_t*);
 //! \since build 705
-YF_API YB_NONNULL(1) wstring_view
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) wstring_view
 ResolveReparsePoint(const wchar_t*, ReparsePointData::Data&);
 //@}
 
@@ -829,8 +833,29 @@ ResolveReparsePoint(const wchar_t*, ReparsePointData::Data&);
 \throw Win32Exception 调用失败。
 \since build 658
 */
-YF_API YB_NONNULL(1) wstring
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) wstring
 ExpandEnvironmentStrings(const wchar_t*);
+
+/*!
+\brief 解析应用程序命令行参数。
+\return UTF-8 编码的参数向量。
+\since build 901
+\see $2020-10 @ %Documentation::Workflow.
+
+解析 Unicode 编码的应用程序命令行参数字符串。
+参数向量同标准 C++ 的 \c ::main 命令行参数的格式，但不依赖实现使用的代码页。
+不依赖入口函数是否为 \c ::main 及其具体声明形式。
+特别地，使用声明为 \c ::WinMain 和 \c ::wWinMain 入口函数的程序也使用一致的参数。
+解析参数字符串不展开通配符。具体行为兼容 UCRT 的实现，不保证和 CRT 历史实现完全一致。
+*/
+//@{
+//! \note 以 \c ::GetCommandLineW 调用取参数。
+YB_ATTR_nodiscard YF_API YB_PURE vector<string>
+ParseCommandArguments();
+//! \pre 断言：参数非空。
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) YB_PURE vector<string>
+ParseCommandArguments(const wchar_t*);
+//@}
 
 
 /*!
@@ -851,13 +876,13 @@ using VolumeID = std::uint32_t;
 //! \brief 查询文件链接数。
 //@{
 //! \since build 637
-YF_API size_t
+YB_ATTR_nodiscard YF_API size_t
 QueryFileLinks(UniqueHandle::pointer);
 /*!
 \pre 间接断言：路径参数非空。
 \note 最后参数表示跟踪重解析点。
 */
-YF_API YB_NONNULL(1) size_t
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) size_t
 QueryFileLinks(const wchar_t*, bool = {});
 //@}
 
@@ -869,13 +894,13 @@ QueryFileLinks(const wchar_t*, bool = {});
 */
 //@{
 //! \since build 638
-YF_API pair<VolumeID, FileID>
+YB_ATTR_nodiscard YF_API pair<VolumeID, FileID>
 QueryFileNodeID(UniqueHandle::pointer);
 /*!
 \pre 间接断言：路径参数非空。
 \note 最后参数表示跟踪重解析点。
 */
-YF_API YB_NONNULL(1) pair<VolumeID, FileID>
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) pair<VolumeID, FileID>
 QueryFileNodeID(const wchar_t*, bool = {});
 //@}
 //@}
@@ -886,10 +911,10 @@ QueryFileNodeID(const wchar_t*, bool = {});
 \since build 718
 */
 //@{
-YF_API std::uint64_t
+YB_ATTR_nodiscard YF_API std::uint64_t
 QueryFileSize(UniqueHandle::pointer);
 //! \pre 间接断言：路径参数非空。
-YF_API YB_NONNULL(1) std::uint64_t
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) std::uint64_t
 QueryFileSize(const wchar_t*);
 //@}
 
@@ -950,13 +975,13 @@ SetFileTime(const wchar_t*, ::FILETIME* = {}, ::FILETIME* = {},
 \brief 转换文件时间为以 POSIX 历元起始度量的时间间隔。
 \since build 632
 */
-YF_API std::chrono::nanoseconds
+YB_ATTR_nodiscard YF_API std::chrono::nanoseconds
 ConvertTime(const ::FILETIME&);
 /*!
 \brief 转换以 POSIX 历元起始度量的时间间隔为文件时间。
 \since build 651
 */
-YF_API ::FILETIME
+YB_ATTR_nodiscard YF_API ::FILETIME
 ConvertTime(std::chrono::nanoseconds);
 //@}
 
@@ -964,7 +989,7 @@ ConvertTime(std::chrono::nanoseconds);
 /*!
 \pre 文件句柄不为 \c INVALID_HANDLE_VALUE ，
 	且具有 AccessRights::GenericRead 或 AccessRights::GenericWrite 权限。
-\since build 721
+\since build 901
 */
 //@{
 /*!
@@ -975,11 +1000,11 @@ ConvertTime(std::chrono::nanoseconds);
 */
 //@{
 //! \throw Win32Exception 锁定失败。
-void
+YF_API void
 LockFile(UniqueHandle::pointer, std::uint64_t = 0,
 	std::uint64_t = std::uint64_t(-1), bool = true, bool = {});
 
-bool
+YB_ATTR_nodiscard YF_API bool
 TryLockFile(UniqueHandle::pointer, std::uint64_t = 0,
 	std::uint64_t = std::uint64_t(-1), bool = true, bool = true) ynothrow;
 //@}
@@ -988,7 +1013,7 @@ TryLockFile(UniqueHandle::pointer, std::uint64_t = 0,
 \brief 解锁文件。
 \pre 文件已被锁定。
 */
-bool
+YF_API bool
 UnlockFile(UniqueHandle::pointer, std::uint64_t = 0,
 	std::uint64_t = std::uint64_t(-1)) ynothrow;
 //@}
@@ -1005,7 +1030,7 @@ YF_API void
 WaitUnique(UniqueHandle::pointer, unsigned long = INFINITE);
 
 //! \return 是否等待成功。
-YF_API bool
+YB_ATTR_nodiscard YF_API bool
 TryWaitUnique(UniqueHandle::pointer, unsigned long = 0) ynothrow;
 //@}
 
@@ -1031,7 +1056,7 @@ public:
 	PDefH(void, lock, )
 		ImplExpr(WaitUnique(native_handle()))
 
-	PDefH(bool, try_lock, ) ynothrow
+	YB_ATTR_nodiscard PDefH(bool, try_lock, ) ynothrow
 		ImplRet(TryWaitUnique(native_handle()))
 
 	/*!
@@ -1056,14 +1081,14 @@ public:
 \brief 取系统目录路径。
 \since build 593
 */
-YF_API wstring
+YB_ATTR_nodiscard YF_API wstring
 FetchSystemPath(size_t = MAX_PATH);
 
 /*!
 \brief 取系统目录路径。
 \since build 693
 */
-YF_API wstring
+YB_ATTR_nodiscard YF_API wstring
 FetchWindowsPath(size_t = MAX_PATH);
 //@}
 

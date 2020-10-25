@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r4893
+\version r4902
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2020-10-11 17:41 +0800
+	2020-10-16 21:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,10 +29,11 @@
 #include "YCLib/YModules.h"
 #include YFM_DS_YCLib_DSIO // for platform::Descriptions, std::runtime_error,
 //	ystdex::throw_error, std::system_error, string, string_view,
-//	ystdex::retry_on_cond, YAssertNonnull, FetchSeparator, ystdex::id,
-//	std::bind, std::placeholder::_1, ystdex::exchange, ystdex::invoke, std::ref,
-//	YTraceDe, std::exception, ystdex::trivially_copy_n, ptrdiff_t,
-//	DISC_INTERFACE, unique_raw, ystdex::aligned_store_cast;
+//	ystdex::exchange, ystdex::retry_on_cond, YAssertNonnull, FetchSeparator,
+//	ystdex::id, std::bind, std::placeholder::_1, ystdex::is_parent_or_self,
+//	ystdex::invoke, std::ref, YTraceDe, std::exception,
+//	ystdex::trivially_copy_n, ptrdiff_t, DISC_INTERFACE, unique_raw,
+//	ystdex::aligned_store_cast;
 #if YCL_DS
 #	include "YSLib/Core/YModules.h"
 #	include YFM_YSLib_Core_YException // for YSLib::TryInvoke,
@@ -808,7 +809,7 @@ DEntry::DEntry(Partition& part, string_view sv, LeafAction act,
 			ConsLeafWithCallback(part, sv, act, dclus);
 			return {};
 		}
-		ConsBranch(part, sv, next_pos, dclus);
+		return ConsBranch(part, sv, next_pos, dclus);
 	});
 	// XXX: For a file system with external link to other file systems, the
 	//	order is significant: this check cannot be moved earlier. However, this
@@ -912,7 +913,7 @@ DEntry::ConsBranch(Partition& part, string_view& sv, size_t next_pos,
 
 	if(LFN::MaxMBCSLength < comp.length())
 		throw_error(errc::filename_too_long);
-	if(dclus == part.GetRootDirCluster() && (comp == "." || comp == ".."))
+	if(dclus == part.GetRootDirCluster() && ystdex::is_parent_or_self(comp))
 		ConsReset(part);
 	else
 	{
@@ -956,7 +957,7 @@ DEntry::ConsLeafNoCallback(Partition& part, string_view comp, LeafAction act,
 
 	if(LFN::MaxMBCSLength < comp.length())
 		throw_error(errc::filename_too_long);
-	if(dclus == part.GetRootDirCluster() && (comp == "." || comp == ".."))
+	if(dclus == part.GetRootDirCluster() && ystdex::is_parent_or_self(comp))
 		ConsReset(part);
 	else
 	{
@@ -987,7 +988,7 @@ DEntry::ConsLeafWithCallback(Partition& part, string_view comp, LeafAction act,
 
 	if(LFN::MaxMBCSLength < comp.length())
 		throw_error(errc::filename_too_long);
-	if(dclus == part.GetRootDirCluster() && (comp == "." || comp == ".."))
+	if(dclus == part.GetRootDirCluster() && ystdex::is_parent_or_self(comp))
 		throw_error(errc::invalid_argument);
 	name = string(ystdex::rtrim(comp, ' '));
 	// NOTE: The check is not performed here. Let it go into the callback.

@@ -69,6 +69,7 @@ $def! SR_Bin_ ++ SR_Prefix_ "/bin";
 $def! SR_Include_ ++ SR_Prefix_ "/include";
 $def! SR_Lib_ ++ SR_Prefix_ "/lib";
 $def! SR_Share_ ++ SR_Prefix_ "/share";
+$def! SR_Share_NPLA1_ ++ SR_Prefix_ "/share/NPLA1";
 $def! SR_Var_NPLA1_ ++ SR_Prefix_ "/var/NPLA1";
 $def! SR_SHBuild_ ++ SHBuild_SysRoot "/.shbuild";
 
@@ -224,8 +225,8 @@ $let ()
 	$defl! SHB_InstLibD (build-dir name)
 		InstLibD build-dir name SR_Lib_ SR_DSO_Dest SR_DSO_Imp;
 
-	for-each-ltr SHBuild_EnsureDirectory_
-		(list SR_Bin_ SR_Include_ SR_Lib_ SR_Share_ SR_Var_NPLA1_);
+	for-each-ltr SHBuild_EnsureDirectory_ (list SR_Bin_ SR_Include_ SR_Lib_
+		SR_Share_ SR_Share_NPLA1_ SR_Var_NPLA1_);
 
 	$if (safeenv-empty? "SHBuild_No3rd")
 	(
@@ -321,7 +322,7 @@ $let ((target-name "Stage 2 SHBuild"))
 	$assert-absolute-path SHBuild_ToolDir;
 	$import! env_SHB_ InstHardLinkExe InstNPLA1Module_ InstTool InstSHBuild;
 	$defl! SHB_InstNPLA1Module_ (name)
-		InstNPLA1Module_ SHBuild_ToolDir SR_Var_NPLA1_ name;
+		InstNPLA1Module_ SHBuild_ToolDir SR_Share_NPLA1_ name;
 	$defl! SHB_InstTool (name)
 		InstTool SHBuild_ToolDir SR_Bin_ name;
 	InstHardLinkExe SR_SHBuild_ SR_Bin_ "SHBuild";

@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3783
+\version r3792
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2020-10-11 21:48 +0800
+	2020-10-25 06:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,8 @@
 //	NPL::forward_as_tuple, LiftOther, Collapse, LiftOtherOrCopy, NPL::IsMovable,
 //	LiftTermOrCopy, ResolveTerm, LiftTermValueOrCopy, MoveResolved,
 //	ResolveIdentifier, ystdex::plus, std::placeholders, NPL::ResolveRegular,
-//	ystdex::tolower, ystdex::swap_dependent, LiftTermRef, LiftTerm, NPL::Deref;
+//	ystdex::tolower, ystdex::swap_dependent, LiftTermRef, LiftTerm, NPL::Deref,
+//	YSLib::IO::StreamPut;
 #include YFM_NPL_NPLA1Forms // for NPL::Forms functions;
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
@@ -40,8 +41,8 @@
 #include YFM_YSLib_Service_TextFile // for IO::SharedInputMappedFileStream,
 //	Text::OpenSkippedBOMtream;
 #include <cerrno> // for errno, ERANGE;
-#include <cstdio> // for std::puts;
 #include <regex> // for std::regex, std::regex_match;
+#include <ostream> // for std::endl;
 #include "NPLA1Internals.h" // for NPL_Impl_NPLA1_Enable_Thunked;
 #include YFM_YSLib_Core_YCoreUtilities // for FetchCommandOutput;
 #include <ystdex/string.hpp> // for ystdex::begins_with;
@@ -1147,10 +1148,12 @@ LoadModule_std_io(REPLContext& context)
 {
 	auto& renv(context.Root.GetRecordRef());
 
-	RegisterUnary<Strict, const string>(renv, "puts", [](const string& str){
-		// FIXME: Use %EncodeArg?
-		// XXX: Error from 'std::puts' is ignored.
-		std::puts(str.c_str());
+	RegisterUnary<Strict, const string>(renv, "puts", [&](const string& str){
+		auto& os(context.GetOutputStreamRef());
+
+		YSLib::IO::StreamPut(os, str.c_str());
+		if(os)
+			os << std::endl;
 		return ValueToken::Unspecified;
 	});
 #if true

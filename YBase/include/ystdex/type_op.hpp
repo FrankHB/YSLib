@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2019 FrankHB.
+	© 2011-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r2893
+\version r2898
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2019-09-13 13:22 +0800
+	2020-10-15 03:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,7 +113,10 @@ private:
 
 #ifdef YB_IMPL_GNUCPP
 #	pragma GCC diagnostic push
-#	pragma GCC diagnostic ignored "-Wextra"
+#	if YB_IMPL_GNUCPP >= 100000
+// NOTE: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90449.
+#		pragma GCC diagnostic ignored "-Winaccessible-base"
+#	endif
 #endif
 
 	struct C : A, B

@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r1531
+\version r1616
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2020-01-27 03:08 +0800
+	2020-10-16 21:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,7 +87,14 @@ template<>
 struct path_traits<void>
 {
 	template<typename _tString>
-	YB_PURE static yconstfn bool
+	YB_ATTR_nodiscard static yconstfn bool
+	is_absolute(const _tString& x) ynothrow
+	{
+		return ystdex::string_empty(x);
+	}
+
+	template<typename _tString>
+	YB_ATTR_nodiscard YB_PURE static yconstfn bool
 	is_parent(const _tString& str) ynothrow
 	{
 		using char_value_t = decltype(str[0]);
@@ -97,14 +104,7 @@ struct path_traits<void>
 	}
 
 	template<typename _tString>
-	static yconstfn bool
-	is_absolute(const _tString& x) ynothrow
-	{
-		return ystdex::string_empty(x);
-	}
-
-	template<typename _tString>
-	YB_PURE static yconstfn bool
+	YB_ATTR_nodiscard YB_PURE static yconstfn bool
 	is_self(const _tString& str) ynothrow
 	{
 		return
@@ -112,22 +112,70 @@ struct path_traits<void>
 	}
 
 	template<typename _tString>
-	YB_PURE static yconstfn bool
+	YB_ATTR_nodiscard YB_PURE static yconstfn bool
 	has_root_name(const _tString& x) ynothrow
 	{
 		return ystdex::string_empty(x);
 	}
 
 	template<typename _tString>
-	YB_PURE static yconstfn bool
+	YB_ATTR_nodiscard YB_PURE static yconstfn bool
 	has_root_path(const _tString& x) ynothrow
 	{
 		return ystdex::string_empty(x);
 	}
 
 	template<typename _tString1, typename _tString2>
-	YB_PURE static yconstfn bool
+	YB_ATTR_nodiscard YB_PURE static yconstfn bool
 	have_same_root_names(const _tString1& x, const _tString2& y) ynothrow
+	{
+		return x == y;
+	}
+};
+
+/*!
+\brief 文件字符串视图路径特征。
+\since build 901
+*/
+template<typename _tChar, class _tTraits>
+struct path_traits<basic_string_view<_tChar, _tTraits>>
+{
+	using char_type = _tChar;
+	using value_type = basic_string_view<_tChar, _tTraits>;
+	using view_type = value_type;
+
+	YB_ATTR_nodiscard YB_PURE static yconstfn bool
+	is_absolute(view_type sv) ynothrow
+	{
+		return sv.empty();
+	}
+
+	YB_ATTR_nodiscard YB_PURE static yconstfn bool
+	is_parent(view_type sv) ynothrow
+	{
+		return sv.length() == 2 && sv[0] == '.' && sv[1] == '.';
+	}
+
+	YB_ATTR_nodiscard YB_PURE static yconstfn bool
+	is_self(view_type sv) ynothrow
+	{
+		return sv.length() == 1 && sv.front() == '.';
+	}
+
+	YB_ATTR_nodiscard YB_PURE static yconstfn bool
+	has_root_name(view_type sv) ynothrow
+	{
+		return sv.empty();
+	}
+
+	YB_ATTR_nodiscard YB_PURE static yconstfn bool
+	has_root_path(view_type sv) ynothrow
+	{
+		return sv.empty();
+	}
+
+	YB_ATTR_nodiscard YB_PURE static yconstfn bool
+	have_same_root_names(view_type x, view_type y) ynothrow
 	{
 		return x == y;
 	}
@@ -139,51 +187,40 @@ struct path_traits<void>
 */
 template<typename _tChar, class _tTraits, class _tAlloc>
 struct path_traits<basic_string<_tChar, _tTraits, _tAlloc>>
+	: private path_traits<basic_string_view<_tChar, _tTraits>>
 {
 	using char_type = _tChar;
 	using value_type = basic_string<_tChar, _tTraits, _tAlloc>;
 	using view_type = basic_string_view<char_type>;
 
-	static yconstfn bool
-	is_parent(view_type sv) ynothrow
-	{
-		return sv.length() == 2 && sv[0] == '.' && sv[1] == '.';
-	}
+	using path_traits<view_type>::is_parent;
 
 	//! \since build 836
 	//@{
-	static yconstfn bool
-	is_absolute(view_type sv) ynothrow
-	{
-		return sv.empty();
-	}
+	using path_traits<view_type>::is_absolute;
 
-	static yconstfn bool
-	is_self(view_type sv) ynothrow
-	{
-		return sv.length() == 1 && sv.front() == '.';
-	}
+	using path_traits<view_type>::is_self;
 
-	static yconstfn bool
-	has_root_name(view_type sv) ynothrow
-	{
-		return sv.empty();
-	}
+	using path_traits<view_type>::has_root_name;
 
-	static yconstfn bool
-	has_root_path(view_type sv) ynothrow
-	{
-		return sv.empty();
-	}
+	using path_traits<view_type>::has_root_path;
 
-	static yconstfn bool
-	have_same_root_names(view_type x, view_type y) ynothrow
-	{
-		return x == y;
-	}
+	using path_traits<view_type>::have_same_root_names;
 	//@}
 };
 //@}
+
+
+/*!
+\brief 判断参数是表示当前或上级目录名称的字符串。
+\since build 901
+*/
+template<typename _type>
+YB_ATTR_nodiscard yconstfn YB_PURE bool
+is_parent_or_self(const _type& s) ynothrow
+{
+	return path_traits<_type>::is_parent(s) || path_traits<_type>::is_self(s); 
+}
 
 
 /*!
@@ -255,7 +292,7 @@ classify_path(const _tString& name) ynothrow
 			参见 operator/= 的说明。
 		非解析的追加操作使用 push_back 等容器对元素的通用操作替代。
 		不单独设置对元素自身的操作如 operator+= ；可使用对元素的直接操作替代。
-	首个元素表示根路径（若存在），内部表示不区分根路径中的根名称和根目录。
+	第一个元素表示根路径（若存在），内部表示不区分根路径中的根名称和根目录。
 		需要区分时通过特征操作，
 			参见具有 const path& 参数类型的 operator/= 重载的说明。
 */
