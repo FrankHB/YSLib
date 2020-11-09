@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r3120
+\version r3132
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2020-10-25 07:06 +0800
+	2020-10-26 16:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1635,7 +1635,7 @@ std::basic_istream<_tChar, _tTraits>&
 extract(std::basic_istream<_tChar, _tTraits>& is,
 	std::basic_string<_tChar, _tTraits, _tAlloc>& str, _func f)
 {
-	typename std::basic_string<_tChar, _tTraits, _tAlloc>::size_type n(0);
+	bool changed = {};
 	// NOTE: The type shall be explicit.
 	std::ios_base::iostate st(std::ios_base::goodbit);
 
@@ -1643,14 +1643,16 @@ extract(std::basic_istream<_tChar, _tTraits>& is,
 		k{typename std::basic_istream<_tChar, _tTraits>::sentry(is, true)})
 	{
 		const auto msize(str.max_size());
+		const auto eof(_tTraits::eof());
 		const auto p_buf(is.rdbuf());
 
 		yassume(p_buf);
-		str.erase();
+		// NOTE: ISO C++ requires call of 'str.erase()' for 'std::getline'.
+		//	Using 'clear' should be equivalent on behavior, and usually more
+		//	efficient.
+		str.clear();
 		try
 		{
-			const auto eof(_tTraits::eof());
-
 			for(auto c(p_buf->sgetc()); ; c = p_buf->snextc())
 			{
 				if(_tTraits::eq_int_type(c, eof))
@@ -1660,7 +1662,7 @@ extract(std::basic_istream<_tChar, _tTraits>& is,
 				}
 				if(f(c, *p_buf))
 				{
-					++n;
+					changed = true;
 					break;
 				}
 				if(!(str.length() < msize))
@@ -1669,7 +1671,7 @@ extract(std::basic_istream<_tChar, _tTraits>& is,
 					break;
 				}
 				str.append(1, _tTraits::to_char_type(c));
-				++n;
+				changed = true;
 			}
 		}
 		catch(...)
@@ -1678,10 +1680,9 @@ extract(std::basic_istream<_tChar, _tTraits>& is,
 			rethrow_badstate(is, std::ios_base::badbit);
 		}
 	}
-	if(n == 0)
+	if(!changed)
 		st |= std::ios_base::failbit;
-	if(st)
-		is.setstate(st);
+	is.setstate(st);
 	return is;
 }
 

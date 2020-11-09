@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3176
+\version r3201
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2020-10-24 04:29 +0800
+	2020-10-26 11:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,15 +35,22 @@
 //	std::system_error, YTraceDe, array, wstring, string_view;
 #include YFM_YCLib_Reference // for unique_ptr_from;
 #include <ios> // for std::ios_base::sync_with_stdio;
-#include <fstream> // for std::filebuf;
-#if __GLIBCXX__
-#	include <ext/stdio_filebuf.h> // for __gnu_cxx::stdio_filebuf;
+#include <fstream> // for std::basic_filebuf, std::filebuf, std::wfilebuf,
+//	std::basic_ifstream, std::basic_ofstream, std::basic_fstream,
+//	std::ifstream, std::ofstream, std::fstream, std::wifstream, std::wofstream,
+//	std::wfstream;
+#if __GLIBCXX__ || _LIBCPP_VERSION || YB_IMPL_MSCPP
+#include <istream> // for std::basic_istream;
+#include <ostream> // for std::basic_ostream;
+#	if __GLIBCXX__
+#		include <ext/stdio_filebuf.h> // for __gnu_cxx::stdio_filebuf;
 //	ystdex::exchange;
-#elif YB_IMPL_MSCPP
-#	include <ystdex/cstdio.h> // for ystdex::openmode_conv;
-#	include <locale> // for std::use_facet, std::codecvt;
+#	elif YB_IMPL_MSCPP
+#		include <ystdex/cstdio.h> // for ystdex::openmode_conv;
+#		include <locale> // for std::use_facet, std::codecvt;
+#	endif
 #endif
-#include <iosfwd> // for std::ostream;
+#include <iosfwd> // for std::istream, std::ostream;
 
 namespace platform
 {
@@ -1039,6 +1046,19 @@ using std::wfstream;
 #endif
 //@}
 
+
+/*!
+\brief 从流中输入字符串。
+\pre 断言：第二参数非空。
+\note Win32 平台：检查流是否使用控制台。若使用控制台，刷新同步的流并使用控制台输出。
+\sa std::getline
+\since build 902
+
+无格式输入字符串行。
+默认使用 std::getline ，但可对特定的流实现检查并使用不同的方式。
+*/
+YF_API void
+StreamGet(std::istream&, string&);
 
 /*!
 \brief 向流中输出字符串。

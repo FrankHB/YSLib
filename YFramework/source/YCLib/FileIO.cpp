@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3696
+\version r3796
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2020-10-25 06:07 +0800
+	2020-10-26 16:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,18 +28,20 @@
 #undef __STRICT_ANSI__ // for ::fileno, ::pclose, ::popen, ::_wfopen;
 #include "YCLib/YModules.h"
 #include YFM_YCLib_FileIO // for std::is_same, ystdex::underlying_type_t,
-//	ystdex::invoke_result_t, ystdex::invoke, RetryOnInterrupted,
-//	std::errc::function_not_supported, YCL_CallF_CAPI, std::is_integral,
-//	ystdex::invoke, Nonnull, ystdex::temporary_buffer;
-#include YFM_YCLib_NativeAPI // for Mode, ::HANDLE, struct ::stat,
+//	ystdex::invoke_result_t, ystdex::invoke, RetryOnInterrupted, Deref,
+//	std::errc::function_not_supported, YCL_CallF_CAPI, ystdex::invoke, Nonnull,
+//	ystdex::temporary_buffer;
+#include YFM_YCLib_NativeAPI // for Mode, ::HANDLE, ReadConsoleW, struct ::stat,
 //	platform_ex::cstat, platform_ex::estat ::GetConsoleMode, OpenMode,
 //	YCL_CallGlobal, ::close, ::fcntl, F_GETFL, ::setmode, ::fchmod, ::_chsize,
 //	::ftruncate, ::fsync, ::_wgetcwd, ::getcwd, ::chdir, ::rmdir, ::unlink,
 //	!defined(__STRICT_ANSI__) API, ::GetCurrentDirectoryW;
+#include <ystdex/string.hpp> // for std::char_traits, std::getline,
+//	ystdex::write_ntcts;
 #include YFM_YCLib_FileSystem // for NodeCategory::*, CategorizeNode;
 #include <ystdex/functional.hpp> // for ystdex::compose, ystdex::addrof;
-#include <ystdex/string.hpp> // for ystdex::write_ntcts;
-#include <ystdex/streambuf.hpp> // for ystdex::streambuf_equal;
+#include <ystdex/streambuf.hpp> // for ystdex::flush_input,
+//	ystdex::streambuf_equal;
 #if YCL_DS
 #	include "CHRLib/YModules.h"
 #	include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeMBCS,
@@ -56,9 +58,11 @@
 #		include <ystdex/ios.hpp> // for ystdex::rethrow_badstate;
 #		include YFM_Win32_YCLib_Consoles // for platform_ex::WConsole;
 #		include <ext/stdio_sync_filebuf.h> // for __gnu_cxx::stdio_sync_filebuf;
+// NOTE: Headers for complete std::istream and std::ostream shall be already
+//	included.
 #	endif
-#	include YFM_Win32_YCLib_MinGW32 // for 
-//	platform_ex::UnlockFile, platform_ex::LockFile, platform_ex::TryLockFile;
+#	include YFM_Win32_YCLib_MinGW32 // for platform_ex::UnlockFile,
+//	YCL_CallF_Win32, platform_ex::LockFile, platform_ex::TryLockFile;
 #	include YFM_Win32_YCLib_NLS // for platform_ex::UTF8ToWCS,
 //	platform_ex::WCSToUTF8;
 
@@ -160,6 +164,80 @@ UnlockFileDescriptor(int fd, const char* sig) ynothrowv
 #endif
 
 #if YCL_Win32 && __GLIBCXX__
+//! since build 902
+bool
+StreamGetFromFileDescriptor(std::istream& is, int fd, string& str)
+{
+	const auto h(ToHandle(fd));
+
+	if(h != INVALID_HANDLE_VALUE)
+	{
+		unsigned long mode;
+
+		if(::GetConsoleMode(h, &mode))
+		{
+			bool changed = {};
+			std::ios_base::iostate st(std::ios_base::goodbit);
+
+			if(const auto k{typename std::istream::sentry(is, true)})
+			{
+				// NOTE: See the implementation of %ystdex::extract.
+				str.clear();
+				try
+				{
+					const auto p_buf(is.rdbuf());
+
+					st |= ystdex::flush_input(Deref(p_buf), str);
+					if(st == std::ios_base::goodbit)
+					{
+						using wtraits = std::char_traits<wchar_t>;
+						const auto msize(str.max_size());
+						const auto eof(wtraits::eof());
+
+						while(true)
+						{
+							if(!(str.length() < msize))
+							{
+								st |= std::ios_base::failbit;
+								break;
+							}
+
+							wchar_t buf[1];
+							unsigned long n;
+
+							YCL_CallF_Win32(ReadConsoleW, h, buf, 1, &n,
+								yimpl({}));
+
+							const auto c(buf[0]);
+
+							if(wtraits::eq_int_type(c, eof))
+							{
+								st |= std::ios_base::eofbit;
+								break;
+							}
+							if(wtraits::eq_int_type(c, '\n'))
+							{
+								changed = true;
+								break;
+							}
+							str += platform_ex::WCSToUTF8(wstring{c});
+							changed = true;
+						}
+					}
+				}
+				CatchExpr(...,
+					ystdex::rethrow_badstate(is, std::ios_base::badbit))
+			}
+			if(!changed)
+				st |= std::ios_base::failbit;
+			is.setstate(st);
+			return true;
+		}
+	}
+	return {};
+}
+
+//! since build 901
 YB_NONNULL(3) bool
 StreamPutToFileDescriptor(std::ostream& os, int fd, const char* s)
 {
@@ -746,6 +824,31 @@ upclose(std::FILE* fp) ynothrowv
 #endif
 }
 
+
+void
+StreamGet(std::istream& is, string& str)
+{
+#if YCL_Win32
+	if(const auto p_sb = is.rdbuf())
+	{
+	// TODO: Implement for other standard library implementations.
+#	if __GLIBCXX__
+		if(const auto p = dynamic_cast<__gnu_cxx::stdio_filebuf<char>*>(p_sb))
+		{
+			if(StreamGetFromFileDescriptor(is, p->fd(), str))
+				return;
+		}
+		if(const auto p
+			= dynamic_cast<__gnu_cxx::stdio_sync_filebuf<char>*>(p_sb))
+		{
+			if(StreamGetFromFileDescriptor(is, ::_fileno(p->file()), str))
+				return;
+		}
+#endif
+	}
+#endif
+	std::getline(is, str);
+}
 
 void
 StreamPut(std::ostream& os, const char* s)

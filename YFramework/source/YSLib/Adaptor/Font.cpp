@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2019 FrankHB.
+	© 2009-2016, 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3675
+\version r3680
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2019-01-04 11:15 +0800
+	2020-11-03 13:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,6 +45,7 @@
 #	define YF_Impl_Use_FT_Internal true
 #	include <freetype/internal/internal.h> // for FreeType internal macros;
 #	include FT_INTERNAL_TRUETYPE_TYPES_H // for TT_Face, TT_FaceRec_;
+#	include <ystdex/type_pun.hpp> // for ystdex::aligned_cast;
 #endif
 
 using namespace ystdex;
@@ -266,6 +267,7 @@ Typeface::SmallBitmapData::SmallBitmapData(::FT_GlyphSlot slot, FontStyle style)
 	}
 }
 Typeface::SmallBitmapData::SmallBitmapData(SmallBitmapData&& sbit_dat)
+	ynothrow
 	: width(sbit_dat.width), height(sbit_dat.height), left(sbit_dat.left),
 	top(sbit_dat.top), format(sbit_dat.format), max_grays(sbit_dat.width),
 	pitch(sbit_dat.pitch), xadvance(sbit_dat.xadvance),
@@ -324,7 +326,8 @@ Typeface::~Typeface()
 	// XXX: Hack for using %ttmtx.c and %sfobjs.c of FreeType 2.4.11.
 	if(FT_IS_SFNT(face))
 	{
-		const auto ttface(reinterpret_cast<::TT_Face>(face));
+		// XXX: Downcast.
+		const auto ttface(ystdex::aligned_cast<::TT_Face>(face));
 
 		// NOTE: See %Typeface::SmallBitmapData::SmallBitmapData.
 		// NOTE: %sfnt_done_face in "sfobjs.c" still releases vertical metrics.

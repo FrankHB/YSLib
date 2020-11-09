@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2019 FrankHB.
+	© 2015-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file streambuf.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准库标准流缓冲扩展。
-\version r210
+\version r242
 \author FrankHB <frankhb1989@gmail.com>
 \since build 636
 \par 创建时间:
 	2015-09-22 11:19:27 +0800
 \par 修改时间:
-	2019-07-22 23:43 +0800
+	2020-10-26 17:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,6 +49,41 @@ streambuf_equal(std::basic_streambuf<_tChar, _tTraits>& a,
 
 	return
 		ystdex::equal(iter_type(&a), iter_type(), iter_type(&b), iter_type());
+}
+
+
+/*!
+\brief 刷新输入缓冲区到字符串。
+\since build 902
+*/
+template<typename _tChar, class _tTraits, class _tAlloc>
+std::ios_base::iostate
+flush_input(std::basic_streambuf<_tChar, _tTraits>& buf,
+	std::basic_string<_tChar, _tTraits, _tAlloc>& str)
+{
+	std::streamsize cnt(buf.in_avail());
+
+	if(cnt == 0)
+		return std::ios_base::goodbit;
+	if(cnt > 0)
+	{
+		const auto l(str.length());
+		using _tSize = decltype(l);
+		const auto m(std::streamsize(str.max_size() - l));
+
+		if(cnt < m)
+		{
+			str.resize(l + _tSize(cnt));
+			buf.sgetn(&str[l], cnt);
+			return std::ios_base::goodbit;
+		}
+		else
+		{
+			str.resize(str.max_size());
+			buf.sgetn(&str[l], m);
+		}
+	}
+	return std::ios_base::failbit;
 }
 
 

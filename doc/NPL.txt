@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规范和实现规格说明。
-\version r17309
+\version r17316
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2020-10-21 10:50 +0800
+	2020-11-03 13:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2659,11 +2659,11 @@ NPL::NPLException 是 NPL 实现的异常基类。
 其它 NPL 异常都从此类直接或间接派生，包括：
 NPL::TypeError
 NPL::ValueCategoryMismatch
-NPL::ListTypeError 列表类型(@5.4.2.1) 错误。
 NPL::ListReductionFailure
-NPL::InvalidSyntax
+NPL::ListTypeError 列表类型(@5.4.2.1) 错误。
 NPL::ParameterMismatch
 NPL::ArityMismatch
+NPL::InvalidSyntax
 NPL::BadIdentifier
 NPL::InvalidReference
 除 @6.2.2 外，NPLA 实现可能抛出这些异常或派生实现定义的派生这些类的其它异常。
@@ -2697,6 +2697,7 @@ NPL::TermToString
 NPL::TermToStringWithReferenceMark
 NPL::TermToTags
 NPL::ThrowListTypeErrorForInvalidType
+NPL::ThrowListTypeErrorForNonlist
 NPL::TokenizeTerm
 NPL::TryAccessLeaf
 NPL::TryAccessTerm
@@ -3092,7 +3093,7 @@ A1::ThrowInsufficientTermsError
 A1::ThrowInvalidSyntaxError
 A1::ThrowNonmodifiableErrorForAssignee
 A1::ThrowUnsupportedLiteralError
-A1::ThrowValueCategoryErrorForFirstArgument
+A1::ThrowValueCategoryError
 
 @7.4 规约实现：
 NPLA1 在 NPL::A1 中提供不同粒度的规约和求值实现 API 。
@@ -4252,7 +4253,7 @@ NPLA1 实现可提供和实现环境(@2.3.2) 或具体 NPLA 对象关联的附�
 <bindings> ：元素为 <binding> 的列表，形式为 (<binding>...) 。
 <body> ：出现在元素的末尾 <expressions>? 形式，用于函数体(@8.4.5) 等替换求值的目标。
 <expression-sequence> ：同 <body> 但蕴含顺序求值。
-求值 <expression-sequence> 的结果被定义为求值其最后一个子表达式（若存在）的结果，或当不存在子表达式时为 #inert 。
+求值 <expression-sequence> 的结果被定义为求值其最后一个子表达式（若存在）的结果，或当不存在子表达式时为未指定值(@7.2.2)。
 <consequent> ：同 <expression> ，仅用于 <test> 求值为 #t 时。
 <alternate> ：同 <expression> ，仅用于 <test> 求值不为 #t 时。
 <definiend> ：被绑定项的目标，是包含符号的 DAG(@4.2.4) 表达式。详见 @7.7.3 。
@@ -4736,8 +4737,9 @@ NPLA1 不要求支持数值计算。数值类型和相关的操作由派生类�
 类似 Kernel ，谓词的名称使用 ? 结尾，除 <- 结尾外的用于（不直接通过求值操作数或其子表达式产生的副作用的）修改(@9.4.5.1) 的（同时是改变操作(@4.1.4.2) ）函数的名称使用 ! 结尾。
 和 Kernel 类似，管理状态(@9.4.5.1) 的变化不需要指示可修改；此外，类似地，不改变可观察行为(@4.1.3) 的隐藏状态的修改不属于上述可修改。
 和 Kernel 不同，不使用以上可修改的操作仍可引起对象修改，如隐式的转移操作(@9.4.5.1.2) 。
-和谓词使用惰性(inert) 值的 Kernel 不同，后者的结果是未指定值(@7.2.2)。
+和使用可用谓词 inert? 判断的惰性(inert) 值的 Kernel 不同，后者的结果是未指定值(@7.2.2) 。
 未指定值的类型未指定，因此用于修改的函数可能返回 A1::ValueToken::Unspecified(@7.2.2) 外的其它值；但应满足 @10.2 。
+作为一等实体的未指定值和 Kernel 类似，仍为 #inert(@9.3.1) ，但不提供谓词判断其类型。
 除去以上后缀，以引用标记字符(@7.7.3.4) 结尾的表示涉及引用的操作。
 一些操作以结尾引用标记字符和不以引用标记字符结尾的名称提供多个版本。其中不含结尾的引用标记字符的表示操作的结果不是引用值，要求按值传递(@8.4.5.4) 。
 其它一些操作可能只提供以 % 结尾的版本。

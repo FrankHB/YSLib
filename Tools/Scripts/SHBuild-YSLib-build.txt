@@ -14,6 +14,7 @@ $def! env_SHBuild_Common_ $provide! (
 	$env-de!
 	$redef!
 	SHBuild_2m
+	SHBuild_CheckCXX
 	SHBuild_EchoVar_N
 	SHBuild_GetPlatformStrings
 	SHBuild_GetSystemPrefix
@@ -28,6 +29,7 @@ $def! env_SHBuild_Common_ $provide! (
 	safeenv-set
 	system-check
 	system-or-puts
+	system-quote-m_
 	putss
 	win32?
 ) load ($let () ($import! std.system env-get; env-get "SHBuild_Common"));
@@ -85,8 +87,8 @@ $def! BD_YFramework_ ++ YSLib_BaseDir "/YFramework";
 	" is used instead) normally, so it is safe here.";
 $if (win32? env-os)
 (
-	$env-de! INCLUDES_freetype ++ "-I"
-		(system-quote (SHBuild_2m env-os BD_3rdparty_freetype_inc_));
+	$env-de! INCLUDES_freetype
+		++ "-I" (system-quote-m_ env-os BD_3rdparty_freetype_inc_);
 	$def! CFLAGS_freetype_other ""
 )
 (
@@ -103,19 +105,18 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 )
 (
 	$if debug ($redef! target-name ++ "debug " target-name);
-	$defl! libdname (lib) ++ lib ($if debug "d" "");
+	$defl! dnameof (lib) ++ lib ($if debug "d" "");
 	$if nskip ($let*
 	(
 		(repo-base SHBuild_2m env-os YSLib_BaseDir)
-		(YF_SystemLibs
-			$if (win32? env-os) "-lgdi32 -limm32" "-lxcb -lpthread")
+		(YF_SystemLibs $if (win32? env-os) "-lgdi32 -limm32" "-lxcb")
 		(DIR_YFramework ++ repo-base "/YFramework")
-		(LIBS_YFramework SHBuild_TrimOptions_ (++ " -L\"" (SHBuild_2m env-os
-			(++ DIR_YFramework "/" env-host-lib))
-			"\" -l" (libdname "FreeImage") " -lfreetype " YF_SystemLibs))
+		(LIBS_YFramework SHBuild_TrimOptions_ (++ " -L"
+			(system-quote-m_ env-os (++ DIR_YFramework "/" env-host-lib))
+			" -l" (dnameof "FreeImage") " -lfreetype " YF_SystemLibs))
 	)
 	(
-		$defl! incsub (dir) ++ "-I\"" (SHBuild_2m env-os dir) "\"";
+		$defl! incsub (dir) ++ "-I" (system-quote-m_ env-os dir);
 		$def! INCLUDES_YBase SHBuild_TrimOptions_
 			(incsub (++ repo-base "/YBase/include"));
 		$def! INCLUDES_YFramework SHBuild_TrimOptions_ (++
@@ -142,39 +143,59 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 							(++ outdir "/stdinc.h") CXX
 							(cons-cmd "-xc++-header" CXXFLAGS);
 						$def! inc-pch list "-include"
-							(++ "\"" outdir "/stdinc.h" "\"")
+							(system-quote-m_ env-os (++ outdir "/stdinc.h"))
 					)
 					(
 						puts "Skipped building precompiled file.";
 						$def! inc-pch ()
 					);
 					$def! DFLAG_B_YB $if dynamic "-DYB_BUILD_DLL" "";
+					"XXX", "Here %env-get is used because %LDFLAGS should be",
+						" set recently rathen than in the safe environment.";
+					$import! std.system env-get;
+					$def! LDFLAGS env-get "LDFLAGS";
+					"NOTE", "The prefix 'lib' is explicit, see %InstLibD.";
 					$defl! build-lib (lib-name inc-pch .opts)
-						system-check (apply cons-cmd (append (list e_S1_SHBuild_
-						SHBOPT (++ "-xn," LIBPFX (libdname lib-name))) (restv
-						(() cmd-get-args)) (list (++ repo-base "/" lib-name)
-						CXXFLAGS) opts inc-pch));
-					safeenv-restore "LIBS";
+						$let ((dname ++ (dnameof lib-name)))
+						(
+							"TODO", "Make import library output configurable.";
+							$if ($and? dynamic (win32? env-os))
+								(safeenv-set "LDFLAGS"
+									(cons-cmd (++ "-Wl,--out-implib,\""
+										(SHBuild_2m env-os
+										(++ outdir "/lib" dname ".dll.a")) "\"")
+										LDFLAGS));
+							system-check (apply cons-cmd
+								(append (list e_S1_SHBuild_ SHBOPT
+								(++ "-xn," LIBPFX dname))
+								(restv (() cmd-get-args))
+								(list (++ repo-base "/" lib-name) CXXFLAGS) opts
+								inc-pch))
+						);
+					$if dynamic (safeenv-restore "LIBS");
+					"XXX", "Workarounds.";
 					$def! mingw32r $and? (eqv? host-platform_ "MinGW32")
 						(not? debug);
 					build-lib "YBase" inc-pch DFLAG_B_YB INCLUDES_YBase
 						($if mingw32r "-fno-lto" "");
-					$if dynamic (safeenv-set "LIBS" (cons-cmd (++ "-L" outdir)
-						(++ "-l" (libdname "YBase")) LIBS_YFramework));
+					$if dynamic (safeenv-set "LIBS" (cons-cmd (++ "-L"
+						(system-quote-m_ env-os outdir))
+						(++ "-l" (dnameof "YBase")) LIBS_YFramework));
 					"XXX", "Precompiled header is not available as it",
 						" requires '-D__NO_INLINE__ -U__OPTIMIZE__'.";
 					"XXX", "See $2020-10 @ doc/Workflow.txt.";
-					$def! mingw64 eqv? host-platform_ "MinGW64";
+					$def! mingw64g $and? (eqv? host-platform_ "MinGW64")
+						(eqv? (SHBuild_CheckCXX env-os CXX) "G++");
 					$defl! fix-flags ()
 					(
 						$cond
-							(mingw64 $if dynamic
+							(mingw64g $if dynamic
 								"-Og -g -fno-var-tracking-assignments"
 								"-O1 -g -fno-var-tracking-assignments")
 							(mingw32r "-fno-lto")
 							(#t "")
 					);
-					build-lib "YFramework" ($if mingw64 () inc-pch)
+					build-lib "YFramework" ($if mingw64g () inc-pch)
 						(() fix-flags) ($if dynamic "-DYB_DLL" "")
 						($if dynamic "-DYF_BUILD_DLL" "") "-DFREEIMAGE_LIB"
 						(SHBuild_TrimOptions_ (++ INCLUDES_YFramework " "
@@ -217,13 +238,13 @@ $let ()
 (
 	puts "Installing headers and libraries ...";
 
-	$def! (SR_DSO_Dest SR_DSO_Imp)
+	$def! (SR_DSO_Dest imp-sfx)
 		$if (win32? env-os) (list SR_Bin_ ".a") (list SR_Lib_ "");
 
 	$import! env_SHB_ InstInc InstLibS InstLibD InstSHBuild;
 	$defl! SHB_InstInc (srcdir) InstInc srcdir SR_Include_;
 	$defl! SHB_InstLibD (build-dir name)
-		InstLibD build-dir name SR_Lib_ SR_DSO_Dest SR_DSO_Imp;
+		InstLibD build-dir name SR_Lib_ SR_DSO_Dest imp-sfx #t;
 
 	for-each-ltr SHBuild_EnsureDirectory_ (list SR_Bin_ SR_Include_ SR_Lib_
 		SR_Share_ SR_Share_NPLA1_ SR_Var_NPLA1_);
@@ -301,9 +322,9 @@ $let ()
 safeenv-restore "LDFLAGS",
 safeenv-restore "LIBS";
 safeenv-set "LIBS" (SHBuild_TrimOptions_ (cons-cmd (safeenv-get "LIBS") "-L"
-	(system-quote (SHBuild_2m env-os SR_Lib_)) "-lYFramework -lYBase"));
+	(system-quote-m_ env-os SR_Lib_) "-lYFramework -lYBase"));
 $def! INCLUDES_ ++ (safeenv-get "INCLUDES") " -I"
-	(system-quote (SHBuild_2m env-os SR_Include_));
+	(system-quote-m_ env-os SR_Include_);
 
 $let ((target-name "Stage 2 SHBuild"))
 (

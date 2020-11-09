@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r592
+\version r821
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2020-10-25 09:04 +0800
+	2020-11-09 18:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,236 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ DLI "simplified and optimized function template %extract#1" @ %String,
+		+ "function template %flush_input" @ %StreamBuffer
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %FileSystem $=
+			(
+				/ DLDI @ "platform %DS" @ "function %ReadLink#1" ^ 'yunused',
+					// To eliminate G++ warning: [-Wunuwed-variable].
+				* "wrong %FileTime conversion from %::time_t"
+					@ !"platform %Win32" @ "functions %(GetFileAccessTimeOf, \
+					GetFileModificationTimeOf, \
+					GetFileModificationAndAccessTimeOf)" $orig (@
+					"member %FileDescriptor::GetModificationTime" $since b624)
+			),
+			+ "function %StreamGet" @ %FileIO ^ $dep_from 
+				("%ystdex::flush_input" @ %YBase.YStandardEx.StreamBuffer)
+		),
+		/ %YSLib.Adaptor $=
+		(
+			+ 'using platform::StreamGet;' @ %YAdaptor
+				$dep_from ("%StreamGet" @ %YCLib.FileIO),
+				// See $2020-10 @ %Documentation::Workflow.
+			/ DLDI @ "class %Typeface" @ %Font $=
+			(
+				+ 'ynothrow' @ "internal bitmap data",
+				/ "destructor" ^ "%ystdex::aligned_cast" ~ 'reinterpret_cast'
+			)
+		),
+		/ %NPL $=
+		(
+			/ @ "function %LoadModule_SHBuild" @ %Dependency $=
+			(
+				* "missing basic hook adjustment" $since b901
+					$= (/ $impl ^ "%REPLContext::GetOutputStreamRef"
+						~ "%std::prinf"),
+				/ "applicative %SHBuild_EchoVar returned '#inert'"
+			),
+			/ "base class %InvalidSyntax" @ "class %ParameterMismatch" @ %NPLA
+				-> "%ListTypeError",
+				// Now exceptions from %ThrowInsufficientTermsError \
+					and %ListTypeError can be caught together.
+			/ %NPLA1 $=
+			(
+				/ "function %ThrowValueCategoryError"
+					-> "%ThrowValueCategoryError",
+					// This is more general, although at current all the uses \
+						are still for the cases of 1st argument.
+				+ "function %ThrowListTypeErrorForNonlist",
+				/ ThrowListTypeErrorForInvalidType
+				* "missing check for list of arguments"
+					@ "functions %(MatchParameter, BindParameter)"
+					$orig (@ "function %BindParameter" $since b777)
+					$= (/ "checked to throw %ListTypeError on failure"
+						^ $dep_from "%ThrowListTypeErrorForNonlist"),
+					// This is for the case like a parameter subterm '(.x)' \
+						matching a non-list argument.
+				/ DLI "avoided deprecated lambda capture '=' with implicit \
+					'this'" @ "functions %(BindParamater, MatchParameter)"
+					// To eliminate Clang++ 10 warning: \
+						[-Wdeprecated-this-capture].
+			),
+			/ %NPLA1Forms $=
+			(
+				(
+				/ $forced "removed 'for the 1st argument'" @ "error messages"
+					@ "functions %(FirstAt, FirstRef, SetFirst, SetFirstAt, \
+					SetFirstRef, SetRest, SetRestRef, CheckListReference)"
+					$dep_from "%ThrowValueCategoryError";
+				/ $comp "possible wrong 'for the 1st argument'"
+					@ "message" @ "function %CheckListReference" $since b855
+					// The corresponding applicative is for the general case, \
+						rather than only for the 1st argument.
+				),
+				/ "removed 'for the 2nd argument" @ "exception message"
+					@ "functions %(SetRest, SetRestRef)"
+					^ $dep_from ("%ThrowListTypeErrorForNonlist" @ %NPLA1),
+					// This is consistent to the change above. It also enables \
+						the possibility to be reused with other cases.
+				* $impl "redundant 'YF_API' on entity without external linkage"
+					$since b899 $dep_to "Clang++ compiling error"
+					// Also to prevent Clang++ error.
+			)
+		),
+		* $re_add(b896) "wrong 'YB_NONNULL(1)'" @ ("lambda-expression"
+			@ "platform %Win32" @ "function %uremove" @ %FileSystem $orig
+			(@ %FileIO $since b639), "member function %DirectoryFindData::Read"
+			@ %'YCLib_(Win32)'.MinGW32 $since b701)
+			$dep_to "Clang++ compiling error"
+			$= (/ $impl 'YB_NONNULL(1)' -> 'YB_NONNULL(2)')
+			// Also to prevent Clang++ error.
+	),
+	/ %Tools $=
+	(
+		/ "improved basic terminal hook and string printing" @ %SHBuild.Main
+			^ "%(std::cout, YSLib::IO::StreamPut, ystdex::write_literal)"
+			~ "%std::(printf, puts)",
+			// See $2020-10 @ %Documentation::Workflow.
+		/ %Scripts $=
+		(
+			(
+			- "%AR setting" @ "%SHBuild-common-options.sh",
+			+ "default value" @ "%AR" @ "%SHBuild-common-toolchain.sh"
+				^ "detection";
+			/ @ "%SHBuild-BuildApp.sh" $=
+			(
+				- "%AR setting";
+				* "%AR overriden from the environment not used"
+					$orig (@ "%SHBuild-appconf.sh" $since b546)
+			)
+			),
+			/ "Clang++ detection" @ "%SHBuild-BuildApp.txt"
+				^ "%SHBuild_CheckCXX" ~ 'rmatch?',
+				// This is more accurate, but a bit inefficiet.
+			/ "improved thread detection and distinguished thread flags \
+				for %CXXFLAGS and %LDFLAGS" $=
+			(
+				// MinGW Clang++ supports '-mthreads' at the linker command, \
+					but not the compiler command.
+				/ "improved detection" @ "%SHBuild-common-toolchain.sh",
+				/ @ "%SHBuild-YSLib-common.txt" $=
+				(
+					/ "functions ('get-thread-option', \
+						'get-thread-option-silent')
+						-> ('get-thread-options', 'get-thread-options-silent');
+					* $comp "thread flags detection"
+						$orig (@ "%SHBuild-common-toolchain.sh" $since b791)
+						// This was not consistent to the original \
+							%SHBuild-common-options.sh since then.
+				);
+				/ "default value" @ "%LDFLAGS" ^ "thread-specific flags"
+					@ "(%SHBuild-common-toolchain.sh, \
+					SHBuild-YSLib-common.txt)";
+				- "redundant system library option '-lpthread'"
+					$effective @ ("%(SHBuild-BuildApp.sh, \
+					SHBuild-BuildApp.txt, SHBuild-YSLib-build.txt)")
+			),
+			/ "improved support for LLVM-based toolchains"
+				@ "%(SHBuild-common-toolchain.sh, SHBuild-YSLib-common.txt)"
+				$=
+			(
+				/ "refined options to supported LLD as the linker";
+				+ "stub to enable LLD for Clang++" @ "platform %Win32"
+			),
+			/ @ "%SHBuild-YSLib-common.txt" $=
+			(
+				+ "%AR detection",
+					// This is consistent with %SHBuild-common-toolchain.sh.
+				+ "'lib' prefix" @ "installed import library names",
+					// This already works without the prefix. Now the names \
+						are more consistent to Cygwin and MSYS2.
+				/ "simplified" @ "%LD not used in the command" $=
+				(
+					/ "disabled showing %LDFLAG";
+					/ DLI "disabled unused 'LDFLAGS*' and 'LIBS*' settings"
+				),
+				+ "real import library installation support"
+					// See $2020-11 @ %Documentation::Workflow.
+			),
+			/ @ "%SHBuild-YSLib-build.txt" $=
+			(
+				/ DLDI "simplified 'system-quote' with 'SHBuild_2m' calls",
+				/ "YSLib libraries building" $=
+				(
+					/ DLDI "removed unused %LIBS restoring",
+					* $re_add(b838) "possibly missing quotes on '-L' argument \
+						of output directory on the %LIBS environment"
+						$since b796 ^ 'system-quote',
+					+ "import library generation",
+					* "missing compiler check" @ "workaround specific for G++"
+						$since b900
+						// The option '-fno-var-tracking-assignments' is not \
+							compatible to Clang++.
+				),
+				/ $forced DLDI "library installation"
+					$dep_from ("real import library installation support"
+					@ "%SHBuild-YSLib-common.txt")
+					// See $2020-11 @ %Documentation::Workflow.
+			),
+			/ "disabled LTO for Clang++" @ "%(SHBuild-YSLib-common.txt, \
+				SHBuild-common-options.sh)" $dep_to "cross-compiler ABI fix",
+				// LLD seems the only option to recognize the LLVM bitcode, \
+				but the final linking still does not work. Note this is \
+				directly fixed in the common scripts.
+			(
+			/ DLI "simplified quotes in path not following ','"
+				^ "simplified 'system-quote' with 'SHBuild_2m' calls"
+				$effective @ "%(SHBuild-YSLib-build.txt, SHBuild-Buildapp.txt)";
+			* $comp "wrong normalization of path" @ "%LIBS"
+				@ "%SHBuild-BuildApp.txt"
+				$orig (@ "%SHBuild-BuildApp.sh" $since b563)
+			),
+			* $comp "wrong normalization of path" @ "%LIBS"
+				@ "%SHBuild-BuildApp.sh" $since b563
+				(/ $impl ^ 'SHBuild_2m' ~ 'SHBuild_2w')
+		)
+	),
+	(
+	* "missing fat LTO object support" @ "%(Makefile.mingw, Makefile.gnu)"
+		@ "%3rdparty/FreeImage" $since b900;
+	/ $forced "rebuilt library %FreeImage for %release configurations"
+		@ "platform %(MinGW32, MinGW64, Linux)" $dep_to "cross-compiler ABI fix"
+	),
+	* $comp "Clang++ build issues" $since b639 $=
+	(
+		* "Clang++ compiling error" @ "platform %Win32" $since b639,
+		* $comp "Clang++ linking broken" $since b900
+			$dep_all_from "cross-compiler ABI fix",
+			// Currently fat LTO objects are the only way to support both G++ \
+				and Clang++ with probably partial LTO support in some \
+				confiugrations.
+	),
+	/ "make %C_LTO overridable" $effective @ "all makefiles"
+		@ "%3rdparty/FreeImage",
+	/ @ "%SHBuild-YSTest.sh" @ "project %YSTest" $=
+	(
+		/ "checked %SHBuild_BuildDir to override application base directory"
+		/ "checked %SHBuild_SystemPrefix and %SHBuild_SysRoot to set and \
+			export %SHBuild_Bin"
+			// This allows overriding of %$SHBuild_SysRoot to determine \
+				different Sysroot directory and build directory being used.
+	)
+),
+
+b901
 (
 	/ %YBase.YStandardEx $=
 	(

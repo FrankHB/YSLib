@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2444
+\version r2448
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2020-10-23 05:55 +0800
+	2020-11-09 17:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,8 @@
 //	<set>, <stack>, <unordered_map>, <unordered_set>, <vector>,
 //	<ystdex/memory_resource.h>, platform::basic_types, YFM_YCLib_Container,
 //	platform::basic_utilities, platform::containers, '*string_view',
-//	MakePathString, uopen, 'uf*', 'up*', 'omode_conv*', StreamPut, etc;
+//	MakePathString, uopen, 'uf*', 'up*', 'omode_conv*', StreamGet, StreamPut,
+//	etc;
 #include YFM_YCLib_Reference // for YFM_YCLib_Reference, platform::references,
 //	<memory>, '*_ptr', 'make*_ptr', lref;
 #include YFM_YCLib_Keys // for <bitset>, YCLib key space;
@@ -322,6 +323,8 @@ using platform::UniqueFile;
 using platform::DefaultPMode;
 using platform::omode_conv;
 using platform::omode_convb;
+//! \since build 902
+using platform::StreamGet;
 //! \since build 901
 using platform::StreamPut;
 //! \since build 901

@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r7931
+\version r7974
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2020-09-30 12:03 +0800
+	2020-11-03 14:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -503,27 +503,6 @@ public:
 	//! \since build 845
 	DefDeCopyAssignment(ValueCategoryMismatch)
 };
-
-
-/*!
-\brief 列表类型错误。
-\note 预期列表或列表引用。
-
-列表类型或非列表类型不匹配的错误。
-*/
-class YF_API ListTypeError : public TypeError
-{
-public:
-	//! \since build 834
-	using TypeError::TypeError;
-	//! \since build 845
-	DefDeCopyCtor(ListTypeError)
-	//! \brief 虚析构：类定义外默认实现。
-	~ListTypeError() override;
-
-	//! \since build 845
-	DefDeCopyAssignment(ListTypeError)
-};
 //@}
 
 
@@ -549,21 +528,25 @@ public:
 
 
 /*!
-\brief 无效语法。
+\brief 列表类型错误。
+\note 预期列表或列表引用。
+\since build 834
+\todo 捕获并保存类型信息。
 
-特定上下文中的语法错误。
+列表类型或非列表类型不匹配的错误。
 */
-class YF_API InvalidSyntax : public NPLException
+class YF_API ListTypeError : public TypeError
 {
 public:
-	using NPLException::NPLException;
+	//! \since build 834
+	using TypeError::TypeError;
 	//! \since build 845
-	DefDeCopyCtor(InvalidSyntax)
+	DefDeCopyCtor(ListTypeError)
 	//! \brief 虚析构：类定义外默认实现。
-	~InvalidSyntax() override;
+	~ListTypeError() override;
 
 	//! \since build 845
-	DefDeCopyAssignment(InvalidSyntax)
+	DefDeCopyAssignment(ListTypeError)
 };
 
 
@@ -571,10 +554,11 @@ public:
 \brief 参数不匹配。
 \since build 771
 */
-class YF_API ParameterMismatch : public InvalidSyntax
+class YF_API ParameterMismatch : public ListTypeError
 {
 public:
-	using InvalidSyntax::InvalidSyntax;
+	//! \since build 902
+	using ListTypeError::ListTypeError;
 	//! \since build 845
 	DefDeCopyCtor(ParameterMismatch)
 	//! \brief 虚析构：类定义外默认实现。
@@ -613,6 +597,25 @@ public:
 
 	DefGetter(const ynothrow, size_t, Expected, expected)
 	DefGetter(const ynothrow, size_t, Received, received)
+};
+
+
+/*!
+\brief 无效语法。
+
+特定上下文中的语法错误。
+*/
+class YF_API InvalidSyntax : public NPLException
+{
+public:
+	using NPLException::NPLException;
+	//! \since build 845
+	DefDeCopyCtor(InvalidSyntax)
+	//! \brief 虚析构：类定义外默认实现。
+	~InvalidSyntax() override;
+
+	//! \since build 845
+	DefDeCopyAssignment(InvalidSyntax)
 };
 
 
@@ -838,15 +841,27 @@ YB_ATTR_nodiscard YF_API YB_PURE TermTags
 TermToTags(TermNode&);
 
 /*!
-\brief 对列表项抛出指定预期访问值的类型的异常。
-\throw ListTypeError 消息中包含由参数指定的预期访问值的类型的异常。
 \note 后两个参数传递给 TermToStringWithReferenceMark ，预期用法通常相同。
 \sa TermToStringWithReferenceMark
+*/
+//@{
+/*!
+\brief 对列表项抛出指定预期访问值的类型的异常。
+\throw ListTypeError 消息中包含由参数指定的预期访问值的类型的异常。
 \since build 855
 */
 YB_NORETURN YF_API void
 ThrowListTypeErrorForInvalidType(const ystdex::type_info&, const TermNode&,
 	bool);
+
+/*!
+\brief 抛出对非列表值预期列表类型的异常。
+\throw ListTypeError 值不是列表。
+\since build 902
+*/
+YB_NORETURN YF_API void
+ThrowListTypeErrorForNonlist(const TermNode&, bool);
+//@}
 
 /*!
 \brief 标记记号节点：递归变换节点，转换其中的词素为记号值。

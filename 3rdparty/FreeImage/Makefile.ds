@@ -28,9 +28,9 @@ L := -l
 T := -o$(space)
 
 ifeq ($(CONF), debug)
-	C_LTO :=
+	C_LTO ?=
 else
-	C_LTO := -flto
+	C_LTO ?= -flto
 endif
 CFLAGS ?= -c -O3 $(C_LTO) -pipe -Wno-attributes -fvisibility=hidden -DNO_LCMS
 CFLAGS += $(INCLUDE)

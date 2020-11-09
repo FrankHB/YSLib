@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3792
+\version r3808
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2020-10-25 06:11 +0800
+	2020-11-03 09:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,12 +27,14 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_Dependency // for set, string, ystdex::isspace, std::istream,
-//	YSLib::unique_ptr, YSLib::share_move, TokenValue, ystdex::bind1,
-//	ValueObject, NPL::AllocateEnvironment, std::piecewise_construct,
-//	NPL::forward_as_tuple, LiftOther, Collapse, LiftOtherOrCopy, NPL::IsMovable,
-//	LiftTermOrCopy, ResolveTerm, LiftTermValueOrCopy, MoveResolved,
-//	ResolveIdentifier, ystdex::plus, std::placeholders, NPL::ResolveRegular,
-//	ystdex::tolower, ystdex::swap_dependent, LiftTermRef, LiftTerm, NPL::Deref,
+//	YSLib::unique_ptr, YSLib::share_move, A1::NameTypedReducerHandler, std::ref,
+//	RelaySwitched, ThrowNonmodifiableErrorForAssignee, ThrowValueCategoryError,
+//	TokenValue, ystdex::bind1, ValueObject, NPL::AllocateEnvironment,
+//	std::piecewise_construct, NPL::forward_as_tuple, LiftOther, Collapse,
+//	LiftOtherOrCopy, NPL::IsMovable, LiftTermOrCopy, ResolveTerm,
+//	LiftTermValueOrCopy, MoveResolved, ResolveIdentifier, ystdex::plus,
+//	std::placeholders, NPL::ResolveRegular, ystdex::tolower,
+//	ystdex::swap_dependent, LiftTermRef, LiftTerm, NPL::Deref,
 //	YSLib::IO::StreamPut;
 #include YFM_NPL_NPLA1Forms // for NPL::Forms functions;
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
@@ -367,7 +369,7 @@ CheckForAssignment(TermNode& nd, ResolvedTermReferencePtr p_ref)
 			return;
 		ThrowNonmodifiableErrorForAssignee();
 	}
-	ThrowValueCategoryErrorForFirstArgument(nd);
+	ThrowValueCategoryError(nd);
 }
 
 //! \since build 856
@@ -1239,9 +1241,13 @@ LoadModule_SHBuild(REPLContext& context)
 	// NOTE: SHBuild builtins.
 	renv.DefineChecked("SHBuild_BaseTerminalHook_",
 		ValueObject(function<void(const string&, const string&)>(
-		[](const string& n, const string& val) ynothrow{
-			// XXX: Error from 'std::printf' is ignored.
-			std::printf("%s = \"%s\"\n", n.c_str(), val.c_str());
+		[&](const string& n, const string& val) ynothrow{
+		auto& os(context.GetOutputStreamRef());
+
+		YSLib::IO::StreamPut(os,
+			YSLib::sfmt("%s = \"%s\"", n.c_str(), val.c_str()).c_str());
+		if(os)
+			os << std::endl;
 	})));
 	RegisterUnary<Strict, const string>(renv, "SHBuild_BuildGCH_existed_",
 		[](const string& str) -> bool{
@@ -1283,6 +1289,7 @@ LoadModule_SHBuild(REPLContext& context)
 				if(const auto p_hook = AccessPtr<
 					function<void(const string&, const string&)>>(*p))
 					(*p_hook)(n, val);
+			return ValueToken::Unspecified;
 		}, term);
 	});
 	RegisterStrict(renv, "SHBuild_Install_HardLink", [&](TermNode& term){

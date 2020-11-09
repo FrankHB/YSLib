@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2286
+\version r2287
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2020-10-21 04:34 +0800
+	2020-11-08 22:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -540,7 +540,7 @@ bool
 DirectoryFindData::Read()
 {
 	const auto chk_err(
-		[this](const char* fn, ErrorCode ec) YB_NONNULL(1){
+		[this](const char* fn, ErrorCode ec) YB_NONNULL(2){
 		const auto err(::GetLastError());
 
 		if(err != ec)

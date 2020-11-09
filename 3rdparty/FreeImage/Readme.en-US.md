@@ -14,6 +14,20 @@ Since b456, the `Plugin` struct is renamed (to avoid global namespace pollution)
 
 Unmodified library code should compile, but wrappers based on old code might not work as before.
 
+## Since build 902
+
+On platform with possibly both G++ and Clang++ available, the LTO option is refined to have `-ffat-lto-object` to be built by G++ by default.
+
+The makefile variable `C_LTO` (on all platforms) is overridable now, to allow different options for toolchains incompatible to the default value.
+
+This makes the generated archive compatible both to G++ and Clang++, with (hopefully) some degrees of LTO available in some configurations without rebuilt the library for different compilers.
+
+## Since build 900
+
+Now different configurations to build the library are used.
+
+LTO is enabled in makefiles for release configurations through variable `C_LTO`. The option `-flto` should be compatible to both G++ and Clang++.
+
 ## Since build 600
 
 Based on previous revision b520:

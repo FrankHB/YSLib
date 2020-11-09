@@ -72,8 +72,6 @@ SHBOPT="-xd,\"$SHBuild_Dest\" -xid,include -xmode,2 $*"
 
 # shellcheck source=./SHBuild-common-toolchain.sh
 . "$SHBuild_Bin/SHBuild-common-toolchain.sh"
-AR=$(SHBuild_GetAR_ "$CXX" "$AR")
-export AR
 if [[ "$SHBuild_Debug" != '' ]]; then
 	SHBuild_Puts 'Use debug configuration '"$SHBuild_Conf"'.'
 	CXXFLAGS_OPT_DBG='-O0 -g -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC'
@@ -112,7 +110,7 @@ SHBuild_CheckHostPlatform
 if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
 	SHBuild_YF_SystemLibs='-lgdi32 -limm32'
 else
-	SHBuild_YF_SystemLibs='-Wl,-dy -lxcb -lpthread'
+	SHBuild_YF_SystemLibs='-Wl,-dy -lxcb'
 	SHBuild_YF_CFlags_freetype="$(pkg-config --cflags freetype2 2> /dev/null)"
 	# XXX: The default value of %SHBuild_YF_CFlags_freetype is known having
 	#	quotes.
@@ -133,17 +131,18 @@ else
 	: "${SHBuild_YF_Libs_FreeImage:=-lFreeImage}"
 fi
 
-LIBS="$LIBS_RPATH -L\"$(SHBuild_2w "$SHBuild_Bin/../lib")\""
+LIBS="$LIBS_RPATH -L\"$(SHBuild_2m "$SHBuild_Bin/../lib")\""
 
 if [[ "$SHBuild_Static" == '' ]]; then
 	SHBuild_YSLib_Flags="-DYF_DLL -DYB_DLL \
 		$SHBuild_YF_CFlags_freetype -I\"$SHBuild_Bin/../include\""
 	export LIBS="$LIBS $SHBuild_YSLib_LibNames"
 else
-	# XXX: Use 'g++' even when %CXX is 'clang++' to work around LTO issue for
-	#	static executables in Linux.
+	# XXX: Use 'g++' even when %CXX is 'clang++' to work around the LTO issue
+	#	for static executables in Linux.
+	# TODO: Test for other platforms?
 	if SHBuild_Put "$CXX" | grep clang++ > /dev/null; then
-		# XXX: No prefix and postfix of %CXX are supported yet.
+		# XXX: No prefix and postfix of %LD are supported yet.
 		LD=g++
 	fi
 	SHBuild_YSLib_Flags="$SHBuild_YF_CFlags_freetype \

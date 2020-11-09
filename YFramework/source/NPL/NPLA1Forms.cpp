@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r19495
+\version r19504
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2020-10-15 03:01 +0800
+	2020-11-09 00:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,8 +39,8 @@
 //	LiftOtherOrCopy, ResolveTerm, ystdex::equality_comparable,
 //	std::allocator_arg, NPL::AsTermNode, ystdex::exchange,
 //	NPL::SwitchToFreshEnvironment, TermTags, ystdex::expand_proxy,
-//	NPL::AccessRegular, GetLValueTagsOf, RegularizeTerm,
-//	ThrowValueCategoryErrorForFirstArgument, TermReference,
+//	NPL::AccessRegular, TermReference, GetLValueTagsOf, RegularizeTerm,
+//	ThrowValueCategoryError, ThrowListTypeErrorForNonlist,
 //	NPL::TryAccessReferencedLeaf, ystdex::invoke_value_or,
 //	ystdex::call_value_or, RelaySwitched, LiftMovedOther, LiftCollapsed,
 //	ystdex::make_transform, NPL::AllocateEnvironment, NPL::TryAccessTerm,
@@ -332,7 +332,7 @@ ThrowInsufficientTermsErrorFor(InvalidSyntax&& e)
 }
 
 //! \since build 899
-YF_API void
+void
 BindParameterChecked(const shared_ptr<Environment>& p_env, const TermNode& t,
 	TermNode& o)
 {
@@ -1229,12 +1229,12 @@ CheckResolvedListReference(TermNode& nd, bool has_ref)
 	if(has_ref)
 	{
 		if(YB_UNLIKELY(!IsBranchedList(nd)))
-			throw ListTypeError(ystdex::sfmt(
-				"Expected a non-empty list for the 1st argument, got '%s'.",
+			throw ListTypeError(
+				ystdex::sfmt("Expected a non-empty list, got '%s'.",
 				TermToStringWithReferenceMark(nd, true).c_str()));
 	}
 	else
-		ThrowValueCategoryErrorForFirstArgument(nd);
+		ThrowValueCategoryError(nd);
 }
 
 //! \since build 874
@@ -1305,9 +1305,7 @@ SetRestImpl(TermNode& term, void(&lift)(TermNode&))
 				swap(nd_x, nd_new);
 			}
 			else
-				throw ListTypeError(ystdex::sfmt("Expected a list for"
-					" the 2nd argument, got '%s'.",
-					TermToStringWithReferenceMark(nd_y, p_ref_y).c_str()));
+				ThrowListTypeErrorForNonlist(nd_y, p_ref_y);
 		}, y);
 	}, term);
 }

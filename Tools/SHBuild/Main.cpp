@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3984
+\version r4009
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2020-10-21 04:45 +0800
+	2020-10-27 00:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,8 @@ See readme file for details.
 #include YFM_NPL_Dependency // for NPL::DepsEventType, NPL, A1, Forms,
 //	NPL::DecomposeMakefileDepList, NPL::FilterMakefileDependencies,
 //	NPL::Install*;
-#include <iostream> // for std::cout;
+#include <ystdex/string.hpp> // for ystdex::write_literal;
+#include <iostream> // for std::cout, std::endl;
 #include YFM_YSLib_Core_YConsole // for YSLib::Consoles;
 #include <ystdex/concurrency.h> // for ystdex::task_pool;
 #if YCL_Win32
@@ -387,24 +388,23 @@ RunNPLFromStream(const char* name, std::istream&& is)
 			// XXX: Overriding.
 			rctx.GetRecordRef().Define("SHBuild_BaseTerminalHook_",
 				ValueObject(function<void(const string&, const string&)>(
-				[](const string& n, const string& val){
-					// XXX: Errors from 'std::printf' and 'std::puts' are
-					//	ignored.
+				[&](const string& n, const string& val){
 					using namespace Consoles;
-
+					auto& os(context.GetOutputStreamRef());
 					Terminal te;
+
 					{
 						const auto t_gd(te.LockForeColor(DarkCyan));
 
-						std::printf("%s", n.c_str());
+						YSLib::IO::StreamPut(os, n.c_str());
 					}
-					std::printf(" = \"");
+					ystdex::write_literal(os, " = \"");
 					{
 						const auto t_gd(te.LockForeColor(DarkRed));
 
-						std::printf("%s", val.c_str());
+						YSLib::IO::StreamPut(os, val.c_str());
 					}
-					std::puts("\"");
+					os.put('"') << std::endl;
 			})));
 		}));
 		TryLoadSource(context, name, is);
@@ -1053,7 +1053,11 @@ main(int argc, char* argv[])
 		}
 		else if(xargc == 1)
 		{
-			std::printf("%s%s%s", "Usage: [ENV ...] ",
+			using YSLib::IO::StreamPut;
+			using YSLib::sfmt;
+			auto& os(std::cout);
+
+			StreamPut(os, sfmt("%s%s%s", "Usage: [ENV ...] ",
 				quote(string(xargv[0])).c_str(),
 				" SRCPATH [OPTIONS ... [-- ARGS...]]\n"
 				"\tThis program is a tool to build the source tree, with some"
@@ -1066,12 +1070,13 @@ main(int argc, char* argv[])
 				"\n[ENV ...]\n\tThe environment variables settings in shell."
 				" (Note not all shells support this syntax, but the"
 				" environment variables are still effective.)"
-				" Currently accepted settings are listed below:\n\n");
+				" Currently accepted settings are listed below:\n\n").c_str());
 			for(const auto& env : DeEnvs)
-				std::printf("  %s\n\t%s Default value is %s.\n\n", env[0],
+				StreamPut(os, sfmt("  %s\n\t%s Default value is %s.\n\n", env[0],
 					env[2], env[1][0] == '\0' ? "empty"
-					: Quote(string(env[1])).c_str());
-			std::puts("SRCPATH\n\tThe source directory to be recursively"
+					: Quote(string(env[1])).c_str()).c_str());
+			ystdex::write_literal(os,
+				"SRCPATH\n\tThe source directory to be recursively"
 				" searched. A subdirectory thereof would be ignored implicitly "
 				" if its name is beginned with a dot ('.') character. A"
 				" subdirectory whose name is same to one of the names specified"
@@ -1087,13 +1092,14 @@ main(int argc, char* argv[])
 				" building mode, respectively. In the building mode, all"
 				" options including these prefixed values of SHBuild_CFLAGS or"
 				" SHBuild_CXXFLAGS would be sent to the building backends,"
-				" except for listed below (handled by this program):\n");
+				" except for listed below (handled by this program):\n\n");
 			for(const auto& opt : OptionsTable)
 			{
-				std::printf("  %s%s\n", opt.prefix, opt.option_arg);
+				StreamPut(os,
+					sfmt("  %s%s\n", opt.prefix, opt.option_arg).c_str());
 				for(const auto& des : opt.option_details)
-					std::printf("\t%s\n", des);
-				std::putchar('\n');
+					StreamPut(os, sfmt("\t%s\n", des).c_str());
+				os << '\n';
 			}
 		}
 	}, {}, Err, [](const std::exception& e, RecordLevel lv){

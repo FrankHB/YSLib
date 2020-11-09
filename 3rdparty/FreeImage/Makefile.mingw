@@ -73,9 +73,9 @@ WIN32_LDFLAGS := -Wl,--subsystem,windows:5.0,--major-os-version,5
 
 RESOURCE := $(RCFILE:.rc=.coff)
 ifeq ($(CONF), debug)
-	C_LTO :=
+	C_LTO ?=
 else
-	C_LTO := -flto
+	C_LTO ?= -flto -ffat-lto-objects
 endif
 C_CXXFLAGS ?= -O3 $(C_LTO) -fdata-sections -ffunction-sections -pipe -Wno-attributes -fexceptions -DNDEBUG
 CFLAGS ?= $(C_CXXFLAGS) -DDISABLE_PERF_MEASUREMENT $(WIN32_CFLAGS)

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4947
+\version r4978
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2020-10-25 06:11 +0800
+	2020-11-08 22:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,27 +26,27 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_FileSystem // for basic_string, default_delete,
-//	make_observer, std::min, std::accumulate, std::tm, ystdex::read_uint_le,
-//	YAssertNonnull, ystdex::write_uint_le, std::bind, std::ref,
-//	ystdex::retry_on_cond;
+#include YFM_YCLib_FileSystem // for basic_string, std::is_integral,
+//	std::chrono::system_clock, YAssertNonnull, default_delete, make_observer,
+//	ystdex::retry_on_cond, std::tm, std::is_same, std::min, std::accumulate,
+//	ystdex::read_uint_le, std::bind, std::ref, ystdex::write_uint_le;
 #include YFM_YCLib_FileIO // for platform_ex::MakePathStringW,
 //	platform_Ex::MakePathStringU, MakePathString, Deref, ystdex::throw_error,
 //	std::invalid_argument, std::errc::function_not_supported, YCL_CallF_CAPI,
 //	CategorizeNode, complete FileDescriptor, ystdex::ntctslen, std::wctob,
-//	std::towupper, ystdex::restrict_length, std::min, ystdex::ntctsicmp,
+//	std::towupper, ystdex::restrict_length, ystdex::ntctsicmp,
 //	std::errc::invalid_argument, std::strchr;
-#include YFM_YCLib_NativeAPI // for Mode, struct ::stat, ::stat,
-//	::GetFileAttributesW, platform_ex::cstat, platform_ex::estat, ::futimens,
-//	::linkat, ::symlink, ::lstat, ::readlink;
+#include YFM_YCLib_NativeAPI // for ::dev_t, ::ino_t, Mode, struct ::stat,
+//	::stat, ::GetFileAttributesW, platform_ex::cstat, platform_ex::estat,
+//	::futimens, ::linkat, ::symlink, ::lstat, ::readlink;
 #include "CHRLib/YModules.h"
 #include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeUCS2LE;
-#include <ystdex/ctime.h> // for ystdex::is_date_range_valid,
+#include <ystdex/ctime.h> // for std::time_t, ystdex::is_date_range_valid,
 //	ystdex::is_time_no_leap_valid;
 #if YCL_Win32
-#	include YFM_Win32_YCLib_MinGW32 // for platform_ex::FileAttributes,
-//	platform_ex::GetErrnoFromWin32, platform_ex::Invalid,
-//	platform_ex::ConvertTime, platform_ex::ToHandle,
+#	include YFM_Win32_YCLib_MinGW32 // for YCL_CallF_Win32,
+//	platform_ex::FileAttributes, platform_ex::GetErrnoFromWin32,
+//	platform_ex::Invalid, platform_ex::ConvertTime, platform_ex::ToHandle,
 //	platform_ex::QueryFileNodeID, platform_ex::QueryFileLinks,
 //	platform_ex::QueryFileTime, platform_ex::SetFileTime,
 //	platform_ex::ResolveReparsePoint, platform_ex::DirectoryFindData;
@@ -274,20 +274,35 @@ SetFileTime(int fd, const ::timespec(&times)[2])
 	yunused(fd), yunused(times);
 	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #else
+	// XXX: This should at least work in WSL since Windows 10 1809. See
+	//	https://github.com/Microsoft/WSL/issues/1399.
 	YCL_CallF_CAPI(, ::futimens, fd, times);
 #endif
+}
+
+//! \since build 902
+FileTime
+ToFileTime(std::time_t t) ynothrow
+{
+	// NOTE: Sicne ISO C++20, std::chrono::system_clock is specified to measure
+	//	UNIX time. This is still true before ISO C++20 for supported platforms
+	//	other than %YCL_Win32 here, which makes the system time directly usable
+	//	as the filesystem time. Nevertheless, this is not relied on, except the
+	//	conversion here.
+	// TODO: Use ISO C++20 %std::chrono::file_time equivalence.
+	return std::chrono::system_clock::from_time_t(t).time_since_epoch();
 }
 
 //! \since build 631
 //@{
 const auto get_st_atime([](struct ::stat& st){
-	return FileTime(st.st_atime);
+	return ToFileTime(st.st_atime);
 });
 const auto get_st_mtime([](struct ::stat& st){
-	return FileTime(st.st_mtime);
+	return ToFileTime(st.st_mtime);
 });
 const auto get_st_matime([](struct ::stat& st){
-	return array<FileTime, 2>{FileTime(st.st_mtime), FileTime(st.st_atime)};
+	return array<FileTime, 2>{ToFileTime(st.st_mtime), ToFileTime(st.st_atime)};
 });
 //@}
 #endif
@@ -488,6 +503,7 @@ ReadLink(const char* path)
 {
 #if YCL_DS
 	YAssertNonnull(path);
+	yunused(path);
 	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #elif YCL_Win32
 	// TODO: Simplify?
@@ -916,7 +932,7 @@ YCL_Impl_FileSystem_ufunc_1(uremove)
 	//	empty directories.
 	return CallNothrow({}, [=]{
 		return CallFuncWithAttr([](const wchar_t* wstr, FileAttributes attr)
-			YB_ATTR_LAMBDA_QUAL(ynothrow, YB_NONNULL(1)){
+			YB_ATTR_LAMBDA_QUAL(ynothrow, YB_NONNULL(2)){
 			return attr & FileAttributes::Directory ? ::_wrmdir(wstr) == 0
 				: UnlinkWithAttr(wstr, attr);
 		}, path);

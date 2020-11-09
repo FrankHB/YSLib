@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8452
+\version r8458
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-10-19 06:22 +0800
+	2020-11-03 10:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -206,11 +206,12 @@ YB_NORETURN inline PDefH(void, ThrowUnsupportedLiteralError, string_view sv)
 //@}
 
 /*!
-\brief 抛出第一参数不符合预期值类别的异常。
-\throw ValueCategory 第一参数值类别错误。
+\brief 抛出不符合预期值类别的异常。
+\throw ValueCategory 值类别错误。
+\since build 902
 */
 YB_NORETURN YF_API void
-ThrowValueCategoryErrorForFirstArgument(const TermNode&);
+ThrowValueCategoryError(const TermNode&);
 //@}
 
 
@@ -964,7 +965,7 @@ public:
 	\sa Wrapping
 	\since build 751
 
-	对每一个子项求值，重复 Wrapping 次；
+	求值每一个参数子项，整体重复 Wrapping 次；
 	然后断言检查项，对可调用的项调用 Hanlder 。
 	项检查不存在或在检查通过后，变换无参数规约，然后对节点调用 Hanlder ，
 		否则抛出异常。
@@ -1637,6 +1638,7 @@ public:
 	\since build 899
 
 	指定字符串参数作为加载对象描述，结合自身状态加载输入为待求值的项。
+	加载翻译单元时，加载例程被同步地调用。
 	*/
 	Loader Load{DefaultLoad};
 	/*!

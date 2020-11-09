@@ -14,7 +14,7 @@ $def! env_SHBuild_Common_ $provide! (
 	$assert-nonempty
 	$env-de!
 	$redef!
-	SHBuild_2w
+	SHBuild_CheckCXX
 	SHBuild_GetPlatformStrings
 	SHBuild_Platform_Detect
 	build-with-conf-opt
@@ -27,6 +27,7 @@ $def! env_SHBuild_Common_ $provide! (
 	system-ok
 	system-or-puts
 	system-check
+	system-quote-m_
 	win32?
 ) load (++ SR_Share_NPLA1_ "/SHBuild-YSLib-common.txt");
 
@@ -37,7 +38,7 @@ $assert-nonempty env-os, $assert-nonempty env-arch;
 $def! host-platform_ SHBuild_Platform_Detect env-os env-arch;
 $env-de! SHBuild_YSLib_Platform host-platform_;
 
-$def! SR_Prefix_ SHBuild_DirectoryOf_ (SHBuild_DirectoryOf_ SR_Var_NPLA1_);
+$def! SR_Prefix_ SHBuild_DirectoryOf_ (SHBuild_DirectoryOf_ SR_Share_NPLA1_);
 $def! SR_Bin_ ++ SR_Prefix_ "/bin";
 $def! SR_Include_ ++ SR_Prefix_ "/include";
 $def! SR_Lib_ ++ SR_Prefix_ "/lib";
@@ -83,7 +84,6 @@ $if (string-empty? arg1) (() SHBuild_PrintUsage)
 	$unless (dynamic) puts "Static mode turned on by configuration.";
 	$def! SHBuild_Dest ++ (safeenv-get "SHBuild_BuildPrefix") "." SHBuild_Conf;
 	"XXX", "No extra configuration arguments are supported yet.";
-	"TODO", "Implement SHBuild_GetAR_.";
 	safeenv-set "CXXFLAGS_COMMON" "";
 	$redef! debug
 		$or? debug (not? (string-empty? (safeenv-get "SHBuild_Debug")));
@@ -102,10 +102,10 @@ $if (string-empty? arg1) (() SHBuild_PrintUsage)
 		$def! SHBuild_YF_CFlags_freetype ""
 	)
 	(
-		$def! SHBuild_YF_SystemLibs "-Wl,-dy -lxcb -lpthread";
+		$def! SHBuild_YF_SystemLibs "-Wl,-dy -lxcb";
 		$def! SHBuild_YF_CFlags_freetype system-or-puts env-os
 			(cons-cmd "pkg-config" "--cflags" "freetype2")
-			(++ "-I\"" SR_Include_ "\"")
+			(++ "-I" (system-quote-m_ env-os SR_Include_))
 	);
 	$defl! stat-file? (filename)
 	(
@@ -123,27 +123,29 @@ $if (string-empty? arg1) (() SHBuild_PrintUsage)
 	);
 	$env-de! SHBuild_YF_Libs_FreeImage ++ "-lFreeImage" ($if (debug) "d" "");
 	$def! LIBS
-		++ (safeenv-get "LIBS_RPATH") " -L\"" (SHBuild_2w env-os SR_Lib_) "\"";
+		++ (safeenv-get "LIBS_RPATH") " -L" (system-quote-m_ env-os SR_Lib_);
 	$if (dynamic)
 	(
 		$def! SHBuild_YSLib_Flags ++ "-DYF_DLL -DYB_DLL "
-			SHBuild_YF_CFlags_freetype " -I\"" SR_Include_ "\"";
+			SHBuild_YF_CFlags_freetype " -I"
+			(system-quote-m_ env-os SR_Include_);
 		safeenv-set "LIBS" (SHBuild_TrimOptions_
 			(cons-cmd LIBS SHBuild_YSLib_LibNames))
 	)
 	(
-		"XXX", "Use 'g++' even when %CXX is 'clang++' to work around LTO issue",
-			" for static executables in Linux.";
-		$if (rmatch? (safeenv-get "CXX") ".*clang++.*")
+		"XXX", "Use 'g++' even when %CXX is 'clang++' to work around the LTO",
+			" issue for static executables in Linux.";
+		"TODO", "Test for other platforms?";
+		$if (eqv? (SHBuild_CheckCXX env-os (safeenv-get "CXX")) "Clang++")
 		(
-			"XXX", "No prefix and postfix of %CXX are supported yet.";
+			"XXX", "No prefix and postfix of %LD are supported yet.";
 			safeenv-set "LD" "g++"
 		);
-		$def! SHBuild_YSLib_Flags
-			++ SHBuild_YF_CFlags_freetype " -I\"" SR_Include_ "\"";
+		$def! SHBuild_YSLib_Flags ++ SHBuild_YF_CFlags_freetype " -I"
+			(system-quote-m_ env-os SR_Include_);
 		$def! SHBuild_YSLib_LibNames cons-cmd SHBuild_YSLib_LibNames
 			SHBuild_YF_Libs_FreeImage SHBuild_YF_Libs_freetype
-			(++ "-L\"" SR_Lib_ "\"") SHBuild_YF_SystemLibs;
+			(++ "-L" (system-quote-m_ env-os SR_Lib_)) SHBuild_YF_SystemLibs;
 		safeenv-set "LIBS" (SHBuild_TrimOptions_
 			(cons-cmd LIBS "-Wl,dn" SHBuild_YSLib_LibNames))
 	);

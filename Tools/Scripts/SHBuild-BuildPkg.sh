@@ -5,7 +5,7 @@
 : "${SHBuild_Bin:=$(cd "$(dirname "$0")" && pwd)}"
 : "${SHBuild:="$SHBuild_Bin/SHBuild"}"
 
-"$SHBuild" -xcmd,RunNPLFile "$SHBuild_Bin/../var/NPLA1/SHBuild-BuildApp.txt" \
+"$SHBuild" -xcmd,RunNPLFile "$SHBuild_Bin/../share/NPLA1/SHBuild-BuildApp.txt" \
 	"$@"
 # TODO: Package.
 

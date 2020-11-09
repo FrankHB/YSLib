@@ -25,9 +25,9 @@ LIBRARIES := -lstdc++
 
 C_CXXFLAGS_GC ?= -fdata-sections -ffunction-sections
 ifeq ($(CONF), debug)
-	C_LTO :=
+	C_LTO ?=
 else
-	C_LTO := -flto
+	C_LTO ?= -flto -ffat-lto-objects
 endif
 C_CXXFLAGS ?= -O3 $(C_LTO) -fPIC -pipe -Wno-attributes -fexceptions $(C_CXXFLAGS_GC)
 CFLAGS ?= $(C_CXXFLAGS)

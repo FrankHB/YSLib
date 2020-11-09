@@ -72,7 +72,7 @@ SHBuild_GetAR_()
 export CC
 : "${CXX:=g++}"
 export CXX
-: "${AR:=ar}"
+: "${AR:=$(SHBuild_GetAR_ "$CXX" ar)}"
 export AR
 : "${ARFLAGS:=rcs}"
 export ARFLAGS

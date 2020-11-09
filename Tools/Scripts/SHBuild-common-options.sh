@@ -6,10 +6,9 @@
 # XXX: The error is ignored.
 # shellcheck disable=2164
 : "${SHBuild_AppBaseDir=$(cd "$(dirname "$0")"; pwd)}"
-: "${AR:=gcc-ar}"
 # shellcheck source=./SHBuild-common-toolchain.sh
 . "$SHBuild_ToolDir/SHBuild-common-toolchain.sh" # for
-#	SHBuidd-common-toolchain.sh, CXX.
+#	SHBuid-common-toolchain.sh, CXX.
 
 : "${C_CXXFLAGS_GC:=-fdata-sections -ffunction-sections}"
 
@@ -62,12 +61,30 @@ fi
 	-Wsign-conversion \
 	"}"
 
+# The call of %SHBuild_CheckCXX should have initialized %SHBuild_Env_TempDir.
 # TODO: Impl without pthread?
 if "$CXX" -dumpspecs 2>& 1 | grep mthreads: > /dev/null; then
 	CXXFLAGS_IMPL_COMMON_THRD_='-mthreads'
-fi
-if ! "$CXX" -dumpspecs 2>& 1 | grep no-pthread: > /dev/null; then
+	LDFLAGS_IMPL_COMMON_THRD_='-mthreads'
+elif echo 'int main(){}' | "$CXX" -xc++ \
+	-o"$SHBuild_Env_TempDir/null" -Werror -mthreads - 2> /dev/null; then
+	if echo 'int main(){}' | "$CXX" -xc++ \
+		-o"$SHBuild_Env_TempDir/null" -c -Werror -mthreads - 2> /dev/null; then
+		CXXFLAGS_IMPL_COMMON_THRD_='-mthreads'
+	else
+		CXXFLAGS_IMPL_COMMON_THRD_='-D_MT'
+	fi
+	LDFLAGS_IMPL_COMMON_THRD_='-mthreads'
+elif "$CXX" -dumpspecs 2>& 1 | grep no-pthread: > /dev/null; then
+	CXXFLAGS_IMPL_COMMON_THRD_=''
+	LDFLAGS_IMPL_COMMON_THRD_=''
+elif echo 'int main(){}' | "$CXX" -xc++ \
+	-o"$SHBuild_Env_TempDir/null" -pthread - 2> /dev/null; then
 	CXXFLAGS_IMPL_COMMON_THRD_='-pthread'
+	LDFLAGS_IMPL_COMMON_THRD_='-pthread'
+else
+	CXXFLAGS_IMPL_COMMON_THRD_='-pthread'
+	LDFLAGS_IMPL_COMMON_THRD_='-pthread'
 fi
 
 # NOTE: The compiler should be specified earlier than this line to
@@ -81,8 +98,14 @@ if [[ $SHBuild_CXX_Style_ == "Clang++" ]]; then
 		-Wshorten-64-to-32 \
 		-Wweak-vtables \
 		"}"
-	: "${CXXFLAGS_IMPL_OPT:=-flto}"
-	: "${LDFLAGS_IMPL_OPT:=-flto}"
+	LDFLAGS_IMPL_USE_LLD_=
+	# XXX: This is the only choice to support LTO on MinGW32 now, but not
+	#	ready to work.
+	# TODO: Expose this option?
+	#	LDFLAGS_IMPL_USE_LLD_=true
+	#: "${CXXFLAGS_IMPL_OPT:=-flto}"
+	#: "${LDFLAGS_IMPL_OPT:=-flto}"
+	# XXX: LTO is disabled by default for compatibility to the prebuilt binaries.
 elif [[ $SHBuild_CXX_Style_ == "G++" ]]; then
 	: "${C_CXXFLAGS_IMPL_WARNING:=" \
 		-Wdouble-promotion \
@@ -179,11 +202,26 @@ else
 	: "${DSOSFX:=.so}"
 fi
 
-: "${LDFLAGS_DYN_EXTRA:="-Wl,--no-undefined -Wl,--dynamic-list-data,\
---dynamic-list-cpp-new,--dynamic-list-cpp-typeinfo"}"
+if [[ "$LDFLAGS_IMPL_USE_LLD_" == '' ]]; then
+	: "${LDFLAGS_DYN_EXTRA:="-Wl,--no-undefined -Wl,--dynamic-list-data,\
+	--dynamic-list-cpp-new,--dynamic-list-cpp-typeinfo"}"
+else
+	if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
+		: "${LDFLAGS_DYN_EXTRA:="-Wl,-undefined,error"}"
+	else
+		# XXX: Here '-Wl,' options are separated to improve compatibility for
+		#	LLVM.
+		: "${LDFLAGS_DYN_EXTRA:="-Wl,-undefined,error \
+			-Wl,--export-dynamic-symbol='_ZTS*' \
+			-Wl,--export-dynamic-symbol='_ZTI*'"}"
+	fi
+fi
 
 : "${LDFLAGS_DYN:="$LDFLAGS_DYN_BASE $LDFLAGS_DYN_EXTRA"}"
 
-: "${LDFLAGS:="$C_CXXFLAGS_PIC $CXXFLAGS_IMPL_COMMON_THRD_ $LDFLAGS_OPT_DBG"}"
+: "${LDFLAGS:="$C_CXXFLAGS_PIC $LDFLAGS_IMPL_COMMON_THRD_ $LDFLAGS_OPT_DBG"}"
+if [[ "$LDFLAGS_IMPL_USE_LLD_" != '' ]]; then
+	LDFLAGS="-fuse-ld=lld $LDFLAGS"
+fi
 LDFLAGS="${LDFLAGS//	/ }"
 

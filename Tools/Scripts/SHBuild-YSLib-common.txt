@@ -206,17 +206,36 @@ $defl! SHBuild_CheckCXX (env-os cxx)
 		);
 		force (eval% sym e)
 	);
+$defl! SHBuild_ar_ok_ (env-os ar)
+	system-ok (cons-cmd (system-quote ar) "--help" "1&> " (get-tmp-nul env-os)
+		"2>" (get-nul-dev env-os));
+$defl! SHBuild_GetAR_ (env-os cxx ar)
+	$let ((SHBuild_CXX_Style_ SHBuild_CheckCXX env-os cxx))
+		$cond (($and? (eqv? SHBuild_CXX_Style_ "Clang++")
+				(SHBuild_ar_ok_ env-os "llvm-ar")) "llvm-ar")
+			(($and? (eqv? SHBuild_CXX_Style_ "G++")
+				(SHBuild_ar_ok_ env-os "gcc-ar")) "gcc-ar")
+			(#t ar);
+$defl! system-quote-m_ (env-os s) system-quote (SHBuild_2m env-os s);
 
-$defl! get-thread-option (cxx err-out)
+$defl! get-thread-options (env-os cxx err-out)
 (
 	"TODO", "Impl without pthread?";
-	$defl! dmp-test (name) (system-ok (cons-cmd (system-quote cxx)
+	$defl! dmp-test (name) (system-ok (cons-cmd (system-quote-m_ env-os cxx)
 		"-dumpspecs 2>& 1 | grep" name ">" err-out));
-	$if (dmp-test "no-pthread:")
-		($if (dmp-test "mthreads:") "-mthreads" "") "-pthread"
+	$cond
+		((dmp-test "mthreads:") list "-mthreads" "-mthreads")
+		((compile-ok "int main(){}" cxx
+			(get-tmp-nul env-os) "-Werror -mthreads" err-out)
+			list ($if (compile-ok "int main(){}" cxx
+				(get-tmp-nul env-os) "-c -Werror -mthreads" err-out)
+				"-mthreads" "-D_MT") "-mthreads")
+		(($or? (dmp-test "no-pthread:") (not? (compile-ok "int main(){}"
+			cxx (get-tmp-nul env-os) "-pthread" err-out))) list "" "")
+		(#t list "-pthread" "-pthread")
 );
-$defl! get-thread-option-silent (env-os cxx)
-	get-thread-option cxx (get-nul-dev env-os);
+$defl! get-thread-options-silent (env-os cxx)
+	get-thread-options env-os cxx (get-nul-dev env-os);
 $defl! get-SHBOPT_ (outdir shbopt-ext use-ld)
 (
 	$def! opt cons-cmd (++ "-xd,\"" outdir "\"") shbopt-ext;
@@ -251,21 +270,25 @@ $defl! ld-ext-adjust_win32_subsystem_ (env-os)
 $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 	do-ld-ext do-build)
 (
+	$def! use-ld $or? dynamic app;
 	$def! CXXFLAGS_OPT_DBG
 		$if debug ("-O0 -g -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC") "";
 	($env-de! CXX "g++"; safeenv-set "CXX" CXX),
-	"TODO", "Implement SHBuild_GetAR_.";
-	($env-de! AR "ar"; safeenv-set "AR" AR),
+	($env-de! AR (SHBuild_GetAR_ env-os CXX "ar"); safeenv-set "AR" AR),
 	($env-de! ARFLAGS "rcs"; safeenv-set "ARFLAGS" ARFLAGS),
 	($env-de! LD CXX; safeenv-set "LD" LD);
 	"TODO", "Add sanity checks.";
 	$env-de! C_CXXFLAGS_GC "-fdata-sections -ffunction-sections";
+	"XXX", "%LDFLAGS_GC is used to the environment detection despite %use-ld.";
 	$env-de! LDFLAGS_GC
 		($if (eqv? env-os "OS_X") "-Wl,--dead-strip" "-Wl,--gc-sections");
-	"NOTE", "See https://gcc.gnu.org/onlinedocs/gcc/Link-Options.html#Link-Options,",
-		"also https://clang.llvm.org/docs/ClangCommandLineReference.html#linker-flags.";
-	$env-de! LDFLAGS_STRIP "-s";
-	"#", "-Wl,--print-gc-sections";
+	$if use-ld
+	(
+		"NOTE", "See https://gcc.gnu.org/onlinedocs/gcc/Link-Options.html#Link-Options,",
+			"also https://clang.llvm.org/docs/ClangCommandLineReference.html#linker-flags.";
+		$env-de! LDFLAGS_STRIP "-s";
+		"#", "-Wl,--print-gc-sections"
+	);
 	$def! SHBuild_CXX_Style_ SHBuild_CheckCXX env-os CXX;
 	$unless (compile-ok-silent env-os "int main(){}" CXX
 		(cons-cmd C_CXXFLAGS_GC LDFLAGS_GC))
@@ -282,12 +305,15 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 		"-Winvalid-pch" "-Wmissing-declarations" "-Wmissing-include-dirs"
 		"-Wmultichar" "-Wno-format-nonliteral" "-Wredundant-decls" "-Wshadow"
 		"-Wsign-conversion";
-	$def! cxxflags_impl_common_thrd_ get-thread-option-silent env-os CXX;
+	$def! (cxxflags_impl_common_thrd_ ldflags_impl_common_thrd_)
+		get-thread-options-silent env-os CXX;
 	$env-de! CXXFLAGS_IMPL_WARNING "";
 	$env-de! C_CXXFLAGS_COMMON_IMPL_ "";
 	$env-de! CXXFLAGS_IMPL_OPT "";
 	$env-de! C_CXXFLAGS_IMPL_WARNING "";
-	$env-de! LDFLAGS_IMPL_OPT "";
+	$if use-ld ($env-de! LDFLAGS_IMPL_OPT "");
+	"TODO", "Expose this option?";
+	$def! use_lld_ #f;
 	$cond
 		((eqv? SHBuild_CXX_Style_ "Clang++")
 		(
@@ -296,8 +322,16 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 			$set-if-empty! CXXFLAGS_IMPL_WARNING cons-cmd
 				"-Wno-deprecated-register" "-Wno-mismatched-tags"
 				"-Wno-missing-braces" "-Wshorten-64-to-32" "-Wweak-vtables";
-			$set-if-empty! CXXFLAGS_IMPL_OPT "-flto";
-			$set-if-empty! LDFLAGS_IMPL_OPT "-flto"
+			"XXX", "LTO is disabled by default for compatibility to the",
+				" prebuilt binaries.";
+			"#", "$set-if-empty! CXXFLAGS_IMPL_OPT", "-flto";
+			$if use-ld
+			(
+				"#", "$set-if-empty! LDFLAGS_IMPL_OPT", "-flto";
+				"XXX", "This is the only choice to support LTO on MinGW32 now.",
+					"It is still not ready to link successfully.";
+				"#", "$if (win32? env-os) ($redef! use_lld_ #t)"
+			)
 		))
 		((eqv? SHBuild_CXX_Style_ "G++")
 		(
@@ -311,10 +345,15 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 			$set-if-empty! CXXFLAGS_IMPL_OPT cons-cmd
 				"-fexpensive-optimizations" "-flto=jobserver"
 				"-fno-enforce-eh-specs";
-			"XXX", "Workarond for LTO bug on MinGW. See https://sourceware.org/bugzilla/show_bug.cgi?id=12762.";
-			$set-if-empty! LDFLAGS_IMPL_OPT $if (win32? env-os)
-				"-fexpensive-optimizations -flto -Wl,-allow-multiple-definition"
-				"-fexpensive-optimizations -flto"
+			$if use-ld
+			(
+				"XXX", "Workarond for LTO bug on MinGW. See https://sourceware.org/bugzilla/show_bug.cgi?id=12762.";
+				$set-if-empty! LDFLAGS_IMPL_OPT
+					$if (win32? env-os)
+					(++ "-fexpensive-optimizations -flto"
+						" -Wl,-allow-multiple-definition")
+					"-fexpensive-optimizations -flto"
+			)
 		));
 	$env-de! CFLAGS_STD "-std=c11";
 	$env-de! CFLAGS_WARNING cons-cmd C_CXXFLAGS_WARNING C_CXXFLAGS_IMPL_WARNING;
@@ -336,38 +375,58 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 			C_CXXFLAGS_COMMON_IMPL_ CXXFLAGS_OPT_DBG);
 	$def! CFLAGS get-lang-flags "CFLAGS" CFLAGS_COMMON;
 	$def! CXXFLAGS get-lang-flags "CXXFLAGS" CXXFLAGS_COMMON;
-	"#", "%LDFLAGS_OPT_DBG is always set despite %debug configuration in",
-		" %SHBuild-BuildApp.sh.";
-	$env-de! LDFLAGS_OPT_DBG $if debug ""
-		(cons-cmd LDFLAGS_STRIP LDFLAGS_IMPL_OPT LDFLAGS_GC);
-	$def! LDFLAGS_DYN_BASE safeenv-get "LDFLAGS_DYN_BASE";
-	$def! LIBS_RPATH safeenv-get "LIBS_RPATH";
-	$if (win32? env-os) ($set-if-empty! LDFLAGS_DYN_BASE "-shared -Wl,--dll")
-	(
-		$set-if-empty! LDFLAGS_DYN_BASE "-shared";
-		$set-if-empty! LIBS_RPATH ++ "-Wl,-rpath,"
-			(SHBuild_QuoteS_ "$ORIGIN:$ORIGIN/../lib")
-	);
 	SHB_SetupPlatformVars_ (() get-current-environment) env-os;
-	$env-de! LDFLAGS_DYN_EXTRA cons-cmd "-Wl,--no-undefined"
-		(++ "-Wl,--dynamic-list-data,--dynamic-list-cpp-new,"
-		"--dynamic-list-cpp-typeinfo");
-	$env-de! LDFLAGS_DYN cons-cmd LDFLAGS_DYN_BASE LDFLAGS_DYN_EXTRA;
-	"#", "Forced setting %LDFLAGS for debug configurations?";
-	$def! LDFLAGS cons-cmd C_CXXFLAGS_PIC cxxflags_impl_common_thrd_
-		LDFLAGS_OPT_DBG;
-	"#", "%LDFLAGS_OPT_DBG is set to ' ' in %SHBuild-BuildApp.sh.";
-	"#", "Following settings are not in %SHBuild-common-options.sh.";
-	$redef! LDFLAGS SHBuild_TrimOptions_ (cons-cmd (SHBuild_TrimOptions_
-		LDFLAGS) ($if app (cons-cmd ($if dynamic LIBS_RPATH "")
-		(do-ld-ext env-os)) ($if dynamic (cons-cmd LDFLAGS_DYN) "-Wl,--dn")));
-	safeenv-set "LDFLAGS" LDFLAGS;
-	$def! SHBOPT get-SHBOPT_ outdir shbopt-ext ($or? dynamic app);
+	$if use-ld
+	(
+		"#", "%LDFLAGS_OPT_DBG is always set despite %debug configuration in",
+			" %SHBuild-BuildApp.sh.";
+		$env-de! LDFLAGS_OPT_DBG $if debug ""
+			(cons-cmd LDFLAGS_STRIP LDFLAGS_IMPL_OPT LDFLAGS_GC);
+		$def! LDFLAGS_DYN_BASE safeenv-get "LDFLAGS_DYN_BASE";
+		$def! LIBS_RPATH safeenv-get "LIBS_RPATH";
+		$if (win32? env-os)
+			($set-if-empty! LDFLAGS_DYN_BASE
+				($if use_lld_ "-shared" "-shared -Wl,--dll"))
+		(
+			$set-if-empty! LDFLAGS_DYN_BASE "-shared";
+			$set-if-empty! LIBS_RPATH ++ "-Wl,-rpath,"
+				(SHBuild_QuoteS_ "$ORIGIN:$ORIGIN/../lib")
+		);
+		"XXX", "Here '-Wl,' options are separated to improve compatibility for",
+			" LLVM.";
+		"XXX", "Dynamic symbol exports are only available for ELF targets";
+		$if use_lld_
+		(
+			$env-de! LDFLAGS_DYN_EXTRA cons-cmd "-Wl,-undefined,error"
+				($if (win32? env-os) ""
+					(++ "-Wl,--export-dynamic-symbol='_ZTS*'"
+					" -Wl,--export-dynamic-symbol='_ZTI*'"))
+		)
+		(
+			$env-de! LDFLAGS_DYN_EXTRA cons-cmd "-Wl,--no-undefined"
+				(++ "-Wl,--dynamic-list-data,--dynamic-list-cpp-new,"
+				"--dynamic-list-cpp-typeinfo");
+		);
+		$env-de! LDFLAGS_DYN cons-cmd LDFLAGS_DYN_BASE LDFLAGS_DYN_EXTRA;
+		"#", "Forced setting %LDFLAGS for debug configurations?";
+		$def! LDFLAGS
+			cons-cmd C_CXXFLAGS_PIC ldflags_impl_common_thrd_ LDFLAGS_OPT_DBG;
+		"TODO", "Test and exclude Anrdoid?";
+		$if use_lld_ ($redef! LDFLAGS cons-cmd "-fuse-ld=lld" LDFLAGS);
+		"#", "%LDFLAGS_OPT_DBG is set to ' ' in %SHBuild-BuildApp.sh.";
+		"#", "Following settings are not in %SHBuild-common-options.sh.";
+		$redef! LDFLAGS SHBuild_TrimOptions_
+			(cons-cmd (SHBuild_TrimOptions_ LDFLAGS)
+			($if app (cons-cmd ($if dynamic LIBS_RPATH "") (do-ld-ext env-os))
+			($if dynamic (cons-cmd LDFLAGS_DYN) "-Wl,--dn")));
+		safeenv-set "LDFLAGS" LDFLAGS
+	);
+	$def! SHBOPT get-SHBOPT_ outdir shbopt-ext use-ld;
 	$defl! echo-var (var) SHBuild_EchoVar var (value-of var);
 	"XXX", "The values of following variables may be overriden in 'do-build'.";
 	"TODO", "Print actual values being used in 'do-build' as possible.";
 	echo-var "CXXFLAGS";
-	echo-var "LDFLAGS";
+	$if use-ld (echo-var "LDFLAGS");
 	echo-var "SHBOPT";
 	do-build CXX CXXFLAGS SHBOPT LIBPFX
 );
@@ -400,7 +459,7 @@ $defl! get_env_SHB_ (env-os)
 		$assert-nonempty dst,
 		$assert-nonempty src;
 		"TODO",
-			"More specific error handling in system-check and SHBuld command?";
+			"More specific error handling in system-check and SHBuild command?";
 		$cond
 		((eqv? type "Link") (
 			e_rm_ dst;
@@ -449,7 +508,7 @@ $defl! get_env_SHB_ (env-os)
 		InstSHBuild "HardLink" (++ to-dir "/lib" name ".a")
 			(++ from-dir "/" LIBPFX name ".a")
 	);
-	$defl! InstLibD (from-dir name to-dir SR_DSO_Dest SR_DSO_Imp)
+	$defl! InstLibD (from-dir name to-dir SR_DSO_Dest imp-sfx simulate-imp)
 	(
 		$assert-nonempty from-dir,
 		$assert-nonempty SR_DSO_Dest,
@@ -457,8 +516,14 @@ $defl! get_env_SHB_ (env-os)
 		$def! target ++ LIBPFX name DSOSFX;
 		$def! dest ++ SR_DSO_Dest "/" target;
 		InstSHBuild "HardLink" dest (++ from-dir "/" target);
-		$unless (string-empty? SR_DSO_Imp) ($assert-nonempty to-dir)
-			(InstSHBuild "Link" (++ to-dir "/" target SR_DSO_Imp) dest)
+		"NOTE", "See $2020-11 @ doc/Workflow.txt.";
+		$unless (string-empty? imp-sfx) ($assert-nonempty to-dir)
+			($let ((inst-method $if (simulate-imp) "Link" "HardLink")
+				(implib-src $if (simulate-imp) dest
+					(++ from-dir "/" target imp-sfx)))
+				InstSHBuild inst-method (++ to-dir "/lib" name DSOSFX imp-sfx)
+					implib-src
+			)
 	);
 	$defl! InstInc (from-dir to-dir)
 	(
@@ -476,7 +541,6 @@ $defl! get_env_SHB_ (env-os)
 	);
 	$defl! InstNPLA1Module_ (from-dir to-dir name)
 	(
-		"TODO", "Use other location for NPLA1 library?";
 		$assert-nonempty name,
 		$assert-nonempty to-dir,
 		$assert-nonempty from-dir;

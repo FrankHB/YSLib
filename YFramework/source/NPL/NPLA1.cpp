@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r20096
+\version r20148
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-10-19 05:23 +0800
+	2020-11-05 13:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,14 +34,14 @@
 //	NPL::forward_as_tuple, uintmax_t, TokenValue, function, std::allocator_arg,
 //	stack, vector, std::find_if, TermTags, TermReference, GetLValueTagsOf,
 //	NPL::TryAccessLeaf, NPL::IsMovable, in_place_type, InvalidReference,
-//	IsBranch, NPL::Deref, IsLeaf, ResolveTerm, ystdex::update_thunk,
-//	NPL::Access, ystdex::retry_on_cond, AccessFirstSubterm, ystdex::bind1,
-//	ystdex::make_transform, IsBranchedList, std::placeholders, NoContainer,
-//	ystdex::try_emplace, Environment, shared_ptr, ystdex::unique_guard,
-//	NPL::AsTermNode, CategorizeBasicLexeme, DeliteralizeUnchecked,
-//	CheckReducible, Deliteralize, ystdex::isdigit, ResolveIdentifier,
-//	IsNPLAExtendedLiteral, ystdex::ref_eq, NPL::TryAccessTerm,
-//	YSLib::share_move, ystdex::call_value_or, Session;
+//	IsBranch, NPL::Deref, IsLeaf, ResolveTerm, ThrowListTypeErrorForNonlist,
+//	ystdex::update_thunk, NPL::Access, ystdex::retry_on_cond,
+//	AccessFirstSubterm, ystdex::bind1, ystdex::make_transform, IsBranchedList,
+//	std::placeholders, NoContainer, ystdex::try_emplace, Environment,
+//	shared_ptr, ystdex::unique_guard, NPL::AsTermNode, CategorizeBasicLexeme,
+//	DeliteralizeUnchecked, CheckReducible, Deliteralize, ystdex::isdigit,
+//	ResolveIdentifier, IsNPLAExtendedLiteral, ystdex::ref_eq,
+//	NPL::TryAccessTerm, YSLib::share_move, ystdex::call_value_or, Session;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_Dependency // for A1::OpenUnique;
 #include <ystdex/exception.h> // for ystdex::unsupported;
@@ -647,38 +647,44 @@ private:
 				//	with the correct implementation of the reference collapse.
 				ResolveTerm([&, n_p, o_tags](TermNode& nd,
 					ResolvedTermReferencePtr p_ref){
-					const bool ellipsis(last != t.end());
-					const auto n_o(nd.size());
 
-					if(n_p == n_o || (ellipsis && n_o >= n_p - 1))
+					if(IsList(nd))
 					{
-						auto tags(o_tags);
+						const bool ellipsis(last != t.end());
+						const auto n_o(nd.size());
 
-						// NOTE: All tags as type qualifiers should be checked
-						//	here. Currently only glvalues can be qualified.
-						// XXX: Term tags are currently not respected in
-						//	prvalues.
-						if(p_ref)
+						if(n_p == n_o || (ellipsis && n_o >= n_p - 1))
 						{
-							const auto ref_tags(p_ref->GetTags());
+							auto tags(o_tags);
 
-							tags = (tags
-								& ~(TermTags::Unique | TermTags::Temporary))
-								| (ref_tags & TermTags::Unique);
-							tags |= ref_tags & TermTags::Nonmodifying;
-						}
-						MatchSubterms(t.begin(), last, nd, nd.begin(), tags,
-							p_ref ? p_ref->GetEnvironmentReference() : r_env,
-							ellipsis
+							// NOTE: All tags as type qualifiers should be checked
+							//	here. Currently only glvalues can be qualified.
+							// XXX: Term tags are currently not respected in
+							//	prvalues.
+							if(p_ref)
+							{
+								const auto ref_tags(p_ref->GetTags());
+
+								tags = (tags
+									& ~(TermTags::Unique | TermTags::Temporary))
+									| (ref_tags & TermTags::Unique);
+								tags |= ref_tags & TermTags::Nonmodifying;
+							}
+							MatchSubterms(t.begin(), last, nd, nd.begin(), tags,
+								p_ref ? p_ref->GetEnvironmentReference() : r_env,
+								ellipsis
 #if NPL_Impl_NPLA1_AssertParameterMatch
-							, t.end()
+								, t.end()
 #endif
-							);
+								);
+						}
+						else if(!ellipsis)
+							throw ArityMismatch(n_p, n_o);
+						else
+							ThrowInsufficientTermsError();
 					}
-					else if(!ellipsis)
-						throw ArityMismatch(n_p, n_o);
 					else
-						ThrowInsufficientTermsError();
+						ThrowListTypeErrorForNonlist(nd, p_ref);
 				}, o);
 			}
 			else
@@ -718,7 +724,13 @@ private:
 	{
 		if(i != last)
 		{
-			ystdex::update_thunk(act, [=, &o_tm, &r_env]{
+			// XXX: Use explicit captures here to ensure ISO C++20
+			//	compatibility.
+			ystdex::update_thunk(act, [this, i, j, last, tags, ellipsis,
+#if NPL_Impl_NPLA1_AssertParameterMatch
+				t_end,
+#endif
+				&o_tm, &r_env]{
 				return MatchSubterms(std::next(i), last, o_tm, std::next(j),
 #if NPL_Impl_NPLA1_AssertParameterMatch
 					tags, r_env, ellipsis, t_end);
@@ -788,7 +800,7 @@ ThrowUnsupportedLiteralError(const char* id)
 }
 
 void
-ThrowValueCategoryErrorForFirstArgument(const TermNode& term)
+ThrowValueCategoryError(const TermNode& term)
 {
 	throw ValueCategoryMismatch(ystdex::sfmt("Expected a reference for the 1st "
 		"argument, got '%s'.", TermToString(term).c_str()));

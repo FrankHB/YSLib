@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r3935
+\version r3964
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2020-10-24 07:33 +0800
+	2020-11-09 13:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2060,7 +2060,7 @@ Update of code for DS platform is carefully evaluated.
 		This is caused by the upstream change of value of 'NAME_MAX' macro in the header <sys/syslimit.h>.
 			The value previously in devkitARM r44 (as used by b611) is 768, and was changed to 255.
 			See https://github.com/devkitPro/newlib/commit/770821c9e4745d69c2df69624f0e4b1f759ecfb6.
-		The value of 'platform::FAT::LFN::MaxMBCSLength' is adapted in 'YCLib.FileSystem' for 2 reasons:
+		The value of 'platform::FAT::LFN::MaxMBCSLength' is adapted in YFramework module YCLib::FileSystem for 2 reasons:
 			To make the static assertion in 'YCLib_(DS).DSIO' happy, otherwise it does not compile.
 			To make the actual limitation sane, otherwise the length error condition is wrong.
 		The value of 'platform::FAT::LFN::MaxLength' (for UCS-2 sequence) is also changed to keep it not greater than length of converted MBCS.
@@ -3475,7 +3475,7 @@ YBase now provides 'ystdex::list' class template.
 		The 'list::erase' implementation for range is optimized to the 'clear()' case check (like Microsoft VC++) and have less update to pointers otherwise.
 	The necessity for the previous builds is from the fact that 'std::list' implementation in libstdc++ on the Android configurations (with CrystaX) are still not conforming to C++11, and it breaks 'NPL::TermNode' allocator-extended construction in YFramework.NPL.SContext.
 		However, since it also needs to fix 'std::stack' (thus, including 'std::deque') if nothing is changed in the client code in YFramework.NPL.SContext, update to the official NDK r20 is planned instead.
-			The update requires to implemented YCLib.FileIO support for libc++ and a few other fixes, but no need to replace the 'std' types. 
+			The update requires to implemented YCLib::FileIO support for libc++ and a few other fixes, but no need to replace the 'std' types. 
 		YFramework still plans to change to 'ystdex::list' now as it is believed to have better performance (at least in x86_64-linux).
 	Another bonus is it supports incomplete value types specified in [WG21 N4510], which is adopted as an ISO C++17 feature.
 		This is considered to be used in 'ystdex::pmr::memory_resource' implementations when the pool type was not exposed. Is not the case now.
@@ -3937,7 +3937,15 @@ The use of encoding conversion in Windows is revised.
 			Currently, the bug has effects on the 'SHBuild' tool in the YSLib project.
 				This is effected by calls of 'EncodeArg' and 'DecodeArg' since build 561 which had replaced calls of 'MBCSToMBCS' since build 476.
 			Client code should also be careful.
-		In general, client programs should better leave the code pages untouched (without calls to '::SetConsoleCP' and '::SetConsoleOutputCP') unless some encodings are explicitly depended on by design. 
+		In general, client programs should better leave the code pages untouched (without calls to '::SetConsoleCP' and '::SetConsoleOutputCP') unless some encodings are explicitly depended on by design.
+			See also https://dev.to/mattn/please-stop-hack-chcp-65001-27db
+		To work around the problem, console API for wide strings should be used if the stream is console-based.
+			Results from '::_isatty' and '::GetConsoleMode' disagree.
+				See https://alfps.wordpress.com/2011/12/08/unicode-part-2-utf-8-stream-mode/.
+				See also klisp source 'ksystem.win32.c'.
+			Also note the default logger in YFramework module YCLib::Debug uses console output in Win32.
+			The improvement is implemented by 'platform::StreamGet' and 'platform::StreamPut' in YFramework module YCLib::FileIO.
+				They are introduced as 'YSLib::IO::StreamGet' and 'YSLib::IO::StreamPut' respectively in YFramework module YSLib::Adaptor::YAdaptor.
 	Command line vector should be use UTF-16 encoding instead of the deprecated ANSI code page.
 	For the reasons above, handling of the command line for Win32 platforms is reimplemented in YFramework.
 		This is now implemented by getting the platform-specific command line and parsing it according to the initialization of UCRT implementation, exposed by 'platform_ex::ParseCommandArguments' in YFramework module 'YCLib_(Win32).MinGW32'.
@@ -3948,6 +3956,26 @@ The use of encoding conversion in Windows is revised.
 		Since the C++ implementation can be referenced, this is not strictly necessary, in contrast to freestanding environments without aid of CRT (like Rust).
 			However, the reimplementation provides better compatibility by avoiding referencing the internal interface of the CRT implementations.
 		Note it can also serve to 'YSLib::ArgumentsVector' in module YSLib::Core::YCoreUtility by direct accesses to its member.
+	SHBuild is adatped to the change using 'platform_ex::ParseCommandArguments' and and 'YSLib::IO::StreamPut'.
+		This is now more friendly to the Windows console.
+	For input from the standard stream, using of 'YSLib::IO::StreamGet' solves the similar problem in Windows console for input functions
+		This at least includes 'system' and 'system-get' in 'std.system' module.
+Import library names being installed are changed.
+	Import libraries are simulated by links or copies of the dynamic libraries.
+		Whether the libraries are links should be same to the MinGW-style toolchain.
+	Although the library names can work without any prefix (by having a name of the dynamic library name with a postfix '.a'), now always have the 'lib' prefix.
+		This is more consistent to the current practice like Cygwin and MSYS2.
+		Note in such platforms dynamic libraries can have prefix other than 'lib' like 'cyg' or 'msys-' in the name of dynamic library files.
+		Also note libraries may or may have the prefix. For example, Qt libraries in MSYS2's MinGW platforms has no 'lib' prefix in the DLL names, but many others have. 
+
+$2020-11:
+
+report.impl:
+Import library installation routines are enhanced.
+	Now real import libraries instead of links to DLL can be installed on demand.
+	This is necessary for linkers not supporting import from DLL on linking.
+		For example, LLVM's lld on MinGW32 only supports linking to the import libraries rather than linking to DLLs directly (as ld.bfd).
+	This is not enabled now, although lld seems the only option to support LTO objects from Clang++.
 
 ////
 
