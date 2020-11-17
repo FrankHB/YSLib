@@ -2,10 +2,8 @@
 # (C) 2014-2020 FrankHB.
 # Common options script for build YSLib using SHBuild.
 
-: "${SHBuild_ToolDir:=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
-# XXX: The error is ignored.
-# shellcheck disable=2164
-: "${SHBuild_AppBaseDir=$(cd "$(dirname "$0")"; pwd)}"
+set -e
+: "${SHBuild_ToolDir:=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)}"
 # shellcheck source=./SHBuild-common-toolchain.sh
 . "$SHBuild_ToolDir/SHBuild-common-toolchain.sh" # for
 #	SHBuid-common-toolchain.sh, CXX.

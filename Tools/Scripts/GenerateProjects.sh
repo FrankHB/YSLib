@@ -3,12 +3,12 @@
 # Project generation script: generating Code::Blocks .cbp files using
 #	ProjectGenerator.
 
-: "${SHBuild_Bin:=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+set -e
+# NOTE: Relative location of %SHBuild-common.sh is depends on both in stage 1
+#	and Sysroot.
 # shellcheck source=./SHBuild-common.sh
-. "$SHBuild_Bin/SHBuild-common.sh"
+. "$(dirname "${BASH_SOURCE[0]}")/SHBuild-common.sh"
 
-# XXX: The error is ignored.
-# shellcheck disable=2164
 TopLevel=$(hg root 2> /dev/null || (cd "$(git rev-parse --show-cdup)"; pwd))
 TopLevel=$(SHBuild_2u "$TopLevel")
 : "${ProjectGenerator:="$(which ProjectGenerator)"}"

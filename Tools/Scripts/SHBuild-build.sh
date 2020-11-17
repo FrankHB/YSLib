@@ -3,7 +3,7 @@
 # Build script for SHBuild.
 
 set -e
-: "${SHBuild_ToolDir:=$(cd "$(dirname "$0")"; pwd)}"
+: "${SHBuild_ToolDir:=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)}"
 : "${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}"
 # XXX: Some options for stage 1 SHBuild are fixed. Provide more separated
 #	options in future?

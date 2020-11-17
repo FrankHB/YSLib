@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r20148
+\version r20218
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-11-05 13:38 +0800
+	2020-11-17 01:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,27 +26,30 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA1Forms // for YSLib, NPL, Forms, RelaySwitched,
-//	type_index, string_view, std::hash, ystdex::equal_to, YSLib::unordered_map,
+#include YFM_NPL_NPLA1Forms // for YSLib::type_index, NPL, lref, RelaySwitched,
+//	string_view, std::hash, ystdex::equal_to, YSLib::unordered_map,
 //	std::piecewise_construct, YSLib::lock_guard, YSLib::mutex, ystdex::type_id,
-//	ContextHandler, NPL::make_observer, ystdex::ref, lref, IValueHolder,
-//	YSLib::AllocatedHolderOperations, any, ystdex::as_const,
-//	NPL::forward_as_tuple, uintmax_t, TokenValue, function, std::allocator_arg,
-//	stack, vector, std::find_if, TermTags, TermReference, GetLValueTagsOf,
-//	NPL::TryAccessLeaf, NPL::IsMovable, in_place_type, InvalidReference,
-//	IsBranch, NPL::Deref, IsLeaf, ResolveTerm, ThrowListTypeErrorForNonlist,
-//	ystdex::update_thunk, NPL::Access, ystdex::retry_on_cond,
-//	AccessFirstSubterm, ystdex::bind1, ystdex::make_transform, IsBranchedList,
-//	std::placeholders, NoContainer, ystdex::try_emplace, Environment,
-//	shared_ptr, ystdex::unique_guard, NPL::AsTermNode, CategorizeBasicLexeme,
+//	ContextHandler, NPL::make_observer, IsBranch, AllocatorHolder, ystdex::ref,
+//	YSLib::IValueHolder, YSLib::AllocatedHolderOperations, any,
+//	ystdex::as_const, NPL::forward_as_tuple, uintmax_t, TokenValue, Forms,
+//	std::allocator_arg, YSLib::stack, YSLib::vector, std::find_if, TermTags,
+//	function, TermReference, GetLValueTagsOf, NPL::TryAccessLeaf,
+//	NPL::IsMovable, in_place_type, InvalidReference, NPL::Deref, IsLeaf,
+//	ResolveTerm, ThrowListTypeErrorForNonlist, ystdex::update_thunk,
+//	NPL::Access, ystdex::retry_on_cond, AccessFirstSubterm, ystdex::bind1,
+//	ystdex::make_transform, IsBranchedList, std::placeholders, NoContainer,
+//	ystdex::try_emplace, Environment, shared_ptr, YSLib::Informative,
+//	ystdex::unique_guard, NPL::AsTermNode, CategorizeBasicLexeme,
 //	DeliteralizeUnchecked, CheckReducible, Deliteralize, ystdex::isdigit,
 //	ResolveIdentifier, IsNPLAExtendedLiteral, ystdex::ref_eq,
-//	NPL::TryAccessTerm, YSLib::share_move, ystdex::call_value_or, Session;
+//	NPL::TryAccessTerm, YSLib::share_move, ystdex::call_value_or, YSLib::Notice,
+//	YSLib::FilterException, Session;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_Dependency // for A1::OpenUnique;
 #include <ystdex/exception.h> // for ystdex::unsupported;
 
-using namespace YSLib;
+//! \since build 903
+using YSLib::type_index;
 
 namespace NPL
 {
@@ -301,14 +304,14 @@ using SourceInfoMetadata = lref<const SourceInformation>;
 
 
 template<typename _type, class _tByteAlloc = SourcedByteAllocator>
-class SourcedHolder : public AllocatorHolder<_type, _tByteAlloc>
+class SourcedHolder : public YSLib::AllocatorHolder<_type, _tByteAlloc>
 {
 public:
-	using Creation = IValueHolder::Creation;
+	using Creation = YSLib::IValueHolder::Creation;
 	using value_type = _type;
 
 private:
-	using base = AllocatorHolder<_type, _tByteAlloc>;
+	using base = YSLib::AllocatorHolder<_type, _tByteAlloc>;
 
 	SourceInformation source_information;
 
@@ -367,7 +370,8 @@ private:
 #if NPL_Impl_NPLA1_Enable_ThunkedSeparatorPass
 
 	//! \since build 882
-	using TermStack = stack<lref<TermNode>, vector<lref<TermNode>>>;
+	using TermStack
+		= YSLib::stack<lref<TermNode>, YSLib::vector<lref<TermNode>>>;
 
 	//! \since build 882
 	mutable TermStack remained{alloc};
@@ -1025,8 +1029,8 @@ SetupTraceDepth(ContextState& cs, const string& name)
 			using ystdex::pvoid;
 			auto& depth(NPL::Access<size_t>(*p));
 
-			YTraceDe(Informative, "Depth = %zu, context = %p, semantics = %p.",
-				depth, pvoid(&ctx), pvoid(&term));
+			YTraceDe(YSLib::Informative, "Depth = %zu, context = %p, semantics"
+				" = %p.", depth, pvoid(&ctx), pvoid(&term));
 			++depth;
 			return ystdex::unique_guard([&]() ynothrow{
 				--depth;
@@ -1696,6 +1700,55 @@ SetupTailOperatorName(TermNode& term, const ContextNode& ctx)
 		}
 	}
 	return {};
+}
+
+void
+TraceBacktrace(ContextNode::ReducerSequence& backtrace, YSLib::Logger& trace)
+{
+	using YSLib::Notice;
+
+	if(!backtrace.empty())
+		trace.TraceFormat(Notice, "Backtrace:");
+	YSLib::FilterExceptions([&]{
+		for(const auto& act : backtrace)
+		{
+			const auto name(QueryContinuationName(act));
+			const auto p(name.data() ? name.data() :
+#	if NDEBUG
+				"?"
+#	else
+				// XXX: This is enabled for debugging only because the name
+				//	is not guaranteed steady.
+				ystdex::call_value_or([](const Continuation& cont)
+					-> const ystdex::type_info&{
+					return cont.Handler.target_type();
+				}, act.target<Continuation>(), act.target_type()).name()
+#	endif
+			);
+			const auto p_opn_vo(QueryTailOperatorName(act));
+			const auto p_opn_t(p_opn_vo ? p_opn_vo->AccessPtr<TokenValue>()
+				: nullptr);
+
+			if(const auto p_o = p_opn_t ? p_opn_t->data() : nullptr)
+			{
+				// XXX: This clause relies on the source information for
+				//	meaningful output. Assume it is used.
+#	if true
+				if(const auto p_si = QuerySourceInformation(*p_opn_vo))
+					trace.TraceFormat(Notice, "#[continuation: %s (%s) @"
+						" %s (line %zu, column %zu)]", p_o, p,
+						p_si->first ? p_si->first->c_str() : "<unknown>",
+						p_si->second.Line + 1, p_si->second.Column + 1);
+				else
+#	endif
+					trace.TraceFormat(Notice, "#[continuation: %s (%s)]",
+						p_o, p);
+			}
+			else
+				trace.TraceFormat(Notice, "#[continuation (%s)]", p);
+		}
+	}, "guard unwinding for backtrace");
+	backtrace.clear();
 }
 
 

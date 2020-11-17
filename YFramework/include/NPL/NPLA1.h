@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8458
+\version r8467
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-11-03 10:35 +0800
+	2020-11-17 00:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1542,6 +1542,16 @@ QueryTypeName(const ystdex::type_info&);
 */
 YF_API bool
 SetupTailOperatorName(TermNode&, const ContextNode&);
+
+/*!
+\brief 追踪记录 NPL 续延。
+\sa QueryContinuationName
+\sa QuerySourceInformation
+\sa QueryTailOperatorName
+\since build 903
+*/
+YF_API void
+TraceBacktrace(ContextNode::ReducerSequence&, YSLib::Logger&);
 
 
 /*

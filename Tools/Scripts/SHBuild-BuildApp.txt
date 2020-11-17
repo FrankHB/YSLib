@@ -47,7 +47,7 @@ $defl! arg-first (args) $if (null? args) "" (firstv args);
 $defl! arg-rest (args) $if (null? args) () (restv args);
 
 $defl! SHBuild_PrintUsage () putss "Usage: SHBuild -xcmd,RunNPLFile \"" prog
-	"\" [-cCONF] [SHBOPT_BASE ...]\n\n"
+	"\" -- [CONF] [SHBOPT_BASE ...]\n\n"
 	"\tBuild application using SHBuild.\n\nCONF\n"
 	"\tThe configuration name. If this is missing or empty, show this help."
 	" Otherwise, it is identified as the configuration name for the following"
@@ -72,28 +72,26 @@ $defl! SHBuild_PrintUsage () putss "Usage: SHBuild -xcmd,RunNPLFile \"" prog
 $def! arg1 arg-first args;
 $if (string-empty? arg1) (() SHBuild_PrintUsage)
 (
-	putss "Found configuration " arg1 ".";
+	putss "Found configuration \"" arg1 "\".";
 	$def! SHBOPT_BASE arg-rest args;
 	$assert-nonempty arg1;
-	"XXX", "The argument cannot be empty, so there is no default value like",
-		" 'shbuild' in SHBuild-BuildApp.sh.";
+	"XXX", "The argument cannot be empty, so there is no default value.";
 	$def! SHBuild_Conf arg1;
 	$def! debug rmatch? SHBuild_Conf "debug.*";
 	$when (debug) puts "Debug mode turned on by configuration.";
 	$def! dynamic not? (rmatch? SHBuild_Conf ".*static");
 	$unless (dynamic) puts "Static mode turned on by configuration.";
-	$def! SHBuild_Dest ++ (safeenv-get "SHBuild_BuildPrefix") "." SHBuild_Conf;
 	"XXX", "No extra configuration arguments are supported yet.";
 	safeenv-set "CXXFLAGS_COMMON" "";
 	$redef! debug
 		$or? debug (not? (string-empty? (safeenv-get "SHBuild_Debug")));
 	$if (debug)
 	(
-		putss "Use debug configuration " SHBuild_Conf ".";
+		putss "Use debug configuration \"" SHBuild_Conf "\".";
 		$def! SHBuild_YSLib_LibNames "-lYFrameworkd -lYBased"
 	)
 	(
-		putss "Use release configuration " SHBuild_Conf ".";
+		putss "Use release configuration \"" SHBuild_Conf "\".";
 		$def! SHBuild_YSLib_LibNames "-lYFramework -lYBase"
 	);
 	$if (win32? env-os)
@@ -126,9 +124,9 @@ $if (string-empty? arg1) (() SHBuild_PrintUsage)
 		++ (safeenv-get "LIBS_RPATH") " -L" (system-quote-m_ env-os SR_Lib_);
 	$if (dynamic)
 	(
-		$def! SHBuild_YSLib_Flags ++ "-DYF_DLL -DYB_DLL "
+		$def! SHBuild_YSLib_Flags SHBuild_TrimOptions_ (++ "-DYF_DLL -DYB_DLL "
 			SHBuild_YF_CFlags_freetype " -I"
-			(system-quote-m_ env-os SR_Include_);
+			(system-quote-m_ env-os SR_Include_));
 		safeenv-set "LIBS" (SHBuild_TrimOptions_
 			(cons-cmd LIBS SHBuild_YSLib_LibNames))
 	)
@@ -141,38 +139,38 @@ $if (string-empty? arg1) (() SHBuild_PrintUsage)
 			"XXX", "No prefix and postfix of %LD are supported yet.";
 			safeenv-set "LD" "g++"
 		);
-		$def! SHBuild_YSLib_Flags ++ SHBuild_YF_CFlags_freetype " -I"
-			(system-quote-m_ env-os SR_Include_);
+		$def! SHBuild_YSLib_Flags SHBuild_TrimOptions_
+			(++ SHBuild_YF_CFlags_freetype " -I"
+			(system-quote-m_ env-os SR_Include_));
 		$def! SHBuild_YSLib_LibNames cons-cmd SHBuild_YSLib_LibNames
 			SHBuild_YF_Libs_FreeImage SHBuild_YF_Libs_freetype
 			(++ "-L" (system-quote-m_ env-os SR_Lib_)) SHBuild_YF_SystemLibs;
 		safeenv-set "LIBS" (SHBuild_TrimOptions_
-			(cons-cmd LIBS "-Wl,dn" SHBuild_YSLib_LibNames))
+			(cons-cmd LIBS "-Wl,-dn" SHBuild_YSLib_LibNames))
 	);
 	"XXX", "Workaround for MinGW32 release static builds.",
 		"See $2020-10 @ doc/Workflow.txt.";
-	$defl! get-cxxflags ()
-	(
+	$defl! fix-flags (flags)
 		$if ($and? (win32? env-os) (eqv? env-arch "i686")
-			(not? dynamic))
-			(++ (safeenv-get "CXXFLAGS") " -fno-lto")
-			(safeenv-get "CXXFLAGS")
-	);
+			(not? dynamic)) (++ flags " -fno-lto") flags;
 	safeenv-set "SHBuild_CFLAGS" (safeenv-get "CFLAGS"),
-	safeenv-set "SHBuild_CXXFLAGS" (() get-cxxflags);
+	safeenv-set "SHBuild_CXXFLAGS" (safeenv-get "CXXFLAGS");
 	"NOTE", "Configuration (except variable echo) done.";
-	"TODO", "Support configurable %SHBuild_AppBaseDir.";
-	$def! SHBuild_AppBaseDir ".";
-	$assert-nonempty SHBuild_AppBaseDir;
-	putss "Found application base directory \"" SHBuild_AppBaseDir "\".";
+	$def! SHBuild_BuildDir safeenv-get "SHBuild_BuildDir";
+	"NOTE", "Different to %SHBuild-YSLib-build.txt, relative paths are",
+		" supported.";
+	$unless (string-empty? SHBuild_BuildDir)
+		(string<- SHBuild_BuildDir (++ SHBuild_BuildDir "/"));
+	putss "Found SHBuild build directory \"" SHBuild_BuildDir "\".";
 	$env-de! SHBuild ++ SR_Bin_ "/SHBuild";
 	$assert-nonempty SHBuild;
-	build-with-conf-opt SHBuild_Dest env-os debug dynamic "" #t
+	build-with-conf-opt (++ SHBuild_BuildDir "." SHBuild_Conf) env-os debug
+		dynamic "" #t
 		ld-ext-adjust_win32_subsystem_ ($lambda (#ignore CXXFLAGS SHBOPT .)
 		(
 			"TODO", "Support precompiled headers?";
-			system-check (apply cons-cmd (append (list SHBuild
-				SHBOPT) SHBOPT_BASE (list SHBuild_AppBaseDir CXXFLAGS)
+			system-check (apply cons-cmd (append (list SHBuild SHBOPT)
+				SHBOPT_BASE (list (fix-flags CXXFLAGS))
 				(list SHBuild_YSLib_Flags)))
 		)
 	)

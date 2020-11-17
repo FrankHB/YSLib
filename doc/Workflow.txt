@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r3964
+\version r3981
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2020-11-09 13:21 +0800
+	2020-11-15 14:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -3976,6 +3976,23 @@ Import library installation routines are enhanced.
 	This is necessary for linkers not supporting import from DLL on linking.
 		For example, LLVM's lld on MinGW32 only supports linking to the import libraries rather than linking to DLLs directly (as ld.bfd).
 	This is not enabled now, although lld seems the only option to support LTO objects from Clang++.
+Scripts are revised.
+	Now all shell scripts are required to pass ShellCheck, as documented in the wiki.
+	In 'Tools/Scripts', the NPLA1 script 'SHBuild-BuildApp.txt' is fixed and now it replaces the shell script 'SHBuild-BuildApp.sh' for functionality.
+		Separated configuration is not supported any longer, as there is no NPLA1 equivalenct of '.' command in the shell scripts.
+		Now 'SHBuild-BuildPkg.sh' (which provides prettier trimmed command lines) is preferred, although currently there is no way to reuse the configuration among different sessions.
+		The script 'SHBuild-BuildApp.sh' is now reserved.
+	Common variables are revised.
+		Variables which externally overridable are documented in the wiki.
+		Variable for entry paths (to locate other resources) are uniformed and documented in the wiki.
+			For stage 1, the entry path is inferred based on 'SHBuild_Tools'.
+			For contexts relying on Sysroot, the path is inferred from variable 'SHBuild'.
+				Variable 'SHBuild_Bin' is then removed.
+				'Tools/Scripts/SHBuild-BuildApp.sh' is not touched here because the functionality is all removed.
+			Otherwise, no public variable of the entry is exposed.
+		Variables to specify the output directory which rely on Sysroot are eliminated.
+			These include 'SHBuild_BuildApp' and 'SHBuild_BuildPrefix'.
+			Now 'SHBuild_BuildDir' is used for all cases (including stage 1).
 
 ////
 

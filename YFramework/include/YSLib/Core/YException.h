@@ -11,13 +11,13 @@
 /*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r663
+\version r682
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2020-08-30 19:37 +0800
+	2020-11-16 23:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -121,11 +121,10 @@ public:
 //@}
 
 
-//! \since build 624
-//@{
 /*!
 \brief 打印带有层次信息的函数类型。
 \note 约定第一参数非空。
+\since build 624
 */
 using ExtractedLevelPrinter = function<void(const char*, size_t)>;
 template<typename _type>
@@ -143,35 +142,41 @@ using ExceptionTracer = GLevelTracer<const std::exception&>;
 \since build 888
 
 调用第一参数打印异常消息。
+若打印抛出异常，通过 YF_TraceRaw 打印异常消息。
 */
 YF_API YB_NONNULL(2) void
 PrintCriticalFor(const ExtractedLevelPrinter&, const char*, RecordLevel = Err,
 	size_t = 0) ynothrow;
 
 /*!
-\brief 通过 YF_TraceRaw 跟踪带空格缩进层次的异常信息的函数类型。
+\brief 通过 YF_TraceRaw 打印带空格缩进层次的异常信息的函数类型。
+\since build 903
 \pre 间接断言：第一参数非空。
 */
 YF_API YB_NONNULL(1) void
-TraceException(const char*, RecordLevel = Err, size_t level = 0) ynothrow;
+PrintMessage(const char*, RecordLevel = Err, size_t level = 0) ynothrow;
 //@}
 //@}
 
 /*!
-\brief 通过 YF_TraceRaw 跟踪记录异常类型。
+\brief 追踪记录异常类型。
 \since build 658
-\todo 处理类型名称。
+\todo 处理类型名称使之易读。
+
+通过 YF_TraceRaw 打印第一参数的动态类型。
 */
 YF_API void
 TraceExceptionType(const std::exception&, RecordLevel = Err) ynothrow;
-//@}
 
 /*!
-\brief 使用 TraceException 展开和跟踪异常类型和信息。
-\sa ExtraceException
-\sa TraceException
+\brief 使用 PrintMessage 展开和追踪异常类型和信息。
+\sa ExtractException
+\sa PrintMessage
 \sa TraceExceptionType
 \since build 658
+
+首先调用 TraceExceptionType ，然后调用 ExtractException 。
+在 ExtractException 中调用 PrintMessage 。
 */
 YF_API void
 ExtractAndTrace(const std::exception&, RecordLevel = Err) ynothrow;
@@ -191,7 +196,7 @@ ExtractException(const ExtractedLevelPrinter&, const std::exception&,
 \brief 执行并尝试记录异常。
 \since build 624
 
-对参数指定的函数求值，并使用最后一个参数跟踪记录异常。
+对参数指定的函数求值，并使用最后一个参数追踪记录异常。
 */
 YF_API bool
 TryExecute(function<void()>, const char* = {}, RecordLevel = Alert,
@@ -216,8 +221,8 @@ TryInvoke(_fCallable&& f, _tParams&&... args) ynothrow
 \note 使用 ADL TryExecute 。
 \since build 624
 
-对参数指定的函数求值，并捕获和跟踪记录所有异常。
-若第二参数非空，则在捕获和跟踪异常前，
+对参数指定的函数求值，并捕获和追踪记录所有异常。
+若第二参数非空，则在捕获和追踪异常前，
 	调用 YF_TraceRaw 以 Notice 记录等级接打印指示过滤的消息。
 */
 template<typename _func>

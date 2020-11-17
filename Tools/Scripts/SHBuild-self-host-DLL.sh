@@ -3,18 +3,15 @@
 # Test script for self-hosting SHBuild.
 
 set -e
-SHBuild_ToolDir=$(cd "$(dirname "$0")"; pwd)
+: "${SHBuild_ToolDir:=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)}"
 : "${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}"
 # shellcheck source=./SHBuild-bootstrap.sh
 . "$SHBuild_ToolDir/SHBuild-bootstrap.sh"
-SHBuild_CheckHostPlatform
-SHBuild_AssertNonempty SHBuild_Host_Platform
 
 # XXX: Stage 1 shall be ready before the call. See "%Tools/install-sysroot.sh".
-SHBuild_BuildDir="$SHBuild_ToolDir/../../build/$SHBuild_Host_Platform"
 S1_BuildDir="$SHBuild_BuildDir/.stage1"
 S1_SHBuild="$S1_BuildDir/SHBuild"
-outdir="$SHBuild_BuildDir/.shbuild-dll"
+outdir="$SHBuild_BuildDir/.self-host-dll"
 # XXX: %SHBuild_Output is internal.
 # shellcheck disable=2034
 SHBuild_Output="$outdir/SHBuild"
@@ -38,5 +35,5 @@ cd "$SHBuild_BaseDir"
 #	$INCLUDES $LIBS
 
 SHBuild_Popd
-SHBuild_Puts Done.
+SHBuild_Puts 'Done.'
 

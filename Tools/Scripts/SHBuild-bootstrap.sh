@@ -2,28 +2,21 @@
 # (C) 2014-2020 FrankHB.
 # Common source script: bootstrap configuration.
 
-# XXX: For locality of ShellCheck directives.
-true
-# XXX: The error is ignored.
-# shellcheck disable=2164
-SHBuild_ToolDir=$(cd "$(dirname "$0")"; pwd)
+set -e
+: "${SHBuild_ToolDir:=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)}"
 # shellcheck source=./SHBuild-common.sh
 . "$SHBuild_ToolDir/SHBuild-common.sh"
 SHBuild_Puts Bootstrap beginned.
 SHBuild_CheckUName
 : "${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}"
 : "${YSLib_BaseDir:="$SHBuild_ToolDir/../.."}"
-SHBuild_BaseDir=$(cd "$SHBuild_BaseDir" && pwd)
-YSLib_BaseDir=$(cd "$YSLib_BaseDir" && pwd)
+SHBuild_BaseDir=$(cd "$SHBuild_BaseDir"; pwd)
+YSLib_BaseDir=$(cd "$YSLib_BaseDir"; pwd)
 
 SHBuild_EchoVar_N 'SHBuild.BaseDir'
 SHBuild_EchoVar_N 'SHBuild.ToolDir'
 
-SHBuild_Puts Configuring ...
-
-# XXX: %SHBuild_BuildDir is internal.
-# shellcheck disable=2034
-SHBuild_BuildDir="$SHBuild_BaseDir/.shbuild"
+SHBuild_Puts "Configuring ..."
 
 # shellcheck source=./SHBuild-common-toolchain.sh
 . "$SHBuild_ToolDir/SHBuild-common-toolchain.sh"
@@ -94,6 +87,10 @@ fi
 export CXXFLAGS
 export LDFLAGS
 
+SHBuild_CheckHostPlatform
+SHBuild_AssertNonempty SHBuild_Host_Platform
+: "${SHBuild_BuildDir:="$SHBuild_ToolDir/../../build/$SHBuild_Host_Platform"}"
+
 SHBuild_EchoVar_N 'SHBuild.BuildDir'
 SHBuild_EchoVar_N 'CXX'
 SHBuild_EchoVar_N 'CXXFLAGS'
@@ -101,5 +98,5 @@ SHBuild_EchoVar_N 'LDFLAGS'
 SHBuild_EchoVar_N 'INCLUDES'
 SHBuild_EchoVar_N 'LIBS'
 
-SHBuild_Puts Configuring done.
+SHBuild_Puts "Configuring done."
 

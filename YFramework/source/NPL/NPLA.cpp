@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3367
+\version r3417
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2020-11-03 13:13 +0800
+	2020-11-17 00:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,20 +26,27 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA // for YSLib, string, YSLib::DecodeIndex, std::to_string,
-//	YSLib::make_string_view, std::invalid_argument, ValueNode, NPL::Access,
-//	EscapeLiteral, Literalize, NPL::AccessPtr, ystdex::value_or, ystdex::write,
-//	TraverseSubnodes, bad_any_cast, std::allocator_arg, YSLib::NodeSequence,
-//	NPL::Deref, AccessFirstSubterm, ystdex::unimplemented, ystdex::type_id,
-//	ystdex::quote, ystdex::call_value_or, ystdex::begins_with, YSLib::get_raw,
-//	NPL::make_observer, ystdex::sfmt, NPL::TryAccessTerm, sfmt, GetLValueTagsOf,
-//	std::mem_fn, ystdex::compose, ystdex::invoke_value_or, NPL::TryAccessLeaf,
+#include YFM_NPL_NPLA // for YSLib::Warning, YSLib::err, string,
+//	YSLib::DecodeIndex, std::to_string, YSLib::make_string_view,
+//	std::invalid_argument, ValueNode, NPL::Access, EscapeLiteral, Literalize,
+//	NPL::AccessPtr, ystdex::value_or, ystdex::write, TraverseSubnodes,
+//	bad_any_cast, std::allocator_arg, YSLib::NodeSequence, NPL::Deref,
+//	AccessFirstSubterm, ystdex::unimplemented, ystdex::type_id, ystdex::quote,
+//	ystdex::call_value_or, ystdex::begins_with, ystdex::sfmt,
+//	NPL::make_observer, YSLib::sfmt, GetLValueTagsOf, std::mem_fn,
+//	ystdex::compose, ystdex::invoke_value_or, NPL::TryAccessLeaf,
 //	NPL::IsMovable, ystdex::ref, YSLib::FilterExceptions, ystdex::id,
 //	ystdex::retry_on_cond, ystdex::type_info, pair, ystdex::addrof,
-//	ystdex::second_of, std::rethrow_exception, std::throw_with_nested;
+//	ystdex::second_of, std::rethrow_exception, std::throw_with_nested,
+//	YSLib::ExtractException;
 #include YFM_NPL_SContext
 
-using namespace YSLib;
+//! \since build 903
+//@{
+using YSLib::Warning;
+using YSLib::Err;
+using YSLib::RecordLevel;
+//@}
 
 namespace NPL
 {
@@ -154,7 +161,7 @@ TransformToSyntaxNode(ValueNode&& node)
 
 	if(node.empty())
 	{
-		if(const auto p = NPL::AccessPtr<NodeSequence>(node))
+		if(const auto p = NPL::AccessPtr<YSLib::NodeSequence>(node))
 			for(auto& nd : *p)
 				nested_call(nd);
 		else
@@ -559,7 +566,7 @@ TermToString(const TermNode& term)
 {
 	if(const auto p = TermToNamePtr(term))
 		return *p;
-	return sfmt<string>("#<unknown{%zu}:%s>", term.size(),
+	return YSLib::sfmt<string>("#<unknown{%zu}:%s>", term.size(),
 		term.Value.type().name());
 }
 
@@ -1248,6 +1255,42 @@ ResolveEnvironment(const TermNode& term)
 			ystdex::sfmt("Invalid environment formed from list '%s' found.",
 			TermToStringWithReferenceMark(nd, has_ref).c_str()));
 	}, term);
+}
+
+
+void
+TraceException(std::exception& e, YSLib::Logger& trace)
+{
+	YSLib::ExtractException([&](const char* str, size_t level) YB_NONNULL(2){
+		const auto print([&](RecordLevel lv, const char* name,
+			const char* msg) YB_ATTR_LAMBDA_QUAL(ynothrow, YB_NONNULL(3)){
+			// XXX: Similar to %YSLib::PrintMessage.
+			trace.TraceFormat(lv, "%*s%s<%u>: %s", int(level), "", name,
+				unsigned(lv), msg);
+		});
+
+		TryExpr(throw)
+		// XXX: This clause relies on the source information for meaningful
+		//	output. Assume it is used.
+		catch(BadIdentifier& ex)
+		{
+			print(ex.GetLevel(), "BadIdentifier", str);
+
+			const auto& si(ex.Source);
+
+			if(ex.Source.first)
+				trace.TraceFormat(ex.GetLevel(), "%*sIdentifier '%s' is at"
+					" line %zu, column %zu in %s.", int(level + 1), "",
+					ex.GetIdentifier().c_str(), si.second.Line + 1,
+					si.second.Column + 1, si.first->c_str());
+		}
+		CatchExpr(bad_any_cast& ex,
+			print(Warning, "TypeError", ystdex::sfmt(
+				"Mismatched types ('%s', '%s') found.", ex.from(),
+				ex.to()).c_str()))
+		CatchExpr(LoggedEvent& ex, print(ex.GetLevel(), typeid(ex).name(), str))
+		CatchExpr(..., print(Err, "Error", str))
+	}, e);
 }
 
 } // namespace NPL;

@@ -121,6 +121,8 @@ $defl! SHBuild_GetLangFlags_
 		SHBuild_TrimOptions_ ($if (string-empty? val)
 			(cons-cmd flags-pic flags-common flags-impl flags-dbg) val);
 
+$defl! system-quote-m_ (env-os s) system-quote (SHBuild_2m env-os s);
+
 $defl! win32? (env-os) eqv? env-os "Win32";
 $defl! get-nul-dev (env-os) $if (win32? env-os) "NUL" "/dev/null";
 $defl! get-tmp-dir (env-os) SHBuild_GetTempDir env-os;
@@ -207,8 +209,8 @@ $defl! SHBuild_CheckCXX (env-os cxx)
 		force (eval% sym e)
 	);
 $defl! SHBuild_ar_ok_ (env-os ar)
-	system-ok (cons-cmd (system-quote ar) "--help" "1&> " (get-tmp-nul env-os)
-		"2>" (get-nul-dev env-os));
+	system-ok (cons-cmd (system-quote-m_ env-os ar) "--help" "1>"
+		(get-tmp-nul env-os) "2>" (get-nul-dev env-os));
 $defl! SHBuild_GetAR_ (env-os cxx ar)
 	$let ((SHBuild_CXX_Style_ SHBuild_CheckCXX env-os cxx))
 		$cond (($and? (eqv? SHBuild_CXX_Style_ "Clang++")
@@ -216,7 +218,6 @@ $defl! SHBuild_GetAR_ (env-os cxx ar)
 			(($and? (eqv? SHBuild_CXX_Style_ "G++")
 				(SHBuild_ar_ok_ env-os "gcc-ar")) "gcc-ar")
 			(#t ar);
-$defl! system-quote-m_ (env-os s) system-quote (SHBuild_2m env-os s);
 
 $defl! get-thread-options (env-os cxx err-out)
 (
@@ -239,7 +240,7 @@ $defl! get-thread-options-silent (env-os cxx)
 $defl! get-SHBOPT_ (outdir shbopt-ext use-ld)
 (
 	$def! opt cons-cmd (++ "-xd,\"" outdir "\"") shbopt-ext;
-	$if use-ld (cons-cmd opt "-xmode,2") opt
+	SHBuild_TrimOptions_ ($if use-ld (cons-cmd opt "-xmode,2") opt)
 );
 $defl! SHB_SetupPlatformVars_ (e env-os)
 (
@@ -347,7 +348,7 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 				"-fno-enforce-eh-specs";
 			$if use-ld
 			(
-				"XXX", "Workarond for LTO bug on MinGW. See https://sourceware.org/bugzilla/show_bug.cgi?id=12762.";
+				"XXX", "Workaround for LTO bug on MinGW. See https://sourceware.org/bugzilla/show_bug.cgi?id=12762.";
 				$set-if-empty! LDFLAGS_IMPL_OPT
 					$if (win32? env-os)
 					(++ "-fexpensive-optimizations -flto"
@@ -379,7 +380,7 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 	$if use-ld
 	(
 		"#", "%LDFLAGS_OPT_DBG is always set despite %debug configuration in",
-			" %SHBuild-BuildApp.sh.";
+			" the caller script.";
 		$env-de! LDFLAGS_OPT_DBG $if debug ""
 			(cons-cmd LDFLAGS_STRIP LDFLAGS_IMPL_OPT LDFLAGS_GC);
 		$def! LDFLAGS_DYN_BASE safeenv-get "LDFLAGS_DYN_BASE";
@@ -413,10 +414,9 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 			cons-cmd C_CXXFLAGS_PIC ldflags_impl_common_thrd_ LDFLAGS_OPT_DBG;
 		"TODO", "Test and exclude Anrdoid?";
 		$if use_lld_ ($redef! LDFLAGS cons-cmd "-fuse-ld=lld" LDFLAGS);
-		"#", "%LDFLAGS_OPT_DBG is set to ' ' in %SHBuild-BuildApp.sh.";
+		"#", "%LDFLAGS_OPT_DBG is set to ' ' in the caller script.";
 		"#", "Following settings are not in %SHBuild-common-options.sh.";
-		$redef! LDFLAGS SHBuild_TrimOptions_
-			(cons-cmd (SHBuild_TrimOptions_ LDFLAGS)
+		$redef! LDFLAGS SHBuild_TrimOptions_ (cons-cmd LDFLAGS
 			($if app (cons-cmd ($if dynamic LIBS_RPATH "") (do-ld-ext env-os))
 			($if dynamic (cons-cmd LDFLAGS_DYN) "-Wl,--dn")));
 		safeenv-set "LDFLAGS" LDFLAGS

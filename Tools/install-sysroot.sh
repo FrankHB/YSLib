@@ -3,17 +3,20 @@
 # SHBuild installation script.
 
 set -e
-SHBuild_ToolDir=$(cd "$(dirname "$0")/Scripts"; pwd)
+: "${SHBuild_ToolDir:=$(cd "$(dirname "${BASH_SOURCE[0]}")/Scripts"; pwd)}"
 # XXX: Use 'shell -x -P SCRIPTDIR'.
 # shellcheck source=./Scripts/SHBuild-common.sh
 . "$SHBuild_ToolDir/SHBuild-common.sh" # for SHBuild_Puts,
 #	SHBuild_CheckHostPlatform;
 
 # NOTE: Some variables are configurable. If not set or set to empty, the
-#	variables can be later set by the scripts being called.
+#	variables can be later set by the scripts being called. Variable specific to
+#	Sysroot is not used, so a clean bootstrap does not need to unset Sysroot
+#	variables configured by the user (e.g. %NPLA1_ROOT) in the environment (if
+#	any).
 
-# NOTE: Optional stage 1 path which can later set by
-#	"%Scripts/SHBuild-bootstrap.sh" This is required to locate the YSLib
+# NOTE: Optional stage 1 path which can later be set by
+#	"%Scripts/SHBuild-bootstrap.sh". This is required to locate the YSLib
 #	repository base directory.
 : "${YSLib_BaseDir:="$SHBuild_ToolDir/../.."}"
 
@@ -28,13 +31,13 @@ export SHBuild_Opt
 YSLib_BaseDir=$(cd "$YSLib_BaseDir"; pwd)
 export YSLib_BaseDir
 SHBuild_CheckHostPlatform
-# This directory will be created if not existed by following stage 1 process
-#	or by %SHBuild-YSLib-build.txt.
+# NOTE: The default value is same to %SHBuild_BuildDir in
+#	%SHBuild-YSLib-bootstrap.sh. The directory will be created if not existed by
+#	the following stage 1 process or by %SHBuild-YSLib-build.txt.
 : "${SHBuild_BuildDir:="$YSLib_BaseDir/build/$SHBuild_Host_Platform"}"
-export YSLib_BuildDir="$SHBuild_BuildDir"
-SHBuild_Puts "Build directory is \"$YSLib_BuildDir\"."
+export SHBuild_BuildDir
+SHBuild_Puts "Build directory is \"$SHBuild_BuildDir\"."
 SHBuild_CheckUName
-: "${AR:="gcc-ar"}"
 # shellcheck source=./Scripts/SHBuild-common-toolchain.sh
 . "$SHBuild_ToolDir/SHBuild-common-toolchain.sh"
 if [[ -z ${SHBuild_UseRelease+x} ]]; then
@@ -44,7 +47,7 @@ SHBuild_Puts Done.
 
 SHBuild_Puts Bootstraping ...
 # S1 = Stage 1.
-S1_BuildDir="$YSLib_BuildDir/.stage1"
+S1_BuildDir="$SHBuild_BuildDir/.stage1"
 mkdir -p "$S1_BuildDir"
 S1_SHBuild="$S1_BuildDir/SHBuild"
 
@@ -71,12 +74,12 @@ fi
 
 # Stage 1 SHBuild done. Following code call stage 1 SHBuild by default.
 : "${SHBuild:="$S1_SHBuild"}"
+SHBuild_AssertNonempty SHBuild
 # XXX: Variable %SHBuild_Opt can have whitespaces.
 # XXX: Variables here are assigned locally and guaranteed to be expanded to the
 #	same values to avoid 'export' pollution.
 # shellcheck disable=2086,2097,2098,2154
-AR="$AR" SHBuild="$SHBuild" SHBuild_ToolDir="$SHBuild_ToolDir" \
-	SHBuild_Common="$SHBuild_ToolDir/SHBuild-YSLib-common.txt" \
+SHBuild="$SHBuild" SHBuild_ToolDir="$SHBuild_ToolDir" \
 	SHBuild_NoStatic="$SHBuild_NoStatic" \
 	SHBuild_NoDynamic="$SHBuild_NoDynamic" \
 	SHBuild_UseDebug="$SHBuild_UseDebug" \

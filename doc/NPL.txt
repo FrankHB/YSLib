@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规范和实现规格说明。
-\version r17316
+\version r17320
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2020-11-03 13:15 +0800
+	2020-11-17 00:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2990,6 +2990,9 @@ NPL::EnvironmentSwitcher 类型用于切换上下文(@6.9.4) 中的当前环境(
 函数模板 NPL::RelaySwitched 规约当前动作作为后继动作(@5.4.4) ，并在后继动作起始设置当前动作。
 NPL::RelaySwitched 以当前动作或特定派生实现定义的其它动作调用时候，可支持 TCO(@5.2.6.4) 。
 
+@6.9.8 其它辅助 API ：
+函数 NPL::TraceNPLException
+
 @7 NPLA1 解释实现：
 NPLA1 解释实现是 NPLA 给定的 AST(@5.3.2) 作为输入的解释器(@5.1) 。
 和 NPLA 类似，NPLA1 的实现也注重可扩展性。在限制修改语言规则的前提下，部分实现可被语义等价地使用更高性能的简化实现替代。
@@ -3517,6 +3520,7 @@ NPLA1 提供 API 通过解释器的各个子模块组装 REPL(read-eval-print lo
 函数 A1::QueryTailOperatorName
 函数 A1::QueryTypeName
 函数 A1::SetupTailOperatorName
+函数 A1::TraceBacktrace
 类 A1::REPLContext 可直接作为 REPL 原型。
 A1::REPLContext 以 ContextNode::EvaluateList(@6.9.4) 为第二参数调用 A1::SetupDefaultInterpretation 初始化，之后默认解释配置 ContextNode 具有以下能在 A1::ReduceOnce(@7.4.4) 运行的规约算法：
 A1::REPLContext 使用 @7.5.3 的 API 实现标记器。
@@ -3524,7 +3528,7 @@ A1::REPLContext 使用 @7.5.3 的 API 实现标记器。
 若项是具有多个子项的列表节点，依次调用 NPL::ReduceHeadEmptyList(@6.7.1) 、A1::ReduceFirst(@7.4.6) 和 A1::ReduceCombined(@7.6.4.2) 规约列表项；
 否则调用 A1::ReduceLeafToken(@7.6.4) 规约叶节点。
 A1::REPLContext(@7.8.1)
-函数模板 A1::TryLoadSource 从上下文尝试加载代码。
+函数模板 A1::TryLoadSource
 
 @7.8.1 类 A1::REPLContext ：
 A1::REPLContext REPL 是上下文对象类。

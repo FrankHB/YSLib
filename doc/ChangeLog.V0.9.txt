@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r821
+\version r1113
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2020-11-09 18:09 +0800
+	2020-11-17 19:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,299 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	* "trailing NUL wrongly added to the command" @ "functions \
+		%ParseCommandArguments" @ %'YCLib.(Win32)'.MinGW32 $since b901,
+	/ %YFramework $=
+	(
+		/ "function %TraceException" @ %YSLib.Core.YException
+			-> "%PrintMessage" $=
+		(
+			/ DLDI "simplified" !^ "%string",
+			/ "function name" @ "exception message"
+		),
+		/ %NPL $=
+		(
+			+ "function %TraceException" @ %NPLA,
+			+ "function %TraceBacktrace" @ %NPLA1
+		)
+	),
+	/ %Tools $=
+	(
+		/ %Scripts $=
+		(
+			/ "adjusted shell variables to avoid the assumption on the Sysroot \
+				layout" @ "%SHBuild-BuildPkg.sh" $=
+			(
+				// See $2020-10 @ %Documentation::Workflow.
+				/ "inferred path from external variable %SHBuild";
+				+ "external variable %NPLA1_ROOT for inferred path of the \
+					NPLA1 root";
+				/ "adjusted variable definitions based on the inferred paths"
+					~ "%SHBuild_Bin" $dep_to "removal of SHBuild_Bin"
+			),
+			/ @ "%SHBuild-BuildApp.txt" $=
+			(
+				* "wrong description of %CONF input argument" @ "usage"
+					@ "applicative %SHBuild_PrintUsage"
+					$since b900,
+				* "wrong %LIB set for static builds" since b900
+					$= (/ '-Wl,dn' -> '-Wl,-dn'),
+				(
+				* "wrong use of %SHBuild_AppBaseDir" @ "SHBuild command line"
+					$since b900,
+					// This accidentally works for default value '.' when the \
+						source is also here. Now %SHBuild-BuildPkg.sh also has \
+						to pass the %SRCPATH explicitly.
+				/ "%SHBuild_AppBaseDir output" -> "%SHBuild_BuildDir output",
+				/ "output directory configured based on %SHBuild_BuildDir"
+					$dep_to "applying build directory configuration";
+				- "%SHBuild_BuildPrefix"
+				- "%SHBuild_AppBaseDir"
+				),
+				- "%SHBuild_BuildPrefix"
+					$dep_from "%SHBuild_BuildDir" @ ("%build-all.sh" @ %YDE),
+				/ "quoted configuration names for output",
+				/ "trimmed %SHBuild_YSLib_Flags",
+				* "flags workaround overriden unexpectedly" $since b900
+			),
+			/ @ "%SHBuild-BuildPkg.sh" $=
+			(
+				* "wrong handling of the path for the default value of %SHBuild"
+					$since b900,
+				* "missing '--' to prevent arguments captured by %SHBuild \
+					being called directly" $since b900
+			),
+			/ "removed build functionality" @ "%SHBuild-BuildApp.sh"
+				($dep_from "removal of SHBuild_Bin",
+				$dep_all_from "removing use of SHBuild-BuildApp.sh"),
+				// See $2020-10 @ %Documentation::Workflow.
+			/ @ "%SHBuild-YSLib-common.txt" $=
+			(
+				/ @ "%AR detection" $=
+				(
+					* "wrong command constructed" $since b902,
+					/ DLI "enhanced command 'ar' with %SHBuild_2m conversion"
+				),
+				/ DLDI "simplified %SHBuild_TrimOptions_ calls"
+					@ "setting %LDFLAGS",
+				/ "trimmed %SHBOPT" ^ "%SHBuild_TrimOptions"
+			),
+			- "variable %SHBuild_AppBaseDir"
+				@ "%(SHBuild-common-options.sh, SHBuild-common-toolchain.sh)",
+			+ 'set -e' @ "%(PatchRevision.sh, GenerateProject.sh, \
+				SHBuild-BuildPkg.sh)"
+				// Also to prevent ShellCheck warning: SC2164.
+			/ @ "%SHBuild-bootstrap.sh" $=
+			(
+				/ "'true' and ShellCheck directives for SC2164" -> 'set -e',
+				+ "%SHBuild_CheckHostPlatform call",
+					// This is explicitly lifted so the client scripts can use \
+						nonempty %SHBuild_Host_Platform despite of \
+						%SHBuild_BuildDir.
+				/ "%SHBuild_BuildDir" $=
+				(
+					/ "exposed overridable variable",
+					/ "default value" -> "stage 1 default build directory"
+				)
+			),
+			/ "ShellCheck directive for SC2164"
+				@ "%(SHBuild-common-toolchain.sh, SHBuild-common-optionsl.sh)"
+				-> 'set -e',
+			/ @ "%(SHBuild-self-host.sh, SHBuild-self-host-DLL.sh)" $=
+			(
+				/ DLI "simplified output directory initialization"
+					$dep_from ("%SHBuild_BuildDir" @ "%SHBuild-bootstrap.sh")
+					 $= (- "%SHBuild_BuildDir"),
+				/ "build subdirectory"
+					// To avoid mixture to other build libraries in normal \
+						SHBuild stages.
+			),
+			/ "worked around to disable LTO" @ "%platform %MinGW32"
+				@ "%SHBuild-self-host.sh",
+				// This resolves the allocation failure due to limited address \
+					space in linking with %MinGW32 host toolchain. Even \
+					without this issue, it would still choke with LTO like \
+					other builds in MinGW32 release static configuration.
+			/ @ "%SHBuild-YSLib-build.sh" $=
+			(
+				/ "loading external unit"
+					^ "%SHBuild_ToolDir" ~ "%SHBuild_Common",
+				(
+				/ "all %YSLib_BuildDir" -> "%SHBuild_BuildDir";
+				/ "stage 2 build directory" -> "subdirectory '.shbuild-dll' of \
+					directory specified by %SHBuild_BuildDir"
+					$dep_from "build subdirectory" @ "%SHBuild-self-host-DLL.sh"
+					// The new location is the old location for self-hosted \
+						package of %SHBuild. The old location is in the \
+						Sysroot and there is no way to make the directories \
+						for different hosts coexist by default, so it is not \
+						friendly to package.
+				),
+				/ DLDI "simplified library output directory construction",
+				/ DLDI "simplified library installation",
+				* "wrong skipping description output" @ 'SHBuild_NoDynamic'
+					$since b838
+			)
+		),
+		/ @ "%install-sysroot.sh" $=
+		(
+			/ DLDI "simplified script call" !^ "%SHBuild_Common"
+				$dep_from ("loading external unit" @ "%SHBuild-YSLib-build.sh"),
+			(
+			- "passing %AR to the script call";
+				// This is for stage 2.
+			- "variable %AR"
+				// This is then for stage 1.
+			),
+			(
+			/ "all use of %YSLib_Build" -> "%SHBuild_BuildDir";
+			- "%YSLib_BuildDir" $dep_from "%YSLib_BuildDir"
+				@ "%SHBuild-YSLib-build.sh"
+			)
+		),
+		/ %SHBuild $=
+		(
+			/ %Main $=
+			(
+				* $comp "truncated quoted command name shown" @ "usage"
+					@ "help message" @ "platform %Win32" $since b901
+					$dep_from %'YCLib.(Win32)'.MinGW32,
+				/ "trimmed options of flags",
+					// This eliminates whitespaces after the '-c' compiler \
+						option when the flag (e.g. %SHBuild_CXXFLAGS) is empty.
+				/ "NPL unit interpretion" $=
+				(
+					/ "name of NPL unit from standard input"
+						-> '*STDIN*' ~ '<stdin>',
+					(
+					/ "loading source by rewriting and rethrowing of exceptions"
+						~ "%TryLoadSource";
+					/ "traced source location on NPLA1 exception",
+					+ "optional trace for backtrace output at %General log \
+						group for NPLA1 exceptions controlled by external \
+						%SHBuild_NoBacktrace macro (undefined by default)"
+						^ $dep_from ("%TraceException" @ %YFramework.NPL.NPLA,
+						"%TraceBacktrace" @ %YFramework.NPL.NPLA1)
+					)
+				)
+			),
+			/ $doc "%Readme.en-US.txt" -> "%Readme.en-US.md"
+		)
+	),
+	/ @ "%SHBuild-YSTest.sh" @ %YSTest $=
+	(
+		// See $2020-11 @ %Documentation::Workflow.
+		(
+		/ "located other scripts" ^ "possibly overriden %SHBuild location";
+		+ "external variable %NPLA1_ROOT for inferred path of the NPLA1 root"
+		),
+		(
+		- $revert_ex(b902) "support of overriding %SHBuild_SysRoot",
+			// %SHBuild_SysRoot is documented to specify the output directory. \
+				For input, %SHBuild can be specified directly now.
+		* "wrong default value" @ "%SHBuild_AppBaseDir" $since b549
+			'${BASH_SOURCE[0]}' ~ '$0'
+		/ DLDI "simplified" ^ $dep_from "%SHBuild-BuildPkg.sh"
+			~ "%SHBuild-BuildApp.sh"
+			$dep_from ("removal of SHBuild_Bin", "SHBuild_AppBaseDir passing")
+			$dep_to "removing use of SHBuild-BuildApp.sh";
+		^ "%SHBuild_BuildDir" ~ "%SHBuild_AppBaseDir",
+		(
+		+ "check for missing arguments before 'mkdir -p'";
+		/ $comp "required configuration name argument without '-c' prefix"
+			// This is a breaking change.
+		)
+		),
+		- DLI "output directory creation"
+			// This should be the same because %SHBuild would create the \
+				directory if not already existed.
+	),
+	- "undocumented %SHBuild_Bin" $effective @ ("%(SHBuild-BuildPkg.sh, \
+		GenerateProject.sh, PatchRevision.sh)" @ %Tools.Scripts,
+		"%SHBuild-YSTest.sh" @ %YSTest) $dep_from "removal of SHBuild_Bin",
+		// See $2020-10 @ %Documentation::Workflow.
+	/ "%test.sh" @ %Test $=
+	(
+		/ DLI "shell subcommand calls" ^ "$(...)" ~ "legacy `...`",
+			// Also to eliminate ShellCheck issue: SC2006.
+		* "missing quotes on default values for assignments" $since b575,
+			// Also to eliminate ShellCheck issue: SC2223.
+		* "missing quotes on the result of %dirname command as command or \
+			argument" $since b575,
+			// Also to eliminate ShellCheck warning: SC2046.
+		+ DLD "ShellCheck directive for %(CXXFLAGS_OPT_UseAssert, \
+			SHBuild_Debug, SHBuild_NoAdjustSubsystem)",
+			// To eliminate ShellCheck warning: SC2034.
+		- "redundant single quotes" @ "default value" @ "variable %AR",
+		+ DLD "ShellCheck directive for souce inclusions",
+			// To eliminate ShellCheck warning SC1090. Note this relies on \
+				'shellcheck -x -P SCRIPTDIR', or there is issue SC1091.
+		* "missing quotes on the 'mkdir' and 'SHBuild_Pushd' arguments"
+			$since b740,
+			// Also to eliminate ShellCheck issue: SC2086.
+		+ DLD "ShellCheck directive on the last command",
+			// To eliminate ShellCheck issue SC2086 and warning SC2154.
+		+ DLD "ShellCheck directive for %SHBuild_Host_Platform",
+			// To eliminate ShellCheck warning: SC2154.
+		/ DLI ^ "%SHBuild-common-options" ~ "%SHBuild-BuildApp.sh"
+			 $dep_to "removing use of SHBuild-BuildApp.sh",
+			 // There is no need to call %SHBuild here.
+	),
+	/ @ "%build-all.sh" @ %YDE $=
+	(
+		(
+		/ "located other scripts" ^ "possibly overriden %SHBuild location";
+		+ "external variable %NPLA1_ROOT for inferred path of the NPLA1 root"
+		),
+		/ DLI "simplified" ^ "%SHBuild-BuildPkg.sh" ~ "%SHBuild-BuildApp.sh"
+			$dep_to "removing use of SHBuild-BuildApp.sh",
+			// This is a bit inefficitent because the configuration is not used.
+		/ DLI "shell subcommand calls" ^ "$(...)" ~ "legacy `...`",
+			// Also to eliminate ShellCheck issue: SC2006.
+		* "missing quotes on default values for assignments" $since b556,
+			// Also to eliminate ShellCheck issue: SC2223.
+		+ DLD "ShellCheck directive for souce inclusions",
+			// To eliminate ShellCheck warning SC1091.
+		(
+		* "missing quotes on '$SHBuild_ThisDir' and the 'echo' arguments"
+			$since b556;
+			// Also to eliminate ShellCheck issue: SC2086.
+		/ DLI ^ 'SHBuild_Puts' ~ 'echo'
+		),
+		/ "%SHBuild_BuildPrefix" -> "%SHBuild_BuildDir"
+			$dep_from "applying build directory configuration",
+		/ "wrapped package path for %SHBuild_Puts with %SHBuild_2m"
+	),
+	/ DLI "'echo Done.' where %SHBuild_Puts is available"
+		-> "SHBuild_Puts 'Done.'" $effective @ ("%test.sh" @ %Test,
+		"%SHBuild-YSTest.sh" @ %YSTest, "%build-all.sh" @ %YDE,
+		"%(SHBuild-self-host.sh, SHBuild-self-host-DLL.sh)" @ %Tools.Scripts),
+	* "wrong default value" @ "%SHBuild_ToolDir"
+		$effective @ (("%install-sysroot.sh" $since b546, ("%SHBuild-build.sh",
+		"%SHBuild-bootstrap.sh", "%SHBuild-self-host.sh",
+		"%SHBuild-self-host-DLL.sh") @ %Scripts $since b540) @ %Tools,
+		"%test.sh" @ %Test $since b575)
+		/ $= (/ $impl ^ '${BASH_SOURCE[0]}' ~ '$0'),
+	/ "exposed overridable variable %SHBuild_ToolDir"
+		$effective @ (("%install-sysroot.sh", ("%SHBuild-bootstrap.sh",
+		"%SHBuild-self-host.sh", "%SHBuild-self-host-DLL.sh") @ %Scripts)
+		@ %Tools, "%test.sh" @ %Test),
+	(
+	- DLI "shell path check with 'cd' and 'pwd' for embedded path components"
+		$effective @ (("%GenerateProjects.sh, PatchRevision.sh, \
+		SHBuild-BuildPkg.sh")
+		@ %Tool.Scripts, "%test.sh" @ %Test, "%build-all.sh" @ %YDE);
+		// Such cases should not fail because they are already assumed existing.
+	/ "all shell path detection before 'pwd' ignored 'cd' error"
+		$effective @ (("%(SHBuild-bootstrap.sh, SHBuild-common-options.sh, \
+		shbuild-common-toolchain)") @ %Tool.Scripts, "%test.sh" @ %Test,
+		"%build-all.sh" @ %YDE)
+		// This prevents empty results being used if there is 'set +e'.
+	)
+),
+
+b902
 (
 	/ %YBase.YStandardEx $=
 	(

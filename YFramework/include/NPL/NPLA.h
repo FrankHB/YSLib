@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r7974
+\version r7984
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2020-11-03 14:08 +0800
+	2020-11-16 23:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,9 +42,10 @@
 //	AccessFirstSubterm, ystdex::less, YSLib::map, pmr, ystdex::copy_and_swap,
 //	NoContainer, ystdex::try_emplace, ystdex::try_emplace_hint,
 //	ystdex::insert_or_assign, ystdex::type_info, ystdex::expanded_function,
-//	YSLib::forward_list, ystdex::swap_dependent, YSLib::allocate_shared,
 //	ystdex::enable_if_same_param_t, ystdex::exclude_self_t,
-//	ystdex::make_obj_using_allocator, ystdex::exchange, NPL::AsTermNode;
+//	ystdex::make_obj_using_allocator, YSLib::forward_list,
+//	ystdex::swap_dependent, YSLib::allocate_shared, YSLib::Logger,
+//	ystdex::exchange, NPL::AsTermNode;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include <libdefect/exception.h> // for std::exception_ptr;
 
@@ -3118,6 +3119,14 @@ RelaySwitched(ContextNode& ctx, _fCurrent&& cur)
 	ctx.SetupFront(yforward(cur));
 	return ReductionStatus::Partial;
 }
+
+
+/*!
+\brief 追踪记录 NPL 异常。
+\since build 903
+*/
+YF_API void
+TraceException(std::exception&, YSLib::Logger&);
 
 } // namespace NPL;
 

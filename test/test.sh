@@ -1,20 +1,26 @@
 #!/usr/bin/env bash
-# (C) 2014-2017 FrankHB.
+# (C) 2014-2017, 2020 FrankHB.
 # Script for testing.
 # Requires: G++/Clang++, Tools/Scripts, YBase source.
 
 set -e
-: ${TestDir:=$(cd `dirname "$0"`; pwd)}
-: ${SHBuild_ToolDir:=$(cd `dirname "$0"`/../Tools/Scripts; pwd)}
-: ${YSLib_BaseDir:="$SHBuild_ToolDir/../.."}
-YSLib_BaseDir=$(cd "$YSLib_BaseDir" && pwd)
+: "${SHBuild_ToolDir:=\
+$(cd "$(dirname "${BASH_SOURCE[0]}")/../Tools/Scripts"; pwd)}"
+: "${YSLib_BaseDir:="$SHBuild_ToolDir/../.."}"
+YSLib_BaseDir=$(cd "$YSLib_BaseDir"; pwd)
+: "${TestDir:=$(cd "$(dirname "$0")"; pwd)}"
 
+# XXX: Following variables are internal.
+# shellcheck disable=2034
 CXXFLAGS_OPT_UseAssert=true
+# shellcheck disable=2034
 SHBuild_Debug=debug
+# shellcheck disable=2034
 SHBuild_NoAdjustSubsystem=true
 
-: ${AR:='gcc-ar'}
-. "$SHBuild_ToolDir/SHBuild-BuildApp.sh"
+: "${AR:=gcc-ar}"
+# shellcheck source=../Tools/Scripts/SHBuild-common-options.sh
+. "$SHBuild_ToolDir/SHBuild-common-options.sh"
 
 INCLUDE_PCH="$YSLib_BaseDir/YBase/include/stdinc.h"
 INCLUDES=" \
@@ -33,18 +39,22 @@ LIBS=" \
 	"
 
 SHBuild_CheckHostPlatform
+# XXX: %SHBuild_Host_Platform is external.
+# shellcheck disable=2154
 Test_BuildDir="$YSLib_BaseDir/build/$SHBuild_Host_Platform/.test"
-mkdir -p $Test_BuildDir
-SHBuild_Pushd $Test_BuildDir
+mkdir -p "$Test_BuildDir"
+SHBuild_Pushd "$Test_BuildDir"
 
 SHBuild_CheckPCH "$INCLUDE_PCH" "stdinc.h"
 
-"$CXX" $TestDir/YBase.cpp -oYBase$EXESFX $CXXFLAGS $LDFLAGS $SHBuild_IncPCH \
+# XXX: Value of several variables may contain whitespaces.
+# shellcheck disable=2086,2154
+"$CXX" "$TestDir/YBase.cpp" -oYBase$EXESFX $CXXFLAGS $LDFLAGS $SHBuild_IncPCH \
 	$INCLUDES $LIBS "$@"
 
 ./YBase
 
 SHBuild_Popd
 
-echo Done.
+SHBuild_Puts 'Done.'
 

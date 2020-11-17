@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r4009
+\version r4071
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2020-10-27 00:16 +0800
+	2020-11-17 18:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,9 +41,10 @@ See readme file for details.
 #include YFM_YSLib_Core_YStorage // for ystdex::raise_exception,
 //	YSLib::FetchStaticRef;
 #include YFM_NPL_Dependency // for NPL::DepsEventType, NPL, A1, Forms,
-//	NPL::DecomposeMakefileDepList, NPL::FilterMakefileDependencies,
-//	NPL::Install*;
-#include <ystdex/string.hpp> // for ystdex::write_literal;
+//	TraceException, TraceBacktrace, NPL::DecomposeMakefileDepList,
+//	NPL::FilterMakefileDependencies, NPL::Install*;
+#include <ystdex/string.hpp> // for ystdex::write_literal, ystdex::rtrim,
+//	ystdex::ltrim, ystdex::trim;
 #include <iostream> // for std::cout, std::endl;
 #include YFM_YSLib_Core_YConsole // for YSLib::Consoles;
 #include <ystdex/concurrency.h> // for ystdex::task_pool;
@@ -51,6 +52,13 @@ See readme file for details.
 #	include YFM_Win32_YCLib_MinGW32 // for platform_ex::ParseCommandArguments;
 #endif
 #include <sstream> // for complete istringstream;
+#if SHBuild_NoBacktrace
+#	define SHBuild_UseBacktrace false
+#	define SHBuild_UseSourceInfo false
+#else
+#	define SHBuild_UseBacktrace true
+#	define SHBuild_UseSourceInfo true
+#endif
 
 //! \since build 837
 namespace SHBuild
@@ -372,7 +380,14 @@ RunNPLFromStream(const char* name, std::istream&& is)
 	using namespace A1;
 	using namespace Forms;
 	REPLContext context;
+	TermNode term{context.Allocator};
+#if SHBuild_UseBacktrace
+	ContextNode::ReducerSequence backtrace{context.Allocator};
+#endif
 
+#if SHBuild_UseSourceInfo
+	context.UseSourceLocation = true;
+#endif
 	// NOTE: Force filter level to avoid uninterested NPLA messages. This is
 	//	necessary at least in stage 1.
 	context.Root.Trace.FilterLevel = Logger::Level::Informative;
@@ -407,7 +422,48 @@ RunNPLFromStream(const char* name, std::istream&& is)
 					os.put('"') << std::endl;
 			})));
 		}));
-		TryLoadSource(context, name, is);
+		context.ShareCurrentSource(name);
+		try
+		{
+			context.Root.Rewrite(
+				NPL::ToReducer(context.Allocator, [&](ContextNode& ctx){
+				ctx.SaveExceptionHandler();
+				// TODO: Blocked. Use C++14 lambda initializers to simplify the
+				//	implementation.
+				ctx.HandleException = std::bind([&](std::exception_ptr p,
+					const ContextNode::ReducerSequence::const_iterator& i){
+					ctx.TailAction = nullptr;
+#if SHBuild_UseBacktrace
+					ctx.Shift(backtrace, i);
+#endif
+					YAssertNonnull(p);
+					TryExpr(std::rethrow_exception(std::move(p)))
+					catch(std::exception& e)
+					{
+					//	auto& trace(ctx.Trace);
+						auto& trace(FetchStaticRef<Logger>());
+						std::lock_guard<std::mutex> lck(LastLogGroupMutex);
+
+						LastLogGroup = LogGroup::General;
+						TraceException(e, trace);
+						trace.TraceFormat(Notice, "Location: %s.",
+							context.CurrentSource
+							? context.CurrentSource->c_str() : "<unknown>");
+#if SHBuild_UseBacktrace
+						TraceBacktrace(backtrace, trace);
+#endif
+						throw;
+					}
+				}, std::placeholders::_1, ctx.GetCurrent().cbegin());
+				term = context.ReadFrom(is);
+				// XXX: Is it necessar to change the text color here?
+				return A1::ReduceOnce(term, ctx);
+			}));
+		}
+		// NOTE: As %A1::TryLoadSource.
+		CatchExpr(..., std::throw_with_nested(NPLException(
+			ystdex::sfmt("Failed loading external unit '%s'.",
+			name))));
 	});
 }
 
@@ -700,7 +756,8 @@ BuildContext::GetFlags(string_view cmd_type) const
 		res = GetEnv("SHBuild_CFLAGS");
 	else if(cmd_type == "CXX")
 		res = GetEnv("SHBuild_CXXFLAGS");
-	return res + ' ' + flags;
+	return ystdex::trim(ystdex::rtrim(res) + ' '
+		+ ystdex::ltrim(string(flags)));
 }
 int
 BuildContext::GetLastResult() const
@@ -1014,7 +1071,7 @@ main(int argc, char* argv[])
 						const auto& arg0(p_cmd_args->Arguments.front());
 
 						if(RequestedCommand == "RunNPL")
-							RunNPLFromStream("<stdin>", istringstream(arg0));
+							RunNPLFromStream("*STDIN*", istringstream(arg0));
 						else
 						{
 							const auto p(A1::OpenFile(arg0.c_str()));

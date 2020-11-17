@@ -2,10 +2,8 @@
 # (C) 2014-2015, 2017, 2020 FrankHB.
 # Common source script: toolchain configuration.
 
-: "${SHBuild_ToolDir:=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
-# XXX: The error is ignored.
-# shellcheck disable=2164
-: "${SHBuild_AppBaseDir=$(cd "$(dirname "$0")"; pwd)}"
+set -e
+: "${SHBuild_ToolDir:=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)}"
 # shellcheck source=./SHBuild-common.sh
 . "$SHBuild_ToolDir/SHBuild-common.sh" # for SHBuild_CheckUName,
 #	SHBuild_GetTempDir.

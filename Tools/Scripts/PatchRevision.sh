@@ -3,9 +3,11 @@
 # Revision patching script: patching source revisions using RevisionPatcher.
 # Required: hg, sed.
 
-: "${SHBuild_Bin:=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+set -e
+# NOTE: Relative location of %SHBuild-common.sh is depends on both in stage 1
+#	and Sysroot.
 # shellcheck source=./SHBuild-common.sh
-. "$SHBuild_Bin/SHBuild-common.sh"
+. "$(dirname "${BASH_SOURCE[0]}")/SHBuild-common.sh"
 
 SHBuild_CheckedCallSilent hg root
 SHBuild_CheckedCallSilent SHBuild_Put x | sed 's/x/x/g'

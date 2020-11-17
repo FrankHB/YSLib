@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2287
+\version r2303
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2020-11-08 22:09 +0800
+	2020-11-12 15:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -693,31 +693,33 @@ ParseCommandArguments(const wchar_t* p)
 
 	vector<string> args;
 	wstring cbuf;
-	wchar_t c;
 	bool quoted = {};
 	const auto add([&]{
 		args.push_back(WCSToMBCS(std::move(cbuf)));
 	});
 
-	do
+	while(quoted || (*p != L' ' && *p != L'\t'))
 	{
 		if(*p == '"')
 			quoted = !quoted;
+		else if(*p == wchar_t())
+		{
+			add();
+			return args;
+		}
 		else
 			cbuf += *p;
-		c = *p++;
-	}while(c != '\0' && (quoted || (c != ' ' && c != '\t')));
+		++p;
+	}
 	add();
-	if(c == '\0')
-		return args;
 	cbuf.clear();
 	quoted = {};
 	while(true)
 	{
-		if(*p != '\0')
-			while(*p == ' ' || *p == '\t')
+		if(*p != wchar_t())
+			while(*p == L' ' || *p == L'\t')
 				++p;
-		if(*p == '\0')
+		if(*p == wchar_t())
 			break;
 		while(true)
 		{
@@ -741,8 +743,8 @@ ParseCommandArguments(const wchar_t* p)
 				n_slash /= 2;
 			}
 			while(n_slash-- != 0)
-				cbuf += '\\';
-			if(*p == '\0' || (!quoted && (*p == ' ' || *p == '\t')))
+				cbuf += L'\\';
+			if(*p == wchar_t() || (!quoted && (*p == ' ' || *p == '\t')))
 				break;
 			if(copy_char)
 				cbuf += *p;

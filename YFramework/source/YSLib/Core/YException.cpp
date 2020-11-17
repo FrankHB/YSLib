@@ -11,13 +11,13 @@
 /*!	\file YException.cpp
 \ingroup Core
 \brief 异常处理模块。
-\version r418
+\version r425
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2020-04-19 03:21 +0800
+	2020-11-16 23:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,12 +66,13 @@ PrintCriticalFor(const ExtractedLevelPrinter& print, const char* str,
 }
 
 void
-TraceException(const char* str, RecordLevel lv, size_t level) ynothrow
+PrintMessage(const char* str, RecordLevel lv, size_t level) ynothrow
 {
-	TryExpr(
-		YF_TraceRaw(lv, "%s%s", std::string(level, ' ').c_str(), Nonnull(str)))
+	// XXX: Format '%*c' may not work in some implementations of %ystdex::sfmt
+	//	used as the default by %YF_TraceRaw.
+	TryExpr(YF_TraceRaw(lv, "%*s%s", int(level), "", Nonnull(str)))
 	CatchExpr(..., YF_TraceRaw(lv < Critical ? lv : Critical,
-		"Failure @ TraceException."))
+		"Failure @ PrintMessage."))
 }
 
 void
@@ -84,8 +85,7 @@ void
 ExtractAndTrace(const std::exception& e, RecordLevel lv) ynothrow
 {
 	TraceExceptionType(e, lv);
-	ExtractException(ystdex::bind1(TraceException, lv, std::placeholders::_2),
-		e);
+	ExtractException(ystdex::bind1(PrintMessage, lv, std::placeholders::_2), e);
 }
 
 void
