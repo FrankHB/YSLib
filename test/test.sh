@@ -8,7 +8,6 @@ set -e
 $(cd "$(dirname "${BASH_SOURCE[0]}")/../Tools/Scripts"; pwd)}"
 : "${YSLib_BaseDir:="$SHBuild_ToolDir/../.."}"
 YSLib_BaseDir=$(cd "$YSLib_BaseDir"; pwd)
-: "${TestDir:=$(cd "$(dirname "$0")"; pwd)}"
 
 # XXX: Following variables are internal.
 # shellcheck disable=2034
@@ -18,27 +17,25 @@ SHBuild_Debug=debug
 # shellcheck disable=2034
 SHBuild_NoAdjustSubsystem=true
 
-: "${AR:=gcc-ar}"
 # shellcheck source=../Tools/Scripts/SHBuild-common-options.sh
 . "$SHBuild_ToolDir/SHBuild-common-options.sh"
 
 INCLUDE_PCH="$YSLib_BaseDir/YBase/include/stdinc.h"
-INCLUDES=" \
-	-I$YSLib_BaseDir/YFramework/include \
-	-I$YSLib_BaseDir/YFramework/Android/include \
-	-I$YSLib_BaseDir/YFramework/DS/include \
-	-I$YSLib_BaseDir/YFramework/Win32/include \
-	-I$YSLib_BaseDir/3rdparty/include \
-	-I$YSLib_BaseDir/YBase/include \
-	"
+INCLUDES="-I$YSLib_BaseDir/YFramework/include \
+-I$YSLib_BaseDir/YFramework/Android/include \
+-I$YSLib_BaseDir/YFramework/DS/include \
+-I$YSLib_BaseDir/YFramework/Win32/include \
+-I$YSLib_BaseDir/3rdparty/include \
+-I$YSLib_BaseDir/YBase/include \
+"
 
-LIBS=" \
-	$YSLib_BaseDir/YBase/source/ystdex/cassert.cpp \
-	$YSLib_BaseDir/YBase/source/ystdex/cstdio.cpp \
-	$YSLib_BaseDir/YBase/source/ytest/test.cpp \
-	"
+LIBS="$YSLib_BaseDir/YBase/source/ystdex/cassert.cpp \
+$YSLib_BaseDir/YBase/source/ystdex/cstdio.cpp \
+$YSLib_BaseDir/YBase/source/ytest/test.cpp \
+"
 
 SHBuild_CheckHostPlatform
+TestDir="$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)"
 # XXX: %SHBuild_Host_Platform is external.
 # shellcheck disable=2154
 Test_BuildDir="$YSLib_BaseDir/build/$SHBuild_Host_Platform/.test"

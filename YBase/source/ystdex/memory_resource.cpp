@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1494
+\version r1497
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2020-04-06 19:01 +0800
+	2020-11-30 21:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 //	::operator new, ::operator delete, std::unique_ptr, make_observer, YAssert,
 //	lref, yassume, ystdex::destruct_in, yverify, yconstraint, CHAR_BIT,
 //	is_power_of_2_positive, ceiling_lb, std::piecewise_construct,
-//	std::forward_as_tuple, PTRDIFF_MAX;
+//	std::forward_as_tuple, PTRDIFF_MAX, ystdex::aligned_store_cast;
 #if YB_Has_memory_resource != 1
 #	include <atomic> // for std::atomic;
 #endif
@@ -777,8 +777,8 @@ monotonic_buffer_resource::release() yimpl(ynothrow)
 	while(const auto p = tmp.top().get().get())
 	{
 		tmp.pop();
-		// NOTE: Header is stored at the end of the allocated memory block.
-		upstream_rsrc->deallocate(const_cast<char*>(reinterpret_cast<
+		// NOTE: The header is stored at the end of the allocated memory block.
+		upstream_rsrc->deallocate(const_cast<char*>(ystdex::aligned_store_cast<
 			const char*>(p + 1) - p->size), p->size, p->alignment);
 	}
 }

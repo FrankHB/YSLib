@@ -37,7 +37,7 @@ SHBuild_CheckHostPlatform
 : "${SHBuild_BuildDir:="$YSLib_BaseDir/build/$SHBuild_Host_Platform"}"
 export SHBuild_BuildDir
 SHBuild_Puts "Build directory is \"$SHBuild_BuildDir\"."
-SHBuild_CheckUName
+SHBuild_PrepareBuild
 # shellcheck source=./Scripts/SHBuild-common-toolchain.sh
 . "$SHBuild_ToolDir/SHBuild-common-toolchain.sh"
 if [[ -z ${SHBuild_UseRelease+x} ]]; then

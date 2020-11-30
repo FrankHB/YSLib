@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r1113
+\version r1311
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2020-11-17 19:21 +0800
+	2020-11-30 23:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,205 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ @ "%test.sh" @ %Test $=
+	(
+		- "%AR",
+			// This is now detected automatically in \
+				%Tools/SHBuild-common-options.sh.
+		/ DLI "shrinked prefixed tabs" @ "default value" @ "%(INCLUDES, LIBS)",
+		(
+		/ "fixed test directory" ^ '${BASH_SOURCE[0]}' ~ '$0';
+		- "overridable %TestDir"
+		),
+		* $comp "%SHBuild_Debug not effective" $since b575
+			$dep_from ("%(CXXFLAGS_OPT_DBG, LDFLAGS_OPT_DBG)"
+			@ "%SHBuild-common-options.sh")
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ %YBase.YStandardEx.CStandardIO $=
+		(
+			+ "2nd parameter to allow file creation" @ "function %fexists" ,
+			/ $lib "all 'yonthrow'" @ "functions with narrow contracts on the \
+				parameters" -> 'ynothrowv'
+				$effective @ "functions %(vfmtlen, setnbuf, fexists)"
+		),
+		/ DLDI "member function %monotonic_buffer_resource::release"
+			@ 'YB_Has_memory_resource != 1' @ %MemoryResource
+			^ "%ystdex::aligned_store_cast" ~ 'reinterpret_cast'
+	),
+	/ %YFramework $=
+	(
+		+ "2nd parameter to allow file creation" @ "all 2 functions %ufexists"
+			@ %YCLib.FileIO,
+		+ "function %RandomizeTemplatedString" @ %YSLib.Core.YCoreUtilities,
+		/ %NPL $=
+		(
+			* "wrong check" @ "function template %CheckRegular" $since b855
+				/ $= (/ $impl ^ "%IsBranch" ~ "%IsList"),
+			(
+			/ "function %A1::ThrowInsufficientTermsError" @ %NPLA1
+				-> ("%NPL::ThrowInsufficientTermsError with 2 parameters"
+				@ %NPLA);
+			/ $forced "enhanced exception messages for insufficient terms"
+				@ "calls of %ThrowInsufficientTermsError" $effective
+				@ ("functions %(BindParameter, MatchParameter)" @ %NPLA1,
+				"functions %Forms::(Cond, When, Unless, DefineLazy, \
+				'Define*', 'SetWith*', 'Lambda*', 'Vau*', First, FirstVal, \
+				'ListAsterisk*', FoldR1, Map1, ForwardListFirst)" @ %NPLA1Forms)
+			),
+			/ %NPLA1Forms $=
+			(
+				/ "functions %(Equal, EqualLeaf, EqualReference, EqualValue)"
+					=> "%(Eq, EqLeaf, EqReference, EqValue)",
+				+ "function %EqualTermValue",
+				/ "supported thunked recursive comparison" @ "%operator=="
+					@ "encapsulation constructed from function \
+					%MakeEncapsulationType"
+					~ "type comparison"
+			),
+			/ %Dependency $=
+			(
+				/ @ "function %LoadGroundContext" $=
+				(
+					/ DLDI "order with other applicatives"
+						@ "applicatives (%restv, 'rest&', 'rest&')",
+						// This is now more consistent to %Documentation.NPL.
+					(
+					+ "applicatives ('branch?', 'branchv?')";
+					+ "applicative 'equal?'" ^ $dep_from "%EqualTermValue"
+					)
+				),
+				+ "applicative %SHBuild_MakeTempFilename"
+					@ "function %LoadModule_SHBuild"
+					^ $dep_from ("%YSLib::RandomizeTemplatedString"
+					@ %YSLib.Core.YCoreUtilities,
+					"%ystdex::fexists" @ %YBase.YStandardEx.CStandardIO),
+				+ "applicative 'remove-file'"
+					@ "function %LoadModule_std_system"
+			)
+		)
+	),
+	/ %Tools.Scripts $=
+	(
+		/ DLDI @ "%SHBuild-YSLib-build.txt" $=
+		(
+			- "redundant restore of %LIBS before dynamic library building",
+			/ "simplified import of 'env-get'"
+		),
+		/ @ "%SHBuild-BuildApp.txt" $=
+		(
+			(
+			- "exported %(SHBuild_CFLAGS, SHBuild_CXXFLAGS) from %(CFLAGS, \
+				CXXFLAGS)";
+			* $comp "exported %(SHBuild_CFLAGS, SHBuild_CXXFLAGS) clashed with \
+				%(CFLAGS, CXXFLAGS) set in %SHBuild-YSLib-common.txt"
+				$since b900
+				// This was OK in the original %SHBuild-BuildApp.sh, since \
+					the flags were not used in the command line of %SHBuild \
+					called in that script.
+			),
+			+ "support of %(SHBuild_LDFLAGS, SHBuild_LIBS) as the prefix of \
+				%(LDFLAGS, LIBS)",
+				// Now prefixed extra flags can coexist with the inferred ones \
+					from the build script.
+			/ @ "help message" $=
+			(
+				+ "clarification of %SRCPATH in 'SHBOPT_BASE ...'",
+				* "wrong description for %SHBuild_Static"
+					$orig (@ "%SHBuild-BuildApp.sh" $since b556)
+			),
+			* "environment variable %SHBuild_Static not respected" $since b900
+		),
+		/ @ "%SHBuild-common-options.sh" $=
+		(
+			/ "set %(CXXFLAGS_OPT_DBG, LDFLAGS_OPT_DBG)" @ '%SHBuild_Debug'
+				// As %SHBuild-BuildApp.txt and the old %SHBuild-BuildApp.sh.
+			/ DLI "shrinked prefixed tabs" @ "all default values",
+		),
+		/ DLI @ "%SHBuild-bootstrap.sh" $=
+		(
+			/ "shrinked prefixed tabs" @ "all default values",
+			/ $design "quoted arguments" @ "1st call of %SHBuild_Puts"
+		),
+		/ @ "%SHBuild-common.sh" $=
+		(
+			/ @ "function %SHBuild_CheckUName" $=
+			(
+				* "wrong names used to check the initialization" $since b563 $=
+				(
+					/ "%SHBuild_OS" -> "%SHBuild_Env_OS",
+					/ "%SHBuild_Arch" -> "%SHBuild_Env_Arch"
+				),
+				* "allowed setting variables ignoring irrelavent initialization"
+					$since b563
+			);
+			+ "minimal cross-build toolchain support" $=
+			(
+				+ "function %SHBuild_PrepareBuild";
+				/ "function %SHBuild_CheckHostPlatform"
+					^ "%SHBuild_PrepareBuild" ~ "%SHBuild_CheckUName"
+			)
+		),
+		/ @ "%SHBuild-YSLib-common.txt" $=
+		(
+			/ "optimized away unnecessary initialization when the value \
+				of %(CFLAGS, CXXFLAGS) has been already specified externally",
+			/ "%LDFLAGS not overridable" $since b796,
+			/ DLDI "all dynamic environment variable 'env'" => 'd',
+			/ "intialized variables %(SHBuild_Env_OS, SHBuild_Env_Arch) \
+				globally as %SHBuild_GetPlatformStrings";
+			/ "returned host environment variables" ~ "build environment \
+				variables" @ "applicative %SHBuild_GetPlatformStrings";
+				// Like %SHBuild_PrepareBuild instead of %SHBuild_CheckUName \
+					in %SHBuild-common.sh.
+			/ "separated build and host environments"
+				@ "applicatives %SHBuild_CheckCXX, 'build-with-conf-opt' and \
+					installation routines"
+			(
+			/ DLDI "simplified use of host NUL and temporary directory \
+				without 'env-os'";
+			- "applicatives for NUL and temporary directory",
+			- "environment OS parameter 'env-os'" @ "applicatives \
+				'system-or-puts', 'compile-ok-silent', %(SHBuild_2m, \
+				SHBuild_2u, SHBuild_2w, SHBuild_GetTempDir)"
+			),
+			/ "improved handling of temporary files" $=
+			(
+				/ "randominzed filename on creation" ^ $dep_from
+					("%SHBuild_MakeTempFilename" @ %YFramework.NPL.Dependency),
+				/ "deleted files after use"
+					^ $dep_from ('remove-file' @ %YFramework.NPL.Dependency)
+			)
+		),
+		(
+		/ $forced "separated build and host environments"
+			@ "%(SHBuild-BuildApp.txt, SHBuild-YSLib-build.txt)"
+			$dep_from ("%SHBuild_GetPlatformStrings"
+			@ "%SHBuild-YSLib-common.txt")
+			$dep_to "SHBuild build scripts build variables support";
+		/ "simplified the use of build environment OS by initialization \
+			globally" $effective @ "%(SHBuild-YSLib-common.txt, \
+			SHBuild-YSLib-build.txt, SHBuild-BuildApp.txt)"
+		)
+	),
+	/ "supported build variables %(SHBuild_Host_Arch, SHBuild_Host_OS) for \
+		build scripts" $=
+	(
+		/ "call of %SHBuild_CheckUName" -> ($dep_from
+			"%SHBuild_PrepareBuild" @ ("%SHBuild-common.sh" @ %Tools.Scripts))
+			$effecitive @ ("%install-sysroot.sh", "%(SHBuild-bootstrap.sh, \
+			SHBuild-toolchain-options.sh)" @ %Scripts) @ %Tools,
+		/ ^ "%(SHBuild_Host_Arch, SHBuild_Host_OS) for host"
+			~ "%(SHBuild_Env_Arch, SHBuild_Env_OS)"
+			$effective @ "%(SHBuild-self-host.sh, SHBuild-common-options.sh, \
+			SHBuild-bootstrap.sh)" @ %Tools.Scripts
+		/ $dep_from "SHBuild build scripts build variables support"
+	)
+),
+
+b903
 (
 	* "trailing NUL wrongly added to the command" @ "functions \
 		%ParseCommandArguments" @ %'YCLib.(Win32)'.MinGW32 $since b901,

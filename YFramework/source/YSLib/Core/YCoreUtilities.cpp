@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.cpp
 \ingroup Core
 \brief 核心实用模块。
-\version r138
+\version r157
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2014-10-01 08:52:17 +0800
 \par 修改时间:
-	2020-10-03 15:47 +0800
+	2020-11-29 17:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,6 +28,8 @@
 #include "YSLib/Core/YModules.h"
 #include YFM_YSLib_Core_YCoreUtilities // for std::exception, ExtractException,
 //	FatalError, upopen, upclose, ExtractAndTrace;
+#include <random> // for std::random_device, std::mt19937,
+//	std::uniform_int_distribution;
 #include <cstdlib> // for std::getenv;
 #include <ystdex/cstdio.h> // for ystdex::read_all_with_buffer;
 
@@ -51,6 +53,28 @@ PerformKeyAction(function<void()> f, const char* sig,
 	}, e))
 	CatchExpr(..., res += string("Unknown exception @ ") + sig + ".\n")
 	throw FatalError(t, string(sv) + res);
+}
+
+
+string
+RandomizeTemplatedString(string str, char mask, string_view tmpl)
+{
+	YAssert(tmpl.data() && !tmpl.empty(),
+		"The template string argument shall specify valid nonempty string.");
+
+	const auto m(tmpl.size() - 1);
+	const auto randomize([&]{
+		// TODO: Use common instance of the random objects?
+		static std::random_device rd;
+		static std::mt19937 mt(rd());
+
+		return tmpl[std::uniform_int_distribution<size_t>(0, m)(mt)];
+	});
+
+	for(auto& c : str)
+		if(c == mask)
+			c = randomize();
+	return str;
 }
 
 

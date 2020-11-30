@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2589
+\version r2598
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2020-10-03 14:28 +0800
+	2020-11-29 15:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -378,6 +378,16 @@ PerformKeyAction(function<void()>, const char*, const char*, string_view);
 
 
 /*!
+\brief 替换第一参数中和第二参数相等的字符为第三参数指定的随机字符。
+\pre 断言：第三参数是非空字符串。
+\return 从第一参数转移的替换的字符后的结果。
+\since build 904
+*/
+YF_API string
+RandomizeTemplatedString(string, char, string_view);
+
+
+/*!
 \brief 参数字符串向量。
 \since build 797
 
@@ -390,7 +400,7 @@ public:
 
 	/*!
 	\brief 设置值。
-	\pre 间接断言： 第二参数的元素都是非空指针。
+	\pre 间接断言：第二参数的元素都是非空指针。
 	\exception LoggedEvent 输入的参数数小于 0 。
 	\sa CheckNonnegative
 	\since build 797

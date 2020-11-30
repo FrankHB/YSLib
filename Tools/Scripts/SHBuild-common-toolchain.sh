@@ -5,9 +5,9 @@
 set -e
 : "${SHBuild_ToolDir:=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)}"
 # shellcheck source=./SHBuild-common.sh
-. "$SHBuild_ToolDir/SHBuild-common.sh" # for SHBuild_CheckUName,
+. "$SHBuild_ToolDir/SHBuild-common.sh" # for SHBuild_PrepareBuild,
 #	SHBuild_GetTempDir.
-SHBuild_CheckUName
+SHBuild_PrepareBuild
 
 # Check the availablity of the C compiler.
 #	The result is the style supported: either "Clang", "GCC" or invalid.

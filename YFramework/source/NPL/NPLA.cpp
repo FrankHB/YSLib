@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3417
+\version r3424
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2020-11-17 00:07 +0800
+	2020-11-18 14:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -584,6 +584,14 @@ TermToTags(TermNode& term)
 	return ystdex::call_value_or(ystdex::compose(GetLValueTagsOf,
 		std::mem_fn(&TermReference::GetTags)),
 		NPL::TryAccessLeaf<const TermReference>(term), term.Tags);
+}
+
+void
+ThrowInsufficientTermsError(const TermNode& term, bool has_ref)
+{
+	throw ParameterMismatch(ystdex::sfmt(
+		"Insufficient subterms found in '%s' for the list parameter.",
+		TermToStringWithReferenceMark(term, has_ref).c_str()));
 }
 
 void

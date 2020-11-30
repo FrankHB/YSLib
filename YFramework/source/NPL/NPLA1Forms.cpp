@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r19504
+\version r19632
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2020-11-09 00:53 +0800
+	2020-11-22 12:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@
 //	std::allocator_arg, NPL::AsTermNode, ystdex::exchange,
 //	NPL::SwitchToFreshEnvironment, TermTags, ystdex::expand_proxy,
 //	NPL::AccessRegular, TermReference, GetLValueTagsOf, RegularizeTerm,
-//	ThrowValueCategoryError, ThrowListTypeErrorForNonlist,
+//	ThrowValueCategoryError, ThrowListTypeErrorForNonlist, ystdex::update_thunk,
 //	NPL::TryAccessReferencedLeaf, ystdex::invoke_value_or,
 //	ystdex::call_value_or, RelaySwitched, LiftMovedOther, LiftCollapsed,
 //	ystdex::make_transform, NPL::AllocateEnvironment, NPL::TryAccessTerm,
@@ -105,7 +105,7 @@ YB_ATTR_nodiscard TNIter
 CondClauseCheck(TermNode& clause)
 {
 	if(YB_UNLIKELY(clause.empty()))
-		ThrowInsufficientTermsError();
+		ThrowInsufficientTermsError(clause, {});
 	return clause.begin();
 }
 
@@ -163,7 +163,7 @@ WhenUnless(TermNode& term, ContextNode& ctx, bool is_when)
 		}, "conditional-eval-sequence"));
 	}
 	else
-		ThrowInsufficientTermsError();
+		ThrowInsufficientTermsError(term, {});
 }
 
 ReductionStatus
@@ -210,37 +210,79 @@ AndOr(TermNode& term, ContextNode& ctx,
 }
 //@}
 
-//! \since build 804
+//! \since build 904
 //@{
 template<typename _fComp, typename _func>
-void
-EqualTerm(TermNode& term, _fComp f, _func g)
+auto
+EqTerm(TermNode& term, _fComp f, _func g) -> decltype(f(
+	std::declval<_func&>()(std::declval<const TermNode&>()),
+	std::declval<_func&>()(std::declval<const TermNode&>())))
 {
 	RetainN(term, 2);
 
 	auto i(term.begin());
 	const auto& x(*++i);
 
-	term.Value = f(g(x), g(ystdex::as_const(*++i)));
+	return f(g(x), g(ystdex::as_const(*++i)));
+}
+
+template<typename _fComp, typename _func>
+void
+EqTermRet(TermNode& term, _fComp f, _func g)
+{
+	using type = decltype(g(term));
+
+	EqTerm(term, [&, f](const type& x, const type& y){
+		term.Value = f(x, y);
+	}, g);
 }
 
 template<typename _func>
 void
-EqualTermValue(TermNode& term, _func f)
+EqTermValue(TermNode& term, _func f)
 {
-	EqualTerm(term, f, [](const TermNode& x) -> const ValueObject&{
+	EqTermRet(term, f, [](const TermNode& x) -> const ValueObject&{
 		return ReferenceTerm(x).Value;
 	});
 }
 
 template<typename _func>
 void
-EqualTermReference(TermNode& term, _func f)
+EqTermReference(TermNode& term, _func f)
 {
-	EqualTerm(term, [f](const TermNode& x, const TermNode& y) YB_PURE{
+	EqTermRet(term, [f](const TermNode& x, const TermNode& y) YB_PURE{
 		return IsLeaf(x) && IsLeaf(y) ? f(x.Value, y.Value)
 			: ystdex::ref_eq<>()(x, y);
 	}, static_cast<const TermNode&(&)(const TermNode&)>(ReferenceTerm));
+}
+
+YB_PURE inline PDefH(bool, TermUnequal, const TermNode& x, const TermNode& y)
+	ImplRet(x.size() != y.size() || x.Value != y.Value)
+
+ReductionStatus
+EqualSubterm(bool& r, ContextNode& ctx, bool orig, TNCIter first1,
+	TNCIter first2, TNCIter last1)
+{
+	if(first1 != last1)
+	{
+		auto& x(ReferenceTerm(*first1));
+		auto& y(ReferenceTerm(*first2));
+
+		if(TermUnequal(x, y))
+		{
+			r = {};
+			return ReductionStatus::Clean;
+		}
+		yunseq(++first1, ++first2);
+		RelaySwitched(ctx, [&, first1, first2, last1]{
+			return EqualSubterm(r, ctx, {}, first1, first2, last1);
+		});
+		return RelaySwitched(ctx, [&]{
+			return
+				EqualSubterm(r, ctx, {}, x.begin(), y.begin(), x.end());
+		});
+	}
+	return orig ? ReductionStatus::Clean : ReductionStatus::Partial;
 }
 //@}
 
@@ -323,11 +365,11 @@ YB_ATTR_nodiscard inline PDefH(const shared_ptr<Environment>&,
 	const shared_ptr<Environment>& p_env)
 	ImplRet(Environment::EnsureValid(p_env), p_env)
 
-//! \since build 888
+//! \since build 904
 YB_NORETURN inline void
-ThrowInsufficientTermsErrorFor(InvalidSyntax&& e)
+ThrowInsufficientTermsErrorFor(const TermNode& term, InvalidSyntax&& e)
 {
-	TryExpr(ThrowInsufficientTermsError())
+	TryExpr(ThrowInsufficientTermsError(term, {}))
 	CatchExpr(..., std::throw_with_nested(std::move(e)))
 }
 
@@ -351,7 +393,7 @@ DoDefineSet(TermNode& term, size_t n, _func f) -> decltype(f())
 	Retain(term);
 	if(term.size() > n)
 		return f();
-	ThrowInsufficientTermsErrorFor(
+	ThrowInsufficientTermsErrorFor(term,
 		InvalidSyntax("Invalid syntax found in definition."));
 }
 
@@ -1217,7 +1259,7 @@ FirstOrVal(TermNode& term, _func f)
 	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
 		if(IsBranchedList(nd))
 			return f(AccessFirstSubterm(nd), p_ref);
-		ThrowInsufficientTermsError();
+		ThrowInsufficientTermsError(nd, p_ref);
 	}, term);
 }
 //@}
@@ -1357,7 +1399,7 @@ CreateFunction(TermNode& term, _func f, size_t n)
 	Retain(term);
 	if(term.size() > n)
 		return f();
-	ThrowInsufficientTermsErrorFor(MakeFunctionAbstractionError());
+	ThrowInsufficientTermsErrorFor(term, MakeFunctionAbstractionError());
 }
 
 ReductionStatus
@@ -1553,10 +1595,62 @@ public:
 
 	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
 		const Encapsulation& x, const Encapsulation& y) ynothrow
-		ImplRet(x.Get() == y.Get())
+		ImplRet(x.Get() == y.Get()
+			&& Equal(ReferenceTerm(x.TermRef), ReferenceTerm(y.TermRef)))
 
 	using EncapsulationBase::Get;
 	using EncapsulationBase::GetType;
+
+private:
+	//! \since build 904
+	static bool
+	Equal(const TermNode& x, const TermNode& y)
+	{
+		if(TermUnequal(x, y))
+			return {};
+
+		// NOTE: This is a trampoline to eliminate the call depth limitation.
+		// XXX: This is not like %SeparatorPass in %NPLA1 inserting subnodes for
+		//	each turn of the search which is not friendly to short-curcuit
+		//	evaluation.
+		bool r(true);
+		Action act{};
+
+		EqualSubterm(r, act, x.begin(), y.begin(), x.end());
+		while(act)
+		{
+			const auto a(std::move(act));
+
+			a();
+		}
+		return r;
+	}
+
+	static void
+	EqualSubterm(bool& r, Action& act, TNCIter first1, TNCIter first2,
+		TNCIter last1)
+	{
+		if(first1 != last1)
+		{
+			auto& x(ReferenceTerm(*first1));
+			auto& y(ReferenceTerm(*first2));
+
+			if(TermUnequal(x, y))
+				r = {};
+			else
+			{
+				yunseq(++first1, ++first2);
+				act = [&, first1, first2, last1]{
+					if(r)
+						EqualSubterm(r, act, first1, first2, last1);
+				};
+				ystdex::update_thunk(act, [&, first1, first2, last1]{
+					if(r)
+						EqualSubterm(r, act, x.begin(), y.begin(), x.end());
+				});
+			}
+		}
+	}
 };
 
 
@@ -1699,7 +1793,7 @@ ListAsteriskImpl(TermNode& term)
 			LiftOther(term, head);
 	}
 	else
-		ThrowInsufficientTermsError();
+		ThrowInsufficientTermsError(term, {});
 }
 
 //! \since build 898
@@ -1826,6 +1920,7 @@ FoldRMap1Impl(TermNode& term, TermNode& nd, ResolvedTermReferencePtr p_ref,
 {
 	auto& con(term.GetContainerRef());
 	auto& nterm(con.back());
+
 	if(IsBranchedList(nd))
 	{
 		auto& tm_first(AccessFirstSubterm(nd));
@@ -1866,7 +1961,7 @@ FoldRMap1Impl(TermNode& term, TermNode& nd, ResolvedTermReferencePtr p_ref,
 		return nterm;
 	}
 	else
-		ThrowInsufficientTermsError();
+		ThrowInsufficientTermsError(nd, p_ref);
 }
 
 YB_FLATTEN ReductionStatus
@@ -2017,29 +2112,44 @@ RetainN(const TermNode& term, size_t m)
 
 
 void
-Equal(TermNode& term)
+Eq(TermNode& term)
 {
-	EqualTermReference(term, YSLib::HoldSame);
+	EqTermReference(term, YSLib::HoldSame);
 }
 
 void
-EqualLeaf(TermNode& term)
+EqLeaf(TermNode& term)
 {
-	EqualTermValue(term, ystdex::equal_to<>());
+	EqTermValue(term, ystdex::equal_to<>());
 }
 
 void
-EqualReference(TermNode& term)
+EqReference(TermNode& term)
 {
-	EqualTermValue(term, YSLib::HoldSame);
+	EqTermValue(term, YSLib::HoldSame);
 }
 
 void
-EqualValue(TermNode& term)
+EqValue(TermNode& term)
 {
-	EqualTermReference(term, ystdex::equal_to<>());
+	EqTermReference(term, ystdex::equal_to<>());
 }
 
+ReductionStatus
+EqualTermValue(TermNode& term, ContextNode& ctx)
+{
+	return EqTerm(term,
+		[&](const TermNode& x, const TermNode& y) -> ReductionStatus{
+		if(TermUnequal(x, y))
+		{
+			term.Value = false;
+			return ReductionStatus::Clean;
+		}
+		term.Value = true;
+		return EqualSubterm(term.Value.GetObject<bool>(), ctx, true, x.begin(),
+			y.begin(), x.end());
+	}, static_cast<const TermNode&(&)(const TermNode&)>(ReferenceTerm));
+}
 
 ReductionStatus
 If(TermNode& term, ContextNode& ctx)
@@ -2186,7 +2296,7 @@ ForwardListFirst(TermNode& term, ContextNode& ctx)
 				return RelayCombinedTail(ctx, term, std::move(p_e0));
 			}
 			else
-				ThrowInsufficientTermsError();
+				ThrowInsufficientTermsError(nd, p_ref);
 		}, op);
 	}, d), "eval-forward-list-first"));
 }

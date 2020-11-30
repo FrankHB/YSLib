@@ -109,27 +109,47 @@ SHBuild_CheckUNameM_Case_()
 	esac
 }
 
-# Usage: SHBuild_CheckUName && printf $SHBuild_Env_OS $SHBuild_Env_Arch
-SHBuild_CheckUName()
+SHBuild_CheckUName_Init_Env_OS_()
 {
-	# XXX: %SHBuild_OS is external.
-	# shellcheck disable=2154
-	[[ "$SHBuild_OS" == '' ]] || return 0
 	SHBuild_InitReadonly SHBuild_Env_uname uname
 	SHBuild_AssertNonempty SHBuild_Env_uname
 	# XXX: %SHBuild_Env_uname is external.
 	# shellcheck disable=2154
 	SHBuild_InitReadonly SHBuild_Env_OS SHBuild_CheckUName_Case_ \
 		"$SHBuild_Env_uname" > /dev/null
-	# XXX: %SHBuild_Arch is external.
-	# shellcheck disable=2154
-	[[ "$SHBuild_Arch" == '' ]] || return 0
+}
+
+SHBuild_CheckUName_Init_Env_Arch_()
+{
 	SHBuild_InitReadonly SHBuild_Env_uname_m uname -m
 	SHBuild_AssertNonempty SHBuild_Env_uname_m
 	# XXX: %SHBuild_Env_uname_m is external.
 	# shellcheck disable=2154
 	SHBuild_InitReadonly SHBuild_Env_Arch SHBuild_CheckUNameM_Case_ \
 		"$SHBuild_Env_uname_m" > /dev/null
+}
+
+# Initialize %SHBuild_Env_OS and %SHBuild_Env_Arch if necessary. The
+#	initialization is done by shell calls to 'uname'.
+SHBuild_CheckUName()
+{
+	# XXX: %SHBuild_Env_OS is external.
+	# shellcheck disable=2154
+	[[ "$SHBuild_Env_OS" != '' ]] || SHBuild_CheckUName_Init_Env_OS_
+	# XXX: %SHBuild_Env_Arch is external.
+	# shellcheck disable=2154
+	[[ "$SHBuild_Env_Arch" != '' ]] || SHBuild_CheckUName_Init_Env_Arch_
+}
+
+# Prepare the environment for build. Check system environment variables at
+#	first. Then, Variables for the build system are initialized if necessary.
+SHBuild_PrepareBuild()
+{
+	SHBuild_CheckUName
+	: "${SHBuild_Host_Arch:="$SHBuild_Env_Arch"}"
+	: "${SHBuild_Host_OS:="$SHBuild_Env_OS"}"
+	# XXX: Every initializaed variable shall be nonempty. Just avoid the
+	#	assertions here for efficiency.
 }
 
 
@@ -228,7 +248,7 @@ SHBuild_EchoVar_N()
 }
 
 
-# Get temprary directory name by checking "$TMPDIR", "$TEMP", "$TEMP" and
+# Get temporary directory name by checking "$TMPDIR", "$TEMP", "$TMP" and
 #	"/tmp".
 SHBuild_GetTempDir()
 {
@@ -295,9 +315,9 @@ SHBuild_Platform_Detect()
 #	This function use %SHBuild_Platform_Detect.
 SHBuild_CheckHostPlatform()
 {
-	SHBuild_CheckUName
-	: "${SHBuild_Host_Platform:=$(SHBuild_Platform_Detect "$SHBuild_Env_OS" \
-		"$SHBuild_Env_Arch")}"
+	SHBuild_PrepareBuild
+	: "${SHBuild_Host_Platform:=$(SHBuild_Platform_Detect "$SHBuild_Host_OS" \
+		"$SHBuild_Host_Arch")}"
 }
 
 

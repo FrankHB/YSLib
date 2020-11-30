@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8467
+\version r8473
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-11-17 00:17 +0800
+	2020-11-18 14:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -166,13 +166,6 @@ public:
 
 //! \since build 859
 //@{
-/*!
-\brief 抛出缺少项的异常。
-\throw ParameterMismatch 缺少项的错误。
-*/
-YB_NORETURN YF_API void
-ThrowInsufficientTermsError();
-
 /*!
 \brief 抛出参数指定消息的语法错误异常。
 \throw InvalidSyntax 语法错误：参数指定的标识符是不被支持的字面量。

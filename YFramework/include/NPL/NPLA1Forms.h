@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r7711
+\version r7731
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2020-09-29 12:17 +0800
+	2020-11-22 01:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -496,29 +496,29 @@ RegisterBinary(_tTarget& target, string_view name, _func f)
 
 
 /*!
+\sa YSLib::ValueObject
+\since build 904
+*/
+//@{
+/*!
 \brief 比较两个子项表示的值引用相同的对象。
 \sa YSLib::HoldSame
-\since build 804
 
 参考调用文法：
 <pre>eq? \<object1> \<object2></pre>
 */
 YF_API void
-Equal(TermNode&);
+Eq(TermNode&);
 
 /*!
 \brief 比较两个子项的值相等。
-\sa YSLib::ValueObject
-\since build 804
 
 参考调用文法：
 <pre>eql? \<object1> \<object2></pre>
 */
 YF_API void
-EqualLeaf(TermNode&);
+EqLeaf(TermNode&);
 
-//! \since build 748
-//@{
 /*!
 \brief 比较两个子项的值引用相同的对象。
 \sa YSLib::HoldSame
@@ -527,17 +527,25 @@ EqualLeaf(TermNode&);
 <pre>eqr? \<object1> \<object2></pre>
 */
 YF_API void
-EqualReference(TermNode&);
+EqReference(TermNode&);
 
 /*!
-\brief 比较两个子项表示的值相等。
-\sa YSLib::ValueObject
+\brief 比较两个子项表示的值数据成员相等。
 
 参考调用文法：
 <pre>eqv? \<object1> \<object2></pre>
 */
 YF_API void
-EqualValue(TermNode&);
+EqValue(TermNode&);
+
+/*!
+\brief 比较两个子项表示的值相等。
+
+参考调用文法：
+<pre>equal? \<object1> \<object2></pre>
+*/
+YF_API ReductionStatus
+EqualTermValue(TermNode&, ContextNode&);
 //@}
 
 

@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3808
+\version r3888
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2020-11-03 09:42 +0800
+	2020-11-30 21:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,28 +26,33 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_Dependency // for set, string, ystdex::isspace, std::istream,
-//	YSLib::unique_ptr, YSLib::share_move, A1::NameTypedReducerHandler, std::ref,
-//	RelaySwitched, ThrowNonmodifiableErrorForAssignee, ThrowValueCategoryError,
-//	TokenValue, ystdex::bind1, ValueObject, NPL::AllocateEnvironment,
+#include YFM_NPL_Dependency // for set, string, UnescapeContext, string_view,
+//	ystdex::isspace, std::istream, YSLib::unique_ptr, YSLib::share_move,
+//	A1::NameTypedReducerHandler, std::ref, RelaySwitched,
+//	ThrowNonmodifiableErrorForAssignee, ThrowValueCategoryError, TokenValue,
+//	ystdex::bind1, ValueObject, NPL::AllocateEnvironment,
 //	std::piecewise_construct, NPL::forward_as_tuple, LiftOther, Collapse,
 //	LiftOtherOrCopy, NPL::IsMovable, LiftTermOrCopy, ResolveTerm,
 //	LiftTermValueOrCopy, MoveResolved, ResolveIdentifier, ystdex::plus,
 //	std::placeholders, NPL::ResolveRegular, ystdex::tolower,
 //	ystdex::swap_dependent, LiftTermRef, LiftTerm, NPL::Deref,
-//	YSLib::IO::StreamPut;
+//	YSLib::IO::StreamPut, YSLib::IO::omode_convb, YSLib::uremove,
+//	ystdex::throw_error;
 #include YFM_NPL_NPLA1Forms // for NPL::Forms functions;
-#include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
+#include YFM_YSLib_Service_FileSystem // for YSLib::IO::Path;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
 //	ystdex::make_transform;
-#include YFM_YSLib_Service_TextFile // for IO::SharedInputMappedFileStream,
-//	Text::OpenSkippedBOMtream;
+#include YFM_YSLib_Service_TextFile // for
+//	YSLib::IO::SharedInputMappedFileStream, YSLib::Text::OpenSkippedBOMtream;
 #include <cerrno> // for errno, ERANGE;
 #include <regex> // for std::regex, std::regex_match;
 #include <ostream> // for std::endl;
 #include "NPLA1Internals.h" // for NPL_Impl_NPLA1_Enable_Thunked;
-#include YFM_YSLib_Core_YCoreUtilities // for FetchCommandOutput;
+#include YFM_YSLib_Core_YCoreUtilities // for FetchCommandOutput,
+//	YSLib::RandomizeTemplatedString, to_std_string;
 #include <ystdex/string.hpp> // for ystdex::begins_with;
+#include <ystdex/cstdio.h> // for ystdex::fexists;
+#include <cerrno> // for errno, EEXIST, EPERM;
 
 using namespace YSLib;
 
@@ -415,10 +420,10 @@ namespace Primitive
 void
 LoadEquals(ContextNode& ctx)
 {
-	RegisterStrict(ctx, "eq?", Equal);
-	RegisterStrict(ctx, "eql?", EqualLeaf);
-	RegisterStrict(ctx, "eqr?", EqualReference);
-	RegisterStrict(ctx, "eqv?", EqualValue);
+	RegisterStrict(ctx, "eq?", Eq);
+	RegisterStrict(ctx, "eql?", EqLeaf);
+	RegisterStrict(ctx, "eqr?", EqReference);
+	RegisterStrict(ctx, "eqv?", EqValue);
 }
 
 void
@@ -435,6 +440,8 @@ LoadObjects(ContextNode& ctx)
 {
 	RegisterUnary<>(ctx, "null?", ComposeReferencedTermOp(IsEmpty));
 	RegisterUnary<>(ctx, "nullv?", IsEmpty);
+	RegisterUnary<>(ctx, "branch?", ComposeReferencedTermOp(IsBranch));
+	RegisterUnary<>(ctx, "branchv?", IsBranch);
 	RegisterUnary<>(ctx, "reference?", IsReferenceTerm);
 	RegisterUnary<>(ctx, "bound-lvalue?", IsBoundLValueTerm);
 	RegisterUnary<>(ctx, "uncollapsed?", IsUncollapsedTerm);
@@ -663,6 +670,7 @@ LoadGroundedDerived(REPLContext& context)
 	RegisterStrict(renv, "set-first@!", SetFirstAt);
 	// NOTE: Like 'set-car!' in Kernel, with reference collapsed.
 	RegisterStrict(renv, "set-first%!", SetFirstRef);
+	RegisterStrict(renv, "equal?", EqualTermValue);
 	RegisterStrict(renv, "check-environment", CheckEnvironment);
 	RegisterForm(renv, "$cond", Cond);
 	RegisterForm(renv, "$when", When);
@@ -801,6 +809,9 @@ LoadGroundedDerived(REPLContext& context)
 			assign@! (first@ (check-list-reference l)) (forward! x);
 		$defl! set-first%! (&l &x)
 			assign%! (first@ (check-list-reference l)) (forward! x);
+		$defl! equal? (&x &y) $if ($if (branch? x) (branch? y) #f)
+			($if (equal? (first& x) (first& y)) (equal? (rest& x) (rest& y)) #f)
+			(eqv? x y);
 		$defl%! check-environment (&e)
 			$sequence ($vau/e% e . #ignore) (forward! e);
 		$defv! $defv%! (&$f &formals &ef .&body) d
@@ -862,9 +873,6 @@ LoadCore(REPLContext& context)
 			eval (list $set! d f $lambda formals (move! body)) d;
 		$defv! $defl%! (&f &formals .&body) d
 			eval (list $set! d f $lambda% formals (move! body)) d;
-		$defl! restv ((#ignore .x)) x;
-		$defl! rest& (&l) ($lambda ((#ignore .&x)) x) (check-list-reference l);
-		$defl! rest% ((#ignore .%x)) x;
 		$defv! $defw! (&f &formals &ef .&body) d
 			eval (list $set! d f wrap (list* $vau formals ef (move! body))) d;
 		$defv! $defw%! (&f &formals &ef .&body) d
@@ -883,6 +891,9 @@ LoadCore(REPLContext& context)
 			eval (list $set! d f $lambda/e e formals (move! body)) d;
 		$defv! $defl/e%! (&f &e &formals .&body) d
 			eval (list $set! d f $lambda/e% e formals (move! body)) d;
+		$defl! restv ((#ignore .x)) x;
+		$defl! rest& (&l) ($lambda ((#ignore .&x)) x) (check-list-reference l);
+		$defl! rest% ((#ignore .%x)) x;
 	)NPL");
 #if NPL_Impl_NPLA1_Use_LockEnvironment
 	context.Perform(R"NPL(
@@ -1231,6 +1242,10 @@ LoadModule_std_system(REPLContext& context)
 			|| (w.front() == '\'' || w.front() == '"' || w.back() == '\''
 			|| w.back() == '"') ? ystdex::quote(w, '"') : w) : "\"\"";
 	});
+	RegisterUnary<Strict, const string>(renv, "remove-file",
+		[](const string& filename){
+		return YSLib::uremove(filename.c_str());
+	});
 }
 
 void
@@ -1390,6 +1405,60 @@ LoadModule_SHBuild(REPLContext& context)
 		if(!res.empty())
 			res.pop_back();
 		return res;
+	});
+	RegisterBinary<Strict, const string, const string>(renv,
+		"SHBuild_MakeTempFilename",
+		[](const string& pfx, const string& sfx){
+		// NOTE: POSIX functions are not used for compatibility and for retrying
+		//	issues (see below). On the other hand, Win32's %::GetTempPathW is
+		//	not reliable across different Windows versions. See
+		//	https://reviews.llvm.org/D14231.
+		// XXX: This mask length of 6 is same to %::mkstemps used by
+		//	%make_temp_file_with_prefix in libiberty, which in turns used by
+		//	GCC driver. The mask '%' and the template string below are similar
+		//	to the implementation in the LLVM support library used by Clang
+		//	driver.
+		const string_view tmpl("0123456789abcdef");
+
+#if YF_Hosted
+		// NOTE: Value of %TMP_MAX varies. It is also obsolescent in POSIX. See https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/stdio.h.html.
+		// NOTE: Common implementation may try too many times, e.g. glibc's
+		//	implementation retry 26^3 times. LLVM tries 128 times. Here it is
+		//	more conservative, and the number is documented explicitly.
+		for(size_t n(16); n != 0; --n)
+#endif
+		{
+			string str("%%%%%%", pfx.get_allocator());
+
+#if YF_Hosted
+			str = YSLib::RandomizeTemplatedString(str, '%', tmpl);
+#else
+			str = YSLib::RandomizeTemplatedString(std::move(str), '%',
+				tmpl);
+#endif
+
+			str = pfx + std::move(str) + sfx;
+			// TODO: Check file access with read-write permissions using
+			//	%YSLib::uopen. This requires the exposure of the open flags.
+			// XXX: This is like %YSLib::ufexists, but UTF-8 support is not
+			//	needed.
+			if(ystdex::fexists(str.c_str(), true))
+				return str;
+#if YF_Hosted
+
+			const int err(errno);
+
+			// NOTE: On Windows %EPERM can occur on trying to open a file marked
+			//	for deletion.
+			if(err != EEXIST && err != EPERM)
+				continue;
+#endif
+		}
+		// NOTE: This is nearly fatal. It is not intended to be handled in
+		//	the object language in general. Thus, currently it is not
+		//	wrapped in %NPLException.
+		ystdex::throw_error(errno, "Failed opening temporary file with the"
+			" prefix '" + to_std_string(pfx) + '\'');
 	});
 }
 

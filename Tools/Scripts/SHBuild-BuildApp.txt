@@ -3,7 +3,7 @@
 
 $import! std.strings ++ string-empty? string<-,
 $import! std.io load puts,
-$import! std.system cmd-get-args,
+$import! std.system cmd-get-args env-get,
 $import! env_SHBuild_
 	SHBuild_DirectoryOf_ SHBuild_RaiseError_ SHBuild_TrimOptions_;
 
@@ -32,10 +32,11 @@ $def! env_SHBuild_Common_ $provide! (
 ) load (++ SR_Share_NPLA1_ "/SHBuild-YSLib-common.txt");
 
 "TODO", "Merge more with logic in %SHBuild-YSLib-build.txt.";
-$def! (env-os env-arch) () SHBuild_GetPlatformStrings;
-$assert-nonempty env-os, $assert-nonempty env-arch;
+$def! (host-arch host-os) () SHBuild_GetPlatformStrings;
+$assert-nonempty host-arch,
+$assert-nonempty host-os;
 "NOTE", "See %SHBuild-YSLib-build.txt";
-$def! host-platform_ SHBuild_Platform_Detect env-os env-arch;
+$def! host-platform_ SHBuild_Platform_Detect host-os host-arch;
 $env-de! SHBuild_YSLib_Platform host-platform_;
 
 $def! SR_Prefix_ SHBuild_DirectoryOf_ (SHBuild_DirectoryOf_ SR_Share_NPLA1_);
@@ -56,12 +57,12 @@ $defl! SHBuild_PrintUsage () putss "Usage: SHBuild -xcmd,RunNPLFile \"" prog
 	" configuration; otherwise using release configuration."
 	" If the configuration name ends with \"static\","
 	" or environment variable SHBuild_Static is set as non null value,"
-	" using debug configuration;"
+	" using static configuration;"
 	" otherwise using release configuration.\n"
 	"\tThe output directory is determined as \".CONF\".\n"
 	"\n"
 	"SHBOPT_BASE ...\n"
-	"\tThe base options remained to pass to SHBuild.\n\n"
+	"\tThe base options remained to pass to SHBuild, including SRCPATH.\n\n"
 	"There are several other environment variables to control the build.\n"
 	"\n"
 	"SHBuild_NoAdjustSubsystem\n"
@@ -79,7 +80,8 @@ $if (string-empty? arg1) (() SHBuild_PrintUsage)
 	$def! SHBuild_Conf arg1;
 	$def! debug rmatch? SHBuild_Conf "debug.*";
 	$when (debug) puts "Debug mode turned on by configuration.";
-	$def! dynamic not? (rmatch? SHBuild_Conf ".*static");
+	$def! dynamic $and? (not? (rmatch? SHBuild_Conf ".*static"))
+		(string-empty? (safeenv-get "SHBuild_Static"));
 	$unless (dynamic) puts "Static mode turned on by configuration.";
 	"XXX", "No extra configuration arguments are supported yet.";
 	safeenv-set "CXXFLAGS_COMMON" "";
@@ -94,16 +96,16 @@ $if (string-empty? arg1) (() SHBuild_PrintUsage)
 		putss "Use release configuration \"" SHBuild_Conf "\".";
 		$def! SHBuild_YSLib_LibNames "-lYFramework -lYBase"
 	);
-	$if (win32? env-os)
+	$if (win32? host-os)
 	(
 		$def! SHBuild_YF_SystemLibs "-lgdi32 -limm32",
 		$def! SHBuild_YF_CFlags_freetype ""
 	)
 	(
 		$def! SHBuild_YF_SystemLibs "-Wl,-dy -lxcb";
-		$def! SHBuild_YF_CFlags_freetype system-or-puts env-os
+		$def! SHBuild_YF_CFlags_freetype system-or-puts
 			(cons-cmd "pkg-config" "--cflags" "freetype2")
-			(++ "-I" (system-quote-m_ env-os SR_Include_))
+			(++ "-I" (system-quote-m_ SR_Include_))
 	);
 	$defl! stat-file? (filename)
 	(
@@ -114,19 +116,19 @@ $if (string-empty? arg1) (() SHBuild_PrintUsage)
 	$if (stat-file? (++ SR_Lib_ "/libfreetype.a"))
 		($env-de! SHBuild_YF_Libs_freetype "-lfreetype")
 	(
-		$def! SHBuild_YF_Libs_freetype system-or-puts env-os
+		$def! SHBuild_YF_Libs_freetype system-or-puts
 			(cons-cmd "pkg-config" "--libs" "freetype2") "-lfreetype";
 		string<- SHBuild_YF_Libs_freetype
 			(++ "-Wl,-dy " SHBuild_YF_Libs_freetype)
 	);
 	$env-de! SHBuild_YF_Libs_FreeImage ++ "-lFreeImage" ($if (debug) "d" "");
 	$def! LIBS
-		++ (safeenv-get "LIBS_RPATH") " -L" (system-quote-m_ env-os SR_Lib_);
+		++ (safeenv-get "LIBS_RPATH") " -L" (system-quote-m_ SR_Lib_);
 	$if (dynamic)
 	(
 		$def! SHBuild_YSLib_Flags SHBuild_TrimOptions_ (++ "-DYF_DLL -DYB_DLL "
 			SHBuild_YF_CFlags_freetype " -I"
-			(system-quote-m_ env-os SR_Include_));
+			(system-quote-m_ SR_Include_));
 		safeenv-set "LIBS" (SHBuild_TrimOptions_
 			(cons-cmd LIBS SHBuild_YSLib_LibNames))
 	)
@@ -134,27 +136,25 @@ $if (string-empty? arg1) (() SHBuild_PrintUsage)
 		"XXX", "Use 'g++' even when %CXX is 'clang++' to work around the LTO",
 			" issue for static executables in Linux.";
 		"TODO", "Test for other platforms?";
-		$if (eqv? (SHBuild_CheckCXX env-os (safeenv-get "CXX")) "Clang++")
+		$if (eqv? (SHBuild_CheckCXX host-os (safeenv-get "CXX")) "Clang++")
 		(
 			"XXX", "No prefix and postfix of %LD are supported yet.";
 			safeenv-set "LD" "g++"
 		);
 		$def! SHBuild_YSLib_Flags SHBuild_TrimOptions_
 			(++ SHBuild_YF_CFlags_freetype " -I"
-			(system-quote-m_ env-os SR_Include_));
+			(system-quote-m_ SR_Include_));
 		$def! SHBuild_YSLib_LibNames cons-cmd SHBuild_YSLib_LibNames
 			SHBuild_YF_Libs_FreeImage SHBuild_YF_Libs_freetype
-			(++ "-L" (system-quote-m_ env-os SR_Lib_)) SHBuild_YF_SystemLibs;
+			(++ "-L" (system-quote-m_ SR_Lib_)) SHBuild_YF_SystemLibs;
 		safeenv-set "LIBS" (SHBuild_TrimOptions_
 			(cons-cmd LIBS "-Wl,-dn" SHBuild_YSLib_LibNames))
 	);
 	"XXX", "Workaround for MinGW32 release static builds.",
 		"See $2020-10 @ doc/Workflow.txt.";
 	$defl! fix-flags (flags)
-		$if ($and? (win32? env-os) (eqv? env-arch "i686")
+		$if ($and? (win32? host-os) (eqv? host-arch "i686")
 			(not? dynamic)) (++ flags " -fno-lto") flags;
-	safeenv-set "SHBuild_CFLAGS" (safeenv-get "CFLAGS"),
-	safeenv-set "SHBuild_CXXFLAGS" (safeenv-get "CXXFLAGS");
 	"NOTE", "Configuration (except variable echo) done.";
 	$def! SHBuild_BuildDir safeenv-get "SHBuild_BuildDir";
 	"NOTE", "Different to %SHBuild-YSLib-build.txt, relative paths are",
@@ -164,11 +164,18 @@ $if (string-empty? arg1) (() SHBuild_PrintUsage)
 	putss "Found SHBuild build directory \"" SHBuild_BuildDir "\".";
 	$env-de! SHBuild ++ SR_Bin_ "/SHBuild";
 	$assert-nonempty SHBuild;
-	build-with-conf-opt (++ SHBuild_BuildDir "." SHBuild_Conf) env-os debug
+	build-with-conf-opt (++ SHBuild_BuildDir "." SHBuild_Conf) host-os debug
 		dynamic "" #t
 		ld-ext-adjust_win32_subsystem_ ($lambda (#ignore CXXFLAGS SHBOPT .)
 		(
 			"TODO", "Support precompiled headers?";
+			$env-de! SHBuild_LDFLAGS "";
+			$unless (string-empty? SHBuild_LDFLAGS)
+				(safeenv-set "LDFLAGS"
+					(++ SHBuild_LDFLAGS " " (env-get "LDFLAGS")));
+			$env-de! SHBuild_LIBS "";
+			$unless (string-empty? SHBuild_LIBS)
+				(safeenv-set "LIBS" (++ SHBuild_LIBS " " (env-get "LIBS")));
 			system-check (apply cons-cmd (append (list SHBuild SHBOPT)
 				SHBOPT_BASE (list (fix-flags CXXFLAGS))
 				(list SHBuild_YSLib_Flags)))

@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r7984
+\version r7993
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2020-11-16 23:41 +0800
+	2020-11-18 14:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -847,6 +847,14 @@ TermToTags(TermNode&);
 */
 //@{
 /*!
+\brief 抛出缺少项的异常。
+\throw ParameterMismatch 缺少项的错误。
+\since build 904
+*/
+YB_NORETURN YF_API void
+ThrowInsufficientTermsError(const TermNode&, bool);
+
+/*!
 \brief 对列表项抛出指定预期访问值的类型的异常。
 \throw ListTypeError 消息中包含由参数指定的预期访问值的类型的异常。
 \since build 855
@@ -1443,11 +1451,12 @@ ResolveTerm(_func do_resolve, _tTerm&& term)
 \exception bad_any_cast 异常中立：非列表项类型检查失败。
 */
 //@{
+//! \brief 检查项表示非列表正规值。
 template<typename _type, class _tTerm>
 void
 CheckRegular(_tTerm& term, bool has_ref)
 {
-	if(YB_UNLIKELY(IsList(term)))
+	if(YB_UNLIKELY(IsBranch(term)))
 		ThrowListTypeErrorForInvalidType(ystdex::type_id<_type>(), term,
 			has_ref);
 }

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r20218
+\version r20231
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-11-17 01:04 +0800
+	2020-11-18 14:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,13 +35,13 @@
 //	std::allocator_arg, YSLib::stack, YSLib::vector, std::find_if, TermTags,
 //	function, TermReference, GetLValueTagsOf, NPL::TryAccessLeaf,
 //	NPL::IsMovable, in_place_type, InvalidReference, NPL::Deref, IsLeaf,
-//	ResolveTerm, ThrowListTypeErrorForNonlist, ystdex::update_thunk,
-//	NPL::Access, ystdex::retry_on_cond, AccessFirstSubterm, ystdex::bind1,
-//	ystdex::make_transform, IsBranchedList, std::placeholders, NoContainer,
-//	ystdex::try_emplace, Environment, shared_ptr, YSLib::Informative,
-//	ystdex::unique_guard, NPL::AsTermNode, CategorizeBasicLexeme,
-//	DeliteralizeUnchecked, CheckReducible, Deliteralize, ystdex::isdigit,
-//	ResolveIdentifier, IsNPLAExtendedLiteral, ystdex::ref_eq,
+//	ResolveTerm, ThrowInsufficientTermsError, ThrowListTypeErrorForNonlist,
+//	ystdex::update_thunk, NPL::Access, ystdex::retry_on_cond,
+//	AccessFirstSubterm, ystdex::bind1, ystdex::make_transform, IsBranchedList,
+//	std::placeholders, NoContainer, ystdex::try_emplace, Environment,
+//	shared_ptr, YSLib::Informative, ystdex::unique_guard, NPL::AsTermNode,
+//	CategorizeBasicLexeme, DeliteralizeUnchecked, CheckReducible, Deliteralize,
+//	ystdex::isdigit, ResolveIdentifier, IsNPLAExtendedLiteral, ystdex::ref_eq,
 //	NPL::TryAccessTerm, YSLib::share_move, ystdex::call_value_or, YSLib::Notice,
 //	YSLib::FilterException, Session;
 #include "NPLA1Internals.h" // for A1::Internals API;
@@ -685,7 +685,7 @@ private:
 						else if(!ellipsis)
 							throw ArityMismatch(n_p, n_o);
 						else
-							ThrowInsufficientTermsError();
+							ThrowInsufficientTermsError(nd, p_ref);
 					}
 					else
 						ThrowListTypeErrorForNonlist(nd, p_ref);
@@ -771,12 +771,6 @@ MakeParameterMatcher(_fBindTrailing bind_trailing_seq, _fBindValue bind_value)
 
 } // unnamed namespace;
 
-
-void
-ThrowInsufficientTermsError()
-{
-	throw ParameterMismatch("Insufficient terms found for list parameter.");
-}
 
 void
 ThrowInvalidSyntaxError(const char* str)

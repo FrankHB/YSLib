@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3201
+\version r3211
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2020-10-26 11:02 +0800
+	2020-11-29 19:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -474,14 +474,12 @@ uopen(const char16_t* filename, int oflag, mode_t pmode = DefaultPMode())
 	ynothrowv;
 //@}
 
-/*!
-\param filename 文件名，意义同 std::fopen 。
-\since build 669
-*/
+//! \param filename 文件名，意义同 std::fopen 。
 //@{
 /*!
 \param mode 打开模式，基本语义同 ISO C11 ，具体行为取决于实现。
 \pre 断言：<tt>mode && *mode != 0</tt> 。
+\since build 669
 */
 //@{
 //! \brief 以 UTF-8 文件名打开文件。
@@ -501,14 +499,19 @@ YB_ATTR_nodiscard YF_API YB_NONNULL(1) std::FILE*
 ufopen(const char16_t* filename, std::ios_base::openmode mode) ynothrowv;
 //@}
 
-//! \note 使用 ufopen 二进制只读模式打开测试实现。
+/*!
+\note 使用 ufopen 二进制模式打开测试实现。
+\note 第二参数含义同 ystdex::fexists 。
+\sa ystdex::fexists
+\since build 904
+*/
 //@{
 //! \brief 判断指定 UTF-8 文件名的文件是否存在。
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) bool
-ufexists(const char*) ynothrowv;
+ufexists(const char*, bool = {}) ynothrowv;
 //! \brief 判断指定 UCS-2 文件名的文件是否存在。
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) bool
-ufexists(const char16_t*) ynothrowv;
+ufexists(const char16_t*, bool = {}) ynothrowv;
 //@}
 
 /*!

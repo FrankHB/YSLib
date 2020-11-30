@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018 FrankHB.
+	© 2009-2016, 2018, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdio.cpp
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r248
+\version r253
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:38:51 +0800
 \par 修改时间:
-	2018-09-03 22:59 +0800
+	2020-11-29 21:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@ namespace ystdex
 {
 
 size_t
-vfmtlen(const char* fmt, std::va_list args) ynothrow
+vfmtlen(const char* fmt, std::va_list args) ynothrowv
 {
 	yconstraint(fmt);
 
@@ -45,7 +45,7 @@ vfmtlen(const char* fmt, std::va_list args) ynothrow
 	return size_t(l < 0 ? -1 : l);
 }
 size_t
-vfmtlen(const wchar_t* fmt, std::va_list args) ynothrow
+vfmtlen(const wchar_t* fmt, std::va_list args) ynothrowv
 {
 	yconstraint(fmt);
 
@@ -56,11 +56,11 @@ vfmtlen(const wchar_t* fmt, std::va_list args) ynothrow
 
 
 bool
-fexists(const char* path) ynothrow
+fexists(const char* path, bool create) ynothrowv
 {
 	yconstraint(path);
 	return ystdex::call_value_or(ystdex::compose(std::fclose, addrof<>()),
-		std::fopen(path, "rb"), yimpl(1)) == 0;
+		std::fopen(path, create ? "w+b" : "rb"), yimpl(1)) == 0;
 }
 
 

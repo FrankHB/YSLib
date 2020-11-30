@@ -8,16 +8,16 @@ $import! std.strings regex-match? string->regex ++ string->symbol symbol->string
 	string-empty? string<-,
 $import! std.environments bound? $binds1? value-of,
 $import! std.io puts,
-$import! std.system system system-get system-quote,
-$import! std.promises $lazy force;
+$import! std.system system system-get system-quote remove-file,
+$import! std.promises $lazy/e $lazy force;
 $import! env_SHBuild_ SHBuild_RaiseError_ SHBuild_EchoVar SHBuild_QuoteS_
-	SHBuild_String_absolute_path?_  SHBuild_TrimOptions_ SHBuild_SDot_
-	SHBuild_BuildGCH_existed_ SHBuild_BuildGCH_mkpdirp_;
+	SHBuild_String_absolute_path?_ SHBuild_MakeTempFilename SHBuild_TrimOptions_
+	SHBuild_SDot_ SHBuild_BuildGCH_existed_ SHBuild_BuildGCH_mkpdirp_;
 
 "NOTE", "Prelude:", "Unsafe functions not friendly to environment stability",
-	" or dangerous to environments except 'assign!' and",
+	" or dangerous to environments except 'move!', 'assign!' and",
 	" 'lock-current-environment' are poisoned.";
-$provide/d! (move! assign%! assign@! copy-environment lock-environment
+$provide/d! (assign%! assign@! copy-environment lock-environment
 	$defrec! $setrec! make-standard-environment) mods
 (
 	$def! fns (unwrap list) move! assign%! assign@! copy-environment
@@ -83,26 +83,30 @@ $provide/d! (safeenv-get safeenv-set ss-verbose-puts) ext-env
 $defl! safeenv-empty? (&n) string-empty? (safeenv-get n);
 $defl! safeenv-restore (&n) safeenv-set n (safeenv-get n);
 
-$defv! $env-de! (var .vexpr) env
+$defv! $lazy-env-val (name .vexpr) d
+	$lazy/e (() lock-current-environment)
+		$let ((t safeenv-get name)) $if (string-empty? t) (eval vexpr d) t;
+$defv! $env-de! (var .vexpr) d
 	$let ((t safeenv-get (symbol->string var)))
 		eval (list $def! var
-			($if (string-empty? t) (list (unwrap eval) vexpr env) t)) env;
-$defv! $set-system-var! (var arg) env $unless (eval (list $binds1? env var) env)
-	($let* ((cmd eval arg env) ((rstr code .) system-get cmd)) $if (eqv? code 0)
-		(eval (list $def! var rstr) env)
-		(SHBuild_RaiseError_ (cmd-error-msg_ cmd)));
-$defv! $assert (var pred? msg) env $unless
-	($and? (eval (list $binds1? env var) env)
-		(pred? (eval var env)))
-	(SHBuild_RaiseError_ (++ "Variable " (SHBuild_QuoteS_
-		(symbol->string var)) " shall " msg "."));
+			($if (string-empty? t) (list (unwrap eval) vexpr d) t)) d;
+$defv! $set-system-var! (var arg) d
+	$unless (eval (list $binds1? d var) d)
+		($let* ((cmd eval arg d) ((rstr code .) system-get cmd))
+			$if (eqv? code 0)
+				(eval (list $def! var rstr) d)
+				(SHBuild_RaiseError_ (cmd-error-msg_ cmd)));
+$defv! $assert (var pred? msg) d
+	$unless ($and? (eval (list $binds1? d var) d) (pred? (eval var d)))
+		(SHBuild_RaiseError_ (++ "Variable " (SHBuild_QuoteS_
+			(symbol->string var)) " shall " msg "."));
 "TODO", "Use 'string?'.";
-$defv! $assert-nonempty (var) env
+$defv! $assert-nonempty (var) d
 	eval (list $assert var ($lambda (str) not? (string-empty? str))
-		"be a string of nonempty value") env;
-$defv! $assert-absolute-path (var) env
+		"be a string of nonempty value") d;
+$defv! $assert-absolute-path (var) d
 	eval (list $assert var SHBuild_String_absolute_path?_
-		"be a string of absolute path") env;
+		"be a string of absolute path") d;
 $defl! cons-cmd (.xs) apply ++ (map1 ($lambda (s) ++ s " ") xs);
 
 $defl! SHBuild_CheckUName_Case_ (x) $cond
@@ -115,23 +119,57 @@ $defl! SHBuild_CheckUNameM_Case_ (x) $cond
 	((rmatch? x "i.*86") x)
 	((rmatch? x "aarch64") x)
 	(#t "unknown");
-$defl! SHBuild_GetLangFlags_
-	(var flags-pic flags-common flags-impl flags-dbg)
-	$let ((val safeenv-get var))
-		SHBuild_TrimOptions_ ($if (string-empty? val)
-			(cons-cmd flags-pic flags-common flags-impl flags-dbg) val);
 
-$defl! system-quote-m_ (env-os s) system-quote (SHBuild_2m env-os s);
+"XXX", "'SHBuild_CheckUName_*' depend on the external command 'uname'";
+$env-de! SHBuild_Env_OS ($set-system-var! SHBuild_Env_uname "uname";
+	SHBuild_CheckUName_Case_ SHBuild_Env_uname),
+$env-de! SHBuild_Env_Arch ($set-system-var! SHBuild_Env_uname_m "uname -m";
+	SHBuild_CheckUNameM_Case_ SHBuild_Env_uname_m);
 
-$defl! win32? (env-os) eqv? env-os "Win32";
-$defl! get-nul-dev (env-os) $if (win32? env-os) "NUL" "/dev/null";
-$defl! get-tmp-dir (env-os) SHBuild_GetTempDir env-os;
-$defl! get-tmp-nul (env-os) ++ (get-tmp-dir env-os) "/null";
+$defl! SHBuild_GetPlatformStrings ()
+(
+	$env-de! SHBuild_Host_Arch SHBuild_Env_Arch,
+	$env-de! SHBuild_Host_OS SHBuild_Env_OS;
+	list SHBuild_Host_Arch SHBuild_Host_OS
+);
+
+$defl! win32? (os) eqv? os "Win32";
+
+$def! nul_dev_ $if (win32? SHBuild_Env_OS) "NUL" "/dev/null";
+
+$defl! system-or-puts (cmd str) $let (((rstr code .)
+	system-get (cons-cmd cmd (system-quote str) "2>" nul_dev_)))
+	$if (eqv? code 0) rstr str;
+
+$defl! SHBuild_2m (pth) system-or-puts "cygpath -m" pth;
+$defl! SHBuild_2u (pth) system-or-puts "cygpath -au" pth;
+$defl! SHBuild_2w (pth) system-or-puts "cygpath -w" pth;
+
+$defl! system-quote-m_ (s) system-quote (SHBuild_2m s);
+
+$defl! SHBuild_GetTempDir ()
+(
+	$defl! search (&x) $cond
+		((null? x) SHBuild_2m "/tmp")
+		((safeenv-empty? (first& x)) search (rest& x))
+		(#t safeenv-get (first& x));
+	search (list "TMPDIR" "TEMP" "TMP");
+);
+
+$def! tmp_dir_ () SHBuild_GetTempDir;
+$defl! mktmp_ () SHBuild_MakeTempFilename (++ tmp_dir_ "/") "";
+"NOTE", "Suffix is now hard-coded. The suffix makes the output of the compiler",
+	" driver same to the '-o' argument in the command line.";
+$defl! mktmp_exe_ () SHBuild_MakeTempFilename (++ tmp_dir_ "/") ".exe";
 "NOTE",
 	"The output path cannot be '/dev/null'. See http://sourceforge.net/p/msys2/discussion/general/thread/2d6adff2/?limit=25.";
-$defl! system-or-puts (env-os cmd str) $let (((rstr code .)
-	system-get (cons-cmd cmd (system-quote str) "2>" (get-nul-dev env-os))))
-	$if (eqv? code 0) rstr str;
+$defl! with-tmp-file_ (tmp-file f)
+(
+	$def! r f tmp-file;
+	$unless (remove-file tmp-file)
+		(putss "Warning: Failed to remove temporary file '" tmp-file "'");
+	move! r
+);
 
 $defl! compile-ok (src compile out opt err-out)
 (
@@ -140,114 +178,97 @@ $defl! compile-ok (src compile out opt err-out)
 	system-ok (cons-cmd "echo" src "|" (system-quote compile) "-xc++" "-o"
 		(system-quote out) opt "- 2>" err-out)
 );
-$defl! compile-ok-silent (env-os src compile opt)
-	compile-ok src compile (get-tmp-nul env-os) opt (get-nul-dev env-os);
-
-$defl! SHBuild_2m (env-os pth) system-or-puts env-os "cygpath -m" pth;
-$defl! SHBuild_2u (env-os pth) system-or-puts env-os "cygpath -au" pth;
-$defl! SHBuild_2w (env-os pth) system-or-puts env-os "cygpath -w" pth;
+$defl! compile-ok-discard_ (src compile opt err-out)
+	with-tmp-file_ (() mktmp_exe_)
+		($lambda (tmp-file) compile-ok src compile tmp-file opt err-out);
+$defl! compile-ok-silent (src compile opt)
+	compile-ok-discard_ src compile opt nul_dev_;
 
 $defl! SHBuild_EchoVar_N (var) SHBuild_EchoVar var
 	(safeenv-get (SHBuild_SDot_ var));
 
-$defl! SHBuild_GetPlatformStrings ()
-(
-	"XXX", "'SHBuild_CheckUName_*' depend on 'uname'";
-	$env-de! SHBuild_Env_OS ($set-system-var! SHBuild_Env_uname "uname";
-		SHBuild_CheckUName_Case_ SHBuild_Env_uname),
-	$env-de! SHBuild_Env_Arch ($set-system-var! SHBuild_Env_uname_m "uname -m";
-		SHBuild_CheckUNameM_Case_ SHBuild_Env_uname_m);
-	list SHBuild_Env_OS SHBuild_Env_Arch
-);
-$defl! SHBuild_GetTempDir (env-os)
-(
-	$defl! search (&x) $cond
-		((null? x) SHBuild_2m env-os "/tmp")
-		((safeenv-empty? (first& x)) search (rest& x))
-		(#t safeenv-get (first& x));
-	search (list "TMPDIR" "TEMP" "TMP");
-);
 $defl! SHBuild_GetSystemPrefix (platform) $cond
 	((eqv? platform "MinGW64") "/mingw64")
 	((eqv? platform "MinGW32") "/mingw32")
 	(#t "/usr");
-$defl! SHBuild_Platform_Detect (env-os env-arch)
+$defl! SHBuild_Platform_Detect (os arch)
 (
 	$env-de! MSYSTEM;
 	$cond
-		((win32? env-os) $cond
+		((win32? os) $cond
 			((eqv? MSYSTEM "MINGW64") "MinGW64")
 			((eqv? MSYSTEM "MINGW32") "MinGW32")
-			((eqv? env-arch "x86_64") "MinGW64")
-			((eqv? env-arch "aarch64") (SHBuild_RaiseError_
+			((eqv? arch "x86_64") "MinGW64")
+			((eqv? arch "aarch64") (SHBuild_RaiseError_
 				"ERROR: The architecture aarch64 is not supported in MinGW."))
 			(#t "MinGW32"))
-		(#t env-os)
+		(#t os)
 );
 
 $def! SHBuild_CmdCache_ ();
-$defl%! SHBuild_CmdCache_At_ (env-os) assv env-os SHBuild_CmdCache_;
-$defl! SHBuild_CmdCache_GetEnv_ (env-os)
+$defl%! SHBuild_CmdCache_At_ (host-os) assv host-os SHBuild_CmdCache_;
+$defl! SHBuild_CmdCache_GetEnv_ (host-os)
 (
-	$def! r SHBuild_CmdCache_At_ env-os;
+	$def! r SHBuild_CmdCache_At_ host-os;
 	$if (null? r)
 	(
-		list-push-front! SHBuild_CmdCache_ (list env-os (() make-environment));
-		assign! r (SHBuild_CmdCache_At_ env-os)
+		list-push-front! SHBuild_CmdCache_ (list host-os (() make-environment));
+		assign! r (SHBuild_CmdCache_At_ host-os)
 	);
 	first (rest& r)
 );
-$defl! SHBuild_CheckCXX (env-os cxx)
-	$let ((e SHBuild_CmdCache_GetEnv_ env-os) (sym string->symbol cxx))
+$defl! SHBuild_CheckCXX (host-os cxx)
+	$let ((e SHBuild_CmdCache_GetEnv_ host-os) (sym string->symbol cxx))
 	(
 		$unless (eval (list bound? cxx) e)
 		(
-			eval (list $def! sym ($lazy $if (compile-ok-silent env-os
-				"int main(){return __clang__;}" cxx "")
-				"Clang++" "G++")) e;
+			eval (list $def! sym ($lazy
+				$if (compile-ok-silent "int main(){return __clang__;}" cxx "")
+					"Clang++" "G++")) e;
 		);
 		force (eval% sym e)
 	);
-$defl! SHBuild_ar_ok_ (env-os ar)
-	system-ok (cons-cmd (system-quote-m_ env-os ar) "--help" "1>"
-		(get-tmp-nul env-os) "2>" (get-nul-dev env-os));
-$defl! SHBuild_GetAR_ (env-os cxx ar)
-	$let ((SHBuild_CXX_Style_ SHBuild_CheckCXX env-os cxx))
+$defl! SHBuild_ar_ok_ (ar)
+	system-ok (cons-cmd (system-quote-m_ ar) "--help" "1>"
+		(() mktmp_) "2>" nul_dev_);
+$defl! SHBuild_GetAR_ (host-os cxx ar)
+	$let ((SHBuild_CXX_Style_ SHBuild_CheckCXX host-os cxx))
 		$cond (($and? (eqv? SHBuild_CXX_Style_ "Clang++")
-				(SHBuild_ar_ok_ env-os "llvm-ar")) "llvm-ar")
+				(SHBuild_ar_ok_ "llvm-ar")) "llvm-ar")
 			(($and? (eqv? SHBuild_CXX_Style_ "G++")
-				(SHBuild_ar_ok_ env-os "gcc-ar")) "gcc-ar")
+				(SHBuild_ar_ok_ "gcc-ar")) "gcc-ar")
 			(#t ar);
 
-$defl! get-thread-options (env-os cxx err-out)
+$defl! get-thread-options (cxx err-out)
 (
 	"TODO", "Impl without pthread?";
-	$defl! dmp-test (name) (system-ok (cons-cmd (system-quote-m_ env-os cxx)
+	$defl! dmp-test (name) (system-ok (cons-cmd (system-quote-m_ cxx)
 		"-dumpspecs 2>& 1 | grep" name ">" err-out));
-	$cond
-		((dmp-test "mthreads:") list "-mthreads" "-mthreads")
-		((compile-ok "int main(){}" cxx
-			(get-tmp-nul env-os) "-Werror -mthreads" err-out)
-			list ($if (compile-ok "int main(){}" cxx
-				(get-tmp-nul env-os) "-c -Werror -mthreads" err-out)
-				"-mthreads" "-D_MT") "-mthreads")
-		(($or? (dmp-test "no-pthread:") (not? (compile-ok "int main(){}"
-			cxx (get-tmp-nul env-os) "-pthread" err-out))) list "" "")
-		(#t list "-pthread" "-pthread")
+	$if (dmp-test "mthreads:") (list "-mthreads" "-mthreads")
+	(
+		$defl! compile-test (opt)
+			compile-ok-discard_ "int main(){}" cxx opt err-out;
+		$cond
+			((compile-test "-Werror -mthreads")
+				list ($if (compile-test "-c -Werror -mthreads") "-mthreads"
+					"-D_MT") "-mthreads")
+			(($or? (dmp-test "no-pthread:") (not? (compile-test "-pthread")))
+				list "" "")
+			(#t list "-pthread" "-pthread")
+	)
 );
-$defl! get-thread-options-silent (env-os cxx)
-	get-thread-options env-os cxx (get-nul-dev env-os);
+$defl! get-thread-options-silent (cxx) get-thread-options cxx nul_dev_;
 $defl! get-SHBOPT_ (outdir shbopt-ext use-ld)
 (
 	$def! opt cons-cmd (++ "-xd,\"" outdir "\"") shbopt-ext;
 	SHBuild_TrimOptions_ ($if use-ld (cons-cmd opt "-xmode,2") opt)
 );
-$defl! SHB_SetupPlatformVars_ (e env-os)
+$defl! SHB_SetupPlatformVars_ (e host-os)
 (
 	$def! LIBPFX safeenv-get "LIBPFX";
 	$def! DSOSFX safeenv-get "DSOSFX";
 	$def! EXESFX safeenv-get "EXESFX";
-	$if (win32? env-os)
+	$if (win32? host-os)
 	(
 		$set-if-empty! DSOSFX ".dll";
 		$set-if-empty! EXESFX ".exe"
@@ -260,67 +281,73 @@ $defl! SHB_SetupPlatformVars_ (e env-os)
 );
 
 $defl! ld-ext-noadjust_ #ignore "";
-$defl! ld-ext-adjust_win32_subsystem_ (env-os)
+$defl! ld-ext-adjust_win32_subsystem_ (host-os)
 (
-	$if ($and? (win32? env-os)
+	$if ($and? (win32? host-os)
 		(string-empty? (safeenv-get "SHBuild_NoAdjustSubsystem")))
 		(ss-verbose-puts "Added \"-mwindows\" to LDFLAGS."; "-mwindows")
 		""
 );
-
-$defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
-	do-ld-ext do-build)
+$defl! get-gcflags_ (host-os CXX)
 (
-	$def! use-ld $or? dynamic app;
-	$def! CXXFLAGS_OPT_DBG
-		$if debug ("-O0 -g -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC") "";
-	($env-de! CXX "g++"; safeenv-set "CXX" CXX),
-	($env-de! AR (SHBuild_GetAR_ env-os CXX "ar"); safeenv-set "AR" AR),
-	($env-de! ARFLAGS "rcs"; safeenv-set "ARFLAGS" ARFLAGS),
-	($env-de! LD CXX; safeenv-set "LD" LD);
-	"TODO", "Add sanity checks.";
 	$env-de! C_CXXFLAGS_GC "-fdata-sections -ffunction-sections";
 	"XXX", "%LDFLAGS_GC is used to the environment detection despite %use-ld.";
 	$env-de! LDFLAGS_GC
-		($if (eqv? env-os "OS_X") "-Wl,--dead-strip" "-Wl,--gc-sections");
+		($if (eqv? host-os "OS_X") "-Wl,--dead-strip" "-Wl,--gc-sections");
+	$if (compile-ok-silent "int main(){}" CXX
+		(cons-cmd C_CXXFLAGS_GC LDFLAGS_GC)) (list C_CXXFLAGS_GC LDFLAGS_GC)
+		(list "" "")
+);
+
+$defl! build-with-conf-opt (outdir host-os debug dynamic shbopt-ext app
+	do-ld-ext do-build)
+(
+	$def! use-ld $or? dynamic app;
+	($env-de! CXX "g++"; safeenv-set "CXX" CXX),
+	($env-de! AR (SHBuild_GetAR_ host-os CXX "ar"); safeenv-set "AR" AR),
+	($env-de! ARFLAGS "rcs"; safeenv-set "ARFLAGS" ARFLAGS),
+	($env-de! LD CXX; safeenv-set "LD" LD);
+	"TODO", "Add sanity checks.";
 	$if use-ld
 	(
 		"NOTE", "See https://gcc.gnu.org/onlinedocs/gcc/Link-Options.html#Link-Options,",
 			"also https://clang.llvm.org/docs/ClangCommandLineReference.html#linker-flags.";
-		$env-de! LDFLAGS_STRIP "-s";
+		$def! prom_LDFLAGS_STRIP $lazy-env-val "LDFLAGS_STRIP" "-s";
 		"#", "-Wl,--print-gc-sections"
 	);
-	$def! SHBuild_CXX_Style_ SHBuild_CheckCXX env-os CXX;
-	$unless (compile-ok-silent env-os "int main(){}" CXX
-		(cons-cmd C_CXXFLAGS_GC LDFLAGS_GC))
-	(
-		$redef! C_CXXFLAGS_GC "",
-		$redef! LDFLAGS_GC ""
-	);
-	$env-de! C_CXXFLAGS_PIC $if (win32? env-os) "" "-fPIC";
-	$env-de! C_CXXFLAGS_COMMON cons-cmd "-pipe" C_CXXFLAGS_GC
-		(safeenv-get "C_CXXFLAGS_ARCH") "-pedantic-errors";
-	$env-de! C_CXXFLAGS_OPT_LV "-O3";
-	$env-de! C_CXXFLAGS_WARNING cons-cmd "-Wall" "-Wcast-align" "-Wdeprecated"
+	$def! SHBuild_CXX_Style_ SHBuild_CheckCXX host-os CXX;
+	$def! prom_gcflags_ $lazy get-gcflags_ host-os CXX;
+	$def! prom_C_CXXFLAGS_PIC
+		$lazy-env-val "C_CXXFLAGS_PIC" $if (win32? host-os) "" "-fPIC";
+	$def! prom_C_CXXFLAGS_COMMON
+		$lazy-env-val "C_CXXFLAGS_COMMON" cons-cmd "-pipe"
+			(first (force prom_gcflags_))
+			(safeenv-get "C_CXXFLAGS_ARCH") "-pedantic-errors";
+	$def! prom_C_CXXFLAGS_OPT_LV $lazy-env-val "C_CXXFLAGS_OPT_LV" "-O3";
+	$def! prom_C_CXXFLAGS_WARNING $lazy-env-val "C_CXXFLAGS_WARNING"
+		cons-cmd "-Wall" "-Wcast-align" "-Wdeprecated"
 		"-Wdeprecated-declarations" "-Wextra" "-Wfloat-equal" "-Wformat=2"
 		"-Winvalid-pch" "-Wmissing-declarations" "-Wmissing-include-dirs"
 		"-Wmultichar" "-Wno-format-nonliteral" "-Wredundant-decls" "-Wshadow"
 		"-Wsign-conversion";
-	$def! (cxxflags_impl_common_thrd_ ldflags_impl_common_thrd_)
-		get-thread-options-silent env-os CXX;
-	$env-de! CXXFLAGS_IMPL_WARNING "";
-	$env-de! C_CXXFLAGS_COMMON_IMPL_ "";
-	$env-de! CXXFLAGS_IMPL_OPT "";
-	$env-de! C_CXXFLAGS_IMPL_WARNING "";
-	$if use-ld ($env-de! LDFLAGS_IMPL_OPT "");
+	$def! prom_thread-options_ $lazy get-thread-options-silent CXX;
+	$def! prom_CXXFLAGS_IMPL_WARNING $lazy-env-val "CXXFLAGS_IMPL_WARNING" "";
+	$def! prom_C_CXXFLAGS_COMMON_IMPL_
+		$lazy-env-val "C_CXXFLAGS_COMMON_IMPL_" "";
+	$def! prom_CXXFLAGS_IMPL_OPT $lazy-env-val "CXXFLAGS_IMPL_OPT" "";
+	$def! prom_C_CXXFLAGS_IMPL_WARNING
+		$lazy-env-val "C_CXXFLAGS_IMPL_WARNING" "";
+	$if use-ld
+		($def! prom_LDFLAGS_IMPL_OPT $lazy-env-val "LDFLAGS_IMPL_OPT" "");
 	"TODO", "Expose this option?";
 	$def! use_lld_ #f;
 	$cond
 		((eqv? SHBuild_CXX_Style_ "Clang++")
 		(
-			$set-if-empty! C_CXXFLAGS_COMMON_IMPL_
-				"-fno-merge-all-constants";
-			$set-if-empty! CXXFLAGS_IMPL_WARNING cons-cmd
+			$redef! prom_C_CXXFLAGS_COMMON_IMPL_ $lazy-env-val
+				"C_CXXFLAGS_COMMON_IMPL_" "-fno-merge-all-constants";
+			$redef! prom_CXXFLAGS_IMPL_WARNING
+				$lazy-env-val "CXXFLAGS_IMPL_WARNING" cons-cmd
 				"-Wno-deprecated-register" "-Wno-mismatched-tags"
 				"-Wno-missing-braces" "-Wshorten-64-to-32" "-Wweak-vtables";
 			"XXX", "LTO is disabled by default for compatibility to the",
@@ -331,94 +358,110 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 				"#", "$set-if-empty! LDFLAGS_IMPL_OPT", "-flto";
 				"XXX", "This is the only choice to support LTO on MinGW32 now.",
 					"It is still not ready to link successfully.";
-				"#", "$if (win32? env-os) ($redef! use_lld_ #t)"
+				"#", "$if (win32? host-os) ($redef! use_lld_ #t)"
 			)
 		))
 		((eqv? SHBuild_CXX_Style_ "G++")
 		(
-			$set-if-empty! C_CXXFLAGS_IMPL_WARNING cons-cmd "-Wdouble-promotion"
+			$redef! prom_C_CXXFLAGS_IMPL_WARNING $lazy-env-val
+				"C_CXXFLAGS_IMPL_WARNING" cons-cmd "-Wdouble-promotion"
 				"-Wlogical-op" "-Wtrampolines" "-Wsuggest-attribute=const"
 				"-Wsuggest-attribute=noreturn" "-Wsuggest-attribute=pure"
 				"-Wsuggest-final-types" "-Wsuggest-final-methods";
-			$set-if-empty! CXXFLAGS_IMPL_WARNING cons-cmd
+			$redef! prom_CXXFLAGS_IMPL_WARNING $lazy-env-val
+				"CXXFLAGS_IMPL_WARNING" cons-cmd
 				"-Wconditionally-supported" "-Wno-noexcept-type"
 				"-Wstrict-null-sentinel" "-Wzero-as-null-pointer-constant";
-			$set-if-empty! CXXFLAGS_IMPL_OPT cons-cmd
-				"-fexpensive-optimizations" "-flto=jobserver"
+			$redef! prom_CXXFLAGS_IMPL_OPT $lazy-env-val "CXXFLAGS_IMPL_OPT"
+				cons-cmd "-fexpensive-optimizations" "-flto=jobserver"
 				"-fno-enforce-eh-specs";
 			$if use-ld
 			(
 				"XXX", "Workaround for LTO bug on MinGW. See https://sourceware.org/bugzilla/show_bug.cgi?id=12762.";
-				$set-if-empty! LDFLAGS_IMPL_OPT
-					$if (win32? env-os)
-					(++ "-fexpensive-optimizations -flto"
-						" -Wl,-allow-multiple-definition")
-					"-fexpensive-optimizations -flto"
+				$redef! prom_LDFLAGS_IMPL_OPT $lazy-env-val "LDFLAGS_IMPL_OPT"
+					$if (win32? host-os)
+						(++ "-fexpensive-optimizations -flto"
+							" -Wl,-allow-multiple-definition")
+						"-fexpensive-optimizations -flto"
 			)
 		));
-	$env-de! CFLAGS_STD "-std=c11";
-	$env-de! CFLAGS_WARNING cons-cmd C_CXXFLAGS_WARNING C_CXXFLAGS_IMPL_WARNING;
-	$env-de! CFLAGS_COMMON cons-cmd C_CXXFLAGS_COMMON CFLAGS_STD CFLAGS_WARNING;
-	$env-de! CXXFLAGS_IMPL_COMMON cons-cmd cxxflags_impl_common_thrd_
+	$def! prom_CFLAGS_STD $lazy-env-val "CFLAGS_STD" "-std=c11";
+	$def! prom_CFLAGS_WARNING $lazy-env-val "CFLAGS_WARNING" cons-cmd
+		(force prom_C_CXXFLAGS_WARNING) (force prom_C_CXXFLAGS_IMPL_WARNING);
+	$def! prom_CFLAGS_COMMON $lazy-env-val "CFLAGS_COMMON" cons-cmd
+		(force prom_C_CXXFLAGS_COMMON) (force prom_CFLAGS_STD)
+		(force prom_CFLAGS_WARNING);
+	$def! prom_CXXFLAGS_IMPL_COMMON $lazy-env-val "CXXFLAGS_IMPL_COMMON"
+		cons-cmd (first (force prom_thread-options_))
 		"-U__GXX_MERGED_TYPEINFO_NAMES" "-D__GXX_MERGED_TYPEINFO_NAMES=1";
-	$env-de! CXXFLAGS_STD "-std=c++11";
-	$env-de! CXXFLAGS_WARNING cons-cmd CFLAGS_WARNING "-Wctor-dtor-privacy"
-		"-Wnon-virtual-dtor" "-Woverloaded-virtual" "-Wsign-promo"
-		CXXFLAGS_IMPL_WARNING;
-	$env-de! CXXFLAGS_COMMON cons-cmd CXXFLAGS_STD
-		C_CXXFLAGS_COMMON CXXFLAGS_WARNING CXXFLAGS_IMPL_COMMON;
-	$set-if-empty! CXXFLAGS_OPT_DBG cons-cmd C_CXXFLAGS_OPT_LV
-		($if (safeenv-empty? "CXXFLAGS_OPT_UseAssert") "-DNDEBUG" "")
-		CXXFLAGS_IMPL_OPT "-fomit-frame-pointer";
+	$def! prom_CXXFLAGS_STD $lazy-env-val "CXXFLAGS_STD" "-std=c++11";
+	$def! prom_CXXFLAGS_WARNING $lazy-env-val "CXXFLAGS_WARNING" cons-cmd
+		(force prom_CFLAGS_WARNING) "-Wctor-dtor-privacy" "-Wnon-virtual-dtor"
+		"-Woverloaded-virtual" "-Wsign-promo"
+		(force prom_CXXFLAGS_IMPL_WARNING);
+	$def! prom_CXXFLAGS_COMMON $lazy-env-val "CXXFLAGS_COMMON" cons-cmd
+		(force prom_CXXFLAGS_STD) (force prom_C_CXXFLAGS_COMMON)
+		(force prom_CXXFLAGS_WARNING) (force prom_CXXFLAGS_IMPL_COMMON);
+	$def! prom_CXXFLAGS_OPT_DBG $lazy
+		$if debug ("-O0 -g -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC")
+		(
+			cons-cmd (force prom_C_CXXFLAGS_OPT_LV)
+				($if (safeenv-empty? "CXXFLAGS_OPT_UseAssert") "-DNDEBUG" "")
+				(force prom_CXXFLAGS_IMPL_OPT) "-fomit-frame-pointer"
+		);
 	"XXX", "Rename %CXXFLAGS_OPT_DBG -> CFLAGS_OPT_DBG/C_CXXFLAGS_OPT_DBG?";
-	$defl! get-lang-flags (var flags-common)
-		(SHBuild_GetLangFlags_ var C_CXXFLAGS_PIC flags-common
-			C_CXXFLAGS_COMMON_IMPL_ CXXFLAGS_OPT_DBG);
-	$def! CFLAGS get-lang-flags "CFLAGS" CFLAGS_COMMON;
-	$def! CXXFLAGS get-lang-flags "CXXFLAGS" CXXFLAGS_COMMON;
-	SHB_SetupPlatformVars_ (() get-current-environment) env-os;
+	$env-de! CFLAGS cons-cmd (force prom_C_CXXFLAGS_PIC)
+		(force prom_CFLAGS_COMMON) (force prom_C_CXXFLAGS_COMMON_IMPL_)
+		(force prom_CXXFLAGS_OPT_DBG);
+	$env-de! CXXFLAGS cons-cmd (force prom_C_CXXFLAGS_PIC)
+		(force prom_CXXFLAGS_COMMON) (force prom_C_CXXFLAGS_COMMON_IMPL_)
+		(force prom_CXXFLAGS_OPT_DBG);
+	$redef! CFLAGS SHBuild_TrimOptions_ CFLAGS,
+	$redef! CXXFLAGS SHBuild_TrimOptions_ CXXFLAGS;
+	SHB_SetupPlatformVars_ (() get-current-environment) host-os;
 	$if use-ld
 	(
 		"#", "%LDFLAGS_OPT_DBG is always set despite %debug configuration in",
 			" the caller script.";
-		$env-de! LDFLAGS_OPT_DBG $if debug ""
-			(cons-cmd LDFLAGS_STRIP LDFLAGS_IMPL_OPT LDFLAGS_GC);
-		$def! LDFLAGS_DYN_BASE safeenv-get "LDFLAGS_DYN_BASE";
-		$def! LIBS_RPATH safeenv-get "LIBS_RPATH";
-		$if (win32? env-os)
-			($set-if-empty! LDFLAGS_DYN_BASE
-				($if use_lld_ "-shared" "-shared -Wl,--dll"))
-		(
-			$set-if-empty! LDFLAGS_DYN_BASE "-shared";
-			$set-if-empty! LIBS_RPATH ++ "-Wl,-rpath,"
-				(SHBuild_QuoteS_ "$ORIGIN:$ORIGIN/../lib")
-		);
+		$def! prom_LDFLAGS_OPT_DBG $lazy-env-val "LDFLAGS_OPT_DBG" $if debug ""
+			(cons-cmd (force prom_LDFLAGS_STRIP) (force prom_LDFLAGS_IMPL_OPT)
+			(first (restv (force prom_gcflags_))));
+		$def! prom_LDFLAGS_DYN_BASE $lazy-env-val "LDFLAGS_DYN_BASE"
+			++ "-shared" ($if ($and? (win32? host-os) (not? use_lld_))
+				" -Wl,--dll" "");
+		$def! prom_LIBS_RPATH $lazy-env-val "LIBS_RPATH"
+			$if (win32? host-os) ""
+				(++ "-Wl,-rpath," (SHBuild_QuoteS_ "$ORIGIN:$ORIGIN/../lib"));
 		"XXX", "Here '-Wl,' options are separated to improve compatibility for",
 			" LLVM.";
 		"XXX", "Dynamic symbol exports are only available for ELF targets";
-		$if use_lld_
-		(
-			$env-de! LDFLAGS_DYN_EXTRA cons-cmd "-Wl,-undefined,error"
-				($if (win32? env-os) ""
-					(++ "-Wl,--export-dynamic-symbol='_ZTS*'"
-					" -Wl,--export-dynamic-symbol='_ZTI*'"))
-		)
-		(
-			$env-de! LDFLAGS_DYN_EXTRA cons-cmd "-Wl,--no-undefined"
-				(++ "-Wl,--dynamic-list-data,--dynamic-list-cpp-new,"
-				"--dynamic-list-cpp-typeinfo");
-		);
-		$env-de! LDFLAGS_DYN cons-cmd LDFLAGS_DYN_BASE LDFLAGS_DYN_EXTRA;
+		$def! prom_LDFLAGS_DYN_EXTRA $lazy-env-val "LDFLAGS_DYN_EXTRA"
+			$if use_lld_
+			(
+				cons-cmd "-Wl,-undefined,error"
+					($if (win32? host-os) ""
+						(++ "-Wl,--export-dynamic-symbol='_ZTS*'"
+						" -Wl,--export-dynamic-symbol='_ZTI*'"))
+			)
+			(
+				cons-cmd "-Wl,--no-undefined"
+					(++ "-Wl,--dynamic-list-data,--dynamic-list-cpp-new,"
+					"--dynamic-list-cpp-typeinfo");
+			);
+		$def! prom_LDFLAGS_DYN $lazy-env-val "LDFLAGS_DYN" cons-cmd
+			(force prom_LDFLAGS_DYN_BASE) (force prom_LDFLAGS_DYN_EXTRA);
 		"#", "Forced setting %LDFLAGS for debug configurations?";
-		$def! LDFLAGS
-			cons-cmd C_CXXFLAGS_PIC ldflags_impl_common_thrd_ LDFLAGS_OPT_DBG;
+		$env-de! LDFLAGS cons-cmd (force prom_C_CXXFLAGS_PIC)
+			(first (restv (force prom_thread-options_)))
+			(force prom_LDFLAGS_OPT_DBG);
 		"TODO", "Test and exclude Anrdoid?";
 		$if use_lld_ ($redef! LDFLAGS cons-cmd "-fuse-ld=lld" LDFLAGS);
 		"#", "%LDFLAGS_OPT_DBG is set to ' ' in the caller script.";
 		"#", "Following settings are not in %SHBuild-common-options.sh.";
 		$redef! LDFLAGS SHBuild_TrimOptions_ (cons-cmd LDFLAGS
-			($if app (cons-cmd ($if dynamic LIBS_RPATH "") (do-ld-ext env-os))
-			($if dynamic (cons-cmd LDFLAGS_DYN) "-Wl,--dn")));
+			($if app (cons-cmd ($if dynamic (force prom_LIBS_RPATH) "")
+			(do-ld-ext host-os)) ($if dynamic
+			(cons-cmd (force prom_LDFLAGS_DYN)) "-Wl,--dn")));
 		safeenv-set "LDFLAGS" LDFLAGS
 	);
 	$def! SHBOPT get-SHBOPT_ outdir shbopt-ext use-ld;
@@ -431,11 +474,11 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 	do-build CXX CXXFLAGS SHBOPT LIBPFX
 );
 
-$defl! get_env_SHB_ (env-os)
+$defl! get_env_SHB_ (host-os)
 (
-	SHB_SetupPlatformVars_ (() get-current-environment) env-os;
+	SHB_SetupPlatformVars_ (() get-current-environment) host-os;
 
-	$def! cmd_noerr_ ++ "2>" (get-nul-dev env-os);
+	$def! cmd_noerr_ ++ "2>" nul_dev_;
 	"#", "Following private environment variables are used: SHBuild.",
 		" This is expected to be stage 1";
 	$def! e_S1_SHBuild_ () system-quote (safeenv-get "SHBuild");
@@ -445,7 +488,7 @@ $defl! get_env_SHB_ (env-os)
 		"XXX", "This relies on 'rm'", "Error is ignored.";
 		system (cons-cmd "rm" (system-quote pth) cmd_noerr_)
 	);
-	$if (win32? env-os)
+	$if (win32? host-os)
 		($defl! e_add_x_ (#ignore));
 	(
 		$defl! e_add_x_ (pth)
@@ -553,7 +596,7 @@ $defl! get_env_SHB_ (env-os)
 		$assert-nonempty from-dir;
 		InstSHBuild "Executable" (++ to-dir "/" name) (++ from-dir "/" name)
 	);
-	$if (win32? env-os)
+	$if (win32? host-os)
 	(
 		$defl! InstUACManifestForExe (from to-dir name)
 			InstSHBuild "HardLink" (++ to-dir "/" name EXESFX ".manifest") from

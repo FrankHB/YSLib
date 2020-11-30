@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r719
+\version r728
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2020-08-30 19:31 +0800
+	2020-11-29 20:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,9 +46,9 @@ namespace ystdex
 */
 //@{
 YB_ATTR_nodiscard YB_API YB_NONNULL(1) YB_PURE size_t
-vfmtlen(const char*, std::va_list) ynothrow;
+vfmtlen(const char*, std::va_list) ynothrowv;
 YB_ATTR_nodiscard YB_API YB_NONNULL(1) YB_PURE size_t
-vfmtlen(const wchar_t*, std::va_list) ynothrow;
+vfmtlen(const wchar_t*, std::va_list) ynothrowv;
 //@}
 
 
@@ -59,7 +59,7 @@ vfmtlen(const wchar_t*, std::va_list) ynothrow;
 \since build 863
 */
 inline bool
-setnbuf(std::FILE* stream) ynothrow
+setnbuf(std::FILE* stream) ynothrowv
 {
 	yconstraint(stream);
 	return std::setvbuf(stream, {}, _IONBF, 0) == 0;
@@ -67,12 +67,14 @@ setnbuf(std::FILE* stream) ynothrow
 
 /*!
 \brief 判断指定路径的文件是否存在。
-\note 使用 std::fopen 实现。
 \pre 断言：参数非空。
-\since build 326
+\note 第二参数指定是否允许清空和创建文件。
+\note 使用 std::fopen 二进制模式实现。
+\return 以指定路径打开文件是否成功。
+\since build 904
 */
 YB_ATTR_nodiscard YB_API bool
-fexists(const char*) ynothrow;
+fexists(const char*, bool = {}) ynothrowv;
 
 
 /*!
