@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018-2019 FrankHB.
+	© 2009-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2908
+\version r2932
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:42 +0800
 \par 修改时间:
-	2019-12-04 04:21 +0800
+	2020-12-12 09:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,6 +98,26 @@ usystem(const char* cmd)
 }
 
 
+bool
+FetchEnvironmentVariable(string& res, const char* var)
+{
+#if YCL_Win32
+	if(const auto val = ::_wgetenv(platform_ex::UTF8ToWCS(Nonnull(var),
+		res.get_allocator()).c_str()))
+	{
+		res = platform_ex::WCSToUTF8(val, res.get_allocator());
+		return true;
+	}
+#else
+	if(const auto val = std::getenv(Nonnull(var)))
+	{
+		res = val;
+		return true;
+	}
+#endif
+	return {};
+}
+
 void
 SetEnvironmentVariable(const char* envname, const char* envval)
 {
@@ -107,10 +127,10 @@ SetEnvironmentVariable(const char* envname, const char* envval)
 #elif YCL_Win32
 	// TODO: Use %::_wputenv_s when available.
 	// NOTE: Only narrow enviornment is used.
-	// XXX: Though not documented, %::putenv actually copies the argument.
+	// XXX: Though not documented, %::_wputenv actually copies the argument.
 	//	Confirmed in ucrt source. See also https://patchwork.ozlabs.org/patch/127453/.
-	YCL_CallF_CAPI(, ::_putenv,
-		(string(Nonnull(envname)) + '=' + Nonnull(envval)).c_str());
+	YCL_CallF_CAPI(, ::_wputenv, (platform_ex::UTF8ToWCS(Nonnull(envname))
+		+ L'=' + platform_ex::UTF8ToWCS(Nonnull(envval))).c_str());
 #else
 	YCL_CallF_CAPI(, ::setenv, Nonnull(envname), Nonnull(envval), 1);
 #endif
@@ -129,6 +149,7 @@ FetchLimit(SystemOption opt) ynothrow
 			? size_t(n) : size_t(-1);
 	});
 
+	yunused(conf_conv);
 	// NOTE: For POSIX-defined minimum values, if the macro is undefined,
 	//	use the value specified in POSIX.1-2013 instead. See http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/limits.h.html.
 	switch(opt)

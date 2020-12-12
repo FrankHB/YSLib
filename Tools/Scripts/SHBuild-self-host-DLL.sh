@@ -16,9 +16,8 @@ outdir="$SHBuild_BuildDir/.self-host-dll"
 # shellcheck disable=2034
 SHBuild_Output="$outdir/SHBuild"
 
-# XXX: Use stage 2 by default.
-: "${SHBuild_LIBDIR_:=\
-"$SHBuild_ToolDir/../../build/$SHBuild_Host_Platform/.shbuild-dll"}"
+# XXX: Use stage 2 by default, assuming in the same build directory.
+: "${SHBuild_LIBDIR_:="$SHBuild_BuildDir/.shbuild-dll"}"
 export LIBS="-L\"$SHBuild_LIBDIR_\" -lYFramework -lYBase"
 CXXFLAGS="$CXXFLAGS -fwhole-program -DYF_DLL -DYB_DLL"
 export LDFLAGS="${LDFLAGS/-Wl,--dn/}"

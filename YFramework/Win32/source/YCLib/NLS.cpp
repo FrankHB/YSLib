@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2018 FrankHB.
+	© 2014-2016, 2018, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief Win32 平台自然语言处理支持扩展接口。
-\version r326
+\version r360
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2013-11-25 17:33:25 +0800
 \par 修改时间:
-	2018-07-30 01:45 +0800
+	2020-12-12 10:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,7 @@
 #	include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositive;
 #	include <ystdex/base.h> // for ystdex::noncopyable, ystdex::nonmovable;
 #	include YFM_YCLib_MemoryMapping // for platform::MappedFile;
+#	include <ystdex/type_pun.hpp> // for ystdex::aligned_cast;
 
 using namespace YSLib;
 using namespace Drawing;
@@ -61,10 +62,11 @@ FetchNLSItemFromRegistry(const wchar_t* name)
 namespace
 {
 
-//! \since build 713
+//! \since build 905
 //@{
-YB_NONNULL(2) string
-MBCSToMBCSImpl(int l, const char* str, unsigned cp_src, unsigned cp_dst)
+YB_ATTR_nodiscard YB_NONNULL(3) string
+MBCSToMBCSImpl(const string::allocator_type& a, int l, const char* str,
+	unsigned cp_src, unsigned cp_dst)
 {
 	if(cp_src != cp_dst)
 	{
@@ -73,7 +75,7 @@ MBCSToMBCSImpl(int l, const char* str, unsigned cp_src, unsigned cp_dst)
 
 		if(w_len != 0)
 		{
-			wstring wstr(CheckPositive<size_t>(w_len), wchar_t());
+			wstring wstr(CheckPositive<size_t>(w_len), wchar_t(), a);
 			const auto w_str(&wstr[0]);
 
 			::MultiByteToWideChar(cp_src, 0, str, l, w_str, w_len);
@@ -86,15 +88,16 @@ MBCSToMBCSImpl(int l, const char* str, unsigned cp_src, unsigned cp_dst)
 	return str;
 }
 
-YB_NONNULL(2) wstring
-MBCSToWCSImpl(int l, const char* str, unsigned cp)
+YB_ATTR_nodiscard YB_NONNULL(3) wstring
+MBCSToWCSImpl(const wstring::allocator_type& a, int l, const char* str,
+	unsigned cp)
 {
 	const int
 		w_len(::MultiByteToWideChar(cp, 0, Nonnull(str), l, {}, 0));
 
 	if(w_len != 0)
 	{
-		wstring res(CheckPositive<size_t>(w_len), wchar_t());
+		wstring res(CheckPositive<size_t>(w_len), wchar_t(), a);
 
 		::MultiByteToWideChar(cp, 0, str, l, &res[0], w_len);
 		if(l == -1 && !res.empty())
@@ -104,14 +107,15 @@ MBCSToWCSImpl(int l, const char* str, unsigned cp)
 	return {};
 }
 
-YB_NONNULL(2) string
-WCSToMBCSImpl(int l, const wchar_t* str, unsigned cp)
+YB_ATTR_nodiscard YB_NONNULL(3) string
+WCSToMBCSImpl(const string::allocator_type& a, int l, const wchar_t* str,
+	unsigned cp)
 {
 	const int r_l(::WideCharToMultiByte(cp, 0, Nonnull(str), l, {}, 0, {}, {}));
 
 	if(r_l != 0)
 	{
-		string res(CheckPositive<size_t>(r_l), char());
+		string res(CheckPositive<size_t>(r_l), char(), a);
 
 		::WideCharToMultiByte(cp, 0, str, l, &res[0], r_l, {}, {});
 		if(l == -1 && !res.empty())
@@ -168,11 +172,11 @@ public:
 
 NLSTableEntry::NLSTableEntry(int cp)
 	// FIXME: Some NLS files are missing from SysWOW64 directory in some
-	//	versions of 64-bit Windows 10.
+	//	versions of 64-bit Windows 10. There should be ways to detect it.
 	: mapped(WCSToMBCS(FetchSystemPath() + FetchCPFileNameFromRegistry(cp)))
 {
 	const auto base(reinterpret_cast<unsigned short*>(mapped.GetPtr()));
-	auto& header(*reinterpret_cast<NLS_FILE_HEADER*>(base));
+	auto& header(*ystdex::aligned_cast<NLS_FILE_HEADER*>(base));
 
 	yunseq(
 	table.CodePage = header.CodePage,
@@ -204,39 +208,41 @@ map<int, NLSTableEntry> NLSCache;
 } // unnamed namespace;
 
 string
-MBCSToMBCS(const char* str, unsigned cp_src, unsigned cp_dst)
+MBCSToMBCS(const string::allocator_type& a, const char* str, unsigned cp_src,
+	unsigned cp_dst)
 {
-	return MBCSToMBCSImpl(-1, str, cp_src, cp_dst);
+	return MBCSToMBCSImpl(a, -1, str, cp_src, cp_dst);
 }
 string
-MBCSToMBCS(string_view sv, unsigned cp_src, unsigned cp_dst)
+MBCSToMBCS(const string::allocator_type& a, string_view sv, unsigned cp_src,
+	unsigned cp_dst)
 {
-	return sv.length() != 0 ? MBCSToMBCSImpl(CheckNonnegative<int>(sv.length()),
-		sv.data(), cp_src, cp_dst) : string();
+	return sv.length() != 0 ? MBCSToMBCSImpl(a, CheckNonnegative<int>(
+		sv.length()), sv.data(), cp_src, cp_dst) : string(a);
 }
 
 wstring
-MBCSToWCS(const char* str, unsigned cp)
+MBCSToWCS(const wstring::allocator_type& a, const char* str, unsigned cp)
 {
-	return MBCSToWCSImpl(-1, str, cp);
+	return MBCSToWCSImpl(a, -1, str, cp);
 }
 wstring
-MBCSToWCS(string_view sv, unsigned cp)
+MBCSToWCS(const wstring::allocator_type& a, string_view sv, unsigned cp)
 {
-	return sv.length() != 0 ? MBCSToWCSImpl(
-		CheckNonnegative<int>(sv.length()), sv.data(), cp) : wstring();
+	return sv.length() != 0 ? MBCSToWCSImpl(a,
+		CheckNonnegative<int>(sv.length()), sv.data(), cp) : wstring(a);
 }
 
 string
-WCSToMBCS(const wchar_t* str, unsigned cp)
+WCSToMBCS(const string::allocator_type& a, const wchar_t* str, unsigned cp)
 {
-	return WCSToMBCSImpl(-1, str, cp);
+	return WCSToMBCSImpl(a, -1, str, cp);
 }
 string
-WCSToMBCS(wstring_view sv, unsigned cp)
+WCSToMBCS(const string::allocator_type& a, wstring_view sv, unsigned cp)
 {
-	return sv.length() != 0 ? WCSToMBCSImpl(
-		CheckNonnegative<int>(sv.length()), sv.data(), cp) : string();
+	return sv.length() != 0 ? WCSToMBCSImpl(a,
+		CheckNonnegative<int>(sv.length()), sv.data(), cp) : string(a);
 }
 
 

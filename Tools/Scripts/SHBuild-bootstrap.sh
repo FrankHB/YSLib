@@ -5,7 +5,8 @@
 set -e
 : "${SHBuild_ToolDir:=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)}"
 # shellcheck source=./SHBuild-common.sh
-. "$SHBuild_ToolDir/SHBuild-common.sh" # for SHBuild_PrepareBuild.
+. "$SHBuild_ToolDir/SHBuild-common.sh" # for SHBuild_Puts, SHBuild_PrepareBuild,
+#	SHBuild_EchoVar_N.
 SHBuild_Puts "Bootstrap beginned."
 SHBuild_PrepareBuild
 : "${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}"
@@ -15,6 +16,8 @@ YSLib_BaseDir=$(cd "$YSLib_BaseDir"; pwd)
 
 SHBuild_EchoVar_N 'SHBuild.BaseDir'
 SHBuild_EchoVar_N 'SHBuild.ToolDir'
+SHBuild_EchoVar_N 'SHBuild.Host.Arch'
+SHBuild_EchoVar_N 'SHBuild.Host.OS'
 
 SHBuild_Puts "Configuring ..."
 
@@ -83,9 +86,7 @@ fi
 export CXXFLAGS
 export LDFLAGS
 
-SHBuild_CheckHostPlatform
-SHBuild_AssertNonempty SHBuild_Host_Platform
-: "${SHBuild_BuildDir:="$SHBuild_ToolDir/../../build/$SHBuild_Host_Platform"}"
+: "${SHBuild_BuildDir:="$SHBuild_ToolDir/../../build/$(SHBuild_GetBuildName)"}"
 
 SHBuild_EchoVar_N 'SHBuild.BuildDir'
 SHBuild_EchoVar_N 'CXX'

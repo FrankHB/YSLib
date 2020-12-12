@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r892
+\version r915
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2020-06-26 16:08 +0800
+	2020-12-10 11:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,12 +38,12 @@
 #elif YCL_Android
 #	include <android/log.h>
 #endif
-#include YFM_YCLib_Host // for platfrom_ex::EncodeArg;
+#include YFM_YCLib_Host // for platfrom_ex::EncodeArg, StreamPut;
 #if YF_Multithread == 1
 #	include <ystdex/concurrency.h>
 #endif
 #if !YCL_DS
-#	include <iostream> // for std::cerr;
+#	include <iostream> // for std::cout, std::cerr;
 #endif
 #include <cstdarg> // for std::va_list, va_start, va_end;
 
@@ -223,6 +223,7 @@ Logger::FetchDefaultSender(string_view tag)
 		{
 			wstring wstr;
 
+			// XXX: Partial writing is ignored.
 			WConsoleOutput(wstr, STD_ERROR_HANDLE, str);
 		}
 		CatchExpr(platform_ex::Win32Exception&, DefaultSendLog(lv, logger, str))
@@ -241,8 +242,7 @@ Logger::LogFailure() ynothrow
 }
 
 void
-Logger::SendLog(std::ostream& os, Level lv, const char* str)
-	ynothrowv
+Logger::SendLog(std::ostream& os, Level lv, const char* str) ynothrowv
 {
 	try
 	{
@@ -251,12 +251,13 @@ Logger::SendLog(std::ostream& os, Level lv, const char* str)
 
 		if(!t_id.empty())
 			// XXX: Error is ignored.
-			os << ystdex::sfmt("[%s:%#X]: %s\n", t_id.c_str(), unsigned(lv),
-				Nonnull(str));
+			StreamPut(os, ystdex::sfmt("[%s:%#X]: %s\n", t_id.c_str(),
+				unsigned(lv), Nonnull(str)).c_str());
 		else
 #endif
 			// XXX: Error is ignored.
-			os << ystdex::sfmt("[%#X]: %s\n", unsigned(lv), Nonnull(str));
+			StreamPut(os, (ystdex::sfmt("[%#X]: %s\n", unsigned(lv),
+				Nonnull(str))).c_str());
 		// XXX: Error is ignored.
 		os.flush();
 	}
@@ -272,13 +273,27 @@ Logger::SendLogToFile(std::FILE* stream, Level lv, const char* str)
 	const auto& t_id(FetchCurrentThreadID());
 
 	if(!t_id.empty())
+#	if YCL_Win32
+		// XXX: Error is ignored.
+		TryExpr(StreamPut(stream, ystdex::sfmt("[%s:%#X]: %s\n", t_id.c_str(),
+			unsigned(lv), Nonnull(str)).c_str()))
+		CatchIgnore(...)
+#	else
 		// XXX: Error from 'std::fprintf' is ignored.
 		std::fprintf(stream, "[%s:%#X]: %s\n", t_id.c_str(), unsigned(lv),
 			Nonnull(str));
+#	endif
 	else
 #endif
+#if YCL_Win32
+		// XXX: Error is ignored.
+		TryExpr(StreamPut(stream,
+			(ystdex::sfmt("[%#X]: %s\n", unsigned(lv), Nonnull(str))).c_str()))
+		CatchIgnore(...)
+#else
 		// XXX: Error from 'std::fprintf' is ignored.
 		std::fprintf(stream, "[%#X]: %s\n", unsigned(lv), Nonnull(str));
+#endif
 	// XXX: Error is ignored.
 	std::fflush(stream);
 }

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2019 FrankHB.
+	© 2009-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台中立的文件抽象。
-\version r1676
+\version r1680
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2019-07-08 20:18 +0800
+	2020-12-03 20:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,11 +44,12 @@ namespace IO
 \pre 路径参数非空。
 \throw std::system_error 打开失败。
 \return 非空的文件指针。
+\note 当前没有公开打开模式的参数，可能使用平台相关的值或 omode_conv 的结果。
 \sa uopen
-\since build 639
+\since build 905
 */
 YF_API YB_NONNULL(1) UniqueFile
-OpenFile(const char*, int, mode_t = 0);
+OpenFile(const char*, int, mode_t = DefaultPMode());
 
 
 /*!

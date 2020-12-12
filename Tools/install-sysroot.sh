@@ -7,7 +7,7 @@ set -e
 # XXX: Use 'shell -x -P SCRIPTDIR'.
 # shellcheck source=./Scripts/SHBuild-common.sh
 . "$SHBuild_ToolDir/SHBuild-common.sh" # for SHBuild_Puts,
-#	SHBuild_CheckHostPlatform;
+#	SHBuild_PrepareBuild, SHBuild_GetBuildName;
 
 # NOTE: Some variables are configurable. If not set or set to empty, the
 #	variables can be later set by the scripts being called. Variable specific to
@@ -20,7 +20,7 @@ set -e
 #	repository base directory.
 : "${YSLib_BaseDir:="$SHBuild_ToolDir/../.."}"
 
-SHBuild_Puts Configuring ...
+SHBuild_Puts 'Configuring ...'
 : "${SHBuild_BuildOpt:="-xj,6"}"
 export SHBuild_BuildOpt
 : "${SHBuild_LogOpt:="-xlogfl,128"}"
@@ -30,22 +30,21 @@ export SHBuild_Opt
 : "${SHBuild_SysRoot:="$YSLib_BaseDir/sysroot"}"
 YSLib_BaseDir=$(cd "$YSLib_BaseDir"; pwd)
 export YSLib_BaseDir
-SHBuild_CheckHostPlatform
+SHBuild_PrepareBuild
 # NOTE: The default value is same to %SHBuild_BuildDir in
 #	%SHBuild-YSLib-bootstrap.sh. The directory will be created if not existed by
 #	the following stage 1 process or by %SHBuild-YSLib-build.txt.
-: "${SHBuild_BuildDir:="$YSLib_BaseDir/build/$SHBuild_Host_Platform"}"
+: "${SHBuild_BuildDir:="$YSLib_BaseDir/build/$(SHBuild_GetBuildName)"}"
 export SHBuild_BuildDir
 SHBuild_Puts "Build directory is \"$SHBuild_BuildDir\"."
-SHBuild_PrepareBuild
 # shellcheck source=./Scripts/SHBuild-common-toolchain.sh
 . "$SHBuild_ToolDir/SHBuild-common-toolchain.sh"
 if [[ -z ${SHBuild_UseRelease+x} ]]; then
 	SHBuild_UseRelease=true
 fi
-SHBuild_Puts Done.
+SHBuild_Puts 'Done.'
 
-SHBuild_Puts Bootstraping ...
+SHBuild_Puts 'Bootstraping ...'
 # S1 = Stage 1.
 S1_BuildDir="$SHBuild_BuildDir/.stage1"
 mkdir -p "$S1_BuildDir"
@@ -79,7 +78,7 @@ SHBuild_AssertNonempty SHBuild
 # XXX: Variables here are assigned locally and guaranteed to be expanded to the
 #	same values to avoid 'export' pollution.
 # shellcheck disable=2086,2097,2098,2154
-SHBuild="$SHBuild" SHBuild_ToolDir="$SHBuild_ToolDir" \
+SHBuild="$SHBuild" SHBuild_Epoch=0 SHBuild_ToolDir="$SHBuild_ToolDir" \
 	SHBuild_NoStatic="$SHBuild_NoStatic" \
 	SHBuild_NoDynamic="$SHBuild_NoDynamic" \
 	SHBuild_UseDebug="$SHBuild_UseDebug" \

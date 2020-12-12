@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r934
+\version r939
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2020-06-29 22:30 +0800
+	2020-12-10 10:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -293,7 +293,11 @@ public:
 	\since build 888
 	*/
 	//@{
-	//! \pre 第一参数不设置在错误时抛出异常。
+	/*!
+	\pre 第一参数不设置在错误时抛出异常。
+	\note Win32 平台：判断 Windows 控制台。
+	\sa StreamPut
+	*/
 	static YB_NONNULL(3) void
 	SendLog(std::ostream&, Level, const char*) ynothrowv;
 

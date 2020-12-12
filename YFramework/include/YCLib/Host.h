@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2019 FrankHB.
+	© 2014-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r635
+\version r646
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2019-11-05 01:16 +0800
+	2020-12-12 10:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 
 #include "YCLib/YModules.h"
 #include "YSLib/Core/YModules.h"
+#include YFM_YCLib_YCommon
 #include YFM_YCLib_Container // for unordered_map, pair, string_view, string,
 //	ystdex::invoke;
 #include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
@@ -369,6 +370,16 @@ public:
 
 	bool
 	UpdateForeColor(std::uint8_t);
+
+	/*!
+	\brief 输出 UTF-8 NTCTS 。
+	\pre 断言：参数非空。
+	\note 仅当不可使用终端输出时使用第一参数指定的流。
+	\return 成功输出了所有字符。
+	\since build 905
+	*/
+	YB_NONNULL(2, 3) bool
+	WriteString(std::FILE*, const char*);
 };
 //@}
 

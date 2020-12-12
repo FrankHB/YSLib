@@ -9,6 +9,20 @@
 
 trap exit 1 INT
 
+SHBuild_Popd()
+{
+	# XXX: The error is ignored.
+	# shellcheck disable=2164
+	popd > /dev/null 2>& 1
+}
+
+SHBuild_Pushd()
+{
+	# XXX: The error is ignored.
+	# shellcheck disable=2164
+	pushd "$1" > /dev/null 2>& 1
+}
+
 SHBuild_Put()
 {
 	printf '%s' "$*"
@@ -28,6 +42,7 @@ SHBuild_Puts()
 	fi
 	printf "%s$SHBuild_EOL" "$*"
 }
+
 
 SHBuild_AssertNonempty()
 {
@@ -72,6 +87,42 @@ SHBuild_InitReadonly()
 				"Cached readonly variable \"$varname\" = \"$vval\"." >& 2
 		fi
 	fi
+}
+
+
+SHBuild_2m()
+{
+	cygpath -m "$1" 2> /dev/null || SHBuild_Put "$1"
+}
+
+SHBuild_2u()
+{
+	cygpath -au "$1" 2> /dev/null || SHBuild_Put "$1"
+}
+
+SHBuild_EchoEscape()
+{
+	# FIXME: Turn off ANSI escape sequence when $TERM not supported.
+	if [[ -t 1 ]]; then
+		echo -ne "$1"
+	fi
+}
+
+SHBuild_EchoVar()
+{
+	SHBuild_EchoEscape '\033[36m'
+	SHBuild_Put "$1"
+	SHBuild_EchoEscape '\033[0m'
+	SHBuild_Put ' = "'
+	SHBuild_EchoEscape '\033[31m'
+	SHBuild_Put "$2"
+	SHBuild_EchoEscape '\033[0m'
+	SHBuild_Puts '"'
+}
+
+SHBuild_EchoVar_N()
+{
+	eval "SHBuild_EchoVar \"\$1\" \"\${${1//./_}}\""
 }
 
 
@@ -141,27 +192,137 @@ SHBuild_CheckUName()
 	[[ "$SHBuild_Env_Arch" != '' ]] || SHBuild_CheckUName_Init_Env_Arch_
 }
 
-# Prepare the environment for build. Check system environment variables at
-#	first. Then, Variables for the build system are initialized if necessary.
+# Get temporary directory name by checking "$TMPDIR", "$TEMP", "$TMP" and
+#	"/tmp".
+SHBuild_GetTempDir()
+{
+	# NOTE: The type and the permission of the file indicated by the path is not
+	#	checked by design.
+	if [[ "$TMPDIR" != '' ]]; then
+		SHBuild_Put "$TMPDIR"
+	elif [[ "$TEMP" != '' ]]; then
+		SHBuild_Put "$TEMP"
+	elif [[ "$TMP" != '' ]]; then
+		SHBuild_Put "$TMP"
+	else
+		SHBuild_2m '/tmp'
+	fi
+}
+
+
+# Check host platform and set value of platform string based on input parameters
+#	indicating the operating system and architecture (as in host and target
+#	triplets in common build systems). See user documentation
+#	Tools/Scripts.zh-CN.md for details.
+# Params: $1 = variable of OS like $SHBuild_Env_OS,
+#	$2 = variable of OS like $SHBuild_Env_Arch.
+SHBuild_Platform_Detect()
+{
+	local result
+
+	if [[ "$1" == 'Win32' ]]; then
+		if [[ "$MSYSTEM" == 'MINGW64' ]]; then
+			result='MinGW64'
+		elif [[ "$MSYSTEM" == 'MINGW32' ]]; then
+			result='MinGW32'
+		elif [[ "$2" == 'x86_64' ]]; then
+			result='MinGW64'
+		elif [[ "$2" == 'aarch64' ]]; then
+			SHBuild_Puts \
+				"ERROR: The architecture aarch64 is not supported in MinGW."
+			exit 1
+		else
+			result='MinGW32'
+		fi
+	else
+		result="$1"
+	fi
+	SHBuild_AssertNonempty result
+	echo "$result"
+}
+
+SHBuild_PrepareBuild_Init_Host_Arch_()
+{
+	if [[ "$SHBuild_Host_OS" == 'Win32' ]]; then
+		if [[ "$MSYSTEM" == 'MINGW64' ]]; then
+			SHBuild_Host_Arch=x86_64
+		elif [[ "$MSYSTEM" == 'MINGW32' ]]; then
+			SHBuild_Host_Arch=i686
+		else
+			SHBuild_Host_Arch="$SHBuild_Env_Arch"
+		fi
+	else
+		SHBuild_Host_Arch="$SHBuild_Env_Arch"
+	fi
+}
+
+# Prepare the environment for build. Initialize the temporary directory. Check
+#	system environment variables. Variables for the build system are initialized
+#	if necessary.
 SHBuild_PrepareBuild()
 {
+	: "${SHBuild_Env_TempDir:=$(SHBuild_GetTempDir)}"
 	SHBuild_CheckUName
-	: "${SHBuild_Host_Arch:="$SHBuild_Env_Arch"}"
 	: "${SHBuild_Host_OS:="$SHBuild_Env_OS"}"
+	[[ "$SHBuild_Host_Arch" != '' ]] || SHBuild_PrepareBuild_Init_Host_Arch_
 	# XXX: Every initializaed variable shall be nonempty. Just avoid the
 	#	assertions here for efficiency.
 }
 
-
-SHBuild_2m()
+SHBuild_GetBuildName()
 {
-	cygpath -m "$1" 2> /dev/null || SHBuild_Put "$1"
+	SHBuild_AssertNonempty SHBuild_Host_Arch
+	SHBuild_AssertNonempty SHBuild_Host_OS
+	echo "$(SHBuild_Platform_Detect "$SHBuild_Host_OS" "$SHBuild_Host_Arch")"
 }
 
-SHBuild_2u()
+
+# Link and build GNU precompiled header.
+# Params: $1 = path of header to be copied, $2 = path of header to be included,
+#	$3 = tool to build header.
+SHBuild_BuildGCH()
 {
-	cygpath -au "$1" 2> /dev/null || SHBuild_Put "$1"
+	declare -r SHBOUT_PCH="$2.gch"
+	if [[ -s "$SHBOUT_PCH" && -r "$SHBOUT_PCH" ]]; then
+		# FIXME: Update necessarily.
+		SHBuild_Puts "PCH file exists, skipped building."
+	else
+		mkdir -p "$(dirname "$SHBOUT_PCH")"
+		SHBuild_Puts "Building precompiled file \"$SHBOUT_PCH\" ..."
+		SHBuild_Install_HardLink "$1" "$2"
+		$3 "$1" -o"$SHBOUT_PCH"
+		SHBuild_Puts "Building precompiled file \"$SHBOUT_PCH\" done."
+	fi
 }
+
+# Link and build precompiled header if %SHBuild_NoPCH is not set to nonnull
+#	value, and set internal value %SHBuild_IncPCH to proper command option
+#	in GNU toolchain flavor. %CXX is used as the compiler with %CXXFLAGS as
+#	flags. Only GNU-compatible command is supported currently.
+# Params: $1 = path of header to be copied, $2 = path of header to be included.
+SHBuild_CheckPCH()
+{
+	# XXX: %SHBuild_NoPCH is external.
+	# shellcheck disable=2154
+	if [[ $SHBuild_NoPCH == '' ]]; then
+		SHBuild_BuildGCH "$1" "$2" "$CXX -xc++-header $CXXFLAGS"
+		# XXX: %SHBuild_NoPCH is internal.
+		# shellcheck disable=2034
+		SHBuild_IncPCH="-include $2"
+	else
+		SHBuild_Puts Skipped building precompiled file.
+		# XXX: %SHBuild_NoPCH is internal.
+		# shellcheck disable=2034
+		SHBuild_IncPCH=""
+	fi
+}
+
+
+# NOTE: The following functions are currently not used directly by the YSLib
+#	building process and all can be implemented by NPLA1. However, they can be
+#	still useful to manually maintain the installation from the shell,
+#	especially when 'SHBuild' is not available from a known location
+#	(e.g. in $PATH).
 
 SHBuild_2w()
 {
@@ -207,64 +368,6 @@ SHBuild_Install_Link()
 		> /dev/null 2>& 1 || ln -s -T "$1" "$2")
 }
 
-SHBuild_Pushd()
-{
-	# XXX: The error is ignored.
-	# shellcheck disable=2164
-	pushd "$1" > /dev/null 2>& 1
-}
-
-SHBuild_Popd()
-{
-	# XXX: The error is ignored.
-	# shellcheck disable=2164
-	popd > /dev/null 2>& 1
-}
-
-
-SHBuild_EchoEscape()
-{
-	# FIXME: Turn off ANSI escape sequence when $TERM not supported.
-	if [[ -t 1 ]]; then
-		echo -ne "$1"
-	fi
-}
-
-SHBuild_EchoVar()
-{
-	SHBuild_EchoEscape '\033[36m'
-	SHBuild_Put "$1"
-	SHBuild_EchoEscape '\033[0m'
-	SHBuild_Put ' = "'
-	SHBuild_EchoEscape '\033[31m'
-	SHBuild_Put "$2"
-	SHBuild_EchoEscape '\033[0m'
-	SHBuild_Puts '"'
-}
-
-SHBuild_EchoVar_N()
-{
-	eval "SHBuild_EchoVar \"\$1\" \"\${${1//./_}}\""
-}
-
-
-# Get temporary directory name by checking "$TMPDIR", "$TEMP", "$TMP" and
-#	"/tmp".
-SHBuild_GetTempDir()
-{
-	# NOTE: The type and the permission of the file indicated by the path is not
-	#	checked by design.
-	if [[ "$TMPDIR" != '' ]]; then
-		SHBuild_Put "$TMPDIR"
-	elif [[ "$TEMP" != '' ]]; then
-		SHBuild_Put "$TEMP"
-	elif [[ "$TMP" != '' ]]; then
-		SHBuild_Put "$TMP"
-	else
-		SHBuild_2m '/tmp'
-	fi
-}
-
 # Convert the platform string to the system prefix.
 # Params: $1 = platform string, typically from the result of
 #	%SHBuild_Platform_Detect.
@@ -279,85 +382,34 @@ SHBuild_GetSystemPrefix()
 	fi
 }
 
-
-# Check host platform and set value of platform string based on input parameters
-#	indicating the operating system and architecture (as in host and target
-#	triplets in common build systems). See user documentation
-#	Tools/Scripts.zh-CN.md for details.
-# Params: $1 = variable of OS like $SHBuild_Env_OS,
-#	$2 = variable of OS like $SHBuild_Env_Arch.
-SHBuild_Platform_Detect()
+# Prepare stage 2 environment.
+# Params: $1 = default value for %SHBuild_SysRoot if not set.
+SHBuild_S2_Prepare()
 {
-	local result
-
-	if [[ "$1" == 'Win32' ]]; then
-		if [[ "$MSYSTEM" == 'MINGW64' ]]; then
-			result='MinGW64'
-		elif [[ "$MSYSTEM" == 'MINGW32' ]]; then
-			result='MinGW32'
-		elif [[ "$2" == 'x86_64' ]]; then
-			result='MinGW64'
-		elif [[ "$2" == 'aarch64' ]]; then
-			SHBuild_Puts \
-				"ERROR: The architecture aarch64 is not supported in MinGW."
-			exit 1
-		else
-			result='MinGW32'
-		fi
-	else
-		result="$1"
-	fi
-	SHBuild_AssertNonempty result
-	echo "$result"
-}
-
-# Check host platform and set value of %SHBuild_Host_Platform if not set.
-#	This function use %SHBuild_Platform_Detect.
-SHBuild_CheckHostPlatform()
-{
+	# NOTE: %SHBuild_SysRoot in stage 2 shall be initialized.
+	: "${SHBuild_SysRoot:="$1"}"
+	SHBuild_AssertNonempty SHBuild_SysRoot
+	mkdir -p "$SHBuild_SysRoot"
+	SHBuild_SysRoot=$(cd "$SHBuild_SysRoot"; pwd)
 	SHBuild_PrepareBuild
-	: "${SHBuild_Host_Platform:=$(SHBuild_Platform_Detect "$SHBuild_Host_OS" \
-		"$SHBuild_Host_Arch")}"
+	# NOTE: See also %SHBuild-YSLib-build.txt.
+	: "${SHBuild_SystemPrefix:=\
+$(SHBuild_GetSystemPrefix $(SHBuild_GetBuildName))}"
+	SHBuild_InitReadonly SR_Prefix \
+		SHBuild_Put "$SHBuild_SysRoot$SHBuild_SystemPrefix"
 }
 
-
-# Link and build GNU precompiled header.
-# Params: $1 = path of header to be copied, $2 = path of header to be included,
-#	$3 = tool to build header.
-SHBuild_BuildGCH()
+# Prepare stage 2 environment for build.
+# Params: $1 = default value for %SHBuild_SysRoot if not set.
+SHBuild_S2_Prepare_Build()
 {
-	declare -r SHBOUT_PCH="$2.gch"
-	if [[ -s "$SHBOUT_PCH" && -r "$SHBOUT_PCH" ]]; then
-		# FIXME: Update necessarily.
-		SHBuild_Puts "PCH file exists, skipped building."
-	else
-		mkdir -p "$(dirname "$SHBOUT_PCH")"
-		SHBuild_Puts "Building precompiled file \"$SHBOUT_PCH\" ..."
-		SHBuild_Install_HardLink "$1" "$2"
-		$3 "$1" -o"$SHBOUT_PCH"
-		SHBuild_Puts "Building precompiled file \"$SHBOUT_PCH\" done."
-	fi
-}
-
-# Link and build precompiled header if %SHBuild_NoPCH is not set to nonnull
-#	value, and set internal value %SHBuild_IncPCH to proper command option
-#	in GNU toolchain flavor. %CXX is used as the compiler with %CXXFLAGS as
-#	flags. Only GNU-compatible command is supported currently.
-# Params: $1 = path of header to be copied, $2 = path of header to be included.
-SHBuild_CheckPCH()
-{
-	# XXX: %SHBuild_NoPCH is external.
+	SHBuild_S2_Prepare "$1"
+	# XXX: %SHBuild is to be exported, assuming stage 2 layout. This should not
+	#	be used in building and installing Sysroot which requires a working
+	#	%SHBuild out of the tree of '$SHBuild_SysRoot'.
+	SHBuild_AssertNonempty SHBuild_SysRoot
+	# XXX: %SR_Prefix is internal.
 	# shellcheck disable=2154
-	if [[ $SHBuild_NoPCH == '' ]]; then
-		SHBuild_BuildGCH "$1" "$2" "$CXX -xc++-header $CXXFLAGS"
-		# XXX: %SHBuild_NoPCH is internal.
-		# shellcheck disable=2034
-		SHBuild_IncPCH="-include $2"
-	else
-		SHBuild_Puts Skipped building precompiled file.
-		# XXX: %SHBuild_NoPCH is internal.
-		# shellcheck disable=2034
-		SHBuild_IncPCH=""
-	fi
+	export SHBuild="$SR_Prefix/bin/SHBuild"
 }
 

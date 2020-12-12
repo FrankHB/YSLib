@@ -107,7 +107,8 @@ $defv! $assert-nonempty (var) d
 $defv! $assert-absolute-path (var) d
 	eval (list $assert var SHBuild_String_absolute_path?_
 		"be a string of absolute path") d;
-$defl! cons-cmd (.xs) apply ++ (map1 ($lambda (s) ++ s " ") xs);
+$defl! cons-cmd (.xs)
+	apply ++ (map1 ($lambda (str) $if (string-empty? str) "" (++ str " ")) xs);
 
 $defl! SHBuild_CheckUName_Case_ (x) $cond
 	((rmatch? x ".*Darwin.*") "OS_X")
@@ -126,14 +127,20 @@ $env-de! SHBuild_Env_OS ($set-system-var! SHBuild_Env_uname "uname";
 $env-de! SHBuild_Env_Arch ($set-system-var! SHBuild_Env_uname_m "uname -m";
 	SHBuild_CheckUNameM_Case_ SHBuild_Env_uname_m);
 
+$defl! win32? (os) eqv? os "Win32";
+
 $defl! SHBuild_GetPlatformStrings ()
 (
-	$env-de! SHBuild_Host_Arch SHBuild_Env_Arch,
 	$env-de! SHBuild_Host_OS SHBuild_Env_OS;
+	$env-de! SHBuild_Host_Arch $if (win32? SHBuild_Host_OS)
+		($let ((msystem safeenv-get "MSYSTEM"))
+			$cond
+				((eqv? msystem "MINGW64") "x86_64")
+				((eqv? msystem "MINGW32") "i686")
+				(#t SHBuild_Env_Arch))
+		SHBuild_Env_Arch;
 	list SHBuild_Host_Arch SHBuild_Host_OS
 );
-
-$defl! win32? (os) eqv? os "Win32";
 
 $def! nul_dev_ $if (win32? SHBuild_Env_OS) "NUL" "/dev/null";
 
@@ -156,11 +163,12 @@ $defl! SHBuild_GetTempDir ()
 	search (list "TMPDIR" "TEMP" "TMP");
 );
 
-$def! tmp_dir_ () SHBuild_GetTempDir;
-$defl! mktmp_ () SHBuild_MakeTempFilename (++ tmp_dir_ "/") "";
+$def! SHBuild_Env_TempDir () SHBuild_GetTempDir;
+$defl! mktmp_ () SHBuild_MakeTempFilename (++ SHBuild_Env_TempDir "/") "";
 "NOTE", "Suffix is now hard-coded. The suffix makes the output of the compiler",
 	" driver same to the '-o' argument in the command line.";
-$defl! mktmp_exe_ () SHBuild_MakeTempFilename (++ tmp_dir_ "/") ".exe";
+$defl! mktmp_exe_ ()
+	SHBuild_MakeTempFilename (++ SHBuild_Env_TempDir "/") ".exe";
 "NOTE",
 	"The output path cannot be '/dev/null'. See http://sourceforge.net/p/msys2/discussion/general/thread/2d6adff2/?limit=25.";
 $defl! with-tmp-file_ (tmp-file f)

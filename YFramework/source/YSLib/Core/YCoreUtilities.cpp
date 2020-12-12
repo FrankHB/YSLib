@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.cpp
 \ingroup Core
 \brief 核心实用模块。
-\version r157
+\version r167
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2014-10-01 08:52:17 +0800
 \par 修改时间:
-	2020-11-29 17:40 +0800
+	2020-12-12 10:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,18 +94,6 @@ LockCommandArguments()
 	static recursive_mutex mtx;
 
 	return {&vec, mtx};
-}
-
-
-bool
-FetchEnvironmentVariable(string& res, const char* var)
-{
-	if(const auto val = std::getenv(Nonnull(var)))
-	{
-		res = val;
-		return true;
-	}
-	return {};
 }
 
 

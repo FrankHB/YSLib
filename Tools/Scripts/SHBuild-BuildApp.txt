@@ -176,9 +176,9 @@ $if (string-empty? arg1) (() SHBuild_PrintUsage)
 			$env-de! SHBuild_LIBS "";
 			$unless (string-empty? SHBuild_LIBS)
 				(safeenv-set "LIBS" (++ SHBuild_LIBS " " (env-get "LIBS")));
-			system-check (apply cons-cmd (append (list SHBuild SHBOPT)
-				SHBOPT_BASE (list (fix-flags CXXFLAGS))
-				(list SHBuild_YSLib_Flags)))
+			system-check (++ SHBuild " " (apply cons-cmd (append SHBOPT_BASE
+				(list SHBOPT) (list (fix-flags CXXFLAGS))
+				(list SHBuild_YSLib_Flags))))
 		)
 	)
 );

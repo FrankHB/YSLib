@@ -11,17 +11,17 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r1311
+\version r1602
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2020-11-30 23:06 +0800
+	2020-12-13 02:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	Documentation::ChangeLog::'V0.8'
+	Documentation::ChangeLog::'V0.9'
 */
 
 // See %Documentation::Meta for meta descriptions.
@@ -31,6 +31,297 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	(
+	* $doc "fixed annotations method of engineering defects"
+		@ %Documentation.ProjectRules $since b874;
+		// The old way cannot annotate defects from different original \
+			revisions in a same reversion. Thus, the update of the bookmark on \
+			the new defects found would not overwrite the old defects having \
+			different origins now.
+	/ $repo "engineering fault bookmarks" $=
+	(
+		/ $forced "rearranged current bookmarks under the new annotation rules"
+			$=
+		(
+			/ ("bookmarks ('engineering-fault-b684', 'engineering-fault-b687')"
+				@ b684) -> ("bookmarks 'engineering-fault-b684'" @ b687),
+			/ ("bookmark 'engineering-fault-b710'" @ b706)
+				("bookmark 'engineering-fault-b706'" @ b710),
+			/ ("bookmark 'engineering-fault-b723'" @ b717)
+				("bookmark 'engineering-fault-b717'" @ b723),
+			/ ("bookmark 'engineering-fault-b729'" @ b728)
+				("bookmark 'engineering-fault-b728'" @ b729),
+			/ ("bookmark 'engineering-fault-b739'" @ b735)
+				("bookmark 'engineering-fault-b735'" @ b739)
+		),
+		+ "bookmark 'engineering-fault-b888'"
+			// Insufficient revisions.
+	)
+	),
+	/ %YFramework $=
+	(
+		/ DLDI "unused %Nonnull result" ^ "%yunused"
+			$effective @ (("constructor %platform_ex::Exception#(3, 6)"
+			@ %YCLib.Host), "internal debug timer" @ %Helper.ShellHelper),
+			// To eliminate Clang++ warning: [-Wunused-value].
+		/ %'YCLib(Win32)' $=
+		(
+			* "active code page wrongly used instead of UTF-8" @ "functions \
+				%ParseCommandArguments" @ %MinGW32 $since b901
+				$= (/ $impl ^ "%WCSToUTF8" ~ "%WCSToMBCS"),
+			/ %NLS $=
+			(
+				+ DLI 'YB_ATTR_nodiscard' @ "all functions",
+				/ DLDI "%NLS_FILE_HEADER cast" ^ "%ystdex::aligned_cast"
+					~ 'reinterpret_cast',
+				/ @ "functions %(MBCSToMBCS, WCSToMBCS, MBCSToWCS, UTF8ToWCS, \
+					WCSToUTF8)"
+				(
+					+ "overloads with allocator parameters";
+					/ DLI "inlined remained overloads"
+				)
+			)
+		),
+		/ %YCLib $=
+		(
+			/ %Container $=
+			(
+				+ "3 overloads with allocator paramter" @ "function templates \
+					%(to_pmr_string, to_std_string)"
+					^ "%ystdex::make_obj_using_allocator",
+				- "header inclusion %YCommon"
+					$dep_to "removal of YCommon for Container"
+					// This is consistent to %Refrence. This is also necessary \
+						to be includable in %YCommon.
+			),
+			/ %Host $=
+			(
+				+ "member function %WriteString" @ "class %Terminal",
+				+ $forced DLDI "header inclusion %YCommon"
+					$dep_from "removal of YCommon for Container"
+					// The dependency is documented. There are no other \
+						headers solely included %Container for %YCommon like \
+						this previously.
+			),
+			+ "function %StreamPut overload for %std::FILE* parameter"
+				@ %FileIO,
+			/ @ "class %Logger" @ %Debug $=
+			(
+				/ "enhanced function %SendLog" ^ ("%StreamPut" @ %FileIO),
+				/ "enhanced function %SendLogToFile"
+					$dep_from ^ ("%StreamPut" @ %FileIO)
+			),
+			/ %YCommon $=
+			(
+				/ DLDI "unused object" @ "function %FetchLimit" ^ "%yunused",
+					// To eliminate Clang++ warning: [-Wunused-value].
+				/ "platform %Win32" @ "function %SetEnvironmentVariable"
+					^ "%_wputenv" ~ "%_putenv",
+				+ "header inclusion %Container"
+					$dep_from "removal of YCommon for Container";
+					// This allows %string used in API declarations.
+			)
+		),
+		/ %YSLib $=
+		(
+			/ %Service $=
+			(
+				/ "default argument '0'" @ "function %OpenFile" @ %File
+					-> 'DefaultPMode()',
+				/ DLDI "specified default permission for copy"
+					@ "functions %CopyFile" @ %FileSystem
+					// To avoid the redundant %DefaultPMode call after the \
+						change in %File.
+			),
+			/ ("function %FetchEnvironmentVariable" @ %Core.YCoreUtilities)
+				-> ("%FetchEnvironmentVariable" @ %YCLib.YCommon;
+				'using platform::FetchEnvironmentVariable;' @ %YAdaptor.Adaptor)
+				$dep_from ("header inclusion %Container" @ %YCLib.YCommon)
+				// The interface remains the same, except now UTF-8 is \
+					enforced on %Win32.
+		)
+	),
+	/ %Tools $=
+	(
+		/ %Scripts $=
+		(
+			(
+			/ "exposed intialization of external %SHBuild_Env_TempDir"
+				@ "function %SHBuild_PrepareBuild" @ "%SHBuild-common.sh";
+			/ @ "%SHBuild-common-toolchain.sh" $=
+			(
+				- $impl "%SHBuild_GetTempDir calls";
+				* $comp @ "wrong command called for temporary directory \
+					detection" @ "function %SHBuild_CheckCC" $since b897
+			)
+			),
+			/ "exposed overridable variable %SHBuild_Env_TempDir",
+			/ "determined default value depending on the value of %MSYSTEM"
+				@ "variable %SHBuild_Host_Arch" @ "%SHBuild_Host_OS is 'Win32'"
+				$effective @ ("function %SHBuild_PrepareBuild"
+				@ "%SHBuild-common.sh", "%SHBuild-YSLib-common.txt"),
+				// Now manual configuration of %SHBuild_Host_Arch is not \
+					needed in the correct MSYS2 shell.
+			/ @ "%SHBuild-common.sh" $=
+			(
+				/ DLDI "reordered functions",
+				+ "functions %(SHBuild_GetBuildName; SHBuild_S2_Prepare; \
+					SHBuild_S2_Prepare_Build)",
+				- "function %SHBuild_CheckHostPlatform"
+					$dep_from "removal of SHBuild_CheckHostPlatform"
+			),
+			/ @ "%SHBuild-YSLib-build.txt" $=
+			(
+				/ ("default value" @ "%SHBuild_SystemPrefix",
+					"host library location") ^ "host platform deduced from \
+					%(SHBuild_Platform_Detect, SHBuild_Host_Arch, \
+					SHBuild_Host_Env)" ~ "%SHBuild_Host_Platform"
+					$dep_to "fixed build name",
+					// Now %SHBuild_Host_Platform only has effects on the \
+						builddirectory setting.
+				/ "echoing %SHBuild_BuildDir" ~ "%SHBuild_Host_Platform";
+					// The value of %SHBuild_Host_Platform is actually not \
+						used since the configuration of %SHBuild_BuildDir.
+				- "variable %SHBuild_Host_Platform"
+			),
+			/ @ "%SHBuild-bootstrap.sh" $=
+			(
+				+ "%SHBuild_EchoVar_N calls for 'SHBuild.Host.Arch' and \
+					'SHBuild.Host.OS'",
+				- "redundant %SHBuild_PrepareBuild call"
+					$dep_from "removal of SHBuild_CheckHostPlatform"
+			),
+			* "%SHBuild_BuildDir unrespected" @ "default value" @ "private DLL \
+				build library" @ "%SHBuild-self-host.DLL.sh" $since b882,
+			/ "ignored empty string argument" @ "applicative 'cons-cmd'"
+				@ "%SHBuild-YSLib-common.txt"
+				// This prevents redundant spaces added after %CXXFLAGS at \
+					YFramework library building command lines in \
+					%SHBuild-YSLib-build.txt.
+			(
+			/ "lifted the source path as 1st command line argument" $effective
+				@ "%(SHBuild-BuildApp.txt, SHBuild-YSLib-build.txt)";
+				// Currently extra options for SHBuild options are known to \
+					having only options, but this is still error-prone.
+			* $comp "possible unexpected source path injection in SHBuild \
+				options" $effective
+				@ ("building YSLib libraries" @ "%SHBuild-YSLib-build.txt"
+				$orig (@ "%SHBuild-YSLib.sh" @ %Tools.SHBuild $since b520))
+				// This could be injected through the command line arguments \
+					of the srcipt since b797 and from the enviroment variable \
+					%args b796. The latter is also possible through the \
+					command line arguments of \
+					%Tools/Scripts/SHBuild-YSLib-common.sh since b791, and \
+					older shell scripts.
+			)
+		),
+		/ %SHBuild.Main $=
+		(
+			/ @ "option table entries" $=
+			(
+				/ $impl "reordered '-xcmd,'" $dep_to "command entry reordering"
+					// This also makes the entries ordered alphabatically by \
+						chance.
+			),
+			/ @ "help message" $=
+			(
+				(
+				/ "updated usages and descriptions"
+				* $comp "missing cases for SRCPATH not as the 1st command \
+					argument" $since b519
+				),
+				/ $comp "lifted '-xcmd,' entry at the front"
+					$dep_from "command entry reordering",
+				+ "clarification on environment variables"
+			),
+			/ DLDI "simplified build context variable initialization",
+			+ "option '-xdef,' with variable definitions"
+				$= (/ $impl ^ $dep_from
+				("%to_pmr_string" @ %YFramework.YCLib.Container),
+			/ "printed stop message for no build options" -> "warning"
+				~ "information",
+			/ "printed information message 'OutputDir = '"
+				-> 'Build OutputDir = ',
+				// To avoid confusion with build variables.
+			- DLDI ((('using namespace IO;'; 'using namespace %YSLib;'),
+				'using namespace std::chrono;') -> ('namespace IO = YSLib::IO;',
+				"using declarations")) @ "namespace %SHBuild",
+				// To avoid namespace pollution.
+			/ @ "platform %Win32" $=
+			(
+				* $comp "wrong encoding of input command line arguments"
+					$since b901 $dep_from %YFramework.'YCLib_(Host)'.MinGW32;
+				* "output string encoding" $since b901 ^ $dep_from
+					("%Terminal::WriteString" @ %YFramework.YCLib.Host)
+					// This should have been used Unicode console functions. \
+						Some also depend on the input. The old implementation \
+						(before b901) using %EncodeArg has limitation on the \
+						active code page despite of input encoding issues, \
+						though. 
+			),
+			/ $comp "environment encoding converted to UTF-8"
+				$dep_from ("%SetEnvironmentVariable" @ %YCLib.YCommon,
+				"%FetchEnvironmentVariable" @ %YSLib.Core.YCoreUtilities),
+			/ "thrown different exception after the backtrace"
+				@ "NPLA1 exception handler",
+				// This avoids duplicated innermost exception messages.
+			/ "log messages" $=
+			(
+				* "missing flush the stream around switches of the term color"
+					$since b540,
+					// This could sometimes cause interleaved color output.
+				* "incorrect time output caused by lazy epoch initialized"
+					$since b546,
+					// This should have been initialized regardless of the 1st \
+						call time of the logger. This had few effects in the \
+						build mode because there was always a message for \
+						switching the output directory sent immediately in the \
+						implementation.
+				+ "%Debug message to indicate more than 1 command arguments \
+					have been loaded",
+				+ "%Informative message before construction of the build \
+					context",
+				+ "%Debug message to show the request command found"
+				// New messages also used for the epoch debug, see below.
+			),
+			(
+			* "potential signed duration overflow" $since b520
+				^ "%std::(chrono::duration, milli)"
+				~ "%std::chrono::milliseconds";
+			+ "session epoch with %SHBuild_Epoch handling"
+			)
+		),
+		/ DLDI @ "%install-sysroot.sh" $=
+		(
+			- "redundant %SHBuild_PrepareBuild call",
+			/ "quoted all arguments" @ "%SHBuild_Puts calls",
+			+ "session setting" @ "2nd stage %SHBuild call" $dep_from
+				("session epoch with %SHBuild_Epoch handling" @ %SHBuild.Main)
+		)
+	),
+	* "missing prefix for %SHBuild-common.sh inclusion" @ "%build-all.sh"
+		@ %YDE $since b903,
+		/ $= (+ "prefix '$(dirname "$SHBuild")/'"),
+		// This should have been changed as %SHBuild-YSTest.sh in %YSTest for \
+			consistency.
+	/ "shell variables handling cleanup"
+		$dep_from ("%SHBuild-YSLib-build.txt" @ %Tools.Scripts)
+		$effective @ ("%SHBuild-YSTest.sh" @ %YSTest, "%test.sh" @ %Test,
+		("%install-sysroot.sh", "%(SHBuild-self-host-DLL.sh, \
+		SHBuild-commons.sh, SHBuild-bootstrap.sh)" @ %Scripts) @ %Tools,
+		"%build-all.sh" @ %YDE) $=
+		// This works after the change of %SHBuild-YSLib-build.txt because the \
+			vairable only specifies the name of subdirectory.
+	(
+		/ "all uses of %SHBuild_Host_Platform" => "%SHBuild_GetBuildName calls"
+			$dep_from ("%SHBuild_GetBuildName" @ "%SHBuild-common.sh");
+		/ "all %SHBuild_CheckHostPlatform" -> "%SHBuild_CheckHostPlatform"
+			$dep_to "removal of SHBuild_CheckHostPlatform"
+	)
+),
+
+b904
 (
 	/ @ "%test.sh" @ %Test $=
 	(

@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3211
+\version r3225
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2020-11-29 19:05 +0800
+	2020-12-10 11:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1065,8 +1065,21 @@ StreamGet(std::istream&, string&);
 
 /*!
 \brief 向流中输出字符串。
-\pre 断言：第二参数非空。
 \note Win32 平台：检查流是否使用控制台。若使用控制台，刷新流并使用控制台输出。
+*/
+//@{
+/*!
+\pre 断言：参数非空。
+\return 是否输出成功。
+\since build 901
+
+无格式输出字符串。
+默认使用 std::fputs ，但可对特定的流实现检查并使用不同的方式。
+*/
+YF_API YB_NONNULL(1, 2) bool
+StreamPut(std::FILE*, const char*);
+/*!
+\pre 断言：第二参数非空。
 \sa ystdex::write_ntcts
 \since build 901
 
@@ -1075,6 +1088,7 @@ StreamGet(std::istream&, string&);
 */
 YF_API YB_NONNULL(2) void
 StreamPut(std::ostream&, const char*);
+//@}
 
 
 /*!

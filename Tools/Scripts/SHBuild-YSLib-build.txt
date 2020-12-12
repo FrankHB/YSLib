@@ -60,13 +60,12 @@ $assert-nonempty host-os;
 "XXX", "This is for the workaround in building YFramework on MinGW64,",
 	" which does not support configurable via the environment variable.";
 $def! host-platform_ SHBuild_Platform_Detect host-os host-arch;
-$env-de! SHBuild_Host_Platform host-platform_;
-$env-de! SHBuild_SystemPrefix SHBuild_GetSystemPrefix SHBuild_Host_Platform;
-$def! env-host-lib ++ SHBuild_Host_Platform "/lib";
+$env-de! SHBuild_SystemPrefix SHBuild_GetSystemPrefix host-platform_;
+$def! host-lib_ ++ host-platform_ "/lib";
 $def! env_SHB_ get_env_SHB_ host-os;
 $import! env_SHB_ e_S1_SHBuild_ BuildGCH_;
 
-"#", "SR = SHBuild SysRoot.";
+"#", "'SR' is short for SysRoot.";
 $def! SR_Prefix_ ++ SHBuild_SysRoot SHBuild_SystemPrefix;
 $def! SR_Bin_ ++ SR_Prefix_ "/bin";
 $def! SR_Include_ ++ SR_Prefix_ "/include";
@@ -118,7 +117,7 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 		(YF_SystemLibs $if (win32? host-os) "-lgdi32 -limm32" "-lxcb")
 		(DIR_YFramework ++ repo-base "/YFramework")
 		(LIBS_YFramework SHBuild_TrimOptions_ (++ " -L"
-			(system-quote-m_ (++ DIR_YFramework "/" env-host-lib))
+			(system-quote-m_ (++ DIR_YFramework "/" host-lib_))
 			" -l" (dnameof "FreeImage") " -lfreetype " YF_SystemLibs))
 	)
 	(
@@ -133,7 +132,7 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 		for-each-ltr SHBuild_EchoVar_N (list "SHBuild");
 		for-each-ltr ($lambda (var) SHBuild_EchoVar_E
 			(() get-current-environment) var)
-			(list "SHBuild_Host_Platform" "INCLUDES_YBase"
+			(list "SHBuild_BuildDir" "INCLUDES_YBase"
 			"INCLUDES_YFramework" "LIBS_YFramework");
 		$let ((outdir get-lib-outdir_ dynamic debug))
 		(
@@ -167,11 +166,10 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 										(SHBuild_2m
 										(++ outdir "/lib" dname ".dll.a")) "\"")
 										base_LDFLAGS));
-							system-check (apply cons-cmd
-								(append (list e_S1_SHBuild_ SHBOPT
-								(++ "-xn," LIBPFX dname))
-								(restv (() cmd-get-args))
-								(list (++ repo-base "/" lib-name) CXXFLAGS) opts
+							system-check (apply cons-cmd (append
+								(list e_S1_SHBuild_ (++ repo-base "/" lib-name)
+									SHBOPT (++ "-xn," LIBPFX dname))
+								(restv (() cmd-get-args)) (list CXXFLAGS) opts
 								inc-pch))
 						);
 					"XXX", "Workarounds.";
@@ -289,7 +287,7 @@ $let ()
 	(
 		$let ((InstLib_YF_ $lambda (name) InstSHBuild "HardLink"
 			(++ SR_Lib_ "/" name)
-			(++ BD_YFramework_ "/" env-host-lib "/" name)))
+			(++ BD_YFramework_ "/" host-lib_ "/" name)))
 		(
 			$unless (string-empty? INCLUDES_freetype)
 			(
@@ -323,8 +321,8 @@ $let ((target-name "stage 2 SHBuild"))
 		"XXX", "Extra options for SHBOPT are always empty now.";
 		build-with-conf-opt SR_SHBuild_ host-os #f #t "" #t
 			ld-ext-noadjust_ ($lambda (CXX CXXFLAGS SHBOPT LIBPFX)
-				system-check (apply cons-cmd (append (list e_S1_SHBuild_ SHBOPT
-					src-dir) extra-opts (list CXXFLAGS INCLUDES_))));
+				system-check (apply cons-cmd (append (list e_S1_SHBuild_ src-dir
+					SHBOPT) extra-opts (list CXXFLAGS INCLUDES_))));
 		putss "Finished building " target-name "."
 	);
 	putss "Installing " target-name " ...";
@@ -354,8 +352,8 @@ $if (safeenv-empty? "SHBuild_NoDev")
 	build-with-conf-opt SR_SHBuild_ host-os #f #t "" #t
 		ld-ext-noadjust_ ($lambda (CXX CXXFLAGS SHBOPT LIBPFX) for-each-ltr
 			($lambda (name)
-			system-check (apply cons-cmd (append (list e_S2_SHBuild_ SHBOPT
-				(++ SHBuild_BaseDir "/../" name)) extra-opts
+			system-check (apply cons-cmd (append (list e_S2_SHBuild_
+				(++ SHBuild_BaseDir "/../" name) SHBOPT) extra-opts
 				(list CXXFLAGS INCLUDES_)))) tools-list);
 	puts "Installing other development tools ...";
 	$import! env_SHB_ InstHardLinkExe;

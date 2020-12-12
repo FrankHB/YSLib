@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3805
+\version r3866
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2020-11-29 20:10 +0800
+	2020-12-10 11:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,9 +54,9 @@
 //	available if it is really being used.
 #		undef _fileno
 #	endif
+#	include YFM_Win32_YCLib_Consoles // for platform_ex::WConsole;
 #	if __GLIBCXX__
 #		include <ystdex/ios.hpp> // for ystdex::rethrow_badstate;
-#		include YFM_Win32_YCLib_Consoles // for platform_ex::WConsole;
 #		include <ext/stdio_sync_filebuf.h> // for __gnu_cxx::stdio_sync_filebuf;
 // NOTE: Headers for complete std::istream and std::ostream shall be already
 //	included.
@@ -163,7 +163,8 @@ UnlockFileDescriptor(int fd, const char* sig) ynothrowv
 }
 #endif
 
-#if YCL_Win32 && __GLIBCXX__
+#if YCL_Win32
+#	if __GLIBCXX__
 //! since build 902
 bool
 StreamGetFromFileDescriptor(std::istream& is, int fd, string& str)
@@ -236,7 +237,51 @@ StreamGetFromFileDescriptor(std::istream& is, int fd, string& str)
 	}
 	return {};
 }
+#	endif
 
+//! \since build 905
+YB_NONNULL(2) bool
+WriteStringToWConsole(::HANDLE h, const char* s)
+{
+	YAssertNonnull(s);
+
+	const auto wstr(platform_ex::UTF8ToWCS(s));
+	const auto n(wstr.length());
+
+	return platform_ex::WConsole(h).WriteString(wstr) == n;
+}
+//! since build 905
+YB_NONNULL(1, 3) bool
+StreamPutToFileDescriptor(std::FILE* os, int fd, const char* s, bool& st)
+{
+	const auto h(ToHandle(fd));
+
+	if(h != INVALID_HANDLE_VALUE)
+	{
+		unsigned long mode;
+
+		if(::GetConsoleMode(h, &mode))
+		{
+			if(std::fflush(os) == 0)
+			{
+				// NOTE: This is always true since there is no need to set it
+				//	on a %std::FILE* stream to maintain the internal state,
+				//	becuase there is simply no portable way to set the internal
+				//	state of error indicator. Also there is nothing like flush
+				//	on %std::unitbuf because the following operation is
+				//	immediate and no addtional flush is needed.
+				st = true;
+				if(*s != '\0')
+					TryExpr(st = WriteStringToWConsole(h, s))
+					// NOTE: The stream does not support rethrowing.
+					CatchExpr(..., st = {})
+			}
+			return true;
+		}
+	}
+	return {};
+}
+#	if __GLIBCXX__
 //! since build 901
 YB_NONNULL(3) bool
 StreamPutToFileDescriptor(std::ostream& os, int fd, const char* s)
@@ -258,10 +303,7 @@ StreamPutToFileDescriptor(std::ostream& os, int fd, const char* s)
 					if(*s != '\0')
 						try
 						{
-							const auto wstr(platform_ex::UTF8ToWCS(s));
-							const auto n(wstr.length());
-
-							if(platform_ex::WConsole(h).WriteString(wstr) != n)
+							if(!WriteStringToWConsole(h, s))
 								st |= std::ios_base::badbit;
 						}
 						CatchExpr(...,
@@ -276,6 +318,7 @@ StreamPutToFileDescriptor(std::ostream& os, int fd, const char* s)
 	}
 	return {};
 }
+#	endif
 #endif
 
 //! \since build 701
@@ -854,6 +897,20 @@ StreamGet(std::istream& is, string& str)
 	std::getline(is, str);
 }
 
+bool
+StreamPut(std::FILE* os, const char* s)
+{
+	YAssertNonnull(os);
+	YAssertNonnull(s);
+#if YCL_Win32
+
+	bool st;
+
+	if(StreamPutToFileDescriptor(os, ::_fileno(os), s, st))
+		return st;
+#endif
+	return std::fputs(s, os) >= 0;
+}
 void
 StreamPut(std::ostream& os, const char* s)
 {
@@ -874,7 +931,7 @@ StreamPut(std::ostream& os, const char* s)
 			if(StreamPutToFileDescriptor(os, ::_fileno(p->file()), s))
 				return;
 		}
-#endif
+#	endif
 	}
 #endif
 	ystdex::write_ntcts(os, s);

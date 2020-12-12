@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1511
+\version r1520
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2020-10-01 21:23 +0800
+	2020-12-12 08:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,7 +67,7 @@ YFramework 对多线程环境的依赖和平台相关，参见 https://frankhb.g
 
 @1.4.1.1 运行时程序结构和部署模型：
 YSLib 中讨论可部署的程序的基本单位是 Shell(@1.4.4.2) 。
-YSLib 基于单一进程和单一线程的运行时程序结构，类似于单内核操作系统；但内部实现是微内核至无内核的，除了主循环，任意一个 Shell 都可以独立部署。
+YSLib 基于单一进程和单一线程的运行时程序结构，类似单内核操作系统；但内部实现更接近微内核至无内核的操作系统，除了主循环，任意一个 Shell 都可以独立部署。
 在适当的平台上通过扩充能实现多个独立的二进制实体并行运行的多进程程序。
 
 @1.4.1.2 并发模型：
@@ -88,16 +88,12 @@ YSLib 的消息被用于在 Shell 之间传递状态，称为 Shell 消息。
 按 [Documenation::LanguageConvention @@6.3.4] 不依赖异步安全性，不在 YFramework 的任何实现中直接调用 std::exit 退出函数，不直接调用 std::atexit 注册回调，直接调用或使用 YFramework 中的接口导致退出函数或对应终止程序或对应注册回调的函数被调用时需给出文档说明。
 除本条外，YSLib 及其部分依赖项的可重入性和线程安全性参见 @2.8 、[Documentation::YSLib @@1.3] 、[Documentation::CHRLib] 和 [Documentation::YCLib @@1.3] 。
 除非另行指定，仅保证非成员或静态成员函数的线程安全性。
-外部可见状态、thread_local 和线程局部存储使用限制同 [Documentation::YBase @@2.1.2] 。
-除非另行指定，在使用 POSIX 线程的实现上，主线程（创建进程时的线程，不一定是 UI 线程）应保证不退出（如调用 pthread_exit ），否则可能引起未定义行为。注意一些宿主环境的系统资源（如 Linux 中 /proc/self 下的内容）在不满足此条件下不可用。
+关于 thread_local ，另见 [Documentation::LanguageConvention @@5.5.4.4] 。
 
-@1.4.1.4.1 例程和包含的可调用对象(callable object) 的调用：
-仅包含可调用对象的调用时，此例程的可重入性和线程安全性等价于包含的所有调用：
-包含可调用对象的调用时，此例程可重入，仅当包含的所有调用可重入。
-包含可调用对象的调用时，此例程线程安全，仅当包含的所有调用线程安全。
-
-@1.4.1.4.2 全局初始化：
-除非另行指定，仅保证可重入的调用可用于全局初始化。
+@1.4.1.4.1 调用限制：
+基本内容参见 [Documentation::CommonRules @@3.11.8] 。
+作为例外，在 YCLib 中使用访问环境变量的 API 实现不受对 getenv 和 std::getenv 的限制。
+实现可假定程序不存在使用 POSIX fork 引起进程内环境变量的并发数据竞争。
 
 @1.4.2 资源分类：
 基本内容参见 [Documentation::CommonRules @@2.3.2.2] 。

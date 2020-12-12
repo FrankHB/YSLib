@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r4071
+\version r4354
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2020-11-17 18:03 +0800
+	2020-12-12 02:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,25 +29,30 @@ See readme file for details.
 
 
 #include <YSBuild.h>
-#include YFM_YSLib_Service_FileSystem // for namespace YSLib,
-//	namespace YSLib::IO, namespace std::placeholders, std::mutex
-//	std::lock_guard, function, vector, std::initializer_list, to_std_string,
-//	string_view, uspawn, ystdex::sfmt, istringstream;
-#include YFM_YCLib_Host // for namespace platform_ex, platform_ex::Terminal,
-//	platform_ex::SetEnvironmentVariable;
-#include YFM_YSLib_Service_YTimer // for namespace std::chrono,
-//	YSLib::Timers::FetchElapsed;
+#include YFM_YSLib_Core_YStorage // for YSLib::size_t, YSLib::RecordLevel,
+//	YSLib::Notice, YSLib::FetchStaticRef, YSLib::string, YSLib::set, YSLib::map,
+//	YSLib::vector, YSLib::Logger, YSLib::Warning, YSLib::to_std_string,
+//	YSLib::string_view, YSLib::to_pmr_string, YSLib::to_string, YSLib::Debug,
+//	YSLib::Informative, YSLib::Err, namespace std::placeholders,
+//	std::initializer_list, std::invalid_argument, YSLib::uspawn,
+//	YSLib::ifstream, YSLib::uremove, YSLib::istringstream;
+#include YFM_YSLib_Core_YFunc // for YSLib::function;
+#include YFM_YSLib_Service_FileSystem // for namespace YSLib::IO, IO::Path;
+#include YFM_YSLib_Core_YString // for YSLib::String, ystdex::raise_exception,
+//	YSLib::FilterExceptions;
+#include YFM_YCLib_Host // for namespace platform_ex, platform_ex::Terminal;
+#include YFM_YSLib_Service_YTimer // for namespace std::chrono;
 #include <ystdex/mixin.hpp> // for ystdex::wrap_mixin_t;
-#include YFM_YSLib_Core_YStorage // for ystdex::raise_exception,
-//	YSLib::FetchStaticRef;
 #include YFM_NPL_Dependency // for NPL::DepsEventType, NPL, A1, Forms,
 //	TraceException, TraceBacktrace, NPL::DecomposeMakefileDepList,
 //	NPL::FilterMakefileDependencies, NPL::Install*;
-#include <ystdex/string.hpp> // for ystdex::write_literal, ystdex::rtrim,
-//	ystdex::ltrim, ystdex::trim;
+#include <ystdex/concurrency.h> // for std::mutex, std::lock_guard,
+//	ystdex::task_pool;
+#include <ystdex/string.hpp> // for ystdex::ston, ystdex::sfmt,
+//	ystdex::write_literal, ystdex::rtrim, ystdex::ltrim, ystdex::trim;
 #include <iostream> // for std::cout, std::endl;
 #include YFM_YSLib_Core_YConsole // for YSLib::Consoles;
-#include <ystdex/concurrency.h> // for ystdex::task_pool;
+#include <ratio> // for std::milli;
 #if YCL_Win32
 #	include YFM_Win32_YCLib_MinGW32 // for platform_ex::ParseCommandArguments;
 #endif
@@ -64,14 +69,35 @@ See readme file for details.
 namespace SHBuild
 {
 
-using namespace YSLib;
-using namespace IO;
-//! \since build 547
+//! \since build 905
 //@{
-using namespace platform_ex;
-using namespace std::chrono;
-using namespace std::placeholders;
+using YSLib::size_t;
+using YSLib::RecordLevel;
+using YSLib::Notice;
+using YSLib::FetchStaticRef;
+using YSLib::string;
+using YSLib::set;
+using YSLib::map;
+using YSLib::vector;
+using YSLib::Logger;
+using YSLib::function;
+using YSLib::Warning;
+using YSLib::to_std_string;
+using YSLib::string_view;
+using YSLib::to_pmr_string;
+using YSLib::to_string;
+namespace IO = YSLib::IO;
+using YSLib::Debug;
+using YSLib::Informative;
+using IO::Path;
+using YSLib::String;
+using YSLib::FilterExceptions;
+using YSLib::Err;
 //@}
+//! \since build 547
+using namespace platform_ex;
+//! \since build 547
+using namespace std::placeholders;
 
 namespace
 {
@@ -95,6 +121,16 @@ YB_NORETURN inline PDefH(void, raise_exception, int ret, _tParams&&... args)
 YB_NORETURN inline PDefH(void, raise_exception, int ret)
 	ImplExpr(raise_exception(ret, "Failed calling command."))
 
+//! \since build 648
+using ystdex::quote;
+//! \since build 648
+template<class _tString>
+auto
+Quote(_tString&& str) -> decltype(quote(yforward(str), '\''))
+{
+	return quote(yforward(str), '\'');
+}
+
 //! \since build 592
 enum class BuildMode : yimpl(size_t)
 {
@@ -110,16 +146,7 @@ using opt_uint = unsigned long;
 LogGroup LastLogGroup(LogGroup::General);
 std::mutex LastLogGroupMutex;
 std::bitset<size_t(LogGroup::Max)> LogDisabled;
-
-//! \since build 648
-using ystdex::quote;
-//! \since build 648
-template<class _tString>
-auto
-Quote(_tString&& str) -> decltype(quote(yforward(str), '\''))
-{
-	return quote(yforward(str), '\'');
-}
+//@}
 
 //! \since build 861
 yconstexpr const struct
@@ -152,9 +179,8 @@ yconstexpr const struct
 } PrintInfo{};
 
 
-#define OPT_des_mul "Multiple occurrence is allowed."
-#define OPT_des_last \
-	"If this option occurs more than once, only the last one is effective."
+//! \since build 547
+//@{
 string RequestedCommand;
 set<string> IgnoredDirs;
 string OutputDir;
@@ -163,6 +189,14 @@ size_t MaxJobs(0);
 BuildMode Mode(BuildMode::AR);
 //! \since build 556
 string TargetName;
+using EnvBindingMap = map<string, string>;
+//! \since build 905
+EnvBindingMap BuildVariables;
+
+#define OPT_des_mul "Multiple occurrence is allowed."
+#define OPT_des_last \
+	"If this option occurs more than once, only the last one is effective."
+
 const struct Option
 {
 	const char *prefix, *name = {}, *option_arg;
@@ -208,25 +242,16 @@ const struct Option
 	PDefHOp(bool, (), const string& arg) const
 		ImplRet(filter(arg))
 } OptionsTable[]{
-	{"-xd,", "output directory path", "DIR_PATH", [](string&& val){
-		string raw(NPL::Deliteralize(val));
-
-		PrintInfo("Output directory is switched to " + Quote(raw) + '.');
-		OutputDir = std::move(raw);
-	}, {"The name of output directory (possibly quoted). Default value is '"
-		OPT_build_path "'.", OPT_des_mul}},
-	{"-xid,", "ignored directories", "DIR_NAME", [](string&& val){
-		string raw(NPL::Deliteralize(val));
-
-		PrintInfo("Subdirectory " + Quote(raw) + " should be ignored.");
-		IgnoredDirs.emplace(std::move(raw));
-	}, {"The name of subdirectory (possibly quoted) which should be ignored"
-		" when scanning.", OPT_des_mul}},
+	// NOTE: There is no restriction of the order of option names. The order
+	//	has effects on the help message, so just make it alphabatical to ease
+	//	users by default, except that there are some more reasons like the
+	//	effects on the execution mode.
+	// XXX: '-cmd,' is just at the front alphabatically now. 
 	{"-xcmd,", "command", "COMMAND", [](string&& val) ynothrow{
 		RequestedCommand = std::move(val);
-	}, {"Specified name of a command to run.", "If this option is set, all"
-		" other parameters not recognized as options are treated as parameters"
-		" of the command. Currently the following COMMAND name and parameters"
+	}, {"Specify the name of a command to run.", "If this option is set, all"
+		" other parameters not recognized as options are treated as arguments"
+		" of the command. Currently the following COMMAND name and arguments"
 		" combinations are supported:",
 		"  EnsureDirectory PATH",
 		"    Make PATH available as a directory, as 'mkdir -p PATH'.",
@@ -249,6 +274,63 @@ const struct Option
 		"  RunNPLFile SRC [ARGS...]",
 		"    Read and execute NPLA1 translation unit specified by file path"
 		" SRC with optional arguments ARGS.", OPT_des_mul}},
+	{"-xd,", "output directory path", "DIR_PATH", [](string&& val){
+		string raw(NPL::Deliteralize(val));
+
+		PrintInfo("Output directory is switched to " + Quote(raw) + '.');
+		OutputDir = std::move(raw);
+	}, {"The name of output directory (possibly quoted). Default value is '"
+		OPT_build_path "'.", OPT_des_mul}},
+	{"-xdef,", "defined variables", "VAR_DEF_SPEC", [](const string& spec){
+		const auto s(spec.find('='));
+
+		if(s != string::npos)
+		{
+			if(s != 0)
+			{
+				using ystdex::sfmt;
+				auto name(spec.substr(0, s));
+				auto value(NPL::Deliteralize(string_view(&spec[s + 1],
+					spec.length() - s - 1)));
+
+				PrintInfo(sfmt("Found build variable '%s' with value '%s'.",
+					name.c_str(), value.data()));
+				BuildVariables.emplace(std::move(name),
+					to_pmr_string(value, spec.get_allocator()));
+			}
+			else
+				throw std::invalid_argument(ystdex::sfmt(
+					"Empty variable name found the variable definition '%s'",
+					spec.c_str()));
+		}
+		else
+			throw std::invalid_argument(ystdex::sfmt(
+				"No separator '=' found in the variable definition '%s'",
+				spec.c_str()));
+	}, {"Add a variable definition.",
+		"The definition VAR_DEF_SPEC shall be in the form of VAR=VALUE, where"
+		" VAR and VALUE are the name and the possibly quoted value of the"
+		" variable.",
+		" There is no check on the NAME, but it should have no"
+		" whitespaces (otherwise it is not accepted in a single options"
+		" anyway). The NAME can still have characters not portable among"
+		" different shell applications.",
+		"The variable definitions are used in the build context.",
+		"The variables can be used like environment variables. However, they"
+		" are not inherited by the environment of the called commands."
+		" Moreover, their names are guaranteed case-sensitive regardless of the"
+		" host environment of this program."
+		"If a definition has specified the same name to a environment variable,"
+		" it overrides the value in the context specified previously by the"
+		" environment variable."
+		OPT_des_mul}},
+	{"-xid,", "ignored directories", "DIR_NAME", [](string&& val){
+		string raw(NPL::Deliteralize(val));
+
+		PrintInfo("Subdirectory " + Quote(raw) + " should be ignored.");
+		IgnoredDirs.emplace(std::move(raw));
+	}, {"The name of subdirectory (possibly quoted) which should be ignored"
+		" when scanning.", OPT_des_mul}},
 	{"-xj,", "job max count", "MAX_JOB_COUNT", [](opt_uint uval){
 		PrintInfo("Set job max count = " + to_string(uval) + '.');
 		MaxJobs = size_t(uval);
@@ -312,7 +394,8 @@ const array<const char*, 3> DeEnvs[]{
 	{{"SHBuild_CFLAGS", "", "Flags used in command options when the C complier"
 		" is called."}},
 	{{"SHBuild_CXXFLAGS", "", "Flags used in command options when the C++"
-		" complier is called."}}
+		" complier is called."}},
+	{{"SHBuild_Epoch", "", "The session epoch."}}
 };
 //@}
 
@@ -323,7 +406,7 @@ EnsureOutputDirectory(const string& opath)
 	try
 	{
 		PrintInfo("Checking output directory: " + Quote(opath) + " ...");
-		EnsureDirectory(opath);
+		IO::EnsureDirectory(opath);
 	}
 	CatchExpr(std::system_error&, raise_exception(2,
 		("Failed creating directory " + Quote(opath) + '.').c_str()))
@@ -331,14 +414,14 @@ EnsureOutputDirectory(const string& opath)
 
 //! \since build 545
 //@{
-nanoseconds
+std::chrono::nanoseconds
 CheckModification(const string& path)
 {
 	const auto print(std::bind(PrintInfo, _1, Debug, LogGroup::DepsCheck));
 
 	print("Checking path " + Quote(path) + " ...");
 
-	const auto& file_time(GetFileModificationTimeOf(path.c_str()));
+	const auto& file_time(IO::GetFileModificationTimeOf(path.c_str()));
 
 	print("Modification time: " + to_string(file_time.count()) + " .");
 	return file_time;
@@ -404,20 +487,21 @@ RunNPLFromStream(const char* name, std::istream&& is)
 			rctx.GetRecordRef().Define("SHBuild_BaseTerminalHook_",
 				ValueObject(function<void(const string&, const string&)>(
 				[&](const string& n, const string& val){
-					using namespace Consoles;
+					using namespace YSLib::Consoles;
+					using IO::StreamPut;
 					auto& os(context.GetOutputStreamRef());
 					Terminal te;
 
 					{
 						const auto t_gd(te.LockForeColor(DarkCyan));
 
-						YSLib::IO::StreamPut(os, n.c_str());
+						StreamPut(os, n.c_str());
 					}
 					ystdex::write_literal(os, " = \"");
 					{
 						const auto t_gd(te.LockForeColor(DarkRed));
 
-						YSLib::IO::StreamPut(os, val.c_str());
+						StreamPut(os, val.c_str());
 					}
 					os.put('"') << std::endl;
 			})));
@@ -452,7 +536,12 @@ RunNPLFromStream(const char* name, std::istream&& is)
 #if SHBuild_UseBacktrace
 						TraceBacktrace(backtrace, trace);
 #endif
-						throw;
+						// NOTE: The original exception is traced by
+						//	%TraceException, and now the new exception is
+						//	constructed to avoid the duplication in the caller
+						//	(traced by %YSLib::ExtractException).
+						throw NPLException("Error detected in the execution"
+							" (see the backtrace for details).");
 					}
 				}, std::placeholders::_1, ctx.GetCurrent().cbegin());
 				term = context.ReadFrom(is);
@@ -498,7 +587,7 @@ public:
 		const auto& cmd_str(cmd.GetString());
 
 		PrintInfo(cmd_str, Debug, LogGroup::Command);
-		return uspawn(cmd_str.c_str());
+		return YSLib::uspawn(cmd_str.c_str());
 	}
 };
 
@@ -521,8 +610,8 @@ public:
 	//! \since build 540
 	string OutputDir{OPT_build_path};
 	vector<string> Options{};
-	//! \since build 547
-	map<string, string> Envs;
+	//! \since build 905
+	EnvBindingMap Vars{};
 	//! \since build 592
 	BuildMode Mode = BuildMode::AR;
 	//! \since build 556
@@ -530,10 +619,11 @@ public:
 
 	BuildContext(size_t n)
 		: jobs(n)
-	{
-		for(const auto& env : DeEnvs)
-			Envs.insert({env[0], env[1]});
-	}
+	{}
+	//! \since build 905
+	BuildContext(size_t n, EnvBindingMap&& vars)
+		: jobs(n), Vars(std::move(vars))
+	{}
 
 	//! \since build 545
 	DefGetter(const ynothrow, const string&, Flags, flags)
@@ -549,7 +639,7 @@ public:
 	GetLastResult() const;
 	//! \since build 547
 	PDefH(const string&, GetEnv, const string& name) const
-		ImplRet(Envs.at(name))
+		ImplRet(Vars.at(name))
 
 	void
 	Build();
@@ -576,7 +666,7 @@ public:
 //@{
 using Key = pair<Path, Path>;
 using Value = vector<string>;
-using ActionContext = GRecursiveCallContext<Key, Value>;
+using ActionContext = YSLib::GRecursiveCallContext<Key, Value>;
 using BuildAction = ActionContext::CallerType;
 
 class Rule
@@ -632,7 +722,7 @@ BuildFile(const Rule& rule)
 	const auto& bctx(rule.Context);
 	const auto& ipth(rule.Source.first);
 	const auto& fullname(ipth.VerifyAsMBCS());
-	const auto& cmd_type(rule.GetCommandType(GetExtensionOf(fullname)));
+	const auto& cmd_type(rule.GetCommandType(IO::GetExtensionOf(fullname)));
 	const auto& cmd(rule.LookupCommand(cmd_type));
 	const auto print(std::bind(PrintInfo, _1, _2, LogGroup::Build));
 
@@ -649,7 +739,7 @@ BuildFile(const Rule& rule)
 			// FIXME: Correct replacement when extension of %ofullname is not
 			//	1 character.
 			dfullname.back() = 'd';
-			if(ifstream tf{dfullname, std::ios_base::in})
+			if(YSLib::ifstream tf{dfullname, std::ios_base::in})
 			{
 				const auto printd(std::bind(PrintInfo, _1, _2,
 					LogGroup::DepsCheck));
@@ -684,6 +774,7 @@ BuildFile(const Rule& rule)
 Value
 SearchDirectory(const Rule& rule, const ActionContext& actx)
 {
+	using IO::NodeCategory;
 	const auto& ipth(rule.Source.first);
 	const auto& opth(rule.Source.second);
 	const auto& path(ipth.VerifyAsMBCS());
@@ -692,7 +783,8 @@ SearchDirectory(const Rule& rule, const ActionContext& actx)
 	const auto print(std::bind(PrintInfo, _1, _2, LogGroup::Search));
 
 	print("Searching path: " + Quote(path) + " ...", Notice);
-	TraverseChildren(path, [&](NodeCategory c, NativePathView npv){
+	IO::TraverseChildren(path,
+		[&](NodeCategory c, IO::NativePathView npv){
 		const auto& name(String(npv).GetMBCS());
 
 		if(name[0] != '.')
@@ -708,7 +800,7 @@ SearchDirectory(const Rule& rule, const ActionContext& actx)
 			}
 			else
 			{
-				auto cmd(rule.GetCommand(GetExtensionOf(name)));
+				auto cmd(rule.GetCommand(IO::GetExtensionOf(name)));
 
 				if(!cmd.empty())
 					src_files.emplace_back(std::move(cmd), name);
@@ -772,20 +864,20 @@ BuildContext::Build()
 {
 	PrintInfo("Ready to run, job max count: "
 		+ to_string(jobs.get_max_task_num()) + '.');
-	OutputDir = NormalizeDirectoryPathTail(OutputDir);
+	OutputDir = IO::NormalizeDirectoryPathTail(OutputDir);
 	PrintInfo("Normalized output directory: " + Quote(OutputDir) + '.');
 	if(Options.empty())
 	{
-		PrintInfo("No options found. Stop.");
+		PrintInfo("No build options found. Stop.", Warning);
 		return;
 	}
 
-	const auto in(NormalizeDirectoryPathTail(Options[0]));
-	const auto ipath(MakeNormalizedAbsolute(Path(in)));
+	const auto in(IO::NormalizeDirectoryPathTail(Options[0]));
+	const auto ipath(IO::MakeNormalizedAbsolute(Path(in)));
 
 	PrintInfo("Absolute path " + Quote(to_string(ipath).GetMBCS())
 		+ " recognized.");
-	if(!VerifyDirectory(in))
+	if(!IO::VerifyDirectory(in))
 		raise_exception(1, "SRCPATH is not existed.");
 	EnsureOutputDirectory(OutputDir);
 	std::for_each(next(Options.begin()), Options.end(), [&](const string& opt){
@@ -867,7 +959,7 @@ BuildContext::Build()
 					//	implementation-defined and the next operations might be
 					//	still meaningful, it is not intended to throw an
 					//	exception.
-					if(uremove(target.c_str()) != 0)
+					if(YSLib::uremove(target.c_str()) != 0)
 						PrintInfo("Failed deleting file " + Quote(target) + '.',
 							Warning);
 					PrintInfo("Deleted file " + Quote(target) + '.', Debug);
@@ -948,15 +1040,34 @@ BuildContext::RunTask(const Command& cmd) const
 int
 main(int argc, char* argv[])
 {
+	using namespace std::chrono;
 	using namespace SHBuild;
+	// XXX: Assume this is in 'unsigned long long' and wrap (but not overlow)
+	//	most at maximum milliseconds.
+	using ms = duration<unsigned long long, std::milli>;
+	auto epoch(YSLib::Timers::FetchEpoch<steady_clock>());
 	Terminal te, te_err(stderr);
-
+	
 	return FilterExceptions([&]{
+		string epoch_var;
+
+		YSLib::FetchEnvironmentVariable(epoch_var, "SHBuild_Epoch");
+		if(epoch_var == "0")
+		{
+			epoch_var = YSLib::sfmt("%llu",
+				duration_cast<ms>(epoch - steady_clock::time_point()).count());
+			YSLib::SetEnvironmentVariable("SHBuild_Epoch", epoch_var.c_str());
+		}
+		else if(!epoch_var.empty())
+			TryExpr(epoch = steady_clock::time_point(
+				ms(std::stoull(to_std_string(epoch_var)))))
+			CatchIgnore(std::invalid_argument&)
+
 		auto& logger(FetchStaticRef<Logger>());
 
 		LogDisabled.set(size_t(LogGroup::DepsCheck));
-		yunseq(FetchCommonLogger().FilterLevel = Logger::Level::Informative,
-			logger.FilterLevel = Logger::Level::Debug);
+		yunseq(YSLib::FetchCommonLogger().FilterLevel = Informative,
+			logger.FilterLevel = Debug);
 		logger.SetFilter([](Logger::Level lv, Logger& l){
 			return !ystdex::qualify(LogDisabled)[size_t(LastLogGroup)]
 				&& Logger::DefaultFilter(lv, l);
@@ -965,20 +1076,25 @@ main(int argc, char* argv[])
 			YB_NONNULL(4){
 			const auto stream(lv <= Warning ? stderr : stdout);
 			auto& term_ref(lv <= Warning ? te_err : te);
-			const auto dcnt(duration_cast<milliseconds>(
-				Timers::FetchElapsed<steady_clock>()).count());
+			const auto
+				dcnt(duration_cast<ms>(steady_clock::now() - epoch).count());
 
 			term_ref.RestoreAttributes();
-			// XXX: Errors from 'std::fprintf' are ignored.
+			// XXX: Error from 'std::fprintf' is ignored.
 			std::fprintf(stream, "[%04u.%03u][%zu:%#02X]",
 				unsigned(dcnt / 1000U), unsigned(dcnt % 1000U),
 				size_t(LastLogGroup), unsigned(lv));
+			if(std::fflush(stream) == 0)
 			{
 				Terminal::Guard
 					guard(term_ref, std::bind(UpdateForeColorByLevel, _1, lv));
 
-				std::fprintf(stream, "%s", &Nonnull(str)[0]);
+				// XXX: Error is ignored.
+				term_ref.WriteString(stream, &YSLib::Nonnull(str)[0]);
+				// XXX: Error is ignored.
+				std::fflush(stream);
 			}
+			// XXX: Errors are ignored.
 			std::fputc('\n', stream);
 		});
 
@@ -994,6 +1110,9 @@ main(int argc, char* argv[])
 
 		if(xargc > 1)
 		{
+			PrintInfo(ystdex::sfmt("Finished loading %zu command argument(s).",
+				xargc), Debug, LogGroup::General);
+
 			vector<string> args;
 			bool opt_trans(true);
 
@@ -1001,7 +1120,7 @@ main(int argc, char* argv[])
 			{
 				string arg(xargv[i]);
 
-				if(opt_trans && string(xargv[i]) == "--")
+				if(opt_trans && arg == "--")
 					opt_trans = {};
 				else if(!opt_trans || (!arg.empty()
 					&& std::none_of(begin(OptionsTable), end(OptionsTable),
@@ -1029,10 +1148,12 @@ main(int argc, char* argv[])
 				{
 					using namespace NPL;
 
+					PrintInfo(ystdex::sfmt("Found requested command '%s'.",
+						RequestedCommand.c_str()), Debug, LogGroup::General);
 					if(RequestedCommand == "EnsureDirectory")
 					{
 						check_n(1);
-						EnsureDirectory(args[0]);
+						IO::EnsureDirectory(args[0]);
 					}
 					else if(RequestedCommand == "InstallFile")
 					{
@@ -1064,14 +1185,15 @@ main(int argc, char* argv[])
 					{
 						check_n_ge(1);
 
-						const auto p_cmd_args(LockCommandArguments());
+						const auto p_cmd_args(YSLib::LockCommandArguments());
 
 						p_cmd_args->Arguments = std::move(args);
 
 						const auto& arg0(p_cmd_args->Arguments.front());
 
 						if(RequestedCommand == "RunNPL")
-							RunNPLFromStream("*STDIN*", istringstream(arg0));
+							RunNPLFromStream("*STDIN*",
+								YSLib::istringstream(arg0));
 						else
 						{
 							const auto p(A1::OpenFile(arg0.c_str()));
@@ -1089,67 +1211,113 @@ main(int argc, char* argv[])
 			}
 			else
 			{
-				BuildContext bctx(MaxJobs);
+				PrintInfo(ystdex::sfmt("Ready to enter build mode for up to %zu"
+					" parallel task(s).", MaxJobs), Informative,
+					LogGroup::General);
 
+				BuildContext bctx(MaxJobs, std::move(BuildVariables));
+
+				for(const auto& env : DeEnvs)
+					// NOTE: The environment variable does not override
+					//	variables set by %BuildVariables.
+					bctx.Vars.insert({env[0], env[1]});
 				for(const auto& env : DeEnvs)
 				{
 					const string name(env[0]);
 
-					FetchEnvironmentVariable(bctx.Envs[name], env[0]);
+					YSLib::FetchEnvironmentVariable(bctx.Vars[name], env[0]);
 					PrintInfo(name + " = " + bctx.GetEnv(name));
 				}
 				if(!OutputDir.empty())
 					bctx.OutputDir = std::move(OutputDir);
+				// NOTE: Remained command line arguments are moved as options
+				//	saved in the build context options. SRCPATH is expected as
+				//	the 1st build context option, following by the options in
+				//	interface specification.
 				yunseq(bctx.IgnoredDirs = std::move(IgnoredDirs),
 					bctx.Options = std::move(args), bctx.Mode = Mode);
 				if(!TargetName.empty())
 					bctx.TargetName = std::move(TargetName);
-				PrintInfo("OutputDir = " + bctx.OutputDir);
+				PrintInfo("Build OutputDir = " + bctx.OutputDir);
 				bctx.Build();
 			}
 		}
 		else if(xargc == 1)
 		{
-			using YSLib::IO::StreamPut;
-			using YSLib::sfmt;
+			using IO::StreamPut;
+			using ystdex::sfmt;
 			auto& os(std::cout);
+			const string& prog(xargv[0]);
 
-			StreamPut(os, sfmt("%s%s%s", "Usage: [ENV ...] ",
-				quote(string(xargv[0])).c_str(),
-				" SRCPATH [OPTIONS ... [-- ARGS...]]\n"
+			StreamPut(os, sfmt("Usage: [ENV ...] \"%s\" [OPTIONS ...] SRCPATH"
+				" [OPTIONS ... [-- [ARGS...]]]\n"
+				"  or:  [ENV ...] \"%s\" [OPTIONS ... [-- ARGS...]]\n"
 				"\tThis program is a tool to build the source tree, with some"
-				" additional functionalities. It has two execution mode,"
-				" building mode and command requesting mode, exclusively. In"
-				" the former mode, tools for compiling (called building"
-				" backends) are called. The latter is only enabled when"
-				" provided some command introduced by specific options, see"
-				" below for details.\n"
-				"\n[ENV ...]\n\tThe environment variables settings in shell."
-				" (Note not all shells support this syntax, but the"
-				" environment variables are still effective.)"
-				" Currently accepted settings are listed below:\n\n").c_str());
+				" additional functionalities. If there are no command"
+				" arguments, this help message is shown. Otherwise, the program"
+				" will try working in a specific execution mode based on"
+				" the specific command arguments.\n"
+				"\tThere are two execution modes, the building mode and the"
+				" command requesting mode, exclusively. In the former mode,"
+				" building backends (commands for compiling) are called. The"
+				" latter is only enabled when there are some options beginned"
+				" with '-xcmd,', see below for details.\n"
+				"\tThe execution of the program may entail nested instances of"
+				" execution initiated by the command being executed. Such"
+				" instances can be grouped by sessions. Each session shares the"
+				" same initial time point of the execution named the session"
+				" epoch, which determines the base time point used in the"
+				" logging messages. The initial instance and any non-nested"
+				" instances have their epochs independently to other instances."
+				"\n"
+				"The session epoch for each instance is currently configured by"
+				" an environment variable (see below). If its value is"
+				" '0', the instance is the initial one and it will maintain"
+				" the value for their nested instance by replace the value"
+				" before calling the commands for the nested instances. The"
+				" concrete format of the value is otherwise unspecified (and it"
+				" can depend on the version of this program), except that any"
+				" maintained value is guraranteed not empty. So, set it to '0'"
+				" or empty, or unset the variable before the execution of this"
+				" program, to ensure it independent to other instances (i.e. in"
+				" a different session).\n"
+				"\n[ENV ...]\n\tThe environment variables settings in the"
+				" shell. (Not all shells support this syntax, but the"
+				" environment variables are still effective.)\n"
+				"\tThere are no checks on the values. Any behaviors depending"
+				" on the locale-specific values are unspecified.\n"
+				"\tCurrently accepted settings are:\n\n",
+				prog.c_str(), prog.c_str()).c_str());
 			for(const auto& env : DeEnvs)
 				StreamPut(os, sfmt("  %s\n\t%s Default value is %s.\n\n", env[0],
 					env[2], env[1][0] == '\0' ? "empty"
 					: Quote(string(env[1])).c_str()).c_str());
 			ystdex::write_literal(os,
-				"SRCPATH\n\tThe source directory to be recursively"
-				" searched. A subdirectory thereof would be ignored implicitly "
-				" if its name is beginned with a dot ('.') character. A"
-				" subdirectory whose name is same to one of the names specified"
-				" by '-xid,' option (see below) would also be ignored.\n\n"
-				"OPTIONS... [-- ARGS...]\n\tThe options and arguments. After"
-				" '--', if any, options parsing is turned off and every"
-				" remained token is interpreted as an argument. Recognized"
-				" options are handled by this program, and the remained"
-				" arguments would either be the argument of the options when"
-				" the commands are requested, or as options come after values"
-				" of environment variable SHBuild_CFLAGS or SHBuild_CXXFLAGS"
-				" and a single space character when CC or CXX is called in the"
-				" building mode, respectively. In the building mode, all"
-				" options including these prefixed values of SHBuild_CFLAGS or"
-				" SHBuild_CXXFLAGS would be sent to the building backends,"
-				" except for listed below (handled by this program):\n\n");
+				"SRCPATH\n\tThe source path. It is handled if and only if this"
+				" program runs in the building mode. In this case, SRCPATH is"
+				" the 1st command line argument not recognized as an option"
+				" (see below). Otherwise, the command line argument is treated"
+				" as an option.\n\tSRCPATH shall specify a path to a directory"
+				" to be recursively searched. A subdirectory thereof will be"
+				" ignored implicitly in the search if its name begins with a"
+				" dot ('.') character. A subdirectory whose name is same to"
+				" one of the names specified by '-xid,' option (see below) will"
+				" also be ignored.\n\n"
+				"OPTIONS...\nOPTIONS... -- [ARGS...]\n\tThe options and"
+				" arguments for the tool execution. After '--', if any, options"
+				" parsing is turned off and every remained command line"
+				" argument is interpreted as an argument.\n\tRecognized options"
+				" are handled in this program, and the remained arguments will"
+				" either be the arguments to the command specified in the"
+				" options in the command requesting mode, or as options come"
+				" after values of the environment variable SHBuild_CFLAGS or"
+				" SHBuild_CXXFLAGS and a single space character when CC or CXX"
+				" is called in the building mode, respectively. In the"
+				" building mode, all command line arguments except SRCPATH and"
+				" the recoginzed options as well as the (prefixed) values"
+				" specified by the environment variables SHBuild_CFLAGS or"
+				" SHBuild_CXXFLAGS will be sent to the building backends.\n\t"
+				"The recognized options are:\n\n");
 			for(const auto& opt : OptionsTable)
 			{
 				StreamPut(os,
@@ -1160,7 +1328,8 @@ main(int argc, char* argv[])
 			}
 		}
 	}, {}, Err, [](const std::exception& e, RecordLevel lv){
-		ExtractException([lv](const char* str, size_t level) YB_NONNULL(2){
+		YSLib::ExtractException(
+			[lv](const char* str, size_t level) YB_NONNULL(2){
 			const auto print([=](const std::string& s){
 				PrintInfo(std::string(level, ' ') + s, lv, LogGroup::General);
 			});

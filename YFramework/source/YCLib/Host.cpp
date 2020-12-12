@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r824
+\version r851
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2020-01-12 18:14 +0800
+	2020-12-12 10:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,9 +38,10 @@
 #include <stdlib.h> // for ::putenv, ::setenv;
 #if YCL_Win32
 #	include <limits> // for std::numeric_limits;
-#	include YFM_Win32_YCLib_NLS // for CloseHandle, MBCSToMBCS;
+#	include YFM_Win32_YCLib_NLS // for CloseHandle, MBCSToMBCS, UTF8ToWCS;
 #	include YFM_Win32_YCLib_Consoles // for WConsole;
 #endif
+#include <ystdex/cstring.h> // for ystdex::ntctslen;
 #if YF_Hosted
 #	include YFM_YSLib_Core_YConsole
 #	if !(YCL_Win32 || YCL_API_Has_semaphore_h)
@@ -74,7 +75,7 @@ Exception::Exception(std::error_code ec, const std::string& str, RecordLevel lv)
 	level(lv)
 {}
 Exception::Exception(std::error_code ec, string_view sv, RecordLevel lv)
-	: Exception(ec, (Nonnull(sv.data()), to_std_string(sv)), lv)
+	: Exception(ec, (yunused(Nonnull(sv.data())), to_std_string(sv)), lv)
 {}
 Exception::Exception(int ev, const std::error_category& ecat, const char* str,
 	RecordLevel lv)
@@ -88,7 +89,7 @@ Exception::Exception(int ev, const std::error_category& ecat,
 {}
 Exception::Exception(int ev, const std::error_category& ecat, string_view sv,
 	RecordLevel lv)
-	: Exception(ev, ecat, (Nonnull(sv.data()), to_std_string(sv)), lv)
+	: Exception(ev, ecat, (yunused(Nonnull(sv.data())), to_std_string(sv)), lv)
 {}
 ImplDeDtor(Exception)
 
@@ -291,6 +292,9 @@ public:
 
 	PDefH(bool, UpdateForeColor, std::uint8_t c)
 		ImplRet(WConsole::UpdateForeColor(c), true)
+
+	//! \since build 905
+	using WConsole::WriteString;
 };
 #	else
 //! \since build 560
@@ -321,6 +325,10 @@ public:
 	bool
 	ExecuteCachedCommand(string_view) const;
 
+	//! \since build 905
+	YB_ATTR_returns_nonnull
+		DefGetter(const ynothrow, std::FILE*, Stream, stream)
+
 	//! \since build 755
 	PDefH(bool, Clear, ) ynothrow
 		ImplRet(ExecuteCachedCommand("tput clear"))
@@ -345,6 +353,7 @@ TerminalData::ExecuteCachedCommand(string_view cmd) const
 
 		if(!str.empty())
 		{
+			// XXX: Error from 'std::fprintf' is ignored.
 			std::fprintf(Nonnull(stream), "%s", str.c_str());
 			return true;
 		}
@@ -374,7 +383,7 @@ Terminal::Terminal(std::FILE* fp)
 
 		// NOTE: This is not necessary for Windows since it only determine
 		//	whether the file descriptor is associated with a character device.
-		//	However as a optimization, it is somewhat more efficient for some
+		//	However as an optimization, it is somewhat more efficient for some
 		//	cases. See $2015-01 @ %Documentation::Workflow.
 		if(YCL_CallGlobal(isatty, fd))
 #	if YCL_Win32
@@ -412,6 +421,27 @@ bool
 Terminal::UpdateForeColor(std::uint8_t c)
 {
 	return CallTe(&TerminalData::UpdateForeColor, p_data, c);
+}
+
+bool
+Terminal::WriteString(std::FILE* p_file, const char* s)
+{
+	const auto len(ystdex::ntctslen(s));
+
+#if YCL_Win32
+	if(p_data)
+	{
+		const auto wstr(UTF8ToWCS(string_view(s, len)));
+
+		return p_data->WriteString(wstr) == wstr.length();
+	}
+
+	const int n(std::fprintf(p_file, "%s", s));
+#else
+	const int n(std::fprintf(p_data ? p_data->GetStream() : p_file, "%s", s));
+#endif
+
+	return n >= 0 && size_t(n) == len;
 }
 
 bool

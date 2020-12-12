@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3977
+\version r3992
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2020-05-31 18:06 +0800
+	2020-12-12 09:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,6 +40,7 @@
 #include <ystdex/cstring.h> // for ystdex::uchar_t, ystdex::replace_cast;
 #include YFM_YBaseMacro // for TryRet, CatchIgnore;
 #include <exception> // for std::bad_alloc;
+#include YFM_YCLib_Container // for string;
 
 //! \brief 默认平台命名空间。
 namespace platform
@@ -288,7 +289,7 @@ enum RecordLevel : std::uint8_t
 /*!
 \brief 检查默认区域下指定字符是否为可打印字符。
 \note MSVCRT 的 isprint/iswprint 实现缺陷的变通。
-\sa https://connect.microsoft.com/VisualStudio/feedback/details/799287/isprint-incorrectly-classifies-t-as-printable-in-c-locale
+\see https://connect.microsoft.com/VisualStudio/feedback/details/799287/isprint-incorrectly-classifies-t-as-printable-in-c-locale 。
 \since build 512
 */
 //@{
@@ -397,9 +398,23 @@ usystem(const char*);
 
 
 /*!
+\brief 查询第二参数指定名称的环境变量写入第一参数。
+\pre 断言：参数非空。
+\note 若不存在则不修改第一参数。
+\note Win32 平台：使用 \c ::_wgetenv 。
+\note 其它平台：使用 \c std::getenv 。
+\return 是否修改第一参数。
+\since build 659
+*/
+YF_API YB_NONNULL(2) bool
+FetchEnvironmentVariable(string&, const char*);
+
+/*!
 \brief 设置环境变量。
 \pre 断言：参数非空。
 \note DS 平台：不支持操作。
+\note Win32 平台：使用 \c ::_putenv 。注意修改不影响 Win32 系统环境变量。
+\note 其它平台：使用 \c ::setenv 。
 \warning 不保证线程安全。
 \throw std::system_error 设置失败。
 \since build 762

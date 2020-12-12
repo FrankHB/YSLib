@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2303
+\version r2304
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2020-11-12 15:32 +0800
+	2020-12-10 09:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -695,7 +695,7 @@ ParseCommandArguments(const wchar_t* p)
 	wstring cbuf;
 	bool quoted = {};
 	const auto add([&]{
-		args.push_back(WCSToMBCS(std::move(cbuf)));
+		args.push_back(WCSToUTF8(std::move(cbuf)));
 	});
 
 	while(quoted || (*p != L' ' && *p != L'\t'))

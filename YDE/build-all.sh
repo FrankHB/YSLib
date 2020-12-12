@@ -9,10 +9,11 @@ set -e
 : "${NPLA1_ROOT:="$(dirname "$SHBuild")/../share/NPLA1"}"
 # NOTE: SHBuild-common.sh should be in $PATH.
 # shellcheck source=../Tools/Scripts/SHBuild-common.sh
-. "SHBuild-common.sh" # For SHBuild_CheckHostPlatform;
+. "$(dirname "$SHBuild")/SHBuild-common.sh" # For SHBuild_PrepareBuild,
+#	SHBuild_GetBuildName, SHBuild_Puts;
 
-SHBuild_CheckHostPlatform
-: "${SHBuild_BuildDir=".$SHBuild_Host_Platform"}"
+SHBuild_PrepareBuild
+: "${SHBuild_BuildDir=".$(SHBuild_GetBuildName)"}"
 export SHBuild_BuildDir
 
 : "${SHBuild_ThisDir:="$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)"}"

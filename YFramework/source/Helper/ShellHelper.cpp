@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015, 2019 FrankHB.
+	© 2010-2015, 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r629
+\version r631
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2019-01-14 19:35 +0800
+	2020-12-10 10:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,7 @@ namespace YSLib
 
 #ifndef NDEBUG
 DebugTimer::DebugTimer(string_view str)
-	: event_info((Nonnull(str.data()), str)), base_tick()
+	: event_info((yunused(Nonnull(str.data())), str)), base_tick()
 {
 	YTraceDe(0xF0, "Start tick of [%s] :", event_info.c_str());
 	base_tick = Timers::HighResolutionClock::now();

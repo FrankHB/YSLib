@@ -11,13 +11,13 @@
 /*!	\file Container.h
 \ingroup YCLib
 \brief 容器、拟容器和适配器。
-\version r1076
+\version r1148
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2020-07-24 12:02 +0800
+	2020-12-12 09:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YCL_INC_Container_h_ 1
 
 #include "YModules.h"
-#include YFM_YCLib_YCommon // for YAssertNonnull;
+#include <ystdex/cassert.h> // for YAssertNonnull;
 #include <ystdex/memory_resource.h> // for ystdex::pmr;
 #include <ystdex/functor.hpp> // for ystdex::less, ystdex::equal_to;
 //#include <ext/vstring.h>
@@ -48,6 +48,7 @@
 #include <unordered_map>
 #include <queue>
 #include <stack>
+#include <ystdex/allocator.hpp> // for ystdex::make_obj_using_allocator;
 #include <iosfwd> // for std::basic_istringstream, std::basic_ostringstream,
 //	std::basic_stringstream;
 #include <ystdex/hash.hpp> // for std::hash, ystdex::hash_range;
@@ -228,14 +229,37 @@ to_pmr_string(basic_string_view<_tChar> sv)
 	YAssertNonnull(sv.data());
 	return _tString(sv.data(), sv.size());
 }
+//! \since build 905
+template<typename _tChar, class _tString = basic_string<_tChar>,
+	class _tAlloc = typename _tString::allocator_type>
+inline auto
+to_pmr_string(basic_string_view<_tChar> sv, const _tAlloc& a)
+	-> decltype(ystdex::make_obj_using_allocator<_tString>(a, sv.data(),
+	sv.size()))
+{
+	YAssertNonnull(sv.data());
+	return ystdex::make_obj_using_allocator<_tString>(a, sv.data(), sv.size());
+}
 template<typename _tChar, class _tString = basic_string<_tChar>,
 	class _tTraits, class _tAlloc,
-	typename = yimpl(ystdex::enable_if_inconvertible_t)<
-	const std::basic_string<_tChar, _tTraits, _tAlloc>&, _tString>>
+	yimpl(typename = ystdex::enable_if_inconvertible_t<
+	const std::basic_string<_tChar, _tTraits, _tAlloc>&, _tString>)>
 inline _tString
 to_pmr_string(const std::basic_string<_tChar, _tTraits, _tAlloc>& str)
 {
 	return _tString(str.data(), str.size());
+}
+//! \since build 905
+template<typename _tChar, class _tString = basic_string<_tChar>,
+	class _tTraits, class _tAlloc>
+inline auto
+to_pmr_string(const std::basic_string<_tChar, _tTraits, _tAlloc>& str,
+	const _tAlloc& a)
+	-> decltype(ystdex::make_obj_using_allocator<_tString>(a, str.data(),
+	str.size()))
+{
+	return
+		ystdex::make_obj_using_allocator<_tString>(a, str.data(), str.size());
 }
 template<class _tString = string, class _tParam = _tString,
 	yimpl(typename = ystdex::enable_if_convertible_t<_tParam, _tString>)>
@@ -244,13 +268,23 @@ to_pmr_string(_tParam&& str)
 {
 	return yforward(str);
 }
+//! \since build 905
+template<class _tString = string, class _tParam = _tString,
+	class _tAlloc = typename _tString::allocator_type>
+inline auto
+to_pmr_string(_tParam&& str, const _tAlloc& a)
+	-> decltype(ystdex::make_obj_using_allocator<_tString>(a, yforward(str)))
+{
+	return ystdex::make_obj_using_allocator<_tString>(a, yforward(str));
+}
 //@}
 
 // XXX: The overloads %to_std_string is provided to get %std::string values, in
 //	particular for arguments to %std::exception. No %std::wstring and other
 //	types are required like this.
-//! \since build 861
+//! \since build 896
 //@{
+//! \since build 861
 template<typename _tChar, class _tString = std::basic_string<_tChar>>
 inline _tString
 to_std_string(basic_string_view<_tChar> sv)
@@ -258,23 +292,53 @@ to_std_string(basic_string_view<_tChar> sv)
 	YAssertNonnull(sv.data());
 	return _tString(sv.data(), sv.size());
 }
-//! \since build 896
+//! \since build 905
+template<typename _tChar, class _tString = std::basic_string<_tChar>,
+	class _tAlloc = typename _tString::allocator_type>
+inline auto
+to_std_string(basic_string_view<_tChar> sv, const _tAlloc& a)
+	-> decltype(ystdex::make_obj_using_allocator<_tString>(a, sv.data(),
+	sv.size()))
+{
+	YAssertNonnull(sv.data());
+	return ystdex::make_obj_using_allocator<_tString>(a, sv.data(), sv.size());
+}
 template<typename _tChar, class _tString = std::basic_string<_tChar>,
 	class _tTraits, class _tAlloc,
-	typename = yimpl(ystdex::enable_if_inconvertible_t)<
-	const basic_string<_tChar, _tTraits, _tAlloc>&, _tString>>
+	yimpl(typename = ystdex::enable_if_inconvertible_t<
+	const basic_string<_tChar, _tTraits, _tAlloc>&, _tString>)>
 inline _tString
 to_std_string(const basic_string<_tChar, _tTraits, _tAlloc>& str)
 {
 	return _tString(str.data(), str.size());
 }
-//! \since build 896
+//! \since build 905
+template<typename _tChar, class _tString = std::basic_string<_tChar>,
+	class _tTraits, class _tAlloc>
+inline auto
+to_std_string(const basic_string<_tChar, _tTraits, _tAlloc>& str,
+	const _tAlloc& a)
+	-> decltype(ystdex::make_obj_using_allocator<_tString>(a, str.data(),
+	str.size()))
+{
+	return
+		ystdex::make_obj_using_allocator<_tString>(a, str.data(), str.size());
+}
 template<class _tString = std::string, class _tParam = _tString,
 	yimpl(typename = ystdex::enable_if_convertible_t<_tParam, _tString>)>
 inline _tString
 to_std_string(_tParam&& str)
 {
 	return yforward(str);
+}
+//! \since build 905
+template<class _tString = std::string, class _tParam = _tString,
+	class _tAlloc = typename _tString::allocator_type>
+inline auto
+to_std_string(_tParam&& str, const _tAlloc& a)
+	-> decltype(ystdex::make_obj_using_allocator<_tString>(a, yforward(str)))
+{
+	return ystdex::make_obj_using_allocator<_tString>(a, yforward(str));
 }
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2598
+\version r2607
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2020-11-29 15:54 +0800
+	2020-12-12 10:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -420,17 +420,6 @@ public:
 */
 YF_API locked_ptr<ArgumentsVector, recursive_mutex>
 LockCommandArguments();
-
-
-/*!
-\brief 查询第二参数指定名称的环境变量写入第一参数。
-\pre 断言：参数非空。
-\note 若不存在则不修改第一参数。
-\return 是否修改第一参数。
-\since build 659
-*/
-YF_API YB_NONNULL(2) bool
-FetchEnvironmentVariable(string&, const char*);
 
 
 //! \since build 567
