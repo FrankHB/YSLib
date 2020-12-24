@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2013, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r6434 *build 449 rev *
+\version r6436
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-10-07 13:30 +0800
+	2020-12-24 12:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -227,7 +227,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 $parser.state.style $= $natral_NPL;
 $macro_platform_mapping:
 \mac YCL_DS -> DS,
-\mac YCL_MINGW32 -> MinGW32;
+\mac YCL_Win32 -> {Win32, MinGW32};
 
 
 $DONE:

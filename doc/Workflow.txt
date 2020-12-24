@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r3981
+\version r4006
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2020-11-15 14:43 +0800
+	2020-12-15 06:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2275,7 +2275,7 @@ TCO (tail call optimization) algorithm in NPLA1 to support PTC (proper tail call
 			If needed, parallelism can be added by threading and other means in future.
 		This design supports mixture of asynchronous and ordinary synchronous handlers of calls once the asynchronous calls are properly guarded by some synchronization mechanism.
 			The abstraction of such handlers are called as actions.
-			In a specific context for reduction, depending on the configuration, an action can be either synchronous, or asynchronous. 
+			In a specific context for reduction, depending on the configuration, an action can be either synchronous, or asynchronous.
 				Sometimes there has to be different implementations for synchronous and asynchronous uses of an action.
 			An action can be represented by various data structures.
 				A notable example is the data structure used as the handler in TCO, see below.
@@ -2388,7 +2388,7 @@ TCO (tail call optimization) algorithm in NPLA1 to support PTC (proper tail call
 					When the strong reference count reaches to zero, the object would be automatically destroyed.
 						So simply avoid to keep redundant strong reference away would be sufficient to make objects collected.
 						Otherwise, if the strong reference shows the object is not uniquely held by the frame record list, the environment reference is removed.
-							As the environment reference is also held elsewhere, the environment is not collected. 
+							As the environment reference is also held elsewhere, the environment is not collected.
 					Otherwise, if no external objects hold (weak) reference to the environment, the environment reference is needed to be removed.
 						The environment is then collected at once.
 						The trace is used to maintain the data determining whether objects being traced are held externally.
@@ -2471,12 +2471,12 @@ TCO (tail call optimization) algorithm in NPLA1 to support PTC (proper tail call
 								So they are further compressed by taking the processed referent as destination and the referent held by guard object as source.
 							All duplication of source environment bindings in the destination environment are removed.
 							If the resulted parent environment is empty, it is to be collected.
-								The parent of destination environment is moved to the source 
+								The parent of destination environment is moved to the source
 				The condition is based on size of frame record list.
 					If the size changed, there is at least one object in frame record list is collected.
 					The try would be continued as there can be new orphaned object not in the list due to the removal of object in the list.
 			After the above first try of loop, components of the frame element are processed if necessary.
-				The environment component holding temporary object is cleaned up if it is uniquely referenced. 
+				The environment component holding temporary object is cleaned up if it is uniquely referenced.
 				The function prvalue component of front element of frame record list is then set to empty.
 					This is a hack that avoiding improper tail calls caused by a false positive external reference to the static environment object held in the temporary function object which is or is similar to a vau handler.
 					Ideally, multiple temporary objects are allowed coexisted.
@@ -2539,7 +2539,7 @@ Use of inherited constructors are rechecked to interact without resolution from 
 				This changes after adoption of C++17 whose 'std::basic_string' having conditionally enabled constructor targetting to 'std::basic_string_view' instances.
 					This should ideally be resolved before adapting 'string_view' on the new 'ystdex::basic_string', but nothing is required to be done yet, since new constructors of 'std::basic_string' is still compatible in semantics with substitution failure.
 			No use of 'default_init_allocator' in user code is found.
-			Class name 'path' is safe because due to 'ystdex::sequence_container_adaptor'. 
+			Class name 'path' is safe because due to 'ystdex::sequence_container_adaptor'.
 		All other use are safe except 'using u16string::u16string;' in class 'String' in module YSLib::Core::YString.
 			This should also be handled like 'ystdex::basic_string' and 'NPL::TokenValue'.
 
@@ -3227,7 +3227,7 @@ The simplified Chinese translation (in locale zh-CN) of terms has been reconside
 			This is also used in some other notable online documents like https://zh.cppreference.com/w/cpp/language/type.
 		However, the consisdered replacment is consistent with other sources.
 			It is consistent with most mathematical concepts and the usual translations of phrases widely used in computer science like "NP-complete problem".
-				A second mathematical replacement is '完备'. This is not considered here. 
+				A second mathematical replacement is '完备'. This is not considered here.
 			It is consistent with diagnostic messages in GCC.
 				The characters '不完全' for 'incomplete' are also exactly same in locale zh-TW.
 					However, some translations in locale zh-CN is considered somewhat in the zh-TW flavor, e.g. '提领' instead of '解引用' for 'dereference'. So, this is considered not quite precisely reflecting the actual popular use in zh-CN.
@@ -3475,7 +3475,7 @@ YBase now provides 'ystdex::list' class template.
 		The 'list::erase' implementation for range is optimized to the 'clear()' case check (like Microsoft VC++) and have less update to pointers otherwise.
 	The necessity for the previous builds is from the fact that 'std::list' implementation in libstdc++ on the Android configurations (with CrystaX) are still not conforming to C++11, and it breaks 'NPL::TermNode' allocator-extended construction in YFramework.NPL.SContext.
 		However, since it also needs to fix 'std::stack' (thus, including 'std::deque') if nothing is changed in the client code in YFramework.NPL.SContext, update to the official NDK r20 is planned instead.
-			The update requires to implemented YCLib::FileIO support for libc++ and a few other fixes, but no need to replace the 'std' types. 
+			The update requires to implemented YCLib::FileIO support for libc++ and a few other fixes, but no need to replace the 'std' types.
 		YFramework still plans to change to 'ystdex::list' now as it is believed to have better performance (at least in x86_64-linux).
 	Another bonus is it supports incomplete value types specified in [WG21 N4510], which is adopted as an ISO C++17 feature.
 		This is considered to be used in 'ystdex::pmr::memory_resource' implementations when the pool type was not exposed. Is not the case now.
@@ -3536,7 +3536,7 @@ Implementation of NPL in YFramework module NPL::NPLA1 has been cleanup for perfo
 	The macro 'NPL_Impl_NPLA1_Enable_TailRewriting' is removed.
 		It is considered outdated for a while.
 			Since the temporary objects are now stored in the reduced terms rather than frames for calls, no special allocations are cared.
-			The only instance of the remaining use is 'A1::ReduceOrdered'. This is however always expected enabled for TCO. 
+			The only instance of the remaining use is 'A1::ReduceOrdered'. This is however always expected enabled for TCO.
 	A new macro 'NPL_Impl_NPLA1_Enable_InlineDirect' is added to tweak implementations on asynchronous calls.
 		The macro specifies the outermost asynchronous calls formally composed by function templates like 'NPL::RelayNext' or 'NPL::RelaySwitched' now split and being synchrnized sequentially.
 			This also means the inner calls (if any) composed by these function templates now usually ignore the return value 'ReductionStatus::Partial' in asynchronous implementations.
@@ -3605,7 +3605,7 @@ NPLA1 separator handling in YFramework modules NPL::NPLA1 and NPL::Dependency is
 	The old handling in module NPL::Dependency is now moved to NPL::NPLA1 in 'REPLContext::Preprocess'.
 		The new handling scan the term recursively, instead one pass.
 			Along with non-evaluated expressions, this has some performance overhead.
-				The overall performance is still slighly better than ond one in general for less evaluation passes, though. 
+				The overall performance is still slighly better than ond one in general for less evaluation passes, though.
 		Supposing 'passes' as a modifiable reference to a passes object (either of 'A1::EvaluationPasses' or of 'A1::TermPasses') and 'a' as the allocator, the old one can still be implemented (in C++) by new API (more efficiently) as:
 			passes += ystdex::bind1([](TermNode& term,
 				const ValueObject& pfx, const TokenValue& val,
@@ -3674,7 +3674,7 @@ Implementation of allocator value holder of 'ystdex::any' has been improved a bi
 		A unary type trait 'ystdex::has_get_allocator' has been added to simplify the implementation.
 			The type trait has a 'value' data member as 'ture' if and only if the type being allocated has a 'get_alocator' satisfying the requirements above.
 		However, the code generated by x86_64-pc-linux G++ 9.3 shows this is actually a slightly worse.
-			As the consequence, this stratagy is not enabled currently.		
+			As the consequence, this stratagy is not enabled currently.
 Some 'YB_ATTR(always_inline)' has been removed to allow the generated code being actually more efficiently.
 	This includes instance in YBase module YStandardEx::Any, for example.
 	YBase module YStandardEx::Allocator also has no benefits from additional 'YB_ATTR(always_inline)'.
@@ -3706,7 +3706,7 @@ Actions in NPLA context node ('NPL::ContextNode' in YFramework module NPL::NPLA1
 			The stashed sequence uses 'YSLib::forward_list' for efficiency.
 		The action sequence is exposed as a new class 'ReducerSequence' in 'ContextNode' based on 'YSLib::forward_list'.
 			The cleanup is specicically handled to ensure the destruction order of the actions, since 'YSLib::forward_list' has no guarantee on the order in the destruction.
-		Another action sequence is internally handled as the stacked action. 
+		Another action sequence is internally handled as the stacked action.
 	A guard type 'ReductionGuard' is also provided in class 'ContextNode' to be used in the derived code with 'A1::Guard'.
 		The guard is basically dyanmic to incoperate with other guards more effeciently.
 			The guard uses the stacked action to manage the protected actions in the outer continuations.
@@ -3790,7 +3790,7 @@ The (formerly informally and not public) design plan of continuation and error h
 				Currently only 'NPL::Reduce' calls guard the continuations.
 					They occur in REPL sessions, as well as loads of the external units.
 				Note that klisp which only uses explicit run of loop on FFI.
-					REPL and loading a source file all do not create new barrier in this sense.  
+					REPL and loading a source file all do not create new barrier in this sense.
 						Missing barriers may be simpler and more flexible here, albeit less security in the aspect of the stability of the REPL environment.
 					It seems worth a try.
 					To make it easily configurable by users, at least the operation to setup continuation barriers is needed to be available in the object language.
@@ -3966,7 +3966,7 @@ Import library names being installed are changed.
 	Although the library names can work without any prefix (by having a name of the dynamic library name with a postfix '.a'), now always have the 'lib' prefix.
 		This is more consistent to the current practice like Cygwin and MSYS2.
 		Note in such platforms dynamic libraries can have prefix other than 'lib' like 'cyg' or 'msys-' in the name of dynamic library files.
-		Also note libraries may or may have the prefix. For example, Qt libraries in MSYS2's MinGW platforms has no 'lib' prefix in the DLL names, but many others have. 
+		Also note libraries may or may have the prefix. For example, Qt libraries in MSYS2's MinGW platforms has no 'lib' prefix in the DLL names, but many others have.
 
 $2020-11:
 
@@ -3993,6 +3993,20 @@ Scripts are revised.
 		Variables to specify the output directory which rely on Sysroot are eliminated.
 			These include 'SHBuild_BuildApp' and 'SHBuild_BuildPrefix'.
 			Now 'SHBuild_BuildDir' is used for all cases (including stage 1).
+
+$2020-11:
+
+report.impl:
+The YSLib builds are revised.
+	'SHBuild-common-options.sh' is simplified by the removal of stage 2 configurations.
+		They are still available in %SHBuild-YSLib-common.txt.
+	Unused stage 2 configurations are removed.
+	Now all NPLA1 build scripts accept 'SHBuild_LDFLAGS' and 'SHBuild_LIBS'.
+	The library building process in the build script 'SHBuild-YSLib-build.txt' has improved the workarounds.
+		There is now a warning to indicate the fix of flags is used.
+		It now detects sanitizers used with Linux G++.
+			As a workaround for performance, dynamic builds with address sanitizer adds '-fno-var-tracking-assignments'.
+				It still typically takes more than half an hour, though.
 
 ////
 

@@ -1,5 +1,5 @@
 #
-#	(C) 2009-2016 FrankHB.
+#	(C) 2009-2016, 2020 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YBase
-# Version = r2004
+# Version = r2040
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2016-04-12 22:21 +0800
+# Updated = 2020-12-14 05:12 +0800
 # Encoding = ANSI
 
 
@@ -45,21 +45,16 @@ export SOURCES		:=	source data $(REFDIR)/source \
 export INCLUDES		:=	include data $(REFDIR)/include
 export DATA			:=	data $(REFDIR)/data
 
-# options for code generation
 ARCH := $(ARCH_ARM9)
 ARCH_AS := $(ARCH_AS_ARM9)
 ASFLAGS := $(ASFLAGS_ARM9)
-CFLAGS := $(INCLUDE) $(C_CXXFLAGS_ARM9) $(CFLAGS_COMMON)
-CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS_ARM9) $(CXXFLAGS_COMMON) \
-	-fno-threadsafe-statics -fuse-cxa-atexit -Wctor-dtor-privacy -Wnoexcept \
-	-Wnon-virtual-dtor -Wold-style-cast -Wsign-promo
+CFLAGS := $(CFLAGS_STD) $(INCLUDE) $(C_CXXFLAGS_ARM9) $(C_CXXFLAGS_COMMON) \
+	$(CFLAGS_WARNING)
+CXXFLAGS := $(CXXFLAGS_STD) $(INCLUDE) $(C_CXXFLAGS_ARM9) $(C_CXXFLAGS_COMMON) \
+	$(CXXFLAGS_WARNING) $(CXXFLAGS_IMPL_COMMON) \
+	-fno-threadsafe-statics -fuse-cxa-atexit -Wnoexcept -Wold-style-cast
 
-#----
-# no real need to edit anything past this point unless you need to add additional
-# rules for different file extensions
-#----
 ifneq ($(CONF),$(notdir $(CURDIR)))
-#----
 
 export OUTPUT	:=	$(RELEASEDIR)/lib$(TARGET).a
 
@@ -76,17 +71,14 @@ BINFILES	:=	$(foreach dir,$(DATA),$(wildcard $(dir)/*.bin))
 
 MAPFILES	:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.map))
 
-#----
-# use CXX for linking C++ projects, CC for standard C
-#----
 ifeq ($(strip $(CPPFILES)),)
  	export LD	:=	$(CC)
 else
  	export LD	:=	$(CXX)
 endif
 
-export OFILES	:=	$(addsuffix .o,$(MAPFILES)) $(addsuffix .o,$(BINFILES)) \
-	$(addsuffix .o,$(CPPFILES)) $(addsuffix .o,$(CFILES)) $(addsuffix .o,$(SFILES))
+export OFILES := $(addsuffix .o,$(BINFILES)) $(addsuffix .o,$(CPPFILES)) \
+	$(addsuffix .o,$(CFILES)) $(addsuffix .o,$(SFILES))
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 	$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
@@ -96,7 +88,6 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
 .PHONY: $(CONF) clean rebuild all
 
-#----
 $(CONF):
 	@echo Building configuration: $(notdir $@) ...
 	@[ -d $(BUILDDIR)/dummy ] || mkdir -p $(BUILDDIR)/dummy
@@ -104,7 +95,6 @@ $(CONF):
 	@$(MAKE) --no-print-directory -C $(BUILDDIR) -f $(CURDIR)/Makefile
 	@echo Built configuration: $(notdir $@).
 
-#----
 clean:
 	@echo Cleaning $(TARGET) of $(PLATFORM) ...
 	@rm -f $(foreach file,$(OFILES:.o=.d),$(DEPSDIR)/$(file))
@@ -116,27 +106,14 @@ rebuild: all
 
 all: $(CONF) $(OUTPUT)
 
-#----
 else
 
 DEPENDS	:= $(OFILES:.o=.d)
-
-#----
-# main targets
-#----
 
 $(OUTPUT)	:	$(OFILES)
 	@rm -f "$(OUTPUT)"
 	@echo Linking $(notdir $@) ...
 	@$(AR) rcs "$(OUTPUT)" $(foreach file,$(OFILES),$(DEPSDIR)/$(file))
-
-#----
-# you need a rule like this for each extension you use as binary data
-#----
-
-#----
-# Compile Targets for C/C++
-#----
 
 %.cpp.o : %.cpp
 	@echo $<
@@ -153,7 +130,6 @@ $(OUTPUT)	:	$(OFILES)
 	@[ -d $(dir $(DEPSDIR)/$@) ] || mkdir -p $(dir $(DEPSDIR)/$@)
 	@$(CC) -MMD -MP -MF $(DEPSDIR)/$*.s.d -x assembler-with-cpp $(ASFLAGS) -c $< -o$(DEPSDIR)/$@
 
-
 define bin2o
 	@[ -d $(dir $(DEPSDIR)/$@) ] || mkdir -p $(dir $(DEPSDIR)/$@)
 	cp $(<) $(notdir $(*))
@@ -164,17 +140,11 @@ define bin2o
 	echo "extern const u32" $(notdir $(*))_size";" >> $(DEPSDIR)/$(*).h
 endef
 
-%.bin.o	:	%.bin
-	@echo $<
-	@$(bin2o)
-
-%.map.o	:	%.map
+%.bin.o	: %.bin
 	@echo $<
 	@$(bin2o)
 
 -include $(foreach file,$(DEPENDS),$(DEPSDIR)/$(file))
 
-#----
 endif
-#----
 

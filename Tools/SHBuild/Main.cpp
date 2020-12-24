@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r4354
+\version r4357
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2020-12-12 02:32 +0800
+	2020-12-17 02:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@ See readme file for details.
 */
 
 
-#include <YSBuild.h>
+#include <YSLib/Service/YModules.h>
+#include <NPL/YModules.h>
 #include YFM_YSLib_Core_YStorage // for YSLib::size_t, YSLib::RecordLevel,
 //	YSLib::Notice, YSLib::FetchStaticRef, YSLib::string, YSLib::set, YSLib::map,
 //	YSLib::vector, YSLib::Logger, YSLib::Warning, YSLib::to_std_string,
@@ -246,7 +247,7 @@ const struct Option
 	//	has effects on the help message, so just make it alphabatical to ease
 	//	users by default, except that there are some more reasons like the
 	//	effects on the execution mode.
-	// XXX: '-cmd,' is just at the front alphabatically now. 
+	// XXX: '-cmd,' is just at the front alphabatically now.
 	{"-xcmd,", "command", "COMMAND", [](string&& val) ynothrow{
 		RequestedCommand = std::move(val);
 	}, {"Specify the name of a command to run.", "If this option is set, all"
@@ -1047,7 +1048,7 @@ main(int argc, char* argv[])
 	using ms = duration<unsigned long long, std::milli>;
 	auto epoch(YSLib::Timers::FetchEpoch<steady_clock>());
 	Terminal te, te_err(stderr);
-	
+
 	return FilterExceptions([&]{
 		string epoch_var;
 

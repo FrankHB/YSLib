@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 控制台。
-\version r316
+\version r327
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2013-05-09 11:01:12 +0800
 \par 修改时间:
-	2020-01-27 02:40 +0800
+	2020-12-24 12:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,8 +26,8 @@
 */
 
 
-#ifndef YCL_MinGW32_INC_Consoles_h_
-#define YCL_MinGW32_INC_Consoles_h_
+#ifndef YCL_Win32_INC_Consoles_h_
+#define YCL_Win32_INC_Consoles_h_
 
 #include "YCLib/YModules.h"
 #include YFM_Win32_YCLib_MinGW32
@@ -82,8 +82,8 @@ public:
 	};
 
 private:
-	//! \since build 559
-	::HANDLE h_std;
+	//! \since build 906
+	::HANDLE h_out;
 	//! \since build 519
 	::WORD saved_attr;
 
@@ -187,18 +187,23 @@ public:
 	\brief 输出字符串。
 	\pre 断言：第一参数的数据指针非空。
 	\return 输出的字符数。
+	\note 因为 Windows 控制台的限制，不保证可正确输出 Unicode BMP 外的代码点。
 	\since build 645
 	*/
 	//@{
+	//! \note 使用 UTF-8 字符串。
 	size_t
 	WriteString(string_view);
-	//! \note 第二参数为代码页。
+	//! \note 第二参数为指定第一参数的编码的代码页。
 	size_t
 	WriteString(string_view, unsigned);
+	//! \note 使用 UTF-16LE 字符串。
+	//@{
 	size_t
 	WriteString(wstring_view);
 	PDefH(size_t, WriteString, u16string_view sv)
 		ImplRet(WriteString(wstring(sv.cbegin(), sv.cend())))
+	//@}
 	//@}
 	//@}
 };
@@ -206,7 +211,7 @@ public:
 /*!
 \ingroup helper_functions
 \brief 创建控制台对象。
-\return 指向新创建的控制台对象的指针，若失败则为空。
+\return 指向新创建的控制台对象的指针，若构造失败则为空。
 \note 不抛出 Win32Exception 。
 \relates WConsole
 \since build 593

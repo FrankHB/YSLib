@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2019 FrankHB.
+	© 2014-2016, 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file iterator_trait.hpp
 \ingroup YStandardEx
 \brief 迭代器特征。
-\version r127
+\version r129
 \author FrankHB <frankhb1989@gmail.com>
 \since build 627
 \par 创建时间:
 	2015-08-30 16:29:07 +0800
 \par 修改时间:
-	2019-09-04 11:19 +0800
+	2020-12-24 12:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,6 +85,7 @@ using input_iterator_reqirement_t = and_<iterator_reqirement_t<_tParam>,
 /*!
 \ingroup metafunctions
 \note 约束的迭代器类型条件仅判断自增、间接操作（解引用）和（可选的）类别。
+\note 不排除假阳性结果。
 \sa enable_if_t
 */
 //@{

@@ -1,5 +1,5 @@
 #
-#	(C) 2009-2014, 2016, 2018 FrankHB.
+#	(C) 2009-2014, 2016, 2018, 2020 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YShell Test -> ARM7
-# Version = r1390
+# Version = r1477
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2018-05-22 15:57 +0800
+# Updated = 2020-12-14 02:38 +0800
 # Encoding = ANSI
 
 
@@ -20,10 +20,6 @@
 
 SHBuild_ToolDir := $(dir $(lastword $(MAKEFILE_LIST)))/../../Tools/Scripts
 include $(SHBuild_ToolDir)/Toolchain.DS.mk
-
-# NOTE: Option '-Wno-redundant-decls' is workaround for libnds.
-CFLAGS_COMMON := $(CFLAGS_COMMON) -Wno-redundant-decls
-CXXFLAGS_COMMON := $(CXXFLAGS_COMMON) -Wno-redundant-decls
 
 # PROJNAME is the name of the project
 # CONF is the configuration name
@@ -35,7 +31,6 @@ CXXFLAGS_COMMON := $(CXXFLAGS_COMMON) -Wno-redundant-decls
 # SOURCES is a list of directories containing source code
 # INCLUDES is a list of directories containing extra header files
 # DATA is a list of directories containing binary files embedded using bin2o
-# GRAPHICS is a list of directories containing image files to be converted with grit
 
 export PROJNAME		?=	YSTest_ARM7
 export CONF			?=	release
@@ -47,25 +42,21 @@ export TARGET		:=	$(shell basename $(CURDIR))
 export SOURCES		:=	source data
 export INCLUDES		:=	include data
 export DATA			:=	data
-#export GRAPHICS	:=	gfx
-#export MUSIC		:=	music
 
-# options for code generation
 ARCH := $(ARCH_ARM7)
 ARCH_AS := $(ARCH_AS_ARM7)
 ASFLAGS := $(ASFLAGS_ARM7)
-CFLAGS := $(INCLUDE) $(C_CXXFLAGS_ARM7) $(CFLAGS_COMMON)
-CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS_ARM7) $(CXXFLAGS_COMMON) \
-	-fno-threadsafe-statics -fuse-cxa-atexit \
-	-Wctor-dtor-privacy -Wnoexcept -Wnon-virtual-dtor -Wold-style-cast \
-	-Wsign-promo
+# NOTE: Option '-Wno-redundant-decls' is the workaround for libnds.
+CFLAGS := $(CFLAGS_STD) $(INCLUDE) $(C_CXXFLAGS_ARM7) $(C_CXXFLAGS_COMMON) \
+	$(CFLAGS_WARNING) -Wno-redundant-decls
+CXXFLAGS := $(CXXFLAGS_STD) $(INCLUDE) $(C_CXXFLAGS_ARM7) $(C_CXXFLAGS_COMMON) \
+	$(CXXFLAGS_WARNING) $(CXXFLAGS_IMPL_COMMON) -fno-threadsafe-statics \
+	-fuse-cxa-atexit -Wno-redundant-decls -Wnoexcept -Wold-style-cast
+
 LDFLAGS := $(LDFLAGS_OPT_DBG) -specs=ds_arm7.specs $(ARCH) -Wl,--gc-sections
 
-# any extra libraries we wish to link with the project
 LIBS := -lnds7 # -ldswifi7 -lmm7
 
-# List of directories containing libraries, this must be the top level
-#	containing include and lib.
 LIBDIRS	:=	$(LIBNDS)
 
 ifneq ($(CONF),$(notdir $(CURDIR)))
@@ -98,27 +89,14 @@ ifneq ($(strip $(DONT_BUILD_MAXMOD_SOUNDBANK)), YES)
 	endif
 endif
 
-PNGFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.png)))
-PALFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.pal)))
-RAWFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.raw)))
-MAPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.map)))
-JPEGFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.jpg)))
-MODFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.mod)))
-GIFFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.gif)))
-BMPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.bmp)))
-MP3FILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.mp3)))
-
-#----
-# use CXX for linking C++ projects, CC for standard C
-#----
 ifeq ($(strip $(CPPFILES)),)
 	export LD	:=	$(CC)
 else
 	export LD	:=	$(CXX)
 endif
 
-export OFILES	:=	$(MAPFILES:.map=.o) $(RAWFILES:.raw=.o) $(PALFILES:.pal=.o) $(BINFILES:.bin=.o) $(PNGFILES:.png=.o) $(PCXFILES:.pcx=.o) $(JPEGFILES:.jpg=.o) $(MODFILES:.mod=.o) $(GIFFILES:.gif=.o) $(BMPFILES:.bmp=.o) $(MP3FILES:.mp3=.o) \
-					$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
+export OFILES := $(BINFILES:.bin=.o) $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) \
+	$(SFILES:.s=.o)
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
@@ -145,28 +123,14 @@ rebuild: all
 
 all: $(CONF) $(OUTPUT)
 
-#----
 else
 
 DEPENDS	:= $(OFILES:.o=.d)
-
-#----
-# main targets
-#----
 
 $(ARM7ELF)	:	$(OFILES)
 	@echo Linking $(notdir $@) ...
 	$(LD) $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
 	@echo Built $(notdir $@) .
-# IMPORTANT: the order of files is significant.
-
-#----
-# you need a rule like this for each extension you use as binary data
-#----
-
-#----
-# Compile Targets for C/C++
-#----
 
 %.o : %.cpp
 	@echo $(notdir $<)
@@ -183,8 +147,6 @@ $(ARM7ELF)	:	$(OFILES)
 	@$(CC) -MM $(CFLAGS) -o $*.d $<
 	@$(CC)  $(ASFLAGS) -c $< -o$@
 
-
-# bin2o macro like that from libnds, slightly changed for the PALib naming conventions of resources which doesn't append the file extension to the resource name
 define bin2o
 	cp $(<) $(notdir $(*))
 	bin2s $(notdir $(*)) | $(AS) $(ARCH_AS) -o $(@)
@@ -194,66 +156,11 @@ define bin2o
 	echo "extern const u32" $(*)_size";" >> $(*).h
 endef
 
-%.o	:	%.mp3
+%.o : %.bin
 	@echo $(notdir $<)
 	@$(bin2o)
-
-%.o	:	%.pcx
-	@echo $(notdir $<)
-	@$(bin2o)
-
-%.o	:	%.bin
-	@echo $(notdir $<)
-	@$(bin2o)
-
-%.o	:	%.png
-	@echo $(notdir $<)
-	@$(bin2o)
-
-%.o	:	%.raw
-	@echo $(notdir $<)
-	@$(bin2o)
-
-%.o	:	%.pal
-	@echo $(notdir $<)
-	@$(bin2o)
-
-%.o	:	%.map
-	@echo $(notdir $<)
-	@$(bin2o)
-
-%.o	:	%.mdl
-	@echo $(notdir $<)
-	@$(bin2o)
-
-%.o	:	%.jpg
-	@echo $(notdir $<)
-	@$(bin2o)
-
-%.o	:	%.mod
-	@echo $(notdir $<)
-	@$(bin2o)
-
-%.o	:	%.gif
-	@echo $(notdir $<)
-	@$(bin2o)
-
-%.o	:	%.bmp
-	@echo $(notdir $<)
-	@$(bin2o)
-
-#----
-# This rule creates assembly source files using grit
-# grit takes an image file and a .grit describing how the file is to be processed
-# add additional rules like this for each image extension
-# you use in the graphics folders
-#----
-%.s %.h   : %.png %.grit
-	grit $< -fts -o$*
 
 -include $(DEPSDIR)/*.d
 
-#----
 endif
-#----
 

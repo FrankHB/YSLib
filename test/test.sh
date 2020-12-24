@@ -14,13 +14,11 @@ YSLib_BaseDir=$(cd "$YSLib_BaseDir"; pwd)
 CXXFLAGS_OPT_UseAssert=true
 # shellcheck disable=2034
 SHBuild_Debug=debug
-# shellcheck disable=2034
-SHBuild_NoAdjustSubsystem=true
 
 # shellcheck source=../Tools/Scripts/SHBuild-common-options.sh
 . "$SHBuild_ToolDir/SHBuild-common-options.sh" # for SHBuild_PrepareBuild,
 #	SHBuild_GetBuildName, SHBuild_Pushd, SHBuild_Popd, SHBuild_CheckPCH,
-#	SHBuild_Puts;
+#	SHBuild_Puts and build options.
 
 INCLUDE_PCH="$YSLib_BaseDir/YBase/include/stdinc.h"
 INCLUDES="-I$YSLib_BaseDir/YFramework/include \
@@ -46,7 +44,7 @@ SHBuild_CheckPCH "$INCLUDE_PCH" "stdinc.h"
 
 # XXX: Value of several variables may contain whitespaces.
 # shellcheck disable=2086,2154
-"$CXX" "$TestDir/YBase.cpp" -oYBase$EXESFX $CXXFLAGS $LDFLAGS $SHBuild_IncPCH \
+"$CXX" "$TestDir/YBase.cpp" -oYBase $CXXFLAGS $LDFLAGS $SHBuild_IncPCH \
 	$INCLUDES $LIBS "$@"
 
 ./YBase

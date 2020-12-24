@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2018 FrankHB.
+	© 2014-2018, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r331
+\version r336
 \author FrankHB <frankhb1989@gmail.com>
 \since build 522
 \par 创建时间:
 	2014-07-25 20:14:51 +0800
 \par 修改时间:
-	2018-12-26 19:52 +0800
+	2020-12-24 12:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -130,7 +130,10 @@ public:
 };
 
 
-//! \brief 异常：未实现的操作。
+/*!
+\brief 异常：未实现的操作。
+\note 和 \c std::system_error 中的错误条件不同，一般不表示依赖外部确定支持条件。
+*/
 class YB_API unimplemented : public unsupported
 {
 public:

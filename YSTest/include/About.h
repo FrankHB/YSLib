@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013, 2015-2016 FrankHB.
+	© 2012-2013, 2015-2016, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file About.h
 \ingroup YReader
 \brief 关于界面。
-\version r92
+\version r95
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:07:32 +0800
 \par 修改时间:
-	2016-06-05 20:07 +0800
+	2020-12-24 12:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,8 +34,8 @@ namespace YReader
 {
 
 /*!
-\brief 关于窗体。
-\since build 363
+\brief 关于面板。
+\since build 695
 */
 class AboutPanel : public DialogPanel
 {

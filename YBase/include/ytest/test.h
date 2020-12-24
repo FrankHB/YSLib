@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014, 2019 FrankHB.
+	© 2014, 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file test.h
 \ingroup YTest
 \brief 基础测试工具。
-\version r111
+\version r125
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-17 03:56:17 +0800
 \par 修改时间:
-	2019-08-01 18:13 +0800
+	2020-12-24 12:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,8 +34,8 @@
 #define YB_INC_ytest_test_h_ 1
 
 #include "../ydef.h"
-#include <string>
-#include <functional>
+#include <ystdex/string.hpp> // for ystdex::string;
+#include <ystdex/function.hpp> // for ystdex::function;
 
 /*!
 \since build 319
@@ -65,16 +65,20 @@ expect(const _type& result, _func&& f, _tParams&&... args)
 class YB_API group_guard
 {
 public:
-	std::string subject;
+	ystdex::string subject;
 	size_t pass_n = 0;
 	size_t fail_n = 0;
-	std::function<void(group_guard&)> on_end{};
+	//! \since build 899
+	ystdex::function<void(group_guard&)> on_end{};
 
+	//! \since build 899
+	//@{
 	//! \brief 构造：提供名称。
-	group_guard(const std::string&);
+	group_guard(const ystdex::string&);
 	//! \brief 构造：提供名称并注册回调，若起始回调非空时则调用。
-	group_guard(const std::string&, std::function<void(group_guard&)>,
-		std::function<void(group_guard&)>);
+	group_guard(const ystdex::string&, ystdex::function<void(group_guard&)>,
+		ystdex::function<void(group_guard&)>);
+	//@}
 	group_guard(group_guard&&) = default;
 	/*!
 	\brief 析构：调用 on_end 。
@@ -82,8 +86,9 @@ public:
 	*/
 	~group_guard();
 
+	//! \since build 899
 	template<typename _fPass, typename _fFail>
-	std::function<void(bool)>
+	ystdex::function<void(bool)>
 	get(_fPass pass, _fFail fail)
 	{
 		return [this, pass, fail](bool b){

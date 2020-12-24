@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r1602
+\version r1787
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2020-12-13 02:45 +0800
+	2020-12-24 12:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,190 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		+ 'YB_ATTR_nodiscard YB_PURE ynothrow'
+			@ "member function %Environment::MakeTags" @ %NPL.NPLA,
+		+ DLDI 'YB_ATTR_nodiscard YB_PURE' @ "function %MapPoint"
+			@ "platform %Win32" @ "class %DSWindow" @ %'Helper_(DS)'.DSWindow,
+			// Also to eliminate G++ 10.1 warning: [-Wsuggest-attribute=pure].
+		/ %YCLib $=
+		(
+			+ $lib "workaround of invalid handling of completeness of \
+				instantiated %unique_ptr with member initializer for G++ < 9.2"
+				@ 'YCL_HostedUI_XCB || YCL_Android' @ "class %ScreenBuffer"
+				@ %HostedGUI,
+				// Actually no relavant G++ versions have been tested against \
+					the defect because the member initializer was added since \
+					b888, and either more recent versions of G++ (on Linux) \
+					or Clang++ (on Android) are used. Thus, this is not an \
+					engineering defect of missing testing.
+			/ $design $impl "simplified constructor %Atom" @ %XCB
+				// To eliminate Clang++ warning: [-Wunused-value].
+		),
+		/ %Helper $=
+		(
+			/ @ "class %Environment" @ %Environment $=
+			(
+				+ DLDI "brace-init-list '{}'" @ "data member %Root",
+				* DD "wrong name" @ "'\sa' command" @ "Doxygen comment"
+					@ "constructor" $since b693
+			),
+			/ DLDI "avoided redundant lambda capture" @ "function %AttachToHost"
+				@ "platform %Win32" @ %HostedUI
+				// To eliminate Clang++ 9.0.1 warning: \
+					[-Wunused-lambda-capture].
+		),
+		/ DLDI %'YCLib_(Win32)' $=
+		(
+			/ "header guard names" @ %(COM, Registry, Consoles),
+			/ "private data member" @ "class %WConsole" @ %Consoles
+		)
+	),
+	/ @ "%test.sh" @ %Test $=
+	(
+		- '$EXESFX' @ "build command line",
+		- DLDI "%SHBuild_NoAdjustSubsystem setting"
+			// This is unused without %SHBuild being called.
+	),
+	/ %Tools $=
+	(
+		/ %Scripts $=
+		(
+			/ @ "%SHBuild-common-options.sh" $=
+			(
+				/ "cleanup variable not used in stage 1" $=
+				(
+					// See $2020-10 @ %Documentation::Workflow.
+					- "variables %(LDFLAGS_DYN; LDFLAGS_DYN_BASE, \
+						LDFLAGS_DYN_EXTRA)";
+					- "variables %(LIBS_RPATH, LIBPFX, DSOSFX)"
+					- "variable %EXESFX"
+						$dep_from ("build command line" @ %Test)
+				),
+				* "wrong warning options for %CFLAGS when the C++ compiler is \
+					G++" $since b880
+			),
+			/ DLI "optimized compiler test commands" ^ '-pipe' $effective
+				@ ("SHBuild-common-options.txt", "SHBuild-YSLib-common.txt"),
+			(
+			+ "applicative %SHBuild_Extend_CallVariables"
+				@ "%SHBuild-YSLib-common.txt";
+			/ DLDI "simplified %SHBuild-BuildApp.txt"
+			),
+			/ @ "%SHBuild-YSLib-build.txt" $=
+			(
+				+ "support of %(SHBuild_LDFLAGS, SHBuild_LIBS)"
+					^ $dep_from ("%SHBuild_Extend_CallVariables"
+					@ "%SHBuild-YSLib-common.txt"),
+				/ "library building" $=
+				(
+					/ "supported %SHBuild_CXXFLAGS"
+						@ "building the precompiled header",
+					+ "warning to indicate additional flags fix is used",
+					+ "detection of address sanitizer and the workaround for \
+						building performance with dynamic YFramework build by \
+						G++"@ "platform %Linux"
+				)
+			),
+			* "missing check slashes in the 1st argument before call to \
+				'hash'" $effective @ ("function %SHBuild_CheckedCall"
+				@ "%SHBuild-common.sh" $since b562,
+				"functions %(SHBuild_CheckCC, SHBuild_CheckXX)"
+				@ "%SHBuild-common-toolchain.sh" $since b897)
+			/ @ "%SHBuild-common.sh" $=
+			(
+				/ DLDI "simplified 'exit' without '$?'" $effective
+					@ "functions %(SHBuild_CheckedCall, \
+					SHBuild_CheckedCallSlient)",
+				/ @ "function %SHBuild_S2_Prepare" $=
+				(
+					+ DLD "ShellCheck directive for default value from %cd \
+						command result",
+						// To eliminate ShellCheck warning: SC2164.
+					* "missing quotes on the argument of \
+						%SHBuild_GetSystemPrefix" $since b905
+						// Also to eliminate ShellCheck warning: SC2046.
+				),
+				/ DLDI "simplified function %SHBuild_GetBuildName"
+						// Also to eliminate ShellCheck issue: SC2005.
+			)
+		),
+		/ $dev $lib "split header inclusions" !^ %YSBuild @ %SHBuild.Main
+			/ $= (/ '<YSBuild.h>' -> %(YSLib.Service, NPL).YModules)
+			// This should be better for the build performance. And it is bad \
+				that stage 1 build is effected by failure of building \
+				unrelated modules (like %YFramework.YCLib.HostedGUI worked \
+				around above), although the split does not resolve the real \
+				issue.
+	),
+	/ @ "simplified build variable configuration" @ "build scripts"
+		$effective @ ("%(SHBuild-common-options.sh, \
+		SHBuild-YSLib-common.txt, Toolchain.options.mk)" @ %Tools.Scripts,
+		"all project makefiles with %(CFLAGS, CXXFLAGS)") $=
+	(
+		- "variables %(CFLAGS_COMMON, CXXFLAGS_COMMON)"
+			// The value is inlined to the use sites.
+		/ "ensured %CFLAGS_STD at front of the default value" @ "%CFLAGS",
+		/ "ensured %CXXFLAGS_STD at front of the default value"
+			@ "%CXXFLAGS"
+	),
+	* "wrong '-fno-threadsafe-statics'" @ "%CXXFLAGS" @ "%Makefile"
+		@ "platform %Android" $since b492 $effective
+		@ %(YBase, YFramework, YSTest),
+	- $build "%AUDIOFILES build configuration" @ ("%Makefile" @ %YFramework,
+		"ARM9 makefile" @ %YSTest) @ "platform %DS",
+		// ARM7 sources are never built here.
+	- $build "rule and %OFILES output for unused files except '%.bin'"
+		$effective ("%Makefile" @ %(YBase, YFramework), "(ARM7, ARM9) makefiles"
+		@ "platform %DS" @ %YSTest,
+		"%Makefile" @ "platform %Android" @ %YSTest),
+	- DLI "redundant warning option '-Wsign-promo'" @ "%CXXFLGAS" $effective
+		("%Makefile" @ %(YBase, YFramework), "(ARM7, ARM9) makefiles"
+		@ "platform %DS" @ %YSTest),
+	- DLI "redundant warning option '-Wnon-virtual-dtor'" @ "%CXXFLGAS"
+		$effective ("%Makefile" @ %YBase, "%Makefile" @ "platform %Android"
+		@ %YFramework, "(ARM7, ARM9) makefiles" @ "platform %DS" @ %YSTest)
+	- DLI "redundant warning option '-Wctor-dtor-privacy'" @ "%CXXFLGAS"
+		$effective ("%Makefile" @ %YBase, "%Makefile" @ "platform %Android"
+		@ %YFramework, "ARM9 makefiles" @ "platform %DS" @ %YSTest),
+	+ '-Wno-ignored-qualifiers' @ "%(CFLAGS, CXXFLAGS)" @ "%Makefile"
+		@ ("%Makefile" @ "platform %DS" @ %YFramework, "ARM9 makefile"
+		@ "platform %DS" @ %YSTest),
+		// To eliminate G++ warning: [-Wignored-qualifiers]
+	/ %YBase $=
+	(
+		/ %Test $=
+		(
+			/ $re_add(b860) "all %std::function" -> "%ystdex::function",
+			/ "all %std::string" -> "%ystdex::string"
+		),
+		/ DD "Doxygen comments" @ %YStandardEx $=
+		(
+			+ $design '\c' @ "before header name" @ %Apply,
+			+ "'\note' command" @ "class %unimplemented" @ %Exception,
+			+ "'\note' command" @ "metafunctions %(enable_for_iterator_t, \
+				enable_for_input_iterator_t)" @ %IteratorTrait
+		)
+	),
+	/ %YReader $=
+	(
+		/ $re_add(b860) $dev "all %std::function" -> "%YSLib::function"
+			@ %(DSReader, ShlReader),
+		+ DLDI "%yunused around %YReader::FetchImage call" @ "main function"
+			@ %Main,
+			// To eliminate G++ and Clang++ warning: [-Wunused-result].
+		/ DD "Doxygen comments" @ %(About, HexBrowser, ReadingList)
+	),
+	+ DLDI 'YB_STATELESS' @ "unimplemented API" @ !"platform %Win32" $effective
+		@ ("member function %GUIHost::GetForegroundWindow" @ %GUIApplication,
+		"function %FetchDefaultTopLevelPosition" @ %HostedUI)
+		@ %YFramework.Helper
+		// To eliminate G++ 10.1 warning: [-Wsuggest-attribute=const].
+),
+
+b905
 (
 	(
 	* $doc "fixed annotations method of engineering defects"
@@ -258,7 +442,7 @@ $now
 						Some also depend on the input. The old implementation \
 						(before b901) using %EncodeArg has limitation on the \
 						active code page despite of input encoding issues, \
-						though. 
+						though.
 			),
 			/ $comp "environment encoding converted to UTF-8"
 				$dep_from ("%SetEnvironmentVariable" @ %YCLib.YCommon,
@@ -834,7 +1018,7 @@ b902
 					GetFileModificationAndAccessTimeOf)" $orig (@
 					"member %FileDescriptor::GetModificationTime" $since b624)
 			),
-			+ "function %StreamGet" @ %FileIO ^ $dep_from 
+			+ "function %StreamGet" @ %FileIO ^ $dep_from
 				("%ystdex::flush_input" @ %YBase.YStandardEx.StreamBuffer)
 		),
 		/ %YSLib.Adaptor $=

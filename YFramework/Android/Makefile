@@ -1,5 +1,5 @@
 #
-#	(C) 2009-2016 FrankHB.
+#	(C) 2009-2016, 2020 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YFramework
-# Version = r360
+# Version = r459
 # Created = 2014-04-07 17:50:08 +0800
-# Updated = 2016-04-12 22:20 +0800
+# Updated = 2020-12-14 01:43 +0800
 # Encoding = ANSI
 
 
@@ -21,10 +21,6 @@
 SHBuild_ToolDir := $(dir $(lastword $(MAKEFILE_LIST)))/../../Tools/Scripts
 include $(SHBuild_ToolDir)/Toolchain.Android.mk
 
-CFLAGS_COMMON := $(CFLAGS_COMMON) -Wno-cast-align
-CXXFLAGS_COMMON := $(CXXFLAGS_COMMON) -Wno-cast-align
-
-#----
 # PROJNAME is the name of the project
 # CONF is the configuration name
 # RELEASE is the directory name for object files and intermediate files will be placed
@@ -35,8 +31,6 @@ CXXFLAGS_COMMON := $(CXXFLAGS_COMMON) -Wno-cast-align
 # SOURCES is a list of directories containing source code
 # INCLUDES is a list of directories containing extra header files
 # DATA is a list of directories containing binary files embedded using bin2o
-# GRAPHICS is a list of directories containing image files to be converted with grit
-#----
 
 export PROJNAME		?=	YFramework
 export CONF			?=	release
@@ -60,30 +54,18 @@ export INCLUDES		:=	include data $(REFDIR)/Android/include \
 	$(REFDIR)/include ../../3rdparty/include ../../3rdparty/freetype/include
 export DATA			:=	#data $(REFDIR)/data
 
-# options for code generation
-CFLAGS := $(INCLUDE) $(C_CXXFLAGS) $(CFLAGS_COMMON)
-CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS) $(CXXFLAGS_COMMON) \
-	-fno-threadsafe-statics -fuse-cxa-atexit -Wctor-dtor-privacy \
-	-Wnon-virtual-dtor -Wsign-promo
-#	-Wnoexcept -Wnon-virtual-dtor -Wold-style-cast -Wsign-promo
+CFLAGS := $(CFLAGS_STD) $(INCLUDE) $(C_CXXFLAGS) $(C_CXXFLAGS_COMMON) \
+	$(CFLAGS_WARNING) -Wno-cast-align
+CXXFLAGS := $(CXXFLAGS_STD) $(INCLUDE) $(C_CXXFLAGS) $(C_CXXFLAGS_COMMON) \
+	$(CXXFLAGS_WARNING) $(CXXFLAGS_IMPL_COMMON) -Wno-cast-align \
+	-fno-threadsafe-statics -fuse-cxa-atexit
+#	-Wnoexcept -Wold-style-cast
 
-#----
-# any extra libraries we wish to link with the project
-#----
-LIBS	:=	#-lfreetype
+LIBS :=	#-lfreetype
 
-#----
-# list of directories containing libraries, this must be the top level containing
-# include and lib
-#----
-LIBDIRS	:=	$(LIBNDS) #lib
+LIBDIRS	:= $(LIBNDS) #lib
 
-#----
-# no real need to edit anything past this point unless you need to add additional
-# rules for different file extensions
-#----
 ifneq ($(CONF),$(notdir $(CURDIR)))
-#----
 
 export OUTPUT	:=	$(RELEASEDIR)/lib$(TARGET).a
 
@@ -96,35 +78,16 @@ export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 CFILES		:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.c))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.cpp))
 SFILES		:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.s))
-PCXFILES	:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.pcx))
 BINFILES	:=	$(foreach dir,$(DATA),$(wildcard $(dir)/*.bin))
 
-PNGFILES	:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.png))
-PALFILES	:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.pal))
-RAWFILES	:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.raw))
-MAPFILES	:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.map))
-JPEGFILES	:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.jpg))
-MODFILES	:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.mod))
-GIFFILES	:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.gif))
-BMPFILES	:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.bmp))
-MP3FILES	:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.mp3))
-
-#----
-# use CXX for linking C++ projects, CC for standard C
-#----
 ifeq ($(strip $(CPPFILES)),)
 	export LD	:=	$(CC)
 else
 	export LD	:=	$(CXX)
 endif
 
-export OFILES	:=	$(addsuffix .o,$(MAPFILES)) $(addsuffix .o,$(RAWFILES)) \
-	$(addsuffix .o,$(PALFILES)) $(addsuffix .o,$(BINFILES)) \
-	$(addsuffix .o,$(MODFILES)) $(addsuffix .o,$(BMPFILES)) \
-		$(addsuffix .o,$(JPEGFILES)) $(addsuffix .o,$(GIFFILES)) \
-		$(addsuffix .o,$(PNGFILES)) \
-	$(addsuffix .o,$(PCXFILES)) $(addsuffix .o,$(MP3FILES)) \
-	$(addsuffix .o,$(CPPFILES)) $(addsuffix .o,$(CFILES)) $(addsuffix .o,$(SFILES))
+export OFILES := $(addsuffix .o,$(BINFILES)) $(addsuffix .o,$(CPPFILES)) \
+	$(addsuffix .o,$(CFILES)) $(addsuffix .o,$(SFILES))
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 	$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
@@ -158,22 +121,10 @@ else
 
 DEPENDS	:= $(OFILES:.o=.d)
 
-#----
-# main targets
-#----
-
 $(OUTPUT)	:	$(OFILES)
 	@rm -f "$(OUTPUT)"
 	@echo Linking $(notdir $@) ...
 	@$(AR) rcs "$(OUTPUT)" $(foreach file,$(OFILES),$(DEPSDIR)/$(file))
-
-#----
-# you need a rule like this for each extension you use as binary data
-#----
-
-#----
-# Compile Targets for C/C++
-#----
 
 %.cpp.o : %.cpp
 	@echo $<
@@ -200,66 +151,11 @@ define bin2o
 	echo "extern const unsigned" $(notdir $(*))_size";" >> $(DEPSDIR)/$(*).h
 endef
 
-%.mp3.o	:	%.mp3
+%.bin.o	: %.bin
 	@echo $<
 	@$(bin2o)
-
-%.pcx.o	:	%.pcx
-	@echo $<
-	@$(bin2o)
-
-%.bin.o	:	%.bin
-	@echo $<
-	@$(bin2o)
-
-%.png.o	:	%.png
-	@echo $<
-	@$(bin2o)
-
-%.raw.o	:	%.raw
-	@echo $<
-	@$(bin2o)
-
-%.pal.o	:	%.pal
-	@echo $<
-	@$(bin2o)
-
-%.map.o	:	%.map
-	@echo $<
-	@$(bin2o)
-
-%.mdl.o	:	%.mdl
-	@echo $<
-	@$(bin2o)
-
-%.jpg.o	:	%.jpg
-	@echo $<
-	@$(bin2o)
-
-%.mod.o	:	%.mod
-	@echo $<
-	@$(bin2o)
-
-%.gif.o	:	%.gif
-	@echo $<
-	@$(bin2o)
-
-%.bmp.o	:	%.bmp
-	@echo $<
-	@$(bin2o)
-
-#----
-# This rule creates assembly source files using grit
-# grit takes an image file and a .grit describing how the file is to be processed
-# add additional rules like this for each image extension
-# you use in the graphics folders
-#----
-%.s %.h   : %.png %.grit
-	grit $< -fts -o$*
 
 -include $(foreach file,$(DEPENDS),$(DEPSDIR)/$(file))
 
-#----
 endif
-#----
 

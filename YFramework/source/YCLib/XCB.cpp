@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2018 FrankHB.
+	© 2014-2016, 2018, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief XCB GUI 接口。
-\version r597
+\version r599
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2014-12-14 14:14:31 +0800
 \par 修改时间:
-	2018-11-27 19:07 +0800
+	2020-12-24 12:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -358,7 +358,7 @@ Atom::Atom(::xcb_connection_t& c_ref, string_view n,
 			return p->atom;
 		return XCB_ATOM_NONE;
 	}(::xcb_intern_atom_unchecked(&c_ref, only_if_exists, n.length(),
-		(Nonnull(n.data()), n.data()))))
+		Nonnull(n.data()))))
 {}
 
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief COM 接口。
-\version r536
+\version r539
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-07 10:29:30 +0800
 \par 修改时间:
-	2016-07-14 23:04 +0800
+	2020-12-24 12:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,8 +26,8 @@
 */
 
 
-#ifndef YCL_MinGW32_INC_COMPtr_h_
-#define YCL_MinGW32_INC_COMPtr_h_ 1
+#ifndef YCL_Win32_INC_COMPtr_h_
+#define YCL_Win32_INC_COMPtr_h_ 1
 
 #include "YCLib/YModules.h"
 #include YFM_Win32_YCLib_MinGW32 // for platform_ex, std::runtime_error,

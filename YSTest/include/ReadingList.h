@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2015, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ReadingList.h
 \ingroup YReader
 \brief 阅读列表。
-\version r245
+\version r247
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:13:46 +0800
 \par 修改时间:
-	2015-12-27 22:32 +0800
+	2020-12-24 12:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,7 +96,7 @@ public:
 
 public:
 	/*!
-	\brief 默认构造：阅读迭代器指向阅读记录末尾。
+	\brief 无参数构造：阅读迭代器指向阅读记录末尾。
 	\since build 404
 	*/
 	DefDeCtor(ReadingList)

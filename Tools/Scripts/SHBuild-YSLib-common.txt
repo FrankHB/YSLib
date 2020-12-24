@@ -183,8 +183,8 @@ $defl! compile-ok (src compile out opt err-out)
 (
 	$unless (safeenv-empty? "SHELL")
 		(string<- src (system-quote src));
-	system-ok (cons-cmd "echo" src "|" (system-quote compile) "-xc++" "-o"
-		(system-quote out) opt "- 2>" err-out)
+	system-ok (cons-cmd "echo" src "|" (system-quote compile) "-pipe" "-xc++"
+		"-o" (system-quote out) opt "- 2>" err-out)
 );
 $defl! compile-ok-discard_ (src compile opt err-out)
 	with-tmp-file_ (() mktmp_exe_)
@@ -225,6 +225,7 @@ $defl! SHBuild_CmdCache_GetEnv_ (host-os)
 	);
 	first (rest& r)
 );
+
 $defl! SHBuild_CheckCXX (host-os cxx)
 	$let ((e SHBuild_CmdCache_GetEnv_ host-os) (sym string->symbol cxx))
 	(
@@ -236,6 +237,17 @@ $defl! SHBuild_CheckCXX (host-os cxx)
 		);
 		force (eval% sym e)
 	);
+
+$defl! SHBuild_Extend_CallVariables ()
+(
+	$env-de! SHBuild_LDFLAGS "";
+	$unless (string-empty? SHBuild_LDFLAGS)
+		(safeenv-set "LDFLAGS" (++ SHBuild_LDFLAGS " " (env-get "LDFLAGS")));
+	$env-de! SHBuild_LIBS "";
+	$unless (string-empty? SHBuild_LIBS)
+		(safeenv-set "LIBS" (++ SHBuild_LIBS " " (env-get "LIBS")));
+);
+
 $defl! SHBuild_ar_ok_ (ar)
 	system-ok (cons-cmd (system-quote-m_ ar) "--help" "1>"
 		(() mktmp_) "2>" nul_dev_);
@@ -396,9 +408,6 @@ $defl! build-with-conf-opt (outdir host-os debug dynamic shbopt-ext app
 	$def! prom_CFLAGS_STD $lazy-env-val "CFLAGS_STD" "-std=c11";
 	$def! prom_CFLAGS_WARNING $lazy-env-val "CFLAGS_WARNING" cons-cmd
 		(force prom_C_CXXFLAGS_WARNING) (force prom_C_CXXFLAGS_IMPL_WARNING);
-	$def! prom_CFLAGS_COMMON $lazy-env-val "CFLAGS_COMMON" cons-cmd
-		(force prom_C_CXXFLAGS_COMMON) (force prom_CFLAGS_STD)
-		(force prom_CFLAGS_WARNING);
 	$def! prom_CXXFLAGS_IMPL_COMMON $lazy-env-val "CXXFLAGS_IMPL_COMMON"
 		cons-cmd (first (force prom_thread-options_))
 		"-U__GXX_MERGED_TYPEINFO_NAMES" "-D__GXX_MERGED_TYPEINFO_NAMES=1";
@@ -407,9 +416,6 @@ $defl! build-with-conf-opt (outdir host-os debug dynamic shbopt-ext app
 		(force prom_CFLAGS_WARNING) "-Wctor-dtor-privacy" "-Wnon-virtual-dtor"
 		"-Woverloaded-virtual" "-Wsign-promo"
 		(force prom_CXXFLAGS_IMPL_WARNING);
-	$def! prom_CXXFLAGS_COMMON $lazy-env-val "CXXFLAGS_COMMON" cons-cmd
-		(force prom_CXXFLAGS_STD) (force prom_C_CXXFLAGS_COMMON)
-		(force prom_CXXFLAGS_WARNING) (force prom_CXXFLAGS_IMPL_COMMON);
 	$def! prom_CXXFLAGS_OPT_DBG $lazy
 		$if debug ("-O0 -g -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC")
 		(
@@ -418,12 +424,13 @@ $defl! build-with-conf-opt (outdir host-os debug dynamic shbopt-ext app
 				(force prom_CXXFLAGS_IMPL_OPT) "-fomit-frame-pointer"
 		);
 	"XXX", "Rename %CXXFLAGS_OPT_DBG -> CFLAGS_OPT_DBG/C_CXXFLAGS_OPT_DBG?";
-	$env-de! CFLAGS cons-cmd (force prom_C_CXXFLAGS_PIC)
-		(force prom_CFLAGS_COMMON) (force prom_C_CXXFLAGS_COMMON_IMPL_)
-		(force prom_CXXFLAGS_OPT_DBG);
-	$env-de! CXXFLAGS cons-cmd (force prom_C_CXXFLAGS_PIC)
-		(force prom_CXXFLAGS_COMMON) (force prom_C_CXXFLAGS_COMMON_IMPL_)
-		(force prom_CXXFLAGS_OPT_DBG);
+	$env-de! CFLAGS cons-cmd (force prom_CFLAGS_STD) (force prom_C_CXXFLAGS_PIC)
+		(force prom_C_CXXFLAGS_COMMON) (force prom_CFLAGS_WARNING)
+		(force prom_C_CXXFLAGS_COMMON_IMPL_) (force prom_CXXFLAGS_OPT_DBG);
+	$env-de! CXXFLAGS cons-cmd (force prom_CXXFLAGS_STD)
+		(force prom_C_CXXFLAGS_PIC) (force prom_C_CXXFLAGS_COMMON)
+		(force prom_CXXFLAGS_WARNING) (force prom_CXXFLAGS_IMPL_COMMON)
+		(force prom_C_CXXFLAGS_COMMON_IMPL_) (force prom_CXXFLAGS_OPT_DBG);
 	$redef! CFLAGS SHBuild_TrimOptions_ CFLAGS,
 	$redef! CXXFLAGS SHBuild_TrimOptions_ CXXFLAGS;
 	SHB_SetupPlatformVars_ (() get-current-environment) host-os;

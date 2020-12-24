@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Makefile specifying common toolchain options
-# Version = r78
+# Version = r81
 # Created = 2014-12-06 17:24:04 +0800
-# Updated = 2020-02-25 19:09 +0800
+# Updated = 2020-12-14 00:44 +0800
 # Encoding = ANSI
 
 
@@ -35,8 +35,6 @@ CXXFLAGS_IMPL_WARNING ?= -Wconditionally-supported -Wno-ignored-attributes \
 
 CFLAGS_WARNING ?= $(C_CXXFLAGS_WARNING) $(C_CXXFLAGS_IMPL_WARNING)
 
-CFLAGS_COMMON ?= $(C_CXXFLAGS_COMMON) $(CFLAGS_STD) $(CFLAGS_WARNING)
-
 CXXFLAGS_IMPL_OPT ?= -s -fexpensive-optimizations -flto=jobserver
 LDFLAGS_IMPL_OPT ?= -s -fexpensive-optimizations -flto
 
@@ -47,8 +45,6 @@ CXXFLAGS_WARNING ?= $(CFLAGS_WARNING) -Wctor-dtor-privacy -Wnon-virtual-dtor \
 
 CXXFLAGS_IMPL_COMMON ?= \
 	-U__GXX_MERGED_TYPEINFO_NAMES -D__GXX_MERGED_TYPEINFO_NAMES=1
-CXXFLAGS_COMMON ?= $(C_CXXFLAGS_COMMON) $(CXXFLAGS_STD) \
-	$(CXXFLAGS_WARNING) $(CXXFLAGS_IMPL_COMMON)
 
 ifneq ($(CONF),debug)
 	ASFLAGS_OPT_DBG ?=

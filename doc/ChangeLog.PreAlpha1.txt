@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2019 FrankHB.
+	© 2013-2016, 2019-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha1.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha1 。
-\version r334
+\version r350
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2019-10-03 20:55 +0800
+	2020-12-24 12:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -207,14 +207,21 @@ b184
 
 b170_b183
 (
-	/ "GUI" $=
+	/ %YSLib $=
 	(
-		+ "controls: tracks",
-		+ "controls: scroll bars";
-		+ "controls: scrollable container",
-		+ "controls: listbox"
+		+ "class template %ExpandMemberFirstBinder" @ %Core.YFunc
+		+ %Adaptor.(YNew, YReference),
+		/ %YShellInitialization @ %Service >> %Adaptor,
+		+ "GUI controls" @ %Shell $=
+		(
+			+ "controls: tracks",
+			+ "controls: scroll bars";
+			+ "controls: scrollable container",
+			+ "controls: listbox"
+		)
 	),
-	+ "class template %ExpandMemberFirstBinder"
+	/ $doc ^ "Doxygen",
+	+ %YCLib.(YStandardExtend, YCast),
 ),
 
 b159_b169
@@ -228,6 +235,8 @@ b159_b169
 
 b134_b158
 (
+	/ "classes %(YFont, YFontFamily, YTypeface, YFontFile)"
+		@ %YSLib.Adaptor.YFontCache => "%Font, FontFamily, FontFile",
 	+ DLD "core utility templates",
 	/ "smart pointers",
 	+ "GUI focus",

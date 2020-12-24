@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018 FrankHB.
+	© 2009-2016, 2018, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup DS
 \brief 主源文件。
-\version r1976
+\version r1980
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2018-08-19 13:41 +0800
+	2020-12-24 12:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,6 +62,7 @@ OnExit_DebugMemory_print(_tCon& con, const char* item_name)
 		YTraceDe(Warning, "%zu %s(s) detected:\n", con.size(), item_name);
 #else
 		// XXX: Size of %std::size is expected.
+		// XXX: Error from 'std::fprintf' is ignored.
 		std::fprintf(stderr, "%zu %s(s) detected:\n", con.size(), item_name);
 #endif
 
@@ -99,7 +100,7 @@ OnExit_DebugMemory()
 	OnExit_DebugMemory_print<4>(GetDebugMemoryList().Blocks, "memory leak");
 	OnExit_DebugMemory_print<4>(GetDebugMemoryList().DuplicateDeletedBlocks,
 		"duplicate memory deleting");
-#if 0
+#if false
 	DebugMemory.PrintAll(stderr);
 	DebugMemory.PrintAll(fp);
 	DebugMemory.PrintAllDuplicate(stderr);
@@ -183,7 +184,7 @@ main()
 					dsk_m.Background
 						= SolidBrush(Color(255 - i * 255 / Image_N, 216, 192));
 					Repaint(dsk_m);
-					YReader::FetchImage(i);
+					yunused(YReader::FetchImage(i));
 				}
 				pb.SetValue(Image_N);
 				Repaint(dsk_m);

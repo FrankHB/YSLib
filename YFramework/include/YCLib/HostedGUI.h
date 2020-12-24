@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1587
+\version r1596
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2020-04-19 03:48 +0800
+	2020-12-16 19:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -435,7 +435,15 @@ private:
 	\invariant bool(p_impl) 。
 	\since build 593
 	*/
-	unique_ptr<ScreenBufferData> p_impl{};
+	unique_ptr<ScreenBufferData> p_impl
+#	if !YB_IMPL_GNUCPP || YB_IMPL_GNUCPP >= 90200
+	// NOTE: Workaround for a bug fixed in GCC 9.2. The revision of the fix is
+	//	not checked. It seems like an issue of point of instantiation. It is not
+	//	a regression, since all old versions are effected. It has nothing to do
+	//	with LWG 2801. See also https://stackoverflow.com/questions/58375922.
+	{}
+#	endif
+		;
 	/*!
 	\brief 宽：以像素数计量的缓冲区的实际宽度。
 	\since build 498

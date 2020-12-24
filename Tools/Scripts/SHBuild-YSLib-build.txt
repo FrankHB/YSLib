@@ -16,6 +16,7 @@ $def! env_SHBuild_Common_ $provide! (
 	SHBuild_2m
 	SHBuild_CheckCXX
 	SHBuild_EchoVar_N
+	SHBuild_Extend_CallVariables
 	SHBuild_GetPlatformStrings
 	SHBuild_GetSystemPrefix
 	SHBuild_Platform_Detect
@@ -23,6 +24,7 @@ $def! env_SHBuild_Common_ $provide! (
 	cons-cmd
 	get_env_SHB_
 	ld-ext-noadjust_
+	rmatch?
 	safeenv-empty?
 	safeenv-get
 	safeenv-restore
@@ -141,11 +143,12 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 				"-xid,alternative -xid,data -xid,include -xid,Android" #f
 				ld-ext-noadjust_ ($lambda (CXX CXXFLAGS SHBOPT LIBPFX)
 				(
+					$def! SHBuild_CXXFLAGS safeenv-get "SHBuild_CXXFLAGS";
 					$if (safeenv-empty? "SHBuild_NoPCH")
 					(
 						BuildGCH_ (++ repo-base "/YBase/include/stdinc.h")
-							(++ outdir "/stdinc.h") CXX
-							(cons-cmd "-xc++-header" CXXFLAGS);
+							(++ outdir "/stdinc.h") CXX (cons-cmd "-xc++-header"
+							SHBuild_CXXFLAGS CXXFLAGS);
 						$def! inc-pch list "-include"
 							(system-quote-m_ (++ outdir "/stdinc.h"))
 					)
@@ -154,6 +157,7 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 						$def! inc-pch ()
 					);
 					$def! DFLAG_B_YB $if dynamic "-DYB_BUILD_DLL" "";
+					() SHBuild_Extend_CallVariables;
 					$def! base_LDFLAGS env-get "LDFLAGS";
 					"NOTE", "The prefix 'lib' is explicit, see %InstLibD.";
 					$defl! build-lib (lib-name inc-pch .opts)
@@ -183,19 +187,36 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 					"XXX", "Precompiled header is not available as it",
 						" requires '-D__NO_INLINE__ -U__OPTIMIZE__'.";
 					"XXX", "See $2020-10 @ doc/Workflow.txt.";
-					$def! mingw64g $and? (eqv? host-platform_ "MinGW64")
-						(eqv? (SHBuild_CheckCXX host-os CXX) "G++");
-					$defl! fix-flags ()
+					$def! use-g++ eqv? (SHBuild_CheckCXX host-os CXX) "G++";
+					$def! mingw64g
+						$and? use-g++ (eqv? host-platform_ "MinGW64");
+					"XXX", "See $2020-12 @ doc/Workflow.txt.";
+					$defl! use-asan? (opt) rmatch? opt
+						"-f(address-sanitizer|sanitize=[a-z,]*address)";
+					$def! linuxgrd-asan $and? use-g++ (not? debug) dynamic
+						(eqv? host-platform_ "Linux")
+						($or? (use-asan? SHBuild_CXXFLAGS)
+						(use-asan? (safeenv-get "SHBuild_LDFLAGS")));
+					$defl! fix-flags-add ()
 					(
 						$cond
 							(mingw64g $if dynamic
 								"-Og -g -fno-var-tracking-assignments"
 								"-O1 -g -fno-var-tracking-assignments")
+							(linuxgrd-asan "-fno-var-tracking-assignments")
 							(mingw32r "-fno-lto")
 							(#t "")
 					);
+					$defl! fix-flags-add-w ()
+					(
+						$def! extra () fix-flags-add;
+						$unless (string-empty? extra) (puts (++
+							"WARNING: Additional option are prepended to work"
+							" around the YFramework build: '" extra "'."));
+						extra
+					);
 					build-lib "YFramework" ($if mingw64g () inc-pch)
-						(() fix-flags) ($if dynamic "-DYB_DLL" "")
+						(() fix-flags-add-w) ($if dynamic "-DYB_DLL" "")
 						($if dynamic "-DYF_BUILD_DLL" "") "-DFREEIMAGE_LIB"
 						(SHBuild_TrimOptions_ (++ INCLUDES_YFramework " "
 						CFLAGS_freetype_other))
@@ -321,8 +342,12 @@ $let ((target-name "stage 2 SHBuild"))
 		"XXX", "Extra options for SHBOPT are always empty now.";
 		build-with-conf-opt SR_SHBuild_ host-os #f #t "" #t
 			ld-ext-noadjust_ ($lambda (CXX CXXFLAGS SHBOPT LIBPFX)
+			(
+				() SHBuild_Extend_CallVariables;
 				system-check (apply cons-cmd (append (list e_S1_SHBuild_ src-dir
-					SHBOPT) extra-opts (list CXXFLAGS INCLUDES_))));
+					SHBOPT) extra-opts (list CXXFLAGS INCLUDES_)))
+			)
+		);
 		putss "Finished building " target-name "."
 	);
 	putss "Installing " target-name " ...";
@@ -350,11 +375,14 @@ $if (safeenv-empty? "SHBuild_NoDev")
 	"XXX", "'SHBuild_BaseDir' is fixed in parallel to these directories of",
 		" these tools, while 'SHBuild_ToolDir' is expected more portable.";
 	build-with-conf-opt SR_SHBuild_ host-os #f #t "" #t
-		ld-ext-noadjust_ ($lambda (CXX CXXFLAGS SHBOPT LIBPFX) for-each-ltr
-			($lambda (name)
+		ld-ext-noadjust_ ($lambda (CXX CXXFLAGS SHBOPT LIBPFX)
+		for-each-ltr ($lambda (name) (
+			() SHBuild_Extend_CallVariables;
 			system-check (apply cons-cmd (append (list e_S2_SHBuild_
 				(++ SHBuild_BaseDir "/../" name) SHBOPT) extra-opts
-				(list CXXFLAGS INCLUDES_)))) tools-list);
+				(list CXXFLAGS INCLUDES_)))
+		)) tools-list
+	);
 	puts "Installing other development tools ...";
 	$import! env_SHB_ InstHardLinkExe;
 	for-each-ltr ($lambda (name) (

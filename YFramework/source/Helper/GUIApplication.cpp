@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2016, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r578
+\version r582
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2016-08-27 15:38 +0800
+	2020-12-24 12:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,6 +112,9 @@ GUIHost::~GUIHost()
 }
 
 #if YF_Hosted
+#	if !YCL_Win32
+YB_STATELESS
+#	endif
 observer_ptr<Window>
 GUIHost::GetForegroundWindow() const ynothrow
 {
@@ -235,7 +238,6 @@ GUIApplication::GUIApplication()
 	YAssert(!ApplicationPtr, "Duplicate instance found.");
 	ApplicationPtr = this;
 }
-
 GUIApplication::~GUIApplication()
 {
 	lock_guard<recursive_mutex> lck(ApplicationMutex);

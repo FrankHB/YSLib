@@ -34,8 +34,9 @@ SHBuild_CXX_Style_=$(SHBuild_CheckCXX "$CXX")
 
 # NOTE: See %SHBuild_CheckC.
 if [[ $SHBuild_CXX_Style_ != '' ]] \
-	&& ! echo 'int main(){}' | "$CXX" -xc++ -o"$SHBuild_Env_TempDir/null" \
-	"$C_CXXFLAGS_GC" "$LDFLAGS_GC" - 2> /dev/null; then
+	&& ! echo 'int main(){}' | "$CXX" -pipe -xc++ \
+		-o"$SHBuild_Env_TempDir/null" "$C_CXXFLAGS_GC" "$LDFLAGS_GC" \
+		- 2> /dev/null; then
 	C_CXXFLAGS_GC=''
 	LDFLAGS_GC=''
 fi
@@ -73,9 +74,9 @@ fi
 if "$CXX" -dumpspecs 2>& 1 | grep mthreads: > /dev/null; then
 	CXXFLAGS_IMPL_COMMON_THRD_='-mthreads'
 	LDFLAGS_IMPL_COMMON_THRD_='-mthreads'
-elif echo 'int main(){}' | "$CXX" -xc++ \
+elif echo 'int main(){}' | "$CXX" -pipe -xc++ \
 	-o"$SHBuild_Env_TempDir/null" -Werror -mthreads - 2> /dev/null; then
-	if echo 'int main(){}' | "$CXX" -xc++ \
+	if echo 'int main(){}' | "$CXX" -pipe -xc++ \
 		-o"$SHBuild_Env_TempDir/null" -c -Werror -mthreads - 2> /dev/null; then
 		CXXFLAGS_IMPL_COMMON_THRD_='-mthreads'
 	else
@@ -85,7 +86,7 @@ elif echo 'int main(){}' | "$CXX" -xc++ \
 elif "$CXX" -dumpspecs 2>& 1 | grep no-pthread: > /dev/null; then
 	CXXFLAGS_IMPL_COMMON_THRD_=''
 	LDFLAGS_IMPL_COMMON_THRD_=''
-elif echo 'int main(){}' | "$CXX" -xc++ \
+elif echo 'int main(){}' | "$CXX" -pipe -xc++ \
 	-o"$SHBuild_Env_TempDir/null" -pthread - 2> /dev/null; then
 	CXXFLAGS_IMPL_COMMON_THRD_='-pthread'
 	LDFLAGS_IMPL_COMMON_THRD_='-pthread'
@@ -117,12 +118,12 @@ elif [[ $SHBuild_CXX_Style_ == "G++" ]]; then
 -Wsuggest-attribute=const \
 -Wsuggest-attribute=noreturn \
 -Wsuggest-attribute=pure \
--Wsuggest-final-types \
--Wsuggest-final-methods \
 -Wtrampolines"}"
 	: "${CXXFLAGS_IMPL_WARNING:="-Wconditionally-supported \
 -Wno-noexcept-type \
 -Wstrict-null-sentinel \
+-Wsuggest-final-types \
+-Wsuggest-final-methods \
 -Wzero-as-null-pointer-constant"}"
 	: "${CXXFLAGS_IMPL_OPT:="-fexpensive-optimizations \
 -flto=jobserver \
@@ -142,7 +143,6 @@ fi
 : "${CFLAGS_WARNING:=" \
 $C_CXXFLAGS_WARNING \
 $C_CXXFLAGS_IMPL_WARNING"}"
-: "${CFLAGS_COMMON:="$C_CXXFLAGS_COMMON $CFLAGS_STD $CFLAGS_WARNING"}"
 
 : "${CXXFLAGS_IMPL_COMMON:="$CXXFLAGS_IMPL_COMMON_THRD_ \
 	-U__GXX_MERGED_TYPEINFO_NAMES -D__GXX_MERGED_TYPEINFO_NAMES=1"}"
@@ -154,10 +154,6 @@ $C_CXXFLAGS_IMPL_WARNING"}"
 -Woverloaded-virtual \
 -Wsign-promo \
 $CXXFLAGS_IMPL_WARNING"}"
-: "${CXXFLAGS_COMMON:=" $CXXFLAGS_STD \
-$C_CXXFLAGS_COMMON \
-$CXXFLAGS_WARNING \
-$CXXFLAGS_IMPL_COMMON"}"
 # XXX: %CXXFLAGS_OPT_UseAssert is external.
 # shellcheck disable=2154
 if [[ "$CXXFLAGS_OPT_UseAssert" == '' ]]; then
@@ -173,45 +169,16 @@ $CXXFLAGS_IMPL_OPT \
 fi
 
 # XXX: Rename %CXXFLAGS_OPT_DBG to CFLAGS_OPT_DBG or C_CXXFLAGS_OPT_DBG?
-: "${CFLAGS:="$C_CXXFLAGS_PIC $CFLAGS_COMMON $C_CXXFLAGS_COMMON_IMPL_ \
-$CXXFLAGS_OPT_DBG"}"
+: "${CFLAGS:="$CFLAGS_STD $C_CXXFLAGS_PIC $C_CXXFLAGS_COMMON $CFLAGS_WARNING \
+$C_CXXFLAGS_COMMON_IMPL_ $CXXFLAGS_OPT_DBG"}"
 CFLAGS="${CFLAGS//	/ }"
 
-: "${CXXFLAGS:="$C_CXXFLAGS_PIC $CXXFLAGS_COMMON $C_CXXFLAGS_COMMON_IMPL_ \
+: "${CXXFLAGS:="$CXXFLAGS_STD $C_CXXFLAGS_PIC $C_CXXFLAGS_COMMON \
+$CXXFLAGS_WARNING $CXXFLAGS_IMPL_COMMON $C_CXXFLAGS_COMMON_IMPL_ \
 $CXXFLAGS_OPT_DBG"}"
 CXXFLAGS="${CXXFLAGS//	/ }"
 
 : "${LDFLAGS_OPT_DBG:="$LDFLAGS_STRIP $LDFLAGS_IMPL_OPT $LDFLAGS_GC"}"
-
-# XXX: %SHBuild_Host_OS is external.
-# shellcheck disable=2154
-if [[ "$SHBuild_Host_OS" == 'Win32' ]]; then
-	: "${LDFLAGS_DYN_BASE:="-shared -Wl,--dll"}"
-	: "${DSOSFX:=.dll}"
-	: "${EXESFX:=.exe}"
-else
-	: "${LDFLAGS_DYN_BASE:=-shared}"
-	: "${LIBS_RPATH:="-Wl,-rpath,'\$ORIGIN:\$ORIGIN/../lib'"}"
-	: "${LIBPFX:=lib}"
-	: "${DSOSFX:=.so}"
-fi
-
-if [[ "$LDFLAGS_IMPL_USE_LLD_" == '' ]]; then
-	: "${LDFLAGS_DYN_EXTRA:="-Wl,--no-undefined -Wl,--dynamic-list-data, \
---dynamic-list-cpp-new,--dynamic-list-cpp-typeinfo"}"
-else
-	if [[ "$SHBuild_Host_OS" == 'Win32' ]]; then
-		: "${LDFLAGS_DYN_EXTRA:="-Wl,-undefined,error"}"
-	else
-		# XXX: Here '-Wl,' options are separated to improve compatibility for
-		#	LLVM.
-		: "${LDFLAGS_DYN_EXTRA:="-Wl,-undefined,error \
--Wl,--export-dynamic-symbol='_ZTS*' \
--Wl,--export-dynamic-symbol='_ZTI*'"}"
-	fi
-fi
-
-: "${LDFLAGS_DYN:="$LDFLAGS_DYN_BASE $LDFLAGS_DYN_EXTRA"}"
 
 : "${LDFLAGS:="$C_CXXFLAGS_PIC $LDFLAGS_IMPL_COMMON_THRD_ $LDFLAGS_OPT_DBG"}"
 if [[ "$LDFLAGS_IMPL_USE_LLD_" != '' ]]; then

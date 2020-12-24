@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r546
+\version r551
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2016-05-02 13:51 +0800
+	2020-12-24 12:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,7 +62,7 @@ AttachToHost(Widget& wgt, Window& wnd, Messaging::Priority prior)
 	using ystdex::pvoid;
 
 	wnd.MessageMap[WM_DESTROY] += [&]{
-		PostTask([&, prior]{
+		PostTask([&]{
 			wgt.SetRenderer({});
 		}, prior);
 	};
@@ -101,6 +101,9 @@ DragWindow(Window& wnd, CursorEventArgs&& e, bool root)
 	}
 }
 
+#	if !YCL_Win32
+YB_STATELESS
+#	endif
 Point
 FetchDefaultTopLevelPosition() ynothrow
 {

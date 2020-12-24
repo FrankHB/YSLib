@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 控制台。
-\version r340
+\version r350
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2020-01-27 02:31 +0800
+	2020-12-24 12:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,10 +78,10 @@ WConsole::WConsole(unsigned long dev)
 	: WConsole(::GetStdHandle(dev))
 {}
 WConsole::WConsole(::HANDLE h)
-	: h_std(h), saved_attr(GetScreenBufferInfo().wAttributes),
+	: h_out(h), saved_attr(GetScreenBufferInfo().wAttributes),
 	Attributes(saved_attr)
 {
-	YAssert(h_std && h_std != INVALID_HANDLE_VALUE, "Invalid handle found.");
+	YAssert(h_out && h_out != INVALID_HANDLE_VALUE, "Invalid handle found.");
 }
 WConsole::~WConsole()
 {
@@ -93,7 +93,7 @@ WConsole::GetScreenBufferInfo() const
 {
 	::CONSOLE_SCREEN_BUFFER_INFO info;
 
-	YCL_CallF_Win32(GetConsoleScreenBufferInfo, h_std, &info);
+	YCL_CallF_Win32(GetConsoleScreenBufferInfo, h_out, &info);
 	return info;
 }
 
@@ -115,7 +115,7 @@ void
 WConsole::SetCursorPosition(::COORD pos)
 {
 	// NOTE: %::SetConsoleCursorPosition expects 1-based.
-	YCL_CallF_Win32(SetConsoleCursorPosition, h_std,
+	YCL_CallF_Win32(SetConsoleCursorPosition, h_out,
 		{short(pos.X + 1), short(pos.Y + 1)});
 }
 void
@@ -154,9 +154,9 @@ WConsole::Erase(wchar_t c)
 void
 WConsole::Fill(::COORD coord, unsigned long n, wchar_t c)
 {
-	YCL_CallF_Win32(FillConsoleOutputCharacterW, h_std, c, n, coord, {});
-	YCL_CallF_Win32(FillConsoleOutputAttribute, h_std, Attributes, n, coord, {});
-	YCL_CallF_Win32(SetConsoleCursorPosition, h_std, {coord.X, coord.Y});
+	YCL_CallF_Win32(FillConsoleOutputCharacterW, h_out, c, n, coord, {});
+	YCL_CallF_Win32(FillConsoleOutputAttribute, h_out, Attributes, n, coord, {});
+	YCL_CallF_Win32(SetConsoleCursorPosition, h_out, {coord.X, coord.Y});
 }
 
 void
@@ -174,7 +174,7 @@ WConsole::Update()
 void
 WConsole::Update(::WORD value)
 {
-	YCL_CallF_Win32(SetConsoleTextAttribute, h_std, value);
+	YCL_CallF_Win32(SetConsoleTextAttribute, h_out, value);
 }
 
 void
@@ -195,7 +195,6 @@ size_t
 WConsole::WriteString(string_view sv)
 {
 	YAssertNonnull(sv.data());
-	// FIXME: Support for non-BMP characters.
 	return WriteString(UTF8ToWCS(sv));
 }
 size_t
@@ -211,7 +210,7 @@ WConsole::WriteString(wstring_view sv)
 
 	unsigned long n;
 
-	YCL_CallF_Win32(WriteConsoleW, h_std, sv.data(),
+	YCL_CallF_Win32(WriteConsoleW, h_out, sv.data(),
 		static_cast<unsigned long>(sv.length()), &n, yimpl({}));
 	return size_t(n);
 }

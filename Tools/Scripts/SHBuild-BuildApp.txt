@@ -15,6 +15,7 @@ $def! env_SHBuild_Common_ $provide! (
 	$env-de!
 	$redef!
 	SHBuild_CheckCXX
+	SHBuild_Extend_CallVariables
 	SHBuild_GetPlatformStrings
 	SHBuild_Platform_Detect
 	build-with-conf-opt
@@ -84,7 +85,6 @@ $if (string-empty? arg1) (() SHBuild_PrintUsage)
 		(string-empty? (safeenv-get "SHBuild_Static"));
 	$unless (dynamic) puts "Static mode turned on by configuration.";
 	"XXX", "No extra configuration arguments are supported yet.";
-	safeenv-set "CXXFLAGS_COMMON" "";
 	$redef! debug
 		$or? debug (not? (string-empty? (safeenv-get "SHBuild_Debug")));
 	$if (debug)
@@ -169,13 +169,7 @@ $if (string-empty? arg1) (() SHBuild_PrintUsage)
 		ld-ext-adjust_win32_subsystem_ ($lambda (#ignore CXXFLAGS SHBOPT .)
 		(
 			"TODO", "Support precompiled headers?";
-			$env-de! SHBuild_LDFLAGS "";
-			$unless (string-empty? SHBuild_LDFLAGS)
-				(safeenv-set "LDFLAGS"
-					(++ SHBuild_LDFLAGS " " (env-get "LDFLAGS")));
-			$env-de! SHBuild_LIBS "";
-			$unless (string-empty? SHBuild_LIBS)
-				(safeenv-set "LIBS" (++ SHBuild_LIBS " " (env-get "LIBS")));
+			() SHBuild_Extend_CallVariables;
 			system-check (++ SHBuild " " (apply cons-cmd (append SHBOPT_BASE
 				(list SHBOPT) (list (fix-flags CXXFLAGS))
 				(list SHBuild_YSLib_Flags))))

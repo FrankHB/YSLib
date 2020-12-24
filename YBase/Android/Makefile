@@ -1,5 +1,5 @@
 #
-#	(C) 2009-2016, 2019 FrankHB.
+#	(C) 2009-2016, 2019-2020 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YBase
-# Version = r272
+# Version = r303
 # Created = 2014-04-07 12:41:43 +0800
-# Updated = 2019-09-08 00:25 +0800
+# Updated = 2020-12-14 01:45 +0800
 # Encoding = ANSI
 
 
@@ -21,7 +21,6 @@
 SHBuild_ToolDir := $(dir $(lastword $(MAKEFILE_LIST)))/../../Tools/Scripts
 include $(SHBuild_ToolDir)/Toolchain.Android.mk
 
-#----
 # PROJNAME is the name of the project
 # CONF is the configuration name
 # RELEASE is the directory name for object files and intermediate files will be placed
@@ -32,7 +31,6 @@ include $(SHBuild_ToolDir)/Toolchain.Android.mk
 # SOURCES is a list of directories containing source code
 # INCLUDES is a list of directories containing extra header files
 # DATA is a list of directories containing binary files embedded using bin2o
-#----
 
 export PROJNAME		?=	YBase
 export CONF			?=	release
@@ -47,12 +45,12 @@ export SOURCES		:=	source data $(REFDIR)/source \
 export INCLUDES		:=	include data $(REFDIR)/include
 export DATA			:=	data $(REFDIR)/data
 
-# options for code generation
-CFLAGS := $(INCLUDE) $(C_CXXFLAGS) $(CFLAGS_COMMON)
-CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS) $(CXXFLAGS_COMMON) \
-	-fno-threadsafe-statics -fuse-cxa-atexit -Wctor-dtor-privacy \
-	-Wnon-virtual-dtor -Wold-style-cast -Wsign-promo
-#	-Wnoexcept -Wnon-virtual-dtor -Wold-style-cast -Wsign-promo
+CFLAGS := $(CFLAGS_STD) $(INCLUDE) $(C_CXXFLAGS) $(C_CXXFLAGS_COMMON) \
+	$(CFLAGS_WARNING)
+CXXFLAGS := $(CXXFLAGS_STD) $(INCLUDE) $(C_CXXFLAGS) $(C_CXXFLAGS_COMMON) \
+	$(CXXFLAGS_WARNING) $(CXXFLAGS_IMPL_COMMON) -fuse-cxa-atexit \
+	-Wold-style-cast
+#	-Wnoexcept
 
 ifneq ($(CONF),$(notdir $(CURDIR)))
 
@@ -71,17 +69,14 @@ BINFILES	:=	$(foreach dir,$(DATA),$(wildcard $(dir)/*.bin))
 
 MAPFILES	:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.map))
 
-#----
-# use CXX for linking C++ projects, CC for standard C
-#----
 ifeq ($(strip $(CPPFILES)),)
  	export LD	:=	$(CC)
 else
  	export LD	:=	$(CXX)
 endif
 
-export OFILES	:=	$(addsuffix .o,$(MAPFILES)) $(addsuffix .o,$(BINFILES)) \
-	$(addsuffix .o,$(CPPFILES)) $(addsuffix .o,$(CFILES)) $(addsuffix .o,$(SFILES))
+export OFILES := $(addsuffix .o,$(BINFILES)) $(addsuffix .o,$(CPPFILES)) \
+	$(addsuffix .o,$(CFILES)) $(addsuffix .o,$(SFILES))
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 	$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
@@ -109,27 +104,14 @@ rebuild: all
 
 all: $(CONF) $(OUTPUT)
 
-#----
 else
 
 DEPENDS	:= $(OFILES:.o=.d)
 
-#----
-# main targets
-#----
-
-$(OUTPUT): $(OFILES)
+$(OUTPUT) : $(OFILES)
 	@rm -f "$(OUTPUT)"
 	@echo Linking $(notdir $@) ...
 	@$(AR) rcs "$(OUTPUT)" $(foreach file,$(OFILES),$(DEPSDIR)/$(file))
-
-#----
-# you need a rule like this for each extension you use as binary data
-#----
-
-#----
-# Compile Targets for C/C++
-#----
 
 %.cpp.o: %.cpp
 	@echo $<
@@ -146,7 +128,6 @@ $(OUTPUT): $(OFILES)
 	@[ -d $(dir $(DEPSDIR)/$@) ] || mkdir -p $(dir $(DEPSDIR)/$@)
 	@$(CC) -MMD -MP -MF $(DEPSDIR)/$*.s.d -x assembler-with-cpp $(ASFLAGS) -c $< -o$(DEPSDIR)/$@
 
-
 define bin2o
 	@[ -d $(dir $(DEPSDIR)/$@) ] || mkdir -p $(dir $(DEPSDIR)/$@)
 	cp $(<) $(notdir $(*))
@@ -161,13 +142,7 @@ endef
 	@echo $<
 	@$(bin2o)
 
-%.map.o: %.map
-	@echo $<
-	@$(bin2o)
-
 -include $(foreach file,$(DEPENDS),$(DEPSDIR)/$(file))
 
-#----
 endif
-#----
 

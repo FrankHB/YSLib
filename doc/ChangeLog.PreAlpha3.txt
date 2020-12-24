@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2019 FrankHB.
+	© 2013-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r5661
+\version r5675
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2019-02-22 14:27 +0800
+	2020-12-24 12:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,7 +71,7 @@ b399
 			)
 		)
 	),
-	/ $dev "updated .vcxproj for VS2012",
+	/ $dev "updated .vcxproj files for VS2012",
 	/ $build "updated to Microsoft VC++ 2012" ~ "Microsoft VC++ 2010"
 		@ "Microsoft VC++ projects" $effective @ %('YBase*', 'YFramework*',
 		'YSTest*')
@@ -332,8 +332,8 @@ b392
 	),
 	/ $dev $build @ "platform %MinGW32" $=
 	(
-		^ DLP $re_ex(b346) $resolve(#8) "MinGW[gcc version 4.8.0 (Built by \
-			MinGW-builds project)] x32-4.8.0-release-posix-sjlj-rev0"
+		^ DLP $re_ex(b346) $resolve(#8, #15) "MinGW[gcc version 4.8.0 (Built \
+			by MinGW-builds project)] x32-4.8.0-release-posix-sjlj-rev0"
 			~ "MinGW[gcc version 4.7.2 (Built by MinGW-builds project)] \
 			x32-4.7.2-release-posix-sjlj-rev0 [release-sjlj]"
 			@ "platform %MinGW32",
@@ -1882,7 +1882,7 @@ b346
 	/ %YFramework.YSLib.UI $=
 	(
 		/ $dev "pointer members" @ "class %Widget" @ %YWidget,
-		+ $dev $design "keyword %override for several overriders",
+		+ DLD "keyword %override for several overriders",
 		/ $dev "simplified text state member access" @ "class %MTextList"
 			@ %Label,
 		/ @ "class %TextList" @ %TextList $=
@@ -2289,7 +2289,7 @@ b333
 		)
 		+ "header %functional.hpp as %Function" $=
 		(
-			+ $lib "including header (<tuple>, <functional>, <string>)";
+			+ $lib "inclusion (<tuple>, <functional>, <string>)";
 			+ "function templates %(make_parameter_tuple, return_of, \
 				parameter_of, paramlist_size)"
 		)
@@ -2313,7 +2313,7 @@ b332
 		(
 		- "header %TypeOperation",
 		* $build "strict ISO C++11 code conformance" $since b331
-			$= (* "missing including <typeinfo>")
+			$= (* "missing inclusion <typeinfo>")
 			// The program temporarily is not ill-formed for libstdc++'s \
 				<memory> including <typeinfo> under C++11 mode.
 		)
@@ -2721,7 +2721,7 @@ b320
 		/ $impl ("message loop", $design "input dispatching") @ %Helper.DSMain
 			// Significantly performance improved.
 	),
-	* DLB "missing including path Code::Blocks project \
+	* DLB "missing inclusion paths" @ "Code::Blocks projects \
 		%(YBase_MinGW32, YFramework_MinGW32)" $since b299
 ),
 
@@ -2797,10 +2797,10 @@ b319
 	- DLB "-Wnoexcept" @ "macro %CXXFLAGS" @ "makefile"
 		@ "project %(YFramework_DS, YSTest_ARM9)",
 		// ISO C++11 5.1.2/6 doesn't specify conversion function for a closure \
-			object to a function pointer shall have exception-specification. \
-			Thus G++ may complain when evaluating %noexcept expression. \
-			It seems a defect in the standard, but here just turn the warning \
-			off for convenience.
+			object to a function pointer shall have the \
+			exception-specification. Thus, G++ may complain when evaluating \
+			%noexcept expression. It seems a defect in the standard, but here \
+			just turn the warning off for convenience.
 	+ "total time measuring for images loading" @ %YReader.'shell test example'
 		$dep_from "test timing"
 ),
@@ -3021,8 +3021,7 @@ b311
 	+ "class %CheckButton" @ %YFramework.YSLib.UI.GUI;
 	^ "%CheckButton" ~ "%CheckBox" @ 'shells test example'
 	),
-	^ $dev $design "contextual keyword %override"
-		~ "keyword %virtual for overriders"
+	/ DLD "overriders" ^ 'override' ~ 'virtual'
 ),
 
 b310

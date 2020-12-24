@@ -55,8 +55,9 @@ SHBuild_AssertNonempty()
 
 SHBuild_CheckedCall()
 {
-	if hash "$1" > /dev/null 2>& 1; then
-		"$@" || exit $?
+	if [[ "$1" != */* ]] && (hash "$1" > /dev/null 2>& 1) \
+		|| [[ "$1" == */* && ! -d "$1" && -x "$1" ]]; then
+		"$@" || exit
 	else
 		SHBuild_Puts "ERROR: \"$1\" should exist. Failed calling \"$*\"." >& 2
 		exit 1
@@ -66,7 +67,7 @@ SHBuild_CheckedCall()
 SHBuild_CheckedCallSilent()
 {
 	if hash "$1" > /dev/null 2>& 1; then
-		"$@" > /dev/null || exit $?
+		"$@" > /dev/null || exit
 	else
 		SHBuild_Puts "ERROR: \"$1\" should exist. Failed calling \"$*\"." >& 2
 		exit 1
@@ -273,7 +274,7 @@ SHBuild_GetBuildName()
 {
 	SHBuild_AssertNonempty SHBuild_Host_Arch
 	SHBuild_AssertNonempty SHBuild_Host_OS
-	echo "$(SHBuild_Platform_Detect "$SHBuild_Host_OS" "$SHBuild_Host_Arch")"
+	SHBuild_Platform_Detect "$SHBuild_Host_OS" "$SHBuild_Host_Arch"
 }
 
 
@@ -390,11 +391,12 @@ SHBuild_S2_Prepare()
 	: "${SHBuild_SysRoot:="$1"}"
 	SHBuild_AssertNonempty SHBuild_SysRoot
 	mkdir -p "$SHBuild_SysRoot"
+	# shellcheck disable=2164
 	SHBuild_SysRoot=$(cd "$SHBuild_SysRoot"; pwd)
 	SHBuild_PrepareBuild
 	# NOTE: See also %SHBuild-YSLib-build.txt.
 	: "${SHBuild_SystemPrefix:=\
-$(SHBuild_GetSystemPrefix $(SHBuild_GetBuildName))}"
+$(SHBuild_GetSystemPrefix "$(SHBuild_GetBuildName)")}"
 	SHBuild_InitReadonly SR_Prefix \
 		SHBuild_Put "$SHBuild_SysRoot$SHBuild_SystemPrefix"
 }

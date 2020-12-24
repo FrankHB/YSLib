@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2015, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r550
+\version r556
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:13:04 +0800
 \par 修改时间:
-	2015-11-26 14:45 +0800
+	2020-12-24 12:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,7 +72,11 @@ public:
 	DefPred(const ynothrow, Valid, source.is_open())
 
 public:
-	//! \since build 587
+	/*!
+	\brief 取当前读取位置。
+	\return 若成功为当前缓冲区读取位置相对于开始的字节数，否则为 size_t(-1) 。
+	\since build 587
+	*/
 	DefGetter(const, size_t, Position,
 		size_t(source.pubseekoff(0, std::ios_base::cur, std::ios_base::in)))
 	DefGetter(const ynothrow, size_t, Size, size)

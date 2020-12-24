@@ -14,7 +14,8 @@ SHBuild_PrepareBuild
 SHBuild_CheckCC()
 {
 	# NOTE: The output path cannot be '/dev/null'. See http://sourceforge.net/p/msys2/discussion/general/thread/2d6adff2/?limit=25.
-	if hash "$1" 2> /dev/null; then
+	if [[ "$1" != */* ]] && (hash "$1" > /dev/null 2>& 1) \
+		|| [[ "$1" == */* && ! -d "$1" && -x "$1" ]]; then
 		# XXX: %SHBuild_Env_TempDir is external.
 		# shellcheck disable=2154
 		if echo 'int main(void){return __clang__;}' | "$1" \
@@ -34,7 +35,8 @@ SHBuild_CheckCC()
 SHBuild_CheckCXX()
 {
 	# NOTE: As %SHBuild_CheckCC.
-	if hash "$1" 2> /dev/null; then
+	if [[ "$1" != */* ]] && (hash "$1" > /dev/null 2>& 1) \
+		|| [[ "$1" == */* && ! -d "$1" && -x "$1" ]]; then
 		if echo 'int main(){return __clang__;}' | "$1" \
 			-xc++ -o"$SHBuild_Env_TempDir/null" - 2> /dev/null; then
 			SHBuild_Put "Clang++"

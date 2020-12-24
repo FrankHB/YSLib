@@ -1,5 +1,5 @@
 #
-#	(C) 2014, 2016, 2019 FrankHB.
+#	(C) 2014, 2016, 2019-2020 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YSTest
-# Version = r350
+# Version = r364
 # Created = 2014-04-17 23:51:27 +0800
-# Updated = 2019-09-11 20:47 +0800
+# Updated = 2020-12-14 02:04 +0800
 # Encoding = ANSI
 
 .SUFFIXES:
@@ -67,18 +67,16 @@ export MANIFEST := $(TOPDIR)/AndroidManifest.xml
 
 RESOURCES := $(BUILDDIR)/../../$(PROJNAME)/$(CONF)/resources.ap_
 
-# options for code generation
-CFLAGS := $(INCLUDE) $(C_CXXFLAGS) $(CFLAGS_COMMON)
-CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS) $(CXXFLAGS_COMMON) \
-	-fno-threadsafe-statics -fuse-cxa-atexit -Wctor-dtor-privacy \
-	-Wnon-virtual-dtor -Wsign-promo
-#	-Wnoexcept -Wnon-virtual-dtor -Wold-style-cast -Wsign-promo
+CFLAGS := $(CFLAGS_STD) $(INCLUDE) $(C_CXXFLAGS) $(C_CXXFLAGS_COMMON) \
+	$(CFLAGS_WARNING)
+CXXFLAGS := $(CXXFLAGS_STD) $(INCLUDE) $(C_CXXFLAGS) $(C_CXXFLAGS_COMMON) \
+	$(CXXFLAGS_WARNING) $(CXXFLAGS_IMPL_COMMON) -fuse-cxa-atexit
+#	-Wnoexcept -Wold-style-cast
 
 LDFLAGS := $(LDFLAGS_OPT_DBG) $(ARCH) -Wl,--gc-sections \
 	-Wl,--no-undefined
 
-# any extra libraries we wish to link with the project
-LIBS :=-llog -landroid -lEGL -lGLESv1_CM
+LIBS := -llog -landroid -lEGL -lGLESv1_CM
 LIBCRYSTAX_STATIC ?=
 #LIBCRYSTAX_STATIC ?= -u __crystax_on_load -u __crystax_on_unload \
 	-Wl,-z,muldefs -Wl,--eh-frame-hdr -L$(BUILDDIR) -lstdc++ \
@@ -91,8 +89,6 @@ LIBEX := -lfreetype #-lFreeImage
 YBASE_A := $(BUILDDIR)/../../YBase/$(RELEASE)/libYBase.a
 YFRAMEWORK_A := $(BUILDDIR)/../../YFramework/$(RELEASE)/libYFramework.a
 
-# list of directories containing libraries, this must be the top level
-# containing include and lib
 LIBDIRS	:=
 
 ifneq ($(RELEASE),$(notdir $(CURDIR)))
@@ -106,15 +102,14 @@ CFILES := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 SFILES := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 
-# use CXX for linking C++ projects, CC for standard C
 ifeq ($(strip $(CPPFILES)),)
 	export LD := $(CC)
 else
 	export LD := $(CXX)
 endif
 
-export OFILES := $(addsuffix .o,$(MAPFILES)) $(addsuffix .o,$(BINFILES)) \
-	$(addsuffix .o,$(CPPFILES)) $(addsuffix .o,$(CFILES)) $(addsuffix .o,$(SFILES))
+export OFILES := $(addsuffix .o,$(BINFILES)) $(addsuffix .o,$(CPPFILES)) \
+	$(addsuffix .o,$(CFILES)) $(addsuffix .o,$(SFILES))
 export INCLUDE := $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 	$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
 	-I$(CURDIR)/$(CONF)
@@ -142,7 +137,6 @@ clean:
 
 rebuild: all
 
-# main targets
 all: $(CONF) $(OUTPUT_FINAL)
 
 else

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015, 2018-2019 FrankHB.
+	© 2011-2015, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1838
+\version r1842
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2018-11-04 17:05 +0800
+	2020-12-24 12:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define INC_YReader_ShlReader_h_ 1
 
 #include "Shells.h"
-#include "DSReader.h"
+#include "DSReader.h" // for YSLib::function;
 #include "HexBrowser.h"
 #include "ReaderSettingUI.h"
 #include "BookmarkUI.h"
@@ -160,9 +160,9 @@ protected:
 	IO::Path CurrentPath;
 	/*!
 	\brief 背景任务：用于滚屏。
-	\since build 297
+	\since build 899
 	*/
-	std::function<void()> fBackgroundTask;
+	YSLib::function<void()> fBackgroundTask;
 	/*!
 	\brief 退出标识。
 	\since build 302

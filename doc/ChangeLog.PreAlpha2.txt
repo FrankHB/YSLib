@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2018 FrankHB.
+	© 2013-2018, 2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3805
+\version r3817
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2018-12-30 15:00 +0800
+	2020-12-24 12:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1034,8 +1034,8 @@ b278
 			),
 			/ UI.GUI $=
 			(
-				* "missing painting of background for parent of buffered widgets"
-					$since b225,
+				* "missing painting of background for parent of buffered \
+					widgets" $since b225,
 				+ "forced background painting ignorance state"
 					@ "class %BufferedRenderer"
 			),
@@ -1820,8 +1820,11 @@ b247
 
 b246
 (
+	(
 	+ "pseudo keyword %(yconstexpr, yconstexprf) to support C++11 generalized \
-		constant expressions features on conditions",
+		constant expressions features on conditions";
+	/ "applied %yconstexprf" @ %(YCLib, YSLib)
+	),
 	/ "file classes" $=
 	(
 		+ "mode selecting at opening files",
@@ -2295,8 +2298,12 @@ b226
 		- "unnecessary drawing of overlaid windows" @ "windows refreshing",
 		+ "partial refreshing optimization" @ "class %Widget"
 	),
+	(
 	* "wrong result when height of arguments are equal"
-		@ "intersection calculation for class %Rect" $since b225,
+		@ "intersection calculation for class %Rect" $since b225;
+	/ $repo "tagged engineering fault by hg tags ('engineering-defect-b225', \
+		'engineering-fault-b225')"
+	),
 	+ "child widget intersection confirming"
 ),
 

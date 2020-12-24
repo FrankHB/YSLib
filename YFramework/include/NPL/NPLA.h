@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r7993
+\version r8005
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2020-11-18 14:46 +0800
+	2020-12-23 19:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -895,14 +895,14 @@ YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
 TryAccessLeaf(TermNode& term)
 {
 	return term.Value.type() == ystdex::type_id<_type>() ? NPL::make_observer(
-		std::addressof(term.Value.GetObject<_type>())) : nullptr; 
+		std::addressof(term.Value.GetObject<_type>())) : nullptr;
 }
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<const _type>
 TryAccessLeaf(const TermNode& term)
 {
 	return term.Value.type() == ystdex::type_id<_type>() ? NPL::make_observer(
-		std::addressof(term.Value.GetObject<_type>())) : nullptr; 
+		std::addressof(term.Value.GetObject<_type>())) : nullptr;
 }
 //@}
 
@@ -1228,13 +1228,10 @@ public:
 };
 
 /*!
-\sa TermNode::Tags
-\relates TermReference
-*/
-//@{
-/*!
 \brief 折叠项引用。
 \return 结果引用值及初始化时是否表示引用值。
+\relates TermReference
+\sa TermNode::Tags
 \since build 857
 
 若被参数引用值引用的对象是否是一个引用值，结果为合并标签后的被后者引用的对象和 true ；
@@ -1243,6 +1240,7 @@ public:
 */
 YB_ATTR_nodiscard YF_API pair<TermReference, bool>
 Collapse(TermReference);
+
 
 /*!
 \brief 准备折叠项引用。
@@ -1260,7 +1258,6 @@ Collapse(TermReference);
 */
 YB_ATTR_nodiscard YF_API TermNode
 PrepareCollapse(TermNode&, const shared_ptr<Environment>&);
-//@}
 
 /*!
 \brief 访问项并取解析 TermReference 间接值后的引用。
@@ -2282,9 +2279,10 @@ public:
 	/*!
 	\brief 根据当前状态创建指定项的引用。
 	\note 项通常表示当前环境对象所有的被绑定对象。
-	\since build 871
+	\since build 906
 	*/
-	PDefH(TermTags, MakeTermTags, const TermNode& term) const
+	YB_ATTR_nodiscard YB_PURE
+		PDefH(TermTags, MakeTermTags, const TermNode& term) const ynothrow
 		ImplRet(Frozen ? term.Tags | TermTags::Nonmodifying : term.Tags)
 
 	/*!
@@ -2631,7 +2629,7 @@ public:
 	*/
 	ContextNode(pmr::memory_resource&);
 	/*!
-	\brief 构造：使用对象副本和环境指针。 
+	\brief 构造：使用对象副本和环境指针。
 	\throw std::invalid_argument 参数指针为空。
 	\sa Environment::ThrowForInvalidValue
 	\since build 788

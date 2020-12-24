@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018 FrankHB.
+	© 2013-2016, 2018-2020 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file apply.hpp
 \ingroup YStandardEx
 \brief 元组应用操作。
-\version r986
+\version r989
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2019-01-11 19:43:23 +0800
 \par 修改时间:
-	2019-01-30 10:07 +0800
+	2020-12-24 12:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 //	std::tuple_size, std::make_from_tuple;
 
 /*!
-\brief \<tuple\> 特性测试宏。
+\brief \c \<tuple> 特性测试宏。
 \see WG21 P0941R2 2.2 。
 \see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
 \since build 833
@@ -94,6 +94,7 @@ struct call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 	}
 	//@}
 
+	//! \since build 634
 	template<typename _func>
 	static yconstfn auto
 	call(_func&& f, _tParams&&... args) -> yimpl(decltype(
