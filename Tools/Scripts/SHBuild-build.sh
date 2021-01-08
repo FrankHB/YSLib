@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# (C) 2014-2018, 2020 FrankHB.
+# (C) 2014-2018, 2020-2021 FrankHB.
 # Build script for SHBuild.
 
 set -e
+
 : "${SHBuild_ToolDir:=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)}"
-: "${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}"
 # XXX: Some options for stage 1 SHBuild are fixed. Provide more separated
 #	options in future?
 # XXX: Following variables are internal.
@@ -27,10 +27,10 @@ CXXFLAGS_OPT_DBG='-O0 -g'
 # shellcheck disable=2034
 LDFLAGS_IMPL_OPT=' '
 # shellcheck source=./SHBuild-bootstrap.sh
-. "$SHBuild_ToolDir/SHBuild-bootstrap.sh"
+. "$SHBuild_ToolDir/SHBuild-bootstrap.sh" # for SHBuild_Pushd, SHBuild_BaseDir,
+#	SHBuild_Puts, CXXFLAGS, LDFLAGS, INCLUDES, LIBS, SHBuild_Popd.
 
 : "${SHBuild_Output:=SHBuild}"
-: "${SHBuild_PCH_stdinc_h:=stdinc.h}"
 
 SHBuild_Pushd .
 cd "$SHBuild_BaseDir"
@@ -40,8 +40,10 @@ SHBuild_Puts Building ...
 # Precompiled header is not used here because it does not work well with
 #	external %CXXFLAGS_OPT_DBG. It is also not used frequently like in stage 2.
 #	Even it is needed, it should be better separated with the stage 2 option.
-#	When needed, uncomment the following command.
-#	SHBuild_CheckPCH "$INCLUDE_PCH" "$SHBuild_PCH_stdinc_h"
+#	When needed, uncomment the following command (where
+#	%SHBuild_S1_InitializePCH is from %SHBuild_ToolDir/SHBuild-bootstrap.sh),
+#	to provide %SHBuild_IncPCH.
+# SHBuild_S1_InitializePCH
 
 # Note '-fwhole-program' should not be used because there
 #	do exist multiple translation units when linking with YSLib source,
@@ -49,7 +51,7 @@ SHBuild_Puts Building ...
 #	linkage which had been optimized away.
 # XXX: %SHBuild_Verbose_ is external.
 # shellcheck disable=2154
-if [[ "$SHBuild_Verbose_" != "" ]]; then
+if [[ "$SHBuild_Verbose_" != '' ]]; then
 	# XXX: Value of several variables may contain whitespaces.
 	# shellcheck disable=2086
 	SHBuild_Puts "$CXX" Main.cpp -o"$SHBuild_Output" $CXXFLAGS $LDFLAGS \

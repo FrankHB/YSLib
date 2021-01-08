@@ -1,4 +1,4 @@
-﻿"#", "(C) 2014-2020 FrankHB.",
+﻿"#", "(C) 2014-2021 FrankHB.",
 "NPLA1 script as common library.";
 
 "XXX", "'SHBuild_2*' depend on 'cygpath' optionally.";
@@ -17,13 +17,14 @@ $import! env_SHBuild_ SHBuild_RaiseError_ SHBuild_EchoVar SHBuild_QuoteS_
 "NOTE", "Prelude:", "Unsafe functions not friendly to environment stability",
 	" or dangerous to environments except 'move!', 'assign!' and",
 	" 'lock-current-environment' are poisoned.";
-$provide/d! (assign%! assign@! copy-environment lock-environment
-	$defrec! $setrec! make-standard-environment) mods
+$provide! (assign%! assign@! copy-environment lock-environment
+	$defrec! $setrec! make-standard-environment)
 (
 	$def! fns (unwrap list) move! assign%! assign@! copy-environment
 		lock-environment $defrec! $setrec!;
-	$defl/e! raise-error mods (&fn) SHBuild_RaiseError_
-		(++ "ERROR: Use of unsafe function '" fn "' is not allowed.");
+	$defl/e! raise-error (make-environment env_SHBuild_ std.strings) (&fn)
+		SHBuild_RaiseError_
+			(++ "ERROR: Use of unsafe function '" fn "' is not allowed.");
 	$defl! poison-fn (&fn &env)
 		eval (list $defl/e! fn (() make-standard-environment)
 			(string->symbol ".") raise-error (symbol->string fn)) env;
@@ -45,21 +46,20 @@ $defv! $set-if-empty! (var .vexpr) env $if (string-empty? (eval var env))
 	(eval (list $set! env var vexpr) env);
 
 "NOTE", "Saving environments at first to avoid being overriden unexpectedly.";
-$provide/d! (safeenv-get safeenv-set ss-verbose-puts) ext-env
+$provide! (safeenv-get safeenv-set ss-verbose-puts)
 (
 	$import! std.system env-empty?;
 
 	"NOTE", "Nonempty environment variable 'SS_*' would enable specifically.",
 		"See user documentation Tools/Scripts.zh-CN.md.";
-	$def! SS_DebugEnv not? (env-empty? "SS_DebugEnv"),
-	$def! SS_Verbose not? (env-empty? "SS_Verbose");
-	$def! mods $bindings/p->environment
+	$def! mods $let ((ss_DebugEnv not? (env-empty? "SS_DebugEnv")))
+		$bindings/p->environment
 		(std.environments std.strings std.system std.io)
 		(emap () make-environment)
-		(SS_DebugEnv SS_DebugEnv)
-		(SS_Verbose SS_Verbose)
-		(log-set $if SS_DebugEnv
-			($lambda/e ext-env (name value)
+		(SS_DebugEnv ss_DebugEnv)
+		(SS_Verbose not? (env-empty? "SS_Verbose"))
+		(log-set $if ss_DebugEnv
+			($lambda/e (make-environment env_SHBuild_ std.io) (name value)
 				(puts "SS_DebugEnv: "; SHBuild_EchoVar name value))
 			($lambda .));
 
@@ -240,12 +240,22 @@ $defl! SHBuild_CheckCXX (host-os cxx)
 
 $defl! SHBuild_Extend_CallVariables ()
 (
-	$env-de! SHBuild_LDFLAGS "";
-	$unless (string-empty? SHBuild_LDFLAGS)
-		(safeenv-set "LDFLAGS" (++ SHBuild_LDFLAGS " " (env-get "LDFLAGS")));
-	$env-de! SHBuild_LIBS "";
-	$unless (string-empty? SHBuild_LIBS)
-		(safeenv-set "LIBS" (++ SHBuild_LIBS " " (env-get "LIBS")));
+	$defv! $prepend (svar var) d
+	(
+		eval (list $env-de! svar "") d;
+		$def! sval eval svar d;
+		$unless (string-empty? sval)
+		(
+			$let* ((varn symbol->string var) (val env-get (eval varn d)))
+			(
+				safeenv-set varn (++ sval " " val);
+				ss-verbose-puts (++ "Prepended " (symbol->string svar) " '" sval
+					"' to the original " varn " '" val "'.")
+			)
+		)
+	);
+	$prepend SHBuild_LDFLAGS LDFLAGS;
+	$prepend SHBuild_LIBS LIBS
 );
 
 $defl! SHBuild_ar_ok_ (ar)
@@ -318,6 +328,15 @@ $defl! get-gcflags_ (host-os CXX)
 		(cons-cmd C_CXXFLAGS_GC LDFLAGS_GC)) (list C_CXXFLAGS_GC LDFLAGS_GC)
 		(list "" "")
 );
+$defl! use-fsanitize? (name opt)
+	rmatch? opt (++ ".*-fsanitize=[a-z,]*" name ".*");
+$defl! use-san? (opt)
+	use-fsanitize? "(address|thread|memory|undefined|leak)" opt;
+$defl! use-asan? (opt) use-fsanitize? "address" opt;
+$defl! use-tsan? (opt) use-fsanitize? "thread" opt;
+$defl! use-msan? (opt) use-fsanitize? "memory" opt;
+$defl! use-ubsan? (opt) use-fsanitize? "undefined" opt;
+$defl! use-lsan? (opt) use-fsanitize? "leak" opt;
 
 $defl! build-with-conf-opt (outdir host-os debug dynamic shbopt-ext app
 	do-ld-ext do-build)
@@ -431,8 +450,9 @@ $defl! build-with-conf-opt (outdir host-os debug dynamic shbopt-ext app
 		(force prom_C_CXXFLAGS_PIC) (force prom_C_CXXFLAGS_COMMON)
 		(force prom_CXXFLAGS_WARNING) (force prom_CXXFLAGS_IMPL_COMMON)
 		(force prom_C_CXXFLAGS_COMMON_IMPL_) (force prom_CXXFLAGS_OPT_DBG);
-	$redef! CFLAGS SHBuild_TrimOptions_ CFLAGS,
-	$redef! CXXFLAGS SHBuild_TrimOptions_ CXXFLAGS;
+	$def! SHBuild_CXXFLAGS safeenv-get "SHBuild_CXXFLAGS";
+	$def! has-asan-opt $or? (use-asan? CFLAGS) (use-asan? CXXFLAGS)
+		(use-asan? SHBuild_CXXFLAGS);
 	SHB_SetupPlatformVars_ (() get-current-environment) host-os;
 	$if use-ld
 	(
@@ -477,14 +497,44 @@ $defl! build-with-conf-opt (outdir host-os debug dynamic shbopt-ext app
 			($if app (cons-cmd ($if dynamic (force prom_LIBS_RPATH) "")
 			(do-ld-ext host-os)) ($if dynamic
 			(cons-cmd (force prom_LDFLAGS_DYN)) "-Wl,--dn")));
+		$unless has-asan-opt ($redef! has-asan-opt use-asan? LDFLAGS);
+		"XXX", "Assume %LD has same style to %CXX when sanitizers are used";
+		$if ($and? (eqv? SHBuild_CXX_Style_ "Clang++")
+			($or? (use-san? CFLAGS) (use-san? CXXFLAGS)
+			(use-san? SHBuild_CXXFLAGS)))
+		(
+			"NOTE", "This reverts '-Wl,--no-undefined' or '-Wl,-z,defs'.",
+				" See https://sourceware.org/binutils/docs/ld/Options.html.",
+				" This is required to use MSan,",
+				" see https://clang.llvm.org/docs/MemorySanitizer.html.";
+			$redef! LDFLAGS (++ LDFLAGS " -Wl,-z,undefs");
+			ss-verbose-puts
+				"NOTE: LDFLAGS has been adjusted for Clang++ with sanitizers."
+		);
 		safeenv-set "LDFLAGS" LDFLAGS
 	);
+	$if has-asan-opt
+	(
+		$def! fixed " -U_FORTIFY_SOURCE -fno-omit-frame-pointer -fno-common";
+		$redef! CFLAGS (++ CFLAGS fixed),
+		$redef! CXXFLAGS (++ CXXFLAGS fixed);
+		ss-verbose-puts "NOTE: CFLAGS and CXXFLAGS have been adjusted for ASan."
+	);
+	$redef! CFLAGS SHBuild_TrimOptions_ CFLAGS,
+	$redef! CXXFLAGS SHBuild_TrimOptions_ CXXFLAGS;
 	$def! SHBOPT get-SHBOPT_ outdir shbopt-ext use-ld;
 	$defl! echo-var (var) SHBuild_EchoVar var (value-of var);
 	"XXX", "The values of following variables may be overriden in 'do-build'.";
 	"TODO", "Print actual values being used in 'do-build' as possible.";
 	echo-var "CXXFLAGS";
-	$if use-ld (echo-var "LDFLAGS");
+	$if use-ld
+	(
+		() SHBuild_Extend_CallVariables;
+		$redef! LDFLAGS (env-get "LDFLAGS");
+		echo-var "LDFLAGS";
+		$redef! LIBS (env-get "LIBS");
+		echo-var "LIBS"
+	);
 	echo-var "SHBOPT";
 	do-build CXX CXXFLAGS SHBOPT LIBPFX
 );

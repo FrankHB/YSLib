@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2020 FrankHB.
+	© 2015-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3888
+\version r3938
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2020-11-30 21:07 +0800
+	2021-01-09 04:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,8 +35,8 @@
 //	LiftOtherOrCopy, NPL::IsMovable, LiftTermOrCopy, ResolveTerm,
 //	LiftTermValueOrCopy, MoveResolved, ResolveIdentifier, ystdex::plus,
 //	std::placeholders, NPL::ResolveRegular, ystdex::tolower,
-//	ystdex::swap_dependent, LiftTermRef, LiftTerm, NPL::Deref,
-//	YSLib::IO::StreamPut, YSLib::IO::omode_convb, YSLib::uremove,
+//	FetchEnvironmentVariable, ystdex::swap_dependent, LiftTermRef, LiftTerm,
+//	NPL::Deref, YSLib::IO::StreamPut, YSLib::IO::omode_convb, YSLib::uremove,
 //	ystdex::throw_error;
 #include YFM_NPL_NPLA1Forms // for NPL::Forms functions;
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::Path;
@@ -282,10 +282,10 @@ YB_ATTR_nodiscard ReductionStatus
 DoMoveOrTransfer(void(&f)(TermNode&, TermNode&, bool), TermNode& term)
 {
 	return Forms::CallResolvedUnary(
-		[&](TermNode& tm, ResolvedTermReferencePtr p_ref){
+		[&](TermNode& nd, ResolvedTermReferencePtr p_ref){
 		// NOTE: Force move. No %IsMovable check is needed.
 		// XXX: Term tags are currently not respected in prvalues.
-		f(term, tm, !p_ref || p_ref->IsModifiable());
+		f(term, nd, !p_ref || p_ref->IsModifiable());
 		// NOTE: Term tags are not copied.
 		return ReductionStatus::Retained;
 	}, term);
@@ -622,7 +622,7 @@ LoadGroundedDerived(REPLContext& context)
 	RegisterStrict(renv, "list", ReduceBranchToListValue);
 	RegisterStrict(renv, "list%", ReduceBranchToList);
 	// NOTE: Lazy form '$deflazy!' is the basic operation, which may bind
-	//	parameter as unevaluated operands. 
+	//	parameter as unevaluated operands.
 	RegisterForm(renv, "$deflazy!", DefineLazy);
 	RegisterForm(renv, "$set!", SetWithNoRecursion);
 	RegisterForm(renv, "$setrec!", SetWithRecursion);
@@ -920,18 +920,17 @@ LoadCore(REPLContext& context)
 		$defl%! assv (&x &alist) $cond ((null? alist) ())
 			((eqv? x (first& (first& alist))) first alist)
 			(#t assv (forward! x) (rest% alist));
+		$defw! derive-current-environment (.&envs) d
+			apply make-environment (append envs (list d)) d;
+		$defv! $as-environment (.&body) d
+			eval (list $let () (list $sequence (move! body)
+				(list () lock-current-environment))) d;
 		$defv%! $let (&bindings .&body) d
 			eval% (list*% () (list*% $lambda (map1 firstv bindings)
 				(list (move! body))) (map1 list-rest% bindings)) d;
 		$defv%! $let% (&bindings .&body) d
 			eval% (list*% () (list*% $lambda% (map1 firstv bindings)
 				(list (move! body))) (map1 list-rest% bindings)) d;
-		$defv%! $let/d (&bindings &ef .&body) d
-			eval% (list*% () (list% wrap (list*% $vau (map1 firstv bindings)
-				ef (list (move! body)))) (map1 list-rest% bindings)) d;
-		$defv%! $let/d% (&bindings &ef .&body) d
-			eval% (list*% () (list% wrap (list*% $vau% (map1 firstv bindings)
-				ef (list (move! body)))) (map1 list-rest% bindings)) d;
 		$defv%! $let/e (&e &bindings .&body) d
 			eval% (list*% () (list*% $lambda/e e (map1 firstv bindings)
 				(list (move! body))) (map1 list-rest% bindings)) d;
@@ -939,11 +938,11 @@ LoadCore(REPLContext& context)
 			eval% (list*% () (list*% $lambda/e% e (map1 firstv bindings)
 				(list (move! body))) (map1 list-rest% bindings)) d;
 		$defv%! $let* (&bindings .&body) d
-			eval% ($if (null? bindings) (list*% $let bindings (move! body))
+			eval% ($if (null? bindings) (list*% $let () (move! body))
 				(list% $let (list% (firstv bindings))
 				(list*% $let* (rest% bindings) (move! body)))) d;
 		$defv%! $let*% (&bindings .&body) d
-			eval% ($if (null? bindings) (list*% $let* bindings (move! body))
+			eval% ($if (null? bindings) (list*% $let* () (move! body))
 				(list% $let% (list (first bindings))
 				(list*% $let*% (rest% bindings) (move! body)))) d;
 		$defv%! $letrec (&bindings .&body) d
@@ -959,18 +958,14 @@ LoadCore(REPLContext& context)
 				(list*% () list (map1 rest% bindings))) d)
 			res;
 		$defv! $bindings->environment (.&bindings) d
-			eval (list*% $bindings/p->environment
-				(list (() make-standard-environment)) bindings) d;
+			eval (list*% $bindings/p->environment () bindings) d;
+		$defv! $provide/let! (&symbols &bindings .&body) d
+			$sequence (eval% (list% $def! symbols (list $let bindings $sequence
+				(list% ($vau% (&e) d $set! e res (lock-environment d))
+				(() get-current-environment)) (move! body)
+				(list* () list symbols))) d) res;
 		$defv! $provide! (&symbols .&body) d
-			$sequence (eval% (list% $def! symbols (list $let () $sequence
-				(list% ($vau% (&e) d $set! e res (lock-environment d))
-				(() get-current-environment)) (move! body)
-				(list* () list symbols))) d) res;
-		$defv! $provide/d! (&symbols &ef .&body) d
-			$sequence (eval% (list% $def! symbols (list $let/d () ef $sequence
-				(list% ($vau% (&e) d $set! e res (lock-environment d))
-				(() get-current-environment)) (move! body)
-				(list* () list symbols))) d) res;
+			eval (list*% $provide/let! (forward! symbols) () (move! body)) d;
 		$defv! $import! (&e .&symbols) d
 			eval% (list $set! d symbols (list* () list symbols)) (eval e d);
 		$defl! nonfoldable? (&l)
@@ -1059,15 +1054,10 @@ LoadModule_std_promises(REPLContext& context)
 	// NOTE: Call of 'set-first%!' does not check cyclic references. This is
 	//	kept safe since it can occur only with NPLA1 undefined behavior.
 	context.Perform(R"NPL(
-		$def! __ $provide! (promise? memoize $lazy $lazy/e force)
-		(
-			$def! (encapsulate promise? decapsulate) () make-encapsulation-type,
-			$defl%! memoize (&x) encapsulate (list (list% (forward! x) ())),
-			$defv%! $lazy (.&expr) d encapsulate (list (list expr d)),
-			$defv%! $lazy/e (&e .&expr) d
-				encapsulate (list (list expr (check-environment (eval e d)))),
-			$defl%! force (&x)
-				$if (promise? x) (force-promise (decapsulate x)) (forward! x),
+		$provide/let! (promise? memoize $lazy $lazy/e force)
+		((mods $as-environment (
+			$def! (encapsulate% promise? decapsulate)
+				() make-encapsulation-type;
 			$defl%! force-promise (&x) $let ((((&o &env)) x))
 				$if (null? env) (forward! o)
 				(
@@ -1081,6 +1071,18 @@ LoadModule_std_promises(REPLContext& context)
 								list% (assign! o y) (assign@! e ()))
 							(forward! y))
 				)
+		)))
+		(
+			$import! mods promise?;
+			$defl/e%! memoize mods (&x)
+				encapsulate% (list (list% (forward! x) ())),
+			$defv/e%! $lazy mods (.&body) d
+				encapsulate% (list (list (move! body) d)),
+			$defv/e%! $lazy/e mods (&e .&body) d
+				encapsulate%
+					(list (list (move! body) (check-environment (eval e d)))),
+			$defl/e%! force mods (&x)
+				$if (promise? x) (force-promise (decapsulate x)) (forward! x)
 		);
 	)NPL");
 }
@@ -1439,7 +1441,8 @@ LoadModule_SHBuild(REPLContext& context)
 
 			str = pfx + std::move(str) + sfx;
 			// TODO: Check file access with read-write permissions using
-			//	%YSLib::uopen. This requires the exposure of the open flags.
+			//	%YSLib::uopen. This requires the exposure of the open flags in
+			//	YSLib since NPL does not use %YCLib::NativeAPI.
 			// XXX: This is like %YSLib::ufexists, but UTF-8 support is not
 			//	needed.
 			if(ystdex::fexists(str.c_str(), true))

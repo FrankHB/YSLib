@@ -1,5 +1,5 @@
 ﻿/*
-	© 2016-2020 FrankHB.
+	© 2016-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r19632
+\version r19640
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2020-11-22 12:51 +0800
+	2021-01-08 19:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -391,7 +391,7 @@ auto
 DoDefineSet(TermNode& term, size_t n, _func f) -> decltype(f())
 {
 	Retain(term);
-	if(term.size() > n)
+	if(term.size() >= n)
 		return f();
 	ThrowInsufficientTermsErrorFor(term,
 		InvalidSyntax("Invalid syntax found in definition."));
@@ -603,7 +603,7 @@ RelayNextGuarded(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 	// XXX: See %RelayForEvalOrDirect.
 #if NPL_Impl_NPLA1_Enable_Thunked
 	// TODO: Blocked. Use C++14 lambda initializers to simplify the
-	//	implementation.	
+	//	implementation.
 	return A1::RelayCurrentNext(term, ctx, yforward(next), MakeMoveGuard(gd));
 #else
 	yunused(gd);
@@ -1484,7 +1484,7 @@ AddWrapperCount(size_t n)
 YB_NORETURN ReductionStatus
 ThrowForWrappingFailure(const ystdex::type_info& tp)
 {
-	throw TypeError(ystdex::sfmt("Wrapping failed with type '%s'.", tp.name()));		
+	throw TypeError(ystdex::sfmt("Wrapping failed with type '%s'.", tp.name()));
 }
 
 ReductionStatus
@@ -1644,7 +1644,7 @@ private:
 					if(r)
 						EqualSubterm(r, act, first1, first2, last1);
 				};
-				ystdex::update_thunk(act, [&, first1, first2, last1]{
+				ystdex::update_thunk(act, [&]{
 					if(r)
 						EqualSubterm(r, act, x.begin(), y.begin(), x.end());
 				});
@@ -1742,7 +1742,7 @@ public:
 					}
 					return ReductionStatus::Retained;
 				}, [&]{
-					LiftTerm(term, tm);		
+					LiftTerm(term, tm);
 					return ReductionStatus::Retained;
 				});
 			}
@@ -1941,7 +1941,7 @@ FoldRMap1Impl(TermNode& term, TermNode& nd, ResolvedTermReferencePtr p_ref,
 			while(++j != nd.end())
 			{
 				auto& tm(*j);
-	
+
 				if(IsReferenceTerm(tm))
 					ncon.emplace_back(tm);
 				else
@@ -2023,7 +2023,7 @@ Map1Impl(TermNode& term, ContextNode& ctx, TermNode& appv)
 				std::move(nterm)}, a)}, a))));
 
 			RelaySwitched(ctx, A1::NameTypedReducerHandler([&, d]() YB_FLATTEN{
-				return ReduceCallSubsequent(*term.begin(), ctx, d,					
+				return ReduceCallSubsequent(*term.begin(), ctx, d,
 					A1::NameTypedReducerHandler([&]() YB_FLATTEN{
 					auto i_term(term.begin());
 
@@ -2052,7 +2052,7 @@ AccFoldR1(TermNode& term, ContextNode& ctx, TermNode& rterm, ptrdiff_t n)
 	rterm.GetContainerRef().emplace_back();
 	RelaySwitched(ctx, A1::NameTypedReducerHandler([&]{
 		LiftOther(term, rterm);
-		return ctx.LastStatus;	
+		return ctx.LastStatus;
 	}, "eval-lift-sum"));
 }
 
@@ -2150,6 +2150,7 @@ EqualTermValue(TermNode& term, ContextNode& ctx)
 			y.begin(), x.end());
 	}, static_cast<const TermNode&(&)(const TermNode&)>(ReferenceTerm));
 }
+
 
 ReductionStatus
 If(TermNode& term, ContextNode& ctx)

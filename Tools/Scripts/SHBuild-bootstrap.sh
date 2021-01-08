@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# (C) 2014-2020 FrankHB.
+# (C) 2014-2021 FrankHB.
 # Common source script: bootstrap configuration.
 
 set -e
+
 : "${SHBuild_ToolDir:=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)}"
-# shellcheck source=./SHBuild-common.sh
-. "$SHBuild_ToolDir/SHBuild-common.sh" # for SHBuild_Puts, SHBuild_PrepareBuild,
-#	SHBuild_EchoVar_N.
+# shellcheck source=./SHBuild-YSLib.sh
+. "$SHBuild_ToolDir/SHBuild-YSLib.sh" # for SHBuild_Puts, SHBuild_EchoVar_N,
+#	YSLib_BaseDir, SHBuild_GetBuildName, CXX, CXXFLAGS, LDFLAGS, INCLUDES, LIBS,
+#	SHBuild_Host_OS;
+
 SHBuild_Puts "Bootstrap beginned."
-SHBuild_PrepareBuild
 : "${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}"
-: "${YSLib_BaseDir:="$SHBuild_ToolDir/../.."}"
 SHBuild_BaseDir=$(cd "$SHBuild_BaseDir"; pwd)
-YSLib_BaseDir=$(cd "$YSLib_BaseDir"; pwd)
 
 SHBuild_EchoVar_N 'SHBuild.BaseDir'
 SHBuild_EchoVar_N 'SHBuild.ToolDir'
@@ -20,24 +20,6 @@ SHBuild_EchoVar_N 'SHBuild.Host.Arch'
 SHBuild_EchoVar_N 'SHBuild.Host.OS'
 
 SHBuild_Puts "Configuring ..."
-
-# shellcheck source=./SHBuild-common-toolchain.sh
-. "$SHBuild_ToolDir/SHBuild-common-toolchain.sh"
-# shellcheck source=./SHBuild-common-options.sh
-. "$SHBuild_ToolDir/SHBuild-common-options.sh"
-
-# XXX: %INCLUDE_PCH and %INCLUDES are internal.
-# shellcheck disable=2034
-INCLUDE_PCH="$YSLib_BaseDir/YBase/include/stdinc.h"
-# shellcheck disable=2034
-INCLUDES="-I$YSLib_BaseDir/YFramework/include \
--I$YSLib_BaseDir/YFramework/Android/include \
--I$YSLib_BaseDir/YFramework/DS/include \
--I$YSLib_BaseDir/YFramework/Win32/include \
--I$YSLib_BaseDir/3rdparty/include \
--I$YSLib_BaseDir/3rdparty/freetype/include \
--I$YSLib_BaseDir/YBase/include \
-"
 
 # Coordinated at build 882.
 LIBS="$YSLib_BaseDir/YBase/source/ystdex/base.cpp \
@@ -86,6 +68,8 @@ fi
 export CXXFLAGS
 export LDFLAGS
 
+# XXX: %SHBuild_Host_Arch and %SHBuild_Host_OS shall be ready after the
+#	inclusion of %SHBuild-YSLib.sh.
 : "${SHBuild_BuildDir:="$SHBuild_ToolDir/../../build/$(SHBuild_GetBuildName)"}"
 
 SHBuild_EchoVar_N 'SHBuild.BuildDir'

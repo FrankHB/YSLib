@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
-# (C) 2014-2018, 2020 FrankHB.
+# (C) 2014-2018, 2020-2021 FrankHB.
 # SHBuild installation script.
 
 set -e
+
 : "${SHBuild_ToolDir:=$(cd "$(dirname "${BASH_SOURCE[0]}")/Scripts"; pwd)}"
 # XXX: Use 'shell -x -P SCRIPTDIR'.
 # shellcheck source=./Scripts/SHBuild-common.sh
-. "$SHBuild_ToolDir/SHBuild-common.sh" # for SHBuild_Puts,
-#	SHBuild_PrepareBuild, SHBuild_GetBuildName;
+. "$SHBuild_ToolDir/SHBuild-common.sh" # for SHBuild_Puts, SHBuild_PrepareBuild,
+#	SHBuild_GetBuildName;
 
 # NOTE: Some variables are configurable. If not set or set to empty, the
 #	variables can be later set by the scripts being called. Variable specific to
@@ -30,15 +31,14 @@ export SHBuild_Opt
 : "${SHBuild_SysRoot:="$YSLib_BaseDir/sysroot"}"
 YSLib_BaseDir=$(cd "$YSLib_BaseDir"; pwd)
 export YSLib_BaseDir
+# NOTE: This is necessary before the call to %SHBuild_GetBuildName.
 SHBuild_PrepareBuild
 # NOTE: The default value is same to %SHBuild_BuildDir in
-#	%SHBuild-YSLib-bootstrap.sh. The directory will be created if not existed by
+#	%SHBuild-bootstrap.sh. The directory will be created if not existed by
 #	the following stage 1 process or by %SHBuild-YSLib-build.txt.
 : "${SHBuild_BuildDir:="$YSLib_BaseDir/build/$(SHBuild_GetBuildName)"}"
 export SHBuild_BuildDir
 SHBuild_Puts "Build directory is \"$SHBuild_BuildDir\"."
-# shellcheck source=./Scripts/SHBuild-common-toolchain.sh
-. "$SHBuild_ToolDir/SHBuild-common-toolchain.sh"
 if [[ -z ${SHBuild_UseRelease+x} ]]; then
 	SHBuild_UseRelease=true
 fi

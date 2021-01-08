@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# (C) 2014-2016, 2020 FrankHB.
+# (C) 2014-2016, 2020-2021 FrankHB.
 # Test script for self-hosting SHBuild.
 
 set -e
+
 : "${SHBuild_ToolDir:=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)}"
-: "${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}"
 # shellcheck source=./SHBuild-bootstrap.sh
 . "$SHBuild_ToolDir/SHBuild-bootstrap.sh"
 

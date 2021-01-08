@@ -1,5 +1,5 @@
 ﻿/*
-	© 2016-2020 FrankHB.
+	© 2016-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r7731
+\version r7741
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2020-11-22 01:29 +0800
+	2021-01-08 19:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -898,14 +898,16 @@ EvalUnit(TermNode&);
 //! \pre 间接断言：第一参数指定的项是枝节点。
 //@{
 /*!
-\brief 创建以参数指定的环境列表作为父环境的新环境。
+\brief 创建空环境。
 \exception NPLException 异常中立：由 Environment 的构造函数抛出。
 \sa Environment::CheckParent
 \sa EnvironmentList
 \since build 798
 \todo 使用专用的异常类型。
 
-取以指定的参数初始化新创建的父环境。
+取以参数指定父环境的空环境。
+可选地通过参数指定的一个或多个环境作为父环境。
+当且仅当参数指定超过一个环境时，使用环境列表。
 
 参考调用文法：
 <pre>make-environment \<environment>...</pre>
@@ -973,7 +975,7 @@ ValueOf(TermNode&, const ContextNode&);
 剩余表达式视为求值结果，直接绑定到 \c \<definiend> 。
 
 参考调用文法：
-<pre>$deflazy! \<definiend> \<expressions></pre>
+<pre>$deflazy! \<definiend> \<body></pre>
 */
 YF_API ReductionStatus
 DefineLazy(TermNode&, ContextNode&);
@@ -984,7 +986,7 @@ DefineLazy(TermNode&, ContextNode&);
 剩余表达式视为一个表达式在上下文决定的当前环境进行求值后绑定到 \c \<definiend> 。
 
 参考调用文法：
-<pre>$def! \<definiend> \<expressions></pre>
+<pre>$def! \<definiend> \<body></pre>
 */
 YF_API ReductionStatus
 DefineWithNoRecursion(TermNode&, ContextNode&);
@@ -1000,7 +1002,7 @@ DefineWithNoRecursion(TermNode&, ContextNode&);
 循环引用以此引入的名称可能抛出 InvalidReference 异常。
 
 参考调用文法：
-<pre>$defrec! \<definiend> \<expressions></pre>
+<pre>$defrec! \<definiend> \<body></pre>
 */
 YF_API ReductionStatus
 DefineWithRecursion(TermNode&, ContextNode&);
@@ -1014,7 +1016,7 @@ DefineWithRecursion(TermNode&, ContextNode&);
 同 DefineWithNoRecursion ，但由规约第一参数子项的结果显式地确定被修改的环境。
 
 参考调用文法：
-<pre>$set! \<environment> \<formals> \<expressions></pre>
+<pre>$set! \<environment> \<formals> \<body></pre>
 */
 YF_API ReductionStatus
 SetWithNoRecursion(TermNode&, ContextNode&);
@@ -1025,7 +1027,7 @@ SetWithNoRecursion(TermNode&, ContextNode&);
 同 DefineWithRecursion ，但由规约第一参数子项的结果显式地确定被修改的环境。
 
 参考调用文法：
-<pre>$setrec! \<environment> \<formals> \<expressions></pre>
+<pre>$setrec! \<environment> \<formals> \<body></pre>
 */
 YF_API ReductionStatus
 SetWithRecursion(TermNode&, ContextNode&);

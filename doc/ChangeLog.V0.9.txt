@@ -1,5 +1,5 @@
 ﻿/*
-	© 2020 FrankHB.
+	© 2020-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r1787
+\version r1983
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2020-12-24 12:09 +0800
+	2021-01-09 04:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,199 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+	/ %Tools $=
+	(
+		/ %Scripts $=
+		(
+			/ @ "%SHBuild-YSLib.sh" $=
+			(
+				- "'echo' command to print reserved information";
+				+ "%(INCLUDES, INCLUDE)",
+				+ "%YSLib_BaseDir initialization",
+				(
+				+ "overridable variable %SHBuild_PCH_stdinc_h";
+				+ "function %SHBuild_S1_InitializePCH"
+				)
+			),
+			/ DLDI "simplified quotes" @ "%SHBuild_Verbose_ check"
+				@ "%SHBuild-build.sh",
+			- DLDI "%SHBuild_BaseDir" @ "%(SHBuild-build.sh, SHBuild-self-host.sh, \
+				SHBuild-self-host-DLL.sh)",
+				// This is set in %SHBuild-bootstrap.sh.
+			/ DLDI @ "%SHBuild-bootstrap.sh" $=
+			(
+				- "'.' command for %SHBuild-common-toolchain.sh"
+					@ "%SHBuild-bootstrap.sh",
+				/ "reordered and simplified source inclusion commands"
+			),
+			/ @ "%SHBuild-YSLib-common.txt" $=
+			(
+				(
+				+ "applicative 'use-fsanitize?'";
+				(
+				+ "applicative 'use-asan?'";
+					// This only support options like '-fsanitize=address' but \
+						not '-faddress-sanitize'. The latter is nonsense to \
+						G++ and current Clang++. See also See $2020-12 \
+						@ %Documentation::Workflow.
+				+ ' -U_FORTIFY_SOURCE -fno-omit-frame-pointer -fno-common'
+					@ "build flags %(CFLAGS, CXXFLAGS) for detected sanitizer \
+					builds",
+				)
+				(
+				+ "applicative 'use-san?';
+				+ "postfix %LDFLAGS with '-Wl,-z,undefs' for Clang++ when \
+					santizers are used"
+				),
+				+ "applicatives ('use-san?', 'use-tsan?', 'use-msan?',
+					'use-ubsan?', 'use-lsan?')"
+				),
+				+ "output for needed setting on %SS_Verbose"
+					@ "applivative %SHBuild_Extend_CallVariables",
+				/ @ "applicative 'build-with-conf-opt'"
+				(
+					+ "%SHBuild_Extend_CallVariables call" @ "final settings"
+						$dep_to "SHBuild library variables extension",
+					+ "%LIBS echo when %LD is used after %LDFLLAGS echo"
+				),
+				/ DLDI "simplified static environment" @ "applicatives \
+					('safeenv-get', 'safeenv-set', 'ss-verbose-puts')",
+				/ DLDI "poisoned unsafe functions and safe environment \
+					functions" ^ ('$provide!', 'make-environment')
+					~ '$provide/d!' $dep_to "removal of calls to '$provide/d!'"
+			),
+			(
+			/ $forced "callbacks for 'build-with-conf-opt'"
+				$dep_from "SHBuild library variables extension"
+				$effective @ "%(SHBuild-YSLib-build.txt, SHBuild-BuildApp.txt")
+				$= (- "redundant %SHBuild_Extend_CallVariables call");
+			* $comp "accumulated %(LDFLAGS, LIBS) more than once"
+				@ "development tool builds" @ "%SHBuild-YSLib-build.txt"
+				$since b906
+			),
+			/ @ "%SHBuild-YSLib-build.txt" $=
+			(
+				* "wrong pattern for sanitizer detection" $since b906
+					$= (/ $impl ^ $dep_from ('use-ubsan?'
+						@ "%SHBuild-YSLib-common.txt")),
+						// The address sanitizer pattern was already wrong. \
+							And actually the undefined behavior santizer is \
+							offending.
+				* "%LDFLAGS pollution caused by %SHBuild_LDFLAGS extension \
+					when %LDFLAGS is unused" @ "library build" $since b906
+					// This is needed fixing even if the call of \
+						%SHBuild_Extend_CallVariables is removed, for base \
+						%LDFLAGS used by %Win32 at least.
+			),
+			/ @ "%SHBuild-BuildApp.txt" $=
+			(
+				* "wrongly adjustedd linker option with '-mwindows' for %debug \
+					builds" $since b900
+				- $re_add(b838) DLDI "variable %SHBuild_YSLib_Platform",
+				* "platform-specific flags fix" $since b900
+					// The platform detection now uses %MSYSTEM when \
+						specified, which is consistent to \
+						%SHBuild-YSLib-build.txt.
+			)
+		),
+		- DLI "redundant inclusion of %Tools/SHBuild-common-toolchain.sh"
+			@ "%install-sysroot.sh"
+			// See $2020-12 @ %Documentation::Workflow.
+	),
+	/ "stage 1 build scripts" $=
+	(
+		/ "simplified scripts with %YSLib_BaseDir initialization and \
+			%SHBuild-common-options.sh inclusion" ^ $dep_from ("%(INCLUDE_PCH, \
+			INCLUDES, YSLib_BaseDir)" @ "%SHBuild-YSLib.sh" @ %Tools.Scripts)
+			$effective @ ("%SHBuild-bootstrap.sh" @ %Tools.Scripts,
+			"%test.sh" @ %Test),
+		(
+		/ "simplified scripts with stage 1 PCH options avaiable"
+			^ $dep_from ("%SHBuild_S1_InitializePCH"
+			@ "%SHBuild-YSLib.sh" @ %Tools.Scripts) $effective
+			@ ("%SHBuild-YSLib.sh" @ %Tools.Scripts, "%test.sh" @ %Test)
+			~ "%SHBuild_CheckPCH";
+		+ $comp "overridable %SHBuild_PCH_stdinc_h" @ "%test.sh" @ %Test
+		),
+		- DLI "duplicate initialization of build environment variables"
+			$effective @ ("%test.sh" @ %Test, "%SHBuild-bootstrap.sh"
+			@ %Tools.Scripts)
+			// See $2020-12 @ %Documentation::Workflow.
+	),
+	/ $dev "unchecked shell scripts" $effective
+		@ ("%3rdparty/freetype/builds/build-ds.sh",
+		"%doxygen-cjk.sh" @ %Documentation) $=
+	(
+		// See $2020-12 @ %Documentation::Workflow.
+		+ "normalized shebang with 'env'",
+		+ "copyright notice",
+		+ "description",
+		/ "optimized to eliminate ShellCheck issues"
+	),
+	/ "%doxygen-cjk.sh" @ %Documentation $=
+	(
+		/ "supported working directory other than 'doc'",
+		/ DLDI ^ "%SHBuild_Pushd, SHBuild_Popd",
+		* "wrong 'sed' command argument" $since b380
+	),
+	* $comp "missing console window" @ "default %debug configurations"
+		@ "platform %Win32" @ %YSTest $since b903
+		$dep_from ("%SHBuild-BuildApp.txt" @ %Tools.Scripts),
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA1Forms $=
+		(
+			/ DLDI "simplified" @ "%operator==" @ "encapsulation constructed \
+				from function %MakeEncapsulationType",
+				// To eliminate Clang++ warning: [-Wunused-lambda-capture].
+			/ "allowed empty body" @ "functions %(DefineLazy, \
+				DefineWithNoRecursion, DefineWithRecursion, \
+				SetWithNoRecursion, SetWithNoRecursion)"
+		),
+		/ %Dependency $=
+		(
+			/ @ "function %LoadGroundContext" $=
+			(
+				/ DLDI "simplified operatives ('$let*', '$let*%')"
+				- "operative '$let/d%'",
+					// See $2020-01 @ %Documentation::Workflow.
+				(
+				/ "operative '$provide/d!'" -> '$provide/let!'
+					$dep_from "removal of calls to '$provide/let!'";
+				- "operative '$let/d'",
+					// Ditto.
+				/ DLDI "simplified operative '$provide!'" ^ '$provide/d!'
+				),
+				* "wrong parent environment constructed"
+					@ "operative '$bindings->environment'" $since b839,
+					// See $2020-01 @ %Documentation::Workflow.
+					$= (/ $impl !^ 'make-standard-environment'),
+				+ "applicative 'derive-current-environment'",
+				+ "operative '$as-environment'"
+			),
+			/ DLI @ "function %LoadModule_std_promises" $=
+			(
+				/ $design "enforced sigil at the end of name of internal \
+					encapsulation applicative",
+					// To be consistent to 'box%'.
+				/ $design "parameter name 'expr'"
+					@ "operatives ('$lazy', '$lazy/e')" -> 'body',
+					// To be consistent to %NPL.Documentation changes.
+				/ "optimized expression parameter"
+					@ "operatives ('$lazy', '$lazy/e')"
+					@ "function %LoadModule_std_promises" ^  'move!',
+				/ "providing symbols"
+					^ $dep_from (('$provide/let!', '$as-environment')
+					@ "%LoadGroundContext") ~ ('$provide!', '__')
+			)
+		)
+	),
+	* DD "wrong parameter types" @ ("applicative %memoize",
+		"operatives ('$lazy', '$lazy/e') %memoize") @ "promises module"
+		@ %Documentation.NPL $since b856
+),
+
+b906
 (
 	/ %YFramework $=
 	(
@@ -115,7 +308,7 @@ $now
 					+ "warning to indicate additional flags fix is used",
 					+ "detection of address sanitizer and the workaround for \
 						building performance with dynamic YFramework build by \
-						G++"@ "platform %Linux"
+						G++" @ "platform %Linux"
 				)
 			),
 			* "missing check slashes in the 1st argument before call to \
@@ -1781,8 +1974,8 @@ b900
 		^ ("%GenerateProjects.sh" @ %Tools.Scripts),
 	/ $doc "%Doxyfile" $=
 	(
-		/ $deploy "updated version";
-		/ DLDI "saved with some new default configurations"
+		/ $deploy "updated %PROJECT_NUMBER";
+		^ $re_ex(b627) "Doxygen 1.8.18" ~ "Doxygen 1.8.10"
 	)
 );
 

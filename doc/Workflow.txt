@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2020 FrankHB.
+	© 2013-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4006
+\version r4086
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2020-12-15 06:00 +0800
+	2021-01-08 00:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -3994,19 +3994,93 @@ Scripts are revised.
 			These include 'SHBuild_BuildApp' and 'SHBuild_BuildPrefix'.
 			Now 'SHBuild_BuildDir' is used for all cases (including stage 1).
 
-$2020-11:
+$2020-12:
 
 report.impl:
-The YSLib builds are revised.
+The YSLib build scripts are revised and enhanced.
 	'SHBuild-common-options.sh' is simplified by the removal of stage 2 configurations.
 		They are still available in %SHBuild-YSLib-common.txt.
 	Unused stage 2 configurations are removed.
 	Now all NPLA1 build scripts accept 'SHBuild_LDFLAGS' and 'SHBuild_LIBS'.
-	The library building process in the build script 'SHBuild-YSLib-build.txt' has improved the workarounds.
-		There is now a warning to indicate the fix of flags is used.
-		It now detects sanitizers used with Linux G++.
-			As a workaround for performance, dynamic builds with address sanitizer adds '-fno-var-tracking-assignments'.
-				It still typically takes more than half an hour, though.
+	The build script 'SHBuild-YSLib-common.txt' now detects sanitizers used with Linux Clang++ or G++.
+		Supported sanitizers are: ASan (AddressSanitizer), TSan (ThreadSanitizer), MSan (MemorySanitizer), UBSan (UndefinedBehaviorSanitizer) and LSan (LeakSanitizer).
+			See https://clang.llvm.org/docs/ and https://gcc.gnu.org/onlinedocs/gcc/Instrumentation-Options.html for available options.
+			Note G++ has no support of MSan (MemorySanitizer) at current. It requires Clang.
+				See also https://gcc.gnu.org/legacy-ml/gcc/2014-10/msg00006.html.
+		The sanitizer flags are scanned directly by string pattern matching.
+			As usual, the order of options are not assumed. Options to disable sanitizers are not recognized.
+			Multiple sanitizer names delimited by ',' for '-fsanitize=' option are supported.
+				Not all of them can be used together by design, though. See also https://github.com/google/sanitizers/issues/1039.
+			The flags with the old syntax are not supported, as they are not recognized by current versions of Clang++ and G++.
+				See https://reviews.llvm.org/rL204330.
+		For better effects of the ASan, '-U_FORTIFY_SOURCE -fno-omit-frame-pointer -fno-common' is also added to the compiler option.
+			See also https://github.com/google/sanitizers/wiki/AddressSanitizer#faq.
+		The support is in the build process. At runtime it would still fail due to bugs in the environment.
+			ASan has false positive of ODR uses.
+			LSan is known not working at current for stage 2 SHBuild.
+	The library building process in the build script 'SHBuild-YSLib-build.txt' has improved the compiler options configuration.
+		There is now a warning to indicate some fixes of flags is used.
+		As a workaround for performance, libYFramework dynamic builds with sanitizers adds more flags as the workaround.
+			The configuration without such flags fix would cause extremely slow compilation for the dynamic release library.
+			It also requires a lot of memory. For example, compilation with '-fsanitize=address,undefined' by 'cc1plus' could stops on G++ 10.2.0 tree-ree (Redundant Extension Elimination) pass with a memory allocation failure.
+			The real issue is not in the '-O3' path, it also hangs on '-O1' (but not '-O0'), when the address sanitize is used.
+				Since tree-ree is disabled in '-O1' (inspected by a call like 'echo "" | g++ -fdump-passes -c -x c++ -'), it should have been gone wrong earlier.
+			The '-Q' option shows the problem is in ipa-opt_local_passes.
+			G++ 10.2 would crash with segfault on '-fsanitize=undefined -fno-lto' in compiling 'NPLA1Forms.cpp' after several minutes.
+				This seems https://gcc.gnu.org/bugzilla/show_bug.cgi?id=97554 and would be fixed in GCC 10.3.
+			It is eventually worked around by adding options specific to 'cc1plus'.
+				By adding '-fdisable-ipa-opt_local_passes', or more specific '-fdisable-einline', it works.
+				Note there is a bug with '-fdump-passes -fdisable-tree-einline': https://gcc.gnu.org/bugzilla/show_bug.cgi?id=82955. This seems work for current Arch Linux's G++.
+			This also includes '-fno-lto' to disable LTO for various sanitizers, to prevent long time spent in 'lto1' invocation during linking.
+				This should be mostly specific to 'NPLA1Forms.cpp' like the issue in $2020-09 report.impl, although '-fno-var-tracking-assignments' makes no big differences.
+					With LTO, the whole compilation still typically takes more than half an hour for other compilation units, though.
+	The common stage 1 (shell) build scripts logic is now handled in the script 'Tools/Scripts/SHBuild-YSLib.sh', which was reserved previously.
+		This script initializes the common stage 1 build environment by including 'Tools/Scripts/SHBuild-common-toolchain.sh' and providing additional common interface like stage 1 'INCLUDE' variable.
+		The stage 1 SHBuild bootstrapping script 'Tools/Scripts/SHBuild-bootstrap.sh' includes this script and it is included by other stage 1 build scripts.
+		The test script (now assumely stage 1 only), i.e. 'Test/test.sh', also includes this script.
+	Source inclusions and build environment initialization have been cleanup.
+		The initialization is for 'SHBuild_Env_*' and 'SHBuild_Host_*' variables, now performed by the call of shell function 'SHBuild_PrepareBuild' provided by 'Tools/Scripts/SHBuild-common.sh'.
+		In stage 1, this is mostly done in 'Tools/SHBuild-common-toolchain.sh' since build 904.
+			Originally, it was performed by function 'SHBuild_CheckUName' since build 897.
+		This is duplicate by clashing with earlier calls in other places (all call 'SHBuild_PrepareBuild' currently):
+			In 'Test/test.sh', this was originally done by function 'SHBuild_CheckHostPlatform' since build 740.
+			In stage 1 bootstrapping including 'Tools/Scripts/SHBuild-bootstrap.sh' and 'Tools/install-sysroot.sh', this was originally done by 'SHBuild_CheckUName' since build 562.
+		The duplication is resolved in different ways.
+			The script 'Tools/install-sysroot.sh' now removes the redundant inclusion of 'Tools/Scripts/SHBuild-common-toolchain.sh'.
+				This is appropriate since both the builds of stage 1 and stage 2 can handle the toolchain detection in the called script, either by including 'Tools/Scripts/SHBuild-common-toolchain.sh' (stage 1) or using NPLA1 configuration routines (stage 2).
+			Other scripts just remove the redundant call of 'SHBuild_PrepareBuild'.
+				Now all other scripts use the inclusion from 'Tools/Scripts/SHBuild-bootstrap.sh', which in turn includes the new common piece of code in 'Tools/Scripts/SHBuild-YSLib.sh'.
+		Note this is not directly needed in 'Test/test.sh' as neither 'SHBuild_Env_*' nor 'SHBuild_Host_*' variables are explicitly used.
+		This is also not needed in non-stage 1 build scripts, but there are no duplicated initializations and it can be required in future (e.g. cross compilation). Thus, no changes are for non-stage 1 scripts.
+The remained scripts '3rdparty/freetype/builds/build-ds.sh' and 'doc/doxygen-cjk.sh' are revised and checked by ShellCheck according to the requirements on https://frankhb.github.io/YSLib-book/Development.zh-CN.html.
+
+$2021-01:
+
+report.impl:
+NPLA1 interface for local bindings and modules are revised.
+	The operative '$provide/d!', '$let/d' and '$let/d%' are removed.
+		The dynamic environment denoted by the environment formal parameter is generally discouraged, because the dynamic environment may have other bindings initialized later, and relying on such bindings is often error-prone, esp. for long bodies.
+			Using of the statically derived environments (e.g. the standard enviornment) instead as the static environment of the exported functions in the body is generally more encouraged.
+		If the dynamic environment is needed indeed, it can be easily worked around.
+			Since the environment is local to the binding clauses and the bound expressions in the clauses will be always evaluated, it is easy to specify the dynamic environment in the bindings clause.
+				For example, a '() get-current-environment' should generally be enough.
+		This is different to operative constructors like '$vau'.
+			Dynamic environment is necessary to operatives in general, even though the caveats on the use of the dynamic environments still apply.
+				It is not optional for all such operative constructors.
+				There should be some place to get the binding of the dynamic environment in some operative contructors.
+			Operatives cannot rely on the dynamic environment available from the evaluation by the operative calls.
+				That is, operand like '() get-current-environment' cannot be in the parameter tree, because it will remain unevaluated if the operative is not wrapped.
+				Obviously it cannot be in the body, either.
+				There is no other room for such an operand to go, so the environment formal parameter is eventually needed.
+	Mapping between modules and environments for loaded modules has been clearified.
+		There is no guarantee of one-to-one mapping, even though it often is the case.
+		The stability of the environments for loaded modules is now explicitly required.
+			This is in alignment to the applicative 'get-module' in [RnRK],
+				The stability in 'get-module' is get by a fresh environment made by 'make-kernel-standard-environment' as the parent.
+				This is also similar to '$let-safe' in [RnRK], though '$let-safe' is not specific to module interface.
+	A bug of wrong parent environment used in the constructed environment is fixed in the core library operative '$bindings->environment'.
+		The operative now correctly used the fresh environment without parents instead.
+		This is also consistent to the environments vs. modules definitions (requires a standard environment for the latter ones).
 
 ////
 
