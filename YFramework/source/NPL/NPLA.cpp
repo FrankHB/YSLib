@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2020 FrankHB.
+	© 2014-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3424
+\version r3428
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2020-11-18 14:46 +0800
+	2021-01-11 06:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -624,7 +624,7 @@ TokenizeTerm(TermNode& term)
 TermNode&
 TermReference::get() const
 {
-	if(r_env.GetAnchorPtr() && r_env.GetPtr().lock())
+	if(!(r_env.GetAnchorPtr() && r_env.GetPtr().expired()))
 		return term_ref.get();
 	throw InvalidReference("Invalid reference found on indirection, probably"
 		" due to invalid context access by a dangling reference.");
@@ -1207,10 +1207,10 @@ ContextNode::SwitchEnvironment(const shared_ptr<Environment>& p_env)
 }
 
 void
-swap(ContextNode& x, ContextNode& y) ynothrow 
+swap(ContextNode& x, ContextNode& y) ynothrow
 {
 	swap(x.p_record, y.p_record),
-	swap(x.Resolve, y.Resolve), 
+	swap(x.Resolve, y.Resolve),
 	swap(x.current, y.current),
 	swap(x.stashed, y.stashed),
 	std::swap(x.LastStatus, y.LastStatus),

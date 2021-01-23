@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2020 FrankHB.
+	© 2014-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8473
+\version r8475
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2020-11-18 14:46 +0800
+	2021-01-20 06:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1513,7 +1513,7 @@ QuerySourceInformation(const ValueObject&);
 \note 仅在 TCO 动作存在时支持。
 \since build 896
 */
-YB_ATTR_nodiscard YB_PURE YF_API observer_ptr<const ValueObject>
+YB_ATTR_nodiscard YF_API observer_ptr<const ValueObject>
 QueryTailOperatorName(const Reducer&);
 
 /*!

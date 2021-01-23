@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2020 FrankHB.
+	© 2012-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r3132
+\version r3135
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2020-10-26 16:37 +0800
+	2021-01-22 17:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -176,7 +176,8 @@ public:
 	basic_string(const base& str)
 		: base(str)
 	{}
-	basic_string(base&& str)
+	//! \since build 908
+	basic_string(base&& str) ynothrow
 		: base(std::move(str))
 	{}
 	basic_string(const basic_string&) = default;

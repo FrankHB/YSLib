@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4086
+\version r4098
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2021-01-08 00:38 +0800
+	2021-01-23 15:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -4081,6 +4081,18 @@ NPLA1 interface for local bindings and modules are revised.
 	A bug of wrong parent environment used in the constructed environment is fixed in the core library operative '$bindings->environment'.
 		The operative now correctly used the fresh environment without parents instead.
 		This is also consistent to the environments vs. modules definitions (requires a standard environment for the latter ones).
+The synchronous (non-thunked) implementation of NPLA1 has been reviewed and several bug has been fixed.
+	The bugs in the native implementations of sequence algorithms ('AccR', 'FoldR1' and 'Map1' in namespace 'NPL::Forms' has been fixed).
+		One of the bug is the wrong use of 'RelaySwitched'.
+			This should not be used by the synchronous implementation.
+			It would cause invalid results and invalid memory accesses eventually becuase of the unexpected early return.
+		The other is the wrong treatment of the call result. That is, 'ContextNode::LastResult' should not be used.
+			Without the previous bug, this bug would lead to wrong combiner call results determine by previous reductions.
+				For instance, '$let' would sometimes make no bindings by accident, since 'map1' results are empty lists (unless all of 'accr', 'foldr1' and 'map1' are derived rather than implemented natively).
+	An alternative implementation of 'A1::SetupDefaultInterpretation' is fixed.
+		The implementation was buggy because it missed the reduction result in the step to conditionally setup combining term reference.
+		The reduction result was implicitly 'ReductionStatus::Clean'.
+		This was wrong for the synchronous implementation because the implicit reduction status could override the reduction status from other handlers unexpectedly.
 
 ////
 

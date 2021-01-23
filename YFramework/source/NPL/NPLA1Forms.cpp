@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r19640
+\version r19731
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2021-01-08 19:20 +0800
+	2021-01-23 15:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,18 +31,18 @@
 //	ThrowInsufficientTermsError, NPL::Deref, A1::NameTypedReducerHandler,
 //	ReduceReturnUnspecified, RemoveHead, IsBranch, AccessFirstSubterm,
 //	ReduceNextCombinedBranch, std::placeholders, ystdex::as_const, IsLeaf,
-//	ystdex::ref_eq, ContextHandler, shared_ptr, string, unordered_map,
-//	Environment, lref, list, IsBranchedList, TokenValue, NPL::TryAccessLeaf,
-//	ValueObject, weak_ptr, any_ops::use_holder, in_place_type, ystdex::type_id,
-//	YSLib::allocate_shared, InvalidReference, MoveFirstSubterm, ShareMoveTerm,
-//	ThrowInvalidSyntaxError, ReduceCombinedBranch, ResolvedTermReferencePtr,
-//	LiftOtherOrCopy, ResolveTerm, ystdex::equality_comparable,
-//	std::allocator_arg, NPL::AsTermNode, ystdex::exchange,
-//	NPL::SwitchToFreshEnvironment, TermTags, ystdex::expand_proxy,
-//	NPL::AccessRegular, TermReference, GetLValueTagsOf, RegularizeTerm,
-//	ThrowValueCategoryError, ThrowListTypeErrorForNonlist, ystdex::update_thunk,
-//	NPL::TryAccessReferencedLeaf, ystdex::invoke_value_or,
-//	ystdex::call_value_or, RelaySwitched, LiftMovedOther, LiftCollapsed,
+//	ystdex::ref_eq, RelaySwitched, ContextHandler, shared_ptr, string,
+//	unordered_map, Environment, lref, list, IsBranchedList, TokenValue,
+//	NPL::TryAccessLeaf, ValueObject, weak_ptr, any_ops::use_holder,
+//	in_place_type, ystdex::type_id, YSLib::allocate_shared, InvalidReference,
+//	MoveFirstSubterm, ShareMoveTerm, ThrowInvalidSyntaxError,
+//	ReduceCombinedBranch, ResolvedTermReferencePtr, LiftOtherOrCopy,
+//	ResolveTerm, ystdex::equality_comparable, std::allocator_arg,
+//	NPL::AsTermNode, ystdex::exchange, NPL::SwitchToFreshEnvironment, TermTags,
+//	ystdex::expand_proxy, NPL::AccessRegular, TermReference, GetLValueTagsOf,
+//	RegularizeTerm, ThrowValueCategoryError, ThrowListTypeErrorForNonlist,
+//	ystdex::update_thunk, NPL::TryAccessReferencedLeaf, ystdex::invoke_value_or,
+//	ystdex::call_value_or, LiftMovedOther, LiftCollapsed,
 //	ystdex::make_transform, NPL::AllocateEnvironment, NPL::TryAccessTerm,
 //	std::mem_fn;
 #include "NPLA1Internals.h" // for A1::Internals API;
@@ -259,6 +259,7 @@ EqTermReference(TermNode& term, _func f)
 YB_PURE inline PDefH(bool, TermUnequal, const TermNode& x, const TermNode& y)
 	ImplRet(x.size() != y.size() || x.Value != y.Value)
 
+#if NPL_Impl_NPLA1_Enable_Thunked
 ReductionStatus
 EqualSubterm(bool& r, ContextNode& ctx, bool orig, TNCIter first1,
 	TNCIter first2, TNCIter last1)
@@ -274,8 +275,12 @@ EqualSubterm(bool& r, ContextNode& ctx, bool orig, TNCIter first1,
 			return ReductionStatus::Clean;
 		}
 		yunseq(++first1, ++first2);
+		// XXX: The continuations in the middle are not required to be
+		//	preserved.
 		RelaySwitched(ctx, [&, first1, first2, last1]{
-			return EqualSubterm(r, ctx, {}, first1, first2, last1);
+			// XXX: This is not effective if the result is known to be false.
+			return r ? EqualSubterm(r, ctx, {}, first1, first2, last1)
+				: ReductionStatus::Neutral;
 		});
 		return RelaySwitched(ctx, [&]{
 			return
@@ -284,6 +289,25 @@ EqualSubterm(bool& r, ContextNode& ctx, bool orig, TNCIter first1,
 	}
 	return orig ? ReductionStatus::Clean : ReductionStatus::Partial;
 }
+#else
+//! \since build 908
+bool
+EqualSubterm(TNCIter first1, TNCIter first2, TNCIter last1)
+{
+	if(first1 != last1)
+	{
+		auto& x(ReferenceTerm(*first1));
+		auto& y(ReferenceTerm(*first2));
+
+		if(TermUnequal(x, y))
+			return {};
+		yunseq(++first1, ++first2);
+		return EqualSubterm(x.begin(), y.begin(), x.end())
+			&& EqualSubterm(first1, first2, last1);
+	}
+	return true;
+}
+#endif
 //@}
 
 
@@ -1887,11 +1911,13 @@ AccRImpl(TermNode& term, ContextNode& ctx, TermNode& sum)
 			auto& rterm(*term.emplace(ystdex::exchange(con, TermNode::Container(
 				{std::move(lv_sum), std::move(nterm)}, a))));
 
-			RelaySwitched(ctx, A1::NameTypedReducerHandler([&, d]() YB_FLATTEN{
+			return A1::ReduceCurrentNext(rterm, ctx,
+				[&](TermNode& t, ContextNode& c){
+				return AccRImpl(t, c, sum);
+			}, A1::NameTypedReducerHandler([&, d]() YB_FLATTEN{
 				SetupTailContext(ctx, term);
 				return RelayCombinedTail(ctx, term, d);
 			}, "eval-accr-sum"));
-			return AccRImpl(rterm, ctx, sum);
 		}, "eval-accr-accr"));
 	}, term, ctx);
 }
@@ -1928,8 +1954,7 @@ FoldRMap1Impl(TermNode& term, TermNode& nd, ResolvedTermReferencePtr p_ref,
 		YAssert(nterm.empty(), "Invalid term found.");
 		if(NPL::Deref(p_ref).IsReferencedLValue())
 		{
-			if(const auto p
-				= NPL::TryAccessLeaf<const TermReference>(tm_first))
+			if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm_first))
 				nterm.SetContent(tm_first);
 			else
 				ReduceToReferenceAt(nterm, tm_first, p_ref);
@@ -1946,8 +1971,8 @@ FoldRMap1Impl(TermNode& term, TermNode& nd, ResolvedTermReferencePtr p_ref,
 					ncon.emplace_back(tm);
 				else
 					// XXX: Same to %ReduceToReferenceAt.
-					ncon.emplace_back(NPL::AsTermNode(TermReference(
-						tm.Tags, tm,
+					ncon.emplace_back(
+						NPL::AsTermNode(TermReference(tm.Tags, tm,
 						NPL::Deref(p_ref).GetEnvironmentReference())));
 			}
 			l.Value.Clear();
@@ -1986,14 +2011,14 @@ FoldR1Impl(TermNode& term, ContextNode& ctx, TermNode& kons)
 				TermNode::Container({std::move(lv_kons), std::move(nterm)},
 				term.get_allocator()))));
 
-			RelaySwitched(ctx, A1::NameTypedReducerHandler([&, d]() YB_FLATTEN{
+			nterm.ClearContainer();
+			return A1::ReduceCurrentNext(rterm, ctx,
+				[&](TermNode& t, ContextNode& c){
+				return FoldR1Impl(t, c, kons);
+			}, A1::NameTypedReducerHandler([&, d]() YB_FLATTEN{
 				SetupTailContext(ctx, term);
 				return RelayCombinedTail(ctx, term, d);
 			}, "eval-foldr1-kons"));
-			nterm.ClearContainer();
-			return RelaySwitched(ctx, [&]{
-				return FoldR1Impl(rterm, ctx, kons);
-			});
 		}
 		LiftOther(term, knil);
 		return ReductionStatus::Retained;
@@ -2022,7 +2047,11 @@ Map1Impl(TermNode& term, ContextNode& ctx, TermNode& appv)
 				TermNode::Container({TermNode({std::move(lv_appv),
 				std::move(nterm)}, a)}, a))));
 
-			RelaySwitched(ctx, A1::NameTypedReducerHandler([&, d]() YB_FLATTEN{
+			nterm.ClearContainer();
+			return A1::ReduceCurrentNext(rterm, ctx,
+				[&](TermNode& t, ContextNode& c){
+				return Map1Impl(t, c, appv);
+			}, A1::NameTypedReducerHandler([&, d]() YB_FLATTEN{
 				return ReduceCallSubsequent(*term.begin(), ctx, d,
 					A1::NameTypedReducerHandler([&]() YB_FLATTEN{
 					auto i_term(term.begin());
@@ -2032,28 +2061,45 @@ Map1Impl(TermNode& term, ContextNode& ctx, TermNode& appv)
 					return ReductionStatus::Retained;
 				}, "eval-map1-cons"));
 			}, "eval-map1-appv"));
-			nterm.ClearContainer();
-			return RelaySwitched(ctx, [&]{
-				return Map1Impl(rterm, ctx, appv);
-			});
 		}
 		term.Clear();
 		return ReductionStatus::Regular;
 	}, lv_l);
 }
 
+//! \since build 908
 YB_FLATTEN void
-AccFoldR1(TermNode& term, ContextNode& ctx, TermNode& rterm, ptrdiff_t n)
+AccFoldR1(TermNode& term, TermNode& rterm, ptrdiff_t n)
 {
 	auto& sum(*std::next(rterm.begin(), n));
 
 	term.emplace(std::move(sum));
 	sum.Value.Clear();
 	rterm.GetContainerRef().emplace_back();
-	RelaySwitched(ctx, A1::NameTypedReducerHandler([&]{
+}
+
+//! \since build 908
+template<typename _func>
+YB_FLATTEN ReductionStatus
+AccFoldR1LiftSum(TermNode& term, ContextNode& ctx, TermNode& rterm,
+	_func f, TermNode::Container& con)
+{
+	using namespace std::placeholders;
+
+#if NPL_Impl_NPLA1_Enable_Thunked
+	return A1::ReduceCurrentNext(rterm, ctx,
+		std::bind([&](_func& acc, TermNode& t, ContextNode& c){
+		return acc(t, c, con.back());
+	}, std::move(f), _1, _2), A1::NameTypedReducerHandler([&]{
 		LiftOther(term, rterm);
 		return ctx.LastStatus;
 	}, "eval-lift-sum"));
+#else
+	const auto res(f(rterm, ctx, con.back()));
+
+	LiftOther(term, rterm);
+	return res;
+#endif
 }
 
 template<typename _func>
@@ -2064,8 +2110,8 @@ DoFoldRMap1(TermNode& term, ContextNode& ctx, _func f)
 	auto& rterm(*term.emplace(ystdex::exchange(con,
 		TermNode::Container(term.get_allocator()))));
 
-	AccFoldR1(term, ctx, rterm, 1);
-	return f(rterm, ctx, con.back());
+	AccFoldR1(term, rterm, 1);
+	return AccFoldR1LiftSum(term, ctx, rterm, std::move(f), con);
 }
 //@}
 
@@ -2145,9 +2191,14 @@ EqualTermValue(TermNode& term, ContextNode& ctx)
 			term.Value = false;
 			return ReductionStatus::Clean;
 		}
+#if NPL_Impl_NPLA1_Enable_Thunked
 		term.Value = true;
 		return EqualSubterm(term.Value.GetObject<bool>(), ctx, true, x.begin(),
 			y.begin(), x.end());
+#else
+		term.Value = EqualSubterm(x.begin(), y.begin(), x.end());
+		return ReductionStatus::Clean;
+#endif
 	}, static_cast<const TermNode&(&)(const TermNode&)>(ReferenceTerm));
 }
 
@@ -2778,8 +2829,8 @@ AccR(TermNode& term, ContextNode& ctx)
 		TermNode::Container(term.get_allocator()))));
 
 	rterm.GetContainerRef().emplace_back();
-	AccFoldR1(term, ctx, rterm, 6);
-	return AccRImpl(rterm, ctx, con.back());
+	AccFoldR1(term, rterm, 6);
+	return AccFoldR1LiftSum(term, ctx, rterm, AccRImpl, con);
 }
 
 ReductionStatus

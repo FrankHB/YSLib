@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2020 FrankHB.
+	© 2014-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r20231
+\version r20247
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2020-11-18 14:50 +0800
+	2021-01-21 06:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -343,7 +343,7 @@ public:
 
 	YB_ATTR_nodiscard YB_PURE PDefH(any, Query, uintmax_t) const ynothrow
 		ImplI(IValueHolder)
-		ImplRet(ystdex::ref(source_information))	
+		ImplRet(ystdex::ref(source_information))
 
 	using base::get_allocator;
 };
@@ -651,7 +651,6 @@ private:
 				//	with the correct implementation of the reference collapse.
 				ResolveTerm([&, n_p, o_tags](TermNode& nd,
 					ResolvedTermReferencePtr p_ref){
-
 					if(IsList(nd))
 					{
 						const bool ellipsis(last != t.end());
@@ -661,8 +660,9 @@ private:
 						{
 							auto tags(o_tags);
 
-							// NOTE: All tags as type qualifiers should be checked
-							//	here. Currently only glvalues can be qualified.
+							// NOTE: All tags as type qualifiers should be
+							//	checked here. Currently only glvalues can be
+							//	qualified.
 							// XXX: Term tags are currently not respected in
 							//	prvalues.
 							if(p_ref)
@@ -675,8 +675,8 @@ private:
 								tags |= ref_tags & TermTags::Nonmodifying;
 							}
 							MatchSubterms(t.begin(), last, nd, nd.begin(), tags,
-								p_ref ? p_ref->GetEnvironmentReference() : r_env,
-								ellipsis
+								p_ref ? p_ref->GetEnvironmentReference()
+								: r_env, ellipsis
 #if NPL_Impl_NPLA1_AssertParameterMatch
 								, t.end()
 #endif
@@ -703,7 +703,7 @@ private:
 		else
 		{
 			const auto& tp(t.Value.type());
-		
+
 			if(tp == ystdex::type_id<TermReference>())
 				ystdex::update_thunk(act, [&, o_tags]{
 					Match(t.Value.GetObject<TermReference>().get(), o, o_tags,
@@ -1490,9 +1490,8 @@ BindParameter(const shared_ptr<Environment>& p_env, const TermNode& t,
 	//	behavior?
 	// NOTE: The call is essentially same as %MatchParameter, with a bit better
 	//	performance by avoiding %function instances.
-	MakeParameterMatcher([&, check_sigil](TermNode& o_tm,
-		TNIter first, string_view id, TermTags o_tags,
-		const EnvironmentReference& r_env){
+	MakeParameterMatcher([&, check_sigil](TermNode& o_tm, TNIter first,
+		string_view id, TermTags o_tags, const EnvironmentReference& r_env){
 		YAssert(ystdex::begins_with(id, "."), "Invalid symbol found.");
 		id.remove_prefix(1);
 		if(!id.empty())
@@ -1587,6 +1586,7 @@ SetupDefaultInterpretation(ContextState& cs, EvaluationPasses passes)
 	passes += [](TermNode& term, ContextNode& ctx){
 		if(IsBranchedList(term))
 			ContextState::Access(ctx).SetCombiningTermRef(term);
+		return ReductionStatus::Neutral;
 	};
 	passes += ReduceFirst;
 #	endif
@@ -1656,6 +1656,11 @@ QuerySourceInformation(const ValueObject& vo)
 	}, val.try_get_object_ptr<SourceInfoMetadata>());
 }
 
+#if NPL_Impl_NPLA1_Enable_TCO
+YB_PURE
+#else
+YB_STATELESS
+#endif
 observer_ptr<const ValueObject>
 QueryTailOperatorName(const Reducer& act)
 {

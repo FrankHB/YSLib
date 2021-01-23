@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r1983
+\version r2129
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-01-09 04:08 +0800
+	2021-01-23 16:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,151 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %Tools.Scripts $=
+	(
+		/ DLDI "simplified '$lambda'" @ "development tools build calls",
+		/ @ "%SHBuild-common-toolchain.sh" $=
+		(
+			+ "function %SHBuild_CheckCompiler";
+			/ DLDI "simplified functions %(SHBuild_CheckCC, SHBuild_CheckCXX)"
+		),
+		/ @ "%SHBuild-YSLib-common.txt" $=
+		(
+			/ DLDI "reordered imports",
+			(
+			/ DLI "made static environment closed and avoided imports"
+				@ "applicative 'rmatch?'";
+			- "top-level imports ('regex-match?', 'string->regex')"
+			),
+			(
+			/ DLDI "avoided imports"
+				^ $dep_from ('derive-environment' @ %YFramework.NPL.Dependency);
+			- $impl "imports from 'std.strings'",
+			- $impl "top-level import 'system'"
+			),
+			/ DLDI "simplified applicative 'ss-verbose-puts'",
+			/ DLI "made static environment closed"
+				@ "applicatives ('safeenv-empty?, 'safeenv-restore')"
+				^ '$defl/e!' ~ '$defl!',
+			/ DLI "function parameters" ^ '&',
+			* "missing evaluation on the predicate and message parameters"
+				@ "operative '$assert'" $since b837
+				// This worked occasionally for operatives '$assert-nonempty' \
+					and '$assert-absolute-path' which called '$assert'.
+		)
+	),
+	* DD "wrong applicative %rest" @ %Documentation.NPL $mismatch $since b875,
+		$= (/ "%rest" => "%restv"),
+	* "missing 'ynothrow'" @ "constructor for moving from the base object"
+		@ "class template %basic_string" @ %YBase.YStandardEx.String
+		$since b833,
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ @ "member function %TermReference::get"
+				@ 'NPL_NPLA_CheckTermReferenceIndirection' @ %NPLA $=
+			(
+				/ DLI "simplified" ^ 'expire' ~ 'lock',
+				* "always failed check without the associatd environment"
+					$since b876
+			),
+			/ @ "namespace %Forms" @ %NPLA1Forsm $=
+			(
+				/ @ "functions %(AccR, FoldR1, Map1)" $=
+				(
+					* "unexpected early return"
+						@ '!NPL_Impl_NPLA1_Enable_Thunked' $effective @ ("%AccR"
+						$since b898, "%(FordR1, Map1)" $since b899) $=
+					(
+						/ $impl ^ "%A1::ReduceCurrentNext" ~ "%RelaySwitched",
+						/ $impl !^ "%ContextNode::LastStatus"
+							// See $2021-01 @ %Documentation::Workflow.
+					),
+					/ "avoided redundant %RelaySwitched calls"
+						@ 'NPL_Impl_NPLA1_Enable_Thunked'
+						// This was redundant because it actually does not \
+							construct recursive calls in C++.
+				),
+				/ @ "function %EqualTermValue" $=
+				(
+					/ DLI "avoided redundant accesses for short circuit \
+						evaluations" @ 'NPL_Impl_NPLA1_Enable_Thunked',
+					* "unexpected early return"
+						@ !'NPL_Impl_NPLA1_Enable_Thunked' $since b904
+						// See $2021-01 @ %Documentation::Workflow.
+				)
+			),
+			/ DLDI %NPLA1 $=
+			(
+				+ DLI 'YB_STATELESS' @ "function %QueryTailOperatorName"
+					@ '!NPL_Impl_NPLA1_Enable_TCO',
+					// To eliminate G++ 10.2 warning: \
+						[-Wsuggest-attribute=const].
+				* $design "missing reduction status" @ "one of alternative \
+					implementations" @ "function %SetupDefaultInterpretation"
+					$since b895
+					/ $= (+ "returning %ReductionStatus::Neutral")
+					// See $2021-01 @ %Documentation::Workflow.
+			),
+			/ %Dependency $=
+			(
+				/ "captured environments" $effective @ ("operative '$binds1?'"
+					@ "function %LoadModule_std_environments", "applicative \
+					'env-empty?'" @ "function %LoadModule_std_system") $=
+				(
+					/ $impl ^ "'derive-current-environment'";
+					* "missing prevention of injections of 'std.strings' names \
+						from the dynamic environment on the call site" $comp
+						$since b839
+						// The order of parent environments counts.
+				),
+				/ @ "function %LoadGroundContext" $=
+				(
+					/ @ "applicative 'make-standard-environment'" $=
+					(
+						/ DLDI "simplified derivations"
+						/ "unwrappable applicative provided" @ $since b802
+							$= (/ $impl ^ '$lambda/e' ~ '$vau/e')
+					),
+					+ "applicative 'derive-environment'",
+					/ DLI "moved 'exprseq'" $effective
+						@ "alternative derivation"
+						@ "operatives ('$sequence', '$when', '$unless')"
+						/ $= (/ ^ 'move!'),
+					/ DLDI "construction of evaluation structure" ^ 'list*'
+						~ 'list*%' $effective @ ("alternative derivations"
+						@ "operatives ('$when', '$unless')",
+						"operatives ('$let', '$let%', '$let/e', '$let/e%', \
+						'$let*', '$let*%', '$letrec', '$letrec%', \
+						'$bindings/p->environment', '$bindings->environment', \
+						$provide!)"),
+					/ DLDI "construction of evaluation structure" ^ 'list'
+						~ 'list*' $effective @ "operatives '$let*', '$let*%', \
+						'$letrec', '$letrec%', '$bindings/p->environment', \
+						$provide/let!)",
+						// Also make the implementations consistent to ones of \
+							operatives like '$defl!' and functions in other \
+							modules.
+					/ DLDI "combined groups of primitive register calls",
+					(
+					+ "applicative %desigil";
+					+ "applicative 'symbols->imports'";
+					/ ("supported sigil support for '&' and '%' and forwarding \
+						imports", "forwarding imports") @ "operatives \
+						('$provide/let!'; '$provide!', '$import!')"
+						^ 'symbols->imports'
+					)
+				),
+				/ DLDI "simplified function %InstallHardLink"
+			)
+		)
+	)
+),
+
+b907
+(
 	/ %Tools $=
 	(
 		/ %Scripts $=
@@ -186,7 +331,7 @@ $now
 			(
 				/ DLDI "simplified operatives ('$let*', '$let*%')"
 				- "operative '$let/d%'",
-					// See $2020-01 @ %Documentation::Workflow.
+					// See $2021-01 @ %Documentation::Workflow.
 				(
 				/ "operative '$provide/d!'" -> '$provide/let!'
 					$dep_from "removal of calls to '$provide/let!'";
@@ -196,7 +341,7 @@ $now
 				),
 				* "wrong parent environment constructed"
 					@ "operative '$bindings->environment'" $since b839,
-					// See $2020-01 @ %Documentation::Workflow.
+					// See $2021-01 @ %Documentation::Workflow.
 					$= (/ $impl !^ 'make-standard-environment'),
 				+ "applicative 'derive-current-environment'",
 				+ "operative '$as-environment'"

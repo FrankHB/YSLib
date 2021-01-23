@@ -4,22 +4,14 @@
 "XXX", "'SHBuild_2*' depend on 'cygpath' optionally.";
 "XXX", "'SHBuild_CheckUName_*' depend on 'uname'.";
 
-$import! std.strings regex-match? string->regex ++ string->symbol symbol->string
-	string-empty? string<-,
-$import! std.environments bound? $binds1? value-of,
-$import! std.io puts,
-$import! std.system system system-get system-quote remove-file,
-$import! std.promises $lazy/e $lazy force;
-$import! env_SHBuild_ SHBuild_RaiseError_ SHBuild_EchoVar SHBuild_QuoteS_
-	SHBuild_String_absolute_path?_ SHBuild_MakeTempFilename SHBuild_TrimOptions_
-	SHBuild_SDot_ SHBuild_BuildGCH_existed_ SHBuild_BuildGCH_mkpdirp_;
-
 "NOTE", "Prelude:", "Unsafe functions not friendly to environment stability",
 	" or dangerous to environments except 'move!', 'assign!' and",
 	" 'lock-current-environment' are poisoned.";
 $provide! (assign%! assign@! copy-environment lock-environment
 	$defrec! $setrec! make-standard-environment)
 (
+	$import! std.strings string->symbol symbol->string;
+
 	$def! fns (unwrap list) move! assign%! assign@! copy-environment
 		lock-environment $defrec! $setrec!;
 	$defl/e! raise-error (make-environment env_SHBuild_ std.strings) (&fn)
@@ -31,19 +23,60 @@ $provide! (assign%! assign@! copy-environment lock-environment
 	$defw! poison (fns) d for-each-ltr ($lambda (fn) poison-fn fn d) fns;
 	poison fns;
 	$def! nstd (() make-standard-environment);
+
 	eval (list poison (list $quote fns)) nstd;
 	$defl/e! make-standard-environment nstd () () lock-current-environment
 );
 
 $def! $redef! $def!;
-$defl! rmatch? (x r) regex-match? x (string->regex r);
-$defl! putss (.xs) puts (apply ++ xs);
-$defl! cmd-error-msg_ (cmd) ++ "Failed to call command: " cmd ".";
-$defl! system-ok (cmd) eqv? (system cmd) 0;
-$defl! system-check (cmd)
-	$unless (system-ok cmd) (SHBuild_RaiseError_ (cmd-error-msg_ cmd));
-$defv! $set-if-empty! (var .vexpr) env $if (string-empty? (eval var env))
-	(eval (list $set! env var vexpr) env);
+$defv/e! $set-if-empty! (derive-environment std.strings) (&var .&body) d
+	$if (string-empty? (eval% var d))
+		(eval% (list% $set! d var (move! body)) d);
+$defl/e! cons-cmd (derive-environment std.strings) (.&xs)
+	apply ++ (map1 ($lambda (&str) $if (string-empty? str) "" (++ str " ")) xs);
+$defl/e! rmatch? std.strings (&x &r) regex-match? x (string->regex r);
+$defl/e! putss (derive-environment std.io std.strings) (.&xs)
+	puts (apply ++ xs);
+$defl/e! system-ok (derive-environment std.system) (&cmd) eqv? (system cmd) 0;
+$defl/e! win32? (() make-standard-environment) (os) eqv? os "Win32";
+
+$defl/e! cmd-fail (derive-environment std.strings env_SHBuild_) (&cmd)
+	SHBuild_RaiseError_ (++ "Failed to call command: " cmd ".");
+$defl/e! system-check ($let ((mods () make-standard-environment))
+	($set! mods (cmd-fail system-ok) list cmd-fail system-ok; (move! mods)))
+	(cmd) $unless (system-ok cmd) (cmd-fail cmd);
+$defv/e! $set-system-var! (() make-standard-environment) (&var &arg) d
+(
+	$import! std.environments $binds1?,
+	$import! std.system system-get;
+
+	$unless (eval (list $binds1? d var) d)
+		($let* ((cmd eval arg d) ((&rstr code .) system-get cmd))
+			$if (eqv? code 0) (eval (list $def! var rstr) d)
+				(cmd-fail cmd))
+);
+$defv/e! $assert (derive-environment std.environments std.strings env_SHBuild_)
+	(&var &pred? &msg) d
+	$unless ($and? (eval (list $binds1? d var) d) ((eval pred? d) (eval var d)))
+		(SHBuild_RaiseError_ (++ "Variable " (SHBuild_QuoteS_
+			(symbol->string var)) " shall " (eval msg d) "."));
+$provide!
+(
+	$assert-nonempty
+	$assert-absolute-path
+)
+(
+	$def! mods derive-environment std.strings env_SHBuild_;
+	$set! mods $assert $assert;
+
+	"TODO", "Use 'string?'.";
+	$defv/e! $assert-nonempty mods (&var) d
+		eval (list $assert var ($lambda (str) not? (string-empty? str))
+			"be a string of nonempty value") d;
+	$defv/e! $assert-absolute-path mods (&var) d
+		eval (list $assert var SHBuild_String_absolute_path?_
+			"be a string of absolute path") d
+);
 
 "NOTE", "Saving environments at first to avoid being overriden unexpectedly.";
 $provide! (safeenv-get safeenv-set ss-verbose-puts)
@@ -77,58 +110,55 @@ $provide! (safeenv-get safeenv-set ss-verbose-puts)
 		log-set name val;
 		env-set name val
 	),
-	$defl/e! ss-verbose-puts mods (str)
-		($if SS_Verbose (puts str))
+	$defl/e! ss-verbose-puts mods (str) $if SS_Verbose (puts str)
 );
-$defl! safeenv-empty? (&n) string-empty? (safeenv-get n);
-$defl! safeenv-restore (&n) safeenv-set n (safeenv-get n);
+$provide! (safeenv-empty? safeenv-restore)
+(
+	$def! mods derive-environment std.strings;
+	$set! mods (safeenv-get safeenv-set) list safeenv-get safeenv-set;
+	$defl/e! safeenv-empty? mods (&n) string-empty? (safeenv-get n),
+	$defl/e! safeenv-restore mods (&n) safeenv-set n (safeenv-get n)
+);
+$provide!
+(
+	$lazy-env-val
+	$env-de!
+)
+(
+	$def! mods derive-environment std.strings std.promises std.environments
+		std.system env_SHBuild_;
+	$set! mods safeenv-get safeenv-get;
 
-$defv! $lazy-env-val (name .vexpr) d
-	$lazy/e (() lock-current-environment)
-		$let ((t safeenv-get name)) $if (string-empty? t) (eval vexpr d) t;
-$defv! $env-de! (var .vexpr) d
-	$let ((t safeenv-get (symbol->string var)))
-		eval (list $def! var
-			($if (string-empty? t) (list (unwrap eval) vexpr d) t)) d;
-$defv! $set-system-var! (var arg) d
-	$unless (eval (list $binds1? d var) d)
-		($let* ((cmd eval arg d) ((rstr code .) system-get cmd))
-			$if (eqv? code 0)
-				(eval (list $def! var rstr) d)
-				(SHBuild_RaiseError_ (cmd-error-msg_ cmd)));
-$defv! $assert (var pred? msg) d
-	$unless ($and? (eval (list $binds1? d var) d) (pred? (eval var d)))
-		(SHBuild_RaiseError_ (++ "Variable " (SHBuild_QuoteS_
-			(symbol->string var)) " shall " msg "."));
-"TODO", "Use 'string?'.";
-$defv! $assert-nonempty (var) d
-	eval (list $assert var ($lambda (str) not? (string-empty? str))
-		"be a string of nonempty value") d;
-$defv! $assert-absolute-path (var) d
-	eval (list $assert var SHBuild_String_absolute_path?_
-		"be a string of absolute path") d;
-$defl! cons-cmd (.xs)
-	apply ++ (map1 ($lambda (str) $if (string-empty? str) "" (++ str " ")) xs);
+	$defv/e! $lazy-env-val mods (&name .&body) d
+		$lazy/e (() lock-current-environment)
+			$let ((t safeenv-get name)) $if (string-empty? t)
+				(eval (move! body) d) t;
+	$defv/e! $env-de! mods (&var .&body) d
+		$let ((t safeenv-get (symbol->string var)))
+			eval (list $def! var
+				($if (string-empty? t)
+					(list (unwrap eval) (move! body) d) t)) d;
+);
 
-$defl! SHBuild_CheckUName_Case_ (x) $cond
-	((rmatch? x ".*Darwin.*") "OS_X")
-	(($or? (rmatch? x ".*MSYS.*") (rmatch? x ".*MINGW.*")) "Win32")
-	((rmatch? x ".*Linux.*") "Linux")
-	(#t "unknown");
-$defl! SHBuild_CheckUNameM_Case_ (x) $cond
-	((rmatch? x "x86_64|i.*86-64") "x86_64")
-	((rmatch? x "i.*86") x)
-	((rmatch? x "aarch64") x)
-	(#t "unknown");
+$provide! (SHBuild_Env_OS SHBuild_Env_Arch)
+(
+	$defl! SHBuild_CheckUName_Case_ (&x) $cond
+		((rmatch? x ".*Darwin.*") "OS_X")
+		(($or? (rmatch? x ".*MSYS.*") (rmatch? x ".*MINGW.*")) "Win32")
+		((rmatch? x ".*Linux.*") "Linux")
+		(#t "unknown");
+	$defl! SHBuild_CheckUNameM_Case_ (x) $cond
+		((rmatch? x "x86_64|i.*86-64") "x86_64")
+		((rmatch? x "i.*86") x)
+		((rmatch? x "aarch64") x)
+		(#t "unknown");
 
-"XXX", "'SHBuild_CheckUName_*' depend on the external command 'uname'";
-$env-de! SHBuild_Env_OS ($set-system-var! SHBuild_Env_uname "uname";
-	SHBuild_CheckUName_Case_ SHBuild_Env_uname),
-$env-de! SHBuild_Env_Arch ($set-system-var! SHBuild_Env_uname_m "uname -m";
-	SHBuild_CheckUNameM_Case_ SHBuild_Env_uname_m);
-
-$defl! win32? (os) eqv? os "Win32";
-
+	"XXX", "'SHBuild_CheckUName_*' depend on the external command 'uname'";
+	$env-de! SHBuild_Env_OS ($set-system-var! SHBuild_Env_uname "uname";
+		SHBuild_CheckUName_Case_ SHBuild_Env_uname),
+	$env-de! SHBuild_Env_Arch ($set-system-var! SHBuild_Env_uname_m "uname -m";
+		SHBuild_CheckUNameM_Case_ SHBuild_Env_uname_m);
+);
 $defl! SHBuild_GetPlatformStrings ()
 (
 	$env-de! SHBuild_Host_OS SHBuild_Env_OS;
@@ -143,6 +173,8 @@ $defl! SHBuild_GetPlatformStrings ()
 );
 
 $def! nul_dev_ $if (win32? SHBuild_Env_OS) "NUL" "/dev/null";
+
+$import! std.system system-get system-quote;
 
 $defl! system-or-puts (cmd str) $let (((rstr code .)
 	system-get (cons-cmd cmd (system-quote str) "2>" nul_dev_)))
@@ -163,6 +195,9 @@ $defl! SHBuild_GetTempDir ()
 	search (list "TMPDIR" "TEMP" "TMP");
 );
 
+$import! std.strings ++;
+$import! env_SHBuild_ SHBuild_MakeTempFilename;
+
 $def! SHBuild_Env_TempDir () SHBuild_GetTempDir;
 $defl! mktmp_ () SHBuild_MakeTempFilename (++ SHBuild_Env_TempDir "/") "";
 "NOTE", "Suffix is now hard-coded. The suffix makes the output of the compiler",
@@ -173,6 +208,8 @@ $defl! mktmp_exe_ ()
 	"The output path cannot be '/dev/null'. See http://sourceforge.net/p/msys2/discussion/general/thread/2d6adff2/?limit=25.";
 $defl! with-tmp-file_ (tmp-file f)
 (
+	$import! std.system remove-file;
+
 	$def! r f tmp-file;
 	$unless (remove-file tmp-file)
 		(putss "Warning: Failed to remove temporary file '" tmp-file "'");
@@ -181,6 +218,8 @@ $defl! with-tmp-file_ (tmp-file f)
 
 $defl! compile-ok (src compile out opt err-out)
 (
+	$import! std.strings string<-;
+
 	$unless (safeenv-empty? "SHELL")
 		(string<- src (system-quote src));
 	system-ok (cons-cmd "echo" src "|" (system-quote compile) "-pipe" "-xc++"
@@ -192,8 +231,8 @@ $defl! compile-ok-discard_ (src compile opt err-out)
 $defl! compile-ok-silent (src compile opt)
 	compile-ok-discard_ src compile opt nul_dev_;
 
-$defl! SHBuild_EchoVar_N (var) SHBuild_EchoVar var
-	(safeenv-get (SHBuild_SDot_ var));
+$defl/e! SHBuild_EchoVar_N (derive-current-environment env_SHBuild_) (var)
+	SHBuild_EchoVar var (safeenv-get (SHBuild_SDot_ var));
 
 $defl! SHBuild_GetSystemPrefix (platform) $cond
 	((eqv? platform "MinGW64") "/mingw64")
@@ -201,6 +240,8 @@ $defl! SHBuild_GetSystemPrefix (platform) $cond
 	(#t "/usr");
 $defl! SHBuild_Platform_Detect (os arch)
 (
+	$import! env_SHBuild_ SHBuild_RaiseError_;
+
 	$env-de! MSYSTEM;
 	$cond
 		((win32? os) $cond
@@ -227,8 +268,14 @@ $defl! SHBuild_CmdCache_GetEnv_ (host-os)
 );
 
 $defl! SHBuild_CheckCXX (host-os cxx)
+(
+	$import! std.strings string->symbol,
+	$import! std.promises $lazy force;
+
 	$let ((e SHBuild_CmdCache_GetEnv_ host-os) (sym string->symbol cxx))
 	(
+		$import! std.environments bound?;
+
 		$unless (eval (list bound? cxx) e)
 		(
 			eval (list $def! sym ($lazy
@@ -236,12 +283,15 @@ $defl! SHBuild_CheckCXX (host-os cxx)
 					"Clang++" "G++")) e;
 		);
 		force (eval% sym e)
-	);
+	)
+);
 
 $defl! SHBuild_Extend_CallVariables ()
 (
 	$defv! $prepend (svar var) d
 	(
+		$import! std.strings string-empty? symbol->string;
+
 		eval (list $env-de! svar "") d;
 		$def! sval eval svar d;
 		$unless (string-empty? sval)
@@ -290,6 +340,8 @@ $defl! get-thread-options (cxx err-out)
 $defl! get-thread-options-silent (cxx) get-thread-options cxx nul_dev_;
 $defl! get-SHBOPT_ (outdir shbopt-ext use-ld)
 (
+	$import! env_SHBuild_ SHBuild_TrimOptions_;
+
 	$def! opt cons-cmd (++ "-xd,\"" outdir "\"") shbopt-ext;
 	SHBuild_TrimOptions_ ($if use-ld (cons-cmd opt "-xmode,2") opt)
 );
@@ -313,6 +365,8 @@ $defl! SHB_SetupPlatformVars_ (e host-os)
 $defl! ld-ext-noadjust_ #ignore "";
 $defl! ld-ext-adjust_win32_subsystem_ (host-os)
 (
+	$import! std.strings string-empty?;
+
 	$if ($and? (win32? host-os)
 		(string-empty? (safeenv-get "SHBuild_NoAdjustSubsystem")))
 		(ss-verbose-puts "Added \"-mwindows\" to LDFLAGS."; "-mwindows")
@@ -341,6 +395,10 @@ $defl! use-lsan? (opt) use-fsanitize? "leak" opt;
 $defl! build-with-conf-opt (outdir host-os debug dynamic shbopt-ext app
 	do-ld-ext do-build)
 (
+	$import! std.environments value-of,
+	$import! std.promises $lazy force,
+	$import! env_SHBuild_ SHBuild_EchoVar SHBuild_QuoteS_ SHBuild_TrimOptions_;
+
 	$def! use-ld $or? dynamic app;
 	($env-de! CXX "g++"; safeenv-set "CXX" CXX),
 	($env-de! AR (SHBuild_GetAR_ host-os CXX "ar"); safeenv-set "AR" AR),
@@ -549,6 +607,7 @@ $defl! get_env_SHB_ (host-os)
 	$def! e_S1_SHBuild_ () system-quote (safeenv-get "SHBuild");
 	$defl! e_rm_ (pth)
 	(
+		$import! std.system system;
 		"TODO", "Avoid deletion if possible?";
 		"XXX", "This relies on 'rm'", "Error is ignored.";
 		system (cons-cmd "rm" (system-quote pth) cmd_noerr_)
@@ -595,6 +654,9 @@ $defl! get_env_SHB_ (host-os)
 		"cmd = options for the tool";
 	$defl! BuildGCH_ (header inc tool tool-opts)
 	(
+		$import! env_SHBuild_ SHBuild_BuildGCH_existed_
+			SHBuild_BuildGCH_mkpdirp_ SHBuild_TrimOptions_;
+
 		$def! pch ++ inc ".gch";
 		$def! qpch system-quote pch;
 		$if (SHBuild_BuildGCH_existed_ pch)

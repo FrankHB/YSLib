@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3938
+\version r3996
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2021-01-09 04:02 +0800
+	2021-01-23 16:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -203,8 +203,7 @@ InstallHardLink(const char* dst, const char* src)
 
 	if(VerifyDirectory(src))
 		throw std::invalid_argument("Source is a directory.");
-	else
-		Remove(dst);
+	Remove(dst);
 	TryExpr(CreateHardLink(dst, src))
 	CatchExpr(..., InstallFile(dst, src))
 }
@@ -493,6 +492,16 @@ LoadLists(ContextNode& ctx)
 	RegisterStrict(ctx, "set-rest%!", SetRestRef);
 }
 
+//! \since build 908
+void
+LoadSymbols(ContextNode& ctx)
+{
+	RegisterUnary<Strict, const TokenValue>(ctx, "desigil", [](TokenValue s){
+		return TokenValue(!s.empty() && (s.front() == '&' || s.front() == '%')
+			? s.substr(1) : std::move(s));
+	});
+}
+
 void
 LoadEnvironments(ContextNode& ctx)
 {
@@ -578,6 +587,7 @@ Load(ContextNode& ctx)
 	LoadControl(ctx);
 	LoadObjects(ctx);
 	LoadLists(ctx);
+	LoadSymbols(ctx);
 	LoadEnvironments(ctx);
 	LoadCombiners(ctx);
 	LoadErrorsAndChecks(ctx);
@@ -759,7 +769,8 @@ LoadGroundedDerived(REPLContext& context)
 		$def! $sequence
 			($lambda (&se)
 				($lambda #ignore $vau/e% se &exprseq d
-					$if (null? exprseq) #inert (eval% (cons% $aux exprseq) d))
+					$if (null? exprseq) #inert
+						(eval% (cons% $aux (move! exprseq)) d))
 				($set! se $aux
 					$vau/e% (weaken-environment se) (&head .&tail) d
 						$if (null? tail) (eval% head d)
@@ -821,9 +832,10 @@ LoadGroundedDerived(REPLContext& context)
 				$if (eval test d) (eval% (move! body) d)
 					(apply (wrap $cond) (move! clauses) d)) (move! clauses));
 		$defv%! $when (&test .&exprseq) d
-			$if (eval test d) (eval% (list*% () $sequence exprseq) d);
+			$if (eval test d) (eval% (list () $sequence (move! exprseq)) d);
 		$defv%! $unless (&test .&exprseq) d
-			$if (eval test d) #inert (eval% (list*% () $sequence exprseq) d);
+			$if (eval test d) #inert
+				(eval% (list () $sequence (move! exprseq)) d);
 		$defl! not? (&x) eqv? x #f;
 		$defv%! $and? &x d $cond
 			((null? x) #t)
@@ -897,14 +909,14 @@ LoadCore(REPLContext& context)
 	)NPL");
 #if NPL_Impl_NPLA1_Use_LockEnvironment
 	context.Perform(R"NPL(
-		$def! make-standard-environment
-			$lambda () () lock-current-environment;
+		$defl! make-standard-environment () () lock-current-environment;
 	)NPL");
 #else
+	// XXX: Ground environment is passed by 'ce'.
 	context.Perform(R"NPL(
 		$def! make-standard-environment
 			($lambda (&se &e)
-				($lambda #ignore $vau/e se () #ignore (make-environment ce))
+				($lambda #ignore $lambda/e se () make-environment ce)
 				($set! se ce e))
 			(make-environment (() get-current-environment))
 			(() get-current-environment);
@@ -922,52 +934,63 @@ LoadCore(REPLContext& context)
 			(#t assv (forward! x) (rest% alist));
 		$defw! derive-current-environment (.&envs) d
 			apply make-environment (append envs (list d)) d;
+		$def! derive-environment
+			($lambda (&se &e)
+				($lambda #ignore
+					$lambda/e se (.&envs)
+						apply make-environment (append envs (list ce)))
+				($set! se ce e))
+			(make-environment (() get-current-environment))
+			(() get-current-environment);
 		$defv! $as-environment (.&body) d
 			eval (list $let () (list $sequence (move! body)
 				(list () lock-current-environment))) d;
 		$defv%! $let (&bindings .&body) d
-			eval% (list*% () (list*% $lambda (map1 firstv bindings)
+			eval% (list* () (list* $lambda (map1 firstv bindings)
 				(list (move! body))) (map1 list-rest% bindings)) d;
 		$defv%! $let% (&bindings .&body) d
-			eval% (list*% () (list*% $lambda% (map1 firstv bindings)
+			eval% (list* () (list* $lambda% (map1 firstv bindings)
 				(list (move! body))) (map1 list-rest% bindings)) d;
 		$defv%! $let/e (&e &bindings .&body) d
-			eval% (list*% () (list*% $lambda/e e (map1 firstv bindings)
+			eval% (list* () (list* $lambda/e e (map1 firstv bindings)
 				(list (move! body))) (map1 list-rest% bindings)) d;
 		$defv%! $let/e% (&e &bindings .&body) d
-			eval% (list*% () (list*% $lambda/e% e (map1 firstv bindings)
+			eval% (list* () (list* $lambda/e% e (map1 firstv bindings)
 				(list (move! body))) (map1 list-rest% bindings)) d;
 		$defv%! $let* (&bindings .&body) d
-			eval% ($if (null? bindings) (list*% $let () (move! body))
-				(list% $let (list% (firstv bindings))
-				(list*% $let* (rest% bindings) (move! body)))) d;
+			eval% ($if (null? bindings) (list* $let () (move! body))
+				(list $let (list (firstv bindings))
+				(list* $let* (rest% bindings) (move! body)))) d;
 		$defv%! $let*% (&bindings .&body) d
-			eval% ($if (null? bindings) (list*% $let* () (move! body))
-				(list% $let% (list (first bindings))
-				(list*% $let*% (rest% bindings) (move! body)))) d;
+			eval% ($if (null? bindings) (list* $let* () (move! body))
+				(list $let% (list (first bindings))
+				(list* $let*% (rest% bindings) (move! body)))) d;
 		$defv%! $letrec (&bindings .&body) d
-			eval% (list $let () $sequence (list% $def! (map1 firstv bindings)
-				(list*% () list (map1 rest% bindings))) (move! body)) d;
+			eval% (list $let () $sequence (list $def! (map1 firstv bindings)
+				(list* () list (map1 rest% bindings))) (move! body)) d;
 		$defv%! $letrec% (&bindings .&body) d
-			eval% (list $let% () $sequence (list% $def! (map1 firstv bindings)
-				(list*% () list (map1 rest% bindings))) (move! body)) d;
+			eval% (list $let% () $sequence (list $def! (map1 firstv bindings)
+				(list* () list (map1 rest% bindings))) (move! body)) d;
 		$defv! $bindings/p->environment (&parents .&bindings) d $sequence
 			($def! res apply make-environment (map1 ($lambda% (x) eval% x d)
 				parents))
-			(eval% (list% $set! res (map1 firstv bindings)
-				(list*% () list (map1 rest% bindings))) d)
+			(eval% (list $set! res (map1 firstv bindings)
+				(list* () list (map1 rest% bindings))) d)
 			res;
 		$defv! $bindings->environment (.&bindings) d
-			eval (list*% $bindings/p->environment () bindings) d;
+			eval (list* $bindings/p->environment () bindings) d;
+		$defl! symbols->imports (&symbols)
+			list* () list
+				(map1 ($lambda (&s) list forward! (desigil s)) symbols);
 		$defv! $provide/let! (&symbols &bindings .&body) d
-			$sequence (eval% (list% $def! symbols (list $let bindings $sequence
-				(list% ($vau% (&e) d $set! e res (lock-environment d))
+			$sequence (eval% (list $def! symbols (list $let bindings $sequence
+				(list ($vau% (&e) d $set! e res (lock-environment d))
 				(() get-current-environment)) (move! body)
-				(list* () list symbols))) d) res;
+				(symbols->imports symbols))) d) res;
 		$defv! $provide! (&symbols .&body) d
-			eval (list*% $provide/let! (forward! symbols) () (move! body)) d;
+			eval (list* $provide/let! (forward! symbols) () (move! body)) d;
 		$defv! $import! (&e .&symbols) d
-			eval% (list $set! d symbols (list* () list symbols)) (eval e d);
+			eval% (list $set! d symbols (symbols->imports symbols)) (eval e d);
 		$defl! nonfoldable? (&l)
 			$if (null? l) #f ($if (first-null? l) #t (nonfoldable? (rest& l)));
 		$defl%! list-extract (&l &extr)
@@ -1034,8 +1057,7 @@ LoadModule_std_environments(REPLContext& context)
 		});
 	});
 	context.Perform(R"NPL(
-		$defv/e! $binds1? (make-environment
-			(() get-current-environment) std.strings) (&e &s) d
+		$defv/e! $binds1? (derive-current-environment std.strings) (&e &s) d
 			eval (list (unwrap bound?) (symbol->string s)) (eval e d);
 	)NPL");
 	RegisterStrict(renv, "value-of", ValueOf);
@@ -1221,8 +1243,7 @@ LoadModule_std_system(REPLContext& context)
 		SetEnvironmentVariable(var.c_str(), val.c_str());
 	});
 	context.Perform(R"NPL(
-		$defl/e! env-empty?
-			(make-environment (() get-current-environment) std.strings) (&n)
+		$defl/e! env-empty? (derive-current-environment std.strings) (&n)
 			string-empty? (env-get n);
 	)NPL");
 	RegisterStrict(renv, "system", CallSystem);
