@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r3996
+\version r4120
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2021-01-23 16:25 +0800
+	2021-01-27 01:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,16 +28,21 @@
 #include "NPL/YModules.h"
 #include YFM_NPL_Dependency // for set, string, UnescapeContext, string_view,
 //	ystdex::isspace, std::istream, YSLib::unique_ptr, YSLib::share_move,
-//	A1::NameTypedReducerHandler, std::ref, RelaySwitched,
-//	ThrowNonmodifiableErrorForAssignee, ThrowValueCategoryError, TokenValue,
-//	ystdex::bind1, ValueObject, NPL::AllocateEnvironment,
-//	std::piecewise_construct, NPL::forward_as_tuple, LiftOther, Collapse,
-//	LiftOtherOrCopy, NPL::IsMovable, LiftTermOrCopy, ResolveTerm,
-//	LiftTermValueOrCopy, MoveResolved, ResolveIdentifier, ystdex::plus,
-//	std::placeholders, NPL::ResolveRegular, ystdex::tolower,
-//	FetchEnvironmentVariable, ystdex::swap_dependent, LiftTermRef, LiftTerm,
-//	NPL::Deref, YSLib::IO::StreamPut, YSLib::IO::omode_convb, YSLib::uremove,
-//	ystdex::throw_error;
+//	A1::NameTypedReducerHandler, std::ref, RelaySwitched, NPL::Deref,
+//	NPL::ResolveRegular, A1::ReduceOnce, ResolvedTermReferencePtr,
+//	Forms::CallResolvedUnary, NPL::AllocateEnvironment, function, ValueObject,
+//	EnvironmentReference, std::piecewise_construct, NPL::forward_as_tuple,
+//	LiftOther, ThrowNonmodifiableErrorForAssignee, ThrowValueCategoryError,
+//	ResolveTerm, TokenValue, IsEmpty, ComposeReferencedTermOp, IsBranch,
+//	IsReferenceTerm, IsBoundLValueTerm, IsUncollapsedTerm, IsUniqueTerm,
+//	IsModifiableTerm, IsTemporaryTerm, NPL::TryAccessLeaf, LiftTermRef,
+//	NPL::SetContentWith, Forms::CallRawUnary, LiftTerm, LiftOtherOrCopy,
+//	std::placeholders, LiftTermValueOrCopy, ystdex::bind1, MoveResolved,
+//	ResolveIdentifier, Collapse, NPL::IsMovable, LiftTermOrCopy, IsBranchedList,
+//	AccessFirstSubterm, ReferenceTerm, ThrowInsufficientTermsError,
+//	ystdex::plus, ystdex::tolower, FetchEnvironmentVariable,
+//	ystdex::swap_dependent, YSLib::IO::StreamPut, YSLib::IO::omode_convb,
+//	YSLib::uremove, ystdex::throw_error;
 #include YFM_NPL_NPLA1Forms // for NPL::Forms functions;
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::Path;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
@@ -445,6 +450,8 @@ LoadObjects(ContextNode& ctx)
 	RegisterUnary<>(ctx, "bound-lvalue?", IsBoundLValueTerm);
 	RegisterUnary<>(ctx, "uncollapsed?", IsUncollapsedTerm);
 	RegisterUnary<>(ctx, "unique?", IsUniqueTerm);
+	RegisterUnary<>(ctx, "modifiable?", IsModifiableTerm);
+	RegisterUnary<>(ctx, "temporary?", IsTemporaryTerm);
 	RegisterStrict(ctx, "deshare", [](TermNode& term){
 		return Forms::CallRawUnary([&](TermNode& tm){
 			if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
@@ -599,9 +606,9 @@ Load(ContextNode& ctx)
 namespace Derived
 {
 
-//! \since build 855
+//! \since build 909
 void
-LoadGroundedDerived(REPLContext& context)
+LoadBasicDerived(REPLContext& context)
 {
 	auto& renv(context.Root.GetRecordRef());
 
@@ -682,6 +689,7 @@ LoadGroundedDerived(REPLContext& context)
 	RegisterStrict(renv, "set-first%!", SetFirstRef);
 	RegisterStrict(renv, "equal?", EqualTermValue);
 	RegisterStrict(renv, "check-environment", CheckEnvironment);
+	RegisterStrict(renv, "check-parent", CheckParent);
 	RegisterForm(renv, "$cond", Cond);
 	RegisterForm(renv, "$when", When);
 	RegisterForm(renv, "$unless", Unless);
@@ -693,24 +701,26 @@ LoadGroundedDerived(REPLContext& context)
 	RegisterStrict(renv, "foldr1", FoldR1);
 	RegisterStrict(renv, "map1", Map1);
 #else
+	context.ShareCurrentSource("<root:basic-derived>");
+	context.Perform(
 #	if NPL_Impl_NPLA1_Native_EnvironmentPrimitives
-	context.Perform(R"NPL(
+	R"NPL(
 		$def! $vau $vau/e (() get-current-environment) (&formals &ef .&body) d
 			eval (cons $vau/e (cons d (cons formals (cons ef (move! body))))) d;
 		$def! $vau% $vau (&formals &ef .&body) d
 			eval (cons $vau/e% (cons d (cons formals (cons ef (move! body)))))
 				d;
-	)NPL");
+	)NPL"
 #	else
-	context.Perform(R"NPL(
+	R"NPL(
 		$def! get-current-environment (wrap ($vau () d d));
 		$def! lock-current-environment (wrap ($vau () d lock-environment d));
-	)NPL");
+	)NPL"
 #	endif
 	// XXX: The operative '$set!' is same to following derivations.
-	context.Perform(R"NPL(
+	R"NPL(
 		$def! $quote $vau (&x) #ignore x;
-	)NPL");
+	)NPL"
 	// NOTE: The function 'id' does not initialize new objects from the operand.
 	// XXX: The implementation of 'id' relies on the fact that an object other
 	//	than a reference (i.e. represented by a prvalue) cannot have qualifiers
@@ -725,25 +735,27 @@ LoadGroundedDerived(REPLContext& context)
 	//	This is not the same in Kernel as it does not differentiate lvalues
 	//	(first-class referents) from prvalues and all terms can be accessed as
 	//	objects with arbitrary longer lifetime.
-	context.Perform(R"NPL(
+	R"NPL(
 		$def! id wrap ($vau% (%x) #ignore $if (bound-lvalue? x) x (move! x));
 		$def! idv wrap $quote;
 		$def! list wrap ($vau (.x) #ignore x);
 		$def! list% wrap ($vau &x #ignore x);
-	)NPL");
+	)NPL"
 #	else
+	);
 	RegisterForm(renv, "$lambda", Lambda);
 	RegisterForm(renv, "$lambda%", LambdaRef);
+	context.ShareCurrentSource("<root:basic-derived-1>");
 	context.Perform(R"NPL(
 		$def! id $lambda% (%x) $if (bound-lvalue? x) x (move! x);
 		$def! idv $lambda (&x) x;
 		$def! list $lambda (.x) x;
 		$def! list% $lambda &x x;
-	)NPL");
+	)NPL"
 #	endif
 	// XXX: The operative '$defv!' is same to following derivations in
 	//	%LoadCore.
-	context.Perform(R"NPL(
+	R"NPL(
 		$def! $deflazy! $vau (&definiend .&expr) d
 			eval (list $def! definiend $quote expr) d;
 		$def! $set! $vau (&e &formals .&expr) d
@@ -752,20 +764,20 @@ LoadGroundedDerived(REPLContext& context)
 			eval (list $set! d $f $vau formals ef (move! body)) d;
 		$defv! $setrec! (&e &formals .&expr) d
 			eval (list $defrec! formals (unwrap eval%) expr d) (eval e d);
-	)NPL");
+	)NPL"
 #	if NPL_Impl_NPLA1_Use_Id_Vau
-	context.Perform(R"NPL(
+	R"NPL(
 		$defv! $lambda (&formals .&body) d wrap
 			(eval (cons $vau (cons formals (cons ignore (move! body)))) d);
 		$defv! $lambda% (&formals .&body) d wrap
 			(eval (cons $vau% (cons formals (cons ignore (move! body)))) d);
-	)NPL");
+	)NPL"
 #	endif
 	// XXX: The operatives '$defl!', '$defl%!', '$defw%!', and '$defv%!', as
 	//	well as the applicatives 'rest&' and 'rest%' are same to following
 	//	derivations in %LoadCore.
 	// NOTE: Use of 'eqv?' is more efficient than '$if'.
-	context.Perform(R"NPL(
+	R"NPL(
 		$def! $sequence
 			($lambda (&se)
 				($lambda #ignore $vau/e% se &exprseq d
@@ -824,6 +836,8 @@ LoadGroundedDerived(REPLContext& context)
 			($if (equal? (first& x) (first& y)) (equal? (rest& x) (rest& y)) #f)
 			(eqv? x y);
 		$defl%! check-environment (&e)
+			$sequence (eval% #ignore e) (forward! e);
+		$defl%! check-parent (&e)
 			$sequence ($vau/e% e . #ignore) (forward! e);
 		$defv! $defv%! (&$f &formals &ef .&body) d
 			eval (list $set! d $f $vau% formals ef (move! body)) d;
@@ -867,11 +881,47 @@ LoadGroundedDerived(REPLContext& context)
 #endif
 }
 
+//! \since build 909
+void
+LoadStandardDerived(REPLContext& context)
+{
+#if NPL_Impl_NPLA1_Native_Forms
+	auto& renv(context.Root.GetRecordRef());
+
+	RegisterUnary<Strict, const TokenValue>(renv, "ensigil",
+		[](TokenValue s) -> TokenValue{
+		if(!s.empty() && s.front() != '&')
+		{
+			if(s.front() != '%')
+				return '&' + s;
+			s.front() = '&';
+		}
+		return s;
+	});
+#else
+	// XXX: %ensigil depends on %std.strings but not some core functions, to
+	//	avoid cyclic dependencies.
+	context.ShareCurrentSource("<root:standard-derived>");
+	context.Perform(R"NPL(
+		$def! ensigil $lambda (&s)
+			$let/e (derive-current-environment std.strings)
+				()
+				$let ((&str symbol->string s))
+					$if (string-empty? str) s
+						(string->symbol (++ "&" (symbol->string (desigil s))));
+	)NPL");
+#endif
+}
+
 //! \since build 839
 //@{
 void
 LoadCore(REPLContext& context)
 {
+	// XXX: Call multiple %context.Perform in different places. Different to
+	//	%LoadBasicDerived, this way is a slightly more efficient whether
+	//	%NPL_Impl_NPLA1_Native_Forms is set.
+	context.ShareCurrentSource("<root:core>");
 	context.Perform(R"NPL(
 		$def! $defv! $vau (&$f &formals &ef .&body) d
 			eval (list $set! d $f $vau formals ef (move! body)) d;
@@ -903,26 +953,31 @@ LoadCore(REPLContext& context)
 			eval (list $set! d f $lambda/e e formals (move! body)) d;
 		$defv! $defl/e%! (&f &e &formals .&body) d
 			eval (list $set! d f $lambda/e% e formals (move! body)) d;
-		$defl! restv ((#ignore .x)) x;
+		$defl! restv ((#ignore .x)) move! x;
 		$defl! rest& (&l) ($lambda ((#ignore .&x)) x) (check-list-reference l);
-		$defl! rest% ((#ignore .%x)) x;
+		$defl! rest% ((#ignore .%x)) move! x;
 	)NPL");
+	// XXX: Keep %ContextNode::Perform calls here. This does not benefit from
+	//	the removal of the calls (tested with G++ 10.2 in x86_64-pc-linux),
+	//	whether %NPL_Impl_NPLA1_Native_Forms is set. However, the code below for
+	//	'derive-environment' is not the same.
+	context.Perform(
 #if NPL_Impl_NPLA1_Use_LockEnvironment
-	context.Perform(R"NPL(
+	R"NPL(
 		$defl! make-standard-environment () () lock-current-environment;
-	)NPL");
+	)NPL"
 #else
 	// XXX: Ground environment is passed by 'ce'.
-	context.Perform(R"NPL(
+	R"NPL(
 		$def! make-standard-environment
 			($lambda (&se &e)
 				($lambda #ignore $lambda/e se () make-environment ce)
 				($set! se ce e))
 			(make-environment (() get-current-environment))
 			(() get-current-environment);
-	)NPL");
+	)NPL"
 #endif
-	context.Perform(R"NPL(
+	R"NPL(
 		$def! (box% box? unbox) () make-encapsulation-type;
 		$defl! box (&x) box% x;
 		$defl! first-null? (&l) null? (first l);
@@ -934,6 +989,26 @@ LoadCore(REPLContext& context)
 			(#t assv (forward! x) (rest% alist));
 		$defw! derive-current-environment (.&envs) d
 			apply make-environment (append envs (list d)) d;
+	)NPL"
+#if NPL_Impl_NPLA1_Use_LockEnvironment
+#	if true
+	R"NPL(
+		$def! derive-environment ()
+			($vau () d $lambda/e (() lock-current-environment) (.&envs)
+				() ($lambda/e (append envs (list d)) ()
+					() lock-current-environment));
+	)NPL"
+#	else
+	// XXX: This is also correct, but less efficient.
+	R"NPL(
+		$def! derive-environment ()
+			($vau () d eval (list $lambda/e (() lock-current-environment)
+				((unwrap list) .&envs) () (list $lambda/e ((unwrap list) append
+					envs (list d)) () () lock-current-environment)) d);
+	)NPL"
+#	endif
+#else
+	R"NPL(
 		$def! derive-environment
 			($lambda (&se &e)
 				($lambda #ignore
@@ -942,6 +1017,9 @@ LoadCore(REPLContext& context)
 				($set! se ce e))
 			(make-environment (() get-current-environment))
 			(() get-current-environment);
+	)NPL"
+#endif
+	R"NPL(
 		$defv! $as-environment (.&body) d
 			eval (list $let () (list $sequence (move! body)
 				(list () lock-current-environment))) d;
@@ -980,7 +1058,7 @@ LoadCore(REPLContext& context)
 		$defv! $bindings->environment (.&bindings) d
 			eval (list* $bindings/p->environment () bindings) d;
 		$defl! symbols->imports (&symbols)
-			list* () list
+			list* () list%
 				(map1 ($lambda (&s) list forward! (desigil s)) symbols);
 		$defv! $provide/let! (&symbols &bindings .&body) d
 			$sequence (eval% (list $def! symbols (list $let bindings $sequence
@@ -991,6 +1069,9 @@ LoadCore(REPLContext& context)
 			eval (list* $provide/let! (forward! symbols) () (move! body)) d;
 		$defv! $import! (&e .&symbols) d
 			eval% (list $set! d symbols (symbols->imports symbols)) (eval e d);
+		$defv! $import&! (&e .&symbols) d
+			eval% (list $set! d (map1 ensigil symbols)
+				(symbols->imports symbols)) (eval e d);
 		$defl! nonfoldable? (&l)
 			$if (null? l) #f ($if (first-null? l) #t (nonfoldable? (rest& l)));
 		$defl%! list-extract (&l &extr)
@@ -1011,7 +1092,8 @@ LoadCore(REPLContext& context)
 void
 Load(REPLContext& context)
 {
-	LoadGroundedDerived(context);
+	LoadBasicDerived(context);
+	LoadStandardDerived(context);
 	LoadCore(context);
 }
 //@}
@@ -1056,6 +1138,7 @@ LoadModule_std_environments(REPLContext& context)
 			return bool(ResolveName(ctx, id).first);
 		});
 	});
+	context.ShareCurrentSource("<lib:std.environments>");
 	context.Perform(R"NPL(
 		$defv/e! $binds1? (derive-current-environment std.strings) (&e &s) d
 			eval (list (unwrap bound?) (symbol->string s)) (eval e d);
@@ -1075,6 +1158,7 @@ LoadModule_std_promises(REPLContext& context)
 {
 	// NOTE: Call of 'set-first%!' does not check cyclic references. This is
 	//	kept safe since it can occur only with NPLA1 undefined behavior.
+	context.ShareCurrentSource("<lib:std.promises>");
 	context.Perform(R"NPL(
 		$provide/let! (promise? memoize $lazy $lazy/e force)
 		((mods $as-environment (
@@ -1095,15 +1179,16 @@ LoadModule_std_promises(REPLContext& context)
 				)
 		)))
 		(
-			$import! mods promise?;
-			$defl/e%! memoize mods (&x)
+			$import! mods &promise?;
+
+			$defl/e%! &memoize mods (&x)
 				encapsulate% (list (list% (forward! x) ())),
-			$defv/e%! $lazy mods (.&body) d
+			$defv/e%! &$lazy mods (.&body) d
 				encapsulate% (list (list (move! body) d)),
-			$defv/e%! $lazy/e mods (&e .&body) d
+			$defv/e%! &$lazy/e mods (&e .&body) d
 				encapsulate%
-					(list (list (move! body) (check-environment (eval e d)))),
-			$defl/e%! force mods (&x)
+					(list (list (move! body) (check-parent (eval e d)))),
+			$defl/e%! &force mods (&x)
 				$if (promise? x) (force-promise (decapsulate x)) (forward! x)
 		);
 	)NPL");
@@ -1242,6 +1327,7 @@ LoadModule_std_system(REPLContext& context)
 		[&](const string& var, const string& val){
 		SetEnvironmentVariable(var.c_str(), val.c_str());
 	});
+	context.ShareCurrentSource("<lib:std.system>");
 	context.Perform(R"NPL(
 		$defl/e! env-empty? (derive-current-environment std.strings) (&n)
 			string-empty? (env-get n);

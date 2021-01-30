@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r2129
+\version r2324
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-01-23 16:59 +0800
+	2021-01-30 14:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,202 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA $=
+		(
+			/ @ "class %Environment" $=
+			(
+				/ DLDI "simplified function %EnsureValid",
+				+ "check to ensure nonnull parent environment pointer"
+					@ "function %CheckParent"
+					@ 'NPL_NPLA_CheckParentEnvironment',
+					// As %EnsreValid.
+				+ "function %IsTemporary"
+			),
+			+ "function %IsTemporaryTerm"
+				^ $dep_from "%Environment::IsTemporary",
+			+ "function %IsModifiableTerm",
+			/ @ "functions %ResolveEnvironment" $=
+			(
+				+ "overload with parameter of type 'ValueObject&' and \
+					additional parameter to specify the move operation";
+				+ "overload with type 'TermNode&' to support environment move"
+			)
+		),
+		/ @ "namespace %Forms" @ %NPLA1Forms $=
+		(
+			/ @ 'NPL_Impl_NPLA1_Enable_Thunked' @ "function %EqualTermValue" $=
+			(
+				/ DLDI "%EqualTermValue" @ 'NPL_Impl_NPLA1_Enable_Thunked',
+					// To eliminate G++ warnings: [-Wunused], \
+						[-Wsuggest-attribute=pure].
+				+ "reducer names"
+			),
+			/ DLDI "%MakeEnvironment",
+			/ "vau handler" $=
+			(
+				/ DLI "dispatched call" ^ "reference" ~ "pointer to member",
+				(
+				(
+				- "log information for parents" @ 'NPL_Impl_NPLA1_TraceVauCall',
+				- DLDI "parent comparation" @ "friend %operator==",
+				(
+				/ DLI "dispatched saving check on moving for owning static \
+					environments" @ 'NPL_Impl_NPLA1_Enable_TCO',
+				/ DLI "parent pointer" -> "parent object";
+				);
+				- DLI "static parent pointer"
+				// See $2021-01 @ %Documentation::Workflow.
+				);
+				+ "constructor to support explicit parent object"
+					$dep_to "direct vau parent"
+				)
+			),
+			/ @ "functions %(VauWithEnvironment, VauWithEnvironmentRef)" $=
+			(
+				/ "supported environment list as the vau parent"
+					$dep_from ("%MakeEnvironment", "direct vau parent"),
+				+ "environment check" ^ "%Environment::EnsureValid",
+					// This is more consistent to %CheckEnvironment.
+				/ "supported move the environment argument"
+					^ $dep_from ("%ResolveEnvironment with parameter of \
+					'ValueObject&'" @ %NPLA)
+			),
+			+ "function %CheckParent",
+				// The behavior is more consistent to the combiner creation \
+					now (e.g. with nested exception thrown).
+			/ $comp DLI "supported move the environment argument"
+				@ "functions %(SetWithNoRecursion, SetWithRecursion, Eval, \
+				EvalRef, EvalString, EvalStringRef, Apply)"
+				$dep_from ("%ResolveEnvironment" @ %NPLA)
+		),
+		(
+		/ DLI "all calls to %ReduceNextCombinedBranch"
+			-> "calls to %ReduceCombinedBranch"
+			$effective @ ("functions %(And, Or)" @ %NPLA1Forms);
+			// Setting the next term is redundant due to the change to \
+				%ReduceCombinedBranch since b898.
+		- $revert(b882) "function %ReduceNextCombinedBranch" @ %NPLA1
+		),
+		(
+		+ "function %AssertNextTerm" @ %NPLA1Internals;
+		+ "assertion to ensure no %SetupNextTerm call is needed for NPLA1 \
+			reduction functions" $effective @ (("member functions \
+			%(ContextState::DefaultReduceOnce, FormContextHandler::operator())"
+			'NPL_Impl_NPLA1_Thunked && !NPL_Impl_NPLA1_Enable_TCO'
+			@ "function %ReduceOrdered") @ %NPLA1,
+			("functions %Forms::(Eval, EvalRef, EvalString, \
+			EvalStringRef)", "%operator()" @ "vau handler") @ %NPLA1Forms)
+			^ ("%AssertNextTerm" @ %NPLA1Internals)
+		),
+		/ $dev %NPLA1 $=
+		(
+			(
+			/ DLDI "setup next term" @ 'NPL_Impl_NPLA1_Enable_Thunked'
+				@ "function %ReduceOnce",
+				// See $2021-01 @ %Documentation::Workflow.
+			+ DD "'\pre' command to ensure proper next term set"
+				@ "Doxygen comment" @ "member object %ContextState::ReduceOnce";
+			- DLI "redundant %SetupNextTerm call" @ "functions \
+				%(ContextState::DefaultReduceOnce, ReduceCombinedBranch, \
+				ReduceCombinedReferent, FormContextHandler::operator())"
+				@ 'NPL_Impl_NPLA1_Enable_Thunked'
+				// This is redundat due to change to the reducing functions \
+					used in %SetupDefaultInterpretation (including \
+					%ReduceCombinedBranch) for since b898.
+			),
+			- DLI "simplified to avoid redundant %SetupNextTerm call"
+				@ "functions %(RelayForCall, RelayForEval)",
+			/ DLI "simplified" @ 'NPL_Impl_NPLA1_Enable_Thunked'
+				@ "member function %FormContextHandler::operator()"
+				^ "%A1::RelayCurrentNext" ~ "%A1::ReduceCurrentNext"
+			/ DLI "simplified"
+				@ 'NPL_Impl_NPLA1_Enable_Thunked && !NPL_Impl_NPLA1_Enable_TCO'
+				@ "function %ReduceOrdered"
+				^ "%A1::RelayCurrentNext" ~ "%A1::ReduceCurrentNext",
+			/ "support destroying temporary objects on exception"
+				@ "functions %(ReduceCombinedBranch, ReduceCombinedReferent)"
+				$dep_from ("TCO term cleanup" @ %NPLA1Interals)
+		),
+		/ %Dependency $=
+		(
+			/ $comp "supported parent environment lists" @ "functions with \
+				'/e' in the name" $dep_from
+				("%(VauWithEnvironment, VauWithEnvironmentRef)" @ %NPLA1Forms)
+				$dep_to "parent environment lists support",
+			/ @ "function %LoadGroundContext" $=
+			(
+				+ "applicative %ensigil",
+				* "missing preserving reference on generated initializers"
+					@ "applicative 'symbols->ipmorts'" $since b908
+					$= (/ $impl "combining" ^ 'list' ~ 'list%');
+				(
+				* $comp "missing preserving reference on initializers"
+					@ "operatives (('$provide/let!'; '$provide!'), \
+					'$import!')" $since b908,
+					// The bug would make it impossible to bind \
+						nonmodifying references even with '&'.
+				+ "operative '$import&!'" ^ $dep_from "%ensigil"
+				),
+				(
+				+ "applicative 'check-parent'"
+					^ $dep_from ("%CheckParent" @ %NPLA1Forms);
+				/ $forced "all uses of applicative 'check-environment' for \
+					applicative derivation of function name with '/e'"
+					-> 'check-parent' $dep_from ("%(VauWithEnvironment, \
+					VauWithEnvironmentRef)" @ %NPLA1Forms)
+				),
+				/ $forced "alternative derivation" @ "applicative \
+					'check-environment'" $dep_from ("%(VauWithEnvironment, \
+					VauWithEnvironmentRef)" @ %NPLA1Forms)
+					$= (/ $impl ^ 'eval%' ~ '$vau/e%'),
+				/ "simplified derivation" @ "applicative 'derive-environment'"
+					@ 'NPL_Impl_NPLA1_Use_LockEnvironment'
+					$dep_from "parent environment lists support",
+				+ "applicative 'modifiable?'"
+					^ $dep_from ("%IsModifiableTerm" @ %NPLA),
+				+ "applicative 'tempoary?'"
+					^ $dep_from ("%IsTemporaryTerm" @ %NPLA),
+				/ $comp DLI "supported move the environment argument"
+					@ "applicative 'freeze-environment!'"
+					$dep_from ("%ResolveEnvironment" @ %NPLA),
+				/ "avoided redundant copies" @ "applicatives ('restv', 'rest%')"
+					^ 'move!'
+			),
+			/ DLI "optimized variables to be provided" ^ "sigil"
+				$effective @ "function %LoadModule_std_promises",
+				// Since '$lambda/e' and '$lambda/e%' have no native \
+					implementations currently and all such functions \
+					derivable are derived from the vau abstractions, all \
+					functions are effected uniformly.
+			- DLI "reduced number of %ContextNode::Perform calls in the same \
+				function" @ "basic derivations" @ "function %LoadGroundContext",
+				// See comment in the code.
+			/ "set source names before calls to %ContextNode::Perform"
+				^ "%REPLContext::ShareCurrentSource"
+		)
+	),
+	/ @ "%SHBuild-YSLib-common.txt" @ %Tools.Scripts $=
+	(
+		/ @ "prelude" $=
+		(
+			/ "overrode applicative 'derive-environment' for poisoned functions"
+				$dep_from "parent environment lists support",
+			/ DLI "optimized poisoning functions" ^ ('ensigil'
+				@ "%LoadGroundContext" @ %YFramework.NPL.Dependency)
+		),
+		(
+		/ "supported sigil" @ "operative '$env-de!'" ^ 'desigil';
+		/ DLI "defined provided functions with '&' to enable forwarding"
+			$dep_from
+			('$provide!' @ "%LoadGroundContext" @ %YFramework.NPL.Dependency)
+		)
+	)
+),
+
+b908
 (
 	/ %Tools.Scripts $=
 	(

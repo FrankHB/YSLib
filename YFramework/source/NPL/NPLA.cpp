@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3428
+\version r3477
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2021-01-11 06:28 +0800
+	2021-01-25 22:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -682,6 +682,22 @@ IsUniqueTerm(const TermNode& term)
 		NPL::TryAccessLeaf<const TermReference>(term), true);
 }
 
+bool
+IsModifiableTerm(const TermNode& term)
+{
+	return ystdex::invoke_value_or(&TermReference::IsModifiable,
+		NPL::TryAccessLeaf<const TermReference>(term),
+		!bool(term.Tags & TermTags::Nonmodifying));
+}
+
+bool
+IsTemporaryTerm(const TermNode& term)
+{
+	return ystdex::invoke_value_or(&TermReference::IsTemporary,
+		NPL::TryAccessLeaf<const TermReference>(term),
+		bool(term.Tags & TermTags::Temporary));
+}
+
 
 bool
 CheckReducible(ReductionStatus status)
@@ -943,6 +959,18 @@ Environment::CheckParent(const ValueObject& vo)
 		&& tp != ystdex::type_id<EnvironmentReference>()
 		&& tp != ystdex::type_id<shared_ptr<Environment>>()))
 		ThrowForInvalidType(tp);
+#if NPL_NPLA_CheckParentEnvironment
+	if(tp == ystdex::type_id<observer_ptr<const Environment>>())
+	{
+		if(YB_UNLIKELY(!vo.GetObject<observer_ptr<const Environment>>()))
+			// NOTE: See %EnsureValid.
+			ThrowForInvalidValue();
+	}
+	else if(tp == ystdex::type_id<EnvironmentReference>())
+		EnsureValid(vo.GetObject<EnvironmentReference>().Lock());
+	else if(tp == ystdex::type_id<shared_ptr<Environment>>())
+		EnsureValid(vo.GetObject<shared_ptr<Environment>>());
+#endif
 }
 
 bool
@@ -978,7 +1006,7 @@ Environment::EnsureValid(const shared_ptr<Environment>& p_env)
 {
 	if(p_env)
 		return *p_env;
-	Environment::ThrowForInvalidValue();
+	ThrowForInvalidValue();
 }
 
 AnchorPtr
@@ -1254,6 +1282,17 @@ ResolveEnvironment(const ValueObject& vo)
 	Environment::ThrowForInvalidType(vo.type());
 }
 pair<shared_ptr<Environment>, bool>
+ResolveEnvironment(ValueObject& vo, bool move)
+{
+	// XXX: Ditto.
+	if(const auto p = vo.AccessPtr<const EnvironmentReference>())
+		return {p->Lock(), {}};
+	if(const auto p = vo.AccessPtr<shared_ptr<Environment>>())
+		return {move ? std::move(*p) : *p, true};
+	// TODO: Ditto.
+	Environment::ThrowForInvalidType(vo.type());
+}
+pair<shared_ptr<Environment>, bool>
 ResolveEnvironment(const TermNode& term)
 {
 	return ResolveTerm([&](const TermNode& nd, bool has_ref){
@@ -1262,6 +1301,17 @@ ResolveEnvironment(const TermNode& term)
 		throw ListTypeError(
 			ystdex::sfmt("Invalid environment formed from list '%s' found.",
 			TermToStringWithReferenceMark(nd, has_ref).c_str()));
+	}, term);
+}
+pair<shared_ptr<Environment>, bool>
+ResolveEnvironment(TermNode& term)
+{
+	return ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
+		if(!IsExtendedList(nd))
+			return ResolveEnvironment(nd.Value, NPL::IsMovable(p_ref));
+		throw ListTypeError(
+			ystdex::sfmt("Invalid environment formed from list '%s' found.",
+			TermToStringWithReferenceMark(nd, p_ref).c_str()));
 	}, term);
 }
 

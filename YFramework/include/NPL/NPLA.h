@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2020 FrankHB.
+	© 2014-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r8005
+\version r8045
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2020-12-23 19:48 +0800
+	2021-01-27 18:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -947,7 +947,7 @@ YB_ATTR_nodiscard YB_PURE inline
 
 若定义为 true ，则在 Environment 和 EnvironmentReference 启用引用计数检查支持。
 检查在 Environment 的析构函数进行，通过对锚对象剩余引用计数的来源计数判断正常状态。
-若引用计数来源都是 Environment 、 EnvironmentReference 或 TermReference ，
+若引用计数来源都是 Environment 、EnvironmentReference 或 TermReference ，
 	则表示正常；否则，使用 YTraceDe 输出错误消息。
 注意绑定析构顺序不确定，可能导致依赖不确定而误报。
 因对性能有影响，默认仅调试配置下启用。
@@ -967,9 +967,11 @@ YB_ATTR_nodiscard YB_PURE inline
 //@{
 /*!
 \brief 父环境访问检查支持。
+\sa ContextNode::DefaultResolve
 \sa Environment
+\sa Environment::CheckParent
 
-若定义为 true ，则在默认解析父环境时，检查环境引用是否存在。
+若定义为 true ，则在默认解析和检查父环境时，检查环境引用是否存在。
 */
 #ifndef NPL_NPLA_CheckParentEnvironment
 #	ifndef NDEBUG
@@ -1187,6 +1189,11 @@ public:
 		!(bool(tags & TermTags::Unique) || bool(tags & TermTags::Temporary)))
 	//@}
 	/*!
+	\brief 判断被引用的对象是否指定临时值。
+	\since build 909
+	*/
+	DefPred(const ynothrow, Temporary, bool(tags & TermTags::Temporary))
+	/*!
 	\brief 判断被引用的对象是否指定唯一。
 	\since build 856
 	*/
@@ -1402,6 +1409,23 @@ IsUncollapsedTerm(const TermNode&);
 */
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsUniqueTerm(const TermNode&);
+
+//! \since build 909
+//@{
+/*!
+\brief 判断项（的值数据成员）是否表示可修改的对象或可修改的引用值。
+\sa TermReference::IsModifiable
+*/
+YB_ATTR_nodiscard YF_API YB_PURE bool
+IsModifiableTerm(const TermNode&);
+
+/*!
+\brief 判断项（的值数据成员）是否表示临时对象或临时对象的引用值。
+\sa TermReference::IsTemporary
+*/
+YB_ATTR_nodiscard YF_API YB_PURE bool
+IsTemporaryTerm(const TermNode&);
+//@}
 //@}
 
 //! \since build 859
@@ -2251,6 +2275,7 @@ public:
 	/*!
 	\brief 确保环境指针有效。
 	\exception std::invalid_argument 异常中立：由 ThrowForInvalidType 抛出。
+	\note 只检查互操作意义上的有效，即非空值。
 	\sa ThrowForInvalidType
 	\since build 872
 	*/
@@ -2840,7 +2865,7 @@ public:
 	}
 
 	/*!
-	\brief 转移当第二参数指定的位置之前的当前动作序列的动作到第一参数。
+	\brief 转移第二参数指定的位置之前的当前动作序列的动作到第一参数。
 	\since build 895
 	*/
 	PDefH(void, Shift, ReducerSequence& rs, ReducerSequence::const_iterator i)
@@ -3068,13 +3093,24 @@ ResolveIdentifier(const ContextNode&, string_view);
 YB_ATTR_nodiscard YF_API pair<shared_ptr<Environment>, bool>
 ResolveEnvironment(const ValueObject&);
 /*!
+\note 第二参数指定是否转移。
+\since build 909
+*/
+YB_ATTR_nodiscard YF_API pair<shared_ptr<Environment>, bool>
+ResolveEnvironment(ValueObject&, bool);
+/*!
 \throw ListTypeError 参数是列表节点。
 \note 当前使用和 TermToStringWithReferenceMark 相同的方式在异常消息中表示引用项。
 \sa TermToStringWithReferenceMark
-\since build 840
 */
+//@{
+//! \since build 840
 YB_ATTR_nodiscard YF_API pair<shared_ptr<Environment>, bool>
 ResolveEnvironment(const TermNode& term);
+//! \since build 909
+YB_ATTR_nodiscard YF_API pair<shared_ptr<Environment>, bool>
+ResolveEnvironment(TermNode& term);
+//@}
 //@}
 
 

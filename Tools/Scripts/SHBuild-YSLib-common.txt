@@ -8,24 +8,28 @@
 	" or dangerous to environments except 'move!', 'assign!' and",
 	" 'lock-current-environment' are poisoned.";
 $provide! (assign%! assign@! copy-environment lock-environment
-	$defrec! $setrec! make-standard-environment)
+	$defrec! $setrec! make-standard-environment derive-environment)
 (
 	$import! std.strings string->symbol symbol->string;
 
 	$def! fns (unwrap list) move! assign%! assign@! copy-environment
 		lock-environment $defrec! $setrec!;
-	$defl/e! raise-error (make-environment env_SHBuild_ std.strings) (&fn)
+	$defl/e! raise-error (make-environment env_SHBuild_ std.strings) (&n)
 		SHBuild_RaiseError_
-			(++ "ERROR: Use of unsafe function '" fn "' is not allowed.");
+			(++ "ERROR: Use of unsafe function '" n "' is not allowed.");
 	$defl! poison-fn (&fn &env)
-		eval (list $defl/e! fn (() make-standard-environment)
-			(string->symbol ".") raise-error (symbol->string fn)) env;
+		eval (list $defl/e! (ensigil fn)
+			(() make-standard-environment) (string->symbol ".") raise-error
+			(symbol->string fn)) env;
 	$defw! poison (fns) d for-each-ltr ($lambda (fn) poison-fn fn d) fns;
 	poison fns;
 	$def! nstd (() make-standard-environment);
-
 	eval (list poison (list $quote fns)) nstd;
-	$defl/e! make-standard-environment nstd () () lock-current-environment
+	$defl/e! &make-standard-environment nstd () () lock-current-environment,
+	$def! &derive-environment
+		($lambda/e nstd (&e) $lambda/e (() lock-current-environment) (.&envs)
+			() ($lambda/e (append envs (list e)) ()
+				() lock-current-environment)) (weaken-environment nstd)
 );
 
 $def! $redef! $def!;
@@ -70,10 +74,10 @@ $provide!
 	$set! mods $assert $assert;
 
 	"TODO", "Use 'string?'.";
-	$defv/e! $assert-nonempty mods (&var) d
+	$defv/e! &$assert-nonempty mods (&var) d
 		eval (list $assert var ($lambda (str) not? (string-empty? str))
-			"be a string of nonempty value") d;
-	$defv/e! $assert-absolute-path mods (&var) d
+			"be a string of nonempty value") d,
+	$defv/e! &$assert-absolute-path mods (&var) d
 		eval (list $assert var SHBuild_String_absolute_path?_
 			"be a string of absolute path") d
 );
@@ -97,12 +101,12 @@ $provide! (safeenv-get safeenv-set ss-verbose-puts)
 			($lambda .));
 
 	"TODO", "Optimize with continuations.";
-	$defl/e! safeenv-get mods (name)
+	$defl/e! &safeenv-get mods (name)
 		$letrec ((sym string->symbol name) (denv () get-current-environment))
 			$if (eval (list $binds1? emap sym) denv)
 				(eval (list sym) emap)
 				($def! v env-get name; eval (list $set! emap sym v) denv; v),
-	$defl/e! safeenv-set mods (name val)
+	$defl/e! &safeenv-set mods (name val)
 	(
 		$letrec ((sym string->symbol name) (denv () get-current-environment))
 			$unless (eval (list $binds1? emap sym) denv)
@@ -110,14 +114,14 @@ $provide! (safeenv-get safeenv-set ss-verbose-puts)
 		log-set name val;
 		env-set name val
 	),
-	$defl/e! ss-verbose-puts mods (str) $if SS_Verbose (puts str)
+	$defl/e! &ss-verbose-puts mods (str) $if SS_Verbose (puts str)
 );
 $provide! (safeenv-empty? safeenv-restore)
 (
 	$def! mods derive-environment std.strings;
 	$set! mods (safeenv-get safeenv-set) list safeenv-get safeenv-set;
-	$defl/e! safeenv-empty? mods (&n) string-empty? (safeenv-get n),
-	$defl/e! safeenv-restore mods (&n) safeenv-set n (safeenv-get n)
+	$defl/e! &safeenv-empty? mods (&n) string-empty? (safeenv-get n),
+	$defl/e! &safeenv-restore mods (&n) safeenv-set n (safeenv-get n)
 );
 $provide!
 (
@@ -129,12 +133,12 @@ $provide!
 		std.system env_SHBuild_;
 	$set! mods safeenv-get safeenv-get;
 
-	$defv/e! $lazy-env-val mods (&name .&body) d
+	$defv/e! &$lazy-env-val mods (&name .&body) d
 		$lazy/e (() lock-current-environment)
 			$let ((t safeenv-get name)) $if (string-empty? t)
-				(eval (move! body) d) t;
-	$defv/e! $env-de! mods (&var .&body) d
-		$let ((t safeenv-get (symbol->string var)))
+				(eval (move! body) d) t,
+	$defv/e! &$env-de! mods (&var .&body) d
+		$let ((t safeenv-get (symbol->string (desigil var))))
 			eval (list $def! var
 				($if (string-empty? t)
 					(list (unwrap eval) (move! body) d) t)) d;
@@ -154,9 +158,9 @@ $provide! (SHBuild_Env_OS SHBuild_Env_Arch)
 		(#t "unknown");
 
 	"XXX", "'SHBuild_CheckUName_*' depend on the external command 'uname'";
-	$env-de! SHBuild_Env_OS ($set-system-var! SHBuild_Env_uname "uname";
+	$env-de! &SHBuild_Env_OS ($set-system-var! SHBuild_Env_uname "uname";
 		SHBuild_CheckUName_Case_ SHBuild_Env_uname),
-	$env-de! SHBuild_Env_Arch ($set-system-var! SHBuild_Env_uname_m "uname -m";
+	$env-de! &SHBuild_Env_Arch ($set-system-var! SHBuild_Env_uname_m "uname -m";
 		SHBuild_CheckUNameM_Case_ SHBuild_Env_uname_m);
 );
 $defl! SHBuild_GetPlatformStrings ()

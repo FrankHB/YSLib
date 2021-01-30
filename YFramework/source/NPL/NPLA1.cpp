@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r20247
+\version r20275
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2021-01-21 06:41 +0800
+	2021-01-30 13:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,7 +117,14 @@ PushActionsRange(EvaluationPasses::const_iterator first,
 			const auto& f(first->second);
 
 			++first;
-			SetupNextTerm(ctx, term);
+			// XXX: By convention, no %SetupNextTerm call is needed here. Any
+			//	necessary next term setup is in the concrete action handler.
+			//	This avoids redundant calls if the action actually does know the
+			//	current term in from the argument is correct (e.g. the 1st
+			//	action initialized by the call of
+			//	%ContextState::DefaultReduceOnce) or all previous actions are
+			//	known not to change the next term in the context. See
+			//	%SetupDefaultInterpretation for example.
 			RelaySwitched(ctx, PushedAction{first, last, f, term, ctx});
 		}
 	}
@@ -245,6 +252,9 @@ DoAdministratives(const EvaluationPasses& passes, TermNode& term,
 	ContextNode& ctx)
 {
 #if NPL_Impl_NPLA1_Enable_Thunked
+	// XXX: No %SetupNextTerm call is needed here because it should have been
+	//	called before entering %ContextState::DefaultReduceOnce.
+	AssertNextTerm(ctx, term);
 	// XXX: Be cautious with overflow risks in call of %ContextNode::ApplyTail
 	//	when TCO is not enabled.
 	ctx.LastStatus = ReductionStatus::Neutral;
@@ -969,6 +979,10 @@ ReduceFirst(TermNode& term, ContextNode& ctx)
 ReductionStatus
 ReduceOnce(TermNode& term, ContextNode& ctx)
 {
+	// NOTE: See $2021-01 @ %Documentation::Workflow.
+#if NPL_Impl_NPLA1_Enable_Thunked
+	SetupNextTerm(ctx, term);
+#endif
 	return A1::RelayDirect(ctx, ContextState::Access(ctx).ReduceOnce, term);
 }
 
@@ -982,7 +996,8 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 	term.Value = ValueToken::Unspecified;
 	return ReductionStatus::Retained;
 #	else
-	return A1::ReduceCurrentNext(term, ctx, Continuation(
+	AssertNextTerm(ctx, term);
+	return A1::RelayCurrentNext(term, ctx, Continuation(
 		static_cast<ReductionStatus(&)(TermNode&, ContextNode&)>(
 		ReduceChildrenOrdered), ctx), A1::NameTypedReducerHandler([&]{
 		ReduceOrderedResult(term);
@@ -1156,12 +1171,15 @@ FormContextHandler::CallN(size_t n, TermNode& term, ContextNode& ctx) const
 	// NOTE: This implementes arguments evaluation in applicative order when
 	//	%Wrapping is not zero.
 #if NPL_Impl_NPLA1_Enable_Thunked
+	// XXX: No %SetupNextTerm call is needed because it should have been called
+	//	in %CombinerReturnThunk.
+	AssertNextTerm(ctx, term);
 	// NOTE: Optimize for cases with no argument.
 	if(n == 0 || term.size() <= 1)
 		// XXX: Assume the term has been setup by the caller.
 		return RelayCurrentOrDirect(ctx, Continuation(std::ref(Handler), ctx),
 			term);
-	return A1::ReduceCurrentNext(term, ctx,
+	return A1::RelayCurrentNext(term, ctx,
 		Continuation([&](TermNode& t, ContextNode& c){
 		YAssert(!t.empty(), "Invalid term found.");
 		ReduceChildrenOrderedAsyncUnchecked(std::next(t.begin()), t.end(), c);
@@ -1326,11 +1344,10 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 {
 	YAssert(IsCombiningTerm(term), "Invalid term found for combined term.");
 
-	SetupNextTerm(ctx, term);
-
 	auto& fm(AccessFirstSubterm(term));
 	const auto p_ref_fm(NPL::TryAccessLeaf<const TermReference>(fm));
 
+	// XXX: %SetupNextTerm is to be called in %CombinerReturnThunk.
 	// NOTE: The tag is intended to be consumed by %VauHandler in %NPLA1Forms.
 	//	As the irregular representation has a handler of %RefContextHandler,
 	//	the tag is consumed only by the underlying handler, so the irregular
@@ -1409,7 +1426,7 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 ReductionStatus
 ReduceCombinedReferent(TermNode& term, ContextNode& ctx, const TermNode& fm)
 {
-	SetupNextTerm(ctx, term);
+	// XXX: %SetupNextTerm is to be called in %CombinerReturnThunk.
 	term.Tags &= ~TermTags::Temporary;
 	if(const auto p_handler = NPL::TryAccessLeaf<const ContextHandler>(fm))
 		return CombinerReturnThunk(*p_handler, term, ctx);
@@ -1442,8 +1459,9 @@ RelayForEval(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 	bool no_lift, Continuation next)
 {
 	// XXX: For thunked code, %next shall be a continuation before being
-	//	captured and it is not capturable here. No %SetupNextTerm needs to be
-	//	called in the caller.
+	//	captured and it is not capturable here.
+	// XXX: No %SetupNextTerm call is needed because it should have been called
+	//	in the caller.
 	return RelayForEvalOrDirect(ctx, term, std::move(gd), no_lift,
 		std::move(next));
 }
@@ -1454,6 +1472,8 @@ RelayForCall(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 {
 	// NOTE: With TCO, the operand temporary is been indicated by
 	//	%TermTags::Temporary, no lifetime extension needs to be cared here.
+	// XXX: No %SetupNextTerm call is needed because it should have been called
+	//	in the caller.
 	return RelayForEvalOrDirect(ctx, term, std::move(gd), no_lift,
 		std::ref(ContextState::Access(ctx).ReduceOnce));
 }

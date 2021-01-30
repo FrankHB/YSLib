@@ -1,5 +1,5 @@
 ﻿/*
-	© 2017-2020 FrankHB.
+	© 2017-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20213
+\version r20236
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2020-10-06 21:22 +0800
+	2021-01-30 13:45 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -220,8 +220,8 @@ public:
 	{
 		// NOTE: This implies the call of %RegularizeTerm before lifting. Since
 		//	the call of %RegularizeTerm is idempotent without term modification
-		//	before the next reduction of the term or some other term, there is
-		//	no need to call %RegularizeTerm if the lift is not needed.
+		//	before the next reduction of term, there is no need to call
+		//	%RegularizeTerm if the lift is not needed.
 		if(req_lift_result)
 		{
 			// NOTE: The call of %RegularizeTerm is for the previous reduction.
@@ -229,6 +229,11 @@ public:
 			RegularizeTerm(term, ctx.LastStatus);
 			return ReduceForLiftedResult(term);
 		}
+		// NOTE: This is only needed on a real call from the evaluation is
+		//	reentered. Currently, other evaluations (e.g. for continuation are
+		//	all administrative) and expected not reentered with unbound number
+		//	of times when no lifting is required.
+		// TODO: Prepare for invocation of first-class continuations?
 		if(req_combined)
 			RegularizeTerm(term, ctx.LastStatus);
 		return ctx.LastStatus;
@@ -527,6 +532,19 @@ YB_ATTR_nodiscard inline
 #endif
 
 
+//! \since build 909
+inline void
+AssertNextTerm(ContextNode& ctx, TermNode& term)
+{
+	yunused(ctx),
+	yunused(term);
+#if NPL_Impl_NPLA1_Enable_Thunked
+	YAssert(ystdex::ref_eq<>()(term, ContextState::Access(
+		ctx).GetNextTermRef()), "Invalid current term found.");
+#endif
+}
+
+
 //! \since build 879
 //@{
 #if NPL_Impl_NPLA1_Enable_Thunked && !NPL_Impl_NPLA1_Enable_InlineDirect
@@ -662,7 +680,6 @@ RelayForEvalOrDirect(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 	//	in direct calls instead of the setup next term, while they shall be
 	//	equivalent.
 #if NPL_Impl_NPLA1_Enable_TCO
-	SetupNextTerm(ctx, term);
 	SetupTCOLift(PrepareTCOEvaluation(ctx, term, std::move(gd)), no_lift);
 	return A1::RelayCurrentOrDirect(ctx, yforward(next), term);
 #elif NPL_Impl_NPLA1_Enable_Thunked
@@ -671,7 +688,7 @@ RelayForEvalOrDirect(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 	auto act(MakeMoveGuard(gd));
 
 	if(no_lift)
-		return ReduceCurrentNext(term, ctx, yforward(next), std::move(act));
+		return A1::RelayCurrentNext(term, ctx, yforward(next), std::move(act));
 
 	// XXX: Term reused. Call of %SetupNextTerm is not needed as the next
 	//	term is guaranteed not changed when %next is a continuation.
@@ -681,10 +698,9 @@ RelayForEvalOrDirect(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 	}, "eval-lift-result"), ctx);
 
 	RelaySwitched(ctx, std::move(act));
-	return ReduceCurrentNext(term, ctx, yforward(next), std::move(cont));
+	return A1::RelayCurrentNext(term, ctx, yforward(next), std::move(cont));
 #else
 	yunused(gd);
-	SetupNextTerm(ctx, term);
 
 	const auto res(RelayDirect(ctx, next, term));
 

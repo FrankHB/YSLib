@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file NPLA1.h
+/*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r7741
+\version r7761
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2021-01-08 19:22 +0800
+	2021-01-25 01:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1241,18 +1241,18 @@ Unwrap(TermNode&, ContextNode&);
 
 
 /*!
-\since build 859
 \return ReductionStatus::Regular 。
+\note 对参数指定的项进行检查，接受对象语言的一个参数。
+\since build 859
 */
 //@{
 /*!
 \brief 检查参数指定的项表示环境。
 \exception TypeError 检查失败：参数指定的项不表示环境。
 \exception ListTypeError 检查失败：参数指定的项表示列表。
+\sa ResolveEnvironment
 
-对参数指定的项进行检查。
-接受对象语言的一个参数。若这个参数不表示环境，抛出异常；
-	否则，对象语言中返回为参数指定的值。
+若接受的对象语言参数不表示环境，抛出异常；否则，对象语言中返回为参数指定的值。
 
 参考调用文法：
 <pre>check-environment \<object></pre>
@@ -1261,12 +1261,26 @@ YF_API ReductionStatus
 CheckEnvironment(TermNode&);
 
 /*!
+\brief 检查参数指定的项表示适合作为父环境的环境或环境列表。
+\exception TypeError 检查失败：参数指定的项不表示环境。
+\exception ListTypeError 检查失败：参数指定的项表示列表。
+\since build 909
+
+若接受的对象语言参数不表示适合作为父环境的环境或环境列表，抛出异常；
+	否则，对象语言中返回为参数指定的值。
+
+参考调用文法：
+<pre>check-parent \<object></pre>
+*/
+YF_API ReductionStatus
+CheckParent(TermNode&);
+
+/*!
 \brief 检查参数指定的项表示非空列表的引用。
 \exception ListTypeError 检查失败：参数指定的项不表示非空列表。
 \since build 857
 
-对参数指定的项进行检查。
-接受对象语言的一个参数。若这个参数不表示非空列表引用值，抛出异常；
+若接受的对象语言参数不表示非空列表引用值，抛出异常；
 	否则，对象语言中返回为参数指定的值。
 
 参考调用文法：

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8475
+\version r8493
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2021-01-20 06:06 +0800
+	2021-01-28 22:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -295,6 +295,8 @@ public:
 	\brief NPLA1 表达式节点一次规约续延。
 	\pre 规约函数第二参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
 	\pre 若修改规约函数实现，应和 DefaultReduceOnce 具有相同的求值语义。
+	\pre 若可能在实现中调用续延，调用时应确保下一求值项被正确设置。
+	\sa SetNextTermRef
 	\since build 877
 	*/
 	Continuation ReduceOnce{DefaultReduceOnce, *this};
@@ -1175,15 +1177,6 @@ YF_API ReductionStatus
 ReduceCombinedBranch(TermNode&, ContextNode&);
 
 /*!
-\brief 规约列表合并项：同 ReduceCombinedBranch ，但先设置 NPLA1 上下文的下一项。
-\pre 间接断言：项满足 IsCombiningTerm 。
-\since build 884
-*/
-YB_FLATTEN inline PDefH(ReductionStatus, ReduceNextCombinedBranch,
-	TermNode& term, ContextState& cs)
-	ImplRet(cs.SetNextTermRef(term), ReduceCombinedBranch(term, cs))
-
-/*!
 \brief 规约列表合并项：同 ReduceCombined ，但使用第三参数指定的值。
 \note 若第三参数不表示上下文处理器的宿主值，抛出的异常消息指定其为引用项。
 \since build 883
@@ -1541,7 +1534,16 @@ SetupTailOperatorName(TermNode&, const ContextNode&);
 \sa QueryContinuationName
 \sa QuerySourceInformation
 \sa QueryTailOperatorName
+\see $2021-01 @ %Documentation::Workflow.
 \since build 903
+
+追踪第一参数指定的动作序列记录的 NPL 续延并清除其中的动作。
+追踪每一个动作以未指定的格式打印特定的文本。
+清除动作可具有副作用。
+以下约定的作用外的顺序未指定：
+追踪任意动作和清除任意动作之间非决定性有序；
+追踪动作先序清楚同一个动作；
+追踪的动作之间的顺序同 ContextNode::ReducerSequence::clear 清除项的顺序。
 */
 YF_API void
 TraceBacktrace(ContextNode::ReducerSequence&, YSLib::Logger&);

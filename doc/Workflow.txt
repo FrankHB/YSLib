@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4098
+\version r4157
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2021-01-23 15:52 +0800
+	2021-01-30 14:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -4057,42 +4057,71 @@ The remained scripts '3rdparty/freetype/builds/build-ds.sh' and 'doc/doxygen-cjk
 $2021-01:
 
 report.impl:
-NPLA1 interface for local bindings and modules are revised.
-	The operative '$provide/d!', '$let/d' and '$let/d%' are removed.
-		The dynamic environment denoted by the environment formal parameter is generally discouraged, because the dynamic environment may have other bindings initialized later, and relying on such bindings is often error-prone, esp. for long bodies.
-			Using of the statically derived environments (e.g. the standard enviornment) instead as the static environment of the exported functions in the body is generally more encouraged.
-		If the dynamic environment is needed indeed, it can be easily worked around.
-			Since the environment is local to the binding clauses and the bound expressions in the clauses will be always evaluated, it is easy to specify the dynamic environment in the bindings clause.
-				For example, a '() get-current-environment' should generally be enough.
-		This is different to operative constructors like '$vau'.
-			Dynamic environment is necessary to operatives in general, even though the caveats on the use of the dynamic environments still apply.
-				It is not optional for all such operative constructors.
-				There should be some place to get the binding of the dynamic environment in some operative contructors.
-			Operatives cannot rely on the dynamic environment available from the evaluation by the operative calls.
-				That is, operand like '() get-current-environment' cannot be in the parameter tree, because it will remain unevaluated if the operative is not wrapped.
-				Obviously it cannot be in the body, either.
-				There is no other room for such an operand to go, so the environment formal parameter is eventually needed.
+Several NPLA1 improvements are made.
+	Interface for local bindings and modules are revised.
+		The operative '$provide/d!', '$let/d' and '$let/d%' are removed.
+			The dynamic environment denoted by the environment formal parameter is generally discouraged, because the dynamic environment may have other bindings initialized later, and relying on such bindings is often error-prone, esp. for long bodies.
+				Using of the statically derived environments (e.g. the standard enviornment) instead as the static environment of the exported functions in the body is generally more encouraged.
+			If the dynamic environment is needed indeed, it can be easily worked around.
+				Since the environment is local to the binding clauses and the bound expressions in the clauses will be always evaluated, it is easy to specify the dynamic environment in the bindings clause.
+					For example, a '() get-current-environment' should generally be enough.
+			This is different to operative constructors like '$vau'.
+				Dynamic environment is necessary to operatives in general, even though the caveats on the use of the dynamic environments still apply.
+					It is not optional for all such operative constructors.
+					There should be some place to get the binding of the dynamic environment in some operative contructors.
+				Operatives cannot rely on the dynamic environment available from the evaluation by the operative calls.
+					That is, operand like '() get-current-environment' cannot be in the parameter tree, because it will remain unevaluated if the operative is not wrapped.
+					Obviously it cannot be in the body, either.
+					There is no other room for such an operand to go, so the environment formal parameter is eventually needed.
+		A bug of wrong parent environment used in the constructed environment is fixed in the core library operative '$bindings->environment'.
+			The operative now correctly used the fresh environment without parents instead.
+			This is also consistent to the environments vs. modules definitions (requires a standard environment for the latter ones).
 	Mapping between modules and environments for loaded modules has been clearified.
 		There is no guarantee of one-to-one mapping, even though it often is the case.
 		The stability of the environments for loaded modules is now explicitly required.
 			This is in alignment to the applicative 'get-module' in [RnRK],
 				The stability in 'get-module' is get by a fresh environment made by 'make-kernel-standard-environment' as the parent.
 				This is also similar to '$let-safe' in [RnRK], though '$let-safe' is not specific to module interface.
-	A bug of wrong parent environment used in the constructed environment is fixed in the core library operative '$bindings->environment'.
-		The operative now correctly used the fresh environment without parents instead.
-		This is also consistent to the environments vs. modules definitions (requires a standard environment for the latter ones).
-The synchronous (non-thunked) implementation of NPLA1 has been reviewed and several bug has been fixed.
-	The bugs in the native implementations of sequence algorithms ('AccR', 'FoldR1' and 'Map1' in namespace 'NPL::Forms' has been fixed).
-		One of the bug is the wrong use of 'RelaySwitched'.
-			This should not be used by the synchronous implementation.
-			It would cause invalid results and invalid memory accesses eventually becuase of the unexpected early return.
-		The other is the wrong treatment of the call result. That is, 'ContextNode::LastResult' should not be used.
-			Without the previous bug, this bug would lead to wrong combiner call results determine by previous reductions.
-				For instance, '$let' would sometimes make no bindings by accident, since 'map1' results are empty lists (unless all of 'accr', 'foldr1' and 'map1' are derived rather than implemented natively).
-	An alternative implementation of 'A1::SetupDefaultInterpretation' is fixed.
-		The implementation was buggy because it missed the reduction result in the step to conditionally setup combining term reference.
-		The reduction result was implicitly 'ReductionStatus::Clean'.
-		This was wrong for the synchronous implementation because the implicit reduction status could override the reduction status from other handlers unexpectedly.
+	The synchronous (non-thunked) implementation has been reviewed and several bug has been fixed.
+		The bugs in the native implementations of sequence algorithms ('AccR', 'FoldR1' and 'Map1' in namespace 'NPL::Forms' has been fixed).
+			One of the bug is the wrong use of 'RelaySwitched'.
+				This should not be used by the synchronous implementation.
+				It would cause invalid results and invalid memory accesses eventually becuase of the unexpected early return.
+			The other is the wrong treatment of the call result. That is, 'ContextNode::LastResult' should not be used.
+				Without the previous bug, this bug would lead to wrong combiner call results determine by previous reductions.
+					For instance, '$let' would sometimes make no bindings by accident, since 'map1' results are empty lists (unless all of 'accr', 'foldr1' and 'map1' are derived rather than implemented natively).
+		An alternative implementation of 'A1::SetupDefaultInterpretation' is fixed.
+			The implementation was buggy because it missed the reduction result in the step to conditionally setup combining term reference.
+			The reduction result was implicitly 'ReductionStatus::Clean'.
+			This was wrong for the synchronous implementation because the implicit reduction status could override the reduction status from other handlers unexpectedly.
+	Implementaton of the vau handler is changed.
+		To support lists of environments as the parent object, the static environment is merged into the parent object.
+		This would make the cyclic references leak earlier.
+			The cyclic strong reference 'shared_ptr<Environment>' would now formed immediate to the vau handler construction.
+				This is more consistent to 'make-environment'.
+				In the old implementation, the cyclic reference would be formed at locking any cyclic parent object in accessing the environment during the combiner call.
+			As a result, the runtime overhead of reference counting is also reduced slightly, as there are less total references saved in the vau handlers.
+				However, overhead of new environment list support is still more significant.
+				In fact, the overhead of saving the owning parent to the TCO action in the TCO implementation for combiner rvalues in each call is also greater.
+			Since this is already undefined behavior, no compatibility issues should be raised.
+	Requirements of reduction function implementations are changed, to allow getting rid of some redundant operations to set the next term in the NPLA1 context in asynchronous reductions.
+		The 'A1::ReduceOnce' is changed to have the setup at first.
+			This behavior is now consistent to the main reduction function 'A1::Reduce'.
+			This is only changed in asynchronous implementations, different to context rewriting functions which always setup the next term at first.
+			This is the only change that should be taken before the remained changes below.
+			The change is made here to minimize the incompatibility issues.
+				The 'A1::ReduceOnce' without next term setup before its call is used in several cases.
+				To name a few, YFramework module NPL::Dependency and the SHBuild implementation both rely on the behavior.
+				The change makes the loading in NPL::Dependency a bit less optimal. This can be improved later.
+		An internal helper function is provided to assert the next term stored in 'A1::ContextState' same to the current term (specified by 'TermNode&' argument of the reduction functions). 
+		'A1::ContextState::ReduceOnce' now requires more explicit precondition to ensure the next term would be always setup properly unless there is no 'A1::Continuation' calls implied by the impementation.
+		'A1::ContextState::DefaultReduceOnce' is simplified.
+			The term setup before each pass is removed.
+			The assertion is added in the front of the administrative calls in asynchronous implementations.
+			As the default implementation of 'A1::ContextState::ReduceOnce', it is still conforming after the changes.
+		Many other reduction functions also uses the new assertion in asynchronous implementations.
+		'A1::ReduceCombined' and its friends are simplified.
+			The term setup is now in the internal combiner thunk instead of the entries of each reduction functions.
 
 ////
 
