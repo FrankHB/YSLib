@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8493
+\version r8499
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2021-01-28 22:40 +0800
+	2021-02-02 09:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -833,7 +833,7 @@ public:
 	\note 使用 YSLib::AreEqualHeld 。
 	\since build 756
 	*/
-	YB_ATTR_nodiscard friend YB_PURE PDefHOp(bool, ==,
+	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
 		const WrappedContextHandler& x, const WrappedContextHandler& y)
 		ImplRet(YSLib::AreEqualHeld(x.Handler, y.Handler))
 
@@ -970,7 +970,10 @@ public:
 		ImplRet(CallN(Wrapping, term, ctx))
 
 private:
-	//! \since build 859
+	/*!
+	\pre 断言：对异步实现，参数指定的项和下一求值项相同。
+	\since build 859
+	*/
 	ReductionStatus
 	CallN(size_t, TermNode&, ContextNode&) const;
 
@@ -1212,7 +1215,7 @@ using EnvironmentGuard = ystdex::guard<EnvironmentSwitcher>;
 
 /*!
 \pre ContextNode& 类型的参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
-\pre 对 TCO 实现，存在 TCOAction 当前动作。
+\pre TCO 实现：当前动作是 TCO 动作，且其中的当前项和被规约的项相同。
 \note 参数分别表示规约上下文、被规约的项和待被保存的当前求值环境守卫。
 \note 第四参数指定避免规约后提升结果。
 \note 对 TCO 实现利用 TCOAction 以尾上下文进行规约。

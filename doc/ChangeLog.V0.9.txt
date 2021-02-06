@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r2324
+\version r2531
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-01-30 14:48 +0800
+	2021-02-06 15:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,210 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ DLDI 'friend YB_PURE' -> 'YB_PURE friend' $effective @ "%operator=="
+		@ "class template %WrappedContextHandler" @ %YFramework.NPL.NPLA1,
+		// More consistent to other code.
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA1 $=
+		(
+			* "missing saving %ContextNode::LastStatus before passes"
+				@ "member function %ContextState::DefaultReduceOnce"
+				@ 'NPL_Impl_NPLA1_Enable_Thunked'
+				$orig (@ "function %ReduceOnce" $since b841),
+			/ DD "restricted precondition" @ 'NPL_Impl_NPLA1_Enable_TCO'
+				@ "functions %(RelayForEval, RelayForCall)",
+			/ @ "functions %(ReduceCombinedBranch, ReduceCombinedReferent)" $=
+			(
+				/ "removed combined call request" @ 'NPL_Impl_NPLA1_Enable_TCO'
+					$dep_from "reset last status before applicative calls"
+					$dep_to "removal of combined call request",
+				/ "support destroying temporary objects on exception"
+					$dep_from ("temporary guard" @ "class %TCOAction"
+					@ 'NPL_Impl_NPLA1_Enable_TCO' @ %NPLA1Interals)
+			),
+			* "nonmodifying list subobjects wrongly moved on list \
+				initialization" @ "function %BindParameter" $since b898
+		),
+		/ @ "namespace %Forms" @ %NPLA1Forms $=
+		(
+			* DD "comment" @ ("function %Not" $since b861,
+				"functions %(First, FirstVal)" $since b859),
+			* "missing reset %ContextNode::LastStatus before the sum call"
+				@ ("function %AccR" $since b898, "function %FoldR1" $since
+				b899) $dep_to "reset last status before applicative calls",
+				// See $2021-02 @ %Documentation::Workflow.
+			/ DLDI "simplified resetting %ContextNode::LastStatus before \
+				non-tail calls of applicative argument"
+				@ "functions %(AccR, FoldR1)" $dep_to
+				"reset last status before applicative calls",
+				// See $2021-02 @ %Documentation::Workflow.
+			/ DLDI "parameter name" @ "function %Not" -> 'x' ~ 'term',
+				// To indicate the parameter represents an operand in the \
+					object language.
+			* "missing setup the next term" @ "functions of native \
+				implementations of applicatives with applicative arguments"
+				@ '!NPL_Impl_NPLA1_Enable_InlineDirect \
+				&& NPL_Impl_NPLA1_Enable_Thunk' $since b898,
+				// See $2021-02 @ %Documentation::Workflow.
+			+ "assertion to ensure the term same to the next term"
+				@ "function %ReduceN",
+			(
+			+ "function %(Rest, RestVal)";
+			/ DLDI "simplified function %(First, FirstVal)"
+			),
+			+ "function %RestRef"
+		),
+		/ @ 'NPL_Impl_NPLA1_Enable_TCO' @ %NPLA1Internals $=
+		(
+			/ @ "function %PrepareTCOEvaluation" $=
+			(
+				+ "assertion to ensure identities of term in the TCO \
+					action and the parameter are same" $dep_from
+					("%(RelayForEval, RelayForCall)" @ %NPLA1)
+					$dep_to "assertion of TCO preparation"
+					^ $dep_from "%TCOAction::GetTermRef",
+					// See $2021-02 @ %Documentation::Workflow.
+				/ DLDI "simplified"
+					^ $dep_from "%TCOAction::CompressForGuard",
+				* "result handling did not come before frame compression"
+					$since b878 $dep_to "order of TCO result handling"
+					// See $2021-02 @ %Documentation::Workflow.
+			),
+			/ DLDI "classes declaration order",
+				// For easier in-class inlining definition in %TCOAction.
+			/ @ "class %TCOAction" $=
+			(
+				+ "function %GetTermRef",
+				/ DLI @ "function %operator()" $=
+				(
+					/ "simplified term" @ "result handling"
+						$dep_from "assertion of TCO preparation",
+					/ $forced $design "simplified"
+						$dep_from "simplified result request"
+				),
+				/ @ "function %HandleResultRequests" $=
+				(
+					- "term parameter" $dep_from "%operator()"
+						$dep_to "simplified result request",
+					- "combiner request check" $dep_all_from
+						"reset last status before applicative calls"
+						$dep_to "removed combiner request check",
+					* "missing reset lifting result request" $orig (@ %NPLA1
+						$since b854) $dep_from ("order of TCO result handling"
+						@ 'list-concat' @ "%LoadGroundContext" @ %Dependency),
+						// See $2021-02 @ %Documentation::Workflow.
+					* "missing support of lifting more than once"
+						$since b854
+						// See $2021-02 @ %Documentation::Workflow.
+				),
+				+ "functions %(CompressFrameList; \
+					CompressForContext; CompressForGuard)",
+				+ "function %HandleResultLift",
+				+ "function %SetupTCOLift",
+				(
+				- "function %RequestCombined"
+					$dep_from "removal of combined call request";
+				- DLI "combined call resquest data member"
+					$dep_from "removed combiner request check"
+				),
+				- "function %RequestLiftResult"
+					$dep_from "%A1::SetupTCOLift",
+				(
+				+ "temporary guard";
+				- "data member %TermRef"
+				)
+			),
+			(
+			/ DLDI @ "function template %RelayForEvalOrDirect"
+				^ $dep_from "%TCOAction::SetupTCOLift"
+				~ "%SetupTCOLift";
+			- "function %SetupTCOLift"
+			),
+			/ "parameter order" @ "function template %RelayCurrentNext"
+				// To be consisten with other API prefixed with 'Relay'.
+		),
+		/ %Dependency $=
+		(
+			/ @ "function %LoadGroundContext" $=
+			(
+				+ "native derivation enabled by default" @ "applicatives \
+					'make-standard-environment', 'first-null?'",
+				* "missing fowrading the 2nd argument"
+					@ "applicative 'list-concat'" $since b859,
+					// See $2021-02 @ %Documentation::Workflow.
+				+ "native derivation of applicatives enabled by default"
+					@ ("%restv" ^ $dep_from ("%RestVal" @ %NPLA1Forms),
+					'rest&' ^ $dep_from ("%RestRef" @ %NPLA1Forms)),
+				(
+				+ "native derivation enabled by default"
+					@ "applicative 'rest%'"
+					$dep_from (("%BindParameter", ^ "%Rest") @ %NPLA1Forms);
+				* $comp "inconsistent internal derivation of 'rest%' used"
+					$since b909
+					// This should have 'move!' in the body.
+				),
+				+ "%forward call for the argument"
+					@ "applicative 'list-rest%'",
+				/ DLDI "order of derivation" @ "operative $as-environment"
+					// This does use '$let', so put it later.
+			),
+			/ DLDI "all parameter name for handler used by \
+				'RegisterUnary<>' call" -> 'x' ~ 'term',
+				// Similar to %Forms::Not.
+			/ "applicative %load" @ "function %LoadModule_std_io" $=
+			(
+				/ DLI "simplified" @ 'NPL_Impl_NPLA1_Enable_Thunked'
+					^ "%ReduceToLoadExternal" ~ "%RelayToLoadExternal"
+					$dep_to "avoided use of RelayToLoadExternal",
+				/ DLDI "simplified by removing %RetainN call"
+					$dep_from "refined arguments for loading"
+			),
+			// %RelayToLoadExternal is preserved for external \
+				implementations.
+			/ DLI @ "function %ReduceToLoadExternal" $=
+			(
+				+ $dep_from "%Forms::RetainN call"
+					$dep_to "refined arguments for loading",
+				/ "avoid redundant next term setup"
+					^ "%ContextState::ReduceOnce" ~ "%ReduceOnce"
+					// The consistency is now guaranteed by the NPLA1 \
+						reduction function requirements.
+			)			
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ @ "binary operator templates" @ %Operators $=
+		(
+			+ "%std::move calls in pass-by-value arguments",
+			/ @ "left binary operator templates" $=
+			(
+				* "inconsistent parameter types for operator function templates"
+					$since b576,
+					// One parameter type should be '_type' without 'const&' \
+						to be aligned with the non-left ones.
+				* "missing specializing template with 2 same template arguments"
+					$since b260
+					// This would break left binary operator templates \
+						combining with non-left ones due to ambiguity.
+			)
+		),
+		/ @ "%operator(+=, -=)" @ "class template %transformed_iterator" $=
+		(
+			/ "simplified exception specifications",
+			(
+			/ "friend non-member overloads" -> "member overloads";
+				// This is more idiomadic, also fixing the following bug. 
+			* $comp "inability to be accessed by modifiable rvalue objects"
+				$since b600
+			)
+		)
+	)
+),
+
+b909
 (
 	/ %YFramework.NPL $=
 	(
@@ -145,10 +349,7 @@ $now
 			/ DLI "simplified"
 				@ 'NPL_Impl_NPLA1_Enable_Thunked && !NPL_Impl_NPLA1_Enable_TCO'
 				@ "function %ReduceOrdered"
-				^ "%A1::RelayCurrentNext" ~ "%A1::ReduceCurrentNext",
-			/ "support destroying temporary objects on exception"
-				@ "functions %(ReduceCombinedBranch, ReduceCombinedReferent)"
-				$dep_from ("TCO term cleanup" @ %NPLA1Interals)
+				^ "%A1::RelayCurrentNext" ~ "%A1::ReduceCurrentNext"
 		),
 		/ %Dependency $=
 		(

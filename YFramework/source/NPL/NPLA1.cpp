@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r20275
+\version r20305
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2021-01-30 13:47 +0800
+	2021-02-04 17:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -144,11 +144,16 @@ PushedAction::operator()(ContextNode&) const
 
 	PushActionsRange(First, Last, term, ctx);
 
+	// NOTE: Calling the handler may change %ctx.LastStauts, so it should be
+	//	saved at first.
+	const auto r(ctx.LastStatus);
 	const auto res(HandlerRef(term, ctx));
 
 	if(res != ReductionStatus::Partial)
+		// NOTE: This does maintain the right reduction status for each term,
+		//	once the result of the call to %HandlerRef is trusted.
 		ctx.LastStatus
-			= CombineSequenceReductionResult(ctx.LastStatus, res);
+			= CombineSequenceReductionResult(r, res);
 	return ctx.LastStatus;
 }
 #endif
@@ -204,6 +209,7 @@ ReductionStatus
 CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	_tParams&&... args)
 {
+	// NOTE: See $2021-01 @ %Documentation::Workflow.
 	static_assert(sizeof...(args) < 2, "Unsupported owner arguments found.");
 #if NPL_Impl_NPLA1_Enable_TCO
 	auto& act(EnsureTCOAction(ctx, term));
@@ -216,32 +222,38 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	//	error: Segmentation fault.
 	yunseq(0, (lf = NPL::make_observer(
 		&act.AttachFunction(std::forward<_tParams>(args)).get()), 0)...);
-	act.RequestCombined();
 	SetupNextTerm(ctx, term);
 	// XXX: %A1::RelayCurrentOrDirect is not used to allow the underlying
 	//	handler optimized with %NPL_Impl_NPLA1_Enable_InlineDirect.
 	return RelaySwitched(ctx, Continuation(std::ref(lf ? *lf : h), ctx));
-#elif NPL_Impl_NPLA1_Enable_Thunked
+#else
 
 	ContextState::Access(ctx).ClearCombiningTerm();
 	term.Value.Clear();
+
+	auto gd(ystdex::unique_guard([&]() ynothrow{
+		term.Clear();
+	}));
+#	if NPL_Impl_NPLA1_Enable_Thunked
 	// XXX: %A1::ReduceCurrentNext is not used to allow the underlying
 	//	handler optimized with %NPL_Impl_NPLA1_Enable_InlineDirect.
 	SetupNextTerm(ctx, term);
 	// TODO: Blocked. Use C++14 lambda initializers to simplify the
 	//	implementation.
-	RelaySwitched(ctx,
-		A1::NameTypedReducerHandler(std::bind([&](const _tParams&...){
+	RelaySwitched(ctx, A1::NameTypedReducerHandler(
+		std::bind([&](decltype(gd)& g, const _tParams&...){
+		ystdex::dismiss(g);
 		// NOTE: Captured argument pack is only needed when %h actually shares.
 		return RegularizeTerm(term, ctx.LastStatus);
-	}, std::move(args)...), "eval-combine-return"));
+	}, std::move(gd), std::move(args)...), "eval-combine-return"));
 	return RelaySwitched(ctx, Continuation(std::ref(h), ctx));
-#else
+#	else
+	const auto res(RegularizeTerm(term, h(term, ctx)));
 
+	ystdex::dismiss(gd);
 	yunseq(0, args...);
-	ContextState::Access(ctx).ClearCombiningTerm();
-	term.Value.Clear();
-	return RegularizeTerm(term, h(term, ctx));
+	return res;
+#	endif
 #endif
 }
 
@@ -625,7 +637,7 @@ public:
 
 private:
 	// XXX: The initial %o_tags shall have %TermTags::Temporary unless it is
-	//	known to bound to some non-temporary objects not stroed in the term tree
+	//	known to bound to some non-temporary objects not stored in the term tree
 	//	to be reduced.
 	void
 	Match(const TermNode& t, TermNode& o, TermTags o_tags,
@@ -997,7 +1009,7 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 	return ReductionStatus::Retained;
 #	else
 	AssertNextTerm(ctx, term);
-	return A1::RelayCurrentNext(term, ctx, Continuation(
+	return A1::RelayCurrentNext(ctx, term, Continuation(
 		static_cast<ReductionStatus(&)(TermNode&, ContextNode&)>(
 		ReduceChildrenOrdered), ctx), A1::NameTypedReducerHandler([&]{
 		ReduceOrderedResult(term);
@@ -1179,7 +1191,7 @@ FormContextHandler::CallN(size_t n, TermNode& term, ContextNode& ctx) const
 		// XXX: Assume the term has been setup by the caller.
 		return RelayCurrentOrDirect(ctx, Continuation(std::ref(Handler), ctx),
 			term);
-	return A1::RelayCurrentNext(term, ctx,
+	return A1::RelayCurrentNext(ctx, term,
 		Continuation([&](TermNode& t, ContextNode& c){
 		YAssert(!t.empty(), "Invalid term found.");
 		ReduceChildrenOrderedAsyncUnchecked(std::next(t.begin()), t.end(), c);
@@ -1523,7 +1535,9 @@ BindParameter(const shared_ptr<Environment>& p_env, const TermNode& t,
 				const auto last(o_tm.end());
 				TermNode::Container con(t.get_allocator());
 
-				if(bool(o_tags & (TermTags::Unique | TermTags::Temporary)))
+				// XXX: As %TermReference::IsMovable for non-temporary objects.
+				if((o_tags & (TermTags::Unique | TermTags::Nonmodifying))
+					== TermTags::Unique || bool(o_tags & TermTags::Temporary))
 				{
 					if(sigil == char())
 						LiftSubtermsToReturn(o_tm);

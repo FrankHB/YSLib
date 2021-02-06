@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4157
+\version r4224
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2021-01-30 14:36 +0800
+	2021-02-04 08:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -4122,6 +4122,75 @@ Several NPLA1 improvements are made.
 		Many other reduction functions also uses the new assertion in asynchronous implementations.
 		'A1::ReduceCombined' and its friends are simplified.
 			The term setup is now in the internal combiner thunk instead of the entries of each reduction functions.
+
+$2021-02:
+
+report.impl:
+NPLA1 implementation is continuously imporved.
+	Temporary destroying on exception exit is implemented.
+		This is more consistent to C++.
+		The implementation clears the currently evaluated term in the end of the combiner reduction.
+			This assumes temporary objects are created only in the branch actions.
+			This is implemented by several different ways.
+				Basically, in the combiner call, it uses a guard to clear the term of the prvalues potentionally holding the temporary objects.
+					The guard is required to be usable in the combiner call thunk, so calls to initiate combiner calls in the object language (e.g. 'A1::ReduceCombiner') can assume the removal of temporary objects in abnormal exits.
+				In the TCO implementation, the TCO action owns the guard.
+					Now the term reference in the TCO action is also inline into the guard.
+					The TCO action is also allowed to be extended before the call.
+					No TCO action is supported to be out of an existing call which provides the resources to be reused.
+						And here, it works even when the TCO action is created elsewhere, before entering the combiner call thunk.
+				In other implementations, the guard is put together with the term regularization in the combiner call thunk.
+					The guard is dismissed on normal exits.
+			The synchronous implementation uses C++ exception handling directly.
+			For asynchronous implementations, the guard is actually put into a continuation, either the TCO action or the continuation named 'eval-combine-return'.
+		Operations of cleanup are ordered since the operations in the guards are ordered.
+		However, it is unspecified that destroying of the temporary objects would be sequenced before continuation traverse or not.
+			It is unspecified to allow synchronous and asynchronous implementations having different behavior.
+			For example, the effects of temporary object destruction can have different order relative to the output in the call of 'A1::TraceBacktrace'.
+				They are even allowed interleaving, although as an implementation detail, the current 'A1::TraceBacktrace' does not work like this.
+			The single cleanup operations still do not interleave with other operations.
+	For consistency and intuition, 'A1::RelayForEval' and 'A1::RelayForCall' now requires TCO action having the term same to the argument of the call in the TCO implementation.
+	A bug of reduction status handling of native implementation of applicatives 'accr', 'foldr1' and 'map1' (i.e. functions 'Forms::AccR', 'Forms::FoldR1' and 'Forms::Map1') has been fixed.
+		In the TCO implementation, it is significant that the last status for the non-tail call should not be misused for the later caller sites in the tail context.
+			Otherwise, it might cause wrong result due to the term regularization performed on wrong term.
+		This bug is not shown previously due to a bug of result handling in the TCO implementation, see below.
+	Non-tail calls in the TCO implementation of functions 'Forms::AccR' and 'Forms::FoldR1' are optimized.
+		The creation of TCO action is deterministic for the sum calls, so no check needs to be performed (by 'A1::SetupTailContext').
+		In 'Forms::Map1', no such optimization is needed because 'cons' operation is already native.
+	A bug in the derivation of the applicative 'list-concat' has been fixed.
+		The bug would cause invalid reference to prvalue transferred to the 'foldr1' call implementing the function.
+			The reference to prvalue would have the reference of the environment created in the body of 'list-concat' implementation.
+			The reference would be invalid after the frame compression in the TCO implementation or the call of 'list-concat' had been returned.
+			This bug was hidden by a TCO implementation detail, see below.
+	Implementation of the TCO action is revised.
+		Some implementations are refactored and now it is a slightly more efficient.
+		The order of the result handling relative to frame compression in the operation compression (TCO action prepration) is fixed.
+			The bug would case some reference retained unexpectedly.
+		Some bugs in the result handling has been fixed.
+			When the combining request is missing, the term regularization is just ignored, which is wrong.
+				This would make impossible to preserve references in the middle of the tail call sequence if it is finally lifted.
+				Previously, the bug of those native implementation is hidden by the missing of the request.
+				As an optimization, the combining request now further removed after the above fix and the fix in 'Forms::AccR', 'Forms::FoldR1' and 'Forms::Map1'.
+			When the lifting request is handled, it is not consumed.
+				This would hide the bug of wrong reference handling when the enclosing call has required the lifting of the call result.
+				For example, the applcative 'list-concat' (defined by '$defl!') implementation was buggy but the bug was not shown, for subtle implementation-specific reasons.
+					Note the impelementation of 'list-concat' currently uses '$defl!' for consistency of the sytle rule.
+						Since the result is already a list in the body, defining by '$def%l!' is also correct despite the style rule.
+					The bug would not be hidden if 'foldr1' used in the implementation is derivative, or '$defl%!' (without lifting) is used instead of '$defl!'.
+						In the case '$defl!' is used, the lift request for 'list-concat' is performed by '$lambda' implied in '$defl!'.
+						The 'foldr1' implementation would then recursively calls itself on necessity, taking the buggy reference in the 'list-concat' derivation (as the argument of 'knil' in derivation of 'foldr1') all the way.
+						Note that all the recursive 'foldr1' calls are not the tail calls.
+						Only the last sum call ('kons' call in the 'foldr1' derivation) in the innermost 'foldr1' call is a tail call.
+						In a native 'foldr1' implementation, the sum call would wrongly lift the result agian, and the offending reference is then lifted.
+						For a derivative 'foldr1', there is no such lift (and 'forward! knil' before the sum call is not a tail call), so the bug is not hidden.
+			The lifting request is now recorded as a count in the TCO action.
+				This fixes the bug that uncollapsed reference values can have different result (to correct ones not in TCO actions) after one operation of result handling.
+				Like adding the combiner wrapping count ('A1::FormContextHandler::Wrapping'), if the count overflow, an exception is thrown.
+	A bug in the native implementation of applicatives with applicative arguments (i.e. callbacks) has been fixed.
+		The bug missed the setup of the next term in certain contexts, effective only when configured '!NPL_Impl_NPLA1_Enable_InlineDirect' and 'NPL_Impl_NPLA1_Enable_Thunk', since build 898.
+		The bug would cause an assertion failure in 'A1::ReduceCombinedBranch' debug configurations due wrong term used.
+		Currently, this would affect functions 'AccL', 'AccR', 'FoldR1', 'Map1' and 'ForwardListFirst' in namespace 'A1::Forms'.
+		The fix is as the change in functions 'A1::RelayForEval' and 'A1::RelayForCall' since build 909.
 
 ////
 

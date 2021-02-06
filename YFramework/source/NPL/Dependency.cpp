@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r4120
+\version r4189
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2021-01-27 01:33 +0800
+	2021-02-05 15:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -260,10 +260,12 @@ PreloadExternal(REPLContext& context, const char* filename)
 ReductionStatus
 ReduceToLoadExternal(TermNode& term, ContextNode& ctx, REPLContext& context)
 {
+	Forms::RetainN(term);
 	term = context.Load(context, ctx,
 		NPL::ResolveRegular<string>(NPL::Deref(std::next(term.begin()))));
 	// NOTE: This is explicitly not same to klisp. This is also friendly to PTC.
-	return A1::ReduceOnce(term, ctx);
+	// XXX: Same to %A1::ReduceOnce, without setup the next term.
+	return ContextState::Access(ctx).ReduceOnce.Handler(term, ctx);
 }
 
 ReductionStatus
@@ -681,6 +683,9 @@ LoadBasicDerived(REPLContext& context)
 	RegisterStrict(renv, "first@", FirstAt);
 	RegisterStrict(renv, "first&", FirstRef);
 	RegisterStrict(renv, "firstv", FirstVal);
+	RegisterStrict(renv, "rest%", Rest);
+	RegisterStrict(renv, "rest&", RestRef);
+	RegisterStrict(renv, "restv", RestVal);
 	// NOTE: Like 'set-car!' in Kernel, with no references.
 	RegisterStrict(renv, "set-first!", SetFirst);
 	// NOTE: Like 'set-car!' in Kernel, with reference not collapsed.
@@ -700,6 +705,30 @@ LoadBasicDerived(REPLContext& context)
 	RegisterStrict(renv, "accr", AccR);
 	RegisterStrict(renv, "foldr1", FoldR1);
 	RegisterStrict(renv, "map1", Map1);
+	RegisterUnary<>(renv, "first-null?", [](TermNode& x){
+		return ResolveTerm(
+			[&](TermNode& nd, ResolvedTermReferencePtr p_ref){
+			if(IsBranchedList(nd))
+				return IsEmpty(ReferenceTerm(AccessFirstSubterm(nd)));
+			ThrowInsufficientTermsError(nd, p_ref);
+		}, x);
+	});
+	RegisterStrict(renv, "make-standard-environment",
+		// TODO: Blocked. Use C++14 lambda initializers to simplify the
+		//	implementation.
+		ystdex::bind1(
+			[](TermNode& term, const EnvironmentReference& ce) YB_FLATTEN{
+		using namespace Forms;
+
+		Retain(term);
+
+		// XXX: Simlar to %Forms::MakeEnvironment.
+		ValueObject parent;
+
+		parent.emplace<EnvironmentReference>(ce);
+		term.Value
+			= NPL::AllocateEnvironment(term.get_allocator(), std::move(parent));
+	}, context.Root.WeakenRecord()));
 #else
 	context.ShareCurrentSource("<root:basic-derived>");
 	context.Perform(
@@ -773,9 +802,8 @@ LoadBasicDerived(REPLContext& context)
 			(eval (cons $vau% (cons formals (cons ignore (move! body)))) d);
 	)NPL"
 #	endif
-	// XXX: The operatives '$defl!', '$defl%!', '$defw%!', and '$defv%!', as
-	//	well as the applicatives 'rest&' and 'rest%' are same to following
-	//	derivations in %LoadCore.
+	// XXX: The operatives '$defl!', '$defl%!', '$defw%!', and '$defv%!' are
+	//	same to following derivations in %LoadCore.
 	// NOTE: Use of 'eqv?' is more efficient than '$if'.
 	R"NPL(
 		$def! $sequence
@@ -824,8 +852,9 @@ LoadBasicDerived(REPLContext& context)
 				($if (bound-lvalue? ($resolve-identifier l)) id expire);
 		$defl%! first& (&l) ($lambda% ((&x .)) x) (check-list-reference l);
 		$defl! firstv ((&x .)) x;
+		$defl! rest% ((#ignore .%x)) move! x;
 		$defl! rest& (&l) ($lambda ((#ignore .&x)) x) (check-list-reference l);
-		$defl! rest% ((#ignore .%x)) x;
+		$defl! restv ((#ignore .x)) move! x;
 		$defl! set-first! (&l x)
 			assign@! (first@ (check-list-reference l)) (move! x);
 		$defl! set-first@! (&l &x)
@@ -877,7 +906,24 @@ LoadBasicDerived(REPLContext& context)
 		$defw%! map1 (&appv &l) d
 			foldr1 ($lambda (&x &xs) cons%
 				(apply appv (list% (forward! x)) d) xs) () (forward! l);
-	)NPL");
+		$defl! first-null? (&l) null? (first l);
+	)NPL"
+#	if NPL_Impl_NPLA1_Use_LockEnvironment
+	R"NPL(
+		$defl! make-standard-environment () () lock-current-environment;
+	)NPL"
+#	else
+	// XXX: Ground environment is passed by 'ce'.
+	R"NPL(
+		$def! make-standard-environment
+			($lambda (&se &e)
+				($lambda #ignore $lambda/e se () make-environment ce)
+				($set! se ce e))
+			(make-environment (() get-current-environment))
+			(() get-current-environment);
+	)NPL"
+#	endif
+	);
 #endif
 }
 
@@ -953,36 +999,16 @@ LoadCore(REPLContext& context)
 			eval (list $set! d f $lambda/e e formals (move! body)) d;
 		$defv! $defl/e%! (&f &e &formals .&body) d
 			eval (list $set! d f $lambda/e% e formals (move! body)) d;
-		$defl! restv ((#ignore .x)) move! x;
-		$defl! rest& (&l) ($lambda ((#ignore .&x)) x) (check-list-reference l);
-		$defl! rest% ((#ignore .%x)) move! x;
 	)NPL");
 	// XXX: Keep %ContextNode::Perform calls here. This does not benefit from
 	//	the removal of the calls (tested with G++ 10.2 in x86_64-pc-linux),
 	//	whether %NPL_Impl_NPLA1_Native_Forms is set. However, the code below for
 	//	'derive-environment' is not the same.
-	context.Perform(
-#if NPL_Impl_NPLA1_Use_LockEnvironment
-	R"NPL(
-		$defl! make-standard-environment () () lock-current-environment;
-	)NPL"
-#else
-	// XXX: Ground environment is passed by 'ce'.
-	R"NPL(
-		$def! make-standard-environment
-			($lambda (&se &e)
-				($lambda #ignore $lambda/e se () make-environment ce)
-				($set! se ce e))
-			(make-environment (() get-current-environment))
-			(() get-current-environment);
-	)NPL"
-#endif
-	R"NPL(
+	context.Perform(R"NPL(
 		$def! (box% box? unbox) () make-encapsulation-type;
 		$defl! box (&x) box% x;
-		$defl! first-null? (&l) null? (first l);
-		$defl! list-rest% (&x) list% (rest% x);
-		$defl! list-concat (&x &y) foldr1 cons% y (forward! x);
+		$defl! list-rest% (&x) list% (rest% (forward! x));
+		$defl! list-concat (&x &y) foldr1 cons% (forward! y) (forward! x);
 		$defl! append (.&ls) foldr1 list-concat () (move! ls);
 		$defl%! assv (&x &alist) $cond ((null? alist) ())
 			((eqv? x (first& (first& alist))) first alist)
@@ -1020,9 +1046,6 @@ LoadCore(REPLContext& context)
 	)NPL"
 #endif
 	R"NPL(
-		$defv! $as-environment (.&body) d
-			eval (list $let () (list $sequence (move! body)
-				(list () lock-current-environment))) d;
 		$defv%! $let (&bindings .&body) d
 			eval% (list* () (list* $lambda (map1 firstv bindings)
 				(list (move! body))) (map1 list-rest% bindings)) d;
@@ -1049,6 +1072,9 @@ LoadCore(REPLContext& context)
 		$defv%! $letrec% (&bindings .&body) d
 			eval% (list $let% () $sequence (list $def! (map1 firstv bindings)
 				(list* () list (map1 rest% bindings))) (move! body)) d;
+		$defv! $as-environment (.&body) d
+			eval (list $let () (list $sequence (move! body)
+				(list () lock-current-environment))) d;
 		$defv! $bindings/p->environment (&parents .&bindings) d $sequence
 			($def! res apply make-environment (map1 ($lambda% (x) eval% x d)
 				parents))
@@ -1239,13 +1265,13 @@ LoadModule_std_strings(REPLContext& context)
 		to_lwr(y);
 		return x.find(y) != string::npos;
 	});
-	RegisterUnary<>(renv, "string->symbol", [](TermNode& term){
+	RegisterUnary<>(renv, "string->symbol", [](TermNode& x){
 		return ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
 			auto& s(NPL::AccessRegular<string>(nd, p_ref));
 
 			return NPL::IsMovable(p_ref) ? StringToSymbol(std::move(s))
 				: StringToSymbol(s);
-		}, term);
+		}, x);
 	});
 	RegisterUnary<Strict, const TokenValue>(renv, "symbol->string",
 		SymbolToString);
@@ -1280,12 +1306,7 @@ LoadModule_std_io(REPLContext& context)
 	});
 #if true
 	RegisterStrict(renv, "load", [&](TermNode& term, ContextNode& ctx){
-		RetainN(term);
-#	if NPL_Impl_NPLA1_Enable_Thunked
-		return RelayToLoadExternal(ctx, term, context);
-#	else
 		return ReduceToLoadExternal(term, ctx, context);
-#	endif
 	});
 #else
 	RegisterUnary<Strict, string>(renv, "load", [&](string& filename){

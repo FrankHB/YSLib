@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018-2020 FrankHB.
+	© 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20290
+\version r20372
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2020-08-11 14:20 +0800
+	2021-01-31 21:26 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -26,8 +26,8 @@
 
 
 #include "NPL/YModules.h"
-#include "NPLA1Internals.h" // for NPL::Deref, Environment, shared_ptr,
-//	std::make_move_iterator, NPL::AsTermNode;
+#include "NPLA1Internals.h" // for NPL::Deref, Environment, ystdex::dismiss,
+//	shared_ptr, std::make_move_iterator, NPL::AsTermNode;
 
 using namespace YSLib;
 
@@ -42,53 +42,6 @@ inline namespace Internals
 
 #if NPL_Impl_NPLA1_Enable_Thunked
 #	if NPL_Impl_NPLA1_Enable_TCO
-ReductionStatus
-TCOAction::operator()(ContextNode& ctx) const
-{
-	YAssert(ystdex::ref_eq<>()(EnvGuard.func.Context.get(), ctx),
-		"Invalid context found.");
-
-	// NOTE: Lifting is optional, but is shall be performed before release
-	//	of guards. See also $2018-02 @ %Documentation::Workflow.
-	const auto res(HandleResultRequests(TermRef, ctx));
-
-	// NOTE: The order here is significant. The environment in the guards
-	//	should be hold until lifting is completed.
-	{
-		const auto egd(std::move(EnvGuard));
-	}
-	while(!xgds.empty())
-		xgds.pop_back();
-	// NOTE: This should be after the guards to ensure there is no term
-	//	references the environment.
-	while(!RecordList.empty())
-	{
-		// NOTE: The order is significant, as %FrameRecord destruction now
-		//	is unspecified, and temporary objects have dependencies on
-		//	environments.
-		auto& front(RecordList.front());
-
-		get<ActiveCombiner>(front) = {};
-		RecordList.pop_front();
-	}
-	return res;
-}
-
-
-TCOAction&
-EnsureTCOAction(ContextNode& ctx, TermNode& term)
-{
-	auto p_act(AccessTCOAction(ctx));
-
-	if(!p_act)
-	{
-		SetupTailTCOAction(ctx, term, {});
-		p_act = AccessTCOAction(ctx);
-	}
-	return NPL::Deref(p_act);
-}
-
-
 void
 RecordCompressor::Compress()
 {
@@ -166,6 +119,82 @@ RecordCompressor::Compress()
 		});
 		return collected;
 	});
+}
+
+
+ReductionStatus
+TCOAction::operator()(ContextNode& ctx) const
+{
+	YAssert(ystdex::ref_eq<>()(EnvGuard.func.Context.get(), ctx),
+		"Invalid context found.");
+
+	// NOTE: Many orders are siginificant, see %Documentation::NPL. The comments
+	//	here only specify the implementation-dependent ones.
+	// NOTE: Lifting is optional, but it shall be performed before release
+	//	of guards. See also $2018-02 @ %Documentation::Workflow.
+	const auto res(HandleResultRequests(ctx));
+
+	ystdex::dismiss(term_guard);
+	{
+		const auto egd(std::move(EnvGuard));
+	}
+	while(!xgds.empty())
+		xgds.pop_back();
+	while(!RecordList.empty())
+	{
+		// NOTE: The order is significant, as the destruction order of
+		//	components of %FrameRecord is unspecified.
+		auto& front(RecordList.front());
+
+		get<ActiveCombiner>(front) = {};
+		RecordList.pop_front();
+	}
+	return res;
+}
+
+void
+TCOAction::CompressFrameList()
+{
+	auto i(RecordList.cbegin());
+
+	ystdex::retry_on_cond(ystdex::id<>(), [&]() -> bool{
+		const auto orig_size(RecordList.size());
+
+		// NOTE: The following code searches the frames to be removed, in the
+		//	order from new to old. After merging, the guard slot %EnvGuard owns
+		//	the resources of the expression (and its enclosed subexpressions)
+		//	being TCO'd.
+		i = RecordList.cbegin();
+		while(i != RecordList.cend())
+		{
+			auto& p_frame_env_ref(NPL::get<ActiveEnvironmentPtr>(
+				*ystdex::cast_mutable(RecordList, i)));
+
+			if(p_frame_env_ref.use_count() != 1
+				|| NPL::Deref(p_frame_env_ref).IsOrphan())
+				// NOTE: The whole frame is to be removed. The function prvalue
+				//	is expected to live only in the subexpression evaluation.
+				//	This has equivalent effects of evlis tail recursion.
+				i = RecordList.erase(i);
+			else
+				++i;
+		}
+		return RecordList.size() != orig_size;
+	});
+
+}
+
+TCOAction&
+EnsureTCOAction(ContextNode& ctx, TermNode& term)
+{
+	auto p_act(AccessTCOAction(ctx));
+
+	if(!p_act)
+	{
+		SetupTailTCOAction(ctx, term, {});
+		p_act = AccessTCOAction(ctx);
+	}
+	return NPL::Deref(p_act);
 }
 #	endif
 #endif

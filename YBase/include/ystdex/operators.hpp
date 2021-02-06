@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018 FrankHB.
+	© 2011-2016, 2018, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r2841
+\version r2856
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2018-07-14 22:58 +0800
+	2021-02-06 15:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ operator[] ；
 #ifndef YB_INC_ystdex_operators_hpp_
 #define YB_INC_ystdex_operators_hpp_ 1
 
-#include "addressof.hpp" // for "type_traits.hpp", false_, true_, _t,
+#include "addressof.hpp" // for "addressof.hpp", false_, true_, _t,
 //	empty_base, ystdex::addressof;
 #include "integer_sequence.hpp" // for index_sequence, vseq::defer_apply_t,
 //	vseq::_a, vseq::fold_t;
@@ -215,22 +215,22 @@ using ops_bin_id_seq = index_sequence<ops_bin_id(_vID, _vSeq)...>;
 	YB_Impl_Operators_bin_spec(ops_bin_id(_id YPP_Comma _off), \
 		YB_Impl_Operators_f, _op, _type, __VA_ARGS__)
 #define YB_Impl_Operators_bin(_id, _op) \
-	YB_Impl_Operators_bin_tmpl(_id, 0, _op, x _op##= y, _type x, \
+	YB_Impl_Operators_bin_tmpl(_id, 0, _op, std::move(x) _op##= y, _type x, \
 		const _type2& y) \
-	YB_Impl_Operators_bin_tmpl(_id, 1, _op, x _op##= std::move(y), _type x, \
-		_type2&& y)
+	YB_Impl_Operators_bin_tmpl(_id, 1, _op, std::move(x) _op##= std::move(y), \
+		_type x, _type2&& y)
 #define YB_Impl_Operators_con(_id, _op) \
 	YB_Impl_Operators_bin(_id, _op) \
-	YB_Impl_Operators_bin_tmpl(_id, 2, _op, y _op##= x, const _type2& x, \
-		_type y) \
-	YB_Impl_Operators_bin_tmpl(_id, 3, _op, y _op##= std::move(x), _type2&& x, \
-		_type y)
+	YB_Impl_Operators_bin_tmpl(_id, 2, _op, std::move(y _op##= x), \
+		const _type2& x, _type y) \
+	YB_Impl_Operators_bin_tmpl(_id, 3, _op, std::move(y _op##= std::move(x)), \
+		_type2&& x, _type y)
 #define YB_Impl_Operators_left(_id, _op) \
 	YB_Impl_Operators_bin(_id, _op) \
 	YB_Impl_Operators_bin_tmpl(_id, 4, _op, _type(x) _op##= y, \
-		const _type2& x, const _type& y) \
+		const _type2& x, _type y) \
 	YB_Impl_Operators_bin_tmpl(_id, 5, _op, \
-		_type(x) _op##= std::move(y), const _type2& x, _type&& y)
+		_type(std::move(x)) _op##= std::move(y), _type2&& x, _type y)
 
 YB_Impl_Operators_con(0, +)
 YB_Impl_Operators_left(1, -)
@@ -301,8 +301,10 @@ YB_Impl_Operators_Compare(partially_ordered, 11 YPP_Comma 12 YPP_Comma 2
 #define YB_Impl_Operators_Left(_id, _name) \
 	YB_Impl_Operators_H2_Alias_de(_name, _t<details::ops_seq<_type, _type2, \
 		_tOpt, details::ops_bin_id_seq<_id, 0 YPP_Comma 1>>>) \
-	YB_Impl_Operators_H2_Alias_de(_name##_left, _t<details::ops_seq<_type, \
-		_type2, _tOpt, details::ops_bin_id_seq<_id, 4 YPP_Comma 5>>>)
+	YB_Impl_Operators_H2_Alias_de(_name##_left, _t< \
+		details::ops_seq<_type, _type2, _tOpt, cond_t<is_same<_type, _type2>, \
+		details::ops_bin_id_seq<_id>, \
+		details::ops_bin_id_seq<_id, 4 YPP_Comma 5>>>>)
 
 YB_Impl_Operators_Commutative(0, addable)
 

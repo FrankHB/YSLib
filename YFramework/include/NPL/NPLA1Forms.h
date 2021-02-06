@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r7761
+\version r7797
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2021-01-25 01:05 +0800
+	2021-02-04 15:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,11 +50,17 @@ namespace A1
 \pre 除非另行指定支持保存当前动作，若存在子项，关联的上下文中的尾动作为空。
 \pre 设置为处理器调用的操作在进入调用前应确保设置尾上下文等内部状态。
 \pre 作为操作数的项的子项不包含引用或非正规表示引入的对操作数内的子项的循环引用。
+\pre 作为 NPLA1 规约函数的函数的参数符合规约函数约定。
+\sa ContextState
+\see %Documentation::NPL.
 \since build 732
 
 提供支持 NPLA1 对象语言文法的操作的接口。
 提供的操作用于实现操作子或应用子底层的操作子。
 除非另行指定，操作子的参数被通过直接转移项的形式转发。
+在 NPLA1 规约函数约定的基础上，除非另行指定：
+	在异步实现中都要求下一项项和参数指定的项相同；
+	对上述约定可隐含使用间接的断言检查。
 */
 namespace Forms
 {
@@ -607,7 +613,8 @@ Unless(TermNode&, ContextNode&);
 \brief 逻辑非。
 \since build 861
 
-当子项求值为 true 时返回 false ，否则返回子项。
+操作数直接由函数参数指定。
+当项求值为 true 时返回 false ，否则返回 true 。
 
 参考调用文法：
 <pre>not? \<test></pre>
@@ -698,7 +705,7 @@ YF_API ReductionStatus
 ForwardListFirst(TermNode&, ContextNode&);
 
 /*!
-\brief 取参数指定的列表中的第一元素的引用值。
+\brief 取参数指定的列表中的第一元素的值。
 \since build 859
 */
 //@{
@@ -732,6 +739,7 @@ FirstAt(TermNode&);
 */
 YF_API ReductionStatus
 FirstRef(TermNode&);
+//@}
 
 /*!
 结果是列表的第一个元素经过返回值转换的值。不保留结果中的引用值。
@@ -742,6 +750,38 @@ FirstRef(TermNode&);
 YF_API ReductionStatus
 FirstVal(TermNode&);
 //@}
+
+/*!
+\brief 取列表第一个元素以外的元素值构成的列表。
+\since build 910
+*/
+//@{
+/*!
+结果是列表第一个元素以外的元素值经过转发的值构成的列表。保留结果中的引用值。
+
+参考调用文法：
+<pre>rest% \<list></pre>
+*/
+YF_API ReductionStatus
+Rest(TermNode&);
+
+/*!
+结果是列表第一个元素以外的元素值的引用值构成的列表。保留结果中的引用值。
+
+参考调用文法：
+<pre>rest& \<list></pre>
+*/
+YF_API ReductionStatus
+RestRef(TermNode&);
+
+/*!
+结果是列表的第一个元素以外的元素经过返回值转换的值构成的列表。不保留结果中的引用值。
+
+参考调用文法：
+<pre>restv \<list></pre>
+*/
+YF_API ReductionStatus
+RestVal(TermNode&);
 //@}
 //@}
 

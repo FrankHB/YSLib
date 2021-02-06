@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20236
+\version r20579
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2021-01-30 13:45 +0800
+	2021-02-04 00:46 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -31,6 +31,7 @@
 #include "YModules.h"
 #include YFM_NPL_NPLA1 // for ContextNode, TermNode, ContextState,
 //	ReductionStatus, Reducer, NPL::tuple, YSLib::get, list, EnvironmentGuard,
+//	std::declval, std::ref, make_observer, std::bind, ystdex::unique_guard,
 //	RegularizeTerm, EnvironmentReference, ystdex::cast_mutable, TermReference,
 //	ystdex::get_less, YSLib::map, set, ystdex::retry_on_cond, ystdex::id,
 //	A1::NameTypedReducerHandler, A1::NameTypedContextHandler;
@@ -109,202 +110,6 @@ SetupTailAction(ContextNode& ctx, _func&& act)
 }
 
 #	if NPL_Impl_NPLA1_Enable_TCO
-/*!
-\brief 帧记录索引。
-\note 顺序保持和 FrameRecord 的元素对应一致。
-\since build 842
-*/
-enum RecordFrameIndex : size_t
-{
-	ActiveCombiner,
-	ActiveEnvironmentPtr
-};
-
-/*!
-\brief 帧记录。
-\note 成员顺序和 RecordFrameIndex 中的项对应。
-\since build 842
-\sa RecordFrameIndex
-*/
-using FrameRecord = NPL::tuple<ContextHandler, shared_ptr<Environment>>;
-
-/*!
-\brief 帧记录列表。
-\sa FrameRecord
-\since build 827
-*/
-using FrameRecordList = yimpl(list)<FrameRecord>;
-
-//! \since build 818
-class TCOAction final
-{
-public:
-	//! \since build 893
-	lref<TermNode> TermRef;
-
-private:
-	//! \since build 854
-	//@{
-	bool req_combined = {};
-	bool req_lift_result = {};
-	//@}
-	//! \since build 827
-	mutable list<ContextHandler> xgds;
-
-public:
-	// See $2018-06 @ %Documentation::Workflow for details.
-	//! \since build 825
-	mutable observer_ptr<const ContextHandler> LastFunction{};
-	//! \since build 820
-	mutable EnvironmentGuard EnvGuard;
-	//! \since build 825
-	mutable FrameRecordList RecordList;
-	//! \since build 896
-	mutable ValueObject OperatorName;
-
-	//! \since build 819
-	TCOAction(ContextNode& ctx, TermNode& term, bool lift)
-		: TermRef(term), req_lift_result(lift), xgds(ctx.get_allocator()),
-		EnvGuard(ctx), RecordList(ctx.get_allocator()),
-		OperatorName(ctx.get_allocator())
-	{
-		YAssert(term.Value.type() == ystdex::type_id<TokenValue>()
-			|| !term.Value, "Invalid value for combining term found.");
-		OperatorName = std::move(term.Value);
-		// XXX: After the move, %term.Value is unspecified.
-	}
-	// XXX: Not used, but provided for well-formness.
-	//! \since build 819
-	TCOAction(const TCOAction& a)
-		// XXX: Some members are moved. This is only safe when newly constructed
-		//	object always live longer than the older one.
-		: TermRef(a.TermRef), req_combined(a.req_combined),
-		req_lift_result(a.req_lift_result), xgds(std::move(a.xgds)),
-		EnvGuard(std::move(a.EnvGuard))
-	{}
-	DefDeMoveCtor(TCOAction)
-
-	DefDeMoveAssignment(TCOAction)
-
-	//! \since build 877
-	ReductionStatus
-	operator()(ContextNode&) const;
-
-	//! \since build 857
-	void
-	AddRecord(shared_ptr<Environment>&& p_env)
-	{
-		// NOTE: The temporary function and the environment are saved in the
-		//	frame record list as a new entry.
-		RecordList.emplace_front(MoveFunction(), std::move(p_env));
-	}
-
-	//! \since build 825
-	YB_ATTR_nodiscard lref<const ContextHandler>
-	AttachFunction(ContextHandler&& h)
-	{
-		// NOTE: This scans guards to hold function prvalues, which are safe to
-		//	be removed as per the equivalence (hopefully, of beta reduction)
-		//	defined by %operator== of the handler. No new instance is to be
-		//	added.
-		ystdex::erase_all(xgds, h);
-		xgds.emplace_back();
-		// NOTE: Strong exception guarantee is kept here.
-		swap(xgds.back(), h);
-		return ystdex::as_const(xgds.back());
-	}
-
-	//! \since build 893
-	ReductionStatus
-	HandleResultRequests(TermNode& term, ContextNode& ctx) const
-	{
-		// NOTE: This implies the call of %RegularizeTerm before lifting. Since
-		//	the call of %RegularizeTerm is idempotent without term modification
-		//	before the next reduction of term, there is no need to call
-		//	%RegularizeTerm if the lift is not needed.
-		if(req_lift_result)
-		{
-			// NOTE: The call of %RegularizeTerm is for the previous reduction.
-			//	The order of the calls is significant.
-			RegularizeTerm(term, ctx.LastStatus);
-			return ReduceForLiftedResult(term);
-		}
-		// NOTE: This is only needed on a real call from the evaluation is
-		//	reentered. Currently, other evaluations (e.g. for continuation are
-		//	all administrative) and expected not reentered with unbound number
-		//	of times when no lifting is required.
-		// TODO: Prepare for invocation of first-class continuations?
-		if(req_combined)
-			RegularizeTerm(term, ctx.LastStatus);
-		return ctx.LastStatus;
-	}
-
-	//! \since build 825
-	YB_ATTR_nodiscard ContextHandler
-	MoveFunction()
-	{
-		ContextHandler res(std::allocator_arg, xgds.get_allocator());
-
-		if(LastFunction)
-		{
-			const auto i(std::find_if(xgds.rbegin(), xgds.rend(),
-				[this](const ContextHandler& h) ynothrow{
-				return NPL::make_observer(&h) == LastFunction;
-			}));
-
-			if(i != xgds.rend())
-			{
-				res = ContextHandler(std::allocator_arg, xgds.get_allocator(),
-					std::move(*i));
-				xgds.erase(std::next(i).base());
-			}
-			LastFunction = {};
-		}
-		return res;
-	}
-
-	//! \since build 854
-	//@{
-	void
-	RequestCombined()
-	{
-		req_combined = true;
-	}
-
-	void
-	RequestLiftResult()
-	{
-		req_lift_result = true;
-	}
-	//@}
-};
-
-//! \since build 886
-YB_ATTR_nodiscard YB_PURE inline
-	PDefH(TCOAction*, AccessTCOAction, ContextNode& ctx) ynothrow
-	ImplRet(ctx.AccessCurrentAs<TCOAction>())
-// NOTE: There is no need to check term like 'if(&p->TermRef.get() == &term)'.
-//	It should be same to saved enclosing term unless a nested TCO action is
-//	needed explicitly (by following %SetupTailAction rather than
-//	%EnsureTCOAction).
-
-//! \since build 840
-YB_ATTR_nodiscard YB_FLATTEN TCOAction&
-EnsureTCOAction(ContextNode& ctx, TermNode& term);
-
-//! \since build 840
-YB_ATTR_nodiscard inline PDefH(TCOAction&, RefTCOAction, ContextNode& ctx)
-	// NOTE: The TCO action should have been created by a previous call of
-	//	%EnsureTCOAction, typically in the call of %CombinerReturnThunk in
-	//	calling a combiner from %ReduceCombinedBranch.
-	ImplRet(NPL::Deref(AccessTCOAction(ctx)))
-
-//! \since build 886
-inline
-	PDefH(void, SetupTailTCOAction, ContextNode& ctx, TermNode& term, bool lift)
-	ImplExpr(SetupTailAction(ctx, TCOAction(ctx, term, lift)))
-
-
 //! \since build 827
 struct RecordCompressor final
 {
@@ -410,69 +215,157 @@ private:
 	}
 };
 
-// NOTE: See $2018-06 @ %Documentation::Workflow and $2019-06 @
-//	%Documentation::Workflow for details.
-//! \since build 861
-inline void
-CompressTCOFrames(ContextNode& ctx, TCOAction& act)
-{
-	auto& record_list(act.RecordList);
-	auto i(record_list.cbegin());
 
-	ystdex::retry_on_cond(ystdex::id<>(), [&]() -> bool{
-		const auto orig_size(record_list.size());
-
-		// NOTE: The following code searches the frames to be removed, in the
-		//	order from new to old. After merging, the guard slot %EnvGuard owns
-		//	the resources of the expression (and its enclosed subexpressions)
-		//	being TCO'd.
-		i = record_list.cbegin();
-		while(i != record_list.cend())
-		{
-			auto& p_frame_env_ref(NPL::get<ActiveEnvironmentPtr>(
-				*ystdex::cast_mutable(record_list, i)));
-
-			if(p_frame_env_ref.use_count() != 1
-				|| NPL::Deref(p_frame_env_ref).IsOrphan())
-				// NOTE: The whole frame is to be removed. The function prvalue
-				//	is expected to live only in the subexpression evaluation.
-				//	This has equivalent effects of evlis tail recursion.
-				i = record_list.erase(i);
-			else
-				++i;
-		}
-		return record_list.size() != orig_size;
-	});
-	RecordCompressor(ctx.GetRecordPtr()).Compress();
-}
-
-//! \since build 878
-//@{
 /*!
-\brief 准备 TCO 求值。
-\param ctx 规约上下文。
-\param term 被规约的项。
-\param act TCO 动作。
+\brief 帧记录索引。
+\note 顺序保持和 FrameRecord 的元素对应一致。
+\since build 842
 */
-inline TCOAction&
-PrepareTCOEvaluation(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd)
+enum RecordFrameIndex : size_t
 {
-	auto& act(RefTCOAction(ctx));
+	ActiveCombiner,
+	ActiveEnvironmentPtr
+};
 
-	[&]{
+/*!
+\brief 帧记录。
+\note 成员顺序和 RecordFrameIndex 中的项对应。
+\since build 842
+\sa RecordFrameIndex
+*/
+using FrameRecord = NPL::tuple<ContextHandler, shared_ptr<Environment>>;
+
+/*!
+\brief 帧记录列表。
+\sa FrameRecord
+\since build 827
+*/
+using FrameRecordList = yimpl(list)<FrameRecord>;
+
+//! \since build 818
+class TCOAction final
+{
+private:
+	// NOTE: Specialized guard type (instead of using %ystdex::unique_guard) is
+	//	more efficient here.
+	// XXX: More specialized guard type without %ystdex::unique_guard works, but
+	//	it is acually less efficient, at least on x86_64-pc-linux G++ 10.2.
+	//! \since build 910
+	struct GuardFunction final
+	{
+		//! \brief 当前项引用。
+		lref<TermNode> TermRef;
+
+		PDefHOp(void, (), ) const ynothrow
+			ImplExpr(TermRef.get().Clear())
+	};
+
+	//! \since build 909
+	mutable decltype(ystdex::unique_guard(std::declval<GuardFunction>()))
+		term_guard;
+	//! \since build 910
+	mutable size_t req_lift_result = 0;
+	//! \since build 827
+	mutable list<ContextHandler> xgds;
+
+public:
+	// See $2018-06 and $2021-02 @ %Documentation::Workflow for details.
+	//! \since build 825
+	mutable observer_ptr<const ContextHandler> LastFunction{};
+	//! \since build 820
+	mutable EnvironmentGuard EnvGuard;
+	//! \since build 825
+	mutable FrameRecordList RecordList;
+	//! \since build 896
+	mutable ValueObject OperatorName;
+
+public:
+	//! \since build 819
+	TCOAction(ContextNode& ctx, TermNode& term, bool lift)
+		: term_guard(ystdex::unique_guard(GuardFunction{term})),
+		req_lift_result(lift ? 1 : 0), xgds(ctx.get_allocator()), EnvGuard(ctx),
+		RecordList(ctx.get_allocator()), OperatorName(ctx.get_allocator())
+	{
+		YAssert(term.Value.type() == ystdex::type_id<TokenValue>()
+			|| !term.Value, "Invalid value for combining term found.");
+		OperatorName = std::move(term.Value);
+		// XXX: After the move, %term.Value is unspecified.
+	}
+	// XXX: Not used, but provided for well-formness.
+	//! \since build 819
+	TCOAction(const TCOAction& a)
+		// XXX: Some members are moved. This is only safe when newly constructed
+		//	object always live longer than the older one.
+		: term_guard(std::move(a.term_guard)),
+		req_lift_result(a.req_lift_result), xgds(std::move(a.xgds)),
+		EnvGuard(std::move(a.EnvGuard))
+	{}
+	DefDeMoveCtor(TCOAction)
+	// XXX: Out of line destructor here is inefficient.
+
+	DefDeMoveAssignment(TCOAction)
+
+	//! \since build 877
+	ReductionStatus
+	operator()(ContextNode&) const;
+
+	//! \since build 909
+	DefGetter(const ynothrowv, TermNode&, TermRef, term_guard.func.func.TermRef)
+
+	//! \since build 857
+	void
+	AddRecord(shared_ptr<Environment>&& p_env)
+	{
+		// NOTE: The temporary function and the environment are saved in the
+		//	frame record list as a new entry.
+		RecordList.emplace_front(MoveFunction(), std::move(p_env));
+	}
+
+	//! \since build 825
+	YB_ATTR_nodiscard lref<const ContextHandler>
+	AttachFunction(ContextHandler&& h)
+	{
+		// NOTE: This scans guards to hold function prvalues, which are safe to
+		//	be removed as per the equivalence (hopefully, of beta reduction)
+		//	defined by %operator== of the handler. No new instance is to be
+		//	added.
+		ystdex::erase_all(xgds, h);
+		xgds.emplace_back();
+		// NOTE: Strong exception guarantee is kept here.
+		swap(xgds.back(), h);
+		return ystdex::as_const(xgds.back());
+	}
+
+	//! \since build 910
+	//@{
+	void
+	CompressFrameList();
+
+	// NOTE: See $2018-06 @ %Documentation::Workflow and $2019-06 @
+	//	%Documentation::Workflow for details.
+	void
+	CompressForContext(ContextNode& ctx)
+	{
+		CompressFrameList();
+		RecordCompressor(ctx.GetRecordPtr()).Compress();
+	}
+
+	void
+	CompressForGuard(ContextNode& ctx, EnvironmentGuard&& gd)
+	{
 		// NOTE: If there is no environment set in %act.EnvGuard yet, there is
 		//	ideally no need to save the components to the frame record list
 		//	for recursive calls. In such case, each operation making
 		//	potentionally overwriting of %act.LastFunction will always get into
 		//	this call and that time %act.EnvGuard should be set.
-		if(act.EnvGuard.func.SavedPtr)
+		if(EnvGuard.func.SavedPtr)
 		{
 			// NOTE: Operand saving is performed whether the frame compression
 			//	is needed, once there is a saved environment set.
 			if(auto& p_saved = gd.func.SavedPtr)
 			{
-				CompressTCOFrames(ctx, act);
-				act.AddRecord(std::move(p_saved));
+				CompressForContext(ctx);
+				AddRecord(std::move(p_saved));
 				return;
 			}
 			// XXX: Normally this should not occur, but this is allowed by the
@@ -480,35 +373,152 @@ PrepareTCOEvaluation(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd)
 			//	without an environment).
 		}
 		else
-			act.EnvGuard = std::move(gd);
+			EnvGuard = std::move(gd);
 		// XXX: Not with a guarded tail environment, setting the environment to
 		//	empty.
-		act.AddRecord({});
-	}();
-	// NOTE: The lift is handled according to the previous status of
-	//	%act.LiftCallResult, rather than a seperated boolean value (e.g.
-	//	the parameter %no_lift in %RelayForEval).
-	act.HandleResultRequests(term, ctx);
-	return act;
-}
+		AddRecord({});
+	}
+
+	/*!
+	\brief 处理操作压缩的结果请求。
+	\pre 规约上下文的最后一次规约状态表示的是当前项上的状态。
+	\sa ContextNode::LastStatus
+	*/
+	ReductionStatus
+	HandleResultRequests(ContextNode& ctx) const
+	{
+		// NOTE: If this is called properly, %ctx.LastStatus should be
+		//	maintained to refer to the reduction status of the right term by
+		//	%PushedAction::operator() in NPLA1.cpp.
+		// NOTE: This implies the call of %RegularizeTerm before lifting. Since
+		//	the call of %RegularizeTerm is idempotent without term modification
+		//	before the next reduction of term, there is no need to call
+		//	%RegularizeTerm if the lift is not needed.
+		if(req_lift_result != 0)
+		{
+			// NOTE: This is for the previous reduction. The order of the calls
+			//	is significant.
+			RegularizeTerm(GetTermRef(), ctx.LastStatus);
+			for(; req_lift_result != 0; --req_lift_result)
+				LiftToReturn(GetTermRef());
+			return ReductionStatus::Retained;
+		}
+		// NOTE: This is only needed on a real call from the evaluation is
+		//	reentered. Currently, other evaluations (e.g. for continuation are
+		//	all administrative) and expected not reentered with unbound number
+		//	of times when no lifting is required. However, since the TCO action
+		//	should have been initialized in a call whose resouces to be reused,
+		//	this should be normally unconditionally true.
+		// TODO: Prepare for invocation of first-class continuations?
+		RegularizeTerm(GetTermRef(), ctx.LastStatus);
+		return ctx.LastStatus;
+	}
+	//@}
+
+	//! \since build 825
+	YB_ATTR_nodiscard ContextHandler
+	MoveFunction()
+	{
+		ContextHandler res(std::allocator_arg, xgds.get_allocator());
+
+		if(LastFunction)
+		{
+			const auto i(std::find_if(xgds.rbegin(), xgds.rend(),
+				[this](const ContextHandler& h) ynothrow{
+				return NPL::make_observer(&h) == LastFunction;
+			}));
+
+			if(i != xgds.rend())
+			{
+				res = ContextHandler(std::allocator_arg, xgds.get_allocator(),
+					std::move(*i));
+				xgds.erase(std::next(i).base());
+			}
+			LastFunction = {};
+		}
+		return res;
+	}
+
+	/*
+	\brief 按参数设置 TCO 动作提升请求。
+	\param act TCO 动作。
+	\param no_lift 指定是否避免保证规约后提升结果。
+	\since build 910
+	*/
+	void
+	SetupTCOLift(bool no_lift) const
+	{
+		// NOTE: The flag indicates a request for handling during next time (by
+		//	the %HandleResultRequests call above before the last one) before
+		//	%TCOAction is finished. The last request would be handled by
+		//	%operator(), which also calls %HandleResultRequests.
+		if(!no_lift)
+		{
+			++req_lift_result;
+			if(YB_UNLIKELY(req_lift_result == 0))
+				throw NPLException(
+					"TCO action lift request count overflow detected.");
+		}
+	}
+};
+
+//! \since build 886
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(TCOAction*, AccessTCOAction, ContextNode& ctx) ynothrow
+	ImplRet(ctx.AccessCurrentAs<TCOAction>())
+// NOTE: There is no need to check term like
+//	'if(&p->GetTermPtr().get() == &term)'. It should be same to saved enclosing
+//	term unless a nested TCO action is needed explicitly (by following
+//	%SetupTailAction rather than %EnsureTCOAction).
+
+//! \since build 840
+YB_ATTR_nodiscard YB_FLATTEN TCOAction&
+EnsureTCOAction(ContextNode& ctx, TermNode& term);
 
 /*!
-\brief 按参数设置 TCO 动作提升请求。
-\param act TCO 动作。
-\param no_lift 指定是否避免保证规约后提升结果。
+\pre 当前动作是 TCO 动作。
+\since build 840
 */
-inline void
-SetupTCOLift(TCOAction& act, bool no_lift)
+YB_ATTR_nodiscard inline PDefH(TCOAction&, RefTCOAction, ContextNode& ctx)
+	// NOTE: The TCO action should have been created by a previous call of
+	//	%EnsureTCOAction, typically in the call of %CombinerReturnThunk in
+	//	calling a combiner from %ReduceCombinedBranch.
+	ImplRet(NPL::Deref(AccessTCOAction(ctx)))
+
+//! \since build 886
+inline
+	PDefH(void, SetupTailTCOAction, ContextNode& ctx, TermNode& term, bool lift)
+	ImplExpr(SetupTailAction(ctx, TCOAction(ctx, term, lift)))
+
+
+/*!
+\brief 准备 TCO 求值。
+\param ctx 规约上下文。
+\param term 被求值项。
+\param act TCO 动作。
+\pre 当前动作是 TCO 动作，且其中的当前项和被规约的项相同。
+\since build 878
+
+访问现有的 TCO 动作进行操作压缩，以复用其中已被分配的资源。
+*/
+inline TCOAction&
+PrepareTCOEvaluation(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd)
 {
-	// NOTE: The %act.LiftCallResult indicates a request for handling during
-	//	next time (by %TCOAction::HandleResultRequests call above before the
-	//	last one) before %TCOAction is finished. The last request would be
-	//	handled by %TCOAction::operator(), which also calls
-	//	%TCOAction::HandleResultRequests.
-	if(!no_lift)
-		act.RequestLiftResult();
+	auto& act(RefTCOAction(ctx));
+
+	YAssert(&act.GetTermRef() == &term,
+		"Invalid term for target TCO action found.");
+	yunused(term);
+	// NOTE: The lift is handled according to the previous status of
+	//	the lifting request in %act, rather than a seperated boolean value (e.g.
+	//	the parameter %no_lift in %RelayForEval).
+	// NOTE: As %TCOAction::operator(), the order is significant. Otherwise,
+	//	wrong environments would be destroyed and there could be dangling
+	//	references.
+	act.HandleResultRequests(ctx);
+	act.CompressForGuard(ctx, std::move(gd));
+	return act;
 }
-//@}
 #	endif
 
 //! \since build 879
@@ -632,10 +642,10 @@ RelayCurrentOrDirect(ContextNode& ctx, _fCurrent&& cur, TermNode& term)
 #	endif
 }
 
-//! \since build 898
+//! \since build 910
 template<typename _fCurrent, typename _fNext>
 YB_FLATTEN inline ReductionStatus
-RelayCurrentNext(TermNode& term, ContextNode& ctx, _fCurrent&& cur,
+RelayCurrentNext(ContextNode& ctx, TermNode& term, _fCurrent&& cur,
 	_fNext&& next)
 {
 #if NPL_Impl_NPLA1_Enable_Thunked
@@ -643,6 +653,7 @@ RelayCurrentNext(TermNode& term, ContextNode& ctx, _fCurrent&& cur,
 	RelaySwitched(ctx, yforward(next));
 	return A1::RelayDirect(ctx, yforward(cur), term);
 #	else
+	yunused(term);
 	return A1::RelayNextOrDirect(ctx, yforward(cur), yforward(next));
 #	endif
 #else
@@ -656,18 +667,21 @@ template<typename _fCurrent, typename _fNext>
 // XXX: This is a workaround for G++'s LTO bug.
 #if YB_IMPL_GNUCPP >= 100000 || !NPL_Impl_NPLA1_Enable_Thunked \
 	|| NPL_Impl_NPLA1_Enable_TCO
-YB_FLATTEN 
+YB_FLATTEN
 #endif
 inline ReductionStatus
 ReduceCurrentNext(TermNode& term, ContextNode& ctx, _fCurrent&& cur,
 	_fNext&& next)
 {
 	SetupNextTerm(ctx, term);
-	return RelayCurrentNext(term, ctx, yforward(cur), yforward(next));
+	return A1::RelayCurrentNext(ctx, term, yforward(cur), yforward(next));
 }
 //@}
 
-//! \since build 878
+/*!
+\pre TCO 实现：当前动作是 TCO 动作，且其中的当前项和被规约的项相同。
+\since build 878
+*/
 template<typename _fNext>
 ReductionStatus
 RelayForEvalOrDirect(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
@@ -680,7 +694,7 @@ RelayForEvalOrDirect(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 	//	in direct calls instead of the setup next term, while they shall be
 	//	equivalent.
 #if NPL_Impl_NPLA1_Enable_TCO
-	SetupTCOLift(PrepareTCOEvaluation(ctx, term, std::move(gd)), no_lift);
+	PrepareTCOEvaluation(ctx, term, std::move(gd)).SetupTCOLift(no_lift);
 	return A1::RelayCurrentOrDirect(ctx, yforward(next), term);
 #elif NPL_Impl_NPLA1_Enable_Thunked
 	// TODO: Blocked. Use C++14 lambda initializers to simplify the
@@ -688,7 +702,7 @@ RelayForEvalOrDirect(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 	auto act(MakeMoveGuard(gd));
 
 	if(no_lift)
-		return A1::RelayCurrentNext(term, ctx, yforward(next), std::move(act));
+		return A1::RelayCurrentNext(ctx, term, yforward(next), std::move(act));
 
 	// XXX: Term reused. Call of %SetupNextTerm is not needed as the next
 	//	term is guaranteed not changed when %next is a continuation.
@@ -698,7 +712,7 @@ RelayForEvalOrDirect(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 	}, "eval-lift-result"), ctx);
 
 	RelaySwitched(ctx, std::move(act));
-	return A1::RelayCurrentNext(term, ctx, yforward(next), std::move(cont));
+	return A1::RelayCurrentNext(ctx, term, yforward(next), std::move(cont));
 #else
 	yunused(gd);
 

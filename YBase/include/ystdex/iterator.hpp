@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2020 FrankHB.
+	© 2011-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r6135
+\version r6148
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2020-05-12 15:59 +0800
+	2021-02-06 15:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -293,22 +293,22 @@ public:
 	transformed_iterator&
 	operator=(transformed_iterator&&) = default;
 
-	//! \since build 600
-	friend transformed_iterator&
-	operator+=(transformed_iterator& i, difference_type n)
-		ynoexcept(noexcept(decltype(i)(i)) && noexcept(i.get() += n))
+	//! \since build 910
+	transformed_iterator&
+	operator+=(difference_type n)
+		ynoexcept(noexcept(std::declval<transformed_iterator&>().get() += n))
 	{
-		i.get() += n;
-		return i;
+		get() += n;
+		return *this;
 	}
 
-	//! \since build 600
-	friend transformed_iterator&
-	operator-=(transformed_iterator& i, difference_type n)
-		ynoexcept(noexcept(decltype(i)(i)) && noexcept(i.get() -= n))
+	//! \since build 910
+	transformed_iterator&
+	operator-=(difference_type n)
+		ynoexcept(noexcept(std::declval<transformed_iterator&>().get() -= n))
 	{
-		i.get() -= n;
-		return i;
+		get() -= n;
+		return *this;
 	}
 
 	//! \since build 585
