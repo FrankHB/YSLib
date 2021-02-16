@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20372
+\version r20401
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2021-01-31 21:26 +0800
+	2021-02-12 14:18 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -128,11 +128,35 @@ TCOAction::operator()(ContextNode& ctx) const
 	YAssert(ystdex::ref_eq<>()(EnvGuard.func.Context.get(), ctx),
 		"Invalid context found.");
 
-	// NOTE: Many orders are siginificant, see %Documentation::NPL. The comments
-	//	here only specify the implementation-dependent ones.
-	// NOTE: Lifting is optional, but it shall be performed before release
-	//	of guards. See also $2018-02 @ %Documentation::Workflow.
-	const auto res(HandleResultRequests(ctx));
+	// NOTE: Many orders are siginificant, see %Documentation::NPL. For example,
+	//	lifting (if any) shall be performed before release of guards (see also
+	//	$2018-02 @ %Documentation::Workflow). The comments below only specify
+	//	the implementation-dependent ones.
+	// NOTE: If this is called properly, %ctx.LastStatus should be maintained to
+	//	refer to the reduction status of the right term by
+	//	%PushedAction::operator() in %NPLA1.cpp.
+	const auto res([&]() -> ReductionStatus{
+		// NOTE: This implies the call of %RegularizeTerm before lifting.
+		// XXX: Since the call of %RegularizeTerm is idempotent without term
+		//	modification before the next reduction of term if it does not
+		//	represent an uncollapsed reference value, there is no need to call
+		//	%RegularizeTerm if the lift is not needed. However, this is not
+		//	easily provable, so leave it as-is.
+		if(req_lift_result != 0)
+		{
+			RegularizeTerm(GetTermRef(), ctx.LastStatus);
+			for(; req_lift_result != 0; --req_lift_result)
+				LiftToReturn(GetTermRef());
+			return ReductionStatus::Retained;
+		}
+		// XXX: This is only needed on a real call from the evaluation is
+		//	reentered. However, whether here is the reentrant call is not easily
+		//	provable.
+		// TODO: Anything necessary to prepare for invocation of first-class
+		//	continuations?
+		RegularizeTerm(GetTermRef(), ctx.LastStatus);
+		return ctx.LastStatus;
+	}());
 
 	ystdex::dismiss(term_guard);
 	{

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015, 2019-2020 FrankHB.
+	© 2009-2015, 2019-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YDevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r2097
+\version r2100
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-12-28 16:39:39 +0800
 \par 修改时间:
-	2020-01-25 16:02 +0800
+	2021-02-06 22:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YSL_INC_Core_YDevice_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YObject // for function, ystdex::unsupported;
+#include YFM_YSLib_Core_YFunc // for function;
+#include <ystdex/exception.h> // for ystdex::unsupported;
 #include YFM_YSLib_Core_YGraphics
 
 namespace YSLib

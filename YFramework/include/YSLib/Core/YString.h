@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018-2019 FrankHB.
+	© 2010-2016, 2018-2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YString.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r2367
+\version r2370
 \author FrankHB <frankhb1989@gmail.com>
 \since build 594
 \par 创建时间:
 	2010-03-05 22:06:05 +0800
 \par 修改时间:
-	2019-07-07 17:09 +0800
+	2021-02-06 22:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YSL_INC_Core_YString_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YObject // for allocator_arg;
+#include YFM_YSLib_Core_YShellDefinition // for module
+//	YSLib::Core::YShellDefinition, allocator_arg;
 #include YFM_YSLib_Adaptor_YTextBase // for u16string;
 
 namespace YSLib

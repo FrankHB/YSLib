@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r20138
+\version r20405
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2021-02-04 18:34 +0800
+	2021-02-16 00:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,24 +27,23 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLA1Forms // for YSLib, std::next, ReduceOnceLifted,
-//	NPL::IsMovable, function, NPL::TryAccessReferencedTerm, ystdex::value_or,
-//	ThrowInsufficientTermsError, NPL::Deref, A1::NameTypedReducerHandler,
-//	ReduceReturnUnspecified, RemoveHead, IsBranch, AccessFirstSubterm,
-//	ReduceSubsequent, ReduceCombinedBranch, std::placeholders, ystdex::as_const,
-//	IsLeaf, ystdex::ref_eq, RelaySwitched, ContextHandler, shared_ptr, string,
-//	unordered_map, Environment, lref, list, IsBranchedList, TokenValue,
-//	NPL::TryAccessLeaf, ValueObject, weak_ptr, any_ops::use_holder,
-//	in_place_type, ystdex::type_id, YSLib::allocate_shared, InvalidReference,
-//	MoveFirstSubterm, ShareMoveTerm, ThrowInvalidSyntaxError,
-//	ResolvedTermReferencePtr, LiftOtherOrCopy, ResolveTerm,
-//	ystdex::equality_comparable, std::allocator_arg, NPL::AsTermNode,
-//	ystdex::exchange, NPL::SwitchToFreshEnvironment, TermTags,
+//	ResolvedTermReferencePtr, NPL::IsMovable, NPL::TryAccessReferencedTerm,
+//	ystdex::value_or, ThrowInsufficientTermsError, NPL::Deref,
+//	A1::NameTypedReducerHandler, ReduceReturnUnspecified, RemoveHead, IsBranch,
+//	AccessFirstSubterm, ReduceSubsequent, ReduceCombinedBranch,
+//	std::placeholders, std::ref, std::bind, ystdex::as_const, IsLeaf,
+//	ValueObject, ystdex::ref_eq, RelaySwitched, ContextHandler, shared_ptr,
+//	string, unordered_map, Environment, lref, list, IsBranchedList, TokenValue,
+//	NPL::TryAccessLeaf, weak_ptr, any_ops::use_holder, in_place_type,
+//	ystdex::type_id, YSLib::allocate_shared, InvalidReference, MoveFirstSubterm,
+//	ShareMoveTerm, ThrowInvalidSyntaxError, LiftOtherOrCopy, ResolveTerm,
+//	ystdex::make_transform, ystdex::equality_comparable, std::allocator_arg,
+//	NPL::AsTermNode, ystdex::exchange, NPL::SwitchToFreshEnvironment, TermTags,
 //	ystdex::expand_proxy, NPL::AccessRegular, TermReference, GetLValueTagsOf,
 //	RegularizeTerm, ThrowValueCategoryError, ThrowListTypeErrorForNonlist,
 //	ystdex::update_thunk, NPL::TryAccessReferencedLeaf, ystdex::invoke_value_or,
-//	ystdex::call_value_or, LiftMovedOther, LiftCollapsed,
-//	ystdex::make_transform, NPL::AllocateEnvironment, NPL::TryAccessTerm,
-//	std::mem_fn;
+//	ystdex::call_value_or, LiftMovedOther, ystdex::bind1, LiftCollapsed,
+//	NPL::AllocateEnvironment, NPL::TryAccessTerm, std::mem_fn;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_SContext // for Session;
 
@@ -380,6 +379,15 @@ private:
 };
 
 
+//! \since build 911
+YB_ATTR_nodiscard inline PDefH(const shared_ptr<Environment>&,
+	FetchValidEnvironment, const shared_ptr<Environment>& p_env)
+	ImplRet(Environment::EnsureValid(p_env), p_env)
+//! \since build 911
+YB_ATTR_nodiscard inline PDefH(shared_ptr<Environment>&&,
+	FetchValidEnvironment, shared_ptr<Environment>&& p_env)
+	ImplRet(Environment::EnsureValid(p_env), std::move(p_env))
+
 //! \since build 894
 YB_ATTR_nodiscard inline PDefH(const shared_ptr<Environment>&,
 	FetchDefineOrSetEnvironment, ContextNode& ctx) ynothrow
@@ -388,7 +396,7 @@ YB_ATTR_nodiscard inline PDefH(const shared_ptr<Environment>&,
 YB_ATTR_nodiscard inline PDefH(const shared_ptr<Environment>&,
 	FetchDefineOrSetEnvironment, ContextNode&,
 	const shared_ptr<Environment>& p_env)
-	ImplRet(Environment::EnsureValid(p_env), p_env)
+	ImplRet(FetchValidEnvironment(p_env))
 
 //! \since build 904
 YB_NORETURN inline void
@@ -622,127 +630,6 @@ ThrowInvalidEnvironmentType(const TermNode& term, bool has_ref)
 	throw TypeError(ystdex::sfmt("Invalid environment formed from object '%s'"
 		" found.", TermToStringWithReferenceMark(term, has_ref).c_str()));
 }
-
-
-// XXX: Same to %RelayForEvalOrDirect, except that %no_lift is always %true, and
-//	no TCO is enforced.
-//! \since build 898
-template<typename _fNext>
-YB_FLATTEN inline ReductionStatus
-RelayNextGuarded(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
-	_fNext&& cur)
-{
-	// XXX: See %RelayForEvalOrDirect.
-#if NPL_Impl_NPLA1_Enable_Thunked
-	// TODO: Blocked. Use C++14 lambda initializers to simplify the
-	//	implementation.
-	return A1::RelayCurrentNext(ctx, term, yforward(cur), MakeMoveGuard(gd));
-#else
-	yunused(gd);
-	return A1::RelayDirect(ctx, cur, term);
-#endif
-}
-
-// XXX: Same to %RelayForEvalOrDirect, except that %no_lift is always %true.
-/*!
-\pre TCO 实现：当前动作是 TCO 动作，且其中的当前项和被规约的项相同。
-\since build 898
-*/
-template<typename _fNext>
-YB_FLATTEN inline ReductionStatus
-RelayNextGuardedTail(ContextNode& ctx, TermNode& term,
-	EnvironmentGuard&& gd, _fNext&& cur)
-{
-	// XXX: See %RelayForEvalOrDirect.
-#if NPL_Impl_NPLA1_Enable_TCO
-	// TODO: Simplified without term regularization if call sites do not need
-	//	it?
-	PrepareTCOEvaluation(ctx, term, std::move(gd));
-	return A1::RelayCurrentOrDirect(ctx, yforward(cur), term);
-#else
-	return A1::RelayNextGuarded(ctx, term, std::move(gd), yforward(cur));
-#endif
-}
-
-//! \since build 910
-//@{
-// XXX: A combination of an operative and its operand shall always be evaluated
-//	in a tail context. However, for a combiner call, sometimes it is not in the
-//	tail context in the enclosing context. If the call needs no creation of
-//	%TCOAction (e.g. fully implemented native code), avoiding calling
-//	%PrepareTCOEvaluation needs no precondition of the existence of %TCOAction,
-//	and this can be an optimization.
-#if false
-YB_FLATTEN inline ReductionStatus
-ReduceCombindEnv(TermNode& term, ContextNode& ctx,
-	shared_ptr<Environment> p_env)
-{
-	// NOTE: The next term is set here unless direct inlining call of
-	//	%ReduceCombinedBranch is used.
-#if !NPL_Impl_NPLA1_Enable_InlineDirect
-	SetupNextTerm(ctx, term);
-#endif
-	// NOTE: %ReduceFirst and other passes would not be called again. The
-	//	unwrapped combiner should have been evaluated and it would not be
-	//	wrongly evaluated again.
-	// XXX: Consider optimization when the combiner subterm is known regular.
-	// NOTE: Term is set in %A1::RelayNextGuarded, even for direct
-	//	inlining call of %ReduceCombinedBranch.
-	return A1::RelayNextGuarded(ctx, term,
-		EnvironmentGuard(ctx, ctx.SwitchEnvironment(std::move(p_env))),
-		std::ref(ReduceCombinedBranch));
-}
-#endif
-
-// XXX: Do not use %YB_FLATTEN here for LTO compiling performance.
-//! \pre TCO 实现：当前动作是 TCO 动作，且其中的当前项和被规约的项相同。
-inline ReductionStatus
-RelayCombindEnvTail(ContextNode& ctx, TermNode& term,
-	shared_ptr<Environment> p_env)
-{
-	// NOTE: The precondition is similar to the last call in
-	//	%EvalImplUnchecked in the presense of the assumption that %term is from
-	//	the current term saved in the context.
-	return A1::RelayNextGuardedTail(ctx, term,
-		EnvironmentGuard(ctx, ctx.SwitchEnvironment(std::move(p_env))),
-		std::ref(ReduceCombinedBranch));
-}
-
-// XXX: Do not use %YB_FLATTEN here for LTO compiling performance.
-//! \pre TCO 实现：当前动作是 TCO 动作，且其中的当前项和被规约的项相同。
-inline ReductionStatus
-ReduceCombindEnvTail(TermNode& term, ContextNode& ctx,
-	shared_ptr<Environment> p_env)
-{
-	// NOTE: See %ReduceCombindEnv.
-#if !NPL_Impl_NPLA1_Enable_InlineDirect
-	SetupNextTerm(ctx, term);
-#endif
-	return RelayCombindEnvTail(ctx, term, std::move(p_env));
-}
-
-//! \pre TCO 实现：当前动作非 TCO 动作。
-YB_FLATTEN inline ReductionStatus
-ReduceCombindEnvNonTail(TermNode& term, ContextNode& ctx,
-	shared_ptr<Environment> p_env)
-{
-#if NPL_Impl_NPLA1_Enable_TCO
-	YAssert(!AccessTCOAction(ctx), "Non-tail context expected.");
-#endif
-	// XXX: Assume %next is not a %TCOAction.
-	ctx.LastStatus = ReductionStatus::Neutral;
-	// NOTE: This does not rely on the existence of the %TCOAction, as it
-	//	will call %EnsureTCOAction. Since the call would rely on %TCOAction,
-	//	anyway, creating the TCO action here instead of a new action
-	//	to restore the environment is more efficient.
-#if NPL_Impl_NPLA1_Enable_TCO
-	SetupTailTCOAction(ctx, term, {});
-#endif
-	// NOTE: The precondition is same to the current continuation call in
-	//	%ReduceCombindEnvTail.
-	return ReduceCombindEnvTail(term, ctx, std::move(p_env));
-}
-//@}
 
 
 /*!
@@ -1317,6 +1204,7 @@ EvaluateLocalObject(TermNode& o, const shared_ptr<Environment>& p_env)
 	return EvaluateToLValueReference(o, p_env);
 }
 
+#if false
 // NOTE: See %BindMoveLocalObjectInPlace and %EvaluateBoundLValueMoved.
 //! \since build 897
 YB_ATTR_nodiscard TermNode
@@ -1333,6 +1221,7 @@ EvaluateLocalObjectMoved(TermNode& o, const shared_ptr<Environment>& p_env)
 	o.Tags |= TermTags::Temporary;
 	return EvaluateToLValueReference(o, p_env);
 }
+#endif
 
 //! \since build 897
 void
@@ -1382,45 +1271,6 @@ EvaluateBoundLValueUnwrapped(TermNode& term, ContextNode& ctx,
 	return EvaluateBoundUnwrappedLValueDispatch(term.get_allocator(),
 		{}, TermReference(term.Tags, term, NPL::Nonnull(p_env)), ctx, term);
 }
-
-// NOTE: As %ReduceSubsequent.
-// NOTE: This does not guarantee PTC.
-//! \since build 875
-template<typename _fCurrent>
-ReductionStatus
-ReduceCallSubsequent(TermNode& term, ContextNode& ctx,
-	shared_ptr<Environment> p_env, _fCurrent&& next)
-{
-	using namespace std::placeholders;
-
-	// TODO: Blocked. Use C++14 lambda initializers to simplify the
-	//	implementation.
-	return A1::ReduceCurrentNext(term, ctx,
-		std::bind([](shared_ptr<Environment>& p_e, TermNode& t, ContextNode& c){
-		return ReduceCombindEnvNonTail(t, c, std::move(p_e));
-	}, std::move(p_env), _1, _2), yforward(next));
-}
-
-#if false
-//! \since build 898
-template<typename _fCurrent>
-ReductionStatus
-ReduceCallSubsequentTail(TermNode& term, ContextNode& ctx,
-	shared_ptr<Environment> p_env, _fCurrent&& next)
-{
-	using namespace std::placeholders;
-
-	// TODO: Blocked. Use C++14 lambda initializers to simplify the
-	//	implementation.
-	return A1::ReduceCurrentNext(term, ctx,
-		std::bind([](shared_ptr<Environment>& p_e, TermNode& t, ContextNode& c){
-		// NOTE: This does not calls %EnsureTCOAction, so an %TCOAction shall be
-		//	already existed in the context.
-		// NOTE: See the precondition for %ReduceCombindEnvTail.
-		return ReduceCombindEnvTail(t, c, std::move(p_e));
-	}, std::move(p_env), _1, _2), yforward(next));
-}
-#endif
 
 
 //! \since build 874
@@ -2009,8 +1859,8 @@ ApplyImpl(TermNode& term, ContextNode& ctx, shared_ptr<Environment> p_env)
 	ConsItem(expr, NPL::Deref(++i));
 	term = std::move(expr);
 	// NOTE: The precondition is same to the last call in %EvalImplUnchecked.
-	//	See also the precondition for %RelayCombindEnvTail.
-	return RelayCombindEnvTail(ctx, term, std::move(p_env));
+	//	See also the precondition of %Combine<TailCall>::RelayEnvSwitch.
+	return Combine<TailCall>::RelayEnvSwitch(ctx, term, std::move(p_env));
 }
 
 //! \since build 860
@@ -2062,7 +1912,9 @@ AccImpl(_func f, TermNode& term, ContextNode& ctx)
 		= TermNode::Container({std::move(lv_pred), lv_l}, term.get_allocator());
 	// TODO: Blocked. Use C++14 lambda initializers to simplify the
 	//	implementation.
-	return ReduceCallSubsequent(nterm, ctx, d, A1::NameTypedReducerHandler(
+	return Combine<NonTailCall>::ReduceCallSubsequent(nterm, ctx,
+		EnvironmentGuard(ctx, d), A1::NameTypedReducerHandler(
+		// XXX: Capture of %d by copy is a slightly more efficient.
 		std::bind([&, d, f](TNIter& i_0) -> ReductionStatus{
 		auto& base(*++i_0);
 
@@ -2073,7 +1925,7 @@ AccImpl(_func f, TermNode& term, ContextNode& ctx)
 
 			nterm.GetContainerRef() = {std::move(lv_head), lv_l};
 			nterm.Value.Clear();
-			return ReduceCallSubsequent(nterm, ctx, d,
+			return Combine<NonTailCall>::ReduceCallSubsequent(nterm, ctx, d,
 				A1::NameTypedReducerHandler(
 				std::bind([&, d, f](TNIter& i_1){
 				return f(l, base, lv_l, nterm, d, i_1);
@@ -2097,12 +1949,13 @@ AccLImpl(TermNode& term, ContextNode& ctx)
 
 		base.GetContainerRef() = TermNode::Container({std::move(lv_sum),
 			std::move(nterm), std::move(base)}, term.get_allocator());
-		return ReduceCallSubsequent(base, ctx, d,
+		return Combine<NonTailCall>::ReduceCallSubsequent(base, ctx, d,
+			// XXX: Capture of %d by copy is a slightly more efficient.
 			A1::NameTypedReducerHandler([&, d]() YB_FLATTEN{
 			auto lv_tail(EvaluateBoundLValueUnwrapped(tail, ctx, d));
 
 			nterm.GetContainerRef() = {std::move(lv_tail), std::move(lv_l)};
-			return ReduceCallSubsequent(nterm, ctx, d,
+			return Combine<NonTailCall>::ReduceCallSubsequent(nterm, ctx, d,
 				A1::NameTypedReducerHandler([&]() YB_FLATTEN{
 				l = std::move(nterm);
 				return AccLImpl(term, ctx);
@@ -2123,7 +1976,8 @@ AccRImpl(TermNode& term, ContextNode& ctx, TermNode& sum)
 
 		n2term.GetContainerRef()
 			= TermNode::Container({std::move(lv_tail), std::move(lv_l)}, a);
-		return ReduceCallSubsequent(n2term, ctx, d,
+		return Combine<NonTailCall>::ReduceCallSubsequent(n2term, ctx, d,
+			// XXX: Capture of %d by copy is a slightly more efficient.
 			A1::NameTypedReducerHandler([&, a, d]() YB_FLATTEN{
 			l = std::move(n2term);
 
@@ -2135,7 +1989,7 @@ AccRImpl(TermNode& term, ContextNode& ctx, TermNode& sum)
 				[&](TermNode& t, ContextNode& c){
 				return AccRImpl(t, c, sum);
 			}, A1::NameTypedReducerHandler([&, d]() YB_FLATTEN{
-				return ReduceCombindEnvNonTail(term, ctx, d);
+				return Combine<NonTailCall>::ReduceEnvSwitch(term, ctx, d);
 			}, "eval-accr-sum"));
 		}, "eval-accr-accr"));
 	}, term, ctx);
@@ -2216,27 +2070,31 @@ FoldR1Impl(TermNode& term, ContextNode& ctx, TermNode& kons)
 	auto i(term.begin());
 	auto& knil(*++(++i));
 	auto& l(*++i);
-	const auto& d(ctx.GetRecordPtr());
-	auto lv_l(EvaluateLocalObject(l, d));
+	auto lv_l(EvaluateLocalObject(l, ctx.GetRecordPtr()));
 
 	// XXX: Keeping %lv_l is a slightly more efficient.
 	return NPL::ResolveTerm(
-		[&, d](TermNode& nd, ResolvedTermReferencePtr p_ref) -> ReductionStatus{
+		[&](TermNode& nd, ResolvedTermReferencePtr p_ref) -> ReductionStatus{
 		if(!IsEmpty(nd))
 		{
 			auto& nterm(FoldRMap1Impl(term, nd, p_ref, l));
-			auto lv_kons(EvaluateBoundLValueUnwrapped(kons, ctx, d));
+			auto lv_kons(EvaluateBoundLValueUnwrapped(kons, ctx,
+				ctx.GetRecordPtr()));
 			auto& rterm(*term.emplace(ystdex::exchange(term.GetContainerRef(),
 				TermNode::Container({std::move(lv_kons), std::move(nterm)},
 				term.get_allocator()))));
 
 			nterm.ClearContainer();
+			// TODO: Blocked. Use C++14 lambda initializers to simplify the
+			//	implementation.
 			return A1::ReduceCurrentNext(rterm, ctx,
 				[&](TermNode& t, ContextNode& c){
 				return FoldR1Impl(t, c, kons);
-			}, A1::NameTypedReducerHandler([&, d]() YB_FLATTEN{
-				return ReduceCombindEnvNonTail(term, ctx, d);
-			}, "eval-foldr1-kons"));
+			}, A1::NameTypedReducerHandler(
+				std::bind([&](shared_ptr<Environment>& d) YB_FLATTEN{
+				return Combine<NonTailCall>::ReduceEnvSwitch(term, ctx,
+					std::move(d));
+			}, ctx.ShareRecord()), "eval-foldr1-kons"));
 		}
 		LiftOther(term, knil);
 		return ReductionStatus::Retained;
@@ -2250,27 +2108,31 @@ Map1Impl(TermNode& term, ContextNode& ctx, TermNode& appv)
 
 	auto i(term.begin());
 	auto& l(*++(++i));
-	const auto& d(ctx.GetRecordPtr());
-	auto lv_l(EvaluateLocalObject(l, d));
+	auto lv_l(EvaluateLocalObject(l, ctx.GetRecordPtr()));
 
 	// XXX: Keep %lv_l is a slightly more efficient.
 	return NPL::ResolveTerm(
-		[&, d](TermNode& nd, ResolvedTermReferencePtr p_ref) -> ReductionStatus{
+		[&](TermNode& nd, ResolvedTermReferencePtr p_ref) -> ReductionStatus{
 		if(!IsEmpty(nd))
 		{
 			auto& nterm(FoldRMap1Impl(term, nd, p_ref, l));
-			auto lv_appv(EvaluateBoundLValueUnwrapped(appv, ctx, d));
+			auto lv_appv(EvaluateBoundLValueUnwrapped(appv, ctx,
+				ctx.GetRecordPtr()));
 			const auto a(term.get_allocator());
 			auto& rterm(*term.emplace(ystdex::exchange(term.GetContainerRef(),
 				TermNode::Container({TermNode({std::move(lv_appv),
 				std::move(nterm)}, a)}, a))));
 
 			nterm.ClearContainer();
+			// TODO: Blocked. Use C++14 lambda initializers to simplify the
+			//	implementation.
 			return A1::ReduceCurrentNext(rterm, ctx,
 				[&](TermNode& t, ContextNode& c){
 				return Map1Impl(t, c, appv);
-			}, A1::NameTypedReducerHandler([&, d]() YB_FLATTEN{
-				return ReduceCallSubsequent(*term.begin(), ctx, d,
+			}, A1::NameTypedReducerHandler(
+				std::bind([&](shared_ptr<Environment>& d) YB_FLATTEN{
+				return Combine<NonTailCall>::ReduceCallSubsequent(*term.begin(),
+					ctx, std::move(d),
 					A1::NameTypedReducerHandler([&]() YB_FLATTEN{
 					auto i_term(term.begin());
 
@@ -2278,7 +2140,7 @@ Map1Impl(TermNode& term, ContextNode& ctx, TermNode& appv)
 					term.erase(i_term);
 					return ReductionStatus::Retained;
 				}, "eval-map1-cons"));
-			}, "eval-map1-appv"));
+			}, ctx.ShareRecord()), "eval-map1-appv"));
 		}
 		term.Clear();
 		return ReductionStatus::Regular;
@@ -2302,13 +2164,13 @@ YB_FLATTEN ReductionStatus
 AccFoldR1LiftSum(TermNode& term, ContextNode& ctx, TermNode& rterm,
 	_func f, TermNode::Container& con)
 {
-	using namespace std::placeholders;
-
 #if NPL_Impl_NPLA1_Enable_Thunked
+	// TODO: Blocked. Use C++14 lambda initializers to simplify the
+	//	implementation.
 	return A1::ReduceCurrentNext(rterm, ctx,
-		std::bind([&](_func& acc, TermNode& t, ContextNode& c){
+		ystdex::bind1([&](TermNode& t, ContextNode& c, _func& acc){
 		return acc(t, c, con.back());
-	}, std::move(f), _1, _2), A1::NameTypedReducerHandler([&]{
+	}, std::placeholders::_2, std::move(f)), A1::NameTypedReducerHandler([&]{
 		LiftOther(term, rterm);
 		return ctx.LastStatus;
 	}, "eval-lift-sum"));
@@ -2518,60 +2380,46 @@ ConsRef(TermNode& term)
 }
 
 ReductionStatus
-ForwardListFirst(TermNode& term, ContextNode& ctx)
+ForwardFirst(TermNode& term, ContextNode& ctx)
 {
-	RetainN(term, 3);
+	RetainN(term, 2);
 
 	auto i(term.begin());
 	auto& op(*i);
-	const auto i_list_app(++i);
-	auto& app(*++i);
-	auto& l(*++i);
-	const auto a(term.get_allocator());
-	const auto& d(ctx.GetRecordPtr());
-	TermNode::Container con({EvaluateLocalObjectMoved(l, d)}, a);
+	auto& appv(*++i);
 
-	ForwardToUnwrapped(*i_list_app, ctx);
-	con.splice(con.cbegin(), term.GetContainerRef(), i_list_app);
-	op = TermNode(std::allocator_arg, a, std::move(con));
 	// TODO: Blocked. Use C++14 lambda initializers to simplify the
 	//	implementation.
-	return ReduceCallSubsequent(op, ctx, d, A1::NameTypedReducerHandler(
-		std::bind([&, d](shared_ptr<Environment>& p_e0) YB_FLATTEN{
-		return NPL::ResolveTerm(
-			[&](TermNode& nd, ResolvedTermReferencePtr p_ref) YB_FLATTEN{
-			if(IsBranchedList(nd))
-			{
-				const auto assign_term(
-					[&](TermNode::Container&& c, ValueObject&& vo) YB_FLATTEN{
-					// XXX: The term %l is reused as a shared bound operand as
-					//	the referent.
-					l = TermNode(std::allocator_arg, term.get_allocator(),
-						std::move(c), std::move(vo));
-					return std::ref(l);
-				});
-				auto& x(AccessFirstSubterm(nd));
+	return NPL::ResolveTerm(
+		[&](TermNode& nd, ResolvedTermReferencePtr p_ref) YB_FLATTEN{
+		if(IsBranchedList(nd))
+		{
+			const auto assign_term(
+				[&](TermNode::Container&& c, ValueObject&& vo) YB_FLATTEN{
+				// XXX: The term %op is reused as a shared bound operand as
+				//	the referent.
+				op = TermNode(std::allocator_arg, term.get_allocator(),
+					std::move(c), std::move(vo));
+				return std::ref(op);
+			});
+			auto& x(AccessFirstSubterm(nd));
 
-				if(p_ref)
-					BindLocalReference(p_ref->GetTags()
-						& (TermTags::Unique | TermTags::Nonmodifying), x,
-						assign_term, p_ref->GetEnvironmentReference());
-				else
-					BindMoveLocalObject(x, assign_term);
-				ForwardToUnwrapped(app, ctx);
-#if true
-				// XXX: This is more efficient.
-				term.GetContainerRef() = {std::move(app), std::move(l)};
-#else
-				term.GetContainerRef().pop_front();
-#endif
-				// NOTE: See the precondition for %ReduceCombindEnvTail.
-				return ReduceCombindEnvTail(term, ctx, std::move(p_e0));
-			}
+			if(p_ref)
+				BindLocalReference(p_ref->GetTags()
+					& (TermTags::Unique | TermTags::Nonmodifying), x,
+					assign_term, p_ref->GetEnvironmentReference());
 			else
-				ThrowInsufficientTermsError(nd, p_ref);
-		}, op);
-	}, d), "eval-forward-list-first"));
+				BindMoveLocalObject(x, assign_term);
+			ForwardToUnwrapped(appv, ctx);
+			term.GetContainerRef() = {std::move(appv), std::move(op)};
+			// NOTE: See the precondition of
+			//	%Combine<TailCall>::ReduceEnvSwitch.
+			return Combine<TailCall>::ReduceEnvSwitch(term, ctx,
+				EnvironmentGuard(ctx, ctx.GetRecordPtr()));
+		}
+		else
+			ThrowInsufficientTermsError(nd, p_ref);
+	}, *++i);
 }
 
 ReductionStatus
@@ -3025,8 +2873,8 @@ Apply(TermNode& term, ContextNode& ctx)
 		return ApplyImpl(term, ctx,
 			NPL::AllocateEnvironment(term.get_allocator()));
 	if(size == 4)
-		return ApplyImpl(term, ctx,
-			ResolveEnvironment(*std::next(term.begin(), 3)).first);
+		return ApplyImpl(term, ctx, FetchValidEnvironment(
+			ResolveEnvironment(*std::next(term.begin(), 3)).first));
 	ThrowInvalidSyntaxError("Syntax error in applying form.");
 }
 

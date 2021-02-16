@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4224
+\version r4235
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2021-02-04 08:20 +0800
+	2021-02-12 12:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -4164,13 +4164,11 @@ NPLA1 implementation is continuously imporved.
 			This bug was hidden by a TCO implementation detail, see below.
 	Implementation of the TCO action is revised.
 		Some implementations are refactored and now it is a slightly more efficient.
-		The order of the result handling relative to frame compression in the operation compression (TCO action prepration) is fixed.
-			The bug would case some reference retained unexpectedly.
 		Some bugs in the result handling has been fixed.
 			When the combining request is missing, the term regularization is just ignored, which is wrong.
 				This would make impossible to preserve references in the middle of the tail call sequence if it is finally lifted.
 				Previously, the bug of those native implementation is hidden by the missing of the request.
-				As an optimization, the combining request now further removed after the above fix and the fix in 'Forms::AccR', 'Forms::FoldR1' and 'Forms::Map1'.
+				As an optimization after the above fix  and the fix in 'Forms::AccR', 'Forms::FoldR1' and 'Forms::Map1', the combining request is now further removed totally.
 			When the lifting request is handled, it is not consumed.
 				This would hide the bug of wrong reference handling when the enclosing call has required the lifting of the call result.
 				For example, the applcative 'list-concat' (defined by '$defl!') implementation was buggy but the bug was not shown, for subtle implementation-specific reasons.
@@ -4186,9 +4184,16 @@ NPLA1 implementation is continuously imporved.
 			The lifting request is now recorded as a count in the TCO action.
 				This fixes the bug that uncollapsed reference values can have different result (to correct ones not in TCO actions) after one operation of result handling.
 				Like adding the combiner wrapping count ('A1::FormContextHandler::Wrapping'), if the count overflow, an exception is thrown.
+			The redundant lifting request in the operation compression (TCO action preparation) is removed.
+				This was originally introduced in internal 'RelayForEval' in module NPL::NPLA1 since build 854.
+				The bug would cause the result handling incorrectly by missing lifts when the lifts only requested in some enclosing calls.
+					In particular, it would lead to invalid reference returned without lifting, e.g. in '$bindings/p->environment' with derived '$sequence'.
+						With native implementation '$sequence' there would be no invalid reference because the native implementation using no TCO actions inside.
+						This bug was not shown before build 910, because once there was an lifting request, the bug of redundant lifting for uncollapsed references just provided the missing lifts onward.
+				The bug also implying the order relative to the frame compression is wrong, which would case some reference retained unexpectedly.
 	A bug in the native implementation of applicatives with applicative arguments (i.e. callbacks) has been fixed.
 		The bug missed the setup of the next term in certain contexts, effective only when configured '!NPL_Impl_NPLA1_Enable_InlineDirect' and 'NPL_Impl_NPLA1_Enable_Thunk', since build 898.
-		The bug would cause an assertion failure in 'A1::ReduceCombinedBranch' debug configurations due wrong term used.
+		The bug would cause an assertion failure in 'A1::ReduceCombinedBranch' debug configurations due to wrong term used.
 		Currently, this would affect functions 'AccL', 'AccR', 'FoldR1', 'Map1' and 'ForwardListFirst' in namespace 'A1::Forms'.
 		The fix is as the change in functions 'A1::RelayForEval' and 'A1::RelayForCall' since build 909.
 

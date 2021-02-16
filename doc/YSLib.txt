@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2020 FrankHB.
+	© 2009-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r3241
+\version r3258
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2020-08-09 13:06 +0800
+	2021-02-06 22:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,7 +72,7 @@ YSLib::UI::Styles ：用户界面样式定制。
 
 @1.1.6 名称引用限制：
 除 Adaptor 中的 using 声明、 using 指令和命名空间别名外， YSLib 命名空间下不直接使用 YSLib 、std 和 ystdex 以外的根命名空间以及其中的名称；不直接使用 std::tr1 及其中的名称。
-不使用除了 operator new 、operator new[] 、operator delete 、operator delete[] 和 main 以外的全局命名空间中的名称。
+不使用除 operator new 、operator new[] 、operator delete 、operator delete[] 和 main 外的全局命名空间中的名称。
 
 @1.1.7 附加名称限制：
 不在 Adaptor 和 Helper 等确定可以使用平台相关的代码以外区域使用环境、编译器和版本判断宏。
@@ -81,7 +81,7 @@ YSLib::UI::Styles ：用户界面样式定制。
 本节描述 YSLib 和外部依赖项之间以及 YSLib 内部的头文件包含关联。
 
 @1.2.1 引入自 C 标准库的 C++ 标准库头依赖项：
-不在本体的必要文件中显式包含，除了以下例外：
+不在本体的必要文件中显式包含，除以下例外：
 Adaptor::YAdaptor 需要保证 <cstddef> 、<cstdint> 、<climits> 和 <cmath> 被包含；
 
 @1.2.2 不在本体中显式包含，需要在 Adaptor::YAdaptor 包含或提供替代品的 C++ 标准库依赖项：
@@ -120,14 +120,14 @@ Service 的头文件不包含 UI 的头文件。
 实现源文件依赖同名头文件，应保证包含此头文件，但不重复包含此头文件已经包含的其它头文件。
 在 Core 中，以下模块对应的头文件依赖关系是确定的：
 YShellDefinition 依赖 Adaptor::YAdaptor 和 Adaptor::YReference ；
-除了 YShellDefinition 外都直接或间接依赖 YShellDefinition；
-YCoreUtilities 和 YGDIBase 依赖 YException ；
-YObject 依赖 YCoreUtilities ；
-YDevice 、YString 和 YMessage 依赖 YObject ；
+除 YShellDefinition 外都直接或间接依赖 YShellDefinition；
+YString 依赖 Adaptor::YTextBase ；
+YException 和 YEvent 依赖 YFunc ；
+YCoreUtilities 依赖 YException ；
+YGDIBase 依赖 YCoreUtilities ；
 YGraphics 依赖 YGDIBase ；
 YDevice 依赖 YGraphics ；
-YString 依赖 Adaptor::YTextBase ；
-YEvent 依赖 YObject 和 YFunc ；
+YMessage 依赖 YObject ；
 YMessageDefinition 依赖 YMessage ；
 YShell 依赖 YMessageDefinition ；
 YApplication 依赖 YShell 。
@@ -138,7 +138,7 @@ YBlit 依赖 Core::YCoreUtilities ；
 YBrush 依赖 YBlit 、YResource 和 Core::YEvent ；
 在 UI 中，以下模块对应的头文件依赖关系是确定的：
 YComponent 依赖 Core::YGraphics 、Core::YFunc 、Core::YMessageDefinition ；
-除了 YComponent 外都直接或间接依赖 YComponent；
+除 YComponent 外都直接或间接依赖 YComponent；
 YStyle 依赖 Service::YDraw ；
 YWidgetEvent 依赖 Core::YEvent ；
 YWidget 依赖 YFocus 和 YWidgetView ；
@@ -166,7 +166,7 @@ YDesktop 依赖 YWindow 和 Core::YDevice 。
 @2 YSLib 适配器(Adaptor) ：
 位于 "/Adaptor" 。
 负责衔接和封装外部库，便于移植。
-除了 C++ 标准库以外，其它外部库的名称需要在此声明。
+除 C++ 标准库以外，其它外部库的名称需要在此声明。
 直接使用除 C++ 标准库、 POSIX / GNU C 兼容函数库、 YCLib 库之外的外部库原代码片段所在文件都从属于 Adaptor 。
 除非另行指定，仅保证必要文件[Documentation::YFramework @@2.1.1] 提供接口中的可重入性和线程安全性同本体([Documentation::YFramework @@2.1.5]) 。
 
@@ -230,7 +230,7 @@ YNew 的接口不保证可重入性，暂时不支持线程安全性。
 
 @3 核心构件：
 位于 "/Core" 。
-除了核心定义 YShellDefinition 以外，主要包含以下几大部分：
+除核心定义 YShellDefinition 外，主要包含以下模块：
 核心实用模块 YCoreUtilities ；
 平台无关的基础对象 YObject ；
 对象计数器 YCounter；
@@ -309,18 +309,16 @@ Screen 由 GraphicDevice 派生，是二维屏幕的抽象。
 @3.8.3 虚拟设备：
 
 @3.8.3.1 桌面：
-桌面是大小和对应输出屏幕相等的窗口(@5.1.4.4.3) ，默认实现为 UI::Desktop 类，除了 YShellDefinition 的前向声明，并非位于 Core 。
+桌面是大小和对应输出屏幕相等的窗口(@5.1.4.4.3) ，默认实现为 UI::Desktop 类。
+除了 YShellDefinition 的前向声明，并非位于 Core 。
 
 @3.9 事件回调 YEvent ：
 实现事件。
 事件处理器 GHEvent 支持目标的相等比较：若不支持 == 操作则以类型判定相等性。
 KeyEventArgs ，键盘输入事件参数类。
 以下用模板定义用于事件处理机制的接口和实现类：
-事件处理器接口模板 GIHEvent ，提供两个参数的 operator() 抽象方法。
 事件处理器模板 GHEvent ，标准版 HEvent ；基于 Function 和 multimap 实现。
 事件模板 GEvent 为多播版本，实现为以优先级为键的 GHEvent 的关联容器。
-事件包装类 GEventWrapper ，包装 GEvent 作为 GIHEvent 的实现。
-事件映射表模板 GEventMap ，映射特定的枚举 ID 到 GEventWrapper 模板实例。
 
 @3.9.1 YSLib 标准事件处理实现概述：
 仅实现同步事件。

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2020 FrankHB.
+	© 2009-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r6594
+\version r6599
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2020-10-09 11:20 +0800
+	2021-02-06 22:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_Core_YObject_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YCoreUtilities // for std::is_base_of,
+#include YFM_YSLib_Core_YShellDefinition // for std::is_base_of,
 //	ystdex::exclude_tagged_params_t, ystdex::enable_if_t,
 //	ystdex::throw_invalid_construction, std::allocator_arg_t,
 //	std::allocator_arg, ystdex::false_, ystdex::true_,
@@ -607,6 +607,8 @@ public:
 
 /*!
 \brief 带等于接口的值类型多态动态泛型持有者。
+\note 模板参数指定值类型、存储的目标类型和分配器。
+\note 存储的目标类型通常是值类型的派生类或其引用包装类型。
 \since build 899
 */
 template<class _type, class _tTarget>
@@ -726,6 +728,7 @@ public:
 /*!
 \brief 在复制初始化时传播分配器的多态值持有者。
 \note 模板参数指定值类型、存储的目标类型和分配器。
+\note 存储的目标类型通常是值类型的派生类。
 \since build 899
 */
 template<class _type, class _tTarget, class _tByteAlloc>

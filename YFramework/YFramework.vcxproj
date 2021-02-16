@@ -139,7 +139,7 @@
     <ClInclude Include="include\YSLib\Core\YObject.h" />
     <ClInclude Include="include\YSLib\Core\YShell.h" />
     <ClInclude Include="include\YSLib\Core\YMessage.h" />
-    <ClInclude Include="include\YSLib\Core\ymsgdef.h" />
+    <ClInclude Include="include\YSLib\Core\YMessageDefinition.h" />
     <ClInclude Include="include\YSLib\Core\YShellDefinition.h" />
     <ClInclude Include="include\YSLib\Core\YStorage.hpp" />
     <ClInclude Include="include\YSLib\Core\YString.h" />

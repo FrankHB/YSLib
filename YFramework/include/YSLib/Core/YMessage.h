@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2018, 2020 FrankHB.
+	© 2009-2018, 2020-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YMessage.h
 \ingroup Core
 \brief 消息处理。
-\version r2076
+\version r2081
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2020-10-06 21:31 +0800
+	2021-02-06 22:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,10 @@
 #define YSL_INC_Core_YMessage_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YObject // for std::piecewise_construct,
-//	YSLib::tuple<Priority, YSLib::forward_as_tuple;
+#include YFM_YSLib_Core_YObject // for module YSLib::Core::YObject, ValueObject,
+//	std::piecewise_construct, YSLib::tuple, YSLib::forward_as_tuple;
+#include YFM_YSLib_Core_YException // for module YSLib::Core::YException,
+//	LoggedEvent;
 #include <ctime>
 
 namespace YSLib

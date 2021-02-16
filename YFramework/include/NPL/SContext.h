@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2020 FrankHB.
+	© 2012-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r3805
+\version r3817
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2020-10-06 21:19 +0800
+	2021-02-06 22:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,19 +29,19 @@
 #define NPL_INC_SContext_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_Lexical // for function, pmr, ByteParser, ystdex::expand_proxy,
-//	ystdex::unref, ystdex::as_const, LexemeList;
-#include YFM_YSLib_Core_ValueNode // for YSLib::Deref, YSLib::LoggedEvent,
-//	YSLib::MakeIndex, YSLib::NoContainer, YSLib::NoContainerTag,
-//	YSLib::ValueNode, YSLib::ValueObject, YSLib::forward_as_tuple, YSLib::get,
+#include YFM_NPL_Lexical // for ystdex::copy_and_swap, pmr, ByteParser,
+//	ystdex::expand_proxy, ystdex::unref, ystdex::as_const, LexemeList;
+#include YFM_YSLib_Core_ValueNode // for YSLib::Deref, YSLib::MakeIndex,
+//	YSLib::NoContainer, YSLib::NoContainerTag, YSLib::ValueNode,
+//	YSLib::ValueObject, YSLib::forward_as_tuple, YSLib::get,
 //	YSLib::make_observer, YSLib::make_pair, YSLib::share_move,
 //	YSLib::make_shared, YSLib::make_weak, YSLib::observer_ptr, YSLib::tuple,
 //	YSLib::weak_ptr, list, YSLib::ListContainerTag, std::initializer_list,
-//	ystdex::create_and_swap, ystdex::forward_like, ystdex::invoke,
-//	YSLib::AccessPtr, ystdex::false_, std::is_convertible, ystdex::decay_t,
-//	ystdex::bool_, ystdex::cond_or_t, ystdex::not_, ystdex::enable_if_t,
-//	ystdex::call_value_or, ystdex::addrof, ystdex::compose, pair,
-//	std::is_lvalue_reference, YSLib::Alert, YSLib::stack;
+//	ystdex::forward_like, ystdex::invoke, YSLib::AccessPtr, ystdex::false_,
+//	std::is_convertible, ystdex::decay_t, ystdex::bool_, ystdex::cond_or_t,
+//	ystdex::not_, ystdex::enable_if_t, ystdex::call_value_or, ystdex::addrof,
+//	ystdex::compose, pair, std::is_lvalue_reference, YSLib::Alert, YSLib::stack;
+#include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
 #include <ystdex/range.hpp> // for std::iterator_traits,
 //	ystdex::range_iterator_t, ystdex::begin, ystdex::end,
 //	std::input_iterator_tag, std::random_access_iterator_tag;
@@ -307,7 +307,7 @@ public:
 	{}
 
 	/*!
-	\brief 复制赋值：使用以参数的分配器构造的副本和交换操作。
+	\brief 复制赋值：使用参数副本和交换操作。
 	\since build 879
 	*/
 	PDefHOp(TermNode&, =, const TermNode& tm)

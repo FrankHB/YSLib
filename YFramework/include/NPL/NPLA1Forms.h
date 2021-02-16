@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r7797
+\version r7802
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2021-02-04 15:15 +0800
+	2021-02-14 11:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -692,17 +692,16 @@ ConsRef(TermNode&);
 //@{
 /*!
 \brief 取列表的第一元素并转发给指定的应用子。
-\since build 875
+\since build 911
 
-使用第一参数指定的应用子调用第三参数指定的列表，取结果匹配的第一元素作为参数，
-	调用第二参数指定的应用子。
+取第三参数指定的列表的第一个元素作为参数，调用第二参数指定的应用子。
 列表参数在对象语言中按引用传递。
 
 参考调用文法：
-<pre>forward-list-first% \<applicative1> \<applicative2> \<list></pre>
+<pre>forward-first% \<applicative> \<list></pre>
 */
 YF_API ReductionStatus
-ForwardListFirst(TermNode&, ContextNode&);
+ForwardFirst(TermNode&, ContextNode&);
 
 /*!
 \brief 取参数指定的列表中的第一元素的值。

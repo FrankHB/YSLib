@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2020 FrankHB.
+	© 2010-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r6098
+\version r6102
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2020-10-10 18:46 +0800
+	2021-02-06 22:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,11 +29,11 @@
 #define YSL_INC_Core_yevt_hpp_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YObject // for ystdex::is_expandable,
-//	ystdex::is_decayed, ystdex::examiners::equal_examiner, std::allocator_arg_t,
+#include YFM_YSLib_Core_YFunc // for module YSLib::Core::YFunc,
+//	ystdex::is_expandable, ystdex::is_decayed, std::allocator_arg_t,
 //	std::allocator_arg, ystdex::make_expanded, ystdex::default_last_value,
 //	std::piecewise_construct, YSLib::forward_as_tuple;
-#include YFM_YSLib_Core_YFunc
+#include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
 #include <ystdex/type_op.hpp> // for ystdex::exclude_self_t,
 //	ystdex::exclude_self_params_t;
 #include <ystdex/iterator.hpp> // for ystdex::make_transform, ystdex::get_value;

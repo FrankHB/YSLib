@@ -27,15 +27,31 @@ CXXFLAGS_OPT_DBG='-O0 -g'
 # shellcheck disable=2034
 LDFLAGS_IMPL_OPT=' '
 # shellcheck source=./SHBuild-bootstrap.sh
-. "$SHBuild_ToolDir/SHBuild-bootstrap.sh" # for SHBuild_Pushd, SHBuild_BaseDir,
-#	SHBuild_Puts, CXXFLAGS, LDFLAGS, INCLUDES, LIBS, SHBuild_Popd.
+. "$SHBuild_ToolDir/SHBuild-bootstrap.sh" # for SHBuild_Host_OS,
+#	SHBuild_Host_Arch, SHBuild_Pushd, SHBuild_BaseDir, SHBuild_Puts, CXXFLAGS,
+#	LDFLAGS, INCLUDES, LIBS, SHBuild_Popd;
 
 : "${SHBuild_Output:=SHBuild}"
+
+# XXX: After MSYS2 enables ASLR by default, x86_64 binutils with g++ is buggy.
+#	See https://www.msys2.org/news/#2021-01-31-aslr-enabled-by-default,
+#	https://github.com/msys2/MINGW-packages/issues/6986,
+#	https://github.com/msys2/MINGW-packages/issues/7023,
+#	and https://sourceware.org/bugzilla/show_bug.cgi?id=26659. Here is a
+#	workaround to the issue.
+if [[ "$SHBuild_Host_OS" == 'Win32' && "$SHBuild_Host_Arch" == 'x86_64' \
+	&& "$SHBuild_CXX_Style_" == 'G++' ]]; then
+	LDFLAGS_LOWBASE_="$(SHBuild_CheckCompiler "$CXX" \
+		'int main(){}' -Wl,--default-image-base-low '' \
+		-xc++ -Wl,--default-image-base-low)"
+else
+	LDFLAGS_LOWBASE_=
+fi
 
 SHBuild_Pushd .
 cd "$SHBuild_BaseDir"
 
-SHBuild_Puts Building ...
+SHBuild_Puts "Building ..."
 
 # Precompiled header is not used here because it does not work well with
 #	external %CXXFLAGS_OPT_DBG. It is also not used frequently like in stage 2.
@@ -55,13 +71,13 @@ if [[ "$SHBuild_Verbose_" != '' ]]; then
 	# XXX: Value of several variables may contain whitespaces.
 	# shellcheck disable=2086
 	SHBuild_Puts "$CXX" Main.cpp -o"$SHBuild_Output" $CXXFLAGS $LDFLAGS \
-		$SHBuild_IncPCH $INCLUDES $LIBS
+		$LDFLAGS_LOWBASE_ $SHBuild_IncPCH $INCLUDES $LIBS
 fi
 # XXX: Value of several variables may contain whitespaces.
 # shellcheck disable=2086
-"$CXX" Main.cpp -o"$SHBuild_Output" $CXXFLAGS $LDFLAGS $SHBuild_IncPCH \
-	$INCLUDES $LIBS
+"$CXX" Main.cpp -o"$SHBuild_Output" $CXXFLAGS $LDFLAGS $LDFLAGS_LOWBASE_ \
+	$SHBuild_IncPCH $INCLUDES $LIBS
 
 SHBuild_Popd
-SHBuild_Puts Done.
+SHBuild_Puts "Done."
 

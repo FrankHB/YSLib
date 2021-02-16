@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20579
+\version r20902
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2021-02-04 00:46 +0800
+	2021-02-17 01:51 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -30,11 +30,11 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA1 // for ContextNode, TermNode, ContextState,
-//	ReductionStatus, Reducer, NPL::tuple, YSLib::get, list, EnvironmentGuard,
-//	std::declval, std::ref, make_observer, std::bind, ystdex::unique_guard,
-//	RegularizeTerm, EnvironmentReference, ystdex::cast_mutable, TermReference,
-//	ystdex::get_less, YSLib::map, set, ystdex::retry_on_cond, ystdex::id,
-//	A1::NameTypedReducerHandler, A1::NameTypedContextHandler;
+//	ReductionStatus, Reducer, ystdex::get_less, EnvironmentReference,
+//	NPL::tuple, YSLib::get, list, ystdex::unique_guard, std::declval,
+//	EnvironmentGuard, make_observer, std::bind, std::placeholders, std::ref,
+//	TermReference, YSLib::map, set, A1::NameTypedReducerHandler,
+//	A1::NameTypedContextHandler, ystdex::bind1;
 #include <ystdex/ref.hpp> // for ystdex::unref;
 
 namespace NPL
@@ -378,41 +378,6 @@ public:
 		//	empty.
 		AddRecord({});
 	}
-
-	/*!
-	\brief 处理操作压缩的结果请求。
-	\pre 规约上下文的最后一次规约状态表示的是当前项上的状态。
-	\sa ContextNode::LastStatus
-	*/
-	ReductionStatus
-	HandleResultRequests(ContextNode& ctx) const
-	{
-		// NOTE: If this is called properly, %ctx.LastStatus should be
-		//	maintained to refer to the reduction status of the right term by
-		//	%PushedAction::operator() in NPLA1.cpp.
-		// NOTE: This implies the call of %RegularizeTerm before lifting. Since
-		//	the call of %RegularizeTerm is idempotent without term modification
-		//	before the next reduction of term, there is no need to call
-		//	%RegularizeTerm if the lift is not needed.
-		if(req_lift_result != 0)
-		{
-			// NOTE: This is for the previous reduction. The order of the calls
-			//	is significant.
-			RegularizeTerm(GetTermRef(), ctx.LastStatus);
-			for(; req_lift_result != 0; --req_lift_result)
-				LiftToReturn(GetTermRef());
-			return ReductionStatus::Retained;
-		}
-		// NOTE: This is only needed on a real call from the evaluation is
-		//	reentered. Currently, other evaluations (e.g. for continuation are
-		//	all administrative) and expected not reentered with unbound number
-		//	of times when no lifting is required. However, since the TCO action
-		//	should have been initialized in a call whose resouces to be reused,
-		//	this should be normally unconditionally true.
-		// TODO: Prepare for invocation of first-class continuations?
-		RegularizeTerm(GetTermRef(), ctx.LastStatus);
-		return ctx.LastStatus;
-	}
 	//@}
 
 	//! \since build 825
@@ -439,27 +404,30 @@ public:
 		return res;
 	}
 
+	//! \since build 911
+	//@{
+	//! \brief 设置提升请求。
+	void
+	SetupLift() const
+	{
+		// NOTE: The flag indicates a request for handling during next time
+		//	before %TCOAction is finished, handled in %operator().
+		++req_lift_result;
+		if(YB_UNLIKELY(req_lift_result == 0))
+			throw NPLException(
+				"TCO action lift request count overflow detected.");
+	}
 	/*
-	\brief 按参数设置 TCO 动作提升请求。
-	\param act TCO 动作。
-	\param no_lift 指定是否避免保证规约后提升结果。
-	\since build 910
+	\brief 按参数设置提升请求。
+	\param lift 指定规约后提升结果。
 	*/
 	void
-	SetupTCOLift(bool no_lift) const
+	SetupLift(bool lift) const
 	{
-		// NOTE: The flag indicates a request for handling during next time (by
-		//	the %HandleResultRequests call above before the last one) before
-		//	%TCOAction is finished. The last request would be handled by
-		//	%operator(), which also calls %HandleResultRequests.
-		if(!no_lift)
-		{
-			++req_lift_result;
-			if(YB_UNLIKELY(req_lift_result == 0))
-				throw NPLException(
-					"TCO action lift request count overflow detected.");
-		}
+		if(lift)
+			SetupLift();
 	}
+	//@}
 };
 
 //! \since build 886
@@ -509,13 +477,6 @@ PrepareTCOEvaluation(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd)
 	YAssert(&act.GetTermRef() == &term,
 		"Invalid term for target TCO action found.");
 	yunused(term);
-	// NOTE: The lift is handled according to the previous status of
-	//	the lifting request in %act, rather than a seperated boolean value (e.g.
-	//	the parameter %no_lift in %RelayForEval).
-	// NOTE: As %TCOAction::operator(), the order is significant. Otherwise,
-	//	wrong environments would be destroyed and there could be dangling
-	//	references.
-	act.HandleResultRequests(ctx);
 	act.CompressForGuard(ctx, std::move(gd));
 	return act;
 }
@@ -678,50 +639,6 @@ ReduceCurrentNext(TermNode& term, ContextNode& ctx, _fCurrent&& cur,
 }
 //@}
 
-/*!
-\pre TCO 实现：当前动作是 TCO 动作，且其中的当前项和被规约的项相同。
-\since build 878
-*/
-template<typename _fNext>
-ReductionStatus
-RelayForEvalOrDirect(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
-	bool no_lift, _fNext&& next)
-{
-	// XXX: For thunked code, %next shall likely be a %Continuation before being
-	//	captured and it is not capturable here. No %SetupNextTerm needs to be
-	//	called here. Otherwise, %next is not a %Contiuation and it shall still
-	//	handle the capture of the term by itself. The %term is optinonally used
-	//	in direct calls instead of the setup next term, while they shall be
-	//	equivalent.
-#if NPL_Impl_NPLA1_Enable_TCO
-	PrepareTCOEvaluation(ctx, term, std::move(gd)).SetupTCOLift(no_lift);
-	return A1::RelayCurrentOrDirect(ctx, yforward(next), term);
-#elif NPL_Impl_NPLA1_Enable_Thunked
-	// TODO: Blocked. Use C++14 lambda initializers to simplify the
-	//	implementation.
-	auto act(MakeMoveGuard(gd));
-
-	if(no_lift)
-		return A1::RelayCurrentNext(ctx, term, yforward(next), std::move(act));
-
-	// XXX: Term reused. Call of %SetupNextTerm is not needed as the next
-	//	term is guaranteed not changed when %next is a continuation.
-	Continuation cont(A1::NameTypedContextHandler([&]{
-		// TODO: Avoid fixed continuation parameter.
-		return ReduceForLiftedResult(term);
-	}, "eval-lift-result"), ctx);
-
-	RelaySwitched(ctx, std::move(act));
-	return A1::RelayCurrentNext(ctx, term, yforward(next), std::move(cont));
-#else
-	yunused(gd);
-
-	const auto res(RelayDirect(ctx, next, term));
-
-	return no_lift ? res : ReduceForLiftedResult(term);
-#endif
-}
-
 
 //! \since build 821
 template<typename _fNext>
@@ -732,15 +649,253 @@ ReduceSubsequent(TermNode& term, ContextNode& ctx, _fNext&& next)
 		std::ref(ContextState::Access(ctx).ReduceOnce), yforward(next));
 }
 
-//! \since build 884
+
+//! \since build 911
+//@{
+struct NonTailCall final
+{
+	template<typename _fCurrent>
+	YB_FLATTEN static inline ReductionStatus
+	RelayNextGuarded(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
+		_fCurrent&& cur)
+	{
+		// XXX: For thunked code, %cur shall likely be a %Continuation before
+		//	being captured and it is not capturable here. No %SetupNextTerm
+		//	needs to be called here. Otherwise, %cur is not a %Contiuation and
+		//	it shall still handle the capture of the term by itself. The %term
+		//	is optinonally used in direct calls instead of the next term setup,
+		//	while they shall be equivalent.
+#if NPL_Impl_NPLA1_Enable_Thunked
+		// TODO: Blocked. Use C++14 lambda initializers to simplify the
+		//	implementation.
+		return
+			A1::RelayCurrentNext(ctx, term, yforward(cur), MakeMoveGuard(gd));
+#else
+		yunused(gd);
+		return A1::RelayDirect(ctx, cur, term);
+#endif
+	}
+
+	template<typename _fCurrent>
+	YB_FLATTEN static inline ReductionStatus
+	RelayNextGuardedLifted(ContextNode& ctx, TermNode& term,
+		EnvironmentGuard&& gd, _fCurrent&& cur)
+	{
+		// XXX: See %RelayNextGuarded.
+#if NPL_Impl_NPLA1_Enable_Thunked
+		auto act(MakeMoveGuard(gd));
+		// TODO: Blocked. Use C++14 lambda initializers to simplify the
+		//	implementation.
+		// XXX: Term reused. Call of %SetupNextTerm is not needed as the next
+		//	term is guaranteed not changed when %cur is a continuation.
+		Continuation cont(A1::NameTypedContextHandler([&]{
+			// TODO: Avoid fixed continuation parameter.
+			return ReduceForLiftedResult(term);
+		}, "eval-lift-result"), ctx);
+
+		RelaySwitched(ctx, std::move(act));
+		return A1::RelayCurrentNext(ctx, term, yforward(cur), std::move(cont));
+#else
+		yunused(gd);
+		RelayDirect(ctx, cur, term);
+		return ReduceForLiftedResult(term);
+#endif
+	}
+
+	template<typename _fCurrent>
+	static ReductionStatus
+	RelayNextGuardedProbe(ContextNode& ctx, TermNode& term,
+		EnvironmentGuard&& gd, bool lift, _fCurrent&& cur)
+	{
+		// XXX: See %RelayNextGuarded.
+#if NPL_Impl_NPLA1_Enable_Thunked
+		// TODO: Blocked. Use C++14 lambda initializers to simplify the
+		//	implementation.
+		auto act(MakeMoveGuard(gd));
+
+		if(lift)
+		{
+			// XXX: Term reused. Call of %SetupNextTerm is not needed as the
+			//	next term is guaranteed not changed when %cur is a continuation.
+			Continuation cont(A1::NameTypedContextHandler([&]{
+				// TODO: Avoid fixed continuation parameter.
+				return ReduceForLiftedResult(term);
+			}, "eval-lift-result"), ctx);
+
+			RelaySwitched(ctx, std::move(act));
+			return A1::RelayCurrentNext(ctx, term, yforward(cur),
+				std::move(cont));
+		}
+		return A1::RelayCurrentNext(ctx, term, yforward(cur), std::move(act));
+#else
+		yunused(gd);
+
+		const auto res(RelayDirect(ctx, cur, term));
+
+		return lift ? ReduceForLiftedResult(term) : res;
+#endif
+	}
+
+	//! \pre TCO 实现：当前动作非 TCO 动作。
+	static void
+	SetupForNonTail(ContextNode& ctx, TermNode& term)
+	{
+#if NPL_Impl_NPLA1_Enable_TCO
+		YAssert(!AccessTCOAction(ctx), "Non-tail context expected.");
+#endif
+		// XXX: Assume the next action is not a %TCOAction.
+		ctx.LastStatus = ReductionStatus::Neutral;
+		// NOTE: This does not rely on the existence of the %TCOAction, as it
+		//	will call %EnsureTCOAction. Since the call would rely on %TCOAction,
+		//	anyway, creating the TCO action here instead of a new action
+		//	to restore the environment is more efficient.
+#if NPL_Impl_NPLA1_Enable_TCO
+		SetupTailTCOAction(ctx, term, {});
+#else
+		yunused(term);
+#endif
+	}
+};
+
+
+struct TailCall final
+{
+	//! \pre TCO 实现：当前动作是 TCO 动作，且其中的当前项和被规约的项相同。
+	template<typename _fCurrent>
+	YB_FLATTEN static inline ReductionStatus
+	RelayNextGuarded(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
+		_fCurrent&& cur)
+	{
+		// XXX: See %NonTailCall::RelayNextGuarded.
+#if NPL_Impl_NPLA1_Enable_TCO
+		PrepareTCOEvaluation(ctx, term, std::move(gd));
+		return A1::RelayCurrentOrDirect(ctx, yforward(cur), term);
+#else
+		return NonTailCall::RelayNextGuarded(ctx, term, std::move(gd),
+			yforward(cur));
+#endif
+	}
+
+	//! \pre TCO 实现：当前动作是 TCO 动作，且其中的当前项和被规约的项相同。
+	template<typename _fCurrent>
+	YB_FLATTEN static inline ReductionStatus
+	RelayNextGuardedLifted(ContextNode& ctx, TermNode& term,
+		EnvironmentGuard&& gd, _fCurrent&& cur)
+	{
+		// XXX: See %NonTailCall::RelayNextGuardedLifted.
+#if NPL_Impl_NPLA1_Enable_TCO
+		PrepareTCOEvaluation(ctx, term, std::move(gd)).SetupLift();
+		return A1::RelayCurrentOrDirect(ctx, yforward(cur), term);
+#else
+		return NonTailCall::RelayNextGuardedLifted(ctx, term, std::move(gd),
+			yforward(cur));
+#endif
+	}
+
+	template<typename _fCurrent>
+	static inline ReductionStatus
+	RelayNextGuardedProbe(ContextNode& ctx, TermNode& term,
+		EnvironmentGuard&& gd, bool lift, _fCurrent&& cur)
+	{
+		// XXX: See %TailCall::RelayNextGuarded.
+#if NPL_Impl_NPLA1_Enable_TCO
+		PrepareTCOEvaluation(ctx, term, std::move(gd)).SetupLift(lift);
+		return A1::RelayCurrentOrDirect(ctx, yforward(cur), term);
+#else
+		return NonTailCall::RelayNextGuardedProbe(ctx, term, std::move(gd),
+			lift, yforward(cur));
+#endif
+	}
+
+	static void
+	SetupForNonTail(ContextNode&, TermNode&) ynothrow
+	{}
+};
+
+
+/*!
+\pre TCO 实现：当前动作是 TCO 动作，且其中的当前项和被规约的项相同。
+\since build 878
+*/
 template<typename _fCurrent>
 inline ReductionStatus
-ReduceSubsequentCombinedBranch(TermNode& term, ContextNode& ctx,
-	_fCurrent&& next)
+RelayForEvalOrDirect(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
+	bool no_lift, _fCurrent&& cur)
 {
-	return A1::ReduceCurrentNext(term, ctx,
-		Continuation(std::ref(ReduceCombinedBranch), ctx), yforward(next));
+	return TailCall::RelayNextGuardedProbe(ctx, term, std::move(gd), !no_lift,
+		yforward(cur));
 }
+
+
+template<class _tTraits>
+struct Combine final
+{
+	// XXX: A combination of an operative and its operand shall always be
+	//	evaluated in a tail context. However, for a combiner call, sometimes it
+	//	is not in the tail context in the enclosing context. If the call needs
+	//	no creation of %TCOAction (e.g. fully implemented native code), avoiding
+	//	calling %PrepareTCOEvaluation needs no precondition of the existence of
+	//	%TCOAction, and this (with %_tTraits as %TailCall) can be an
+	//	optimization.
+	//! \pre TCO 实现：当前动作是 TCO 动作，且其中的当前项和被规约的项相同。
+	//@{
+	// XXX: Do not use %YB_FLATTEN here for LTO compiling performance.
+	static ReductionStatus
+	RelayEnvSwitch(ContextNode& ctx, TermNode& term, EnvironmentGuard gd)
+	{
+		// NOTE: %ReduceFirst and other passes would not be called again. The
+		//	unwrapped combiner should have been evaluated and it would not be
+		//	wrongly evaluated again.
+		// XXX: Consider optimization when the combiner subterm is known
+		//	regular.
+		// NOTE: Term is set in %_tTraits::RelayNextGuarded, even for direct
+		//	inlining call of %ReduceCombinedBranch.
+		// NOTE: The precondition is similar to the last call in
+		//	%EvalImplUnchecked in the presense of the assumption that %term is
+		//	from the current term saved in the context.
+		return _tTraits::RelayNextGuarded(ctx, term, std::move(gd),
+			std::ref(ReduceCombinedBranch));
+	}
+	//! \pre 间接断言：环境指针参数非空。
+	static ReductionStatus
+	RelayEnvSwitch(ContextNode& ctx, TermNode& term,
+		shared_ptr<Environment> p_env)
+	{
+		return RelayEnvSwitch(ctx, term, EnvironmentGuard(ctx,
+			ctx.SwitchEnvironmentUnchecked(std::move(p_env))));
+	}
+
+	// NOTE: A %_tGuardOrEnv does not support an empty environment pointer.
+	template<class _tGuardOrEnv>
+	// XXX: Do not use %YB_FLATTEN here for LTO compiling performance.
+	static inline ReductionStatus
+	ReduceEnvSwitch(TermNode& term, ContextNode& ctx, _tGuardOrEnv&& gd_or_env)
+	{
+		_tTraits::SetupForNonTail(ctx, term);
+		// NOTE: The next term is set here unless direct inlining call of
+		//	%ReduceCombinedBranch is used.
+#if !NPL_Impl_NPLA1_Enable_InlineDirect
+		SetupNextTerm(ctx, term);
+#endif
+		return RelayEnvSwitch(ctx, term, yforward(gd_or_env));
+	}
+
+	// NOTE: As %ReduceSubsequent.
+	template<typename _fNext, class _tGuardOrEnv>
+	static ReductionStatus
+	ReduceCallSubsequent(TermNode& term, ContextNode& ctx,
+		_tGuardOrEnv&& gd_or_env, _fNext&& next)
+	{
+		// TODO: Blocked. Use C++14 lambda initializers to simplify the
+		//	implementation.
+		return A1::ReduceCurrentNext(term, ctx,
+			ystdex::bind1([](TermNode& t, ContextNode& c, _tGuardOrEnv& g_e){
+			return ReduceEnvSwitch(t, c, std::move(g_e));
+		}, std::placeholders::_2, std::move(gd_or_env)), yforward(next));
+	}
+	//@}
+};
+//@}
 
 
 //! \since build 897

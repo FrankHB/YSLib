@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r2531
+\version r2653
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-02-06 15:35 +0800
+	2021-02-17 01:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,129 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %Tools.Scripts $=
+	(
+		* "passed wrongly quoted string as the command"
+			@ "applicative 'compile-ok'" @ "platform %Win32"
+			@ "%SHBuild-YSLib-common.txt" @  $since b796
+			// This would detected the wrong compiler style and the compiler \
+				options.
+			$= (/ ^ "negated %COMSPEC detection" ~ "%SHELL detection"),
+				// %SHELL can be set by MSYS shells. %COMSPEC is assumed to \
+					be compatible to 'CMD.exe', which is more reliable. See \
+					also https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/system-wsystem#remarks.
+		/ @ "%SHBuild-common-toolchain.sh" $=
+		(
+			* "missing optional parameter for options other than '-xc'"
+				@ "function %SHBuild_CheckCompiler"
+				$= (+ "trailing parameters");
+			/ $forced DLDI "functions %(SHBuild_CheckCC, SHBuild_CheckCXX)"
+		),
+		/ @ "%SHBuild-build.sh" $=
+		(
+			/ DLDI "quoted all arguments" @ "%SHBuild_Puts calls"
+				@ "%SHBuild-build.sh",
+			+ "workaround to MSYS2 x86_64 binutils with ASLR enabled by \
+				default used with G++"  ^ $dep_from
+				("%SHBuild_CheckCompiler" @ "%SHBuild-common-toolchain.sh")
+		)
+	),
+	/ %YFramework $=
+	(
+		* $dev "missing renaming %ymsgdef.h" @ "Microsoft VC++ project"
+			$since b872,
+		/ %NPL $=
+		(
+			+ $dev "inclusion %YException" @ %SContext,
+			/ %NPLA1Internals $=
+			(
+				/ @ 'NPL_Impl_NPLA1_Enable_TCO' $=
+				(
+					- "call to %HandleResultRequests"
+						@ "function %PrepareTCOEvaluation";
+					* $comp "invalid lifting requests for TCO"
+						$orig (@ %NPLA1 $since b854)
+							$dep_to "redundant TCO result lifting",
+						// See $2021-02 @ %Documentation::Workflow.
+					/ @ "class %TCOAction" $=
+					(
+						/ ("merged %HandleResultRequests" -> "%operator()"),
+						/ "function %SetupTCOLift" -> "2 functions %SetupLift"
+					)
+				),
+				- $revert(b884)
+					"function template %ReduceSubsequentCombinedBranch",
+					// This is no longer used. A similar function template \
+						with an environment guard parameter could be more \
+						useful.
+				+ "struct %NonTailCall",
+				(
+				+ "struct %TailCall";
+				/ DLDI "simplified function %RelayForEvalOrDirect"
+				),
+				+ "class template %Combine"
+			),
+			- '&&' @ "2nd parameter type" @ "constructor %EnvironmentSwitcher"
+				@ %NPLA,
+			/ @ "namespace %Forms" @ %NPLA1Forms $=
+			(
+				+ "function %ForwardFirst"
+					^ $dep_from ("%EnvironmentSwitcher" @ %NPLA),
+				- "function %ForwardListFirst"
+					$dep_from "removal of old list forwarding applicative",
+				/ DLDI "optimized environment switching",
+				/ DLDI "simplified functions %(FoldR1, Map1)",
+				(
+				/ $revert_ex(b872) "checked host environment values"
+					@ "function %Apply" ^ "%Environment::EnsureValid";
+				/ DLI "simplified reduction function calls" ^ $dep_from
+					("%(NonTailCall, TailCall, Combine)" @ %NPLA1Internals);
+				/ $comp DLI "simplified environment switch"
+					^ "%NPL::SwitchEnvironmentUnchecked"
+					~ "%NPL::SwitchEnvironment"
+				)
+			),
+			/ @ "function %LoadGroundContext" @ %Dependency $=
+			(
+				* $comp "missing proper lifting of the call result"
+					@ "alternative derivation" @ "operative '$sequence'"
+					@ 'NPL_Impl_NPLA1_Enable_TCO' $since b910
+					$dep_from "redundant TCO result lifting",
+					// See $2021-02 @ %Documentation::Workflow.
+				(
+				+ "applicative 'forward-first%'" ^ $dep_from
+					("%ForwardFirst" @ %NPLA1Forms);
+				/ DLDI "simplified" @ ("alternative derivation"
+					@ "appliative %first", "derivation"
+					@ "applicative 'list-extract'")
+					^ 'forward-first%' ~ 'forward-list-first%';
+				- "applicative 'forward-list-first%'"
+					$dep_from "removal of old list forwarding applicative"
+				)
+			)
+		),
+		/ %YSLib $=
+		(
+			/ %Core $=
+			(
+				/ $dev "inclusion %YObject" @ %YEvent
+					-> "inclusion %YBase.YStandardEx.Examiner",
+				(
+				+ $dev $lib "include %YException" @ %YMessage;
+				/ $dev "inclusion %YCoreUtilities" @ %YObject
+					-> "inclusion %YShellDefinition" $dep_from %NPL.SContext,
+				),
+				/ $dev "include %YObject" @ %YString
+					-> "inclusion %YShellDefinition",
+				/ $dev "inclusion %YObject" @ %YDevice
+					-> "inclusion %(YFunc, YBase.YStandardEx.Exception)"
+			)
+		)
+	)
+),
+
+b910
 (
 	/ DLDI 'friend YB_PURE' -> 'YB_PURE friend' $effective @ "%operator=="
 		@ "class template %WrappedContextHandler" @ %YFramework.NPL.NPLA1,

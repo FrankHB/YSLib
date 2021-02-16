@@ -301,9 +301,6 @@
     <ClInclude Include="include\YSLib\UI\ListControl.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Core\ymsgdef.h">
-      <Filter>include\YSLib\Core</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\Core\YMessage.h">
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
@@ -729,6 +726,9 @@
     </ClInclude>
     <ClInclude Include="source\NPL\NPLA1Internals.h">
       <Filter>source\NPL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Core\YMessageDefinition.h">
+      <Filter>include\YSLib\Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

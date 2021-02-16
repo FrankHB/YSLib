@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规范和实现规格说明。
-\version r19650
+\version r19717
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2021-02-05 15:58 +0800
+	2021-02-15 17:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1310,7 +1310,7 @@ Vau 抽象创建的过程是操作合并子(@4.5.3.2) 。
 合并子应用使用应用序(@4.4.4.5) 。
 被应用的合并子是应用合并子(applicative combiner) ，简称应用子(applicative) ；
 由派生实现定义的扩展合并子(extended combiner) 。
-应用子总是由底层(underlying) 对应的合并子通过一元的包装(wrap) 操作得到；其逆操作为解包装(unwrap) 。
+应用子总是对应一个底层(underlying) 合并子，可通过底层合并子上的一元的包装(wrap) 操作得到；其逆操作为解包装(unwrap) 。
 解包装结果不是扩展合并子的合并子称为真合并子(proper combiner) 。
 合并子被调用时通常返回(@4.5.3.1) 且仅返回一次（详见 @4.5.3.3）。
 合并子上可以定义若干等价关系，这些等价关系蕴含关于函数应用替换的基本形式：
@@ -3987,66 +3987,22 @@ $sequence ($def! f ($lambda (n) ((($vau (x y) e (eval ($sequence x y) e)) n (f n
 回收使函数对象在表达式求值外完毕之前结束，这仍然符合 @5.2.6 的要求。
 当前 NPL::LiftToReturn(@6.6.3) 的调用非嵌套调用安全(@6.1) 。在项的嵌套深度依赖调用深度时，不满足 PTC 。
 
-@7.11.6 元数据：
-模块 NPL::NPLA1 提供特定可由函数 A1::QueryContinuationName 查询得到。
+@7.11.6 续延名称：
+模块 NPL::NPLA1 提供特定可由函数 A1::QueryContinuationName 查询得到的续延名称。
 其中查询结果的名称和 A1::Continuation::Handler 或 Reducer 的特定目标类型关联。
-除非另行指定，关联的类型是非公开的内部类型。这些名称包括：
-conditional-eval-sequence
-equal-subterm
-equal-siblings
-eval-acc-head-next
-eval-acc-nested
-eval-accl-accl
-eval-accl-tail
-eval-accr-accr
-eval-accr-sum
+除非另行指定，关联的类型是非公开的内部类型。
+在 NPLA1 实现中引入的这些名称包括：
 eval-argument-list
-eval-booleans
 eval-combine-operands
 eval-combine-operator
 eval-combine-return
-eval-cond-list
-eval-foldr1-kons
-eval-forward-list-first
 eval-guard
 eval-lift-result
-eval-lift-sum
-eval-map1-appv
-eval-map1-cons
 eval-sequence
 eval-sequence-return
 eval-tail ：关联 TCO 动作(@7.10.3) 。
-eval-vau
-load-external
-match-ptree
-match-ptree-recursive
-select-clause
 若特定对象语言操作使用非本机实现(@5.2.1) ，可使用其它续延。
-上述名称中部分名称和 klisp 0.3 中作用近似的续延的名称一致，功能近似。
-不一致的名称包括：
-equal-subterm ：Forms::EqualTermValue(@8.4.1) 比较直接子项。
-equal-siblings ：Forms::EqualTermValue 比较同一个项中的剩余其它子项。
-因为 klisp 的 equal? 直接使用自动机实现，在比较操作中没有对应的续延。
-eval-acc-head-next ：Forms::AccL 和 Forms::AccR(@8.4.9) 公共操作后分派的不同操作。
-eval-acc-nested ：Forms::AccL 和 Forms::AccR(@8.4.9) 嵌套调用抽象列表余下的元素的公共操作。
-eval-accl-accl ：Forms::AccL 递归调用。
-eval-accl-tail ：Forms::AccL 调用取抽象列表余下的元素的函数。
-eval-accr-accr ：Forms::AccR 递归调用。
-eval-accr-sum ：Forms::AccR 调用取抽象列表部分和的函数。
-eval-combine-return ：非 TCO 的规约合并求值(@7.6.4.2) 实现中设置规约合并最后的返回结果。
-eval-foldr1-kons ：Forms::FoldR1(@8.4.9) 应用子调用。
-eval-forward-list-first ：Forms::ForwardListFirst(@8.4.3) 取列表第一个元素。
-eval-guard ：非 TCO 的求值实现重置守卫的附加动作帧(@5.10.6)。
-eval-lift-result ：非 TCO 的求值实现调用 NPL::ReduceForLiftedResult(@6.7.1) 提升返回结果。
-eval-lift-sum ：Forms::AccR、Forms::FoldR1 和 Forms::Map1(@8.4.9) 公共的部分和提升调用。
-eval-map1-appv ：Forms::Map1(@8.4.9) 应用子调用。
-eval-map1-cons ：Forms::Map1 列表构造调用。
-eval-sequence-return ：非 TCO 的 A1::ReduceOrdered(@7.4.6) 实现中设置规约合并最后的返回结果。
-eval-tail ：TCO 动作尾上下文求值（和 klisp 不同，不依赖 GC(@5.2.4.4) 而在 TCO 动作单独保存资源(@7.10.5.1) ）。
-eval-vau ：求值过程抽象(@8.4.5) 在带环境的函数构造器中作为续延。
-注意 klisp 的 $vau 不具有应保证被求值的实际参数，不需要异步调用，没有对应的续延。
-load-external ：A1::RelayToLoadExternal(@8.5.2) 加载外部翻译单元。
-match-ptree-recursive ：支持延迟递归绑定（ Forms::DefineWithRecursion 和 Forms::SetWithRecursion(@8.4.4.3) ）。
+另见其它 NPLA1 实现模块中引入的续延名称(@8.6.1) 。
 
 @7.11.7 嵌套调用说明：
 显式保证嵌套调用安全(@5.2.7) 的异步调用 API 包括：
@@ -4057,7 +4013,6 @@ match-ptree-recursive ：支持延迟递归绑定（ Forms::DefineWithRecursion 
 例外参见：
 @6.1
 @8.4.5
-@8.4.8
 另见 @7.9.2 。
 
 @8 NPLA1 对象语言扩展实现：
@@ -4159,7 +4114,7 @@ Forms::Or
 Forms 提供以下函数实现对象语言中的列表操作：
 Forms::Cons
 Forms::ConsRef
-Forms::ForwardListFirst
+Forms::ForwardFirst
 Forms::First
 Forms::FirstAt
 Forms::FirstRef
@@ -4278,7 +4233,6 @@ Forms::MakeEncapsulationType 创建封装类型操作的应用子(@4.5.3.2) 。
 其中，结果第二项的应用子用于取被封装类型的值。
 作用于右值时，使用引入不安全引用值(@5.6.3.1) 的项引用操作(@6.4.4) 而不提供检查(@5.2.2) 。
 因为访问的是右值，不影响内存安全(@5.2.4.3) 。
-封装类型的相等判断在判断具有封装类型的子对象时，非嵌套调用安全（参见 @6.1 ）。
 
 @8.4.9 通用基本派生操作：
 Forms 提供以下可通过对象语言派生的操作的对应本机实现的函数：
@@ -4321,7 +4275,7 @@ A1::RelayToLoadExternal
 不保证是真合并子(@4.5.3.2) 。
 因为不直接公开合并子的实现（如 @8 ），其中不需要有项检查（如 @8.2.2）；但可能仍有遍处理器的检查(@7.6.1.3) 。
 在对象语言中的对应接口参见 NPLA1 参考实现环境(@10) 。
-NPL::Dependency 还提供其它一些接口，调用函数 Forms::LoadGroundContext 初始化上下文后继续调用，初始化特定操作的环境：
+模块 NPL::Dependency 还提供其它一些接口，调用函数 Forms::LoadGroundContext 初始化上下文后继续调用，初始化特定操作的环境：
 函数模板 Forms::GetModuleFor 加载代码作为模块(@1.4.6.4) 以提供特定集合的对象语言实体的定义。
 函数模板 Forms::LoadModule 和 Forms::LoadModuleChecked 加载模块为变量。后者在指定名称的绑定已存在时抛出异常。
 函数 Forms::LoadModule_std_environments 提供环境操作(@12.1) ；
@@ -4331,6 +4285,59 @@ NPL::Dependency 还提供其它一些接口，调用函数 Forms::LoadGroundCont
 函数 Forms::LoadModule_std_system 提供系统操作(@12.5) ；
 函数 Forms::LoadModule_SHBuild 提供其它一些供 SHBuild 间接调用的操作(@13.1.1) 。
 函数 Forms::LoadStandardContext 调用 Forms::LoadGroundContext 并加载基础上下文中提供的库模块(@10.2) ；另见 @12 。
+
+@8.6 实现注记：
+
+@8.6.1 NPLA1 实现模块的续延名称(@7.11.6) ：
+在模块 NPL::NPLA1Forms 中引入的续延名称包括：
+conditional-eval-sequence
+equal-subterm
+equal-siblings
+eval-acc-head-next
+eval-acc-nested
+eval-accl-accl
+eval-accl-tail
+eval-accr-accr
+eval-accr-sum
+eval-booleans
+eval-cond-list
+eval-foldr1-kons
+eval-lift-sum
+eval-map1-appv
+eval-map1-cons
+eval-vau
+match-ptree
+match-ptree-recursive
+select-clause
+在模块 NPL::Dependency 中引入的续延名称包括：
+load-external
+在模块 NPL::Dependency 中，若特定对象语言操作使用非本机实现(@5.2.1) ，可使用不同的续延名称。
+
+@8.6.2 klisp 续延名称：
+NPLA1 续延名称(@7.11.6) 和上述续延名称(@8.6.1) 中，部分名称和 klisp 0.3 中作用近似的续延的名称一致，功能近似。
+不一致的名称包括：
+equal-subterm ：Forms::EqualTermValue(@8.4.1) 比较直接子项。
+equal-siblings ：Forms::EqualTermValue 比较同一个项中的剩余其它子项。
+因为 klisp 的 equal? 直接使用自动机实现，在比较操作中没有对应的续延。
+eval-acc-head-next ：Forms::AccL 和 Forms::AccR(@8.4.9) 公共操作后分派的不同操作。
+eval-acc-nested ：Forms::AccL 和 Forms::AccR(@8.4.9) 嵌套调用抽象列表余下的元素的公共操作。
+eval-accl-accl ：Forms::AccL 递归调用。
+eval-accl-tail ：Forms::AccL 调用取抽象列表余下的元素的函数。
+eval-accr-accr ：Forms::AccR 递归调用。
+eval-accr-sum ：Forms::AccR 调用取抽象列表部分和的函数。
+eval-combine-return ：非 TCO 的规约合并求值(@7.6.4.2) 实现中设置规约合并最后的返回结果。
+eval-foldr1-kons ：Forms::FoldR1(@8.4.9) 应用子调用。
+eval-guard ：非 TCO 的求值实现重置守卫的附加动作帧(@5.10.6)。
+eval-lift-result ：非 TCO 的求值实现调用 NPL::ReduceForLiftedResult(@6.7.1) 提升返回结果。
+eval-lift-sum ：Forms::AccR、Forms::FoldR1 和 Forms::Map1(@8.4.9) 公共的部分和提升调用。
+eval-map1-appv ：Forms::Map1(@8.4.9) 应用子调用。
+eval-map1-cons ：Forms::Map1 列表构造调用。
+eval-sequence-return ：非 TCO 的 A1::ReduceOrdered(@7.4.6) 实现中设置规约合并最后的返回结果。
+eval-tail ：TCO 动作尾上下文求值（和 klisp 不同，不依赖 GC(@5.2.4.4) 而在 TCO 动作单独保存资源(@7.10.5.1) ）。
+eval-vau ：求值过程抽象(@8.4.5) 在带环境的函数构造器中作为续延。
+注意 klisp 的 $vau 不具有应保证被求值的实际参数，不需要异步调用，没有对应的续延。
+load-external ：A1::RelayToLoadExternal(@8.5.2) 加载外部翻译单元。
+match-ptree-recursive ：支持延迟递归绑定（ Forms::DefineWithRecursion 和 Forms::SetWithRecursion(@8.4.4.3) ）。
 
 @9 NPLA1 核心语言设计：
 NPL 是独立设计的，但其派生语言和其它一些语言有类似之处；这些语言和 NPL 方言之间并不具有派生关系。但为简化描述，部分地引用这些现有语言规范(@2.3.1.2) 中的描述，仅强调其中的不同。
@@ -5806,10 +5813,10 @@ list* <object>+ ：在列表前附加元素创建列表。
 对一个操作数的情形返回原值，否则类似 cons ，检查最后一个实际参数是 <list> 。
 为不需要如 Kernel 支持派生 $vau ，直接使用 apply 派生。
 list*% <object>+ ：同 list* ，但创建的列表元素保留引用值。
-forward-list-first% <applicative1> <applicative2> <list> ：取列表的第一元素并转发给指定的应用子。
-对参数列表 (&list-appv &appv &l) ，结果定义为和以下求值表达式等价：
-($lambda% ((&x .)) (forward! appv) ($move-resolved! x)) ((forward! list-appv) l) ；
-其中，调用 (forward! list-appv) 和 (forward! appv)（除参数求值外）的动态环境同调用 forward-list-first% 的动态环境。
+forward-first% <applicative> <list> ：取列表的第一元素并转发给指定的应用子。
+对参数列表 (&appv (&x .)) ，结果定义为和以下求值表达式等价：
+(forward! appv) (list% ($move-resolved! x)) ；
+其中，调用 appv 的底层合并子(@4.5.3.2) 的动态环境同调用 forward-first% 的动态环境。
 assign%! <reference> <object> ：同 assign@!(@11.3.4) ，但 <object> 是引用时被折叠。
 assign! <reference> <object> ：同 assign%! ，但 <object> 隐含左值到右值转换。
 set-first! <list> <object> ：修改列表的第一个元素。
@@ -5975,7 +5982,7 @@ $import&! <environment> <symbols> ：从第一参数指定的环境以引用绑�
 nonfoldable? <list> ：判断参数是否不可被继续折叠映射：存在空列表。
 输入类似 Kernel map 操作可接受的列表参数或空列表。若输入是空列表，结果为 #f 。
 list-extract <list> <applicative> ：以指定应用子在指定列表中选取并合并内容为新的列表。
-对参数列表 (&l &extr) ，结果同求值 accr l null? () ($lambda% (&l) forward-list-first% expire extr l) rest% cons% 。
+对参数列表 (&l &extr) ，结果同求值 accr l null? () ($lambda% (&l) forward-first% extr (expire l)) rest% cons% 。
 list-extract-first <list> ：同指定应用子为 first 的 list-extract 。
 对参数列表 (&l &extr) ，结果同求值 list-extract ls first 。
 list-extract-first-rest%! <list> ：同指定应用子为 rest% 的 list-extract 。

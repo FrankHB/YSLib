@@ -17,6 +17,7 @@ SHBuild_PrepareBuild # for SHBuild_Env_TempDir;
 # Params: $2 = the source to compile.
 # Params: $3 = optional output on success.
 # Params: $4 = optional output on failure.
+# Params: $5... = options to compile.
 SHBuild_CheckCompiler()
 {
 	local compile="$1"
@@ -26,13 +27,16 @@ SHBuild_CheckCompiler()
 	# NOTE: The output path cannot be '/dev/null'. See http://sourceforge.net/p/msys2/discussion/general/thread/2d6adff2/?limit=25.
 	if [[ "$compile" != */* ]] && (hash "$compile" > /dev/null 2>& 1) \
 		|| [[ "$compile" == */* && ! -d "$compile" && -x "$compile" ]]; then
+		local success="$3"
+		local failure="$4"
+		shift 4
 		# XXX: %SHBuild_Env_TempDir is external.
 		# shellcheck disable=2154
-		if echo "$src" | "$compile" \
-			-xc -o"$SHBuild_Env_TempDir/null" - 2> /dev/null; then
-			SHBuild_Put "$3"
+		if echo "$src" | "$compile" "$@" -o"$SHBuild_Env_TempDir/null" - \
+			2> /dev/null; then
+			SHBuild_Put "$success"
 		else
-			SHBuild_Put "$4"
+			SHBuild_Put "$failure"
 		fi
 	else
 		SHBuild_Put ""
@@ -44,7 +48,7 @@ SHBuild_CheckCompiler()
 # Params: $1 = path of the C compiler.
 SHBuild_CheckCC()
 {
-	SHBuild_CheckCompiler "$1" 'int main(void){return __clang__;}' "Clang" "GCC"
+	SHBuild_CheckCompiler "$1" 'int main(void){return __clang__;}' Clang GCC -xc
 }
 
 # Check the availablity of the C++ compiler.
@@ -52,7 +56,7 @@ SHBuild_CheckCC()
 # Params: $1 = path of the C++ compiler.
 SHBuild_CheckCXX()
 {
-	SHBuild_CheckCompiler "$1" 'int main(){return __clang__;}' "Clang++" "G++"
+	SHBuild_CheckCompiler "$1" 'int main(){return __clang__;}' Clang++ G++ -xc++
 }
 
 SHBuild_GetAR_()

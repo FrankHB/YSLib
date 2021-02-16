@@ -224,7 +224,7 @@ $defl! compile-ok (src compile out opt err-out)
 (
 	$import! std.strings string<-;
 
-	$unless (safeenv-empty? "SHELL")
+	$when (safeenv-empty? "COMSPEC")
 		(string<- src (system-quote src));
 	system-ok (cons-cmd "echo" src "|" (system-quote compile) "-pipe" "-xc++"
 		"-o" (system-quote out) opt "- 2>" err-out)

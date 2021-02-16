@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r8045
+\version r8053
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2021-01-27 18:14 +0800
+	2021-02-15 22:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -3086,14 +3086,19 @@ ResolveIdentifier(const ContextNode&, string_view);
 /*!
 \brief 解析环境。
 \return 取得所有权的环境指针及是否具有所有权。
-\note 只支持宿主值类型 \c shared_ptr<Environment> 或 \c weak_ptr<Environment> 。
+\sa Environment::EnsureValid
+
+尝试从参数指定的对象中访问环境指针。
+只支持访问宿主值类型 \c shared_ptr<Environment> 或 \c weak_ptr<Environment> 。
+所有权由成功访问的对象类型确定：环境强引用具有所有权，否则不具有所有权。
+不检查宿主值类型以外的有效性。成功访问的环境指针的值可能为空，而需进一步检查。
 */
 //@{
 //! \since build 830
 YB_ATTR_nodiscard YF_API pair<shared_ptr<Environment>, bool>
 ResolveEnvironment(const ValueObject&);
 /*!
-\note 第二参数指定是否转移。
+\note 第二参数指定是否转移第一参数。
 \since build 909
 */
 YB_ATTR_nodiscard YF_API pair<shared_ptr<Environment>, bool>
@@ -3129,8 +3134,8 @@ struct EnvironmentSwitcher
 	lref<ContextNode> Context;
 	mutable shared_ptr<Environment> SavedPtr;
 
-	EnvironmentSwitcher(ContextNode& ctx,
-		shared_ptr<Environment>&& p_saved = {})
+	//! \since build 911
+	EnvironmentSwitcher(ContextNode& ctx, shared_ptr<Environment> p_saved = {})
 		: Context(ctx), SavedPtr(std::move(p_saved))
 	{}
 	DefDeMoveCtor(EnvironmentSwitcher)

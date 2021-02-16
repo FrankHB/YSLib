@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r4189
+\version r4196
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2021-02-05 15:59 +0800
+	2021-02-14 14:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -678,7 +678,7 @@ LoadBasicDerived(REPLContext& context)
 	RegisterStrict(renv, "apply", Apply);
 	RegisterStrict(renv, "list*", ListAsterisk);
 	RegisterStrict(renv, "list*%", ListAsteriskRef);
-	RegisterStrict(renv, "forward-list-first%", ForwardListFirst);
+	RegisterStrict(renv, "forward-first%", ForwardFirst);
 	RegisterStrict(renv, "first", First);
 	RegisterStrict(renv, "first@", FirstAt);
 	RegisterStrict(renv, "first&", FirstRef);
@@ -842,13 +842,11 @@ LoadBasicDerived(REPLContext& context)
 			(cons% (forward! head) (apply list*% tail));
 		$defv! $defw%! (&f &formals &ef .&body) d
 			eval (list $set! d f wrap (list* $vau% formals ef (move! body))) d;
-		$defw%! forward-list-first% (&list-appv &appv &l) d
-			($lambda% ((&x .))
-				apply (forward! appv) (list% ($move-resolved! x)) d)
-				(apply (forward! list-appv) (list% l) d);
+		$defw%! forward-first% (&appv (&x .)) d
+			apply (forward! appv) (list% ($move-resolved! x)) d;
 		$defl%! first@ (&l) ($lambda% ((@x .)) x) (check-list-reference l);
 		$defl%! first (%l)
-			($lambda% (fwd) forward-list-first% fwd forward! l)
+			($lambda% (fwd) forward-first% forward! (fwd l))
 				($if (bound-lvalue? ($resolve-identifier l)) id expire);
 		$defl%! first& (&l) ($lambda% ((&x .)) x) (check-list-reference l);
 		$defl! firstv ((&x .)) x;
@@ -1102,7 +1100,7 @@ LoadCore(REPLContext& context)
 			$if (null? l) #f ($if (first-null? l) #t (nonfoldable? (rest& l)));
 		$defl%! list-extract (&l &extr)
 			accr l null? ()
-				($lambda% (&l) forward-list-first% expire extr l) rest% cons%;
+				($lambda% (&l) forward-first% extr (expire l)) rest% cons%;
 		$defl%! list-extract-first (&l) list-extract l first;
 		$defl%! list-extract-rest% (&l) list-extract l rest%;
 		$defl! list-push-front! (&l &x)
