@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20902
+\version r20914
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2021-02-17 01:51 +0800
+	2021-02-17 02:51 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -811,20 +811,6 @@ struct TailCall final
 	SetupForNonTail(ContextNode&, TermNode&) ynothrow
 	{}
 };
-
-
-/*!
-\pre TCO 实现：当前动作是 TCO 动作，且其中的当前项和被规约的项相同。
-\since build 878
-*/
-template<typename _fCurrent>
-inline ReductionStatus
-RelayForEvalOrDirect(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
-	bool no_lift, _fCurrent&& cur)
-{
-	return TailCall::RelayNextGuardedProbe(ctx, term, std::move(gd), !no_lift,
-		yforward(cur));
-}
 
 
 template<class _tTraits>

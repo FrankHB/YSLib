@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r4196
+\version r4288
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2021-02-14 14:29 +0800
+	2021-02-23 00:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,17 +38,17 @@
 //	IsModifiableTerm, IsTemporaryTerm, NPL::TryAccessLeaf, LiftTermRef,
 //	NPL::SetContentWith, Forms::CallRawUnary, LiftTerm, LiftOtherOrCopy,
 //	std::placeholders, LiftTermValueOrCopy, ystdex::bind1, MoveResolved,
-//	ResolveIdentifier, Collapse, NPL::IsMovable, LiftTermOrCopy, IsBranchedList,
+//	ResolveIdentifier, NPL::IsMovable, LiftTermOrCopy, IsBranchedList,
 //	AccessFirstSubterm, ReferenceTerm, ThrowInsufficientTermsError,
-//	ystdex::plus, ystdex::tolower, FetchEnvironmentVariable,
-//	ystdex::swap_dependent, YSLib::IO::StreamPut, YSLib::IO::omode_convb,
-//	YSLib::uremove, ystdex::throw_error;
+//	ystdex::exchange, ystdex::plus, ystdex::tolower, YSLib::IO::StreamPut,
+//	FetchEnvironmentVariable, ystdex::swap_dependent, YSLib::IO::UniqueFile,
+//	YSLib::IO::omode_convb, YSLib::uremove, ystdex::throw_error;
 #include YFM_NPL_NPLA1Forms // for NPL::Forms functions;
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::Path;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
 //	ystdex::make_transform;
 #include YFM_YSLib_Service_TextFile // for
-//	YSLib::IO::SharedInputMappedFileStream, YSLib::Text::OpenSkippedBOMtream;
+//	YSLib::IO::SharedInputMappedFileStream, YSLib::Text;
 #include <cerrno> // for errno, ERANGE;
 #include <regex> // for std::regex, std::regex_match;
 #include <ostream> // for std::endl;
@@ -235,8 +235,9 @@ namespace A1
 YSLib::unique_ptr<std::istream>
 OpenFile(const char* filename)
 {
-	return Text::OpenSkippedBOMtream<IO::SharedInputMappedFileStream>(
-		Text::BOM_UTF_8, filename);
+	return YSLib::Text::OpenSkippedBOMtream<
+		YSLib::IO::SharedInputMappedFileStream>(YSLib::Text::BOM_UTF_8,
+		filename);
 }
 
 YSLib::unique_ptr<std::istream>
@@ -455,7 +456,7 @@ LoadObjects(ContextNode& ctx)
 	RegisterUnary<>(ctx, "modifiable?", IsModifiableTerm);
 	RegisterUnary<>(ctx, "temporary?", IsTemporaryTerm);
 	RegisterStrict(ctx, "deshare", [](TermNode& term){
-		return Forms::CallRawUnary([&](TermNode& tm){
+		return CallRawUnary([&](TermNode& tm){
 			if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
 				LiftTermRef(tm, p->get());
 			NPL::SetContentWith(term, std::move(tm),
@@ -464,7 +465,7 @@ LoadObjects(ContextNode& ctx)
 		}, term);
 	});
 	RegisterStrict(ctx, "expire", [](TermNode& term){
-		return Forms::CallRawUnary([&](TermNode& tm){
+		return CallRawUnary([&](TermNode& tm){
 			if(const auto p = NPL::TryAccessLeaf<TermReference>(tm))
 				p->SetTags(p->GetTags() | TermTags::Unique);
 			LiftTerm(term, tm);
@@ -713,21 +714,37 @@ LoadBasicDerived(REPLContext& context)
 			ThrowInsufficientTermsError(nd, p_ref);
 		}, x);
 	});
-	RegisterStrict(renv, "make-standard-environment",
+	RegisterStrict(renv, "list-concat", ListConcat);
+	RegisterStrict(renv, "append", Append);
+	RegisterStrict(renv, "make-standard-environment", ystdex::bind1(
+		// NOTE: The weak reference of the ground environment is saved and it
+		//	shall not be moved after being called.
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
-		ystdex::bind1(
-			[](TermNode& term, const EnvironmentReference& ce) YB_FLATTEN{
-		using namespace Forms;
+		[](TermNode& term, const EnvironmentReference& ce) YB_FLATTEN{
+		RetainN(term, 0);
 
-		Retain(term);
-
-		// XXX: Simlar to %Forms::MakeEnvironment.
+		// XXX: Simlar to %MakeEnvironment.
 		ValueObject parent;
 
 		parent.emplace<EnvironmentReference>(ce);
 		term.Value
 			= NPL::AllocateEnvironment(term.get_allocator(), std::move(parent));
+	}, context.Root.WeakenRecord()));
+	RegisterStrict(renv, "derive-current-environment",
+		[](TermNode& term, ContextNode& ctx) YB_FLATTEN{
+		Retain(term);
+		term.emplace(NPL::AsTermNode(term.get_allocator(), ctx.WeakenRecord()));
+		return MakeEnvironment(term);
+	});
+	RegisterStrict(renv, "derive-environment", ystdex::bind1(
+		// NOTE: As 'make-standard-environment'.
+		// TODO: Blocked. Use C++14 lambda initializers to simplify the
+		//	implementation.
+		[](TermNode& term, const EnvironmentReference& ce) YB_FLATTEN{
+		Retain(term);
+		term.emplace(NPL::AsTermNode(term.get_allocator(), ce));
+		return MakeEnvironment(term);
 	}, context.Root.WeakenRecord()));
 #else
 	context.ShareCurrentSource("<root:basic-derived>");
@@ -802,8 +819,8 @@ LoadBasicDerived(REPLContext& context)
 			(eval (cons $vau% (cons formals (cons ignore (move! body)))) d);
 	)NPL"
 #	endif
-	// XXX: The operatives '$defl!', '$defl%!', '$defw%!', and '$defv%!' are
-	//	same to following derivations in %LoadCore.
+	// XXX: The operatives '$defl!', '$defl%!', '$defw%!', '$defv%!',
+	//	'$defw!' and '$lambda/e' are same to following derivations in %LoadCore.
 	// NOTE: Use of 'eqv?' is more efficient than '$if'.
 	R"NPL(
 		$def! $sequence
@@ -905,17 +922,49 @@ LoadBasicDerived(REPLContext& context)
 			foldr1 ($lambda (&x &xs) cons%
 				(apply appv (list% (forward! x)) d) xs) () (forward! l);
 		$defl! first-null? (&l) null? (first l);
+		$defl! list-concat (&x &y) foldr1 cons% (forward! y) (forward! x);
+		$defl! append (.&ls) foldr1 list-concat () (move! ls);
+		$defv! $defw! (&f &formals &ef .&body) d
+			eval (list $set! d f wrap (list* $vau formals ef (move! body))) d;
+		$defw! derive-current-environment (.&envs) d
+			apply make-environment (append envs (list d)) d;
+		$defv! $lambda/e (&e &formals .&body) d
+			wrap (eval (list* $vau/e e formals ignore (move! body)) d);
 	)NPL"
 #	if NPL_Impl_NPLA1_Use_LockEnvironment
 	R"NPL(
 		$defl! make-standard-environment () () lock-current-environment;
 	)NPL"
+#		if true
+	R"NPL(
+		$def! derive-environment ()
+			($vau () d $lambda/e (() lock-current-environment) (.&envs)
+				() ($lambda/e (append envs (list d)) ()
+					() lock-current-environment));
+	)NPL"
+#		else
+	// XXX: This is also correct, but less efficient.
+	R"NPL(
+		$def! derive-environment ()
+			($vau () d eval (list $lambda/e (() lock-current-environment)
+				((unwrap list) .&envs) () (list $lambda/e ((unwrap list) append
+					envs (list d)) () () lock-current-environment)) d);
+	)NPL"
+#		endif
 #	else
 	// XXX: Ground environment is passed by 'ce'.
 	R"NPL(
 		$def! make-standard-environment
 			($lambda (&se &e)
 				($lambda #ignore $lambda/e se () make-environment ce)
+				($set! se ce e))
+			(make-environment (() get-current-environment))
+			(() get-current-environment);
+		$def! derive-environment
+			($lambda (&se &e)
+				($lambda #ignore
+					$lambda/e se (.&envs)
+						apply make-environment (append envs (list ce)))
 				($set! se ce e))
 			(make-environment (() get-current-environment))
 			(() get-current-environment);
@@ -948,8 +997,7 @@ LoadStandardDerived(REPLContext& context)
 	context.ShareCurrentSource("<root:standard-derived>");
 	context.Perform(R"NPL(
 		$def! ensigil $lambda (&s)
-			$let/e (derive-current-environment std.strings)
-				()
+			$let/e (derive-current-environment std.strings) ()
 				$let ((&str symbol->string s))
 					$if (string-empty? str) s
 						(string->symbol (++ "&" (symbol->string (desigil s))));
@@ -1000,62 +1048,25 @@ LoadCore(REPLContext& context)
 	)NPL");
 	// XXX: Keep %ContextNode::Perform calls here. This does not benefit from
 	//	the removal of the calls (tested with G++ 10.2 in x86_64-pc-linux),
-	//	whether %NPL_Impl_NPLA1_Native_Forms is set. However, the code below for
-	//	'derive-environment' is not the same.
+	//	whether %NPL_Impl_NPLA1_Native_Forms is set.
 	context.Perform(R"NPL(
 		$def! (box% box? unbox) () make-encapsulation-type;
 		$defl! box (&x) box% x;
-		$defl! list-rest% (&x) list% (rest% (forward! x));
-		$defl! list-concat (&x &y) foldr1 cons% (forward! y) (forward! x);
-		$defl! append (.&ls) foldr1 list-concat () (move! ls);
 		$defl%! assv (&x &alist) $cond ((null? alist) ())
 			((eqv? x (first& (first& alist))) first alist)
 			(#t assv (forward! x) (rest% alist));
-		$defw! derive-current-environment (.&envs) d
-			apply make-environment (append envs (list d)) d;
-	)NPL"
-#if NPL_Impl_NPLA1_Use_LockEnvironment
-#	if true
-	R"NPL(
-		$def! derive-environment ()
-			($vau () d $lambda/e (() lock-current-environment) (.&envs)
-				() ($lambda/e (append envs (list d)) ()
-					() lock-current-environment));
-	)NPL"
-#	else
-	// XXX: This is also correct, but less efficient.
-	R"NPL(
-		$def! derive-environment ()
-			($vau () d eval (list $lambda/e (() lock-current-environment)
-				((unwrap list) .&envs) () (list $lambda/e ((unwrap list) append
-					envs (list d)) () () lock-current-environment)) d);
-	)NPL"
-#	endif
-#else
-	R"NPL(
-		$def! derive-environment
-			($lambda (&se &e)
-				($lambda #ignore
-					$lambda/e se (.&envs)
-						apply make-environment (append envs (list ce)))
-				($set! se ce e))
-			(make-environment (() get-current-environment))
-			(() get-current-environment);
-	)NPL"
-#endif
-	R"NPL(
 		$defv%! $let (&bindings .&body) d
 			eval% (list* () (list* $lambda (map1 firstv bindings)
-				(list (move! body))) (map1 list-rest% bindings)) d;
+				(list (move! body))) (map1 rest% bindings)) d;
 		$defv%! $let% (&bindings .&body) d
 			eval% (list* () (list* $lambda% (map1 firstv bindings)
-				(list (move! body))) (map1 list-rest% bindings)) d;
+				(list (move! body))) (map1 rest% bindings)) d;
 		$defv%! $let/e (&e &bindings .&body) d
 			eval% (list* () (list* $lambda/e e (map1 firstv bindings)
-				(list (move! body))) (map1 list-rest% bindings)) d;
+				(list (move! body))) (map1 rest% bindings)) d;
 		$defv%! $let/e% (&e &bindings .&body) d
 			eval% (list* () (list* $lambda/e% e (map1 firstv bindings)
-				(list (move! body))) (map1 list-rest% bindings)) d;
+				(list (move! body))) (map1 rest% bindings)) d;
 		$defv%! $let* (&bindings .&body) d
 			eval% ($if (null? bindings) (list* $let () (move! body))
 				(list $let (list (firstv bindings))
@@ -1379,6 +1390,7 @@ LoadModule_std_system(REPLContext& context)
 void
 LoadModule_SHBuild(REPLContext& context)
 {
+	using namespace YSLib;
 	auto& renv(context.Root.GetRecordRef());
 
 	// NOTE: SHBuild builtins.
@@ -1387,7 +1399,7 @@ LoadModule_SHBuild(REPLContext& context)
 		[&](const string& n, const string& val) ynothrow{
 		auto& os(context.GetOutputStreamRef());
 
-		YSLib::IO::StreamPut(os,
+		IO::StreamPut(os,
 			YSLib::sfmt("%s = \"%s\"", n.c_str(), val.c_str()).c_str());
 		if(os)
 			os << std::endl;

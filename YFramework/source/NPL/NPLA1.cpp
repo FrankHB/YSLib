@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r20305
+\version r20326
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2021-02-04 17:22 +0800
+	2021-02-17 02:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1474,7 +1474,7 @@ RelayForEval(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 	//	captured and it is not capturable here.
 	// XXX: No %SetupNextTerm call is needed because it should have been called
 	//	in the caller.
-	return RelayForEvalOrDirect(ctx, term, std::move(gd), no_lift,
+	return TailCall::RelayNextGuardedProbe(ctx, term, std::move(gd), !no_lift,
 		std::move(next));
 }
 
@@ -1486,7 +1486,7 @@ RelayForCall(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 	//	%TermTags::Temporary, no lifetime extension needs to be cared here.
 	// XXX: No %SetupNextTerm call is needed because it should have been called
 	//	in the caller.
-	return RelayForEvalOrDirect(ctx, term, std::move(gd), no_lift,
+	return TailCall::RelayNextGuardedProbe(ctx, term, std::move(gd), !no_lift,
 		std::ref(ContextState::Access(ctx).ReduceOnce));
 }
 
@@ -1541,10 +1541,14 @@ BindParameter(const shared_ptr<Environment>& p_env, const TermNode& t,
 				{
 					if(sigil == char())
 						LiftSubtermsToReturn(o_tm);
+					// NOTE: This implements the copy elision of list members.
 					con.splice(con.end(), o_tm.GetContainerRef(), first, last);
+					MarkTemporaryTerm(env.Bind(id, TermNode(std::move(con))),
+						sigil);
 				}
 				else
 				{
+					// NOTE: Make list subobject reference.
 					for(; first != last; ++first)
 						// TODO: Blocked. Use C++17 sequence container return
 						//	value.
@@ -1557,9 +1561,21 @@ BindParameter(const shared_ptr<Environment>& p_env, const TermNode& t,
 							con.emplace_back(std::move(c), std::move(vo));
 							return con.back();
 						});
+					if(sigil == '&')
+					{
+						const auto a(o_tm.get_allocator());
+						auto p_sub(YSLib::allocate_shared<TermNode>(a,
+							std::move(con)));
+						auto& sub(NPL::Deref(p_sub));
+
+						env.Bind(id, TermNode(std::allocator_arg, a,
+							{NPL::AsTermNode(a, std::move(p_sub))},
+							std::allocator_arg, a, TermReference(sub, r_env)));
+					}
+					else
+						MarkTemporaryTerm(env.Bind(id,
+							TermNode(std::move(con))), sigil);
 				}
-				MarkTemporaryTerm(env.Bind(id, TermNode(std::move(con))),
-					sigil);
 			}
 		}
 	}, [&](const TokenValue& n, TermNode& b, TermTags o_tags,

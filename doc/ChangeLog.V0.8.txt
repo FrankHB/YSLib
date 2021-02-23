@@ -1,5 +1,5 @@
 ﻿/*
-	© 2017-2020 FrankHB.
+	© 2017-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r21089
+\version r21186
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2020-10-12 17:19 +0800
+	2021-02-23 23:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,20 +30,22 @@ $import $HISTORY;
 
 // Scope: [b800, b899];
 
-$now
+b899
 (
 	* $doc "wrong operand specification" @ "operative '$cond'"
 		@ %Documentation.NPL $since b792,
 	/ %Tools $=
 	(
-		/ DLDI "simplified" @ %SHBuild.Main
+		/ DLDI "simplified" @ "NPLA1 context initialization" @ @ %SHBuild.Main
 			^ $dep_from ("%LoadStandardContext" @ %YFramework.NPL.Dependency),
 		* @ "%SHBuild-common.sh" @ %Scripts $since b897 $=
 		(
 			* "wrong quotes on '$3' command" @ "function %SHBuild_BuildGCH"
 			* $comp "wrong command called" @ "function %SHBuild_CheckPCH"
-		),
+		)
 	),
+	* $comp "failed to build precompiled header" @ "%test.sh" @ %Test
+		$since b897 $dep_from %Tools.Scripts,
 	* "i686 MinGW32 cc1plus out of memory on compiling %NPLA1Forms.cpp for \
 		stage 1 SHBuild" $since b898
 		$= (/ $revert_ex(b839) "default value" @ "variable %CXXFLAGS_OPT_DBG"
@@ -111,7 +113,7 @@ $now
 					^ "%(any, any_ops, in_place_type)"
 			)
 		),
-		/ %YSLib.Service $=
+		/ %YSLib $=
 		(
 			/ %Service $=
 			(
@@ -225,8 +227,9 @@ $now
 						+ "native derivation" @ "applicative %foldr1 and \
 							enabled by default"
 							^ $dep_from ("%FoldR1" @ %NPLA1Forms),
-						+ "native derivation" @ "applicative %map1 and enabled \
-							by default" ^ $dep_from ("%Map1" @ %NPLA1Forms),
+						/ $lib "added native derivation enabled by default"
+							@ "applicative %map1"
+							^ $dep_from ("%Map1" @ %NPLA1Forms),
 						/ DLI "alternative derivation" @ "applicative 'not?'"
 							^ 'eqv?' ~ 'eql?',
 							// This is more compatible to the irregular \
@@ -248,7 +251,7 @@ $now
 					* "wrong non-reserved name 'std.promises' bound as a \
 						nested member" @ "function %LoadModule_std_promises"
 						$since b856
-						// This leak hidden names.
+						// This leaks hidden names.
 				),
 				+ "function %IsUpdating"
 					@ "classes %(ByteParser, SourcedByteParser)" @ %Lexical,
@@ -433,8 +436,8 @@ b898
 				* "duplicated evaluation for matched subexpression not at the \
 					last position" @ "derivation" @ "operative '$or?'"
 					$since b860,
-				+ "native derivation" @ "applicative %accl and enabled \
-					by default" ^ $dep_from ("%AccL" @ %NPLA1Forms),
+				/ $lib "added native derivation enabled by default"
+					@ "applicative %accl" ^ $dep_from ("%AccL" @ %NPLA1Forms),
 				(
 				/ "applicative 'unfoldable?'" -> "'nonfoldable?' allowing an \
 					empty list argument" ^ '$if' ~ ("%accr", '$or?');
@@ -448,8 +451,8 @@ b898
 				(
 				* $comp "operative used as an argument of %accl call"
 					@ "applicative 'unfoldable?'" $since b791;
-				+ "native derivation" @ "applicative %accr and enabled \
-					by default" ^ $dep_from ("%AccR" @ %NPLA1Forms)
+				/ $lib "added native derivation enabled by default"
+					@ "applicative %accr" ^ $dep_from ("%AccR" @ %NPLA1Forms)
 				),
 				* "missing unwrapping on applicative arguments" @ "derivation"
 					@ ("applicative 'forward-list-first%'" $orig
@@ -576,7 +579,7 @@ b897
 					$mismatch(Documentation.NPL) $since b798,
 					// Although the type in the document is changed from \
 						'<symbol>' to '<string>', neither check was \
-						implemented previously. 
+						implemented previously.
 				/ "simplified applicative %SHBuild_TrimOptions_"
 					@ "function %SHBuildModule_LoadSHBuild"
 					!^ "%YSLib::make_string_view"
@@ -1067,7 +1070,7 @@ b896
 	),
 	- $doc "resource URLs on bitbucket.org" @ "%Readme.zh-CN.txt"
 		// Bitbucket has removed mercurial support and the wiki repo can not \
-			be updated now. 
+			be updated now.
 ),
 
 b895
@@ -1308,7 +1311,9 @@ b894
 					@ !'NPL_Impl_NPLA1_Enable_Thunked'
 					@ "constructor %ContextState" $since b892,
 				/ $forced DLDI "function %EvaluateIdentifier"
-					$dep_from ("%PrepareCollapse" @ %NPLA)
+					$dep_from ("%PrepareCollapse" @ %NPLA),
+				/ DLDI "TCO action" >> %NPLA1Internals
+					^ $dep_from ("%ContextNode::GetRecordPtr" @ %NPLA)
 			),
 			/ DLDI ("funcion %FetchTailEnvironmentReference" @ %NPLA1Internals,
 				"functions %Forms::(ForwardListFirst, 'DefineW*', 'SetW*')"
@@ -1505,7 +1510,7 @@ b892
 					+ "function %UnwindCurrent",
 					+ "function template %AccessCurrentAs",
 					+ "functions %(IsAlive, GetCurrentActionType)",
-					/ "hid public data member %Current" 
+					/ "hid public data member %Current"
 						$dep_all_from "avoiding direct access of the current \
 						action",
 					(
@@ -2180,7 +2185,7 @@ b889
 						// Like parameter pack support of %NPL::Analyaze, but \
 							a bit different.
 					/ "merged all overloads of %Process"
-						-> "function template Process";					/ 
+						-> "function template Process";					/
 					/ $forced DLDI "function %Perform#2"
 					)
 				)
@@ -2338,9 +2343,9 @@ b888
 				(
 				/ "2 function template %Parse" -> "4 function templates"
 					!^ "%DefaultParseByte";
-				- "static function %DefaultParseByte" 
+				- "static function %DefaultParseByte"
 				),
-				- "static function %DefaultParseQuoted" 
+				- "static function %DefaultParseQuoted"
 			),
 			/ @ "class %REPLContext" @ %NPLA1 $=
 			(
@@ -2389,7 +2394,7 @@ b887
 		(
 			+ DLDI 'YB_FLATTEN inline' @ "all function templates implementing \
 				%uses_allocator_construction_args" @ %Allocator,
-			* "missing 'ynothrow'" @ "function %get_allocator" 
+			* "missing 'ynothrow'" @ "function %get_allocator"
 				@ "class templates %(allocator_delete, allocator_guard_delete)"
 				$since b846 $dep_to "allocator getter fix",
 			* "missing 'ynothrow'" @ "function %get_count"
@@ -2872,7 +2877,7 @@ b886
 					^ $dep_from "%SetupTailTCOAction" @ %NPLA1Internals
 					~ "%SetupTailAction",
 				/ "%TokenValue::Unspecified assignment" @ "functions \
-					%Forms::(Cond, Define*, SetWith*)" ^ "allocators" 
+					%Forms::(Cond, Define*, SetWith*)" ^ "allocators"
 					$dep_from
 					("constructor#5 %ValueObject" @ %YSLib.Core.YObject),
 				/ "function templates %(CallUnary, $comp CallUnaryAs, \
@@ -3031,8 +3036,8 @@ b885
 					@ "%YFramework building" @ "%release configurations"
 					$orig (@ "%SHBuild-YSLib.sh" $since b546)
 			),
-			/ DLDI "renamed string argument name" @ "function 'system-or-puts'"
-				@ "%SHBuild-YSLib-common.txt",
+			/ DLDI "renamed string argument name"
+				@ "applicative 'system-or-puts'" @ "%SHBuild-YSLib-common.txt",
 			/ @ "%SHBuild-BuildApp.sh" $=
 			(
 				/ @ !"platform %Win32" $=
@@ -3510,7 +3515,7 @@ b881
 					^ $dep_from ("%ystdex::update_thunk" @ %Functional),
 				/ @ "constructor %REPLContext" $=
 				(
-					+ "separater handling by %Preprocess" @ 
+					+ "separater handling by %Preprocess" @
 						$dep_from @ %Tools.Scripts
 					/ "intialization for %SetupDefaultInterpretation"
 						!^ "%ListTermPreprocess"
@@ -4025,7 +4030,7 @@ b879
 				@ "all 3 functions %IsDirectory" @ %MinGW32;
 			+ 'YB_STATELESS' @ ("static member function \
 				%WConsole::ComposeAttributes" @ %Consoles,
-				"functions CategorizeNode#(1, 2, 3)" @ %MinGW32), 
+				"functions CategorizeNode#(1, 2, 3)" @ %MinGW32),
 				// Also to eliminate G++ 7.1 warning: \
 					[-Wsuggest-attribute=const].
 		)
@@ -4289,7 +4294,7 @@ b877
 		%Documentation.Workflow $dep_to %(YBase.YStandarEx.(Any, CAssert,
 		MemoryResource, Utilities, String, Placement, Meta, Memory, List,
 		Iterator), YFramework.(NPL.(NPLA, NPLA1, Dependency),
-		'YCLib._(Win32)'.(MinGW32, Consoles), YCLib.(HostedGUI, Host, FileIO), 
+		'YCLib._(Win32)'.(MinGW32, Consoles), YCLib.(HostedGUI, Host, FileIO),
 		YSLib.(Core.YObject, UI.(YWidget, TreeView),
 		Service.(FileSystem, YBlit, YGDI)))),
 		// The comments names of sections with dates should not be duplicated \
@@ -4981,7 +4986,7 @@ b872
 				/ @ "namespace %Forms" $=
 				(
 					- $revert_ex(b871) "hosted environment value checks"
-						^ @ "function %Apply"
+						@ "function %Apply",
 						// This should be safe because it is eventually \
 							checked in %ContextNode::SwitchEnvironment.
 					/ DLDI "simplified funtions ('Define*', 'SetWith*', \
@@ -5483,7 +5488,7 @@ b869
 				/ DLDI "simplified variable names"
 					@ "applicative 'string<-'",
 				+ DLDI 'ynothrow' @ "lambda-expression"
-					@ "applicative 'string-contains-ci?'" 
+					@ "applicative 'string-contains-ci?'"
 			)
 		),
 		/ DLDI "renamed internal 'TermNode&' parameter names" $effective
@@ -5595,10 +5600,12 @@ b868
 					^ 'exprseq' ~ ('vexpr' or 'body'),
 					// To be consistent with the current %Documentation::NPL.
 				/ DLDI "derivation" @ "operative '$unless'" ^ '#inert' ~ 'not?',
-				+ "native derivation" @ "operative '$set!' and enabled by \
-					default" ^ $dep_from ("%SetWithNoRecursion" @ %NPLA1),
-				+ "native derivation" @ "operative '$setrec!' and enabled by \
-					default" ^ $dep_from ("%SetWithRecursion" @ %NPLA1),
+				/ $lib "added native derivation enabled by default"
+					@ "operative '$set!'"
+					^ $dep_from ("%SetWithNoRecursion" @ %NPLA1),
+				/ $lib "added native derivation enabled by default"
+					@ "operative '$setrec!'"
+					^ $dep_from ("%SetWithRecursion" @ %NPLA1),
 				/ DLI "optimized derivation" @ "applicative %accr",
 					// Direct recursion without auxiliary function is slightly \
 						more efficient.
@@ -6426,7 +6433,7 @@ b864
 				)
 			),
 			* $comp "ill-formed instantiations of iterator types with \
-				incomplete %value_type" @ ($impl %Tree; %Map) $dep_from 
+				incomplete %value_type" @ ($impl %Tree; %Map) $dep_from
 				"addressof fix" $since b830 $dep_to
 				"map iterator to incomplete type fix",
 				// Another change of %__builtin_addressof also works for GCC \
@@ -6970,7 +6977,7 @@ b862
 				// For consistency. Note Clang also supports this as GCC. See \
 					https://clang.llvm.org/docs/LanguageExtensions.html. \
 					Currently only attribute names used in %YDefinition rely \
-					on the feature. 
+					on the feature.
 		)
 	),
 	/ %YFramework $=
@@ -7400,8 +7407,8 @@ b861
 						'map-reverse'"), "applicatives %(accr; foldr1; map1)")
 						$since b829
 						$= (- "redundant %forward call"),
-					+ "native derivation" @ "applicative 'not?' and enabled by \
-						default" ^ $dep_from ("%Cond" @ %NPLA1),
+					/ $lib "added native derivation enabled by default"
+						@ "applicative 'not?'" ^ $dep_from ("%Cond" @ %NPLA1),
 					/ $forced DLDI "simplified applicative 'resolve-identifier'"
 						$dep_from ("%ResolveIdentifier" @ %NPLA)
 				),
@@ -7466,8 +7473,7 @@ b861
 		/ ($forced "constructor %ShlExplorer" @ %ShlExplorer,
 			$dep_from %YFramework.YSLib.Core.YGDIBase,
 			"member function %ShlReader::SaveBookmarks")
-			$= (/ $impl ^ $dep_from
-				("%make_string_view" @ %YAdaptor.Adaptor)),
+			$= (/ $impl ^ $dep_from ("%make_string_view" @ %Adaptor.YAdaptor)),
 		/ ("constructor %BookmarkPanel" @ %BookmarkUI, "constructor \
 			%ReaderSetting" @ %ReaderSetting) ^ $dep_from ("%to_std_string"
 			@ %YSLib.Adaptor.YAdaptor) $dep_to "avoiding relying on the \
@@ -7602,7 +7608,7 @@ b860
 			(
 				/ "function %LoadGroundContext" $=
 				(
-					+ "native derivation and enabled by default"
+					/ $lib "added native derivation enabled by default"
 						@ ("applicative %list" ^ $dep_from
 						("%ListAsterisk" @ %NPLA1), "applicative 'list%'"
 						^ $dep_from ("%ListAsteriskRef" @ %NPLA1),
@@ -7855,9 +7861,10 @@ b859
 				+ "native derivation" @ "applicative 'check-environment' and \
 					enabled by default" ^ $dep_from
 					("%CheckEnvironment" @ %NPLA1),
-				+ "native derivation and enabled by default" @ ("applicative \
-					'first&'" ^ $dep_from ("%FirstRef" @ %NPLA1), "applicative \
-					'first@' " ^ $dep_from ("%FirstRefAt" @ %NPLA1)),
+				/ $lib "added native derivation enabled by default"
+					@ ("applicative 'first&'" ^ $dep_from ("%FirstRef"
+					@ %NPLA1), "applicative 'first@'"
+					^ $dep_from ("%FirstRefAt" @ %NPLA1)),
 				+ "modifiable lvalue check before assignment"
 					@ "applicatives ('assign!', 'assign%!', 'assign@!')"
 					^ $dep_from
@@ -7904,8 +7911,8 @@ b859
 						$= (/ DLDI "native derivation" @ "applicatives ('id', \
 							'idv', 'ref&')" ^ "%ReductionStatus::Retained"
 							~ "%ReductionStats::Regular"),
-					+ "native derivation" @ "applicative %first and enabled \
-						by default" ^ $dep_from ("%First" @ %NPLA1)
+					/ $lib "added native derivation enabled by default" @ "applicative \
+						%first" ^ $dep_from ("%First" @ %NPLA1)
 						// Only with the bug above fixed, the native \
 							implementation can behave the same.
 				)
@@ -7931,8 +7938,8 @@ b859
 					/ "handled error" ^ $dep_from 'raise-invalid-syntax';
 						// This is also needed to make the equivalent native \
 							implementation simpler.
-					+ "native derivation and enabled by default"
-						^ ("%Apply" @ %NPLA1)
+					/ $lib "added native derivation enabled by default"
+						@ "applicative %apply" ^ ("%Apply" @ %NPLA1)
 				)
 			),
 			/ @ "applicative 'string<-'" @ "function %LoadModule_std_strings" $=
@@ -8413,7 +8420,7 @@ b857
 			),
 			/ %NPLA1 $=
 			(
-				/ @ "function %EvaluateIdentifier" 
+				/ @ "function %EvaluateIdentifier"
 					$dep_from (("applicative 'first%'" @ %Dependency),
 					"split forwarding binding operatives")
 					// See $2019-04 @ %Documentation::Workflow.
@@ -8501,17 +8508,16 @@ b857
 							inner call";
 						- $impl "'forward' before %body"
 					),
-					+ $lib "native derivation" @ "operative '$quote' and \
-						enabled by default",
+					/ $lib "added native derivation enabled by default"
+						@ "operative '$quote'",
 					* $comp "wrong result of applicative 'lvalue?' for named \
 						lvalue references" $since b828 $dep_from
 						"fixed lvalue resolution",
 					/ @ "applicative 'forward'" $=
 					(
-						+ "native derivation" ^ $dep_from
-							("%LiftRValueToReturn" @ %NPLA),
-							// See $2019-04 @ \
-								%Documentation::Workflow.
+						/ $lib "added native derivation enabled by default"
+							^ $dep_from ("%LiftRValueToReturn" @ %NPLA),
+							// See $2019-04 @ %Documentation::Workflow.
 						/ DLI "original derivation" ^ "%unwrap" ~ '$quote'
 					),
 					+ "applicatives (%(box, unbox), 'box?')" $dep_from
@@ -8654,8 +8660,6 @@ b856
 						@ "function %MakeEncapsulationType" $since b855
 						$dep_to "encapsulation anchor fix"
 				),
-				* "term references referred out of environment lifetime \
-					due to TCO action cleanup order" $since b820
 				* "term references referred out of environment lifetime \
 					due to TCO components cleanup order in the same frame"
 					$since b820,
@@ -10451,7 +10455,7 @@ b850
 			/ %Meta $=
 			(
 				+ "binary type trait %is_same_or_convertible";
-				/ "loosed complete type requirment of parameters" 
+				/ "loosed complete type requirment of parameters"
 					@ "binary type trait %is_interoperable"
 					^ "%is_same_or_convertible" ~ "%is_convertible"
 			),
@@ -10623,7 +10627,7 @@ b850
 					/ @ "constructors %GHEvent" $=
 					(
 						/ "constructors with expandable caller types excluded \
-							non-expandable types" 
+							non-expandable types"
 							^ ("%ystdex::is_strictly_expandable"
 							@ %YBase.YStandardEx.Functional),
 						+ $re_add(b849) "constructor template with allocator, \
@@ -11087,7 +11091,7 @@ b849
 					@ "<string_view> used" $since b831,
 				+ $dev $lib 'YB_ATTR_nodiscard YB_STATELESS'
 					@ "function templates %(IsASCII, ToASCII)",
-				+ $dev $lib 'YB_ATTR_nodiscard YB_PURE' 
+				+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
 					@ "functions with name prefix 'Make'"
 			),
 			* "missing inclusion %YBase.YStandardEx.TypeTraits"
@@ -11127,7 +11131,7 @@ b849
 							@ "member function %FontCache::LoadTypefaces",
 						+ $dev 'YB_ATTR_returns_nonnull'
 							@ "function %FetchName",
-						+ $dev $lib 'YB_ATTR_nodiscard YB_PURE' 
+						+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
 							@ "functions with name prefixes ('Fetch', 'Get', \
 							'Lookup')",
 						/ DLDI "member functions %Font::(GetAscender, \
@@ -11140,11 +11144,11 @@ b849
 							%ImageMemory constructor buffer size",
 							// Also to eliminate Clang++ warning: \
 								[-Wshorten-64-to-32].
-						+ $dev $lib 'YB_ATTR_nodiscard YB_PURE' 
+						+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
 							@ "functions with name prefixes 'Get' or names \
 							%(operator*, operator CompactPixmap, Lock, begin, \
 							end, to_string, Load)", \
-						+ $dev $lib 'YB_ATTR_nodiscard' 
+						+ $dev $lib 'YB_ATTR_nodiscard'
 							@ "functions and function templates with names \
 							%(Release, DetectFormat) or prefix 'LoadFor'",
 						+ $dev $lib 'YB_ATTR_returns_nonnull YB_PURE'
@@ -11195,7 +11199,7 @@ b849
 						),
 						/ $forced "recoded parameter on throw"
 							@ "(function, function templates) %AccessNode",
-						+ $dev $lib 'YB_ATTR_nodiscard YB_PURE' 
+						+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
 							@ "functions with names %(extend_key, \
 							get_value_key, operator(==, <, >), \
 							size, IsPrefixedIndex), postfixes ('begin', 'end', \
@@ -11206,8 +11210,8 @@ b849
 					(
 						/ @ "class template %GHEvent" $=
 						(
-							* "invalid 'yconstfn_relaxed'" @ "friend function %swap \
-								for %Comparer" $since b834
+							* "invalid 'yconstfn_relaxed'" @ "friend function \
+								%swap for %Comparer" $since b834
 								^ "%ystdex::swap_dependent" ~ "%std::swap",
 							/ "simplified constructors" $=
 							(
@@ -11585,7 +11589,7 @@ b848
 			/ DLDI "simplified all parameter forwarding without variadic \
 				parameter in lambda-expressions" ^ "%yforward" ~ "%std::forward"
 				$effective @ "member functions %insert" @ "class template %map",
-			/ "function template %swap for %map instances" 
+			/ "function template %swap for %map instances"
 				@ %Map -> ("friend function" @ "class template %map"),
 				// To be consistent with %(any, function).
 			/ DLDI "simplified class template %map" ^ $dep_from
@@ -12162,8 +12166,8 @@ b846
 						"%exists_substr", 'get_*', "%operator+",
 						"%operator sv_type", "%quote", "%ston", "%string_begin",
 						"%string_end", "%vsfmt");
-					// Note %sfmt is ruled out as no [[nodiscard]] is allowed here \
-						by ISO C++. See https://groups.google.com/a/isocpp.org/forum/#!topic/std-discussion/dbxwk5yeCv8.
+					// Note %sfmt is ruled out as no [[nodiscard]] is allowed \
+						here by ISO C++. See https://groups.google.com/a/isocpp.org/forum/#!topic/std-discussion/dbxwk5yeCv8.
 				+ 'YB_PURE' @ "member functions marked 'YB_ATTR_nodiscard'"
 			),
 			+ $dev $lib 'YB_ATTR_nodiscard YB_PURE' @ "functions and function \
@@ -12178,8 +12182,8 @@ b846
 			alloc_on_swap)", "internal allocator traits" @ "class template \
 			%allocator_delete") @ %Memory, "class template %string_traits"
 			@ %String),
-			// Though the new members of ISO C++ 17 are not used, the \
-				namespace prefix is better to be ellisped as most type tratis.
+			// Though the new members of ISO C++17 are not used, the \
+				namespace prefix is better ellisped as most type tratis.
 		+ $re_add(b845) DD '\ingroup traits' @ "Doxygen comment"
 			@ "class template %string_traits" @ %String,
 		* "macro %YB_ALLOCATOR wrongly defined as %YB_ALLOCATOR_EVENT"
@@ -12230,7 +12234,7 @@ b846
 			/ %FileIO $=
 			(
 				+ $dev $lib 'YB_ATTR_nodiscard' @ "functions and function \
-					templates with specified glob name patterns or names" 
+					templates with specified glob name patterns or names"
 					// 'Set*locking' is allowed to ignore the result.
 					$= ("%CategorizeNode", "%DefaultPMode", "Fetch*', 'Get*',
 						"%HaveSameContents", "%IsNodeShared", 'MakePathString*',
@@ -12416,7 +12420,7 @@ b845
 			(
 				/ @ "namespace %ystdex_swap" $=
 				(
-					/ DLDI "function templates %swap" 
+					/ DLDI "function templates %swap"
 						$=
 					(
 						/ "reordered overloads declarations";
@@ -12469,7 +12473,7 @@ b845
 					@ "Doxygen group %type_traits_operations",
 				+ DD '\ingroup YBase_replacement_features' @ "Doxygen comment"
 					@ "alias templates %(void_t, detected_t, detected_or, \
-					detected_or_t, is_detected_exact, is_detected_convertible)"								
+					detected_or_t, is_detected_exact, is_detected_convertible)"
 			),
 			/ %Container $=
 			(
@@ -13074,7 +13078,7 @@ b844
 					),
 					(
 					+ "member type %allocator_type" ^ $dep_from
-						("%pmr::polymorphic_allocator" @ %YAdaptor.Adaptor)
+						("%pmr::polymorphic_allocator" @ %Adaptor.YAdaptor)
 						$dep_from %NPL.Dependency;
 					(
 					/ "member type %Container allocator type"
@@ -13328,7 +13332,7 @@ b843
 				currently introduce %std name)" @ "class %StyleMap" @ %UI.YStyle
 				$since b468,
 				// The header name was 'ystyle.h'.
-			/ @ "namespace %YSLib" %YAdaptor.Adaptor $=
+			/ @ "namespace %YSLib" %Adaptor.YAdaptor $=
 			(
 				/ "all declarations of names from %platform \
 					and existed in inline namespaces \
@@ -13687,7 +13691,7 @@ b841
 					%FormContextHandler::operator()" $since b811,
 					// %StrictContextHandler::operator() should work with it \
 						together.
-				/ 
+				/
 					@ "member function %StrictContextHandler::operator()" $=
 				(
 					- "assertion with %AssertBranch";
@@ -13821,7 +13825,7 @@ b840
 							be evaluated <environment>) and '/d' (with \
 							<eformal>) variants of functions here. Since the \
 							old name is 'env' in most cases, 'd' also saves \
-							space. 
+							space.
 				),
 				* $comp "threw on opening empty file" @ "function %OpenFile"
 					$since b839 $dep_from
@@ -14166,7 +14170,7 @@ b839
 	(
 		/ %SHBuild.Main $=
 		(
-			/ "NPLA1 context initialization" $=
+			/ @ "NPLA1 context initialization" $=
 			(
 				/ $forced DLDI $dep_from ("%Forms::(LoadNPLContextGround, \
 					LoadNPLContextForSHBuild)"
@@ -14245,7 +14249,7 @@ b839
 			/ $forced DLDI "importing" $dep_from "loader functions"
 				$= (/ "imported names from modules %std.(environments, \
 					strings, io, system)" @ "%(SHBuild-YSLib-common.txt, \
-					SHBuild-YSLib-build.txt)" 
+					SHBuild-YSLib-build.txt)"
 					$dep_from "importing from standard environments")
 		)
 	)
@@ -14267,7 +14271,7 @@ b838
 			// As per https://gcc.gnu.org/projects/cxx-status.html, P0136R1 is \
 				implemented since GCC 7. So the older versions would not work. \
 				Lacking of the change would break builds in platform %Android.
-			* "ambiguous constructors" 
+			* "ambiguous constructors"
 				@ "class template %basic_string" @ %String $since b833
 				$= (/ "inherited constructor" -> "7 explicitly declared \
 				constructors"),
@@ -14578,7 +14582,7 @@ b837
 			),
 			/ %StringView $=
 			(
-				/ "condition for <string_view> inclusion" @ 
+				/ "condition for <string_view> inclusion" @
 					// For %YB_Has_string_view.
 					$= (+ 'YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201706'),
 				+ "conditionally defined macro %__cpp_lib_string_view"
@@ -15410,7 +15414,7 @@ b835
 		/ @ "constructor, function %LoadBookmarks" @ "class %BookmarkPanel" $=
 		(
 			/ $impl "simplified string loading" ^ "%String" ~ "%string";
-			* $comp "narrowed string loaded for bookmarks" $since b397 
+			* $comp "narrowed string loaded for bookmarks" $since b397
 		),
 		* $comp "ineffective enabled state caused by wrong extension comparison"
 			@ %ShlExplorer $since b825 $dep_from
@@ -16129,7 +16133,7 @@ b832
 					('_*detected', 'detected_*')" >> %Meta,
 			),
 			+ DLDI "inclusion %TypeTraits" @ %(Functor, Swap),
-			+ DLDI "inclusion %IntegerSequence" @ %Memory; 
+			+ DLDI "inclusion %IntegerSequence" @ %Memory;
 			/ DLDI "inclusion %TypeTraits" @ %AddressOf
 				-> "%(IntegralConstant, Meta)",
 			/ DLDI "inclusion %TypeTraits"
@@ -16506,7 +16510,7 @@ b830
 		(
 		/ $forced ('#include <map>'; 'using std::map;')
 			-> ('#include <ystdex/map.hpp>', 'using ystdex::map;');
-			@ %YSLib.YAdaptor.Container $dep_from %YBase.YStandardEx.MappedSet
+			@ %YSLib.Adaptor.Container $dep_from %YBase.YStandardEx.MappedSet
 			// This is needed for avoiding ambiguity for client code (e.g. in \
 				%Tools.RevisionPatcher.Main), even though it is not a \
 				recommend style. This also makes template code less bloating.
@@ -17460,7 +17464,7 @@ b823
 							TCO frame.
 				),
 				/ $forced "function %ResolveEnvironment" ^ ($dep_from
-					"%EnvironmentReference" @ %NPLA) ~ "%weak_ptr<Environment>" 
+					"%EnvironmentReference" @ %NPLA) ~ "%weak_ptr<Environment>"
 					$dep_from "%Environment::DefaultRedirect",
 				/ @ "vau and evaluation TCO" $=
 				(
@@ -18124,7 +18128,7 @@ b814
 			/ "supported thunked tail calls" @ "function %Reduce" $=
 			(
 				/ "saved and restored current action and skip state"
-					$dep_from 
+					$dep_from
 					("%ContextNode::SkipToNextEvaluation" @ %NPLA);
 				- "precondition"
 				// This is needed, otherwise %REPL::LoadFrom would fail for \
@@ -18227,7 +18231,7 @@ b812
 				- "function templates %(PushActionsRange; \
 					RelayNestedNextActions)" !^ "%PushActionsRange";
 				/ "exposed inner actions to %Delimited" ^ $dep_from
-					"%MoveAction" 
+					"%MoveAction"
 					// See the comments on implementation for the purpose.
 				),
 				/ "avoided copy of handlers when captured to actions"
@@ -19463,7 +19467,7 @@ b800
 		@ "project %YSTest",
 	/ $re_ex(b700) "regenerated Code::Blocks projects"
 		^ ("%GenerateProjects.sh" @ %Tools.Scripts),
-	/ $doc $deploy "updated version" @ "%Doxyfile"
+	/ $doc $deploy "updated PROJECT_NUMBER" @ "%Doxyfile"
 );
 
 ////

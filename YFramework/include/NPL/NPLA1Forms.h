@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r7802
+\version r7823
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2021-02-14 11:34 +0800
+	2021-02-19 22:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1431,10 +1431,9 @@ YF_API ReductionStatus
 AccR(TermNode&, ContextNode&);
 //@}
 
-//! \since build 899
-//@{
 /*!
 \brief 在列表元素上应用右结合的二元操作。
+\since build 899
 
 对 <list> 指定的列表进行处理，取得部分和。
 当列表非空时，处理的结果为参数 <object> 指定的对象；
@@ -1450,15 +1449,35 @@ FoldR1(TermNode&, ContextNode&);
 
 /*!
 \brief 单列表映射操作。
+\since build 899
 
-使用指定应用子对列表中每个参数进行调用，结果为调用结果的列表。
+使用指定应用子对列表中每个参数进行调用，结果为应用子调用结果作为元素的列表。
 
 参考调用文法：
 <pre>map1 \<applicative> \<list></pre>
 */
 YF_API ReductionStatus
 Map1(TermNode&, ContextNode&);
-//@}
+
+/*!
+\brief 顺序连接两个列表。
+\since build 912
+
+参考调用文法：
+<pre>list-concat \<list1> \<list2></pre>
+*/
+YF_API ReductionStatus
+ListConcat(TermNode&, ContextNode&);
+
+/*!
+\brief 顺序连接零个或多个列表。
+\since build 912
+
+参考调用文法：
+<pre>append \<list>...</pre>
+*/
+YF_API ReductionStatus
+Append(TermNode&, ContextNode&);
 
 
 /*!

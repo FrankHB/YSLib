@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r2653
+\version r2773
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-02-17 01:51 +0800
+	2021-02-23 23:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,121 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ $fmt @ "%.clang-format" $=
+	(
+		+ 'SpaceBeforeCpp11BracedList: false',
+		+ 'SpaceBeforeInheritanceColon: true',
+		+ 'SpaceBeforeRangeBasedForLoopColon: true',
+		/ 'BinPackArguments: false' -> 'BinPackArguments: true',
+		/ 'BinPackParameters: false' -> 'BinPackParameters: true',
+		+ $design "some commented out configurations documented at Clang 12 \
+			documentation but not introduced before LLVM Github Monorepo",
+		/ 'BreakBeforeTernaryOperators: false'
+			-> 'BreakBeforeTernaryOperators: true',
+		/ 'BreakConstructorInitializersBeforeComma: false'
+			-> 'BreakConstructorInitializers: BeforeColon',
+		+ 'BreakInheritanceList: BeforeColon',
+		+ 'AlignConsecutiveMacros: false',
+		+ 'AllowAllArgumentsOnNextLine: true',
+		+ 'AllowAllConstructorInitializersOnNextLine: true',
+		/ 'AllowShortBlocksOnASingleLine: false'
+			-> 'AllowShortBlocksOnASingleLine: Never',
+		+ 'AllowShortLambdasOnASingleLine: Empty',
+		- DLDI "redundant space" @ "%AllowShortLoopsOnASingleLine",
+		/ 'AlwaysBreakTemplateDeclarations: true'
+			-> 'AlwaysBreakTemplateDeclarations: Yes',
+		+ 'BreakStringLiterals: false',
+		+ 'FixNamespaceComments: false',
+		+ 'IndentGotoLabels: false',
+		+ 'PenaltyBreakAssignment: 80',
+		+ 'PenaltyBreakTemplateDeclaration: 0',
+		+ 'ReflowComments: false',
+		+ 'SpaceAfterLogicalNot: false'
+		+ 'SpaceInEmptyBlock: false'
+	),
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				/ DLDI "functions %(RelayForEval, RelayForCall)"
+					!^ "function %RelayForEvalOrDirect"
+					$dep_to "simplified evaluation relay",
+				/ "bound subobject reference with sigil '&' for traling list \
+					arguments" @ "function %BindParameter"
+					// Although the %shared_ptr instance is introduced, it can \
+						actually benefit performance in some list operations.
+			),
+			/ @ "namespace %Forms" @ %NPLA1Forms $=
+			(
+				/ DLDI "functions %(Eval, EvalRef, EvalString, EvalStringRef)"
+					!^ "function %RelayForEvalOrDirect"
+					$dep_to "simplified evaluation relay",
+				+ "function %ListConcat",
+				* DLDI "missing term cleanup"
+					@ "functions %(AccL, AccR, FoldR1, Map1)" $since b898,
+					// This did not expose wrong behavior because the \
+						move-after states of %ValueObject and %TermContainer \
+						are empty. Note the postcondition of the move of \
+						%ystdex::any is not exposed here.
+				/ DLDI "simplified functions %(Cons, ConsRef, AccL, AccR)"
+				/ DLI "simplified object layout" @ "recursive calls"
+					@ "functions %(AccL, AccR, FoldR1, Map1)",
+				/ DLI ^ "allcator for term reference constructed by first \
+					element extraction" @ "functions %(FoldR1, Map1)",
+				+ "function %Append"
+			),
+			/ %NPLA1Internals $=
+			(
+				- "function template %RelayForEvalOrDirect"
+					$dep_all_from "simplified evaluation relay"
+			),
+			/ %Dependency $=
+			(
+				/ @ "function %LoadGroundContext" $=
+				(
+					/ $lib "added native derivation enabled by default"
+						@ ("applicative \
+						'list-concat'" ^ $dep_from ("%ListConcat"
+						@ %NPLA1Forms), "applicative %append"
+						^ $dep_from ("%Append" @ %NPLA1Forms),
+						"applicative 'derive-current-environment'",
+						"applicative 'derive-environment'"),
+					- DLDI "redundant 'Forms::'" @ "calls",
+					* "missing refinement of argument count" @ "native \
+						derivation" @ "applicative 'make-standard-environment'"
+						$since b910
+						/ $= (/ $impl ^ "%RetainN" ~ "%Retain"),
+				//	/ DLDI "simplified derivation" @ "applicative \
+						'list-extract'" ^ ('map1', 'list%') ~ ('accr', 'null?',
+						'forward-first%', 'rest%', 'cons%'),
+					(
+					/ DLDI "simplified derivation" @ "operatives '$let', \
+						'$let%', '$let/e', '$let/e%'" ^ 'rest%' ~ 'list-rest';
+					- $revert(b839) "applicative 'list-rest%'"
+					)
+				),
+				/ DLI "simplified space" @ "alternative derivation"
+					@ "function %LoadStandardDerived"
+					@ "function 'ensigil'"
+					// This get less one line.
+			)
+			/ DLI ^ "allocator" @ "initialization of %ContextHandler"
+				$effective @ ("functions %Forms::(WrapRef, WrapOnceRef, \
+				Unwrap, Apply, ForwardFirst)" @ %NPLA1Forms,
+				"function %ReduceForCombinerRef" @ %NPLA1Internals)
+		),
+		- DLDI "unused lambda-capture" @ "member function %ValueObject::Query"
+			@ %YSLib.Core.YObject,
+			// To eliminate Clang++ warning: [-Wunused-lambda-capture].
+		- $dev $lib "inclusion %YSLib.Core.YEvent" @ 'YF_Use_XCB' @ %XCB
+	),
+	/ $dev "enhanced %YB_IMPL_GNUPP detection" @ %YBase.YDefinition
+),
+
+b911
 (
 	/ %Tools.Scripts $=
 	(
@@ -282,23 +397,23 @@ b910
 		(
 			/ @ "function %LoadGroundContext" $=
 			(
-				+ "native derivation enabled by default" @ "applicatives \
-					'make-standard-environment', 'first-null?'",
+				/ $lib "added native derivation enabled by default"
+					@ "applicatives 'make-standard-environment', 'first-null?'",
 				* "missing fowrading the 2nd argument"
 					@ "applicative 'list-concat'" $since b859,
 					// See $2021-02 @ %Documentation::Workflow.
-				+ "native derivation of applicatives enabled by default"
+				/ $lib "added native derivation enabled by default"
 					@ ("%restv" ^ $dep_from ("%RestVal" @ %NPLA1Forms),
 					'rest&' ^ $dep_from ("%RestRef" @ %NPLA1Forms)),
 				(
-				+ "native derivation enabled by default"
+				/ $lib "added native derivation enabled by default"
 					@ "applicative 'rest%'"
 					$dep_from (("%BindParameter", ^ "%Rest") @ %NPLA1Forms);
 				* $comp "inconsistent internal derivation of 'rest%' used"
 					$since b909
 					// This should have 'move!' in the body.
 				),
-				+ "%forward call for the argument"
+				+ "%forward call on the argument" @ "derivation"
 					@ "applicative 'list-rest%'",
 				/ DLDI "order of derivation" @ "operative $as-environment"
 					// This does use '$let', so put it later.
@@ -2579,7 +2694,7 @@ b900
 			* "missing import %SHBuild_TrimOptions_ from %env_SHBuild_"
 				$since b838,
 				// Ditto.
-			* DLDI "wrong handling of negation %SS_Debg" $since b840,
+			* DLDI "wrong handling of negation %SS_Debug" $since b840,
 				// This did not expose wrong behavior because the consumption \
 					of the value is also wrong.
 			* @ "applicative 'ss-verbose-puts'" $since b840 $=

@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20401
+\version r20403
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2021-02-12 14:18 +0800
+	2021-02-17 04:45 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -242,7 +242,8 @@ ReduceForCombinerRef(TermNode& term, ContextNode& ctx,
 	const auto& r_env(FetchTailEnvironmentReference(ref, ctx));
 	const auto a(term.get_allocator());
 	auto p_sub(YSLib::allocate_shared<TermNode>(a, NPL::AsTermNode(a,
-		ContextHandler(FormContextHandler(RefContextHandler(h, r_env), n)))));
+		ContextHandler(std::allocator_arg, a,
+		FormContextHandler(RefContextHandler(h, r_env), n)))));
 	auto& sub(NPL::Deref(p_sub));
 	TermNode tm(std::allocator_arg, a, {NPL::AsTermNode(a, std::move(p_sub))},
 		std::allocator_arg, a, TermReference(sub, r_env));

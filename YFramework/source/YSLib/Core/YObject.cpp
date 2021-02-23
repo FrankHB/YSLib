@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013, 2015-2017, 2019-2020 FrankHB.
+	© 2009-2013, 2015-2017, 2019-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YObject.cpp
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r917
+\version r919
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2020-05-29 18:31 +0800
+	2021-02-23 23:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -102,7 +102,7 @@ ValueObject::OwnsCount() const ynothrow
 any
 ValueObject::Query(uintmax_t val) const
 {
-	return ystdex::call_value_or([this, val](const IValueHolder& h){
+	return ystdex::call_value_or([val](const IValueHolder& h){
 		return h.Query(val);
 	}, GetHolderPtr());
 }

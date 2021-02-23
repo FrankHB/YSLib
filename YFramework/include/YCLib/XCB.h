@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015, 2018 FrankHB.
+	© 2014-2015, 2018, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief XCB GUI 接口。
-\version r407
+\version r409
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2014-12-14 14:40:34 +0800
 \par 修改时间:
-	2018-11-26 06:02 +0800
+	2021-02-23 23:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,6 @@
 #	include YFM_YCLib_Debug // for platform::Deref;
 #	include <ystdex/pointer.hpp> // for ystdex::nptr;
 #	include YFM_YSLib_Core_YGraphics
-#	include YFM_YSLib_Core_YEvent
 #	include <atomic>
 
 //! \since build 560

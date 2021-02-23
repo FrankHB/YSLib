@@ -6,29 +6,35 @@
 Language: Cpp
 Standard: Auto # Cpp11 is preferred in general.
 AccessModifierOffset: -4
-# AlignAfterOpenBracket: true
-AlignAfterOpenBracket: DontAlign # Requires Clang > 3.8.
+# AlignAfterOpenBracket: false
+AlignAfterOpenBracket: DontAlign # Requires Clang 3.8.
 AlignConsecutiveAssignments: false
+# AlignConsecutiveBitFields: false Requires git b99bf0e08be4.
 AlignConsecutiveDeclarations: false
+AlignConsecutiveMacros: false # Requires r364938.
 # AlignEscapedNewlinesLeft: false
 AlignEscapedNewlines: DontAlign
-AlignOperands: false
+AlignOperands: false # See https://reviews.llvm.org/rG47ef09e4848a970c530928496b54085cfdba5a76.
 AlignTrailingComments: false
+AllowAllArgumentsOnNextLine: true # Requires r356834.
+AllowAllConstructorInitializersOnNextLine: true # Requires r356834.
 AllowAllParametersOfDeclarationOnNextLine: true
-AllowShortBlocksOnASingleLine: false
+# AllowShortBlocksOnASingleLine: false # Requires r208765, before r365839.
+AllowShortBlocksOnASingleLine: Never # Requires r365839.
 AllowShortCaseLabelsOnASingleLine: false
+# AllowShortEnumsOnASingleLine: false # Requires git 292058a5d6d7.
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: false
-AllowShortLoopsOnASingleLine:  false
+AllowShortLambdasOnASingleLine: Empty # Requires r357027.
+AllowShortLoopsOnASingleLine: false
 # AlwaysBreakAfterDefinitionReturnType: All # Deprecated.
-AlwaysBreakAfterReturnType: All # http://reviews.llvm.org/D10774
+AlwaysBreakAfterReturnType: All # Requires r240959.
 AlwaysBreakBeforeMultilineStrings: false
-AlwaysBreakTemplateDeclarations: true
-BinPackArguments: false
-BinPackParameters: false
-# BreakAfterJavaFieldAnnotations: true
-BreakBeforeBinaryOperators: All
-BreakBeforeBraces: Custom
+# AlwaysBreakTemplateDeclarations: true # Requires before r332436.
+AlwaysBreakTemplateDeclarations: Yes # Requires r332436.
+BinPackArguments: true
+BinPackParameters: true
+# BitFieldColonSpacing: Both # Requires git 52ab7aa0ba5a.
 BraceWrapping:
   AfterClass: true
   AfterControlStatement: true
@@ -44,8 +50,15 @@ BraceWrapping:
   SplitEmptyFunction: false
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
-BreakBeforeTernaryOperators: false
-BreakConstructorInitializersBeforeComma: false
+# BreakAfterJavaFieldAnnotations: false
+BreakBeforeBinaryOperators: All
+BreakBeforeBraces: Custom
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: BeforeColon # Requires r303739.
+# BreakConstructorInitializersBeforeComma: false # Requires before r303739.
+BreakInheritanceList: BeforeColon # Requires r334408.
+BreakStringLiterals: false # Requires r259352. Documentatations come later,
+#	e.g. git 23b78364150c.
 ColumnLimit: 80
 CommentPragmas: ''
 CompactNamespaces: false
@@ -53,37 +66,64 @@ ConstructorInitializerAllOnOneLineOrOnePerLine: false
 ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4
 Cpp11BracedListStyle: true
+# DeriveLineEnding: false # Requires git 358eaa3dcea1.
 DerivePointerAlignment: false
 DisableFormat: false
-# ExperimentalAutoDetectBinPacking: true # Warning: This is an experimental flag, that might go away or be renamed.
+# ExperimentalAutoDetectBinPacking: true # Warning: This is an experimental
+#	flag, that might go away or be renamed.
 ForEachMacros: [ 'BOOST_FOREACH' ]
+FixNamespaceComments: false # Requires r296632. Note that it still need some
+#	manual adjustments.
+# IncludeBlocks: # Unused.
 # IncludeCategories: # Unused.
+# IncludeIsMainRegex: '$' # Requires git 266825620c7f.
+# IncludeIsMainSourceRegex: # Unused.
+# IndentCaseBlocks: true # Requires git 14c044756e77.
 IndentCaseLabels: false
+# IndentExternBlock: NoIndent # Requires git 6ef45b0426a8.
+IndentGotoLabels: false # Requires r371719.
 IndentPPDirectives: AfterHash
 IndentWidth: 4
 IndentWrappedFunctionNames: false
+# InsertTrailingCommas: # Unused.
+# JavaImportGroups: # Unused.
+# JavaScriptQuotes: Leave # Unused.
+# JavaScriptWrapImports: true # Unused.
 KeepEmptyLinesAtTheStartOfBlocks: true # This also seems to apply to namespaces.
-#MacroBlockBegin: '^\t*(Decl|Def|Impl|PDefH|Try|YInterface|YB_LibDefect_CMath_builtin)'
+# MacroBlockBegin: '^\t*(Decl|Def|Impl|PDefH|Try|YInterface|YB_LibDefect_CMath_builtin)'
 MacroBlockBegin: '^\t*YInterface'
 MacroBlockEnd: '^\t*EndDecl'
 MaxEmptyLinesToKeep: 2
 NamespaceIndentation: None
+# ObjCBinPackProtocolList: Auto # Unused.
 ObjCBlockIndentWidth: 4
+# ObjCBreakBeforeNestedBlockParam: # Unused.
 ObjCSpaceAfterProperty: false
 ObjCSpaceBeforeProtocolList: false
+PenaltyBreakAssignment: 80
 PenaltyBreakBeforeFirstCallParameter: 80
 PenaltyBreakComment: 40
 PenaltyBreakFirstLessLess: 2
 PenaltyBreakString: 160
+PenaltyBreakTemplateDeclaration: 0 # Requires r332436.
 PenaltyExcessCharacter: 320
 PenaltyReturnTypeOnItsOwnLine: 0
 PointerAlignment: Left
+# RawStringFormats: # Unused temporarily.
+ReflowComments: false
 SortIncludes: false
+# SortJavaStaticImport: false # Unused.
 SortUsingDeclarations: false
 SpaceAfterCStyleCast: false
-SpaceAfterTemplateKeyword: false # Requires > r278121.
+SpaceAfterLogicalNot: false
+SpaceAfterTemplateKeyword: false # Requires r278121.
 SpaceBeforeAssignmentOperators: true
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeInheritanceColon: true # Requires r326426.
 SpaceBeforeParens: Never
+SpaceBeforeRangeBasedForLoopColon: false # Requires r326426.
+# SpaceBeforeSquareBrackets: false # Requires git a4a7c1259e8a.
+SpaceInEmptyBlock: false # Requires r368507.
 SpaceInEmptyParentheses: false
 SpacesBeforeTrailingComments: 1
 SpacesInAngles: false
@@ -91,6 +131,12 @@ SpacesInCStyleCastParentheses: false
 SpacesInContainerLiterals: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
+# StatementMacros: # Unused.
 TabWidth: 4
+# TypenameMacros: # Unused.
+# UseCRLF: true # Requires git 358eaa3dcea1.
 UseTab: Always
+# WhitespaceSensitiveMacros:
+#	['YPP_Concat', 'YPP_Join', 'YPP_Stringify', 'YPP_Stringize']
+# Requires git 0c332a7784c6.
 

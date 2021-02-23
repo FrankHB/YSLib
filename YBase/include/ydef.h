@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2020 FrankHB.
+	© 2009-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 语言实现和系统环境相关特性及公用类型和宏的基础定义。
-\version r3859
+\version r3870
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2020-03-16 10:16 +0800
+	2021-02-23 23:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,8 +101,13 @@
 #		endif
 #	elif defined(__GNUG__)
 #		undef YB_IMPL_GNUCPP
-#		define YB_IMPL_GNUCPP \
+// XXX: This should be available since GCC 3.0.
+#		if defined(__GNUC_PATCHLEVEL__)
+#			define YB_IMPL_GNUCPP \
 	(__GNUG__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#		else
+#			define YB_IMPL_GNUCPP (__GNUG__ * 10000 + __GNUC_MINOR__ * 100)
+#		endif
 #	else
 // TODO: Deferred. Complete version checking for compiler and library
 //	implementations, e.g. EDG frontends.
@@ -445,7 +450,7 @@
 //@}
 
 
-/*!	\defgroup YBase_replacement_features YBase Replacement features
+/*!	\defgroup YBase_replacement_features YBase Replacement Features
 \brief YBase 替代特性。
 \since build 837
 
@@ -453,7 +458,7 @@ YBase 提供的替代 ISO C++ 特性的接口。
 若接口是类或类模板，可能具有扩展特性的成员以及与使用相关类型作为参数的函数或函数模板。
 */
 
-/*!	\defgroup YBase_replacement_extensions YBase Replacement extensions
+/*!	\defgroup YBase_replacement_extensions YBase Replacement Extensions
 \brief YBase 替代扩展。
 \since build 837
 
@@ -729,7 +734,7 @@ G++ 9.1 起，YB_ATTR_LAMBDA 中的 __attribute__ 暂不起效。
 这些初始化通常用于保证派生类的动态类型正确实现 ISO C++ 调用基类虚函数的语义。
 只适用于定义不在初始化对象时调用基类虚函数和使用 RTTI
 	（作为操作数使用 dynamic_cast 或 typeid ）的类，否则行为未定义。
-一般用于只有纯虚函数（除析构函数是非纯的虚函数）的基类。
+一般用于特殊成员函数外的成员函数只有纯虚函数（析构函数是非纯的虚函数）的基类。
 派生类的构造函数使用这些依赖其动态类型的操作已引起未定义行为，
 	参见 ISO C++ [abstract.class]/6 ；
 	因此当基类只有纯虚函数时，不改变程序的预期语义，而仅用于优化。
@@ -800,7 +805,7 @@ G++ 9.1 起，YB_ATTR_LAMBDA 中的 __attribute__ 暂不起效。
 #if YB_IMPL_MSCPP >= 1200
 #	define YB_ASSUME(_expr) __assume(_expr)
 #elif YB_IMPL_CLANGPP >= 30501
-// NOTE: The warning [-Wassume ]is largely useless with misleading diagnostics.
+// NOTE: The warning [-Wassume] is largely useless with misleading diagnostics.
 #	define YB_ASSUME(_expr) \
 	YB_Diag_Push YB_Diag_Ignore(assume) __builtin_assume(_expr) YB_Diag_Pop
 #elif __has_builtin(__builtin_assume)
