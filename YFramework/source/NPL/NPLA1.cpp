@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r20326
+\version r20407
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2021-02-17 02:51 +0800
+	2021-03-01 19:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -500,6 +500,7 @@ struct BindParameterObject
 		if(sigil != '@')
 		{
 			const bool can_modify(!bool(o_tags & TermTags::Nonmodifying));
+			const auto a(o.get_allocator());
 
 			// NOTE: Subterms in arguments retained are also transferred for
 			//	values.
@@ -515,11 +516,13 @@ struct BindParameterObject
 					if(can_modify && temp)
 						// NOTE: Reference collapsed by move.
 						mv(std::move(o.GetContainerRef()),
-							TermReference(ref_tags, std::move(*p)));
+							ValueObject(std::allocator_arg, a, in_place_type<
+							TermReference>, ref_tags, std::move(*p)));
 					else
 						// NOTE: Reference collapsed by copy.
 						mv(TermNode::Container(o.GetContainer()),
-							TermReference(ref_tags, *p));
+							ValueObject(std::allocator_arg, a,
+							in_place_type<TermReference>, ref_tags, *p));
 				}
 				else
 				{
@@ -562,7 +565,7 @@ struct BindParameterObject
 					//	ignored normally except for future internal use. Note
 					//	that %TermTags::Temporary can be provided by a bound
 					//	object (indicated by %o) in an environment.
-					ValueObject(std::allocator_arg, o.get_allocator(),
+					ValueObject(std::allocator_arg, a,
 					in_place_type<TermReference>,
 					GetLValueTagsOf(o.Tags | o_tags), o, Referenced));
 			else
@@ -1033,6 +1036,66 @@ ReduceTail(TermNode& term, ContextNode& ctx, TNIter i)
 }
 
 
+ReductionStatus
+ReduceToReferenceList(TermNode& term, ContextNode& ctx, TermNode& tm)
+{
+	return ResolveTerm(
+		[&](TermNode& nd, ResolvedTermReferencePtr p_ref) YB_FLATTEN{
+		if(IsList(nd))
+		{
+			// XXX: As %BindParameterObject.
+			const bool temp(!p_ref || p_ref->IsTemporary());
+
+			if(temp || p_ref->IsMovable())
+				// NOTE: This allows %nd owned by %term.
+				term.MoveContainer(std::move(nd));
+			else
+			{
+				const auto a(term.get_allocator());
+				TermNode::Container con(a);
+				const bool can_modify(!p_ref || p_ref->IsModifiable());
+				const auto& r_env(p_ref ? p_ref->GetEnvironmentReference()
+					: ctx.WeakenRecord());
+				auto o_tags(p_ref ? p_ref->GetTags()
+					& (TermTags::Unique | TermTags::Nonmodifying)
+					: TermTags::Temporary);
+
+				// XXX: As %BindParameter.
+				for(auto& o : nd)
+				{
+					if(const auto p = NPL::TryAccessLeaf<TermReference>(o))
+					{
+						if(can_modify && temp)
+							con.emplace_back(std::move(o.GetContainerRef()),
+								ValueObject(std::allocator_arg, a,
+								in_place_type<TermReference>, std::move(*p)));
+						else
+							con.emplace_back(o.GetContainer(), ValueObject(
+								std::allocator_arg, a, in_place_type<
+								TermReference>, BindReferenceTags(*p), *p));
+					}
+					else if(can_modify && temp)
+					{
+						con.emplace_back(std::move(o.GetContainerRef()),
+							std::move(o.Value));
+						con.back().Tags |= TermTags::Temporary;
+					}
+					else
+						con.emplace_back(TermNode::Container(o.get_allocator()),
+							ValueObject(std::allocator_arg, a,
+							in_place_type<TermReference>,
+							GetLValueTagsOf(o.Tags | o_tags), o, r_env));
+				}
+				con.swap(term.GetContainerRef());
+			}
+			return ReductionStatus::Retained;
+		}
+		else
+			ThrowListTypeErrorForNonlist(nd, p_ref);
+	}, tm);
+}
+
+
 void
 SetupTraceDepth(ContextState& cs, const string& name)
 {
@@ -1300,6 +1363,7 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 		if(const auto p = NPL::TryAccessLeaf<const TermReference>(bound))
 		{
 			p_rterm = &p->get();
+			// XXX: It is assumed that %term is not an ancestor of %bound.
 			term.SetContent(bound.GetContainer(),
 				EnsureLValueReference(TermReference(*p)));
 		}
@@ -1359,6 +1423,8 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 	auto& fm(AccessFirstSubterm(term));
 	const auto p_ref_fm(NPL::TryAccessLeaf<const TermReference>(fm));
 
+	// NOTE: If this call returns normally, the combiner object implied by %fm
+	//	is not owned by %term.
 	// XXX: %SetupNextTerm is to be called in %CombinerReturnThunk.
 	// NOTE: The tag is intended to be consumed by %VauHandler in %NPLA1Forms.
 	//	As the irregular representation has a handler of %RefContextHandler,
@@ -1389,14 +1455,15 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 			YAssert(ystdex::ref_eq<>()(NPL::Deref(NPL::Access<
 				shared_ptr<TermNode>>(*fm.begin())), referenced),
 				"Invalid subobject reference found.");
-			// XXX: %TermNode::SetContent cannot be used here due to subterm
-			//	invalidation.
-			fm.MoveContent(TermNode(referenced));
+			// XXX: Explicit copy is necessary as in the implementation of
+			//	%LiftOtherOrCopy.
+			fm.CopyContent(referenced);
 			YAssert(IsLeaf(fm), "Wrong result of irregular"
 				" representation conversion found.");
 		}
 		else
 #endif
+		// NOTE: The combiner object is in an lvalue. It is not saved by %term.
 		if(const auto p_handler
 			= NPL::TryAccessLeaf<const ContextHandler>(p_ref_fm->get()))
 			// NOTE: This is neutral to %NPL_Impl_NPLA1_Enable_Thunked.
@@ -1404,8 +1471,12 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 	}
 	else
 		term.Tags |= TermTags::Temporary;
-	// NOTE: Converted terms are also handled here.
-	// NOTE: To allow being moved, this shall be not qualified by 'const'.
+	// NOTE: The combiner object is in a prvalue. It will be moved away from
+	//	the combining term (i.e. %term) by the call to %CombinerReturnThunk.
+	//	The implementation varies on different configurations.
+	// XXX: Converted terms (if used, see above) are also handled here as in
+	//	prvalues.
+	// NOTE: To allow being moved, %p_handler is not qualified by 'const'.
 	if(const auto p_handler = NPL::TryAccessTerm<ContextHandler>(fm))
 #if NPL_Impl_NPLA1_Enable_TCO
 		return
@@ -1532,8 +1603,9 @@ BindParameter(const shared_ptr<Environment>& p_env, const TermNode& t,
 
 			if(!id.empty())
 			{
+				const auto a(o_tm.get_allocator());
 				const auto last(o_tm.end());
-				TermNode::Container con(t.get_allocator());
+				TermNode::Container con(a);
 
 				// XXX: As %TermReference::IsMovable for non-temporary objects.
 				if((o_tags & (TermTags::Unique | TermTags::Nonmodifying))
@@ -1563,7 +1635,10 @@ BindParameter(const shared_ptr<Environment>& p_env, const TermNode& t,
 						});
 					if(sigil == '&')
 					{
-						const auto a(o_tm.get_allocator());
+						// NOTE: Irregular representation is constructed for the
+						//	list subobject reference.
+						// XXX: As %ReduceAsSubobjectReference in
+						//	NPLA1Internals.
 						auto p_sub(YSLib::allocate_shared<TermNode>(a,
 							std::move(con)));
 						auto& sub(NPL::Deref(p_sub));

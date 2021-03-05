@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4235
+\version r4265
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2021-02-12 12:05 +0800
+	2021-03-03 01:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1001,7 +1001,7 @@ Note the 'std::reference_wrapper' is not equal to 'boost::reference_wrapper'.
 				This allowed both instances of 'std::reference_wrapper' and 'ystdex::lref' to be the function argument type.
 				To minimize dependencies, no further conversions is supported specially.
 				If more generic interface is needed, SFINAE with 'ystded::wrapped_traits' can be used.
-		The declaration 'ystdex::lref' is introduced in namespace "YSLib" by using-declarations in YSLib::Adaptor::YReference unconditionally. However, the 'std::ref' and 'std::cref' are not quite same.
+		The declaration 'ystdex::lref' is introduced in namespace 'YSLib' by using-declarations in YSLib::Adaptor::YReference unconditionally. However, the 'std::ref' and 'std::cref' are not quite same.
 			They clashed with names in 'std'.
 			In library code they should be always used with qualified prefix, otherwise the ADL can make troubles when the behavior of found entity are not equivalent as expected.
 				Note 'ystdex::ref' and 'ystdex::cref' are different with 'ystdex::make_*' for smart pointers.
@@ -3837,9 +3837,9 @@ $2020-09:
 report.impl:
 A problem of memory comsumption in the compilation has been worked around.
 	GCC uses huge memory on stage 1 SHBuild of some translation units containing complicated code.
-		The concrete instance is the compilation on some functions with deep nested lambda expressions (e.g. AccL) in the YFramework module NPL::NPLA1Forms.
+		The concrete instance is the compilation on some functions with deep nested lambda expressions (e.g. 'AccL') in the YFramework module NPL::NPLA1Forms.
 		With i686 target, it leads to crash of the compiler due to running out of the available address space.
-		With x86_64 target, the translation unit containing the definitions of the 4 offending functions (AccL, AccR, FoldR1 and Map1) needs more than 5.3 GiB for the frontend (cc1plus) and more than 2.1 GiB for the assembler (as).
+		With x86_64 target, the translation unit containing the definitions of the 4 offending functions ('AccL', 'AccR', 'FoldR1' and 'Map1') needs more than 5.3 GiB for the frontend (cc1plus) and more than 2.1 GiB for the assembler (as).
 			There are also warnings "variable tracking size limit exceeded with ‘-fvar-tracking-assignments’".
 				Variable tracking causes huge memory used in the compilation in debug with optimization modes.
 			For VTA, see https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/developer_guide/ch-debug-vta.
@@ -4185,7 +4185,7 @@ NPLA1 implementation is continuously imporved.
 				This fixes the bug that uncollapsed reference values can have different result (to correct ones not in TCO actions) after one operation of result handling.
 				Like adding the combiner wrapping count ('A1::FormContextHandler::Wrapping'), if the count overflow, an exception is thrown.
 			The redundant lifting request in the operation compression (TCO action preparation) is removed.
-				This was originally introduced in internal 'RelayForEval' in module NPL::NPLA1 since build 854.
+				This was originally introduced in the internal function 'RelayForEval' in module NPL::NPLA1 since build 854.
 				The bug would cause the result handling incorrectly by missing lifts when the lifts only requested in some enclosing calls.
 					In particular, it would lead to invalid reference returned without lifting, e.g. in '$bindings/p->environment' with derived '$sequence'.
 						With native implementation '$sequence' there would be no invalid reference because the native implementation using no TCO actions inside.
@@ -4196,6 +4196,35 @@ NPLA1 implementation is continuously imporved.
 		The bug would cause an assertion failure in 'A1::ReduceCombinedBranch' debug configurations due to wrong term used.
 		Currently, this would affect functions 'AccL', 'AccR', 'FoldR1', 'Map1' and 'ForwardListFirst' in namespace 'A1::Forms'.
 		The fix is as the change in functions 'A1::RelayForEval' and 'A1::RelayForCall' since build 909.
+A bug of bronken safety guarantee is fixed.
+	A fragment of NPLA1 program should be safe with only safe operations (whose name having no '%', for example).
+	This is broken by list operations based on 'foldr1', possibly preserving invalid reference values by list constructor (as 'cons%') in the implementation.
+	Some cases are:
+		$let () ($def! li list 1; map1 id li);
+		$let () ($def! li list 1; append li);
+	To fix the bug, a new accessor 'first%' is used instead of the old 'first' in the derivation of 'foldr1', which avoids accessing the referent of the list elements (if any).
+		This actually reverts the change in build 858, but the applicative 'first%' is not exactly same to the old one which was then renamed to 'first'.
+	The native fix are concerned with functions 'FoldR1', 'Map1', 'ListConcat' and 'Append' in namespace 'Forms' in module NPL::NPLA1Forms.
+		The logic of access the list elements is also simpler and more efficient after the fix.
+
+$2021-03:
+
+report.impl:
+Module NPL is continuously improved.
+	Envrionment reference argument in construction of 'TermReference' in NPLA1 implementation is simplified.
+		The operation to perserve the tail anchor (originally introduced in module NPL::NPLA1 in build 869) is removed.
+			It is not safer once an unsafe term reference (without the associated environment reference) has been involved.
+			Due to lacking of presice information of the associated environment in the term reference, it is exactly unhelpful for more precise weak reference count used by TCO, which is the original purpose.
+		This also makes it more consistent with 'TermReference' construction sites.
+			Notably, 'ReduceToReferenceAt' module NPL::NPLA (but not NPLA1) has no context parameter. It seems unwise to add one just for this special purpose.
+	Uses of list initialization via 'std::initialization_list' is checked to avoid unexpected copy caused by the improper use cases.
+		The bug makes it fail to copy 'TermNode' having move-only objects, which should have been supported.
+			As now, it has only effected some native implementations in module NPL::NPLA1Forms.
+				This makes several applicatives (like 'accr') behaves differently than its alternative derivation.
+			They are fixed by avoiding list initialization.
+		Other cases in NPL (e.g. APIs in the nested namespace 'SXML') may be not optimal, but they are not bugs as rejecting move-only objects.
+		There are similar cases in the uses of other types (e.g. 'ValueNode'), but regularly they do not uses move-only objects, so they are not checked now.
+
 
 ////
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r7823
+\version r7844
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2021-02-19 22:20 +0800
+	2021-03-01 18:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -731,6 +731,17 @@ YF_API ReductionStatus
 FirstAt(TermNode&);
 
 /*!
+\since build 913
+
+结果是列表的第一个元素经过转发的引用值。保留结果中的引用值。
+
+参考调用文法：
+<pre>first% \<list></pre>
+*/
+YF_API ReductionStatus
+FirstFwd(TermNode&);
+
+/*!
 结果是列表的第一个元素引用的对象的引用值。保留结果中的引用值。
 
 参考调用文法：
@@ -750,28 +761,29 @@ YF_API ReductionStatus
 FirstVal(TermNode&);
 //@}
 
-/*!
-\brief 取列表第一个元素以外的元素值构成的列表。
-\since build 910
-*/
+//! \brief 取列表第一个元素以外的元素值构成的列表。
 //@{
 /*!
+\since build 913
+
 结果是列表第一个元素以外的元素值经过转发的值构成的列表。保留结果中的引用值。
 
 参考调用文法：
 <pre>rest% \<list></pre>
 */
 YF_API ReductionStatus
-Rest(TermNode&);
+RestFwd(TermNode&);
 
 /*!
+\since build 913
+
 结果是列表第一个元素以外的元素值的引用值构成的列表。保留结果中的引用值。
 
 参考调用文法：
 <pre>rest& \<list></pre>
 */
 YF_API ReductionStatus
-RestRef(TermNode&);
+RestRef(TermNode&, ContextNode&);
 
 /*!
 结果是列表的第一个元素以外的元素经过返回值转换的值构成的列表。不保留结果中的引用值。
@@ -1220,7 +1232,7 @@ VauWithEnvironmentRef(TermNode&, ContextNode&);
 //@}
 
 
-//! \since build 859
+//! \since build 913
 //@{
 /*!
 \brief 包装合并子为应用子。
@@ -1230,7 +1242,7 @@ VauWithEnvironmentRef(TermNode&, ContextNode&);
 <pre>wrap \<combiner></pre>
 */
 YF_API ReductionStatus
-Wrap(TermNode&, ContextNode&);
+Wrap(TermNode&);
 
 /*!
 \brief 包装合并子为应用子。
@@ -1242,7 +1254,7 @@ Wrap(TermNode&, ContextNode&);
 <pre>wrap& \<combiner></pre>
 */
 YF_API ReductionStatus
-WrapRef(TermNode&, ContextNode&);
+WrapRef(TermNode&);
 
 //! \exception TypeError 应用子参数的类型不符合要求。
 //@{
@@ -1253,7 +1265,7 @@ WrapRef(TermNode&, ContextNode&);
 <pre>wrap1 \<operative></pre>
 */
 YF_API ReductionStatus
-WrapOnce(TermNode&, ContextNode&);
+WrapOnce(TermNode&);
 
 /*!
 \brief 包装操作子为应用子。
@@ -1264,17 +1276,16 @@ WrapOnce(TermNode&, ContextNode&);
 <pre>wrap1& \<operative></pre>
 */
 YF_API ReductionStatus
-WrapOnceRef(TermNode&, ContextNode&);
+WrapOnceRef(TermNode&);
 
 /*!
 \brief 解包装应用子为合并子。
-\since build 858
 
 参考调用文法：
 <pre>unwrap \<applicative></pre>
 */
 YF_API ReductionStatus
-Unwrap(TermNode&, ContextNode&);
+Unwrap(TermNode&);
 //@}
 //@}
 

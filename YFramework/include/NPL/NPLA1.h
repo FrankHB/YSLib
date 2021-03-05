@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8499
+\version r8516
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2021-02-02 09:06 +0800
+	2021-03-01 05:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -620,6 +620,22 @@ inline PDefH(ReductionStatus, ReduceReturnUnspecified, TermNode& term) ynothrow
 	ImplRet((term.Value = ValueObject(std::allocator_arg, term.get_allocator(),
 		ValueToken::Unspecified)), ReductionStatus::Clean)
 
+/*!
+\brief 规约到引用列表。
+\note 不访问项的值数据成员。若需返回值正确地反映规约状态，需确保为空。
+\return ReductionStatus::Retained
+\since build 913
+
+检查第三参数指定的项表示的对象语言中的列表或列表的引用值，
+	处理其中的元素构造列表到第一参数中的子项。
+结果中的列表元素是对应源列表的元素。
+若源列表为左值，则结果中的列表元素是对应的左值引用值；
+否则，结果中的列表元素从源列表中的元素复制初始化（按标签可发生转移）。
+第三参数指定的源列表可能被第一参数所有。
+*/
+YF_API ReductionStatus
+ReduceToReferenceList(TermNode&, ContextNode&, TermNode&);
+
 
 /*!
 \brief 设置跟踪深度节点：调用规约时显示深度和上下文等信息。
@@ -1166,6 +1182,9 @@ YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsCombiningTerm,
 若发生 ContextHandler 调用，调用前先转移处理器保证生存期，
 	以允许处理器内部移除或修改之前占用的第一个子项（包括其中的 Value 数据成员）。
 在被规约的项没有取得范式时，标记临时对象标签以允许转移作为操作符的函数右值。
+成功调用后，第一个子项指定的合并子被转移到第一参数以外的位置保存。
+这允许简化之后的项的处理，如可假定合并子对象可能所有的项不是第一参数的子项，
+	可使用 TermNode::SetContent 代替 LiftOther 提升项。
 */
 //@{
 YF_API ReductionStatus

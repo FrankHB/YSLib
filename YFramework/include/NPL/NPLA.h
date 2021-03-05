@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r8053
+\version r8055
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2021-02-15 22:49 +0800
+	2021-03-01 02:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1801,7 +1801,7 @@ inline PDefH(void, LiftMovedOther, TermNode& term, const TermReference& ref,
 提升项的值数据成员可能包含的引用值以满足返回值的内存安全要求。
 提升可能转移或复制对象作为返回值，由一般表达式的值确定可转移：
 转移条件等价可转移项，即按 NPL::IsMovable 判断。
-若参数是引用项，以项引用作为第二参数调用 NPL::LiftMoved 。
+若参数是引用项，以项引用作为第二参数调用 NPL::LiftMovedOther 。
 */
 YF_API void
 LiftToReturn(TermNode&);
@@ -1878,6 +1878,7 @@ inline PDefH(void, LiftLast, TermNode& term)
 
 /*!
 \pre 间接断言：参数为枝节点。
+\note 不访问项的值数据成员。若需返回值正确地反映规约状态，需确保为空。
 \return ReductionStatus::Retained 。
 \since build 823
 */

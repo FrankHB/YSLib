@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r3817
+\version r3853
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2021-02-06 22:59 +0800
+	2021-03-01 22:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -371,6 +371,21 @@ public:
 	PDefH(void, ClearContainer, ) ynothrow
 		ImplExpr(container.clear())
 
+	/*!
+	\note 允许被参数中被复制的对象直接或间接地被目标引用。
+	\since build 913
+	*/
+	//@{
+	PDefH(void, CopyContainer, const TermNode& node)
+		ImplExpr(GetContainerRef() = Container(node.GetContainer()))
+
+	PDefH(void, CopyContent, const TermNode& node)
+		ImplExpr(SetContent(TermNode(node)))
+
+	PDefH(void, CopyValue, const TermNode& node)
+		ImplExpr(Value = ValueObject(node.Value))
+	//@}
+
 private:
 	static TermNode::Container
 	ConCons(const ValueNode::Container&);
@@ -424,15 +439,40 @@ public:
 	}
 
 	/*!
-	\brief 转移参数内容。
-	\pre 断言：参数不是 *this 。
+	\pre 断言：参数不是 \c *this 。
+	\note 允许被参数中被转移的对象直接或间接地被目标引用。
+	\since build 913
+	*/
+	//@{
+	/*!
+	\brief 转移容器。
+
+	转移参数指定的节点的容器到对象。
+	转移后的节点的容器是转移前的参数的容器。
+	*/
+	void
+	MoveContainer(TermNode&&);
+
+	/*!
+	\brief 转移内容。
 	\since build 853
 
-	转移参数指定的节点的内容到对象。转移后的节点内容是转移前的参数内容。
-	允许被转移的参数直接或间接地被容器引用。
+	转移参数指定的节点的内容到对象。
+	转移后的节点的内容是转移前的参数的内容。
 	*/
 	void
 	MoveContent(TermNode&&);
+
+	/*!
+	\brief 转移值数据成员。
+
+	转移参数指定的节点的值数据成员到对象。
+	转移后的节点的值数据成员是转移前的参数内容。
+	*/
+	void
+	MoveValue(TermNode&&);
+	//@}
+
 
 	PDefH(void, Remove, const_iterator i)
 		ImplExpr(erase(i))

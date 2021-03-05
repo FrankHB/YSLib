@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r4288
+\version r4355
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2021-02-23 00:22 +0800
+	2021-03-05 01:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,11 +38,12 @@
 //	IsModifiableTerm, IsTemporaryTerm, NPL::TryAccessLeaf, LiftTermRef,
 //	NPL::SetContentWith, Forms::CallRawUnary, LiftTerm, LiftOtherOrCopy,
 //	std::placeholders, LiftTermValueOrCopy, ystdex::bind1, MoveResolved,
-//	ResolveIdentifier, NPL::IsMovable, LiftTermOrCopy, IsBranchedList,
-//	AccessFirstSubterm, ReferenceTerm, ThrowInsufficientTermsError,
-//	ystdex::exchange, ystdex::plus, ystdex::tolower, YSLib::IO::StreamPut,
-//	FetchEnvironmentVariable, ystdex::swap_dependent, YSLib::IO::UniqueFile,
-//	YSLib::IO::omode_convb, YSLib::uremove, ystdex::throw_error;
+//	ResolveIdentifier, ReduceToReferenceList, NPL::IsMovable, LiftTermOrCopy,
+//	IsBranchedList, AccessFirstSubterm, ReferenceTerm,
+//	ThrowInsufficientTermsError, ystdex::exchange, ystdex::plus,
+//	ystdex::tolower, YSLib::IO::StreamPut, FetchEnvironmentVariable,
+//	ystdex::swap_dependent, YSLib::IO::UniqueFile, YSLib::IO::omode_convb,
+//	YSLib::uremove, ystdex::throw_error;
 #include YFM_NPL_NPLA1Forms // for NPL::Forms functions;
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::Path;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
@@ -627,6 +628,7 @@ LoadBasicDerived(REPLContext& context)
 #endif
 #if NPL_Impl_NPLA1_Native_Forms
 
+	using namespace std::placeholders;
 	const auto idv([](TermNode& term){
 		return DoIdFunc(ReduceForLiftedResult, term);
 	});
@@ -641,6 +643,11 @@ LoadBasicDerived(REPLContext& context)
 	RegisterStrict(renv, "idv", idv);
 	RegisterStrict(renv, "list", ReduceBranchToListValue);
 	RegisterStrict(renv, "list%", ReduceBranchToList);
+	RegisterStrict(renv, "rlist", [](TermNode& term, ContextNode& ctx){
+		return Forms::CallRawUnary([&](TermNode& tm){
+			return ReduceToReferenceList(term, ctx, tm);
+		}, term);
+	});
 	// NOTE: Lazy form '$deflazy!' is the basic operation, which may bind
 	//	parameter as unevaluated operands.
 	RegisterForm(renv, "$deflazy!", DefineLazy);
@@ -650,6 +657,26 @@ LoadBasicDerived(REPLContext& context)
 	RegisterForm(renv, "$lambda%", LambdaRef);
 	// NOTE: The sequence operator is also available as infix ';' syntax sugar.
 	RegisterForm(renv, "$sequence", Sequence);
+	RegisterForm(renv, "$lvalue-identifier?",
+		[](TermNode& term, ContextNode& ctx){
+		Forms::CallRegularUnaryAs<const TokenValue>([&](string_view id){
+			term.Value = CheckSymbol(id, [&]() -> bool{
+				auto pr(ResolveName(ctx, id));
+
+				if(pr.first)
+				{
+					auto& tm(*pr.first);
+
+					if(const auto p
+						= NPL::TryAccessLeaf<const TermReference>(tm))
+						return p->IsReferencedLValue();
+					return !(bool(tm.Tags & TermTags::Unique)
+						|| bool(tm.Tags & TermTags::Temporary));
+				}
+				throw BadIdentifier(id);
+			});
+		}, term);
+	});
 	RegisterStrict(renv, "collapse", [](TermNode& term){
 		return Forms::CallRawUnary([&](TermNode& tm){
 			MoveCollapsed(term, tm);
@@ -672,6 +699,9 @@ LoadBasicDerived(REPLContext& context)
 	RegisterBinary<>(renv, "assign!", [](TermNode& x, TermNode& y){
 		return DoAssign([&](TermNode& nd_x){
 			ResolveTerm([&](TermNode& nd_y, ResolvedTermReferencePtr p_ref_y){
+				// NOTE: Self-assignment is not checked directly. This allows
+				//	copy assignment to fail as expected. Anyway, the destination
+				//	is not modified if the source copy fails.
 				LiftTermOrCopy(nd_x, nd_y, NPL::IsMovable(p_ref_y));
 			}, y);
 		}, x);
@@ -682,9 +712,10 @@ LoadBasicDerived(REPLContext& context)
 	RegisterStrict(renv, "forward-first%", ForwardFirst);
 	RegisterStrict(renv, "first", First);
 	RegisterStrict(renv, "first@", FirstAt);
+	RegisterStrict(renv, "first%", FirstFwd);
 	RegisterStrict(renv, "first&", FirstRef);
 	RegisterStrict(renv, "firstv", FirstVal);
-	RegisterStrict(renv, "rest%", Rest);
+	RegisterStrict(renv, "rest%", RestFwd);
 	RegisterStrict(renv, "rest&", RestRef);
 	RegisterStrict(renv, "restv", RestVal);
 	// NOTE: Like 'set-car!' in Kernel, with no references.
@@ -782,10 +813,11 @@ LoadBasicDerived(REPLContext& context)
 	//	(first-class referents) from prvalues and all terms can be accessed as
 	//	objects with arbitrary longer lifetime.
 	R"NPL(
-		$def! id wrap ($vau% (%x) #ignore $if (bound-lvalue? x) x (move! x));
+		$def! id wrap ($vau% (%x) #ignore $move-resolved! x);
 		$def! idv wrap $quote;
-		$def! list wrap ($vau (.x) #ignore x);
+		$def! list wrap ($vau (.x) #ignore move! x);
 		$def! list% wrap ($vau &x #ignore x);
+		$def! rlist wrap ($vau ((.&x)) #ignore move! x);
 	)NPL"
 #	else
 	);
@@ -793,10 +825,11 @@ LoadBasicDerived(REPLContext& context)
 	RegisterForm(renv, "$lambda%", LambdaRef);
 	context.ShareCurrentSource("<root:basic-derived-1>");
 	context.Perform(R"NPL(
-		$def! id $lambda% (%x) $if (bound-lvalue? x) x (move! x);
+		$def! id $lambda% (%x) $move-resolved! x;
 		$def! idv $lambda (&x) x;
-		$def! list $lambda (.x) x;
+		$def! list $lambda (.x) move! x;
 		$def! list% $lambda &x x;
+		$def! rlist $lambda ((.&x)) move! x;
 	)NPL"
 #	endif
 	// XXX: The operative '$defv!' is same to following derivations in
@@ -838,12 +871,12 @@ LoadBasicDerived(REPLContext& context)
 			eval (list $set! d f $lambda formals (move! body)) d;
 		$defv! $defl%! (&f &formals .&body) d
 			eval (list $set! d f $lambda% formals (move! body)) d;
+		$defv! $lvalue-identifier? (&s) d
+			eval (list bound-lvalue? (list $resolve-identifier s)) d;
 		$defl%! collapse (%x)
 			$if (uncollapsed? ($resolve-identifier x)) (idv x) x;
-		$defl%! forward (%x)
-			$if (bound-lvalue? ($resolve-identifier x)) x (idv x);
-		$defl%! forward! (%x)
-			$if (bound-lvalue? ($resolve-identifier x)) x (move! x);
+		$defl%! forward (%x) $if ($lvalue-identifier? x) x (idv x);
+		$defl%! forward! (%x) $if ($lvalue-identifier? x) x (move! x);
 		$defl! assign! (&x &y) assign@! (forward! x) (idv (collapse y));
 		$defl! assign%! (&x &y) assign@! (forward! x) (forward! (collapse y));
 		$defl%! apply (&appv &arg .&opt)
@@ -861,21 +894,24 @@ LoadBasicDerived(REPLContext& context)
 			eval (list $set! d f wrap (list* $vau% formals ef (move! body))) d;
 		$defw%! forward-first% (&appv (&x .)) d
 			apply (forward! appv) (list% ($move-resolved! x)) d;
-		$defl%! first@ (&l) ($lambda% ((@x .)) x) (check-list-reference l);
 		$defl%! first (%l)
 			($lambda% (fwd) forward-first% forward! (fwd l))
-				($if (bound-lvalue? ($resolve-identifier l)) id expire);
-		$defl%! first& (&l) ($lambda% ((&x .)) x) (check-list-reference l);
+				($if ($lvalue-identifier? l) id expire);
+		$defl%! first@ (&l)
+			($lambda% ((@x .)) x) (check-list-reference (forward! l));
+		$defl%! first% (%l)
+			($lambda% (fwd (@x .)) idv (fwd x))
+				($if ($lvalue-identifier? l) id expire) l;
+		$defl%! first& (&l)
+			($lambda% ((&x .)) x) (check-list-reference (forward! l));
 		$defl! firstv ((&x .)) x;
 		$defl! rest% ((#ignore .%x)) move! x;
-		$defl! rest& (&l) ($lambda ((#ignore .&x)) x) (check-list-reference l);
+		$defl%! rest& (&l)
+			($lambda% ((#ignore .&x)) x) (check-list-reference (forward! l));
 		$defl! restv ((#ignore .x)) move! x;
-		$defl! set-first! (&l x)
-			assign@! (first@ (check-list-reference l)) (move! x);
-		$defl! set-first@! (&l &x)
-			assign@! (first@ (check-list-reference l)) (forward! x);
-		$defl! set-first%! (&l &x)
-			assign%! (first@ (check-list-reference l)) (forward! x);
+		$defl! set-first! (&l x) assign@! (first@ (forward! l)) (move! x);
+		$defl! set-first@! (&l &x) assign@! (first@ (forward! l)) (forward! x);
+		$defl! set-first%! (&l &x) assign%! (first@ (forward! l)) (forward! x);
 		$defl! equal? (&x &y) $if ($if (branch? x) (branch? y) #f)
 			($if (equal? (first& x) (first& y)) (equal? (rest& x) (rest& y)) #f)
 			(eqv? x y);
@@ -897,12 +933,12 @@ LoadBasicDerived(REPLContext& context)
 		$defl! not? (&x) eqv? x #f;
 		$defv%! $and? &x d $cond
 			((null? x) #t)
-			((nullv? (rest& x)) eval% (first (forward! x)) d)
+			((null? (rest& x)) eval% (first (forward! x)) d)
 			((eval% (first& x) d) apply (wrap $and?) (rest% (forward! x)) d)
 			(#t #f);
 		$defv%! $or? &x d $cond
 			((null? x) #f)
-			((nullv? (rest& x)) eval% (first (forward! x)) d)
+			((null? (rest& x)) eval% (first (forward! x)) d)
 			(#t ($lambda% (&r) $if r (forward! r) (apply (wrap $or?)
 				(rest% (forward! x)) d)) (eval% (move! (first& x)) d));
 		$defw%! accl (&l &pred? &base &head &tail &sum) d
@@ -917,7 +953,7 @@ LoadBasicDerived(REPLContext& context)
 					pred? (forward! base) head tail sum) d)) d);
 		$defw%! foldr1 (&kons &knil &l) d
 			apply accr
-				(list% (forward! l) null? (forward! knil) first rest% kons) d;
+				(list% (forward! l) null? (forward! knil) first% rest% kons) d;
 		$defw%! map1 (&appv &l) d
 			foldr1 ($lambda (&x &xs) cons%
 				(apply appv (list% (forward! x)) d) xs) () (forward! l);

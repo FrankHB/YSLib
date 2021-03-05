@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20914
+\version r20923
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2021-02-17 02:51 +0800
+	2021-03-01 18:44 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -309,8 +309,8 @@ public:
 	ReductionStatus
 	operator()(ContextNode&) const;
 
-	//! \since build 909
-	DefGetter(const ynothrowv, TermNode&, TermRef, term_guard.func.func.TermRef)
+	//! \since build 913
+	DefGetter(const ynothrow, TermNode&, TermRef, term_guard.func.func.TermRef)
 
 	//! \since build 857
 	void
@@ -958,13 +958,15 @@ public:
 };
 
 
-YB_ATTR_nodiscard YB_PURE EnvironmentReference
-FetchTailEnvironmentReference(const TermReference&, ContextNode&);
-
-//! \since build 878
+//! \since build 913
 ReductionStatus
-ReduceForCombinerRef(TermNode&, ContextNode&,
-	const TermReference&, const ContextHandler&, size_t);
+ReduceAsSubobjectReference(TermNode&, shared_ptr<TermNode>,
+	const EnvironmentReference&);
+
+//! \since build 913
+ReductionStatus
+ReduceForCombinerRef(TermNode&, const TermReference&, const ContextHandler&,
+	size_t);
 
 
 //! \since build 881

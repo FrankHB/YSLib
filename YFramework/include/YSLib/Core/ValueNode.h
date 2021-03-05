@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2020 FrankHB.
+	© 2012-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r4142
+\version r4180
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2020-08-30 19:37 +0800
+	2021-03-01 22:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -363,7 +363,7 @@ public:
 
 	//! \since build 768
 	//@{
-	//! \brief 复制赋值：使用参数的分配器构造的副本和交换操作。
+	//! \brief 复制赋值：使用参数副本和交换操作。
 	PDefHOp(ValueNode&, =, const ValueNode& node)
 		ImplRet(ystdex::copy_and_swap(*this, node))
 	/*!
@@ -644,6 +644,21 @@ public:
 	PDefH(void, ClearContainer, ) ynothrow
 		ImplExpr(container.clear())
 
+	/*!
+	\note 允许被参数中被复制的对象直接或间接地被目标引用。
+	\since build 913
+	*/
+	//@{
+	PDefH(void, CopyContainer, const ValueNode& node)
+		ImplExpr(GetContainerRef() = Container(node.GetContainer()))
+
+	PDefH(void, CopyContent, const ValueNode& node)
+		ImplExpr(SetContent(ValueNode(node)))
+
+	PDefH(void, CopyValue, const ValueNode& node)
+		ImplExpr(Value = ValueObject(node.Value))
+	//@}
+
 	//! \brief 递归创建容器副本。
 	//@{
 	//! \since build 767
@@ -698,15 +713,39 @@ public:
 	//@}
 
 	/*!
-	\brief 转移参数内容。
-	\pre 断言：参数不是 *this 。
+	\pre 断言：参数不是 \c *this 。
+	\note 允许被参数中被转移的对象直接或间接地被目标引用。
+	\since build 913
+	*/
+	//@{
+	/*!
+	\brief 转移容器。
+
+	转移参数指定的节点的容器到对象。
+	转移后的节点的容器是转移前的参数的容器。
+	*/
+	void
+	MoveContainer(ValueNode&&);
+
+	/*!
+	\brief 转移内容。
 	\since build 844
 
-	转移参数指定的节点的内容到对象。转移后的节点内容是转移前的参数内容。
-	允许被转移的参数直接或间接地被容器引用。
+	转移参数指定的节点的内容到对象。
+	转移后的节点的内容是转移前的参数的内容。
 	*/
 	void
 	MoveContent(ValueNode&&);
+
+	/*!
+	\brief 转移值数据成员。
+
+	转移参数指定的节点的值数据成员到对象。
+	转移后的节点的值数据成员是转移前的参数内容。
+	*/
+	void
+	MoveValue(ValueNode&&);
+	//@}
 
 	/*!
 	\brief 若指定名称子节点不存在则按指定值初始化。

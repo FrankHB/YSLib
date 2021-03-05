@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20403
+\version r20439
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2021-02-17 04:45 +0800
+	2021-03-01 18:44 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -98,9 +98,8 @@ RecordCompressor::Compress()
 	ystdex::retry_on_cond(ystdex::id<>(), [&]() -> bool{
 		bool collected = {};
 
-		Traverse(*p_root, p_root->Parent,
-			[&](const shared_ptr<Environment>& p_dst, Environment& src,
-			ValueObject& parent) -> bool{
+		Traverse(*p_root, p_root->Parent, [&](const shared_ptr<Environment>&
+			p_dst, Environment& src, ValueObject& parent) -> bool{
 			auto& dst(NPL::Deref(p_dst));
 
 			if(accessed.insert(src).second)
@@ -205,7 +204,6 @@ TCOAction::CompressFrameList()
 		}
 		return RecordList.size() != orig_size;
 	});
-
 }
 
 TCOAction&
@@ -224,32 +222,44 @@ EnsureTCOAction(ContextNode& ctx, TermNode& term)
 #endif
 
 
-EnvironmentReference
-FetchTailEnvironmentReference(const TermReference& ref, ContextNode& ctx)
-{
-	auto r_env(ref.GetEnvironmentReference());
-
-	// NOTE: Unsafe term reference is enforced to be safe with current
-	//	environment as the holder.
-	return
-		r_env.GetAnchorPtr() ? r_env : EnvironmentReference(ctx.GetRecordPtr());
-}
-
 ReductionStatus
-ReduceForCombinerRef(TermNode& term, ContextNode& ctx,
-	const TermReference& ref, const ContextHandler& h, size_t n)
+ReduceAsSubobjectReference(TermNode& term, shared_ptr<TermNode> p_sub,
+	const EnvironmentReference& r_env)
 {
-	const auto& r_env(FetchTailEnvironmentReference(ref, ctx));
+	YAssert(bool(p_sub),
+		"Invalid subterm to form a subobject reference found.");
+
+	// NOTE: Irregular representation is constructed for the subobject
+	//	reference.
 	const auto a(term.get_allocator());
-	auto p_sub(YSLib::allocate_shared<TermNode>(a, NPL::AsTermNode(a,
-		ContextHandler(std::allocator_arg, a,
-		FormContextHandler(RefContextHandler(h, r_env), n)))));
 	auto& sub(NPL::Deref(p_sub));
+
+#if true
 	TermNode tm(std::allocator_arg, a, {NPL::AsTermNode(a, std::move(p_sub))},
 		std::allocator_arg, a, TermReference(sub, r_env));
 
 	term.SetContent(std::move(tm));
+#else
+	term = TermNode(std::allocator_arg, a,
+		{NPL::AsTermNode(a, std::move(p_sub))},
+		std::allocator_arg, a, TermReference(sub, r_env));
+#endif
 	return ReductionStatus::Retained;
+}
+
+ReductionStatus
+ReduceForCombinerRef(TermNode& term, const TermReference& ref,
+	const ContextHandler& h, size_t n)
+{
+	// NOTE: Irregular representation is constructed for the combiner subobject
+	//	reference.
+	const auto& r_env(ref.GetEnvironmentReference());
+	const auto a(term.get_allocator());
+
+	return ReduceAsSubobjectReference(term, YSLib::allocate_shared<TermNode>(a,
+		NPL::AsTermNode(a, ContextHandler(std::allocator_arg, a,
+		FormContextHandler(RefContextHandler(h, r_env), n)))),
+		ref.GetEnvironmentReference());
 }
 
 } // inline namespace Internals;

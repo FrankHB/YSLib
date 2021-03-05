@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2019 FrankHB.
+	© 2012-2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r852
+\version r875
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2019-04-15 13:08 +0800
+	2021-03-01 00:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,23 +52,45 @@ ValueNode::CreateRecursively(const Container& con, IValueHolder::Creation c)
 }
 
 void
+ValueNode::MoveContainer(ValueNode&& node)
+{
+	YAssert(!ystdex::ref_eq<>()(*this, node), "Invalid self move found.");
+
+	// NOTE: As %ValueNode::MoveContent, but only the container is respected.
+	const auto t(std::move(GetContainerRef()));
+
+	container = std::move(node.container);
+}
+
+void
 ValueNode::MoveContent(ValueNode&& node)
 {
 	YAssert(!ystdex::ref_eq<>()(*this, node), "Invalid self move found.");
 
 	// NOTE: This is required for the case when the moved-to object (referenced
 	//	by '*this') is an ancestor of the moved-from node (referenced by the
-	//	parameter). In such cases, an object moved from the moved-to object
-	//	container is needed to preserve the content of the moved-from node
-	//	living sufficient long, since the move %operator= of %Container does not
-	//	guarantee the old content of the container (as it can clear the old
+	//	parameter). In such cases, an object moved from the container of the
+	//	moved-to object is needed to preserve the content of the moved-from node
+	//	living sufficiently long, since the move %operator= of %Container does
+	//	not guarantee the old content of the container (as it can clear the old
 	//	content in the container before moving elements). This also avoids
 	//	cyclic references even when the move %operator= of %Container does
 	//	preserved the old content of the container longer (e.g. by copy and
-	//	swap), which would leak resources instead of d.
-	const auto t(std::move(GetContainerRef()));
+	//	swap), which would leak resources (rather than destroy them properly).
+	const auto t(std::move(*this));
 
 	SetContent(std::move(node));
+}
+
+void
+ValueNode::MoveValue(ValueNode&& node)
+{
+	YAssert(!ystdex::ref_eq<>()(*this, node), "Invalid self move found.");
+
+	// NOTE: As %ValueNode::MoveContent, but only %Value is respected.
+	const auto t(std::move(Value));
+
+	Value = std::move(node.Value);
 }
 
 void

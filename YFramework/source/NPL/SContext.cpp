@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2020 FrankHB.
+	© 2012-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2019
+\version r2037
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2020-10-05 23:01 +0800
+	2020-02-28 19:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,14 +75,36 @@ TermNode::ConCons(ValueNode::Container&& con, allocator_type a)
 }
 
 void
+TermNode::MoveContainer(TermNode&& node)
+{
+	YAssert(!ystdex::ref_eq<>()(*this, node), "Invalid self move found.");
+
+	// NOTE: Similar to %ValueNode::MoveContainer.
+	const auto t(std::move(GetContainerRef()));
+
+	container = std::move(node.container);
+}
+
+void
 TermNode::MoveContent(TermNode&& node)
 {
 	YAssert(!ystdex::ref_eq<>()(*this, node), "Invalid self move found.");
 
 	// NOTE: Similar to %ValueNode::MoveContent.
-	const auto t(std::move(GetContainerRef()));
+	const auto t(std::move(*this));
 
 	SetContent(std::move(node));
+}
+
+void
+TermNode::MoveValue(TermNode&& node)
+{
+	YAssert(!ystdex::ref_eq<>()(*this, node), "Invalid self move found.");
+
+	// NOTE: Similar to %ValueNode::MoveValue.
+	const auto t(std::move(Value));
+
+	Value = std::move(node.Value);
 }
 
 void

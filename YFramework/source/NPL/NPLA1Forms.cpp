@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r20746
+\version r21015
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2021-02-23 23:18 +0800
+	2021-03-03 03:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -884,6 +884,8 @@ public:
 	}
 
 private:
+	// TODO: Avoid TCO when the static environment has something with side
+	//	effects on destruction, to prevent semantic changes.
 	//! \since build 847
 	ReductionStatus
 	DoCall(TermNode& term, ContextNode& ctx, EnvironmentGuard& gd) const
@@ -916,35 +918,40 @@ private:
 		//	environment by setting the parent environment pointer.
 		ctx.GetRecordRef().Parent = parent;
 		AssertNextTerm(ctx, term);
-#if NPL_Impl_NPLA1_Enable_TCO
+
+		// NOTE: Saved the no lift flag here to avoid branching in the
+		//	following implementation.
+		const bool no_lift(NoLifting);
+
+		// NOTE: Because the only possible (non-administrative) owner of the
+		//	evaluation structure visible in the object language is the combiner
+		//	object which is not possible here in the %term, the evaluation
+		//	structure shall share nothing to the combining term being reduced
+		//	here (i.e. %term), so it is safe to use %TermNode::SetContent
+		//	instead of %LiftOther. See %ReduceCombinedBranch in NPLA1.cpp for
+		//	details.
+		// XXX: Using %LiftOtherOrCopy is less efficient.
 		// XXX: Assume the last function is this object.
-		// TODO: Avoid TCO when the static environment has something with side
-		//	effects on destruction.
 		if(move)
 		{
-			TermNode eval_struct(std::move(Deref(p_eval_struct)));
+			// NOTE: The evaluation structure does not need to be saved to the
+			//	continuation, since it would be used immediately in
+			//	the call to %RelayForCall.
+			term.SetContent(std::move(Deref(p_eval_struct)));
+#if NPL_Impl_NPLA1_Enable_TCO
+
 			auto& act(RefTCOAction(ctx));
-			const bool no_lift(NoLifting);
 
 			save(*this, act);
 			// XXX: This would make '*this' invalid.
 			yunused(act.MoveFunction());
-			// XXX: The evaluation structure does not need to be saved, since it
-			//	would be used immediately in %RelayForCall. The pointer is moved
-			//	to indicate the error condition when it is called again.
-			LiftOther(term, eval_struct);
-			// NOTE: The precondition is same to the last call in
-			//	%EvalImplUnchecked.
-			return RelayForCall(ctx, term, std::move(gd), no_lift);
+#endif
 		}
 		else
 			term.SetContent(Deref(p_eval_struct));
-#else
-		// XXX: Ditto.
-		LiftOtherOrCopy(term, Deref(p_eval_struct), move);
-#endif
-		// NOTE: Ditto.
-		return RelayForCall(ctx, term, std::move(gd), NoLifting);
+		// NOTE: The precondition is same to the last call in
+		//	%EvalImplUnchecked.
+		return RelayForCall(ctx, term, std::move(gd), no_lift);
 	}
 
 	//! \since build 909
@@ -1060,14 +1067,15 @@ ThrowForUnwrappingFailure(const ContextHandler& h)
 		h.target_type().name()));
 }
 
+//! \since build 913
 ReductionStatus
-UnwrapResolved(TermNode& term, ContextNode& ctx, FormContextHandler& fch,
+UnwrapResolved(TermNode& term, FormContextHandler& fch,
 	ResolvedTermReferencePtr p_ref)
 {
 	if(fch.Wrapping != 0)
 	{
 		return MakeValueOrMove(p_ref, [&]{
-			return ReduceForCombinerRef(term, ctx, NPL::Deref(p_ref),
+			return ReduceForCombinerRef(term, NPL::Deref(p_ref),
 				fch.Handler, fch.Wrapping - 1);
 		}, [&]{
 			--fch.Wrapping;
@@ -1240,22 +1248,22 @@ EvaluateLocalObjectMoved(TermNode& o, const shared_ptr<Environment>& p_env)
 }
 #endif
 
-//! \since build 897
+//! \since build 913
 void
-ForwardToUnwrapped(TermNode& comb, ContextNode& ctx)
+ForwardToUnwrapped(TermNode& comb)
 {
 	using namespace std::placeholders;
 
 	RegularizeTerm(comb, WrapUnwrapResolve(comb, std::bind(UnwrapResolved,
-		std::ref(comb), std::ref(ctx), _1, _2), ThrowForUnwrappingFailure));
+		std::ref(comb), _1, _2), ThrowForUnwrappingFailure));
 }
 
 // XXX: Preserving %con is better for performance, at least in code generation
 //`by x86_64-pc-linux G++ 10.2.
-//! \since build 899
+//! \since build 913
 YB_ATTR_nodiscard TermNode
 EvaluateBoundUnwrappedLValueDispatch(TermNode::allocator_type a,
-	const TermNode::Container& con, TermReference ref, ContextNode& ctx,
+	const TermNode::Container& con, TermReference ref,
 	TermNode& nd)
 {
 	auto& h(NPL::AccessRegular<ContextHandler>(nd, true));
@@ -1268,7 +1276,7 @@ EvaluateBoundUnwrappedLValueDispatch(TermNode::allocator_type a,
 		{
 			TermNode term(std::allocator_arg, a, con);
 
-			ReduceForCombinerRef(term, ctx, ref, fch.Handler, fch.Wrapping - 1);
+			ReduceForCombinerRef(term, ref, fch.Handler, fch.Wrapping - 1);
 			return term;
 		}
 		throw TypeError("Unwrapping failed on an operative argument.");
@@ -1277,16 +1285,16 @@ EvaluateBoundUnwrappedLValueDispatch(TermNode::allocator_type a,
 }
 
 // NOTE: As %EvaluateBoundLValue and %ForwardToUnwrapped.
-//! \since build 899
+//! \since build 913
 YB_ATTR_nodiscard TermNode
-EvaluateBoundLValueUnwrapped(TermNode& term, ContextNode& ctx,
+EvaluateBoundLValueUnwrapped(TermNode& term,
 	const shared_ptr<Environment>& p_env)
 {
 	if(const auto p = NPL::TryAccessLeaf<TermReference>(term))
 		return EvaluateBoundUnwrappedLValueDispatch(
-			term.get_allocator(), term.GetContainer(), *p, ctx, p->get());
+			term.get_allocator(), term.GetContainer(), *p, p->get());
 	return EvaluateBoundUnwrappedLValueDispatch(term.get_allocator(),
-		{}, TermReference(term.Tags, term, NPL::Nonnull(p_env)), ctx, term);
+		{}, TermReference(term.Tags, term, NPL::Nonnull(p_env)), term);
 }
 
 
@@ -1605,8 +1613,9 @@ WrapH(TermNode& term, ContextHandler h)
 	return ReductionStatus::Clean;
 }
 
+//! \since build 913
 ReductionStatus
-WrapN(TermNode& term, ContextNode&, ResolvedTermReferencePtr p_ref,
+WrapN(TermNode& term, ResolvedTermReferencePtr p_ref,
 	FormContextHandler& fch, size_t n)
 {
 	return WrapH(term, MakeValueOrMove(p_ref, [&]{
@@ -1617,12 +1626,13 @@ WrapN(TermNode& term, ContextNode&, ResolvedTermReferencePtr p_ref,
 	}));
 }
 
+//! \since build 913
 ReductionStatus
-WrapRefN(TermNode& term, ContextNode& ctx, ResolvedTermReferencePtr p_ref,
+WrapRefN(TermNode& term, ResolvedTermReferencePtr p_ref,
 	FormContextHandler& fch, size_t n)
 {
 	if(p_ref)
-		return ReduceForCombinerRef(term, ctx, *p_ref, fch.Handler, n);
+		return ReduceForCombinerRef(term, *p_ref, fch.Handler, n);
 	term.Value = ContextHandler(std::allocator_arg, term.get_allocator(),
 		FormContextHandler(std::move(fch.Handler), n));
 	return ReductionStatus::Clean;
@@ -1637,33 +1647,33 @@ WrapUnwrap(TermNode& term, _func f, _func2 f2)
 		return DispatchContextHandler(h, p_ref, f, f2);
 	}, term);
 }
+//@}
 
+//! \since build 913
 template<typename _func>
 ReductionStatus
-WrapOrRef(TermNode& term, ContextNode& ctx, ReductionStatus
-	(&fwrap)(TermNode&, ContextNode&, ResolvedTermReferencePtr,
-	FormContextHandler&, size_t), _func f)
+WrapOrRef(TermNode& term, ReductionStatus(&fwrap)(TermNode&,
+	ResolvedTermReferencePtr, FormContextHandler&, size_t), _func f)
 {
 	return WrapUnwrap(term,
 		[&](FormContextHandler& fch, ResolvedTermReferencePtr p_ref){
-		return fwrap(term, ctx, p_ref, fch, AddWrapperCount(fch.Wrapping));
+		return fwrap(term, p_ref, fch, AddWrapperCount(fch.Wrapping));
 	}, f);
 }
 
+//! \since build 913
 ReductionStatus
-WrapOnceOrOnceRef(TermNode& term, ContextNode& ctx, ReductionStatus
-	(&fwrap)(TermNode&, ContextNode&, ResolvedTermReferencePtr,
-	FormContextHandler&, size_t))
+WrapOnceOrOnceRef(TermNode& term, ReductionStatus(&fwrap)(TermNode&,
+	ResolvedTermReferencePtr, FormContextHandler&, size_t))
 {
 	return WrapUnwrap(term,
 		[&](FormContextHandler& fch, ResolvedTermReferencePtr p_ref){
-		return fch.Wrapping == 0 ? fwrap(term, ctx, p_ref, fch, 1)
+		return fch.Wrapping == 0 ? fwrap(term, p_ref, fch, 1)
 			: ThrowForWrappingFailure(ystdex::type_id<FormContextHandler>());
 	}, [](const ContextHandler& h) YB_ATTR_LAMBDA(noreturn) -> ReductionStatus{
 		ThrowForWrappingFailure(h.target_type());
 	});
 }
-//@}
 
 
 //! \since build 834
@@ -1825,9 +1835,9 @@ public:
 		PDefHOp(bool, ==, const Decapsulate& x, const Decapsulate& y) ynothrow
 		ImplRet(x.Get() == y.Get())
 
-	//! \since build 856
+	//! \since build 913
 	ReductionStatus
-	operator()(TermNode& term, ContextNode& ctx) const
+	operator()(TermNode& term) const
 	{
 		return CallRegularUnaryAs<const Encapsulation>(
 			[&](const Encapsulation& enc, ResolvedTermReferencePtr p_ref){
@@ -1847,7 +1857,7 @@ public:
 						// XXX: Allocators are not used here for performance in
 						//	most cases.
 						term.Value = TermReference(tm,
-							FetchTailEnvironmentReference(*p_ref, ctx));
+							p_ref->GetEnvironmentReference());
 						return ReductionStatus::Clean;
 					}
 					return ReductionStatus::Retained;
@@ -1870,7 +1880,7 @@ ApplyImpl(TermNode& term, ContextNode& ctx, shared_ptr<Environment> p_env)
 	auto i(term.begin());
 	auto& comb(NPL::Deref(++i));
 
-	ForwardToUnwrapped(comb, ctx);
+	ForwardToUnwrapped(comb);
 
 	TermNode expr(std::allocator_arg, term.get_allocator(), {std::move(comb)});
 
@@ -1919,30 +1929,32 @@ DoAcc(_func f, TermNode& term, ContextNode& ctx)
 	auto& l(*++i);
 	auto& pred(*++i);
 	const auto& d(ctx.GetRecordPtr());
-	auto lv_pred(EvaluateBoundLValueUnwrapped(pred, ctx, d));
 	auto& con(term.GetContainerRef());
 	auto& lv_l(con.back());
+	const auto nterm_cons_combine([&, d](TermNode& tm){
+		TermNode::Container tcon(nterm.get_allocator());
+
+		tcon.push_back(EvaluateBoundLValueUnwrapped(tm, d));
+		tcon.push_back(lv_l);
+		nterm.GetContainerRef() = std::move(tcon);
+		nterm.Value.Clear();
+	});
 
 	// NOTE: This shall be stored separatedly to %l because %l is abstract,
 	//	which can be a non-list.
 	lv_l = EvaluateLocalObject(l, d);
-	nterm
-		= TermNode::Container({std::move(lv_pred), lv_l}, term.get_allocator());
+	nterm_cons_combine(pred);
 	// TODO: Blocked. Use C++14 lambda initializers to simplify the
 	//	implementation.
 	return Combine<NonTailCall>::ReduceCallSubsequent(nterm, ctx,
 		EnvironmentGuard(ctx, d), A1::NameTypedReducerHandler(
 		// XXX: Capture of %d by copy is a slightly more efficient.
-		std::bind([&, d, f](TNIter& i_0) -> ReductionStatus{
+		std::bind([&, d, f, nterm_cons_combine](TNIter& i_0) -> ReductionStatus{
 		auto& base(*++i_0);
 
 		if(!ExtractBool(nterm))
 		{
-			auto& head(*++i_0);
-			auto lv_head(EvaluateBoundLValueUnwrapped(head, ctx, d));
-
-			nterm.GetContainerRef() = {std::move(lv_head), lv_l},
-			nterm.Value.Clear();
+			nterm_cons_combine(*++i_0);
 			return Combine<NonTailCall>::ReduceCallSubsequent(nterm, ctx, d,
 				A1::NameTypedReducerHandler(
 				std::bind([&, d, f](TNIter& i_1){
@@ -1966,17 +1978,29 @@ DoAccL(TermNode& term, ContextNode& ctx)
 	return DoAcc([&](TermNode& l, TermNode& base, TermNode& lv_l, TermNode&
 		nterm, const shared_ptr<Environment>& d, TNIter& i) YB_FLATTEN{
 		auto& tail(*++i);
-		auto lv_sum(EvaluateBoundLValueUnwrapped(*++i, ctx, d));
+		auto lv_sum(EvaluateBoundLValueUnwrapped(*++i, d));
 
-		base.GetContainerRef() = TermNode::Container({std::move(lv_sum),
-			std::move(nterm), std::move(base)}, term.get_allocator()),
+		base.GetContainerRef() = [&]{
+			TermNode::Container tcon(base.get_allocator());
+
+			tcon.push_back(std::move(lv_sum));
+			tcon.push_back(std::move(nterm));
+			tcon.push_back(std::move(base));
+			return tcon;
+		}(),
 		base.Value.Clear();
 		return Combine<NonTailCall>::ReduceCallSubsequent(base, ctx, d,
 			// XXX: Capture of %d by copy is a slightly more efficient.
 			A1::NameTypedReducerHandler([&, d]() YB_FLATTEN{
-			auto lv_tail(EvaluateBoundLValueUnwrapped(tail, ctx, d));
+			auto lv_tail(EvaluateBoundLValueUnwrapped(tail, d));
 
-			nterm.GetContainerRef() = {std::move(lv_tail), std::move(lv_l)},
+			nterm.GetContainerRef() = [&]{
+				TermNode::Container tcon(nterm.get_allocator());
+
+				tcon.push_back(std::move(lv_tail));
+				tcon.push_back(std::move(lv_l));
+				return tcon;
+			}(),
 			nterm.Value.Clear();
 			return Combine<NonTailCall>::ReduceCallSubsequent(nterm, ctx, d,
 				A1::NameTypedReducerHandler([&]() YB_FLATTEN{
@@ -1998,21 +2022,29 @@ DoAccR(TermNode& term, ContextNode& ctx)
 		auto& con(term.GetContainerRef());
 		const auto a(term.get_allocator());
 		auto& n2term(*std::next(con.rbegin()));
-		auto lv_tail(EvaluateBoundLValueUnwrapped(*++i, ctx, d));
+		auto lv_tail(EvaluateBoundLValueUnwrapped(*++i, d));
 		const auto& lv_sum_op(*++i);
 
-		n2term.GetContainerRef()
-			= TermNode::Container({std::move(lv_tail), std::move(lv_l)}, a),
+		n2term.GetContainerRef() = [&]{
+			TermNode::Container tcon(n2term.get_allocator());
+
+			tcon.push_back(std::move(lv_tail));
+			tcon.push_back(std::move(lv_l));
+			return tcon;
+		}(),
 		n2term.Value.Clear();
 		return Combine<NonTailCall>::ReduceCallSubsequent(n2term, ctx, d,
 			// XXX: Capture of %d by copy is a slightly more efficient.
-			A1::NameTypedReducerHandler([&, a, d]() YB_FLATTEN{
+			A1::NameTypedReducerHandler([&, d]() YB_FLATTEN{
 			l = std::move(n2term);
+			return
+				A1::ReduceCurrentNext(*term.emplace(ystdex::exchange(con, [&]{
+				TermNode::Container tcon(con.get_allocator());
 
-			auto& rterm(*term.emplace(ystdex::exchange(con, TermNode::Container(
-				{lv_sum_op, std::move(nterm)}, a))));
-
-			return A1::ReduceCurrentNext(rterm, ctx, DoAccR,
+				tcon.push_back(lv_sum_op);
+				tcon.push_back(std::move(nterm));
+				return tcon;
+			}())), ctx, DoAccR,
 				A1::NameTypedReducerHandler([&, d]() YB_FLATTEN{
 				return Combine<NonTailCall>::ReduceEnvSwitch(term, ctx, d);
 			}, "eval-accr-sum"));
@@ -2020,110 +2052,74 @@ DoAccR(TermNode& term, ContextNode& ctx)
 	}, term, ctx);
 }
 
-//! \since build 899
-void
-LiftFirst(TermNode& term, TermNode& tm, bool move)
+/*!
+\brief 准备递归调用使用的列表对象：绑定对象为列表临时对象。
+\since build 913
+*/
+YB_FLATTEN void
+PrepareFoldRList(TermNode& term)
 {
-	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
-	{
-		if(!p->IsReferencedLValue())
+	// NOTE: The 1st call can be applied to reference to list, but the nested
+	//	application is only for non-list objects due to the rest list is extract
+	//	as if a call of 'rest%'.
+	NPL::ResolveTerm(
+		[&](TermNode& nd, ResolvedTermReferencePtr p_ref) YB_FLATTEN{
+		// NOTE: This is only needed for the outermost call.
+		if(IsList(nd))
 		{
-			LiftMovedOther(term, *p, p->IsMovable());
-			return;
+			if(p_ref)
+				LiftOtherOrCopy(term, nd, p_ref->IsMovable());
 		}
-	}
-	// XXX: Term tags are currently not respected in prvalues.
-	LiftOtherOrCopy(term, tm, move);
+		else
+			// NOTE: Always treat the list as an lvalue as in the derivation.
+			//	This is done only once here, since all recursive calls still
+			//	keep %term as a list.
+			ThrowInsufficientTermsError(nd, true);
+	}, term);
 }
 
-//! \brief 绑定对象为列表临时对象的引用值。
+// XXX: Now terms are treated always movable without check for
+//	%TermTags::Nonmodifying, respecting copy elision with 'first%'.
 YB_FLATTEN void
-BindListToLocalRef(TermNode& term, ContextNode& ctx)
-{
-	// NOTE: As using the term reference returned by %EvaluateLocalObject.
-	const auto p(NPL::TryAccessLeaf<TermReference>(term));
-	auto& nd(p ? p->get() : term);
-
-	if(IsList(nd))
-	{
-		if(p)
-		{
-			if(bool(p->GetTags() & (TermTags::Unique | TermTags::Temporary)))
-				LiftOther(term, nd);
-			else
-			{
-				// NOTE: The subterms of the source are to be copied as
-				//	(collapsed) reference values to form a new list replacing
-				//	the value of %term. 
-				const auto a(nd.get_allocator());
-				TermNode::Container ncon(a);
-
-				for(auto j{nd.begin()}; j != nd.end(); ++j)
-				{
-					auto& tm(*j);
-
-					if(IsReferenceTerm(tm))
-						ncon.emplace_back(tm);
-					else
-						// NOTE: Same to %ReduceToReferenceAt.
-						ncon.emplace_back(NPL::AsTermNode(a,
-							TermReference(tm.Tags, tm, ctx.GetRecordPtr())));
-				}
-				term.Tags |= TermTags::Nonmodifying;
-				term.Value.Clear();
-				term.GetContainerRef() = std::move(ncon);
-			}
-		}
-		term.Tags |= TermTags::Temporary;
-		// NOTE: Otherwise, the source list %nd is not an lvalue. Keep it as-is.
-	}
-	else
-		// NOTE: Always treat the list as an lvalue as in the derivation. This
-		//	is done only once here, since all recursive calls still keep %term
-		//	as a list.
-		ThrowInsufficientTermsError(nd, true);
-}
-
-YB_FLATTEN void
-ExtractFirstOrCopy(TermNode& term, TermNode& tm, bool move)
+ExtractFirst(TermNode& term, TermNode& tm)
 {
 	YAssert(IsBranchedList(tm), "Invalid term found.");
-	// NOTE: The source list %nd is not an lvalue. Copy or move the 1st
+	// NOTE: The source list %tm is not an lvalue. Copy or move the 1st
 	//	subterm of the source directly.
-	LiftFirst(term, AccessFirstSubterm(tm), move);
+	// NOTE: As %FirstFwd. There should ne no cycle in the caller sites, so
+	//	%term and the 1st subterm of %tm is not the same.
+	// XXX: Term tags are currently not respected in prvalues.
+	LiftOther(term, AccessFirstSubterm(tm));
 	tm.GetContainerRef().pop_front();
 }
-
-inline PDefH(void, ExtractFirst, TermNode& term, TermNode& tm)
-	ImplExpr(ExtractFirstOrCopy(term, tm,
-		!bool(tm.Tags & TermTags::Nonmodifying)))
 
 YB_FLATTEN ReductionStatus
 DoFoldR1(TermNode& term, ContextNode& ctx)
 {
-	// NOTE: Subterms are %nterm, the underlying combiner of 'kons', 'knil',
-	//	'l'.
+	// NOTE: Subterms are %nterm, the underlying combiner of 'kons', 'knil', 'l'.
 	YAssert(term.size() == 4, "Invalid recursive call found.");
 
 	auto& tm(term.GetContainerRef().back());
 	auto i(term.begin());
 
 	++i;
-	// XXX: This should have been guaranteed by the call of %BindListToLocalRef.
+	// XXX: This should have been guaranteed by the call of %PrepareFoldRList.
 	YAssert(IsList(tm), "Invalid non-list term found.");
 	if(IsBranch(tm))
 	{
 		auto& nterm(term.GetContainerRef().front());
 
 		ExtractFirst(nterm, tm);
-
-		auto& rterm(*term.emplace(ystdex::exchange(term.GetContainerRef(),
-			TermNode::Container({*i, std::move(nterm)},
-			term.get_allocator()))));
-
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
-		return A1::ReduceCurrentNext(rterm, ctx, DoFoldR1,
+		return A1::ReduceCurrentNext(
+			*term.emplace(ystdex::exchange(term.GetContainerRef(), [&]{
+			TermNode::Container tcon(term.get_allocator());
+
+			tcon.push_back(*i);
+			tcon.push_back(std::move(nterm));
+			return tcon;
+		}())), ctx, DoFoldR1,
 			A1::NameTypedReducerHandler(
 			std::bind([&](shared_ptr<Environment>& d) YB_FLATTEN{
 			return
@@ -2142,7 +2138,7 @@ DoMap1(TermNode& term, ContextNode& ctx)
 
 	auto& tm(term.GetContainerRef().back());
 
-	// XXX: This should have been guaranteed by the call of %BindListToLocalRef.
+	// XXX: This should have been guaranteed by the call of %PrepareFoldRList.
 	YAssert(IsList(tm), "Invalid non-list term found.");
 	if(IsBranch(tm))
 	{
@@ -2150,14 +2146,17 @@ DoMap1(TermNode& term, ContextNode& ctx)
 		auto& nterm(term.GetContainerRef().front());
 
 		ExtractFirst(nterm, tm);
-
-		const auto a(term.get_allocator());
-		auto& rterm(*term.emplace(ystdex::exchange(term.GetContainerRef(),
-			TermNode::Container({TermNode({*++i, std::move(nterm)},a)}, a))));
-
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
-		return A1::ReduceCurrentNext(rterm, ctx, DoMap1,
+		return A1::ReduceCurrentNext(
+			*term.emplace(ystdex::exchange(term.GetContainerRef(), [&]{
+			TermNode::Container tcon(term.get_allocator());
+			auto& subtcon(tcon.emplace_back().GetContainerRef());
+
+			subtcon.push_back(*++i);
+			subtcon.push_back(std::move(nterm));
+			return tcon;
+		}())), ctx, DoMap1,
 			A1::NameTypedReducerHandler(
 			std::bind([&](shared_ptr<Environment>& d) YB_FLATTEN{
 			return Combine<NonTailCall>::ReduceCallSubsequent(*term.begin(),
@@ -2175,7 +2174,7 @@ PrepareSumOp(TermNode& term, ContextNode& ctx, TermNode& rterm, ptrdiff_t n)
 {
 	auto& sum(*std::next(rterm.begin(), n));
 
-	sum = EvaluateBoundLValueUnwrapped(*term.emplace(std::move(sum)), ctx,
+	sum = EvaluateBoundLValueUnwrapped(*term.emplace(std::move(sum)),
 		ctx.GetRecordPtr());
 }
 
@@ -2206,13 +2205,13 @@ DoFoldRMap1(TermNode& term, ContextNode& ctx,
 
 	// XXX: Like %AccL.
 	BindMoveNextNLocalSubobjectInPlace(con.begin(), 2);
+	// NOTE: Bind the last argument as the local reference to list temporary
+	//	object.
+	PrepareFoldRList(con.back());
 
 	auto& rterm(*term.emplace(ystdex::exchange(con,
 		TermNode::Container(term.get_allocator()))));
 
-	// NOTE: Bind the last argument as the local reference to list temporary
-	//	object.
-	BindListToLocalRef(rterm.GetContainerRef().back(), ctx);
 	// NOTE: Save 'kons' (for %FoldR1) or 'appv' (for %Map1).
 	PrepareSumOp(term, ctx, rterm, 1);
 	return DoRLiftSum(term, ctx, rterm, f);
@@ -2227,21 +2226,22 @@ DoListConcat(TermNode& term, ContextNode& ctx)
 	auto i(term.begin());
 	auto& tm(*++i);
 
-	// XXX: This should have been guaranteed by the call of %BindListToLocalRef.
+	// XXX: This should have been guaranteed by the call of %PrepareFoldRList.
 	YAssert(IsList(tm), "Invalid non-list term found.");
 	if(IsBranch(tm))
 	{
 		auto& nterm(term.GetContainerRef().front());
 
 		ExtractFirst(nterm, tm);
-
-		auto& rterm(*term.emplace(
-			ystdex::exchange(term.GetContainerRef(), TermNode::Container(
-			{std::move(nterm)}, term.get_allocator()))));
-
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
-		return A1::ReduceCurrentNext(rterm, ctx, DoListConcat,
+		return A1::ReduceCurrentNext(
+			*term.emplace(ystdex::exchange(term.GetContainerRef(), [&]{
+			TermNode::Container tcon(term.get_allocator());
+				
+			tcon.push_back(std::move(nterm));
+			return tcon;
+		}())), ctx, DoListConcat,
 			A1::NameTypedReducerHandler([&]() YB_FLATTEN{
 			return ConsMoveSubNext(term);
 		}, "eval-list-concat-cons"));
@@ -2263,16 +2263,20 @@ DoAppend(TermNode& term, ContextNode& ctx)
 	{
 		auto& nterm(term.GetContainerRef().front());
 
-		ExtractFirstOrCopy(nterm, ls, true);
+		ExtractFirst(nterm, ls);
 		// NOTE: Bind the first term as the local reference to list temporary
 		//	object.
-		BindListToLocalRef(nterm, ctx);
-		return A1::ReduceCurrentNext(*term.emplace(ystdex::exchange(
-			term.GetContainerRef(), TermNode::Container({{}, std::move(nterm)},
-			term.get_allocator()))), ctx, DoAppend, A1::NameTypedReducerHandler(
-			[&]() YB_FLATTEN{
-				return DoListConcat(term, ctx);
-			}, "eval-append-list-concat"));
+		PrepareFoldRList(nterm);
+		return A1::ReduceCurrentNext(
+			*term.emplace(ystdex::exchange(term.GetContainerRef(), [&]{
+			TermNode::Container tcon(term.get_allocator());
+
+			tcon.emplace_back();
+			tcon.push_back(std::move(nterm));
+			return tcon;
+		}())), ctx, DoAppend, A1::NameTypedReducerHandler([&]() YB_FLATTEN{
+			return DoListConcat(term, ctx);
+		}, "eval-append-list-concat"));
 	}
 	term.Clear();
 	return ReductionStatus::Regular;
@@ -2495,7 +2499,7 @@ ForwardFirst(TermNode& term, ContextNode& ctx)
 					assign_term, p_ref->GetEnvironmentReference());
 			else
 				BindMoveLocalObject(x, assign_term);
-			ForwardToUnwrapped(appv, ctx);
+			ForwardToUnwrapped(appv);
 			term.GetContainerRef() = {std::move(appv), std::move(op)};
 			// NOTE: See the precondition of
 			//	%Combine<TailCall>::ReduceEnvSwitch.
@@ -2520,7 +2524,8 @@ First(TermNode& term)
 		{
 			if(list_not_move)
 			{
-				term.SetContent(tm);
+				// NOTE: As %LiftOtherOrCopy.
+				term.CopyContent(tm);
 				return ReductionStatus::Retained;
 			}
 			if(!p->IsReferencedLValue())
@@ -2565,6 +2570,20 @@ FirstAt(TermNode& term)
 }
 
 ReductionStatus
+FirstFwd(TermNode& term)
+{
+	return FirstOrVal(term, [&](TermNode& tm, ResolvedTermReferencePtr p_ref){
+		// XXX: Using %LiftOtherOrCopy instead of %LiftTermOrCopy is safe,
+		//	because the referent is not allowed to have cyclic reference to
+		//	%term. And %LiftTermOrCopy is in that case is still inapproiate
+		//	anyway because copy should be elided in a forwarding operation.
+		// XXX: Term tags are currently not respected in prvalues.
+		LiftOtherOrCopy(term, tm, NPL::IsMovable(p_ref));
+		return ReductionStatus::Retained;
+	});
+}
+
+ReductionStatus
 FirstRef(TermNode& term)
 {
 	return FirstAtRef(term, ReduceToReference);
@@ -2580,7 +2599,7 @@ FirstVal(TermNode& term)
 }
 
 ReductionStatus
-Rest(TermNode& term)
+RestFwd(TermNode& term)
 {
 	return RestOrVal(term, [](TermNode&) ynothrow{},
 		[&](TermNode& dst, TermNode& tm, ResolvedTermReferencePtr p_ref){
@@ -2589,18 +2608,22 @@ Rest(TermNode& term)
 }
 
 ReductionStatus
-RestRef(TermNode& term)
+RestRef(TermNode& term, ContextNode& ctx)
 {
 	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
 		CheckResolvedListReference(nd, p_ref);
 
-		TermNode::Container con(term.get_allocator());
+		const auto a(term.get_allocator());
+		auto p_sub(YSLib::allocate_shared<TermNode>(a));
+		auto& con(p_sub->GetContainerRef());
 
 		for(auto i(std::next(nd.begin())); i != nd.end(); ++i)
 			// XXX: Same to %FirstRef.
 			ReduceToReference(con.emplace_back(), *i, p_ref);
-		con.swap(term.GetContainerRef());
-		return ReductionStatus::Retained;
+		// NOTE: Irregular representation is constructed for the list subobject
+		//	reference.
+		return ReduceAsSubobjectReference(term, std::move(p_sub),
+			p_ref ? p_ref->GetEnvironmentReference() : ctx.WeakenRecord());
 	}, term);
 }
 
@@ -2816,9 +2839,9 @@ VauWithEnvironmentRef(TermNode& term, ContextNode& ctx)
 
 
 ReductionStatus
-Wrap(TermNode& term, ContextNode& ctx)
+Wrap(TermNode& term)
 {
-	return WrapOrRef(term, ctx, WrapN,
+	return WrapOrRef(term, WrapN,
 		[&](ContextHandler& h, ResolvedTermReferencePtr p_ref){
 		return WrapH(term, MakeValueOrMove(p_ref, [&]{
 			return FormContextHandler(h, 1);
@@ -2829,34 +2852,34 @@ Wrap(TermNode& term, ContextNode& ctx)
 }
 
 ReductionStatus
-WrapRef(TermNode& term, ContextNode& ctx)
+WrapRef(TermNode& term)
 {
-	return WrapOrRef(term, ctx, WrapRefN,
+	return WrapOrRef(term, WrapRefN,
 		[&](ContextHandler& h, ResolvedTermReferencePtr p_ref){
-		return p_ref ? ReduceForCombinerRef(term, ctx, *p_ref, h, 1)
+		return p_ref ? ReduceForCombinerRef(term, *p_ref, h, 1)
 			: WrapH(term, FormContextHandler(std::move(std::move(h)), 1));
 	});
 }
 
 ReductionStatus
-WrapOnce(TermNode& term, ContextNode& ctx)
+WrapOnce(TermNode& term)
 {
-	return WrapOnceOrOnceRef(term, ctx, WrapN);
+	return WrapOnceOrOnceRef(term, WrapN);
 }
 
 ReductionStatus
-WrapOnceRef(TermNode& term, ContextNode& ctx)
+WrapOnceRef(TermNode& term)
 {
-	return WrapOnceOrOnceRef(term, ctx, WrapRefN);
+	return WrapOnceOrOnceRef(term, WrapRefN);
 }
 
 ReductionStatus
-Unwrap(TermNode& term, ContextNode& ctx)
+Unwrap(TermNode& term)
 {
 	using namespace std::placeholders;
 
 	return WrapUnwrap(term, std::bind(UnwrapResolved, std::ref(term),
-		std::ref(ctx), _1, _2), ThrowForUnwrappingFailure);
+		_1, _2), ThrowForUnwrappingFailure);
 }
 
 
@@ -3035,7 +3058,7 @@ ListConcat(TermNode& term, ContextNode& ctx)
 
 	LiftToReturn(*ri);
 	// NOTE: Bind 'x' as the local reference to list temporary object.
-	BindListToLocalRef(*++ri, ctx);
+	PrepareFoldRList(*++ri);
 	return DoListConcat(term, ctx);
 }
 
@@ -3046,8 +3069,12 @@ Append(TermNode& term, ContextNode& ctx)
 	const auto a(con.get_allocator());
 
 	RemoveHead(term);
-	term.emplace(ystdex::exchange(term.GetContainerRef(),
-		TermNode::Container({{}}, term.get_allocator())));
+	term.emplace(ystdex::exchange(term.GetContainerRef(), [&]{
+		TermNode::Container tcon(term.get_allocator());
+
+		tcon.emplace_back().GetContainerRef().emplace_back();
+		return tcon;
+	}()));
 	return DoAppend(term, ctx);
 }
 

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r2773
+\version r2967
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-02-23 23:29 +0800
+	2021-03-05 12:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,198 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ @ "class %ValueNode" @ %YSLib.ValueNode $=
+		(
+			* "missing save %Value data member" @ "function %MoveContent"
+				$since b803,
+			+ "function %MoveContainer",
+				// As the old %MoveContent.
+			+ "functions %(MoveValue, CopyContainer, CopyContent, \
+				CopyValue)"
+		),
+		/ %NPL $=
+		(
+			/ @ "class %TermNode" @ %SContext $=
+			(
+				// Similar to %ValueNode. Note it is not easy to get this \
+					bug because %Value normally does not hold a value of \
+					%TermNode (and referring to some other term).
+				* "missing save %Value data member" @ "function %MoveContent"
+					$since b853,
+				+ "function %MoveContainer",
+					// As the old %MoveContent.
+				+ "functions %(MoveValue, CopyContainer, CopyContent, \
+					CopyValue)"
+			),			
+			/ %NPLA $=
+			(
+				/ DLDI "simplified function %PrepareCollapse" @ %NPLA
+					!^ "%NPL::TryAccessLeaf",
+				/ DLI "simplified function %LiftTermOrCopy"
+					^ (($dep_from "%TermNode::CopyContent"
+					~ "%TermNode::MoveContent") @ %SContext),
+				/ DLI "simplified functions %(LiftCollapsed, MoveCollapsed)"
+					^ "%TermNode::SetContent" ~ "%TermNode::MoveContent",
+				(
+				* $re_add(b876) "missing support of irregular representation \
+					for term copy" @ ("function %LiftOtherOrCopy";
+					$comp "function %LiftMovedOther") $since b876
+					$= (/ $impl ^ (($dep_from "TermNode::CopyContent"
+						~ "%TermNode::SetContent") @ %SContext));
+				/ DLI "optimized function %LiftToReturn" ^ "%LiftMovedOther"
+					~ "%LiftMoved"
+					// This relies on the fix of %LiftOtherOrCopy, otherwise \
+						operations like the unwrappng with non-native 'list' \
+						would crash.
+				)
+			),
+			/ %NPLA1 $=
+			(
+				+ "function %ReduceToReferenceList"
+					^ $dep_from ("%TermNode::MoveContainer" @ %SContext),
+				/ DLI "term reference initlaization" @ "functions \
+					%(BindParameter, MatchParameter)" ^ "allocator"
+			),
+			/ %NPLA1Internals $=
+			(
+				/ DLD 'ynothrowv' @ "member function %TCOAction::GetTermRef"
+					@ NPLA1Internals -> 'ynothrow',
+				/ @ "function %ReduceForCombinerRef" $=
+				(
+					/ !^ "%FetchTailEnvironmentReference"
+						$dep_to "removal of tail environment check";
+					- "context parameteter" $dep_to
+						"simplified combiner subobjct reference construction"
+				),
+				- $revert(b869) "function %FetchTailEnvironmentReference",
+					// See $2021-03 @ %Documentation::Workflow.
+				(
+				+ "function %ReduceAsSubobjectReference";
+				/ DLDI "simplified function %ReduceForCombinerRef"
+				)
+			),
+			/ @ "namespace %Forms" @ %NPLA1Forms $=
+			(
+				/ "function %Rest" => "%RestFwd",
+				+ "function %FirstFwd",
+				(
+				/ "avoided move the referent of list element"
+					@ "functions %(FoldR1, Map1, ListConcat, Append)";
+					// This is required for the change of the semantics of \
+						several high-level operations, see %Dependency.
+				* $comp "behavior of native list operations for 'foldr1' \
+					derviations mismatch with alternative derivations"
+					$since b912
+					// Notably, list in the 1st turn of the call entry should \
+						not be treated as list of reference values, although \
+						the alternative derivation of 'foldr1' may also buggy \
+						(see below).
+				),
+				/ DLI "optimized %operator()" @ "vau handler"
+					^ "%TermNode::SetContent" ~ "%(LiftOther, LiftOtherOrCopy)",
+				/ DLI "decapsulation operation"
+					!^ "%FetchTailEnvironmentReference"
+					@ "function %MakeEncapsulationType"
+					$dep_to "removal of tail environment check",
+				(
+				/ $forced DLI "simplified combiner subobject reference \
+					construction" $dep_from "simplified combiner subobjct \
+					reference construction" $effective @ "functions (AccL, \
+					AccR, Apply, FoldR1, ForwardFirst, Map1, Unwrap, Wrap, \
+					WrapOnce, WrapOnceRef, WrapRef)";
+				- "context parameter" @ "functions %(Unwrap, Wrap, WrapOnce, \
+					WrapOnceRef, WrapRef)"
+				),
+				* $re_add(b876) "missing support of irregular representation \
+					for term copy" @ "function %First" $since b874,
+					^ (($dep_from "%TermNode::CopyContent"
+					~ "%TermNode::MoveContent") @ %SContext),
+					// As %LiftOtherOrCopy.
+				/ @ "function %RestRef" $=
+				(
+					+ "context parameter";
+					/ "preserved reference of the result"
+				)
+			),
+			/ @ "function %LoadGroundContext" @ %Dependency $=
+			(
+				* "redundant copy" @ "alternative dervations"
+					@ "applicative %list" $since b828
+					$= (/ $impl ^ 'move!')
+				+ "applicative 'rlist'"
+					^ $dep_from ("%ReduceToReferenceList" @ %NPLA1),
+				(
+				+ "operative '$lvalue-identifier?'";
+				/ DLDI "simplified combiners ()" ^ '$lvalue-identifier?'
+					~ ('bound-lvalue?', '$resolve-identifier')
+					$effective @ ('forward', 'forward!', 'first')
+				),
+				+ "applicative 'first%'" $dep_from ("%FirstFwd" @ %NPLA1Forms),
+				/ @ "applicatives derived from 'foldr1'" $=
+				(
+					(
+					/ $revert_ex(b858) "alternative derivation" @ "applicative \
+						'foldr1'" ^ $dep_from 'first%' ~ 'first',
+					/ $comp "native derivations" ($dep_from
+						"%(FoldR1, Map1, ListConcat, Append)" @ %NPLA1Forms)
+					);
+					/ $comp "supported copy elision of the list elements",
+					* "safety guarantee broken on list lvalues handled by the \
+						safe operation subset" $since b858
+						// See $2021-02 @ %Documentation::Workflow.
+				),
+				/ "preserved reference of the result" @ "applicative 'rest&'" $=
+					$dep_from ("%First" @ %NPLA1Forms)
+					// Irregular representation should be supported, esp. for \
+						list operands.
+				(
+					/ $comp "native derivation" $dep_from
+						("%RestRef" @ %NPLA1Forms),
+					/ "alternative derivation"
+						$= (/ $impl ^ ('$def%l!', '$lambda%')
+							~ ('$defl', '$lambda'))
+				),
+				(
+				/ DLDI "simplified ('set-first!', 'set-first@!', 'set-first%!')"
+					^ 'forward!' ~ 'check-list-reference';
+				* "missing check caused by wrong operand used for \
+					'check-list-reference'" $effective @ "alternative \
+					derivation of appications ('set-first!', 'set-first@!', \
+					'set-first%!', 'first@', 'first&')" $since b876
+					$= (/ $impl ^ 'forward!')
+				),
+				* "wrong result due to missing support of list subobject \
+					reference" @ "alternative derivation"
+					@ "operatives ('$and?', '$or?')" $since b912
+					$= (/ $impl ^ 'null?' ~ 'nullv?'),
+				/ @ "alternative derivations" @ "applicative %id" $=
+				(
+					/ $impl "simplified" ^ '$move-resolved!' ~ ('$if', 'move!');
+					* $comp "qualifier tags missing in the result" $since b873
+						// Since b873, %expire could make %TermTags::Unique \
+							visible in the object language.
+				)
+			),
+			/ "avoided unexpected copy by list initialization via \
+				%std::initializer_list instance"
+				$effective "%TermNode construction" @ %NPLA1Forms $=
+				// See $2021-03 @ %Documentation::Workflow.
+			(
+				* "move-only object not allowed in terms handled by functions \
+					as native implemention of applicatives"
+					@ (("%AccL", "%AccR") $since b898, ("%FoldR1", "%Map1")
+					$since b899, ("%ListConcat", "%Append") $since b912),
+				/ DLI "optimized without list initialization" $=
+					@ "functions %(SetRest, SetRestRef, MakeEncapsulationType)"
+			)
+		)
+	)
+),
+
+b912
 (
 	/ $fmt @ "%.clang-format" $=
 	(
@@ -187,9 +379,8 @@ b911
 				(
 					- "call to %HandleResultRequests"
 						@ "function %PrepareTCOEvaluation";
-					* $comp "invalid lifting requests for TCO"
-						$orig (@ %NPLA1 $since b854)
-							$dep_to "redundant TCO result lifting",
+					* $comp "invalid lifting requests for TCO" $orig (@ %NPLA1
+						$since b854) $dep_to "redundant TCO result lifting",
 						// See $2021-02 @ %Documentation::Workflow.
 					/ @ "class %TCOAction" $=
 					(

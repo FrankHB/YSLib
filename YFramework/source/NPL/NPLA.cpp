@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3477
+\version r3490
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2021-01-25 22:33 +0800
+	2021-03-01 22:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -647,7 +647,7 @@ Collapse(TermReference ref)
 TermNode
 PrepareCollapse(TermNode& term, const shared_ptr<Environment>& p_env)
 {
-	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
+	if(term.Value.type() == ystdex::type_id<const TermReference>())
 		return term;
 	return NPL::AsTermNode(term.get_allocator(),
 		TermReference(p_env->MakeTermTags(term), term, NPL::Nonnull(p_env)));
@@ -737,7 +737,12 @@ LiftOtherOrCopy(TermNode& term, TermNode& tm, bool move)
 	if(move)
 		LiftOther(term, tm);
 	else
-		term.SetContent(tm);
+		// NOTE: Although %tm is required to be not same to %term, it can still
+		//	be an object exclusively owned by %term, e.g. when %term represents
+		//	a reference value with irregular representation and %tm is the term
+		//	referenced uniquely by %term.Value. Explicit copy is necessary for
+		//	such cases to avoid invalidate subterm reference prematurely.
+		term.CopyContent(tm);
 }
 
 void
@@ -747,7 +752,7 @@ LiftTermOrCopy(TermNode& term, TermNode& tm, bool move)
 	if(move)
 		LiftTerm(term, tm);
 	else
-		term.MoveContent(TermNode(tm));
+		term.CopyContent(tm);
 }
 
 void
@@ -769,7 +774,7 @@ LiftCollapsed(TermNode& term, TermNode& tm, TermReference ref)
 	auto pr(Collapse(std::move(ref)));
 
 	if(!ystdex::ref_eq<>()(term, tm))
-		term.MoveContent(TermNode(std::move(tm.GetContainerRef()),
+		term.SetContent(TermNode(std::move(tm.GetContainerRef()),
 			std::move(pr.first)));
 	else if(pr.second)
 		term.Value = std::move(pr.first);
@@ -779,7 +784,7 @@ void
 MoveCollapsed(TermNode& term, TermNode& tm)
 {
 	if(const auto p = NPL::TryAccessLeaf<TermReference>(tm))
-		term.MoveContent(TermNode(std::move(tm.GetContainerRef()),
+		term.SetContent(TermNode(std::move(tm.GetContainerRef()),
 			Collapse(std::move(*p)).first));
 	else
 		LiftOther(term, tm);
@@ -815,7 +820,9 @@ LiftToReturn(TermNode& term)
 	//	the operation here is idempotent for qualified expressions.
 	// TODO: Detect lifetime escape to perform copy elision?
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
-		LiftMoved(term, *p, p->IsMovable());
+		// XXX: Using %LiftMovedOther instead of %LiftMoved is safe, because the
+		//	referent is not allowed to be same to %term in NPLA.
+		LiftMovedOther(term, *p, p->IsMovable());
 }
 
 void
