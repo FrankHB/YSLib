@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r8055
+\version r8285
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2021-03-01 02:53 +0800
+	2021-03-12 18:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -685,6 +685,13 @@ public:
 //@}
 
 
+/*!	\defgroup LexicalCategory Lexical Category Support
+\brief 词法类别支持。
+\since build 914
+*/
+
+//! \ingroup LexicalCategory
+//@{
 /*!
 \brief 字面量类别。
 \since build 734
@@ -760,6 +767,7 @@ YB_ATTR_nodiscard YB_PURE inline
 	ImplRet(CategorizeLexeme(id) == LexemeCategory::Symbol)
 //@}
 //@}
+//@}
 
 
 /*!
@@ -796,6 +804,13 @@ static_assert(ystdex::is_nothrow_move_constructible<AnchorPtr>(),
 //@}
 
 
+/*!	\defgroup TermAccessAuxiliary Term Access Auxiliary API
+\brief 辅助项访问接口。
+\since build 914
+*/
+
+//! \ingroup TermAccessAuxiliary
+//@{
 /*!
 \brief 访问项的值作为记号。
 \return 通过访问项的值取得的记号的指针，或空指针表示无法取得名称。
@@ -932,6 +947,7 @@ TryAccessTerm(const TermNode& term)
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(observer_ptr<const TokenValue>, TermToNamePtr, const TermNode& term)
 	ImplRet(NPL::TryAccessTerm<TokenValue>(term))
+//@}
 
 
 /*!
@@ -1220,6 +1236,20 @@ public:
 	DefGetter(const ynothrow, const EnvironmentReference&, EnvironmentReference,
 		r_env)
 
+	/*
+	\brief 添加标签。
+	\since build 914
+	*/
+	PDefH(void, AddTags, TermTags t) ynothrow
+		ImplExpr(tags |= t)
+
+	/*
+	\brief 移除标签。
+	\since build 914
+	*/
+	PDefH(void, RemoveTags, TermTags t) ynothrow
+		ImplExpr(tags &= ~t)
+
 	/*!
 	\brief 取被引用的值。
 	\throw NPLException 配置 NPL_NPLA_CheckTermReferenceIndirection 时，环境无效。
@@ -1283,6 +1313,40 @@ YB_ATTR_nodiscard YB_PURE inline
 	ImplRet(ystdex::invoke_value_or(&TermReference::get,
 		NPL::TryAccessLeaf<const TermReference>(term), term))
 
+//! \since build 801
+//@{
+/*!
+\brief 项引用函数对象操作。
+\note 这是 NPL::ReferenceTerm 的函数对象形式。
+\sa ReferenceTerm
+*/
+struct ReferenceTermOp
+{
+	//! \since build 876
+	template<typename _type>
+	auto
+	operator()(_type&& term) const
+		ynoexcept_spec(NPL::ReferenceTerm(yforward(term)))
+		-> decltype(NPL::ReferenceTerm(yforward(term)))
+	{
+		return NPL::ReferenceTerm(yforward(term));
+	}
+};
+
+/*!
+\brief 包装一个非项引用的操作为 NPL::ReferenceTermOp 以支持项引用。
+\relates ReferenceTermOp
+\since build 802
+*/
+template<typename _func>
+YB_STATELESS auto
+ComposeReferencedTermOp(_func f)
+	-> yimpl(decltype(ystdex::compose_n(f, ReferenceTermOp())))
+{
+	return ystdex::compose_n(f, ReferenceTermOp());
+}
+//@}
+
 
 //! \since build 855
 //@{
@@ -1325,19 +1389,26 @@ YB_ATTR_nodiscard YB_PURE inline
 //! \note 空指针指定解析结果中不存在引用值，被解析的项总是视为可转移的右值项。
 template<typename _tPointer>
 YB_ATTR_nodiscard YB_PURE inline auto
-IsMovable(_tPointer p) ynothrow
-	-> decltype(!bool(p) || NPL::IsMovable(*p))
+IsMovable(_tPointer p) ynothrow -> decltype(!bool(p) || NPL::IsMovable(*p))
 {
 	return !bool(p) || NPL::IsMovable(*p);
 }
 //@}
 
 
+/*!	\defgroup TermReferenceAccess Term Reference Access API
+\brief 项引用访问接口。
+\since build 914
+*/
+
+//! \ingroup TermReferenceAccess
+//@{
 //! \exception 异常中立：由项的值数据成员的持有者抛出。
 //@{
 //! \brief 尝试访问解析 TermReference 后的项的指定类型对象指针。
 //@{
 /*!
+\sa NPL::ReferenceTerm
 \sa NPL::TryAccessLeaf
 \since build 854
 */
@@ -1520,117 +1591,7 @@ ResolveRegular(_tTerm& term) -> yimpl(decltype(NPL::Access<_type>(term)))
 //@}
 //@}
 //@}
-
-
-//! \since build 801
-//@{
-/*!
-\brief 项引用函数对象操作。
-\note 这是 NPL::ReferenceTerm 的函数对象形式。
-\sa ReferenceTerm
-*/
-struct ReferenceTermOp
-{
-	//! \since build 876
-	template<typename _type>
-	auto
-	operator()(_type&& term) const
-		ynoexcept_spec(NPL::ReferenceTerm(yforward(term)))
-		-> decltype(NPL::ReferenceTerm(yforward(term)))
-	{
-		return NPL::ReferenceTerm(yforward(term));
-	}
-};
-
-/*!
-\brief 包装一个非项引用的操作为 NPL::ReferenceTermOp 以支持项引用。
-\relates ReferenceTermOp
-\since build 802
-*/
-template<typename _func>
-YB_STATELESS auto
-ComposeReferencedTermOp(_func f)
-	-> yimpl(decltype(ystdex::compose_n(f, ReferenceTermOp())))
-{
-	return ystdex::compose_n(f, ReferenceTermOp());
-}
 //@}
-
-
-/*!
-\brief 规约状态：某个项上的一遍规约可能的中间结果。
-\note 实现的编码未指定，编码和规约时的判断性能相关。
-\since build 730
-*/
-enum class ReductionStatus : yimpl(size_t)
-{
-	/*!
-	\brief 部分规约：需要继续进行规约。
-	\note 一般仅用于异步规约。
-	\since build 841
-	*/
-	Partial = yimpl(0x00),
-	/*!
-	\brief 中立规约：规约成功终止，且未指定是否需要保留子项。
-	\note 一般用于不改变被规约项是否为空项的规约遍。
-	\since build 869
-	*/
-	Neutral = yimpl(0x01),
-	/*!
-	\brief 纯值规约：规约成功终止，且要求最终清理子项。
-	\since build 841
-	*/
-	Clean = yimpl(0x02),
-	/*!
-	\brief 非纯值规约：规约成功终止，且需要保留子项。
-	\since build 757
-	*/
-	Retained = yimpl(0x03),
-	/*!
-	\brief 已取得正规表示的规约：规约成功且已保证正规化，不指定是否需要保留子项。
-	\since build 865
-	*/
-	Regular = yimpl(Retained),
-	/*!
-	\brief 重规约。
-	\since build 757
-	*/
-	Retrying = yimpl(0x10)
-};
-
-/*!
-\brief 根据规约状态检查是否可继续规约。
-\relates ReductionStatus
-\sa YTraceDe
-\since build 734
-
-只根据参数确定结果：当且仅当参数规约成功时不视为可继续规约。
-在调试配置下，若发现不支持的状态视为不成功，输出警告。
-派生实现可使用类似的接口指定多个不同的状态。
-*/
-YB_ATTR_nodiscard YF_API YB_STATELESS bool
-CheckReducible(ReductionStatus);
-
-
-/*!
-\sa CheckReducible
-\since build 841
-*/
-template<typename _func, typename... _tParams>
-auto
-CheckedReduceWith(_func f, _tParams&&... args)
-	-> decltype(ystdex::retry_on_cond(CheckReducible, f, yforward(args)...))
-{
-	return ystdex::retry_on_cond(CheckReducible, f, yforward(args)...);
-}
-
-/*!
-\brief 按规约结果正规化项。
-\return 第二参数。
-\since build 841
-*/
-YF_API ReductionStatus
-RegularizeTerm(TermNode&, ReductionStatus) ynothrow;
 
 
 /*!
@@ -1877,6 +1838,122 @@ inline PDefH(void, LiftLast, TermNode& term)
 
 
 /*!
+\brief 规约状态：某个项上的一遍规约可能的中间结果。
+\note 实现的编码未指定，编码和规约时的判断性能相关。
+\since build 730
+*/
+enum class ReductionStatus : yimpl(size_t)
+{
+	/*!
+	\brief 部分规约：需要继续进行规约。
+	\note 一般仅用于异步规约。
+	\since build 841
+	*/
+	Partial = yimpl(0x00),
+	/*!
+	\brief 中立规约：规约成功终止，且未指定是否需要保留子项。
+	\note 一般用于不改变被规约项是否为空项的规约遍。
+	\since build 869
+	*/
+	Neutral = yimpl(0x01),
+	/*!
+	\brief 纯值规约：规约成功终止，且要求最终清理子项。
+	\since build 841
+	*/
+	Clean = yimpl(0x02),
+	/*!
+	\brief 非纯值规约：规约成功终止，且需要保留子项。
+	\since build 757
+	*/
+	Retained = yimpl(0x03),
+	/*!
+	\brief 已取得正规表示的规约：规约成功且已保证正规化，不指定是否需要保留子项。
+	\since build 865
+	*/
+	Regular = yimpl(Retained),
+	/*!
+	\brief 重规约。
+	\since build 757
+	*/
+	Retrying = yimpl(0x10)
+};
+
+/*!
+\brief 根据规约状态检查是否可继续规约。
+\relates ReductionStatus
+\sa YTraceDe
+\since build 734
+
+只根据参数确定结果：当且仅当参数规约成功时不视为可继续规约。
+在调试配置下，若发现不支持的状态视为不成功，输出警告。
+派生实现可使用类似的接口指定多个不同的状态。
+*/
+YB_ATTR_nodiscard YF_API YB_STATELESS bool
+CheckReducible(ReductionStatus);
+
+/*!
+\sa CheckReducible
+\since build 841
+*/
+template<typename _func, typename... _tParams>
+auto
+CheckedReduceWith(_func f, _tParams&&... args)
+	-> decltype(ystdex::retry_on_cond(CheckReducible, f, yforward(args)...))
+{
+	return ystdex::retry_on_cond(CheckReducible, f, yforward(args)...);
+}
+
+/*!
+\brief 判断参数指定的规约结果在合并中是否可被覆盖。
+\warning 具体支持的值未指定，结果的稳定性不应被依赖。
+\since build 869
+*/
+YB_ATTR_nodiscard yconstfn YB_STATELESS
+	PDefH(bool, IsOverridableReductionResult, ReductionStatus r) ynothrow
+	ImplRet(
+		yimpl(r == ReductionStatus::Clean || r == ReductionStatus::Retained))
+
+/*!
+\since build 807
+\note 一般第一参数用于指定被合并的之前的规约结果，第二参数指定用于合并的结果。
+\return 合并后的规约结果。
+*/
+//@{
+/*!
+\brief 合并规约结果。
+
+若第二参数显式指定是否保留或不保留子项，则合并后的规约结果为第二参数；
+否则为第一参数。
+*/
+YB_ATTR_nodiscard yconstfn YB_STATELESS PDefH(ReductionStatus,
+	CombineReductionResult, ReductionStatus res, ReductionStatus r) ynothrow
+	ImplRet(IsOverridableReductionResult(r) ? r : res)
+
+/*!
+\brief 合并序列规约结果。
+\sa CheckReducible
+
+若第二参数指定可继续规约的项，则合并后的规约结果为第二参数；
+	否则同 CombineReductionResult 。
+若可继续规约，则指定当前规约的项的规约已终止，不合并第一参数指定的结果。
+下一轮序列的规约可能使用或忽略合并后的结果。
+*/
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(ReductionStatus, CombineSequenceReductionResult, ReductionStatus res,
+	ReductionStatus r) ynothrow
+	ImplRet(CheckReducible(r) ? r : CombineReductionResult(res, r))
+//@}
+
+/*!
+\brief 按规约结果正规化项。
+\return 第二参数。
+\since build 841
+*/
+YF_API ReductionStatus
+RegularizeTerm(TermNode&, ReductionStatus) ynothrow;
+
+
+/*!
 \pre 间接断言：参数为枝节点。
 \note 不访问项的值数据成员。若需返回值正确地反映规约状态，需确保为空。
 \return ReductionStatus::Retained 。
@@ -1986,48 +2063,6 @@ ReduceToReferenceAt(TermNode&, TermNode&, ResolvedTermReferencePtr);
 */
 inline PDefH(ReductionStatus, ReduceToValue, TermNode& term, TermNode& tm)
 	ImplRet(MoveRValueToReturn(term, tm), ReductionStatus::Retained)
-//@}
-
-
-/*!
-\brief 判断参数指定的规约结果在合并中是否可被覆盖。
-\warning 具体支持的值未指定，结果的稳定性不应被依赖。
-\since build 869
-*/
-YB_ATTR_nodiscard yconstfn YB_STATELESS PDefH(bool,
-	IsOverridableReductionResult, ReductionStatus r) ynothrow
-	ImplRet(yimpl(r == ReductionStatus::Clean
-		|| r == ReductionStatus::Retained))
-
-/*!
-\since build 807
-\note 一般第一参数用于指定被合并的之前的规约结果，第二参数指定用于合并的结果。
-\return 合并后的规约结果。
-*/
-//@{
-/*!
-\brief 合并规约结果。
-
-若第二参数显式指定是否保留或不保留子项，则合并后的规约结果为第二参数；
-否则为第一参数。
-*/
-YB_ATTR_nodiscard yconstfn YB_STATELESS PDefH(ReductionStatus,
-	CombineReductionResult, ReductionStatus res, ReductionStatus r) ynothrow
-	ImplRet(IsOverridableReductionResult(r) ? r : res)
-
-/*!
-\brief 合并序列规约结果。
-\sa CheckReducible
-
-若第二参数指定可继续规约的项，则合并后的规约结果为第二参数；
-	否则同 CombineReductionResult 。
-若可继续规约，则指定当前规约的项的规约已终止，不合并第一参数指定的结果。
-下一轮序列的规约可能使用或忽略合并后的结果。
-*/
-YB_ATTR_nodiscard YB_PURE inline
-	PDefH(ReductionStatus, CombineSequenceReductionResult, ReductionStatus res,
-	ReductionStatus r) ynothrow
-	ImplRet(CheckReducible(r) ? r : CombineReductionResult(res, r))
 //@}
 
 
@@ -2365,7 +2400,12 @@ public:
 	YB_NORETURN static void
 	ThrowForInvalidValue(bool = {});
 
-	//! \since build 746
+	/*!
+	\brief 交换。
+	\since build 746
+
+	交换环境对象的绑定、算法和锚对象指针。
+	*/
 	friend PDefH(void, swap, Environment& x, Environment& y) ynothrow
 		ImplExpr(swap(x.Bindings, y.Bindings), swap(x.Parent, y.Parent),
 			swap(x.p_anchor, y.p_anchor))
@@ -2995,6 +3035,12 @@ SwitchToFreshEnvironment(ContextNode& ctx, _tParams&&... args)
 }
 
 
+/*!	\defgroup BindingAccess Binding Access API
+\brief 绑定访问接口。
+\since build 914
+*/
+
+//! \ingroup BindingAccess
 /*!
 \brief 构造并向绑定目标添加叶节点值。
 \return 对应的值在构造前不存在。
@@ -3118,6 +3164,7 @@ YB_ATTR_nodiscard YF_API pair<shared_ptr<Environment>, bool>
 ResolveEnvironment(TermNode& term);
 //@}
 //@}
+//@}
 
 
 /*!
@@ -3170,7 +3217,13 @@ RelaySwitched(ContextNode& ctx, _fCurrent&& cur)
 }
 
 
+/*!	\defgroup NPLDiagnostics NPL Diagnostics API
+\brief NPL 诊断接口。
+\since build 914
+*/
+
 /*!
+\ingroup NPLDiagnostics
 \brief 追踪记录 NPL 异常。
 \since build 903
 */

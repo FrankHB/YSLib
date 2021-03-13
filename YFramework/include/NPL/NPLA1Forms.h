@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r7844
+\version r7923
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2021-03-01 18:47 +0800
+	2021-03-12 18:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,7 +50,8 @@ namespace A1
 \pre 除非另行指定支持保存当前动作，若存在子项，关联的上下文中的尾动作为空。
 \pre 设置为处理器调用的操作在进入调用前应确保设置尾上下文等内部状态。
 \pre 作为操作数的项的子项不包含引用或非正规表示引入的对操作数内的子项的循环引用。
-\pre 作为 NPLA1 规约函数的函数的参数符合规约函数约定。
+\pre 作为 NPLA1 规约函数的函数的参数符合规约函数实现约定。
+\pre 间接断言：作为规约函数第一参数指定的项是枝节点，以符合语法形式的实现要求。
 \sa ContextState
 \see %Documentation::NPL.
 \since build 732
@@ -75,13 +76,12 @@ namespace Forms
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsSymbol(const string&) ynothrow;
 
-//! \since build 786
-//@{
 /*!
 \brief 创建等于指定字符串值的记号值。
 \note 不检查值是否符合符号要求。若能构成符号，则名称为指定字符串。
 */
 //@{
+//! \since build 786
 YB_ATTR_nodiscard YF_API YB_PURE TokenValue
 StringToSymbol(const string&);
 //! \since build 863
@@ -89,16 +89,17 @@ YB_ATTR_nodiscard YF_API YB_PURE TokenValue
 StringToSymbol(string&&);
 //@}
 
-//! \brief 取符号对应的名称字符串。
+/*!
+\brief 取符号对应的名称字符串。
+\since build 786
+*/
 YB_ATTR_nodiscard YF_API YB_STATELESS const string&
 SymbolToString(const TokenValue&) ynothrow;
-//@}
 
 
 /*!
 \pre 断言：项或容器对应枝节点。
 \sa AssertBranch
-\since build 733
 */
 //@{
 /*!
@@ -389,9 +390,10 @@ struct UnaryAsExpansion
 //@}
 
 
-//! \since build 760
-//@{
-//! \sa Forms::CallBinary
+/*!
+\sa Forms::CallBinary
+\since build 760
+*/
 template<typename _func>
 struct BinaryExpansion
 	: private ystdex::equality_comparable<BinaryExpansion<_func>>
@@ -452,7 +454,6 @@ struct BinaryAsExpansion : private
 		Forms::CallBinaryAs<_type, _type2>(Function, yforward(args)...);
 	}
 };
-//@}
 //@}
 
 
@@ -946,8 +947,6 @@ EvalUnit(TermNode&);
 //@}
 
 
-//! \pre 间接断言：第一参数指定的项是枝节点。
-//@{
 /*!
 \brief 创建空环境。
 \exception NPLException 异常中立：由 Environment 的构造函数抛出。
@@ -1490,6 +1489,84 @@ ListConcat(TermNode&, ContextNode&);
 YF_API ReductionStatus
 Append(TermNode&, ContextNode&);
 
+//! \since build 914
+//@{
+/*!
+\brief 以指定应用子在指定列表中选取并合并内容为新的列表。
+
+对参数列表 <pre>(&l &extr)</pre> ，结果同求值：
+<pre>accr l null? () ($lambda% (&l) forward-first% extr (expire l))
+	rest% cons% </pre>
+
+参考调用文法：
+<pre>list-extract% \<list> \<applicative></pre>
+*/
+YF_API ReductionStatus
+ListExtract(TermNode&, ContextNode&);
+
+/*!
+\brief 以 First 在指定列表中选取并合并内容为新的列表。
+\sa First
+
+参考调用文法：
+<pre>list-extract-first \<list></pre>
+*/
+YF_API ReductionStatus
+ListExtractFirst(TermNode&, ContextNode&);
+
+/*!
+\brief 以 RestFwd 在指定列表中选取并合并内容为新的列表。
+\sa RestFwd
+
+参考调用文法：
+<pre>list-extract-rest% \<list></pre>
+*/
+YF_API ReductionStatus
+ListExtractRestFwd(TermNode&, ContextNode&);
+
+//! \brief 局部绑定求值。
+//@{
+/*
+不保留结果中的引用值。
+
+参考调用文法：
+<pre>$let \<bindings> \<body></pre>
+*/
+YF_API ReductionStatus
+Let(TermNode&, ContextNode&);
+
+/*
+保留结果中的引用值。
+
+参考调用文法：
+<pre>$let% \<bindings> \<body></pre>
+*/
+YF_API ReductionStatus
+LetRef(TermNode&, ContextNode&);
+//@}
+
+//! \brief 指定静态环境并局部绑定求值。
+//@{
+/*
+不保留结果中的引用值。
+
+参考调用文法：
+<pre>$let/e \<parent> \<bindings> \<body></pre>
+*/
+YF_API ReductionStatus
+LetWithEnvironment(TermNode&, ContextNode&);
+
+/*
+保留结果中的引用值。
+
+参考调用文法：
+<pre>$let/e% \<parent> \<bindings> \<body></pre>
+*/
+YF_API ReductionStatus
+LetWithEnvironmentRef(TermNode&, ContextNode&);
+//@}
+//@}
+
 
 /*!
 \brief 调用 UTF-8 字符串的系统命令，并保存 int 类型的结果到项的值中。
@@ -1501,7 +1578,6 @@ Append(TermNode&, ContextNode&);
 */
 YF_API void
 CallSystem(TermNode&);
-//@}
 
 } // namespace Forms;
 

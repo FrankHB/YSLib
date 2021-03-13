@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3490
+\version r3520
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2021-03-01 22:47 +0800
+	2021-03-06 23:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -699,37 +699,6 @@ IsTemporaryTerm(const TermNode& term)
 }
 
 
-bool
-CheckReducible(ReductionStatus status)
-{
-	switch(status)
-	{
-	case ReductionStatus::Partial:
-	case ReductionStatus::Retrying:
-		return true;
-	default:
-#if NPL_Impl_NPLA_CheckStatus
-		// NOTE: Keep away assertions so client code can be diagnosed.
-		if(YB_UNLIKELY(status != ReductionStatus::Neutral
-			&& status != ReductionStatus::Clean
-			&& status != ReductionStatus::Retained))
-			YTraceDe(Warning, "Unexpected status found.");
-#endif
-		break;
-	}
-	return {};
-}
-
-ReductionStatus
-RegularizeTerm(TermNode& term, ReductionStatus status) ynothrow
-{
-	// NOTE: Cleanup if and only if necessary.
-	if(status == ReductionStatus::Clean)
-		term.ClearContainer();
-	return status;
-}
-
-
 void
 LiftOtherOrCopy(TermNode& term, TermNode& tm, bool move)
 {
@@ -854,6 +823,37 @@ MoveRValueToReturn(TermNode& term, TermNode& tm)
 	if(!IsBoundLValueTerm(term))
 		LiftToReturn(term);
 #	endif
+}
+
+
+bool
+CheckReducible(ReductionStatus status)
+{
+	switch(status)
+	{
+	case ReductionStatus::Partial:
+	case ReductionStatus::Retrying:
+		return true;
+	default:
+#if NPL_Impl_NPLA_CheckStatus
+		// NOTE: Keep away assertions so client code can be diagnosed.
+		if(YB_UNLIKELY(status != ReductionStatus::Neutral
+			&& status != ReductionStatus::Clean
+			&& status != ReductionStatus::Retained))
+			YTraceDe(Warning, "Unexpected status found.");
+#endif
+		break;
+	}
+	return {};
+}
+
+ReductionStatus
+RegularizeTerm(TermNode& term, ReductionStatus status) ynothrow
+{
+	// NOTE: Cleanup if and only if necessary.
+	if(status == ReductionStatus::Clean)
+		term.ClearContainer();
+	return status;
 }
 
 

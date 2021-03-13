@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r3853
+\version r3866
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2021-03-01 22:45 +0800
+	2021-03-12 18:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -340,7 +340,8 @@ public:
 	PDefH(void, SetContent, const TermNode& term)
 		ImplExpr(SetContent(term.container, term.Value))
 	PDefH(void, SetContent, TermNode&& term)
-		ImplExpr(SetContent(std::move(term.container), std::move(term.Value)))
+		ImplExpr(SetContent(std::move(term.container), std::move(term.Value)),
+			Tags = term.Tags)
 	//@}
 
 	//! \since build 853
@@ -365,6 +366,7 @@ public:
 		con.emplace(position, NoContainer, yforward(args)...);
 	}
 
+	//! \note 不访问 Tags 。
 	PDefH(void, Clear, ) ynothrow
 		ImplExpr(Value.Clear(), ClearContainer())
 
@@ -715,6 +717,17 @@ SetContentWith(TermNode& dst, _tNode&& node, _fCallable f)
 	dst.SetContent(std::move(con), std::move(vo));
 }
 //@}
+
+/*!
+\brief 检查项节点是否具有指定的值。
+\since build 753
+*/
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE inline bool
+HasValue(const TermNode& term, const _type& x)
+{
+	return term.Value == x;
+}
 //@}
 
 /*!
@@ -736,18 +749,6 @@ TraverseSubnodes(_fCallable f, const _tNode& node)
 	else
 		for(const auto& nd : node)
 			ystdex::invoke(f, nd);
-}
-
-
-/*!
-\brief 检查项节点是否具有指定的值。
-\since build 753
-*/
-template<typename _type>
-YB_ATTR_nodiscard YB_PURE inline bool
-HasValue(const TermNode& term, const _type& x)
-{
-	return term.Value == x;
 }
 
 

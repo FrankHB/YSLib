@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r4355
+\version r4480
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2021-03-05 01:14 +0800
+	2021-03-13 01:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,7 @@
 //	IsReferenceTerm, IsBoundLValueTerm, IsUncollapsedTerm, IsUniqueTerm,
 //	IsModifiableTerm, IsTemporaryTerm, NPL::TryAccessLeaf, LiftTermRef,
 //	NPL::SetContentWith, Forms::CallRawUnary, LiftTerm, LiftOtherOrCopy,
-//	std::placeholders, LiftTermValueOrCopy, ystdex::bind1, MoveResolved,
+//	ystdex::bind1, std::placeholders, LiftTermValueOrCopy, MoveResolved,
 //	ResolveIdentifier, ReduceToReferenceList, NPL::IsMovable, LiftTermOrCopy,
 //	IsBranchedList, AccessFirstSubterm, ReferenceTerm,
 //	ThrowInsufficientTermsError, ystdex::exchange, ystdex::plus,
@@ -299,6 +299,18 @@ DoMoveOrTransfer(void(&f)(TermNode&, TermNode&, bool), TermNode& term)
 	}, term);
 }
 
+//! \since build 914
+YB_ATTR_nodiscard ReductionStatus
+Qualify(TermNode& term, TermTags tag_add)
+{
+	return Forms::CallRawUnary([&](TermNode& tm){
+		if(const auto p = NPL::TryAccessLeaf<TermReference>(tm))
+			p->AddTags(tag_add);
+		LiftTerm(term, tm);
+		return ReductionStatus::Retained;
+	}, term);
+}
+
 //! \since build 794
 //@{
 void
@@ -465,14 +477,10 @@ LoadObjects(ContextNode& ctx)
 			return ReductionStatus::Retained;
 		}, term);
 	});
-	RegisterStrict(ctx, "expire", [](TermNode& term){
-		return CallRawUnary([&](TermNode& tm){
-			if(const auto p = NPL::TryAccessLeaf<TermReference>(tm))
-				p->SetTags(p->GetTags() | TermTags::Unique);
-			LiftTerm(term, tm);
-			return ReductionStatus::Retained;
-		}, term);
-	});
+	RegisterStrict(ctx, "as-const",
+		ystdex::bind1(Qualify, TermTags::Nonmodifying));
+	RegisterStrict(ctx, "expire",
+		ystdex::bind1(Qualify, TermTags::Unique));
 	RegisterStrict(ctx, "move!", std::bind(DoMoveOrTransfer,
 		std::ref(LiftOtherOrCopy), std::placeholders::_1));
 	RegisterStrict(ctx, "transfer!", std::bind(DoMoveOrTransfer,
@@ -747,6 +755,13 @@ LoadBasicDerived(REPLContext& context)
 	});
 	RegisterStrict(renv, "list-concat", ListConcat);
 	RegisterStrict(renv, "append", Append);
+	RegisterStrict(renv, "list-extract%", ListExtract);
+	RegisterStrict(renv, "list-extract-first", ListExtractFirst);
+	RegisterStrict(renv, "list-extract-rest%", ListExtractRestFwd);
+	RegisterForm(renv, "$let", Let);
+	RegisterForm(renv, "$let%", LetRef);
+	RegisterForm(renv, "$let/e", LetWithEnvironment);
+	RegisterForm(renv, "$let/e%", LetWithEnvironmentRef);
 	RegisterStrict(renv, "make-standard-environment", ystdex::bind1(
 		// NOTE: The weak reference of the ground environment is saved and it
 		//	shall not be moved after being called.
@@ -960,6 +975,11 @@ LoadBasicDerived(REPLContext& context)
 		$defl! first-null? (&l) null? (first l);
 		$defl! list-concat (&x &y) foldr1 cons% (forward! y) (forward! x);
 		$defl! append (.&ls) foldr1 list-concat () (move! ls);
+		$defw%! list-extract% (&l &extr) d
+			accr l null? () ($lambda% (&l)
+				apply forward-first% (list% extr (expire l)) d) rest% cons%;
+		$defl%! list-extract-first (&l) list-extract% l first;
+		$defl%! list-extract-rest% (&l) list-extract% l rest%;
 		$defv! $defw! (&f &formals &ef .&body) d
 			eval (list $set! d f wrap (list* $vau formals ef (move! body))) d;
 		$defw! derive-current-environment (.&envs) d
@@ -1091,32 +1111,94 @@ LoadCore(REPLContext& context)
 		$defl%! assv (&x &alist) $cond ((null? alist) ())
 			((eqv? x (first& (first& alist))) first alist)
 			(#t assv (forward! x) (rest% alist));
-		$defv%! $let (&bindings .&body) d
-			eval% (list* () (list* $lambda (map1 firstv bindings)
-				(list (move! body))) (map1 rest% bindings)) d;
-		$defv%! $let% (&bindings .&body) d
-			eval% (list* () (list* $lambda% (map1 firstv bindings)
-				(list (move! body))) (map1 rest% bindings)) d;
-		$defv%! $let/e (&e &bindings .&body) d
-			eval% (list* () (list* $lambda/e e (map1 firstv bindings)
-				(list (move! body))) (map1 rest% bindings)) d;
-		$defv%! $let/e% (&e &bindings .&body) d
-			eval% (list* () (list* $lambda/e% e (map1 firstv bindings)
-				(list (move! body))) (map1 rest% bindings)) d;
-		$defv%! $let* (&bindings .&body) d
-			eval% ($if (null? bindings) (list* $let () (move! body))
-				(list $let (list (firstv bindings))
-				(list* $let* (rest% bindings) (move! body)))) d;
-		$defv%! $let*% (&bindings .&body) d
-			eval% ($if (null? bindings) (list* $let* () (move! body))
-				(list $let% (list (first bindings))
-				(list* $let*% (rest% bindings) (move! body)))) d;
-		$defv%! $letrec (&bindings .&body) d
-			eval% (list $let () $sequence (list $def! (map1 firstv bindings)
-				(list* () list (map1 rest% bindings))) (move! body)) d;
-		$defv%! $letrec% (&bindings .&body) d
-			eval% (list $let% () $sequence (list $def! (map1 firstv bindings)
-				(list* () list (map1 rest% bindings))) (move! body)) d;
+	)NPL");
+#if NPL_Impl_NPLA1_Native_Forms
+	context.Perform(R"NPL(
+		$def! ($let* $let*% $letrec $letrec%)
+			($lambda (&ce)
+		(
+			$def! mods () ($lambda/e ce ()
+			(
+				$defv%! $lqual (&ls) d
+					$if (eval (list $lvalue-identifier? ls) d)
+						(eval% (list as-const ls) d)
+						(($lambda% (&l) map1 expire (rlist l)) (eval% ls d));
+				$defv%! $lqual* (&x) d
+					($if (eval (list $lvalue-identifier? x) d) as-const expire)
+						(eval% x d);
+				$defl%! mk-let* ($let $let* &bindings &body)
+					$if (null? bindings) (list* $let () (move! body))
+						(list $let (list (first% ($lqual* bindings)))
+						(list* $let* (rest% ($lqual* bindings)) (move! body)));
+				$defl%! mk-letrec ($let &bindings &body)
+					list $let% () $sequence (list $def! (list-extract-first
+						bindings) (list* () list (list-extract-rest% bindings)))
+						(move! body);
+				() lock-current-environment
+			));
+			$defv/e%! $let* mods (&bindings .&body) d
+				eval% (mk-let* $let $let* ($lqual* bindings) (move! body)) d;
+			$defv/e%! $let*% mods (&bindings .&body) d
+				eval% (mk-let* $let% $let*% ($lqual* bindings) (move! body)) d;
+			$defv/e%! $letrec mods (&bindings .&body) d
+				eval% (mk-letrec $let ($lqual bindings) (move! body)) d;
+			$defv/e%! $letrec% mods (&bindings .&body) d
+				eval% (mk-letrec $let% ($lqual bindings) (move! body)) d;
+			map1 move! (list% $let* $let*% $letrec $letrec%)
+		)) (() get-current-environment);
+	)NPL");
+#else
+	context.Perform(R"NPL(
+		$def! ($let $let% $let/e $let/e% $let* $let*% $letrec $letrec%)
+			($lambda (&ce)
+		(
+			$def! mods () ($lambda/e ce ()
+			(
+				$defv%! $lqual (&ls) d
+					$if (eval (list $lvalue-identifier? ls) d)
+						(eval% (list as-const ls) d)
+						(($lambda% (&l) map1 expire (rlist l)) (eval% ls d));
+				$defv%! $lqual* (&x) d
+					($if (eval (list $lvalue-identifier? x) d) as-const expire)
+						(eval% x d);
+				$defl%! mk-let ($ctor &bindings &body)
+					list* () (list* $ctor (list-extract-first bindings)
+						(list (move! body))) (list-extract-rest% bindings);
+				$defl%! mk-let/e ($ctor &e &bindings &body)
+					list* () (list* $ctor e (list-extract-first bindings)
+						(list (move! body))) (list-extract-rest% bindings);
+				$defl%! mk-let* ($let $let* &bindings &body)
+					$if (null? bindings) (list* $let () (move! body))
+						(list $let (list (first% ($lqual* bindings)))
+						(list* $let* (rest% ($lqual* bindings)) (move! body)));
+				$defl%! mk-letrec ($let &bindings &body)
+					list $let% () $sequence (list $def! (list-extract-first
+						bindings) (list* () list (list-extract-rest% bindings)))
+						(move! body);
+				() lock-current-environment
+			));
+			$defv/e%! $let mods (&bindings .&body) d
+				eval% (mk-let $lambda ($lqual bindings) (move! body)) d;
+			$defv/e%! $let% mods (&bindings .&body) d
+				eval% (mk-let $lambda% ($lqual bindings) (move! body)) d;
+			$defv/e%! $let/e mods (&e &bindings .&body) d
+				eval% (mk-let/e $lambda/e e ($lqual bindings) (move! body)) d;
+			$defv/e%! $let/e% mods (&e &bindings .&body) d
+				eval% (mk-let/e $lambda/e% e ($lqual bindings) (move! body)) d;
+			$defv/e%! $let* mods (&bindings .&body) d
+				eval% (mk-let* $let $let* ($lqual* bindings) (move! body)) d;
+			$defv/e%! $let*% mods (&bindings .&body) d
+				eval% (mk-let* $let% $let*% ($lqual* bindings) (move! body)) d;
+			$defv/e%! $letrec mods (&bindings .&body) d
+				eval% (mk-letrec $let ($lqual bindings) (move! body)) d;
+			$defv/e%! $letrec% mods (&bindings .&body) d
+				eval% (mk-letrec $let% ($lqual bindings) (move! body)) d;
+			map1 move!
+				(list% $let $let% $let/e $let/e% $let* $let*% $letrec $letrec%)
+		)) (() get-current-environment);
+	)NPL");
+#endif
+	context.Perform(R"NPL(
 		$defv! $as-environment (.&body) d
 			eval (list $let () (list $sequence (move! body)
 				(list () lock-current-environment))) d;
@@ -1145,11 +1227,6 @@ LoadCore(REPLContext& context)
 				(symbols->imports symbols)) (eval e d);
 		$defl! nonfoldable? (&l)
 			$if (null? l) #f ($if (first-null? l) #t (nonfoldable? (rest& l)));
-		$defl%! list-extract (&l &extr)
-			accr l null? ()
-				($lambda% (&l) forward-first% extr (expire l)) rest% cons%;
-		$defl%! list-extract-first (&l) list-extract l first;
-		$defl%! list-extract-rest% (&l) list-extract l rest%;
 		$defl! list-push-front! (&l &x)
 			assign! l (cons% (forward! x) (move! l));
 		$defw%! map-reverse (&appv .&ls) d

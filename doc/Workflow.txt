@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4265
+\version r4286
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2021-03-03 01:32 +0800
+	2021-03-08 18:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -4224,7 +4224,27 @@ Module NPL is continuously improved.
 			They are fixed by avoiding list initialization.
 		Other cases in NPL (e.g. APIs in the nested namespace 'SXML') may be not optimal, but they are not bugs as rejecting move-only objects.
 		There are similar cases in the uses of other types (e.g. 'ValueNode'), but regularly they do not uses move-only objects, so they are not checked now.
-
+	Native implementations of concrete list operations of 'foldr' family with conceptional use of 'cons%' (e.g., 'map1', 'list-concat' and 'append') are optimized further.
+		A preparation of the list argument is implemented to simplify the subsequent internal recursive calls.
+			This makes the implementation free to have assumption that the input is always a prvalue in the subsequent recursive calls.
+			As a result, the list object is not needed to be allocated again. It can just reuse the existing one once the rest iteration function is essentially 'rest%'.
+			The internal list constructions are also benefited from this assumption by the omission of the reference check, since the list is never a reference after the preparation.
+		The unspecified order of operation of the list construction (essentially same to the underlying combiner of 'cons%') and calls to the applicative in operations like 'map1' is leveraged.
+			This can almost have the tail call like left fold operations which has nested tail recursive calls. For exmaple, the following 2 implementations of 'map1' is equivalently conforming:
+				$defw%! map1 (&appv &l) d
+					foldr1 ($lambda (&x &xs) cons%
+						(apply appv (list% (forward! x)) d) xs) () (forward! l);
+				$defw%! map1 (&appv &l) d
+					$if (null? l) ()
+					($lambda (&r) $sequence ($set-rest%! r (eval& (rest& r) d)) (forward! r))
+						(cons% (apply appv (list% (first% l)) d)
+						(list% map1 appv (rest% l)));
+			Note having the value as the result in the end (i.e. 'forward! r') still does not make the nested recursive calls tail calls in the implementation above.
+				It is possible implemented in the object language, but decided unsupported, because:
+					It requires TCO action having different terms of the current term and the lifting target.
+					It requires primitive application for partial evaluation style rather than a simple 'eval'.
+					It requires to change the data structure of the internal representation of the term to allow partially reduction of a term.
+					All these changes are not trivial. It is not worth making a small improvement like this.
 
 ////
 

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r2967
+\version r3098
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-03-05 12:26 +0800
+	2021-03-13 14:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,121 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	* $revert(b909) DD "wrong 1st parameter type"
+		@ "operatives ('$set!', '$setrec!')" @ %Documentation.NPL $since b909,
+	/ %YFramework.NPL $=
+	(
+		/ %SContext $=
+		(
+			+ DD "Doxygen command '\relates'" @ "function template %HasValue",
+			/ @ "class %TermNode" $=
+			(
+				* "missing swapping tags" @ "friend function %swap" $since \
+					b857,
+					// This also has effects on assignment and exchange \
+						operations (but not for content setting and lifting).
+				* "missing setting tags" @ "function %SetContent#3"
+					// This also has effects on content setting and lifting \
+						operations.
+			)
+		),
+		/ %NPLA $=
+		(
+			/ DD "grouped several APIs with Doxygen groups %(LexicalCategory, \
+				TermAccessAuxiliary, TermReferenceAccess, BindingAccess, \
+				NPLDiagnostics)",
+			/ DLDI "reordered several declarations",
+				// More consistent with the documentation.
+			+ "functions %(AddTags, RemoveTags)" @ "class %TermReference"
+		),
+		/ DD "grouped several APIs to Doxygen group %NPLADiagnostics" @ %NPLA1
+			^ $dep_from ("%NPLADiagnostics" @ %NPLA),
+		/ @ "namespace %Forms" @ %NPLA1Forms $=
+		(
+			* DLI "missing %Retain call" @ "%function %Append" $since b912,
+			/ DLDI "simplified functions %(AccL, AccR)",
+			(
+			/ DLI "functions %(Map1, FoldR1)";
+				// Loops are less efficient here.
+			* DLI "redundant list binding in the initial binding"
+				@ "function %Map1" $since b899
+				// This is redundant for %Map1 but not %FoldR1 because the \
+					former has less arguments and the last argument (the list) \
+					should be bound later in the recursive calls.
+			),
+			(
+			/ $re_ex(b913) "avoided unexpected copy by list initialization via \
+				%std::initializer_list instance"
+				@ "%TermNode::Container assignment" $effective
+				@ "functions %(ForwardListFirst, MakeEncapsulationType)";
+			* $re_add(b913) $comp "move-only object not allowed in terms \
+				handled by functions as native implemention of applicative"
+				@ ("function %ForwardFirst" $orig (@ "%ForwardFirstList"
+				$since b875), "function %MakeEncapsulationType" $since b855)
+				// This was introduced by %TermNode construction as first. See \
+					$2021-03 @ %Documentation::Workflow.
+			),
+			/ $re_ex(b913) DLI "avoided unexpected copy by list initialization \
+				via %std::initializer_list instance"
+				@ "%TermNode construction" @ "function %(SetRest, SetRestRef)"
+			+ "function %ListExtract",
+			/ DLI "avoided redundant list check" @ "underlying list \
+				construction calls" @ ("function %Map1",
+				("function %ListConcat"; $comp "function %Append")),
+				// See $2021-03 @ %Documentation::Workflow.
+			+ "function %ListExtractFirst",
+			+ "function %ListExtractRestFwd",
+			/ DLDI "simplified list operations with null value returned at end \
+				with shared implementation to %ListExtract"
+				$effective @ "functions %(Map1, Append)",
+			/ DLDI "function %Cond" ^ "%IsBranch" ~ "%TermNode::empty",
+			+ "functions %(Let, LetRef, LetWithEnvironment, \
+				LetWithEnvironmentRef)"
+				^ $dep_from ("%TermReference::(AddTags, RemoveTags)" @ %NPLA)
+		),
+		/ @ "function %LoadGroundContext" @ %Dependency $=
+		(
+			/ @ "applicative 'list-extract%'" $=
+			(
+				(
+				/ "applicative 'list-extract'" => 'list-extract';
+				* $re_add(b913) $comp DD "safety guarantee broken on list \
+					lvalues handled by the safe operation subset implying call \
+					to 'list-extract'" $mismatch(Documentation.NPL) $since b875
+				),
+				(
+				/ "guaranteed dynamic enviornment used";
+					// This is more consistent to other applicatives like \
+						'foldr1' and 'map-reverse'.
+				/ $lib "added native derivation enabled by default"
+					^ $dep_from ("%ListExtract" @ %NPLA1Forms)
+				),
+				* "redundant lift at the result" @ "derivation"
+					@ "operative '$let*%'" $since b857
+					$= (/ $impl ^ '$let%' ~ '$let*'),
+				/ DLDI "simplified native derivation" @ "applicative 'expire'"
+					^ $dep_from ("%TermReference::AddTags" @ %NPLA),
+				+ "applicative 'as-const'"
+					^ $dep_from ("%TermReference::AddTags" @ %NPLA),
+				* "unexpected copy on calls"
+					@ "operatives named with '$let' prefix" $since b791
+			),
+			/ $lib "added native derivation enabled by default"
+				@ ("applicative 'list-extract-first'"
+				^ $dep_from ("%ListExtractFirst" @ %NPLA1Forms),
+				"applicative 'list-extract-rest%'"
+				^ $dep_from ("%ListExtractRestFwd" @ %NPLA1Forms),
+				"operative '$let'" ^ $dep_from ("%Let" @ %NPLA1Forms),
+				"operative '$let%'" ^ $dep_from ("%LetRef" @ %NPLA1Forms),
+				"operative '$let/e'" ^ $dep_from
+				("%LetWithEnvironment" @ %NPLA1Forms), "operative '$let/e%'"
+				^ $dep_from ("%LetWithEnvironmentRef" @ %NPLA1Forms))
+		)
+	)
+),
+
+b913
 (
 	/ %YFramework $=
 	(
@@ -145,7 +260,15 @@ $now
 				(
 					+ "context parameter";
 					/ "preserved reference of the result"
-				)
+				),
+				* "move-only object not allowed in terms handled by functions \
+					as native implemention of applicatives"
+					@ (("%AccL", "%AccR") $since b898, ("%FoldR1", "%Map1")
+					$since b899, ("%ListConcat", "%Append") $since b912))
+					// See $2021-03 @ %Documentation::Workflow.
+					$= (/ "avoided unexpected copy by list initialization via \
+						%std::initializer_list instance"
+						@ "%TermNode construction")
 			),
 			/ @ "function %LoadGroundContext" @ %Dependency $=
 			(
@@ -171,7 +294,8 @@ $now
 					);
 					/ $comp "supported copy elision of the list elements",
 					* "safety guarantee broken on list lvalues handled by the \
-						safe operation subset" $since b858
+						safe operation subset implying call to 'foldr1'"
+						$mismatch(Documentation.NPL) $since b858
 						// See $2021-02 @ %Documentation::Workflow.
 				),
 				/ "preserved reference of the result" @ "applicative 'rest&'" $=
@@ -205,18 +329,6 @@ $now
 						// Since b873, %expire could make %TermTags::Unique \
 							visible in the object language.
 				)
-			),
-			/ "avoided unexpected copy by list initialization via \
-				%std::initializer_list instance"
-				$effective "%TermNode construction" @ %NPLA1Forms $=
-				// See $2021-03 @ %Documentation::Workflow.
-			(
-				* "move-only object not allowed in terms handled by functions \
-					as native implemention of applicatives"
-					@ (("%AccL", "%AccR") $since b898, ("%FoldR1", "%Map1")
-					$since b899, ("%ListConcat", "%Append") $since b912),
-				/ DLI "optimized without list initialization" $=
-					@ "functions %(SetRest, SetRestRef, MakeEncapsulationType)"
 			)
 		)
 	)
@@ -323,7 +435,7 @@ b912
 					@ "function %LoadStandardDerived"
 					@ "function 'ensigil'"
 					// This get less one line.
-			)
+			),
 			/ DLI ^ "allocator" @ "initialization of %ContextHandler"
 				$effective @ ("functions %Forms::(WrapRef, WrapOnceRef, \
 				Unwrap, Apply, ForwardFirst)" @ %NPLA1Forms,

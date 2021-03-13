@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2037
+\version r2039
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2020-02-28 19:24 +0800
+	2021-03-12 18:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,7 +117,8 @@ TermNode::SwapContent(TermNode& term) ynothrowv
 void
 swap(TermNode& x, TermNode& y) ynothrowv
 {
-	x.SwapContent(y);
+	x.SwapContent(y),
+	std::swap(x.Tags, y.Tags);
 }
 
 

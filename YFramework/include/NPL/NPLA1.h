@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8516
+\version r8529
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2021-03-01 05:22 +0800
+	2021-03-12 18:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,8 +42,8 @@
 //	ystdex::type_info, SourceInformation, std::integral_constant, SourceName,
 //	NPL::tuple, NPL::get, NPL::forward_as_tuple, ReaderState,
 //	YSLib::allocate_shared;
-#include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, YSLib::GEvent,
-//	YSLib::GCombinerInvoker, YSLib::GDefaultLastValueInvoker;
+#include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, YSLib::GCombinerInvoker,
+//	YSLib::GDefaultLastValueInvoker;
 #include <ystdex/algorithm.hpp> // for ystdex::fast_any_of, ystdex::split;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard;
@@ -610,16 +610,6 @@ ReduceTail(TermNode&, ContextNode&, TNIter);
 //@}
 //@}
 
-
-/*!
-\brief 规约至确定的未指定值。
-\sa ValueToken::Unspecified
-\since build 896
-*/
-inline PDefH(ReductionStatus, ReduceReturnUnspecified, TermNode& term) ynothrow
-	ImplRet((term.Value = ValueObject(std::allocator_arg, term.get_allocator(),
-		ValueToken::Unspecified)), ReductionStatus::Clean)
-
 /*!
 \brief 规约到引用列表。
 \note 不访问项的值数据成员。若需返回值正确地反映规约状态，需确保为空。
@@ -635,6 +625,16 @@ inline PDefH(ReductionStatus, ReduceReturnUnspecified, TermNode& term) ynothrow
 */
 YF_API ReductionStatus
 ReduceToReferenceList(TermNode&, ContextNode&, TermNode&);
+
+
+/*!
+\brief 规约至确定的未指定值。
+\sa ValueToken::Unspecified
+\since build 896
+*/
+inline PDefH(ReductionStatus, ReduceReturnUnspecified, TermNode& term) ynothrow
+	ImplRet((term.Value = ValueObject(std::allocator_arg, term.get_allocator(),
+		ValueToken::Unspecified)), ReductionStatus::Clean)
 
 
 /*!
@@ -1417,6 +1417,8 @@ using Tokenizer = GTokenizer<ByteParser>;
 using SourcedTokenizer = GTokenizer<SourcedByteParser>;
 
 
+//! \ingroup NPLDiagnostics
+//@{
 /*!
 \pre 断言：参数的数据指针非空。
 \note 不对名称参数指向的数据具有所有权。一般需要使用字符串字面量。
@@ -1569,6 +1571,7 @@ SetupTailOperatorName(TermNode&, const ContextNode&);
 */
 YF_API void
 TraceBacktrace(ContextNode::ReducerSequence&, YSLib::Logger&);
+//@}
 
 
 /*
