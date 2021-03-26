@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r3866
+\version r3968
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2021-03-12 18:01 +0800
+	2021-03-19 23:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -138,11 +138,7 @@ enum class TermTags
 	通常在派生实现绑定特定引用且指定被引用的对象是右值时使用。
 	取得范式的项中，临时对象标签指示被绑定对象或其引用的绑定的是临时对象，
 		类似宿主语言中声明的右值引用变量，但实际作用在被引用的对象的项，
-		而不引入引用项。
-	范式中来自绑定的临时对象外的标签在对象语言中完全通过表达式的值类别决定。
-	排除临时对象标签的项，在特定上下文中被推断为左值，仍保留剩余的标签；
-	在这些上下文中，临时对象标签使推断结果为右值。
-	和宿主语言的 std::forward 不同，此处推断的右值除了是消亡值外，也可以是纯右值。
+		而不引入项引用。
 	不取得范式的项中，派生语言可指定指示被绑定对象以外的语义。
 	*/
 	Temporary = 1 << TemporaryIndex
@@ -153,14 +149,28 @@ enum class TermTags
 DefBitmaskEnum(TermTags)
 
 /*!
-\brief 取推断为左值表达式时保留的标签。
+\brief 取转发推断为左值表达式时保留的标签。
 \sa TermTags::Temporary
 
-取推断为左值表达式的标签，即除临时对象以外的标签。
+取按对象语言引用推断规则转发操作数时，允许使实际参数被推断为左值表达式的标签。
+当前设计中，即除临时对象以外的标签。
 */
 YB_ATTR_nodiscard YB_STATELESS yconstfn
 	PDefH(TermTags, GetLValueTagsOf, const TermTags& tags) ynothrow
 	ImplRet(tags & ~TermTags::Temporary)
+
+/*!
+\brief 传播标签。
+\since build 915
+
+向指定的标签添加可向被引用对象传播的标签。
+传播的标签实现引用值上的限定符向列表引用子对象的传播或者间接引用的合并。
+适用的范围类似宿主语言引用的限定符的传播。
+当前可传播的标签只有实现限定符的 TermTags::Nonmodifying 。
+*/
+YB_ATTR_nodiscard YB_STATELESS yconstfn
+	PDefH(TermTags, PropagateTo, TermTags dst, TermTags tags) ynothrow
+	ImplRet(dst | (tags & TermTags::Nonmodifying))
 //@}
 //@}
 
@@ -294,24 +304,24 @@ public:
 	\brief 复制构造：使用参数和参数指定的分配器。
 	\since build 879
 	*/
-	TermNode(const TermNode& tm)
-		: TermNode(tm, tm.get_allocator())
+	TermNode(const TermNode& nd)
+		: TermNode(nd, nd.get_allocator())
 	{}
-	TermNode(const TermNode& tm, allocator_type a)
-		: container(tm.container, a), Value(tm.Value), Tags(tm.Tags)
+	TermNode(const TermNode& nd, allocator_type a)
+		: container(nd.container, a), Value(nd.Value), Tags(nd.Tags)
 	{}
 	DefDeMoveCtor(TermNode)
-	TermNode(TermNode&& tm, allocator_type a)
-		: container(std::move(tm.container), a), Value(std::move(tm.Value)),
-		Tags(tm.Tags)
+	TermNode(TermNode&& nd, allocator_type a)
+		: container(std::move(nd.container), a), Value(std::move(nd.Value)),
+		Tags(nd.Tags)
 	{}
 
 	/*!
 	\brief 复制赋值：使用参数副本和交换操作。
 	\since build 879
 	*/
-	PDefHOp(TermNode&, =, const TermNode& tm)
-		ImplRet(ystdex::copy_and_swap(*this, tm))
+	PDefHOp(TermNode&, =, const TermNode& nd)
+		ImplRet(ystdex::copy_and_swap(*this, nd))
 	/*!
 	\pre 被转移的参数不是被子节点容器直接或间接所有的其它节点。
 	\warning 违反前置条件的转移可能引起循环引用。
@@ -337,11 +347,11 @@ public:
 		container = yforward(con);
 		Value = yforward(val);
 	}
-	PDefH(void, SetContent, const TermNode& term)
-		ImplExpr(SetContent(term.container, term.Value))
-	PDefH(void, SetContent, TermNode&& term)
-		ImplExpr(SetContent(std::move(term.container), std::move(term.Value)),
-			Tags = term.Tags)
+	PDefH(void, SetContent, const TermNode& nd)
+		ImplExpr(SetContent(nd.container, nd.Value))
+	PDefH(void, SetContent, TermNode&& nd)
+		ImplExpr(SetContent(std::move(nd.container), std::move(nd.Value)),
+			Tags = nd.Tags)
 	//@}
 
 	//! \since build 853
@@ -378,14 +388,14 @@ public:
 	\since build 913
 	*/
 	//@{
-	PDefH(void, CopyContainer, const TermNode& node)
-		ImplExpr(GetContainerRef() = Container(node.GetContainer()))
+	PDefH(void, CopyContainer, const TermNode& nd)
+		ImplExpr(GetContainerRef() = Container(nd.GetContainer()))
 
-	PDefH(void, CopyContent, const TermNode& node)
-		ImplExpr(SetContent(TermNode(node)))
+	PDefH(void, CopyContent, const TermNode& nd)
+		ImplExpr(SetContent(TermNode(nd)))
 
-	PDefH(void, CopyValue, const TermNode& node)
-		ImplExpr(Value = ValueObject(node.Value))
+	PDefH(void, CopyValue, const TermNode& nd)
+		ImplExpr(Value = ValueObject(nd.Value))
 	//@}
 
 private:
@@ -407,10 +417,10 @@ public:
 	{
 		Container res(con.get_allocator());
 
-		for(auto&& tm : con)
+		for(auto&& nd : con)
 			res.emplace_back(CreateRecursively(
-				ystdex::forward_like<_tCon>(tm.container), f),
-				ystdex::invoke(f, ystdex::forward_like<_tCon>(tm.Value)));
+				ystdex::forward_like<_tCon>(nd.container), f),
+				ystdex::invoke(f, ystdex::forward_like<_tCon>(nd.Value)));
 		return res;
 	}
 	//@}
@@ -550,43 +560,43 @@ using TNCIter = TermNode::const_iterator;
 */
 //@{
 //! \brief 判断项是否为枝节点。
-YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsBranch, const TermNode& term)
-	ynothrow
-	ImplRet(!term.empty())
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, IsBranch, const TermNode& nd) ynothrow
+	ImplRet(!nd.empty())
 
 /*!
 \brief 判断项是否为分支列表节点。
 \since build 858
 */
-YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsBranchedList,
-	const TermNode& term) ynothrow
-	ImplRet(!(term.empty() || term.Value))
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, IsBranchedList, const TermNode& nd) ynothrow
+	ImplRet(!(nd.empty() || nd.Value))
 
 //! \brief 判断项是否为空节点。
-YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsEmpty, const TermNode& term)
-	ynothrow
-	ImplRet(!term)
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, IsEmpty, const TermNode& nd) ynothrow
+	ImplRet(!nd)
 
 /*!
 \brief 判断项是否为扩展列表节点。
 \since build 858
 */
-YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsExtendedList,
-	const TermNode& term) ynothrow
-	ImplRet(!(term.empty() && term.Value))
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, IsExtendedList, const TermNode& nd) ynothrow
+	ImplRet(!(nd.empty() && nd.Value))
 
 //! \brief 判断项是否为叶节点。
-YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsLeaf, const TermNode& term)
-	ynothrow
-	ImplRet(term.empty())
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, IsLeaf, const TermNode& nd) ynothrow
+	ImplRet(nd.empty())
 
 /*!
 \brief 判断项是否为列表节点。
 \since build 774
 */
-YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsList, const TermNode& term)
-	ynothrow
-	ImplRet(!term.Value)
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, IsList, const TermNode& nd) ynothrow
+	ImplRet(!nd.Value)
 //@}
 
 //! \since build 853
@@ -594,16 +604,16 @@ using YSLib::Access;
 //! \since build 854
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline _type&
-Access(TermNode& term)
+Access(TermNode& nd)
 {
-	return term.Value.Access<_type>();
+	return nd.Value.Access<_type>();
 }
 //! \since build 854
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline const _type&
-Access(const TermNode& term)
+Access(const TermNode& nd)
 {
-	return term.Value.Access<_type>();
+	return nd.Value.Access<_type>();
 }
 
 //! \since build 853
@@ -611,16 +621,16 @@ using YSLib::AccessPtr;
 //! \since build 852
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
-AccessPtr(TermNode& term) ynothrow
+AccessPtr(TermNode& nd) ynothrow
 {
-	return term.Value.AccessPtr<_type>();
+	return nd.Value.AccessPtr<_type>();
 }
 //! \since build 852
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<const _type>
-AccessPtr(const TermNode& term) ynothrow
+AccessPtr(const TermNode& nd) ynothrow
 {
-	return term.Value.AccessPtr<_type>();
+	return nd.Value.AccessPtr<_type>();
 }
 
 /*!
@@ -628,9 +638,9 @@ AccessPtr(const TermNode& term) ynothrow
 \pre 断言：参数指定的项是枝节点。
 \since build 761
 */
-inline PDefH(void, AssertBranch, const TermNode& term,
+inline PDefH(void, AssertBranch, const TermNode& nd,
 	const char* msg = "Invalid term found.") ynothrowv
-	ImplExpr(yunused(term), yunused(msg), YAssert(IsBranch(term), msg))
+	ImplExpr(yunused(nd), yunused(msg), YAssert(IsBranch(nd), msg))
 
 //! \brief 创建项节点。
 //@{
@@ -658,18 +668,17 @@ AsTermNode(TermNode::allocator_type a, _tParams&&... args)
 // NOTE: Like %YSLib::GetValueOf.
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(ValueObject, GetValueOf, observer_ptr<const TermNode> p_term)
-	ImplRet(ystdex::call_value_or(
-		[](const TermNode& term) -> const ValueObject&{
-		return term.Value;
+	ImplRet(ystdex::call_value_or([](const TermNode& nd) -> const ValueObject&{
+		return nd.Value;
 	}, p_term))
 
 // NOTE: Like %YSLib::GetValuePtrOf.
 YB_ATTR_nodiscard YB_PURE inline PDefH(observer_ptr<const ValueObject>,
 	GetValuePtrOf, observer_ptr<const TermNode> p_term)
-	ImplRet(ystdex::call_value_or(ystdex::compose(make_observer<const
-		ValueObject>, ystdex::addrof<>(),
-		[](const TermNode& term) -> const ValueObject&{
-		return term.Value;
+	ImplRet(ystdex::call_value_or(
+		ystdex::compose(make_observer<const ValueObject>, ystdex::addrof<>(),
+		[](const TermNode& nd) -> const ValueObject&{
+		return nd.Value;
 	}), p_term))
 
 //! \since build 872
@@ -677,29 +686,29 @@ YB_ATTR_nodiscard YB_PURE inline PDefH(observer_ptr<const ValueObject>,
 //! \pre 断言：参数指定的项是枝节点。
 //@{
 YB_ATTR_nodiscard YB_PURE inline
-	PDefH(TermNode&, AccessFirstSubterm, TermNode& term)
-	ImplRet(AssertBranch(term), NPL::Deref(term.begin()))
+	PDefH(TermNode&, AccessFirstSubterm, TermNode& nd)
+	ImplRet(AssertBranch(nd), NPL::Deref(nd.begin()))
 YB_ATTR_nodiscard YB_PURE inline
-	PDefH(const TermNode&, AccessFirstSubterm, const TermNode& term)
-	ImplRet(AssertBranch(term), NPL::Deref(term.begin()))
+	PDefH(const TermNode&, AccessFirstSubterm, const TermNode& nd)
+	ImplRet(AssertBranch(nd), NPL::Deref(nd.begin()))
 
 YB_ATTR_nodiscard YB_PURE inline
-	PDefH(TermNode&&, MoveFirstSubterm, TermNode& term)
-	ImplRet(std::move(AccessFirstSubterm(term)))
+	PDefH(TermNode&&, MoveFirstSubterm, TermNode& nd)
+	ImplRet(std::move(AccessFirstSubterm(nd)))
 //@}
 
 YB_ATTR_nodiscard inline
-	PDefH(shared_ptr<TermNode>, ShareMoveTerm, TermNode& term)
-	ImplRet(YSLib::share_move(term.get_allocator(), term))
+	PDefH(shared_ptr<TermNode>, ShareMoveTerm, TermNode& nd)
+	ImplRet(YSLib::share_move(nd.get_allocator(), nd))
 YB_ATTR_nodiscard inline
-	PDefH(shared_ptr<TermNode>, ShareMoveTerm, TermNode&& term)
-	ImplRet(YSLib::share_move(term.get_allocator(), term))
+	PDefH(shared_ptr<TermNode>, ShareMoveTerm, TermNode&& nd)
+	ImplRet(YSLib::share_move(nd.get_allocator(), nd))
 //@}
 
 //! \pre 断言：项节点容器非空。
-inline PDefH(void, RemoveHead, TermNode& term) ynothrowv
-	ImplExpr(YAssert(!term.empty(), "Empty term container found."),
-		term.erase(term.begin()))
+inline PDefH(void, RemoveHead, TermNode& nd) ynothrowv
+	ImplExpr(YAssert(!nd.empty(), "Empty term container found."),
+		nd.erase(nd.begin()))
 
 /*!
 \brief 根据节点和节点容器创建操作设置目标节点的值或子节点。
@@ -708,11 +717,11 @@ inline PDefH(void, RemoveHead, TermNode& term) ynothrowv
 */
 template<typename _fCallable, class _tNode>
 void
-SetContentWith(TermNode& dst, _tNode&& node, _fCallable f)
+SetContentWith(TermNode& dst, _tNode&& nd, _fCallable f)
 {
 	// NOTE: Similar to %YSLib::SetContentWith.
-	auto con(yforward(node).CreateWith(f));
-	auto vo(ystdex::invoke(f, yforward(node).Value));
+	auto con(yforward(nd).CreateWith(f));
+	auto vo(ystdex::invoke(f, yforward(nd).Value));
 
 	dst.SetContent(std::move(con), std::move(vo));
 }
@@ -724,9 +733,9 @@ SetContentWith(TermNode& dst, _tNode&& node, _fCallable f)
 */
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline bool
-HasValue(const TermNode& term, const _type& x)
+HasValue(const TermNode& nd, const _type& x)
 {
-	return term.Value == x;
+	return nd.Value == x;
 }
 //@}
 
@@ -740,15 +749,15 @@ HasValue(const TermNode& term, const _type& x)
 */
 template<typename _fCallable, class _tNode>
 void
-TraverseSubnodes(_fCallable f, const _tNode& node)
+TraverseSubnodes(_fCallable f, const _tNode& nd)
 {
 	// TODO: Null coalescing or variant value?
-	if(const auto p = AccessPtr<YSLib::NodeSequence>(node))
-		for(const auto& nd : *p)
-			ystdex::invoke(f, _tNode(nd));
+	if(const auto p = AccessPtr<YSLib::NodeSequence>(nd))
+		for(const auto& sub : *p)
+			ystdex::invoke(f, _tNode(sub));
 	else
-		for(const auto& nd : node)
-			ystdex::invoke(f, nd);
+		for(const auto& sub : nd)
+			ystdex::invoke(f, sub);
 }
 
 
@@ -1127,7 +1136,7 @@ Reduce(TermNode& term, _tIn first, _tIn last, _fTokenize tokenize)
 	tms.push(std::move(term));
 	for(; first != last; ++first)
 		if(ToLexeme(*first) == "(")
-			tms.push(NPL::AsTermNode(a));
+			tms.push(TermNode(a));
 		else if(ToLexeme(*first) != ")")
 		{
 			YAssert(!tms.empty(), "Invalid state found.");

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2020 FrankHB.
+	© 2014-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r15447
+\version r15467
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2020-01-12 18:19 +0800
+	2021-03-26 22:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2383,9 +2383,9 @@ b588
 		),
 		(
 		+ %Ref;
-		/ "class template %lref, function templates %(ref, cref, unref), unary \
-			type trait %wrapped_traits, alias template %wrapped_traits_t"
-			@ %Functional >> %Ref,
+		/ ("class template %lref", "function templates %(ref, cref, unref)",
+			"unary type trait %wrapped_traits",
+			"alias template %wrapped_traits_t") @ %Functional >> %Ref,
 		/ "class %void_ref" @ %Any >> %Ref
 		),
 		(
@@ -5771,9 +5771,9 @@ b564
 		@ "platforms %(MinGW32, Android)" @ "Code::Blocks projects",
 		// Note that for %Android it is not actually effective.
 	+ $repo "pattern 'Tools/SHBuild/stdinc.h.gch'" @ "file %.hgignore",
-	/ $dev $repo $re_add(b563) "all edited file with module name not the same \
+	/ $dev $repo $re_add(b563) "all edited files with module name not the same \
 		as base filename" @ !%YBase ^ 'hg mv' $effective @ ("%yadaptor.h"
-		=> "%YAdaptor.h" @ %YFramework.YSLib.Adaptor.YGDIBase)
+		=> "%YAdaptor.h" @ %YFramework.YSLib.Adaptor)
 ),
 
 b563
@@ -5939,8 +5939,7 @@ b563
 			+ "variable %EXESFX with default variable '.exe'"
 				@ "platform %Win32" @ "%SHBuild-common-options.sh",
 			* $re_ex(b434) "wrong '-Wl,--dn' option" @ "debug dynamic libraries"
-				@ "%SHBuild-YSLib.debug.sh" $since b429,
-
+				@ "%SHBuild-YSLib.debug.sh" $since b429
 		),
 		/ "normalized bash condition use" $=
 		(
@@ -6063,7 +6062,7 @@ b562
 		/ @ "%install-sysroot.sh" $=
 		(
 			+ "support for installing on UNIX-like targets",
-			+ "variable %$SHBuild_Env_Arch" $dep_from
+			+ "variable %SHBuild_Env_Arch" $dep_from
 				("%SHBuild-common.sh" @ %Scripts);
 			/ "3rd party library directory now would be determinate by \
 				%(SHBuild_YSLib_Platform, $SHBuild_Env_Arch)";
@@ -7748,8 +7747,8 @@ b554
 	),
 	/ $build "makefile" @ "platform %Android" @ %YReader $=
 	(
-		/ $re_ex(b518) 'ANDROID_SDKVER := 21.0.0'
-			-> 'ANDROID_SDKVER := 21.1.1',
+		/ $re_ex(b518) "updated value" @ "variable %ANDROID_SDKVER" -> '21.1.1'
+			~ '20.0.0',
 		- DLD "redundant '-shared'" @ "%LDFLAGS"
 	),
 	/ $build @ "all 3 makefiles" @ "platform %Android" $=
@@ -8285,8 +8284,9 @@ b551
 
 b550
 (
-	/ $doc "updated Doxygen file" $=
+	/ $doc @ "%Doxyfile" $=
 	(
+		/ $deploy "updated PROJECT_NUMBER",
 		+ "ignored path 'sysroot'",
 		(
 		/ "value of %HTML_FILE_EXTENSION" -> '.xhtml' ~ "default '.html'";
@@ -12049,7 +12049,7 @@ b518
 	/ $doc "updated build notice" @ "%Readme.zh-CN.txt",
 	/ $dev $build "makefile" @ "platform %Android" $=
 	(
-		/ 'ANDROID_SDKVER := 20.0.0' -> 'ANDROID_SDKVER := 19.0.3',
+		/ "updated value" @ "variable %ANDROID_SDKVER" -> '20.0.0' ~ '19.0.3',
 			// This is the Android SDK Build-tools version.
 		/ "updated zipalign path" @ "target $(OUTPUT_FINAL)"
 			// The new SDK moved zipalign to the Build-tools.
@@ -12511,7 +12511,7 @@ b512
 	/ %YReader $=
 	(
 		^ "%IsPrintf" ~ "%std::iswprint" @ %DSReader $dep_from
-			%YFramework.YAdaptor.YTextBase,
+			%YFramework.Adaptor.YTextBase,
 		+ "function %FetchDefaultShellDirectory;
 		/ "default argument" @ "class %ShlExplorer"
 			-> 'FetchDefaultShellDirectory()'
@@ -13316,14 +13316,15 @@ b500
 		+ "function %AddButtonTabBar" @ %Shells,
 		+ "rearranged setting UI in 3 tab pages" @ %ReaderSettingUI
 	),
-	/ $doc "updated Doxygen file" $=
+	/ $doc @ "%Doxyfile" $=
 	(
-		^ "Doxygen 1.8.7" ~ "Doxygen 1.8.2",
+		/ $deploy "updated PROJECT_NUMBER",
 		/ 'YFramework/include/freetype YFramework/include/ft2build.h'
 			@ "%EXCLUDE" -> '.git Data Tools',
-		/ "set %SHORT_NAMES" -> 'YES' ~ 'NO'
+		/ "set %SHORT_NAMES" -> 'YES' ~ 'NO';
 			// Workaround of error: 'could not open file for writing' with a \
 				name containing a tab.
+		^ $re_ex(b366) "Doxygen 1.8.7" ~ "Doxygen 1.8.2"
 	)
 );
 

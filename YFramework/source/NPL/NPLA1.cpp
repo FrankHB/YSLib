@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r20407
+\version r20493
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2021-03-01 19:58 +0800
+	2021-03-26 02:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 //	YSLib::IValueHolder, YSLib::AllocatedHolderOperations, any,
 //	ystdex::as_const, NPL::forward_as_tuple, uintmax_t, TokenValue, Forms,
 //	std::allocator_arg, YSLib::stack, YSLib::vector, std::find_if, TermTags,
-//	function, TermReference, GetLValueTagsOf, NPL::TryAccessLeaf,
+//	function, TermReference, GetLValueTagsOf, NPL::TryAccessLeaf, PropagateTo,
 //	NPL::IsMovable, in_place_type, InvalidReference, NPL::Deref, IsLeaf,
 //	ResolveTerm, ThrowInsufficientTermsError, ThrowListTypeErrorForNonlist,
 //	ystdex::update_thunk, NPL::Access, ystdex::retry_on_cond,
@@ -223,8 +223,10 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	yunseq(0, (lf = NPL::make_observer(
 		&act.AttachFunction(std::forward<_tParams>(args)).get()), 0)...);
 	SetupNextTerm(ctx, term);
-	// XXX: %A1::RelayCurrentOrDirect is not used to allow the underlying
-	//	handler optimized with %NPL_Impl_NPLA1_Enable_InlineDirect.
+	// XXX: %A1::RelayCurrentOrDirect is not used to allow the call to the
+	//	underlying handler implementation (e.g. %FormContextHandler::CallN)
+	//	optimized with %NPL_Impl_NPLA1_Enable_InlineDirect remaining the nested
+	//	call safety.
 	return RelaySwitched(ctx, Continuation(std::ref(lf ? *lf : h), ctx));
 #else
 
@@ -316,6 +318,21 @@ ReduceOrderedResult(TermNode& term)
 		term.Value = ValueToken::Unspecified;
 }
 #endif
+
+//! \since build 915
+void
+EmplaceReference(TermNode::Container& con, TermNode& o, TermReference& ref,
+	bool move)
+{
+	if(move)
+		con.emplace_back(std::move(o.GetContainerRef()),
+			ValueObject(std::allocator_arg, con.get_allocator(),
+			in_place_type<TermReference>, std::move(ref)));
+	else
+		con.emplace_back(o.GetContainer(), ValueObject(
+			std::allocator_arg, con.get_allocator(), in_place_type<
+			TermReference>, BindReferenceTags(ref), ref));
+}
 
 
 //! \since build 891
@@ -508,8 +525,8 @@ struct BindParameterObject
 			{
 				if(sigil != char())
 				{
-					const auto ref_tags(sigil == '&' ? BindReferenceTags(*p)
-						: p->GetTags());
+					const auto ref_tags(PropagateTo(sigil == '&'
+						? BindReferenceTags(*p) : p->GetTags(), o_tags));
 
 					// XXX: Allocators are not used here on %TermReference for
 					//	performance in most cases.
@@ -655,7 +672,8 @@ private:
 
 				if(n_p > 0)
 				{
-					const auto& back(NPL::Deref(std::prev(last)));
+					const auto&
+						back(ReferenceTerm(NPL::Deref(std::prev(last))));
 
 					// NOTE: Empty list lvalue arguments shall not be matched
 					//	here.
@@ -694,10 +712,15 @@ private:
 							{
 								const auto ref_tags(p_ref->GetTags());
 
+								// NOTE: Drop the temporary tag unconditionally.
+								//	Even a list is a prvalue, its element cannot
+								//	be a prvalue being matched.
 								tags = (tags
 									& ~(TermTags::Unique | TermTags::Temporary))
 									| (ref_tags & TermTags::Unique);
-								tags |= ref_tags & TermTags::Nonmodifying;
+								// NOTE: Propagate %TermTags::Nonmodifying to
+								//	the referent.
+								tags = PropagateTo(tags, ref_tags);
 							}
 							MatchSubterms(t.begin(), last, nd, nd.begin(), tags,
 								p_ref ? p_ref->GetEnvironmentReference()
@@ -889,7 +912,7 @@ ContextState::DefaultReduceOnce(TermNode& term, ContextNode& ctx)
 			return DoAdministratives(cs.EvaluateList, term, ctx);
 
 		// XXX: This may be slightly more efficient, and more importantly,
-		//	respecting to nested call safety on %ReduceOnce for the thunked
+		//	respecting to the nested call safety on %ReduceOnce for the thunked
 		//	implementation well by only allow one level of direct recursion.
 		auto term_ref(ystdex::ref(term));
 
@@ -1035,7 +1058,6 @@ ReduceTail(TermNode& term, ContextNode& ctx, TNIter i)
 	return ReduceOnce(term, ctx);
 }
 
-
 ReductionStatus
 ReduceToReferenceList(TermNode& term, ContextNode& ctx, TermNode& tm)
 {
@@ -1044,50 +1066,69 @@ ReduceToReferenceList(TermNode& term, ContextNode& ctx, TermNode& tm)
 		if(IsList(nd))
 		{
 			// XXX: As %BindParameterObject.
-			const bool temp(!p_ref || p_ref->IsTemporary());
-
-			if(temp || p_ref->IsMovable())
+			if(!p_ref || p_ref->IsMovable())
 				// NOTE: This allows %nd owned by %term.
 				term.MoveContainer(std::move(nd));
 			else
 			{
 				const auto a(term.get_allocator());
 				TermNode::Container con(a);
-				const bool can_modify(!p_ref || p_ref->IsModifiable());
 				const auto& r_env(p_ref ? p_ref->GetEnvironmentReference()
 					: ctx.WeakenRecord());
-				auto o_tags(p_ref ? p_ref->GetTags()
-					& (TermTags::Unique | TermTags::Nonmodifying)
-					: TermTags::Temporary);
+				const auto o_tags(p_ref ? p_ref->GetTags() & (TermTags::Unique
+					| TermTags::Nonmodifying) : TermTags::Temporary);
 
 				// XXX: As %BindParameter.
 				for(auto& o : nd)
-				{
 					if(const auto p = NPL::TryAccessLeaf<TermReference>(o))
-					{
-						if(can_modify && temp)
-							con.emplace_back(std::move(o.GetContainerRef()),
-								ValueObject(std::allocator_arg, a,
-								in_place_type<TermReference>, std::move(*p)));
-						else
-							con.emplace_back(o.GetContainer(), ValueObject(
-								std::allocator_arg, a, in_place_type<
-								TermReference>, BindReferenceTags(*p), *p));
-					}
-					else if(can_modify && temp)
+						EmplaceReference(con, o, *p, !p_ref);
+					else if(p_ref)
+						con.emplace_back(TermNode::Container(o.get_allocator()),
+							ValueObject(std::allocator_arg, a,
+							in_place_type<TermReference>,
+							GetLValueTagsOf(o.Tags | o_tags), o, r_env));
+					else
 					{
 						con.emplace_back(std::move(o.GetContainerRef()),
 							std::move(o.Value));
 						con.back().Tags |= TermTags::Temporary;
 					}
-					else
-						con.emplace_back(TermNode::Container(o.get_allocator()),
-							ValueObject(std::allocator_arg, a,
-							in_place_type<TermReference>,
-							GetLValueTagsOf(o.Tags | o_tags), o, r_env));
-				}
 				con.swap(term.GetContainerRef());
 			}
+			return ReductionStatus::Retained;
+		}
+		else
+			ThrowListTypeErrorForNonlist(nd, p_ref);
+	}, tm);
+}
+
+ReductionStatus
+ReduceToReferenceUList(TermNode& term, TermNode& tm)
+{
+	// XXX: As %ReduceToReferenceList.
+	return ResolveTerm(
+		[&](TermNode& nd, ResolvedTermReferencePtr p_ref) YB_FLATTEN{
+		if(IsList(nd))
+		{
+			if(p_ref)
+			{
+				const auto a(term.get_allocator());
+				TermNode::Container con(a);
+				const auto add_tags(p_ref->GetTags() | TermTags::Unique
+					| TermTags::Temporary);
+
+				for(auto& o : nd)
+					if(const auto p = NPL::TryAccessLeaf<TermReference>(o))
+						EmplaceReference(con, o, *p, {});
+					else
+						con.emplace_back(TermNode::Container(o.get_allocator()),
+							ValueObject(std::allocator_arg, a, in_place_type<
+							TermReference>, o.Tags | add_tags, o,
+							p_ref->GetEnvironmentReference()));
+				con.swap(term.GetContainerRef());
+			}
+			else
+				term.MoveContainer(std::move(nd));
 			return ReductionStatus::Retained;
 		}
 		else
@@ -1175,7 +1216,7 @@ ParseLeaf(string_view id, TermNode::allocator_type a)
 {
 	YAssertNonnull(id.data());
 
-	auto term(NPL::AsTermNode(a));
+	TermNode term(a);
 
 	if(!id.empty())
 		switch(CategorizeBasicLexeme(id))
@@ -1214,7 +1255,7 @@ ParseLeafWithSourceInformation(string_view id, const shared_ptr<string>& name,
 	//	information mixed into the values of %TokenValue.
 	YAssertNonnull(id.data());
 
-	auto term(NPL::AsTermNode(a));
+	TermNode term(a);
 
 	if(!id.empty())
 		switch(CategorizeBasicLexeme(id))
@@ -1255,7 +1296,7 @@ FormContextHandler::CallN(size_t n, TermNode& term, ContextNode& ctx) const
 		return RelayCurrentOrDirect(ctx, Continuation(std::ref(Handler), ctx),
 			term);
 	return A1::RelayCurrentNext(ctx, term,
-		Continuation([&](TermNode& t, ContextNode& c){
+		Continuation([](TermNode& t, ContextNode& c){
 		YAssert(!t.empty(), "Invalid term found.");
 		ReduceChildrenOrderedAsyncUnchecked(std::next(t.begin()), t.end(), c);
 		return ReductionStatus::Partial;
@@ -1363,7 +1404,8 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 		if(const auto p = NPL::TryAccessLeaf<const TermReference>(bound))
 		{
 			p_rterm = &p->get();
-			// XXX: It is assumed that %term is not an ancestor of %bound.
+			// XXX: It is assumed that %term is not an ancestor of %bound. The
+			//	source term tags are ignored.
 			term.SetContent(bound.GetContainer(),
 				EnsureLValueReference(TermReference(*p)));
 		}

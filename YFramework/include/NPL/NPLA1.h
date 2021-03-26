@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8529
+\version r8550
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2021-03-12 18:01 +0800
+	2021-03-17 04:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -611,20 +611,35 @@ ReduceTail(TermNode&, ContextNode&, TNIter);
 //@}
 
 /*!
-\brief 规约到引用列表。
 \note 不访问项的值数据成员。若需返回值正确地反映规约状态，需确保为空。
 \return ReductionStatus::Retained
-\since build 913
 
-检查第三参数指定的项表示的对象语言中的列表或列表的引用值，
+检查最后一个参数指定的项表示的对象语言中的列表或列表的引用值，
 	处理其中的元素构造列表到第一参数中的子项。
 结果中的列表元素是对应源列表的元素。
+最后一个参数指定的源列表可能被第一参数所有。
+*/
+//@{
+/*!
+\brief 规约到引用列表。
+\since build 913
+
 若源列表为左值，则结果中的列表元素是对应的左值引用值；
 否则，结果中的列表元素从源列表中的元素复制初始化（按标签可发生转移）。
-第三参数指定的源列表可能被第一参数所有。
 */
 YF_API ReductionStatus
 ReduceToReferenceList(TermNode&, ContextNode&, TermNode&);
+
+/*!
+\brief 规约到可带有唯一引用标签的引用列表。
+\since build 915
+
+若源列表为左值，则结果中的列表元素是对应的左值引用值；
+否则，结果中的列表元素是源列表中的元素的唯一引用。
+*/
+YF_API ReductionStatus
+ReduceToReferenceUList(TermNode&, TermNode&);
+//@}
 
 
 /*!
@@ -1461,7 +1476,8 @@ NameExpandedHandler(_fCallable&& x, string_view desc)
 {
 	static_assert(std::is_constructible<_tTarget, _fCallable>(),
 		"Invalid callable type found.");
-	using expanded_t = ystdex::expanded_caller<_func, _fCallable>;
+	using expanded_t
+		= ystdex::expanded_caller<_func, ystdex::remove_cvref_t<_fCallable>>;
 
 	A1::InitializeTypeNameTableEntry<ystdex::cond_t<ystdex::and_<
 		ystdex::not_<std::is_constructible<function<_func>, _fCallable>>,

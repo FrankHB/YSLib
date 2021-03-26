@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3520
+\version r3542
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2021-03-06 23:23 +0800
+	2021-03-26 03:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,8 +35,8 @@
 //	ystdex::call_value_or, ystdex::begins_with, ystdex::sfmt,
 //	NPL::make_observer, YSLib::sfmt, GetLValueTagsOf, std::mem_fn,
 //	ystdex::compose, ystdex::invoke_value_or, NPL::TryAccessLeaf,
-//	NPL::IsMovable, ystdex::ref, YSLib::FilterExceptions, ystdex::id,
-//	ystdex::retry_on_cond, ystdex::type_info, pair, ystdex::addrof,
+//	NPL::IsMovable, ystdex::ref, PropagateTo, YSLib::FilterExceptions,
+//	ystdex::id, ystdex::retry_on_cond, ystdex::type_info, pair, ystdex::addrof,
 //	ystdex::second_of, std::rethrow_exception, std::throw_with_nested,
 //	YSLib::ExtractException;
 #include YFM_NPL_SContext
@@ -886,7 +886,27 @@ ReduceToReference(TermNode& term, TermNode& tm, ResolvedTermReferencePtr p_ref)
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
 	{
 		// NOTE: Reference collapsed.
-		LiftOtherOrCopy(term, tm, !p_ref);
+		// XXX: As %LiftOtherOrCopy, except that tags spcfified %p_ref are also
+		//	Propagated.
+		if(!p_ref)
+			LiftOther(term, tm);
+		else
+		{
+			// XXX: Both can be even more efficient than %LiftOtherOrCopy.
+#if true
+			// XXX: As %LiftTermOtherOrCopy.
+			term.CopyContent(tm);
+
+			auto& ref(term.Value.GetObject<TermReference>());
+
+			ref.SetTags(PropagateTo(ref.GetTags(), p_ref->GetTags()));
+#else
+			term.CopyContainer(tm);
+			term.Value = TermReference(PropagateTo(p->GetTags(),
+				p_ref->GetTags()), p->get(),
+				NPL::Deref(p_ref).GetEnvironmentReference());
+#endif
+		}
 		// XXX: The resulted representation can be irregular.
 		return ReductionStatus::Retained;
 	}
@@ -901,7 +921,7 @@ ReduceToReferenceAt(TermNode& term, TermNode& tm,
 	//	except for future internal use. Since %term is a term, %Tags::Temporary
 	//	is not expected, the %GetLValueTagsOf is also not used.
 	// XXX: Allocators are not used here for performance in most cases.
-	term.Value = TermReference(tm.Tags, tm,
+	term.Value = TermReference(PropagateTo(tm.Tags, p_ref->GetTags()), tm,
 		NPL::Deref(p_ref).GetEnvironmentReference());
 	return ReductionStatus::Clean;
 }

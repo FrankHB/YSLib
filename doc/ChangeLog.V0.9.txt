@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r3098
+\version r3284
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-03-13 14:20 +0800
+	2021-03-26 22:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,189 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YFramework.NPL $=
+	(
+		/ DLDI "simplified all calls to construct %TermNode with a sole \
+			allocator argument" ^ "%TermNode" ~ "%NPL::AsTermNode"
+			$effective @ %(SContext, NPLA1),
+		/ %SContext $=
+		(
+			/ DLDI "all %TermNode argument ('node', 'term', 'tm') to be \
+				accessed directly" => 'nd',
+				// The direct accesses include member functions and some other \
+					related functions.
+			+ "function %PropagateTo"
+		)
+		/ %NPLA1 $=
+		(
+			* "missing support for term references" @ "trailing \
+				parameter term" @ "functions %(BindParameter, MatchParameter)"
+				@ %NPLA1 $since b800
+				$= (/ $impl ^ "%ReferenceTerm")
+				// The term tree matching for other leaf symbols has supported \
+					term references since b855. The implementation here uses \
+					%ReferenceTerm rather than %ResolveTerm for simplicity.
+			+ "function %ReduceToReferenceWithUniqueList",
+			* "wrong handler type derived for lvalue callers"
+				@ ("function template %NameExpandedHandler";
+				$comp "function template %NameTypedReducerHandler") $since b896
+				$= (/ $impl ^ "%ystdex::remove_cvref_t"),
+			/ DLDI "removed unused capture '&'" @ "function %operator()"
+				@ "class %FormContextHandler",
+			/ DLDI "simplified functions %(BindParameter, MatchParameter)"
+				^ $dep_from ("%PropagateTo" @ %SContext)
+		),
+		/ @ "namespace %Forms" @ %NPLA1Forms $=
+		(
+			* $re_add(b803) "missing support for term references"
+				@ "formal parameter tree check" @ "vau handler" $since b800
+				$= (/ $impl ^ "%ReferenceTerm"),
+				// The check for the dynamic environment term has already \
+					supported term references since b803. This should also \
+					have been done for the parameter tree.
+			* "wrong handling for reference terms with temporary tag"
+				@ "function %ReduceToReferenceList" $since b913
+				// This did not have effects on the derivations because the \
+					only use was 'map1 expire (rlist l)' which always behaves \
+					the same regardless of the temporar tag on the operand.
+			/ @ "functions %(Let, LetRef, LetWithEnvironment, \
+				LetWithEnvironmentRef)" $=
+			(
+				(
+				* $comp "wrong handling for reference subterms in bindings"
+					$dep_from "%ReduceToReferenceList";
+				/ DLI "optimized bindings forwarding"
+					!^ $dep_from "%ReduceToReferenceList"
+				),
+				/ DLI "ompimized abstraction construction"
+					$dep_from ("%NameTypedReducerHandler" @ %NPLA1)
+			),
+			/ $re_add(b912) DLI ^ "allocator" @ "initialization of \
+				%ContextHandler" @ "%(Lambda, LambdaRef, Vau, VauRef, \
+				VauWithEnvironment, VauWithEnvironmentRef, Wrap, WrapN, \
+				WrapOnce, WrapOnceRef)",
+			/ DLDI "simplified function %MakeEncapsulationType",
+			/ DLI @ "functions %(VauWithEnvironment, VauWithEnvironmentRef)" $=
+			(
+				/ "renamed reducer name for parent environment evaluation",
+				/ "simplified" ^ "%IsLeaf" ~ "%IsExtendedList"
+			),
+			/ DLI "%operator()" @ "vau handler" $=
+			(
+				/ "avoided redundant copy of the parent environment object for \
+					combiner prvalues",
+				/ "removed redundant enviroment saving for combiner prvalues"
+					@ 'NPL_Impl_NPLA1_Enable_TCO'
+					// This is actually already saved in the parent.
+			)
+		),
+		* "missing propogation of the nonmodifying tag on reference \
+			passing" $effective @ ("function %BindParameter" @ %NPLA1
+			$since b856, ("function %ReduceToReferenceAt",
+			"function %ReduceToReference") @ %NPLA $since b871,
+			"functions %Forms::(FirstFwd, RestFwd)" @ %NPLA1Forms $since b913)
+			^ $dep_from ("%PropagateTo" @ %SContext)
+			$dep_to "missing tags propogation on reference passing",
+		/ %Dependency $=
+		(
+			/ @ "function %LoadGroundContext" $=
+			(
+				(
+				* "unexpected internal argument copy" @ "alternative derivation"
+					@ ("applicative 'list*'" $since b789,
+					"'operative $sequence'" $since b828)
+					// Operative '$sequence' support move-only type since \
+						b828, and it is known unable to support it before then.
+					$= (/ $impl ^ ('forward!', 'move!')),
+				(
+				* "unexpected copy" @ "alternative derivations"
+					@ ("applicative %idv" $since b828,
+					"operative '$quote'" $since b799) $=
+				(
+					/ "converted argument to rvalue" @ "parameter tree" ^ !'&',
+					* "missing parameter forwarding";
+						$= (/ $impl ^ '$move-resolved!');
+						// This relies on the parameters passed by value.
+					* "unexpected result copy"
+						/ $= ($impl ^ ('$lambda%', '$vau%')
+							~ ('$lambda', '$vau'))
+						// This relies on forwarding' to ensure memory safety.
+				);
+				(
+				/ DLDI "reordered derivation" @ "applicatives %(id, idv, list)";
+				/ DLDI "alternative derivation"
+					@ "operative '$lvalue-identifier?'"
+					^ ('$def!', '$vau', 'cons') ~ ('$defv!', 'list');
+				/ DLDI "reordered derviations of operative \
+					'$lvalue-identifier?' and applicative 'forward!'";
+				/ DLDI "alternative derivation of applicative 'forward!'"
+					^ ('$def!', '$vau%', 'wrap') ~ '$defl%!';
+				* "missing parameter forwarding" @ "alternative derivations"
+					@ "applicative 'list%'" $since b828
+					$= (/ $impl ^ 'forward!')
+				),
+				/ "alternative derivation" @ ($comp "applicative 'first%'"
+					$comp "applicative %(foldr1; map1)")
+					$since b913
+					// This differs to the native implementations.
+				);
+				* $comp "unexpected copy of initializers on calls"
+					@ "non-native derivations" @ "operatives named with '$let' \
+					prefix" $since b914
+					// For '$let' and '$let%', this has been fixed with native \
+						implementations since b914. The derivations of '$let' \
+						and '$let%' does not need the fixes of other combiners \
+						than 'list*'. However, '$let*' and '$let*%' need 'idv' \
+						and '$quote' fixes; '$letrec' and '$letrec%' further \
+						need '$sequence' and 'map1' fixes above.
+				),
+				+ DLI "alternative derviation" @ "applicative 'forward!'"
+					@ 'NPL_Impl_NPLA1_Use_Id_Vau' ^ 'lambda%',
+				/ DLDI "simplified alternative derivation"
+					@ "applicative 'first%'"
+					$= (/ $impl ^ 'lambda' @ 'first%' ~ ('$lambda%', 'idv')),
+					// This can fix the wrong behavior without touching \
+						'$quote' or 'idv', but it does not fix the root cause. \
+						Anyway, this is still more succinct.
+				* $re_add(b874) "unexpected internal argument copy"
+					@ "alternative derivation" @ "applicative 'map1'"
+					$since b829
+					$= (/ $impl ^ 'move!'),
+					// The applicative added b791 has nothing support of \
+						forwarding. It was partially fixed by adding \
+						'forward!' to the 1st argument of 'cons%' call, but \
+						not the trailing list argument.
+				/ DLDI "trailing parameter 'x'" => 'xs'
+					$effective @ "alternative derivations"
+					@ "applicatives ('rest%', 'rest&', %restv)",
+				+ "applicative %rulist"
+					^ $dep_from ("%ReduceToReferenceWithUniqueList" @ %NPLA1),
+				* "lvalues in bindings moved unexpectedly" @ "operatives named \
+					with '$let' prefix" $since b914 $=
+				(
+					/ "alternative derivations" ^ $dep_from "%rulist"
+						~ "%(map1, expire, rlist)",
+					/ $comp "native implementations" $dep_from ("%(Let, \
+						LetRef, LetWithEnvironment, LetWithEnvironmentRef)"
+						@ %NPLA1Forms)
+				),
+				/ DLDI "qualified broken" @ "term accessor functions on \
+					reference passing" $since b856
+					$dep_from "missing tags propogation on reference passing",
+				* "alternative derivation" @ "operatives ('$when', '$unless')"
+					$since b908
+					$= (/ $impl ^ 'list*' ~ 'list'),
+			),
+			/ DLDI "broke down multiline definitions after the formal \
+				parameter and the dynamic environment (if any)" $effective
+				@ "functions %(LoadGroundContext, LoadModule_std_promises)"
+				// This is more consistent.
+		)
+	)
+),
+
+b914
 (
 	* $revert(b909) DD "wrong 1st parameter type"
 		@ "operatives ('$set!', '$setrec!')" @ %Documentation.NPL $since b909,
@@ -128,7 +311,7 @@ $now
 					^ $dep_from ("%TermReference::AddTags" @ %NPLA),
 				+ "applicative 'as-const'"
 					^ $dep_from ("%TermReference::AddTags" @ %NPLA),
-				* "unexpected copy on calls"
+				* "unexpected copy of initializers on calls"
 					@ "operatives named with '$let' prefix" $since b791
 			),
 			/ $lib "added native derivation enabled by default"
@@ -437,9 +620,9 @@ b912
 					// This get less one line.
 			),
 			/ DLI ^ "allocator" @ "initialization of %ContextHandler"
-				$effective @ ("functions %Forms::(WrapRef, WrapOnceRef, \
-				Unwrap, Apply, ForwardFirst)" @ %NPLA1Forms,
-				"function %ReduceForCombinerRef" @ %NPLA1Internals)
+				@ ("functions %Forms::(WrapRef, WrapOnceRef, Unwrap, Apply, \
+				ForwardFirst)" @ %NPLA1Forms, "function %ReduceForCombinerRef"
+				@ %NPLA1Internals)
 		),
 		- DLDI "unused lambda-capture" @ "member function %ValueObject::Query"
 			@ %YSLib.Core.YObject,
