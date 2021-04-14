@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r4599
+\version r4622
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2021-03-26 12:10 +0800
+	2021-04-10 17:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -760,7 +760,6 @@ LoadBasicDerived(REPLContext& context)
 	});
 	RegisterStrict(renv, "list-concat", ListConcat);
 	RegisterStrict(renv, "append", Append);
-	RegisterStrict(renv, "list-extract%", ListExtract);
 	RegisterStrict(renv, "list-extract-first", ListExtractFirst);
 	RegisterStrict(renv, "list-extract-rest%", ListExtractRestFwd);
 	RegisterForm(renv, "$let", Let);
@@ -992,27 +991,26 @@ LoadBasicDerived(REPLContext& context)
 					(apply accr (list% (apply tail (list% l) d)
 					pred? (forward! base) head tail sum) d)) d);
 		$defw%! foldr1 (&kons &knil &l) d
-			apply accr
-				(list% (forward! l) null? (forward! knil) first% rest% kons) d;
+			apply accr (list% (($lambda ((.@xs)) xs) l) null? (forward! knil)
+				($if ($lvalue-identifier? l) ($lambda (&l) first% l)
+				($lambda (&l) expire (first% l))) rest% kons) d;
 		$defw%! map1 (&appv &l) d
-			foldr1 ($lambda (&x &xs) cons%
-				(apply appv (list% (forward! x)) d) (move! xs)) () (forward! l);
+			foldr1 ($lambda (%x &xs) cons%
+				(apply appv (list% ($move-resolved! x)) d) (move! xs)) ()
+				(forward! l);
 		$defl! first-null? (&l) null? (first l);
 		$defl%! rulist (&l)
 			$if ($lvalue-identifier? l)
 				(accr (($lambda ((.@xs)) xs) l) null? ()
 					($lambda% (%l) $sequence ($def! %x idv (first@ l))
-						(($if (uncollapsed? x) idv expire) x)) rest%
-					($lambda (&x &xs)
+						(($if (uncollapsed? x) idv expire) (expire x))) rest%
+					($lambda (%x &xs)
 						(cons% ($resolve-identifier x) (move! xs))))
-				(rlist (forward! l));
+				(idv (forward! l));
 		$defl! list-concat (&x &y) foldr1 cons% (forward! y) (forward! x);
 		$defl! append (.&ls) foldr1 list-concat () (move! ls);
-		$defw%! list-extract% (&l &extr) d
-			accr l null? () ($lambda% (&l)
-				apply forward-first% (list% extr (expire l)) d) rest% cons%;
-		$defl%! list-extract-first (&l) list-extract% l first;
-		$defl%! list-extract-rest% (&l) list-extract% l rest%;
+		$defl%! list-extract-first (&l) map1 first l;
+		$defl%! list-extract-rest% (&l) map1 rest% l;
 		$defv! $defw! (&f &formals &ef .&body) d
 			eval (list $set! d f wrap (list* $vau formals ef (move! body))) d;
 		$defw! derive-current-environment (.&envs) d
@@ -1147,14 +1145,13 @@ LoadCore(REPLContext& context)
 	)NPL");
 #if NPL_Impl_NPLA1_Native_Forms
 	context.Perform(R"NPL(
-		$def! ($let* $let*% $letrec $letrec%)
-			($lambda (&ce)
+		$def! ($let* $let*% $letrec $letrec%) ($lambda (&ce)
 		(
 			$def! mods () ($lambda/e ce ()
 			(
 				$defv%! $lqual (&ls) d
-					$if (eval (list $lvalue-identifier? ls) d)
-						(eval% (list as-const ls) d) (rulist (eval% ls d));
+					($if (eval (list $lvalue-identifier? ls) d) as-const rulist)
+						(eval% ls d);
 				$defv%! $lqual* (&x) d
 					($if (eval (list $lvalue-identifier? x) d) as-const expire)
 						(eval% x d);
@@ -1163,7 +1160,7 @@ LoadCore(REPLContext& context)
 						(list $let (list (first% ($lqual* bindings)))
 						(list* $let* (rest% ($lqual* bindings)) (move! body)));
 				$defl%! mk-letrec ($let &bindings &body)
-					list $let% () $sequence (list $def! (list-extract-first
+					list $let () $sequence (list $def! (list-extract-first
 						bindings) (list* () list (list-extract-rest% bindings)))
 						(move! body);
 				() lock-current-environment
@@ -1187,8 +1184,8 @@ LoadCore(REPLContext& context)
 			$def! mods () ($lambda/e ce ()
 			(
 				$defv%! $lqual (&ls) d
-					$if (eval (list $lvalue-identifier? ls) d)
-						(eval% (list as-const ls) d) (rulist (eval% ls d));
+					($if (eval (list $lvalue-identifier? ls) d) as-const rulist)
+						(eval% ls d);
 				$defv%! $lqual* (&x) d
 					($if (eval (list $lvalue-identifier? x) d) as-const expire)
 						(eval% x d);
@@ -1203,7 +1200,7 @@ LoadCore(REPLContext& context)
 						(list $let (list (first% ($lqual* bindings)))
 						(list* $let* (rest% ($lqual* bindings)) (move! body)));
 				$defl%! mk-letrec ($let &bindings &body)
-					list $let% () $sequence (list $def! (list-extract-first
+					list $let () $sequence (list $def! (list-extract-first
 						bindings) (list* () list (list-extract-rest% bindings)))
 						(move! body);
 				() lock-current-environment

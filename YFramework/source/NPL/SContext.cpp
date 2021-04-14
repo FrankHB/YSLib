@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2039
+\version r2052
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2021-03-12 18:13 +0800
+	2021-03-31 06:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,21 @@ using namespace YSLib;
 
 namespace NPL
 {
+
+void
+TermNode::ClearContainer() ynothrow
+{
+	// NOTE: See %~TermNode.
+	while(!container.empty())
+	{
+		const auto i(container.begin());
+
+		// NOTE: Flatten the subterms and insert them before the leftmost
+		//	recursive subterm.
+		container.splice(i, std::move(NPL::Deref(i).container));
+		container.erase(i);
+	}
+}
 
 // XXX: Simplify with %CreateRecursively?
 TermNode::Container

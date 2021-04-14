@@ -9,6 +9,12 @@ DESTDIR ?= /
 INCDIR ?= $(DESTDIR)/usr/include
 INSTALLDIR ?= $(DESTDIR)/usr/lib
 
+FREEIMAGE_LIBRARY_TYPE ?= SHARED
+STATIC_FLAGS := -DFREEIMAGE_LIB
+SHARED_FLAGS := -DFREEIMAGE_EXPORTS
+
+LIB_TYPE_FLAGS := $($(FREEIMAGE_LIBRARY_TYPE)_FLAGS)
+
 # Converts cr/lf to just lf
 DOS2UNIX := dos2unix
 
@@ -29,7 +35,7 @@ ifeq ($(CONF), debug)
 else
 	C_LTO ?= -flto -ffat-lto-objects
 endif
-C_CXXFLAGS ?= -O3 $(C_LTO) -fPIC -pipe -Wno-attributes -fexceptions $(C_CXXFLAGS_GC)
+C_CXXFLAGS ?= -O3 $(C_LTO) -fPIC -pipe -Wno-attributes -fexceptions $(C_CXXFLAGS_GC) $(LIB_TYPE_FLAGS)
 CFLAGS ?= $(C_CXXFLAGS)
 # OpenJPEG
 CFLAGS += -DOPJ_STATIC

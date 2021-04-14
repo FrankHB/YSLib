@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r3968
+\version r3996
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2021-03-19 23:15 +0800
+	2021-03-31 07:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -177,6 +177,7 @@ YB_ATTR_nodiscard YB_STATELESS yconstfn
 
 /*!
 \brief 项节点：存储语法分析结果的值类型节点。
+\waning 非虚析构。
 \since build 852
 
 类似 ValueNode 的节点类型，但没有名称数据成员、按键比较和按键访问，
@@ -268,9 +269,11 @@ public:
 		: container(std::move(con), a), Value(yforward(args)...)
 	{}
 	//@}
+	//! \warning 非嵌套调用安全。
 	TermNode(const ValueNode& nd, allocator_type a)
 		: container(ConCons(nd.GetContainer(), a)), Value(nd.Value)
 	{}
+	//! \warning 非嵌套调用安全。
 	TermNode(ValueNode&& nd, allocator_type a)
 		: container(ConCons(std::move(nd.GetContainerRef()), a)),
 		Value(std::move(nd.Value))
@@ -291,10 +294,12 @@ public:
 		std::initializer_list<TermNode> il, _tParams&&... args)
 		: TermNode(std::allocator_arg, a, Container(il, a), yforward(args)...)
 	{}
+	//! \warning 非嵌套调用安全。
 	explicit
 	TermNode(const ValueNode& nd)
 		: container(ConCons(nd.GetContainer())), Value(nd.Value)
 	{}
+	//! \warning 非嵌套调用安全。
 	explicit
 	TermNode(ValueNode&& nd)
 		: container(ConCons(std::move(nd.GetContainer()))),
@@ -327,6 +332,22 @@ public:
 	\warning 违反前置条件的转移可能引起循环引用。
 	*/
 	DefDeMoveAssignment(TermNode)
+	/*
+	\brief 析构：类定义外默认实现。
+	\note 支持移除任意子节点时的嵌套调用安全。
+	\since build 916
+	*/
+	~TermNode()
+	{
+		// NOTE: Preprocess the node to prevent any deep nested node constructed
+		//	in the object language overflow in C++ calls, which violates the
+		//	nested call safety guarantee.
+		// XXX: Assume the %Value has no such deep nested nodes as it is not
+		//	constructible in the object language. Note the %Clear call is
+		//	inefficient if the underlying destructor implementation of
+		//	%any has branch. Keep it as-is at current.
+		Clear();
+	}
 
 	//! \since build 853
 	YB_PURE DefBoolNeg(YB_PURE explicit, bool(Value) || !empty())
@@ -378,10 +399,12 @@ public:
 
 	//! \note 不访问 Tags 。
 	PDefH(void, Clear, ) ynothrow
+		// XXX: The order can be siginificant.
 		ImplExpr(Value.Clear(), ClearContainer())
 
-	PDefH(void, ClearContainer, ) ynothrow
-		ImplExpr(container.clear())
+	//! \note 支持移除任意子节点时的嵌套调用安全。
+	void
+	ClearContainer() ynothrow;
 
 	/*!
 	\note 允许被参数中被复制的对象直接或间接地被目标引用。
@@ -399,6 +422,8 @@ public:
 	//@}
 
 private:
+	//! \warning 非嵌套调用安全。
+	//@{
 	static TermNode::Container
 	ConCons(const ValueNode::Container&);
 	static TermNode::Container
@@ -407,6 +432,7 @@ private:
 	ConCons(const ValueNode::Container&, allocator_type);
 	static TermNode::Container
 	ConCons(ValueNode::Container&&, allocator_type);
+	//@}
 
 public:
 	template<class _tCon, typename _fCallable,

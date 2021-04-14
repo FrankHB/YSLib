@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r3284
+\version r3465
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-03-26 22:13 +0800
+	2021-04-14 12:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,186 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	(
+	/ "supported 'FREEIMAGE_LIBRARY_TYPE=STATIC'"
+		@ "%3rdparty/FreeImage/Makefile.gnu";
+	/ "rebuilt library %FreeImage" @ "platform %Linux"
+		// This eliminates unnecessary FreeImage initialization (by calling \
+			%::FreeImage_SO_Initialise) and finalization (by calling \
+			%::FreeImage_SO_DeInitialise) on loading libYFramework.so.
+	),
+	/ %Tools.Scripts $=
+	(
+		* "saving initial value had no effect" @ "applicative 'env-set'"
+			@ "%SHBuild-YSLib-common.txt" @ $since b840;
+		* $comp "wrong initial value of %LIBS used for stage 2 SHBuild build" @
+			@ "%SHBuild-YSLib-build.txt" $since b840
+			// This would cause wrong debug libraries linked after debug builds.
+	),
+	/ %YFramework.NPL $=
+	(
+		* $re_add(b863) "missing nested call safety in handling terms from \
+			object language" @ ("function %ClearContainer"; ("destructor",
+			$comp "function %Clear")) @ "type %TermNode" @ %SContext
+			$since b674,
+			// This would potentionally cause undefined behavior due to native \
+				call for large input (usually constructed in the user \
+				program). The implementation never supported nested call \
+				safety before, but this was introduced in the document since \
+				b868 and this case was not explicitly in the documented \
+				exceptional ones.
+		/ %NPLA1Internals $=
+		(
+			/ DLDI "function %RelayCurrentNext" ^ "%A1::RelayCurrentOrDirect"
+				~ "%RelayNextOrDirect";
+			- $revert(b879) "function templates %ReduceNextOrDirect";
+			* "missing qualified 'NPL::'" @ "call to %ReduceSwitched"
+				$effective @ "function template %RelayCurrentNext",
+			(
+			/ "enabled functions %RelayCurrent"
+				@ 'NPL_Impl_NPLA1_Enable_InlineDirect';
+			+ "function templates %(RelayCurrentNextThunked, \
+				ReduceCurrentNextThunked)"
+			)
+		),
+		/ %NPLA1 $=
+		(
+			* "redundant temporary tag on unique references in the result"
+				@ ("function %ReduceToReferenceList" $since b914,
+				"function %ReduceToReferenceUList" $since b915),
+			/ "avoided bound tempoaray tag on non-temporary object bound with \
+				sigil '&' in trailing lists" @ "function %BindParameter"
+				// The temporary tag was added in b875, to simplified the \
+					argument to 'forward!' calls in typical cases. However, \
+					this is too aggressive for a trailing binding and there \
+					would be no easy and efficient way to undo the addition \
+					of the temporary tag on every elements in derived \
+					implementations. So, avoided the tag initially in such \
+					cases.
+		),
+		/ @ "namespace %Forms" @ %NPLA1Forms $=
+		(
+			(
+			/ DLI @ "function %Append" $=
+			(
+				/ "avoided redundant list initialization",
+				/ "refactored to avoid redundant term move before the list \
+					concatenation"
+			),
+			/ "avoided copy list lvalues at first" @ "functions %(Append, \
+				ListConcat, Map1, FoldR1, ListExtractFirst, ListExtractRest)"
+				$dep_to "native list forwarding";
+			/ DLI "simplified object layout"
+				@ "functions %(Append, ListConcat, Map1, FoldR1)"
+			),
+			* "missing nested call safety in recursive calls"
+				@ 'NPL_Impl_NPLA1_Enable_InlineDirect' $effective @ ("function \
+				%AccR" $since b898, "functions %(FoldR1, Map1)" $since b908,
+				"functions %(Append, ListConcat)" $since b912, "functions \
+				%(ListExtract, ListExtractFirst, ListExtractLast)" $since b914)
+				$= (/ $impl ^ $dep_from ("%A1::ReduceCurrentNextThunked"
+					@ %NPLA1Internals) ~ "%A1::ReduceCurrentNext"),
+			* $impl "wrong continuation type used"
+				@ "functions %(ListExtractFirst, ListExtractRest)" $since b914,
+				// This made the continuation clash with the one used by \
+					%ListConcat.
+			/ DLDI "simplified function %AccR",
+			* "arguments of reference to temporary objects wrongly moved"
+				@ "functions %(RestVal, RestFwd)" $since b910,
+			- $revert(b914) "function %ListExtract"
+				$dep_from ("applicative 'list-extract%'"
+				@ "function %LoadGroundContext" @ %Dependency),
+			/ "functions %Forms::(Let, LetRef, LetWithEnvironment, \
+				LetWithEnvironmentRef)" $=
+			(
+				* @ 'NPL_Impl_NPLA1_Enable_Thunked && \
+					!NPL_Impl_NPLA1_Enable_InlineDirect' $since b915 $=
+				(
+					* "current environment corrupted caused by missing \
+						internal capture of the dynamic environment",
+					* "wrong term used as the initializers being initialized"
+				),
+				/ $forced "avoided binding temporary tags on elements of \
+					binding list rvalue arguments" $=
+					(/ $impl !^ "%BindReferenceTags"),
+					// Same to %BindParameter in %NPLA1.
+				* "wrongly moved binding parameter of reference with \
+					temporary tag" $since b914
+					$= (/ $impl ^ "%TermReference::IsMovable"
+						~ "%TermReference::IsReferencedLValue"),
+				/ $forced DLI "simplified list preparation and avoided \
+					redundant copies of list preparation"
+					$dep_from "%(ListExtractFirst, ListExtractRest)"
+					$dep_to "let-family native list forwarding",
+				/ DLDI
+					"simplified initialization of binding from movable argument"
+			)
+		),
+		/ @ "function %LoadGroundContext" @ %Dependency $=
+		(
+			/ "allowed shard list references without copies" @ "%foldr1" $=
+			(
+				/ $impl "alternative derivation"
+					^ "variables initialized with '@' sigil";
+				* "differences of redundant copies between the alternative \
+					derivation and the native implemention"
+					@ "call to %foldr1 alternative derivation" $since b913
+					$dep_from "native list forwarding" @ %NPLA1Forms),
+					// See $2021-04 @ %Documentation::Workflow.
+			),
+			* "missing lifting of the result" @ "derivation"
+				@ "operative '$letrec'" $since b914
+				$= (/ $impl ^ '$let' ~ '$let%'),
+				// The bug might be hidden by the TCO implementation, though.
+			* $comp "native implementation" @ "applicatives ('rest%', %restv)"
+				$since b910 $dep_from ("%(RestFwd, RestVal)" @ %NPLA1Forms),
+			/ "simplified alternative derivation" @ "applicative %rulist"
+				^ "%idv" ~ "%rlist",
+			* "redundant temporary tag on unique references in the result"
+				@ ("applicative %rlist" $since b914,
+				"applicative %rulist" $since b915) $=
+			(
+				/ $comp "native implementations" $dep_from
+					("%(ReduceToReferenceList, ReduceToReferenceList)"
+					@ %NPLA1),
+				/ $comp "alternative derivations" $dep_from
+					("%BindParameter" @ %NPLA1)
+			),
+			/ @ "applicative %map1"
+			(
+				* "wrong forwarding" @ "alternative derivation" $since b899;
+				* "differences of wrong forwarding between the alternative \
+					derivation and the native implemantion" $since b899
+					// See $2021-04 @ %Documentation::Workflow.
+			),
+			/ "supported preserving non-movable lists and avoided redundant \
+				copies of subobjects of the list argument"
+				@ "applicatives ('list-extract-first', 'list-extract-rest%')" $=
+			(
+				/ "alternative derivations"
+					$= (/ $impl ^ ($dep_from "%map1") ~ 'list-extract%'
+						$dep_from ("applicative %foldr1", "%BindParameter"
+						@ %NPLA1) $dep_to "avoiding dedicated list extraction"),
+				/ $comp "native implementations" $dep_from ("functions \
+					%(ListExtractFirst, ListExtractRest)" @ %NPLA1Forms)
+			),
+			- "applicative 'list-extract%'"
+				$dep_from "avoiding dedicated list extraction",
+			/ DLDI "simplified derivations" @ "operatives ('$let', '$let%', \
+				'$let/e', '$let/e%', '$letrec', '$letrec%')",
+			/ $comp "avoided redundant copies of subobjects of the binding \
+				list argument" @ "operatives ('$let', '$let%', '$let/e', \
+				'$let/e%')" $dep_from "let-family native list forwarding"
+				// Similar to 'foldr1' calls, but not a bug.
+		)
+	
+	),
+	+ "restriction of copies" @ "applicative %foldr1"
+		@ %Documentation.NPL $dep_from %YFramework.NPL.Dependency
+),
+
+b915
 (
 	/ %YFramework.NPL $=
 	(
@@ -1377,7 +1557,7 @@ b907
 							offending.
 				* "%LDFLAGS pollution caused by %SHBuild_LDFLAGS extension \
 					when %LDFLAGS is unused" @ "library build" $since b906
-					// This is needed fixing even if the call of \
+					// This is needed fixing even if the call to \
 						%SHBuild_Extend_CallVariables is removed, for base \
 						%LDFLAGS used by %Win32 at least.
 			),
@@ -2085,7 +2265,7 @@ b904
 		/ DLI @ "%SHBuild-bootstrap.sh" $=
 		(
 			/ "shrinked prefixed tabs" @ "all default values",
-			/ $design "quoted arguments" @ "1st call of %SHBuild_Puts"
+			/ $design "quoted arguments" @ "1st call to %SHBuild_Puts"
 		),
 		/ @ "%SHBuild-common.sh" $=
 		(
@@ -2151,7 +2331,7 @@ b904
 	/ "supported build variables %(SHBuild_Host_Arch, SHBuild_Host_OS) for \
 		build scripts" $=
 	(
-		/ "call of %SHBuild_CheckUName" -> ($dep_from
+		/ "call to %SHBuild_CheckUName" -> ($dep_from
 			"%SHBuild_PrepareBuild" @ ("%SHBuild-common.sh" @ %Tools.Scripts))
 			$effecitive @ ("%install-sysroot.sh", "%(SHBuild-bootstrap.sh, \
 			SHBuild-toolchain-options.sh)" @ %Scripts) @ %Tools,

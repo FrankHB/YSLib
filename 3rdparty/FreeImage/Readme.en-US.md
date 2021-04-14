@@ -286,9 +286,14 @@ The environment variable `PATH` should be set properly like `C:\msys\mingw32\bin
 
 The modified file `Makefile.mingw` should have been copied to the source directory and overwritten the original one.
 
-Run `mingw32-make -R FREEIMAGE_LIBRARY_TYPE=STATIC -f Makefile.mingw` (optionally with `-j` to build concurrently) to build static library for MinGW32.
+Run `mingw32-make -R FREEIMAGE_LIBRARY_TYPE=STATIC -f Makefile.mingw libFreeImage.a` (optionally with `-j` to build concurrently) to build static library for MinGW32.
 
 Run `mingw32-make -R -f Makefile.mingw clean` to delete all build files. Note the official `clean.bat` is not enough.
+
+Note that although omission of `libFreeImage.a` is allowed, it is not recommended because:
+
+* The `FREEIMAGE_LIBRARY_TYPE=STATIC` does not respect of the symbol visibility attributes. This makes the symbols not usable from the shared library, esp. not usable in a Win32 DLL.
+* Only the static library is used by YFramework, so this is normally uncessary.
 
 ## MinGW64
 
@@ -304,11 +309,13 @@ A working GNU toolchain is required.
 
 NASM is required for compiling libjpeg-turbo SIMD source files.
 
-Run `make -R -f Makefile.gnu libfreeimage.a` (optionally with `-j` to build concurrently) to build static library.
+Run `make -R FREEIMAGE_LIBRARY_TYPE=STATIC -f Makefile.gnu libfreeimage.a` (optionally with `-j` to build concurrently) to build static library.
 
 Run `make -R -f Makefile.gnu clean` to delete all build files.
 
-For hosted Linux environment, `-f Makefile.gnu` can be omitted. Also `libfreeimage.a` can be omitted to build both static and shared library, although only the static library is used by YFramework.
+For hosted Linux environment, `-f Makefile.gnu` can be omitted.
+
+Omission of `libfreeimage.a` in the building command line is not recommended for the similar reasons as in MinGW32.
 
 If only the static library is built, the target `dist` is not run, so the library file is at the buidling directory but not `./Dist`.
 

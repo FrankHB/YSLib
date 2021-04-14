@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r20493
+\version r20500
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2021-03-26 02:47 +0800
+	2021-04-10 08:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -331,7 +331,7 @@ EmplaceReference(TermNode::Container& con, TermNode& o, TermReference& ref,
 	else
 		con.emplace_back(o.GetContainer(), ValueObject(
 			std::allocator_arg, con.get_allocator(), in_place_type<
-			TermReference>, BindReferenceTags(ref), ref));
+			TermReference>, ref.GetTags(), ref));
 }
 
 
@@ -500,11 +500,11 @@ struct BindParameterObject
 		: Referenced(r_env)
 	{}
 
-	//! \since build 858
+	//! \since build 916
 	template<typename _fCopy, typename _fMove>
 	void
-	operator()(char sigil, TermTags o_tags, TermNode& o, _fCopy cp, _fMove mv)
-		const
+	operator()(char sigil, bool ref_temp, TermTags o_tags, TermNode& o,
+		_fCopy cp, _fMove mv) const
 	{
 		// NOTE: This shall be %true if the operand is stored in a term tree to
 		//	be reduced (and eventually cleanup). See also
@@ -525,7 +525,7 @@ struct BindParameterObject
 			{
 				if(sigil != char())
 				{
-					const auto ref_tags(PropagateTo(sigil == '&'
+					const auto ref_tags(PropagateTo(ref_temp
 						? BindReferenceTags(*p) : p->GetTags(), o_tags));
 
 					// XXX: Allocators are not used here on %TermReference for
@@ -1666,7 +1666,7 @@ BindParameter(const shared_ptr<Environment>& p_env, const TermNode& t,
 					for(; first != last; ++first)
 						// TODO: Blocked. Use C++17 sequence container return
 						//	value.
-						BindParameterObject{r_env}(sigil, o_tags,
+						BindParameterObject{r_env}(sigil, {}, o_tags,
 							NPL::Deref(first), [&](const TermNode& tm){
 							con.emplace_back(tm.GetContainer(), tm.Value);
 							CopyTermTags(con.back(), tm);
@@ -1704,7 +1704,7 @@ BindParameter(const shared_ptr<Environment>& p_env, const TermNode& t,
 				const char sigil(check_sigil(id));
 
 				if(!id.empty())
-					BindParameterObject{r_env}(sigil, o_tags, b,
+					BindParameterObject{r_env}(sigil, sigil == '&', o_tags, b,
 						[&](const TermNode& tm){
 						CopyTermTags(env.Bind(id, tm), tm);
 					}, [&](TermNode::Container&& c, ValueObject&& vo)

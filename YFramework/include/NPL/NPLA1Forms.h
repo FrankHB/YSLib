@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r7923
+\version r7933
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2021-03-12 18:01 +0800
+	2021-04-08 18:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1491,19 +1491,6 @@ Append(TermNode&, ContextNode&);
 
 //! \since build 914
 //@{
-/*!
-\brief 以指定应用子在指定列表中选取并合并内容为新的列表。
-
-对参数列表 <pre>(&l &extr)</pre> ，结果同求值：
-<pre>accr l null? () ($lambda% (&l) forward-first% extr (expire l))
-	rest% cons% </pre>
-
-参考调用文法：
-<pre>list-extract% \<list> \<applicative></pre>
-*/
-YF_API ReductionStatus
-ListExtract(TermNode&, ContextNode&);
-
 /*!
 \brief 以 First 在指定列表中选取并合并内容为新的列表。
 \sa First

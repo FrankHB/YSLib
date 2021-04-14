@@ -110,7 +110,7 @@ $provide! (safeenv-get safeenv-set ss-verbose-puts)
 	(
 		$letrec ((sym string->symbol name) (denv () get-current-environment))
 			$unless (eval (list $binds1? emap sym) denv)
-				eval (list $set! emap sym (env-get name)) denv;
+				(eval (list $set! emap sym (env-get name)) denv);
 		log-set name val;
 		env-set name val
 	),

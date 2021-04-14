@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2020 FrankHB.
+	© 2009-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r1606
+\version r1613
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2020-10-11 03:52 +0800
+	2021-03-27 15:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -436,9 +436,12 @@ build 560 前：
 升级包 core/gcc 和 core/gcc-libs 版本 5.1.0-4 。
 升级包 extra/nasm 版本 2.11.08-1 。
 2020-10-10(build 900) 起：
-升级包 core/binutils 版本 2.32-2 。
+升级包 core/binutils 版本 2.35-2 。
 升级包 core/gcc 和 core/gcc-libs 版本 10.2.0-3 。
 升级包 extra/nasm 版本 2.15.05-1 。
+2021-03-27(build 916) 起：
+升级包 core/binutils 版本 2.36.1-2 。
+升级包 core/gcc 和 core/gcc-libs 版本 10.2.0-6 。
 
 @1.6.1 Android 平台构建说明：
 需要使用宏 ANDROID_SDK 指定 Android SDK 的路径。
@@ -604,6 +607,8 @@ MinGW32 的默认 CFLAGS 移除 -fomit-frame-pointer（因为被 -O3 隐含）�
 2020-10-10(build 900) 起：
 支持 makefile 命令行选项 CONF=debug 指定 debug 配置的 YFreamwork 库文件。
 追加 debug 配置的 DS 、MinGW32 、Linux 和 MinGW64 库文件，并重新构建这些平台上非 debug 配置的库文件。
+2021-03-27(build 915) 起：
+指定 FREEIMAGE_LIBRARY_TYPE=STATIC 重新构建 Linux 库文件。
 
 @3 可选外部依赖：
 

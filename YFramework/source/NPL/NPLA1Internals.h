@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20923
+\version r20982
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2021-03-01 18:44 +0800
+	2021-04-05 02:53 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -518,7 +518,7 @@ AssertNextTerm(ContextNode& ctx, TermNode& term)
 
 //! \since build 879
 //@{
-#if NPL_Impl_NPLA1_Enable_Thunked && !NPL_Impl_NPLA1_Enable_InlineDirect
+#if NPL_Impl_NPLA1_Enable_Thunked
 YB_ATTR(always_inline) inline ReductionStatus
 RelayCurrent(ContextNode& ctx, Continuation&& cur)
 {
@@ -535,30 +535,6 @@ RelayCurrent(ContextNode& ctx, _fCurrent&& cur)
 	-> decltype(cur(std::declval<TermNode&>(), ctx))
 {
 	return A1::RelayCurrent(ctx, Continuation(yforward(cur), ctx));
-}
-
-template<typename _fNext>
-YB_ATTR(always_inline) inline ReductionStatus
-RelayNextOrDirect(ContextNode& ctx, Continuation&& cur, _fNext&& next)
-{
-	RelaySwitched(ctx, yforward(next));
-	return RelaySwitched(ctx, yforward(cur));
-}
-template<typename _fNext>
-YB_ATTR(always_inline) inline ReductionStatus
-RelayNextOrDirect(ContextNode& ctx,
-	std::reference_wrapper<Continuation> cur, _fNext&& next)
-{
-	RelaySwitched(ctx, yforward(next));
-	return RelaySwitched(ctx, cur);
-}
-template<typename _fCurrent, typename _fNext>
-YB_ATTR(always_inline) inline auto
-RelayNextOrDirect(ContextNode& ctx, _fCurrent&& cur, _fNext&& next)
-	-> decltype(cur(std::declval<TermNode&>(), ctx))
-{
-	return A1::RelayNextOrDirect(ctx, Continuation(yforward(cur), ctx),
-		yforward(next));
 }
 #endif
 //@}
@@ -610,17 +586,27 @@ RelayCurrentNext(ContextNode& ctx, TermNode& term, _fCurrent&& cur,
 	_fNext&& next)
 {
 #if NPL_Impl_NPLA1_Enable_Thunked
-#	if NPL_Impl_NPLA1_Enable_InlineDirect
-	RelaySwitched(ctx, yforward(next));
-	return A1::RelayDirect(ctx, yforward(cur), term);
-#	else
-	yunused(term);
-	return A1::RelayNextOrDirect(ctx, yforward(cur), yforward(next));
-#	endif
+	NPL::RelaySwitched(ctx, yforward(next));
+	return A1::RelayCurrentOrDirect(ctx, yforward(cur), term);
 #else
 	A1::RelayDirect(ctx, yforward(cur), term);
 	return ystdex::expand_proxy<ReductionStatus(ContextNode&)>::call(
 		yforward(next), ctx);
+#endif
+}
+
+//! \since build 916
+template<typename _fCurrent, typename _fNext>
+YB_FLATTEN inline ReductionStatus
+RelayCurrentNextThunked(ContextNode& ctx, TermNode& term, _fCurrent&& cur,
+	_fNext&& next)
+{
+#if NPL_Impl_NPLA1_Enable_Thunked
+	yunused(term);
+	NPL::RelaySwitched(ctx, yforward(next));
+	return A1::RelayCurrent(ctx, yforward(cur));
+#else
+	return A1::RelayCurrentNext(ctx, term, yforward(cur), yforward(next));
 #endif
 }
 
@@ -636,6 +622,21 @@ ReduceCurrentNext(TermNode& term, ContextNode& ctx, _fCurrent&& cur,
 {
 	SetupNextTerm(ctx, term);
 	return A1::RelayCurrentNext(ctx, term, yforward(cur), yforward(next));
+}
+
+//! \since build 916
+template<typename _fCurrent, typename _fNext>
+#if YB_IMPL_GNUCPP >= 100000 || !NPL_Impl_NPLA1_Enable_Thunked \
+	|| NPL_Impl_NPLA1_Enable_TCO
+YB_FLATTEN
+#endif
+inline ReductionStatus
+ReduceCurrentNextThunked(TermNode& term, ContextNode& ctx, _fCurrent&& cur,
+	_fNext&& next)
+{
+	SetupNextTerm(ctx, term);
+	return A1::RelayCurrentNextThunked(ctx, term, yforward(cur),
+		yforward(next));
 }
 //@}
 
@@ -858,7 +859,7 @@ struct Combine final
 	ReduceEnvSwitch(TermNode& term, ContextNode& ctx, _tGuardOrEnv&& gd_or_env)
 	{
 		_tTraits::SetupForNonTail(ctx, term);
-		// NOTE: The next term is set here unless direct inlining call of
+		// NOTE: The next term is set here unless the direct inlining call in
 		//	%ReduceCombinedBranch is used.
 #if !NPL_Impl_NPLA1_Enable_InlineDirect
 		SetupNextTerm(ctx, term);
@@ -872,9 +873,9 @@ struct Combine final
 	ReduceCallSubsequent(TermNode& term, ContextNode& ctx,
 		_tGuardOrEnv&& gd_or_env, _fNext&& next)
 	{
-		// TODO: Blocked. Use C++14 lambda initializers to simplify the
-		//	implementation.
 		return A1::ReduceCurrentNext(term, ctx,
+			// TODO: Blocked. Use C++14 lambda initializers to simplify the
+			//	implementation.
 			ystdex::bind1([](TermNode& t, ContextNode& c, _tGuardOrEnv& g_e){
 			return ReduceEnvSwitch(t, c, std::move(g_e));
 		}, std::placeholders::_2, std::move(gd_or_env)), yforward(next));

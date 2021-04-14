@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4286
+\version r4306
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2021-03-08 18:37 +0800
+	2021-04-10 08:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -4245,6 +4245,28 @@ Module NPL is continuously improved.
 					It requires primitive application for partial evaluation style rather than a simple 'eval'.
 					It requires to change the data structure of the internal representation of the term to allow partially reduction of a term.
 					All these changes are not trivial. It is not worth making a small improvement like this.
+
+$2021-04:
+
+report.impl:
+Several list operations of NPLA1 have been optimized with subtle semantic changes.
+	Requirements on applicatives called in 'foldr1' and 'map1' are refined.
+		As a precondition, they should not add or remove any elements, otherwise the behavior is undefined.
+		Disallowing the removal of elemetns guarantees no elements would be invalidated by the call.
+			This allows the using of '@' sigil to construct a list of uncollapsed reference values to access elements indirectly later in the derivation.
+		Disallowing the addition of elements further guarantees the stability of list element membership.
+			This allows using of iterators directly in native implementations, without differences to accessing the list of uncollapsed reference values.
+		Now they also do not use 'forward!', to allow copy elision of each element being constructed into the resulted list.
+			This also allows 'map1' to be an exact replacement of the old 'list-extract%' except that modifiable lvalue list arguments would not be expired.
+			Note that this is still compatible to the safety guarantee on cases like '$let () ($def! li list 1; map1 id li)'.
+	A bug of unexpected copies by 'rest%' in alternative derviation relying on 'foldr1' have been fixed.
+		The copies were not expected but allowed by the specification previously.
+		This was changed in the native implementations but not alternative derivations since build 913.
+		For list parameter '&l', replacing the argument of the call of 'accr' in 'foldr1' implementation with 'idv (forward! l)' should be sufficient to make these derivations equivalent to the native implementations.
+	Further, the implementations are optimized with semantic changes.
+		That is, the initial copy of the list parameter is avoided.
+		This is done by using '@' sigil for list element accesses in the derivations.
+		This also requires changes in the native implementations to keep them equivalent to the derivations.
 
 ////
 
