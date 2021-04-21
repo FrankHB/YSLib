@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r7933
+\version r7981
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2021-04-08 18:13 +0800
+	2021-04-19 19:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1469,28 +1469,26 @@ FoldR1(TermNode&, ContextNode&);
 YF_API ReductionStatus
 Map1(TermNode&, ContextNode&);
 
+//! \since build 917
+//@{
 /*!
 \brief 顺序连接两个列表。
-\since build 912
 
 参考调用文法：
 <pre>list-concat \<list1> \<list2></pre>
 */
 YF_API ReductionStatus
-ListConcat(TermNode&, ContextNode&);
+ListConcat(TermNode&);
 
 /*!
 \brief 顺序连接零个或多个列表。
-\since build 912
 
 参考调用文法：
 <pre>append \<list>...</pre>
 */
 YF_API ReductionStatus
-Append(TermNode&, ContextNode&);
+Append(TermNode&);
 
-//! \since build 914
-//@{
 /*!
 \brief 以 First 在指定列表中选取并合并内容为新的列表。
 \sa First
@@ -1499,7 +1497,7 @@ Append(TermNode&, ContextNode&);
 <pre>list-extract-first \<list></pre>
 */
 YF_API ReductionStatus
-ListExtractFirst(TermNode&, ContextNode&);
+ListExtractFirst(TermNode&);
 
 /*!
 \brief 以 RestFwd 在指定列表中选取并合并内容为新的列表。
@@ -1509,8 +1507,11 @@ ListExtractFirst(TermNode&, ContextNode&);
 <pre>list-extract-rest% \<list></pre>
 */
 YF_API ReductionStatus
-ListExtractRestFwd(TermNode&, ContextNode&);
+ListExtractRestFwd(TermNode&);
+//@}
 
+//! \since build 914
+//@{
 //! \brief 局部绑定求值。
 //@{
 /*
@@ -1551,6 +1552,51 @@ LetWithEnvironment(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 LetWithEnvironmentRef(TermNode&, ContextNode&);
+//@}
+//@}
+
+//! \since build 917
+//@{
+//! \brief 顺序局部绑定求值。
+//@{
+/*
+不保留结果中的引用值。
+
+参考调用文法：
+<pre>$let* \<bindings> \<body></pre>
+*/
+YF_API ReductionStatus
+LetAsterisk(TermNode&, ContextNode&);
+
+/*
+保留结果中的引用值。
+
+参考调用文法：
+<pre>$let*% \<bindings> \<body></pre>
+*/
+YF_API ReductionStatus
+LetAsteriskRef(TermNode&, ContextNode&);
+//@}
+
+//! \brief 允许递归引用绑定的顺序局部绑定求值
+//@{
+/*
+不保留结果中的引用值。
+
+参考调用文法：
+<pre>$letrec \<bindings> \<body></pre>
+*/
+YF_API ReductionStatus
+LetRec(TermNode&, ContextNode&);
+
+/*
+保留结果中的引用值。
+
+参考调用文法：
+<pre>$letrec% \<bindings> \<body></pre>
+*/
+YF_API ReductionStatus
+LetRecRef(TermNode&, ContextNode&);
 //@}
 //@}
 

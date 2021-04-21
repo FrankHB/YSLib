@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2052
+\version r2061
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2021-03-31 06:26 +0800
+	2021-04-15 22:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,36 +90,36 @@ TermNode::ConCons(ValueNode::Container&& con, allocator_type a)
 }
 
 void
-TermNode::MoveContainer(TermNode&& node)
+TermNode::MoveContainer(TermNode&& nd)
 {
-	YAssert(!ystdex::ref_eq<>()(*this, node), "Invalid self move found.");
+	YAssert(!ystdex::ref_eq<>()(*this, nd), "Invalid self move found.");
 
 	// NOTE: Similar to %ValueNode::MoveContainer.
 	const auto t(std::move(GetContainerRef()));
 
-	container = std::move(node.container);
+	SwapContainer(nd);
 }
 
 void
-TermNode::MoveContent(TermNode&& node)
+TermNode::MoveContent(TermNode&& nd)
 {
-	YAssert(!ystdex::ref_eq<>()(*this, node), "Invalid self move found.");
+	YAssert(!ystdex::ref_eq<>()(*this, nd), "Invalid self move found.");
 
 	// NOTE: Similar to %ValueNode::MoveContent.
 	const auto t(std::move(*this));
 
-	SetContent(std::move(node));
+	SetContent(std::move(nd));
 }
 
 void
-TermNode::MoveValue(TermNode&& node)
+TermNode::MoveValue(TermNode&& nd)
 {
-	YAssert(!ystdex::ref_eq<>()(*this, node), "Invalid self move found.");
+	YAssert(!ystdex::ref_eq<>()(*this, nd), "Invalid self move found.");
 
 	// NOTE: Similar to %ValueNode::MoveValue.
 	const auto t(std::move(Value));
 
-	Value = std::move(node.Value);
+	Value = std::move(nd.Value);
 }
 
 void

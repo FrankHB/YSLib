@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r3465
+\version r3714
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-04-14 12:02 +0800
+	2021-04-21 18:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,245 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib.Core.ValueNode $=
+		(
+			/ $re_add(b915) DLDI "all %TermNode argument 'term' to be accessed \
+				directly" => 'nd',
+				// Also same to %TermNode below.
+			/ "required allocator equality" @ "functions %(SetContent#3, \
+				MoveContent, MoveContainer") @ "class %ValueNode"
+				$= (/ $impl ^ "%SwapContainer")
+				// This is a bit efficient due to less assignments of the \
+					allocator object.
+		),
+		/ %NPL $=
+		(
+			/ @ "class %TermNode" @ %SContext $=
+			(
+				* $re_add(b914) "missing setting tags"
+					@ "function %SetContent#2" @ %SContext $since b857,
+				/ $re_ex(b915) DLDI "all %TermNode argument 'term' to be \
+					accessed directly" => 'nd',
+				/ "required allocator equality"
+					@ "functions %(SetContent#3, MoveContent, MoveContainer")
+					$= (/ $impl ^ "%SwapContainer")
+					// Same to the change to %ValueNode in \
+						%YSLib.Core.ValueNode.
+			),
+			/ @ %NPLA $=
+			(
+				(
+				* "missing reset tags" @ "destination term"
+					@ "function %LiftCollapsed" $since b857;
+				* $comp "possible unexpected different effect on tags between \
+					calls to %(LiftCollapsed, MoveCollapsed)" $since b854
+				),
+				+ "function %ThrowTypeErrorForInvalidType",
+				/ DLDI "parameter name %is_ref"
+					@ "function %ThrowListTypeErrorForInvalidType" => "%has_Ref"
+					// To be consistent with other functions.
+			),
+			/ DLDI "set container to temporary value when the container \
+				allocator equality is known" ^ "%TermNode::Container::swap"
+				~ "move assignment" $effective @ ("functions %Forms::(AccL, \
+				AccR, MakeEncapsulationType, ListConcat)" @ %NPLA1Forms,
+				"native implementation" @ "applicative 'cmd-get-args'"
+				@ "function %LoadModule_std_system" @ %Dependency),
+				// To be consistent to %Forms::(ListExtractRestFwd, Let, \
+					LetRef, LetWithEnvironment, LetWithEnvironmentRef, \
+					RestFwd, RestVal) in %NPLA1Forms. Changing of these \
+					implementations are also a bit more efficient due to one \
+					less assignment of the allocator object.
+			/ %NPLA1Internals $=
+			(
+				+ "function %ExtractSigil",
+				(
+				+ "function %ThrowNestedParameterTreeCheckError",
+				+ "function %ThrowFormalParameterTypeError"
+					^ $dep_from ("%ThrowTypeErrorForInvalidType" @ %NPLA);
+				+ "class template %GParameterValueMatcher"
+					^ $dep_from ("%(ThrowNestedParameterTreeCheckError, \
+					ThrowFormalParameterTypeError)",
+					"%(IsIgnore, ThrowInvalidTokenError)" @ %NPLA1);
+				+ "function template %MakeParameterValueMatcher"
+				)
+			),
+			/ %NPLA1 $=
+			(
+				/ DLDI "simplified function %BindParameter" $=
+				(
+					/ ^ "%list::emplace_back return value" ~ "%list::back",
+					// This requires ISO C++17 for %std::list. Nevertheless, \
+						%ystdex::list is already capable.
+					/ ^ $dep_from "%ExtractSigil" @ %NPLA1Internals
+				),
+				+ "functions %(IsIgnore, ThrowInvalidTokenError)",
+				+ "function %CheckParameterTree" ^ $dep_from
+					("%MakeParameterValueMatcher" @ %NPLA1Internals),
+				+ "function %CheckEnvironmentFormals" ^ ($dep_from
+					"%ThrowInvalidTokenError", "%IsNPLAToken", $dep_from
+					("%ThrowFormalParameterTypeError" @ %NPLA1Internals)),
+				- $revert(b794) "function template %CheckSymbol"
+					$dep_from $dep_to "removal of CheckSymbol",
+				- $revert(b794) "function template %CheckParameterLeafToken"
+					$dep_from $dep_to "removal of CheckParameterLeafToken",
+				/ @ "functions %(BindParameter, MatchParameter)" $=
+				(
+					(
+					/ $impl "aligned token value handling to \
+						%CheckParameterTree" ^ ($dep_from "%IsIgnore",
+						"%IsNPLASymbol", "%TermToNamePtr",
+						($dep_from ("%ThrowInvalidTokenError",
+						"%(ThrowNestedParameterTreeCheckError, \
+						ThrowFormalParameterTypeError)")
+						@ %NPLA1Internals)) ~ "%ParameterMismatch",
+						// Exceptions other than %ParameterTree are caught and \
+							rethrown with a nested error.
+					/ "supported detection of reference values"
+						@ "token mismatch failure",
+						// This makes differences on the call to \
+							%ThrowTypeErrorForInvalidType.
+					/ "failure for trailing token type" ^ "same handling to \
+						other non-trailing token type failure"
+						~ "%ParameterMismatch",
+						// This also allows simplified lightweight parameter \
+							tree matching checks without binding to ignore the \
+							ellipsis (i.e. the existence of the trailing \
+							parameter).
+					* $comp "wrong base type of exception type \
+						%ParameterMismatch thrown from token value check"
+						$since b902
+						// This should be %InvalidSyntax. Since b902, \
+							%ParameterMismatch no longer has the base \
+							%InvalidSyntax, but as a type error of \
+							%ListTypeError.
+					),
+					(
+					/ ("handled '#ignored' and NPLA symbol check"
+						@ "value binding", "handled empty token ignorance \
+						after removal of prefix '.'" @ "trailing binding")
+						@ "function %MatchParameter";
+					/ DLDI "simplified function %BindParameter"
+					),
+					/ DLI "optimized for cases when parameter leaf node is of \
+						a %TermReference value to a non-reference value"
+				),
+				+ "function %BindParameterWellFormed"
+			),
+			/ @ "namespace %Forms" @ %NPLA1Forms $=
+			(
+				/ DLDI "adjusted 'YB_ATTR_nodiscard' and name"
+					@ "several internal functions",
+				/ DLI "simplified list construction" ^ "syncronized calls"
+					~ "continuation" $=
+				(
+					/ "simplified list extraction" $effective @ $impl
+						("functions %(ListExtractFirst, ListExtractRest, Let, \
+						Let, LetRef, LetWithEnvironment, \
+						LetWithEnvironmentRef)")
+						$dep_to "avoided uses of context in list operations",
+					/ "simplified list concatenation"
+						$effective @ "functions %(ListConcat, Append)"
+						$dep_to "avoided uses of context in list operations",
+					/ "simplified mapping application" @ "function %Map1"
+				),
+				- "2nd parameter" @ "functions %(ListConcat, Append, \
+					ListExtractFirst, ListExtractRestFwd)"
+					$dep_all_from "avoided uses of context in list operations",
+				/ DLI "simplified in cases for rvalues list of 1st argument by \
+					list splicing" @ "function %ListConcat",
+				/ DLDI "functions %(RestFwd, RestVal)",
+				/ DLDI "simplified function with vau handler parameter checks"
+					^ $dep_from ("functions %(CheckParameterTree, \
+					CheckEnvironmentFormals)" @ %NPLA1),
+				/ DLDI "function %DefineLazy",
+				/ "vau handlers" $=
+				(
+					/ "parameter checks" @ "constructors" $=
+					(
+						/ $impl ^ $dep_from ("%(CheckParameterTree, \
+							CheckEnvironmentFormals)" @ %NPLA1);
+						/ $comp ^ "wrapped in the nested %InvalidSyntax \
+							exception on failure",
+						* $re_add(b917) $comp "missing nested call safety in \
+							handling terms from object language"
+							$orig (@ %NPLA1 $since b799)
+					)
+					/ DLI "optimized binding" @ "%operator()"
+						^ ("%BindParameterWellFormed" @ %NPLA1)
+						~ "%BindParameter"
+				),
+				/ "optimized functions %(Let, LetRef, LetWithEnvironment, \
+					LetWithEnvironmentRef) $=
+				(
+					/ $design "simplified argument list evaluation"
+						!^ "%Continuation",
+						// The continuation was already removed in b916. The \
+							explicit %Continuation is still redundant.
+					/ DLI "simplified" ^ "synchronous calls of binding list \
+						decompositions",
+					/ DLI "optimized cases for zero arguments with a different \
+						path",
+					- DLI "redundant parameter check"
+						$dep_from ("constructors" @ "vau handlers")
+						// The call to %BindParameter now fully implies the \
+							check implemented in %CheckParameter.
+				),
+				+ "functions %(LetAsterisk, LetAsteriskRef, LetRec, LetRecRef)",
+				/ @ "functions %(DefineWithRecurison, SetWithRecursion)" $=
+				(
+					/ @ "thunk initialization" $=
+					(
+						^ DLI "allocator from the term parameter",
+						(
+						* "wrong exception specifier" @ "constructor"
+							$since b894;
+						+ "full token check" ^ $dep_from
+							("%MakeParameterValueMatcher" @ %NPLA1Internals);
+							// As %BindParameter in %NPLA1.
+						* $re_add(b917) "missing nested call safety in \
+							handling terms from object language" $since b780
+						)
+					),
+					/ DLI "optimized binding" ^ ("%BindParameterWellFormed"
+						@ %NPLA1) ~ "%BindParameter"
+				)
+			),
+			/ @ "function %LoadGroundContext" @ %Dependency $=
+			(
+				/ $lib "added native derivation enabled by default"
+					@ ("operative '$let*'" ^ $dep_from
+					("%LetAsterisk" @ %NPLA1Forms), "operative '$let*%'"
+					^ $dep_from ("%LetAsteriskRef" @ %NPLA1Forms),
+					"operative '$letrec'" ^ $dep_from ("%LetRec" @ %NPLA1Forms),
+					"operative '$letrec%'" ^ $dep_from
+					("%LetRecRef" @ %NPLA1Forms)),
+				* "wrong base type of exception type %ParameterMismatch on \
+					failure thown from call to function template %CheckSymbol"
+					$since b902
+					// As the implementations of %(BindParameter, \
+						MatchParameter) @ %NPLA.
+					$= (/ $impl $dep_from ^ "%ThrowInvalidTokenError" @ %NPLA1
+						~ "%CheckSymbol" $dep_to "removal of CheckSymbol")
+			),
+			* "wrong base type of exception type %ParameterMismatch on \
+				failure thown from call to function template \
+				%CheckParameterLeafToken" $effective
+				@ ("function %BindParameter" @ %NPLA1, "functions \
+				%Forms::(DefineWithRecursion, SetWithRecursion)" @ %NPLA1Forms)
+				$since b902
+				// Ditto.
+				$= (/ $impl $dep_from ^ "%ThrowInvalidTokenError" @ %NPLA1
+					~ "%CheckParameterLeafToken" $dep_to
+					"removal of CheckParameterLeafToken")
+		)
+	)
+),
+
+b916
 (
 	(
 	/ "supported 'FREEIMAGE_LIBRARY_TYPE=STATIC'"
@@ -121,14 +360,15 @@ $now
 			- $revert(b914) "function %ListExtract"
 				$dep_from ("applicative 'list-extract%'"
 				@ "function %LoadGroundContext" @ %Dependency),
-			/ "functions %Forms::(Let, LetRef, LetWithEnvironment, \
+			/ @ "functions %(Let, LetRef, LetWithEnvironment, \
 				LetWithEnvironmentRef)" $=
 			(
 				* @ 'NPL_Impl_NPLA1_Enable_Thunked && \
 					!NPL_Impl_NPLA1_Enable_InlineDirect' $since b915 $=
 				(
-					* "current environment corrupted caused by missing \
-						internal capture of the dynamic environment",
+					* "undefined bahavior caused by missing internal \
+						variable of the dynamic environment in lambda-capture",
+						// Current environment would be corrupted, typically.
 					* "wrong term used as the initializers being initialized"
 				),
 				/ $forced "avoided binding temporary tags on elements of \
@@ -143,6 +383,8 @@ $now
 					redundant copies of list preparation"
 					$dep_from "%(ListExtractFirst, ListExtractRest)"
 					$dep_to "let-family native list forwarding",
+				/ DLI "avoided redundant continuation for argument list \
+					evaluation",
 				/ DLDI
 					"simplified initialization of binding from movable argument"
 			)
@@ -207,7 +449,8 @@ $now
 	
 	),
 	+ "restriction of copies" @ "applicative %foldr1"
-		@ %Documentation.NPL $dep_from %YFramework.NPL.Dependency
+		@ %Documentation.NPL $dep_from ("applicative %foldr1"
+		@ "function %LoadGroundContext" @ %YFramework.NPL.Dependency)
 ),
 
 b915
@@ -219,12 +462,12 @@ b915
 			$effective @ %(SContext, NPLA1),
 		/ %SContext $=
 		(
-			/ DLDI "all %TermNode argument ('node', 'term', 'tm') to be \
+			/ DLDI "%TermNode argument ('node', 'term', 'tm') to be \
 				accessed directly" => 'nd',
 				// The direct accesses include member functions and some other \
 					related functions.
 			+ "function %PropagateTo"
-		)
+		),
 		/ %NPLA1 $=
 		(
 			* "missing support for term references" @ "trailing \
@@ -408,7 +651,7 @@ b914
 					b857,
 					// This also has effects on assignment and exchange \
 						operations (but not for content setting and lifting).
-				* "missing setting tags" @ "function %SetContent#3"
+				* "missing setting tags" @ "function %SetContent#3" $since b857
 					// This also has effects on content setting and lifting \
 						operations.
 			)

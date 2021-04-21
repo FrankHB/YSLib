@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r20500
+\version r20783
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2021-04-10 08:25 +0800
+	2021-04-21 18:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -600,6 +600,90 @@ struct BindParameterObject
 };
 
 
+//! \since build 917
+struct ParameterCheck final
+{
+	using HasReferenceArg = ystdex::true_;
+
+	static void
+	CheckBack(const TermNode& t, bool t_has_ref)
+	{
+		if(YB_UNLIKELY(!IsList(t)))
+			ThrowFormalParameterTypeError(t, t_has_ref);
+	}
+
+	template<typename _func>
+	static void
+	HandleLeaf(_func f, const TermNode& t, bool t_has_ref)
+	{
+		if(const auto p = TermToNamePtr(t))
+		{
+			const auto& n(*p);
+
+			if(!IsIgnore(n))
+			{
+				if(IsNPLASymbol(n))
+					f(n);
+				else
+					ThrowInvalidTokenError(n);
+			}
+		}
+		else
+			ThrowFormalParameterTypeError(t, t_has_ref);
+	}
+
+	template<typename _func>
+	static void
+	WrapCall(_func f)
+	{
+		try
+		{
+			f();
+		}
+		CatchExpr(ParameterMismatch&, throw)
+		CatchExpr(..., ThrowNestedParameterTreeCheckError())
+	}
+};
+
+
+//! \since build 917
+struct NoParameterCheck final
+{
+	using HasReferenceArg = ystdex::false_;
+
+	static void
+	CheckBack(const TermNode& t)
+	{
+		yunused(t);
+		YAssert(IsList(t), "Invalid parameter tree found.");
+	}
+
+	template<typename _func>
+	static void
+	HandleLeaf(_func f, const TermNode& t)
+	{
+		const auto p(TermToNamePtr(t));
+
+		YAssert(bool(p), "Invalid parameter tree found.");
+
+		const auto& n(*p);
+
+		if(!IsIgnore(n))
+		{
+			YAssert(IsNPLASymbol(n), "Invalid parameter tree found.");
+			f(n);
+		}
+	}
+
+	template<typename _func>
+	static void
+	WrapCall(_func f)
+	{
+		f();
+	}
+};
+
+
 //! \since build 882
 //@{
 #if false
@@ -612,9 +696,12 @@ using _fBindTrailing
 	= GParameterBinder<TermNode::Container&, TNIter, const TokenValue&>;
 using _fBindValue = GParameterBinder<const TokenValue&, TermNode&>;
 #endif
+//@}
 
-template<typename _fBindTrailing, typename _fBindValue>
-class GParameterMatcher
+//! \since build 917
+//@{
+template<class _tTraits, typename _fBindTrailing, typename _fBindValue>
+class GParameterMatcher final
 {
 	//! \since build 863
 	//@{
@@ -628,6 +715,7 @@ private:
 	//@}
 
 public:
+	//! \since build 882
 	template<class _type, class _type2>
 	GParameterMatcher(_type&& arg, _type2&& arg2)
 		: BindTrailing(yforward(arg)), BindValue(yforward(arg2))
@@ -641,27 +729,48 @@ public:
 	//	so without handling of the environment for TCO, it still works. Anyway,
 	//	keeping it saner to be friendly to possible TCO compressions in future
 	//	seems OK.
+	//! \since build 882
 	void
 	operator()(const TermNode& t, TermNode& o, TermTags o_tags,
 		const EnvironmentReference& r_env) const
 	{
-		// NOTE: This is a trampoline to eliminate the call depth limitation.
-		Match(t, o, o_tags, r_env);
-		while(act)
-		{
-			const auto a(std::move(act));
+		_tTraits::WrapCall([&]{
+			// NOTE: This is a trampoline to eliminate the call depth
+			//	limitation.
+			DispatchMatch(typename _tTraits::HasReferenceArg(), t, o, o_tags,
+				r_env, ystdex::false_());
+			while(act)
+			{
+				const auto a(std::move(act));
 
-			a();
-		}
+				a();
+			}
+		});
 	}
 
 private:
+	template<class _tArg>
+	void
+	DispatchMatch(ystdex::true_, const TermNode& t, TermNode& o,
+		TermTags o_tags, const EnvironmentReference& r_env, _tArg) const
+	{
+		Match(t, o, o_tags, r_env, _tArg::value);
+	}
+	template<class _tArg>
+	void
+	DispatchMatch(ystdex::false_, const TermNode& t, TermNode& o,
+		TermTags o_tags, const EnvironmentReference& r_env, _tArg) const
+	{
+		Match(t, o, o_tags, r_env);
+	}
+
 	// XXX: The initial %o_tags shall have %TermTags::Temporary unless it is
 	//	known to bound to some non-temporary objects not stored in the term tree
 	//	to be reduced.
-	void
+	template<typename... _tParams>
+	YB_FLATTEN void
 	Match(const TermNode& t, TermNode& o, TermTags o_tags,
-		const EnvironmentReference& r_env) const
+		const EnvironmentReference& r_env, _tParams&&... args) const
 	{
 		if(IsList(t))
 		{
@@ -684,10 +793,8 @@ private:
 							if(!p->empty() && p->front() == '.')
 								--last;
 						}
-						else if(!IsList(back))
-							throw ParameterMismatch(ystdex::sfmt(
-								"Invalid term '%s' found for symbol parameter.",
-								TermToString(back).c_str()));
+						else
+							_tTraits::CheckBack(back, yforward(args)...);
 					}
 				}
 				// XXX: There is only one level of indirection. It should work
@@ -748,21 +855,19 @@ private:
 							has_ref).c_str()));
 				}, o);
 		}
-		else
+		else if(const auto p_t = NPL::TryAccessLeaf<const TermReference>(t))
 		{
-			const auto& tp(t.Value.type());
+			auto& nd(p_t->get());
 
-			if(tp == ystdex::type_id<TermReference>())
-				ystdex::update_thunk(act, [&, o_tags]{
-					Match(t.Value.GetObject<TermReference>().get(), o, o_tags,
-						r_env);
-				});
-			else if(tp == ystdex::type_id<TokenValue>())
-				BindValue(t.Value.GetObject<TokenValue>(), o, o_tags, r_env);
-			else
-				throw ParameterMismatch(ystdex::sfmt("Invalid parameter value"
-					" '%s' found.", TermToString(t).c_str()));
+			ystdex::update_thunk(act, [&, o_tags]{
+				DispatchMatch(typename _tTraits::HasReferenceArg(), nd, o,
+					o_tags, r_env, ystdex::true_());
+			});
 		}
+		else
+			_tTraits::HandleLeaf([&](const TokenValue& n){
+				BindValue(n, o, o_tags, r_env);
+			}, t, yforward(args)...);
 	}
 
 	//! \since build 898
@@ -791,7 +896,8 @@ private:
 #endif
 			});
 			YAssert(j != o_tm.end(), "Invalid state of operand found.");
-			Match(NPL::Deref(i), NPL::Deref(j), tags, r_env);
+			DispatchMatch(typename _tTraits::HasReferenceArg(), NPL::Deref(i),
+				NPL::Deref(j), tags, r_env, ystdex::false_());
 		}
 		else if(ellipsis)
 		{
@@ -808,12 +914,102 @@ private:
 };
 
 //! \relates GParameterMatcher
-template<typename _fBindTrailing, typename _fBindValue>
-YB_ATTR_nodiscard inline GParameterMatcher<_fBindTrailing, _fBindValue>
+template<class _tTraits, typename _fBindTrailing, typename _fBindValue>
+YB_ATTR_nodiscard inline
+	GParameterMatcher<_tTraits, _fBindTrailing, _fBindValue>
 MakeParameterMatcher(_fBindTrailing bind_trailing_seq, _fBindValue bind_value)
 {
-	return GParameterMatcher<_fBindTrailing, _fBindValue>(
+	return GParameterMatcher<_tTraits, _fBindTrailing, _fBindValue>(
 		std::move(bind_trailing_seq), std::move(bind_value));
+}
+
+
+template<class _tTraits>
+YB_FLATTEN void
+BindParameterImpl(const shared_ptr<Environment>& p_env, const TermNode& t,
+	TermNode& o)
+{
+	auto& env(NPL::Deref(p_env));
+
+	// NOTE: No duplication check here. Symbols can be rebound.
+	// TODO: Additional ownership and lifetime check to kept away undefined
+	//	behavior?
+	// NOTE: The call is essentially same as %MatchParameter, with a bit better
+	//	performance by avoiding %function instances.
+	MakeParameterMatcher<_tTraits>([&](TermNode& o_tm, TNIter first,
+		string_view id, TermTags o_tags, const EnvironmentReference& r_env){
+		YAssert(ystdex::begins_with(id, "."), "Invalid symbol found.");
+		id.remove_prefix(1);
+		if(!id.empty())
+		{
+			const char sigil(ExtractSigil(id));
+
+			if(!id.empty())
+			{
+				const auto a(o_tm.get_allocator());
+				const auto last(o_tm.end());
+				TermNode::Container con(a);
+
+				// XXX: As %TermReference::IsMovable for non-temporary objects.
+				if((o_tags & (TermTags::Unique | TermTags::Nonmodifying))
+					== TermTags::Unique || bool(o_tags & TermTags::Temporary))
+				{
+					if(sigil == char())
+						LiftSubtermsToReturn(o_tm);
+					// NOTE: This implements the copy elision of list members.
+					con.splice(con.end(), o_tm.GetContainerRef(), first, last);
+					MarkTemporaryTerm(env.Bind(id, TermNode(std::move(con))),
+						sigil);
+				}
+				else
+				{
+					// NOTE: Make list subobject reference.
+					for(; first != last; ++first)
+						BindParameterObject{r_env}(sigil, {}, o_tags,
+							NPL::Deref(first), [&](const TermNode& tm){
+							CopyTermTags(con.emplace_back(tm.GetContainer(),
+								tm.Value), tm);
+						}, [&](TermNode::Container&& c, ValueObject&& vo)
+							-> TermNode&{
+							con.emplace_back(std::move(c), std::move(vo));
+							return con.back();
+						});
+					if(sigil == '&')
+					{
+						// NOTE: Irregular representation is constructed for the
+						//	list subobject reference.
+						// XXX: As %ReduceAsSubobjectReference in
+						//	NPLA1Internals.
+						auto p_sub(YSLib::allocate_shared<TermNode>(a,
+							std::move(con)));
+						auto& sub(NPL::Deref(p_sub));
+
+						env.Bind(id, TermNode(std::allocator_arg, a,
+							{NPL::AsTermNode(a, std::move(p_sub))},
+							std::allocator_arg, a, TermReference(sub, r_env)));
+					}
+					else
+						MarkTemporaryTerm(env.Bind(id,
+							TermNode(std::move(con))), sigil);
+				}
+			}
+		}
+	}, [&](const TokenValue& n, TermNode& b, TermTags o_tags,
+		const EnvironmentReference& r_env){
+		YAssert(!IsIgnore(n) && IsNPLASymbol(n), "Invalid token found.");
+
+		string_view id(n);
+		const char sigil(ExtractSigil(id));
+
+		if(!id.empty())
+			BindParameterObject{r_env}(sigil, sigil == '&', o_tags, b,
+				[&](const TermNode& tm){
+				CopyTermTags(env.Bind(id, tm), tm);
+			}, [&](TermNode::Container&& c, ValueObject&& vo) -> TermNode&{
+				// XXX: Allocators are not used here for performance.
+				return env.Bind(id, TermNode(std::move(c), std::move(vo)));
+			});
+	})(t, o, TermTags::Temporary, p_env);
 }
 //@}
 
@@ -829,6 +1025,14 @@ void
 ThrowInvalidSyntaxError(string_view sv)
 {
 	throw InvalidSyntax(sv);
+}
+
+void
+ThrowInvalidTokenError(string_view sv)
+{
+	YAssertNonnull(sv.data());
+	ThrowInvalidSyntaxError(ystdex::sfmt("Invalid token '%s' found",
+		sv.data()));
 }
 
 void
@@ -978,9 +1182,9 @@ ReduceChildren(TNIter first, TNIter last, ContextNode& ctx)
 	//	evaluation can be potentionally parallel, though the simplest one is
 	//	left-to-right.
 	// XXX: Use execution policies to be evaluated concurrently?
-	// NOTE: This does not support PTC, but allow it to be called
-	//	in routines which expect proper tail actions, given the guarnatee that
-	//	the precondition of %Reduce is not violated.
+	// NOTE: This does not support PTC, but allow it to be called in routines
+	//	which expect proper tail actions, given the guarnatee that the
+	//	precondition of %Reduce is not violated.
 	// XXX: The remained tail action would be dropped.
 #if NPL_Impl_NPLA1_Enable_Thunked
 	ReduceChildrenOrderedAsync(first, last, ctx);
@@ -1605,117 +1809,55 @@ RelayForCall(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 
 
 void
+CheckParameterTree(const TermNode& term)
+{
+	MakeParameterValueMatcher([&](const TokenValue&) ynothrow{})(term);
+}
+
+string
+CheckEnvironmentFormal(const TermNode& term)
+{
+	TryRet(ResolveTerm([&](const TermNode& nd, bool has_ref) -> string{
+		if(const auto p = TermToNamePtr(nd))
+		{
+			if(!IsIgnore(*p))
+			{
+				if(YB_UNLIKELY(!IsNPLASymbol(*p)))
+					ThrowInvalidTokenError(*p);
+				return string(*p, term.get_allocator());
+			}
+		}
+		else
+			ThrowFormalParameterTypeError(nd, has_ref);
+		return string(term.get_allocator());
+	}, term))
+	CatchExpr(..., std::throw_with_nested(InvalidSyntax("Failed checking for"
+		" environment formal parameter (expected a symbol).")))
+}
+
+void
 MatchParameter(const TermNode& t, TermNode& o, function<void(TermNode&, TNIter,
 	const TokenValue&, TermTags, const EnvironmentReference&)>
 	bind_trailing_seq, function<void(const TokenValue&, TermNode&, TermTags,
 	const EnvironmentReference&)> bind_value, TermTags o_tags,
 	const EnvironmentReference& r_env)
 {
-	MakeParameterMatcher(std::move(bind_trailing_seq), std::move(bind_value))(t,
-		o, o_tags, r_env);
+	MakeParameterMatcher<ParameterCheck>(std::move(bind_trailing_seq),
+		std::move(bind_value))(t, o, o_tags, r_env);
 }
 
 void
 BindParameter(const shared_ptr<Environment>& p_env, const TermNode& t,
 	TermNode& o)
 {
-	auto& env(NPL::Deref(p_env));
-	const auto check_sigil([&](string_view& id){
-		char sigil(id.front());
+	BindParameterImpl<ParameterCheck>(p_env, t, o);
+}
 
-		if(sigil != '&' && sigil != '%' && sigil != '@')
-			sigil = char();
-		else
-			id.remove_prefix(1);
-		return sigil;
-	});
-
-	// NOTE: No duplication check here. Symbols can be rebound.
-	// TODO: Additional ownership and lifetime check to kept away undefined
-	//	behavior?
-	// NOTE: The call is essentially same as %MatchParameter, with a bit better
-	//	performance by avoiding %function instances.
-	MakeParameterMatcher([&, check_sigil](TermNode& o_tm, TNIter first,
-		string_view id, TermTags o_tags, const EnvironmentReference& r_env){
-		YAssert(ystdex::begins_with(id, "."), "Invalid symbol found.");
-		id.remove_prefix(1);
-		if(!id.empty())
-		{
-			const char sigil(check_sigil(id));
-
-			if(!id.empty())
-			{
-				const auto a(o_tm.get_allocator());
-				const auto last(o_tm.end());
-				TermNode::Container con(a);
-
-				// XXX: As %TermReference::IsMovable for non-temporary objects.
-				if((o_tags & (TermTags::Unique | TermTags::Nonmodifying))
-					== TermTags::Unique || bool(o_tags & TermTags::Temporary))
-				{
-					if(sigil == char())
-						LiftSubtermsToReturn(o_tm);
-					// NOTE: This implements the copy elision of list members.
-					con.splice(con.end(), o_tm.GetContainerRef(), first, last);
-					MarkTemporaryTerm(env.Bind(id, TermNode(std::move(con))),
-						sigil);
-				}
-				else
-				{
-					// NOTE: Make list subobject reference.
-					for(; first != last; ++first)
-						// TODO: Blocked. Use C++17 sequence container return
-						//	value.
-						BindParameterObject{r_env}(sigil, {}, o_tags,
-							NPL::Deref(first), [&](const TermNode& tm){
-							con.emplace_back(tm.GetContainer(), tm.Value);
-							CopyTermTags(con.back(), tm);
-						}, [&](TermNode::Container&& c, ValueObject&& vo)
-							-> TermNode&{
-							con.emplace_back(std::move(c), std::move(vo));
-							return con.back();
-						});
-					if(sigil == '&')
-					{
-						// NOTE: Irregular representation is constructed for the
-						//	list subobject reference.
-						// XXX: As %ReduceAsSubobjectReference in
-						//	NPLA1Internals.
-						auto p_sub(YSLib::allocate_shared<TermNode>(a,
-							std::move(con)));
-						auto& sub(NPL::Deref(p_sub));
-
-						env.Bind(id, TermNode(std::allocator_arg, a,
-							{NPL::AsTermNode(a, std::move(p_sub))},
-							std::allocator_arg, a, TermReference(sub, r_env)));
-					}
-					else
-						MarkTemporaryTerm(env.Bind(id,
-							TermNode(std::move(con))), sigil);
-				}
-			}
-		}
-	}, [&](const TokenValue& n, TermNode& b, TermTags o_tags,
-		const EnvironmentReference& r_env){
-		CheckParameterLeafToken(n, [&]{
-			if(!n.empty())
-			{
-				string_view id(n);
-				const char sigil(check_sigil(id));
-
-				if(!id.empty())
-					BindParameterObject{r_env}(sigil, sigil == '&', o_tags, b,
-						[&](const TermNode& tm){
-						CopyTermTags(env.Bind(id, tm), tm);
-					}, [&](TermNode::Container&& c, ValueObject&& vo)
-						-> TermNode&{
-						// XXX: Allocators are not used here for performance.
-						return env.Bind(id,
-							TermNode(std::move(c), std::move(vo)));
-					});
-			}
-		});
-	})(t, o, TermTags::Temporary, p_env);
+void
+BindParameterWellFormed(const shared_ptr<Environment>& p_env, const TermNode& t,
+	TermNode& o)
+{
+	BindParameterImpl<NoParameterCheck>(p_env, t, o);
 }
 
 

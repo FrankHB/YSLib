@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8550
+\version r8631
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2021-03-17 04:45 +0800
+	2021-04-20 22:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -174,9 +174,19 @@ public:
 //! \pre 间接断言：第一参数非空。
 YB_NORETURN YF_API YB_NONNULL(1) void
 ThrowInvalidSyntaxError(const char*);
+//! \pre 间接断言：第一参数的数据指针非空。
 YB_NORETURN YF_API void
 ThrowInvalidSyntaxError(string_view);
 //@}
+
+/*!
+\brief 抛出无效记号值异常。
+\pre 断言：第一参数的数据指针非空。
+\throw InvalidSyntax 语法错误：记号不被上下文支持。
+\since build 917
+*/
+YB_NORETURN YF_API void
+ThrowInvalidTokenError(string_view);
 
 /*!
 \brief 抛出被赋值操作数不可修改的异常。
@@ -1275,40 +1285,49 @@ RelayForCall(ContextNode&, TermNode&, EnvironmentGuard&&, bool);
 //@}
 
 
-//! \throw ParameterMismatch 匹配失败。
-//@{
 /*!
-\pre 断言：字符串参数的数据指针非空。
-\since build 794
+\brief 判断记号值是否为 #ignore 。
+\since build 917
+*/
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, IsIgnore, const TokenValue& s) ynothrow
+	// XXX: This is more efficient than cast to %basic_string_view if the
+	//	%basic_string implementation is optimized.
+	ImplRet(s == "#ignore")
+
+/*!
+\throw InvalidSyntax 嵌套异常：项不符合语法要求。
+\note 异常条件视为语法错误而非直接的类型错误。
+\since build 917
 */
 //@{
-//! \brief 检查记号值是符合匹配条件的符号。
-template<typename _func>
-auto
-CheckSymbol(string_view n, _func f) -> decltype(f())
-{
-	if(IsNPLASymbol(n))
-		return f();
-	throw ParameterMismatch(ystdex::sfmt(
-		"Invalid token '%s' found for symbol parameter.", n.data()));
-}
+/*!
+\brief 检查形式参数树。
 
-//! \brief 检查记号值是符合匹配条件的参数符号。
-template<typename _func>
-auto
-CheckParameterLeafToken(string_view n, _func f) -> decltype(f())
-{
-	if(n != "#ignore")
-		CheckSymbol(n, f);
-}
+递归遍历项及其子项，检查其中的子项符合对象语言 \<ptree> 形式的语法要求。
+一般适用提前检查对象语言操作的 \<formals> 而不是 \<definiend> 描述的参数。
+*/
+YF_API void
+CheckParameterTree(const TermNode&);
+
+/*!
+\brief 检查环境形式参数。
+\return 项表示 \c #ignore 时为空串，否则为非空的环境形式参数。
+*/
+YF_API YB_ATTR_nodiscard YB_PURE string
+CheckEnvironmentFormal(const TermNode&);
 //@}
 
 /*!
+\throw InvalidSyntax 嵌套异常 ArityMismatch ：参数数匹配失败。
+\throw InvalidSyntax 嵌套异常 ParameterMismatch ：参数匹配失败。
 \note 不具有强异常安全保证。匹配失败时，其它的绑定状态未指定。
 
 递归遍历参数和操作数树进行结构化匹配。
 若匹配失败，则抛出异常。
 */
+//@{
+//! \throw InvalidSyntax 嵌套异常 InvalidSyntax ：形式参数项不符合语法要求。
 //@{
 /*!
 \brief 匹配参数。
@@ -1336,13 +1355,15 @@ Temporary 表示不被共享的项（在此即纯右值或没有匹配列表的�
 若操作数的某一个需匹配的列表子项是 TermReference 或复制标识为 true ，
 	序列处理器中需要进行复制。
 结尾序列处理器传入的字符串参数表示需绑定的表示结尾序列的列表标识符。
-匹配要求如下：
-若项是非空列表，则操作数的对应的项应为满足确定子项数的列表：
-	若最后的子项为 . 起始的符号，则匹配操作数中结尾的任意个数的项作为结尾序列：
-	其它子项一一匹配操作数的子项；
-若项是空列表，则操作数的对应的项应为空列表；
-若项是 TermReference ，则以其引用的项作为子项继续匹配；
-否则，匹配非列表项。
+匹配规则如下：
+	若项是非空列表，则操作数的对应的项应为满足确定子项数的列表：
+		若最后的子项为 . 起始的记号，则匹配操作数中结尾的任意个数的项作为结尾序列。
+		其它子项一一匹配操作数的子项。
+	若项是空列表，则操作数的对应的项应为空列表。
+	若项是引用值，则以表示其被引用对象的项作为子项继续匹配。
+	若项是 #ignore ，则忽略操作数对应的项。
+	若项的值不是符号，则匹配出错。
+	否则，匹配非列表项。
 */
 YF_API void
 MatchParameter(const TermNode&, TermNode&, function<void(TermNode&, TNIter,
@@ -1363,22 +1384,36 @@ MatchParameter(const TermNode&, TermNode&, function<void(TermNode&, TNIter,
 形式参数和操作数为项指定的表达式树。
 第二参数指定形式参数，第三参数指定操作数。
 进行匹配的算法递归搜索形式参数及其子项，要求参见 MatchParameter 。
-若匹配成功，在第一参数指定的环境内绑定未被忽略的匹配的项。
+若匹配成功，在第一参数指定的环境内绑定未被忽略的匹配的非列表项。
 对结尾序列总是匹配前缀为 . 的符号为目标按以下规则忽略或绑定：
 子项为 . 时，对应操作数的结尾序列被忽略；
 否则，绑定项的目标为移除前缀 . 和后续可选前缀 & 后的符号。
-非列表项的绑定使用以下规则：
-若匹配成功，在第一参数指定的环境内绑定未被忽略的匹配的非列表项。
-匹配要求如下：
-若项是 #ignore ，则忽略操作数对应的项；
-若项的值是符号，则操作数的对应的项应为非列表项。
-若被绑定的目标有引用标记字符，则以按引用传递的方式绑定；否则以按值传递的方式绑定。
-当绑定的引用标记字符为 @ 且不是列表项时抛出异常。
-按引用传递绑定直接转移该项的内容。
+非列表项绑定规则如下：
+	若被绑定的目标有引用标记字符，则以按引用传递的方式绑定，否则以按值传递的方式绑定。
+	当绑定的引用标记字符为 @ 且不是列表项时抛出异常。
+	按引用传递绑定直接转移该项的内容。
 */
 YF_API void
 BindParameter(const shared_ptr<Environment>&, const TermNode&, TermNode&);
 //@}
+
+/*!
+\brief 使用操作数结构化匹配并绑定参数到合式的形式参数树。
+\pre 参数指定的形式参数树确保通过检查没有语法错误。
+\throw ArityMismatch 参数数匹配失败。
+\throw ParameterMismatch 参数匹配失败。
+\sa CheckParameterTree
+\since build 917
+
+同 BindParameter ，但假定形式参数树确保通过检查没有语法错误，否则行为未定义。
+实现假定不存在形式参数树具有引起语法错误的错误条件。
+通过先前在同一形式参数树上的 CheckParameter 调用可保证符合前置条件。
+若确保绑定不具有引起对象语言中可观察行为的副作用，先前的 BindParameter
+	或 BindParameterWellFormed 也可确保满足前置条件。
+*/
+YF_API void
+BindParameterWellFormed(const shared_ptr<Environment>&, const TermNode&,
+	TermNode&);
 //@}
 
 

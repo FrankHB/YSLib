@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20982
+\version r21084
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2021-04-05 02:53 +0800
+	2021-04-20 22:39 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -33,8 +33,11 @@
 //	ReductionStatus, Reducer, ystdex::get_less, EnvironmentReference,
 //	NPL::tuple, YSLib::get, list, ystdex::unique_guard, std::declval,
 //	EnvironmentGuard, make_observer, std::bind, std::placeholders, std::ref,
-//	TermReference, YSLib::map, set, A1::NameTypedReducerHandler,
-//	A1::NameTypedContextHandler, ystdex::bind1;
+//	YSLib::map, set, A1::NameTypedReducerHandler, A1::NameTypedContextHandler,
+//	ystdex::bind1, std::placeholders::_2, TermReference,
+//	ThrowTypeErrorForInvalidType, ystdex::type_id, ParameterMismatch,
+//	NPL::TryAccessLeaf, ystdex::update_thunk, IsIgnore, IsNPLASymbol,
+//	ThrowInvalidTokenError;
 #include <ystdex/ref.hpp> // for ystdex::unref;
 
 namespace NPL
@@ -885,6 +888,10 @@ struct Combine final
 //@}
 
 
+//! \since build 881
+using Action = function<void()>;
+
+
 //! \since build 897
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TermReference, EnsureLValueReference, const TermReference& ref)
@@ -895,6 +902,116 @@ YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TermReference, EnsureLValueReference, TermReference&& ref)
 	// XXX: Use %TermReference::SetTags is not efficient here.
 	ImplRet(TermReference(ref.GetTags() & ~TermTags::Unique, std::move(ref)))
+
+
+//! \since build 917
+YB_NORETURN void
+ThrowNestedParameterTreeCheckError();
+
+//! \since build 917
+YB_NORETURN inline PDefH(void, ThrowFormalParameterTypeError,
+	const TermNode& term, bool has_ref)
+	ImplExpr(ThrowTypeErrorForInvalidType(ystdex::type_id<TokenValue>(), term,
+		has_ref))
+
+//! \since build 917
+char
+ExtractSigil(string_view&);
+
+
+//! \since build 917
+//@{
+template<typename _fBindValue>
+class GParameterValueMatcher final
+{
+public:
+	_fBindValue BindValue;
+
+private:
+	// XXX: Allocators are not used here for performance in most cases.
+	mutable Action act{};
+
+public:
+	template<class _type>
+	GParameterValueMatcher(_type&& arg)
+		: BindValue(yforward(arg))
+	{}
+
+	void
+	operator()(const TermNode& t) const
+	{
+		try
+		{
+			// NOTE: This is a trampoline to eliminate the call depth
+			//	limitation.
+			Match(t, {});
+			while(act)
+			{
+				const auto a(std::move(act));
+
+				a();
+			}
+		}
+		CatchExpr(ParameterMismatch&, throw)
+		CatchExpr(..., ThrowNestedParameterTreeCheckError())
+	}
+
+private:
+	YB_FLATTEN void
+	Match(const TermNode& t, bool t_has_ref) const
+	{
+		if(IsList(t))
+		{
+			if(IsBranch(t))
+				MatchSubterms(t.begin(), t.end());
+		}
+		else if(const auto p_t = NPL::TryAccessLeaf<const TermReference>(t))
+		{
+			auto& nd(p_t->get());
+
+			ystdex::update_thunk(act, [&]{
+				Match(nd, true);
+			});
+		}
+		else if(const auto p = TermToNamePtr(t))
+		{
+			const auto& n(*p);
+
+			if(!IsIgnore(n))
+			{
+				if(IsNPLASymbol(n))
+					BindValue(n);
+				else
+					ThrowInvalidTokenError(n);
+			}
+		}
+		else
+			ThrowFormalParameterTypeError(t, t_has_ref);
+	}
+
+	void
+	MatchSubterms(TNCIter i, TNCIter last) const
+	{
+		if(i != last)
+		{
+			// XXX: Use explicit captures here to ensure ISO C++20
+			//	compatibility.
+			ystdex::update_thunk(act, [this, i, last]{
+				return MatchSubterms(std::next(i), last);
+			});
+			Match(NPL::Deref(i), {});
+		}
+	}
+};
+
+//! \relates GParameterValueMatcher
+template<typename _fBindValue>
+YB_ATTR_nodiscard inline GParameterValueMatcher<_fBindValue>
+MakeParameterValueMatcher(_fBindValue bind_value)
+{
+	return GParameterValueMatcher<_fBindValue>(std::move(bind_value));
+}
+//@}
 
 
 //! \since build 897
@@ -968,10 +1085,6 @@ ReduceAsSubobjectReference(TermNode&, shared_ptr<TermNode>,
 ReductionStatus
 ReduceForCombinerRef(TermNode&, const TermReference&, const ContextHandler&,
 	size_t);
-
-
-//! \since build 881
-using Action = function<void()>;
 
 } // inline namespace Internals;
 

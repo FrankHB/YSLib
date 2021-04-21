@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20439
+\version r20459
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2021-03-01 18:44 +0800
+	2021-04-20 22:34 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -27,7 +27,8 @@
 
 #include "NPL/YModules.h"
 #include "NPLA1Internals.h" // for NPL::Deref, Environment, ystdex::dismiss,
-//	shared_ptr, std::make_move_iterator, NPL::AsTermNode;
+//	shared_ptr, std::throw_with_nested, InvalidSyntax, std::make_move_iterator,
+//	NPL::AsTermNode;
 
 using namespace YSLib;
 
@@ -222,6 +223,26 @@ EnsureTCOAction(ContextNode& ctx, TermNode& term)
 #endif
 
 
+void
+ThrowNestedParameterTreeCheckError()
+{
+	std::throw_with_nested(InvalidSyntax("Failed checking for parameter in a"
+		" parameter tree (expected a symbol or '#ignore')."));
+}
+
+char
+ExtractSigil(string_view& id)
+{
+	char sigil(id.front());
+
+	if(sigil != '&' && sigil != '%' && sigil != '@')
+		sigil = char();
+	else
+		id.remove_prefix(1);
+	return sigil;
+}
+
+
 ReductionStatus
 ReduceAsSubobjectReference(TermNode& term, shared_ptr<TermNode> p_sub,
 	const EnvironmentReference& r_env)
@@ -256,6 +277,8 @@ ReduceForCombinerRef(TermNode& term, const TermReference& ref,
 	const auto& r_env(ref.GetEnvironmentReference());
 	const auto a(term.get_allocator());
 
+	// XXX: Allocators are not used on %FormContextHandler for performance in
+	//	most cases.
 	return ReduceAsSubobjectReference(term, YSLib::allocate_shared<TermNode>(a,
 		NPL::AsTermNode(a, ContextHandler(std::allocator_arg, a,
 		FormContextHandler(RefContextHandler(h, r_env), n)))),

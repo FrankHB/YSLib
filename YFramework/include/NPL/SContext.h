@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r3996
+\version r4010
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2021-03-31 07:04 +0800
+	2021-04-15 22:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -369,18 +369,18 @@ public:
 		Value = yforward(val);
 	}
 	PDefH(void, SetContent, const TermNode& nd)
-		ImplExpr(SetContent(nd.container, nd.Value))
+		ImplExpr(SetContent(nd.container, nd.Value), Tags = nd.Tags)
+	//! \pre 间接断言：容器分配器和参数的容器分配器相等。
 	PDefH(void, SetContent, TermNode&& nd)
-		ImplExpr(SetContent(std::move(nd.container), std::move(nd.Value)),
-			Tags = nd.Tags)
+		ImplExpr(SwapContainer(nd), Value = std::move(nd.Value), Tags = nd.Tags)
 	//@}
 
 	//! \since build 853
-	PDefH(void, Add, const TermNode& term)
-		ImplExpr(container.push_back(term))
+	PDefH(void, Add, const TermNode& nd)
+		ImplExpr(container.push_back(nd))
 	//! \since build 853
-	PDefH(void, Add, TermNode&& term)
-		ImplExpr(container.push_back(std::move(term)))
+	PDefH(void, Add, TermNode&& nd)
+		ImplExpr(container.push_back(std::move(nd)))
 
 	//! \since build 853
 	//@{
@@ -484,6 +484,7 @@ public:
 	//@{
 	/*!
 	\brief 转移容器。
+	\pre 间接断言：容器分配器和参数的容器分配器相等。
 
 	转移参数指定的节点的容器到对象。
 	转移后的节点的容器是转移前的参数的容器。
@@ -493,6 +494,7 @@ public:
 
 	/*!
 	\brief 转移内容。
+	\pre 间接断言：容器分配器和参数的容器分配器相等。
 	\since build 853
 
 	转移参数指定的节点的内容到对象。
@@ -515,9 +517,10 @@ public:
 	PDefH(void, Remove, const_iterator i)
 		ImplExpr(erase(i))
 
-	PDefH(void, SwapContainer, TermNode& term) ynothrowv
-		ImplExpr(YAssert(get_allocator() == term.get_allocator(),
-			"Invalid allocator found."), container.swap(term.container))
+	//! \pre 断言：容器分配器和参数的容器分配器相等。
+	PDefH(void, SwapContainer, TermNode& nd) ynothrowv
+		ImplExpr(YAssert(get_allocator() == nd.get_allocator(),
+			"Invalid allocator found."), container.swap(nd.container))
 
 	void
 	SwapContent(TermNode&) ynothrowv;

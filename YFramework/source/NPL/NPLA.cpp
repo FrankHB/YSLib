@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3542
+\version r3559
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2021-03-26 03:29 +0800
+	2021-04-20 01:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -596,11 +596,11 @@ ThrowInsufficientTermsError(const TermNode& term, bool has_ref)
 
 void
 ThrowListTypeErrorForInvalidType(const ystdex::type_info& tp,
-	const TermNode& term, bool is_ref)
+	const TermNode& term, bool has_ref)
 {
 	throw ListTypeError(ystdex::sfmt("Expected a value of type '%s', got a list"
 		" '%s'.", tp.name(),
-		TermToStringWithReferenceMark(term, is_ref).c_str()));
+		TermToStringWithReferenceMark(term, has_ref).c_str()));
 }
 
 void
@@ -608,6 +608,14 @@ ThrowListTypeErrorForNonlist(const TermNode& term, bool has_ref)
 {
 	throw ListTypeError(ystdex::sfmt("Expected a list, got '%s'.",
 		TermToStringWithReferenceMark(term, has_ref).c_str()));
+}
+
+void
+ThrowTypeErrorForInvalidType(const ystdex::type_info& tp, const TermNode& term,
+	bool has_ref)
+{
+	throw TypeError(ystdex::sfmt("Expected a value of type '%s', got '%s'.",
+		tp.name(), TermToStringWithReferenceMark(term, has_ref).c_str()));
 }
 
 void
@@ -746,7 +754,8 @@ LiftCollapsed(TermNode& term, TermNode& tm, TermReference ref)
 		term.SetContent(TermNode(std::move(tm.GetContainerRef()),
 			std::move(pr.first)));
 	else if(pr.second)
-		term.Value = std::move(pr.first);
+		yunseq(term.Value = std::move(pr.first),
+			term.Tags = TermTags::Unqualified);
 }
 
 void
@@ -797,9 +806,9 @@ LiftToReturn(TermNode& term)
 void
 MoveRValueToForward(TermNode& term, TermNode& tm)
 {
-#	if true
+#if true
 	MoveRValueFor(term, tm, &TermReference::IsModifiable);
-#	else
+#else
 	// NOTE: For exposition only. The optimized implemenation shall be
 	//	equivalent to this, except for the copy elision.
 	LiftOther(term, tm);
@@ -808,21 +817,21 @@ MoveRValueToForward(TermNode& term, TermNode& tm)
 		if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
 			LiftMovedOther(term, *p, p->IsModifiable());
 	}
-#	endif
+#endif
 }
 
 void
 MoveRValueToReturn(TermNode& term, TermNode& tm)
 {
-#	if true
+#if true
 	MoveRValueFor(term, tm, &TermReference::IsMovable);
-#	else
+#else
 	// NOTE: For exposition only. The optimized implemenation shall be
 	//	equivalent to this, except for the copy elision.
 	LiftOther(term, tm);
 	if(!IsBoundLValueTerm(term))
 		LiftToReturn(term);
-#	endif
+#endif
 }
 
 

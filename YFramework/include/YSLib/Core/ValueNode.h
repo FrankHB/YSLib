@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r4180
+\version r4272
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2021-03-01 22:33 +0800
+	2021-04-15 22:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -188,13 +188,13 @@ public:
 		\sa ystdex::restore_key
 		\since build 845
 		*/
-		static PDefH(void, restore_key, ValueNode& node, ValueNode&& ek)
-			ImplExpr(node.name = std::move(ek.name))
+		static PDefH(void, restore_key, ValueNode& nd, ValueNode&& ek)
+			ImplExpr(nd.name = std::move(ek.name))
 
 		//! \sa ystdex::set_value_move
-		static PDefH(ValueNode, set_value_move, ValueNode& node)
-			ImplRet({std::move(node.GetContainerRef()),
-				node.GetName(), std::move(node.Value)})
+		static PDefH(ValueNode, set_value_move, ValueNode& nd)
+			ImplRet({std::move(nd.GetContainerRef()),
+				nd.GetName(), std::move(nd.Value)})
 		//@}
 	};
 	using Container = ystdex::mapped_set<ValueNode, ystdex::less<>,
@@ -364,8 +364,8 @@ public:
 	//! \since build 768
 	//@{
 	//! \brief 复制赋值：使用参数副本和交换操作。
-	PDefHOp(ValueNode&, =, const ValueNode& node)
-		ImplRet(ystdex::copy_and_swap(*this, node))
+	PDefHOp(ValueNode&, =, const ValueNode& nd)
+		ImplRet(ystdex::copy_and_swap(*this, nd))
 	/*!
 	\pre 被转移的参数不是被子节点容器直接或间接所有的其它节点。
 	\warning 违反前置条件的转移可能引起循环引用。
@@ -375,13 +375,13 @@ public:
 
 	//! \since build 730
 	//@{
-	PDefHOp(const ValueNode&, +=, const ValueNode& node)
-		ImplRet(Add(node), *this)
-	PDefHOp(const ValueNode&, +=, ValueNode&& node)
-		ImplRet(Add(std::move(node)), *this)
+	PDefHOp(const ValueNode&, +=, const ValueNode& nd)
+		ImplRet(Add(nd), *this)
+	PDefHOp(const ValueNode&, +=, ValueNode&& nd)
+		ImplRet(Add(std::move(nd)), *this)
 
-	PDefHOp(const ValueNode&, -=, const ValueNode& node)
-		ImplRet(Remove(node), *this)
+	PDefHOp(const ValueNode&, -=, const ValueNode& nd)
+		ImplRet(Remove(nd), *this)
 	PDefHOp(const ValueNode&, -=, const string& str)
 		ImplRet(Remove(str), *this)
 	/*!
@@ -389,10 +389,10 @@ public:
 	\return 自身引用。
 	*/
 	//@{
-	PDefHOp(ValueNode&, /=, const ValueNode& node)
-		ImplRet(*this %= node, *this)
-	PDefHOp(ValueNode&, /=, ValueNode&& node)
-		ImplRet(*this %= std::move(node), *this)
+	PDefHOp(ValueNode&, /=, const ValueNode& nd)
+		ImplRet(*this %= nd, *this)
+	PDefHOp(ValueNode&, /=, ValueNode&& nd)
+		ImplRet(*this %= std::move(nd), *this)
 	//@}
 	/*!
 	\brief 替换同名子节点。
@@ -511,8 +511,8 @@ public:
 	PDefH(void, SetChildren, Container&& con)
 		ImplExpr(container = std::move(con))
 	//! \since build 776
-	PDefH(void, SetChildren, ValueNode&& node)
-		ImplExpr(container = std::move(node.container))
+	PDefH(void, SetChildren, ValueNode&& nd)
+		ImplExpr(container = std::move(nd.container))
 	//@}
 	/*!
 	\pre 断言：分配器相等。
@@ -533,20 +533,20 @@ public:
 		container = yforward(con);
 		Value = yforward(val);
 	}
-	PDefH(void, SetContent, const ValueNode& node)
-		ImplExpr(SetContent(node.GetContainer(), node.Value))
-	PDefH(void, SetContent, ValueNode&& node)
-		ImplExpr(SetContent(std::move(node.GetContainerRef()),
-			std::move(node.Value)))
+	PDefH(void, SetContent, const ValueNode& nd)
+		ImplExpr(SetContent(nd.GetContainer(), nd.Value))
+	//! \pre 间接断言：容器分配器和参数的容器分配器相等。
+	PDefH(void, SetContent, ValueNode&& nd)
+		ImplExpr(SwapContainer(nd), Value = std::move(nd.Value))
 	//@}
 	//@}
 
 	//! \since build 667
-	PDefH(bool, Add, const ValueNode& node)
-		ImplRet(insert(node).second)
+	PDefH(bool, Add, const ValueNode& nd)
+		ImplRet(insert(nd).second)
 	//! \since build 667
-	PDefH(bool, Add, ValueNode&& node)
-		ImplRet(insert(std::move(node)).second)
+	PDefH(bool, Add, ValueNode&& nd)
+		ImplRet(insert(std::move(nd)).second)
 
 	/*!
 	\brief 添加参数节点指定容器和值的子节点。
@@ -558,10 +558,10 @@ public:
 		yimpl(typename = ystdex::enable_if_t<
 		std::is_same<ValueNode&, ystdex::remove_cvref_t<_tNode>&>::value>)>
 	yimpl(ystdex::enable_if_inconvertible_t)<_tKey&&, const_iterator, bool>
-	AddChild(_tKey&& k, _tNode&& node)
+	AddChild(_tKey&& k, _tNode&& nd)
 	{
-		return try_emplace(k, yforward(node).container, yforward(k),
-			yforward(node).Value).second;
+		return try_emplace(k, yforward(nd).container, yforward(k),
+			yforward(nd).Value).second;
 	}
 	//! \sa ystdex::try_emplace_hint
 	//@{
@@ -569,10 +569,10 @@ public:
 		yimpl(typename = ystdex::enable_if_t<
 		std::is_same<ValueNode&, ystdex::remove_cvref_t<_tNode>&>::value>)>
 	bool
-	AddChild(const_iterator hint, _tKey&& k, _tNode&& node)
+	AddChild(const_iterator hint, _tKey&& k, _tNode&& nd)
 	{
-		return try_emplace_hint(hint, k, yforward(node).container, yforward(k),
-			yforward(node).Value);
+		return try_emplace_hint(hint, k, yforward(nd).container, yforward(k),
+			yforward(nd).Value);
 	}
 	//@}
 	//@}
@@ -649,14 +649,14 @@ public:
 	\since build 913
 	*/
 	//@{
-	PDefH(void, CopyContainer, const ValueNode& node)
-		ImplExpr(GetContainerRef() = Container(node.GetContainer()))
+	PDefH(void, CopyContainer, const ValueNode& nd)
+		ImplExpr(GetContainerRef() = Container(nd.GetContainer()))
 
-	PDefH(void, CopyContent, const ValueNode& node)
-		ImplExpr(SetContent(ValueNode(node)))
+	PDefH(void, CopyContent, const ValueNode& nd)
+		ImplExpr(SetContent(ValueNode(nd)))
 
-	PDefH(void, CopyValue, const ValueNode& node)
-		ImplExpr(Value = ValueObject(node.Value))
+	PDefH(void, CopyValue, const ValueNode& nd)
+		ImplExpr(Value = ValueObject(nd.Value))
 	//@}
 
 	//! \brief 递归创建容器副本。
@@ -720,6 +720,7 @@ public:
 	//@{
 	/*!
 	\brief 转移容器。
+	\pre 间接断言：容器分配器和参数的容器分配器相等。
 
 	转移参数指定的节点的容器到对象。
 	转移后的节点的容器是转移前的参数的容器。
@@ -729,6 +730,7 @@ public:
 
 	/*!
 	\brief 转移内容。
+	\pre 间接断言：容器分配器和参数的容器分配器相等。
 	\since build 844
 
 	转移参数指定的节点的内容到对象。
@@ -789,8 +791,8 @@ public:
 	}
 	//@}
 
-	PDefH(bool, Remove, const ValueNode& node)
-		ImplRet(erase(node) != 0)
+	PDefH(bool, Remove, const ValueNode& nd)
+		ImplRet(erase(nd) != 0)
 	//! \since build 754
 	PDefH(iterator, Remove, const_iterator i)
 		ImplRet(erase(i))
@@ -846,9 +848,9 @@ public:
 	*/
 	//@{
 	//! \brief 交换容器。
-	PDefH(void, SwapContainer, ValueNode& node) ynothrowv
-		ImplExpr(YAssert(get_allocator() == node.get_allocator(),
-			"Invalid allocator found."), container.swap(node.container))
+	PDefH(void, SwapContainer, ValueNode& nd) ynothrowv
+		ImplExpr(YAssert(get_allocator() == nd.get_allocator(),
+			"Invalid allocator found."), container.swap(nd.container))
 
 	//! \brief 交换容器和值。
 	void
@@ -994,15 +996,15 @@ public:
 //@{
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline _type&
-Access(ValueNode& node)
+Access(ValueNode& nd)
 {
-	return node.Value.Access<_type>();
+	return nd.Value.Access<_type>();
 }
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline const _type&
-Access(const ValueNode& node)
+Access(const ValueNode& nd)
 {
-	return node.Value.Access<_type>();
+	return nd.Value.Access<_type>();
 }
 //@}
 
@@ -1012,15 +1014,15 @@ Access(const ValueNode& node)
 //@{
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
-AccessPtr(ValueNode& node) ynothrow
+AccessPtr(ValueNode& nd) ynothrow
 {
-	return node.Value.AccessPtr<_type>();
+	return nd.Value.AccessPtr<_type>();
 }
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<const _type>
-AccessPtr(const ValueNode& node) ynothrow
+AccessPtr(const ValueNode& nd) ynothrow
 {
-	return node.Value.AccessPtr<_type>();
+	return nd.Value.AccessPtr<_type>();
 }
 //@}
 /*!
@@ -1125,27 +1127,27 @@ AccessNode(const ValueNode&, size_t);
 template<typename _tKey,
 	yimpl(typename = ValueNode::enable_if_key_t<_tKey>)>
 YB_ATTR_nodiscard YB_PURE inline ValueNode&
-AccessNode(ValueNode& node, const _tKey& name)
+AccessNode(ValueNode& nd, const _tKey& name)
 {
-	return YSLib::AccessNode(node.GetContainerRef(), name);
+	return YSLib::AccessNode(nd.GetContainerRef(), name);
 }
 template<typename _tKey,
 	yimpl(typename = ValueNode::enable_if_key_t<_tKey>)>
 YB_ATTR_nodiscard YB_PURE inline const ValueNode&
-AccessNode(const ValueNode& node, const _tKey& name)
+AccessNode(const ValueNode& nd, const _tKey& name)
 {
-	return YSLib::AccessNode(node.GetContainer(), name);
+	return YSLib::AccessNode(nd.GetContainer(), name);
 }
 //! \since build 670
 //@{
 //! \note 使用 ADL AccessNode 。
 template<class _tNode, typename _tIn>
 YB_ATTR_nodiscard YB_PURE _tNode&&
-AccessNode(_tNode&& node, _tIn first, _tIn last)
+AccessNode(_tNode&& nd, _tIn first, _tIn last)
 {
-	return std::accumulate(first, last, ystdex::ref(node),
-		[](_tNode&& nd, decltype(*first) c){
-		return ystdex::ref(AccessNode(nd, c));
+	return std::accumulate(first, last, ystdex::ref(nd),
+		[](_tNode&& x, decltype(*first) c){
+		return ystdex::ref(AccessNode(x, c));
 	});
 }
 //! \note 使用 ADL begin 和 end 指定范围迭代器。
@@ -1153,10 +1155,10 @@ template<class _tNode, typename _tRange,
 	yimpl(typename = typename ystdex::enable_if_t<
 	!std::is_constructible<const string&, const _tRange&>::value>)>
 YB_ATTR_nodiscard YB_PURE inline auto
-AccessNode(_tNode&& node, const _tRange& c)
-	-> decltype(YSLib::AccessNode(yforward(node), begin(c), end(c)))
+AccessNode(_tNode&& nd, const _tRange& c)
+	-> decltype(YSLib::AccessNode(yforward(nd), begin(c), end(c)))
 {
-	return YSLib::AccessNode(yforward(node), begin(c), end(c));
+	return YSLib::AccessNode(yforward(nd), begin(c), end(c));
 }
 //@}
 //@}
@@ -1222,28 +1224,27 @@ AccessNodePtr(const ValueNode&, size_t);
 template<typename _tKey, yimpl(typename = typename ystdex::enable_if_t<
 	ystdex::is_interoperable<const _tKey&, const string&>::value>)>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<ValueNode>
-AccessNodePtr(ValueNode& node, const _tKey& name)
+AccessNodePtr(ValueNode& nd, const _tKey& name)
 {
-	return YSLib::AccessNodePtr(node.GetContainerRef(), name);
+	return YSLib::AccessNodePtr(nd.GetContainerRef(), name);
 }
 template<typename _tKey, yimpl(typename = typename ystdex::enable_if_t<
 	ystdex::is_interoperable<const _tKey&, const string&>::value>)>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<const ValueNode>
-AccessNodePtr(const ValueNode& node, const _tKey& name)
+AccessNodePtr(const ValueNode& nd, const _tKey& name)
 {
-	return YSLib::AccessNodePtr(node.GetContainer(), name);
+	return YSLib::AccessNodePtr(nd.GetContainer(), name);
 }
 //! \since build 670
 //@{
 //! \note 使用 ADL AccessNodePtr 。
 template<class _tNode, typename _tIn>
 YB_ATTR_nodiscard YB_PURE auto
-AccessNodePtr(_tNode&& node, _tIn first, _tIn last)
-	-> decltype(make_obsrever(std::addressof(node)))
+AccessNodePtr(_tNode&& nd, _tIn first, _tIn last)
+	-> decltype(make_obsrever(std::addressof(nd)))
 {
 	// TODO: Simplified using algorithm template?
-	for(auto p(make_observer(std::addressof(node))); p && first != last;
-		++first)
+	for(auto p(make_observer(std::addressof(nd))); p && first != last; ++first)
 		p = AccessNodePtr(*p, *first);
 	return first;
 }
@@ -1252,10 +1253,10 @@ template<class _tNode, typename _tRange,
 	yimpl(typename = typename ystdex::enable_if_t<
 	!std::is_constructible<const string&, const _tRange&>::value>)>
 YB_ATTR_nodiscard YB_PURE inline auto
-AccessNodePtr(_tNode&& node, const _tRange& c)
-	-> decltype(YSLib::AccessNodePtr(yforward(node), begin(c), end(c)))
+AccessNodePtr(_tNode&& nd, const _tRange& c)
+	-> decltype(YSLib::AccessNodePtr(yforward(nd), begin(c), end(c)))
 {
-	return YSLib::AccessNodePtr(yforward(node), begin(c), end(c));
+	return YSLib::AccessNodePtr(yforward(nd), begin(c), end(c));
 }
 //@}
 //@}
@@ -1275,15 +1276,15 @@ AccessNodePtr(_tNode&& node, const _tRange& c)
 //@{
 template<typename _type, typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline _type&
-AccessChild(ValueNode& node, _tParams&&... args)
+AccessChild(ValueNode& nd, _tParams&&... args)
 {
-	return Access<_type>(AccessNode(node, yforward(args)...));
+	return Access<_type>(AccessNode(nd, yforward(args)...));
 }
 template<typename _type, typename... _tParams>
 inline const _type&
-AccessChild(const ValueNode& node, _tParams&&... args)
+AccessChild(const ValueNode& nd, _tParams&&... args)
 {
-	return Access<_type>(AccessNode(node, yforward(args)...));
+	return Access<_type>(AccessNode(nd, yforward(args)...));
 }
 //@}
 
@@ -1291,17 +1292,17 @@ AccessChild(const ValueNode& node, _tParams&&... args)
 //@{
 template<typename _type, typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
-AccessChildPtr(ValueNode& node, _tParams&&... args) ynothrow
+AccessChildPtr(ValueNode& nd, _tParams&&... args) ynothrow
 {
 	return AccessPtr<_type>(
-		AccessNodePtr(node.GetContainerRef(), yforward(args)...));
+		AccessNodePtr(nd.GetContainerRef(), yforward(args)...));
 }
 template<typename _type, typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<const _type>
-AccessChildPtr(const ValueNode& node, _tParams&&... args) ynothrow
+AccessChildPtr(const ValueNode& nd, _tParams&&... args) ynothrow
 {
 	return AccessPtr<_type>(
-		AccessNodePtr(node.GetContainer(), yforward(args)...));
+		AccessNodePtr(nd.GetContainer(), yforward(args)...));
 }
 template<typename _type, typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
@@ -1326,8 +1327,8 @@ AccessChildPtr(const ValueNode* p_node, _tParams&&... args) ynothrow
 //@{
 //! \since build 852
 YB_ATTR_nodiscard YB_PURE inline
-	PDefH(const ValueNode&, AsNode, const ValueNode& node) ynothrow
-	ImplRet(node)
+	PDefH(const ValueNode&, AsNode, const ValueNode& nd) ynothrow
+	ImplRet(nd)
 //! \brief 传递指定名称和值参数构造值类型节点。
 //@{
 template<typename _tString, typename... _tParams,
@@ -1463,8 +1464,8 @@ RemoveEmptyChildren(ValueNode::Container&) ynothrow;
 //@{
 YF_API void
 RemoveHead(ValueNode::Container&) ynothrowv;
-inline PDefH(void, RemoveHead, ValueNode& node) ynothrowv
-	ImplExpr(RemoveHead(node.GetContainerRef()))
+inline PDefH(void, RemoveHead, ValueNode& nd) ynothrowv
+	ImplExpr(RemoveHead(nd.GetContainerRef()))
 //@}
 //@}
 
@@ -1476,12 +1477,12 @@ inline PDefH(void, RemoveHead, ValueNode& node) ynothrowv
 */
 template<typename _tNode, typename _fCallable>
 void
-SetContentWith(ValueNode& dst, _tNode&& node, _fCallable f)
+SetContentWith(ValueNode& dst, _tNode&& nd, _fCallable f)
 {
 	// NOTE: Similar reason but different to the implementation of
 	//	%ValueNode::MoveContent.
-	auto con(yforward(node).CreateWith(f));
-	auto vo(ystdex::invoke(f, yforward(node).Value));
+	auto con(yforward(nd).CreateWith(f));
+	auto vo(ystdex::invoke(f, yforward(nd).Value));
 
 	dst.SetContent(std::move(con), std::move(vo));
 }

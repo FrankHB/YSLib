@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r4622
+\version r4739
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2021-04-10 17:59 +0800
+	2021-04-20 02:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,17 +33,17 @@
 //	Forms::CallResolvedUnary, NPL::AllocateEnvironment, function, ValueObject,
 //	EnvironmentReference, std::piecewise_construct, NPL::forward_as_tuple,
 //	LiftOther, ThrowNonmodifiableErrorForAssignee, ThrowValueCategoryError,
-//	ResolveTerm, TokenValue, IsEmpty, ComposeReferencedTermOp, IsBranch,
-//	IsReferenceTerm, IsBoundLValueTerm, IsUncollapsedTerm, IsUniqueTerm,
-//	IsModifiableTerm, IsTemporaryTerm, NPL::TryAccessLeaf, LiftTermRef,
-//	NPL::SetContentWith, Forms::CallRawUnary, LiftTerm, LiftOtherOrCopy,
-//	ystdex::bind1, std::placeholders, LiftTermValueOrCopy, MoveResolved,
-//	ResolveIdentifier, ReduceToReferenceList, NPL::IsMovable, LiftTermOrCopy,
-//	IsBranchedList, AccessFirstSubterm, ReferenceTerm,
-//	ThrowInsufficientTermsError, ystdex::exchange, ystdex::plus,
-//	ystdex::tolower, YSLib::IO::StreamPut, FetchEnvironmentVariable,
-//	ystdex::swap_dependent, YSLib::IO::UniqueFile, YSLib::IO::omode_convb,
-//	YSLib::uremove, ystdex::throw_error;
+//	ValueToken, IsNPLASymbol, ThrowInvalidTokenError, ResolveTerm, TokenValue,
+//	IsEmpty, ComposeReferencedTermOp, IsBranch, IsReferenceTerm,
+//	IsBoundLValueTerm, IsUncollapsedTerm, IsUniqueTerm, IsModifiableTerm,
+//	IsTemporaryTerm, NPL::TryAccessLeaf, LiftTermRef, NPL::SetContentWith,
+//	Forms::CallRawUnary, LiftTerm, LiftOtherOrCopy, ystdex::bind1,
+//	std::placeholders, LiftTermValueOrCopy, MoveResolved, ResolveIdentifier,
+//	ReduceToReferenceList, NPL::IsMovable, LiftTermOrCopy, IsBranchedList,
+//	AccessFirstSubterm, ReferenceTerm, ThrowInsufficientTermsError,
+//	ystdex::exchange, ystdex::plus, ystdex::tolower, YSLib::IO::StreamPut,
+//	FetchEnvironmentVariable, ystdex::swap_dependent, YSLib::IO::UniqueFile,
+//	YSLib::IO::omode_convb, YSLib::uremove, ystdex::throw_error;
 #include YFM_NPL_NPLA1Forms // for NPL::Forms functions;
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::Path;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
@@ -409,6 +409,16 @@ DoAssign(_func f, TermNode& x)
 	return ValueToken::Unspecified;
 }
 
+//! \since build 917
+template<typename _func>
+auto
+CheckSymbol(string_view id, _func f) -> decltype(f())
+{
+	if(IsNPLASymbol(id))
+		return f();
+	ThrowInvalidTokenError(id);
+}
+
 //! \since build 897
 YB_ATTR_nodiscard YB_FLATTEN ReductionStatus
 DoResolve(TermNode(&f)(const ContextNode&, string_view), TermNode& term,
@@ -766,6 +776,10 @@ LoadBasicDerived(REPLContext& context)
 	RegisterForm(renv, "$let%", LetRef);
 	RegisterForm(renv, "$let/e", LetWithEnvironment);
 	RegisterForm(renv, "$let/e%", LetWithEnvironmentRef);
+	RegisterForm(renv, "$let*", LetAsterisk);
+	RegisterForm(renv, "$let*%", LetAsteriskRef);
+	RegisterForm(renv, "$letrec", LetRec);
+	RegisterForm(renv, "$letrec%", LetRecRef);
 	RegisterStrict(renv, "make-standard-environment", ystdex::bind1(
 		// NOTE: The weak reference of the ground environment is saved and it
 		//	shall not be moved after being called.
@@ -886,7 +900,8 @@ LoadBasicDerived(REPLContext& context)
 	)NPL"
 #	endif
 	// XXX: The operatives '$defl!', '$defl%!', '$defw%!', '$defv%!',
-	//	'$defw!' and '$lambda/e' are same to following derivations in %LoadCore.
+	//	'$defw!', '$lambda/e' and '$lambda/e%' are same to following derivations
+	//	in %LoadCore.
 	// NOTE: Use of 'eqv?' is more efficient than '$if'.
 	R"NPL(
 		$def! $sequence
@@ -1011,12 +1026,60 @@ LoadBasicDerived(REPLContext& context)
 		$defl! append (.&ls) foldr1 list-concat () (move! ls);
 		$defl%! list-extract-first (&l) map1 first l;
 		$defl%! list-extract-rest% (&l) map1 rest% l;
+		$defv! $lambda/e (&e &formals .&body) d
+			wrap (eval (list* $vau/e e formals ignore (move! body)) d);
+		$defv! $lambda/e% (&e &formals .&body) d
+			wrap (eval (list* $vau/e% e formals ignore (move! body)) d);
+		$def! ($let $let% $let/e $let/e% $let* $let*% $letrec $letrec%)
+			($lambda (&ce)
+		(
+			$def! mods () ($lambda/e ce ()
+			(
+				$defv%! $lqual (&ls) d
+					($if (eval (list $lvalue-identifier? ls) d) as-const rulist)
+						(eval% ls d);
+				$defv%! $lqual* (&x) d
+					($if (eval (list $lvalue-identifier? x) d) as-const expire)
+						(eval% x d);
+				$defl%! mk-let ($ctor &bindings &body)
+					list* () (list* $ctor (list-extract-first bindings)
+						(list (move! body))) (list-extract-rest% bindings);
+				$defl%! mk-let/e ($ctor &e &bindings &body)
+					list* () (list* $ctor e (list-extract-first bindings)
+						(list (move! body))) (list-extract-rest% bindings);
+				$defl%! mk-let* ($let $let* &bindings &body)
+					$if (null? bindings) (list* $let () (move! body))
+						(list $let (list (first% ($lqual* bindings)))
+						(list* $let* (rest% ($lqual* bindings)) (move! body)));
+				$defl%! mk-letrec ($let &bindings &body)
+					list $let () $sequence (list $def! (list-extract-first
+						bindings) (list* () list (list-extract-rest% bindings)))
+						(move! body);
+				() lock-current-environment
+			));
+			$defv/e%! $let mods (&bindings .&body) d
+				eval% (mk-let $lambda ($lqual bindings) (move! body)) d;
+			$defv/e%! $let% mods (&bindings .&body) d
+				eval% (mk-let $lambda% ($lqual bindings) (move! body)) d;
+			$defv/e%! $let/e mods (&e &bindings .&body) d
+				eval% (mk-let/e $lambda/e e ($lqual bindings) (move! body)) d;
+			$defv/e%! $let/e% mods (&e &bindings .&body) d
+				eval% (mk-let/e $lambda/e% e ($lqual bindings) (move! body)) d;
+			$defv/e%! $let* mods (&bindings .&body) d
+				eval% (mk-let* $let $let* ($lqual* bindings) (move! body)) d;
+			$defv/e%! $let*% mods (&bindings .&body) d
+				eval% (mk-let* $let% $let*% ($lqual* bindings) (move! body)) d;
+			$defv/e%! $letrec mods (&bindings .&body) d
+				eval% (mk-letrec $let ($lqual bindings) (move! body)) d;
+			$defv/e%! $letrec% mods (&bindings .&body) d
+				eval% (mk-letrec $let% ($lqual bindings) (move! body)) d;
+			map1 move!
+				(list% $let $let% $let/e $let/e% $let* $let*% $letrec $letrec%)
+		)) (() get-current-environment);
 		$defv! $defw! (&f &formals &ef .&body) d
 			eval (list $set! d f wrap (list* $vau formals ef (move! body))) d;
 		$defw! derive-current-environment (.&envs) d
 			apply make-environment (append envs (list d)) d;
-		$defv! $lambda/e (&e &formals .&body) d
-			wrap (eval (list* $vau/e e formals ignore (move! body)) d);
 	)NPL"
 #	if NPL_Impl_NPLA1_Use_LockEnvironment
 	R"NPL(
@@ -1143,89 +1206,6 @@ LoadCore(REPLContext& context)
 			((eqv? x (first& (first& alist))) first alist)
 			(#t assv (forward! x) (rest% alist));
 	)NPL");
-#if NPL_Impl_NPLA1_Native_Forms
-	context.Perform(R"NPL(
-		$def! ($let* $let*% $letrec $letrec%) ($lambda (&ce)
-		(
-			$def! mods () ($lambda/e ce ()
-			(
-				$defv%! $lqual (&ls) d
-					($if (eval (list $lvalue-identifier? ls) d) as-const rulist)
-						(eval% ls d);
-				$defv%! $lqual* (&x) d
-					($if (eval (list $lvalue-identifier? x) d) as-const expire)
-						(eval% x d);
-				$defl%! mk-let* ($let $let* &bindings &body)
-					$if (null? bindings) (list* $let () (move! body))
-						(list $let (list (first% ($lqual* bindings)))
-						(list* $let* (rest% ($lqual* bindings)) (move! body)));
-				$defl%! mk-letrec ($let &bindings &body)
-					list $let () $sequence (list $def! (list-extract-first
-						bindings) (list* () list (list-extract-rest% bindings)))
-						(move! body);
-				() lock-current-environment
-			));
-			$defv/e%! $let* mods (&bindings .&body) d
-				eval% (mk-let* $let $let* ($lqual* bindings) (move! body)) d;
-			$defv/e%! $let*% mods (&bindings .&body) d
-				eval% (mk-let* $let% $let*% ($lqual* bindings) (move! body)) d;
-			$defv/e%! $letrec mods (&bindings .&body) d
-				eval% (mk-letrec $let ($lqual bindings) (move! body)) d;
-			$defv/e%! $letrec% mods (&bindings .&body) d
-				eval% (mk-letrec $let% ($lqual bindings) (move! body)) d;
-			map1 move! (list% $let* $let*% $letrec $letrec%)
-		)) (() get-current-environment);
-	)NPL");
-#else
-	context.Perform(R"NPL(
-		$def! ($let $let% $let/e $let/e% $let* $let*% $letrec $letrec%)
-			($lambda (&ce)
-		(
-			$def! mods () ($lambda/e ce ()
-			(
-				$defv%! $lqual (&ls) d
-					($if (eval (list $lvalue-identifier? ls) d) as-const rulist)
-						(eval% ls d);
-				$defv%! $lqual* (&x) d
-					($if (eval (list $lvalue-identifier? x) d) as-const expire)
-						(eval% x d);
-				$defl%! mk-let ($ctor &bindings &body)
-					list* () (list* $ctor (list-extract-first bindings)
-						(list (move! body))) (list-extract-rest% bindings);
-				$defl%! mk-let/e ($ctor &e &bindings &body)
-					list* () (list* $ctor e (list-extract-first bindings)
-						(list (move! body))) (list-extract-rest% bindings);
-				$defl%! mk-let* ($let $let* &bindings &body)
-					$if (null? bindings) (list* $let () (move! body))
-						(list $let (list (first% ($lqual* bindings)))
-						(list* $let* (rest% ($lqual* bindings)) (move! body)));
-				$defl%! mk-letrec ($let &bindings &body)
-					list $let () $sequence (list $def! (list-extract-first
-						bindings) (list* () list (list-extract-rest% bindings)))
-						(move! body);
-				() lock-current-environment
-			));
-			$defv/e%! $let mods (&bindings .&body) d
-				eval% (mk-let $lambda ($lqual bindings) (move! body)) d;
-			$defv/e%! $let% mods (&bindings .&body) d
-				eval% (mk-let $lambda% ($lqual bindings) (move! body)) d;
-			$defv/e%! $let/e mods (&e &bindings .&body) d
-				eval% (mk-let/e $lambda/e e ($lqual bindings) (move! body)) d;
-			$defv/e%! $let/e% mods (&e &bindings .&body) d
-				eval% (mk-let/e $lambda/e% e ($lqual bindings) (move! body)) d;
-			$defv/e%! $let* mods (&bindings .&body) d
-				eval% (mk-let* $let $let* ($lqual* bindings) (move! body)) d;
-			$defv/e%! $let*% mods (&bindings .&body) d
-				eval% (mk-let* $let% $let*% ($lqual* bindings) (move! body)) d;
-			$defv/e%! $letrec mods (&bindings .&body) d
-				eval% (mk-letrec $let ($lqual bindings) (move! body)) d;
-			$defv/e%! $letrec% mods (&bindings .&body) d
-				eval% (mk-letrec $let% ($lqual bindings) (move! body)) d;
-			map1 move!
-				(list% $let $let% $let/e $let/e% $let* $let*% $letrec $letrec%)
-		)) (() get-current-environment);
-	)NPL");
-#endif
 	context.Perform(R"NPL(
 		$defv! $as-environment (.&body) d
 			eval (list $let () (list $sequence (move! body)
@@ -1481,14 +1461,14 @@ LoadModule_std_system(REPLContext& context)
 
 	RegisterStrict(renv, "cmd-get-args", [](TermNode& term){
 		RetainN(term, 0);
-		term.GetContainerRef() = []{
+		{
 			const auto p_cmd_args(LockCommandArguments());
 			TermNode::Container con{};
 
 			for(const auto& arg : p_cmd_args->Arguments)
 				TermNode::AddValueTo(con, in_place_type<string>, arg);
-			return con;
-		}();
+			con.swap(term.GetContainerRef());
+		}
 		return ReductionStatus::Retained;
 	});
 	RegisterUnary<Strict, const string>(renv, "env-get", [](const string& var){

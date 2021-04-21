@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r875
+\version r899
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2021-03-01 00:19 +0800
+	2021-04-15 22:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,14 +35,14 @@ namespace YSLib
 {
 
 ValueNode&
-ValueNode::operator%=(const ValueNode& node)
+ValueNode::operator%=(const ValueNode& nd)
 {
-	return Deref(insert_or_assign(node.name, node).first);
+	return Deref(insert_or_assign(nd.name, nd).first);
 }
 ValueNode&
-ValueNode::operator%=(ValueNode&& node)
+ValueNode::operator%=(ValueNode&& nd)
 {
-	return Deref(insert_or_assign(node.name, std::move(node)).first);
+	return Deref(insert_or_assign(nd.name, std::move(nd)).first);
 }
 
 ValueNode::Container
@@ -52,20 +52,20 @@ ValueNode::CreateRecursively(const Container& con, IValueHolder::Creation c)
 }
 
 void
-ValueNode::MoveContainer(ValueNode&& node)
+ValueNode::MoveContainer(ValueNode&& nd)
 {
-	YAssert(!ystdex::ref_eq<>()(*this, node), "Invalid self move found.");
+	YAssert(!ystdex::ref_eq<>()(*this, nd), "Invalid self move found.");
 
 	// NOTE: As %ValueNode::MoveContent, but only the container is respected.
 	const auto t(std::move(GetContainerRef()));
 
-	container = std::move(node.container);
+	SwapContainer(nd);
 }
 
 void
-ValueNode::MoveContent(ValueNode&& node)
+ValueNode::MoveContent(ValueNode&& nd)
 {
-	YAssert(!ystdex::ref_eq<>()(*this, node), "Invalid self move found.");
+	YAssert(!ystdex::ref_eq<>()(*this, nd), "Invalid self move found.");
 
 	// NOTE: This is required for the case when the moved-to object (referenced
 	//	by '*this') is an ancestor of the moved-from node (referenced by the
@@ -79,25 +79,25 @@ ValueNode::MoveContent(ValueNode&& node)
 	//	swap), which would leak resources (rather than destroy them properly).
 	const auto t(std::move(*this));
 
-	SetContent(std::move(node));
+	SetContent(std::move(nd));
 }
 
 void
-ValueNode::MoveValue(ValueNode&& node)
+ValueNode::MoveValue(ValueNode&& nd)
 {
-	YAssert(!ystdex::ref_eq<>()(*this, node), "Invalid self move found.");
+	YAssert(!ystdex::ref_eq<>()(*this, nd), "Invalid self move found.");
 
 	// NOTE: As %ValueNode::MoveContent, but only %Value is respected.
 	const auto t(std::move(Value));
 
-	Value = std::move(node.Value);
+	Value = std::move(nd.Value);
 }
 
 void
-ValueNode::SwapContent(ValueNode& node) ynothrowv
+ValueNode::SwapContent(ValueNode& nd) ynothrowv
 {
-	SwapContainer(node),
-	swap(Value, node.Value);
+	SwapContainer(nd),
+	swap(Value, nd.Value);
 }
 
 void
@@ -135,18 +135,18 @@ AccessNode(const ValueNode::Container* p_con, const string& name)
 	ValueNode::ThrowWrongNameFound(name);
 }
 ValueNode&
-AccessNode(ValueNode& node, size_t n)
+AccessNode(ValueNode& nd, size_t n)
 {
-	const auto p(AccessNodePtr(node, n));
+	const auto p(AccessNodePtr(nd, n));
 
 	if(p)
 		return *p;
 	ValueNode::ThrowIndexOutOfRange(n);
 }
 const ValueNode&
-AccessNode(const ValueNode& node, size_t n)
+AccessNode(const ValueNode& nd, size_t n)
 {
-	const auto p(AccessNodePtr(node, n));
+	const auto p(AccessNodePtr(nd, n));
 
 	if(p)
 		return *p;
@@ -166,18 +166,18 @@ AccessNodePtr(const ValueNode::Container& con, const string& name) ynothrow
 		ystdex::addrof<>(), con.find(name), {}, ystdex::end(con)));
 }
 observer_ptr<ValueNode>
-AccessNodePtr(ValueNode& node, size_t n)
+AccessNodePtr(ValueNode& nd, size_t n)
 {
-	auto& con(node.GetContainerRef());
+	auto& con(nd.GetContainerRef());
 
 	// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
 	return n < con.size()
 		? make_observer(&*std::next(con.begin(), ptrdiff_t(n))) : nullptr;
 }
 observer_ptr<const ValueNode>
-AccessNodePtr(const ValueNode& node, size_t n)
+AccessNodePtr(const ValueNode& nd, size_t n)
 {
-	auto& con(node.GetContainer());
+	auto& con(nd.GetContainer());
 
 	// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
 	return n < con.size()

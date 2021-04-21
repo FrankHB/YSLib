@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r8285
+\version r8293
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2021-03-12 18:01 +0800
+	2021-04-20 01:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -885,6 +885,14 @@ ThrowListTypeErrorForInvalidType(const ystdex::type_info&, const TermNode&,
 */
 YB_NORETURN YF_API void
 ThrowListTypeErrorForNonlist(const TermNode&, bool);
+
+/*!
+\brief 对项抛出指定预期访问值的类型的异常。
+\throw TypeError 消息中包含由参数指定的预期访问值的类型的异常。
+\since build 917
+*/
+YB_NORETURN YF_API void
+ThrowTypeErrorForInvalidType(const ystdex::type_info&, const TermNode&, bool);
 //@}
 
 /*!
@@ -1672,6 +1680,7 @@ LiftTermValueOrCopy(TermNode&, TermNode&, bool);
 使用第二参数以支持非正规表示。
 假定第三参数引用的项是第二参数；
 否则，若目标和源项不相同且引用值具有非正规表示，行为未定义。
+提升引用的目标项的标签设置为 TermTags::Unqualified 。
 */
 YF_API void
 LiftCollapsed(TermNode&, TermNode&, TermReference);
