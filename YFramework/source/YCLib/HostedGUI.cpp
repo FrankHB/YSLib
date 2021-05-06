@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2020 FrankHB.
+	© 2013-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1995
+\version r1999
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2020-04-19 01:58 +0800
+	2021-05-06 19:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1094,7 +1094,7 @@ void
 ExecuteShellCommand(const wchar_t* cmd, const wchar_t* args, bool use_admin,
 	const wchar_t* dir, int n_cmd_show, NativeWindowHandle h_parent)
 {
-	// TODO: Set current working directory as %USERPROFILE%?
+	// TODO: Set current working directory as '%USERPROFILE%'?
 	auto res(int(std::intptr_t(::ShellExecuteW(h_parent,
 		use_admin ? L"runas" : nullptr, Nonnull(cmd), args, dir, n_cmd_show))));
 
@@ -1126,7 +1126,8 @@ ExecuteShellCommand(const wchar_t* cmd, const wchar_t* args, bool use_admin,
 				boxed_exception{std::runtime_error("ShellExecuteW"), res})
 			catch(boxed_exception& e)
 			{
-				const auto throw_ex([=](int ec) YB_ATTR(noreturn){
+				const auto throw_ex(
+					[=] YB_LAMBDA_ANNOTATE((int ec), , noreturn){
 					std::throw_with_nested(Win32Exception(ErrorCode(ec),
 						ystdex::sfmt("ShellExecuteW: %d", res), Err));
 				});

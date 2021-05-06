@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r4739
+\version r4817
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2021-04-20 02:45 +0800
+	2021-05-06 19:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -151,7 +151,7 @@ DecomposeMakefileDepList(std::streambuf& sb)
 	ystdex::split_if(cbuf.begin(), cbuf.end(), ystdex::isspace,
 		[&](string::const_iterator b, string::const_iterator e){
 		lst.push_back({b, e});
-	}, [&](string::const_iterator i) YB_PURE{
+	}, [&] YB_LAMBDA_ANNOTATE((string::const_iterator i), , pure){
 		return !ystdex::exists(spaces, size_t(i - cbuf.cbegin()));
 	});
 	return lst;
@@ -369,7 +369,7 @@ CopyEnvironment(TermNode& term, ContextNode& ctx)
 	auto p_env(AllocateEnvironment(term, ctx));
 
 	CopyEnvironmentDFS(*p_env, ctx.GetRecordRef());
-	term.Value = ValueObject(std::move(p_env));
+	term.SetValue(std::move(p_env));
 }
 //@}
 
@@ -424,7 +424,8 @@ YB_ATTR_nodiscard YB_FLATTEN ReductionStatus
 DoResolve(TermNode(&f)(const ContextNode&, string_view), TermNode& term,
 	const ContextNode& c)
 {
-	Forms::CallRegularUnaryAs<const TokenValue>([&](string_view id) YB_FLATTEN{
+	Forms::CallRegularUnaryAs<const TokenValue>(
+		[&] YB_LAMBDA_ANNOTATE((string_view id), , flatten){
 		term = CheckSymbol(id, std::bind(f, std::ref(c), id));
 	}, term);
 	return ReductionStatus::Retained;
@@ -587,7 +588,7 @@ void
 LoadErrorsAndChecks(ContextNode& ctx)
 {
 	RegisterUnary<Strict, const string>(ctx, "raise-invalid-syntax-error",
-		[](const string& str) YB_ATTR(noreturn){
+		[] YB_LAMBDA_ANNOTATE((const string& str), , noreturn){
 		ThrowInvalidSyntaxError(str);
 	});
 	RegisterStrict(ctx, "check-list-reference", CheckListReference);
@@ -653,8 +654,7 @@ LoadBasicDerived(REPLContext& context)
 
 	RegisterForm(renv, "$quote", idv);
 	RegisterStrict(renv, "id", [](TermNode& term){
-		return DoIdFunc(
-			[](TermNode&) YB_ATTR_LAMBDA_QUAL(ynothrow, YB_STATELESS){
+		return DoIdFunc([] YB_LAMBDA_ANNOTATE((TermNode&), ynothrow, const){
 			return ReductionStatus::Retained;
 		}, term);
 	});
@@ -699,6 +699,8 @@ LoadBasicDerived(REPLContext& context)
 	RegisterForm(renv, "$setrec!", SetWithRecursion);
 	RegisterForm(renv, "$lambda", Lambda);
 	RegisterForm(renv, "$lambda%", LambdaRef);
+	RegisterForm(renv, "$lambda/e", LambdaWithEnvironment);
+	RegisterForm(renv, "$lambda/e%", LambdaWithEnvironmentRef);
 	// NOTE: The sequence operator is also available as infix ';' syntax sugar.
 	RegisterForm(renv, "$sequence", Sequence);
 	RegisterStrict(renv, "collapse", [](TermNode& term){
@@ -780,12 +782,13 @@ LoadBasicDerived(REPLContext& context)
 	RegisterForm(renv, "$let*%", LetAsteriskRef);
 	RegisterForm(renv, "$letrec", LetRec);
 	RegisterForm(renv, "$letrec%", LetRecRef);
-	RegisterStrict(renv, "make-standard-environment", ystdex::bind1(
+	RegisterStrict(renv, "make-standard-environment",
 		// NOTE: The weak reference of the ground environment is saved and it
 		//	shall not be moved after being called.
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
-		[](TermNode& term, const EnvironmentReference& ce) YB_FLATTEN{
+		ystdex::bind1([] YB_LAMBDA_ANNOTATE(
+		(TermNode& term, const EnvironmentReference& ce), , flatten){
 		RetainN(term, 0);
 
 		// XXX: Simlar to %MakeEnvironment.
@@ -796,20 +799,26 @@ LoadBasicDerived(REPLContext& context)
 			= NPL::AllocateEnvironment(term.get_allocator(), std::move(parent));
 	}, context.Root.WeakenRecord()));
 	RegisterStrict(renv, "derive-current-environment",
-		[](TermNode& term, ContextNode& ctx) YB_FLATTEN{
+		[] YB_LAMBDA_ANNOTATE((TermNode& term, ContextNode& ctx), , flatten){
 		Retain(term);
 		term.emplace(NPL::AsTermNode(term.get_allocator(), ctx.WeakenRecord()));
 		return MakeEnvironment(term);
 	});
-	RegisterStrict(renv, "derive-environment", ystdex::bind1(
+	RegisterStrict(renv, "derive-environment",
 		// NOTE: As 'make-standard-environment'.
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
-		[](TermNode& term, const EnvironmentReference& ce) YB_FLATTEN{
+		ystdex::bind1([] YB_LAMBDA_ANNOTATE(
+		(TermNode& term, const EnvironmentReference& ce), , flatten){
 		Retain(term);
 		term.emplace(NPL::AsTermNode(term.get_allocator(), ce));
 		return MakeEnvironment(term);
 	}, context.Root.WeakenRecord()));
+	RegisterForm(renv, "$as-environment", AsEnvironment);
+	RegisterForm(renv, "$bindings/p->environment",
+		BindingsWithParentToEnvironment);
+	RegisterForm(renv, "$bindings->environment", BindingsToEnvironment);
+	RegisterStrict(renv, "symbols->imports", SymbolsToImports);
 #else
 	context.ShareCurrentSource("<root:basic-derived>");
 	context.Perform(
@@ -881,14 +890,15 @@ LoadBasicDerived(REPLContext& context)
 	// XXX: The operative '$defv!' is same to following derivations in
 	//	%LoadCore.
 	R"NPL(
-		$def! $deflazy! $vau (&definiend .&expr) d
-			eval (list $def! definiend $quote expr) d;
-		$def! $set! $vau (&e &formals .&expr) d
-			eval (list $def! formals (unwrap eval%) expr d) (eval e d);
+		$def! $deflazy! $vau (&definiend .&body) d
+			eval (list $def! definiend $quote body) d;
+		$def! $set! $vau (&e &formals .&body) d
+			eval (list $def! formals (unwrap eval%) (move! body) d) (eval e d);
 		$def! $defv! $vau (&$f &formals &ef .&body) d
 			eval (list $set! d $f $vau formals ef (move! body)) d;
-		$defv! $setrec! (&e &formals .&expr) d
-			eval (list $defrec! formals (unwrap eval%) expr d) (eval e d);
+		$defv! $setrec! (&e &formals .&body) d
+			eval (list $defrec! formals (unwrap eval%) (move! body) d)
+				(eval e d);
 	)NPL"
 #	if NPL_Impl_NPLA1_Use_Id_Vau
 	R"NPL(
@@ -900,10 +910,14 @@ LoadBasicDerived(REPLContext& context)
 	)NPL"
 #	endif
 	// XXX: The operatives '$defl!', '$defl%!', '$defw%!', '$defv%!',
-	//	'$defw!', '$lambda/e' and '$lambda/e%' are same to following derivations
-	//	in %LoadCore.
+	//	'$defw!', and '$defv/e%!' are same to following derivations in
+	//	%LoadCore.
 	// NOTE: Use of 'eqv?' is more efficient than '$if'.
 	R"NPL(
+		$defv! $lambda/e (&e &formals .&body) d
+			wrap (eval (list* $vau/e e formals ignore (move! body)) d);
+		$defv! $lambda/e% (&e &formals .&body) d
+			wrap (eval (list* $vau/e% e formals ignore (move! body)) d);
 		$def! $sequence
 			($lambda (&se)
 				($lambda #ignore $vau/e% se &exprseq d
@@ -935,9 +949,9 @@ LoadBasicDerived(REPLContext& context)
 		$defl! list* (&head .&tail)
 			$if (null? tail) (forward! head)
 				(cons (forward! head) (apply list* (move! tail)));
-		$defl%! list*% (&head .&tail)
+		$defl! list*% (&head .&tail)
 			$if (null? tail) (forward! head)
-				(cons% (forward! head) (apply list*% tail));
+				(cons% (forward! head) (apply list*% (move! tail)));
 		$defv! $defw%! (&f &formals &ef .&body) d
 			eval (list $set! d f wrap (list* $vau% formals ef (move! body))) d;
 		$defw%! forward-first% (&appv (&x .)) d
@@ -1026,10 +1040,8 @@ LoadBasicDerived(REPLContext& context)
 		$defl! append (.&ls) foldr1 list-concat () (move! ls);
 		$defl%! list-extract-first (&l) map1 first l;
 		$defl%! list-extract-rest% (&l) map1 rest% l;
-		$defv! $lambda/e (&e &formals .&body) d
-			wrap (eval (list* $vau/e e formals ignore (move! body)) d);
-		$defv! $lambda/e% (&e &formals .&body) d
-			wrap (eval (list* $vau/e% e formals ignore (move! body)) d);
+		$defv! $defv/e%! (&$f &e &formals &ef .&body) d
+			eval (list $set! d $f $vau/e% e formals ef (move! body)) d;
 		$def! ($let $let% $let/e $let/e% $let* $let*% $letrec $letrec%)
 			($lambda (&ce)
 		(
@@ -1120,6 +1132,22 @@ LoadBasicDerived(REPLContext& context)
 			(() get-current-environment);
 	)NPL"
 #	endif
+	R"NPL(
+		$defv! $as-environment (.&body) d
+			eval (list $let () (list $sequence (move! body)
+				(list () lock-current-environment))) d;
+		$defv! $bindings/p->environment (&parents .&bindings) d $sequence
+			($def! (res bref) list (apply make-environment
+				(map1 ($lambda% (x) eval% x d) parents)) (rulist bindings))
+			(eval% (list $set! res (list-extract-first bref)
+				(list* () list (list-extract-rest% bref))) d)
+			res;
+		$defv! $bindings->environment (.&bindings) d
+			eval (list* $bindings/p->environment () (move! bindings)) d;
+		$defl! symbols->imports (&symbols)
+			list* () list% (map1 ($lambda (&s) list forward! (desigil s))
+				(forward! symbols));
+	)NPL"
 	);
 #endif
 }
@@ -1187,47 +1215,21 @@ LoadCore(REPLContext& context)
 		$defv! $defw/e%! (&f &e &formals &ef .&body) d
 			eval (list $set! d f wrap (list* $vau/e% e formals ef (move! body)))
 				d;
-		$defv! $lambda/e (&e &formals .&body) d
-			wrap (eval (list* $vau/e e formals ignore (move! body)) d);
-		$defv! $lambda/e% (&e &formals .&body) d
-			wrap (eval (list* $vau/e% e formals ignore (move! body)) d);
 		$defv! $defl/e! (&f &e &formals .&body) d
 			eval (list $set! d f $lambda/e e formals (move! body)) d;
 		$defv! $defl/e%! (&f &e &formals .&body) d
 			eval (list $set! d f $lambda/e% e formals (move! body)) d;
-	)NPL");
-	// XXX: Keep %ContextNode::Perform calls here. This does not benefit from
-	//	the removal of the calls (tested with G++ 10.2 in x86_64-pc-linux),
-	//	whether %NPL_Impl_NPLA1_Native_Forms is set.
-	context.Perform(R"NPL(
 		$def! (box% box? unbox) () make-encapsulation-type;
 		$defl! box (&x) box% x;
 		$defl%! assv (&x &alist) $cond ((null? alist) ())
 			((eqv? x (first& (first& alist))) first alist)
 			(#t assv (forward! x) (rest% alist));
-	)NPL");
-	context.Perform(R"NPL(
-		$defv! $as-environment (.&body) d
-			eval (list $let () (list $sequence (move! body)
-				(list () lock-current-environment))) d;
-		$defv! $bindings/p->environment (&parents .&bindings) d $sequence
-			($def! res apply make-environment (map1 ($lambda% (x) eval% x d)
-				parents))
-			(eval% (list $set! res (map1 firstv bindings)
-				(list* () list (map1 rest% bindings))) d)
-			res;
-		$defv! $bindings->environment (.&bindings) d
-			eval (list* $bindings/p->environment () bindings) d;
-		$defl! symbols->imports (&symbols)
-			list* () list%
-				(map1 ($lambda (&s) list forward! (desigil s)) symbols);
 		$defv! $provide/let! (&symbols &bindings .&body) d
-			$sequence (eval% (list $def! symbols (list $let bindings $sequence
-				(list ($vau% (&e) d $set! e res (lock-environment d))
-				(() get-current-environment)) (move! body)
-				(symbols->imports symbols))) d) res;
+			eval% (list% $let (forward! bindings) $sequence
+				(move! body) (list% $set! d symbols (symbols->imports symbols))
+				(list () lock-current-environment)) d;
 		$defv! $provide! (&symbols .&body) d
-			eval (list* $provide/let! (forward! symbols) () (move! body)) d;
+			eval (list*% $provide/let! (forward! symbols) () (move! body)) d;
 		$defv! $import! (&e .&symbols) d
 			eval% (list $set! d symbols (symbols->imports symbols)) (eval e d);
 		$defv! $import&! (&e .&symbols) d
@@ -1585,7 +1587,7 @@ LoadModule_SHBuild(REPLContext& context)
 		throw NPLException("Error in quoted string.");
 	});
 	RegisterUnary<Strict, const string>(renv, "SHBuild_RaiseError_",
-		[](const string& str) YB_ATTR(noreturn){
+		[] YB_LAMBDA_ANNOTATE((const string& str), , noreturn){
 		throw LoggedEvent(str);
 	});
 	RegisterBinary<Strict, const string, const string>(renv,

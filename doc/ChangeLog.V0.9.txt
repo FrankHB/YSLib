@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r3714
+\version r3941
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-04-21 18:16 +0800
+	2021-05-06 20:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,221 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ "all setter macros with 1 argument" @ %YBaseMacro ^ 'yforward'
+			$effective @ "macros %(DefSetter, DefSetterDe, DefSetterBase, \
+			DefSetterBaseDe, DefSetterMem, DefSetterMemDe)",
+		+ "function template %assign" @ "class %ValueObject"
+			@ %YSLib.Core.YObject,
+		/ %NPL $=
+		(
+			/ %SContext $=
+			(
+				+ "3 function templates %SetValue" @ "class %TermNode"
+					^ $dep_from ("%ValueObject::assign" @ %YSLib.Core.YObject),
+				+ "function %IsRegular",
+				+ "function %AssertBranchedList"
+			),
+			/ %NPLA1 $=
+			(
+				/ DLDI "simplified functions %(ReduceReturnUnspecified, \
+					ParseLeaf, ParseLeafWithSourceInformation)"
+					^ $dep_from ("%TermNode::SetValue" @ %SContext),
+				* "wrong temporary tag added on bound refrerences"
+					@ "function %ReduceToReferenceUList" $since b916
+					// This should have been changed as %BindParameter in \
+						%NPLA1 since b916.
+				/ "strenthened precondition" @ "function %FetchArgumentsN"
+					^ ($dep_from ("%AssertBranchedList" ~ "%AssertBranch")
+					@ %SContext)
+					// This also implies the regular representation \
+						requirement on the parameter.
+			),
+			/ @ "namespace %Forms" @ %NPLA1Forms $=
+			(
+				/ $lib @ "functions %(Let, LetRef, LetWithEnvironment, \
+					LetWithEnvrionmentRef, LetAsterisk, LetAsteriskRef, \
+					LetRec, LetRecRef)" $=
+				(
+					/ "minor adjustment" @ "assertion",
+					/ $dev $impl "specialized further"
+						@ "empty binding list path",
+					/ $dev $design $impl "simplified" ^ $dep_from
+						("%ValueObject::assign" @ %YSLib.Core.YObject),
+					/ $dev $design $impl "minor adjustment of list check"
+						@ "%(LetAsterisk, LetAsteriskRef)"
+				),
+				/ DLI ^ "allocator" @ ("setting the environment"
+					$effective @ "functions %(LetWithEnvironment, \
+					LetWithEnvrionmentRef, GetCurrentEnvironment, \
+					LockCurrentEnvironment, MakeEnvironment)",
+					"list prepareation" $effective @ ("functions \
+					%(FoldR1, Map1, ListExtractFirst, ListExtractRest)",
+					"all functions with prefix 'Let' in names"),
+					("setting the context handler result"
+					$effective @ "all functions with prefix 'Lambda' or 'Vau' \
+					in names"), "setting the wrapping result" $effective
+					@ "all function with prefix 'Wrap' in names",
+					"setting the unwrapping result"
+					$effective @ "functions %(Unwrap, Apply, ForwardList)",
+					"construction" @ "vau handlers",
+					"%operator()" @ "decapsulation operation"
+					@ "function %MakeEncapsulationType")
+					^ $dep_from ("%TermNode::SetValue" @ %SContext),
+				/ DLI "optimized parent environment initialization"
+					@ "functions %(VauWithenEnvironment, \
+					VauWithEnvironmentRef, LetWithEnvironment, \
+					LetWithEnvrionmentRef)" !^ "%ValueObject::emplace",
+				/ DLDI "removed redundant %std::move" @ "function %AccL",
+					// Also to eliminate Clang++ warning: [-Wpessimizing-move].
+				- DLI 'YB_FLATTEN' @ "internal implementation"
+					@ "function %(DefineLazy, DefineWithNoRecursion, \
+					DefineWithRecursion, SetWithNoRecursion, SetWithRecursion)",
+				+ "function %AsEnvironment",
+				/ DLI "renamed reducer name for let-family body evaluation",
+					// Now it is same to klisp.
+				/ DLDI "function %MakeEnvironment",
+					// This makes its implementation easier to be reused.
+				+ "functions %(BindingsWithParentToEnvironment, \
+					BindingsToEnvironment)",
+				(
+				/ $comp "strenthened precondition" @ "function %RetainN"
+					$dep_from ("%FetchArgumentsN" @ %NPLA1),
+				/ @ "function %Retain" $=
+				(
+					/ "strenthened precondition" ^ ($dep_from
+						("%AssertBranchedList" ~ "%AssertBranch") @ %SContext),
+						// To be consistent with %FetchArgumentsN and %RetainN.
+					/ $lib "return value %ReductionStatus::Retained"
+						-> "%ReductionStatus::Regular"
+						// This compares equal but not identical to the old \
+							value. Nevertheless, it is never used as a \
+							template non-type parameter.
+				);
+				/ DD "strenthened precondition on %TermNode parameter for all \
+					reduction functions" @ "Doxygen comment"
+				),
+				+ "function %SymbolsToImports",
+				+ "functions %(LambdaWithEnvironment, \
+					LambdaWithEnvironmentRef)",
+				/ DLDI "simplified nested exception throwing" @ "functions \
+					%(Lambda, LambdaRef, Vau, VauRef, VauWithEnvironment, \
+					VauWithEnvironmentRef)",
+				/ "thrown nested exception on definition failure"
+					@ "funcitons %(DefineLazy, DefineWithNoRecursion, \
+					DefineWithRecursion, SetWithNoRecursion, SetWithRecursion)",
+					// Now the inner call is also protected by the nest \
+						exception handling, as done in combiner constructions.
+				/ DLDI "functions %(Lambda, LambdaRef, Vau, VauRef, \
+					VauWithEnvironment, VauWithEnvironmentRef, Wrap, WrapRef, \
+					WrapOnce, WrapOnceRef, ListExtraceRestFwd, LetAsterisk, \
+					LetAsteriskRef, RestFwd, RestVal, SetRest, SetRestRef, \
+					And, Or)"
+					^ "template non-type parameters of internal function \
+					reference" ~ "function value or reference parameters"
+			),
+			/ @ "function %LoadGroundContext" @ %Dependency $=
+			(
+				* "missing '$defv/e%!' for alternative derivations for \
+					operatives like '$let'" @ '!NPL_Impl_NPLA1_Native_Forms'
+					$since b917,
+				/ DLI "merged calls to %REPLContext::Perform for core library \
+					combiners",
+					// The split calls were once more efficient, but not now.
+				/ DLI ^ "allocator" @ "applicative 'copy-environment'"
+					$= (/ $impl
+						^ $dep_from ("%TermNode::SetValue" @ %SContext)),
+				* $re_add(b915) "unexpected internal argument copy"
+					@ "alternative derivation" $=
+				(
+					(
+					@ "operative '$set!'" $since b786
+						$= (/ $impl ^ 'move!'),
+					@ "applicative 'list*%'" $since b829
+						$= (/ $impl ^ 'move!');
+					@ "operative '$bindings/p->environment'" $since b839
+						$= (/ $impl ^ "%rulist");
+					@ "operative '$bindings->environment'" $since b839
+						$= (/ $impl ^ 'move!')
+					),
+					@ "operative '$setrec!'" $since b799
+						$= (/ $impl ^ 'move!'),
+					@ "operative '$provide/let!'" $since b
+						$= (/ $impl "'$let' expression construction"
+							^ ('list%', 'forward!') ~ 'list')
+				),
+				/ DLI "avoided redundant 'symbols' argument copy" $=
+				(
+					// This is an enhancement but not a bug.
+					@ "applicative 'symbols->imports'"
+						$= (/ $impl ^ 'forward!'),
+					@ "operative '$provide'"
+						$= (/ $impl 'list*%' ^ 'list')
+				),
+				/ DLI "simplified" @ "alternative derivation"
+					@ "applicative 'list*%'" ^ '$def!' ~ '$defl%!',
+				* $comp "wrong temporary tags on resulted list elements"
+					@ "native implementation" @ "applicative %rulist"
+					$since b916 $dep_from ("%ReduceToReferenceUList" @ %NPLA1),
+				/ DLDI "parameter name 'expr'" @ "alternative derivation"
+					@ "operatives '$deflazy!', '$set!', '$setrec!'" -> 'body',
+					// This is more consistent to %Documentation.NPL.
+				/ $lib "added native implementation enabled by default"
+					@ ("operative '$as-environment'" ^ $dep_from
+					("%AsEnvironment" @ %NPLA1Forms),
+					"operative '$bindings/p->environment'" ^ $dep_from
+					("%BindingsWithParentToEnvironment" @ %NPLA1Forms),
+					"operative '$bindings->environment'" ^ $dep_from
+					("%BindingsToEnvironment" @ %NPLA1Forms), "applicative \
+					'symbols->imports'" ^ $dep_from ("%SymbolsToImports"
+					@ %NPLA1Forms), "operative '$lambda/e'" ^ $dep_from
+					("%LambdaWithEnvironment" @ %NPLA1Forms),
+					"operative '$lambda/e%'"
+					^ $dep_from ("%LambdaWithEnvironmentRef" @ %NPLA1Forms)),
+				/ DLI "simplified derivation" @ "operative $provide/let!"
+					!^ ('res', '$vau%')
+			)
+		)
+	),
+	/ %YBase.YDefinition $=
+	(
+		/ "loosed G++ versions" @ "macro %YB_ATTR_LAMBDA",
+		+ "macro %YB_ATTR_LAMBDA_PFX",
+		/ "adjusted 'YB_IMPL_CLANGPP'" @ "macro %YB_ATTR_LAMBDA_QUAL"
+			-> '90000' ~ '90100';
+			// This allows call sites to work around with %YB_ATTR_LAMBDA \
+				for GCC 9.0.x.
+		+ "macro %YB_LAMBDA_ANNOTATE"
+	),
+	+ $lib $impl "support of extra attributes powered by 'YB_ATTR_LAMBDA_PFRX'"
+		@ "all non-standard attributes" @ "lambda-expression" ^ $dep_from
+		('YB_LAMBDA_ANNOTATE' @ %YBase.YDefinition) ~ ("'YB_*' attributes",
+		'YB_LAMBDA_QUAL') $effective @ ("function %main" @ %SHBuild.Main,
+		"class %pool_resource" @ %YBase.YStandardEx.MemoryResource,
+		("macros %(YCL_WrapCall_CAPI, YCL_TraceWrapCall_CAPI)" @ %YCommon,
+		"member function %Logger::DoLogException" @ %Debug, !'YCL_Win32'
+		@ ("constructor %DirectorySession" @ %FileSystem, "function %MakePipe"
+		@ %Host), "function %uremove" @ 'YCL_Win32' @ FileSystem,
+		"function %ExecuteShellCommand" @ 'YCL_Win32' @ %HostedGUI) @ %YCLib,
+		(("lambda-expression" @ "class template specialization %GHEvent"
+		@ %Core, "function template %FetchMaxTextWidth" @ %Service.TextLayout)
+		@ %YSLib, "several functions" @ %NPL.(Dependency, NPLA1Forms, NPLA),
+		("constructor %Environment" @ 'YCL_DS' @ %Environment, "function \
+		%LoadComponents" @ %Initialization) @ %Helper, ("macros \
+		%(YCL_WrapCall_Win32, YCL_TraceWrapCall_Win32)", "member function \
+		%DirectoryFindData::Read") @ %'YCLib_(Win32)'.MinGW32,
+		"functions %(Mount, Unmount") @ %'YCLib_(DS)'.DSIO) @ %YFramework)
+		// This also works around for G++ 9.0 after the G++ version change in \
+			%YB_ATTR_LAMBDA_QUAL. This is an enchancement but not a fix \
+			because G++ 9.0 is not a release version branch of G++. Note some \
+			offending versions of the buggy compiler can be actually used in \
+			production, like g++ (GCC) 9.0.1 20190312 (Red Hat 9.0.1-0.10) in \
+			Fedora 30.
+),
+
+b917
 (
 	/ %YFramework $=
 	(
@@ -240,7 +455,7 @@ $now
 			),
 			/ @ "function %LoadGroundContext" @ %Dependency $=
 			(
-				/ $lib "added native derivation enabled by default"
+				/ $lib "added native implementation enabled by default"
 					@ ("operative '$let*'" ^ $dep_from
 					("%LetAsterisk" @ %NPLA1Forms), "operative '$let*%'"
 					^ $dep_from ("%LetAsteriskRef" @ %NPLA1Forms),
@@ -582,8 +797,8 @@ b915
 					// This differs to the native implementations.
 				);
 				* $comp "unexpected copy of initializers on calls"
-					@ "non-native derivations" @ "operatives named with '$let' \
-					prefix" $since b914
+					@ "non-native implementations"
+					@ "operatives named with '$let' prefix" $since b914
 					// For '$let' and '$let%', this has been fixed with native \
 						implementations since b914. The derivations of '$let' \
 						and '$let%' does not need the fixes of other combiners \
@@ -724,20 +939,20 @@ b914
 				/ "guaranteed dynamic enviornment used";
 					// This is more consistent to other applicatives like \
 						'foldr1' and 'map-reverse'.
-				/ $lib "added native derivation enabled by default"
+				/ $lib "added native implementation enabled by default"
 					^ $dep_from ("%ListExtract" @ %NPLA1Forms)
 				),
 				* "redundant lift at the result" @ "derivation"
 					@ "operative '$let*%'" $since b857
 					$= (/ $impl ^ '$let%' ~ '$let*'),
-				/ DLDI "simplified native derivation" @ "applicative 'expire'"
-					^ $dep_from ("%TermReference::AddTags" @ %NPLA),
+				/ DLDI "simplified native implementation" @ "applicative \
+					'expire'" ^ $dep_from ("%TermReference::AddTags" @ %NPLA),
 				+ "applicative 'as-const'"
 					^ $dep_from ("%TermReference::AddTags" @ %NPLA),
 				* "unexpected copy of initializers on calls"
 					@ "operatives named with '$let' prefix" $since b791
 			),
-			/ $lib "added native derivation enabled by default"
+			/ $lib "added native implementation enabled by default"
 				@ ("applicative 'list-extract-first'"
 				^ $dep_from ("%ListExtractFirst" @ %NPLA1Forms),
 				"applicative 'list-extract-rest%'"
@@ -895,7 +1110,7 @@ b913
 					(
 					/ $revert_ex(b858) "alternative derivation" @ "applicative \
 						'foldr1'" ^ $dep_from 'first%' ~ 'first',
-					/ $comp "native derivations" ($dep_from
+					/ $comp "native implementations" ($dep_from
 						"%(FoldR1, Map1, ListConcat, Append)" @ %NPLA1Forms)
 					);
 					/ $comp "supported copy elision of the list elements",
@@ -909,7 +1124,7 @@ b913
 					// Irregular representation should be supported, esp. for \
 						list operands.
 				(
-					/ $comp "native derivation" $dep_from
+					/ $comp "native implementation" $dep_from
 						("%RestRef" @ %NPLA1Forms),
 					/ "alternative derivation"
 						$= (/ $impl ^ ('$def%l!', '$lambda%')
@@ -1016,7 +1231,7 @@ b912
 			(
 				/ @ "function %LoadGroundContext" $=
 				(
-					/ $lib "added native derivation enabled by default"
+					/ $lib "added native implementation enabled by default"
 						@ ("applicative \
 						'list-concat'" ^ $dep_from ("%ListConcat"
 						@ %NPLA1Forms), "applicative %append"
@@ -1306,16 +1521,16 @@ b910
 		(
 			/ @ "function %LoadGroundContext" $=
 			(
-				/ $lib "added native derivation enabled by default"
+				/ $lib "added native implementation enabled by default"
 					@ "applicatives 'make-standard-environment', 'first-null?'",
 				* "missing fowrading the 2nd argument"
 					@ "applicative 'list-concat'" $since b859,
 					// See $2021-02 @ %Documentation::Workflow.
-				/ $lib "added native derivation enabled by default"
+				/ $lib "added native implementation enabled by default"
 					@ ("%restv" ^ $dep_from ("%RestVal" @ %NPLA1Forms),
 					'rest&' ^ $dep_from ("%RestRef" @ %NPLA1Forms)),
 				(
-				/ $lib "added native derivation enabled by default"
+				/ $lib "added native implementation enabled by default"
 					@ "applicative 'rest%'"
 					$dep_from (("%BindParameter", ^ "%Rest") @ %NPLA1Forms);
 				* $comp "inconsistent internal derivation of 'rest%' used"

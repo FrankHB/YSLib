@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2020 FrankHB.
+	© 2013-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2132
+\version r2135
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2020-10-21 05:01 +0800
+	2021-05-06 19:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -184,7 +184,7 @@ public:
 */
 //@{
 #	define YCL_WrapCall_Win32(_fn, ...) \
-	[&](const char* sig_) YB_NONNULL(2){ \
+	[&] YB_LAMBDA_ANNOTATE((const char* sig_), , nonnull(2)){ \
 		const auto res_(_fn(__VA_ARGS__)); \
 	\
 		if(YB_UNLIKELY(!res_)) \
@@ -206,7 +206,7 @@ public:
 */
 //@{
 #	define YCL_TraceWrapCall_Win32(_fn, ...) \
-	[&](const char* sig_) YB_NONNULL(2){ \
+	[&] YB_LAMBDA_ANNOTATE((const char* sig_), , nonnull(2)){ \
 		const auto res_(_fn(__VA_ARGS__)); \
 	\
 		if(YB_UNLIKELY(!res_)) \

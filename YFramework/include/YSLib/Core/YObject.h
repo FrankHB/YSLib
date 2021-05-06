@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r6599
+\version r6609
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2021-02-06 22:33 +0800
+	2021-04-25 19:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1502,6 +1502,17 @@ public:
 	*/
 	YB_ATTR_nodiscard YB_PURE any
 	Query(uintmax_t = 0) const;
+
+	/*!
+	\brief 多参数赋值。
+	\since build 918
+	*/
+	template<typename... _tParams>
+	YB_ATTR(always_inline) inline void
+	assign(_tParams&&... args) ynoexcept_spec(ValueObject(yforward(args)...))
+	{
+		*this = ValueObject(yforward(args)...);
+	}
 
 	//! \since build 759
 	//@{

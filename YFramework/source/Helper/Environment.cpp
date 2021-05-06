@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2020 FrankHB.
+	© 2013-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1919
+\version r1924
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2020-10-03 14:38 +0800
+	2021-05-06 19:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,13 +31,13 @@
 //	ShowInitializedLog, PerformKeyAction, LoadComponents;
 #if YCL_DS
 #	include YFM_YCLib_NativeAPI // for ::powerOn, ::defaultExceptionHandler,
-//	platform_ex::InitializeFileSystem;
+//	platform_ex::FileSystem;
 #	include YFM_DS_YCLib_DSVideo // for platform_ex::DSConsoleInit;
 #	include YFM_YSLib_Core_YGDIBase // for Drawing::ColorSpace;
 #elif YCL_Win32
 #	include YFM_Win32_YCLib_Consoles // for platform_ex::FixConsoleHandler;
 #	include YFM_Win32_YCLib_MinGW32 // for platform_ex::Win32Exception;
-#	include YFM_YSLib_Core_YCoreUtilities // for FetchEnvironmentVariable;
+#	include YFM_YSLib_Adaptor_YAdaptor // for FetchEnvironmentVariable;
 #	include YFM_YCLib_Debug // for platform_ex::SendDebugString;
 #endif
 
@@ -67,8 +67,8 @@ Environment::Environment(Application& app)
 	::powerOn(POWER_ALL);
 	::defaultExceptionHandler();
 	DSConsoleInit(true, ColorSpace::Lime, ColorSpace::Black);
-	FetchCommonLogger().SetSender([&](Logger::Level lv, Logger&,
-		const char* str) YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_NONNULL(4)){
+	FetchCommonLogger().SetSender([&] YB_LAMBDA_ANNOTATE(
+		(Logger::Level lv, Logger&, const char* str), ynothrowv, nonnull(4)){
 		if(ShowInitializedLog || lv <= Descriptions::Alert)
 		{
 			if(!ShowInitializedLog)

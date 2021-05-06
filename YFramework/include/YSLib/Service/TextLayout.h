@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015, 2019-2020 FrankHB.
+	© 2009-2015, 2019-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextLayout.h
 \ingroup Service
 \brief 文本布局计算。
-\version r2897
+\version r2899
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2020-01-28 11:32 +0800
+	2021-05-06 19:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -334,7 +334,7 @@ YB_ATTR_nodiscard YB_PURE SDst
 FetchMaxTextWidth(const Font& font, _tIn first, _tIn last)
 {
 	return std::accumulate(first, last, SDst(),
-		[&](SDst val, decltype(*first) str) YB_PURE{
+		[&] YB_LAMBDA_ANNOTATE((SDst val, decltype(*first) str), , pure){
 		return ystdex::max(val, Drawing::FetchStringWidth(font, str));
 	});
 }

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2017, 2019-2010 FrankHB.
+	© 2013-2017, 2019-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2304
+\version r2306
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2020-12-10 09:53 +0800
+	2021-05-06 20:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -540,7 +540,7 @@ bool
 DirectoryFindData::Read()
 {
 	const auto chk_err(
-		[this](const char* fn, ErrorCode ec) YB_NONNULL(2){
+		[this] YB_LAMBDA_ANNOTATE((const char* fn, ErrorCode ec), , nonnull(2)){
 		const auto err(::GetLastError());
 
 		if(err != ec)

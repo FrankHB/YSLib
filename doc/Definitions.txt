@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2020 FrankHB.
+	© 2010-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14302
+\version r14307
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2020-10-05 11:12 +0800
+	2021-05-06 19:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -119,7 +119,9 @@ YB_HAS_NOEXCEPT
 YB_ABORT
 YB_ATTR(...)
 YB_ATTR_LAMBDA(...)
+YB_ATTR_LAMBDA_PFX(...)
 YB_ATTR_LAMBDA_QUAL(_q, ...)
+YB_LAMBDA_ANNOTATE(_arglist, _q, ...)
 YB_ATTR_STD(...)
 YB_ATTR_fallthrough
 YB_ATTR_gnu_printf(...)
@@ -904,12 +906,14 @@ $attr $=
 	always_inline,
 	dllimport,
 	dllexport,
+	flatten,
 	noinline,
 	nonnull,
 	noreturn,
 	novtable,
 	optimize,
 	packed,
+	pure,
 	restrict,
 	returns_nonnull,
 	thread,

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r20783
+\version r20802
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2021-04-21 18:08 +0800
+	2021-05-06 19:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1265,8 +1265,8 @@ ReduceTail(TermNode& term, ContextNode& ctx, TNIter i)
 ReductionStatus
 ReduceToReferenceList(TermNode& term, ContextNode& ctx, TermNode& tm)
 {
-	return ResolveTerm(
-		[&](TermNode& nd, ResolvedTermReferencePtr p_ref) YB_FLATTEN{
+	return ResolveTerm([&] YB_LAMBDA_ANNOTATE(
+		(TermNode& nd, ResolvedTermReferencePtr p_ref), , flatten){
 		if(IsList(nd))
 		{
 			// XXX: As %BindParameterObject.
@@ -1310,16 +1310,15 @@ ReductionStatus
 ReduceToReferenceUList(TermNode& term, TermNode& tm)
 {
 	// XXX: As %ReduceToReferenceList.
-	return ResolveTerm(
-		[&](TermNode& nd, ResolvedTermReferencePtr p_ref) YB_FLATTEN{
+	return ResolveTerm([&] YB_LAMBDA_ANNOTATE(
+		(TermNode& nd, ResolvedTermReferencePtr p_ref), , flatten){
 		if(IsList(nd))
 		{
 			if(p_ref)
 			{
 				const auto a(term.get_allocator());
 				TermNode::Container con(a);
-				const auto add_tags(p_ref->GetTags() | TermTags::Unique
-					| TermTags::Temporary);
+				const auto add_tags(p_ref->GetTags() | TermTags::Unique);
 
 				for(auto& o : nd)
 					if(const auto p = NPL::TryAccessLeaf<TermReference>(o))
@@ -1431,8 +1430,7 @@ ParseLeaf(string_view id, TermNode::allocator_type a)
 			YB_ATTR_fallthrough;
 		case LexemeCategory::Symbol:
 			if(CheckReducible(DefaultEvaluateLeaf(term, id)))
-				term.Value = ValueObject(std::allocator_arg, a,
-					in_place_type<TokenValue>, id, a);
+				term.SetValue(in_place_type<TokenValue>, id, a);
 				// NOTE: This is to be evaluated as identifier later.
 			break;
 			// XXX: Empty token is ignored.
@@ -1441,8 +1439,7 @@ ParseLeaf(string_view id, TermNode::allocator_type a)
 			// XXX: This should be prevented being passed to second pass in
 			//	%TermToNamePtr normally. This is guarded by normal form handling
 			//	in the loop in %ContextNode::Rewrite with %ReduceOnce.
-			term.Value = ValueObject(std::allocator_arg, a,
-				in_place_type<string>, Deliteralize(id), a);
+			term.SetValue(in_place_type<string>, Deliteralize(id), a);
 			YB_ATTR_fallthrough;
 		default:
 			break;
@@ -1469,14 +1466,12 @@ ParseLeafWithSourceInformation(string_view id, const shared_ptr<string>& name,
 			YB_ATTR_fallthrough;
 		case LexemeCategory::Symbol:
 			if(CheckReducible(DefaultEvaluateLeaf(term, id)))
-				term.Value = ValueObject(std::allocator_arg, a,
-					any_ops::use_holder, in_place_type<SourcedHolder<
-					TokenValue>>, name, src_loc, id, a);
+				term.SetValue(any_ops::use_holder, in_place_type<
+					SourcedHolder<TokenValue>>, name, src_loc, id, a);
 			break;
 		case LexemeCategory::Data:
-			term.Value = ValueObject(std::allocator_arg, a, any_ops::use_holder,
-				in_place_type<SourcedHolder<string>>, name, src_loc,
-				Deliteralize(id), a);
+			term.SetValue(any_ops::use_holder, in_place_type<
+				SourcedHolder<string>>, name, src_loc, Deliteralize(id), a);
 			YB_ATTR_fallthrough;
 		default:
 			break;
@@ -1618,7 +1613,7 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 			auto p_env(NPL::Nonnull(pr.second));
 
 			p_rterm = &bound;
-			[&]() YB_FLATTEN{
+			[&] YB_LAMBDA_ANNOTATE((), , flatten){
 				term.Value = TermReference(p_env->MakeTermTags(bound)
 					& ~TermTags::Unique, bound, std::move(p_env));
 			}();
@@ -1741,8 +1736,8 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 		return CombinerReturnThunk(ContextHandler(std::move(*p_handler)), term,
 			ctx);
 #endif
-	return ResolveTerm([&](const TermNode& nd, bool has_ref)
-		YB_ATTR_LAMBDA(noreturn) -> ReductionStatus{
+	return ResolveTerm([&] YB_LAMBDA_ANNOTATE(
+		(const TermNode& nd, bool has_ref), , noreturn) -> ReductionStatus{
 		// TODO: Capture contextual information in error.
 		// TODO: Extract general form information extractor function.
 		throw ListReductionFailure(ystdex::sfmt("No matching combiner '%s'"

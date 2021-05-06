@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r4010
+\version r4063
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2021-04-15 22:14 +0800
+	2021-04-27 22:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,13 +34,16 @@
 #include YFM_YSLib_Core_ValueNode // for YSLib::Deref, YSLib::MakeIndex,
 //	YSLib::NoContainer, YSLib::NoContainerTag, YSLib::ValueNode,
 //	YSLib::ValueObject, YSLib::forward_as_tuple, YSLib::get,
-//	YSLib::make_observer, YSLib::make_pair, YSLib::share_move,
-//	YSLib::make_shared, YSLib::make_weak, YSLib::observer_ptr, YSLib::tuple,
-//	YSLib::weak_ptr, list, YSLib::ListContainerTag, std::initializer_list,
-//	ystdex::forward_like, ystdex::invoke, YSLib::AccessPtr, ystdex::false_,
-//	std::is_convertible, ystdex::decay_t, ystdex::bool_, ystdex::cond_or_t,
-//	ystdex::not_, ystdex::enable_if_t, ystdex::call_value_or, ystdex::addrof,
-//	ystdex::compose, pair, std::is_lvalue_reference, YSLib::Alert, YSLib::stack;
+//	YSLib::make_observer, YSLib::make_pair, YSLib::make_shared,
+//	YSLib::make_weak, YSLib::observer_ptr, YSLib::share_move, YSLib::tuple,
+//	YSLib::weak_ptr, ystdex::enable_if_t, list, std::allocator_arg_t,
+//	YSLib::ListContainerTag, std::initializer_list,
+//	ystdex::enable_if_same_param_t, ystdex::exclude_self_t,
+//	ystdex::enable_if_inconvertible_t, ystdex::forward_like, ystdex::invoke,
+//	YSLib::AccessPtr, ystdex::not_, ystdex::cond_or_t, ystdex::bool_,
+//	ystdex::false_, std::is_convertible, ystdex::decay_t, ystdex::call_value_or,
+//	ystdex::addrof, ystdex::compose, pair, std::is_lvalue_reference,
+//	YSLib::Alert, YSLib::stack;
 #include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
 #include <ystdex/range.hpp> // for std::iterator_traits,
 //	ystdex::range_iterator_t, ystdex::begin, ystdex::end,
@@ -374,6 +377,34 @@ public:
 	PDefH(void, SetContent, TermNode&& nd)
 		ImplExpr(SwapContainer(nd), Value = std::move(nd.Value), Tags = nd.Tags)
 	//@}
+	//! \since build 918
+	//@{
+	template<typename _tParam>
+	inline yimpl(ystdex::enable_if_same_param_t<ValueObject, _tParam>)
+	SetValue(_tParam&& arg) ynoexcept_spec(yforward(arg))
+	{
+		Value = yforward(arg);
+	}
+	template<typename _tParam, typename... _tParams,
+		yimpl(ystdex::enable_if_t<sizeof...(_tParams) != 0
+		|| !ystdex::is_same_param<ValueObject, _tParam>::value, int> = 0,
+		ystdex::exclude_self_t<std::allocator_arg_t, _tParam, int> = 0)>
+	inline yimpl(ystdex::enable_if_inconvertible_t)<ystdex::decay_t<_tParam>,
+		TermNode::allocator_type, void>
+	SetValue(_tParam&& arg, _tParams&&... args) ynoexcept_spec(Value.assign(
+		std::allocator_arg, std::declval<TermNode::allocator_type&>(),
+		yforward(arg), yforward(args)...))
+	{
+		SetValue(get_allocator(), yforward(arg), yforward(args)...);
+	}
+	template<typename... _tParams>
+	inline void
+	SetValue(TermNode::allocator_type a, _tParams&&... args)
+		ynoexcept_spec(Value.assign(std::allocator_arg, a, yforward(args)...))
+	{
+		Value.assign(std::allocator_arg, a, yforward(args)...);
+	}
+	//@}
 
 	//! \since build 853
 	PDefH(void, Add, const TermNode& nd)
@@ -626,6 +657,14 @@ YB_ATTR_nodiscard YB_PURE inline
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(bool, IsList, const TermNode& nd) ynothrow
 	ImplRet(!nd.Value)
+
+/*!
+\brief 判断项是否为正规节点。
+\since build 918
+*/
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, IsRegular, const TermNode& nd) ynothrow
+	ImplRet(nd.empty() || !nd.Value)
 //@}
 
 //! \since build 853
@@ -670,6 +709,15 @@ AccessPtr(const TermNode& nd) ynothrow
 inline PDefH(void, AssertBranch, const TermNode& nd,
 	const char* msg = "Invalid term found.") ynothrowv
 	ImplExpr(yunused(nd), yunused(msg), YAssert(IsBranch(nd), msg))
+
+/*!
+\brief 断言分支列表节点。
+\pre 断言：参数指定的项是分支列表节点。
+\since build 918
+*/
+inline PDefH(void, AssertBranchedList, const TermNode& nd,
+	const char* msg = "Invalid term found.") ynothrowv
+	ImplExpr(yunused(nd), yunused(msg), YAssert(IsBranchedList(nd), msg))
 
 //! \brief 创建项节点。
 //@{

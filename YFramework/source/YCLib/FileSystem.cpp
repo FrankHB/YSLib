@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2020 FrankHB.
+	© 2011-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4978
+\version r4982
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2020-11-08 22:04 +0800
+	2021-05-06 19:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -633,7 +633,7 @@ DirectorySession::DirectorySession(const char* path)
 #if YCL_Win32
 	: dir(CreateDirectoryDataPtr<Data>(MakePathStringW(path)))
 #else
-	: sDirPath([](const char* p) YB_NONNULL(2){
+	: sDirPath([] YB_LAMBDA_ANNOTATE((const char* p), , nonnull(2)){
 		const auto res(Deref(p) != char()
 			? ystdex::rtrim(string(p), FetchSeparator<char>()) : ".");
 
@@ -931,8 +931,8 @@ YCL_Impl_FileSystem_ufunc_1(uremove)
 	// NOTE: %::_wremove is same to %::_wunlink on Win32 which cannot delete
 	//	empty directories.
 	return CallNothrow({}, [=]{
-		return CallFuncWithAttr([](const wchar_t* wstr, FileAttributes attr)
-			YB_ATTR_LAMBDA_QUAL(ynothrow, YB_NONNULL(2)){
+		return CallFuncWithAttr([] YB_LAMBDA_ANNOTATE(
+			(const wchar_t* wstr, FileAttributes attr), ynothrow, nonnull(2)){
 			return attr & FileAttributes::Directory ? ::_wrmdir(wstr) == 0
 				: UnlinkWithAttr(wstr, attr);
 		}, path);

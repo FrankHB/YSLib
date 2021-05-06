@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018-2020 FrankHB.
+	© 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1497
+\version r1503
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2020-11-30 21:10 +0800
+	2021-05-06 19:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,8 +101,8 @@ new_delete_resource() ynothrow
 				{
 					yassume(p);
 
-					const auto p_hdr(::new(static_cast<byte*>(p)
-						- offset_n_t::value) hdr_t);
+					const auto p_hdr(
+						::new(static_cast<byte*>(p) - offset_n_t::value) hdr_t);
 
 					p_hdr->p_block = ptr.get();
 					ptr.release();
@@ -539,7 +539,7 @@ resource_pool::resource_pool(resource_pool&& pl) ynothrow
 {
 	const bool no_stashed(pl.i_stashed == pl.chunks.end()),
 		no_empty(pl.i_empty == pl.chunks.end());
-		
+
 	std::swap(chunks, pl.chunks);
 	if(no_stashed)
 		i_stashed = chunks.end();
@@ -715,9 +715,8 @@ pool_resource::find_pool(size_t bytes, size_t alignment) ynothrow
 		lb_size(ceiling_lb(resource_pool::adjust_for_block(bytes, alignment)));
 
 	return {ystdex::lower_bound_n(pools.begin(),
-		pools_t::difference_type(pools.size()),
-		lb_size, [](const resource_pool& a, size_t lb)
-		YB_ATTR_LAMBDA_QUAL(ynothrow, YB_PURE){
+		pools_t::difference_type(pools.size()), lb_size, [] YB_LAMBDA_ANNOTATE(
+		(const resource_pool& a, size_t lb), ynothrow, pure){
 		return a.get_extra_data() < lb;
 	}), lb_size};
 }

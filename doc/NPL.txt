@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规范和实现规格说明。
-\version r22338
+\version r22399
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2021-04-21 18:16 +0800
+	2021-05-02 21:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2078,6 +2078,7 @@ TermNode 中存储的值可引用其它节点共享部分数据形成 DAG(@4.2.4
 空节点(empty node) 同时是叶节点和列表节点；
 分支列表节点(branched list node) 同时是枝节点和列表节点；
 扩展列表节点(extended list node) 是枝节点或列表节点。
+正规节点(regular node) 是叶节点或列表节点。
 注意扩展的列表节点可能同时具有子节点和非空的值数据成员。
 进一步地，节点可按子节点数（使用 TermNode 的 size() 结果判断）按需进行扩展分类。
 列表节点对应对象语言的列表类型。作为列表节点的 TermNode 是对象语言中列表类型的宿主类型(@5.5) 。
@@ -2110,7 +2111,13 @@ TermTags::Temporary 指定具有特定的值类别（纯右值）的引用值，
 @6.2.3 项节点访问：
 模块 SContext 提供访问项节点的 API 。
 命名空间 NPL 中，TermNode 在类定义外提供关于节点内容的辅助 API 简化操作，以 Doxygen 命令标识为 \relates TermNode 。
-其中，判断项节点基本分类(@6.2.1) 的谓词以 Is 前缀起始。
+其中，判断项节点基本分类(@6.2.1) 的谓词以 Is 前缀起始：
+IsBranch
+IsBranchedList
+IsEmpty
+IsExtendedList
+IsLeaf
+IsList
 函数模板 NPL::Access 和 NPL::AccessPtr 访问值数据成员(@6.2) 中持有对象的引用或指针。重载兼容 TermNode 和 ValueNode 。
 其余 API 包括：
 函数模板 NPL::TraverseSubnodes
@@ -2779,7 +2786,7 @@ NPLA 提供只依赖项既有结构的项简单规约操作。这些操作是直
 函数 NPL::ReduceToListValue
 
 @6.7.12.2 间接辅助规约操作：
-以下辅助规约函数转移参数实现规约：
+以下辅助规约函数按参数设置不同的项的值实现规约：
 函数 NPL::ReduceToReference
 函数 NPL::ReduceToReferenceAt
 函数 NPL::ReduceToValue
@@ -4150,8 +4157,17 @@ Forms::Undefine
 @8.4.5 过程抽象：
 过程使用 A1::FormContextHandler(@7.6) 实现。
 后者包含的实际求值使用使用 A1::ReduceArguments(@7.4.6) 实现。当前实现中使用从左到右的子项规约，和 [Shu10] 实际使用的不同。
-Forms 提供函数 Forms::Lambda 和 Forms::LambdaRef 支持 lambda 特殊形式创建以过程为基础的 λ 抽象(@4.5.2.2) 。
-Forms 提供函数 Forms::Vau 、Forms::VarRef 、Forms::VauWithEnvironment 和 Forms::VauWithEnvironmentRef 支持更一般的 vau 抽象(@4.5.2.3) 。前者和 Kernel 的 $vau 操作合并子类似，而后者进一步支持指定静态环境。
+Forms 提供以下函数支持 lambda 特殊形式创建以过程为基础的 λ 抽象(@4.5.2.2) ：
+Forms::Lambda
+Forms::LambdaRef
+Forms::LambdaWithEnvironment
+Forms::LambdaWithEnvironmentRef
+Forms 提供以下函数支持更一般的 vau 抽象(@4.5.2.3) 。
+Forms::Vau
+Forms::VarRef
+Forms::VauWithEnvironment
+Forms::VauWithEnvironmentRef
+以上函数中不带有 WithEnvironment 的版本和 Kernel 的 $lambda 及 $vau 操作合并子类似，而指定 WithEnvironment 的版本进一步支持在创建抽象时指定静态环境。
 Vau 抽象可包含的捕获(@8.4.5.1) 静态环境的数据结构，以非公开类型的对象存储，进一步初始化处理器类型 A1::ContextHandler(@6.10) 的值，被待规约的项或环境所有(@5.6) 。
 Vau 抽象的应用在的新创建的空的但以上述静态环境为父环境(@5.7) 的局部环境(local environment) 中对抽象中指定的表达式（函数体）的副本求值，以包含局部环境(@4.6.1.1.2) 的数据结构作为活动记录帧(@5.6) 。
 记号值(@6.6.3.1) 可表示待替换的符号(@6.6.3.1) ，用于实现形式参数(@8.4.5) 。
@@ -4234,8 +4250,8 @@ Forms::Sequence 序列有序参数规约：移除第一项后顺序规约子项�
 Forms::Apply 函数应用：应用参数指定的函数和作为函数参数的列表。
 操作的语义同 [RnRK] ，但在可选参数多余 1 个时的错误情形抛出 NPL::ArityMismatch(@6.5) 异常。
 保证最后一项的规约是尾上下文，允许 PTC 。
-Forms::ListAsterisk 使用可选的参数指定的不定数量的元素和结尾列表构造新列表，不在结果中保留引用值。
-Forms::ListAsteriskRef 使用可选的参数指定的不定数量的元素和结尾列表构造新列表，在结果中保留引用值。
+Forms::ListAsterisk
+Forms::ListAsteriskRef
 Forms::AccL
 Forms::AccR
 Forms::FoldR1
@@ -4252,6 +4268,10 @@ Forms::LetAsterisk
 Forms::LetAsteriskRef
 Forms::LetRec
 Forms::LetRecRef
+Forms::AsEnvironment
+Forms::BindingsWithParentToEnvironment
+Forms::BindingsToEnvironment
+Forms::SymbolsToImports
 
 @8.4.10 外部调用：
 Forms 提供以下在对象语言中调用实现环境外部功能的函数：
@@ -4293,6 +4313,7 @@ A1::RelayToLoadExternal
 
 @8.6.1 NPLA1 实现模块的续延名称(@7.11.6) ：
 在模块 NPL::NPLA1Forms 中引入的续延名称包括：
+bindings-to-env
 conditional-eval-sequence
 equal-subterm
 equal-siblings
@@ -4302,10 +4323,11 @@ eval-accl-accl
 eval-accl-tail
 eval-accr-accr
 eval-accr-sum
+eval-bindings-to-env
 eval-booleans
 eval-cond-list
 eval-foldr1-kons
-eval-let-combine-operator
+eval-let
 eval-let-combine-return
 eval-let-parent
 eval-letrec-bind
@@ -4331,11 +4353,11 @@ eval-accl-accl ：Forms::AccL 递归调用。
 eval-accl-tail ：Forms::AccL 调用取抽象列表余下的元素的函数。
 eval-accr-accr ：Forms::AccR 递归调用。
 eval-accr-sum ：Forms::AccR 调用取抽象列表部分和的函数。
+eval-bindings-to-env ：Forms::BindingsWithParentToEnvironment(@8.4.9) 在创建的环境中绑定变量并返回。
 eval-combine-return ：非 TCO 的规约合并求值(@7.6.4.2) 实现中设置规约合并最后的返回结果。
 eval-foldr1-kons ：Forms::FoldR1(@8.4.9) 应用子调用。
 eval-guard ：非 TCO 的求值实现重置守卫的附加动作帧(@6.9.6)。
-eval-let-combine-operator ：Forms::Let 、Forms::LetRef 、Forms::LetWithEnvironment 、Forms::LetWithEnvironmentRef 、Forms::LetAsterisk 和 Forms::LetAsteriskRef(@8.4.9) 中合并创建的合并子和初值符构成的操作数。
-eval-let-combine-return ：非 TCO 的 Forms::Let 、Forms::LetRef 、Forms::LetWithEnvironment 、Forms::LetWithEnvironmentRef 、Forms::LetAsterisk 、Forms::LetAsteriskRef 、Forms::LetRec 和 Forms::LetRecRef(@8.4.9) 的实现中设置规约合并最后的返回结果。
+eval-let-combine-return ：非 TCO 的 Forms::Let 、Forms::LetRef 、Forms::LetWithEnvironment 、Forms::LetWithEnvironmentRef 、Forms::LetAsterisk 、Forms::LetAsteriskRef 、Forms::LetRec 、Forms::LetRecRef 和 Forms::AsEnvironment(@8.4.9) 的实现中设置规约合并最后的返回结果。
 eval-let-parent ：Forms::LetWithEnvironment 和 Forms::LetWithEnvironmentRef 中求值过程抽象(@8.4.5) 的父环境的表达式。
 eval-letrec-bind ：Forms::LetRec 和 Forms::LetRecRef 中的变量绑定。
 eval-lift-result ：非 TCO 的求值实现调用 NPL::ReduceForLiftedResult(@6.7.12.1) 提升返回结果。
@@ -4343,7 +4365,7 @@ eval-lift-sum ：Forms::AccR、Forms::FoldR1 和 Forms::Map1(@8.4.9) 公共的�
 eval-map1-appv ：Forms::Map1(@8.4.9) 应用子调用。
 eval-sequence-return ：非 TCO 的 A1::ReduceOrdered(@7.4.6) 实现中设置规约合并最后的返回结果。
 eval-tail ：TCO 动作尾上下文求值（和 klisp 不同，不依赖 GC(@5.6.4) 而在 TCO 动作单独保存资源(@7.10.5.1) ）。
-eval-vau-parent ：合并子构造时求值过程抽象的父环境的表达式。
+eval-vau-parent ：Forms::LambdaWithEnvironment 和 Forms::VauWithEnvironment(@8.4.5) 创建操作子时求值过程抽象的父环境的表达式。
 注意 klisp 的 $vau 不具有应保证被求值的实际参数，不需要异步调用，没有对应的续延。
 load-external ：A1::RelayToLoadExternal(@8.5.2) 加载外部翻译单元。
 match-ptree-recursive ：支持延迟递归绑定（ Forms::DefineWithRecursion 和 Forms::SetWithRecursion(@8.4.4.3) ）。
@@ -5851,9 +5873,11 @@ $setrec! <environment> <definiend> <body> ：修改指定环境的绑定，绑�
 同 $set! ，但允许不同的递归操作，参见 $defrec! 。
 $lambda <formals> <body> ：创建 λ 抽象(@4.5.2.2) 。
 和创建 vau 抽象类似，但创建的是调用时对操作数的元素求值一次的应用子(@7.6.1.1) ，且忽略动态环境。
-可通过 vau 抽象或 $lambda/e(@11.4.3) 和（非派生的）get-current-environment 派生。
+可通过 vau 抽象或 $lambda/e 和（非派生的）get-current-environment 派生。
 表达式项的用法和 vau 抽象类似。
 $lambda% <formals> <body> ：同 $lambda ，但允许函数体求值返回引用值。
+$lambda/e <parent> <formals> <body> ：同 $lambda ，但支持显式指定的求值环境作为静态环境。
+$lambda/e% <parent> <formals> <body> ：同 $lambda/e ，但保留引用值。
 $sequence <expression-sequence> ：顺序求值。
 操作数非空时结果是最后的参数，可能是引用值。
 类似 Kernel 的同名操作。
@@ -5969,10 +5993,10 @@ $let <bindings> <body> ：局部绑定求值：创建以当前环境为父环境
 创建的环境同合并子的局部环境(@8.4.5) 。
 $let% <bindings> <body> ：同 $let ，但保留引用值。
 $let/e <parent> <bindings> <body> ：指定静态环境并局部绑定求值。
-类似 Kernel 的 $let-redirect ，但使用 $lambda/e(@11.4.3) 而不是 eval 和 $lambda 实现且支持 <parent> ，并返回非引用值。
+类似 Kernel 的 $let-redirect ，但使用 $lambda/e 而非 $lambda 作为抽象且支持 <parent> ，并返回非引用值。
 这允许传递引用值并保证环境的宿主值类型（包含所有权）被正确传递作为求值的父环境，而无需支持扩展 <parent> 中的环境为右值时其中的环境临时对象的生存期。
 注意此时 <parent> 中的环境中创建的环境对象在表达式求值后仍会因为 $lambda/e% 引入的合并子生存期结束而被销毁。
-$let/e% <parent> <bindings> <body> ：同 $let/e ，但使用 $lambda/e%(@11.4.3) 而不是 $lambda/e 实现，保留引用值。
+$let/e% <parent> <bindings> <body> ：同 $let/e ，但使用 $lambda/e% 而非 $lambda/e 抽象，保留引用值。
 $let* <bindings> <body> ：顺序局部绑定求值。
 同 $let ，但 <bindings> 中的被用于绑定的表达式从左到右顺序求值，被用于初始化变量的表达式在求值时可访问 <bindings> 中之前绑定的符号。
 类似 Kernel 的同名操作。
@@ -5991,6 +6015,26 @@ derive-environment <environment>... ：创建基础环境的派生环境：以�
 当前环境以外的父环境顺序同参数顺序。基础环境是最后一个父环境。
 创建的环境是标准环境，当且仅当没有实际参数。
 类似 make-standard-environment(@11.4.1) ，但具有参数指定的环境作为其它的父环境。
+$as-environment <body> ：求值表达式以构造环境。
+创建以动态环境为父环境的空环境，并在其中求值参数指定的表达式。
+结果是创建的环境强引用。
+$bindings/p->environment (<environment>...) <binding>... ：转换绑定列表为以指定的环境列表中的环境为父环境的具有这些绑定的环境。
+类似 Kernel 的 $binding->environment ，但指定父环境，且具有适当的所有权。
+使用 make-environment(@11.3.7) 而不是 $let/e(@11.4.1) 等绑定构造实现。
+$bindings->environment <binding>... ：转换绑定列表为没有父环境的具有这些绑定的环境。
+类似 Kernel 的同名操作，但因为要求对内部父环境环境所有权，使用 $binding/p->environment 而不是 $let/e 等绑定构造实现。
+symbols->imports! <symbol>... ：转换符号列表为未求值的适合初始化符号导入列表的初值符列表。
+结果是包含同 desigil(@11.3.6) 的方式移除标记字符(@9.2.2.4) 后的参数作为间接子项的列表。
+求值这个列表，结果是同 forward!(@11.4.1) 的方式转发每个符号的列表，其元素顺序和 <symbols>... 中的值的顺序对应。
+结果的结构和使用满足以下约定（可允许更有效的本机实现）：
+结果中可能存在合并子作为其子对象，其包装数(@9.9.5) 未指定；
+取结果中的子对象进行求值的行为未定义；
+若结果被修改（如被转移），再求值时行为未定义；
+若结果中的合并子在求值整个结果外的上下文被调用，行为未定义。
+类似 Kernel 的 $provide! 和 $import! 提供符号列表的方式，但有以下不同：
+支持移除引用标记字符；
+支持转发参数；
+不带有引用标记字符和符号指称的对象不是临时对象(@5.8.5) 的默认情形复制值而不是初始化引用。
 
 @11.4.2 标准派生特性(standard derived feature) ：
 同基本派生特性(@11.4.1) ，但其派生依赖标准库其它模块(@11) 。
@@ -6011,8 +6055,6 @@ $defw! <variable> <formals> <eformal> <body> ：绑定 wrap 的 vau 抽象，等
 $defw%! <variable> <formals> <eformal> <body> ：绑定 wrap 的 vau 抽象，等价 $def! <variable> wrap ($vau% <formals> <eformal> <body>) 。
 $defw/e! <variable> <parent> <formals> <eformal> <body> ：绑定 wrap 的指定静态环境的 vau 抽象，等价 $def! <variable> wrap ($vau/e <parent> <formals> <eformal> <body>) 。
 $defw/e%! <variable> <parent> <formals> <eformal> <body> ：绑定 wrap 的指定静态环境的 vau 抽象，等价 $def! <variable> wrap ($vau/e% <parent> <formals> <eformal> <body>) 。
-$lambda/e <parent> <formals> <body> ：同 $lambda ，但支持显式指定的求值环境作为静态环境。
-$lambda/e% <parent> <formals> <body> ：同 $lambda/e ，但保留引用值。
 $defl/e! <variable> <parent> <formals> <body> ：绑定指定静态环境的 λ 抽象，等价 $def! <variable> $lambda/e <parent> <formals> <body> 。
 $defl/e%! <variable> <parent> <formals> <body> ：绑定指定静态环境的 λ 抽象，等价 $def! <variable> $lambda/e% <parent> <formals> <body> 。
 box <object> 装箱：构造箱（类型为 <box> 的对象）。
@@ -6030,27 +6072,13 @@ assv <object> <lists> ：访问关联元素。
 否则，值为空列表。
 类似 Kernel 的 assoc ，但使用 eqv? 而不是 equal? ，且转发参数。
 和 Scheme 的 assv 类似，但失败的值不返回 #f ，尽管和 Kernel 相同而和 Scheme 不同，<test> 支持非布尔类型的值(@11.3.3) 。
-$bindings/p->environment (<environment>...) <binding>... ：转换绑定列表为以指定的环境列表中的环境为父环境的具有这些绑定的环境。
-类似 Kernel 的 $binding->environment ，但指定父环境，且具有适当的所有权。
-使用 make-environment(@11.3.7) 而不是 $let/e(@11.4.1) 等绑定构造实现。
-$as-environment <body> ：求值表达式构造环境。
-创建以动态环境为父环境的空环境，并在其中求值参数指定的表达式。
-结果是创建的环境强引用。
-$bindings->environment <binding>... ：转换绑定列表为没有父环境的具有这些绑定的环境。
-类似 Kernel 的同名操作，但因为要求对内部父环境环境所有权，使用 $binding/p->environment 而不是 $let/e 等绑定构造实现。
-symbols->imports! <symbol>... ：转换符号列表为未求值的适合初始化符号导入列表的初值符列表。
-结果是包含同 desigil(@11.3.6) 的方式移除标记字符(@9.2.2.4) 后的参数作为间接子项的列表。求值这个列表，结果是同 forward!(@11.4.1) 的方式转发每个符号的列表。
-类似 Kernel 的 $provide! 和 $import! 提供符号列表的方式，但有以下不同：
-支持移除引用标记字符；
-支持转发参数；
-不带有引用标记字符和符号指称的对象不是临时对象(@5.8.5) 的默认情形复制值而不是初始化引用。
 $provide/let! <symbols> <bindings> <body> ：在当前环境中提供绑定：蕴含 $let <bindings> <body> ，在求值 <body> 后以结果作为操作数绑定到 <symbols> 的符号。
 <symbols> 应能被作为 <definiend> 使用。
 结果是对这些绑定具有所有权的环境强引用。
 绑定后的符号可通过作为 vau 抽象的父环境(@9.9.3.5) 等形式依赖这个环境，因此用户需适当保存返回值使其生存期(@9.9.3.5) 覆盖在被使用的绑定符号指称的对象生存期。
 $provide! <symbols> <body> ：在当前环境中提供绑定：同 $provide/let! 但不指定单独的 <bindings> 。
 作用同 <bindings> 为空列表的 $provide/let! 。
-类似 Kernel 的同名操作，但结果是创建的环境的强引用，且以同 symbols->imports! 的方式确定初值符。
+类似 Kernel 的同名操作，但结果是创建的环境的强引用，且以同 symbols->imports!(@11.4.1) 的方式确定初值符。
 $import! <environment> <symbols> ：从第一参数指定的环境导入第二参数指定的符号。
 类似 Kernel 的同名操作，但以同 symbols->imports! 的方式确定初值符。
 $import&! <environment> <symbols> ：从第一参数指定的环境以引用绑定导入第二参数指定的符号。

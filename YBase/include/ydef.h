@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 语言实现和系统环境相关特性及公用类型和宏的基础定义。
-\version r3870
+\version r3934
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2021-02-23 23:21 +0800
+	2021-05-06 19:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -555,6 +555,7 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 
 /*!	\defgroup language_implementation_hints Language Implementation Hints
 \brief 语言实现的提供的附加提示。
+\warning 不附加检查实现。用户应验证可能使用的指令中的标识符在宏替换后能保持正确。
 \since build 837
 
 保证忽略时不导致运行时语义差异的提示，主要用于便于实现可能的优化。
@@ -563,7 +564,6 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 /*!
 \def YB_ATTR
 \brief GNU 风格属性。
-\warning 不检查指令。用户应验证可能使用的指令中的标识符在宏替换后能保持正确。
 \since build 373
 */
 #if YB_IMPL_GNUC >= 20500
@@ -573,25 +573,63 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 #endif
 
 /*!
+\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60503 。
+\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89640 。
+\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90333 。
+*/
+//@{
+/*!
 \def YB_ATTR_LAMBDA
 \brief 允许在 lambda 表达式的参数列表后使用的属性。
+\sa YB_ATTR_LAMBDA_PFX
 \sa YB_ATTR_LAMBDA_QUAL
-\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89640 。
+\see https://fedoraproject.org/wiki/Releases/30/ChangeSet 。
 \since build 860
 
 选择性启用 lambda 表达式的扩展属性。
 参见以下 YB_ATTR_LAMBDA_QUAL 的使用。
+一般地，从属 lambda 表达式的扩展属性，优先使用 YB_ATTR_LAMBDA_PFX ；
+为兼容性，同时可用 YB_ATTR_LAMBDA 最大化支持 YB_ATTR_LAMBDA_PFX 没有生效的情形。
+G++ 9.0 修复了 GCC PR 60503 ，但因为 PR 60503 的错误支持，不支持扩展属性。
+虽然 GCC 9.0 不是正式发布版本，但已有实际下游使用（如 Fedora 30 使用 GCC 9.0.1 ），
+	因此在此一并变通：忽略所有属性。
 */
-#if !(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 90000)
+#if !((YB_IMPL_GNUCPP >= 90000 && YB_IMPL_GNUCPP < 90400) \
+	|| (YB_IMPL_GNUCPP >= 100000 && YB_IMPL_GNUCPP < 100300))
 #	define YB_ATTR_LAMBDA(...) YB_ATTR(__VA_ARGS__)
 #else
 #	define YB_ATTR_LAMBDA(...)
 #endif
 
 /*!
+\def YB_ATTR_LAMBDA_PFX
+\brief 允许在 lambda 表达式的参数列表前使用的属性。
+\sa YB_ATTR_LAMBDA_QUAL
+\see WG21 P02173R0 。
+\see https://reviews.llvm.org/D95691 。
+\since build 918
+
+选择性启用 lambda 表达式在 lambda-introducer 后的扩展属性。
+此语法可以支持：
+<tt>[] [[]] () noexcept -> void{}</tt> 。
+<tt>[] __attribute__(()) () noexcept -> void{}</tt> 。
+配合其它宏的语法示例：
+<tt>[] YB_ATTR_STD() () ynothrow -> void{}</tt> 。
+<tt>[] YB_ATTR() () ynothrow -> void{}</tt> 。
+这也是唯一在 G++ 9.1 之后中插入从属 lambda 表达式（而非类型）的属性的方式。
+对 Clang++ ，仅在 C++2b 模式支持，且仅支持标准属性。暂不在 Clang++ 启用此语法。 
+另见以下 YB_ATTR_LAMBDA_QUAL 的使用。
+*/
+#if (YB_IMPL_GNUCPP >= 90300 && YB_IMPL_GNUCPP < 100000) \
+	|| YB_IMPL_GNUCPP >= 100100
+#	define YB_ATTR_LAMBDA_PFX(...) YB_ATTR(__VA_ARGS__)
+#else
+#	define YB_ATTR_LAMBDA_PFX(...)
+#endif
+
+/*!
 \def YB_ATTR_LAMBDA_QUAL
 \brief 允许在 lambda 表达式的参数列表后和限定符共用的属性。
-\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60503 。
 \since build 864
 
 在 lambda 表达式中可能同时支持标准属性、限定符和（不修饰返回类型的）扩展属性。
@@ -599,14 +637,16 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 <tt>[]() __attribute__(()) noexcept [[]] -> void{}</tt> 。
 配合其它宏的语法示例：
 <tt>[]() YB_ATTR() ynothrow YB_ATTR_STD() -> void{}</tt> 。
-Clang++ 9 正确支持这些属性，而 G++ 9 之前不支持，需要调换标准属性和限定符的顺序。
+Clang++ 9 正确支持这些属性。
+G++ 9 之前错误地实现了标准属性的顺序。GCC PR 60503 修复后仍存在其它问题。
+为兼容不同实现版本一致地支持标准属性，可能需要调换标准属性和限定符的顺序。
 G++ 9 之前可支持：
 <tt>[]() YB_ATTR() ynothrow -> void{}</tt> ；
 <tt>[]() YB_ATTR_STD() ynothrow -> void{}</tt> 。
 G++ 9.1 起可支持：
 <tt>[]() ynothrow YB_ATTR_STD() YB_ATTR(){}</tt> ；
 <tt>[]() ynothrow YB_ATTR_STD() -> void{}</tt> 。
-显式返回类型在此和 YB_ATTR() 冲突而不能同时使用。
+使用 G++ 9.1 后的一些版本时，显式返回类型在此可能和 YB_ATTR() 冲突而不能同时使用。
 作为变通，正确的 YB_ATTR 使用 YB_ATTR_LAMBDA 代替，此时，语法如以下之一：
 <tt>[]() YB_ATTR_LAMBDA_QUAL(ynothrow, YB_ATTR_LAMBDA()) -> void{}</tt> ；
 <tt>[]() YB_ATTR_LAMBDA_QUAL(ynothrow, YB_ATTR_STD()) -> void{}</tt> ；
@@ -616,15 +656,31 @@ G++ 9.1 起可支持：
 <tt>[]() YB_ATTR_STD() -> void{}</tt> ；
 <tt>[]() YB_ATTR(){}</tt> ；
 <tt>[]() YB_ATTR_STD(){}</tt> 。
-G++ 9.1 起，YB_ATTR_LAMBDA 中的 __attribute__ 暂不起效。
-注意，Clang++ 不支持标准属性 [[noreturn]] 修饰 lambda 表达式，
-	这类属性不能选择 YB_ATTR_STD 。
+使用 YB_ATTR_LAMBDA 同时也可对 G++ 9.0 不支持扩展属性进行变通。
+G++ 9.1 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
+考虑添加 YB_ATTR_LAMBDA_PFX 属性替代，以使这些属性被最大化地支持。
+注意，Clang++ 不支持从属 lambda 表达式的标准属性（如 [[noreturn]] ），
+	这类属性不论是否使用同 YB_ATTR_LAMBDA_PFX 的方式，不能选择 YB_ATTR_STD 。
+关于从属 lambda 表达式的标准属性，参见 YB_ATTR_LAMBDA_PFX 。
 */
-#if !(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 90100) && !YB_IMPL_CLANGPP
+#if !(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 90000) && !YB_IMPL_CLANGPP
 #	define YB_ATTR_LAMBDA_QUAL(_q, ...) _q __VA_ARGS__
 #else
 #	define YB_ATTR_LAMBDA_QUAL(_q, ...) __VA_ARGS__ _q
 #endif
+
+/*!
+\def YB_ANNOTATE_LAMBDA
+\brief 标注混合属性的 lambda 声明符。
+\sa YB_ATTR_LAMBDA
+\sa YB_ATTR_LAMBDA_PFX
+\sa YB_ATTR_LAMBDA_QUAL
+\since build 918
+*/
+#define YB_LAMBDA_ANNOTATE(_arglist, _q, ...) \
+	YB_ATTR_LAMBDA_PFX(__VA_ARGS__) _arglist \
+		YB_ATTR_LAMBDA_QUAL(_q, YB_ATTR_LAMBDA(__VA_ARGS__))
+//@}
 
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r7981
+\version r8042
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2021-04-19 19:40 +0800
+	2021-04-28 12:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,9 @@ namespace A1
 除非另行指定，操作子的参数被通过直接转移项的形式转发。
 在 NPLA1 规约函数约定的基础上，除非另行指定：
 	在异步实现中都要求下一项项和参数指定的项相同；
-	对上述约定可隐含使用间接的断言检查。
+	对上述约定可隐含使用间接的断言检查；
+	参数指定的被规约项是分支列表节点；
+	参数指定的被规约项的容器非空（对应枝节点）。
 */
 namespace Forms
 {
@@ -98,7 +100,7 @@ SymbolToString(const TokenValue&) ynothrow;
 
 
 /*!
-\pre 断言：项或容器对应枝节点。
+\pre 断言：参数指定的项是分支列表节点或项的容器非空（对应枝节点）。
 \sa AssertBranch
 */
 //@{
@@ -119,13 +121,14 @@ $retain|$retainN \<expression>
 #endif
 //! \brief 保留项：保留求值。
 inline PDefH(ReductionStatus, Retain, const TermNode& term) ynothrowv
-	ImplRet(AssertBranch(term), ReductionStatus::Retained)
+	ImplRet(AssertBranchedList(term), ReductionStatus::Regular)
 #if defined(NDEBUG) && YB_IMPL_GNUCPP >= 100000
 	YB_Diag_Pop
 #endif
 
 /*!
 \brief 保留经检查确保具有指定个数参数的项：保留求值。
+\pre 间接断言：参数指定的项是分支列表节点。
 \return 项的参数个数。
 \throw ArityMismatch 项的参数个数不等于第二参数。
 \sa FetchArgumentN
@@ -1163,6 +1166,32 @@ LambdaRef(TermNode&, ContextNode&);
 //@}
 
 /*!
+\brief 带环境的 λ 抽象：求值为一个捕获当前上下文的严格求值的函数。
+\since build 918
+
+捕获的静态环境由环境参数 \<parent> 求值后指定。
+*/
+//@{
+/*!
+按值传递返回值：提升项。
+
+参考调用文法：
+<pre>$lambda/e \<environment> \<formals> \<body></pre>
+*/
+YF_API ReductionStatus
+LambdaWithEnvironment(TermNode&, ContextNode&);
+
+/*!
+在返回时不提升项，允许返回引用。
+
+参考调用文法：
+<pre>$lambda/e% \<environment> \<formals> \<body></pre>
+*/
+YF_API ReductionStatus
+LambdaWithEnvironmentRef(TermNode&, ContextNode&);
+//@}
+
+/*!
 \note 动态环境的上下文参数被捕获为一个 lref<ContextNode> 对象。
 \note 初始化的 \<eformal> 表示动态环境的上下文参数，应为一个符号或 #ignore 。
 \note 引入的处理器的 operator() 支持保存当前动作。
@@ -1204,9 +1233,7 @@ VauRef(TermNode&, ContextNode&);
 \brief 带环境的 vau 抽象：求值为一个捕获当前上下文的非严格求值的函数。
 \sa ResolveEnvironment
 
-捕获的静态环境由环境参数 \<environment> 求值后指定。
-根据环境参数的类型为 \c shared_ptr<Environment> 或 \c weak_ptr<Environment>
-	决定是否保留所有权。
+捕获的静态环境由环境参数 \<parent> 求值后指定。
 */
 //@{
 /*!
@@ -1598,6 +1625,45 @@ LetRec(TermNode&, ContextNode&);
 YF_API ReductionStatus
 LetRecRef(TermNode&, ContextNode&);
 //@}
+//@}
+
+//! \since build 918
+//@{
+/*!
+\brief 求值表达式以构造环境。
+
+参考调用文法：
+<pre>$as-environment \<body></pre>
+*/
+YF_API ReductionStatus
+AsEnvironment(TermNode&, ContextNode&);
+
+/*!
+\brief 转换绑定列表为以指定的环境列表中的环境为父环境的具有这些绑定的环境。
+
+参考调用文法：
+<pre>$bindings/p->environment (\<environment>...) \<binding>...</pre>
+*/
+YF_API ReductionStatus
+BindingsWithParentToEnvironment(TermNode&, ContextNode&);
+
+/*!
+\brief 转换绑定列表为没有父环境的具有这些绑定的环境。
+
+参考调用文法：
+<pre>$bindings->environment \<binding>...</pre>
+*/
+YF_API ReductionStatus
+BindingsToEnvironment(TermNode&, ContextNode&);
+
+/*!
+\brief 转换符号列表为未求值的适合初始化符号导入列表的初值符列表。
+
+参考调用文法：
+<pre>symbols->imports! \<symbol>...</pre>
+*/
+YF_API ReductionStatus
+SymbolsToImports(TermNode&);
 //@}
 
 

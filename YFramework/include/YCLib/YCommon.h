@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018-2020 FrankHB.
+	© 2009-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3992
+\version r3995
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2020-12-12 09:56 +0800
+	2021-05-06 19:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -247,7 +247,7 @@ enum RecordLevel : std::uint8_t
 */
 //@{
 #define YCL_WrapCall_CAPI(_t, _fn, ...) \
-	[&](const char* sig_) YB_NONNULL(2){ \
+	[&] YB_LAMBDA_ANNOTATE((const char* sig_), , nonnull(2)){ \
 		const auto res_(_fn(__VA_ARGS__)); \
 	\
 		if(YB_UNLIKELY(res_ < decltype(res_)())) \
@@ -268,7 +268,7 @@ enum RecordLevel : std::uint8_t
 */
 //@{
 #define YCL_TraceWrapCall_CAPI(_fn, ...) \
-	[&](const char* sig_) YB_NONNULL(2){ \
+	[&] YB_LAMBDA_ANNOTATE((const char* sig_), , nonnull(2)){ \
 		const auto res_(_fn(__VA_ARGS__)); \
 	\
 		if(YB_UNLIKELY(res_ < decltype(res_)())) \

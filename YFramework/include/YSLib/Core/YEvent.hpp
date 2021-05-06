@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r6102
+\version r6104
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2021-02-06 22:40 +0800
+	2021-05-06 19:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,7 +84,7 @@ private:
 	struct GEquality
 	{
 		//! \since build 825
-		static_assert(ystdex::is_decayed<_fCallable>(), 
+		static_assert(ystdex::is_decayed<_fCallable>(),
 			"Decayed functor expected.");
 
 		/*!
@@ -123,7 +123,7 @@ private:
 			// NOTE: Blocked. Use ISO C++14 deduced lambda return type (cf. CWG
 			//	975) compatible to G++ attribute.
 			const auto get_ref(
-				[](const GHEvent& h) YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_PURE){
+				[] YB_LAMBDA_ANNOTATE((const GHEvent& h), ynothrowv, pure){
 				return std::ref(Deref(h.template target<ystdex::expanded_caller<
 					FuncType, _fCallable>>()).caller);
 			});

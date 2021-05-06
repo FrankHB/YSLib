@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2020 FrankHB.
+	© 2014-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r4357
+\version r4363
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2020-12-17 02:10 +0800
+	2021-05-06 19:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -546,7 +546,7 @@ RunNPLFromStream(const char* name, std::istream&& is)
 					}
 				}, std::placeholders::_1, ctx.GetCurrent().cbegin());
 				term = context.ReadFrom(is);
-				// XXX: Is it necessar to change the text color here?
+				// XXX: Is it necessary to change the text color here?
 				return A1::ReduceOnce(term, ctx);
 			}));
 		}
@@ -1073,8 +1073,8 @@ main(int argc, char* argv[])
 			return !ystdex::qualify(LogDisabled)[size_t(LastLogGroup)]
 				&& Logger::DefaultFilter(lv, l);
 		});
-		logger.SetSender([&](Logger::Level lv, Logger&, const char* str)
-			YB_NONNULL(4){
+		logger.SetSender([&] YB_LAMBDA_ANNOTATE(
+			(Logger::Level lv, Logger&, const char* str), , nonnull(4)){
 			const auto stream(lv <= Warning ? stderr : stdout);
 			auto& term_ref(lv <= Warning ? te_err : te);
 			const auto
@@ -1329,8 +1329,8 @@ main(int argc, char* argv[])
 			}
 		}
 	}, {}, Err, [](const std::exception& e, RecordLevel lv){
-		YSLib::ExtractException(
-			[lv](const char* str, size_t level) YB_NONNULL(2){
+		YSLib::ExtractException([lv] YB_LAMBDA_ANNOTATE((const char* str,
+			size_t level), , nonnull(2)){
 			const auto print([=](const std::string& s){
 				PrintInfo(std::string(level, ' ') + s, lv, LogGroup::General);
 			});

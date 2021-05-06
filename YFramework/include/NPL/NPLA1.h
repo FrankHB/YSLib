@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8631
+\version r8636
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2021-04-20 22:46 +0800
+	2021-04-27 22:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -658,8 +658,7 @@ ReduceToReferenceUList(TermNode&, TermNode&);
 \since build 896
 */
 inline PDefH(ReductionStatus, ReduceReturnUnspecified, TermNode& term) ynothrow
-	ImplRet((term.Value = ValueObject(std::allocator_arg, term.get_allocator(),
-		ValueToken::Unspecified)), ReductionStatus::Clean)
+	ImplRet(term.SetValue(ValueToken::Unspecified), ReductionStatus::Clean)
 
 
 /*!
@@ -1083,13 +1082,13 @@ RegisterStrict(_tTarget& target, string_view name, _tParams&&... args)
 
 /*!
 \brief 取项的参数个数：子项数减 1 。
-\pre 间接断言：参数指定的项是枝节点。
+\pre 间接断言：参数指定的项是分支列表节点。
 \return 项作为列表操作数被匹配的最大实际参数的个数。
 \since build 733
 */
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(size_t, FetchArgumentN, const TermNode& term) ynothrowv
-	ImplRet(AssertBranch(term), term.size() - 1)
+	ImplRet(AssertBranchedList(term), term.size() - 1)
 
 
 /*!
@@ -1407,7 +1406,7 @@ BindParameter(const shared_ptr<Environment>&, const TermNode&, TermNode&);
 
 同 BindParameter ，但假定形式参数树确保通过检查没有语法错误，否则行为未定义。
 实现假定不存在形式参数树具有引起语法错误的错误条件。
-通过先前在同一形式参数树上的 CheckParameter 调用可保证符合前置条件。
+通过先前在同一形式参数树上的 CheckParameterTree 调用可保证符合前置条件。
 若确保绑定不具有引起对象语言中可观察行为的副作用，先前的 BindParameter
 	或 BindParameterWellFormed 也可确保满足前置条件。
 */

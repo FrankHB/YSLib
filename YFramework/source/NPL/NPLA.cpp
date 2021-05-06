@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3559
+\version r3567
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2021-04-20 01:29 +0800
+	2021-05-06 19:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1185,8 +1185,8 @@ ContextNode::DefaultResolve(shared_ptr<Environment> p_env, string_view id)
 	Redirector cont;
 	// NOTE: Blocked. Use ISO C++14 deduced lambda return type (cf. CWG 975)
 	//	compatible to G++ attribute.
-	const auto p_obj(ystdex::retry_on_cond(
-		[&](Environment::NameResolution::first_type p) YB_FLATTEN
+	const auto p_obj(ystdex::retry_on_cond([&] YB_LAMBDA_ANNOTATE(
+		(Environment::NameResolution::first_type p), , flatten)
 	// XXX: This uses G++ extension to work around the compatible issue. See
 	//	also %YB_ATTR_LAMBDA_QUAL.
 #if !(YB_IMPL_GNUCPP >= 90000)
@@ -1198,7 +1198,8 @@ ContextNode::DefaultResolve(shared_ptr<Environment> p_env, string_view id)
 			lref<const ValueObject> cur(p_env->Parent);
 			shared_ptr<Environment> p_redirected{};
 
-			ystdex::retry_on_cond(ystdex::id<>(), [&]() YB_FLATTEN
+			ystdex::retry_on_cond(ystdex::id<>(),
+				[&] YB_LAMBDA_ANNOTATE((), , flatten)
 			// XXX: Ditto.
 #if !(YB_IMPL_GNUCPP >= 90000)
 				-> bool
@@ -1355,9 +1356,10 @@ ResolveEnvironment(TermNode& term)
 void
 TraceException(std::exception& e, YSLib::Logger& trace)
 {
-	YSLib::ExtractException([&](const char* str, size_t level) YB_NONNULL(2){
-		const auto print([&](RecordLevel lv, const char* name,
-			const char* msg) YB_ATTR_LAMBDA_QUAL(ynothrow, YB_NONNULL(3)){
+	YSLib::ExtractException(
+		[&] YB_LAMBDA_ANNOTATE((const char* str, size_t level), , nonnull(2)){
+		const auto print([&] YB_LAMBDA_ANNOTATE((RecordLevel lv,
+			const char* name, const char* msg), ynothrow, nonnull(3)){
 			// XXX: Similar to %YSLib::PrintMessage.
 			trace.TraceFormat(lv, "%*s%s<%u>: %s", int(level), "", name,
 				unsigned(lv), msg);

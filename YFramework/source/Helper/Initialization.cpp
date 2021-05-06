@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2020 FrankHB.
+	© 2009-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3946
+\version r3952
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2020-10-05 09:44 +0800
+	2021-05-06 19:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,7 @@
 #include <ystdex/string.hpp> // for ystdex::write_literal, ystdex::sfmt;
 #include <cerrno> // for errno;
 #include <ystdex/scope_guard.hpp> // for ystdex::swap_guard;
-#include YFM_YSLib_Core_YCoreUtilities // for FetchEnvironmentVariable;
+#include YFM_YSLib_Adaptor_YAdaptor // for FetchEnvironmentVariable;
 #include YFM_Helper_GUIApplication // for FetchAppInstance,
 //	Application::AddExit, FetchEnvironment;
 #include YFM_YSLib_Core_YException // for ExtractAndTrace;
@@ -275,7 +275,8 @@ inline PDefH(string, FetchSystemFontDirectory_Win32, )
 	//	%CSIDL_FONTS. See https://msdn.microsoft.com/en-us/library/dd378457.aspx.
 	ImplRet(platform_ex::WCSToUTF8(platform_ex::FetchWindowsPath()) + "Fonts\\")
 #elif YCL_Android
-#	define YF_Helper_Initialization_DataDirectory_ (FetchRootPathString() + "Data/")
+#	define YF_Helper_Initialization_DataDirectory_ \
+	(FetchRootPathString() + "Data/")
 #	define YF_Helper_Initialization_FontDirectory_ "/system/fonts/"
 #	define YF_Helper_Initialization_FontFile_ \
 	"/system/fonts/DroidSansFallback.ttf"
@@ -353,8 +354,8 @@ public:
 			else
 #	endif
 			{
-				CHRLib::cp113_lkp
-					= [](byte, byte) YB_ATTR_LAMBDA(noreturn) -> char16_t{
+				CHRLib::cp113_lkp = [] YB_LAMBDA_ANNOTATE(
+					(byte, byte), , noreturn) -> char16_t{
 					throw
 						LoggedEvent("Failed calling conversion for CHRMapEx.");
 				};

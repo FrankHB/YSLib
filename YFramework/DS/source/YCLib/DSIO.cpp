@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2020 FrankHB.
+	© 2015-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r4902
+\version r4944
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2020-10-16 21:23 +0800
+	2021-05-06 20:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2312,9 +2312,9 @@ op_file_locked(::_reent* r, void* fh, _fCallable f, _tParams&&... args)
 //	'newlib/libgloss/configure'.
 
 const ::devoptab_t dotab_fat{
-	"fat", sizeof(FileInfo), [](::_reent* r, void* file_struct,
-		const char* path, int flags, int)
-		YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_ATTR(nonnull(2, 3))){
+	"fat", sizeof(FileInfo), [] YB_LAMBDA_ANNOTATE((::_reent* r,
+		void* file_struct, const char* path, int flags, int), ynothrowv,
+		nonnull(2, 3)){
 		// NOTE: Before the call of %::devoptab_t::open_r, the parameter
 		//	%file_struct is set as a pointer after handling in implementation
 		//	of devkitPro port of newlib (libsysbase) %::_open_r, which is
@@ -2324,8 +2324,7 @@ const ::devoptab_t dotab_fat{
 
 			return int(file_struct);
 		});
-	}, [](::_reent* r, void* fh)
-		YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_NONNULL(2)){
+	}, [] YB_LAMBDA_ANNOTATE((::_reent* r, void* fh) , ynothrowv, nonnull(2)){
 		// NOTE: The parameter %fd is actually cast from the file structure
 		//	pointer stored by %devoptab_t::open_r. This function is called
 		//	when the reference count in the handle decreased to zero. Since this
@@ -2343,41 +2342,40 @@ const ::devoptab_t dotab_fat{
 
 			file.SyncToDisc();
 		});
-	}, [](::_reent* r, void* fh, const char* buf, size_t nbyte)
-		YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_ATTR(nonnull(2, 4))){
+	}, [] YB_LAMBDA_ANNOTATE((::_reent* r, void* fh, const char* buf,
+		size_t nbyte), ynothrowv, nonnull(2, 4)){
 		return op_file_checked(r, fh, &FileInfo::CanWrite, &FileInfo::Write,
 			buf, nbyte);
-	}, [](::_reent* r, void* fh, char* buf, size_t nbyte)
-		YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_ATTR(nonnull(2, 4))){
+	}, [] YB_LAMBDA_ANNOTATE((::_reent* r, void* fh, char* buf, size_t nbyte),
+		ynothrowv, nonnull(2, 4)){
 		return op_file_checked(r, fh, &FileInfo::CanRead, &FileInfo::Read, buf,
 			nbyte);
-	}, [](::_reent* r, void* fh, ::off_t offset, int whence)
-		YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_NONNULL(2)){
+	}, [] YB_LAMBDA_ANNOTATE((::_reent* r, void* fh, ::off_t offset,
+		int whence), ynothrowv, nonnull(2)){
 		return op_file_locked(r, fh, &FileInfo::Seek, offset, whence);
-	}, [](::_reent* r, void* fh, struct ::stat* buf)
-		YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_ATTR(nonnull(2, 4))){
+	}, [] YB_LAMBDA_ANNOTATE((::_reent* r, void* fh, struct ::stat* buf),
+		ynothrowv, nonnull(2, 4)){
 		return op_file_locked(r, fh, &FileInfo::Stat, Deref(buf));
-	}, [](::_reent* r, const char* path, struct ::stat* buf)
-		YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_ATTR(nonnull(2, 3, 4))){
+	}, [] YB_LAMBDA_ANNOTATE((::_reent* r, const char* path,
+		struct ::stat* buf), ynothrowv, nonnull(2, 3, 4)){
 		return op_path_locked(r, path, &Partition::Stat, Deref(buf), path);
-	}, [](::_reent* r, const char*, const char*)
-		YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_ATTR(nonnull(2, 3, 4))){
+	}, [] YB_LAMBDA_ANNOTATE((::_reent* r, const char*, const char*), ynothrowv,
+		nonnull(2, 3, 4)){
 		return seterr(r, ENOTSUP);
-	}, [](::_reent* r, const char* path)
-		YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_ATTR(nonnull(2, 3))){
+	}, [] YB_LAMBDA_ANNOTATE(
+		(::_reent* r, const char* path), ynothrowv, nonnull(2, 3)){
 		return op_path_locked(r, path, &Partition::Unlink, path);
-	}, [](::_reent* r, const char* path)
-		YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_ATTR(nonnull(2, 3))){
+	}, [] YB_LAMBDA_ANNOTATE(
+		(::_reent* r, const char* path), ynothrowv, nonnull(2, 3)){
 		return op_path_locked(r, path, &Partition::ChangeDir, path);
-	}, [](::_reent* r, const char* old, const char* new_name)
-		YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_ATTR(nonnull(2, 3, 4))){
+	}, [] YB_LAMBDA_ANNOTATE((::_reent* r, const char* old,
+		const char* new_name), ynothrowv, nonnull(2, 3, 4)){
 		return op_path_locked(r, old, &Partition::Rename, old, new_name);
-	}, [](::_reent* r, const char* path, int)
-		YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_ATTR(nonnull(2, 3))){
+	}, [] YB_LAMBDA_ANNOTATE(
+		(::_reent* r, const char* path, int), ynothrowv, nonnull(2, 3)){
 		return op_path_locked(r, path, &Partition::MakeDir, path);
-	}, sizeof(DirState),
-		[](::_reent* r, ::DIR_ITER* dir_state, const char* path)
-		YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_ATTR(nonnull(2, 3, 4))){
+	}, sizeof(DirState), [] YB_LAMBDA_ANNOTATE((::_reent* r,
+		::DIR_ITER* dir_state, const char* path), ynothrowv, nonnull(2, 3, 4)){
 		return op_path_locked(r, path, [=, &path](Partition& part)
 			-> ::DIR_ITER*{
 			const auto p(dir_state->dirStruct);
@@ -2385,30 +2383,29 @@ const ::devoptab_t dotab_fat{
 			::new(Nonnull(p)) DirState(part, path);
 			return static_cast<::DIR_ITER*>(p);
 		});
-	}, [](::_reent* r, ::DIR_ITER* dir_state)
-		YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_ATTR(nonnull(2, 3))){
+	}, [] YB_LAMBDA_ANNOTATE(
+		(::_reent* r, ::DIR_ITER* dir_state), ynothrowv, nonnull(2, 3)){
 		return op_dir_locked(r, dir_state, &DirState::Reset);
-	}, [](::_reent* r, ::DIR_ITER* dir_state, char* filename,
-		struct ::stat* filestat)
-		YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_ATTR(nonnull(2, 3, 4))){
+	}, [] YB_LAMBDA_ANNOTATE((::_reent* r, ::DIR_ITER* dir_state,
+		char* filename, struct ::stat* filestat), ynothrowv, nonnull(2, 3, 4)){
 		// NOTE: The filename is of %NAME_MAX characters in newlib DS port.
 		return
 			op_dir_locked(r, dir_state, &DirState::Iterate, filename, filestat);
-	}, [](::_reent* r, ::DIR_ITER* dir_state)
-		YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_ATTR(nonnull(2, 3))){
+	}, [] YB_LAMBDA_ANNOTATE(
+		(::_reent* r, ::DIR_ITER* dir_state), ynothrowv, nonnull(2, 3)){
 		return op_dir_locked(r, dir_state, [](DirState& state) ynothrow{
 			state.~DirState();
 		});
-	}, [](::_reent* r, const char* path, struct ::statvfs* buf)
-		YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_ATTR(nonnull(2, 3, 4))){
+	}, [] YB_LAMBDA_ANNOTATE((::_reent* r, const char* path,
+		struct ::statvfs* buf), ynothrowv, nonnull(2, 3, 4)){
 		return op_path_locked(r, path, &Partition::StatFS, Deref(buf));
-	}, [](::_reent* r, void* fh, ::off_t length)
-		YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_ATTR_LAMBDA(nonnull(2))) -> int{
+	}, [] YB_LAMBDA_ANNOTATE(
+		(::_reent* r, void* fh, ::off_t length), ynothrowv, nonnull(2)) -> int{
 		return length >= 0 ? (sizeof(length) <= 4 || length <= ::off_t(
 			MaxFileSize) ? op_file_checked(r, fh, &FileInfo::CanWrite,
 			&FileInfo::Truncate, std::uint32_t(length)) : EFBIG) : EINVAL;
-	}, [](::_reent* r, void* fh)
-		YB_ATTR_LAMBDA_QUAL(ynothrowv, YB_ATTR_LAMBDA(nonnull(2))) -> int{
+	}, [] YB_LAMBDA_ANNOTATE((::_reent* r, void* fh), ynothrowv, nonnull(2))
+		-> int{
 		return op_file_locked(r, fh, &FileInfo::SyncToDisc);
 	}, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr
 };
