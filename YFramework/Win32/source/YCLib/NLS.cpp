@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2018, 2020 FrankHB.
+	© 2014-2016, 2018, 2020-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief Win32 平台自然语言处理支持扩展接口。
-\version r360
+\version r371
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2013-11-25 17:33:25 +0800
 \par 修改时间:
-	2020-12-12 10:21 +0800
+	2021-05-18 01:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,8 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Platform
 #if YCL_Win32
+#	include <libdefect/exception.h> // for std::throw_with_nested;
+#	include <stdexcept> // for std::invalid_argument;
 #	include YFM_Win32_YCLib_NLS // for map, ystdex::trivially_copy_n,
 //	ystdex::try_emplace;
 #	include YFM_Win32_YCLib_Registry // for FetchRegistryString;
@@ -173,7 +175,14 @@ public:
 NLSTableEntry::NLSTableEntry(int cp)
 	// FIXME: Some NLS files are missing from SysWOW64 directory in some
 	//	versions of 64-bit Windows 10. There should be ways to detect it.
-	: mapped(WCSToMBCS(FetchSystemPath() + FetchCPFileNameFromRegistry(cp)))
+	: mapped([](const string& path){
+		TryRet(MappedFile(path))
+		// XXX: This would be caught by %TryInvoke in the call to
+		//	%FetchDBCSOffset.
+		CatchExpr(..., std::throw_with_nested(std::invalid_argument(
+			ystdex::sfmt("Failed initializing NLS table entry specified from"
+			" the path '%s'.", path.c_str()))))
+	}(WCSToMBCS(FetchSystemPath() + FetchCPFileNameFromRegistry(cp))))
 {
 	const auto base(reinterpret_cast<unsigned short*>(mapped.GetPtr()));
 	auto& header(*ystdex::aligned_cast<NLS_FILE_HEADER*>(base));

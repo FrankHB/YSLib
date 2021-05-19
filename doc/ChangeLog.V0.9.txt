@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r3941
+\version r4063
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-05-06 20:57 +0800
+	2021-05-19 23:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,129 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	+ "ensured exception thrown with clear messages carrying the information \
+		of the path for internal %MappedFile initialization failure"
+		^ "%std::(throw_with_nested, invalid_argument)"
+		$effective @ ("function %FetchDBCSOffset" @ 'YCLib_(Win32)'.NLS,
+		"function %A1::OpenFile" @ %NPL.Dependency) @ %YFramework,
+		// To make the message clear as loading of the character mapping and \
+			modules in shared input file streams in %Helper.Initialization. \
+			This also avoids confusion of errors in loading nested source \
+			files in NPLA1.
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ @ "namespace %Forms" @ %NPLA1Forms $=
+			(
+				+ $impl "workaround of 'noexcept' function"
+					@ 'YB_IMPL_GNUCPP && YB_HAS_NOEXCEPT \
+					&& __cplusplus >= 201703L'.
+					// This is needed with G++ when 'noexcept' has the effect \
+						on the function type since b918.
+				/ DLI "optimized layout of the extracted 1st binding"
+					@ "functions %(LetAsterisk, LetAsteriskRef)",
+				/ DLI @ "functions %(Let, LetRef, LetWithEnvironment, \
+					LetWithEnvironmentRef, LetRec, LetRecRef, LetAsterisk, \
+					LetAsteriskRef, BindingsWithParentToEnvironment)" $=
+				(
+					/ $design "strengthened internal assertions",
+					/ $design "reused arity check",
+					/ "adjusted subterm layout for faster body accesses",
+					- "thunked reducers" @ !'NPL_Impl_NPLA1_Enable_TCO'
+						// Anyway, the callers called in the enclosing \
+							function have the same thunks.
+				),
+				+ "common reducer name"
+					@ "functions %(SetWithNoRecursion, SetWithRecursion)",
+				* "wrong strong environment reference used as the parent"
+					@ ("functions %(Let, LetRef)" $since b915, "functions \
+					%(LetAsterisk, LetAsteriskRef, LetRec, LetRecRef)"
+					$since b917, "function %AsEnvironment" $since b918),
+				/ $revert_ex(b917) DLDI "simplified binding parameter and the \
+					frozen environment check" @ "functions %(DefineLazy, \
+					DefineWithNoRecursion, SetWithRecursion)",
+				+ "functions %(ProvideLet, Provide)"
+			),
+			/ @ %Dependency $=
+			(
+				/ @ "function %LoadModule_std_system" $=
+				(
+					* "wrong default allocator used" @ "applicatives \
+						('system-get', 'cmd-get-args')" $since b845,
+						// For some reasons, the bug is shown when the native \
+							implementation of '$provide-let!' is called in \
+							%SHBuild-BuildApp.txt in %Tools.Scripts. This has \
+							already had undefined behavior despite the case, \
+							anyway.
+					/ DLDI "simplified applicative 'system-get'"
+						!^ "%ystdex::swap_dependent",
+					/ DLI ^ "allocator" @ "applicative 'env-get'"
+				),
+				/ @ "function %LoadGroundContext" $=
+				(
+					/ $lib "added native implementation enabled by default"
+						@ ("operatives ('$provide-let!', '$provide!')"
+						^ $dep_from ("%(ProvideLet, Provide)" @ %NPLA1Forms)
+				)
+			),
+			/ DLI "renamed reducer name for continuation without direct \
+				evaluations" @ 'NPL_Impl_NPLA1_Enable_Thunked \
+				&& !NPL_Impl_NPLA1_Enable_TCO' $effecitve @ %(NPLA1, NPLA1Forms)
+		),
+		(
+		+ ("class %CommandArguments",
+			"function %FetchNativeDynamicModuleExtension") @ %YCLib.YCommon;
+		+ "aliases %YSLib::(CommandArguments, \
+			IO::FetchNativeDynamicModuleExtension)" @ %YSLib.Adaptor.YAdaptor
+		),
+		/ @ "class %ArgumentsVector" @ %YSLib.Core.YCoreUtilities $=
+		(
+			+ "constructors",
+			/ $lib "type" @ "member %Arguments"
+				-> $dep_from ("%CommandArguments" @ %Adaptor.YAdaptor),
+			+ "2 functions %Reset"
+				^ $dep_from ("%CommandArguments" @ %Adaptor.YAdaptor)
+		),
+		/ $dev $lib "enabled explicit debug container support"
+			@ '!defined(NDEBUG) && __GLIBCXX__' @ %YCLib.Container
+			// See $2021-05 @ %Documentation::Workflow.
+	),
+	/ %Tools.SHBuild.Main $=
+	(
+		* "useless argument to %std::throw_with_nested on failure in calling a \
+			command" $since b659
+			// This logically made no sense as all nested excetpion would be \
+				cast to %std::excetpion carrying no exception message (at \
+				least in the sense of ISO C++, without extensions like that in \
+				Microsoft VC++).
+			$= (/ $impl ^ "%std::runtime_error"),
+		(
+		/ DLDI "simplified platform-specific operations" ^ $dep_from
+			("%YSLib::(FetchCommandArguments, \
+			IO::FetchNativeDynamicModuleExtension)" @ %YSLib.Adaptor.YAdaptor)
+			~ ("%platform_ex::ParseCommandArguments", 'YCL_Win32');
+		/ $comp "support extension for platform %'OS X'"
+		)
+	),
+	/ DLDI ^ "accesses based on allocated buffer pointer with more assertions"
+		@ "%new_delete_resource" @ !'YB_Impl_aligned_new'
+		@ 'YB_Has_memory_resource != 1' @ %YBase.YStandardEx.MemoryResource,
+		// To eliminate G++ 11.1 warning: [-Wplacement-new=]. This seems a \
+			false positive without the change because the pointer is actually \
+			derived from a valid allocated buffer, just G++ misses the size \
+			(it would treat the size from 'void*' as '0') via the access. See \
+			also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70834.
+	- $revert_ex(b564) $re_ex(b456) DLB "%_GLIBCXX_DEBUG" @ "source of the \
+		compiler options" $effective @ ("%(SHBuild-YSLib-common.txt, \
+		SHBuild-common-options.sh, Toolchain.options.mk)" @ %Scripts,
+		%ProjectGenerator.Main) @ %Tools
+		// See $2021-05 @ %Documentation::Workflow. Note the Code::Blocks \
+			projects are not regenerated at this time.
+),
+
+b918
 (
 	/ %YFramework $=
 	(

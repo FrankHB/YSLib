@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8042
+\version r8058
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2021-04-28 12:02 +0800
+	2021-05-13 21:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1665,6 +1665,26 @@ BindingsToEnvironment(TermNode&, ContextNode&);
 YF_API ReductionStatus
 SymbolsToImports(TermNode&);
 //@}
+
+/*!
+\brief 指定局部绑定后在当前环境中提供绑定。
+\since build 919
+
+参考调用文法：
+<pre>$provide/let! \<symbols> \<bindings> \<body></pre>
+*/
+YF_API ReductionStatus
+ProvideLet(TermNode&, ContextNode&);
+
+/*!
+\brief 在当前环境中提供绑定。
+\since build 919
+
+参考调用文法：
+<pre>$provide! \<symbols> \<body></pre>
+*/
+YF_API ReductionStatus
+Provide(TermNode&, ContextNode&);
 
 
 /*!

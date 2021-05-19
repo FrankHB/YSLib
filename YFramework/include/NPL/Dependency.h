@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2020 FrankHB.
+	© 2015-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r390
+\version r396
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2020-09-30 12:01 +0800
+	2021-05-18 01:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -147,6 +147,7 @@ namespace A1
 
 /*!
 \brief 打开指定路径的文件作为 NPL 输入流。
+\throw 嵌套异常：文件打开失败。
 \note 编码假定为 UTF-8 。允许可选的 BOM 。以共享只读方式打开。
 \since build 839
 */
@@ -164,7 +165,6 @@ OpenUnique(REPLContext&, string);
 \brief 在 REPL 上下文中加载指定名称的外部翻译单元。
 \note 使用跳板，不直接改变上下文中的续延。
 \sa Reduce
-\since build 899
 */
 YB_NONNULL(2) YF_API void
 PreloadExternal(REPLContext&, const char*);
@@ -173,6 +173,8 @@ PreloadExternal(REPLContext&, const char*);
 //@{
 /*!
 \brief 规约加载外部翻译单元。
+\pre 要求同命名空间 Forms 中的规约函数。
+\sa Forms
 \sa OpenUnique
 */
 YF_API ReductionStatus
@@ -180,6 +182,7 @@ ReduceToLoadExternal(TermNode&, ContextNode&, REPLContext&);
 
 /*!
 \brief 异步规约加载外部翻译单元。
+\note 这个函数可用于实现外部的复合加载操作。
 \sa ReduceToLoadExternal
 */
 YF_API ReductionStatus

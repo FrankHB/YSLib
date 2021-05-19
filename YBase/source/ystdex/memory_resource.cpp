@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1503
+\version r1509
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2021-05-06 19:14 +0800
+	2021-05-18 12:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,11 +100,15 @@ new_delete_resource() ynothrow
 				if(std::align(alignment, bytes, p, space))
 				{
 					yassume(p);
+					yassume(static_cast<byte*>(p) >= ptr.get());
 
-					const auto p_hdr(
-						::new(static_cast<byte*>(p) - offset_n_t::value) hdr_t);
+					const auto off(size_t(static_cast<byte*>(p) - ptr.get()));
 
-					p_hdr->p_block = ptr.get();
+					yassume(off >= offset_n_t::value);
+
+					// XXX: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70834.
+					(::new(&ptr[off - offset_n_t::value]) hdr_t)->p_block
+						= ptr.get();
 					ptr.release();
 					return p;
 				}

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2020 FrankHB.
+	© 2010-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2450
+\version r2455
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2020-12-12 10:13 +0800
+	2021-05-18 02:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -235,6 +235,10 @@ using platform::FetchCommonLogger;
 //@{
 //! \since build 148
 using platform::terminate;
+
+//! \since build 919
+using platform::CommandArguments;
+
 //! \since build 837
 using platform::uspawn;
 //! \since build 547
@@ -382,6 +386,9 @@ using platform::FetchRootPathLength;
 //! \since build 707
 using platform::TrimTrailingSeperator;
 //@}
+
+//! \since build 919
+using platform::FetchNativeDynamicModuleExtension;
 
 } // namespace IO;
 

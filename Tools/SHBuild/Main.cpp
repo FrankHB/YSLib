@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r4363
+\version r4385
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2021-05-06 19:12 +0800
+	2021-05-18 02:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,8 @@ See readme file for details.
 //	YSLib::string_view, YSLib::to_pmr_string, YSLib::to_string, YSLib::Debug,
 //	YSLib::Informative, YSLib::Err, namespace std::placeholders,
 //	std::initializer_list, std::invalid_argument, YSLib::uspawn,
-//	YSLib::ifstream, YSLib::uremove, YSLib::istringstream;
+//	YSLib::ifstream, IO::FetchNativeDynamicModuleExtension, YSLib::uremove,
+//	YSLib::CommandArguments, YSLib::istringstream;
 #include YFM_YSLib_Core_YFunc // for YSLib::function;
 #include YFM_YSLib_Service_FileSystem // for namespace YSLib::IO, IO::Path;
 #include YFM_YSLib_Core_YString // for YSLib::String, ystdex::raise_exception,
@@ -54,9 +55,6 @@ See readme file for details.
 #include <iostream> // for std::cout, std::endl;
 #include YFM_YSLib_Core_YConsole // for YSLib::Consoles;
 #include <ratio> // for std::milli;
-#if YCL_Win32
-#	include YFM_Win32_YCLib_MinGW32 // for platform_ex::ParseCommandArguments;
-#endif
 #include <sstream> // for complete istringstream;
 #if SHBuild_NoBacktrace
 #	define SHBuild_UseBacktrace false
@@ -938,12 +936,7 @@ BuildContext::Build()
 				// TODO: Support cross compiling.
 				target += ystdex::exists_substr(LDFLAGS, "-Bdynamic")
 					|| ystdex::exists_substr(LDFLAGS, "-shared")
-#if YCL_Win32
-					? ".dll"
-#else
-					? ".so"
-#endif
-					: ".exe";
+					? IO::FetchNativeDynamicModuleExtension() : ".exe";
 			if(CheckBuild(ofiles, target))
 			{
 				auto str(cmd + ' ' + quote(target));
@@ -1099,15 +1092,8 @@ main(int argc, char* argv[])
 			std::fputc('\n', stream);
 		});
 
-#if YCL_Win32
-			yunused(argc), yunused(argv);
-
-			auto xargv(platform_ex::ParseCommandArguments());
-			const auto xargc(xargv.size());
-#else
-			const auto xargc(static_cast<size_t>(argc));
-			const auto xargv(argv);
-#endif
+		const auto xargv(YSLib::CommandArguments(argc, argv));
+		const auto xargc(xargv.size());
 
 		if(xargc > 1)
 		{
@@ -1207,8 +1193,9 @@ main(int argc, char* argv[])
 							" command name '%s' is not supported.",
 							RequestedCommand.c_str()));
 				}
-				CatchExpr(std::exception& e,
-					std::throw_with_nested(std::move(e)))
+				CatchExpr(..., std::throw_with_nested(std::runtime_error(
+					ystdex::sfmt("Failure in calling command '%s'.",
+					RequestedCommand.c_str()))))
 			}
 			else
 			{

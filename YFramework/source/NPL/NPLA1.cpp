@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r20802
+\version r20804
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2021-05-06 19:44 +0800
+	2021-05-12 21:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -247,7 +247,7 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 		ystdex::dismiss(g);
 		// NOTE: Captured argument pack is only needed when %h actually shares.
 		return RegularizeTerm(term, ctx.LastStatus);
-	}, std::move(gd), std::move(args)...), "eval-combine-return"));
+	}, std::move(gd), std::move(args)...), "combine-return"));
 	return RelaySwitched(ctx, Continuation(std::ref(h), ctx));
 #	else
 	const auto res(RegularizeTerm(term, h(term, ctx)));
@@ -1244,7 +1244,7 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 		ReduceChildrenOrdered), ctx), A1::NameTypedReducerHandler([&]{
 		ReduceOrderedResult(term);
 		return ReductionStatus::Regular;
-	}, "eval-sequence-return"));
+	}, "sequence-return"));
 #	endif
 #else
 	const auto res(ReduceChildrenOrdered(term, ctx));

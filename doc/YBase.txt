@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2019 FrankHB.
+	© 2012-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r1583
+\version r1594
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2020-07-25 15:54 +0800
+	2021-05-18 01:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -114,7 +114,7 @@ http://lists.llvm.org/pipermail/cfe-commits/Week-of-Mon-20130708/083439.html
 @2.1.1.3 扩展属性：
 使用扩展属性（以宏 YDefinition 定义的 YB_ATTR 的形式调用）时若不支持，应被忽略。其中的标识符应保证不被替换，清单参见 [Documentation::Definitions] 中的 $attr 列表。
 允许使用去除后不影响语义正确性和可观察行为的扩展。
-除以上或另行指定（参见 @2.4 、 @2.5 和 @2.6），不使用不向后兼容 ISO C++11 或更新版本的语言特性，或依赖特定平台实现的接口。
+除以上或另行指定（参见 @2.4 、@2.5 和 @2.6），不使用不向后兼容 ISO C++11 或更新版本的语言特性，或依赖特定平台实现的接口。
 
 @2.1.1.4 向后兼容特性约定：
 除非文档另行指定，不论实际使用何种实现模式，使用以下能在指定情形下和较新版本 ISO C++ 兼容特性的约定。
@@ -161,7 +161,7 @@ YBase 不使用 [Documentation::LanguageConvention @@5.12.2.3.1] 的右值的例
 
 @2.2 文件依赖性：
 以下为基本代码依赖性规则按（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
-子项目满足线性顺序依赖([Documentation::ProjectRules @@1.1.1]) ：依次为 ydef.h(@2.4) 、 LibDefect 、 YStandardEx 和 YTest 。
+子项目满足线性顺序依赖([Documentation::ProjectRules @@1.1.1]) ：依次为 ydef.h(@2.4) 、LibDefect 、YStandardEx 和 YTest 。
 ydef.h 仅依赖标准库头。
 LibDefect 不包含头文件或仅包含标准库头。
 YBase 依赖且仅依赖 YBase 文件和标准库头。
@@ -185,7 +185,7 @@ YBase 对这些宏的检查和补充定义遵循在引入标准库头的头文�
 
 @2.3 名称：
 对模块，基本使用参见 [Documentation::ProjectRules @@3.2] 。
-对语言支持的命名空间，基本使用参见 [Documentation::ProjectRules @@3.5] 、 [Documentation::LanguageConvention @@6.1.1] 。
+对语言支持的命名空间，基本使用参见 [Documentation::ProjectRules @@3.5] 、[Documentation::LanguageConvention @@6.1.1] 。
 代码中限定名称的语用参见 [Documentation::Designation @@6.2.3] 。
 
 @2.3.1 标识符限制：
@@ -271,15 +271,16 @@ YStandardEx 及其实现保持兼容 ISO C++11 。
 
 @2.5.1.2 头文件依赖性：
 因标准库头及其中被 YStandard 替换特性与 YStandardEx 对应头文件和 API 的对应关系，以下依赖性作为接口公开：
-"type_traits.hpp" 依赖 "type_inspection.hpp" 、 "integral_constant.hpp" 、 "invoke.hpp" 和  "swap.hpp" ；
+"exception.h" 依赖 <libdefect/exception.h> 、<stdexcept> 和 <system_error> ；
+"type_traits.hpp" 依赖 "type_inspection.hpp" 、"integral_constant.hpp" 、"invoke.hpp" 和  "swap.hpp" ；
 "ref.hpp" 依赖 "addressof.hpp" 和 "invoke.hpp" ；
 "utility.hpp" 依赖 "swap.hpp" ；
 "tuple.hpp" 依赖 "apply.hpp" ；
 "iterator_op.hpp" 依赖 "range.hpp" 和 "deref_op.hpp" ；
 "iterator.hpp" 依赖 "iterator_op.hpp" ；
 "memory.hpp" 依赖 "pointer.hpp" ；
-"functional.hpp" 依赖 "functor.hpp" 、 "function.hpp" 和 "swap.hpp" ；
-"string.hpp" 、 "string_view" 、 "map.hpp" 和 "set.hpp" 依赖 "range.hpp" 。
+"functional.hpp" 依赖 "functor.hpp" 、"function.hpp" 和 "swap.hpp" ；
+"string.hpp" 、"string_view" 、"map.hpp" 和 "set.hpp" 依赖 "range.hpp" 。
 因其它接口设计原因，以下依赖性作为接口公开：
 "meta.hpp" 依赖 "type_inspection.hpp" 和 "integral_constant.hpp" ；
 "variadic.hpp" 和 "invoke.hpp" 依赖 "meta.hpp" ；
@@ -297,7 +298,7 @@ YStandardEx 及其实现保持兼容 ISO C++11 。
 "string.hpp" 依赖 "container.hpp" ；
 "map.hpp" 和 "set.hpp" 依赖 "tree.hpp" ；
 "list.hpp" 依赖 "node_base.h" 。
-另见 @2.5.4 、 @2.5.5 、 @2.5.6 和 @2.5.7 。
+另见 @2.5.4 、@2.5.5 、@2.5.6 和 @2.5.7 。
 
 @2.5.1.2 内部头文件依赖性：
 在满足 @2.5.1.1 的基础上，当前实现保持以下内部依赖供实现参考（不在 @2.5.1.1 中要求的标记为内部依赖），可简化头文件包含和避免循环引用：
@@ -322,7 +323,7 @@ YStandardEx 及其实现保持兼容 ISO C++11 。
 "tuple.hpp" 依赖 "apply.hpp" ；
 "hash.hpp" 和 "mixin.hpp" 依赖 "tuple.hpp" ；
 "function.hpp" 内部依赖 "type_op.hpp" ；
-"functional.hpp" 依赖 "functor.hpp" 、 "function.hpp" 和 "swap.hpp" ；
+"functional.hpp" 依赖 "functor.hpp" 、"function.hpp" 和 "swap.hpp" ；
 "any.h" 内部依赖 "typeinfo.h" 和 "utility.hpp" ；
 "any_iterator.hpp" 依赖 "any.h" ；
 "typeindex.h" 依赖 "typeinfo.h" ；
@@ -451,7 +452,7 @@ ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证�
 头文件间接扩展标准库头 <cstdint> ，提供一些类型操作和一些整数类型的模板特化以及模算术的基本支持。
 
 @2.5.6.2 标准库异常扩展接口 Exception ：
-扩展标准库头 <exception> 、 <stdexcept> 和 <system_error> ，提供便利接口和若干异常基类。
+扩展标准库头 <exception> 、<stdexcept> 和 <system_error> ，提供便利接口和若干异常基类。
 
 @2.5.6.3 ISO C++ 类型信息扩展 TypeInfo ：
 头文件扩展标准库头 <typeinfo> ，提供了无 RTTI 开销的静态类型信息类和兼容接口。

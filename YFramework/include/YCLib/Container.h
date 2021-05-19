@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018-2020 FrankHB.
+	© 2010-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Container.h
 \ingroup YCLib
 \brief 容器、拟容器和适配器。
-\version r1148
+\version r1175
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2020-12-12 09:58 +0800
+	2021-05-19 22:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,6 +48,15 @@
 #include <unordered_map>
 #include <queue>
 #include <stack>
+#if !defined(NDEBUG) && __GLIBCXX__
+#include <debug/deque>
+#include <debug/forward_list>
+#include <debug/vector>
+#include <debug/map>
+#include <debug/set>
+#include <debug/unordered_set>
+#include <debug/unordered_map>
+#endif
 #include <ystdex/allocator.hpp> // for ystdex::make_obj_using_allocator;
 #include <iosfwd> // for std::basic_istringstream, std::basic_ostringstream,
 //	std::basic_stringstream;
@@ -87,20 +96,28 @@ using ystdex::size;
 inline namespace containers
 {
 
+#if !defined(NDEBUG) && __GLIBCXX__
+namespace yimpl(stdd) = __gnu_debug;
+#else
+namespace yimpl(stdd) = std;
+#endif
+
+// XXX: The class template %__gnu_debug::array has been removed since GCC 11.
+//	See https://gcc.gnu.org/git/?p=gcc.git;h=6db082477ad839438c4b54fc61083276c68d47ec.
 using std::array;
 //! \since build 843
 //@{
 template<typename _type, class _tAlloc = pmr::polymorphic_allocator<_type>>
-using deque = std::deque<_type, _tAlloc>;
+using deque = stdd::deque<_type, _tAlloc>;
 
 template<typename _type, class _tAlloc = pmr::polymorphic_allocator<_type>>
-using forward_list = std::forward_list<_type, _tAlloc>;
+using forward_list = stdd::forward_list<_type, _tAlloc>;
 
 template<typename _type, class _tAlloc = pmr::polymorphic_allocator<_type>>
 using list = ystdex::list<_type, _tAlloc>;
 
 template<typename _type, class _tAlloc = pmr::polymorphic_allocator<_type>>
-using vector = std::vector<_type, _tAlloc>;
+using vector = stdd::vector<_type, _tAlloc>;
 
 
 // NOTE: Since ISO C++17 node extraction of standard containers is not otherwise
@@ -116,39 +133,39 @@ using map = ystdex::map<_tKey, _tMapped, _fComp, _tAlloc>;
 template<typename _tKey, typename _tMapped, typename _fComp
 	= ystdex::less<_tKey>, class _tAlloc
 	= pmr::polymorphic_allocator<std::pair<const _tKey, _tMapped>>>
-using multimap = std::multimap<_tKey, _tMapped, _fComp, _tAlloc>;
+using multimap = stdd::multimap<_tKey, _tMapped, _fComp, _tAlloc>;
 
 template<typename _tKey, typename _fComp = ystdex::less<_tKey>,
 	class _tAlloc = pmr::polymorphic_allocator<_tKey>>
-using multiset = std::multiset<_tKey, _fComp, _tAlloc>;
+using multiset = stdd::multiset<_tKey, _fComp, _tAlloc>;
 
 template<typename _tKey, typename _fComp = ystdex::less<_tKey>,
 	class _tAlloc = pmr::polymorphic_allocator<_tKey>>
-using set = std::set<_tKey, _fComp, _tAlloc>;
+using set = stdd::set<_tKey, _fComp, _tAlloc>;
 
 
 template<typename _tKey, typename _tMapped, typename _fHash = std::hash<_tKey>,
 	typename _fEqual = ystdex::equal_to<_tKey>, class _tAlloc
 	= pmr::polymorphic_allocator<std::pair<const _tKey, _tMapped>>>
 using unordered_map
-	= std::unordered_map<_tKey, _tMapped, _fHash, _fEqual, _tAlloc>;
+	= stdd::unordered_map<_tKey, _tMapped, _fHash, _fEqual, _tAlloc>;
 
 template<typename _tKey, typename _tMapped, typename _fHash = std::hash<_tKey>,
 	typename _fEqual = ystdex::equal_to<_tKey>, class _tAlloc
 	= pmr::polymorphic_allocator<std::pair<const _tKey, _tMapped>>>
 using unordered_multimap
-	= std::unordered_multimap<_tKey, _tMapped, _fHash, _fEqual, _tAlloc>;
+	= stdd::unordered_multimap<_tKey, _tMapped, _fHash, _fEqual, _tAlloc>;
 
 template<typename _tKey, typename _fHash = std::hash<_tKey>,
 	typename _fEqual = ystdex::equal_to<_tKey>,
 	class _tAlloc = pmr::polymorphic_allocator<_tKey>>
 using unordered_multiset
-	= std::unordered_multiset<_tKey, _fHash, _fEqual, _tAlloc>;
+	= stdd::unordered_multiset<_tKey, _fHash, _fEqual, _tAlloc>;
 
 template<typename _tKey, typename _fHash = std::hash<_tKey>,
 	typename _fEqual = ystdex::equal_to<_tKey>,
 	class _tAlloc = pmr::polymorphic_allocator<_tKey>>
-using unordered_set = std::unordered_set<_tKey, _fHash, _fEqual, _tAlloc>;
+using unordered_set = stdd::unordered_set<_tKey, _fHash, _fEqual, _tAlloc>;
 
 template<typename _type, class _tSeqCon = deque<_type>>
 using stack = std::stack<_type, _tSeqCon>;

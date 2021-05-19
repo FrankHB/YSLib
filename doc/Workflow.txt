@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4306
+\version r4323
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2021-04-10 08:51 +0800
+	2021-05-19 22:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -221,14 +221,14 @@ libmagic(https://github.com/glensc/file): rejected.
 $2013-11:
 
 report.impl:
-Marco '_GLIBCXX_DEBUG' should be removed as default, even in debug configuration.
+Marco '_GLIBCXX_DEBUG' should be removed as default, even in debug configurations.
 	The standard libray debugging interface introduced by macro '_GLIBCXX_DEBUG' of libstdc++ may be incompatible with libraries not built with this macro.
 	Though YSLib libraries are built with debug-aware configuration, currently the dependent libraries are not.
 	This particularly has effect on libFreeImage.a, which uses containers of C++ standard library internally. The instantialized template class across libraries are not the same, and not guaranteed to be binary compatible.
 		This would cause some functions of YSLib::Adaptor::Image go wrong.
 	Alternatively, if the debug interface of libstdc++ is needed, namespace 'std::__debug' can be explicitly used.
 	Removed such debug interface can also lead to smaller binaries and a little more runtime performance for debug configurations.
-The bug of 'bool = {}' is same to Microsoft VC++ 2013 as Clang++ 3.4(see $2013-10 report.impl).
+The bug of 'bool = {}' is same to Microsoft VC++ 2013 as Clang++ 3.4 (see $2013-10 report.impl).
 ISO required 'std::FILE*' as an object type. Different to C++, (possible cv-qualified) void is object type.
 	There exists actual C implementation with cv-void as 'std::FILE*'. For example, in the standard header from the CeGCC project it is 'void'.
 Notes for disabling some Microsoft VC++ warning:
@@ -4267,6 +4267,23 @@ Several list operations of NPLA1 have been optimized with subtle semantic change
 		That is, the initial copy of the list parameter is avoided.
 		This is done by using '@' sigil for list element accesses in the derivations.
 		This also requires changes in the native implementations to keep them equivalent to the derivations.
+
+$2021-05:
+
+report.impl:
+The predefined macro '_GLIBCXX_DEBUG' is now removed from the compiler options.
+	This makes the binary images has more ABI stability by default.
+	It makes the library easier to be reuxed with other libraries having no such flags which exports %std containers in the public API, e.g. LLVM libraries in the %Release mode.
+	This was actually once done before. See $2013-11 report.impl.
+		This is more or less for the same reason, except that libFreeImage.a is irrelavent as the C++ interface is never used.
+		The macro is re-enabled since build 564.
+			For performance reasons, this was enabled only for some of platforms.
+			Given that the libraries of debug and release configuration are built separatedly, this was acceptable.
+	Instead, the libstdc++ debug containers are used when available in the debug modes in YFramework module YCLib::Container.
+		This is is more fine-grined.
+		However, the 'basic_string' template now does not enables this support, as it is from 'ystdex::basic_string' in YBase.
+			Whether 'ystdex::basic_string' is 'std::basic_string' is unspecified. So, it still can be affected by '_GLIBCXX_DEBUG' (in a non-default configuration).
+	See also https://gcc.gnu.org/onlinedocs/libstdc++/manual/debug_mode_using.html#debug_mode.using.mode.
 
 ////
 

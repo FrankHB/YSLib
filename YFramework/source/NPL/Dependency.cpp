@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r4817
+\version r4835
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2021-05-06 19:39 +0800
+	2021-05-17 12:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,8 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_Dependency // for set, string, UnescapeContext, string_view,
-//	ystdex::isspace, std::istream, YSLib::unique_ptr, YSLib::share_move,
+//	ystdex::isspace, std::istream, YSLib::unique_ptr, std::throw_with_nested,
+//	std::invalid_argument, ystdex::sfmt, YSLib::share_move,
 //	A1::NameTypedReducerHandler, std::ref, RelaySwitched, NPL::Deref,
 //	NPL::ResolveRegular, A1::ReduceOnce, ResolvedTermReferencePtr,
 //	Forms::CallResolvedUnary, NPL::AllocateEnvironment, function, ValueObject,
@@ -236,9 +237,11 @@ namespace A1
 YSLib::unique_ptr<std::istream>
 OpenFile(const char* filename)
 {
-	return YSLib::Text::OpenSkippedBOMtream<
+	TryRet(YSLib::Text::OpenSkippedBOMtream<
 		YSLib::IO::SharedInputMappedFileStream>(YSLib::Text::BOM_UTF_8,
-		filename);
+		filename))
+	CatchExpr(..., std::throw_with_nested(std::invalid_argument(
+		ystdex::sfmt("Failed opening file '%s'.", filename))))
 }
 
 YSLib::unique_ptr<std::istream>
@@ -819,6 +822,8 @@ LoadBasicDerived(REPLContext& context)
 		BindingsWithParentToEnvironment);
 	RegisterForm(renv, "$bindings->environment", BindingsToEnvironment);
 	RegisterStrict(renv, "symbols->imports", SymbolsToImports);
+	RegisterForm(renv, "$provide/let!", ProvideLet);
+	RegisterForm(renv, "$provide!", Provide);
 #else
 	context.ShareCurrentSource("<root:basic-derived>");
 	context.Perform(
@@ -1147,6 +1152,12 @@ LoadBasicDerived(REPLContext& context)
 		$defl! symbols->imports (&symbols)
 			list* () list% (map1 ($lambda (&s) list forward! (desigil s))
 				(forward! symbols));
+		$defv! $provide/let! (&symbols &bindings .&body) d
+			eval% (list% $let (forward! bindings) $sequence
+				(move! body) (list% $set! d symbols (symbols->imports symbols))
+				(list () lock-current-environment)) d;
+		$defv! $provide! (&symbols .&body) d
+			eval (list*% $provide/let! (forward! symbols) () (move! body)) d;
 	)NPL"
 	);
 #endif
@@ -1224,12 +1235,6 @@ LoadCore(REPLContext& context)
 		$defl%! assv (&x &alist) $cond ((null? alist) ())
 			((eqv? x (first& (first& alist))) first alist)
 			(#t assv (forward! x) (rest% alist));
-		$defv! $provide/let! (&symbols &bindings .&body) d
-			eval% (list% $let (forward! bindings) $sequence
-				(move! body) (list% $set! d symbols (symbols->imports symbols))
-				(list () lock-current-environment)) d;
-		$defv! $provide! (&symbols .&body) d
-			eval (list*% $provide/let! (forward! symbols) () (move! body)) d;
 		$defv! $import! (&e .&symbols) d
 			eval% (list $set! d symbols (symbols->imports symbols)) (eval e d);
 		$defv! $import&! (&e .&symbols) d
@@ -1465,7 +1470,7 @@ LoadModule_std_system(REPLContext& context)
 		RetainN(term, 0);
 		{
 			const auto p_cmd_args(LockCommandArguments());
-			TermNode::Container con{};
+			TermNode::Container con(term.get_allocator());
 
 			for(const auto& arg : p_cmd_args->Arguments)
 				TermNode::AddValueTo(con, in_place_type<string>, arg);
@@ -1474,7 +1479,7 @@ LoadModule_std_system(REPLContext& context)
 		return ReductionStatus::Retained;
 	});
 	RegisterUnary<Strict, const string>(renv, "env-get", [](const string& var){
-		string res;
+		string res(var.get_allocator());
 
 		FetchEnvironmentVariable(res, var.c_str());
 		return res;
@@ -1491,12 +1496,12 @@ LoadModule_std_system(REPLContext& context)
 	RegisterStrict(renv, "system", CallSystem);
 	RegisterStrict(renv, "system-get", [](TermNode& term){
 		CallUnaryAs<const string>([&](const string& cmd){
-			TermNode::Container con;
+			TermNode::Container con(term.get_allocator());
 			auto res(FetchCommandOutput(cmd.c_str()));
 
 			TermNode::AddValueTo(con, ystdex::trim(std::move(res.first)));
 			TermNode::AddValueTo(con, res.second);
-			ystdex::swap_dependent(con, term.GetContainerRef());
+			con.swap(term.GetContainerRef());
 		}, term);
 		return ReductionStatus::Retained;
 	});

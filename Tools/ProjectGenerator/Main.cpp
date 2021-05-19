@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2020 FrankHB.
+	© 2015-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r860
+\version r862
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-18 20:45:11 +0800
 \par 修改时间:
-	2020-08-30 16:09 +0800
+	2021-05-19 21:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -251,7 +251,7 @@ YB_ATTR_nodiscard YB_PURE vector<string>
 GetCompilerOptionList(bool debug)
 {
 	if(debug)
-		return {"-g", "-D_GLIBCXX_DEBUG", "-D_GLIBCXX_DEBUG_PEDANTIC"};
+		return {"-g", "-D_GLIBCXX_DEBUG_PEDANTIC"};
 	return {"-fomit-frame-pointer", "-fexpensive-optimizations", "-O3",
 		"-flto=jobserver", "-fno-enforce-eh-specs", "-DNDEBUG"};
 }

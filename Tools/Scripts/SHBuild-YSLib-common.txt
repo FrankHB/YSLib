@@ -498,7 +498,7 @@ $defl! build-with-conf-opt (outdir host-os debug dynamic shbopt-ext app
 		"-Woverloaded-virtual" "-Wsign-promo"
 		(force prom_CXXFLAGS_IMPL_WARNING);
 	$def! prom_CXXFLAGS_OPT_DBG $lazy
-		$if debug ("-O0 -g -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC")
+		$if debug ("-O0 -g -D_GLIBCXX_DEBUG_PEDANTIC")
 		(
 			cons-cmd (force prom_C_CXXFLAGS_OPT_LV)
 				($if (safeenv-empty? "CXXFLAGS_OPT_UseAssert") "-DNDEBUG" "")

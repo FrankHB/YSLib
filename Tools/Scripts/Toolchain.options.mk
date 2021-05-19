@@ -1,5 +1,5 @@
 #
-#	(C) 2014-2015, 2017, 2020 FrankHB.
+#	(C) 2014-2015, 2017, 2020-2021 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Makefile specifying common toolchain options
-# Version = r81
+# Version = r83
 # Created = 2014-12-06 17:24:04 +0800
-# Updated = 2020-12-14 00:44 +0800
+# Updated = 2021-05-18 21:22 +0800
 # Encoding = ANSI
 
 
@@ -56,7 +56,7 @@ else
 	ASFLAGS_OPT_DBG ?= -g
 	C_CXXFLAGS_OPT_LV ?= -O0
 	C_CXXFLAGS_OPT_DBG ?= $(C_CXXFLAGS_OPT_LV) -g -fno-omit-frame-pointer \
-		-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
+		-D_GLIBCXX_DEBUG_PEDANTIC
 	LDFLAGS_OPT_DBG ?= -g
 endif
 

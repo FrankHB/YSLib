@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2020 FrankHB.
+# (C) 2014-2021 FrankHB.
 # Common options script to build projects in the shell.
 
 # NOTE: This is mainly for stage 1 SHBuild bootstrap and the test. The options
@@ -7,15 +7,16 @@
 #	document for details.
 
 set -e
+
 : "${SHBuild_ToolDir:=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)}"
 # shellcheck source=./SHBuild-common-toolchain.sh
 . "$SHBuild_ToolDir/SHBuild-common-toolchain.sh" # for
-#	SHBuid-common-toolchain.sh, CXX.
+#	SHBuid-common-toolchain.sh, CXX;
 
 # XXX: %SHBuild_Debug is external.
 # shellcheck disable=2154
 if [[ "$SHBuild_Debug" != '' ]]; then
-	CXXFLAGS_OPT_DBG='-O0 -g -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC'
+	CXXFLAGS_OPT_DBG='-O0 -g -D_GLIBCXX_DEBUG_PEDANTIC'
 	LDFLAGS_OPT_DBG=' '
 fi
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018-2020 FrankHB.
+	© 2009-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2932
+\version r2952
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:42 +0800
 \par 修改时间:
-	2020-12-12 09:30 +0800
+	2021-05-18 02:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,14 +31,15 @@
 #include YFM_YCLib_NativeAPI // for ::swiWaitForVBlank, ::sysconf,
 //	_SC_PAGESIZE, _SC_SEM_NSEMS_MAX, _SC_SEM_VALUE_MAX, _SC_SYMLOOP_MAX,
 //	::fifoSendValue32, ::SYSTEM_INFO, ::GetSystemInfo;
-#include <limits> // for std::numeric_limits;
-#include <limits.h> // for _POSIX_SEM_NSEMS_MAX, _POSIX_SYMLOOP_MAX,
-//	_POSIX_SEM_VALUE_MAX;
 #if YCL_Win32
+#	include YFM_Win32_YCLib_MinGW32 // for platform_ex::ParseCommandArguments;
 #	include YFM_Win32_YCLib_NLS // for platform_ex::UTF8ToWCS, ::STARTUPINFOW,
 //	::PROCESS_INFORMATION, ::CreateProcessW, CREATE_UNICODE_ENVIRONMENT,
 //	platform_ex::WaitUnique, ::GetExitCodeProcess;
 #endif
+#include <limits> // for std::numeric_limits;
+#include <limits.h> // for _POSIX_SEM_NSEMS_MAX, _POSIX_SYMLOOP_MAX,
+//	_POSIX_SEM_VALUE_MAX;
 #include <stdlib.h> // for ::_wsystem, ::_putenv, ::setenv;
 
 namespace platform
@@ -54,6 +55,25 @@ terminate() ynothrow
 	std::abort();
 #endif
 }
+
+
+#if YCL_Win32
+CommandArguments::CommandArguments(int, char*[])
+	: arguments(platform_ex::ParseCommandArguments())
+{}
+#else
+CommandArguments::VectorType
+CommandArguments::ToVector() const
+{
+	VectorType vec;
+
+	vec.reserve(arguments.first);
+	for(size_t i(0); i < arguments.first; ++i)
+		vec.push_back(arguments.second[i]);
+	return vec;
+}
+#endif
+
 
 int
 uspawn(const char* cmd)

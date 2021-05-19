@@ -14,7 +14,25 @@ Since b456, the `Plugin` struct is renamed (to avoid global namespace pollution)
 
 Unmodified library code should compile, but wrappers based on old code might not work as before.
 
+## Since build 919
+
+Based on previous revision b916:
+
+The static library image in the `release` configuration is rebuilt for Linux.
+
+Now GCC 11.1 is used, and the LTO version is 11.0.
+
+## Since build 916
+
+Based on previous revision b902:
+
+The static library images are rebuilt for Linux.
+
+The `__attribute__((constructor))__` initialization routines have been removed. This reduces the overhead in case that the library initialization is not interested (which is exactly the case of YFramework). This has no effects on Windows.
+
 ## Since build 902
+
+Based on previous revision b900:
 
 On platform with possibly both G++ and Clang++ available, the LTO option is refined to have `-ffat-lto-object` to be built by G++ by default.
 
@@ -22,7 +40,11 @@ The makefile variable `C_LTO` (on all platforms) is overridable now, to allow di
 
 This makes the generated archive compatible both to G++ and Clang++, with (hopefully) some degrees of LTO available in some configurations without rebuilt the library for different compilers.
 
+Now GCC 10.2 is used, and the LTO version is 9.0.
+
 ## Since build 900
+
+Based on previous revision b600:
 
 Now different configurations to build the library are used.
 
@@ -286,14 +308,18 @@ The environment variable `PATH` should be set properly like `C:\msys\mingw32\bin
 
 The modified file `Makefile.mingw` should have been copied to the source directory and overwritten the original one.
 
-Run `mingw32-make -R FREEIMAGE_LIBRARY_TYPE=STATIC -f Makefile.mingw libFreeImage.a` (optionally with `-j` to build concurrently) to build static library for MinGW32.
+Run `mingw32-make -R FREEIMAGE_LIBRARY_TYPE=STATIC -f Makefile.mingw libFreeImage.a` (optionally with `-j` to build concurrently) to build the `release` configuration of the static library.
+
+Run `mingw32-make -R FREEIMAGE_LIBRARY_TYPE=STATIC CONF=debug -f Makefile.mingw libFreeImage.a` (optionally with `-j` to build concurrently) to build the `debug` configuration of the static library.
 
 Run `mingw32-make -R -f Makefile.mingw clean` to delete all build files. Note the official `clean.bat` is not enough.
 
 Note that although omission of `libFreeImage.a` is allowed, it is not recommended because:
 
 * The `FREEIMAGE_LIBRARY_TYPE=STATIC` does not respect of the symbol visibility attributes. This makes the symbols not usable from the shared library, esp. not usable in a Win32 DLL.
-* Only the static library is used by YFramework, so this is normally uncessary.
+* Only the static library is used by YFramework, so this is normally unnecessary.
+
+If only the static library is built, the target `dist` is not run, so the library file is at the building directory but not `./Dist`.
 
 ## MinGW64
 
@@ -303,13 +329,17 @@ The environment variable `MSYSTEM` shall be set to `MINGW64`, e.g. run `set MSYS
 
 The environment variable `PATH` should be set properly like `C:\msys\mingw64\bin;C:\msys\usr\bin;C:\Windows\System32`, to make sure the toolchain files can be found.
 
+The build commands are exactly the same as those in MinGW32. See the relavant section above for the remaining instructions.
+
 ## Linux
 
 A working GNU toolchain is required.
 
 NASM is required for compiling libjpeg-turbo SIMD source files.
 
-Run `make -R FREEIMAGE_LIBRARY_TYPE=STATIC -f Makefile.gnu libfreeimage.a` (optionally with `-j` to build concurrently) to build static library.
+Run `make -R FREEIMAGE_LIBRARY_TYPE=STATIC -f Makefile.gnu libfreeimage.a` (optionally with `-j` to build concurrently) to build the `release` configuration of the static library.
+
+Run `make -R FREEIMAGE_LIBRARY_TYPE=STATIC CONF=debug -f Makefile.gnu libfreeimage.a` (optionally with `-j` to build concurrently) to build the `debug` configuration of the static library.
 
 Run `make -R -f Makefile.gnu clean` to delete all build files.
 
@@ -317,5 +347,5 @@ For hosted Linux environment, `-f Makefile.gnu` can be omitted.
 
 Omission of `libfreeimage.a` in the building command line is not recommended for the similar reasons as in MinGW32.
 
-If only the static library is built, the target `dist` is not run, so the library file is at the buidling directory but not `./Dist`.
+The location of the built files are similar as it in MinGW32.
 

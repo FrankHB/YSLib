@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规范和实现规格说明。
-\version r22399
+\version r22445
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2021-05-02 21:17 +0800
+	2021-05-15 17:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -468,8 +468,9 @@ NPL 的实现可进行抽象解释(abstraction interpret) ，其目标不一定�
 翻译时的异常状态要求给出用于区分正常状态特定的行为(@2.3.4) ，包括诊断消息(@2.3.4) 和其它派生实现定义的实现行为(@2.6) 。
 语法正确性规则是翻译时正确性规则。
 部分形式上的正确性规则在翻译时确保。
-翻译时确保的形式上正确的程序是合式的(well-formed) ；反之不合式(ill-formed) 。
-合式的程序符合语法正确性的规则，以及翻译时确保的可诊断(diagnostable) 语义规则。
+允许翻译时确保的形式上正确的程序是合式的(well-formed) ；反之不合式(ill-formed) 。
+合式的程序符合语法和语义的正确性的规则。
+其中，实现被要求确保通过翻译的程序符合语法规则和翻译时确保的可诊断(diagnostable) 语义规则。
 不合式的程序应在运行前终止，不被完整地翻译。
 
 @2.5.2 错误(error) ：
@@ -3107,7 +3108,7 @@ NPLA1 实现使用 A1::ValueToken 枚举类型表示用于特殊标记的扩展�
 当前被保留未直接在规约例程(@7.4) 中使用。
 A1::ValueToken::Null 用于作为规约(@7.4) 过程中值数据成员(@6.2) 的占位符，适合值数据成员(@6.2) 逻辑上为空但不符合其它要求（如需要保留节点但稍后规约中被移除）时的场合，当前实现对 NPLA1 实现都是透明的；
 A1::ValueToken::Unspecified 用于表示未指定的值，是一等中间值(@6.6.3.1) 。
-语言规范(@2.3.1.2) 可能使用未指定值(unspecified value) ，但实现的 API（如 A1::Forms(@8.1) ）会明确指定使用这个值（如设置这个值作为对象语言中函数的返回值），用户代码仍然不应依赖此处使用的具体值。
+语言规范(@2.3.1.2) 可使用 A1::ValueToken::Unspecified 作为没有附加限制条件的未指定值(unspecified value) 的内部表示，但实现的 API（如 A1::Forms(@8.1) ）会明确指定使用这个值（如设置这个值作为对象语言中函数的返回值），用户代码仍然不应依赖此处使用的具体值。
 注意当前 A1::Reduce 规约时不对空节点（表示空列表）和 A1::ValueToken 类型的值进行操作。
 
 @7.2.3 NPLA1 续延(@4.5.2.1) ：
@@ -3989,15 +3990,15 @@ $sequence ($def! f ($lambda (n) ((($vau (x y) e (eval ($sequence x y) e)) n (f n
 其中查询结果的名称和 A1::Continuation::Handler 或 Reducer 的特定目标类型关联。
 除非另行指定，关联的类型是非公开的内部类型。
 在 NPLA1 实现中引入的这些名称包括：
+combine-return
 eval-argument-list
 eval-combine-operands
 eval-combine-operator
-eval-combine-return
 eval-guard
 eval-lift-result
 eval-sequence
-eval-sequence-return
 eval-tail ：关联 TCO 动作(@7.10.3) 。
+sequence-return
 若特定对象语言操作使用非本机实现(@5.3) ，可使用其它续延。
 另见其它 NPLA1 实现模块中引入的续延名称(@8.6.1) 。
 
@@ -4272,6 +4273,7 @@ Forms::AsEnvironment
 Forms::BindingsWithParentToEnvironment
 Forms::BindingsToEnvironment
 Forms::SymbolsToImports
+Forms::ProvideLet
 
 @8.4.10 外部调用：
 Forms 提供以下在对象语言中调用实现环境外部功能的函数：
@@ -4314,6 +4316,7 @@ A1::RelayToLoadExternal
 @8.6.1 NPLA1 实现模块的续延名称(@7.11.6) ：
 在模块 NPL::NPLA1Forms 中引入的续延名称包括：
 bindings-to-env
+combine-let-return
 conditional-eval-sequence
 equal-subterm
 equal-siblings
@@ -4328,7 +4331,6 @@ eval-booleans
 eval-cond-list
 eval-foldr1-kons
 eval-let
-eval-let-combine-return
 eval-let-parent
 eval-letrec-bind
 eval-lift-sum
@@ -4336,14 +4338,22 @@ eval-map1-appv
 eval-vau-parent
 match-ptree
 match-ptree-recursive
+provide-let-bind
+provide-let-return
 select-clause
+set-eval-obj
 在模块 NPL::Dependency 中引入的续延名称包括：
 load-external
 在模块 NPL::Dependency 中，若特定对象语言操作使用非本机实现(@5.3) ，可使用不同的续延名称。
 
 @8.6.2 和 klisp 续延名称的关系：
 NPLA1 续延名称(@7.11.6) 和上述续延名称(@8.6.1) 中，部分名称和 klisp 0.3 中作用近似的续延的名称一致，功能近似。
+一致但存在附加不同用法的名称包括：
+eval-let ：也用于 Forms::ProvideLet(@8.4.9) 。
+set-eval-obj ：也用于 Forms::SetWithRecursion(@8.4.4.3) 。
 不一致的名称包括：
+combine-let-return ：非 TCO 的 Forms::Let 、Forms::LetRef 、Forms::LetWithEnvironment 、Forms::LetWithEnvironmentRef 、Forms::LetAsterisk 、Forms::LetAsteriskRef 、Forms::LetRec 、Forms::LetRecRef 和 Forms::AsEnvironment(@8.4.9) 的实现中设置规约合并最后的返回结果。
+combine-return ：非 TCO 的规约合并求值(@7.6.4.2) 实现中设置规约合并最后的返回结果。
 equal-subterm ：Forms::EqualTermValue(@8.4.1) 比较直接子项。
 equal-siblings ：Forms::EqualTermValue 比较同一个项中的剩余其它子项。
 因为 klisp 的 equal? 直接使用自动机实现，在比较操作中没有对应的续延。
@@ -4354,21 +4364,21 @@ eval-accl-tail ：Forms::AccL 调用取抽象列表余下的元素的函数。
 eval-accr-accr ：Forms::AccR 递归调用。
 eval-accr-sum ：Forms::AccR 调用取抽象列表部分和的函数。
 eval-bindings-to-env ：Forms::BindingsWithParentToEnvironment(@8.4.9) 在创建的环境中绑定变量并返回。
-eval-combine-return ：非 TCO 的规约合并求值(@7.6.4.2) 实现中设置规约合并最后的返回结果。
 eval-foldr1-kons ：Forms::FoldR1(@8.4.9) 应用子调用。
 eval-guard ：非 TCO 的求值实现重置守卫的附加动作帧(@6.9.6)。
-eval-let-combine-return ：非 TCO 的 Forms::Let 、Forms::LetRef 、Forms::LetWithEnvironment 、Forms::LetWithEnvironmentRef 、Forms::LetAsterisk 、Forms::LetAsteriskRef 、Forms::LetRec 、Forms::LetRecRef 和 Forms::AsEnvironment(@8.4.9) 的实现中设置规约合并最后的返回结果。
 eval-let-parent ：Forms::LetWithEnvironment 和 Forms::LetWithEnvironmentRef 中求值过程抽象(@8.4.5) 的父环境的表达式。
 eval-letrec-bind ：Forms::LetRec 和 Forms::LetRecRef 中的变量绑定。
 eval-lift-result ：非 TCO 的求值实现调用 NPL::ReduceForLiftedResult(@6.7.12.1) 提升返回结果。
 eval-lift-sum ：Forms::AccR、Forms::FoldR1 和 Forms::Map1(@8.4.9) 公共的部分和提升调用。
 eval-map1-appv ：Forms::Map1(@8.4.9) 应用子调用。
-eval-sequence-return ：非 TCO 的 A1::ReduceOrdered(@7.4.6) 实现中设置规约合并最后的返回结果。
+sequence-return ：非 TCO 的 A1::ReduceOrdered(@7.4.6) 实现中设置规约合并最后的返回结果。
 eval-tail ：TCO 动作尾上下文求值（和 klisp 不同，不依赖 GC(@5.6.4) 而在 TCO 动作单独保存资源(@7.10.5.1) ）。
 eval-vau-parent ：Forms::LambdaWithEnvironment 和 Forms::VauWithEnvironment(@8.4.5) 创建操作子时求值过程抽象的父环境的表达式。
 注意 klisp 的 $vau 不具有应保证被求值的实际参数，不需要异步调用，没有对应的续延。
 load-external ：A1::RelayToLoadExternal(@8.5.2) 加载外部翻译单元。
 match-ptree-recursive ：支持延迟递归绑定（ Forms::DefineWithRecursion 和 Forms::SetWithRecursion(@8.4.4.3) ）。
+provide-let-bind ：Forms::ProvideLet(@8.4.9) 绑定符号列表。
+provide-let-return ：Forms::ProvideLet 返回环境。
 
 @9 NPLA1 核心语言设计：
 NPL 是独立设计的，但其派生语言和其它一些语言有类似之处；这些语言和 NPL 方言之间并不具有派生关系。但为简化描述，部分地引用这些现有语言规范(@2.3.1.2) 中的描述，仅强调其中的不同。
@@ -5182,8 +5192,8 @@ NPLA1 实现提供的这种由实现初始化的作为核心语言特性的环�
 类似 Kernel ，谓词的名称使用 ? 结尾，除 <- 结尾外的用于（不直接通过求值操作数或其子表达式产生的副作用的）修改(@9.8.3) 的（同时是改变操作(@4.1.4.2) ）函数的名称使用 ! 结尾。
 和 Kernel 类似，管理状态(@9.8.3) 的变化不需要指示可修改；此外，类似地，不改变可观察行为(@4.1.3) 的隐藏状态的修改不属于上述可修改。
 和 Kernel 不同，不使用以上可修改的操作仍可引起对象修改，如隐式的转移操作(@9.8.3.2) 。
-和使用可用谓词 inert? 判断的惰性(inert) 值的 Kernel 不同，后者的结果是未指定值(@7.2.2) 。
-未指定值的类型未指定，因此用于修改的函数可能返回 A1::ValueToken::Unspecified(@7.2.2) 外的其它值；但应满足实现限制(@10.9) 。
+和使用可用谓词 inert? 判断的惰性(inert) 值的 Kernel 不同，后者的结果是没有附加限制条件的未指定值(@7.2.2) 。
+这些未指定值的类型未指定，因此用于修改的函数可能返回 A1::ValueToken::Unspecified(@7.2.2) 外的其它值；但应满足实现限制(@10.9) 。
 作为一等实体的未指定值和 Kernel 类似，仍为 #inert(@9.3.1) ，但不提供谓词判断其类型。
 除去以上后缀，以引用标记字符(@7.7.3.4) 结尾的表示涉及引用的操作。
 一些操作以结尾引用标记字符和不以引用标记字符结尾的名称提供多个变体。其中不含结尾的引用标记字符的表示操作的结果不是引用值，要求按值传递(@8.4.5.4) 。
@@ -5442,12 +5452,12 @@ ref&(@11.3.4) 。
 @11.1.1 在返回值中保留环境引用的操作(@10.8.2) ：
 包括基本操作(@11.3.7) ：
 make-environment
-包括派生操作：
-derive-current-environment(@11.4.1)
-make-standard-environment(@11.4.1)
-derive-environment(@11.4.1)
-$provide!(@11.4.3)
-$provide/let!(@11.4.3)
+包括派生操作(@11.4.1) ：
+derive-current-environment
+make-standard-environment
+derive-environment
+$provide/let!
+$provide!
 
 @11.1.2 在返回值中保留其它间接值的操作(@10.8.3) ：
 包括：
@@ -5456,8 +5466,8 @@ $setrec!(@11.4.1)
 
 @11.1.3 在环境中保留环境引用的操作(@10.8.4) ：
 包括派生操作(@11.4.1) ：
-$provide!
 $provide/let!
+$provide!
 
 @11.1.4 可能引入循环引用的操作(@10.8.5) ：
 包括可能引入环境循环引用的基本操作(@11.3.7) ：
@@ -5828,6 +5838,7 @@ NPL_Impl_NPLA1_Use_LockEnvironment
 		由合并子调用的参数绑定(@8.4.5.3) 引起(@9.5.1) 的静态语法错误(@9.5.1) 。
 		类型检查(@9.5.4.1) 可具有不同的顺序而引起不同的类型错误。
 	使用 TCO 实现 PTC(@9.7.4) ，可能具有不同的支持(@9.7.4.1) 和实现（如 TCO 动作消除(@7.10.9) ）。
+	操作的语义允许时，可返回符合具体操作的约定的未指定值（但不含没有附加限制条件的未指定值(@10.7) ）。
 	续延名称(@7.11.6) 等其它差异。
 其中，影响可观察行为的差异应为操作符合性(@10.9.2) 约定的实例。
 注意和 [RnRK] 合并子的派生完全省略错误处理(@10.6.4) 而允许不同的诊断不同，NPLA1 中的操作的替代实现的没有被以上例外或操作自身的语义指定的其它行为（如符合诊断(@9.5) 和接口要求的诊断消息(@2.3.4) 的内容）仍应和本机实现保持一致。
@@ -6035,6 +6046,15 @@ symbols->imports! <symbol>... ：转换符号列表为未求值的适合初始�
 支持移除引用标记字符；
 支持转发参数；
 不带有引用标记字符和符号指称的对象不是临时对象(@5.8.5) 的默认情形复制值而不是初始化引用。
+$provide/let! <symbols> <bindings> <body> ：指定局部绑定后在当前环境中提供绑定。
+蕴含 $let <bindings> <body> ，在求值 <body> 后以结果作为操作数绑定到 <symbols> 的符号。
+<symbols> 应能被作为 <definiend> 使用。
+结果是对这些绑定具有所有权的环境强引用。
+绑定后的符号可通过作为 vau 抽象的父环境(@9.9.3.5) 等形式依赖这个环境，因此用户需适当保存返回值使其生存期(@9.9.3.5) 覆盖在被使用的绑定符号指称的对象生存期。
+$provide! <symbols> <body> ：在当前环境中提供绑定。
+同 $provide/let! 但不指定单独的 <bindings> 。
+作用同 <bindings> 为空列表的 $provide/let! 。
+类似 Kernel 的同名操作，但结果是创建的环境的强引用，且以同 symbols->imports!(@11.4.1) 的方式确定初值符。
 
 @11.4.2 标准派生特性(standard derived feature) ：
 同基本派生特性(@11.4.1) ，但其派生依赖标准库其它模块(@11) 。
@@ -6072,13 +6092,6 @@ assv <object> <lists> ：访问关联元素。
 否则，值为空列表。
 类似 Kernel 的 assoc ，但使用 eqv? 而不是 equal? ，且转发参数。
 和 Scheme 的 assv 类似，但失败的值不返回 #f ，尽管和 Kernel 相同而和 Scheme 不同，<test> 支持非布尔类型的值(@11.3.3) 。
-$provide/let! <symbols> <bindings> <body> ：在当前环境中提供绑定：蕴含 $let <bindings> <body> ，在求值 <body> 后以结果作为操作数绑定到 <symbols> 的符号。
-<symbols> 应能被作为 <definiend> 使用。
-结果是对这些绑定具有所有权的环境强引用。
-绑定后的符号可通过作为 vau 抽象的父环境(@9.9.3.5) 等形式依赖这个环境，因此用户需适当保存返回值使其生存期(@9.9.3.5) 覆盖在被使用的绑定符号指称的对象生存期。
-$provide! <symbols> <body> ：在当前环境中提供绑定：同 $provide/let! 但不指定单独的 <bindings> 。
-作用同 <bindings> 为空列表的 $provide/let! 。
-类似 Kernel 的同名操作，但结果是创建的环境的强引用，且以同 symbols->imports!(@11.4.1) 的方式确定初值符。
 $import! <environment> <symbols> ：从第一参数指定的环境导入第二参数指定的符号。
 类似 Kernel 的同名操作，但以同 symbols->imports! 的方式确定初值符。
 $import&! <environment> <symbols> ：从第一参数指定的环境以引用绑定导入第二参数指定的符号。

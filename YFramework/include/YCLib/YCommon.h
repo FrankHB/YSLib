@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3995
+\version r4077
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2021-05-06 19:12 +0800
+	2021-05-19 21:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@
 #include <ystdex/cstring.h> // for ystdex::uchar_t, ystdex::replace_cast;
 #include YFM_YBaseMacro // for TryRet, CatchIgnore;
 #include <exception> // for std::bad_alloc;
-#include YFM_YCLib_Container // for string;
+#include YFM_YCLib_Container // for pair, vector, string;
 
 //! \brief 默认平台命名空间。
 namespace platform
@@ -378,6 +378,86 @@ RetryOnInterrupted(_func f)
 
 
 /*!
+\brief 命令行参数。
+\since build 918
+*/
+class YF_API CommandArguments final
+{
+public:
+	using VectorType = vector<string>;
+#if YCL_Win32
+	using value_type = VectorType::value_type;
+	using const_iterator = VectorType::const_iterator;
+#else
+	using value_type = char*;
+	using const_iterator = value_type*;
+#endif
+
+private:
+#if YCL_Win32
+	VectorType arguments;
+#else
+	pair<size_t, const_iterator> arguments;
+#endif
+
+public:
+	/*!
+	\brief 构造：取主命令行参数。
+	\note Win32 平台：忽略参数，解析 Unicode 编码的应用程序命令行参数字符串。
+	\since build 918
+	*/
+#if YCL_Win32
+	CommandArguments(int, char*[]);
+#else
+	CommandArguments(int argc, char* argv[]) yimpl(ynothrow)
+		: arguments(size_t(argc), argv)
+	{}
+#endif
+	DefDeCopyMoveCtorAssignment(CommandArguments)
+
+#if YCL_Win32
+	YB_ATTR_nodiscard YB_PURE
+		PDefHOp(const string&, [], size_t i) const ynothrowv
+		ImplRet(arguments[i])
+
+	DefGetter(const ynothrow, const VectorType&, Data, arguments)
+
+	YB_ATTR_nodiscard YB_PURE PDefH(const VectorType&, ToVector, ) const&
+		ImplRet(arguments)
+	YB_ATTR_nodiscard YB_PURE PDefH(VectorType&&, ToVector, ) &&
+		ImplRet(std::move(arguments))
+
+	YB_ATTR_nodiscard YB_PURE PDefH(const_iterator, begin, ) const ynothrow
+		ImplRet(arguments.begin())
+
+	YB_ATTR_nodiscard YB_PURE PDefH(const_iterator, end, ) const ynothrow
+		ImplRet(arguments.end())
+
+	YB_ATTR_nodiscard YB_PURE PDefH(size_t, size, ) const ynothrow
+		ImplRet(arguments.size())
+#else
+	YB_ATTR_nodiscard YB_PURE PDefHOp(char*, [], size_t i) const ynothrowv
+		ImplRet(arguments.second[i])
+
+	DefGetter(const ynothrow, size_t, Count, arguments.first)
+	DefGetter(const ynothrow, char**, Data, arguments.second)
+
+	YB_ATTR_nodiscard YB_PURE VectorType
+	ToVector() const;
+
+	YB_ATTR_nodiscard YB_PURE PDefH(const_iterator, begin, ) const ynothrow
+		ImplRet(arguments.second)
+
+	YB_ATTR_nodiscard YB_PURE PDefH(const_iterator, end, ) const ynothrow
+		ImplRet(arguments.second + arguments.first)
+
+	YB_ATTR_nodiscard YB_PURE PDefH(size_t, size, ) const ynothrow
+		ImplRet(arguments.first)
+#endif
+};
+
+
+/*!
 \brief 执行 UTF-8 字符串的环境命令。
 \note Win32 平台：使用 ::CreateProcessW 实现。标准输出不指定使用 Unicode 字符。
 \note 非 Win32 平台：当前实现同 usystem 。
@@ -480,6 +560,23 @@ YF_API
 size_t
 FetchLimit(SystemOption) ynothrow;
 //@}
+
+/*!
+\brief 取本机动态模块扩展名。
+\return 若不支持动态模块则为空串，否则为默认的扩展名后缀。
+\since build 919
+*/
+YB_ATTR_returns_nonnull YB_STATELESS yconstfn
+	PDefH(const char*, FetchNativeDynamicModuleExtension, )
+#if YCL_DS
+	ImplRet("")
+#elif YCL_Win32
+	ImplRet(".dll")
+#elif YCL_OS_X
+	ImplRet(".dylib")
+#else
+	ImplRet(".so")
+#endif
 
 } // namespace platform;
 

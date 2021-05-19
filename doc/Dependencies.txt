@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r1613
+\version r1630
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2021-03-27 15:12 +0800
+	2021-05-19 21:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,12 +47,17 @@ YSLib 整体要求 G++ 5 或以上版本。
 G++ 5 以外的其它版本当前未测试，也不作为特定编译器选项的优化目标；其中更高版本可能会有诊断消息或优化选项等改动，可能需要手动修改命令行以实现构建效果一致。
 一般地，仅有 YBase.LibDefect 保持提供对旧版本具体实现的支持，参见源码中的注释；对其它代码，除上述(@1) 要求外，不保证未来版本保持支持；不符合标准实现的变通可能在之后逐渐移除。
 YBase.YDefinition 检查特性对应的实现版本。
+外部依赖项可能包含启用 LTO 选项的构建静态库。当前仅提供按以 3rdparty 目录的文档中描述的方法构建的以特定 GCC 版本工具链生成的预编译二进制映像，其它实现（其它 GCC 版本和 LLVM/Clang ）不保证二进制兼容，可能需要自行重新构建。
 除以上列出外的其它实现不保证支持。
 
 @1.1.1 支持实现的已知问题：
 以下问题提供有限变通：
-G++ 5 及之前未完整实现 C++11 标准库特性； 5 之前的变通已移除。
+G++ 5 及之前对应的 libstdc++ 未完整实现 C++11 标准库特性；G++ 5 之前的变通已移除。
 G++ 6 及之后选项 -Wnonnull-compare 警告和断言存在冲突。直接通过代码中忽略警告变通，对用户代码存在影响。
+G++ 10 到 G++ 10.3 使用 C++20（如 -std=c++2a ）同时保留 -pedantic 选项以使用 std::bitset 模板的调试模式版本不被支持。
+	参见 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=96303 。
+	在定义 _GLIBCXX_DEBUG 宏时，调试模式默认总是使用此模板的调试版本。
+	自 build 919 起，预定义宏 _GLIBCXX_DEBUG 的选项已从构建命令行中被移除，而不会使用此模板的调试版本。
 
 @1.1.2 非支持实现的已知问题：
 本节问题不提供变通。
@@ -442,6 +447,9 @@ build 560 前：
 2021-03-27(build 916) 起：
 升级包 core/binutils 版本 2.36.1-2 。
 升级包 core/gcc 和 core/gcc-libs 版本 10.2.0-6 。
+2021-05-18(build 919) 起：
+升级包 core/binutils 版本 2.36.1-3 。
+升级包 core/gcc 和 core/gcc-libs 版本 11.1.0-1 。
 
 @1.6.1 Android 平台构建说明：
 需要使用宏 ANDROID_SDK 指定 Android SDK 的路径。
@@ -609,6 +617,8 @@ MinGW32 的默认 CFLAGS 移除 -fomit-frame-pointer（因为被 -O3 隐含）�
 追加 debug 配置的 DS 、MinGW32 、Linux 和 MinGW64 库文件，并重新构建这些平台上非 debug 配置的库文件。
 2021-03-27(build 915) 起：
 指定 FREEIMAGE_LIBRARY_TYPE=STATIC 重新构建 Linux 库文件。
+2021-05-18(build 919) 起：
+重新构建 Linux 的 release 配置库文件。
 
 @3 可选外部依赖：
 
@@ -698,7 +708,7 @@ release 版本对某些字体来说效率上可以基本适应实际需要，但
 增加 IDE 支持：
 可使用 Code::Blocks 。
 增加生成平台：
-Build 299 起支持 MinGW(g++4.7.0) 编译生成 Win32 本机程序。 MinGW 下载：http://code.google.com/p/mingw-builds 。
+Build 299 起支持 MinGW (g++ 4.7.0) 编译生成 Win32 本机程序。 MinGW 下载：http://code.google.com/p/mingw-builds 。
 使用 Code::Blocks 打开工作空间文件直接生成（暂不支持 Visual Studio 生成）。
 其它注意事项：
 已确认 DeSmuMe SVN r4030 起有 bug 打开 .nds 后无法正确读取文件。
@@ -867,6 +877,7 @@ MinGW32 下文本阅读界面增加右键显示上下文菜单；
 支持并行构建和文件时间戳检查。
 及构建脚本支持控制台彩色输出。
 支持按等级和分组过滤输出消息。
+添加命令模式。
 Stage1 SHBuild 支持 Linux 。
 [Tools.Scripts]
 添加部署环境 Sysroot 。
@@ -947,6 +958,7 @@ GotFocus 和 LostFocus 可被所在的直接或间接容器部件焦点的改变
 添加 YBase 的部分测试用例。
 [Tools]
 [Tools.SHBuild]
+添加解释 NPLA1 脚本的支持。
 [Sysroot]
 修复构建脚本对 FreeType2 的 pkgbuild 检查失败后直接退出。
 [YBase]
@@ -1079,6 +1091,7 @@ FileBox 访问目录失败时不进入目录以避免无法恢复。
 @5.9 V0.9 ：
 2020-10-12(V0.9) ：
 要求实现在非调试模式下避免依赖违反异常规范的行为，否则程序行为未定义。
+添加 MinGW64 平台的正式支持（使用 x86_64-w64-mingw32）。
 [3rdparty]
 FreeImage makefile 使用配置支持不同配置的 YFramework 构建。
 [YBase]
@@ -1093,7 +1106,7 @@ FreeImage makefile 使用配置支持不同配置的 YFramework 构建。
 改进 lref 、invoke 和 apply 等替代 ISO C++17 的库 API 。
 添加 string_view_t 等基于 ISO C++ 替代 API 的扩展 API 。
 类模板 path 支持使用分配器的构造。
-添加适配 ISO C++17 和部分 ISO C++20 提案特性的命名空间 pmr 及 uses-allocator 构造接口，并提供保证不总是单调分配的池资源。 
+添加适配 ISO C++17 和部分 ISO C++20 提案特性的命名空间 pmr 及 uses-allocator 构造接口，并提供保证不总是单调分配的池资源。
 any_ops 支持分配器。
 添加类模板 function_base 和别名模板 function 等，用于替换 std::function ，以支持分配器和可选调用时抛出 std::bad_function_call 。
 增强 boxed_value 和 any 构造，支持不初始化元素和 SFINAE 。
@@ -1124,6 +1137,7 @@ BadIdentifier 添加源代码信息数据成员。
 添加运行时访问源代码信息和名称表的 API 。
 名称解析失败时在 BadIdentifier 异常中保存源代码信息。
 调整 REPL 上下文，添加源代码信息支持。
+添加和修改库 API 。
 [YFramework.NPL.NPLA1Forms]
 调整注册函数的 API 。
 添加若干对象语言操作的本机实现。
