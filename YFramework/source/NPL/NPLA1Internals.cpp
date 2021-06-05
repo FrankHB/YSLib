@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20459
+\version r20460
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2021-04-20 22:34 +0800
+	2021-05-31 01:33 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -227,7 +227,7 @@ void
 ThrowNestedParameterTreeCheckError()
 {
 	std::throw_with_nested(InvalidSyntax("Failed checking for parameter in a"
-		" parameter tree (expected a symbol or '#ignore')."));
+		" parameter tree (expected a list, a symbol or '#ignore')."));
 }
 
 char

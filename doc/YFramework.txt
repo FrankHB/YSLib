@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2020 FrankHB.
+	© 2009-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1520
+\version r1525
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2020-12-12 08:49 +0800
+	2021-06-02 23:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -753,8 +753,10 @@ YLSib 和 YFramework 中依赖 YSLib 的项目尽可能使用 YFramework::YBaseM
 基本内容见 [Documentation::LanguageConvention] 和 [Documentation::Designation @@6.2] 。
 
 @4.4.1 实现特性宏：
-作为 [Documentation::Designation @@6.2.5] 指定允许的例外，某些 YCLib 模块的非头文件中使用以下预处理指令：
-#undef __STRICT_ANSI__
+作为 [Documentation::Designation @@6.2.5] 指定允许的例外，某些 YCLib 模块的非头文件中可能在头和源文件包含前使用以下的附加的预处理指令：
+#ifndef _POSIX_C_SOURCE
+#	define _POSIX_C_SOURCE 200809L
+#endif
 当前这些模块包括 FileIO 。未来可能有 YCommon 。
 
 @5 初始化：

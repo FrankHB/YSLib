@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4323
+\version r4392
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2021-05-19 22:23 +0800
+	2021-06-04 22:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1898,7 +1898,7 @@ libfat 1.1.0: reviewed, partially merged, partially shelved.
 	Change https://github.com/devkitPro/libfat/commit/abde1cb73b585ac5fc76b8d4d5d598ad6841597d is not applicable.
 		There is no separated install script.
 	Change https://github.com/devkitPro/libfat/commit/73ccaec8154e2a12fd8995514e10 is not applicable.
-		Since 'NAME_MAX' was used instead of 'MAX_FILENAME_LENGTH' at beginning in the module YCLib::DSIO.
+		Since 'NAME_MAX' was used instead of 'MAX_FILENAME_LENGTH' at beginning in module YCLib::DSIO.
 	No changes in https://github.com/devkitPro/libfat/pull/9 has to be ported.
 		These changes were merged in https://github.com/devkitPro/libfat/commit/d4926573ac184656146f39749192372b3b7388b0.
 		No change has to be ported as https://github.com/devkitPro/libfat/commit/d59c7c8b35fedc2b247afee56d91c2a44101253d.
@@ -2065,7 +2065,7 @@ Update of code for DS platform is carefully evaluated.
 			To make the actual limitation sane, otherwise the length error condition is wrong.
 		The value of 'platform::FAT::LFN::MaxLength' (for UCS-2 sequence) is also changed to keep it not greater than length of converted MBCS.
 		As a result, length of FAT long filename greater than 255 now does not work.
-	The upstream newlib libsystem file descriptor change need 'YCLib_(DS).DSIO' to be updated now.
+	The upstream Newlib libsystem file descriptor change need 'YCLib_(DS).DSIO' to be updated now.
 		See also the deferred change in $2017-03 dep.merge.
 FAT initialization error has been tested and revisited.
 	The error is the failure to initialization FAT partition and the FAT mounting is thus aborted.
@@ -2230,7 +2230,7 @@ $2018-05:
 $report.impl:
 Several DS buidling problem concerned with compatibility issues in devkitPro has been addressed.
 	The update of libnds 1.6.0 changes minor internal interfaces, which has been adapted in module YCLib::NativeAPI.
-	The update of devkitARM r46 changes the libgloss/libsysbase I/O interface in newlib, using 'void*' instead of 'int' as the internal representation of the file descriptor.
+	The update of devkitARM r46 changes the libgloss/libsysbase I/O interface in Newlib, using 'void*' instead of 'int' as the internal representation of the file descriptor.
 		The module 'YCLib_(DS).DSIO' is adapted to use 'void*' type file handle instead of raw file descriptor.
 			This also reduces casts between pointers and 'int'.
 		See also $2015-12 for the changes.
@@ -3837,7 +3837,7 @@ $2020-09:
 report.impl:
 A problem of memory comsumption in the compilation has been worked around.
 	GCC uses huge memory on stage 1 SHBuild of some translation units containing complicated code.
-		The concrete instance is the compilation on some functions with deep nested lambda expressions (e.g. 'AccL') in the YFramework module NPL::NPLA1Forms.
+		The concrete instance is the compilation on some functions with deep nested lambda expressions (e.g. 'AccL') in YFramework module NPL::NPLA1Forms.
 		With i686 target, it leads to crash of the compiler due to running out of the available address space.
 		With x86_64 target, the translation unit containing the definitions of the 4 offending functions ('AccL', 'AccR', 'FoldR1' and 'Map1') needs more than 5.3 GiB for the frontend (cc1plus) and more than 2.1 GiB for the assembler (as).
 			There are also warnings "variable tracking size limit exceeded with ‘-fvar-tracking-assignments’".
@@ -4284,6 +4284,73 @@ The predefined macro '_GLIBCXX_DEBUG' is now removed from the compiler options.
 		However, the 'basic_string' template now does not enables this support, as it is from 'ystdex::basic_string' in YBase.
 			Whether 'ystdex::basic_string' is 'std::basic_string' is unspecified. So, it still can be affected by '_GLIBCXX_DEBUG' (in a non-default configuration).
 	See also https://gcc.gnu.org/onlinedocs/libstdc++/manual/debug_mode_using.html#debug_mode.using.mode.
+
+$2021-05:
+
+report.impl:
+Exceptional cases of the macro definition in YFramework implementation units has been tweaked, to avoid a problem since GCC 11.
+	Specifically, the '#undef __STRICT_ANSI__' preprocessing directive clashes with libstdc++ in GCC 11 and leads to a warning reported by [-Wcpp].
+		The warning is caused by a '#warning' preprocessing directive in the implementation-specific header <bits/c++config.h>.
+			The change is introduced by https://gcc.gnu.org/git/?p=gcc.git;h=767537a8b027bcb5807bb45b0268c5da98c2c7a0 since 2020-12-16.
+		The original directive is required because some system headers do not provide declarations in strictly ISO C conforming mode.
+			This include Newlib-based standard C library headers in devkitARM.
+				The issue was effective on some old versions, e.g. https://sourceware.org/pipermail/cygwin-xfree/2001-August/006498.html.
+	The change of the source is to add a definition POSIX C macro '_POSIX_C_SOURCE' replacing to '200809L'.
+		This conforms to the current POSIX standard, see https://pubs.opengroup.org/onlinepubs/9699919799/functions/V2_chap02.html#tag_15_02_01_01.
+			The default version is determined as the minimal requirement in YFramework module YCLib::Platform.h.
+		This has been supported by Newlib for years.
+		It is defined conditionally to allow overriding on the compiler command lines.
+		This is not yet a bug fix because 128-bit integer types are not relied on in the translation unit concerned here.
+	Several alternative implemantation-dependent changes are considered inappropriate.
+		Fix of '__GLIBCXX_TYPE_INT_N_0' by an alias declared with '__extension__' is not enough because it can be specified with 'unsigned'.
+		Adding '#undef __SIZEOF_INT128__' after '#undef __STRICT_ANSI__' is also feasible as it would break the code expecting '__int128' availablilty controlled solely by '__SIZEOF_INT128__'.
+			A typical instance is the system header <_mingw.h> in MinGW-W64 in Win64, which expects it defined for GCC releases.
+				If the macro is not defined, it would go to declare '__int128' by a typedef declaration in a style compatible to Intel C compiler.
+					This is not syntatically well-formed because '__int128' is treated a keyword in GCC.
+Captures of shared reference of environments in the NPLA1 implemtation has been revised.
+	In general, a capture of a strong reference in a reducer is not safe in the sense of resource management.
+		This may cause cyclic references if the reducers themselves are captured and used as some first-class objects (e.g. continuations assigned to the environment).
+			Such cyclic references can be formed by creation of variable bindings owning the said first-class objects.
+	Note that NPLA does not provide uniformed accesses of subobjects on an continuation represented in a reducer.
+		This makes the implicitly captured subcontinuations in a reducer cannot be easily accessed portably.
+		If a subcontinuation owns a strong reference to the current environment object, any capture of the owner of the subcontinuation owned directly or indirectly create cyclic references.
+			This is difficult to detect (if not impossible) and there is almost no room to prevent it reliably in the object language programs.
+			Given being owned by the current environment is a common case for usual resources, this breaks predictability in the language interface. It is essentially error-prone.
+	Under these descplined rules, conventionally, a strong reference of an environment can be only owned by the continuation create it.
+		The capture of any continuation which owns that original continuation as a descedant shall be delimited before that continuation, to avoid the captured delimited continuation owns the strong reference which incurs the cyclic reference of the environment.
+		Other uses (e.g. capture of the continuation as a subobject on an environment object) are not check. However, once the strong reference of environments are not captured improperly, it should remain safe.
+	The potentionally unsafe captures are still allowed in NPLA1 native implementations for some reasons.
+		Capture of a strong environment itself is not error-prone, once the owner of the captured environment is not owned in turn by the current environment.
+		There are some difficulties to implement alternatively.
+			Environment guards initialized by the current environment cannot be implemented alternatively easily.
+				Removal of them is also unwise. Usually, they are needed to implement recovery from exceptions.
+			The environment guard type cannot accept both a strong and weak environment reference without additional overhead (e.g. type erasure).
+			Similarily, the TCO action cannot accept both the strong and weak environment references without additional overhead.
+		Consistency to existing common operations shall be remained.
+			Notably, it is not easy to make the 'eval' work without hold the strong environment reference by the reducers in the asynchronous implementation.
+			This is also not consistent to the combiner calls which makes a fresh environment (it is always a strong environment reference at first).
+				Such combiners at least include every user-provided combiners created by the lambda or vau abstractions, as well as the implicit ones created in the '$let' family.
+			Alternative owners out of the environments and continuations (reducers) in the abstraction machine seems a worse idea, for simplicity of both the theory and the actual implementation.
+		Capture of a strong environment reference is already widely used.
+			Environment guards are common. They can be owned by a reducer or the TCO action.
+			This is also concerted in 'eval' when the environment argument refers to the current environment.
+		The capture of a strong environment reference is more efficient.
+			Basically, the strong environment reference is simpler data structure than a weak reference.
+			This will not be changed without a massive reconstruction and redesign of the underlying type mapping.
+		As continutation captures in the object language, reducer captures should not be the usual case in the normal paths.
+	All captures of the reference into the lambda-expressions in YFramework module NPL::NPLA1Forms are reviewed with the conventions above in mind.
+		Occasionally, native implemetations in namespace 'Forms' have already used the capture of strong environment references.
+			Mostly it is implemented via environment guards in operations like 'AccL', 'AccR' and 'ForwardFirst'.
+			'AsEnvironment' uses explicit strong environment reference capture.
+		The implementation of 'ProvideLet' and 'Provide' in namespace 'Forms' are changed to follow the convention with slightly better performance.
+		Calls of 'ContextNode::WeakenRecord' are not used for weak reference capture now.
+			It is still used other contexts (when the semantic of the operation requires it, e.g. getting a weak reference as the result in the object language).
+	By carefully preventing some unsafe operations in the object language, the unsafety can be mostly avoided.
+		The first-class continuation is not yet supported.
+		The capture without exposing the current environment can be safe.
+		In future, first-class continuations may detect the existence of the strong environment reference.
+			Unrestricted first-class continuation capture operations are not safe.
+			Only the captures do not get these references involved are made safe.
 
 ////
 

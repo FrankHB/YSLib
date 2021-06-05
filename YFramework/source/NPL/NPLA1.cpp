@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r20804
+\version r20862
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2021-05-12 21:15 +0800
+	2021-06-02 06:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -924,6 +924,26 @@ MakeParameterMatcher(_fBindTrailing bind_trailing_seq, _fBindValue bind_value)
 }
 
 
+//! \since build 920
+YB_FLATTEN void
+BindSymbolImpl(const EnvironmentReference& r_env, const TokenValue& n,
+	TermNode& b, TermTags o_tags, Environment& env)
+{
+	YAssert(!IsIgnore(n) && IsNPLASymbol(n), "Invalid token found.");
+
+	string_view id(n);
+	const char sigil(ExtractSigil(id));
+
+	if(!id.empty())
+		BindParameterObject{r_env}(sigil, sigil == '&', o_tags, b,
+			[&](const TermNode& tm){
+			CopyTermTags(env.Bind(id, tm), tm);
+		}, [&](TermNode::Container&& c, ValueObject&& vo) -> TermNode&{
+			// XXX: Allocators are not used here for performance.
+			return env.Bind(id, TermNode(std::move(c), std::move(vo)));
+		});
+}
+
 template<class _tTraits>
 YB_FLATTEN void
 BindParameterImpl(const shared_ptr<Environment>& p_env, const TermNode& t,
@@ -996,19 +1016,7 @@ BindParameterImpl(const shared_ptr<Environment>& p_env, const TermNode& t,
 		}
 	}, [&](const TokenValue& n, TermNode& b, TermTags o_tags,
 		const EnvironmentReference& r_env){
-		YAssert(!IsIgnore(n) && IsNPLASymbol(n), "Invalid token found.");
-
-		string_view id(n);
-		const char sigil(ExtractSigil(id));
-
-		if(!id.empty())
-			BindParameterObject{r_env}(sigil, sigil == '&', o_tags, b,
-				[&](const TermNode& tm){
-				CopyTermTags(env.Bind(id, tm), tm);
-			}, [&](TermNode::Container&& c, ValueObject&& vo) -> TermNode&{
-				// XXX: Allocators are not used here for performance.
-				return env.Bind(id, TermNode(std::move(c), std::move(vo)));
-			});
+		BindSymbolImpl(r_env, n, b, o_tags, env);
 	})(t, o, TermTags::Temporary, p_env);
 }
 //@}
@@ -1603,20 +1611,12 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 		if(const auto p = NPL::TryAccessLeaf<const TermReference>(bound))
 		{
 			p_rterm = &p->get();
-			// XXX: It is assumed that %term is not an ancestor of %bound. The
-			//	source term tags are ignored.
-			term.SetContent(bound.GetContainer(),
-				EnsureLValueReference(TermReference(*p)));
+			SetEvaluatedReference(term, bound, *p);
 		}
 		else
 		{
-			auto p_env(NPL::Nonnull(pr.second));
-
 			p_rterm = &bound;
-			[&] YB_LAMBDA_ANNOTATE((), , flatten){
-				term.Value = TermReference(p_env->MakeTermTags(bound)
-					& ~TermTags::Unique, bound, std::move(p_env));
-			}();
+			SetEvaluatedValue(term, bound, pr.second);
 		}
 		EvaluateLiteralHandler(term, ctx, *p_rterm);
 		// NOTE: Unevaluated term shall be detected and evaluated. See also
@@ -1803,6 +1803,18 @@ RelayForCall(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 }
 
 
+TokenValue
+Ensigil(TokenValue s)
+{
+	if(!s.empty() && s.front() != '&')
+	{
+		if(s.front() != '%')
+			return '&' + s;
+		s.front() = '&';
+	}
+	return s;
+}
+
 void
 CheckParameterTree(const TermNode& term)
 {
@@ -1853,6 +1865,18 @@ BindParameterWellFormed(const shared_ptr<Environment>& p_env, const TermNode& t,
 	TermNode& o)
 {
 	BindParameterImpl<NoParameterCheck>(p_env, t, o);
+}
+
+void
+BindSymbol(const shared_ptr<Environment>& p_env, const TokenValue& n,
+	TermNode& o)
+{
+	// NOTE: As %BindSymbolImpl expecting the parameter tree as a single symbol
+	//	term without trailing handling.
+	auto& env(NPL::Deref(p_env));
+
+	if(!IsIgnore(n))
+		BindSymbolImpl(p_env, n, o, TermTags::Temporary, env);
 }
 
 

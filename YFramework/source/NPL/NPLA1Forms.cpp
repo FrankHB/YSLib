@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r24427
+\version r24629
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2021-05-16 14:29 +0800
+	2021-06-05 08:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,19 +34,19 @@
 //	std::placeholders, std::ref, std::bind, ystdex::as_const, IsLeaf,
 //	ValueObject, ystdex::ref_eq, RelaySwitched, ContextHandler, shared_ptr,
 //	string, unordered_map, Environment, lref, list, IsBranchedList,
-//	NPL::TryAccessLeaf, TokenValue, IsIgnore, IsNPLASymbol, any_ops::use_holder,
-//	in_place_type, YSLib::allocate_shared, InvalidReference, MoveFirstSubterm,
-//	BindParameter, ShareMoveTerm, BindParameterWellFormed,
-//	TermToStringWithReferenceMark, LiftOtherOrCopy, ResolveTerm,
+//	TokenValue, IsIgnore, IsNPLASymbol, any_ops::use_holder, in_place_type,
+//	YSLib::allocate_shared, InvalidReference, BindParameter, MoveFirstSubterm,
+//	ResolveEnvironment, ShareMoveTerm, BindParameterWellFormed,
+//	TermToStringWithReferenceMark, ResolveTerm, LiftOtherOrCopy,
 //	NPL::ResolveRegular, ystdex::make_transform, std::allocator_arg,
-//	ystdex::equality_comparable, CheckParameterTree, NPL::AsTermNode,
-//	ystdex::exchange, NPL::SwitchToFreshEnvironment, TermTags,
-//	ystdex::expand_proxy, NPL::AccessRegular, TermReference, GetLValueTagsOf,
-//	RegularizeTerm, LiftMovedOther, ThrowValueCategoryError,
-//	ThrowListTypeErrorForNonlist, CheckEnvironmentFormal,
-//	ThrowInvalidSyntaxError, ystdex::type_id,
-//	ystdex::update_thunk, NPL::TryAccessReferencedLeaf, ystdex::invoke_value_or,
-//	ystdex::call_value_or, ystdex::bind1, LiftCollapsed,
+//	NPL::TryAccessLeaf, TermReference, ystdex::equality_comparable,
+//	CheckParameterTree, NPL::AsTermNode, ystdex::exchange,
+//	NPL::SwitchToFreshEnvironment, TermTags, ystdex::expand_proxy,
+//	NPL::AccessRegular, GetLValueTagsOf, RegularizeTerm, LiftMovedOther,
+//	ThrowValueCategoryError, ThrowListTypeErrorForNonlist,
+//	ThrowInvalidSyntaxError, CheckEnvironmentFormal, ystdex::type_id,
+//	ystdex::update_thunk, ystdex::invoke_value_or, NPL::TryAccessReferencedLeaf,
+//	ystdex::call_value_or, ystdex::bind1, BindSymbol, LiftCollapsed,
 //	NPL::AllocateEnvironment, NPL::TryAccessTerm, std::mem_fn;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_SContext // for Session;
@@ -392,6 +392,8 @@ private:
 };
 
 
+// NOTE: The following checks are essentially type checks to the environment
+//	object from the object language program input.
 //! \since build 911
 YB_ATTR_nodiscard inline PDefH(const shared_ptr<Environment>&,
 	FetchValidEnvironment, const shared_ptr<Environment>& p_env)
@@ -495,8 +497,8 @@ DoSet(TermNode& term, ContextNode& ctx, _func f)
 			auto formals(MoveFirstSubterm(term));
 
 			RemoveHead(term);
-			// NOTE: It is necessary to save %p_env here. The necessary check is
-			//	in the call of %FetchDefineOrSetEnvironment.
+			// NOTE: It is necessary to save %p_env here. The optional host
+			//	value check is in the call to %FetchDefineOrSetEnvironment.
 			return f(formals, std::move(p_env));
 		}, "set-eval-obj"));
 	});
@@ -627,6 +629,8 @@ EvalImplUnchecked(TermNode& term, ContextNode& ctx, bool no_lift)
 	// NOTE: On %NPL_Impl_NPLA1_Enable_TCO, this assumes %term is same to the
 	//	current term in %TCOAction, which is initialized by %CombinerReturnThunk
 	//	in NPLA1.cpp.
+	// XXX: The mandated host value check is in the call to
+	//	%ContextNode::SwitchEnvironment.
 	return TailCall::RelayNextGuardedProbe(ctx, term,
 		EnvironmentGuard(ctx, ctx.SwitchEnvironment(std::move(p_env))),
 		!no_lift, std::ref(ContextState::Access(ctx).ReduceOnce));
@@ -920,8 +924,9 @@ public:
 	{
 		auto& p_env(pr.first);
 
-		// NOTE: The environment check is used as the parent check since the
-		//	parent is an environment.
+		// NOTE: The host value check is similar to %Environment::CheckParent
+		//	since the parent is a single environment, except that it does not
+		//	respect to 'NPL_NPLA_CheckParentEnvironment'.
 		Environment::EnsureValid(p_env);
 		if(pr.second)
 			return ValueObject(std::allocator_arg, a,
@@ -935,6 +940,7 @@ public:
 	MakeParentSingleNonOwning(TermNode::allocator_type a,
 		const shared_ptr<Environment>& p_env)
 	{
+		// NOTE: Ditto.
 		Environment::EnsureValid(p_env);
 		return ValueObject(std::allocator_arg, a,
 			in_place_type<EnvironmentReference>, p_env);
@@ -2058,8 +2064,8 @@ Acc(_func f, TermNode& term, ContextNode& ctx)
 	//	which can be a non-list.
 	lv_l = EvaluateLocalObject(l, d);
 	nterm_cons_combine(pred);
-	return Combine<NonTailCall>::ReduceCallSubsequent(nterm, ctx,
-		EnvironmentGuard(ctx, d), A1::NameTypedReducerHandler(
+	return Combine<NonTailCall>::ReduceCallSubsequent(nterm, ctx, d,
+		A1::NameTypedReducerHandler(
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
 		// XXX: Capture of %d by copy is a slightly more efficient.
@@ -2559,7 +2565,7 @@ LetAddFormalsTerm(TermNode& term, bool skip)
 	auto i(term.begin());
 
 	// XXX: This is usually %with_env in the derivation, but not in all cases
-	//	(e.g. see %ProvideLetEmpty).
+	//	(e.g. see %ProvideLet).
 	++i;
 	if(skip)
 		++i;
@@ -2624,7 +2630,7 @@ LetCombineApplicative(TermNode& term, ContextNode& ctx, bool no_lift)
 	//	preferred in %LetCombineEmpty (by a caller like %LetEmpty).
 	// NOTE: Subterms are extracted arguments for the call plus the parent in
 	//	%Value, extracted 'formals' for the lambda abstraction,
-	//	originally bound 'bindings', trailing 'body'.
+	//	unused 'bindings', trailing 'body'.
 	YAssert(term.size() >= 3, "Invalid nested call found.");
 
 	auto& arg_list(*term.begin());
@@ -2707,6 +2713,7 @@ LetCombinePrepare(_func f, TermNode& term, ContextNode& ctx, bool with_env)
 				auto p_env_pr(ResolveEnvironment(nd.Value,
 					NPL::IsMovable(p_ref)));
 
+				// NOTE: Similar to %VauHandler::MakeParentSingle.
 				Environment::EnsureValid(p_env_pr.first);
 				parent = std::move(p_env_pr.first);
 			}
@@ -2770,10 +2777,6 @@ LetEmpty(TermNode& term, ContextNode& ctx, bool no_lift, bool with_env)
 	//	optional 'e', unused 'formals' for the lambda abstraction
 	//	(an empty list), originally bound 'bindings', trailing 'body'.
 	return LetCombinePrepare([&, no_lift]{
-		// NOTE: Now subterms are the parent in %Value, unused 'bindings',
-		//	unused 'formals' for the lambda abstraction (an empty list),
-		//	trailing 'body'.
-		YAssert(term.size() >= 3, "Invalid term found.");
 		return LetCombineEmpty(term, ctx, no_lift);
 	}, term, ctx, with_env);
 }
@@ -3068,6 +3071,101 @@ YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TokenValue, CopyImportName, const TokenValue& s)
 	ImplRet(HasImportsSigil(s) ? TokenValue(s.substr(1)) : s)
 
+#if false
+// NOTE: Lock a weak environment reference to a strong environment reference
+//	accepting modifications later.
+//! \since build 920
+shared_ptr<Environment>
+LockEnvironmentToModify(const EnvironmentReference& r_env)
+{
+	auto p_env(r_env.Lock());
+
+	// NOTE: This is like the type check in %SetWithNoRecursion. If %r_env is
+	//	from the current environment saved previously, it only fails when the
+	//	environment goes out of its lifetime.
+	Environment::EnsureValid(p_env);
+	// NOTE: Evaluate only once. Equivalent to %SymbolsToImports for more than
+	//	one calls of assignment with less overhead.
+	CheckFrozenEnvironment(p_env);
+	return p_env;
+}
+#endif
+
+//! \since build 920
+inline void
+ShareEnvironmentToModify(const shared_ptr<Environment>& p_env)
+{
+	// NOTE: This is like the type check in %SetWithNoRecursion, expecting
+	//	%p_env nonempty.
+	YAssert(p_env, "Invalid environment found.");
+	// NOTE: Evaluate only once. Equivalent to %SymbolsToImports for more than
+	//	one calls of assignment with less overhead.
+	CheckFrozenEnvironment(p_env);
+}
+
+//! \since build 920
+void
+BindImports(const shared_ptr<Environment>& p_env, TermNode& term,
+	ContextNode& ctx, const shared_ptr<Environment>& p_src,
+	bool ref_symbols = {})
+{
+	YAssert(IsList(term), "Invalid symbols term found.");
+	if(IsBranch(term))
+	{
+		ShareEnvironmentToModify(p_env);
+		for(auto& x : term)
+		{
+			auto& n(NPL::ResolveRegular<TokenValue>(x));
+			const auto s(CopyImportName(n));
+			// XXX: As %ReduceLeafToken with symbols.
+			auto pr(ctx.Resolve(p_src, s));
+
+			if(pr.first)
+			{
+				auto& bound(*pr.first);
+				TermNode nterm(bound.get_allocator());
+
+				// XXX: As %EvaluateIdentifier and the loop body in
+				//	%ForwardImports, with some optimizations (see below).
+				// XXX: Different to %EvaluateIdentifier, identifiers here are
+				//	not used of operator, so %SetupTailOperatorName is not
+				//	called.
+				if(const auto p
+					= NPL::TryAccessLeaf<const TermReference>(bound))
+				{
+					if(p->IsTemporary())
+						LiftOtherOrCopy(nterm, p->get(), p->IsModifiable());
+					else
+						SetEvaluatedReference(nterm, bound, *p);
+				}
+				else if(bool(bound.Tags & TermTags::Temporary))
+					LiftOtherOrCopy(nterm, bound,
+						!NPL::Deref(pr.second).Frozen);
+				else
+					SetEvaluatedValue(nterm, bound, pr.second);
+				// XXX: Different to %EvaluateIdentifier, only
+				//	first-class objects are expected here. Literal
+				//	handlers are ignored.
+				if(ref_symbols)
+					n = Ensigil(n);
+				BindSymbol(p_env, n, nterm);
+			}
+			else
+				TryExpr(throw BadIdentifier(s))
+				catch(BadIdentifier& e)
+				{
+					// XXX: Use the source information from %x even if
+					//	%s can be different to the string referred in
+					//	%x.Value.
+					if(const auto p_si
+						= QuerySourceInformation(x.Value))
+						e.Source = *p_si;
+					throw;
+				}
+		}
+	}
+}
+
 void
 ProvideLetCommon(TermNode& term, ContextNode& ctx)
 {
@@ -3084,24 +3182,28 @@ ProvideLetCommon(TermNode& term, ContextNode& ctx)
 
 	CollectSubterms(*i_body, term, i);
 	con.splice(con.end(), con, i_symbols);
-
-	// NOTE: Now subterms are extracted arguments for the call,
-	//	extracted 'formals' for the lambda abstraction,
-	//	originally bound 'bindings', 'body', 'symbols'.
+	// NOTE: Now subterms are extracted arguments for the call, extracted
+	//	'formals' for the lambda abstraction, originally bound 'bindings',
+	//	'body', 'symbols'.
 	YAssert(term.size() == 5, "Invalid term found.");
 
 	auto& nd(ReferenceTerm(con.back()));
-	auto& ncon(con.emplace_back().GetContainerRef());
 
-	// NOTE: Append the imports to be evaluated to form the operand of the
-	//	binding.
-	// XXX: As %Forms::SymbolsToImports.
+	// XXX: Like %Forms::SymbolsToImports.
 	if(IsList(nd))
+	{
+		// XXX: Checks are required before the evaluation of 'body'.
 		for(const auto& x : nd)
-			ncon.push_back(NPL::AsTermNode(a,
-				CopyImportName(NPL::ResolveRegular<const TokenValue>(x))));
+			yunused(NPL::ResolveRegular<TokenValue>(x));
+	}
 	else
 		ThrowListTypeErrorForNonlist(nd, true);
+	// NOTE: Construct the delayed operative before the body. The applicative
+	//	and other trailing subterms make up the constructed trailing body
+	//	subterms, which will be evaluated later in the dynamic environment
+	//	created immediately before the evaluation of the constructed body. The
+	//	constructed body is the combination of the delayed operative and
+	//	the operand, see below.
 	// XXX: Here the form is used as %LiteralHandler is not necessarily
 	//	supported in this context (by the NPLA1 canonical evaluation algorithm),
 	//	although it can work with the current implementation of
@@ -3109,42 +3211,56 @@ ProvideLetCommon(TermNode& term, ContextNode& ctx)
 	con.emplace(i_body, AsForm(a, ystdex::bind1(
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
-		[](TermNode& t, ContextNode& c, EnvironmentReference& r_env){
-		YAssert(t.size() == 4, "Invalid term found.");
+		[&](TermNode& t, ContextNode& c, shared_ptr<Environment>& p_env){
+		// NOTE: Subterms are the unused combiner, 'body', 'symbols'.
+		YAssert(t.size() == 3, "Invalid term found.");
 		RemoveHead(t);
 		AssertNextTerm(c, t);
+		// NOTE: Evaluate 'body', and then create the bindings based on the
+		//	evaluated 'body'. The imports refer to some subobjects in the
+		//	evaluated subterms; otherwise there will be an error during the
+		//	creation.
 		return ReduceSubsequent(*t.begin(), c, A1::NameTypedReducerHandler(
-			std::bind([&](EnvironmentReference& r_env_0){
-			auto j(t.begin());
-			auto& symbols(*++j);
-			auto& imports(*++j);
-
-			// NOTE: This does not optimize for cases of zero arguments as in
-			//	%FormContextHandler::CallN in NPLA1.cpp, since the fast path is
-			//	preferred in %ProvideLetEmpty.
-			return A1::RelayCurrentNext(c, imports,
-				// NOTE: Capture the term regardless of the next term because
-				//	continuation capture here is unsupported.
-				[&](TermNode&, ContextNode& c0){
-				ReduceChildren(imports, c0);
-				return ReductionStatus::Partial;
-			}, NPL::ToReducer(c.get_allocator(), A1::NameTypedReducerHandler(
-				std::bind([&](const EnvironmentReference& r_env_1){
-				ForwardImports(imports);
-
-				auto p_env(r_env_1.Lock());
-
-				CheckBindParameter(p_env, symbols, imports);
-				t.SetValue(c.ShareRecord());
-				return ReductionStatus::Clean;
-			}, std::move(r_env_0)), "provide-let-return")));
-		}, std::move(r_env)), "provide-let-bind"));
-	}, std::placeholders::_2, ctx.WeakenRecord())));
+			std::bind([&](shared_ptr<Environment>& p_env_0){
+			BindImports(p_env_0, nd, c, c.GetRecordPtr());
+			t.SetValue(c.ShareRecord());
+			return ReductionStatus::Clean;
+		}, std::move(p_env)), "provide-let-return"));
+	}, std::placeholders::_2, ctx.ShareRecord())));
 	// XXX: As %LetCombinePrepare, except that non-empty %con.begin()->Value is
 	//	allowed.
 	con.begin()->Value.assign(std::allocator_arg, a, ctx.WeakenRecord());
+	// NOTE: Subterms are extracted arguments for the call plus the parent in
+	//	%Value, extracted 'formals' for the lambda abstraction,
+	//	unused 'bindings', constructed trailing body subterms (delayed
+	//	operative, 'body', 'symbols'). This layout is compatible to the
+	//	precondition of %LetCombineApplicative or %LetCombineEmpty.
 }
 //@}
+
+//! \since build 920
+ReductionStatus
+ImportImpl(TermNode& term, ContextNode& ctx, bool ref_symbols)
+{
+	return DoLetArity(term, 0, [&]{
+		RemoveHead(term);
+
+		const auto i(term.begin());
+
+		return ReduceSubsequent(*i, ctx, A1::NameTypedReducerHandler(std::bind(
+			// TODO: Blocked. Use C++14 lambda initializers to simplify the
+			//	implementation.
+			[&, i, ref_symbols](const shared_ptr<Environment>& d)
+			-> ReductionStatus{
+			const auto p_env(ResolveEnvironment(*i).first);
+			auto& con(term.GetContainerRef());
+
+			con.erase(i);
+			BindImports(d, term, ctx, p_env, ref_symbols);
+			return ReduceReturnUnspecified(term);
+		}, ctx.ShareRecord()), "import-bindings"));
+	});
+}
 
 } // unnamed namespace;
 
@@ -4163,6 +4279,18 @@ Provide(TermNode& term, ContextNode& ctx)
 		// XXX: As %LetEmpty.
 		return LetCombineEmpty(term, ctx, true);
 	});
+}
+
+ReductionStatus
+Import(TermNode& term, ContextNode& ctx)
+{
+	return ImportImpl(term, ctx, {});
+}
+
+ReductionStatus
+ImportRef(TermNode& term, ContextNode& ctx)
+{
+	return ImportImpl(term, ctx, true);
 }
 
 

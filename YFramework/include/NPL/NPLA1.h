@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8636
+\version r8651
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2021-04-27 22:13 +0800
+	2021-06-02 02:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1295,6 +1295,16 @@ YB_ATTR_nodiscard YB_PURE inline
 	ImplRet(s == "#ignore")
 
 /*!
+\brief 修饰引用字符。
+\since build 921
+
+确保非空的没有 & 前缀的符号以一个 & 引用标记字符。
+若参数具有 % 引用字符前缀，替换 % 为 & 。
+*/
+YF_API YB_ATTR_nodiscard YB_PURE TokenValue
+Ensigil(TokenValue);
+
+/*!
 \throw InvalidSyntax 嵌套异常：项不符合语法要求。
 \note 异常条件视为语法错误而非直接的类型错误。
 \since build 917
@@ -1414,6 +1424,15 @@ YF_API void
 BindParameterWellFormed(const shared_ptr<Environment>&, const TermNode&,
 	TermNode&);
 //@}
+
+/*!
+\brief 使用操作数结构化匹配并绑定符号。
+\since build 920
+
+同 BindParameter ，但形式参数指定为符号，不进行递归绑定匹配。
+*/
+YF_API void
+BindSymbol(const shared_ptr<Environment>&, const TokenValue&, TermNode&);
 
 
 /*!

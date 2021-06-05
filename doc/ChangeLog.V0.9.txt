@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r4063
+\version r4146
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-05-19 23:48 +0800
+	2021-06-05 16:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,86 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ $lib "supported the resolution of LWG 2839 on replecement of standard \
+		containers" $effective @ %YBase.YStandardEx.List,
+		// See also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85828.
+	/ $re_ex(b632) $dev $impl '#undef __STRICT_ANSI__'
+		-> '#define _POSIX_C_SOURCE 200809L' @ '!defined(_POSIX_C_SOURCE)'
+		$effective @ %YFramework.YCLib.FileIO,
+		// To eliminate G++ 11.1 warning introduced by libstdc++ in the \
+			standard modes: [-Wc++]. See also $2021-06 \
+			@ %Documentation::Workflow.
+	* DD "formal syntax" @ ("operative '$import!'" $since b838,
+		"operative '$import&!'" $since b909) @ %Documentation.NPL,
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA1Internals $=
+		(
+			* "missing the case for a list" @ "exception message"
+				@ "function %ThrowNestedParameterTreeCheckError" $since b919,
+			+ "functions %(SetEvaluatedReference, SetEvaluatedValue)"
+		),
+		/ %NPLA1 $=
+		(
+			/ DLDI "simplified function %EvaluateIdentifier"
+				^ $dep_from ("%(SetEvaluatedReference, SetEvaluatedValue)"
+				@ %NPLA1Internals),
+			+ "function %BindSymbol",
+			+ "function %Ensigil"
+		),
+		* DD "outdated host type 'weak_ptr<Environment>'" @ "Doxygen comment"
+			@ "functions %ResolveReference" @ %NPLA $since b827,
+		/ DLDI ^ "%EnvironmentGuard" ~ "%ystdex::guard<EnvironmentSwitcher>"
+			$effective @ "function templates %(InvokeIn, GetModuleFor)"
+			@ %Dependency,
+		/ @ "namespace %Forms" @ %NPLA1Forms $=
+		(
+			+ "functions %(Import, ImportRef)" ^ $dep_from
+				("%(SetEvaluatedReference, SetEvaluatedValue)"
+				@ %NPLA1Internals, "%(BindSymbol, Ensigil)" @ %NPLA1),
+			- DLDI "redundant assertion in case of empty let parameter list"
+				@ "functions %(Let, LetRef, LetAsterisk, LetAsteriskRef, \
+				LetRec, LetRecRef, Provide)",
+			/ @ "functions %(ProvideLet, Provide)" $=
+			(
+				* "missing validity check for locked environment" $since b919,
+					// This can occur if the reducer is captured and the
+					//	captured environment is then destroyed.
+				(
+				* "wrong handling of trailing symbol with prefix '.'"
+					$since b919
+					$= (/ $impl ^ $dep_from ("%BindSymbol" @ %NPLA1));
+				/ DLI !^ "import list construction"
+					// This also avoids one redundant continuation of the \
+						binding creation.
+				)
+			),
+			/ DLDI "simplified functions %(AccL, AccR)"
+		),
+		/ %Dependency $=
+		(
+			/ @ "function %LoadGroundContext" $=
+			(
+				* "wrong handling of trailing symbol with prefix '.'"
+					@ ("derivation" @ ("operative '$import!'" $since b838,
+					"operative '$import&!'" $since b909, ("operative \
+					'$provide/let!'" $since b907; $comp "operative '$provide!'"
+					$since b837)), $comp "native implementation"
+					@ "operatives ('$provide/et!', '$provide!')"
+					$dep_from ("%(ProvideLet, Provide)" @ %NPLA1Forms)),
+				/ $lib "added native implementation enabled by default"
+					@ (("operatives ('$import!', '$import&!')"
+					^ $dep_from ("%(Import, ImportRef)" @ %NPLA1Forms),
+					"applicative 'nonfoldable?'")
+			),
+			/ DLDI "simplified native implemenatation" @ "applicative %ensigil"
+				@ "function %LoadStandardDerived" ^ ("%Ensigil" @ %NPLA1)
+		)
+	)
+),
+
+b919
 (
 	+ "ensured exception thrown with clear messages carrying the information \
 		of the path for internal %MappedFile initialization failure"
@@ -91,12 +171,10 @@ $now
 						!^ "%ystdex::swap_dependent",
 					/ DLI ^ "allocator" @ "applicative 'env-get'"
 				),
-				/ @ "function %LoadGroundContext" $=
-				(
-					/ $lib "added native implementation enabled by default"
-						@ ("operatives ('$provide-let!', '$provide!')"
-						^ $dep_from ("%(ProvideLet, Provide)" @ %NPLA1Forms)
-				)
+				/ $lib "added native implementation enabled by default"
+					@ ("operatives ('$provide-let!', '$provide!')"
+					@ "function %LoadGroundContext"
+					^ $dep_from ("%(ProvideLet, Provide)" @ %NPLA1Forms)
 			),
 			/ DLI "renamed reducer name for continuation without direct \
 				evaluations" @ 'NPL_Impl_NPLA1_Enable_Thunked \

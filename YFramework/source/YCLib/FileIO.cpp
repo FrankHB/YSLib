@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2020 FrankHB.
+	© 2011-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3866
+\version r3871
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2020-12-10 11:32 +0800
+	2021-06-02 23:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,10 @@
 */
 
 
-#undef __STRICT_ANSI__ // for ::fileno, ::pclose, ::popen, ::_wfopen;
+// NOTE: See $2021-06 @ %Documentation::Workflow.
+#ifndef _POSIX_C_SOURCE
+#	define _POSIX_C_SOURCE 200809L
+#endif
 #include "YCLib/YModules.h"
 #include YFM_YCLib_FileIO // for std::is_same, ystdex::underlying_type_t,
 //	ystdex::invoke_result_t, ystdex::invoke, RetryOnInterrupted, Deref,

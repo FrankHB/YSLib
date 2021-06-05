@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r4835
+\version r4884
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2021-05-17 12:46 +0800
+	2021-06-05 16:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,20 +31,21 @@
 //	std::invalid_argument, ystdex::sfmt, YSLib::share_move,
 //	A1::NameTypedReducerHandler, std::ref, RelaySwitched, NPL::Deref,
 //	NPL::ResolveRegular, A1::ReduceOnce, ResolvedTermReferencePtr,
-//	Forms::CallResolvedUnary, NPL::AllocateEnvironment, function, ValueObject,
-//	EnvironmentReference, std::piecewise_construct, NPL::forward_as_tuple,
-//	LiftOther, ThrowNonmodifiableErrorForAssignee, ThrowValueCategoryError,
-//	ValueToken, IsNPLASymbol, ThrowInvalidTokenError, ResolveTerm, TokenValue,
-//	IsEmpty, ComposeReferencedTermOp, IsBranch, IsReferenceTerm,
-//	IsBoundLValueTerm, IsUncollapsedTerm, IsUniqueTerm, IsModifiableTerm,
-//	IsTemporaryTerm, NPL::TryAccessLeaf, LiftTermRef, NPL::SetContentWith,
-//	Forms::CallRawUnary, LiftTerm, LiftOtherOrCopy, ystdex::bind1,
-//	std::placeholders, LiftTermValueOrCopy, MoveResolved, ResolveIdentifier,
-//	ReduceToReferenceList, NPL::IsMovable, LiftTermOrCopy, IsBranchedList,
-//	AccessFirstSubterm, ReferenceTerm, ThrowInsufficientTermsError,
-//	ystdex::exchange, ystdex::plus, ystdex::tolower, YSLib::IO::StreamPut,
-//	FetchEnvironmentVariable, ystdex::swap_dependent, YSLib::IO::UniqueFile,
-//	YSLib::IO::omode_convb, YSLib::uremove, ystdex::throw_error;
+//	Forms::CallResolvedUnary, Forms::CallRawUnary, NPL::TryAccessLeaf,
+//	NPL::AllocateEnvironment, function, ValueObject, EnvironmentReference,
+//	std::piecewise_construct, NPL::forward_as_tuple, LiftOther,
+//	ThrowNonmodifiableErrorForAssignee, ThrowValueCategoryError, ValueToken,
+//	IsNPLASymbol, ThrowInvalidTokenError, ResolveTerm, TokenValue, IsEmpty,
+//	ComposeReferencedTermOp, IsBranch, IsReferenceTerm, IsBoundLValueTerm,
+//	IsUncollapsedTerm, IsUniqueTerm, IsModifiableTerm, IsTemporaryTerm,
+//	ReferenceTerm, LiftTermRef, NPL::SetContentWith, LiftTerm, LiftOtherOrCopy,
+//	ystdex::bind1, std::placeholders, LiftTermValueOrCopy, MoveResolved,
+//	ResolveIdentifier, ReduceToReferenceList, NPL::IsMovable, LiftTermOrCopy,
+//	IsBranchedList, AccessFirstSubterm, ThrowInsufficientTermsError,
+//	ystdex::fast_any_of, Ensigil, ystdex::plus, ystdex::tolower,
+//	YSLib::IO::StreamPut, FetchEnvironmentVariable, ystdex::swap_dependent,
+//	YSLib::IO::UniqueFile, YSLib::IO::omode_convb, YSLib::uremove,
+//	ystdex::throw_error;
 #include YFM_NPL_NPLA1Forms // for NPL::Forms functions;
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::Path;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
@@ -824,6 +825,19 @@ LoadBasicDerived(REPLContext& context)
 	RegisterStrict(renv, "symbols->imports", SymbolsToImports);
 	RegisterForm(renv, "$provide/let!", ProvideLet);
 	RegisterForm(renv, "$provide!", Provide);
+	RegisterForm(renv, "$import!", Import);
+	RegisterForm(renv, "$import&!", ImportRef);
+	RegisterUnary<>(renv, "nonfoldable?", [](TermNode& x){
+		return ResolveTerm(
+			[&](TermNode& nd, ResolvedTermReferencePtr p_ref) -> bool{
+			if(IsList(nd))
+				return ystdex::fast_any_of(nd.begin(), nd.end(),
+					ComposeReferencedTermOp(IsEmpty));
+			// XXX: This is from 'first-null?' in the alternative derivation.
+			ThrowInsufficientTermsError(nd, p_ref);
+		}, x);
+	});
+
 #else
 	context.ShareCurrentSource("<root:basic-derived>");
 	context.Perform(
@@ -1154,10 +1168,19 @@ LoadBasicDerived(REPLContext& context)
 				(forward! symbols));
 		$defv! $provide/let! (&symbols &bindings .&body) d
 			eval% (list% $let (forward! bindings) $sequence
-				(move! body) (list% $set! d symbols (symbols->imports symbols))
-				(list () lock-current-environment)) d;
+				(move! body) (list% $set! d (append symbols ((unwrap list%) .))
+				(symbols->imports symbols)) (list () lock-current-environment))
+				d;
 		$defv! $provide! (&symbols .&body) d
 			eval (list*% $provide/let! (forward! symbols) () (move! body)) d;
+		$defv! $import! (&e .&symbols) d
+			eval% (list $set! d (append symbols ((unwrap list%) .))
+				(symbols->imports symbols)) (eval e d);
+		$defv! $import&! (&e .&symbols) d
+			eval% (list $set! d (append (map1 ensigil symbols)
+				((unwrap list%) .)) (symbols->imports symbols)) (eval e d);
+		$defl! nonfoldable? (&l)
+			$if (null? l) #f ($if (first-null? l) #t (nonfoldable? (rest& l)));
 	)NPL"
 	);
 #endif
@@ -1170,16 +1193,7 @@ LoadStandardDerived(REPLContext& context)
 #if NPL_Impl_NPLA1_Native_Forms
 	auto& renv(context.Root.GetRecordRef());
 
-	RegisterUnary<Strict, const TokenValue>(renv, "ensigil",
-		[](TokenValue s) -> TokenValue{
-		if(!s.empty() && s.front() != '&')
-		{
-			if(s.front() != '%')
-				return '&' + s;
-			s.front() = '&';
-		}
-		return s;
-	});
+	RegisterUnary<Strict, const TokenValue>(renv, "ensigil", Ensigil);
 #else
 	// XXX: %ensigil depends on %std.strings but not some core functions, to
 	//	avoid cyclic dependencies.
@@ -1235,13 +1249,6 @@ LoadCore(REPLContext& context)
 		$defl%! assv (&x &alist) $cond ((null? alist) ())
 			((eqv? x (first& (first& alist))) first alist)
 			(#t assv (forward! x) (rest% alist));
-		$defv! $import! (&e .&symbols) d
-			eval% (list $set! d symbols (symbols->imports symbols)) (eval e d);
-		$defv! $import&! (&e .&symbols) d
-			eval% (list $set! d (map1 ensigil symbols)
-				(symbols->imports symbols)) (eval e d);
-		$defl! nonfoldable? (&l)
-			$if (null? l) #f ($if (first-null? l) #t (nonfoldable? (rest& l)));
 		$defl! list-push-front! (&l &x)
 			assign! l (cons% (forward! x) (move! l));
 		$defw%! map-reverse (&appv .&ls) d

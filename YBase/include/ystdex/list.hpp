@@ -1,5 +1,5 @@
 ﻿/*
-	© 2019-2020 FrankHB.
+	© 2019-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,17 +11,23 @@
 /*!	\file list.hpp
 \ingroup YStandardEx
 \brief 列表容器。
-\version r1633
+\version r1642
 \author FrankHB <frankhb1989@gmail.com>
 \since build 864
 \par 创建时间:
 	2019-08-14 14:48:52 +0800
 \par 修改时间:
-	2020-07-17 01:25 +0800
+	2021-05-20 02:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::List
+
+提供 ISO C++17 标准库头 \c \<list> 兼容的替代接口和实现。
+包括以下已有其它实现支持的 ISO C++17 后的修改：
+WG21 P0084R2 ：返回类型增强。
+包括以下已有其它实现支持的 ISO C++20 后的修改：
+LWG 2839 ：允许自转移赋值。
 */
 
 
@@ -558,7 +564,9 @@ protected:
 	void
 	move_assign_elements(list_rep& x, true_) ynothrow
 	{
-		clear_nodes();
+		// XXX: The resolution of LWG 2839 requires self-move to be
+		//	well-defined.
+		clear();
 		move_nodes(std::move(x));
 		ystdex::alloc_on_move(get_node_allocator(), x.get_node_allocator());
 	}

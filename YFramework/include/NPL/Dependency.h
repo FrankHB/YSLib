@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r396
+\version r398
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2021-05-18 01:23 +0800
+	2021-06-03 18:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -201,7 +201,7 @@ template<typename _fCallable>
 void
 InvokeIn(ContextNode& ctx, _fCallable&& f)
 {
-	ystdex::guard<EnvironmentSwitcher> gd(ctx,
+	EnvironmentGuard gd(ctx,
 		NPL::SwitchToFreshEnvironment(ctx, ValueObject(ctx.WeakenRecord())));
 
 	ystdex::invoke(f);
@@ -217,7 +217,7 @@ template<typename _fCallable>
 shared_ptr<Environment>
 GetModuleFor(ContextNode& ctx, _fCallable&& f)
 {
-	ystdex::guard<EnvironmentSwitcher> gd(ctx,
+	EnvironmentGuard gd(ctx,
 		NPL::SwitchToFreshEnvironment(ctx, ValueObject(ctx.WeakenRecord())));
 
 	ystdex::invoke(f);

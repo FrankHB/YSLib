@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8058
+\version r8074
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2021-05-13 21:38 +0800
+	2021-05-31 18:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1685,6 +1685,26 @@ ProvideLet(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 Provide(TermNode&, ContextNode&);
+
+/*!
+\brief 从指定的环境导入指定的符号。
+\since build 920
+
+参考调用文法：
+<pre>$import! \<environment> \<symbols></pre>
+*/
+YF_API ReductionStatus
+Import(TermNode&, ContextNode&);
+
+/*!
+\brief 从指定的环境以引用绑定导入指定的符号。
+\since build 920
+
+参考调用文法：
+<pre>$import&! \<environment> \<symbols></pre>
+*/
+YF_API ReductionStatus
+ImportRef(TermNode&, ContextNode&);
 
 
 /*!

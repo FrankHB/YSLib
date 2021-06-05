@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r21084
+\version r21109
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2021-04-20 22:39 +0800
+	2021-06-04 04:59 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -30,14 +30,14 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA1 // for ContextNode, TermNode, ContextState,
-//	ReductionStatus, Reducer, ystdex::get_less, EnvironmentReference,
-//	NPL::tuple, YSLib::get, list, ystdex::unique_guard, std::declval,
-//	EnvironmentGuard, make_observer, std::bind, std::placeholders, std::ref,
-//	YSLib::map, set, A1::NameTypedReducerHandler, A1::NameTypedContextHandler,
-//	ystdex::bind1, std::placeholders::_2, TermReference,
-//	ThrowTypeErrorForInvalidType, ystdex::type_id, ParameterMismatch,
-//	NPL::TryAccessLeaf, ystdex::update_thunk, IsIgnore, IsNPLASymbol,
-//	ThrowInvalidTokenError;
+//	ReductionStatus, Reducer, YSLib::map, lref, Environment, ystdex::get_less,
+//	set, NPL::Deref, EnvironmentReference, NPL::tuple, YSLib::get, list,
+//	ystdex::unique_guard, std::declval, EnvironmentGuard, make_observer,
+//	std::bind, std::placeholders, std::ref, A1::NameTypedReducerHandler,
+//	A1::NameTypedContextHandler, ystdex::bind1, std::placeholders::_2,
+//	TermReference, ThrowTypeErrorForInvalidType, ystdex::type_id,
+//	ParameterMismatch, NPL::TryAccessLeaf, ystdex::update_thunk, IsIgnore,
+//	IsNPLASymbol, ThrowInvalidTokenError;
 #include <ystdex/ref.hpp> // for ystdex::unref;
 
 namespace NPL
@@ -559,7 +559,7 @@ YB_ATTR(always_inline) inline auto
 RelayDirect(ContextNode& ctx, _fCurrent&& cur, TermNode& term)
 	-> decltype(cur(term, ctx))
 {
-	// XXX: This workarounds %std::reference_wrapper in libstdc++ to function
+	// XXX: This works around %std::reference_wrapper in libstdc++ to function
 	//	type in C++2a mode with Clang++. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93470.
 	return ystdex::unref(cur)(term, ctx);
 }
@@ -855,7 +855,9 @@ struct Combine final
 			ctx.SwitchEnvironmentUnchecked(std::move(p_env))));
 	}
 
-	// NOTE: A %_tGuardOrEnv does not support an empty environment pointer.
+	// NOTE: A %_tGuardOrEnv is either a guard or a strong reference to an
+	//	environment supported by %RelayEnvSwitch respectively. A strong
+	//	reference is not an empty pointer.
 	template<class _tGuardOrEnv>
 	// XXX: Do not use %YB_FLATTEN here for LTO compiling performance.
 	static inline ReductionStatus
@@ -902,6 +904,22 @@ YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TermReference, EnsureLValueReference, TermReference&& ref)
 	// XXX: Use %TermReference::SetTags is not efficient here.
 	ImplRet(TermReference(ref.GetTags() & ~TermTags::Unique, std::move(ref)))
+
+
+//! \since build 920
+inline PDefH(void, SetEvaluatedReference, TermNode& term, const TermNode& bound,
+	const TermReference& ref)
+	// XXX: It is assumed that %term is not an ancestor of %bound. The source
+	//	term tags are ignored.
+	ImplExpr(YAssert(NPL::TryAccessLeaf<const TermReference>(bound).get()
+		== &ref, "Invalid term or reference value found."), term.SetContent(
+		bound.GetContainer(), EnsureLValueReference(TermReference(ref))))
+
+//! \since build 920
+YB_FLATTEN inline PDefH(void, SetEvaluatedValue, TermNode& term,
+	TermNode& bound, shared_ptr<Environment>& p_env)
+	ImplExpr(term.Value = TermReference(NPL::Deref(p_env).MakeTermTags(bound)
+		& ~TermTags::Unique, bound, std::move(p_env)))
 
 
 //! \since build 917

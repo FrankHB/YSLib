@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r8293
+\version r8308
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2021-04-20 01:25 +0800
+	2021-06-03 08:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -995,7 +995,13 @@ YB_ATTR_nodiscard YB_PURE inline
 \sa Environment
 \sa Environment::CheckParent
 
-若定义为 true ，则在默认解析和检查父环境时，检查环境引用是否存在。
+若定义为 true ，则在默认访问父环境时，检查环境引用是否存在。
+其中，访问环境包括以下情形：
+解析环境取环境宿主值；
+使用环境宿主值初始化 ValueObject 对象。
+注意解析环境时取得的可能表示环境宿主类型的值不一定是环境宿主值。
+若宿主类型的值作为环境宿主值，则视为访问。
+派生实现的基于语义规则要求的动态环境类型检查不使用此处的可选检查。
 */
 #ifndef NPL_NPLA_CheckParentEnvironment
 #	ifndef NDEBUG
@@ -2284,6 +2290,10 @@ public:
 	\exception NPLException 异常中立：由 ThrowForInvalidType 抛出。
 	\since build 798
 	\todo 使用专用的异常类型。
+
+	检查可作为父环境的宿主对象中的对象类型。
+	启用 NPL_NPLA_CheckParentEnvironment 时，
+		进一步检查目标对象中的环境指针值的有效性。
 	*/
 	static void
 	CheckParent(const ValueObject&);
@@ -3140,14 +3150,16 @@ ResolveIdentifier(const ContextNode&, string_view);
 //@}
 
 /*!
-\brief 解析环境。
+\brief 解析环境：在可能表示环境的 ValueObject 值中取表示环境的宿主类型的值。
 \return 取得所有权的环境指针及是否具有所有权。
 \sa Environment::EnsureValid
+\sa EnvironmentReference::Lock
 
 尝试从参数指定的对象中访问环境指针。
-只支持访问宿主值类型 \c shared_ptr<Environment> 或 \c weak_ptr<Environment> 。
+只支持访问宿主类型 \c shared_ptr<Environment> 或 \c EnvironmentReference 。
+解析宿主类型 EnvironmentReference 的值时，锁定环境。
 所有权由成功访问的对象类型确定：环境强引用具有所有权，否则不具有所有权。
-不检查宿主值类型以外的有效性。成功访问的环境指针的值可能为空，而需进一步检查。
+不检查宿主值类型以外的有效性。成功访问的环境指针的值可能为空，可能需进一步检查。
 */
 //@{
 //! \since build 830
