@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r646
+\version r672
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2020-12-12 10:01 +0800
+	2021-06-25 12:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -283,20 +283,35 @@ EncodeArg(_type&& arg) -> decltype(yforward(arg))
 //@}
 
 
-//! \since build 560
-//@{
 /*!
-\brief 终端数据。
+\brief 终端数据接口。
 \note 非公开实现。
+\since build 921
 */
-class TerminalData;
+FwdDeclI(ITerminalData)
 
 /*!
 \brief 终端。
-\note 非 Win32 平台使用 \c tput 实现，多终端改变当前屏幕时可能引起未预期的行为。
+\note 多终端改变当前屏幕时可能引起未预期的行为。
 \warning 非虚析构。
+\since build 560
+\todo 外部命令的 termcap 支持。
 
-对底层控制台接口封装的设备接口。当不存在可用的底层接口时，操作无作用。
+对底层控制台接口封装的设备接口，提供终端控制操作和兼容终端的输出操作。
+当非控制台文件关联的流初始化，或不存在可用的终端接口时，终端控制操作无作用。
+Win32 平台：
+	若以控制台文件关联的流初始化，使用 Win32 控制台 API 实现；
+	否则，当检查当前终端为 MinTTY 时，使用同非 Win32 平台的方式实现。
+非 Win32 平台：
+	若以控制台文件关联的流初始化：
+		若环境变量 YF_Use_tput 的值非空，使用外部命令 \c tput 实现；
+		否则，使用内建的控制序列（符合 ISO/IEC 6429:1992 的 ANSI 转义序列）；
+	否则，操作无作用。
+当前终端检查为 MinTTY ，当且仅当 Win32 平台下：
+	非控制台文件关联的流初始化；
+	且环境变量 \c TERM_PROGRAM 的值为 \c "mintty" 。
+当前使用 \c tput 的实现假定使用 terminfo ，暂不支持 termcap ；
+	因此，使用外部命令的实现不支持 FreeBSD 等只使用 termcap 的终端环境。
 */
 class YF_API Terminal
 {
@@ -336,8 +351,8 @@ public:
 	};
 
 private:
-	//! \since build 593
-	unique_ptr<TerminalData> p_data;
+	//! \since build 921
+	unique_ptr<ITerminalData> p_data;
 
 public:
 	/*!
@@ -381,7 +396,6 @@ public:
 	YB_NONNULL(2, 3) bool
 	WriteString(std::FILE*, const char*);
 };
-//@}
 
 /*!
 \brief 根据等级设置终端的前景色。

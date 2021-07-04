@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018-2020 FrankHB.
+	© 2010-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r682
+\version r685
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2020-11-16 23:33 +0800
+	2021-07-05 00:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,6 +62,8 @@ public:
 	//! \pre 间接断言：第一参数非空。
 	YB_NONNULL(2)
 	LoggedEvent(const char* = "", RecordLevel = Emergent);
+	//! \since build 921
+	LoggedEvent(const std::string&, RecordLevel = Emergent);
 	LoggedEvent(const string_view, RecordLevel = Emergent);
 	//@}
 	/*!

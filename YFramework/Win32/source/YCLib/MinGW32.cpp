@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2306
+\version r2315
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2021-05-06 20:25 +0800
+	2021-07-05 00:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,8 @@
 //	std::string, UniqueHandle, ::BY_HANDLE_FILE_INFORMATION, YCL_CallF_Win32,
 //	YCL_Raise_Win32E, NO_ERROR, ::OVERLAPPED, ::GetSystemDirectoryW,
 //	::GetSystemWindowsDirectoryW, ystdex::rtrim, ::FormatMessageW, ::HMODULE,
-//	::GetProcAddress, ::GetModuleFileNameW, ::CreateFileW, INVALID_HANDLE_VALUE,
+//	::GetProcAddress, ::GetModuleFileNameW, FILE_TYPE_CHAR, FILE_TYPE_PIPE,
+//	FILE_TYPE_UNKNOWN, NO_ERROR, ::CreateFileW, INVALID_HANDLE_VALUE,
 //	RegistryKey, HKEY_*, FindClose, ystdex::throw_error, ::FindFirstFileW,
 //	::FindNextFileW, std::errc::not_supported, std::invalid_argument,
 //	::LARGE_INTEGER, ::GetFileTime, ::SetFileTime, ::LockFileEx, ::UnlockFileEx,
@@ -276,14 +277,14 @@ Win32Exception::Win32Exception(ErrorCode ec, const char* str, RecordLevel lv)
 {
 	YAssert(ec != 0, "No error should be thrown.");
 }
-Win32Exception::Win32Exception(ErrorCode ec, string_view sv, RecordLevel lv)
-	: Exception(int(ec), GetErrorCategory(), sv, lv)
-{
-	YAssert(ec != 0, "No error should be thrown.");
-}
 Win32Exception::Win32Exception(ErrorCode ec, const std::string& str,
 	RecordLevel lv)
 	: Exception(int(ec), GetErrorCategory(), str, lv)
+{
+	YAssert(ec != 0, "No error should be thrown.");
+}
+Win32Exception::Win32Exception(ErrorCode ec, string_view sv, RecordLevel lv)
+	: Exception(int(ec), GetErrorCategory(), sv, lv)
 {
 	YAssert(ec != 0, "No error should be thrown.");
 }
@@ -396,6 +397,8 @@ TryCategorizeNodeDevice(UniqueHandle::pointer h)
 
 	switch(::GetFileType(h))
 	{
+	// NOTE: %FILE_TYPE_REMOTE is ignored because unused, see
+	//	https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfiletype.
 	case FILE_TYPE_CHAR:
 		res = NodeCategory::Character;
 		break;

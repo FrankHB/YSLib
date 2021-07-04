@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4392
+\version r4449
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2021-06-04 22:01 +0800
+	2021-06-25 12:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1054,7 +1054,7 @@ The function 'isatty' on POSIX compliant environments and '_isatty' is not the s
 		See http://msdn.microsoft.com/en-us/library/f4s0ddew.aspx.
 	Use Win32 APIs to achieve the functionality of POSIX compliant 'isatty'.
 		See http://stackoverflow.com/questions/3648711/detect-nul-file-descriptor-isatty-is-bogus.
-	However, both function can exclude some cases not fit for terminal output.
+	However, both functions can exclude some cases not fit for terminal output.
 Move-only parameter passing counts.
 	See the discussion at http://scottmeyers.blogspot.com/2014/07/should-move-only-types-ever-be-passed.html.
 	Both 'T&&' or 'T' have cases. The former is probable more efficient and debugger-friendly, while the latter is simpler (both on coding and behavior).
@@ -4351,6 +4351,62 @@ Captures of shared reference of environments in the NPLA1 implemtation has been 
 		In future, first-class continuations may detect the existence of the strong environment reference.
 			Unrestricted first-class continuation capture operations are not safe.
 			Only the captures do not get these references involved are made safe.
+Terminal support is improved.
+	In platform 'Win32', now terminal initialization detects mintty for better ANSI escape sequence handling.
+	ANSI escape sequence works on traditional MS-DOS consoles, Microsoft Windows on x86 platforms and Microsoft Windows >= 1809 Server 2019.
+		The last case is enabled by the new console with the ConPTY virtual terminal sequence translation support in 'conhost.exe'.
+			// See https://devblogs.microsoft.com/commandline/windows-command-line-introducing-the-windows-pseudo-console-conpty/.
+	Although "virtual terminal sequences are recommended" (see https://docs.microsoft.com/en-us/windows/console/classic-vs-vt), it is still buggy, incomplete, or at least instable in mode transistion for a long time.
+		See e.g. https://bugs.python.org/issue30075 and https://github.com/rprichard/winpty/issues/92
+		Thus, the implementation here does not enable the VT sequence depeding on the OS version.
+	Neither is ConEmu (sometimes it may suddenly stop to work randomly, e.g. running some program in 'bash.exe' in ConEmu after logging by the remote desktop client) stable enough.
+		So, there is no special handling for ConEmu.
+	Only MinTTY is detect to be the special case because it simulate the terminal by pipes, which do not work with the low-level Win32 console API at all.
+		There are methods to detect MinTTY via the attached handles for MSYS2 PTY.
+			See https://github.com/git/git/blob/master/compat/winansi.c#L558.
+			See https://github.com/RyanGlScott/mintty/blob/master/src/System/Console/MinTTY/Win32.hsc.
+			See https://github.com/fusesource/jansi/blob/master/src/main/native/jansi_isatty.c.
+			This is also similar for Cygwin PTY, see https://sourceforge.net/p/mingw-w64/mailman/message/35542755/.
+			See also https://gitlab.gnome.org/GNOME/glib/-/issues/1227.
+			This in general requires some low-level functions in ntdll.dll because there is no way to implement the functionality in pure Win32 native functions.
+				See https://lists.gnu.org/archive/html/bug-gnulib/2019-03/msg00046.html.
+				This is not clean because it relies on non-Win32 native functions. There are some compatibility risks.
+					However, it is already working.
+					It is optional, so if not available, it is just ignored.
+					And it is very unlikely to be changed in some future versions of Microsoft Windows.
+		This is detected by variable 'TERM_PROGRAM' supported since 3.1.5.
+			See https://github.com/mintty/mintty/blob/b1bfb63986c754ab76d87c4f3d4bfe40b74d64a2/wiki/Changelog.md.
+			This is not used, as it has the defect that it would effect other terminals opened in MinTTY as well as redirected streams besides the limited version requirement.
+				See https://github.com/mintty/mintty/issues/776#issuecomment-396681576.
+	Underlying API calls of terminal control is optimized.
+		Both termcap and terminfo has been considered.
+		They are rejected because the dependency is too heavy.
+			Only terminal control sequence is required, but not the whole TUI stuff.
+			The main terminfo implementation (tinfo) is in the ncurses library.
+				See https://invisible-island.net/ncurses/.
+				There is no easy way to reuse the internal tinfo interface without installing the whole library.
+			Neither does termcap easy to port.
+			They rely on different formats of external files as the terminal database.
+				Not all environments with terminals are compabible.
+					For example, FreeBSD uses termcap. Without install other libraries (notably, ncurses in the ports), there would be no terminfo database files.
+						This is also confusing, see https://forums.freebsd.org/threads/terminfo-where-are-the-sources.78095/.
+				These files may have potential license issues to distribute together.
+			These implementations are almost not maintainable.
+				See also https://github.com/Stebalien/term/issues/44.
+		There are alternative way to read the terminfo database.
+			See https://unix.stackexchange.com/questions/573410.
+				For the terminfo access, see unibilium: https://github.com/mauke/unibilium.
+			However, direct manipulation on the ANSI escape sequence may work better.
+				Anyway, there are almost not chance to see a terminal without the capabilities of ANSI escape sequence nowadays (besides the Microsoft Windows conhost.exe).
+				See https://crates.io/crates/ansi_term.
+				See http://jdebp.uk/Softwares/nosh/guide/commands/TerminalCapabilities.xml.
+		Eventually, the virtual sequence support is added for terminals conforming to ISO/IEC 6429 (ECMA-48), and enabled by default to replace the cases where the old implementation (relying on 'tput') is used.
+			The sequence is from 'termcap -l ansi'.
+				Some results are different on 'xterm' or other terminals.
+				The differences and the custom '$TERM' support are not implemented, since the 'ansi' terminal seems already enough.
+			A new environment variable 'YF_Use_tput' is added to allow the old implementation being used.
+			For now, 'tput' still assume it uses the commands used by terminfo (but not termcap).
+				Note all supported hosted platforms all use terminfo but not termcap by default, including the Win32 with Cygwin/MSYS PTY support added recently.
 
 ////
 

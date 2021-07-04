@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3567
+\version r3580
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2021-05-06 19:41 +0800
+	2021-07-05 00:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -474,6 +474,16 @@ public:
 			" for environments found."), --env_count)
 #endif
 };
+
+
+//! \since build 921
+YB_ATTR_nodiscard YB_PURE std::string
+MismatchedTypesToString(const bad_any_cast& e)
+{
+	// TODO: Use demangled type names?
+	return ystdex::sfmt("Mismatched types ('%s', '%s') found.", e.from(),
+		e.to());
+}
 
 } // unnamed namespace;
 
@@ -1173,8 +1183,8 @@ ContextNode::DefaultHandleException(std::exception_ptr p)
 {
 	YAssertNonnull(p);
 	TryExpr(std::rethrow_exception(std::move(p)))
-	CatchExpr(bad_any_cast&,
-		std::throw_with_nested(TypeError("Mismatched type found.")))
+	CatchExpr(bad_any_cast& e,
+		std::throw_with_nested(TypeError(MismatchedTypesToString(e))))
 }
 
 Environment::NameResolution
@@ -1381,9 +1391,7 @@ TraceException(std::exception& e, YSLib::Logger& trace)
 					si.second.Column + 1, si.first->c_str());
 		}
 		CatchExpr(bad_any_cast& ex,
-			print(Warning, "TypeError", ystdex::sfmt(
-				"Mismatched types ('%s', '%s') found.", ex.from(),
-				ex.to()).c_str()))
+			print(Warning, "TypeError", MismatchedTypesToString(ex).c_str()))
 		CatchExpr(LoggedEvent& ex, print(ex.GetLevel(), typeid(ex).name(), str))
 		CatchExpr(..., print(Err, "Error", str))
 	}, e);

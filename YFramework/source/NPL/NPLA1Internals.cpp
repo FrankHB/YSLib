@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20460
+\version r20461
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2021-05-31 01:33 +0800
+	2021-06-25 12:26 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -29,8 +29,6 @@
 #include "NPLA1Internals.h" // for NPL::Deref, Environment, ystdex::dismiss,
 //	shared_ptr, std::throw_with_nested, InvalidSyntax, std::make_move_iterator,
 //	NPL::AsTermNode;
-
-using namespace YSLib;
 
 namespace NPL
 {

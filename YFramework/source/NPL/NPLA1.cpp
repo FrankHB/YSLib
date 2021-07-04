@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r20862
+\version r20863
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2021-06-02 06:20 +0800
+	2021-06-19 18:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1653,7 +1653,7 @@ ReductionStatus
 ReduceCombined(TermNode& term, ContextNode& ctx)
 {
 	return IsCombiningTerm(term) ? ReduceCombinedBranch(term, ctx)
-		: ReductionStatus::Clean;
+		: ReductionStatus::Regular;
 }
 
 ReductionStatus
@@ -2193,6 +2193,7 @@ TermNode
 REPLContext::ReadFrom(LoadOptionTag<>, string_view unit, ContextNode& ctx) const
 {
 	YAssertNonnull(unit.data());
+
 	Session sess(ctx.get_allocator());
 
 	if(UseSourceLocation)

@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规范和实现规格说明。
-\version r23130
+\version r23175
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2021-06-05 16:40 +0800
+	2021-07-02 22:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1938,6 +1938,7 @@ NPLA 实现支持可扩展的 C++ API ，作为解释器(interpreter) 的实现�
 @6.1.1 实现支持策略：
 解释器的程序执以对语法分析(@6.1.6) 结果的规约实现，可对应语言或（适合改进执行性能的）某种等价变体的小步语义(@2.2.3) 。
 在此基础上，可允许派生实现优化性能，如嵌入编译。
+因为语法分析和规约的实现都在项(@4.1) 上进行变换，形式上，语法分析和规约实现整体实现了项重写系统(@4.1) 。
 NPLA API 公开解释器的状态，可支持和宿主语言的互操作(@2.4.1) 。
 虽然 NPLA 的设计(@5) 没有给出形式语义(@2.2.3) ，但 NPLA 实现中包含的 API 部分地提供和形式语义方法对应的支持：
 通过回调对应依赖宿主语言(@5.2) 实现作为描述的指称语义；
@@ -4482,7 +4483,7 @@ NPLA1 对象语言程序中的未定义行为包括 NPLA 未定义行为(@5.4) �
 @9.2.2 实体元素文法约定：
 指定函数的文法中，第一项以符号(@9.9.2) 的形式在所在的环境中提供，指定求值结果指称为合并子(@4.5.3.2) 的函数名称（）；
 其后指定的文法中不同的元素对应合并子的操作数或其被作为调用时的形式参数树(@7.7.3) 的子项。
-名义不同相同的约束可能仅要求相同的检查，可用于区分特定的含义，便于被实现优化。
+名义不同相同的约束可能仅要求相同的检查(@9.5.4) ，可用于区分特定的含义，以便被实现优化。
 表达式形式的结果指表达式的求值结果(@4.1) 。
 文法形式上，使用本节约定指定应用子的操作数(@9.2.2.2) 时，指定表达式形式求值的结果。
 这和 [RnRK] 和 [Shu10] 中的斜体标识符的标记不同，但含义（表示语义变量(semantic variable) ）和效果实质相同。
@@ -4699,11 +4700,12 @@ NPLA1 要求在特定上下文进行要求的类型检查(@9.5.4.1) 。派生实
 函数操作的语义可单独指定检查，具体形式由具体操作指定。
 
 @9.5.4.1 类型检查：
-基于 @5.8.6 ，对应对象语言表达式的表示实体的元素可用于表示操作中的名义(nominal) 类型检查。
-类型检查包括：
-对求值得到的操作数(@9.2.2.2) ，若操作的语义需要，则总是进行类型检查；
-根据特定对象状态指定动态类型的检查；
-其它检查在不违反语义要求时可选添加。
+基于名义类型(@4.7.1) ，对象语言实现应具有语义规则指定的类型检查(@4.7.3) ，以确保程序的执行符合操作的必要前置条件。
+操作的语义可要求以下的类型检查：
+对求值得到的操作数(@9.2.2.2) ，按文法约定(@9.2.2) 的约束进行类型检查；
+根据特定对象状态，指定动态类型（如要求对象可修改）的检查。
+实现可能添加其它不违反语义要求的类型检查。
+基于表达式的类型(@5.8.6) ，对应对象语言表达式的表示实体的元素可指定操作数上明确的类型要求。
 部分实体从属于其它实体类型而构成子类型(subtyping) 关系；部分的规约操作取得求值结果保证结果中的值可能具有的特定类型集合，这些类型也一并在以下描述中给出；其它情形不指定类型。
 规约预期符合约束。若违反由项的值对应的动态类型(@6.3) 不匹配导致，则求值失败；否则，行为未指定。
 除非另行指定，不同类型检查的作用的顺序未指定。
@@ -4905,7 +4907,7 @@ $let ((nenv () make-environment)) $set! nenv self nenv
 可引起被捕获的环境中存储的对象无法释放。
 能同时保证避免资源泄漏的实现引起一般意义上更根本的设计限制，因此不被使用。详见自引用数据结构和循环引用(@4.2.4) 。
 此外，为了避免 $lambda 等引起不经意的循环引用误用，根据易预测性原则(@1.4.5.2) ，这些组合子的构造器默认不使用强引用(@6.11.1) 作为静态环境。
-若需保持静态环境的所有权，使用显式指定静态环境的构造器（如 $lambda/e ） 和 lock-current-environment 等。
+若需保持静态环境的所有权，使用显式指定静态环境的构造器（如 $lambda/e ）和 lock-current-environment 等。
 否则，容易引起循环引用，如以下表达式：
 $def! f $lambda ()
 会相当于当前设计的：
@@ -4946,7 +4948,8 @@ $def! f $lambda/e (() get-current-environment)
 @9.9.3.4 环境的同一性和稳定性：
 和 Kernel 不同，环境对象符合默认的等价比较规则(@9.8.5) ，不提供不同等价谓词的结果一致性。
 和 Kernel 不同，环境中的绑定的对象可以在引入后通过对象的引用(@9.9.1) 被修改(@9.8.3) 。
-但环境在特定情形仍保证稳定性(stability) ，即总是可假定绑定维持一定意义的等价性，而可确保其中同名实体的同一性。在这些特定的情形中，违反环境稳定性引起未定义行为(@9.1.4) 。
+环境在特定情形保证稳定性(stability) ：一个环境是稳定的(stable) ，仅当总是可假定绑定维持一定意义的等价性，而可确保其中同名实体的同一性。
+违反环境稳定性的要求的程序具有未定义行为(@9.1.4) 。
 当前要求确保的稳定性包括：
 隐藏环境(@9.9.3.1) 的绑定有效稳定性(@9.9.3.7) 和值稳定性(@9.9.3.8) ；
 从构造时即明确要求稳定的一等环境(@10.2.1) 。
@@ -4993,11 +4996,11 @@ O 上若发生副作用（如被修改，参见 @9.8 ），之后在以 E 或任
 
 @9.9.3.9 冻结(freeze) 操作：
 环境可被冻结。冻结后的环境中取得的绑定和引用值不可修改。
-特定的环境修改要求环境不在没有冻结状态以确保不变量，要求类型检查(@9.5.4.1) 。检查失败则引起类型错误(@9.5.4.1) 。
+特定的环境修改要求环境不在冻结状态以确保不变量，要求类型检查(@9.5.4.1) 。检查失败则引起类型错误(@9.5.4.1) 。
 冻结一个已被冻结的环境没有作用。
-注意冻结的环境中仍可添加、移除绑定或重绑定(@9.9.3.7) 。
-NPLA1 隐藏环境(@9.9.3.1) 是冻结的。当前 NPLA1 不提供在已有环境撤销冻结的方法。
-若提供其它由派生实现定义的方法（附加初始化或提供本机实现操作）撤销冻结而使上述调用的安全性失效，这种方法应由派生实现定义。
+NPLA1 隐藏环境(@9.9.3.1) 是冻结的。
+当前 NPLA1 对象语言不提供在已有环境撤销冻结或在冻结的环境中添加、移除绑定或重绑定(@9.9.3.7) 的方法。
+若程序中使用其它方法（附加初始化或提供本机实现操作）撤销冻结或在冻结的环境中添加、移除绑定或重绑定而使对象语言安全性保证(@9.4.6) 失效，这种方法应由派生实现定义，否则程序行为未定义。
 
 @9.9.4 列表：
 和 Scheme 及 Kernel 不同，基于关于自引用数据结构和循环引用的分析(@4.2.4) 的理由，NPLA 支持的列表都是真列表(@6.2.1) ，元素有限且不存在环。
@@ -5680,7 +5683,7 @@ ignore 的值是完全作为标签使用的记号，具有记号值类型。
 开放类型映射(@5.5) 的类型系统(@4.7) 可能属于这种理论。不需要依赖序的等价谓词可以为名义类型(@4.7.1) 提供直接的支持。
 NPLA1 提供默认相等为抽象相等(@4.1.4) ，对任意的值适用。
 NPLA1 还提供对一等对象保证结果有意义的引用相等(@4.1.4) 操作。非一等实体的引用相等关系未指定。
-当前 NPLA1 不支持 EGAL(@4.1.4) ，因为 EGAL 要求分辨对象是否可被修改的元数据。
+当前 NPLA1 不支持 EGAL(@4.1.4) ，因为 EGAL 要求存在分辨任意对象的值是否可被修改的元数据。
 NPLA1 提供的等价谓词包括：
 eq? <object1> <object2> ：判断引用相等。
 eql? <object1> <object2> ：判断项的值数据成员(@6.2) 相等。
@@ -5764,7 +5767,6 @@ ref& <object> ：取引用。
 因为提供在返回值中保留其它间接值的操作，对共享持有者的值数据成员的对象使用不同的处理。否则，对引用值参数的情形，使用 id 替代应不影响可观察行为。
 以 NPL::LiftToReference(@6.9.7) 实现。
 assign@! <reference> <object> ：赋值(@9.8.3.1) 被引用的对象为指定对象的值，且 <object> 不隐含左值到右值转换且不被折叠。
-同 assign%!(@11.4.1) ，但 <object> 不被折叠。
 检查 <reference> 是可修改的左值。
 赋值对象直接修改(@9.8.3) 被引用的对象，但不无效化(@9.8.6) 参数指定的引用。
 Scheme 的 set! 在 SRFI-17 提供具有类似作用的支持，但第一操作数限于 set! 且为特定的过程调用；Kernel 没有类似的操作。
@@ -5858,6 +5860,8 @@ unwrap <applicative> ：解包装(@4.5.3.2) 应用子为底层的合并子(@7.6.
 @11.3.9 错误处理(@10.6.4) 和检查：
 raise-invalid-syntax-error <string> ：引发包含参数指定的字符串内容的语法错误(@9.5.1) 。
 实现引发错误对象(@10.9.4) 的异常对象类型具有 public 基类 NPL::InvalidSyntax 。
+raise-type-error <string> ：引发包含参数指定的字符串内容的类型错误(@9.5.4.1) 。
+实现引发错误对象(@10.9.4) 的异常对象类型具有 public 基类 NPL::InvalidSyntax 。
 check-list-reference <object> ：检查对象是否是列表引用，若检查通过返回参数，否则引发错误对象(@9.5.1) 。
 实现引发错误对象的异常对象类型是 NPL::ListTypeError(@6.5) 或 NPL::ValueCategoryMismatch(@6.5) 。
 
@@ -5929,6 +5933,12 @@ $set! <environment> <definiend> <body> ：修改指定环境的变量绑定。
 和 Kernel 不同而和 NPLA1 的 $def! 等类似，在修改绑定前对冻结环境进行检查。
 $setrec! <environment> <definiend> <body> ：修改指定环境的绑定，绑定效果同使用 $defrec!(@11.3.7) 。
 同 $set! ，但允许不同的递归操作，参见 $defrec! 。
+$wvau <formals> <body> ：创建包装的 vau 抽象(@4.5.2.2) 。
+和创建 vau 抽象类似，但创建的是调用时对操作数的元素求值一次的应用子(@7.6.1.1) 。
+表达式项的用法和 vau 抽象类似。
+$wvau% <formals> <body> ：同 $wvau ，但允许函数体求值返回引用值。
+$wvau/e <parent> <formals> <body> ：同 $wvau ，但支持显式指定的求值环境作为静态环境。
+$wvau/e% <parent> <formals> <body> ：同 $wvau/e ，但保留引用值。
 $lambda <formals> <body> ：创建 λ 抽象(@4.5.2.2) 。
 和创建 vau 抽象类似，但创建的是调用时对操作数的元素求值一次的应用子(@7.6.1.1) ，且忽略动态环境。
 可通过 vau 抽象或 $lambda/e 和（非派生的）get-current-environment 派生。
@@ -5956,6 +5966,18 @@ list* <object>+ ：在列表前附加元素创建列表。
 对一个操作数的情形返回原值，否则类似 cons ，检查最后一个实际参数是 <list> 。
 为不需要如 Kernel 支持派生 $vau ，直接使用 apply 派生。
 list*% <object>+ ：同 list* ，但创建的列表元素保留引用值。
+$defv! <variable> <formals> <eformal> <body> ：绑定 vau 抽象，等价 $def! <variable> $vau <formals> <eformal> <body> 。
+$defv%! <variable> <formals> <eformal> <body> ：绑定 vau 抽象，等价 $def! <variable> $vau% <formals> <eformal> <body> 。
+$defv/e! <variable> <parent> <formals> <eformal> <body> ：绑定指定静态环境的 vau 抽象，等价 $def! <variable> $vau/e <parent> <formals> <eformal> <body> 。
+$defv/e%! <variable> <parent> <formals> <eformal> <body> ：绑定指定静态环境的 vau 抽象，等价 $def! <variable> $vau/e% <parent> <formals> <eformal> <body> 。
+$defw! <variable> <formals> <eformal> <body> ：绑定包装的 vau 抽象，等价 $def! <variable> $wvau <formals> <eformal> <body> 。
+$defw%! <variable> <formals> <eformal> <body> ：绑定包装的 vau 抽象，等价 $def! <variable> $wvau% <formals> <eformal> <body> 。
+$defw/e! <variable> <parent> <formals> <eformal> <body> ：绑定包装的指定静态环境的 vau 抽象，等价 $def! <variable> $wvau/e <parent> <formals> <eformal> <body> 。
+$defw/e%! <variable> <parent> <formals> <eformal> <body> ：绑定包装的指定静态环境的 vau 抽象，等价 $def! <variable> $wvau/e% <parent> <formals> <eformal> <body> 。
+$defl! <variable> <formals> <body> ：绑定 λ 抽象，等价 $def! <variable> $lambda <formals> <body> 。
+$defl%! <variable> <formals> <body> ：绑定 λ 抽象，等价 $def! <variable> $lambda% <formals> <body> 。
+$defl/e! <variable> <parent> <formals> <body> ：绑定指定静态环境的 λ 抽象，等价 $def! <variable> $lambda/e <parent> <formals> <body> 。
+$defl/e%! <variable> <parent> <formals> <body> ：绑定指定静态环境的 λ 抽象，等价 $def! <variable> $lambda/e% <parent> <formals> <body> 。
 forward-first% <applicative> <list> ：取列表的第一元素并转发给指定的应用子。
 设参数列表 (&appv (&x .)) ，作用同求值：
 (forward! appv) (list% ($move-resolved! x)) ；
@@ -6045,6 +6067,9 @@ list-extract-first <list> ：以 first 在指定列表中选取并合并内容�
 设参数列表 (&l) ，结果同在新环境中求值表达式 map1 first l ，其中 map1 和 first 是标准库函数。
 list-extract-rest%! <list> ：以 rest% 在指定列表中选取并合并内容为新的列表。
 设参数列表 (&l) ，结果同在新环境中求值表达式 map1 rest% l ，其中 map1 和 rest% 是标准库函数。
+list-push-front! <list> <object> ：在列表前插入元素。
+要求 <list> 可修改，否则类型检查(@9.5.4.1) 失败。
+<object> 被转发。
 $let <bindings> <body> ：局部绑定求值：创建以当前环境为父环境的空环境，在其中添加 <bindings> 指定的变量绑定，再求值 <body> 。
 类似 Kernel 的同名操作，但返回非引用值(@10.4.2) 。
 创建的环境同合并子的局部环境(@8.4.5) 。
@@ -6123,18 +6148,6 @@ ensigil <symbol> ：修饰引用字符。
 本节约定以下求值得到的操作数：
 <box> ：箱(@4.2.3.5.3) 。
 核心库提供以下操作，即核心库函数：
-$defl! <variable> <formals> <body> ：绑定 λ 抽象，等价 $def! <variable> $lambda <formals> <body> 。
-$defl%! <variable> <formals> <body> ：绑定 λ 抽象，等价 $def! <variable> $lambda% <formals> <body> 。
-$defv! <variable> <formals> <eformal> <body> ：绑定 vau 抽象，等价 $def! <variable> $vau <formals> <eformal> <body> 。
-$defv%! <variable> <formals> <eformal> <body> ：绑定 vau 抽象，等价 $def! <variable> $vau% <formals> <eformal> <body> 。
-$defv/e! <variable> <parent> <formals> <eformal> <body> ：绑定指定静态环境的 vau 抽象，等价 $def! <variable> $vau/e <parent> <formals> <eformal> <body> 。
-$defv/e%! <variable> <parent> <formals> <eformal> <body> ：绑定指定静态环境的 vau 抽象，等价 $def! <variable> $vau/e% <parent> <formals> <eformal> <body> 。
-$defw! <variable> <formals> <eformal> <body> ：绑定 wrap 的 vau 抽象，等价 $def! <variable> wrap ($vau <formals> <eformal> <body>) 。
-$defw%! <variable> <formals> <eformal> <body> ：绑定 wrap 的 vau 抽象，等价 $def! <variable> wrap ($vau% <formals> <eformal> <body>) 。
-$defw/e! <variable> <parent> <formals> <eformal> <body> ：绑定 wrap 的指定静态环境的 vau 抽象，等价 $def! <variable> wrap ($vau/e <parent> <formals> <eformal> <body>) 。
-$defw/e%! <variable> <parent> <formals> <eformal> <body> ：绑定 wrap 的指定静态环境的 vau 抽象，等价 $def! <variable> wrap ($vau/e% <parent> <formals> <eformal> <body>) 。
-$defl/e! <variable> <parent> <formals> <body> ：绑定指定静态环境的 λ 抽象，等价 $def! <variable> $lambda/e <parent> <formals> <body> 。
-$defl/e%! <variable> <parent> <formals> <body> ：绑定指定静态环境的 λ 抽象，等价 $def! <variable> $lambda/e% <parent> <formals> <body> 。
 box <object> 装箱：构造箱（类型为 <box> 的对象）。
 box% <object> 同 box ，但参数不隐含左值到右值转换，在结果中保留引用值。
 box? <object> 判断是否为 <box> 类型的对象。
@@ -6150,7 +6163,6 @@ assv <object> <lists> ：访问关联元素。
 否则，值为空列表。
 类似 Kernel 的 assoc ，但使用 eqv? 而不是 equal? ，且转发参数。
 和 Scheme 的 assv 类似，但失败的值不返回 #f ，尽管和 Kernel 相同而和 Scheme 不同，<test> 支持非布尔类型的值(@11.3.3) 。
-list-push-front! <list> <object> ：在列表前插入元素。参数被转发。
 map-reverse <applicative> <list>... ：映射并反转结果。
 参数 <applicative> 应满足以下要求，否则引起错误(@9.5.1) ：
 <list>... 中的参数的元素数都相等；

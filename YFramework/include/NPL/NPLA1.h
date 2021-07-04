@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8651
+\version r8687
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2021-06-02 02:32 +0800
+	2021-06-20 18:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1027,6 +1027,43 @@ public:
 		std::swap(_x.Wrapping, _y.Wrapping)))
 };
 
+/*!
+\relates FormContextHandler
+\since build 921
+*/
+template<typename... _tParams>
+YB_ATTR_nodiscard YB_PURE inline ContextHandler
+MakeForm(TermNode::allocator_type a, _tParams&&... args)
+{
+	return ContextHandler(std::allocator_arg, a,
+		FormContextHandler(yforward(args)...));
+}
+template<typename... _tParams>
+YB_ATTR_nodiscard YB_PURE inline ContextHandler
+MakeForm(const TermNode& term, _tParams&&... args)
+{
+	return MakeForm(term.get_allocator(), yforward(args)...);
+}
+
+template<typename... _tParams>
+YB_ATTR_nodiscard YB_PURE inline TermNode
+AsForm(TermNode::allocator_type a, _tParams&&... args)
+{
+	// XXX: Allocators are not used on %FormContextHandler for performance in
+	//	most cases.
+#if true
+	return NPL::AsTermNode(a, std::allocator_arg, a,
+		in_place_type<ContextHandler>, std::allocator_arg, a,
+		FormContextHandler(yforward(args)...));
+#elif true
+	return NPL::AsTermNode(a, in_place_type<ContextHandler>, std::allocator_arg,
+		a, FormContextHandler(yforward(args)...));
+#else
+	return NPL::AsTermNode(a, MakeForm(a, yforward(args)...));
+#endif
+}
+//@}
+
 
 //! \since build 871
 //@{
@@ -1211,6 +1248,7 @@ YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsCombiningTerm,
 	可使用 TermNode::SetContent 代替 LiftOther 提升项。
 */
 //@{
+//! \note 对不满足 IsCombiningTerm 的项直接返回 ReductionStatus::Regular 。
 YF_API ReductionStatus
 ReduceCombined(TermNode&, ContextNode&);
 

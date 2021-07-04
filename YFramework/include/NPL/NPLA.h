@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r8308
+\version r8372
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2021-06-03 08:31 +0800
+	2021-07-05 00:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,13 +31,14 @@
 #include "YModules.h"
 #include YFM_NPL_SContext // for YSLib::any_ops, YSLib::NodeLiteral, YSLib::any,
 //	YSLib::bad_any_cast, YSLib::in_place_type, YSLib::to_string, NPLTag, string,
-//	ValueNode, function, std::ostream, TermNode, YSLib::MakeIndex,
-//	std::initializer_list, LoggedEvent, YSLib::RecordLevel, shared_ptr,
-//	NPL::Deref, ystdex::isdigit, ystdex::is_nothrow_copy_constructible,
-//	ystdex::is_nothrow_copy_assignable, ystdex::is_nothrow_move_constructible,
-//	ystdex::is_nothrow_move_assignable, observer_ptr, ystdex::type_id,
-//	std::addressof, NPL::make_observer, ystdex::equality_comparable, weak_ptr,
-//	lref, ystdex::get_equal_to, pair, ystdex::expand_proxy, NPL::Access,
+//	ValueNode, function, std::ostream, ystdex::invoke, TermNode,
+//	YSLib::MakeIndex, std::initializer_list, LoggedEvent, YSLib::RecordLevel,
+//	shared_ptr, NPL::Deref, ystdex::isdigit,
+//	ystdex::is_nothrow_copy_constructible, ystdex::is_nothrow_copy_assignable,
+//	ystdex::is_nothrow_move_constructible, ystdex::is_nothrow_move_assignable,
+//	observer_ptr, ystdex::type_id, std::addressof, NPL::make_observer,
+//	ystdex::equality_comparable, weak_ptr, lref, ystdex::get_equal_to, pair,
+//	ystdex::invoke_value_or, ystdex::expand_proxy, NPL::Access,
 //	ystdex::ref_eq, ValueObject, NPL::SetContentWith, std::for_each,
 //	AccessFirstSubterm, ystdex::less, YSLib::map, pmr, ystdex::copy_and_swap,
 //	NoContainer, ystdex::try_emplace, ystdex::try_emplace_hint,
@@ -449,6 +450,10 @@ public:
 	NPLException(const char* str = "", YSLib::RecordLevel lv = YSLib::Err)
 		: LoggedEvent(str, lv)
 	{}
+	//! \since build 921
+	NPLException(const std::string& str, YSLib::RecordLevel lv = YSLib::Err)
+		: LoggedEvent(str, lv)
+	{}
 	NPLException(string_view sv, YSLib::RecordLevel lv = YSLib::Err)
 		: LoggedEvent(sv, lv)
 	{}
@@ -779,6 +784,66 @@ YB_ATTR_nodiscard YB_PURE inline
 \since build 756
 */
 using TokenValue = ystdex::derived_entity<string, NPLATag>;
+
+
+/*!
+\note 使用 ADL ToLexeme 。
+\since build 921
+*/
+//@{
+template<typename _type>
+void
+AddToken(TermNode::Container& con, _type&& val)
+{
+	const auto a(con.get_allocator());
+
+	con.emplace_back(NoContainer, in_place_type<TokenValue>,
+		ToLexeme(yforward(val)), a);
+}
+template<typename _type>
+void
+AddToken(TermNode& nd, _type&& val)
+{
+	NPL::AddToken(nd.GetContainerRef(), yforward(val));
+}
+
+template<typename _type>
+void
+AddTokens(TermNode::Container& con, std::initializer_list<_type> il)
+{
+	const auto a(con.get_allocator());
+	auto i(con.end());
+
+	for(auto&& val : il)
+		con.emplace(i, NoContainer, in_place_type<TokenValue>,
+			ToLexeme(yforward(val)), a);
+}
+template<typename _type>
+inline void
+AddTokens(TermNode& nd, std::initializer_list<_type> il)
+{
+	NPL::AddTokens(nd.GetContainerRef(), il);
+}
+
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE TermNode::Container
+CollectTokens(std::initializer_list<_type> il)
+{
+	TermNode::Container con;
+
+	NPL::AddTokens(con, il);
+	return con;
+}
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE TermNode::Container
+CollectTokens(std::initializer_list<_type> il, TermNode::allocator_type a)
+{
+	TermNode::Container con(a);
+
+	NPL::AddTokens(con, il);
+	return con;
+}
+//@}
 
 
 /*!

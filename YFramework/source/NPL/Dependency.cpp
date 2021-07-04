@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r4884
+\version r5159
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2021-06-05 16:38 +0800
+	2021-06-25 12:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,26 +28,29 @@
 #include "NPL/YModules.h"
 #include YFM_NPL_Dependency // for set, string, UnescapeContext, string_view,
 //	ystdex::isspace, std::istream, YSLib::unique_ptr, std::throw_with_nested,
-//	std::invalid_argument, ystdex::sfmt, YSLib::share_move,
-//	A1::NameTypedReducerHandler, std::ref, RelaySwitched, NPL::Deref,
-//	NPL::ResolveRegular, A1::ReduceOnce, ResolvedTermReferencePtr,
-//	Forms::CallResolvedUnary, Forms::CallRawUnary, NPL::TryAccessLeaf,
+//	std::invalid_argument, ystdex::sfmt, YSLib::share_move, Forms::RetainN,
+//	NPL::ResolveRegular, NPL::Deref, RelaySwitched, A1::NameTypedReducerHandler,
+//	std::bind, std::ref, Forms::CallResolvedUnary, ResolvedTermReferencePtr,
+//	Forms::CallRawUnary, TermReference, NPL::TryAccessLeaf,
 //	NPL::AllocateEnvironment, function, ValueObject, EnvironmentReference,
 //	std::piecewise_construct, NPL::forward_as_tuple, LiftOther,
 //	ThrowNonmodifiableErrorForAssignee, ThrowValueCategoryError, ValueToken,
-//	IsNPLASymbol, ThrowInvalidTokenError, ResolveTerm, TokenValue, IsEmpty,
-//	ComposeReferencedTermOp, IsBranch, IsReferenceTerm, IsBoundLValueTerm,
-//	IsUncollapsedTerm, IsUniqueTerm, IsModifiableTerm, IsTemporaryTerm,
-//	ReferenceTerm, LiftTermRef, NPL::SetContentWith, LiftTerm, LiftOtherOrCopy,
-//	ystdex::bind1, std::placeholders, LiftTermValueOrCopy, MoveResolved,
-//	ResolveIdentifier, ReduceToReferenceList, NPL::IsMovable, LiftTermOrCopy,
-//	IsBranchedList, AccessFirstSubterm, ThrowInsufficientTermsError,
-//	ystdex::fast_any_of, Ensigil, ystdex::plus, ystdex::tolower,
-//	YSLib::IO::StreamPut, FetchEnvironmentVariable, ystdex::swap_dependent,
+//	ResolveTerm, IsNPLASymbol, ThrowInvalidTokenError,
+//	Forms::CallRegularUnaryAs, TokenValue, A1::AsForm, NPL::CollectTokens,
+//	Strict, IsEmpty, ComposeReferencedTermOp, IsBranch, IsReferenceTerm,
+//	IsBoundLValueTerm, IsUncollapsedTerm, IsUniqueTerm, IsModifiableTerm,
+//	IsTemporaryTerm, ReferenceTerm, LiftTermRef, NPL::SetContentWith, LiftTerm,
+//	LiftOtherOrCopy, ystdex::bind1, std::placeholders, LiftTermValueOrCopy,
+//	MoveResolved, ResolveIdentifier, ReduceToReferenceList, NPL::IsMovable,
+//	LiftTermOrCopy, IsBranchedList, AccessFirstSubterm,
+//	ThrowInsufficientTermsError, NPL::AsTermNode, ystdex::fast_any_of, Ensigil,
+//	YSLib::OwnershipTag, ystdex::plus, ystdex::tolower, YSLib::IO::StreamPut,
+//	YSLib::FetchEnvironmentVariable, YSLib::SetEnvironmentVariable,
 //	YSLib::IO::UniqueFile, YSLib::IO::omode_convb, YSLib::uremove,
 //	ystdex::throw_error;
 #include YFM_NPL_NPLA1Forms // for NPL::Forms functions;
-#include YFM_YSLib_Service_FileSystem // for YSLib::IO::Path;
+#include YFM_YSLib_Service_FileSystem // for YSLib::IO::Path,
+//	YSLib::Deployment::InstallHardLink;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
 //	ystdex::make_transform;
 #include YFM_YSLib_Service_TextFile // for
@@ -56,13 +59,11 @@
 #include <regex> // for std::regex, std::regex_match;
 #include <ostream> // for std::endl;
 #include "NPLA1Internals.h" // for NPL_Impl_NPLA1_Enable_Thunked;
-#include YFM_YSLib_Core_YCoreUtilities // for FetchCommandOutput,
-//	YSLib::RandomizeTemplatedString, to_std_string;
+#include YFM_YSLib_Core_YCoreUtilities // for YSLib::LockCommandArguments,
+//	YSLib::FetchCommandOutput, YSLib::RandomizeTemplatedString, to_std_string;
 #include <ystdex/string.hpp> // for ystdex::begins_with;
 #include <ystdex/cstdio.h> // for ystdex::fexists;
 #include <cerrno> // for errno, EEXIST, EPERM;
-
-using namespace YSLib;
 
 namespace NPL
 {
@@ -175,61 +176,6 @@ FilterMakefileDependencies(vector<string>& lst)
 
 	return i_c != lst.cend()
 		&& (lst.erase(lst.cbegin(), i_c + 1), !lst.empty());
-}
-
-
-void
-InstallFile(const char* dst, const char* src)
-{
-	using namespace YSLib::IO;
-
-	// FIXME: Blocked. TOCTTOU access.
-	try
-	{
-		if(HaveSameContents(dst, src))
-			return;
-	}
-	CatchExpr(std::system_error& e, YTraceDe(Err, "Failed accessing file for"
-		" comparison before installing file."), ExtractAndTrace(e, Err))
-	CopyFile(dst, src, PreserveModificationTime);
-}
-
-void
-InstallDirectory(const string& dst, const string& src)
-{
-	using namespace YSLib::IO;
-
-	TraverseTree([](const Path& dname, const Path& sname){
-		InstallFile(string(dname).c_str(), string(sname).c_str());
-	}, Path(dst), Path(src));
-}
-
-void
-InstallHardLink(const char* dst, const char* src)
-{
-	using namespace YSLib::IO;
-
-	if(VerifyDirectory(src))
-		throw std::invalid_argument("Source is a directory.");
-	Remove(dst);
-	TryExpr(CreateHardLink(dst, src))
-	CatchExpr(..., InstallFile(dst, src))
-}
-
-void
-InstallSymbolicLink(const char* dst, const char* src)
-{
-	using namespace YSLib::IO;
-
-	Remove(dst);
-	TryExpr(CreateSymbolicLink(dst, src))
-	CatchExpr(..., InstallFile(dst, src))
-}
-
-void
-InstallExecutable(const char* dst, const char* src)
-{
-	InstallFile(dst, src);
 }
 
 namespace A1
@@ -377,6 +323,7 @@ CopyEnvironment(TermNode& term, ContextNode& ctx)
 }
 //@}
 
+#if NPL_Impl_NPLA1_Native_Forms
 //! \since build 869
 template<typename _func>
 YB_ATTR_nodiscard ReductionStatus
@@ -387,6 +334,7 @@ DoIdFunc(_func f, TermNode& term)
 		return f(term);
 	}, term);
 }
+#endif
 
 //! \since build 859
 void
@@ -434,6 +382,107 @@ DoResolve(TermNode(&f)(const ContextNode&, string_view), TermNode& term,
 	}, term);
 	return ReductionStatus::Retained;
 }
+
+#if NPL_Impl_NPLA1_Native_Forms
+//! \since build 921
+//@{
+ReductionStatus
+DefineCombiner(TermNode& term, ContextNode& ctx, size_t n,
+	ReductionStatus(&op)(TermNode&, ContextNode&))
+{
+	if(FetchArgumentN(term) > n)
+	{
+		auto& con(term.GetContainerRef());
+		const auto a(con.get_allocator());
+		auto i(con.begin());
+
+		con.insert(++++i, A1::AsForm(a, op));
+		// NOTE: There should be one subterm exactly, but the check is still
+		//	required as the derivations, so just deferred it in
+		//	%Forms::DefineWithNoRecursion, but not some combiner with %BindSymbol.
+		// XXX: Assume the implementation of %Forms::DefineWithNoRecursion is
+		//	synchronous.
+		return Forms::DefineWithNoRecursion(term, ctx);
+	}
+	RemoveHead(term);
+	ThrowInsufficientTermsError(term, {});
+}
+
+inline auto
+BindDefComb(ReductionStatus(&op)(TermNode&, ContextNode&), size_t n)
+	-> decltype(ystdex::bind1(DefineCombiner, std::placeholders::_2, n,
+	std::ref(op)))
+{
+	return ystdex::bind1(DefineCombiner, std::placeholders::_2, n,
+		std::ref(op));
+}
+
+#if false
+// NOTE: The following is an alternative native implementation with less
+//	efficiency.
+//! \since build 921
+YB_NONNULL(2) void
+AddDefineFunction(ContextNode& ctx, const char* fn,
+	std::initializer_list<const char*> il1,
+	std::initializer_list<const char*> il2)
+{
+	const auto a(ctx.get_allocator());
+	TermNode term(a);
+
+	term.emplace(A1::AsForm(a, DefineWithNoRecursion));
+	NPL::AddToken(term, fn);
+	term.emplace(A1::AsForm(a, Vau));
+
+	auto& t0(*term.emplace(NPL::CollectTokens(il1, a)));
+
+	NPL::AddToken(t0, ".&body");
+	NPL::AddToken(term, "d");
+	term.emplace(A1::AsForm(a, Eval, Strict));
+
+	auto& t1(*term.emplace());
+
+	t1.emplace(A1::AsForm(a, ListAsterisk, Strict));
+	t1.emplace(A1::AsForm(a, DefineWithNoRecursion));
+	NPL::AddTokens(t1, il2);
+
+	auto& t2(*t1.emplace());
+
+	t2.emplace(A1::AsForm(a, std::bind(DoMoveOrTransfer,
+		std::ref(LiftOtherOrCopy), std::placeholders::_1), Strict));
+	NPL::AddToken(t2, "body");
+	NPL::AddToken(term, "d");
+	Reduce(term, ctx);
+#if false
+	// NOTE: Usage:
+	AddDefineFunction(rctx, "$defv!", {"&$f", "&formals", "&ef"},
+		{"$f", "$vau", "formals", "ef"});
+	AddDefineFunction(rctx, "$defv%!", {"&$f", "&formals", "&ef"},
+		{"$f", "$vau%", "formals", "ef"});
+	AddDefineFunction(rctx, "$defv/e!", {"&$f", "&e", "&formals", "&ef"},
+		{"$f", "$vau/e", "e", "formals", "ef"});
+	AddDefineFunction(rctx, "$defv/e%!", {"&$f", "&e", "&formals", "&ef"},
+		{"$f", "$vau/e%", "e", "formals", "ef"});
+	AddDefineFunction(rctx, "$defw!", {"&f", "&formals", "&ef"},
+		{"f", "$wvau", "formals", "ef"});
+	AddDefineFunction(rctx, "$defw%!", {"&f", "&formals", "&ef"},
+		{"f", "$wvau%", "formals", "ef"});
+	AddDefineFunction(rctx, "$defw/e!", {"&f", "&e", "&formals", "&ef"},
+		{"f", "$wvau/e", "e", "formals", "ef"});
+	AddDefineFunction(rctx, "$defw/e%!", {"&f", "&e", "&formals", "&ef"},
+		{"f", "$wvau/e%", "e", "formals", "ef"});
+	AddDefineFunction(rctx, "$defl!", {"&f", "&formals"},
+		{"f", "$lambda", "formals"});
+	AddDefineFunction(rctx, "$defl%!", {"&f", "&formals"},
+		{"f", "$lambda%", "formals"});
+	AddDefineFunction(rctx, "$defl/e!", {"&f", "&e", "&formals",
+		}, {"f", "$lambda/e", "e", "formals"});
+	AddDefineFunction(rctx, "$defl/e%!", {"&f", "&e", "&formals",
+		}, {"f", "$lambda/e%", "e", "formals"});
+#endif
+}
+#endif
+//@}
+#endif
 
 //! \since build 834
 //@{
@@ -508,7 +557,7 @@ LoadObjects(ContextNode& ctx)
 	});
 	RegisterBinary<>(ctx, "assign@!", [](TermNode& x, TermNode& y){
 		return DoAssign(ystdex::bind1(static_cast<void(&)(TermNode&,
-			TermNode&)>(LiftTerm), std::ref(y)), x);
+			TermNode&)>(LiftOther), std::ref(y)), x);
 	});
 }
 
@@ -595,6 +644,10 @@ LoadErrorsAndChecks(ContextNode& ctx)
 		[] YB_LAMBDA_ANNOTATE((const string& str), , noreturn){
 		ThrowInvalidSyntaxError(str);
 	});
+	RegisterUnary<Strict, const string>(ctx, "raise-type-error",
+		[] YB_LAMBDA_ANNOTATE((const string& str), , noreturn){
+		throw TypeError(str);
+	});
 	RegisterStrict(ctx, "check-list-reference", CheckListReference);
 }
 
@@ -637,7 +690,8 @@ namespace Derived
 void
 LoadBasicDerived(REPLContext& context)
 {
-	auto& renv(context.Root.GetRecordRef());
+	auto& rctx(context.Root);
+	auto& renv(rctx.GetRecordRef());
 
 	// NOTE: Some combiners are provided here as host primitives for
 	//	more efficiency and less dependencies.
@@ -701,6 +755,10 @@ LoadBasicDerived(REPLContext& context)
 	RegisterForm(renv, "$deflazy!", DefineLazy);
 	RegisterForm(renv, "$set!", SetWithNoRecursion);
 	RegisterForm(renv, "$setrec!", SetWithRecursion);
+	RegisterForm(renv, "$wvau", WVau);
+	RegisterForm(renv, "$wvau%", WVauRef);
+	RegisterForm(renv, "$wvau/e", WVauWithEnvironment);
+	RegisterForm(renv, "$wvau/e%", WVauWithEnvironmentRef);
 	RegisterForm(renv, "$lambda", Lambda);
 	RegisterForm(renv, "$lambda%", LambdaRef);
 	RegisterForm(renv, "$lambda/e", LambdaWithEnvironment);
@@ -733,6 +791,18 @@ LoadBasicDerived(REPLContext& context)
 	RegisterStrict(renv, "apply", Apply);
 	RegisterStrict(renv, "list*", ListAsterisk);
 	RegisterStrict(renv, "list*%", ListAsteriskRef);
+	RegisterForm(renv, "$defv!", BindDefComb(Vau, 2));
+	RegisterForm(renv, "$defv%!", BindDefComb(VauRef, 2));
+	RegisterForm(renv, "$defv/e!", BindDefComb(VauWithEnvironment, 3));
+	RegisterForm(renv, "$defv/e%!", BindDefComb(VauWithEnvironmentRef, 3));
+	RegisterForm(renv, "$defw!", BindDefComb(WVau, 2));
+	RegisterForm(renv, "$defw%!", BindDefComb(WVauRef, 2));
+	RegisterForm(renv, "$defw/e!", BindDefComb(WVauWithEnvironment, 3));
+	RegisterForm(renv, "$defw/e%!", BindDefComb(WVauWithEnvironmentRef, 3));
+	RegisterForm(renv, "$defl!", BindDefComb(Lambda, 1));
+	RegisterForm(renv, "$defl%!", BindDefComb(LambdaRef, 1));
+	RegisterForm(renv, "$defl/e!", BindDefComb(LambdaWithEnvironment, 2));
+	RegisterForm(renv, "$defl/e%!", BindDefComb(LambdaWithEnvironmentRef, 2));
 	RegisterStrict(renv, "forward-first%", ForwardFirst);
 	RegisterStrict(renv, "first", First);
 	RegisterStrict(renv, "first@", FirstAt);
@@ -778,6 +848,7 @@ LoadBasicDerived(REPLContext& context)
 	RegisterStrict(renv, "append", Append);
 	RegisterStrict(renv, "list-extract-first", ListExtractFirst);
 	RegisterStrict(renv, "list-extract-rest%", ListExtractRestFwd);
+	RegisterStrict(renv, "list-push-front!", ListPushFront);
 	RegisterForm(renv, "$let", Let);
 	RegisterForm(renv, "$let%", LetRef);
 	RegisterForm(renv, "$let/e", LetWithEnvironment);
@@ -906,37 +977,42 @@ LoadBasicDerived(REPLContext& context)
 		$def! rlist $lambda ((.&x)) move! x;
 	)NPL"
 #	endif
-	// XXX: The operative '$defv!' is same to following derivations in
-	//	%LoadCore.
 	R"NPL(
 		$def! $deflazy! $vau (&definiend .&body) d
 			eval (list $def! definiend $quote body) d;
 		$def! $set! $vau (&e &formals .&body) d
 			eval (list $def! formals (unwrap eval%) (move! body) d) (eval e d);
-		$def! $defv! $vau (&$f &formals &ef .&body) d
-			eval (list $set! d $f $vau formals ef (move! body)) d;
-		$defv! $setrec! (&e &formals .&body) d
+		$def! $setrec! $vau (&e &formals .&body) d
 			eval (list $defrec! formals (unwrap eval%) (move! body) d)
 				(eval e d);
+		$def! $wvau $vau (&formals &ef .&body) d
+			wrap (eval (cons $vau (cons formals (cons ef (move! body)))) d);
+		$def! $wvau% $vau (&formals &ef .&body) d
+			wrap (eval (cons $vau% (cons formals (cons ef (move! body)))) d);
+		$def! $wvau/e $vau (&e &formals &ef .&body) d
+			wrap (eval (cons $vau/e
+				(cons e (cons formals (cons ef (move! body))))) d);
+		$def! $wvau/e% $vau (&e &formals &ef .&body) d
+			wrap (eval (cons $vau/e%
+				(cons e (cons formals (cons ef (move! body))))) d);
 	)NPL"
 #	if NPL_Impl_NPLA1_Use_Id_Vau
 	R"NPL(
-		$defv! $lambda (&formals .&body) d
+		$def! $lambda $vau (&formals .&body) d
 			wrap (eval (cons $vau (cons formals (cons ignore (move! body)))) d);
-		$defv! $lambda% (&formals .&body) d
+		$def! $lambda% $vau (&formals .&body) d
 			wrap
 				(eval (cons $vau% (cons formals (cons ignore (move! body)))) d);
 	)NPL"
 #	endif
-	// XXX: The operatives '$defl!', '$defl%!', '$defw%!', '$defv%!',
-	//	'$defw!', and '$defv/e%!' are same to following derivations in
-	//	%LoadCore.
 	// NOTE: Use of 'eqv?' is more efficient than '$if'.
 	R"NPL(
-		$defv! $lambda/e (&e &formals .&body) d
-			wrap (eval (list* $vau/e e formals ignore (move! body)) d);
-		$defv! $lambda/e% (&e &formals .&body) d
-			wrap (eval (list* $vau/e% e formals ignore (move! body)) d);
+		$def! $lambda/e $vau (&e &formals .&body) d
+			wrap (eval (cons $vau/e
+				(cons e (cons formals (cons ignore (move! body))))) d);
+		$def! $lambda/e% $vau (&e &formals .&body) d
+			wrap (eval (cons $vau/e%
+				(cons e (cons formals (cons ignore (move! body))))) d);
 		$def! $sequence
 			($lambda (&se)
 				($lambda #ignore $vau/e% se &exprseq d
@@ -949,30 +1025,49 @@ LoadBasicDerived(REPLContext& context)
 								(eval% (forward! head) d))
 								(eval% (cons% $aux (move! tail)) d))))
 			(make-environment (() get-current-environment));
-		$defv! $defl! (&f &formals .&body) d
-			eval (list $set! d f $lambda formals (move! body)) d;
-		$defv! $defl%! (&f &formals .&body) d
-			eval (list $set! d f $lambda% formals (move! body)) d;
-		$defl%! collapse (%x)
+		$def! collapse $lambda% (%x)
 			$if (uncollapsed? ($resolve-identifier x)) (idv x) x;
-		$defl%! forward (%x) $if ($lvalue-identifier? x) x (idv x);
-		$defl! assign! (&x &y) assign@! (forward! x) (idv (collapse y));
-		$defl! assign%! (&x &y) assign@! (forward! x) (forward! (collapse y));
-		$defl%! apply (&appv &arg .&opt)
+		$def! forward $lambda% (%x) $if ($lvalue-identifier? x) x (idv x);
+		$def! assign! $lambda (&x &y) assign@! (forward! x) (idv (collapse y));
+		$def! assign%!
+			$lambda (&x &y) assign@! (forward! x) (forward! (collapse y));
+		$def! apply $lambda% (&appv &arg .&opt)
 			eval% (cons% () (cons% (unwrap (forward! appv)) (forward! arg)))
 				($if (null? opt) (() make-environment)
 					(($lambda ((&e .&eopt))
 						$if (null? eopt) e
 							(raise-invalid-syntax-error
 								"Syntax error in applying form.")) opt));
-		$defl! list* (&head .&tail)
+		$def! list* $lambda (&head .&tail)
 			$if (null? tail) (forward! head)
 				(cons (forward! head) (apply list* (move! tail)));
-		$defl! list*% (&head .&tail)
+		$def! list*% $lambda (&head .&tail)
 			$if (null? tail) (forward! head)
 				(cons% (forward! head) (apply list*% (move! tail)));
+		$def! $defv! $vau (&$f &formals &ef .&body) d
+			eval (list* $def! $f $vau formals ef (move! body)) d;
+		$defv! $defv%! (&$f &formals &ef .&body) d
+			eval (list* $def! $f $vau% formals ef (move! body)) d;
+		$defv! $defv/e! (&$f &e &formals &ef .&body) d
+			eval (list* $def! $f $vau/e e formals ef (move! body)) d;
+		$defv! $defv/e%! (&$f &e &formals &ef .&body) d
+			eval (list* $def! $f $vau/e% e formals ef (move! body)) d;
+		$defv! $defw! (&f &formals &ef .&body) d
+			eval (list* $def! f $wvau formals ef (move! body)) d;
 		$defv! $defw%! (&f &formals &ef .&body) d
-			eval (list $set! d f wrap (list* $vau% formals ef (move! body))) d;
+			eval (list* $def! f $wvau% formals ef (move! body)) d;
+		$defv! $defw/e! (&f &e &formals &ef .&body) d
+			eval (list* $def! f $wvau/e e formals ef (move! body)) d;
+		$defv! $defw/e%! (&f &e &formals &ef .&body) d
+			eval (list* $def! f $wvau/e% e formals ef (move! body)) d;
+		$defv! $defl! (&f &formals .&body) d
+			eval (list* $def! f $lambda formals (move! body)) d;
+		$defv! $defl%! (&f &formals .&body) d
+			eval (list* $def! f $lambda% formals (move! body)) d;
+		$defv! $defl/e! (&f &e &formals .&body) d
+			eval (list* $def! f $lambda/e e formals (move! body)) d;
+		$defv! $defl/e%! (&f &e &formals .&body) d
+			eval (list* $def! f $lambda/e% e formals (move! body)) d;
 		$defw%! forward-first% (&appv (&x .)) d
 			apply (forward! appv) (list% ($move-resolved! x)) d;
 		$defl%! first (%l)
@@ -996,14 +1091,11 @@ LoadBasicDerived(REPLContext& context)
 		$defl! equal? (&x &y)
 			$if ($if (branch? x) (branch? y) #f)
 				($if (equal? (first& x) (first& y))
-					(equal? (rest& x) (rest& y)) #f)
-					(eqv? x y);
+				(equal? (rest& x) (rest& y)) #f) (eqv? x y);
 		$defl%! check-environment (&e)
 			$sequence (eval% #ignore e) (forward! e);
 		$defl%! check-parent (&e)
 			$sequence ($vau/e% e . #ignore) (forward! e);
-		$defv! $defv%! (&$f &formals &ef .&body) d
-			eval (list $set! d $f $vau% formals ef (move! body)) d;
 		$defv%! $cond &clauses d
 			$if (null? clauses) #inert
 				(apply ($lambda% ((&test .&body) .&clauses)
@@ -1059,8 +1151,10 @@ LoadBasicDerived(REPLContext& context)
 		$defl! append (.&ls) foldr1 list-concat () (move! ls);
 		$defl%! list-extract-first (&l) map1 first l;
 		$defl%! list-extract-rest% (&l) map1 rest% l;
-		$defv! $defv/e%! (&$f &e &formals &ef .&body) d
-			eval (list $set! d $f $vau/e% e formals ef (move! body)) d;
+		$defl! list-push-front! (&l &x) $if (modifiable? l)
+			(assign! l (cons% (forward! x)
+				(($lambda ((.l)) (move! l)) (forward! l))))
+			(raise-type-error "Modifiable object expected.");
 		$def! ($let $let% $let/e $let/e% $let* $let*% $letrec $letrec%)
 			($lambda (&ce)
 		(
@@ -1107,8 +1201,6 @@ LoadBasicDerived(REPLContext& context)
 			map1 move!
 				(list% $let $let% $let/e $let/e% $let* $let*% $letrec $letrec%)
 		)) (() get-current-environment);
-		$defv! $defw! (&f &formals &ef .&body) d
-			eval (list $set! d f wrap (list* $vau formals ef (move! body))) d;
 		$defw! derive-current-environment (.&envs) d
 			apply make-environment (append envs (list d)) d;
 	)NPL"
@@ -1213,44 +1305,13 @@ LoadStandardDerived(REPLContext& context)
 void
 LoadCore(REPLContext& context)
 {
-	// XXX: Call multiple %context.Perform in different places. Different to
-	//	%LoadBasicDerived, this way is a slightly more efficient whether
-	//	%NPL_Impl_NPLA1_Native_Forms is set.
 	context.ShareCurrentSource("<root:core>");
 	context.Perform(R"NPL(
-		$def! $defv! $vau (&$f &formals &ef .&body) d
-			eval (list $set! d $f $vau formals ef (move! body)) d;
-		$defv! $defv%! (&$f &formals &ef .&body) d
-			eval (list $set! d $f $vau% formals ef (move! body)) d;
-		$defv! $defv/e! (&$f &e &formals &ef .&body) d
-			eval (list $set! d $f $vau/e e formals ef (move! body)) d;
-		$defv! $defv/e%! (&$f &e &formals &ef .&body) d
-			eval (list $set! d $f $vau/e% e formals ef (move! body)) d;
-		$defv! $defl! (&f &formals .&body) d
-			eval (list $set! d f $lambda formals (move! body)) d;
-		$defv! $defl%! (&f &formals .&body) d
-			eval (list $set! d f $lambda% formals (move! body)) d;
-		$defv! $defw! (&f &formals &ef .&body) d
-			eval (list $set! d f wrap (list* $vau formals ef (move! body))) d;
-		$defv! $defw%! (&f &formals &ef .&body) d
-			eval (list $set! d f wrap (list* $vau% formals ef (move! body))) d;
-		$defv! $defw/e! (&f &e &formals &ef .&body) d
-			eval (list $set! d f wrap (list* $vau/e e formals ef (move! body)))
-				d;
-		$defv! $defw/e%! (&f &e &formals &ef .&body) d
-			eval (list $set! d f wrap (list* $vau/e% e formals ef (move! body)))
-				d;
-		$defv! $defl/e! (&f &e &formals .&body) d
-			eval (list $set! d f $lambda/e e formals (move! body)) d;
-		$defv! $defl/e%! (&f &e &formals .&body) d
-			eval (list $set! d f $lambda/e% e formals (move! body)) d;
 		$def! (box% box? unbox) () make-encapsulation-type;
 		$defl! box (&x) box% x;
 		$defl%! assv (&x &alist) $cond ((null? alist) ())
 			((eqv? x (first& (first& alist))) first alist)
 			(#t assv (forward! x) (rest% alist));
-		$defl! list-push-front! (&l &x)
-			assign! l (cons% (forward! x) (move! l));
 		$defw%! map-reverse (&appv .&ls) d
 			accl (move! ls) nonfoldable? () list-extract-first
 				list-extract-rest%
@@ -1316,7 +1377,7 @@ LoadModule_std_environments(REPLContext& context)
 	RegisterStrict(renv, "value-of", ValueOf);
 	RegisterStrict(renv, "get-current-repl", [&](TermNode& term){
 		RetainN(term, 0);
-		term.Value = ValueObject(context, OwnershipTag<>());
+		term.Value = ValueObject(context, YSLib::OwnershipTag<>());
 	});
 	RegisterStrict(renv, "eval-string", EvalString);
 	RegisterStrict(renv, "eval-string%", EvalStringRef);
@@ -1476,7 +1537,7 @@ LoadModule_std_system(REPLContext& context)
 	RegisterStrict(renv, "cmd-get-args", [](TermNode& term){
 		RetainN(term, 0);
 		{
-			const auto p_cmd_args(LockCommandArguments());
+			const auto p_cmd_args(YSLib::LockCommandArguments());
 			TermNode::Container con(term.get_allocator());
 
 			for(const auto& arg : p_cmd_args->Arguments)
@@ -1488,12 +1549,12 @@ LoadModule_std_system(REPLContext& context)
 	RegisterUnary<Strict, const string>(renv, "env-get", [](const string& var){
 		string res(var.get_allocator());
 
-		FetchEnvironmentVariable(res, var.c_str());
+		YSLib::FetchEnvironmentVariable(res, var.c_str());
 		return res;
 	});
 	RegisterBinary<Strict, const string, const string>(renv, "env-set",
 		[&](const string& var, const string& val){
-		SetEnvironmentVariable(var.c_str(), val.c_str());
+		YSLib::SetEnvironmentVariable(var.c_str(), val.c_str());
 	});
 	context.ShareCurrentSource("<lib:std.system>");
 	context.Perform(R"NPL(
@@ -1504,7 +1565,7 @@ LoadModule_std_system(REPLContext& context)
 	RegisterStrict(renv, "system-get", [](TermNode& term){
 		CallUnaryAs<const string>([&](const string& cmd){
 			TermNode::Container con(term.get_allocator());
-			auto res(FetchCommandOutput(cmd.c_str()));
+			auto res(YSLib::FetchCommandOutput(cmd.c_str()));
 
 			TermNode::AddValueTo(con, ystdex::trim(std::move(res.first)));
 			TermNode::AddValueTo(con, res.second);
@@ -1588,7 +1649,7 @@ LoadModule_SHBuild(REPLContext& context)
 	RegisterStrict(renv, "SHBuild_Install_HardLink", [&](TermNode& term){
 		CallBinaryAs<const string, const string>(
 			[](const string& dst, const string& src){
-			InstallHardLink(dst.c_str(), src.c_str());
+			Deployment::InstallHardLink(dst.c_str(), src.c_str());
 		}, term);
 	});
 	// TODO: Implement by derivations instead?

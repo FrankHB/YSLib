@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r3258
+\version r3261
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2021-02-06 22:24 +0800
+	2021-06-25 12:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,6 +57,7 @@ YSLib 具有以下命名空间别名：
 YSLib::any_ops ：命名空间 ystdex::any_ops 的别名，提供 ystdex::any 相关的接口。
 YSLib::pmr ：命名空间 ystdex::pmr 的别名，提供 std::pmr 的替代接口。
 YSLib 还具有以下子命名空间：
+YSLib::Deployment ：部署功能。
 YSLib::Devices ：设备抽象。
 YSLib::Drawing ：图形处理。
 YSLib::Drawing::ColorSpace ：颜色空间。
@@ -151,7 +152,7 @@ YDesktop 依赖 YWindow 和 Core::YDevice 。
 在整个 YSLib 头文件中根据以上确定的依赖关系，包含尽可能少（数量相同时从上至下应用依赖关系）的头文件。
 
 @1.3 安全性：
-除非具体 API 另行指定， YSLib 严格不依赖多线程执行环境： YSLib API 同时支持单线程和多线程环境并保持一致的语义。
+除非具体 API 另行指定， YSLib 严格不依赖多线程执行环境：YSLib API 同时支持单线程和多线程环境并保持一致的语义。
 一般规则参见 [Documentation::YFramework @@1.4.1.4] 。
 可重入性和线程安全性参见 @2 、@2.2 、@3 、@4 和 @5 ，优先于一般规则。
 
@@ -579,7 +580,7 @@ YWidgetEvent 单元定义了基本的 GUI 事件参数和事件类型，包括�
 在 YWidgetEvent 单元中的枚举类型 typedef 名称 VisualEvent 定义了标准控件事件空间，其中定义了标准控件事件，包含视图变更事件(@5.2.1.1) 、GUI 输入(@5.2.1.2) /输出(@5.2.1.3) 事件和焦点事件(@5.2.1.4) 等。
 GUI 输入事件包含基本 GUI 输入事件和扩展 GUI 输入事件，参见 @5.2.1.2 。
 事件参数类型由 RoutedEventArgs 派生的称为路由事件。
-路由事件的路由策略分为三类： Tunnel 、Direct 和 Bubble 。
+路由事件的路由策略分为三类：Tunnel 、Direct 和 Bubble 。
 Tunnel 事件在处理事件的根部件进入子部件时依序触发， Direct 事件在定位至部件时触发， Bubble 事件在之后子部件退出至根部件时依序触发。
 当 Tunnel 事件非可视(visible) 或非启用(enabled) 时事件路由终止。
 当参数中的处理标记（数据成员 Handled ）被设置为 true 时，事件路由终止。

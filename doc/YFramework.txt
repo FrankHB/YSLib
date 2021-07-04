@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1525
+\version r1544
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2021-06-02 23:30 +0800
+	2021-06-24 23:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,6 +94,11 @@ YSLib 的消息被用于在 Shell 之间传递状态，称为 Shell 消息。
 基本内容参见 [Documentation::CommonRules @@3.11.8] 。
 作为例外，在 YCLib 中使用访问环境变量的 API 实现不受对 getenv 和 std::getenv 的限制。
 实现可假定程序不存在使用 POSIX fork 引起进程内环境变量的并发数据竞争。
+
+@1.4.1.5 外部环境：
+除标准库和系统配置外，YFramework 可使用以下环境变量改变运行时行为：
+YF_DEBUG_OUTPUT ：若这个环境变量的值设置为 1 ，使用调试日志(@5.3) 。
+YF_Use_tput ：若这个环境变量被设置，宿主实现环境需要终端特性时，使用 tput 命令而不是内建的终端控制字符序列发送控制命令。
 
 @1.4.2 资源分类：
 基本内容参见 [Documentation::CommonRules @@2.3.2.2] 。
@@ -414,18 +419,23 @@ Adaptor 被 YSLib 的几乎所有其它部分依赖。Adaptor 的改变很可能
 指定限定平台集合(@2.1.4) 的宏（如 YF_Hosted ）不得被用于出现在 YSLib 中用于条件编译（关于依赖性限制，参见 @2.2.5）。
 
 @2.2 文件依赖性：
-YSLib 和 Helper(@2.8) 文件中，文件名以 y 或 Y 起始且非限定模块名以 Y 起始的文件为必要文件，其它为非必要文件。作为稳定的公开接口，必要文件必须被 YFramework 内的至少一个其它文件依赖。
-基于 @2.1.2.1 ，以下部分指定 YFramework 中明确或明确禁止直接依赖的文件，排除构建的中间文件。
+YSLib 和 Helper(@2.8) 文件中，文件名以 y 或 Y 起始且非限定模块名以 Y 起始的文件为必要文件，其它为非必要文件。
+作为稳定的公开接口，必要文件应被 YFramework 内的至少一个其它文件依赖。
+基于依赖性的整体规则(@2.1.2.1) ，以下部分指定 YFramework 中明确或明确禁止直接依赖的文件。构建的中间文件被排除。
+描述依赖性时，直接包含的头文件不被间接包含的其它文件视为依赖。
 以下非公开头文件的适用规则同非头文件，统称为实现；头文件指公开头文件。
 以下规则以优先级顺序排列，即后者不满足前者的部分以前者为准。
 基本内容参见 [ProjectRules @@3.4.5] 。
 
 @2.2.1 平台扩展依赖规则：
-除非以下显式说明，禁止平台中立文件依赖平台扩展；例外的被依赖项视为具体实现，不应作为公开接口。
+除非以下显式说明，平台中立文件不依赖平台扩展；例外的被依赖项视为具体实现，不应作为公开接口。
 存在平台扩展的次级子项目（即 YCLib 和 Helper ）的实现可依赖具体平台相关的外部依赖项以及次级子项目的对应平台扩展。
 
 @2.2.2 YModules 包含规则：
-YModules.h 只包含（来自不同库的） YModules.h 文件。
+框架的每个库的公开头文件目录中包含 YModule 模块作为目录中其它以公开头文件形式提供的模块的配置。
+头文件 YModules.h 公开这个的定义这个库中其它公开头文件对应的宏名。
+其中，宏名标识模块名，可用于 #include 代替头文件路径，以允许框架变更某个模块的头文件名时，使用框架的代码不需要更改 #include 指令。
+YModules.h 只包含（除自身外允许被依赖的框架组件的）YModules.h 文件。
 以下包含关系是确定的：
 子目录中的 <YModules.h> 包含 "../YModules.h" ；
 <CHRLib/YModules.h> 包含 "../YCLib/YModules.h" ；
@@ -440,7 +450,7 @@ YSLib/Adaptor 中的 config.h 不依赖 YCLib/Platform.h 以外的其它文件�
 
 @2.2.4 一般文件依赖规则：
 必要文件不依赖非必要文件。
-任意 YFramework 文件可依赖 @2.2 以下部分指定的标准库头以及 YBase 头文件。
+任意 YFramework 文件可依赖 @2.2 以下部分指定的 ISO C 和 ISO C++ 标准库头以及 YBase 头文件。
 CHRLib 文件依赖性同 YCLib 非平台扩展。
 
 @2.2.5 YCLib 文件依赖性：
@@ -448,12 +458,15 @@ CHRLib 文件依赖性同 YCLib 非平台扩展。
 YCLib 平台扩展和限定平台集合可依赖 YSLib::Core 的必要头文件。
 YCLib 平台扩展和限定平台集合的实现文件可依赖 YSLib::Core 或 YSLib::Service 的公开头文件。
 YCLib 中除 YCLib::Platform 外的文件仅被 YCLib 、YSLib::YAdaptor 和 Helper 直接依赖。
+YCLib::NativeAPI 头文件可包含非标准库的系统库头文件。
+YCLib 头文件可包含特定 ISO C 和 ISO C++ 标准库实现的扩展或其它标准库依赖的公开接口的头文件（如 libstdc++ 的 "ext/" 目录下的头文件）。
+其它头文件依赖性详见 [Documentation::YCLib @@1.2] 。
 
 @2.2.6 YSLib 文件依赖性：
-除 @2.2 另有约定的外，YSLib 不依赖 CHRLib 、YCLib 和 YSLib 以外的文件。
+除非框架的文件依赖性(@2.2) 中另行指定，YSLib 不依赖 CHRLib 、YCLib 和 YSLib 以外的文件。
 YSLib 不依赖限定平台集合(@2.1.4) 的文件。
 除 YSLib::Adaptor::YAdaptor 外，YSLib::Adaptor 头文件不直接依赖 YCLib::Platform 和 YCLib::YCommon 头文件以外的 YCLib 文件。
-YSLib::Adaptor 头文件可依赖 YFramework 平台中立文件或 ISO C++ 标准库实现的非标准的公开头文件（如 libstdc++ 的 "ext/" 目录下的头文件）。
+YSLib::Adaptor 头文件可依赖 YFramework 平台中立文件或 ISO C++ 标准库实现的非标准的公开头文件。
 本体的必要文件不依赖 YSLib 以外的文件。
 本体的非必要非头文件可依赖除 YSLib 和 Helper 外的 YFramework 其它平台中立文件。
 Adaptor 的头文件依赖 YFramework 的 YFM_YBaseMacro 。

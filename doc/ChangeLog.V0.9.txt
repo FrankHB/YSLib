@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r4146
+\version r4304
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-06-05 16:44 +0800
+	2021-07-04 22:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,164 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			+ "namespace %Deployment" @ %Service.FileSystem,
+			+ "constructor with 'const string&' parameter"
+				@ "class %LoggedEvent" @ %Core.YException
+				// This is more efficient when a 'std::string' value is \
+					already available. In particular, it is simpler when the \
+					'std::string' is materialized from a prvalue not needed to \
+					check if it is null-terminated. It is also more consistent \
+					with %platform_ex::(Exception, Win32Exception).
+		),
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				+ "2 function templates %AddToken",
+				(
+				+ "2 function templates %AddTokens";
+				+ "2 function templates %CollectTokens"
+				),
+				(
+				+ "constructor with 'const string&' parameter"
+					@ "class %NPLException";
+				/ DLI "enhanced type information" @ "%TypeError thrown"
+					@ "static member function \
+					%ContextNode::DefaultHandleException"
+				)
+			),
+			/ %NPLA1 $=
+			(
+				(
+				+ "2 function templates %MakeForm";
+				+ "function template %AsForm"
+				),
+				/ "returned %ReductionStatus on non-combining terms"
+					@ "function %ReduceCombined" ~ "%ReductionStatus::Clean"
+			),
+			/ @ "namespace %Forms" @ %NPLA1Forms $=
+			(
+				/ DLDI "simplified throwing exception on failure on operatives"
+					@ "functions %(AccL, AccR, FoldR1, Map1, Apply, \
+					ForwardFirst, Unwrap)",
+				+ "function %ListPushFront",
+				/ DLDI "simplified"
+					^ $dep_from ("%A1::(MakeForm, AsForm)" @ %NPLA1),
+				/ DLDI ^ 'Strict' ~ '1U',
+				+ "functions %(WVau, WVauRef, WVauWithEnvironment, \
+					WVauWithEnvironmentRef)",
+				/ DLDI "simplified formals term extraction"
+					@ "functions %(DefineLazy, DefineWithNoRecursion, \
+					DefineWithRecursion, SetWithNoRecursion, SetWithRecursion)",
+				/ DLDI "simplified wrapping count passing"
+					@ "functions ('Lambda*', 'Vau*')"
+			),
+			/ %Dependency $=
+			(
+				/ @ "function %LoadGroundContext" $=
+				(
+					/ DLI "simplified derivations" @ "all derived operatives \
+						with the prefix '$def' in the name" ^ '$def!'
+						~ '$set! d',
+					/ DLDI "alternative derivation"
+						@ "operatives ('$deflazy!', '$setv!')",
+					+ "applicative 'raise-type-error'",
+					* "missing check of the 1st argument as a modifiable list \
+						before trying to move the argument" @ "derivation"
+						@ "applicative 'list-push-front!'" $since b897
+						// The argument might be copied unexpectedly if it was \
+							not modifiable before the final failure. The \
+							diagnostic message was also not helpful for a \
+							non-list argument.
+						/ $= (/ $impl ^ ('$if','modifiable?',
+							$dep_from 'raise-type-error', '$lambda')),
+					/ DLI "optimized native implementation"
+						@ "applicative 'assign@!'" ^ "%LiftOther" ~ "%LiftTerm",
+					/ DLDI "order" @ "alternative derivations"
+						@ "operatives ('$defl/e!', '$defl/e%!')",
+					(
+					/ DLI "all alternative derivations before the definition \
+						of applicative 'list*'" ^ '$def!'
+						~ "other operative with '$def' prefix";
+					/ DLI @ "simplified alternative derivations"
+						@ "all operatives with the prefix '$defl' or '$defv' \
+						in the name" ^ 'list*' ~ 'list'
+						// To be consistent to operatives with prefix '$defw' \
+							in the name. This is also more efficient due to \
+							one less level of nested expression in the moved \
+							'body'.
+					),
+					/ $lib "added native implementation enabled by default"
+						@ ("applicative 'list-push-front!' ^ $dep_from
+						("%ListPushFront" @ %NPLA1Forms), "all operatives with \
+						the prefix '$defl', '$defv' or '$defw' in the name"
+						^ $dep_from ("%NPL::(WVau, WVauRef, \
+						WVauWithEnvironment, WVauWithEnvironmentRef)" @ %NPLA)),
+					* $impl "undeclared defined function"
+						@ "alternative derivation"
+						@ "operatives ('$lambda%', '$lambda/e%')" $since b918
+						/ $= (^ 'cons' ~ 'list*'),
+						// The order changes made it undeclared before the \
+							defintions not introduced in the context. This was \
+							still well-formed due to the openness of the \
+							ground environment. However, this should not be \
+							relied on by design.
+					(
+					+ "operatives ('$wvau', '$wvau%', '$wvau/e', '$wvau/e%')"
+						^ $dep_from ("functions %(WVau, WVauRef, \
+						WVauWithEnvironment, WVauWithEnvironmentRef)"
+						@ %NPLA1Forms);
+					/ DLI "simplified alternative derivations" @ "operatives \
+						('$defw', '$defw%', '$defw/e', '$defw/e%')"
+					),
+					/ DLDI "indent" @ "alternative derivation" @ 'equal?'
+				),
+				/ "functions %(InstallFile, InstallDirectory, InstallHardLink, \
+					InstallSymbolicLink, InstallExecutable)" >> $dep_from
+					("namespace %Deployment" @ %YSLib.Service.FileSystem),
+			),
+			/ DLDI "avoided global 'using namespace YSLib;'" $effective
+				@ %(Dependency, Configuration, SContext, NPLA1Forms, \
+				NPLA1Internals)
+		),
+		/ %'YCLib_(Win32)' $=
+		(
+			* "name" @ "header inclusion" @ %Consoles
+				$mismatch(Documentation.ProjectRules) $since b915,
+				// This may intefere cross-build environments with header \
+					files stored in case-sensitive filesystems. As per the \
+					documentation, the only allowed exceptions of the case \
+					sensitivity rule are header names with prefix 'Windows.'.
+				$= (/ '#include <WinCon.h>' -> '#include <wincon.h>'),
+			/ %MinGW32 $=
+			(
+				+ $dev $lib "#pragma directive" @ 'YB_IMPL_GNUCPP >= 80000'
+					@ "%LoadProc#2",
+					// To eliminate G++ 10 warning: [-Wcast-function-type].
+				/ DLDI "declaration order of constructors"
+					// To be more consistent to %platform_ex::Exception.
+			)
+		),
+		/ @ "class %Terminal" @ %YCLib.Host $=
+		(
+			+ "Cygwin/MSYS PTY detection" @ "platform %Win32",
+				// See $2021-06 @ %Documentation::Workflow.
+			/ DLI "optimized argument to 'tput setaf'" !^ 'to_string',
+			/ "TTY output when the environment varialbe 'YF_Use_tput' not set"
+				^ "ANSI control sequence" ~ "'tput' commands"
+		)
+	),
+	/ $forced DLDI %Tools.SHBuild.Main $dep_from ("%(InstallFile, \
+		InstallDirectory, InstallHardLink, InstallSymbolicLink, \
+		InstallExecutable)" @ %YFramework.NPL.Dependency)
+),
+
+b920
 (
 	/ $lib "supported the resolution of LWG 2839 on replecement of standard \
 		containers" $effective @ %YBase.YStandardEx.List,
@@ -2726,7 +2884,7 @@ b905
 			/ "printed information message 'OutputDir = '"
 				-> 'Build OutputDir = ',
 				// To avoid confusion with build variables.
-			- DLDI ((('using namespace IO;'; 'using namespace %YSLib;'),
+			/ DLDI ((('using namespace IO;'; 'using namespace YSLib;'),
 				'using namespace std::chrono;') -> ('namespace IO = YSLib::IO;',
 				"using declarations")) @ "namespace %SHBuild",
 				// To avoid namespace pollution.

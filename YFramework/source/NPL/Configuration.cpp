@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2020 FrankHB.
+	© 2012-2016, 2020-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r957
+\version r962
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2020-05-13 17:19 +0800
+	2021-06-25 12:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,10 +26,10 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_Configuration
-#include YFM_NPL_SContext
-
-using namespace YSLib;
+#include YFM_NPL_Configuration // for PrintNode, LiteralizeEscapeNodeLiteral;
+#include YFM_NPL_SContext // for SContext::Analyze;
+#include <iterator> // for std::istreambuf_iterator;
+#include <ystdex/ios.hpp> // for ystdex::rethrow_badstate;
 
 namespace NPL
 {

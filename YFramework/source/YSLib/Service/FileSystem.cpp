@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2019-2020 FrankHB.
+	© 2010-2016, 2019-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2261
+\version r2307
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2020-12-03 20:49 +0800
+	2021-06-25 12:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -246,6 +246,59 @@ ClassifyNode(const Path& pth)
 }
 
 } // namespace IO;
+
+namespace Deployment
+{
+
+using namespace IO;
+
+void
+InstallFile(const char* dst, const char* src)
+{
+	// FIXME: Blocked. TOCTTOU access.
+	try
+	{
+		if(HaveSameContents(dst, src))
+			return;
+	}
+	CatchExpr(std::system_error& e, YTraceDe(Err, "Failed accessing file for"
+		" comparison before installing file."), ExtractAndTrace(e, Err))
+	CopyFile(dst, src, PreserveModificationTime);
+}
+
+void
+InstallDirectory(const string& dst, const string& src)
+{
+	TraverseTree([](const Path& dname, const Path& sname){
+		InstallFile(string(dname).c_str(), string(sname).c_str());
+	}, Path(dst), Path(src));
+}
+
+void
+InstallHardLink(const char* dst, const char* src)
+{
+	if(VerifyDirectory(src))
+		throw std::invalid_argument("Source is a directory.");
+	Remove(dst);
+	TryExpr(CreateHardLink(dst, src))
+	CatchExpr(..., InstallFile(dst, src))
+}
+
+void
+InstallSymbolicLink(const char* dst, const char* src)
+{
+	Remove(dst);
+	TryExpr(CreateSymbolicLink(dst, src))
+	CatchExpr(..., InstallFile(dst, src))
+}
+
+void
+InstallExecutable(const char* dst, const char* src)
+{
+	InstallFile(dst, src);
+}
+
+} // namespace Deployment;
 
 } // namespace YSLib;
 

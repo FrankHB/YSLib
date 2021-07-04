@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r4385
+\version r4393
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2021-05-18 02:55 +0800
+	2021-06-25 12:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,11 +35,13 @@ See readme file for details.
 //	YSLib::vector, YSLib::Logger, YSLib::Warning, YSLib::to_std_string,
 //	YSLib::string_view, YSLib::to_pmr_string, YSLib::to_string, YSLib::Debug,
 //	YSLib::Informative, YSLib::Err, namespace std::placeholders,
-//	std::initializer_list, std::invalid_argument, YSLib::uspawn,
-//	YSLib::ifstream, IO::FetchNativeDynamicModuleExtension, YSLib::uremove,
+//	std::initializer_list, std::invalid_argument, ystdex::exists,
+//	ystdex::exists_substr, YSLib::uspawn, YSLib::ifstream,
+//	IO::FetchNativeDynamicModuleExtension, YSLib::uremove,
 //	YSLib::CommandArguments, YSLib::istringstream;
 #include YFM_YSLib_Core_YFunc // for YSLib::function;
-#include YFM_YSLib_Service_FileSystem // for namespace YSLib::IO, IO::Path;
+#include YFM_YSLib_Service_FileSystem // for namespace YSLib::IO, IO::Path,
+//	YSLib::Deployment;
 #include YFM_YSLib_Core_YString // for YSLib::String, ystdex::raise_exception,
 //	YSLib::FilterExceptions;
 #include YFM_YCLib_Host // for namespace platform_ex, platform_ex::Terminal;
@@ -47,7 +49,7 @@ See readme file for details.
 #include <ystdex/mixin.hpp> // for ystdex::wrap_mixin_t;
 #include YFM_NPL_Dependency // for NPL::DepsEventType, NPL, A1, Forms,
 //	TraceException, TraceBacktrace, NPL::DecomposeMakefileDepList,
-//	NPL::FilterMakefileDependencies, NPL::Install*;
+//	NPL::FilterMakefileDependencies;
 #include <ystdex/concurrency.h> // for std::mutex, std::lock_guard,
 //	ystdex::task_pool;
 #include <ystdex/string.hpp> // for ystdex::ston, ystdex::sfmt,
@@ -1133,7 +1135,7 @@ main(int argc, char* argv[])
 
 				try
 				{
-					using namespace NPL;
+					using namespace YSLib::Deployment;
 
 					PrintInfo(ystdex::sfmt("Found requested command '%s'.",
 						RequestedCommand.c_str()), Debug, LogGroup::General);
@@ -1183,7 +1185,7 @@ main(int argc, char* argv[])
 								YSLib::istringstream(arg0));
 						else
 						{
-							const auto p(A1::OpenFile(arg0.c_str()));
+							const auto p(NPL::A1::OpenFile(arg0.c_str()));
 
 							RunNPLFromStream(arg0.c_str(), std::move(*p));
 						}

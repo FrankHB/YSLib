@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r24629
+\version r24800
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2021-06-05 08:19 +0800
+	2021-06-25 12:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,26 +32,26 @@
 //	A1::NameTypedReducerHandler, ReduceReturnUnspecified, RemoveHead, IsBranch,
 //	AccessFirstSubterm, ReduceSubsequent, ReduceCombinedBranch,
 //	std::placeholders, std::ref, std::bind, ystdex::as_const, IsLeaf,
-//	ValueObject, ystdex::ref_eq, RelaySwitched, ContextHandler, shared_ptr,
-//	string, unordered_map, Environment, lref, list, IsBranchedList,
-//	TokenValue, IsIgnore, IsNPLASymbol, any_ops::use_holder, in_place_type,
-//	YSLib::allocate_shared, InvalidReference, BindParameter, MoveFirstSubterm,
-//	ResolveEnvironment, ShareMoveTerm, BindParameterWellFormed,
-//	TermToStringWithReferenceMark, ResolveTerm, LiftOtherOrCopy,
-//	NPL::ResolveRegular, ystdex::make_transform, std::allocator_arg,
-//	NPL::TryAccessLeaf, TermReference, ystdex::equality_comparable,
-//	CheckParameterTree, NPL::AsTermNode, ystdex::exchange,
-//	NPL::SwitchToFreshEnvironment, TermTags, ystdex::expand_proxy,
-//	NPL::AccessRegular, GetLValueTagsOf, RegularizeTerm, LiftMovedOther,
-//	ThrowValueCategoryError, ThrowListTypeErrorForNonlist,
-//	ThrowInvalidSyntaxError, CheckEnvironmentFormal, ystdex::type_id,
-//	ystdex::update_thunk, ystdex::invoke_value_or, NPL::TryAccessReferencedLeaf,
-//	ystdex::call_value_or, ystdex::bind1, BindSymbol, LiftCollapsed,
-//	NPL::AllocateEnvironment, NPL::TryAccessTerm, std::mem_fn;
+//	ValueObject, ystdex::ref_eq, RelaySwitched, shared_ptr, ContextHandler,
+//	YSLib::unordered_map, string, Environment, lref, TokenValue, IsIgnore,
+//	IsNPLASymbol, any_ops::use_holder, YSLib::in_place_type,
+//	YSLib::HolderFromPointer, YSLib::allocate_shared, InvalidReference,
+//	BindParameter, MoveFirstSubterm, ResolveEnvironment, ShareMoveTerm,
+//	BindParameterWellFormed, TermToStringWithReferenceMark, ResolveTerm,
+//	LiftOtherOrCopy, SContext::Analyze, std::allocator_arg, NPL::ResolveRegular,
+//	ystdex::make_transform, NPL::TryAccessLeaf, TermReference, EnvironmentList,
+//	NPL::AllocateEnvironment, ystdex::equality_comparable, CheckParameterTree,
+//	IsBranchedList, NPL::AsTermNode, ystdex::exchange, NPLException,
+//	LoggedEvent, YSLib::Alert, NPL::SwitchToFreshEnvironment, TermTags,
+//	YSLib::Debug, YSLib::sfmt, ystdex::expand_proxy, NPL::AccessRegular,
+//	GetLValueTagsOf, RegularizeTerm, LiftMovedOther, ThrowValueCategoryError,
+//	ThrowListTypeErrorForNonlist, ThrowInvalidSyntaxError,
+//	CheckEnvironmentFormal, A1::MakeForm, ystdex::type_id, ystdex::update_thunk,
+//	ystdex::invoke_value_or, NPL::TryAccessReferencedLeaf,
+//	ystdex::call_value_or, ystdex::bind1, BindSymbol, A1::AsForm, LiftCollapsed,
+//	NPL::TryAccessTerm, std::mem_fn, YSLib::usystem;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_SContext // for Session;
-
-using namespace YSLib;
 
 namespace NPL
 {
@@ -329,7 +329,7 @@ private:
 	//! \since build 784
 	using shared_ptr_t = shared_ptr<ContextHandler>;
 	//! \since build 784
-	unordered_map<string, shared_ptr_t> store;
+	YSLib::unordered_map<string, shared_ptr_t> store;
 
 public:
 	//! \since build 894
@@ -376,7 +376,8 @@ private:
 					//	(non-sharing object.
 					env.Bind(k, TermNode(TermNode::Container(
 						t.get_allocator()), ValueObject(any_ops::use_holder,
-						in_place_type<HolderFromPointer<shared_ptr_t>>,
+						YSLib::in_place_type<
+						YSLib::HolderFromPointer<shared_ptr_t>>,
 						store[k] = YSLib::allocate_shared<ContextHandler>(
 						t.get_allocator(), ThrowInvalidCyclicReference))));
 			}
@@ -461,22 +462,29 @@ DoDefineSet(TermNode& term, size_t n, _func f) -> decltype(f())
 		InvalidSyntax("Invalid syntax found in definition."));
 }
 
+//! \since build 921
+YB_ATTR_nodiscard inline TermNode
+SplitFirstSubterm(TermNode& term)
+{
+	auto tm(MoveFirstSubterm(term));
+
+	RemoveHead(term);
+	return tm;
+}
+
 // XXX: %YB_FLATTEN is better on %DoDefine and %DoSet with previous
 //	implementation this translation unit and old versions of G++ (e.g. G++ 9.1)
 //	for better performance with significant differences. It is actually bit
 //	less efficient with G++ 10.2.
 
+//! \since build 921
 template<typename _func>
 auto
-DoDefine(TermNode& term, _func f) -> decltype(f(term))
+DoDefine(TermNode& term, _func f) -> decltype(f(std::declval<TermNode>()))
 {
 	return DoDefineSet(term, 2, [&]{
 		RemoveHead(term);
-
-		auto formals(MoveFirstSubterm(term));
-
-		RemoveHead(term);
-		return f(formals);
+		return f(SplitFirstSubterm(term));
 	});
 }
 
@@ -493,13 +501,9 @@ DoSet(TermNode& term, ContextNode& ctx, _func f)
 			auto p_env(ResolveEnvironment(*i).first);
 
 			RemoveHead(term);
-
-			auto formals(MoveFirstSubterm(term));
-
-			RemoveHead(term);
 			// NOTE: It is necessary to save %p_env here. The optional host
 			//	value check is in the call to %FetchDefineOrSetEnvironment.
-			return f(formals, std::move(p_env));
+			return f(SplitFirstSubterm(term), std::move(p_env));
 		}, "set-eval-obj"));
 	});
 }
@@ -589,9 +593,10 @@ struct DefineOrSetDispatcher final
 	TermNode& TermRef;
 	ContextNode& Context;
 
+	//! \since build 921
 	template<typename... _tParams>
 	inline ReductionStatus
-	operator()(TermNode& formals, _tParams&&... args) const
+	operator()(TermNode&& formals, _tParams&&... args) const
 	{
 		return DoDefineOrSet<_bRecur>::Call(TermRef, Context,
 			FetchDefineOrSetEnvironment(Context, args...), formals,
@@ -686,8 +691,8 @@ MakeEnvironmentParent(TNIter first, TNIter last,
 	//	the front of the parameter list.
 //	return ValueObject(in_place_type<EnvironmentList>, tr(first), tr(last), a);
 #else
-	return ValueObject(std::allocator_arg, a, in_place_type<EnvironmentList>,
-		tr(first), tr(last), a);
+	return ValueObject(std::allocator_arg, a,
+		YSLib::in_place_type<EnvironmentList>, tr(first), tr(last), a);
 #endif
 }
 
@@ -782,7 +787,7 @@ public:
 			//	%DoCall.
 			throw NPLException("Invalid handler of call found.");
 		}
-		throw LoggedEvent("Invalid composition found.", Alert);
+		throw LoggedEvent("Invalid composition found.", YSLib::Alert);
 	}
 
 private:
@@ -854,10 +859,10 @@ private:
 		BindParameterWellFormed(ctx.GetRecordPtr(), NPL::Deref(p_formals),
 			term);
 #if NPL_Impl_NPLA1_TraceVauCall
-		ctx.Trace.Log(Debug, [&]{
-			return sfmt<string>("Function called, with %ld shared term(s),"
-				" %zu parameter(s).", p_eval_struct.use_count(),
-				p_formals->size());
+		ctx.Trace.Log(YSLib::Debug, [&]{
+			return YSLib::sfmt<string>(
+				"Function called, with %ld shared term(s), %zu parameter(s).",
+				p_eval_struct.use_count(), p_formals->size());
 		});
 #endif
 		AssertNextTerm(ctx, term);
@@ -1023,6 +1028,13 @@ ThrowForUnwrappingFailure(const ContextHandler& h)
 		h.target_type().name()));
 }
 
+//! \since build 921
+YB_NORETURN void
+ThrowUnwrappingFailureOnOperative()
+{
+	throw TypeError("Unwrapping failed on an operative argument.");
+}
+
 //! \since build 913
 ReductionStatus
 UnwrapResolved(TermNode& term, FormContextHandler& fch,
@@ -1040,7 +1052,7 @@ UnwrapResolved(TermNode& term, FormContextHandler& fch,
 			return ReductionStatus::Clean;
 		});
 	}
-	throw TypeError("Unwrapping failed on an operative argument.");
+	ThrowUnwrappingFailureOnOperative();
 }
 
 template<typename _func, typename _func2>
@@ -1235,7 +1247,7 @@ EvaluateBoundUnwrappedLValueDispatch(TermNode::allocator_type a,
 			ReduceForCombinerRef(term, ref, fch.Handler, fch.Wrapping - 1);
 			return term;
 		}
-		throw TypeError("Unwrapping failed on an operative argument.");
+		ThrowUnwrappingFailureOnOperative();
 	}
 	ThrowForUnwrappingFailure(h);
 }
@@ -1533,41 +1545,6 @@ CheckToUndefine(TermNode& term, ContextNode& ctx)
 			"Expected exact one term as name to be undefined.");
 }
 
-//! \since build 915
-template<typename... _tParams>
-YB_ATTR_nodiscard YB_PURE inline ContextHandler
-MakeForm(TermNode::allocator_type a, _tParams&&... args)
-{
-	return ContextHandler(std::allocator_arg, a,
-		FormContextHandler(yforward(args)...));
-}
-//! \since build 918
-template<typename... _tParams>
-YB_ATTR_nodiscard YB_PURE inline ContextHandler
-MakeForm(const TermNode& term, _tParams&&... args)
-{
-	return MakeForm(term.get_allocator(), yforward(args)...);
-}
-
-//! \since build 915
-template<typename... _tParams>
-YB_ATTR_nodiscard YB_PURE inline TermNode
-AsForm(TermNode::allocator_type a, _tParams&&... args)
-{
-	// XXX: Allocators are not used on %FormContextHandler for performance in
-	//	most cases.
-#if true
-	return NPL::AsTermNode(a, std::allocator_arg, a,
-		in_place_type<ContextHandler>, std::allocator_arg, a,
-		FormContextHandler(yforward(args)...));
-#elif true
-	return NPL::AsTermNode(a, in_place_type<ContextHandler>, std::allocator_arg,
-		a, FormContextHandler(yforward(args)...));
-#else
-	return NPL::AsTermNode(a, MakeForm(a, yforward(args)...));
-#endif
-}
-
 // NOTE: This is usually for the creation of the function with evaluations in
 //	the environment arguemnt (if any) excluded.
 //! \since build 888
@@ -1608,14 +1585,15 @@ ShiftOne(TNIter& i)
 	return CheckEnvironmentFormal(NPL::Deref(++i));
 }
 
-template<size_t _vWrapping, typename _func>
+//! \since build 921
+template<typename _func>
 ReductionStatus
-ReduceCreateFunction(TermNode& term, _func f)
+ReduceCreateFunction(TermNode& term, _func f, size_t wrap)
 {
 	// XXX: Allocators are not used on %FormContextHandler for performance in
 	//	most cases.
 	term.Value = CheckFunctionCreation([&]{
-		return MakeForm(term, f(), _vWrapping);
+		return A1::MakeForm(term, f(), wrap);
 	});
 	return ReductionStatus::Clean;
 }
@@ -1632,30 +1610,33 @@ MakeVau(TermNode& term, bool no_lift, string(&shift)(TNIter&),
 		std::move(formals), std::move(vo), term, no_lift);
 }
 
-template<size_t _vN, size_t _vWrapping, string(&_rShift)(TNIter&)>
+//! \since build 921
+template<size_t _vN, string(&_rShift)(TNIter&)>
 YB_FLATTEN ReductionStatus
-LambdaVau(TermNode& term, ContextNode& ctx, bool no_lift)
+LambdaVau(TermNode& term, ContextNode& ctx, size_t wrap, bool no_lift)
 {
 	return CreateFunction(term, [&, no_lift]{
-		return ReduceCreateFunction<_vWrapping>(term, [&]{
+		return ReduceCreateFunction(term, [&]{
 			return MakeVau(term, no_lift, _rShift,
 				term.begin(), VauHandler::MakeParentSingleNonOwning(
 				term.get_allocator(), ctx.GetRecordPtr()));
-		});
+		}, wrap);
 	}, _vN);
 }
 
-template<size_t _vN, size_t _vWrapping, string(&_rShift)(TNIter&)>
+//! \since build 921
+template<size_t _vN, string(&_rShift)(TNIter&)>
 YB_FLATTEN ReductionStatus
-LambdaVauWithEnvironment(TermNode& term, ContextNode& ctx, bool no_lift)
+LambdaVauWithEnvironment(TermNode& term, ContextNode& ctx, size_t wrap,
+	bool no_lift)
 {
 	return CreateFunction(term, [&, no_lift]{
 		auto i(term.begin());
 		auto& tm(NPL::Deref(++i));
 
 		return ReduceSubsequent(tm, ctx,
-			A1::NameTypedReducerHandler([&, i, no_lift]{
-			return ReduceCreateFunction<_vWrapping>(term, [&]{
+			A1::NameTypedReducerHandler([&, i, wrap, no_lift]{
+			return ReduceCreateFunction(term, [&]{
 				return ResolveTerm([&](TermNode& nd,
 					ResolvedTermReferencePtr p_ref){
 					return MakeVau(term, no_lift, _rShift, i,
@@ -1671,7 +1652,7 @@ LambdaVauWithEnvironment(TermNode& term, ContextNode& ctx, bool no_lift)
 						ThrowInvalidEnvironmentType(nd, p_ref);
 					}());
 				}, tm);
-			});
+			}, wrap);
 		}, "eval-vau-parent"));
 	}, _vN);
 }
@@ -1680,26 +1661,38 @@ LambdaVauWithEnvironment(TermNode& term, ContextNode& ctx, bool no_lift)
 ReductionStatus
 LambdaImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 {
-	return LambdaVau<1, Strict, ShiftEmpty>(term, ctx, no_lift);
+	return LambdaVau<1, ShiftEmpty>(term, ctx, Strict, no_lift);
 }
 
 //! \since build 918
 ReductionStatus
 LambdaWithEnvironmentImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 {
-	return LambdaVauWithEnvironment<2, Strict, ShiftEmpty>(term, ctx, no_lift);
+	return LambdaVauWithEnvironment<2, ShiftEmpty>(term, ctx, Strict, no_lift);
 }
 
 ReductionStatus
 VauImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 {
-	return LambdaVau<2, Form, ShiftOne>(term, ctx, no_lift);
+	return LambdaVau<2, ShiftOne>(term, ctx, Form, no_lift);
 }
 
 ReductionStatus
 VauWithEnvironmentImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 {
-	return LambdaVauWithEnvironment<3, Form, ShiftOne>(term, ctx, no_lift);
+	return LambdaVauWithEnvironment<3, ShiftOne>(term, ctx, Form, no_lift);
+}
+
+ReductionStatus
+WVauImpl(TermNode& term, ContextNode& ctx, bool no_lift)
+{
+	return LambdaVau<2, ShiftOne>(term, ctx, Strict, no_lift);
+}
+
+ReductionStatus
+WVauWithEnvironmentImpl(TermNode& term, ContextNode& ctx, bool no_lift)
+{
+	return LambdaVauWithEnvironment<3, ShiftOne>(term, ctx, Strict, no_lift);
 }
 //@}
 
@@ -3208,7 +3201,7 @@ ProvideLetCommon(TermNode& term, ContextNode& ctx)
 	//	supported in this context (by the NPLA1 canonical evaluation algorithm),
 	//	although it can work with the current implementation of
 	//	%SetupDefaultInterpretation.
-	con.emplace(i_body, AsForm(a, ystdex::bind1(
+	con.emplace(i_body, A1::AsForm(a, ystdex::bind1(
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
 		[&](TermNode& t, ContextNode& c, shared_ptr<Environment>& p_env){
@@ -3786,6 +3779,30 @@ VauWithEnvironmentRef(TermNode& term, ContextNode& ctx)
 	return VauWithEnvironmentImpl(term, ctx, true);
 }
 
+ReductionStatus
+WVau(TermNode& term, ContextNode& ctx)
+{
+	return WVauImpl(term, ctx, {});
+}
+
+ReductionStatus
+WVauRef(TermNode& term, ContextNode& ctx)
+{
+	return WVauImpl(term, ctx, true);
+}
+
+ReductionStatus
+WVauWithEnvironment(TermNode& term, ContextNode& ctx)
+{
+	return WVauWithEnvironmentImpl(term, ctx, {});
+}
+
+ReductionStatus
+WVauWithEnvironmentRef(TermNode& term, ContextNode& ctx)
+{
+	return WVauWithEnvironmentImpl(term, ctx, true);
+}
+
 
 ReductionStatus
 Wrap(TermNode& term)
@@ -3894,9 +3911,9 @@ MakeEncapsulationType(TermNode& term)
 		shared_ptr<void> p_type(new yimpl(byte));
 	//	shared_ptr<void> p_type(YSLib::allocate_shared<yimpl(byte)>(a));
 
-		tcon.push_back(AsForm(a, Encapsulate(p_type), 1U));
-		tcon.push_back(AsForm(a, Encapsulated(p_type), 1U));
-		tcon.push_back(AsForm(a, Decapsulate(p_type), 1U));
+		tcon.push_back(A1::AsForm(a, Encapsulate(p_type), Strict));
+		tcon.push_back(A1::AsForm(a, Encapsulated(p_type), Strict));
+		tcon.push_back(A1::AsForm(a, Decapsulate(p_type), Strict));
 		tcon.swap(term.GetContainerRef());
 	}
 	return ReductionStatus::Retained;
@@ -4047,6 +4064,39 @@ ListExtractRestFwd(TermNode& term)
 {
 	PrepareListExtract(term);
 	return ReduceListExtractRestFwd(term);
+}
+
+ReductionStatus
+ListPushFront(TermNode& term)
+{
+	RetainN(term, 2);
+
+	auto i(term.begin());
+	auto& l(*++i);
+
+	ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
+		if(!p_ref || p_ref->IsModifiable())
+		{
+			if(IsList(nd))
+			{
+				auto& x(*++i);
+
+				if(const auto p
+					= NPL::TryAccessLeaf<const TermReference>(x))
+				{
+					if(!p->IsReferencedLValue())
+						LiftMovedOther(x, *p, p->IsMovable());
+				}
+				nd.GetContainerRef().splice(nd.begin(), term.GetContainerRef(),
+					i);
+			}
+			else
+				ThrowListTypeErrorForNonlist(nd, p_ref);
+		}
+		else
+			throw TypeError("Modifiable object expected.");
+	}, l);
+	return ReduceReturnUnspecified(term);
 }
 
 ReductionStatus
@@ -4215,7 +4265,7 @@ SymbolsToImports(TermNode& term)
 					for(const auto& x : nd)
 						add_val(CopyImportName(
 							NPL::ResolveRegular<const TokenValue>(x)));
-				con.front() = AsForm(a, SymbolsToImportsApp, 1U);
+				con.front() = A1::AsForm(a, SymbolsToImportsApp, Strict);
 				return ReductionStatus::Retained;
 			}
 			term.ClearContainer();
@@ -4298,7 +4348,7 @@ void
 CallSystem(TermNode& term)
 {
 	CallUnaryAs<const string>(
-		ystdex::compose(usystem, std::mem_fn(&string::c_str)), term);
+		ystdex::compose(YSLib::usystem, std::mem_fn(&string::c_str)), term);
 }
 
 } // namespace Forms;

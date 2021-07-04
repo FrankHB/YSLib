@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018-2020 FrankHB.
+	© 2010-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r3498
+\version r3571
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2020-10-23 04:46 +0800
+	2021-06-25 12:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -871,6 +871,85 @@ YF_API NodeCategory
 ClassifyNode(const Path&);
 
 } // namespace IO;
+
+//! \since build 921
+namespace Deployment
+{
+
+/*!
+\note 第一参数和第二参数分别为目标和源路径。
+\see 工具脚本 \c SHBuild-common.sh 。
+\since build 651
+\todo 检查可能存在于目标路径的旧项的权限；设置权限。
+*/
+//@{
+//@{
+/*!
+\brief 安装文件：复制单个文件。
+\note 复制前检查内容，若相同则不进行冗余复制（类似 rsync -a ）。
+*/
+//@{
+//! \since build 659
+YF_API YB_NONNULL(1, 2) void
+InstallFile(const char*, const char*);
+inline PDefH(void, InstallFile, const string& dst, const string& src)
+	ImplExpr(InstallFile(dst.c_str(), src.c_str()))
+//@}
+
+//! \brief 安装目录：复制目录树。
+//@{
+//! \since build 659
+YF_API void
+InstallDirectory(const string&, const string&);
+YB_NONNULL(1, 2) inline PDefH(void, InstallDirectory, const char* dst,
+	const char* src)
+	ImplExpr(InstallDirectory(string(dst), string(src)))
+//@}
+//@}
+
+/*!
+\note 在创建链接前首先删除文件。
+\exception std::system_error 由 IO::Remove 抛出的除文件不存在外的错误。
+\note 非强异常安全：删除文件成功但创建链接失败时，不重新创建原有的链接。
+\see IO::Remove
+*/
+//@{
+/*!
+\brief 安装硬链接：创建硬链接，失败则安装文件。
+\throw std::invalid_argument 安装前发现源是有效的目录。
+*/
+//@{
+//! \since build 659
+YF_API YB_NONNULL(1, 2) void
+InstallHardLink(const char*, const char*);
+inline PDefH(void, InstallHardLink, const string& dst, const string& src)
+	ImplExpr(InstallHardLink(dst.c_str(), src.c_str()))
+//@}
+
+//! \brief 安装符号链接：创建文件符号链接，失败则安装文件。
+//@{
+//! \since build 659
+YF_API YB_NONNULL(1, 2) void
+InstallSymbolicLink(const char*, const char*);
+inline PDefH(void, InstallSymbolicLink, const string& dst, const string& src)
+	ImplExpr(InstallSymbolicLink(dst.c_str(), src.c_str()))
+//@}
+//@}
+
+/*!
+\brief 安装可执行文件：安装文件并按需设置可执行权限。
+\since build 659
+\todo 设置 chmod +x 或 NTFS 可执行权限。
+*/
+//@{
+YF_API YB_NONNULL(1, 2) void
+InstallExecutable(const char*, const char*);
+inline PDefH(void, InstallExecutable, const string& dst, const string& src)
+	ImplExpr(InstallExecutable(dst.c_str(), src.c_str()))
+//@}
+//@}
+
+} // namespace Deployment;
 
 } // namespace YSLib;
 

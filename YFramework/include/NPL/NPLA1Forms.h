@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8074
+\version r8127
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2021-05-31 18:16 +0800
+	2021-06-09 06:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1130,10 +1130,9 @@ UndefineChecked(TermNode&, ContextNode&);
 \sa MatchParameter
 \warning 返回闭包调用引用变量超出绑定目标的生存期引起未定义行为。
 \since build 840
-\todo 优化捕获开销。
 
 使用 ExtractParameters 检查参数列表并捕获和绑定变量，
-然后设置节点的值为表示 λ 抽象的上下文处理器。
+然后设置节点的值为表示函数抽象的上下文处理器。
 可使用 RegisterForm 注册上下文处理器。
 和 Scheme 等不同，参数以项而不是位置的形式被转移，函数应用时可能有副作用。
 按引用捕获上下文中的绑定。被捕获的上下文中的绑定依赖宿主语言的生存期规则。
@@ -1253,6 +1252,59 @@ VauWithEnvironment(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 VauWithEnvironmentRef(TermNode&, ContextNode&);
+//@}
+
+/*!
+\brief 包装的 vau 抽象：求值为一个捕获当前上下文的严格求值的函数。
+\since build 921
+
+捕获的静态环境由当前动态环境隐式确定。
+不保留环境的所有权。
+*/
+//@{
+/*!
+按值传递返回值：提升项以避免返回引用造成内存安全问题。
+
+参考调用文法：
+<pre>$wvau \<formals> \<eformal> \<body></pre>
+*/
+YF_API ReductionStatus
+WVau(TermNode&, ContextNode&);
+
+/*!
+在返回时不提升项，允许返回引用。
+
+参考调用文法：
+<pre>$wvau% \<formals> \<eformal> \<body></pre>
+*/
+YF_API ReductionStatus
+WVauRef(TermNode&, ContextNode&);
+//@}
+
+/*!
+\brief 带环境的包装的 vau 抽象：求值为一个捕获当前上下文的严格求值的函数。
+\sa ResolveEnvironment
+
+捕获的静态环境由环境参数 \<parent> 求值后指定。
+*/
+//@{
+/*!
+按值传递返回值：提升项以避免返回引用造成内存安全问题。
+
+参考调用文法：
+<pre>$wvau/e \<environment> \<formals> \<eformal> \<body></pre>
+*/
+YF_API ReductionStatus
+WVauWithEnvironment(TermNode&, ContextNode&);
+
+/*!
+在返回时不提升项，允许返回引用。
+
+参考调用文法：
+<pre>$wvau/e% \<environment> \<formals> \<eformal> \<body></pre>
+*/
+YF_API ReductionStatus
+WVauWithEnvironmentRef(TermNode&, ContextNode&);
 //@}
 //@}
 //@}
@@ -1536,6 +1588,16 @@ ListExtractFirst(TermNode&);
 YF_API ReductionStatus
 ListExtractRestFwd(TermNode&);
 //@}
+
+/*!
+\brief 在列表前插入元素。
+\since build 921
+
+参考调用文法：
+<pre>list-push-front! \<list> \<object></pre>
+*/
+YF_API ReductionStatus
+ListPushFront(TermNode&);
 
 //! \since build 914
 //@{

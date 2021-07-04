@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2135
+\version r2149
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2021-05-06 19:51 +0800
+	2021-06-24 21:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,9 +92,9 @@ public:
 	YB_NONNULL(3)
 	Win32Exception(ErrorCode, const char* = "Win32 exception",
 		YSLib::RecordLevel = YSLib::Emergent);
-	Win32Exception(ErrorCode, string_view,
-		YSLib::RecordLevel = YSLib::Emergent);
 	Win32Exception(ErrorCode, const std::string&,
+		YSLib::RecordLevel = YSLib::Emergent);
+	Win32Exception(ErrorCode, string_view,
 		YSLib::RecordLevel = YSLib::Emergent);
 	//@}
 	/*!
@@ -248,7 +248,17 @@ template<typename _func>
 YB_ATTR_nodiscard YB_NONNULL(2) inline _func&
 LoadProc(::HMODULE h_module, const char* proc)
 {
+	// NOTE: See https://gcc.gnu.org/gcc-8/changes.html.
+#if YB_IMPL_GNUCPP >= 80000
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+	// NOTE: This should be safe with the additional ABI guarantees, similar to
+	//	https://debarshiray.wordpress.com/2019/04/01/about-wextra-and-wcast-function-type/.
 	return platform::Deref(reinterpret_cast<_func*>(LoadProc(h_module, proc)));
+#if YB_IMPL_GNUCPP >= 80000
+#	pragma GCC diagnostic pop
+#endif
 }
 template<typename _func>
 YB_ATTR_nodiscard YB_NONNULL(1, 2) inline _func&
@@ -264,8 +274,9 @@ LoadProc(const wchar_t* module, const char* proc)
 
 /*!
 \brief 声明调用 WinAPI 的例程。
+\note 函数名称使用 ADL 查找调用，应为非限定名称。当没有合式调用时从指定模块加载。
 \note 为避免歧义，应在非全局命名空间中使用；注意类作用域名称查找顺序会引起歧义。
-\note 当没有合式调用时从指定模块加载。
+\note 为避免无限递归实例化，需声明的参数类型应在当前命名空间之外提前声明。
 */
 #define YCL_DeclW32Call(_fn, _module, _tRet, ...) \
 	YCL_DeclCheck_t(_fn, _fn) \
