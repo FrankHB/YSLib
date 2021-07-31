@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r24800
+\version r24829
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2021-06-25 12:46 +0800
+	2021-08-01 03:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1900,10 +1900,11 @@ public:
 		const Encapsulate& x, const Encapsulate& y) ynothrow
 		ImplRet(x.Get() == y.Get())
 
-	void
+	//! \since build 922
+	ReductionStatus
 	operator()(TermNode& term) const
 	{
-		CallUnary([this] YB_LAMBDA_ANNOTATE((TermNode& tm), , pure){
+		return CallUnary([this] YB_LAMBDA_ANNOTATE((TermNode& tm), , pure){
 			return Encapsulation(GetType(), ystdex::invoke_value_or(
 				&TermReference::get, NPL::TryAccessReferencedLeaf<
 				const TermReference>(tm), std::move(tm)));
@@ -1924,14 +1925,14 @@ public:
 		PDefHOp(bool, ==, const Encapsulated& x, const Encapsulated& y) ynothrow
 		ImplRet(x.Get() == y.Get())
 
-	void
+	ReductionStatus
 	operator()(TermNode& term) const
 	{
-		CallUnary([this] YB_LAMBDA_ANNOTATE((TermNode& tm), , pure) -> bool{
-			return ystdex::call_value_or([this] YB_LAMBDA_ANNOTATE(
+		return CallUnary([this] YB_LAMBDA_ANNOTATE((TermNode& tm), , pure){
+			return bool(ystdex::call_value_or([this] YB_LAMBDA_ANNOTATE(
 				(const Encapsulation& enc), ynothrow, pure){
 				return Get() == enc.Get();
-			}, NPL::TryAccessReferencedTerm<Encapsulation>(tm));
+			}, NPL::TryAccessReferencedTerm<Encapsulation>(tm)));
 		}, term);
 	}
 };
@@ -2796,7 +2797,7 @@ LetExpire(TermNode& term, TermNode& nd,
 				| TermTags::Unique, o, r_env));
 	}
 	con.swap(term.GetContainerRef());
-	// NOTE: As %PreparBindingsWithParentToEnvironmenteFoldRList.
+	// NOTE: As %PrepareFoldRList.
 	term.SetValue(TermRange(term, TermTags::Temporary));
 }
 
@@ -3268,16 +3269,16 @@ IsSymbol(const string& id) ynothrow
 }
 
 TokenValue
-StringToSymbol(const string& s)
+StringToSymbol(const string& str)
 {
 	// XXX: Allocators are not used here for performance in most cases.
-	return TokenValue(s);
+	return TokenValue(str);
 }
 TokenValue
-StringToSymbol(string&& s)
+StringToSymbol(string&& str)
 {
 	// XXX: Ditto.
-	return TokenValue(std::move(s));
+	return TokenValue(std::move(str));
 }
 
 const string&
@@ -3660,24 +3661,6 @@ LockCurrentEnvironment(TermNode& term, ContextNode& ctx)
 	[&] YB_LAMBDA_ANNOTATE(() , , flatten){
 		term.SetValue(ctx.ShareRecord());
 	}();
-}
-
-ReductionStatus
-ValueOf(TermNode& term, const ContextNode& ctx)
-{
-	RetainN(term);
-	if(const auto p_id = NPL::TryAccessTerm<const string>(
-		ReferenceTerm(*std::next(term.begin()))))
-	{
-		// XXX: This is needed since %EvaluateIdentifier assumes regularized
-		//	term and it would not return %ReductionStatus::Clean to ensure
-		//	additional regularzation.
-		term.ClearContainer();
-		TryRet(EvaluateIdentifier(term, ctx, *p_id))
-		CatchIgnore(BadIdentifier&)
-	}
-	term.Value = ValueToken::Null;
-	return ReductionStatus::Clean;
 }
 
 

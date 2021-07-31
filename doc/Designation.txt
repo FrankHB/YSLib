@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2020 FrankHB.
+	© 2009-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 项目设计规则指定和说明。
-\version r9933
+\version r9945
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2020-07-25 15:55 +0800
+	2021-07-21 19:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -146,7 +146,7 @@ YSLib 基于基本的底层系统接口（由 YFramework/YCLib[Documentation::YC
 @2.3.6 目标代码兼容性：
 基本内容参见 [Documentation::CommonRules @@2.2.4] 。
 关于开发和测试版本判断依赖开发阶段的定义，参见 [Documentation::ProjectRules @@2] 。
-除非顶级子项目([Documentation::ProjectRules @@1.3]) 的文档另行指定， YSLib 项目不依赖具体体系结构和不同语言实现之间的互操作性。
+除非顶级子项目([Documentation::ProjectRules @@1.4]) 的文档另行指定， YSLib 项目不依赖具体体系结构和不同语言实现之间的互操作性。
 
 @2.3.6.1 默认二进制依赖策略：
 整个项目中，任意组件在相同平台配置的二进制兼容性保证由以下规则决定。
@@ -272,7 +272,7 @@ begin 和 end 以 ADL 为使用形式，一般使用命名空间作用域包装�
 c 一般范围；
 c 字符（特别是符合 _tChar 类型的）；
 c 范围（特别是和具有容器参数的重载并列时）；
-con 容器（特别是符合 _tCon 、 _tSeqCon 或 _tAssocCon 类型或其引用类型的）；
+con 容器（特别是符合 _tCon 、_tSeqCon 或 _tAssocCon 类型或其引用类型的）；
 il std::initializer_list 示例类型的参数（和标准库一致）；
 str 字符串（字符指针或类）类型。
 
@@ -281,7 +281,7 @@ str 字符串（字符指针或类）类型。
 @4.1.2.2.1 模式 Fetch* ：
 除了 YSLib 中非本体部分，命名空间作用域函数名 Fetch* ：语义近似于 Get*Of ，但遵循以下附加规则：
 函数名符合模式 Fetch*Ref 的，返回类型为目标类型的引用或 const 引用类型；
-函数名符合模式 Fetch*Ptr 的，返回类型为目标类型的指针、 const 指针或对应的智能指针类型；
+函数名符合模式 Fetch*Ptr 的，返回类型为目标类型的指针、const 指针或对应的智能指针类型；
 目标类型为 POD 类型的，返回类型为目标类型；
 其它情况返回类型为目标类型的引用或 const 引用类型。
 
@@ -323,8 +323,8 @@ YSLib 项目的依赖项都是库，其中一部分是不由 YSLib 项目维护�
 以下除非另行指定，非外部依赖项的根路径取 YFramework 包含目录或源代码目录。
 
 @5.1 平台配置：
-关于平台的详细含义参见 [Documentation::ProjectRules @@1.2] 。
-和本机语言实现相关的平台环境可使用经典系统类型名称(canonical system type name) 描述： architecture/vendor/OS/C library 四元组或 architecture/vendor/OS 三元组，除第一项外可能省略。
+关于平台的详细含义参见 [Documentation::ProjectRules @@1.3] 。
+和本机语言实现相关的平台环境可使用经典系统类型名称(canonical system type name) 描述：architecture/vendor/OS/C library 四元组或 architecture/vendor/OS 三元组，除第一项外可能省略。
 使用的实现（参见 @5.2 ）不和平台环境一一对应。一个平台环境可能有多个实现。
 目标平台配置和 YCLib 平台定义文件([Documentation::YCLib @@5.1]) 中定义的公共平台对应。
 
@@ -388,7 +388,7 @@ FreeImage 参见 [Documentation::Dependencies @@2.4] 。
 除了使用标准库命名空间 std 外如下所列。
 
 @5.6.1 标准库实现提供的附加命名空间：
-__gnu_cxx ： libstdc++ 扩展，可被 YBase::LibDefect 和 YFramework::YSLib::Adaptor 使用。
+__gnu_cxx ：libstdc++ 扩展，可被 YBase::LibDefect 和 YFramework::YSLib::Adaptor 使用。
 
 @5.6.2 YBase 引入的命名空间：
 参见 [Documentation::YBase @@2.3.2] 。
@@ -407,7 +407,7 @@ __gnu_cxx ： libstdc++ 扩展，可被 YBase::LibDefect 和 YFramework::YSLib::
 
 @6.1.1 注释风格：
 使用简化的（去除可以省略的星号后的） Qt 风格的注释。
-分行例外（默认参见 [Documentation::CommonRules @@5.4.1] ）： URL 链接等超出默认行宽时可在同一行（以避免无法生成正确的代码）。
+分行例外（默认参见 [Documentation::CommonRules @@5.4.1] ）：URL 链接等超出默认行宽时可在同一行（以避免无法生成正确的代码）。
 
 @6.1.2 指令同义词：
 当多种指令等价时使用 Doxygen 手册中直接说明（而非指示同义词即 "Equivalent to" ）的一项。
@@ -416,7 +416,7 @@ __gnu_cxx ： libstdc++ 扩展，可被 YBase::LibDefect 和 YFramework::YSLib::
 \throw 表示通过带有显式操作数的 throw 表达式或调用使用这些表达式的专用助手例程显式抛出确定类型的异常，能保证异常类型直接匹配； \exception 表示其它情况抛出的可被特定异常处理器捕获的异常，不保证异常对象类型精确匹配（可能为派生类），如内部实现的调用间接抛出的。
 
 @6.1.3 指令行风格：
-组(group) 相关指令（ \defgroup 、 \ingroup 、 \name 等）、实体标识指令（ \def 、 \fn 等）以及 \author 、\par 、 \relates 、 \sa 、 \since 、 \version 不使用句为单位（不使用全角标点）；其它指令后的内容以句为单位（对中文注释以全角标点结束；不成句的不视为完整的注释）。
+组(group) 相关指令（ \defgroup 、\ingroup 、\name 等）、实体标识指令（ \def 、\fn 等）以及 \author 、\par 、\relates 、\sa 、\since 、\version 不使用句为单位（不使用全角标点）；其它指令后的内容以句为单位（对中文注释以全角标点结束；不成句的不视为完整的注释）。
 \defgroup 指令在所有文件中应保持无歧义地出现一次以避免错误。
 \par 指令以半角“:”结尾。
 \sa 指定的名称在注释出现的声明区域按 ISO C++ 规则进行名称查找，同时使用 ADL 相关规则([Documentation::LanguageConvention @@5.2.4.1]) 。
@@ -424,9 +424,9 @@ __gnu_cxx ： libstdc++ 扩展，可被 YBase::LibDefect 和 YFramework::YSLib::
 
 @6.1.4 指令格式和顺序：
 组相关指令在最前（且对 \defgroup ，跟随注释首行“*”后使用一个水平制表符分隔），然后依次为实体标识指令（除了 \def ，一般省略）和其它指令。
-指定顺序的段落指令： \brief 、 \tparam 、 \param 、 \pre 、 \post 、 \invariant 、 \return 、 \exception 、 \throw 、 \note 、 \warning 、 \bug 、 \deprecated 、 \relates 、 \sa 、 \see 、 \since  、 \todo 、 \par 。
+指定顺序的段落指令：\brief 、\tparam 、\param 、\pre 、\post 、\invariant 、\return 、\exception 、\throw 、\note 、\warning 、\bug 、\deprecated 、\relates 、\sa 、\see 、\since  、\todo 、\par 。
 对连续的 \tparam 和 \param 指令，相同指令按参数在参数列表中出现的顺序排序；对连续的 \exception 和 \throw 和指令，相同指令按异常类型名排序。
-从属的非段落指令如 \code 、 \endcode 、\tt 、 \verbatim 等不限制顺序。
+从属的非段落指令如 \code 、\endcode 、\tt 、\verbatim 等不限制顺序。
 其它顺序参见 https://www.drupal.org/node/1354#order 未和以上规则冲突的部分。
 
 @6.1.5 组(grouping) ：
@@ -438,7 +438,7 @@ __gnu_cxx ： libstdc++ 扩展，可被 YBase::LibDefect 和 YFramework::YSLib::
 @6.1.6 引用：
 引用来源应保证实质内容无歧义和逻辑一致。
 优先使用内部引用而不是外部引用(@6.1.2) 。
-外部引用来源可以是 URL 、 [Documentation::LanguageConvention @@1.1.1] 约定的引用缩写、可查证的文献编号等。
+外部引用来源可以是 URL 、[Documentation::LanguageConvention @@1.1.1] 约定的引用缩写和可查证的文献编号等。
 
 @6.2 实现语用规则：
 

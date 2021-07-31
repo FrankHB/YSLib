@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 语言实现和系统环境相关特性及公用类型和宏的基础定义。
-\version r3934
+\version r3975
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2021-05-06 19:12 +0800
+	2021-07-07 19:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -587,12 +587,19 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 \since build 860
 
 选择性启用 lambda 表达式的扩展属性。
-参见以下 YB_ATTR_LAMBDA_QUAL 的使用。
+属性预期应用在 lambda 表达式的参数列表之后。参见以下 YB_ATTR_LAMBDA_QUAL 的使用。
 一般地，从属 lambda 表达式的扩展属性，优先使用 YB_ATTR_LAMBDA_PFX ；
 为兼容性，同时可用 YB_ATTR_LAMBDA 最大化支持 YB_ATTR_LAMBDA_PFX 没有生效的情形。
-G++ 9.0 修复了 GCC PR 60503 ，但因为 PR 60503 的错误支持，不支持扩展属性。
+标准属性在此位置从属返回类型而不是 lambda 表达式；
+	若需标准属性从属 lambda 表达式，应使用 YB_ATTR_LAMBDA_PFX 。
+G++ 9.0 第一次修复 GCC PR 60503 ，但因为其错误的实现，不支持扩展属性。
 虽然 GCC 9.0 不是正式发布版本，但已有实际下游使用（如 Fedora 30 使用 GCC 9.0.1 ），
-	因此在此一并变通：忽略所有属性。
+	在此一并变通。
+GCC 9.0 之后修复了 PR 60503 ，当存在 trailing-return-type 时，
+	这里的属性仍视为从属返回类型，无法支持从属 lambda 表达式的扩展属性。
+上述问题在 GCC PR 90333 中修复。
+这里不区分是否存在 trailing-return-type ，在适用 PR 90333 的修复前，
+	总是忽略所有属性。
 */
 #if !((YB_IMPL_GNUCPP >= 90000 && YB_IMPL_GNUCPP < 90400) \
 	|| (YB_IMPL_GNUCPP >= 100000 && YB_IMPL_GNUCPP < 100300))
@@ -616,6 +623,8 @@ G++ 9.0 修复了 GCC PR 60503 ，但因为 PR 60503 的错误支持，不支持
 配合其它宏的语法示例：
 <tt>[] YB_ATTR_STD() () ynothrow -> void{}</tt> 。
 <tt>[] YB_ATTR() () ynothrow -> void{}</tt> 。
+在第一次修复 GCC PR 60503 后，G++ 9.0 已支持在此位置的标准属性，但不支持扩展属性。
+在此要求支持扩展属性，因此要求 GCC 9.3 或 GCC 10 的发布版本支持。
 这也是唯一在 G++ 9.1 之后中插入从属 lambda 表达式（而非类型）的属性的方式。
 对 Clang++ ，仅在 C++2b 模式支持，且仅支持标准属性。暂不在 Clang++ 启用此语法。 
 另见以下 YB_ATTR_LAMBDA_QUAL 的使用。
@@ -657,8 +666,14 @@ G++ 9.1 起可支持：
 <tt>[]() YB_ATTR(){}</tt> ；
 <tt>[]() YB_ATTR_STD(){}</tt> 。
 使用 YB_ATTR_LAMBDA 同时也可对 G++ 9.0 不支持扩展属性进行变通。
-G++ 9.1 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
+G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 考虑添加 YB_ATTR_LAMBDA_PFX 属性替代，以使这些属性被最大化地支持。
+特别地，不论限定符，trailing-return-type 会使从属 lambda 的表达式的属性受到限制：
+	此处标准属性被视为从属返回类型；
+	此处扩展属性是语法错误。
+关于 G++ 支持扩展属性允许出现在声明中的位置的决策，参见 GCC PR 89640 中的评论；
+	在 GCC PR 90333 完全解决后，扩展属性上的这一限制被重新撤销，
+	但因可用 YB_ATTR_LAMBDA_PFX ，在此不再使用先前版本的顺序。
 注意，Clang++ 不支持从属 lambda 表达式的标准属性（如 [[noreturn]] ），
 	这类属性不论是否使用同 YB_ATTR_LAMBDA_PFX 的方式，不能选择 YB_ATTR_STD 。
 关于从属 lambda 表达式的标准属性，参见 YB_ATTR_LAMBDA_PFX 。
@@ -847,7 +862,7 @@ G++ 9.1 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 #endif
 
 /*!
-\def YB_ASSUME(expr)
+\def YB_ASSUME(_expr)
 \brief 假定表达式的求值总是为真。
 \note 未指定表达式是否被求值。
 \note 可作为优化提示。可能影响控制流预测，一般接近对应条件被求值的位置局部使用。
@@ -867,7 +882,27 @@ G++ 9.1 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 #elif __has_builtin(__builtin_assume)
 #	define YB_ASSUME(_expr) __builtin_assume(_expr)
 #elif __has_builtin(__builtin_unreachable) || YB_IMPL_GNUCPP >= 40500
-#	define YB_ASSUME(_expr) ((_expr) ? void() : __builtin_unreachable())
+#	if YB_IMPL_CLANGPP >= 30401
+#		define YB_ASSUME(_expr) \
+	((YB_Diag_Push YB_Diag_Ignore(pointer-bool-conversion) _expr \
+		YB_Diag_Pop) ? void() : __builtin_unreachable())
+#	else
+// NOTE: It is ideal to get away the default warning [-Wnonnull-compare]
+//	enabled by '-Wall'. (See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=17308
+//	and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=69850.) However, the pragma
+//	in the following does not work, as
+//	https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70811.
+#		if false
+#			define YB_ASSUME(_expr) \
+	((YB_Diag_Push YB_Diag_Ignore(nonnull-compare) _expr \
+		YB_Diag_Pop) ? void() : __builtin_unreachable())
+#		endif
+// NOTE: To work the problem avoie around, the warning is disabled globally.
+#		if YB_IMPL_GNUCPP >= 60000
+#			pragma GCC diagnostic ignored "-Wnonnull-compare"
+#		endif
+#		define YB_ASSUME(_expr) ((_expr) ? void() : __builtin_unreachable())
+#	endif
 #else
 #	define YB_ASSUME(_expr) ((_expr) ? void() : YB_ABORT)
 #endif

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2020 FrankHB.
+	© 2009-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r4707
+\version r4738
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2020-12-12 08:43 +0800
+	2021-07-21 18:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,6 +49,14 @@
 @0.1.1 日期和时间表示：
 文本的日期和时间表示基于 ISO 8601:2004(@1.1) 的日期的扩展格式(extended format) 。仅使用精确到日的日期、精确到分或秒的时间，不使用周表示和非完全(complete) 表示。
 按 ISO 8601:2004 规定，不在表示内部使用空格。在此约定便于表示解析的例外规则：在表示地方时和 UTC 的差异时使用 ASCII 字符“+”和“-”表示偏差符号，并在此前附加一个空格。
+
+@0.1.2 标签：
+标签用于标注文本。
+以单独一行 **标签** 形式标注的格式适用多行，直至小结或下一个标签到结束。标签具有强调的含义，在此可兼用为章节内部的小节标题。
+在段落中，起始的 **标签**（之后跟随一个空格）也可作为单一段落的起始，适用这个段落。
+以下标签是适用于全体文档的标签（同时是标签的示例）：
+标记为 **注释** 的文本是说明性(informative) 的描述，而不是正式(normative) 规则。
+标记为 **原理** 的文本是阐明语言设计*原理(rationale)* 的**注释**文本。
 
 @0.2 使用规则：
 
@@ -101,10 +109,9 @@ POSIX.1 ： ISO/IEC 9945:2003 （引用内容同 IEEE Std 1003.1-2003 ）。
 POSIX.1-2008 ：IEEE Std 1003.1-2008 。
 
 @1.2 术语：
+本文档中没有另行指定定义的基本概念使用参见 https://frankhb.github.io/YSLib-book/Terminology.zh-CN.html 。
 
 @1.2.1 C++ 语言：
-
-@1.2.1.1
 以下列表中的概念参考 ISO C++ ：
 翻译单元(translation unit) ：(@2/1 [lex])；
 字符集(character set) ：(@2.2 [lex.charset])；
@@ -127,8 +134,6 @@ POSIX.1-2008 ：IEEE Std 1003.1-2008 。
 对象类型(object type) ：(@3.9 [basic.types])；
 不完整类型(incomplete type) ：(@3.9.1 [basic.fundamental])；
 命名空间(namespace) ：(@7.3 [basic.namespace]) 。
-
-@1.2.1.2
 以下内容参考 ISO C++ 相关描述：
 续行/断行连接(line continuation) ：(@2.1/2 [lex.phases])，“splicing physical source lines to form logical source lines”。
 
@@ -272,16 +277,18 @@ POSIX.1-2008 ：IEEE Std 1003.1-2008 。
 @2.3.2 程序模型：
 程序模型是具体实现了的架构模式这一结果上进一步抽象的产物，主要从计算机（而不是人类）的角度体现语义表达的一般流程。
 在可编程性足够强时，除了实现本身的质量，程序模型几乎只受计算机系统软件（例如语言和操作系统）接口及其实现的约束。
-本文档在系统软件领域约定使用以下定义：
-程序：有限的指令或其它操作语义方法直接能够表示的内容的集合；
-资源：可供计算机系统利用以完成语义表达的实体或信息，可以是硬件或软件；
-执行：计算机系统利用资源，使用程序片段实现语义表达的过程；
-任务：计算机系统执行特定程序的特定目的。
-进程：执行中的程序（一般被作为操作系统调度任务的基本单位）；
-线程：进程内部不独占特定资源的最小可执行的调度单位（一般对应程序设计语言逻辑上的控制流）。
+关于“程序”和“执行”的定义参见 https://frankhb.github.io/YSLib-book/Terminology.zh-CN.html#%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1%E8%AF%AD%E8%A8%80 。
+本文档在系统软件领域约定补充以下概念的定义：
+资源(resource) ：可供计算机系统利用以完成语义表达的实体或信息，可以是硬件或软件；
+任务(task) ：为特定目的在计算机系统中执行程序。
+进程(process) ：执行中的任务（一般被作为操作系统调度的基本单位）；
+线程(thread) ：不独占特定资源的最小可执行的调度任务单位（一般对应程序设计语言逻辑上的控制流）。
+**注释**
+进程是计算表达的任务的抽象。
+线程是具有特定实现性质（确保可调度）的进程。和一些编程模型不同，计算意义上的进程不一定包含线程。
 
 @2.3.2.1 运行时程序模型：
-由具体项目定义。
+由具体程序定义。
 
 @2.3.2.2 资源分类：
 （软件）资源分为（软件）系统资源和应用程序资源。
@@ -302,20 +309,22 @@ POSIX.1-2008 ：IEEE Std 1003.1-2008 。
 对 C++ 这样支持确定性析构的语言， RAII 直接使 RRID（Resource Reclamation Is Destruction ，资源回收即析构） 或 DIRR（Destruction Is Resource Reclamation ，析构即资源回收）成为可能。这在异常安全(@5.10.5.3) 等方面有重要意义。
 从特定已知来源获取资源的过程为分配(allocation) ，释放资源为去配(deallocation) 。
 
-@2.3.3 实体(entity) 、生存期(lifetime) 和对象(object) ：
+@2.3.3 实体、生存期和对象：
 
 @2.3.3.1 实体：
+基本概念参见 https://frankhb.github.io/YSLib-book/Terminology.zh-CN.html#%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1%E8%AF%AD%E8%A8%80 。
 实体是不加限定的语言的抽象。但一般地，需要能明确两个实体是否同一(identical) 。
-关于实体，另见 [Documentation::NPL @@2.1.1] 。
 
 @2.3.3.2 生存期：
-生存期是逻辑上可用的连续区间的抽象，可以在此之上明确特定逻辑事件的顺序，可用抽象的时刻度量。
-关于生存期，另见 [Documentation::NPL @@ 4.1] 。
+参见 [Documentation::NPL @@ 4.1] 。
+可在此之上明确特定逻辑事件的顺序。
 
 @2.3.3.3 对象：
-某些实体具有能明确顺序且可知开端和终结的生存期，这些实体称为对象。
-对象表示状态的集合，占用（抽象机意义的，如@5.1.1 ）存储。
-关于对象，另见 [Documentation::NPL @@ 4.1] 。
+对象是符合 [Documentation::NPL @@ 4.1] 定义的实体，同时满足 [Documentation::NPL @@ 4.2.2] 的描述。
+对象表示状态的集合，占用（抽象机([Documentation::NPL @@ 2.6]) 意义的）存储。
+**注释**
+对象的定义和 ISO C++ 的对象概念相容，但不强调具有连续的存储。仅当使用 ISO C++ 时，附加相关的约定。
+此处抽象机和 ISO C++ 语义相容。
 
 @2.3.3.4 对象的创建(creation) 和销毁(destroy) ：
 对象通过创建引入，通过销毁移除。

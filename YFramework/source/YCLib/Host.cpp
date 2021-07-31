@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r1116
+\version r1134
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2021-06-25 12:41 +0800
+	2021-07-07 00:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,8 +32,8 @@
 #include YFM_YSLib_Core_YCoreUtilities // for YSLib, to_std_string,
 //	FetchCachedCommandResult, ystdex::underlying, FilterExceptions;
 #include YFM_YCLib_NativeAPI // for YCL_TraceCallF_CAPI, ::sem_open,
-//	::sem_close, ::sem_unlink, ::pipe, ToHandle, YCL_CallGlobal, isatty,
-//	platform_ex::ToHandle, FILE_TYPE_CHAR, FILE_TYPE_PIPE;
+//	::sem_close, ::sem_unlink, ::pipe, MAX_PATH, ToHandle, YCL_CallGlobal,
+//	isatty, platform_ex::ToHandle, FILE_TYPE_CHAR, FILE_TYPE_PIPE;
 #include YFM_YCLib_FileIO // for MakePathStringW, YCL_Raise_SysE,
 //	MakePathString;
 #include <ystdex/deref_op.hpp> // for ystdex::call_value_or;
@@ -48,6 +48,7 @@
 #	include YFM_Win32_YCLib_MinGW32 // for YCL_DeclW32Call, YCL_CallF_Win32,
 #	include YFM_Win32_YCLib_NLS // for CloseHandle, MBCSToMBCS, UTF8ToWCS;
 #	include <limits> // for std::numeric_limits;
+#	include <ystdex/type_pun.hpp> // for ystdex::replace_storage_t;
 #	include YFM_Win32_YCLib_Consoles // for WConsole;
 
 //! \since build 921
@@ -356,19 +357,18 @@ HasPTY(::HANDLE h) ynothrow
 {
 	// NOTE: This try to detect the PTY simulation used by Cygwin/MSYS programs
 	//	like MinTTY. See $2021-06 @ %Documentation::Workflow.
+	using buf_t = byte[sizeof(OBJECT_NAME_INFORMATION)
+		+ MAX_PATH * sizeof(wchar_t)];
+	ystdex::replace_storage_t<buf_t, yalignof(OBJECT_NAME_INFORMATION)> storage;
 	unsigned long res;
-	unsigned char buf[sizeof(OBJECT_NAME_INFORMATION)
-		+ MAX_PATH * sizeof(wchar_t)]{};
-	const auto p_info(
-		/*ystdex::aligned_store_cast*/
-		reinterpret_cast<OBJECT_NAME_INFORMATION*>(&buf[0]));
 
-	if(YCL_Impl_details::NtQueryObject(h, ObjectNameInformation, buf,
-		sizeof(buf) - 2, &res) >= 0)
+	if(YCL_Impl_details::NtQueryObject(h, ObjectNameInformation,
+		storage.access(), sizeof(buf_t) - 2, &res) >= 0)
 	{
-		wchar_t* s(p_info->Name.Buffer);
+		const auto& n(storage.access<OBJECT_NAME_INFORMATION>().Name);
+		wchar_t* s(n.Buffer);
 
-		s[p_info->Name.Length / sizeof(*s)] = 0;
+		s[n.Length / sizeof(*s)] = 0;
 		// XXX: The prefix L"\\Device\\NamedPipe\\", the number of digits and
 		//	the suffix are not checked for simplicity and compatibility in
 		//	future (although the name scheme should not be likely to change
@@ -606,8 +606,8 @@ Terminal::Terminal(std::FILE* fp)
 				return CreateTTYTerminalData(fp);
 #	endif
 		}
-		CatchExpr(Exception& e,
-			YTraceDe(Informative, "Creating console failed: %s.", e.what()))
+		// XXX: Errors are ignored.
+		CatchIgnore(Exception& e)
 		return {};
 	}())
 {}

@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4449
+\version r4478
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2021-06-25 12:19 +0800
+	2021-07-10 17:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,7 +64,8 @@ See $known_issue_b406 @ Meta.txt.
 
 dep.merge:
 Microlua(github://microlua/MicroLua-Source) @ DS: considerable, shelved.
-uLibrary @ DS: rejected. Quality questionable, not suitible for scope.
+uLibrary @ DS: rejected.
+	The quality is questionable. It is also not suitible for scope.
 	From http://devkitpro.org/viewtopic.php?f=2&t=3192, WinterMute: "Please don't use uLibrary either, it's awful and you won't get support for it here either."
 
 note.req-env:
@@ -212,7 +213,7 @@ Wrapping '__declspec(novtable)' when '_MSC_VER >= 1100'.
 
 dep.merge:
 libmagic(https://github.com/glensc/file): rejected.
-	This library implements a DSL(with BNF provided among the source files) for querying magic number database. It is heavyweight and too complex for freestanding implementations.
+	This library implements a DSL (with BNF provided among the source files) for querying magic number database. It is heavyweight and too complex for freestanding implementations.
 	Stripping the code of extended functionality(other than MIME detection needed by YFramework) out is difficult, because functions for printing and parameters for state passing are spread in the call graph deeply.
 	For hosted implementations, operation system or desktop environment based implementations may provide alternative more benifical interfaces for integrating custom/user-specified information of content types.
 	Also the depolying overhead of the magic databace files is significant.
@@ -1113,12 +1114,12 @@ OpenImageIO(http://www.openimageio.org/): tentatively rejected.
 		It also encapsulates some system-dependent operations, e.g. threads.
 			The threading operations depend on Boost.Thread.
 		Its interface is in C++.
-			This is good to avoid name clash.
+			This is good to avoid name clashes.
 			However, the quality is not always good.
 				Error handling totally bypassed exceptions (except for throwing 'std::out_of_range' from 'array_view', etc), and uses thread-specific state instead.
 					This is of generally bad style and can be hard to use.
 			Sometimes the interface is necessarily bloated, e.g. 'ParamValueList' can actually be an type alias rather than a class.
-		The headers are a bit mess.
+		The headers are in a bit mess.
 			There are multiple headers in the same directory doing different works. Not all of them are aiming to image I/O.
 			It is somewhat difficult to use it cleanly directly without referencing some use cases.
 	The license is 3-clause BSD-like.
@@ -4351,7 +4352,11 @@ Captures of shared reference of environments in the NPLA1 implemtation has been 
 		In future, first-class continuations may detect the existence of the strong environment reference.
 			Unrestricted first-class continuation capture operations are not safe.
 			Only the captures do not get these references involved are made safe.
-Terminal support is improved.
+
+$2021-06:
+
+report.impl:
+The terminal support is improved.
 	In platform 'Win32', now terminal initialization detects mintty for better ANSI escape sequence handling.
 	ANSI escape sequence works on traditional MS-DOS consoles, Microsoft Windows on x86 platforms and Microsoft Windows >= 1809 Server 2019.
 		The last case is enabled by the new console with the ConPTY virtual terminal sequence translation support in 'conhost.exe'.
@@ -4407,6 +4412,28 @@ Terminal support is improved.
 			A new environment variable 'YF_Use_tput' is added to allow the old implementation being used.
 			For now, 'tput' still assume it uses the commands used by terminfo (but not termcap).
 				Note all supported hosted platforms all use terminfo but not termcap by default, including the Win32 with Cygwin/MSYS PTY support added recently.
+$2021-07:
+
+dep.merge:
+leptonica(http://leptonica.org/): rejected.
+	See https://github.com/DanBloomberg/leptonica for the source repository.
+	The license seems OK.
+	This is an mostly an image library, including "I/O for standard image formats".
+		However, such features are "ancillary operations". It is not significant as more dedicated ones like FreeImage and OpenImageIO.
+	It is "pedagogically-oriented and aged", with insufficient quality in interface design.
+	It has many components not that useful for YSLib.
+		It is implemented in C, with many useless components not configurable in the low-level sense like FreeImage's I/O.
+		The high-level components can be mostly covered by FreeImage, except that document-oriented ones (e.g. PDF) which is not useful in YSLib.
+OpenImageIO(https://sites.google.com/site/openimageio/home): considerable, tentatively shelved.
+	See $2015-03 dep.merge for the previous review.
+	The site http://www.openimageio.org/ is now redirected.
+	See https://github.com/OpenImageIO/oiio for the source repository.
+	See https://openimageio.readthedocs.io/en/latest/ for the documentation.
+	There is now GIF support.
+		See https://openimageio.readthedocs.io/en/latest/builtinplugins.html#gif.
+	The organization of the source directory structure seems still in a bet mess.
+	It is likely but not completely known to be sufficient to replace the current use of FreeImage.
+		There may need more review to analyze.
 
 ////
 

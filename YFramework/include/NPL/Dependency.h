@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r466
+\version r474
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2021-06-25 12:59 +0800
+	2021-07-21 05:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -203,16 +203,6 @@ LoadGroundContext(REPLContext&);
 \sa LoadGroundContext
 */
 //@{
-/*!
-\brief 加载环境模块。
-\pre 当前实现：求值合并子调用前已加载初始化字符串模块 std.strings 。
-\sa LoadModule_std_strings
-
-加载扩展的环境库操作。
-*/
-YF_API void
-LoadModule_std_environments(REPLContext&);
-
 /*!
 \brief 加载代理求值模块。
 \note 当前实现：加载时占用当前环境的实现保留变量 __ 。

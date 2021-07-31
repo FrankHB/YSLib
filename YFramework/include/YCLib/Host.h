@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r672
+\version r675
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2021-06-25 12:50 +0800
+	2021-07-05 21:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -301,15 +301,15 @@ FwdDeclI(ITerminalData)
 当非控制台文件关联的流初始化，或不存在可用的终端接口时，终端控制操作无作用。
 Win32 平台：
 	若以控制台文件关联的流初始化，使用 Win32 控制台 API 实现；
-	否则，当检查当前终端为 MinTTY 时，使用同非 Win32 平台的方式实现。
+	否则，当检查当前终端为模拟终端时，使用同非 Win32 平台的方式实现。
 非 Win32 平台：
 	若以控制台文件关联的流初始化：
 		若环境变量 YF_Use_tput 的值非空，使用外部命令 \c tput 实现；
 		否则，使用内建的控制序列（符合 ISO/IEC 6429:1992 的 ANSI 转义序列）；
 	否则，操作无作用。
-当前终端检查为 MinTTY ，当且仅当 Win32 平台下：
+当前终端检查为模拟终端，当且仅当 Win32 平台下：
 	非控制台文件关联的流初始化；
-	且环境变量 \c TERM_PROGRAM 的值为 \c "mintty" 。
+	 MSYS 或 Cygwin 通过管道模拟 PTY 。
 当前使用 \c tput 的实现假定使用 terminfo ，暂不支持 termcap ；
 	因此，使用外部命令的实现不支持 FreeBSD 等只使用 termcap 的终端环境。
 */

@@ -14,8 +14,8 @@ $provide! (assign%! assign@! copy-environment lock-environment
 
 	$def! fns (unwrap list) move! assign%! assign@! copy-environment
 		lock-environment $defrec! $setrec!;
-	$defl/e! raise-error (make-environment env_SHBuild_ std.strings) (&n)
-		SHBuild_RaiseError_
+	$defl/e! raise-error (make-environment std.strings) (&n)
+		raise-error
 			(++ "ERROR: Use of unsafe function '" n "' is not allowed.");
 	$defl! poison-fn (&fn &env)
 		eval (list $defl/e! (ensigil fn)
@@ -38,20 +38,19 @@ $defv/e! $set-if-empty! (derive-environment std.strings) (&var .&body) d
 		(eval% (list% $set! d var (move! body)) d);
 $defl/e! cons-cmd (derive-environment std.strings) (.&xs)
 	apply ++ (map1 ($lambda (&str) $if (string-empty? str) "" (++ str " ")) xs);
-$defl/e! rmatch? std.strings (&x &r) regex-match? x (string->regex r);
+$defl/e! rmatch? std.strings (&x &y) regex-match? x (string->regex y);
 $defl/e! putss (derive-environment std.io std.strings) (.&xs)
 	puts (apply ++ xs);
 $defl/e! system-ok (derive-environment std.system) (&cmd) eqv? (system cmd) 0;
 $defl/e! win32? (() make-standard-environment) (os) eqv? os "Win32";
 
-$defl/e! cmd-fail (derive-environment std.strings env_SHBuild_) (&cmd)
-	SHBuild_RaiseError_ (++ "Failed to call command: " cmd ".");
+$defl/e! cmd-fail (derive-environment std.strings) (&cmd)
+	raise-error (++ "Failed to call command: " cmd ".");
 $defl/e! system-check ($let ((mods () make-standard-environment))
 	($set! mods (cmd-fail system-ok) list cmd-fail system-ok; (move! mods)))
 	(cmd) $unless (system-ok cmd) (cmd-fail cmd);
 $defv/e! $set-system-var! (() make-standard-environment) (&var &arg) d
 (
-	$import! std.environments $binds1?,
 	$import! std.system system-get;
 
 	$unless (eval (list $binds1? d var) d)
@@ -59,11 +58,11 @@ $defv/e! $set-system-var! (() make-standard-environment) (&var &arg) d
 			$if (eqv? code 0) (eval (list $def! var rstr) d)
 				(cmd-fail cmd))
 );
-$defv/e! $assert (derive-environment std.environments std.strings env_SHBuild_)
+$defv/e! $assert (derive-environment std.strings env_SHBuild_)
 	(&var &pred? &msg) d
 	$unless ($and? (eval (list $binds1? d var) d) ((eval pred? d) (eval var d)))
-		(SHBuild_RaiseError_ (++ "Variable " (SHBuild_QuoteS_
-			(symbol->string var)) " shall " (eval msg d) "."));
+		(raise-error (++ "Variable " (SHBuild_QuoteS_ (symbol->string var))
+			" shall " (eval msg d) "."));
 $provide!
 (
 	$assert-nonempty
@@ -90,8 +89,7 @@ $provide! (safeenv-get safeenv-set ss-verbose-puts)
 	"NOTE", "Nonempty environment variable 'SS_*' would enable specifically.",
 		"See user documentation Tools/Scripts.zh-CN.md.";
 	$def! mods $let ((ss_DebugEnv not? (env-empty? "SS_DebugEnv")))
-		$bindings/p->environment
-		(std.environments std.strings std.system std.io)
+		$bindings/p->environment (std.strings std.system std.io)
 		(emap () make-environment)
 		(SS_DebugEnv ss_DebugEnv)
 		(SS_Verbose not? (env-empty? "SS_Verbose"))
@@ -129,8 +127,8 @@ $provide!
 	$env-de!
 )
 (
-	$def! mods derive-environment std.strings std.promises std.environments
-		std.system env_SHBuild_;
+	$def! mods derive-environment std.strings std.promises std.system
+		env_SHBuild_;
 	$set! mods safeenv-get safeenv-get;
 
 	$defv/e! &$lazy-env-val mods (&name .&body) d
@@ -244,16 +242,14 @@ $defl! SHBuild_GetSystemPrefix (platform) $cond
 	(#t "/usr");
 $defl! SHBuild_Platform_Detect (os arch)
 (
-	$import! env_SHBuild_ SHBuild_RaiseError_;
-
 	$env-de! MSYSTEM;
 	$cond
 		((win32? os) $cond
 			((eqv? MSYSTEM "MINGW64") "MinGW64")
 			((eqv? MSYSTEM "MINGW32") "MinGW32")
 			((eqv? arch "x86_64") "MinGW64")
-			((eqv? arch "aarch64") (SHBuild_RaiseError_
-				"ERROR: The architecture aarch64 is not supported in MinGW."))
+			((eqv? arch "aarch64") raise-error
+				"ERROR: The architecture aarch64 is not supported in MinGW.")
 			(#t "MinGW32"))
 		(#t os)
 );
@@ -278,8 +274,6 @@ $defl! SHBuild_CheckCXX (host-os cxx)
 
 	$let ((e SHBuild_CmdCache_GetEnv_ host-os) (sym string->symbol cxx))
 	(
-		$import! std.environments bound?;
-
 		$unless (eval (list bound? cxx) e)
 		(
 			eval (list $def! sym ($lazy
@@ -399,7 +393,7 @@ $defl! use-lsan? (opt) use-fsanitize? "leak" opt;
 $defl! build-with-conf-opt (outdir host-os debug dynamic shbopt-ext app
 	do-ld-ext do-build)
 (
-	$import! std.environments value-of,
+	$import! std.strings string->symbol,
 	$import! std.promises $lazy force,
 	$import! env_SHBuild_ SHBuild_EchoVar SHBuild_QuoteS_ SHBuild_TrimOptions_;
 
@@ -585,7 +579,8 @@ $defl! build-with-conf-opt (outdir host-os debug dynamic shbopt-ext app
 	$redef! CFLAGS SHBuild_TrimOptions_ CFLAGS,
 	$redef! CXXFLAGS SHBuild_TrimOptions_ CXXFLAGS;
 	$def! SHBOPT get-SHBOPT_ outdir shbopt-ext use-ld;
-	$defl! echo-var (var) SHBuild_EchoVar var (value-of var);
+	$defw! echo-var (var) d SHBuild_EchoVar var ($if (bound? var) (eval
+		(string->symbol var) d) "");
 	"XXX", "The values of following variables may be overriden in 'do-build'.";
 	"TODO", "Print actual values being used in 'do-build' as possible.";
 	echo-var "CXXFLAGS";

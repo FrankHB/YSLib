@@ -11,13 +11,13 @@
 /*!	\file list.hpp
 \ingroup YStandardEx
 \brief 列表容器。
-\version r1642
+\version r1660
 \author FrankHB <frankhb1989@gmail.com>
 \since build 864
 \par 创建时间:
 	2019-08-14 14:48:52 +0800
 \par 修改时间:
-	2021-05-20 02:07 +0800
+	2021-07-06 23:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,14 +36,13 @@ LWG 2839 ：允许自转移赋值。
 
 #include "node_base.h" // for "node_base.h", std::move, std::addressof;
 #include <list> // for <list>, std::initializer_list;
-#include "allocator.hpp" // for aligned_storage_t, standard_layout_storage,
-//	bidirectional_iteratable, equality_comparable, totally_ordered,
-//	rebind_alloc_t, allocator_traits, yverify, false_, true_,
-//	ystdex::make_move_if_noexcept_iterator, std::advance, ystdex::alloc_on_move,
-//	allocator_guard, allocator_guard_delete, ystdex::alloc_on_swap,
-//	ystdex::swap_dependent, std::allocator, is_object, is_unqualified, and_,
-//	is_allocator_for, ystdex::reverse_iterator, is_nothrow_constructible, less,
-//	ref_eq, equal_to;
+#include "allocator.hpp" // for replace_storage_t, bidirectional_iteratable,
+//	equality_comparable, totally_ordered, rebind_alloc_t, allocator_traits,
+//	yverify, false_, true_, ystdex::make_move_if_noexcept_iterator,
+//	std::advance, ystdex::alloc_on_move, allocator_guard,
+//	allocator_guard_delete, ystdex::alloc_on_swap, ystdex::swap_dependent,
+//	std::allocator, is_object, is_unqualified, and_, is_allocator_for,
+//	ystdex::reverse_iterator, is_nothrow_constructible, less, ref_eq, equal_to;
 #include "base.h" // for noncopyable, nonmovable;
 #include "iterator_trait.hpp" // for enable_for_input_iterator_t;
 #include <algorithm> // for std::equal, std::lexicographical_compare;
@@ -73,8 +72,7 @@ template<typename _type>
 class list_node : public list_node_base
 {
 private:
-	standard_layout_storage<aligned_storage_t<sizeof(_type), yalignof(_type)>>
-		storage;
+	replace_storage_t<_type> storage;
 
 public:
 	//! \since build 855
@@ -589,7 +587,7 @@ public:
 
 			tmp.init_range(first, last);
 
-			auto i(tmp.begin());
+			const auto i(tmp.begin());
 
 			splice(position, tmp);
 			return i;
@@ -829,6 +827,8 @@ public:
 		++j;
 		if(!(position == i || position == j))
 		{
+			// XXX: The node count changes shall not be unsquenced if %*this is
+			//	same to %x, so no %yunseq is used here.
 			transfer_range(position, i, j),
 			++objects.header.node_count,
 			--x.objects.header.node_count;
@@ -847,9 +847,11 @@ public:
 			const auto n(size_t(std::distance(first, last)));
 
 			if(position != last)
+				// XXX: The node count changes shall not be unsquenced if %*this
+				//	is same to %x, so no %yunseq is used here.
 				transfer_range(position, first, last),
-			objects.header.node_count += n,
-			x.objects.header.node_count -= n;
+				objects.header.node_count += n,
+				x.objects.header.node_count -= n;
 		}
 	}
 
@@ -990,7 +992,7 @@ public:
 
 			auto next(first);
 
-			for(bool init(true);; init = {})
+			for(bool init(true); ; init = {})
 			{
 				// NOTE: [first, mid) and [mid, last) are sorted and non-empty.
 				// XXX: Use %YB_VerifyIterator?

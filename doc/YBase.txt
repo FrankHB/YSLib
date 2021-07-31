@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r1594
+\version r1597
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2021-05-18 01:23 +0800
+	2021-07-21 19:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 部分编码细节和其它规范和 YFramework 共享，参见 [Documentation::Designation] 。
 
 @1 整体设计：
-YBase 是 YSLib(the YSLib project) 的顶级子项目([ProjectRules @@1.3]) ，且不被其它顶级子项目依赖。
+YBase 是 YSLib(the YSLib project) 的顶级子项目([Documentation::ProjectRules @@1.4]) ，且不被其它顶级子项目依赖。
 
 @1.1 设计的基本原理和表达形式：
 以扩展标准库为基础构建 YSLib 项目的基础实现。
@@ -70,7 +70,7 @@ YBase 包括 YDefinition(@2.4) 、YStandardEx(@2.5) 、LibDefect(@2.6) 和 Test(
 @2.1.1 语言规范：
 遵守的具体标准规范及替代和扩展接口约定参见 https://frankhb.github.io/YSLib-book/StandardUsing.en-US.html 。
 尽可能严格遵守 ISO C++ ，涉及未指定行为和实现定义的行为时应由文档说明。
-特性使用的基本规则参见 [Documentation::ProjectRules @@1.2.1] ，不符合此规则的例外由本节指定或文档另行指定，但除指定依赖特定实现的代码，应保持以下原则：
+特性使用的基本规则参见 [Documentation::ProjectRules @@1.3.1] ，不符合此规则的例外由本节指定或文档另行指定，但除指定依赖特定实现的代码，应保持以下原则：
 默认使用 ISO C++11 的一个严格子集；
 可选使用之后版本的标准兼容的特性；
 使用的特性应使代码保持和已出版的最新标准兼容。
@@ -161,7 +161,7 @@ YBase 不使用 [Documentation::LanguageConvention @@5.12.2.3.1] 的右值的例
 
 @2.2 文件依赖性：
 以下为基本代码依赖性规则按（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
-子项目满足线性顺序依赖([Documentation::ProjectRules @@1.1.1]) ：依次为 ydef.h(@2.4) 、LibDefect 、YStandardEx 和 YTest 。
+子项目满足线性顺序依赖([Documentation::ProjectRules @@1.2]) ：依次为 ydef.h(@2.4) 、LibDefect 、YStandardEx 和 YTest 。
 ydef.h 仅依赖标准库头。
 LibDefect 不包含头文件或仅包含标准库头。
 YBase 依赖且仅依赖 YBase 文件和标准库头。

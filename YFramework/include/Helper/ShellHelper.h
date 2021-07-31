@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2019 FrankHB.
+	© 2010-2016, 2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r2060
+\version r2063
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2019-09-05 22:08 +0800
+	2021-08-01 03:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -292,10 +292,10 @@ SwitchVisibleToFront(IWidget&);
 */
 template<class _tWidget>
 inline void
-SetBufferRendererAndText(_tWidget& wgt, const String& s)
+SetBufferRendererAndText(_tWidget& wgt, const String& str)
 {
 	wgt.SetRenderer(make_unique<BufferedRenderer>()),
-	wgt.Text = s;
+	wgt.Text = str;
 }
 
 

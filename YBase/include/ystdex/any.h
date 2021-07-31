@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2020 FrankHB.
+	© 2011-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r5070
+\version r5128
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2020-10-07 09:41 +0800
+	2021-07-07 19:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,7 @@
 //	nonmovable, or_, is_copy_constructible, remove_reference_t, cond_t, is_same,
 //	is_class, std::bad_cast, nor_, std::declval, yconstraint, YAssert, decay_t;
 #include "utility.hpp" // for internal "utility.hpp", boxed_value,
-//	std::addressof, std::unique_ptr, standard_layout_storage, aligned_storage_t,
+//	std::addressof, std::unique_ptr, aligned_storage_t, replace_storage_t,
 //	is_aligned_storable, ystdex::pvoid, default_init_t, default_init, vseq::_a,
 //	is_instance_of, cond_or_t;
 #include "memory.hpp" // for ystdex::clone_monomorphic_ptr, std::allocator,
@@ -401,8 +401,7 @@ union any_local_data
 
 
 //! \since build 352
-using any_storage = standard_layout_storage<aligned_storage_t<
-	sizeof(any_local_data), yalignof(any_local_data)>>;
+using any_storage = replace_storage_t<any_local_data>;
 /*!
 \brief 动态泛型对象管理操作。
 \since build 352
@@ -1177,7 +1176,7 @@ template<typename _tSelected, typename _type = void>
 using exclude_tag_t
 	= enable_if_t<details::decayed_not_tag_t<_tSelected>::value, _type>;
 
-//! \brief 排除选择类型的第一个参数为标签的重载。
+//! \brief 排除选择类型的第一参数为标签的重载。
 template<typename... _tParams>
 using exclude_tagged_params_t
 	= enable_if_t<sizeof...(_tParams) == 0 ? true : details::decayed_not_tag_t<
@@ -1189,10 +1188,21 @@ using exclude_tagged_params_t
 namespace details
 {
 
+// XXX: Is it possible to use other value instead of the null pointer value to
+//	avoid one more branch operation in most cases, porbably without the ODR
+//	guarantee (in dynamic libraries) ?
+//! \since build 916
+YB_ATTR_returns_nonnull YB_STATELESS yconstfn any_ops::any_manager
+get_default_manager() ynothrow
+{
+	return {};
+}
+
+
 struct any_base
 {
-	// NOTE: Data members are only initialized when needed. If manager is empty,
-	//	the storage is not used.
+	// NOTE: Data members are only initialized when needed. If manager is the
+	//	initial value (i.e. %get_default_manager()), the storage is not used.
 	//! \since build 692
 	mutable any_ops::any_storage storage;
 	any_ops::any_manager manager;
@@ -1208,11 +1218,11 @@ protected:
 	//@{
 	yconstexpr
 	any_base() ynothrow
-		: storage(), manager()
+		: storage(), manager(get_default_manager())
 	{}
 	explicit
 	any_base(default_init_t) ynothrow
-		: manager()
+		: manager(get_default_manager())
 	{}
 	template<class _tHandler, typename... _tParams>
 	explicit inline
@@ -1232,7 +1242,7 @@ public:
 	any_ops::any_storage&
 	call(any_ops::any_storage& t, any_ops::op_code op) const
 	{
-		yconstraint(manager);
+		yconstraint(has_value());
 		manager(t, storage, op);
 		return t;
 	}
@@ -1241,18 +1251,18 @@ public:
 	void
 	checked_destroy() ynothrow
 	{
-		if(manager)
+		if(has_value())
 			destroy();
 	}
 
 	void
 	destroy() ynothrowv
 	{
-		yconstraint(manager);
+		yconstraint(has_value());
 		manager(storage, storage, any_ops::destroy);
 	}
 
-	//! \pre 间接断言：\c manager 。
+	//! \pre 间接断言：\c has_value() 。
 	//@{
 	//! \since build 853
 	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE void*
@@ -1273,7 +1283,7 @@ public:
 	//@}
 
 	/*!
-	\pre 间接断言：\c manager 。
+	\pre 间接断言：\c has_value() 。
 	\exception 异常中立：由持有者抛出。
 	\since build 854
 	*/
@@ -1305,14 +1315,25 @@ public:
 	YB_ATTR_nodiscard YB_PURE bool
 	has_value() const ynothrow
 	{
-		return manager;
+		return manager != get_default_manager();
 	}
 
 	void
 	move_from(any_base& a) ynothrow
 	{
-		if(a.manager)
-			yunseq(storage = a.storage, a.manager = {});
+		if(a.has_value())
+// XXX: This is only touched when the manager is not the default value, so the
+//	accessed storage is always initialized and it is safe.
+// XXX: This option was documented in GCC SVN r172978 since 2011-04-27. It
+//	should have been available earlier, but not by options.
+#if YB_IMPL_GNUCPP >= 40400
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+			yunseq(storage = a.storage, a.manager = get_default_manager());
+#if YB_IMPL_GNUCPP >= 40400
+#	pragma GCC diagnostic pop
+#endif
 	}
 
 	void
@@ -1322,7 +1343,7 @@ public:
 		std::swap(manager, a.manager);
 	}
 
-	//! \pre 间接断言：\c manager 。
+	//! \pre 间接断言：\c has_value() 。
 	//@{
 	//! \since build 854
 	//@{
@@ -1408,7 +1429,7 @@ struct any_emplace
 
 	/*!
 	\exception YStandardEx 扩展：异常中立：由持有者抛出。
-	\see LWG 2857 。 
+	\see LWG 2857 。
 	\since build 848
 	*/
 	//@{
@@ -1480,7 +1501,7 @@ struct any_emplace
 		a.checked_destroy();
 #if true
 		// NOTE: This is generally more efficient.
-		a.manager = {};
+		a.manager = details::get_default_manager();
 		a.manager = any_ops::construct<decay_t<_tHandler>>(a.storage,
 			yforward(args)...);
 #else
@@ -1491,7 +1512,7 @@ struct any_emplace
 		}
 		catch(...)
 		{
-			a.manager = {};
+			a.manager = details::get_default_manager();
 			throw;
 		}
 #endif
@@ -1586,7 +1607,6 @@ public:
 
 } // namespace details;
 
-
 /*!
 \ingroup YBase_replacement_features
 \brief 基于类型擦除的动态泛型对象。
@@ -1676,7 +1696,7 @@ public:
 	使用原地存储时，用以下处理器代替：
 	any_ops::value_handler ；
 	any_ops::holder_handler 。
-	原地存储的处理器的 value_type 在以上情形中分别是被构造的对象类型和持有者类型。 
+	原地存储的处理器的 value_type 在以上情形中分别是被构造的对象类型和持有者类型。
 	*/
 	template<typename _type>
 	using opt_in_place_t = details::any_in_place_t<_type>;
@@ -1922,7 +1942,7 @@ public:
 	any(const any& x)
 		: any_base(x)
 	{
-		if(manager)
+		if(has_value())
 			manager(storage, x.storage, any_ops::clone);
 	}
 	/*!
@@ -1952,7 +1972,7 @@ public:
 		: any_base(x)
 	{
 		do_alloc_init(a, x, any_ops::transfer_with_allocator);
-		x.manager = {};
+		x.manager = details::get_default_manager();
 	}
 	//@}
 	//! \since build 382
@@ -2013,7 +2033,7 @@ private:
 		static_assert(is_byte_allocator<_tByteAlloc>(),
 			"Invalid base allocator type found.");
 
-		if(manager)
+		if(has_value())
 		{
 			const auto& alloc_tp(*x.unchecked_access<const type_info*>(
 				default_init, any_ops::get_allocator_type));
@@ -2044,13 +2064,13 @@ public:
 	YB_ATTR_nodiscard YB_PURE void*
 	get() const
 	{
-		return manager ? unchecked_get() : nullptr;
+		return has_value() ? unchecked_get() : nullptr;
 	}
 
 	YB_ATTR_nodiscard YB_PURE any_ops::holder*
 	get_holder() const
 	{
-		return manager ? unchecked_get_holder() : nullptr;
+		return has_value() ? unchecked_get_holder() : nullptr;
 	}
 
 	/*!
@@ -2064,13 +2084,15 @@ public:
 	YB_ATTR_nodiscard _type*
 	get_object_ptr()
 	{
-		return manager ? any_base::template get_object_ptr<_type>() : nullptr;
+		return has_value() ? any_base::template get_object_ptr<_type>()
+			: nullptr;
 	}
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE const _type*
 	get_object_ptr() const
 	{
-		return manager ? any_base::template get_object_ptr<_type>() : nullptr;
+		return has_value() ? any_base::template get_object_ptr<_type>()
+			: nullptr;
 	}
 	//@}
 	//@}
@@ -2089,10 +2111,10 @@ public:
 	void
 	reset() ynothrow
 	{
-		if(manager)
+		if(has_value())
 		{
 			destroy();
-			manager = {};
+			manager = details::get_default_manager();
 		}
 	}
 
@@ -2134,15 +2156,15 @@ public:
 	YB_ATTR_nodiscard _type*
 	try_get_object_ptr() ynothrow
 	{
-		return
-			manager ? any_base::template try_get_object_ptr<_type>() : nullptr;
+		return has_value() ? any_base::template try_get_object_ptr<_type>()
+			: nullptr;
 	}
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE const _type*
 	try_get_object_ptr() const ynothrow
 	{
-		return
-			manager ? any_base::template try_get_object_ptr<_type>() : nullptr;
+		return has_value() ? any_base::template try_get_object_ptr<_type>()
+			: nullptr;
 	}
 	//@}
 
@@ -2150,7 +2172,7 @@ public:
 	YB_ATTR_nodiscard YB_PURE const type_info&
 	type() const ynothrow
 	{
-		return manager ? unchecked_type() : ystdex::type_id<void>();
+		return has_value() ? unchecked_type() : ystdex::type_id<void>();
 	}
 
 	/*!

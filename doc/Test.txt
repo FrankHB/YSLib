@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2018, 2020 FrankHB.
+	© 2015-2018, 2020-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Test.txt
 \ingroup Documentation
 \brief 测试项目说明。
-\version r320
+\version r336
 \author FrankHB <frankhb1989@gmail.com>
 \since build 597
 \par 创建时间:
 	2015-05-09 13:10:21 +0800
 \par 修改时间:
-	2020-07-25 15:57 +0800
+	2021-07-21 19:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 @0 体例和适用范围：
 引用标记参见 [Documentation::CommonRules @@0.1] 。
 项目范围参见 [Documentation::ProjectRules @@1] 。
-本文档适用于项目中所有和测试相关的顶级子项目([Documentation::ProjectRules @@1.3])，包括示例项目。
+本文档适用于项目中所有和测试相关的顶级子项目([Documentation::ProjectRules @@1.4])，包括示例项目。
 
 @1 概述：
 
@@ -223,6 +223,9 @@ Bookmarks
 @4.1.3.6 build 836 起：
 MinGW32 平台支持 UNC 路径，可以在局域网中远程启动。
 
+@4.1.3.7 build 885 起：
+MinGW64 平台支持同上(@4.1.3.6) 。
+
 @5 测试注记：
 以下注记仅适用提交版本([Documentation::ProjectRules @@3.2.1.2]) ，对已提交的版本为测试记录，未提交的版本为测试计划。
 示例测试项目 YSTest 包含 @3 和 @4 提到的测试。
@@ -259,12 +262,18 @@ PreAlpha 1 ：目录 efsroot 用于存放外部文件（曾计划使用 EFS ，�
 其中 Font 目录下存放至少一个 TTF 字体文件。
 
 @5.1.2 MinGW ：
-所有 MinGW32 版本通过 64 位 PC 系统测试。
-build 438 前及 build 497 - build 499 起测试环境 Windows 7 Ultimate 。
-build 438 - build 452 测试环境 Windows 2012 Datacenter 。
-build 453 - build 496 及 build 500 - build 648 测试环境 Windows 2012 R2 Datacenter 。
-build 649 - build 650 Windows 10 Enterprise 。
-build 651 起 Windows 10 Threshold 2 Professional 。
+所有被正式支持的 MinGW32 和 MinGW64 提交版本通过 64 位 PC 系统测试。
+使用区域 zh-CN 。
+build 438 前及 build 497 - build 499 ：Windows 7 Ultimate Service Pack 1 。
+build 438 - build 452 ：Windows 2012 Datacenter 。
+build 453 - build 496 及 build 500 - build 648 ：Windows 2012 R2 Datacenter 。
+build 649 - build 650 ：Windows 10 1511 Enterprise 。
+build 651 - build 714 ：Windows 10 1511 Professional 。
+build 715 - build 779 ：Windows 10 1607 Professional 。
+build 780 - build 806 ：Windows 10 1703 Professional 。
+build 807 - build 823 ：Windows 10 1709 Professional 。
+build 824 - build 900 ：Windows 10 1803 Professional 。
+build 901 起：Windows 10 20H2 Professional 。
 
 @5.1.3 Android ：
 所有 Android 版本通过 PC 测试。测试环境 Windows x64 + Android 模拟器 Nexus S ，宿主操作系统版本同 MinGW 。

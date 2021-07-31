@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r3135
+\version r3167
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2021-01-22 17:33 +0800
+	2021-08-01 03:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -610,10 +610,10 @@ public:
 	}
 
 	void
-	swap(basic_string& s) ynoexcept(equal_alloc_or<typename
+	swap(basic_string& str) ynoexcept(equal_alloc_or<typename
 		ator_traits::propagate_on_container_swap>())
 	{
-		base::swap(s);
+		base::swap(str);
 	}
 	//! \since build 834
 	friend void
@@ -864,42 +864,42 @@ struct str_algos<0>
 	template<class _tString,
 		typename _tSize = typename string_traits<_tString>::size_type>
 	static yconstfn auto
-	erase_left(_tString& s, _tSize n) ynothrowv
-		-> yimpl(decltype(s.remove_prefix(n), s))
+	erase_left(_tString& str, _tSize n) ynothrowv
+		-> yimpl(decltype(str.remove_prefix(n), str))
 	{
-		return yconstraint(n <= s.size()), s.remove_prefix(n), s;
+		return yconstraint(n <= str.size()), str.remove_prefix(n), str;
 	}
 
 	//! \since build 659
 	template<class _tString,
 		typename _tSize = typename string_traits<_tString>::size_type>
 	static yconstfn auto
-	erase_right(_tString& s, _tSize n) ynothrowv
-		-> yimpl(decltype(s.remove_suffix(n), s))
+	erase_right(_tString& str, _tSize n) ynothrowv
+		-> yimpl(decltype(str.remove_suffix(n), str))
 	{
-		return yconstraint(n < s.size()), trim_right_pos(s, n);
+		return yconstraint(n < str.size()), trim_right_pos(str, n);
 	}
 
 	//! \since build 781
 	template<class _tString,
 		typename _tSize = typename string_traits<_tString>::size_type>
 	static yconstfn auto
-	trim_left_pos(_tString& s, _tSize n) ynothrowv
-		-> yimpl(decltype(s.remove_prefix(n), s))
+	trim_left_pos(_tString& str, _tSize n) ynothrowv
+		-> yimpl(decltype(str.remove_prefix(n), str))
 	{
-		return yconstraint(n < s.size() || n == _tSize(-1)),
-			erase_left(s, n != _tSize(-1) ? n : _tSize(s.size())), s;
+		return yconstraint(n < str.size() || n == _tSize(-1)),
+			erase_left(str, n != _tSize(-1) ? n : _tSize(str.size())), str;
 	}
 
 	//! \since build 659
 	template<class _tString,
 		typename _tSize = typename string_traits<_tString>::size_type>
 	static yconstfn auto
-	trim_right_pos(_tString& s, _tSize n) ynothrowv
-		-> yimpl(decltype(s.remove_suffix(n), s))
+	trim_right_pos(_tString& str, _tSize n) ynothrowv
+		-> yimpl(decltype(str.remove_suffix(n), str))
 	{
-		return yconstraint(n < s.size() || n == _tSize(-1)),
-			s.remove_suffix(s.size() - n - 1), s;
+		return yconstraint(n < str.size() || n == _tSize(-1)),
+			str.remove_suffix(str.size() - n - 1), str;
 	}
 };
 
@@ -910,40 +910,40 @@ struct str_algos<1>
 	template<class _tString,
 		typename _tSize = typename string_traits<_tString>::size_type>
 	static yconstfn auto
-	erase_left(_tString& s, _tSize n) ynothrowv
-		-> yimpl(decltype(s.erase(0, n)))
+	erase_left(_tString& str, _tSize n) ynothrowv
+		-> yimpl(decltype(str.erase(0, n)))
 	{
-		return yconstraint(n <= s.size()), s.erase(0, n);
+		return yconstraint(n <= str.size()), str.erase(0, n);
 	}
 
 	//! \since build 659
 	template<class _tString,
 		typename _tSize = typename string_traits<_tString>::size_type>
 	static yconstfn auto
-	erase_right(_tString& s, _tSize n) ynothrowv
-		-> yimpl(decltype(s.erase(n + 1)))
+	erase_right(_tString& str, _tSize n) ynothrowv
+		-> yimpl(decltype(str.erase(n + 1)))
 	{
-		return yconstraint(n < s.size()), s.erase(n + 1);
+		return yconstraint(n < str.size()), str.erase(n + 1);
 	}
 
 	//! \since build 781
 	template<class _tString,
 		typename _tSize = typename string_traits<_tString>::size_type>
 	static yconstfn auto
-	trim_left_pos(_tString& s, _tSize n) ynothrowv
-		-> yimpl(decltype(s.erase(0, n)))
+	trim_left_pos(_tString& str, _tSize n) ynothrowv
+		-> yimpl(decltype(str.erase(0, n)))
 	{
-		return yconstraint(n < s.size() || n == _tSize(-1)), s.erase(0, n);
+		return yconstraint(n < str.size() || n == _tSize(-1)), str.erase(0, n);
 	}
 
 	//! \since build 781
 	template<class _tString,
 		typename _tSize = typename string_traits<_tString>::size_type>
 	static yconstfn auto
-	trim_right_pos(_tString& s, _tSize n) ynothrowv
-		-> yimpl(decltype(s.erase(n + 1)))
+	trim_right_pos(_tString& str, _tSize n) ynothrowv
+		-> yimpl(decltype(str.erase(n + 1)))
 	{
-		return yconstraint(n < s.size() || n == _tSize(-1)), s.erase(n + 1);
+		return yconstraint(n < str.size() || n == _tSize(-1)), str.erase(n + 1);
 	}
 };
 
@@ -1269,10 +1269,10 @@ ntctsncpy(_tString&& str, const typename string_traits<_tString>::const_pointer
 template<class _tString,
 	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 inline _tString&&
-ntctsncpy(_tString&& str, _tString&& s,
+ntctsncpy(_tString&& str, _tString&& str2,
 	const typename string_traits<_tString>::size_type n)
 {
-	auto sub(yforward(s));
+	auto sub(yforward(str2));
 
 	sub.resize(n);
 	return static_cast<_tString&&>(str = std::move(sub));
@@ -2114,9 +2114,9 @@ template<typename _type, typename _tString>
 YB_ATTR_nodiscard _tString
 cond_prefix(const _tString& str, const _type& prefix, _tString&& val = {})
 {
-	ystdex::filter_prefix(str, prefix, [&](_tString&& s)
+	ystdex::filter_prefix(str, prefix, [&](_tString&& sub)
 		ynoexcept(is_nothrow_move_assignable<decay_t<_tString>>()){
-		val = std::move(s);
+		val = std::move(sub);
 	});
 	return std::move(val);
 }

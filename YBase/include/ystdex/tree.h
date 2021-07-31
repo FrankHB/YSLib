@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018-2020 FrankHB.
+	© 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file tree.h
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r3356
+\version r3369
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2020-07-17 01:25 +0800
+	2021-07-06 23:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,14 +41,14 @@
 
 #include "allocator.hpp" // for allocator_traits, is_move_assignable,
 //	ystdex::swap_dependent, YAssert, yassume, yconstraint, true_, false_,
-//	std::pointer_traits, is_nothrow_copy_constructible, aligned_storage_t,
-//	standard_layout_storage, std::allocator, std::bidirectional_iterator_tag,
-//	rebind_alloc_t, ystdex::reverse_iterator, is_same, cond_t,
-//	is_nothrow_move_assignable, or_, and_, is_invocable, std::declval,
-//	ystdex::alloc_on_copy, std::move_if_noexcept,
-//	is_trivially_default_constructible, allocator_guard_delete, allocator_guard,
-//	is_trivially_destructible, std::pair, enable_if_t, is_nothrow_swappable,
-//	ystdex::alloc_on_swap,  ystdex::alloc_on_move;
+//	std::pointer_traits, is_nothrow_copy_constructible, replace_storage_t,
+//	std::allocator, std::bidirectional_iterator_tag, rebind_alloc_t,
+//	ystdex::reverse_iterator, is_same, cond_t, is_nothrow_move_assignable, or_,
+//	and_, is_invocable, std::declval, ystdex::alloc_on_copy,
+//	std::move_if_noexcept, is_trivially_default_constructible,
+//	allocator_guard_delete, allocator_guard, is_trivially_destructible,
+//	std::pair, enable_if_t, is_nothrow_swappable, ystdex::alloc_on_swap,
+//	ystdex::alloc_on_move;
 #include "optional.h" // for optional, bidirectional_iteratable,
 //	equality_comparable, totally_ordered, has_mem_is_transparent;
 #include "utility.hpp" // for noncopyable, ystdex::as_const;
@@ -480,8 +480,7 @@ template<typename _type>
 class tree_node : public tree_node_base
 {
 private:
-	standard_layout_storage<aligned_storage_t<sizeof(_type), yalignof(_type)>>
-		storage;
+	replace_storage_t<_type> storage;
 
 public:
 	YB_PURE yconstfn_relaxed YB_PURE _type*
@@ -1027,6 +1026,8 @@ private:
 	move_assign_elements(tree& x, true_) ynothrow
 	{
 		clear_nodes();
+		// XXX: The resolution of LWG 2839 requires self-move to be
+		//	well-defined.
 		if(x.root())
 			move_data(x, true_());
 		else
@@ -1851,7 +1852,7 @@ private:
 		return insert_or_drop(nd,
 			[&](const key_type& k) -> std::pair<iterator, bool>{
 			const auto pr(get_insert_unique_pos(k));
-	
+
 			if(pr.second)
 				return {insert_node(pr.first, pr.second, nd), true};
 			drop_node(nd);
@@ -2011,7 +2012,7 @@ public:
 	{
 		const auto pr(equal_range(x));
 		const size_type old_size(size());
-	
+
 		erase_it(pr.first, pr.second);
 		return old_size - size();
 	}
@@ -2338,7 +2339,7 @@ public:
 		{
 			YAssert(get_node_allocator() == *nh.alloc,
 				"Mismatched allocators found.");
-			
+
 			const auto res(get_insert_equal_pos(nh.ckey()));
 
 			ret = res.second ? insert_node(res.first, res.second, nh.m_ptr)

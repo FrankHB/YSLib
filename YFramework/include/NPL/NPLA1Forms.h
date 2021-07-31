@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8127
+\version r8231
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2021-06-09 06:20 +0800
+	2021-08-01 05:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA1 // for string, TokenValue, ReductionStatus, TermNode,
-//	AssertBranch, ystdex::expand_proxy, NPL::Access, std::next, NPL::Deref,
+//	AssertBranch, ystdex::exclude_self_t, ystdex::expand_proxy,
+//	NPL::ResolveTerm, std::next, NPL::Access, NPL::Deref,
 //	Forms::CallResolvedUnary, ResolvedTermReferencePtr, NPL::AccessRegular,
 //	ystdex::make_expanded, std::ref, ystdex::invoke_nonvoid, TNIter,
 //	NPL::ResolveRegular, ystdex::make_transform, std::accumulate,
@@ -138,6 +139,42 @@ RetainN(const TermNode&, size_t = 1);
 //@}
 
 
+/*!
+\brief 直接返回状态或取返回值替换指定的项的值数据成员。
+\return 规约结果。
+\sa YSLib::EmplaceCallResult
+\since build 922
+
+若第二参数为 ReductionStatus 值，则直接返回这个值；
+否则，以第二参数指定的对象替换第一参数指定的项的值数据成员，
+	并返回 ReductionStatus::Clean 。
+当发生替换时，若被调用的函数返回类型非 void ，返回值作为项的值被构造。
+调用 YSLib::EmplaceCallResult 对 ValueObject 及引用值处理不同。
+合并处理替换值的部分可以简化一些规约处理器的实现。
+一般地，替换值数据成员隐含不保留子项，而返回 ReductionStatus::Clean ；
+否则，应在此之前直接处理子项，并返回其它规约结果。
+使用 WrappedContextHandler 也可支持隐式返回 ReductionStatus::Clean 状态的处理器，
+	但是此处简化函数签名，不同的重载统一返回 ReductionStatus 值。
+这也使调用 EmplaceCallResultOrReturn 返回实现的规约处理器无需依赖
+	WrappedContextHandler 。
+即便理论上通过完全的内联，两者的性能可以没有差异，通常的 C++ 实现中，
+	不依赖 WrappedContextHandler 可能更高效。
+*/
+//@{
+YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(ReductionStatus,
+	EmplaceCallResultOrReturn, TermNode&, ReductionStatus status) ynothrow
+	ImplRet(status)
+template<typename _tParam, typename... _tParams, yimpl(
+	typename = ystdex::exclude_self_t<ReductionStatus, _tParam>)>
+YB_ATTR_nodiscard inline ReductionStatus
+EmplaceCallResultOrReturn(TermNode& term, _tParam&& arg)
+{
+	// NOTE: By convention, the allocator is always provided by %term.
+	YSLib::EmplaceCallResult(term.Value, yforward(arg), term.get_allocator());
+	return ReductionStatus::Clean;
+}
+//@}
+
 //! \since build 855
 //@{
 //! \brief 访问节点的子节点并调用一元函数。
@@ -218,37 +255,34 @@ CallRegularUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 
 /*!
 \note 确定项具有一个实际参数后展开调用参数指定的函数。
+\sa Forms::EmplaceCallResultOrReturn
+\since build 922
 
-若被调用的函数返回类型非 void ，返回值作为项的值被构造。
-调用 YSLib::EmplaceCallResult 对 ValueObject 及引用值处理不同。
+返回值的处理使用 Forms::EmplaceCallResultOrReturn 。
 若需以和其它类型的值类似的方式被包装，在第一参数中构造 ValueObject 对象。
 实现使用 ystdex::make_expanded 展开调用，但不复制或转移可调用对象，
 	因此使用 std::ref 包装第一参数。注意当前无条件视第一参数为 const 左值。
 考虑一般实现的性能不确定性，当前实现中，调用 YSLib::EmplaceCallResult 不使用分配器。
 */
 //@{
-/*!
-\brief 访问节点并调用一元函数。
-\sa YSLib::EmplaceCallResult
-\since build 756
-*/
+//! \brief 访问节点并调用一元函数。
 //@{
 template<typename _func, typename... _tParams>
-void
+ReductionStatus
 CallUnary(_func&& f, TermNode& term, _tParams&&... args)
 {
-	Forms::CallRawUnary([&](TermNode& tm){
-		YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
+	return Forms::CallRawUnary([&](TermNode& tm){
+		return Forms::EmplaceCallResultOrReturn(term, ystdex::invoke_nonvoid(
 			ystdex::make_expanded<void(TermNode&, _tParams&&...)>(std::ref(f)),
-			tm, yforward(args)...), term.get_allocator());
+			tm, yforward(args)...));
 	}, term);
 }
 
 template<typename _type, typename _func, typename... _tParams>
-void
+ReductionStatus
 CallUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 {
-	Forms::CallUnary([&](TermNode& tm){
+	return Forms::CallUnary([&](TermNode& tm){
 		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
 		//	error: Segmentation fault.
 		return ystdex::make_expanded<void(_type&, _tParams&&...)>(std::ref(f))(
@@ -257,13 +291,10 @@ CallUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 }
 //@}
 
-/*!
-\brief 访问节点并调用二元函数。
-\since build 760
-*/
+//! \brief 访问节点并调用二元函数。
 //@{
 template<typename _func, typename... _tParams>
-void
+ReductionStatus
 CallBinary(_func&& f, TermNode& term, _tParams&&... args)
 {
 	RetainN(term, 2);
@@ -271,15 +302,13 @@ CallBinary(_func&& f, TermNode& term, _tParams&&... args)
 	auto i(term.begin());
 	auto& x(NPL::Deref(++i));
 
-	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
+	return Forms::EmplaceCallResultOrReturn(term, ystdex::invoke_nonvoid(
 		ystdex::make_expanded<void(TermNode&, TermNode&, _tParams&&...)>(
-		std::ref(f)), x, NPL::Deref(++i), yforward(args)...),
-		term.get_allocator());
+		std::ref(f)), x, NPL::Deref(++i), yforward(args)...));
 }
 
-//! \since build 835
 template<typename _type, typename _type2, typename _func, typename... _tParams>
-void
+ReductionStatus
 CallBinaryAs(_func&& f, TermNode& term, _tParams&&... args)
 {
 	RetainN(term, 2);
@@ -287,22 +316,21 @@ CallBinaryAs(_func&& f, TermNode& term, _tParams&&... args)
 	auto i(term.begin());
 	auto& x(NPL::ResolveRegular<_type>(NPL::Deref(++i)));
 
-	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
+	return Forms::EmplaceCallResultOrReturn(term, ystdex::invoke_nonvoid(
 		ystdex::make_expanded<void(_type&, _type2&, _tParams&&...)>(
 		std::ref(f)), x, NPL::ResolveRegular<_type2>(NPL::Deref(++i)),
-		yforward(args)...), term.get_allocator());
+		yforward(args)...));
 }
-//@}
 //@}
 //@}
 
 /*!
 \brief 访问节点并以指定的初始值为基础逐项调用二元函数。
 \note 为支持 std::bind 推断类型，和以上函数的情形不同，不支持省略参数。
-\since build 758
+\since build 922
 */
 template<typename _type, typename _func, typename... _tParams>
-void
+ReductionStatus
 CallBinaryFold(_func f, _type val, TermNode& term, _tParams&&... args)
 {
 	const auto n(FetchArgumentN(term));
@@ -311,11 +339,11 @@ CallBinaryFold(_func f, _type val, TermNode& term, _tParams&&... args)
 		return NPL::ResolveRegular<_type>(NPL::Deref(it));
 	}));
 
-	YSLib::EmplaceCallResult(term.Value, std::accumulate(j, std::next(j,
-		typename std::iterator_traits<decltype(j)>::difference_type(n)), val,
-		ystdex::bind1(f, std::placeholders::_2, yforward(args)...)),
-		term.get_allocator());
+	return Forms::EmplaceCallResultOrReturn(term, std::accumulate(j, std::next(
+		j, typename std::iterator_traits<decltype(j)>::difference_type(n)), val,
+		ystdex::bind1(f, std::placeholders::_2, yforward(args)...)));
 }
+//@}
 
 
 /*!
@@ -326,6 +354,21 @@ CallBinaryFold(_func f, _type val, TermNode& term, _tParams&&... args)
 为适合作为上下文处理器，支持的参数列表类型实际存在限制：
 参数列表以和元数相同数量的必须的 TermNode& 类型的参数起始；
 之后是可选的 ContextNode& 可转换到的类型的参数。
+使用明确指定类型的 Forms::CallUnaryAs 等函数模板可以减少规约处理器的实现中的转换。
+这类调用中，回调函数（数据成员 \c Function ）通常不需要返回规约结果，因为：
+ReductionStatus::Clean 会被 Forms::EmplaceCallResultOrReturn 的调用隐式提供；
+其它规约结果（如保留对象语言的列表时）通常需要处理分配器，按约定应从被规约项取得，
+	但 Forms::CallUnaryAs 等函数模板接受的回调函数中，
+	第一参数是转换类型后的值数据成员而不是项，包装函数展开调用的函数对象不再适用。
+规约处理器实现中可直接调用 Forms::CallUnaryAs 等函数模板
+	（其中第一参数作为回调函数，可捕获被规约项并在其中处理）代替这里的函数对象，
+	并忽略返回值，在这个调用后显式地返回所需的规约状态，
+	而无需通过回调函数的返回值指定。
+少数情形下，回调函数内部可能需要分支，允许返回 ReductionStatus::Clean
+	和其它不同的规约结果。此时，可使用回调函数直接返回这些规约结果，并通过
+	Forms::CallUnaryAs 等蕴含的 Forms::EmplaceCallResultOrReturn 的调用返回。
+类似 Forms::EmplaceCallResultOrReturn ，\c operator() 返回规约结果
+	（而非 void 类型）不依赖 WrappedContextHandler ，对通常的 C++ 实现性能有利。
 */
 //@{
 //! \since build 741
@@ -351,12 +394,12 @@ struct UnaryExpansion
 		ImplRet(ystdex::examiners::equal_examiner::are_equal(x.Function,
 			y.Function))
 
-	//! \since build 760
+	//! \since build 922
 	template<typename... _tParams>
-	inline void
+	inline ReductionStatus
 	operator()(_tParams&&... args) const
 	{
-		Forms::CallUnary(Function, yforward(args)...);
+		return Forms::CallUnary(Function, yforward(args)...);
 	}
 };
 
@@ -382,12 +425,12 @@ struct UnaryAsExpansion
 		ImplRet(ystdex::examiners::equal_examiner::are_equal(x.Function,
 			y.Function))
 
-	//! \since build 760
+	//! \since build 922
 	template<typename... _tParams>
-	inline void
+	inline ReductionStatus
 	operator()(_tParams&&... args) const
 	{
-		Forms::CallUnaryAs<_type>(Function, yforward(args)...);
+		return Forms::CallUnaryAs<_type>(Function, yforward(args)...);
 	}
 };
 //@}
@@ -417,11 +460,12 @@ struct BinaryExpansion
 		ImplRet(ystdex::examiners::equal_examiner::are_equal(x.Function,
 			y.Function))
 
+	//! \since build 922
 	template<typename... _tParams>
-	inline void
+	inline ReductionStatus
 	operator()(_tParams&&... args) const
 	{
-		Forms::CallBinary(Function, yforward(args)...);
+		return Forms::CallBinary(Function, yforward(args)...);
 	}
 };
 
@@ -450,11 +494,12 @@ struct BinaryAsExpansion : private
 		ImplRet(ystdex::examiners::equal_examiner::are_equal(x.Function,
 			y.Function))
 
+	//! \since build 922
 	template<typename... _tParams>
-	inline void
+	inline ReductionStatus
 	operator()(_tParams&&... args) const
 	{
-		Forms::CallBinaryAs<_type, _type2>(Function, yforward(args)...);
+		return Forms::CallBinaryAs<_type, _type2>(Function, yforward(args)...);
 	}
 };
 //@}
@@ -991,20 +1036,6 @@ GetCurrentEnvironment(TermNode&, ContextNode&);
 */
 YF_API void
 LockCurrentEnvironment(TermNode&, ContextNode&);
-
-/*!
-\brief 求值标识符得到指称的实体。
-\sa EvaluateIdentifier
-\since build 757
-
-在对象语言中实现函数接受一个 string 类型的参数项，返回值为指定的实体。
-当名称查找失败时，返回的值为 ValueToken::Null 。
-
-参考调用文法：
-<pre>value-of \<object></pre>
-*/
-YF_API ReductionStatus
-ValueOf(TermNode&, const ContextNode&);
 
 
 /*!

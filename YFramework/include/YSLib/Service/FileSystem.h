@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r3571
+\version r3573
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2021-06-25 12:59 +0800
+	2021-08-01 03:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -612,11 +612,11 @@ ResolvePathWithBase(_tStringView sv, _tPath base,
 template<class _tPath = Path, class _tString = typename _tPath::value_type,
 	class _tTraits = typename _tPath::traits_type>
 _tPath
-ResolvePath(const _tString& sv,
+ResolvePath(const _tString& str,
 	size_t n = FetchLimit(SystemOption::MaxSymlinkLoop),
 	size_t init_len = MaxPathLength)
 {
-	return IO::ResolvePathWithBase(sv, IsAbsolute(sv.data()) ? _tPath()
+	return IO::ResolvePathWithBase(str, IsAbsolute(str.data()) ? _tPath()
 		: IO::ParsePath<_tPath>(FetchCurrentWorkingDirectory<typename
 		_tString::value_type>(init_len)), n);
 }

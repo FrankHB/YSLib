@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2018-2020 FrankHB.
+	© 2012-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cassert.h
 \ingroup YStandardEx
 \brief ISO C 断言/调试跟踪扩展。
-\version r285
+\version r305
 \author FrankHB <frankhb1989@gmail.com>
 \since build 432
 \par 创建时间:
 	2013-07-27 04:11:53 +0800
 \par 修改时间:
-	2020-03-02 14:42 +0800
+	2021-07-07 19:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,12 +65,6 @@ ytrace(std::FILE*, std::uint8_t, std::uint8_t, const char*, int, const char*,
 #undef yconstraint
 #undef yassume
 
-// NOTE: Workaround for default warnings enabled by '-Wall'. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=17308.
-// TODO: Reevaluate for future versions of GCC.
-#if YB_IMPL_GNUCPP >= 60000
-#	pragma GCC diagnostic ignored "-Wnonnull-compare"
-#endif
-
 /*!
 \ingroup YBase_pseudo_keyword
 \note 类型为 void ，以避免重载 operator, 改变表达式的求值。
@@ -78,6 +72,7 @@ ytrace(std::FILE*, std::uint8_t, std::uint8_t, const char*, int, const char*,
 //@{
 /*!
 \note 未指定表达式是否被求值。
+\note 一般应避免表达式求值的副作用。预期的求值性质和 YB_ASSUME 的表达式相同。
 \sa YB_ASSUME
 \since build 535
 */
@@ -108,24 +103,16 @@ ytrace(std::FILE*, std::uint8_t, std::uint8_t, const char*, int, const char*,
 不满足此断言的行为是接口明确地未定义的，行为不可预测。
 */
 #ifdef NDEBUG
-#	if YB_IMPL_CLANGPP >= 30401
-#		define yconstraint(_expr) \
-	((YB_Diag_Push YB_Diag_Ignore(pointer-bool-conversion) YB_ASSUME(_expr) \
-		YB_Diag_Pop), void())
-#	else
-#		define yconstraint(_expr) (YB_ASSUME(_expr), void())
-#	endif
-#else
-#	if YB_IMPL_CLANGPP >= 30401
-#		define yconstraint(_expr) \
+#	define yconstraint(_expr) (YB_ASSUME(_expr), void())
+#elif YB_IMPL_CLANGPP >= 30401
+#	define yconstraint(_expr) \
 	((YB_Diag_Push YB_Diag_Ignore(pointer-bool-conversion) _expr \
 		YB_Diag_Pop) ? void() \
 		: ystdex::yassert(#_expr, __FILE__, __LINE__, "Constraint violation."))
-#	else
-#		define yconstraint(_expr) \
+#else
+#	define yconstraint(_expr) \
 	((_expr) ? void() : ystdex::yassert(#_expr, __FILE__, __LINE__, \
 		"Constraint violation."))
-#	endif
 #endif
 //@}
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2020 FrankHB.
+	© 2011-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3225
+\version r3236
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2020-12-10 11:33 +0800
+	2021-08-01 03:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,8 +65,8 @@ namespace platform
 YB_ATTR_nodiscard YB_NONNULL(1) inline
 	PDefH(string, MakePathString, const char* s)
 	ImplRet(Nonnull(s))
-YB_ATTR_nodiscard inline PDefH(const string&, MakePathString, const string& s)
-	ImplRet(s)
+YB_ATTR_nodiscard inline PDefH(const string&, MakePathString, const string& str)
+	ImplRet(str)
 //! \pre Win32 平台：因实现不直接访问左值，字符的动态类型可为布局兼容的整数类型。
 //@{
 //! \pre 间接断言：参数非空。
@@ -670,9 +670,9 @@ public:
 	template<class _tString,
 		yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 	std::basic_filebuf<_tChar, _tTraits>*
-	open(const _tString& s, std::ios_base::openmode mode)
+	open(const _tString& str, std::ios_base::openmode mode)
 	{
-		return open(s.c_str(), mode);
+		return open(str.c_str(), mode);
 	}
 
 private:
@@ -1150,8 +1150,8 @@ namespace platform_ex
 YB_ATTR_nodiscard YB_NONNULL(1) inline
 	PDefH(wstring, MakePathStringW, const wchar_t* s)
 	ImplRet(platform::Nonnull(s))
-inline PDefH(const wstring&, MakePathStringW, const wstring& s)
-	ImplRet(s)
+inline PDefH(const wstring&, MakePathStringW, const wstring& str)
+	ImplRet(str)
 //! \pre 间接断言：参数非空。
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) wstring
 MakePathStringW(const char*);
@@ -1166,11 +1166,11 @@ inline PDefH(wstring, MakePathStringW, string_view sv)
 //@{
 //! \pre 间接断言：参数非空。
 YB_ATTR_nodiscard YB_NONNULL(1) inline
-	PDefH(u16string, MakePathStringU, const char16_t* s)
-	ImplRet(platform::Nonnull(s))
+	PDefH(u16string, MakePathStringU, const char16_t* str)
+	ImplRet(platform::Nonnull(str))
 YB_ATTR_nodiscard inline
-	PDefH(const u16string&, MakePathStringU, const u16string& s)
-	ImplRet(s)
+	PDefH(const u16string&, MakePathStringU, const u16string& str)
+	ImplRet(str)
 //! \pre 间接断言：参数非空。
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) u16string
 MakePathStringU(const char*);

@@ -11,13 +11,13 @@
 /*!	\file YString.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r2370
+\version r2374
 \author FrankHB <frankhb1989@gmail.com>
 \since build 594
 \par 创建时间:
 	2010-03-05 22:06:05 +0800
 \par 修改时间:
-	2021-02-06 22:46 +0800
+	2021-08-01 03:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,12 +55,12 @@ public:
 	//@{
 	using u16string::u16string;
 	//! \brief 构造：使用 YSLib 基本字符串。
-	String(const u16string& s)
-		: u16string(s)
+	String(const u16string& str)
+		: u16string(str)
 	{}
 	//! \brief 构造：使用 YSLib 基本字符串右值引用。
-	String(u16string&& s)
-		: u16string(std::move(s))
+	String(u16string&& str)
+		: u16string(std::move(str))
 	{}
 	//@}
 	/*!

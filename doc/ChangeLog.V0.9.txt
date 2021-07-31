@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r4304
+\version r4458
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-07-04 22:59 +0800
+	2021-08-01 06:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,154 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ $dev %YBase $=
+	(
+		/ $lib "suppressed Clang++ warning [-Wpointer-bool-conversion]"
+			@ "macro %YB_ASSUME" @ %YDefinition,
+		/ @ "class %any" @ %YStandardEx.Any $=
+		(
+			/ $lib $design $impl ^ "%has_value" ~ "manager converted to bool",
+			/ "disabled warning '-Wmaybe-uninitialized' by pragma for G++ 4.4 \
+				above" @ "moving the internal storage"
+				// This is false positive. It would not occur with %debug \
+					configurations or some old versions of G++.
+		),
+		/ %CAssert $=
+		(
+			/ $revert_ex(b739) $dev "pragma to disable warning \
+				'-Wnonnull-compare' for G++ 6 above" >> %YDefinition;
+				// Also to eliminate G++ 11.1 warning [-Wnonnull-compare] in \
+					using 'YB_ASSUME' when %CAssert is not included.
+			/ $lib $impl "simplified" @ 'defined(NDEBUG)' "macro %yconstraint"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ @ "class %Terminal" @ %YFramework.YCLib.Host $=
+		(
+			* DD "wrong description" @ "Doxygen comment" $since b921,
+				// This was outdated as it was specific to some experimental \
+					implementations never formally supported.
+			/ @ "constructor" $=
+			(
+				/ DLI "aligned storage" @ "platform %Win32"
+					^ "%ystdex::replace_storage_t" ~ 'reinterpret_cast',
+				- "message on initialization failure"
+			)
+		),
+		/ %NPL $=
+		(
+			/ %Dependency $=
+			(
+				(
+				/ "combiners ('bound?', '$bind1?')"
+					@ "functions %LoadModule_std_environments"
+					>> "function %LoadGroundContext"
+					$dep_to "simplified binding combiners",
+				- "applicative 'value-of'" @ "function \
+					%LoadModule_std_environments" $dep_from "applicative \
+					'build-with-conf-opt'" @ "%SHBuild-YSLib-common.txt"
+					$dep_to "removal of 'value-of'",
+				/ "applicatives ('get-current-repl', 'eval-string', \
+					'eval-string%', 'eval-unit')"
+					>> "function %LoadModule_std_system"
+					$dep_to "merging module std.environments";
+				- DLDI "call of %LoadModule_std_environments"
+					@ "function %LoadStandardContext"
+				- "function %LoadModule_std_environments"
+				),
+				/ $lib "added native implementation enabled by default"
+					@ "operative '$binds1?'" @ "function %LoadGroundContext"
+					$dep_from "simplified binding combiners",
+				/ DLI "simplified '$import!' subexpression"
+					@ "function %LoadModule_std_promises",
+					// The import of 'promise?' is used as an export rather \
+						than internal dependency.
+				/ ("applicative %SHBuild_RaiseError_" @ "function \
+					%LoadModule_SHBuild") -> ("applicative 'raise-error'"
+					@ "function %LoadGroundContext") ^ "%NPLException"
+					~ "%LoggedEvent",
+				+ "applicatives ('readable-file?,', 'writable-file?')"
+					@ "function %LoadModule_std_io",
+				/ @ "function %LoadModule_SHBuild" $=
+				(
+					/ $re_add(b834) "returned %ValueToken::Unspecified"
+						@ "applicative %(SHBuild_BuildGCH_mkpdirp_, \
+						SHBuild_EnsureDirectory_, SHBuild_Install_HardLink)",
+					/ DLDI "simplified applicative %SHBuild_Install_HardLink"
+						^ "%RegisterBinary" ~ "%(RegisterStrict, CallBinary)"
+				),
+				/ @ "function %LoadModule_std_strings" $=
+				(
+					/ DLDI "parameter 's'" @ "applicative 'string->symbol'"
+						=> 'str',
+						// To be consistent to other implementations.
+					/ DLI "simplified applicative 'regex-match?'"
+						^ "%RegisterBinary" ~ "%(RegisterStrict, \
+						NPL::ResolveRegular)"
+				)
+			),
+			/ @ "namespace %Forms" @ %NPLA1Forms $=
+			(
+				- "function %ValueOf" $dep_from "removal of 'value-of'",
+				(
+				+ "function overloads %EmplaceCallResultOrReturn";
+				/ ("function and function templates %(CallUnary, CallUnaryAs, \
+					CallBinary, CallBinaryAs, CallBinaryFold, (UnaryExpansion, \
+					UnaryAsExpansion, BinaryExpansion, BinaryAsExpansion) \
+					::operator())", DLI "%operator()" @ "internal functors"
+					@ "function %MakeEncapsulationType") $=
+				(
+					/ DLI ^ "%EmplaceCallResultOrReturn"
+						~ "%YSLib::EmplaceCallResult";
+					/ "returned %ReductionStatus" ~ "%void"
+				)
+				)
+			)
+		)
+	),
+	/ DLDI ^ "%replace_storage_t" ~ "%(standard_layout_storage, \
+		aligned_storage_t)" $effective @ %YBase.YStandardEx.(Any, List, Tree),
+	/ DLI %Tools.Scripts $=
+	(
+		/ $design @ "%SHBuild-YSLib-common.txt" $=
+		(
+			/ $forced "simplified 'std.environments' names"
+				$dep_from %NPL.Dependency $effective "combiners \
+				('$set-system-var!', '$assert', %SHBuild_CheckCXX)"
+			/ "parameter type name 'r'" @ "applicative 'rmatch?'" => 'y'
+		),
+		/ $design @ "%SHBuild-YSLib-common.txt" !^ ('value-of'
+			$effective "applicative 'build-with-conf-opt'",
+			'std.environments' $dep_from "merging module std.environments"),
+		/ $forced ^ 'raise-error' ~ 'SHBuild_RaiseError_'
+			$dep_from ("%SHBuild_RaiseError_" @ %YFramework.NPL.Dependency)
+			$effective @ "%(SHBuild-BuildApp.txt, SHBuild-YSLib-common.txt)"
+			// The underlying exception type is changed, but not normatively \
+				distinguishable in the object language currently.
+	),
+	* DD "wrong name of function 'symbols->imports!'" @ %Documentation.NPL
+		$since b918 -> 'symbols->imports',
+	/ DLDI "parameter 's' of string-like class type not dedicated as a string \
+		view" => "name prefixed by 'str' or 'sub'" $effective
+		%(YBase.YStandardEx.String, YFramework.((YCLib.FileIO,
+		YSLib.Core.(YString, Service.FileSystem), Helper.ShellHelper),
+		NPL.NPLA1Forms), Tools.SHBuild.Main)
+		// Parameters of types with possiblity of non-class type are still \
+			preferred to be 's'. This is also a bit more consistent with ISO \
+			C++20's internal style on %std::basic_string (but not necessarily \
+			others, e.g. %std::regex_replace).
+	/ DLDI "parameter 'r' of regression expression type" => 're'
+		$effective @ %YFramework.NPL.Dependency
+		// This is not more consistent to ISO C++20's internal style on \
+			%std::basic_regex (which uses 'e', so not sufficient to \
+			distinguish with other types like exceptions), but still more \
+			consistent to the abbreviation method of string class, also with \
+			external some sources like https://en.cppreference.com/w/cpp/regex/regex_replace.
+),
+
+b921
 (
 	/ %YFramework $=
 	(
@@ -768,7 +916,7 @@ b917
 							CheckEnvironmentFormals)" @ %NPLA1);
 						/ $comp ^ "wrapped in the nested %InvalidSyntax \
 							exception on failure",
-						* $re_add(b917) $comp "missing nested call safety in \
+						* $re_add(b916) $comp "missing nested call safety in \
 							handling terms from object language"
 							$orig (@ %NPLA1 $since b799)
 					)
@@ -804,7 +952,7 @@ b917
 						+ "full token check" ^ $dep_from
 							("%MakeParameterValueMatcher" @ %NPLA1Internals);
 							// As %BindParameter in %NPLA1.
-						* $re_add(b917) "missing nested call safety in \
+						* $re_add(b916) "missing nested call safety in \
 							handling terms from object language" $since b780
 						)
 					),
@@ -840,7 +988,11 @@ b917
 					~ "%CheckParameterLeafToken" $dep_to
 					"removal of CheckParameterLeafToken")
 		)
-	)
+	),
+	/ DD "operatives ('$set!', '$setrec!')" @ %Documentation.NPL
+		^ '<definiend>' ~ '<formals>'
+		// This is more consistent to the implementation of the parameter tree \
+			checks.
 ),
 
 b916

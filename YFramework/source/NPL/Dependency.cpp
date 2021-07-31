@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r5159
+\version r5281
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2021-06-25 12:21 +0800
+	2021-08-01 05:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,10 +44,10 @@
 //	MoveResolved, ResolveIdentifier, ReduceToReferenceList, NPL::IsMovable,
 //	LiftTermOrCopy, IsBranchedList, AccessFirstSubterm,
 //	ThrowInsufficientTermsError, NPL::AsTermNode, ystdex::fast_any_of, Ensigil,
-//	YSLib::OwnershipTag, ystdex::plus, ystdex::tolower, YSLib::IO::StreamPut,
-//	YSLib::FetchEnvironmentVariable, YSLib::SetEnvironmentVariable,
-//	YSLib::IO::UniqueFile, YSLib::IO::omode_convb, YSLib::uremove,
-//	ystdex::throw_error;
+//	YSLib::OwnershipTag, ystdex::plus, ystdex::tolower, YSLib::ufexists,
+//	YSLib::IO::StreamPut, YSLib::FetchEnvironmentVariable,
+//	YSLib::SetEnvironmentVariable, YSLib::IO::UniqueFile,
+//	YSLib::IO::omode_convb, YSLib::uremove, ystdex::throw_error;
 #include YFM_NPL_NPLA1Forms // for NPL::Forms functions;
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::Path,
 //	YSLib::Deployment::InstallHardLink;
@@ -594,6 +594,12 @@ LoadEnvironments(ContextNode& ctx)
 	//	different implementation of control primitives.
 	RegisterStrict(ctx, "eval", Eval);
 	RegisterStrict(ctx, "eval%", EvalRef);
+	RegisterUnary<Strict, const string>(ctx, "bound?",
+		[](const string& id, ContextNode& c){
+		return CheckSymbol(id, [&]{
+			return bool(ResolveName(c, id).first);
+		});
+	});
 	RegisterForm(ctx, "$resolve-identifier",
 		std::bind(DoResolve, std::ref(ResolveIdentifier), _1, _2));
 	RegisterForm(ctx, "$move-resolved!",
@@ -640,6 +646,10 @@ LoadCombiners(ContextNode& ctx)
 void
 LoadErrorsAndChecks(ContextNode& ctx)
 {
+	RegisterUnary<Strict, const string>(ctx, "raise-error",
+		[] YB_LAMBDA_ANNOTATE((const string& str), , noreturn){
+		throw NPLException(str);
+	});
 	RegisterUnary<Strict, const string>(ctx, "raise-invalid-syntax-error",
 		[] YB_LAMBDA_ANNOTATE((const string& str), , noreturn){
 		ThrowInvalidSyntaxError(str);
@@ -1286,9 +1296,28 @@ LoadStandardDerived(REPLContext& context)
 	auto& renv(context.Root.GetRecordRef());
 
 	RegisterUnary<Strict, const TokenValue>(renv, "ensigil", Ensigil);
+	RegisterForm(renv, "$binds1?", [](TermNode& term, ContextNode& ctx){
+		RetainN(term, 2);
+
+		auto i(term.begin());
+		auto& eterm(*++i);
+		const auto& id(NPL::ResolveRegular<const TokenValue>(*++i));
+
+		return CheckSymbol(id, [&]{
+			return ReduceSubsequent(eterm, ctx, A1::NameTypedReducerHandler([&]{
+				auto p_env(ResolveEnvironment(eterm).first);
+
+				Environment::EnsureValid(p_env);
+					term.Value = bool(ctx.Resolve(std::move(p_env), id).first);
+				return ReductionStatus::Clean;
+			}, "eval-$binds1?-env"));
+		});
+	});
 #else
-	// XXX: %ensigil depends on %std.strings but not some core functions, to
-	//	avoid cyclic dependencies.
+	// XXX: The derivations depends on %std.strings and core functions
+	//	derivations available later in the bodies. Otherwise, they are not
+	//	relied on. To avoid cyclic dependencies, the derivation of %ensigl
+	//	further avoids specific core functions.
 	context.ShareCurrentSource("<root:standard-derived>");
 	context.Perform(R"NPL(
 		$def! ensigil $lambda (&s)
@@ -1296,6 +1325,9 @@ LoadStandardDerived(REPLContext& context)
 				$let ((&str symbol->string s))
 					$if (string-empty? str) s
 						(string->symbol (++ "&" (symbol->string (desigil s))));
+		$def! $binds1? $vau (&e &s) d
+			$let/e (derive-current-environment std.strings) ()
+				eval (list (unwrap bound?) (symbol->string s)) (eval e d);
 	)NPL");
 #endif
 }
@@ -1359,32 +1391,6 @@ LoadGroundContext(REPLContext& context)
 }
 
 void
-LoadModule_std_environments(REPLContext& context)
-{
-	auto& renv(context.Root.GetRecordRef());
-
-	RegisterUnary<Strict, const string>(renv, "bound?",
-		[](const string& id, ContextNode& ctx){
-		return CheckSymbol(id, [&]{
-			return bool(ResolveName(ctx, id).first);
-		});
-	});
-	context.ShareCurrentSource("<lib:std.environments>");
-	context.Perform(R"NPL(
-		$defv/e! $binds1? (derive-current-environment std.strings) (&e &s) d
-			eval (list (unwrap bound?) (symbol->string s)) (eval e d);
-	)NPL");
-	RegisterStrict(renv, "value-of", ValueOf);
-	RegisterStrict(renv, "get-current-repl", [&](TermNode& term){
-		RetainN(term, 0);
-		term.Value = ValueObject(context, YSLib::OwnershipTag<>());
-	});
-	RegisterStrict(renv, "eval-string", EvalString);
-	RegisterStrict(renv, "eval-string%", EvalStringRef);
-	RegisterStrict(renv, "eval-unit", EvalUnit);
-}
-
-void
 LoadModule_std_promises(REPLContext& context)
 {
 	// NOTE: Call of 'set-first%!' does not check cyclic references. This is
@@ -1413,8 +1419,7 @@ LoadModule_std_promises(REPLContext& context)
 				)
 		)))
 		(
-			$import! mods &promise?;
-
+			$import! mods &promise?,
 			$defl/e%! &memoize mods (&x)
 				encapsulate% (list (list% (forward! x) ())),
 			$defv/e%! &$lazy mods (.&body) d
@@ -1438,8 +1443,8 @@ LoadModule_std_strings(REPLContext& context)
 		string(), std::placeholders::_1));
 	RegisterUnary<Strict, const string>(renv, "string-empty?",
 		[](const string& str) ynothrow{
-			return str.empty();
-		});
+		return str.empty();
+	});
 	RegisterBinary<>(renv, "string<-", [](TermNode& x, TermNode& y){
 		ResolveTerm([&](TermNode& nd_x, ResolvedTermReferencePtr p_ref_x){
 			if(!p_ref_x || p_ref_x->IsModifiable())
@@ -1461,6 +1466,33 @@ LoadModule_std_strings(REPLContext& context)
 		}, x);
 		return ValueToken::Unspecified;
 	});
+	RegisterStrict(renv, "string-split", [](TermNode& term){
+		return CallBinaryAs<string, const string>(
+			[&](string& x, const string& y) -> ReductionStatus{
+			if(!x.empty())
+			{
+				TermNode::Container con(term.get_allocator());
+				const auto len(y.length());
+
+				if(len != 0)
+				{
+					string::size_type pos(0), orig(0);
+
+					while((pos = x.find(y, pos)) != string::npos)
+					{
+						TermNode::AddValueTo(con, x.substr(orig, pos - orig));
+						orig = (pos += len);
+					}
+					TermNode::AddValueTo(con, x.substr(orig, pos - orig));
+				}
+				else
+					TermNode::AddValueTo(con, std::move(x));
+				con.swap(term.GetContainerRef());
+				return ReductionStatus::Retained;
+			}
+			return ReductionStatus::Clean;
+		}, term);
+	});
 	RegisterBinary<Strict, string, string>(renv, "string-contains-ci?",
 		[](string x, string y){
 		// TODO: Extract 'strlwr'.
@@ -1475,10 +1507,10 @@ LoadModule_std_strings(REPLContext& context)
 	});
 	RegisterUnary<>(renv, "string->symbol", [](TermNode& x){
 		return ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
-			auto& s(NPL::AccessRegular<string>(nd, p_ref));
+			auto& str(NPL::AccessRegular<string>(nd, p_ref));
 
-			return NPL::IsMovable(p_ref) ? StringToSymbol(std::move(s))
-				: StringToSymbol(s);
+			return NPL::IsMovable(p_ref) ? StringToSymbol(std::move(str))
+				: StringToSymbol(str);
 		}, x);
 	});
 	RegisterUnary<Strict, const TokenValue>(renv, "symbol->string",
@@ -1487,15 +1519,19 @@ LoadModule_std_strings(REPLContext& context)
 		[](const string& str){
 		return std::regex(str);
 	});
-	RegisterStrict(renv, "regex-match?", [](TermNode& term){
-		RetainN(term, 2);
+	RegisterBinary<Strict, const string, const std::regex>(renv, "regex-match?",
+		[](const string& str, const std::regex& re){
+		return std::regex_match(str, re);
+	});
+	RegisterStrict<>(renv, "regex-replace", [](TermNode& term){
+		RetainN(term, 3);
 
-		auto i(std::next(term.begin()));
-		const auto& str(NPL::ResolveRegular<const string>(NPL::Deref(i)));
-		const auto& r(NPL::ResolveRegular<const std::regex>(NPL::Deref(++i)));
+		auto i(term.begin());
+		const auto& str(NPL::ResolveRegular<const string>(NPL::Deref(++i)));
+		const auto& re(NPL::ResolveRegular<const std::regex>(NPL::Deref(++i)));
 
-		term.Value = std::regex_match(str, r);
-		return ReductionStatus::Clean;
+		return EmplaceCallResultOrReturn(term, string(std::regex_replace(str,
+			re, NPL::ResolveRegular<const string>(NPL::Deref(++i)))));
 	});
 }
 
@@ -1504,6 +1540,14 @@ LoadModule_std_io(REPLContext& context)
 {
 	auto& renv(context.Root.GetRecordRef());
 
+	RegisterUnary<Strict, const string>(renv, "readable-file?",
+		[](const string& str) ynothrow{
+		return YSLib::ufexists(str.c_str());
+	});
+	RegisterUnary<Strict, const string>(renv, "writable-file?",
+		[](const string& str) ynothrow{
+		return YSLib::ufexists(str.c_str(), true);
+	});
 	RegisterUnary<Strict, const string>(renv, "puts", [&](const string& str){
 		auto& os(context.GetOutputStreamRef());
 
@@ -1534,6 +1578,13 @@ LoadModule_std_system(REPLContext& context)
 {
 	auto& renv(context.Root.GetRecordRef());
 
+	RegisterStrict(renv, "get-current-repl", [&](TermNode& term){
+		RetainN(term, 0);
+		term.Value = ValueObject(context, YSLib::OwnershipTag<>());
+	});
+	RegisterStrict(renv, "eval-string", EvalString);
+	RegisterStrict(renv, "eval-string%", EvalStringRef);
+	RegisterStrict(renv, "eval-unit", EvalUnit);
 	RegisterStrict(renv, "cmd-get-args", [](TermNode& term){
 		RetainN(term, 0);
 		{
@@ -1619,6 +1670,7 @@ LoadModule_SHBuild(REPLContext& context)
 			pth.pop_back();
 			EnsureDirectory(pth);
 		}
+		return ValueToken::Unspecified;
 	});
 	RegisterUnary<Strict, const string>(renv, "SHBuild_DirectoryOf_",
 		[](const string& str){
@@ -1631,6 +1683,7 @@ LoadModule_SHBuild(REPLContext& context)
 	RegisterUnary<Strict, const string>(renv, "SHBuild_EnsureDirectory_",
 		[](const string& str){
 		EnsureDirectory(IO::Path(str));
+		return ValueToken::Unspecified;
 	});
 	RegisterStrict(renv, "SHBuild_EchoVar", [&](TermNode& term){
 		// XXX: To be overriden if %Terminal is usable (platform specific).
@@ -1646,11 +1699,10 @@ LoadModule_SHBuild(REPLContext& context)
 			return ValueToken::Unspecified;
 		}, term);
 	});
-	RegisterStrict(renv, "SHBuild_Install_HardLink", [&](TermNode& term){
-		CallBinaryAs<const string, const string>(
-			[](const string& dst, const string& src){
-			Deployment::InstallHardLink(dst.c_str(), src.c_str());
-		}, term);
+	RegisterBinary<Strict, const string, const string>(renv,
+		"SHBuild_Install_HardLink", [&](const string& dst, const string& src){
+		Deployment::InstallHardLink(dst.c_str(), src.c_str());
+		return ValueToken::Unspecified;
 	});
 	// TODO: Implement by derivations instead?
 	RegisterUnary<Strict, const string>(renv, "SHBuild_QuoteS_",
@@ -1658,10 +1710,6 @@ LoadModule_SHBuild(REPLContext& context)
 		if(str.find('\'') == string::npos)
 			return ystdex::quote(str, '\'');
 		throw NPLException("Error in quoted string.");
-	});
-	RegisterUnary<Strict, const string>(renv, "SHBuild_RaiseError_",
-		[] YB_LAMBDA_ANNOTATE((const string& str), , noreturn){
-		throw LoggedEvent(str);
 	});
 	RegisterBinary<Strict, const string, const string>(renv,
 		"SHBuild_RemovePrefix_",
@@ -1760,7 +1808,8 @@ LoadModule_SHBuild(REPLContext& context)
 		const string_view tmpl("0123456789abcdef");
 
 #if YF_Hosted
-		// NOTE: Value of %TMP_MAX varies. It is also obsolescent in POSIX. See https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/stdio.h.html.
+		// NOTE: Value of %TMP_MAX varies. It is also obsolescent in POSIX. See
+		//	https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/stdio.h.html.
 		// NOTE: Common implementation may try too many times, e.g. glibc's
 		//	implementation retry 26^3 times. LLVM tries 128 times. Here it is
 		//	more conservative, and the number is documented explicitly.
@@ -1780,7 +1829,7 @@ LoadModule_SHBuild(REPLContext& context)
 			// TODO: Check file access with read-write permissions using
 			//	%YSLib::uopen. This requires the exposure of the open flags in
 			//	YSLib since NPL does not use %YCLib::NativeAPI.
-			// XXX: This is like %YSLib::ufexists, but UTF-8 support is not
+			// XXX: This is like %YSLib::ufexists, but the UTF-8 support is not
 			//	needed.
 			if(ystdex::fexists(str.c_str(), true))
 				return str;
@@ -1814,11 +1863,10 @@ LoadStandardContext(REPLContext& context)
 			std::bind(load_module, std::ref(context)));
 	});
 
-	load_std_module("strings", LoadModule_std_strings);
-	load_std_module("environments", LoadModule_std_environments),
-	load_std_module("io", LoadModule_std_io),
-	load_std_module("system", LoadModule_std_system),
 	load_std_module("promises", LoadModule_std_promises);
+	load_std_module("strings", LoadModule_std_strings);
+	load_std_module("io", LoadModule_std_io),
+	load_std_module("system", LoadModule_std_system);
 }
 
 } // namespace Forms;
