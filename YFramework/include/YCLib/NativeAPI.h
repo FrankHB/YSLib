@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2017, 2019 FrankHB.
+	© 2011-2017, 2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,14 +10,14 @@
 
 /*!	\file NativeAPI.h
 \ingroup YCLib
-\brief 通用平台应用程序接口描述。
-\version r1671
+\brief 通用平台本机应用程序接口描述。
+\version r1682
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2019-10-25 08:38 +0800
+	2021-08-02 02:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -616,7 +616,16 @@ public:
 #		define NOMINMAX 1
 #	endif
 
+#if YB_IMPL_MSCPP >= 1915
+YB_Diag_Push
+YB_Diag_Ignore(5105)
+// NOTE: See https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/c5105.
+// NOTE: This is only effective for non-conforming WinSDK headers currently.
+#endif
 #	include <Windows.h>
+#if YB_IMPL_MSCPP >= 1915
+YB_Diag_Pop
+#endif
 // XXX: This may have effects on the system headers included later.
 #	if false && __has_include(<specstrings_undef.h>)
 #		include <specstrings_undef.h>

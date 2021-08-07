@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r4458
+\version r4592
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-08-01 06:08 +0800
+	2021-08-07 14:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,139 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			/ "functions %openmode_conv" @ %CStandardIO -> "function templates \
+				with support of character type other than %char",
+			* "missing removal of reference" @ "%value_type" @ "class template \
+				%transformed_iterator" @ %Iterator $since b667,
+				// This would break %std::indirectly_readable_traits and \
+					%std::iter_value_t since ISO C++20.
+		),
+		/ @ 'YB_IMPL_MSCPP' @ %YDefinition $=
+		(
+			+ "%(YB_Diag_Push, YB_Diag_Pop, YB_Diag_Ignore) definitions";
+			/ DLDI "simplified disabling warning C4646" ^ "%YB_Diag_Ignore"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %FileIO $=
+			(
+				(
+				+ "function %oflag_extend_binary",
+				+ "tag %use_openmode_t";
+				+ "2 %uopen overloads with %use_openmode_t parameter",
+				),
+				/ @ "class template %basic_filebuf" $=
+				(
+					// See $2021-08 @ %Documentation::Workflow.
+					/ DLI "enhanced function template %open#1"
+						@ ('!__GLIBCXX__ && !_LIBCPP_VERSION') %FileIO
+						^ $dep_from ("%openmode_conv"
+						@ %YBase.YStandardEx.CStandardIO, "%::_wfdopen")
+						~ "%::_fdopen",
+					/ @ "function template %open#2" $=
+					(
+						* "wrong return value" @ '_LIBCPP_VERSION' $since b866,
+						/ @ 'YB_IMPL_MSCPP' $=
+						(
+							* "wrong handling of filename encoding for \
+								'const char*' parameter, %ios_nocreation and \
+								possible TOCTTOU access for %ios_noreplace"
+								$since b709
+								$= (/ $impl ^ "%uopen" ~ "%std::_Fiopen");
+							/ $comp DLDI !^ 'std::ios_base::_Openprot'
+						)
+					)
+				),
+				+ DLDI 'yimpl' @ "%(ios_nocreate, ios_noreplace)"
+					@ '_LIBCPP_VERSION',
+				- "function %omode_convb" $dep_all_from "removal of omode_convb"
+			),
+			- DLDI "unused exception parameter" @ %Host,
+				// To eliminate Microsoft VC++ warning: C4101.
+			/ $dev "disabled warning C5105 around inclusion of header \
+				<Windows.h>" @ %NativeAPI
+				^ $dep_from "%YB_Diag_Ignore" @ %YBase.Definition
+		),
+		/ $dev %'YCLib_(Win32)'.MinGW32 $=
+		(
+			/ $re_add(b852) "improved compatibility" @ 'YB_IMPL_MSCPP'
+				@ "function %LoadProc",
+			/ $re_ex(b852) "simplifed compatibility workaround"
+				@ "alias %ModuleProc" ^ "%ystdex::remove_pointer_t"
+				~ "%ystdex::remove_reference_t or explicit '__stdcall'",
+			+ "static assertion to ensure %ModuleProc is a function type"
+		),
+		/ %NPL $=
+		(
+			/ %NPLA1Forms $=
+			(
+				/ $re_add(b617) DLDI "integer-literal" @ "functions"
+					^ "unsigned-suffix",
+					// To eliminate Microsoft VC++ warning: C4018.
+				* "wrong '\return' command" @ "Doxygen comment"
+					@ "functions %(EvalString, EvalStringRef)" $since b835,
+				+ "functions %(RemoteEval, RemoteEvalRef)"
+			),
+			/ %Dependency $=
+			(
+				* DD "oudated descriptions" @ "Doxygen comments"
+					@ ("function %LoadModule_std_promises" $since b907,
+					"function %LoadStandardContext" @ $since b922),
+				- DLI "all tabs of common intends" @ "NPLA1 literals",
+					// This makes less overhead in parsing during the \
+						initialization.
+				(
+				+ "operatives ('$remote-eval', '$remote-eval%')"
+					@ "function %LoadGroundContext"
+					^ $dep_from ("%(RemoteEval, RemoteEvalRef)" @ %NPLA1Forms);
+				+ "function %LoadModule_std_modules"
+					$= (+ "applicatives ('registered-requirement?', \
+						'register-requirement!' 'unregister-requirement!', \
+						'find-requirement-filename'; %require)")
+				)
+			)
+		),
+		/ %YSLib $=
+		(
+			/ %Adaptor.YAdaptor $=
+			(
+				+ ('using platform::oflag_extend_binary',
+					'using::platform::use_openmode_t') $dep_from
+					"%(oflag_extend_binary, use_openmode_t)" @ %YCLib.FileIO,
+				- $revert(b639) 'using platform::omode_convb'
+					$dep_to "removal of omode_convb"
+			),
+			/ "function %OpenFile" @ %Service.File -> "function template",
+		)
+	),
+	+ "option '/Zc:preprocessor'" @ "Microsoft VC++ projects"
+		@ %(YBase, YFramework, YSTest, Tools.SHBuild),
+	* "'_LIBCPP_VERSION' not checked before '__GLIBCXX__'"
+		$effective @ %YFramework.YCLib.FileIO $since b866,
+		// '__GLIBCXX__' may be defined with libstdc++ in some cases, e.g. \
+			https://reviews.llvm.org/rL173164.
+	* "file unexpectedly created with no permissions for invalid mode with \
+		its file descriptor leaked" $effective @ ((('_LIBCPP_VERSION'
+		$since b866, '__GLIBCXX__' $since b618) @ "function template %open#2"
+		@ "class template %basic_filebuf" @ %YCLib.FileIO, "constructor#3"
+		@ "class %UniqueLockedOutputFileStream" @ %YSLib.Service.File)
+		^ $dep_from ("%uopen" @ %YCLib.IO), ("%CopyFile#(2, 4, 6)"
+		@ %YSLib.Service.FileSystem, "applicative 'SHBuild_BuildGCH_existed_'"
+		@ "function %LoadModule_SHBuild" @ %NPL.Dependency) ^ $dep_from
+		("%OpenFile" @ %Service.File, "%use_openmode_t" @ %Adaptor.YAdaptor)
+		@ %YSLib) @ %YFramework ~ "%omode_convb"
+		$dep_to "removal of omode_convb"
+),
+
+b922
 (
 	/ $dev %YBase $=
 	(
@@ -679,7 +812,8 @@ b918
 					),
 					@ "operative '$setrec!'" $since b799
 						$= (/ $impl ^ 'move!'),
-					@ "operative '$provide/let!'" $since b
+					@ "operative '$provide/let!'"
+						$orig (@ '$provide!' $since b837)
 						$= (/ $impl "'$let' expression construction"
 							^ ('list%', 'forward!') ~ 'list')
 				),

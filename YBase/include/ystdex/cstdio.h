@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2020 FrankHB.
+	© 2011-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r728
+\version r830
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2020-11-29 20:23 +0800
+	2021-08-01 09:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,7 +109,7 @@ read_all_with_buffer(std::FILE* fp, char* p_buf, size_t len, _func append)
 
 /*!
 \brief ISO C/C++ 标准输入输出接口打开模式转换。
-\since build 326
+\since build 923
 */
 //@{
 /*!
@@ -118,18 +118,118 @@ read_all_with_buffer(std::FILE* fp, char* p_buf, size_t len, _func append)
 \note 返回值未指定，但返回值指向的内容是确定的，且无副作用，因此可用 YB_STATELESS 。
 \see LWG 596 。
 */
-YB_ATTR_nodiscard YB_API YB_STATELESS const char*
-openmode_conv(std::ios_base::openmode) ynothrow;
+template<typename _tChar = char>
+YB_ATTR_nodiscard YB_STATELESS const _tChar*
+openmode_conv(std::ios_base::openmode mode) ynothrow
+{
+	using namespace std;
+	yconstexpr static const _tChar modes[12][4] = {
+		{_tChar('w'), _tChar('b'), _tChar()},
+		{_tChar('w'), _tChar()},
+		{_tChar('a'), _tChar('b'), _tChar()},
+		{_tChar('a'), _tChar()},
+		{_tChar('r'), _tChar('b'), _tChar()},
+		{_tChar('r'), _tChar()},
+		{_tChar('w'), _tChar('+'), _tChar('b'), _tChar()},
+		{_tChar('w'), _tChar('+'), _tChar()},
+		{_tChar('a'), _tChar('+'), _tChar('b'), _tChar()},
+		{_tChar('a'), _tChar('+'), _tChar()},
+		{_tChar('r'), _tChar('+'), _tChar('b'), _tChar()},
+		{_tChar('r'), _tChar('+'), _tChar()}
+	};
+
+	switch(unsigned((mode &= ~ios_base::ate) & ~ios_base::binary))
+	{
+	case ios_base::out:
+	case ios_base::out | ios_base::trunc:
+		return mode & ios_base::binary ? modes[0] : modes[1];
+	case ios_base::out | ios_base::app:
+	case ios_base::app:
+		return mode & ios_base::binary ? modes[2] : modes[3];
+	case ios_base::in:
+		return mode & ios_base::binary ? modes[4] : modes[5];
+	case ios_base::in | ios_base::out:
+		return mode & ios_base::binary ? modes[6] : modes[7];
+	case ios_base::in | ios_base::out | ios_base::trunc:
+		return mode & ios_base::binary ? modes[8] : modes[9];
+	case ios_base::in | ios_base::out | ios_base::app:
+	case ios_base::in | ios_base::app:
+		return mode & ios_base::binary ? modes[10] : modes[11];
+	default:
+		break;
+	}
+	return {};
+}
 /*!
 \brief ISO C/C++ 标准输入输出接口打开模式转换。
 \return 若失败（包括空参数情形）为 std::ios_base::openmode() ，否则为对应的值。
 \see ISO C11 7.21.5.3/3 。
 \note 顺序严格限定。
 \note 支持 x 转换。
-\since build 326
 */
-YB_ATTR_nodiscard YB_API YB_PURE std::ios_base::openmode
-openmode_conv(const char*) ynothrow;
+template<typename _tChar = char>
+YB_ATTR_nodiscard YB_PURE std::ios_base::openmode
+openmode_conv(const _tChar* s) ynothrow
+{
+	using namespace std;
+
+	if(s)
+	{
+		ios_base::openmode mode;
+
+		switch(*s)
+		{
+		case _tChar('w'):
+			mode = ios_base::out | ios_base::trunc;
+			break;
+		case _tChar('r'):
+			mode = ios_base::in;
+			break;
+		case _tChar('a'):
+			mode = ios_base::app;
+			break;
+		default:
+			goto invalid;
+		}
+		if(s[1] != char())
+		{
+			auto l(char_traits<char>::length(s));
+
+			if(s[l - 1] == _tChar('x'))
+			{
+				if(mode & ios_base::out)
+					mode &= ~ios_base::out;
+				else
+					goto invalid;
+				--l;
+			}
+
+			bool b(s[1] == 'b'), p(s[1] == '+');
+
+			switch(l)
+			{
+			case 2:
+				if(b != p)
+					break;
+				goto invalid;
+			case 3:
+				yunseq(b = b != (s[2] == _tChar('b')),
+					p = p != (s[2] == _tChar('+')));
+				if(b && p)
+					break;
+			default:
+				goto invalid;
+			}
+			if(p)
+				mode |= *s == _tChar('r') ? ios::out : ios::in;
+			if(b)
+				mode |= ios::binary;
+		}
+		return mode;
+	}
+invalid:
+	return ios_base::openmode();
+}
 //@}
 
 

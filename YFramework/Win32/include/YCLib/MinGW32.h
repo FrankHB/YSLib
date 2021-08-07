@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2149
+\version r2179
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2021-06-24 21:41 +0800
+	2021-08-02 01:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 #define YCL_Win32_INC_MinGW32_h_ 1
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_Host // for string, ystdex::remove_reference_t, wstring,
+#include YFM_YCLib_Host // for string, ystdex::remove_pointer_t, wstring,
 //	unique_ptr_from, ystdex::ends_with, ystdex::aligned_storage_t,
 //	ystdex::pun_ref, pair;
 #include YFM_YCLib_NativeAPI // for ERROR_SUCCESS,
@@ -228,12 +228,18 @@ public:
 //@{
 //! \brief 加载过程地址得到的过程类型。
 using ModuleProc
-#if YB_IMPL_MSCPP
-	= ystdex::remove_reference_t<decltype(::GetProcAddress(::HMODULE(), {})())>(
-		__stdcall)();
-#else
-	= ystdex::remove_reference_t<decltype(*::GetProcAddress(::HMODULE(), {}))>;
-#endif
+	= ystdex::remove_pointer_t<decltype(::GetProcAddress(::HMODULE(), {}))>;
+// XXX: Microsoft VC++'s compiler (but not IntelliSense) would not play well on
+//	'decltype' with an lvalue of function type, as there is an unexpected
+//	function-to-pointer conversion, so
+//	'decltype(*::GetProcAddress(::HMODULE(), {}))' is actually a function
+//	pointer type, instead of a function reference type in an conforming
+//	implementation. An alternative workaround is
+//	'decltype(::GetProcAddress(::HMODULE(), {})())(__stdcall)()', requiring the
+//	explicit calling conversion Anyway, handling on the pointer here is simpler.
+
+//! \since build 923
+static_assert(std::is_function<ModuleProc>(), "Invalid type found.");
 
 /*!
 \brief 从模块加载指定过程的指针。
@@ -248,6 +254,8 @@ template<typename _func>
 YB_ATTR_nodiscard YB_NONNULL(2) inline _func&
 LoadProc(::HMODULE h_module, const char* proc)
 {
+	static_assert(std::is_function<_func>(), "Invalid function type found.");
+
 	// NOTE: See https://gcc.gnu.org/gcc-8/changes.html.
 #if YB_IMPL_GNUCPP >= 80000
 #	pragma GCC diagnostic push
@@ -255,7 +263,23 @@ LoadProc(::HMODULE h_module, const char* proc)
 #endif
 	// NOTE: This should be safe with the additional ABI guarantees, similar to
 	//	https://debarshiray.wordpress.com/2019/04/01/about-wextra-and-wcast-function-type/.
-	return platform::Deref(reinterpret_cast<_func*>(LoadProc(h_module, proc)));
+	return
+	// XXX: This should be OK for other implementations, but just keep it for
+	//	the specific buggy implementations.
+#if YB_IMPL_MSCPP
+		// XXX: This is required sometimes with %platform::Deref, as the result
+		//	may be a function pointer instead of the function reference. It
+		//	seems a compiler bug in VC++ for the inconsistent behaviors. The
+		//	diagnostic message shows the type of the expression is the type
+		//	the template parameter '_type' in of %platform::Deref, which
+		//	indicates some improper deduction directly performed in the call and
+		//	there is an unexpected function-to-pointer conversion. Such
+		//	conversion seems to be in the unevaluated lvalue operand of
+		//	'decltype', behaving same to the common implementation of
+		//	%ModuleProc.
+		*
+#endif
+		platform::Deref(reinterpret_cast<_func*>(LoadProc(h_module, proc)));
 #if YB_IMPL_GNUCPP >= 80000
 #	pragma GCC diagnostic pop
 #endif

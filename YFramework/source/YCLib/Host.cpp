@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r1134
+\version r1135
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2021-07-07 00:26 +0800
+	2021-08-01 11:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -607,7 +607,7 @@ Terminal::Terminal(std::FILE* fp)
 #	endif
 		}
 		// XXX: Errors are ignored.
-		CatchIgnore(Exception& e)
+		CatchIgnore(Exception&)
 		return {};
 	}())
 {}

@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r24829
+\version r24854
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2021-08-01 03:30 +0800
+	2021-08-07 12:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -661,6 +661,17 @@ EvalStringImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 		sess.Process(NPL::ResolveRegular<const string>(expr)))
 		.SwapContainer(expr);
 	return EvalImplUnchecked(term, ctx, no_lift);
+}
+
+//! \since build 923
+ReductionStatus
+RemoteEvalImpl(TermNode& term, ContextNode& ctx, bool no_lift)
+{
+	RetainN(term, 2);
+	return ReduceSubsequent(term.GetContainerRef().back(), ctx,
+		A1::NameTypedReducerHandler([&, no_lift]{
+		return EvalImplUnchecked(term, ctx, no_lift);
+	}, "eval-remote-eval-env"));
 }
 //@}
 
@@ -2725,7 +2736,7 @@ LetCommon(TermNode& term, ContextNode& ctx, bool no_lift, bool with_env)
 	// NOTE: Subterms are extracted arguments for the call, optional 'e',
 	//	extracted 'formals' for the lambda abstraction,
 	//	unused 'bindings', trailing 'body'.
-	YAssert(term.size() >= (with_env ? 4 : 3), "Invalid nested call found.");
+	YAssert(term.size() >= (with_env ? 4U : 3U), "Invalid nested call found.");
 	return LetCombinePrepare([&, no_lift]{
 		// NOTE: Now subterms are extracted arguments for the call plus
 		//	the parent in %Value, extracted 'formals' for the lambda
@@ -2749,7 +2760,7 @@ LetCore(TermNode& term, ContextNode& ctx, bool no_lift, bool with_env)
 	// NOTE: Subterms are %operand (the term range of 'bindings' with optional
 	//	temporary list), optional 'e', originally bound 'bindings',
 	//	trailing 'body'.
-	YAssert(term.size() >= (with_env ? 3 : 2), "Invalid nested call found.");
+	YAssert(term.size() >= (with_env ? 3U : 2U), "Invalid nested call found.");
 	LetBindingsExtract(term, with_env);
 	// NOTE: Now subterms are extracted arguments for the call,
 	//	optional 'e', extracted 'formals' for the lambda abstraction,
@@ -2763,7 +2774,7 @@ LetEmpty(TermNode& term, ContextNode& ctx, bool no_lift, bool with_env)
 {
 	// NOTE: Subterms are the empty term, optional 'e',
 	//	unused originally bound 'bindings', trailing 'body'.
-	YAssert(term.size() >= (with_env ? 3 : 2), "Invalid nested call found.");
+	YAssert(term.size() >= (with_env ? 3U : 2U), "Invalid nested call found.");
 	LetAddFormalsTerm(term, with_env);
 	// NOTE: This is required by %LetCombinePrepare.
 	term.begin()->Clear();
@@ -2951,12 +2962,12 @@ LetRecCore(TermNode& term, ContextNode& ctx, bool no_lift, bool with_env)
 	// NOTE: Subterms are %operand (the term range of 'bindings' with optional
 	//	temporary list), optional 'e', originally bound 'bindings',
 	//	trailing 'body'.
-	YAssert(term.size() >= (with_env ? 3 : 2), "Invalid nested call found.");
+	YAssert(term.size() >= (with_env ? 3U : 2U), "Invalid nested call found.");
 	LetBindingsExtract(term, with_env);
 	// NOTE: Now subterms are extracted initializers for the definition,
 	//	optional 'e', extracted 'formals' for the definition,
 	//	originally bound 'bindings', trailing 'body'.
-	YAssert(term.size() >= (with_env ? 4 : 3), "Invalid term found.");
+	YAssert(term.size() >= (with_env ? 4U : 3U), "Invalid term found.");
 	return LetCombinePrepare([&, no_lift]() -> ReductionStatus{
 		// NOTE: Now subterms are extracted initializers for the definition plus
 		//	the parent in %Value, extracted 'formals' for the definition,
@@ -3634,6 +3645,18 @@ EvalUnit(TermNode& term)
 		term.SetContent(rctx.Perform(unit));
 	}, term);
 	return ReductionStatus::Retained;
+}
+
+ReductionStatus
+RemoteEval(TermNode& term, ContextNode& ctx)
+{
+	return RemoteEvalImpl(term, ctx, {});
+}
+
+ReductionStatus
+RemoteEvalRef(TermNode& term, ContextNode& ctx)
+{
+	return RemoteEvalImpl(term, ctx, true);
 }
 
 

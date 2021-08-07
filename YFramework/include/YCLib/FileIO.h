@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3236
+\version r3341
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2021-08-01 03:27 +0800
+	2021-08-05 05:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,12 +34,12 @@
 //	ystdex::enable_for_string_class_t, errno, ystdex::throw_error, u16string,
 //	std::system_error, YTraceDe, array, wstring, string_view;
 #include YFM_YCLib_Reference // for unique_ptr_from;
-#include <ios> // for std::ios_base::sync_with_stdio;
+#include <ios> // for std::ios_base::sync_with_stdio, std::ios_base::openmode;
 #include <fstream> // for std::basic_filebuf, std::filebuf, std::wfilebuf,
 //	std::basic_ifstream, std::basic_ofstream, std::basic_fstream,
 //	std::ifstream, std::ofstream, std::fstream, std::wifstream, std::wofstream,
 //	std::wfstream;
-#if __GLIBCXX__ || _LIBCPP_VERSION || YB_IMPL_MSCPP
+#if _LIBCPP_VERSION || __GLIBCXX__ || YB_IMPL_MSCPP
 #include <istream> // for std::basic_istream;
 #include <ostream> // for std::basic_ostream;
 #	if __GLIBCXX__
@@ -48,6 +48,7 @@
 #	elif YB_IMPL_MSCPP
 #		include <ystdex/cstdio.h> // for ystdex::openmode_conv;
 #		include <locale> // for std::use_facet, std::codecvt;
+#		include <stdio.h> // for ::_wfdopen;
 #	endif
 #endif
 #include <iosfwd> // for std::istream, std::ostream;
@@ -435,22 +436,31 @@ inline PDefH(void, SetupBinaryStdIO, std::FILE* in = stdin,
 
 
 /*!
+\brief 在 POSIX 文件打开旗标扩展第一参数指定的二进制模式。
+\return 扩展后的模式。
+\note POSIX 平台：忽略第一参数。
+\since build 923
+*/
+YB_ATTR_nodiscard YF_API YB_STATELESS int
+oflag_extend_binary(std::ios_base::openmode, int) ynothrow;
+
+/*!
 \brief ISO C++ 标准输入输出接口打开模式转换为 POSIX 文件打开模式。
 \return 若失败为 0 ，否则为对应的值。
+\note 忽略二进制模式。
 \since build 648
 */
-//@{
-//! \note 忽略二进制模式。
 YB_ATTR_nodiscard YF_API YB_STATELESS int
 omode_conv(std::ios_base::openmode) ynothrow;
 
+
 /*!
-\note 扩展：不忽略二进制模式。
-\note POSIX 平台：同 omode_conv 。
+\ingroup tags
+\brief 使用 std::ios_base::openmode 的重载标签，保证非整数类型且可默认初始化。
+\since build 923
 */
-YB_ATTR_nodiscard YF_API YB_STATELESS int
-omode_convb(std::ios_base::openmode) ynothrow;
-//@}
+using use_openmode_t = yimpl(nullptr_t);
+
 
 /*!
 \pre 断言：第一参数非空。
@@ -459,10 +469,11 @@ omode_convb(std::ios_base::openmode) ynothrow;
 //@{
 /*!
 \param filename 文件名，意义同 POSIX \c ::open 。
-\param oflag 打开旗标，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
 \param pmode 打开模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
 \since build 720
 */
+//@{
+//! \param oflag 打开旗标，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
 //@{
 //! \brief 以 UTF-8 文件名无缓冲打开文件。
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) int
@@ -472,6 +483,26 @@ uopen(const char* filename, int oflag, mode_t pmode = DefaultPMode())
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) int
 uopen(const char16_t* filename, int oflag, mode_t pmode = DefaultPMode())
 	ynothrowv;
+//@}
+/*!
+\param mode 打开模式，基本语义与 ISO C++11 对应，具体行为取决于实现。
+\note 第二参数避免重载歧义。
+\since build 923
+
+第三参数首先转换得到打开旗标。若转换失败，则打开文件失败。
+否则，打开旗标经过以第三参数模式扩展二进制模式，
+继续同没有 use_openmode_t 参数的 uopen 重载的方式打开文件。
+*/
+//@{
+//! \brief 以 UTF-8 文件名无缓冲打开文件。
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) int
+uopen(const char* filename, use_openmode_t, std::ios_base::openmode mode,
+	mode_t pmode = DefaultPMode()) ynothrowv;
+//! \brief 以 UCS-2 文件名无缓冲打开文件。
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) int
+uopen(const char16_t* filename, use_openmode_t, std::ios_base::openmode mode,
+	mode_t pmode = DefaultPMode()) ynothrowv;
+//@}
 //@}
 
 //! \param filename 文件名，意义同 std::fopen 。
@@ -550,13 +581,16 @@ upclose(std::FILE*) ynothrowv;
 \since build 616
 */
 //@{
-#if __GLIBCXX__ || _LIBCPP_VERSION || YB_IMPL_MSCPP
+#if _LIBCPP_VERSION || __GLIBCXX__ || YB_IMPL_MSCPP
 /*!
 \note 扩展打开模式。
 \since build 721
 */
 //@{
-#	if __GLIBCXX__
+#	if _LIBCPP_VERSION
+yconstexpr const auto ios_nocreate(yimpl(std::ios::yimpl(trunc << 1)));
+yconstexpr const auto ios_noreplace(yimpl(std::ios::yimpl(trunc << 2)));
+#	elif __GLIBCXX__
 //! \brief 表示仅打开已存在文件而不创建文件的模式。
 yconstexpr const auto ios_nocreate(
 	std::ios_base::openmode(std::_Ios_Openmode::yimpl(_S_trunc << 1)));
@@ -566,9 +600,6 @@ yconstexpr const auto ios_nocreate(
 */
 yconstexpr const auto ios_noreplace(
 	std::ios_base::openmode(std::_Ios_Openmode::yimpl(_S_trunc << 2)));
-#	elif _LIBCPP_VERSION
-yconstexpr const auto ios_nocreate(yimpl(std::ios::trunc << 1));
-yconstexpr const auto ios_noreplace(yimpl(std::ios::trunc << 2));
 #	else
 yconstexpr const auto ios_nocreate(std::ios::_Nocreate);
 yconstexpr const auto ios_noreplace(std::ios::_Noreplace);
@@ -613,14 +644,7 @@ public:
 		if(p)
 		{
 			mode &= ~(ios_nocreate | ios_noreplace);
-#	if __GLIBCXX__
-			this->_M_file.sys_open(*p.get(), mode);
-			if(open_check(mode))
-			{
-				p.release();
-				return this;
-			}
-#	elif _LIBCPP_VERSION
+#	if _LIBCPP_VERSION
 #		ifdef _LIBCPP_HAS_NO_GLOBAL_FILESYSTEM_NAMESPACE
 		// XXX: See https://reviews.llvm.org/rL232049. This configuration shall
 		//	not be used in the YCLib platforms.
@@ -628,16 +652,22 @@ public:
 #		endif
 			this->__open(*p.get(), mode);
 			return this;
+#	elif __GLIBCXX__
+			this->_M_file.sys_open(*p.get(), mode);
+			if(open_check(mode))
+			{
+				p.release();
+				return this;
+			}
 #	else
 			if(!this->is_open())
-				if(const auto mode_str = ystdex::openmode_conv(mode))
-				{
-					const auto fp(open_file_ptr(::_fdopen(*p.get(), mode_str)));
+			{
+				const auto fp(open_fd(*p.get(), mode));
 
-					if(fp)
-						p.release();
-					return fp;
-				}
+				if(fp)
+					p.release();
+				return fp;
+			}
 #	endif
 		}
 		return {};
@@ -648,21 +678,34 @@ public:
 	{
 		if(!this->is_open())
 		{
-#	if __GLIBCXX__
-			const auto smode(mode & ~(ios_nocreate | ios_noreplace));
+			// XXX: Now %std::_Fiopen is always not used as in Microsoft VC++'s
+			//	<fstream> implementation, for some potential bugs. See
+			//	https://github.com/microsoft/STL/issues/2093.
+			// NOTE: To handle %ios_nocreate, %::ufopen is not used directly. To
+			//	avoid redendant overhead of the mode conversion to the C file
+			//	mode in the underlying calls, the result of %uopen is checked at
+			//	first.
+			const int fd(uopen(s, {}, mode));
 
-			this->_M_file.sys_open(uopen(s, omode_convb(mode)), smode);
-			if(open_check(smode))
-				return this;
-#	elif _LIBCPP_VERSION
-			const auto smode(mode & ~(ios_nocreate | ios_noreplace));
+			if(fd != -1)
+			{
+#	if _LIBCPP_VERSION || __GLIBCXX__
+				const auto smode(mode & ~(ios_nocreate | ios_noreplace));
 
-			this->__open(uopen(s, omode_convb(mode)), smode);
-			return this;
+#		if _LIBCPP_VERSION
+				// TODO: Is it worthy to support %_LIBCPP_HAS_OPEN_WITH_WCHAR?
+				return this->__open(fd, smode);
+#		elif __GLIBCXX__
+				// XXX: If %smode is invalid, it would fail and to be checked.
+				this->_M_file.sys_open(fd, smode);
+				if(open_check(smode))
+					return this;
+#		endif
 #	else
-			return open_file_ptr(std::_Fiopen(s, mode,
-				int(std::ios_base::_Openprot)));
+				// XXX: See the overload above.
+				return open_fd(fd, mode);
 #	endif
+			}
 		}
 		return {};
 	}
@@ -699,8 +742,26 @@ private:
 		return {};
 	}
 #	elif YB_IMPL_MSCPP
+	//! \since build 923
+	YB_ATTR_nodiscard basic_filebuf<_tChar, _tTraits>*
+	open_fd(int fd, std::ios_base::openmode mode)
+	{
+		// XXX: Assume Win32 using MSVCRT (with %::_wfdopen) here. Note
+		//	traditional Windows (non-NT) versions without %::_wfdopen are not
+		//	supported.
+		if(const auto c_mode = ystdex::openmode_conv<wchar_t>(mode))
+			// XXX: With MSVCRT, %::_fdopen may convert the encoding of the mode
+			//	string internally before the call to %::_wfdopen. This is
+			//	useless since the underlying API does not support mode valid
+			//	mode strings to be encoded differently. Use wide-string
+			//	%ystdex::openmode_conv to directly eliminate the unnecessary
+			//	conversion.
+			return open_file_ptr(::_wfdopen(fd, c_mode));
+		return {};
+	}
+
 	//! \since build 837
-	YB_NONNULL(1) basic_filebuf<_tChar, _tTraits>*
+	YB_ATTR_nodiscard YB_NONNULL(2) basic_filebuf<_tChar, _tTraits>*
 	open_file_ptr(std::FILE* p_file)
 	{
 		// NOTE: %::_Filet and %std::_Filet were aliases of %::FILE in

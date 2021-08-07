@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r6148
+\version r6152
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2021-02-06 15:29 +0800
+	2021-08-01 12:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -166,11 +166,13 @@ struct transit_traits
 		= typename std::iterator_traits<iterator_type>::difference_type;
 	using reference
 		= cond_t<is_same<_tReference, void>, transformed_type, _tReference>;
+	//! \since build 923
+	using value_type = remove_reference_t<reference>;
 	/*!
 	\since build 667
 	\todo 测试 operator-> 并支持代理指针。
 	*/
-	using pointer = remove_reference_t<reference>*;
+	using pointer = value_type*;
 };
 
 } // namespace details;
@@ -217,7 +219,7 @@ public:
 	//! \since build 667
 	//@{
 	using iterator_category = typename impl_traits::iterator_category;
-	using value_type = typename impl_traits::transformed_type;
+	using value_type = typename impl_traits::value_type;
 	//@}
 	//! \since build 439
 	using transformed_type = typename impl_traits::transformed_type;

@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2455
+\version r2459
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2021-05-18 02:18 +0800
+	2021-08-03 19:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -326,8 +326,11 @@ using platform::mode_t;
 using platform::FileDescriptor;
 using platform::UniqueFile;
 using platform::DefaultPMode;
+//! \since build 923
+using platform::oflag_extend_binary;
 using platform::omode_conv;
-using platform::omode_convb;
+//! \since build 923
+using platform::use_openmode_t;
 //! \since build 902
 using platform::StreamGet;
 //! \since build 901

@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3871
+\version r3905
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2021-06-02 23:10 +0800
+	2021-08-03 20:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,6 +45,7 @@
 #include <ystdex/functional.hpp> // for ystdex::compose, ystdex::addrof;
 #include <ystdex/streambuf.hpp> // for ystdex::flush_input,
 //	ystdex::streambuf_equal;
+#include <ystdex/deref_op.hpp> // for ystdex::call_value_or;
 #if YCL_DS
 #	include "CHRLib/YModules.h"
 #	include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeMBCS,
@@ -52,7 +53,7 @@
 
 #elif YCL_Win32
 #	if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
-// At least one headers of <stdlib.h>, <stdio.h>, <Windows.h>, <Windef.h>
+// At least one headers of <stdlib.h>, <stdio.h>, <Windows.h>, <windef.h>
 //	(and probably more) should have been included to make the MinGW-W64 macro
 //	available if it is really being used.
 #		undef _fileno
@@ -678,6 +679,13 @@ SetBinaryIO(std::FILE* stream) ynothrowv
 
 
 int
+oflag_extend_binary(std::ios_base::openmode mode, int oflag) ynothrow
+{
+	return int(mode & std::ios_base::binary ? OpenMode::Binary : OpenMode::Text)
+		| oflag;
+}
+
+int
 omode_conv(std::ios_base::openmode mode) ynothrow
 {
 	using namespace std;
@@ -712,20 +720,15 @@ omode_conv(std::ios_base::openmode mode) ynothrow
 	default:
 		return int(res);
 	}
-	// XXX: Order is significant.
+	// NOTE: %O_EXCL without %O_CREAT leads to undefined behavior in POSIX.
+	// XXX: The order is significant.
 	if(mode & ios_noreplace)
 		res |= OpenMode::CreateExclusive;
-	// NOTE: %O_EXCL without %O_CREAT leads to undefined behavior in POSIX.
 	if(mode & ios_nocreate)
+		// XXX: This is not the same to %std::_Fiopen in Microsoft VC++ when %ios_base::out or
+		//	%ios_base::app is set. See https://github.com/microsoft/STL/blob/main/stl/src/fiopen.cpp.
 		res &= ~OpenMode::CreateExclusive;
 	return int(res);
-}
-
-int
-omode_convb(std::ios_base::openmode mode) ynothrow
-{
-	return omode_conv(mode)
-		| int(mode & std::ios_base::binary ? OpenMode::Binary : OpenMode::Text);
 }
 
 
@@ -752,6 +755,28 @@ uopen(const char16_t* filename, int oflag, mode_t pmode) ynothrowv
 		return ::open(MakePathString(filename).c_str(), oflag, pmode);
 	});
 #endif
+}
+int
+uopen(const char* filename, use_openmode_t, std::ios::openmode mode,
+	mode_t pmode) ynothrowv
+{
+	YAssertNonnull(filename);
+
+	const int oflag(omode_conv(mode));
+
+	return oflag != 0 ? uopen(filename, oflag_extend_binary(mode, oflag), pmode)
+		: -1;
+}
+int
+uopen(const char16_t* filename, use_openmode_t, std::ios::openmode mode,
+	mode_t pmode) ynothrowv
+{
+	YAssertNonnull(filename);
+
+	const int oflag(omode_conv(mode));
+
+	return oflag != 0 ? uopen(filename, oflag_extend_binary(mode, oflag), pmode)
+		: -1;
 }
 
 std::FILE*
@@ -881,7 +906,7 @@ StreamGet(std::istream& is, string& str)
 #if YCL_Win32
 	if(const auto p_sb = is.rdbuf())
 	{
-	// TODO: Implement for other standard library implementations.
+	// TODO: Opt-in other standard library implementations?
 #	if __GLIBCXX__
 		if(const auto p = dynamic_cast<__gnu_cxx::stdio_filebuf<char>*>(p_sb))
 		{

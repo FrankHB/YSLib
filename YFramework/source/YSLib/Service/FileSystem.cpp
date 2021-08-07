@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2307
+\version r2309
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2021-06-25 12:57 +0800
+	2021-08-03 19:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -148,8 +148,8 @@ namespace
 YB_NONNULL(1) UniqueFile
 OpenFileForCopy(const char* src)
 {
-	return OpenFile(src, omode_convb(std::ios_base::in | std::ios_base::binary),
-		0);
+	return OpenFile(src, use_openmode_t(),
+		std::ios_base::in | std::ios_base::binary, 0);
 }
 
 } // unnamed namespace;

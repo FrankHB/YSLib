@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8231
+\version r8260
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2021-08-01 05:46 +0800
+	2021-08-07 12:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -920,11 +920,9 @@ SetRestRef(TermNode&);
 
 /*!
 \brief 对指定项以指定的环境求值。
-\note 支持保存当前动作。
 \sa ResolveEnvironment
 
-以表达式 \c \<expression> 和环境 \c \<environment> 为指定的参数进行求值。
-环境以 ContextNode 的引用表示。
+以视为表达式的对象 \c \<object> 和环境 \c \<environment> 为指定的参数进行求值。
 */
 //@{
 /*!
@@ -933,7 +931,7 @@ SetRestRef(TermNode&);
 按值传递返回值：提升求值后的项。
 
 参考调用文法：
-<pre>eval \<expression> \<environment></pre>
+<pre>eval \<object> \<environment></pre>
 */
 YF_API ReductionStatus
 Eval(TermNode&, ContextNode&);
@@ -944,16 +942,13 @@ Eval(TermNode&, ContextNode&);
 不提升求值后的项，允许返回引用值。
 
 参考调用文法：
-<pre>eval% \<expression> \<environment></pre>
+<pre>eval% \<object> \<environment></pre>
 */
 YF_API ReductionStatus
 EvalRef(TermNode&, ContextNode&);
 //@}
 
-/*!
-\since build 835
-\return ReductionStatus::Retained 。
-*/
+//! \since build 835
 //@{
 /*!
 \brief 在参数指定的环境中求值作为外部表示的字符串。
@@ -982,8 +977,8 @@ EvalStringRef(TermNode&, ContextNode&);
 /*!
 \brief 在参数指定的 REPL 环境中规约字符串表示的翻译单元以求值。
 \exception LoggedEvent 翻译单元为空串。
+\return ReductionStatus::Retained 。
 \sa Reduce
-\since build 835
 
 提供创建 REPL 新实例并求值的便利接口。
 
@@ -992,6 +987,33 @@ EvalStringRef(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 EvalUnit(TermNode&);
+//@}
+
+/*!
+\brief 在动态环境求值第二参数得到的环境中求值第一参数。
+\sa ResolveEnvironment
+\since build 923
+
+以表达式 \c \<expression> 和环境 \c \<environment> 为指定的参数进行求值。
+*/
+//@{
+/*!
+按值传递返回值：提升求值后的项。
+
+参考调用文法：
+<pre>$remote-eval \<expression> \<environment></pre>
+*/
+YF_API ReductionStatus
+RemoteEval(TermNode&, ContextNode&);
+
+/*!
+不提升求值后的项，允许返回引用值。
+
+参考调用文法：
+<pre>$remote-eval% \<expression> \<environment></pre>
+*/
+YF_API ReductionStatus
+RemoteEvalRef(TermNode&, ContextNode&);
 //@}
 
 

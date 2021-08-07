@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2020 FrankHB.
+	© 2009-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台中立的文件抽象。
-\version r1680
+\version r1694
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2020-12-03 20:48 +0800
+	2021-08-03 19:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,12 +44,19 @@ namespace IO
 \pre 路径参数非空。
 \throw std::system_error 打开失败。
 \return 非空的文件指针。
-\note 当前没有公开打开模式的参数，可能使用平台相关的值或 omode_conv 的结果。
 \sa uopen
-\since build 905
+\since build 923
 */
-YF_API YB_NONNULL(1) UniqueFile
-OpenFile(const char*, int, mode_t = DefaultPMode());
+template<typename... _tParams>
+YB_NONNULL(1) UniqueFile
+OpenFile(const char* filename, _tParams&&... args)
+{
+	if(UniqueFile p_ifile{uopen(filename, yforward(args)...)})
+		return p_ifile;
+	else
+		ystdex::throw_error(errno, "Failed opening file '"
+			+ std::string(filename) + '\'');
+}
 
 
 /*!
@@ -156,7 +163,7 @@ public:
 #endif
 	UniqueLockedOutputFileStream(const _tChar* filename,
 		std::ios_base::openmode mode, mode_t pmode = DefaultPMode())
-		: UniqueLockedOutputFileStream(omode_convb(mode), filename, mode, pmode)
+		: UniqueLockedOutputFileStream(uopen(filename, {}, mode, pmode), mode)
 	{}
 	//@}
 

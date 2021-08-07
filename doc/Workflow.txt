@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4478
+\version r4494
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2021-07-10 17:05 +0800
+	2021-08-05 11:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -4434,6 +4434,25 @@ OpenImageIO(https://sites.google.com/site/openimageio/home): considerable, tenta
 	The organization of the source directory structure seems still in a bet mess.
 	It is likely but not completely known to be sufficient to replace the current use of FreeImage.
 		There may need more review to analyze.
+
+
+$2021-08:
+
+report.impl:
+The implementation of file stream opening in YFramework module YCLib::FileIO is revised.
+	In Win32, the '_fdopen' call is replaced by '_wfdopen', to eliminate the unnecessary transcoding of the mode string argument in the underlying implementation.
+		As a result, no errors will occur during the conversion to the mode string.
+	Implmentation specific to Microsoft VC++ is fixed.
+		Native 'std::_Fiopen' is now avoided to prevent potential bugs in the overload with the path parameter.
+			Instead, the newly added 'uopen' with 'std::ios_base::openmode' support is used.
+			These issues also exist in the current Microsoft VC++'s standard library.
+			See https://github.com/microsoft/STL/issues/2093.
+		As a result, the file sharing option ('shflag' in UCRT lowio) is also not used explicitly.
+			Previously, 'std::ios_base::_Openprot' is used.
+			There should be no effects.
+				Both 'std::ios_base::_Openprot' and the implicit default 'shflag' in the implementation of '::open' (at least in UCRT) used by the newly added 'uopen' is the same, i.e. '_SH_DENYNO'.
+			'_SH_DENYNO' is also the value of the default flag 'std::ios_base::_Default_open_prot' used by <fstream> buffer interface in Microsoft VC++'s standard library as the default argument of some 'open' functions, as well as the 'std::fopen' implementation in UCRT.
+				This is expected for compatibility, since other implementations has few file mandatory locking as the Win32 file sharing options enabled by default.
 
 ////
 

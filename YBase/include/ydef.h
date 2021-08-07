@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 语言实现和系统环境相关特性及公用类型和宏的基础定义。
-\version r3975
+\version r3985
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2021-07-07 19:12 +0800
+	2021-08-02 02:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -432,7 +432,11 @@
 \def YPP_Diag_Ignore
 \brief 忽略诊断选项。
 */
-#if YB_IMPL_CLANGPP
+#if YB_IMPL_MSCPP
+#	define YB_Diag_Push _Pragma("warning(push)")
+#	define YB_Diag_Pop _Pragma("warning(pop)")
+#	define YB_Diag_Ignore(_opt) _Pragma(YPP_Stringize(warning(disable: _opt)))
+#elif YB_IMPL_CLANGPP
 #	define YB_Diag_Push _Pragma("clang diagnostic push")
 #	define YB_Diag_Pop _Pragma("clang diagnostic pop")
 #	define YB_Diag_Ignore(_opt) _Pragma( \
@@ -975,7 +979,11 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 
 #if YB_IMPL_MSCPP >= 1200
 //! \since build 454
-#	pragma warning(disable: 4646)
+YB_Diag_Ignore(4646)
+// NOTE: See https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-3-c4646.
+// NOTE: The warning "function declared with __declspec(noreturn) has non-void
+//	return type" is unwanted since the type of function may be significant even
+//	it does not return.
 #endif
 
 /*!

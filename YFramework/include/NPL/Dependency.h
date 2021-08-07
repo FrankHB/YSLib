@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r474
+\version r492
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2021-07-21 05:02 +0800
+	2021-08-07 05:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -205,7 +205,6 @@ LoadGroundContext(REPLContext&);
 //@{
 /*!
 \brief 加载代理求值模块。
-\note 当前实现：加载时占用当前环境的实现保留变量 __ 。
 \since build 856
 
 加载 promise 等类型和延迟求值等操作。
@@ -231,13 +230,28 @@ LoadModule_std_io(REPLContext&);
 
 /*!
 \brief 加载系统模块。
-\pre 当前实现：求值合并子调用前已加载字符串模块或等价方式初始化为模块 std.strings 。
 \sa LoadModule_std_strings
 
 加载系统库操作。
+当前实现：求值合并子调用前已加载字符串模块或等价方式初始化为模块 std.strings 。
 */
 YF_API void
 LoadModule_std_system(REPLContext&);
+
+/*!
+\brief 加载模块管理模块。
+\pre 当前实现：已加载初始化依赖的模块。
+\since build 923
+
+加载模块管理操作。
+当前实现：已加载初始化以下模块：
+字符串模块 std.strings ；
+输入/输出模块 std.io ；
+代理求值模块 std.promises ；
+系统模块 std.system 。
+*/
+YF_API void
+LoadModule_std_modules(REPLContext&);
 
 /*!
 \brief 加载 SHBuild 使用的内部模块。
@@ -253,8 +267,8 @@ LoadModule_SHBuild(REPLContext&);
 /*!
 \brief 加载 NPLA1 基础上下文和标准模块。
 \sa LoadGroundContext
-\sa LoadModule_std_environments
 \sa LoadModule_std_io
+\sa LoadModule_std_modules
 \sa LoadModule_std_promises
 \sa LoadModule_std_strings
 \sa LoadModule_std_system
