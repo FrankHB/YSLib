@@ -132,7 +132,7 @@ $provide!
 	$set! mods safeenv-get safeenv-get;
 
 	$defv/e! &$lazy-env-val mods (&name .&body) d
-		$lazy/e (() lock-current-environment)
+		$lazy/d (() lock-current-environment)
 			$let ((t safeenv-get name)) $if (string-empty? t)
 				(eval (move! body) d) t,
 	$defv/e! &$env-de! mods (&var .&body) d

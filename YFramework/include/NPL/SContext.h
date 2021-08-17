@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r4063
+\version r4094
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2021-04-27 22:13 +0800
+	2021-08-09 21:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -667,6 +667,39 @@ YB_ATTR_nodiscard YB_PURE inline
 	ImplRet(nd.empty() || !nd.Value)
 //@}
 
+/*!
+\brief 判断项节点的值数据成员具有指定的目标类型。
+\since build 924
+*/
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE inline bool
+IsTyped(const TermNode& nd)
+{
+	return nd.Value.type() == ystdex::type_id<_type>();
+}
+
+/*!
+\brief 判断项节点是具有指定目标类型的值数据成员的正规节点。
+\since build 924
+*/
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE inline bool
+IsTypedRegular(const TermNode& nd)
+{
+	return nd.empty() && IsTyped<_type>(nd);
+}
+
+/*!
+\brief 判断项节点是否具有指定的值。
+\since build 753
+*/
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE inline bool
+HasValue(const TermNode& nd, const _type& x)
+{
+	return nd.Value == x;
+}
+
 //! \since build 853
 using YSLib::Access;
 //! \since build 854
@@ -803,17 +836,6 @@ SetContentWith(TermNode& dst, _tNode&& nd, _fCallable f)
 	dst.SetContent(std::move(con), std::move(vo));
 }
 //@}
-
-/*!
-\brief 检查项节点是否具有指定的值。
-\since build 753
-*/
-template<typename _type>
-YB_ATTR_nodiscard YB_PURE inline bool
-HasValue(const TermNode& nd, const _type& x)
-{
-	return nd.Value == x;
-}
 //@}
 
 /*!

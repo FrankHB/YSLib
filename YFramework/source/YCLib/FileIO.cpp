@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3905
+\version r3911
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2021-08-03 20:44 +0800
+	2021-08-08 15:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -761,22 +761,14 @@ uopen(const char* filename, use_openmode_t, std::ios::openmode mode,
 	mode_t pmode) ynothrowv
 {
 	YAssertNonnull(filename);
-
-	const int oflag(omode_conv(mode));
-
-	return oflag != 0 ? uopen(filename, oflag_extend_binary(mode, oflag), pmode)
-		: -1;
+	return uopen(filename, oflag_extend_binary(mode, omode_conv(mode)), pmode);
 }
 int
 uopen(const char16_t* filename, use_openmode_t, std::ios::openmode mode,
 	mode_t pmode) ynothrowv
 {
 	YAssertNonnull(filename);
-
-	const int oflag(omode_conv(mode));
-
-	return oflag != 0 ? uopen(filename, oflag_extend_binary(mode, oflag), pmode)
-		: -1;
+	return uopen(filename, oflag_extend_binary(mode, omode_conv(mode)), pmode);
 }
 
 std::FILE*

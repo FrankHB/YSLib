@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8687
+\version r8746
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2021-06-20 18:58 +0800
+	2021-08-10 22:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1042,15 +1042,15 @@ template<typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline ContextHandler
 MakeForm(const TermNode& term, _tParams&&... args)
 {
-	return MakeForm(term.get_allocator(), yforward(args)...);
+	return A1::MakeForm(term.get_allocator(), yforward(args)...);
 }
 
 template<typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline TermNode
 AsForm(TermNode::allocator_type a, _tParams&&... args)
 {
-	// XXX: Allocators are not used on %FormContextHandler for performance in
-	//	most cases.
+	// XXX: Allocators are not used as the parameter of the constructor of
+	//	%FormContextHandler for performance in most cases.
 #if true
 	return NPL::AsTermNode(a, std::allocator_arg, a,
 		in_place_type<ContextHandler>, std::allocator_arg, a,
@@ -1118,6 +1118,11 @@ RegisterStrict(_tTarget& target, string_view name, _tParams&&... args)
 
 
 /*!
+\pre 间接断言：参数指定的项是分支列表节点或项的容器非空（对应枝节点）。
+\sa AssertBranchedList
+*/
+//@{
+/*!
 \brief 取项的参数个数：子项数减 1 。
 \pre 间接断言：参数指定的项是分支列表节点。
 \return 项作为列表操作数被匹配的最大实际参数的个数。
@@ -1126,6 +1131,60 @@ RegisterStrict(_tTarget& target, string_view name, _tParams&&... args)
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(size_t, FetchArgumentN, const TermNode& term) ynothrowv
 	ImplRet(AssertBranchedList(term), term.size() - 1)
+
+/*!
+\brief 检查可变参数数量。
+\pre 间接断言：参数指定的项是分支列表节点。
+\exception ParameterMismatch 缺少项的错误。
+\sa FetchArgumentN
+\sa RemoveHead
+\sa ThrowInsufficientTermsError
+\since build 924
+
+检查第一参数的子项数大于第二参数指定的参数个数。
+若具有不大于第二参数指定的参数个数，则移除第一个子项，抛出缺少项的异常。
+*/
+inline PDefH(void, CheckVariadicArity, TermNode& term, size_t n)
+	ImplExpr(FetchArgumentN(term) > n ? void()
+		: (RemoveHead(term), ThrowInsufficientTermsError(term, {})))
+
+/*!
+\note 保留求值留作保留用途，一般不需要被作为用户代码直接使用。
+\note 只用于检查项的个数时，可忽略返回值。
+\since build 765
+
+可使用 RegisterForm 注册上下文处理器，参考文法：
+$retain|$retainN \<expression>
+*/
+//@{
+// XXX: G++ will warn with [-Wunused-value] if it is pure. See also $2019-01
+//	@ %Documentation::Workflow.
+#if defined(NDEBUG) && YB_IMPL_GNUCPP >= 100000
+	YB_Diag_Push
+	YB_Diag_Ignore(suggest-attribute=pure)
+#endif
+//! \brief 保留项：保留求值。
+inline PDefH(ReductionStatus, Retain, const TermNode& term) ynothrowv
+	ImplRet(AssertBranchedList(term), ReductionStatus::Regular)
+#if defined(NDEBUG) && YB_IMPL_GNUCPP >= 100000
+	YB_Diag_Pop
+#endif
+
+/*!
+\brief 保留经检查确保具有指定个数参数的项：保留求值。
+\pre 间接断言：参数指定的项是分支列表节点。
+\return 项的参数个数。
+\throw ArityMismatch 项的参数个数不等于第二参数。
+\sa FetchArgumentN
+*/
+inline size_t
+RetainN(const TermNode& term, size_t m = 1)
+	ImplRet([&](size_t n){
+		if(n == m)
+			return n;
+		throw ArityMismatch(m, n);
+	}(FetchArgumentN(term)))
+//@}
 
 
 /*!
@@ -1224,8 +1283,8 @@ inline PDefH(void, EvaluateLiteralHandler, TermNode& term,
 */
 YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsCombiningTerm,
 	const TermNode& term) ynothrow
-	ImplRet(!(term.empty() || (term.Value
-		&& term.Value.type() != ystdex::type_id<TokenValue>())))
+	ImplRet(!(term.empty()
+		|| (term.Value && term.Value.type() != ystdex::type_id<TokenValue>())))
 
 /*!
 \brief 规约合并项：检查项的第一个子项尝试作为操作符进行函数应用，并规范化。

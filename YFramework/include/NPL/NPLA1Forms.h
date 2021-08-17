@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8260
+\version r8421
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2021-08-07 12:18 +0800
+	2021-08-11 12:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,15 +29,14 @@
 #define NPL_INC_NPLA1Forms_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_NPLA1 // for string, TokenValue, ReductionStatus, TermNode,
-//	AssertBranch, ystdex::exclude_self_t, ystdex::expand_proxy,
+#include YFM_NPL_NPLA1 // for shared_ptr, TermNode, ReductionStatus, string,
+//	TokenValue, AssertBranch, ystdex::exclude_self_t, ystdex::expand_proxy,
 //	NPL::ResolveTerm, std::next, NPL::Access, NPL::Deref,
 //	Forms::CallResolvedUnary, ResolvedTermReferencePtr, NPL::AccessRegular,
 //	ystdex::make_expanded, std::ref, ystdex::invoke_nonvoid, TNIter,
 //	NPL::ResolveRegular, ystdex::make_transform, std::accumulate,
 //	std::placeholders::_2, ystdex::bind1, ContextNode,
-//	ystdex::equality_comparable, ystdex::examiners::equal_examiner, Environment,
-//	shared_ptr;
+//	ystdex::equality_comparable, ystdex::examiners::equal_examiner, Environment;
 
 namespace NPL
 {
@@ -47,34 +46,8 @@ namespace A1
 {
 
 /*!
-\brief NPLA1 语法形式对应的功能实现。
-\pre 除非另行指定支持保存当前动作，若存在子项，关联的上下文中的尾动作为空。
-\pre 设置为处理器调用的操作在进入调用前应确保设置尾上下文等内部状态。
-\pre 作为操作数的项的子项不包含引用或非正规表示引入的对操作数内的子项的循环引用。
-\pre 作为 NPLA1 规约函数的函数的参数符合规约函数实现约定。
-\pre 间接断言：作为规约函数第一参数指定的项是枝节点，以符合语法形式的实现要求。
-\sa ContextState
-\see %Documentation::NPL.
-\since build 732
-
-提供支持 NPLA1 对象语言文法的操作的接口。
-提供的操作用于实现操作子或应用子底层的操作子。
-除非另行指定，操作子的参数被通过直接转移项的形式转发。
-在 NPLA1 规约函数约定的基础上，除非另行指定：
-	在异步实现中都要求下一项项和参数指定的项相同；
-	对上述约定可隐含使用间接的断言检查；
-	参数指定的被规约项是分支列表节点；
-	参数指定的被规约项的容器非空（对应枝节点）。
-*/
-namespace Forms
-{
-
-/*!
 \brief 判断字符串值是否可构成符号。
 \since build 779
-
-参考调用文法：
-<pre>symbol-string? \<object></pre>
 */
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsSymbol(const string&) ynothrow;
@@ -95,49 +68,184 @@ StringToSymbol(string&&);
 /*!
 \brief 取符号对应的名称字符串。
 \since build 786
+
+参考调用文法：
+<pre>symbol-string? \<object></pre>
 */
 YB_ATTR_nodiscard YF_API YB_STATELESS const string&
 SymbolToString(const TokenValue&) ynothrow;
 
 
 /*!
-\pre 断言：参数指定的项是分支列表节点或项的容器非空（对应枝节点）。
-\sa AssertBranch
+\warning 非虚析构。
+\since build 924
 */
 //@{
-/*!
-\note 保留求值留作保留用途，一般不需要被作为用户代码直接使用。
-\note 只用于检查项的个数时，可忽略返回值。
-\since build 765
+//! \brief 封装对象基类。
+class YF_API EncapsulationBase
+{
+private:
+	// XXX: Is it possible to support %TermReference safety check here with
+	//	anchors?
+	// TODO: Add naming scheme and persistence interoperations?
+	shared_ptr<void> p_type;
 
-可使用 RegisterForm 注册上下文处理器，参考文法：
-$retain|$retainN \<expression>
-*/
-//@{
-// XXX: G++ will warn with [-Wunused-value] if it is pure. See also $2019-01
-//	@ %Documentation::Workflow.
-#if defined(NDEBUG) && YB_IMPL_GNUCPP >= 100000
-	YB_Diag_Push
-	YB_Diag_Ignore(suggest-attribute=pure)
-#endif
-//! \brief 保留项：保留求值。
-inline PDefH(ReductionStatus, Retain, const TermNode& term) ynothrowv
-	ImplRet(AssertBranchedList(term), ReductionStatus::Regular)
-#if defined(NDEBUG) && YB_IMPL_GNUCPP >= 100000
-	YB_Diag_Pop
-#endif
+public:
+	EncapsulationBase(shared_ptr<void> p) ynothrow
+		: p_type(std::move(p))
+	{}
+	DefDeCopyMoveCtorAssignment(EncapsulationBase)
 
-/*!
-\brief 保留经检查确保具有指定个数参数的项：保留求值。
-\pre 间接断言：参数指定的项是分支列表节点。
-\return 项的参数个数。
-\throw ArityMismatch 项的参数个数不等于第二参数。
-\sa FetchArgumentN
-*/
-YF_API size_t
-RetainN(const TermNode&, size_t = 1);
+	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
+		const EncapsulationBase& x, const EncapsulationBase& y) ynothrow
+		ImplRet(x.p_type == y.p_type)
+
+	DefGetter(const ynothrow, const EncapsulationBase&, , *this)
+	DefGetter(ynothrow, EncapsulationBase&, Ref, *this)
+	DefGetter(const ynothrow, const shared_ptr<void>&, Type, p_type)
+};
+
+
+//! \brief 封装对象类。
+class YF_API Encapsulation : private EncapsulationBase
+{
+public:
+	mutable TermNode TermRef;
+
+	Encapsulation(shared_ptr<void> p, TermNode term)
+		: EncapsulationBase(std::move(p)), TermRef(std::move(term))
+	{}
+	DefDeCopyMoveCtorAssignment(Encapsulation)
+
+	//! \note 使用同 Equal 的异步实现。
+	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
+		const Encapsulation& x, const Encapsulation& y) ynothrow
+		ImplRet(x.Get() == y.Get()
+			&& Equal(ReferenceTerm(x.TermRef), ReferenceTerm(y.TermRef)))
+
+	using EncapsulationBase::Get;
+	using EncapsulationBase::GetType;
+
+	//! \note 使用不依赖上下文的跳板实现，以支持符合嵌套安全要求的递归比较。
+	static bool
+	Equal(const TermNode&, const TermNode&);
+};
+
+
+//! \brief 封装操作上下文处理器。
+class YF_API Encapsulate : private EncapsulationBase
+{
+public:
+	Encapsulate(shared_ptr<void> p)
+		: EncapsulationBase(std::move(p))
+	{}
+	DefDeCopyMoveCtorAssignment(Encapsulate)
+
+	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
+		const Encapsulate& x, const Encapsulate& y) ynothrow
+		ImplRet(x.Get() == y.Get())
+
+	/*!
+	\note 符合 Forms 中对规约函数的约定。
+	\note 使用同步实现。
+	*/
+	ReductionStatus
+	operator()(TermNode&) const;
+};
+
+
+//! \brief 封装值操作上下文处理器。
+class EncapsulateValue : private EncapsulationBase
+{
+public:
+	EncapsulateValue(shared_ptr<void> p)
+		: EncapsulationBase(std::move(p))
+	{}
+	DefDeCopyMoveCtorAssignment(EncapsulateValue)
+
+	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
+		const EncapsulateValue& x, const EncapsulateValue& y) ynothrow
+		ImplRet(x.Get() == y.Get())
+
+	/*!
+	\note 符合 Forms 中对规约函数的约定。
+	\note 使用同步实现。
+	*/
+	ReductionStatus
+	operator()(TermNode&) const;
+};
+
+
+//! \brief 封装类型判断谓词上下文处理器。
+class YF_API Encapsulated : private EncapsulationBase
+{
+public:
+	Encapsulated(shared_ptr<void> p)
+		: EncapsulationBase(std::move(p))
+	{}
+	DefDeCopyMoveCtorAssignment(Encapsulated)
+
+	YB_ATTR_nodiscard YB_PURE friend
+		PDefHOp(bool, ==, const Encapsulated& x, const Encapsulated& y) ynothrow
+		ImplRet(x.Get() == y.Get())
+
+	/*!
+	\note 符合 Forms 中对规约函数的约定。
+	\note 使用同步实现。
+	*/
+	ReductionStatus
+	operator()(TermNode&) const;
+};
+
+
+//! \brief 解封装操作上下文处理器。
+class Decapsulate : private EncapsulationBase
+{
+public:
+	Decapsulate(shared_ptr<void> p)
+		: EncapsulationBase(std::move(p))
+	{}
+	DefDeCopyMoveCtorAssignment(Decapsulate)
+
+	YB_ATTR_nodiscard YB_PURE friend
+		PDefHOp(bool, ==, const Decapsulate& x, const Decapsulate& y) ynothrow
+		ImplRet(x.Get() == y.Get())
+
+	/*!
+	\note 符合 Forms 中对规约函数的约定。
+	\note 使用同步实现。
+	*/
+	ReductionStatus
+	operator()(TermNode&) const;
+};
 //@}
 
+
+/*!
+\brief NPLA1 语法形式对应的功能实现。
+\pre 除非另行指定支持保存当前动作，若存在子项，关联的上下文中的尾动作为空。
+\pre 设置为处理器调用的操作在进入调用前应确保设置尾上下文等内部状态。
+\pre 作为操作数的项的子项不包含引用或非正规表示引入的对操作数内的子项的循环引用。
+\pre 作为 NPLA1 规约函数的函数的参数符合规约函数实现约定。
+\pre 间接断言：作为规约函数第一参数指定的项是枝节点，以符合语法形式的实现要求。
+\sa ContextState
+\see %Documentation::NPL.
+\since build 732
+
+提供支持 NPLA1 对象语言文法的操作的接口。
+提供的操作用于实现操作子或应用子底层的操作子。
+除非另行指定，操作子的参数被通过直接转移项的形式转发。
+对其中符合规约函数的 API ，在 NPLA1 规约函数约定的基础上，除非另行指定：
+	可能使用同步（不依赖上下文）或异步（依赖上下文）实现；
+	没有依赖上下文参数的规约函数使用同步实现；
+	异步实现依赖的上下文是当前上下文；
+	在异步实现中都要求下一项项和参数指定的项相同；
+	对规约函数的约定可隐含使用间接的断言检查；
+	参数指定的被规约项是分支列表节点；
+	参数指定的被规约项的容器非空（对应枝节点）。
+*/
+namespace Forms
+{
 
 /*!
 \brief 直接返回状态或取返回值替换指定的项的值数据成员。
@@ -322,7 +430,6 @@ CallBinaryAs(_func&& f, TermNode& term, _tParams&&... args)
 		yforward(args)...));
 }
 //@}
-//@}
 
 /*!
 \brief 访问节点并以指定的初始值为基础逐项调用二元函数。
@@ -348,7 +455,7 @@ CallBinaryFold(_func f, _type val, TermNode& term, _tParams&&... args)
 
 /*!
 \brief 保存函数展开调用的函数对象。
-\todo 使用 C++14 lambda 表达式代替。
+\warning 非虚析构。
 
 适配作为上下文处理器的除项以外可选参数的函数对象。
 为适合作为上下文处理器，支持的参数列表类型实际存在限制：
@@ -586,6 +693,7 @@ EqReference(TermNode&);
 
 /*!
 \brief 比较两个子项表示的值数据成员相等。
+\note 依赖目标对象的相等，其中可能有不依赖上下文的异步实现。
 
 参考调用文法：
 <pre>eqv? \<object1> \<object2></pre>
@@ -660,7 +768,7 @@ Unless(TermNode&, ContextNode&);
 
 /*!
 \brief 逻辑非。
-\since build 861
+\since build 924
 
 操作数直接由函数参数指定。
 当项求值为 true 时返回 false ，否则返回 true 。
@@ -669,7 +777,7 @@ Unless(TermNode&, ContextNode&);
 <pre>not? \<test></pre>
 */
 YF_API YB_PURE bool
-Not(TermNode&);
+Not(const TermNode&);
 
 /*!
 \note 支持保存当前动作。

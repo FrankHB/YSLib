@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r4592
+\version r4793
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-08-07 14:41 +0800
+	2021-08-18 00:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,190 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+	`	* "wrong %std::char_traits specialization used for character types \
+			other than %char" @ "function template %openmode_conv#2"
+			@ %CStandardIO $since b923,
+		/ %TypeInfo $=
+		(
+			+ 'ynothrow' @ "static function %make" @ "class %type_id_info";
+			* "missing 'ynothrow" @ "function template %type_id" $since b683
+				// As a replacement for 'typeid' on static types, it should be \
+					have same results as an operand of 'noexcept'. Call sites \
+					using it (e.g. %type function of holders in %Any) also \
+					assume it non-throwing.
+		)
+	),
+	/ %YFramework $=
+	(
+		/ DLDI @ %YSLib.Service.FileSystem ^ 'mode_t()' ~ '0',
+			// To eliminate G++ warning: [-Wsign-conversion].
+		/ %YCLib.FileIO $=
+		(
+			/ DD $revert_ex(b923) "descriptions on %omode_conv failure value";
+				// This is not checkable since the failure value from \
+					%omode_conv can be same to %OpenMode::Read (except a few \
+					platforms like GNU/Hurd).
+			* "wrong open flag check"
+				@ "functions %uopen with %use_openmode_t parameter" $since b923
+				// Due to the improper check, modes like %std::ios_base::in \
+					would fail unexpectedly without even touching %errno.
+		),
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				* "missing qualified 'A1::'" @ "function template %MakeForm#2"
+					$since b921,
+				+ "function %CheckVariadicArity"
+			),
+			/ %NPLA1Forms $=
+			(
+				+ "classes %(EncapsulationBase; Encapsulation; Encapsulate, \
+					EncapsulateValue, Encapsulated, Decapsulate)",
+				/ @ "namespace %Forms" $=
+				(
+					/ "function %MakeEncapsulationType" $=
+					(
+						/ DLDI ^ $dep_from "%(Encapsulated, Encapsulate, \
+							Decapsulate)";
+						/ "encapsulation constructor" $=
+						(
+							* $comp "referent wrongly saved instead of the \
+								reference value being forwarded" $since b834;
+							* $comp $re_add(b913) "missing support of \
+								irregular reprenstation for reference results"
+								$since b858
+						)
+					),
+					/ "parameter type 'TermNode&'" @ "function %Not"
+						-> 'const TermNode&',
+					/ DLI "checked term" @ "%operator()" @ "vau handler"
+						^ "%Retain" ~ ("%IsBranchedList", 'throw'),
+						// This is also more consistent to other \
+							context handler implementations.
+					(
+					/ DLI "function %RetainN" -> "inline function";
+					/ "functions %(Retain, RetainN)" >> "namespace %A1"
+						@ %NPLA1
+					),
+					(
+					* $comp "wrong argument for exception" @ "functions \
+						%(ListAsterisk, ListAsteriskRef)" ^ $dep_from
+						("%CheckVariadicArity" @ %NPLA1) $since b904,
+						// The term shown in the exception message is \
+							different to that in the derivations.
+					/ "simplified exception thrown for insufficient subterms"
+						@ "functions %(Vau, VauRef, Lambda, LambdaRef, WVau, \
+						WVauRef, VauWithEnvironment, VauWithEnvrionmentRef, \
+						LambdaWithEnvironment, LambdaWithEnvironmentRef, \
+						WVauWithEnvironment, WVauWithEnvironmentRef)"
+						^ $dep_from ("%CheckVariadicArity" @ %NPLA1);
+					/ DLDI "simplified variadic argument checks" ^ $dep_from
+						("%CheckVariadicArity" @ %NPLA1) $effective
+						@ "functions %(Let, LetRef, LetWithEnvironment, \
+						LetWithEnvironmentRef, LetAsterisk, LetAsteriskRef, \
+						LetRec, LetRecRef, BindingsWithParentToEnvironment, \
+						ProvideLet, Provide, Import, ImportRef, When, Unless)"
+					),
+					- DLI 'YB_FLATTEN' @ "several internal implementations"
+						@ "functions %(FoldR1, Map1, Apply, ListAsterisk, \
+						ListAsteriskRef, Cons, ConsRef, SetRest, First, \
+						FirstFwd, FirstVal)",
+						// This is now a bit more efficient at least with \
+							x86-64 G++ 11.1 on Linux.
+					* $re_add(b910) "missing setup the next term"
+						@ 'NPL_Impl_NPLA1_Enable_Thunk'
+						@ "functions %(RemoteEval, RemoteEvalRef)" $since b923,
+					* "environment prvalue wrongly moved after the check"
+						@ "function %CheckEnvironment" $since b909
+						/ $= (/ $impl ^ "%ystdex::as_const"),
+					* $lib "environment wrongly copied for reference value to \
+						temporaries" @ ("function %CheckEnvironment"
+						$since b859, "function %CheckParent" $since b909)
+						/ $= (/ $impl ^ "%LiftOther" ~ "%MoveRValueToReturn"),
+					* "object in environment list wrongly moved after the \
+						construction for nonmodifying contexts" @ "functions \
+						%CheckParent and all constructor forms of combiner \
+						with environment" $since b909
+				)
+			),
+			/ %Dependency $=
+			(
+				/ DLDI "simplified function" ^ 'RegisterStrict'
+					~ 'RegisterStrict<>'
+					$effective @ "function %LoadModule_std_modules",
+				/ DLDI "simplified functions" ^ ('RegisterUnary'
+					~ 'RegisterUnary<>', 'RegisterBinary' ~ 'RegisterBinary<>')
+					$effective
+					@ "functions %(LoadGroundContext, LoadModule_std_strings)",
+				/ @ "function %LoadGroundContext" $=
+				(
+					* "missing lifting parameter" @ "applicative %box"
+						$since b858
+					/ $lib "added native implementation enabled by default"
+						@ "applicatives ('box', 'box%', 'box?', 'unbox')"
+						$dep_from ("%(EncapsulateValue, Encapsulate, \
+						Encapsulated, Decapsulate)" @ %NPLA1Forms),
+					/ DLDI "simplified variadic argument checks for native \
+						combiner definitions"
+						^ $dep_from ("%CheckVariadicArity" @ %NPLA1),
+					* "missing forwarding object parameter"
+						@ "alternative derivation" @ "operatives \
+						('$remote-eval', '$remote-eval%')" $since b923,
+					* "ill-formed derivation"
+						@ "applicative 'check-environment'" $since b909
+						$= (/ $impl ^ '#inert' ~ '#ignore')
+				),
+				/ $forced DLDI "function %ReduceToLoadExternal"
+					$dep_from ("%RetainN" @ %NPLA1Forms),
+				/ @ "function %LoadModule_std_promises" $=
+				(
+					// See $2021-08 @ %Documentation::Workflow.
+					* $revert_ex(b909) "wrong environment parameter"
+						@ "operative $lazy/e" $since b909
+						$= (/ $impl ^ $dep_from 'check-environment'
+							~ 'check-parent' $dep_from
+							("%Forms::CheckEnvironment" @ %NPLA1Forms));
+					/ $operative 'lazy/e' => 'lazy/d',
+					/ @ "applicative %force" $=
+					(
+						* "wrong lvalue-to-rvalue conversion in the forced \
+							value" $since b857
+							$= (/ $impl ^ '$let%' ~ '$let'),
+						* "missing forwarding the result based on the value \
+							category of the promise object" $since b857,
+						* "missing handling of self-modification after the \
+							evaluation for the result" $since b857
+							$= (/ $impl ^ '$let%*'),
+						* "redundant lvalue-to-rvalue conversion in saving \
+							value" $since b857
+							$= (/ $impl ^ 'assign%!' ~ 'assign!'),
+							// This also means the lazy forms now preserve \
+								reference values in the evaluation.
+						* $re_add(b918) "unexpected internal argument copy"
+					)
+				),
+				/ DLDI "all parameters for <parent> named 'e'" => 'p'
+					// Similar to the rationale for '$lazy/d'.
+			),
+			+ "function templates %(IsTyped; IsTypedRegular)" @ %SContext,
+			/ DLDI "simplified" ^ $dep_from ("%IsTyped" @ %SContext)
+				$effective (("2 function template %TryAccessLeaf",
+				"functions %(SXML::ConvertDocumentNode, PrepareCollapse, \
+				ContextState::DefaultReduceOnce)") @ %NPLA,
+				"functions %Forms::(FoldR1, Map1)" @ %NPLA1Forms,
+				"constructor %TCOAction" @ %NPLA1Internals)
+		)
+	),
+	/ $forced DLDI @ "%SHBuild-YSLib-common.txt" @ %Tools.Scripts
+		$dep_from '$lazy/e' @ "function %LoadModule_std_promises"
+		@ %YFramework.NPL.Dependency
+),
+
+b923
 (
 	/ %YBase $=
 	(
@@ -1050,10 +1234,10 @@ b917
 							CheckEnvironmentFormals)" @ %NPLA1);
 						/ $comp ^ "wrapped in the nested %InvalidSyntax \
 							exception on failure",
-						* $re_add(b916) $comp "missing nested call safety in \
+						* $comp $re_add(b916) "missing nested call safety in \
 							handling terms from object language"
 							$orig (@ %NPLA1 $since b799)
-					)
+					),
 					/ DLI "optimized binding" @ "%operator()"
 						^ ("%BindParameterWellFormed" @ %NPLA1)
 						~ "%BindParameter"
@@ -1330,7 +1514,7 @@ b915
 		),
 		/ %NPLA1 $=
 		(
-			* "missing support for term references" @ "trailing \
+			* "missing support of term references" @ "trailing \
 				parameter term" @ "functions %(BindParameter, MatchParameter)"
 				@ %NPLA1 $since b800
 				$= (/ $impl ^ "%ReferenceTerm")
@@ -1349,7 +1533,7 @@ b915
 		),
 		/ @ "namespace %Forms" @ %NPLA1Forms $=
 		(
-			* $re_add(b803) "missing support for term references"
+			* $re_add(b803) "missing support of term references"
 				@ "formal parameter tree check" @ "vau handler" $since b800
 				$= (/ $impl ^ "%ReferenceTerm"),
 				// The check for the dynamic environment term has already \
@@ -1403,9 +1587,9 @@ b915
 			/ @ "function %LoadGroundContext" $=
 			(
 				(
-				* "unexpected internal argument copy" @ "alternative derivation"
-					@ ("applicative 'list*'" $since b789,
-					"'operative $sequence'" $since b828)
+				* $re_add(b874) "unexpected internal argument copy"
+					@ "alternative derivation" @ ("applicative 'list*'"
+					$since b789, "'operative $sequence'" $since b828)
 					// Operative '$sequence' support move-only type since \
 						b828, and it is known unable to support it before then.
 					$= (/ $impl ^ ('forward!', 'move!')),
@@ -1545,7 +1729,7 @@ b914
 				%std::initializer_list instance"
 				@ "%TermNode::Container assignment" $effective
 				@ "functions %(ForwardListFirst, MakeEncapsulationType)";
-			* $re_add(b913) $comp "move-only object not allowed in terms \
+			* $comp $re_add(b913) "move-only object not allowed in terms \
 				handled by functions as native implemention of applicative"
 				@ ("function %ForwardFirst" $orig (@ "%ForwardFirstList"
 				$since b875), "function %MakeEncapsulationType" $since b855)
@@ -1576,7 +1760,7 @@ b914
 			(
 				(
 				/ "applicative 'list-extract'" => 'list-extract';
-				* $re_add(b913) $comp DD "safety guarantee broken on list \
+				* $comp $re_add(b913) DD "safety guarantee broken on list \
 					lvalues handled by the safe operation subset implying call \
 					to 'list-extract'" $mismatch(Documentation.NPL) $since b875
 				),
@@ -2335,12 +2519,12 @@ b909
 		/ $dev %NPLA1 $=
 		(
 			(
-			/ DLDI "setup next term" @ 'NPL_Impl_NPLA1_Enable_Thunked'
-				@ "function %ReduceOnce",
+			/ $lib $design $impl  "setup next term"
+				@ 'NPL_Impl_NPLA1_Enable_Thunked' @ "function %ReduceOnce",
 				// See $2021-01 @ %Documentation::Workflow.
-			+ DD "'\pre' command to ensure proper next term set"
+			+ $doc "'\pre' command to ensure proper next term set"
 				@ "Doxygen comment" @ "member object %ContextState::ReduceOnce";
-			- DLI "redundant %SetupNextTerm call" @ "functions \
+			- $lib $impl "redundant %SetupNextTerm call" @ "functions \
 				%(ContextState::DefaultReduceOnce, ReduceCombinedBranch, \
 				ReduceCombinedReferent, FormContextHandler::operator())"
 				@ 'NPL_Impl_NPLA1_Enable_Thunked'
@@ -2348,12 +2532,12 @@ b909
 					used in %SetupDefaultInterpretation (including \
 					%ReduceCombinedBranch) for since b898.
 			),
-			- DLI "simplified to avoid redundant %SetupNextTerm call"
+			- $lib $impl "simplified to avoid redundant %SetupNextTerm call"
 				@ "functions %(RelayForCall, RelayForEval)",
-			/ DLI "simplified" @ 'NPL_Impl_NPLA1_Enable_Thunked'
+			/ $lib $impl "simplified" @ 'NPL_Impl_NPLA1_Enable_Thunked'
 				@ "member function %FormContextHandler::operator()"
 				^ "%A1::RelayCurrentNext" ~ "%A1::ReduceCurrentNext"
-			/ DLI "simplified"
+			/ $lib $impl "simplified"
 				@ 'NPL_Impl_NPLA1_Enable_Thunked && !NPL_Impl_NPLA1_Enable_TCO'
 				@ "function %ReduceOrdered"
 				^ "%A1::RelayCurrentNext" ~ "%A1::ReduceCurrentNext"
@@ -3303,8 +3487,7 @@ b904
 				+ "function %EqualTermValue",
 				/ "supported thunked recursive comparison" @ "%operator=="
 					@ "encapsulation constructed from function \
-					%MakeEncapsulationType"
-					~ "type comparison"
+					%MakeEncapsulationType" ~ "type comparison"
 			),
 			/ %Dependency $=
 			(

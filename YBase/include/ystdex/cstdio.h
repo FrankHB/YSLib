@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r830
+\version r835
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2021-08-01 09:22 +0800
+	2021-08-07 23:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -191,9 +191,9 @@ openmode_conv(const _tChar* s) ynothrow
 		default:
 			goto invalid;
 		}
-		if(s[1] != char())
+		if(s[1] != _tChar())
 		{
-			auto l(char_traits<char>::length(s));
+			auto l(char_traits<_tChar>::length(s));
 
 			if(s[l - 1] == _tChar('x'))
 			{
@@ -210,7 +210,10 @@ openmode_conv(const _tChar* s) ynothrow
 			{
 			case 2:
 				if(b != p)
+					// NOTE: The value of s[1] is either 'b' or '+'.
 					break;
+				// NOTE: Since the value of s[1] cannot be both 'b' and '+' at
+				//	the same time, it has the value neither 'b' or '+'.
 				goto invalid;
 			case 3:
 				yunseq(b = b != (s[2] == _tChar('b')),

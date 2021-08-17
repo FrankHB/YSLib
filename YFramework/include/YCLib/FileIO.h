@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3341
+\version r3346
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2021-08-05 05:25 +0800
+	2021-08-08 15:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -447,6 +447,7 @@ oflag_extend_binary(std::ios_base::openmode, int) ynothrow;
 /*!
 \brief ISO C++ 标准输入输出接口打开模式转换为 POSIX 文件打开模式。
 \return 若失败为 0 ，否则为对应的值。
+\note 失败的返回值的具体含义依赖实现，可对应未指定或未定义的访问模式。
 \note 忽略二进制模式。
 \since build 648
 */
@@ -487,10 +488,12 @@ uopen(const char16_t* filename, int oflag, mode_t pmode = DefaultPMode())
 /*!
 \param mode 打开模式，基本语义与 ISO C++11 对应，具体行为取决于实现。
 \note 第二参数避免重载歧义。
+\warning 不检查代开模式的转换是否失败。
+\sa omode_conv
 \since build 923
 
-第三参数首先转换得到打开旗标。若转换失败，则打开文件失败。
-否则，打开旗标经过以第三参数模式扩展二进制模式，
+第三参数首先以 omode_conv 转换得到打开旗标，并经过以第三参数模式扩展二进制模式，
+若转换失败，且 omode_conv 失败时的返回值的不对应实现已定义的值，则行为未定义。
 继续同没有 use_openmode_t 参数的 uopen 重载的方式打开文件。
 */
 //@{

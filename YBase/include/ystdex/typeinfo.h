@@ -1,5 +1,5 @@
 ﻿/*
-	© 2016, 2018, 2020 FrankHB.
+	© 2016, 2018, 2020-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file typeinfo.h
 \ingroup YStandardEx
 \brief ISO C++ 类型信息扩展。
-\version r176
+\version r192
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2016-04-01 08:56:47 +0800
 \par 修改时间:
-	2020-07-17 01:18 +0800
+	2021-08-09 20:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,8 +51,9 @@ public:
 private:
 	id_t id;
 
+	//! \since build 924
 	yimpl(yconstfn)
-	type_id_info(id_t i = 0)
+	type_id_info(id_t i = 0) ynothrow
 		: id(i)
 	{}
 
@@ -87,9 +88,10 @@ public:
 		return std::hash<id_t>()(id);
 	}
 
+	//! \since build 924
 	template<typename _type>
 	YB_ATTR_nodiscard YB_STATELESS static const type_id_info&
-	make()
+	make() ynothrow
 	{
 		return is_void<_type>() ? xref_void() : xref<remove_cv_t<_type>>();
 	}
@@ -101,8 +103,10 @@ public:
 	}
 
 private:
+	//! \since build 924
+	//@{
 	YB_ATTR_nodiscard static id_t
-	push()
+	push() ynothrow
 	{
 		static id_t id;
 
@@ -111,7 +115,7 @@ private:
 
 	template<typename _type>
 	YB_ATTR_nodiscard static const type_id_info&
-	xref()
+	xref() ynothrow
 	{
 		static_assert(is_same<_type, remove_cv_t<_type>>(),
 			"Invalid type found.");
@@ -121,12 +125,13 @@ private:
 	}
 
 	YB_ATTR_nodiscard static const type_id_info&
-	xref_void()
+	xref_void() ynothrow
 	{
 		static type_id_info info;
 
 		return info;
 	}
+	//@}
 };
 
 
@@ -143,10 +148,13 @@ using std::type_info;
 #endif
 
 
-//! \sa type_info
+/*!
+\sa type_info
+\since build 924
+*/
 template<typename _type>
 YB_ATTR_nodiscard YB_STATELESS const type_info&
-type_id()
+type_id() ynothrow
 {
 #if YB_Use_LightweightTypeID
 	return type_info::make<_type>();

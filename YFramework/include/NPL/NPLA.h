@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r8372
+\version r8385
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2021-07-05 00:23 +0800
+	2021-08-09 21:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,17 +36,17 @@
 //	shared_ptr, NPL::Deref, ystdex::isdigit,
 //	ystdex::is_nothrow_copy_constructible, ystdex::is_nothrow_copy_assignable,
 //	ystdex::is_nothrow_move_constructible, ystdex::is_nothrow_move_assignable,
-//	observer_ptr, ystdex::type_id, std::addressof, NPL::make_observer,
+//	observer_ptr, IsTyped, std::addressof, NPL::make_observer, IsLeaf,
 //	ystdex::equality_comparable, weak_ptr, lref, ystdex::get_equal_to, pair,
-//	ystdex::invoke_value_or, ystdex::expand_proxy, NPL::Access,
-//	ystdex::ref_eq, ValueObject, NPL::SetContentWith, std::for_each,
-//	AccessFirstSubterm, ystdex::less, YSLib::map, pmr, ystdex::copy_and_swap,
-//	NoContainer, ystdex::try_emplace, ystdex::try_emplace_hint,
-//	ystdex::insert_or_assign, ystdex::type_info, ystdex::expanded_function,
-//	ystdex::enable_if_same_param_t, ystdex::exclude_self_t,
-//	ystdex::make_obj_using_allocator, YSLib::forward_list,
-//	ystdex::swap_dependent, YSLib::allocate_shared, YSLib::Logger,
-//	ystdex::exchange, NPL::AsTermNode;
+//	ystdex::invoke_value_or, ystdex::expand_proxy, IsBranch, ystdex::type_id,
+//	NPL::Access, ystdex::ref_eq, ValueObject, NPL::SetContentWith,
+//	std::for_each, AccessFirstSubterm, ystdex::less, YSLib::map, pmr,
+//	ystdex::copy_and_swap, NoContainer, ystdex::try_emplace,
+//	ystdex::try_emplace_hint, ystdex::insert_or_assign, ystdex::type_info,
+//	ystdex::expanded_function, ystdex::enable_if_same_param_t,
+//	ystdex::exclude_self_t, ystdex::make_obj_using_allocator,
+//	YSLib::forward_list, ystdex::swap_dependent, YSLib::allocate_shared,
+//	YSLib::Logger, ystdex::exchange, NPL::AsTermNode;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include <libdefect/exception.h> // for std::exception_ptr;
 
@@ -966,7 +966,7 @@ ThrowTypeErrorForInvalidType(const ystdex::type_info&, const TermNode&, bool);
 \since build 753
 */
 YF_API void
-TokenizeTerm(TermNode& term);
+TokenizeTerm(TermNode&);
 
 //! \exception 异常中立：由项的值数据成员的持有者抛出。
 //@{
@@ -982,14 +982,14 @@ template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
 TryAccessLeaf(TermNode& term)
 {
-	return term.Value.type() == ystdex::type_id<_type>() ? NPL::make_observer(
+	return IsTyped<_type>(term) ? NPL::make_observer(
 		std::addressof(term.Value.GetObject<_type>())) : nullptr;
 }
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<const _type>
 TryAccessLeaf(const TermNode& term)
 {
-	return term.Value.type() == ystdex::type_id<_type>() ? NPL::make_observer(
+	return IsTyped<_type>(term) ? NPL::make_observer(
 		std::addressof(term.Value.GetObject<_type>())) : nullptr;
 }
 //@}

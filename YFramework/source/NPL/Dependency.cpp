@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r5831
+\version r5978
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2021-08-07 16:08 +0800
+	2021-08-18 00:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,27 +28,29 @@
 #include "NPL/YModules.h"
 #include YFM_NPL_Dependency // for set, string, UnescapeContext, string_view,
 //	ystdex::isspace, std::istream, YSLib::unique_ptr, std::throw_with_nested,
-//	std::invalid_argument, ystdex::sfmt, YSLib::share_move, Forms::RetainN,
-//	NPL::ResolveRegular, NPL::Deref, RelaySwitched, A1::NameTypedReducerHandler,
-//	std::bind, std::ref, Forms::CallResolvedUnary, ResolvedTermReferencePtr,
-//	Forms::CallRawUnary, TermReference, NPL::TryAccessLeaf,
-//	NPL::AllocateEnvironment, function, ValueObject, EnvironmentReference,
-//	std::piecewise_construct, NPL::forward_as_tuple, LiftOther,
-//	ThrowNonmodifiableErrorForAssignee, ThrowValueCategoryError, ValueToken,
-//	ResolveTerm, IsNPLASymbol, ThrowInvalidTokenError,
-//	Forms::CallRegularUnaryAs, TokenValue, A1::AsForm, NPL::CollectTokens,
-//	Strict, IsEmpty, ComposeReferencedTermOp, IsBranch, IsReferenceTerm,
-//	IsBoundLValueTerm, IsUncollapsedTerm, IsUniqueTerm, IsModifiableTerm,
-//	IsTemporaryTerm, ReferenceTerm, LiftTermRef, NPL::SetContentWith, LiftTerm,
-//	LiftOtherOrCopy, ystdex::bind1, std::placeholders, LiftTermValueOrCopy,
-//	MoveResolved, ResolveIdentifier, NPLException, ReduceToReferenceList,
-//	NPL::IsMovable, LiftTermOrCopy, IsBranchedList, AccessFirstSubterm,
-//	ThrowInsufficientTermsError, NPL::AsTermNode, ystdex::fast_any_of, Ensigil,
-//	YSLib::ufexists, YSLib::to_std_string, ystdex::plus, ystdex::tolower,
-//	YSLib::OwnershipTag, YSLib::IO::StreamPut, YSLib::FetchEnvironmentVariable,
-//	YSLib::SetEnvironmentVariable, YSLib::IO::UniqueFile, YSLib::uremove,
-//	YSLib::allocate_shared, ReduceReturnUnspecified, ystdex::throw_error;
-#include YFM_NPL_NPLA1Forms // for NPL::Forms functions;
+//	std::invalid_argument, ystdex::sfmt, YSLib::share_move, REPLContext,
+//	RetainN, NPL::ResolveRegular, NPL::Deref, RelaySwitched,
+//	A1::NameTypedReducerHandler, std::bind, std::ref, ResolvedTermReferencePtr,
+//	NPL::TryAccessLeaf, TermReference, LiftTerm, NPL::AllocateEnvironment,
+//	function, ValueObject, EnvironmentReference, std::piecewise_construct,
+//	NPL::forward_as_tuple, LiftOther, ThrowNonmodifiableErrorForAssignee,
+//	ThrowValueCategoryError, ValueToken, ResolveTerm, IsNPLASymbol,
+//	ThrowInvalidTokenError, std::placeholders, TokenValue, CheckVariadicArity,
+//	A1::AsForm, NPL::CollectTokens, Strict, IsEmpty, ComposeReferencedTermOp,
+//	IsBranch, IsReferenceTerm, IsBoundLValueTerm, IsUncollapsedTerm,
+//	IsUniqueTerm, IsModifiableTerm, IsTemporaryTerm, ReferenceTerm, LiftTermRef,
+//	NPL::SetContentWith, ResolveName, Environment::EnsureValid, LiftOtherOrCopy,
+//	ystdex::bind1, LiftTermValueOrCopy, MoveResolved, ResolveIdentifier,
+//	NPLException, ReduceToReferenceList, NPL::IsMovable, LiftTermOrCopy,
+//	IsBranchedList, AccessFirstSubterm, ThrowInsufficientTermsError, Retain,
+//	NPL::AsTermNode, ystdex::fast_any_of, Ensigil, YSLib::ufexists,
+//	YSLib::to_std_string, EmplaceCallResultOrReturn, ystdex::plus,
+//	ystdex::tolower, YSLib::OwnershipTag, YSLib::IO::StreamPut,
+//	YSLib::FetchEnvironmentVariable, YSLib::SetEnvironmentVariable,
+//	YSLib::IO::UniqueFile, YSLib::uremove, YSLib::allocate_shared,
+//	ReduceReturnUnspecified, ystdex::throw_error;
+#include YFM_NPL_NPLA1Forms // for EncapsulateValue, Encapsulate, Encapsulated,
+//	Decapsulate, NPL::Forms functions, StringToSymbol, SymbolToString;
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::Path,
 //	YSLib::Deployment::InstallHardLink;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
@@ -56,7 +58,7 @@
 #include YFM_YSLib_Service_TextFile // for
 //	YSLib::IO::SharedInputMappedFileStream, YSLib::Text;
 #include <cerrno> // for errno, ERANGE;
-#include <regex> // for std::regex, std::regex_match;
+#include <regex> // for std::regex, std::regex_replace, std::regex_match;
 #include <ostream> // for std::endl;
 #include "NPLA1Internals.h" // for NPL_Impl_NPLA1_Enable_Thunked,
 //	ReduceSubsequent;
@@ -70,8 +72,12 @@ namespace NPL
 {
 
 // NOTE: The following options provide documented alternative implementations.
-//	Except implementation of '$sequence', they shall still be conforming. Native
-//	implementation of forms should provide better performance in general.
+//	Replacing each group of implementations in either native implementations or
+//	source derivations shall behaves the same, except the differences allowed by
+//	the document. Functions provided by '$provide/let!' are in the same group;
+//	otherwise, each function definition is in one group. The native
+//	implementation of forms should provide better performance in general, thus
+//	it is enabled by default.
 
 //! \since build 837
 //@{
@@ -229,7 +235,7 @@ ReduceToLoadFile(TermNode& term, ContextNode& ctx, REPLContext& context,
 ReductionStatus
 ReduceToLoadExternal(TermNode& term, ContextNode& ctx, REPLContext& context)
 {
-	Forms::RetainN(term);
+	RetainN(term);
 	return ReduceToLoadFile(term, ctx, context,
 		NPL::ResolveRegular<const string>(NPL::Deref(std::next(term.begin()))));
 }
@@ -404,23 +410,20 @@ ReductionStatus
 DefineCombiner(TermNode& term, ContextNode& ctx, size_t n,
 	ReductionStatus(&op)(TermNode&, ContextNode&))
 {
-	if(FetchArgumentN(term) > n)
-	{
-		auto& con(term.GetContainerRef());
-		const auto a(con.get_allocator());
-		auto i(con.begin());
+	CheckVariadicArity(term, n);
 
-		con.insert(++++i, A1::AsForm(a, op));
-		// NOTE: There should be one subterm exactly, but the check is still
-		//	required as the derivations, so just deferred it in
-		//	%Forms::DefineWithNoRecursion, but not some combiner with
-		//	%BindSymbol.
-		// XXX: Assume the implementation of %Forms::DefineWithNoRecursion is
-		//	synchronous.
-		return Forms::DefineWithNoRecursion(term, ctx);
-	}
-	RemoveHead(term);
-	ThrowInsufficientTermsError(term, {});
+	auto& con(term.GetContainerRef());
+	const auto a(con.get_allocator());
+	auto i(con.begin());
+
+	con.insert(++++i, A1::AsForm(a, op));
+	// NOTE: There should be one subterm exactly, but the check is still
+	//	required as the derivations, so just deferred it in
+	//	%Forms::DefineWithNoRecursion, but not some combiner with
+	//	%BindSymbol.
+	// XXX: Assume the implementation of %Forms::DefineWithNoRecursion is
+	//	synchronous.
+	return Forms::DefineWithNoRecursion(term, ctx);
 }
 
 inline auto
@@ -473,26 +476,26 @@ AddDefineFunction(ContextNode& ctx, const char* fn,
 		{"$f", "$vau", "formals", "ef"});
 	AddDefineFunction(rctx, "$defv%!", {"&$f", "&formals", "&ef"},
 		{"$f", "$vau%", "formals", "ef"});
-	AddDefineFunction(rctx, "$defv/e!", {"&$f", "&e", "&formals", "&ef"},
-		{"$f", "$vau/e", "e", "formals", "ef"});
-	AddDefineFunction(rctx, "$defv/e%!", {"&$f", "&e", "&formals", "&ef"},
-		{"$f", "$vau/e%", "e", "formals", "ef"});
+	AddDefineFunction(rctx, "$defv/e!", {"&$f", "&p", "&formals", "&ef"},
+		{"$f", "$vau/e", "p", "formals", "ef"});
+	AddDefineFunction(rctx, "$defv/e%!", {"&$f", "&p", "&formals", "&ef"},
+		{"$f", "$vau/e%", "p", "formals", "ef"});
 	AddDefineFunction(rctx, "$defw!", {"&f", "&formals", "&ef"},
 		{"f", "$wvau", "formals", "ef"});
 	AddDefineFunction(rctx, "$defw%!", {"&f", "&formals", "&ef"},
 		{"f", "$wvau%", "formals", "ef"});
-	AddDefineFunction(rctx, "$defw/e!", {"&f", "&e", "&formals", "&ef"},
-		{"f", "$wvau/e", "e", "formals", "ef"});
-	AddDefineFunction(rctx, "$defw/e%!", {"&f", "&e", "&formals", "&ef"},
-		{"f", "$wvau/e%", "e", "formals", "ef"});
+	AddDefineFunction(rctx, "$defw/e!", {"&f", "&p", "&formals", "&ef"},
+		{"f", "$wvau/e", "p", "formals", "ef"});
+	AddDefineFunction(rctx, "$defw/e%!", {"&f", "&p", "&formals", "&ef"},
+		{"f", "$wvau/e%", "p", "formals", "ef"});
 	AddDefineFunction(rctx, "$defl!", {"&f", "&formals"},
 		{"f", "$lambda", "formals"});
 	AddDefineFunction(rctx, "$defl%!", {"&f", "&formals"},
 		{"f", "$lambda%", "formals"});
-	AddDefineFunction(rctx, "$defl/e!", {"&f", "&e", "&formals",
-		}, {"f", "$lambda/e", "e", "formals"});
-	AddDefineFunction(rctx, "$defl/e%!", {"&f", "&e", "&formals",
-		}, {"f", "$lambda/e%", "e", "formals"});
+	AddDefineFunction(rctx, "$defl/e!", {"&f", "&p", "&formals",
+		}, {"f", "$lambda/e", "p", "formals"});
+	AddDefineFunction(rctx, "$defl/e%!", {"&f", "&p", "&formals",
+		}, {"f", "$lambda/e%", "p", "formals"});
 #endif
 }
 #endif
@@ -537,16 +540,16 @@ LoadControl(ContextNode& ctx)
 void
 LoadObjects(ContextNode& ctx)
 {
-	RegisterUnary<>(ctx, "null?", ComposeReferencedTermOp(IsEmpty));
-	RegisterUnary<>(ctx, "nullv?", IsEmpty);
-	RegisterUnary<>(ctx, "branch?", ComposeReferencedTermOp(IsBranch));
-	RegisterUnary<>(ctx, "branchv?", IsBranch);
-	RegisterUnary<>(ctx, "reference?", IsReferenceTerm);
-	RegisterUnary<>(ctx, "bound-lvalue?", IsBoundLValueTerm);
-	RegisterUnary<>(ctx, "uncollapsed?", IsUncollapsedTerm);
-	RegisterUnary<>(ctx, "unique?", IsUniqueTerm);
-	RegisterUnary<>(ctx, "modifiable?", IsModifiableTerm);
-	RegisterUnary<>(ctx, "temporary?", IsTemporaryTerm);
+	RegisterUnary(ctx, "null?", ComposeReferencedTermOp(IsEmpty));
+	RegisterUnary(ctx, "nullv?", IsEmpty);
+	RegisterUnary(ctx, "branch?", ComposeReferencedTermOp(IsBranch));
+	RegisterUnary(ctx, "branchv?", IsBranch);
+	RegisterUnary(ctx, "reference?", IsReferenceTerm);
+	RegisterUnary(ctx, "bound-lvalue?", IsBoundLValueTerm);
+	RegisterUnary(ctx, "uncollapsed?", IsUncollapsedTerm);
+	RegisterUnary(ctx, "unique?", IsUniqueTerm);
+	RegisterUnary(ctx, "modifiable?", IsModifiableTerm);
+	RegisterUnary(ctx, "temporary?", IsTemporaryTerm);
 	RegisterStrict(ctx, "deshare", [](TermNode& term){
 		return CallRawUnary([&](TermNode& tm){
 			if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
@@ -570,7 +573,7 @@ LoadObjects(ContextNode& ctx)
 		}, term);
 		return ReductionStatus::Retained;
 	});
-	RegisterBinary<>(ctx, "assign@!", [](TermNode& x, TermNode& y){
+	RegisterBinary(ctx, "assign@!", [](TermNode& x, TermNode& y){
 		return DoAssign(ystdex::bind1(static_cast<void(&)(TermNode&,
 			TermNode&)>(LiftOther), std::ref(y)), x);
 	});
@@ -626,7 +629,7 @@ LoadEnvironments(ContextNode& ctx)
 		[](const EnvironmentReference& wenv) ynothrow{
 		return wenv.Lock();
 	});
-	RegisterUnary<>(ctx, "freeze-environment!", [](TermNode& term){
+	RegisterUnary(ctx, "freeze-environment!", [](TermNode& term){
 		Environment::EnsureValid(ResolveEnvironment(term).first).Frozen = true;
 		return ValueToken::Unspecified;
 	});
@@ -803,10 +806,10 @@ LoadBasicDerived(REPLContext& context)
 		return Forms::CallRawUnary(std::bind(ReduceToValue, std::ref(term),
 			std::placeholders::_1), term);
 	});
-	RegisterBinary<>(renv, "assign%!", [](TermNode& x, TermNode& y){
+	RegisterBinary(renv, "assign%!", [](TermNode& x, TermNode& y){
 		return DoAssign(ystdex::bind1(MoveCollapsed, std::ref(y)), x);
 	});
-	RegisterBinary<>(renv, "assign!", [](TermNode& x, TermNode& y){
+	RegisterBinary(renv, "assign!", [](TermNode& x, TermNode& y){
 		return DoAssign([&](TermNode& nd_x){
 			ResolveTerm([&](TermNode& nd_y, ResolvedTermReferencePtr p_ref_y){
 				// NOTE: Self-assignment is not checked directly. This allows
@@ -852,16 +855,15 @@ LoadBasicDerived(REPLContext& context)
 	RegisterForm(renv, "$cond", Cond);
 	RegisterForm(renv, "$when", When);
 	RegisterForm(renv, "$unless", Unless);
-	RegisterUnary<>(renv, "not?", Not);
+	RegisterUnary(renv, "not?", Not);
 	RegisterForm(renv, "$and?", And);
 	RegisterForm(renv, "$or?", Or);
 	RegisterStrict(renv, "accl", AccL);
 	RegisterStrict(renv, "accr", AccR);
 	RegisterStrict(renv, "foldr1", FoldR1);
 	RegisterStrict(renv, "map1", Map1);
-	RegisterUnary<>(renv, "first-null?", [](TermNode& x){
-		return ResolveTerm(
-			[&](TermNode& nd, ResolvedTermReferencePtr p_ref){
+	RegisterUnary(renv, "first-null?", [](TermNode& x){
+		return ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
 			if(IsBranchedList(nd))
 				return IsEmpty(ReferenceTerm(AccessFirstSubterm(nd)));
 			ThrowInsufficientTermsError(nd, p_ref);
@@ -926,7 +928,7 @@ LoadBasicDerived(REPLContext& context)
 	RegisterForm(renv, "$provide!", Provide);
 	RegisterForm(renv, "$import!", Import);
 	RegisterForm(renv, "$import&!", ImportRef);
-	RegisterUnary<>(renv, "nonfoldable?", [](TermNode& x){
+	RegisterUnary(renv, "nonfoldable?", [](TermNode& x){
 		return ResolveTerm(
 			[&](TermNode& nd, ResolvedTermReferencePtr p_ref) -> bool{
 			if(IsList(nd))
@@ -936,6 +938,16 @@ LoadBasicDerived(REPLContext& context)
 			ThrowInsufficientTermsError(nd, p_ref);
 		}, x);
 	});
+	{
+		const auto a(context.Allocator);
+		// NOTE: As %MakeEncapsulationType.
+		shared_ptr<void> p_type(new yimpl(byte));
+
+		renv.Define("box", A1::MakeForm(a, EncapsulateValue(p_type), Strict)),
+		renv.Define("box%", A1::MakeForm(a, Encapsulate(p_type), Strict)),
+		renv.Define("box?", A1::MakeForm(a, Encapsulated(p_type), Strict)),
+		renv.Define("unbox", A1::MakeForm(a, Decapsulate(p_type), Strict));
+	}
 #else
 	context.ShareCurrentSource("<root:basic-derived>");
 	context.Perform(
@@ -1004,8 +1016,8 @@ $def! rlist $lambda ((.&x)) move! x;
 	)NPL"
 #	endif
 	R"NPL(
-$def! $remote-eval $vau (&o &e) d eval o (eval e d);
-$def! $remote-eval% $vau% (&o &e) d eval% o (eval e d);
+$def! $remote-eval $vau (&o &e) d eval (forward! o) (eval e d);
+$def! $remote-eval% $vau% (&o &e) d eval% (forward! o) (eval e d);
 $def! $deflazy! $vau (&definiend .&body) d
 	eval (list $def! definiend $quote body) d;
 $def! $set! $vau (&e &formals .&body) d
@@ -1016,10 +1028,10 @@ $def! $wvau $vau (&formals &ef .&body) d
 	wrap (eval (cons $vau (cons formals (cons ef (move! body)))) d);
 $def! $wvau% $vau (&formals &ef .&body) d
 	wrap (eval (cons $vau% (cons formals (cons ef (move! body)))) d);
-$def! $wvau/e $vau (&e &formals &ef .&body) d
-	wrap (eval (cons $vau/e (cons e (cons formals (cons ef (move! body))))) d);
-$def! $wvau/e% $vau (&e &formals &ef .&body) d
-	wrap (eval (cons $vau/e% (cons e (cons formals (cons ef (move! body))))) d);
+$def! $wvau/e $vau (&p &formals &ef .&body) d
+	wrap (eval (cons $vau/e (cons p (cons formals (cons ef (move! body))))) d);
+$def! $wvau/e% $vau (&p &formals &ef .&body) d
+	wrap (eval (cons $vau/e% (cons p (cons formals (cons ef (move! body))))) d);
 	)NPL"
 #	if NPL_Impl_NPLA1_Use_Id_Vau
 	R"NPL(
@@ -1031,12 +1043,12 @@ $def! $lambda% $vau (&formals .&body) d
 #	endif
 	// NOTE: Use of 'eqv?' is more efficient than '$if'.
 	R"NPL(
-$def! $lambda/e $vau (&e &formals .&body) d
+$def! $lambda/e $vau (&p &formals .&body) d
 	wrap (eval
-		(cons $vau/e (cons e (cons formals (cons ignore (move! body))))) d);
-$def! $lambda/e% $vau (&e &formals .&body) d
+		(cons $vau/e (cons p (cons formals (cons ignore (move! body))))) d);
+$def! $lambda/e% $vau (&p &formals .&body) d
 	wrap (eval
-		(cons $vau/e% (cons e (cons formals (cons ignore (move! body))))) d);
+		(cons $vau/e% (cons p (cons formals (cons ignore (move! body))))) d);
 $def! $sequence
 	($lambda (&se)
 		($lambda #ignore $vau/e% se &exprseq d
@@ -1070,26 +1082,26 @@ $def! $defv! $vau (&$f &formals &ef .&body) d
 	eval (list* $def! $f $vau formals ef (move! body)) d;
 $defv! $defv%! (&$f &formals &ef .&body) d
 	eval (list* $def! $f $vau% formals ef (move! body)) d;
-$defv! $defv/e! (&$f &e &formals &ef .&body) d
-	eval (list* $def! $f $vau/e e formals ef (move! body)) d;
-$defv! $defv/e%! (&$f &e &formals &ef .&body) d
-	eval (list* $def! $f $vau/e% e formals ef (move! body)) d;
+$defv! $defv/e! (&$f &p &formals &ef .&body) d
+	eval (list* $def! $f $vau/e p formals ef (move! body)) d;
+$defv! $defv/e%! (&$f &p &formals &ef .&body) d
+	eval (list* $def! $f $vau/e% p formals ef (move! body)) d;
 $defv! $defw! (&f &formals &ef .&body) d
 	eval (list* $def! f $wvau formals ef (move! body)) d;
 $defv! $defw%! (&f &formals &ef .&body) d
 	eval (list* $def! f $wvau% formals ef (move! body)) d;
-$defv! $defw/e! (&f &e &formals &ef .&body) d
-	eval (list* $def! f $wvau/e e formals ef (move! body)) d;
-$defv! $defw/e%! (&f &e &formals &ef .&body) d
-	eval (list* $def! f $wvau/e% e formals ef (move! body)) d;
+$defv! $defw/e! (&f &p &formals &ef .&body) d
+	eval (list* $def! f $wvau/e p formals ef (move! body)) d;
+$defv! $defw/e%! (&f &p &formals &ef .&body) d
+	eval (list* $def! f $wvau/e% p formals ef (move! body)) d;
 $defv! $defl! (&f &formals .&body) d
 	eval (list* $def! f $lambda formals (move! body)) d;
 $defv! $defl%! (&f &formals .&body) d
 	eval (list* $def! f $lambda% formals (move! body)) d;
-$defv! $defl/e! (&f &e &formals .&body) d
-	eval (list* $def! f $lambda/e e formals (move! body)) d;
-$defv! $defl/e%! (&f &e &formals .&body) d
-	eval (list* $def! f $lambda/e% e formals (move! body)) d;
+$defv! $defl/e! (&f &p &formals .&body) d
+	eval (list* $def! f $lambda/e p formals (move! body)) d;
+$defv! $defl/e%! (&f &p &formals .&body) d
+	eval (list* $def! f $lambda/e% p formals (move! body)) d;
 $defw%! forward-first% (&appv (&x .)) d
 	apply (forward! appv) (list% ($move-resolved! x)) d;
 $defl%! first (%l)
@@ -1112,8 +1124,8 @@ $defl! equal? (&x &y)
 	$if ($if (branch? x) (branch? y) #f)
 		($if (equal? (first& x) (first& y))
 		(equal? (rest& x) (rest& y)) #f) (eqv? x y);
-$defl%! check-environment (&e) $sequence (eval% #ignore e) (forward! e);
-$defl%! check-parent (&e) $sequence ($vau/e% e . #ignore) (forward! e);
+$defl%! check-environment (&e) $sequence (eval% #inert e) (forward! e);
+$defl%! check-parent (&p) $sequence ($vau/e% p . #ignore) (forward! p);
 $defv%! $cond &clauses d
 	$if (null? clauses) #inert
 		(apply ($lambda% ((&test .&body) .&clauses)
@@ -1184,8 +1196,8 @@ $def! ($let $let% $let/e $let/e% $let* $let*% $letrec $letrec%) ($lambda (&ce)
 		$defl%! mk-let ($ctor &bindings &body)
 			list* () (list* $ctor (list-extract-first bindings)
 				(list (move! body))) (list-extract-rest% bindings);
-		$defl%! mk-let/e ($ctor &e &bindings &body)
-			list* () (list* $ctor e (list-extract-first bindings)
+		$defl%! mk-let/e ($ctor &p &bindings &body)
+			list* () (list* $ctor p (list-extract-first bindings)
 				(list (move! body))) (list-extract-rest% bindings);
 		$defl%! mk-let* ($let $let* &bindings &body)
 			$if (null? bindings) (list* $let () (move! body))
@@ -1200,10 +1212,10 @@ $def! ($let $let% $let/e $let/e% $let* $let*% $letrec $letrec%) ($lambda (&ce)
 		eval% (mk-let $lambda ($lqual bindings) (move! body)) d;
 	$defv/e%! $let% mods (&bindings .&body) d
 		eval% (mk-let $lambda% ($lqual bindings) (move! body)) d;
-	$defv/e%! $let/e mods (&e &bindings .&body) d
-		eval% (mk-let/e $lambda/e e ($lqual bindings) (move! body)) d;
-	$defv/e%! $let/e% mods (&e &bindings .&body) d
-		eval% (mk-let/e $lambda/e% e ($lqual bindings) (move! body)) d;
+	$defv/e%! $let/e mods (&p &bindings .&body) d
+		eval% (mk-let/e $lambda/e p ($lqual bindings) (move! body)) d;
+	$defv/e%! $let/e% mods (&p &bindings .&body) d
+		eval% (mk-let/e $lambda/e% p ($lqual bindings) (move! body)) d;
 	$defv/e%! $let* mods (&bindings .&body) d
 		eval% (mk-let* $let $let* ($lqual* bindings) (move! body)) d;
 	$defv/e%! $let*% mods (&bindings .&body) d
@@ -1284,6 +1296,8 @@ $defv! $import&! (&e .&symbols) d
 		((unwrap list%) .)) (symbols->imports symbols)) (eval e d);
 $defl! nonfoldable? (&l)
 	$if (null? l) #f ($if (first-null? l) #t (nonfoldable? (rest& l)));
+$def! (box% box? unbox) () make-encapsulation-type;
+$defl! box (x) box% (move! x);
 	)NPL"
 	);
 #endif
@@ -1340,8 +1354,6 @@ LoadCore(REPLContext& context)
 {
 	context.ShareCurrentSource("<root:core>");
 	context.Perform(R"NPL(
-$def! (box% box? unbox) () make-encapsulation-type;
-$defl! box (&x) box% x;
 $defl%! assv (&x &alist) $cond ((null? alist) ())
 	((eqv? x (first& (first& alist))) first alist)
 	(#t assv (forward! x) (rest% alist));
@@ -1425,32 +1437,43 @@ LoadModule_std_promises(REPLContext& context)
 	// NOTE: Call of 'set-first%!' does not check cyclic references. This is
 	//	kept safe since it can occur only with NPLA1 undefined behavior.
 	context.Perform(R"NPL(
-$provide/let! (promise? memoize $lazy $lazy/e force)
+$provide/let! (promise? memoize $lazy $lazy% $lazy/d $lazy/d% force)
 ((mods $as-environment (
 	$def! (encapsulate% promise? decapsulate) () make-encapsulation-type;
-	$defl%! force-promise (&x) $let ((((&o &env)) x))
-		$if (null? env) (forward! o)
+	$defl%! do-force (&prom fwd) $let% ((((&o &env) evf) decapsulate prom))
+		$if (null? env) (fwd o)
 		(
-			$let% ((&y eval% o env))
+			$let*% ((&y evf (fwd o) env) (&x decapsulate prom)
+				(((&o &env) &evf) x))
 				$cond
-					((null? (first (rest& (first& x)))) first& (first& x))
+					((null? env) first (first (decapsulate (fwd prom))))
 					((promise? y) $sequence
+						($if (eqv? (firstv (rest& (decapsulate y))) eval)
+							(assign! evf eval))
 						(set-first%! x (first (decapsulate (forward! y))))
-						(force-promise x))
+						(do-force prom fwd))
 					(#t $sequence
-						($let (((&o &e) first& x))
-							list% (assign! o y) (assign@! e ()))
-						(forward! y))
+						(list% (assign%! o (forward! y)) (assign@! env ()))
+						(first (first (decapsulate (fwd prom)))))
 		)
 )))
 (
 	$import! mods &promise?,
-	$defl/e%! &memoize mods (&x) encapsulate% (list (list% (forward! x) ())),
-	$defv/e%! &$lazy mods (.&body) d encapsulate% (list (list (move! body) d)),
-	$defv/e%! &$lazy/e mods (&e .&body) d
-		encapsulate% (list (list (move! body) (check-parent (eval e d)))),
+	$defl/e%! &memoize mods (&x)
+		encapsulate% (list (list% (forward! x) ()) #inert),
+	$defv/e%! &$lazy mods (.&body) d
+		encapsulate% (list (list (move! body) d) eval),
+	$defv/e%! &$lazy% mods (.&body) d
+		encapsulate% (list (list (move! body) d) eval%),
+	$defv/e%! &$lazy/d mods (&e .&body) d
+		encapsulate%
+			(list (list (move! body) (check-environment (eval e d))) eval),
+	$defv/e%! &$lazy/d% mods (&e .&body) d
+		encapsulate%
+			(list (list (move! body) (check-environment (eval e d))) eval%),
 	$defl/e%! &force mods (&x)
-		$if (promise? x) (force-promise (decapsulate x)) (forward! x)
+		$let% ((fwd $if ($lvalue-identifier? x) id move!))
+			$if (promise? x) (do-force x fwd) (fwd x)
 );
 	)NPL");
 }
@@ -1467,7 +1490,7 @@ LoadModule_std_strings(REPLContext& context)
 		[](const string& str) ynothrow{
 		return str.empty();
 	});
-	RegisterBinary<>(renv, "string<-", [](TermNode& x, TermNode& y){
+	RegisterBinary(renv, "string<-", [](TermNode& x, TermNode& y){
 		ResolveTerm([&](TermNode& nd_x, ResolvedTermReferencePtr p_ref_x){
 			if(!p_ref_x || p_ref_x->IsModifiable())
 			{
@@ -1527,7 +1550,7 @@ LoadModule_std_strings(REPLContext& context)
 		to_lwr(y);
 		return x.find(y) != string::npos;
 	});
-	RegisterUnary<>(renv, "string->symbol", [](TermNode& x){
+	RegisterUnary(renv, "string->symbol", [](TermNode& x){
 		return ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
 			auto& str(NPL::AccessRegular<string>(nd, p_ref));
 
@@ -1545,7 +1568,7 @@ LoadModule_std_strings(REPLContext& context)
 		[](const string& str, const std::regex& re){
 		return std::regex_match(str, re);
 	});
-	RegisterStrict<>(renv, "regex-replace", [](TermNode& term){
+	RegisterStrict(renv, "regex-replace", [](TermNode& term){
 		RetainN(term, 3);
 
 		auto i(term.begin());

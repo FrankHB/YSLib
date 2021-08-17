@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3580
+\version r3590
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2021-07-05 00:28 +0800
+	2021-08-09 21:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,14 +31,14 @@
 //	std::invalid_argument, ValueNode, NPL::Access, EscapeLiteral, Literalize,
 //	NPL::AccessPtr, ystdex::value_or, ystdex::write, TraverseSubnodes,
 //	bad_any_cast, std::allocator_arg, YSLib::NodeSequence, NPL::Deref,
-//	AccessFirstSubterm, ystdex::unimplemented, ystdex::type_id, ystdex::quote,
+//	AccessFirstSubterm, ystdex::unimplemented, IsTyped, ystdex::quote,
 //	ystdex::call_value_or, ystdex::begins_with, ystdex::sfmt,
 //	NPL::make_observer, YSLib::sfmt, GetLValueTagsOf, std::mem_fn,
-//	ystdex::compose, ystdex::invoke_value_or, NPL::TryAccessLeaf,
+//	ystdex::compose, ystdex::invoke_value_or, NPL::TryAccessLeaf
 //	NPL::IsMovable, ystdex::ref, PropagateTo, YSLib::FilterExceptions,
-//	ystdex::id, ystdex::retry_on_cond, ystdex::type_info, pair, ystdex::addrof,
-//	ystdex::second_of, std::rethrow_exception, std::throw_with_nested,
-//	YSLib::ExtractException;
+//	ystdex::type_id, ystdex::id, ystdex::retry_on_cond, ystdex::type_info,
+//	pair, ystdex::addrof, ystdex::second_of, std::rethrow_exception,
+//	std::throw_with_nested, YSLib::ExtractException;
 #include YFM_NPL_SContext
 
 //! \since build 903
@@ -271,8 +271,7 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 							return head + " />";
 						for(; i != term.end(); ++i)
 						{
-							nl = NPL::Deref(i).Value.type()
-								!= ystdex::type_id<string>();
+							nl = !IsTyped<string>(NPL::Deref(i));
 							if(nl)
 								res += '\n' + igen(depth + size_t(is_content));
 							else
@@ -665,9 +664,8 @@ Collapse(TermReference ref)
 TermNode
 PrepareCollapse(TermNode& term, const shared_ptr<Environment>& p_env)
 {
-	if(term.Value.type() == ystdex::type_id<const TermReference>())
-		return term;
-	return NPL::AsTermNode(term.get_allocator(),
+	return IsTyped<TermReference>(term) ? term
+		: NPL::AsTermNode(term.get_allocator(),
 		TermReference(p_env->MakeTermTags(term), term, NPL::Nonnull(p_env)));
 }
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r21109
+\version r21117
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2021-06-04 04:59 +0800
+	2021-08-09 21:54 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -32,12 +32,12 @@
 #include YFM_NPL_NPLA1 // for ContextNode, TermNode, ContextState,
 //	ReductionStatus, Reducer, YSLib::map, lref, Environment, ystdex::get_less,
 //	set, NPL::Deref, EnvironmentReference, NPL::tuple, YSLib::get, list,
-//	ystdex::unique_guard, std::declval, EnvironmentGuard, make_observer,
-//	std::bind, std::placeholders, std::ref, A1::NameTypedReducerHandler,
-//	A1::NameTypedContextHandler, ystdex::bind1, std::placeholders::_2,
-//	TermReference, ThrowTypeErrorForInvalidType, ystdex::type_id,
-//	ParameterMismatch, NPL::TryAccessLeaf, ystdex::update_thunk, IsIgnore,
-//	IsNPLASymbol, ThrowInvalidTokenError;
+//	ystdex::unique_guard, std::declval, EnvironmentGuard, IsTyped,
+//	make_observer, std::bind, std::placeholders, std::ref,
+//	A1::NameTypedReducerHandler, A1::NameTypedContextHandler, ystdex::bind1,
+//	std::placeholders::_2, TermReference, ThrowTypeErrorForInvalidType,
+//	ystdex::type_id, ParameterMismatch, NPL::TryAccessLeaf,
+//	ystdex::update_thunk, IsIgnore, IsNPLASymbol, ThrowInvalidTokenError;
 #include <ystdex/ref.hpp> // for ystdex::unref;
 
 namespace NPL
@@ -289,8 +289,8 @@ public:
 		req_lift_result(lift ? 1 : 0), xgds(ctx.get_allocator()), EnvGuard(ctx),
 		RecordList(ctx.get_allocator()), OperatorName(ctx.get_allocator())
 	{
-		YAssert(term.Value.type() == ystdex::type_id<TokenValue>()
-			|| !term.Value, "Invalid value for combining term found.");
+		YAssert(IsTyped<TokenValue>(term) || !term.Value,
+			"Invalid value for combining term found.");
 		OperatorName = std::move(term.Value);
 		// XXX: After the move, %term.Value is unspecified.
 	}

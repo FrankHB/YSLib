@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r20863
+\version r20891
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2021-06-19 18:58 +0800
+	2021-08-10 22:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,15 +31,16 @@
 //	std::piecewise_construct, YSLib::lock_guard, YSLib::mutex, ystdex::type_id,
 //	ContextHandler, NPL::make_observer, IsBranch, AllocatorHolder, ystdex::ref,
 //	YSLib::IValueHolder, YSLib::AllocatedHolderOperations, any,
-//	ystdex::as_const, NPL::forward_as_tuple, uintmax_t, TokenValue, Forms,
-//	std::allocator_arg, YSLib::stack, YSLib::vector, std::find_if, TermTags,
-//	function, TermReference, GetLValueTagsOf, NPL::TryAccessLeaf, PropagateTo,
-//	NPL::IsMovable, in_place_type, InvalidReference, NPL::Deref, IsLeaf,
-//	ResolveTerm, ThrowInsufficientTermsError, ThrowListTypeErrorForNonlist,
-//	ystdex::update_thunk, NPL::Access, ystdex::retry_on_cond,
-//	AccessFirstSubterm, ystdex::bind1, ystdex::make_transform, IsBranchedList,
-//	std::placeholders, NoContainer, ystdex::try_emplace, Environment,
-//	shared_ptr, YSLib::Informative, ystdex::unique_guard, NPL::AsTermNode,
+//	ystdex::as_const, NPL::forward_as_tuple, uintmax_t, ystdex::bind1,
+//	TokenValue, Forms, std::allocator_arg, YSLib::stack, YSLib::vector,
+//	std::find_if, TermTags, function, TermReference, GetLValueTagsOf,
+//	NPL::TryAccessLeaf, PropagateTo, NPL::IsMovable, in_place_type,
+//	InvalidReference, NPL::Deref, IsLeaf, ResolveTerm,
+//	ThrowInsufficientTermsError, ThrowListTypeErrorForNonlist,
+//	ystdex::update_thunk, Environment, shared_ptr, IsTyped,
+//	ystdex::retry_on_cond, AccessFirstSubterm, ystdex::make_transform,
+//	IsBranchedList, std::placeholders, NoContainer, ystdex::try_emplace,
+//	NPL::Access, YSLib::Informative, ystdex::unique_guard, NPL::AsTermNode,
 //	CategorizeBasicLexeme, DeliteralizeUnchecked, CheckReducible, Deliteralize,
 //	ystdex::isdigit, ResolveIdentifier, IsNPLAExtendedLiteral, ystdex::ref_eq,
 //	NPL::TryAccessTerm, YSLib::share_move, ystdex::call_value_or, YSLib::Notice,
@@ -1113,7 +1114,7 @@ ContextState::DefaultReduceOnce(TermNode& term, ContextNode& ctx)
 		// XXX: Add logic to directly handle special value tokens here?
 		// NOTE: The reduction relies on proper handling of reduction status and
 		//	proper tail action for the thunked implementations.
-		if(term.Value.type() != ystdex::type_id<ValueToken>())
+		if(!IsTyped<ValueToken>(term))
 			return DoAdministratives(cs.EvaluateLeaf, term, ctx);
 	}
 	else if(IsBranch(term))
@@ -1583,14 +1584,16 @@ DefaultEvaluateLeaf(TermNode& term, string_view id)
 ReductionStatus
 EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 {
-	// NOTE: This is the conversion of lvalue in object to value of expression.
-	//	The referenced term is lived through the evaluation, which is guaranteed
-	//	by the context. This is necessary since the ownership of objects which
-	//	are not temporaries in evaluated terms needs to be always in the
-	//	environment, rather than in the tree. It would be safe if not passed
-	//	directly and without rebinding. Note access of objects denoted by
-	//	invalid reference after rebinding would cause undefined behavior in the
-	//	object language.
+	// NOTE: The value of the expression is the lvalue referring to the bound
+	//	object. The referenced object is kept alive through the evaluation,
+	//	guaranteed by the context. Referencing the object (instead of copying
+	//	the value of the object) is necessary since the ownership of objects
+	//	which are not temporaries in evaluated terms are assumed to always stay
+	//	in some environment rather than the AST, and copying the values can have
+	//	unexpected side effects (due to copy constrcutors of the native values).
+	//	It would be safe if not passed directly and without rebinding. Note the
+	//	access of objects denoted by invalid references after rebinding would
+	//	cause undefined behavior in the object language.
 	auto pr(ResolveName(ctx, id));
 
 	if(pr.first)
@@ -1604,18 +1607,24 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 		//	that the term tags are always not touched and the term container is
 		//	also not touched when the result is not a reference.
 		// NOTE: Every reference to the object in the environment is assumed
-		//	aliased, so no %TermTags::Unique is preserved.
+		//	aliased, so no %TermTags::Unique is preserved. In the object
+		//	language, this implies that id-expressions are always lvalues, as
+		//	same to C++.
 		// XXX: Allocators are not used here on %TermReference to avoid G++ from
 		//	folding code with other basic blocks with more inefficient
 		//	implementations.
 		if(const auto p = NPL::TryAccessLeaf<const TermReference>(bound))
 		{
 			p_rterm = &p->get();
+			// NOTE: If the bound object is a term reference, referencing it
+			//	implies reference collapsing.
 			SetEvaluatedReference(term, bound, *p);
 		}
 		else
 		{
 			p_rterm = &bound;
+			// NOTE: This makes a reference value referencing the bound object
+			//	with proper environment and tags.
 			SetEvaluatedValue(term, bound, pr.second);
 		}
 		EvaluateLiteralHandler(term, ctx, *p_rterm);

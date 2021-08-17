@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4494
+\version r4543
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2021-08-05 11:09 +0800
+	2021-08-18 00:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -4453,6 +4453,55 @@ The implementation of file stream opening in YFramework module YCLib::FileIO is 
 				Both 'std::ios_base::_Openprot' and the implicit default 'shflag' in the implementation of '::open' (at least in UCRT) used by the newly added 'uopen' is the same, i.e. '_SH_DENYNO'.
 			'_SH_DENYNO' is also the value of the default flag 'std::ios_base::_Default_open_prot' used by <fstream> buffer interface in Microsoft VC++'s standard library as the default argument of some 'open' functions, as well as the 'std::fopen' implementation in UCRT.
 				This is expected for compatibility, since other implementations has few file mandatory locking as the Win32 file sharing options enabled by default.
+Several defects in the NPLA1 module std.promises have been fixed.
+	The operative '$lazy/e' was wrongly specified to accept an environment parent (documented type <parent>) as its 1st parameter since build 909.
+		The bug would cause argument of wrong types accepted.
+			For example, it would wrongly accept '()' as an valid argument.
+				This would make it effectively same to 'memoize'.
+				While it may make sense to accept such corner case, it seems error-prone.
+				Anyway, this is not the expected behavior.
+				There is no plan to change the original semantics.
+		This has been fixed by reverting the change, i.e. making the 1st parameter as of a plain environment type (<environment>) again.
+		Further, to make it consistent with the initial change, it is now renamed to '$lazy/d'.
+			The '/e' postfix is mostly used by the captured parent like '$vau/e', which is not the case here.
+			As the environment is documented explicitly as a dynamic environment, it seems appropriate to make the intent more explicit in the function name.
+			Note the '/d' postfix still has different meaning than the previously removed '/d' variants like '$let/d'.
+			The parameter 'e' in the derivation is not renamed, as it follows the type rather than the name of the function (e.g. the '/e' postfix).
+	There are several fixes of bugs of 'force' since build 857.
+		A bug of missing forwarding the resulted value has been fixed.
+			This bug is caused silently by the change in '$let'.
+				After adding '$let%', the operative '$let' does not preserve the reference value, which is not expected here.
+		A bug of missing forwarding the internal values has been fixed.
+			This fix is also necessary to make the previous bug on the resulted value.
+		A bug of missing handling of self-modification after the evaluation for the result has been fixed.
+			Without the fix, the decapsulated object would be invalidated if the promise is changed during the evaluation of the saved expression by 'force', and the access to the internal decapsulated state would fail.
+			This bug does not exist in [RnRK], as the Kernel language lacks assignments to the first-class references (like 'assign!' in NPLA1) to change the promise object (so there is no way to invalidate the internal promise state like this).
+			Here is a minimal reproducing case in NPLA1:
+				$import! std.promises $lazy force; $def! p $lazy assign! p ($lazy ()); force p;
+		A bug of missing preserving reference during the memoization has been fixed.
+			This is done by using 'assign%!' instead of 'assign' in the implementation.
+				Note the result of access of the internal cell of the memoized object (bound previously) might be an uncollapsed reference value.
+				To prevent this inconsistent value, he memoization would finally access the promise object again for the result.
+			However, this fix has several side effects on other functions in std.promises. See below.
+		A bug of unexpected internal object copying has been fixed, as the fix for the alternative derivation of '$let' family operatives since build 915.
+	New operatives '$lazy%' and '$lazy/d%' to preserve reference values in the lazy evaluation results have been added.
+		The '$lazy' and '$lazy/d' natually preserve the reference values on demand after the fix of the memoization, but at least '$lazy/d' is then no longer safe, as this:
+			$import! std.promises $lazy/d force;
+			$defl! me ()
+			(
+				$def! e () make-environment;
+				$set! e x 42;
+				e
+			);
+			force ($lazy/d (() me) x);
+		To make it safe again, preserving reference need new unsafe operatives.
+			This also makes the behavior of (not) preserving the reference values of '$lazy' and '$lazy/d' (the old '$lazy/e') unchanged, avoiding breaking the application code already using them.
+			After the fix of the memoization, the old behavior can be done by adding 'idv' around the lazily evaluated expression.
+				But this implementation is not compatible with the PTC requirement, since 'idv' in the nested promises cannot be realiably detected and merged.
+				So instead, using 'eval%' and 'eval' explicitly seems necessary.
+		The names of the new operatives are also consistent to 'eval' and 'eval%'.
+			This also supports chained iteration on forcing nested promeses.
+				Like the lifting mark in TCO, any 'eval' should override 'eval%'.
 
 ////
 
