@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r20891
+\version r20980
 \author FrankHB <frankhb1989@gmail.com>
-\since build 473
+\since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2021-08-10 22:04 +0800
+	2021-08-30 23:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -217,6 +217,7 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	auto& lf(act.LastFunction);
 
 	ContextState::Access(ctx).ClearCombiningTerm();
+	// XXX: This is necessary to the precondition for calling the handler.
 	term.Value.Clear();
 	lf = {};
 	// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
@@ -232,6 +233,7 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 #else
 
 	ContextState::Access(ctx).ClearCombiningTerm();
+	// XXX: Ditto.
 	term.Value.Clear();
 
 	auto gd(ystdex::unique_guard([&]() ynothrow{
@@ -258,6 +260,29 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	return res;
 #	endif
 #endif
+}
+
+//! \since build 925
+YB_NORETURN ReductionStatus
+ThrowCombiningFailure(TermNode& term, const TermNode& fm, bool has_ref)
+{
+	// NOTE: Try to extract the identifier set by %SetupTailOperatorName.
+	string name(term.get_allocator());
+
+	// XXX: As %TermToNamePtr.
+	if(const auto p = NPL::TryAccessLeaf<TokenValue>(term))
+	{
+		name = std::move(*p);
+		name += ": ";
+	}
+	name += TermToStringWithReferenceMark(fm, has_ref).c_str();
+	// XXX: All other value is ignored. As %CombinerReturnThunk, this is
+	//	necessary to the precondition for calling %FetchArgumentN.
+	term.Value.Clear();
+	// TODO: Extract general form by some information extractor function.
+	throw ListReductionFailure(ystdex::sfmt("No matching combiner '%s'"
+		" for operand with %zu argument(s) found.", name.c_str(),
+		FetchArgumentN(term)));
 }
 
 
@@ -590,6 +615,10 @@ struct BindParameterObject
 				cp(o);
 		}
 		else if(!temp)
+			// XXX: Ditto, except that tags other than %TermTags::Nonmodifying
+			//	as well as %o.Tags are ignored intentionally. This may cause
+			//	differences on derivations using '@' or not, see $2021-08
+			//	@ %Documentation::Workflow.
 			mv(TermNode::Container(o.get_allocator()),
 				ValueObject(std::allocator_arg, o.get_allocator(),
 				in_place_type<TermReference>, o_tags & TermTags::Nonmodifying,
@@ -1501,14 +1530,12 @@ FormContextHandler::CallN(size_t n, TermNode& term, ContextNode& ctx) const
 	// NOTE: Optimize for cases with no argument.
 	if(n == 0 || term.size() <= 1)
 		// XXX: Assume the term has been setup by the caller.
-		return RelayCurrentOrDirect(ctx, Continuation(std::ref(Handler), ctx),
-			term);
-	return A1::RelayCurrentNext(ctx, term,
-		Continuation([](TermNode& t, ContextNode& c){
+		return RelayCurrentOrDirect(ctx, std::ref(Handler), term);
+	return A1::RelayCurrentNext(ctx, term, [](TermNode& t, ContextNode& c){
 		YAssert(!t.empty(), "Invalid term found.");
 		ReduceChildrenOrderedAsyncUnchecked(std::next(t.begin()), t.end(), c);
 		return ReductionStatus::Partial;
-	}, ctx), NPL::ToReducer(ctx.get_allocator(),
+	}, NPL::ToReducer(ctx.get_allocator(),
 		A1::NameTypedReducerHandler([&, n](ContextNode& c){
 		SetupNextTerm(c, term);
 		return CallN(n - 1, term, c);
@@ -1684,6 +1711,8 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 	//	cleared if the object represented by %fm is not a prvalue.
 	if(p_ref_fm)
 	{
+		// XXX: This is nothing to do with %EnsureValueTags, so keep it
+		//	explicit.
 		term.Tags &= ~TermTags::Temporary;
 		// XXX: The following irregular term conversion is not necessary. It is
 		//	even better to be avoid for easier handling of reference values.
@@ -1745,27 +1774,19 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 		return CombinerReturnThunk(ContextHandler(std::move(*p_handler)), term,
 			ctx);
 #endif
-	return ResolveTerm([&] YB_LAMBDA_ANNOTATE(
-		(const TermNode& nd, bool has_ref), , noreturn) -> ReductionStatus{
-		// TODO: Capture contextual information in error.
-		// TODO: Extract general form information extractor function.
-		throw ListReductionFailure(ystdex::sfmt("No matching combiner '%s'"
-			" for operand with %zu argument(s) found.",
-			TermToStringWithReferenceMark(nd, has_ref).c_str(),
-			FetchArgumentN(term)));
-	}, fm);
+	return ResolveTerm(std::bind(ThrowCombiningFailure, std::ref(term),
+		std::placeholders::_1, std::placeholders::_2), fm);
 }
 
 ReductionStatus
 ReduceCombinedReferent(TermNode& term, ContextNode& ctx, const TermNode& fm)
 {
 	// XXX: %SetupNextTerm is to be called in %CombinerReturnThunk.
+	// XXX: As %ReduceCombinedBranch, keep it explicit.
 	term.Tags &= ~TermTags::Temporary;
 	if(const auto p_handler = NPL::TryAccessLeaf<const ContextHandler>(fm))
 		return CombinerReturnThunk(*p_handler, term, ctx);
-	throw ListReductionFailure(ystdex::sfmt("No matching combiner '%s'"
-		" for operand with %zu argument(s) found.",
-		TermToStringWithReferenceMark(fm, true).c_str(), FetchArgumentN(term)));
+	return ThrowCombiningFailure(term, fm, true);
 }
 
 ReductionStatus
@@ -2039,52 +2060,54 @@ SetupTailOperatorName(TermNode& term, const ContextNode& ctx)
 }
 
 void
-TraceBacktrace(ContextNode::ReducerSequence& backtrace, YSLib::Logger& trace)
+TraceBacktrace(const ContextNode::ReducerSequence& backtrace,
+	YSLib::Logger& trace) ynothrow
 {
-	using YSLib::Notice;
-
 	if(!backtrace.empty())
-		trace.TraceFormat(Notice, "Backtrace:");
-	YSLib::FilterExceptions([&]{
-		for(const auto& act : backtrace)
-		{
-			const auto name(QueryContinuationName(act));
-			const auto p(name.data() ? name.data() :
-#	if NDEBUG
-				"?"
-#	else
-				// XXX: This is enabled for debugging only because the name
-				//	is not guaranteed steady.
-				ystdex::call_value_or([](const Continuation& cont)
-					-> const ystdex::type_info&{
-					return cont.Handler.target_type();
-				}, act.target<Continuation>(), act.target_type()).name()
-#	endif
-			);
-			const auto p_opn_vo(QueryTailOperatorName(act));
-			const auto p_opn_t(p_opn_vo ? p_opn_vo->AccessPtr<TokenValue>()
-				: nullptr);
+	{
+		YSLib::FilterExceptions([&]{
+			using YSLib::Notice;
 
-			if(const auto p_o = p_opn_t ? p_opn_t->data() : nullptr)
+			trace.TraceFormat(Notice, "Backtrace:");
+			for(const auto& act : backtrace)
 			{
-				// XXX: This clause relies on the source information for
-				//	meaningful output. Assume it is used.
-#	if true
-				if(const auto p_si = QuerySourceInformation(*p_opn_vo))
-					trace.TraceFormat(Notice, "#[continuation: %s (%s) @"
-						" %s (line %zu, column %zu)]", p_o, p,
-						p_si->first ? p_si->first->c_str() : "<unknown>",
-						p_si->second.Line + 1, p_si->second.Column + 1);
-				else
+				const auto name(QueryContinuationName(act));
+				const auto p(name.data() ? name.data() :
+#	if NDEBUG
+					"?"
+#	else
+					// XXX: This is enabled for debugging only because the name
+					//	is not guaranteed steady.
+					ystdex::call_value_or([](const Continuation& cont)
+						-> const ystdex::type_info&{
+						return cont.Handler.target_type();
+					}, act.target<Continuation>(), act.target_type()).name()
 #	endif
-					trace.TraceFormat(Notice, "#[continuation: %s (%s)]",
-						p_o, p);
+				);
+				const auto p_opn_vo(QueryTailOperatorName(act));
+				const auto p_opn_t(p_opn_vo ? p_opn_vo->AccessPtr<TokenValue>()
+					: nullptr);
+
+				if(const auto p_o = p_opn_t ? p_opn_t->data() : nullptr)
+				{
+					// XXX: This clause relies on the source information for
+					//	meaningful output. Assume it is used.
+#	if true
+					if(const auto p_si = QuerySourceInformation(*p_opn_vo))
+						trace.TraceFormat(Notice, "#[continuation: %s (%s) @"
+							" %s (line %zu, column %zu)]", p_o, p,
+							p_si->first ? p_si->first->c_str() : "<unknown>",
+							p_si->second.Line + 1, p_si->second.Column + 1);
+					else
+#	endif
+						trace.TraceFormat(Notice, "#[continuation: %s (%s)]",
+							p_o, p);
+				}
+				else
+					trace.TraceFormat(Notice, "#[continuation (%s)]", p);
 			}
-			else
-				trace.TraceFormat(Notice, "#[continuation (%s)]", p);
-		}
-	}, "guard unwinding for backtrace");
-	backtrace.clear();
+		}, "guard unwinding for backtrace");
+	}
 }
 
 

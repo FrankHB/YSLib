@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3590
+\version r3602
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2021-08-09 21:22 +0800
+	2021-08-30 22:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -409,11 +409,11 @@ RedirectEnvironmentList(EnvironmentList::const_iterator first,
 }
 
 //! \since build 857
-TermTags
+YB_ATTR_nodiscard YB_PURE TermTags
 MergeTermTags(TermTags x, TermTags y) ynothrow
 {
-	return (x | y) & ~(TermTags::Unique | TermTags::Temporary)
-		& (x & y & TermTags::Unique);
+	return (((x & ~TermTags::Temporary) | y) & ~TermTags::Unique)
+ 		| (x & y & TermTags::Unique);
 }
 
 //! \since build 874
@@ -654,6 +654,12 @@ Collapse(TermReference ref)
 {
 	if(const auto p = NPL::TryAccessLeaf<TermReference>(ref.get()))
 	{
+		// XXX: Term tags on prvalues are reserved and should be ignored
+		//	normally except for future internal use. The only case making the
+		//	tags available from the referent of %ref is that
+		//	%TermTags::Temporary of the bound object which is the referent of.
+		//	Since %MergeTermTags does not keep %TermTags::Temporary of the 1st
+		//	argument, this is also the unique source of that tag now.
 		ref.SetTags(MergeTermTags(ref.GetTags(), p->GetTags())),
 		ref.SetReferent(p->get());
 		return {std::move(ref), true};
@@ -750,6 +756,7 @@ LiftTermValueOrCopy(TermNode& term, TermNode& tm, bool move)
 	// XXX: Term tags are currently not respected in prvalues.
 	NPL::SetContentWith(term, tm,
 		move ? &ValueObject::MakeMove : &ValueObject::MakeCopy);
+	term.Tags = tm.Tags;
 }
 
 
@@ -935,8 +942,8 @@ ReduceToReferenceAt(TermNode& term, TermNode& tm,
 	ResolvedTermReferencePtr p_ref)
 {
 	// XXX: Term tags on prvalues are reserved and should be ignored normally
-	//	except for future internal use. Since %term is a term, %Tags::Temporary
-	//	is not expected, the %GetLValueTagsOf is also not used.
+	//	except for future internal use. Since %tm is a term,
+	//	%TermTags::Temporary is not expected, %GetLValueTagsOf is also not used.
 	// XXX: Allocators are not used here for performance in most cases.
 	term.Value = TermReference(PropagateTo(tm.Tags, p_ref->GetTags()), tm,
 		NPL::Deref(p_ref).GetEnvironmentReference());

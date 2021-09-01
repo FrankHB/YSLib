@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4543
+\version r4568
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2021-08-18 00:18 +0800
+	2021-08-30 12:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -4502,6 +4502,31 @@ Several defects in the NPLA1 module std.promises have been fixed.
 		The names of the new operatives are also consistent to 'eval' and 'eval%'.
 			This also supports chained iteration on forcing nested promeses.
 				Like the lifting mark in TCO, any 'eval' should override 'eval%'.
+Bactrace tracing in NPLA1 (the API 'A1::TraceBacktrace') has been reviewed.
+	The main design is unchanged compare to $2021-01.
+	It now avoids changing on the backtrace object.
+		Since there is no other changes on the backtrace parameter, it is now 'const' qualified.
+		This is a breaking change, since it is undefined behavior to destroy the remaining continuations in the reducer sequence after the objects referenced has been alreay destroyed.
+			So, if an implemenation misses to cleanup the reducer sequence after the call, it can cause C++ undefined behavior.
+				This may occur for invalid object accesses when destroying the remaining reducer sequence if the lifetime of the object referenced in the continuations have already ended.
+				A typical case is the term object referenced in TCO actions.
+			Now it always requires the additional cleanup, though it is already a bug if there is no such cleanup besides the 'A1::TraceBacktrace' call because the cleanup should be guarded for any exception thrown before the cleanup.
+				Although 'A1::TraceBacktrace' now guarantees it does not throw, there can be other operations throwing before the call.
+	It also has an explict nonthrowing exception specification.
+		Note any exception thrown of the logger before the actual continuation traversing is also considered a failure to terminate the whole tracing process.
+Several incorrect term behaviors different on NPLA1 native implementations and alternative derivations have been fixed.
+	The alternative derivation of the applicative 'first' for rvalue list operands missed the return value conversion on the result.
+	The alternative derivation of applicatives 'first' and 'first&' missed to preserve the 'TermTags::Unique' tag of the result.
+	The underlying native implemenation of 'collapse' wrongly preserved the incorrect 'TermTags::Temporary' which cannot be of a term tag of an expression term.
+		This applies to many other native implementations and derivations as well, e.g. all simple assignment operations.
+		This has no effects for correct terms.
+	The alternative derivation of the applicative 'collpase' did not collapse the 'TermTags::Unique' correctly as the native one does.
+	The native implementation of the simple assignments missed to strip 'TermTags::Temporary' from the referent (which can represent a bound object but not a normal prvalue expression).
+		This made some difference deeply buried in the implementation.
+		The bug would not show in the fixes of the applicative 'first' and other derivations implemented with the binding with '@' sigil and the (whether the old buggy one or the now corrected) 'collapse'.
+			Since the '@' bindings always strip tags other than 'TermTags::Nonmodifying' (as expected), there is no 'TermTags::Temporary' would be preserved in the result.
+			The only difference for '@' bindings is on the 'TermTags::Nonmodifying' which has not been found unexpected preserved somewhere.
+	All these bugs in the list accessors and the assignments may have effect on the applicative 'force' in the NPLA1 module  'std.promises'.
 
 ////
 

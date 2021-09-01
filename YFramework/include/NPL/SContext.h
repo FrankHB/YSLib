@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r4094
+\version r4109
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2021-08-09 21:53 +0800
+	2021-08-31 00:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,10 +41,10 @@
 //	ystdex::enable_if_same_param_t, ystdex::exclude_self_t,
 //	ystdex::enable_if_inconvertible_t, ystdex::forward_like, ystdex::invoke,
 //	YSLib::AccessPtr, ystdex::not_, ystdex::cond_or_t, ystdex::bool_,
-//	ystdex::false_, std::is_convertible, ystdex::decay_t, ystdex::call_value_or,
-//	ystdex::addrof, ystdex::compose, pair, std::is_lvalue_reference,
-//	YSLib::Alert, YSLib::stack;
+//	ystdex::false_, std::is_convertible, ystdex::decay_t, ystdex::addrof,
+//	ystdex::compose, pair, std::is_lvalue_reference, YSLib::Alert, YSLib::stack;
 #include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
+#include <ystdex/deref_op.hpp> // for ystdex::call_value_or;
 #include <ystdex/range.hpp> // for std::iterator_traits,
 //	ystdex::range_iterator_t, ystdex::begin, ystdex::end,
 //	std::input_iterator_tag, std::random_access_iterator_tag;
@@ -174,6 +174,19 @@ YB_ATTR_nodiscard YB_STATELESS yconstfn
 YB_ATTR_nodiscard YB_STATELESS yconstfn
 	PDefH(TermTags, PropagateTo, TermTags dst, TermTags tags) ynothrow
 	ImplRet(dst | (tags & TermTags::Nonmodifying))
+
+/*!
+\brief 确保参数可被一等对象的值的表示包含。
+\since build 925
+
+清除参数中不被一等对象的值的表示支持的位。
+当前实现中，标签的所有的位都不被右值支持，而所有左值中的标签都不在项而在项引用上；
+	因此，可直接修改参数为非限定对象标签。
+但因为当前实现中只引入了临时对象标签的非一等对象（在被绑定对象中支持），
+	为减少错误的使用，仅保守清除这些此标签。
+*/
+inline PDefH(void, EnsureValueTags, TermTags& tags) ynothrow
+	ImplExpr(tags &= ~TermTags::Temporary)
 //@}
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8746
+\version r8759
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2021-08-10 22:04 +0800
+	2021-08-22 00:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1724,19 +1724,24 @@ SetupTailOperatorName(TermNode&, const ContextNode&);
 \sa QueryContinuationName
 \sa QuerySourceInformation
 \sa QueryTailOperatorName
-\see $2021-01 @ %Documentation::Workflow.
-\since build 903
+\sa YSLib::FilterException
+\see $2021-08 @ %Documentation::Workflow.
+\since build 925
 
-追踪第一参数指定的动作序列记录的 NPL 续延并清除其中的动作。
-追踪每一个动作以未指定的格式打印特定的文本。
-清除动作可具有副作用。
-以下约定的作用外的顺序未指定：
+追踪第一参数指定的动作序列记录的 NPL 续延。
+追踪每一个动作以未指定的格式使用第二参数指定的 Logger 对象打印特定的文本。
+若处理任意动作时抛出异常，则追踪中止，并确保最终无异常抛出。
+当前使用 YSLib::FilterException 处理追踪中止后的异常。
+调用本函数以外，一般应确保之后的动作序列被清除，以确保语言规则要求的临时对象清理。
+清除动作序列也确保剩余的续延中引用的子项等对象在生存期结束前被及时移除。
+为符合语言规则要求，不论是否使用本函数的实现，以下约定的作用外的顺序未指定：
 追踪任意动作和清除任意动作之间非决定性有序；
 追踪动作先序清楚同一个动作；
-追踪的动作之间的顺序同 ContextNode::ReducerSequence::clear 清除项的顺序。
+追踪的动作之间的顺序同 ContextNode::ReducerSequence::clear 清除其元素的顺序。
+调用本函数实现上述动作时，不修改第一参数，因此一般需要在之后显式清除动作序列。
 */
 YF_API void
-TraceBacktrace(ContextNode::ReducerSequence&, YSLib::Logger&);
+TraceBacktrace(const ContextNode::ReducerSequence&, YSLib::Logger&) ynothrow;
 //@}
 
 

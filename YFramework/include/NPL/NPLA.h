@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r8385
+\version r8411
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2021-08-09 21:18 +0800
+	2021-09-01 23:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1677,7 +1677,7 @@ ResolveRegular(_tTerm& term) -> yimpl(decltype(NPL::Access<_type>(term)))
 \brief 提升项：设置项的内容为参数指定的项或值。
 \since build 805
 
-使用第二参数指定的项的内容替换第一个项的内容。
+使用第二参数指定的项的内容替换第一参数指定的项的内容。
 不修改项的子项和值数据成员以外的的内容。
 */
 //@{
@@ -1702,8 +1702,11 @@ inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo) ynothrow
 
 /*!
 \brief 提升项或项的副本。
+\note 第三参数指定是否直接提升。
 
-提升参数指定的项或设置项。第三参数指定是否直接提升。
+提升第二参数参数指定的项或其副本。
+指定直接提升时，不创建一等对象的副本，而对参数指定的被提升对象进行转移。
+提升时，被替换的项的标签自提升的项赋值。
 */
 //@{
 /*!
@@ -1716,27 +1719,23 @@ YF_API void
 LiftOtherOrCopy(TermNode&, TermNode&, bool);
 
 /*!
-\note 若直接提升，同 LiftTerm ，否则同创建对象副本调用 TermNode::MoveContent 。
+\note 若直接提升，同 LiftTerm ，否则同调用 TermNode::CopyContent 。
 \since build 859
 */
 YF_API void
 LiftTermOrCopy(TermNode&, TermNode&, bool);
-//@}
 
 /*!
-\brief 提升项的值数据成员或项的值数据成员的副本。
-\note 复制引用项引用的对象，复制或转移非引用项的对象。
-\note 第三参数指定转移是否被转移。
-\brief 提升引用的项的值。
+\note 复制引用项的被引用对象，复制或转移非引用项的对象。
 \sa NPL::SetContentWith
 \since build 872
 
-提升第二参数引用的项使其中可能包含的引用值以满足返回值的内存安全要求。
-提升参数指定的项或设置项。第三参数指定是否直接提升。
-若直接提升，同 LiftTerm ，否则同 TermNode::SetContent 。
+以项的值数据成员或项的值数据成员的副本的转移或复制，递归提升项的内容。
+若直接提升，使用 ValueObject::MakeMove ；否则使用 ValueObject::MakeCopy 。
 */
 YF_API void
 LiftTermValueOrCopy(TermNode&, TermNode&, bool);
+//@}
 
 
 //! \note 不复制项的标签。这适合不保留标签的赋值操作。
@@ -1811,17 +1810,18 @@ LiftToReference(TermNode&, TermNode&);
 \brief 提升引用的项作为转移的项。
 \note 复制引用项引用的对象，复制或转移非引用项的对象。
 \note 第三参数指定转移是否被转移。
+\note 第二参数可能引入不是非一等对象的值的表示。
 
-提升第二参数引用的项使其中可能包含的引用值以满足返回值的内存安全要求。
+提升第二参数的被引用项使其中可能包含的引用值以满足返回值的内存安全要求。
 */
 //@{
 /*!
 \sa LiftTermOrCopy
 \since build 873
 */
-inline PDefH(void, LiftMoved, TermNode& term, const TermReference& ref,
-	bool move)
-	ImplExpr(LiftTermOrCopy(term, ref.get(), move))
+inline
+	PDefH(void, LiftMoved, TermNode& term, const TermReference& ref, bool move)
+	ImplExpr(LiftTermOrCopy(term, ref.get(), move), EnsureValueTags(term.Tags))
 
 /*!
 \pre 间接断言：非直接提升或第一和第二参数指定不相同的项。
@@ -1831,7 +1831,7 @@ inline PDefH(void, LiftMoved, TermNode& term, const TermReference& ref,
 */
 inline PDefH(void, LiftMovedOther, TermNode& term, const TermReference& ref,
 	bool move)
-	ImplExpr(LiftOtherOrCopy(term, ref.get(), move))
+	ImplExpr(LiftOtherOrCopy(term, ref.get(), move), EnsureValueTags(term.Tags))
 //@}
 
 /*!
@@ -2615,11 +2615,7 @@ public:
 		}
 
 		//! \since build 893
-		DefDeCopyAssignment(ReducerSequence)
-		//! \since build 893
-		PDefHOp(ReducerSequence&, =, ReducerSequence&& rs) ynothrowv
-			ImplRet(YAssert(get_allocator() == rs.get_allocator(),
-				"Invalid allocator found."), swap(rs), *this)
+		DefDeCopyMoveAssignment(ReducerSequence)
 
 		void
 		clear() ynothrow
@@ -3192,6 +3188,7 @@ YB_ATTR_nodiscard inline PDefH(Environment::NameResolution, ResolveName,
 \since build 897
 
 同 ResolveIdentifier ，但结果是被转移的直接指称的对象，不引入新的引用值。
+被绑定的对象可能具有不支在一等对象的值的表示中支持的标签。
 若被绑定的对象不可修改或环境被冻结，则复制所在的项；否则直接转移项。
 不区分和折叠对象引用。
 */

@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r5978
+\version r6036
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2021-08-18 00:08 +0800
+	2021-08-30 23:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,21 +31,21 @@
 //	std::invalid_argument, ystdex::sfmt, YSLib::share_move, REPLContext,
 //	RetainN, NPL::ResolveRegular, NPL::Deref, RelaySwitched,
 //	A1::NameTypedReducerHandler, std::bind, std::ref, ResolvedTermReferencePtr,
-//	NPL::TryAccessLeaf, TermReference, LiftTerm, NPL::AllocateEnvironment,
-//	function, ValueObject, EnvironmentReference, std::piecewise_construct,
-//	NPL::forward_as_tuple, LiftOther, ThrowNonmodifiableErrorForAssignee,
-//	ThrowValueCategoryError, ValueToken, ResolveTerm, IsNPLASymbol,
-//	ThrowInvalidTokenError, std::placeholders, TokenValue, CheckVariadicArity,
-//	A1::AsForm, NPL::CollectTokens, Strict, IsEmpty, ComposeReferencedTermOp,
-//	IsBranch, IsReferenceTerm, IsBoundLValueTerm, IsUncollapsedTerm,
-//	IsUniqueTerm, IsModifiableTerm, IsTemporaryTerm, ReferenceTerm, LiftTermRef,
-//	NPL::SetContentWith, ResolveName, Environment::EnsureValid, LiftOtherOrCopy,
-//	ystdex::bind1, LiftTermValueOrCopy, MoveResolved, ResolveIdentifier,
-//	NPLException, ReduceToReferenceList, NPL::IsMovable, LiftTermOrCopy,
-//	IsBranchedList, AccessFirstSubterm, ThrowInsufficientTermsError, Retain,
-//	NPL::AsTermNode, ystdex::fast_any_of, Ensigil, YSLib::ufexists,
-//	YSLib::to_std_string, EmplaceCallResultOrReturn, ystdex::plus,
-//	ystdex::tolower, YSLib::OwnershipTag, YSLib::IO::StreamPut,
+//	NPL::TryAccessLeaf, TermReference, LiftTerm, MoveResolved,
+//	NPL::AllocateEnvironment, function, ValueObject, EnvironmentReference,
+//	std::piecewise_construct, NPL::forward_as_tuple, LiftOther,
+//	ThrowNonmodifiableErrorForAssignee, ThrowValueCategoryError, ValueToken,
+//	ResolveTerm, IsNPLASymbol, ThrowInvalidTokenError, std::placeholders,
+//	TokenValue, CheckVariadicArity, A1::AsForm, NPL::CollectTokens, Strict,
+//	IsEmpty, ComposeReferencedTermOp, IsBranch, IsReferenceTerm,
+//	IsBoundLValueTerm, IsUncollapsedTerm, IsUniqueTerm, IsModifiableTerm,
+//	IsTemporaryTerm, ReferenceTerm, LiftTermRef, NPL::SetContentWith,
+//	ResolveName, Environment::EnsureValid, LiftOtherOrCopy, ystdex::bind1,
+//	LiftTermValueOrCopy, ResolveIdentifier, NPLException, ReduceToReferenceList,
+//	NPL::IsMovable, LiftTermOrCopy, IsBranchedList, AccessFirstSubterm,
+//	ThrowInsufficientTermsError, Retain, NPL::AsTermNode, ystdex::fast_any_of,
+//	Ensigil, YSLib::ufexists, YSLib::to_std_string, EmplaceCallResultOrReturn,
+//	ystdex::plus, ystdex::tolower, YSLib::OwnershipTag, YSLib::IO::StreamPut,
 //	YSLib::FetchEnvironmentVariable, YSLib::SetEnvironmentVariable,
 //	YSLib::IO::UniqueFile, YSLib::uremove, YSLib::allocate_shared,
 //	ReduceReturnUnspecified, ystdex::throw_error;
@@ -74,10 +74,10 @@ namespace NPL
 // NOTE: The following options provide documented alternative implementations.
 //	Replacing each group of implementations in either native implementations or
 //	source derivations shall behaves the same, except the differences allowed by
-//	the document. Functions provided by '$provide/let!' are in the same group;
-//	otherwise, each function definition is in one group. The native
-//	implementation of forms should provide better performance in general, thus
-//	it is enabled by default.
+//	the document. Functions whose definitions provided by a same top-level
+//	(relatively to the ground environment) statement are in the same group. The
+//	native implementation of forms should provide better performance in general,
+//	thus it is enabled by default.
 
 //! \since build 837
 //@{
@@ -264,7 +264,7 @@ DoMoveOrTransfer(void(&f)(TermNode&, TermNode&, bool), TermNode& term)
 		// NOTE: Force move. No %IsMovable check is needed.
 		// XXX: Term tags are currently not respected in prvalues.
 		f(term, nd, !p_ref || p_ref->IsModifiable());
-		// NOTE: Term tags are not copied.
+		EnsureValueTags(term.Tags);
 		return ReductionStatus::Retained;
 	}, term);
 }
@@ -279,6 +279,16 @@ Qualify(TermNode& term, TermTags tag_add)
 		LiftTerm(term, tm);
 		return ReductionStatus::Retained;
 	}, term);
+}
+
+//! \since build 925
+YB_ATTR_nodiscard TermNode
+MoveResolvedValue(const ContextNode& ctx, string_view id)
+{
+	auto tm(MoveResolved(ctx, id));
+
+	EnsureValueTags(tm.Tags);
+	return tm;
 }
 
 //! \since build 794
@@ -621,7 +631,7 @@ LoadEnvironments(ContextNode& ctx)
 	RegisterForm(ctx, "$resolve-identifier",
 		std::bind(DoResolve, std::ref(ResolveIdentifier), _1, _2));
 	RegisterForm(ctx, "$move-resolved!",
-		std::bind(DoResolve, std::ref(MoveResolved), _1, _2));
+		std::bind(DoResolve, std::ref(MoveResolvedValue), _1, _2));
 	// NOTE: This is now be primitive since in NPL environment capture is more
 	//	basic than vau.
 	RegisterStrict(ctx, "copy-environment", CopyEnvironment);
@@ -1061,7 +1071,8 @@ $def! $sequence
 						(eval% (cons% $aux (move! tail)) d))))
 	(make-environment (() get-current-environment));
 $def! collapse $lambda% (%x)
-	$if (uncollapsed? ($resolve-identifier x)) (idv x) x;
+	$if (uncollapsed? x)
+		(($if ($lvalue-identifier? x) ($lambda% (%x) x) id) (idv x)) x;
 $def! forward $lambda% (%x) $if ($lvalue-identifier? x) x (idv x);
 $def! assign! $lambda (&x &y) assign@! (forward! x) (idv (collapse y));
 $def! assign%! $lambda (&x &y) assign@! (forward! x) (forward! (collapse y));
@@ -1105,13 +1116,13 @@ $defv! $defl/e%! (&f &p &formals .&body) d
 $defw%! forward-first% (&appv (&x .)) d
 	apply (forward! appv) (list% ($move-resolved! x)) d;
 $defl%! first (%l)
-	($lambda% (fwd) forward-first% forward! (fwd l))
-		($if ($lvalue-identifier? l) id expire);
+	$if ($lvalue-identifier? l) (($lambda% ((@x .)) collapse x) l)
+		(forward-first% idv (expire l));
 $defl%! first@ (&l) ($lambda% ((@x .)) x) (check-list-reference (forward! l));
 $defl%! first% (%l)
 	($lambda (fwd (@x .)) fwd x) ($if ($lvalue-identifier? l) id expire) l;
 $defl%! first& (&l)
-	($lambda% ((&x .)) x) (check-list-reference (forward! l));
+	($lambda% ((@x .)) collapse x) (check-list-reference (forward! l));
 $defl! firstv ((&x .)) x;
 $defl! rest% ((#ignore .%xs)) move! xs;
 $defl%! rest& (&l)
@@ -1441,7 +1452,7 @@ $provide/let! (promise? memoize $lazy $lazy% $lazy/d $lazy/d% force)
 ((mods $as-environment (
 	$def! (encapsulate% promise? decapsulate) () make-encapsulation-type;
 	$defl%! do-force (&prom fwd) $let% ((((&o &env) evf) decapsulate prom))
-		$if (null? env) (fwd o)
+		$if (null? env) (first (first (decapsulate (fwd prom))))
 		(
 			$let*% ((&y evf (fwd o) env) (&x decapsulate prom)
 				(((&o &env) &evf) x))
@@ -1472,8 +1483,8 @@ $provide/let! (promise? memoize $lazy $lazy% $lazy/d $lazy/d% force)
 		encapsulate%
 			(list (list (move! body) (check-environment (eval e d))) eval%),
 	$defl/e%! &force mods (&x)
-		$let% ((fwd $if ($lvalue-identifier? x) id move!))
-			$if (promise? x) (do-force x fwd) (fwd x)
+		($lambda% (fwd) $if (promise? x) (do-force x fwd) (fwd x))
+			($if ($lvalue-identifier? x) id move!)
 );
 	)NPL");
 }
@@ -1593,6 +1604,17 @@ LoadModule_std_io(REPLContext& context)
 		[](const string& str) ynothrow{
 		return YSLib::ufexists(str.c_str(), true);
 	});
+	RegisterStrict(renv, "newline", [&](TermNode& term){
+		RetainN(term, 0);
+		if(auto& os{context.GetOutputStreamRef()})
+			os << std::endl;
+		return ValueToken::Unspecified;
+	});
+	RegisterUnary<Strict, const string>(renv, "put", [&](const string& str){
+		YSLib::IO::StreamPut(context.GetOutputStreamRef(), str.c_str());
+		return ValueToken::Unspecified;
+	});
+#if NPL_Impl_NPLA1_Native_Forms
 	RegisterUnary<Strict, const string>(renv, "puts", [&](const string& str){
 		auto& os(context.GetOutputStreamRef());
 
@@ -1601,6 +1623,12 @@ LoadModule_std_io(REPLContext& context)
 			os << std::endl;
 		return ValueToken::Unspecified;
 	});
+#else
+	context.ShareCurrentSource("<lib:std.io>");
+	context.Perform(R"NPL(
+$defl! puts (&s) $sequence (put s) (() newline);
+	)NPL");
+#endif
 #if true
 	RegisterStrict(renv, "load", [&](TermNode& term, ContextNode& ctx){
 		return ReduceToLoadExternal(term, ctx, context);
@@ -1784,12 +1812,12 @@ $provide/let! (registered-requirement? register-requirement!
 	$defl! set-value! (&req &v)
 		eval (list $def! (string->symbol req) v) registry
 	),
-	(
-	$def! placeholder ($remote-eval% string->regex std.strings) "\?",
 	$def! prom_pathspecs ($remote-eval% $lazy std.promises)
 		$let ((spec ($remote-eval% env-get std.system) "NPLA1_PATH"))
 			$if (string-empty? spec) (list "./?" "./?.txt")
-				(($remote-eval% string-split std.strings) spec ";");
+				(($remote-eval% string-split std.strings) spec ";"),
+	(
+	$def! placeholder ($remote-eval% string->regex std.strings) "\?",
 	$defl! get-requirement-filename (&specs &req)
 		$if (null? specs)
 			(raise-error (++ "No module for requirement '" req
@@ -1817,7 +1845,7 @@ $provide/let! (registered-requirement? register-requirement!
 		get-requirement-filename
 			(($remote-eval% force std.promises) prom_pathspecs) req
 );
-$defl%! &require (&req)
+$defl%! require (&req)
 	$if (registered-requirement? req) #inert
 		($let ((filename find-requirement-filename req))
 			$sequence (register-requirement! (move! req))

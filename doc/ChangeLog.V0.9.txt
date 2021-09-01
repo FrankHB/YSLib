@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r4793
+\version r4975
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-08-18 00:18 +0800
+	2021-09-02 01:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,186 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			+ "function %EnsureValueTags",
+			/ %NPLA $=
+			(
+				/ "class %ContextNode::ReducerSequence" $=
+				(
+					/ $impl "simplified (copy, move) constructor"
+						^ "%DefDeCopyMoveAssignment",
+					- $comp "redundant assertion" @ "move constructor"
+				),
+				* ("%TermTags::Temporary from the reference tags not ignored";
+					"tags other than %TermTags::Unique not preserved")
+					@ "functions %(Collapse; LiftCollapse, MoveCollapsed)"
+					$since b857,
+					// This was also inconsistent to %PrepareCollapse.
+				* $re_add(b917) "missing setting tags"
+					@ "function %LiftTermValueOrCopy" $since b872
+
+			),
+			/ %NPLA1 $=
+			(
+				/ @ "function %TraceBacktrace" $=
+				(
+					// See $2021-08 @ %Documentation::Workflow.
+					(
+					- "reducer sequence clearing";
+					+ 'const' @ "1st parameter"
+					),
+					(
+					/ "wrapped exception thrown before continuation traversing \
+						in %YSLib::FilterException";
+					+ 'ynothrow'
+					)
+				),
+				/ DLI "optimized member function \
+					%FormContextHandler::operator()" !^ "%Continuation the \
+					front position of the coposited reducer",
+				/ "failure" @ "functions %(ReduceCombinedBranch, \
+					ReduceCombinedReferent)" $=
+				(
+					+ "extracted the identifier from the operand name"
+						@ "exception message",
+					* "assertion failure due to the existence of the operand \
+						name" $since b918
+						// The operand name makes the argument not a term of \
+							regular list expected by the call to \
+							%FetchArgumentN with the recent precondition \
+							change. Now the operand name is removed before the \
+							call.
+				),
+				* $revert(b788) DD $impl "unexpected modification"
+					@ "'\since' command" @ "implementation unit" $since b788
+			),
+			* $comp "possible redundant %TermTags::Temporary from return value \
+				conversion" @ "reducer functions and binding parameter \
+				functions" @ %(NPLA1, NPLA1Forms) $since b857
+				$dep_from ("%LiftSubtermsToReturn" @ %NPLA),
+			* "missing clear %TermTags::Termporary of the result from \
+				possibly bound objects in referents" @ (("function \
+				%LiftMovedOther" $since b876; $comp ("function \
+				%MoveRValueToForward" $since b872, "function \
+				%MoveRValueToReturn" $since b871, "function %LiftToReturn"
+				$since b857)), ($comp "functions ((LiftSubtermsToReturn; \
+				ReduceBranchToListValue), ReduceForLiftedResult)" $since b857
+				$dep_from "%LiftToReturn", "function %LiftMoved" $since b873)
+				@ %NPLA, ($comp ("functions %(First, FirstVal, SetFirst)"
+				$since b859, "function %RestVal" $since b910, "functions \
+				%(ListExtractFirst, Let, LetRef, LetAsterisk, LetAsteriskRef, \
+				LetRec, LetRecRef, BindingsWithParentToEnvironment, \
+				BindingsToEnvironment, ProvideLet)" $since b915, "function \
+				%ListPushFront" $since b921) $dep_from ("%LiftMovedOther"
+				@ %NPLA), $comp "function %ListAsterisk" $since b860 $dep_from
+				("%LiftSubtermsToReturn" @ %NPLA), "functions %(Eval, EvalRef, \
+				EvalString, EvalStringRef, RemoteEval, RemoteEval)" $since b860)
+				@ "namespace %Forms" @ %NPLA1Forms)
+				^ $impl $dep_from ("%EnsureValueTags" @ %SContext),
+			/ DLDI "simplified functions %Forms::(Let, LetRef, LetAsterisk, \
+				LetAsteriskRef, LetRec, LetRecRef, \
+				BindingsWithParentToEnvironment, BindingsToEnvironment, \
+				ProvideLet)" @ %NPLA1Forms,
+			/ %Dependency $=
+			(
+				/ "applicative %force" @ "function %LoadModule_std_promises" $=
+				(
+					/ DLI "simplified " ^ '$lambda%' ~ '$let%',
+					* "resolved referencing shared state of rvalues \
+						unexpectedly moved" $since b872
+				),
+				/ @ "alternative derivations"
+					@ "function %LoadModule_std_modules" $=
+				(
+					/ DLDI "reordered internal definitions"
+						@ "applicative 'find-requirement-filename'",
+					* "wrong '&' annotated on the variable"
+						@ "applicative %require" $since b923
+						// This wrongly makes the defined variable a temporary.
+				),
+				/ @ "function %LoadModule_std_io" $=
+				(
+					+ "applicatives %(newline, put)";
+					+ DLI "alternative derivation" @ "applicative %puts"
+						^ "%(put, newline)"
+				),
+				/ @ "function %LoadGroundContext" $=
+				(
+					// See $2021-08 @ %Documentation::Workflow.
+					* "missing return value conversion for elements in rvalue \
+						lists" @ "alternative derivation"
+						@ "applicative %first" $since b859
+						$= (/ $impl ^ 'idv' ~ 'id'),
+					* "unique reference tag unexpetedly changed in the results \
+						for xvalue or reference to temporary elements for \
+						lvalue lists" @ "alternative derivations"
+						@ "applicatives (%first, 'first&')" $since b859,
+					/ @ "alternative derivation" @ "applicative %collapse" $=
+					(
+						/ DLDI "simplified" !^ '$resolve-identifier',
+						* "unique tag not correctly preserved for unique \
+							references" $since b869
+					),
+					* $comp "wrong temporary tag preserved" @ ("native \
+						implementations" @ ("applicative %collapse" $since b869,
+						"applicative 'assign%!'" $orig (@ "applicative '<-%'"
+						$since b857)), "alternative derivation"
+						@ "applicative 'assign!'" $since b870,
+						"applicative 'assign%!" $since b858) $dep_from
+						("%NPL::MoveCollapsed" @ %NPLA),
+					* "possible wrong tempoarary preseved" @ ($comp
+						"applicative %list" $since b857
+						$dep_from ("%ReduceBranchToListValue" @ %NPLA),
+						("operative '$move-resolved!" ^ $impl $dep_from
+						("%EnsureValueTags" @ %SContext);
+						$comp "alternative derivation" @ "applicative \
+						'forward-first%'" $orig (@ "applicative \
+						'forward-list-first%'")) $since b897,
+						"native implementation" @ (("applicative 'move!'"
+						$since b871, "applicative 'transfer!'" $since b872)
+						^ $impl $dep_from ("%EnsureValueTags" @ %SContext),
+						$comp ("applicatives (%eval, 'eval%', 'eval-string', \
+						'eval-string%')" $since b860 $dep_from ("functions \
+						%Forms::(Eval, EvalRef, EvalString, EvalStringRef)"
+						@ %NPLA1Forms), "operatives ('$remote-eval', \
+						'$remote-eval%')" $since b923 $dep_from ("functions \
+						%Forms::(RemoteEval, RemoteEvalRef)" @ %NPLA1Forms),
+						"applicatives (%first, 'list*',, %firstv, 'set-first!')"
+						$since b859 $dep_from ("functions %Forms::(First, \
+						ListAsterisk, FirstVal, SetFirst)" @ %NPLA1Forms),
+						("applicative 'list-extract-first'", "operatives \
+						('$let', '$let%', '$let*', '$let*%', '$letrec', \
+						'$letrec%', '$bindings/p->environment', \
+						'$bindings->environment', '$provide/let!')") $since b915
+						$dep_from ("functions %Forms::(ListExtractFirst, Let, \
+						LetRef, LetAsterisk, LetAsteriskRef, LetRec, \
+						LetRecRef, BindingsWithParentToEnvironment, \
+						BindingsToEnvironment, ProvideLet)" @ %NPLA1Forms),
+						"applicative %restv" $since b910 $dep_from ("function \
+						%Forms::RestVal" @ %NPLA1Forms), "applicative \
+						'list-push-front!'" $since b921 $dep_from ("function \
+						%Forms::ListPushFront" @ %NPLA1Forms)))),
+						// The wrong '$move-resolved!' only affects binding \
+							with the '&' sigil and without the return value \
+							conversion correction fixed in \
+							%NPL::ReduceForLiftedResult.
+				)
+			),
+
+		)
+	),
+	* "missing the guarded backtrace cleanup" @ "handler for NPLA1 exceptions"
+		@ "commands %(RunNPL, RunNPLFile)" @ %Tools.SHBuild.Main $since b903
+		// This may cause undefined behavior if there is no tracing \
+			(controlled by %SHBuild_UseBacktrace) or any exception is thrown \
+			before the tracing. See also $2021-08 @ %Documentation::Workflow.
+),
+
+b924
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -1362,9 +1542,9 @@ b916
 			* "redundant temporary tag on unique references in the result"
 				@ ("function %ReduceToReferenceList" $since b914,
 				"function %ReduceToReferenceUList" $since b915),
-			/ "avoided bound tempoaray tag on non-temporary object bound with \
-				sigil '&' in trailing lists" @ "function %BindParameter"
-				// The temporary tag was added in b875, to simplified the \
+			/ "avoided the tempoaray tag on non-temporary references bound \
+				with sigil '&' in trailing lists" @ "function %BindParameter"
+				// The temporary tag was added in b875, to simplify the \
 					argument to 'forward!' calls in typical cases. However, \
 					this is too aggressive for a trailing binding and there \
 					would be no easy and efficient way to undo the addition \
@@ -1718,7 +1898,7 @@ b914
 			(
 			/ DLI "functions %(Map1, FoldR1)";
 				// Loops are less efficient here.
-			* DLI "redundant list binding in the initial binding"
+			* DLI "redundant list bound in the initial bindings"
 				@ "function %Map1" $since b899
 				// This is redundant for %Map1 but not %FoldR1 because the \
 					former has less arguments and the last argument (the list) \
@@ -3791,7 +3971,7 @@ b903
 				/ "trimmed options of flags",
 					// This eliminates whitespaces after the '-c' compiler \
 						option when the flag (e.g. %SHBuild_CXXFLAGS) is empty.
-				/ "NPL unit interpretion" $=
+				/ "commands %(RunNPL, RunNPLFile)" $=
 				(
 					/ "name of NPL unit from standard input"
 						-> '*STDIN*' ~ '<stdin>',

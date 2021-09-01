@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r25477
+\version r25566
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2021-08-12 12:18 +0800
+	2021-09-02 00:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -614,6 +614,7 @@ EvalImplUnchecked(TermNode& term, ContextNode& ctx, bool no_lift)
 	ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
 		LiftOtherOrCopy(term, nd, NPL::IsMovable(p_ref));
 	}, NPL::Deref(i));
+	EnsureValueTags(term.Tags);
 	// NOTE: On %NPL_Impl_NPLA1_Enable_TCO, this assumes %term is same to the
 	//	current term in %TCOAction, which is initialized by %CombinerReturnThunk
 	//	in NPLA1.cpp.
@@ -1312,47 +1313,47 @@ ReductionStatus
 ReduceToFirst(TermNode& term, TermNode& tm, ResolvedTermReferencePtr p_ref)
 {
 #if true
-		// XXX: This is verbose but likely more efficient with %YB_FLATTEN.
-		const bool list_not_move(p_ref && p_ref->IsReferencedLValue());
+	// XXX: This is verbose but likely more efficient with %YB_FLATTEN.
+	const bool list_not_move(p_ref && p_ref->IsReferencedLValue());
 
+	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
+	{
+		if(list_not_move)
+		{
+			LiftCopyPropagate(term, tm, NPL::Deref(p_ref));
+			return ReductionStatus::Retained;
+		}
+		if(!p->IsReferencedLValue())
+		{
+			LiftMovedOther(term, *p, p->IsMovable());
+			return ReductionStatus::Retained;
+		}
+	}
+	else if(list_not_move)
+		return ReduceToReferenceAt(term, tm, p_ref);
+	// XXX: Term tags are currently not respected in prvalues.
+	LiftOtherOrCopy(term, tm, !p_ref || p_ref->IsModifiable());
+	return ReductionStatus::Retained;
+#else
+	// NOTE: For exposition only. The optimized implemenation shall be
+	//	equivalent to this.
+	// XXX: This should be safe, since the parent list is guaranteed an
+	//	lvalue by the false result of the call to %NPL::IsMovable.
+	if(!(p_ref && p_ref->IsReferencedLValue()))
+	{
 		if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
 		{
-			if(list_not_move)
-			{
-				LiftCopyPropagate(term, tm, NPL::Deref(p_ref));
-				return ReductionStatus::Retained;
-			}
 			if(!p->IsReferencedLValue())
 			{
 				LiftMovedOther(term, *p, p->IsMovable());
 				return ReductionStatus::Retained;
 			}
 		}
-		else if(list_not_move)
-			return ReduceToReferenceAt(term, tm, p_ref);
 		// XXX: Term tags are currently not respected in prvalues.
 		LiftOtherOrCopy(term, tm, !p_ref || p_ref->IsModifiable());
 		return ReductionStatus::Retained;
-#else
-		// NOTE: For exposition only. The optimized implemenation shall be
-		//	equivalent to this.
-		// XXX: This should be safe, since the parent list is guaranteed an
-		//	lvalue by the false result of the call to %NPL::IsMovable.
-		if(!(p_ref && p_ref->IsReferencedLValue()))
-		{
-			if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
-			{
-				if(!p->IsReferencedLValue())
-				{
-					LiftMovedOther(term, *p, p->IsMovable());
-					return ReductionStatus::Retained;
-				}
-			}
-			// XXX: Term tags are currently not respected in prvalues.
-			LiftOtherOrCopy(term, tm, !p_ref || p_ref->IsModifiable());
-			return ReductionStatus::Retained;
-		}
-		return ReduceToReference(term, tm, p_ref);
+	}
+	return ReduceToReference(term, tm, p_ref);
 #endif
 }
 
@@ -2315,6 +2316,21 @@ PrepareListExtract(TermNode& term)
 }
 //@}
 
+//! \since build 925
+template<typename _fNext>
+inline ReductionStatus
+RelayApplicativeNext(ContextNode& ctx, TermNode& term, _fNext&& next)
+{
+	return A1::RelayCurrentNext(ctx, term,
+		// NOTE: Capture the term regardless of the next term because
+		//	continuation capture here is unsupported and the next term will be
+		//	set later in %ReduceChildren.
+		[&](TermNode&, ContextNode& c){
+		ReduceChildren(term, c);
+		return ReductionStatus::Partial;
+	}, NPL::ToReducer(ctx.get_allocator(), yforward(next)));
+}
+
 //! \since build 919
 //@{
 void
@@ -2407,16 +2423,7 @@ LetCombineApplicative(TermNode& term, ContextNode& ctx, bool no_lift)
 	//	%Value, extracted 'formals' for the lambda abstraction,
 	//	unused 'bindings', trailing 'body'.
 	YAssert(term.size() >= 3, "Invalid nested call found.");
-
-	auto& arg_list(*term.begin());
-
-	return A1::RelayCurrentNext(ctx, arg_list,
-		// NOTE: Capture the term regardless of the next term because
-		//	continuation capture here is unsupported.
-		[&](TermNode&, ContextNode& c){
-		ReduceChildren(arg_list, c);
-		return ReductionStatus::Partial;
-	}, NPL::ToReducer(ctx.get_allocator(),
+	return RelayApplicativeNext(ctx, *term.begin(),
 		A1::NameTypedReducerHandler([&, no_lift]{
 		return LetCombineBody([&](TermNode& operand, TermNode& formals,
 			TermNode& body, EnvironmentGuard& gd){
@@ -2424,7 +2431,7 @@ LetCombineApplicative(TermNode& term, ContextNode& ctx, bool no_lift)
 			BindParameter(ctx.GetRecordPtr(), formals, operand);
 			return LetCallBody(term, ctx, body, gd, no_lift);
 		}, term, ctx);
-	}, "eval-let")));
+	}, "eval-let"));
 }
 
 //! \since build 919
@@ -2751,19 +2758,14 @@ LetRecCore(TermNode& term, ContextNode& ctx, bool no_lift, bool with_env)
 		return LetCombineBody([&](TermNode& operand, TermNode& formals,
 			TermNode& body, EnvironmentGuard& egd){
 			operand.Value.Clear();
-			// TODO: Blocked. Use C++14 lambda initializers to simplify the
-			//	implementation.
-			return A1::RelayCurrentNext(ctx, operand,
-				// NOTE: Capture the term regardless of the next term because
-				//	continuation capture here is unsupported.
-				[&](TermNode&, ContextNode& c){
-				ReduceChildren(operand, c);
-				return ReductionStatus::Partial;
-			}, NPL::ToReducer(ctx.get_allocator(), A1::NameTypedReducerHandler(
+			return RelayApplicativeNext(ctx, operand,
+				A1::NameTypedReducerHandler(
+				// TODO: Blocked. Use C++14 lambda initializers to simplify the
+				//	implementation.
 				std::bind([&, no_lift](EnvironmentGuard& gd){
 				BindParameter(ctx.GetRecordPtr(), formals, operand);
 				return LetCallBody(term, ctx, body, gd, no_lift);
-			}, std::move(egd)), "eval-letrec-bind")));
+			}, std::move(egd)), "eval-letrec-bind"));
 		}, term, ctx);
 	}, term, ctx, with_env);
 }
@@ -2797,13 +2799,7 @@ DoBindingsToEnvironment(TermNode& term, ContextNode& ctx,
 	// NOTE: Now subterms are extracted initializers for the definition,
 	//	originally bound 'bindings', extracted 'formals' for the definition.
 	// XXX: As %LetCommon, with a slightly different layout.
-	return A1::RelayCurrentNext(ctx, operand,
-		// NOTE: Capture the term regardless of the next term because
-		//	continuation capture here is unsupported.
-		[&](TermNode&, ContextNode& c){
-		ReduceChildren(operand, c);
-		return ReductionStatus::Partial;
-	}, NPL::ToReducer(ctx.get_allocator(), A1::NameTypedReducerHandler(
+	return RelayApplicativeNext(ctx, operand, A1::NameTypedReducerHandler(
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
 		std::bind([&](shared_ptr<Environment>& p_e){
@@ -2812,7 +2808,7 @@ DoBindingsToEnvironment(TermNode& term, ContextNode& ctx,
 		con.pop_front();
 		con.pop_front();
 		return ReduceMoveEnv1(term, p_e);
-	}, std::move(p_env)), "bindings-to-env")));
+	}, std::move(p_env)), "bindings-to-env"));
 }
 
 YB_ATTR_nodiscard YB_PURE inline

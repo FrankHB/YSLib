@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r4402
+\version r4405
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2021-08-01 04:33 +0800
+	2021-08-22 01:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -525,6 +525,9 @@ RunNPLFromStream(const char* name, std::istream&& is)
 					TryExpr(std::rethrow_exception(std::move(p)))
 					catch(std::exception& e)
 					{
+						const auto gd(ystdex::make_guard([&]() ynothrowv{
+							backtrace.clear();
+						}));
 					//	auto& trace(ctx.Trace);
 						auto& trace(FetchStaticRef<Logger>());
 						std::lock_guard<std::mutex> lck(LastLogGroupMutex);
