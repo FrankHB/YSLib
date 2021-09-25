@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016, 2018-2020 FrankHB.
+	© 2015-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r920
+\version r1008
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2020-03-12 17:44 +0800
+	2021-09-24 02:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,15 +32,16 @@
 
 #include "addressof.hpp" // for "addressof.hpp", cond_t, is_void, _t, vdefer,
 //	std::align, sizeof_t, size_t_, identity, empty_base, YB_ASSUME,
-//	ystdex::addressof, is_lvalue_reference, std::pair, std::allocator,
-//	std::allocator_traits, enable_if_convertible_t, std::unique_ptr,
-//	is_nothrow_destructible;
+//	ystdex::addressof, is_lvalue_reference, std::pair, or_,
+//	is_trivially_copyable, is_empty, std::reference_wrapper, std::unique_ptr,
+//	std::shared_ptr, std::weak_ptr, std::allocator, std::allocator_traits,
+//	enable_if_convertible_t, is_nothrow_destructible, and_;
 #include "cstdint.hpp" // for is_power_of_2_positive, yconstraint,
 //	YB_VerifyIterator, std::iterator_traits, vseq, ctor_of, when, _a;
 #include <new> // for placement ::operator new from standard library;
-// NOTE: The following code is necessary to check for <optional> header to
-//	ensure it have %in_place_t consistently. Other implementation is in
-//	"optional.h". 
+// NOTE: The following code is necessary to check for header <optional> to
+//	ensure it has %in_place_t consistently. Other implementations are in
+//	"optional.h".
 // NOTE: Check of %__cplusplus is needed because SD-6 issues are not resolved in
 //	mainstream implementations yet. See https://groups.google.com/a/isocpp.org/forum/#!topic/std-discussion/1rO2FiqWgtI
 //	and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=79433 for details. For
@@ -142,19 +143,19 @@ is_aligned_ptr(_type* p, size_t alignment
 #endif
 
 
+//! \ingroup tags
+//@{
 /*!
-\ingroup tags
 \brief 默认初始化标记。
 \since build 677
 */
-yconstexpr const struct default_init_t{} default_init{};
-
+yconstexpr_inline const struct default_init_t{} default_init{};
 /*!
-\ingroup tags
 \brief 值初始化标记。
 \since build 705
 */
-yconstexpr const struct value_init_t{} value_init{};
+yconstexpr_inline const struct value_init_t{} value_init{};
+//@}
 
 
 /*!
@@ -181,8 +182,9 @@ struct in_place_tag
 	in_place_tag() = delete;
 };
 
+// NOTE: See WG21 P0504R0.
 //! \note 使用指针代替引用避免退化问题导致无法按值传递。
-//{@
+//@{
 //! \brief 原地空标记类型。
 using in_place_t = in_place_tag(*)(yimpl(empty_base<>));
 
@@ -703,6 +705,78 @@ uninitialized_construct_n(_tFwd first, _tSize n, _tParams&&... args)
 #undef YB_Impl_UninitGuard_Begin
 
 
+/*!
+\ingroup customization_points
+\ingroup unary_type_traits
+\brief 判断类型是否可交换对象的表示。
+\note 不排除假阴性结果。
+\note 特定的程序提供的类型可特化本特征以满足语义要求或提供语义保证。
+\see WG21 P1144R6 。
+\since build 926
+\todo 使用 is_trivially_swappable 或 is_trivially_relocatable 。
+
+判断类型是否是交换时可使用交换对象的表示代替对象的交换操作。
+交换对象的表示一般实现为三次 std::memcpy ，而不是 std::swap 主模板的三次赋值；
+	这不要求对象可赋值。
+由核心语言实现支持的可平凡交换 is_trivially_swappable
+	可从类的成员和基类子对象的类型推断可交换性；
+在没有直接的支持时，通过两种方式近似：
+	若核心语言实现支持可平凡重定位特征 is_trivially_relocatable ，其直接蕴含
+		is_trivially_swappable ，但除此之外还蕴含可平凡默认构造，这是不必要的；
+	否则，可平凡复制特征 is_trivially_copyable 是另一种更保守的模拟近似。
+模拟策略的有效性来自 is_trivially_copyable 保证能通过等效 std::memcpy
+	的方式交换存储，但模拟是不充分的，因此不排除假阴性结果。
+对类类型，没有虚函数及基类和子对象也可能满足交换时可重定位，
+	因为缺少语义信息而不在默认策略中指定。
+默认策略由主模板实现。替换默认策略时，具体类型和其它程序提供的类型可特化本特征。
+特化不应提供假阳性结果，以避免提供错误的保证。
+	例如，非 final 多态类除非排除作为多态基类使用，不应满足可平凡交换；
+	类似的例子对平凡重定位的限制见 https://rawgit.com/Quuxplusone/draft/gh-pages/d1144-object-relocation.html#non-trivial-sample-polymorphic 。
+当前实现不依赖基于核心语言的支持，在主模板中直接使用 is_trivially_copyable 模拟，
+	并确保空类类型对象（即便不可复制）结果为真。
+以下 is_trivially_copyable 提供的保证并不被本特征依赖：
+对满足 is_trivially_copyable 的类型，保证连续存储。
+因为允许使用不排除假阴性结果的模拟，本特征不使用 is_trivially_swappable 的名称，
+	命名策略类似 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=87106#c18 。
+*/
+//@{
+template<typename _type>
+struct is_bitwise_swappable
+#if false
+	: is_trivially_relocatable<_type>
+#else
+	: or_<is_trivially_copyable<_type>, is_empty<_type>>
+#endif
+{};
+
+template<typename _type>
+struct is_bitwise_swappable<_type&> : true_
+{};
+
+template<typename _type>
+struct is_bitwise_swappable<_type&&> : true_
+{};
+
+template<typename _type>
+struct is_bitwise_swappable<std::reference_wrapper<_type>> : true_
+{};
+
+template<typename _type, class _tDeleter>
+struct is_bitwise_swappable<std::unique_ptr<_type, _tDeleter>>
+	: and_<is_bitwise_swappable<_tDeleter>,
+	is_bitwise_swappable<typename std::unique_ptr<_type, _tDeleter>::pointer>>
+{};
+
+template<typename _type>
+struct is_bitwise_swappable<std::shared_ptr<_type>> : true_
+{};
+
+template<typename _type>
+struct is_bitwise_swappable<std::weak_ptr<_type>> : true_
+{};
+//@}
+
+
 //! \since build 716
 //@{
 //! \brief 默认初始化构造分配器。
@@ -844,6 +918,15 @@ struct tagged_value
 		destroy();
 	}
 };
+
+/*!
+\relates tagged_value
+\since build 926
+*/
+template<typename _tToken, typename _type>
+struct is_bitwise_swappable<tagged_value<_tToken, _type>>
+	: and_<is_bitwise_swappable<_tToken>, is_bitwise_swappable<_type>>
+{};
 
 } // namespace ystdex;
 

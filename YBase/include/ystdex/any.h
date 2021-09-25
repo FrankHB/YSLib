@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r5128
+\version r5628
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2021-07-07 19:13 +0800
+	2021-09-24 18:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,17 +33,17 @@
 
 #include "typeinfo.h" // for internal "typeinfo.h", type_info, exclude_self_t,
 //	ystdex::type_id, well_formed_t, is_convertible, enable_if_t,
-//	is_nothrow_move_constructible, and_, is_decayed, bool_, noncopyable,
-//	nonmovable, or_, is_copy_constructible, remove_reference_t, cond_t, is_same,
-//	is_class, std::bad_cast, nor_, std::declval, yconstraint, YAssert, decay_t;
+//	is_copy_constructible, and_, is_decayed, is_base_of, bool_, or_,
+//	noncopyable, nonmovable, remove_reference_t, cond_t, is_same, is_class,
+//	std::bad_cast, nor_, std::declval, yconstraint, YAssert, decay_t;
 #include "utility.hpp" // for internal "utility.hpp", boxed_value,
 //	std::addressof, std::unique_ptr, aligned_storage_t, replace_storage_t,
-//	is_aligned_storable, ystdex::pvoid, default_init_t, default_init, vseq::_a,
-//	is_instance_of, cond_or_t;
+//	is_bitwise_swappable, is_aligned_storable, ystdex::pvoid, default_init_t,
+//	default_init, vseq::_a, is_instance_of, cond_or_t;
 #include "memory.hpp" // for ystdex::clone_monomorphic_ptr, std::allocator,
 //	allocator_delete, exclude_self_params_t, is_byte_allocator, alloc_value_t,
-//	rebind_alloc_t, allocator_traits, ystdex::allocate_unique, in_place_type_t,
-//	std::allocator_arg_t, in_place_type;
+//	rebind_alloc_t, allocator_traits, in_place_type_t, std::allocator_arg_t,
+//	in_place_type, is_allocator;
 #include "exception.h" // for throw_invalid_construction,
 //	throw_allocator_mismatch_error;
 #include "ref.hpp" // for is_reference_wrapper, unwrap_reference_t;
@@ -424,32 +424,72 @@ construct(any_storage& storage, _tParams&&... args) -> enable_if_t<
 }
 
 /*!
-\ingroup metafunctions
+\ingroup type_traits_operations
 \brief 判断处理器是否能被指定参数构造。
 \sa construct
-\since build 886
+\since build 926
 */
 template<class _tHandler, typename... _tParams>
-using is_handler_constructible_t = is_constructible<any_ops::any_manager,
+using is_handler_constructible = is_constructible<any_ops::any_manager,
 	decltype(any_ops::construct<_tHandler>(
 	std::declval<any_ops::any_storage&>(), std::declval<_tParams>()...))>;
 
 
 /*!
-\ingroup unary_type_traits
-\brief 判断类型是否可以作为 any_storage 原地存储。
-\sa value_handler
-\since build 848
+\ingroup tags
+\brief 假定可平凡交换标记。
+\since build 926
 */
-template<typename _type>
-using is_in_place_storable = and_<is_aligned_storable<any_storage, _type>>;
+yconstexpr_inline const struct trivial_swap_t{} trivial_swap{};
+
+/*!
+\ingroup unary_type_traits
+\brief 判断类型是否可以 any_storage 原地存储。
+\sa trivial_swap
+\sa is_bitwise_swappable
+\sa value_handler
+\since build 926
+
+判断类型是否可以 any_storage 原地存储，且符合 any 实现的要求。
+这是特定类型的对象的值可使用 any_storage 存储的充分条件。
+除保持对齐存储外，存储的值的动态类型的附加要求和具体接口或实现的保证相关：
+因为 any 的交换和转移操作的实现不需要调用被存储的值的类型对应函数，
+	且支持使用交换对象的表示代替对象交换操作，即平凡交换，
+	这要求原地存储的值的类型也可平凡交换。
+作为必要非充分条件的可平凡交换的要求使用可选参数指定，允许假阴性结果，
+	默认通过 is_bitwise_swappable 确定；
+当 any 初始化时候显式使用特定的持有者或指定 assume_relocatable 等情形，
+	可能使用其它方式指定。
+初始化 any 对象的值的类型满足可平凡交换的值属性应符合类型的实际语义，
+	即平凡交换后不引起可观察行为的改变；
+否则，包含交换或转移通过这种方式初始化原地存储的 any 对象操作的程序的行为未定义。
+因为可平凡交换的要求允许假阴性结果，不总是保证精确，因此本特征不完全保证必要条件。
+因为平凡交换不使用存储的值的类型构造、赋值或交换操作，不要求值类型满足
+	is_nothrow_move_constructible 等要求；
+	同时，any 的无异常抛出保证（特别地，转移构造函数的）也不依赖值转移无异常抛出。
+保证平凡交换可减少一般情形下交换和转移 any 对象的开销，也简化 any 的实现。
+特别地，这也允许 any_storage 满足可平凡交换。
+这样的保证使 any 不需要在转移构造中按不同的值类型进行处理，如：
+https://gcc.gnu.org/legacy-ml/gcc-patches/2015-05/msg00131.html 。
+若实现不支持自动推断交换时能平凡重定位，需要用现有实现支持的特征模拟，如：
+如 https://quuxplusone.github.io/blog/2018/08/02/trivially-relocatable-any/ 。
+另见 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=87106 。
+因为 any 在此还支持不满足 CopyConstructible 的值类型，所以还可支持不满足
+	is_copy_constructible 的类型，但这不在默认策略中指定。
+当前实现还支持不可复制和不可转移的类型，即使这不是合法的 any 的值类型；
+	这些类型仅用于实现，需要单独特化 is_bitwise_swappable 。
+*/
+template<typename _type, class _bRelocatable = is_bitwise_swappable<_type>>
+using is_in_place_storable = and_<is_aligned_storable<any_storage, _type>,
+	_bRelocatable>;
 
 
 /*!
+\ingroup tags
 \brief 使用持有者标记。
 \since build 680
 */
-yconstexpr const struct use_holder_t{} use_holder{};
+yconstexpr_inline const struct use_holder_t{} use_holder{};
 
 /*!
 \ingroup unary_type_traits
@@ -466,7 +506,6 @@ using check_holder_t = and_<is_decayed<_tHolder>, is_class<_tHolder>,
 namespace details
 {
 
-// TODO: Extract as %std::unique_ptr instance?
 template<typename _tValue>
 class memory_thunk : private noncopyable, private nonmovable
 {
@@ -481,7 +520,7 @@ public:
 		yimpl(typename = exclude_self_params_t<memory_thunk, _tParams...>)>
 	inline
 	memory_thunk(_tParams&&... args)
-		: p_val(make_unique<value_type>(yforward(args)...))
+		: p_val(ystdex::make_unique<value_type>(yforward(args)...))
 	{}
 
 	YB_ATTR_nodiscard YB_PURE
@@ -509,7 +548,7 @@ public:
 /*!
 \brief 动态泛型对象值处理器。
 \sa any_storage
-\since build 671
+\since build 926
 
 可选使用局部存储策略动态管理泛型对象的处理器。
 局部存储使用第二模板参数指定。
@@ -518,19 +557,19 @@ public:
 作为基础存储策略的实现，不提供分配器或其它高级分配接口。
 */
 template<typename _type,
-	bool _bStoredLocally = is_in_place_storable<_type>::value>
+	class _bStoredLocally = bool_<is_in_place_storable<_type>::value>>
 class value_handler
 {
 	//! \since build 848
 	static_assert(is_decayed<_type>(), "Invalid type found.");
-	static_assert(!_bStoredLocally || is_aligned_storable<any_storage, _type>(),
-		"No enough space to store object locally.");
+	static_assert(!_bStoredLocally::value || is_aligned_storable<any_storage,
+		_type>(), "No enough space to store object locally.");
 
 public:
 	//! \since build 352
 	//@{
 	using value_type = _type;
-	using local_storage = bool_<_bStoredLocally>;
+	using local_storage = _bStoredLocally;
 	//@}
 
 private:
@@ -712,19 +751,21 @@ public:
 /*!
 \brief 动态泛型对象持有者处理器。
 \sa value_handler
-\since build 352
+\since build 926
 
 可定制分配行为的处理器。
+使用原地存储时，只有非基类子对象被支持，因为多态类的基类子对象不可平凡交换。
 */
-template<typename _tHolder>
-class holder_handler : private value_handler<_tHolder>
+template<typename _tHolder,
+	class _bStoredLocally = bool_<is_in_place_storable<_tHolder>::value>>
+class holder_handler : private value_handler<_tHolder, _bStoredLocally>
 {
 	static_assert(check_holder_t<_tHolder>(), "Invalid holder type found.");
 
 public:
 	//! \since build 848
 	using holder_type = _tHolder;
-	using base = value_handler<holder_type>;
+	using base = value_handler<holder_type, _bStoredLocally>;
 
 	//! \since build 848
 	YB_ATTR_nodiscard YB_PURE static holder_type*
@@ -744,6 +785,10 @@ private:
 	static void
 	init(true_, any_storage& d, std::unique_ptr<holder_type> p)
 	{
+		YAssert(typeid(*p.get()) == typeid(holder_type),
+			"Only most-derived polymorphic class object is supported to be"
+			" allocated locally being compatible with the trivally swappable"
+			" requirement.");
 		d.construct<holder_type>(std::move(*p));
 	}
 
@@ -753,6 +798,7 @@ public:
 	init(any_storage& d, std::unique_ptr<holder_type> p) -> decltype(
 		init(typename base::local_storage(), d, std::move(p)), void())
 	{
+		YAssertNonnull(p.get());
 		init(typename base::local_storage(), d, std::move(p));
 	}
 	//! \since build 678
@@ -783,6 +829,60 @@ public:
 };
 
 
+//! \since build 926
+namespace details
+{
+
+// NOTE: Since the allocator used here is usually stateful (as opposite to
+//	usual cases with explicitly typed allocators like allocator-aware
+//	container classes), missing the empty base class optimization in
+//	%_tDeleter is usually less effective here.
+// XXX: This does not support over-sized allocator which makes %ator_owner
+//	not fit in %any_storage yet.
+// XXX: The base is needed to avoid Clang++ warning: [-Wdeprecated].
+template<class _tAlloc, typename _tValue, typename _tDeleter>
+struct ator_del final : _tDeleter, noncopyable, nonmovable
+{
+	_tValue& ref;
+
+	ator_del(_tValue& val, const _tAlloc& a) ynothrow
+		: _tDeleter(a), ref(val)
+	{}
+	~ator_del()
+	{
+		(*this)(std::addressof(ref));
+	}
+};
+#if false
+// XXX: This is potentially efficient, but not enabled curretly to make the
+//	real (profiled) performance better. See $2019-04 @ %Documentation::Workflow.
+template<class _tAlloc, typename _tValue, typename _tDeleter>
+struct ator_inc final : noncopyable, nonmovable
+{
+	_tValue& ref;
+
+	ator_inc(_tValue& val, const _tAlloc&) ynothrow
+		: ref(val)
+	{}
+	~ator_inc()
+	{
+		_tDeleter(ystdex::as_const(ref).get_allocator())(
+			std::addressof(ref));
+	}
+};
+// XXX: Specialization of %is_bitwise_swappable is defined after the namespace
+//	%any_ops.
+
+template<class _tAlloc, typename _tValue, typename _tDeleter>
+using ator_owner = cond_t<has_get_allocator<_tValue>, ator_inc<_tAlloc, _tValue,
+	_tDeleter>, ator_del<_tAlloc, _tValue, _tDeleter>>;
+#else
+template<class _tAlloc, typename _tValue, typename _tDeleter>
+using ator_owner = ator_del<_tAlloc, _tValue, _tDeleter>;
+#endif
+
+} // namespace details;
+
 /*!
 \brief 分配器处理器。
 \sa value_handler
@@ -802,50 +902,8 @@ private:
 	using ator_type = rebind_alloc_t<_tByteAlloc, _tValue>;
 	using ator_traits = allocator_traits<ator_type>;
 	using deleter_type = allocator_delete<ator_type>;
-	// NOTE: Since the allocator used here is usually stateful (as opposite to
-	//	usual cases with explicitly typed allocators like allocator-aware
-	//	container classes), missing the empty base class optimization in
-	//	%deleter_type is usually less effective here.
-	// XXX: This does not support over-sized allocator which makes %ator_owner
-	//	not fit in %any_storage yet.
-	// XXX: The base is needed to avoid Clang++ warning: [-Wdeprecated].
 	//! \since build 887
-	//@{
-	struct ator_del final : deleter_type, noncopyable, nonmovable
-	{
-		value_type& ref;
-
-		ator_del(value_type& val, const ator_type& a) ynothrow
-			: deleter_type(a), ref(val)
-		{}
-		~ator_del()
-		{
-			(*this)(std::addressof(ref));
-		}
-	};
-#if false
-	// XXX: This is potentially efficient, but not enabled curretly to make the
-	//	real (profiled) performance better. See $2019-04
-	//	@ %Documentation::Workflow.
-	struct ator_inc final : noncopyable, nonmovable
-	{
-		value_type& ref;
-
-		ator_inc(value_type& val, const ator_type&) ynothrow
-			: ref(val)
-		{}
-		~ator_inc()
-		{
-			deleter_type(ystdex::as_const(ref).get_allocator())(
-				std::addressof(ref));
-		}
-	};
-	using ator_owner = cond_t<has_get_allocator<value_type>, ator_inc,
-		ator_del>;
-#else
-	using ator_owner = ator_del;
-#endif
-	//@}
+	using ator_owner = details::ator_del<ator_type, value_type, deleter_type>;
 	using rebound_ator_type = rebind_alloc_t<ator_type, byte>;
 	//! \since build 887
 	static_assert(is_in_place_storable<ator_owner>(),
@@ -1059,9 +1117,10 @@ using allocator_holder_handler_t = allocator_holder_handler<
 /*!
 \ingroup trasformation_traits
 \brief 根据类型选择引用或值处理器。
-\since build 355
+\since build 926
 */
-template<typename _type>
+template<typename _type, class _bStoredLocally
+	= bool_<is_in_place_storable<_type>::value>>
 struct wrap_handler
 {
 	//! \since build 848
@@ -1071,10 +1130,45 @@ struct wrap_handler
 	//! \since build 848
 	static_assert(is_object<value_type>(), "Invalid value type found.");
 	using type = cond_t<is_reference_wrapper<_type>, ref_handler<value_type>,
-		value_handler<value_type>>;
+		value_handler<value_type, _bStoredLocally>>;
 };
 
 } // namespace any_ops;
+
+//! \since build 926
+//@{
+//! \relates any_ops::value_holder
+template<typename _type>
+struct is_bitwise_swappable<any_ops::value_holder<_type>>
+	: is_bitwise_swappable<_type>
+{};
+
+//! \relates any_ops::pointer_holder
+template<typename _type, typename _tPointer>
+struct is_bitwise_swappable<any_ops::pointer_holder<_type, _tPointer>>
+	: is_bitwise_swappable<_tPointer>
+{};
+
+//! \relates any_ops::details::memory_thunk
+template<typename _tValue>
+struct is_bitwise_swappable<any_ops::details::memory_thunk<_tValue>>
+	: is_bitwise_swappable<std::unique_ptr<_tValue>>
+{};
+
+//! \relates any_ops::details::ator_del
+template<class _tAlloc, typename _tValue, typename _tDeleter>
+struct is_bitwise_swappable<typename any_ops::details::ator_del<_tAlloc,
+	_tValue, _tDeleter>> : true_
+{};
+
+#if false
+//! \relates any_ops::details::ator_inc
+template<class _tAlloc, typename _tValue, typename _tDeleter>
+struct is_bitwise_swappable<typename any_ops::details::ator_inc<_tAlloc,
+	_tValue, _tDeleter>> : true_
+{};
+#endif
+//@}
 
 
 /*!
@@ -1150,18 +1244,22 @@ template<bool _vInPlace = false>
 struct alloc_tag : bool_<_vInPlace>
 {};
 
+//! \since build 926
+//@{
 template<typename _type>
-using not_tag_t = nor_<is_instance_of<_type, vseq::_a<in_place_type_t>>,
-	is_same<_type, std::allocator_arg_t>, is_same<_type, any_ops::use_holder_t>,
+using not_tag = nor_<is_instance_of<_type, vseq::_a<in_place_type_t>>,
+	is_same<_type, std::allocator_arg_t>, is_same<_type,
+	any_ops::trivial_swap_t>, is_same<_type, any_ops::use_holder_t>,
 	is_instance_of<_type, vseq::_a<any_ops::with_handler_t>>,
 	is_same<_type, alloc_tag<>>, is_same<_type, alloc_tag<true>>>;
 
 template<typename _type>
-using decayed_not_tag_t = not_tag_t<decay_t<_type>>;
+using decayed_not_tag = not_tag<decay_t<_type>>;
 
-template<typename _type>
-using any_in_place_t
-	= alloc_tag<any_ops::is_in_place_storable<decay_t<_type>>::value>;
+template<typename _type, class _bRelocatable>
+using any_in_place_t = alloc_tag<any_ops::is_in_place_storable<decay_t<_type>,
+	_bRelocatable>::value>;
+//@}
 
 } // namespace details;
 
@@ -1174,12 +1272,12 @@ using any_in_place_t
 //! \brief 排除选择类型为标签的重载。
 template<typename _tSelected, typename _type = void>
 using exclude_tag_t
-	= enable_if_t<details::decayed_not_tag_t<_tSelected>::value, _type>;
+	= enable_if_t<details::decayed_not_tag<_tSelected>::value, _type>;
 
 //! \brief 排除选择类型的第一参数为标签的重载。
 template<typename... _tParams>
 using exclude_tagged_params_t
-	= enable_if_t<sizeof...(_tParams) == 0 ? true : details::decayed_not_tag_t<
+	= enable_if_t<sizeof...(_tParams) == 0 ? true : details::decayed_not_tag<
 	vseq::front_t<empty_base<_tParams...>>>::value>;
 //@}
 
@@ -1189,10 +1287,10 @@ namespace details
 {
 
 // XXX: Is it possible to use other value instead of the null pointer value to
-//	avoid one more branch operation in most cases, porbably without the ODR
+//	avoid one more branch operation in most cases, probably without the ODR
 //	guarantee (in dynamic libraries) ?
 //! \since build 916
-YB_ATTR_returns_nonnull YB_STATELESS yconstfn any_ops::any_manager
+YB_STATELESS yconstfn any_ops::any_manager
 get_default_manager() ynothrow
 {
 	return {};
@@ -1212,8 +1310,8 @@ protected:
 	//	inlined intentionally for performance reasons (e.g. to avoid overhead of
 	//	calls across dynamic library boundaries and difficulties on
 	//	inter-procedural optimizations). This is particularly important when
-	//	%any is used to implementation some general type-erased wrappers like
-	//	%function.
+	//	%any is used to implement some general type-erased wrappers like
+	//	%function in YStandardEx.Function.
 	//! \since build 848
 	//@{
 	yconstexpr
@@ -1232,6 +1330,7 @@ protected:
 	//@}
 	//! \since build 714
 	any_base(const any_base& a)
+		// NOTE: The storage is not touched here intentionally.
 		: manager(a.manager)
 	{}
 	//! \since build 714
@@ -1424,8 +1523,9 @@ struct any_emplace
 	//! \since build 864
 	template<bool _vInPlace = false>
 	using alloc_tag = details::alloc_tag<_vInPlace>;
-	template<typename _type>
-	using opt_in_place_t = details::any_in_place_t<_type>;
+	//! \since build 926
+	template<typename _type, class _bRelocatable = is_bitwise_swappable<_type>>
+	using opt_in_place_t = details::any_in_place_t<_type, _bRelocatable>;
 
 	/*!
 	\exception YStandardEx 扩展：异常中立：由持有者抛出。
@@ -1440,10 +1540,17 @@ struct any_emplace
 	{
 		return emplace_within<_type>(yforward(args)...);
 	}
-	/*!
-	\ingroup YBase_replacement_extensions
-	\since build 864
-	*/
+	//! \ingroup YBase_replacement_extensions
+	//@{
+	//! \since build 926
+	template<typename _type, typename... _tParams,
+		yimpl(typename = exclude_tagged_params_t<_tParams...>)>
+	inline decay_t<_type>&
+	emplace(any_ops::trivial_swap_t, _tParams&&... args)
+	{
+		return emplace_within<_type>(any_ops::trivial_swap, yforward(args)...);
+	}
+	//! \since build 864
 	template<typename _type, class _tAlloc, typename... _tParams>
 	inline decay_t<_type>&
 	emplace(std::allocator_arg_t, const _tAlloc& a, _tParams&&... args)
@@ -1451,16 +1558,25 @@ struct any_emplace
 		return emplace_with_tag<_type>(opt_in_place_t<_type>(), a,
 			yforward(args)...);
 	}
+	//@}
 	template<typename _type, typename _tOther, typename... _tParams>
 	inline decay_t<_type>&
 	emplace(std::initializer_list<_tOther> il, _tParams&&... args)
 	{
 		return emplace_within<_type>(il, yforward(args)...);
 	}
-	/*!
-	\ingroup YBase_replacement_extensions
-	\since build 864
-	*/
+	//! \ingroup YBase_replacement_extensions
+	//@{
+	//! \since build 926
+	template<typename _type, typename _tOther, typename... _tParams>
+	inline decay_t<_type>&
+	emplace(any_ops::trivial_swap_t, std::initializer_list<_tOther> il,
+		_tParams&&... args)
+	{
+		return emplace_within<_type>(any_ops::trivial_swap, il,
+			yforward(args)...);
+	}
+	//! \since build 864
 	template<typename _type, class _tAlloc, typename _tOther,
 		typename... _tParams>
 	inline decay_t<_type>&
@@ -1470,6 +1586,7 @@ struct any_emplace
 		return emplace_with_tag<_type>(opt_in_place_t<_type>(), a, il,
 			yforward(args)...);
 	}
+	//@}
 	//@}
 	// NOTE: The return is similar but different to overloads above.
 	//! \ingroup YBase_replacement_extensions
@@ -1481,6 +1598,14 @@ struct any_emplace
 	{
 		return emplace_within<_tHolder>(any_ops::use_holder, yforward(args)...);
 	}
+	//! \since build 926
+	template<typename _tHolder, typename... _tParams>
+	inline decay_t<_tHolder>&
+	emplace(any_ops::trivial_swap_t, any_ops::use_holder_t, _tParams&&... args)
+	{
+		return emplace_within<_tHolder>(any_ops::trivial_swap,
+			any_ops::use_holder, yforward(args)...);
+	}
 	//! \since build 864
 	template<typename _tHolder, class _tAlloc, typename... _tParams>
 	inline decay_t<_tHolder>&
@@ -1489,6 +1614,15 @@ struct any_emplace
 	{
 		return emplace_with_tag<_tHolder>(opt_in_place_t<_tHolder>(), a,
 			any_ops::use_holder, yforward(args)...);
+	}
+	//! \since build 926
+	template<typename _tHolder, class _tAlloc, typename... _tParams>
+	inline decay_t<_tHolder>&
+	emplace(std::allocator_arg_t, const _tAlloc& a, any_ops::trivial_swap_t,
+		any_ops::use_holder_t, _tParams&&... args)
+	{
+		return emplace_with_tag<_tHolder>(opt_in_place_t<_tHolder, true_>(), a,
+			any_ops::trivial_swap, any_ops::use_holder, yforward(args)...);
 	}
 	//@}
 
@@ -1527,6 +1661,14 @@ private:
 	{
 		return emplace_within<_type>(yforward(args)...);
 	}
+	//! \since build 926
+	template<typename _type, class _tAlloc, typename... _tParams>
+	inline decay_t<_type>&
+	emplace_with_tag(alloc_tag<>, const _tAlloc& a, any_ops::trivial_swap_t,
+		_tParams&&... args)
+	{
+		return emplace_with_tag(alloc_tag<>(), a, yforward(args)...);
+	}
 	template<typename _type, class _tAlloc, typename... _tParams>
 	inline decay_t<_type>&
 	emplace_with_tag(alloc_tag<>, const _tAlloc& a, _tParams&&... args)
@@ -1563,6 +1705,15 @@ private:
 			yforward(args)...);
 		return unchecked_target_ref<_type>();
 	}
+	//! \since build 926
+	template<typename _type, typename... _tParams>
+	inline decay_t<_type>&
+	emplace_within(any_ops::trivial_swap_t, _tParams&&... args)
+	{
+		emplace_with_handler<any_ops::value_handler<decay_t<_type>, true_>>(
+			yforward(args)...);
+		return unchecked_target_ref<_type>();
+	}
 	template<typename _type, typename _tOther, typename... _tParams>
 	inline decay_t<_type>&
 	emplace_within(std::initializer_list<_tOther> il, _tParams&&... args)
@@ -1571,11 +1722,31 @@ private:
 			yforward(args)...);
 		return unchecked_target_ref<_type>();
 	}
+	//! \since build 926
+	template<typename _type, typename _tOther, typename... _tParams>
+	inline decay_t<_type>&
+	emplace_within(any_ops::trivial_swap_t, std::initializer_list<_tOther> il,
+		_tParams&&... args)
+	{
+		emplace_with_handler<any_ops::value_handler<decay_t<_type>, true_>>(il,
+			yforward(args)...);
+		return unchecked_target_ref<_type>();
+	}
 	template<typename _tHolder, typename... _tParams>
 	inline decay_t<_tHolder>&
 	emplace_within(any_ops::use_holder_t, _tParams&&... args)
 	{
 		emplace_with_handler<any_ops::holder_handler<decay_t<_tHolder>>>(
+			yforward(args)...);
+		return unchecked_holder_ref<_tHolder>();
+	}
+	//! \since build 926
+	template<typename _tHolder, typename... _tParams>
+	inline decay_t<_tHolder>&
+	emplace_within(any_ops::trivial_swap_t, any_ops::use_holder_t,
+		_tParams&&... args)
+	{
+		emplace_with_handler<any_ops::holder_handler<decay_t<_tHolder>, true_>>(
 			yforward(args)...);
 		return unchecked_holder_ref<_tHolder>();
 	}
@@ -1611,17 +1782,26 @@ public:
 \ingroup YBase_replacement_features
 \brief 基于类型擦除的动态泛型对象。
 \warning 非虚析构。
+\sa any_ops
 \see ISO C++17 [any.class] 。
 \see http://www.boost.org/doc/libs/1_69_0/doc/html/any/reference.html#any.ValueType 。
 \since build 331
 
 值传递语义的动态泛型对象包装。
-基本接口和语义同 ISO C++17 std::any 提议和 boost::any （对应接口以前者为准）。
-和 std::any 不同，支持不满足 CopyConstructible 或 MoveConstructible 的对象。
+基本接口和语义同 ISO C++17 std::any 提议和 boost::any（对应接口以前者为准）。
+和 std::any 不同，支持的值类型是一等对象类型，即作为函数参数和返回值的对象类型。
+	这包括不满足 CopyConstructible 但满足 MoveConstructible 的对象类型。
 作为扩展，基于命名空间 any_ops 支持更多的可扩展的底层接口。
 和 std::any 类似，部分情形构造排除 in_place_type_t 的实例作为值类型对象。
 作为扩展，同时也排除 std::allocator_arg_t 、 any_ops::with_handler_t
 	的实例和 any_ops::use_holder_t 作为值的类型。
+使用 any_ops::is_in_place_storable 指定是否原地存储。
+作为扩展，any 满足和 is_bitwise_swappable 兼容的可平凡重定位特征。
+初始化 any 对象的特定的程序定义的值类型可特化 is_bitwise_swappable ；
+	参见 any_ops::is_in_place_storable 的注释。
+初始化 any 对象使用的值类型以 is_bitwise_swappable 判断结果为 true ，
+	但实际复制存储的对象表示无法对象的语义符合预期（重定位不改变值），
+	则转移或交换初始化的 any 对象的程序行为未定义。
 构造时使用 any_ops::with_handler_t 显式指定处理器，可调用 any_ops 支持的接口。
 保存对象状态的内部数据存储在 any_ops::any_storage ，通过处理器访问。
 处理器是满足特定条件的类类型。
@@ -1656,34 +1836,44 @@ class YB_API any : private details::any_base, private details::any_emplace<any>
 	friend details::any_emplace<any>;
 
 private:
-	//! \since build 848
+	//! \since build 926 
 	//@{
+	template<typename _type>
+	using tswap = bool_<any_ops::is_in_place_storable<_type, true_>::value>;
+	template<typename _type>
+	using tsvalue_handler = any_ops::value_handler<_type, tswap<_type>>;
+	template<class _tHolder>
+	using tsholder_handler = any_ops::holder_handler<_tHolder, tswap<_tHolder>>;
+	//@}
+	//! \since build 848
 	template<bool _vInPlace = false>
 	using alloc_tag = details::alloc_tag<_vInPlace>;
 	//! \since build 851
 	//@{
 	template<class _tHandler, typename... _tParams>
-	using enable_with_handler_t = enable_if_t<is_constructible<
-		any_ops::any_manager, decltype(any_ops::construct<_tHandler>(
-		std::declval<any_ops::any_storage&>(), std::declval<_tParams>()...))>
-		::value>;
+	using enable_with_handler_t = enable_if_t<
+		any_ops::is_handler_constructible<_tHandler, _tParams...>::value>;
+	//! \since build 926
 	template<class _tCtor, class _tParamsList, typename... _tParams>
-	using is_handler_v_constructible_t = any_ops::is_handler_constructible_t<
+	using is_handler_vseq_constructible = any_ops::is_handler_constructible<
 		vseq::defer_apply_t<_tCtor, _tParamsList>, _tParams...>;
 	template<class _bCond, template<typename...> class _gHandler,
 		class _tParamsList, typename... _tParams>
 	using enable_with_handler_params_t = enable_if_t<cond_or_t<_bCond, false_,
-		is_handler_v_constructible_t, vseq::_a<_gHandler>, _tParamsList,
+		is_handler_vseq_constructible, vseq::_a<_gHandler>, _tParamsList,
 		_tParams...>::value>;
-	template<typename _tParam>
-	using is_holder_arg_t = and_<details::not_tag_t<_tParam>,
-		any_ops::check_holder_t<_tParam>>;
 	//@}
+	//! \since build 926
+	template<typename _tParam>
+	using is_holder_arg = and_<details::not_tag<_tParam>,
+		any_ops::check_holder_t<_tParam>>;
 
 public:
+	//! \since build 926
+	//@{
 	/*!
 	\ingroup unary_type_traits
-	\brief 判断使用分配器构造时是否忽略分配器而在原地存储。
+	\brief 判断使用分配器构造时是否忽略分配器而使用原地存储。
 
 	使用 std::allocator_arg_t 构造时，决定是否使用原地存储而非分配器构造的特征；
 		但不在显式指定处理器的构造和 any&& 参数中被使用。
@@ -1698,19 +1888,23 @@ public:
 	any_ops::holder_handler 。
 	原地存储的处理器的 value_type 在以上情形中分别是被构造的对象类型和持有者类型。
 	*/
-	template<typename _type>
-	using opt_in_place_t = details::any_in_place_t<_type>;
+	template<typename _type, class _bRelocatable = is_bitwise_swappable<_type>>
+	using opt_in_place_t = details::any_in_place_t<_type, _bRelocatable>;
 	//! \ingroup binary_type_traits
 	//@{
 	//! \brief 根据分配器类型和存储对象的类型取使用分配器构造时的处理器。
-	template<class _tAlloc, typename _type>
-	using allocated_value_handler_t = cond_t<any::opt_in_place_t<_type>,
-		any_ops::value_handler<_type>,
+	template<class _tAlloc, typename _type,
+		class _bRelocatable = is_bitwise_swappable<_type>>
+	using allocated_value_handler_t = cond_t<
+		any::opt_in_place_t<_type, _bRelocatable>, any_ops::value_handler<_type,
+		bool_<any_ops::is_in_place_storable<_type, _bRelocatable>::value>>,
 		any_ops::allocator_value_handler_t<_tAlloc, _type>>;
 	//! \brief 根据分配器类型和存储对象的类型取使用分配器和持有者构造时的处理器。
-	template<class _tAlloc, class _tHolder>
-	using allocated_holder_handler_t = cond_t<any::opt_in_place_t<_tHolder>,
-		any_ops::holder_handler<_tHolder>,
+	template<class _tAlloc, class _tHolder,
+		class _bRelocatable = is_bitwise_swappable<_tHolder>>
+	using allocated_holder_handler_t = cond_t<any::opt_in_place_t<_tHolder,
+		_bRelocatable>, any_ops::holder_handler<_tHolder,
+		bool_<any_ops::is_in_place_storable<_tHolder, _bRelocatable>::value>>,
 		any_ops::allocator_holder_handler_t<_tAlloc, _tHolder>>;
 	//@}
 	//@}
@@ -1737,18 +1931,34 @@ public:
 		: any(any_ops::with_handler_t<any_ops::value_handler<decay_t<_type>>>(),
 		yforward(x))
 	{}
-	/*!
-	\ingroup YBase_replacement_extensions
-	\since build 849
-	*/
+	//! \ingroup YBase_replacement_extensions
+	//@{
+	//! \since build 926
+	template<typename _type, yimpl(typename = exclude_self_t<any, _type>,
+		typename = exclude_tag_t<_type>)>
+	inline
+	any(any_ops::trivial_swap_t, _type&& x)
+		: any(any_ops::with_handler_t<tsvalue_handler<decay_t<_type>>>(),
+		yforward(x))
+	{}
+	//! \since build 849
 	template<typename _type, class _tAlloc, yimpl(
 		typename = exclude_self_t<any, _type>, typename = exclude_tag_t<_type>)>
 	inline
 	any(std::allocator_arg_t, const _tAlloc& a, _type&& x)
 		: any(opt_in_place_t<_type>(), a, yforward(x))
 	{}
+	//! \since build 926
+	template<typename _type, class _tAlloc, yimpl(
+		typename = exclude_self_t<any, _type>, typename = exclude_tag_t<_type>)>
+	inline
+	any(std::allocator_arg_t, const _tAlloc& a, any_ops::trivial_swap_t,
+		_type&& x)
+		: any(opt_in_place_t<_type, true_>(), a, any_ops::trivial_swap,
+		yforward(x))
+	{}
+	//@}
 	//! \since build 851
-	//@{
 	template<typename _type, typename... _tParams, yimpl(typename
 		= enable_if_t<is_constructible<decay_t<_type>, _tParams...>::value>)>
 	explicit inline
@@ -1757,6 +1967,16 @@ public:
 		yforward(args)...)
 	{}
 	//! \ingroup YBase_replacement_extensions
+	//@{
+	//! \since build 926
+	template<typename _type, typename... _tParams, yimpl(typename
+		= enable_if_t<is_constructible<decay_t<_type>, _tParams...>::value>)>
+	explicit inline
+	any(any_ops::trivial_swap_t, in_place_type_t<_type>, _tParams&&... args)
+		: any(any_ops::with_handler_t<tsvalue_handler<_type>>(),
+		yforward(args)...)
+	{}
+	//! \since build 851
 	template<typename _type, class _tAlloc, typename... _tParams, yimpl(typename
 		= enable_if_t<is_constructible<decay_t<_type>, _tParams...>::value>)>
 	inline
@@ -1764,6 +1984,15 @@ public:
 		_tParams&&... args)
 		: any(opt_in_place_t<_type>(), a, in_place_type<_type>,
 		yforward(args)...)
+	{}
+	//! \since build 926
+	template<typename _type, class _tAlloc, typename... _tParams, yimpl(typename
+		= enable_if_t<is_constructible<decay_t<_type>, _tParams...>::value>)>
+	inline
+	any(std::allocator_arg_t, const _tAlloc& a, any_ops::trivial_swap_t,
+		in_place_type_t<_type>, _tParams&&... args)
+		: any(opt_in_place_t<_type, true_>(), a, any_ops::trivial_swap,
+		in_place_type<_type>, yforward(args)...)
 	{}
 	//@}
 	//! \since build 848
@@ -1781,6 +2010,16 @@ public:
 	//@}
 	//! \ingroup YBase_replacement_extensions
 	//@{
+	//! \since build 926
+	template<typename _type, typename _type2, typename... _tParams,
+		yimpl(typename = enable_if_t<is_constructible<decay_t<_type>,
+		std::initializer_list<_type2>&, _tParams...>::value>)>
+	explicit inline
+	any(any_ops::trivial_swap_t, in_place_type_t<_type>,
+		std::initializer_list<_type2> il, _tParams&&... args)
+		: any(any_ops::with_handler_t<tsvalue_handler<_type>>(), il,
+		yforward(args)...)
+	{}
 	//! \since build 848
 	template<typename _type, typename _type2, class _tAlloc, typename...
 		_tParams, yimpl(typename = enable_if_t<is_constructible<decay_t<_type>,
@@ -1791,29 +2030,60 @@ public:
 		: any(opt_in_place_t<_type>(), a, in_place_type<_type>, il,
 		yforward(args)...)
 	{}
+	//! \since build 926
+	template<typename _type, typename _type2, class _tAlloc, typename...
+		_tParams, yimpl(typename = enable_if_t<is_constructible<decay_t<_type>,
+		std::initializer_list<_type2>&, _tParams...>::value>)>
+	inline
+	any(std::allocator_arg_t, const _tAlloc& a, any_ops::trivial_swap_t,
+		in_place_type_t<_type>, std::initializer_list<_type2> il,
+		_tParams&&... args)
+		: any(opt_in_place_t<_type, true_>(), a, any_ops::trivial_swap,
+		in_place_type<_type>, il, yforward(args)...)
+	{}
 	//! \since build 851
 	//@{
 	//! \brief 构造：使用指定持有者。
 	//@{
 	template<typename _tHolder, yimpl(typename = enable_with_handler_params_t<
-		is_holder_arg_t<_tHolder>, any_ops::holder_handler,
+		is_holder_arg<_tHolder>, any_ops::holder_handler,
 		empty_base<_tHolder>, std::unique_ptr<_tHolder>>)>
 	inline
 	any(any_ops::use_holder_t, std::unique_ptr<_tHolder> p)
 		: any(any_ops::with_handler_t<any_ops::holder_handler<_tHolder>>(),
 		std::move(p))
 	{}
+	//! \since build 926
 	template<typename _tHolder, yimpl(typename = enable_with_handler_params_t<
-		is_holder_arg_t<decay_t<_tHolder>>, any_ops::holder_handler,
+		is_holder_arg<_tHolder>, any_ops::holder_handler,
+		empty_base<_tHolder, true_>, std::unique_ptr<_tHolder>>)>
+	inline
+	any(any_ops::trivial_swap_t, any_ops::use_holder_t,
+		std::unique_ptr<_tHolder> p)
+		: any(any_ops::with_handler_t<tsholder_handler<_tHolder>>(),
+		std::move(p))
+	{}
+	template<typename _tHolder, yimpl(typename = enable_with_handler_params_t<
+		is_holder_arg<decay_t<_tHolder>>, any_ops::holder_handler,
 		empty_base<decay_t<_tHolder>>, _tHolder>)>
 	inline
 	any(any_ops::use_holder_t, _tHolder&& h)
 		: any(any_ops::with_handler_t<
 		any_ops::holder_handler<decay_t<_tHolder>>>(), yforward(h))
 	{}
+	//! \since build 926
+	template<typename _tHolder, yimpl(typename = enable_with_handler_params_t<
+		is_holder_arg<decay_t<_tHolder>>, any_ops::holder_handler,
+		empty_base<decay_t<_tHolder>, true_>, _tHolder>)>
+	inline
+	any(any_ops::trivial_swap_t, any_ops::use_holder_t, _tHolder&& h)
+		: any(any_ops::with_handler_t<tsholder_handler<decay_t<_tHolder>>>(),
+		yforward(h))
+	{}
 	template<typename _tHolder, class _tAlloc,
-		yimpl(typename = enable_with_handler_params_t<
-		is_holder_arg_t<decay_t<_tHolder>>, any_ops::allocator_holder_handler_t,
+		yimpl(typename = exclude_tag_t<_tAlloc>, typename
+		= enable_with_handler_params_t<and_<is_allocator<_tAlloc>,
+		is_holder_arg<decay_t<_tHolder>>>, any_ops::allocator_holder_handler_t,
 		empty_base<_tAlloc, decay_t<_tHolder>>, const _tAlloc&, _tHolder>)>
 	inline
 	any(std::allocator_arg_t, const _tAlloc& a, any_ops::use_holder_t,
@@ -1821,23 +2091,58 @@ public:
 		: any(opt_in_place_t<_tHolder>(), a, any_ops::use_holder,
 		yforward(h))
 	{}
+	//! \since build 926
+	template<typename _tHolder, class _tAlloc,
+		yimpl(typename = exclude_tag_t<_tAlloc>, typename
+		= enable_with_handler_params_t<and_<is_allocator<_tAlloc>,
+		is_holder_arg<decay_t<_tHolder>>>, any_ops::allocator_holder_handler_t,
+		empty_base<_tAlloc, decay_t<_tHolder>>, const _tAlloc&, _tHolder>)>
+	inline
+	any(std::allocator_arg_t, const _tAlloc& a, any_ops::trivial_swap_t,
+		any_ops::use_holder_t, _tHolder&& h)
+		: any(opt_in_place_t<_tHolder, true_>(), a, any_ops::trivial_swap,
+		any_ops::use_holder, yforward(h))
+	{}
 	template<typename _tHolder, typename... _tParams,
-		yimpl(typename = enable_with_handler_params_t<is_holder_arg_t<_tHolder>,
+		yimpl(typename = enable_with_handler_params_t<is_holder_arg<_tHolder>,
 		any_ops::holder_handler, empty_base<_tHolder>, _tParams...>)>
 	inline
 	any(any_ops::use_holder_t, in_place_type_t<_tHolder>, _tParams&&... args)
 		: any(any_ops::with_handler_t<any_ops::holder_handler<_tHolder>>(),
 		yforward(args)...)
 	{}
+	//! \since build 926
+	template<typename _tHolder, typename... _tParams,
+		yimpl(typename = enable_with_handler_params_t<is_holder_arg<_tHolder>,
+		any_ops::holder_handler, empty_base<_tHolder, true_>, _tParams...>)>
+	inline
+	any(any_ops::trivial_swap_t, any_ops::use_holder_t,
+		in_place_type_t<_tHolder>, _tParams&&... args)
+		: any(any_ops::with_handler_t<tsholder_handler<_tHolder>>(),
+		yforward(args)...)
+	{}
 	template<typename _tHolder, class _tAlloc, typename... _tParams,
-		yimpl(typename = enable_with_handler_params_t<is_holder_arg_t<_tHolder>,
-		any_ops::allocator_holder_handler_t, empty_base<_tAlloc, _tHolder>,
-		const _tAlloc&, _tParams...>)>
+		yimpl(typename = exclude_tag_t<_tAlloc>,
+		typename = enable_with_handler_params_t<and_<is_allocator<_tAlloc>,
+		is_holder_arg<_tHolder>>, any_ops::allocator_holder_handler_t,
+		empty_base<_tAlloc, _tHolder>, const _tAlloc&, _tParams...>)>
 	inline
 	any(std::allocator_arg_t, const _tAlloc& a, any_ops::use_holder_t,
 		in_place_type_t<_tHolder>, _tParams&&... args)
 		: any(opt_in_place_t<_tHolder>(), a, any_ops::use_holder,
 		in_place_type<_tHolder>, yforward(args)...)
+	{}
+	//! \since build 926
+	template<typename _tHolder, class _tAlloc, typename... _tParams,
+		yimpl(typename = exclude_tag_t<_tAlloc>,
+		typename = enable_with_handler_params_t<and_<is_allocator<_tAlloc>,
+		is_holder_arg<_tHolder>>, any_ops::allocator_holder_handler_t,
+		empty_base<_tAlloc, _tHolder>, const _tAlloc&, _tParams...>)>
+	inline
+	any(std::allocator_arg_t, const _tAlloc& a, any_ops::trivial_swap_t,
+		any_ops::use_holder_t, in_place_type_t<_tHolder>, _tParams&&... args)
+		: any(opt_in_place_t<_tHolder, true_>(), a, any_ops::trivial_swap,
+		any_ops::use_holder, in_place_type<_tHolder>, yforward(args)...)
 	{}
 	//@}
 	template<typename _type,
@@ -1848,23 +2153,38 @@ public:
 		: any(any_ops::with_handler_t<any_ops::holder_handler<
 		any_ops::value_holder<decay_t<_type>>>>(), yforward(x))
 	{}
-	// XXX: In the context trying instantiating
-	//	%any_ops::allocator_holder_handler_t without the lazy instantiation
-	//	protection from %enable_with_handler_t (via %vseq::defer_apply_t),
-	//	%_tAlloc shall be SFINAE-friendly. Otherwise, a parameter pack prefixed
-	//	with %std::allocator_arg_t in the calling code can render it ill-formed
-	//	because %_tAlloc is then %std::allocator_arg_t, e.g. in the constructor
-	//	'any(any_ops::use_holder_t, in_place_type_t<_tHolder>,
-	//	_tParams&&... args)' above.
+	//! \since build 926
+	template<typename _type,
+		yimpl(typename = exclude_tag_t<_type>, typename = enable_with_handler_t<
+		tsholder_handler<any_ops::value_holder<decay_t<_type>>>, _type>)>
+	inline
+	any(any_ops::trivial_swap_t, _type&& x, any_ops::use_holder_t)
+		: any(any_ops::with_handler_t<tsholder_handler<
+		any_ops::value_holder<decay_t<_type>>>>(), yforward(x))
+	{}
 	template<class _tAlloc, typename _type, yimpl(typename
-		= exclude_tag_t<_type>, typename = exclude_tag_t<_tAlloc>, typename
-		= enable_with_handler_t<any_ops::allocator_holder_handler_t<_tAlloc,
+		= exclude_tag_t<_type>, typename = exclude_tag_t<_tAlloc>,
+		typename = enable_with_handler_params_t<is_allocator<_tAlloc>,
+		any_ops::allocator_holder_handler_t, empty_base<_tAlloc,
 		any_ops::value_holder<decay_t<_type>>>, const _tAlloc&, _type>)>
 	inline
 	any(std::allocator_arg_t, const _tAlloc& a, _type&& x,
 		any_ops::use_holder_t)
 		: any(opt_in_place_t<rebind_alloc_t<_tAlloc, any_ops::value_holder<
 		decay_t<_type>>>>(), a, yforward(x), any_ops::use_holder)
+	{}
+	//! \since build 926
+	template<class _tAlloc, typename _type, yimpl(typename
+		= exclude_tag_t<_type>, typename = exclude_tag_t<_tAlloc>,
+		typename = enable_with_handler_params_t<is_allocator<_tAlloc>,
+		any_ops::allocator_holder_handler_t, empty_base<_tAlloc,
+		any_ops::value_holder<decay_t<_type>>>, const _tAlloc&, _type>)>
+	inline
+	any(std::allocator_arg_t, const _tAlloc& a, any_ops::trivial_swap_t,
+		_type&& x, any_ops::use_holder_t)
+		: any(opt_in_place_t<rebind_alloc_t<_tAlloc, any_ops::value_holder<
+		decay_t<_type>>>, true_>(), a, any_ops::trivial_swap, yforward(x),
+		any_ops::use_holder)
 	{}
 	template<class _tHandler, typename... _tParams, yimpl(
 		typename = enable_with_handler_t<_tHandler, _tParams...>)>
@@ -1893,6 +2213,13 @@ private:
 	inline
 	any(alloc_tag<true>, const _tAlloc&, _tParams&&... args)
 		: any(yforward(args)...)
+	{}
+	//! \since build 926
+	template<class _tAlloc, typename... _tParams>
+	inline
+	any(alloc_tag<>, const _tAlloc& a, any_ops::trivial_swap_t,
+		_tParams&&... args)
+		: any(alloc_tag<>(), a, yforward(args)...)
 	{}
 	template<typename _type, class _tAlloc>
 	inline
@@ -1988,7 +2315,8 @@ public:
 	operator=(_type&& x)
 	{
 		// NOTE: Avoiding of %swap is significantly more efficient with
-		//	contemporary language implementations.
+		//	contemporary language implementations even if swapping of %any_base
+		//	is inexpensive.
 		return *this = any(yforward(x));
 	}
 	/*!
@@ -2084,15 +2412,15 @@ public:
 	YB_ATTR_nodiscard _type*
 	get_object_ptr()
 	{
-		return has_value() ? any_base::template get_object_ptr<_type>()
-			: nullptr;
+		return
+			has_value() ? any_base::template get_object_ptr<_type>() : nullptr;
 	}
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE const _type*
 	get_object_ptr() const
 	{
-		return has_value() ? any_base::template get_object_ptr<_type>()
-			: nullptr;
+		return
+			has_value() ? any_base::template get_object_ptr<_type>() : nullptr;
 	}
 	//@}
 	//@}
@@ -2394,6 +2722,11 @@ unsafe_any_cast(const any* p)
 //@}
 //@}
 //@}
+
+//! \since build 926
+template<>
+struct is_bitwise_swappable<any> : true_
+{};
 //@}
 
 

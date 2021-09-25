@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2018-2020 FrankHB.
+	© 2012-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file function.hpp
 \ingroup YStandardEx
 \brief 函数基本操作和调用包装对象。
-\version r4897
+\version r4938
 \author FrankHB <frankhb1989@gmail.com>
 \since build 847
 \par 创建时间:
 	2018-12-13 01:24:06 +0800
 \par 修改时间:
-	2020-04-03 00:28 +0800
+	2021-09-25 23:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,8 +32,9 @@
 //	std::tuple, is_convertible, vseq::at, bool_, index_sequence_for,
 //	remove_cvref_t, _t, vseq::at_t, vseq::seq_size_t, enable_if_t,
 //	vseq::join_n_t, yconstraint, is_function, any, nullptr_t, ystdex::invoke,
-//	std::allocator_arg_t, exclude_self_t, is_invocable_r, std::allocator_arg,
-//	std::reference_wrapper;
+//	std::allocator_arg_t, exclude_self_t, is_invocable_r,
+//	any_ops::trivial_swap_t, any_ops::trivial_swap, std::allocator_arg,
+//	std::reference_wrapper, std::swap, is_bitwise_swappable;
 #include "apply.hpp" // for call_projection;
 #include "operators.hpp" // for operators::equality_comparable;
 
@@ -612,7 +613,7 @@ function_not_empty(_tRet _tClass::* p) ynothrow
 	return p;
 }
 template<typename _type>
-YB_ATTR_nodiscard YB_PURE yconstfn static bool
+YB_ATTR_nodiscard YB_STATELESS yconstfn static bool
 function_not_empty(const _type&) ynothrow
 {
 	return true;
@@ -707,6 +708,21 @@ public:
 			_tTraits::init_empty(content, p_invoke);
 	}
 	//! \ingroup YBase_replacement_extensions
+	//@{
+	//! \since build 926
+	template<typename _fCallable, yimpl(typename
+		= exclude_self_t<function_base, _fCallable>), yimpl(typename
+		= enable_if_t<is_invocable_r<_tRet, _fCallable&, _tParams...>::value>)>
+	function_base(any_ops::trivial_swap_t, _fCallable f)
+	{
+		if(ystdex::function_not_empty(f))
+			yunseq(content = any(any_ops::trivial_swap, std::move(f)),
+				// XXX: Here lambda-expression is buggy in G++ LTO.
+				p_invoke = invoker<any_ops::value_handler<_fCallable,
+				any_ops::is_in_place_storable<_fCallable, true_>>>::invoke);
+		else
+			_tTraits::init_empty(content, p_invoke);
+	}
 	template<typename _fCallable, class _tAlloc, yimpl(typename
 		= exclude_self_t<function_base, _fCallable>), yimpl(typename
 		= enable_if_t<is_invocable_r<_tRet, _fCallable&, _tParams...>::value>)>
@@ -720,6 +736,23 @@ public:
 		else
 			_tTraits::init_empty(content, p_invoke);
 	}
+	//! \since build 926
+	template<typename _fCallable, class _tAlloc, yimpl(typename
+		= exclude_self_t<function_base, _fCallable>), yimpl(typename
+		= enable_if_t<is_invocable_r<_tRet, _fCallable&, _tParams...>::value>)>
+	function_base(std::allocator_arg_t, const _tAlloc& a,
+		any_ops::trivial_swap_t, _fCallable f)
+	{
+		if(ystdex::function_not_empty(f))
+			yunseq(content = any(std::allocator_arg, a, any_ops::trivial_swap,
+				std::move(f)),
+				// XXX: Here lambda-expression is buggy in G++ LTO.
+				p_invoke = invoker<any::allocated_value_handler_t<_tAlloc,
+				_fCallable, true_>>::invoke);
+		else
+			_tTraits::init_empty(content, p_invoke);
+	}
+	//@}
 	function_base(const function_base&) = default;
 	/*!
 	\ingroup YBase_replacement_extensions
@@ -876,6 +909,11 @@ struct call_projection<function_base<_tTraits, _tRet(_tParams...)>,
 	: call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 {};
 //@}
+
+//! \since build 926
+template<class _tTraits, typename _tRet, typename... _tParams>
+struct is_bitwise_swappable<function_base<_tTraits, _tRet(_tParams...)>> : true_
+{};
 //@}
 
 

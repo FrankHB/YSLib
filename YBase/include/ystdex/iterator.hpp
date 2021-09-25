@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r6152
+\version r6224
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2021-08-01 12:41 +0800
+	2021-09-24 02:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,10 +29,10 @@
 #define YB_INC_ystdex_iterator_hpp_ 1
 
 #include "pointer.hpp" // for "iterator_op.hpp", iterator_operators_t,
-//	std::iterator_traits, _t, pointer_classify, cond_t, and_,
-//	exclude_self_t, enable_if_convertible_t, *_tag, ystdex::swap_dependent,
-//	YB_VerifyIterator, is_undereferenceable, yassume, yconstraint,
-//	random_access_iteratable;
+//	std::iterator_traits, is_bitwise_swappable, _t, pointer_classify, cond_t,
+//	and_, exclude_self_t, enable_if_convertible_t, *_tag,
+//	ystdex::swap_dependent, YB_VerifyIterator, is_undereferenceable, yassume,
+//	yconstraint, random_access_iteratable;
 #include "type_op.hpp" // for first_tag, second_tag, std::tuple,
 //	make_index_sequence, index_sequence, std::get;
 #include "ref.hpp" // for invoke_result_t, ystdex::invoke, lref;
@@ -149,6 +149,16 @@ public:
 	}
 	//@}
 };
+
+/*!
+\relates pseudo_iterator
+\since build 926
+*/
+template<typename _type, typename _tIter, typename _tTraits>
+struct is_bitwise_swappable<pseudo_iterator<_type, _tIter, _tTraits>>
+	: is_bitwise_swappable<typename
+	pseudo_iterator<_type, _tIter, _tTraits>::value_type>
+{};
 
 
 namespace details
@@ -425,10 +435,11 @@ public:
 	//@}
 };
 
+//! \relates transformed_iterator
+//@{
 /*!
 \ingroup helper_functions
 \brief 创建变换迭代器。
-\relates transformed_iterator
 \since build 529
 */
 template<typename _tIter, typename _fTrans>
@@ -437,6 +448,14 @@ make_transform(_tIter&& i, _fTrans f)
 {
 	return transformed_iterator<decay_t<_tIter>, _fTrans>(yforward(i), f);
 }
+
+//! \since build 926
+template<typename _tIter, typename _fTrans, typename _tReference>
+struct is_bitwise_swappable<transformed_iterator<_tIter, _fTrans, _tReference>>
+	: is_bitwise_swappable<_fTrans>, is_bitwise_swappable<
+	typename transformed_iterator<_tIter, _fTrans, _tReference>::iterator_type>
+{};
+//@}
 
 
 /*!
@@ -558,12 +577,12 @@ struct second<void>
 \since build 288
 */
 //@{
-yconstexpr const first_tag get_first{}, get_key{};
-yconstexpr const second_tag get_second{}, get_value{};
+yconstexpr_inline const first_tag get_first{}, get_key{};
+yconstexpr_inline const second_tag get_second{}, get_value{};
 //! \since build 680
-yconstexpr const struct get_indirect_t{} get_indirect{};
+yconstexpr_inline const struct get_indirect_t{} get_indirect{};
 //! \since build 680
-yconstexpr const struct get_get_t{} get_get{};
+yconstexpr_inline const struct get_get_t{} get_get{};
 //@}
 
 
@@ -768,6 +787,17 @@ private:
 	}
 };
 
+/*!
+\relates tuple_iterator
+\since build 926
+*/
+template<typename _tIter, class _tTraits, typename... _tSlaves>
+// XXX: This usually does not work since the specialization for %std::tuple can
+//	not be specialized in a portable way. But keep it as-is.
+struct is_bitwise_swappable<tuple_iterator<_tIter, _tTraits, _tSlaves...>>
+	: is_bitwise_swappable<std::tuple<_tIter, _tSlaves...>>
+{};
+
 
 /*!
 \ingroup iterator_adaptors
@@ -872,6 +902,15 @@ public:
 		return iter;
 	}
 };
+
+/*!
+\relates indirect_input_iterator
+\since build 926
+*/
+template<typename _tIter>
+struct is_bitwise_swappable<indirect_input_iterator<_tIter>>
+	: is_bitwise_swappable<_tIter>
+{};
 
 
 /*!
@@ -1065,9 +1104,10 @@ public:
 	}
 };
 
+//! \relates transposed_iterator
+//@{
 /*!
 \ingroup helper_functions
-\relates transposed_iterator
 \since build 575
 */
 //@{
@@ -1086,6 +1126,13 @@ make_transposed(_tIter&& i, _tSize w, _tSize h, _tIndex idx)
 {
 	return transposed_iterator<decay_t<_tIter>>(yforward(i), w, h, idx);
 }
+//@}
+
+//! \since build 926
+template<typename _tIter>
+struct is_bitwise_swappable<transposed_iterator<_tIter>>
+	: is_bitwise_swappable<_tIter>
+{};
 //@}
 
 
@@ -1165,10 +1212,11 @@ public:
 	}
 };
 
+//! \relates prototyped_iterator
+//@{
 /*!
 \ingroup helper_functions
 \brief 创建原型迭代器。
-\relates prototyped_iterator
 \since build 522
 */
 template<typename _type, typename _fUpdater>
@@ -1177,6 +1225,13 @@ make_prototyped_iterator(_type& proto, size_t i, _fUpdater f)
 {
 	return prototyped_iterator<_type, _fUpdater>(proto, i, f);
 }
+
+//! \since build 926
+template<typename _type, typename _fUpdater>
+struct is_bitwise_swappable<prototyped_iterator<_type, _fUpdater>>
+	: is_bitwise_swappable<_fUpdater>
+{};
+//@}
 
 
 /*!
@@ -1309,6 +1364,16 @@ public:
 		return !i.container_ptr;
 	}
 };
+
+/*!
+\relates subscriptive_iterator
+\since build 926
+*/
+template<class _tCon, typename _type, typename _tDifference,
+	typename _tPointer, typename _tReference>
+struct is_bitwise_swappable<subscriptive_iterator<_tCon, _type, _tDifference,
+	_tPointer, _tReference>> : true_
+{};
 
 } // namespace ystdex;
 

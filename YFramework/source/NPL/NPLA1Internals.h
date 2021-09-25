@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r21117
+\version r21268
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2021-08-09 21:54 +0800
+	2021-09-25 14:49 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -522,6 +522,9 @@ AssertNextTerm(ContextNode& ctx, TermNode& term)
 //! \since build 879
 //@{
 #if NPL_Impl_NPLA1_Enable_Thunked
+// NOTE: All overloads do not need %any_ops::trivial_swap_t because both
+//	%Continuation and %std::reference_wrapper instances are specialized enough
+//	to make the %Reducer constructor behave expectedly.
 YB_ATTR(always_inline) inline ReductionStatus
 RelayCurrent(ContextNode& ctx, Continuation&& cur)
 {
@@ -538,6 +541,15 @@ RelayCurrent(ContextNode& ctx, _fCurrent&& cur)
 	-> decltype(cur(std::declval<TermNode&>(), ctx))
 {
 	return A1::RelayCurrent(ctx, Continuation(yforward(cur), ctx));
+}
+//! \since build 926
+template<typename _fCurrent>
+YB_ATTR(always_inline) inline auto
+RelayCurrent(ContextNode& ctx, any_ops::trivial_swap_t, _fCurrent&& cur)
+	-> decltype(cur(std::declval<TermNode&>(), ctx))
+{
+	return A1::RelayCurrent(ctx,
+		Continuation(any_ops::trivial_swap, yforward(cur), ctx));
 }
 #endif
 //@}
@@ -581,6 +593,20 @@ RelayCurrentOrDirect(ContextNode& ctx, _fCurrent&& cur, TermNode& term)
 	return A1::RelayCurrent(ctx, yforward(cur));
 #	endif
 }
+//! \since build 926
+template<typename _fCurrent>
+YB_ATTR(always_inline) inline ReductionStatus
+RelayCurrentOrDirect(ContextNode& ctx, any_ops::trivial_swap_t, _fCurrent&& cur,
+	TermNode& term)
+{
+#	if !NPL_Impl_NPLA1_Enable_Thunked || NPL_Impl_NPLA1_Enable_InlineDirect
+	return A1::RelayDirect(ctx, yforward(cur), term);
+#	else
+	yunused(term);
+	return A1::RelayCurrent(ctx, any_ops::trivial_swap, yforward(cur));
+#	endif
+}
+//@}
 
 //! \since build 910
 template<typename _fCurrent, typename _fNext>
@@ -595,6 +621,48 @@ RelayCurrentNext(ContextNode& ctx, TermNode& term, _fCurrent&& cur,
 	A1::RelayDirect(ctx, yforward(cur), term);
 	return ystdex::expand_proxy<ReductionStatus(ContextNode&)>::call(
 		yforward(next), ctx);
+#endif
+}
+//! \since build 926
+template<typename _fCurrent, typename _fNext>
+YB_FLATTEN inline ReductionStatus
+RelayCurrentNext(ContextNode& ctx, TermNode& term, _fCurrent&& cur,
+	any_ops::trivial_swap_t, _fNext&& next)
+{
+#if NPL_Impl_NPLA1_Enable_Thunked
+	NPL::RelaySwitched(ctx, any_ops::trivial_swap, yforward(next));
+	return A1::RelayCurrentOrDirect(ctx, yforward(cur),
+		term);
+#else
+	return A1::RelayCurrentNext(ctx, term, yforward(cur), yforward(next));
+#endif
+}
+//! \since build 926
+template<typename _fCurrent, typename _fNext>
+YB_FLATTEN inline ReductionStatus
+RelayCurrentNext(ContextNode& ctx, TermNode& term, any_ops::trivial_swap_t,
+	_fCurrent&& cur, _fNext&& next)
+{
+#if NPL_Impl_NPLA1_Enable_Thunked
+	NPL::RelaySwitched(ctx, yforward(next));
+	return A1::RelayCurrentOrDirect(ctx, any_ops::trivial_swap, yforward(cur),
+		term);
+#else
+	return A1::RelayCurrentNext(ctx, term, yforward(cur), yforward(next));
+#endif
+}
+//! \since build 926
+template<typename _fCurrent, typename _fNext>
+YB_FLATTEN inline ReductionStatus
+RelayCurrentNext(ContextNode& ctx, TermNode& term, any_ops::trivial_swap_t,
+	_fCurrent&& cur, any_ops::trivial_swap_t, _fNext&& next)
+{
+#if NPL_Impl_NPLA1_Enable_Thunked
+	NPL::RelaySwitched(ctx, any_ops::trivial_swap, yforward(next));
+	return A1::RelayCurrentOrDirect(ctx, any_ops::trivial_swap, yforward(cur),
+		term);
+#else
+	return A1::RelayCurrentNext(ctx, term, yforward(cur), yforward(next));
 #endif
 }
 
@@ -612,42 +680,100 @@ RelayCurrentNextThunked(ContextNode& ctx, TermNode& term, _fCurrent&& cur,
 	return A1::RelayCurrentNext(ctx, term, yforward(cur), yforward(next));
 #endif
 }
-
+//! \since build 926
 template<typename _fCurrent, typename _fNext>
+YB_FLATTEN inline ReductionStatus
+RelayCurrentNextThunked(ContextNode& ctx, TermNode& term, _fCurrent&& cur,
+	any_ops::trivial_swap_t, _fNext&& next)
+{
+#if NPL_Impl_NPLA1_Enable_Thunked
+	yunused(term);
+	NPL::RelaySwitched(ctx, any_ops::trivial_swap, yforward(next));
+	return A1::RelayCurrent(ctx, yforward(cur));
+#else
+	return A1::RelayCurrentNext(ctx, term, yforward(cur), yforward(next));
+#endif
+}
+//! \since build 926
+template<typename _fCurrent, typename _fNext>
+YB_FLATTEN inline ReductionStatus
+RelayCurrentNextThunked(ContextNode& ctx, TermNode& term,
+	any_ops::trivial_swap_t, _fCurrent&& cur, _fNext&& next)
+{
+#if NPL_Impl_NPLA1_Enable_Thunked
+	yunused(term);
+	NPL::RelaySwitched(ctx, yforward(next));
+	return A1::RelayCurrent(ctx, any_ops::trivial_swap, yforward(cur));
+#else
+	return A1::RelayCurrentNext(ctx, term, yforward(cur), yforward(next));
+#endif
+}
+//! \since build 926
+template<typename _fCurrent, typename _fNext>
+YB_FLATTEN inline ReductionStatus
+RelayCurrentNextThunked(ContextNode& ctx, TermNode& term,
+	any_ops::trivial_swap_t, _fCurrent&& cur, any_ops::trivial_swap_t,
+	_fNext&& next)
+{
+#if NPL_Impl_NPLA1_Enable_Thunked
+	yunused(term);
+	NPL::RelaySwitched(ctx, any_ops::trivial_swap, yforward(next));
+	return A1::RelayCurrent(ctx, any_ops::trivial_swap, yforward(cur));
+#else
+	return A1::RelayCurrentNext(ctx, term, yforward(cur), yforward(next));
+#endif
+}
+
+//! \since build 926
+template<typename... _tParams>
 // XXX: This is a workaround for G++'s LTO bug.
 #if YB_IMPL_GNUCPP >= 100000 || !NPL_Impl_NPLA1_Enable_Thunked \
 	|| NPL_Impl_NPLA1_Enable_TCO
 YB_FLATTEN
 #endif
 inline ReductionStatus
-ReduceCurrentNext(TermNode& term, ContextNode& ctx, _fCurrent&& cur,
-	_fNext&& next)
+ReduceCurrentNext(TermNode& term, ContextNode& ctx, _tParams&&... args)
 {
 	SetupNextTerm(ctx, term);
-	return A1::RelayCurrentNext(ctx, term, yforward(cur), yforward(next));
+	return A1::RelayCurrentNext(ctx, term, yforward(args)...);
 }
 
-//! \since build 916
-template<typename _fCurrent, typename _fNext>
+//! \since build 926
+template<typename... _tParams>
 #if YB_IMPL_GNUCPP >= 100000 || !NPL_Impl_NPLA1_Enable_Thunked \
 	|| NPL_Impl_NPLA1_Enable_TCO
 YB_FLATTEN
 #endif
 inline ReductionStatus
-ReduceCurrentNextThunked(TermNode& term, ContextNode& ctx, _fCurrent&& cur,
-	_fNext&& next)
+ReduceCurrentNextThunked(TermNode& term, ContextNode& ctx, _tParams&&... args)
 {
 	SetupNextTerm(ctx, term);
-	return A1::RelayCurrentNextThunked(ctx, term, yforward(cur),
-		yforward(next));
+	return A1::RelayCurrentNextThunked(ctx, term, yforward(args)...);
 }
-//@}
 
 
-//! \since build 821
+/*!
+\pre 最后一个参数的类型退化后满足可平凡交换。
+\since build 821
+*/
 template<typename _fNext>
 inline ReductionStatus
 ReduceSubsequent(TermNode& term, ContextNode& ctx, _fNext&& next)
+{
+	// XXX: The %std::reference_wrapper instance is specialized enough without
+	//	%any_ops::trivial_swap.
+	return A1::ReduceCurrentNext(term, ctx,
+		std::ref(ContextState::Access(ctx).ReduceOnce), any_ops::trivial_swap,
+		yforward(next));
+}
+
+/*!
+\note 同 ReduceSubsequent ，但不要求最后一个参数的类型退化后满足可平凡交换。
+\since build 821
+*/
+template<typename _fNext>
+inline ReductionStatus
+ReduceSubsequentPinned(TermNode& term, ContextNode& ctx, _fNext&& next)
 {
 	return A1::ReduceCurrentNext(term, ctx,
 		std::ref(ContextState::Access(ctx).ReduceOnce), yforward(next));
@@ -672,8 +798,8 @@ struct NonTailCall final
 #if NPL_Impl_NPLA1_Enable_Thunked
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
-		return
-			A1::RelayCurrentNext(ctx, term, yforward(cur), MakeMoveGuard(gd));
+		return A1::RelayCurrentNext(ctx, term, yforward(cur),
+			any_ops::trivial_swap, MakeMoveGuard(gd));
 #else
 		yunused(gd);
 		return A1::RelayDirect(ctx, cur, term);
@@ -697,7 +823,9 @@ struct NonTailCall final
 			return ReduceForLiftedResult(term);
 		}, "eval-lift-result"), ctx);
 
-		RelaySwitched(ctx, std::move(act));
+		RelaySwitched(ctx, any_ops::trivial_swap, std::move(act));
+		// XXX: %Continuation is specialized enough without
+		//	%any_ops::trivial_swap.
 		return A1::RelayCurrentNext(ctx, term, yforward(cur), std::move(cont));
 #else
 		yunused(gd);
@@ -726,11 +854,14 @@ struct NonTailCall final
 				return ReduceForLiftedResult(term);
 			}, "eval-lift-result"), ctx);
 
-			RelaySwitched(ctx, std::move(act));
+			RelaySwitched(ctx, any_ops::trivial_swap, std::move(act));
+			// XXX: %Continuation is specialized enough without
+			//	%any_ops::trivial_swap.
 			return A1::RelayCurrentNext(ctx, term, yforward(cur),
 				std::move(cont));
 		}
-		return A1::RelayCurrentNext(ctx, term, yforward(cur), std::move(act));
+		return A1::RelayCurrentNext(ctx, term, yforward(cur),
+			any_ops::trivial_swap, std::move(act));
 #else
 		yunused(gd);
 
@@ -946,7 +1077,6 @@ public:
 	_fBindValue BindValue;
 
 private:
-	// XXX: Allocators are not used here for performance in most cases.
 	mutable Action act{};
 
 public:
@@ -1044,7 +1174,8 @@ YB_ATTR_nodiscard YB_PURE inline
 
 
 //! \since build 859
-class RefContextHandler : private ystdex::equality_comparable<RefContextHandler>
+class RefContextHandler final
+	: private ystdex::equality_comparable<RefContextHandler>
 {
 private:
 #if NPL_NPLA_CheckEnvironmentReferenceCount

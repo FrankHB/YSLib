@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2019 FrankHB.
+	© 2012-2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r676
+\version r686
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2019-07-26 17:35 +0800
+	2021-09-22 23:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,7 @@
 //	yconstraint, iterator_operators_t, std::iterator_traits;
 #include "functor.hpp" // for indirect_t, std::equal_to, std::less, std::hash,
 //	add_ptr_t, add_ref_t, ystdex::swap_dependent;
+#include "placement.hpp" // for is_bitwise_swappable;
 
 namespace ystdex
 {
@@ -518,6 +519,15 @@ public:
 	}
 	//@}
 };
+
+/*!
+\relates pointer_iterator
+\since build 926
+*/
+template<typename _type>
+struct is_bitwise_swappable<pointer_iterator<_type>>
+	: is_bitwise_swappable<typename pointer_iterator<_type>::pointer>
+{};
 
 
 /*!

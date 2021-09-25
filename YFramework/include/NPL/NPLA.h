@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r8411
+\version r8475
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2021-09-01 23:34 +0800
+	2021-09-24 18:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,8 @@
 //	ystdex::expanded_function, ystdex::enable_if_same_param_t,
 //	ystdex::exclude_self_t, ystdex::make_obj_using_allocator,
 //	YSLib::forward_list, ystdex::swap_dependent, YSLib::allocate_shared,
-//	YSLib::Logger, ystdex::exchange, NPL::AsTermNode;
+//	YSLib::Logger, any_ops::trivial_swap, ystdex::exchange, NPL::AsTermNode,
+//	ystdex::is_bitwise_swappable;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include <libdefect/exception.h> // for std::exception_ptr;
 
@@ -1134,23 +1135,25 @@ public:
 	}
 #if NPL_NPLA_CheckEnvironmentReferenceCount
 	//! \since build 856
-	//@{
 	EnvironmentReference(const EnvironmentReference& env_ref) ynothrow
 		: p_weak(env_ref.p_weak), p_anchor(env_ref.p_anchor)
 	{
 		ReferenceEnvironmentAnchor();
 	}
-	//@}
 	DefDeMoveCtor(EnvironmentReference)
-
 	~EnvironmentReference();
 
-	DefDeCopyAssignment(EnvironmentReference)
-	DefDeMoveAssignment(EnvironmentReference)
-	//@}
+	//! \since build 926
+	PDefHOp(EnvironmentReference&, =, const EnvironmentReference& env_ref)
+		ImplRet(ystdex::copy_and_swap(*this, env_ref))
+	//! \since build 926
+	PDefHOp(EnvironmentReference&, =, EnvironmentReference&& env_ref)
+		ImplRet(swap(*this, env_ref), *this)
 #else
+	//! \since build 894
 	DefDeCopyMoveCtorAssignment(EnvironmentReference)
 #endif
+	//@}
 
 	//! \since build 824
 	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
@@ -1170,6 +1173,11 @@ private:
 	void
 	ReferenceEnvironmentAnchor();
 #endif
+
+	//! \since build 926
+	friend PDefH(void, swap, EnvironmentReference& x, EnvironmentReference& y)
+		ynothrow
+		ImplExpr(swap(x.p_weak, y.p_weak), swap(x.p_anchor, y.p_anchor))
 };
 
 
@@ -1392,12 +1400,11 @@ YB_ATTR_nodiscard YB_PURE inline
 	ImplRet(ystdex::invoke_value_or(&TermReference::get,
 		NPL::TryAccessLeaf<const TermReference>(term), term))
 
-//! \since build 801
-//@{
 /*!
 \brief 项引用函数对象操作。
 \note 这是 NPL::ReferenceTerm 的函数对象形式。
 \sa ReferenceTerm
+\since build 801
 */
 struct ReferenceTermOp
 {
@@ -1424,7 +1431,6 @@ ComposeReferencedTermOp(_func f)
 {
 	return ystdex::compose_n(f, ReferenceTermOp());
 }
-//@}
 
 
 //! \since build 855
@@ -1673,6 +1679,8 @@ ResolveRegular(_tTerm& term) -> yimpl(decltype(NPL::Access<_type>(term)))
 //@}
 
 
+//! \note 修改项的标签来自被提升项。
+//@{
 /*!
 \brief 提升项：设置项的内容为参数指定的项或值。
 \since build 805
@@ -1736,9 +1744,10 @@ LiftTermOrCopy(TermNode&, TermNode&, bool);
 YF_API void
 LiftTermValueOrCopy(TermNode&, TermNode&, bool);
 //@}
+//@}
 
 
-//! \note 不复制项的标签。这适合不保留标签的赋值操作。
+//! \note 除非另行指定，不修改项的标签。
 //@{
 /*!
 \brief 提升折叠后的项引用到指定的项。
@@ -1764,7 +1773,7 @@ LiftCollapsed(TermNode&, TermNode&, TermReference);
 \since build 871
 
 按参数指定的项提升折叠的项。参数分别为目标和源。
-当源是引用项时，提升源表示的引用，否则同 LiftOther 。
+当源是引用项时，提升源表示的引用，否则同 LiftOther（包含复制标签）。
 其中提升操作等效调用 LiftCollapsed 。
 */
 YF_API void
@@ -2945,7 +2954,8 @@ public:
 	PDefH(void, SaveExceptionHandler, )
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
-		ImplExpr(SetupFront(std::bind([this](ExceptionHandler& h) ynothrow{
+		ImplExpr(SetupFront(any_ops::trivial_swap,
+			std::bind([this](ExceptionHandler& h) ynothrow{
 			HandleException = std::move(h);
 			return LastStatus;
 		}, std::move(HandleException))))
@@ -2967,23 +2977,29 @@ public:
 	/*!
 	\brief 在当前动作序列中添加动作以重规约。
 	\pre 动作转移无异常抛出。
-	\since build 892
 	*/
+	//@{
+	//! \since build 926
+	//@{
+	YB_FLATTEN PDefH(void, SetupFront, Reducer act)
+		ImplExpr(!stashed.empty() ? (stashed.front() = std::move(act),
+			current.splice_after(current.cbefore_begin(), stashed,
+			stashed.cbefore_begin())) : current.push_front(std::move(act)))
+	YB_FLATTEN PDefH(void, SetupFront, any_ops::trivial_swap_t,
+		const Reducer& act)
+		ImplExpr(SetupFront(act));
+	YB_FLATTEN PDefH(void, SetupFront, any_ops::trivial_swap_t,
+		Reducer&& act)
+		ImplExpr(SetupFront(std::move(act)));
+	//@}
+	//! \since build 892
 	template<typename... _tParams>
-	inline void
+	YB_FLATTEN inline void
 	SetupFront(_tParams&&... args)
 	{
-		if(!stashed.empty())
-		{
-			stashed.front()
-				= NPL::ToReducer(get_allocator(), yforward(args)...);
-			current.splice_after(current.cbefore_begin(), stashed,
-				stashed.cbefore_begin());
-		}
-		else
-			current.push_front(
-				NPL::ToReducer(get_allocator(), yforward(args)...));
+		SetupFront(NPL::ToReducer(get_allocator(), yforward(args)...));
 	}
+	//@}
 
 	/*!
 	\brief 转移第二参数指定的位置之前的当前动作序列的动作到第一参数。
@@ -3247,7 +3263,6 @@ YB_ATTR_nodiscard YF_API pair<shared_ptr<Environment>, bool>
 ResolveEnvironment(TermNode& term);
 //@}
 //@}
-//@}
 
 
 /*!
@@ -3285,17 +3300,17 @@ struct EnvironmentSwitcher
 /*!
 \brief 异步规约指定动作和上下文中的当前动作。
 \return ReductionStatus::Partial 。
-\since build 841
+\since build 926
 
 异步规约参数指定的动作作为当前动作序列的前缀。
-第一和第二参数分别为上下文和捕获的当前动作。
+第一和其余参数分别为上下文和捕获的当前动作。
 以参数声明的相反顺序捕获参数作为动作，结果以参数声明的顺序析构捕获的动作。
 */
-template<typename _fCurrent>
+template<typename... _tParams>
 inline ReductionStatus
-RelaySwitched(ContextNode& ctx, _fCurrent&& cur)
+RelaySwitched(ContextNode& ctx, _tParams&&... args)
 {
-	ctx.SetupFront(yforward(cur));
+	ctx.SetupFront(yforward(args)...);
 	return ReductionStatus::Partial;
 }
 
@@ -3314,6 +3329,17 @@ YF_API void
 TraceException(std::exception&, YSLib::Logger&);
 
 } // namespace NPL;
+
+//! \since build 926
+namespace ystdex
+{
+
+//! \relates NPL::A1::Continuation
+template<>
+struct is_bitwise_swappable<NPL::EnvironmentSwitcher> : true_
+{};
+
+} // namespace ystdex;
 
 #endif
 

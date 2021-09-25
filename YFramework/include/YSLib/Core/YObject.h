@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r6609
+\version r6643
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2021-04-25 19:39 +0800
+	2021-09-24 18:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@
 //	YSLib::forward_as_tuple, ystdex::has_get_allocator, ystdex::is_sharing,
 //	ystdex::ref, ystdex::cond_t, ystdex::decay_t, ystdex::rebind_alloc_t,
 //	in_place_type_t, YSLib::make_observer, ystdex::copy_or_move,
-//	ystdex::pseudo_output;
+//	ystdex::pseudo_output, ystdex::is_bitwise_swappable;
 #include <ystdex/any.h> // for ystdex::any, ystdex::any_ops,
 //	ystdex::in_place_type, ystdex::in_place_type_t, ystdex::any_cast,
 //	ystdex::unchecked_any_cast, ystdex::unsafe_any_cast;
@@ -1769,6 +1769,47 @@ public:
 };
 
 } // namespace YSLib;
+
+//! \since build 926
+namespace ystdex
+{
+
+//! \relates YSLib::ValueHolder
+template<typename _type>
+struct is_bitwise_swappable<YSLib::ValueHolder<_type>>
+	: is_bitwise_swappable<_type>
+{};
+
+//! \relates YSLib::PolymorphicValueHolder
+template<class _type, class _tTarget>
+struct is_bitwise_swappable<YSLib::PolymorphicValueHolder<_type, _tTarget>>
+	: is_bitwise_swappable<_tTarget>
+{};
+
+//! \relates YSLib::AllocatorHolder
+template<typename _type, class _tByteAlloc>
+struct is_bitwise_swappable<YSLib::AllocatorHolder<_type, _tByteAlloc>>
+	: is_bitwise_swappable<_type>
+{};
+
+//! \relates YSLib::PolymorphicAllocatorHolder
+template<class _type, class _tTarget, class _tByteAlloc>
+struct is_bitwise_swappable<YSLib::PolymorphicAllocatorHolder<_type, _tTarget,
+	_tByteAlloc>> : is_bitwise_swappable<_tTarget>
+{};
+
+//! \relates YSLib::PointerHolder
+template<typename _type, class _tTraits>
+struct is_bitwise_swappable<YSLib::PointerHolder<_type, _tTraits>>
+	: is_bitwise_swappable<typename _tTraits::holder_pointer>
+{};
+
+//! \relates YSLib::RefHolder
+template<typename _type>
+struct is_bitwise_swappable<YSLib::RefHolder<_type>> : true_
+{};
+
+} // namespace ystdex;
 
 #endif
 

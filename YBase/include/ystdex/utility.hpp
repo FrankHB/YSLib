@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2020 FrankHB.
+	© 2010-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3575
+\version r3587
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2020-07-08 17:33 +0800
+	2021-09-22 22:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,10 +30,9 @@
 
 #include "swap.hpp" // for "swap.hpp", is_lvalue_reference, conditional_t,
 //	remove_reference_t, std::forward, add_const_t, std::move,
-//	is_nothrow_constructible, enable_if_convertible_t, exclude_self_t;
+//	is_nothrow_constructible, enable_if_convertible_t, is_bitwise_swappable,
+//	yassume, ystdex::construct_in, ystdex::destruct_in;
 #include "type_op.hpp" // for exclude_self_params_t;
-#include "placement.hpp" // for yassume, ystdex::construct_in,
-//	ystdex::destruct_in;
 #include "base.h" // for noncopyable, nonmovable;
 #include <functional> // for std::bind, std::ref
 #include <tuple> // for tuple workaround;
@@ -209,6 +208,14 @@ struct boxed_value
 		return value;
 	}
 };
+
+/*!
+\relates tagged_value
+\since build 926
+*/
+template<typename _type>
+struct is_bitwise_swappable<boxed_value<_type>> : is_bitwise_swappable<_type>
+{};
 
 
 /*!

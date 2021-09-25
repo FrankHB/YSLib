@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r6036
+\version r6272
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2021-08-30 23:59 +0800
+	2021-09-25 15:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,21 +30,22 @@
 //	ystdex::isspace, std::istream, YSLib::unique_ptr, std::throw_with_nested,
 //	std::invalid_argument, ystdex::sfmt, YSLib::share_move, REPLContext,
 //	RetainN, NPL::ResolveRegular, NPL::Deref, RelaySwitched,
-//	A1::NameTypedReducerHandler, std::bind, std::ref, ResolvedTermReferencePtr,
-//	NPL::TryAccessLeaf, TermReference, LiftTerm, MoveResolved,
-//	NPL::AllocateEnvironment, function, ValueObject, EnvironmentReference,
-//	std::piecewise_construct, NPL::forward_as_tuple, LiftOther,
-//	ThrowNonmodifiableErrorForAssignee, ThrowValueCategoryError, ValueToken,
-//	ResolveTerm, IsNPLASymbol, ThrowInvalidTokenError, std::placeholders,
-//	TokenValue, CheckVariadicArity, A1::AsForm, NPL::CollectTokens, Strict,
-//	IsEmpty, ComposeReferencedTermOp, IsBranch, IsReferenceTerm,
-//	IsBoundLValueTerm, IsUncollapsedTerm, IsUniqueTerm, IsModifiableTerm,
-//	IsTemporaryTerm, ReferenceTerm, LiftTermRef, NPL::SetContentWith,
-//	ResolveName, Environment::EnsureValid, LiftOtherOrCopy, ystdex::bind1,
-//	LiftTermValueOrCopy, ResolveIdentifier, NPLException, ReduceToReferenceList,
-//	NPL::IsMovable, LiftTermOrCopy, IsBranchedList, AccessFirstSubterm,
-//	ThrowInsufficientTermsError, Retain, NPL::AsTermNode, ystdex::fast_any_of,
-//	Ensigil, YSLib::ufexists, YSLib::to_std_string, EmplaceCallResultOrReturn,
+//	any_ops::trivial_swap, A1::NameTypedReducerHandler, std::bind, std::ref,
+//	ResolvedTermReferencePtr, NPL::TryAccessLeaf, TermReference, LiftTerm,
+//	MoveResolved, NPL::AllocateEnvironment, function, ValueObject,
+//	EnvironmentReference, std::piecewise_construct, NPL::forward_as_tuple,
+//	LiftOther, ThrowNonmodifiableErrorForAssignee, ThrowValueCategoryError,
+//	ValueToken, ResolveTerm, IsNPLASymbol, ThrowInvalidTokenError,
+//	std::placeholders, TokenValue, CheckVariadicArity, A1::AsForm,
+//	NPL::CollectTokens, Strict, IsEmpty, ComposeReferencedTermOp, IsBranch,
+//	IsReferenceTerm, IsBoundLValueTerm, IsUncollapsedTerm, IsUniqueTerm,
+//	IsModifiableTerm, IsTemporaryTerm, ReferenceTerm, LiftTermRef,
+//	NPL::SetContentWith, ResolveName, Environment::EnsureValid, LiftOtherOrCopy,
+//	ystdex::bind1, LiftTermValueOrCopy, ResolveIdentifier, NPLException,
+//	ReduceToReferenceList, MoveCollapsed, NPL::IsMovable, LiftTermOrCopy,
+//	IsBranchedList, AccessFirstSubterm, ThrowInsufficientTermsError, Retain,
+//	NPL::AsTermNode, ystdex::fast_any_of, Ensigil, YSLib::ufexists,
+//	YSLib::to_std_string, EmplaceCallResultOrReturn, NPL::TryAccessTerm,
 //	ystdex::plus, ystdex::tolower, YSLib::OwnershipTag, YSLib::IO::StreamPut,
 //	YSLib::FetchEnvironmentVariable, YSLib::SetEnvironmentVariable,
 //	YSLib::IO::UniqueFile, YSLib::uremove, YSLib::allocate_shared,
@@ -243,7 +244,7 @@ ReduceToLoadExternal(TermNode& term, ContextNode& ctx, REPLContext& context)
 ReductionStatus
 RelayToLoadExternal(ContextNode& ctx, TermNode& term, REPLContext& context)
 {
-	return RelaySwitched(ctx,
+	return RelaySwitched(ctx, any_ops::trivial_swap,
 		A1::NameTypedReducerHandler(std::bind(ReduceToLoadExternal,
 		std::ref(term), std::ref(ctx), std::ref(context)), "load-external"));
 }
@@ -632,7 +633,7 @@ LoadEnvironments(ContextNode& ctx)
 		std::bind(DoResolve, std::ref(ResolveIdentifier), _1, _2));
 	RegisterForm(ctx, "$move-resolved!",
 		std::bind(DoResolve, std::ref(MoveResolvedValue), _1, _2));
-	// NOTE: This is now be primitive since in NPL environment capture is more
+	// NOTE: This is now primitive since in NPL environment capture is more
 	//	basic than vau.
 	RegisterStrict(ctx, "copy-environment", CopyEnvironment);
 	RegisterUnary<Strict, const EnvironmentReference>(ctx, "lock-environment",
@@ -1429,6 +1430,214 @@ FindValidRequirementIn(const vector<string>& specs, const string req)
 	throw NPLException("No module for requirement '" + YSLib::to_std_string(req)
 		+ "' found.");
 }
+
+
+//! \since build 926
+//@{
+class Promise final
+{
+private:
+	//! \invariant 非空 。
+	EnvironmentReference r_env;
+	TermNode tm_obj;
+	TermNode tm_env;
+	observer_ptr<Promise> p_back = {};
+	bool eval_ref = true;
+
+public:
+	Promise(ContextNode& ctx, TermNode tm) ynothrow
+		: r_env(ctx.WeakenRecord()), tm_obj(std::move(tm)),
+		tm_env(tm.get_allocator())
+	{}
+	Promise(ContextNode& ctx, TermNode tm_e, TermNode tm, bool no_lift) ynothrow
+		: r_env(ctx.WeakenRecord()), tm_obj(std::move(tm)),
+		tm_env(std::move(tm_e)), eval_ref(no_lift)
+	{}
+	DefDeCopyMoveCtorAssignment(Promise)
+
+	YB_ATTR_nodiscard YB_PURE friend
+		PDefHOp(bool, ==, const Promise& x, const Promise& y) ynothrow
+		ImplRet(Encapsulation::Equal(x.GetEnvironment(), y.GetEnvironment())
+			&& Encapsulation::Equal(x.GetObject(), y.GetObject()))
+
+	DefPred(const ynothrow, Ready, IsEmpty(GetEnvironment()))
+	DefPred(const ynothrow, Lifting, !eval_ref)
+
+	DefGetter(const ynothrow, const TermNode&, Environment, Resolve().tm_env)
+	DefGetter(const ynothrow, const TermNode&, Object, Resolve().tm_obj)
+
+	void
+	Iterate(Promise&, ResolvedTermReferencePtr, ContextNode&);
+
+	PDefH(void, LiftTo, TermNode& term, bool move)
+		ImplExpr(LiftOtherOrCopy(term, Resolve().tm_obj, move))
+
+	void
+	Memoize(TermNode&);
+
+	ReductionStatus
+	ReduceToResult(TermNode&, ResolvedTermReferencePtr);
+
+	YB_ATTR_nodiscard YB_PURE PDefH(Promise&, Resolve, ) ynothrow
+		ImplRet(p_back ? *p_back : *this)
+	YB_ATTR_nodiscard YB_PURE PDefH(const Promise&, Resolve, ) const ynothrow
+		ImplRet(p_back ? *p_back : *this)
+};
+
+void
+Promise::Iterate(Promise& prom, ResolvedTermReferencePtr p_ref,
+	ContextNode& ctx)
+{
+	if(prom.p_back)
+		tm_obj.Clear(), tm_env.Clear(),
+			yunseq(r_env = prom.r_env, p_back = prom.p_back);
+	else if(p_ref)
+		tm_obj.Clear(), tm_env.Clear(),
+		yunseq(r_env = p_ref->GetEnvironmentReference(),
+			p_back = make_observer(&prom));
+	else
+		yunseq(tm_obj = std::move(prom.tm_obj),
+			tm_env = std::move(prom.tm_env),
+			r_env = ctx.WeakenRecord()), p_back.reset();
+}
+
+void
+Promise::Memoize(TermNode& tm)
+{
+	auto& resolved(Resolve());
+
+	MoveCollapsed(resolved.tm_obj, tm);
+	resolved.tm_env.Clear();
+}
+
+ReductionStatus
+Promise::ReduceToResult(TermNode& term, ResolvedTermReferencePtr p_ref)
+{
+	auto& tm(Resolve().tm_obj);
+	// XXX: As %ReduceToFirst in NPLA1Forms without %TermTags::Nonmodifying
+	//	propagation and value tags adjustment from the soruce since the source
+	//	is trustable to have only the tags of modifiable first-class object.
+	const bool list_not_move(!NPL::IsMovable(p_ref) || p_back);
+
+	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
+	{
+		if(list_not_move)
+		{
+			term.CopyContent(tm);
+			return ReductionStatus::Retained;
+		}
+		if(!p->IsReferencedLValue())
+		{
+			LiftOtherOrCopy(term, p->get(), p->IsMovable());
+			return ReductionStatus::Retained;
+		}
+	}
+	else if(list_not_move)
+	{
+		// XXX: Allocators are not used here for performance.
+		term.Value.assign(in_place_type<TermReference>, tm.Tags, tm,
+			p_ref ? p_ref->GetEnvironmentReference() : r_env);
+		return ReductionStatus::Clean;
+	}
+	LiftOther(term, tm);
+	return ReductionStatus::Retained;
+}
+
+
+ReductionStatus
+LazyImpl(TermNode& term, ContextNode& ctx, bool no_lift)
+{
+	Retain(term);
+	RemoveHead(term);
+	return EmplaceCallResultOrReturn(term, Promise(ctx, NPL::AsTermNode(
+		term.get_allocator(), ctx.WeakenRecord()), std::move(term), no_lift));
+}
+
+ReductionStatus
+LazyWithDynamic(TermNode& term, ContextNode& ctx, bool no_lift)
+{
+	CheckVariadicArity(term, 1);
+	RemoveHead(term);
+
+	const auto i(term.begin());
+
+	return ReduceSubsequent(*i, ctx,
+		A1::NameTypedReducerHandler([&, i]{
+
+		// NOTE: As %CheckEnvironment.
+		Environment::EnsureValid(
+			ResolveEnvironment(ystdex::as_const(*i)).first);
+
+		auto tm(std::move(*i));
+
+		term.erase(i);
+		return EmplaceCallResultOrReturn(term,
+			Promise(ctx, std::move(tm), std::move(term), no_lift));
+	}, "eval-lazy-parent"));
+}
+
+ReductionStatus
+ForcePromise(TermNode& term, ContextNode& ctx, Promise& prom, TermNode& nd,
+	ResolvedTermReferencePtr p_ref, bool lift)
+{
+	if(prom.IsReady())
+		return prom.ReduceToResult(term, p_ref);
+
+	// XXX: Assume the 1st subterm is free to use. It is sufficient to save the
+	//	expression to be evaluated. Even if not, a subterm can be emplaced at
+	//	the front position and then all subterms to save temporary objects would
+	//	be destroyed on the lifting, and it should be safe since the order is
+	//	guaranteed left-to-right by the destructor of %TermNode.
+	auto& nterm(*term.begin());
+	auto p_env_saved([&](const TermNode& tm_env){
+		// XXX: The 'const' on 'tm_env' is vital, because it cannot be moved,
+		//	since %Promise::IsReady relies on the term not being empty (as the
+		//	current move-after state).
+		return ResolveEnvironment(tm_env).first;
+	}(prom.GetEnvironment()));
+
+	// XXX: This may invalidate %prom.
+	prom.LiftTo(nterm, NPL::IsMovable(p_ref));
+	return A1::ReduceCurrentNext(nterm, ctx, any_ops::trivial_swap,
+		// TODO: Blocked. Use C++14 lambda initializers to simplify the
+		//	implementation.
+		ystdex::bind1([&, lift](TermNode& t, ContextNode& c,
+		shared_ptr<Environment>& p_env){
+		return NonTailCall::RelayNextGuardedProbe(c, t,
+			EnvironmentGuard(c, c.SwitchEnvironment(std::move(p_env))),
+			lift, std::ref(ContextState::Access(c).ReduceOnce));
+	}, std::placeholders::_2, std::move(p_env_saved)),
+		any_ops::trivial_swap, A1::NameTypedReducerHandler([&, p_ref]{
+		// NOTE: Different to [RnRK], the promise object may be assigned and
+		//	%prom may be invalidated during the evaluation on %nterm, so it is
+		//	necessary to access %nd again. In this implementation, %prom from
+		//	the recursive call to %ForcePromise also reuses %nterm to hold the
+		//	old %nprom for nested promise evaluation, so lifetimes of %prom and
+		//	%nprom should not overlap.
+		auto& nprom(NPL::AccessRegular<Promise>(nd, p_ref));
+
+		// NOTE: This is necessary to handle the promise forced during the
+		//	evaluation on %nterm, see [RnRK].
+		if(!nprom.IsReady())
+		{
+			if(ResolveTerm(
+				[&](TermNode& nd_n, ResolvedTermReferencePtr p_ref_n) -> bool{
+				if(const auto p_inner = TryAccessTerm<Promise>(nd_n))
+				{
+					nprom.Iterate(*p_inner, p_ref_n, ctx);
+					lift = lift || p_inner->IsLifting();
+					return true;
+				}
+				return {};
+			}, nterm))
+				return ForcePromise(term, ctx, nprom, nd, p_ref, lift);
+			nprom.Memoize(nterm);
+		}
+		// XXX: This may invalidate %nprom.
+		return nprom.ReduceToResult(term, p_ref);
+	}, "promise-handle-result"));
+}
+//@}
 #endif
 
 } // unnamed namespace;
@@ -1444,6 +1653,41 @@ LoadGroundContext(REPLContext& context)
 void
 LoadModule_std_promises(REPLContext& context)
 {
+#if NPL_Impl_NPLA1_Native_Forms
+	auto& renv(context.Root.GetRecordRef());
+
+	RegisterUnary(renv, "promise?", [](const TermNode& term){
+		return IsTypedRegular<Promise>(ReferenceTerm(term));
+	});
+	RegisterUnary(renv, "memoize",
+		[] YB_LAMBDA_ANNOTATE((TermNode& term, ContextNode& ctx), , pure){
+		return Promise(ctx, std::move(term));
+	});
+	RegisterForm(renv, "$lazy", [](TermNode& term, ContextNode& ctx){
+		return LazyImpl(term, ctx, {});
+	});
+	RegisterForm(renv, "$lazy%", [](TermNode& term, ContextNode& ctx){
+		return LazyImpl(term, ctx, true);
+	});
+	RegisterForm(renv, "$lazy/d", [](TermNode& term, ContextNode& ctx){
+		return LazyWithDynamic(term, ctx, {});
+	});
+	RegisterForm(renv, "$lazy/d%", [](TermNode& term, ContextNode& ctx){
+		return LazyWithDynamic(term, ctx, true);
+	});
+	RegisterStrict(renv, "force", [](TermNode& term, ContextNode& ctx){
+		return CallRawUnary([&](TermNode& tm){
+			return
+				ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
+				if(const auto p = TryAccessTerm<Promise>(nd))
+					return
+						ForcePromise(term, ctx, *p, nd, p_ref, p->IsLifting());
+				LiftOther(term, tm);
+				return ReductionStatus::Retained;
+			}, tm);
+		}, term);
+	});
+#else
 	context.ShareCurrentSource("<lib:std.promises>");
 	// NOTE: Call of 'set-first%!' does not check cyclic references. This is
 	//	kept safe since it can occur only with NPLA1 undefined behavior.
@@ -1487,6 +1731,7 @@ $provide/let! (promise? memoize $lazy $lazy% $lazy/d $lazy/d% force)
 			($if ($lvalue-identifier? x) id move!)
 );
 	)NPL");
+#endif
 }
 
 void
@@ -1494,9 +1739,8 @@ LoadModule_std_strings(REPLContext& context)
 {
 	auto& renv(context.Root.GetRecordRef());
 
-	RegisterStrict(renv, "++",
-		std::bind(CallBinaryFold<string, ystdex::plus<>>, ystdex::plus<>(),
-		string(), std::placeholders::_1));
+	RegisterStrict(renv, "++", std::bind(CallBinaryFold<string, ystdex::plus<>>,
+		ystdex::plus<>(), string(), std::placeholders::_1));
 	RegisterUnary<Strict, const string>(renv, "string-empty?",
 		[](const string& str) ynothrow{
 		return str.empty();

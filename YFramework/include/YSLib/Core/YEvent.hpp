@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r6104
+\version r6192
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2021-05-06 19:18 +0800
+	2021-09-24 18:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,11 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YFunc // for module YSLib::Core::YFunc,
-//	ystdex::is_expandable, ystdex::is_decayed, std::allocator_arg_t,
+//	ystdex::any_ops, ystdex::is_expandable, ystdex::is_decayed,
+//	any_ops::trivial_swap_t, any_ops::trivial_swap, std::allocator_arg_t,
 //	std::allocator_arg, ystdex::make_expanded, ystdex::default_last_value,
-//	std::piecewise_construct, YSLib::forward_as_tuple;
+//	std::piecewise_construct, YSLib::forward_as_tuple,
+//	ystdex::is_bitwise_swappable;
 #include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
 #include <ystdex/type_op.hpp> // for ystdex::exclude_self_t,
 //	ystdex::exclude_self_params_t;
@@ -45,6 +47,9 @@
 
 namespace YSLib
 {
+
+//! \since build 926
+namespace any_ops = ystdex::any_ops;
 
 /*!
 \brief 标准事件处理器模板。
@@ -71,8 +76,9 @@ public:
 
 private:
 	// XXX: Clang++ 7.1 behaves weirdly with %lref<GHEvent> when using combined
-	//	traits by %ystdex::not_ and %ystdex::and_. It seems related to https://bugs.llvm.org/show_bug.cgi?id=38033,
-	//	but this does not work whether '-std=c++17' is used.
+	//	traits by %ystdex::not_ and %ystdex::and_. It seems related to
+	//	https://bugs.llvm.org/show_bug.cgi?id=38033, but this does not work
+	//	whether '-std=c++17' is used.
 	//! \since build 850
 	template<typename _fCallable>
 	using enable_if_expandable_t = ystdex::enable_if_t<
@@ -146,21 +152,37 @@ public:
 	*/
 	//@{
 	//! \brief 构造：使用函数指针。
+	//@{
 	GHEvent(FuncType* f = {}) ynothrow
 		: BaseType(f),
 		comp_eq(GEquality<ystdex::decay_t<FuncType>>::AreEqual)
 	{}
+	//! \since build 926
+	GHEvent(any_ops::trivial_swap_t, FuncType* f = {}) ynothrow
+		: GHEvent(f)
+	{}
+	//@}
 	//! \brief 构造：使用分配器和函数指针。
+	//@{
 	template<class _tAlloc>
 	inline
 	GHEvent(std::allocator_arg_t, const _tAlloc& a, FuncType* f = {}) ynothrow
 		: BaseType(std::allocator_arg, a, f),
 		comp_eq(GEquality<ystdex::decay_t<FuncType>>::AreEqual)
 	{}
+	//! \since build 926
+	template<class _tAlloc>
+	inline
+	GHEvent(std::allocator_arg_t, const _tAlloc& a, any_ops::trivial_swap_t,
+		FuncType* f = {}) ynothrow
+		: BaseType(std::allocator_arg, a, any_ops::trivial_swap, f),
+		comp_eq(GEquality<ystdex::decay_t<FuncType>>::AreEqual)
+	{}
 	//@}
-	//! \since build 849
-	//@{
+	//@}
 	//! \brief 使用函数对象。
+	//@{
+	//! \since build 849
 	template<class _fCallable, yimpl(typename = ystdex::exclude_self_t<GHEvent,
 		_fCallable>, typename = ystdex::enable_if_t<std::is_constructible<
 		function<FuncType>, _fCallable>::value>)>
@@ -169,7 +191,19 @@ public:
 		: BaseType(std::move(f)),
 		comp_eq(GEquality<_fCallable>::AreEqual)
 	{}
+	//! \since build 926
+	template<class _fCallable, yimpl(typename = ystdex::exclude_self_t<GHEvent,
+		_fCallable>, typename = ystdex::enable_if_t<std::is_constructible<
+		function<FuncType>, _fCallable>::value>)>
+	inline
+	GHEvent(any_ops::trivial_swap_t, _fCallable f)
+		: BaseType(any_ops::trivial_swap, std::move(f)),
+		comp_eq(GEquality<_fCallable>::AreEqual)
+	{}
+	//@}
 	//! \brief 使用分配器和函数对象。
+	//@{
+	//! \since build 849
 	template<class _fCallable, class _tAlloc,
 		yimpl(typename = ystdex::exclude_self_t<GHEvent, _fCallable>,
 		typename = ystdex::enable_if_t<
@@ -179,7 +213,21 @@ public:
 		: BaseType(std::allocator_arg, a, yforward(f)),
 		comp_eq(GEquality<_fCallable>::AreEqual)
 	{}
+	//! \since build 926
+	template<class _fCallable, class _tAlloc,
+		yimpl(typename = ystdex::exclude_self_t<GHEvent, _fCallable>,
+		typename = ystdex::enable_if_t<
+		std::is_constructible<function<FuncType>, _fCallable>::value>)>
+	inline
+	GHEvent(std::allocator_arg_t, const _tAlloc& a, any_ops::trivial_swap_t,
+		_fCallable&& f)
+		: BaseType(std::allocator_arg, a, any_ops::trivial_swap, yforward(f)),
+		comp_eq(GEquality<_fCallable>::AreEqual)
+	{}
+	//@}
 	//! \brief 使用扩展函数对象。
+	//@{
+	//! \since build 849
 	template<typename _fCallable,
 		yimpl(typename = enable_if_expandable_t<_fCallable>)>
 	inline
@@ -189,12 +237,38 @@ public:
 		//	(failure of multiple definitions).
 		comp_eq(GEqualityExpanded<_fCallable>::AreEqual)
 	{}
+	//! \since build 926
+	template<typename _fCallable,
+		yimpl(typename = enable_if_expandable_t<_fCallable>)>
+	inline
+	GHEvent(any_ops::trivial_swap_t, _fCallable f)
+		: BaseType(any_ops::trivial_swap,
+		ystdex::make_expanded<FuncType>(std::move(f))),
+		// XXX: Here lambda-expression is buggy on G++ LTO, at least G++ 7.1.0
+		//	(failure of multiple definitions).
+		comp_eq(GEqualityExpanded<_fCallable>::AreEqual)
+	{}
+	//@}
 	//! \brief 使用分配器和扩展函数对象。
+	//@{
+	//! \since build 849
 	template<typename _fCallable, class _tAlloc,
 		yimpl(typename = enable_if_expandable_t<_fCallable>)>
 	inline
 	GHEvent(std::allocator_arg_t, const _tAlloc& a, _fCallable f)
 		: BaseType(std::allocator_arg, a,
+		ystdex::make_expanded<FuncType>(std::move(f))),
+		// XXX: Here lambda-expression is buggy on G++ LTO, at least G++ 7.1.0
+		//	(failure of multiple definitions).
+		comp_eq(GEqualityExpanded<_fCallable>::AreEqual)
+	{}
+	//! \since build 926
+	template<typename _fCallable, class _tAlloc,
+		yimpl(typename = enable_if_expandable_t<_fCallable>)>
+	inline
+	GHEvent(std::allocator_arg_t, const _tAlloc& a, any_ops::trivial_swap_t,
+		_fCallable f)
+		: BaseType(std::allocator_arg, a, any_ops::trivial_swap,
 		ystdex::make_expanded<FuncType>(std::move(f))),
 		// XXX: Here lambda-expression is buggy on G++ LTO, at least G++ 7.1.0
 		//	(failure of multiple definitions).
@@ -895,6 +969,18 @@ AddUnique(GEvent<_tRet(_tParams...)>& evt, _type& obj,
 	DefExtendClass(YF_API, _n, public _b)
 
 } // namespace YSLib;
+
+//! \since build 926
+namespace ystdex
+{
+
+//! \relates YSLib::GHEvent
+template<typename _tRet, typename... _tParams>
+struct is_bitwise_swappable<YSLib::GHEvent<_tRet(_tParams...)>>
+	: is_bitwise_swappable<expanded_function<_tRet(_tParams...)>>
+{};
+
+} // namespace ystdex;
 
 #endif
 

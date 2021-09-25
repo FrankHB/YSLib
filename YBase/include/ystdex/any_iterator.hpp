@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2018-2019 FrankHB.
+	© 2012-2016, 2018-2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r1443
+\version r1472
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2019-03-06 17:00 +0800
+	2021-09-22 22:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "any.h" // for "any.h", any_ops, cond_t, wrap_handler, _t, decay_t,
 //	ptrdiff_t, any, exclude_self_t, any_ops::with_handler_t, is_convertible,
-//	indirect_t, unwrap_ref_decay_t, remove_reference_t;
+//	indirect_t, unwrap_ref_decay_t, remove_reference_t, is_bitwise_swappable;
 #include "iterator.hpp" // for is_undereferenceable, input_iteratable,
 //	std::unique_ptr, forward_iteratable, bidirectional_iteratable;
 
@@ -371,6 +371,16 @@ public:
 	using any::type;
 };
 
+/*!
+\relates any_input_iterator
+\since build 926
+*/
+template<typename _type, typename _tDifference, typename _tPointer,
+	typename _tReference>
+struct is_bitwise_swappable<any_input_iterator<_type, _tDifference, _tPointer,
+	_tReference>> : true_
+{};
+
 
 using input_monomorphic_iterator
 	= any_input_iterator<void_ref, ptrdiff_t, void*, void_ref_any>;
@@ -446,6 +456,16 @@ public:
 		return static_cast<const base&>(x) == static_cast<const base&>(y);
 	}
 };
+
+/*!
+\relates any_forward_iterator
+\since build 926
+*/
+template<typename _type, typename _tDifference, typename _tPointer,
+	typename _tReference>
+struct is_bitwise_swappable<any_forward_iterator<_type, _tDifference, _tPointer,
+	_tReference>> : true_
+{};
 
 
 using forward_monomorphic_iterator
@@ -525,6 +545,16 @@ public:
 		return static_cast<const base&>(x) == static_cast<const base&>(y);
 	}
 };
+
+/*!
+\relates any_bidirectional_iterator
+\since build 926
+*/
+template<typename _type, typename _tDifference, typename _tPointer,
+	typename _tReference>
+struct is_bitwise_swappable<any_bidirectional_iterator<_type, _tDifference,
+	_tPointer, _tReference>> : true_
+{};
 
 
 using bidirectional_monomorphic_iterator

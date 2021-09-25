@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2020 FrankHB.
+	© 2014-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file allocator.hpp
 \ingroup YStandardEx
 \brief 分配器接口。
-\version r5613
+\version r5641
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-10 21:34:28 +0800
 \par 修改时间:
-	2020-04-06 15:02 +0800
+	2021-09-23 03:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -576,7 +576,7 @@ struct has_mem_delete : is_detected<details::mem_delete_t, _type, _tParams...>
 
 /*!
 \pre _type 是非类类型或完整的类类型。
-\note 可能有假阳性结果。
+\note 不排除假阳性结果。
 \see ISO C++17 [allocator.requirements] 。
 \since build 867
 */
@@ -587,7 +587,7 @@ struct has_mem_delete : is_detected<details::mem_delete_t, _type, _tParams...>
 
 判断分配器，检查符合以下要求：
 成员类型 value_type 是没有被 cv 修饰的（可能不完整的）对象类型；
-不涉及其它分配器、 操作符、容器传播或 is_always_equal 的其它表达式符合类型要求；
+不涉及其它分配器、操作符、容器传播或 is_always_equal 的其它表达式符合类型要求；
 可以符合分配器要求的值调用 allocate 、deallocator 和 max_size 。
 因为 ADL ，带有非限定形式操作符不能被可靠地检查而支持不完整的 value_type 。
 */
@@ -752,6 +752,16 @@ do_alloc_on_swap(_tAlloc& x, _tAlloc& y, true_)
 
 } // namespace details;
 
+/*!
+\relates details::allocator_delete_base
+\since build 926
+*/
+template<class _tAlloc>
+struct is_bitwise_swappable<details::allocator_delete_base<_tAlloc>>
+	: or_<is_lvalue_reference<remove_cvref_t<_tAlloc>>,
+	is_bitwise_swappable<remove_cvref_t<_tAlloc>>>
+{};
+
 
 /*!
 \note 模板参数可能是引用。
@@ -812,6 +822,15 @@ public:
 	}
 };
 
+/*!
+\relates allocator_guard_delete
+\since build 926
+*/
+template<class _tAlloc>
+struct is_bitwise_swappable<allocator_guard_delete<_tAlloc>>
+	: is_bitwise_swappable<details::allocator_delete_base<_tAlloc>>
+{};
+
 
 /*!
 \brief 释放分配器分配的对象的删除器。
@@ -858,6 +877,15 @@ public:
 	yimpl(using) base::get_allocator;
 };
 //@}
+
+/*!
+\relates allocator_guard_delete
+\since build 926
+*/
+template<class _tAlloc>
+struct is_bitwise_swappable<allocator_delete<_tAlloc>>
+	: is_bitwise_swappable<details::allocator_delete_base<_tAlloc>>
+{};
 
 
 /*!

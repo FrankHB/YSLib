@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2019 FrankHB.
+	© 2015-2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守卫。
-\version r584
+\version r612
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2019-11-04 18:10 +0800
+	2021-09-23 03:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,9 @@
 #ifndef YB_INC_ystdex_scope_guard_hpp_
 #define YB_INC_ystdex_scope_guard_hpp_ 1
 
-#include "utility.hpp" // for exclude_self_params_t, is_nothrow_constructible,
-//	decay_t, is_reference, ystdex::vswap, tagged_value, noncopyable,
-//	std::declval, is_nothrow_copyable;
+#include "utility.hpp" // for exclude_self_params_t, and_,
+//	is_nothrow_constructible, is_bitwise_swappable, decay_t, is_reference,
+//	ystdex::vswap, tagged_value, noncopyable, std::declval, is_nothrow_copyable;
 #include "functional.hpp" // for one_shot, function;
 
 namespace ystdex
@@ -65,10 +65,9 @@ struct guard
 	operator=(guard&&) = default;
 };
 
-/*!
-\brief 创建作用域守卫。
-\relates guard
-*/
+//! \relates guard
+//@{
+//! \brief 创建作用域守卫。
 //@{
 //! \since build 649
 template<typename _type, bool _bNoThrow = true, typename... _tParams>
@@ -86,6 +85,13 @@ make_guard(_type f)
 {
 	return guard<_type, _bNoThrow>(f);
 }
+//@}
+
+//! \since build 926
+template<typename _func, bool _bNoThrow>
+struct is_bitwise_swappable<guard<_func, _bNoThrow>>
+	: is_bitwise_swappable<_func>
+{};
 //@}
 
 //! \since build 820
@@ -359,6 +365,23 @@ public:
 		base::restore_and_destroy();
 	}
 };
+//@}
+
+/*!
+\relates state_guard
+\since build 926
+*/
+//@{
+template<typename _type, typename _tCond, typename _tToken>
+struct is_bitwise_swappable<state_guard<_type, _tCond, _tToken>>
+	: and_<is_bitwise_swappable<tagged_value<_tToken, _type>>,
+	is_bitwise_swappable<_tCond>>
+{};
+
+template<typename _type, typename _tToken>
+struct is_bitwise_swappable<state_guard<_type, void, _tToken>>
+	: is_bitwise_swappable<tagged_value<_tToken, _type>>
+{};
 //@}
 
 

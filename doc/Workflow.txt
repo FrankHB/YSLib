@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4568
+\version r4593
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2021-08-30 12:08 +0800
+	2021-09-26 00:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -4527,6 +4527,33 @@ Several incorrect term behaviors different on NPLA1 native implementations and a
 			Since the '@' bindings always strip tags other than 'TermTags::Nonmodifying' (as expected), there is no 'TermTags::Temporary' would be preserved in the result.
 			The only difference for '@' bindings is on the 'TermTags::Nonmodifying' which has not been found unexpected preserved somewhere.
 	All these bugs in the list accessors and the assignments may have effect on the applicative 'force' in the NPLA1 module  'std.promises'.
+
+$2021-09:
+
+report.impl:
+A bug of 'ystdex::any' is fixed.
+	Non-relocated held value corruptied by swapping or moving due to this bug, similar to https://gcc.gnu.org/legacy-ml/gcc-patches/2015-05/msg00131.html.
+		The bug causes undefined behavior if the type of the value held is not trivially swappable.
+	However, in the most cases the relocation requirement is not needed for the values. So the fix is different to 'std::experimental::any' (and 'std::any') in libstdc++ shown above.
+		The fix uses an opted-in strategy to allow types like 'ystdex::any' keeping the old behavior by new constructor overloads with the new 'ystdex::any_ops::trivial_swap' tag.
+			It keeps the performance of moving unchanged for relocatable types successfully as shown in the case of NPLA1 implementation.
+		Before the introducing of the new constructors, the underlying 'ystdex::any_ops::is_in_place_storable' is fixed by adding an optional template parameter specifying the default safe manner.
+			Ideally, as WG21 P1144R6, the trivially swapping property should be provided by the core language implementation.
+				More strictly, the swapping property does not need the trivially relocatable, which has the more strict requirement of the trivial object construction.
+					Becuase here only swapping on the existing storage is required, no objects have to be created. As the result, allowing skipping a constructor call or not has no difference here.
+					Since the relaxing of the requirements allows more chances for small object optimization, this is a certain counterexample to https://quuxplusone.github.io/blog/2018/06/29/trivially-swappable/.
+			The default value is specified by a new unary type trait 'ystdex::is_bitwise_swappable' simluating the idal trait which should be named as 'is_trivially_swappable'.
+				The primary template specify the default simulation for trivially copyable types and empty types.
+				Several explicit specializations are provided for ones known safe to swap trivially.
+				It can also be further specialized for program-defined types, to allow the opted-in behavior.
+			Now it can still be broken if 'ystdex::is_bitwise_swappable' for the value type is incorrectly specialized.
+	The only known instances of the bug in YSLib project seem to be 'DefineWithNoRecursion', 'SetWithNoRecursion', 'DefineWithRecursion' and 'SetWithRecursion' in namespace 'NPL::A1::Forms' in 'NPLA1Forms.cpp'.
+		They all have lambda expression capturing a 'TermNode' value (rather than the pointer or the reference to the value), which is known not trivially swappable.
+			The reason is the subterm uses 'ystdex::list', which is similar to 'std::list' implementations in libstdc++ and libc++, analyzed by WG21 P1144R6. 
+		The bug would be not effective supported platforms because the term node being captured is too large to be aligned storable in 'ystdex::any_ops::any_storage' and it is always safe.
+	For safety reasons, the fix may effect the performance by default.
+		However, the opted-in feature allows to keep the performance as before, with several specialized optimizations by 'ystdex::is_bitwise_swappable' specialization or 'ystdex::any_ops::trivial_swap' tag.
+		The perforamnce NPLA1 implementation is mostly kept by specializations in namespaces 'ystdex' and 'YSLib', plus some internal API changes in NPL.
 
 ////
 

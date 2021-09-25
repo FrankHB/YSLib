@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r4975
+\version r5320
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-09-02 01:53 +0800
+	2021-09-26 00:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,340 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		+ "unary trait %is_bitwise_swappable as customization point \
+			with specializations for reference types and \
+			%std::(reference_wrapper, unique_ptr, shared_ptr, weak_ptr)"
+			@ %Placement,
+		* DD "'\brief' command" @ "Doxygen comment"
+			@ "class template specialization %numeric_limits for \
+			%ystdex::fixed_point" @ %Rational $since b540,
+		/ $re_add(b831) DLD "all 'yconstexpr const'" @ "namespace scope"
+			-> 'yconstexpr_inline const'
+			$effective @ %(Any, Iterator, Placement, PseudoMutex),
+		/ %Any $=
+		(
+			/ @ "namespace %any_ops" $=
+			(
+				/ "metafunction %is_handler_constructible_t"
+					=> "%is_handler_constructible",
+					// This is more appropriate because it is actually just a \
+						trait.
+				/ DLDI "renamed some metafunctions to remove '_t' postfix",
+					// Ditto.
+				* "missing qualified 'ystdex::' before 'make_unique'"
+					@ "memory thunk initialization"
+					$orig (@ "class %value_handler" $since b848),
+					// This might lead to ambiguous overloads via ADL.
+				+ ("tag %trivial_swap_t"; "constexpr object %trivial_swap"),
+				+ DD '\ingroup tags' @ "Doxygen comment"
+					@ ("tag %use_holder_t", "object %use_holder"),
+				/ "unary type trait %is_in_place_storable" $=
+				(
+					+ "2nd paramter with default argument"
+						^ $dep_from ("%is_bitwise_swappable" @ %Placement)
+						$dep_from ("bitwise swappable specializations");
+						// See $2021-08 @ %Documentation::Workflow.
+					* $comp "wrong local allocation for types not trivially \
+						swappable by default" $since b848 
+				),
+				/ "type name non-type parameter" @ "class template %value_handler"
+					-> "template type parameter",
+					// This allows more consistent detection by metaprogramming.
+				+ "template type parameter with default argument to specify \
+					local storage" @ "transformation trait %wrap_handler",
+				/ @ "class template %holder_handler" $=
+				(
+					(
+					+ "template type parameter with default argument to detect \
+						local storage";
+					/ "passed local storage to %value_handler"
+					),
+					/ @ "static member function %init with %unique_ptr instance"
+						$=
+					(
+						+ "assertion to ensure nonnull pointer argument value",
+						+ "assertion to prevent non-dervied object being saved \
+							locally" 
+					)
+				)
+			),
+			/ @ "class %any" $=
+			(
+				* DLI "wrong 'YB_ATTR_returns_nonnull' for returning default \
+					manager" $since b922,
+					// Also to eliminate Clang++ warning: [-Wnonnull].
+				/ DLDI "simplified internal metafunctions"
+					^ $dep_from "%any_ops::is_handler_constructible",
+				* $re_ex(b851) "missing excluding non-allocators"
+					@ "SFINAE-friendly constructor overloads with \
+					%use_holder_t and allocator parameters" $since b851
+					$dep_to "any constructor SFINAE fix"
+					$= (/ $impl ^ "%is_allocator"),
+					// This should have been SFINAE-friendly, but actually not \
+						always, in-place construction of %NPL::TermReference \
+						with %TermTags value as its 1st argument would cause \
+						ill-formed instantiation.
+				* $comp "non-relocated held value corruptied by swapping or \
+					moving" $since b352
+					$dep_from "%any_ops::is_in_place_storable",
+					// See $2021-08 @ %Documentation::Workflow.
+				+ "support of %any_ops::trivial_swap_t"
+					@ ("alias template %opt_in_place_t"; "constructors",
+					"function templates %emplace"; "alias templates \
+					%(allocated_value_handler_t, allocated_holder_handler_t)")
+					$dep_from "%any_ops::(trivial_swap, value_handler, \
+					holder_handler)"
+			),
+		),
+		/ %Function $=
+		(
+			/ DLI "function template %function_not_empty#5"
+				^ 'YB_STATELESS' ~ 'YB_PURE',
+			+ "constructor template overloads supporting \
+				%any_ops::trivial_swap_t" @ "class templates %function_base"
+				$dep_from ("%any constructors" @ %Any)
+		),
+		/ "constructor templates" @ "class template specialization \
+			%expanded_function" @ %Functional $=
+		(
+			+ DLDI 'inline',
+			/ "constructor template with '_fCallable' paremter"
+				^ '_fCallable&&' ~ '_fCallable',
+				// Different to %function_base, keeping '&&' is more \
+					efficient. This is also more consistent to other overloads.
+			+ "overloads supporting %any_ops::trivial_swap_t"
+				$dep_from ("%function_base constructors" @ %Function)
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib.Core $=
+		(
+			/ %YEvent $=
+			(
+				+ 'namespace any_ops = ystdex::any_ops;';
+				/ "constructor templates"
+					@ "class template specialization %GHEvent" $=
+				(
+					+ "overloads supporting %any_ops::trivial_swap_t"
+						$dep_from ("%expanded_function constructors"
+						@ %YBase.YStandardEx.Functional)
+				)
+			)
+		),
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				/ DLDI "simplified exception throwing"
+					@ "overloads %ResolveEnvironment",
+				/ @ "class %EnvironmentReference" $=
+				(
+					+ "friend function %swap";
+					* "wrong reference count" @ "(copy, move) operator="
+						@ 'NPL_NPLA_CheckEnvironmentReferenceCount' $since b856
+				),
+				/ "%SetupFront" @ "class %ContextNode" $=
+				(
+					(
+					+ "overload with %Reducer parameter",
+					+ "2 overloads with %any_ops::trivial_swap_t \
+						and %Reducer parameter" $dep_from %YSLib.Core.GHEvent
+						$dep_to "skipping reducer and trivial swapping hint";
+						// This is necessary since %Reducer has no overloads \
+							of allocator copy/move constructors with the hint.
+					/ DLI "simplified function template"
+						// This may be less efficient without 'YB_FLATTEN'.
+					),
+					+ 'YB_FLATTEN' @ "function template"
+				),
+				/ "supported parameter pack"
+					@ "function template %RelaySwitched"
+					$dep_from "skipping reducer and trivial swapping hint"
+			),
+			/ %NPLA1Internals $=
+			(
+				+ DLI 'final' @ "class %RefContextHandler",
+				+ "function template %ReduceSubsequentPinned",
+					// This is old %ReduceSubsequent. %ReduceSubsequentPinned \
+						is to be changed to imply %any_ops::trivial_swap \
+						explictly, see below.
+			),
+			/ %NPLA1 $=
+			(
+				/ DLDI "simplified function %CheckEnvironmentFormal"
+					!^ 'YB_UNLIKELY',
+				/ DLI "optimized member function %FormContextHandler::operator()"
+					!^ "%NPL::ToReducer",
+				/ @ "function %DefaultEvaluateLeaf" $=
+				(
+					- "'#n' and '#null' handling",
+						// This is undocumented in %Documentation.NPL. If \
+							needed, it can be introduced again in the extended \
+							literal handlers in the leaf passes.
+					/ "required the input identifier not empty"
+				),
+				(
+				/ @ "functions %(ParseLeaf, ParseLeafWithSourceInformation)" $=
+				(
+					+ "'TermNode&' parameter",
+					- "allocator parameter",
+					/ "required the input identifier not empty"
+				);
+				/ $forced DLDI "constructor#1"
+				),
+				+ "constructor templates overloads supporting \
+					%any_ops::trivial_swap_t" @ "class %Continuation"
+					$dep_from ("%GHEvent constructors" @ %YSLib.Core.YObject)
+			),
+			/ %NPLA1Forms $=
+			(
+				/ DLI "member function %Decapsulate::operator()"
+					^ "%ValueObject::assign" ~ "%TermNode::SetValue",
+				/ @ "namespace %Forms" $=
+				(
+					/ DLDI "smplified functions %(ProvideLet, \
+						Provide)" ^ "%TermNode::SetValue"
+						~ "%ValueObject::assign",
+					+ $lib "reducer name" @ "function %AsEnvironment",
+					/ DLDI "simplified combiner rvalue unwrapping"
+						@ "functions %(Unwrap, Apply, ForwardFirst)",
+					* $impl "captured %TermNode not satisfying trivially \
+						swapping requirement used in %Reducer"
+						@ 'NPL_Impl_NPLA1_Enable_Thunked'
+						@ "Forms::(DefineWithNoRecursion, SetWithNoRecursion, \
+						DefineWithRecursion, SetWithRecursion)"
+						$since b868 $dep_to
+							"violation of any trivially swappable requirement"
+							// See $2021-08 @ %Documentation::Workflow.
+						$= (/ $impl ^ ("%ReduceSubsequentPinned"
+							~ "%ReduceSubsequent" @ %NPLA1Internals))
+				)
+			),
+			/ $dev $design $dep_from ($forced "%GHEvent constructors"
+				@ %YSLib.Core.YEvent) $dep_from ("%RelaySwitched" @ %NPLA) $=
+			(
+				// See $2021-08 @ %Documentation::Workflow. The performance \
+					should be similar to the implementation without \
+					'any_ops::is_in_place_storable' fix, although calls to \
+					%A1::RelayCurrentOrDirect in %TailCall are not touched yet.
+				/ $lib "optimized %RelaySwitched calls"
+					^ "%any_ops::trivial_swap" $effective @ ("member function \
+					%ContextNode::SaveExceptionHandler" @ %NPLA, "function \
+					%RelayToLoadExternal" @ %Dependency,
+					("static member function %ContextState::DefaultReduceOnce",
+					'!NPL_Impl_NPLA1_Enable_TCO \
+					&& NPL_Impl_NPLA1_Enable_Thunked'
+					@ "function %ReduceCombinedBranch") @ %NPLA1,
+					'NPL_Impl_NPLA1_Enable_Thunked'
+					@ ("friend function %operator==" @ "class %Envasulation",
+					"function %Forms::EqualTermValue") @ %NPLA1Forms,
+					'NPL_Impl_NPLA1_Enable_Thunked' @ "member function \
+					templates %(RelayNextGuardedLifted, RelayNextGuardedProbe)"
+					@ "struct %NonTailCall" @ %NPLA1Internals),
+				+ "function template overloads with \
+					%any_ops::trivial_swap_t parameter" @ %NPLA1Internals $=
+				(
+					/ @ 'NPL_Impl_NPLA1_Enable_Thunked'
+						$dep_from ("%Continuation" @ %NPLA1)
+						$dep_to "optimization relaying for continuations" $=
+					(
+						+ "%RelayCurrent";
+						+ "%RelayCurrentOrDirect"
+					),
+					(
+					+ "3 %RelayCurrentNext overloads" $dep_from "%RelayCurrent";
+					/ "function template %ReduceCurrentNext" ^ "parameter pack"
+					),
+					(
+					+ "3 %RelayCurrentNextThunked overloads";
+					/ "function template %ReduceCurrentNextThunked"
+						^ "parameter pack"
+					)
+				),
+				/ $lib "optimized %ToReducer calls" ^ "%any_ops::trivial_swap"
+					$effective @ ("functions \
+					%Forms::(Let, LetRef, LetAsterisk, LetAsteriskRef, LetRec, \
+					LetRecRef, BindingsWithParentToEnvironment, \
+					BindingsToEnvironment, ProvideLet, Provide)"
+					@ %NPLA1Forms),
+					// %ContextState::(RewriteTerm, RewriteTermGuarded) do not \
+						need the change becuase %std::reference_wrapper is \
+						specialized enough. Other enclosing calls (if any, \
+						e.g. to %RelayCurrentNext) also do not need \
+						optimization by %any_ops::trivial_swap after the change.
+				/ $lib "optimized %ReduceCurrentNextThunked calls"
+					^ "%any_ops::trivial_swap" $effective @
+					("function %Forms::(AccR, FoldR1)" @ %NPLA1Forms)
+					$dep_from ("%ReduceCurrentNextThunked" @ %NPLA1Internals),
+				/ $lib "optimized %RelayCurrentNext calls"
+					^ "%any_ops::trivial_swap" $effective @
+					("member function %FormContextHandler::operator()",
+					('!NPL_Impl_NPLA1_Enable_TCO \
+					&& NPL_Impl_NPLA1_Enable_Thunked'
+					@ "function %ReduceOrdered") @ %NPLA1, "function \
+					%Forms::AsEnvironment" @ %NPLA1Forms,
+					"member function templates %(RelayNextGuarded, \
+					RelayNextGuardedProbe)" @ "struct %NonTailCall")
+					$dep_from ("%RelayCurrentNext" @ %NPLA1Internals),
+				/ $lib "optimized %ReduceCurrentNext calls"
+					^ "%any_ops::trivial_swap" $effective
+					@ (("function template %ReduceSubsequent",
+					"function template %ReduceCallSubsequent"
+					@ "class template %Combine") @ %NPLA1Internals, "functions \
+					%Forms::(AccR, FoldR1, Map1)" @ %NPLA1Forms)
+					$dep_from ("%ReduceCurrentNext" @ %NPLA1Internals,
+					"violation of any trivially swappable requirement"),
+				/ "optimized %Continuation construction"
+					$dep_from ($forced "%Continuation" @ %NPLA1) $=
+				(
+					/ $lib ^ "%any_ops::trivial_swap" $effective
+						@ ("member function %FormContextHandler::operator()"
+						@ %NPLA1),
+					/ $comp $dep_from "optimization relaying for continuations"
+				)
+			),
+			/ $lib "added native implementation enabled by default"
+				@ "all applicatives" @ "function %LoadModule_std_promises"
+				@ %Dependency
+				$= (/ $impl (^ $dep_from "%EnvironmentReference" @ %NPLA,
+					"any constructor SFINAE fix",
+					^ $dep_from "%ReduceCurrentNext" @ %NPLA1Internals,
+					^ "%any_ops::trivial_swap" $dep_from %YSLib.Core.YEvent))
+		)
+	),
+	+ "%is_bitwise_swappable specialization" @ "namespace %ystdex"
+		$dep_from ("%is_bitwise_swappable" @ %YBase.YStandardEx.Placement)
+		$dep_to "bitwise swappable specializations" $=
+		// To warrant bitwise-swappable guarantees for existing types.
+	(
+		// %(lref, observer_ptr), the primary template of \
+			%is_bitwise_swappable is enough.
+		("%tagged_value" @ %Placement, "%boxed_value" @ Utility,
+		"%function_base" @ %Function, "%(one_shot, expanded_function)"
+		@ %Functional, "%fixed_point" @ %Rational, "%(any_input_iterator, \
+		any_forward_iterator, any_bidirectional_iterator)" @ %AnyIterator,
+		"%pointer_iterator" @ %Pointer, "%(pseudo_iterator, \
+		transformed_iterator, tuple_iterator, indirect_input_iterator, \
+		transposed_iterator, prototyped_iterator, subscriptive_iterator)"
+		@ %Iterator, ("%(value_holder, pointer_holder, \
+		details::memory_thunk) and %allocator_value_handler internal \
+		classes" @ "namespace %any_ops", "%any") @ %Any,
+		"%(details::allocator_delete_base; allocator_guard_delete, \
+		allocator_delete)" @ %Allocator, "%(guard, state_guard)"
+		@ %ScopeGuard, "%pmr::polymorphic_allocator" @ %MemoryResource)
+		@ %YBase.YStandardEx,
+		(("%YSLib::(ValueHolder, PolymorphicValueHolder, AllocatorHolder, \
+		PolymorphicAllocatorHolder, PointerHolder, RefHolder)" @ %YObject,
+		"%GHEvent" @ %YEvent) @ %YSLib.Core, ("%NPL::EnvironmentSwitcher"
+		@ %NPLA, "%NPL::A1::Continuation" @ %NPLA1) @ %NPLA) @ %YFramework
+	)
+),
+
+b925
 (
 	/ %YFramework $=
 	(
@@ -375,6 +709,7 @@ b924
 							// This also means the lazy forms now preserve \
 								reference values in the evaluation.
 						* $re_add(b918) "unexpected internal argument copy"
+							$since b856
 					)
 				),
 				/ DLDI "all parameters for <parent> named 'e'" => 'p'
@@ -2637,7 +2972,7 @@ b909
 				/ DLDI "%EqualTermValue" @ 'NPL_Impl_NPLA1_Enable_Thunked',
 					// To eliminate G++ warnings: [-Wunused], \
 						[-Wsuggest-attribute=pure].
-				+ "reducer names"
+				+ $lib "reducer names"
 			),
 			/ DLDI "%MakeEnvironment",
 			/ "vau handler" $=
@@ -3529,11 +3864,6 @@ b905
 			+ "option '-xdef,' with variable definitions"
 				$= (/ $impl ^ $dep_from
 				("%to_pmr_string" @ %YFramework.YCLib.Container),
-			/ "printed stop message for no build options" -> "warning"
-				~ "information",
-			/ "printed information message 'OutputDir = '"
-				-> 'Build OutputDir = ',
-				// To avoid confusion with build variables.
 			/ DLDI ((('using namespace IO;'; 'using namespace YSLib;'),
 				'using namespace std::chrono;') -> ('namespace IO = YSLib::IO;',
 				"using declarations")) @ "namespace %SHBuild",
@@ -3556,8 +3886,12 @@ b905
 			/ "thrown different exception after the backtrace"
 				@ "NPLA1 exception handler",
 				// This avoids duplicated innermost exception messages.
-			/ "log messages" $=
+			/ @ "log messages" $=
 			(
+				/ "%Informative message for no build options" -> "%Warning",
+				/ "printed %Informative message 'OutputDir = '"
+					-> 'Build OutputDir = ',
+					// To avoid confusion with build variables.
 				* "missing flush the stream around switches of the term color"
 					$since b540,
 					// This could sometimes cause interleaved color output.

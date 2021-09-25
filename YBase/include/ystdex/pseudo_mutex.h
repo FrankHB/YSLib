@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2019 FrankHB.
+	© 2014-2016, 2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file pseudo_mutex.h
 \ingroup YStandardEx
 \brief 伪互斥量。
-\version r1641
+\version r1648
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-03 13:53:34 +0800
 \par 修改时间:
-	2019-10-03 21:03 +0800
+	2021-09-24 02:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,14 +48,9 @@ namespace threading
 \since build 550
 */
 //@{
-yconstexpr const struct defer_lock_t
-{} defer_lock{};
-
-yconstexpr const struct try_to_lock_t
-{} try_to_lock{};
-
-yconstexpr const struct adopt_lock_t
-{} adopt_lock{};
+yconstexpr_inline const struct defer_lock_t{} defer_lock{};
+yconstexpr_inline const struct try_to_lock_t{} try_to_lock{};
+yconstexpr_inline const struct adopt_lock_t{} adopt_lock{};
 //@}
 
 /*!

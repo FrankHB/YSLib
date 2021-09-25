@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3602
+\version r3622
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2021-08-30 22:35 +0800
+	2021-09-09 00:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -484,6 +484,14 @@ MismatchedTypesToString(const bad_any_cast& e)
 		e.to());
 }
 
+//! \since build 926
+YB_NORETURN void
+ThrowResolveEnvironmentFailure(const TermNode& term, bool has_ref)
+{
+	throw ListTypeError(ystdex::sfmt("Invalid environment formed from list '%s'"
+		" found.", TermToStringWithReferenceMark(term, has_ref).c_str()));
+}
+
 } // unnamed namespace;
 
 
@@ -724,22 +732,21 @@ IsTemporaryTerm(const TermNode& term)
 void
 LiftOtherOrCopy(TermNode& term, TermNode& tm, bool move)
 {
-	// XXX: Term tags are currently not respected in prvalues.
 	if(move)
 		LiftOther(term, tm);
 	else
 		// NOTE: Although %tm is required to be not same to %term, it can still
 		//	be an object exclusively owned by %term, e.g. when %term represents
 		//	a reference value with irregular representation and %tm is the term
-		//	referenced uniquely by %term.Value. Explicit copy is necessary for
-		//	such cases to avoid invalidate subterm reference prematurely.
+		//	referenced uniquely by %term.Value. Explicit copying is necessary
+		//	for such cases to prevent invalidating the subterm reference
+		//	prematurely.
 		term.CopyContent(tm);
 }
 
 void
 LiftTermOrCopy(TermNode& term, TermNode& tm, bool move)
 {
-	// XXX: Term tags are currently not respected in prvalues.
 	if(move)
 		LiftTerm(term, tm);
 	else
@@ -794,7 +801,7 @@ LiftToReference(TermNode& term, TermNode& tm)
 		else if(tm.Value.OwnsCount() > 1)
 			// XXX: This is unsafe and not checkable because the anchor is not
 			//	referenced.
-			// XXX: Allocators are not used here for performance in most cases.
+			// XXX: Allocators are not used here for performance.
 			term.Value = TermReference(TermTags::Unqualified, tm,
 				EnvironmentReference());
 		else
@@ -944,7 +951,7 @@ ReduceToReferenceAt(TermNode& term, TermNode& tm,
 	// XXX: Term tags on prvalues are reserved and should be ignored normally
 	//	except for future internal use. Since %tm is a term,
 	//	%TermTags::Temporary is not expected, %GetLValueTagsOf is also not used.
-	// XXX: Allocators are not used here for performance in most cases.
+	// XXX: Allocators are not used here for performance.
 	term.Value = TermReference(PropagateTo(tm.Tags, p_ref->GetTags()), tm,
 		NPL::Deref(p_ref).GetEnvironmentReference());
 	return ReductionStatus::Clean;
@@ -1350,9 +1357,7 @@ ResolveEnvironment(const TermNode& term)
 	return ResolveTerm([&](const TermNode& nd, bool has_ref){
 		if(!IsExtendedList(nd))
 			return ResolveEnvironment(nd.Value);
-		throw ListTypeError(
-			ystdex::sfmt("Invalid environment formed from list '%s' found.",
-			TermToStringWithReferenceMark(nd, has_ref).c_str()));
+		ThrowResolveEnvironmentFailure(nd, has_ref);
 	}, term);
 }
 pair<shared_ptr<Environment>, bool>
@@ -1361,9 +1366,7 @@ ResolveEnvironment(TermNode& term)
 	return ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
 		if(!IsExtendedList(nd))
 			return ResolveEnvironment(nd.Value, NPL::IsMovable(p_ref));
-		throw ListTypeError(
-			ystdex::sfmt("Invalid environment formed from list '%s' found.",
-			TermToStringWithReferenceMark(nd, p_ref).c_str()));
+		ThrowResolveEnvironmentFailure(nd, p_ref);
 	}, term);
 }
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2017, 2019 FrankHB.
+	© 2011-2017, 2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2200
+\version r2214
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2019-12-26 22:30 +0805
+	2021-09-22 22:58 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include "cstdint.hpp" // for operators, true_, false_, make_width_int,
 //	std::common_type, common_type_t, std::numeric_limits;
 #include <libdefect/cmath.h> // for std::llround;
+#include "placement.hpp" // for is_bitwise_swappable;
 #include <functional> // for std::hash;
 
 namespace ystdex
@@ -575,7 +576,15 @@ YB_Impl_Rational_fp_rational2(>=)
 #undef YB_Impl_Rational_fp_TmplHead_2_r
 #undef YB_Impl_Rational_fp_TmplHead_2_l
 #undef YB_Impl_Rational_fp_TmplHead_2
-//@}
+
+
+/*!
+\brief is_bitwise_swappable 的 fixed_point 特化类型。
+\since build 926
+*/
+template<YB_Impl_Rational_fp_PList>
+struct is_bitwise_swappable<YB_Impl_Rational_fp_T> : true_
+{};
 
 
 /*!
@@ -606,12 +615,15 @@ template<size_t _vFrac, size_t _vInt = 1, bool _bSigned = false>
 using make_fixed_t = fixed_point<conditional_t<_bSigned,
 	typename make_width_int<_vFrac + _vInt>::least_type,
 	typename make_width_int<_vFrac + _vInt>::unsigned_least_type>, _vFrac>;
+//@}
 
 } // namespace ystdex;
 
 namespace std
 {
 
+//! \relates ystdex::fixed_point
+//@{
 /*!
 \brief std::common_type 的 ystdex::fixed_point 特化类型。
 \note 使用保留公共整数类型和整数位数策略选取公共类型。
@@ -682,7 +694,7 @@ struct hash<ystdex::YB_Impl_Rational_fp_T>
 
 
 /*!
-\brief std::numeric_rational 的 ystdex::fixed_point 特化类型。
+\brief std::numeric_limits 的 ystdex::fixed_point 特化类型。
 \see LWG 201
 \see http://stackoverflow.com/questions/16122912/is-it-ok-to-specialize-stdnumeric-limitst-for-user-defined-number-like-class
 \since build 260
@@ -799,6 +811,7 @@ template<YB_Impl_Rational_fp_PList>
 class numeric_limits<const volatile ystdex::YB_Impl_Rational_fp_T>
 	: yimpl(public) numeric_limits<ystdex::YB_Impl_Rational_fp_T>
 {};
+//@}
 //@}
 
 #undef YB_Impl_Rational_fp_PList2

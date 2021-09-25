@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2020 FrankHB.
+	© 2010-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r4258
+\version r4332
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2020-02-07 01:49 +0800
+	2021-09-24 05:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,11 +29,12 @@
 #define YB_INC_ystdex_functional_hpp_ 1
 
 #include "functor.hpp" // for "ref.hpp", "invoke.hpp", <functional>,
-//	exclude_self_t, addressof_op, less, mem_get, true_, false_, is_void,
+//	exclude_self_t, and_, addressof_op, less, mem_get, true_, false_, is_void,
 //	is_constructible, enable_if_t, std::allocator_arg_t, std::allocator_arg,
 //	is_nothrow_copy_constructible;
 #include "function.hpp" // for "function.hpp", std::tuple, index_sequence,
-//	index_sequence_for, is_nothrow_swappable, common_nonvoid_t,
+//	index_sequence_for, is_nothrow_swappable, any_ops::trivial_swap_t,
+//	any_swap::trivial_swap, is_bitwise_swappable, common_nonvoid_t,
 //	make_index_sequence, as_function_type_t, equality_comparable;
 #include "swap.hpp" // for "swap.hpp", ystdex::swap_dependent;
 #include "apply.hpp" // for call_projection;
@@ -391,6 +392,25 @@ struct one_shot<_func, void, void>
 };
 //@}
 
+//! \since build 926
+//@{
+template<typename _func, typename _tRes, typename _tState>
+struct is_bitwise_swappable<one_shot<_func, _tRes, _tState>>
+	: and_<is_bitwise_swappable<_func>, is_bitwise_swappable<_tRes>,
+		is_bitwise_swappable<_tState>>
+{};
+
+template<typename _func, typename _tState>
+struct is_bitwise_swappable<one_shot<_func, void, _tState>>
+	: and_<is_bitwise_swappable<_func>, is_bitwise_swappable<_tState>>
+{};
+
+template<typename _func, typename _tRes>
+struct is_bitwise_swappable<one_shot<_func, _tRes, void>>
+	: and_<is_bitwise_swappable<_func>, is_bitwise_swappable<_tRes>>
+{};
+//@}
+
 
 /*!
 \ingroup functors
@@ -688,34 +708,80 @@ public:
 		: base_type(std::allocator_arg, a, f)
 	{}
 	//@}
-	//! \brief 使用函数对象。
+	// XXX: Reference of '_Callable&&' is kept for performance here.
+	/*!
+	\brief 使用函数对象。
+	\since build 926
+	*/
+	//@{
 	template<class _fCallable, yimpl(typename = exclude_self_t<
 		expanded_function, _fCallable>, typename = enable_if_t<is_constructible<
 		base_type, _fCallable>::value>)>
-	expanded_function(_fCallable f)
-		: base_type(std::move(f))
+	inline
+	expanded_function(_fCallable&& f)
+		: base_type(yforward(f))
 	{}
+	template<class _fCallable, yimpl(typename = exclude_self_t<
+		expanded_function, _fCallable>, typename = enable_if_t<is_constructible<
+		base_type, _fCallable>::value>)>
+	inline
+	expanded_function(any_ops::trivial_swap_t, _fCallable&& f)
+		: base_type(any_ops::trivial_swap, yforward(f))
+	{}
+	//@}
 	//! \brief 使用分配器和函数对象。
+	//@{
 	template<class _fCallable, class _tAlloc,
 		yimpl(typename = exclude_self_t<expanded_function, _fCallable>,
 		typename = enable_if_t<
 		std::is_constructible<base_type, _fCallable>::value>)>
+	inline
 	expanded_function(std::allocator_arg_t, const _tAlloc& a, _fCallable&& f)
 		: base_type(std::allocator_arg, a, yforward(f))
 	{}
+	//! \since build 926
+	template<class _fCallable, class _tAlloc,
+		yimpl(typename = exclude_self_t<expanded_function, _fCallable>,
+		typename = enable_if_t<
+		std::is_constructible<base_type, _fCallable>::value>)>
+	inline
+	expanded_function(std::allocator_arg_t, const _tAlloc& a,
+		any_ops::trivial_swap_t, _fCallable&& f)
+		: base_type(std::allocator_arg, a, any_ops::trivial_swap, yforward(f))
+	{}
+	//@}
 	//! \brief 使用扩展函数对象。
+	//@{
 	template<typename _fCallable,
 		yimpl(typename = enable_if_expandable_t<_fCallable>)>
 	expanded_function(_fCallable f)
 		: base_type(ystdex::make_expanded<_tRet(_tParams...)>(std::move(f)))
 	{}
+	//! \since build 926
+	template<typename _fCallable,
+		yimpl(typename = enable_if_expandable_t<_fCallable>)>
+	expanded_function(any_ops::trivial_swap_t, _fCallable f)
+		: base_type(any_ops::trivial_swap,
+		ystdex::make_expanded<_tRet(_tParams...)>(std::move(f)))
+	{}
+	//@}
 	//! \brief 使用分配器和扩展函数对象。
+	//@{
 	template<typename _fCallable, class _tAlloc,
 		yimpl(typename = enable_if_expandable_t<_fCallable>)>
 	expanded_function(std::allocator_arg_t, const _tAlloc& a, _fCallable f)
 		: base_type(std::allocator_arg, a,
 		ystdex::make_expanded<_tRet(_tParams...)>(std::move(f)))
 	{}
+	//! \since build 926
+	template<typename _fCallable, class _tAlloc,
+		yimpl(typename = enable_if_expandable_t<_fCallable>)>
+	expanded_function(std::allocator_arg_t, const _tAlloc& a,
+		any_ops::trivial_swap_t, _fCallable f)
+		: base_type(std::allocator_arg, a, any_ops::trivial_swap,
+		ystdex::make_expanded<_tRet(_tParams...)>(std::move(f)))
+	{}
+	//@}
 	/*!
 	\brief 构造：使用对象引用和成员函数指针。
 	\warning 使用空成员指针构造的函数对象调用引起未定义行为。
@@ -835,6 +901,12 @@ template<typename _tRet, typename... _tParams, class _tBase, size_t... _vSeq>
 struct call_projection<expanded_function<_tRet(_tParams...), _tBase>,
 	index_sequence<_vSeq...>>
 	: call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
+{};
+
+//! \since build 926
+template<typename _tRet, typename... _tParams, class _tBase>
+struct is_bitwise_swappable<expanded_function<_tRet(_tParams...), _tBase>>
+	: is_bitwise_swappable<_tBase>
 {};
 //@}
 //@}

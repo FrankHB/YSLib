@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018-2020 FrankHB.
+	© 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1442
+\version r1453
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2020-04-06 10:39 +0800
+	2021-09-22 03:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,6 +48,8 @@ LWG 3113 ：明确 polymorphic_allocator 的 construct 函数模板转移构造�
 WG21 P0339R6 ：支持 polymorphic_allocator 的 byte 默认模板参数和对象分配函数模板。
 WG21 P0591R4 ：在 polymorphic_allocator 中支持递归构造 std::pair 。
 WG21 P0619R4 ：在 memory_resource 中显式声明默认构造函数和复制构造函数。
+提供以下扩展：
+pmr::polymorphic_allocator 对 is_bitwise_swappable 特化。
 */
 
 
@@ -57,7 +59,7 @@ WG21 P0619R4 ：在 memory_resource 中显式声明默认构造函数和复制�
 #include "memory.hpp" // for internal "memory.hpp", byte, size_t, yalignof,
 //	yconstraint, yaligned, SIZE_MAX, std::length_error, yforward,
 //	ystdex::uninitialized_construct_using_allocator, std::pair, yassume, list,
-//	equal_to, std::hash;
+//	equal_to, std::hash, is_bitwise_swappable;
 // NOTE: See "placement.hpp" for comments on inclusion conditions.
 #if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603) \
 	|| (__cplusplus >= 201603L && __has_include(<memory_resource>))
@@ -904,6 +906,14 @@ protected:
 } // inline namespace cpp2017;
 
 } // namespace pmr;
+
+/*!
+\relates pmr::polymorphic_allocator
+\since build 926
+*/
+template<typename _type>
+struct is_bitwise_swappable<pmr::polymorphic_allocator<_type>> : true_
+{};
 
 } // namespace ystdex;
 

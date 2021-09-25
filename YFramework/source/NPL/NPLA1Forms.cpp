@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r25566
+\version r25651
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2021-09-02 00:09 +0800
+	2021-09-25 14:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,24 +32,24 @@
 //	A1::NameTypedReducerHandler, ReduceReturnUnspecified, RemoveHead, IsBranch,
 //	AccessFirstSubterm, ReduceSubsequent, ReduceCombinedBranch,
 //	std::placeholders, std::ref, std::bind, ystdex::as_const, IsLeaf,
-//	ValueObject, ystdex::ref_eq, RelaySwitched, shared_ptr, ContextHandler,
-//	YSLib::unordered_map, string, Environment, lref, TokenValue, IsIgnore,
-//	IsNPLASymbol, any_ops::use_holder, YSLib::in_place_type,
-//	YSLib::HolderFromPointer, YSLib::allocate_shared, InvalidReference,
-//	BindParameter, MoveFirstSubterm, ResolveEnvironment, ShareMoveTerm,
-//	BindParameterWellFormed, TermToStringWithReferenceMark, ResolveTerm,
-//	LiftOtherOrCopy, SContext::Analyze, std::allocator_arg, NPL::ResolveRegular,
-//	ystdex::make_transform, NPL::TryAccessLeaf, TermReference, EnvironmentList,
-//	NPL::AllocateEnvironment, ystdex::equality_comparable, CheckParameterTree,
-//	IsBranchedList, NPL::AsTermNode, ystdex::exchange, NPLException,
-//	LoggedEvent, YSLib::Alert, NPL::SwitchToFreshEnvironment, TermTags,
-//	YSLib::Debug, YSLib::sfmt, ystdex::expand_proxy, NPL::AccessRegular,
-//	GetLValueTagsOf, RegularizeTerm, LiftMovedOther, ThrowValueCategoryError,
-//	ThrowListTypeErrorForNonlist, ThrowInvalidSyntaxError,
-//	CheckEnvironmentFormal, A1::MakeForm, ystdex::type_id, ystdex::update_thunk,
-//	IsTyped, ystdex::invoke_value_or, NPL::TryAccessReferencedLeaf,
-//	ystdex::call_value_or, ystdex::bind1, BindSymbol, A1::AsForm, LiftCollapsed,
-//	std::mem_fn, YSLib::usystem;
+//	ValueObject, ystdex::ref_eq, RelaySwitched, any_ops::trivial_swap,
+//	shared_ptr, ContextHandler, YSLib::unordered_map, string, Environment, lref,
+//	TokenValue, IsIgnore, IsNPLASymbol, any_ops::use_holder,
+//	YSLib::in_place_type, YSLib::HolderFromPointer, YSLib::allocate_shared,
+//	InvalidReference, BindParameter, MoveFirstSubterm, ResolveEnvironment,
+//	ShareMoveTerm, BindParameterWellFormed, TermToStringWithReferenceMark,
+//	ResolveTerm, LiftOtherOrCopy, SContext::Analyze, std::allocator_arg,
+//	NPL::ResolveRegular, ystdex::make_transform, NPL::TryAccessLeaf,
+//	TermReference, EnvironmentList, NPL::AllocateEnvironment,
+//	ystdex::equality_comparable, CheckParameterTree, IsBranchedList,
+//	NPL::AsTermNode, ystdex::exchange, NPLException, LoggedEvent, YSLib::Alert,
+//	NPL::SwitchToFreshEnvironment, TermTags, YSLib::Debug, YSLib::sfmt,
+//	ystdex::expand_proxy, NPL::AccessRegular, GetLValueTagsOf, RegularizeTerm,
+//	LiftMovedOther, ThrowValueCategoryError, ThrowListTypeErrorForNonlist,
+//	ThrowInvalidSyntaxError, CheckEnvironmentFormal, A1::MakeForm,
+//	ystdex::type_id, ystdex::update_thunk, IsTyped, ystdex::invoke_value_or,
+//	NPL::TryAccessReferencedLeaf, ystdex::call_value_or, ystdex::bind1,
+//	BindSymbol, A1::AsForm, LiftCollapsed, std::mem_fn, YSLib::usystem;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_SContext // for Session;
 
@@ -275,7 +275,7 @@ EqualSubterm(bool& r, ContextNode& ctx, bool orig, TNCIter first1,
 		yunseq(++first1, ++first2);
 		// XXX: The continuations in the middle are not required to be
 		//	preserved.
-		RelaySwitched(ctx,
+		RelaySwitched(ctx, any_ops::trivial_swap,
 			A1::NameTypedReducerHandler([&, first1, first2, last1]{
 			// XXX: This is not effective if the result is known to be false.
 			return r ? EqualSubterm(r, ctx, {}, first1, first2, last1)
@@ -505,7 +505,7 @@ struct DoDefineOrSet final
 		// XXX: Terms shall be moved and saved into the actions.
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
-		return ReduceSubsequent(term, ctx,
+		return ReduceSubsequentPinned(term, ctx,
 			A1::NameTypedReducerHandler(std::bind([&](const TermNode& saved,
 			const shared_ptr<Environment>& p_e, const _tParams&...){
 			CheckBindParameter(p_e, saved, term);
@@ -538,7 +538,7 @@ struct DoDefineOrSet<true> final
 		// TODO: Avoid %shared_ptr?
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
-		return ReduceSubsequent(term, ctx,
+		return ReduceSubsequentPinned(term, ctx,
 			A1::NameTypedReducerHandler(std::bind([&](const
 			shared_ptr<TermNode>&, const shared_ptr<RecursiveThunk>& p_gd,
 			const _tParams&...){
@@ -1021,23 +1021,30 @@ ThrowUnwrappingFailureOnOperative()
 	throw TypeError("Unwrapping failed on an operative argument.");
 }
 
+//! \since build 915
+ReductionStatus
+WrapH(TermNode& term, FormContextHandler h)
+{
+	// XXX: Allocators are not used here on the %ContextHandler value for
+	//	performance.
+	term.Value = ContextHandler(std::allocator_arg, term.get_allocator(),
+		std::move(h));
+	return ReductionStatus::Clean;
+}
+
 //! \since build 913
 ReductionStatus
 UnwrapResolved(TermNode& term, FormContextHandler& fch,
 	ResolvedTermReferencePtr p_ref)
 {
 	if(fch.Wrapping != 0)
-	{
 		return MakeValueOrMove(p_ref, [&]{
 			return ReduceForCombinerRef(term, NPL::Deref(p_ref),
 				fch.Handler, fch.Wrapping - 1);
 		}, [&]{
 			--fch.Wrapping;
-			term.Value = ContextHandler(std::allocator_arg,
-				term.get_allocator(), std::move(fch));
-			return ReductionStatus::Clean;
+			return WrapH(term, std::move(fch));
 		});
-	}
 	ThrowUnwrappingFailureOnOperative();
 }
 
@@ -1572,8 +1579,8 @@ MakeVau(TermNode& term, bool no_lift, string(&shift)(TNIter&),
 	auto eformal(shift(i));
 
 	term.erase(term.begin(), ++i);
-	return VauHandler(std::move(eformal),
-		std::move(formals), std::move(vo), term, no_lift);
+	return VauHandler(std::move(eformal), std::move(formals), std::move(vo),
+		term, no_lift);
 }
 
 //! \since build 921
@@ -1583,9 +1590,9 @@ LambdaVau(TermNode& term, ContextNode& ctx, size_t wrap, bool no_lift)
 {
 	CheckVariadicArity(term, _vN);
 	return ReduceCreateFunction(term, [&]{
-		return MakeVau(term, no_lift, _rShift,
-			term.begin(), VauHandler::MakeParentSingleNonOwning(
-			term.get_allocator(), ctx.GetRecordPtr()));
+		return MakeVau(term, no_lift, _rShift, term.begin(),
+			VauHandler::MakeParentSingleNonOwning(term.get_allocator(),
+			ctx.GetRecordPtr()));
 	}, wrap);
 }
 
@@ -1603,8 +1610,8 @@ LambdaVauWithEnvironment(TermNode& term, ContextNode& ctx, size_t wrap,
 	return ReduceSubsequent(tm, ctx,
 		A1::NameTypedReducerHandler([&, i, wrap, no_lift]{
 		return ReduceCreateFunction(term, [&]{
-			return ResolveTerm([&](TermNode& nd,
-				ResolvedTermReferencePtr p_ref){
+			return
+				ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
 				return MakeVau(term, no_lift, _rShift, i,
 					[&]() -> ValueObject{
 					if(IsList(nd))
@@ -1683,23 +1690,12 @@ ThrowForWrappingFailure(const ystdex::type_info& tp)
 	throw TypeError(ystdex::sfmt("Wrapping failed with type '%s'.", tp.name()));
 }
 
-//! \since build 915
-ReductionStatus
-WrapH(TermNode& term, FormContextHandler h)
-{
-	// XXX: Allocators are not used here for performance in most cases.
-	term.Value = ContextHandler(std::allocator_arg, term.get_allocator(),
-		std::move(h));
-	return ReductionStatus::Clean;
-}
-
 //! \since build 913
 ReductionStatus
 WrapN(TermNode& term, ResolvedTermReferencePtr p_ref,
 	FormContextHandler& fch, size_t n)
 {
-	// XXX: Allocators are not used on %FormContextHandler for performance in
-	//	most cases.
+	// XXX: Allocators are not used on %FormContextHandler for performance.
 	return WrapH(term, MakeValueOrMove(p_ref, [&]{
 		return FormContextHandler(fch.Handler, n);
 	}, [&]{
@@ -1826,7 +1822,10 @@ ListAsteriskImpl(TermNode& term)
 		LiftOther(term, head);
 }
 
-//! \since build 917
+/*!
+\pre 第一参数的类型可平凡交换。
+\since build 917
+*/
 template<typename _func>
 YB_FLATTEN ReductionStatus
 Acc(_func f, TermNode& term, ContextNode& ctx)
@@ -1896,8 +1895,8 @@ ReduceAccL(TermNode& term, ContextNode& ctx)
 		}
 		base.Value.Clear();
 		return Combine<NonTailCall>::ReduceCallSubsequent(base, ctx, d,
-			// XXX: Capture of %d by copy is a slightly more efficient.
 			A1::NameTypedReducerHandler(
+			// XXX: Capture of %d by copy is a slightly more efficient.
 			[&, d] YB_LAMBDA_ANNOTATE(() , , flatten){
 			{
 				TermNode::Container tcon(nterm.get_allocator());
@@ -1950,7 +1949,11 @@ ReduceAccR(TermNode& term, ContextNode& ctx)
 				tcon.push_back(lv_sum_op);
 				tcon.push_back(std::move(nterm));
 				return tcon;
-			}())), ctx, ReduceAccR, A1::NameTypedReducerHandler(
+			}())), ctx,
+			// XXX: The function after decayed is specialized enough without
+			//	%any_ops::trivial_swap.
+			ReduceAccR, any_ops::trivial_swap,
+				A1::NameTypedReducerHandler(
 				[&, d] YB_LAMBDA_ANNOTATE(() , , flatten){
 				return Combine<NonTailCall>::ReduceEnvSwitch(term, ctx, d);
 			}, "eval-accr-sum"));
@@ -2051,7 +2054,8 @@ ReduceFoldR1(TermNode& term, ContextNode& ctx)
 			ExtractRangeFirstOrCopy(tcon.emplace_back(), tr,
 				!bool(tm.Tags & TermTags::Nonmodifying));
 			return tcon;
-		}())), ctx, ReduceFoldR1, A1::NameTypedReducerHandler(std::bind(
+		}())), ctx, ReduceFoldR1, any_ops::trivial_swap,
+			A1::NameTypedReducerHandler(std::bind(
 			// TODO: Blocked. Use C++14 lambda initializers to simplify the
 			//	implementation.
 			[&] YB_LAMBDA_ANNOTATE((shared_ptr<Environment>& d) , , flatten){
@@ -2116,7 +2120,10 @@ ReduceLiftSum(TermNode& term, ContextNode& ctx, TermNode& rterm,
 	ReductionStatus(&f)(TermNode&, ContextNode&))
 {
 #if NPL_Impl_NPLA1_Enable_Thunked
-	return A1::ReduceCurrentNext(rterm, ctx, f, A1::NameTypedReducerHandler([&]{
+	// XXX: The function after decayed is specialized enough without
+	//	%any_ops::trivial_swap.
+	return A1::ReduceCurrentNext(rterm, ctx, f, any_ops::trivial_swap,
+		A1::NameTypedReducerHandler([&]{
 		LiftOther(term, rterm);
 		return ctx.LastStatus;
 	}, "eval-lift-sum"));
@@ -2316,19 +2323,25 @@ PrepareListExtract(TermNode& term)
 }
 //@}
 
-//! \since build 925
+/*!
+\pre 最后一个参数的类型满足可平凡交换。
+\since build 925
+*/
 template<typename _fNext>
 inline ReductionStatus
 RelayApplicativeNext(ContextNode& ctx, TermNode& term, _fNext&& next)
 {
-	return A1::RelayCurrentNext(ctx, term,
+	// XXX: Calling to %NPL::ToReducer can a bit more efficient here, since less
+	//	instantiations are needed.
+	return A1::RelayCurrentNext(ctx, term, any_ops::trivial_swap,
 		// NOTE: Capture the term regardless of the next term because
 		//	continuation capture here is unsupported and the next term will be
 		//	set later in %ReduceChildren.
 		[&](TermNode&, ContextNode& c){
 		ReduceChildren(term, c);
 		return ReductionStatus::Partial;
-	}, NPL::ToReducer(ctx.get_allocator(), yforward(next)));
+	}, NPL::ToReducer(ctx.get_allocator(), any_ops::trivial_swap,
+		yforward(next)));
 }
 
 //! \since build 919
@@ -2458,6 +2471,7 @@ LetCombineEmpty(TermNode& term, ContextNode& ctx, bool no_lift)
 	return LetCallBody(term, ctx, body, gd, no_lift);
 }
 
+//! \pre 第一参数的类型可平凡交换。
 template<typename _func>
 ReductionStatus
 LetCombinePrepare(_func f, TermNode& term, ContextNode& ctx, bool with_env)
@@ -3000,7 +3014,7 @@ ProvideLetCommon(TermNode& term, ContextNode& ctx)
 	}, std::placeholders::_2, ctx.ShareRecord())));
 	// XXX: As %LetCombinePrepare, except that non-empty %con.begin()->Value is
 	//	allowed.
-	con.begin()->Value.assign(std::allocator_arg, a, ctx.WeakenRecord());
+	con.begin()->SetValue(a, ctx.WeakenRecord());
 	// NOTE: Subterms are extracted arguments for the call plus the parent in
 	//	%Value, extracted 'formals' for the lambda abstraction,
 	//	unused 'bindings', constructed trailing body subterms (delayed
@@ -3133,9 +3147,8 @@ Decapsulate::operator()(TermNode& term) const
 				else
 				{
 					// XXX: Subterms cleanup is deferred.
-					// XXX: Allocators are not used here for performance in
-					//	most cases.
-					term.SetValue(in_place_type<TermReference>, tm,
+					// XXX: Allocators are not used here for performance.
+					term.Value.assign(in_place_type<TermReference>, tm,
 						p_ref->GetEnvironmentReference());
 					return ReductionStatus::Clean;
 				}
@@ -4015,15 +4028,18 @@ AsEnvironment(TermNode& term, ContextNode& ctx)
 	//	specified as a prvalue in the implementation.
 	return TailCall::RelayNextGuarded(ctx, term, std::move(gd),
 		[&](TermNode&, ContextNode&){
-		return A1::RelayCurrentNext(ctx, term,
-			std::ref(ContextState::Access(ctx).ReduceOnce),
+		// XXX: The %std::reference_wrapper instance is specialized enough
+		//	without %any_ops::trivial_swap.
+		return A1::RelayCurrentNext(ctx, term, std::ref(
+			ContextState::Access(ctx).ReduceOnce), any_ops::trivial_swap,
+			A1::NameTypedReducerHandler(
 			// TODO: Blocked. Use C++14 lambda initializers to simplify the
 			//	implementation.
 			ystdex::bind1([&](ContextNode&, shared_ptr<Environment>& p_e){
 			term.ClearContainer(),
 			term.SetValue(std::move(p_e));
 			return ReductionStatus::Regular;
-		}, ctx.ShareRecord()));
+		}, ctx.ShareRecord()), "as-environment-return"));
 	});
 }
 
@@ -4036,13 +4052,14 @@ BindingsWithParentToEnvironment(TermNode& term, ContextNode& ctx)
 	auto& eterm(*++i);
 
 	if(IsList(eterm))
-		return A1::RelayCurrentNext(ctx, eterm,
+		// XXX: Calling to %NPL::ToReducer can be a bit more efficient here.
+		return A1::RelayCurrentNext(ctx, eterm, any_ops::trivial_swap,
 			// NOTE: Capture the term regardless of the next term because
 			//	continuation capture here is unsupported.
 			[&](TermNode&, ContextNode& c){
 			ReduceChildren(eterm, c);
 			return ReductionStatus::Partial;
-		}, NPL::ToReducer(ctx.get_allocator(),
+		}, NPL::ToReducer(ctx.get_allocator(), any_ops::trivial_swap,
 			A1::NameTypedReducerHandler([&]{
 			auto p_env(CreateEnvironment(eterm));
 			auto& con(term.GetContainerRef());

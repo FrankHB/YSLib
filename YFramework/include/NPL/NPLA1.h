@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8759
+\version r8809
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2021-08-22 00:49 +0800
+	2021-09-24 18:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,17 +31,17 @@
 #include "YModules.h"
 #include YFM_NPL_NPLA // for NPLATag, TermNode, ContextNode,
 //	ystdex::equality_comparable, std::declval, ystdex::exclude_self_t,
-//	ystdex::ref_eq, CombineReductionResult, pmr::memory_resource,
-//	NPL::make_observer, TNIter, LiftOther, ValueNode, NPL::Deref,
-//	NPL::AsTermNode, std::make_move_iterator, IsBranch, std::next,
-//	ystdex::retry_on_cond, std::find_if, ystdex::exclude_self_params_t,
-//	YSLib::AreEqualHeld, ystdex::make_parameter_list_t,
-//	ystdex::make_function_type_t, ystdex::decay_t, ystdex::expanded_caller,
-//	std::is_constructible, ystdex::or_, string_view, TermTags, TokenValue,
-//	Environment, ParseResultOf, ByteParser, SourcedByteParser,
-//	ystdex::type_info, SourceInformation, std::integral_constant, SourceName,
-//	NPL::tuple, NPL::get, NPL::forward_as_tuple, ReaderState,
-//	YSLib::allocate_shared;
+//	any_ops::trivial_swap_t, any_ops::trivial_swap, ystdex::ref_eq,
+//	CombineReductionResult, pmr::memory_resource, NPL::make_observer, TNIter,
+//	LiftOther, ValueNode, NPL::Deref, NPL::AsTermNode, std::make_move_iterator,
+//	IsBranch, std::next, ystdex::retry_on_cond, std::find_if,
+//	ystdex::exclude_self_params_t, YSLib::AreEqualHeld,
+//	ystdex::make_parameter_list_t, ystdex::make_function_type_t,
+//	ystdex::decay_t, ystdex::expanded_caller, std::is_constructible,
+//	ystdex::or_, string_view, TermTags, TokenValue, Environment, ParseResultOf,
+//	ByteParser, SourcedByteParser, ystdex::type_info, SourceInformation,
+//	std::integral_constant, SourceName, NPL::tuple, NPL::get,
+//	NPL::forward_as_tuple, ReaderState, YSLib::allocate_shared, true_;
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, YSLib::GCombinerInvoker,
 //	YSLib::GDefaultLastValueInvoker;
 #include <ystdex/algorithm.hpp> // for ystdex::fast_any_of, ystdex::split;
@@ -135,11 +135,28 @@ public:
 		: Handler(ystdex::make_obj_using_allocator<ContextHandler>(a,
 		yforward(handler)))
 	{}
+	//! \since build 926
+	template<typename _func, yimpl(typename
+		= ystdex::exclude_self_t<Continuation, _func>)>
+	inline
+	Continuation(any_ops::trivial_swap_t, _func&& handler, allocator_type a)
+		: Handler(ystdex::make_obj_using_allocator<ContextHandler>(a,
+		any_ops::trivial_swap, yforward(handler)))
+	{}
 	template<typename _func, yimpl(typename
 		= ystdex::exclude_self_t<Continuation, _func>)>
 	inline
 	Continuation(_func&& handler, const ContextNode& ctx)
 		: Continuation(yforward(handler), ctx.get_allocator())
+	{}
+	//! \since build 926
+	template<typename _func, yimpl(typename
+		= ystdex::exclude_self_t<Continuation, _func>)>
+	inline
+	Continuation(any_ops::trivial_swap_t, _func&& handler,
+		const ContextNode& ctx)
+		: Continuation(any_ops::trivial_swap, yforward(handler),
+		ctx.get_allocator())
 	{}
 	Continuation(const Continuation& cont, allocator_type a)
 		: Handler(ystdex::make_obj_using_allocator<ContextHandler>(a,
@@ -807,33 +824,35 @@ struct SeparatorTransformer
 
 /*!
 \pre 间接断言：字符串参数的数据指针非空。
+\pre 间接断言：字符串参数非空。
 \return 分析结果。
+\since build 926
 */
 //@{
 /*!
 \brief 分析参数指定的叶节点词素。
-\since build 880
 
-以第二参数初始化空项，依次进行以下转换操作确定值数据成员后返回：
+依次进行以下转换操作确定值数据成员后返回：
 对代码字面量，去除字面量边界分隔符后进一步求值；
 对数据字面量，去除字面量边界分隔符作为字符串值；
-对其它字面量，转换为符号。
+对其它字面量，转换为符号；
+结果保留到第一参数。
+使用第一参数指定的分配器。
 */
-YF_API TermNode
-ParseLeaf(string_view, TermNode::allocator_type);
+YF_API void
+ParseLeaf(TermNode&, string_view);
 
 /*!
 \brief 分析参数指定的带有源代码信息和叶节点词素。
 \pre 间接断言：字符串参数的数据指针非空。
-\since build 891
 
 同 ParseLeaf ，但同时在分析结果的记号中包含源代码信息。
 第二参数表示源代码来源。
 第三参数表示记号在源代码中的位置。
 */
-YF_API TermNode
-ParseLeafWithSourceInformation(string_view, const shared_ptr<string>&,
-	const SourceLocation&, TermNode::allocator_type);
+YF_API void
+ParseLeafWithSourceInformation(TermNode&, string_view,
+	const shared_ptr<string>&, const SourceLocation&);
 //@}
 
 
@@ -1194,6 +1213,7 @@ RetainN(const TermNode& term, size_t m = 1)
 //@{
 /*!
 \brief 字面量和数值的叶节点求值默认实现。
+\pre 字符串参数非空。
 \return 是否成功求值得到字面量或数值。
 \throw InvalidSyntax 语法错误：第二参数是不被支持的数值。
 \sa ContextState::EvaluateLiteral
@@ -2101,6 +2121,17 @@ TryLoadSource(REPLContext& context, const char* name, _tParams&&... args)
 } // namesapce A1;
 
 } // namespace NPL;
+
+//! \since build 926
+namespace ystdex
+{
+
+//! \relates NPL::A1::Continuation
+template<>
+struct is_bitwise_swappable<NPL::A1::Continuation> : true_
+{};
+
+} // namespace ystdex;
 
 #endif
 

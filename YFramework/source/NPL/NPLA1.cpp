@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r20980
+\version r21127
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2021-08-30 23:50 +0800
+	2021-09-25 23:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,24 +27,24 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLA1Forms // for YSLib::type_index, NPL, lref, RelaySwitched,
-//	string_view, std::hash, ystdex::equal_to, YSLib::unordered_map,
-//	std::piecewise_construct, YSLib::lock_guard, YSLib::mutex, ystdex::type_id,
-//	ContextHandler, NPL::make_observer, IsBranch, AllocatorHolder, ystdex::ref,
-//	YSLib::IValueHolder, YSLib::AllocatedHolderOperations, any,
-//	ystdex::as_const, NPL::forward_as_tuple, uintmax_t, ystdex::bind1,
-//	TokenValue, Forms, std::allocator_arg, YSLib::stack, YSLib::vector,
-//	std::find_if, TermTags, function, TermReference, GetLValueTagsOf,
-//	NPL::TryAccessLeaf, PropagateTo, NPL::IsMovable, in_place_type,
-//	InvalidReference, NPL::Deref, IsLeaf, ResolveTerm,
-//	ThrowInsufficientTermsError, ThrowListTypeErrorForNonlist,
+//	any_ops::trivial_swap, string_view, std::hash, ystdex::equal_to,
+//	YSLib::unordered_map, std::piecewise_construct, YSLib::lock_guard,
+//	YSLib::mutex, ystdex::type_id, ContextHandler, NPL::make_observer, IsBranch,
+//	AllocatorHolder, ystdex::ref, YSLib::IValueHolder,
+//	YSLib::AllocatedHolderOperations, any, ystdex::as_const,
+//	NPL::forward_as_tuple, uintmax_t, ystdex::bind1, TokenValue, Forms,
+//	std::allocator_arg, YSLib::stack, YSLib::vector, std::find_if, TermTags,
+//	function, TermReference, GetLValueTagsOf, NPL::TryAccessLeaf, PropagateTo,
+//	NPL::IsMovable, in_place_type, InvalidReference, NPL::Deref, IsLeaf,
+//	ResolveTerm, ThrowInsufficientTermsError, ThrowListTypeErrorForNonlist,
 //	ystdex::update_thunk, Environment, shared_ptr, IsTyped,
 //	ystdex::retry_on_cond, AccessFirstSubterm, ystdex::make_transform,
 //	IsBranchedList, std::placeholders, NoContainer, ystdex::try_emplace,
 //	NPL::Access, YSLib::Informative, ystdex::unique_guard, NPL::AsTermNode,
 //	CategorizeBasicLexeme, DeliteralizeUnchecked, CheckReducible, Deliteralize,
-//	ystdex::isdigit, ResolveIdentifier, IsNPLAExtendedLiteral, ystdex::ref_eq,
-//	NPL::TryAccessTerm, YSLib::share_move, ystdex::call_value_or, YSLib::Notice,
-//	YSLib::FilterException, Session;
+//	ystdex::isdigit, INT_MAX, ResolveIdentifier, IsNPLAExtendedLiteral,
+//	ystdex::ref_eq, NPL::TryAccessTerm, YSLib::share_move,
+//	ystdex::call_value_or, YSLib::Notice, YSLib::FilterException, Session;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_Dependency // for A1::OpenUnique;
 #include <ystdex/exception.h> // for ystdex::unsupported;
@@ -126,7 +126,8 @@ PushActionsRange(EvaluationPasses::const_iterator first,
 			//	%ContextState::DefaultReduceOnce) or all previous actions are
 			//	known not to change the next term in the context. See
 			//	%SetupDefaultInterpretation for example.
-			RelaySwitched(ctx, PushedAction{first, last, f, term, ctx});
+			RelaySwitched(ctx, any_ops::trivial_swap,
+				PushedAction{first, last, f, term, ctx});
 		}
 	}
 	else
@@ -189,7 +190,7 @@ ReduceChildrenOrderedAsyncUnchecked(TNIter first, TNIter last, ContextNode& ctx)
 
 	auto& term(*first++);
 
-	return ReduceSubsequent(term, ctx, Continuation(
+	return ReduceSubsequent(term, ctx, Continuation(any_ops::trivial_swap,
 		NameTypedContextHandler([first, last](TermNode&, ContextNode& c){
 		return ReduceChildrenOrderedAsync(first, last, c);
 	}, "eval-argument-list"), ctx));
@@ -229,6 +230,8 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	//	underlying handler implementation (e.g. %FormContextHandler::CallN)
 	//	optimized with %NPL_Impl_NPLA1_Enable_InlineDirect remaining the nested
 	//	call safety.
+	// XXX: The %std::reference_wrapper instance is specialized enough without
+	//	%any_ops::trivial_swap.
 	return RelaySwitched(ctx, Continuation(std::ref(lf ? *lf : h), ctx));
 #else
 
@@ -245,12 +248,14 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	SetupNextTerm(ctx, term);
 	// TODO: Blocked. Use C++14 lambda initializers to simplify the
 	//	implementation.
-	RelaySwitched(ctx, A1::NameTypedReducerHandler(
+	RelaySwitched(ctx, any_ops::trivial_swap, A1::NameTypedReducerHandler(
 		std::bind([&](decltype(gd)& g, const _tParams&...){
 		ystdex::dismiss(g);
 		// NOTE: Captured argument pack is only needed when %h actually shares.
 		return RegularizeTerm(term, ctx.LastStatus);
 	}, std::move(gd), std::move(args)...), "combine-return"));
+	// XXX: The %std::reference_wrapper instance is specialized enough without
+	//	%any_ops::trivial_swap.
 	return RelaySwitched(ctx, Continuation(std::ref(h), ctx));
 #	else
 	const auto res(RegularizeTerm(term, h(term, ctx)));
@@ -428,7 +433,7 @@ private:
 	TokenValue delim2{","};
 	Filter filter{ystdex::bind1(HasValue<TokenValue>, delim)};
 	Filter filter2{ystdex::bind1(HasValue<TokenValue>, delim2)};
-	// XXX: More allocators are not used here for performance in most cases.
+	// XXX: More allocators are not used here for performance.
 	ValueObject pfx{std::allocator_arg, alloc, ContextHandler(Forms::Sequence)};
 	ValueObject pfx2{std::allocator_arg, alloc,
 		ContextHandler(FormContextHandler(ReduceBranchToList, 1))};
@@ -740,7 +745,6 @@ public:
 	_fBindValue BindValue;
 
 private:
-	// XXX: Allocators are not used here for performance in most cases.
 	mutable Action act{};
 	//@}
 
@@ -1184,6 +1188,8 @@ ReductionStatus
 ContextState::RewriteTerm(TermNode& term)
 {
 	SetNextTermRef(term);
+	// XXX: The %std::reference_wrapper instance is specialized enough without
+	//	%any_ops::trivial_swap.
 	return Rewrite(NPL::ToReducer(get_allocator(), std::ref(ReduceOnce)));
 }
 
@@ -1191,6 +1197,7 @@ ReductionStatus
 ContextState::RewriteTermGuarded(TermNode& term)
 {
 	SetNextTermRef(term);
+	// XXX: Ditto.
 	return RewriteGuarded(term,
 		NPL::ToReducer(get_allocator(), std::ref(ReduceOnce)));
 }
@@ -1277,9 +1284,13 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 	return ReductionStatus::Retained;
 #	else
 	AssertNextTerm(ctx, term);
+	// XXX: %Continuation is specialized enough without %any_ops::trivial_swap.
 	return A1::RelayCurrentNext(ctx, term, Continuation(
+		// XXX: The function after decayed is specialized enough without
+		//	%any_ops::trivial_swap.
 		static_cast<ReductionStatus(&)(TermNode&, ContextNode&)>(
-		ReduceChildrenOrdered), ctx), A1::NameTypedReducerHandler([&]{
+		ReduceChildrenOrdered), ctx), any_ops::trivial_swap,
+		A1::NameTypedReducerHandler([&]{
 		ReduceOrderedResult(term);
 		return ReductionStatus::Regular;
 	}, "sequence-return"));
@@ -1452,69 +1463,63 @@ TransformNode(const TermNode& term)
 }
 
 
-TermNode
-ParseLeaf(string_view id, TermNode::allocator_type a)
+void
+ParseLeaf(TermNode& term, string_view id)
 {
 	YAssertNonnull(id.data());
-
-	TermNode term(a);
-
-	if(!id.empty())
-		switch(CategorizeBasicLexeme(id))
-		{
-		case LexemeCategory::Code:
-			// XXX: When do code literals need to be evaluated?
-			id = DeliteralizeUnchecked(id);
-			YB_ATTR_fallthrough;
-		case LexemeCategory::Symbol:
-			if(CheckReducible(DefaultEvaluateLeaf(term, id)))
-				term.SetValue(in_place_type<TokenValue>, id, a);
-				// NOTE: This is to be evaluated as identifier later.
-			break;
-			// XXX: Empty token is ignored.
-			// XXX: Remained reducible?
-		case LexemeCategory::Data:
-			// XXX: This should be prevented being passed to second pass in
-			//	%TermToNamePtr normally. This is guarded by normal form handling
-			//	in the loop in %ContextNode::Rewrite with %ReduceOnce.
-			term.SetValue(in_place_type<string>, Deliteralize(id), a);
-			YB_ATTR_fallthrough;
-		default:
-			break;
-			// XXX: Handle other categories of literal?
-		}
-	return term;
+	YAssert(!id.empty(), "Invalid leaf token found.");
+	switch(CategorizeBasicLexeme(id))
+	{
+	case LexemeCategory::Code:
+		// XXX: When do code literals need to be evaluated?
+		id = DeliteralizeUnchecked(id);
+		YB_ATTR_fallthrough;
+	case LexemeCategory::Symbol:
+		if(CheckReducible(DefaultEvaluateLeaf(term, id)))
+			term.SetValue(in_place_type<TokenValue>, id,
+				term.get_allocator());
+			// NOTE: This is to be evaluated as identifier later.
+		break;
+		// XXX: Empty token is ignored.
+		// XXX: Remained reducible?
+	case LexemeCategory::Data:
+		// XXX: This should be prevented being passed to second pass in
+		//	%TermToNamePtr normally. This is guarded by normal form handling
+		//	in the loop in %ContextNode::Rewrite with %ReduceOnce.
+		term.SetValue(in_place_type<string>, Deliteralize(id),
+			term.get_allocator());
+		YB_ATTR_fallthrough;
+	default:
+		break;
+		// XXX: Handle other categories of literal?
+	}
 }
 
-TermNode
-ParseLeafWithSourceInformation(string_view id, const shared_ptr<string>& name,
-	const SourceLocation& src_loc, TermNode::allocator_type a)
+void
+ParseLeafWithSourceInformation(TermNode& term, string_view id,
+	const shared_ptr<string>& name, const SourceLocation& src_loc)
 {
 	// NOTE: Most are same to %ParseLeaf, except for additional source
 	//	information mixed into the values of %TokenValue.
 	YAssertNonnull(id.data());
-
-	TermNode term(a);
-
-	if(!id.empty())
-		switch(CategorizeBasicLexeme(id))
-		{
-		case LexemeCategory::Code:
-			id = DeliteralizeUnchecked(id);
-			YB_ATTR_fallthrough;
-		case LexemeCategory::Symbol:
-			if(CheckReducible(DefaultEvaluateLeaf(term, id)))
-				term.SetValue(any_ops::use_holder, in_place_type<
-					SourcedHolder<TokenValue>>, name, src_loc, id, a);
-			break;
-		case LexemeCategory::Data:
-			term.SetValue(any_ops::use_holder, in_place_type<
-				SourcedHolder<string>>, name, src_loc, Deliteralize(id), a);
-			YB_ATTR_fallthrough;
-		default:
-			break;
-		}
-	return term;
+	YAssert(!id.empty(), "Invalid leaf token found.");
+	switch(CategorizeBasicLexeme(id))
+	{
+	case LexemeCategory::Code:
+		id = DeliteralizeUnchecked(id);
+		YB_ATTR_fallthrough;
+	case LexemeCategory::Symbol:
+		if(CheckReducible(DefaultEvaluateLeaf(term, id)))
+			term.SetValue(any_ops::use_holder, in_place_type<SourcedHolder<
+				TokenValue>>, name, src_loc, id, term.get_allocator());
+		break;
+	case LexemeCategory::Data:
+		term.SetValue(any_ops::use_holder, in_place_type<SourcedHolder<string>>,
+			name, src_loc, Deliteralize(id), term.get_allocator());
+		YB_ATTR_fallthrough;
+	default:
+		break;
+	}
 }
 
 
@@ -1530,16 +1535,19 @@ FormContextHandler::CallN(size_t n, TermNode& term, ContextNode& ctx) const
 	// NOTE: Optimize for cases with no argument.
 	if(n == 0 || term.size() <= 1)
 		// XXX: Assume the term has been setup by the caller.
+		// XXX: The %std::reference_wrapper instance is specialized enough
+		//	without %any_ops::trivial_swap.
 		return RelayCurrentOrDirect(ctx, std::ref(Handler), term);
+	// XXX: The empty type is specialized enough without %any_ops::trivial_swap.
 	return A1::RelayCurrentNext(ctx, term, [](TermNode& t, ContextNode& c){
 		YAssert(!t.empty(), "Invalid term found.");
 		ReduceChildrenOrderedAsyncUnchecked(std::next(t.begin()), t.end(), c);
 		return ReductionStatus::Partial;
-	}, NPL::ToReducer(ctx.get_allocator(),
+	}, any_ops::trivial_swap,
 		A1::NameTypedReducerHandler([&, n](ContextNode& c){
 		SetupNextTerm(c, term);
 		return CallN(n - 1, term, c);
-	}, "eval-combine-operator")));
+	}, "eval-combine-operator"));
 #else
 	// NOTE: This does not support PTC. However, the loop among the wrapping
 	//	calls is almost PTC in reality.
@@ -1569,43 +1577,39 @@ ReductionStatus
 DefaultEvaluateLeaf(TermNode& term, string_view id)
 {
 	YAssertNonnull(id.data());
-	if(!id.empty())
+	YAssert(!id.empty(), "Invalid leaf token found.");
+
+	const char f(id.front());
+
+	if(ystdex::isdigit(f))
 	{
-		const char f(id.front());
+		int ans(0);
 
-		if(ystdex::isdigit(f))
-		{
-		    int ans(0);
-
-			for(auto p(id.begin()); p != id.end(); ++p)
-				if(ystdex::isdigit(*p))
-				{
-					if(unsigned((ans << 3) + (ans << 1) + *p - '0')
-						<= unsigned(INT_MAX))
-						ans = (ans << 3) + (ans << 1) + *p - '0';
-					else
-						ThrowInvalidSyntaxError(ystdex::sfmt("Value of"
-							" identifier '%s' is out of the range of the"
-							" supported integer.", id.data()));
-				}
+		for(auto p(id.begin()); p != id.end(); ++p)
+			if(ystdex::isdigit(*p))
+			{
+				if(unsigned((ans << 3) + (ans << 1) + *p - '0')
+					<= unsigned(INT_MAX))
+					ans = (ans << 3) + (ans << 1) + *p - '0';
 				else
-					ThrowInvalidSyntaxError(ystdex::sfmt("Literal postfix is"
-						" unsupported in identifier '%s'.", id.data()));
-			term.Value = ans;
-		}
-		else if(id == "#t" || id == "#true")
-			term.Value = true;
-		else if(id == "#f" || id == "#false")
-			term.Value = false;
-		else if(id == "#n" || id == "#null")
-			term.Value = nullptr;
-		else if(id == "#inert")
-			term.Value = ValueToken::Unspecified;
-		else
-			return ReductionStatus::Retrying;
-		return ReductionStatus::Clean;
+					ThrowInvalidSyntaxError(ystdex::sfmt("Value of"
+						" identifier '%s' is out of the range of the"
+						" supported integer.", id.data()));
+			}
+			else
+				ThrowInvalidSyntaxError(ystdex::sfmt("Literal postfix is"
+					" unsupported in identifier '%s'.", id.data()));
+		term.Value = ans;
 	}
-	return ReductionStatus::Retrying;
+	else if(id == "#t" || id == "#true")
+		term.Value = true;
+	else if(id == "#f" || id == "#false")
+		term.Value = false;
+	else if(id == "#inert")
+		term.Value = ValueToken::Unspecified;
+	else
+		return ReductionStatus::Retrying;
+	return ReductionStatus::Clean;
 }
 
 ReductionStatus
@@ -1672,11 +1676,12 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 	if(!id.empty() && (cs.EvaluateLiteral.empty()
 		|| CheckReducible(cs.EvaluateLiteral(term, cs, id))))
 	{
-		// NOTE: The symbols are lexical results from analysis by %ParseLeaf.
-		//	The term would be normalized by %ReduceCombined. If necessary, there
-		//	can be inserted some additional cleanup to remove empty tokens,
-		//	returning %ReductionStatus::Partial. Separators should have been
-		//	handled in appropriate preprocessing passes.
+		// NOTE: The symbols are lexical results from the analysis result of
+		//	%ParseLeaf. The term would be normalized by %ReduceCombined. If
+		//	necessary, there can be inserted some additional cleanup to remove
+		//	empty tokens, returning %ReductionStatus::Partial. Separators should
+		//	have been handled in appropriate preprocessing passes like
+		//	%REPLContext::Preprocess.
 		// XXX: Asynchronous reduction is currently not supported.
 		if(!IsNPLAExtendedLiteral(id))
 			return EvaluateIdentifier(term, cs, id);
@@ -1859,9 +1864,9 @@ CheckEnvironmentFormal(const TermNode& term)
 		{
 			if(!IsIgnore(*p))
 			{
-				if(YB_UNLIKELY(!IsNPLASymbol(*p)))
-					ThrowInvalidTokenError(*p);
-				return string(*p, term.get_allocator());
+				if(IsNPLASymbol(*p))
+					return string(*p, term.get_allocator());
+				ThrowInvalidTokenError(*p);
 			}
 		}
 		else
@@ -2113,10 +2118,19 @@ TraceBacktrace(const ContextNode::ReducerSequence& backtrace,
 
 REPLContext::REPLContext(pmr::memory_resource& rsrc)
 	: REPLContext([this](const GParsedValue<ByteParser>& str){
-		return ParseLeaf(YSLib::make_string_view(str), Allocator);
+		TermNode term(Allocator);
+		const auto id(YSLib::make_string_view(str));
+
+		if(!id.empty())
+			ParseLeaf(term, id);
+		return term;
 	}, [this](const GParsedValue<SourcedByteParser>& val){
-		return ParseLeafWithSourceInformation(YSLib::make_string_view(
-			val.second), CurrentSource, val.first, Allocator);
+		TermNode term(Allocator);
+		const auto id(YSLib::make_string_view(val.second));
+
+		if(!id.empty())
+			ParseLeafWithSourceInformation(term, id, CurrentSource, val.first);
+		return term;
 	}, rsrc)
 {}
 REPLContext::REPLContext(Tokenizer leaf_conv,
