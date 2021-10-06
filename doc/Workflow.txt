@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4593
+\version r4627
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2021-09-26 00:07 +0800
+	2021-10-05 18:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1071,7 +1071,7 @@ Move-only parameter passing counts.
 		These rules are now updated to be more explicit in Documentation::LanguageConvention.
 		In fact, 'YSLib::UI::Widget::SetRenderer' was modified in May 2013 (Mercurial changeset 278, build 406) for probable the same rules.
 		Now 'YSLib::UI::Widget::SetView' is synchronized to be consistent. Both these functions needed the object of 'unique_ptr' instance always being used.
-	For non move-only type, see $2014-04.
+	For non move-only types, see $2014-04.
 The duration (and potentially other instances of 'std::chrono' time types e.g. time points) parameters are now passed by value rather than by reference.
 	In general, The default argument binding to reference type of parameter causes odr-used of the argument.
 		If the argument is a static data member of class, either declared with const, constexpr or not, an extra definition out of class definition is required to obey ODR, otherwise the program is ill-formed.
@@ -3263,21 +3263,21 @@ Several NPLA1 improvements are made, including some critical bug fixes related t
 		The bug causes '#ignore' not being ignored in the creation of the combiner.
 		Instead, a dynamic environment named "#ignore" is bound in the newly created environment before evaluation of the vau abstraction body in the call of the combiner.
 			This breaks PTC because currently named dynamic environments are not collected by the TCO frame compression algorithm.
-				With the fact about the fundamental role of vairous vau abstractions, the bug also breaks almost all non-native derivations in NPLA1.
+				With the fact about the fundamental role of vairous vau abstractions, the bug also breaks almost all derivations in NPLA1.
 				Even despite the guarantee, asymptotic memory consumption behavior between native and non-native lambda abstractions differs, which should be unexpected.
 			This is actually weaker than what Kernel guarantees in RnRK.
 				However, klisp also leaks here, e.g. by '($sequence ($define! $f ($vau () #ignore (($f)))) (($f)))'.
-			With the fix, at least the non-native derivation of lambda abstractions behave normally. For example:
+			With the fix, at least the derivation of lambda abstractions behave normally. For example:
 				$defl! f () () f; () f;
 				$defl! f () () (unwrap f); () f;
-			The following cases are also fixed regardless of native derivations are used or not:
+			The following cases are also fixed regardless of native implementations are used or not:
 				$defv! $f () #ignore () $f; () $f;
 				$defv! $f () #ignore () (wrap $f); () $f;
 	NPLA1 now enforced clearer rules on temporary lifetime. Notably, the operative '$sequence' is clearified with intended behavior on temporary lifetime.
 		This was underspecified at the first glance of the specifiation of the operative.
 		However, there is a real bug of native implementation of '$sequence' and it is now fixed.
 			The general temporary rules to assert full expressions on parameters were only effective for combiner "application", thus it should have make the parameters sequenced, which was not implemented in the native implementation.
-			And anyway, native and non-native derivations should have the same observable behavior (e.g. with destructors of hosted objects called), whatever the expected behavior should be.
+			And anyway, native and non-native implementations should have the same observable behavior (e.g. with destructors of hosted objects called), whatever the expected behavior should be.
 	NPLA1 TCO implementation is simplfiied in various aspects.
 		The TCO implementation is simplified to avoid a bug on the collection operation of the orphan temporary object cleanup.
 			The old implementation collect the temporary object unconditionally during the vau handler calls. This is illogical in general.
@@ -4551,9 +4551,39 @@ A bug of 'ystdex::any' is fixed.
 		They all have lambda expression capturing a 'TermNode' value (rather than the pointer or the reference to the value), which is known not trivially swappable.
 			The reason is the subterm uses 'ystdex::list', which is similar to 'std::list' implementations in libstdc++ and libc++, analyzed by WG21 P1144R6. 
 		The bug would be not effective supported platforms because the term node being captured is too large to be aligned storable in 'ystdex::any_ops::any_storage' and it is always safe.
-	For safety reasons, the fix may effect the performance by default.
+	For safety reasons, the fix may affect the performance by default.
 		However, the opted-in feature allows to keep the performance as before, with several specialized optimizations by 'ystdex::is_bitwise_swappable' specialization or 'ystdex::any_ops::trivial_swap' tag.
 		The perforamnce NPLA1 implementation is mostly kept by specializations in namespaces 'ystdex' and 'YSLib', plus some internal API changes in NPL.
+
+$2021-10:
+
+report.impl:
+Now 'ystdex::any_ops::any_trivial_local_data' ensures most scalar types storable.
+	This is done by adding several data members of 'long long', and 'long double' type.
+		For sake of completeness, types of 'unsigned long long' and 'double' (which may have same sizes and alignment requirements to other added type) are also added.
+		Smaller object types are expected having less restrictive size and alignment requirements thereof, hence omitted.
+		'std::intmax_t' and 'std::uintmax_t' are still ignored even in practice they may be aliases of 'long long' and 'unsigned long long', respectively.
+			Note 'unsigned __int128' and '__int128' are extended integer types in GCC, but usual libc implementations do not treat them as 'uintmax_t' and 'intmax_t', respectively.
+			However, if they are extended integer types, usually they are less profitable to be in-place allocated for implementation-specific reasons (e.g. register bandwidth pressure).
+			Once included, it may affect the layout and cases only using other types.
+		Although not strictly required, the implementation relies on the support of 'any_ops::trivial_swap_t' construction in some client types.
+			Otherwise, it would break the implemenation already use 'ystdex::any_ops::trivial_swap_t'.
+			This is due to the bug of lacking of such support in the class templates in YBase module YStandardEx::AnyIterator, but some call sites have already assumed this feature.
+				Without the change, it would break several 'YSLib::UI::WidgetIterator' initializations at least in the release configurations of MinGW32.
+				This was occasionally OK because it was too large to be in-place stored before the change. As a result, the 'any_ops::trivial_swap_t' constructors in 'ystdex::any' would be SFINAE'd out and the result constructions would not be ill-formed.
+	The only exceptions of the guarantee are for extended arithmetic types, over-aligned types (if any) and other implementation-specific types.
+		They are all not portable (in the sense of C++) or at least not supposed to be supported mainly by the in-place storage.
+		They seem also less profitable to be in-place stored, as the discussion on 'std::intmax_t' and 'std::uintmax_t' above.
+		Thus, they are ignored.
+	This is an optimization for several native types at the expense of ABI break.
+		There is currently no ABI compatibility guarantee before YSLib V1.0, so it is free to change.
+	The addition can support significant use case like R6RS-style fixnums in typical implementations.
+		For instance, Racket guarantees fixnums having no allocation in usual computing operations.
+			See https://docs.racket-lang.org/reference/numbers.html.
+		Besides fixnums, 'YSLib::YObject' based values to implement R6RS-style flonums are also guaranteed having the similar guarantee.
+			Note the in-place storable of the object is detected by 'ystdex::any_ops::is_in_place_storable' respecting the change here.
+			This is an optimization for several types transparent to other operations, since there are no need to change to remain correctness of the computation.
+			For platforms not having the guarantee, some client code change may be needed to make the concerned implementations optimal.
 
 ////
 

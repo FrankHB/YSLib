@@ -11,13 +11,13 @@
 /*!	\file tree.h
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r3369
+\version r3381
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2021-07-06 23:25 +0800
+	2021-09-26 04:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,7 +48,7 @@
 //	std::move_if_noexcept, is_trivially_default_constructible,
 //	allocator_guard_delete, allocator_guard, is_trivially_destructible,
 //	std::pair, enable_if_t, is_nothrow_swappable, ystdex::alloc_on_swap,
-//	ystdex::alloc_on_move;
+//	ystdex::alloc_on_move, is_bitwise_swappable;
 #include "optional.h" // for optional, bidirectional_iteratable,
 //	equality_comparable, totally_ordered, has_mem_is_transparent;
 #include "utility.hpp" // for noncopyable, ystdex::as_const;
@@ -2499,6 +2499,19 @@ private:
 } // inline namespace rb_tree;
 
 } // namespace details;
+//@}
+
+//! \since build 927
+//@{
+//! \relates details::tree_iterator
+template<typename _type>
+struct is_bitwise_swappable<details::tree_iterator<_type>> : true_
+{};
+
+//! \relates details::tree_const_iterator
+template<typename _type>
+struct is_bitwise_swappable<details::tree_const_iterator<_type>> : true_
+{};
 //@}
 
 } // namespace ystdex;

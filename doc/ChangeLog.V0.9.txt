@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r5320
+\version r5547
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-09-26 00:10 +0800
+	2021-10-06 08:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,227 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	+ "static assertion to test %ystdex::is_bitwise_swappable with \
+		appropriate %ystdex::(lref, observer_ptr) instances" @ %Test.YBase,
+	/ DD %Documentation $=
+	(
+		* "URL for release version" @ %ProjectRules $since b897,
+		/ "updated issue tracking information" @ %Meta
+	),
+	/ %YBase.YStandardEx $=
+	(
+		* DD "'\ingroup' command" @ "Doxygen comment"
+			@ ("trait %mapped_set_traits" @ %Set $since b845,
+			"trait %path_traits" @ %Path $since b852)
+			$= (/ ^ 'customization_points'),
+		/ DLDI "type %(iterator, const_iterator)" @ "class template %list"
+			@ %List ^ 'yimpl',
+		+ $re_add(b926) $lib "class template specializations \
+			%is_bitwise_swappable"
+		@ (
+			"%details::(list_iterator, list_const_iterator)" @ %List,
+			"%details::(tree_iterator, tree_const_iterator)" @ %Tree,
+			"%path" @ %Path,
+			"%(composed, composed_n, generalized_composed)" @ %Functional
+		) @ "namespace %ystdex",
+		/ @ "traits %(conjunction, disjunction, negation)" @ %IntegralConstant
+			$=
+		(
+			* "nonconforming implementation" $since b723
+				$= (/ "alias templates" -> "class templates with base classes"),
+			+ DD '\ingroup traits' @ "Doxygen comment"
+		),
+		* "wrong bases" @ "class template specialization %is_bitwise_swappable \
+			for %transformed_iterator" @ %Iteartor $since b926,
+			// This would wrongly instantiate the result with \
+				ambiguity %value members sometimes.
+		/ %AnyIterator $=
+		(
+			/ DLI "simplified header inclusion %Iterator"
+				-> "%IteratorOperation"
+			- DLI "redundant static assertions"
+				@ "constructor template %any_forward_iterator",
+				// This is redandant because it will be also checked in the \
+					protected base constructo.
+			(
+			* "wrong base object initialization" @ "constructor \
+				%any_bidirectional_iterator" $since b686,
+			+ $re_add(b926) "template type parameter with default argument to \
+				specify local storage" @ "class templates \
+				%any_ops::(iterator_handler; input_iterator_handler; \
+				forward_iterator_handler; bidirectional_iterator_handler)";
+				// As %any_ops::wrap_handler.
+			+ "constructor template with %trivial_swap_t parameter"
+				@ "class templates %(any_input_iterator, any_forward_iterator, \
+				any_bidirectional_iterator)" $dep_from %Iteartor
+				$dep_to "any iterator trivial swap support"
+			)
+		),
+		/ %Any $=
+		(
+			+ "2 function templates %make_any with %any_ops::trivial_swap_t \
+				parameter",
+			/ @ "class %any" $=
+			(
+				* "static assertion failure in handlers caused by wrong local \
+					argument 'true_' used instead of \
+					%any_ops::is_in_place_storable instances" @ "constructors \
+					with %trivial_swap_t parameter for holder handler"
+					$since b926,
+				/ DLDI "simplified %(allocated_value_handler_t, \
+					allocated_holder_handler_t) and ctor-initializers of some \
+					constructors"
+			),
+			/ @ "namespace %any_ops" $=
+			(
+				* "spelling error" @ "assertion message"
+					@ "static member function %init with %unique_ptr instance"
+					@ "class template %holder_handler" $since b926,
+				/ @ "union %any_trivial_local_data"
+					$dep_from "any iterator trivial swap support" $=
+				(
+					// See $2021-10 @ %Documentation::Workflow.
+					+ 'long long ll;',
+					+ 'unsigned long long ull;',
+					+ 'double d;',
+					+ 'long double ld;'
+				)
+			),
+			/ "default argument" @ "traits %(any_ops::is_in_place_storable, \
+				any::(opt_in_place_t, allocated_value_handler_t, \
+				allocated_holder_handler_t))" $since b926
+				// Although this should usually be beta-eta-equivalent beteewn \
+					the metafunction applications of \
+					%ystdex::is_bitwise_swappable with or without '::type' \
+					(since they are lazy), it should be better with the nest \
+					'type' for better conceptual treatment.
+				$= (/ $impl "default argument" ^ "%_t"),
+		),
+		* "missing wrapping checks when the alignment is greater than 1"
+			@ 'YB_Impl_aligned_new' @ "member function \
+			%pmr::new_delete_resource::do_allocate" @ %MemoryResource
+			$since b843
+			// This also eliminate G++ warning: [-Walloc-size-larger-than=] \
+				when this function is effectively inlined (by LTO, etc.).
+	),
+	/ %YFramework $=
+	(
+		/ @ "class %Terminal" %YCLib.Host $=
+		(
+			* "'tput setaf' command construction" $since b921,
+				// Also to eliminate Clang++ 12 warning: \
+					[-Wstring-plus-int].
+			* DLI "redundant private field" @ "ISO 6429 terminal data"
+				$since b921
+				// Also to eliminate Clang++ 12 warning: \
+					[-Wunused-private-field].
+		),
+		/ %YSLib $=
+		(
+			/ %Core.YObject $=
+			(
+				+ 'using ystdex::make_any;',
+				+ "6 constructor templates with %any_ops::trivial_swap_t \
+					parameter" @ "class %ValueObject",
+				+ "9 function templates %EmplaceCallResult with \
+					%any_ops::trivial_swap_t parameter",
+				+ DLI 'YB_PURE' @ "member function %ValueObject::type"
+			),
+			* $comp "potential ill-formed constructions" @ "member functions \
+				%MUIContainer::(begin, end)" @ %UI.YUIContainer $since b926,
+				$dep_from "any iterator trivial swap support"
+				// See $2021-10 @ %Documentation::Workflow.
+		),
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				+ 'using YSLib::make_any;' $dep_from %YSLib.Core.YObject,
+				+ "function template %EmplaceLeaf with \
+					%any_ops::trivial_swap_t parameter"
+					$dep_from ("class %ValueObject" @ %YFramework.YSLib.Core),
+				* DD "missing '//@{' and '//@}' around the group members \
+					for '\ingroup BindingAccess'" @ "Doxygen comments"
+					$since b914,
+				+ "3 functions %ToBindingsAllocator"
+			),
+			/ %NPLA1 $=
+			(
+				/ @ "namespace %A1" $=
+				(
+					+ "2 constructor template %FormContextHandler with \
+						%any_ops::trivial_swap_t parameter",
+					(
+					+ "metafunction %WrapContextHandlerTarget";
+					/ DLDI "simplified function templates %WrapContextHandler",
+					+ "6 function template %WarpContextHandler with \
+						%any_ops::trivial_swap_t parameter"
+						$dep_to "trivially swap wrapped context handler"
+					),
+					/ DLI ^ "allocator for %ContextHandler initialization"
+						@ "function template %RegisterHandler"
+						^ $dep_from ("%ToBindingsAllocator" @ %NPLA)
+				),
+				+ $re_add(b926) $lib "class template specializations \
+					%is_bitwise_swappable"
+					@ "%NPL::A1::(WrappedContextHandler, FormContextHandler)"
+					@ "namespace %ystdex",
+			),
+			/ %NPLA1Forms $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					/ ("unary constructor" -> "constructor template with \
+						parameter pack") @ "classes %(UnaryExpansion, \
+						UnaryAsExpansion, BinaryExpansion, BinaryAsExpansion)",
+					/ ("function parameter" -> "parameter pack to initialize \
+						the function") @ "function templates %(RegisterUnary, \
+						RegisterBinary)",
+					+ "(function, function template) \
+						%EmplaceCallResultOrReturn with \
+						%any_ops::trivial_swap_t parameter" ^ $dep_from
+						("%EmplaceCallResult" @ %YSLib.Core.YObject),
+					/ @ "function %(Let, LetRef, LetRec, LetRecRef, \
+						LetAsterisk, LetAsteriskRef)" $=
+					(
+						* "wrong result when the binding is an empty list \
+							lvalue caused by missing clear the %Value data \
+							member of the term to store the body" $since b919;
+						+ $lib $impl "assertion to ensure the empty term layout"
+					)
+				),
+				/ $re_add(b926) $lib "class template specializations \
+					%is_bitwise_swappable" @ "classes %(EncapsulationBase, \
+					Encapsulation, Encapsulate, EncapsulateValue, \
+					Encapsulated, Decapsulate, UnaryExpansion, \
+					UnaryAsExpansion, BinaryExpansion, BinaryAsExpansion)"
+					@ "namespace %ystdex"
+			),
+			/ DLI %Dependency $=
+			(
+				/ $re_add(b926) "registration calls of all context handler \
+					not specialized for %is_bitwise_swappable"
+					^ "any_ops::trivial_swap_t" $dep_from
+					("%FormContextHandler constructors" @ %NPLA1,
+					"trivially swap wrapped context handler",
+					"%Forms::(RegisterUnary, RegisterBinary)" @ %NPLA1Forms),
+				/ "native derivation" @ "applicative 'promise?'"
+					@ "function %LoadModule_std_promises"
+					^ ('YB_LAMBDA_ANNOTATE', 'ynothrow', 'pure'),
+			),
+			/ $re_ex(b869, b871) DLDI "renamed internal resolved 'TermNode&' \
+				variable names" ^ 'nd' ~ 'tm' $effective
+				@ %("%LoadModule_std_promises" @ Dependency,
+				"%Forms::Not" @ %NPLA1Forms),
+			/ $re_add(b869) DLDI "renamed internal 'TermNode&' parameter names \
+				for %RegisterUnary" $effective @ ("functions \
+				%(LoadGroundContext, LoadModule_std_promises)" @ %Dependency)
+		)
+	)
+),
+
+b927
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -250,7 +471,8 @@ $now
 				// See $2021-08 @ %Documentation::Workflow. The performance \
 					should be similar to the implementation without \
 					'any_ops::is_in_place_storable' fix, although calls to \
-					%A1::RelayCurrentOrDirect in %TailCall are not touched yet.
+					%A1::RelayCurrentOrDirect in %(NonTailCall, TailCall) are \
+					not touched yet.
 				/ $lib "optimized %RelaySwitched calls"
 					^ "%any_ops::trivial_swap" $effective @ ("member function \
 					%ContextNode::SaveExceptionHandler" @ %NPLA, "function \
@@ -336,11 +558,12 @@ $now
 					^ "%any_ops::trivial_swap" $dep_from %YSLib.Core.YEvent))
 		)
 	),
-	+ "%is_bitwise_swappable specialization" @ "namespace %ystdex"
-		$dep_from ("%is_bitwise_swappable" @ %YBase.YStandardEx.Placement)
-		$dep_to "bitwise swappable specializations" $=
+	+ $lib "class template specializations %is_bitwise_swappable"
+		@ "namespace %ystdex" $dep_from ("%is_bitwise_swappable"
+		@ %YBase.YStandardEx.Placement) $dep_to
+		"bitwise swappable specializations"
+		@ (
 		// To warrant bitwise-swappable guarantees for existing types.
-	(
 		// %(lref, observer_ptr), the primary template of \
 			%is_bitwise_swappable is enough.
 		("%tagged_value" @ %Placement, "%boxed_value" @ Utility,

@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r1135
+\version r1142
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2021-08-01 11:22 +0800
+	2021-09-26 04:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -372,7 +372,7 @@ HasPTY(::HANDLE h) ynothrow
 		// XXX: The prefix L"\\Device\\NamedPipe\\", the number of digits and
 		//	the suffix are not checked for simplicity and compatibility in
 		//	future (although the name scheme should not be likely to change
-		//	without sufficient reasons.
+		//	without sufficient reasons).
 		return (std::wcsstr(s, L"msys-") || std::wcsstr(s, L"cygwin-"))
 			&& std::wcsstr(s, L"-pty");
 	}
@@ -454,9 +454,9 @@ public:
 	//! \since build 560
 	YB_ATTR_nodiscard PDefH(bool, UpdateForeColor, std::uint8_t c) ynothrow
 		ImplI(ATerminalData)
-		ImplRet(ExecuteCachedCommand("tput setaf " + ('0' + cmap[c & 7]))
-			&& (c < ystdex::underlying(YSLib::Consoles::DarkGray)
-			|| ExecuteCachedCommand("tput bold")))
+		ImplRet(ExecuteCachedCommand((yimpl(std::)string("tput setaf ")
+			+ char('0' + cmap[c & 7])).data()) && (c < ystdex::underlying(
+			YSLib::Consoles::DarkGray) || ExecuteCachedCommand("tput bold")))
 };
 
 bool
@@ -480,10 +480,6 @@ TPutTerminalData::ExecuteCachedCommand(string_view cmd) const
 
 class ISO6429TerminalData final : public ATerminalData
 {
-private:
-	//! \since build 567
-	std::FILE* stream;
-
 public:
 	ISO6429TerminalData(std::FILE* fp)
 		: ATerminalData(fp)

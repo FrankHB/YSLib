@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8809
+\version r8920
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2021-09-24 18:04 +0800
+	2021-09-28 12:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,12 +36,13 @@
 //	LiftOther, ValueNode, NPL::Deref, NPL::AsTermNode, std::make_move_iterator,
 //	IsBranch, std::next, ystdex::retry_on_cond, std::find_if,
 //	ystdex::exclude_self_params_t, YSLib::AreEqualHeld,
-//	ystdex::make_parameter_list_t, ystdex::make_function_type_t,
+//	ystdex::make_parameter_list_t, ystdex::make_function_type_t, ystdex::true_,
 //	ystdex::decay_t, ystdex::expanded_caller, std::is_constructible,
 //	ystdex::or_, string_view, TermTags, TokenValue, Environment, ParseResultOf,
 //	ByteParser, SourcedByteParser, ystdex::type_info, SourceInformation,
 //	std::integral_constant, SourceName, NPL::tuple, NPL::get,
-//	NPL::forward_as_tuple, ReaderState, YSLib::allocate_shared, true_;
+//	NPL::forward_as_tuple, ReaderState, YSLib::allocate_shared,
+//	ystdex::is_bitwise_swappable;
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, YSLib::GCombinerInvoker,
 //	YSLib::GDefaultLastValueInvoker;
 #include <ystdex/algorithm.hpp> // for ystdex::fast_any_of, ystdex::split;
@@ -856,12 +857,11 @@ ParseLeafWithSourceInformation(TermNode&, string_view,
 //@}
 
 
-//! \since build 751
-//@{
 /*!
 \brief 包装上下文处理器。
 \note 忽略被包装的上下文处理器可能存在的返回值，自适应默认返回规约结果。
 \warning 非虚析构。
+\since build 751
 */
 template<typename _func>
 class WrappedContextHandler
@@ -901,6 +901,24 @@ public:
 		DefSwap(ynothrow, WrappedContextHandler, swap(_x.Handler, _y.Handler))
 };
 
+//! \relates WrappedContextHandler
+//@{
+/*!
+\ingroup metafunction
+\since build 927
+*/
+template<typename _func, typename _tDst>
+// XXX: It is a hack to adjust the convertible result for the expanded caller
+//	here. It should have been implemented in %GHEvent, however types those
+//	cannot convert to expanded caller cannot be SFINAE'd out, otherwise it would
+//	cause G++ 5.4 crash with internal compiler error:
+//	"error reporting routines re-entered".
+using WrapContextHandlerTarget = ystdex::or_<std::is_constructible<typename
+	_tDst::BaseType, _func>, std::is_constructible<typename _tDst::BaseType,
+	ystdex::expanded_caller<typename _tDst::FuncType, ystdex::decay_t<_func>>>>;
+
+//! \since build 751
+//@{
 template<class _tDst, typename _func>
 YB_ATTR_nodiscard YB_PURE inline _tDst
 WrapContextHandler(_func&& h, ystdex::false_)
@@ -919,18 +937,10 @@ template<class _tDst, typename _func>
 YB_ATTR_nodiscard YB_PURE inline _tDst
 WrapContextHandler(_func&& h)
 {
-	using BaseType = typename _tDst::BaseType;
-
-	// XXX: It is a hack to adjust the convertible result for the expanded
-	//	caller here. It should have been implemented in %GHEvent, however types
-	//	those cannot convert to expanded caller cannot be SFINAE'd out,
-	//	otherwise it would cause G++ 5.4 crash with internal compiler error:
-	//	"error reporting routines re-entered".
-	return A1::WrapContextHandler<_tDst>(yforward(h), ystdex::or_<
-		std::is_constructible<BaseType, _func>,
-		std::is_constructible<BaseType, ystdex::expanded_caller<
-		typename _tDst::FuncType, ystdex::decay_t<_func>>>>());
+	return A1::WrapContextHandler<_tDst>(yforward(h),
+		WrapContextHandlerTarget<_func, _tDst>());
 }
+//@}
 //! \since build 886
 //@{
 template<class _tDst, typename _func, class _tAlloc>
@@ -951,13 +961,55 @@ template<class _tDst, typename _func, class _tAlloc>
 YB_ATTR_nodiscard YB_PURE inline _tDst
 WrapContextHandler(_func&& h, const _tAlloc& a)
 {
-	using BaseType = typename _tDst::BaseType;
-
-	// XXX: Ditto
-	return A1::WrapContextHandler<_tDst>(yforward(h), a, ystdex::or_<
-		std::is_constructible<BaseType, _func>,
-		std::is_constructible<BaseType, ystdex::expanded_caller<
-		typename _tDst::FuncType, ystdex::decay_t<_func>>>>());
+	return A1::WrapContextHandler<_tDst>(yforward(h), a,
+		WrapContextHandlerTarget<_func, _tDst>());
+}
+//@}
+//! \since build 927
+//@{
+template<class _tDst, typename _func>
+YB_ATTR_nodiscard YB_PURE inline _tDst
+WrapContextHandler(any_ops::trivial_swap_t, _func&& h, ystdex::false_)
+{
+	return WrappedContextHandler<YSLib::GHEvent<ystdex::make_function_type_t<
+		void, ystdex::make_parameter_list_t<typename _tDst::BaseType>>>>(
+		any_ops::trivial_swap, yforward(h));
+}
+template<class, typename _func>
+YB_ATTR_nodiscard YB_PURE inline _func
+WrapContextHandler(any_ops::trivial_swap_t, _func&& h, ystdex::true_)
+{
+	return yforward(h);
+}
+template<class _tDst, typename _func>
+YB_ATTR_nodiscard YB_PURE inline _tDst
+WrapContextHandler(any_ops::trivial_swap_t, _func&& h)
+{
+	return A1::WrapContextHandler<_tDst>(any_ops::trivial_swap, yforward(h),
+		WrapContextHandlerTarget<_func, _tDst>());
+}
+template<class _tDst, typename _func, class _tAlloc>
+YB_ATTR_nodiscard YB_PURE inline _tDst
+WrapContextHandler(any_ops::trivial_swap_t, _func&& h, const _tAlloc& a,
+	ystdex::false_)
+{
+	return WrappedContextHandler<YSLib::GHEvent<ystdex::make_function_type_t<
+		void, ystdex::make_parameter_list_t<typename _tDst::BaseType>>>>(
+		std::allocator_arg, a, any_ops::trivial_swap, yforward(h));
+}
+template<class, typename _func, class _tAlloc>
+YB_ATTR_nodiscard YB_PURE inline _func
+WrapContextHandler(any_ops::trivial_swap_t, _func&& h, const _tAlloc&,
+	ystdex::true_)
+{
+	return yforward(h);
+}
+template<class _tDst, typename _func, class _tAlloc>
+YB_ATTR_nodiscard YB_PURE inline _tDst
+WrapContextHandler(any_ops::trivial_swap_t, _func&& h, const _tAlloc& a)
+{
+	return A1::WrapContextHandler<_tDst>(any_ops::trivial_swap, yforward(h), a,
+		WrapContextHandlerTarget<_func, _tDst>());
 }
 //@}
 //@}
@@ -990,12 +1042,26 @@ public:
 		: Handler(A1::WrapContextHandler<ContextHandler>(yforward(f))),
 		Wrapping(n)
 	{}
+	//! \since build 927
+	template<typename _func,
+		yimpl(typename = ystdex::exclude_self_t<FormContextHandler, _func>)>
+	FormContextHandler(any_ops::trivial_swap_t, _func&& f, size_t n = 0)
+		: Handler(A1::WrapContextHandler<ContextHandler>(any_ops::trivial_swap,
+		yforward(f))), Wrapping(n)
+	{}
 	//! \since build 886
 	template<typename _func, class _tAlloc>
 	FormContextHandler(std::allocator_arg_t, const _tAlloc& a, _func&& f,
 		size_t n = 0)
 		: Handler(std::allocator_arg, a, A1::WrapContextHandler<ContextHandler>(
 		yforward(f), a)), Wrapping(n)
+	{}
+	//! \since build 927
+	template<typename _func, class _tAlloc>
+	FormContextHandler(std::allocator_arg_t, const _tAlloc& a,
+		any_ops::trivial_swap_t, _func&& f, size_t n = 0)
+		: Handler(std::allocator_arg, a, A1::WrapContextHandler<ContextHandler>(
+		any_ops::trivial_swap, yforward(f), a)), Wrapping(n)
 	{}
 	//@}
 	//! \since build 757
@@ -1102,13 +1168,16 @@ enum WrappingKind : decltype(FormContextHandler::Wrapping)
 /*!
 \brief 注册一般形式上下文处理器。
 \pre 间接断言：第二参数的数据指针非空。
+\note 使用 ADL ToBindingsAllocator 。
 */
-//! \brief 注册一般形式上下文处理器。
 template<size_t _vWrapping = Strict, class _tTarget, typename... _tParams>
 inline void
 RegisterHandler(_tTarget& target, string_view name, _tParams&&... args)
 {
+	// XXX: Both %ContextHandler and %FormContexthandler are specialized enough
+	//	without %any_ops::trivial_swap.
 	NPL::EmplaceLeaf<ContextHandler>(target, name,
+		std::allocator_arg, ToBindingsAllocator(target),
 		FormContextHandler(yforward(args)..., _vWrapping));
 }
 //@}
@@ -2130,6 +2199,19 @@ namespace ystdex
 template<>
 struct is_bitwise_swappable<NPL::A1::Continuation> : true_
 {};
+
+//! \since build 927
+//@{
+//! \relates NPL::A1::WrappedContextHandler
+template<typename _func>
+struct is_bitwise_swappable<NPL::A1::WrappedContextHandler<_func>> : true_
+{};
+
+//! \relates NPL::A1::FormContextHandler
+template<>
+struct is_bitwise_swappable<NPL::A1::FormContextHandler> : true_
+{};
+//@}
 
 } // namespace ystdex;
 

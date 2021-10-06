@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012, 2015-2016, 2018-2019 FrankHB.
+	© 2012, 2015-2016, 2018-2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file integral_constant.hpp
 \ingroup YStandardEx
 \brief 整数类型常量。
-\version r1937
+\version r1947
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:36 +0800
 \par 修改时间:
-	2019-01-19 18:35 +0800
+	2021-10-05 18:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -209,24 +209,28 @@ struct nor_ : not_<or_<_bSeq...>>
 //@}
 
 
+//! \since build 723
 inline namespace cpp2017
 {
 
 /*!
 \ingroup YBase_replacement_features
+\ingroup traits
 \see WG21 P0013R1 。
 \see WG21 N4606 20.15.8[meta.logical] 。
-\since build 723
 */
 //@{
 template<class... _b>
-using conjunction = and_<_b...>;
+struct conjunction : and_<_b...>
+{};
 
 template<class... _b>
-using disjunction = or_<_b...>;
+struct disjunction : or_<_b...>
+{};
 
 template<class _b>
-using negation = not_<_b>;
+struct negation : not_<_b>
+{};
 //@}
 
 } // inline namespace cpp2017;

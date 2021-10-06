@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r21268
+\version r21289
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2021-09-25 14:49 +0800
+	2021-10-02 16:50 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -753,7 +753,7 @@ ReduceCurrentNextThunked(TermNode& term, ContextNode& ctx, _tParams&&... args)
 
 
 /*!
-\pre 最后一个参数的类型退化后满足可平凡交换。
+\pre 最后一个参数的类型退化后可平凡交换。
 \since build 821
 */
 template<typename _fNext>
@@ -784,6 +784,8 @@ ReduceSubsequentPinned(TermNode& term, ContextNode& ctx, _fNext&& next)
 //@{
 struct NonTailCall final
 {
+	//! \pre 最后一个参数的类型退化后可平凡交换。
+	//@{
 	template<typename _fCurrent>
 	YB_FLATTEN static inline ReductionStatus
 	RelayNextGuarded(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
@@ -826,7 +828,8 @@ struct NonTailCall final
 		RelaySwitched(ctx, any_ops::trivial_swap, std::move(act));
 		// XXX: %Continuation is specialized enough without
 		//	%any_ops::trivial_swap.
-		return A1::RelayCurrentNext(ctx, term, yforward(cur), std::move(cont));
+		return A1::RelayCurrentNext(ctx, term, any_ops::trivial_swap,
+			yforward(cur), std::move(cont));
 #else
 		yunused(gd);
 		RelayDirect(ctx, cur, term);
@@ -857,11 +860,11 @@ struct NonTailCall final
 			RelaySwitched(ctx, any_ops::trivial_swap, std::move(act));
 			// XXX: %Continuation is specialized enough without
 			//	%any_ops::trivial_swap.
-			return A1::RelayCurrentNext(ctx, term, yforward(cur),
-				std::move(cont));
+			return A1::RelayCurrentNext(ctx, term, any_ops::trivial_swap,
+				yforward(cur), std::move(cont));
 		}
-		return A1::RelayCurrentNext(ctx, term, yforward(cur),
-			any_ops::trivial_swap, std::move(act));
+		return A1::RelayCurrentNext(ctx, term, any_ops::trivial_swap,
+			yforward(cur), any_ops::trivial_swap, std::move(act));
 #else
 		yunused(gd);
 
@@ -870,6 +873,7 @@ struct NonTailCall final
 		return lift ? ReduceForLiftedResult(term) : res;
 #endif
 	}
+	//@}
 
 	//! \pre TCO 实现：当前动作非 TCO 动作。
 	static void
@@ -895,6 +899,8 @@ struct NonTailCall final
 
 struct TailCall final
 {
+	//! \pre 最后一个参数的类型退化后可平凡交换。
+	//@{
 	//! \pre TCO 实现：当前动作是 TCO 动作，且其中的当前项和被规约的项相同。
 	template<typename _fCurrent>
 	YB_FLATTEN static inline ReductionStatus
@@ -904,7 +910,8 @@ struct TailCall final
 		// XXX: See %NonTailCall::RelayNextGuarded.
 #if NPL_Impl_NPLA1_Enable_TCO
 		PrepareTCOEvaluation(ctx, term, std::move(gd));
-		return A1::RelayCurrentOrDirect(ctx, yforward(cur), term);
+		return A1::RelayCurrentOrDirect(ctx, any_ops::trivial_swap,
+			yforward(cur), term);
 #else
 		return NonTailCall::RelayNextGuarded(ctx, term, std::move(gd),
 			yforward(cur));
@@ -920,7 +927,8 @@ struct TailCall final
 		// XXX: See %NonTailCall::RelayNextGuardedLifted.
 #if NPL_Impl_NPLA1_Enable_TCO
 		PrepareTCOEvaluation(ctx, term, std::move(gd)).SetupLift();
-		return A1::RelayCurrentOrDirect(ctx, yforward(cur), term);
+		return A1::RelayCurrentOrDirect(ctx, any_ops::trivial_swap,
+			yforward(cur), term);
 #else
 		return NonTailCall::RelayNextGuardedLifted(ctx, term, std::move(gd),
 			yforward(cur));
@@ -935,12 +943,14 @@ struct TailCall final
 		// XXX: See %TailCall::RelayNextGuarded.
 #if NPL_Impl_NPLA1_Enable_TCO
 		PrepareTCOEvaluation(ctx, term, std::move(gd)).SetupLift(lift);
-		return A1::RelayCurrentOrDirect(ctx, yforward(cur), term);
+		return A1::RelayCurrentOrDirect(ctx, any_ops::trivial_swap, 
+			yforward(cur), term);
 #else
 		return NonTailCall::RelayNextGuardedProbe(ctx, term, std::move(gd),
 			lift, yforward(cur));
 #endif
 	}
+	//@}
 
 	static void
 	SetupForNonTail(ContextNode&, TermNode&) ynothrow
@@ -974,6 +984,8 @@ struct Combine final
 		// NOTE: The precondition is similar to the last call in
 		//	%EvalImplUnchecked in the presense of the assumption that %term is
 		//	from the current term saved in the context.
+		// XXX: The %std::reference_wrapper instance is specialized enough
+		//	without %any_ops::trivial_swap.
 		return _tTraits::RelayNextGuarded(ctx, term, std::move(gd),
 			std::ref(ReduceCombinedBranch));
 	}

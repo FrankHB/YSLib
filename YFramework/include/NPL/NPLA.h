@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r8475
+\version r8511
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2021-09-24 18:04 +0800
+	2021-09-28 08:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,6 +72,8 @@ using YSLib::any;
 using YSLib::bad_any_cast;
 //! \since build 851
 using YSLib::in_place_type;
+//! \since build 927
+using YSLib::make_any;
 //! \since build 598
 using YSLib::to_string;
 
@@ -2168,7 +2170,8 @@ using EnvironmentList = vector<ValueObject>;
 
 /*!
 \brief 环境。
-\warning 避免 shared_ptr 析构方式不兼容的初始化。
+\warning 应避免和 shared_ptr 析构方式不兼容的初始化。
+\sa AllocateEnvironment
 \since build 787
 */
 class YF_API Environment : private ystdex::equality_comparable<Environment>
@@ -2186,9 +2189,14 @@ public:
 	using NameResolution
 		= pair<observer_ptr<BindingMap::mapped_type>, shared_ptr<Environment>>;
 	/*!
-	\brief 分配器类型。
+	\brief 绑定映射对象使用的分配器类型。
 	\note 支持 uses-allocator 构造。
 	\since build 847
+
+	支持 uses-allocator 构造，但因为初始化方式限制，不支持嵌套容器构造
+		（如使用 ystdex::uninitialized_construct_using_allocator ），
+		因此也不提供 \c get_allocator 。
+	注意绑定映射对象使用的分配器可和在所在的上下文中的分配器不一致。
 	*/
 	using allocator_type = BindingMap::allocator_type;
 
@@ -3137,6 +3145,23 @@ SwitchToFreshEnvironment(ContextNode& ctx, _tParams&&... args)
 */
 
 //! \ingroup BindingAccess
+//@{
+/*!
+\brief 取参数蕴含的绑定映射对象的分配器。
+\since build 927
+*/
+//@{
+YB_ATTR_nodiscard YB_PURE inline PDefH(Environment::allocator_type,
+	ToBindingsAllocator, const Environment::BindingMap& m) ynothrow
+	ImplRet(m.get_allocator())
+YB_ATTR_nodiscard YB_PURE inline PDefH(Environment::allocator_type,
+	ToBindingsAllocator, const Environment& env) ynothrow
+	ImplRet(NPL::ToBindingsAllocator(env.Bindings))
+YB_ATTR_nodiscard YB_PURE inline PDefH(Environment::allocator_type,
+	ToBindingsAllocator, const ContextNode& ctx) ynothrow
+	ImplRet(NPL::ToBindingsAllocator(ctx.GetRecordRef()))	
+//@}
+
 /*!
 \brief 构造并向绑定目标添加叶节点值。
 \return 对应的值在构造前不存在。
@@ -3162,6 +3187,16 @@ EmplaceLeaf(Environment::BindingMap& m, string_view name, _tParams&&... args)
 	// NOTE: The following code is incorrect because the subterms are not
 	//	cleared, as well as lacking of %bool return value of insertion result.
 //	m[name].Value.emplace<_type>(yforward(args)...);
+}
+//! \since build 927
+template<typename _type, typename... _tParams>
+inline bool
+EmplaceLeaf(Environment::BindingMap& m, string_view name,
+	any_ops::trivial_swap_t, _tParams&&... args)
+{
+	YAssertNonnull(name.data());
+	return ystdex::insert_or_assign(m, name, NPL::AsTermNode(m.get_allocator(),
+		any_ops::trivial_swap, in_place_type<_type>, yforward(args)...)).second;
 }
 template<typename _type, typename... _tParams>
 inline bool
@@ -3261,6 +3296,7 @@ ResolveEnvironment(const TermNode& term);
 //! \since build 909
 YB_ATTR_nodiscard YF_API pair<shared_ptr<Environment>, bool>
 ResolveEnvironment(TermNode& term);
+//@}
 //@}
 //@}
 

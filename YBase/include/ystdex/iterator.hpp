@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r6224
+\version r6227
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2021-09-24 02:41 +0800
+	2021-10-05 19:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "pointer.hpp" // for "iterator_op.hpp", iterator_operators_t,
 //	std::iterator_traits, is_bitwise_swappable, _t, pointer_classify, cond_t,
-//	and_, exclude_self_t, enable_if_convertible_t, *_tag,
+//	exclude_self_t, enable_if_convertible_t, and_, std::input_iterator_tag,
 //	ystdex::swap_dependent, YB_VerifyIterator, is_undereferenceable, yassume,
 //	yconstraint, random_access_iteratable;
 #include "type_op.hpp" // for first_tag, second_tag, std::tuple,
@@ -452,8 +452,8 @@ make_transform(_tIter&& i, _fTrans f)
 //! \since build 926
 template<typename _tIter, typename _fTrans, typename _tReference>
 struct is_bitwise_swappable<transformed_iterator<_tIter, _fTrans, _tReference>>
-	: is_bitwise_swappable<_fTrans>, is_bitwise_swappable<
-	typename transformed_iterator<_tIter, _fTrans, _tReference>::iterator_type>
+	: and_<is_bitwise_swappable<_fTrans>, is_bitwise_swappable<
+	typename transformed_iterator<_tIter, _fTrans, _tReference>::iterator_type>>
 {};
 //@}
 

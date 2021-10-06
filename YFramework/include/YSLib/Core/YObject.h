@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r6643
+\version r6817
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2021-09-24 18:04 +0800
+	2021-10-02 10:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,11 +38,12 @@
 //	ystdex::is_byte_allocator, ystdex::exclude_self_params_t, ystdex::as_const,
 //	YSLib::forward_as_tuple, ystdex::has_get_allocator, ystdex::is_sharing,
 //	ystdex::ref, ystdex::cond_t, ystdex::decay_t, ystdex::rebind_alloc_t,
-//	in_place_type_t, YSLib::make_observer, ystdex::copy_or_move,
-//	ystdex::pseudo_output, ystdex::is_bitwise_swappable;
+//	YSLib::make_observer, ystdex::copy_or_move, ystdex::pseudo_output,
+//	ystdex::is_bitwise_swappable;
 #include <ystdex/any.h> // for ystdex::any, ystdex::any_ops,
-//	ystdex::in_place_type, ystdex::in_place_type_t, ystdex::any_cast,
-//	ystdex::unchecked_any_cast, ystdex::unsafe_any_cast;
+//	ystdex::bad_any_cast, ystdex::in_place_type, ystdex::in_place_type_t,
+//	ystdex::any_cast, ystdex::unchecked_any_cast, ystdex::unsafe_any_cast,
+//	ystdex::make_any, any_ops::trivial_swap_t, any_ops::trivial_swap;
 #include <ystdex/typeindex.h> // for ystdex::type_info, ystdex::type_index;
 #include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
@@ -69,6 +70,9 @@ using ystdex::in_place_type_t;
 using ystdex::any_cast;
 using ystdex::unchecked_any_cast;
 using ystdex::unsafe_any_cast;
+
+//! \since build 927
+using ystdex::make_any;
 //@}
 //@}
 
@@ -1109,8 +1113,9 @@ public:
 	\brief 构造：使用对象引用。
 	\pre obj 可作为转移构造参数。
 	\note 使用 ValueHolder 实例视为持有者而不视为被初始化的值。
-	\since build 851
 	*/
+	//@{
+	//! \since build 851
 	template<typename _type,
 		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>),
 		yimpl(typename = ystdex::exclude_self_t<std::allocator_arg_t, _type>)>
@@ -1119,11 +1124,22 @@ public:
 		: content(any_ops::use_holder, in_place_type<add_vh_t<ystdex::decay_t<
 		_type>>>, yforward(obj))
 	{}
+	//! \since build 927
+	template<typename _type,
+		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>),
+		yimpl(typename = ystdex::exclude_self_t<std::allocator_arg_t, _type>)>
+	inline
+	ValueObject(any_ops::trivial_swap_t, _type&& obj)
+		: content(any_ops::trivial_swap, any_ops::use_holder,
+		in_place_type<add_vh_t<ystdex::decay_t<_type>>>, yforward(obj))
+	{}
+	//@}
 	/*!
 	\brief 构造：使用对象引用和分配器。
 	\pre obj 可作为转移构造参数。
-	\since build 899
 	*/
+	//@{
+	//! \since build 899
 	template<typename _type, class _tAlloc,
 		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
 	inline
@@ -1131,6 +1147,16 @@ public:
 		: ValueObject(std::allocator_arg, a,
 		in_place_type<ystdex::decay_t<_type>>, yforward(arg))
 	{}
+	//! \since build 927
+	template<typename _type, class _tAlloc,
+		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
+	inline
+	ValueObject(std::allocator_arg_t, const _tAlloc& a, any_ops::trivial_swap_t,
+		_type&& arg)
+		: ValueObject(std::allocator_arg, a, any_ops::trivial_swap,
+		in_place_type<ystdex::decay_t<_type>>, yforward(arg))
+	{}
+	//@}
 	//! \tparam _tParams 目标类型初始化参数类型。
 	//@{
 	/*!
@@ -1138,20 +1164,27 @@ public:
 	\pre _type 可被 _tParams 参数初始化。
 	*/
 	//@{
-	/*!
-	\brief 构造：使用对象初始化参数。
-	\since build 678
-	*/
+	//! \brief 构造：使用对象初始化参数。
+	//@{
+	//! \since build 678
 	template<typename _type, typename... _tParams>
 	explicit inline
 	ValueObject(in_place_type_t<_type>, _tParams&&... args)
 		: content(any_ops::use_holder,
 		in_place_type<ValueHolder<_type>>, yforward(args)...)
 	{}
-	/*!
-	\brief 构造：使用对象和分配器初始化参数。
-	\since build 853
-	*/
+	//! \since build 927
+	template<typename _type, typename... _tParams>
+	explicit inline
+	ValueObject(any_ops::trivial_swap_t, in_place_type_t<_type>,
+		_tParams&&... args)
+		: content(any_ops::trivial_swap, any_ops::use_holder,
+		in_place_type<ValueHolder<_type>>, yforward(args)...)
+	{}
+	//@}
+	//! \brief 构造：使用对象和分配器初始化参数。
+	//@{
+	//! \since build 853
 	template<typename _type, class _tAlloc, typename... _tParams>
 	inline
 	ValueObject(std::allocator_arg_t, const _tAlloc& a, in_place_type_t<_type>,
@@ -1163,13 +1196,26 @@ public:
 			alloc_holder_t<_type, _tAlloc>>::base::local_storage(),
 			"Non-local storage found.");
 	}
+	//! \since build 927
+	template<typename _type, class _tAlloc, typename... _tParams>
+	inline
+	ValueObject(std::allocator_arg_t, const _tAlloc& a, any_ops::trivial_swap_t,
+		in_place_type_t<_type>, _tParams&&... args)
+		: content(std::allocator_arg, a, any_ops::trivial_swap,
+		any_ops::use_holder, in_place_type<alloc_holder_t<_type, _tAlloc>>,
+		yforward(args)...)
+	{
+		static_assert(typename any::allocated_holder_handler_t<_tAlloc,
+			alloc_holder_t<_type, _tAlloc>>::base::local_storage(),
+			"Non-local storage found.");
+	}
+	//@}
 	//@}
 	//! \pre 持有者实现 IValueHolder 。
 	//@{
-	/*!
-	\brief 构造：使用持有者。
-	\since builld 783
-	*/
+	//! \brief 构造：使用持有者。
+	//@{
+	//! \since builld 783
 	template<typename _tHolder, typename... _tParams>
 	inline
 	ValueObject(any_ops::use_holder_t, in_place_type_t<_tHolder>,
@@ -1180,10 +1226,23 @@ public:
 		static_assert(ystdex::is_convertible<_tHolder&, IValueHolder&>(),
 			"Invalid holder found.");
 	}
+	//! \since builld 927
+	template<typename _tHolder, typename... _tParams>
+	inline
+	ValueObject(any_ops::trivial_swap_t, any_ops::use_holder_t,
+		in_place_type_t<_tHolder>, _tParams&&... args)
+		: content(any_ops::trivial_swap, any_ops::use_holder,
+		in_place_type<_tHolder>, yforward(args)...)
+	{
+		static_assert(ystdex::is_convertible<_tHolder&, IValueHolder&>(),
+			"Invalid holder found.");
+	}
+	//@}
 	/*!
 	\brief 构造：使用持有者和分配器。
-	\since builld 891
 	*/
+	//@{
+	//! \since builld 891
 	template<typename _tHolder, class _tAlloc, typename... _tParams>
 	inline
 	ValueObject(std::allocator_arg_t, const _tAlloc& a, any_ops::use_holder_t,
@@ -1194,6 +1253,19 @@ public:
 		static_assert(ystdex::is_convertible<_tHolder&, IValueHolder&>(),
 			"Invalid holder found.");
 	}
+	//! \since builld 927
+	template<typename _tHolder, class _tAlloc, typename... _tParams>
+	inline
+	ValueObject(std::allocator_arg_t, const _tAlloc& a, any_ops::trivial_swap_t,
+		any_ops::use_holder_t,
+		in_place_type_t<_tHolder>, _tParams&&... args)
+		: content(std::allocator_arg, a, any_ops::trivial_swap,
+		any_ops::use_holder, in_place_type<_tHolder>, yforward(args)...)
+	{
+		static_assert(ystdex::is_convertible<_tHolder&, IValueHolder&>(),
+			"Invalid holder found.");
+	}
+	//@}
 	//@}
 	//@}
 
@@ -1232,8 +1304,7 @@ public:
 	template<typename _type>
 	inline
 	ValueObject(_type* p, PointerTag)
-		: content(any_ops::use_holder,
-		in_place_type<PointerHolder<_type>>, p)
+		: content(any_ops::use_holder, in_place_type<PointerHolder<_type>>, p)
 	{}
 	/*!
 	\brief 构造：使用对象 unique_ptr 指针。
@@ -1560,7 +1631,7 @@ public:
 	\sa any::type
 	\since build 799
 	*/
-	YB_ATTR_nodiscard PDefH(const type_info&, type, ) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(const type_info&, type, ) const ynothrow
 		ImplRet(content.type())
 };
 
@@ -1593,6 +1664,8 @@ AccessPtr(const ValueObject& vo) ynothrow
 其它情形调用 ValueObject::emplace 。
 使用第三和第四参数分别指定非默认情形下不忽略值及使用赋值。
 */
+//@{
+//! \since build 863
 //@{
 template<typename _type, typename... _tParams>
 void
@@ -1659,6 +1732,80 @@ EmplaceCallResult(ValueObject& vo, _type&& res, const _tAlloc& a)
 	YSLib::EmplaceCallResult(vo, yforward(res), ystdex::not_<
 		std::is_same<ystdex::decay_t<_type>, ystdex::pseudo_output>>(), a);
 }
+//@}
+//! \since build 927
+//@{
+template<typename _type, typename... _tParams>
+void
+EmplaceCallResult(ValueObject&, any_ops::trivial_swap_t, _type&&,
+	ystdex::false_, _tParams&&...) ynothrow
+{}
+template<typename _type>
+inline void
+EmplaceCallResult(ValueObject& vo, any_ops::trivial_swap_t, _type&& res,
+	ystdex::true_, ystdex::true_)
+	ynoexcept_spec(vo = ValueObject(any_ops::trivial_swap, res))
+{
+	vo = ValueObject(any_ops::trivial_swap, res);
+}
+template<typename _type, class _tAlloc>
+inline void
+EmplaceCallResult(ValueObject& vo, any_ops::trivial_swap_t, _type&& res,
+	ystdex::true_, ystdex::true_, const _tAlloc&)
+	ynoexcept_spec(vo = ValueObject(any_ops::trivial_swap, res))
+{
+	// XXX: Ditto.
+	vo = ValueObject(any_ops::trivial_swap, res);
+}
+template<typename _type, class _tAlloc>
+inline void
+EmplaceCallResult(ValueObject& vo, any_ops::trivial_swap_t, _type&& res,
+	ystdex::true_, ystdex::false_, const _tAlloc& a)
+{
+	vo.emplace<ystdex::decay_t<_type>>(std::allocator_arg, a,
+		any_ops::trivial_swap, yforward(res));
+}
+template<typename _type>
+inline void
+EmplaceCallResult(ValueObject& vo, any_ops::trivial_swap_t, _type&& res,
+	ystdex::true_, ystdex::false_)
+{
+	vo.emplace<ystdex::decay_t<_type>>(any_ops::trivial_swap, yforward(res));
+}
+template<typename _type>
+inline void
+EmplaceCallResult(ValueObject& vo, any_ops::trivial_swap_t, _type&& res,
+	ystdex::true_)
+{
+	YSLib::EmplaceCallResult(vo, any_ops::trivial_swap, yforward(res),
+		ystdex::true_(), std::is_same<ystdex::decay_t<_type>, ValueObject>());
+}
+template<typename _type, class _tAlloc>
+inline void
+EmplaceCallResult(ValueObject& vo, any_ops::trivial_swap_t, _type&& res,
+	ystdex::true_, const _tAlloc& a)
+{
+	YSLib::EmplaceCallResult(vo, any_ops::trivial_swap, yforward(res),
+		ystdex::true_(), std::is_same<ystdex::decay_t<_type>, ValueObject>(), a);
+}
+template<typename _type>
+inline void
+EmplaceCallResult(ValueObject& vo, any_ops::trivial_swap_t, _type&& res)
+{
+	YSLib::EmplaceCallResult(vo, any_ops::trivial_swap, yforward(res),
+		ystdex::not_<
+		std::is_same<ystdex::decay_t<_type>, ystdex::pseudo_output>>());
+}
+template<typename _type, class _tAlloc>
+inline void
+EmplaceCallResult(ValueObject& vo, any_ops::trivial_swap_t, _type&& res,
+	const _tAlloc& a)
+{
+	YSLib::EmplaceCallResult(vo, any_ops::trivial_swap, yforward(res),
+		ystdex::not_<
+		std::is_same<ystdex::decay_t<_type>, ystdex::pseudo_output>>(), a);
+}
+//@}
 //@}
 
 template<typename _type, typename... _tParams>

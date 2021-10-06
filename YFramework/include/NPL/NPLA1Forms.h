@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8421
+\version r8548
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2021-08-11 12:11 +0800
+	2021-09-28 06:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,9 @@
 //	ystdex::make_expanded, std::ref, ystdex::invoke_nonvoid, TNIter,
 //	NPL::ResolveRegular, ystdex::make_transform, std::accumulate,
 //	std::placeholders::_2, ystdex::bind1, ContextNode,
-//	ystdex::equality_comparable, ystdex::examiners::equal_examiner, Environment;
+//	ystdex::equality_comparable, ystdex::exclude_self_params_t,
+//	ystdex::examiners::equal_examiner, Environment,
+//	ystdex::is_bitwise_swappable, ystdex::true_;
 
 namespace NPL
 {
@@ -272,6 +274,11 @@ namespace Forms
 YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(ReductionStatus,
 	EmplaceCallResultOrReturn, TermNode&, ReductionStatus status) ynothrow
 	ImplRet(status)
+//! \since build 927
+YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(ReductionStatus,
+	EmplaceCallResultOrReturn, TermNode&, any_ops::trivial_swap_t,
+	ReductionStatus status) ynothrow
+	ImplRet(status)
 template<typename _tParam, typename... _tParams, yimpl(
 	typename = ystdex::exclude_self_t<ReductionStatus, _tParam>)>
 YB_ATTR_nodiscard inline ReductionStatus
@@ -279,6 +286,18 @@ EmplaceCallResultOrReturn(TermNode& term, _tParam&& arg)
 {
 	// NOTE: By convention, the allocator is always provided by %term.
 	YSLib::EmplaceCallResult(term.Value, yforward(arg), term.get_allocator());
+	return ReductionStatus::Clean;
+}
+//! \since build 927
+template<typename _tParam, typename... _tParams, yimpl(
+	typename = ystdex::exclude_self_t<ReductionStatus, _tParam>)>
+YB_ATTR_nodiscard inline ReductionStatus
+EmplaceCallResultOrReturn(TermNode& term, any_ops::trivial_swap_t,
+	_tParam&& arg)
+{
+	// NOTE: Ditto.
+	YSLib::EmplaceCallResult(term.Value, any_ops::trivial_swap, yforward(arg), 
+		term.get_allocator());
 	return ReductionStatus::Clean;
 }
 //@}
@@ -487,9 +506,11 @@ struct UnaryExpansion
 {
 	_func Function;
 
-	//! \since build 787
-	UnaryExpansion(_func f)
-		: Function(std::move(f))
+	//! \since build 927
+	template<typename... _tParams, yimpl(typename
+		= ystdex::exclude_self_params_t<UnaryExpansion, _tParams...>)>
+	UnaryExpansion(_tParams&&... args)
+		: Function(yforward(args)...)
 	{}
 
 	/*!
@@ -518,9 +539,11 @@ struct UnaryAsExpansion
 {
 	_func Function;
 
-	//! \since build 787
-	UnaryAsExpansion(_func f)
-		: Function(std::move(f))
+	//! \since build 927
+	template<typename... _tParams, yimpl(typename
+		= ystdex::exclude_self_params_t<UnaryAsExpansion, _tParams...>)>
+	UnaryAsExpansion(_tParams&&... args)
+		: Function(yforward(args)...)
 	{}
 
 	/*!
@@ -553,9 +576,11 @@ struct BinaryExpansion
 {
 	_func Function;
 
-	//! \since build 787
-	BinaryExpansion(_func f)
-		: Function(std::move(f))
+	//! \since build 927
+	template<typename... _tParams, yimpl(typename
+		= ystdex::exclude_self_params_t<BinaryExpansion, _tParams...>)>
+	BinaryExpansion(_tParams&&... args)
+		: Function(yforward(args)...)
 	{}
 
 	/*!
@@ -587,9 +612,11 @@ struct BinaryAsExpansion : private
 {
 	_func Function;
 
-	//! \since build 787
-	BinaryAsExpansion(_func f)
-		: Function(std::move(f))
+	//! \since build 927
+	template<typename... _tParams, yimpl(typename
+		= ystdex::exclude_self_params_t<BinaryAsExpansion, _tParams...>)>
+	BinaryAsExpansion(_tParams&&... args)
+		: Function(yforward(args)...)
 	{}
 
 	/*!
@@ -626,6 +653,15 @@ RegisterUnary(_tTarget& target, string_view name, _func f)
 	A1::RegisterHandler<_vWrapping>(target, name,
 		UnaryExpansion<_func>(std::move(f)));
 }
+//! \since build 927
+template<size_t _vWrapping = Strict, typename _func, class _tTarget>
+inline void
+RegisterUnary(_tTarget& target, string_view name, any_ops::trivial_swap_t,
+	_func f)
+{
+	A1::RegisterHandler<_vWrapping>(target, name,
+		any_ops::trivial_swap, UnaryExpansion<_func>(std::move(f)));
+}
 template<size_t _vWrapping = Strict, typename _type, typename _func,
 	class _tTarget>
 inline void
@@ -633,6 +669,16 @@ RegisterUnary(_tTarget& target, string_view name, _func f)
 {
 	A1::RegisterHandler<_vWrapping>(target, name,
 		UnaryAsExpansion<_type, _func>(std::move(f)));
+}
+//! \since build 927
+template<size_t _vWrapping = Strict, typename _type, typename _func,
+	class _tTarget>
+inline void
+RegisterUnary(_tTarget& target, string_view name, any_ops::trivial_swap_t,
+	_func f)
+{
+	A1::RegisterHandler<_vWrapping>(target, name,
+		any_ops::trivial_swap, UnaryAsExpansion<_type, _func>(std::move(f)));
 }
 //@}
 
@@ -645,12 +691,31 @@ RegisterBinary(_tTarget& target, string_view name, _func f)
 	A1::RegisterHandler<_vWrapping>(target, name,
 		BinaryExpansion<_func>(std::move(f)));
 }
+//! \since build 927
+template<size_t _vWrapping = Strict, typename _func, class _tTarget>
+inline void
+RegisterBinary(_tTarget& target, string_view name, any_ops::trivial_swap_t,
+	_func f)
+{
+	A1::RegisterHandler<_vWrapping>(target, name,
+		any_ops::trivial_swap, BinaryExpansion<_func>(std::move(f)));
+}
 template<size_t _vWrapping = Strict, typename _type, typename _type2,
 	typename _func, class _tTarget>
 inline void
 RegisterBinary(_tTarget& target, string_view name, _func f)
 {
 	A1::RegisterHandler<_vWrapping>(target, name,
+		BinaryAsExpansion<_type, _type2, _func>(std::move(f)));
+}
+//! \since build 927
+template<size_t _vWrapping = Strict, typename _type, typename _type2,
+	typename _func, class _tTarget>
+inline void
+RegisterBinary(_tTarget& target, string_view name, any_ops::trivial_swap_t,
+	_func f)
+{
+	A1::RegisterHandler<_vWrapping>(target, name, any_ops::trivial_swap,
 		BinaryAsExpansion<_type, _type2, _func>(std::move(f)));
 }
 //@}
@@ -1946,6 +2011,67 @@ CallSystem(TermNode&);
 } // namesapce A1;
 
 } // namespace NPL;
+
+//! \since build 927
+namespace ystdex
+{
+
+//! \relates NPL::A1::EncapsulationBase
+template<>
+struct is_bitwise_swappable<NPL::A1::EncapsulationBase> : true_
+{};
+
+//! \relates NPL::A1::Encapsulation
+template<>
+struct is_bitwise_swappable<NPL::A1::Encapsulation> : true_
+{};
+
+//! \relates NPL::A1::Encapsulate
+template<>
+struct is_bitwise_swappable<NPL::A1::Encapsulate> : true_
+{};
+
+//! \relates NPL::A1::EncapsulateValue
+template<>
+struct is_bitwise_swappable<NPL::A1::EncapsulateValue> : true_
+{};
+
+//! \relates NPL::A1::Encapsulated
+template<>
+struct is_bitwise_swappable<NPL::A1::Encapsulated> : true_
+{};
+
+//! \relates NPL::A1::Decapsulate
+template<>
+struct is_bitwise_swappable<NPL::A1::Decapsulate> : true_
+{};
+
+//! \relates NPL::A1::UnaryExpansion
+template<typename _func>
+struct is_bitwise_swappable<NPL::A1::Forms::UnaryExpansion<_func>>
+	: is_bitwise_swappable<_func>
+{};
+
+//! \relates NPL::A1::UnaryAsExpansion
+template<typename _type, typename _func>
+struct is_bitwise_swappable<NPL::A1::Forms::UnaryAsExpansion<_type, _func>>
+	: is_bitwise_swappable<_func>
+{};
+
+//! \relates NPL::A1::BinaryExpansion
+template<typename _func>
+struct is_bitwise_swappable<NPL::A1::Forms::BinaryExpansion<_func>>
+	: is_bitwise_swappable<_func>
+{};
+
+//! \relates NPL::A1::BinaryAsExpansion
+template<typename _type, typename _type2, typename _func>
+struct is_bitwise_swappable<
+	NPL::A1::Forms::BinaryAsExpansion<_type, _type2, _func>>
+	: is_bitwise_swappable<_func>
+{};
+
+} // namespace ystdex;
 
 #endif
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2020 FrankHB.
+	© 2013-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,14 +10,14 @@
 
 /*!	\file Meta.txt
 \ingroup Documentation
-\brief 项目元标记。
-\version r1657
+\brief 项目元信息。
+\version r1669
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2020-12-24 12:01 +0800
+	2021-09-29 19:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -145,13 +145,14 @@ $term; // for terminology;
 $depr_clean; // for deprecated contents cleanup;
 $re($rev_list); // for same repeated operations;
 $re_add($rev_list); // for additional similar repeated operations;
-$re_ex($rev_list); // for repeated operations with evolution(update);
+$re_ex($rev_list); // for repeated operations with evolution (update);
 $resolve($inum_list); // for marking resolving issues;
 $resolve($rev_list); // for marking resolved issues (in the issue tracker);
 $revert($rev_list); // for actions reverting changes in previous revision(s), \
 	with all explicit modification and effection restored to the original state.
 $revert_ex($rev_list); // same for $revert except for the modification not \
-	reset to the original state;
+	reset to the original state and the modification can based on part of \
+	addition not originally introduced as an explicit modification;
 $workaround($inum_list); // for issues currently or temporarily cannot be \
 	resolved through a preferred clean way for certain reasons, but exist \
 	alternative ways to get being settled and work expectedly for outer \
@@ -185,7 +186,13 @@ DLB $dev $lib $build;
 
 $HISTORY:
 
-// Since b539, tracked issues are hosted on Bitbucket, see https://bitbucket.org/FrankHB/yslib/issues.
+// Since b539, tracked issues are hosted on Bitbucket. The tracker URL is
+//	https://bitbucket.org/FrankHB/yslib/issues. The issue checker is unavailable
+//	after the removal of Mercurial support in Bitbucket (see
+//	https://bitbucket.org/blog/sunsetting-mercurial-support-in-bitbucket). As a
+//	result, all issues are archived internally for historical interests.
+//	Currently the archive is not publicly available. New issues can be submit to
+//	OSDN tickets (https://osdn.net/ticket/newticket.php?group_id=12199).
 // These issues are referenced by 'issue #NUM' with NUM indicating issue number.
 //	See also '$inum' for the uses in the tags.
 // The issue tracker still uses '$RESOLVED_ENVIRONMENT_ISSUE' to mark the \

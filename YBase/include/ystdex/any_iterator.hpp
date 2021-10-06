@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r1472
+\version r1534
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2021-09-22 22:58 +0800
+	2021-10-05 18:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,10 +29,11 @@
 #define YB_INC_ystdex_any_iterator_hpp_ 1
 
 #include "any.h" // for "any.h", any_ops, cond_t, wrap_handler, _t, decay_t,
-//	ptrdiff_t, any, exclude_self_t, any_ops::with_handler_t, is_convertible,
-//	indirect_t, unwrap_ref_decay_t, remove_reference_t, is_bitwise_swappable;
-#include "iterator.hpp" // for is_undereferenceable, input_iteratable,
-//	std::unique_ptr, forward_iteratable, bidirectional_iteratable;
+//	ptrdiff_t, any, exclude_self_t, any_ops::with_handler_t, true_,
+//	is_convertible, indirect_t, unwrap_ref_decay_t, remove_reference_t,
+//	is_bitwise_swappable;
+#include "iterator_op.hpp" // for is_undereferenceable, input_iteratable,
+//	forward_iteratable, bidirectional_iteratable;
 
 namespace ystdex
 {
@@ -86,11 +87,12 @@ enum random_access_iteartor_op : op_code
 //@}
 
 
-//! \since build 743
+//! \since build 927
 //@{
 //! \note 迭代器引用可能是引用类型，函数类型或可能有 cv 限定符的对象类型。
-template<typename _type, typename _tReference>
-class iterator_handler : public wrap_handler<_type>::type
+template<typename _type, typename _tReference, class _bStoredLocally
+	= bool_<is_in_place_storable<_type>::value>>
+class iterator_handler : public wrap_handler<_type, _bStoredLocally>::type
 {
 public:
 	//! \since build 355
@@ -136,8 +138,10 @@ public:
 };
 
 
-template<typename _type, typename _tReference>
-class input_iterator_handler : public iterator_handler<_type, _tReference>
+template<typename _type, typename _tReference, class _bStoredLocally
+	= bool_<is_in_place_storable<_type>::value>>
+class input_iterator_handler
+	: public iterator_handler<_type, _tReference, _bStoredLocally>
 {
 public:
 	//! \since build 355
@@ -148,7 +152,8 @@ public:
 private:
 	using iteratore_value_type
 		= typename std::iterator_traits<value_type>::value_type;
-	// XXX: The requirement on %reference is relaxed intentionally. See also https://stackoverflow.com/questions/53800391/iso-c-input-iterator-with-an-abstract-class-as-the-value-type.
+	// XXX: The requirement on %reference is relaxed intentionally. See also
+	//	https://stackoverflow.com/questions/53800391/iso-c-input-iterator-with-an-abstract-class-as-the-value-type.
 	//! \since build 848
 	static_assert(or_<and_<is_reference<_tReference>, or_<is_convertible<
 		_tReference, iteratore_value_type&>, is_convertible<_tReference,
@@ -179,7 +184,8 @@ public:
 };
 
 
-template<typename _type, typename _tReference>
+template<typename _type, typename _tReference, class _bStoredLocally
+	= bool_<is_in_place_storable<_type>::value>>
 class forward_iterator_handler
 	: public input_iterator_handler<_type, _tReference>
 {
@@ -198,7 +204,8 @@ public:
 };
 
 
-template<typename _type, typename _tReference>
+template<typename _type, typename _tReference, class _bStoredLocally
+	= bool_<is_in_place_storable<_type>::value>>
 class bidirectional_iterator_handler
 	: public forward_iterator_handler<_type, _tReference>
 {
@@ -261,10 +268,9 @@ public:
 
 	//! \since build 357
 	any_input_iterator() = default;
-	/*!
-	\brief 构造：使用现有迭代器。
-	\since build 675
-	*/
+	//! \brief 构造：使用现有迭代器。
+	//@{
+	//! \since build 675
 	template<typename _tIter,
 		yimpl(typename = exclude_self_t<any_input_iterator, _tIter>)>
 	any_input_iterator(_tIter&& i)
@@ -272,6 +278,15 @@ public:
 		any_ops::input_iterator_handler<decay_t<_tIter>, reference>>(),
 		yforward(i))
 	{}
+	//! \since build 927
+	template<typename _tIter,
+		yimpl(typename = exclude_self_t<any_input_iterator, _tIter>)>
+	any_input_iterator(any_ops::trivial_swap_t, _tIter&& i)
+		: any_input_iterator(any_ops::with_handler_t<
+		any_ops::input_iterator_handler<decay_t<_tIter>, reference, true_>>(),
+		yforward(i))
+	{}
+	//@}
 
 protected:
 	//! \since build 686
@@ -408,20 +423,25 @@ public:
 	using reference = _tReference;
 
 	any_forward_iterator() = default;
-	/*!
-	\brief 构造：使用现有迭代器。
-	\since build 686
-	*/
+	//! \brief 构造：使用现有迭代器。
+	//@{
+	//! \since build 686
 	template<typename _tIter,
 		yimpl(typename = exclude_self_t<any_forward_iterator, _tIter>)>
 	any_forward_iterator(_tIter&& i)
 		: any_forward_iterator(any_ops::with_handler_t<
 		any_ops::forward_iterator_handler<decay_t<_tIter>, reference>>(),
 		yforward(i))
-	{
-		static_assert(is_convertible<indirect_t<unwrap_ref_decay_t<_tIter>>,
-			reference>(), "Wrong target iterator type found.");
-	}
+	{}
+	//! \since build 927
+	template<typename _tIter,
+		yimpl(typename = exclude_self_t<any_forward_iterator, _tIter>)>
+	any_forward_iterator(any_ops::trivial_swap_t, _tIter&& i)
+		: any_forward_iterator(any_ops::with_handler_t<
+		any_ops::forward_iterator_handler<decay_t<_tIter>, reference, true_>>(),
+		yforward(i))
+	{}
+	//@}
 
 protected:
 	//! \since build 686
@@ -494,15 +514,25 @@ public:
 	using reference = _tReference;
 
 	any_bidirectional_iterator() = default;
-	/*!
-	\brief 构造：使用现有迭代器。
-	\since build 717
-	*/
+	//! \brief 构造：使用现有迭代器。
+	//@{
+	//! \since build 717
 	template<typename _tIter,
 		yimpl(typename = exclude_self_t<any_bidirectional_iterator, _tIter>)>
 	any_bidirectional_iterator(_tIter&& i)
-		: any_forward_iterator<_type, _tPointer, _tReference>(yforward(i))
+		: any_bidirectional_iterator(any_ops::with_handler_t<
+		any_ops::bidirectional_iterator_handler<decay_t<_tIter>, reference>>(),
+		yforward(i))
 	{}
+	//! \since build 927
+	template<typename _tIter,
+		yimpl(typename = exclude_self_t<any_bidirectional_iterator, _tIter>)>
+	any_bidirectional_iterator(any_ops::trivial_swap_t, _tIter&& i)
+		: any_bidirectional_iterator(any_ops::with_handler_t<
+		any_ops::bidirectional_iterator_handler<decay_t<_tIter>, reference,
+		true_>>(), yforward(i))
+	{}
+	//@}
 
 protected:
 	//! \since build 686

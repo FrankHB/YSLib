@@ -11,13 +11,13 @@
 /*!	\file list.hpp
 \ingroup YStandardEx
 \brief 列表容器。
-\version r1660
+\version r1675
 \author FrankHB <frankhb1989@gmail.com>
 \since build 864
 \par 创建时间:
 	2019-08-14 14:48:52 +0800
 \par 修改时间:
-	2021-07-06 23:24 +0800
+	2021-09-26 04:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,7 +42,8 @@ LWG 2839 ：允许自转移赋值。
 //	std::advance, ystdex::alloc_on_move, allocator_guard,
 //	allocator_guard_delete, ystdex::alloc_on_swap, ystdex::swap_dependent,
 //	std::allocator, is_object, is_unqualified, and_, is_allocator_for,
-//	ystdex::reverse_iterator, is_nothrow_constructible, less, ref_eq, equal_to;
+//	ystdex::reverse_iterator, is_nothrow_constructible, less, ref_eq, equal_to,
+//	is_bitwise_swappable;
 #include "base.h" // for noncopyable, nonmovable;
 #include "iterator_trait.hpp" // for enable_for_input_iterator_t;
 #include <algorithm> // for std::equal, std::lexicographical_compare;
@@ -1042,6 +1043,20 @@ public:
 
 } // namespace details;
 
+//! \since build 927
+//@{
+//! \relates details::list_iterator
+template<typename _type>
+struct is_bitwise_swappable<details::list_iterator<_type>> : true_
+{};
+
+//! \relates details::list_const_iterator
+template<typename _type>
+struct is_bitwise_swappable<details::list_const_iterator<_type>> : true_
+{};
+//@}
+
+
 /*!
 \ingroup YBase_replacement_features
 \brief 列表容器。
@@ -1088,8 +1103,8 @@ public:
 	using difference_type = typename rep_type::difference_type;
 	//! \note 实现定义：符合要求的未指定类型。
 	//@{
-	using iterator = typename rep_type::iterator;
-	using const_iterator = typename rep_type::const_iterator;
+	using iterator = yimpl(typename rep_type::iterator);
+	using const_iterator = yimpl(typename rep_type::const_iterator);
 	//@}
 	using reverse_iterator = ystdex::reverse_iterator<iterator>;
 	using const_reverse_iterator = ystdex::reverse_iterator<const_iterator>;

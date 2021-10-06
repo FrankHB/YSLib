@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r25651
+\version r25670
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2021-09-25 14:49 +0800
+	2021-10-02 16:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2324,7 +2324,7 @@ PrepareListExtract(TermNode& term)
 //@}
 
 /*!
-\pre 最后一个参数的类型满足可平凡交换。
+\pre 最后一个参数的类型退化后可平凡交换。
 \since build 925
 */
 template<typename _fNext>
@@ -2455,7 +2455,8 @@ LetCombineEmpty(TermNode& term, ContextNode& ctx, bool no_lift)
 	//	%FormContextHandler::CallN in NPLA1.cpp.
 	// NOTE: Subterms are unused arguments for the call (an empty list)
 	//	plus the parent in %Value, unused 'formals' for the lambda
-	//	abstraction (an empty list), unused 'bindings', trailing 'body'.
+	//	abstraction (an empty list), unused 'bindings' (an empty term),
+	//	trailing 'body'.
 	YAssert(term.size() >= 3, "Invalid nested call found.");
 
 	EnvironmentGuard gd(ctx, NPL::SwitchToFreshEnvironment(ctx));
@@ -2466,7 +2467,9 @@ LetCombineEmpty(TermNode& term, ContextNode& ctx, bool no_lift)
 
 	auto& body(*++++i);
 
-	body.ClearContainer();
+	// XXX: The unused 'bindings' may be an empty term or a term representing
+	//	the reference to an empty list if not cleanup before the call.
+	YAssert(IsEmpty(body), "Invalid term found");
 	CollectSubterms(body, term, ++i);
 	return LetCallBody(term, ctx, body, gd, no_lift);
 }
@@ -2564,14 +2567,14 @@ ReductionStatus
 LetEmpty(TermNode& term, ContextNode& ctx, bool no_lift, bool with_env)
 {
 	// NOTE: Subterms are the empty term, optional 'e',
-	//	unused originally bound 'bindings', trailing 'body'.
+	//	unused originally bound 'bindings' (an empty term), trailing 'body'.
 	YAssert(term.size() >= (with_env ? 3U : 2U), "Invalid nested call found.");
 	LetAddFormalsTerm(term, with_env);
 	// NOTE: This is required by %LetCombinePrepare.
 	term.begin()->Clear();
 	// NOTE: Now subterms are unused arguments for the call (an empty list),
 	//	optional 'e', unused 'formals' for the lambda abstraction
-	//	(an empty list), originally bound 'bindings', trailing 'body'.
+	//	(an empty list), unused 'bindings' (an empty term), trailing 'body'.
 	return LetCombinePrepare([&, no_lift]{
 		return LetCombineEmpty(term, ctx, no_lift);
 	}, term, ctx, with_env);
@@ -2632,7 +2635,10 @@ LetAsteriskImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 
 		// NOTE: Optimize by the fast path for cases of zero arguments.
 		if(IsEmpty(nd))
+		{
+			bindings.Clear();
 			return LetEmpty(term, ctx, no_lift, {});
+		}
 		if(p->IsMovable())
 			con.splice(con.begin(), nd.GetContainerRef(), nd.begin());
 		// NOTE: As %PrepareFoldRList.
@@ -2650,7 +2656,10 @@ LetAsteriskImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 	else if(const auto p_tr = NPL::TryAccessLeaf<TermRange>(bindings))
 	{
 		if(p_tr->empty())
+		{
+			bindings.Clear();
 			return LetEmpty(term, ctx, no_lift, {});
+		}
 		con.push_front(NPL::Deref(p_tr->First++));
 	}
 	else
@@ -2724,7 +2733,10 @@ LetOrRecImpl(TermNode& term, ContextNode& ctx,
 
 		// NOTE: Optimize by the fast path for cases of zero arguments.
 		if(IsEmpty(nd))
+		{
+			bindings.Clear();
 			return LetEmpty(term, ctx, no_lift, with_env);
+		}
 		if(p->IsMovable())
 			LetExpireChecked(forwarded, nd, p->GetEnvironmentReference(),
 				p->GetTags());
@@ -3274,9 +3286,9 @@ Unless(TermNode& term, ContextNode& ctx)
 bool
 Not(const TermNode& x)
 {
-	auto& tm(ReferenceTerm(x));
+	auto& nd(ReferenceTerm(x));
 
-	return IsLeaf(tm) && tm.Value == false;
+	return IsLeaf(nd) && nd.Value == false;
 }
 
 ReductionStatus

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2020 FrankHB.
+	© 2013-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r1616
+\version r1625
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2020-10-16 21:19 +0800
+	2021-09-26 04:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,7 +68,7 @@ namespace ystdex
 */
 //@{
 /*!
-\ingroup customization traits
+\ingroup customization_points
 \brief 路径特征。
 \sa path
 
@@ -219,7 +219,7 @@ template<typename _type>
 YB_ATTR_nodiscard yconstfn YB_PURE bool
 is_parent_or_self(const _type& s) ynothrow
 {
-	return path_traits<_type>::is_parent(s) || path_traits<_type>::is_self(s); 
+	return path_traits<_type>::is_parent(s) || path_traits<_type>::is_self(s);
 }
 
 
@@ -432,7 +432,7 @@ public:
 	\brief 追加路径。
 	\sa root_diverged
 
-	当参数为绝对路径或具有和 *this 相同的非空根名称时，替换路径；
+	当参数为绝对路径或具有和 \c *this 相同的非空根名称时，替换路径；
 		否则，顺序追加路径中的每个元素。
 	若需要特征以外的其它比较操作，可由用户代码单独根据根的判断。
 	*/
@@ -756,6 +756,12 @@ to_string_d(const path<_tSeqCon, _tTraits>& pth, typename string_traits<typename
 	}
 	return res;
 }
+
+//! \since build 927
+template<class _tSeqCon, class _tTraits>
+struct is_bitwise_swappable<path<_tSeqCon, _tTraits>>
+	: is_bitwise_swappable<_tSeqCon>
+{};
 //@}
 
 } // namespace ystdex;

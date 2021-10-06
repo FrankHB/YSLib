@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1509
+\version r1542
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2021-05-18 12:09 +0800
+	2021-10-06 06:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,25 +93,45 @@ new_delete_resource() ynothrow
 			{
 				// TODO: Record 'sizeof' value for debugging?
 				// TODO: Extract as %::operator new with extended alignment?
-				auto space(offset_n_t::value + bytes + alignment);
-				auto ptr(make_unique_default_init<byte[]>(space));
-				void* p(&ptr[offset_n_t::value]);
-
-				if(std::align(alignment, bytes, p, space))
+				// NOTE: The checks are necessary to prevent wrapping of the
+				//	results of '+'. See also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=19351.
+				if(bytes + alignment > bytes)
 				{
-					yassume(p);
-					yassume(static_cast<byte*>(p) >= ptr.get());
+					auto space(offset_n_t::value + bytes + alignment);
 
-					const auto off(size_t(static_cast<byte*>(p) - ptr.get()));
+					// NOTE: Ditto.
+					if(space > offset_n_t::value)
+					{
+						// XXX: Without the checks, there may be G++ warning:
+						//	[-Walloc-size-larger-than=] when this function is
+						//	effectively inlined (by LTO, etc.).
+						auto ptr(make_unique_default_init<byte[]>(space));
+						void* p(&ptr[offset_n_t::value]);
 
-					yassume(off >= offset_n_t::value);
+						if(std::align(alignment, bytes, p, space))
+						{
+							yassume(p);
+							yassume(static_cast<byte*>(p) >= ptr.get());
 
-					// XXX: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70834.
-					(::new(&ptr[off - offset_n_t::value]) hdr_t)->p_block
-						= ptr.get();
-					ptr.release();
-					return p;
+							const auto
+								off(size_t(static_cast<byte*>(p) - ptr.get()));
+
+							yassume(off >= offset_n_t::value);
+
+							// XXX: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70834.
+							(::new(&ptr[off - offset_n_t::value])
+								hdr_t)->p_block = ptr.get();
+							ptr.release();
+							return p;
+						}
+					}
 				}
+				// NOTE: If the wrapping checks fail or there is not suitable
+				//	aligned storage available, the allocation fails. No
+				//	exception matching %std::bad_array_new_length is thrown even
+				//	it is caused by the wrapping failure, since it is never
+				//	thrown in an allocation function in the default case
+				//	specified by ISO C++.
 				throw std::bad_alloc();
 			}
 			return ::operator new(bytes);

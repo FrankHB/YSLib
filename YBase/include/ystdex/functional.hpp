@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r4332
+\version r4380
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2021-09-24 05:19 +0800
+	2021-09-28 05:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,12 +29,12 @@
 #define YB_INC_ystdex_functional_hpp_ 1
 
 #include "functor.hpp" // for "ref.hpp", "invoke.hpp", <functional>,
-//	exclude_self_t, and_, addressof_op, less, mem_get, true_, false_, is_void,
+//	and_, exclude_self_t, addressof_op, less, mem_get, true_, false_, is_void,
 //	is_constructible, enable_if_t, std::allocator_arg_t, std::allocator_arg,
 //	is_nothrow_copy_constructible;
-#include "function.hpp" // for "function.hpp", std::tuple, index_sequence,
-//	index_sequence_for, is_nothrow_swappable, any_ops::trivial_swap_t,
-//	any_swap::trivial_swap, is_bitwise_swappable, common_nonvoid_t,
+#include "function.hpp" // for "function.hpp", is_bitwise_swappable, std::tuple,
+//	index_sequence, index_sequence_for, is_nothrow_swappable,
+//	any_ops::trivial_swap_t, any_swap::trivial_swap, common_nonvoid_t,
 //	make_index_sequence, as_function_type_t, equality_comparable;
 #include "swap.hpp" // for "swap.hpp", ystdex::swap_dependent;
 #include "apply.hpp" // for call_projection;
@@ -84,9 +84,10 @@ bind_forward(_func&& f, _func2&& f2, _tParams&&... args)
 }
 
 
-//! \since build 537
-//@{
-//! \brief 复合函数。
+/*!
+\brief 复合函数。
+\since build 537
+*/
 template<typename _func, typename _func2>
 struct composed
 {
@@ -106,11 +107,13 @@ struct composed
 	}
 };
 
+//! \relates composed
+//@{
 /*!
 \brief 函数复合。
 \note 最后一个参数最先被调用，可以为多元函数；其它被复合的函数需要保证有一个参数。
-\relates composed
 \return 复合的可调用对象。
+\since build 537
 */
 //@{
 template<typename _func, typename _func2>
@@ -128,12 +131,19 @@ compose(_func f, _func2 g, _func3 h, _funcs... args)
 	return ystdex::compose(ystdex::compose(f, g), h, args...);
 }
 //@}
+
+//! \since build 927
+template<typename _func, typename _func2>
+struct is_bitwise_swappable<composed<_func, _func2>>
+	: and_<is_bitwise_swappable<_func>, is_bitwise_swappable<_func2>>
+{};
 //@}
 
 
-//! \since build 735
-//@{
-//! \brief 多元分发的复合函数。
+/*!
+\brief 多元分发的复合函数。
+\since build 735
+*/
 template<typename _func, typename _func2>
 struct composed_n
 {
@@ -150,11 +160,13 @@ struct composed_n
 	}
 };
 
+//! \relates composed_n
+//@{
 /*!
 \brief 单一分派的多元函数复合。
 \note 第一参数最后被调用，可以为多元函数；其它被复合的函数需要保证有一个参数。
-\relates composed_n
 \return 单一分派的多元复合的可调用对象。
+\since build 735
 */
 //@{
 //! \since build 740
@@ -173,8 +185,18 @@ compose_n(_func f, _func2 g, _func3 h, _funcs... args)
 }
 //@}
 
+//! \since build 927
+template<typename _func, typename _func2>
+struct is_bitwise_swappable<composed_n<_func, _func2>>
+	: and_<is_bitwise_swappable<_func>, is_bitwise_swappable<_func2>>
+{};
+//@}
 
-//! \brief 多元复合函数。
+
+/*!
+\brief 多元复合函数。
+\since build 735
+*/
 template<typename _func, typename... _funcs>
 struct generalized_composed
 {
@@ -201,10 +223,12 @@ private:
 	}
 };
 
+//! \relates generalized_composed
+//@{
 /*!
 \brief 多元函数复合。
-\relates generalized_composed
 \return 以多元函数复合的可调用对象。
+\since build 735
 */
 template<typename _func, typename... _funcs>
 yconstfn generalized_composed<_func, std::tuple<_funcs...>>
@@ -213,6 +237,12 @@ generalized_compose(_func f, _funcs... args)
 	return generalized_composed<_func,
 		std::tuple<_funcs...>>{f, make_tuple(args...)};
 }
+
+//! \since build 927
+template<typename _func, typename... _funcs>
+struct is_bitwise_swappable<generalized_composed<_func, _funcs...>>
+	: and_<is_bitwise_swappable<_func>, is_bitwise_swappable<_funcs>...>
+{};
 //@}
 
 
@@ -392,7 +422,10 @@ struct one_shot<_func, void, void>
 };
 //@}
 
-//! \since build 926
+/*!
+\relates one_shot
+\since build 926
+*/
 //@{
 template<typename _func, typename _tRes, typename _tState>
 struct is_bitwise_swappable<one_shot<_func, _tRes, _tState>>

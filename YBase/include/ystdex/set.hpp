@@ -1,5 +1,5 @@
 ﻿/*
-	© 2016-2019 FrankHB.
+	© 2016-2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r1437
+\version r1439
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2019-09-05 14:58 +0800
+	2021-09-26 04:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -146,7 +146,7 @@ public:
 
 
 /*!
-\ingroup customization traits
+\ingroup customization_points
 \brief 映射值集合特征。
 \since build 844
 

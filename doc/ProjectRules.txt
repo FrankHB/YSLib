@@ -11,13 +11,13 @@
 /*!	\file ProjectRules.txt
 \ingroup Documentation
 \brief 项目组织和管理规则。
-\version r1241
+\version r1244
 \author FrankHB <frankhb1989@gmail.com>
 \since build 381
 \par 创建时间:
 	2013-02-14 17:59:49 +0800
 \par 修改时间:
-	2021-07-21 19:26 +0800
+	2021-09-29 19:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,7 +155,9 @@ API 功能规格说明；
 @2.2.2.1 产品版本号(product version number) ：
 不同的里程碑版本具有不同的产品版本号。
 项目构建中连续的历史版本具有和某个里程碑版本相同的产品版本号，作为追溯产品分支的依据之一。
-按 https://frankhb.github.io/YSLib-book/Release.zh-CN.html 的要求，产品版本号的默认格式为 Vx.y.z ，其中 x.y.z 使用语义化版本(semantic versioning) 约定。
+按 https://frankhb.github.io/YSLib-book/Releases.zh-CN.html 的要求，产品版本号的格式约定如下：
+默认格式为 Vx.y.z ，其中 x.y.z 使用语义化版本(semantic versioning) 约定；
+x.y.z 的形式中，作为后缀的 .0 或 .0.0 可省略。
 
 @2.2.3 发布(releasing) ：
 计划性的发布应存在存档的规划。具体约定的规划形式可使用计划(plan) 或路线图(roadmap) 。

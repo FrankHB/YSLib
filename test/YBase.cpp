@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2019 FrankHB.
+	© 2014-2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r685
+\version r692
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-10 05:09:57 +0800
 \par 修改时间:
-	2019-06-12 14:14 +0800
+	2021-09-26 00:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,6 +53,14 @@ show_result(std::ostream& out, const std::string& name, size_t pass_n,
 
 using namespace ystdex;
 using namespace ytest;
+
+//! \since build 926
+static_assert(is_bitwise_swappable<lref<yimpl(int)>>(),
+	"Invalid implementation found.");
+//! \since build 926
+static_assert(is_bitwise_swappable<observer_ptr<yimpl(int)>>(),
+	"Invalid implementation found.");
+
 //! \since build 833
 using std::vector;
 
