@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r4109
+\version r4121
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2021-08-31 00:57 +0800
+	2021-10-08 18:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,6 +86,12 @@ using YSLib::make_weak;
 using YSLib::observer_ptr;
 //! \since build 899
 using YSLib::tuple;
+//! \since build 928
+//@{
+using YSLib::type_id;
+using YSLib::type_index;
+using YSLib::type_info;
+//@}
 //! \since build 788
 using YSLib::weak_ptr;
 
@@ -677,18 +683,20 @@ YB_ATTR_nodiscard YB_PURE inline
 */
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(bool, IsRegular, const TermNode& nd) ynothrow
-	ImplRet(nd.empty() || !nd.Value)
+	ImplRet(IsLeaf(nd) || IsList(nd))
 //@}
 
+//! \since build 928
+using YSLib::IsTyped;
 /*!
 \brief 判断项节点的值数据成员具有指定的目标类型。
 \since build 924
 */
 template<typename _type>
-YB_ATTR_nodiscard YB_PURE inline bool
+YB_ATTR_nodiscard YB_ATTR(always_inline) YB_PURE inline bool
 IsTyped(const TermNode& nd)
 {
-	return nd.Value.type() == ystdex::type_id<_type>();
+	return IsTyped<_type>(nd.Value);
 }
 
 /*!
@@ -699,7 +707,7 @@ template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline bool
 IsTypedRegular(const TermNode& nd)
 {
-	return nd.empty() && IsTyped<_type>(nd);
+	return IsLeaf(nd) && IsTyped<_type>(nd);
 }
 
 /*!

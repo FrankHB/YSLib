@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r6817
+\version r6917
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2021-10-02 10:47 +0800
+	2021-10-12 00:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,26 +30,40 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YShellDefinition // for std::is_base_of,
-//	ystdex::exclude_tagged_params_t, ystdex::enable_if_t,
-//	ystdex::throw_invalid_construction, std::allocator_arg_t,
-//	std::allocator_arg, ystdex::false_, ystdex::true_,
-//	ystdex::boxed_value, ystdex::exclude_self_t, std::is_constructible,
-//	ystdex::default_init, ystdex::type_id, ystdex::is_allocatable,
-//	ystdex::is_byte_allocator, ystdex::exclude_self_params_t, ystdex::as_const,
-//	YSLib::forward_as_tuple, ystdex::has_get_allocator, ystdex::is_sharing,
-//	ystdex::ref, ystdex::cond_t, ystdex::decay_t, ystdex::rebind_alloc_t,
-//	YSLib::make_observer, ystdex::copy_or_move, ystdex::pseudo_output,
-//	ystdex::is_bitwise_swappable;
+//	std::allocator_arg_t, std::allocator_arg, std::is_constructible,
+//	std::addressof, YSLib::forward_as_tuple;
+#include <ystdex/typeindex.h> // for ystdex::type_id, ystdex::type_info,
+//	ystdex::type_index;
 #include <ystdex/any.h> // for ystdex::any, ystdex::any_ops,
 //	ystdex::bad_any_cast, ystdex::in_place_type, ystdex::in_place_type_t,
 //	ystdex::any_cast, ystdex::unchecked_any_cast, ystdex::unsafe_any_cast,
-//	ystdex::make_any, any_ops::trivial_swap_t, any_ops::trivial_swap;
-#include <ystdex/typeindex.h> // for ystdex::type_info, ystdex::type_index;
+//	ystdex::make_any, ystdex::exclude_tagged_params_t, any_ops::trivial_swap_t,
+//	any_ops::trivial_swap;
 #include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
+#include <ystdex/exception.h> // for ystdex::throw_invalid_construction;
+#include <ystdex/type_op.hpp> // for ystdex::false_, ystdex::true_,
+//	ystdex::enable_if_t, ystdex::exclude_self_t, ystdex::exclude_self_params_t,
+//	ystdex::decay_t;
+#include <ystdex/memory.hpp> // for ystdex::default_init,
+//	ystdex::is_allocatable, ystdex::is_byte_allocator,
+//	ystdex::has_get_allocator, ystdex::is_sharing, ystdex::rebind_alloc_t,
+//	YSLib::make_observer, ystdex::is_bitwise_swappable;
+#include <ystdex/utility.hpp> // for ystdex::boxed_value, ystdex::as_const,
+//	ystdex::copy_or_move;
+#include <ystdex/ref.hpp> // for ystdex::ref, ystdex::cond_t,
+//	ystdex::pseudo_output;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
 
 namespace YSLib
 {
+
+//! \since build 928
+using ystdex::type_id;
+//! \since build 683
+using ystdex::type_info;
+//! \since build 892
+using ystdex::type_index;
+
 
 //! \since build 850
 using ystdex::any;
@@ -77,10 +91,13 @@ using ystdex::make_any;
 //@}
 
 
-//! \since build 683
-using ystdex::type_info;
-//! \since build 892
-using ystdex::type_index;
+//! \since build 928
+template<typename _type>
+YB_ATTR_nodiscard YB_ATTR(always_inline) YB_PURE inline bool
+IsTyped(const type_info& ti)
+{
+	return ti == type_id<_type>();
+}
 
 
 //! \ingroup tags
@@ -475,9 +492,9 @@ private:
 		using ystdex::default_init;
 
 		YAssert(x.has_value(), "Invalid state found.");
-		YAssert(*x.unchecked_access<const type_info*>(
-			default_init, any_ops::get_allocator_type)
-			== ystdex::type_id<_tByteAlloc>(), "Invalid allocator found.");
+		YAssert(IsTyped<_tByteAlloc>(*x.unchecked_access<const type_info*>(
+			default_init, any_ops::get_allocator_type)),
+			"Invalid allocator found.");
 
 		return Deref(static_cast<const _tByteAlloc*>(
 			x.unchecked_access<void*>(default_init,
@@ -605,7 +622,7 @@ public:
 	//! \since build 683
 	YB_ATTR_nodiscard YB_PURE PDefH(const type_info&, type, ) const ynothrow
 		ImplI(IValueHolder)
-		ImplRet(ystdex::type_id<_type>())
+		ImplRet(type_id<_type>())
 };
 
 
@@ -646,9 +663,8 @@ public:
 
 	YB_ATTR_nodiscard YB_PURE PDefH(bool, Equals, const void* p) const
 		ImplI(IValueHolder)
-		ImplRet(bool(p) && base::type() == ystdex::type_id<value_type>()
-			&& AreEqualHeld(this->value,
-			Deref(static_cast<const value_type*>(p))))
+		ImplRet(bool(p) && IsTyped<value_type>(base::type) && AreEqualHeld(
+			this->value, Deref(static_cast<const value_type*>(p))))
 
 	//! \since build 900
 	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE PDefH(void*, get, ) const
@@ -657,7 +673,7 @@ public:
 
 	YB_ATTR_nodiscard YB_PURE PDefH(const type_info&, type, ) const ynothrow
 		override
-		ImplRet(ystdex::type_id<_type>())
+		ImplRet(type_id<_type>())
 };
 //@}
 
@@ -767,9 +783,8 @@ public:
 
 	YB_ATTR_nodiscard YB_PURE PDefH(bool, Equals, const void* p) const
 		ImplI(IValueHolder)
-		ImplRet(bool(p) && base::type() == ystdex::type_id<value_type>()
-			&& AreEqualHeld(this->value,
-			Deref(static_cast<const value_type*>(p))))
+		ImplRet(bool(p) && IsTyped<value_type>(base::type()) && AreEqualHeld(
+			this->value, Deref(static_cast<const value_type*>(p))))
 
 	//! \since build 900
 	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE PDefH(void*, get, ) const
@@ -780,7 +795,7 @@ public:
 
 	YB_ATTR_nodiscard YB_PURE PDefH(const type_info&, type, ) const ynothrow
 		override
-		ImplRet(ystdex::type_id<_type>())
+		ImplRet(type_id<_type>())
 };
 //@}
 
@@ -950,8 +965,8 @@ public:
 	//! \since build 683
 	YB_ATTR_nodiscard YB_PURE PDefH(const type_info&, type, ) const ynothrow
 		ImplI(IValueHolder)
-		ImplRet(!YSLib::IsNullPointer(p_held) ? ystdex::type_id<_type>()
-			: ystdex::type_id<void>())
+		ImplRet(!YSLib::IsNullPointer(p_held) ? type_id<_type>()
+			: type_id<void>())
 };
 
 
@@ -1012,7 +1027,7 @@ public:
 
 	YB_ATTR_nodiscard YB_PURE PDefH(const type_info&, type, ) const ynothrow
 		ImplI(IValueHolder)
-		ImplRet(ystdex::type_id<value_type>())
+		ImplRet(type_id<value_type>())
 };
 //@}
 
@@ -1279,13 +1294,12 @@ private:
 	{}
 
 public:
-	/*!
-	\brief 构造：使用无所有权的引用。
-	\since build 747
-	*/
+	//! \since build 928
+	//@{
+	//! \brief 构造：使用无所有权的引用。
 	template<typename _type>
 	inline
-	ValueObject(_type& obj, OwnershipTag<>)
+	ValueObject(_type& obj, OwnershipTag<>) ynothrow
 		: content(any_ops::use_holder,
 		in_place_type<RefHolder<_type>>, ystdex::ref(obj))
 	{
@@ -1297,26 +1311,24 @@ public:
 	\note 使用 PointerHolder 管理资源（默认使用 delete 释放资源）。
 	*/
 	//@{
-	/*!
-	\brief 构造：使用对象指针。
-	\since build 340
-	*/
+	//! \brief 构造：使用对象指针。
 	template<typename _type>
 	inline
-	ValueObject(_type* p, PointerTag)
+	ValueObject(_type* p, PointerTag) ynothrow
 		: content(any_ops::use_holder, in_place_type<PointerHolder<_type>>, p)
-	{}
-	/*!
-	\brief 构造：使用对象 unique_ptr 指针。
-	\since build 450
-	*/
+	{
+		static_assert(InPlaceStorable<PointerHolder<_type>>(),
+			"Suboptimal holder found.");
+	}
+	//! \brief 构造：使用对象 unique_ptr 指针。
 	template<typename _type>
 	inline
-	ValueObject(unique_ptr<_type>&& p, PointerTag)
+	ValueObject(unique_ptr<_type>&& p, PointerTag) ynothrow
 		: ValueObject(p.get(), PointerTag())
 	{
 		p.release();
 	}
+	//@}
 	//@}
 	//! \since build 332
 	DefDeCopyMoveCtorAssignment(ValueObject)
@@ -1503,7 +1515,7 @@ public:
 	Equals(const _type& x) const
 	{
 		if(const auto p_holder = content.get_holder())
-			return p_holder->type() == ystdex::type_id<_type>()
+			return IsTyped<_type>(p_holder->type())
 				&& EqualsRaw(std::addressof(x));
 		return {};
 	}
@@ -1640,6 +1652,14 @@ public:
 \since build 748
 */
 //@{
+//! \since build 928
+template<typename _type>
+YB_ATTR_nodiscard YB_ATTR(always_inline) YB_PURE inline bool
+IsTyped(const ValueObject& vo)
+{
+	return IsTyped<_type>(vo.type());
+}
+
 //! \since build 749
 //@{
 template<typename _type>
@@ -1653,6 +1673,31 @@ YB_ATTR_nodiscard YB_PURE inline observer_ptr<const _type>
 AccessPtr(const ValueObject& vo) ynothrow
 {
 	return vo.AccessPtr<_type>();
+}
+//@}
+
+/*!
+\brief 尝试访问指定类型对象指针。
+\exception 异常中立：由值数据成员的持有者抛出。
+\since build 928
+
+类似 AccessPtr ，但允许持有者在类型匹配时仍抛出异常，而不是返回空指针值。
+这样的持有者的例子如使用 weak_ptr 实例的 PointerHolder 。
+*/
+//@{
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
+TryAccessValue(ValueObject& vo)
+{
+	return IsTyped<_type>(vo) ? YSLib::make_observer(
+		std::addressof(vo.GetObject<_type>())) : nullptr;
+}
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE inline observer_ptr<const _type>
+TryAccessValue(const ValueObject& vo)
+{
+	return IsTyped<_type>(vo) ? YSLib::make_observer(
+		std::addressof(vo.GetObject<_type>())) : nullptr;
 }
 //@}
 

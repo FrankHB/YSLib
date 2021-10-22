@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013, 2015-2016, 2018-2020 FrankHB.
+	© 2012-2013, 2015-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file examiner.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作检测。
-\version r126
+\version r136
 \author FrankHB <frankhb1989@gmail.com>
 \since build 348
 \par 创建时间:
 	2012-10-17 01:21:01 +0800
 \par 修改时间:
-	2020-07-17 01:15 +0800
+	2021-10-11 19:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,7 +53,16 @@ struct equal
 	are_equal(_type&& x, _type2&& y)
 		ynoexcept_spec(bool(x == y)) -> decltype(bool(x == y))
 	{
+		// NOTE: Here it is nothing to do with the rounding errors.
+		// XXX: This is still neutral to signal NaNs.
+#if YB_IMPL_GNUCPP || YB_IMPL_CLANGCPP
+	YB_Diag_Push
+	YB_Diag_Ignore(float-equal)
+#endif
 		return bool(x == y);
+#if YB_IMPL_GNUCPP || YB_IMPL_CLANGCPP
+	YB_Diag_Pop
+#endif
 	}
 };
 

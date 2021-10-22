@@ -11,13 +11,13 @@
 /*!	\file Test.txt
 \ingroup Documentation
 \brief 测试项目说明。
-\version r336
+\version r357
 \author FrankHB <frankhb1989@gmail.com>
 \since build 597
 \par 创建时间:
 	2015-05-09 13:10:21 +0800
 \par 修改时间:
-	2021-07-21 19:26 +0800
+	2021-10-22 18:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,10 +103,12 @@ build 885 起 ΣA(i) = 7 ， ΣB(i) = 3 ， X = 10 。
 当前仅支持 YBase 。
 详见目录 /test 下的自述文件。
 
-@3 计划 GUI 测试项目 ShlExplorer ：
+@3 GUI 测试项目 ShlExplorer ：
+此测试项目的实现蕴含在 ShlReader(@4) 的命名空间中，不再单独实现。
+同时，当前 ShlExplorer 提供 ShlReader 的部分 GUI 功能，包括文件选择界面、主菜单和关于界面等。
 
 @3.1 基本部件测试：
-Label 、 Button 、 Window 等基本控件的静态显示。
+Label 、Button 、Window 等基本控件的静态显示。
 
 @3.2 隐含部件测试（非单独测试，作为正常功能集成使用）：
 Button 功能。
@@ -133,11 +135,26 @@ ProgressBar 功能。
 背景色变换。
 背景图像替换。
 
+@3.4.4 单项测试：
+测试入口位于 ShlReader(@4) 的菜单项的子项“测试”中，经菜单 Confirmed 事件触发。
+任意项目：
+对 Windows 平台，调用 DSMain 的测试。
+当前仅具有控制台输出，没有指派实质功能。
+GUI 测试：
+显示 GUI 测试面板。其中，包含基本测试、动画测试和附加测试选项卡。
+这些测试界面包含了本章前述节中的主要 GUI 测试。
+NPL 测试：
+关于 NPL([Documentation::NPL]) 的测试。
+初始化 REPL 环境并调用 NPLA1 测试代码。
+测试程序由 YSTest::Shells 实现，默认使用以下宏启用测试：
+YReader_Impl_TestNPL
+包含此测试的程序在任意平台链接的 YFramework::NPL 模块的代码。这同时用以验证包含 NPL 运行时库的静态二进制文件的大小符合预期。
+
 @4 DS 测试项目 ShlReader ：
 文本阅读器和十六进制阅读器。
 
 @4.1 文本浏览：
-支持 txt 、 c 、 cpp 、 ini 等后缀按文本打开。
+支持 txt 、c 、cpp 、ini 等后缀按文本打开。
 使用随机载入复杂度为 O(1) 的算法，缓冲时间和文本文件大小无关。
 
 @4.1.1 编码支持：
@@ -239,13 +256,13 @@ MinGW64 平台支持同上(@4.1.3.6) 。
 @5.1.1 DS ：
 
 @5.1.1.1 模拟环境测试：
-测试环境 Windows PC （同 @5.1.2 ） + DeSmuME(x86/x64) 0.9.6 或以上（含 SVN 版本）：
+测试环境 Windows PC（同 @5.1.2 ）+ DeSmuME(x86/x64) 0.9.6 或以上（含 SVN 版本）：
 所有 DS 的第一类支持的配置通过 PC 测试。
 
 @5.1.1.2 debug 配置限制：
 .nds 映像在装载到烧录卡时和程序的运行时共同使用 RAM 。
 因为 .nds 映像二进制大小增加（约 2 MiB ）使运行时可使用的 RAM 受限（小于 2 MiB ）导致测试主要功能上的潜在困难， build 598 起的 debug 版本降为第三类支持。
-事实上， build 527 起因为分配失败， debug 配置的程序已无法恢复切换 Shell 。
+事实上，build 527 起因为分配失败，debug 配置的程序已无法恢复切换 Shell 。
 
 @5.1.1.3 实机测试：
 以下版本（拟）通过 iDSL+DSTT 实机测试：

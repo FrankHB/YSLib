@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r3167
+\version r3236
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2021-08-01 03:26 +0800
+	2021-10-11 19:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -772,9 +772,9 @@ public:
 //@}
 
 using string = basic_string<char>;
+using wstring = basic_string<wchar_t>;
 using u16string = basic_string<char16_t>;
 using u32string = basic_string<char32_t>;
-using wstring = basic_string<wchar_t>;
 
 } // inline namesapce cpp2017;
 
@@ -1874,27 +1874,42 @@ arithmetic_to_wstring(unsigned val, true_)
 /*!
 \brief 转换为字符串：basic_string 的实例对象。
 \note 可与标准库的同名函数共用以避免某些类型转换警告，如 G++ 的 [-Wsign-promo] 。
-\since build 833
+\since build 928
 */
 //@{
-template<typename _type>
-YB_ATTR_nodiscard inline yimpl(enable_if_t)<is_arithmetic<_type>::value, string>
+template<class _tString = string, typename _type>
+YB_ATTR_nodiscard inline
+	yimpl(enable_if_t)<is_arithmetic<_type>::value, _tString>
 to_string(_type val)
 {
 	return details::arithmetic_to_string(val, details::excluded_tostr<_type>());
 }
-template<typename _type>
-YB_ATTR_nodiscard inline yimpl(enable_if_t)<is_enum<_type>::value, string>
+template<class _tString = string, typename _type>
+YB_ATTR_nodiscard inline
+	yimpl(enable_if_t)<is_arithmetic<_type>::value, _tString>
+to_string(_type val, typename _tString::allocator_type a)
+{
+	return _tString(ystdex::to_string(val), a);
+}
+template<class _tString = string, typename _type>
+YB_ATTR_nodiscard inline yimpl(enable_if_t)<is_enum<_type>::value, _tString>
 to_string(_type val)
 {
 	using ystdex::to_string;
 
 	return to_string(ystdex::underlying(val));
 }
-//! \since build 887
-template<typename _type, class _tStream = std::ostringstream,
-	class _tString = basic_string<typename _tStream::char_type,
-	typename _tStream::traits_type, typename _tStream::allocator_type>>
+template<class _tString = string, typename _type>
+YB_ATTR_nodiscard inline yimpl(enable_if_t)<is_enum<_type>::value, _tString>
+to_string(_type val, typename _tString::allocator_type a)
+{
+	using ystdex::to_string;
+
+	return to_string(ystdex::underlying(val), a);
+}
+template<class _tString = string, class _tStream = std::basic_ostringstream<
+	typename _tString::value_type, typename _tString::traits_type,
+	typename _tString::allocator_type>, typename _type>
 YB_ATTR_nodiscard yimpl(enable_if_t)<is_class<_type>::value,
 	_t<details::stream_str_det<_tStream, _tString>>>
 to_string(const _type& x)
@@ -1904,32 +1919,69 @@ to_string(const _type& x)
 	oss << x;
 	return oss.str();
 }
+template<class _tString = string, class _tStream = std::basic_ostringstream<
+	typename _tString::value_type, typename _tString::traits_type,
+	typename _tString::allocator_type>, typename _type>
+YB_ATTR_nodiscard yimpl(enable_if_t)<is_class<_type>::value,
+	_t<details::stream_str_det<_tStream, _tString>>>
+to_string(const _type& x, typename _tString::allocator_type a)
+{
+	_tString str(a);
+	// XXX: This copies the constructed string for %std::basic_ostringstream
+	//	until ISO C++20.
+	_tStream oss(std::move(str));
 
-template<typename _type>
+	oss << x;
+	return oss.str();
+}
+
+template<class _tString = wstring, typename _type>
 YB_ATTR_nodiscard inline
-	yimpl(enable_if_t)<is_arithmetic<_type>::value, wstring>
+	yimpl(enable_if_t)<is_arithmetic<_type>::value, _tString>
 to_wstring(_type val)
 {
 	return details::arithmetic_to_wstring(val, details::excluded_tostr<_type>());
 }
-template<typename _type>
-YB_ATTR_nodiscard inline yimpl(enable_if_t)<is_enum<_type>::value, wstring>
+template<class _tString = wstring, typename _type>
+YB_ATTR_nodiscard inline
+	yimpl(enable_if_t)<is_arithmetic<_type>::value, _tString>
+to_wstring(_type val, typename _tString::allocator_type a)
+{
+	return _tString(ystdex::to_wstring(val), a);
+}
+template<class _tString = wstring, typename _type>
+YB_ATTR_nodiscard inline yimpl(enable_if_t)<is_enum<_type>::value, _tString>
 to_wstring(_type val)
 {
 	using ystdex::to_wstring;
 
 	return to_wstring(ystdex::underlying(val));
 }
-template<typename _type, class _tStream = std::wostringstream,
-	class _tString = wstring>
+template<class _tString = wstring, typename _type>
+YB_ATTR_nodiscard inline yimpl(enable_if_t)<is_enum<_type>::value, _tString>
+to_wstring(_type val, typename _tString::allocator_type a)
+{
+	using ystdex::to_wstring;
+
+	return to_wstring(ystdex::underlying(val), a);
+}
+template<class _tString = wstring, class _tStream = std::basic_ostringstream<
+	typename _tString::value_type, typename _tString::traits_type,
+	typename _tString::allocator_type>, typename _type>
 YB_ATTR_nodiscard yimpl(enable_if_t)<is_class<_type>::value,
 	_t<details::stream_str_det<_tStream, _tString>>>
 to_wstring(const _type& x)
 {
-	_tStream oss;
-
-	oss << x;
-	return oss.str();
+	return ystdex::to_string<wstring>(x);
+}
+template<class _tString = wstring, class _tStream = std::basic_ostringstream<
+	typename _tString::value_type, typename _tString::traits_type,
+	typename _tString::allocator_type>, typename _type>
+YB_ATTR_nodiscard yimpl(enable_if_t)<is_class<_type>::value,
+	_t<details::stream_str_det<_tStream, _tString>>>
+to_wstring(const _type& x, typename _tString::allocator_type a)
+{
+	return ystdex::to_string<wstring>(x, a);
 }
 //@}
 

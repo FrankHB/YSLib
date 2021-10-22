@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r21127
+\version r21176
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2021-09-25 23:29 +0800
+	2021-10-22 18:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,10 +26,10 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA1Forms // for YSLib::type_index, NPL, lref, RelaySwitched,
-//	any_ops::trivial_swap, string_view, std::hash, ystdex::equal_to,
+#include YFM_NPL_NPLA1Forms // for NPL, lref, RelaySwitched,
+//	any_ops::trivial_swap, type_index, string_view, std::hash, ystdex::equal_to,
 //	YSLib::unordered_map, std::piecewise_construct, YSLib::lock_guard,
-//	YSLib::mutex, ystdex::type_id, ContextHandler, NPL::make_observer, IsBranch,
+//	YSLib::mutex, type_id, ContextHandler, NPL::make_observer, IsBranch,
 //	AllocatorHolder, ystdex::ref, YSLib::IValueHolder,
 //	YSLib::AllocatedHolderOperations, any, ystdex::as_const,
 //	NPL::forward_as_tuple, uintmax_t, ystdex::bind1, TokenValue, Forms,
@@ -48,9 +48,6 @@
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_Dependency // for A1::OpenUnique;
 #include <ystdex/exception.h> // for ystdex::unsupported;
-
-//! \since build 903
-using YSLib::type_index;
 
 namespace NPL
 {
@@ -121,7 +118,7 @@ PushActionsRange(EvaluationPasses::const_iterator first,
 			// XXX: By convention, no %SetupNextTerm call is needed here. Any
 			//	necessary next term setup is in the concrete action handler.
 			//	This avoids redundant calls if the action actually does know the
-			//	current term in from the argument is correct (e.g. the 1st
+			//	current term from the argument is correct (e.g. the 1st
 			//	action initialized by the call of
 			//	%ContextState::DefaultReduceOnce) or all previous actions are
 			//	known not to change the next term in the context. See
@@ -893,7 +890,8 @@ private:
 		{
 			auto& nd(p_t->get());
 
-			ystdex::update_thunk(act, [&, o_tags]{
+			ystdex::update_thunk(act, o.get_allocator(), any_ops::trivial_swap,
+				[&, o_tags]{
 				DispatchMatch(typename _tTraits::HasReferenceArg(), nd, o,
 					o_tags, r_env, ystdex::true_());
 			});
@@ -917,7 +915,8 @@ private:
 		{
 			// XXX: Use explicit captures here to ensure ISO C++20
 			//	compatibility.
-			ystdex::update_thunk(act, [this, i, j, last, tags, ellipsis,
+			ystdex::update_thunk(act, o_tm.get_allocator(),
+				any_ops::trivial_swap, [this, i, j, last, tags, ellipsis,
 #if NPL_Impl_NPLA1_AssertParameterMatch
 				t_end,
 #endif
@@ -937,7 +936,7 @@ private:
 		{
 			const auto& lastv(NPL::Deref(last).Value);
 
-			YAssert(lastv.type() == ystdex::type_id<TokenValue>(),
+			YAssert(lastv.type() == type_id<TokenValue>(),
 				"Invalid ellipsis sequence token found.");
 			BindTrailing(o_tm, j, lastv.GetObject<TokenValue>(), tags, r_env);
 #if NPL_Impl_NPLA1_AssertParameterMatch
@@ -1103,11 +1102,13 @@ ContextState::ContextState(pmr::memory_resource& rsrc)
 	: ContextNode(rsrc)
 {
 	// NOTE: The guard object shall be fresh on the calls for reentrancy.
-	Guard += [](TermNode&, ContextNode& ctx){
+	// XXX: The empty type is specialized enough without %any_ops::trivial_swap.
+	Guard += GuardPasses::HandlerType(std::allocator_arg, get_allocator(),
+		[](TermNode&, ContextNode& ctx){
 		// TODO: Support guarding for other states?
 		return A1::Guard(std::allocator_arg, ctx.get_allocator(),
 			in_place_type<ReductionGuard>, ctx);
-	};
+	});
 }
 ContextState::ContextState(const ContextState& ctx)
 	: ContextNode(ctx),
@@ -1476,8 +1477,7 @@ ParseLeaf(TermNode& term, string_view id)
 		YB_ATTR_fallthrough;
 	case LexemeCategory::Symbol:
 		if(CheckReducible(DefaultEvaluateLeaf(term, id)))
-			term.SetValue(in_place_type<TokenValue>, id,
-				term.get_allocator());
+			term.SetValue(in_place_type<TokenValue>, id, term.get_allocator());
 			// NOTE: This is to be evaluated as identifier later.
 		break;
 		// XXX: Empty token is ignored.
@@ -1583,23 +1583,23 @@ DefaultEvaluateLeaf(TermNode& term, string_view id)
 
 	if(ystdex::isdigit(f))
 	{
-		int ans(0);
+		long long ans(0);
 
 		for(auto p(id.begin()); p != id.end(); ++p)
 			if(ystdex::isdigit(*p))
 			{
-				if(unsigned((ans << 3) + (ans << 1) + *p - '0')
-					<= unsigned(INT_MAX))
+				if(static_cast<long long>((ans << 3) + (ans << 1) + *p - '0')
+					<= static_cast<long long>(INT_MAX))
 					ans = (ans << 3) + (ans << 1) + *p - '0';
 				else
-					ThrowInvalidSyntaxError(ystdex::sfmt("Value of"
-						" identifier '%s' is out of the range of the"
-						" supported integer.", id.data()));
+					ThrowInvalidSyntaxError(ystdex::sfmt("Value of identifier"
+						" '%s' is out of the range of supported integers.",
+						id.data()));
 			}
 			else
-				ThrowInvalidSyntaxError(ystdex::sfmt("Literal postfix is"
+				ThrowInvalidSyntaxError(ystdex::sfmt("Literal suffix is"
 					" unsupported in identifier '%s'.", id.data()));
-		term.Value = ans;
+		term.Value = int(ans);
 	}
 	else if(id == "#t" || id == "#true")
 		term.Value = true;
@@ -1918,9 +1918,15 @@ BindSymbol(const shared_ptr<Environment>& p_env, const TokenValue& n,
 void
 SetupDefaultInterpretation(ContextState& cs, EvaluationPasses passes)
 {
+	using Pass = EvaluationPasses::HandlerType;
+	const auto a(cs.get_allocator());
+
+	// XXX: Empty types and functions after decayed are specialized enough
+	//	without %any_ops::trivial_swap.
 #if true
 	// NOTE: This is an example of merged passes.
-	passes += [](TermNode& term, ContextNode& ctx) -> ReductionStatus{
+	passes += Pass(std::allocator_arg, a,
+		[](TermNode& term, ContextNode& ctx) -> ReductionStatus{
 		ReduceHeadEmptyList(term);
 		if(IsBranchedList(term))
 		{
@@ -1934,34 +1940,34 @@ SetupDefaultInterpretation(ContextState& cs, EvaluationPasses passes)
 				"eval-combine-operands"));
 		}
 		return ReductionStatus::Clean;
-	};
+	});
 #else
 #	if true
-	// XXX: Optimized based synchronous call of %ReduceHeadEmptyList.
-	passes += [](TermNode& term, ContextNode& ctx){
+	// XXX: Optimization based on the synchronous call of %ReduceHeadEmptyList.
+	passes += Pass(std::allocator_arg, a, [](TermNode& term, ContextNode& ctx){
 		ReduceHeadEmptyList(term);
 		if(IsBranchedList(term))
 			ContextState::Access(ctx).SetCombiningTermRef(term);
 		return ReduceFirst(term, ctx);
-	};
+	});
 #	else
-	passes += ReduceHeadEmptyList;
-	passes += [](TermNode& term, ContextNode& ctx){
+	passes += Pass(std::allocator_arg, a, ReduceHeadEmptyList);
+	passes += Pass(std::allocator_arg, a, [](TermNode& term, ContextNode& ctx){
 		if(IsBranchedList(term))
 			ContextState::Access(ctx).SetCombiningTermRef(term);
 		return ReductionStatus::Neutral;
-	};
-	passes += ReduceFirst;
+	});
+	passes += Pass(std::allocator_arg, a, ReduceFirst);
 #	endif
 	// TODO: Insert more optional optimized lifted form evaluation passes.
 	// NOTE: This implies the %RegularizeTerm call when necessary.
 	// XXX: This should be the last of list pass for current TCO
 	//	implementation, assumed by TCO action.
-	passes += ReduceCombined;
+	passes += Pass(std::allocator_arg, a, ReduceCombined);
 #endif
 	cs.EvaluateList = std::move(passes);
 	// NOTE: This implies the %RegularizeTerm call when necessary.
-	cs.EvaluateLeaf = ReduceLeafToken;
+	cs.EvaluateLeaf = Pass(std::allocator_arg, a, ReduceLeafToken);
 }
 
 void
@@ -1976,7 +1982,7 @@ SetupTailContext(ContextNode& ctx, TermNode& term)
 
 
 bool
-AddTypeNameTableEntry(const ystdex::type_info& ti, string_view sv)
+AddTypeNameTableEntry(const type_info& ti, string_view sv)
 {
 	YAssertNonnull(sv.data());
 
@@ -2001,9 +2007,9 @@ QueryContinuationName(const Reducer& act)
 	}
 #endif
 #if NPL_Impl_NPLA1_Enable_TCO
-	if(act.target_type() == ystdex::type_id<TCOAction>())
+	if(act.target_type() == type_id<TCOAction>())
 		return "eval-tail";
-	if(act.target_type() == ystdex::type_id<EvalSequence>())
+	if(act.target_type() == type_id<EvalSequence>())
 		return "eval-sequence";
 #endif
 	return QueryTypeName(act.target_type());
@@ -2029,7 +2035,7 @@ QueryTailOperatorName(const Reducer& act)
 {
 #if NPL_Impl_NPLA1_Enable_TCO
 	if(const auto p_act = act.target<TCOAction>())
-		if(p_act->OperatorName.type() == ystdex::type_id<TokenValue>())
+		if(p_act->OperatorName.type() == type_id<TokenValue>())
 			return NPL::make_observer(&p_act->OperatorName);
 #else
 	yunused(act);
@@ -2038,7 +2044,7 @@ QueryTailOperatorName(const Reducer& act)
 }
 
 string_view
-QueryTypeName(const ystdex::type_info& ti)
+QueryTypeName(const type_info& ti)
 {
 	const YSLib::lock_guard<YSLib::mutex> gd(NameTableMutex);
 	const auto& tbl(FetchNameTableRef<NPLA1Tag>());
@@ -2084,12 +2090,14 @@ TraceBacktrace(const ContextNode::ReducerSequence& backtrace,
 					// XXX: This is enabled for debugging only because the name
 					//	is not guaranteed steady.
 					ystdex::call_value_or([](const Continuation& cont)
-						-> const ystdex::type_info&{
+						-> const type_info&{
 						return cont.Handler.target_type();
 					}, act.target<Continuation>(), act.target_type()).name()
 #	endif
 				);
 				const auto p_opn_vo(QueryTailOperatorName(act));
+				// XXX: No %NPL::TryAccessValue is needed, since %p_opn_vo comes
+				//	from %TCOAction::OperatorName, which is not a term value.
 				const auto p_opn_t(p_opn_vo ? p_opn_vo->AccessPtr<TokenValue>()
 					: nullptr);
 

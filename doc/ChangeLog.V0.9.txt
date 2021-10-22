@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r5547
+\version r5790
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-10-06 08:49 +0800
+	2021-10-22 18:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,243 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ "function templates %(to_string, to_wstring)" @ %String $=
+		(
+			// The following changes are also more efficient in general.
+			/ "moved template parameter %_tString to the 1st place",
+				// It is more convenient to specify explicitly.
+			/ "deduced stream by the string" @ "overload#3"
+				~ "default arugment %std::basic_ostringstream";
+			+ "3 overloads with an allocator argument"
+		),
+		* "wrong %YB_STATELESS used" @ %TypeInfo $=
+		(
+			* $revert(b895) @ "class %type_id_info",
+			* $revert(b879) @ "function template %type_id"
+		),
+		+ $dev $lib "#pragma directive" @ 'YB_IMPL_GNUCPP || YB_IMPL_CLANGCPP'
+			@ "function template %are_equal" @ "struct %equal" @ %Examiner,
+			// To elimiante G++ and Clang++ warning: [-Wfloat-equal].
+		/ %Functional $=
+		(
+			+ DD '\ingroup functors' "Doxygen comment" @ "class templates \
+				%(composed, composed_n, generalized_composed, one_shot, \
+				expanded_caller, expanded_function)",
+			+ "3 function templates %update_thunk with allocator \
+				or %any_ops::trivial_swap_t parameters"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %YCommon $=
+			(
+				/ "member function %CommandArguments::ToVector" @ !'YCL_Win32'
+					^ "allocator specified on construction"
+					$dep_from "%constructor %CommandArguments",
+				* $dev $lib "wrong pragmas" @ 'YB_IMPL_CLANGPP' $since b689
+					$= (/ $impl 'pragma GCC'  -> 'pragma clang')
+					// Although not complained, "-Wweak-vtables" should be \
+						indeed Clang++ specific.
+			),
+			/ "function template %ComposeMessageWithSignature" @ %Debug
+				^ "ADL %to_std_string" ~ "ADL %to_string with %ystdex overloads"
+		),
+		/ %YSLib.Core.YObject $=
+		(
+			+ 'using ystdex::type_id;';
+			(
+			+ "function template %IsType with 'const type_info&' parameter";
+			/ DLDI "simplified" ^ "%IsType" $effective @ ("member function \
+				template %CreateHolder" @ "class template \
+				%AllocatedHolderOperations", "member function %Equal"
+				@ "class templates %(PolymorphicValueHolder, \
+				PolymorphicAllocatorHolder)"),
+			+ "function template %IsTyped with 'const ValueObject&' parameter"
+			),
+			/ DLDI "simplified 'ystdex::type_id'" -> 'type_id',
+				// As %type_info.
+			+ DLDI "header inclusions %YBase.YStandardEx.(Exception, \
+				TypeOperation, Memory, Utility, Ref)",
+				// Use public headers with public dependencies.
+			+ "2 function templates %TryAccessValue",
+			/ @ "constructors %ValueObject" $=
+			(
+				+ $re_add(b850) $dev $lib "static assertion of holder \
+					instances to ensure efficient allocation" @ "constructor \
+					%ValueObject with pointer parameter",
+				+ 'ynothrow' @ "constructos with parameter of pointer, \
+					%OwnershipTag or %unique_ptr instance"
+			)
+		),
+		/ %NPL $=
+		(
+			/ DLDI %SContext $=
+			(
+				/ "%IsRegular" ^ "%(IsLeaf, IsList)",
+				/ "%IsTypedRegular" ^ "%IsLeaf",
+				+ 'using YSLib::type_id'
+					$dep_from ("%YSLib::type_id" @ %YSLib.Core.YObject),
+				+ 'using YSLib::type_index',
+				+ 'using YSLib::type_info',
+				(
+				+ 'using YSLib::IsTyped'
+					$dep_from ("%IsTyped" @ %YSLib.Core.YObject);
+				/ DLDI "simplified function %IsTyped",
+				),
+				+ $dev $lib 'YB_ATTR(always_inline)' @ "function IsTyped"
+			),
+			+ DD '\ingroup functors' @ "Doxygen comment"
+				@ ("functor %ReferenceTermOp" @ %NPLA,
+				"functor %PassesCombiner" @ %NPLA1),
+			/ %NPLA $=
+			(
+				(
+				+ "functions %(ThrowTypeErrorForInvalidType, \
+					ThrowListTypeErrorForInvalidType) with 'const char*' \
+					parameter";
+				/ DLDI "simplified functions %(ThrowTypeErrorForInvalidType, \
+					ThrowListTypeErrorForInvalidType)#2"
+				),
+				(
+				+ "class template %TypedValueAccessor";
+				+ "function template %AccessTypedValue",
+				),
+				(
+				+ "class template %ResolvedArg";
+				+ "2 class template specializations %TypedValueAccessor for \
+					%ResolvedArg" $dep_from "%TypedValueAccessor"
+				),
+				(
+				+ 'using YSLib::TryAccessValue;'
+					$dep_from ("%TryAccessValue" @ %YSLib.Core.YObject);
+				/ DLDI "simplified %TryAccessLeaf" ^ "%TryAccessValue"
+				)
+			),
+			/ %NPLA1Forms $=
+			(
+				/ "supported customization" @ "all call sites of typed value \
+					accesses" ^ (($dep_from "%NPL::AccessTypedValue"
+					~ "%NPL::ResolveRegular") @ %NPLA) $effective
+					@ "%Forms::(CallUnaryAs, CallBinaryAs, CallBinaryFold)",
+					// Now the results can be xvalues. This is only done here, \
+						since other sites (in %Dependency) only uses the \
+						regular value.
+				* "several subterms unexpected skipped" @ "friend function \
+					%operator==" @ "class %Encapsulation"
+					$orig (@ "%Forms::MakeEncapsulationType" $since b904),
+				/ DLDI "simplified functions %Forms::(Wrap, WrapRef, WrapOnce, \
+					WrapOnceRef)"
+			),
+			/ $dev $lib "all 'ystdex::type_info'" -> 'type_info'
+				$dep_from ('using YSLib::type_info' @ %SContext)
+				$effective @ %(NPLA, NPLA1, NPLA1Forms),
+			/ $dev $lib "all 'ystdex::type_id'" -> 'type_id'
+				$dep_from ('using YSLib::type_id' @ %SContext)
+				$effective @ %(NPLA, NPLA1, NPLA1Forms, NPLA1Internals),
+			/ DLDI "simplified comparison to 'type_info' values" ^ ("%IsTyped"
+				$dep_from 'using YSLib::IsTyped;' @ %SContext)
+				~ ('==', '!=', 'type_id')
+				$effective @ %(NPLA, NPLA1, NPLA1Internals),
+			/ DLDI "all 'type_info' parameter name 'tp'" => 'ti'
+				$effective @ %(NPLA, NPLA1, NPLA1Internals),
+				// The name 'tp' is better fit for other arguments like tuples \
+					and touch positions.
+			/ DLDI "simplified" @ %NPLA1
+				$dep_from ('using YSLib::type_index;' @ %SContext),
+			/ %Dependency $=
+			(
+				/ DLI "simplified native implementation" @ (
+					"applicatives ('first-null?', 'nonfoldable?')"
+					@ "function %LoadGroundContext",
+					"applicatives ('string<-', 'string->symbol')"
+					@ "function %LoadModule_std_strings")
+					^ $dep_from ("%ResolvedArg" @ %NPLA),
+				/ DLDI "simplified native implementation" @ "applicatives \
+					('move!', 'transfer!')" @ "function %LoadGroundContext"
+					^ "%ystdex::bind" ~ "%std::(bind, placeholders::_1)",
+				* "wrong result" @ ("applicative %newline";
+					$comp "alternative derivation" @ "applicative %puts")
+					@ "function %LoadModule_std_io" $since b925
+					$= (/ $impl ^ "%ReduceReturnUnspecified")
+			),
+			/ %NPLA1 $=
+			(
+				/ @ "function %DefaultEvaluateLeaf" $=
+				(
+					* "wrong value upper bound for integers" $since b880,
+						// For 32-bit integers, 2147483647 should be \
+							supported, but it could not reach 2147483600.
+					/ "adjusted some exception messages"
+				),
+				/ DLI "internal trampoline action" ^ "allocator and \
+					%any_ops::trivial_swap" $dep_from
+					%YBase.YStandardEx.Functional,
+				/ DLI ("guard creation" @ "constructor %ContextState#1",
+					"handler creation" @ "function %SetupDefaultInterpretation")
+					^ "allocator",
+
+			)
+		)
+	),
+	/ %Tools.SHBuild.Main $=
+	(
+		/ DLI "enabled memory pool on resources except the command arguments \
+			vector" ^ "%ystdex::pmr::pool_resource" $dep_from %YCLib.YCommon,
+		- DLDI "redundant ','" @ "the end of option table initializer",
+		/ DLDI "simplified" ^ "%ystdex::bind1" ~ "%(std::bind, _1)",
+		/ @ "help message" $=
+		(
+			* "missing brackets around the optional 'ARGS...' after '--'"
+				@ "usage with 'SRCPATH'" $since b797,
+			+ "more concrete message for 'ARGS' parsing",
+			+ "description of the exit status",
+			(
+			/ "clarified accepted settings as environment variables";
+			- "environment variable syntax"
+				// This is external and shell-dependent.
+			)
+		),
+		* "mode name" @ "%Informative message before construction of the build"
+			@ "log messages" $since b905,
+		+ DLI 'YB_UNLIKELY' @ "'--' handling",
+		/ $re_add(b926) DLDI "all 'yconstexpr const'" @ "namespace scope"
+			-> 'yconstexpr_inline const',
+		/ DLI "function %RunNPLStream" ^ "any_ops::trivial_swap_t",
+		* DLDI "PMR container" @ "option table" $since b861,
+			// This is safe only when the allocator lives longer. This is the \
+				current case, so it is only a bug of the implementation. \
+				Although a global allocator can be added for the current \
+				program with only 1 translation unit (so the desctructor calls \
+				of the global objects can have a controlled order), better \
+				avoid it.
+		* DLDI "missing conditional inclusion with %SHBuild_UseBacktrace"
+			@ "guard declaration for backtrace cleanup" $since b925
+			// This had no effect because %SHBuild_UseBacktrace is true by \
+				default.
+	),
+	/ %YReader $=
+	(
+		/ %Shells $=
+		(
+			/ "updated %G_APP_VER" @ %Shells !^ 'PreAlpha',
+			+ "function %TestNPL"
+		),
+		/ @ "constructor %ShlExplorer" @ %ShlExplorer $=
+		(
+			/ "strings for tests" @ "test menu subitems",
+				// The intents are now clearer.
+			+ "NPL test entry for test subitem 2"
+				^ $dep_from ("%TestNPL" @ %Shells)
+		)
+	)
+),
+
+b927
 (
 	+ "static assertion to test %ystdex::is_bitwise_swappable with \
 		appropriate %ystdex::(lref, observer_ptr) instances" @ %Test.YBase,
@@ -48,13 +285,11 @@ $now
 		/ DLDI "type %(iterator, const_iterator)" @ "class template %list"
 			@ %List ^ 'yimpl',
 		+ $re_add(b926) $lib "class template specializations \
-			%is_bitwise_swappable"
-		@ (
-			"%details::(list_iterator, list_const_iterator)" @ %List,
-			"%details::(tree_iterator, tree_const_iterator)" @ %Tree,
-			"%path" @ %Path,
-			"%(composed, composed_n, generalized_composed)" @ %Functional
-		) @ "namespace %ystdex",
+			%is_bitwise_swappable" @ ("%details::(list_iterator, \
+			list_const_iterator)" @ %List, "%details::(tree_iterator, \
+			tree_const_iterator)" @ %Tree, "%path" @ %Path, "%(composed, \
+			composed_n, generalized_composed)" @ %Functional)
+			@ "namespace %ystdex",
 		/ @ "traits %(conjunction, disjunction, negation)" @ %IntegralConstant
 			$=
 		(
@@ -251,7 +486,7 @@ $now
 	)
 ),
 
-b927
+b926
 (
 	/ %YBase.YStandardEx $=
 	(

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2020 FrankHB.
+	© 2010-2016, 2020-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -15,13 +15,13 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r2941
+\version r2955
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2020-07-24 11:28 +0800
+	2021-10-22 18:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,11 @@
 #include YFM_Helper_ShellHelper
 #include YFM_YCLib_Input
 #include YFM_YSLib_UI_Loader
+#define YReader_Impl_TestNPL true
+#if YReader_Impl_TestNPL
+#	include YFM_NPL_Lexical // for NPL::pmr::memory_resource;
+#	include <iosfwd> // for std::istream, std::ostream;
+#endif
 
 namespace YSLib
 {
@@ -54,7 +59,7 @@ namespace YReader
 
 #define G_COMP_NAME u"Franksoft"
 #define G_APP_NAME u"YReader"
-#define G_APP_VER u"Build PreAlpha"
+#define G_APP_VER u"Build Alpha"
 
 using namespace YSLib;
 
@@ -97,6 +102,15 @@ FetchWidgetLoader();
 void
 AddButtonToTabBar(TabControl&, ValueNode&, const string&, const String&,
 	SDst = 64);
+
+
+//! \since build 928
+//@{
+#if YReader_Impl_TestNPL
+void
+TestNPL(NPL::pmr::memory_resource&, std::istream&&, std::ostream&);
+#endif
+//@}
 
 } // namespace YReader;
 

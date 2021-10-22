@@ -11,13 +11,13 @@
 /*!	\file YCommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2952
+\version r2956
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:42 +0800
 \par 修改时间:
-	2021-05-18 02:18 +0800
+	2021-10-21 18:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@
 #include <limits> // for std::numeric_limits;
 #include <limits.h> // for _POSIX_SEM_NSEMS_MAX, _POSIX_SYMLOOP_MAX,
 //	_POSIX_SEM_VALUE_MAX;
-#include <stdlib.h> // for ::_wsystem, ::_putenv, ::setenv;
+#include <stdlib.h> // for ::_wsystem, ::_wgetenv, ::setenv;
 
 namespace platform
 {
@@ -58,14 +58,14 @@ terminate() ynothrow
 
 
 #if YCL_Win32
-CommandArguments::CommandArguments(int, char*[])
-	: arguments(platform_ex::ParseCommandArguments())
+CommandArguments::CommandArguments(int, char*[], VectorType::allocator_type a)
+	: arguments(platform_ex::ParseCommandArguments(a))
 {}
 #else
 CommandArguments::VectorType
 CommandArguments::ToVector() const
 {
-	VectorType vec;
+	VectorType vec(p_rsrc);
 
 	vec.reserve(arguments.first);
 	for(size_t i(0); i < arguments.first; ++i)

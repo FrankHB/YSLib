@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2315
+\version r2320
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2021-07-05 00:37 +0800
+	2021-10-11 19:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -676,12 +676,12 @@ ExpandEnvironmentStrings(const wchar_t* p_src)
 }
 
 vector<string>
-ParseCommandArguments()
+ParseCommandArguments(vector<string>::allocator_type a)
 {
-	return ParseCommandArguments(::GetCommandLineW());
+	return ParseCommandArguments(::GetCommandLineW(), a);
 }
 vector<string>
-ParseCommandArguments(const wchar_t* p)
+ParseCommandArguments(const wchar_t* p, vector<string>::allocator_type a)
 {
 	YAssertNonnull(p);
 	if(p[0] == '\0')
@@ -694,8 +694,8 @@ ParseCommandArguments(const wchar_t* p)
 			throw std::runtime_error("Failed getting module file name.");
 	}
 
-	vector<string> args;
-	wstring cbuf;
+	vector<string> args(a);
+	wstring cbuf(a);
 	bool quoted = {};
 	const auto add([&]{
 		args.push_back(WCSToUTF8(std::move(cbuf)));

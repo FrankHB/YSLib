@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r4405
+\version r4502
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2021-08-22 01:12 +0800
+	2021-10-22 18:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,12 +34,13 @@ See readme file for details.
 //	YSLib::Notice, YSLib::FetchStaticRef, YSLib::string, YSLib::set, YSLib::map,
 //	YSLib::vector, YSLib::Logger, YSLib::Warning, YSLib::to_std_string,
 //	YSLib::string_view, YSLib::to_pmr_string, YSLib::to_string, YSLib::Debug,
-//	YSLib::Informative, YSLib::Err, namespace std::placeholders,
+//	YSLib::Informative, YSLib::Err, namespace std::placeholders, std::vector,
 //	std::initializer_list, std::invalid_argument, ystdex::exists,
 //	ystdex::exists_substr, YSLib::uspawn, YSLib::ifstream,
 //	IO::FetchNativeDynamicModuleExtension, YSLib::uremove,
-//	YSLib::CommandArguments, YSLib::istringstream;
-#include YFM_YSLib_Core_YFunc // for YSLib::function;
+//	YSLib::CommandArguments, YSLib::istringstream, EXIT_FAILURE, EXIT_SUCCESS;
+#include YFM_YSLib_Core_YEvent // for YSLib::function, ystdex::bind1,
+//	any_ops::trivial_swap;
 #include YFM_YSLib_Service_FileSystem // for namespace YSLib::IO, IO::Path,
 //	YSLib::Deployment;
 #include YFM_YSLib_Core_YString // for YSLib::String, ystdex::raise_exception,
@@ -47,9 +48,10 @@ See readme file for details.
 #include YFM_YCLib_Host // for namespace platform_ex, platform_ex::Terminal;
 #include YFM_YSLib_Service_YTimer // for namespace std::chrono;
 #include <ystdex/mixin.hpp> // for ystdex::wrap_mixin_t;
-#include YFM_NPL_Dependency // for NPL::DepsEventType, NPL, A1, Forms,
-//	TraceException, TraceBacktrace, NPL::DecomposeMakefileDepList,
-//	NPL::FilterMakefileDependencies;
+#include YFM_NPL_Dependency // for NPL::DepsEventType, NPL::Deliteralize,
+//	NPL::pmr::memory_resource, NPL, A1, Forms, TraceException, TraceBacktrace,
+//	NPL::DecomposeMakefileDepList, NPL::FilterMakefileDependencies,
+//	NPL::pmr::pool_resource;
 #include <ystdex/concurrency.h> // for std::mutex, std::lock_guard,
 //	ystdex::task_pool;
 #include <ystdex/string.hpp> // for ystdex::ston, ystdex::sfmt,
@@ -150,7 +152,7 @@ std::bitset<size_t(LogGroup::Max)> LogDisabled;
 //@}
 
 //! \since build 861
-yconstexpr const struct
+yconstexpr_inline const struct
 {
 	YB_NONNULL(2) void
 	operator()(const char* line, RecordLevel lv = Notice,
@@ -201,8 +203,10 @@ EnvBindingMap BuildVariables;
 const struct Option
 {
 	const char *prefix, *name = {}, *option_arg;
-	//! \since build 861
-	vector<const char*> option_details;
+	// XXX: To ensure the destruction calls are well-behaved, global objects
+	//	cannot use custom PMR allocators.
+	//! \since build 928
+	std::vector<const char*> option_details;
 	//! \since build 852
 	function<bool(const string&)> filter;
 
@@ -211,15 +215,15 @@ const struct Option
 		function<void(string&&)> parse,
 		std::initializer_list<const char*> il)
 		: prefix(pfx), name(n), option_arg(opt_arg), option_details(il),
-		filter(std::bind(ystdex::filter_prefix<string, string, decltype(parse)>,
-		_1, string(prefix), parse))
+		filter(ystdex::bind1(ystdex::filter_prefix<string, string,
+		decltype(parse)>, string(prefix), parse))
 	{}
 	template<typename _type, typename _func>
 	Option(const char* pfx, const char* n, const char* opt_arg, _func f,
 		_type threshold, std::initializer_list<const char*> il)
 		: Option(pfx, n, opt_arg, [this, f, threshold](string&& val){
 			const auto
-				print(std::bind(PrintInfo, _1, Warning, LogGroup::General));
+				print(ystdex::bind1(PrintInfo, Warning, LogGroup::General));
 
 			try
 			{
@@ -381,7 +385,7 @@ const struct Option
 		PrintInfo("Target name is switched to " + Quote(val) + '.');
 		TargetName = std::move(val);
 	}, {"The base name of final target."
-		" Default value is same to top level directory name.", OPT_des_last}},
+		" Default value is same to top level directory name.", OPT_des_last}}
 };
 
 const array<const char*, 3> DeEnvs[]{
@@ -418,7 +422,7 @@ EnsureOutputDirectory(const string& opath)
 std::chrono::nanoseconds
 CheckModification(const string& path)
 {
-	const auto print(std::bind(PrintInfo, _1, Debug, LogGroup::DepsCheck));
+	const auto print(ystdex::bind1(PrintInfo, Debug, LogGroup::DepsCheck));
 
 	print("Checking path " + Quote(path) + " ...");
 
@@ -433,7 +437,7 @@ CheckBuild(const vector<string>& ipaths, const string& opath)
 {
 	if(!ipaths.empty())
 	{
-		const auto print(std::bind(PrintInfo, _1, _2, LogGroup::Build));
+		const auto print(ystdex::bind1(PrintInfo, _2, LogGroup::Build));
 
 		try
 		{
@@ -456,14 +460,15 @@ CheckBuild(const vector<string>& ipaths, const string& opath)
 }
 //@}
 
-//! \since build 796
+//! \since build 928
 YB_NONNULL(1) void
-RunNPLFromStream(const char* name, std::istream&& is)
+RunNPLFromStream(const char* name, std::istream&& is,
+	NPL::pmr::memory_resource& rsrc)
 {
 	using namespace NPL;
 	using namespace A1;
 	using namespace Forms;
-	REPLContext context;
+	REPLContext context{rsrc};
 	TermNode term{context.Allocator};
 #if SHBuild_UseBacktrace
 	ContextNode::ReducerSequence backtrace{context.Allocator};
@@ -510,12 +515,12 @@ RunNPLFromStream(const char* name, std::istream&& is)
 		context.ShareCurrentSource(name);
 		try
 		{
-			context.Root.Rewrite(
-				NPL::ToReducer(context.Allocator, [&](ContextNode& ctx){
+			context.Root.Rewrite(NPL::ToReducer(context.Allocator,
+				any_ops::trivial_swap, [&](ContextNode& ctx){
 				ctx.SaveExceptionHandler();
 				// TODO: Blocked. Use C++14 lambda initializers to simplify the
 				//	implementation.
-				ctx.HandleException = std::bind([&](std::exception_ptr p,
+				ctx.HandleException = ystdex::bind1([&](std::exception_ptr p,
 					const ContextNode::ReducerSequence::const_iterator& i){
 					ctx.TailAction = nullptr;
 #if SHBuild_UseBacktrace
@@ -525,9 +530,11 @@ RunNPLFromStream(const char* name, std::istream&& is)
 					TryExpr(std::rethrow_exception(std::move(p)))
 					catch(std::exception& e)
 					{
+#if SHBuild_UseBacktrace
 						const auto gd(ystdex::make_guard([&]() ynothrowv{
 							backtrace.clear();
 						}));
+#endif
 					//	auto& trace(ctx.Trace);
 						auto& trace(FetchStaticRef<Logger>());
 						std::lock_guard<std::mutex> lck(LastLogGroupMutex);
@@ -547,7 +554,7 @@ RunNPLFromStream(const char* name, std::istream&& is)
 						throw NPLException("Error detected in the execution"
 							" (see the backtrace for details).");
 					}
-				}, std::placeholders::_1, ctx.GetCurrent().cbegin());
+				}, ctx.GetCurrent().cbegin());
 				term = context.ReadFrom(is);
 				// XXX: Is it necessary to change the text color here?
 				return A1::ReduceOnce(term, ctx);
@@ -727,7 +734,7 @@ BuildFile(const Rule& rule)
 	const auto& fullname(ipth.VerifyAsMBCS());
 	const auto& cmd_type(rule.GetCommandType(IO::GetExtensionOf(fullname)));
 	const auto& cmd(rule.LookupCommand(cmd_type));
-	const auto print(std::bind(PrintInfo, _1, _2, LogGroup::Build));
+	const auto print(ystdex::bind1(PrintInfo, _2, LogGroup::Build));
 
 	if(!cmd.empty())
 	{
@@ -744,8 +751,8 @@ BuildFile(const Rule& rule)
 			dfullname.back() = 'd';
 			if(YSLib::ifstream tf{dfullname, std::ios_base::in})
 			{
-				const auto printd(std::bind(PrintInfo, _1, _2,
-					LogGroup::DepsCheck));
+				const auto
+					printd(ystdex::bind1(PrintInfo, _2, LogGroup::DepsCheck));
 				auto lst(NPL::DecomposeMakefileDepList(tf));
 
 				if(NPL::FilterMakefileDependencies(lst))
@@ -783,7 +790,7 @@ SearchDirectory(const Rule& rule, const ActionContext& actx)
 	const auto& path(ipth.VerifyAsMBCS());
 	vector<string> subdirs, ofiles;
 	vector<pair<string, string>> src_files;
-	const auto print(std::bind(PrintInfo, _1, _2, LogGroup::Search));
+	const auto print(ystdex::bind1(PrintInfo, _2, LogGroup::Search));
 
 	print("Searching path: " + Quote(path) + " ...", Notice);
 	IO::TraverseChildren(path,
@@ -894,7 +901,8 @@ BuildContext::Build()
 					n.back() == u':' ? String(n.substr(0, n.length() - 1)) : n;
 			throw std::invalid_argument("Empty input path component found.");
 		}(ipath.back()) : String(TargetName)));
-	const auto print(std::bind(PrintInfo, _1, _2, LogGroup::Build));
+	const auto print(ystdex::bind1(PrintInfo, _2, LogGroup::Build));
+
 	try
 	{
 		const auto& ofiles(ActionContext([this](const Key& name){
@@ -1047,13 +1055,15 @@ main(int argc, char* argv[])
 	Terminal te, te_err(stderr);
 
 	return FilterExceptions([&]{
-		string epoch_var;
+		NPL::pmr::pool_resource rsrc;
+		string epoch_var(&rsrc);
 
 		YSLib::FetchEnvironmentVariable(epoch_var, "SHBuild_Epoch");
 		if(epoch_var == "0")
 		{
-			epoch_var = YSLib::sfmt("%llu",
-				duration_cast<ms>(epoch - steady_clock::time_point()).count());
+			epoch_var = string(YSLib::sfmt("%llu",
+				duration_cast<ms>(epoch - steady_clock::time_point()).count()),
+				&rsrc);
 			YSLib::SetEnvironmentVariable("SHBuild_Epoch", epoch_var.c_str());
 		}
 		else if(!epoch_var.empty())
@@ -1085,7 +1095,7 @@ main(int argc, char* argv[])
 			if(std::fflush(stream) == 0)
 			{
 				Terminal::Guard
-					guard(term_ref, std::bind(UpdateForeColorByLevel, _1, lv));
+					guard(term_ref, ystdex::bind1(UpdateForeColorByLevel, lv));
 
 				// XXX: Error is ignored.
 				term_ref.WriteString(stream, &YSLib::Nonnull(str)[0]);
@@ -1096,7 +1106,7 @@ main(int argc, char* argv[])
 			std::fputc('\n', stream);
 		});
 
-		const auto xargv(YSLib::CommandArguments(argc, argv));
+		const YSLib::CommandArguments xargv(argc, argv, &rsrc);
 		const auto xargc(xargv.size());
 
 		if(xargc > 1)
@@ -1104,14 +1114,20 @@ main(int argc, char* argv[])
 			PrintInfo(ystdex::sfmt("Finished loading %zu command argument(s).",
 				xargc), Debug, LogGroup::General);
 
+			// XXX: The memory resource is not used here to avoid the destructor
+			//	of the object referenced by %YSLib::LockCommandArguments
+			//	accessing the invalid resource. 
 			vector<string> args;
 			bool opt_trans(true);
 
 			for(size_t i(1); i < xargc; ++i)
 			{
+				// XXX: The memory resource is not used here to avoid the
+				//	destructor of global objects like %RequestedCommand
+				//	accessing the invalid resource.
 				string arg(xargv[i]);
 
-				if(opt_trans && arg == "--")
+				if(YB_UNLIKELY(opt_trans && arg == "--"))
 					opt_trans = {};
 				else if(!opt_trans || (!arg.empty()
 					&& std::none_of(begin(OptionsTable), end(OptionsTable),
@@ -1184,12 +1200,12 @@ main(int argc, char* argv[])
 
 						if(RequestedCommand == "RunNPL")
 							RunNPLFromStream("*STDIN*",
-								YSLib::istringstream(arg0));
+								YSLib::istringstream(arg0), rsrc);
 						else
 						{
 							const auto p(NPL::A1::OpenFile(arg0.c_str()));
 
-							RunNPLFromStream(arg0.c_str(), std::move(*p));
+							RunNPLFromStream(arg0.c_str(), std::move(*p), rsrc);
 						}
 					}
 					else
@@ -1203,8 +1219,8 @@ main(int argc, char* argv[])
 			}
 			else
 			{
-				PrintInfo(ystdex::sfmt("Ready to enter build mode for up to %zu"
-					" parallel task(s).", MaxJobs), Informative,
+				PrintInfo(ystdex::sfmt("Ready to enter building mode for up to"
+					" %zu parallel task(s).", MaxJobs), Informative,
 					LogGroup::General);
 
 				BuildContext bctx(MaxJobs, std::move(BuildVariables));
@@ -1241,19 +1257,19 @@ main(int argc, char* argv[])
 			auto& os(std::cout);
 			const string& prog(xargv[0]);
 
-			StreamPut(os, sfmt("Usage: [ENV ...] \"%s\" [OPTIONS ...] SRCPATH"
-				" [OPTIONS ... [-- [ARGS...]]]\n"
-				"  or:  [ENV ...] \"%s\" [OPTIONS ... [-- ARGS...]]\n"
+			StreamPut(os, sfmt("Usage: \"%s\" [OPTIONS ...] SRCPATH"
+				" [OPTIONS ... [-- [ARGS...]]]\n  or:"
+				"  \"%s\" [OPTIONS ... [-- [[SRCPATH] ARGS ...]]]\n"
 				"\tThis program is a tool to build the source tree, with some"
 				" additional functionalities. If there are no command"
 				" arguments, this help message is shown. Otherwise, the program"
 				" will try working in a specific execution mode based on"
 				" the specific command arguments.\n"
-				"\tThere are two execution modes, the building mode and the"
-				" command requesting mode, exclusively. In the former mode,"
-				" building backends (commands for compiling) are called. The"
-				" latter is only enabled when there are some options beginned"
-				" with '-xcmd,', see below for details.\n"
+				"\tThere are two execution modes, building mode and command"
+				" requesting mode, exclusively. In building mode, building"
+				" backends (commands for compiling) are called. The latter is"
+				" only enabled when there are some options beginned with"
+				" '-xcmd,', see below for details.\n"
 				"\tThe execution of the program may entail nested instances of"
 				" execution initiated by the command being executed. Such"
 				" instances can be grouped by sessions. Each session shares the"
@@ -1273,43 +1289,46 @@ main(int argc, char* argv[])
 				" or empty, or unset the variable before the execution of this"
 				" program, to ensure it independent to other instances (i.e. in"
 				" a different session).\n"
-				"\n[ENV ...]\n\tThe environment variables settings in the"
-				" shell. (Not all shells support this syntax, but the"
-				" environment variables are still effective.)\n"
 				"\tThere are no checks on the values. Any behaviors depending"
 				" on the locale-specific values are unspecified.\n"
-				"\tCurrently accepted settings are:\n\n",
+				"\tCurrently accepted environment variable settings are:\n\n",
 				prog.c_str(), prog.c_str()).c_str());
 			for(const auto& env : DeEnvs)
 				StreamPut(os, sfmt("  %s\n\t%s Default value is %s.\n\n", env[0],
 					env[2], env[1][0] == '\0' ? "empty"
 					: Quote(string(env[1])).c_str()).c_str());
 			ystdex::write_literal(os,
-				"SRCPATH\n\tThe source path. It is handled if and only if this"
-				" program runs in the building mode. In this case, SRCPATH is"
-				" the 1st command line argument not recognized as an option"
-				" (see below). Otherwise, the command line argument is treated"
-				" as an option.\n\tSRCPATH shall specify a path to a directory"
-				" to be recursively searched. A subdirectory thereof will be"
-				" ignored implicitly in the search if its name begins with a"
-				" dot ('.') character. A subdirectory whose name is same to"
-				" one of the names specified by '-xid,' option (see below) will"
-				" also be ignored.\n\n"
-				"OPTIONS...\nOPTIONS... -- [ARGS...]\n\tThe options and"
-				" arguments for the tool execution. After '--', if any, options"
-				" parsing is turned off and every remained command line"
-				" argument is interpreted as an argument.\n\tRecognized options"
-				" are handled in this program, and the remained arguments will"
-				" either be the arguments to the command specified in the"
-				" options in the command requesting mode, or as options come"
-				" after values of the environment variable SHBuild_CFLAGS or"
-				" SHBuild_CXXFLAGS and a single space character when CC or CXX"
-				" is called in the building mode, respectively. In the"
-				" building mode, all command line arguments except SRCPATH and"
-				" the recoginzed options as well as the (prefixed) values"
-				" specified by the environment variables SHBuild_CFLAGS or"
-				" SHBuild_CXXFLAGS will be sent to the building backends.\n\t"
-				"The recognized options are:\n\n");
+				"SRCPATH\n"
+				"\tThe source path. It is handled if and only if this program"
+				" runs in building mode. In this case, SRCPATH is the 1st"
+				" command line argument not recognized as an option (see"
+				" below). Otherwise, the command line argument is treated as an"
+				" option.\n"
+				"\tSRCPATH shall specify a path to a directory to be"
+				" recursively searched. A subdirectory thereof will be ignored"
+				" implicitly in the search if its name begins with a dot ('.')"
+				" character. A subdirectory whose name is same to one of the"
+				" names specified by '-xid,' option (see below) will also be"
+				" ignored.\n\n"
+				"OPTIONS ...\nOPTIONS ... -- [[SRCPATH] ARGS ...]\n"
+				"\tThe options and arguments for the tool execution. After"
+				" '--', options parsing is turned off and every remained"
+				" command line argument (if any) is interpreted as an argument,"
+				" except that in building mode, the 1st command line argument"
+				" after '--' (if any) is treated as SRCPATH when there is no"
+				" SRCPATH before '--'.\n"
+				"\tRecognized options are handled in this program, and the"
+				" remained arguments will either be the arguments to the"
+				" command specified in the options in command requesting mode,"
+				" or as options come after values of the environment variable"
+				" SHBuild_CFLAGS or SHBuild_CXXFLAGS and a single space"
+				" character when CC or CXX is called in building mode,"
+				" respectively. In building mode, all command line arguments"
+				" except SRCPATH and the recoginzed options as well as the"
+				" (prefixed) values specified by the environment variables"
+				" SHBuild_CFLAGS or SHBuild_CXXFLAGS will be sent to the"
+				" building backends.\n"
+				"\tThe recognized options are:\n\n");
 			for(const auto& opt : OptionsTable)
 			{
 				StreamPut(os,
@@ -1318,6 +1337,8 @@ main(int argc, char* argv[])
 					StreamPut(os, sfmt("\t%s\n", des).c_str());
 				os << '\n';
 			}
+			ystdex::write_literal(os,
+				"The exit status is 0 on success and 1 otherwise.\n");
 		}
 	}, {}, Err, [](const std::exception& e, RecordLevel lv){
 		YSLib::ExtractException([lv]

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2019 FrankHB.
+	© 2010-2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1585
+\version r1627
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2019-09-23 16:44 +0800
+	2021-10-22 18:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,10 +26,25 @@
 
 
 #include "ShlExplorer.h" // for ystdex::polymorphic_cast, ystdex::tolower,
-//	to_string, make_string_view;
+//	to_string, make_string_view, YReader_Impl_TestNPL, NPL::pmr::pool_resource,
+//	TestNPL;
 #include "ShlReader.h"
 #include YFM_YSLib_UI_ExStyle
 #include <ystdex/functional.hpp> // for ystdex::bind1;
+#if YReader_Impl_TestNPL
+#	include YFM_YSLib_Core_YShellDefinition // for YSLib::ostringstream,
+//	YSLib::string, YSLib::istringstream;
+#	if YF_Hosted
+#		include <iostream> // for std::cout;
+#		if YCL_Win32 && defined(NDEBUG)
+// XXX: Use Win32 subsystem.
+#			define YReader_Impl_TestNPL_NoStdout true
+#		endif
+#	else
+#		define YReader_Impl_TestNPL_NoStdout true
+#	endif
+#	include YFM_NPL_Dependency // for NPL, LoadStandardContext, InvokeIn;
+#endif
 
 namespace YReader
 {
@@ -569,7 +584,7 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 		p_m0.reset(new Menu({}, make_shared<Menu::ListType, String>(
 			{u"测试", u"关于", u"设置(X)", u"退出"})));
 		p_m1.reset(new Menu({},
-			make_shared<Menu::ListType, String>({u"项目1", u"项目2"})));
+			make_shared<Menu::ListType, String>({u"GUI 测试", u"NPL 测试"})));
 		auto& m0(*p_m0);
 		auto& m1(*p_m1);
 
@@ -592,6 +607,32 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 #endif
 			if(e.Value == 0)
 				SwitchVisibleToFront(pnlTest1);
+#if YReader_Impl_TestNPL
+			else if(e.Value == 1)
+			{
+				// TODO: Share the resource with other tests?
+				// TODO: Count allocation & memory stats?
+				// TODO: Use something like %boost::tee_device to duplicate the
+				//	output result for both the standard output and GUI output?
+				NPL::pmr::pool_resource rsrc;
+#	if YReader_Impl_TestNPL_NoStdout
+				YSLib::ostringstream os{YSLib::string(&rsrc)};
+#	else
+				auto& os(std::cout);
+#	endif
+				const char unit[]{R"NPL(
+$import! std.io &puts;
+
+puts "ShlExplorer: Hello, world!";
+				)NPL"};
+
+				TestNPL(rsrc, YSLib::istringstream(unit), os);
+#	if YReader_Impl_TestNPL_NoStdout
+				lblInfo.Text = String(os.str().c_str());
+				Invalidate(lblInfo);
+#	endif
+			}
+#endif
 		},
 		AddWidgetsZ(GetSubDesktop(), DefaultMenuZOrder, m0, m1),
 		mhMain += m0, mhMain += m1,

@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r8511
+\version r8648
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2021-09-28 08:09 +0800
+	2021-10-21 18:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,21 +33,20 @@
 //	YSLib::bad_any_cast, YSLib::in_place_type, YSLib::to_string, NPLTag, string,
 //	ValueNode, function, std::ostream, ystdex::invoke, TermNode,
 //	YSLib::MakeIndex, std::initializer_list, LoggedEvent, YSLib::RecordLevel,
-//	shared_ptr, NPL::Deref, ystdex::isdigit,
+//	shared_ptr, NPL::Deref, ystdex::isdigit, CategorizeLexeme,
 //	ystdex::is_nothrow_copy_constructible, ystdex::is_nothrow_copy_assignable,
 //	ystdex::is_nothrow_move_constructible, ystdex::is_nothrow_move_assignable,
-//	observer_ptr, IsTyped, std::addressof, NPL::make_observer, IsLeaf,
-//	ystdex::equality_comparable, weak_ptr, lref, ystdex::get_equal_to, pair,
-//	ystdex::invoke_value_or, ystdex::expand_proxy, IsBranch, ystdex::type_id,
-//	NPL::Access, ystdex::ref_eq, ValueObject, NPL::SetContentWith,
-//	std::for_each, AccessFirstSubterm, ystdex::less, YSLib::map, pmr,
-//	ystdex::copy_and_swap, NoContainer, ystdex::try_emplace,
-//	ystdex::try_emplace_hint, ystdex::insert_or_assign, ystdex::type_info,
-//	ystdex::expanded_function, ystdex::enable_if_same_param_t,
+//	observer_ptr, TryAccessValue, IsLeaf, ystdex::equality_comparable, weak_ptr,
+//	lref, ystdex::get_equal_to, pair, ystdex::invoke_value_or,
+//	ystdex::expand_proxy, IsBranch, type_id, NPL::Access, ystdex::ref_eq,
+//	ValueObject, NPL::SetContentWith, std::for_each, AccessFirstSubterm,
+//	ystdex::less, YSLib::map, pmr, ystdex::copy_and_swap, NoContainer,
+//	ystdex::try_emplace, ystdex::try_emplace_hint, ystdex::insert_or_assign,
+//	type_info, ystdex::expanded_function, ystdex::enable_if_same_param_t,
 //	ystdex::exclude_self_t, ystdex::make_obj_using_allocator,
-//	YSLib::forward_list, ystdex::swap_dependent, YSLib::allocate_shared,
-//	YSLib::Logger, any_ops::trivial_swap, ystdex::exchange, NPL::AsTermNode,
-//	ystdex::is_bitwise_swappable;
+//	YSLib::forward_list, ystdex::swap_dependent, NPL::make_observer,
+//	YSLib::allocate_shared, YSLib::Logger, any_ops::trivial_swap,
+//	ystdex::exchange, NPL::AsTermNode, ystdex::is_bitwise_swappable;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include <libdefect/exception.h> // for std::exception_ptr;
 
@@ -875,6 +874,13 @@ static_assert(ystdex::is_nothrow_move_constructible<AnchorPtr>(),
 /*!	\defgroup TermAccessAuxiliary Term Access Auxiliary API
 \brief 辅助项访问接口。
 \since build 914
+
+访问不同接口对项中具有的 ValueObject 对象的要求不同。
+除以下情形，访问 ValueObject 对象时，假定持有者可能抛出异常：
+访问不直接作为项的值数据成员的 ValueObject 对象（如父环境）；
+访问值数据成员中的以下特定类型的值：
+	string ；
+	YSLib::NodeSequence 。
 */
 
 //! \ingroup TermAccessAuxiliary
@@ -940,11 +946,15 @@ ThrowInsufficientTermsError(const TermNode&, bool);
 /*!
 \brief 对列表项抛出指定预期访问值的类型的异常。
 \throw ListTypeError 消息中包含由参数指定的预期访问值的类型的异常。
-\since build 855
 */
+//@{
+//! \since build 928
+YB_NORETURN YF_API YB_NONNULL(1) void
+ThrowListTypeErrorForInvalidType(const char*, const TermNode&, bool);
+//! \since build 855
 YB_NORETURN YF_API void
-ThrowListTypeErrorForInvalidType(const ystdex::type_info&, const TermNode&,
-	bool);
+ThrowListTypeErrorForInvalidType(const type_info&, const TermNode&, bool);
+//@}
 
 /*!
 \brief 抛出对非列表值预期列表类型的异常。
@@ -957,10 +967,15 @@ ThrowListTypeErrorForNonlist(const TermNode&, bool);
 /*!
 \brief 对项抛出指定预期访问值的类型的异常。
 \throw TypeError 消息中包含由参数指定的预期访问值的类型的异常。
-\since build 917
 */
+//@{
+//! \since build 928
+YB_NORETURN YF_API YB_NONNULL(1) void
+ThrowTypeErrorForInvalidType(const char*, const TermNode&, bool);
+//! \since build 917
 YB_NORETURN YF_API void
-ThrowTypeErrorForInvalidType(const ystdex::type_info&, const TermNode&, bool);
+ThrowTypeErrorForInvalidType(const type_info&, const TermNode&, bool);
+//@}
 //@}
 
 /*!
@@ -971,13 +986,19 @@ ThrowTypeErrorForInvalidType(const ystdex::type_info&, const TermNode&, bool);
 YF_API void
 TokenizeTerm(TermNode&);
 
-//! \exception 异常中立：由项的值数据成员的持有者抛出。
-//@{
 /*!
-\brief 尝试访问项的指定类型对象指针。
+\exception 异常中立：由值数据成员的持有者抛出。
+\sa YSLib::TryAccessValue
+*/
+//@{
+//! \since build 928
+using YSLib::TryAccessValue;
+
+/*!
+\brief 尝试访问指定类型对象指针。
 
 尝试访问作为叶节点的 TermNode 。
-和 YSLib::AccessPtr 访问 ValueNode 的 Value 数据成员类似，
+和 AccessPtr 访问 ValueNode 的 Value 数据成员类似，
 	但先解析引用重定向到目标，且对持有者异常中立。
 */
 //@{
@@ -985,15 +1006,13 @@ template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
 TryAccessLeaf(TermNode& term)
 {
-	return IsTyped<_type>(term) ? NPL::make_observer(
-		std::addressof(term.Value.GetObject<_type>())) : nullptr;
+	return TryAccessValue<_type>(term.Value);
 }
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<const _type>
 TryAccessLeaf(const TermNode& term)
 {
-	return IsTyped<_type>(term) ? NPL::make_observer(
-		std::addressof(term.Value.GetObject<_type>())) : nullptr;
+	return TryAccessValue<_type>(term.Value);
 }
 //@}
 
@@ -1403,6 +1422,7 @@ YB_ATTR_nodiscard YB_PURE inline
 		NPL::TryAccessLeaf<const TermReference>(term), term))
 
 /*!
+\ingroup functors
 \brief 项引用函数对象操作。
 \note 这是 NPL::ReferenceTerm 的函数对象形式。
 \sa ReferenceTerm
@@ -1636,12 +1656,13 @@ void
 CheckRegular(_tTerm& term, bool has_ref)
 {
 	if(YB_UNLIKELY(IsBranch(term)))
-		ThrowListTypeErrorForInvalidType(ystdex::type_id<_type>(), term,
+		ThrowListTypeErrorForInvalidType(type_id<_type>(), term,
 			has_ref);
 }
 
 /*!
 \brief 访问项的指定类型正规值。
+\note 第一参数是可能带有 const 的左值的 TermNode 或转换为 TermNode 的类型。
 \sa ThrowListTypeErrorForInvalidType
 
 以 NPL::Access 访问调用 NPL::CheckRegular 检查后的项。
@@ -1676,6 +1697,107 @@ ResolveRegular(_tTerm& term) -> yimpl(decltype(NPL::Access<_type>(term)))
 	}, term);
 }
 //@}
+//@}
+//@}
+
+
+//! \since build 928
+//@{
+/*!
+\ingroup customization_points
+\ingroup functors
+\brief 带有显式类型的值访问器。
+\pre 参数为对象类型。
+
+从项中访问指定对象语言类型的函数对象类型。
+默认实现使用 NPL::ResolveRegular 访问和 C++ 类型一一对应的宿主类型的值。
+这个模板可被特化提供不同的行为，例如访问非一一对应的宿主值。
+被特化的模板应提供接受一个项参数的 \c operator() ；
+	参数要求同 NPL::ResolveRegular 。
+*/
+//@{
+template<typename _type>
+struct TypedValueAccessor
+{
+	template<class _tTerm>
+	YB_ATTR_nodiscard YB_PURE inline auto
+	operator()(_tTerm& term) const
+		-> yimpl(decltype(NPL::Access<_type>(term)))
+	{
+		return NPL::ResolveRegular<_type>(term);
+	}
+};
+
+template<typename _type>
+struct TypedValueAccessor<const _type>
+	: TypedValueAccessor<_type>
+{};
+//@}
+
+
+/*!
+\brief 访问带有显式类型的值。
+
+使用 TypedValueAccessor 从项中访问。
+*/
+template<typename _type, class _tTerm>
+YB_ATTR_nodiscard YB_PURE inline auto
+AccessTypedValue(_tTerm& term) ynoexcept_spec(TypedValueAccessor<_type>()(term))
+	-> yimpl(decltype(TypedValueAccessor<_type>()(term)))
+{
+	return TypedValueAccessor<_type>()(term);
+}
+
+
+/*!
+\brief 解析引用值的参数结果。
+\warning 非虚析构。
+*/
+template<typename _type = TermNode>
+struct ResolvedArg : pair<lref<_type>, ResolvedTermReferencePtr>
+{
+	using BaseType = pair<lref<_type>, ResolvedTermReferencePtr>;
+
+	using BaseType::first;
+	using BaseType::second;
+
+	using BaseType::BaseType;
+
+	DefPred(const ynothrow, Modifiable, !second || second->IsModifiable())
+	DefPred(const ynothrow, Movable, NPL::IsMovable(second))
+
+	PDefH(_type&, get, ) const ynothrow
+		ImplRet(first.get())
+};
+
+//! \relates ResolvedArg
+//@{
+template<typename _type>
+struct TypedValueAccessor<ResolvedArg<_type>>
+{
+	template<class _tTerm>
+	YB_ATTR_nodiscard YB_PURE inline ResolvedArg<_type>
+	operator()(_tTerm& term) const
+	{
+		return NPL::ResolveTerm([](_tTerm& nd, ResolvedTermReferencePtr p_ref){
+			return ResolvedArg<_type>(
+				NPL::AccessRegular<_type>(nd, p_ref), p_ref);
+		}, term);
+	}
+};
+
+template<>
+struct TypedValueAccessor<ResolvedArg<>>
+{
+	template<class _tTerm>
+	YB_ATTR_nodiscard YB_PURE inline ResolvedArg<>
+	operator()(_tTerm& term) const
+	{
+		return NPL::ResolveTerm([](_tTerm& nd, ResolvedTermReferencePtr p_ref){
+			return ResolvedArg<>(nd, p_ref);
+		}, term);
+	}
+};
 //@}
 //@}
 //@}
@@ -2489,7 +2611,7 @@ public:
 	\since build 799
 	*/
 	YB_NORETURN static void
-	ThrowForInvalidType(const ystdex::type_info&);
+	ThrowForInvalidType(const type_info&);
 
 	/*!
 	\brief 抛出无效环境值异常。
@@ -2838,7 +2960,7 @@ public:
 	DefGetter(const ynothrow
 		-> decltype(std::declval<Reducer>().target_type()), auto,
 		CurrentActionType, IsAlive() ? current.front().target_type()
-		: ystdex::type_id<void>())
+		: type_id<void>())
 	//@}
 	//! \since build 845
 	DefGetter(const ynothrow, pmr::memory_resource&, MemoryResourceRef,

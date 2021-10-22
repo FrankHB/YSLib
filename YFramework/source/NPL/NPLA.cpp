@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3622
+\version r3656
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2021-09-09 00:17 +0800
+	2021-10-08 18:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@
 //	NPL::make_observer, YSLib::sfmt, GetLValueTagsOf, std::mem_fn,
 //	ystdex::compose, ystdex::invoke_value_or, NPL::TryAccessLeaf
 //	NPL::IsMovable, ystdex::ref, PropagateTo, YSLib::FilterExceptions,
-//	ystdex::type_id, ystdex::id, ystdex::retry_on_cond, ystdex::type_info,
+//	type_id, ystdex::id, ystdex::retry_on_cond, type_info,
 //	pair, ystdex::addrof, ystdex::second_of, std::rethrow_exception,
 //	std::throw_with_nested, YSLib::ExtractException;
 #include YFM_NPL_SContext
@@ -612,12 +612,17 @@ ThrowInsufficientTermsError(const TermNode& term, bool has_ref)
 }
 
 void
-ThrowListTypeErrorForInvalidType(const ystdex::type_info& tp,
-	const TermNode& term, bool has_ref)
+ThrowListTypeErrorForInvalidType(const char* name, const TermNode& term,
+	bool has_ref)
 {
 	throw ListTypeError(ystdex::sfmt("Expected a value of type '%s', got a list"
-		" '%s'.", tp.name(),
-		TermToStringWithReferenceMark(term, has_ref).c_str()));
+		" '%s'.", name, TermToStringWithReferenceMark(term, has_ref).c_str()));
+}
+void
+ThrowListTypeErrorForInvalidType(const type_info& ti,
+	const TermNode& term, bool has_ref)
+{
+	ThrowListTypeErrorForInvalidType(ti.name(), term, has_ref);
 }
 
 void
@@ -628,11 +633,17 @@ ThrowListTypeErrorForNonlist(const TermNode& term, bool has_ref)
 }
 
 void
-ThrowTypeErrorForInvalidType(const ystdex::type_info& tp, const TermNode& term,
+ThrowTypeErrorForInvalidType(const char* name, const TermNode& term,
 	bool has_ref)
 {
 	throw TypeError(ystdex::sfmt("Expected a value of type '%s', got '%s'.",
-		tp.name(), TermToStringWithReferenceMark(term, has_ref).c_str()));
+		name, TermToStringWithReferenceMark(term, has_ref).c_str()));
+}
+void
+ThrowTypeErrorForInvalidType(const type_info& ti, const TermNode& term,
+	bool has_ref)
+{
+	ThrowTypeErrorForInvalidType(ti.name(), term, has_ref);
 }
 
 void
@@ -1006,27 +1017,27 @@ ImplDeDtor(Environment)
 void
 Environment::CheckParent(const ValueObject& vo)
 {
-	const auto& tp(vo.type());
+	const auto& ti(vo.type());
 
-	if(tp == ystdex::type_id<EnvironmentList>())
+	if(ti == type_id<EnvironmentList>())
 	{
 		for(const auto& env : vo.GetObject<EnvironmentList>())
 			CheckParent(env);
 	}
-	else if(YB_UNLIKELY(tp != ystdex::type_id<observer_ptr<const Environment>>()
-		&& tp != ystdex::type_id<EnvironmentReference>()
-		&& tp != ystdex::type_id<shared_ptr<Environment>>()))
-		ThrowForInvalidType(tp);
+	else if(YB_UNLIKELY(!IsTyped<observer_ptr<const Environment>>(ti)
+		&& !IsTyped<EnvironmentReference>(ti)
+		&& !IsTyped<shared_ptr<Environment>>(ti)))
+		ThrowForInvalidType(ti);
 #if NPL_NPLA_CheckParentEnvironment
-	if(tp == ystdex::type_id<observer_ptr<const Environment>>())
+	if(IsTyped<observer_ptr<const Environment>>(ti))
 	{
 		if(YB_UNLIKELY(!vo.GetObject<observer_ptr<const Environment>>()))
 			// NOTE: See %EnsureValid.
 			ThrowForInvalidValue();
 	}
-	else if(tp == ystdex::type_id<EnvironmentReference>())
+	else if(IsTyped<EnvironmentReference>(ti))
 		EnsureValid(vo.GetObject<EnvironmentReference>().Lock());
-	else if(tp == ystdex::type_id<shared_ptr<Environment>>())
+	else if(IsTyped<shared_ptr<Environment>>(ti))
 		EnsureValid(vo.GetObject<shared_ptr<Environment>>());
 #endif
 }
@@ -1117,10 +1128,10 @@ Environment::ReplaceChecked(string_view id, ValueObject&& vo)
 }
 
 void
-Environment::ThrowForInvalidType(const ystdex::type_info& tp)
+Environment::ThrowForInvalidType(const type_info& ti)
 {
 	throw TypeError(
-		ystdex::sfmt("Invalid environment type '%s' found.", tp.name()));
+		ystdex::sfmt("Invalid environment type '%s' found.", ti.name()));
 }
 
 void
@@ -1228,15 +1239,15 @@ ContextNode::DefaultResolve(shared_ptr<Environment> p_env, string_view id)
 #endif
 			{
 				const ValueObject& parent(cur);
-				const auto& tp(parent.type());
+				const auto& ti(parent.type());
 
-				if(tp == ystdex::type_id<EnvironmentReference>())
+				if(IsTyped<EnvironmentReference>(ti))
 				{
 					p_redirected = RedirectToShared(id,
 						parent.GetObject<EnvironmentReference>().Lock());
 					p_env.swap(p_redirected);
 				}
-				else if(tp == ystdex::type_id<shared_ptr<Environment>>())
+				else if(IsTyped<shared_ptr<Environment>>(ti))
 				{
 					p_redirected = RedirectToShared(id,
 						parent.GetObject<shared_ptr<Environment>>());
@@ -1246,7 +1257,7 @@ ContextNode::DefaultResolve(shared_ptr<Environment> p_env, string_view id)
 				{
 					observer_ptr<const ValueObject> p_next{};
 
-					if(tp == ystdex::type_id<EnvironmentList>())
+					if(IsTyped<EnvironmentList>(ti))
 					{
 						auto& envs(parent.GetObject<EnvironmentList>());
 

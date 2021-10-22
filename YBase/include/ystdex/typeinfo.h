@@ -11,13 +11,13 @@
 /*!	\file typeinfo.h
 \ingroup YStandardEx
 \brief ISO C++ 类型信息扩展。
-\version r192
+\version r195
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2016-04-01 08:56:47 +0800
 \par 修改时间:
-	2021-08-09 20:04 +0800
+	2021-10-07 16:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,13 +90,13 @@ public:
 
 	//! \since build 924
 	template<typename _type>
-	YB_ATTR_nodiscard YB_STATELESS static const type_id_info&
+	YB_ATTR_nodiscard static const type_id_info&
 	make() ynothrow
 	{
 		return is_void<_type>() ? xref_void() : xref<remove_cv_t<_type>>();
 	}
 
-	YB_ATTR_nodiscard YB_STATELESS yimpl(yconstfn) const char*
+	YB_ATTR_nodiscard yimpl(yconstfn) const char*
 	name() const ynothrow
 	{
 		return "<unknown>";
@@ -153,7 +153,7 @@ using std::type_info;
 \since build 924
 */
 template<typename _type>
-YB_ATTR_nodiscard YB_STATELESS const type_info&
+YB_ATTR_nodiscard const type_info&
 type_id() ynothrow
 {
 #if YB_Use_LightweightTypeID

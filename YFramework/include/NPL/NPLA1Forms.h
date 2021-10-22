@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8548
+\version r8559
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2021-09-28 06:21 +0800
+	2021-10-21 18:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 //	NPL::ResolveTerm, std::next, NPL::Access, NPL::Deref,
 //	Forms::CallResolvedUnary, ResolvedTermReferencePtr, NPL::AccessRegular,
 //	ystdex::make_expanded, std::ref, ystdex::invoke_nonvoid, TNIter,
-//	NPL::ResolveRegular, ystdex::make_transform, std::accumulate,
+//	NPL::AccessTypedValue, ystdex::make_transform, std::accumulate,
 //	std::placeholders::_2, ystdex::bind1, ContextNode,
 //	ystdex::equality_comparable, ystdex::exclude_self_params_t,
 //	ystdex::examiners::equal_examiner, Environment,
@@ -412,8 +412,11 @@ CallUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 	return Forms::CallUnary([&](TermNode& tm){
 		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
 		//	error: Segmentation fault.
-		return ystdex::make_expanded<void(_type&, _tParams&&...)>(std::ref(f))(
-			NPL::ResolveRegular<_type>(tm), std::forward<_tParams>(args)...);
+		// XXX: This is a bit more efficient than directly use of
+		//	%ystdex::expand_proxy for G++.
+		return ystdex::make_expanded<void(decltype(
+			NPL::AccessTypedValue<_type>(tm)), _tParams&&...)>(std::ref(f))(
+			NPL::AccessTypedValue<_type>(tm), std::forward<_tParams>(args)...);
 	}, term);
 }
 //@}
@@ -441,11 +444,12 @@ CallBinaryAs(_func&& f, TermNode& term, _tParams&&... args)
 	RetainN(term, 2);
 
 	auto i(term.begin());
-	auto& x(NPL::ResolveRegular<_type>(NPL::Deref(++i)));
+	auto&& x(NPL::AccessTypedValue<_type>(NPL::Deref(++i)));
 
 	return Forms::EmplaceCallResultOrReturn(term, ystdex::invoke_nonvoid(
-		ystdex::make_expanded<void(_type&, _type2&, _tParams&&...)>(
-		std::ref(f)), x, NPL::ResolveRegular<_type2>(NPL::Deref(++i)),
+		ystdex::make_expanded<void(decltype(x), decltype(
+		NPL::AccessTypedValue<_type2>(*i)), _tParams&&...)>(std::ref(f)),
+		yforward(x), NPL::AccessTypedValue<_type2>(NPL::Deref(++i)),
 		yforward(args)...));
 }
 //@}
@@ -462,7 +466,7 @@ CallBinaryFold(_func f, _type val, TermNode& term, _tParams&&... args)
 	const auto n(FetchArgumentN(term));
 	auto i(term.begin());
 	const auto j(ystdex::make_transform(++i, [](TNIter it){
-		return NPL::ResolveRegular<_type>(NPL::Deref(it));
+		return NPL::AccessTypedValue<_type>(NPL::Deref(it));
 	}));
 
 	return Forms::EmplaceCallResultOrReturn(term, std::accumulate(j, std::next(

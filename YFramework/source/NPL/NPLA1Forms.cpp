@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r25670
+\version r25703
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2021-10-02 16:50 +0800
+	2021-10-14 08:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,7 @@
 //	ystdex::expand_proxy, NPL::AccessRegular, GetLValueTagsOf, RegularizeTerm,
 //	LiftMovedOther, ThrowValueCategoryError, ThrowListTypeErrorForNonlist,
 //	ThrowInvalidSyntaxError, CheckEnvironmentFormal, A1::MakeForm,
-//	ystdex::type_id, ystdex::update_thunk, IsTyped, ystdex::invoke_value_or,
+//	type_id, ystdex::update_thunk, IsTyped, ystdex::invoke_value_or,
 //	NPL::TryAccessReferencedLeaf, ystdex::call_value_or, ystdex::bind1,
 //	BindSymbol, A1::AsForm, LiftCollapsed, std::mem_fn, YSLib::usystem;
 #include "NPLA1Internals.h" // for A1::Internals API;
@@ -1031,6 +1031,15 @@ WrapH(TermNode& term, FormContextHandler h)
 		std::move(h));
 	return ReductionStatus::Clean;
 }
+//! \since build 928
+ReductionStatus
+WrapH(TermNode& term, ContextHandler h, size_t n)
+{
+	// XXX: Allocators are not used here on the %ContextHandler value for
+	//	performance.
+	term.Value = A1::MakeForm(term, std::move(h), n);
+	return ReductionStatus::Clean;
+}
 
 //! \since build 913
 ReductionStatus
@@ -1685,9 +1694,9 @@ AddWrapperCount(size_t n)
 }
 
 YB_NORETURN ReductionStatus
-ThrowForWrappingFailure(const ystdex::type_info& tp)
+ThrowForWrappingFailure(const type_info& ti)
 {
-	throw TypeError(ystdex::sfmt("Wrapping failed with type '%s'.", tp.name()));
+	throw TypeError(ystdex::sfmt("Wrapping failed with type '%s'.", ti.name()));
 }
 
 //! \since build 913
@@ -1697,11 +1706,10 @@ WrapN(TermNode& term, ResolvedTermReferencePtr p_ref,
 {
 	// XXX: Allocators are not used on %FormContextHandler for performance.
 	return WrapH(term, MakeValueOrMove(p_ref, [&]{
-		return FormContextHandler(fch.Handler, n);
+		return fch.Handler;
 	}, [&]{
-		return
-			FormContextHandler(std::move(fch.Handler), n);
-	}));
+		return std::move(fch.Handler);
+	}), n);
 }
 
 //! \since build 913
@@ -1712,7 +1720,7 @@ WrapRefN(TermNode& term, ResolvedTermReferencePtr p_ref,
 	if(p_ref)
 		return ReduceForCombinerRef(term, *p_ref, fch.Handler, n);
 	// XXX: Ditto.
-	return WrapH(term, FormContextHandler(std::move(fch.Handler), n));
+	return WrapH(term, std::move(fch.Handler), n);
 }
 
 template<typename _func, typename _func2>
@@ -1747,7 +1755,7 @@ WrapOnceOrOnceRef(TermNode& term)
 	return WrapUnwrap(term,
 		[&](FormContextHandler& fch, ResolvedTermReferencePtr p_ref){
 		return fch.Wrapping == 0 ? _rWrap(term, p_ref, fch, 1)
-			: ThrowForWrappingFailure(ystdex::type_id<FormContextHandler>());
+			: ThrowForWrappingFailure(type_id<FormContextHandler>());
 	}, [] YB_LAMBDA_ANNOTATE((const ContextHandler& h), , noreturn)
 		-> ReductionStatus{
 		ThrowForWrappingFailure(h.target_type());
@@ -1755,10 +1763,10 @@ WrapOnceOrOnceRef(TermNode& term)
 }
 
 
-//! \since build 924
+//! \since build 928
 void
-EqualSubterm(bool& r, Action& act, TNCIter first1, TNCIter first2,
-	TNCIter last1)
+EqualSubterm(bool& r, Action& act, TermNode::allocator_type a, TNCIter first1,
+	TNCIter first2, TNCIter last1)
 {
 	if(first1 != last1)
 	{
@@ -1770,13 +1778,14 @@ EqualSubterm(bool& r, Action& act, TNCIter first1, TNCIter first2,
 		else
 		{
 			yunseq(++first1, ++first2);
-			act = [&, first1, first2, last1]{
+			ystdex::update_thunk(act, a, any_ops::trivial_swap,
+				[&, a, first1, first2, last1]{
 				if(r)
-					EqualSubterm(r, act, first1, first2, last1);
-			};
-			ystdex::update_thunk(act, [&]{
+					EqualSubterm(r, act, a, first1, first2, last1);
+			});
+			ystdex::update_thunk(act, a, any_ops::trivial_swap, [&, a]{
 				if(r)
-					EqualSubterm(r, act, x.begin(), y.begin(), x.end());
+					EqualSubterm(r, act, a, x.begin(), y.begin(), x.end());
 			});
 		}
 	}
@@ -3099,7 +3108,7 @@ Encapsulation::Equal(const TermNode& x, const TermNode& y)
 	bool r(true);
 	Action act{};
 
-	EqualSubterm(r, act, x.begin(), y.begin(), x.end());
+	EqualSubterm(r, act, x.get_allocator(), x.begin(), y.begin(), x.end());
 	while(act)
 	{
 		const auto a(std::move(act));
@@ -3686,10 +3695,10 @@ Wrap(TermNode& term)
 		// XXX: Allocators are not used on %FormContextHandler for performance
 		//	in most cases.
 		return WrapH(term, MakeValueOrMove(p_ref, [&]{
-			return FormContextHandler(h, 1);
+			return h;
 		}, [&]{
-			return FormContextHandler(std::move(h), 1);
-		}));
+			return std::move(h);
+		}), 1);
 	});
 }
 
@@ -3700,7 +3709,7 @@ WrapRef(TermNode& term)
 		[&](ContextHandler& h, ResolvedTermReferencePtr p_ref){
 		// XXX: Ditto.
 		return p_ref ? ReduceForCombinerRef(term, *p_ref, h, 1)
-			: WrapH(term, FormContextHandler(std::move(std::move(h)), 1));
+			: WrapH(term, std::move(std::move(h)), 1);
 	});
 }
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2020 FrankHB.
+	© 2011-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r939
+\version r943
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2020-12-10 10:26 +0800
+	2021-10-11 19:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -567,13 +567,12 @@ YB_NONNULL(2) YB_PURE inline PDefH(std::string, ComposeMessageWithSignature,
 YB_NONNULL(1, 2) YB_PURE inline PDefH(std::string, ComposeMessageWithSignature,
 	const char* msg, const char* sig)
 	ImplRet(std::string(Nonnull(msg)) + " @ " + Nonnull(sig))
+//! \note 使用 ADL to_std_string 。
 template<class _type>
 YB_NONNULL(2) YB_PURE inline std::string
 ComposeMessageWithSignature(const _type& msg, const char* sig)
 {
-	using ystdex::to_string;
-
-	return to_string(msg) + " @ " + Nonnull(sig);
+	return to_std_string(msg) + " @ " + Nonnull(sig);
 }
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r4380
+\version r4431
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2021-09-28 05:39 +0800
+	2021-10-12 18:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,6 +85,7 @@ bind_forward(_func&& f, _func2&& f2, _tParams&&... args)
 
 
 /*!
+\ingroup functors
 \brief 复合函数。
 \since build 537
 */
@@ -141,6 +142,7 @@ struct is_bitwise_swappable<composed<_func, _func2>>
 
 
 /*!
+\ingroup functors
 \brief 多元分发的复合函数。
 \since build 735
 */
@@ -194,6 +196,7 @@ struct is_bitwise_swappable<composed_n<_func, _func2>>
 
 
 /*!
+\ingroup functors
 \brief 多元复合函数。
 \since build 735
 */
@@ -249,10 +252,11 @@ struct is_bitwise_swappable<generalized_composed<_func, _funcs...>>
 /*!
 \brief 更新间接调用对象。
 \note 可配合跳板实现异步调用。
-\since build 881
 */
+//@{
+//! \since build 881
 template<class _tThunk, typename _func>
-void
+inline void
 update_thunk(_tThunk& thunk, _func&& f)
 {
 	// TODO: Blocked. Use C++14 lambda initializers to simplify the
@@ -262,9 +266,51 @@ update_thunk(_tThunk& thunk, _func&& f)
 		cur();
 	}, std::move(thunk), yforward(f));
 }
+//! \since build 928
+//@{
+template<class _tThunk, typename _func>
+inline void
+update_thunk(_tThunk& thunk, any_ops::trivial_swap_t, _func&& f)
+{
+	// TODO: Blocked. Use C++14 lambda initializers to simplify the
+	//	implementation.
+	thunk = _tThunk(any_ops::trivial_swap,
+		std::bind([&thunk](_tThunk& tnk, const _func& cur){
+		thunk = std::move(tnk);
+		cur();
+	}, std::move(thunk), yforward(f)));
+}
+template<class _tThunk, class _tAlloc, typename _func>
+inline void
+update_thunk(_tThunk& thunk, const _tAlloc& a, _func&& f)
+{
+	// TODO: Blocked. Use C++14 lambda initializers to simplify the
+	//	implementation.
+	thunk = _tThunk(std::allocator_arg, a,
+		std::bind([&thunk](_tThunk& tnk, const _func& cur){
+		thunk = std::move(tnk);
+		cur();
+	}, std::move(thunk), yforward(f)));
+}
+template<class _tThunk, class _tAlloc, typename _func>
+inline void
+update_thunk(_tThunk& thunk, const _tAlloc& a, any_ops::trivial_swap_t,
+	_func&& f)
+{
+	// TODO: Blocked. Use C++14 lambda initializers to simplify the
+	//	implementation.
+	thunk = _tThunk(std::allocator_arg, a, any_ops::trivial_swap,
+		std::bind([&thunk](_tThunk& tnk, const _func& cur){
+		thunk = std::move(tnk);
+		cur();
+	}, std::move(thunk), yforward(f)));
+}
+//@}
+//@}
 
 
 /*!
+\ingroup functors
 \brief 调用一次的函数包装模板。
 \pre 静态断言：函数对象和结果转移以及默认状态构造和状态交换不抛出异常。
 \since build 686
@@ -618,6 +664,7 @@ retry_on_cond(_fCond cond, _fCallable&& f, _tParams&&... args)
 
 
 /*!
+\ingroup functors
 \brief 接受冗余参数的可调用对象。
 \since build 447
 \todo 支持 const 以外的限定符和 ref-qualifier 。
@@ -685,6 +732,7 @@ using is_expandable = is_constructible<_func,
 //! \since build 878
 //@{
 /*!
+\ingroup functors
 \brief 扩展函数包装类模板。
 \pre 第二模板参数指定和 function_base 的对应签名的实例的操作兼容的类类型。
 

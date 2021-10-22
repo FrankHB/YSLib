@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2179
+\version r2182
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2021-08-02 01:28 +0800
+	2021-10-11 19:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -874,7 +874,7 @@ ExpandEnvironmentStrings(const wchar_t*);
 /*!
 \brief 解析应用程序命令行参数。
 \return UTF-8 编码的参数向量。
-\since build 901
+\since build 926
 \see $2020-10 @ %Documentation::Workflow.
 
 解析 Unicode 编码的应用程序命令行参数字符串。
@@ -886,10 +886,10 @@ ExpandEnvironmentStrings(const wchar_t*);
 //@{
 //! \note 以 \c ::GetCommandLineW 调用取参数。
 YB_ATTR_nodiscard YF_API YB_PURE vector<string>
-ParseCommandArguments();
+ParseCommandArguments(vector<string>::allocator_type = {});
 //! \pre 断言：参数非空。
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) YB_PURE vector<string>
-ParseCommandArguments(const wchar_t*);
+ParseCommandArguments(const wchar_t*, vector<string>::allocator_type = {});
 //@}
 
 

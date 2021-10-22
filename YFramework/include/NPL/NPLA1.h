@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8920
+\version r8928
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2021-09-28 12:24 +0800
+	2021-10-08 18:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,12 +34,12 @@
 //	any_ops::trivial_swap_t, any_ops::trivial_swap, ystdex::ref_eq,
 //	CombineReductionResult, pmr::memory_resource, NPL::make_observer, TNIter,
 //	LiftOther, ValueNode, NPL::Deref, NPL::AsTermNode, std::make_move_iterator,
-//	IsBranch, std::next, ystdex::retry_on_cond, std::find_if,
+//	IsBranch, std::next, ystdex::retry_on_cond, std::find_if, string_view,
 //	ystdex::exclude_self_params_t, YSLib::AreEqualHeld,
 //	ystdex::make_parameter_list_t, ystdex::make_function_type_t, ystdex::true_,
 //	ystdex::decay_t, ystdex::expanded_caller, std::is_constructible,
-//	ystdex::or_, string_view, TermTags, TokenValue, Environment, ParseResultOf,
-//	ByteParser, SourcedByteParser, ystdex::type_info, SourceInformation,
+//	ystdex::or_, TermTags, RegularizeTerm, type_id, TokenValue, Environment,
+//	ParseResultOf, ByteParser, SourcedByteParser, type_info, SourceInformation,
 //	std::integral_constant, SourceName, NPL::tuple, NPL::get,
 //	NPL::forward_as_tuple, ReaderState, YSLib::allocate_shared,
 //	ystdex::is_bitwise_swappable;
@@ -239,6 +239,7 @@ ThrowValueCategoryError(const TermNode&);
 //! \since build 676
 //@{
 /*!
+\ingroup functors
 \brief 遍合并器：逐次调用序列中的遍直至成功。
 \note 合并遍结果用于表示及早判断是否应继续规约，可在循环中实现再次规约一个项。
 \note 忽略部分规约。不支持异步规约。
@@ -1373,7 +1374,7 @@ inline PDefH(void, EvaluateLiteralHandler, TermNode& term,
 YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsCombiningTerm,
 	const TermNode& term) ynothrow
 	ImplRet(!(term.empty()
-		|| (term.Value && term.Value.type() != ystdex::type_id<TokenValue>())))
+		|| (term.Value && !IsTyped<TokenValue>(term.Value.type()))))
 
 /*!
 \brief 规约合并项：检查项的第一个子项尝试作为操作符进行函数应用，并规范化。
@@ -1684,7 +1685,7 @@ using SourcedTokenizer = GTokenizer<SourcedByteParser>;
 \return 是否添加成功。
 */
 YB_ATTR_nodiscard YF_API bool
-AddTypeNameTableEntry(const ystdex::type_info&, string_view);
+AddTypeNameTableEntry(const type_info&, string_view);
 
 /*!
 \brief 初始化全局类型名称表项。
@@ -1700,7 +1701,7 @@ InitializeTypeNameTableEntry(string_view desc)
 	{
 		Init(string_view sv)
 		{
-			const auto res(AddTypeNameTableEntry(ystdex::type_id<_type>(), sv));
+			const auto res(AddTypeNameTableEntry(type_id<_type>(), sv));
 
 			yunused(res);
 			YAssert(res, "Duplicated name found.");
@@ -1793,7 +1794,7 @@ QueryTailOperatorName(const Reducer&);
 \since build 896
 */
 YB_ATTR_nodiscard YB_PURE YF_API string_view
-QueryTypeName(const ystdex::type_info&);
+QueryTypeName(const type_info&);
 
 /*!
 \brief 设置当前尾动作规约的操作符名称。

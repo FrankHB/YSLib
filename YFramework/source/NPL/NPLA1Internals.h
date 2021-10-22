@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r21289
+\version r21299
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2021-10-02 16:50 +0800
+	2021-10-08 18:39 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -31,12 +31,12 @@
 #include "YModules.h"
 #include YFM_NPL_NPLA1 // for ContextNode, TermNode, ContextState,
 //	ReductionStatus, Reducer, YSLib::map, lref, Environment, ystdex::get_less,
-//	set, NPL::Deref, EnvironmentReference, NPL::tuple, YSLib::get, list,
-//	ystdex::unique_guard, std::declval, EnvironmentGuard, IsTyped,
+//	set, NPL::Deref, IsTyped, EnvironmentList, EnvironmentReference, tuple,
+//	YSLib::get, list, ystdex::unique_guard, std::declval, EnvironmentGuard,
 //	make_observer, std::bind, std::placeholders, std::ref,
 //	A1::NameTypedReducerHandler, A1::NameTypedContextHandler, ystdex::bind1,
 //	std::placeholders::_2, TermReference, ThrowTypeErrorForInvalidType,
-//	ystdex::type_id, ParameterMismatch, NPL::TryAccessLeaf,
+//	type_id, ParameterMismatch, NPL::TryAccessLeaf,
 //	ystdex::update_thunk, IsIgnore, IsNPLASymbol, ThrowInvalidTokenError;
 #include <ystdex/ref.hpp> // for ystdex::unref;
 
@@ -179,19 +179,19 @@ struct RecordCompressor final
 	static void
 	Traverse(Environment& e, ValueObject& parent, const _fTracer& trace)
 	{
-		const auto& tp(parent.type());
+		const auto& ti(parent.type());
 
-		if(tp == ystdex::type_id<EnvironmentList>())
+		if(IsTyped<EnvironmentList>(ti))
 		{
 			for(auto& vo : parent.GetObject<EnvironmentList>())
 				Traverse(e, vo, trace);
 		}
-		else if(tp == ystdex::type_id<EnvironmentReference>())
+		else if(IsTyped<EnvironmentReference>(ti))
 		{
 			if(auto p = parent.GetObject<EnvironmentReference>().Lock())
 				TraverseForSharedPtr(e, parent, trace, p);
 		}
-		else if(tp == ystdex::type_id<shared_ptr<Environment>>())
+		else if(IsTyped<shared_ptr<Environment>>(ti))
 		{
 			if(auto p = parent.GetObject<shared_ptr<Environment>>())
 				TraverseForSharedPtr(e, parent, trace, p);
@@ -236,7 +236,7 @@ enum RecordFrameIndex : size_t
 \since build 842
 \sa RecordFrameIndex
 */
-using FrameRecord = NPL::tuple<ContextHandler, shared_ptr<Environment>>;
+using FrameRecord = tuple<ContextHandler, shared_ptr<Environment>>;
 
 /*!
 \brief 帧记录列表。
@@ -1072,8 +1072,7 @@ ThrowNestedParameterTreeCheckError();
 //! \since build 917
 YB_NORETURN inline PDefH(void, ThrowFormalParameterTypeError,
 	const TermNode& term, bool has_ref)
-	ImplExpr(ThrowTypeErrorForInvalidType(ystdex::type_id<TokenValue>(), term,
-		has_ref))
+	ImplExpr(ThrowTypeErrorForInvalidType(type_id<TokenValue>(), term, has_ref))
 
 //! \since build 917
 char

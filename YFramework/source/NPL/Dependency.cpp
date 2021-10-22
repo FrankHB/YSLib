@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r6339
+\version r6387
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2021-10-04 14:26 +0800
+	2021-10-21 19:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -256,9 +256,9 @@ namespace Forms
 namespace
 {
 
-//! \since build 872
+//! \since build 928
 YB_ATTR_nodiscard ReductionStatus
-DoMoveOrTransfer(void(&f)(TermNode&, TermNode&, bool), TermNode& term)
+DoMoveOrTransfer(TermNode& term, void(&f)(TermNode&, TermNode&, bool))
 {
 	return Forms::CallResolvedUnary(
 		[&](TermNode& nd, ResolvedTermReferencePtr p_ref){
@@ -476,8 +476,8 @@ AddDefineFunction(ContextNode& ctx, const char* fn,
 
 	auto& t2(*t1.emplace());
 
-	t2.emplace(A1::AsForm(a, std::bind(DoMoveOrTransfer,
-		std::ref(LiftOtherOrCopy), std::placeholders::_1), Strict));
+	t2.emplace(A1::AsForm(a,
+		ystdex::bind1(DoMoveOrTransfer, std::ref(LiftOtherOrCopy)), Strict));
 	NPL::AddToken(t2, "body");
 	NPL::AddToken(term, "d");
 	Reduce(term, ctx);
@@ -575,11 +575,9 @@ LoadObjects(ContextNode& ctx)
 	RegisterStrict(ctx, "expire",
 		any_ops::trivial_swap, ystdex::bind1(Qualify, TermTags::Unique));
 	RegisterStrict(ctx, "move!", any_ops::trivial_swap,
-		std::bind(DoMoveOrTransfer, std::ref(LiftOtherOrCopy),
-		std::placeholders::_1));
+		ystdex::bind1(DoMoveOrTransfer, std::ref(LiftOtherOrCopy)));
 	RegisterStrict(ctx, "transfer!", any_ops::trivial_swap,
-		std::bind(DoMoveOrTransfer, std::ref(LiftTermValueOrCopy),
-		std::placeholders::_1));
+		ystdex::bind1(DoMoveOrTransfer, std::ref(LiftTermValueOrCopy)));
 	RegisterStrict(ctx, "ref&", [](TermNode& term){
 		CallUnary([&](TermNode& tm){
 			LiftToReference(term, tm);
@@ -885,12 +883,11 @@ LoadBasicDerived(REPLContext& context)
 	RegisterStrict(renv, "accr", AccR);
 	RegisterStrict(renv, "foldr1", FoldR1);
 	RegisterStrict(renv, "map1", Map1);
-	RegisterUnary(renv, "first-null?", [](TermNode& x){
-		return ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
-			if(IsBranchedList(nd))
-				return IsEmpty(ReferenceTerm(AccessFirstSubterm(nd)));
-			ThrowInsufficientTermsError(nd, p_ref);
-		}, x);
+	RegisterUnary<Strict, ResolvedArg<>>(renv, "first-null?",
+		[](ResolvedArg<>&& x){
+		if(IsBranchedList(x.first))
+			return IsEmpty(ReferenceTerm(AccessFirstSubterm(x.first)));
+		ThrowInsufficientTermsError(x.first, x.second);
 	});
 	RegisterStrict(renv, "rulist", [](TermNode& term){
 		return Forms::CallRawUnary([&](TermNode& tm){
@@ -951,15 +948,15 @@ LoadBasicDerived(REPLContext& context)
 	RegisterForm(renv, "$provide!", Provide);
 	RegisterForm(renv, "$import!", Import);
 	RegisterForm(renv, "$import&!", ImportRef);
-	RegisterUnary(renv, "nonfoldable?", [](TermNode& x){
-		return ResolveTerm(
-			[&](TermNode& nd, ResolvedTermReferencePtr p_ref) -> bool{
-			if(IsList(nd))
-				return ystdex::fast_any_of(nd.begin(), nd.end(),
-					ComposeReferencedTermOp(IsEmpty));
-			// XXX: This is from 'first-null?' in the alternative derivation.
-			ThrowInsufficientTermsError(nd, p_ref);
-		}, x);
+	RegisterUnary<Strict, ResolvedArg<>>(renv, "nonfoldable?",
+		[](ResolvedArg<>&& x){
+		auto& nd(x.get());
+
+		if(IsList(nd))
+			return ystdex::fast_any_of(nd.begin(), nd.end(),
+				ComposeReferencedTermOp(IsEmpty));
+		// XXX: This is from 'first-null?' in the alternative derivation.
+		ThrowInsufficientTermsError(nd, x.second);
 	});
 	{
 		const auto a(context.Allocator);
@@ -1759,25 +1756,20 @@ LoadModule_std_strings(REPLContext& context)
 		[](const string& str) ynothrow{
 		return str.empty();
 	});
-	RegisterBinary(renv, "string<-", [](TermNode& x, TermNode& y){
-		ResolveTerm([&](TermNode& nd_x, ResolvedTermReferencePtr p_ref_x){
-			if(!p_ref_x || p_ref_x->IsModifiable())
-			{
-				auto& str_x(NPL::AccessRegular<string>(nd_x, p_ref_x));
+	RegisterBinary<Strict, ResolvedArg<>, ResolvedArg<>>(renv,
+		"string<-", [](ResolvedArg<>&& x, ResolvedArg<>&& y){
+		if(x.IsModifiable())
+		{
+			auto& str_x(NPL::AccessRegular<string>(x.get(), x.second));
+			auto& str_y(NPL::AccessRegular<string>(y.get(), y.second));
 
-				ResolveTerm(
-					[&](TermNode& nd_y, ResolvedTermReferencePtr p_ref_y){
-					auto& str_y(NPL::AccessRegular<string>(nd_y, p_ref_y));
-
-					if(NPL::IsMovable(p_ref_y))
-						str_x = std::move(str_y);
-					else
-						str_x = str_y;
-				}, y);
-			}
+			if(y.IsMovable())
+				str_x = std::move(str_y);
 			else
-				ThrowNonmodifiableErrorForAssignee();
-		}, x);
+				str_x = str_y;
+		}
+		else
+			ThrowNonmodifiableErrorForAssignee();
 		return ValueToken::Unspecified;
 	});
 	RegisterStrict(renv, "string-split", [](TermNode& term){
@@ -1819,13 +1811,10 @@ LoadModule_std_strings(REPLContext& context)
 		to_lwr(y);
 		return x.find(y) != string::npos;
 	});
-	RegisterUnary(renv, "string->symbol", [](TermNode& x){
-		return ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
-			auto& str(NPL::AccessRegular<string>(nd, p_ref));
-
-			return NPL::IsMovable(p_ref) ? StringToSymbol(std::move(str))
-				: StringToSymbol(str);
-		}, x);
+	RegisterUnary<Strict, ResolvedArg<string>>(renv, "string->symbol",
+		[](ResolvedArg<string>&& x){
+		return x.IsMovable() ? StringToSymbol(std::move(x.first))
+			: StringToSymbol(x.first);
 	});
 	RegisterUnary<Strict, const TokenValue>(renv, "symbol->string",
 		SymbolToString);
@@ -1866,7 +1855,7 @@ LoadModule_std_io(REPLContext& context)
 		RetainN(term, 0);
 		if(auto& os{context.GetOutputStreamRef()})
 			os << std::endl;
-		return ValueToken::Unspecified;
+		return ReduceReturnUnspecified(term);
 	});
 	RegisterUnary<Strict, const string>(renv, "put", any_ops::trivial_swap,
 		[&](const string& str){

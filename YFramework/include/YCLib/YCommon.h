@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r4077
+\version r4094
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2021-05-19 21:33 +0800
+	2021-10-21 18:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,8 +63,8 @@ struct IDTagBase
 {};
 
 #if YB_IMPL_CLANGPP
-#	pragma GCC diagnostic push
-#	pragma GCC diagnostic ignored "-Wweak-vtables"
+#	pragma clang diagnostic push
+#	pragma clang diagnostic ignored "-Wweak-vtables"
 #endif
 
 //! \brief 宿主平台标识的公共标记类型：指定任意宿主平台。
@@ -115,7 +115,7 @@ struct IDTagSet : virtual IDTag<_vN>...
 #define YCL_Tag_constfn inline
 
 #if YB_IMPL_CLANGPP
-#	pragma GCC diagnostic pop
+#	pragma clang diagnostic pop
 #endif
 
 /*!
@@ -398,19 +398,26 @@ private:
 	VectorType arguments;
 #else
 	pair<size_t, const_iterator> arguments;
+	/*!
+	\invariant p_rsrc
+	\since build 928
+	*/
+	ystdex::pmr::memory_resource* p_rsrc;
 #endif
 
 public:
 	/*!
-	\brief 构造：取主命令行参数。
-	\note Win32 平台：忽略参数，解析 Unicode 编码的应用程序命令行参数字符串。
-	\since build 918
+	\brief 构造：取应用程序主命令行参数。
+	\note Win32 平台：忽略第一和第二参数，解析 Unicode 编码的命令行参数字符串。
+	\note 非 Win32 平台：忽略第三参数，直接保存第一和第二参数。
+	\since build 928
 	*/
 #if YCL_Win32
-	CommandArguments(int, char*[]);
+	CommandArguments(int, char*[], VectorType::allocator_type = {});
 #else
-	CommandArguments(int argc, char* argv[]) yimpl(ynothrow)
-		: arguments(size_t(argc), argv)
+	CommandArguments(int argc, char* argv[], VectorType::allocator_type a = {})
+		yimpl(ynothrow)
+		: arguments(size_t(argc), argv), p_rsrc(a.resource())
 	{}
 #endif
 	DefDeCopyMoveCtorAssignment(CommandArguments)
@@ -442,6 +449,7 @@ public:
 	DefGetter(const ynothrow, size_t, Count, arguments.first)
 	DefGetter(const ynothrow, char**, Data, arguments.second)
 
+	//! \note 使用构造函数的参数指定的分配器。
 	YB_ATTR_nodiscard YB_PURE VectorType
 	ToVector() const;
 
