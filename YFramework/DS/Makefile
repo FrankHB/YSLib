@@ -1,5 +1,5 @@
 #
-#	(C) 2009-2016, 2020 FrankHB.
+#	(C) 2009-2016, 2020-2021 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YFramework -> ARM9
-# Version = r2186
+# Version = r2188
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2020-12-14 02:30 +0800
+# Updated = 2021-10-23 17:42 +0800
 # Encoding = ANSI
 
 
@@ -18,7 +18,7 @@
 
 .SUFFIXES:
 
-SHBuild_ToolDir := $(dir $(lastword $(MAKEFILE_LIST)))/../../Tools/Scripts
+SHBuild_ToolDir := $(dir $(lastword $(MAKEFILE_LIST)))../../Tools/Scripts
 include $(SHBuild_ToolDir)/Toolchain.DS.mk
 
 # PROJNAME is the name of the project

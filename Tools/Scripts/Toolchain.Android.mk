@@ -1,5 +1,5 @@
 #
-#	(C) 2014, 2016-2017, 2019-2020 FrankHB.
+#	(C) 2014, 2016-2017, 2019-2021 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Makefile for Android toolchain
-# Version = r108
+# Version = r110
 # Created = 2014-12-06 16:51:13 +0800
-# Updated = 2020-10-11 03:20 +0800
+# Updated = 2021-10-23 17:46 +0800
 # Encoding = ANSI
 
 
@@ -22,7 +22,7 @@ CXXFLAGS_IMPL_WARNING ?= -Wno-defaulted-function-deleted \
 CXXFLAGS_IMPL_OPT ?= -flto
 LDFLAGS_IMPL_OPT ?= -s -flto
 
-include $(dir $(lastword $(MAKEFILE_LIST)))/Toolchain.options.mk
+include $(dir $(lastword $(MAKEFILE_LIST)))Toolchain.options.mk
 
 # NOTE: '-fPIC' is required by API level 21.
 C_CXXFLAGS_COMMON := $(C_CXXFLAGS_COMMON) -fPIC -D_POSIX_C_SOURCE=200809L

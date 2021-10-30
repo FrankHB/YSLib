@@ -1,5 +1,5 @@
 #
-#	(C) 2014, 2016, 2019-2020 FrankHB.
+#	(C) 2014, 2016, 2019-2021 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,14 +8,15 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YSTest
-# Version = r364
+# Version = r367
 # Created = 2014-04-17 23:51:27 +0800
-# Updated = 2020-12-14 02:04 +0800
+# Updated = 2021-10-23 17:45 +0800
 # Encoding = ANSI
+
 
 .SUFFIXES:
 
-SHBuild_ToolDir := $(dir $(lastword $(MAKEFILE_LIST)))/../../Tools/Scripts
+SHBuild_ToolDir := $(dir $(lastword $(MAKEFILE_LIST)))../../Tools/Scripts
 include $(SHBuild_ToolDir)/Toolchain.Android.mk
 
 # PROJNAME is the name of the project

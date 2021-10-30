@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r25703
+\version r25752
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2021-10-14 08:41 +0800
+	2021-10-31 01:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,22 +34,22 @@
 //	std::placeholders, std::ref, std::bind, ystdex::as_const, IsLeaf,
 //	ValueObject, ystdex::ref_eq, RelaySwitched, any_ops::trivial_swap,
 //	shared_ptr, ContextHandler, YSLib::unordered_map, string, Environment, lref,
-//	TokenValue, IsIgnore, IsNPLASymbol, any_ops::use_holder,
-//	YSLib::in_place_type, YSLib::HolderFromPointer, YSLib::allocate_shared,
-//	InvalidReference, BindParameter, MoveFirstSubterm, ResolveEnvironment,
-//	ShareMoveTerm, BindParameterWellFormed, TermToStringWithReferenceMark,
+//	TokenValue, any_ops::use_holder, YSLib::in_place_type,
+//	YSLib::HolderFromPointer, YSLib::allocate_shared, InvalidReference,
+//	BindParameter, MoveFirstSubterm, ResolveEnvironment, ShareMoveTerm,
+//	BindParameterWellFormed, ystdex::sfmt, TermToStringWithReferenceMark,
 //	ResolveTerm, LiftOtherOrCopy, SContext::Analyze, std::allocator_arg,
 //	NPL::ResolveRegular, ystdex::make_transform, NPL::TryAccessLeaf,
 //	TermReference, EnvironmentList, NPL::AllocateEnvironment,
-//	ystdex::equality_comparable, CheckParameterTree, IsBranchedList,
-//	NPL::AsTermNode, ystdex::exchange, NPLException, LoggedEvent, YSLib::Alert,
-//	NPL::SwitchToFreshEnvironment, TermTags, YSLib::Debug, YSLib::sfmt,
-//	ystdex::expand_proxy, NPL::AccessRegular, GetLValueTagsOf, RegularizeTerm,
+//	ystdex::equality_comparable, CheckParameterTree, NPL::AsTermNode,
+//	ystdex::exchange, NPLException, NPL::SwitchToFreshEnvironment, TermTags,
+//	YSLib::Debug, YSLib::sfmt, A1::MakeForm, ystdex::expand_proxy,
+//	NPL::AccessRegular, GetLValueTagsOf, RegularizeTerm, IsBranchedList,
 //	LiftMovedOther, ThrowValueCategoryError, ThrowListTypeErrorForNonlist,
-//	ThrowInvalidSyntaxError, CheckEnvironmentFormal, A1::MakeForm,
-//	type_id, ystdex::update_thunk, IsTyped, ystdex::invoke_value_or,
-//	NPL::TryAccessReferencedLeaf, ystdex::call_value_or, ystdex::bind1,
-//	BindSymbol, A1::AsForm, LiftCollapsed, std::mem_fn, YSLib::usystem;
+//	ThrowInvalidSyntaxError, CheckEnvironmentFormal, type_id,
+//	ystdex::update_thunk, IsTyped, BindSymbol, ystdex::bind1, IsNPLASymbol,
+//	ystdex::isdigit, ystdex::fast_all_of, ystdex::call_value_or, A1::AsForm,
+//	LiftCollapsed, std::mem_fn, YSLib::usystem;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_SContext // for Session;
 
@@ -349,29 +349,23 @@ private:
 		auto& env(NPL::Deref(p_env));
 
 		MakeParameterValueMatcher([&](const TokenValue& n){
-			YAssert(!IsIgnore(n) && IsNPLASymbol(n), "Invalid token found.");
-
 			string_view id(n);
 
 			ExtractSigil(id);
 
-			if(!id.empty())
-			{
-				string k(id, store.get_allocator());
+			string k(id, store.get_allocator());
 
-				// NOTE: The symbol can be bound more than once. Only one
-				//	instance is supported.
-				if(store.find(k) == store.cend())
-					// NOTE: This binds value to a local thunk value. The
-					//	bound symbol can then be rebound to an ordinary
-					//	(non-sharing object.
-					env.Bind(k, TermNode(TermNode::Container(
-						t.get_allocator()), ValueObject(any_ops::use_holder,
-						YSLib::in_place_type<
-						YSLib::HolderFromPointer<shared_ptr_t>>,
-						store[k] = YSLib::allocate_shared<ContextHandler>(
-						t.get_allocator(), ThrowInvalidCyclicReference))));
-			}
+			// NOTE: The symbol can be bound more than once. Only one
+			//	instance is supported.
+			if(store.find(k) == store.cend())
+				// NOTE: This binds value to a local thunk value. The
+				//	bound symbol can then be rebound to an ordinary
+				//	(non-sharing object.
+				env.Bind(k, TermNode(TermNode::Container(t.get_allocator()),
+					ValueObject(any_ops::use_holder, YSLib::in_place_type<
+					YSLib::HolderFromPointer<shared_ptr_t>>,
+					store[k] = YSLib::allocate_shared<ContextHandler>(
+					t.get_allocator(), ThrowInvalidCyclicReference))));
 		})(t);
 	}
 
@@ -1527,19 +1521,11 @@ CheckToUndefine(TermNode& term, ContextNode& ctx)
 	{
 		const auto&
 			n(NPL::ResolveRegular<const TokenValue>(*std::next(term.begin())));
+		auto& env(ctx.GetRecordRef());
 
-		if(IsNPLASymbol(n))
-		{
-			auto& env(ctx.GetRecordRef());
-
-			if(!env.Frozen)
-				return {env, n};
-			throw
-				TypeError("Cannot remove a variable in a frozen environment.");
-		}
-		else
-			ThrowInvalidSyntaxError(ystdex::sfmt("Invalid token '%s' found as"
-				" name to be undefined.", n.c_str()));
+		if(!env.Frozen)
+			return {env, n};
+		throw TypeError("Cannot remove a variable in a frozen environment.");
 	}
 	else
 		ThrowInvalidSyntaxError(
@@ -3072,7 +3058,15 @@ ImportImpl(TermNode& term, ContextNode& ctx, bool ref_symbols)
 bool
 IsSymbol(const string& id) ynothrow
 {
-	return IsNPLASymbol(id);
+	return !id.empty() && IsNPLASymbol(id) && !ystdex::isdigit(id.front())
+		&& ystdex::fast_all_of(id.begin(), id.end(), 
+		[] YB_LAMBDA_ANNOTATE((char c), ynothrow, const){
+			// XXX: Conservatively only check the basic character set. There
+			//	could be false negative results.
+			return ystdex::isdigit(c) || bool(std::strchr(
+				"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+				"!$%&*./:<=>?@^_~+-", c));
+		});
 }
 
 TokenValue

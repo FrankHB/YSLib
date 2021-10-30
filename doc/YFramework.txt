@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1544
+\version r1549
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2021-06-24 23:22 +0800
+	2021-10-23 10:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -353,6 +353,11 @@ YSLib 本身不提供大量成熟的控件，而是着重提供可供组装为�
 关于文件名和目录名，参见 [Documentation::ProjectRules @@3.4] 。
 使用嵌套命名空间，避免过长的标识符命名。
 关于一些文件的文件名的额外约定参见 @2.2 。
+在 [Documentation::YBase @@2.1.1.2] 的基础上，实现允许以下可选的语言扩展作为替代的优化实现：
+__builtin_add_overflow
+__builtin_sub_overflow
+__builtin_mul_overflow
+参见 https://clang.llvm.org/docs/LanguageExtensions.html#checked-arithmetic-builtins 。
 
 @2.1 框架组成和依赖项规则：
 基本目录和文件组织规则以及原始目录的概念参见 [Documentation::ProjectRules @@3.3] 。

@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14307
+\version r14312
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2021-05-06 19:11 +0800
+	2021-10-31 00:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -483,12 +483,16 @@ $unit NPLA
 #NPL_NPLA_CheckTermReferenceIndirection
 NPL_Impl_NPLA_CheckStatus
 }
-$unit NPLA1
+$internal $unit NPLA1Internals
 {
 NPL_Impl_NPLA1_Enable_InlineDirect
 NPL_Impl_NPLA1_Enable_TCO
 NPL_Impl_NPLA1_Enable_Thunked
 NPL_Impl_NPLA1_Enable_ThunkedSeparatorPass
+}
+$unit NPLA1
+{
+NPL_NPLA1_EnsureInPlaceNativeNumbers
 }
 $unit Dependency
 {

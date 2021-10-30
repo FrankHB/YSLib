@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1627
+\version r1628
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2021-10-22 18:31 +0800
+	2021-10-23 00:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -628,7 +628,7 @@ puts "ShlExplorer: Hello, world!";
 
 				TestNPL(rsrc, YSLib::istringstream(unit), os);
 #	if YReader_Impl_TestNPL_NoStdout
-				lblInfo.Text = String(os.str().c_str());
+				lblInfo.Text = os.str();
 				Invalidate(lblInfo);
 #	endif
 			}

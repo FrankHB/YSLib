@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3656
+\version r3658
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2021-10-08 18:39 +0800
+	2021-10-30 09:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -354,7 +354,7 @@ string
 InitBadIdentifierExceptionString(string&& id, size_t n)
 {
 	return (n != 0 ? (n == 1 ? "Bad identifier: '" : "Duplicate identifier: '")
-		: "Unknown identifier: '") + std::move(id) + "'.";
+		: "Unknown identifier: '") + EscapeLiteral(id) + "'.";
 }
 
 
@@ -541,8 +541,6 @@ ImplDeDtor(InvalidReference)
 LexemeCategory
 CategorizeBasicLexeme(string_view id) ynothrowv
 {
-	YAssertNonnull(id.data());
-
 	const auto c(CheckLiteral(id));
 
 	if(c == '\'')

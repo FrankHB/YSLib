@@ -11,13 +11,13 @@
 /*!	\file YException.cpp
 \ingroup Core
 \brief 异常处理模块。
-\version r430
+\version r448
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2021-07-05 00:21 +0800
+	2021-10-23 00:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -105,25 +105,6 @@ ExtractException(const ExtractedLevelPrinter& print, const std::exception& e,
 	CatchExpr(..., PrintCriticalFor(print, "Unknown nested exception found"
 		" nested on calling ystdex::handle_nested @ ExtractException.",
 		Critical, level))
-}
-
-bool
-TryExecute(function<void()> f, const char* desc, RecordLevel lv,
-	ExceptionTracer trace)
-{
-	try
-	{
-		TryExpr(f())
-		catch(...)
-		{
-			if(desc)
-				YF_TraceRaw(Notice, "Exception filtered: %s.", desc);
-			throw;
-		}
-		return {};
-	}
-	CatchExpr(std::exception& e, trace(e, lv))
-	return true;
 }
 
 } // namespace YSLib;

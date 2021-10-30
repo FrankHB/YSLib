@@ -11,13 +11,13 @@
 /*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r685
+\version r705
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2021-07-05 00:20 +0800
+	2021-10-23 00:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -196,13 +196,29 @@ ExtractException(const ExtractedLevelPrinter&, const std::exception&,
 //@{
 /*!
 \brief 执行并尝试记录异常。
-\since build 624
+\since build 829
 
 对参数指定的函数求值，并使用最后一个参数追踪记录异常。
 */
-YF_API bool
-TryExecute(function<void()>, const char* = {}, RecordLevel = Alert,
-	ExceptionTracer = ExtractAndTrace);
+template<typename _func>
+YB_NONNULL(2) bool
+TryExecute(_func f, const char* desc, RecordLevel lv,
+	const ExceptionTracer& trace)
+{
+	try
+	{
+		TryExpr(f())
+		catch(...)
+		{
+			if(desc)
+				YF_TraceRaw(Notice, "Exception filtered: %s.", desc);
+			throw;
+		}
+		return {};
+	}
+	CatchExpr(std::exception& e, trace(e, lv))
+	return true;
+}
 
 /*!
 \brief 调用函数并尝试返回。

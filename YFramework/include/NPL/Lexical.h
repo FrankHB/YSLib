@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2020 FrankHB.
+	© 2012-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r2341
+\version r2363
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2020-10-06 00:05 +0800
+	2021-10-30 08:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,13 +29,14 @@
 #define YF_INC_NPL_Lexical_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_NPL // for byte, CHAR_MIN, ystdex::unwrap_ref_decay_t,
-//	ystdex::remove_reference_t, ystdex::detected_or_t, YSLib::lref, YSLib::pair;
+#include YFM_NPL_NPL // for YSLib::pmr, YSLib::begin, YSLib::end, YSLib::list,
+//	YSLib::lref, YSLib::pair, YSLib::set, YSLib::shared_ptr, YSLib::string,
+//	YSLib::string_view, YSLib::vector, CHAR_MIN, ystdex::unwrap_ref_decay_t,
+//	ystdex::remove_reference_t, ystdex::detected_or_t, byte,
+//	ystdex::copy_and_swap;
 #include YFM_YSLib_Core_YFunc // for YSLib::function;
-#include YFM_YSLib_Adaptor_YTextBase // for YSLib::pmr, YSLib::begin,
-//	YSLib::end, YSLib::function, YSLib::list, YSLib::set, YSLib::shared_ptr,
-//	YSLib::string, YSLib::string_view, YSLib::vector;
-#include <cctype> // for std::isgraph;
+#include YFM_YSLib_Adaptor_YTextBase
+#include <ystdex/cctype.h> // for ystdex::isspace;
 
 namespace NPL
 {
@@ -48,6 +49,8 @@ using YSLib::begin;
 using YSLib::end;
 //! \since build 851
 using YSLib::function;
+// NOTE: %YSLib::list instances are not assumed to be trivially swappable, but
+//	their iterators are.
 //! \since build 329
 using YSLib::list;
 //! \since build 842
@@ -173,8 +176,8 @@ YB_ATTR_nodiscard YB_PURE yconstfn
 \sa LexicalAnalyzer
 
 假定转义序列前缀为反斜杠，但不检查内容。
-支持转义序列为 "\\" 、 "\a" 、 "\b" 、 "\f" 、 "\n" 、 "\r" 、 "\t" 和 "\v" ，
-	以及断行连接。
+支持转义序列为 "\'" 、"\"" 、"\\" 、"\a" 、"\b" 、"\f" 、"\n" 、"\r" 、"\t"
+	和 "\v" ，以及断行连接。
 除以下说明外，转义序列语义参见 ISO C++11 （排除 raw-string-literal ）；
 	其它转义序列由派生实现定义。
 反斜杠转义：连续两个反斜杠被替换为一个反斜杠；
@@ -317,6 +320,7 @@ public:
 //@{
 /*!
 \brief 检查指定字符串是否为字面量。
+\note 派生实现可定义其它构成字面量的字符串模式。
 \return 若为字面量（首尾字符都为 '\'' 或 '"' 之一），则为首字符，否则为 char() 。
 */
 YB_ATTR_nodiscard YF_API YB_PURE char
@@ -386,11 +390,7 @@ YB_ATTR_nodiscard YB_STATELESS yconstfn
 
 //! \brief 判断参数是否为 NPL 分隔符。
 YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsDelimiter, char c) ynothrow
-#if CHAR_MIN < 0
-	ImplRet(c >= 0 && (!std::isgraph(c) || IsGraphicalDelimiter(c)))
-#else
-	ImplRet(!std::isgraph(c) || IsGraphicalDelimiter(c))
-#endif
+	ImplRet(ystdex::isspace(c) || IsGraphicalDelimiter(c))
 //@}
 
 
@@ -545,7 +545,7 @@ public:
 	{}
 	DefDeMoveCtor(ByteParser)
 
-	//! \brief 复制赋值：使用参数的分配器构造的副本和交换操作。
+	//! \brief 复制赋值：使用参数副本和交换操作。
 	PDefHOp(ByteParser&, =, const ByteParser& parse)
 		ImplRet(ystdex::copy_and_swap(*this, parse))
 	DefDeMoveAssignment(ByteParser)
@@ -704,7 +704,7 @@ public:
 
 	DefDeMoveCtor(DelimitedByteParser)
 
-	//! \brief 复制赋值：使用参数的分配器构造的副本和交换操作。
+	//! \brief 复制赋值：使用参数副本和交换操作。
 	PDefHOp(DelimitedByteParser&, =, const DelimitedByteParser& parse)
 		ImplRet(ystdex::copy_and_swap(*this, parse))
 	DefDeMoveAssignment(DelimitedByteParser)

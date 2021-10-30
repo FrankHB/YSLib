@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r21176
+\version r21615
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2021-10-22 18:05 +0800
+	2021-10-31 01:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,12 +42,16 @@
 //	IsBranchedList, std::placeholders, NoContainer, ystdex::try_emplace,
 //	NPL::Access, YSLib::Informative, ystdex::unique_guard, NPL::AsTermNode,
 //	CategorizeBasicLexeme, DeliteralizeUnchecked, CheckReducible, Deliteralize,
-//	ystdex::isdigit, INT_MAX, ResolveIdentifier, IsNPLAExtendedLiteral,
-//	ystdex::ref_eq, NPL::TryAccessTerm, YSLib::share_move,
-//	ystdex::call_value_or, YSLib::Notice, YSLib::FilterException, Session;
+//	ystdex::isdigit, INT_MAX, ResolveIdentifier, ystdex::ref_eq,
+//	NPL::TryAccessTerm, YSLib::share_move, ystdex::call_value_or, YSLib::Notice,
+//	YSLib::FilterException, Session;
 #include "NPLA1Internals.h" // for A1::Internals API;
-#include YFM_NPL_Dependency // for A1::OpenUnique;
+#include <ystdex/cstdint.hpp> // for std::numeric_limits, ystdex::cond_t,
+//	std::is_signed, ystdex::identity, ystdex::conditional_t, ystdex::_t,
+//	std::is_floating_point, ystdex::and_, std::is_unsigned,
+//	ystdex::make_widen_int;
 #include <ystdex/exception.h> // for ystdex::unsupported;
+#include YFM_NPL_Dependency // for A1::OpenUnique;
 
 namespace NPL
 {
@@ -75,6 +79,8 @@ to_string(ValueToken vt)
 		return "undefined";
 	case ValueToken::Unspecified:
 		return "unspecified";
+	case ValueToken::Ignore:
+		return "ignore";
 	case ValueToken::GroupingAnchor:
 		return "grouping";
 	case ValueToken::OrderedAnchor:
@@ -649,18 +655,8 @@ struct ParameterCheck final
 	HandleLeaf(_func f, const TermNode& t, bool t_has_ref)
 	{
 		if(const auto p = TermToNamePtr(t))
-		{
-			const auto& n(*p);
-
-			if(!IsIgnore(n))
-			{
-				if(IsNPLASymbol(n))
-					f(n);
-				else
-					ThrowInvalidTokenError(n);
-			}
-		}
-		else
+			f(*p);
+		else if(!IsIgnore(t))
 			ThrowFormalParameterTypeError(t, t_has_ref);
 	}
 
@@ -694,16 +690,13 @@ struct NoParameterCheck final
 	static void
 	HandleLeaf(_func f, const TermNode& t)
 	{
-		const auto p(TermToNamePtr(t));
-
-		YAssert(bool(p), "Invalid parameter tree found.");
-
-		const auto& n(*p);
-
-		if(!IsIgnore(n))
+		if(!IsIgnore(t))
 		{
-			YAssert(IsNPLASymbol(n), "Invalid parameter tree found.");
-			f(n);
+			const auto p(TermToNamePtr(t));
+
+			YAssert(bool(p), "Invalid parameter tree found.");
+
+			f(*p);
 		}
 	}
 
@@ -824,7 +817,7 @@ private:
 							if(!p->empty() && p->front() == '.')
 								--last;
 						}
-						else
+						else if(!IsIgnore(back))
 							_tTraits::CheckBack(back, yforward(args)...);
 					}
 				}
@@ -962,19 +955,16 @@ YB_FLATTEN void
 BindSymbolImpl(const EnvironmentReference& r_env, const TokenValue& n,
 	TermNode& b, TermTags o_tags, Environment& env)
 {
-	YAssert(!IsIgnore(n) && IsNPLASymbol(n), "Invalid token found.");
-
 	string_view id(n);
 	const char sigil(ExtractSigil(id));
 
-	if(!id.empty())
-		BindParameterObject{r_env}(sigil, sigil == '&', o_tags, b,
-			[&](const TermNode& tm){
-			CopyTermTags(env.Bind(id, tm), tm);
-		}, [&](TermNode::Container&& c, ValueObject&& vo) -> TermNode&{
-			// XXX: Allocators are not used here for performance.
-			return env.Bind(id, TermNode(std::move(c), std::move(vo)));
-		});
+	BindParameterObject{r_env}(sigil, sigil == '&', o_tags, b,
+		[&](const TermNode& tm){
+		CopyTermTags(env.Bind(id, tm), tm);
+	}, [&](TermNode::Container&& c, ValueObject&& vo) -> TermNode&{
+		// XXX: Allocators are not used here for performance.
+		return env.Bind(id, TermNode(std::move(c), std::move(vo)));
+	});
 }
 
 template<class _tTraits>
@@ -993,10 +983,12 @@ BindParameterImpl(const shared_ptr<Environment>& p_env, const TermNode& t,
 		string_view id, TermTags o_tags, const EnvironmentReference& r_env){
 		YAssert(ystdex::begins_with(id, "."), "Invalid symbol found.");
 		id.remove_prefix(1);
+		// NOTE: Ignore the name of single '.'.
 		if(!id.empty())
 		{
 			const char sigil(ExtractSigil(id));
 
+			// NOTE: Ignore the name of single '.' followed by a sigil.
 			if(!id.empty())
 			{
 				const auto a(o_tm.get_allocator());
@@ -1066,14 +1058,6 @@ void
 ThrowInvalidSyntaxError(string_view sv)
 {
 	throw InvalidSyntax(sv);
-}
-
-void
-ThrowInvalidTokenError(string_view sv)
-{
-	YAssertNonnull(sv.data());
-	ThrowInvalidSyntaxError(ystdex::sfmt("Invalid token '%s' found",
-		sv.data()));
 }
 
 void
@@ -1472,15 +1456,20 @@ ParseLeaf(TermNode& term, string_view id)
 	switch(CategorizeBasicLexeme(id))
 	{
 	case LexemeCategory::Code:
-		// XXX: When do code literals need to be evaluated?
 		id = DeliteralizeUnchecked(id);
-		YB_ATTR_fallthrough;
+		term.SetValue(in_place_type<TokenValue>, id, term.get_allocator());
+		break;
 	case LexemeCategory::Symbol:
 		if(CheckReducible(DefaultEvaluateLeaf(term, id)))
-			term.SetValue(in_place_type<TokenValue>, id, term.get_allocator());
-			// NOTE: This is to be evaluated as identifier later.
+		{
+			if(!IsNPLAExtendedLiteral(id))
+				// NOTE: This is to be evaluated as identifier later.
+				term.SetValue(in_place_type<TokenValue>, id,
+					term.get_allocator());
+			else
+				ThrowUnsupportedLiteralError(id);
+		}
 		break;
-		// XXX: Empty token is ignored.
 		// XXX: Remained reducible?
 	case LexemeCategory::Data:
 		// XXX: This should be prevented being passed to second pass in
@@ -1502,16 +1491,25 @@ ParseLeafWithSourceInformation(TermNode& term, string_view id,
 	// NOTE: Most are same to %ParseLeaf, except for additional source
 	//	information mixed into the values of %TokenValue.
 	YAssertNonnull(id.data());
+	// NOTE: The lexeme shall not be empty, although the code literal '' can be
+	//	converted to an empty symbol after the processing here.
 	YAssert(!id.empty(), "Invalid leaf token found.");
 	switch(CategorizeBasicLexeme(id))
 	{
 	case LexemeCategory::Code:
 		id = DeliteralizeUnchecked(id);
-		YB_ATTR_fallthrough;
+		term.SetValue(any_ops::use_holder, in_place_type<SourcedHolder<
+			TokenValue>>, name, src_loc, id, term.get_allocator());
+		break;
 	case LexemeCategory::Symbol:
 		if(CheckReducible(DefaultEvaluateLeaf(term, id)))
-			term.SetValue(any_ops::use_holder, in_place_type<SourcedHolder<
-				TokenValue>>, name, src_loc, id, term.get_allocator());
+		{
+			if(!IsNPLAExtendedLiteral(id))
+				term.SetValue(any_ops::use_holder, in_place_type<SourcedHolder<
+					TokenValue>>, name, src_loc, id, term.get_allocator());
+			else
+				ThrowUnsupportedLiteralError(id);
+		}
 		break;
 	case LexemeCategory::Data:
 		term.SetValue(any_ops::use_holder, in_place_type<SourcedHolder<string>>,
@@ -1581,6 +1579,7 @@ DefaultEvaluateLeaf(TermNode& term, string_view id)
 
 	const char f(id.front());
 
+	// NOTE: Assume allcator is not needed.
 	if(ystdex::isdigit(f))
 	{
 		long long ans(0);
@@ -1607,6 +1606,8 @@ DefaultEvaluateLeaf(TermNode& term, string_view id)
 		term.Value = false;
 	else if(id == "#inert")
 		term.Value = ValueToken::Unspecified;
+	else if(id == "#ignore")
+		term.Value = ValueToken::Ignore;
 	else
 		return ReductionStatus::Retrying;
 	return ReductionStatus::Clean;
@@ -1673,21 +1674,14 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 
 	YAssertNonnull(id.data());
 	// NOTE: Only string node of identifier is tested.
-	if(!id.empty() && (cs.EvaluateLiteral.empty()
-		|| CheckReducible(cs.EvaluateLiteral(term, cs, id))))
-	{
-		// NOTE: The symbols are lexical results from the analysis result of
-		//	%ParseLeaf. The term would be normalized by %ReduceCombined. If
-		//	necessary, there can be inserted some additional cleanup to remove
-		//	empty tokens, returning %ReductionStatus::Partial. Separators should
-		//	have been handled in appropriate preprocessing passes like
-		//	%REPLContext::Preprocess.
-		// XXX: Asynchronous reduction is currently not supported.
-		if(!IsNPLAExtendedLiteral(id))
-			return EvaluateIdentifier(term, cs, id);
-		ThrowUnsupportedLiteralError(id);
-	}
-	return ReductionStatus::Retained;
+	// NOTE: The symbols to be called with %EvaluateIdentifier are lexical
+	//	results from the analysis result of %ParseLeaf. If necessary, there can
+	//	be inserted some additional cleanup to remove empty tokens, returning
+	//	%ReductionStatus::Partial. Separators should have been handled in
+	//	appropriate preprocessing passes like %REPLContext::Preprocess.
+	// XXX: Asynchronous reduction is currently not supported.
+	return cs.EvaluateLiteral.empty() || CheckReducible(cs.EvaluateLiteral(term,
+		cs, id)) ? EvaluateIdentifier(term, cs, id) : ReductionStatus::Retained;
 }
 
 ReductionStatus
@@ -1861,20 +1855,13 @@ CheckEnvironmentFormal(const TermNode& term)
 {
 	TryRet(ResolveTerm([&](const TermNode& nd, bool has_ref) -> string{
 		if(const auto p = TermToNamePtr(nd))
-		{
-			if(!IsIgnore(*p))
-			{
-				if(IsNPLASymbol(*p))
-					return string(*p, term.get_allocator());
-				ThrowInvalidTokenError(*p);
-			}
-		}
-		else
+			return string(*p, term.get_allocator());
+		else if(!IsIgnore(nd))
 			ThrowFormalParameterTypeError(nd, has_ref);
 		return string(term.get_allocator());
 	}, term))
 	CatchExpr(..., std::throw_with_nested(InvalidSyntax("Failed checking for"
-		" environment formal parameter (expected a symbol).")))
+		" environment formal parameter (expected a symbol or #ignore).")))
 }
 
 void
@@ -1910,9 +1897,401 @@ BindSymbol(const shared_ptr<Environment>& p_env, const TokenValue& n,
 	//	term without trailing handling.
 	auto& env(NPL::Deref(p_env));
 
-	if(!IsIgnore(n))
-		BindSymbolImpl(p_env, n, o, TermTags::Temporary, env);
+	BindSymbolImpl(p_env, n, o, TermTags::Temporary, env);
 }
+
+
+inline namespace Math
+{
+
+//! \since build 929
+namespace
+{
+
+//! \ingroup functors
+//@{
+struct EqZero : ReportMismatch<bool>
+{
+	using ReportMismatch<bool>::operator();
+	template<typename _type,
+		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
+	YB_ATTR_nodiscard YB_PURE yconstfn bool
+	operator()(const _type& x) const ynothrow
+	{
+	// XXX: Signaling NaNs are assumed existing in valid inputs. This should be
+	//	safe even with %FLT_EVAL_METHOD and quite NaNs taken into account. 
+#if YB_IMPL_GNUCPP || YB_IMPL_CLANGCPP
+	YB_Diag_Push
+	YB_Diag_Ignore(float-equal)
+#endif
+		return x == _type(0);
+#if YB_IMPL_GNUCPP || YB_IMPL_CLANGCPP
+	YB_Diag_Pop
+#endif
+	}
+};
+
+
+struct AddOne : ReportMismatch<>
+{
+	ValueObject& Result;
+
+	AddOne(ValueObject& res)
+		: Result(res)
+	{}
+
+	using ReportMismatch<>::operator();
+	template<typename _type>
+	inline yimpl(ystdex::exclude_self_t<ValueObject, _type>)
+	operator()(_type& x) const ynothrow
+	{
+		DoAdd(Result, x);
+	}
+
+private:
+	template<typename _type>
+	static inline ystdex::enable_if_t<std::is_floating_point<_type>::value>
+	DoAdd(ValueObject&, _type& x) ynothrow
+	{
+		x += _type(1);
+	}
+	template<typename _type, yimpl(ystdex::enable_if_t<
+		!std::is_floating_point<_type>::value, int> = 0)>
+	static inline void
+	DoAdd(ValueObject& res, _type& x)
+	{
+		if(x != std::numeric_limits<_type>::max())
+			++x;
+		else
+			// TODO: Allocator?
+			res = ValueObject(MakeExtType<_type>(x) + 1);
+	}
+};
+
+struct SubOne : ReportMismatch<>
+{
+	ValueObject& Result;
+
+	SubOne(ValueObject& res)
+		: Result(res)
+	{}
+
+	using ReportMismatch<>::operator();
+	template<typename _type>
+	inline yimpl(ystdex::exclude_self_t<ValueObject, _type>)
+	operator()(_type& x) const ynothrow
+	{
+		DoSub(Result, x);
+	}
+
+private:
+	template<typename _type>
+	static inline ystdex::enable_if_t<std::is_floating_point<_type>::value>
+	DoSub(ValueObject&, _type& x) ynothrow
+	{
+		x -= _type(1);
+	}
+	template<typename _type, yimpl(ystdex::enable_if_t<
+		!std::is_floating_point<_type>::value, int> = 0)>
+	static inline void
+	DoSub(ValueObject& res, _type& x)
+	{
+		if(x != std::numeric_limits<_type>::min())
+			--x;
+		else
+			// TODO: Allocator?
+			res = ValueObject(MakeNExtType<_type>(x) - 1);
+	}
+};
+
+
+struct BMismatch
+{
+	YB_NORETURN ValueObject
+	operator()(const ValueObject&, const ValueObject&) const
+	{
+		ThrowForUnsupportedNumber();
+	}
+};
+
+
+struct BPlus : BMismatch
+{
+	using BMismatch::operator();
+	template<typename _type,
+		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
+	inline ValueObject
+	operator()(const _type& x, const _type& y) const ynothrow
+	{
+		return Do(x, y);
+	}
+
+private:
+	// XXX: Assume operations on flonums are always closed even on overflow.
+	template<typename _type>
+	static inline
+		ystdex::enable_if_t<!std::is_integral<_type>::value, _type>
+	Do(const _type& x, const _type& y) ynothrow
+	{
+		// TODO: Use bigint with allocator?
+		return x + y;
+	}
+	template<typename _type, yimpl(ystdex::enable_if_t<
+		ystdex::and_<std::is_integral<_type>,
+		std::is_signed<_type>>::value, int> = 0)>
+	static inline ValueObject
+	Do(const _type& x, const _type& y)
+	{
+		// TODO: Use bigint with allocator?
+#if __has_builtin(__builtin_add_overflow)
+		_type r;
+
+		if(!__builtin_add_overflow(x, y, &r))
+			return r;
+		if(x > 0 && y > std::numeric_limits<_type>::max() - x)
+			return MakeExtType<_type>(x) + MakeExtType<_type>(y);
+		return MakeNExtType<_type>(x) + MakeNExtType<_type>(y);
+#else
+		if(x > 0 && y > std::numeric_limits<_type>::max() - x)
+			return MakeExtType<_type>(x) + MakeExtType<_type>(y);
+		if(x < 0 && y < std::numeric_limits<_type>::min() - x)
+			return MakeNExtType<_type>(x) + MakeNExtType<_type>(y);
+		return x + y;
+#endif
+	}
+	template<typename _type, yimpl(ystdex::enable_if_t<
+		std::is_unsigned<_type>::value, long> = 0L)>
+	static inline ValueObject
+	Do(const _type& x, const _type& y)
+	{
+#if __has_builtin(__builtin_add_overflow)
+		_type r;
+
+		if(!__builtin_add_overflow(x, y, &r))
+			return r;
+		// NOTE: Wrapped integers are more efficient.
+#elif true
+		const _type r(x + y);
+
+		if(r >= x)
+			return r;			
+#else
+		if(y <= std::numeric_limits<_type>::max() - x)
+			return x + y;
+#endif
+		// TODO: Use bigint with allocator?
+		return MakeExtType<_type>(x) + MakeExtType<_type>(y);
+	}
+};
+
+
+struct BMinus : BMismatch
+{
+	using BMismatch::operator();
+	template<typename _type,
+		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
+	inline ValueObject
+	operator()(const _type& x, const _type& y) const ynothrow
+	{
+		return Do(x, y);
+	}
+
+private:
+	// XXX: Assume operations on flonums are always closed even on overflow.
+	template<typename _type>
+	static inline
+		ystdex::enable_if_t<!std::is_integral<_type>::value, _type>
+	Do(const _type& x, const _type& y) ynothrow
+	{
+		// TODO: Use bigint with allocator?
+		return x - y;
+	}
+	template<typename _type, yimpl(ystdex::enable_if_t<
+		ystdex::and_<std::is_integral<_type>,
+		std::is_signed<_type>>::value, int> = 0)>
+	static inline ValueObject
+	Do(const _type& x, const _type& y)
+	{
+		// TODO: Use bigint with allocator?
+#if __has_builtin(__builtin_sub_overflow)
+		_type r;
+
+		if(!__builtin_sub_overflow(x, y, &r))
+			return r;
+		if(YB_UNLIKELY(y == std::numeric_limits<_type>::min())
+			|| (x > 0 && -y > std::numeric_limits<_type>::max() - x))
+			return MakeExtType<_type>(x) - MakeExtType<_type>(y);
+		return MakeNExtType<_type>(x) - MakeNExtType<_type>(y);
+#else
+		if(YB_UNLIKELY(y == std::numeric_limits<_type>::min())
+			|| (x > 0 && -y > std::numeric_limits<_type>::max() - x))
+			return MakeExtType<_type>(x) - MakeExtType<_type>(y);
+		if(x < 0 && -y < std::numeric_limits<_type>::min() - x)
+			return MakeNExtType<_type>(x) - MakeNExtType<_type>(y);
+		return x - y;
+#endif
+	}
+	template<typename _type, yimpl(ystdex::enable_if_t<
+		std::is_unsigned<_type>::value, long> = 0L)>
+	static inline ValueObject
+	Do(const _type& x, const _type& y)
+	{
+		// XXX: This is efficient enough to avoid builtins.
+		if(y <= x)
+			return x - y;
+		// TODO: Use bigint with allocator?
+		return MakeExtType<_type>(x) - MakeExtType<_type>(y);
+	}
+};
+
+
+struct BMultiplies : BMismatch
+{
+	using BMismatch::operator();
+	template<typename _type,
+		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
+	inline ValueObject
+	operator()(const _type& x, const _type& y) const ynothrow
+	{
+		return Do(x, y);
+	}
+
+private:
+	// XXX: Assume operations on flonums are always closed even on overflow.
+	template<typename _type>
+	static inline
+		ystdex::enable_if_t<!std::is_integral<_type>::value, _type>
+	Do(const _type& x, const _type& y) ynothrow
+	{
+		// TODO: Use bigint with allocator?
+		return x * y;
+	}
+	template<typename _type, yimpl(ystdex::enable_if_t<
+		std::is_integral<_type>::value, int> = 0)>
+	static inline ValueObject
+	Do(const _type& x, const _type& y)
+	{
+		// TODO: Use bigint with allocator?
+#if __has_builtin(__builtin_mul_overflow)
+		_type r;
+
+		if(!__builtin_mul_overflow(x, y, &r))
+			return r;
+		return MakeMulExtType<_type>(x) * MakeMulExtType<_type>(y);
+#else
+		using r_t = MakeMulExtType<_type>;
+		const r_t r(r_t(x) * r_t(y));
+
+		if(r <= r_t(std::numeric_limits<_type>::max()))
+			return _type(r);
+		return r;
+#endif
+	}
+};
+//@}
+
+
+YB_ATTR_nodiscard YB_PURE ValueObject
+Promote(NumCode code, const ValueObject& x, NumCode src_code)
+{
+	return DoNumLeafHinted<ValueObject>(src_code, DynNumCast(code), x);
+}
+
+template<class _fBinary>
+ValueObject
+NumBinaryOp(ResolvedArg<>& x, ResolvedArg<>& y)
+{
+	const auto xcode(MapTypeIdToNumCode(x));
+	const auto ycode(MapTypeIdToNumCode(y));
+	const auto ret_bin([](ValueObject u, ValueObject v, NumCode code){
+		return DoNumLeafHinted<ValueObject>(code, _fBinary(), u, v);
+	});
+
+	return size_t(xcode) >= size_t(ycode) ?
+		ret_bin(MoveUnary(x), Promote(xcode, y.get().Value, ycode), xcode)
+		: ret_bin(Promote(ycode, x.get().Value, xcode), MoveUnary(y), ycode);
+}
+
+} // unnamed namespace
+
+bool
+IsExactValue(const ValueObject& vo) ynothrow
+{
+	// TODO: Add rationals.
+	return IsFixnumValue(vo) || false;
+}
+
+bool
+IsInexactValue(const ValueObject& vo) ynothrow
+{
+	// NOTE: This is the complement of %IsFixnumValue in the type universe numbers.
+	// NOTE: Every flonum is inexact. Currently there are no types other than
+	//	flonums supported as inexact reals. There is currently no complex
+	//	numbers support, hence, also no other inexact numbers exist.
+	return IsFlonumValue(vo);
+}
+
+bool
+IsFixnumValue(const ValueObject& vo) ynothrow
+{
+	return IsTyped<int>(vo) || IsTyped<unsigned>(vo) || IsTyped<long long>(vo)
+		|| IsTyped<unsigned long long>(vo) || IsTyped<long>(vo)
+		|| IsTyped<unsigned long>(vo) || IsTyped<short>(vo)
+		|| IsTyped<unsigned short>(vo) || IsTyped<signed char>(vo)
+		|| IsTyped<unsigned char>(vo);
+}
+
+YB_ATTR_nodiscard YB_PURE inline bool
+IsFlonumValue(const ValueObject& vo) ynothrow
+{
+	return
+		IsTyped<float>(vo) || IsTyped<double>(vo) || IsTyped<long double>(vo);
+}
+
+
+bool
+IsZero(const ValueObject& x)
+{
+	return DoNumLeaf<bool>(x, EqZero());
+}
+
+ValueObject
+Add1(ResolvedArg<>&& x)
+{
+	auto res(MoveUnary(x));
+
+	DoNumLeaf<void>(res, AddOne(res));
+	return res;
+}
+
+ValueObject
+Sub1(ResolvedArg<>&& x)
+{
+	auto res(MoveUnary(x));
+
+	DoNumLeaf<void>(res, SubOne(res));
+	return res;
+}
+
+ValueObject
+Plus(ResolvedArg<>&& x, ResolvedArg<>&& y)
+{
+	return NumBinaryOp<BPlus>(x, y);
+}
+
+ValueObject
+Minus(ResolvedArg<>&& x, ResolvedArg<>&& y)
+{
+	return NumBinaryOp<BMinus>(x, y);
+}
+
+ValueObject
+Multiplies(ResolvedArg<>&& x, ResolvedArg<>&& y)
+{
+	return NumBinaryOp<BMultiplies>(x, y);
+}
+
+} // inline namespace Math;
 
 
 void

@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r6387
+\version r6429
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2021-10-21 19:01 +0800
+	2021-10-29 18:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,11 +35,10 @@
 //	MoveResolved, NPL::AllocateEnvironment, function, ValueObject,
 //	EnvironmentReference, std::piecewise_construct, NPL::forward_as_tuple,
 //	LiftOther, ThrowNonmodifiableErrorForAssignee, ThrowValueCategoryError,
-//	ValueToken, ResolveTerm, IsNPLASymbol, ThrowInvalidTokenError,
-//	std::placeholders, TokenValue, CheckVariadicArity, A1::AsForm,
-//	NPL::CollectTokens, Strict, IsEmpty, ComposeReferencedTermOp, IsBranch,
-//	IsReferenceTerm, IsBoundLValueTerm, IsUncollapsedTerm, IsUniqueTerm,
-//	IsModifiableTerm, IsTemporaryTerm, ReferenceTerm, LiftTermRef,
+//	ValueToken, ResolveTerm, std::placeholders, TokenValue, CheckVariadicArity,
+//	A1::AsForm, NPL::CollectTokens, Strict, IsEmpty, ComposeReferencedTermOp,
+//	IsBranch, IsReferenceTerm, IsBoundLValueTerm, IsUncollapsedTerm,
+//	IsUniqueTerm, IsModifiableTerm, IsTemporaryTerm, ReferenceTerm, LiftTermRef,
 //	NPL::SetContentWith, ResolveName, Environment::EnsureValid, LiftOtherOrCopy,
 //	ystdex::bind1, LiftTermValueOrCopy, ResolveIdentifier, NPLException,
 //	ReduceToReferenceList, MoveCollapsed, NPL::IsMovable, LiftTermOrCopy,
@@ -392,16 +391,6 @@ DoAssign(_func f, TermNode& x)
 	return ValueToken::Unspecified;
 }
 
-//! \since build 917
-template<typename _func>
-auto
-CheckSymbol(string_view id, _func f) -> decltype(f())
-{
-	if(IsNPLASymbol(id))
-		return f();
-	ThrowInvalidTokenError(id);
-}
-
 //! \since build 897
 YB_ATTR_nodiscard YB_FLATTEN ReductionStatus
 DoResolve(TermNode(&f)(const ContextNode&, string_view), TermNode& term,
@@ -409,7 +398,7 @@ DoResolve(TermNode(&f)(const ContextNode&, string_view), TermNode& term,
 {
 	Forms::CallRegularUnaryAs<const TokenValue>(
 		[&] YB_LAMBDA_ANNOTATE((string_view id), , flatten){
-		term = CheckSymbol(id, std::bind(f, std::ref(c), id));
+		term = f(c, id);
 	}, term);
 	return ReductionStatus::Retained;
 }
@@ -518,14 +507,11 @@ AddDefineFunction(ContextNode& ctx, const char* fn,
 namespace Ground
 {
 
+#if false
 void
 LoadObjects(Environment& env)
-{
-	// NOTE: This is like '#ignore' in Kernel, but with the symbol type. An
-	//	alternative definition is by evaluating '$def! ignore $quote #ignore'
-	//	(see '$def!' and '$quote').
-	env.Define("ignore", TokenValue("#ignore"));
-}
+{}
+#endif
 
 namespace Primitive
 {
@@ -625,9 +611,7 @@ LoadEnvironments(ContextNode& ctx)
 	RegisterStrict(ctx, "eval%", EvalRef);
 	RegisterUnary<Strict, const string>(ctx, "bound?",
 		[](const string& id, ContextNode& c){
-		return CheckSymbol(id, [&]{
-			return bool(ResolveName(c, id).first);
-		});
+		return bool(ResolveName(c, id).first);
 	});
 	RegisterForm(ctx, "$resolve-identifier", any_ops::trivial_swap,
 		std::bind(DoResolve, std::ref(ResolveIdentifier), _1, _2));
@@ -760,9 +744,9 @@ LoadBasicDerived(REPLContext& context)
 	RegisterForm(renv, "$lvalue-identifier?",
 		[](TermNode& term, ContextNode& ctx){
 		Forms::CallRegularUnaryAs<const TokenValue>([&](string_view id){
-			term.Value = CheckSymbol(id, [&]() -> bool{
-				auto pr(ResolveName(ctx, id));
+			auto pr(ResolveName(ctx, id));
 
+			term.Value = [&]() -> bool{
 				if(pr.first)
 				{
 					auto& tm(*pr.first);
@@ -774,7 +758,7 @@ LoadBasicDerived(REPLContext& context)
 						|| bool(tm.Tags & TermTags::Temporary));
 				}
 				throw BadIdentifier(id);
-			});
+			}();
 		}, term);
 	});
 	RegisterStrict(renv, "forward!", [](TermNode& term){
@@ -1056,19 +1040,19 @@ $def! $wvau/e% $vau (&p &formals &ef .&body) d
 #	if NPL_Impl_NPLA1_Use_Id_Vau
 	R"NPL(
 $def! $lambda $vau (&formals .&body) d
-	wrap (eval (cons $vau (cons formals (cons ignore (move! body)))) d);
+	wrap (eval (cons $vau (cons formals (cons #ignore (move! body)))) d);
 $def! $lambda% $vau (&formals .&body) d
-	wrap (eval (cons $vau% (cons formals (cons ignore (move! body)))) d);
+	wrap (eval (cons $vau% (cons formals (cons #ignore (move! body)))) d);
 	)NPL"
 #	endif
 	// NOTE: Use of 'eqv?' is more efficient than '$if'.
 	R"NPL(
 $def! $lambda/e $vau (&p &formals .&body) d
 	wrap (eval
-		(cons $vau/e (cons p (cons formals (cons ignore (move! body))))) d);
+		(cons $vau/e (cons p (cons formals (cons #ignore (move! body))))) d);
 $def! $lambda/e% $vau (&p &formals .&body) d
 	wrap (eval
-		(cons $vau/e% (cons p (cons formals (cons ignore (move! body))))) d);
+		(cons $vau/e% (cons p (cons formals (cons #ignore (move! body))))) d);
 $def! $sequence
 	($lambda (&se)
 		($lambda #ignore $vau/e% se &exprseq d
@@ -1339,15 +1323,13 @@ LoadStandardDerived(REPLContext& context)
 		auto& eterm(*++i);
 		const auto& id(NPL::ResolveRegular<const TokenValue>(*++i));
 
-		return CheckSymbol(id, [&]{
-			return ReduceSubsequent(eterm, ctx, A1::NameTypedReducerHandler([&]{
-				auto p_env(ResolveEnvironment(eterm).first);
+		return ReduceSubsequent(eterm, ctx, A1::NameTypedReducerHandler([&]{
+			auto p_env(ResolveEnvironment(eterm).first);
 
-				Environment::EnsureValid(p_env);
-					term.Value = bool(ctx.Resolve(std::move(p_env), id).first);
-				return ReductionStatus::Clean;
-			}, "eval-$binds1?-env"));
-		});
+			Environment::EnsureValid(p_env);
+				term.Value = bool(ctx.Resolve(std::move(p_env), id).first);
+			return ReductionStatus::Clean;
+		}, "eval-$binds1?-env"));
 	});
 #else
 	// XXX: The derivations depends on %std.strings and core functions
@@ -1403,7 +1385,7 @@ Load(REPLContext& context)
 	auto& rctx(context.Root);
 	auto& renv(rctx.GetRecordRef());
 
-	LoadObjects(renv);
+//	LoadObjects(renv);
 	Primitive::Load(rctx);
 	Derived::Load(context);
 	// NOTE: Prevent the ground environment from modification.

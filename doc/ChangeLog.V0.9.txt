@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r5790
+\version r5964
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-10-22 18:33 +0800
+	2021-10-31 01:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,181 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib.Core $=
+		(
+			/ "function %TryExecute" @ %YSLib.Core.YException
+				-> "function template" !^ "%function",
+			/ @ "class %String" @ %YSLib.Core.YString $=
+			(
+				+ "alias %std_u16string",
+				/ @ "constructors" $=
+				(
+					+ 'ynothrow' @ "move constructor",
+					+ "3 constructors with allocator parameter",
+					+ "allocator parameter with default argument"
+						@ "constructor with %std::initializer_list instance",
+					/ "all default template arguments of allocator"
+						-> "rebound allocator" ^ "%ystdex::rebind_alloc_t"
+						~ "%std::allocator",
+					/ "all %u16string parameter" -> $dep_from "%std_u16string",
+						// This allows initialize from %std::basic_string from \
+							the standard library even %std::basic_string is \
+							not same to %YSLib::basic_string.
+					/ "all %basic_string parameters" -> "%std::basic_string \
+						parameters" ^ "%ystdex::make_string_view"
+						$dep_to "standard string conversion"
+						// Ditto.
+				)
+			),
+		),
+		/ %NPL $=
+		(
+			/ "made '#ignore' a value token instead of a symbol" $=
+			(
+				/ %NPLA1 $=
+				(
+					+ "%Ignore" @ "enum %ValueToken";
+					/ "supported %ValueToken::Ignore" @ "function %to_string",
+					(
+					- "%IsIgnore check" @ "function %BindSymbol";
+					/ "function %IsIgnore checked %TermNode parameter"
+						~ "%TokenValue parameter"
+						$= (/ $impl ^ "%HasValue")
+					),
+					+ "'#ignore' support" @ "function %DefaultEvaluateLeaf"
+				),
+				/ $forced "%IsIgnore check" $effective @ ("functions \
+					%(BindParameter, BindParameterWellFormed, \
+					CheckEnvironmentFormal)" @ %NPLA1, "functions \
+					%Forms::(DefineWithRecursion, SetWithRecursion)"
+					@ %NPLA1Forms, "class template %GParameterValueMatcher"
+					@ %NPLA1Internals) $dep_from ("%IsIgnore" @ %NPLA1),
+				/ %Dependency $=
+				(
+					/ "all 'ignore'" @ "derivation" -> '#inert'
+						$dep_from ("%DefaultEvaluateLeaf" @ %NPLA1)
+						$effective @ "function %LoadGroundContext";
+					- $forced "object definition %ignore"
+						@ "function %LoadGroundContext"
+						$dep_from ("%DefaultEvaluateLeaf" @ %NPLA1)
+				)
+			),
+			(
+			/ "simplified symbol binding" !^ "%IsNPLASymbol"
+				$effective @ ("function %(BindParameter, \
+				BindParameterWellFormed, BindSymbol)" @ %NPLA1, "functions \
+				%Forms::(DefineWithRecursion, SetWithRecursion)"
+				@ %NPLA1Forms, "class template %GParameterValueMatcher"
+				@ %NPLA1Internals);
+				// This also reduces all %ThrowInvalidTokenError checks.
+			/ "supported code literals as symbols" $=
+			(
+				+ "empty identifier support" @ "function %ExtractSigil"
+					@ %NPLInternals;
+				/ %NPLA1 $=
+				(
+					/ "allowed binding empty symbol" @ "functions \
+						%BindParameter, BindParameterWellFormed, BindSymbol)",
+					(
+					- ("empty token check", "extended literal check")
+						@ "function %EvaluateLeafToken";
+					/ @ "functions %(ParseLeaf, ParseLeafWithSourceInformation)"
+						$=
+					(
+						+ "unsupported literal check for symbols",
+						/ "skipped the immediate literal evaluation for code \
+							literals" 
+					)
+					)
+				),
+				- "%IsNPLASymbol check" @ "symbol resolution accesses"
+					$effective @ ("function %Forms::Undefine" @ %NPLA1Forms,
+					"native implementation" @ "combiners ( \
+					'$resolve-identifier', '$move-resolved!', 'bound?', \
+					'$binds1?')" @ "function %LoadGroundContext" @ %Dependency),
+				/ "allwed empty symbol for recursive checks" @ "functions \
+					%Forms::(DefineWithRecursion, SetWithRecursion)"
+					@ %NPLA1Forms
+			),
+			- $revert(b917) "function %ThrowInvalidTokenError" @ %NPLA1
+			),
+			* "missing %RelayCurrent overloads with %any_ops::trivial_swap_t \
+				parameter" @ '!NPL_Impl_NPLA1_Enable_InlineDirect \
+				&& !NPL_Impl_NPLA1_Enable_TCO' @ %NPLA1Internals $since b926,
+				// Calls to %TailCall::RelayNextGuardedProbe with a \
+					%Contination argument would be fail without these overloads.
+			/ %NPLA $=
+			(
+				- $lib "assertion" @ "function %CategorizeBasicLexeme"
+					// This is already covered by %CheckLiteral.
+				/ "escaped identifier" @ "constructos %BadIdentifier"
+					// This was not a bug when the identifier are limited, \
+						even sometimes it would not be prettily printed \
+						(e.g. '\v').
+			),
+			/ %Lexical $=
+			(
+				/ "function %IsGraphicalDelimiter" => "%IsSimpleDelimiter",
+				/ "function %IsDelimiter" $=
+				(
+					/ "accepted whitespaces instead of characters classified \
+						by %std::isgraph" ^ "%ystdex::isspace"
+						$dep_from ("%BadIdentifier" @ %NPLA);
+						// As a side effect, now '\a' and '\b' can be inside \
+							an identifier, so it relies some special treatment \
+							in the exception message.
+					* $comp "non-explicit locale-specific behavior"
+						$mismatch(Documentation.LanguageConvention)
+						$orig (@ %Documentation.CommonRules $since b512)
+				)
+			),
+			/ %NPLA1Internals $dep_to "NPLA1 common math support" $=
+			(
+				+ "function %MoveUnary",
+				+ "transforamtion traits %(ExtType, NExtType, MulExtType; \
+					MakeExtType, MakeNExtType, MakeMulExtType)",
+				+ "function template %DoNumLeaf",
+				(
+				+ "enum %NumCode";
+				+ "4 functions %MapTypeIdToNumCode",
+				+ "function template %DoNumLeafHinted",
+				),
+				(
+				+ "function %ReportUnsupportedNumber";
+				+ "functor %ReportMismatch";
+				+ "functor %DynNumCast" $dep_from "%NumCode"
+				),
+				(
+				+ "functor %AssertMismatch";
+				+ "functor %Cast"
+				)
+			),
+			+ "inline namespace %Math" @ "namespace %A1" @ %NPLA1 $=
+			(
+				+ $dev "2 static assertions to ensure number host types \
+					in-place storable" @ 'NPL_NPLA1_EnsureInPlaceNativeNumbers',
+				+ "tags %(NumberLeaf, NumberNode) with explicit \
+					%NPL::TypedValueAccessor specializations",
+				+ "functions %(IsExactValue, IsInexactValue, IsFixnumValue, \
+					IsFlonumValue, IsNumberValue)",
+				+ "functions %(IsZero, Add1, Sub1, Plus, Minus, Multiplies)"
+					^ $dep_from "NPLA1 common math support"
+			),
+			* "wrong result" @ "function %IsSymbol" @ %NPLA1Forms $since b785
+				// This was at least buggy for empty strings regardless of \
+					concrete lexical rules of the identifiers.
+		)
+	),
+	/ DLI "simplified %String assignment" @ 'YReader_Impl_TestNPL_NoStdout'
+		@ %YReader.ShlExplorer $dep_from "standard string conversion",
+	* $re_add(b603) DLI "redundant '/'" @ "inclusion path for \
+		%Toolchain.options.mk" @ "makefiles" $effective
+),
+
+b928
 (
 	/ %YBase.YStandardEx $=
 	(

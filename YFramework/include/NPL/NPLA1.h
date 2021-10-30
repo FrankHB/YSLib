@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8928
+\version r9093
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2021-10-08 18:38 +0800
+	2021-10-31 01:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,6 +94,11 @@ enum class ValueToken
 	\since build 732
 	*/
 	Unspecified,
+	/*!
+	\brief 指示匹配忽略值。
+	\since build 929
+	*/
+	Ignore,
 	GroupingAnchor,
 	OrderedAnchor
 };
@@ -196,15 +201,6 @@ ThrowInvalidSyntaxError(const char*);
 YB_NORETURN YF_API void
 ThrowInvalidSyntaxError(string_view);
 //@}
-
-/*!
-\brief 抛出无效记号值异常。
-\pre 断言：第一参数的数据指针非空。
-\throw InvalidSyntax 语法错误：记号不被上下文支持。
-\since build 917
-*/
-YB_NORETURN YF_API void
-ThrowInvalidTokenError(string_view);
 
 /*!
 \brief 抛出被赋值操作数不可修改的异常。
@@ -1334,19 +1330,17 @@ EvaluateIdentifier(TermNode&, const ContextNode&, string_view);
 \brief 求值叶节点记号。
 \pre 第二参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
 \return 求值标识符的结果或 ReductionStatus::Retained 。
-\throw InvalidSyntax 语法错误：作为符号的记号是不被支持的扩展字面量。
 \warning 若不满足上下文状态类型要求，行为未定义。
 \sa CategorizeLexeme
 \sa ContextNode::EvaluateLiteral
 \sa DeliteralizeUnchecked
 \sa EvaluateIdentifier
-\sa ThrowUnsupportedLiteralError
 \since build 736
 
-处理非空字符串表示的节点记号。
+处理字符串表示的节点记号。
 被处理的记号视为符号。
 若字面量遍非空，通过调用字面量遍处理记号。
-若字面量遍为空或要求重规约，且记号不是不被支持的扩展字面量，求值非字面量的标识符。
+若字面量遍为空或要求重规约，求值非字面量的标识符。
 */
 YF_API ReductionStatus
 EvaluateLeafToken(TermNode&, ContextNode&, string_view);
@@ -1472,14 +1466,12 @@ RelayForCall(ContextNode&, TermNode&, EnvironmentGuard&&, bool);
 
 
 /*!
-\brief 判断记号值是否为 #ignore 。
-\since build 917
+\brief 判断项是否表示 #ignore 。
+\since build 929
 */
 YB_ATTR_nodiscard YB_PURE inline
-	PDefH(bool, IsIgnore, const TokenValue& s) ynothrow
-	// XXX: This is more efficient than cast to %basic_string_view if the
-	//	%basic_string implementation is optimized.
-	ImplRet(s == "#ignore")
+	PDefH(bool, IsIgnore, const TermNode& nd) ynothrow
+	ImplRet(HasValue(nd, ValueToken::Ignore))
 
 /*!
 \brief 修饰引用字符。
@@ -1620,6 +1612,138 @@ BindParameterWellFormed(const shared_ptr<Environment>&, const TermNode&,
 */
 YF_API void
 BindSymbol(const shared_ptr<Environment>&, const TokenValue&, TermNode&);
+
+
+/*!
+\brief 数学功能支持。
+\since build 929
+*/
+inline namespace Math
+{
+
+/*!
+\brief 启用本机数值类型检查。
+
+启用保证可原地存储的静态检查。
+被检查的类型包含 fixnum 和 flonum 可被原地存储，同一些实现（如 Racket ）的典型假设。
+检查预期以 YSLib::any_ops::is_in_place_storable 实现。
+作为实现细节，兼容 ISO C++ 的实现不保证检查总是能被通过
+	（虽然 ystdex 实现的 any_ops 可提供保证）。
+检查在此默认被启用，因为已知的被支持的 YSLib 平台配置应允许检查通过。
+否则，覆盖宏定义以禁用这项检查。
+因为本实现不依赖具体假设保持正确性，不保证原地存储的这些类型不违反实现正确性要求。
+但因为预期的性能问题，不满足可原地存储的 fixnum 和 flonum 很大程度上缺乏实用性。
+一般地，这可能需要避免检查失败的（过大的）类型在本机实现中出现；
+当前实现没有（以元编程方式等）提供这种选项，而需要用户使用替代实现。
+*/
+#ifndef NPL_NPLA1_EnsureInPlaceNativeNumbers
+#	define NPL_NPLA1_EnsureInPlaceNativeNumbers true
+#endif
+
+#if NPL_NPLA1_EnsureInPlaceNativeNumbers
+// XXX: This still avoids %std::intmax_t and %std::uintmax_t even in practice
+//	they may also work.
+static_assert(YSLib::any_ops::is_in_place_storable<long long>(),
+	"Invalid native fixnum found.");
+static_assert(YSLib::any_ops::is_in_place_storable<long double>(),
+	"Invalid native flonum found.");
+#endif
+
+
+//! \ingroup tags
+//@{
+//! \brief 数值叶节点值数据成员。
+struct NumberLeaf
+{};
+
+//! \brief 数值项节点。
+struct NumberNode
+{};
+//@}
+
+
+//! \brief 判断参数表示精确数。
+YB_ATTR_nodiscard YF_API YB_PURE bool
+IsExactValue(const ValueObject&) ynothrow;
+
+//! \brief 判断参数表示不精确数。
+YB_ATTR_nodiscard YF_API YB_PURE bool
+IsInexactValue(const ValueObject&) ynothrow;
+
+//! \brief 判断参数表示 fixnum 。
+YB_ATTR_nodiscard YF_API YB_PURE bool
+IsFixnumValue(const ValueObject&) ynothrow;
+
+//! \brief 判断参数表示 flonum 。
+YB_ATTR_nodiscard YF_API YB_PURE bool
+IsFlonumValue(const ValueObject&) ynothrow;
+
+//! \brief 判断参数表示支持的数值类型的值。
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, IsNumberValue, const ValueObject& vo) ynothrow
+	ImplRet(IsExactValue(vo) || IsInexactValue(vo))
+
+
+//! \pre 参数具有表示数值类型的值。
+//@{
+/*!
+\brief 判断参数表示零值。
+\note 浮点数 +0 和 -0 都是零值。
+
+参考调用文法：
+<pre>zero? \<number></pre>
+*/
+YB_ATTR_nodiscard YF_API YB_PURE bool
+IsZero(const ValueObject&);
+
+
+/*!
+\brief 计算参数加 1 。
+
+参考调用文法：
+<pre>add1 \<number></pre>
+*/
+YB_ATTR_nodiscard YF_API YB_PURE ValueObject
+Add1(ResolvedArg<>&&);
+
+/*!
+\brief 计算参数减 1 。
+
+参考调用文法：
+<pre>sub1 \<number></pre>
+*/
+YB_ATTR_nodiscard YF_API YB_PURE ValueObject
+Sub1(ResolvedArg<>&&);
+
+/*!
+\brief 二元加法。
+
+参考调用文法：
+<pre>+ \<number1> \<number2></pre>
+*/
+YB_ATTR_nodiscard YF_API YB_PURE ValueObject
+Plus(ResolvedArg<>&&, ResolvedArg<>&&);
+
+/*!
+\brief 二元减法。
+
+参考调用文法：
+<pre>- \<number1> \<number2></pre>
+*/
+YB_ATTR_nodiscard YF_API YB_PURE ValueObject
+Minus(ResolvedArg<>&&, ResolvedArg<>&&);
+
+/*!
+\brief 二元乘法。
+
+参考调用文法：
+<pre>* \<number1> \<number2></pre>
+*/
+YB_ATTR_nodiscard YF_API YB_PURE ValueObject
+Multiplies(ResolvedArg<>&&, ResolvedArg<>&&);
+//@}
+
+} // inline namespace Math;
 
 
 /*!
@@ -2189,6 +2313,49 @@ TryLoadSource(REPLContext& context, const char* name, _tParams&&... args)
 }
 
 } // namesapce A1;
+
+//! \since YSLib build 929
+//@{
+template<>
+struct TypedValueAccessor<A1::NumberLeaf>
+{
+	template<class _tTerm>
+	YB_ATTR_nodiscard YB_PURE inline auto
+	operator()(_tTerm& term) const -> yimpl(decltype((term.Value)))
+	{
+		return NPL::ResolveTerm(
+			[](_tTerm& nd, bool has_ref) -> yimpl(decltype((term.Value))){
+			if(IsLeaf(nd))
+			{
+				if(A1::IsNumberValue(nd.Value))
+					return nd.Value;
+				ThrowTypeErrorForInvalidType("number", nd, has_ref);
+			}
+			ThrowListTypeErrorForInvalidType("number", nd, has_ref);
+		}, term);
+	}
+};
+
+template<>
+struct TypedValueAccessor<A1::NumberNode>
+{
+	template<class _tTerm>
+	YB_ATTR_nodiscard YB_PURE inline ResolvedArg<>
+	operator()(_tTerm& term) const
+	{
+		return NPL::ResolveTerm(
+			[](_tTerm& nd, ResolvedTermReferencePtr p_ref) -> ResolvedArg<>{
+			if(IsLeaf(nd))
+			{
+				if(A1::IsNumberValue(nd.Value))
+					return {nd, p_ref};
+				ThrowTypeErrorForInvalidType("number", nd, p_ref);
+			}
+			ThrowListTypeErrorForInvalidType("number", nd, p_ref);
+		}, term);
+	}
+};
+//@}
 
 } // namespace NPL;
 
