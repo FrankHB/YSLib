@@ -44,7 +44,7 @@ fi
 # XXX: %SHBuild_Host_OS is external.
 # shellcheck disable=2154
 if [[ "$SHBuild_Host_OS" != 'Win32' ]]; then
-	: "${C_CXXFLAGS_PIC:=-fPIC}"
+	: "${C_CXXFLAGS_PIC:=-fPIC -fno-semantic-interposition}"
 fi
 
 # NOTE: See https://gcc.gnu.org/onlinedocs/gcc/Link-Options.html#Link-Options,

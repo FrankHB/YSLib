@@ -21,7 +21,7 @@ SHBuild_EchoVar_N 'SHBuild.Host.OS'
 
 SHBuild_Puts "Configuring ..."
 
-# Coordinated at build 882.
+# Coordinated at build 930.
 LIBS="$YSLib_BaseDir/YBase/source/ystdex/base.cpp \
 $YSLib_BaseDir/YBase/source/ystdex/exception.cpp \
 $YSLib_BaseDir/YBase/source/ystdex/cassert.cpp \
@@ -51,6 +51,7 @@ $YSLib_BaseDir/YFramework/source/YSLib/Service/TextFile.cpp \
 $YSLib_BaseDir/YFramework/source/NPL/Lexical.cpp \
 $YSLib_BaseDir/YFramework/source/NPL/SContext.cpp \
 $YSLib_BaseDir/YFramework/source/NPL/NPLA.cpp \
+$YSLib_BaseDir/YFramework/source/NPL/NPLAMath.cpp \
 $YSLib_BaseDir/YFramework/source/NPL/NPLA1.cpp \
 $YSLib_BaseDir/YFramework/source/NPL/NPLA1Internals.cpp \
 $YSLib_BaseDir/YFramework/source/NPL/NPLA1Forms.cpp \

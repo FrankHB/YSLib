@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r21615
+\version r22114
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2021-10-31 01:04 +0800
+	2021-11-11 12:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,22 +34,21 @@
 //	YSLib::AllocatedHolderOperations, any, ystdex::as_const,
 //	NPL::forward_as_tuple, uintmax_t, ystdex::bind1, TokenValue, Forms,
 //	std::allocator_arg, YSLib::stack, YSLib::vector, std::find_if, TermTags,
-//	function, TermReference, GetLValueTagsOf, NPL::TryAccessLeaf, PropagateTo,
-//	NPL::IsMovable, in_place_type, InvalidReference, NPL::Deref, IsLeaf,
-//	ResolveTerm, ThrowInsufficientTermsError, ThrowListTypeErrorForNonlist,
+//	function, TermReference, GetLValueTagsOf, NPL::TryAccessLeaf,
+//	ListReductionFailure, ystdex::sfmt, PropagateTo, NPL::IsMovable,
+//	in_place_type, InvalidReference, NPL::Deref, IsLeaf, ResolveTerm,
+//	ThrowInsufficientTermsError, ThrowListTypeErrorForNonlist,
 //	ystdex::update_thunk, Environment, shared_ptr, IsTyped,
 //	ystdex::retry_on_cond, AccessFirstSubterm, ystdex::make_transform,
 //	IsBranchedList, std::placeholders, NoContainer, ystdex::try_emplace,
 //	NPL::Access, YSLib::Informative, ystdex::unique_guard, NPL::AsTermNode,
 //	CategorizeBasicLexeme, DeliteralizeUnchecked, CheckReducible, Deliteralize,
 //	ystdex::isdigit, INT_MAX, ResolveIdentifier, ystdex::ref_eq,
-//	NPL::TryAccessTerm, YSLib::share_move, ystdex::call_value_or, YSLib::Notice,
-//	YSLib::FilterException, Session;
+//	NPL::TryAccessTerm, YSLib::share_move, ystdex::call_value_or,
+//	std::to_string, YSLib::Notice, YSLib::FilterException, Session;
 #include "NPLA1Internals.h" // for A1::Internals API;
-#include <ystdex/cstdint.hpp> // for std::numeric_limits, ystdex::cond_t,
-//	std::is_signed, ystdex::identity, ystdex::conditional_t, ystdex::_t,
-//	std::is_floating_point, ystdex::and_, std::is_unsigned,
-//	ystdex::make_widen_int;
+#include YFM_NPL_NPLAMath // for ReadDecimal;
+#include <limits> // for std::numeric_limits;
 #include <ystdex/exception.h> // for ystdex::unsupported;
 #include YFM_NPL_Dependency // for A1::OpenUnique;
 
@@ -149,7 +148,7 @@ PushedAction::operator()(ContextNode&) const
 
 	PushActionsRange(First, Last, term, ctx);
 
-	// NOTE: Calling the handler may change %ctx.LastStauts, so it should be
+	// NOTE: Calling the handler may change %ctx.LastStatus, so it should be
 	//	saved at first.
 	const auto r(ctx.LastStatus);
 	const auto res(HandlerRef(term, ctx));
@@ -424,7 +423,6 @@ public:
 
 
 //! \since build 881
-//@{
 class SeparatorPass
 {
 private:
@@ -503,7 +501,6 @@ private:
 	}
 #endif
 };
-//@}
 
 
 //! \since build 873
@@ -1187,6 +1184,7 @@ ContextState::RewriteTermGuarded(TermNode& term)
 		NPL::ToReducer(get_allocator(), std::ref(ReduceOnce)));
 }
 
+
 ReductionStatus
 Reduce(TermNode& term, ContextNode& ctx)
 {
@@ -1576,41 +1574,142 @@ DefaultEvaluateLeaf(TermNode& term, string_view id)
 {
 	YAssertNonnull(id.data());
 	YAssert(!id.empty(), "Invalid leaf token found.");
-
-	const char f(id.front());
-
-	// NOTE: Assume allcator is not needed.
-	if(ystdex::isdigit(f))
+	// NOTE: Assume allocators are not needed.
+	switch(id.front())
 	{
-		long long ans(0);
-
-		for(auto p(id.begin()); p != id.end(); ++p)
-			if(ystdex::isdigit(*p))
+	case '#':
+		id.remove_prefix(1);
+		if(!id.empty())
+			switch(id.front())
 			{
-				if(static_cast<long long>((ans << 3) + (ans << 1) + *p - '0')
-					<= static_cast<long long>(INT_MAX))
-					ans = (ans << 3) + (ans << 1) + *p - '0';
-				else
-					ThrowInvalidSyntaxError(ystdex::sfmt("Value of identifier"
-						" '%s' is out of the range of supported integers.",
-						id.data()));
+			case 't':
+				if(id.size() == 1 || id.substr(1) == "rue")
+				{
+					term.Value = true;
+					return ReductionStatus::Clean;
+				}
+				break;
+			case 'f':
+				if(id.size() == 1 || id.substr(1) == "alse")
+				{
+					term.Value = false;
+					return ReductionStatus::Clean;
+				}
+				break;
+			case 'i':
+				if(id.substr(1) == "nert")
+				{
+					term.Value = ValueToken::Unspecified;
+					return ReductionStatus::Clean;
+				}
+				else if(id.substr(1) == "gnore")
+				{
+					term.Value = ValueToken::Ignore;
+					return ReductionStatus::Clean;
+				}
+				break;
 			}
-			else
-				ThrowInvalidSyntaxError(ystdex::sfmt("Literal suffix is"
-					" unsupported in identifier '%s'.", id.data()));
-		term.Value = int(ans);
+	default:
+		break;
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+		ReadDecimal(term.Value, id, id.begin());
+		return ReductionStatus::Clean;
+	case '-':
+		// NOTE: See the implementation of %IsNPLAExtendedLiteral.
+		if(YB_UNLIKELY(id.find_first_not_of("+-") == string_view::npos))
+			break;
+		if(id.size() == 6 && id[4] == '.')
+		{
+			if(id[1] == 'i' && id[2] == 'n' && id[3] == 'f')
+			{
+				switch(id[5])
+				{
+				case '0':
+					term.Value = -std::numeric_limits<double>::infinity();
+					return ReductionStatus::Clean;
+				case 'f':
+					term.Value = -std::numeric_limits<float>::infinity();
+					return ReductionStatus::Clean;
+				case 't':
+					term.Value = -std::numeric_limits<long double>::infinity();
+					return ReductionStatus::Clean;
+				}
+			}
+			else if(id[1] == 'n' && id[2] == 'a' && id[3] == 'n')
+			{
+				switch(id[5])
+				{
+				case '0':
+					term.Value = -std::numeric_limits<double>::quiet_NaN();
+					return ReductionStatus::Clean;
+				case 'f':
+					term.Value = -std::numeric_limits<float>::quiet_NaN();
+					return ReductionStatus::Clean;
+				case 't':
+					term.Value = -std::numeric_limits<long double>::quiet_NaN();
+					return ReductionStatus::Clean;
+				}
+			}
+		}
+		if(id.size() > 1)
+			ReadDecimal(term.Value, id, std::next(id.begin()));
+		else
+			term.Value = 0;
+		return ReductionStatus::Clean;
+	case '+':
+		// NOTE: See the implementation of %IsNPLAExtendedLiteral.
+		if(YB_UNLIKELY(id.find_first_not_of("+-") == string_view::npos))
+			break;
+		if(id.size() == 6 && id[4] == '.')
+		{
+			if(id[1] == 'i' && id[2] == 'n' && id[3] == 'f')
+			{
+				switch(id[5])
+				{
+				case '0':
+					term.Value = std::numeric_limits<double>::infinity();
+					return ReductionStatus::Clean;
+				case 'f':
+					term.Value = std::numeric_limits<float>::infinity();
+					return ReductionStatus::Clean;
+				case 't':
+					term.Value = std::numeric_limits<long double>::infinity();
+					return ReductionStatus::Clean;
+				}
+			}
+			else if(id[1] == 'n' && id[2] == 'a' && id[3] == 'n')
+			{
+				switch(id[5])
+				{
+				case '0':
+					term.Value = std::numeric_limits<double>::quiet_NaN();
+					return ReductionStatus::Clean;
+				case 'f':
+					term.Value = std::numeric_limits<float>::quiet_NaN();
+					return ReductionStatus::Clean;
+				case 't':
+					term.Value = std::numeric_limits<long double>::quiet_NaN();
+					return ReductionStatus::Clean;
+				}
+			}
+		}
+		YB_ATTR_fallthrough;
+	case '0':
+		if(id.size() > 1)
+			ReadDecimal(term.Value, id, std::next(id.begin()));
+		else
+			term.Value = 0;
+		return ReductionStatus::Clean;
 	}
-	else if(id == "#t" || id == "#true")
-		term.Value = true;
-	else if(id == "#f" || id == "#false")
-		term.Value = false;
-	else if(id == "#inert")
-		term.Value = ValueToken::Unspecified;
-	else if(id == "#ignore")
-		term.Value = ValueToken::Ignore;
-	else
-		return ReductionStatus::Retrying;
-	return ReductionStatus::Clean;
+	return ReductionStatus::Retrying;
 }
 
 ReductionStatus
@@ -1899,399 +1998,6 @@ BindSymbol(const shared_ptr<Environment>& p_env, const TokenValue& n,
 
 	BindSymbolImpl(p_env, n, o, TermTags::Temporary, env);
 }
-
-
-inline namespace Math
-{
-
-//! \since build 929
-namespace
-{
-
-//! \ingroup functors
-//@{
-struct EqZero : ReportMismatch<bool>
-{
-	using ReportMismatch<bool>::operator();
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
-	YB_ATTR_nodiscard YB_PURE yconstfn bool
-	operator()(const _type& x) const ynothrow
-	{
-	// XXX: Signaling NaNs are assumed existing in valid inputs. This should be
-	//	safe even with %FLT_EVAL_METHOD and quite NaNs taken into account. 
-#if YB_IMPL_GNUCPP || YB_IMPL_CLANGCPP
-	YB_Diag_Push
-	YB_Diag_Ignore(float-equal)
-#endif
-		return x == _type(0);
-#if YB_IMPL_GNUCPP || YB_IMPL_CLANGCPP
-	YB_Diag_Pop
-#endif
-	}
-};
-
-
-struct AddOne : ReportMismatch<>
-{
-	ValueObject& Result;
-
-	AddOne(ValueObject& res)
-		: Result(res)
-	{}
-
-	using ReportMismatch<>::operator();
-	template<typename _type>
-	inline yimpl(ystdex::exclude_self_t<ValueObject, _type>)
-	operator()(_type& x) const ynothrow
-	{
-		DoAdd(Result, x);
-	}
-
-private:
-	template<typename _type>
-	static inline ystdex::enable_if_t<std::is_floating_point<_type>::value>
-	DoAdd(ValueObject&, _type& x) ynothrow
-	{
-		x += _type(1);
-	}
-	template<typename _type, yimpl(ystdex::enable_if_t<
-		!std::is_floating_point<_type>::value, int> = 0)>
-	static inline void
-	DoAdd(ValueObject& res, _type& x)
-	{
-		if(x != std::numeric_limits<_type>::max())
-			++x;
-		else
-			// TODO: Allocator?
-			res = ValueObject(MakeExtType<_type>(x) + 1);
-	}
-};
-
-struct SubOne : ReportMismatch<>
-{
-	ValueObject& Result;
-
-	SubOne(ValueObject& res)
-		: Result(res)
-	{}
-
-	using ReportMismatch<>::operator();
-	template<typename _type>
-	inline yimpl(ystdex::exclude_self_t<ValueObject, _type>)
-	operator()(_type& x) const ynothrow
-	{
-		DoSub(Result, x);
-	}
-
-private:
-	template<typename _type>
-	static inline ystdex::enable_if_t<std::is_floating_point<_type>::value>
-	DoSub(ValueObject&, _type& x) ynothrow
-	{
-		x -= _type(1);
-	}
-	template<typename _type, yimpl(ystdex::enable_if_t<
-		!std::is_floating_point<_type>::value, int> = 0)>
-	static inline void
-	DoSub(ValueObject& res, _type& x)
-	{
-		if(x != std::numeric_limits<_type>::min())
-			--x;
-		else
-			// TODO: Allocator?
-			res = ValueObject(MakeNExtType<_type>(x) - 1);
-	}
-};
-
-
-struct BMismatch
-{
-	YB_NORETURN ValueObject
-	operator()(const ValueObject&, const ValueObject&) const
-	{
-		ThrowForUnsupportedNumber();
-	}
-};
-
-
-struct BPlus : BMismatch
-{
-	using BMismatch::operator();
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
-	inline ValueObject
-	operator()(const _type& x, const _type& y) const ynothrow
-	{
-		return Do(x, y);
-	}
-
-private:
-	// XXX: Assume operations on flonums are always closed even on overflow.
-	template<typename _type>
-	static inline
-		ystdex::enable_if_t<!std::is_integral<_type>::value, _type>
-	Do(const _type& x, const _type& y) ynothrow
-	{
-		// TODO: Use bigint with allocator?
-		return x + y;
-	}
-	template<typename _type, yimpl(ystdex::enable_if_t<
-		ystdex::and_<std::is_integral<_type>,
-		std::is_signed<_type>>::value, int> = 0)>
-	static inline ValueObject
-	Do(const _type& x, const _type& y)
-	{
-		// TODO: Use bigint with allocator?
-#if __has_builtin(__builtin_add_overflow)
-		_type r;
-
-		if(!__builtin_add_overflow(x, y, &r))
-			return r;
-		if(x > 0 && y > std::numeric_limits<_type>::max() - x)
-			return MakeExtType<_type>(x) + MakeExtType<_type>(y);
-		return MakeNExtType<_type>(x) + MakeNExtType<_type>(y);
-#else
-		if(x > 0 && y > std::numeric_limits<_type>::max() - x)
-			return MakeExtType<_type>(x) + MakeExtType<_type>(y);
-		if(x < 0 && y < std::numeric_limits<_type>::min() - x)
-			return MakeNExtType<_type>(x) + MakeNExtType<_type>(y);
-		return x + y;
-#endif
-	}
-	template<typename _type, yimpl(ystdex::enable_if_t<
-		std::is_unsigned<_type>::value, long> = 0L)>
-	static inline ValueObject
-	Do(const _type& x, const _type& y)
-	{
-#if __has_builtin(__builtin_add_overflow)
-		_type r;
-
-		if(!__builtin_add_overflow(x, y, &r))
-			return r;
-		// NOTE: Wrapped integers are more efficient.
-#elif true
-		const _type r(x + y);
-
-		if(r >= x)
-			return r;			
-#else
-		if(y <= std::numeric_limits<_type>::max() - x)
-			return x + y;
-#endif
-		// TODO: Use bigint with allocator?
-		return MakeExtType<_type>(x) + MakeExtType<_type>(y);
-	}
-};
-
-
-struct BMinus : BMismatch
-{
-	using BMismatch::operator();
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
-	inline ValueObject
-	operator()(const _type& x, const _type& y) const ynothrow
-	{
-		return Do(x, y);
-	}
-
-private:
-	// XXX: Assume operations on flonums are always closed even on overflow.
-	template<typename _type>
-	static inline
-		ystdex::enable_if_t<!std::is_integral<_type>::value, _type>
-	Do(const _type& x, const _type& y) ynothrow
-	{
-		// TODO: Use bigint with allocator?
-		return x - y;
-	}
-	template<typename _type, yimpl(ystdex::enable_if_t<
-		ystdex::and_<std::is_integral<_type>,
-		std::is_signed<_type>>::value, int> = 0)>
-	static inline ValueObject
-	Do(const _type& x, const _type& y)
-	{
-		// TODO: Use bigint with allocator?
-#if __has_builtin(__builtin_sub_overflow)
-		_type r;
-
-		if(!__builtin_sub_overflow(x, y, &r))
-			return r;
-		if(YB_UNLIKELY(y == std::numeric_limits<_type>::min())
-			|| (x > 0 && -y > std::numeric_limits<_type>::max() - x))
-			return MakeExtType<_type>(x) - MakeExtType<_type>(y);
-		return MakeNExtType<_type>(x) - MakeNExtType<_type>(y);
-#else
-		if(YB_UNLIKELY(y == std::numeric_limits<_type>::min())
-			|| (x > 0 && -y > std::numeric_limits<_type>::max() - x))
-			return MakeExtType<_type>(x) - MakeExtType<_type>(y);
-		if(x < 0 && -y < std::numeric_limits<_type>::min() - x)
-			return MakeNExtType<_type>(x) - MakeNExtType<_type>(y);
-		return x - y;
-#endif
-	}
-	template<typename _type, yimpl(ystdex::enable_if_t<
-		std::is_unsigned<_type>::value, long> = 0L)>
-	static inline ValueObject
-	Do(const _type& x, const _type& y)
-	{
-		// XXX: This is efficient enough to avoid builtins.
-		if(y <= x)
-			return x - y;
-		// TODO: Use bigint with allocator?
-		return MakeExtType<_type>(x) - MakeExtType<_type>(y);
-	}
-};
-
-
-struct BMultiplies : BMismatch
-{
-	using BMismatch::operator();
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
-	inline ValueObject
-	operator()(const _type& x, const _type& y) const ynothrow
-	{
-		return Do(x, y);
-	}
-
-private:
-	// XXX: Assume operations on flonums are always closed even on overflow.
-	template<typename _type>
-	static inline
-		ystdex::enable_if_t<!std::is_integral<_type>::value, _type>
-	Do(const _type& x, const _type& y) ynothrow
-	{
-		// TODO: Use bigint with allocator?
-		return x * y;
-	}
-	template<typename _type, yimpl(ystdex::enable_if_t<
-		std::is_integral<_type>::value, int> = 0)>
-	static inline ValueObject
-	Do(const _type& x, const _type& y)
-	{
-		// TODO: Use bigint with allocator?
-#if __has_builtin(__builtin_mul_overflow)
-		_type r;
-
-		if(!__builtin_mul_overflow(x, y, &r))
-			return r;
-		return MakeMulExtType<_type>(x) * MakeMulExtType<_type>(y);
-#else
-		using r_t = MakeMulExtType<_type>;
-		const r_t r(r_t(x) * r_t(y));
-
-		if(r <= r_t(std::numeric_limits<_type>::max()))
-			return _type(r);
-		return r;
-#endif
-	}
-};
-//@}
-
-
-YB_ATTR_nodiscard YB_PURE ValueObject
-Promote(NumCode code, const ValueObject& x, NumCode src_code)
-{
-	return DoNumLeafHinted<ValueObject>(src_code, DynNumCast(code), x);
-}
-
-template<class _fBinary>
-ValueObject
-NumBinaryOp(ResolvedArg<>& x, ResolvedArg<>& y)
-{
-	const auto xcode(MapTypeIdToNumCode(x));
-	const auto ycode(MapTypeIdToNumCode(y));
-	const auto ret_bin([](ValueObject u, ValueObject v, NumCode code){
-		return DoNumLeafHinted<ValueObject>(code, _fBinary(), u, v);
-	});
-
-	return size_t(xcode) >= size_t(ycode) ?
-		ret_bin(MoveUnary(x), Promote(xcode, y.get().Value, ycode), xcode)
-		: ret_bin(Promote(ycode, x.get().Value, xcode), MoveUnary(y), ycode);
-}
-
-} // unnamed namespace
-
-bool
-IsExactValue(const ValueObject& vo) ynothrow
-{
-	// TODO: Add rationals.
-	return IsFixnumValue(vo) || false;
-}
-
-bool
-IsInexactValue(const ValueObject& vo) ynothrow
-{
-	// NOTE: This is the complement of %IsFixnumValue in the type universe numbers.
-	// NOTE: Every flonum is inexact. Currently there are no types other than
-	//	flonums supported as inexact reals. There is currently no complex
-	//	numbers support, hence, also no other inexact numbers exist.
-	return IsFlonumValue(vo);
-}
-
-bool
-IsFixnumValue(const ValueObject& vo) ynothrow
-{
-	return IsTyped<int>(vo) || IsTyped<unsigned>(vo) || IsTyped<long long>(vo)
-		|| IsTyped<unsigned long long>(vo) || IsTyped<long>(vo)
-		|| IsTyped<unsigned long>(vo) || IsTyped<short>(vo)
-		|| IsTyped<unsigned short>(vo) || IsTyped<signed char>(vo)
-		|| IsTyped<unsigned char>(vo);
-}
-
-YB_ATTR_nodiscard YB_PURE inline bool
-IsFlonumValue(const ValueObject& vo) ynothrow
-{
-	return
-		IsTyped<float>(vo) || IsTyped<double>(vo) || IsTyped<long double>(vo);
-}
-
-
-bool
-IsZero(const ValueObject& x)
-{
-	return DoNumLeaf<bool>(x, EqZero());
-}
-
-ValueObject
-Add1(ResolvedArg<>&& x)
-{
-	auto res(MoveUnary(x));
-
-	DoNumLeaf<void>(res, AddOne(res));
-	return res;
-}
-
-ValueObject
-Sub1(ResolvedArg<>&& x)
-{
-	auto res(MoveUnary(x));
-
-	DoNumLeaf<void>(res, SubOne(res));
-	return res;
-}
-
-ValueObject
-Plus(ResolvedArg<>&& x, ResolvedArg<>&& y)
-{
-	return NumBinaryOp<BPlus>(x, y);
-}
-
-ValueObject
-Minus(ResolvedArg<>&& x, ResolvedArg<>&& y)
-{
-	return NumBinaryOp<BMinus>(x, y);
-}
-
-ValueObject
-Multiplies(ResolvedArg<>&& x, ResolvedArg<>&& y)
-{
-	return NumBinaryOp<BMultiplies>(x, y);
-}
-
-} // inline namespace Math;
 
 
 void

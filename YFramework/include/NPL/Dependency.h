@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r492
+\version r500
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2021-08-07 05:00 +0800
+	2021-11-04 02:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -213,6 +213,15 @@ YF_API void
 LoadModule_std_promises(REPLContext&);
 
 /*!
+\brief 加载数学功能模块。
+\since build 930
+
+加载数学功能相关操作。
+*/
+YF_API void
+LoadModule_std_math(REPLContext&);
+
+/*!
 \brief 加载字符串模块。
 
 加载字符串库操作。
@@ -268,6 +277,7 @@ LoadModule_SHBuild(REPLContext&);
 \brief 加载 NPLA1 基础上下文和标准模块。
 \sa LoadGroundContext
 \sa LoadModule_std_io
+\sa LoadModule_std_math
 \sa LoadModule_std_modules
 \sa LoadModule_std_promises
 \sa LoadModule_std_strings

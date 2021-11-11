@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20518
+\version r20565
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2021-10-31 00:52 +0800
+	2021-11-03 18:13 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -285,60 +285,6 @@ ReduceForCombinerRef(TermNode& term, const TermReference& ref,
 		NPL::AsTermNode(a, ContextHandler(std::allocator_arg, a,
 		FormContextHandler(RefContextHandler(h, r_env), n)))),
 		ref.GetEnvironmentReference());
-}
-
-
-ValueObject
-MoveUnary(ResolvedArg<>& x)
-{
-	ValueObject res;
-
-	if(x.IsMovable())
-		res = std::move(x.get().Value);
-	else
-		res = x.get().Value;
-	return res;
-}
-
-
-void
-ThrowForUnsupportedNumber()
-{
-	throw ystdex::unsupported("Invalid numeric type found.");
-}
-
-
-NumCode
-MapTypeIdToNumCode(const type_info& ti) ynothrow
-{
-	if(IsTyped<int>(ti))
-		return Int;
-	if(IsTyped<unsigned>(ti))
-		return UInt;
-	if(IsTyped<long long>(ti))
-		return LongLong;
-	if(IsTyped<unsigned long long>(ti))
-		return ULongLong;
-	if(IsTyped<double>(ti))
-		return Double;
-	// TODO: Use bigint.
-	if(IsTyped<long>(ti))
-		return Long;
-	if(IsTyped<unsigned long>(ti))
-		return ULong;
-	if(IsTyped<short>(ti))
-		return Short;
-	if(IsTyped<unsigned short>(ti))
-		return UShort;
-	if(IsTyped<signed char>(ti))
-		return SChar;
-	if(IsTyped<unsigned char>(ti))
-		return UChar;
-	if(IsTyped<float>(ti))
-		return Float;
-	if(IsTyped<long double>(ti))
-		return LongDouble;
-	return None;
 }
 
 } // inline namespace Internals;

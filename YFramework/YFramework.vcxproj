@@ -90,6 +90,7 @@
     <ClInclude Include="include\NPL\NPLA.h" />
     <ClInclude Include="include\NPL\NPLA1.h" />
     <ClInclude Include="include\NPL\NPLA1Forms.h" />
+    <ClInclude Include="include\NPL\NPLAMath.h" />
     <ClInclude Include="include\NPL\SContext.h" />
     <ClInclude Include="include\NPL\YModules.h" />
     <ClInclude Include="include\YBaseMacro.h" />
@@ -257,6 +258,7 @@
     <ClCompile Include="source\NPL\NPLA.cpp" />
     <ClCompile Include="source\NPL\NPLA1Forms.cpp" />
     <ClCompile Include="source\NPL\NPLA1Internals.cpp" />
+    <ClCompile Include="source\NPL\NPLAMath.cpp" />
     <ClCompile Include="Win32\source\Helper\Win32Control.cpp">
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>

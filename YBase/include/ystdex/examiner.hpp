@@ -11,13 +11,13 @@
 /*!	\file examiner.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作检测。
-\version r136
+\version r145
 \author FrankHB <frankhb1989@gmail.com>
 \since build 348
 \par 创建时间:
 	2012-10-17 01:21:01 +0800
 \par 修改时间:
-	2021-10-11 19:03 +0800
+	2021-11-03 03:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,23 +47,23 @@ namespace examiners
 */
 struct equal
 {
+	// NOTE: Here it is nothing to do with the rounding errors.
 	//! \since build 668
+#if YB_IMPL_GNUCPP || YB_IMPL_CLANGPP
+	YB_Diag_Push
+	YB_Diag_Ignore(float-equal)
+#endif
 	template<typename _type, typename _type2>
 	YB_PURE yconstfn static auto
 	are_equal(_type&& x, _type2&& y)
 		ynoexcept_spec(bool(x == y)) -> decltype(bool(x == y))
 	{
-		// NOTE: Here it is nothing to do with the rounding errors.
 		// XXX: This is still neutral to signal NaNs.
-#if YB_IMPL_GNUCPP || YB_IMPL_CLANGCPP
-	YB_Diag_Push
-	YB_Diag_Ignore(float-equal)
-#endif
 		return bool(x == y);
-#if YB_IMPL_GNUCPP || YB_IMPL_CLANGCPP
+	}
+#if YB_IMPL_GNUCPP || YB_IMPL_CLANGPP
 	YB_Diag_Pop
 #endif
-	}
 };
 
 

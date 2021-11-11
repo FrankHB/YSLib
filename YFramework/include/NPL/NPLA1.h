@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9093
+\version r9240
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2021-10-31 01:03 +0800
+	2021-11-03 18:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,7 +42,7 @@
 //	ParseResultOf, ByteParser, SourcedByteParser, type_info, SourceInformation,
 //	std::integral_constant, SourceName, NPL::tuple, NPL::get,
 //	NPL::forward_as_tuple, ReaderState, YSLib::allocate_shared,
-//	ystdex::is_bitwise_swappable;
+//	ThrowTypeErrorForInvalidType, ystdex::is_bitwise_swappable;
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, YSLib::GCombinerInvoker,
 //	YSLib::GDefaultLastValueInvoker;
 #include <ystdex/algorithm.hpp> // for ystdex::fast_any_of, ystdex::split;
@@ -208,6 +208,7 @@ ThrowInvalidSyntaxError(string_view);
 */
 YB_NORETURN YF_API void
 ThrowNonmodifiableErrorForAssignee();
+//@}
 
 /*!
 \brief 抛出参数指定值的不支持的字面量语法错误异常。
@@ -229,7 +230,6 @@ YB_NORETURN inline PDefH(void, ThrowUnsupportedLiteralError, string_view sv)
 */
 YB_NORETURN YF_API void
 ThrowValueCategoryError(const TermNode&);
-//@}
 
 
 //! \since build 676
@@ -1113,6 +1113,7 @@ public:
 \relates FormContextHandler
 \since build 921
 */
+//@{
 template<typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline ContextHandler
 MakeForm(TermNode::allocator_type a, _tParams&&... args)
@@ -1269,6 +1270,7 @@ RetainN(const TermNode& term, size_t m = 1)
 			return n;
 		throw ArityMismatch(m, n);
 	}(FetchArgumentN(term)))
+//@}
 //@}
 
 
@@ -1612,138 +1614,6 @@ BindParameterWellFormed(const shared_ptr<Environment>&, const TermNode&,
 */
 YF_API void
 BindSymbol(const shared_ptr<Environment>&, const TokenValue&, TermNode&);
-
-
-/*!
-\brief 数学功能支持。
-\since build 929
-*/
-inline namespace Math
-{
-
-/*!
-\brief 启用本机数值类型检查。
-
-启用保证可原地存储的静态检查。
-被检查的类型包含 fixnum 和 flonum 可被原地存储，同一些实现（如 Racket ）的典型假设。
-检查预期以 YSLib::any_ops::is_in_place_storable 实现。
-作为实现细节，兼容 ISO C++ 的实现不保证检查总是能被通过
-	（虽然 ystdex 实现的 any_ops 可提供保证）。
-检查在此默认被启用，因为已知的被支持的 YSLib 平台配置应允许检查通过。
-否则，覆盖宏定义以禁用这项检查。
-因为本实现不依赖具体假设保持正确性，不保证原地存储的这些类型不违反实现正确性要求。
-但因为预期的性能问题，不满足可原地存储的 fixnum 和 flonum 很大程度上缺乏实用性。
-一般地，这可能需要避免检查失败的（过大的）类型在本机实现中出现；
-当前实现没有（以元编程方式等）提供这种选项，而需要用户使用替代实现。
-*/
-#ifndef NPL_NPLA1_EnsureInPlaceNativeNumbers
-#	define NPL_NPLA1_EnsureInPlaceNativeNumbers true
-#endif
-
-#if NPL_NPLA1_EnsureInPlaceNativeNumbers
-// XXX: This still avoids %std::intmax_t and %std::uintmax_t even in practice
-//	they may also work.
-static_assert(YSLib::any_ops::is_in_place_storable<long long>(),
-	"Invalid native fixnum found.");
-static_assert(YSLib::any_ops::is_in_place_storable<long double>(),
-	"Invalid native flonum found.");
-#endif
-
-
-//! \ingroup tags
-//@{
-//! \brief 数值叶节点值数据成员。
-struct NumberLeaf
-{};
-
-//! \brief 数值项节点。
-struct NumberNode
-{};
-//@}
-
-
-//! \brief 判断参数表示精确数。
-YB_ATTR_nodiscard YF_API YB_PURE bool
-IsExactValue(const ValueObject&) ynothrow;
-
-//! \brief 判断参数表示不精确数。
-YB_ATTR_nodiscard YF_API YB_PURE bool
-IsInexactValue(const ValueObject&) ynothrow;
-
-//! \brief 判断参数表示 fixnum 。
-YB_ATTR_nodiscard YF_API YB_PURE bool
-IsFixnumValue(const ValueObject&) ynothrow;
-
-//! \brief 判断参数表示 flonum 。
-YB_ATTR_nodiscard YF_API YB_PURE bool
-IsFlonumValue(const ValueObject&) ynothrow;
-
-//! \brief 判断参数表示支持的数值类型的值。
-YB_ATTR_nodiscard YB_PURE inline
-	PDefH(bool, IsNumberValue, const ValueObject& vo) ynothrow
-	ImplRet(IsExactValue(vo) || IsInexactValue(vo))
-
-
-//! \pre 参数具有表示数值类型的值。
-//@{
-/*!
-\brief 判断参数表示零值。
-\note 浮点数 +0 和 -0 都是零值。
-
-参考调用文法：
-<pre>zero? \<number></pre>
-*/
-YB_ATTR_nodiscard YF_API YB_PURE bool
-IsZero(const ValueObject&);
-
-
-/*!
-\brief 计算参数加 1 。
-
-参考调用文法：
-<pre>add1 \<number></pre>
-*/
-YB_ATTR_nodiscard YF_API YB_PURE ValueObject
-Add1(ResolvedArg<>&&);
-
-/*!
-\brief 计算参数减 1 。
-
-参考调用文法：
-<pre>sub1 \<number></pre>
-*/
-YB_ATTR_nodiscard YF_API YB_PURE ValueObject
-Sub1(ResolvedArg<>&&);
-
-/*!
-\brief 二元加法。
-
-参考调用文法：
-<pre>+ \<number1> \<number2></pre>
-*/
-YB_ATTR_nodiscard YF_API YB_PURE ValueObject
-Plus(ResolvedArg<>&&, ResolvedArg<>&&);
-
-/*!
-\brief 二元减法。
-
-参考调用文法：
-<pre>- \<number1> \<number2></pre>
-*/
-YB_ATTR_nodiscard YF_API YB_PURE ValueObject
-Minus(ResolvedArg<>&&, ResolvedArg<>&&);
-
-/*!
-\brief 二元乘法。
-
-参考调用文法：
-<pre>* \<number1> \<number2></pre>
-*/
-YB_ATTR_nodiscard YF_API YB_PURE ValueObject
-Multiplies(ResolvedArg<>&&, ResolvedArg<>&&);
-//@}
-
-} // inline namespace Math;
 
 
 /*!
@@ -2313,49 +2183,6 @@ TryLoadSource(REPLContext& context, const char* name, _tParams&&... args)
 }
 
 } // namesapce A1;
-
-//! \since YSLib build 929
-//@{
-template<>
-struct TypedValueAccessor<A1::NumberLeaf>
-{
-	template<class _tTerm>
-	YB_ATTR_nodiscard YB_PURE inline auto
-	operator()(_tTerm& term) const -> yimpl(decltype((term.Value)))
-	{
-		return NPL::ResolveTerm(
-			[](_tTerm& nd, bool has_ref) -> yimpl(decltype((term.Value))){
-			if(IsLeaf(nd))
-			{
-				if(A1::IsNumberValue(nd.Value))
-					return nd.Value;
-				ThrowTypeErrorForInvalidType("number", nd, has_ref);
-			}
-			ThrowListTypeErrorForInvalidType("number", nd, has_ref);
-		}, term);
-	}
-};
-
-template<>
-struct TypedValueAccessor<A1::NumberNode>
-{
-	template<class _tTerm>
-	YB_ATTR_nodiscard YB_PURE inline ResolvedArg<>
-	operator()(_tTerm& term) const
-	{
-		return NPL::ResolveTerm(
-			[](_tTerm& nd, ResolvedTermReferencePtr p_ref) -> ResolvedArg<>{
-			if(IsLeaf(nd))
-			{
-				if(A1::IsNumberValue(nd.Value))
-					return {nd, p_ref};
-				ThrowTypeErrorForInvalidType("number", nd, p_ref);
-			}
-			ThrowListTypeErrorForInvalidType("number", nd, p_ref);
-		}, term);
-	}
-};
-//@}
 
 } // namespace NPL;
 

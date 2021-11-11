@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2020 FrankHB.
+	© 2013-2016, 2020-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup YFramework
 \brief NPL 库模块配置文件。
-\version r59
+\version r62
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:14 +0800
 \par 修改时间:
-	2020-02-15 11:59 +0800
+	2021-11-03 12:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,6 +40,8 @@
 #define YFM_NPL_NPL <NPL/NPL.h>
 //! \since build 663
 #define YFM_NPL_NPLA <NPL/NPLA.h>
+//! \since build 930
+#define YFM_NPL_NPLAMath <NPL/NPLAMath.h>
 //! \since build 472
 #define YFM_NPL_NPLA1 <NPL/NPLA1.h>
 //! \since build 882

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2016, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief Java 本机接口包装。
-\version r221
+\version r225
 \author FrankHB <frankhb1989@gmail.com>
 \since build 552
 \par 创建时间:
 	2014-11-11 03:20:32 +0800
 \par 修改时间:
-	2016-05-30 17:13 +0800
+	2021-11-03 03:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,7 @@
 #	include YFM_YCLib_Reference // for lref;
 #	include <jni.h> // for ::JavaVM, ::JNIEnv;
 #	include YFM_YCLib_Container // for pair;
+#	include YFM_YBaseMacro // for DefGetter;
 #	include <stdexcept>
 #	include <utility>
 
@@ -101,7 +102,7 @@ public:
 	/*!
 	\brief 析构：当具有所有权时调用 \c DetachCurrentThread 。
 	\note 忽略 \c DetachCurrentThread 返回的错误。
-	\sa https://bugs.openjdk.java.net/browse/JDK-6616502
+	\see https://bugs.openjdk.java.net/browse/JDK-6616502 。
 	*/
 	~JNIBase();
 
@@ -142,7 +143,7 @@ public:
 	/*!
 	\brief 调用 \c ExceptionCheck 检查异常，若存在异常则抛出。
 	\throw JNIException 存在异常。
-	\note 若不存在异常则无效果。
+	\note 若不存在异常则无作用。
 	*/
 	void
 	ThrowOnException() ythrow(JNIException);

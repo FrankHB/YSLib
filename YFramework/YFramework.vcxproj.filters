@@ -730,6 +730,9 @@
     <ClInclude Include="include\YSLib\Core\YMessageDefinition.h">
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
+    <ClInclude Include="include\NPL\NPLAMath.h">
+      <Filter>include\NPL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\YNew.cpp">
@@ -1081,6 +1084,9 @@
       <Filter>source\NPL</Filter>
     </ClCompile>
     <ClCompile Include="source\NPL\NPLA1Internals.cpp">
+      <Filter>source\NPL</Filter>
+    </ClCompile>
+    <ClCompile Include="source\NPL\NPLAMath.cpp">
       <Filter>source\NPL</Filter>
     </ClCompile>
   </ItemGroup>

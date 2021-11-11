@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r5964
+\version r6182
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-10-31 01:43 +0800
+	2021-11-11 18:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,190 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	+ "'-fno-semantic-interposition' after '-fPIC' except for platform %Android"
+		$effective @ ("%SHBuild-common-options.sh", "%SHBuild-YSLib-common.txt")
+		@ %Tools.Scripts,
+	/ $dev '<bool>' => '<boolean>' @ %Docuemntation.NPL,
+		// This is related to the type predicate name, i.e. 'boolean?' \
+			instead of 'bool?' (although not introduced in NPLA1 now). It is \
+			also consistent to [RnRK] and [RnRS] now (for 'boolean?' and the \
+			name of the syntactic element).
+	/ %YBase $=
+	(
+		/ %YDefinition $=
+		(
+			/ $resolve(#39) $dev "cleared substitution list" @ "macros \
+				%(ynoexcept_param, ynoexcept_qual)" @ 'YB_IMPL_MSCPP',
+			/ $re_add(b927) DLDI "all 'yconstexpr const'" @ "namespace scope"
+				-> 'yconstexpr_inline const',
+			/ "disabled %YF_FLATTEN" @ '__OPTIMIZE_SIZE__',
+				// This would make binary image size platform %DS shrink \
+					significantly (from 1863 KiB to 1306 KiB in the recent \
+					version without linking to %NPL.NPLAMath APIs in \
+					YFramework, and finally 1342 KiB with the changes of the \
+					current revision).
+			* DD "wrong name" @ "'\def' command" @ "Doxygen comment"
+				@ "macro %YB_IMPL_CLANGPP" $since b458
+				$= (/ 'YB_IMPL_CLANGCPP' -> 'YB_IMPL_CLANGPP'),
+			/ $dev $lib "'__has_extension' fallback" ^ '__has_feature',
+				// This follows the current Clang documentation, with a little \
+					different of preserving the explicit '(...)'.
+			+ "feature-test macro %__cpp_if_constexpr",
+			+ "pseudo keyword %yconstexpr_if"
+		),
+		/ %YStandardEx $=
+		(
+			/ @ "function template %are_equal" @ "struct %equal" @ %Examiner $=
+			(
+				* "wrong conditional inclusion" $since b929
+					$= (/ 'YB_IMPL_CLANGCPP' -> 'YB_IMPL_CLANGPP'),
+				/ $revert_ex(b929) $dev $lib "#pragma directive to ensure the \
+					exception-specification is also covered"
+					// To elimiante Clang++ warning: [-Wfloat-equal]. It seems \
+						only Clang++ (but not G++) would complain it whether \
+						the condition above is fixed.
+			),
+			/ "namespace %pmr" @ %MemoryResource $=
+			(
+				(
+				+ "class %new_delete_resource_t";
+					// See $2020-11 @ %Documentation::Workflow.
+				/ DLI "simplified function %new_delete_resource"
+					@ 'YB_Has_memory_resource != 1' ^ "%new_delete_resource_t",
+				/ DLDI "removed unnecessary attributes on the definition"
+					@ "%pool_resource::do_is_equal"
+				),
+				+ $dev $lib "'YB_ATTR(alloc_align(3), alloc_size(2))' on \
+					allocator functions with size and alignment parameter"
+					$effective @ ("all 6 member functions %do_allocate",
+					"function %allocate" @ "class %memory_resource"),
+					// See https://clang.llvm.org/docs/AttributeReference.html#alloc-align \
+						and https://clang.llvm.org/docs/AttributeReference.html#alloc-size.
+				+ $dev $lib "'YB_ATTR(alloc_size(2))' on allocator functions \
+					with size parameter" $effective @ "function %allocate"
+					@ ("class template %polymorphic_allocator",
+					"class %oversized_map")
+					// Ditto.
+			)
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			* "missing inclusion %YBaseMacro" @ %JNI $since b905,
+				// This worked until the removal of inclusion %YBaseMacro in \
+					%Container.
+			/ @ "platform %Win32" @ %Debug $=
+			(
+				* "missing level and thread information" @ "static member \
+					function %Logger::FetchDefaultSender" $since b737,
+					// This is inconsistent to %Logger::DefaultSendLog and \
+						%SendDebugString.
+				/ DLDI "simplified function %SendDebugString",
+				* "allocator of internal resources might be used out of \
+					lifetime" @ ("default sender" @ "class %Logger",
+					"function %Echo") $since b861
+					^ $dep_from ("%pmr::new_delete_resource_t"
+					@ %YBase.YStandardEx.MemoryResource)
+					// This is mainly used in the %WConsole output having \
+						strings with %pmr allocators implicitly initialized to \
+						refer some static objects by default (i.e. from \
+						%pmr::new_delete_resource). The change of the string \
+						type to remove 'std::' in the called functions was \
+						from b593 in %'YCLib_(Win32)'.MinGW32 and the changes \
+						to use the strings in %Debug was from b742, but the \
+						%pmr was actually used for strings in %Container since \
+						b861.
+			)
+		),
+		* "wrong 'YB_NONNULL(2)'" @ "function template %TryExecute"
+			@ %YSLib.Core.YException $since b929,
+			// Also to eliminate Clang++ exception: [-Wpointer-bool-conversion].
+		/ %NPL $=
+		(
+			(
+			+ %NPLAMath;
+			/ "all %Internals API for math" @ %NPLA1Internals
+				>> %NPLAMath,
+				// These are added since b929.
+			/ "inline namespace %Math" @ "namespace %NPL::A1" @ %NPLA1
+				>> ("namespace %NPL" @ %NPLAMath);
+			/ @ "inline namespace %Math" @ %NPLAMath $=
+			(
+				/ $dev 'NPL_NPLA1_EnsureInPlaceNativeNumbers'
+					=> 'NPL_NPLA_EnsureInPlaceNativeNumbers',
+				* "missing definition caused by redundant 'inline'"
+					@ "function %IsFlonumValue" $since b929
+					$dep_to "math operations",
+				/ DLI "asserted invalid input value type" @ "function %IsZero"
+					~ "throwing exception",					
+				/ DLI "order of check" @ "function %IsFlonumValue",
+					// The type 'double' is assumed more frequent. This is \
+						also consistent to implementation of other functions \
+						in %A1::Math.
+				* DLI "workaround for disabling [-Wfloat-equal] not enabled \
+					for Clang++" @ "function %IsZero" $since b929
+					$= (/ 'YB_IMPL_CLANGCPP' -> 'YB_IMPL_CLANGPP'),
+				+ $dev 'ynothrowv' @ "function %IsZero",
+				/ DLDI "simplified functions %(AddOne, SubOne)"
+					!^ "internal static member functions",
+				/ "underflow extension" $dep_to "math operations" $=
+				(
+					* "wrong interanl type for unsgined underflow whose width \
+						not less than %int" $orig (@ "primary class template \
+						%NExtType" @ %NPLA1Internals $since b929),
+					/ "underflow extension type 'float' for 'unsigned long long'"
+						-> 'double'
+						$effective @ "functions %(Sub1, Plus, Minus)",
+						// This is more presice.
+				),
+				+ "functions %(IsRationalValue, IsIntegerValue, IsFinite, \
+					IsInfinite, IsNaN, Equal, Less, Greater, LessEqual, \
+					GreaterEqual, IsPositive, IsNegative, IsOdd, IsEven, Max, \
+					Min, Divides, Abs)" $dep_to "math operations",
+				+ "function %ReadDecimal"
+					$= (/ $impl
+						^ $dep_from ('yconstexpr_if' @ %YBase.YDefinition))
+			)
+			),
+			/ %Dependency $=
+			(
+				+ "function %LoadModule_std_math"
+					$dep_all_from "math operations";
+				+ "call of %LoadModule_std_math"
+					@ "function %LoadStandardContext"
+			),
+			/ @ "function %DefaultEvaluateLeaf" @ %NPLA1 $=
+			(
+				/ DLI "optimized" ^ ('switch', 'case')
+					~ ('if', "%ystdex::isdigit"),
+				(
+				+ "support of parsing number signs";
+				+ "support of parsing special flonums",
+				/ "decimal numeric values parsing" $=
+				(
+					/ $impl ^ $dep_from ("%ReadDecimal" @ %NPLAMath);
+					* $comp "potential undefined behavior"
+						@ "integer overflow check" $since b880,
+						// This was still wrong since b928.
+					/ $comp "error message of literal suffix"
+						^ "explicit suffix not parsed yet",
+					+ $comp "support of parsing 'long long' value",
+					+ $comp "support of parsing %double value for values \
+						larger than 'long long' or with a single decimal point"
+				)
+				)
+			)
+		)
+	),
+	/ $re_add(b882) $forced "updated %LIBS for %YFramework.NPL.NPLAMath"
+		$dep_from $dep_from (("function %DefaultEvaluateLeaf" @ %NPLA1,
+		%Dependency) @ %YFramework.NPL) $dep_from %YFramework.NPL.NPLAMath
+),
+
+b929
 (
 	/ %YFramework $=
 	(
@@ -376,7 +560,11 @@ b928
 				(
 					* "wrong value upper bound for integers" $since b880,
 						// For 32-bit integers, 2147483647 should be \
-							supported, but it could not reach 2147483600.
+							supported, but it typically could not reach \
+							2147483600, as it would first add '0' as a number \
+							having the integer value 48 (in ASCII-compatible \
+							execution codesets) and then overflowed with \
+							undefined behavior.
 					/ "adjusted some exception messages"
 				),
 				/ DLI "internal trampoline action" ^ "allocator and \
@@ -460,7 +648,7 @@ b927
 		/ DLDI "type %(iterator, const_iterator)" @ "class template %list"
 			@ %List ^ 'yimpl',
 		+ $re_add(b926) $lib "class template specializations \
-			%is_bitwise_swappable" @ ("%details::(list_iterator, \
+			%is_bitwise_swappable for" @ ("%details::(list_iterator, \
 			list_const_iterator)" @ %List, "%details::(tree_iterator, \
 			tree_const_iterator)" @ %Tree, "%path" @ %Path, "%(composed, \
 			composed_n, generalized_composed)" @ %Functional)
@@ -604,8 +792,8 @@ b927
 						^ $dep_from ("%ToBindingsAllocator" @ %NPLA)
 				),
 				+ $re_add(b926) $lib "class template specializations \
-					%is_bitwise_swappable"
-					@ "%NPL::A1::(WrappedContextHandler, FormContextHandler)"
+					%is_bitwise_swappable for \
+					%NPL::A1::(WrappedContextHandler, FormContextHandler)"
 					@ "namespace %ystdex",
 			),
 			/ %NPLA1Forms $=
@@ -632,12 +820,16 @@ b927
 					)
 				),
 				/ $re_add(b926) $lib "class template specializations \
-					%is_bitwise_swappable" @ "classes %(EncapsulationBase, \
+					%is_bitwise_swappable for classes %(EncapsulationBase, \
 					Encapsulation, Encapsulate, EncapsulateValue, \
 					Encapsulated, Decapsulate, UnaryExpansion, \
 					UnaryAsExpansion, BinaryExpansion, BinaryAsExpansion)"
 					@ "namespace %ystdex"
 			),
+			/ $re_add(b926) DLI "optimized member function templates \
+				%(RelayNextGuarded, RelayNextGuardedLifted, \
+				RelayNextGuardedProbe)" @ "classes %(NonTailCall, TailCall)"
+				@ %NPLA1Internals ^ "%any_ops::trivial_swap",
 			/ DLI %Dependency $=
 			(
 				/ $re_add(b926) "registration calls of all context handler \
@@ -968,15 +1160,8 @@ b926
 					^ "%any_ops::trivial_swap" $dep_from %YSLib.Core.YEvent))
 		)
 	),
-	+ $lib "class template specializations %is_bitwise_swappable"
-		@ "namespace %ystdex" $dep_from ("%is_bitwise_swappable"
-		@ %YBase.YStandardEx.Placement) $dep_to
-		"bitwise swappable specializations"
-		@ (
-		// To warrant bitwise-swappable guarantees for existing types.
-		// %(lref, observer_ptr), the primary template of \
-			%is_bitwise_swappable is enough.
-		("%tagged_value" @ %Placement, "%boxed_value" @ Utility,
+	+ $lib "class template specializations %is_bitwise_swappable for"
+		(("%tagged_value" @ %Placement, "%boxed_value" @ Utility,
 		"%function_base" @ %Function, "%(one_shot, expanded_function)"
 		@ %Functional, "%fixed_point" @ %Rational, "%(any_input_iterator, \
 		any_forward_iterator, any_bidirectional_iterator)" @ %AnyIterator,
@@ -989,11 +1174,16 @@ b926
 		"%(details::allocator_delete_base; allocator_guard_delete, \
 		allocator_delete)" @ %Allocator, "%(guard, state_guard)"
 		@ %ScopeGuard, "%pmr::polymorphic_allocator" @ %MemoryResource)
-		@ %YBase.YStandardEx,
-		(("%YSLib::(ValueHolder, PolymorphicValueHolder, AllocatorHolder, \
-		PolymorphicAllocatorHolder, PointerHolder, RefHolder)" @ %YObject,
-		"%GHEvent" @ %YEvent) @ %YSLib.Core, ("%NPL::EnvironmentSwitcher"
-		@ %NPLA, "%NPL::A1::Continuation" @ %NPLA1) @ %NPLA) @ %YFramework
+		@ %YBase.YStandardEx, (("%YSLib::(ValueHolder, PolymorphicValueHolder, \
+		AllocatorHolder, PolymorphicAllocatorHolder, PointerHolder, RefHolder)"
+		@ %YObject, "%GHEvent" @ %YEvent) @ %YSLib.Core,
+		("%NPL::EnvironmentSwitcher" @ %NPLA, "%NPL::A1::Continuation" @ %NPLA1)
+		@ %NPLA) @ %YFramework) @ "namespace %ystdex" $dep_from
+		("%is_bitwise_swappable" @ %YBase.YStandardEx.Placement) $dep_to
+		"bitwise swappable specializations"
+		// To warrant bitwise-swappable guarantees for existing types. For \
+			%(lref, observer_ptr), the primary template of \
+			%is_bitwise_swappable is enough.
 	)
 ),
 
@@ -1459,7 +1649,9 @@ b923
 				+ "function %LoadModule_std_modules"
 					$= (+ "applicatives ('registered-requirement?', \
 						'register-requirement!' 'unregister-requirement!', \
-						'find-requirement-filename'; %require)")
+						'find-requirement-filename'; %require)");
+				+ "call of %LoadModule_std_modules"
+					@ "function %LoadStandardContext"
 				)
 			)
 		),
@@ -5315,8 +5507,7 @@ b901
 				+ "specialization for %basic_string_view instantiations";
 				/ "simplified specialization for %basic_string  instantiations",
 				),
-				+ $dev $lib 'YB_ATTR_nodiscard'
-					@ "all static memeber functions"
+				+ $dev $lib 'YB_ATTR_nodiscard' @ "all static memeber functions"
 			),
 			+ "function template %is_parent_or_self"
 		),

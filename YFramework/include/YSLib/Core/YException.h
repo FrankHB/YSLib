@@ -11,13 +11,13 @@
 /*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r705
+\version r706
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2021-10-23 00:07 +0800
+	2021-11-03 03:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -201,7 +201,7 @@ ExtractException(const ExtractedLevelPrinter&, const std::exception&,
 对参数指定的函数求值，并使用最后一个参数追踪记录异常。
 */
 template<typename _func>
-YB_NONNULL(2) bool
+bool
 TryExecute(_func f, const char* desc, RecordLevel lv,
 	const ExceptionTracer& trace)
 {

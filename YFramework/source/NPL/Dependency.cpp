@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r6429
+\version r6498
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2021-10-29 18:01 +0800
+	2021-11-04 02:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,6 +51,7 @@
 //	ReduceReturnUnspecified, ystdex::throw_error;
 #include YFM_NPL_NPLA1Forms // for EncapsulateValue, Encapsulate, Encapsulated,
 //	Decapsulate, NPL::Forms functions, StringToSymbol, SymbolToString;
+#include YFM_NPL_NPLAMath // for NumerLeaf, NumberNode, NPL math functions;
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::Path,
 //	YSLib::Deployment::InstallHardLink;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
@@ -1631,6 +1632,21 @@ ForcePromise(TermNode& term, ContextNode& ctx, Promise& prom, TermNode& nd,
 //@}
 #endif
 
+
+/*!
+\ingroup functors
+\since build 930
+*/
+struct LeafPred
+{
+	template<typename _func>
+	YB_ATTR_nodiscard YB_PURE bool
+	operator()(const TermNode& nd, _func f) const ynoexcept_spec(f(nd.Value))
+	{
+		return IsLeaf(nd) && f(nd.Value);
+	}
+};
+
 } // unnamed namespace;
 
 void
@@ -1724,6 +1740,62 @@ $provide/let! (promise? memoize $lazy $lazy% $lazy/d $lazy/d% force)
 );
 	)NPL");
 #endif
+}
+
+void
+LoadModule_std_math(REPLContext& context)
+{
+	auto& renv(context.Root.GetRecordRef());
+
+	RegisterUnary(renv, "number?", any_ops::trivial_swap,
+		ComposeReferencedTermOp(ystdex::bind1(LeafPred(), IsNumberValue)));
+	// NOTE: Currently all numbers are complex numbers.
+	RegisterUnary(renv, "complex?", any_ops::trivial_swap,
+		ComposeReferencedTermOp(ystdex::bind1(LeafPred(), IsNumberValue)));
+	// NOTE: Currently all numbers are real numbers.
+	RegisterUnary(renv, "real?", any_ops::trivial_swap,
+		ComposeReferencedTermOp(ystdex::bind1(LeafPred(), IsNumberValue)));
+	RegisterUnary(renv, "rational?", any_ops::trivial_swap,
+		ComposeReferencedTermOp(ystdex::bind1(LeafPred(), IsRationalValue)));
+	RegisterUnary(renv, "integer?", any_ops::trivial_swap,
+		ComposeReferencedTermOp(ystdex::bind1(LeafPred(), IsIntegerValue)));
+	// NOTE: Currently all exact numbers are integers. This should actually be
+	//	the union of fixnum and bignum.
+	RegisterUnary(renv, "exact-integer?", any_ops::trivial_swap,
+		ComposeReferencedTermOp(ystdex::bind1(LeafPred(), IsExactValue)));
+	RegisterUnary(renv, "fixnum?", any_ops::trivial_swap,
+		ComposeReferencedTermOp(ystdex::bind1(LeafPred(), IsFixnumValue)));
+	RegisterUnary(renv, "flonum?", any_ops::trivial_swap,
+		ComposeReferencedTermOp(ystdex::bind1(LeafPred(), IsFlonumValue)));
+	RegisterUnary<Strict, const NumberLeaf>(renv, "exact?", IsExactValue);
+	RegisterUnary<Strict, const NumberLeaf>(renv, "inexact?", IsInexactValue);
+	RegisterUnary<Strict, const NumberLeaf>(renv, "finite?", IsFinite);
+	RegisterUnary<Strict, const NumberLeaf>(renv, "infinite?", IsInfinite);
+	RegisterUnary<Strict, const NumberLeaf>(renv, "nan?", IsNaN);
+	RegisterBinary<Strict, const NumberLeaf, const NumberLeaf>(renv, "=?",
+		Equal);
+	RegisterBinary<Strict, const NumberLeaf, const NumberLeaf>(renv, "<?",
+		Less);
+	RegisterBinary<Strict, const NumberLeaf, const NumberLeaf>(renv, ">?",
+		Greater);
+	RegisterBinary<Strict, const NumberLeaf, const NumberLeaf>(renv, "<=?",
+		LessEqual);
+	RegisterBinary<Strict, const NumberLeaf, const NumberLeaf>(renv, ">=?",
+		GreaterEqual);
+	RegisterUnary<Strict, const NumberLeaf>(renv, "zero?", IsZero);
+	RegisterUnary<Strict, const NumberLeaf>(renv, "positive?", IsPositive);
+	RegisterUnary<Strict, const NumberLeaf>(renv, "negative?", IsNegative);
+	RegisterUnary<Strict, const NumberLeaf>(renv, "odd?", IsOdd);
+	RegisterUnary<Strict, const NumberLeaf>(renv, "even?", IsEven);
+	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "max", Max);
+	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "min", Min);
+	RegisterUnary<Strict, NumberNode>(renv, "add1", Add1);
+	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "+", Plus);
+	RegisterUnary<Strict, NumberNode>(renv, "sub1", Sub1);
+	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "-", Minus);
+	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "*", Multiplies);
+	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "/", Divides);
+	RegisterUnary<Strict, NumberNode>(renv, "abs", Abs);
 }
 
 void
@@ -2315,6 +2387,7 @@ LoadStandardContext(REPLContext& context)
 	});
 
 	load_std_module("promises", LoadModule_std_promises);
+	load_std_module("math", LoadModule_std_math),
 	load_std_module("strings", LoadModule_std_strings),
 	load_std_module("io", LoadModule_std_io),
 	load_std_module("system", LoadModule_std_system);

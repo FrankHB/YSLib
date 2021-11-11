@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r918
+\version r945
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2021-05-06 19:55 +0800
+	2021-11-06 15:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Debug // for wstring, string_view, std::puts, std::fflush,
-//	stderr;
+//	pmr::new_delete_resource_t, stderr;
 #if YCL_Win32
 #	include YFM_Win32_YCLib_Consoles // for platform_ex::WConsole,
 //	STD_OUTPUT_HANDLE, STD_ERROR_HANDLE, platform_ex::Win32Exception;
@@ -59,7 +59,7 @@ inline PDefH(const char*, chk_null, const char* s)
 
 #if YF_Multithread == 1
 //! \since build 626
-std::string
+YB_ATTR_nodiscard std::string
 FetchCurrentThreadID() ynothrow
 {
 	TryRet(ystdex::get_this_thread_id())
@@ -78,6 +78,15 @@ WConsoleOutput(wstring& wstr, unsigned long h, const char* str)
 
 	wstr = UTF8ToWCS(str) + L'\n';
 	return WConsole(h).WriteString(wstr);
+}
+
+//! \since build 930
+YB_ATTR_nodiscard YB_NONNULL(3) YB_PURE std::string
+FetchThreadedMessage(const std::string& t_id, Logger::Level lv, const char* str)
+{
+	return !t_id.empty() ? ystdex::sfmt("[%s:%#X]: %s",
+		t_id.c_str(), unsigned(lv), Nonnull(str)) : ystdex::sfmt(
+		"[%#X]: %s", unsigned(lv), Nonnull(str));
 }
 #elif YCL_Android
 //! \since build 498
@@ -102,7 +111,10 @@ Echo(string_view sv) ynoexcept(YF_Platform == YF_Platform_DS)
 #if YCL_DS
 	return std::puts(Nonnull(sv.data())) >= 0 && std::fflush(stdout) == 0;
 #elif YCL_Win32
-	wstring wstr;
+	// NOTE: Avoid the shared static resource object to allow using in the
+	//	destruction during some static objects.
+	pmr::new_delete_resource_t r;
+	wstring wstr(&r);
 	size_t n(0);
 
 	TryExpr(n = WConsoleOutput(wstr, STD_OUTPUT_HANDLE, sv.data()))
@@ -221,10 +233,13 @@ Logger::FetchDefaultSender(string_view tag)
 		// XXX: Assume underlying output would always be completely updated.
 		try
 		{
-			wstring wstr;
+			// XXX: See %Echo.
+			pmr::new_delete_resource_t r;
+			wstring wstr(&r);
 
 			// XXX: Partial writing is ignored.
-			WConsoleOutput(wstr, STD_ERROR_HANDLE, str);
+			WConsoleOutput(wstr, STD_ERROR_HANDLE,
+				FetchThreadedMessage(FetchCurrentThreadID(), lv, str).c_str());
 		}
 		CatchExpr(platform_ex::Win32Exception&, DefaultSendLog(lv, logger, str))
 	};
@@ -407,15 +422,10 @@ LogAssert(const char* expr_str, const char* file, int line,
 void
 SendDebugString(Logger::Level lv, Logger&, const char* str) ynothrowv
 {
-	try
-	{
-		const auto& t_id(FetchCurrentThreadID());
-
-		// TODO: Use %::WaitForDebugEventEx if possible. See https://msdn.microsoft.com/en-us/library/windows/desktop/mt171594(v=vs.85).aspx.
-		::OutputDebugStringA((!t_id.empty() ? ystdex::sfmt("[%s:%#X]: %s",
-			t_id.c_str(), unsigned(lv), Nonnull(str)) : ystdex::sfmt(
-			"[%#X]: %s", unsigned(lv), Nonnull(str))).c_str());
-	}
+	// TODO: Use %::WaitForDebugEventEx if possible. See
+	//	https://msdn.microsoft.com/en-us/library/windows/desktop/mt171594(v=vs.85).aspx.
+	TryExpr(::OutputDebugStringA(
+		FetchThreadedMessage(FetchCurrentThreadID(), lv, str).c_str()))
 	CatchIgnore(...)
 }
 #elif YCL_Android

@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4627
+\version r4687
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2021-10-05 18:11 +0800
+	2021-11-06 20:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -3663,9 +3663,9 @@ $2020-04:
 
 report.impl:
 Implementation of allocator value holder of 'ystdex::any' has been improved a bit.
-	Nonnull type is used as the owner value instead of 'std::unique_ptr' instance.
+	Nonnull types are used as the owner value types instead of 'std::unique_ptr' instances.
 		This improves performance a bit by omitting a bnch on destroying the object.
-		Note that the owner is nonmovable which requires the change on 'ystdex::any_ops::is_in_place_storable' avoid the static assertion failure.
+		Note that the owner is nonmovable which requires the change on 'ystdex::any_ops::is_in_place_storable' to avoid the static assertion failure.
 	The change on 'ystdex::any_ops::is_in_place_storable' effectively supports nonmovable type as the target.
 		The move constructor of 'ystdex::any' has the gurarntee to avoid the call of the move constructor of the target object as the extension, so there is no additional change required here for nonmovable targets.
 		This is not same to 'std::any' which requires noexcept-exception on the move.
@@ -4584,6 +4584,66 @@ Now 'ystdex::any_ops::any_trivial_local_data' ensures most scalar types storable
 			Note the in-place storable of the object is detected by 'ystdex::any_ops::is_in_place_storable' respecting the change here.
 			This is an optimization for several types transparent to other operations, since there are no need to change to remain correctness of the computation.
 			For platforms not having the guarantee, some client code change may be needed to make the concerned implementations optimal.
+
+$2021-11:
+
+report.impl:
+Symbol visibility policies for shared libraries in the YSLib project are reviewed.
+	This is mainly about the symbol interposition (preemption), which is particularly interested for ELF targets.
+		This is powerful for replacing the functionality of binary code behind the publicly exported symbols at some performance penalty.
+			However, it is rather rarely used.
+				In fact, it is clear that the YSLib project has never relied on this feature, so changes to disable it is safe.
+			The penalty is about more cost on the symbol resolution in the dynamic libraries and missing the interprocedural optimization (notably, inlining) during the compilation of the libraries.
+				This is sometimes somewhat significant.
+		Now '-fno-semantic-interposition' is used by default for dynamic libraries (YBase and YFramework) on the hosted platforms (except Android) needs '-fPIC' in the dynamic library building options.
+			This option disables the default interposition semantics.
+			Is supported by GCC (since 5) and Clang (since 11).
+				The Android platform support some old Clang versions so this option is not added yet.
+			Alternative ways are considered but not adopted.
+				The compiler option '-fvisibility=protected' can work, but not good in cross-compiler interoperability.
+				The compiler option '-fvisibility=hidden' can work, but it requires additional source attribute (typically, by '__attribute__((__visibility__("default")))') to revert the visibility on demand.
+					This can be too verbose, but just OK in the YSLib project since there are already 'YB_API' and 'YF_API' in the source code.
+					However, the entries annotated by the additional source attribute still have the interposition semantics.
+						Since the libraries just does not rely on the feature totally, it is not complete as '-fno-semantic-interposition'.
+				The compiler option '-fvisibility-inlines-hidden' violates ODR for inline functions.
+				The linker option '-shared -Bsymbolic' is generally good, but not good on the expectation for ODR-like identity across dynamic library boundaries.
+					This is certainly bad for things like 'ystdex::type_info'.
+					Moreover, it is incompatible to non-default '__GXX_MERGED_TYPEINFO_NAMES' which is in the implementation assumptions.
+						See https://frankhb.github.io/YSLib-book/Development.zh-CN.html#%E5%9F%BA%E5%87%86%E5%AE%9E%E7%8E%B0%E8%A6%81%E6%B1%82.
+				See also https://maskray.me/blog/2021-05-16-elf-interposition-and-bsymbolic for discussions.
+			See also https://maskray.me/blog/2021-05-09-fno-semantic-interposition for (a lot of) background details.
+			The option does not have effect on the global object identity, see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100483.
+		The 'LD_PRELOAD' on something like 'malloc' would not be broken, either.
+		Note Clang allowed interprocedural optmizations incompatible to the symbol interposition before, so anything relies on the feature was already broken.
+	Mach-O defaults to no interposition, unless some additional are specified.
+	PE-COFF just does not support this feature.
+		The fact also shows that for compatibility, symbol interposition cannot be relied on unconditionally (on target platforms with the dynamic library support).
+	As a result of the change, there are some significant performance improvement on the clients of the YBase and YFramework dynamic libraries on platforms like Linux.
+Polymorhpic memory resource for default one (using the global new/delete operators) is now exposed.
+	It is exposted unconditionally as 'ystdex::new_delete_resource_t', in spite of the availability of 'std::pmr::new_delete_resource'.
+		As a result, whether the dynamic type of the object pointed by the result of the call to 'std::pmr::new_delete_resource' same to 'ystdex::new_delete_resource_t' or not is unspecified
+	This allows the uses of 'pmr' allocators in some local objects by constructing local allocators, without the undefined behavior caused by the potentionally out-of-lifetime problem of the shared static memory resource during the destruction of arbitrary static objects whose destruction orders are not guaranteed safe.
+		Alternatively, these allocators should not be used in the static objects, as it was fixed in Tools.SHBuild.Main since build 928.
+	Note 'constinit' in ISO C++20 (or '__constinit' extension in G++ or the 'require_constant_initialization attribute' attribute in Clang++) do not solve the problem totally.
+		The specifier enforces static initialization on the shared static objects, but other object with constant initializations (like containers with 'constexpr' default constructor) in different translation units can still have the same risks of the undefined behavior (during their destructor calls).
+			The static initialization does not affect the order of the calls to destructors, see ISO C++20 [basic.start.term]/3.
+		Skipping the destruction calls of the shared memory resource objects can avoid the remaining risks, but it breaks the semantic property of the "resource" itself.
+		All in 'std::pmr' implementations in libstdc++, libc++ and Microsoft's STL use some variant of the static initialization combined with skipping the destuctor calls.
+			And if 'constinit' and its friends are not available, implementation-specific mechanism to specify the initalization priority are used.
+			As a part of the language implementation, they have their own rights to use magic. But the implementation of 'ystdex' features (rather than YBase.LibDefect) can't rely on this.
+		See also the following links for the availability and applications of 'constinit' and its friends:
+			https://reviews.llvm.org/D23385
+			https://gcc.gnu.org/bugzilla/show_bug.cgi?id=86974
+			https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91360
+			https://gcc.gnu.org/legacy-ml/gcc-patches/2019-08/msg01690.html
+			https://reviews.llvm.org/rGa6e8b685e13492abfb2e58dc49007deda165a00d
+	Different to current implementations of the standard library above, 'ystdex::pmr' does not support such uses.
+		Keep it correct is generally more important to hacking for small performance gain (by skipping the destructor calls).
+		Moreover, it is not guaranteed (or at least underspecified to guarantee) in ISO C++ that such 'pmr' static-duration objects are guarantee work in other static objects.
+			This is different to ISO C++20 [iostream.objects.overview]/3 and [iostream.objects.overview]/5 which do explicitly specify the special treatment on the standard stream objects.
+				See also https://bugs.llvm.org/show_bug.cgi?id=28954.
+			So, it is even worse to keep bug-to-bug compatibility to the non-portable uses.
+			It is the users' responsibility to avoid them in specific static objects.
 
 ////
 

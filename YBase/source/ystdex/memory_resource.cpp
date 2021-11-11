@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1542
+\version r1739
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2021-10-06 06:20 +0800
+	2021-11-06 15:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,15 +46,35 @@ namespace ystdex
 namespace pmr
 {
 
-inline namespace cpp2017
+#if __cpp_aligned_new >= 201606L
+#	define YB_Impl_aligned_new true
+#else
+//! \since build 845
+//@{
+struct hdr_t
 {
+	// NOTE: The types shall be decayed to avoid need of call to
+	//	%std::launder.
+	void* p_block;
+};
 
-#define YB_Impl_do_is_equal(_virt, _ns_pfx) \
-	YB_ATTR_nodiscard yimpl(YB_STATELESS) bool \
-	_ns_pfx do_is_equal(const memory_resource& other) const ynothrow _virt \
+static_assert(is_trivial<hdr_t>(), "Invalid type found.");
+using offset_n_t = size_t_<ystdex::max(sizeof(hdr_t), yalignof(hdr_t))>;
+//@}
+#endif
+
+#define YB_Impl_do_is_equal_impl(_virt, _name_pfx) \
+	bool \
+	_name_pfx do_is_equal(const memory_resource& other) const ynothrow _virt \
 	{ \
 		return this == &other; \
 	}
+#define YB_Impl_do_is_equal(_virt, _name_pfx) \
+	YB_ATTR_nodiscard yimpl(YB_STATELESS) \
+		YB_Impl_do_is_equal_impl(_virt, _name_pfx)
+
+inline namespace cpp2017
+{
 
 #if YB_Has_memory_resource != 1
 memory_resource::~memory_resource() = default;
@@ -63,123 +83,7 @@ memory_resource::~memory_resource() = default;
 memory_resource*
 new_delete_resource() ynothrow
 {
-	static struct nres final : public memory_resource
-	{
-#if __cpp_aligned_new >= 201606L
-#	define YB_Impl_aligned_new true
-#endif
-#if !YB_Impl_aligned_new
-		//! \since build 845
-		struct hdr_t
-		{
-			// NOTE: The types shall be decayed to avoid need of call to
-			//	%std::launder.
-			void* p_block;
-		};
-		static_assert(is_trivial<hdr_t>(), "Invalid type found.");
-		//! \since build 845
-		using offset_n_t = size_t_<ystdex::max(sizeof(hdr_t), yalignof(hdr_t))>;
-#endif
-
-		YB_ALLOCATOR YB_ATTR_returns_nonnull void*
-		do_allocate(size_t bytes, size_t alignment) override
-		{
-#if YB_Impl_aligned_new
-			return alignment > __STDCPP_DEFAULT_NEW_ALIGNMENT__
-				? ::operator new(bytes, std::align_val_t(alignment))
-				: ::operator new(bytes);
-#else
-			if(alignment > 1)
-			{
-				// TODO: Record 'sizeof' value for debugging?
-				// TODO: Extract as %::operator new with extended alignment?
-				// NOTE: The checks are necessary to prevent wrapping of the
-				//	results of '+'. See also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=19351.
-				if(bytes + alignment > bytes)
-				{
-					auto space(offset_n_t::value + bytes + alignment);
-
-					// NOTE: Ditto.
-					if(space > offset_n_t::value)
-					{
-						// XXX: Without the checks, there may be G++ warning:
-						//	[-Walloc-size-larger-than=] when this function is
-						//	effectively inlined (by LTO, etc.).
-						auto ptr(make_unique_default_init<byte[]>(space));
-						void* p(&ptr[offset_n_t::value]);
-
-						if(std::align(alignment, bytes, p, space))
-						{
-							yassume(p);
-							yassume(static_cast<byte*>(p) >= ptr.get());
-
-							const auto
-								off(size_t(static_cast<byte*>(p) - ptr.get()));
-
-							yassume(off >= offset_n_t::value);
-
-							// XXX: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70834.
-							(::new(&ptr[off - offset_n_t::value])
-								hdr_t)->p_block = ptr.get();
-							ptr.release();
-							return p;
-						}
-					}
-				}
-				// NOTE: If the wrapping checks fail or there is not suitable
-				//	aligned storage available, the allocation fails. No
-				//	exception matching %std::bad_array_new_length is thrown even
-				//	it is caused by the wrapping failure, since it is never
-				//	thrown in an allocation function in the default case
-				//	specified by ISO C++.
-				throw std::bad_alloc();
-			}
-			return ::operator new(bytes);
-#endif
-		}
-
-		void
-		do_deallocate(void* p, size_t bytes, size_t alignment) ynothrow override
-		{
-#if YB_Impl_aligned_new
-			if(alignment > __STDCPP_DEFAULT_NEW_ALIGNMENT__)
-				::operator delete(p, bytes, std::align_val_t(alignment));
-#	if __cpp_sized_deallocation >= 201309L
-			::operator delete(p, bytes);
-#	else
-			yunused(bytes);
-			::operator delete(p);
-#	endif
-#else
-			// XXX: Size is always ignored if ::operator new with extended
-			//	alignment is unavailable.
-			yunused(bytes);
-
-			if(alignment > 1)
-			{
-				// TODO: Blocked. Use [[assume_aligned]]? See WG21 P0886R0.
-				const auto p_hdr(static_cast<hdr_t*>(static_cast<void*>(
-					static_cast<byte*>(yaligned(p, alignment))
-					- offset_n_t::value)));
-
-				yassume(p_hdr);
-
-				const auto p_block(p_hdr->p_block);
-
-				yassume(p_block);
-
-				std::unique_ptr<byte[]> ptr(static_cast<byte*>(p_block));
-
-				p_hdr->~hdr_t();
-			}
-			else
-				::operator delete(p);
-#endif
-		}
-#undef YB_Impl_aligned_new
-
-		YB_Impl_do_is_equal(override, )
-	} r;
+	static new_delete_resource_t r;
 
 	return &r;
 }
@@ -352,6 +256,106 @@ monobuf_scale(size_t size) ynothrow
 #endif
 
 } // unnamed namespace;
+
+void*
+new_delete_resource_t::do_allocate(size_t bytes, size_t alignment)
+{
+#if YB_Impl_aligned_new
+	return alignment > __STDCPP_DEFAULT_NEW_ALIGNMENT__
+		? ::operator new(bytes, std::align_val_t(alignment))
+		: ::operator new(bytes);
+#else
+	if(alignment > 1)
+	{
+		// TODO: Record 'sizeof' value for debugging?
+		// TODO: Extract as %::operator new with extended alignment?
+		// NOTE: The checks are necessary to prevent wrapping of the
+		//	results of '+'. See also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=19351.
+		if(bytes + alignment > bytes)
+		{
+			auto space(offset_n_t::value + bytes + alignment);
+
+			// NOTE: Ditto.
+			if(space > offset_n_t::value)
+			{
+				// XXX: Without the checks, there may be G++ warning:
+				//	[-Walloc-size-larger-than=] when this function is
+				//	effectively inlined (by LTO, etc.).
+				auto ptr(make_unique_default_init<byte[]>(space));
+				void* p(&ptr[offset_n_t::value]);
+
+				if(std::align(alignment, bytes, p, space))
+				{
+					yassume(p);
+					yassume(static_cast<byte*>(p) >= ptr.get());
+
+					const auto
+						off(size_t(static_cast<byte*>(p) - ptr.get()));
+
+					yassume(off >= offset_n_t::value);
+
+					// XXX: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70834.
+					(::new(&ptr[off - offset_n_t::value])
+						hdr_t)->p_block = ptr.get();
+					ptr.release();
+					return p;
+				}
+			}
+		}
+		// NOTE: If the wrapping checks fail or there is not suitable
+		//	aligned storage available, the allocation fails. No
+		//	exception matching %std::bad_array_new_length is thrown even
+		//	it is caused by the wrapping failure, since it is never
+		//	thrown in an allocation function in the default case
+		//	specified by ISO C++.
+		throw std::bad_alloc();
+	}
+	return ::operator new(bytes);
+#endif
+}
+
+void
+new_delete_resource_t::do_deallocate(void* p, size_t bytes, size_t alignment)
+	ynothrow
+{
+#if YB_Impl_aligned_new
+	if(alignment > __STDCPP_DEFAULT_NEW_ALIGNMENT__)
+		::operator delete(p, bytes, std::align_val_t(alignment));
+#	if __cpp_sized_deallocation >= 201309L
+	::operator delete(p, bytes);
+#	else
+	yunused(bytes);
+	::operator delete(p);
+#	endif
+#else
+	// XXX: Size is always ignored if ::operator new with extended
+	//	alignment is unavailable.
+	yunused(bytes);
+
+	if(alignment > 1)
+	{
+		// TODO: Blocked. Use [[assume_aligned]]? See WG21 P0886R0.
+		const auto p_hdr(static_cast<hdr_t*>(static_cast<void*>(
+			static_cast<byte*>(yaligned(p, alignment))
+			- offset_n_t::value)));
+
+		yassume(p_hdr);
+
+		const auto p_block(p_hdr->p_block);
+
+		yassume(p_block);
+
+		std::unique_ptr<byte[]> ptr(static_cast<byte*>(p_block));
+
+		p_hdr->~hdr_t();
+	}
+	else
+		::operator delete(p);
+#endif
+}
+
+YB_Impl_do_is_equal_impl(, new_delete_resource_t::)
+
 
 void
 adjust_pool_options(pool_options& opts)
@@ -730,7 +734,7 @@ pool_resource::do_deallocate(void* p, size_t bytes, size_t alignment)
 		return oversized.deallocate(p, bytes, alignment);
 }
 
-YB_Impl_do_is_equal(, pool_resource::)
+YB_Impl_do_is_equal_impl(, pool_resource::)
 
 std::pair<pool_resource::pools_t::iterator, size_t>
 pool_resource::find_pool(size_t bytes, size_t alignment) ynothrow
@@ -856,6 +860,9 @@ YB_Impl_do_is_equal(, monotonic_buffer_resource::)
 #endif
 
 #undef YB_Impl_do_is_equal
+#undef YB_Impl_do_is_equal_impl
+
+#undef YB_Impl_aligned_new
 
 } // namespace pmr;
 

@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1453
+\version r1503
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2021-09-22 03:23 +0800
+	2021-11-06 20:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,12 +26,12 @@
 提供 ISO C++17 标准库头 \c \<memory_resource> 兼容的替代接口和实现。
 除了部分关系操作使用 operators 实现而不保留命名空间内的声明及散列支持提供偏特化外，
 其它接口同 std::pmr 中的对应接口。
-注意因为一些兼容问题， std::experimental::pmr 中的接口不被可选地使用，
+因为一些兼容问题，std::experimental::pmr 中的接口不被可选地使用，
 	即使其可用性仍然会被检查。
 和原始的 std::experimental::pmr 中提供的接口及其实现有以下不同：
 LWG 2724 ：纯虚函数为 private 而不是 protected 。
 LWG 2843 ：成员 do_allocate 对不支持的对齐值直接抛出异常而非回退 std::max_align 。
-WG21 P0337R0 ：polymorphic_allocator 的默认 operator= 定义为 = delete 。 
+WG21 P0337R0 ：polymorphic_allocator 的默认 operator= 定义为 = delete 。
 包括以下已有其它实现支持的 ISO C++17 后的修改：
 LWG 2961 ：不需要考虑无法实现的后置条件。
 LWG 2969 ：明确 polymorphic_allocator 的 construct 函数模板使用 *this 而不是
@@ -44,12 +44,26 @@ LWG 3036 ：删除 polymorphic_allocator 的 destroy 函数模板，
 LWG 3037 : 明确 polymorphic_allocator 支持不完整的值类型。
 LWG 3038 ：在 polymorphic_allocator 的 allocate 函数处理整数溢出。
 LWG 3113 ：明确 polymorphic_allocator 的 construct 函数模板转移构造的元组值。
-包含以下 ISO C++17 后的修改：
+包括以下 ISO C++17 后的修改：
 WG21 P0339R6 ：支持 polymorphic_allocator 的 byte 默认模板参数和对象分配函数模板。
 WG21 P0591R4 ：在 polymorphic_allocator 中支持递归构造 std::pair 。
 WG21 P0619R4 ：在 memory_resource 中显式声明默认构造函数和复制构造函数。
 提供以下扩展：
 pmr::polymorphic_allocator 对 is_bitwise_swappable 特化。
+实现注记：
+注意 ISO C++ 标准库的静态对象中，只有 [narrow.stream.objects] 和
+	[wide.stream.objects] 通过 [basic.ios.cons] 和 [ios.init]
+	允许程序创建 std::basic_ios::Init 对象而隐含指定相对其它静态对象销毁的顺序要求。
+	其它静态对象包括 pmr 资源没有相应的保证。
+和 libstdc++ 、libc++ 和 Microsoft VC++ 的实现（另见 WG21 P01247 ）不同，在
+	ISO C++17 中指定为静态对象的资源仍保证析构，且不保证常量初始化，
+	而无法保证和其它静态对象之间的析构顺序。
+使用默认资源初始化的静态对象可能因销毁时资源对象的生存期已终止而引起未定义行为；
+	依赖这些实现行为的程序的可移植性被削弱，这些实现可能隐藏程序缺陷。
+另一方面，[basic.stc.static]/2 要求不能省略静态对象的析构的副作用，
+	而保证析构多态类对象不能排除副作用（依赖 ABI ；实际上，一些典型实现中，
+	销毁多态类对象时会修改内部的非平凡数据结构）而无法忽略，
+	因此可移植的 C++ 实现不能排除这些对象的析构函数调用。
 */
 
 
@@ -193,7 +207,7 @@ public:
 	memory_resource(const memory_resource&) = default;
 	//@}
 	// XXX: Microsoft VC++, libstdc++ and libc++ all defined the destructor
-	//	inline. Keeping it out-of-line for style consistency and to avoid
+	//	inline. Keeping it out-of-line for the style consistency and to avoid
 	//	Clang++ warning [-Wweak-vtables] reilably.
 	//! \brief 虚析构：类定义外默认实现。
 	virtual
@@ -209,7 +223,8 @@ public:
 	\pre 断言：对齐值是 2 的整数次幂。
 	\post 断言：返回值符合参数指定的对齐值要求。
 	*/
-	YB_ALLOCATOR YB_ATTR_returns_nonnull void*
+	YB_ALLOCATOR YB_ATTR(alloc_align(3), alloc_size(2)) YB_ATTR_returns_nonnull
+		void*
 	allocate(size_t bytes, size_t alignment = max_align)
 	{
 		// NOTE: This is not specified directly by the specification, but the
@@ -247,7 +262,8 @@ public:
 	//	is resolved after adoption of P0220R1.
 private:
 	//! \sa LWG 2843 。
-	YB_ALLOCATOR YB_ATTR_returns_nonnull virtual void*
+	YB_ALLOCATOR YB_ATTR(alloc_align(3), alloc_size(2)) YB_ATTR_returns_nonnull
+		virtual void*
 	do_allocate(size_t, size_t) = 0;
 
 	virtual void
@@ -306,13 +322,13 @@ public:
 	operator=(const polymorphic_allocator&) = delete;
 
 	//! \see LWG 3038 。
-	YB_ALLOCATOR YB_ATTR_returns_nonnull _type*
+	YB_ALLOCATOR YB_ATTR(alloc_size(2)) YB_ATTR_returns_nonnull _type*
 	allocate(size_t n)
 	{
 		return static_cast<_type*>(memory_rsrc->allocate(
 			details::get_size_of_n<sizeof(_type)>(n), yalignof(_type)));
 	}
-	
+
 	void
 	deallocate(_type* p, size_t n)
 	{
@@ -373,7 +389,8 @@ public:
 	}
 
 	template<typename _tObj>
-	void delete_object(_tObj* p)
+	void
+	delete_object(_tObj* p)
 	{
 		destroy(p);
 		deallocate_object(p);
@@ -462,6 +479,28 @@ struct YB_API pool_options
 
 //! \ingroup YBase_replacement_extensions
 //@{
+/*!
+\brief 和 pmr::new_delete_resource 返回的资源具有一致效果的存储资源。
+\note 不保证 pmr::new_delete_resource 的动态类型是这个类型。
+\since build 930
+
+可用于在 pmr::new_delete_resource 返回值指向的对象不确定生存期使用的存储资源类型。
+*/
+class YB_API new_delete_resource_t : public memory_resource
+{
+public:
+	YB_ALLOCATOR YB_ATTR(alloc_align(3), alloc_size(2)) YB_ATTR_returns_nonnull
+		void*
+	do_allocate(size_t, size_t) override;
+
+	void
+	do_deallocate(void* p, size_t bytes, size_t alignment) ynothrow override;
+
+	YB_ATTR_nodiscard yimpl(YB_STATELESS) bool
+	do_is_equal(const memory_resource&) const ynothrow override;
+};
+
+
 //! \since build 863
 //@{
 /*!
@@ -683,7 +722,8 @@ public:
 		return *p_upstream;
 	}
 
-	YB_ALLOCATOR YB_ATTR_returns_nonnull void*
+	YB_ALLOCATOR YB_ATTR(alloc_align(3), alloc_size(2)) YB_ATTR_returns_nonnull
+		void*
 	allocate(size_t, size_t);
 
 	void
@@ -753,7 +793,8 @@ public:
 	}
 
 protected:
-	YB_ALLOCATOR YB_ATTR_returns_nonnull void*
+	YB_ALLOCATOR YB_ATTR(alloc_align(3), alloc_size(2)) YB_ATTR_returns_nonnull
+		void*
 	do_allocate(size_t, size_t) override;
 
 	void
@@ -820,7 +861,8 @@ public:
 	}
 
 protected:
-	YB_ALLOCATOR YB_ATTR_returns_nonnull void*
+	YB_ALLOCATOR YB_ATTR(alloc_align(3), alloc_size(2)) YB_ATTR_returns_nonnull
+		void*
 	do_allocate(size_t bytes, size_t alignment) override
 	{
 		lock_guard<mutex> gd(mtx);
@@ -886,7 +928,8 @@ public:
 	}
 
 protected:
-	YB_ALLOCATOR YB_ATTR_returns_nonnull void*
+	YB_ALLOCATOR YB_ATTR(alloc_align(3), alloc_size(2)) YB_ATTR_returns_nonnull
+		void*
 	do_allocate(size_t, size_t) override;
 
 	//! \note 实现定义：增长因子为 2 。

@@ -413,7 +413,8 @@ $defl! build-with-conf-opt (outdir host-os debug dynamic shbopt-ext app
 	$def! SHBuild_CXX_Style_ SHBuild_CheckCXX host-os CXX;
 	$def! prom_gcflags_ $lazy get-gcflags_ host-os CXX;
 	$def! prom_C_CXXFLAGS_PIC
-		$lazy-env-val "C_CXXFLAGS_PIC" $if (win32? host-os) "" "-fPIC";
+		$lazy-env-val "C_CXXFLAGS_PIC"
+			$if (win32? host-os) "" "-fPIC -fno-semantic-interposition";
 	$def! prom_C_CXXFLAGS_COMMON
 		$lazy-env-val "C_CXXFLAGS_COMMON" cons-cmd "-pipe"
 			(first (force prom_gcflags_))

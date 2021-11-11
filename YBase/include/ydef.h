@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 语言实现和系统环境相关特性及公用类型和宏的基础定义。
-\version r3985
+\version r4031
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2021-08-02 02:17 +0800
+	2021-11-10 21:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,7 +72,7 @@
 */
 
 /*!
-\def YB_IMPL_CLANGCPP
+\def YB_IMPL_CLANGPP
 \brief LLVM/Clang++ 实现支持版本。
 \since build 458
 
@@ -164,7 +164,7 @@
 //! \see http://clang.llvm.org/docs/LanguageExtensions.html#has-feature-and-has-extension 。
 //@{
 #ifndef __has_extension
-#	define __has_extension(...) 0
+#	define __has_extension(...) __has_feature(__VA_ARGS__)
 #endif
 
 #ifndef __has_feature
@@ -181,11 +181,13 @@
 #endif
 //@}
 
-//! \see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
+/*!
+\see WG21 P0941R2 2.2 。
+\see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
+*/
 //@{
 /*!
 \brief \c constexpr 特性测试宏。
-\see WG21 P0941R2 2.2 。
 \since build 628
 */
 //! \since build 628
@@ -199,12 +201,22 @@
 #	endif
 #endif
 //@}
+//! \since build 930
+//@{
+#ifndef __cpp_if_constexpr
+// NOTE: Microsoft Visual C++ has an extension in '/std:c++14' with warning
+//	C4984.
+#	if __cplusplus >= 201703L || (YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201402)
+#		define __cpp_constexpr 201606L
+#	endif
+#endif
+//@}
 /*!
-\since build 833
 \see WG21 P0136R1 。
 \see https://clang.llvm.org/docs/LanguageExtensions.html 。
 \see https://gcc.gnu.org/projects/cxx-status.html 。
 \see https://msdn.microsoft.com/en-us/library/hh409293.aspx 。
+\since build 833
 */
 //@{
 #ifndef __cpp_inheriting_constructors
@@ -936,8 +948,12 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 \see https://reviews.llvm.org/rL209217 。
 \since build 646
 */
-#if (__has_attribute(__flatten__) || (YB_IMPL_GNUCPP >= 40102 \
-	&& YB_IMPL_GNUCPP != 40600) || YB_IMPL_CLANGPP >= 30402)
+#if ((__has_attribute(__flatten__) || (YB_IMPL_GNUCPP >= 40102 \
+	&& YB_IMPL_GNUCPP != 40600) || YB_IMPL_CLANGPP >= 30402)) \
+	&& !__OPTIMIZE_SIZE__
+// XXX: This seems not optimal for G++ with '-Os', althouth in theory they
+//	could be better applied together. For Clang++ which implementing it by
+//	recursively 'always_inline', it could be worse.
 #	define YB_FLATTEN YB_ATTR(__flatten__)
 #else
 #	define YB_FLATTEN
@@ -1178,6 +1194,17 @@ YB_Diag_Ignore(4646)
 #endif
 
 /*!
+\def yconstexpr_if
+\brief 可选的 if constexpr 条件判断。
+\since build 930
+*/
+#if __cpp_if_constexpr >= 201606L
+#	define yconstexpr_if if constexpr
+#else
+#	define yconstexpr_if if
+#endif
+
+/*!
 \def yconstexpr_inline
 \brief 可选的内联 constexpr 变量。
 \warning 不应依赖变量的链接以避免可能造成违反 ODR 。
@@ -1257,6 +1284,12 @@ YB_Diag_Ignore(4646)
 #endif
 
 /*!
+\see CWG 2355 。
+\see https://developercommunity.visualstudio.com/t/vc-2017-rejects-dependent-noexcept-specifier-in-te/441268 。
+*/
+//@{
+// XXX: See archived YSLib issues 39.
+/*!
 \def ynoexcept_param
 \brief 影响函数类型的 noexcept 限定符参数。
 \since build 845
@@ -1266,7 +1299,8 @@ YB_Diag_Ignore(4646)
 \brief 影响函数类型的 noexcept 限定符表达式。
 \since build 845
 */
-#if __cpp_noexcept_function_type >= 201510L
+//@}
+#if __cpp_noexcept_function_type >= 201510L && !YB_IMPL_MSCPP
 #	if !YB_HAS_NOEXCEPT
 #		error "Invalid language implementation found."
 #	endif
@@ -1421,7 +1455,7 @@ using std::nullptr_t;
 不支持使用整数 0 字面量（常量表达式）初始化（并可能因此存在更多的重载歧义）；
 作为左值不支持 & 操作符。
 */
-yconstexpr const class nullptr_t
+yconstexpr_inline const class nullptr_t
 {
 public:
 	//! \brief 禁止取 nullptr 的指针。
@@ -1504,6 +1538,8 @@ public:
 仅帮助简化编码形式或确定接口，并不包含编译期之后逻辑功能实现的代码设施。
 */
 
+//! \warning 其中的类类型一般可被继承但非虚析构。
+//@{
 /*!	\defgroup tags Tags
 \brief 标签。
 \note 可能是类型或元类型。
@@ -1516,8 +1552,9 @@ public:
 \brief 特征。
 \since build 845
 
-具有特定成员，提供翻译时确定的信息的类型或木板。
+具有特定成员，提供翻译时确定的信息的类型或模板。
 */
+//@}
 
 /*!
 \brief 空基类模板。
