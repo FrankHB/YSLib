@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2019 FrankHB.
+	© 2010-2016, 2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3291
+\version r3383
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2019-01-14 18:55 +0800
+	2021-11-12 18:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,10 +25,11 @@
 */
 
 
-#include "DSReader.h" // for ystdex::max;
+#include "DSReader.h" // for ptrdiff_t, ystdex::max;
 #include <algorithm> // for std::copy_n;
 #include YFM_YSLib_UI_YWindow
 #include YFM_YSLib_Service_TextLayout
+#include <limits> // for std::numeric_limits;
 
 namespace YSLib
 {
@@ -167,11 +168,11 @@ MoveScrollArea(YSLib::UI::BufferedTextArea& area_up,
 {
 	// XXX: Conversion to 'SPos' might be implementation-defined.
 	YAssert(SPos(area_up.GetHeight()) - area_up.Margin.Bottom - SPos(n) > 0,
-		"No enough space of areas found.");
+		"No enough space of the up area for scrolling found.");
 
 	const SDst up_btm(SDst(ystdex::max<SPos>(area_up.Margin.Bottom, 0)));
 
-	if(YB_UNLIKELY(area_up.GetHeight() <= up_btm + n))
+	if(area_up.GetHeight() > up_btm + n)
 	{
 		auto src_off(SDst(ystdex::max<SPos>(area_dn.Margin.Top, 0))),
 			dst_off(SDst(area_up.GetHeight() - up_btm - n));
@@ -319,64 +320,73 @@ DualScreenReader::Detach()
 bool
 DualScreenReader::Execute(Command cmd)
 {
-	if(YB_UNLIKELY(!p_text || p_text->GetTextSize() == 0))
-		return {};
-	if(YB_UNLIKELY(~cmd & Scroll))
-		return {};
-	if(AdjustScrollOffset() != 0)
-		return {};
-	if(cmd & Up)
+	if(p_text && p_text->GetTextSize() != 0 && bool(cmd & Scroll)
+		&& AdjustScrollOffset() == 0)
 	{
-		if(YB_UNLIKELY(IsTextTop()))
-			return {};
-	}
-	else if(YB_UNLIKELY(IsTextBottom()))
-		return {};
-	YAssert(area_up.LineGap == area_dn.LineGap, "Distinct line gaps found.");
-	// TODO: Assert the fonts are same.
-	cmd &= ~Scroll;
-	if(cmd & Line)
-	{
-		const FontSize h(area_up.Font.GetHeight()), hx(h + GetLineGap());
+		const bool up(cmd & Up);
 
-		if(cmd & Up)
+		if((up && !IsTextTop()) || (!up && !IsTextBottom()))
 		{
-			MoveScrollArea(area_up, area_dn, hx, SDst(h));
-			SetCurrentTextLineNOf(area_up, 0);
-			AdjustForPrevNewline();
-			CarriageReturn(area_up);
-			PutLine(area_up, next_if_eq(i_top, '\n'), p_text->end(), '\n');
-			if(overread_line_n > 0)
-				--overread_line_n;
-			else
-				AdjustPrevious(area_up, i_btm, *p_text);
-		}
-		else
-		{
-			MoveUpForLastLine(-hx, h);
-			// NOTE: The buffer is not ensured with null character at end.
-			CarriageReturn(area_dn);
-			i_btm = PutLastLine();
-			AdjustForFirstNewline();
-		}
-		Invalidate();
-	}
-	else
-	{
-		auto ln(area_up.GetTextLineNEx() + area_dn.GetTextLineNEx());
-
-		if(cmd & Up)
-			while(ln--)
-				AdjustForPrevNewline();
-		else
-			while(ln-- && !IsTextBottom())
+			YAssert(area_up.LineGap == area_dn.LineGap,
+				"Distinct line gaps found.");
+			// TODO: Assert the fonts are same.
+			// XXX: %Scroll is not used currently.
+			if(cmd & Line)
 			{
-				AdjustForNewline(area_dn, i_btm, *p_text);
-				AdjustForFirstNewline();
+				const size_t h(area_up.Font.GetHeight()), hx(h + GetLineGap());
+
+				if(hx >= h && h <= std::numeric_limits<ptrdiff_t>::max())
+				{
+					if(up)
+					{
+						MoveScrollArea(area_up, area_dn, ptrdiff_t(hx),
+							SDst(h));
+						SetCurrentTextLineNOf(area_up, 0);
+						AdjustForPrevNewline();
+						CarriageReturn(area_up);
+						PutLine(area_up, next_if_eq(i_top, '\n'), p_text->end(),
+							'\n');
+						if(overread_line_n > 0)
+							--overread_line_n;
+						else
+							AdjustPrevious(area_up, i_btm, *p_text);
+					}
+					else
+					{
+						MoveUpForLastLine(-ptrdiff_t(hx), h);
+						// NOTE: The buffer is not ensured with null character
+						//	at end.
+						CarriageReturn(area_dn);
+						i_btm = PutLastLine();
+						AdjustForFirstNewline();
+					}
+					Invalidate();
+				}
+				else
+				{
+					ShowError(u"字形大小溢出，渲染失败！");
+					return {};
+				}
 			}
-		UpdateView();
+			else
+			{
+				auto ln(area_up.GetTextLineNEx() + area_dn.GetTextLineNEx());
+
+				if(up)
+					while(ln--)
+						AdjustForPrevNewline();
+				else
+					while(ln-- && !IsTextBottom())
+					{
+						AdjustForNewline(area_dn, i_btm, *p_text);
+						AdjustForFirstNewline();
+					}
+				UpdateView();
+			}
+			return true;
+		}
 	}
-	return true;
+	return {};
 }
 
 void

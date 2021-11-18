@@ -11,13 +11,13 @@
 /*!	\file NPLAMath.cpp
 \ingroup NPL
 \brief NPLA 数学功能。
-\version r24396
+\version r24519
 \author FrankHB <frankhb1989@gmail.com>
 \since build 930
 \par 创建时间:
 	2021-11-03 12:50:49 +0800
 \par 修改时间:
-	2021-11-11 12:02 +0800
+	2021-11-19 05:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1017,31 +1017,128 @@ DecimalAccumulate(_tInt& ans, char c)
 	return {};
 }
 
+//! \since build 931
+//@{
+// XXX: Keeping the type of numeric literals without sign 'int' is also more
+//	compatible to old operations. 
+using ReadIntType = int;
+using ReadExtIntType = long long;
+using ReadCommonType = ystdex::common_type_t<ReadExtIntType, std::uint64_t>;
+
+YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(bool, IsDecimalPoint, char c)
+	ynothrow
+	ImplRet(c == '.')
+
+YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(bool, IsExponent, char c) ynothrow
+	ImplRet(c == 'e' || c == 'E')
+
+YB_ATTR_nodiscard YB_PURE inline double
+ScaleDecimalFlonum(char sign, double ans, ptrdiff_t scale)
+{
+	return (sign != '-' ? double(ans) : -double(ans)) * std::pow(10, scale);
+}
+
+YB_ATTR_nodiscard YB_PURE ptrdiff_t
+ReadDecimalExponent(string_view::const_iterator first, string_view id)
+{
+	bool minus = {};
+
+	switch(*first)
+	{
+	case '-':
+		minus = true;
+		YB_ATTR_fallthrough;
+	case '+':
+		++first;
+		YB_ATTR_fallthrough;
+	default:
+		break;
+	}
+	if(first != id.end())
+	{
+		ptrdiff_t res(0);
+
+		ystdex::retry_on_cond(ystdex::id<>(), [&]() -> bool{
+			if(ystdex::isdigit(*first))
+			{
+				if(DecimalAccumulate(res, *first))
+					return ++first != id.end();
+				// XXX: Assume the values (with or without the minus sign) are
+				//	out of the range of the supported exponents.
+				res = std::numeric_limits<ptrdiff_t>::max();
+				return {};
+			}
+			throw InvalidSyntax(ystdex::sfmt("Invalid character '%c' found in"
+				" the exponent of '%s'.", *first, id.data()));
+		});
+		return minus ? -res : res;
+	}
+	throw
+		InvalidSyntax(ystdex::sfmt("Empty exponent found in '%s'.", id.data()));
+}
+
+// XXX: This assumes %ReadCommonType can save more digits than %double.
 void
 ReadDecimalInexact(ValueObject& vo, string_view::const_iterator first,
-	string_view id, double ans, size_t shift = 0)
+	string_view id, ReadCommonType ans, string_view::const_iterator dpos)
 {
 	YAssert(!id.empty(), "Invalid lexeme found.");
-	YAssert(shift <= id.size(), "Invalid pointer position found.");
+
+	// NOTE: This is the beginning position known to ignore the subsequent
+	//	digits after. Digits after this position are checked but then ignored.
+	auto cut(id.end());
+
 	ystdex::retry_on_cond(ystdex::id<>(), [&]() -> bool{
+		const auto ret([&](ptrdiff_t scale) YB_FLATTEN{
+			vo = ScaleDecimalFlonum(id[0], ans, scale);
+			return false;
+		});
+
 		if(ystdex::isdigit(*first))
-			ans = DecimalCarryAddDigit(ans, *first);
-		else if(*first == '.')
 		{
-			if(shift == 0)
-				shift = size_t(id.end() - first);
+			if(cut == id.end())
+			{
+				// NOTE: The intermediate result cannot save more digits, do
+				//	rounding.
+				if(!DecimalAccumulate(ans, *first))
+				{
+					ans += *first >= '5' ? 1 : 0;
+					cut = first;
+				}
+			}
+		}
+		else if(IsDecimalPoint(*first))
+		{
+			if(dpos == id.end())
+				// NOTE: No exponent part has been found.
+				dpos = first;
 			else
 				throw InvalidSyntax(ystdex::sfmt(
 					"More than one decimal points found in '%s'.", id.data()));
+		}
+		else if(IsExponent(*first))
+		{
+			const auto el(id.end() - first);
+
+			// NOTE: If a decimal point in the representation of the cut digits
+			//	is found, it is also shifted as one digit.
+			return ret((cut == id.end() ? 0 : id.end() - cut - el
+				- (dpos != id.end() && dpos > cut ? 1 : 0))
+				- (dpos == id.end() ? 0 : id.end() - dpos - el - 1)
+				+ ReadDecimalExponent(first + 1, id));
 		}
 		else
 			ThrowForInvalidLiteralSuffix(&*first, id.data());
 		if(++first != id.end())
 			return true;
-		vo = (id[0] != '-' ? ans : -ans) * std::pow(10, shift);
-		return {};
+		// NOTE: Similar to above without the exponent, so %el is always equals
+		//	to 0.
+		return ret((cut == id.end() ? 0 : id.end() - cut
+			- (dpos != id.end() && dpos > cut ? 1 : 0))
+			- (dpos == id.end() ? 0 : id.end() - dpos - 1));
 	});
 }
+//@}
 
 template<typename _tInt>
 YB_ATTR_nodiscard bool
@@ -1061,10 +1158,15 @@ ReadDecimalExact(ValueObject& vo, string_view id,
 		if(ystdex::isdigit(*first))
 			return DecimalAccumulate(ans, *first) ? ReductionStatus::Retrying
 				: ReductionStatus::Partial;
-		if(*first == '.')
+		if(IsDecimalPoint(*first))
 		{
-			ReadDecimalInexact(vo, first + 1, id, ans,
-				size_t(id.end() - first));
+			ReadDecimalInexact(vo, first + 1, id, ReadCommonType(ans), first);
+			return ReductionStatus::Clean;
+		}
+		if(IsExponent(*first))
+		{
+			vo = ScaleDecimalFlonum(id[0], double(ans),
+				ReadDecimalExponent(first + 1, id));
 			return ReductionStatus::Clean;
 		}
 		ThrowForInvalidLiteralSuffix(&*first, id.data());
@@ -1304,37 +1406,40 @@ ReadDecimal(ValueObject& vo, string_view id, string_view::const_iterator first)
 	//	unsigned types, operations like minus would result in different types
 	//	depending on types, and the type of negative values computed from
 	//	unsinged values by these operations would be promoted too quick.
-	// XXX: Keeping the type of numeric literals without sign 'int' is also more
-	//	compatible to old operations. 
-	using int_type = int;
-	using ext_int_type = long long;
 	YAssert(!id.empty(), "Invalid lexeme found.");
 	YAssert(first >= id.begin() && size_t(first - id.begin()) < id.size(),
 		"Invalid first iterator found.");
 
 	// NOTE: Skip leading zeros.
 	while(YB_UNLIKELY(*first == '0'))
-		if(YB_UNLIKELY(++first == id.end()))
+		if(first + 1 != id.end())
+			++first;
+		else
 			break;
-	yconstexpr_if(std::numeric_limits<int_type>::max()
-		!= std::numeric_limits<ext_int_type>::max())
+	yconstexpr_if(std::numeric_limits<ReadIntType>::max()
+		!= std::numeric_limits<ReadExtIntType>::max())
 	{
-		int_type ans(0);
+		ReadIntType ans(0);
 
 		if(YB_UNLIKELY(ReadDecimalExact(vo, id, first, ans)))
 		{
-			ext_int_type lans(ans);
+			ReadExtIntType lans(ans);
 
 			if(YB_UNLIKELY(ReadDecimalExact(vo, id, first, lans)))
-				ReadDecimalInexact(vo, first, id, lans);
+				// NOTE: The cast is safe even when %ReadCommonType is unsigned
+				//	because %ReadDecimalExact may only add the minus sign on a
+				//	complete parse.
+				ReadDecimalInexact(vo, first, id, ReadCommonType(lans),
+					id.end());
 		}
 	}
 	else
 	{
-		int_type ans(0);
+		ReadIntType ans(0);
 
 		if(YB_UNLIKELY(ReadDecimalExact(vo, id, first, ans)))
-			ReadDecimalInexact(vo, first, id, ans);
+			// NOTE: Ditto.
+			ReadDecimalInexact(vo, first, id, ReadCommonType(ans), id.end());
 	}
 }
 

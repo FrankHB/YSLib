@@ -17,12 +17,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="data\logo.bmp">
-      <Filter>data</Filter>
-    </None>
-    <None Include="data\logo_wifi.bmp">
-      <Filter>data</Filter>
-    </None>
     <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>

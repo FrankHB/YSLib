@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8559
+\version r8563
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2021-10-21 18:09 +0800
+	2021-11-11 20:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,6 +49,8 @@ namespace A1
 
 /*!
 \brief 判断字符串值是否可构成符号。
+\note 不依赖具体字符集。
+\note 不排除假阴性结果。
 \since build 779
 */
 YB_ATTR_nodiscard YF_API YB_PURE bool
@@ -72,7 +74,7 @@ StringToSymbol(string&&);
 \since build 786
 
 参考调用文法：
-<pre>symbol-string? \<object></pre>
+<pre>symbol->string \<object></pre>
 */
 YB_ATTR_nodiscard YF_API YB_STATELESS const string&
 SymbolToString(const TokenValue&) ynothrow;
@@ -1319,7 +1321,6 @@ SetWithRecursion(TermNode&, ContextNode&);
 /*!
 \throw InvalidSyntax 标识符不是符号。
 \throw TypeError 当前环境被冻结。
-\sa IsNPLASymbol
 \sa RemoveIdentifier
 \since build 867
 */

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r6182
+\version r6281
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-11-11 18:37 +0800
+	2021-11-19 05:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,105 @@ $import $HISTORY;
 
 $now
 (
+	/ $re_ex(b773) $build "updated to Microsoft VC++ 2022" ~ "Microsoft VC++ \
+		2019" @ "Microsoft VC++ projects" $effective @ %(YBase, YFramework,
+		Tools.(CreationTimeManager, PredefinedMacroDetector, SHBuild))
+		$= (/ $re_ex(b862) "retargeted platform toolset" -> 'v143' ~ 'v142'),
+	+ $re_add(b928) $dev $lib "#pragma directive" @ ('YB_IMPL_GNUCPP \
+		|| YB_IMPL_CLANGPP' @ "alias templates %(equal_t, not_equal_t)"
+		@ %TypeTraits, "functors %(equal_to, not_equal_to)" @ %Functor)
+		@ %YBase.YStandardEx,
+		// To elimiante Clang++ warning: [-Wfloat-equal].
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA $=
+		(
+			* DD "wrong precondition" @ "'\pre' command" @ "Doxygen comment"
+				@ "function %IsNPLAExtendedLiteral" $since b822,
+			/ DLI "list environment redirection"
+				@ "static member function %ContextNode::DefaultResolve" $=
+			(
+				/ "simplified" !^ "identifier",
+					// This does not perform better without the allocator.
+				/ ^ ("allocator", 'any_ops::trivial_swap_t')
+			),
+			/ DLI "term tag merge" ^ 'YB_STATELESS' ~ 'YB_PURE',
+			/ @ "namespace %ystdex" $=
+			(
+				* "wrong '\relates' command" @ "Doxygen comment"
+					@ "class template specialization \
+					%is_bitwise_swapple<NPL::EnvironmentSwitcher>" $since b926,
+				+ $re_add(b927) $lib "class template specializations \
+					%is_bitwise_swappable for %NPL::EnvironmentReference"
+			)
+		),
+		* DD "wrong syntax" @ "Doxygen comment" @ "function %SymbolToString"
+			@ %NPLA1Forms $since b924,
+		/ @ "function %ReadDecimal" @ %NPLAMath $=
+		(
+			* "wrong parsing result of flonums with '.' caused by wrong factor \
+				adjustment used" $since b930,
+				// Both exact and inexact number parsing were wrong.
+			* "wrongly rejected number literals with '.' at the end and in \
+				the range of fixnums" $since b930,
+				// There would be an error of unsupported literal suffix \
+					'' if the value is acceptable by the largest integer \
+					type, or the wrong value for flonums (see ablove).
+			* "wrongly treated integer zero lexeme prefixed with a sign as \
+				empty lexemes" $since b930,
+				// The wrong results were caused by the trailing zeros \
+					removal.
+			(
+			* "too lossy intermediate results" $since b930 $=
+			(
+				/ "saved internal data for ineacxt results"
+					^ "common type of internally used extended integer \
+					type (i.e. 'long long') and %std::uint64_t" ~ "%double";
+					// With some changes on the call sitees, this also to \
+						eliminate Microsoft VC++ warning: C4244.
+				/ $impl "converted to %double at last"
+					^ "signed shift on the final result"
+			);
+			* $comp "wrong infinite values caused by the overflow fraction \
+				even after the decimal point has occurred" $since b930,
+				// This should not overflow to infinite.
+			),
+			+ "support of exponents syntaxes on inexact numbers"
+		)
+	),
+	/ @ "class %DualScreenReader" @ %YReader.DSReader $=
+	(
+		/ "moving scrolling area"
+			@ "functions %(Execute, (MoveUpForLastLine; ScrollByPixel))" $=
+		(
+			/ $lib $design ^ "more precise assertion message"
+				@ "space checking for scrolling",
+			* "missing scrolling of the old text area caused by negated \
+				condition of scrolling check" $since b850
+		),
+		/ @ "function %Execute" $=
+		(
+			/ DLDI "simplified condition checks",
+			/ DLI "simplified command selection",
+				// The %Scroll bit in the command parameter is just ignored now.
+			/ @ "the scrolling up command execution" $=
+			(
+				/ $revert_ex(b292)
+					"extended allowed line height to %size_t" ~ "%FontSize";
+					// %FontSize is effectively %std::uint8_t, which is too \
+						small in some cases. Originally (before b292) it was \
+						'u32' as the type of the total height and there was \
+						no implicit limitation of the height of a line.
+				/ "showed error on the size too large";
+				* $comp "missing the check to prevent the use of the wrongly \
+					wrapped size as the line height" $since b292
+			)
+		)
+	)
+),
+
+b930
+(
 	+ "'-fno-semantic-interposition' after '-fPIC' except for platform %Android"
 		$effective @ ("%SHBuild-common-options.sh", "%SHBuild-YSLib-common.txt")
 		@ %Tools.Scripts,
@@ -44,6 +143,7 @@ $now
 	(
 		/ %YDefinition $=
 		(
+			* DD "typo" @ "comment" @ "Doxygen group %traits" $since b845,
 			/ $resolve(#39) $dev "cleared substitution list" @ "macros \
 				%(ynoexcept_param, ynoexcept_qual)" @ 'YB_IMPL_MSCPP',
 			/ $re_add(b927) DLDI "all 'yconstexpr const'" @ "namespace scope"

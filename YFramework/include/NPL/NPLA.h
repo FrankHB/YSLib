@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r8648
+\version r8656
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2021-10-21 18:09 +0800
+	2021-11-11 20:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -721,7 +721,7 @@ enum class LexemeCategory
 //! \sa LexemeCategory
 //@{
 /*!
-\pre 断言：字符串参数的数据指针非空。
+\pre 间接断言：字符串参数的数据指针非空。
 \return 判断的非扩展字面量分类。
 */
 //@{
@@ -742,7 +742,7 @@ CategorizeLexeme(string_view) ynothrowv;
 
 /*!
 \brief 判断不是非扩展字面量的词素是否为 NPLA 扩展字面量。
-\pre 断言：字符串参数的数据指针非空且字符串非空。
+\pre 断言：字符串参数的数据指针非空。
 \pre 词素不是代码字面量或数据字面量。
 \since build 771
 */
@@ -3492,7 +3492,12 @@ TraceException(std::exception&, YSLib::Logger&);
 namespace ystdex
 {
 
-//! \relates NPL::A1::Continuation
+//! \relates NPL::EnvironmentReference
+template<>
+struct is_bitwise_swappable<NPL::EnvironmentReference> : true_
+{};
+
+//! \relates NPL::EnvironmentSwitcher
 template<>
 struct is_bitwise_swappable<NPL::EnvironmentSwitcher> : true_
 {};

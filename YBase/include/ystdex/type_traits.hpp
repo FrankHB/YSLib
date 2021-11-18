@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2019 FrankHB.
+	© 2011-2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r2030
+\version r2038
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2019-09-13 13:43 +0800
+	2021-11-11 20:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -91,11 +91,18 @@ using decrement_post_t = decltype(std::declval<_type>()--);
 template<typename _type, typename _type2>
 using subscript_t = decltype(std::declval<_type>()[std::declval<_type2>()]);
 
+#if YB_IMPL_GNUCPP || YB_IMPL_CLANGPP
+	YB_Diag_Push
+	YB_Diag_Ignore(float-equal)
+#endif
 template<typename _type, typename _type2 = _type>
 using equal_t = decltype(std::declval<_type>() == std::declval<_type2>());
 
 template<typename _type, typename _type2 = _type>
 using not_equal_t = decltype(std::declval<_type>() != std::declval<_type2>());
+#if YB_IMPL_GNUCPP || YB_IMPL_CLANGPP
+	YB_Diag_Pop
+#endif
 //@}
 
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3658
+\version r3669
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2021-10-30 09:10 +0800
+	2021-11-14 20:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -391,25 +391,26 @@ RedirectToShared(string_view id, shared_ptr<Environment> p_env)
 // XXX: Use other type without overhead of check on call of %operator()?
 using Redirector = function<observer_ptr<const ValueObject>()>;
 
-//! \since build 884
+//! \since build 931
 observer_ptr<const ValueObject>
-RedirectEnvironmentList(EnvironmentList::const_iterator first,
-	EnvironmentList::const_iterator last, string_view id, Redirector& cont)
+RedirectEnvironmentList(Environment::allocator_type a, Redirector& cont,
+	EnvironmentList::const_iterator first, EnvironmentList::const_iterator last)
 {
 	if(first != last)
 	{
-		cont = std::bind(
+		cont = ystdex::make_obj_using_allocator<Redirector>(a,
+			any_ops::trivial_swap, std::bind(
 			[=, &cont](EnvironmentList::const_iterator i, Redirector& c){
 			cont = std::move(c);
-			return RedirectEnvironmentList(i, last, id, cont);
-		}, std::next(first), std::move(cont));
+			return RedirectEnvironmentList(a, cont, i, last);
+		}, std::next(first), std::move(cont)));
 		return NPL::make_observer(&*first);
 	}
 	return {};
 }
 
 //! \since build 857
-YB_ATTR_nodiscard YB_PURE TermTags
+YB_ATTR_nodiscard YB_STATELESS TermTags
 MergeTermTags(TermTags x, TermTags y) ynothrow
 {
 	return (((x & ~TermTags::Temporary) | y) & ~TermTags::Unique)
@@ -1259,8 +1260,9 @@ ContextNode::DefaultResolve(shared_ptr<Environment> p_env, string_view id)
 					{
 						auto& envs(parent.GetObject<EnvironmentList>());
 
-						p_next = RedirectEnvironmentList(envs.cbegin(),
-							envs.cend(), id, cont);
+						p_next = RedirectEnvironmentList(
+							p_env->Bindings.get_allocator(), cont,
+							envs.cbegin(), envs.cend());
 					}
 					while(!p_next && bool(cont))
 						p_next = ystdex::exchange(cont, Redirector())();

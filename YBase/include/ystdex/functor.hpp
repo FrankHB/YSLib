@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2020 FrankHB.
+	© 2010-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r987
+\version r996
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2020-07-17 01:19 +0800
+	2021-11-11 20:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,7 +78,6 @@ using enable_if_transparent_t
 
 /*!	\defgroup functors General Functors
 \brief 仿函数。
-\warning 可能非虚析构。
 \note 函数对象包含函数指针和仿函数。
 \warning 其中的类类型一般可被继承但非虚析构。
 \since build 243
@@ -385,11 +384,18 @@ YB_Impl_Functor_Unary(negate, -)
 	\
 	YB_Impl_Functor_Ops_Spec_Ptr(_n)
 
+#if YB_IMPL_GNUCPP || YB_IMPL_CLANGPP
+	YB_Diag_Push
+	YB_Diag_Ignore(float-equal)
+#endif
 //! \brief 等于关系仿函数。
 YB_Impl_Functor_bool(equal_to, ==)
 
 //! \brief 不等于关系仿函数。
 YB_Impl_Functor_bool(not_equal_to, !=)
+#if YB_IMPL_GNUCPP || YB_IMPL_CLANGPP
+	YB_Diag_Pop
+#endif
 
 //! \brief 大于关系仿函数。
 YB_Impl_Functor_bool_Ordered(greater, >)
