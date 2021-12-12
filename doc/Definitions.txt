@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14322
+\version r14342
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2021-11-10 21:26 +0800
+	2021-12-09 20:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,7 @@ $region $synopsis $begin
 // 保留名称规则参照 https://frankhb.github.io/YSLib-book/Development.zh-CN.html 。另见 [Documentation::Designation @@4.2] 。
 // 以下为既定宏名和生成标识符污染列表（内部使用的宏名不逐一列出）。
 // ! 默认由外部（如预定义标识符、编译器命令行或标准库头）提供。
-// # 可能由外部提供。
+// # 可能由外部提供。在公开头文件中使用，查看实现确定配置的不同行为和提供的默认值。
 // ~ 由宏替换生成而不是宏定义引入的标识符。
 // 非外部提供的非头文件守卫宏的保留内部使用的宏名可能被 #undef 取消定义。未被取消定义的内部使用的宏也在以下一并列出。
 
@@ -70,7 +70,7 @@ YB_* // 保留给 YBase 使用。
 YPP_* // 是通用于预处理阶段的辅助宏。
 __has_* // 在 ydef.h 内，同 ISO C++20 草案或 WG21 P0941 约定。可能有其它实现扩展。
 __cpp_* // 同 ISO C++20 草案或 WG21 P0941 约定。
-// 以上名称符合 YB_Has_* 、 YB_Use_* 、 __has_* 和 __cpp_* 模式宏不保证总是定义，但保证用于适合 #if 等标准预处理指令进行条件包含的判断。
+// 以上名称符合 YB_Has_* 、YB_Use_* 、__has_* 和 __cpp_* 模式宏不保证总是定义，但保证用于适合 #if 等标准预处理指令进行条件包含的判断。
 
 $header YDefinition
 {
@@ -124,6 +124,7 @@ YB_ATTR_LAMBDA_PFX(...)
 YB_ATTR_LAMBDA_QUAL(_q, ...)
 YB_LAMBDA_ANNOTATE(_arglist, _q, ...)
 YB_ATTR_STD(...)
+YB_ATTR_always_inlnine
 YB_ATTR_fallthrough
 YB_ATTR_gnu_printf(...)
 YB_ATTR_maybe_unused
@@ -488,6 +489,8 @@ NPL_Impl_NPLA_CheckStatus
 $unit NPLAMath
 {
 NPL_NPLA_EnsureInPlaceNativeNumbers
+#NPL_Impl_NPLAMath_UseQuadMath
+#NPL_Impl_NPLAMath_Has_UInt128
 }
 $internal $unit NPLA1Internals
 {
@@ -838,6 +841,25 @@ $impl Caret::caret_animation;
 
 } // $dir YSLib;
 
+$dir NPL
+{
+
+$unit NPLA1
+{
+
+$unit.impl:
+namespace NPL::A1
+{
+namespace
+{
+NameTableMutex;
+}
+} // namespace NPL::A1;
+
+} // $unit NPLA1;
+
+} // $dir NPL;
+
 $dir Helper
 {
 
@@ -912,6 +934,7 @@ $attr $=
 	alloc_size,
 	allocator,
 	always_inline,
+	callback,
 	dllimport,
 	dllexport,
 	flatten,

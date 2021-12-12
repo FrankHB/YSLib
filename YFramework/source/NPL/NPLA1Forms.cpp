@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r25752
+\version r25761
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2021-10-31 01:35 +0800
+	2021-11-20 22:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -679,14 +679,11 @@ MakeEnvironmentParent(TNIter first, TNIter last,
 #if true
 	// XXX: This is slightly more efficient.
 	return ValueObject(EnvironmentList(tr(first), tr(last), a));
-	// XXX: The following code may be better, but both G++ 10.2.0 and Clang++
-	//	11.1.0 seem quite buggy and fail to compile by selecting the wrong
-	//	overload candidate in %ystdex::any::any which %std::allocator_arg_t in
-	//	the front of the parameter list.
-//	return ValueObject(in_place_type<EnvironmentList>, tr(first), tr(last), a);
+#elif true
+	return ValueObject(in_place_type<EnvironmentList>, tr(first), tr(last), a);
 #else
 	return ValueObject(std::allocator_arg, a,
-		YSLib::in_place_type<EnvironmentList>, tr(first), tr(last), a);
+		in_place_type<EnvironmentList>, tr(first), tr(last), a);
 #endif
 }
 
@@ -906,7 +903,7 @@ public:
 	}
 
 	// XXX: The check on %p_env for the parent should be checked before
-	//	(by %ResolveEnvironment, etc.). 
+	//	(by %ResolveEnvironment, etc.).
 	//! \since build 918
 	YB_ATTR_nodiscard YB_PURE static ValueObject
 	MakeParentSingle(TermNode::allocator_type a,
@@ -1140,7 +1137,7 @@ BindLocalReference(TermTags o_tags, TermNode& o, _fMove mv,
 	}());
 }
 
-YB_ATTR_nodiscard YB_ATTR(always_inline) inline TermNode
+YB_ATTR_nodiscard YB_ATTR_always_inline inline TermNode
 EvaluateToLValueReference(TermNode& term, const shared_ptr<Environment>& p_env)
 {
 	return NPL::AsTermNode(term.get_allocator(), EnsureLValueReference(
@@ -3059,7 +3056,7 @@ bool
 IsSymbol(const string& id) ynothrow
 {
 	return !id.empty() && IsNPLASymbol(id) && !ystdex::isdigit(id.front())
-		&& ystdex::fast_all_of(id.begin(), id.end(), 
+		&& ystdex::fast_all_of(id.begin(), id.end(),
 		[] YB_LAMBDA_ANNOTATE((char c), ynothrow, const){
 			// XXX: Conservatively only check the basic character set. There
 			//	could be false negative results.

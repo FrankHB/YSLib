@@ -94,11 +94,11 @@ $if (string-empty? arg1) (() SHBuild_PrintUsage)
 	);
 	$if (win32? host-os)
 	(
-		$def! SHBuild_YF_SystemLibs "-lgdi32 -limm32",
+		$def! SHBuild_YF_SystemLibs "-lgdi32 -limm32 -lquadmath",
 		$def! SHBuild_YF_CFlags_freetype ""
 	)
 	(
-		$def! SHBuild_YF_SystemLibs "-Wl,-dy -lxcb";
+		$def! SHBuild_YF_SystemLibs "-Wl,-dy -lxcb -lquadmath";
 		$def! SHBuild_YF_CFlags_freetype system-or-puts
 			(cons-cmd "pkg-config" "--cflags" "freetype2")
 			(++ "-I" (system-quote-m_ SR_Include_))
@@ -134,7 +134,7 @@ $if (string-empty? arg1) (() SHBuild_PrintUsage)
 		"TODO", "Test for other platforms?";
 		$if (eqv? (SHBuild_CheckCXX host-os (safeenv-get "CXX")) "Clang++")
 		(
-			"XXX", "No prefix and postfix of %LD are supported yet.";
+			"XXX", "No prefixes and suffixes of %LD are supported yet.";
 			safeenv-set "LD" "g++"
 		);
 		$def! SHBuild_YSLib_Flags SHBuild_TrimOptions_

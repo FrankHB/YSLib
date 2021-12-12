@@ -1,5 +1,5 @@
 #
-#	(C) 2014-2016 FrankHB.
+#	(C) 2014-2016, 2021 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Makefile for DS toolchain
-# Version = r87
+# Version = r90
 # Created = 2014-12-06 16:51:13 +0800
-# Updated = 2016-05-01 21:49 +0800
+# Updated = 2021-12-12 02:52 +0800
 # Encoding = ANSI
 
 
@@ -66,8 +66,8 @@ ARCH_ARM9 := $(ARCH_AS_ARM9) -mtune=arm946e-s
 
 ASFLAGS_ARM9 := $(ARCH_ARM9) -mfpu=softfpa -mfpu=softvfp
 
-C_CXXFLAGS_ARM9 := $(C_CXXFLAGS_OPT_DBG) $(ARCH_ARM9) -Wno-psabi -ffast-math \
-	-DARM9
+# XXX: NPLAMath does no support '-ffast-math'.
+C_CXXFLAGS_ARM9 := $(C_CXXFLAGS_OPT_DBG) $(ARCH_ARM9) -Wno-psabi -DARM9
 
 ARCH_AS_ARM7 := -mthumb -mthumb-interwork -mcpu=arm7tdmi
 ARCH_ARM7 := $(ARCH_AS_ARM7) -mtune=arm7tdmi

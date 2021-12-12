@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 语言实现和系统环境相关特性及公用类型和宏的基础定义。
-\version r4031
+\version r4113
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2021-11-10 21:49 +0800
+	2021-12-11 23:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,6 +60,9 @@
 \see https://blogs.msdn.microsoft.com/vcblog/2016/10/05/visual-c-compiler-version/ 。
 
 定义为 _MSC_VER 描述的版本号。
+包括 Microsoft VC++ 的编译器，不支持更早的 MSC 编译器和 Clang++ 前端实现。
+因为文档中最早支持的 _MSC_VER 的值是 1200（对应 Microsoft VC++ 6.0 ），
+没有其它确切版本的特性但在 Microsoft VC++ 6.0 以来可用特性的最小版本可使用这个值。
 */
 
 /*!
@@ -74,9 +77,17 @@
 /*!
 \def YB_IMPL_CLANGPP
 \brief LLVM/Clang++ 实现支持版本。
+\see https://releases.llvm.org/2.1/docs/ReleaseNotes.html 。
+\see https://releases.llvm.org/2.6/docs/ReleaseNotes.html 。
+\see https://releases.llvm.org/2.7/docs/ReleaseNotes.html 。
+\see https://releases.llvm.org/2.8/docs/ReleaseNotes.html 。
 \since build 458
 
 定义为 100 进位制的三重版本编号和。
+因为 Clang 最早发布于 LLVM 2.1 ，所以不需要区分 20100 以下的版本号。
+最早的官方发布的 Clang 版本是 LLVM 2.6。
+Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除 export 外）。
+专用于 C++ 的特性可以使用上述版本号作为替代。
 */
 
 #if defined(__GNUC__)
@@ -430,7 +441,11 @@
 #define yimpl(...) __VA_ARGS__
 
 
-//! \since build 880
+/*!
+\see https://gcc.gnu.org/legacy-ml/gcc-help/2015-07/msg00064.html 。
+\see https://reviews.llvm.org/rL69560 。
+\since build 880
+*/
 //@{
 /*!
 \def YPP_Diag_Push
@@ -448,12 +463,19 @@
 #	define YB_Diag_Push _Pragma("warning(push)")
 #	define YB_Diag_Pop _Pragma("warning(pop)")
 #	define YB_Diag_Ignore(_opt) _Pragma(YPP_Stringize(warning(disable: _opt)))
-#elif YB_IMPL_CLANGPP
+#elif YB_IMPL_CLANGPP >= 20600
+// NOTE: See https://reviews.llvm.org/rL75431.
+// XXX: The 'clang' pragma is preferred to 'GCC' since it can be Clang-specific.
+//	See https://releases.llvm.org/3.1/tools/clang/docs/UsersManual.html#diagnostics_pragmas
+//	and https://stackoverflow.com/a/11853015.
 #	define YB_Diag_Push _Pragma("clang diagnostic push")
 #	define YB_Diag_Pop _Pragma("clang diagnostic pop")
 #	define YB_Diag_Ignore(_opt) _Pragma( \
 	YPP_Stringize(clang diagnostic ignored YPP_Stringize(YPP_Concat(-W, _opt))))
-#elif YB_IMPL_GNUCPP >= 40600
+// NOTE: GCC supported it since 4.2.0 (see also
+//	https://gcc.gnu.org/legacy-ml/gcc-help/2015-07/msg00063.html), but it seemed
+//	buggy until 4.6.0 on templates.
+#elif YB_IMPL_GNUCPP >= 40200
 #	define YB_Diag_Push _Pragma("GCC diagnostic push")
 #	define YB_Diag_Pop _Pragma("GCC diagnostic pop")
 #	define YB_Diag_Ignore(_opt) _Pragma( \
@@ -642,7 +664,7 @@ GCC 9.0 之后修复了 PR 60503 ，当存在 trailing-return-type 时，
 在第一次修复 GCC PR 60503 后，G++ 9.0 已支持在此位置的标准属性，但不支持扩展属性。
 在此要求支持扩展属性，因此要求 GCC 9.3 或 GCC 10 的发布版本支持。
 这也是唯一在 G++ 9.1 之后中插入从属 lambda 表达式（而非类型）的属性的方式。
-对 Clang++ ，仅在 C++2b 模式支持，且仅支持标准属性。暂不在 Clang++ 启用此语法。 
+对 Clang++ ，仅在 C++2b 模式支持，且仅支持标准属性。暂不在 Clang++ 启用此语法。
 另见以下 YB_ATTR_LAMBDA_QUAL 的使用。
 */
 #if (YB_IMPL_GNUCPP >= 90300 && YB_IMPL_GNUCPP < 100000) \
@@ -725,6 +747,40 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 #	define YB_ATTR_STD(...) [[__VA_ARGS__]]
 #else
 #	define YB_ATTR_STD(...)
+#endif
+
+/*!
+\def YB_ATTR_always_inline
+\brief 指定函数被调用时的内联的属性。
+\note 不能内联的情形可能引起诊断。
+\see https://clang.llvm.org/docs/AttributeReference.html#always-inline-force-inline 。
+\see https://gcc.gnu.org/git/?p=gcc.git;a=commit;h=6aa77e6c394b8d61c25d146e7d106f4ddf17ca54 。
+\see https://reviews.llvm.org/rL58304 。
+\since build 931
+
+在函数或函数模板上指定要求函数或函数模板的实例的调用被内联。
+不保证隐含 inline 。需影响 ODR 时，仍需指定显式的 inline 或 constexpr 等。
+一些情形可能不能内联，如递归调用和调试模式的函数调用。详见具体实现的定义。
+应注意直接使用本属性不保证提升生成的代码质量。
+一般应仅在要求不生成定义或可确定内部可内联时使用，以避免：
+无法内联时引起诊断（可能是错误）；
+阻止在内部调用的函数无法在此内联展开后停止内联而引起代码膨胀，引起不必要的调用开销；
+其它非预期的方式影响实现自动的内联的判断，而引起代码缺陷。
+对和 GCC 兼容的实现，可配合 YB_ATTR(noinline) 或 YB_FLATTEN 控制内联展开的位置。
+*/
+// XXX: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=14950.
+#if __has_attribute(__always_inline__) || YB_IMPL_CLANGPP >= 20500 \
+	|| YB_IMPL_GNUCPP >= 40000 \
+	|| (YB_IMPL_GNUCPP >= 30100 && YB_IMPL_GNUCPP < 30400)
+#	define YB_ATTR_always_inline __attribute__((__always_inline__))
+#elif YB_IMPL_MSCPP >= 1200
+// NOTE: The Microsoft-specific keyword '__forceinline' may implies inline,
+//	but this should not be relied on. See also
+//	https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-1-c4141.
+#	define YB_ATTR_always_inline \
+	YB_Diag_Push YB_Diag_Ignore(4141) __forceinline YB_Diag_Pop
+#else
+#	define YB_ATTR_always_inline
 #endif
 
 /*!
@@ -893,21 +949,20 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 #	define YB_ASSUME(_expr) __assume(_expr)
 #elif YB_IMPL_CLANGPP >= 30501
 // NOTE: The warning [-Wassume] is largely useless with misleading diagnostics.
+// NOTE: The warning [-Wpointer-ignore] is available since Clang 3.4.1. Ignoring
+//	the warning makes it usable in cases like variable in %_expr having nonnull
+//	attributes.
 #	define YB_ASSUME(_expr) \
-	YB_Diag_Push YB_Diag_Ignore(assume) __builtin_assume(_expr) YB_Diag_Pop
+	YB_Diag_Push YB_Diag_Ignore(pointer-bool-conversion) \
+		YB_Diag_Ignore(assume) __builtin_assume(_expr) YB_Diag_Pop
 #elif __has_builtin(__builtin_assume)
 #	define YB_ASSUME(_expr) __builtin_assume(_expr)
 #elif __has_builtin(__builtin_unreachable) || YB_IMPL_GNUCPP >= 40500
-#	if YB_IMPL_CLANGPP >= 30401
-#		define YB_ASSUME(_expr) \
-	((YB_Diag_Push YB_Diag_Ignore(pointer-bool-conversion) _expr \
-		YB_Diag_Pop) ? void() : __builtin_unreachable())
-#	else
 // NOTE: It is ideal to get away the default warning [-Wnonnull-compare]
 //	enabled by '-Wall'. (See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=17308
 //	and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=69850.) However, the pragma
 //	in the following does not work, as
-//	https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70811.
+//	https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60875.
 #		if false
 #			define YB_ASSUME(_expr) \
 	((YB_Diag_Push YB_Diag_Ignore(nonnull-compare) _expr \
@@ -918,7 +973,6 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 #			pragma GCC diagnostic ignored "-Wnonnull-compare"
 #		endif
 #		define YB_ASSUME(_expr) ((_expr) ? void() : __builtin_unreachable())
-#	endif
 #else
 #	define YB_ASSUME(_expr) ((_expr) ? void() : YB_ABORT)
 #endif
@@ -994,12 +1048,12 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 #endif
 
 #if YB_IMPL_MSCPP >= 1200
-//! \since build 454
-YB_Diag_Ignore(4646)
-// NOTE: See https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-3-c4646.
-// NOTE: The warning "function declared with __declspec(noreturn) has non-void
-//	return type" is unwanted since the type of function may be significant even
-//	it does not return.
+	//! \since build 454
+	YB_Diag_Ignore(4646)
+	// NOTE: See https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-3-c4646.
+	// NOTE: The warning "function declared with __declspec(noreturn) has
+	//	non-void return type" is unwanted since the type of function may be
+	//	significant even it does not return.
 #endif
 
 /*!
@@ -1098,8 +1152,13 @@ YB_Diag_Ignore(4646)
 #	else
 #		define YB_API
 #	endif
+// NOTE: See https://gcc.gnu.org/gcc-4.0/changes.html. The attribute on the
+//	class types are required. If it is detected by %__has_attribute, this
+//	capability is assumed since GCC < 4 has no built-in %__has_attribute
+//	support.
+// NOTE: See https://reviews.llvm.org/rL110315.
 #elif defined(YB_BUILD_DLL) && (__has_attribute(__visibility__) \
-	|| YB_IMPL_GNUCPP >= 40000 || YB_IMPL_CLANGPP)
+	|| YB_IMPL_GNUCPP >= 40000 || YB_IMPL_CLANGPP >= 20800)
 #	define YB_API YB_ATTR(__visibility__("default"))
 #else
 #	define YB_API

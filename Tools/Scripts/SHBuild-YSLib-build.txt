@@ -115,7 +115,8 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 	$if nskip ($let*
 	(
 		(repo-base SHBuild_2m YSLib_BaseDir)
-		(YF_SystemLibs $if (win32? host-os) "-lgdi32 -limm32" "-lxcb")
+		(YF_SystemLibs $if (win32? host-os) "-lquadmath -lgdi32 -limm32"
+			"-lxcb -lquadmath")
 		(DIR_YFramework ++ repo-base "/YFramework")
 		(LIBS_YFramework SHBuild_TrimOptions_ (++ " -L"
 			(system-quote-m_ (++ DIR_YFramework "/" host-lib_))

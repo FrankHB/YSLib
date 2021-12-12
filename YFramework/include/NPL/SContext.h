@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r4121
+\version r4122
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2021-10-08 18:38 +0800
+	2021-11-20 22:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -693,7 +693,7 @@ using YSLib::IsTyped;
 \since build 924
 */
 template<typename _type>
-YB_ATTR_nodiscard YB_ATTR(always_inline) YB_PURE inline bool
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_PURE inline bool
 IsTyped(const TermNode& nd)
 {
 	return IsTyped<_type>(nd.Value);

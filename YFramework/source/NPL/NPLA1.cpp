@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r22114
+\version r22118
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2021-11-11 12:02 +0800
+	2021-11-20 22:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -156,8 +156,7 @@ PushedAction::operator()(ContextNode&) const
 	if(res != ReductionStatus::Partial)
 		// NOTE: This does maintain the right reduction status for each term,
 		//	once the result of the call to %HandlerRef is trusted.
-		ctx.LastStatus
-			= CombineSequenceReductionResult(r, res);
+		ctx.LastStatus = CombineSequenceReductionResult(r, res);
 	return ctx.LastStatus;
 }
 #endif
@@ -181,7 +180,7 @@ FetchNameTableRef()
 
 #if NPL_Impl_NPLA1_Enable_Thunked
 //! \since build 810
-YB_ATTR(always_inline) inline ReductionStatus
+YB_ATTR_always_inline inline ReductionStatus
 ReduceChildrenOrderedAsync(TNIter, TNIter, ContextNode&);
 
 //! \since build 879
@@ -198,7 +197,7 @@ ReduceChildrenOrderedAsyncUnchecked(TNIter first, TNIter last, ContextNode& ctx)
 	}, "eval-argument-list"), ctx));
 }
 
-YB_ATTR(always_inline) inline ReductionStatus
+YB_ATTR_always_inline inline ReductionStatus
 ReduceChildrenOrderedAsync(TNIter first, TNIter last, ContextNode& ctx)
 {
 	return first != last ? ReduceChildrenOrderedAsyncUnchecked(first, last, ctx)

@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r6917
+\version r6929
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2021-10-12 00:27 +0800
+	2021-12-11 23:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,7 +93,7 @@ using ystdex::make_any;
 
 //! \since build 928
 template<typename _type>
-YB_ATTR_nodiscard YB_ATTR(always_inline) YB_PURE inline bool
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_PURE inline bool
 IsTyped(const type_info& ti)
 {
 	return ti == type_id<_type>();
@@ -496,9 +496,8 @@ private:
 			default_init, any_ops::get_allocator_type)),
 			"Invalid allocator found.");
 
-		return Deref(static_cast<const _tByteAlloc*>(
-			x.unchecked_access<void*>(default_init,
-			any_ops::get_allocator_ptr)));
+		return Deref(static_cast<const _tByteAlloc*>(x.unchecked_access<void*>(
+			default_init, any_ops::get_allocator_ptr)));
 	}
 };
 
@@ -928,10 +927,12 @@ public:
 	YB_ATTR_nodiscard any
 	Create(Creation c, const any&) const ImplI(IValueHolder)
 	{
-		// TODO: Blocked. Use C++17 'if constexpr' to simplify.
-		if(shared() && c == IValueHolder::Copy)
-			return HolderOperations<PointerHolder>::CreateInPlaceConditionally(
-				shared(), p_held);
+		yconstexpr_if(shared())
+		{
+			if(c == IValueHolder::Copy)
+				return HolderOperations<PointerHolder>
+					::CreateInPlaceConditionally(shared(), p_held);
+		}
 		if(const auto& p = traits_type::get(p_held))
 			return CreateHolder(c, *p);
 		ystdex::throw_invalid_construction();
@@ -1591,7 +1592,7 @@ public:
 	\since build 918
 	*/
 	template<typename... _tParams>
-	YB_ATTR(always_inline) inline void
+	YB_ATTR_always_inline inline void
 	assign(_tParams&&... args) ynoexcept_spec(ValueObject(yforward(args)...))
 	{
 		*this = ValueObject(yforward(args)...);
@@ -1654,7 +1655,7 @@ public:
 //@{
 //! \since build 928
 template<typename _type>
-YB_ATTR_nodiscard YB_ATTR(always_inline) YB_PURE inline bool
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_PURE inline bool
 IsTyped(const ValueObject& vo)
 {
 	return IsTyped<_type>(vo.type());

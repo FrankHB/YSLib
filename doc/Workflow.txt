@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4687
+\version r4728
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2021-11-06 20:05 +0800
+	2021-11-28 07:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -826,7 +826,7 @@ Function 'cbegin' and 'cend' are preferred to 'begin' and 'end' in some cases.
 		Use 'begin' and 'end' instead of 'cbegin' and 'cend' as workaround when necessary.
 English allows bare passive clause, which omits the auxiliary verb (typically 'is').
 	See http://en.wikipedia.org/wiki/English_passive_voice#Additional_passive_constructions.
-	In YSLib, for English passive voice in assertion strings or titles, this form is preferred to canonical form (e.g. "file not found"), even in a separated sentence.
+	In YSLib, for English passive voice in assertion messages or titles, this form is preferred to canonical form (e.g. "file not found"), even in a separated sentence.
 	For formal descriptions otherwise, auxiliary verbs should not be omitted.
 
 $2014-09:
@@ -1610,7 +1610,7 @@ Now external file accessed by YFramework (including the configuration 'yconf.txt
 $2016-09:
 
 report.impl:
-In YSLib, bare passive clause is preferred for exception message or other error handling messages, besides those in assertion strings, etc.
+In YSLib, bare passive clause is preferred for exception messages or other error handling messages, besides those in assertion messages, etc.
 	See also $2014-08 report.impl.
 
 $2016-12:
@@ -4644,6 +4644,45 @@ Polymorhpic memory resource for default one (using the global new/delete operato
 				See also https://bugs.llvm.org/show_bug.cgi?id=28954.
 			So, it is even worse to keep bug-to-bug compatibility to the non-portable uses.
 			It is the users' responsibility to avoid them in specific static objects.
+Integer check for floating-point numbers used in NPLA1 'integer?' is reviewed.
+	Infinite values are excluded at first.
+	For remained normal inputs, the check can be done by one of ISO C++ functions in namespace 'std': 'ceil', 'floor', 'nearbyint', 'rint', 'round', 'roundeven' and 'trunc'.
+	Functions 'std::llrint' and 'std::llround' may also fit but they have undeeded overhead and possible precision problems.
+	However, all these functions except 'std::neartoint' may (rarely) incur the 'FE_INVALID' exception.
+	The function 'std::neartoint' is eventually hoosed becuase it has the minimal overhead here in typical implementations.
+		It needs not to specify concrete modes.
+	Overall, only 'std::rint' is generally more efficient if 'FE_INVALID' is allowed.
+		it also avoids to save and recover the floating-point environment.
+	In fact, using x87, a 'rint' call can be compiled to a FRNDINT instruction, while other functions are not.
+		This actually occurs with x86-64 GCC 11.2 -O3 -mfpmath=387. Other implementations seem not, though.
+		Compared to 'rint', the library implementation of 'nearbyint' usually has more instructions like FNSETENV and FLDENV to ensure the floating-point environment are not modified after the call (plus ADD and SUB to maintain the stack space for the saved environment temporary), besides FRNDINT.
+		Compared to 'nearybyint', the library implementation of other non-interger functions above usually has more instruction like FLDCW, MOV and OR to get the specific FPU control word, to set the specific rounding mode.
+		And functions 'llround' uses FINSTP instead of FRNDINT.
+	More interestingly, with x86-64 GCC 11.2 -O3 (without specifiying x87), 'rint' calls can be optimized by SSE, but 'nearbyint' calls are not (which remain to be the 'call' instruction to the library function).
+		All Clang++ 13.0.0 (-O3), ICC 2021.3.0 (-O3), ICX 2021.3.0 ()-O3) and MSVC 19.29 (VS 16.11) (/O2) do not optimize these calls in the similar optimization mode.
+		The differences to the x87 implementation on perforamnce has not been evaluated (except the PLT call to the dynamic libc has known peanlty).
+			This is 'rint' but not 'nearbyint', anyway.
+			Even if it is more efficient, the differences should be considerable small, since the optimized SSE instruction sequence are also not succint.
+				These are MOVSD, MOVAPD, ANDPD, UCOMISD, JBE, ADDSD, ADDNPD, SUBSD, MOVAPD, ORPD, SETNP and CMOVNE on two paths.
+				Since (at least) UCOMISD has also effects on the SIMD floating-point exceptions (including the precision exception #P for inexact results) , this method cannot be used to implement 'nearybyint' without additional overhead.
+					The environment to mask the exceptions are stored in the flags in the architectural register MXCSR.
+						The precision flag is the MXCSR.PE bit.
+						It can be operated by instruction like LDMXCSR and STMXCSR.
+					There are other ways like using FXSAVE and FXRSTOR to save and restore the whole environment, but the overhead can be even more significant than it in x87.
+The implementation of 'ystdex::swap_underlying' is fixed.
+	The implementation wrongly assumed that the pun type retrived from 'std::aligned_storage' (via 'ystdex::pun_storage_t') is swappable.
+		This is not true as ISO C++ never guarantees it. The type only provides storage.
+		There can be similar problems on other implementations like https://stackoverflow.com/questions/7747863.
+		The pun type is also not guaranteed to avoid playing anything strange when calling 'swap'.
+	The implementation also likely violated the strict aliasing rules by accessing the glvalues from 'ystdex::aligned_replace_cast' calls using 'ystdex::pun_storage_t<_type>' instead of '_type'.
+		There are few exceptional cases when the pun type is implmeneted in a struct having the payload type as a data member (plus some optional padding) and the 'swap' call is just ordinary assignment.
+			This would work because the assignment access the object via the glvalue of correct dynamic type in memberwise assignment.
+			See also https://stackoverflow.com/questions/56878519, as well as CWG 2051.
+	The implementation could just work, since the pun type is likely implemented (in the standard library) just by a plain union, which copies its representation on assignment, as long as the payload type ('_type' here) does not do anything strange to make the implicitly defaulted 'operator=' as deleted.
+	There is an ongoing proposal WG21 P1413R3 to remove the 'std::aligned_storage' and 'std::aligned_union' totally in the standard (suggesting using array with 'alignas' instead).
+		This also confirms the intention of the aligned storage type is not fit to the purpose other than providing storage.
+		To remove the use of these standard library types (for the wrong API) is another issue, though.
+	It is not currently used internally, so no code behavior should ever change.
 
 ////
 

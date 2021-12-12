@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r21801
+\version r21814
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2021-11-03 18:14 +0800
+	2021-11-20 22:17 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -527,32 +527,32 @@ AssertNextTerm(ContextNode& ctx, TermNode& term)
 //	enough to make the %Reducer constructor behave expectedly. However, to
 //	simplify the caller sites which does not differentiate these types (e.g.
 //	%TailCall::RelayNextGuardedLifted below), overloads with
-//	%any_ops::trivial_swap_t are provided anyway. 
-YB_ATTR(always_inline) inline ReductionStatus
+//	%any_ops::trivial_swap_t are provided anyway.
+YB_ATTR_always_inline inline ReductionStatus
 RelayCurrent(ContextNode& ctx, Continuation&& cur)
 {
 	return RelaySwitched(ctx, std::move(cur));
 }
 //! \since build 929
-YB_ATTR(always_inline) inline ReductionStatus
+YB_ATTR_always_inline inline ReductionStatus
 RelayCurrent(ContextNode& ctx, any_ops::trivial_swap_t, Continuation&& cur)
 {
 	return RelaySwitched(ctx, std::move(cur));
 }
-YB_ATTR(always_inline) inline ReductionStatus
+YB_ATTR_always_inline inline ReductionStatus
 RelayCurrent(ContextNode& ctx, std::reference_wrapper<Continuation> cur)
 {
 	return RelaySwitched(ctx, cur);
 }
 //! \since build 929
-YB_ATTR(always_inline) inline ReductionStatus
+YB_ATTR_always_inline inline ReductionStatus
 RelayCurrent(ContextNode& ctx, any_ops::trivial_swap_t,
 	std::reference_wrapper<Continuation> cur)
 {
 	return RelaySwitched(ctx, cur);
 }
 template<typename _fCurrent>
-YB_ATTR(always_inline) inline auto
+YB_ATTR_always_inline inline auto
 RelayCurrent(ContextNode& ctx, _fCurrent&& cur)
 	-> decltype(cur(std::declval<TermNode&>(), ctx))
 {
@@ -560,7 +560,7 @@ RelayCurrent(ContextNode& ctx, _fCurrent&& cur)
 }
 //! \since build 926
 template<typename _fCurrent>
-YB_ATTR(always_inline) inline auto
+YB_ATTR_always_inline inline auto
 RelayCurrent(ContextNode& ctx, any_ops::trivial_swap_t, _fCurrent&& cur)
 	-> decltype(cur(std::declval<TermNode&>(), ctx))
 {
@@ -574,7 +574,7 @@ RelayCurrent(ContextNode& ctx, any_ops::trivial_swap_t, _fCurrent&& cur)
 //@{
 #if !NPL_Impl_NPLA1_Enable_Thunked || NPL_Impl_NPLA1_Enable_InlineDirect
 template<typename _fCurrent>
-YB_ATTR(always_inline) inline ReductionStatus
+YB_ATTR_always_inline inline ReductionStatus
 RelayDirect(ContextNode& ctx, _fCurrent&& cur)
 {
 	return cur(ctx);
@@ -583,7 +583,7 @@ RelayDirect(ContextNode& ctx, _fCurrent&& cur)
 //	'cur(term, ctx)' with 'std::bind' result from libstdc++, either with G++ or
 //	Clang++. Make sure %_fCurrent accept two proper parameters.
 template<typename _fCurrent>
-YB_ATTR(always_inline) inline auto
+YB_ATTR_always_inline inline auto
 RelayDirect(ContextNode& ctx, _fCurrent&& cur, TermNode& term)
 	-> decltype(cur(term, ctx))
 {
@@ -592,14 +592,14 @@ RelayDirect(ContextNode& ctx, _fCurrent&& cur, TermNode& term)
 	return ystdex::unref(cur)(term, ctx);
 }
 #endif
-YB_ATTR(always_inline) inline ReductionStatus
+YB_ATTR_always_inline inline ReductionStatus
 RelayDirect(ContextNode& ctx, const Continuation& cur, TermNode& term)
 {
 	return cur.Handler(term, ctx);
 }
 
 template<typename _fCurrent>
-YB_ATTR(always_inline) inline ReductionStatus
+YB_ATTR_always_inline inline ReductionStatus
 RelayCurrentOrDirect(ContextNode& ctx, _fCurrent&& cur, TermNode& term)
 {
 #	if !NPL_Impl_NPLA1_Enable_Thunked || NPL_Impl_NPLA1_Enable_InlineDirect
@@ -611,7 +611,7 @@ RelayCurrentOrDirect(ContextNode& ctx, _fCurrent&& cur, TermNode& term)
 }
 //! \since build 926
 template<typename _fCurrent>
-YB_ATTR(always_inline) inline ReductionStatus
+YB_ATTR_always_inline inline ReductionStatus
 RelayCurrentOrDirect(ContextNode& ctx, any_ops::trivial_swap_t, _fCurrent&& cur,
 	TermNode& term)
 {
@@ -959,7 +959,7 @@ struct TailCall final
 		// XXX: See %TailCall::RelayNextGuarded.
 #if NPL_Impl_NPLA1_Enable_TCO
 		PrepareTCOEvaluation(ctx, term, std::move(gd)).SetupLift(lift);
-		return A1::RelayCurrentOrDirect(ctx, any_ops::trivial_swap, 
+		return A1::RelayCurrentOrDirect(ctx, any_ops::trivial_swap,
 			yforward(cur), term);
 #else
 		return NonTailCall::RelayNextGuardedProbe(ctx, term, std::move(gd),

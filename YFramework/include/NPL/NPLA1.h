@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9240
+\version r9244
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2021-11-03 18:13 +0800
+	2021-11-24 04:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1290,6 +1290,7 @@ RetainN(const TermNode& term, size_t m = 1)
 判断第二参数是否可被解析和为被 NPLA1 对象语言语法支持的字面量或数值。
 返回 ReductionStatus::Clean 表示成功求值。
 返回 ReductionStatus::Retrying 表示不成功求值，需进一步被作为符号处理。
+支持解析基于 NPLAMath 的 NPLA1 数值字面量。
 可实现字面量遍。
 */
 YF_API ReductionStatus
@@ -1477,12 +1478,12 @@ YB_ATTR_nodiscard YB_PURE inline
 
 /*!
 \brief 修饰引用字符。
-\since build 921
+\since build 920
 
 确保非空的没有 & 前缀的符号以一个 & 引用标记字符。
 若参数具有 % 引用字符前缀，替换 % 为 & 。
 */
-YF_API YB_ATTR_nodiscard YB_PURE TokenValue
+YB_ATTR_nodiscard YF_API YB_PURE TokenValue
 Ensigil(TokenValue);
 
 /*!
@@ -1504,7 +1505,7 @@ CheckParameterTree(const TermNode&);
 \brief 检查环境形式参数。
 \return 项表示 \c #ignore 时为空串，否则为非空的环境形式参数。
 */
-YF_API YB_ATTR_nodiscard YB_PURE string
+YB_ATTR_nodiscard YF_API YB_PURE string
 CheckEnvironmentFormal(const TermNode&);
 //@}
 

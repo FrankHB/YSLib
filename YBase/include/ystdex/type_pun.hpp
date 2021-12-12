@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2018 FrankHB.
+	© 2014-2016, 2018, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file type_pun.hpp
 \ingroup YStandardEx
 \brief 共享存储和直接转换。
-\version r551
+\version r578
 \author FrankHB <frankhb1989@gmail.com>
 \since build 629
 \par 创建时间:
 	2015-09-04 12:16:27 +0800
 \par 修改时间:
-	2018-08-20 07:47 +0800
+	2021-11-22 04:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,11 +28,11 @@
 #ifndef YB_INC_ystdex_type_pun_hpp_
 #define YB_INC_ystdex_type_pun_hpp_ 1
 
-#include "placement.hpp" // for internal "placement.hpp", bool_, yalignof,
-//	and_, is_trivial, enable_if_t, is_object_pointer, remove_pointer_t,
-//	is_object, aligned_storage_t, is_reference, remove_reference_t,
-//	exclude_self_t, decay_t, ystdex::addressof;
-#include <new> // for placement ::operator new from standard library;
+#include "placement.hpp" // for internal "placement.hpp", is_trivially_copyable,
+//	bool_, yalignof, and_, is_trivial, enable_if_t, is_object_pointer,
+//	remove_pointer_t, is_object, aligned_storage_t, is_reference,
+//	remove_reference_t, placement ::operator new from standard library, decay_t,
+//	exclude_self_t, ystdex::addressof;
 
 namespace ystdex
 {
@@ -126,7 +126,7 @@ using pun_storage_t = aligned_storage_t<sizeof(_type), _vAlign>;
 */
 //@{
 template<typename _pDst, typename _tSrc>
-inline yimpl(enable_if_t)<and_<is_object_pointer<_pDst>,
+YB_ATTR_always_inline inline yimpl(enable_if_t)<and_<is_object_pointer<_pDst>,
 	is_aligned_compatible<_tSrc, remove_pointer_t<_pDst>>>::value, _pDst>
 aligned_cast(_tSrc* v) ynothrow
 {
@@ -135,7 +135,7 @@ aligned_cast(_tSrc* v) ynothrow
 template<typename _rDst, typename _tSrc, yimpl(typename = ystdex::enable_if_t<
 	and_<is_reference<_rDst>, is_aligned_compatible<remove_reference_t<_tSrc>,
 	remove_reference_t<_rDst>>>::value>)>
-inline auto
+YB_ATTR_always_inline inline auto
 aligned_cast(_tSrc&& v) ynothrow
 	-> decltype(yforward(reinterpret_cast<_rDst>(v)))
 {
@@ -150,7 +150,7 @@ aligned_cast(_tSrc&& v) ynothrow
 */
 //@{
 template<typename _pDst, typename _tSrc>
-inline yimpl(enable_if_t)<and_<is_object_pointer<_pDst>,
+YB_ATTR_always_inline inline yimpl(enable_if_t)<and_<is_object_pointer<_pDst>,
 	is_aligned_storable<_tSrc, remove_pointer_t<_pDst>>>::value, _pDst>
 aligned_store_cast(_tSrc* v) ynothrow
 {
@@ -159,7 +159,7 @@ aligned_store_cast(_tSrc* v) ynothrow
 template<typename _rDst, typename _tSrc, yimpl(typename = ystdex::enable_if_t<
 	and_<is_reference<_rDst>, is_aligned_storable<remove_reference_t<_tSrc>,
 	remove_reference_t<_rDst>>>::value>)>
-inline auto
+YB_ATTR_always_inline inline auto
 aligned_store_cast(_tSrc&& v) ynothrow
 	-> decltype(yforward(reinterpret_cast<_rDst>(v)))
 {
@@ -174,7 +174,7 @@ aligned_store_cast(_tSrc&& v) ynothrow
 */
 //@{
 template<typename _pDst, typename _tSrc>
-inline yimpl(enable_if_t)<and_<is_object_pointer<_pDst>,
+YB_ATTR_always_inline inline yimpl(enable_if_t)<and_<is_object_pointer<_pDst>,
 	is_aligned_replaceable<_tSrc, remove_pointer_t<_pDst>>>::value, _pDst>
 aligned_replace_cast(_tSrc* v) ynothrow
 {
@@ -183,7 +183,7 @@ aligned_replace_cast(_tSrc* v) ynothrow
 template<typename _rDst, typename _tSrc, yimpl(typename = ystdex::enable_if_t<
 	and_<is_reference<_rDst>, is_aligned_replaceable<remove_reference_t<_tSrc>,
 	remove_reference_t<_rDst>>>::value>)>
-inline auto
+YB_ATTR_always_inline inline auto
 aligned_replace_cast(_tSrc&& v) ynothrow
 	-> decltype(yforward(reinterpret_cast<_rDst>(v)))
 {
@@ -199,7 +199,7 @@ aligned_replace_cast(_tSrc&& v) ynothrow
 */
 //@{
 template<typename _pDst, typename _tSrc>
-inline yimpl(enable_if_t)<and_<is_object_pointer<_pDst>,
+YB_ATTR_always_inline inline yimpl(enable_if_t)<and_<is_object_pointer<_pDst>,
 	is_trivially_replaceable<_tSrc, remove_pointer_t<_pDst>>>::value, _pDst>
 replace_cast(_tSrc* v) ynothrow
 {
@@ -208,7 +208,7 @@ replace_cast(_tSrc* v) ynothrow
 template<typename _rDst, typename _tSrc, yimpl(typename = ystdex::enable_if_t<
 	and_<is_reference<_rDst>, is_trivially_replaceable<remove_reference_t<_tSrc>,
 	remove_reference_t<_rDst>>>::value>)>
-inline auto
+YB_ATTR_always_inline inline auto
 replace_cast(_tSrc&& v) ynothrow
 	-> decltype(yforward(reinterpret_cast<_rDst>(v)))
 {
@@ -257,7 +257,7 @@ public:
 	}
 	//@}
 
-	_type&
+	YB_ATTR_nodiscard YB_ATTR_always_inline _type&
 	get() const ynothrow
 	{
 		return alias;
@@ -275,7 +275,7 @@ using pun_ptr = placement_ptr<decay_t<_type>>;
 
 //! \brief 构造避免严格别名分析限制的缓冲独占所有权指针指定的值初始化对象。
 template<typename _type, typename _tObj, typename... _tParams>
-inline pun_ptr<_type>
+YB_ATTR_nodiscard inline pun_ptr<_type>
 make_pun(_tObj& obj, _tParams&&... args)
 {
 	return pun_ptr<_type>(
@@ -287,7 +287,7 @@ make_pun(_tObj& obj, _tParams&&... args)
 \since build 717
 */
 template<typename _type, typename _tObj>
-inline pun_ptr<_type>
+YB_ATTR_nodiscard inline pun_ptr<_type>
 make_pun_default(_tObj& obj)
 {
 	return
@@ -331,12 +331,12 @@ struct standard_layout_storage
 		return *this;
 	}
 
-	YB_PURE yconstfn_relaxed void*
+	YB_ATTR_nodiscard YB_ATTR_always_inline YB_PURE yconstfn_relaxed void*
 	access() ynothrow
 	{
 		return ystdex::addressof(object);
 	}
-	YB_PURE yconstfn const void*
+	YB_ATTR_nodiscard YB_ATTR_always_inline YB_PURE yconstfn const void*
 	access() const ynothrow
 	{
 		return ystdex::addressof(object);
@@ -344,7 +344,7 @@ struct standard_layout_storage
 	//! \warning 应注意避免违反严格别名分析规则。
 	//@{
 	template<typename _type>
-	YB_PURE yconstfn_relaxed _type&
+	YB_ATTR_nodiscard YB_ATTR_always_inline YB_PURE yconstfn_relaxed _type&
 	access() ynothrow
 	{
 		static_assert(is_aligned_storable<standard_layout_storage, _type>(),
@@ -353,7 +353,7 @@ struct standard_layout_storage
 		return *static_cast<_type*>(access());
 	}
 	template<typename _type>
-	YB_PURE yconstfn const _type&
+	YB_ATTR_nodiscard YB_ATTR_always_inline YB_PURE yconstfn const _type&
 	access() const ynothrow
 	{
 		static_assert(is_aligned_storable<standard_layout_storage, _type>(),
@@ -370,8 +370,8 @@ struct standard_layout_storage
 	inline _type*
 	construct(_tParams&&... args)
 	{
-		return ystdex::construct_within<decay_t<_type>>(object,
-			yforward(args)...);
+		return
+			ystdex::construct_within<decay_t<_type>>(object, yforward(args)...);
 	}
 
 	//! \pre 指定类型的对象已通过 construct 或构造模板创建。
@@ -385,7 +385,7 @@ struct standard_layout_storage
 	//! \pre 对象未通过 construct 或构造模板创建。
 	//@{
 	template<typename _type, typename... _tParams>
-	inline pun_ptr<_type>
+	YB_ATTR_nodiscard inline pun_ptr<_type>
 	pun(_tParams&&... args)
 	{
 		return ystdex::make_pun<_type>(object, yforward(args)...);
@@ -393,7 +393,7 @@ struct standard_layout_storage
 
 	//! \since build 717
 	template<typename _type, typename... _tParams>
-	inline pun_ptr<_type>
+	YB_ATTR_nodiscard inline pun_ptr<_type>
 	pun_default()
 	{
 		return ystdex::make_pun_default<_type>(object);
@@ -401,12 +401,12 @@ struct standard_layout_storage
 	//@}
 	//@}
 
-	YB_PURE yconstfn_relaxed byte*
+	YB_ATTR_nodiscard YB_ATTR_always_inline YB_PURE yconstfn_relaxed byte*
 	data() ynothrow
 	{
 		return static_cast<byte*>(access());
 	}
-	YB_PURE yconstfn const byte*
+	YB_ATTR_nodiscard YB_ATTR_always_inline YB_PURE yconstfn const byte*
 	data() const ynothrow
 	{
 		return static_cast<const byte*>(access());

@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r2856
+\version r2868
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2021-02-06 15:21 +0800
+	2021-12-08 12:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,7 +84,10 @@ using use_constfn = yimpl(true_);
 namespace details
 {
 
-//! \since build 640
+/*!
+\ingroup functors
+\since build 640
+*/
 //@{
 template<typename _type = void>
 struct op_idt
@@ -107,7 +110,7 @@ template<class... _types>
 struct ebases : _types...
 {};
 
-template<size_t _vN, class _type, typename _type2, class _tOpt>
+template<size_t, class, typename, class>
 struct bin_ops;
 
 template<class, typename, class, class>
@@ -122,7 +125,7 @@ struct ops_seq<_type, _type2, _tOpt, index_sequence<_vSeq...>>
 
 
 #define YB_Impl_Operators_f(_c, _op, _tRet, _expr, ...) \
-	friend _c YB_ATTR(always_inline) _tRet \
+	friend YB_ATTR_always_inline _c _tRet \
 	operator _op(__VA_ARGS__) ynoexcept(noexcept(_expr)) \
 	{ \
 		return (_expr); \
@@ -165,8 +168,8 @@ struct ops_seq<_type, _type2, _tOpt, index_sequence<_vSeq...>>
 //! \since build 682
 //@{
 #define YB_Impl_Operators_cmp(_n, _op, _expr, _ptp, _ptp2) \
-	YB_Impl_Operators_bin_spec(_n, YB_Impl_Operators_cmpf, _op, _expr, \
-		_ptp, _ptp2)
+	YB_Impl_Operators_bin_spec(_n, YB_Impl_Operators_cmpf, _op, _expr, _ptp, \
+		_ptp2)
 
 // TODO: Add strictly partial order comparison support to reduce duplicate code
 //	between 'less_than_comparable' and 'partially_ordered'.
@@ -301,10 +304,9 @@ YB_Impl_Operators_Compare(partially_ordered, 11 YPP_Comma 12 YPP_Comma 2
 #define YB_Impl_Operators_Left(_id, _name) \
 	YB_Impl_Operators_H2_Alias_de(_name, _t<details::ops_seq<_type, _type2, \
 		_tOpt, details::ops_bin_id_seq<_id, 0 YPP_Comma 1>>>) \
-	YB_Impl_Operators_H2_Alias_de(_name##_left, _t< \
-		details::ops_seq<_type, _type2, _tOpt, cond_t<is_same<_type, _type2>, \
-		details::ops_bin_id_seq<_id>, \
-		details::ops_bin_id_seq<_id, 4 YPP_Comma 5>>>>)
+	YB_Impl_Operators_H2_Alias_de(_name##_left, _t<details::ops_seq<_type, \
+		_type2, _tOpt, cond_t<is_same<_type, _type2>, details::ops_bin_id_seq< \
+		_id>, details::ops_bin_id_seq<_id, 4 YPP_Comma 5>>>>)
 
 YB_Impl_Operators_Commutative(0, addable)
 

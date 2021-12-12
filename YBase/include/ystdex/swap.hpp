@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2020 FrankHB.
+	© 2014-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file swap.hpp
 \ingroup YStandardEx
 \brief 交换操作。
-\version r633
+\version r651
 \author FrankHB <frankhb1989@gmail.com>
 \since build 831
 \par 创建时间:
 	2018-07-12 16:38:36 +0800
 \par 修改时间:
-	2020-06-25 21:33 +0800
+	2021-11-27 20:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,8 @@
 //	is_move_constructible, is_move_assignable, and_, std::move, std::declval,
 //	false_, bool_, is_referenceable, true_, is_class, is_enum, bool_, is_void,
 //	is_nothrow_constructible, is_nothrow_assignable, add_volatile_t,
-//	std::addressof, is_standard_layout, pun_storage_t, aligned_replace_cast;
+//	std::addressof, is_bitwise_swappable, pun_storage_t, aligned_replace_cast;
+#include <cstring> // for std::memcpy;
 
 #if __cpp_lib_is_swappable >= 201603L
 #	define YB_Impl_Swap_Traits true
@@ -436,18 +437,26 @@ using swap_volatile_noexcept = swap_volatile_avail<_type, _type2>;
 
 /*!
 \brief 交换相同标准布局类型可修改左值的存储。
+\pre 对象类型满足 is_bitwise_swappable 。
+\pre 参数之间的对象存储不重叠。
 \since build 620
 */
 template<typename _type>
 void
 swap_underlying(_type& x, _type& y) ynothrow
 {
-	static_assert(is_standard_layout<_type>(),
+	static_assert(is_bitwise_swappable<_type>(),
 		"Invalid underlying type found.");
 	using utype = pun_storage_t<_type>;
+	utype t;
 
-	ystdex_swap::swap(ystdex::aligned_replace_cast<utype&>(x),
-		ystdex::aligned_replace_cast<utype&>(y));
+	// NOTE: This does not detect the availability %std::bit_cast and similar
+	//	builtins, since %is_bitwise_swappable is required. Also note there is no
+	//	%yconstfn_relaxed here, since it is not intended to be used during
+	//	translation.
+	std::memcpy(std::addressof(t), std::addressof(x), sizeof(_type));
+	std::memcpy(std::addressof(x), std::addressof(y), sizeof(_type));
+	std::memcpy(std::addressof(y), std::addressof(t), sizeof(_type));
 }
 
 /*!
@@ -508,9 +517,12 @@ create_and_swap(_type& obj, _tParams&&... args)
 
 创建第二参数的对象副本，并和第一参数指定的对象交换。
 可通过交换操作实现复制赋值操作符。
+这可简化复制赋值操作符的实现。
+调用无异常抛出保证的转移赋值操作符可具有更简化的复制赋值操作符实现，
+	但依赖此种转移赋值操作符的存在。使用本函数模板则仅依赖无异常抛出的交换操作。
 */
 template<typename _type, typename _type2 = _type>
-YB_ATTR(always_inline) inline _type&
+YB_ATTR_always_inline inline _type&
 copy_and_swap(_type& obj, const _type2& new_val)
 {
 	return ystdex::create_and_swap(obj, new_val);

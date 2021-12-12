@@ -65,6 +65,7 @@ $YSLib_BaseDir/YFramework/Win32/source/YCLib/Consoles.cpp \
 $YSLib_BaseDir/YFramework/Win32/source/YCLib/NLS.cpp \
 $YSLib_BaseDir/YFramework/Win32/source/YCLib/Registry.cpp"
 fi
+LIBS="$LIBS -lquadmath"
 
 export CXXFLAGS
 export LDFLAGS

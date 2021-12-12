@@ -11,13 +11,13 @@
 /*!	\file NPLAMath.h
 \ingroup NPL
 \brief NPLA 数学功能。
-\version r11221
+\version r11306
 \author FrankHB <frankhb1989@gmail.com>
 \since build 930
 \par 创建时间:
 	2021-11-03 12:49:54 +0800
 \par 修改时间:
-	2021-11-11 12:02 +0800
+	2021-12-11 23:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA // for NPL, any_ops, ValueObject, ResolvedArg,
-//	string_view, TypedValueAccessor;
+//	string_view, std::uint_fast8_t, TypedValueAccessor;
+#include <limits> // for std::numeric_limits;
 
 namespace NPL
 {
@@ -383,6 +384,96 @@ Abs(ResolvedArg<>&&);
 */
 void
 ReadDecimal(ValueObject&, string_view, string_view::const_iterator);
+//@}
+
+
+//! \since build 932
+//@{
+/*!
+\brief 保留给默认数值输出使用的缓冲区字节大小。
+
+缓冲区能保存 NPLAMath 数值字面量，包括浮点字面量的默认输出表示。
+假定支持的浮点数使用科学记数法时，指数不超过 5 位十进制数字。
+*/
+yconstexpr const size_t StringBufferSize(yimpl(64));
+
+static_assert((std::numeric_limits<long double>::max_digits10 + 5 + 3
+	<= StringBufferSize), "The buffer size is not fit for the implementation");
+
+/*!
+\brief 写浮点数据到字符串缓冲区。
+\pre 缓冲区应至少具有连续可读写的 StringBufferSize 字节。
+\warning 当前不支持对不满足特定要求的 ISO C++ 实现，且不排除这些实现上的未定义行为。
+\return 输出结束的指针。
+
+输出和浮点数内部类型相关的经舍入的浮点数。
+结果经有限次输出作为 NPLA 不精确数值字面量被解析再输出的往返转换后不损失精度；
+	其中，零值和特殊值的任意一次转换是精确的。具体舍入方法和精度未指定。
+对浮点数的转换结果的输出格式满足：
+不依赖区域，没有分节符，小数点使用 . ；
+除非使用科学记数法，对整数值总是保证结尾 .0 ；
+以上情形外不保留小数点后结尾的连续的 0 ；
+在可能移除结尾的 0 前，舍入时若值具有足够的小数点后的位数，保留至少 6 个小数位。
+对浮点类型 T ，令 L = std::numeric_limits<T> ，则当前实现中，在移除结尾 0 前：
+当且仅当值小于 1e-5 或具有超过 L::digits10 + 1 个十进制数字时，启用科学记数法；
+使用小数点后的位数进行四舍五入，保留小数点后 L::digits10 个十进制数字。
+浮点数转换时的内部表示使用足以满足上述要求的算法，
+	但不保证浮点数二进制表示支持的完全精度。
+对符合 IEC 60559 二进制格式的浮点数，补充适当的查找表可保证精确和高效实现：
+	使用几个机器字位宽的整数乘法的开销保证满足完全精度。
+但注意假定格式削弱 C++ 源代码意义上的可移植性，且完全精度没有在此被要求；
+	因此，当前实现没有启用查找表。
+当前实现的内部的二进制中间表示精度限于 long double 类型的有效数字位数；
+	这通常对 float 以上不保证；
+	但是，使用 IEC 60559 的格式仍可能相对其它格式更高效。
+参数分别指定：
+字符缓冲区的起始指针、浮点数据的值、浮点字母、数值在小数点后的保留的精度、
+	使用科学记数法表示的小数点位置的下限（不含）和上限（含）的绝对值。
+小数点位置由小数表示中消除结尾的 0 后，在小数点左侧存在的有效数字的个数定义：
+	当小数点左侧存在非零数字，则小数点位置是正数；
+	当小数点左侧不存在非零数字，则小数点位置是右侧补零数值的相反数。
+当前实现假定：
+	使用和 IEC 60559 兼容的浮点数据移码编码的格式；
+	指数不超过区间 [-58810, 40704) 。
+这较 ISO C++ 严格，但已支持一些不兼容 ISO 60559 的格式（虽然当前平台配置没有实例）：
+	复用现有格式的 double-double 格式，如 GCC __ibm128 兼容的 long double ；
+	有效数字中可能不具有参与数值表示隐含位(hidden bit) 的格式；
+	符号位、指数和有效数字的表示不按 IEC 60559 顺序或不连续存储的格式。
+指数的限制不支持 IEC 60559 binary256 ，但这仅被作为交换格式；
+	也没有已知的 C++ 实现直接支持。
+其它一些对浮点类型格式或者其它相关语言特性的限制可能直接不被构建支持。
+对 ISO C++ 的其它实现限制和相关行为的约定参见 Documentation::YFramework 。
+*/
+//@{
+template<typename _type>
+YB_ATTR_returns_nonnull YB_NONNULL(1) char*
+WriteFPString(char*, _type, char = 'e', size_t = std::numeric_limits<
+	_type>::digits10, std::uint_fast8_t = 6, std::uint_fast8_t
+	= std::numeric_limits<_type>::digits10) ynothrowv;
+extern template YF_API YB_ATTR_returns_nonnull YB_NONNULL(1) char*
+WriteFPString(char*, float, char, size_t, std::uint_fast8_t, std::uint_fast8_t)
+	ynothrowv;
+extern template YF_API YB_ATTR_returns_nonnull YB_NONNULL(1) char*
+WriteFPString(char*, double, char, size_t, std::uint_fast8_t, std::uint_fast8_t)
+	ynothrowv;
+extern template YF_API YB_ATTR_returns_nonnull YB_NONNULL(1) char*
+WriteFPString(char*, long double, char, size_t, std::uint_fast8_t,
+	std::uint_fast8_t) ynothrowv;
+//@}
+
+/*!
+\brief 转换浮点数为 NPLA flonum 外部格式的字符串。
+\note 缓冲区使用第二参数指定的分配器创建。
+\return 使用 WriteFPString 转换数据，具有第二参数指定的分配器的转换结果。
+*/
+//@{
+YB_ATTR_nodiscard YF_API YB_PURE string
+FPToString(float, string::allocator_type = {});
+YB_ATTR_nodiscard YF_API YB_PURE string
+FPToString(double, string::allocator_type = {});
+YB_ATTR_nodiscard YF_API YB_PURE string
+FPToString(long double, string::allocator_type = {});
+//@}
 //@}
 
 } // inline namespace Math;

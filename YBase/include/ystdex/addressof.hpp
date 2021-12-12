@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016, 2018-2019 FrankHB.
+	© 2015-2016, 2018-2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file addressof.hpp
 \ingroup YStandardEx
 \brief 一元操作符 & 和取指针的相关接口。
-\version r228
+\version r232
 \author FrankHB <frankhb1989@gmail.com>
 \since build 660
 \par 创建时间:
 	2015-12-17 10:07:56 +0800
 \par 修改时间:
-	2019-08-10 14:32 +0800
+	2021-11-20 23:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,7 +117,7 @@ using std::addressof;
 	|| YB_IMPL_CLANGPP >= 30300
 //! \since build 833
 template<typename _type>
-YB_ATTR_nodiscard YB_PURE yconstfn _type*
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_PURE yconstfn _type*
 addressof(_type& r) ynothrow
 {
 	return __builtin_addressof(r);
@@ -126,7 +126,7 @@ addressof(_type& r) ynothrow
 //! \since build 833
 //@{
 template<typename _type>
-YB_ATTR_nodiscard YB_PURE yconstfn
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_PURE yconstfn
 	yimpl(enable_if_t)<has_no_overloaded_addressof<_type>::value, _type*>
 addressof(_type& r) ynothrow
 {
@@ -138,7 +138,7 @@ addressof(_type& r) ynothrow
 */
 template<typename _type,
 	yimpl(typename = enable_if_t<!has_no_overloaded_addressof<_type>::value>)>
-YB_ATTR_nodiscard YB_PURE inline _type*
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_PURE inline _type*
 addressof(_type& r) ynothrow
 {
 	return std::addressof(r);

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2017, 2019 FrankHB.
+	© 2009-2017, 2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file StaticMapping.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2620
+\version r2652
 \author FrankHB <frankhb1989@gmail.com>
 \since build 587
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2019-09-12 05:36 +0800
+	2021-11-22 22:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -197,6 +197,16 @@ struct GUCSMapper<CharSet::UTF_8> : UCSMapperBase
 	using UCSMapperBase::EncodeChar;
 
 private:
+	//! \since build 932
+	//@{
+	// XXX: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90966.
+#if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 90000
+	using DecodeTableState = unsigned char;
+#else
+	using DecodeTableState = std::uint_fast8_t;
+#endif
+	//@}
+
 	template<typename _tObj, typename _tSeq>
 	static void
 	Assign1(_tObj& uc, const _tSeq& seq) ynothrow
@@ -323,19 +333,7 @@ public:
 			return ConversionResult::Invalid;
 		}
 
-		// XXX: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90966.
-#if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 90000
-		using state_t = unsigned;
-#else
-		using state_t = std::uint_fast8_t;
-#endif
-		static yconstexpr const state_t t_data_1[]{
-			8, 8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-			2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-			10, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 3, 3,
-			11, 6, 6, 6, 5, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
-		};
-		static yconstexpr const state_t t_data_2[]{1, 2, 4, 4};
+		static yconstexpr const DecodeTableState t_state_line[]{1, 2, 4, 4};
 		auto& code(st.Value.UCS4);
 #define CHRLib_Impl_UTF8_Decode_Fill \
 	if(YB_UNLIKELY(!FillByte(i, b))) \
@@ -351,7 +349,7 @@ public:
 		bool res(true);
 		auto trans([&](unsigned mask) ynothrow{
 			res &= (b & byte(0xC0U)) == byte(0x80U)
-				&& (t_data_2[size_t(b) >> 4U & 0x3U] & mask) != 0;
+				&& (t_state_line[size_t(b) >> 4U & 0x3U] & mask) != 0;
 		});
 		auto& type(st.Index);
 
@@ -359,7 +357,7 @@ public:
 		{
 			if((b & byte(0xC0U)) != byte(0))
 			{
-				type = t_data_1[size_t(b) & 0x3FU];
+				type = FetchStateTableEntry(size_t(b) & 0x3FU);
 				code = char32_t((byte(0xFFU) >> type) & b);
 			}
 			else
@@ -436,6 +434,23 @@ public:
 		++d;
 		EncodeChar(d, octet(0x80U | (c & 0x3FU)));
 		return l;
+	}
+
+private:
+	//! \since build 932
+	YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS static yconstfn_relaxed
+		DecodeTableState
+	FetchStateTableEntry(size_t idx)
+	{
+		// XXX: Keep this here to avoid ODR-issues.
+		yalignas(64) yconstexpr const DecodeTableState states[]{
+			8, 8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+			2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+			10, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 3, 3,
+			11, 6, 6, 6, 5, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
+		};
+
+		return states[idx];
 	}
 };
 

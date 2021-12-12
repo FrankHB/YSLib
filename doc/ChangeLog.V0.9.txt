@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r6281
+\version r6494
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-11-19 05:50 +0800
+	2021-12-12 10:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,200 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ DLDI "indented 'YB_Diag_*' macro invocation guarded in conditional \
+		inclusion" @ 'YB_IMPL_MSCPP' @ %YBase.YDefinition,
+	/ %YBase $=
+	(
+		/ %YDefinition $=
+		(
+			+ "macro %YB_ATTR_always_inline" @ %YBase.YDefinition,
+			/ DLB "conditions of defining macros 'YB_Diag_*'" $=
+			(
+				/ "condition implemented by '#pragma clang'"
+					-> 'YB_IMPL_CLANGPP >= 20600',
+				/ "condition implemented by '#pragma GCC'"
+					-> 'YB_IMPL_GNUCPP >= 40600' ~ 'YB_IMPL_GNUCPP >= 40200'
+					// It should be usable since G++ 4.2, albeit somewhat \
+						buggy, at least on platform %DS for the implementation \
+						of %ystdex::has_common_nonempty_virtual_base in \
+						<ystdex/cast.hpp> since b178 (moved away and renamed \
+						%have_common_nonempty_virtual_base later) at a decade \
+						ago.
+			),
+			/ DLB "condition of defining macro %YB_API" @ 'YB_BUILD_DLL'
+				^ 'YB_IMPL_CLANGPP >= 20800' ~ 'YB_IMPL_CLANGPP',
+			* "ineffective suppression of warning [-Wpointer-bool-conversion] \
+				for Clang++" @ "macro %YB_ASSUME" $since b922
+				// The condition would be never true because the Clang++ has \
+					been already handled previously. As a result, uses like \
+					%yconstraint with 'defined(NDEBUG)' may still incur the \
+					warnings.
+		),
+		/ %YStandardEx $=
+		(
+			/ DLDI @ "class template %fixed_point" @ 'YB_IMPL_MSCPP >= 1200'
+				@ %Rational ^ "%YB_Diag_Ignore" $=
+			(
+				/ "disabled warning C4146 around the unary - operation"
+					@ "unary %operator-",
+					// To eliminate Microsoft VC++ warning: C4146. A quick \
+						search show the warning is effective at least in \
+						Microsoft VC++ 6.0: https://forums.codeguru.com/showthread.php?333202, \
+						but there are no clues showing the precise version \
+						introducing the warning (plus 1200 is the minimal \
+						value of the officially documented %_MSC_VER currently \
+						found).
+				/ "disabled warning C4146 around the unary - operation"
+					@ "unary %operator-"
+					// To eliminate Microsoft VC++ warning: C4554. This is \
+						known annoying for vairous versions, including (at \
+						least) VC++ 6 and VS 2015.
+			),
+			/ @ 'YB_Impl_has_builtin_clz' @ "function %floor_lb"
+				%CStandardInteger $=
+			(
+				* "wrong byte width of %std::uintmax_t used \
+					instead of the corret bit size" $since b842,
+					// This would be usually ill-formed unless \
+						'sizeof(std::uintmax_t)' is 32 or 64, which were \
+						the only specialized widths.
+				/ DLI "optimized 64-bit integer case with a different lookup \
+					table and the corresponding de Brujin sequence",
+				/ DLI "optimized the table" ^ ("%std::uint_fast8_t", 'yalignas')
+					~ "%size_t"
+			),
+			+ $dev $lib ($dep_from 'YB_ATTR_always_inline' @ %YDefinition)
+				@ ("all function templates %addressof not defined as deleted"
+				@ %AddressOf, ("function template %is_aligned_ptr")
+				@ %Placement, ("all non-member function templates",
+				"member functions or function templates named ('get', \
+				'access', 'data')") @ %TypePun),
+				// There are no need to blindly apply this attribute on most \
+					function templates in %Placement and similar ones in \
+					%TypePun which may likely have degraded perforamnce with \
+					the attribute.
+			/ %Placement $dep_to "removal of unreliable inlining attribute" $=
+			(
+				- 'YB_ATTR(always_inline)' @ "function template %destruct_in",
+					// Ditto.
+				+ "workaround to avoid removing the inlineing attribute"
+					@ '(YB_IMPL_GNUCPP && !YB_IMPL_CLANGPP) && \
+					defined(NDEBUG) && __OPTIMIZE__'
+					@ "function template %construct_within"
+					// However, it is buggy that removal the attribute on \
+						%construct_within would cause x86_64 Linux G++ 11.1.0 \
+						in release modes generating wrong code that crashes. It\
+						also causes wrong i686 MinGW32 G++ to generate wrong \
+						code, leading SHBuild crash in interpreting NPLA1 code \
+						as 'for-each-ltr l' when 'l' is a list has more than 1 \
+						elements, thus any NPLA1 building script would fail.
+			),
+			+ $dev $lib 'YB_ATTR_nodiscard' @ "function templates %(make_pun, \
+				make_pun_default, standard_layout_storage::(access, data, pun, \
+				pun_default))" @ %TypePun,
+			/ @ "function template %swap_underlying" @ %Swap $=
+			(
+				// See $2021-10 @ %Documentation::Workflow.
+				/ "type precondition" ^ "%is_bitwise_swappable"
+					~ "%is_standard_layout";
+				* ("missing guarantees of the behavior of %swap",
+					"possible undefined behavior for strict aliasing")
+					$orig (@ %Utilities $since b620)
+					$= (/ $impl ^ "%std::memcpy"
+						~ "%ystdex::aligned_replace_cast")
+			),
+			/ DLDI "internal order of attributes with 'inline' or 'yconstfn'"
+				@ %Operators
+		)
+	),
+	/ DLDI "all 'YB_ATTR(always_inline)" -> (($dep_from 'YB_ATTR_always_inline'
+		@ %YBase.YDefinition) $effective @ %(YBase.(YStandardEx.Swap,
+		CStandardInteger, Operators, Placement), YFramework.(YSLib.Core.YObject,
+		NPL.(SContext, NPLA1, NPLA1Internals, NPLA1Forms))),
+		$comp $dep_from "removal of unreliable inlining attribute"),
+	* DD "missing '<eformal>'" @ "operatives ('$wvau', '$wvau%', '$wvau/e', \
+		'$wvau/e%')" @ %Documentation.NPL $since b921,
+	/ @ %Tools.Scripts $=
+	(
+		+ "library option '-lquadmath'" @ "linker commands"
+			$effective @ ("%SHBuild-bootstrap.sh", "%SHBuild-BuildApp.txt",
+			"%SHBuild-YSLib-build.txt")
+			// Clang distributions still does not has the header, but the \
+				option is safe to be ignored.
+		- '-ffast-math' @ "default value" @ "variable %C_CXXFLAGS_ARM9"
+			@ "%Toolchain.DS.mk"
+	),
+	/ %YFramework $=
+	(
+		/ DLI "function %Create" @ "class template %PointerHolder"
+			@ %YSLib.Core.YObject ^ 'yconstexpr_if',
+		/ YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 90000
+		/ DLI @ "function template %Decode" @ "class template specialization \
+			%GUCSMapper<CharSet::UTF_8>" @ %CHRLib.StaticMapping $=
+		(
+			(
+			/ "state table entry type" ^ 'unsigned char' ~ "%unsigned"
+				@ 'YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 90000';
+			/ "optimized the main state lookup table" ^ 'yalignas(64)'
+				// Similar to the optimization for lookup tables in \
+					%YBase.YStandardEx.CStandardInteger.
+			),
+			/ "main state table lookup" ^ "static %yconstfn_relaxed function"
+				// This avoids duplication in the instances of %Decode for \
+					different template arguments. The access in the function \
+					does not fit ISO C++'s requirement on 'constexpr', though.
+		),
+		/ %NPL $=
+		(
+			/ %NPLAMath $=
+			(
+				/ @ "function %ReadDecimal" $=
+				(
+					+ "support of more exponent letters" @ "exponents syntaxes \
+						on inexact numbers",
+						// As [RnRS].
+					/ DLI "simplified scale calculation when exponent exists",
+					* "underflow by power value" $since b931
+						$= (/ $impl ^ "%std::ldexp")
+						// For example, 1e-323 is correct for a 'double' value \
+							encoded in IEEE-754 binary64 format, but 1.1e-323 \
+							is wrongly converted to 0.0 because 1e-324 is too \
+							small to multiply with 11.
+				),
+				/ DLDI "disabled warning C4146 around the internal unary \
+					- operation" @ 'YB_IMPL_MSCPP >= 1200'
+					@ "functions %(Abs, Divides)" ^ "%YB_Diag_Ignore",
+					// To eliminate Microsoft VC++ warning: C4146.
+				+ DLDI 'ynothrow' @ "internal implementation"
+					@ ("function %IsIntegerValue", "dynamic number casts)",
+				- DLI "internal 'ynothrowv" @ "dispatching"
+					// This is not a bug now since all the operations do not \
+						throw.
+			),
+			* $re_add(b844) "invalid 'YB_API YB_ATTR_nodiscard'" $effective
+				@ ("function %Ensigil" $since b920,
+				"function %CheckEnvironmentFormal" $since b917)
+				$= (/ $impl 'YB_API YB_ATTR_nodiscard'
+					-> 'YB_ATTR_nodiscard YB_API'),
+				// To eliminate Clang++ error: 'nodiscard' attribute cannot be \
+					applied to types.
+			/ DLI "optimized function %IsIntegerValue" ^ "%std::nearbyint"
+				~ "%std::floor",
+			(
+			+ "%yconstexpr ojbect %StringBufferSize";
+			+ $dev "static assertion to constraint %StringBufferSize",
+			+ "function template %WriteFPString and 3 extern specializations"
+				$dep_from %Tools.Scripts;
+				// If %NPL_Impl_NPLAMath_UseQuadMath is not set, it detects \
+					<quadmath.h>, which is avaiable with GCC.
+			+ "3 function %FPToString"
+			)
+		)
+	)
+),
+
+b931
 (
 	/ $re_ex(b773) $build "updated to Microsoft VC++ 2022" ~ "Microsoft VC++ \
 		2019" @ "Microsoft VC++ projects" $effective @ %(YBase, YFramework,
@@ -126,7 +320,9 @@ $now
 					wrapped size as the line height" $since b292
 			)
 		)
-	)
+	),
+	- $dev "unused 'data' files" @ "filter" @ "platform %Android"
+		@ "Microsoft VC++ project"
 ),
 
 b930
@@ -349,6 +545,10 @@ b929
 		(
 			/ "made '#ignore' a value token instead of a symbol" $=
 			(
+				// This is more like [RnRK] now. The change allows '#ignore' \
+					used as an escaped identifier of a variable name \
+					accessible by binding constructs which have to distinguish \
+					the special literal '#ignore' and the value name.
 				/ %NPLA1 $=
 				(
 					+ "%Ignore" @ "enum %ValueToken";
@@ -1377,8 +1577,8 @@ b925
 				/ "applicative %force" @ "function %LoadModule_std_promises" $=
 				(
 					/ DLI "simplified " ^ '$lambda%' ~ '$let%',
-					* "resolved referencing shared state of rvalues \
-						unexpectedly moved" $since b872
+					* "unexpectedly moved resolved referencing shared state of \
+						rvalues" $since b872
 				),
 				/ @ "alternative derivations"
 					@ "function %LoadModule_std_modules" $=
@@ -1402,16 +1602,19 @@ b925
 						lists" @ "alternative derivation"
 						@ "applicative %first" $since b859
 						$= (/ $impl ^ 'idv' ~ 'id'),
-					* "unique reference tag unexpetedly changed in the results \
-						for xvalue or reference to temporary elements for \
-						lvalue lists" @ "alternative derivations"
-						@ "applicatives (%first, 'first&')" $since b859,
 					/ @ "alternative derivation" @ "applicative %collapse" $=
 					(
 						/ DLDI "simplified" !^ '$resolve-identifier',
 						* "unique tag not correctly preserved for unique \
 							references" $since b869
+							$dep_to "collapse result fix"
 					),
+					* "unique reference tag unexpetedly changed in the results \
+						for xvalue or reference to temporary elements of \
+						lvalue lists" @ "alternative derivations"
+						@ "applicatives (%first, 'first&')" $since b859
+						$= (/ $impl ^ "%collapse"
+							$dep_from "collapse result fix"),
 					* $comp "wrong temporary tag preserved" @ ("native \
 						implementations" @ ("applicative %collapse" $since b869,
 						"applicative 'assign%!'" $orig (@ "applicative '<-%'"
@@ -1419,7 +1622,7 @@ b925
 						@ "applicative 'assign!'" $since b870,
 						"applicative 'assign%!" $since b858) $dep_from
 						("%NPL::MoveCollapsed" @ %NPLA),
-					* "possible wrong tempoarary preseved" @ ($comp
+					* "possible wrong temporary preseved" @ ($comp
 						"applicative %list" $since b857
 						$dep_from ("%ReduceBranchToListValue" @ %NPLA),
 						("operative '$move-resolved!" ^ $impl $dep_from
@@ -4629,7 +4832,7 @@ b905
 					WCSToUTF8)"
 				(
 					+ "overloads with allocator parameters";
-					/ DLI "inlined remained overloads"
+					/ DLI $src "inlined remaining overloads"
 				)
 			)
 		),

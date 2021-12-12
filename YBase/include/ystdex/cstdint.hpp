@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013, 2015-2016, 2018-2020 FrankHB.
+	© 2012-2013, 2015-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型和相关扩展操作。
-\version r651
+\version r685
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2020-03-12 17:44 +0800
+	2021-12-08 19:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,10 @@
 #ifndef YB_INC_ystdex_cstdint_hpp_
 #define YB_INC_ystdex_cstdint_hpp_ 1
 
-#include "iterator_op.hpp" // for CHAR_BIT, size_t_, make_signed, make_unsigned,
-//	size_t, std::int64_t, std::uint64_t, is_signed, _t, common_type,
-//	cond_t, and_, is_unsigned, bool_, yconstraint, YB_VerifyIterator,
-//	ystdex::make_reverse_iterator;
+#include "iterator_op.hpp" // for <cstdint>, CHAR_BIT, size_t_, make_signed,
+//	make_unsigned, size_t, std::uint_fast8_t, std::int64_t, std::uint64_t,
+//	is_signed, _t, common_type, cond_t, and_, is_unsigned, bool_, yconstraint,
+//	YB_VerifyIterator, ystdex::make_reverse_iterator;
 #include <limits>
 #include <numeric> // for std::accumulate;
 
@@ -287,13 +287,13 @@ namespace details
 {
 
 //! \since build 849
-YB_ATTR_nodiscard YB_ATTR(always_inline) YB_STATELESS inline size_t
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline size_t
 floor_lb_shift(size_t n, true_) ynothrow
 {
 	return n >> 1;
 }
 //! \since build 849
-YB_ATTR_nodiscard YB_ATTR(always_inline) YB_STATELESS inline size_t
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline size_t
 floor_lb_shift(size_t n, false_) ynothrow
 {
 	return (n >> 1) + (n & 1 & size_t(n != 1));
@@ -320,14 +320,18 @@ floor_lb_w(std::uintmax_t n, size_t_<_vN>) ynothrow
 	}
 	return res;
 }
-// NOTE: See http://stackoverflow.com/questions/11376288/fast-computing-of-log2-for-64-bit-integers.
 //! \pre <tt>n != 0</tt> 。
 YB_ATTR_nodiscard YB_STATELESS inline size_t
 floor_lb_w(std::uint32_t n, size_t_<32>) ynothrow
 {
-	static yconstexpr const size_t deBruijn_bit_pos[32]{
+	// NOTE: See https://stackoverflow.com/a/11398748.
+	// NOTE: The alignment is enough and fit for most modern machines. Note
+	//	%std::hardware_destructive_interference_size is not relied on, and it
+	//	is less important for smaller arrays already aligned as the size.
+	yalignas(32) static yconstexpr const std::uint_fast8_t deBruijn_bit_pos[32]{
 		0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30,
-		8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31};
+		8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31
+	};
 
 	n |= n >> 1;
 	n |= n >> 2;
@@ -340,15 +344,14 @@ floor_lb_w(std::uint32_t n, size_t_<32>) ynothrow
 YB_ATTR_nodiscard YB_STATELESS inline size_t
 floor_lb_w(std::uint64_t n, size_t_<64>) ynothrow
 {
-	static yconstexpr const size_t deBruijn_bit_pos[64]{
-		63,  0, 58,  1, 59, 47, 53,  2,
-		60, 39, 48, 27, 54, 33, 42,  3,
-		61, 51, 37, 40, 49, 18, 28, 20,
-		55, 30, 34, 11, 43, 14, 22,  4,
-		62, 57, 46, 52, 38, 26, 32, 41,
-		50, 36, 17, 19, 29, 10, 13, 21,
-		56, 45, 25, 31, 35, 16,  9, 12,
-		44, 24, 15,  8, 23,  7,  6,  5};
+	// NOTE: See https://stackoverflow.com/a/23000588.
+	// NOTE: Ditto. See the 32-bit implementation above.
+	yalignas(64) static yconstexpr const std::uint_fast8_t deBruijn_bit_pos[64]{
+        0,  58,  1, 59, 47, 53,  2, 60, 39, 48, 27, 54, 33, 42,  3, 61,
+        51, 37, 40, 49, 18, 28, 20, 55, 30, 34, 11, 43, 14, 22,  4, 62,
+        57, 46, 52, 38, 26, 32, 41, 50, 36, 17, 19, 29, 10, 13, 21, 56,
+        45, 25, 31, 35, 16,  9, 12, 44, 24, 15,  8, 23,  7,  6,  5, 63
+	};
 
     n |= n >> 1;
     n |= n >> 2;
@@ -356,8 +359,7 @@ floor_lb_w(std::uint64_t n, size_t_<64>) ynothrow
     n |= n >> 8;
     n |= n >> 16;
     n |= n >> 32;
-	return deBruijn_bit_pos[std::uint64_t((n - (n >> 1))
-		* 0x07EDD5E59A4E28C2ULL) >> 58];
+	return deBruijn_bit_pos[std::uint64_t(n * 0x03F6EAF2CD271461ULL) >> 58];
 }
 
 #if YB_IMPL_GNUCPP >= 30400 || (__has_builtin(__builtin_clz) \
@@ -381,7 +383,7 @@ template<>
 struct builtin_clz_dispatch<unsigned long long>
 {
 	//! \pre <tt>n != 0</tt> 。
-	YB_ATTR_nodiscard YB_ATTR(always_inline) YB_STATELESS static inline size_t
+	YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS static inline size_t
 	call(unsigned long long n) ynothrow
 	{
 		yconstraint(n != 0);
@@ -393,7 +395,7 @@ template<>
 struct builtin_clz_dispatch<unsigned long>
 {
 	//! \pre <tt>n != 0</tt> 。
-	YB_ATTR_nodiscard YB_ATTR(always_inline) YB_STATELESS static inline size_t
+	YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS static inline size_t
 	call(unsigned long n) ynothrow
 	{
 		yconstraint(n != 0);
@@ -405,7 +407,7 @@ template<>
 struct builtin_clz_dispatch<unsigned>
 {
 	//! \pre <tt>n != 0</tt> 。
-	YB_ATTR_nodiscard YB_ATTR(always_inline) static inline size_t
+	YB_ATTR_nodiscard YB_ATTR_always_inline static inline size_t
 	call(unsigned n) ynothrow
 	{
 		yconstraint(n != 0);
@@ -422,7 +424,7 @@ floor_lb(std::uintmax_t n) ynothrow
 	return sizeof(n) * CHAR_BIT - 1
 		- builtin_clz_dispatch<std::uintmax_t>::call(n);
 #else
-	return floor_lb_w(n, size_t_<sizeof(n * CHAR_BIT)>());
+	return floor_lb_w(n, size_t_<sizeof(n) * CHAR_BIT>());
 	// NOTE: Intrinsics provided by implementation is not allowed in YStandard
 	//	yet. Hopefully this can be recognized as a common pattern and optimized.
 	// TODO: Detect intrinsics without machine-dependent macros for Microsoft
@@ -539,8 +541,8 @@ read_uint_le(const byte* buf) ynothrowv
 */
 template<size_t _vWidth>
 YB_NONNULL(1) inline void
-write_uint_be(byte* buf,
-	typename make_width_int<_vWidth>::unsigned_type val) ynothrowv
+write_uint_be(byte* buf, typename make_width_int<_vWidth>::unsigned_type val)
+	ynothrowv
 {
 	yconstraint(buf);
 	ystdex::unpack_uint<_vWidth>(val, buf);
@@ -549,8 +551,8 @@ write_uint_be(byte* buf,
 //! \brief 向字节缓冲区写入指定宽的小端序无符号整数。
 template<size_t _vWidth>
 YB_NONNULL(1) inline void
-write_uint_le(byte* buf,
-	typename make_width_int<_vWidth>::unsigned_type val) ynothrowv
+write_uint_le(byte* buf, typename make_width_int<_vWidth>::unsigned_type val)
+	ynothrowv
 {
 	yconstraint(buf);
 	ystdex::unpack_uint<_vWidth>(val, ystdex::make_reverse_iterator(buf

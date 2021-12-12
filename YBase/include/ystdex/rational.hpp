@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2214
+\version r2263
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2021-09-22 22:58 +0805
+	2021-12-12 02:09 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "cstdint.hpp" // for operators, true_, false_, make_width_int,
 //	std::common_type, common_type_t, std::numeric_limits;
-#include <libdefect/cmath.h> // for std::llround;
+#include <libdefect/cmath.h> // for std::fpclassify, FP_ZERO, std::llround;
 #include "placement.hpp" // for is_bitwise_swappable;
 #include <functional> // for std::hash;
 
@@ -296,7 +296,22 @@ public:
 	{
 		fixed_point result;
 
+#if YB_IMPL_MSCPP >= 1200
+	YB_Diag_Push
+	YB_Diag_Ignore(4146)
+	// NOTE: See https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-2-c4146.
+	// NOTE: The operation is known implemented intentionally by the underlying
+	//	unary - operation exactly. The warning is useless as it is not the case
+	//	of misusing a '-' before an integer literal, like shown in
+	//	https://devblogs.microsoft.com/oldnewthing/20210518-00/?p=105225. The
+	//	the warning is disabled explicitly instead of the workaround like
+	//	'(0 - value)' for this exact reason and showing it is irrelevant to the
+	//	representation of the %value.
+#endif
 		result.value = -value;
+#if YB_IMPL_MSCPP >= 1200
+	YB_Diag_Pop
+#endif
 		return result;
 	}
 
@@ -443,8 +458,7 @@ private:
 	static yconstfn base_type
 	mul(base_type x, base_type y, true_) ynothrowv
 	{
-		return mul_signed<_vShiftBits>(
-			_t<make_widen_int<base_type>>(x * y));
+		return mul_signed<_vShiftBits>(_t<make_widen_int<base_type>>(x * y));
 	}
 	//! \since build 729
 	template<size_t _vShiftBits>
@@ -454,8 +468,22 @@ private:
 		// NOTE: Only fit for unsigned type, due to there exists
 		//	implementation-defined behavior in conversion and right shifting on
 		//	operands of signed types.
-		return base_type((_t<make_widen_int<base_type>>(x) * y)
-			>> _vShiftBits);
+#if YB_IMPL_MSCPP >= 1200
+	YB_Diag_Push
+	YB_Diag_Ignore(4554)
+	// NOTE: See https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-3-c4554.
+	// NOTE: This warning seems buggy because there is no real place for
+	//	parentheses, although '(_vShiftBits)' will make it disappeared. Changing
+	//	the type of %_vShiftBits to any type other than 'unsigned' (or 'unsigned
+	//	int') or cast the '_vShiftBits' operand to any such type also makes it
+	//	disappeared, showing there is something peculiarly wrong in the
+	//	compiler. Just keep the note here to identify the problem of the
+	//	implementation, not the code.
+#endif
+		return base_type((_t<make_widen_int<base_type>>(x) * y) >> _vShiftBits);
+#if YB_IMPL_MSCPP >= 1200
+	YB_Diag_Pop
+#endif
 	}
 
 	//! \since build 650
@@ -695,8 +723,8 @@ struct hash<ystdex::YB_Impl_Rational_fp_T>
 
 /*!
 \brief std::numeric_limits 的 ystdex::fixed_point 特化类型。
-\see LWG 201
-\see http://stackoverflow.com/questions/16122912/is-it-ok-to-specialize-stdnumeric-limitst-for-user-defined-number-like-class
+\see LWG 201 。
+\see https://stackoverflow.com/a/16519653 。
 \since build 260
 */
 template<YB_Impl_Rational_fp_PList>
@@ -795,8 +823,20 @@ public:
 	static yconstexpr const float_round_style round_style = round_toward_zero;
 };
 
-//! \since build 668
+/*!
+\see ISO C++11 [numeric.limits]/2 。
+\see LWG 559 。
+\since build 668
+*/
 //@{
+// XXX: The resolution of LWG 559 added the requirement to the standard
+//	specializations and the synopsis to ensure cv-qualified types, but there are
+//	no rules to require such standard specializations working with
+//	program-defined types. Hence, just provide them here.
+// XXX: The declarations of synopsis was moved to [limits.syn] from
+//	[numerics.limits] in 2019-03 (see
+//	https://github.com/cplusplus/draft/commit/fccd9773064e596c4efa58b408bea0615623ff78),
+//	This should be editorial.
 template<YB_Impl_Rational_fp_PList>
 class numeric_limits<const ystdex::YB_Impl_Rational_fp_T>
 	: yimpl(public) numeric_limits<ystdex::YB_Impl_Rational_fp_T>
