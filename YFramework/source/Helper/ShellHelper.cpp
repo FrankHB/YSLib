@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015, 2019-2020 FrankHB.
+	© 2010-2015, 2019-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r631
+\version r633
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2020-12-10 10:20 +0800
+	2021-12-13 01:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,6 +47,7 @@ DebugTimer::~DebugTimer()
 	const double t((Timers::HighResolutionClock::now() - base_tick).count()
 		/ 1e6);
 
+	yunused(t);
 	YTraceDe(0xF0, "Performed [%s] in: %f milliseconds.", event_info.c_str(),
 		t);
 }

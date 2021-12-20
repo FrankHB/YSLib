@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2182
+\version r2186
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2021-10-11 19:11 +0800
+	2021-12-13 01:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 //	unique_ptr_from, ystdex::ends_with, ystdex::aligned_storage_t,
 //	ystdex::pun_ref, pair;
 #include YFM_YCLib_NativeAPI // for ERROR_SUCCESS,
-//	MAXIMUM_REPARSE_DATA_BUFFER_SIZE, MAX_PATH;
+//	MAXIMUM_REPARSE_DATA_BUFFER_SIZE, INFINITE, MAX_PATH;
 #if !YCL_Win32
 #	error "This file is only for Win32."
 #endif
@@ -168,6 +168,7 @@ public:
 	{ \
 		const auto err_(::GetLastError()); \
 	\
+		yunused(err_); \
 		YTraceDe(_lv, "Failed calling " #_fn " @ %s with error %lu: %s", \
 			_sig, err_, \
 			platform_ex::Win32Exception::FormatMessage(err_).c_str()); \
@@ -209,6 +210,7 @@ public:
 	[&] YB_LAMBDA_ANNOTATE((const char* sig_), , nonnull(2)){ \
 		const auto res_(_fn(__VA_ARGS__)); \
 	\
+		yunused(sig_); \
 		if(YB_UNLIKELY(!res_)) \
 			YCL_Trace_Win32E(platform::Descriptions::Warning, _fn, sig_); \
 		return res_; \
@@ -874,7 +876,7 @@ ExpandEnvironmentStrings(const wchar_t*);
 /*!
 \brief 解析应用程序命令行参数。
 \return UTF-8 编码的参数向量。
-\since build 926
+\since build 928
 \see $2020-10 @ %Documentation::Workflow.
 
 解析 Unicode 编码的应用程序命令行参数字符串。

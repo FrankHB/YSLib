@@ -25,6 +25,7 @@
     <ClInclude Include="include\ystdex\apply.hpp" />
     <ClInclude Include="include\ystdex\array.hpp" />
     <ClInclude Include="include\ystdex\base.h" />
+    <ClInclude Include="include\ystdex\bit.hpp" />
     <ClInclude Include="include\ystdex\bitseg.hpp" />
     <ClInclude Include="include\ystdex\cache.hpp" />
     <ClInclude Include="include\ystdex\cassert.h" />
@@ -33,6 +34,7 @@
     <ClInclude Include="include\ystdex\concurrency.h" />
     <ClInclude Include="include\ystdex\container.hpp" />
     <ClInclude Include="include\ystdex\csignal.h" />
+    <ClInclude Include="include\ystdex\cstddef.h" />
     <ClInclude Include="include\ystdex\cstdint.hpp" />
     <ClInclude Include="include\ystdex\cstdio.h" />
     <ClInclude Include="include\ystdex\cstring.h" />

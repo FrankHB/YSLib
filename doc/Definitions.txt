@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14342
+\version r14359
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2021-12-09 20:21 +0800
+	2021-12-19 02:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,7 +69,7 @@ YB_* // 保留给 YBase 使用。
 	YB_Use_* // 指示使用标准库或替代的声明实现特性。其中 * 的部分为替换 :: 为 _ 后的限定名或表示替代特性的标识符。
 YPP_* // 是通用于预处理阶段的辅助宏。
 __has_* // 在 ydef.h 内，同 ISO C++20 草案或 WG21 P0941 约定。可能有其它实现扩展。
-__cpp_* // 同 ISO C++20 草案或 WG21 P0941 约定。
+__cpp_* // 同 ISO C++20 或 WG21 P0941 约定。
 // 以上名称符合 YB_Has_* 、YB_Use_* 、__has_* 和 __cpp_* 模式宏不保证总是定义，但保证用于适合 #if 等标准预处理指令进行条件包含的判断。
 
 $header YDefinition
@@ -90,8 +90,9 @@ YB_IMPL_CLANGPP
 #__cpp_if_constexpr
 #__cpp_inheriting_constructors
 #__cpp_inline_variables
-#__cpp_lib_byte
+#__cpp_lib_bitops
 #__cpp_lib_bool_constant
+#__cpp_lib_byte
 #__cpp_lib_is_invocable
 #__cpp_lib_is_null_pointer
 #__cpp_lib_is_swappable
@@ -162,12 +163,16 @@ ynoexcept_param(_n)?
 ynoexcept_qual(*)?
 ynoexcept_spec(*)
 ythrow(*)?
-yoffsetof(_type, _member)
+yunused
 yforward(_expr)
 yunseq
 }
 $dir ystdex
 {
+$header CStandardDefinition
+{
+yoffsetof(_type, _member)
+}
 $header CAssert
 {
 yassume(_expr)
@@ -192,7 +197,7 @@ $header Range
 }
 $header Placement
 {
-#YB_Has_optional
+YB_Has_optional
 #__cpp_lib_string_view
 }
 $header TypeInfo
@@ -216,7 +221,7 @@ $header Memory
 }
 $header MemoryResource
 {
-#YB_Has_memory_resource
+YB_Has_memory_resource
 #__cpp_lib_memory_resource
 }
 $header Functor
@@ -229,8 +234,13 @@ $header Algorithm
 }
 $header StringView
 {
-#YB_Has_string_view
+YB_Has_string_view
 #__cpp_lib_string_view
+}
+$header Bit
+{
+YB_Has_bit
+#__cpp_lib_bit
 }
 } // $dir ystdex;
 } // $dir YBase;
@@ -934,7 +944,6 @@ $attr $=
 	alloc_size,
 	allocator,
 	always_inline,
-	callback,
 	dllimport,
 	dllexport,
 	flatten,

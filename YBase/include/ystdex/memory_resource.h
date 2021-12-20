@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1503
+\version r1512
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2021-11-06 20:23 +0800
+	2021-12-20 22:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,10 +75,10 @@ pmr::polymorphic_allocator 对 is_bitwise_swappable 特化。
 //	ystdex::uninitialized_construct_using_allocator, std::pair, yassume, list,
 //	equal_to, std::hash, is_bitwise_swappable;
 // NOTE: See "placement.hpp" for comments on inclusion conditions.
-#if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603) \
+#if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603L) \
 	|| (__cplusplus >= 201603L && __has_include(<memory_resource>))
 #	include <memory_resource>
-#	if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603) \
+#	if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603L) \
 	|| __cpp_lib_memory_resource >= 201603L
 #		define YB_Has_memory_resource 1
 #	endif
@@ -90,10 +90,10 @@ pmr::polymorphic_allocator 对 is_bitwise_swappable 特化。
 #		define YB_Has_memory_resource 2
 #	endif
 #endif
-#if YB_Has_memory_resource && __cplusplus > 201703L \
+#if YB_Has_memory_resource && __cplusplus >= 202002L \
 	&& (!defined(__GLIBCXX__) || __GLIBCXX__ > 20190731)
 // XXX: See https://github.com/cplusplus/draft/issues/3111.
-// XXX: See https://gcc.gnu.org/viewcvs/gcc/trunk/libstdc++-v3/include/std/memory?r1=273515&r2=273945.
+// XXX: See https://gcc.gnu.org/git/?p=gcc.git;a=blobdiff;f=libstdc%2B%2B-v3/include/std/memory;h=0a483d2d8d1a1287685cb5cc8a7d338a14e7fef3;hp=3036802f8c3eb1c3013dc1720ad85087e5202694;hb=3090082cbefd8b1374f237bd4242b554490b2933;hpb=e6c847fb8f90b1c119a677b81cfc294b13eb7772.
 #	define YB_Impl_P0339R6 true
 #else
 #	define YB_Impl_P0339R6 false
@@ -103,7 +103,7 @@ pmr::polymorphic_allocator 对 is_bitwise_swappable 特化。
 #	include "operators.hpp" // for equality_comparable;
 #endif
 #include "base.h" // for noncopyable, nonmovable;
-#include "cstdint.hpp" // for is_power_of_2_positive;
+#include "bit.hpp" // for is_power_of_2_positive;
 #include "list.hpp"// for list;
 #include <vector> // for std::vector;
 #include <unordered_map> // for std::unordered_map;
@@ -134,7 +134,8 @@ pmr::polymorphic_allocator 对 is_bitwise_swappable 特化。
 */
 //@{
 #ifndef __cpp_lib_memory_resource
-#	if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603) || __cplusplus >= 201603L
+#	if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603L) \
+	|| __cplusplus >= 201603L
 #		define __cpp_lib_memory_resource 201603L
 #	endif
 #endif
@@ -348,7 +349,8 @@ public:
 	}
 
 	void
-	deallocate_bytes(void* p, size_t nbytes, size_t alignment = yalignof(std::max_align_t))
+	deallocate_bytes(void* p, size_t nbytes,
+		size_t alignment = yalignof(std::max_align_t))
 	{
 		return memory_rsrc->deallocate(p, nbytes, alignment);
 	}

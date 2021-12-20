@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r899
+\version r902
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2021-04-15 22:30 +0800
+	2021-12-20 22:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,9 +27,9 @@
 
 #include "YSLib/Core/YModules.h"
 #include YFM_YSLib_Core_ValueNode // for ystdex::invoke_value_or,
-//	ystdex::call_value_or, ystdex::addrof, ystdex::compose, std::mem_fn,
-//	ystdex::bind1, ystdex::ref_eq;
-#include <ystdex/cstdint.hpp> // for ystdex::floor_lb;
+//	ystdex::addrof, ystdex::compose, std::mem_fn, ystdex::bind1, ystdex::ref_eq;
+#include <ystdex/deref_op.hpp> // for ystdex::call_value_or;
+#include <ystdex/bit.hpp> // for ystdex::floor_lb;
 
 namespace YSLib
 {

@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 语言实现和系统环境相关特性及公用类型和宏的基础定义。
-\version r4113
+\version r4311
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2021-12-11 23:25 +0800
+	2021-12-19 02:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -217,7 +217,8 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 #ifndef __cpp_if_constexpr
 // NOTE: Microsoft Visual C++ has an extension in '/std:c++14' with warning
 //	C4984.
-#	if __cplusplus >= 201703L || (YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201402)
+#	if __cplusplus >= 201703L || \
+	(YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201402L)
 #		define __cpp_constexpr 201606L
 #	endif
 #endif
@@ -231,7 +232,8 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 */
 //@{
 #ifndef __cpp_inheriting_constructors
-#	if (YB_IMPL_MSCPP >= 1914 && _MSVC_LANG >= 201511) || __cplusplus >= 201511L
+#	if (YB_IMPL_MSCPP >= 1914 && _MSVC_LANG >= 201511L) \
+	|| __cplusplus >= 201511L
 #		define __cpp_inheriting_constructors 201511L
 #	elif __has_feature(cxx_inheriting_constructors) || YB_IMPL_MSCPP > 1900 \
 	|| __cplusplus >= 200802L
@@ -275,36 +277,14 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 //@}
 //@}
 
-#include <cstddef> // for __cpp_lib_byte, std::byte, std::nullptr_t,
-//	std::size_t, std::ptrdiff_t, offsetof;
 #include <cstdlib> // for std::abort;
-#include <climits> // for CHAR_BIT;
-#include <cstdint> // for std::uint8_t;
-#include <cassert> // for assert;
-#include <cwchar> // for std::wint_t;
 #include <utility> // for std::forward;
-#include <type_traits> // for std::is_class, std::is_standard_layout;
 
 /*!
 \see WG21 P0941R2 2.2 。
 \see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
 */
 //@{
-/*!
-\brief \c \<cstddef> 特性测试宏。
-\since build 832
-\see https://blogs.msdn.microsoft.com/vcblog/2017/05/10/c17-features-in-vs-2017-3/ 。
-\see https://gcc.gnu.org/onlinedocs/libstdc++/manual/status.html#status.iso.2017 。
-*/
-//@{
-#ifndef __cpp_lib_byte
-#	if ((YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201603) \
-	|| YB_IMPL_GCC >= 70100 || __cplusplus >= 201603L) \
-	&& !(YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201603 && _HAS_STD_BYTE != 0)
-#		define __cpp_lib_byte 201603L
-#	endif
-#endif
-//@}
 /*!
 \brief \c \<type_traits> 特性测试宏。
 \since build 679
@@ -319,7 +299,8 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 //! \since build 832
 //@{
 #ifndef __cpp_lib_is_invocable
-#	if (YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201703) || __cplusplus >= 201703L
+#	if (YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201703L) \
+	|| __cplusplus >= 201703L
 #		define __cpp_lib_is_invocable 201703L
 #	endif
 #endif
@@ -1191,12 +1172,14 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 */
 #ifndef NDEBUG
 #	ifndef YB_Use_YAssert
-#		define YB_Use_YAssert 1
+#		define YB_Use_YAssert true
 #	endif
 #elif !defined(YB_Use_StrictNoThrow)
-#	define YB_Use_StrictNoThrow 1
+#	define YB_Use_StrictNoThrow true
 #endif
-#define YB_Use_YTrace 1
+#ifndef YB_Use_YTrace
+#	define YB_Use_YTrace true
+#endif
 //@}
 
 
@@ -1297,7 +1280,7 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 #	define yfname __FUNCTION__
 #elif __BORLANDC__ >= 0x550
 #	define yfname __FUNC__
-#elif __cplusplus >= 201103 || __STDC_VERSION__ >= 199901
+#elif __cplusplus >= 201103L || __STDC_VERSION__ >= 199901L
 #	define yfname __func__
 #else
 #	define yfname "<unknown-fn>"
@@ -1317,7 +1300,7 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 #	define yfsig __FUNCTION__
 #elif __BORLANDC__ >= 0x550
 #	define yfsig __FUNC__
-#elif __cplusplus >= 201103 || __STDC_VERSION__ >= 199901
+#elif __cplusplus >= 201103L || __STDC_VERSION__ >= 199901L
 #	define yfsig __func__
 #else
 #	define yfsig "<unknown-fsig>"
@@ -1444,7 +1427,7 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 \def ythrow
 \brief YSLib 动态异常规范：根据是否使用异常规范宏指定或忽略动态异常规范。
 \note 动态异常规范已从 ISO C++17 移除，用户代码不应假定支持。
-\note 主要为可读性保留， ythrow = "yielded throwing" 。
+\note 主要为可读性保留，ythrow = "yielded throwing" 。
 \see WG21 P0003R5 。
 */
 #if YB_Use_DynamicExceptionSpecification
@@ -1452,125 +1435,19 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 #else
 #	define ythrow(...)
 #endif
+
+/*!
+\brief 标记未使用的表达式。
+\note 显式转换为 void 类型以标记表达式未被作为子表达式使用，可避免某些实现的警告。
+\warning 避免在表达式中误用逗号。
+\since build 435
+*/
+#define yunused(...) static_cast<void>(__VA_ARGS__)
 //@}
 
 
 namespace ystdex
 {
-
-/*!
-\brief 字节类型。
-\see WG21 P0298R2 。
-\since build 209
-\todo 检查 maybe_unused 属性，允许时使用和标准库定义一致的形式。
-
-专用于表示字节的类型，不保证为整数类型或字符类型。
-注意 ISO C++ 对访问存储的 glvalue 的类型有严格限制，当没有对象生存期保证时，
-仅允许（可能 cv 修饰的） char 和 unsigned char 及其指针/引用或 void* ，
-而不引起未定义行为(undefined behavior) 。
-ISO C++17 核心语言特性对 std::byte 别名存储提供支持，其它情形只有 char 、
-	signed char 和 unsigned char 满足可移植地支持别名。
-由于 char 的算术操作行为是否按有符号处理未指定，使用 unsigned char
-表示字节以便获得确定的行为，同时对字符处理（如 std::fgetc ）保持较好的兼容性。
-使用 unsigned char 仍是实现细节。依赖此类型上不在 std::byte 的操作不被支持。
-*/
-#if __cpp_lib_byte >= 201603L
-using std::byte;
-#else
-using byte = unsigned char;
-#endif
-
-#if CHAR_BIT == 8
-/*!
-\brief 八位组类型。
-\note 一字节不保证等于 8 位，但一个八位组保证等于 8 位。
-\since build 417
-*/
-using octet = std::uint8_t;
-#	else
-using octet = void;
-#endif
-
-using std::ptrdiff_t;
-using std::size_t;
-using std::wint_t;
-
-#if YB_IMPL_MSCPP && defined(__cplusplus_cli)
-//! \see https://docs.microsoft.com/cpp/extensions/nullptr-cpp-component-extensions 。
-using nullptr_t = decltype(__nullptr);
-#elif YB_HAS_BUILTIN_NULLPTR
-//! \note ystdex 内的 nullptr 使用一般应符合兼容 nullptr_t 的模拟实现。
-using std::nullptr_t;
-#else
-/*!
-\brief 空指针类。
-\see https://en.wikibooks.org/wiki/More_C++_Idioms/nullptr 。
-
-模拟 std::nullptr_t 。
-和 std::nullptr_t 不同：
-不保证是基本类型；
-不保证大小和 void* 一致；
-不支持标准库类型特征判断；
-不支持使用整数 0 字面量（常量表达式）初始化（并可能因此存在更多的重载歧义）；
-作为左值不支持 & 操作符。
-*/
-yconstexpr_inline const class nullptr_t
-{
-public:
-	//! \brief 禁止取 nullptr 的指针。
-	void
-	operator&() const = delete;
-
-	//! \since build 884
-	//@{
-	//! \brief 重载关系操作符。
-	//@{
-	template<typename _type>
-	YB_ATTR_nodiscard YB_STATELESS friend yconstfn bool
-	operator==(nullptr_t, const _type& y)
-	{
-		return y == 0;
-	}
-	template<typename _type>
-	YB_ATTR_nodiscard YB_STATELESS friend yconstfn bool
-	operator==(const _type& x, nullptr_t)
-	{
-		return x == 0;
-	}
-
-	template<typename _type>
-	YB_ATTR_nodiscard YB_STATELESS friend yconstfn bool
-	operator!=(nullptr_t, const _type& y)
-	{
-		return !(y == 0);
-	}
-	template<typename _type>
-	YB_ATTR_nodiscard YB_STATELESS friend yconstfn bool
-	operator!=(const _type& x, nullptr_t)
-	{
-		return !(x == 0);
-	}
-	//@}
-
-	//! \brief 转换任意类型至空非成员或静态成员指针。
-	template<typename _type>
-	yconstfn
-	operator _type*() const ynothrow
-	{
-		return 0;
-	}
-
-	//! \brief 转换任意类型至空非静态成员指针。
-	template<class _tClass, typename _type>
-	yconstfn
-	operator _type _tClass::*() const ynothrow
-	{
-		return 0;
-	}
-	//@}
-} nullptr = {};
-#endif
-
 
 /*!	\defgroup customization Customization
 \brief 定制化接口。
@@ -1615,72 +1492,6 @@ public:
 */
 //@}
 
-/*!
-\brief 空基类模板。
-\since build 260
-*/
-template<typename...>
-struct empty_base
-{};
-
-/*!
-\ingroup tags
-\brief 直接构造类型（直接构造重载用）。
-\since build 520
-*/
-struct raw_tag
-{};
-
-
-/*!
-\brief 成员偏移计算静态类型检查。
-\see ISO C++ 18.2/4 。
-\since build 325
-*/
-template<bool _bMemObjPtr, bool _bNoExcept, class _type>
-class offsetof_check
-{
-	static_assert(std::is_class<_type>::value, "Non class type found.");
-	static_assert(std::is_standard_layout<_type>::value,
-		"Non standard layout type found.");
-	static_assert(_bMemObjPtr, "Non-static member object violation found.");
-	static_assert(_bNoExcept, "Exception guarantee violation found.");
-};
-
-
-/*!
-\ingroup YBase_pseduo_keyword
-\brief 标记未使用的表达式。
-\note 显式转换为 void 类型以标记表达式未被作为子表达式使用，可避免某些实现的警告。
-\warning 避免在表达式中误用逗号。
-\since build 435
-*/
-#define yunused(...) static_cast<void>(__VA_ARGS__)
-
-/*!
-\ingroup YBase_pseudo_keyword
-\brief 带有静态类型检查的成员偏移计算。
-\see ISO C++ 18.2/4 。
-\note 某些实现可直接使用 __builtin_offsetof 及 -Winvalid-offsetof 。
-\see https://gcc.gnu.org/onlinedocs/gcc-4.0.0/gcc/Offsetof.html 。
-\see https://docs.microsoft.com/cpp/cpp-conformance-improvements-2017?view=vs-2017 。
-\see https://reviews.llvm.org/rL46515 。
-\see https://bugs.llvm.org/show_bug.cgi?id=31178 。
-\since build 325
-*/
-#if __has_builtin(__builtin_offsetof) || YB_IMPL_GNUCPP >= 40000 \
-	|| YB_IMPL_CLANGPP >= 20200
-#	define yoffsetof(_type, _member) \
-	(decltype(sizeof(ystdex::offsetof_check< \
-	std::is_member_object_pointer<decltype(&_type::_member)>::value, \
-	ynoexcept(__builtin_offsetof(_type, _member)), _type>))( \
-	__builtin_offsetof(_type, _member)))
-#else
-#	define yoffsetof(_type, _member) \
-	(decltype(sizeof(ystdex::offsetof_check<std::is_member_object_pointer< \
-	decltype(&_type::_member)>::value, ynoexcept(offsetof(_type, _member)), \
-	_type>))(offsetof(_type, _member)))
-#endif
 
 /*!
 \ingroup YBase_pseudo_keyword

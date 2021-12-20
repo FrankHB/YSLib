@@ -11,13 +11,13 @@
 /*!	\file NPLAMath.h
 \ingroup NPL
 \brief NPLA 数学功能。
-\version r11306
+\version r11307
 \author FrankHB <frankhb1989@gmail.com>
 \since build 930
 \par 创建时间:
 	2021-11-03 12:49:54 +0800
 \par 修改时间:
-	2021-12-11 23:58 +0800
+	2021-12-15 22:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -437,7 +437,6 @@ static_assert((std::numeric_limits<long double>::max_digits10 + 5 + 3
 	指数不超过区间 [-58810, 40704) 。
 这较 ISO C++ 严格，但已支持一些不兼容 ISO 60559 的格式（虽然当前平台配置没有实例）：
 	复用现有格式的 double-double 格式，如 GCC __ibm128 兼容的 long double ；
-	有效数字中可能不具有参与数值表示隐含位(hidden bit) 的格式；
 	符号位、指数和有效数字的表示不按 IEC 60559 顺序或不连续存储的格式。
 指数的限制不支持 IEC 60559 binary256 ，但这仅被作为交换格式；
 	也没有已知的 C++ 实现直接支持。

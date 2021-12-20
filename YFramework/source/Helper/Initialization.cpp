@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3952
+\version r3957
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2021-05-06 19:33 +0800
+	2021-12-13 01:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -407,10 +407,14 @@ TryReadRawNPLStream(std::istream& is)
 YB_ATTR_nodiscard YB_NONNULL(1, 2) ValueNode
 LoadNPLA1FileDirect(const char* disp, const char* path, bool show_info)
 {
+	yunused(disp);
 	if(show_info)
 		YTraceDe(Notice, "Found %s '%s'.", Nonnull(disp), path);
 	// XXX: Race condition may cause failure, though file would not be
 	//	corrupted now.
+	// XXX: Exception thrown here would be caught by %TryInvoke in the call to
+	//	%LoadNPLA1FileVec or %LoadNPLA1File, so there is no need to attatch the
+	//	additional filename information here.
 	if(SharedInputMappedFileStream sifs{path})
 	{
 		YTraceDe(Debug, "Accessible configuration file found.");
@@ -439,6 +443,7 @@ LoadNPLA1FileCreate(const char* disp, const char* path,
 	{
 		int err(errno);
 
+		yunused(err);
 		YTraceDe(Warning, "Cannot create file, possible error"
 			" (from errno) = %d: %s.", err, std::strerror(err));
 		YTraceDe(Warning,"Creating default file failed.");

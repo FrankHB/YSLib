@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r945
+\version r957
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2021-11-06 15:31 +0800
+	2021-12-13 01:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Debug // for wstring, string_view, std::puts, std::fflush,
-//	pmr::new_delete_resource_t, stderr;
+//	pmr::new_delete_resource_t, stderr, YB_Use_YTrace;
 #if YCL_Win32
 #	include YFM_Win32_YCLib_Consoles // for platform_ex::WConsole,
 //	STD_OUTPUT_HANDLE, STD_ERROR_HANDLE, platform_ex::Win32Exception;
@@ -45,6 +45,7 @@
 #if !YCL_DS
 #	include <iostream> // for std::cout, std::cerr;
 #endif
+#include <ystdex/cassert.h> // for ystdex::ytrace;
 #include <cstdarg> // for std::va_list, va_start, va_end;
 
 namespace platform
@@ -204,9 +205,14 @@ Logger::DoLogException(Level lv, const std::exception& e) ynothrow
 				"Another exception thrown when handling exception.");
 			DoLogRaw(Descriptions::Emergent, msg);
 		}
+#if YB_Use_YTrace
 		CatchExpr(...,
 			ystdex::ytrace(stderr, Descriptions::Emergent, Descriptions::Notice,
 			__FILE__, __LINE__, "Logging error: unhandled exception."))
+#else
+	// XXX: All exceptions are ignored when tracing is not available.
+	CatchIgnore(...)
+#endif
 	});
 	const auto& msg(e.what());
 	lock_guard<recursive_mutex> lck(record_mutex);
@@ -346,9 +352,14 @@ LogWithSource(const char* file, int line, const char* fmt, ...)
 		return sfmt<string>("\"%s\":%i:\n", chk_null(file), line)
 			+ std::move(str);
 	}
+#if YB_Use_YTrace
 	CatchExpr(...,
 		ystdex::ytrace(stderr, Descriptions::Emergent, Descriptions::Notice,
 		chk_null(file), line, "LogWithSource error: unhandled exception."))
+#else
+	// XXX: All exceptions are ignored when tracing is not available.
+	CatchIgnore(...)
+#endif
 	return {};
 }
 

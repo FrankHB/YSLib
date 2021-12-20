@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2018-2020 FrankHB.
+	© 2014-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cctype.h
 \ingroup YStandardEx
 \brief ISO C 字符分类操作扩展。
-\version r284
+\version r304
 \author FrankHB <frankhb1989@gmail.com>
 \since build 513
 \par 创建时间:
 	2014-06-29 13:42:39 +0800
 \par 修改时间:
-	2020-08-30 19:31 +0800
+	2021-12-12 18:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,8 @@
 #ifndef YB_INC_ystdex_cctype_h_
 #define YB_INC_ystdex_cctype_h_ 1
 
-#include "../ydef.h" // for yconstfn, CHAR_MIN, yimpl;
-#include <cwctype> // for std::towlower, std::towupper;
-#include <cctype> // for std::tolower, std::toupper;
+#include "../ydef.h" // for CHAR_MIN;
+#include <cctype> // for <cctype>, std::tolower, std::toupper;
 
 namespace ystdex
 {
@@ -109,7 +108,7 @@ isprint_ISO8859_1(char c) ynothrow
 \brief 区域无关的 std::isprint 。
 \note 当前使用基于 ISO/IEC 8859-1 的 Unicode 方案实现。
 \note 可作为替代 MSVCRT 的实现的部分变通。
-\sa https://connect.microsoft.com/VisualStudio/feedback/details/799287/isprint-incorrectly-classifies-t-as-printable-in-c-locale
+\see https://connect.microsoft.com/VisualStudio/feedback/details/799287/isprint-incorrectly-classifies-t-as-printable-in-c-locale 。
 */
 YB_ATTR_nodiscard YB_STATELESS yconstfn bool
 isprint(char c) ynothrow
@@ -121,7 +120,7 @@ isprint(char c) ynothrow
 \brief 区域无关的 std::isdigit 。
 \note ISO C 和 ISO C++ 保证基本字符集中的数字字符具有从小到大连续的整数值表示。
 \note 可作为替代 MSVCRT 的实现的变通。
-\sa http://stackoverflow.com/questions/2898228/can-isdigit-legitimately-be-locale-dependent-in-c 。
+\see http://stackoverflow.com/questions/2898228/can-isdigit-legitimately-be-locale-dependent-in-c 。
 \see ISO C11 5.2.1/3 。
 \see ISO C++11 2.3/3 。
 */
@@ -159,15 +158,6 @@ tolower(char c) ynothrow
 #endif
 }
 
-//! \since build 823
-template<typename _tChar>
-YB_ATTR_nodiscard inline _tChar
-towlower(_tChar c) ynothrow
-{
-	return c >= 0 ? _tChar(std::towlower(wint_t(c))) : c;
-}
-
-
 YB_ATTR_nodiscard inline char
 toupper(char c) ynothrow
 {
@@ -176,14 +166,6 @@ toupper(char c) ynothrow
 #else
 	return char(std::toupper(c));
 #endif
-}
-
-//! \since build 823
-template<typename _tChar>
-YB_ATTR_nodiscard inline _tChar
-towupper(_tChar c) ynothrow
-{
-	return c >= 0 ? _tChar(std::towupper(wint_t(c))) : c;
 }
 //@}
 //@}

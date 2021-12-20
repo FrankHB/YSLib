@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018-2020 FrankHB.
+	© 2009-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r851
+\version r859
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2020-06-26 12:06 +0800
+	2021-12-12 16:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YCL_INC_Platform_h_
 #define YCL_INC_Platform_h_ 1
 
-#include <ydef.h> // for std::uintmax_t, ystdex::byte, ystdex::octet,
-//	ystdex::ptrdiff_t, ystdex::size_t, ystdex::wint_t, ystdex::nullptr_t;
+#include <ystdex/cstddef.h> // for ystdex::byte, ystdex::octet,
+//	ystdex::ptrdiff_t, ystdex::size_t, ystdex::nullptr_t;
 
 /*!
 \def YF_DLL
@@ -50,8 +50,9 @@
 #	else
 #		define YF_API
 #	endif
-#elif defined(YF_BUILD_DLL) && (YF_IMPL_GNUCPP >= 40000 || YF_IMPL_CLANGPP)
-#	define YF_API YF_ATTR(__visibility__("default"))
+#elif defined(YF_BUILD_DLL) && (__has_attribute(__visibility__) \
+	|| YB_IMPL_GNUCPP >= 40000 || YB_IMPL_CLANGPP >= 20800)
+#	define YF_API YB_ATTR(__visibility__("default"))
 #else
 #	define YF_API
 #endif
@@ -436,8 +437,6 @@ using ystdex::byte;
 using ystdex::octet;
 using ystdex::ptrdiff_t;
 using ystdex::size_t;
-//! \since build 245
-using ystdex::wint_t;
 //! \since build 644
 using ystdex::nullptr_t;
 //@}

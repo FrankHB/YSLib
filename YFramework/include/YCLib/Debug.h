@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r943
+\version r949
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2021-10-11 19:10 +0800
+	2021-12-13 01:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 
 #include "YModules.h"
 #include YFM_YCLib_YCommon
-#include YFM_YCLib_Container // for string_view, string, std::ostream,
-//	platform::sfmt;
+#include YFM_YCLib_Container // for string_view, string, ystdex::sfmt,
+//	std::ostream;
 #include <ystdex/function.hpp> // for ystdex::function;
 #include YFM_YCLib_Mutex // for Concurrency;
 #include <ystdex/swap.hpp> // for ystdex::copy_and_swap;
@@ -91,6 +91,7 @@ Echo(string_view) ynoexcept(YF_Platform == YF_Platform_DS);
 /*!
 \ingroup tracing
 \brief 日志记录器。
+\warning 非虚析构。
 \since build 498
 */
 class YF_API Logger
@@ -408,7 +409,7 @@ LogWithSource(const char*, int, const char*, ...);
 #if YB_Use_YTrace
 #	define YTraceDe(_lv, ...) YF_Trace(_lv, __VA_ARGS__)
 #else
-#	define YTraceDe(...)
+#	define YTraceDe(...) []{}()
 #endif
 
 } // namespace platform;
@@ -531,7 +532,7 @@ Nonnull(_type&& p) ynothrowv
 \since build 702
 */
 template<typename _type>
-YB_PURE inline _type&&
+YB_ATTR_nodiscard YB_PURE inline _type&&
 FwdIter(_type&& i) ynothrowv
 {
 	using ystdex::is_undereferenceable;
@@ -547,7 +548,7 @@ FwdIter(_type&& i) ynothrowv
 \since build 553
 */
 template<typename _type>
-YB_PURE yconstfn auto
+YB_ATTR_nodiscard YB_PURE yconstfn auto
 Deref(_type&& p) -> decltype(*p)
 {
 	return *FwdIter(yforward(p));

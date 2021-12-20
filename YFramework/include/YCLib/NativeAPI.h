@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台本机应用程序接口描述。
-\version r1682
+\version r1691
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2021-08-02 02:19 +0800
+	2021-12-19 02:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -259,7 +259,8 @@ enum class OpenMode : int
 	Raw = Binary,
 	ReadRaw = Read | Raw,
 	ReadWriteRaw = ReadWrite | Raw,
-	// NOTE: On GNU/Hurd %O_ACCMODE can be zero.
+	// NOTE: On GNU/Hurd the value masked by %O_ACCMODE can be zero. See
+	//	https://www.gnu.org/software/libc/manual/html_node/Access-Modes.html.
 #if O_ACCMODE
 	YCL_Impl_OMode_POSIX(AccessMode, ACCMODE),
 #else
@@ -530,7 +531,8 @@ inline PDefH(int, estat, struct ::stat& st, int fd) ynothrow
 
 
 #if YCL_DS
-#	include <nds.h>
+#	include <nds.h> // for DMA_*;
+#	include <cstdint> // for std::uint8_t, std::uint32_t;
 #	include <ystdex/base.h> // for ystdex::nonmovable;
 
 namespace platform_ex
@@ -552,7 +554,6 @@ DMAFillWordsAsync(std::uint8_t chan, std::uint32_t val, void* p_dst,
 	DMA_FILL(chan) = std::uint32_t(val);
 	DMA_SRC(3) = std::uint32_t(&DMA_FILL(3));
 	DMA_DEST(3) = std::uint32_t(p_dst);
-
 	DMA_CR(3) = DMA_SRC_FIX | DMA_COPY_WORDS | size >> 2;
 }
 
@@ -596,6 +597,7 @@ public:
 
 
 #elif YCL_Win32
+#	include <cstdint> // for std::intptr_t;
 
 #	ifndef UNICODE
 #		define UNICODE 1
@@ -618,13 +620,13 @@ public:
 
 #if YB_IMPL_MSCPP >= 1915
 YB_Diag_Push
-YB_Diag_Ignore(5105)
-// NOTE: See https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/c5105.
-// NOTE: This is only effective for non-conforming WinSDK headers currently.
+	YB_Diag_Ignore(5105)
+	// NOTE: See https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/c5105.
+	// NOTE: This is only effective for non-conforming WinSDK headers currently.
 #endif
 #	include <Windows.h>
 #if YB_IMPL_MSCPP >= 1915
-YB_Diag_Pop
+	YB_Diag_Pop
 #endif
 // XXX: This may have effects on the system headers included later.
 #	if false && __has_include(<specstrings_undef.h>)

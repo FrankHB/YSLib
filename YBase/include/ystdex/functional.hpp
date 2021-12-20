@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r4431
+\version r4436
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2021-10-12 18:03 +0800
+	2021-12-12 11:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,14 +28,15 @@
 #ifndef YB_INC_ystdex_functional_hpp_
 #define YB_INC_ystdex_functional_hpp_ 1
 
-#include "functor.hpp" // for "ref.hpp", "invoke.hpp", <functional>,
-//	and_, exclude_self_t, addressof_op, less, mem_get, true_, false_, is_void,
-//	is_constructible, enable_if_t, std::allocator_arg_t, std::allocator_arg,
-//	is_nothrow_copy_constructible;
+#include "functor.hpp" // for "invoke.hpp", "ref.hpp", "functor.hpp",
+//	<functional>, and_, exclude_self_t, addressof_op, less, mem_get, true_,
+//	false_, is_void, is_constructible, enable_if_t, std::allocator_arg_t,
+//	std::allocator_arg, is_nothrow_copy_constructible;
 #include "function.hpp" // for "function.hpp", is_bitwise_swappable, std::tuple,
 //	index_sequence, index_sequence_for, is_nothrow_swappable,
 //	any_ops::trivial_swap_t, any_swap::trivial_swap, common_nonvoid_t,
 //	make_index_sequence, as_function_type_t, equality_comparable;
+#include "hash.hpp" // for "hash.hpp";
 #include "swap.hpp" // for "swap.hpp", ystdex::swap_dependent;
 #include "apply.hpp" // for call_projection;
 #include <numeric> // for std::accumulate;

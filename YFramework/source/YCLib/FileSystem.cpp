@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4982
+\version r4989
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2021-05-06 19:56 +0800
+	2021-12-12 16:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 //	platform_Ex::MakePathStringU, MakePathString, Deref, ystdex::throw_error,
 //	std::invalid_argument, std::errc::function_not_supported, YCL_CallF_CAPI,
 //	CategorizeNode, complete FileDescriptor, ystdex::ntctslen, std::wctob,
-//	std::towupper, ystdex::restrict_length, ystdex::ntctsicmp,
+//	std::towupper, std::wint_t, ystdex::restrict_length, ystdex::ntctsicmp,
 //	std::errc::invalid_argument, std::strchr;
 #include YFM_YCLib_NativeAPI // for ::dev_t, ::ino_t, Mode, struct ::stat,
 //	::stat, ::GetFileAttributesW, platform_ex::cstat, platform_ex::estat,
@@ -44,7 +44,7 @@
 #include <ystdex/ctime.h> // for std::time_t, ystdex::is_date_range_valid,
 //	ystdex::is_time_no_leap_valid;
 #if YCL_Win32
-#	include YFM_Win32_YCLib_MinGW32 // for YCL_CallF_Win32,
+#	include YFM_Win32_YCLib_MinGW32 // for YCL_DeclW32Call, YCL_CallF_Win32,
 //	platform_ex::FileAttributes, platform_ex::GetErrnoFromWin32,
 //	platform_ex::Invalid, platform_ex::ConvertTime, platform_ex::ToHandle,
 //	platform_ex::QueryFileNodeID, platform_ex::QueryFileLinks,
@@ -59,7 +59,7 @@ namespace
 namespace YCL_Impl_details
 {
 
-// NOTE: To avoid hiding of global name, the declarations shall not be under
+// NOTE: To avoid hiding of the global name, the declarations shall not be in
 //	namespace %platform.
 YCL_DeclW32Call(CreateSymbolicLinkW, kernel32, unsigned char, const wchar_t*, \
 	const wchar_t*, unsigned long)
@@ -441,6 +441,7 @@ CreateHardLink(const char* dst, const char* src)
 {
 #if YCL_DS
 	YAssertNonnull(dst), YAssertNonnull(src);
+	yunused(dst), yunused(src);
 	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #elif YCL_Win32
 	CreateHardLink(ucast(MakePathStringW(dst).c_str()),
@@ -457,6 +458,7 @@ CreateHardLink(const char16_t* dst, const char16_t* src)
 {
 #if YCL_DS
 	YAssertNonnull(dst), YAssertNonnull(src);
+	yunused(dst), yunused(src);
 	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #elif YCL_Win32
 	YCL_CallF_Win32(CreateHardLinkW, wcast(dst), wcast(src), {});
@@ -1195,9 +1197,9 @@ ConvertToAlias(const u16string& long_name)
 	// NOTE: Set when the alias had to be modified to be valid.
 	bool lossy(offset != 0);
 	const auto check_char([&](string& str, char16_t uc){
-		int bc(std::wctob(std::towupper(wint_t(uc))));
+		int bc(std::wctob(std::towupper(std::wint_t(uc))));
 
-		if(!lossy && std::wctob(wint_t(uc)) != bc)
+		if(!lossy && std::wctob(std::wint_t(uc)) != bc)
 			lossy = true;
 		if(bc == ' ')
 		{

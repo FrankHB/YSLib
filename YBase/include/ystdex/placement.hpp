@@ -11,13 +11,13 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r1018
+\version r1027
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2021-12-12 04:17 +0800
+	2021-12-20 22:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,8 +36,9 @@
 //	is_trivially_copyable, is_empty, std::reference_wrapper, std::unique_ptr,
 //	std::shared_ptr, std::weak_ptr, std::allocator, std::allocator_traits,
 //	enable_if_convertible_t, is_nothrow_destructible, and_;
-#include "cstdint.hpp" // for is_power_of_2_positive, yconstraint,
-//	YB_VerifyIterator, std::iterator_traits, vseq, ctor_of, when, _a;
+#include "bit.hpp" // for is_power_of_2_positive;
+#include "iterator_op.hpp" // for yconstraint, YB_VerifyIterator,
+//	std::iterator_traits, vseq, ctor_of, when, _a;
 #include <new> // for placement ::operator new from standard library;
 // NOTE: The following code is necessary to check for header <optional> to
 //	ensure it has %in_place_t consistently. Other implementations are in
@@ -47,14 +48,14 @@
 //	and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=79433 for details. For
 //	feature-test marcos, see https://isocpp.org/std/standing-documents/sd-6-sg10-feature-test-recommendations.
 //	See also https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance.
-#if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603) \
+#if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603L) \
 	|| (__cplusplus >= 201603L && __has_include(<optional>))
 #	include <optional>
 // NOTE: See also WG21 P0941R0 with minor fixes of the specification about WG21
 //	P0032R3. Since WG21 P0941R2, the macro value is combined as '201606L' with
 //	WG21 P0504R0 support which is not used here, so the check remains the value
 //	in WG21 P0941R1.
-#	if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603) \
+#	if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603L) \
 	|| __cpp_lib_optional >= 201603L
 #		define YB_Has_optional 1
 #	endif
@@ -77,7 +78,8 @@
 */
 //@{
 #ifndef __cpp_lib_optional
-#	if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201606) || __cplusplus >= 201606L
+#	if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201606L) \
+	|| __cplusplus >= 201606L
 #		define __cpp_lib_optional 201606L
 #	endif
 #endif
@@ -434,7 +436,7 @@ inline namespace cpp2017
 \see libstdc++ 5 和 Microsoft VC++ 2013 标准库在命名空间 std 内对指针类型的实现：
 	_Destroy 模板。
 */
-#if (YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201606) \
+#if (YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201606L) \
 	|| (((YB_IMPL_GNUCPP >= 80000 && __GLIBCXX__ > 20160914) \
 	|| _LIBCPP_VERSION > 4000) && __cplusplus >= 201606L) \
 	|| __cpp_lib_raw_memory_algorithms >= 201606L
@@ -561,7 +563,7 @@ inline namespace cpp2017
 \see http://lists.llvm.org/pipermail/cfe-commits/Week-of-Mon-20161010/173499.html 。
 */
 //@{
-#if (YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201606) \
+#if (YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201606L) \
 	|| (((YB_IMPL_GNUCPP >= 80000 && __GLIBCXX__ > 20160920) \
 	|| _LIBCPP_VERSION > 4000) && __cplusplus >= 201606L) \
 	|| __cpp_lib_raw_memory_algorithms >= 201606L

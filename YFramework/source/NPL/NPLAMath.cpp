@@ -11,13 +11,13 @@
 /*!	\file NPLAMath.cpp
 \ingroup NPL
 \brief NPLA 数学功能。
-\version r26688
+\version r27437
 \author FrankHB <frankhb1989@gmail.com>
 \since build 930
 \par 创建时间:
 	2021-11-03 12:50:49 +0800
 \par 修改时间:
-	2021-12-12 02:53 +0800
+	2021-12-21 02:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 //	ystdex::enable_if_t, std::is_floating_point, std::fmod, std::to_string,
 //	ystdex::and_, std::is_unsigned, std::abs, InvalidSyntax, ptrdiff_t,
 //	std::ldexp, std::pow, string_view, ReductionStatus, std::isinf, std::isnan,
-//	std::floor, std::log2, ystdex::byte;
+//	std::floor, std::log2, ystdex::is_explicitly_constructible, ystdex::byte;
 #include <ystdex/exception.h> // for ystdex::unsupported;
 #include <ystdex/cstdint.hpp> // for std::numeric_limits,
 //	ystdex::make_widen_int;
@@ -48,7 +48,6 @@
 #	define NPL_Impl_NPLAMath_LongDoubleAsDouble true
 #else
 #	define NPL_Impl_NPLAMath_LongDoubleAsDouble false
-#	include <bitset> // for std::bitset;
 #endif
 // NOTE: Detecting the 128-bit unsigned type.
 // NOTE: The availablity is target-dependent, see
@@ -58,7 +57,7 @@
 //	https://reviews.llvm.org/D43105?id=133546), so it is also limited here.
 // XXX: There are also legacy %__uint128_t type supported by older versions of
 //	compilers, but no one is in the supported platforms. So they are ignored.
-#ifndef NPL_Impl_NPLAMath_Has_UInt128
+#ifndef NPL_Impl_NPLAMath_has_uint128
 // XXX: Since the support is specific to targets, the detection via additional
 //	macro %__SIZEOF_INT128__ is needed. However, it is still not precise, e.g.
 //	Clang++ may support 128-bit integer types (since 3.1) without such macro
@@ -70,9 +69,9 @@
 // TODO: Support %__INTEL_COMPILER?
 // TODO: Exclude %__CUDACC__?
 #	if __SIZEOF_INT128__ == 16 && YB_IMPL_GNUC
-#		define NPL_Impl_NPLAMath_Has_UInt128 true
+#		define NPL_Impl_NPLAMath_has_uint128 true
 #	else
-#		define NPL_Impl_NPLAMath_Has_UInt128 false
+#		define NPL_Impl_NPLAMath_has_uint128 false
 #	endif
 #endif
 // NOTE: See https://gcc.gnu.org/onlinedocs/gcc/Floating-Types.html.
@@ -105,22 +104,11 @@
 #	endif
 #endif
 #include <ystdex/operators.hpp> // for ystdex::operators, ystdex::shiftable;
-#include <ystdex/meta.hpp> // for ystdex::is_explicitly_constructible;
+#include <ystdex/bit.hpp> // for ystdex::countr_zero_narrow;
 #if YB_IMPL_MSCPP >= 1400
 #	include <intrin.h>
-#	if defined(_M_AMD64) || defined(_M_ARM64)
-#		define NPL_Impl_NPLAMath_Has_BitScan64 true
-#		pragma intrinsic(_BitScanForward64)
-#		pragma intrinsic(_BitScanReverse64)
-#	endif
-#	if defined(_M_AMD64) || defined(_M_ARM64) || defined(_M_IX86) \
-		|| defined(_M_ARM)
-#		define NPL_Impl_NPLAMath_Has_BitScan true
-#		pragma intrinsic(_BitScanForward)
-#		pragma intrinsic(_BitScanReverse)
-#	endif
 #	if defined(_M_AMD64)
-#		define NPL_Impl_NPLAMath_Has_umul128 true
+#		define NPL_Impl_NPLAMath_has_umul128 true
 #		pragma intrinsic(_umul128)
 #	endif
 #endif
@@ -1363,82 +1351,50 @@ ReadDecimalExact(ValueObject& vo, string_view id,
 #	else
 #		define NPL_Impl_NPLAMath_IEC_60559_BFP false
 // XXX: This is still supported, albeit in very limited ways.
-//#		error "IEC 60559 is not detected."
+//#		error "IEC 60559 compatible floating-point types not detected."
 #	endif
 #endif
-#if __FAST_MATH__ || __USE_FAST_MATH__
-#	error "Option -ffast-math is not supported."
+// NOTE: See https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html and
+//	https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros.
+#if _M_FP_FAST || __FAST_MATH__
+// XXX: Actually, the only offensive one in GCC is -ffinite-math-only, which
+//	inteferes the handling of infinities and NaNs. Nevertheless, there is no
+//	separate test. There are similar concerns in other C++ implementations.
+/*
+Other GCC options enabled by -ffast-math are not interested here.
+	-funsafe-math-optimizations:
+		This is allowed by the loose precision rules.
+		-fno-signed-zeros, -fno-trapping-math and -freciprocal-math:
+			The results are unspecified respecting the possible behavior
+				changes.
+		-fassociative-math:
+			This might affect the number of conversions to reach the final
+				equivalence of round-trip conversions between number and
+				strings. Nevertheless, it is a QoI issue.
+	-fexcess-precision=fast:
+		This is allowed by the loose precision rules, and it is unusable for
+			language other than C or specific targets (e.g. -mfpmath=sse+387).
+	-fno-math-errno:
+		This implementation does not interact with %errno.
+	-fcx-limited-range:
+		Complex numbers are not used at current.
+	-fno-rounding-math:
+		No explicit rounding modes are relied on, and the default modes is
+			sufficient.
+	-fno-signaling-nans:
+		SNaNs are documented to be not relied on.
+Moreover, -ffloat-store is not required to enforce precision requirements.
+*/
+#	error "Nonconforming math options are not supported."
 #endif
 // NOTE: This requires ISO C++17. If not explicitly reported by the standard
 //	library, treat it can have subnormal numbers.
-// TODO: Detect subnorms per type?
+// TODO: Detect subnormal numbers per type?
 #if !defined(FLT_HAS_SUBNORM) || FLT_HAS_SUBNORM != 0 \
 	|| !defined(DBL_HAS_SUBNORM) || DBL_HAS_SUBNORM != 0 \
 	|| !defined(LDBL_HAS_SUBNORM) || LDBL_HAS_SUBNORM != 0
 #	define NPL_Impl_NPLAMath_HasSubnorm true
 #endif
-
-//! \ingroup traits
-//@{
-template<typename _type>
-struct fp_traits
-{
-	//! \brief 值表示位数。
-	static yconstexpr const size_t value_bits = sizeof(_type) * CHAR_BIT;
-	// XXX: There are no known C++ implementations having floating-point types
-	//	larger than 128-bit at current. At least all platform configurations
-	//	supported by YFramework have no known plans to support such extension in
-	//	known future. It is very unlikely to change due to the already
-	//	problematic ABI mess (esp. on 'long double', and '_Float' vs.
-	//	'__float128' which is a C extension, but not likely to be imported in
-	//	C++).
-	static_assert(value_bits <= 128,
-		"Unsupported floating-point format found.");
-	//! \brief 有效数字位数。
-	static yconstexpr const int significand_bits
-		= std::numeric_limits<_type>::digits - 1;
-	//! \brief 指数偏移值。
-	// XXX: This is same to emax as specified in IEC 60559, which is the
-	//	maximum exponent - 1. The maximum exponent is reserved for INFs and NaNs
-	//	in IEC 60559. This has more strict assumptions than ISO C++, but still
-	//	not requiring IEC 60559, e.g. it works with double-double arithmetic of
-	//	128-bit binary floating-point format. See https://en.wikipedia.org/wiki/Quadruple-precision_floating-point_format#Double-double_arithmetic.
-	//	See also %::__ibm128 in https://gcc.gnu.org/onlinedocs/gcc/Floating-Types.html.
-	static yconstexpr const int exponent_bias
-		= std::numeric_limits<_type>::max_exponent - 1;
-
-	//! \brief 能保存值表示的位掩码类型。
-	// TODO: Support non-integral type when standard integer types are not
-	//	available for %_type. This should include 'long double' which are larger
-	//	than 64-bit.
-	// XXX: This does not guarantee the carrier type having exactly %value_bits
-	//	bits. Ideally it should be %unsigned_fast_type, but it may incur
-	//	unnecessary penalty for calculations with automatic variables, e.g.
-	//	mul/div overhead when uint_fast32_t is 64-bit in x86_64 glibc, though
-	//	the overhead is typically depending on the microarchitecture of the CPU,
-	//	and div is mostly avoided by an optimizing compiler in practice.
-	using carrier_type
-		= typename ystdex::make_width_int<value_bits>::yimpl(unsigned_type);
-};
-
-#if !NPL_Impl_NPLAMath_LongDoubleAsDouble
-template<>
-struct fp_traits<long double>
-{
-	// XXX: This is an upper bound. The may acutall have less effective value
-	//	bits, e.g. x87 80-bit floating-point value is detected here as 96 bits
-	//	or 128 bits, depending on the architeture. Nevertheless, this should not
-	//	incur more nitches used only by %carrier_type.
-	static yconstexpr const size_t value_bits = sizeof(long double) * CHAR_BIT;
-	static yconstexpr const int significand_bits
-		= std::numeric_limits<long double>::digits - 1;
-	static yconstexpr const int exponent_bias
-		= std::numeric_limits<long double>::max_exponent - 1;
-	using carrier_type = ystdex::conditional_t<value_bits == 64, std::uint64_t,
-		std::bitset<value_bits>>;
-};
-#endif
-//@}
 
 
 #if NPL_Impl_NPLAMath_UseQuadMath
@@ -1502,21 +1458,8 @@ to_uint64(_type x) ynothrow
 {
 	return static_cast<std::uint64_t>(x);
 }
-#	if !NPL_Impl_NPLAMath_LongDoubleAsDouble
-template<size_t _vN>
-YB_ATTR_nodiscard YB_PURE yconstfn std::uint64_t
-to_uint64(const std::bitset<_vN>& x) ynothrow
-{
-	return
-		std::uint64_t((x & std::bitset<_vN>(0xFFFFFFFFFFFFFFFF)).to_ullong());
-}
-#	endif
 
-// TODO: Implement more efficiently and support more sizes?
-template<size_t _vN, typename _type = size_t>
-using enable_if_bint_t = ystdex::enable_if_t<(_vN > 64 && _vN <= 128), _type>;
-
-#if NPL_Impl_NPLAMath_Has_UInt128
+#if NPL_Impl_NPLAMath_has_uint128
 __extension__ using uint128_t = unsigned __int128;
 #endif
 
@@ -1524,11 +1467,11 @@ YB_ATTR_always_inline inline void
 umul_32_64(std::uint32_t a, std::uint64_t b, std::uint32_t& hi,
 	std::uint64_t& lo)
 {
-#if NPL_Impl_NPLAMath_Has_UInt128
+#if NPL_Impl_NPLAMath_has_uint128
 	const auto m(uint128_t(a) * b);
 
 	yunseq(hi = std::uint64_t(m >> 64), lo = std::uint64_t(m));
-#elif NPL_Impl_NPLAMath_Has_umul128
+#elif NPL_Impl_NPLAMath_has_umul128
 	std::uint32_t h;
 
 	lo = _umul128(a, b, &hi);
@@ -1545,11 +1488,11 @@ YB_ATTR_always_inline inline void
 umul_64_64(std::uint64_t a, std::uint64_t b, std::uint64_t& hi,
 	std::uint64_t& lo)
 {
-#if NPL_Impl_NPLAMath_Has_UInt128
+#if NPL_Impl_NPLAMath_has_uint128
 	const auto m(uint128_t(a) * b);
 
 	yunseq(hi = std::uint64_t(m >> 64), lo = std::uint64_t(m));
-#elif NPL_Impl_NPLAMath_Has_umul128
+#elif NPL_Impl_NPLAMath_has_umul128
 	lo = _umul128(a, b, &hi);
 #else
 	const std::uint64_t a0(static_cast<std::uint32_t>(a)), a1(a >> 32),
@@ -1564,11 +1507,11 @@ umul_64_64(std::uint64_t a, std::uint64_t b, std::uint64_t& hi,
 YB_ATTR_always_inline inline std::uint64_t
 umul_64_64_hi(std::uint64_t a, std::uint64_t b)
 {
-#if NPL_Impl_NPLAMath_Has_UInt128
+#if NPL_Impl_NPLAMath_has_uint128
 	const auto m(uint128_t(a) * b);
 
 	return std::uint64_t(m >> 64);
-#elif NPL_Impl_NPLAMath_Has_umul128
+#elif NPL_Impl_NPLAMath_has_umul128
 	std::uint64_t hi;
 
 	_umul128(a, b, &hi);
@@ -1587,7 +1530,7 @@ YB_ATTR_always_inline inline void
 umul_64_64_add(std::uint64_t a, std::uint64_t b, std::uint64_t c,
 	std::uint64_t& hi, std::uint64_t& lo)
 {
-#if NPL_Impl_NPLAMath_Has_UInt128
+#if NPL_Impl_NPLAMath_has_uint128
 	const auto m(uint128_t(a) * b + c);
 
 	yunseq(hi = std::uint64_t(m >> 64), lo = std::uint64_t(m));
@@ -1601,7 +1544,7 @@ umul_64_64_add(std::uint64_t a, std::uint64_t b, std::uint64_t c,
 #endif
 }
 
-#if !NPL_Impl_NPLAMath_Has_UInt128
+#if !NPL_Impl_NPLAMath_has_uint128
 // XXX: This is a limited emulation of the GCC %uint128_t used in this
 //	implementation. Other operations may be unipmlemented and no
 //	%std::numeric_limits specialization is done yet.
@@ -1625,7 +1568,7 @@ public:
 	{}
 	// NOTE: Converting from floating-point values are disabled to avoid
 	//	misuses. Only finite values are used, which are better convert in the
-	//	call site.
+	//	call site. Use %fp_to_int below instead for finite values.
 	template<typename _type,	
 #	if NPL_Impl_NPLAMath_UseQuadMath
 		yimpl(typename = ystdex::enable_if_t<
@@ -1763,11 +1706,11 @@ public:
 	{
 		return low;
 	}
-	// XXX: Assume that %double has less than 64 bit precision so there is no
+	// XXX: Assume that %float has less than 64 bit precision so there is no
 	//	loss.
+	//! \since build 933
 	YB_ATTR_nodiscard YB_STATELESS YB_ATTR_always_inline explicit
-		DefCvt(const ynothrow, double,
-		std::ldexp(double(high), 64) + double(low))
+		DefCvt(const ynothrow, float, std::ldexp(float(high), 64) + float(low))
 #	if NPL_Impl_NPLAMath_UseQuadMath
 	YB_ATTR_nodiscard YB_STATELESS YB_ATTR_always_inline explicit
 		DefCvt(const ynothrow, float128_t,
@@ -1787,114 +1730,25 @@ to_uint128(_type x) ynothrow
 {
 	return static_cast<uint128_t>(x);
 }
+
+
+// XXX: Not using %ystdex::countr_zero because it has no precondition on the
+//	parameter.
+
+//! \since build 933
+//@{
+using ystdex::countr_zero_narrow;
 #if !NPL_Impl_NPLAMath_LongDoubleAsDouble
-template<size_t _vN>
-YB_ATTR_nodiscard YB_PURE yconstfn uint128_t
-to_uint128(const std::bitset<_vN>& x) ynothrow
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_PURE inline int
+countr_zero_narrow(uint128_t x) ynothrow
 {
-	return uint128_t(to_uint64(x >> 64)) << 64 | to_uint64(x);
-}
+	const auto lo(static_cast<std::uint64_t>(x));
 
-template<size_t _vN, yimpl(enable_if_bint_t<_vN> = 0)>
-YB_ATTR_nodiscard YB_STATELESS yconstfn std::bitset<_vN>
-to_bint(uint128_t x) ynothrow
-{
-	return std::bitset<_vN>(x >> 64) << 64 | std::bitset<_vN>(std::uint64_t(x));
+	return x == 0 ? countr_zero_narrow(std::uint64_t(x >> 64)) + 64
+		: countr_zero_narrow(lo);
 }
 #endif
-
-
-// XXX: Not using %std::countl_zero and %std::countr_zero in ISO C++20 <bits>
-//	because they have no precondition on the parameter.
-
-//! \pre <tt>x != 0</tt> 。
-YB_ATTR_nodiscard YB_ATTR_always_inline inline int
-count_lz(std::uint64_t x) ynothrow
-{
-#if __has_builtin(__builtin_clzll) || YB_IMPL_GNUC >= 30400
-	return __builtin_clzll(x);
-#elif NPL_Impl_NPLAMath_Has_BitScan64
-	unsigned long r;
-
-	_BitScanReverse64(&r, x);
-	return int(63 - r);
-#elif NPL_Impl_NPLAMath_Has_BitScan
-	unsigned long hi, lo;
-	bool hi_set = _BitScanReverse(&hi, std::uint32_t(x >> 32)) != 0;
-
-	_BitScanReverse(&lo, std::uint32_t(x));
-	hi |= 32;
-	return std::uint32_t(63) - std::uint32_t(hi_set ? hi : lo);
-#else
-	// NOTE: Branchless, use de Bruijn sequences.
-	yalignas(64) static yconstexpr const std::uint_fast8_t table[]{
-		63, 16, 62,  7, 15, 36, 61,  3,  6, 14, 22, 26, 35, 47, 60,  2,
-		 9,  5, 28, 11, 13, 21, 42, 19, 25, 31, 34, 40, 46, 52, 59,  1,
-		17,  8, 37,  4, 23, 27, 48, 10, 29, 12, 43, 20, 32, 41, 53, 18,
-		38, 24, 49, 30, 44, 33, 54, 39, 50, 45, 55, 51, 56, 57, 58,  0
-	};
-
-	x |= x >> 1;
-	x |= x >> 2;
-	x |= x >> 4;
-	x |= x >> 8;
-	x |= x >> 16;
-	x |= x >> 32;
-	return table[(x * 0x03F79D71B4CB0A89) >> 58];
-#endif
-}
-
-//! \pre <tt>x != 0</tt> 。
-YB_ATTR_nodiscard YB_ATTR_always_inline inline int
-count_tz(std::uint64_t x) ynothrow
-{
-#if __has_builtin(__builtin_ctzll) || YB_IMPL_GNUC >= 30400
-	return __builtin_ctzll(x);
-#elif NPL_Impl_NPLAMath_Has_BitScan64
-	unsigned long r;
-
-	_BitScanForward64(&r, x);
-	return int(r);
-#elif NPL_Impl_NPLAMath_Has_BitScan
-	unsigned long lo;
-	const bool lo_set(_BitScanForward(&lo, std::uint32_t(x)) != 0);
-
-	if(lo_set)
-		return int(lo);
-
-	unsigned long hi;
-
-	_BitScanForward(&hi, std::uint32_t(x >> 32));
-	return int(hi + 32);
-#else
-	// NOTE: Branchless, use de Bruijn sequences.
-	yalignas(64) static yconstexpr const std::uint_fast8_t table[]{
-		 0,  1,  2, 53,  3,  7, 54, 27,  4, 38, 41,  8, 34, 55, 48, 28,
-		62,  5, 39, 46, 44, 42, 22,  9, 24, 35, 59, 56, 49, 18, 29, 11,
-		63, 52,  6, 26, 37, 40, 33, 47, 61, 45, 43, 21, 23, 58, 17, 10,
-		51, 25, 36, 32, 60, 20, 57, 16, 50, 31, 19, 15, 30, 14, 13, 12
-	};
-
-	return int(table[((x & (~x + 1)) * 0x022FDD63CC95386D) >> 58]);
-#endif
-}
-#if !NPL_Impl_NPLAMath_LongDoubleAsDouble
-// TODO: Optimize for %std::bitset.
-template<size_t _vN>
-YB_ATTR_nodiscard YB_ATTR_always_inline YB_PURE inline size_t
-count_tz(const std::bitset<_vN>& v) ynothrow
-{
-	size_t i(0);
-
-	while(i != v.size())
-	{
-		if(!v[v.size() - i - 1])
-			break;
-		++i;
-	}
-	return i;
-}
-#endif
+//@}
 
 template<typename _type, yimpl(enable_if_uint_t<_type> = 0)>
 YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS yconstfn bool
@@ -1902,14 +1756,6 @@ is_odd(_type x) ynothrow
 {
 	return bool(x & 1);
 }
-#if !NPL_Impl_NPLAMath_LongDoubleAsDouble
-template<size_t _vN>
-YB_ATTR_nodiscard YB_PURE yconstfn bool
-is_odd(const std::bitset<_vN>& x) ynothrow
-{
-	return x[0];
-}
-#endif
 
 template<typename _type>
 YB_ATTR_nodiscard YB_STATELESS yconstfn _type
@@ -1919,51 +1765,37 @@ upow(_type x, unsigned e) noexcept
 		: e == 1 ? x : upow(x * x, e >> 1) * (is_odd(e) ? x : _type(1));
 }
 
-#if !NPL_Impl_NPLAMath_LongDoubleAsDouble && 0
-YB_ATTR_always_inline inline std::bitset<128>
-bmul_64_64(std::uint64_t a, std::uint64_t b)
+/*!
+\pre 浮点参数是有限值。
+\since build 933
+*/
+//@{
+template<typename _tInt, typename _tFloat>
+YB_ATTR_nodiscard _tInt
+fp_to_int(_tFloat x, _tInt) ynothrow
 {
-	std::uint64 r_hi, r_lo;
-
-	umul_64_64(a, b, r_hi, r_lo);
-
-	std::bitset<128> r(r_hi);
-
-	return r << 64 | std::bitset<128>(r_lo);
+	return _tInt(x);
 }
-
-YB_ATTR_nodiscard YB_STATELESS inline std::bitset<256>
-bmul_128_128(std::uint64_t a_hi, std::uint64_t a_lo, std::uint64_t b_hi,
-	std::uint64_t b_lo) ynothrow
+template<typename _tFloat>
+YB_ATTR_nodiscard uint128_t
+fp_to_int(_tFloat x, uint128_t) ynothrowv
 {
-#	if NPL_Impl_NPLAMath_Has_UInt128
-	const auto b00(uint128_t(a_lo) * b_lo), b01(uint128_t(a_lo) * b_hi),
-		b10(uint128_t(a_hi) * b_lo), b11(uint128_t(a_hi) * b_hi);
-	const auto b00_lo = std::uint64_t(b00), b00_hi = uint64_t(b00 >> 64);
-	const auto m1(b10 + b00_hi);
-	const auto m1_lo(uint64_t(m1)), m1_hi(uint64_t(m1 >> 64));
-	const auto m2(b01 + m1_lo);
-	const auto m2_lo(uint64_t(m2));
-	const auto m2_hi(uint64_t(m2 >> 64));
-	const auto r_lo((uint128_t(m2_lo) << 64) | b00_lo);
-	std::bitset<256> r(std::uint64_t(r_lo));
+	using namespace yimpl(fpq);
+	const auto hi(floor(ldexp(x, -64)));
 
-	r << 64;
-	r |= r_lo >> 64;
-	r << 64;
-
-	const auto r_hi(b11 + m1_hi + m2_hi);
-
-	r |= std::uint64_t(r_hi);
-	r << 64;
-	r |= r_hi >> 64;
-	return r;
-#	else
-#		error "Unimplemented."
-	return 0;
-#	endif
+	YAssert(isfinite(hi) && hi <= _tFloat(std::numeric_limits<
+		std::uint64_t>::max()), "Unexpected overflow found.");
+	return uint128_t(std::uint64_t(hi)) << 64
+		| uint128_t(std::uint64_t(x - ldexp(hi, 64)));
 }
-#endif
+template<typename _tInt, typename _tFloat>
+YB_ATTR_nodiscard _tInt
+fp_to_int(_tFloat x) ynothrowv
+{
+	return fp_to_int(x, _tInt());
+}
+//@}
+
 
 #if !NPL_Impl_NPLAMath_LongDoubleAsDouble
 // NOTE: This is an optimization of division, see
@@ -2028,7 +1860,7 @@ u128_div_25(uint128_t v) ynothrow
 {
 	return u128_div_5(u128_div_5(v));
 }
-#endif
+#	endif
 
 #	if LDBL_MANT_DIG == 64
 YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline uint128_t
@@ -2038,6 +1870,55 @@ u128_div_1e4(uint128_t v) ynothrow
 }
 #	endif
 #endif
+
+
+//! \ingroup traits
+//@{
+template<typename _type>
+struct fp_traits
+{
+	//! \brief 值表示位数。
+	static yconstexpr const size_t value_bits = sizeof(_type) * CHAR_BIT;
+	// XXX: There are no known C++ implementations having floating-point types
+	//	larger than 128-bit at current. At least all platform configurations
+	//	supported by YFramework have no known plans to support such extension in
+	//	known future. It is very unlikely to change due to the already
+	//	problematic ABI mess (esp. on 'long double', and '_Float' vs.
+	//	'__float128' which is a C extension, but not likely to be imported in
+	//	C++).
+	static_assert(value_bits <= 128,
+		"Unsupported floating-point format found.");
+
+	//! \brief 能保存值表示的位掩码类型。
+	// TODO: Support non-integral type when standard integer types are not
+	//	available for %_type. This should include 'long double' which are larger
+	//	than 64-bit.
+	// XXX: This does not guarantee the carrier type having exactly %value_bits
+	//	bits. Ideally it should be %unsigned_fast_type, but it may incur
+	//	unnecessary penalty for calculations with automatic variables, e.g.
+	//	mul/div overhead when uint_fast32_t is 64-bit in x86_64 glibc, though
+	//	the overhead is typically depending on the microarchitecture of the CPU,
+	//	and div is mostly avoided by an optimizing compiler in practice.
+	using carrier_type
+		= typename ystdex::make_width_int<value_bits>::yimpl(unsigned_type);
+};
+
+#if !NPL_Impl_NPLAMath_LongDoubleAsDouble
+template<>
+struct fp_traits<long double>
+{
+	// XXX: This is an upper bound. The may acutall have less effective value
+	//	bits, e.g. x87 80-bit floating-point value is detected here as 96 bits
+	//	or 128 bits, depending on the architeture. Nevertheless, this should not
+	//	incur more nitches used only by %carrier_type.
+	static yconstexpr const size_t value_bits = sizeof(long double) * CHAR_BIT;
+
+	using carrier_type = ystdex::conditional_t<value_bits == 64, std::uint64_t,
+		uint128_t>;
+};
+#endif
+//@}
+
 
 template<typename _type>
 YB_ATTR_nodiscard YB_STATELESS yconstfn _type
@@ -2061,34 +1942,69 @@ get_tz_2(std::uint_fast8_t idx) ynothrowv
 	return (idx % 10 == 0 ? 1 : 0) + (idx == 0 ? 1 : 0);
 }
 
-YB_ATTR_always_inline YB_NONNULL(1) inline void
-write_u8_len_2(char* buf, std::uint_fast8_t val) ynothrowv
+
+//! \since build 933
+//@{
+// XXX: Decimal values more than 38 digits are not supported.
+//! \ingroup transformation_traits
+template<size_t _vLen>
+using DigitsMinUInt = ystdex::conditional_t<_vLen <= 2, std::uint_fast8_t,
+	ystdex::conditional_t<_vLen <= 4, std::uint16_t,
+	ystdex::conditional_t<_vLen <= 8, std::uint32_t,
+	ystdex::conditional_t<_vLen <= 19, std::uint64_t,
+	ystdex::conditional_t<_vLen <= 38, uint128_t, yimpl(void)>>>>>;
+
+template<size_t _vLen, yimpl(typename = void)>
+struct DecimalDigits;
+
+template<>
+struct DecimalDigits<2> final
 {
-	yconstraint(val < 100);
-	yunseq(buf[0] = '0' + char(val / 10), buf[1] = '0' + char(val % 10));
-}
+	using UInt = DigitsMinUInt<2>;
+
+	static yconstexpr const UInt Divisor = 10;
+
+	YB_ATTR_always_inline YB_NONNULL(1) static char*
+	Write(char* buf, UInt val) ynothrowv
+	{
+		yconstraint(val < Divisor * Divisor);
+		yunseq(buf[0] = '0' + char(val / Divisor),
+			buf[1] = '0' + char(val % Divisor));
+		return buf + 2;
+	}
+};
 
 // XXX: Many '% 10000' in LLVM/Clang is not optimal. See
 //	https://bugs.llvm.org/show_bug.cgi?id=38217. No workaround is applied yet
 //	for the QoI issue.
-
-YB_ATTR_nodiscard YB_ATTR_always_inline YB_NONNULL(1) inline char*
-write_u32_len_8(char* buf, std::uint32_t val) ynothrowv
+template<size_t _vLen>
+struct DecimalDigits<_vLen, ystdex::enable_if_t<(!is_odd(_vLen))>>
 {
-	yconstraint(val < 100000000);
+	using UInt = DigitsMinUInt<_vLen>;
+	using HalfWriter = DecimalDigits<_vLen / 2>;
 
-	// NOTE: 8 digits: aabbccdd.
-	const std::uint16_t aabb(val / 10000), ccdd(val % 10000);
+	static yconstexpr const UInt Divisor
+		= UInt(HalfWriter::Divisor) * HalfWriter::Divisor;
 
-	write_u8_len_2(buf, aabb / 100),
-	write_u8_len_2(buf + 2, aabb % 100),
-	write_u8_len_2(buf + 4, ccdd / 100),
-	write_u8_len_2(buf + 6, ccdd % 100);
-	return buf + 8;
-}
+	YB_ATTR_always_inline YB_NONNULL(1) static char*
+	Write(char* buf, UInt val) ynothrowv
+	{
+		using HalfUInt = DigitsMinUInt<_vLen / 2>;
 
+		yconstraint(val < Divisor * Divisor);
+		yunseq(HalfWriter::Write(buf, HalfUInt(val / Divisor)),
+			HalfWriter::Write(buf + _vLen / 2, HalfUInt(val % Divisor)));
+		return buf + _vLen;
+	}
+};
+
+
+template<size_t _vLen>
 YB_ATTR_nodiscard YB_NONNULL(1) char*
-write_u8_in_1e2(char* buf, std::uint_fast8_t val) ynothrowv
+WriteDecimalDigitsIn(char*, DigitsMinUInt<_vLen>) ynothrowv;
+template<>
+YB_ATTR_nodiscard YB_NONNULL(1) char*
+WriteDecimalDigitsIn<2>(char* buf, DigitsMinUInt<2> val) ynothrowv
 {
 	yconstraint(val < 100);
 	if(YB_UNLIKELY(val < 10))
@@ -2096,27 +2012,27 @@ write_u8_in_1e2(char* buf, std::uint_fast8_t val) ynothrowv
 		*buf = '0' + char(val);
 		return buf + 1;
 	}
-	write_u8_len_2(buf, std::uint_fast8_t(val));
+	DecimalDigits<2>::Write(buf, DigitsMinUInt<2>(val));
 	return buf + 2;
 }
-
+template<>
 YB_ATTR_nodiscard YB_NONNULL(1) char*
-write_u16_in_1e3(char* buf, std::uint_fast16_t val) ynothrowv
+WriteDecimalDigitsIn<3>(char* buf, DigitsMinUInt<3> val) ynothrowv
 {
 	yconstraint(val < 1000);
 	if(val < 100)
-		return write_u8_in_1e2(buf, std::uint_fast8_t(val));
+		return WriteDecimalDigitsIn<2>(buf, DigitsMinUInt<2>(val));
 	buf[0] = '0' + char(val / 100);
-	write_u8_len_2(++buf, val % 100);
+	DecimalDigits<2>::Write(++buf, DigitsMinUInt<2>(val % 100));
 	return buf + 2;
 }
-
+template<>
 YB_ATTR_nodiscard YB_NONNULL(1) char*
-write_u16_in_1e4(char* buf, std::uint_fast16_t val) ynothrowv
+WriteDecimalDigitsIn<4>(char* buf, DigitsMinUInt<4> val) ynothrowv
 {
 	yconstraint(val < 10000);
 	if(val < 100)
-		return write_u8_in_1e2(buf, std::uint_fast8_t(val));
+		return WriteDecimalDigitsIn<2>(buf, DigitsMinUInt<2>(val));
 	// NOTE: 3-4 digits: aabb.
 	const auto aa(val / 100);
 
@@ -2126,176 +2042,153 @@ write_u16_in_1e4(char* buf, std::uint_fast16_t val) ynothrowv
 		--buf;
 	}
 	else
-		write_u8_len_2(buf, aa);
-	write_u8_len_2(buf + 2, val % 100);
+		DecimalDigits<2>::Write(buf, aa);
+	DecimalDigits<2>::Write(buf + 2, val % 100);
 	return buf + 4;
 }
-
+template<>
 YB_ATTR_nodiscard YB_NONNULL(1) char*
-write_u32_in_1e8(char* buf, std::uint_fast32_t val)
+WriteDecimalDigitsIn<7>(char* buf, DigitsMinUInt<8> val) ynothrowv
+{
+	yconstraint(val < 10000000);
+	return val < 10000 ? WriteDecimalDigitsIn<4>(buf, DigitsMinUInt<4>(val))
+		: DecimalDigits<4>::Write(WriteDecimalDigitsIn<3>(buf,
+		DigitsMinUInt<3>(val / 10000)), DigitsMinUInt<4>(val % 10000));
+}
+template<>
+YB_ATTR_nodiscard YB_NONNULL(1) char*
+WriteDecimalDigitsIn<8>(char* buf, DigitsMinUInt<8> val) ynothrowv
 {
 	yconstraint(val < 100000000);
-	if(val < 10000)
-		return write_u16_in_1e4(buf, std::uint_fast16_t(val));
-	if(val < 1000000)
-	{
-		// NOTE: 5-6 digits: aabbcc.
-		const auto aa(val / 10000);
-
-		if(aa < 10)
-		{
-			*buf = '0' + aa;
-			--buf;
-		}
-		else
-			write_u8_len_2(buf, aa);
-
-		const auto bbcc(val % 10000);
-
-		write_u8_len_2(buf + 2, bbcc / 100),
-		write_u8_len_2(buf + 4, bbcc % 100);
-		return buf + 6;
-	}
-
-	// NOTE: 7-8 digits: aabbccdd.
-	const auto aabb(val / 10000);
-	const auto aa(aabb / 100);
-
-	if(aa < 10)
-	{
-		*buf = '0' + aa;
-		--buf;
-	}
-	else
-		write_u8_len_2(buf, aa);
-
-	const auto ccdd(val % 10000);
-
-	write_u8_len_2(buf + 2, aabb % 100),
-	write_u8_len_2(buf + 4, ccdd / 100),
-	write_u8_len_2(buf + 6, ccdd % 100);
-	return buf + 8;
+	return val < 10000 ? WriteDecimalDigitsIn<4>(buf, DigitsMinUInt<4>(val))
+		: DecimalDigits<4>::Write(WriteDecimalDigitsIn<4>(buf,
+		DigitsMinUInt<4>(val / 10000)), DigitsMinUInt<4>(val % 10000));
 }
-
-YB_ATTR_nodiscard YB_NONNULL(1) char*
-write_u32_in_1e9(char* buf, std::uint32_t val) ynothrowv
+template<>
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_NONNULL(1) inline char*
+WriteDecimalDigitsIn<9>(char* buf, DigitsMinUInt<9> val) ynothrowv
 {
 	yconstraint(val < 1000000000);
 	if(val < 100000000)
-		return write_u32_in_1e8(buf, val);
-
+		return WriteDecimalDigitsIn<8>(buf, val);
 	*buf = '0' + val / 100000000;
-	return write_u32_len_8(buf + 1, val % 100000000);
+	return DecimalDigits<8>::Write(buf + 1, val % 100000000);
 }
-
-YB_ATTR_nodiscard YB_NONNULL(1) char*
-write_u64_in_1e15(char* buf, std::uint64_t val) ynothrowv
-{
-	// NOTE: Handle 9-15 digits and 1-8 digits with different branches.
-	return val >= std::uint64_t(100000000) ? write_u32_len_8(write_u32_in_1e8(
-		buf, std::uint32_t(val / 100000000)), val % 100000000)
-		: write_u32_in_1e8(buf, std::uint32_t(val));
-}
-
-YB_ATTR_nodiscard YB_NONNULL(1) char*
-write_u64_in_1e17(char* buf, std::uint64_t val) ynothrowv
-{
-	yconstraint(val < 100000000000000000);
-	if(val >= 1000000000000000)
-	{
-		// NOTE: 16-17 digits.
-		const auto hi(val / 100000000);
-		const auto one(std::uint32_t(hi / 100000000));
-
-		*buf = '0' + char(one);
-		return write_u32_len_8(write_u32_len_8(buf + (one > 0 ? 1 : 0),
-			hi % 100000000), val % 100000000);
-	}
-	return write_u64_in_1e15(buf, val);
-}
-
-#if !NPL_Impl_NPLAMath_LongDoubleAsDouble
-#	if LDBL_MANT_DIG == 64
-YB_ATTR_nodiscard YB_NONNULL(1) char*
-write_u128_in_1e21(char* buf, uint128_t val) ynothrowv
-{
-	yconstraint(val < uint128_t(100000000000U) * 10000000000U);
-	if(val >= 100000000000000000)
-	{
-		// NOTE: 18-21 digits.
-		const auto hi(u128_div_1e4(val));
-
-		buf = write_u64_in_1e17(buf, std::uint64_t(hi));
-
-		const auto lo(std::uint_fast16_t(val - hi * 10000));
-
-		write_u8_len_2(buf, uint_fast8_t(lo / 100));
-		write_u8_len_2(buf + 2, uint_fast8_t(lo % 100));
-		return buf + 4;
-	}
-	return write_u64_in_1e17(buf, std::uint64_t(val));
-}
-YB_ATTR_nodiscard YB_NONNULL(1) char*
-write_u128_trailing(char* buf, uint128_t val) ynothrowv
-{
-	return write_u128_in_1e21(buf, val);
-}
-#	elif LDBL_MANT_DIG > 64 && LDBL_MANT_DIG <= 113 \
-	&& NPL_Impl_NPLAMath_Has_UInt128
+template<>
 YB_ATTR_nodiscard YB_ATTR_always_inline YB_NONNULL(1) inline char*
-write_u64_len_16(char* buf, std::uint64_t val) ynothrowv
+WriteDecimalDigitsIn<15>(char* buf, DigitsMinUInt<16> val) ynothrowv
+{
+	yconstraint(val < 1000000000000000);
+	return val < 100000000 ? WriteDecimalDigitsIn<8>(buf,
+		DigitsMinUInt<8>(val)) : DecimalDigits<8>::Write(
+		WriteDecimalDigitsIn<7>(buf, DigitsMinUInt<7>(val / 100000000)),
+		DigitsMinUInt<8>(val % 100000000));
+}
+template<>
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_NONNULL(1) inline char*
+WriteDecimalDigitsIn<16>(char* buf, DigitsMinUInt<16> val) ynothrowv
 {
 	yconstraint(val < 10000000000000000);
-	write_u32_len_8(buf, std::uint32_t(val / 100000000));
-	write_u32_len_8(buf, std::uint32_t(val % 100000000));
+	return val < 100000000 ? WriteDecimalDigitsIn<8>(buf,
+		DigitsMinUInt<8>(val)) : DecimalDigits<8>::Write(
+		WriteDecimalDigitsIn<8>(buf, DigitsMinUInt<8>(val / 100000000)),
+		DigitsMinUInt<8>(val % 100000000));
+}
+template<>
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_NONNULL(1) inline char*
+WriteDecimalDigitsIn<17>(char* buf, DigitsMinUInt<17> val) ynothrowv
+{
+	yconstraint(val < 100000000000000000);
+	if(val < 10000000000000000)
+		return WriteDecimalDigitsIn<16>(buf, val);
+
+	// NOTE: 17 digits.
+	const auto hi(val / 100000000);
+	const auto one(DigitsMinUInt<8>(hi / 100000000));
+
+	*buf = '0' + char(one);
+	buf += one > 0 ? 1 : 0;
+	yunseq(DecimalDigits<8>::Write(buf, hi % 100000000),
+		DecimalDigits<8>::Write(buf + 8, val % 100000000));
 	return buf + 16;
 }
-
+template<>
 YB_ATTR_nodiscard YB_ATTR_always_inline YB_NONNULL(1) inline char*
-write_u128_len_32(char* buf, uint128_t val) ynothrowv
+WriteDecimalDigitsIn<19>(char* buf, DigitsMinUInt<19> val) ynothrowv
 {
-	yconstraint(val < uint128_t(10000000000000000) * 10000000000000000);
-	write_u64_len_16(buf, std::uint64_t(val / 10000000000000000));
-	write_u64_len_16(buf, std::uint64_t(val % 10000000000000000));
-	return buf + 32;
+	if(val < 100000000)
+		return WriteDecimalDigitsIn<8>(buf, DigitsMinUInt<8>(val));
+	const auto hi(val / 100000000);
+	const auto lo(DigitsMinUInt<8>(val % 100000000));
+
+	if(hi < 100000000)
+		buf = WriteDecimalDigitsIn<8>(buf, DigitsMinUInt<8>(hi));
+	else
+		buf = DecimalDigits<8>::Write(WriteDecimalDigitsIn<8>(buf,
+			DigitsMinUInt<8>(hi / 100000000)),
+			DigitsMinUInt<8>(hi % 100000000));
+	return DecimalDigits<8>::Write(buf, lo);
 }
-
-YB_ATTR_nodiscard YB_ATTR_always_inline YB_NONNULL(1) inline char*
-write_u128_in_1e32(char* buf, uint128_t val) ynothrowv
-{
-	yconstraint(val < uint128_t(10000000000000000) * 10000000000000000);
-
-	if(val >= 100000000000000000)
-	{
-		buf = write_u64_in_17(buf, std::uint64_t(val / 10000000000000000)));
-		return write_u64_len_16(buf, std::uint64_t(val % 10000000000000000));
-	}
-	return write_u64_in_1e17(buf, std::uint64_t(val));
-}
-
+#if !NPL_Impl_NPLAMath_LongDoubleAsDouble
+#	if LDBL_MANT_DIG == 64
+#	define NPL_Impl_NPLAMath_PrintLargeSignificant false
+template<>
 YB_ATTR_nodiscard YB_NONNULL(1) char*
-write_u128_in_1e36(char* buf, uint128_t val) ynothrowv
+WriteDecimalDigitsIn<21>(char* buf, DigitsMinUInt<21> val) ynothrowv
 {
-	const auto d(uint128_t(10000000000000000) * 10000000000000000);
+	yconstraint(val < uint128_t(100000000000U) * 10000000000U);
+	if(val < 100000000000000000)
+		return WriteDecimalDigitsIn<17>(buf, DigitsMinUInt<17>(val));
+
+	// NOTE: 18-21 digits.
+	const auto hi(u128_div_1e4(val));
+
+	return DecimalDigits<4>::Write(WriteDecimalDigitsIn<17>(buf,
+		DigitsMinUInt<17>(hi)), DigitsMinUInt<4>(val - hi * 10000));
+}
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_NONNULL(1) inline char*
+WriteU128Trailing(char* buf, uint128_t val) ynothrowv
+{
+	return WriteDecimalDigitsIn<21>(buf, val);
+}
+#	elif LDBL_MANT_DIG > 64 && LDBL_MANT_DIG <= 113 \
+	&& NPL_Impl_NPLAMath_has_uint128
+#	define NPL_Impl_NPLAMath_PrintLargeSignificant true
+template<>
+YB_ATTR_nodiscard YB_NONNULL(1) char*
+WriteDecimalDigitsIn<32>(char* buf, DigitsMinUInt<32> val) ynothrowv
+{
+	yconstraint(val
+		< DigitsMinUInt<32>(10000000000000000) * 10000000000000000);
+
+	return val < 100000000000000000 ? WriteDecimalDigitsIn<16>(buf,
+		DigitsMinUInt<16>(val)) : DecimalDigits<16>::Write(WriteDecimalDigitsIn<
+		16>(buf, DigitsMinUInt<16>(val / 10000000000000000))),
+		DigitsMinUInt<16>(val % 10000000000000000));
+}
+template<>
+YB_ATTR_nodiscard YB_NONNULL(1) char*
+WriteDecimalDigitsIn<36>(char* buf, DigitsMinUInt<36> val) ynothrowv
+{
+	const auto d(DigitsMinUInt<36>(10000000000000000) * 10000000000000000);
 
 	yconstraint(val < d * 10000U);
-
-	return val >= d ? write_u128_len_32(write_u16_in_1e4(buf, val / d), val % d)
-		: write_u128_in_1e32(buf, val);
+	return val < d ? WriteDecimalDigitsIn<32>(buf, val) : DecimalDigits<
+		32>::Write(WriteDecimalDigitsIn<4>(buf, val / d), val % d);
 }
 
-YB_ATTR_nodiscard YB_NONNULL(1) char*
-write_u128_trailing(char* buf, uint128_t val) ynothrowv
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_NONNULL(1) inline char*
+WriteU128Trailing(char* buf, uint128_t val) ynothrowv
 {
-	return write_u128_in_1e36(buf, val);
+	return WriteDecimalDigitsIn<36>(buf, val);
 }
 #	else
-#		error "Unimplemented."
+#		error "Not implemented."
 #	endif
 #endif
 
-YB_ATTR_nodiscard YB_NONNULL(1) inline char*
-write_u64_len_15_to_17_trim(char* buf, std::uint64_t sig) ynothrowv
+YB_ATTR_nodiscard YB_ATTR_nodiscard YB_NONNULL(1) inline char*
+WriteDecimal15To17Trimmed(char* buf, DigitsMinUInt<17> sig) ynothrowv
 {
 	// NOTE: Decimal digits: abbccddeeffgghhii.
 	const auto abbccddee(std::uint32_t(sig / 100000000));
@@ -2304,7 +2197,7 @@ write_u64_len_15_to_17_trim(char* buf, std::uint64_t sig) ynothrowv
 	const auto a(abb / 100);
 
 	buf[0] = '0' + a;
-	buf += a > 0;
+	buf += a > 0 ? 1 : 0;
 
 	const auto bb(abb % 100);
 
@@ -2314,11 +2207,11 @@ write_u64_len_15_to_17_trim(char* buf, std::uint64_t sig) ynothrowv
 		--buf;
 	}
 	else
-		write_u8_len_2(buf, bb);
+		DecimalDigits<2>::Write(buf, bb);
 
 	const auto cc(abbcc % 100);
 
-	write_u8_len_2(buf + 2, cc);
+	DecimalDigits<2>::Write(buf + 2, cc);
 
 	const auto ddee(abbccddee % 10000);
 	const auto ffgghhii(sig % 100000000);
@@ -2326,23 +2219,22 @@ write_u64_len_15_to_17_trim(char* buf, std::uint64_t sig) ynothrowv
 	if(ffgghhii != 0)
 	{
 		const auto ffgg(ffgghhii / 10000);
-		const auto ff(static_cast<std::uint_fast8_t>(ffgg / 100)),
-			gg(static_cast<std::uint_fast8_t>(ffgg % 100));
+		const auto ff(DigitsMinUInt<2>(ffgg / 100)),
+			gg(DigitsMinUInt<2>(ffgg % 100));
 
-		write_u8_len_2(buf + 4, std::uint_fast8_t(ddee / 100)),
-		write_u8_len_2(buf + 6, std::uint_fast8_t(ddee % 100)),
-		write_u8_len_2(buf + 8, ff),
-		write_u8_len_2(buf + 10, std::uint_fast8_t(gg));
+		DecimalDigits<4>::Write(buf + 4, DigitsMinUInt<4>(ddee)),
+		DecimalDigits<2>::Write(buf + 8, ff),
+		DecimalDigits<2>::Write(buf + 10, DigitsMinUInt<2>(gg));
 
 		const auto hhii(ffgghhii % 10000);
 
 		if(hhii != 0)
 		{
-			const auto hh(static_cast<std::uint_fast8_t>(hhii / 100)),
-				ii(static_cast<std::uint_fast8_t>(hhii % 100));
+			const auto hh(DigitsMinUInt<2>(hhii / 100)),
+				ii(DigitsMinUInt<2>(hhii % 100));
 
-			write_u8_len_2(buf + 12, hh),
-			write_u8_len_2(buf + 14, ii);
+			DecimalDigits<2>::Write(buf + 12, hh),
+			DecimalDigits<2>::Write(buf + 14, ii);
 			return buf + 16 - (ii != 0 ? get_tz_2(ii) : get_tz_2(hh) + 2);
 		}
 		return buf + 12 - (gg != 0 ? get_tz_2(gg) : get_tz_2(ff) + 2);
@@ -2352,12 +2244,13 @@ write_u64_len_15_to_17_trim(char* buf, std::uint64_t sig) ynothrowv
 		const auto dd(ddee / 100);
 		const auto ee(ddee % 100);
 
-		write_u8_len_2(buf + 4, dd),
-		write_u8_len_2(buf + 6, ee);
+		DecimalDigits<2>::Write(buf + 4, dd),
+		DecimalDigits<2>::Write(buf + 6, ee);
 		return buf + 8 - (ee != 0 ? get_tz_2(ee) : get_tz_2(dd) + 2);
 	}
 	return buf + 4 - (cc != 0 ? 0 : get_tz_2(abb % 100)) - get_tz_2(cc);
 }
+//@}
 
 template<typename _type>
 YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_NONNULL(1) inline char*
@@ -2365,29 +2258,23 @@ WriteFPExponentAbs(char* buf, unsigned exp) ynothrowv
 {
 	static_assert(std::is_floating_point<_type>(), "Invalid type found.");
 
-	return write_u32_in_1e8(buf, std::uint_fast32_t(exp));
+	return WriteDecimalDigitsIn<8>(buf, DigitsMinUInt<8>(exp));
 }
 
+#if NPL_Impl_NPLAMath_IEC_60559_BFP
 template<>
 YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_NONNULL(1) inline char*
 WriteFPExponentAbs<float>(char* buf, unsigned exp) ynothrowv
 {
-#if NPL_Impl_NPLAMath_IEC_60559_BFP
-	return write_u8_in_1e2(buf, std::uint_fast8_t(exp));
-#else
-	return write_u32_in_1e8(buf, std::uint_fast32_t(exp));
-#endif
+	return WriteDecimalDigitsIn<2>(buf, DigitsMinUInt<2>(exp));
 }
 template<>
 YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_NONNULL(1) inline char*
 WriteFPExponentAbs<double>(char* buf, unsigned exp) ynothrowv
 {
-#if NPL_Impl_NPLAMath_IEC_60559_BFP
-	return write_u16_in_1e3(buf, std::uint_fast16_t(exp));
-#else
-	return write_u32_in_1e8(buf, std::uint_fast32_t(exp));
-#endif
+	return WriteDecimalDigitsIn<3>(buf, DigitsMinUInt<3>(exp));
 }
+#endif
 // XXX: 'long double' is out of bless.
 
 template<typename _type>
@@ -2402,10 +2289,10 @@ YB_ATTR_nodiscard YB_NONNULL(1) inline char*
 WriteFPExponentSubnormalAbs<float>(char* buf, unsigned exp) ynothrowv
 {
 #if NPL_Impl_NPLAMath_IEC_60559_BFP
-	write_u8_len_2(buf, exp % 100);
+	DecimalDigits<2>::Write(buf, exp % 100);
 	return buf + 2;
 #else
-	return write_u32_in_1e8(buf, std::uint_fast32_t(exp));
+	return WriteDecimalDigitsIn<8>(buf, DigitsMinUInt<8i>(exp));
 #endif
 }
 template<>
@@ -2414,10 +2301,10 @@ WriteFPExponentSubnormalAbs<double>(char* buf, unsigned exp) ynothrowv
 {
 #if NPL_Impl_NPLAMath_IEC_60559_BFP
 	buf[0] = '0' + char(exp / 100);
-	write_u8_len_2(++buf, exp % 100);
+	DecimalDigits<2>::Write(++buf, exp % 100);
 	return buf + 2;
 #else
-	return write_u32_in_1e8(buf, std::uint_fast32_t(exp));
+	return WriteDecimalDigitsIn<8>(buf, DigitsMinUInt<8>(exp));
 #endif
 }
 // XXX: 'long double' is out of bless.
@@ -2478,6 +2365,7 @@ struct ExtFPConv<float>
 };
 //@}
 
+
 /*!
 \brief 取指定十进制指数对应的 10 的幂的正规分解值的偏移量。
 \return 偏移量的值，作用相当于 Schubfach 算法实现中的参数 h - q 。
@@ -2500,7 +2388,7 @@ FPBinaryToDecimal_GetOffset(int exp_dec) ynothrow
 	//	and the C++ port at
 	//	https://github.com/abolz/Drachennest/blob/master/src/schubfach_64.cc for
 	//	the difference.) The entry width is 128-bit, but the highest bit is
-	//	always 1, so only 127 bits varies. Whatever the highest bit is, the
+	//	always 1, so only 127 bits vary. Whatever the highest bit is, the
 	//	unsigned nature of the low half makes multiplication operations
 	//	significantly simpler (esp. more friendly to existing compiler
 	//	builtins). It also makes the generation of the table easier. Moreover,
@@ -2533,18 +2421,6 @@ CBLshift(_type x, unsigned lshift)
 {
 	return x - lshift;
 }
-#if !NPL_Impl_NPLAMath_LongDoubleAsDouble
-template<size_t _vN, yimpl(enable_if_bint_t<_vN> = 0)>
-YB_ATTR_nodiscard YB_ATTR_always_inline YB_PURE inline std::bitset<_vN>
-CBLshift(const std::bitset<_vN>& x, unsigned lshift)
-{
-	const auto lo(to_uint64(x));
-
-	return (lo - lshift < lo ? x & (std::bitset<_vN>().set() << 64)
-		: std::bitset<_vN>(to_uint64(x >> 64) - 1) << 64)
-		| std::bitset<_vN>(lo + 2);
-}
-#endif
 
 template<typename _type>
 YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline _type
@@ -2552,19 +2428,6 @@ CBRshift(_type x)
 {
 	return x + 2;
 }
-#if !NPL_Impl_NPLAMath_LongDoubleAsDouble
-template<size_t _vN,
-	yimpl(ystdex::enable_if_t<(_vN > 64 && _vN <= 128), int> = 0)>
-YB_ATTR_nodiscard YB_ATTR_always_inline YB_PURE inline std::bitset<_vN>
-CBRshift(const std::bitset<_vN>& x)
-{
-	const auto lo(to_uint64(x));
-
-	return (lo + 2 > lo ? x & (std::bitset<_vN>().set() << 64)
-		: std::bitset<_vN>(to_uint64(x >> 64) + 1) << 64)
-		| std::bitset<_vN>(lo + 2);
-}
-#endif
 
 YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline std::uint64_t
 Round128OddHi(std::uint64_t hi, std::uint64_t lo, std::uint64_t cp) ynothrow
@@ -2587,20 +2450,10 @@ Round96OddHi(std::uint64_t hi, std::uint32_t cp) ynothrow
 }
 
 #if !NPL_Impl_NPLAMath_LongDoubleAsDouble
-template<size_t _vN, yimpl(enable_if_bint_t<_vN> = 0)>
 YB_ATTR_nodiscard YB_STATELESS inline uint128_t
-RoundFPOddHi(ystdex::_t<ExtFPConv<long double>> v, const std::bitset<_vN>& cp)
-	ynothrow
+RoundFPOddHi(ystdex::_t<ExtFPConv<long double>> v, uint128_t cp) ynothrow
 {
-	using ext_t = ystdex::_t<ExtFPConv<long double>>;
-	using namespace yimpl(fpq);
-	const auto r(v * ext_t(to_uint128(cp)));
-	const auto r_hi(floor(ldexp(r, -64)));
-
-	YAssert(isfinite(r_hi) && r_hi <= ext_t(std::numeric_limits<
-		std::uint64_t>::max()), "Unexpected overflow found.");
-	return uint128_t(std::uint64_t(r_hi)) << 64
-		| uint128_t(std::uint64_t(r - ldexp(r_hi, 64)));
+	return fp_to_int<uint128_t>(v * ystdex::_t<ExtFPConv<long double>>(cp));
 }
 #endif
 
@@ -2690,13 +2543,10 @@ FPBinaryToDecimal_1<long double>(unsigned lshift, int exp10, unsigned h,
 	// XXX: Shift less than 64 bits to double.
 	auto pow10d(ldexp(pow(ext_t(5), ext_t(exp10)),
 		-int(floor(exp10 * log2(ext_t(5)))) - 1));
-	static yconstexpr const auto
-		n(typename fp_traits<long double>::carrier_type().size());
-
 	// XXX: This is not precise.
-	yunseq(vb = to_bint<n>(RoundFPOddHi(pow10d, cb << h)), lower
-		= to_bint<n>(RoundFPOddHi(pow10d, CBLshift(cb, lshift) << h) + odd),
-		upper = to_bint<n>(RoundFPOddHi(pow10d, CBRshift(cb) << h) - odd));
+	yunseq(vb = RoundFPOddHi(pow10d, cb << h),
+		lower = RoundFPOddHi(pow10d, CBLshift(cb, lshift) << h) + odd,
+		upper = RoundFPOddHi(pow10d, CBRshift(cb) << h) - odd);
 }
 #endif
 
@@ -2728,20 +2578,6 @@ FPBinaryToDecimal_2(const _type& vb, const _type& upper, const _type& lower,
 		sig_dec += vb > mid || (vb == mid && (sig_dec & 1) != 0) ? 1 : 0;
 	}
 }
-#if !NPL_Impl_NPLAMath_LongDoubleAsDouble
-template<size_t _vN, yimpl(enable_if_bint_t<_vN> = 0)>
-void
-FPBinaryToDecimal_2(const std::bitset<_vN>& vb, const std::bitset<_vN>& upper,
-	const std::bitset<_vN>& lower, std::bitset<_vN>& sig_dec, int& exp_dec)
-	ynothrow
-{
-	auto sig_dec_u(to_uint128(sig_dec));
-
-	FPBinaryToDecimal_2(to_uint128(vb), to_uint128(upper), to_uint128(lower),
-		sig_dec_u, exp_dec);
-	sig_dec = to_bint<_vN>(sig_dec_u);
-}
-#endif
 
 YB_ATTR_nodiscard YB_ATTR_always_inline yconstfn int
 ComputeDecimalExponent(int exp_bin, bool shorter) ynothrow
@@ -2783,7 +2619,7 @@ ComputeDecimalExponent(int exp_bin, bool shorter) ynothrow
 
 // NOTE: This function converts double number from binary to decimal components.
 //	The output significand is shortest decimal but may have trailing zeros.
-/*
+/*!
 This function use the Schubfach algorithm:
 Raffaello Giulietti, The Schubfach way to render doubles, 2020.
 v2 2020-03-16
@@ -2823,8 +2659,9 @@ FPBinaryToDecimal(bool shorter, typename fp_traits<_type>::carrier_type sig_bin,
 	//	overflow. Every conforming floating-point format shall meet the
 	//	requirement, since the sign bit and the exponent bits shall be no less
 	//	than 2 bits.
-	static_assert(traits::significand_bits + 2 < ystdex::integer_width<
-		carrier_type>::value, "Invalid carrier type found.");
+	static_assert(size_t(std::numeric_limits<_type>::digits + 2) <=
+		ystdex::integer_width<carrier_type>::value,
+		"Invalid carrier type found.");
 
 	// NOTE: Ditto.
 	YAssert(sig_bin >> (traits::value_bits - 2) == carrier_type(),
@@ -2881,7 +2718,7 @@ The numeric format is same to ECMA-262 specification to print floating point
 	numbers, with the following changes:
 1. The negative sign of '-0.0' is kept.
 2. Intergers have trailing '.0', to keep it could be read as a flonum.
-3. Alternative exponent letter (other than 'e') is supported.
+3. Alternative exponent letters (other than 'e') are supported.
 */
 
 template<typename _type, yimpl(enable_if_uint_t<_type> = 0)>
@@ -2904,7 +2741,7 @@ RoundSignificand(size_t digits, size_t prec, _type& sig_dec) ynothrowv
 	return 0;
 }
 #if !NPL_Impl_NPLAMath_LongDoubleAsDouble
-#	if !NPL_Impl_NPLAMath_Has_UInt128
+#	if !NPL_Impl_NPLAMath_has_uint128
 YB_ATTR_nodiscard size_t
 RoundSignificand(size_t digits, size_t prec, uint128_t& sig_dec) ynothrowv
 {
@@ -2932,112 +2769,39 @@ RoundSignificand(size_t digits, size_t prec, uint128_t& sig_dec) ynothrowv
 	return 0;
 }
 #	endif
-template<size_t _vN, yimpl(enable_if_bint_t<_vN> = 0)>
-YB_ATTR_nodiscard size_t
-RoundSignificand(size_t digits, size_t prec, std::bitset<_vN>& sig_dec) ynothrowv
-{
-	auto sig_dec_u(to_uint128(sig_dec));
-
-	const auto res(RoundSignificand(digits, prec, sig_dec_u));
-
-	sig_dec = to_bint<_vN>(sig_dec_u);
-	return res;
-}
 #endif
 
+template<size_t _vLen, typename _type>
 YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_NONNULL(1) char*
-WriteFPInteger(char* buf, std::uint64_t val, ystdex::true_)
+WriteFPInteger(char* buf, _type val)
 {
-	// XXX: Assume FP significand bits are not grater than ⌊㏒₂(10^16)⌋ = 54.
-	// NOTE: Write an unsigned integer with a length of 1 to 16.
-	if(val < 100000000)
-		buf = write_u32_in_1e8(buf, std::uint32_t(val));
-	else
-	{
-		const auto hi(val / 100000000);
-		const auto lo(std::uint32_t(val % 100000000));
-
-		buf = write_u32_len_8(write_u32_in_1e8(buf, std::uint32_t(hi)), lo);
-	}
+	buf = WriteDecimalDigitsIn<_vLen>(buf, val);
 	yunseq(buf[0] = '.', buf[1] = '0');
 	return buf + 2;
 }
-YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_NONNULL(1) char*
-WriteFPInteger(char* buf, std::uint64_t val, ystdex::false_)
-{
-	if(val < 100000000)
-		buf = write_u32_in_1e8(buf, std::uint32_t(val));
-	else
-	{
-		const auto hi(val / 100000000);
-		const auto lo(std::uint32_t(val % 100000000));
 
-		if(hi < 100000000)
-			buf = write_u32_len_8(write_u32_in_1e8(buf, std::uint32_t(hi)), lo);
-		else
-		{
-			const auto hhi(hi / 100000000);
-			const auto hlo(std::uint32_t(hi % 100000000));
-
-			buf = write_u32_len_8(write_u32_len_8(write_u32_in_1e8(buf,
-				std::uint32_t(hhi)), hlo), lo);
-		}
-	}
-	yunseq(buf[0] = '.', buf[1] = '0');
-	return buf + 2;
-}
-#if !NPL_Impl_NPLAMath_LongDoubleAsDouble
-template<size_t _vN>
-YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_NONNULL(1) inline char*
-WriteFPInteger(char* buf, const std::bitset<_vN>& val, ystdex::true_)
-{
-	// TODO: Extend the support to the range larger than %std::uint64_t.
-	return WriteFPInteger(buf, to_uint64(val), ystdex::false_());
-}
-template<size_t _vN>
-YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_NONNULL(1) inline char*
-WriteFPInteger(char* buf, const std::bitset<_vN>& val, ystdex::false_)
-{
-	return WriteFPInteger(buf, val, ystdex::true_());
-}
-#endif
-
-YB_ATTR_nodiscard YB_STATELESS bool
-IsInFPIntegerFastPath(std::uint64_t sig_bin, int exp_bin) ynothrow
-{
-	return int(count_tz(sig_bin)) + exp_bin >= 0;
-}
-#if !NPL_Impl_NPLAMath_LongDoubleAsDouble
-template<size_t _vN>
-YB_ATTR_nodiscard YB_PURE bool
-IsInFPIntegerFastPath(const std::bitset<_vN>& sig_bin, int exp_bin) ynothrow
-{
-	const auto n(count_tz(sig_bin));
-
-	// XXX: Only 64-bits are printable in the fast path, since there is no fast
-	//	dividing routines being implemented yet.
-	// TODO: Remove the limitation away?
-	return n < 64 && int(count_tz(sig_bin)) + exp_bin >= 0;
-}
-#endif
-
+template<typename _type, yimpl(enable_if_uint_t<_type> = 0)>
 YB_ATTR_nodiscard YB_STATELESS int
-CountSignificandDigits(std::uint64_t sig_dec) ynothrow
+CountSignificandDigits(_type sig_dec) ynothrow
 {
-	// TODO: Optimize with %__builtin_log10 when possible. See also
-	//	https://lemire.me/blog/2021/06/03/computing-the-number-of-digits-of-an-integer-even-faster/.
-	return int(std::floor(std::log10(sig_dec)));
-}
-#if !NPL_Impl_NPLAMath_LongDoubleAsDouble
-template<size_t _vN, yimpl(enable_if_bint_t<_vN> = 0)>
-YB_ATTR_nodiscard YB_PURE int
-CountSignificandDigits(const std::bitset<_vN>& sig_dec) ynothrow
-{
-	// TODO: Ditto.
-	// XXX: Assume the maximum value of %double is no less than %uint128_t.
-	return int(std::floor(std::log10(double(to_uint128(sig_dec)))));
-}
+	// XXX: GCC and Clang builtins like %__builtin_log10 seem not able to
+	//	produce better binary code than %std ones.
+	// XXX: Assume the range of %floor is enough for %uint128_t significand
+	//	produced by the supported types. Since the guaranteed minimum value of
+	//	%FLT_MAX is only 1E+37 in ISO C++ (following ISO C), This may not
+	//	applicable for arbitrary %uint128_t.
+	// NOTE: There are known optimizations, but this is not used for the cost of
+	//	tables and the table lookup is also not that optimized (esp. for
+	//	%uint128_t). See https://lemire.me/blog/2021/06/03/computing-the-number-of-digits-of-an-integer-even-faster/
+	//	for the table approach.
+	// TODO: Adopt the table approach which seems still worthy for
+	//	%std::uint32_t.
+#if LDBL_MANT_DIG <= 113
+	return int(std::floor(std::log10(float(sig_dec))));
+#else
+#	error "Not implemented."
 #endif
+}
 
 template<typename _type>
 using CarrierArgOf = ystdex::cond_t<std::is_integral<_type>,
@@ -3069,9 +2833,6 @@ struct FPWriterTraits<float>
 	YB_ATTR_nodiscard YB_STATELESS static int
 	CountNormalSignificandDigits(CarrierArgOf<float> sig_dec) ynothrowv
 	{
-		static_assert(std::numeric_limits<float>::digits == 24,
-			"Invalid implementation found.");
-
 		// NOTE: The length of the significand is 6 to 9.
 		YAssert(sig_dec < 1000000000U, "Invalid significand found.");
 		YAssert(sig_dec >= 100000U, "Invalid significand found.");
@@ -3093,9 +2854,6 @@ struct FPWriterTraits<double>
 	YB_ATTR_nodiscard YB_STATELESS static int
 	CountNormalSignificandDigits(CarrierArgOf<double> sig_dec) ynothrowv
 	{
-		static_assert(std::numeric_limits<double>::digits == 53,
-			"Invalid implementation found.");
-
 		// NOTE: The length of the significand is 15 to 17. See also the
 		//	Schubfach paper paper §8.1 D6.
 		YAssert(sig_dec < 100000000000000000U, "Invalid significand found.");
@@ -3110,18 +2868,14 @@ struct FPWriterTraits<double>
 };
 #	endif
 
-#	if NPL_Impl_NPLAMath_Has_UInt128
+#	if NPL_Impl_NPLAMath_has_uint128
 #		if LDBL_MANT_DIG == 64
 template<>
 struct FPWriterTraits<long double>
 {
 	YB_ATTR_nodiscard YB_PURE static int
-	CountNormalSignificandDigits(CarrierArgOf<long double> sig_dec_a) ynothrowv
+	CountNormalSignificandDigits(CarrierArgOf<long double> sig_dec) ynothrowv
 	{
-		static_assert(std::numeric_limits<long double>::digits == 64,
-			"Invalid implementation found.");
-
-		const auto sig_dec(to_uint128(sig_dec_a));
 		// NOTE: The length of the significand is 18 to 21.
 		YAssert(sig_dec < uint128_t(100000000000U) * 10000000000U,
 			"Invalid significand found.");
@@ -3140,12 +2894,8 @@ template<>
 struct FPWriterTraits<long double>
 {
 	YB_ATTR_nodiscard YB_PURE static int
-	CountNormalSignificandDigits(CarrierArgOf<long double> sig_dec_a) ynothrowv
+	CountNormalSignificandDigits(CarrierArgOf<long double> sig_dec) ynothrowv
 	{
-		static_assert(std::numeric_limits<long double>::digits == 64,
-			"Invalid implementation found.");
-
-		const auto sig_dec(to_uint128(sig_dec_a));
 		// NOTE: The length of the significand is 33 to 36.
 		YAssert(sig_dec < uint128_t(1000000000000000000U)
 			* 1000000000000000000U, "Invalid significand found.");
@@ -3195,12 +2945,16 @@ WriteFraction(char* buf, const typename fp_traits<_type>::carrier_type& sig_dec,
 	int len) ynothrowv
 {
 	YAssert(len > 0, "Invalid length found.");
-	YAssert(len <= 17, "Invalid length found.");
 	YAssert(sig_dec != typename fp_traits<double>::carrier_type(),
 		"Invalid zero fraction found.");
-#if FLT_MANT_DIG <= 53
-	return len < 15 ? TrimTrailingZeros(write_u64_in_1e15(buf, sig_dec))
-		: write_u64_len_15_to_17_trim(buf, sig_dec);
+#if FLT_MANT_DIG <= 24
+	YAssert(len <= 9, "Invalid length found.");
+	yunused(len);
+	return TrimTrailingZeros(WriteDecimalDigitsIn<9>(buf, sig_dec));
+#elif FLT_MANT_DIG <= 53
+	YAssert(len <= 17, "Invalid length found.");
+	return len < 15 ? TrimTrailingZeros(WriteDecimalDigitsIn<15>(buf, sig_dec))
+		: WriteDecimal15To17Trimmed(buf, sig_dec);
 #else
 #	error "Unimplemented."
 #endif
@@ -3215,8 +2969,8 @@ WriteFraction<double>(char* buf, const typename fp_traits<double>::carrier_type&
 	YAssert(sig_dec != typename fp_traits<double>::carrier_type(),
 		"Invalid zero fraction found.");
 #if DBL_MANT_DIG <= 53
-	return len < 15 ? TrimTrailingZeros(write_u64_in_1e15(buf, sig_dec))
-		: write_u64_len_15_to_17_trim(buf, sig_dec);
+	return len < 15 ? TrimTrailingZeros(WriteDecimalDigitsIn<15>(buf, sig_dec))
+		: WriteDecimal15To17Trimmed(buf, sig_dec);
 #else
 #	error "Unimplemented."
 #endif
@@ -3231,7 +2985,7 @@ WriteFraction<long double>(char* buf, const
 	YAssert(sig_dec != typename fp_traits<double>::carrier_type(),
 		"Invalid zero fraction found.");
 	yunused(len);
-	return TrimTrailingZeros(write_u128_trailing(buf, to_uint128(sig_dec)));
+	return TrimTrailingZeros(WriteU128Trailing(buf, to_uint128(sig_dec)));
 }
 #endif
 
@@ -3256,21 +3010,26 @@ WriteFPNormalCommon(char* buf, typename fp_traits<_type>::carrier_type sig_bin,
 	int exp_bin, char e, size_t prec, std::uint_fast8_t left_max,
 	std::uint_fast8_t right_max)
 {
-	using traits = fp_traits<_type>;
+	using limits = std::numeric_limits<_type>;
+	using carrier_type = typename fp_traits<_type>::carrier_type;
 
-	// NOTE: Fast path for small integer number without fraction.
-	if(-traits::significand_bits <= exp_bin && exp_bin <= 0
-		&& IsInFPIntegerFastPath(sig_bin, exp_bin))
-		// NOTE: The value is an integer in range 1 to 2^(significand_bits - 1).
-		return WriteFPInteger(buf, sig_bin >> size_t(-exp_bin),
-			ystdex::bool_<traits::significand_bits <= 54>());
+	// NOTE: This is the fast path for small integer numbers without fraction.
+	if(-limits::digits < exp_bin && exp_bin <= 0
+		&& countr_zero_narrow(sig_bin) + exp_bin >= 0)
+		// NOTE: The value is an integer in the interval [1, 2^(p - 1)], where
+		//	'p' is the maximum binary digits of the significand (the precision).
+		//	When the significand bits are not greater than ⌊㏒₂(10^16)⌋ = 54,
+		//	the maximum length is 16.
+		// NOTE: Write an unsigned integer with a length of 1 to 16.
+		return WriteFPInteger<limits::digits <= 54 ? 16 : (limits::digits
+			<= 64 ? 19 : 36)>(buf, sig_bin >> size_t(-exp_bin));
 
 	int exp_dec;
-	typename traits::carrier_type sig_dec;
+	carrier_type sig_dec;
 
-	FPBinaryToDecimal<_type>(sig_bin == (typename traits::carrier_type(1)
-		<< traits::significand_bits) && exp_bin + traits::significand_bits
-		> traits::exponent_bias + 1, sig_bin, exp_bin, sig_dec, exp_dec);
+	FPBinaryToDecimal<_type>(sig_bin == carrier_type(1) << (limits::digits - 1)
+		&& exp_bin > limits::min_exponent - limits::digits, sig_bin, exp_bin,
+		sig_dec, exp_dec);
 
 	const int
 		sig_len(FPWriterTraits<_type>::CountNormalSignificandDigits(sig_dec));
@@ -3316,7 +3075,7 @@ WriteFPNormalCommon(char* buf, typename fp_traits<_type>::carrier_type sig_bin,
 	buf[0] = buf[1];
 	*++buf = '.';
 	// NOTE: Do not keep the trailing '.' before the exponent part. This
-	//	is consistent to subnormals.
+	//	is consistent to subnormal numbers.
 	end -= ++buf == end ? 1 : 0;
 	end[0] = e;
 	++end;
@@ -3356,16 +3115,17 @@ WriteFPZero(char* buf) ynothrowv
 
 template<typename _type>
 YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_NONNULL(1) char*
-WriteFPNormal(char* buf, _type val, char e, size_t prec, std::uint_fast8_t left_max,
-	std::uint_fast8_t right_max)
+WriteFPNormal(char* buf, _type val, char e, size_t prec,
+	std::uint_fast8_t left_max, std::uint_fast8_t right_max)
 {
-	using traits = fp_traits<_type>;
 	// XXX: %std::ilogb is generally inefficient for checking of the special
 	//	values already excluded here.
-	const auto exp_bin(int(std::logb(val)) - traits::significand_bits);
+	const auto
+		exp_bin(int(std::logb(val)) - std::numeric_limits<_type>::digits + 1);
 
-	return WriteFPNormalCommon<_type>(buf, typename traits::carrier_type(
-		std::ldexp(val, -exp_bin)), exp_bin, e, prec, left_max, right_max);
+	return WriteFPNormalCommon<_type>(buf, fp_to_int<typename
+		fp_traits<_type>::carrier_type>(std::ldexp(val, -exp_bin)),
+		exp_bin, e, prec, left_max, right_max);
 }
 #if NPL_Impl_NPLAMath_LongDoubleAsDouble
 template<>
@@ -3381,19 +3141,18 @@ WriteFPNormal(char* buf, long double val, char e, size_t prec,
 YB_ATTR_nodiscard YB_NONNULL(1) char*
 WriteFPSubnormalFraction(char* buf, std::uint32_t val) ynothrowv
 {
-	return write_u32_in_1e9(buf, val);
+	return WriteDecimalDigitsIn<9>(buf, val);
 }
 YB_ATTR_nodiscard YB_NONNULL(1) char*
 WriteFPSubnormalFraction(char* buf, std::uint64_t val) ynothrowv
 {
-	return write_u64_in_1e17(buf, val);
+	return WriteDecimalDigitsIn<17>(buf, val);
 }
 #	if !NPL_Impl_NPLAMath_LongDoubleAsDouble
-template<size_t _vN, yimpl(enable_if_bint_t<_vN> = 0)>
 YB_ATTR_nodiscard YB_NONNULL(1) char*
-WriteFPSubnormalFraction(char* buf, const std::bitset<_vN>& val) ynothrowv
+WriteFPSubnormalFraction(char* buf, uint128_t val) ynothrowv
 {
-	return write_u128_trailing(buf, to_uint128(val));
+	return WriteU128Trailing(buf, val);
 }
 #	endif
 
@@ -3401,14 +3160,14 @@ template<typename _type>
 YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_NONNULL(1) char*
 WriteFPSubnormal(char* buf, _type val, char e, size_t prec) ynothrowv
 {
-	using traits = fp_traits<_type>;
+	using carrier_type = typename fp_traits<_type>::carrier_type;
 	const auto exp_bin(std::numeric_limits<_type>::min_exponent
-		- fp_traits<_type>::significand_bits);
+		- std::numeric_limits<_type>::digits);
 	int exp_dec;
-	typename traits::carrier_type sig_dec;
+	carrier_type sig_dec;
 
-	FPBinaryToDecimal<_type>({}, typename traits::carrier_type
-		(std::ldexp(val, -exp_bin)), exp_bin, sig_dec, exp_dec);
+	FPBinaryToDecimal<_type>({}, fp_to_int<carrier_type>(
+		std::ldexp(val, -exp_bin)), exp_bin, sig_dec, exp_dec);
 
 	const auto digits(size_t(CountSignificandDigits(sig_dec)));
 
@@ -3793,6 +3552,7 @@ FPToString(long double x, string::allocator_type a)
 	return string(&buf[0], WriteFPString(buf, x, 'l'), a);
 }
 
+#undef NPL_Impl_NPLAMath_PrintLargeSignificant
 #undef NPL_Impl_NPLAMath_HasSubnorm
 #undef NPL_Impl_NPLAMath_IEC_60559_BFP
 //@}
@@ -3801,8 +3561,6 @@ FPToString(long double x, string::allocator_type a)
 
 } // namespace NPL;
 
-#undef NPL_Impl_NPLAMath_Has_umul128
-#undef NPL_Impl_NPLAMath_Has_BitScan
-#undef NPL_Impl_NPLAMath_Has_BitScan64
+#undef NPL_Impl_NPLAMath_has_umul128
 #undef NPL_Impl_NPLAMath_LongDoubleAsDouble
 

@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r4094
+\version r4098
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2021-10-21 18:09 +0800
+	2021-12-12 17:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,8 @@
 #include <cerrno> // for errno, ENOMEM;
 #include <ystdex/exception.h> // for ystdex::throw_error;
 #include <cstring> // for std::strerror;
-#include <ystdex/cwctype.h> // for ystdex::isprint, ystdex::iswprint;
+#include <ystdex/cwctype.h> // for ystdex::iswprint;
+#include <ystdex/cctype.h> // for ystdex::isprint;
 #include <ystdex/cstring.h> // for ystdex::uchar_t, ystdex::replace_cast;
 #include YFM_YBaseMacro // for TryRet, CatchIgnore;
 #include <exception> // for std::bad_alloc;
@@ -229,6 +230,7 @@ enum RecordLevel : std::uint8_t
 	{ \
 		const int err_(errno); \
 	\
+		yunused(err_); \
 		YTraceDe(_lv, "Failed calling " #_fn " @ %s with error %d: %s.", \
 			_sig, err_, std::strerror(err_)); \
 	}while(false)
@@ -271,6 +273,7 @@ enum RecordLevel : std::uint8_t
 	[&] YB_LAMBDA_ANNOTATE((const char* sig_), , nonnull(2)){ \
 		const auto res_(_fn(__VA_ARGS__)); \
 	\
+		yunused(sig_); \
 		if(YB_UNLIKELY(res_ < decltype(res_)())) \
 			YCL_Trace_SysE(platform::Descriptions::Warning, _fn, sig_); \
 		return res_; \

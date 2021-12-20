@@ -11,13 +11,13 @@
 /*!	\file integral_constant.hpp
 \ingroup YStandardEx
 \brief 整数类型常量。
-\version r1947
+\version r1949
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:36 +0800
 \par 修改时间:
-	2021-10-05 18:34 +0800
+	2021-12-12 28:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_integral_constant_hpp_
 #define YB_INC_ystdex_integral_constant_hpp_ 1
 
-#include "../ydef.h" // for <type_traits>, __cpp_lib_bool_constant,
-//	std::conditional;
+#include "cstddef.h" // for <type_traits>, size_t, ptrdiff_t,
+//	__cpp_lib_bool_constant, std::conditional;
 
 namespace ystdex
 {

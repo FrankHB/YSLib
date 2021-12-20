@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013, 2016, 2018-2019 FrankHB.
+	© 2011-2013, 2016, 2018-2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file type_inspection.hpp
 \ingroup YStandardEx
 \brief 类型检查元编程设施。
-\version r1965
+\version r1967
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:54:58 +0800
 \par 修改时间:
-	2019-02-15 20:55 +0800
+	2021-12-12 22:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_type_inspection_hpp_
 #define YB_INC_ystdex_type_inspection_hpp_ 1
 
-#include "../ydef.h" // for <type_traits>, std::remove_cv_t, nullptr_t;
+#include "cstddef.h" // for <type_traits>, std::remove_cv_t, nullptr_t;
 
 namespace ystdex
 {

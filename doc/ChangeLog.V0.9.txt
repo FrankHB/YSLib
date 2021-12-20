@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r6494
+\version r6766
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-12-12 10:59 +0800
+	2021-12-21 03:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,13 +32,267 @@ $import $HISTORY;
 
 $now
 (
-	/ DLDI "indented 'YB_Diag_*' macro invocation guarded in conditional \
-		inclusion" @ 'YB_IMPL_MSCPP' @ %YBase.YDefinition,
+	/ $re_add(b932) DLDI "indented 'YB_Diag_*' macro invocation guarded in \
+		conditional inclusion" @ 'YB_IMPL_MSCPP'
+		$effective @ %YFramework.YCLib.NativeAPI,
+	/ DLDI "ensured suffix 'L'" @ "all values compared with %(__cplusplus, \
+		__STDC_VERSION__)" $effective %YBase.YDefinition,
+	/ %YBase $=
+	(
+		/ DLDI "ensured suffix 'L'" @ "all values compared with %_MSVC_LANG"
+			@ %(YDefinition,
+			YStandardEx.(CStandardDefinition, MemoryResource, Placement)),
+			// This follows %__cplusplus. See https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros \
+				for the predifined macros.
+		/ %YStandardEx
+		(
+			+ $dev $lib "public inclusion %Hash" @ %Functional,
+			+ "header inclusion %CWideCharacterType" @ %CString,
+			(
+			/ ("function templates %(towlower, towupper)";
+				"header inclusion <cwctype>") @ %CCharacterType
+				>> %CWideCharacterType
+				$dep_from %(CString, YFramework.YCLib.YCommon);
+			/ "header inclusion %CWideCharacterType" @ %CWideCharacterType
+				-> "%YDefinition"
+			),
+			(
+			+ %CStandardDefinition;
+			/ "header inclusion %YDefinition"
+				@ %(TypeInspection, IntegralConstant) -> %CStandardDefinition
+				$dep_to ("ystdex::nullptr_t transition",
+				"ystdex::ptrdiff_t transition", "ystdex::size_t transition",
+				"ystdex::byte transition")
+			),
+			+ DLDI "header inclusion <cstdint>"
+				@ %(CAssertion, CStandardInteger),
+			/ DLB "updated %__cplusplus detection except for experimental \
+				headers" @ %MemoryResource
+				(/ $impl '__cplusplus > 201703L' -> '__cplusplus >= 202002L')
+		),
+		/ %YDefinition $=
+		(
+			/ ("alias %wint_t"; "inclusion <cwchar>") >> %CWideCharacterType
+				$dep_from (%CCharacterType,
+				"removal of ystdex::wint_t in the platform header"),
+			* DD "wrong group name" @ "command '\ingroup'"
+				@ "Doxygen comment" @ "pseudo keyword %yunused" $since b435,
+			(
+			/ ("macro %__cpp_lib_byte"; "type %byte";
+				"header inclusion <climits>") >> $dep_from
+				%YStandardEx.CStandardDefinition $dep_all from
+				("standard type header transition", "ystdex::byte transition")
+				$= (/ DLI ^ 'unsigned' ~ 'std::uint8_t');
+					// This avoids the dependency on <cstdint>.
+			- "header inclusion <cstdint>" $dep_from %(CAssertion,
+				CStandardInteger, YFramework.YCLib.NativeAPI)
+			),
+			/ ('using std::ptrdiff_t;', 'using std::size_t',
+				"types %(octet, nullptr_t)")
+				>> %CStandardDefinition $dep_all from ("standard type header \
+				transition", "ystdex::nullptr_t transition"),
+			/ ("class %offsetof_check"; "pseudo keyword %yoffsetof";
+				"header inclusion <type_traits>")
+				>> $dep_from %YStandardEx.CStandardDefinition
+				/ $= (/ DLDI ^ 'struct' ~ 'class'),
+			/ ("class template %empty_base", "struct raw_tag",
+				"header inclusion <cstddef>")
+				>> $dep_from %YStandardEx.CStandardDefinition,
+			/ "header inclusion <cassert>"
+				>> ("implementation" @ %YFramework.YCLib.Debug),
+			/ DLI "all default substitution '1' of macros" -> 'true'
+				$effective @ "macros %(YB_Use_YAssert, YB_Use_StrictNoThrow, \
+				YB_Use_YTrace)",
+			* "missing support of overriding macro %YB_Use_YAssert"
+				$mismatch(Documentation.Definitions) $since b595
+				$dep_all_from "allowing skipping tracing"
+		),
+		(
+		+ %Bit $=
+			(+ "transformation trait %ystdex::enabled_if_unsigned_t");
+		(
+		+ DLDI "header inclusion %Bit" @ %(MemoryResource, Placement);
+		/ "functions %((is_power_of_2; is_power_of_2_positive), ceiling_lb, \
+			floor_lb)" -> "function templates with 'YB_ATTR_always_inline'"
+			@ %Bits;
+		- DLDI "header inclusion %CStandardInteger" @ %MemoryResource,
+		- ("header inclusion %CStandardInteger" -> "%IteratorOperation")
+			@ %Placement,
+		+ $dev $lib 'YB_ATTR_always_inline'
+			@ "functions %(is_power_of_2, is_power_of_2_positive)"
+		),
+		/ ("functions %(native_byte_order, native_little_bit_order)",
+			"enum class %byte_order") >> @ %Bit;
+		/ %Bit $=
+		(
+			+ $dev $lib 'YB_ATTR_nodiscard YB_ATTR_always_inline'
+				@ "functions %(floor_lb, native_byte_order, \
+				native_little_bit_order)",
+			+ "inline namespace %ystdex::cpp2020"
+				$= (+ "function templates or alias declarations %(countl_zero, \
+					countr_zero)"),
+			+ "function templates %(countl_zero_narrow, countr_zero_narrow)",
+			/ DLI "simplified and optimized with Microsoft VC++ intrinsics"
+				@ "function template %floor_lb",
+				// This now shares the underlying implementations with \
+					%(countl_zero_narrow, countr_zero_narrow).
+			/ 'ynothrow' @ "function templates %(floor_lb, ceiling_lb)"
+				-> 'ynothrowv'
+				// This is more consistent with the narrow contract.
+		)
+		)
+	),
+	/ $dev $impl "updated dead links with prefix 'https://gcc.gnu.org/git/' \
+		@ "comments" ^ "prefix 'https://gcc.gnu.org/viewcvs/'" $effective
+		@ YBase.YStandardEx.(Allocator, Meta),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %Platform $=
+			(
+				/ $re_add(b932) DLB "condition of defining macro %YF_API"
+					@ 'YF_BUILD_DLL' @  ^ '(__has_attribute(__visibility__) \
+					|| YB_IMPL_GNUCPP >= 40000 || YB_IMPL_CLANGPP >= 20800)'
+					~ 'YB_IMPL_GNUCPP >= 40000',
+					// Similar to %YB_API.
+				/ "header inclusion %YBase.YDefinition"
+					-> $dep_from %YBase.YStandardEx.CStandardDefinition
+					$dep_to "standard type header transition"
+			),
+			+ DLDI "%yunused" @ "platform %DS" @ ("functions %upopen" @ %FileIO,
+				"functions %CreateHardLink" @ %FileSystem),
+				// To eliminate G++ warning in release modes: \
+					[-Wunused-parameter].
+			(
+			- DLDI ^ @ "function %ConvertToAlias" @ %FileSystem ^ '%std::wint_t'
+				~ 'wint_t';
+			- $revert(b245) 'using ystdex::wint_t' @ %Platform
+				$dep_from "removal of ystdex::wint_t in the platform header"
+			),
+			+ DLDI "header inclusion %YBase.YStandardEx.CCharacterType"
+				@ %YCommon,
+				// This removes the dependency between headers \
+					<ystdex/cwctype.h> and <ystdex/cctype.h>, although \
+					<ystdex/cstring.h> would still hide the dependency.
+			/ %Debug $=
+			(
+				+ $dev $lib 'YB_ATTR_nodiscard'
+					@ "function templates %(FwdIter, Deref)",
+				* "invalid empty substitution" @ '!YB_Use_YTrace'
+					@ "macro %YTraceDe" $since b498
+					$dep_to "allowing skipping tracing",
+				/ "supported skipping calls to %ystdex::ytrace"
+					@ '!YB_Use_YTrace' $dep_to "allowing skipping tracing"
+			),
+			+ DLDI "header inclusion <cstdint>" @ "platforms %(DS, Win32)"
+				@ %NativeAPI
+		),
+		/ DLDI "prevented unused variables besides %YTraceDe" ^ 'yunused'
+			$effective @ %(YCLib.(YCommon, FileIO), YCLib_'(Win32)'.MinGW32,
+			Helper.(Initialization, ShellHelper, NPL.NPLA1),
+			// To elimitate G++ warnings: [-Wunused-variable] and \
+				[-Wunused-parameter] when 'YB_Use_YTrace' is evaluated to false.
+		/ %NPL $=
+		(
+			/ @ "function template specializations %WriteFPString"
+				@ %NPLAMath $=
+			(
+				* DLDI "unnecessary type conversion by wrong type argument \
+					used in the internal fraction writing" $since b932,
+					// This causes no problem with modern compilers, but still \
+						unwanted.
+				/ DLDI "floating-point type traits declaration order and uses",
+				(
+				/ DLI "simplified 'long double' internal conversion"
+					!^ "bitsets";
+					// Anyway, only 128-bit internal representation is \
+						supported at current.
+				* $comp "wrong exponents or crashes in printing 'long double' \
+					values" @ '!NPL_Impl_NPLAMath_LongDoubleAsDouble'
+					@ "%release configurations" $since b932
+					// XXX: The code generated by x86_64-pc-linux G++ 11.1.0 \
+						at '-O3' is broken. For example, in x86-64 Linux, \
+						'1l0' may crash, and '1l-4' may result '1le-7'.
+				),
+				/ $dev $impl "detected '_M_FP_FAST'" ~ '__USE_FAST_MATH__'",
+					// The former detects Microsoft VC++'s /fp:fast. The \
+						latter has no reliable source in the known supported \
+						C++ implementations for the YSLib project.
+				/ "computation of the minimal exponent value"
+					@ "shorter interval detecting"
+				(
+					* "unexpected imprecise results caused by wrong sign of the"
+						" exponent bias term" $since b932
+						$= (/ $impl ^ "%std::numeric_limits"),
+						// This is imprecise when the value is small (but \
+							normal).
+					* "implicit dependency on the exponent bias"
+						$mismatch(Documentation.YFramework) $since b932
+						// This is wrong, although all supported platforms are \
+							not affected.
+				),
+				* "redundant dependency on exponent bias"
+					$mismatch(Documentation.YFramework) $since b932,
+					// This requirement was not documented, and proven not \
+						necessary.
+				(
+				* "wrong exponent specified for subnormal numbers" $since b932;
+					// This would incur unexpected error for small subnormal \
+						numbers.
+				* "wrong handling for hidden bit of the significand"
+					$mismatch $since b932
+					// Actually the x87 extended precision floating-point \
+						number does not have the hidden bit. This requirement \
+						is also proven necessary.
+				),
+				(
+				/ DLDI "removed redundant static assertions";
+				* "wrong static assertion" @ 'FLT_RADIX == 2 \
+					&& NPL_Impl_NPLAMath_Has_UInt128 && LDBL_MANT_DIG == 113'
+					$since b932,
+				),
+				/ DLI "simplified integer writing",
+				* "missing handling of large integer out of the range of \
+					%std::uint64_t" @ 'LDBL_MANT_DIG > 64 \
+					&& LDBL_MANT_DIG <= 113 && NPL_Impl_NPLAMath_Has_UInt128'
+					$since b932,
+				/ DLI "simplified writing sequence of 1-8 digits",
+				/ DLI "specialized writing sequence of 1-16 digits",
+				/ DLI "optimized writing fraction for %float values"
+					@ 'FLT_MANT_DIG <= 24',
+				/ DLI "extended the fast path of writing integers for \
+					floating-point values to all ranges",
+					// This is not usual since values greater than the \
+						64-bit maximum unsigned integer are rare.
+				/ DLI "simplified the fallback significand writing"
+					^ 'float' ~ 'double'
+					// Since the supported siginificand would be no more than
+					//	113-bit, it is OK even for the minimal %FLT_MAX with
+					//	1E+37 required by ISO C++. %DBL_MAX has no difference
+					//	%FLT_MAX in the minimal guarantee, but 'float' can be
+					//	more efficient (e.g. soft FP).
+			),
+			/ DLI "optimized functions %(ParseLeaf, \
+				ParseLeafWithSourceInformation)" @ %NPLA1
+				!^ "%IsNPLAExtendedLiteral"
+		),
+		/ $forced DLDI @ "%floor_lb" @ %YBase.YStandardEx.CStandardInteger
+			@ %YSLib.Core.ValueNode ^ $dep_from %YBase.YStandardEx.Bit,
+		/ $forced DLDI @ "%byte_order" @ %YBase.YStandardEx.CStandardInteger
+			@ %CHRLib.Encoding ^ $dep_from %YBase.YStandardEx.Bit
+	)
+),
+
+b932
+(
 	/ %YBase $=
 	(
 		/ %YDefinition $=
 		(
-			+ "macro %YB_ATTR_always_inline" @ %YBase.YDefinition,
+			/ DLDI "indented 'YB_Diag_*' macro invocation guarded in \
+				conditional inclusion" @ 'YB_IMPL_MSCPP >= 1200',
+			+ "macro %YB_ATTR_always_inline",
 			/ DLB "conditions of defining macros 'YB_Diag_*'" $=
 			(
 				/ "condition implemented by '#pragma clang'"
@@ -113,12 +367,13 @@ $now
 					defined(NDEBUG) && __OPTIMIZE__'
 					@ "function template %construct_within"
 					// However, it is buggy that removal the attribute on \
-						%construct_within would cause x86_64 Linux G++ 11.1.0 \
-						in release modes generating wrong code that crashes. It\
-						also causes wrong i686 MinGW32 G++ to generate wrong \
-						code, leading SHBuild crash in interpreting NPLA1 code \
-						as 'for-each-ltr l' when 'l' is a list has more than 1 \
-						elements, thus any NPLA1 building script would fail.
+						%construct_within would cause x86_64-pc-linux G++ \
+						11.1.0 in release modes generating wrong code that \
+						crashes. It also causes i686-w64-mingw32 G++ to \
+						generate the wrong code, leading SHBuild crash in \
+						interpreting NPLA1 code as 'for-each-ltr l' when 'l' \
+						is a list has more than 1 elements, thus any NPLA1 \
+						building script would fail.
 			),
 			+ $dev $lib 'YB_ATTR_nodiscard' @ "function templates %(make_pun, \
 				make_pun_default, standard_layout_storage::(access, data, pun, \
@@ -149,7 +404,7 @@ $now
 	(
 		+ "library option '-lquadmath'" @ "linker commands"
 			$effective @ ("%SHBuild-bootstrap.sh", "%SHBuild-BuildApp.txt",
-			"%SHBuild-YSLib-build.txt")
+			"%SHBuild-YSLib-build.txt"),
 			// Clang distributions still does not has the header, but the \
 				option is safe to be ignored.
 		- '-ffast-math' @ "default value" @ "variable %C_CXXFLAGS_ARM9"
@@ -248,7 +503,7 @@ b931
 					// This does not perform better without the allocator.
 				/ ^ ("allocator", 'any_ops::trivial_swap_t')
 			),
-			/ DLI "term tag merge" ^ 'YB_STATELESS' ~ 'YB_PURE',
+			/ DLI "term tag merging" ^ 'YB_STATELESS' ~ 'YB_PURE',
 			/ @ "namespace %ystdex" $=
 			(
 				* "wrong '\relates' command" @ "Doxygen comment"
@@ -712,7 +967,7 @@ b928
 			// To elimiante G++ and Clang++ warning: [-Wfloat-equal].
 		/ %Functional $=
 		(
-			+ DD '\ingroup functors' "Doxygen comment" @ "class templates \
+			+ DD '\ingroup functors' @ "Doxygen comment" @ "class templates \
 				%(composed, composed_n, generalized_composed, one_shot, \
 				expanded_caller, expanded_function)",
 			+ "3 function templates %update_thunk with allocator \
@@ -4713,7 +4968,7 @@ b906
 		/ $dev $lib "split header inclusions" !^ %YSBuild @ %SHBuild.Main
 			/ $= (/ '<YSBuild.h>' -> %(YSLib.Service, NPL).YModules)
 			// This should be better for the build performance. And it is bad \
-				that stage 1 build is effected by failure of building \
+				that stage 1 build is affected by failure of building \
 				unrelated modules (like %YFramework.YCLib.HostedGUI worked \
 				around above), although the split does not resolve the real \
 				issue.
@@ -4761,7 +5016,11 @@ b906
 		),
 		/ DD "Doxygen comments" @ %YStandardEx $=
 		(
-			+ $design '\c' @ "before header name" @ %Apply,
+			/ @ "Doxygen comments" @ %YBase.YStandardEx.Apply $=
+			(
+				+ $design '\c' @ "before header name",
+				/ $re_add(b877) $impl "simplified all tags with '\>' escape'"
+			),
 			+ "'\note' command" @ "class %unimplemented" @ %Exception,
 			+ "'\note' command" @ "metafunctions %(enable_for_iterator_t, \
 				enable_for_input_iterator_t)" @ %IteratorTrait

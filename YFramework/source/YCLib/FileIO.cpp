@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3911
+\version r3916
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2021-08-08 15:01 +0800
+	2021-12-13 01:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,6 +155,7 @@ UnlockFileDescriptor(int fd, const char* sig) ynothrowv
 #	if YCL_Win32
 	const auto res(platform_ex::UnlockFile(ToHandle(fd)));
 
+	yunused(sig);
 	if(YB_UNLIKELY(!res))
 		YCL_Trace_Win32E(Descriptions::Warning, UnlockFileEx, sig);
 	YAssert(res, "Narrow contract violated.");
@@ -848,6 +849,7 @@ upopen(const char* filename, const char* mode) ynothrowv
 	YAssertNonnull(filename);
 	YAssert(Deref(mode) != char(), "Invalid argument found.");
 #if YCL_DS
+	yunused(filename), yunused(mode);
 	errno = ENOSYS;
 	return {};
 #elif YCL_Win32
@@ -867,6 +869,7 @@ upopen(const char16_t* filename, const char16_t* mode) ynothrowv
 	YAssertNonnull(filename);
 	YAssert(Deref(mode) != char(), "Invalid argument found.");
 #if YCL_DS
+	yunused(filename), yunused(mode);
 	errno = ENOSYS;
 	return {};
 #elif YCL_Win32
@@ -966,8 +969,7 @@ EnsureUniqueFile(const char* dst, mode_t mode, size_t allowed_links,
 		| OpenMode::WriteTruncate | OpenMode::Binary);
 
 	mode &= mode_t(Mode::User);
-	if(UniqueFile
-		p_file{uopen(dst, int(oflag | OpenMode::Exclusive), mode)})
+	if(UniqueFile p_file{uopen(dst, int(oflag | OpenMode::Exclusive), mode)})
 		return p_file;
 	if(allowed_links != 0 && errno == EEXIST)
 	{

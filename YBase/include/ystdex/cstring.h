@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018-2020 FrankHB.
+	© 2009-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r2657
+\version r2664
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2020-07-17 01:14 +0800
+	2021-12-16 02:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,10 @@
 
 #include "type_pun.hpp" // for is_in_types, enable_if_t, nor_,
 //	is_trivially_replaceable, cond_t, replace_cast, enable_if_replaceable_t;
-#include <cstring> // for std::strlen, std::strcpy, std::strncpy;
+#include <cstring> // for <cstring>, std::strlen, std::strcpy, std::strncpy;
 #include <libdefect/string.h> // for std::char_traits;
 #include "cassert.h" // for yconstraint;
+#include "cwctype.h" // for ystdex::towlower;
 #include "cctype.h" // for ystdex::tolower;
 #include <cwchar> // for std::wcscpy, std::wcsncpy;
 #include <algorithm> // for std::min, std::lexicographical_compare;
@@ -78,7 +79,7 @@ strcpycat(char*, const char*, const char*);
 \return 目标参数。
 
 对传入参数进行非空检查后串接指定的两个字符串，
-结果复制至用指定分配函数（默认为 std::malloc）新分配的空间。
+结果复制至用指定分配函数（默认为 std::malloc ）新分配的空间。
 */
 YB_API char*
 strcatdup(const char*, const char*, void*(*)(size_t) = std::malloc);
@@ -139,11 +140,11 @@ is_null(_tChar c) ynothrow
 
 以指针或指针和长度指定的范围参数作为 NTCTS 对字符串序列进行非修改操作。
 NTCTS(null-terminated character string) 即空字符标记结束的字符串，
-除了结束字符外没有空字符。简单指不包括 NTMBS(null-terminated mutibyte string) ，
+除了结束字符外没有空字符。简单指不包括 NTMBS(null-terminated multibyte string) ，
 按等宽字符考虑。
 */
 //@{
-//! \pre 断言： <tt>s1 && s2</tt> 。
+//! \pre 断言：<tt>s1 && s2</tt> 。
 //@{
 //! \brief 按字典序比较简单 NTCTS 。
 //@{
@@ -381,7 +382,7 @@ ntctsmove(_tChar* s1, const _tChar* s2, size_t n) ynothrowv
 }
 //@}
 
-//! \pre 断言： \c s 。
+//! \pre 断言：\c s 。
 //@{
 /*!
 \brief 在简单 NTCTS 内查找字符。

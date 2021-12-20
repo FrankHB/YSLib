@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013, 2015 FrankHB.
+	© 2009-2013, 2015, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Encoding.h
 \ingroup CHRLib
 \brief 字符编码定义。
-\version r731
+\version r733
 \author FrankHB <frankhb1989@gmail.com>
 \since build 242
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2015-10-03 23:50 +0800
+	2021-12-20 22:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_CHRLib_CharacterDefinition
-#include <ystdex/cstdint.hpp> // for ystdex::byte_order;
+#include <ystdex/bit.hpp> // for ystdex::byte_order;
 
 namespace CHRLib
 {

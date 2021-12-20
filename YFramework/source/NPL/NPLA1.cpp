@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r22118
+\version r22175
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2021-11-20 22:16 +0800
+	2021-12-16 10:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,19 +30,19 @@
 //	any_ops::trivial_swap, type_index, string_view, std::hash, ystdex::equal_to,
 //	YSLib::unordered_map, std::piecewise_construct, YSLib::lock_guard,
 //	YSLib::mutex, type_id, ContextHandler, NPL::make_observer, IsBranch,
-//	AllocatorHolder, ystdex::ref, YSLib::IValueHolder,
-//	YSLib::AllocatedHolderOperations, any, ystdex::as_const,
-//	NPL::forward_as_tuple, uintmax_t, ystdex::bind1, TokenValue, Forms,
-//	std::allocator_arg, YSLib::stack, YSLib::vector, std::find_if, TermTags,
-//	function, TermReference, GetLValueTagsOf, NPL::TryAccessLeaf,
-//	ListReductionFailure, ystdex::sfmt, PropagateTo, NPL::IsMovable,
-//	in_place_type, InvalidReference, NPL::Deref, IsLeaf, ResolveTerm,
-//	ThrowInsufficientTermsError, ThrowListTypeErrorForNonlist,
-//	ystdex::update_thunk, Environment, shared_ptr, IsTyped,
+//	CheckReducible, IsNPLAExtendedLiteralNonDigitPrefix, AllocatorHolder,
+//	ystdex::ref, YSLib::IValueHolder, YSLib::AllocatedHolderOperations, any,
+//	ystdex::as_const, NPL::forward_as_tuple, uintmax_t, ystdex::bind1,
+//	TokenValue, Forms, std::allocator_arg, YSLib::stack, YSLib::vector,
+//	std::find_if, TermTags, function, TermReference, GetLValueTagsOf,
+//	NPL::TryAccessLeaf, ListReductionFailure, ystdex::sfmt, PropagateTo,
+//	NPL::IsMovable, in_place_type, InvalidReference, NPL::Deref, IsLeaf,
+//	ResolveTerm, ThrowInsufficientTermsError, ThrowListTypeErrorForNonlist,
+//	ystdex::update_thunk, Environment, shared_ptr, NPL::AsTermNode, IsTyped,
 //	ystdex::retry_on_cond, AccessFirstSubterm, ystdex::make_transform,
 //	IsBranchedList, std::placeholders, NoContainer, ystdex::try_emplace,
-//	NPL::Access, YSLib::Informative, ystdex::unique_guard, NPL::AsTermNode,
-//	CategorizeBasicLexeme, DeliteralizeUnchecked, CheckReducible, Deliteralize,
+//	NPL::Access, YSLib::Informative, ystdex::unique_guard,
+//	CategorizeBasicLexeme, DeliteralizeUnchecked, Deliteralize,
 //	ystdex::isdigit, INT_MAX, ResolveIdentifier, ystdex::ref_eq,
 //	NPL::TryAccessTerm, YSLib::share_move, ystdex::call_value_or,
 //	std::to_string, YSLib::Notice, YSLib::FilterException, Session;
@@ -365,6 +365,33 @@ EmplaceReference(TermNode::Container& con, TermNode& o, TermReference& ref,
 			std::allocator_arg, con.get_allocator(), in_place_type<
 			TermReference>, ref.GetTags(), ref));
 }
+
+
+//! \since build 933
+//@{
+// NOTE: See the implementation of %IsNPLAExtendedLiteral.
+YB_ATTR_nodiscard YB_PURE PDefH(bool, IsAllSignLexeme, string_view id) ynothrowv
+	ImplRet(YAssertNonnull(id.data()),
+		id.find_first_not_of("+-") == string_view::npos)
+
+YB_ATTR_nodiscard YB_PURE bool
+ParseSymbol(TermNode& term, string_view id) ynothrowv
+{
+	YAssertNonnull(id.data());
+	YAssert(!id.empty(), "Invalid lexeme found.");
+	if(CheckReducible(DefaultEvaluateLeaf(term, id)))
+	{
+		// NOTE: As %IsNPLAExtendedLiteral, without handling the empty string
+		//	and the digit prefix cases.
+		if(YB_UNLIKELY(id.size() > 1 && IsNPLAExtendedLiteralNonDigitPrefix(
+			id.front()) && !IsAllSignLexeme(id)))
+			ThrowUnsupportedLiteralError(id);
+		// NOTE: This is to be evaluated as identifier later.
+		return true;
+	}
+	return {};
+}
+//@}
 
 
 //! \since build 891
@@ -1388,6 +1415,7 @@ SetupTraceDepth(ContextState& cs, const string& name)
 			using ystdex::pvoid;
 			auto& depth(NPL::Access<size_t>(*p));
 
+			yunused(term), yunused(ctx);
 			YTraceDe(YSLib::Informative, "Depth = %zu, context = %p, semantics"
 				" = %p.", depth, pvoid(&ctx), pvoid(&term));
 			++depth;
@@ -1457,15 +1485,8 @@ ParseLeaf(TermNode& term, string_view id)
 		term.SetValue(in_place_type<TokenValue>, id, term.get_allocator());
 		break;
 	case LexemeCategory::Symbol:
-		if(CheckReducible(DefaultEvaluateLeaf(term, id)))
-		{
-			if(!IsNPLAExtendedLiteral(id))
-				// NOTE: This is to be evaluated as identifier later.
-				term.SetValue(in_place_type<TokenValue>, id,
-					term.get_allocator());
-			else
-				ThrowUnsupportedLiteralError(id);
-		}
+		if(ParseSymbol(term, id))
+			term.SetValue(in_place_type<TokenValue>, id, term.get_allocator());
 		break;
 		// XXX: Remained reducible?
 	case LexemeCategory::Data:
@@ -1499,14 +1520,9 @@ ParseLeafWithSourceInformation(TermNode& term, string_view id,
 			TokenValue>>, name, src_loc, id, term.get_allocator());
 		break;
 	case LexemeCategory::Symbol:
-		if(CheckReducible(DefaultEvaluateLeaf(term, id)))
-		{
-			if(!IsNPLAExtendedLiteral(id))
-				term.SetValue(any_ops::use_holder, in_place_type<SourcedHolder<
-					TokenValue>>, name, src_loc, id, term.get_allocator());
-			else
-				ThrowUnsupportedLiteralError(id);
-		}
+		if(ParseSymbol(term, id))
+			term.SetValue(any_ops::use_holder, in_place_type<SourcedHolder<
+				TokenValue>>, name, src_loc, id, term.get_allocator());
 		break;
 	case LexemeCategory::Data:
 		term.SetValue(any_ops::use_holder, in_place_type<SourcedHolder<string>>,
@@ -1622,8 +1638,7 @@ DefaultEvaluateLeaf(TermNode& term, string_view id)
 		ReadDecimal(term.Value, id, id.begin());
 		return ReductionStatus::Clean;
 	case '-':
-		// NOTE: See the implementation of %IsNPLAExtendedLiteral.
-		if(YB_UNLIKELY(id.find_first_not_of("+-") == string_view::npos))
+		if(YB_UNLIKELY(IsAllSignLexeme(id)))
 			break;
 		if(id.size() == 6 && id[4] == '.')
 		{
@@ -1664,8 +1679,7 @@ DefaultEvaluateLeaf(TermNode& term, string_view id)
 			term.Value = 0;
 		return ReductionStatus::Clean;
 	case '+':
-		// NOTE: See the implementation of %IsNPLAExtendedLiteral.
-		if(YB_UNLIKELY(id.find_first_not_of("+-") == string_view::npos))
+		if(YB_UNLIKELY(IsAllSignLexeme(id)))
 			break;
 		if(id.size() == 6 && id[4] == '.')
 		{
