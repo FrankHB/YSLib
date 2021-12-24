@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2015, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1435
+\version r1437
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:32:34 +0800
 \par 修改时间:
-	2015-03-22 18:21 +0800
+	2021-12-21 21:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -102,7 +102,7 @@ MLabel::GetAlignedPenOffset(const Size& s) const
 void
 MLabel::DrawText(const Size& s, const PaintContext& pc) const
 {
-	const auto r(Rect(pc.Location, s) + Margin);
+	const Rect r(Rect(pc.Location, s) + Margin);
 	TextState ts(Font, FetchMargin(r, pc.Target.GetSize()));
 
 	ts.Color = ForeColor,

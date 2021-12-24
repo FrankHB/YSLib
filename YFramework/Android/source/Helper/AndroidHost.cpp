@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2019 FrankHB.
+	© 2014-2016, 2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r447
+\version r450
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2019-11-25 21:47 +0800
+	2021-12-21 20:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -137,8 +137,7 @@ NativeHost::NativeHost(::ANativeActivity& ac, void* saved_state,
 			PostQuitMessage(0);
 			YTraceDe(Debug, "YSLib quit message posted.");
 		}
-		YTraceDe(Informative,
-			"Waiting for native main thread finishing...");
+		YTraceDe(Informative, "Waiting for native main thread finishing...");
 		FilterExceptions(std::bind(&std::thread::join, std::ref(
 			host.thrdMain)), "AndroidHost NativeWindowDestroyed handler");
 		YTraceDe(Informative, "Waiting for screen being released...");

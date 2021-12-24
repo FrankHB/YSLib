@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016, 2018 FrankHB.
+	© 2015-2016, 2018, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file tstring_view.hpp
 \ingroup YStandardEx
 \brief 指定结束字符的只读字符串视图。
-\version r327
+\version r329
 \author FrankHB <frankhb1989@gmail.com>
 \since build 640
 \par 创建时间:
 	2015-10-01 22:56:52 +0800
 \par 修改时间:
-	2018-11-16 17:51 +0800
+	2021-12-21 20:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -290,9 +290,9 @@ operator<<(std::basic_ostream<_tChar, _tTraits>& os,
 
 
 using tstring_view = basic_tstring_view<char>;
+using wtstring_view = basic_tstring_view<wchar_t>;
 using u16tstring_view = basic_tstring_view<char16_t>;
 using u32tstring_view = basic_tstring_view<char32_t>;
-using wtstring_view = basic_tstring_view<wchar_t>;
 //@}
 
 } // namespace ystdex;

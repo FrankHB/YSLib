@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2018 FrankHB.
+	© 2014-2016, 2018, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file mixin.hpp
 \ingroup YStandardEx
 \brief 基于类继承的混入接口。
-\version r209
+\version r212
 \author FrankHB <frankhb1989@gmail.com>
 \since build 477
 \par 创建时间:
 	2014-02-17 00:07:20 +0800
 \par 修改时间:
-	2018-11-18 11:55 +0800
+	2021-12-21 20:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,8 +49,7 @@ public:
 
 	yconstfn
 	mixin() = default;
-	template<typename _tParam,
-		yimpl(typename = exclude_self_t<mixin, _tParam>)>
+	template<typename _tParam, yimpl(typename = exclude_self_t<mixin, _tParam>)>
 	yconstfn
 	mixin(_tParam&& arg)
 		: _tBases(yforward(arg))...

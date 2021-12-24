@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2020 FrankHB.
+	© 2012-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r2185
+\version r2190
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2020-07-17 19:27 +0800
+	2021-12-21 21:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -234,8 +234,7 @@ string
 EscapeLiteral(string_view sv)
 {
 	const char c(CheckLiteral(sv));
-	// TODO: Use %get_mid for %string_view.
-	auto content(Escape(c == char() ? sv : ystdex::get_mid(string(sv))));
+	auto content(Escape(c == char() ? sv : ystdex::get_mid(sv)));
 
 	if(!content.empty() && content.back() == '\\')
 		content += '\\';
@@ -283,8 +282,8 @@ EscapeXML(string_view sv)
 //	optimized builds as '-O2'. All '-O2' options plus all documented additional
 //	options for '-O3' or options used in 'gcc/opts.c' in trunk code as of
 //	writing (2019-05-16, also cf.
-//	https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81191) does not reappear the
-//	bug, but as now just use '-O2' instead.
+//	https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81191) does not make the bug
+//	reappear, but as now just use '-O2' instead.
 YB_ATTR(optimize("O2"))
 #endif
 string

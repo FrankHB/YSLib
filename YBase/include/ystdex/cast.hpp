@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2017, 2019-2020 FrankHB.
+	© 2010-2017, 2019-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r1449
+\version r1451
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2020-05-24 11:54 +0800
+	2021-12-21 20:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -276,7 +276,7 @@ polymorphic_downcast(_tSrc&& v) ynothrowv
 \tparam _tDeleter 删除器类型。
 \pre _tDst 可通过 \c release() 取得的指针和删除器右值构造。
 \pre 断言：调用 polymorphic_downcast 转换 \c release() 取得的指针保证无异常抛出。
-\note 使用 ADL 调用 polymorphic_downcast 转换 \c release() 取得的指针。
+\note 使用 ADL polymorphic_downcast 转换 \c release() 取得的指针。
 */
 template<class _tDst, typename _tSrc, typename _tDeleter>
 YB_ATTR_nodiscard YB_PURE inline yimpl(enable_if_t)<!is_reference<_tDst>::value

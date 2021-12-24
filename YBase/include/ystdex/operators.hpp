@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r2868
+\version r2883
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2021-12-08 12:35 +0800
+	2021-12-22 20:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,13 +26,17 @@
 \see https://github.com/taocpp/operators 。
 \see https://en.wikipedia.org/wiki/Barton–Nackman_trick 。
 
-用法同 Boost.Operators ，但不公开带数字后缀的接口。
-使用基类引入操作符重载，而非其子对象。不保证子对象合式。
+引入隐式定义重载操作符的模板。
+用法同 Boost.Operators ，但不公开带数字后缀的接口，并提供迭代器等其它重载操作符。
+使用可被无副作用地平凡默认构造的基类引入其中定义的重载操作符。
+这些操作是具有 friend 修饰的非成员（依赖 ADL ）或成员函数之一。
+和 Boost.Operators 等不同，除后置 ++ 和 -- 操作符外，非成员友元是函数模板；
+	这允许声明同时提供异常规范，而不引用可能不完整的类型的操作。
 通常使用 private 基类，但以成员形式引入的操作符例外，需要使用 public 以被外部访问。
 以成员形式引入的操作符仅出现 ISO C++ 不允许以非成员形式引入的操作符的情形中，包括：
 operator-> ；
-operator[] ；
-使用具有上述操作符引入迭代器操作。
+operator[] 。
+因至少需要支持 operator-> ，引入迭代器操作的操作符需要使用成员形式的操作符。
 */
 
 
@@ -268,6 +272,9 @@ using flat_ops = vseq::defer_t<ebases, vseq::fold_t<vseq::_a<vseq::concat_t>,
 namespace dep_ops
 {
 
+// NOTE: The %_id values used by the following templates shall be consistent to
+//	the allocation used in individual operations in %details above.
+
 //! \since build 682
 //@{
 #define YB_Impl_Operators_Compare(_name, _bseq, _bseq_s) \
@@ -323,19 +330,19 @@ YB_Impl_Operators_Left(3, dividable)
 YB_Impl_Operators_Left(4, modable)
 
 
-YB_Impl_Operators_Binary(5, left_shiftable)
+YB_Impl_Operators_Commutative(5, xorable)
 
 
-YB_Impl_Operators_Binary(6, right_shiftable)
+YB_Impl_Operators_Commutative(6, andable)
 
 
-YB_Impl_Operators_Commutative(7, xorable)
+YB_Impl_Operators_Commutative(7, orable)
 
 
-YB_Impl_Operators_Commutative(8, andable)
+YB_Impl_Operators_Binary(8, left_shiftable)
 
 
-YB_Impl_Operators_Commutative(9, orable)
+YB_Impl_Operators_Binary(9, right_shiftable)
 
 #undef YB_Impl_Operators_Binary_Tmpl
 #undef YB_Impl_Operators_Left

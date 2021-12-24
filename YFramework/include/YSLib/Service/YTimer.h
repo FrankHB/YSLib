@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2015, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YTimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r1123
+\version r1144
 \author FrankHB <frankhb1989@gmail.com>
 \since build 572
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2015-03-21 14:32 +0800
+	2021-12-21 21:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,7 @@ namespace Timers
 {
 
 /*!
-\brief 取公共历元。
+\brief 取第一次调用初始化的公共历元。
 \since build 547
 */
 template<class _tClock = HighResolutionClock>
@@ -99,7 +99,8 @@ public:
 	\brief 虚析构：类定义外默认实现。
 	\since build 416
 	*/
-	virtual ~Timer();
+	virtual
+	~Timer();
 
 	//! \since build 555
 	DefDeCopyAssignment(Timer)
@@ -124,28 +125,23 @@ public:
 	/*!
 	\brief 刷新：对非零时间间隔判断有效性并都更新时间基点。
 	\pre <tt>Interval != Duration::zero()</tt> 。
-	\return 是否有效：当前时刻已达到基点后的时间间隔。
 	*/
+	//@{
+	//! \return 是否有效：当前时刻已达到基点后的时间间隔。
 	bool
 	Refresh();
 
-	/*!
-	\brief 刷新：对非零时间间隔判断有效性并都更新时间基点。
-	\pre <tt>Interval != Duration::zero()</tt> 。
-	\return 当前时刻达到基点前的时间间隔。
-	\since build 482
-	*/
+	//! \since build 482
+	//@{
+	//! \return 当前时刻达到基点前的时间间隔。
 	Duration
 	RefreshDelta();
 
-	/*!
-	\brief 刷新：对非零时间间隔判断有效性并都更新时间基点。
-	\pre <tt>Interval != Duration::zero()</tt> 。
-	\return 当前时刻达到基点前的时间间隔被最小时间间隔除的余数。
-	\since build 482
-	*/
+	//! \return 当前时刻达到基点前的时间间隔被最小时间间隔除的余数。
 	Duration
 	RefreshRemainder();
+	//@}
+	//@}
 };
 
 /*!

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2016, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextLayout.cpp
 \ingroup Service
 \brief 文本布局计算。
-\version r2493
+\version r2497
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2016-06-19 19:28 +0800
+	2021-12-21 22:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,8 +52,9 @@ std::uint16_t
 FetchResizedLineN(const TextState& ts, SDst h)
 {
 	YAssert(GetTextLineHeightExOf(ts) != 0, "Zero line height found.");
-	return (h + ts.LineGap - GetVerticalOf(ts.Margin))
-		/ GetTextLineHeightExOf(ts);
+	// XXX: Possible truncated.
+	return std::uint16_t((h + ts.LineGap - GetVerticalOf(ts.Margin))
+		/ GetTextLineHeightExOf(ts));
 }
 
 SPos

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2018, 2020 FrankHB.
+	© 2013-2018, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3817
+\version r3881
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2020-12-24 12:01 +0800
+	2021-12-21 12:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -510,7 +510,7 @@ b292
 		/ %YSLib $=
 		(
 			* DLD "strict ISO C++ code compatibility" $since b273
-				$= (/ "assertion strings" @ "implementation unit %TextManager"
+				$= (/ "assertion messages" @ "implementation unit %TextManager"
 					@ %Service !^ "%__FUNCTION__"),
 			/ %UI.GUI $=
 			(
@@ -926,48 +926,53 @@ b281
 (
 	/ %YFramework.YSLib $=
 	(
-		/ "text list refreshing implementation" @ %UI.GUI $=
+		/ "text list refreshing implementation" @ %UI.TextList $=
 		(
 			* "text not fully shown at bottom" $since b190;
 			/ "high light area height"
 		),
 		DLD
 		(
-		+ "deleting second member debug functor" @ "header %ycutil.h";
-		/ "several implementations" @ "units %(YTimer, Menu, YUIContainer, \
-			YEvent, YMessage)" ^ "%std::for_each" ~ "for loop"
+		+ "deleting second member debug functor" @ Core.YCoreUtilities;
+		/ $impl %(Service.YTimer, UI.(Menu, YUIContainer),
+			Core.(YEvent, YMessage)) ^ "%std::for_each" ~ "for loop"
 		),
-		/ @ "unit %YString" $=
+		/ %Core.YString $=
 		(
 			/ "enhancement of constructors of class %String";
 			- "function %MBCSToString"
 		),
-		/ "event call catching %std::bad_function_call silently"
+		/ "caught %std::bad_function_call silently" @ "event calls"
 	),
-	/ "unit %Shells" @ %YReader $=
+	/ DLD %YReader.Shells $=
 	(
-		/ "simplified testing implementation",
-		+ DLD "font family names list" @ "class %ShlExplorer"
+		/ $iml "simplified testing",
+		+ "font family names list" @ "class %ShlExplorer"
 	),
-	/ %YBase $=
+	/ %YBase.YStandardEx $=
 	(
-		* DD "wrong content" @ "Doxygen group %functors"
-			@ "header %utility.hpp" $since b193,
-		* DD "wrong content" @ "Doxygen command '\brief'"
-			@ "header %any.h" $since b243
+		* DD "wrong content" @ "Doxygen group %functors" @ %Utilities
+			$since b193,
+		* DD "wrong content" @ "Doxygen command '\brief'" %Any $since b243
 	)
 ),
 
 b280
 (
-	/ %YReader.'text reader' $=
+	/ %YReader $=
 	(
-		+ "automatic updating font before print text";
-		/ @ "setting panel" $=
+		+ "automatic updating font before print text" @ %DSReader;
+		/ @ "class %SettingPanel" @ %ShlReader $=
 		(
 			* "button text" $since b279,
 			/ "label text",
-			+ "text size setting"
+			/ "%(lblColorAreaUp, lblColorAreaDown)" -> "%(AreaUp, AreaDown)"
+			+ "text size setting" $=
+			(
+				+ "protected objects %(btnFontSizeDecrease, \
+					btnFontSizeIncrease)";
+				+ "function %UpdateInfo"
+			)
 		)
 	),
 	/ %YFramework.YSLib $=
@@ -999,7 +1004,7 @@ b279
 			/ "support for class %Panel" ~ "class %Window"
 				@ "function %RequestToTop"
 			)
-			* $lib $design "assertion string" @ "4 functions %(MoveToTop, \
+			* $lib $design "assertion message" @ "4 functions %(MoveToTop, \
 				MoveToBottom, MoveToLeft, MoveToRight)" $since b171,
 			/ "member funtion %Desktop::ClearContents" >> "class %Panel"
 		),
@@ -1206,9 +1211,9 @@ b274
 			- DLD "all functions %SetMarginOf",
 			* DLD "2 functions template %PrintLine cannot used with iterator \
 				parameters without postfix operator++" $since b270,
-			* $lib $design "assertion string"
+			* $lib $design "assertion message"
 				@ "function %FetchResizedBottomMargin" $since b273,
-			* $lib $design "assertion string" @ "function %FetchResizedLineN"
+			* $lib $design "assertion message" @ "function %FetchResizedLineN"
 				$since b252,
 			* $impl "function %TextLineNEx"
 				@ "class template %GTextRendererBase" $since b267,
@@ -1274,7 +1279,11 @@ b273
 	/ "view" @ "class %TextInfoBox" @ %YReader.'text reader',
 		// Efficiency for opening and random access operations to large files \
 			improved obviously due to using of mapping buffering.
-	* $dev $doc $design "several minor Doxygen warnings" @ $since b196
+	/ $doc @ "%Doxyfile" $=
+	(
+		/ $deploy "updated PROJECT_NUMBER",
+		* $dev $design "several minor Doxygen warnings" @ $since b196
+	)
 ),
 
 b272
@@ -1601,11 +1610,16 @@ b261
 
 b260
 (
-	/ %'%YBase' $=
+	/ %YBase $=
 	(
-		+ DLD "several operations for integer types",
-		+ DLD "reusable overloaded operators";
-		+ "fixed-point arithmetic template %fixed_point"
+		+ "several operations for integer types" @ %TypeOperations,
+		(
+		+ %Operators;
+			// reusable overloaded operators.
+		+ %Rational
+			// For fixed-point arithmetic.
+			$= (+ "class template %fixed_point")
+		)
 	);
 	* "improper underlying type of scroll event argument type"
 		@ %YFramework.YSLib.UI.GUI $since b201
@@ -1718,7 +1732,11 @@ b252
 	);
 	+ "POD type operations" @ "library %YStandardEx",
 	/ $dev $lib "simplified macro definitions" @ "ybasemac.h",
-	/ $doc "updated Doxygen file" ^ "Doxygen 1.7.2",
+	/ $doc @ "%Doxyfile" $=
+	(
+		/ $deploy "updated PROJECT_NUMBER",
+		/ "updated %EXCLUDE"
+	),
 	+ DLDI "nested-use support" @ "macro %yunsequenced",
 	/ DLP "toolchain and libraries using" $=
 	(
@@ -2003,8 +2021,8 @@ b240
 					+ "function %Clone",
 					* DLD "function %Insert unavailable for %unique_ptr"
 						$since b221,
-					+ DLD "%CopyConstructible, %MoveConstructible support"
-						%GEventMap"
+					+ DLD "%(CopyConstructible, %MoveConstructible) support"
+						@ "%GEventMap"
 				)
 			),
 			+ "support for types are not %EqualityComparable"
@@ -2579,13 +2597,17 @@ b214
 		+ "submenus"
 	),
 	* DLD "exception-specification" @ "unit %YApplication",
-	/ $doc $=
+	/ DD "Doxygen comments" $=
 	(
 		* "template parameter description" $since b189
 			$= (^ "\tparam" ~ "\param"),
 		* "\defgroup description spelling error" $since b209,
-		* DLD "operator new & delete comments" $since b203,
-		/ "simplified Doxygen file excluded paths"
+		* $lib $design "operator new & delete comments" $since b203,
+	),
+	/ $doc @ "%Doxyfile" $=
+	(
+		/ $deploy "updated PROJECT_NUMBER",
+		/ "simplified %EXCLUDE"
 	),
 	/ DLD ^ "public %noncopyable inheritance"
 		~ "all private %noncopyable inheritance",
@@ -2598,7 +2620,7 @@ b214
 
 b213
 (
-	* $lib $design "UI assertion strings",
+	* $lib $design "UI assertion messages",
 	* "menu colors",
 	* "touch event coordinate error" @ "container controls" $since b195,
 	+ "functions of menus" $=
@@ -2611,7 +2633,7 @@ b213
 
 b212
 (
-	/ $lib $design "assertion strings",
+	/ $lib $design "assertion messages",
 	/ "menu constructor",
 	+ "redundant menu state member" @ "class %Menu",
 	/ "container member APIs" ^ "reference parameter" ~ "pointer parameter",

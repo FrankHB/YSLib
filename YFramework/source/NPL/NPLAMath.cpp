@@ -11,13 +11,13 @@
 /*!	\file NPLAMath.cpp
 \ingroup NPL
 \brief NPLA 数学功能。
-\version r27437
+\version r27522
 \author FrankHB <frankhb1989@gmail.com>
 \since build 930
 \par 创建时间:
 	2021-11-03 12:50:49 +0800
 \par 修改时间:
-	2021-12-21 02:25 +0800
+	2021-12-22 20:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1549,7 +1549,7 @@ umul_64_64_add(std::uint64_t a, std::uint64_t b, std::uint64_t c,
 //	implementation. Other operations may be unipmlemented and no
 //	%std::numeric_limits specialization is done yet.
 class uint128_t final : private ystdex::operators<uint128_t>,
-	private ystdex::shiftable<uint128_t>
+	private ystdex::shiftable<uint128_t, size_t>
 {
 private:
 	std::uint64_t low, high;
@@ -1569,7 +1569,7 @@ public:
 	// NOTE: Converting from floating-point values are disabled to avoid
 	//	misuses. Only finite values are used, which are better convert in the
 	//	call site. Use %fp_to_int below instead for finite values.
-	template<typename _type,	
+	template<typename _type,
 #	if NPL_Impl_NPLAMath_UseQuadMath
 		yimpl(typename = ystdex::enable_if_t<
 			std::is_floating_point<_type>::value
@@ -1638,8 +1638,68 @@ public:
 
 	// XXX: %operator/= and %operator%= are not implemented.
 
+	template<typename _type,
+		yimpl(typename = ystdex::enable_if_t<std::is_integral<_type>::value>,
+		typename = ystdex::enable_if_convertible_t<_type, std::uint_fast8_t>)>
 	uint128_t&
-	operator<<=(size_t n) ynothrowv
+	operator<<=(_type n) ynothrowv
+	{
+		return shl(std::uint_fast8_t(n));
+	}
+
+	//! \since build 934
+	template<typename _type,
+		yimpl(typename = ystdex::enable_if_t<std::is_integral<_type>::value>,
+		typename = ystdex::enable_if_convertible_t<_type, std::uint_fast8_t>)>
+	uint128_t&
+	operator>>=(_type n) ynothrowv
+	{
+		return shr(std::uint_fast8_t(n));
+	}
+
+	PDefHOp(uint128_t&, &=, uint128_t v) ynothrowv
+		ImplRet(yunseq(high &= v.high, low &= v.low), *this);
+
+	PDefHOp(uint128_t&, |=, uint128_t v) ynothrowv
+		ImplRet(yunseq(high |= v.high, low |= v.low), *this);
+
+#	if !NPL_Impl_NPLAMath_LongDoubleAsDouble
+	// XXX: See %WriteFPNormalCommon.
+	YB_ATTR_nodiscard YB_STATELESS YB_ATTR_always_inline friend yconstfn
+		PDefHOp(bool, ==, uint128_t x, uint128_t y) ynothrow
+		ImplRet(x.high == y.high && x.low == y.low)
+
+	// XXX: See %WriteDecimalDigitsIn<_vN> where _vN > 19.
+	YB_ATTR_nodiscard YB_STATELESS friend yconstfn PDefHOp(bool, <, uint128_t x,
+		uint128_t y) ynothrow
+		ImplRet(x.high < y.high || (x.high == y.high && x.low < y.low))
+#	endif
+
+	// XXX: Only integer types are supported. Assume there is no integral type
+	//	has a larger range than %low.
+	template<typename _type, yimpl(typename = ystdex::enable_if_t<
+		std::is_integral<_type>::value>,
+		ystdex::enable_if_convertible_t<std::uint64_t, _type, int> = 0)>
+	YB_ATTR_nodiscard YB_STATELESS YB_ATTR_always_inline explicit yconstfn
+	operator _type() const ynoexcept_spec(_type(low))
+	{
+		return low;
+	}
+	// XXX: Assume that %float has less than 64 bit precision so there is no
+	//	loss.
+	//! \since build 933
+	YB_ATTR_nodiscard YB_STATELESS YB_ATTR_always_inline explicit
+		DefCvt(const ynothrow, float, std::ldexp(float(high), 64) + float(low))
+#	if NPL_Impl_NPLAMath_UseQuadMath
+	YB_ATTR_nodiscard YB_STATELESS YB_ATTR_always_inline explicit
+		DefCvt(const ynothrow, float128_t,
+		yimpl(fpq)::ldexp(float128_t(high), 64) + float128_t(low))
+#	endif
+
+private:
+	//! \since build 934
+	uint128_t&
+	shl(std::uint_fast8_t n) ynothrowv
 	{
 		yconstraint(n < 128);
 
@@ -1656,8 +1716,9 @@ public:
 		return *this;
 	}
 
+	//! \since build 934
 	uint128_t&
-	operator>>=(size_t n) ynothrowv
+	shr(std::uint_fast8_t n) ynothrowv
 	{
 		yconstraint(n < 128);
 
@@ -1673,49 +1734,6 @@ public:
 		}
 		return *this;
 	}
-
-	PDefHOp(uint128_t&, &=, uint128_t v) ynothrowv
-		ImplRet(yunseq(high &= v.high, low &= v.low), *this);
-
-	PDefHOp(uint128_t&, |=, uint128_t v) ynothrowv
-		ImplRet(yunseq(high |= v.high, low |= v.low), *this);
-
-	YB_ATTR_nodiscard YB_STATELESS YB_ATTR_always_inline friend yconstfn
-		PDefHOp(bool, ==, uint128_t x, uint128_t y) ynothrow
-		ImplRet(x.high == y.high && x.low == y.low)
-
-	YB_ATTR_nodiscard YB_STATELESS friend yconstfn PDefHOp(bool, <, uint128_t x,
-		uint128_t y) ynothrow
-		ImplRet(x.high < y.high || (x.high == y.high && x.low < y.low))
-
-	// XXX: Only integer types are supported. Assume there is no integral type
-	//	has a larger range than %low.
-	template<typename _type, yimpl(typename = ystdex::enable_if_t<
-		std::is_integral<_type>::value>, typename = ystdex::enable_if_t<
-		ystdex::is_explicitly_constructible<_type, std::uint64_t>::value>)>
-	YB_ATTR_nodiscard YB_STATELESS YB_ATTR_always_inline explicit yconstfn
-	operator _type() const ynoexcept_spec(_type(low))
-	{
-		return _type(low);
-	}
-	template<typename _type, yimpl(typename = ystdex::enable_if_t<
-		std::is_integral<_type>::value>,
-		ystdex::enable_if_convertible_t<std::uint64_t, _type, int> = 0)>
-	YB_ATTR_nodiscard YB_STATELESS YB_ATTR_always_inline yconstfn
-	operator _type() const ynoexcept_spec(_type(low))
-	{
-		return low;
-	}
-	// XXX: Assume that %float has less than 64 bit precision so there is no
-	//	loss.
-	//! \since build 933
-	YB_ATTR_nodiscard YB_STATELESS YB_ATTR_always_inline explicit
-		DefCvt(const ynothrow, float, std::ldexp(float(high), 64) + float(low))
-#	if NPL_Impl_NPLAMath_UseQuadMath
-	YB_ATTR_nodiscard YB_STATELESS YB_ATTR_always_inline explicit
-		DefCvt(const ynothrow, float128_t,
-		yimpl(fpq)::ldexp(float128_t(high), 64) + float128_t(low))
-#	endif
 };
 #endif
 
@@ -1744,7 +1762,7 @@ countr_zero_narrow(uint128_t x) ynothrow
 {
 	const auto lo(static_cast<std::uint64_t>(x));
 
-	return x == 0 ? countr_zero_narrow(std::uint64_t(x >> 64)) + 64
+	return lo == 0 ? countr_zero_narrow(std::uint64_t(x >> 64)) + 64
 		: countr_zero_narrow(lo);
 }
 #endif
@@ -2070,7 +2088,7 @@ WriteDecimalDigitsIn<9>(char* buf, DigitsMinUInt<9> val) ynothrowv
 {
 	yconstraint(val < 1000000000);
 	if(val < 100000000)
-		return WriteDecimalDigitsIn<8>(buf, val);
+		return WriteDecimalDigitsIn<8>(buf, DigitsMinUInt<8>(val));
 	*buf = '0' + val / 100000000;
 	return DecimalDigits<8>::Write(buf + 1, val % 100000000);
 }
@@ -2112,6 +2130,9 @@ WriteDecimalDigitsIn<17>(char* buf, DigitsMinUInt<17> val) ynothrowv
 		DecimalDigits<8>::Write(buf + 8, val % 100000000));
 	return buf + 16;
 }
+// XXX: See %WriteFPNormalCommon.
+#if (FLT_MANT_DIG > 54 && FLT_MANT_DIG <= 64) || (DBL_MANT_DIG > 54 \
+	&& DBL_MANT_DIG <= 64) || (LDBL_MANT_DIG > 54 && LDBL_MANT_DIG <= 64)
 template<>
 YB_ATTR_nodiscard YB_ATTR_always_inline YB_NONNULL(1) inline char*
 WriteDecimalDigitsIn<19>(char* buf, DigitsMinUInt<19> val) ynothrowv
@@ -2129,6 +2150,7 @@ WriteDecimalDigitsIn<19>(char* buf, DigitsMinUInt<19> val) ynothrowv
 			DigitsMinUInt<8>(hi % 100000000));
 	return DecimalDigits<8>::Write(buf, lo);
 }
+#endif
 #if !NPL_Impl_NPLAMath_LongDoubleAsDouble
 #	if LDBL_MANT_DIG == 64
 #	define NPL_Impl_NPLAMath_PrintLargeSignificant false
@@ -2775,7 +2797,7 @@ template<size_t _vLen, typename _type>
 YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_NONNULL(1) char*
 WriteFPInteger(char* buf, _type val)
 {
-	buf = WriteDecimalDigitsIn<_vLen>(buf, val);
+	buf = WriteDecimalDigitsIn<_vLen>(buf, DigitsMinUInt<_vLen>(val));
 	yunseq(buf[0] = '.', buf[1] = '0');
 	return buf + 2;
 }
@@ -3013,6 +3035,14 @@ WriteFPNormalCommon(char* buf, typename fp_traits<_type>::carrier_type sig_bin,
 	using limits = std::numeric_limits<_type>;
 	using carrier_type = typename fp_traits<_type>::carrier_type;
 
+	YAssert(std::numeric_limits<std::uint8_t>::min() <= left_max,
+		"Invalid precision parameter found."),
+	YAssert(left_max <= std::numeric_limits<std::uint8_t>::max(),
+		"Invalid precision parameter found."),
+	YAssert(std::numeric_limits<std::uint8_t>::min() <= right_max,
+		"Invalid precision parameter found."),
+	YAssert(right_max <= std::numeric_limits<std::uint8_t>::max(),
+		"Invalid precision parameter found.");
 	// NOTE: This is the fast path for small integer numbers without fraction.
 	if(-limits::digits < exp_bin && exp_bin <= 0
 		&& countr_zero_narrow(sig_bin) + exp_bin >= 0)
@@ -3042,7 +3072,7 @@ WriteFPNormalCommon(char* buf, typename fp_traits<_type>::carrier_type sig_bin,
 		return int(RoundSignificand(digits, prec, sig_dec));
 	});
 
-	if(-left_max < dpos && dpos <= right_max)
+	if(-int(left_max) < dpos && dpos <= int(right_max))
 	{
 		// NOTE: The exponent part is not needed. Here are '-exp_dec' precise
 		//	digits after the decimal point.
@@ -3052,8 +3082,8 @@ WriteFPNormalCommon(char* buf, typename fp_traits<_type>::carrier_type sig_bin,
 			yunseq(buf[0] = '0', buf[1] = '.');
 			buf += 2;
 			ystdex::trivially_fill_n(buf, size_t(-dpos), ystdex::byte('0'));
-			return WriteFractionRounded<_type>(buf - dpos,
-				sig_dec, sig_len, sig_round(size_t(-exp_dec)));
+			return WriteFractionRounded<_type>(buf - dpos, sig_dec, sig_len,
+				sig_round(size_t(-exp_dec)));
 		}
 		// NOTE: The decimal point is after some non-zero digits.
 		ystdex::trivially_fill_n(buf, 24, ystdex::byte('0'));

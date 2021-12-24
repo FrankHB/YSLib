@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2020 FrankHB.
+	© 2010-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,17 +11,24 @@
 /*!	\file invoke.hpp
 \ingroup YStandardEx
 \brief 可调用对象和调用包装接口。
-\version r4617
+\version r4700
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-24 05:03:12 +0800
 \par 修改时间:
-	2020-07-17 01:25 +0800
+	2021-12-24 18:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Invoke
+
+间接扩展标准库头 <type_traits> 和 <functional> ，
+	提供 std::invoke_result 等相关接口的替代实现。
+不检查、提供或依赖 __cpp_lib_constexpr_functional（在 P1902R1 中，
+	这替换了 __cpp_lib_constexpr_invoke ），因为 WG21 P1065R2 不被依赖，
+	即使它是 ISO C++20 的一部分。
+关于替代和扩展，参见 YStandardEx 扩展支持策略的文档说明。
 */
 
 
@@ -31,13 +38,13 @@
 #include "meta.hpp" // for "meta.hpp", <type_traits>, std::declval,
 //	__cpp_lib_is_invocable, void_t, false_, true_, remove_cvref, is_base_of,
 //	or_, is_void, is_same_or_convertible, is_implicitly_nothrow_constructible,
-//	__cpp_lib_invoke, and_;
+//	__cpp_lib_invoke, and_, nullptr_t;
 #include "variadic.hpp" // for vseq::apply_t, vseq::_a, conditional_t;
 #include <functional> // for <functional>, std::reference_wrapper;
 #include "cassert.h" // for yconstraint;
 
 /*!
-\brief \<functional\> 特性测试宏。
+\brief \c \<functional> 特性测试宏。
 \see WG21 P0941R2 2.2 。
 \see https://blogs.msdn.microsoft.com/vcblog/2015/06/19/c111417-features-in-vs-2015-rtm/ 。
 \since build 679
@@ -92,7 +99,7 @@ struct pseudo_output
 /*!
 \ingroup metafunctions
 \since build 636
-\see 关于相关的核心语言特性： WG21 P0146R0 。
+\see 关于相关的核心语言特性：WG21 P0146R0 。
 */
 //@{
 //! \brief 若类型不是空类型则取后备结果类型（默认为 pseudo_output ）。
@@ -181,11 +188,13 @@ struct is_std_reference_wrapper<std::reference_wrapper<_type>> : true_type
 //@}
 
 
-#if !(__cpp_lib_is_invocable >= 201703L)
-//! \since build 832
+//! \since build 612
 namespace details
 {
 
+//! \since build 832
+//@{
+#if !(__cpp_lib_is_invocable >= 201703L)
 template<typename _type, typename _type2 = decay_t<_type>>
 struct inv_unwrap
 {
@@ -338,74 +347,10 @@ struct inv_enabled_nt<_fCallable, fproto<_tRet, _tParams...>,
 	: or_<is_void<_tRet>, is_implicitly_nothrow_constructible<_tRet,
 	inv_result_t<_fCallable, _tParams...>>>
 {};
-
-} // namespace details;
-#endif
-
-inline namespace cpp2017
-{
-
-//! \since build 832
-//@{
-#if __cpp_lib_is_invocable >= 201703L
-using std::is_invocable;
-using std::is_invocable_r;
-using std::is_nothrow_invocable;
-using std::is_nothrow_invocable_r;
-
-using std::invoke_result;
-using std::invoke_result_t;
-#else
-//! \ingroup binary_type_traits
-//@{
-template<typename _fCallable, typename... _tParams>
-struct is_invocable
-	: details::inv_enabled<_fCallable, details::fproto<void, _tParams...>>
-{};
-
-template<typename _tRet, typename _fCallable, typename... _tParams>
-struct is_invocable_r
-	: details::inv_enabled<_fCallable, details::fproto<_tRet, _tParams...>>
-{};
-
-template<typename _fCallable, typename... _tParams>
-struct is_nothrow_invocable
-	: bool_constant<is_invocable<_fCallable, _tParams...>::value
-	&& details::inv_result<_fCallable, _tParams...>::noexcept_v>
-{};
-
-template<typename _tRet, typename _fCallable, typename... _tParams>
-struct is_nothrow_invocable_r : bool_constant<details::inv_enabled_nt<
-	_fCallable, details::fproto<_tRet, _tParams...>>::value
-	&& details::inv_result<_fCallable, _tParams...>::noexcept_v>
-{};
-//@}
-
-
-//! \ingroup transformation_traits
-//@{
-template<typename _fCallable, typename... _tParams>
-struct invoke_result
-	: details::inv_result<_fCallable, _tParams...>
-{};
-
-template<typename _fCallable, typename... _tParams>
-using invoke_result_t = _t<invoke_result<_fCallable, _tParams...>>;
-//@}
 #endif
 //@}
 
-} // inline namespace cpp2017;
-
-
-#if __cpp_lib_invoke >= 201411L
-//! \since build 617
-using std::invoke;
-#else
-//! \since build 612
-namespace details
-{
-
+#if !(__cpp_lib_invoke >= 201411L)
 template<typename _type, typename _tCallable>
 struct is_callable_target
 	: is_base_of<member_target_type_t<_tCallable>, decay_t<_type>>
@@ -518,14 +463,72 @@ invoke_impl(_func&& f, _tParams&&... args)
 {
 	return yforward(f)(yforward(args)...);
 }
+#endif
 
 } // namespace details;
 
+inline namespace cpp2017
+{
+
+//! \since build 832
+//@{
+#if __cpp_lib_is_invocable >= 201703L
+using std::is_invocable;
+using std::is_invocable_r;
+using std::is_nothrow_invocable;
+using std::is_nothrow_invocable_r;
+
+using std::invoke_result;
+using std::invoke_result_t;
+#else
+//! \ingroup binary_type_traits
+//@{
+template<typename _fCallable, typename... _tParams>
+struct is_invocable
+	: details::inv_enabled<_fCallable, details::fproto<void, _tParams...>>
+{};
+
+template<typename _tRet, typename _fCallable, typename... _tParams>
+struct is_invocable_r
+	: details::inv_enabled<_fCallable, details::fproto<_tRet, _tParams...>>
+{};
+
+template<typename _fCallable, typename... _tParams>
+struct is_nothrow_invocable
+	: bool_constant<is_invocable<_fCallable, _tParams...>::value
+	&& details::inv_result<_fCallable, _tParams...>::noexcept_v>
+{};
+
+template<typename _tRet, typename _fCallable, typename... _tParams>
+struct is_nothrow_invocable_r : bool_constant<details::inv_enabled_nt<
+	_fCallable, details::fproto<_tRet, _tParams...>>::value
+	&& details::inv_result<_fCallable, _tParams...>::noexcept_v>
+{};
+//@}
+
+
+//! \ingroup transformation_traits
+//@{
+template<typename _fCallable, typename... _tParams>
+struct invoke_result
+	: details::inv_result<_fCallable, _tParams...>
+{};
+
+template<typename _fCallable, typename... _tParams>
+using invoke_result_t = _t<invoke_result<_fCallable, _tParams...>>;
+//@}
+#endif
+//@}
+
+#if __cpp_lib_invoke >= 201411L
+//! \since build 617
+using std::invoke;
+#else
 /*!
 \brief 调用可调用对象。
 \note 和 ISO C++17 的 std::invoke 兼容，只处理 std::wrapper_reference 为引用包装。
-\sa http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4169.html
-\see ISO C++17 [func.require] ， ISO C++ 17 [func.invoke] 。
+\see WG21 N4169 。
+\see ISO C++17 [func.require] ，ISO C++ 17 [func.invoke] 。
 \see CWG 1581 。
 \see LWG 2013 。
 \see LWG 2219 。
@@ -541,6 +544,8 @@ invoke(_fCallable&& f, _tParams&&... args)
 	return details::invoke_impl(yforward(f), yforward(args)...);
 }
 #endif
+
+} // inline namespace cpp2017;
 
 namespace details
 {

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018-2019 FrankHB.
+	© 2018-2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,17 +11,23 @@
 /*!	\file map.hpp
 \ingroup YStandardEx
 \brief 映射容器。
-\version r1194
+\version r1200
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:12:51 +0800
 \par 修改时间:
-	2019-09-12 17:08 +0800
+	2021-12-21 20:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Map
+
+提供 ISO C++17 标准库头 \c \<map> 兼容的替代接口和实现。
+包括以下已有其它实现支持的 ISO C++17 后的修改：
+LWG 2839 ：允许自转移赋值。
+包括以下扩展：
+允许不完整类型作为 map 的模板参数。
 */
 
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015, 2017, 2019 FrankHB.
+	© 2012-2015, 2017, 2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file string.h
 \ingroup LibDefect
 \brief 标准库实现 \c \<string> 修正。
-\version r675
+\version r678
 \author FrankHB <frankhb1989@gmail.com>
 \since build 308
 \par 创建时间:
 	2012-05-14 20:41:08 +0800
 \par 修改时间:
-	2019-12-26 22:19 +0800
+	2021-12-21 20:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,8 +155,8 @@ YB_LibDefect_String_stof(wstring, stold, long double, std::wcstold)
 	inline _s \
 	to_##_s(_t __val) \
 	{ \
-		return __gnu_cxx::__to_xstring<_s>(&_cfname, \
-			sizeof(_t) * 4, _fmt, __val); \
+		return __gnu_cxx::__to_xstring<_s>(&_cfname, sizeof(_t) * 4, _fmt, \
+			__val); \
 	}
 
 // DR 1261.

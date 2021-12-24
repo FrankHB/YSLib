@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2020 FrankHB.
+	© 2009-2016, 2020-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YApplication.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1750
+\version r1752
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-27 17:12:36 +0800
 \par 修改时间:
-	2020-04-16 23:09 +0800
+	2021-12-21 22:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,7 @@ Application::~Application()
 		YTraceDe(Warning, "Active shell found with count %ld.",
 			hShell.use_count());
 	hShell = {};
-	YTraceDe(Notice, "Uninitialization entered with %zu handler(s) to be"
+	YTraceDe(Notice, "Deinitialization entered with %zu handler(s) to be"
 		" called.", on_exit.size());
 	// NOTE: This is needed because the standard containers (and adaptors)
 	//	guarantee nothing about destruction order of contained elements.

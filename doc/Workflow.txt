@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4728
+\version r4783
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2021-11-28 07:19 +0800
+	2021-12-22 02:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -292,7 +292,7 @@ Both the runtime from MinGW.org and MinGW-W64 support multiple versions of Micro
 	Both define the macro "__MSVCRT_VERSION__" in <_mingw.h> to control what version of MSVCRT used.
 		If not explicitly specified (i.e. not defined "__MSVCRT_VERSION__" before inclusion of <_mingw.h> or through command line option), both would defined a hard-coded integer value.
 		The default values in the libraries are different. It is "0x0600" in MinGW's but "0x0700" in MinGW-W64's.
-		A subtle problem is, which not only effected by the version macro. One notable extra macro is "__STRICT_ANSI__", which introduced by several GCC compiler options like "-ansi" or "-pedantic".
+		A subtle problem is, which not only affected by the version macro. One notable extra macro is "__STRICT_ANSI__", which introduced by several GCC compiler options like "-ansi" or "-pedantic".
 		There is a horrible bug in the MinGW.org's <time.h>: if "__MSVCRT_VERSION__ >= 0x800" and "__STRICT_ANSI__" is also defined, then some ISO C functions like "time" are not declared.
 			This directly caused <ctime> of libstdc++ (which has 'using ::time;', etc) unusable.
 			Maybe more similar bugs, also in different headers.
@@ -1134,7 +1134,7 @@ In general, the key state in the event argument of 'KeyDown' event should not be
 	Call of 'GUIState::UpdateChar' would once modify it.
 		The key set was combined of multiple keys, which was modified by checked held state.
 		This was wrong for a 'KeyDown' event not called by 'KeyHeld' handler.
-		Class 'TextBox' was effected. It would occasionally behave normally if the key of least key index was pressed down at last.
+		Class 'TextBox' was affected. It would occasionally behave normally if the key of least key index was pressed down at last.
 			Since the key was determined by the first key index in the key set through call of 'FindFirstKeyInCategroy'.
 			For example, right arrow after left arrow would be treated as left arrow but right arrow after left array would be normal, if the key index of the left arrow key is less than the one of right arrow key, which is the case of Win32 and many other platforms.
 Be cautious with revision patcher script. Currently the pattern of reversion is hard coded.
@@ -1229,7 +1229,7 @@ $2015-08:
 report.impl:
 According to ISO/IEC 9899 footnote 268, it is undefined behavior to call 'fseek(file, 0, SEEK_END)' for a binary stream.
 	This is also existed in ISO/IEC 9899:TC3 (WG14/N1256) which is referenced by ISO C++11, and older version of ISO C.
-	However, it is not mattered in POSIX-compliant systems. ISO C++ standard library streams are also not effected.
+	However, it is not mattered in POSIX-compliant systems. ISO C++ standard library streams are also not affected.
 	See also http://stackoverflow.com/questions/5957845/using-fseek-and-ftell-to-determine-the-size-of-a-file-has-a-vulnerability.
 It is a known issue that current GNU C++ frontend 'cc1plus' would crash when debug option('-g', -g1' or '-ggdb', etc) for some code with nested 'decltype' expression in trailing-return-type.
 	Only tested for G++ from MSYS2 package 5.2.0-3. It is used to build stage 2 SHBuild.
@@ -1484,7 +1484,7 @@ $2016-03:
 report.impl:
 There are several changes in the library final fundamental TS final draft(WG21 N4480) since WG21 N4081.
 	There are several changes for 'optional' requires minor update for return type of member functions.
-	The implementation of class 'any' is not effected.
+	The implementation of class 'any' is not affected.
 		Note that 'allocator_arg_t' for constructors of 'any' are no longer required, which was not implemented.
 		Another change in the specification is explicitly 'is_nothrow_move_constructible_v' noted, which also requires no implementation change.
 	The member function 'clear' is removed from class tmeplate 'basic_string_view'. Assignment of empty string view should be used instead.
@@ -1704,7 +1704,8 @@ Style of the Kernel language can be compared with current NPL, esp. NPLA1.
 			In general, NPL would prefer lower-level implementation-dependent features to abstract.
 				This is often to avoid to violate the philosophy of zero overhead principle.
 					If such lower-level features are not provided, users may have to fight against low usability with portability of the code.
-				The feasibility to introduce required functionalities should be kept. The usability should not be effected significantly.
+				The feasibility to introduce required functionalities should be kept.
+					The usability should not be affected significantly.
 			Some notable (global to the language design) examples as listed here.
 				NPL prefers 'eqv?' than 'equal?', which is opposite to Kernel.
 					The applicative 'equal?' is meant to be composited based on 'eqv?' or other API by design.
@@ -2111,10 +2112,10 @@ Tracing output for NPLA is reimplemented. Changes are dealt with cautions.
 			Instead of 'YTraceDe', the text is less verbose since build 803, without line number by default.
 		However, this is now an issue since build 803, where logging is directly called via member function of trace object in the context.
 			Since the default value of 'CXXFLAGS_OPT_UseAssert' has no 'NDEBUG' and logger filter level is default to 'Debug' instead of 'Informative' when 'NDEBUG' is not defined, it cause problems.
-				The stage 1 'SHBuild' is the only program effected in default configurations. It would print many diagnostics usually not interested during stage 1 bootstrapping.
+				The stage 1 'SHBuild' is the only program affected in default configurations. It would print many diagnostics usually not interested during stage 1 bootstrapping.
 				There can be more in user code.
 				Note the standard library macro 'assert' relies on 'NDEBUG' setting so it cannot be changed easily.
-			And this is no longer effected by 'YB_Use_YTrace' macro.
+			And this is no longer affected by 'YB_Use_YTrace' macro.
 		Since build 804, SHBuild is aware of issue and it set filter level explicitly to resolve the problem.
 			If the tracing messages are needed again in future, it can read configurations to change the behavior.
 		User programs are still need to make change when assertions are enabled through 'CXXFLAGS_OPT_UseAssert' or in debug configurations to get old behavior, since build 803.
@@ -2403,12 +2404,12 @@ TCO (tail call optimization) algorithm in NPLA1 to support PTC (proper tail call
 					Sometimes, before setting the parent of source object, bindidngs lived both in source and destination are deduplicated.
 						The deduplication is simply to remove all bindings in the destination with same names in source.
 							The object lifetime would be altered. It shall be only used following the semantic rules of object language.
-						Sometimes the source and destination can have same bindings when the destination is the only parent of the source. If deduplicated, destination can be empty and be then collected.
+						Sometimes the source and the destination can have same bindings when the destination is the only parent of the source. If deduplicated, destination can be empty and be then collected.
 							This typically exists like frames created by recursive function calls, which is a majority source of need of TCO.
 							It is necessary for elements in the frame record list because the referent cannot be removed otherwise.
 								The result of emptiness is important because an nonempty environment cannot be removed.
 								Also note moving destination bindings to merge to the source is not feasible in general.
-									The only exception is the case that name resolution can be proved not effected (in search order, etc.) by it, which is too complicated and not worthy in general.
+									The only exception is the case that name resolution can be proved not affected (in the search order, etc.) by it, which is too complicated and not worthy in general.
 				The compressor provides methods to add references before further operations.
 					The methods are to determine the universe.
 					A count is set to each entry in the universe, initially indicating the total reference count to the object in the entry.
@@ -2533,7 +2534,7 @@ Currently, 'ystdex::basic_string' is modeled on 'std::experimental::basic_string
 Use of inherited constructors are rechecked to interact without resolution from WG21 P0136R1.
 	This is searched using regular expression pattern 'using (.+)\:\:\1' in the editor in VS 2017.
 	Currently, resolution of WG21 P0136R1 (esp. for CWG 1941) is not relied on.
-		Some of the inherited constructors may be effected with dependent types from template parameters.
+		Some of the inherited constructors may be affected with dependent types from template parameters.
 			Currently, these class names matching the pattern are 'derived_entity', 'default_init_allocator' and 'path' in namespace 'ystdex' provided by YBase module YStandardEx.
 			The only use of 'derived_entity' in user code is 'NPL::TokenValue' in module NPL::NPLA.
 				This is not considered relying on P0136R1 because it is based on interface like 'std::basic_string', where there no issue is related directly.
@@ -3048,7 +3049,7 @@ Pointer holder in module YSLib::Core::YObject is reworked.
 		For weak pointers, it does not need to get strong pointers to get the type.
 			An expired value might lead to 'void' type previously. This is changed to getting 'void' only when the pointer value is null despite the owner.
 			User code should be careful in this case.
-NPL objects involved with pointer holders are effected by the change of pointer holder in module YSLib::Core::YObject.
+NPL objects involved with pointer holders are affected by the change of the pointer holder in module YSLib::Core::YObject.
 	Values of Weak references in the past would be more troblesome as the values without strong reference is recognized as 'void' rather than concrete type.
 		So, there would be simply wrong value rather than the 'YSLib::bad_weak_ptr' exception thrown, if no other strong reference is kept.
 		The only example is 'ContextHandler' used as the default object by the call of 'NPL::A1::Forms::DefineWithRecursion'.
@@ -3465,7 +3466,7 @@ YBase now provides 'ystdex::list' class template.
 	There are several differences to the implementation of libstdc++.
 		There is no effort to detect whether a pair of list iterators is a whole range of a list object in getting distance between them.
 			The internal implemantation of list iterators have overloads of 'std::__distance' for a fast access when the range is the whole list.
-			The perforance might be effected if user code does not optimize explicitly in this case, e.g. on call of 'std::lower_bound'.
+			The perforance might be affected if user code does not optimize explicitly in this case, e.g. on call of 'std::lower_bound'.
 			Consider using something already knows the size of the range instead when possible, e.g. 'ystdex::lower_bound_n' in YBase.StandardEx.Algorithm.
 		The implementation of 'list::remove_if' and 'list::unique' respect to [LWG 526].
 			See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91620.
@@ -3829,7 +3830,7 @@ Reference counting interface of 'NPL::Environment' in YFramework module NPL::NPL
 		The name resolution is in general more costly due to tracing on the pointer values instead of the raw references ('lref<Environment>').
 		In some other sites this can be more efficient for less constructions of 'shared_ptr<Environment>' values from 'weak_ptr<Environment>' value and less space occupied by the 'weak_ptr<Environment>' stored in the environment object.
 		Some call sites now need to check against the null pointer value of 'shared_ptr<Environment>'.
-	The frame record compressor used by TCO has also been effected.
+	The frame record compressor used by TCO has also been affected.
 		The vector for collected object has been removed for simplicity, as well as the more determinism of the order of destruction among the collected environment objects, based on the parantage.
 		The references kept in traversal calls are adjusted carefully to make the counts still sane.
 
@@ -3936,7 +3937,7 @@ The use of encoding conversion in Windows is revised.
 		The code pages of a console can be set separatedly, so they do not necessarily equal to the ANSI code page, hence the bug.
 		The improper calls of 'platform_ex::Encode' and 'platform_ex::Decode' with 'CP_ACP' or a default argument (of 'CP_ACP') can lead the bug.
 			Currently, the bug has effects on the 'SHBuild' tool in the YSLib project.
-				This is effected by calls of 'EncodeArg' and 'DecodeArg' since build 561 which had replaced calls of 'MBCSToMBCS' since build 476.
+				This is affected by calls of 'EncodeArg' and 'DecodeArg' since build 561 which had replaced calls of 'MBCSToMBCS' since build 476.
 			Client code should also be careful.
 		In general, client programs should better leave the code pages untouched (without calls to '::SetConsoleCP' and '::SetConsoleOutputCP') unless some encodings are explicitly depended on by design.
 			See also https://dev.to/mattn/please-stop-hack-chcp-65001-27db
@@ -4220,7 +4221,7 @@ Module NPL is continuously improved.
 			Notably, 'ReduceToReferenceAt' module NPL::NPLA (but not NPLA1) has no context parameter. It seems unwise to add one just for this special purpose.
 	Uses of list initialization via 'std::initialization_list' is checked to avoid unexpected copy caused by the improper use cases.
 		The bug makes it fail to copy 'TermNode' having move-only objects, which should have been supported.
-			As now, it has only effected some native implementations in module NPL::NPLA1Forms.
+			As now, it has only affected some native implementations in module NPL::NPLA1Forms.
 				This makes several applicatives (like 'accr') behaves differently than its alternative derivation.
 			They are fixed by avoiding list initialization.
 		Other cases in NPL (e.g. APIs in the nested namespace 'SXML') may be not optimal, but they are not bugs as rejecting move-only objects.
@@ -4683,6 +4684,47 @@ The implementation of 'ystdex::swap_underlying' is fixed.
 		This also confirms the intention of the aligned storage type is not fit to the purpose other than providing storage.
 		To remove the use of these standard library types (for the wrong API) is another issue, though.
 	It is not currently used internally, so no code behavior should ever change.
+	
+$2021-12:
+
+Replacements of features in ISO C++20 <bit> header is now supported, as well as several extensions.
+	Only 'std::countl_zero' and 'std::countr_zero' in 'std' are implemented now.
+		More interface would be implemented in future.
+	Function templates 'ystdex::countl_zero_narrow' and 'ystdex::countr_zero_narrow' are provided as the features above, with narrow contracts.
+		It is undefined behavior if the input unsigned value is 0.
+		This is similar to preconditions of implementations like '__builtin_clz' and x86 BSF/BSR instructions.
+	The 'constexpr' requirement is not strictly guaranteed as 'std' ones.
+		Since the targets is in C++20, all replacments has no 'std::is_constant_evaluated' available, unless extensions like '__builtin_is_constant_evaluated' are adopted.
+		For code implemented before C++20, there is no reliable way to guarantee 'constexpr' always work without losing the performance.
+	Some YStandardEx::CStandardInteger features previously are to the new header 'bits.hpp'.
+		This is a breaking change needing to include the new header in the client code using such features.
+		Most functions accepting a 'std::uintmax_t' are now implemented as templates to accept unsigned types, like 'std' ones in <bits>.
+	The function template 'ystdex::floor_lb' and 'ystdex::ceiling_lb' are reimplemented to allow sharing the underlying implementation with replacements.
+		The latter is sensitive to the performance since it is called frequently in memory allocators used by 'ystdex::pool_memory_resource' and its friends.
+		Unfortunately, there is a performance loss at build 933, where x86_64 GCC 11.1 generates degraded code. This is caused by multiple reasons.
+			First, 'YB_ATTR_always_inline' was added on the callers (the public interface), but not on the callees (the underlying implementation).
+				This would make inlining result bad.
+				Either adding the missed 'YB_ATTR_always_inline' to the callees or removed it from the callers (so inlining is controlled by the compiler) fixes the problem.
+			Second, there are some known performance issues of the code generated by GCC builtins and intrinsics, which incur the redundant instructions in the generated code of the underlying implementation.
+				See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=29776.
+				As pointed out by https://gcc.gnu.org/bugzilla/show_bug.cgi?id=50168#c10, Clang has no such issues, except there can also be one more redudant instruction when using LZCNT/TZCNT.
+				Given that specific microarchitecture features are not used, LZCNT or BMI ISA extenstions are not used here.
+					The operation here prefer BSF by default, and using LZCNT would require one more instruction, so LZCNT is not the best fit.
+					This has some risks to be suboptimal. Note BSF/BSR and LZCNT/TZCNT may have similar cost on Intel CPUs, but not AMD's.
+						See https://stackoverflow.com/a/57643088, https://stackoverflow.com/a/54509783 and https://www.realworldtech.com/forum/?threadid=167900&curpostid=167913.
+					Ideally, there should be only one single BSR instruction as Clang does for the default i386 and x86_64 targets.
+				Some workaround are tested, but not ideal for various reasons.
+					The '__bsrd' and '__bsrq' intrinsics in <x86intrin.h> are also defective to the bug, when the contexts requires an unsigned value.
+					On the other hand, patterns like '31 - (unsigned(__builtin_clz(x) & N))' where 31 ≤ N ≤ 64 can behave similar since GCC 11.
+						For other N, or older GCC versions, the '&' operator is not optimized and there is an redundant AND instruction.
+							This is too sensitive to specific versions of the compiler.
+						Clang can still optimize them away, though.
+				Since common builtins are affected by the bug, target-specific builtins and inline assembly are used here.
+					The target-specific builtins are yet undocumented, see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92137.
+						However, they are is still better than intrinsics, not only in the generated code, but also in the simplification of the source code, e.g. no header inclusion or compiler version testing is required.
+						These are supported by GCC, but not other implementations.
+							This is fit for working around the GCC-specific issues.
+					As a fallback, inlining assembly code is used for GCC.
 
 ////
 

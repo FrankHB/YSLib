@@ -1,5 +1,5 @@
 ﻿/*
-	© 2016-2020 FrankHB.
+	© 2016-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r8231
+\version r8251
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2020-01-12 18:16 +0800
+	2021-12-21 12:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -145,7 +145,7 @@ b798
 				/ DLD "lifted %SHBOPT construction",
 				/ "reordered user output of variable",
 					// To be consistent with %SHBuild-BuildApp.sh.
-				/ $forced DLDI "simplified applicative %build-with-conf-opt"
+				/ $forced DLDI "simplified applicative 'build-with-conf-opt'"
 					$dep_from %YFramework.NPL.Dependency
 			),
 			/ @ "%SHBuild-BuildApp.sh" $=
@@ -180,7 +180,7 @@ b798
 				than destination" $since b575;
 			* "always failed to convert %int to %size_t where they have same \
 				width" @ "member function %ArgumentsVector::Reset" $since b797
-				// In general, all platform with 64-bit %size_t are effected.
+				// In general, all platform with 64-bit %size_t are affected.
 		),
 		/ %NPL $=
 		(
@@ -261,7 +261,7 @@ b797
 		/ %Scripts $=
 		(
 			/ "removed building functionality" @ "%SHBuild-YSLib.sh"
-				$dep_from "%install-sysroot.sh"
+				$dep_from "%install-sysroot.sh",
 			/ "%SHBuild-YSLib-common.txt" $=
 			(
 				+ "applicative 'cons-cmd'" ^ $dep_from
@@ -293,10 +293,10 @@ b797
 					$= (/ "%SHBuild_FLAGS" -> "%SHBuild_CXXFLAGS")
 			)
 		),
-		/ $forced "stage 2 YSLib building" @ "%install-sysroot.sh" ^ $dep_from
-			("%SHBuild-YSLib-build.txt" @ %Scripts, ("command line arguments \
-			initialization support", "optional options parsing controlled by \
-			'--'") @ %SHBuild.Main) ~ "%SHBuild-YSLib.sh"
+		/ $forced "stage 2 YSLib building" @ "%install-sysroot.sh"
+			~ "%SHBuild-YSLib.sh" ^ $dep_from ("%SHBuild-YSLib-build.txt"
+			@ %Scripts, ("command line arguments initialization support",
+			"optional options parsing controlled by '--'") @ %SHBuild.Main)
 	),
 	/ %YFramework $=
 	(
@@ -380,7 +380,7 @@ b795
 				/ "fixed %SHBuild_Host_Platform internally";
 					// External settings of %SHBuild_Host_Platform is not \
 						supported now.
-				- "call of %SHBuild_CheckHostPlatform"
+				- "call to %SHBuild_CheckHostPlatform"
 				),
 				/ DLDI "simplified build strings as NPL scripts",
 				(
@@ -395,7 +395,7 @@ b795
 					^ $dep_from ('$set-system-var!', 'SHBuild_CheckUName_Case_',
 					'SHBuild_CheckUNameM_Case_')
 					@ "%SHBuild-common-toolchain.sh"
-					~ "call of %SHBuild_CheckUName",
+					~ "call to %SHBuild_CheckUName",
 				- $lib "unused variable %SHBuild_BaseDir",
 				/ ("default value setting of variable %YSLib_BaseDir"
 					-> "assertion to ensure nonnull when not skipped",
@@ -1845,11 +1845,11 @@ b773
 			@ %YSLib.Core.YEvent
 	),
 	+ $re_add(b708) $repo "glob pattern '.vs/*'" @ "file %.hgignore",
-	/ $build "updated to Microsoft VC++ 2017"
+	/ $re_ex(b617) $build "updated to Microsoft VC++ 2017"
 		~ "Microsoft VC++ 2015" @ "Microsoft VC++ projects" $effective
 		@ %(YBase, YFramework, Tools.(CreationTimeManager,
 		PredefinedMacroDetector))
-		$= (/ $re_ex(b617) "updated platform toolset" -> "v141" ~ "v140")
+		$= (/ $re_ex(b617) "retargeted platform toolset" -> 'v141' ~ 'v140')
 ),
 
 b772
@@ -2389,8 +2389,8 @@ b762
 				* $comp "default value of %C_CXXFLAGS_IMPL_WARNING duplicated"
 					@ "%CXXFLAGS"
 			),
-			/ $re_ex(b554) $dev $build 'ANDROID_SDKVER := 21.1.1'
-				-> 'ANDROID_SDKVER := 25.0.2' @ "%Toolchain.Android.mk"
+			/ $re_ex(b554) "updated value" @ "variable %ANDROID_SDKVER"
+				@ "%Toolchain.Android.mk" -> '25.0.2' ~ '21.1.1'
 		)
 	),
 	/ %YFramework $=
@@ -6248,7 +6248,7 @@ b714
 					~ "%ystdex::throw_error",
 				/ @ "class %FileDescriptor" $=
 				(
-					* $dev "static assertion string" @ !"platform %Win32"
+					* $dev "static assertion message" @ !"platform %Win32"
 						@ "function %FileDescriptor::GetNumberOfLinks" $since
 						b638,
 					/ DLDI "simplified throwing %std::system_error"
@@ -6326,7 +6326,7 @@ b713
 			/ %MinGW32 $=
 			(
 				/ "all 2 functions %(MBCSToMBCS, MBCSToWCS, WCSToMBCS, \
-					UTF8ToWCS, WCSToUTF8)" >> %Consoles,
+					UTF8ToWCS, WCSToUTF8)" >> %NLS,
 				/ DLDI "simplified member function \
 					%Win32Exception::FormatMessage" ^ "%WCSToUTF8"
 					~ "%(WCSToMBCS, CP_UTF8)",
@@ -7177,7 +7177,7 @@ b706
 					^ "%IsSeparator_P" ~ "comparison to '/'"
 				/ "functions %ResolvePath" ^ "%IsSeparator"
 					~ "%YCL_FS_CharIsDelimiter",
-				/ "all 'YCL_PATH_DELIMITER'" -> "call of %FetchSeparator \
+				/ "all 'YCL_PATH_DELIMITER'" -> "call to %FetchSeparator \
 					instances" $dep_to "removal use of YCL_PATH_DELIMITER"
 				),
 				/ DLDI "%basic_string_view instance" ^ 'path.front()'
@@ -7228,7 +7228,7 @@ b706
 					/ "function template %is_parent" !^ "%YCL_FS_StringIsParent"
 				)
 				/ "all 'YCL_PATH_DELIMITER'"
-					-> "call of %FetchSeparator instances',
+					-> "call to %FetchSeparator instances',
 			)
 		)
 	),
@@ -7921,7 +7921,8 @@ b700
 				Exceptions implementation: Dwarf2.
 		^ $re_ex(b622) "mingw-w64-i686-binutils 2.25.1-5 from MSYS2"
 			~ "mingw-w64-i686-binutils 2.25.1-1"
-	)
+	),
+	/ $doc $deploy "updated PROJECT_NUMBER" @ "%Doxyfile"
 );
 
 ////

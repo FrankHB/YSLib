@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2020 FrankHB.
+	© 2011-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r4930
+\version r4935
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2020-07-17 01:25 +0800
+	2021-12-21 20:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@
 //	remove_pointer_t, is_void, indirect_element_t, not_, yconstraint,
 //	is_pointer, enable_if_t, is_array, extent, remove_extent_t, is_polymorphic;
 #include <limits> // for std::numeric_limits;
-#include "ref.hpp" // for is_reference_wrapper;
+#include "ref.hpp" // for is_reference_wrapper, nullptr_t;
 
 /*!
 \brief \c \<memory> 特性测试宏。
@@ -236,13 +236,13 @@ using over_aligned_t
 	= false_;
 #endif
 
-YB_ALLOCATOR inline void*
+YB_ALLOCATOR YB_ATTR(alloc_size(1)) inline void*
 new_aligned(size_t size, size_t, false_) ynothrow
 {
 	return ::operator new(size, std::nothrow);
 }
 #if YB_Impl_aligned_new
-YB_ALLOCATOR inline void*
+YB_ALLOCATOR YB_ATTR(alloc_align(2), alloc_size(1)) inline void*
 new_aligned(size_t size, size_t alignment, true_) ynothrow
 {
 	return ::operator new(size, std::align_val_t(alignment), std::nothrow);
@@ -267,7 +267,7 @@ delete_aligned(void* ptr, size_t alignment, true_) ynothrow
 } // namespace details;
 
 
-#if (YB_IMPL_MSCPP >= 1912 && _MSVC_LANG >= 201606) || (__GLIBCXX__ \
+#if (YB_IMPL_MSCPP >= 1912 && _MSVC_LANG >= 201606L) || (__GLIBCXX__ \
 	&& (__GLIBCXX__ <= 20150815 || YB_IMPL_GNUCPP < 90000)) \
 	|| __cplusplus >= 201611L
 template<typename _type>

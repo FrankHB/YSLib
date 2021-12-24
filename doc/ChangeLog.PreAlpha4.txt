@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2020 FrankHB.
+	© 2013-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r9339
+\version r9361
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2020-01-12 18:18 +0800
+	2021-12-21 12:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -528,7 +528,7 @@ b495
 					),
 					* "wrong implementation" @ "function %GetPageBounds",
 					+ "function %Find",
-					/ $design "assertion string" @ "function %SwitchPage"
+					/ $design "assertion message" @ "function %SwitchPage"
 				),
 				/ @ "function %operator+=" $=
 				(
@@ -695,7 +695,7 @@ b493
 		(
 			/ @ "class %Typeface" @ %Adaptor.Font $=
 			(
-				* $lib $design "spelling error" @ "assertion string"
+				* $lib $design "spelling error" @ "assertion message"
 					@ "destructor" $since b425,
 				+ $design "inheritance %nonmovable"
 			),
@@ -893,9 +893,9 @@ b491
 					@ "platform %DS");
 				- "struct %CursorInfo"
 				),
-				/ $dev "inline functions %(WaitForKeypad, WaitForFrontKey, \
-					WaitForFrontKeypad, WaitForArrowKey, WaitForABXY)"
-					@ "platform %DS" -> "non-inline function";
+				/ $dev $src "inline functions %(WaitForKeypad, \
+					WaitForFrontKey, WaitForFrontKeypad, WaitForArrowKey, \
+					WaitForABXY)" @ "platform %DS" -> "non-inline function";
 				- $dev "header %NativeAPI dependency" @ "header"
 			)
 		),
@@ -1404,7 +1404,7 @@ b483
 				@ %(TextRenderer, TextLayout) -> "function templates acception \
 				iterator" ^ 'ystdex::enable_for_iterator_t',
 			/ "all" ("function templates accepting %String"
-				@ %(TextRenderer, TextLayout)
+				@ %(TextRenderer, TextLayout),
 				"inline functions %FetchStringWidth" @ %TextLayout)
 				-> "function templates acception string class template argument"
 				^ 'ystdex::enable_for_string_class_t', ('[0]' ~ .c_str()'')
@@ -2587,7 +2587,7 @@ b460
 	/ %YFramework $=
 	(
 		* $dev "constructor %RegisterKey" @ "%UNICODE undefined"
-			@ %'YCLib_(MinGW32)'.MinGW32 $since build b435
+			@ %'YCLib_(MinGW32)'.MinGW32 $since b435
 			$= (^ "%RegOpenKeyExW" ~ "%RegOpenKeyEx"),
 		/ %YSLib $=
 		(
@@ -2971,7 +2971,7 @@ b455
 		/ $design "attached function name to several Win32 exception \
 			descriptions to distinguish different exception sources"
 			@ %'YCLib_(MinGW32)'
-			// Specially, only 4 %SetWindowPos are effected. It is primarily \
+			// Specially, only 4 %SetWindowPos are affected. It is primarily \
 				for debugging convenience, so function names in unnamed \
 				namespace are also used without any change.
 	),
@@ -3169,9 +3169,9 @@ b454
 			optimization options(to default), Microsoft VC++ directories, \
 			warning level('/W3'), character set(to default) and linker \
 			options(to default)",
-		/ $build "updated to Microsoft VC++ 2013" ~ "Microsoft VC++ 2012"
-			@ "Microsoft VC++ projects" $effective @ %(YBase, YFramework)
-			$= (/ $re_ex(b399) "updated platform toolset" -> "v120" ~ "v110")
+		/ $re_ex(b399) "updated to Microsoft VC++ 2013"
+			~ "Microsoft VC++ 2012" $effective @ %(YBase, YFramework)
+			$= (/ $re_ex(b399) "retargeted platform toolset" -> 'v120' ~ 'v110')
 	),
 	+ $dev $repo "pattern globs ('*.lastcodeanalysissucceeded', \
 		'*.nativecodeanalysis.all.xml', '*.nativecodeanalysis.xml')"
@@ -3491,7 +3491,7 @@ b449
 				(
 					/ $dev @ "class %Message" %=
 					(
-						/ DLD "all constructors made inlined",
+						/ DLD $src "inlined all constructors",
 						+ ynothrow @ "constructor with 'ValueObject&&' \
 							parameter"
 					),
@@ -3960,7 +3960,7 @@ b442
 				(
 					/ DLD "non-specialized blending template supported alpha \
 						bits as template argument",
-					+ DLD "static assert of alpha bits range"
+					+ DLD "static assertion of alpha bits range"
 						@ "specialized template for %RGBA<5, 5, 5, 1>"
 					- "width specified from template paramter",
 					+ "template functions %(BlendComponent, BlendCore,
@@ -4348,7 +4348,7 @@ b436
 	/ "function %std::swap for %ystdex::any" @ %YBase.YStandardEx.Any
 		>> "namespace %ystdex",
 		// ADL is preferred.
-	/ $repo "engineering fault tagged" ^ "hg bookmark" ~ "hg tag",
+	/ $repo "tagged engineering fault" ^ "hg bookmarks" ~ "hg tags",
 	/ "library files name with postfix '.d'" @ "debug configuration"
 		@ "platform %MinGW32" $=
 		// This makes DLL files of both debug and release configurations can \
@@ -4507,7 +4507,8 @@ b433
 		(
 			/ "function %GetNode" @ "class %ValueNode" => "%at",
 			+ "function %AccessNode for container pointer";
-			/ $design "inlined function %AccessNode for container reference"
+			/ $design $src
+				"inlined function %AccessNode for container reference"
 		)
 	),
 	/ %YBase.YStandardEx $=
@@ -4575,7 +4576,7 @@ b432
 			(
 			/ $dev "assertion function" $=
 			(
-				/ "parameter order and assertion string",
+				/ "parameter order and assertion message",
 				^ DLD 'std::terminate' ~ "'std::abort' as termination",
 				^ "standard output to 'stderr'"
 					~ "platform dependent output function"
@@ -4791,7 +4792,7 @@ b430
 			+ "functions %(GetOpacity, SetOpacity)" @ "class %WindowReference",
 			+ "class %HostWindow" @ "namespace %platform_ex::Windows"
 		)
-		/ %YSLib.YAdaptor.Image $=
+		/ %YSLib.Adaptor.Image $=
 		(
 			+ "enum class %SamplingFilter",
 			/ @ "class %HBitmap" $=
@@ -6253,7 +6254,7 @@ b402
 			/ $dev "normalized header including with prefix 'YCLib/'",
 			/ @ "platform %MinGW32" @ %NativeAPI $=
 			(
-				/ "simplified header inclusion" ,
+				/ $dev "simplified header inclusion",
 					// Reduced some name pollution.
 				- "directory APIs"
 			),
@@ -6404,7 +6405,8 @@ b400
 				+ "header %YTextBase.h"
 			)
 		)
-	)
+	),
+	/ $doc $deploy "updated PROJECT_NUMBER" @ "%Doxyfile"
 );
 
 ////

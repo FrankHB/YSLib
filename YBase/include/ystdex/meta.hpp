@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2020 FrankHB.
+	© 2011-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file meta.hpp
 \ingroup YStandardEx
 \brief 通用元编程设施。
-\version r1738
+\version r1794
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:28 +0800
 \par 修改时间:
-	2020-01-12 18:21 +0800
+	2021-12-24 18:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,33 @@
 #define YB_INC_ystdex_meta_hpp_ 1
 
 #include "type_inspection.hpp" // for "type_inspection.hpp",
-//	__cpp_lib_transformation_trait_aliases, __cpp_lib_void_t, is_same, or_,
-//	nor_, and_, is_trivial, is_class, is_union, is_convertible, not_;
-#include "integral_constant.hpp" // for true_;
+//	__cpp_lib_transformation_trait_aliases, __cpp_lib_remove_cvref,
+//	__cpp_lib_void_t, is_same, or_, nor_, and_, is_trivial, is_class, is_union,
+//	is_convertible, not_, __cpp_lib_type_identity, is_unsigned;
+#include "integral_constant.hpp" // for true_, size_t_;
+
+/*!
+\brief \c \<type_traits> 特性测试宏。
+\see ISO C++20 [version.syn] 。
+\see WG21 P1902R1 。
+\see https://docs.microsoft.com/zh-cn/cpp/overview/visual-cpp-language-conformance 。
+\see https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros 。
+\since build 934
+*/
+//@{
+#ifndef __cpp_lib_remove_cvref
+#	if (YB_IMPL_MSCPP >= 1920 && _MSVC_LANG >= 201711L) \
+	|| __cplusplus >= 202002L
+#		define __cpp_lib_remove_cvref 201711L
+#	endif
+#endif
+#ifndef __cpp_lib_type_identity
+#	if (YB_IMPL_MSCPP >= 1921 && _MSVC_LANG >= 201806L) \
+	|| __cplusplus >= 202002L
+#		define __cpp_lib_type_identity 201806L
+#	endif
+#endif
+//@}
 
 namespace ystdex
 {
@@ -212,11 +236,15 @@ using underlying_type_t = typename underlying_type<_type>::type;
 
 } // inline namespace cpp2014;
 
+//! \since build 934
+inline namespace cpp2020
+{
+
 //! \ingroup transformation_traits
 //@{
 //! \since build 833
 //@{
-#if __cplusplus > 201703L
+#if __cpp_lib_remove_cvref >= 201711L
 using std::remove_cvref;
 using std::remove_cvref_t;
 #else
@@ -237,6 +265,8 @@ using remove_cvref_t = _t<remove_cvref<_type>>;
 #endif
 //@}
 //@}
+
+} // inline namespace cpp2020;
 
 
 //! \ingroup metafunctions
@@ -819,6 +849,28 @@ struct identity
 //! \since build 595
 template<typename _type>
 using identity_t = _t<identity<_type>>;
+
+
+/*!
+\see WG21 P0887R1 。
+\since build 934
+*/
+inline namespace cpp2020
+{
+
+#if __cpp_lib_type_identity >= 201806L
+using std::type_identity;
+using std::type_identity_t;
+#else
+template<typename _type>
+struct type_identity : yimpl(identity<_type>)
+{};
+
+template<typename _type>
+using type_identity_t = _t<type_identity<_type>>;
+#endif
+
+} //inline namespace cpp2020;
 //@}
 
 
@@ -854,6 +906,14 @@ using enable_if_same_t
 template<typename _type1, typename _type2, typename _type = void>
 using enable_if_same_param_t
 	= enable_if_t<is_same_param<_type1, _type2>::value, _type>;
+
+/*!
+\brief 启用无符号类型参数的重载。
+\since build 933
+*/
+template<typename _tParam, typename _type = remove_cvref_t<_tParam>>
+using enable_if_unsigned_t
+	= enable_if_t<is_unsigned<remove_cvref_t<_tParam>>::value, _type>;
 
 /*!
 \brief 排除选择类型的特定参数的重载。

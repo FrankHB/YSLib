@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2019 FrankHB.
+	© 2012-2016, 2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file About.cpp
 \ingroup YReader
 \brief 关于界面。
-\version r276
+\version r279
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:06:35 +0800
 \par 修改时间:
-	2019-08-01 12:57 +0800
+	2021-12-21 20:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,10 +73,10 @@ AboutPanel::AboutPanel()
 	lblTitle.ForeColor = ColorSpace::Blue,
 	lblVersion.Background = nullptr,
 	lblVersion.AutoWrapLine = true,
-	lblVersion.Text = G_APP_VER + String(u" 0.6"),
+	lblVersion.Text = G_APP_VER + String(u" 0.9"),
 	lblVersion.ForeColor = ColorSpace::Green,
 	lblCopyright.Background = nullptr,
-	lblCopyright.Text = String("(C)2009-2019 by ") + G_COMP_NAME,
+	lblCopyright.Text = String("(C)2009-2021 by ") + G_COMP_NAME,
 	lblCopyright.ForeColor = ColorSpace::Maroon,
 	btnSysInfo.Text = u"系统信息",
 	btnExit.Text = u"退出",

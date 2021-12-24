@@ -83,7 +83,7 @@
     <BuildLog />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="predefined-macro-detector.txt" />

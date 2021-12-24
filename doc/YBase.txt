@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r1766
+\version r1777
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2021-12-20 23:52 +0800
+	2021-12-22 18:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,6 +117,8 @@ __builtin_trap
 __builtin_unreachable
 在特定实现还可能使用：
 __builtin_constant_p
+__builtin_ia32_bsrdi
+__builtin_ia32_bsrsi
 外部参考列表：
 https://docs.microsoft.com/en-us/cpp/intrinsics/bitscanforward-bitscanforward64
 https://docs.microsoft.com/en-us/cpp/intrinsics/bitscanreverse-bitscanreverse64
@@ -124,6 +126,7 @@ https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
 https://releases.llvm.org/1.5/docs/ReleaseNotes.html#whatsnew
 http://lists.llvm.org/pipermail/cfe-commits/Week-of-Mon-20130708/083439.html
 https://clang.llvm.org/docs/LanguageExtensions.html#checked-arithmetic-builtins
+https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92137
 
 @2.1.1.3 扩展属性：
 使用扩展属性（以宏 YDefinition 定义的 YB_ATTR 的形式调用）时若不支持，应被忽略。其中的标识符应保证不被替换，清单参见 [Documentation::Definitions] 中的 $attr 列表。
@@ -153,6 +156,14 @@ YStandardEx::Bit(@2.5.7.13) 对实现具有以下限制：
 		unsigned char 或 unsigned short 。
 **注释** 非替代的 ISO C++20 的 std 命名空间中的对应操作可能支持更多的扩展类型。
 不符合以上预期的实现无法构建。
+
+@2.1.1.6 体系结构相关实现：
+体系结构相关实现仅应用于可靠的替代实现。
+体系结构相关仅依赖指令集架构(ISA) ，但可能对微架构(microachitechture) 作出隐含的假设。
+当前这些替代实现包括：
+YStandardEx::Bit(@2.5.7.13) 使用 GCC 时，对 i386 和 x86_64 的部分实现使用特定体系结构的替代实现，以避免代码生成的性能缺陷。
+	参见 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=29776 。
+	替代实现优先检查可使用的 GCC 内建特性(@2.1.1.2) ；否则，使用内联汇编。	
 
 @2.1.2 安全性：
 基本内容参见 [Documentation::CommonRules @@3.11] 。另见 @2.1.1 。
@@ -489,6 +500,7 @@ ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证�
 扩展 ISO C++14 标准库头 <utility> 的 std::integer_sequence 等的元编程相关接口，并在 ISO C++14 前提供这些接口和实现。
 
 @2.5.7.10 重载操作符 Operators
+引入隐式定义重载操作符的模板。
 
 @2.5.7.11 迭代器操作 IteratorOperation ：
 扩展标准库头 <iterator> 中的部分接口。

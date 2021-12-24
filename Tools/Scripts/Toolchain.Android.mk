@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Makefile for Android toolchain
-# Version = r110
+# Version = r112
 # Created = 2014-12-06 16:51:13 +0800
-# Updated = 2021-10-23 17:46 +0800
+# Updated = 2021-12-22 13:17 +0800
 # Encoding = ANSI
 
 
@@ -81,5 +81,6 @@ ARCH := $(ARCH_AS)
 
 ASFLAGS	:= $(ARCH)
 
-C_CXXFLAGS := $(C_CXXFLAGS_OPT_DBG) $(ARCH) -ffast-math
+# XXX: NPLAMath does no support '-ffast-math'.
+C_CXXFLAGS := $(C_CXXFLAGS_OPT_DBG) $(ARCH)
 

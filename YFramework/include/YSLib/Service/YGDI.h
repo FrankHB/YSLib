@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2017, 2019 FrankHB.
+	© 2009-2017, 2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGDI.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r4048
+\version r4050
 \author FrankHB <frankhb1989@gmail.com>
 \since build 566
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2019-01-21 20:04 +0800
+	2021-12-21 21:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -395,7 +395,7 @@ public:
 	\since build 710
 	*/
 	PDefH(void, swap, CompactPixmapEx& x, CompactPixmapEx& y) ynothrow
-		// XXX: See https://bitbucket.org/FrankHB/yslib/issues/38.
+		// XXX: See archived YSLib issues 38.
 		ImplExpr(ystdex::swap_dependent<CompactPixmap>(x, y),
 			std::swap(x.pBufferAlpha, y.pBufferAlpha))
 };

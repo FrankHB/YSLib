@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2020 FrankHB.
+	© 2015-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file string_view.hpp
 \ingroup YStandardEx
 \brief 只读字符串视图。
-\version r636
+\version r641
 \author FrankHB <frankhb1989@gmail.com>
 \since build 640
 \par 创建时间:
 	2015-09-28 12:04:58 +0800
 \par 修改时间:
-	2020-07-17 01:16 +0800
+	2021-12-21 20:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,13 +38,13 @@
 
 #include "range.hpp" // "range.hpp", ystdex::reverse_iterator;
 // NOTE: See "placement.hpp" for comments on inclusion conditions.
-#if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603) \
+#if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603L) \
 	|| (__cplusplus >= 201703L && __has_include(<string_view>))
 #	include <string_view>
 // NOTE: Since WG21 P0941R2, the macro value is combined as '201606L' with WG21
 //	P0254R2 support which is not used here, so the check remains the value in
 //	WG21 P0941R1.
-#	if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603) \
+#	if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603L) \
 	|| __cpp_lib_string_view >= 201603L
 #		define YB_Has_string_view 1
 #	endif
@@ -69,7 +69,8 @@
 */
 //@{
 #ifndef __cpp_lib_string_view
-#	if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201606) || __cplusplus >= 201606L
+#	if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201606L) \
+	|| __cplusplus >= 201606L
 #		define __cpp_lib_string_view 201606L
 #	endif
 #endif

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2020 FrankHB.
+	© 2011-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4920
+\version r4923
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2020-08-09 11:20 +0800
+	2021-12-21 20:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -166,9 +166,9 @@ FileInfoPanel::FileInfoPanel()
 {
 	Background = SolidBrush(ColorSpace::Silver);
 #if YCL_DS
-	lblOperations.Text = "<↑↓> 滚动一行 <LR> 滚动一屏 <B>退出";
+	lblOperations.Text = u"<↑↓> 滚动一行 <LR> 滚动一屏 <B>退出";
 #else
-	lblOperations.Text = "<↑↓> 滚动一行 <LR> 滚动一屏 <Esc>退出";
+	lblOperations.Text = u"<↑↓> 滚动一行 <LR> 滚动一屏 <Esc>退出";
 #endif
 	AddWidgets(*this, lblPath, lblSize, lblAccessTime, lblModifiedTime,
 		lblOperations);

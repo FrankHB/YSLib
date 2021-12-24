@@ -11,23 +11,26 @@
 /*!	\file bit.hpp
 \ingroup YStandardEx
 \brief 位操作。
-\version r1284
+\version r1375
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2021-12-18 22:57:19 +0800
 \par 修改时间:
-	2021-12-21 02:19 +0800
+	2021-12-24 01:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Bit
 \see ISO C++20 [bit] 。
+\see WG21 P0553R4 。
 
-提供 ISO C++20 标准库头 <bit> 兼容的替代和扩展接口。
+提供 ISO C++20 标准库头 \<bit> 兼容的替代和扩展接口。
 当前仅提供对于整数操作的一部分接口。对标准库头的检查可能会随着提供接口的完善而变化。
 同 ISO C++20 ，所有整数类型的值视为补码表示；
 	使用扩展时，可能隐含实现仅使用补码。
+当前没有提供 WG21 P0556R3（被 WG21 P1956R1 重命名）的接口，
+	但提供类似功能的相关扩展。
 */
 
 
@@ -36,8 +39,8 @@
 
 #include "cassert.h" // for std::uint_least32_t, std::uintmax_t, std::uint32_t,
 //	std::uint_fast8_t, std::uint64_t, yconstraint;
-#include "meta.hpp" // for CHAR_BIT, byte, remove_cvref_t, enable_if_t,
-//	std::is_unsigned, size_t, size_t_;
+#include "meta.hpp" // for CHAR_BIT, byte, enable_if_unsigned_t, size_t,
+//	size_t_;
 #include <limits> // for std::numeric_limits;
 #if (YB_IMPL_MSCPP >= 1925 && _MSVC_LANG >= 201907L) \
 	|| (__cplusplus >= 202002L && __has_include(<bit>))
@@ -111,31 +114,22 @@ native_little_bit_order()
 //@}
 
 
-/*!
-\ingroup transformation_traits
-\since build 933
-*/
-template<typename _tParam, typename _type = remove_cvref_t<_tParam>>
-using enable_if_unsigned_t
-	= enable_if_t<std::is_unsigned<remove_cvref_t<_tParam>>::value, _type>;
-
-
 //! \brief 判断无符号整数是否为 2 的整数次幂。
 template<typename _type>
 YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS yconstfn
 	yimpl(enable_if_unsigned_t)<_type, bool>
-is_power_of_2(_type n) ynothrow
+is_power_of_2(_type x) ynothrow
 {
-	return (n & (n - 1)) == 0;
+	return (x & (x - 1)) == 0;
 }
 
 //! \brief 判断无符号整数是否为 2 的整数次幂的正整数。
 template<typename _type>
 YB_ATTR_nodiscard YB_ATTR_always_inline YB_FLATTEN yconstfn
 	yimpl(enable_if_unsigned_t)<_type, bool>
-is_power_of_2_positive(_type n) ynothrow
+is_power_of_2_positive(_type x) ynothrow
 {
-	return n != 0 && is_power_of_2(n);
+	return x != 0 && is_power_of_2(x);
 }
 
 //! \since build 842
@@ -199,7 +193,7 @@ struct dispath_w<32>
 		//	http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogDeBruijn.
 		yalignas(32) static yconstexpr const std::uint_fast8_t
 			deBruijn_bit_pos[]{
-			 0,  1, 28,  2, 29, 14, 24,  3, 30, 22, 20, 15, 25, 17,  4,  8, 
+			 0,  1, 28,  2, 29, 14, 24,  3, 30, 22, 20, 15, 25, 17,  4,  8,
 			31, 27, 13, 23, 21, 19, 16,  7, 26, 12, 18,  6, 11,  5, 10,  9
 		};
 
@@ -221,7 +215,7 @@ struct dispath_w<64>
 		unsigned long r;
 
 		_BitScanReverse64(&r, x);
-		return int(63 - r);
+		return 63 - int(r);
 #		elif YB_Impl_has_BitScan
 		unsigned long hi, lo;
 		bool hi_set = _BitScanReverse(&hi, std::uint32_t(x >> 32)) != 0;
@@ -377,24 +371,28 @@ ctz(unsigned short x) ynothrowv
 
 
 //! \since build 849
-YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline size_t
-floor_lb_shift(size_t n, true_) ynothrow
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS yconstfn size_t
+floor_lb_shift(size_t x, true_) ynothrow
 {
-	return n >> 1;
+	return x >> 1;
 }
 //! \since build 849
-YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline size_t
-floor_lb_shift(size_t n, false_) ynothrow
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS yconstfn size_t
+floor_lb_shift(size_t x, false_) ynothrow
 {
-	return (n >> 1) + (n & 1 & size_t(n != 1));
+	return (x >> 1) + (x & 1 & size_t(x != 1));
 }
 
-//! \since build 933
+/*!
+\pre <tt>x != 0</tt> 。
+\since build 933
+*/
+//@{
 template<size_t _vN, typename _type>
-YB_ATTR_nodiscard YB_STATELESS inline size_t
-floor_lb_w(_type n, size_t_<_vN>) ynothrowv
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline size_t
+floor_lb_w(_type x, size_t_<_vN>) ynothrowv
 {
-	yconstraint(n != 0);
+	yconstraint(x != 0);
 
 	// NOTE: This is like %is_power_of_2. Note 0 is already excluded.
 	using is_pow_2_t = bool_<(_vN & (_vN - 1)) == 0>;
@@ -403,51 +401,95 @@ floor_lb_w(_type n, size_t_<_vN>) ynothrowv
 
 	while(shifted != 0)
 	{
-		const auto tmp(n >> shifted);
+		const auto tmp(x >> shifted);
 
 		if(tmp != 0)
-			yunseq(res += shifted, n = tmp);
+			yunseq(res += shifted, x = tmp);
 		shifted = floor_lb_shift(shifted, is_pow_2_t());
 	}
 	return res;
 }
-//! \pre <tt>n != 0</tt> 。
-YB_ATTR_nodiscard YB_STATELESS inline size_t
-floor_lb_w(std::uint32_t n, size_t_<32>) ynothrowv
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline size_t
+floor_lb_w(std::uint32_t x, size_t_<32>) ynothrowv
 {
-	return size_t(31 - details::clz(n));
+	// NOTE: See $2021-12 @ %Documentation::Workflow.
+	// NOTE: Since common builtins are affected by the bug, target-specific
+	//	builtins and inline assembly are used here.
+	// TODO: Support more targets?
+#if __has_builtin(__builtin_ia32_bsrsi)
+	return size_t(__builtin_ia32_bsrsi(int(x)));
+	// XXX: All suppored GCC versions are concerned.
+#elif YB_IMPL_GNUCPP && (defined(__i386__) || defined(__x86_64__))
+	unsigned r;
+
+	asm("bsr %1, %0\n" : "=r"(r) : "r"(x));
+	return r;
+#else
+	// XXX: The following code should restore the issue, i.e. as efficient as
+	//	the old implementation in %CStandardInt before YSLib build 934, even
+	//	when the implementations above are not used.
+	return 31 - size_t(details::clz(x));
+#endif
 }
-//! \pre <tt>n != 0</tt> 。
-YB_ATTR_nodiscard YB_STATELESS inline size_t
-floor_lb_w(std::uint64_t n, size_t_<64>) ynothrowv
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline size_t
+floor_lb_w(std::uint64_t x, size_t_<64>) ynothrowv
 {
-	return size_t(63 - details::clz(n));
+	// XXX: Ditto, except that it is only done for 64-bit targets, since on
+	//	32-bit targets the code generated by GCC would not be obviously bad (and
+	//	Clang does not seems better; see also
+	//	https://stackoverflow.com/a/57643088).
+	// TODO: Support more targets?
+#if __has_builtin(__builtin_ia32_bsrdi)
+	return size_t(__builtin_ia32_bsrdi(static_cast<long long>(x)));
+#elif YB_IMPL_GNUCPP && defined(__x86_64__)
+	// XXX: The size of 'unsigned long' varies on different x86_64 targets.
+	unsigned long long r;
+
+	asm("bsrq %1, %0\n" : "=r"(r) : "r"(x));
+	return r;
+#else
+	return 63 - size_t(details::clz(x));
+#endif
 }
+//! \since build 934
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline size_t
+floor_lb_w(std::uint8_t x, size_t_<8>) ynothrowv
+{
+	return details::floor_lb_w(x, size_t_<32>());
+}
+//! \since build 934
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline size_t
+floor_lb_w(std::uint16_t x, size_t_<16>) ynothrowv
+{
+	// XXX: %__lzcnt is not used now.
+	return details::floor_lb_w(x, size_t_<32>());
+}
+//@}
 
 } // namespace details;
 
 /*!
 \brief 计算 2 为底数的无符号整数的向下取整的对数值。
-\pre <tt>n != 0</tt> 。
+\pre <tt>x != 0</tt> 。
 */
 template<typename _type>
 YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline
 	yimpl(enable_if_unsigned_t)<_type, size_t>
-floor_lb(_type n) ynothrowv
+floor_lb(_type x) ynothrowv
 {
-	return details::floor_lb_w(n, size_t_<sizeof(n) * CHAR_BIT>());
+	return details::floor_lb_w(x, size_t_<sizeof(x) * CHAR_BIT>());
 }
 
 /*!
 \brief 计算 2 为底数的无符号整数向上取整的的对数值。
-\pre <tt>n > 1</tt> 。
+\pre <tt>x > 1</tt> 。
 */
 template<typename _type>
 YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline
 	yimpl(enable_if_unsigned_t)<_type, size_t>
-ceiling_lb(_type n) ynothrowv
+ceiling_lb(_type x) ynothrowv
 {
-	return 1 + details::floor_lb_w(n - 1, size_t_<sizeof(n) * CHAR_BIT>());
+	return 1 + details::floor_lb_w(x - 1, size_t_<sizeof(x) * CHAR_BIT>());
 }
 
 

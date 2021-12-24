@@ -1,5 +1,5 @@
 ﻿/*
-	© 2019 FrankHB.
+	© 2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file node_base.h
 \ingroup YStandardEx
 \brief 作为节点序列容器实现的节点基础。
-\version r437
+\version r439
 \author FrankHB <frankhb1989@gmail.com>
 \since build 865
 \par 创建时间:
 	2019-08-22 17:48:43 +0800
 \par 修改时间:
-	2019-08-24 14:20 +0800
+	2021-12-21 20:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,7 +63,7 @@ struct YB_API list_node_base
 	static void
 	swap(list_node_base&, list_node_base&) ynothrow;
 
-	//! \pre 断言：第二参数不等于 this 。
+	//! \pre 断言：第二参数不等于 \c this 。
 	void
 	transfer(base_ptr, base_ptr) ynothrow;
 

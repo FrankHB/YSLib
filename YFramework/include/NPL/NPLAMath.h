@@ -11,13 +11,13 @@
 /*!	\file NPLAMath.h
 \ingroup NPL
 \brief NPLA 数学功能。
-\version r11307
+\version r11308
 \author FrankHB <frankhb1989@gmail.com>
 \since build 930
 \par 创建时间:
 	2021-11-03 12:49:54 +0800
 \par 修改时间:
-	2021-12-15 22:22 +0800
+	2021-12-21 20:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -403,6 +403,7 @@ static_assert((std::numeric_limits<long double>::max_digits10 + 5 + 3
 /*!
 \brief 写浮点数据到字符串缓冲区。
 \pre 缓冲区应至少具有连续可读写的 StringBufferSize 字节。
+\pre 最后两个参数不超过 std::uint8_t 的范围。
 \warning 当前不支持对不满足特定要求的 ISO C++ 实现，且不排除这些实现上的未定义行为。
 \return 输出结束的指针。
 

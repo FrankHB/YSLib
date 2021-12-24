@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -15,16 +15,16 @@
 \brief 构建时工具。
 */
 
-/*!	\file main.cpp
+/*!	\file Main.cpp
 \ingroup BuildTools
 \brief 检查是否存在预定义宏。
-\version r109
+\version r111
 \author FrankHB <frankhb1989@gmail.com>
 \since build 431
 \par 创建时间:
 	2013-07-20 10:57:06 +0800
 \par 修改时间:
-	2013-07-20 15:07 +0800
+	2021-12-21 22:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:

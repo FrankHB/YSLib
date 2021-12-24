@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016, 2018-2020 FrankHB.
+	© 2015-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file range.hpp
 \ingroup YStandardEx
 \brief 范围操作。
-\version r945
+\version r948
 \author FrankHB <frankhb1989@gmail.com>
 \since build 624
 \par 创建时间:
 	2015-08-18 22:33:54 +0800
 \par 修改时间:
-	2020-10-05 22:21 +0800
+	2021-12-21 20:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,8 @@
 */
 //@{
 #ifndef __cpp_lib_array_constexpr
-#	if (YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201603) || __cplusplus >= 201603L
+#	if (YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201603L) \
+	|| __cplusplus >= 201603L
 #		define __cpp_lib_array_constexpr 201603L
 #	endif
 #endif

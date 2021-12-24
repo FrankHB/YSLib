@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元信息。
-\version r1672
+\version r1690
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2021-10-31 03:44 +0800
+	2021-12-21 23:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -212,30 +212,34 @@ $resolve(#39) @ b930;
 	means the migration is not end yet.
 $long_term_code_evolution $=
 (
-	"using copyright symbol '©' in head of copyright notice to conform \
-		Universal Copyright Convention(UCC) for contries where Berne \
-		Convention unavailable"
-		$interval([$b448, $now]),
+	"using copyright symbol '©' in the head of copyright notice to conform \
+		Universal Copyright Convention (UCC) for contries where Berne \
+		Convention unavailable" $interval([$b448, b934]),
 		// Head schema: "© <year> <holder>.".
 		// See http://www.copyrightservice.co.uk/copyright/p14_universal_copyright_convention.
 		// Conforms to: %Documentation::ProjectRules @2.7.
+		// NOTE: Only the C/C++ sources and several other documents are \
+			concerned. Other materials may still use other copyright notices.
 	"removal of spaces between years and hyphen in copyright notice"
-		$interval([b441, $now]),
+		$interval([b441, b593]),
 	"copyright notice and head formatting for original makefiles" $at b389,
-	"new include header guard identifier schema" $interval([b381, $now]),
-	"whitespace put between author name and mail address in files"
-		$interval([b371, $now]),
+	"new header inclusion guard for inclusions identifier schema"
+		$interval([b381, $now]),
+	"ensuring one space between the author name and the mail address in files"
+		$interval([b371, b448]),
 	"new copyright title schema" $interval([b369, b448)) $superseded(b448),
 		// Head schema: "Copyright by <holder> <year>.".
 	"several postfix punctuation of comments removal" $interval([b334, b336]),
-	"defined as '1' for include header guard macros" $at b334,
+	"defining to '1' for header include inclusion macros" $at b334,
 	"strict reversion number" $at b334,
 		// See %Documentation::ProjectRules @2.2.3.
-	"unified YSLib file and modules paths naming schema"
+	"unifying YSLib file and modules paths naming schema"
 		$interval([b275, $now]),
-		// Case included, except for YBase. The names is not restricted as 8.3 \
-			DOS format, since ISO C++11 headers names is also not directly fit \
-			for these filesystems any more.
+		// Case is sensitive, except for YBase or files not belongs to a YSLib \
+			module (3rdparty, alternative files, headers to be precomiled and \
+			generated files). All filenames are not limited as 8.3 DOS format \
+			now, since ISO C++11 headers names is also not directly fit for \
+			these filesystems any more.
 	"Doxygen comments and file header with copyright notice" $at b170,
 	"formatted comments" $interval([b166, b169]) $end_at b169
 		// Doxygen used instead.

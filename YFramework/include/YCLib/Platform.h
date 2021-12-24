@@ -11,13 +11,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r859
+\version r860
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2021-12-12 16:54 +0800
+	2021-12-21 21:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -265,7 +265,7 @@
 \def YF_Use_POSIXThread
 \brief 使用 POSIX 线程接口。
 \note 当前仅支持 \c posix 线程模型 G++ 。
-\sa https://gcc.gnu.org/bugzilla/show_bug.cgi?id=11953
+\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=11953 。
 */
 //@}
 

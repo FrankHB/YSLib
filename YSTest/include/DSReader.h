@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2019-2020 FrankHB.
+	© 2010-2016, 2019-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r1899
+\version r1902
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:03:47 +0800
 \par 修改时间:
-	2020-12-24 12:06 +0800
+	2021-12-21 21:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -145,8 +145,8 @@ public:
 	\param fc_ 字体缓存对象。
 	\since build 396
 	*/
-	DualScreenReader(SDst w = MainScreenWidth,
-		SDst h_up = MainScreenHeight, SDst h_down = MainScreenHeight,
+	DualScreenReader(SDst w = MainScreenWidth, SDst h_up = MainScreenHeight,
+		SDst h_down = MainScreenHeight,
 		Drawing::FontCache& fc_ = FetchDefaultFontCache());
 
 	//! \since build 374

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2019-2020 FrankHB.
+	© 2013-2016, 2019-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha1.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha1 。
-\version r350
+\version r359
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2020-12-24 12:01 +0800
+	2021-12-21 12:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,7 +117,7 @@ b192
 	+ "unit %YUIContainerEx" @ "directory Shell",
 	+ "class %AUIBoxControl" @ "unit %YUIContainerEx",
 	+ "controls: class %YScrollableContainer" @ "unit %YGUIComponent",
-	/ DLD "function %FetchWindowPtr as non-inline" @ "unit %YUIContainer",
+	/ DLD $src "function %FetchWindowPtr as non-inline" @ "unit %YUIContainer",
 	/ "class %IWindow as non-virtual inheritance" @ "class %AWindow"
 		@ "class %YWindow",
 	/ DLB "arm9 makefile",
@@ -183,7 +183,8 @@ b186
 	/ "solution configuration",
 	* DLB "makefiles",
 	/ DLP "header inclusion",
-	* "some wrong Doxygen comments"
+	* DD "some wrong Doxygen comments",
+	/ $doc $deploy "updated PROJECT_NUMBER" @ "%Doxyfile"
 ),
 
 b185
@@ -220,7 +221,11 @@ b170_b183
 			+ "controls: listbox"
 		)
 	),
-	/ $doc ^ "Doxygen",
+	/ $doc $deploy ^ "Doxygen 1.7.2" $=
+	(
+		+ "%Doxyfile" @ b170;
+		/ "updated PROJECT_NUMBER" @ b174
+	),
 	+ %YCLib.(YStandardExtend, YCast),
 ),
 

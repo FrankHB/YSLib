@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2020 FrankHB.
+	© 2013-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r5675
+\version r5720
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2020-12-24 12:01 +0800
+	2021-12-21 12:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,7 +71,6 @@ b399
 			)
 		)
 	),
-	/ $dev "updated .vcxproj files for VS2012",
 	/ $build "updated to Microsoft VC++ 2012" ~ "Microsoft VC++ 2010"
 		@ "Microsoft VC++ projects" $effective @ %('YBase*', 'YFramework*',
 		'YSTest*')
@@ -532,7 +531,7 @@ b385
 			@ %Iterator,
 		+ $dev "static assertion for template arguments"
 			@ "function templates %(unique_raw, share_raw)" @ %Memory,
-		/ "cast to bool for pointer types" @ "function \
+		/ DLD "cast to 'bool' for pointer types" @ "function \
 			%deref_comp::operator()" @ %Functional,
 		/ %Cast $=
 		(
@@ -996,8 +995,12 @@ b372
 
 b371
 (
-	/ $doc "turned %(SOURCE_BROWSER, REFERENCED_BY_RELATION, \
-		REFERENCES_RELATION, CALL_GRAPH, CALLER_GRAPH) on" @ "Doxygen file",
+	/ $doc @ "%Doxyfile" $=
+	(
+		/ $deploy "updated PROJECT_NUMBER",
+		/ "turned %(SOURCE_BROWSER, REFERENCED_BY_RELATION, \
+			REFERENCES_RELATION, CALL_GRAPH, CALLER_GRAPH) on"
+	),
 	/ DD "Doxygen comments" @ %YBase $=
 	(
 		* DD "missing escaping '\#'" @ "URL" @ "comment" @ YStandardEx.Any
@@ -1095,7 +1098,7 @@ b369
 				/ $lib $impl "unit %TextRenderer"
 			);
 		),
-		/ DLD "argument order" @ "all call of %(min, max)"
+		/ DLD "argument order" @ "all call to %(min, max)"
 			// Confirmed locating constant(integer literal) or nested call as \
 				1st argument. This make text searching convenient.
 		/ DD "comments on members" @ "struct %PaintContext"
@@ -1164,7 +1167,12 @@ b366
 		* DD "typo" @ "param names" @ "Doxygen command" @ "4 overloaded \
 			functions %ufopen" @ %YCLib.FileSystem $since b324,
 	),
-	/ DD "updated %PROJECT_BRIEF" @ "Doxygen file" ^ "Doxygen 1.8.2",
+	/ $doc "%Doxyfile" $=
+	(
+		/ $deploy "updated %PROJECT_NUMBER",
+		/ $deploy "updated %PROJECT_BRIEF";
+		^ "Doxygen 1.8.2" ~ "Doxygen 1.7.2"
+	),
 	* DD "typo" @ "(Doxygen command, version number)" @ "member %pColor"
 		@ "class %SettingPanel" @ %YReader.ReaderSetting $since b279,
 	* DD "typo" @ "param names" @ "Doxygen command" @ "function template \
@@ -3086,30 +3094,30 @@ b308
 b307
 (
 	(
-		/ %YFramework.YSLib.UI.GUI $=
-		(
-			* "%CheckBox tick interface" $since b306,
-			(
-			+ "functions %(GetLocationRef, GetSizeRef)"
-				@ "classes %(Visual; View)";
-			+ "scroll bar resizing",
-			+ "raising event %Resize"
-				@ "function %ScrollableContainer::FixLayout",
-			* "missing text list view updating"
-				@ "function %ListBox::ResizeForPreferred" $since b282;
-			* $comp "missing scroll bars refreshing"
-				@ "(%ListBox resizing; %DropDownList list showing)" $since b282
-			)
-		);
-		/ @ "setting panel" @ %YReader.'text reader' $=
-		(
-			/ "scrolling interval value set",
-			* "wrong displayed scrolling interval" $since b301
-		)
-	),
-	/ $doc "updated Doxygen file" $=
+	/ %YFramework.YSLib.UI.GUI $=
 	(
-		^ "Doxygen 1.7.2",
+		* "%CheckBox tick interface" $since b306,
+		(
+		+ "functions %(GetLocationRef, GetSizeRef)"
+			@ "classes %(Visual; View)";
+		+ "scroll bar resizing",
+		+ "raising event %Resize"
+			@ "function %ScrollableContainer::FixLayout",
+		* "missing text list view updating"
+			@ "function %ListBox::ResizeForPreferred" $since b282;
+		* $comp "missing scroll bars refreshing"
+			@ "(%ListBox resizing; %DropDownList list showing)" $since b282
+		)
+	);
+	/ @ "setting panel" @ %YReader.'text reader' $=
+	(
+		/ "scrolling interval value set",
+		* "wrong displayed scrolling interval" $since b301
+	)
+	),
+	/ $doc @ "%Doxyfile" $=
+	(
+		/ $deploy "updated PROJECT_NUMBER",
 		* "wrong Doxygen root output path" $since b300,
 		/ "input ignorance"
 	),
@@ -3184,7 +3192,7 @@ b304
 		* $comp "wrong non-ASCII path get" @ %'file explorer' @ "platform \
 			%MinGW32" $since b299 $dep_from "non-ASCII path correction"
 	)
-	/ $lib $design "simplified assertion strings",
+	/ $lib $design "simplified assertion messages",
 	/ %YBase $=
 	(
 		/ DLD "parameter" @ "function template %pod_fill" @ %Algorithm,

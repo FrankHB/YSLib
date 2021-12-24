@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r2363
+\version r2369
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2021-10-30 08:09 +0800
+	2021-12-21 21:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -343,6 +343,8 @@ YB_ATTR_nodiscard YB_PURE inline
 	ImplRet(CheckLiteral(sv) != char() ? DeliteralizeUnchecked(sv) : sv)
 //@}
 
+//! \note 因为通常存在性能问题，当前不支持分配器。
+//@{
 /*!
 \brief 编码转义字符串：替换指定字符串中的可转义字符为转义序列。
 \sa LexicalAnalyzer
@@ -355,10 +357,11 @@ Escape(string_view);
 \return 若参数是字符串字面量时转义其中的内容，否则为原串。
 \note 使用 Escape 转义。
 \note 若转义后最后一个字符为 '\\' 则添加一个 '\\' 以避免转义末尾分隔符。
-\sa LexicalAnalyzer
+\sa Escape
 */
 YB_ATTR_nodiscard YF_API YB_PURE string
 EscapeLiteral(string_view);
+//@}
 
 /*!
 \brief 编码 XML 字符串。
@@ -491,7 +494,8 @@ public:
 
 	假定当前已更新缓冲区最后的字符取得分隔符，取对应的缓冲区索引边界。
 	*/
-	PDefH(size_t, QueryLastDelimited, char ld) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(size_t, QueryLastDelimited, char ld) const
+		ynothrow
 		ImplRet(buffer.length() - (ld != char() ? 1 : 0))
 
 	/*!

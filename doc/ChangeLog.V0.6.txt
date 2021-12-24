@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2020 FrankHB.
+	© 2015-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r12312
+\version r12365
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2020-06-21 09:03 +0800
+	2021-12-24 12:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,7 +59,7 @@ b699
 					/ $design "assertion" ^ "%YAssertNonnull" ~ "%Nonnull"
 				),
 				+ "2 functions %ResolvePath",
-				* "missing 'platform::'" @ "call of %FindColon" @ "function \
+				* "missing 'platform::'" @ "call to %FindColon" @ "function \
 					templates %(IsAbsolute_P, FetchRootNameLength_P) with \
 					%IDTag<YF_Platform_DS> parameter" $since b654,
 				/ "constructor %DirectorySession" -> "default constructor and \
@@ -791,10 +791,9 @@ b691
 			(
 			/ DLDI "simplified" ^ $dep_from
 				("%TraceForOutermost" @ %YFramework.Helper.Initialization);
-			* $re_add(b661) $comp
-				"main error handling did not called %FatalError handling \
-				method and content message would be ignored"
-				@ !"platform %DS" $since b604
+			* $comp $re_add(b661) "main error handling did not called \
+				%FatalError handling method and content message would be \
+				ignored" @ !"platform %DS" $since b604
 			),
 			/ $forced @ "platform %Android" $dep_from
 				%YFramework.Helper.YGlobal $=
@@ -864,7 +863,7 @@ b690
 				(
 					/ "removed dashes and traling newline"
 						@ "printed error message";
-					* $re_ex(b601) $comp
+					* $comp $re_ex(b601) 
 						"redundant '\n' printed at last after horizontal line"
 						@ "function %HandleFatalError" $since b508
 						// This cause LibFAT error title disappeared. The old \
@@ -895,7 +894,7 @@ b690
 		(
 			(
 			- "initialization and deinitialization of desktop object out of \
-				the call of %::y_android_main",
+				the call to %::y_android_main",
 			- "function %GetDesktopRef";
 			- $impl "desktop pointer member"
 			),
@@ -951,7 +950,7 @@ b689
 				@ %AnyIterator $since b686.
 			* "missing '&&' for other arguments" @ "all 2 function templates \
 				%(nonnull_or, value_or, call_value_or)" @ %DereferenceOperation
-				$since b668
+				$since b668,
 				// This would return reference to automatic object if the \
 					template parameter type of other argument is not a \
 					reference.
@@ -1208,10 +1207,10 @@ b686
 		- "bookmark 'engineering-defect-b225'",
 			// To prevent redundancy with 'engineering-fault-b225'.
 		+ "bookmark 'engineering-fault-b684'",
-			// Failed to build for platform %Android in 2rd supporting class. \
-				See also below.
+			// Failed to build for platform %Android in the 2nd supporting \
+				class. See also below.
 		+ "bookmark 'engineering-fault-b685'"
-			// Failed to build for platform %DS in 2rd and 3rd supporting \
+			// Failed to build for platform %DS in 2nd and 3rd supporting \
 				classes.
 	),
 	/ %YFramework $=
@@ -2472,7 +2471,7 @@ b675
 			+ "unary type trait %is_reference_wrapper",
 			+ "metafunctions %(unwrap_reference; unwrap_reference_t)",
 			(
-			- "metafunction %unwrap_reference_t" $dep_from
+			- "metafunction %wrapped_traits_t" $dep_from
 				"removal of wrapped_traits_t";
 			- "metafunction %wrapped_traits" $dep_from %Functor
 			)
@@ -2658,7 +2657,7 @@ b674
 					"%ValueNode::EmplaceValueTo" @ %YSLib.Core.ValueNode),
 				(
 				/ "included %SContext";
-				/ ("type and assertion strings" @ (("2nd parameter"
+				/ ("type and assertion messages" @ (("2nd parameter"
 					@ "function %PrintSyntaxNode", "1st parameter"
 					@ "functions %(ConvertDocumentNode, ConvertStringNode, \
 					ConvertAttributeNodeString)") @ "namespace %SXML",
@@ -3571,7 +3570,7 @@ b668
 					^ "parameter pack" ~ "explicit unused parameter")
 		),
 		/ DLDI "simplified %Exception" @ %Exception ^ ("%ystdex::call_value_or"
-			@ %DeferenceOperation, "%std::nested_exception::nested_ptr",
+			@ %DereferenceOperation, "%std::nested_exception::nested_ptr",
 			"%std::mem_fn"),
 		+ "functors %(addrof, indirect)" @ %Functor,
 		/ DLDI "function %fexists" @ %CStandardIO
@@ -4498,7 +4497,7 @@ b660
 		(
 			/ %FileSystem $=
 			(
-				* "assertion string" @ "function \
+				* "assertion message" @ "function \
 					%platform::FAT::LFN::WriteNumericTail" $since b658,
 				/ "functions %(CreateHardLink, CreateSymbolicLink)" $=
 				(
@@ -5256,7 +5255,7 @@ b657
 				@ %YSLib.Service.FileSystem), "%InstallFile") ~ "%IO::CopyTree"
 		)
 	),
-	* $re(b656) $comp "strict POSIX.1-2013 compatibility" @ "platform %DS"
+	* $comp $re(b656) "strict POSIX.1-2013 compatibility" @ "platform %DS"
 		$since b611 $=
 	(
 		* "wrong %EIO set on success and ignored on failure %::unlink and \
@@ -5400,7 +5399,7 @@ b656
 		/ "parameters" @ "member function %FAT::EntryData::FindAlias"
 			@ %YCLib.FileSystem -> 'string_view' ~ 'const char*, size_t',
 	),
-	* $re(b655) $comp "strict POSIX.1-2013 compatibility" @ "platform %DS"
+	* $comp $re(b655) "strict POSIX.1-2013 compatibility" @ "platform %DS"
 		$since $before b132
 		$= (* "missing setting %EIO for %::write and variants when appending \
 			witout enough space" $dep_from "missing setting appending error"),
@@ -7098,7 +7097,7 @@ b642
 				@ %YBase.YStandardEx.TStringView),
 		)
 	),
-	* $re_ex(b626) $comp "strict POSIX.1-2013 compatibility" @ "platform %DS"
+	* $comp $re_ex(b626) "strict POSIX.1-2013 compatibility" @ "platform %DS"
 		$since $before b132 $=
 	(
 		* "wrongly setting %ENOENT instead of %ENOTDIR" @ "%::(unlink, mkdir, \
@@ -7548,7 +7547,7 @@ b639
 			/ @ %Adaptor.YAdaptor $=
 			(
 				- 'using platform::GetFileSizeOf;',
-				/ @ "namespace %YSLib.IO" $=
+				/ @ "namespace %YSLib::IO" $=
 				(
 					+ 'using platform::FetchNumberOfLinks;' $dep_from
 						("%platform::FetchNumberOfLinks" @ %YCLib.FileSystem),
@@ -7869,7 +7868,7 @@ b636
 			* $impl "workaround not covered debug configuartions"
 				@ "platform %DS"
 				@ "member function %FileDescriptor::WriteContent" $since b635
-				// It is unknown why only debug configurations are effected.
+				// It is unknown why only debug configurations are affected.
 				$= (/ '#if YCL_Android'
 					-> '#if YB_IMPL_GNUCPP < 50000 && !defined(NDEBUG)')
 		)
@@ -7921,7 +7920,7 @@ b635
 					@ "functions %(ListFiles, EnsureDirectory, \
 					VerifyDirectory, IsAbsolute)"
 			),
-			* $re_ex(b634) $comp "parameter as unparsed path component caused \
+			* $comp $re_ex(b634) "parameter as unparsed path component caused \
 				wrong result" @ "handler" @ "event %Confirmed"
 				@ "constructor %FileBox" @ %YSLib.UI.ComboList $since b600,
 			- $revert(b402) 'using platform::CS_Path;' @ "namespace %YSLib::IO"
@@ -8029,7 +8028,7 @@ b634
 	),
 	* "parent directory shown" ~ "file entries" @ %YReader.ShlExplorer $since
 		b531
-		// Since b531, call of %UpdateView in %ListBox on %TouchDown was \
+		// Since b531, call to %UpdateView in %ListBox on %TouchDown was \
 			removed and %ViewChanged of %FileBox would not be called. So \
 			user code should be changed.
 ),
@@ -8097,7 +8096,7 @@ b633
 				"enum %WConsole::Style" $since b519) @ %Consoles
 			+ %Registry
 		),
-		/ %'Helper_(MinGW32)' => %'Helper_(Win32)',
+		/ $dev %'Helper_(MinGW32)' => %'Helper_(Win32)',
 		+ "macro %YFM_Win32_YCLib_Registry" @ %YModules $dep_from
 			%'YCLib_(Win32)'.Registry
 	),
@@ -8144,7 +8143,8 @@ b632
 			/ DLDI "simplified standard library implementation \
 				feature-dependent declarations" $=
 			(
-				+ "'#undef __STRICT_ANSI__' before including headers"
+				+ $dev $impl
+					"'#undef __STRICT_ANSI__' before including headers";
 				- "declarations %(fileno, pclose, popen)" @ "platform %DS",
 				/ @ "platform %Win32 using MinGW.org headers" $=
 				(
@@ -8620,7 +8620,7 @@ b628
 				/ $re_ex(b416) "supported %Device";
 				/ $impl ^ "%::(CreateFileW, GetFileType, GetFullPathNameW)"
 					~ "%::_wstat"
-					// Though %st_nlink from call of %::_wstat may be wrong, \
+					// Though %st_nlink from call to %::_wstat may be wrong, \
 						the file type should be OK. However, it is not \
 						effecicent for the use here.
 			)
@@ -8810,9 +8810,9 @@ b627
 		* "wrong assertion" @ "member function %Partition::(WriteFSInfo, \
 			CreateFSInfo)" @ %'YCLib_(DS)'.DSIO $since b611
 	),
-	/$doc "updated Doxygen file" $=
+	/ $doc @ "%Doxyfile" $=
 	(
-		^ $re(b500) "Doxygen 1.8.10" ~ "Doxygen 1.8.7",
+		/ $deploy "updated PROJECT_NUMBER",
 		/ "set %DOT_FONTNAME" -> 'Helvetica' ~ 'FreeSans.ttf',
 			// Now this is the default value.
 		/ "set %(DOT_MULTI_TARGETS, TEMPLATE_RELATIONS, HTML_DYNAMIC_SECTIONS)"
@@ -8824,7 +8824,8 @@ b627
 				// Actually path in environment variable %PATH was depended.
 			* $comp "hard-coded path" $since 170
 		),
-		/ "set %SKIP_FUNCTION_MACROS" -> 'NO' ~ 'YES'
+		/ "set %SKIP_FUNCTION_MACROS" -> 'NO' ~ 'YES';
+		^ $re_ex(b500) "Doxygen 1.8.10" ~ "Doxygen 1.8.7"
 	)
 ),
 
@@ -8894,7 +8895,7 @@ b626
 							^ ("%SendLog", "%get_this_thread_id"
 							@ %YBase.YStandardEx.Concurrency),
 							// To be friend to %std::ios_base::sync_with_stdio.
-						* $re_ex(b591) $comp "exception not protected in try \
+						* $comp $re_ex(b591) "exception not protected in try \
 							cluase when getting thread ID string" $since b579
 					)
 					),
@@ -8916,7 +8917,7 @@ b626
 		@ !"platform %Win32" $effective @ %(YCLib.(FileIO, FileSystem,
 		MemoryMapping), 'YCLib_(DS)'.DSIO),
 	+ "inline function %get_this_thread_id" @ %YBase.YStandardEx.Concurrency,
-	* $comp "output on %stderr not synchronized after call of \
+	* $comp "output on %stderr not synchronized after call to \
 		%platform::SetupBinaryStdIO" @ "function %::main"
 		@ %Tools.ProjectGenerator.Main $since b599 $dep_from
 		("%Logger::DefaultSendLog" @ %YFramework.YCLib.Debug),
@@ -9263,7 +9264,7 @@ b623
 					available" @ "function template %wait_to_enqueue" $since
 					b538;
 				/ $comp "copied callable argument"
-					@ "call of %(wait_to_enqueue; poll, poll_for, poll_until; \
+					@ "call to %(wait_to_enqueue; poll, poll_for, poll_until; \
 					wait, wait_for, wait_until)",
 					// Since ISO C++ requires invoking a copy of the callable \
 						object shall behave the same as invoking the copyied \
@@ -9338,7 +9339,7 @@ b622
 				)
 			)
 		),
-		* $design "missing trailing '.' of assertion string for device \
+		* $design "missing trailing '.' of assertion message for device \
 			operations exception handling" @ %'YCLib_(DS)'.DSIO $since b611,
 		(
 		+ "functions %(ConvertToErrno; GetErrnoFromWin32)"
@@ -9695,11 +9696,12 @@ b617
 			)
 		)
 	),
-	/ $build "updated to Microsoft VC++ 2015" ~ "Microsoft VC++ 2013"
-		@ "Microsoft VC++ projects" $effective @ %(YBase, YFramework,
+	/ $re_ex(b454) $build "updated to Microsoft VC++ 2015"
+		~ "Microsoft VC++ 2013" @ "Microsoft VC++ projects"
+		$effective @ %(YBase, YFramework,
 		Tools.(CreationTimeManager, PredefinedMacroDetector)) $=
 	(
-		/ $re_ex(b454) "updated platform toolset" -> "v140" ~ "v120",
+		/ $re_ex(b454) "retargeted platform toolset" -> 'v140' ~ 'v120',
 		/ "targetted Windows platform 8.1"
 	),
 	/ %YBase $=
@@ -9718,8 +9720,8 @@ b617
 				implementations.
 		/ %YStandardEx $=
 		(
-			/ DLDI @ "function %operator/=" @ "class template %path" @ %Path
-				^ "%unsigned literal" ~ "%int literal";
+			/ DLDI @ "integer-literal" @ "function %operator/="
+				@ "class template %path" @ %Path ^ "unsigned-suffix",
 				// To eliminate Microsoft VC++ 2015 warning: C4018.
 			/ %Memory $=
 			(
@@ -9985,7 +9987,7 @@ b613
 				+ "class %Sentry; function %GetSentry" @ "class %File" @ %File
 			)
 		),
-		* "assertion string" @ "macro %YCL_CallWin32_Trace"
+		* "assertion message" @ "macro %YCL_CallWin32_Trace"
 			@ %'YCLib_(MinGW32)'.MinGW32 $since b592,
 		+ "function template %VerifyUC" @ %CHRLib.Convert
 	),
@@ -10172,7 +10174,7 @@ b611
 			),
 			+ "function %UninitializeFileSystem"
 		),
-		+ $design "call of %platform_ex::UninitializeFileSystem"
+		+ $design "call to %platform_ex::UninitializeFileSystem"
 			@ "platform %DS" @ "function %Uninitialize"
 			@ %Helper.Initialization $dep_from ("%UninitializeFileSystem"
 			@ %YCLib.NativeAPI)
@@ -10181,6 +10183,7 @@ b611
 		@ %YFramework.YCLib.NativeAPI) $dep_to "replaced libfat",
 	/ $comp @ "platform %DS" $dep_from "replaced libfat" $=
 	(
+		// See also $2015-06 @ %Documentation::Workflow.
 		/ "gave up order for flushing files on destruction of partition",
 		/ "skipped redundant alias matching when a filename has been found"
 			@ "opening entry from path",
@@ -10310,7 +10313,6 @@ b611
 			"removal of stat name entry traverse"
 	),
 	+ $re_ex(b501) $dev $repo "tag 'V0.6' to revision 472",
-	// See $2015-06 @ %Documentation::Workflow.
 	/ %YBase.YStandardEx $=
 	(
 		/ %Cache $=
@@ -10357,7 +10359,7 @@ b611
 				+ $dev "static assertion for same %size_type of underlying \
 					containers"
 			)
-		)
+		),
 		+ "function template %bind1" @ %Functional
 	),
 	/ DLDI "simplified bound call" ^ $dep_from ("%bind1"
@@ -10769,7 +10771,7 @@ b604
 
 b603
 (
-	/ $build @ "makefiles" @ "platform %DS" $=
+	/ $build "makefiles" @ "platform %DS" $=
 	(
 		/ @ "%YSTest makefile" $=
 		(
@@ -10789,7 +10791,7 @@ b603
 				@ "target '$(OUTPUT).nds'",
 				// Also to behave similar as children makefiles.
 		),
-		* "redundant '/'" @ "inclusion path for %Toolchain.options.mk"
+		* DLI "redundant '/'" @ "inclusion path for %Toolchain.options.mk"
 			@ "%Tools/Scripts/Toolchain.DS.mk" $since b558
 			// It seemed to be OK, but is not intended.
 	),
@@ -11254,8 +11256,8 @@ b600
 							'dividable<Path, String>, 'dividable<Path>')",
 						(
 						+ "function %GetBase";
-						/ $dev $impl "inlined and simplified friend functions \
-							%operator(==, <)" ^ "%GetBase",
+						/ $dev $impl $src "inlined and simplified friend \
+							functions %operator(==, <)" ^ "%GetBase",
 						),
 						+ 'explicit' @ "constructors with string parameter"
 							// To avoid ambiguity in %operator/, etc.
@@ -11531,8 +11533,9 @@ b600
 				"updated library %FreeImage"
 		)
 	),
-	- $repo "all .a files"
+	- $repo "all .a files",
 		// To avoid enlarged the repository too much.
+	/ $doc $deploy "updated PROJECT_NUMBER" @ "%Doxyfile"
 );
 
 ////

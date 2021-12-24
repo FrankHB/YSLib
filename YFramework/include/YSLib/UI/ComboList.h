@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2020 FrankHB.
+	© 2011-2016, 2020-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2718
+\version r2721
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2020-01-25 16:28 +0800
+	2021-12-21 21:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -120,7 +120,7 @@ public:
 		ImplExpr(GetTextListRef().SetSelected(i))
 
 	/*!
-	\brief 按内容大小依次调整列表视图中选中和首个项目的索引。
+	\brief 按内容大小依次调整列表视图中选中和第一个项目的索引。
 	\warning 若视图大小变化后不调用此方法调整视图，可能引起选择项越界而行为未定义。
 	\sa TextList::AdjustViewLength
 	\since build 392
@@ -302,7 +302,7 @@ public:
 	DefSetterMem(, const shared_ptr<ListType>&, List, lbContent)
 
 	/*!
-	\brief 按内容大小依次调整列表视图中选中和首个项目的索引。
+	\brief 按内容大小依次调整列表视图中选中和第一个项目的索引。
 	\warning 若视图大小变化后不调用此方法调整视图，可能引起选择项越界而行为未定义。
 	\sa TextList::AdjustViewLength
 	\since build 392

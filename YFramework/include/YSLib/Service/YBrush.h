@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2016, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 画刷。
-\version r553
+\version r555
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:55:30 +0800
 \par 修改时间:
-	2016-09-20 10:17 +0800
+	2021-12-21 21:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -130,7 +130,7 @@ class YF_API ImageBrush
 public:
 	/*!
 	\brief 当前使用的图像更新器。
-	\note 第三个模板参数为目标偏移，第四个模板参数为源偏移。
+	\note 第三模板参数为目标偏移，第四模板参数为源偏移。
 	\since build 525
 	*/
 	GBrushUpdater<const Drawing::Image&, const Point&, const Point&>

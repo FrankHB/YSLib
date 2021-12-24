@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2020 FrankHB.
+	© 2011-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,19 +11,23 @@
 /*!	\file ref.hpp
 \ingroup YStandardEx
 \brief 引用包装。
-\version r507
+\version r524
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:29:20 +0800
 \par 修改时间:
-	2020-01-28 05:25 +0800
+	2021-12-24 18:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Ref
 
 扩展标准库头 \c \<functional> ，提供替代 std::reference_wrapper 的接口。
+不检查、提供或依赖 __cpp_lib_unwrap_ref ，
+	因为相关替代提供 YStandardEx 扩展而不符合 ISO C++20 的要求，
+	也无法用标准库实现（特化）直接实现这些扩展。
+关于替代和扩展，参见 YStandardEx 扩展支持策略的文档说明。
 */
 
 
@@ -44,6 +48,7 @@ namespace ystdex
 \brief 左值引用包装。
 \tparam _type 被包装的类型。
 \note 满足 TrivialCopyable 要求。
+\warning 非虚析构。
 \see WG21 N4277 。
 \see WG21 P0357R1 。
 \see LWG 2993 。
@@ -160,13 +165,15 @@ struct is_reference_wrapper<lref<_type>> : true_
 
 /*!
 \ingroup transformation_traits
+\note 对支持的扩展类型不符合 ISO C++20 [meta.other.trans] 的要求。
 \see WG21 P0318R1 。
+\see LWG 3202 。
 */
 //@{
 /*!
 \brief 取引用包装的类型或未被包装的模板参数类型。
-\note 接口含义类似 boost::unwrap_reference 。
-\note YStandardEx 扩展：支持 lref 。
+\note 含义类似 boost 和 std 中的同名接口。
+\note YStandardEx 扩展：支持 lref 的实例。
 \since build 675
 */
 //@{
@@ -207,6 +214,7 @@ using unwrap_ref_decay_t = _t<unwrap_ref_decay<_type>>;
 
 /*!
 \brief 包装间接操作的引用适配器。
+\warning 非虚析构。
 \since build 723
 */
 template<typename _type, typename _tReference = lref<_type>>
@@ -264,6 +272,7 @@ unref(lref<_type> x) ynothrow
 /*!
 \brief 任意对象引用类型。
 \warning 不检查 cv-qualifier 。
+\warning 非虚析构。
 \since build 247
 \todo 右值引用版本。
 */
@@ -279,17 +288,17 @@ public:
 		: ptr(&obj)
 	{}
 
+	YB_PURE void*
+	operator&() const volatile
+	{
+		return const_cast<void*>(ptr);
+	}
+
 	template<typename _type>
 	YB_PURE yconstfn
 	operator _type&() const
 	{
 		return *static_cast<_type*>(&*this);
-	}
-
-	YB_PURE void*
-	operator&() const volatile
-	{
-		return const_cast<void*>(ptr);
 	}
 };
 

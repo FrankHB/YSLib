@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3669
+\version r3672
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2021-11-14 20:51 +0800
+	2021-12-21 20:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -349,9 +349,9 @@ MakeXMLDoc(const string& name, const string& ver, const string& enc,
 namespace
 {
 
-//! \since build 731
+//! \since build 934
 string
-InitBadIdentifierExceptionString(string&& id, size_t n)
+InitBadIdentifierExceptionString(string_view id, size_t n)
 {
 	return (n != 0 ? (n == 1 ? "Bad identifier: '" : "Duplicate identifier: '")
 		: "Unknown identifier: '") + EscapeLiteral(id) + "'.";
@@ -530,7 +530,7 @@ BadIdentifier::BadIdentifier(const char* id, size_t n, RecordLevel lv)
 	p_identifier(make_shared<string>(id))
 {}
 BadIdentifier::BadIdentifier(string_view id, size_t n, RecordLevel lv)
-	: InvalidSyntax(InitBadIdentifierExceptionString(string(id), n), lv),
+	: InvalidSyntax(InitBadIdentifierExceptionString(id, n), lv),
 	p_identifier(make_shared<string>(id))
 {}
 ImplDeDtor(BadIdentifier)

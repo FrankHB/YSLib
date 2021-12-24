@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2020 FrankHB.
+	© 2013-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1596
+\version r1601
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2020-12-16 19:02 +0800
+	2021-12-21 21:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,8 +33,7 @@
 #include YFM_YCLib_Host // for nptr, map, unique_ptr, ystdex::aligned_storage_t,
 //	ystdex::pun_ref, wstring, wstring_view, string_view, YSLib::recursive_mutex,
 //	YSLib::lock_guard, YSLib::function, u16string_view;
-#include YFM_YSLib_Core_YEvent // for YSLib::GEvent,
-//	YSLib::string;
+#include YFM_YSLib_Core_YEvent // for YSLib::GEvent, YSLib::string;
 #include YFM_YSLib_Core_YGraphics // for YSLib::Drawing::Rect,
 //	YSLib::Drawing::Point, YSLib::Drawing::Size;
 #include YFM_YSLib_Core_YString // for YSLib::String;
@@ -439,7 +438,7 @@ private:
 #	if !YB_IMPL_GNUCPP || YB_IMPL_GNUCPP >= 90200
 	// NOTE: Workaround for a bug fixed in GCC 9.2. The revision of the fix is
 	//	not checked. It seems like an issue of point of instantiation. It is not
-	//	a regression, since all old versions are effected. It has nothing to do
+	//	a regression, since all old versions are affected. It has nothing to do
 	//	with LWG 2801. See also https://stackoverflow.com/questions/58375922.
 	{}
 #	endif
@@ -1159,7 +1158,7 @@ private:
 \warning 当不能保证不使用 COM 时，要求 COM 被适当初始化。
 \warning 不附加检查：命令执行路径指定为文档时，命令参数应为空。
 \warning 不附加检查：命令执行路径为相对路径时，工作目录路径不应为相对路径。
-\sa https://msdn.microsoft.com/en-us/library/windows/desktop/bb762153(v=vs.85).aspx
+\see https://msdn.microsoft.com/en-us/library/windows/desktop/bb762153(v=vs.85).aspx 。
 \since build 592
 
 使用 ::ShellExecuteW 执行 Shell 命令。
