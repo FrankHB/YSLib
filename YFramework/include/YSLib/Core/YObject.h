@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r6929
+\version r6930
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2021-12-11 23:40 +0800
+	2021-12-26 18:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1924,7 +1924,7 @@ public:
 	{
 		if(!ptr)
 			ptr = PointerType(new DependentType());
-		else if(!ptr.unique())
+		else if(ptr.use_count() != 1)
 			ptr = PointerType(ystdex::clone_monomorphic(Deref(ptr)));
 		return Nonnull(ptr);
 	}

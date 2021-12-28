@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2019 FrankHB.
+	© 2012-2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file MappingEx.h
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r436
+\version r439
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-09 09:04:36 +0800
 \par 修改时间:
-	2019-01-04 10:47 +0800
+	2021-12-27 03:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define INC_CHRLib_MapEx_h_ 1
 
 #include "YModules.h"
-#include YFM_CHRLib_StaticMapping
+#include YFM_CHRLib_StaticMapping // for byte;
 #include <ystdex/type_traits.hpp> // for ystdex::add_ptr_t;
 
 namespace CHRLib
@@ -141,7 +141,7 @@ struct GUCSMapper<CharSet::GBK> : UCSMapperBase
 	using UCSMapperBase::Assign;
 
 	/*!
-	\bug 大端序下输出缺少转换。
+	\note 假定外部查找表的数据使用本机字节序。
 	\since build 599
 	*/
 	template<typename _tObj, typename _tIn, typename _tState>

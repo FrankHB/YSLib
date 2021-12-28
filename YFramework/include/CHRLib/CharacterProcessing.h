@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015, 2018-2019 FrankHB.
+	© 2009-2015, 2018-2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CharacterProcessing.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r2400
+\version r2416
 \author FrankHB <frankhb1989@gmail.com>
 \since build 565
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2019-07-07 17:33 +0800
+	2021-12-27 03:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -649,6 +649,11 @@ struct Transcoding<_vFrom, CharSet::Null, _tDispatcher>
 CHRLib_Impl_MakeTrans(UCS2LE, char, char16_t, Null, ISO_10646_UCS_2, CS_Default)
 //@}
 /*!
+\warning 假定本机字节序为小端序。
+\todo 支持字节序转换。
+*/
+//@{
+/*!
 \brief 构造指定类型的 UCS-2 字符串。
 \since build 641
 */
@@ -659,7 +664,7 @@ MakeUCS2LE(u16string_view sv, Encoding = CharSet::ISO_10646_UCS_2)
 	const auto s(sv.data());
 
 	yconstraint(s);
-	// FIXME: Correct conversion for encoding other than UCS-2LE.
+	// TODO: Support correct conversion for encoding other than UCS-2LE.
 	return {s, sv.length()};
 }
 /*!
@@ -674,13 +679,10 @@ MakeUCS2LE(std::allocator_arg_t, const typename _tDst::allocator_type& a,
 	const auto s(sv.data());
 
 	yconstraint(s);
-	// FIXME: Correct conversion for encoding other than UCS-2LE.
+	// TODO: Support correct conversion for encoding other than UCS-2LE.
 	return ystdex::make_obj_using_allocator<_tDst>(a, s, sv.length());
 }
-/*!
-\brief 转换 UCS-4 字符串为指定类型的 UCS-2 字符串。
-\todo 支持字节序转换。
-*/
+//! \brief 转换 UCS-4 字符串为指定类型的 UCS-2 字符串。
 //@{
 CHRLib_Impl_MakeTrans(UCS2LE, char32_t, char16_t, ISO_10646_UCS_4,
 	ISO_10646_UCS_2, CharSet::ISO_10646_UCS_4)
@@ -690,10 +692,7 @@ CHRLib_Impl_MakeTrans(UCS2LE, char32_t, char16_t, ISO_10646_UCS_4,
 //@{
 CHRLib_Impl_MakeTrans(UCS4LE, char, char32_t, Null, ISO_10646_UCS_4, CS_Default)
 //@}
-/*!
-\brief 转换 UCS-2 字符串为指定类型的 UCS-4 字符串。
-\todo 支持字节序转换。
-*/
+//! \brief 转换 UCS-2 字符串为指定类型的 UCS-4 字符串。
 //@{
 CHRLib_Impl_MakeTrans(UCS4LE, char16_t, char32_t, ISO_10646_UCS_2,
 	ISO_10646_UCS_4, CharSet::ISO_10646_UCS_2)
@@ -709,7 +708,7 @@ MakeUCS4LE(u32string_view sv, Encoding = CharSet::ISO_10646_UCS_4)
 	const auto s(sv.data());
 
 	yconstraint(s);
-	// FIXME: Correct conversion for encoding other than UCS-4LE.
+	// TODO: Support correct conversion for encoding other than UCS-4LE.
 	return {s, sv.length()};
 }
 /*!
@@ -724,9 +723,10 @@ MakeUCS4LE(std::allocator_arg_t, const typename _tDst::allocator_type& a,
 	const auto s(sv.data());
 
 	yconstraint(s);
-	// FIXME: Correct conversion for encoding other than UCS-4LE.
+	// TODO: Support correct conversion for encoding other than UCS-4LE.
 	return ystdex::make_obj_using_allocator<_tDst>(a, s, sv.length());
 }
+//@}
 
 //@{
 //! \brief 转换 UTF-8 字符串为指定编码的多字节字符串。

@@ -11,13 +11,13 @@
 /*!	\file bit.hpp
 \ingroup YStandardEx
 \brief 位操作。
-\version r1375
+\version r1401
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2021-12-18 22:57:19 +0800
 \par 修改时间:
-	2021-12-24 01:03 +0800
+	2021-12-27 18:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,6 +42,8 @@
 #include "meta.hpp" // for CHAR_BIT, byte, enable_if_unsigned_t, size_t,
 //	size_t_;
 #include <limits> // for std::numeric_limits;
+// NOTE: See https://docs.microsoft.com/cpp/visual-cpp-language-conformance and
+//	https://docs.microsoft.com/cpp/preprocessor/predefined-macros.
 #if (YB_IMPL_MSCPP >= 1925 && _MSVC_LANG >= 201907L) \
 	|| (__cplusplus >= 202002L && __has_include(<bit>))
 #	include <bit> // for __cpp_lib_bitops, std::countl_zero;
@@ -138,8 +140,11 @@ namespace details
 
 //! \since build 933
 //@{
-// TODO: Use '__builtin_ia32_lzcnt_u*' and '__builtin_ia32_tzcnt_u*' and when
-//	possible? See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=78057.
+// XXX: Current policy does not relies on features specific to concrete
+//	microarchitectures. Consideration of '__builtin_ia32_lzcnt_u*' and
+//	'__builtin_ia32_tzcnt_u*' is deferred. Note GCC 7.0 may not work, see
+//	https://gcc.gnu.org/bugzilla/show_bug.cgi?id=78057.
+// TODO: Reconsider?
 //! \pre <tt>x != 0</tt> 。
 //@{
 // XXX: There is no use of %__builtin_clzs, since it is less portable. See
@@ -155,7 +160,7 @@ struct dispath_w<32>
 	clz(std::uint32_t x) ynothrow
 	{
 #		if YB_Impl_has_BitScan
-		unsigned long hi, lo;
+		unsigned long lo;
 
 		_BitScanReverse(&lo, std::uint32_t(x));
 		return 31 - int(lo);
@@ -185,8 +190,8 @@ struct dispath_w<32>
 	{
 #		if YB_Impl_has_BitScan
 		unsigned long lo;
-		_BitScanForward(&lo, std::uint32_t(x)) != 0;
 
+		_BitScanForward(&lo, std::uint32_t(x));
 		return int(lo);
 #		else
 		// NOTE: See http://supertech.csail.mit.edu/papers/debruijn.pdf or
@@ -283,7 +288,7 @@ struct dispath_w<64>
 #	endif
 
 //	https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59874.
-YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS yconstfn int
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline int
 clz(unsigned x) ynothrowv
 {
 	// XXX: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81015. This is safe
@@ -291,41 +296,41 @@ clz(unsigned x) ynothrowv
 #	if __has_builtin(__builtin_clz) || YB_IMPL_GNUC >= 30400
 	return __builtin_clz(x);
 #	else
-	return dispath_w::clz<std::numeric_limits<unsigned>::digits>(x);
+	return dispath_w<std::numeric_limits<unsigned>::digits>::clz(x);
 #	endif
 }
-YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS yconstfn int
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline int
 clz(unsigned long x) ynothrowv
 {
 #	if __has_builtin(__builtin_clzl) || YB_IMPL_GNUC >= 30400
 	return __builtin_clzl(x);
 #	else
-	return dispath_w::clz<std::numeric_limits<unsigned long>::digits>(x);
+	return dispath_w<std::numeric_limits<unsigned long>::digits>::clz(x);
 #	endif
 }
-YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS yconstfn int
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline int
 clz(unsigned long long x) ynothrowv
 {
 #	if __has_builtin(__builtin_clzll) || YB_IMPL_GNUC >= 30400
 	return __builtin_clzll(x);
 #	else
-	return dispath_w::clz<std::numeric_limits<unsigned long long>::digits>(x);
+	return dispath_w<std::numeric_limits<unsigned long long>::digits>::clz(x);
 #	endif
 }
-YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS yconstfn int
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline int
 clz(unsigned char x) ynothrowv
 {
 	return details::clz(unsigned(x)) - (std::numeric_limits<unsigned>::digits
 		- std::numeric_limits<unsigned char>::digits);
 }
-YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS yconstfn int
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline int
 clz(unsigned short x) ynothrowv
 {
 	return details::clz(unsigned(x)) - (std::numeric_limits<unsigned>::digits
 		- std::numeric_limits<unsigned short>::digits);
 }
 
-YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS yconstfn int
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline int
 ctz(unsigned x) ynothrowv
 {
 	// XXX: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81015. This is safe
@@ -333,34 +338,34 @@ ctz(unsigned x) ynothrowv
 #	if __has_builtin(__builtin_ctz) || YB_IMPL_GNUC >= 30400
 	return __builtin_ctz(x);
 #	else
-	return dispath_w::ctz<std::numeric_limits<unsigned>::digits>(x);
+	return dispath_w<std::numeric_limits<unsigned>::digits>::ctz(x);
 #	endif
 }
-YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS yconstfn int
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline int
 ctz(unsigned long x) ynothrowv
 {
 #	if __has_builtin(__builtin_ctzl) || YB_IMPL_GNUC >= 30400
 	return __builtin_ctzl(x);
 #	else
-	return dispath_w::ctz<std::numeric_limits<unsigned long>::digits>(x);
+	return dispath_w<std::numeric_limits<unsigned long>::digits>::ctz(x);
 #	endif
 }
-YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS yconstfn int
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline int
 ctz(unsigned long long x) ynothrowv
 {
 #	if __has_builtin(__builtin_ctzll) || YB_IMPL_GNUC >= 30400
 	return __builtin_ctzll(x);
 #	else
-	return dispath_w::ctz<std::numeric_limits<unsigned long long>::digits>(x);
+	return dispath_w<std::numeric_limits<unsigned long long>::digits>::ctz(x);
 #	endif
 }
-YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS yconstfn int
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline int
 ctz(unsigned char x) ynothrowv
 {
 	return details::ctz(unsigned(x)) - (std::numeric_limits<unsigned>::digits
 		- std::numeric_limits<unsigned char>::digits);
 }
-YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS yconstfn int
+YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline int
 ctz(unsigned short x) ynothrowv
 {
 	return details::ctz(unsigned(x)) - (std::numeric_limits<unsigned>::digits

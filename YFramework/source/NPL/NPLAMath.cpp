@@ -11,13 +11,13 @@
 /*!	\file NPLAMath.cpp
 \ingroup NPL
 \brief NPLA 数学功能。
-\version r27522
+\version r27524
 \author FrankHB <frankhb1989@gmail.com>
 \since build 930
 \par 创建时间:
 	2021-11-03 12:50:49 +0800
 \par 修改时间:
-	2021-12-22 20:48 +0800
+	2021-12-28 08:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1355,7 +1355,7 @@ ReadDecimalExact(ValueObject& vo, string_view id,
 #	endif
 #endif
 // NOTE: See https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html and
-//	https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros.
+//	https://docs.microsoft.com/cpp/preprocessor/predefined-macros.
 #if _M_FP_FAST || __FAST_MATH__
 // XXX: Actually, the only offensive one in GCC is -ffinite-math-only, which
 //	inteferes the handling of infinities and NaNs. Nevertheless, there is no
@@ -2089,7 +2089,7 @@ WriteDecimalDigitsIn<9>(char* buf, DigitsMinUInt<9> val) ynothrowv
 	yconstraint(val < 1000000000);
 	if(val < 100000000)
 		return WriteDecimalDigitsIn<8>(buf, DigitsMinUInt<8>(val));
-	*buf = '0' + val / 100000000;
+	*buf = '0' + char(val / 100000000);
 	return DecimalDigits<8>::Write(buf + 1, val % 100000000);
 }
 template<>

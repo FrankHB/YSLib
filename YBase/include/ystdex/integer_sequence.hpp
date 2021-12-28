@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013, 2015-2016, 2018-2019 FrankHB.
+	© 2012-2013, 2015-2016, 2018-2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file integer_sequence.hpp
 \ingroup YStandardEx
 \brief 整数序列元编程接口。
-\version r600
+\version r615
 \author FrankHB <frankhb1989@gmail.com>
 \since build 589
 \par 创建时间:
 	2013-03-30 00:55:06 +0800
 \par 修改时间:
-	2019-11-04 17:42 +0800
+	2021-12-26 13:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,21 @@
 #ifndef YB_INC_ystdex_sequence_hpp_
 #define YB_INC_ystdex_sequence_hpp_ 1
 
-#include "variadic.hpp" // for "variadic.hpp", empty_base, vseq::defer_i, _t,
-//	common_type_t;
+#include "variadic.hpp" // for "variadic.hpp", __cpp_lib_integer_sequence,
+//	empty_base, vseq::defer_i, _t, common_type_t;
+
+/*!
+\brief \c \<utility> 特性测试宏。
+\see ISO C++20 [version.syn] 。
+\see WG21 P0941R2 2.2 。
+\see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
+\since build 628
+*/
+#ifndef __cpp_lib_integer_sequence
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201304L
+#		define __cpp_lib_integer_sequence 201304L
+#	endif
+#endif
 
 namespace ystdex
 {

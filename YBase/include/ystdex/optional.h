@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2020 FrankHB.
+	© 2015-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r1331
+\version r1335
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2020-01-27 02:13 +0800
+	2021-12-26 13:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,8 @@ WG21 N3765 ：支持不同的比较操作。
 #ifndef YB_INC_ystdex_optional_h_
 #define YB_INC_ystdex_optional_h_ 1
 
-#include "placement.hpp" // for <optional> conditionally, tagged_value;
+#include "placement.hpp" // for conditional <optional>,
+//	__cpp_inheriting_constructors, tagged_value;
 #if YB_Has_optional != 1
 #	include "operators.hpp" // for or_, is_trivially_destructible, is_cv,
 //	std::move, empty_base, is_nothrow_moveable, and_, nullptr_t, remove_cv_t,
@@ -394,7 +395,7 @@ public:
 		: base(in_place, yforward(v))
 	{}
 	template<typename _tOther, yimpl(enable_if_t<and_<not_<is_same<_type,
-		_tOther>>, is_constructible<_type, const _tOther&>, is_convertible<const 
+		_tOther>>, is_constructible<_type, const _tOther&>, is_convertible<const
 		_tOther&, _type>, not_<
 		details::converts_from_optional<_type, _tOther>>>::value, bool> = true)>
 	yconstfn_relaxed

@@ -11,13 +11,13 @@
 /*!	\file integral_constant.hpp
 \ingroup YStandardEx
 \brief 整数类型常量。
-\version r1949
+\version r1966
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:36 +0800
 \par 修改时间:
-	2021-12-12 28:06 +0800
+	2021-12-27 18:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,21 @@
 
 #include "cstddef.h" // for <type_traits>, size_t, ptrdiff_t,
 //	__cpp_lib_bool_constant, std::conditional;
+
+/*!
+\brief \c \<type_traits> 特性测试宏。
+\see ISO C++20 [version.syn] 。
+\see WG21 P0941R2 2.2 。
+\see https://blogs.msdn.microsoft.com/vcblog/2016/10/11/c1417-features-and-stl-fixes-in-vs-15-preview-5/ 。
+\since build 679
+*/
+//@{
+#ifndef __cpp_lib_bool_constant
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201505L
+#		define __cpp_lib_bool_constant 201505L
+#	endif
+#endif
+//@}
 
 namespace ystdex
 {
@@ -221,15 +236,15 @@ inline namespace cpp2017
 */
 //@{
 template<class... _b>
-struct conjunction : and_<_b...>
+struct conjunction : yimpl(and_<_b...>)
 {};
 
 template<class... _b>
-struct disjunction : or_<_b...>
+struct disjunction : yimpl(or_<_b...>)
 {};
 
 template<class _b>
-struct negation : not_<_b>
+struct negation : yimpl(not_<_b>)
 {};
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r22175
+\version r22189
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2021-12-16 10:15 +0800
+	2021-12-28 08:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,10 +34,10 @@
 //	ystdex::ref, YSLib::IValueHolder, YSLib::AllocatedHolderOperations, any,
 //	ystdex::as_const, NPL::forward_as_tuple, uintmax_t, ystdex::bind1,
 //	TokenValue, Forms, std::allocator_arg, YSLib::stack, YSLib::vector,
-//	std::find_if, TermTags, function, TermReference, GetLValueTagsOf,
-//	NPL::TryAccessLeaf, ListReductionFailure, ystdex::sfmt, PropagateTo,
-//	NPL::IsMovable, in_place_type, InvalidReference, NPL::Deref, IsLeaf,
-//	ResolveTerm, ThrowInsufficientTermsError, ThrowListTypeErrorForNonlist,
+//	TermTags, function, TermReference, GetLValueTagsOf, NPL::TryAccessLeaf,
+//	ListReductionFailure, ystdex::sfmt, PropagateTo, NPL::IsMovable,
+//	in_place_type, InvalidReference, NPL::Deref, IsLeaf, ResolveTerm,
+//	ThrowInsufficientTermsError, ThrowListTypeErrorForNonlist,
 //	ystdex::update_thunk, Environment, shared_ptr, NPL::AsTermNode, IsTyped,
 //	ystdex::retry_on_cond, AccessFirstSubterm, ystdex::make_transform,
 //	IsBranchedList, std::placeholders, NoContainer, ystdex::try_emplace,
@@ -507,21 +507,15 @@ private:
 	Transform(TermNode& term, TermStack& terms) const
 	{
 		terms.push(term);
-		if(std::find_if(term.begin(), term.end(), filter) != term.end())
-			term = SeparatorTransformer::Process(std::move(term), pfx, filter);
-		if(std::find_if(term.begin(), term.end(), filter2) != term.end())
-			term = SeparatorTransformer::Process(std::move(term), pfx2,
-				filter2);
+		SeparatorTransformer::ReplaceChildren(term, pfx, std::ref(filter));
+		SeparatorTransformer::ReplaceChildren(term, pfx2, std::ref(filter2));
 	}
 #else
 	void
 	Transform(TermNode& term) const
 	{
-		if(std::find_if(term.begin(), term.end(), filter) != term.end())
-			term = SeparatorTransformer::Process(std::move(term), pfx, filter);
-		if(std::find_if(term.begin(), term.end(), filter2) != term.end())
-			term = SeparatorTransformer::Process(std::move(term), pfx2,
-				filter2);
+		SeparatorTransformer::ReplaceChildren(term, pfx, std::ref(filter));
+		SeparatorTransformer::ReplaceChildren(term, pfx2, std::ref(filter2));
 		for(auto& tm : term)
 			Transform(tm);
 	}

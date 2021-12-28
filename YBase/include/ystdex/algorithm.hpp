@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2020 FrankHB.
+	© 2010-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r1199
+\version r1237
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2020-05-12 16:29 +0800
+	2021-12-28 18:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,23 +30,28 @@
 
 #include "iterator_trait.hpp" // for have_same_iterator_category;
 #include <numeric> // for std::accumulate;
-#include <algorithm> // for <algorithm>;
+#include <algorithm> // for <algorithm>, __cpp_lib_clamp,
+//	__cpp_lib_robust_nonmodifying_seq_ops;
 #include "functor.hpp" // for is_equal, less, std::bind, std::placeholders::_1;
 #include "deref_op.hpp" // for YB_VerifyIterator, yconstraint;
 #include <cstring> // for std::memcpy, std::memmove;
 
 /*!
 \brief \c \<algorithm> 特性测试宏。
+\see ISO C++20 [version.syn] 。
 \see WG21 P0941R2 2.2 。
+\see https://blogs.msdn.microsoft.com/vcblog/2016/10/11/c1417-features-and-stl-fixes-in-vs-15-preview-5/ 。
 */
 //@{
 /*!
-\see https://blogs.msdn.microsoft.com/vcblog/2016/10/11/c1417-features-and-stl-fixes-in-vs-15-preview-5/ 。
+\see https://dev.to/yumetodo/list-of-mscver-and-mscfullver-8nd 。
+\see https://docs.microsoft.com/cpp/preprocessor/predefined-macros 。
 \since build 835
 */
 //@{
 #ifndef __cpp_lib_clamp
-#	if YB_IMPL_MSCPP > 1900 || __cpp_lib_clamp >= 201603L
+#	if (_MSC_FULL_VER >= 190024210L && _MSVC_LANG >= 201603L) \
+	|| __cplusplus >= 201603L
 #		define __cpp_lib_clamp 201603L
 #	endif
 #endif
@@ -143,7 +148,7 @@ strict_any_of(_tIn first, _tIn last, _fPred pred)
 
 //! \note 若返回值，同 std::none_of 的返回结果。
 template<typename _tIn, typename _fPred>
-bool
+inline bool
 strict_none_of(_tIn first, _tIn last, _fPred pred)
 {
 	return !ystdex::strict_any_of(first, last, pred);
@@ -286,17 +291,17 @@ upper_bound_n(_tFwd first, typename std::iterator_traits<
 \brief 以指定分隔符分割序列。
 \since build 304
 */
-template<typename _fPred, typename _fInsert, typename _tIn>
+template<typename _fPred, typename _fInsert, typename _tFwd>
 void
-split(_tIn b, _tIn e, _fPred is_delim, _fInsert insert)
+split(_tFwd first, _tFwd last, _fPred is_delim, _fInsert insert)
 {
-	while(b != e)
+	while(first != last)
 	{
-		_tIn i(std::find_if_not(b, e, is_delim));
+		_tFwd i(std::find_if_not(first, last, is_delim));
 
-		b = std::find_if(i, e, is_delim);
-		if(i != b)
-			insert(i, b);
+		first = std::find_if(i, last, is_delim);
+		if(i != first)
+			insert(i, first);
 		else
 			break;
 	}
@@ -306,24 +311,24 @@ split(_tIn b, _tIn e, _fPred is_delim, _fInsert insert)
 \brief 以满足迭代器谓词的指定分隔符分割序列。
 \since build 668
 */
-template<typename _fPred, typename _fInsert, typename _func, typename _tIn>
+template<typename _fPred, typename _fInsert, typename _func, typename _tFwd>
 void
-split_if(_tIn b, _tIn e, _fPred is_delim, _fInsert insert, _func pred)
+split_if(_tFwd first, _tFwd last, _fPred is_delim, _fInsert insert, _func pred)
 {
-	while(b != e)
+	while(first != last)
 	{
-		_tIn i(b);
+		_tFwd i(first);
 
-		while(i != e && is_delim(*i) && pred(i))
+		while(i != last && is_delim(*i) && pred(i))
 			++i;
-		for(b = i; b != e; ++b)
+		for(first = i; first != last; ++first)
 		{
-			b = std::find_if(b, e, is_delim);
-			if(b == e || pred(b))
+			first = std::find_if(first, last, is_delim);
+			if(first == last || pred(first))
 				break;
 		}
-		if(i != b)
-			insert(i, b);
+		if(i != first)
+			insert(i, first);
 		else
 			break;
 	}
@@ -334,23 +339,23 @@ split_if(_tIn b, _tIn e, _fPred is_delim, _fInsert insert, _func pred)
 \note 除非无法匹配，保留起始分隔符。
 \since build 408
 */
-template<typename _fPred, typename _fInsert, typename _tIn>
-_tIn
-split_l(_tIn b, _tIn e, _fPred is_delim, _fInsert insert)
+template<typename _fPred, typename _fInsert, typename _tFwd>
+_tFwd
+split_l(_tFwd first, _tFwd last, _fPred is_delim, _fInsert insert)
 {
-	_tIn i(b);
+	_tFwd i(first);
 
-	while(b != e)
+	while(first != last)
 	{
-		if(is_delim(*b) && i != b)
+		if(is_delim(*first) && i != first)
 		{
-			insert(i, b);
-			i = b;
+			insert(i, first);
+			i = first;
 		}
-		++b;
+		++first;
 	}
-	if(i != b)
-		insert(i, b);
+	if(i != first)
+		insert(i, first);
 	return i;
 }
 //@}

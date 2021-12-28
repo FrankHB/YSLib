@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015, 2018-2019 FrankHB.
+	© 2011-2015, 2018-2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1915
+\version r1937
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2019-11-04 17:11 +0800
+	2021-12-26 22:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,8 @@
 #include "YModules.h"
 #include YFM_YCLib_YCommon // for std::is_signed, std::is_unsigned;
 #include <ystdex/bitseg.hpp> // for ystdex::integer_width,
-//	ystdex::ordered_bitseg_traits, ystdex::bitseg_traits;
+//	ystdex::ordered_bitseg_traits, ystdex::bitseg_traits,
+//	ystdex::remove_extent_t;
 
 namespace platform
 {
@@ -162,8 +163,8 @@ using XYZATraits
 
 /*!
 \note 作为 POD 类型，可以用于储存像素。
-\warning 用户应检查存储表示的实际大小是否和本类型一致。
-\bug 当前忽略对齐和特定类型的一致性。
+\warning 因为 YB_ATTR 指定的对齐并非在总是有效。
+\warning 初始化后以不同的成员访问违反别名要求，可能引起未定义行为。
 */
 //@{
 /*!
@@ -176,6 +177,8 @@ using XYZATraits
 值分量被值分量映射枚举一一映射为 AXYZ 逻辑分量。
 值分量映射枚举应保证映射后的逻辑分量和逻辑分量特征使用的存储索引对应的逻辑分量一致。
 不直接依赖数组类型访问存储，因此对字节序中立。
+并非每个实现都支持因为指定类型的对齐，用户应检查存储表示的实际大小是否和本类型一致；
+	在声明对象时，可使用作用在对象声明上的 alignas 等方式确保对齐。
 */
 template<class _tTraits, typename _tComponentMap, size_t _v1, size_t _v2,
 	size_t _v3, size_t _v4>
@@ -186,6 +189,10 @@ union YB_ATTR(packed) YB_ATTR(aligned(yalignof(typename _tTraits::integer)))
 	using traits_type = _tTraits;
 	using StorageTraits = typename traits_type::base;
 	using ArrayType = typename StorageTraits::array;
+	// NOTE: Ensure it is safe to alias. To be simple, only %byte is allowed.
+	//! \since build 945
+	static_assert(std::is_same<ystdex::remove_extent_t<ArrayType>, byte>(),
+		"Invalid type found.");
 	using IntegerType = typename traits_type::integer;
 	//! \brief 存储分量类型：值分量按参数列表出现顺序的索引的类型。
 	template<size_t _vIdx>
@@ -205,7 +212,17 @@ union YB_ATTR(packed) YB_ATTR(aligned(yalignof(typename _tTraits::integer)))
 	using RWidth = typename traits_type::template component_width<CMap::R>;
 	//@}
 
+	// XXX: Only aliasing by the element pointer of %Bytes can always work.
+	yalignas_type(IntegerType)
+#if __has_attribute(may_alias)
+	// TODO: Use [[may_alias]] instead?
+	YB_ATTR(may_alias)
+#endif
 	ArrayType Bytes;
+#if __has_attribute(may_alias)
+	// TODO: Ditto.
+	YB_ATTR(may_alias)
+#endif
 	IntegerType Integer;
 
 	DefDeCtor(PixelQuadruple)
@@ -286,7 +303,7 @@ using Pixel = RGBA<5, 5, 5, 1>;
 	即整数 ARGB8888 （小端序存储序 BGRA8888 ），兼容 \c ::AlphaBlend 使用的格式。
 \note 转换 DIB 在设备上下文绘制时无需转换格式，比 ::COLORREF 更高效。
 \warning 仅用于屏幕绘制，不保证无条件兼容所有 DIB 。
-\see https://msdn.microsoft.com/en-us/library/windows/desktop/dd183352(v=vs.85).aspx 。
+\see https://msdn.microsoft.com/library/windows/desktop/dd183352(v=vs.85).aspx 。
 \since build 441
 \todo 断言对齐，保证类型兼容。
 */

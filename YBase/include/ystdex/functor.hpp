@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r996
+\version r1013
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2021-11-11 20:31 +0800
+	2021-12-26 13:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,11 +30,27 @@
 #ifndef YB_INC_ystdex_functor_hpp_
 #define YB_INC_ystdex_functor_hpp_ 1
 
-#include "ref.hpp" // for <functional>, enable_if_t, is_detected,
-//	ystdex::addressof, nor_, not_, is_reference_wrapper, and_;
+#include "ref.hpp" // for <functional>, __cpp_lib_transparent_operators,
+//	is_detected, enable_if_t, ystdex::addressof, nor_, not_,
+//	is_reference_wrapper, and_;
 #include "type_traits.hpp" // for ystdex::addrof_t, ystdex::indirect_t,
 //	ystdex::first_t, ystdex::second_t;
 #include <string> // for std::char_traits;
+
+/*!
+\brief \c \<functional> 特性测试宏。
+\see ISO C++20 [version.syn] 。
+\see WG21 P0941R2 2.2 。
+\see https://blogs.msdn.microsoft.com/vcblog/2015/06/19/c111417-features-in-vs-2015-rtm/ 。
+\since build 679
+*/
+//@{
+#ifndef __cpp_lib_transparent_operators
+#	if YB_IMPL_MSCPP >= 1800 || __cplusplus >= 201210L
+#		define __cpp_lib_transparent_operators 201210L
+#	endif
+#endif
+//@}
 
 namespace ystdex
 {

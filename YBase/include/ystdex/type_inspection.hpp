@@ -11,13 +11,13 @@
 /*!	\file type_inspection.hpp
 \ingroup YStandardEx
 \brief 类型检查元编程设施。
-\version r1967
+\version r1983
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:54:58 +0800
 \par 修改时间:
-	2021-12-12 22:21 +0800
+	2021-12-26 12:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,23 @@
 #ifndef YB_INC_ystdex_type_inspection_hpp_
 #define YB_INC_ystdex_type_inspection_hpp_ 1
 
-#include "cstddef.h" // for <type_traits>, std::remove_cv_t, nullptr_t;
+#include "cstddef.h" // for <type_traits>, __cpp_lib_is_null_pointer,
+//	std::remove_cv_t, nullptr_t;
+
+/*!
+\brief \c \<type_traits> 特性测试宏。
+\see ISO C++20 [version.syn] 。
+\see WG21 P0941R2 2.2 。
+\see https://blogs.msdn.microsoft.com/vcblog/2016/10/11/c1417-features-and-stl-fixes-in-vs-15-preview-5/ 。
+\since build 832
+*/
+//@{
+#ifndef __cpp_lib_is_null_pointer
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201309L
+#		define __cpp_lib_is_null_pointer 201309L
+#	endif
+#endif
+//@}
 
 namespace ystdex
 {

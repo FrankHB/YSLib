@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018 FrankHB.
+	© 2013-2016, 2018, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r483
+\version r486
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2018-03-03 17:25 +0800
+	2021-12-24 23:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define INC_Helper_HostedUI_h_ 1
 
 #include "YModules.h"
-#include YFM_Helper_HostRenderer
+#include YFM_Helper_HostRenderer // for UI::IWidget, HostRenderer;
+#include <ystdex/deref_op.hpp> // for ystdex::call_value_or;
 #include YFM_YSLib_UI_Hover
 #include YFM_YSLib_UI_Label
 #include YFM_YSLib_UI_Menu

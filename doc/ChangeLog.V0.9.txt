@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r6946
+\version r7142
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-12-24 19:37 +0800
+	2021-12-28 23:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,203 @@ $import $HISTORY;
 
 $now
 (
-b934:
+	/ DLDI "simplified localized URLs" @ "comments"
+		@ %(YBase.(YDefinition, YStandardEx.(Apply, Meta)), YFramework.(YCLib.(
+		FileSystem, MemoryMapping, Video), 'YCLib_(Win32)'.Registry),
+		NPL.NPLAMath),
+		// Excluding %3rdparty implicitly. This may change specific localized \
+			pages.
+	/ %YBase.YStandardEx $=
+	(
+		/ @ "functions templates %(floor_lb, ceiling_lb, countl_zero_narrow, \
+			countr_zero_narrow, countl_zero, countl_zero)" @ %Bit $=
+		(
+			/ DLDI @ 'YB_IMPL_MSCPP >= 1400' $=
+			(
+				- "unused variable",
+					// To eliminate Microsoft VC++ warning: C4101.
+				- "redundant '!='"
+					// To eliminate Microsoft VC++ warning: C4552.
+			),
+			* "ill-formed calls when builtin is unavailable due to wrong \
+				template argument list" $since b934,
+			* "invalid 'yconstfn'" @ "internal functions" $since b934
+				$= (/ $impl ^ 'inline' ~ 'yconstfn')
+		),
+		* "wrong iterator requirement implied by the template parameter names"
+			@ ("function template %split" $orig (@ %String $since b304),
+			"function template %split_if" $orig "@ (%split_if_iter" @ %String
+			$since b545), "function template %split_l"
+			$orig (@ %String $since b408)) @ %Algorithm
+			// The results are nonsense without the multi-pass grarantee.
+	),
+	/ $re_add(b934) DLDI "cleanup trailing whitespaces"
+		@ %(YBase.YStandardEx.Tree,
+		YFramework.YSLib.(Core.YGDIBase, UI.Viewer)),
+	/ DLDI "cleanup redundant empty lines"
+		@ %(YBase.YStandardEx.(Container, Tree),
+		YFramework.YSLib.Service.TextManager),
+	/ DLDI "adjusted names" @ "declarations" @ %(YBase.YStandardEx.Algorithm,
+		YFramework.(YCLib.JNI, YSLib.(Service.(ContentType, TextFile),
+		UI.(YPanel, YUIContainer)))),
+		// This includes function parameters, template parameters and type \
+			names in the declarators not interfere with type requirements.
+	/ DLDI "adjusted minor comments" @ %(YBase.YStandardEx.(Algorithm, Apply,
+		Functor, IntegerSequence, Invoke, Memory, Meta, Optional, Swap),
+		YFramework.(CHRLib.(CharacterProcessing, MappingEx),
+		YFramework.(YCLib.NativeAPI, YSLib.UI.Loader, Helper.HostedUI),
+		// This includes implementation comments and comments on header \
+			inclusions.
+	/ %YBase $=
+	(
+		/ %YDefinition $=
+		(
+			/ "moved ISO C++ standard libarary macro detection and definitions \
+				to more specific header files" $=
+				// To make it defined at the use sites instead of inclusions \
+					sites leaks less implementation details (about the \
+					standard header inclusion), so less error-prone after \
+					removal of specific standard header inclusions (like \
+					below), and less inconsistency when the standard library \
+					headers are included in different places (e.g. <tuple> and \
+					<functional> in %YStandardEx.Utilites but the definitions \
+					are in other files). Besides, this, it is also more \
+					consistent to most similar macros conditionally defined \
+					in %YStandardEx instead of %YDefinition.
+			(
+				/ "%__cpp_lib_bool_constant" >> %IntegralConstant
+					$dep_to "deferred <type_traits> feature macro detection",
+				/ "%__cpp_lib_is_invocable" >> %Invoke
+					$dep_to "deferred <type_traits> feature macro detection",
+				/ "%__cpp_lib_is_null_pointer" >> %TypeInsepection
+					$dep_to "deferred <type_traits> feature macro detection",
+				/ "%(__cpp_lib_transformation_trait_aliases, __cpp_lib_void_t)"
+					>> %Meta
+					$dep_to "deferred <type_traits> feature macro detection",
+				/ "%__cpp_lib_as_const" >> %Utilities,
+				/ "%(__cpp_lib_is_swappable, __cpp_lib_exchange_function)"
+					>> %Swap,
+				/ "%__cpp_lib_integer_sequence" >> %IntegerSequence
+			),
+			* $comp "voided effects of detetion of '__cpp_lib*' macros from \
+				<type_traits>" $since b933
+				$dep_all_from "deferred <type_traits> feature macro detection",
+				// Now <type_traits> is included in \
+					%YStandardEx.CStandardDefinition. Nevertheless, the \
+					definitions are moved to use sites instead.
+			+ "conditionally defined macro %__cpp_aligned_new"
+				// This would be used in %Memory and %MemoryResource.
+		),
+		/ %YStandardEx $=
+		(
+			+ DLI 'inline' @ "function template %strict_none_of" @ %Algorithm,
+			/ "macro detection and definition %__cpp_lib_transparent_operators"
+				@ %Invoke >> %Functor,
+				// Similar to %YDefinition.
+			+ DLDI 'yimpl' @ "base class" @ "traits"
+				@ "inline namespace %cpp2017",
+				// This indicates the inheritance is not the part of the \
+					public interface.
+			/ %Swap $=
+			(
+				* $lib $impl "missing undefining %(YB_Impl_Swap_ns, \
+					YB_Impl_Swap_Traits)" @ $since b834,
+				* "wrong condition of detetion for %__cpp_lib_is_swappable"
+					$since b834 $dep_from %YDefinition
+					$= (/ $impl ^ "%(_MSC_FULL_VER, _MSVC_LANG)"
+						~ "%YB_IMPL_MSCPP")
+			),
+			/ "wrong condition of detetion for %__cpp_lib_clamp" @ %Algorithm
+				$since b835
+				$= (/ $impl ^ "%(_MSC_FULL_VER, _MSVC_LANG, __cplusplus)"
+					~ "%(YB_IMPL_MSCPP, __cpp_lib_clamp)"),
+			* $dev $lib "wrong inclusion condition" @ "%get_temporary_buffer"
+				$since b835
+				$= (/ $impl ^ '__cplusplus >= 201606L'
+					~ '__cplusplus >= 201611L'),
+				// Deprecated features are still mandated, so this should not \
+					break the client code.
+			* "return type mismatched to the return value in the function \
+				body when using ADL" @ "function template \
+				%make_move_iterator_pair" @ %IteratorOperation $since b595
+				// There are no addition using-declarations since b624, so \
+					plain trailing returning type suffices.
+		)
+	),
+	/ %YFramework $=
+	(
+		/ DLDI "adjusted minor implementation header inclusions"
+			@ %(Adaptor.Font, Service.ImageProcessing, UI.Loader),
+		/ DLDI "default constructor %Color" @ %YSLib.Core.YGDIBase
+			^ "%DefDeCtor",
+		+ DLDI "header inclusion %YBase.YStandardEx.DereferenceOperation"
+			@ %Helper.HostedUI,
+		/ $dev %CHRMap $=
+		(
+			/ $lib $design $impl "simplified Doxygen comments"
+				@ %CharacterProcessing,
+			/ $doc "'\bug' command" @ "Doxygen comment" @ "function template \
+				%Decode" @ "template class specialization \
+				%GUCSMapper<CharSet::GBK>" @ %MappingEx -> "'\note' command"
+		),
+		/ %YCLib $=
+		(
+			/ DLDI "adjusted '\brief' command" @ "Doxygen comment" @ %NativeAPI,
+				// To be consistent with the header file.
+			/ %Video $=
+			(
+				/ "cleanup outdated Doxygen '\bug' command"
+					@ "Doxygen comment" @ "%PixelQuadruple and related types",
+				/ @ "union %PixelQuadruple" $=
+				(
+					+ $dev $lib "static assertion to ensure elements of \
+						%ArrayType same as %byte" ^ "%ystdex::remove_extent_t",
+					/ DLI "specifying additional alignment requirement on the \
+						1st data member" ^ 'yalignas_type',
+					+ 'YB_ATTR(may_alias)' @ "data members"
+						@ '__has_attribute(may_alias)'
+				)
+			),
+			/ %FileSystem $=
+			(
+				/ "alias %FileNodeID" -> "class";
+				* $comp $dev "pollution of %operator(==, !=) on %pair \
+					instances used as %FileNodeID" $orig (@ %YCLib $since b638)
+			)
+		),
+		* "missing removal of the deprecated C++ feature"
+			@ "function %GetCopyOnWritePtr" @ "class template %GDependency"
+			@ %YSLib.Core.YObject $since b835,
+			// This is deprected since ISO C++17, see WG21 P0521R0. This is \
+				removed by ISO C++20, see WG21 P0619R4 3 D.14.
+			$= (/ $re_add(b835) ^ 'use_count' ~ 'unique'),
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				/ @ "class %SeparatorTransformer" $=
+				(
+					(
+					/ DLDI "function %operator()" !^ "%AddRange";
+					- "function template %AddRange"
+					),
+					+ DD '\ingroup functors',
+					- "branch check" @ "%operator()"
+						// This does not changed the behavior of \
+							%ReplaceChildren.
+				),
+				/ DLI "simplified separator pass" @ "constructor %REPLContext"
+					^ "%SeparatorTransformer::(ReplaceChildren, std::ref)"
+			),
+			/ DLDI "cast to 'char'" @ "printing trailing integer with no more \
+				than 9 digits" @ %NPLAMath
+				// To eliminate Microsoft VC++ warning: C4244.
+		)
+	)
+),
+
+b934
+(
 	/ $re_add(b933) DLDI "ensured suffix 'L'" @ "all values compared with \
 		%_MSVC_LANG" @ %YBase.YStandardEx.(Memory, Range, StringView),
 	/ DLDI "changed the format of copyright notice" $effective

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018, 2020 FrankHB.
+	© 2018, 2020-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file tree.cpp
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r410
+\version r412
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2020-01-27 02:17 +0800
+	2021-12-24 22:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,7 +80,7 @@ local_tree_decrement(tree_node_base* x) ynothrow
 	else
 	{
 		auto y(x->parent);
-	
+
 		while(x == y->left)
 		{
 			x = y;
@@ -171,7 +171,7 @@ tree_insert_and_rebalance(bool insert_left, tree_node_base* x,
 	if(insert_left)
 	{
 		// NOTE: Also makes leftmost = x when 'p == &header'.
-		p->left = x; 
+		p->left = x;
 		if(p == &header)
 		{
 			header.parent = x;

@@ -11,13 +11,13 @@
 /*!	\file meta.hpp
 \ingroup YStandardEx
 \brief 通用元编程设施。
-\version r1794
+\version r1824
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:28 +0800
 \par 修改时间:
-	2021-12-24 18:55 +0800
+	2021-12-26 12:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,25 +30,49 @@
 
 #include "type_inspection.hpp" // for "type_inspection.hpp",
 //	__cpp_lib_transformation_trait_aliases, __cpp_lib_remove_cvref,
-//	__cpp_lib_void_t, is_same, or_, nor_, and_, is_trivial, is_class, is_union,
-//	is_convertible, not_, __cpp_lib_type_identity, is_unsigned;
+//	__cpp_lib_void_t, __cpp_lib_type_identity, is_same, or_, nor_, and_,
+//	is_trivial, is_class, is_union, is_convertible, not_, is_unsigned;
 #include "integral_constant.hpp" // for true_, size_t_;
 
 /*!
 \brief \c \<type_traits> 特性测试宏。
 \see ISO C++20 [version.syn] 。
-\see WG21 P1902R1 。
-\see https://docs.microsoft.com/zh-cn/cpp/overview/visual-cpp-language-conformance 。
-\see https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros 。
+\see WG21 P0941R2 2.2 。
+\see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
+\see https://docs.microsoft.com/cpp/preprocessor/predefined-macros 。
 \since build 934
 */
 //@{
+/*!
+\see https://blogs.msdn.microsoft.com/vcblog/2016/10/11/c1417-features-and-stl-fixes-in-vs-15-preview-5/ 。
+\since build 832
+*/
+//@{
+#ifndef __cpp_lib_transformation_trait_aliases
+#	if YB_IMPL_MSCPP >= 1800 || __cplusplus >= 201304L
+#		define __cpp_lib_transformation_trait_aliases 201304L
+#	endif
+#endif
+//@}
+//! \see WG21 P1902R1 。
 #ifndef __cpp_lib_remove_cvref
 #	if (YB_IMPL_MSCPP >= 1920 && _MSVC_LANG >= 201711L) \
 	|| __cplusplus >= 202002L
 #		define __cpp_lib_remove_cvref 201711L
 #	endif
 #endif
+/*!
+\see https://blogs.msdn.microsoft.com/vcblog/2016/10/11/c1417-features-and-stl-fixes-in-vs-15-preview-5/ 。
+\since build 679
+*/
+//@{
+#ifndef __cpp_lib_void_t
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201411L
+#		define __cpp_lib_void_t 201411L
+#	endif
+#endif
+//@}
+//! \see WG21 P1902R1 。
 #ifndef __cpp_lib_type_identity
 #	if (YB_IMPL_MSCPP >= 1921 && _MSVC_LANG >= 201806L) \
 	|| __cplusplus >= 202002L
@@ -835,7 +859,7 @@ using cond_t = _t<cond<_tCond, _tThen, _tElse>>;
 \note Microsoft VC++ 2013 使用 LWG 2141 建议的实现。
 \see LWG 2141 。
 \see http://www.boost.org/doc/libs/1_55_0/libs/mpl/doc/refmanual/identity.html 。
-\see http://msdn.microsoft.com/en-us/library/vstudio/bb531344%28v=vs.120%29.aspx 。
+\see http://msdn.microsoft.com/library/vstudio/bb531344%28v=vs.120%29.aspx 。
 \see http://lists.cs.uiuc.edu/pipermail/cfe-commits/Week-of-Mon-20131007/090403.html 。
 \since build 334
 */

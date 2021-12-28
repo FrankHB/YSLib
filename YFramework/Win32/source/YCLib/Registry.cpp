@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2019 FrankHB.
+	© 2013-2016, 2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 注册表。
-\version r155
+\version r158
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2015-09-12 19:39:47 +0800
 \par 修改时间:
-	2019-01-03 17:24 +0800
+	2021-12-26 13:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,7 +80,7 @@ RegistryKey::GetSubKeyNames() const
 
 	if(cnt > 0)
 	{
-		// NOTE: See http://msdn.microsoft.com/en-us/library/windows/desktop/ms724872(v=vs.85).aspx.
+		// NOTE: See http://msdn.microsoft.com/library/windows/desktop/ms724872(v=vs.85).aspx.
 		wchar_t name[256];
 
 		for(res.reserve(cnt); res.size() < cnt; res.emplace_back(name))
@@ -107,7 +107,7 @@ RegistryKey::GetValueNames() const
 
 	if(cnt > 0)
 	{
-		// NOTE: See http://msdn.microsoft.com/en-us/library/windows/desktop/ms724872(v=vs.85).aspx.
+		// NOTE: See http://msdn.microsoft.com/library/windows/desktop/ms724872(v=vs.85).aspx.
 		wchar_t name[16384];
 
 		for(res.reserve(cnt); res.size() < cnt; res.emplace_back(name))

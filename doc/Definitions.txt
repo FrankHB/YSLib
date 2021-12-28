@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14359
+\version r14423
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2021-12-19 02:49 +0800
+	2021-12-27 12:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,8 +51,8 @@ $region $synopsis $begin
 
 // 保留名称规则参照 https://frankhb.github.io/YSLib-book/Development.zh-CN.html 。另见 [Documentation::Designation @@4.2] 。
 // 以下为既定宏名和生成标识符污染列表（内部使用的宏名不逐一列出）。
-// ! 默认由外部（如预定义标识符、编译器命令行或标准库头）提供。
-// # 可能由外部提供。在公开头文件中使用，查看实现确定配置的不同行为和提供的默认值。
+// ! 依赖外部（如预定义标识符、编译器命令行或标准库头）提供，且不提供替代和补充定义的标识符。
+// # 可能由外部提供定义的标识符。在公开头文件中使用，查看实现确定配置的不同行为和提供的默认值。
 // ~ 由宏替换生成而不是宏定义引入的标识符。
 // 非外部提供的非头文件守卫宏的保留内部使用的宏名可能被 #undef 取消定义。未被取消定义的内部使用的宏也在以下一并列出。
 
@@ -86,22 +86,11 @@ YB_IMPL_CLANGPP
 #__has_extension(...)
 #__has_feature(...)
 #__has_include(...)
+#__cpp_aligned_new
 #__cpp_constexpr
 #__cpp_if_constexpr
 #__cpp_inheriting_constructors
 #__cpp_inline_variables
-#__cpp_lib_bitops
-#__cpp_lib_bool_constant
-#__cpp_lib_byte
-#__cpp_lib_is_invocable
-#__cpp_lib_is_null_pointer
-#__cpp_lib_is_swappable
-#__cpp_lib_transformation_trait_aliases
-#__cpp_lib_void_t
-#__cpp_lib_as_const
-#__cpp_lib_exchange_function
-#__cpp_lib_integer_sequence
-#__cpp_lib_tuple_element_t
 #__cpp_noexcept_function_type
 YPP_Args
 YPP_Empty
@@ -171,6 +160,7 @@ $dir ystdex
 {
 $header CStandardDefinition
 {
+#__cpp_lib_byte
 yoffsetof(_type, _member)
 }
 $header CAssert
@@ -182,7 +172,22 @@ yverify(_expr)
 #YAssertNonnull(*)
 #YTrace(*)
 }
-$header DeferenceOperation
+$header IntegralConstant
+{
+#__cpp_lib_bool_constant
+}
+$header TypeInspection
+{
+#__cpp_lib_is_null_pointer
+}
+$header Meta
+{
+#__cpp_lib_transformation_trait_aliases
+#__cpp_lib_remove_cvref
+#__cpp_lib_void_t
+#__cpp_lib_type_identity
+}
+$header DereferenceOperation
 {
 YB_VerifyIterator(_expr)
 }
@@ -195,24 +200,33 @@ $header Range
 #__cpp_lib_make_reverse_iterator
 #YB_Use_std_reverse_iterator
 }
+$header Invoke
+{
+#__cpp_lib_is_invocable
+#__cpp_lib_invoke
+}
 $header Placement
 {
 YB_Has_optional
-#__cpp_lib_string_view
+#__cpp_lib_optional
+}
+$header Swap
+{
+#__cpp_lib_is_swappable
+#__cpp_lib_exchange_function
+}
+$header IntegerSequence
+{
+#__cpp_lib_integer_sequence
+}
+$header Bit
+{
+YB_Has_bit
+#__cpp_lib_bitops
 }
 $header TypeInfo
 {
 #YB_Use_LightweightTypeID
-}
-$header Tuple
-{
-#__cpp_lib_apply
-#__cpp_lib_make_from_tuple
-}
-$header Ref
-{
-#__cpp_lib_transparent_operators
-#__cpp_lib_invoke
 }
 $header Memory
 {
@@ -223,6 +237,23 @@ $header MemoryResource
 {
 YB_Has_memory_resource
 #__cpp_lib_memory_resource
+}
+$header Utilities
+{
+#__cpp_lib_as_const
+}
+$header Apply
+{
+#__cpp_lib_apply
+#__cpp_lib_make_from_tuple
+}
+$header Functor
+{
+#__cpp_lib_transparent_operators
+}
+$header Tuple
+{
+#__cpp_lib_tuple_element_t
 }
 $header Functor
 {
@@ -236,11 +267,6 @@ $header StringView
 {
 YB_Has_string_view
 #__cpp_lib_string_view
-}
-$header Bit
-{
-YB_Has_bit
-#__cpp_lib_bit
 }
 } // $dir ystdex;
 } // $dir YBase;
@@ -947,6 +973,7 @@ $attr $=
 	dllimport,
 	dllexport,
 	flatten,
+	may_alias,
 	noinline,
 	nonnull,
 	noreturn,

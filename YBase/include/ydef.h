@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 语言实现和系统环境相关特性及公用类型和宏的基础定义。
-\version r4311
+\version r4408
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2021-12-19 02:47 +0800
+	2021-12-26 20:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -120,8 +120,8 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 #			define YB_IMPL_GNUCPP (__GNUG__ * 10000 + __GNUC_MINOR__ * 100)
 #		endif
 #	else
-// TODO: Deferred. Complete version checking for compiler and library
-//	implementations, e.g. EDG frontends.
+// TODO: Complete version checking for more compiler and library standard
+//	implementations, e.g. EDG frontends including ICPC, NVCC.
 //#ifdef __GNUC__
 //#	include <tr1/type_traits>
 #		error "This language implementation is not supported."
@@ -193,15 +193,27 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 //@}
 
 /*!
+\see ISO C++20 [version.syn] 。
 \see WG21 P0941R2 2.2 。
 \see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
 */
 //@{
 /*!
+\see https://docs.microsoft.com/cpp/preprocessor/predefined-macros 。
+\since build 935
+*/
+//@{
+#ifndef __cpp_aligned_new
+#	if (YB_IMPL_MSCPP >= 1912 && _MSVC_LANG >= 201606L) \
+	|| __cplusplus >= 201606L
+#		define __cpp_aligned_new 201606L
+#	endif
+#endif
+//@}
+/*!
 \brief \c constexpr 特性测试宏。
 \since build 628
 */
-//! \since build 628
 //@{
 #ifndef __cpp_constexpr
 #	if __has_feature(cxx_relaxed_constexpr) || __cplusplus >= 201304L
@@ -212,6 +224,8 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 #	endif
 #endif
 //@}
+//! \see https://docs.microsoft.com/cpp/preprocessor/predefined-macros 。
+//@{
 //! \since build 930
 //@{
 #ifndef __cpp_if_constexpr
@@ -227,7 +241,7 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 \see WG21 P0136R1 。
 \see https://clang.llvm.org/docs/LanguageExtensions.html 。
 \see https://gcc.gnu.org/projects/cxx-status.html 。
-\see https://msdn.microsoft.com/en-us/library/hh409293.aspx 。
+\see https://msdn.microsoft.com/library/hh409293.aspx 。
 \since build 833
 */
 //@{
@@ -240,6 +254,7 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 #		define __cpp_inheriting_constructors 200802L
 #	endif
 #endif
+//@}
 //@}
 /*!
 \see https://reviews.llvm.org/D32950 。
@@ -279,83 +294,6 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 
 #include <cstdlib> // for std::abort;
 #include <utility> // for std::forward;
-
-/*!
-\see WG21 P0941R2 2.2 。
-\see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
-*/
-//@{
-/*!
-\brief \c \<type_traits> 特性测试宏。
-\since build 679
-\see https://blogs.msdn.microsoft.com/vcblog/2016/10/11/c1417-features-and-stl-fixes-in-vs-15-preview-5/ 。
-*/
-//@{
-#ifndef __cpp_lib_bool_constant
-#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201505L
-#		define __cpp_lib_bool_constant 201505L
-#	endif
-#endif
-//! \since build 832
-//@{
-#ifndef __cpp_lib_is_invocable
-#	if (YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201703L) \
-	|| __cplusplus >= 201703L
-#		define __cpp_lib_is_invocable 201703L
-#	endif
-#endif
-#ifndef __cpp_lib_is_null_pointer
-#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201309L
-#		define __cpp_lib_is_null_pointer 201309L
-#	endif
-#endif
-//! \since build 834
-//@{
-#ifndef __cpp_lib_is_swappable
-#	if YB_IMPL_MSCPP > 1900 || __cplusplus >= 201603L
-#		define __cpp_lib_is_swappable 201603L
-#	endif
-#endif
-//@}
-#ifndef __cpp_lib_transformation_trait_aliases
-#	if YB_IMPL_MSCPP >= 1800 || __cplusplus >= 201304L
-#		define __cpp_lib_transformation_trait_aliases 201304L
-#	endif
-#endif
-//@}
-#ifndef __cpp_lib_void_t
-#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201411L
-#		define __cpp_lib_void_t 201411L
-#	endif
-#endif
-//@}
-/*!
-\brief \c \<utility> 特性测试宏。
-\see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
-\since build 628
-*/
-//@{
-//! \since build 833
-//@{
-#ifndef __cpp_lib_as_const
-#	if YB_IMPL_MSCPP >= 1911 || __cplusplus >= 201510L
-#		define __cpp_lib_as_const 201510L
-#	endif
-#endif
-//@}
-#ifndef __cpp_lib_exchange_function
-#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201304L
-#		define __cpp_lib_exchange_function 201304L
-#	endif
-#endif
-#ifndef __cpp_lib_integer_sequence
-#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201304L
-#		define __cpp_lib_integer_sequence 201304L
-#	endif
-#endif
-//@}
-//@}
-
 
 /*!	\defgroup preprocessor_helpers Perprocessor Helpers
 \brief 预处理器通用助手宏。
@@ -538,7 +476,7 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 /*!
 \def YB_HAS_THREAD_LOCAL
 \brief thread_local 支持。
-\see https://docs.microsoft.com/cpp/overview/visual-cpp-language-conformance 。
+\see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
 \see https://gcc.gnu.org/projects/cxx-status.html 。
 \since build 425
 */
@@ -757,7 +695,7 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 #elif YB_IMPL_MSCPP >= 1200
 // NOTE: The Microsoft-specific keyword '__forceinline' may implies inline,
 //	but this should not be relied on. See also
-//	https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-1-c4141.
+//	https://docs.microsoft.com/cpp/error-messages/compiler-warnings/compiler-warning-level-1-c4141.
 #	define YB_ATTR_always_inline \
 	YB_Diag_Push YB_Diag_Ignore(4141) __forceinline YB_Diag_Pop
 #else
@@ -1014,7 +952,7 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 \warning 当指定的函数调用实际返回时行为未定义。
 \sa YB_ATTR
 \sa YB_ATTR_LAMBDA
-\see https://msdn.microsoft.com/en-us/library/hh567368.aspx 。
+\see https://msdn.microsoft.com/library/hh567368.aspx 。
 \since build 396
 */
 #if __has_cpp_attribute(noreturn) >= 200809 || YB_IMPL_MSCPP >= 1900 \
@@ -1031,7 +969,7 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 #if YB_IMPL_MSCPP >= 1200
 	//! \since build 454
 	YB_Diag_Ignore(4646)
-	// NOTE: See https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-3-c4646.
+	// NOTE: See https://docs.microsoft.com/cpp/error-messages/compiler-warnings/compiler-warning-level-3-c4646.
 	// NOTE: The warning "function declared with __declspec(noreturn) has
 	//	non-void return type" is unwanted since the type of function may be
 	//	significant even it does not return.
@@ -1404,18 +1342,17 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 \brief 线程局部存储：若实现支持，指定为 \c thread_local 。
 \warning MinGW GCC 使用的 emutls 实现缺陷导致静态初始化可能失败。
 \since build 425
-\todo 加入 \c __thread 和 \c __declspec(thread) 。
+\todo 判断 \c __thread 和 \c __declspec(thread) 的语言实现版本。
 */
 // XXX: %_MT is specific to Win32 and it is not considered a prerequisition of
 //	TLS now.
 #if YB_HAS_THREAD_LOCAL
 #	define ythread thread_local
-// TODO: Versions?
 #elif defined(_WIN32) && (YB_IMPL_MSCPP || defined(__ICL) || defined(__DMC__) \
 	|| defined(__BORLANDC__))
 #	define ythread __declspec(thread)
-// Old versions of Mac OS do not support '__thread'. Other platforms compatible
-//	to GNU C should support it.
+// NOTE: Old versions of Mac OS do not support '__thread'. Other platforms
+//	compatible to GNU C should support it.
 #elif (defined(__APPLE__) && YB_IMPL_CLANGPP && defined(MAC_OS_X_VERSION_10_7) \
 	&& (defined(__x86_64__) || defined(__i386__))) || YB_IMPL_GUNC
 #	define ythread __thread

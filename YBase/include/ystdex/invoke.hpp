@@ -11,13 +11,13 @@
 /*!	\file invoke.hpp
 \ingroup YStandardEx
 \brief 可调用对象和调用包装接口。
-\version r4700
+\version r4726
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-24 05:03:12 +0800
 \par 修改时间:
-	2021-12-24 18:08 +0800
+	2021-12-26 13:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,30 +36,44 @@
 #define YB_INC_ystdex_invoke_hpp_ 1
 
 #include "meta.hpp" // for "meta.hpp", <type_traits>, std::declval,
-//	__cpp_lib_is_invocable, void_t, false_, true_, remove_cvref, is_base_of,
-//	or_, is_void, is_same_or_convertible, is_implicitly_nothrow_constructible,
-//	__cpp_lib_invoke, and_, nullptr_t;
+//	__cpp_lib_is_invocable, __cpp_lib_invoke, void_t, false_, true_,
+//	remove_cvref, is_base_of, or_, is_void, is_same_or_convertible,
+//	is_implicitly_nothrow_constructible, and_, nullptr_t;
 #include "variadic.hpp" // for vseq::apply_t, vseq::_a, conditional_t;
 #include <functional> // for <functional>, std::reference_wrapper;
 #include "cassert.h" // for yconstraint;
 
 /*!
-\brief \c \<functional> 特性测试宏。
+\see ISO C++20 [version.syn] 。
 \see WG21 P0941R2 2.2 。
+*/
+//@{
+/*!
+\brief \c \<type_traits> 特性测试宏。
+\since build 832
+\see https://blogs.msdn.microsoft.com/vcblog/2016/10/11/c1417-features-and-stl-fixes-in-vs-15-preview-5/ 。
+\see https://docs.microsoft.com/cpp/preprocessor/predefined-macros 。
+*/
+//@{
+#ifndef __cpp_lib_is_invocable
+#	if (YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201703L) \
+	|| __cplusplus >= 201703L
+#		define __cpp_lib_is_invocable 201703L
+#	endif
+#endif
+//@}
+/*!
+\brief \c \<functional> 特性测试宏。
 \see https://blogs.msdn.microsoft.com/vcblog/2015/06/19/c111417-features-in-vs-2015-rtm/ 。
 \since build 679
 */
 //@{
-#ifndef __cpp_lib_transparent_operators
-#	if YB_IMPL_MSCPP >= 1800 || __cplusplus >= 201210L
-#		define __cpp_lib_transparent_operators 201210L
-#	endif
-#endif
 #ifndef __cpp_lib_invoke
 #	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201411L
 #		define __cpp_lib_invoke 201411L
 #	endif
 #endif
+//@}
 //@}
 
 namespace ystdex

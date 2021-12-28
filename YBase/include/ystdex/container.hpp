@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2020 FrankHB.
+	© 2010-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r2330
+\version r2331
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2020-04-13 00:22 +0800
+	2021-12-24 22:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -759,7 +759,6 @@ retry_for_vector(typename _tVector::size_type s, _func f)
 		res.resize(s *= yimpl(2));
 	return res;
 }
-
 
 
 /*!

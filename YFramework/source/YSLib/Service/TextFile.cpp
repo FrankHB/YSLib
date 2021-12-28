@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2019 FrankHB.
+	© 2009-2016, 2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextFile.cpp
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r1407
+\version r1412
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2019-01-14 14:33 +0800
+	2021-12-24 23:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,16 +70,16 @@ VerifyEncoding(std::streambuf& sb, char* s, size_t buflen, size_t txt_len,
 	return CharSet::Null;
 }
 Encoding
-VerifyEncoding(std::istream& stream, char* s, size_t buflen, size_t txt_len,
+VerifyEncoding(std::istream& is, char* s, size_t buflen, size_t txt_len,
 	Encoding enc)
 {
 	const auto n(ystdex::min(txt_len, buflen));
 
 	std::char_traits<char>::assign(Nonnull(s) + n, buflen - n, char());
-	stream.read(s, std::streamsize(n));
-	if(stream)
+	is.read(s, std::streamsize(n));
+	if(is)
 	{
-		stream.seekg(0);
+		is.seekg(0);
 		if(VerifyUC(&ystdex::as_const(s[0]), ptrdiff_t(n), enc))
 			return enc;
 	}

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2016, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YUIContainer.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1942
+\version r1945
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2016-02-12 01:06 +0800
+	2021-12-24 23:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -225,7 +225,7 @@ MUIContainer::operator-=(IWidget& wgt)
 	auto t(mWidgets.size());
 
 	erase_all_if(mWidgets, mWidgets.cbegin(), mWidgets.cend(),
-		[&](decltype(*mWidgets.cend()) pr){
+		[&](decltype(*mWidgets.cbegin()) pr){
 		return is_equal()(pr.second, wgt);
 	});
 	t -= mWidgets.size();
@@ -244,7 +244,7 @@ bool
 MUIContainer::Contains(IWidget& wgt)
 {
 	return std::count_if(mWidgets.cbegin(), mWidgets.cend(),
-		[&](decltype(*mWidgets.cend()) pr) ynothrow{
+		[&](decltype(*mWidgets.cbegin()) pr) ynothrow{
 		return is_equal()(pr.second, wgt);
 	}) != 0;
 }

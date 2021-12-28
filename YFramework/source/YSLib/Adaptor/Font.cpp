@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2019-2020 FrankHB.
+	© 2009-2016, 2019-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3680
+\version r3682
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2020-11-03 13:46 +0800
+	2021-12-24 23:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include YFM_YSLib_Service_FileSystem
 #include YFM_Helper_Initialization
 #include YFM_YCLib_Debug
-#include <algorithm> // for std::for_each;
+#include <ystdex/deref_op.hpp> // for ystdex::call_value_or;
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_CACHE_H

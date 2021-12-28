@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2017 FrankHB.
+	© 2012-2017, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r580
+\version r582
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2017-04-08 14:31 +0800
+	2021-12-24 23:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -108,7 +108,7 @@ InputManager::DispatchInput(IWidget& wgt)
 			input_host.RawMouseButton = 0;
 		}
 
-		// TODO: Blocked. Use C++14 lambda initializers to simplify
+		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
 		const auto p_input(st.ExternalTextInputFocusPtr);
 

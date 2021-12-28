@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9244
+\version r9270
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2021-11-24 04:21 +0800
+	2021-12-28 18:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -726,6 +726,7 @@ TransformNode(const TermNode&);
 
 
 /*!
+\ingroup functors
 \brief 中缀分隔符变换器。
 \since build 881
 
@@ -743,9 +744,15 @@ struct SeparatorTransformer
 	operator()(_func trans, _tTerm&& term, const ValueObject& pfx,
 		_fPred filter) const
 	{
+		const auto a(term.get_allocator());
+		auto res(NPL::AsTermNode(a, yforward(term).Value));
+
 		using it_t = decltype(std::make_move_iterator(term.begin()));
 
-		return AddRange([&](TermNode& res, it_t b, it_t e){
+		res.Add(NPL::AsTermNode(a, pfx));
+		ystdex::split(std::make_move_iterator(term.begin()),
+			std::make_move_iterator(term.end()), filter,
+			[&](it_t b, it_t e){
 			const auto add([&](TermNode& node, it_t i){
 				node.Add(trans(NPL::Deref(i)));
 			});
@@ -770,27 +777,7 @@ struct SeparatorTransformer
 					res.Add(std::move(child));
 				}
 			}
-		}, yforward(term), pfx, filter);
-	}
-
-	template<typename _func, class _tTerm, class _fPred>
-	YB_ATTR_nodiscard TermNode
-	AddRange(_func add_range, _tTerm&& term, const ValueObject& pfx,
-		_fPred filter) const
-	{
-		using it_t = decltype(std::make_move_iterator(term.begin()));
-		const auto a(term.get_allocator());
-		auto res(NPL::AsTermNode(a, yforward(term).Value));
-
-		if(IsBranch(term))
-		{
-			res.Add(NPL::AsTermNode(a, pfx));
-			ystdex::split(std::make_move_iterator(term.begin()),
-				std::make_move_iterator(term.end()), filter,
-				[&](it_t b, it_t e){
-				add_range(res, b, e);
-			});
-		}
+		});
 		return res;
 	}
 
@@ -803,6 +790,8 @@ struct SeparatorTransformer
 		}, yforward(term), pfx, filter);
 	}
 
+	// XXX: This is only one pass and used at current in the preprocessing pass.
+	//	See $2020-02 @ %Documentation::Workflow.
 	/*!
 	\brief 找到子项符合过滤条件的并替换项为添加替换前缀的形式。
 	\return 是否找到并替换了项。

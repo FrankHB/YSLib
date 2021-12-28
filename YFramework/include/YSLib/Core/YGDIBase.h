@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2020 FrankHB.
+	© 2011-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2568
+\version r2573
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2020-02-04 14:52 +0800
+	2021-12-24 22:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include "YModules.h"
 #include YFM_YSLib_Core_YCoreUtilities // for octet, size_t, Pixel,
 //	ystdex::min, ystdex::max, YSLib::HalfDifference;
-#include <limits>
+#include <limits> // for std::numeric_limits;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
 #include <ystdex/string.hpp> // for ystdex::quote;
 
@@ -163,8 +163,7 @@ public:
 	\brief 无参数构造：所有分量为 0 的默认颜色。
 	\since build 319
 	*/
-	yconstfn
-	Color() = default;
+	yconstfn DefDeCtor(Color)
 	/*!
 	\brief 构造：使用本机颜色对象。
 	\since build 319
@@ -302,7 +301,7 @@ public:
 	static const GBinaryGroup Invalid;
 
 	//! \brief 分量。
-	_type X = 0, Y = 0; 
+	_type X = 0, Y = 0;
 
 	/*!
 	\brief 无参数构造。

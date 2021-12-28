@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3587
+\version r3602
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2021-09-22 22:56 +0800
+	2021-12-26 13:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,14 +28,28 @@
 #ifndef YB_INC_ystdex_utility_hpp_
 #define YB_INC_ystdex_utility_hpp_ 1
 
-#include "swap.hpp" // for "swap.hpp", is_lvalue_reference, conditional_t,
-//	remove_reference_t, std::forward, add_const_t, std::move,
+#include "swap.hpp" // for "swap.hpp", __cpp_lib_as_const, is_lvalue_reference,
+//	conditional_t, remove_reference_t, std::forward, add_const_t, std::move,
 //	is_nothrow_constructible, enable_if_convertible_t, is_bitwise_swappable,
 //	yassume, ystdex::construct_in, ystdex::destruct_in;
 #include "type_op.hpp" // for exclude_self_params_t;
 #include "base.h" // for noncopyable, nonmovable;
 #include <functional> // for std::bind, std::ref
 #include <tuple> // for tuple workaround;
+
+/*!
+\brief \c \<utility> 特性测试宏。
+\see ISO C++20 [version.syn] 。
+\see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
+\since build 833
+*/
+//@{
+#ifndef __cpp_lib_as_const
+#	if YB_IMPL_MSCPP >= 1911 || __cplusplus >= 201510L
+#		define __cpp_lib_as_const 201510L
+#	endif
+#endif
+//@}
 
 namespace ystdex
 {

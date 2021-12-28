@@ -11,13 +11,13 @@
 /*!	\file swap.hpp
 \ingroup YStandardEx
 \brief 交换操作。
-\version r651
+\version r689
 \author FrankHB <frankhb1989@gmail.com>
 \since build 831
 \par 创建时间:
 	2018-07-12 16:38:36 +0800
 \par 修改时间:
-	2021-11-27 20:05 +0800
+	2021-12-26 13:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,12 +28,47 @@
 #ifndef YB_INC_ystdex_swap_hpp_
 #define YB_INC_ystdex_swap_hpp_ 1
 
-#include "type_pun.hpp" // for internal "type_pun.hpp", enable_if_t,
-//	is_move_constructible, is_move_assignable, and_, std::move, std::declval,
+#include "type_pun.hpp" // for internal "type_pun.hpp", __cpp_lib_is_swappable,
+//	__cpp_lib_exchange_function, and_, is_move_constructible,
+//	is_move_assignable, is_nothrow_move_constructible,
+//	is_nothrow_move_assignable, enable_if_t, std::move, std::declval,
 //	false_, bool_, is_referenceable, true_, is_class, is_enum, bool_, is_void,
 //	is_nothrow_constructible, is_nothrow_assignable, add_volatile_t,
 //	std::addressof, is_bitwise_swappable, pun_storage_t, aligned_replace_cast;
 #include <cstring> // for std::memcpy;
+
+/*!
+\see ISO C++20 [version.syn] 。
+\see WG21 P0941R2 2.2 。
+\see https://blogs.msdn.microsoft.com/vcblog/2016/10/11/c1417-features-and-stl-fixes-in-vs-15-preview-5/ 。
+*/
+//@{
+/*!
+\brief \c \<type_traits> 特性测试宏。
+\see https://dev.to/yumetodo/list-of-mscver-and-mscfullver-8nd 。
+\see https://docs.microsoft.com/cpp/preprocessor/predefined-macros 。
+\since build 834
+*/
+//@{
+#ifndef __cpp_lib_is_swappable
+#	if (_MSC_FULL_VER >= 190024210L && _MSVC_LANG >= 201603L) \
+	|| __cplusplus >= 201603L
+#		define __cpp_lib_is_swappable 201603L
+#	endif
+#endif
+//@}
+/*!
+\brief \c \<utility> 特性测试宏。
+\since build 628
+*/
+//@{
+#ifndef __cpp_lib_exchange_function
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201304L
+#		define __cpp_lib_exchange_function 201304L
+#	endif
+#endif
+//@}
+//@}
 
 #if __cpp_lib_is_swappable >= 201603L
 #	define YB_Impl_Swap_Traits true
@@ -556,6 +591,9 @@ exchange(_type& obj, _type2&& new_val)
 } // inline namespace cpp2014;
 
 } // namespace ystdex;
+
+#undef YB_Impl_Swap_ns
+#undef YB_Impl_Swap_Traits
 
 #endif
 

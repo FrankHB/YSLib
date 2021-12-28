@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2020 FrankHB.
+	© 2013-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r380
+\version r383
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2020-05-13 17:19 +0800
+	2021-12-24 23:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,7 @@
 #include YFM_YSLib_UI_Loader // for to_std_string, istringtream;
 #include <sstream> // for complete istringtream;
 #include YFM_YSLib_UI_YPanel
-#include YFM_NPL_SContext
-#include YFM_NPL_Configuration
+#include YFM_NPL_Configuration // for NPL, Session, A1::LoadNode;
 
 namespace YSLib
 {

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2020 FrankHB.
+	© 2012-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,14 +10,14 @@
 
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
-\brief 通用平台应用程序接口描述。
-\version r1115
+\brief 通用平台本机应用程序接口描述。
+\version r1121
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-26 13:36:28 +0800
 \par 修改时间:
-	2020-06-26 15:56 +0800
+	2021-12-24 23:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -135,7 +135,8 @@ FileSystem::FileSystem(size_t pages)
 
 #if false
 		// XXX: This would cause "undefined reference to `get_io_dsisd()'" with
-		//	devkitARM r48. It should be defined in LibNDS, though.
+		//	devkitARM r48. It should be defined in LibNDS and already defined in
+		//	LibNDS since 1.7.1, though.
 		if(const auto p = ::get_io_dsisd())
 			if(init("sd", *p))
 #else
@@ -163,8 +164,8 @@ FileSystem::FileSystem(size_t pages)
 	}())
 {
 	// NOTE: No %ARGV_MAGIC here as LibFAT does.
-	// NOTE: Call of %::chdir also sets default device in I/O support code. This
-	//	enables relative paths available for %::GetDeviceOpTab and
+	// NOTE: Call of %::chdir also sets the default device in I/O support code.
+	//	This enables relative paths available for %::GetDeviceOpTab and
 	//	%platform_ex::FAT::FetchPartitionFromPath for platform %DS.
 	::chdir(root == RootKind::FAT ? "fat:/" : "sd:/");
 }

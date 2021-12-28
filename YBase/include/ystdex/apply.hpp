@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2020 FrankHB.
+	© 2013-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file apply.hpp
 \ingroup YStandardEx
 \brief 元组应用操作。
-\version r989
+\version r994
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2019-01-11 19:43:23 +0800
 \par 修改时间:
-	2020-12-24 12:01 +0800
+	2021-12-26 12:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,13 +31,15 @@
 #include "invoke.hpp" // for "invoke.hpp", index_sequence, ystdex::invoke,
 //	make_index_sequence, decay_t;
 #include "integer_sequence.hpp" // for index_sequence;
-#include <tuple> // for <tuple>, std::tuple, std::get, std::forward_as_tuple,
+#include <tuple> // for <tuple>, __cpp_lib_apply, __cpp_lib_tuple_element_t,
+//	__cpp_lib_make_from_tuple, std::tuple, std::get, std::forward_as_tuple,
 //	std::tuple_size, std::make_from_tuple;
 
 /*!
 \brief \c \<tuple> 特性测试宏。
+\see ISO C++20 [version.syn] 。
 \see WG21 P0941R2 2.2 。
-\see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
+\see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
 \since build 833
 */
 //@{

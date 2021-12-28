@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2018-2019 FrankHB.
+	© 2012-2016, 2018-2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r525
+\version r527
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2019-08-01 18:20 +0800
+	2021-12-26 13:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -162,7 +162,7 @@ MappedFile::~MappedFile()
 		// NOTE: At least POSIX specifiy nothing about mandontory of flush on
 		//	unmapping.
 		// NOTE: Windows will only flush when all shared mapping are closed, see
-		//	https://msdn.microsoft.com/en-us/library/windows/desktop/aa366532(v=vs.85).aspx
+		//	https://msdn.microsoft.com/library/windows/desktop/aa366532(v=vs.85).aspx
 		// TODO: Simplified without exceptions?
 		TryExpr(Flush())
 		CatchExpr(std::exception& e, YTraceDe(Descriptions::Err,

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2020 FrankHB.
+	© 2011-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4195
+\version r4232
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2020-10-23 15:39 +0800
+	2021-12-26 22:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,11 +37,12 @@
 #include YFM_YCLib_Reference // for unique_ptr_from, tidy_ptr;
 #include <system_error> // for std::system_error;
 #include <ystdex/base.h> // for ystdex::deref_self;
-#include <ystdex/iterator.hpp> // for ystdex::indirect_input_iterator;
-#include <ctime> // for std::time_t;
-#include <chrono> // for std::chrono::nanoseconds;
 #include <ystdex/function.hpp> // for ystdex::function;
+#include <ystdex/iterator.hpp> // for ystdex::indirect_input_iterator;
+#include <ystdex/operators.hpp> // for ystdex::equality_comparable;
+#include <chrono> // for std::chrono::nanoseconds;
 #include <ystdex/type_pun.hpp> // for ystdex::is_trivially_replaceable;
+#include <ctime> // for std::time_t;
 #include <ystdex/cstdint.hpp> // for ystdex::read_uint_le;
 
 #if !YCL_Win32 && !YCL_API_POSIXFileSystem
@@ -966,7 +967,7 @@ uunlink(const char*) ynothrowv;
 \brief 按路径移除一个文件。
 \note POSIX 平台：除路径和返回值外语义同 \c ::remove 。移除非空目录总是失败。
 \note Win32 平台：支持移除空目录和只读文件，但删除打开的文件总是失败。
-\see https://msdn.microsoft.com/en-us/library/kc07117k.aspx 。
+\see https://msdn.microsoft.com/library/kc07117k.aspx 。
 */
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) bool
 uremove(const char*) ynothrowv;
@@ -1016,30 +1017,36 @@ FetchCurrentWorkingDirectory(size_t);
 //@}
 
 
-//! \since build 638
-//@{
-//! \brief 文件节点标识类型。
-//@{
-#if YCL_Win32
-using FileNodeID = pair<std::uint32_t, std::uint64_t>;
-#else
-using FileNodeID = pair<std::uint64_t, std::uint64_t>;
-#endif
-//@}
-
 /*!
-\bug 结构化类型污染。
-\relates FileNodeID
-\since build 901
+\brief 文件节点标识类型。
+\warning 非虚析构。
+\since build 935
 */
 //@{
-YB_ATTR_nodiscard yconstfn
-	PDefHOp(bool, ==, const FileNodeID& x, const FileNodeID& y) ynothrow
-	ImplRet(x.first == y.first && x.second == y.second)
-YB_ATTR_nodiscard yconstfn
-	PDefHOp(bool, !=, const FileNodeID& x, const FileNodeID& y) ynothrow
-	ImplRet(!(x == y))
-//@}
+struct YB_API FileNodeID
+#if YCL_Win32
+	: pair<std::uint32_t, std::uint64_t>,
+#else
+	: pair<std::uint64_t, std::uint64_t>,
+#endif
+	ystdex::equality_comparable<FileNodeID>
+{
+#if YCL_Win32
+	using BaseType = pair<std::uint32_t, std::uint64_t>;
+#else
+	using BaseType = pair<std::uint64_t, std::uint64_t>;
+#endif
+
+	DefDeCtor(FileNodeID)
+	using BaseType::BaseType;
+	FileNodeID(const BaseType& x)
+		: BaseType(x)
+	{}
+
+	YB_ATTR_nodiscard YB_PURE friend
+		PDefHOp(bool, ==, const FileNodeID& x, const FileNodeID& y) ynothrow
+		ImplRet(x.first == y.first && x.second == y.second)
+};
 //@}
 
 /*!

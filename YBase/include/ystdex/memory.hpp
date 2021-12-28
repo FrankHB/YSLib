@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r4935
+\version r4941
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2021-12-21 20:11 +0800
+	2021-12-26 19:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,6 +40,7 @@
 
 /*!
 \brief \c \<memory> 特性测试宏。
+\see ISO C++20 [version.syn] 。
 \see WG21 P0941R2 2.2 。
 \since build 628
 */
@@ -217,9 +218,9 @@ struct free_delete<_type[]>
 
 
 /*!
-\since build 834
 \see ISO C++17 [depr.temporary.buffer] 。
 \see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0174r2.html#3.2 。
+\since build 835
 */
 //@{
 namespace details
@@ -267,9 +268,11 @@ delete_aligned(void* ptr, size_t alignment, true_) ynothrow
 } // namespace details;
 
 
+// NOTE: See https://docs.microsoft.com/cpp/visual-cpp-language-conformance and
+//	https://docs.microsoft.com/cpp/preprocessor/predefined-macros.
 #if (YB_IMPL_MSCPP >= 1912 && _MSVC_LANG >= 201606L) || (__GLIBCXX__ \
 	&& (__GLIBCXX__ <= 20150815 || YB_IMPL_GNUCPP < 90000)) \
-	|| __cplusplus >= 201611L
+	|| __cplusplus >= 201606L
 template<typename _type>
 YB_ATTR_nodiscard inline std::pair<_type*, ptrdiff_t>
 get_temporary_buffer(ptrdiff_t n) ynothrow

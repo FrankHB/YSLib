@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2015, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ImageProcessing.cpp
 \ingroup Service
 \brief 图像处理。
-\version r283
+\version r285
 \author FrankHB <frankhb1989@gmail.com>
 \since build 554
 \par 创建时间:
 	2014-11-16 16:37:27 +0800
 \par 修改时间:
-	2015-07-01 20:48 +0800
+	2021-12-24 23:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,6 @@
 
 #include "YSLib/UI/YModules.h"
 #include YFM_YSLib_Service_ImageProcessing
-#include YFM_YSLib_UI_YComponent // for to_string;
 
 namespace YSLib
 {

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018 FrankHB.
+	© 2010-2016, 2018, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextManager.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r4113
+\version r4114
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2018-08-17 07:36 +0800
+	2021-12-24 23:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -172,7 +172,6 @@ operator==(const TextFileBuffer::iterator& x, const TextFileBuffer::iterator& y)
 {
 	YAssert(x.p_buffer == y.p_buffer,
 		"Iterators of different buffers are not comparable.");
-
 	return x.block == y.block && x.index == y.index;
 }
 

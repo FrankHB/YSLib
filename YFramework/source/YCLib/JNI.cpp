@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2016, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief Java 本机接口包装。
-\version r150
+\version r152
 \author FrankHB <frankhb1989@gmail.com>
 \since build 552
 \par 创建时间:
 	2014-11-11 03:25:23 +0800
 \par 修改时间:
-	2016-05-30 17:13 +0800
+	2021-12-24 23:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,7 +98,7 @@ JNIBase::EnsureDetachJNIAtThreadExit(::JavaVM& vm, ::JNIEnv& env)
 {
 #	if YF_Multithread == 1
 #		if YB_HAS_THREAD_LOCAL
-	ythread JNIBase guard(vm, env);
+	ythread JNIBase gd(vm, env);
 #		elif YF_Use_POSIXThread
 
 	static TLSKey key([](void* p) ynothrow{
