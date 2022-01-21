@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2021 FrankHB.
+	© 2015-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r862
+\version r865
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-18 20:45:11 +0800
 \par 修改时间:
-	2021-05-19 21:21 +0800
+	2022-01-20 18:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,8 @@ See readme file for details.
 
 
 #include <YSBuild.h>
-#include YFM_NPL_NPLA1 // for NPL::MakeAttributeLiteral,
-//	NPL::InsertAttributeNode, NPL::InsertChildSyntaxNode, ystdex::seq_apply;
+#include YFM_NPL_SXML // for NPL, SXML, MakeAttributeLiteral,
+//	InsertAttributeNode, InsertChildSyntaxNode, ystdex::seq_apply;
 #include YFM_YCLib_Host // for platform_ex::DecodeArg, platform_ex::EncodeArg;
 #include <iostream>
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2019 FrankHB.
+	© 2010-2016, 2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YWidgetEvent.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1936
+\version r1939
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2019-01-30 02:08 +0800
+	2021-12-29 01:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 
 #include "YModules.h"
 #include YFM_YSLib_UI_YComponent // for ystdex::enable_if_same_t;
-#include YFM_YSLib_Core_YEvent
-#include YFM_YSLib_Core_YString
+#include YFM_YSLib_Core_YEvent // for module YCore::Event, GHEvent;
+#include YFM_YSLib_Core_YString // for String;
 #include YFM_YSLib_Core_YDevice // for Devices::KeyInputDevice::Tester,
 //	Devices::KeyInputDevice::DefaultTest;
 #include <ystdex/function.hpp> // for ystdex::parameter_of;

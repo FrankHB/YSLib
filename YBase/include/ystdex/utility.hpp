@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2021 FrankHB.
+	© 2010-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3602
+\version r3615
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2021-12-26 13:57 +0800
+	2022-01-01 00:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,8 @@
 //	conditional_t, remove_reference_t, std::forward, add_const_t, std::move,
 //	is_nothrow_constructible, enable_if_convertible_t, is_bitwise_swappable,
 //	yassume, ystdex::construct_in, ystdex::destruct_in;
-#include "type_op.hpp" // for exclude_self_params_t;
+#include "enum.hpp" // for "enum.hpp";
+#include "type_op.hpp" // for "integer_sequence.hpp", exclude_self_params_t;
 #include "base.h" // for noncopyable, nonmovable;
 #include <functional> // for std::bind, std::ref
 #include <tuple> // for tuple workaround;
@@ -129,17 +130,6 @@ decay_copy(_type&& arg)
 	return yforward(arg);
 }
 
-
-/*!
-\brief 取枚举值的底层整数。
-\since build 629
-*/
-template<typename _type, yimpl(typename = enable_if_t<is_enum<_type>::value>)>
-YB_ATTR_nodiscard YB_STATELESS yconstfn underlying_type_t<_type>
-underlying(_type val) ynothrow
-{
-	return underlying_type_t<_type>(val);
-}
 
 namespace details
 {

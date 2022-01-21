@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016 FrankHB.
+	© 2015-2016, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file enum.hpp
 \ingroup YStandardEx
 \brief 枚举相关操作。
-\version r129
+\version r162
 \author FrankHB <frankhb1989@gmail.com>
 \since build 629
 \par 创建时间:
 	2015-09-02 10:28:23 +0800
 \par 修改时间:
-	2016-09-21 15:39 +0800
+	2021-12-30 00:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,11 +28,43 @@
 #ifndef YB_INC_ystdex_enum_hpp_
 #define YB_INC_ystdex_enum_hpp_ 1
 
-#include "tuple.hpp" // for false_, underlying_type_t, _t, and_, or_,
-//	is_enum, common_type_t, vseq::find, std::tuple, true_;
+#include "variadic.hpp" // for false_, underlying_type_t, _t, and_, or_,
+//	is_enum, common_type_t, vseq::find, empty_base, true_;
 
 namespace ystdex
 {
+
+/*!
+\brief 取枚举值的底层整数。
+\since build 629
+*/
+template<typename _type, yimpl(typename = enable_if_t<is_enum<_type>::value>)>
+YB_ATTR_nodiscard YB_STATELESS yconstfn underlying_type_t<_type>
+underlying(_type val) ynothrow
+{
+	return underlying_type_t<_type>(val);
+}
+
+/*!
+\see WG21 P1682R3 。
+\see WG21 N4901 [version.syn] 。
+\see WG21 N4901 [utility.underlying] 。
+\since build 932
+\todo 在 ISO C++23 出版后使用 cpp2023 命名空间。
+*/
+//@{
+#if __cpp_lib_to_underlying >= 202102L
+using std::to_underlying;
+#else
+template<typename _type>
+YB_ATTR_nodiscard YB_STATELESS yconstfn underlying_type_t<_type>
+to_underlying(_type val) ynothrow
+{
+	return ystdex::underlying(val);
+}
+#endif
+//@}
+
 
 //! \since build 629
 //@{
@@ -75,7 +107,7 @@ public:
 		: value(i)
 	{}
 	template<typename _type,
-		yimpl(typename = vseq::find<std::tuple<_types...>, _type>())>
+		yimpl(typename = vseq::find<empty_base<_types...>, _type>())>
 	yconstfn
 	enum_union(_type e) ynothrow
 		: value(static_cast<underlying_type>(e))

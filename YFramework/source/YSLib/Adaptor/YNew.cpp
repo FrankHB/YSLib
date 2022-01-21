@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2016, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YNew.cpp
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r1008
+\version r1010
 \author FrankHB <frankhb1989@gmail.com>
 \since build 173
 \par 创建时间:
 	2010-12-02 19:49:41 +0800
 \par 修改时间:
-	2016-04-16 11:27 +0800
+	2021-12-29 01:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -158,6 +158,7 @@ MemoryList::Unregister(const void* p, const char* f, int l)
 void
 MemoryList::Print(const MapType::value_type& val, std::FILE* stream)
 {
+	// XXX: Error from 'std::fprintf' is ignored.
 	std::fprintf(stream, "@%p, [%zu] @ %s: %d;\n", ystdex::pvoid(val.first),
 		val.second.size, val.second.file.c_str(), val.second.line);
 }

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2021 FrankHB.
+	© 2015-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r6498
+\version r6506
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2021-11-04 02:57 +0800
+	2022-01-20 01:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -862,8 +862,8 @@ LoadBasicDerived(REPLContext& context)
 	RegisterForm(renv, "$when", When);
 	RegisterForm(renv, "$unless", Unless);
 	RegisterUnary(renv, "not?", Not);
-	RegisterForm(renv, "$and?", And);
-	RegisterForm(renv, "$or?", Or);
+	RegisterForm(renv, "$and", And);
+	RegisterForm(renv, "$or", Or);
 	RegisterStrict(renv, "accl", AccL);
 	RegisterStrict(renv, "accr", AccR);
 	RegisterStrict(renv, "foldr1", FoldR1);
@@ -1144,17 +1144,17 @@ $defv%! $unless (&test .&exprseq) d
 	$if (eval test d) #inert
 		(eval% (list* () $sequence (move! exprseq)) d);
 $defl! not? (&x) eqv? x #f;
-$defv%! $and? &x d
+$defv%! $and &x d
 	$cond
 		((null? x) #t)
 		((null? (rest& x)) eval% (first (forward! x)) d)
-		((eval% (first& x) d) apply (wrap $and?) (rest% (forward! x)) d)
+		((eval% (first& x) d) apply (wrap $and) (rest% (forward! x)) d)
 		(#t #f);
-$defv%! $or? &x d
+$defv%! $or &x d
 	$cond
 		((null? x) #f)
 		((null? (rest& x)) eval% (first (forward! x)) d)
-		(#t ($lambda% (&r) $if r (forward! r) (apply (wrap $or?)
+		(#t ($lambda% (&r) $if r (forward! r) (apply (wrap $or)
 			(rest% (forward! x)) d)) (eval% (move! (first& x)) d));
 $defw%! accl (&l &pred? &base &head &tail &sum) d
 	$if (apply pred? (list% l) d) (forward! base)
@@ -2113,7 +2113,7 @@ $provide/let! (registered-requirement? register-requirement!
 	(
 	$def! registry () make-environment;
 	$defl! bound-name? (&req)
-		$and? (eval (list bound? req) registry)
+		$and (eval (list bound? req) registry)
 			(not? (string-empty? (eval (string->symbol req) registry))),
 	$defl! set-value! (&req &v)
 		eval (list $def! (string->symbol req) v) registry

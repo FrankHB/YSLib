@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2021 FrankHB.
+	© 2011-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4232
+\version r4234
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2021-12-26 22:28 +0800
+	2022-01-13 22:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1043,7 +1043,7 @@ struct YB_API FileNodeID
 		: BaseType(x)
 	{}
 
-	YB_ATTR_nodiscard YB_PURE friend
+	YB_ATTR_nodiscard YB_PURE yconstfn friend
 		PDefHOp(bool, ==, const FileNodeID& x, const FileNodeID& y) ynothrow
 		ImplRet(x.first == y.first && x.second == y.second)
 };

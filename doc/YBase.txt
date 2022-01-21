@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2021 FrankHB.
+	© 2012-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r1777
+\version r1808
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2021-12-22 18:26 +0800
+	2022-01-02 14:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -149,7 +149,7 @@ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92137
 
 @2.1.1.5 附加实现限制：
 在以上基础上，YBase 的特定部分的替代实现仅支持以下语言实现。
-YStandardEx::Bit(@2.5.7.13) 对实现具有以下限制：
+YStandardEx::Bit(@2.5.7.6) 对实现具有以下限制：
 	若实例化替代实现的位操作或仅和这些位操作具有不同输入前置条件的位操作，仅支持符合以下任一条件的标准无符号数类型：
 		对应实现的内建特性(@2.1.1.2) 扩展支持；
 		大小为 32 或 64 位。
@@ -161,7 +161,7 @@ YStandardEx::Bit(@2.5.7.13) 对实现具有以下限制：
 体系结构相关实现仅应用于可靠的替代实现。
 体系结构相关仅依赖指令集架构(ISA) ，但可能对微架构(microachitechture) 作出隐含的假设。
 当前这些替代实现包括：
-YStandardEx::Bit(@2.5.7.13) 使用 GCC 时，对 i386 和 x86_64 的部分实现使用特定体系结构的替代实现，以避免代码生成的性能缺陷。
+YStandardEx::Bit(@2.5.7.6) 使用 GCC 时，对 i386 和 x86_64 的部分实现使用特定体系结构的替代实现，以避免代码生成的性能缺陷。
 	参见 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=29776 。
 	替代实现优先检查可使用的 GCC 内建特性(@2.1.1.2) ；否则，使用内联汇编。	
 
@@ -307,7 +307,7 @@ CStandardDefintion(@2.5.5.1) 具有同 YDefinition 相同的更宽松的向前�
 "exception.h" 依赖 <libdefect/exception.h> 、<stdexcept> 和 <system_error> ；
 "type_traits.hpp" 依赖 "type_inspection.hpp" 、"integral_constant.hpp" 、"invoke.hpp" 和  "swap.hpp" ；
 "ref.hpp" 依赖 "addressof.hpp" 和 "invoke.hpp" ；
-"utility.hpp" 依赖 "swap.hpp" ；
+"utility.hpp" 依赖 "swap.hpp" 、"enum.hpp" 和 "integer_sequence.hpp" ；
 "tuple.hpp" 依赖 "apply.hpp" ；
 "iterator_op.hpp" 依赖 "range.hpp" 和 "deref_op.hpp" ；
 "iterator.hpp" 依赖 "iterator_op.hpp" ；
@@ -343,7 +343,7 @@ CStandardDefintion(@2.5.5.1) 具有同 YDefinition 相同的更宽松的向前�
 "swap.hpp" 内部依赖 "type_pun.hpp" ；
 "type_traits.hpp" 依赖 "invoke.hpp" 和 "swap.hpp" ；
 "ref.hpp" 依赖 "addressof.hpp" 和 "invoke.hpp" ；
-"utility.hpp" 依赖 "swap.hpp" ；
+"utility.hpp" 依赖 "swap.hpp" 、"enum.hpp" 和 "integer_sequence.hpp" ；
 "apply.hpp" 依赖 "invoke.hpp" ；
 "functor.hpp" 依赖 "ref.hpp" 和 "type_traits.hpp" ；
 "integer_sequence.hpp" 依赖 "variadic.hpp" ；
@@ -396,7 +396,7 @@ inline ystdex::pmr::cpp2017 ：包含 ISO C++ 2017 引入的 std::pmr 名称的�
 ystdex::threading ：线程相关操作。
 ystdex::uniformed_tags ：对非模板和不同模板参数相同的类型标签接口。
 ystdex::vseq ：变长序列元函数操作。
-ystdex_swap ：引入不和 ystdex 冲突的 swap 操作的命名空间。
+ystdex_swap ：引入不和 ystdex 名称冲突的 swap 操作的命名空间。
 ystdex_swap::dep_swap ：引入 std::swap 实现为 ADL 提供重载的命名空间。
 
 @2.5.2.3 标准库命名空间中的名称：
@@ -488,28 +488,32 @@ ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证�
 @2.5.7.5 引用包装 Ref ：
 间接扩展标准库头 <functional> ，提供 std::wrapper_reference 相关接口及 ystdex::lref 等替代接口。
 
-@2.5.7.6 放置对象管理操作 Placement
+@2.5.7.6 ISO C++ 标准库扩展 Bit ：
+扩展 ISO C++20 标准库头 <bit> ，提供部分替代实现。
 
-@2.5.7.7 共享存储和直接转换 TypePun ：
+@2.5.7.7 放置对象管理操作 Placement
+提供放置对象分配和释放操作，包括 WG21 P0040R3 提议和 ISO C++17 兼容的标签接口。
+
+@2.5.7.8 共享存储和直接转换 TypePun ：
 提供的基于存储布局的存储转换设施，作为实现类型擦除等的基础。
 
-@2.5.7.8 交换操作 Swap ：
+@2.5.7.9 交换操作 Swap ：
 扩展标准库头 <utility> ，提供一些基于 std::swap 的交换操作，以及 std::exchange 的替代实现。
 
-@2.5.7.9 整数序列元编程接口 IntegerSequence ：
+@2.5.7.10 枚举相关操作 Enum ：
+扩展标准库头 <utility> ，提供枚举相关操作和类型。
+
+@2.5.7.11 整数序列元编程接口 IntegerSequence ：
 扩展 ISO C++14 标准库头 <utility> 的 std::integer_sequence 等的元编程相关接口，并在 ISO C++14 前提供这些接口和实现。
 
-@2.5.7.10 重载操作符 Operators
+@2.5.7.12 重载操作符 Operators
 引入隐式定义重载操作符的模板。
 
-@2.5.7.11 迭代器操作 IteratorOperation ：
+@2.5.7.13 迭代器操作 IteratorOperation ：
 扩展标准库头 <iterator> 中的部分接口。
 
-@2.5.7.12 通用指针 Pointer ：
+@2.5.7.14 通用指针 Pointer ：
 间接扩展标准库头 <iterator> 和 <memory> ，提供指针的迭代器适配器包装及其它和指针类型相关的模板。
-
-@2.5.7.13 ISO C++ 标准库扩展 Bit ：
-扩展 ISO C++20 标准库头 <bit> ，提供部分替代实现。
 
 @2.5.8 ISO C++ 语言支持库扩展：
 以下头文件扩展 ISO C++ 标准定义的语言支持库([support.general]) 中的至少一个并可能扩展其它标准库头，提供对应的相似接口，不依赖以上文件外的 YStandardEx 头文件。
@@ -643,33 +647,31 @@ ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证�
 实现通用容器适配器模板和对容器类型及构建数组容器的操作。
 参数限制同 Algorithm (@2.5.9.4) 。
 
-@2.5.11.4 枚举相关操作 Enum ：
-提供枚举相关操作和类型。
-
-@2.5.11.5 动态泛型迭代器 AnyIterator ：
+@2.5.11.4 动态泛型迭代器 AnyIterator ：
 基于 ystdex::any(@2.5.8.4) 实现的用于保存运行时确定类型迭代器的对象。
 
-@2.5.11.6 基于类继承的混入接口 Mixin ：
+@2.5.11.5 基于类继承的混入接口 Mixin ：
 提供基本的混入接口类型。
 
-@2.5.11.7 间接和惰性求值 Thunk ：
+@2.5.11.6 间接和惰性求值 Thunk ：
 提供组合惰性求值的可调用对象。
 
-@2.5.11.8 作用域守卫 ScopeGuard
+@2.5.11.7 作用域守卫 ScopeGuard
+提供若干恢复状态的 RAII 包装。
 
-@2.5.11.9 有理数运算 Rational ：
+@2.5.11.8 有理数运算 Rational ：
 提供定点数模板等有理数算术类型接口。
 
-@2.5.11.10 位段数据结构和访问 BitSegment ：
+@2.5.11.9 位段数据结构和访问 BitSegment ：
 提供访问位集合的类型和操作。
 
-@2.5.11.11 并发操作 Concurrency ：
+@2.5.11.10 并发操作 Concurrency ：
 提供线程池等实用并发特性。
 
-@2.5.11.12 抽象路径模板 Path ：
+@2.5.11.11 抽象路径模板 Path ：
 提供抽象的路径模板及操作。
 
-@2.5.11.13 高速缓冲容器模板 Cache ：
+@2.5.11.12 高速缓冲容器模板 Cache ：
 提供抽象的缓冲容器模板及操作。
 
 @2.6 LibDefect ：

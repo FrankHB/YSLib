@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018-2019 FrankHB.
+	© 2009-2016, 2018-2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGUI.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4418
+\version r4420
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2019-01-14 14:58 +0800
+	2021-12-29 01:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -238,7 +238,7 @@ GUIState::ResponseCursor(CursorEventArgs& e, UI::VisualEvent op)
 			return;
 		if(wgt_ref.get().GetView().HitChildren(e))
 		{
-			// NOTE: Following code simulates a %Control at (0, 0) is
+			// NOTE: The following code simulates a %Control at (0, 0) is
 			//	responsible directly without user-defined event handlers.
 			e.Strategy = RoutedEventArgs::Direct;
 			switch(op)

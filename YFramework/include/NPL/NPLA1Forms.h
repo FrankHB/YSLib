@@ -1,5 +1,5 @@
 ﻿/*
-	© 2016-2021 FrankHB.
+	© 2016-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8563
+\version r8627
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2021-11-11 20:32 +0800
+	2022-01-20 18:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -251,59 +251,6 @@ public:
 namespace Forms
 {
 
-/*!
-\brief 直接返回状态或取返回值替换指定的项的值数据成员。
-\return 规约结果。
-\sa YSLib::EmplaceCallResult
-\since build 922
-
-若第二参数为 ReductionStatus 值，则直接返回这个值；
-否则，以第二参数指定的对象替换第一参数指定的项的值数据成员，
-	并返回 ReductionStatus::Clean 。
-当发生替换时，若被调用的函数返回类型非 void ，返回值作为项的值被构造。
-调用 YSLib::EmplaceCallResult 对 ValueObject 及引用值处理不同。
-合并处理替换值的部分可以简化一些规约处理器的实现。
-一般地，替换值数据成员隐含不保留子项，而返回 ReductionStatus::Clean ；
-否则，应在此之前直接处理子项，并返回其它规约结果。
-使用 WrappedContextHandler 也可支持隐式返回 ReductionStatus::Clean 状态的处理器，
-	但是此处简化函数签名，不同的重载统一返回 ReductionStatus 值。
-这也使调用 EmplaceCallResultOrReturn 返回实现的规约处理器无需依赖
-	WrappedContextHandler 。
-即便理论上通过完全的内联，两者的性能可以没有差异，通常的 C++ 实现中，
-	不依赖 WrappedContextHandler 可能更高效。
-*/
-//@{
-YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(ReductionStatus,
-	EmplaceCallResultOrReturn, TermNode&, ReductionStatus status) ynothrow
-	ImplRet(status)
-//! \since build 927
-YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(ReductionStatus,
-	EmplaceCallResultOrReturn, TermNode&, any_ops::trivial_swap_t,
-	ReductionStatus status) ynothrow
-	ImplRet(status)
-template<typename _tParam, typename... _tParams, yimpl(
-	typename = ystdex::exclude_self_t<ReductionStatus, _tParam>)>
-YB_ATTR_nodiscard inline ReductionStatus
-EmplaceCallResultOrReturn(TermNode& term, _tParam&& arg)
-{
-	// NOTE: By convention, the allocator is always provided by %term.
-	YSLib::EmplaceCallResult(term.Value, yforward(arg), term.get_allocator());
-	return ReductionStatus::Clean;
-}
-//! \since build 927
-template<typename _tParam, typename... _tParams, yimpl(
-	typename = ystdex::exclude_self_t<ReductionStatus, _tParam>)>
-YB_ATTR_nodiscard inline ReductionStatus
-EmplaceCallResultOrReturn(TermNode& term, any_ops::trivial_swap_t,
-	_tParam&& arg)
-{
-	// NOTE: Ditto.
-	YSLib::EmplaceCallResult(term.Value, any_ops::trivial_swap, yforward(arg), 
-		term.get_allocator());
-	return ReductionStatus::Clean;
-}
-//@}
-
 //! \since build 855
 //@{
 //! \brief 访问节点的子节点并调用一元函数。
@@ -384,14 +331,13 @@ CallRegularUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 
 /*!
 \note 确定项具有一个实际参数后展开调用参数指定的函数。
-\sa Forms::EmplaceCallResultOrReturn
+\sa NPL::EmplaceCallResultOrReturn
 \since build 922
 
-返回值的处理使用 Forms::EmplaceCallResultOrReturn 。
+返回值的处理使用 NPL::EmplaceCallResultOrReturn 。
 若需以和其它类型的值类似的方式被包装，在第一参数中构造 ValueObject 对象。
 实现使用 ystdex::make_expanded 展开调用，但不复制或转移可调用对象，
 	因此使用 std::ref 包装第一参数。注意当前无条件视第一参数为 const 左值。
-考虑一般实现的性能不确定性，当前实现中，调用 YSLib::EmplaceCallResult 不使用分配器。
 */
 //@{
 //! \brief 访问节点并调用一元函数。
@@ -401,7 +347,7 @@ ReductionStatus
 CallUnary(_func&& f, TermNode& term, _tParams&&... args)
 {
 	return Forms::CallRawUnary([&](TermNode& tm){
-		return Forms::EmplaceCallResultOrReturn(term, ystdex::invoke_nonvoid(
+		return NPL::EmplaceCallResultOrReturn(term, ystdex::invoke_nonvoid(
 			ystdex::make_expanded<void(TermNode&, _tParams&&...)>(std::ref(f)),
 			tm, yforward(args)...));
 	}, term);
@@ -434,7 +380,7 @@ CallBinary(_func&& f, TermNode& term, _tParams&&... args)
 	auto i(term.begin());
 	auto& x(NPL::Deref(++i));
 
-	return Forms::EmplaceCallResultOrReturn(term, ystdex::invoke_nonvoid(
+	return NPL::EmplaceCallResultOrReturn(term, ystdex::invoke_nonvoid(
 		ystdex::make_expanded<void(TermNode&, TermNode&, _tParams&&...)>(
 		std::ref(f)), x, NPL::Deref(++i), yforward(args)...));
 }
@@ -448,7 +394,7 @@ CallBinaryAs(_func&& f, TermNode& term, _tParams&&... args)
 	auto i(term.begin());
 	auto&& x(NPL::AccessTypedValue<_type>(NPL::Deref(++i)));
 
-	return Forms::EmplaceCallResultOrReturn(term, ystdex::invoke_nonvoid(
+	return NPL::EmplaceCallResultOrReturn(term, ystdex::invoke_nonvoid(
 		ystdex::make_expanded<void(decltype(x), decltype(
 		NPL::AccessTypedValue<_type2>(*i)), _tParams&&...)>(std::ref(f)),
 		yforward(x), NPL::AccessTypedValue<_type2>(NPL::Deref(++i)),
@@ -471,7 +417,7 @@ CallBinaryFold(_func f, _type val, TermNode& term, _tParams&&... args)
 		return NPL::AccessTypedValue<_type>(NPL::Deref(it));
 	}));
 
-	return Forms::EmplaceCallResultOrReturn(term, std::accumulate(j, std::next(
+	return NPL::EmplaceCallResultOrReturn(term, std::accumulate(j, std::next(
 		j, typename std::iterator_traits<decltype(j)>::difference_type(n)), val,
 		ystdex::bind1(f, std::placeholders::_2, yforward(args)...)));
 }
@@ -488,7 +434,7 @@ CallBinaryFold(_func f, _type val, TermNode& term, _tParams&&... args)
 之后是可选的 ContextNode& 可转换到的类型的参数。
 使用明确指定类型的 Forms::CallUnaryAs 等函数模板可以减少规约处理器的实现中的转换。
 这类调用中，回调函数（数据成员 \c Function ）通常不需要返回规约结果，因为：
-ReductionStatus::Clean 会被 Forms::EmplaceCallResultOrReturn 的调用隐式提供；
+ReductionStatus::Clean 会被 NPL::EmplaceCallResultOrReturn 的调用隐式提供；
 其它规约结果（如保留对象语言的列表时）通常需要处理分配器，按约定应从被规约项取得，
 	但 Forms::CallUnaryAs 等函数模板接受的回调函数中，
 	第一参数是转换类型后的值数据成员而不是项，包装函数展开调用的函数对象不再适用。
@@ -498,8 +444,8 @@ ReductionStatus::Clean 会被 Forms::EmplaceCallResultOrReturn 的调用隐式�
 	而无需通过回调函数的返回值指定。
 少数情形下，回调函数内部可能需要分支，允许返回 ReductionStatus::Clean
 	和其它不同的规约结果。此时，可使用回调函数直接返回这些规约结果，并通过
-	Forms::CallUnaryAs 等蕴含的 Forms::EmplaceCallResultOrReturn 的调用返回。
-类似 Forms::EmplaceCallResultOrReturn ，\c operator() 返回规约结果
+	Forms::CallUnaryAs 等蕴含的 NPL::EmplaceCallResultOrReturn 的调用返回。
+类似 NPL::EmplaceCallResultOrReturn ，\c operator() 返回规约结果
 	（而非 void 类型）不依赖 WrappedContextHandler ，对通常的 C++ 实现性能有利。
 */
 //@{
@@ -864,7 +810,7 @@ Not(const TermNode&);
 当子项全求值为 true 时返回最后一个子项的值，否则返回 false 。
 
 参考调用文法：
-<pre>$and? \<test>...</pre>
+<pre>$and \<test>...</pre>
 */
 YF_API ReductionStatus
 And(TermNode&, ContextNode&);
@@ -877,7 +823,7 @@ And(TermNode&, ContextNode&);
 当子项全求值为 false 时返回 false，否则返回第一个不是 false 的子项的值。
 
 参考调用文法：
-<pre>$or? \<test>...</pre>
+<pre>$or \<test>...</pre>
 */
 YF_API ReductionStatus
 Or(TermNode&, ContextNode&);

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2020 FrankHB.
+	© 2011-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r2898
+\version r2903
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2020-10-15 03:01 +0800
+	2021-12-29 01:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,10 +31,10 @@
 #ifndef YB_INC_ystdex_type_op_hpp_
 #define YB_INC_ystdex_type_op_hpp_ 1
 
-#include "integer_sequence.hpp" // for is_class, std::declval, is_detected,
-//	vseq::apply, _t, bool_, subscript_t, is_void, equal_t, is_same,
-//	detected_or_t, remove_reference_t, and_, cond_t, is_enum, vdefer,
-//	underlying_type_t, common_type_t;
+#include "integer_sequence.hpp" // for "integer_sequence.hpp", is_class,
+//	std::declval, is_detected, vseq::apply, _t, bool_, subscript_t, is_void,
+//	equal_t, is_same, detected_or_t, remove_reference_t, and_, cond_t, is_enum,
+//	vdefer, underlying_type_t, common_type_t;
 
 namespace ystdex
 {

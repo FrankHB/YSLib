@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# (C) 2020 FrankHB.
-# Wrapper script for YSLib packages using SHBuild.
+# (C) 2020-2021 FrankHB.
+# Wrapper script for building YSLib packages using SHBuild.
 
 set -e
+
 # NOTE: Relative location of scripts depends on Sysroot.
 : "${SHBuild:="$(dirname "${BASH_SOURCE[0]}")/SHBuild"}"
 [[ "$SHBuild" != '' ]] || echo "ERROR: Variable 'SHBuild' shall not be empty."

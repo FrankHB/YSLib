@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2015, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YClock.h
 \ingroup Core
 \brief 时钟接口。
-\version r89
+\version r91
 \author FrankHB <frankhb1989@gmail.com>
 \since build 584
 \par 创建时间:
 	2015-03-17 02:09:02 +0800
 \par 修改时间:
-	2015-05-29 19:29 +0800
+	2021-12-29 01:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YShellDefinition
-#include <chrono>
+#include <chrono> // for mandated header;
 
 namespace YSLib
 {

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2020 FrankHB.
+	© 2009-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3542
+\version r3544
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2020-11-03 13:46 +0800
+	2021-12-29 01:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include YFM_YSLib_Core_YFunc
 #include YFM_YSLib_Core_YObject
 #include <string>
-#include YFM_YSLib_Core_YException
+#include YFM_YSLib_Core_YException // for LoggedEvent;
 #include YFM_YSLib_Adaptor_YTextBase
 #include <ystdex/hash.hpp> // for ystdex::hash_combine_seq;
 #include <ystdex/cache.hpp>

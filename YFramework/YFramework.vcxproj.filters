@@ -733,6 +733,12 @@
     <ClInclude Include="include\NPL\NPLAMath.h">
       <Filter>include\NPL</Filter>
     </ClInclude>
+    <ClInclude Include="include\NPL\SXML.h">
+      <Filter>include\NPL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\NPL\Exception.h">
+      <Filter>include\NPL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\YNew.cpp">
@@ -1087,6 +1093,12 @@
       <Filter>source\NPL</Filter>
     </ClCompile>
     <ClCompile Include="source\NPL\NPLAMath.cpp">
+      <Filter>source\NPL</Filter>
+    </ClCompile>
+    <ClCompile Include="source\NPL\SXML.cpp">
+      <Filter>source\NPL</Filter>
+    </ClCompile>
+    <ClCompile Include="source\NPL\Exception.cpp">
       <Filter>source\NPL</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2020-2021 FrankHB.
+	© 2020-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r7142
+\version r7328
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2021-12-28 23:11 +0800
+	2022-01-21 18:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,180 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ $re_add(b935) DLDI "adjusted minor comments" @ %(YBase.YStandardEx.(
+		Base, CAssert, Cache, DereferenceOperation, Range, TypeOperation,
+		TypeIndex, Variadic), YFramework.(YCLib.Keys, 'YCLib_(DS)'.(DSIO,
+		DSVideo), YSLib.(Adaptor.(Font, YNew), Core.(YClock, YFunc), UI.(YGUI,
+		YWidgetEvent)), NPL.Configuration, Helper.(HostRenderer, HostWindow),
+		'Helper_(DS)'.DSMain), "%SHBuild-YSTest.sh" @ %YSTest),
+	/ %YBase.YStandardEx $=
+	(
+		/ %Enum $=
+		(
+			(
+			/ DLDI "simplified constructor template" @ "class %enum_union"
+				^ "%empty_base" ~ "%std::tuple";
+			/ DLDI "header inclusion %Tuple" -> "%Variadic"
+			),
+			+ "function template %to_underlying"
+		),
+		/ %Utilities $=
+		(
+			(
+			+ "header inclusion %Enum";
+			/ $lib "function template %underlying" >> %Enum
+			),
+			+ "header inclusion %IntegerSequence"
+		),
+		/ %Range $=
+		(
+			* "ambiguous calls by ADL from %std" @ "function templates \
+				%(begin, end)" @ !'__cpp_lib_array_constexpr >= 201603L'
+				$since b834 $dep_to "fixed begin and end ambiguity",
+				// The function templates are already defined in %std since \
+					C++11.
+			(
+			+ $dev $lib 'YB_ATTR_nodiscard'
+				@ "all non-member function templates except %empty";
+			+ $dev $lib 'YB_PURE' @ "all function templates and member \
+				functions declared with 'YB_ATTR_nodiscard'"
+			)
+		),
+		/ %String $=
+		(
+			/ DLI "simplified function template %string_length#1"
+				^ "%ystdex::ntctslen",
+				// This is more consistent to the implemantation of %string_end.
+			* "wrong return type" @ "function template %string_empty#(2, 3)"
+				$since b708,
+			* "ill-formed member function call"
+				@ "function template %string_length#3" $since b664,
+				// Even if it is well-formed, it is still wrong to get the \
+					plain size instead of the string length.
+			* "missing overloads for initializer lists" @ "function templates \
+				%(string_begin, string_end, string_length, string_empty)"
+				!@ '__cplusplus <= 201402L' $since b664,
+				// CWG 1581 does not count, as there is also no overload for \
+					the array types, so the overload for initializer lists is \
+					needed anyway.
+			(
+			* "missing excluding arrays" @ "function templates %(string_begin, \
+				string_end, string_length, string_empty) with range parameters"
+				$since b519;
+			/ @ "function templates %ystdex::(string_begin, string_end) with \
+				range parameters" $=
+			(
+				/ ^ "ADL %(begin, end)"
+					$dep_from "fixed begin and end ambiguity";
+					// This consistent to %ystdex::(string_length, \
+						string_empty). However, without the fix in %ystdex::( \
+						begin, end), it would cause ambiguity with %std types.
+				* $re_add(b935) $comp "return type mismatched to the return \
+					value in the function body" $since b595
+			)
+			),
+			/ "range access function templates with parameter of \
+				%std::initializer_list instance" $=
+			(
+				/ DLDI "simplified" !^ "trailing-return-type",
+					// This is also more consistent to similar function \
+						templates in %Range and ISO C++.
+				+ 'ynothrow'
+			),
+			/ "wrong exception exception" @ "function template %string_end#3"
+				$since b664
+				$= (/ 'ynothrow' -> 'ynothrowv')
+		)
+	),
+	/ $re_add(b935) DLDI "simplified localized URLs" @ "comments"
+		@ %(YBase.YStandardEx.Range, YFramework.YCLib.Keys),
+	/ DLDI "minor comment" @ "%SHBuild-BuildPkg.sh" @ %Tools.Scripts,
+	/ %YFramework $=
+	(
+		* "missing 'yconstfn'" @ "friend function %operator=="
+			@ "class %FileNodeID" @ %YCLib.FileSystem $since b935
+			// This would cause ill-formed %IsNodeShared.
+		/ %NPL $=
+		(
+			/ %NPLA1Forms $=
+			(
+				/ DLI "simplified function %IsSymbol"
+					!^ "redundant %ystdex::isdigit call",
+				/ "function templates %EmplaceCallResultOrReturn"
+					>> "namespace %NPL" @ %NPLA
+			),
+			/ %NPLA $=
+			(
+				(
+				+ "function %IsAllSignLexeme";
+				/ DLDI "simplified %IsNPLAExtendedLiteral"
+				),
+				(
+				+ 'using YSLib::array';
+				+ "function template %EmplaceCallResultOrReturn with parameter \
+					type of %array instances"
+				),
+				/ "function templates %(CheckRegular, AccessRegular)"
+					@ "Doxygen group %TermReferenceAccess"
+					>> "%TermAccessAuxiliary",
+				(
+				/ DLDI "reordered declarations"
+					@ "Doxygen group %TermAccessAuxiliary";
+				- DLDI "1st declaration" @ "function %TermToNamePtr"
+				)
+			),
+			/ %NPLA1 $=
+			(
+				* "invalid 'ynothrowv' around unsupported literals check"
+					@ "functions %(ParseLeaf, ParseLeafWithSourceInformation)"
+					$since b936,
+					// This would terminate with ISO C++, but undefined with \
+						'-fno-enforce-eh-specs'.
+				/ DLDI "simplified"
+					^ ("%(IsAllSignLexeme, IsExtendedLiteral)" @ %NPLA)
+			),
+			(
+			* "operative named with '?' suffix are not predicates"
+				$mismatch(Documentation.NPL) $since b932
+				$effective @ "function %LoadGroundContext" @ %Dependency $=
+			(
+				/ "operative '$and?'" => '$and',
+				/ $revert(b776) "operative '$or?'" => '$or'
+			);
+			/ $forced DD "renamed operative names" @ "Doxygen comment"
+				@ "functions %(And, Or)" @ %NPLA1Forms
+			),
+			(
+			+ %SXML;
+			/ ("function templates %(InsertSyntaxNode, InsertChildSyntaxNode)",
+				"namespace %SXML") @ %NPLA >> %SXML
+			),
+			(
+			+ %Exception;
+			+ DLDI "header inclusion %Exception" @ %NPLA;
+			/ ("class %NPLException", "classes derived from %NPLException",
+				"all functions named 'Throw*'") @ %NPLA >> %Exception
+			)
+		)
+	),
+	/ DLDI %Tools $=
+	(
+		/ %Scripts $=
+		(
+			/ ("simplified 'for-each-ltr' arguments", "loading")
+				@ "%SHBuild-YSLib-build.txt",
+			/ "simplified minor newlines"
+				@ "%(SHBuild-YSLib-common.txt, SHBuild-BuildApp.txt)",
+			/ $forced ('$and?', '$or?') -> ('$and', '$or')
+				$dep_from %YFramework.NPL.Dependency
+		),
+		/ $forced "header inclusion" @ %(SXML2XML, ProjectGenerator).Main
+			$dep_from ("namespace %SXML" @ %YFramework.NPL.NPLA)
+	)
+),
+
+b935
 (
 	/ DLDI "simplified localized URLs" @ "comments"
 		@ %(YBase.(YDefinition, YStandardEx.(Apply, Meta)), YFramework.(YCLib.(
@@ -75,8 +249,8 @@ $now
 			names in the declarators not interfere with type requirements.
 	/ DLDI "adjusted minor comments" @ %(YBase.YStandardEx.(Algorithm, Apply,
 		Functor, IntegerSequence, Invoke, Memory, Meta, Optional, Swap),
-		YFramework.(CHRLib.(CharacterProcessing, MappingEx),
-		YFramework.(YCLib.NativeAPI, YSLib.UI.Loader, Helper.HostedUI),
+		YFramework.(CHRLib.(CharacterProcessing, MappingEx), YFramework.(
+		YCLib.NativeAPI, YSLib.UI.Loader, Helper.(HostedUI, InputManager)),
 		// This includes implementation comments and comments on header \
 			inclusions.
 	/ %YBase $=
@@ -2136,12 +2310,11 @@ b925
 				),
 				* ("%TermTags::Temporary from the reference tags not ignored";
 					"tags other than %TermTags::Unique not preserved")
-					@ "functions %(Collapse; LiftCollapse, MoveCollapsed)"
+					@ "functions %(Collapse; LiftCollapsed, MoveCollapsed)"
 					$since b857,
 					// This was also inconsistent to %PrepareCollapse.
 				* $re_add(b917) "missing setting tags"
 					@ "function %LiftTermValueOrCopy" $since b872
-
 			),
 			/ %NPLA1 $=
 			(
@@ -2252,10 +2425,13 @@ b925
 						"applicative 'assign%!'" $orig (@ "applicative '<-%'"
 						$since b857)), "alternative derivation"
 						@ "applicative 'assign!'" $since b870,
-						"applicative 'assign%!" $since b858) $dep_from
-						("%NPL::MoveCollapsed" @ %NPLA),
-					* "possible wrong temporary preseved" @ ($comp
-						"applicative %list" $since b857
+						("applicative 'assign%!" $since b858; $comp
+						"alternative derivation" @ "applicative 'set-first%!'")
+						$dep_from ("%NPL::MoveCollapsed" @ %NPLA),
+						"native implementation" @ "applicative 'set-first%!'"
+						$since b857 $dep_from ("%NPL::LiftCollapsed" @ %NPLA)),
+					* "possible wrong temporary preseved"
+						@ ($comp "applicative %list" $since b857
 						$dep_from ("%ReduceBranchToListValue" @ %NPLA),
 						("operative '$move-resolved!" ^ $impl $dep_from
 						("%EnsureValueTags" @ %SContext);
@@ -2271,7 +2447,7 @@ b925
 						@ %NPLA1Forms), "operatives ('$remote-eval', \
 						'$remote-eval%')" $since b923 $dep_from ("functions \
 						%Forms::(RemoteEval, RemoteEvalRef)" @ %NPLA1Forms),
-						"applicatives (%first, 'list*',, %firstv, 'set-first!')"
+						"applicatives (%first, 'list*', %firstv, 'set-first!')"
 						$since b859 $dep_from ("functions %Forms::(First, \
 						ListAsterisk, FirstVal, SetFirst)" @ %NPLA1Forms),
 						("applicative 'list-extract-first'", "operatives \
@@ -3377,7 +3553,7 @@ b917
 			/ @ %NPLA $=
 			(
 				(
-				* "missing reset tags" @ "destination term"
+				* "missing resetting tags" @ "destination term"
 					@ "function %LiftCollapsed" $since b857;
 				* $comp "possible unexpected different effect on tags between \
 					calls to %(LiftCollapsed, MoveCollapsed)" $since b854

@@ -1,4 +1,4 @@
-﻿"#", "(C) 2014-2021 FrankHB.",
+﻿"#", "(C) 2014-2022 FrankHB.",
 "NPLA1 script as common library.";
 
 "XXX", "'SHBuild_2*' depend on 'cygpath' optionally.";
@@ -60,14 +60,10 @@ $defv/e! $set-system-var! (() make-standard-environment) (&var &arg) d
 );
 $defv/e! $assert (derive-environment std.strings env_SHBuild_)
 	(&var &pred? &msg) d
-	$unless ($and? (eval (list $binds1? d var) d) ((eval pred? d) (eval var d)))
+	$unless ($and (eval (list $binds1? d var) d) ((eval pred? d) (eval var d)))
 		(raise-error (++ "Variable " (SHBuild_QuoteS_ (symbol->string var))
 			" shall " (eval msg d) "."));
-$provide!
-(
-	$assert-nonempty
-	$assert-absolute-path
-)
+$provide! ($assert-nonempty $assert-absolute-path)
 (
 	$def! mods derive-environment std.strings env_SHBuild_;
 	$set! mods $assert $assert;
@@ -121,11 +117,7 @@ $provide! (safeenv-empty? safeenv-restore)
 	$defl/e! &safeenv-empty? mods (&n) string-empty? (safeenv-get n),
 	$defl/e! &safeenv-restore mods (&n) safeenv-set n (safeenv-get n)
 );
-$provide!
-(
-	$lazy-env-val
-	$env-de!
-)
+$provide! ($lazy-env-val $env-de!)
 (
 	$def! mods derive-environment std.strings std.promises std.system
 		env_SHBuild_;
@@ -139,14 +131,14 @@ $provide!
 		$let ((t safeenv-get (symbol->string (desigil var))))
 			eval (list $def! var
 				($if (string-empty? t)
-					(list (unwrap eval) (move! body) d) t)) d;
+					(list (unwrap eval) (move! body) d) t)) d
 );
 
 $provide! (SHBuild_Env_OS SHBuild_Env_Arch)
 (
 	$defl! SHBuild_CheckUName_Case_ (&x) $cond
 		((rmatch? x ".*Darwin.*") "OS_X")
-		(($or? (rmatch? x ".*MSYS.*") (rmatch? x ".*MINGW.*")) "Win32")
+		(($or (rmatch? x ".*MSYS.*") (rmatch? x ".*MINGW.*")) "Win32")
 		((rmatch? x ".*Linux.*") "Linux")
 		(#t "unknown");
 	$defl! SHBuild_CheckUNameM_Case_ (x) $cond
@@ -311,9 +303,9 @@ $defl! SHBuild_ar_ok_ (ar)
 		(() mktmp_) "2>" nul_dev_);
 $defl! SHBuild_GetAR_ (host-os cxx ar)
 	$let ((SHBuild_CXX_Style_ SHBuild_CheckCXX host-os cxx))
-		$cond (($and? (eqv? SHBuild_CXX_Style_ "Clang++")
+		$cond (($and (eqv? SHBuild_CXX_Style_ "Clang++")
 				(SHBuild_ar_ok_ "llvm-ar")) "llvm-ar")
-			(($and? (eqv? SHBuild_CXX_Style_ "G++")
+			(($and (eqv? SHBuild_CXX_Style_ "G++")
 				(SHBuild_ar_ok_ "gcc-ar")) "gcc-ar")
 			(#t ar);
 
@@ -330,7 +322,7 @@ $defl! get-thread-options (cxx err-out)
 			((compile-test "-Werror -mthreads")
 				list ($if (compile-test "-c -Werror -mthreads") "-mthreads"
 					"-D_MT") "-mthreads")
-			(($or? (dmp-test "no-pthread:") (not? (compile-test "-pthread")))
+			(($or (dmp-test "no-pthread:") (not? (compile-test "-pthread")))
 				list "" "")
 			(#t list "-pthread" "-pthread")
 	)
@@ -365,7 +357,7 @@ $defl! ld-ext-adjust_win32_subsystem_ (host-os)
 (
 	$import! std.strings string-empty?;
 
-	$if ($and? (win32? host-os)
+	$if ($and (win32? host-os)
 		(string-empty? (safeenv-get "SHBuild_NoAdjustSubsystem")))
 		(ss-verbose-puts "Added \"-mwindows\" to LDFLAGS."; "-mwindows")
 		""
@@ -397,7 +389,7 @@ $defl! build-with-conf-opt (outdir host-os debug dynamic shbopt-ext app
 	$import! std.promises $lazy force,
 	$import! env_SHBuild_ SHBuild_EchoVar SHBuild_QuoteS_ SHBuild_TrimOptions_;
 
-	$def! use-ld $or? dynamic app;
+	$def! use-ld $or dynamic app;
 	($env-de! CXX "g++"; safeenv-set "CXX" CXX),
 	($env-de! AR (SHBuild_GetAR_ host-os CXX "ar"); safeenv-set "AR" AR),
 	($env-de! ARFLAGS "rcs"; safeenv-set "ARFLAGS" ARFLAGS),
@@ -508,7 +500,7 @@ $defl! build-with-conf-opt (outdir host-os debug dynamic shbopt-ext app
 		(force prom_CXXFLAGS_WARNING) (force prom_CXXFLAGS_IMPL_COMMON)
 		(force prom_C_CXXFLAGS_COMMON_IMPL_) (force prom_CXXFLAGS_OPT_DBG);
 	$def! SHBuild_CXXFLAGS safeenv-get "SHBuild_CXXFLAGS";
-	$def! has-asan-opt $or? (use-asan? CFLAGS) (use-asan? CXXFLAGS)
+	$def! has-asan-opt $or (use-asan? CFLAGS) (use-asan? CXXFLAGS)
 		(use-asan? SHBuild_CXXFLAGS);
 	SHB_SetupPlatformVars_ (() get-current-environment) host-os;
 	$if use-ld
@@ -519,7 +511,7 @@ $defl! build-with-conf-opt (outdir host-os debug dynamic shbopt-ext app
 			(cons-cmd (force prom_LDFLAGS_STRIP) (force prom_LDFLAGS_IMPL_OPT)
 			(first (restv (force prom_gcflags_))));
 		$def! prom_LDFLAGS_DYN_BASE $lazy-env-val "LDFLAGS_DYN_BASE"
-			++ "-shared" ($if ($and? (win32? host-os) (not? use_lld_))
+			++ "-shared" ($if ($and (win32? host-os) (not? use_lld_))
 				" -Wl,--dll" "");
 		$def! prom_LIBS_RPATH $lazy-env-val "LIBS_RPATH"
 			$if (win32? host-os) ""
@@ -556,8 +548,8 @@ $defl! build-with-conf-opt (outdir host-os debug dynamic shbopt-ext app
 			(cons-cmd (force prom_LDFLAGS_DYN)) "-Wl,--dn")));
 		$unless has-asan-opt ($redef! has-asan-opt use-asan? LDFLAGS);
 		"XXX", "Assume %LD has same style to %CXX when sanitizers are used";
-		$if ($and? (eqv? SHBuild_CXX_Style_ "Clang++")
-			($or? (use-san? CFLAGS) (use-san? CXXFLAGS)
+		$if ($and (eqv? SHBuild_CXX_Style_ "Clang++")
+			($or (use-san? CFLAGS) (use-san? CXXFLAGS)
 			(use-san? SHBuild_CXXFLAGS)))
 		(
 			"NOTE", "This reverts '-Wl,--no-undefined' or '-Wl,-z,defs'.",
@@ -626,7 +618,7 @@ $defl! get_env_SHB_ (host-os)
 		$assert-nonempty dst,
 		$assert-nonempty src;
 		"TODO",
-			"More specific error handling in system-check and SHBuild command?";
+			"More specific error handling in system-check and SHBuild command";
 		$cond
 		((eqv? type "Link") (
 			e_rm_ dst;

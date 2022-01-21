@@ -1,5 +1,5 @@
 ﻿/*
-	© 2016-2021 FrankHB.
+	© 2016-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r25761
+\version r25775
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2021-11-20 22:20 +0800
+	2022-01-17 20:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,8 +48,8 @@
 //	LiftMovedOther, ThrowValueCategoryError, ThrowListTypeErrorForNonlist,
 //	ThrowInvalidSyntaxError, CheckEnvironmentFormal, type_id,
 //	ystdex::update_thunk, IsTyped, BindSymbol, ystdex::bind1, IsNPLASymbol,
-//	ystdex::isdigit, ystdex::fast_all_of, ystdex::call_value_or, A1::AsForm,
-//	LiftCollapsed, std::mem_fn, YSLib::usystem;
+//	ystdex::fast_all_of, ystdex::call_value_or, A1::AsForm, LiftCollapsed,
+//	std::mem_fn, YSLib::usystem;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_SContext // for Session;
 
@@ -2978,13 +2978,11 @@ ProvideLetCommon(TermNode& term, ContextNode& ctx)
 
 	auto& nd(ReferenceTerm(con.back()));
 
-	// XXX: Like %Forms::SymbolsToImports.
+	// NOTE: Like %Forms::SymbolsToImports.
 	if(IsList(nd))
-	{
-		// XXX: Checks are required before the evaluation of 'body'.
+		// NOTE: Checks are required before the evaluation of 'body'.
 		for(const auto& x : nd)
 			yunused(NPL::ResolveRegular<TokenValue>(x));
-	}
 	else
 		ThrowListTypeErrorForNonlist(nd, true);
 	// NOTE: Construct the delayed operative before the body. The applicative
@@ -2993,10 +2991,9 @@ ProvideLetCommon(TermNode& term, ContextNode& ctx)
 	//	created immediately before the evaluation of the constructed body. The
 	//	constructed body is the combination of the delayed operative and
 	//	the operand, see below.
-	// XXX: Here the form is used as %LiteralHandler is not necessarily
-	//	supported in this context (by the NPLA1 canonical evaluation algorithm),
-	//	although it can work with the current implementation of
-	//	%SetupDefaultInterpretation.
+	// XXX: The form used as %LiteralHandler is not necessarily supported in
+	//	this context (by the NPLA1 canonical evaluation algorithm), although it
+	//	can work with the current implementation of %SetupDefaultInterpretation.
 	con.emplace(i_body, A1::AsForm(a, ystdex::bind1(
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
@@ -3055,9 +3052,8 @@ ImportImpl(TermNode& term, ContextNode& ctx, bool ref_symbols)
 bool
 IsSymbol(const string& id) ynothrow
 {
-	return !id.empty() && IsNPLASymbol(id) && !ystdex::isdigit(id.front())
-		&& ystdex::fast_all_of(id.begin(), id.end(),
-		[] YB_LAMBDA_ANNOTATE((char c), ynothrow, const){
+	return !id.empty() && IsNPLASymbol(id) && ystdex::fast_all_of(id.begin(),
+		id.end(), [] YB_LAMBDA_ANNOTATE((char c), ynothrow, const){
 			// XXX: Conservatively only check the basic character set. There
 			//	could be false negative results.
 			return ystdex::isdigit(c) || bool(std::strchr(

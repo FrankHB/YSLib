@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2021 FrankHB.
+# (C) 2014-2022 FrankHB.
 # Common source script: bootstrap configuration.
 
 set -e
@@ -21,7 +21,7 @@ SHBuild_EchoVar_N 'SHBuild.Host.OS'
 
 SHBuild_Puts "Configuring ..."
 
-# Coordinated at build 930.
+# Coordinated at build 936.
 LIBS="$YSLib_BaseDir/YBase/source/ystdex/base.cpp \
 $YSLib_BaseDir/YBase/source/ystdex/exception.cpp \
 $YSLib_BaseDir/YBase/source/ystdex/cassert.cpp \
@@ -50,6 +50,7 @@ $YSLib_BaseDir/YFramework/source/YSLib/Service/File.cpp \
 $YSLib_BaseDir/YFramework/source/YSLib/Service/TextFile.cpp \
 $YSLib_BaseDir/YFramework/source/NPL/Lexical.cpp \
 $YSLib_BaseDir/YFramework/source/NPL/SContext.cpp \
+$YSLib_BaseDir/YFramework/source/NPL/Exception.cpp \
 $YSLib_BaseDir/YFramework/source/NPL/NPLA.cpp \
 $YSLib_BaseDir/YFramework/source/NPL/NPLAMath.cpp \
 $YSLib_BaseDir/YFramework/source/NPL/NPLA1.cpp \

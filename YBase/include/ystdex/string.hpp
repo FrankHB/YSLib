@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2021 FrankHB.
+	© 2012-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r3236
+\version r3295
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2021-10-11 19:10 +0800
+	2022-01-02 14:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,13 +30,13 @@
 
 #include "allocator.hpp" // for allocator_traits, enable_if_t, remove_cvref_t,
 //	false_, is_object, decay_t, std::declval, true_, nested_allocator, or_,
-//	is_same, is_enum, yconstraint, is_class, yassume, YAssert;
+//	is_same, is_enum, yconstraint, is_class, is_equal, yassume, YAssert;
 #include "string_view.hpp" // for internal "string_view.hpp" (implying
 //	"range.hpp" and "<libdefect/string.h>"), basic_string_view,
 //	std::char_traits, std::initializer_list, std::to_string, string,
 //	basic_string;
 #include "container.hpp" // for "container.hpp", enable_for_input_iterator_t,
-//	make_index_sequence, index_sequence, begin, end, size, sort_unique,
+//	make_index_sequence, index_sequence, begin, end, empty, size, sort_unique,
 //	underlying, std::hash;
 #include "cstring.h" // for ystdex::ntctslen;
 #include "cstdio.h" // for vfmtlen, ystdex::is_null;
@@ -1022,75 +1022,68 @@ using enable_for_string_class_t
 
 
 /*!
-\note 使用 ADL 访问字符串范围。
-\note 同 ystdex::begin 和 ystdex::end ，但字符数组除外。
-\note 此处 string_end 语义和 boost::end 相同，但对数组类型不同于 std::end 。
-\bug decltype 指定的返回类型不能使用 ADL 。
+\note 访问字符串范围。
+\note 同 ystdex::begin 和 ystdex::end ，但数组除外。
+\note 此处 string_end 语义和 boost::end 相同，但对数组不同。
+\note 范围类型不使用 ADL 以避免错误的 std 重载和 ystdex 重载造成歧义。
 \see WG21 N3936 20.4.7[iterator.range] 。
-\since build 519
+\since build 936
 */
 //@{
-template<class _tRange>
+template<class _tRange,
+	yimpl(typename = enable_if_t<!is_array<_tRange>::value>)>
 YB_ATTR_nodiscard yconstfn auto
-string_begin(_tRange& c) -> decltype(c.begin())
+string_begin(_tRange& c) -> decltype(begin(c))
 {
-	return ystdex::begin(c);
+	return begin(c);
 }
-template<class _tRange>
+template<class _tRange,
+	yimpl(typename = enable_if_t<!is_array<_tRange>::value>)>
 YB_ATTR_nodiscard yconstfn auto
-string_begin(const _tRange& c) -> decltype(c.begin())
+string_begin(const _tRange& c) -> decltype(begin(c))
 {
-	return ystdex::begin(c);
+	return begin(c);
 }
 //! \since build 664
-//@{
 template<typename _tChar>
 YB_ATTR_nodiscard YB_NONNULL(1) yconstfn _tChar*
 string_begin(_tChar* str) ynothrow
 {
 	return yconstraint(str), str;
 }
-#if __cplusplus <= 201402L
-//! \see CWG 1591 。
 template<typename _tElem>
-YB_ATTR_nodiscard yconstfn auto
-string_begin(std::initializer_list<_tElem> il) -> decltype(il.begin())
+YB_ATTR_nodiscard yconstfn const _tElem*
+string_begin(std::initializer_list<_tElem> il) ynothrow
 {
 	return il.begin();
 }
-#endif
-//@}
 
-template<class _tRange>
+template<class _tRange,
+	yimpl(typename = enable_if_t<!is_array<_tRange>::value>)>
 YB_ATTR_nodiscard yconstfn auto
-string_end(_tRange& c) -> decltype(c.end())
+string_end(_tRange& c) -> decltype(end(c))
 {
-	return ystdex::end(c);
+	return end(c);
 }
-template<class _tRange>
+template<class _tRange,
+	yimpl(typename = enable_if_t<!is_array<_tRange>::value>)>
 YB_ATTR_nodiscard yconstfn auto
-string_end(const _tRange& c) -> decltype(c.end())
+string_end(const _tRange& c) -> decltype(end(c))
 {
-	return ystdex::end(c);
+	return end(c);
 }
-//! \since build 664
-//@{
 template<typename _tChar>
 YB_ATTR_nodiscard YB_NONNULL(1) yconstfn _tChar*
-string_end(_tChar* str) ynothrow
+string_end(_tChar* str) ynothrowv
 {
 	return str + ystdex::ntctslen(str);
 }
-#if __cplusplus <= 201402L
-//! \see CWG 1591 。
 template<typename _tElem>
-YB_ATTR_nodiscard yconstfn auto
-string_end(std::initializer_list<_tElem> il) -> decltype(il.end())
+YB_ATTR_nodiscard yconstfn const _tElem*
+string_end(std::initializer_list<_tElem> il) ynothrow
 {
 	return il.end();
 }
-#endif
-//@}
 //@}
 
 
@@ -1113,21 +1106,21 @@ string_empty(const _tChar* str) ynothrowv
 {
 	return ystdex::is_null(*str);
 }
-template<typename _type>
+//! \since build 936
+template<class _type,
+	yimpl(typename = enable_if_t<!is_array<_type>::value>)>
 YB_ATTR_nodiscard YB_PURE yconstfn auto
-string_empty(const _type& str) -> decltype(size(str))
+string_empty(const _type& str) -> decltype(empty(str))
 {
 	return empty(str);
 }
-#if __cplusplus <= 201402L
-//! \see CWG 1591 。
+//! \since build 936
 template<typename _tElem>
-YB_ATTR_nodiscard YB_PURE yconstfn size_t
-string_empty(std::initializer_list<_tElem> il)
+YB_ATTR_nodiscard YB_PURE yconstfn bool
+string_empty(std::initializer_list<_tElem> il) ynothrow
 {
-	return il.empty();
+	return il.size() == 0;
 }
-#endif
 //@}
 
 /*!
@@ -1143,30 +1136,30 @@ template<typename _tChar>
 YB_ATTR_nodiscard YB_PURE inline size_t
 string_length(const _tChar* str) ynothrowv
 {
-	return std::char_traits<_tChar>::length(str);
+	return ystdex::ntctslen(str);
 }
-template<typename _type>
+template<class _type,
+	yimpl(typename = enable_if_t<!is_array<_type>::value>)>
 YB_ATTR_nodiscard YB_PURE yconstfn auto
 string_length(const _type& str) -> decltype(size(str))
 {
 	return size(str);
 }
-#if __cplusplus <= 201402L
-//! \see CWG 1591 。
+//! \since build 936
 template<typename _tElem>
 YB_ATTR_nodiscard YB_PURE yconstfn size_t
-string_length(std::initializer_list<_tElem> il)
+string_length(std::initializer_list<_tElem> il) ynothrow
 {
 	return il.size();
 }
-#endif
 //@}
 
 
 /*!
 \note 使用 ADL string_begin 和 string_end 指定范围迭代器。
 \note 除 ADL 外接口同 Boost.StringAlgo 。
-\sa ystdex::string_begin, ystdex::string_end
+\sa ystdex::string_begin
+\sa ystdex::string_end
 \since build 450
 */
 //@{

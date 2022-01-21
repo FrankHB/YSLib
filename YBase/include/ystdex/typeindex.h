@@ -1,5 +1,5 @@
 ﻿/*
-	© 2020 FrankHB.
+	© 2020-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file typeindex.h
 \ingroup YStandardEx
 \brief ISO C++ 类型索引扩展。
-\version r110
+\version r112
 \author FrankHB <frankhb1989@gmail.com>
 \since build 892
 \par 创建时间:
 	2020-06-12 20:28:55 +0800
 \par 修改时间:
-	2020-06-12 21:01 +0800
+	2021-12-29 01:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_typeindex_h_
 #define YB_INC_ystdex_typeindex_h_ 1
 
-#include "typeinfo.h" // for "type_info.h", type_id_info,
+#include "typeinfo.h" // for "typeinfo.h", type_id_info,
 //	YB_Use_LightweightTypeID, std::hash;
 #include <typeindex> // for <typeindex>, std::type_index;
 #include "operators.hpp" // for totally_ordered;

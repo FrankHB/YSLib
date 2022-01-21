@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2021 FrankHB.
+	© 2014-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r8656
+\version r9265
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2021-11-11 20:32 +0800
+	2022-01-21 02:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,20 +29,20 @@
 #define NPL_INC_NPLA_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_SContext // for YSLib::any_ops, YSLib::NodeLiteral, YSLib::any,
-//	YSLib::bad_any_cast, YSLib::in_place_type, YSLib::to_string, NPLTag, string,
-//	ValueNode, function, std::ostream, ystdex::invoke, TermNode,
-//	YSLib::MakeIndex, std::initializer_list, LoggedEvent, YSLib::RecordLevel,
-//	shared_ptr, NPL::Deref, ystdex::isdigit, CategorizeLexeme,
+#include YFM_NPL_Exception // for YSLib::any_ops, YSLib::NodeLiteral,
+//	YSLib::any, YSLib::bad_any_cast, YSLib::in_place_type, YSLib::to_string,
+//	NPLTag, string, ValueNode, function, std::ostream, ystdex::invoke, TermNode,
+//	std::initializer_list, IsBranch, type_id, shared_ptr,
 //	ystdex::is_nothrow_copy_constructible, ystdex::is_nothrow_copy_assignable,
 //	ystdex::is_nothrow_move_constructible, ystdex::is_nothrow_move_assignable,
-//	observer_ptr, TryAccessValue, IsLeaf, ystdex::equality_comparable, weak_ptr,
-//	lref, ystdex::get_equal_to, pair, ystdex::invoke_value_or,
-//	ystdex::expand_proxy, IsBranch, type_id, NPL::Access, ystdex::ref_eq,
+//	ThrowListTypeErrorForInvalidType, observer_ptr, TryAccessValue, IsLeaf,
+//	ystdex::equality_comparable, weak_ptr, lref, ystdex::get_equal_to, pair,
+//	ystdex::invoke_value_or, ystdex::expand_proxy, NPL::Access, ystdex::ref_eq,
 //	ValueObject, NPL::SetContentWith, std::for_each, AccessFirstSubterm,
-//	ystdex::less, YSLib::map, pmr, ystdex::copy_and_swap, NoContainer,
-//	ystdex::try_emplace, ystdex::try_emplace_hint, ystdex::insert_or_assign,
-//	type_info, ystdex::expanded_function, ystdex::enable_if_same_param_t,
+//	AssertBranch, NPL::Deref, YSLib::EmplaceCallResult, ystdex::less,
+//	YSLib::map, pmr, ystdex::copy_and_swap, NoContainer, ystdex::try_emplace,
+//	ystdex::try_emplace_hint, ystdex::insert_or_assign, type_info,
+//	ystdex::expanded_function, ystdex::enable_if_same_param_t,
 //	ystdex::exclude_self_t, ystdex::make_obj_using_allocator,
 //	YSLib::forward_list, ystdex::swap_dependent, NPL::make_observer,
 //	YSLib::allocate_shared, YSLib::Logger, any_ops::trivial_swap,
@@ -67,6 +67,8 @@ namespace any_ops = YSLib::any_ops;
 using YSLib::NodeLiteral;
 //! \since build 851
 using YSLib::any;
+//! \since build 936
+using YSLib::array;
 //! \since build 851
 using YSLib::bad_any_cast;
 //! \since build 851
@@ -243,455 +245,6 @@ YB_ATTR_nodiscard YB_PURE inline
 //@}
 
 
-//! \since build 852
-//@{
-/*!
-\note 在指定的节点插入节点，可用于语法分析树的输入。
-\sa MakeIndex
-\sa TransformToSyntaxNode
-*/
-//@{
-//! \brief 插入语法节点。
-//@{
-template<class _tNodeOrCon, typename... _tParams>
-TNIter
-InsertSyntaxNode(_tNodeOrCon&& node_or_con,
-	std::initializer_list<TermNode> il, _tParams&&... args)
-{
-	return node_or_con.emplace(TermNode::Container(il), yforward(args)...);
-}
-template<class _tNodeOrCon, typename _type, typename... _tParams>
-TNIter
-InsertSyntaxNode(_tNodeOrCon&& node_or_con, _type&& arg, _tParams&&... args)
-{
-	return node_or_con.emplace(yforward(arg), yforward(args)...);
-}
-//@}
-
-//! \brief 插入语法子节点。
-//@{
-template<class _tNodeOrCon>
-TNIter
-InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, TermNode& child)
-{
-	return NPL::InsertSyntaxNode(yforward(node_or_con),
-		child.GetContainerRef());
-}
-template<class _tNodeOrCon>
-TNIter
-InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, TermNode&& child)
-{
-	return NPL::InsertSyntaxNode(yforward(node_or_con),
-		std::move(child.GetContainerRef()));
-}
-template<class _tNodeOrCon>
-TNIter
-InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, NodeLiteral&& nl)
-{
-	return NPL::InsertChildSyntaxNode(yforward(node_or_con),
-		TransformToSyntaxNode(std::move(nl.GetNodeRef())));
-}
-//@}
-//@}
-//@}
-
-//! \since build 597
-namespace SXML
-{
-
-//! \since build 674
-//@{
-/*!
-\brief 转换 SXML 节点为 XML 属性字符串。
-\throw LoggedEvent 没有子节点。
-\note 当前不支持 annotation ，在超过 2 个子节点时使用 YTraceDe 警告。
-*/
-YB_ATTR_nodiscard YF_API YB_PURE string
-ConvertAttributeNodeString(const TermNode&);
-
-/*!
-\brief 转换 SXML 文档节点为 XML 字符串。
-\throw LoggedEvent 不符合最后一个参数约定的内容被解析。
-\throw ystdex::unimplemented 指定 ParseOption::Strict 时解析未实现内容。
-\sa ConvertStringNode
-\see http://okmij.org/ftp/Scheme/SXML.html#Annotations 。
-\todo 支持 *ENTITY* 和 *NAMESPACES* 标签。
-
-转换 SXML 文档节点为 XML 。
-尝试使用 ConvertStringNode 转换字符串节点，若失败作为非叶子节点递归转换。
-因为当前 SXML 规范未指定注解(annotation) ，所以直接忽略。
-*/
-YB_ATTR_nodiscard YF_API string
-ConvertDocumentNode(const TermNode&, IndentGenerator = DefaultGenerateIndent,
-	size_t = 0, ParseOption = ParseOption::Normal);
-
-/*!
-\brief 转换 SXML 节点为被转义的 XML 字符串。
-\sa EscapeXML
-*/
-YB_ATTR_nodiscard YF_API YB_PURE string
-ConvertStringNode(const TermNode&);
-
-/*!
-\brief 打印 SContext::Analyze 分析取得的 SXML 语法树节点并刷新流。
-\see ConvertDocumentNode
-\see SContext::Analyze
-\see Session
-
-参数节点中取第一个节点作为 SXML 文档节点调用 ConvertStringNode 输出并刷新流。
-*/
-YF_API void
-PrintSyntaxNode(std::ostream& os, const TermNode&,
-	IndentGenerator = DefaultGenerateIndent, size_t = 0);
-//@}
-
-
-//! \since build 852
-//@{
-template<typename _tString, typename _tLiteral = NodeLiteral>
-YB_ATTR_nodiscard inline YB_PURE TermNode
-NodeLiteralToTerm(_tString&& name, std::initializer_list<_tLiteral> il)
-{
-	return TermNode(YSLib::AsNodeLiteral(yforward(name), il));
-}
-
-//! \brief 构造 SXML 文档顶级节点。
-//@{
-template<typename... _tParams>
-YB_ATTR_nodiscard YB_PURE TermNode
-MakeTop(const string& name, _tParams&&... args)
-{
-	return SXML::NodeLiteralToTerm(name,
-		{{MakeIndex(0), "*TOP*"}, NodeLiteral(yforward(args))...});
-}
-YB_ATTR_nodiscard YB_PURE inline PDefH(TermNode, MakeTop, )
-	ImplRet(MakeTop({}))
-//@}
-
-/*!
-\brief 构造 SXML 文档 XML 声明节点。
-\note 第一参数指定节点名称，其余参数指定节点中 XML 声明的值：版本、编码和独立性。
-\note 最后两个参数可选为空值，此时结果不包括对应的属性。
-\warning 不对参数合规性进行检查。
-*/
-YB_ATTR_nodiscard YF_API YB_PURE TermNode
-MakeXMLDecl(const string& = {}, const string& = "1.0",
-	const string& = "UTF-8", const string& = {});
-
-/*!
-\brief 构造包含 XML 声明的 SXML 文档节点。
-\sa MakeTop
-\sa MakeXMLDecl
-*/
-YB_ATTR_nodiscard YF_API YB_PURE TermNode
-MakeXMLDoc(const string& = {}, const string& = "1.0",
-	const string& = "UTF-8", const string& = {});
-//@}
-
-//! \since build 599
-//@{
-//! \brief 构造 SXML 属性标记字面量。
-//@{
-YB_ATTR_nodiscard YB_PURE inline PDefH(NodeLiteral, MakeAttributeTagLiteral,
-	std::initializer_list<NodeLiteral> il)
-	ImplRet({"@", il})
-template<typename... _tParams>
-YB_ATTR_nodiscard YB_PURE NodeLiteral
-MakeAttributeTagLiteral(_tParams&&... args)
-{
-	return SXML::MakeAttributeTagLiteral({NodeLiteral(yforward(args)...)});
-}
-//@}
-
-//! \brief 构造 XML 属性字面量。
-//@{
-YB_ATTR_nodiscard YB_PURE inline PDefH(NodeLiteral, MakeAttributeLiteral,
-	const string& name, std::initializer_list<NodeLiteral> il)
-	ImplRet({name, {MakeAttributeTagLiteral(il)}})
-template<typename... _tParams>
-YB_ATTR_nodiscard YB_PURE NodeLiteral
-MakeAttributeLiteral(const string& name, _tParams&&... args)
-{
-	return {name, {SXML::MakeAttributeTagLiteral(yforward(args)...)}};
-}
-//@}
-
-//! \brief 插入只有 XML 属性节点到语法节点。
-//@{
-template<class _tNodeOrCon>
-inline void
-InsertAttributeNode(_tNodeOrCon&& node_or_con, const string& name,
-	std::initializer_list<NodeLiteral> il)
-{
-	InsertChildSyntaxNode(node_or_con, MakeAttributeLiteral(name, il));
-}
-template<class _tNodeOrCon, typename... _tParams>
-inline void
-InsertAttributeNode(_tNodeOrCon&& node_or_con, const string& name,
-	_tParams&&... args)
-{
-	InsertChildSyntaxNode(node_or_con,
-		SXML::MakeAttributeLiteral(name, yforward(args)...));
-}
-//@}
-//@}
-
-} // namespace SXML;
-
-
-/*!
-\ingroup exceptions
-\since build 691
-*/
-//@{
-//! \brief NPL 异常基类。
-class YF_API NPLException : public LoggedEvent
-{
-public:
-	YB_NONNULL(2)
-	NPLException(const char* str = "", YSLib::RecordLevel lv = YSLib::Err)
-		: LoggedEvent(str, lv)
-	{}
-	//! \since build 921
-	NPLException(const std::string& str, YSLib::RecordLevel lv = YSLib::Err)
-		: LoggedEvent(str, lv)
-	{}
-	NPLException(string_view sv, YSLib::RecordLevel lv = YSLib::Err)
-		: LoggedEvent(sv, lv)
-	{}
-	//! \since build 844
-	DefDeCopyCtor(NPLException)
-	//! \brief 虚析构：类定义外默认实现。
-	~NPLException() override;
-
-	//! \since build 844
-	DefDeCopyAssignment(NPLException)
-};
-
-
-/*!
-\since build 834
-\todo 捕获并保存类型信息。
-*/
-//@{
-/*!
-\brief 类型错误。
-
-类型不匹配的错误。
-*/
-class YF_API TypeError : public NPLException
-{
-public:
-	//! \since build 692
-	using NPLException::NPLException;
-	//! \since build 845
-	DefDeCopyCtor(TypeError)
-	//! \brief 虚析构：类定义外默认实现。
-	~TypeError() override;
-
-	//! \since build 845
-	DefDeCopyAssignment(TypeError)
-};
-
-
-/*!
-\brief 值类别不匹配。
-\note 预期左值或右值。
-*/
-class YF_API ValueCategoryMismatch : public TypeError
-{
-public:
-	//! \since build 834
-	using TypeError::TypeError;
-	//! \since build 845
-	DefDeCopyCtor(ValueCategoryMismatch)
-	//! \brief 虚析构：类定义外默认实现。
-	~ValueCategoryMismatch() override;
-
-	//! \since build 845
-	DefDeCopyAssignment(ValueCategoryMismatch)
-};
-//@}
-
-
-/*!
-\brief 列表规约失败。
-\note 预期 ContextHandler 或引用 ContextHandler 的引用值。
-\since build 692
-\todo 捕获并保存上下文信息。
-*/
-class YF_API ListReductionFailure : public TypeError
-{
-public:
-	//! \since build 834
-	using TypeError::TypeError;
-	//! \since build 845
-	DefDeCopyCtor(ListReductionFailure)
-	//! \brief 虚析构：类定义外默认实现。
-	~ListReductionFailure() override;
-
-	//! \since build 845
-	DefDeCopyAssignment(ListReductionFailure)
-};
-
-
-/*!
-\brief 列表类型错误。
-\note 预期列表或列表引用。
-\since build 834
-\todo 捕获并保存类型信息。
-
-列表类型或非列表类型不匹配的错误。
-*/
-class YF_API ListTypeError : public TypeError
-{
-public:
-	//! \since build 834
-	using TypeError::TypeError;
-	//! \since build 845
-	DefDeCopyCtor(ListTypeError)
-	//! \brief 虚析构：类定义外默认实现。
-	~ListTypeError() override;
-
-	//! \since build 845
-	DefDeCopyAssignment(ListTypeError)
-};
-
-
-/*!
-\brief 参数不匹配。
-\since build 771
-*/
-class YF_API ParameterMismatch : public ListTypeError
-{
-public:
-	//! \since build 902
-	using ListTypeError::ListTypeError;
-	//! \since build 845
-	DefDeCopyCtor(ParameterMismatch)
-	//! \brief 虚析构：类定义外默认实现。
-	~ParameterMismatch() override;
-
-	//! \since build 845
-	DefDeCopyAssignment(ParameterMismatch)
-};
-
-
-/*!
-\brief 元数不匹配。
-\todo 支持范围匹配。
-
-操作数子项个数不匹配的错误。
-*/
-class YF_API ArityMismatch : public ParameterMismatch
-{
-private:
-	size_t expected;
-	size_t received;
-
-public:
-	/*!
-	\note 前两个参数表示期望和实际的元数。
-	\since build 726
-	*/
-	ArityMismatch(size_t, size_t, YSLib::RecordLevel = YSLib::Err);
-	//! \since build 845
-	DefDeCopyCtor(ArityMismatch)
-	//! \brief 虚析构：类定义外默认实现。
-	~ArityMismatch() override;
-
-	//! \since build 845
-	DefDeCopyAssignment(ArityMismatch)
-
-	DefGetter(const ynothrow, size_t, Expected, expected)
-	DefGetter(const ynothrow, size_t, Received, received)
-};
-
-
-/*!
-\brief 无效语法。
-
-特定上下文中的语法错误。
-*/
-class YF_API InvalidSyntax : public NPLException
-{
-public:
-	using NPLException::NPLException;
-	//! \since build 845
-	DefDeCopyCtor(InvalidSyntax)
-	//! \brief 虚析构：类定义外默认实现。
-	~InvalidSyntax() override;
-
-	//! \since build 845
-	DefDeCopyAssignment(InvalidSyntax)
-};
-
-
-/*!
-\brief 标识符错误。
-\since build 726
-
-因在当前上下文中无效或不存在的标识符而引起的错误。
-*/
-class YF_API BadIdentifier : public InvalidSyntax
-{
-private:
-	shared_ptr<string> p_identifier;
-
-public:
-	/*!
-	\brief 标识符关联的源代码信息。
-	\since build 893
-	*/
-	SourceInformation Source{};
-
-	/*!
-	\brief 构造：使用作为标识符的字符串、已知实例数和和记录等级。
-	\pre 间接断言：第一参数的数据指针非空。
-
-	不检查第一参数内容作为标识符的合法性，直接视为待处理的标识符，
-	初始化表示标识符错误的异常对象。
-	实例数等于 0 时表示未知标识符；
-	实例数等于 1 时表示非法标识符；
-	实例数大于 1 时表示重复标识符。
-	*/
-	YB_NONNULL(2)
-	BadIdentifier(const char*, size_t = 0, YSLib::RecordLevel = YSLib::Err);
-	BadIdentifier(string_view, size_t = 0, YSLib::RecordLevel = YSLib::Err);
-	//! \since build 845
-	DefDeCopyCtor(BadIdentifier)
-	//! \brief 虚析构：类定义外默认实现。
-	~BadIdentifier() override;
-
-	//! \since build 845
-	DefDeCopyAssignment(BadIdentifier)
-
-	DefGetter(const ynothrow, const string&, Identifier,
-		NPL::Deref(p_identifier))
-};
-
-
-/*!
-\brief 无效引用。
-\since build 822
-
-无效引用错误。
-*/
-class YF_API InvalidReference : public NPLException
-{
-public:
-	using NPLException::NPLException;
-	//! \since build 845
-	DefDeCopyCtor(InvalidReference)
-	//! \brief 虚析构：类定义外默认实现。
-	~InvalidReference() override;
-
-	//! \since build 845
-	DefDeCopyAssignment(InvalidReference)
-};
-//@}
-
-
 /*!	\defgroup LexicalCategory Lexical Category Support
 \brief 词法类别支持。
 \since build 914
@@ -716,9 +269,9 @@ enum class LexemeCategory
 };
 
 
-//! \since build 770
-//@{
 //! \sa LexemeCategory
+//@{
+//! \since build 770
 //@{
 /*!
 \pre 间接断言：字符串参数的数据指针非空。
@@ -774,6 +327,16 @@ YB_ATTR_nodiscard YB_PURE inline
 	ImplRet(CategorizeLexeme(id) == LexemeCategory::Symbol)
 //@}
 //@}
+
+/*!
+\brief 判断字符串是否为全由 + 或 - 字符构成的可作为符号的词素。
+\pre 断言：字符串参数的数据指针非空。
+\since build 936
+*/
+YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsAllSignLexeme, string_view id)
+	ynothrowv
+	ImplRet(YAssertNonnull(id.data()),
+		id.find_first_not_of("+-") == string_view::npos)
 //@}
 
 
@@ -876,7 +439,7 @@ static_assert(ystdex::is_nothrow_move_constructible<AnchorPtr>(),
 \since build 914
 
 访问不同接口对项中具有的 ValueObject 对象的要求不同。
-除以下情形，访问 ValueObject 对象时，假定持有者可能抛出异常：
+除以下情形，访问 ValueObject 对象时，不假定持有者不抛出异常：
 访问不直接作为项的值数据成员的 ValueObject 对象（如父环境）；
 访问值数据成员中的以下特定类型的值：
 	string ；
@@ -886,105 +449,37 @@ static_assert(ystdex::is_nothrow_move_constructible<AnchorPtr>(),
 //! \ingroup TermAccessAuxiliary
 //@{
 /*!
-\brief 访问项的值作为记号。
-\return 通过访问项的值取得的记号的指针，或空指针表示无法取得名称。
-\since build 782
-*/
-YB_ATTR_nodiscard YB_PURE inline observer_ptr<const TokenValue>
-TermToNamePtr(const TermNode&);
-
-/*!
-\return 转换得到的字符串。
-\sa TermToString
-
-访问项的值作为名称转换为字符串，若失败则提取值的类型和子项数作为构成值的表示。
-除名称外的外部表示方法未指定；结果可能随实现变化。
+\exception ListTypeError 异常中立：项为列表项。
+\exception bad_any_cast 异常中立：非列表项类型检查失败。
+\since build 859
 */
 //@{
-/*!
-\brief 访问项的值并转换为字符串形式的外部表示。
-\since build 801
-*/
-YB_ATTR_nodiscard YF_API YB_PURE string
-TermToString(const TermNode&);
+//! \brief 检查项表示非列表正规值。
+template<typename _type, class _tTerm>
+void
+CheckRegular(_tTerm& term, bool has_ref)
+{
+	if(YB_UNLIKELY(IsBranch(term)))
+		ThrowListTypeErrorForInvalidType(type_id<_type>(), term, has_ref);
+}
 
 /*!
-\brief 访问项的值并转换为可选带有引用标记的字符串形式。
-\note 当前使用前缀 [*] 和空格表示引用项。直接附加字符串，因此通常表示已解析的引用。
-\sa TermToString
-\since build 840
+\brief 访问项的指定类型正规值。
+\exception 异常中立：由项的值数据成员的持有者抛出。
+\note 第一参数是可能带有 const 的左值的 TermNode 或转换为 TermNode 的类型。
+\sa ThrowListTypeErrorForInvalidType
+
+以 NPL::Access 访问调用 NPL::CheckRegular 检查后的项。
 */
-YB_ATTR_nodiscard YF_API YB_PURE string
-TermToStringWithReferenceMark(const TermNode&, bool);
+template<typename _type, class _tTerm>
+YB_ATTR_nodiscard YB_PURE inline auto
+AccessRegular(_tTerm& term, bool has_ref)
+	-> yimpl(decltype(NPL::Access<_type>(term)))
+{
+	NPL::CheckRegular<_type>(term, has_ref);
+	return NPL::Access<_type>(term);
+}
 //@}
-
-/*!
-\brief 访问项初始化标签。
-\since build 857
-\sa GetLValueTagsOf
-\sa TermTags
-
-若项表示引用值，使用引用值排除 TermTags::Temporary 后的标签；
-否则，使用项的标签。
-*/
-YB_ATTR_nodiscard YF_API YB_PURE TermTags
-TermToTags(TermNode&);
-
-/*!
-\note 后两个参数传递给 TermToStringWithReferenceMark ，预期用法通常相同。
-\sa TermToStringWithReferenceMark
-*/
-//@{
-/*!
-\brief 抛出缺少项的异常。
-\throw ParameterMismatch 缺少项的错误。
-\since build 904
-*/
-YB_NORETURN YF_API void
-ThrowInsufficientTermsError(const TermNode&, bool);
-
-/*!
-\brief 对列表项抛出指定预期访问值的类型的异常。
-\throw ListTypeError 消息中包含由参数指定的预期访问值的类型的异常。
-*/
-//@{
-//! \since build 928
-YB_NORETURN YF_API YB_NONNULL(1) void
-ThrowListTypeErrorForInvalidType(const char*, const TermNode&, bool);
-//! \since build 855
-YB_NORETURN YF_API void
-ThrowListTypeErrorForInvalidType(const type_info&, const TermNode&, bool);
-//@}
-
-/*!
-\brief 抛出对非列表值预期列表类型的异常。
-\throw ListTypeError 值不是列表。
-\since build 902
-*/
-YB_NORETURN YF_API void
-ThrowListTypeErrorForNonlist(const TermNode&, bool);
-
-/*!
-\brief 对项抛出指定预期访问值的类型的异常。
-\throw TypeError 消息中包含由参数指定的预期访问值的类型的异常。
-*/
-//@{
-//! \since build 928
-YB_NORETURN YF_API YB_NONNULL(1) void
-ThrowTypeErrorForInvalidType(const char*, const TermNode&, bool);
-//! \since build 917
-YB_NORETURN YF_API void
-ThrowTypeErrorForInvalidType(const type_info&, const TermNode&, bool);
-//@}
-//@}
-
-/*!
-\brief 标记记号节点：递归变换节点，转换其中的词素为记号值。
-\note 先变换子节点。
-\since build 753
-*/
-YF_API void
-TokenizeTerm(TermNode&);
 
 /*!
 \exception 异常中立：由值数据成员的持有者抛出。
@@ -1039,9 +534,60 @@ TryAccessTerm(const TermNode& term)
 //@}
 //@}
 
+
+/*!
+\brief 访问项的值作为记号。
+\return 通过访问项的值取得的记号的指针，或空指针表示无法取得名称。
+\since build 782
+*/
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(observer_ptr<const TokenValue>, TermToNamePtr, const TermNode& term)
 	ImplRet(NPL::TryAccessTerm<TokenValue>(term))
+
+/*!
+\return 转换得到的字符串。
+\sa TermToString
+
+访问项的值作为名称转换为字符串，若失败则提取值的类型和子项数作为构成值的表示。
+除名称外的外部表示方法未指定；结果可能随实现变化。
+*/
+//@{
+/*!
+\brief 访问项的值并转换为字符串形式的外部表示。
+\since build 801
+*/
+YB_ATTR_nodiscard YF_API YB_PURE string
+TermToString(const TermNode&);
+
+/*!
+\brief 访问项的值并转换为可选带有引用标记的字符串形式。
+\note 当前使用前缀 [*] 和空格表示引用项。直接附加字符串，因此通常表示已解析的引用。
+\sa TermToString
+\since build 840
+*/
+YB_ATTR_nodiscard YF_API YB_PURE string
+TermToStringWithReferenceMark(const TermNode&, bool);
+//@}
+
+/*!
+\brief 访问项初始化标签。
+\since build 857
+\sa GetLValueTagsOf
+\sa TermTags
+
+若项表示引用值，使用引用值排除 TermTags::Temporary 后的标签；
+否则，使用项的标签。
+*/
+YB_ATTR_nodiscard YF_API YB_PURE TermTags
+TermToTags(TermNode&);
+
+/*!
+\brief 标记记号节点：递归变换节点，转换其中的词素为记号值。
+\note 先变换子节点。
+\since build 753
+*/
+YF_API void
+TokenizeTerm(TermNode&);
 //@}
 
 
@@ -1372,10 +918,11 @@ public:
 #endif
 };
 
+
 /*!
 \brief 折叠项引用。
 \return 结果引用值及初始化时是否表示引用值。
-\relates TermReference
+\sa TermReference
 \sa TermNode::Tags
 \since build 857
 
@@ -1556,9 +1103,10 @@ TryAccessReferencedTerm(const TermNode& term)
 
 //! \note 使用 NPL::TryAccessLeaf 访问。
 //@{
-//! \since build 854
-//@{
-//! \brief 判断项（的值数据成员）是否为引用项。
+/*!
+\brief 判断项（的值数据成员）是否为引用项。
+\since build 854
+*/
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsReferenceTerm(const TermNode&);
 
@@ -1571,7 +1119,6 @@ IsReferenceTerm(const TermNode&);
 */
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsBoundLValueTerm(const TermNode&);
-//@}
 
 /*!
 \brief 判断项（的值数据成员）是否表示未折叠的引用。
@@ -1588,11 +1135,10 @@ IsUncollapsedTerm(const TermNode&);
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsUniqueTerm(const TermNode&);
 
-//! \since build 909
-//@{
 /*!
 \brief 判断项（的值数据成员）是否表示可修改的对象或可修改的引用值。
 \sa TermReference::IsModifiable
+\since build 909
 */
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsModifiableTerm(const TermNode&);
@@ -1600,10 +1146,10 @@ IsModifiableTerm(const TermNode&);
 /*!
 \brief 判断项（的值数据成员）是否表示临时对象或临时对象的引用值。
 \sa TermReference::IsTemporary
+\since build 909
 */
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsTemporaryTerm(const TermNode&);
-//@}
 //@}
 
 //! \since build 859
@@ -1646,38 +1192,9 @@ ResolveTerm(_func do_resolve, _tTerm&& term)
 }
 
 /*!
+\brief 访问一次解析引用值后的项的指定类型正规值。
 \exception ListTypeError 异常中立：项为列表项。
 \exception bad_any_cast 异常中立：非列表项类型检查失败。
-*/
-//@{
-//! \brief 检查项表示非列表正规值。
-template<typename _type, class _tTerm>
-void
-CheckRegular(_tTerm& term, bool has_ref)
-{
-	if(YB_UNLIKELY(IsBranch(term)))
-		ThrowListTypeErrorForInvalidType(type_id<_type>(), term,
-			has_ref);
-}
-
-/*!
-\brief 访问项的指定类型正规值。
-\note 第一参数是可能带有 const 的左值的 TermNode 或转换为 TermNode 的类型。
-\sa ThrowListTypeErrorForInvalidType
-
-以 NPL::Access 访问调用 NPL::CheckRegular 检查后的项。
-*/
-template<typename _type, class _tTerm>
-YB_ATTR_nodiscard YB_PURE inline auto
-AccessRegular(_tTerm& term, bool has_ref)
-	-> yimpl(decltype(NPL::Access<_type>(term)))
-{
-	NPL::CheckRegular<_type>(term, has_ref);
-	return NPL::Access<_type>(term);
-}
-
-/*!
-\brief 访问一次解析引用值后的项的指定类型正规值。
 \sa NPL::AccessRegular
 \sa NPL::ResolveTerm
 
@@ -1696,7 +1213,6 @@ ResolveRegular(_tTerm& term) -> yimpl(decltype(NPL::Access<_type>(term)))
 		return NPL::AccessRegular<_type>(nd, has_ref);
 	}, term);
 }
-//@}
 //@}
 //@}
 
@@ -2276,6 +1792,67 @@ ReduceToReferenceAt(TermNode&, TermNode&, ResolvedTermReferencePtr);
 */
 inline PDefH(ReductionStatus, ReduceToValue, TermNode& term, TermNode& tm)
 	ImplRet(MoveRValueToReturn(term, tm), ReductionStatus::Retained)
+//@}
+
+
+/*!
+\brief 直接返回状态或取返回值替换指定的项的值数据成员。
+\return 规约结果。
+\sa YSLib::EmplaceCallResult
+\since build 922
+
+若第二参数为 ReductionStatus 值，则直接返回这个值；
+否则，以第二参数指定的对象替换第一参数指定的项的值数据成员，
+	并返回 ReductionStatus::Clean 。
+当发生替换时，若被调用的函数返回类型非 void ，返回值作为项的值被构造。
+调用 YSLib::EmplaceCallResult 对 ValueObject 及引用值处理不同。
+合并处理替换值的部分可以简化一些规约处理器的实现。
+一般地，替换值数据成员隐含不保留子项，而返回 ReductionStatus::Clean ；
+否则，应在此之前直接处理子项，并返回其它规约结果。
+考虑一般实现的性能不确定性，当前实现中，调用 YSLib::EmplaceCallResult 不使用分配器。
+*/
+//@{
+YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(ReductionStatus,
+	EmplaceCallResultOrReturn, TermNode&, ReductionStatus status) ynothrow
+	ImplRet(status)
+//! \since build 927
+YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(ReductionStatus,
+	EmplaceCallResultOrReturn, TermNode&, any_ops::trivial_swap_t,
+	ReductionStatus status) ynothrow
+	ImplRet(status)
+template<typename _tParam, typename... _tParams, yimpl(
+	typename = ystdex::exclude_self_t<ReductionStatus, _tParam>)>
+YB_ATTR_nodiscard inline ReductionStatus
+EmplaceCallResultOrReturn(TermNode& term, _tParam&& arg)
+{
+	// NOTE: By convention, the allocator is always provided by %term.
+	YSLib::EmplaceCallResult(term.Value, yforward(arg), term.get_allocator());
+	return ReductionStatus::Clean;
+}
+//! \since build 927
+template<typename _tParam, typename... _tParams, yimpl(
+	typename = ystdex::exclude_self_t<ReductionStatus, _tParam>)>
+YB_ATTR_nodiscard inline ReductionStatus
+EmplaceCallResultOrReturn(TermNode& term, any_ops::trivial_swap_t,
+	_tParam&& arg)
+{
+	// NOTE: Ditto.
+	YSLib::EmplaceCallResult(term.Value, any_ops::trivial_swap, yforward(arg), 
+		term.get_allocator());
+	return ReductionStatus::Clean;
+}
+//! \since build 936
+template<typename _tParam, size_t _vN>
+YB_ATTR_nodiscard inline ReductionStatus
+EmplaceCallResultOrReturn(TermNode& term, array<ValueObject, _vN> arg)
+{
+	TermNode::Container con(term.get_allocator());
+
+	for(auto& vo : arg)
+		con.emplace_back(NoContainer, std::move(vo));
+	con.swap(term.GetContainerRef());
+	return ReductionStatus::Retained;
+}
 //@}
 
 
@@ -2879,7 +2456,7 @@ private:
 	ReducerSequenceBase stashed{current.get_allocator()};
 	/*!
 	\brief 被调用以先入后出顺序保存的上下文的动作序列。
-	\sa MakeCurrentActionGuard
+	\sa ReductionGuard
 	*/
 	ReducerSequence stacked{current.get_allocator()};
 	//@}
@@ -3281,7 +2858,7 @@ YB_ATTR_nodiscard YB_PURE inline PDefH(Environment::allocator_type,
 	ImplRet(NPL::ToBindingsAllocator(env.Bindings))
 YB_ATTR_nodiscard YB_PURE inline PDefH(Environment::allocator_type,
 	ToBindingsAllocator, const ContextNode& ctx) ynothrow
-	ImplRet(NPL::ToBindingsAllocator(ctx.GetRecordRef()))	
+	ImplRet(NPL::ToBindingsAllocator(ctx.GetRecordRef()))
 //@}
 
 /*!

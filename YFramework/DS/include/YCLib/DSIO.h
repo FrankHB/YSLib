@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2020 FrankHB.
+	© 2011-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r1609
+\version r1611
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2020-10-16 21:07 +0800
+	2021-12-29 01:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -230,7 +230,7 @@ using namespace platform::Threading;
 // XXX: Mutex lock probable may throw on platforms other than DS. However,
 //	ISO C++ [thread.req.exception] guaranteed only specified error conditions
 //	are allowed, and all of them in [thread.mutex.requirements.mutex] are
-//	carefully avoided. Thus the exception specifications are not effected even
+//	carefully avoided. Thus the exception specifications are not affected even
 //	if each creation of lock is not in a try-block.
 
 

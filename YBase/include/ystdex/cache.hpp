@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2020 FrankHB.
+	© 2013-2016, 2018-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cache.hpp
 \ingroup YStandardEx
 \brief 高速缓冲容器模板。
-\version r602
+\version r604
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-12-22 20:19:14 +0800
 \par 修改时间:
-	2020-02-15 16:33 +0800
+	2021-12-29 01:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YB_INC_ystdex_cache_hpp_ 1
 
 #include "allocator.hpp" // for std::pair, yassume, allocator_traits, are_same,
-//	rebind_alloc_t;
+//	rebind_alloc_t, std::hash;
 #include <list> // for std::list;
 #include <unordered_map> // for std::unordered_map;
 #include <map> // for std::map;

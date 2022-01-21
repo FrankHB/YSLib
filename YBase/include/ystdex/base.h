@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015, 2017-2019 FrankHB.
+	© 2013-2015, 2017-2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file base.h
 \ingroup YStandardEx
 \brief 基类实用设施。
-\version r242
+\version r245
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2014-11-28 11:59:15 +0800
 \par 修改时间:
-	2019-10-03 21:06 +0800
+	2021-12-29 01:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,6 +40,9 @@ namespace ystdex
 */
 namespace bases
 {
+
+// XXX: A simpler version of %noncopyable was proposed in WG21 N2600 before ISO
+//	C++11, but not adopted.
 
 /*!
 \brief 不可复制对象：禁止派生类调用默认原型的复制构造函数和复制赋值操作符。

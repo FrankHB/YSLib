@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r663
+\version r666
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2016-06-19 05:06 +0800
+	2021-12-29 01:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,8 +26,7 @@
 
 
 #include "Helper/YModules.h"
-#include YFM_Helper_Environment // for Host::Window, ::RAWINPUT, WM_*,
-//	ystdex::pun_storage_t, ystdex::replace_cast;
+#include YFM_Helper_Environment // for Host::Window, ::RAWINPUT, WM_*;
 #include YFM_Helper_GUIApplication // for FetchGUIHost;
 #include YFM_YCLib_Input // for platform::ClearKeyStates;
 #if YCL_Win32

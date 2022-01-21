@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018 FrankHB.
+	© 2009-2016, 2018, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Keys.cpp
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r1276
+\version r1279
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:32:37 +0800
 \par 修改时间:
-	2018-09-14 14:20 +0800
+	2021-12-29 01:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_Keys
+#include YFM_YCLib_Keys // for octet;
 #include YFM_YCLib_Debug
 #include YFM_YCLib_NativeAPI
 #include YFM_YCLib_Container // for size;
@@ -115,7 +115,7 @@ yconstexpr const Category KeyCategoryTable[KeyBitsetWidth]{
 	Editing | NonKeyboard // Extended tertiary key.
 };
 #elif YCL_Win32
-// See http://msdn.microsoft.com/en-us/library/windows/desktop/dd375731%28v=vs.85%29.aspx.
+// See http://msdn.microsoft.com/library/windows/desktop/dd375731%28v=vs.85%29.aspx.
 yconstexpr const Category KeyCategoryTable[KeyBitsetWidth]{
 	None, // 0 is not assigned.
 	Editing | NonKeyboard, // VK_LBUTTON is a mouse key.

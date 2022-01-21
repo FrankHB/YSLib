@@ -1,4 +1,4 @@
-﻿"#", "(C) 2014-2021 FrankHB.",
+﻿"#", "(C) 2014-2022 FrankHB.",
 "NPLA1 script for building YSLib using SHBuild.";
 
 $import! std.strings ++ string->symbol string-empty?,
@@ -33,7 +33,7 @@ $def! env_SHBuild_Common_ $provide! (
 	putss
 	use-ubsan?
 	win32?
-) load ($let () ++ (env-get "SHBuild_ToolDir") "/SHBuild-YSLib-common.txt");
+) load (++ (env-get "SHBuild_ToolDir") "/SHBuild-YSLib-common.txt");
 
 $def! SHBuild_ToolDir safeenv-get "SHBuild_ToolDir";
 $assert-absolute-path SHBuild_ToolDir;
@@ -163,7 +163,7 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 						$let ((dname ++ (dnameof lib-name)))
 						(
 							"TODO", "Make import library output configurable.";
-							$if ($and? dynamic (win32? host-os))
+							$if ($and dynamic (win32? host-os))
 								(safeenv-set "LDFLAGS"
 									(cons-cmd (++ "-Wl,--out-implib,\""
 										(SHBuild_2m
@@ -176,7 +176,7 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 								inc-pch))
 						);
 					"XXX", "Workarounds.";
-					$def! mingw32r $and? (eqv? host-platform_ "MinGW32")
+					$def! mingw32r $and (eqv? host-platform_ "MinGW32")
 						(not? debug);
 					build-lib "YBase" inc-pch DFLAG_B_YB INCLUDES_YBase
 						($if mingw32r "-fno-lto" "");
@@ -188,7 +188,7 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 					"XXX", "See $2020-10 @ doc/Workflow.txt.";
 					$def! use-g++ eqv? (SHBuild_CheckCXX host-os CXX) "G++";
 					$def! mingw64g
-						$and? use-g++ (eqv? host-platform_ "MinGW64");
+						$and use-g++ (eqv? host-platform_ "MinGW64");
 					"XXX", "See $2020-12 @ doc/Workflow.txt.";
 					$def! SHBuild_LDFLAGS safeenv-get "SHBuild_LDFLAGS";
 					$defl! add-fix-flags ()
@@ -196,9 +196,9 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 							(mingw64g $if dynamic
 								"-Og -g -fno-var-tracking-assignments"
 								"-O1 -g -fno-var-tracking-assignments")
-							(($and? use-g++ (not? debug) dynamic
+							(($and use-g++ (not? debug) dynamic
 								(eqv? host-platform_ "Linux")
-								($or? (use-ubsan? SHBuild_CXXFLAGS)
+								($or (use-ubsan? SHBuild_CXXFLAGS)
 								(use-ubsan? SHBuild_LDFLAGS)))
 								"-fdisable-tree-einline -fno-lto")
 							(mingw32r "-fno-lto")
@@ -309,7 +309,7 @@ $let ()
 			$unless (string-empty? INCLUDES_freetype)
 			(
 				"TODO", "Check file existence even if optional in some cases.";
-				$if ($or? use-debug use-release) (InstLib_YF_ "libfreetype.a")
+				$if ($or use-debug use-release) (InstLib_YF_ "libfreetype.a")
 			);
 			$if (use-debug) (InstLib_YF_ "libFreeImaged.a"),
 			$if (use-release) (InstLib_YF_ "libFreeImage.a")
@@ -373,9 +373,8 @@ $if (safeenv-empty? "SHBuild_NoDev")
 				extra-opts (list CXXFLAGS INCLUDES_)))) tools-list);
 	puts "Installing other development tools ...";
 	$import! env_SHB_ InstHardLinkExe;
-	for-each-ltr ($lambda (name) (
-		InstHardLinkExe SR_SHBuild_ SR_Bin_ name
-	)) tools-list;
+	for-each-ltr ($lambda (name) InstHardLinkExe SR_SHBuild_ SR_Bin_ name)
+		tools-list;
 	"XXX", "Version of Windows? Extract as a function?";
 	$if (win32? host-os)
 	(

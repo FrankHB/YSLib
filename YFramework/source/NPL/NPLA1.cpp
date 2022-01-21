@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2021 FrankHB.
+	© 2014-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r22189
+\version r22216
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2021-12-28 08:54 +0800
+	2022-01-15 01:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,18 +30,18 @@
 //	any_ops::trivial_swap, type_index, string_view, std::hash, ystdex::equal_to,
 //	YSLib::unordered_map, std::piecewise_construct, YSLib::lock_guard,
 //	YSLib::mutex, type_id, ContextHandler, NPL::make_observer, IsBranch,
-//	CheckReducible, IsNPLAExtendedLiteralNonDigitPrefix, AllocatorHolder,
-//	ystdex::ref, YSLib::IValueHolder, YSLib::AllocatedHolderOperations, any,
-//	ystdex::as_const, NPL::forward_as_tuple, uintmax_t, ystdex::bind1,
-//	TokenValue, Forms, std::allocator_arg, YSLib::stack, YSLib::vector,
-//	TermTags, function, TermReference, GetLValueTagsOf, NPL::TryAccessLeaf,
-//	ListReductionFailure, ystdex::sfmt, PropagateTo, NPL::IsMovable,
-//	in_place_type, InvalidReference, NPL::Deref, IsLeaf, ResolveTerm,
-//	ThrowInsufficientTermsError, ThrowListTypeErrorForNonlist,
-//	ystdex::update_thunk, Environment, shared_ptr, NPL::AsTermNode, IsTyped,
-//	ystdex::retry_on_cond, AccessFirstSubterm, ystdex::make_transform,
-//	IsBranchedList, std::placeholders, NoContainer, ystdex::try_emplace,
-//	NPL::Access, YSLib::Informative, ystdex::unique_guard,
+//	CheckReducible, IsNPLAExtendedLiteralNonDigitPrefix, IsAllSignLexeme,
+//	AllocatorHolder, ystdex::ref, YSLib::IValueHolder,
+//	YSLib::AllocatedHolderOperations, any, ystdex::as_const,
+//	NPL::forward_as_tuple, uintmax_t, ystdex::bind1, TokenValue, Forms,
+//	std::allocator_arg, YSLib::stack, YSLib::vector, TermTags, function,
+//	TermReference, GetLValueTagsOf, NPL::TryAccessLeaf, ListReductionFailure,
+//	ystdex::sfmt, PropagateTo, NPL::IsMovable, in_place_type, InvalidReference,
+//	NPL::Deref, IsLeaf, ResolveTerm, ThrowInsufficientTermsError,
+//	ThrowListTypeErrorForNonlist, ystdex::update_thunk, Environment, shared_ptr,
+//	NPL::AsTermNode, IsTyped, ystdex::retry_on_cond, AccessFirstSubterm,
+//	ystdex::make_transform, IsBranchedList, std::placeholders, NoContainer,
+//	ystdex::try_emplace, NPL::Access, YSLib::Informative, ystdex::unique_guard,
 //	CategorizeBasicLexeme, DeliteralizeUnchecked, Deliteralize,
 //	ystdex::isdigit, INT_MAX, ResolveIdentifier, ystdex::ref_eq,
 //	NPL::TryAccessTerm, YSLib::share_move, ystdex::call_value_or,
@@ -361,29 +361,23 @@ EmplaceReference(TermNode::Container& con, TermNode& o, TermReference& ref,
 			ValueObject(std::allocator_arg, con.get_allocator(),
 			in_place_type<TermReference>, std::move(ref)));
 	else
-		con.emplace_back(o.GetContainer(), ValueObject(
-			std::allocator_arg, con.get_allocator(), in_place_type<
-			TermReference>, ref.GetTags(), ref));
+		con.emplace_back(o.GetContainer(),
+			ValueObject(std::allocator_arg, con.get_allocator(),
+			in_place_type<TermReference>, ref.GetTags(), ref));
 }
 
 
-//! \since build 933
-//@{
-// NOTE: See the implementation of %IsNPLAExtendedLiteral.
-YB_ATTR_nodiscard YB_PURE PDefH(bool, IsAllSignLexeme, string_view id) ynothrowv
-	ImplRet(YAssertNonnull(id.data()),
-		id.find_first_not_of("+-") == string_view::npos)
-
+//! \since build 936
 YB_ATTR_nodiscard YB_PURE bool
-ParseSymbol(TermNode& term, string_view id) ynothrowv
+ParseSymbol(TermNode& term, string_view id)
 {
 	YAssertNonnull(id.data());
 	YAssert(!id.empty(), "Invalid lexeme found.");
 	if(CheckReducible(DefaultEvaluateLeaf(term, id)))
 	{
-		// NOTE: As %IsNPLAExtendedLiteral, without handling the empty string
-		//	and the digit prefix cases.
-		if(YB_UNLIKELY(id.size() > 1 && IsNPLAExtendedLiteralNonDigitPrefix(
+		// NOTE: Supported liteals should have been comsumed in
+		//	%DefaultEvaluateLeaf. Other extended literals are unsupported.
+		if(id.size() > 1 && YB_UNLIKELY(IsNPLAExtendedLiteralNonDigitPrefix(
 			id.front()) && !IsAllSignLexeme(id)))
 			ThrowUnsupportedLiteralError(id);
 		// NOTE: This is to be evaluated as identifier later.
@@ -391,7 +385,6 @@ ParseSymbol(TermNode& term, string_view id) ynothrowv
 	}
 	return {};
 }
-//@}
 
 
 //! \since build 891

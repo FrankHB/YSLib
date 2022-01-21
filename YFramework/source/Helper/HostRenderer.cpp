@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018 FrankHB.
+	© 2013-2016, 2018, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r714
+\version r718
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2018-12-14 08:11 +0800
+	2021-12-29 01:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -252,7 +252,7 @@ HostRenderer::InitWidgetView()
 			make_unique<Windows::UI::ControlView>(wnd.GetNativeHandle()));
 	wnd.GetGUIHostRef().Desktop += widget;
 #endif
-	// FIXME: Allow user to specify which kinds of views should be adjusted.
+	// TODO: Allow the user to specify which kinds of views should be adjusted.
 	auto& view_ref(widget.get().GetView());
 
 	RootMode = typeid(view_ref) == typeid(UI::View);
@@ -353,6 +353,8 @@ HostRenderer::Wait()
 	// XXX: Busy wait.
 	while(!p_wnd)
 		// FIXME: This thread will hang if window pointer is always not ready.
+		// TODO: There needs to be some interface guarantees to avoid it, or
+		//	some timeout has to be introduced.
 		p_wnd = GetWindowPtr();
 	return *p_wnd;
 }

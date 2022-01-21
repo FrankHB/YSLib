@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2019-2020 FrankHB.
+	© 2012-2016, 2019-2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Configuration.h
 \ingroup NPL
 \brief 配置设置。
-\version r404
+\version r407
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:08 +0800
 \par 修改时间:
-	2020-04-22 02:23 +0800
+	2021-12-29 01:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define NPL_INC_Configuration_h_
 
 #include "YModules.h"
-#include YFM_NPL_NPLA1 // for NoContainer, ystdex::exclude_self_params_t;
+#include YFM_NPL_NPLA1 // for ValueNode, NoContainer,
+//	ystdex::exclude_self_params_t;
 
 namespace NPL
 {

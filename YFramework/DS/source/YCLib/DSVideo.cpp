@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015, 2018 FrankHB.
+	© 2015, 2018, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 视频输出接口。
-\version r200
+\version r202
 \author FrankHB <frankhb1989@gmail.com>
 \since build 585
 \par 创建时间:
 	2015-03-17 12:46:32 +0800
 \par 修改时间:
-	2018-09-20 02:33 +0800
+	2021-12-29 01:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -130,6 +130,7 @@ DSConsoleInit(bool use_customed, YSLib::Drawing::Color fc,
 	}() : ::consoleDemoInit()))
 	{
 		// NOTE: Set cursor position to left top side.
+		// XXX: Error from 'std::printf' is ignored.
 		std::printf("\x1b[0;0H");
 
 		const auto bg_palette(use_customed ? BG_PALETTE : BG_PALETTE_SUB);

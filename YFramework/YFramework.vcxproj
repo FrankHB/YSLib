@@ -85,6 +85,7 @@
     <ClInclude Include="include\Helper\YModules.h" />
     <ClInclude Include="include\NPL\Configuration.h" />
     <ClInclude Include="include\NPL\Dependency.h" />
+    <ClInclude Include="include\NPL\Exception.h" />
     <ClInclude Include="include\NPL\Lexical.h" />
     <ClInclude Include="include\NPL\NPL.h" />
     <ClInclude Include="include\NPL\NPLA.h" />
@@ -92,6 +93,7 @@
     <ClInclude Include="include\NPL\NPLA1Forms.h" />
     <ClInclude Include="include\NPL\NPLAMath.h" />
     <ClInclude Include="include\NPL\SContext.h" />
+    <ClInclude Include="include\NPL\SXML.h" />
     <ClInclude Include="include\NPL\YModules.h" />
     <ClInclude Include="include\YBaseMacro.h" />
     <ClInclude Include="include\YCLib\Container.h" />
@@ -255,10 +257,12 @@
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
     </ClCompile>
+    <ClCompile Include="source\NPL\Exception.cpp" />
     <ClCompile Include="source\NPL\NPLA.cpp" />
     <ClCompile Include="source\NPL\NPLA1Forms.cpp" />
     <ClCompile Include="source\NPL\NPLA1Internals.cpp" />
     <ClCompile Include="source\NPL\NPLAMath.cpp" />
+    <ClCompile Include="source\NPL\SXML.cpp" />
     <ClCompile Include="Win32\source\Helper\Win32Control.cpp">
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>

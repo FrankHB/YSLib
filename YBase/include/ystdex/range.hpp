@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016, 2018-2021 FrankHB.
+	© 2015-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file range.hpp
 \ingroup YStandardEx
 \brief 范围操作。
-\version r948
+\version r1020
 \author FrankHB <frankhb1989@gmail.com>
 \since build 624
 \par 创建时间:
 	2015-08-18 22:33:54 +0800
 \par 修改时间:
-	2021-12-21 20:14 +0800
+	2022-01-01 14:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YB_INC_ystdex_range_hpp_
 #define YB_INC_ystdex_range_hpp_ 1
 
-#include "addressof.hpp" // for <initializer_list>, ystdex::addressof;
+#include "addressof.hpp" // for <initializer_list>, ystdex::addressof,
+//	enable_if_t;
 #include <iterator> // for <iteartor>, std::reverse_iterator, std::begin,
 //	std::end;
 // XXX: For efficiency, <valarray> is not supported here. Use %std names
@@ -36,11 +37,13 @@
 
 /*!
 \brief \c \<iterator> 特性测试宏。
+\see ISO C++20 [version.syn] 。
 \see WG21 P0941R2 2.2 。
 */
 //@{
 /*!
 \see WG21 P0031R0 。
+\see https://docs.microsoft.com/cpp/preprocessor/predefined-macros 。
 \since build 834
 */
 //@{
@@ -65,7 +68,7 @@
 //@}
 /*!
 \see WG21 N4280 。
-\see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
+\see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
 \since build 834
 */
 //@{
@@ -88,7 +91,6 @@ namespace ystdex
 \ingroup iterators
 \brief 迭代器适配器。
 */
-
 
 //! \since build 833
 inline namespace cpp2017
@@ -157,13 +159,13 @@ public:
 		return *this;
 	}
 
-	YB_ATTR_nodiscard yconstfn _tIter
+	YB_ATTR_nodiscard YB_PURE yconstfn _tIter
 	base() const
 	{
 		return current;
 	}
 
-	YB_ATTR_nodiscard yconstfn_relaxed reference
+	YB_ATTR_nodiscard YB_PURE yconstfn_relaxed reference
 	operator*() const
 	{
 		_tIter tmp = current;
@@ -175,7 +177,7 @@ public:
 	\see LWG 1052 。
 	\see LWG 2188 。
 	*/
-	YB_ATTR_nodiscard yconstfn pointer
+	YB_ATTR_nodiscard YB_PURE yconstfn pointer
 	operator->() const
 	{
 		return ystdex::addressof(operator*());
@@ -218,7 +220,7 @@ public:
 		return *this;
 	}
 
-	YB_ATTR_nodiscard yconstfn reverse_iterator
+	YB_ATTR_nodiscard YB_PURE yconstfn reverse_iterator
 	operator+(difference_type n) const
 	{
 		return reverse_iterator(current - n);
@@ -231,14 +233,14 @@ public:
 		return *this;
 	}
 
-	YB_ATTR_nodiscard yconstfn reverse_iterator
+	YB_ATTR_nodiscard YB_PURE yconstfn reverse_iterator
 	operator-(difference_type n) const
 	{
 		return reverse_iterator(current + n);
 	}
 
 	//! \see LWG 386 。
-	YB_ATTR_nodiscard yconstfn yimpl(reference)
+	YB_ATTR_nodiscard YB_PURE yconstfn yimpl(reference)
 	operator[](difference_type n) const
 	{
 		return *(*this + n);
@@ -250,49 +252,49 @@ public:
 	*/
 	//@{
 	template<typename _tIter2>
-	YB_ATTR_nodiscard friend yconstfn bool
+	YB_ATTR_nodiscard YB_PURE friend yconstfn bool
 	operator==(const reverse_iterator& x, const reverse_iterator<_tIter2>& y)
 	{
 		return x.current == y.current;
 	}
 
 	template<typename _tIter2>
-	YB_ATTR_nodiscard friend yconstfn bool
+	YB_ATTR_nodiscard YB_PURE friend yconstfn bool
 	operator<(const reverse_iterator& x, const reverse_iterator<_tIter2>& y)
 	{
 		return x.current > y.current;
 	}
 
 	template<typename _tIter2>
-	YB_ATTR_nodiscard friend yconstfn bool
+	YB_ATTR_nodiscard YB_PURE friend yconstfn bool
 	operator!=(const reverse_iterator& x, const reverse_iterator<_tIter2>& y)
 	{
 		return x.current != y.current;
 	}
 
 	template<typename _tIter2>
-	YB_ATTR_nodiscard friend yconstfn bool
+	YB_ATTR_nodiscard YB_PURE friend yconstfn bool
 	operator>(const reverse_iterator& x, const reverse_iterator<_tIter2>& y)
 	{
 		return x.current < y.current;
 	}
 
 	template<typename _tIter2>
-	YB_ATTR_nodiscard friend yconstfn bool
+	YB_ATTR_nodiscard YB_PURE friend yconstfn bool
 	operator>=(const reverse_iterator& x, const reverse_iterator<_tIter2>& y)
 	{
 		return x.current <= y.current;
 	}
 
 	template<typename _tIter2>
-	YB_ATTR_nodiscard friend yconstfn bool
+	YB_ATTR_nodiscard YB_PURE friend yconstfn bool
 	operator<=(const reverse_iterator& x, const reverse_iterator<_tIter2>& y)
 	{
 		return x.current >= y.current;
 	}
 	//@}
 
-	YB_ATTR_nodiscard friend yconstfn reverse_iterator
+	YB_ATTR_nodiscard YB_PURE friend yconstfn reverse_iterator
 	operator+(difference_type n, const reverse_iterator& x)
 	{
 		return reverse_iterator(x.current - n);
@@ -304,7 +306,7 @@ public:
 \since build 844
 */
 template<typename _tIter, typename _tIter2>
-YB_ATTR_nodiscard yconstfn auto
+YB_ATTR_nodiscard YB_PURE yconstfn auto
 operator-(const reverse_iterator<_tIter>& x, const reverse_iterator<_tIter2>& y)
 	-> decltype(y.base() - x.base())
 {
@@ -319,15 +321,17 @@ using std::begin;
 //! \since build 624
 using std::end;
 #else
-template<class _tRange>
-yconstfn auto
-begin(_tRange& c) -> decltype(c.begin())
+template<class _tRange, yimpl(typename... _tParams,
+	typename = enable_if_t<sizeof...(_tParams) == 0>)>
+YB_ATTR_nodiscard YB_PURE yconstfn auto
+begin(_tRange& c, yimpl(_tParams&&...)) -> decltype(c.begin())
 {
 	return c.begin();
 }
-template<class _tRange>
-yconstfn auto
-begin(const _tRange& c) -> decltype(c.begin())
+template<class _tRange, yimpl(typename... _tParams,
+	typename = enable_if_t<sizeof...(_tParams) == 0>)>
+YB_ATTR_nodiscard YB_PURE yconstfn auto
+begin(const _tRange& c, yimpl(_tParams&&...)) -> decltype(c.begin())
 {
 	return c.begin();
 }
@@ -335,28 +339,32 @@ begin(const _tRange& c) -> decltype(c.begin())
 //	they do not change in P0031R0.
 //! \since build 834
 template<typename _type, size_t _vN>
-yconstfn _type*
+YB_ATTR_nodiscard YB_PURE yconstfn _type*
 begin(_type(&array)[_vN]) ynothrow
 {
 	return array;
 }
 
-template<class _tRange>
-yconstfn auto
-end(_tRange& c) -> decltype(c.end())
+//! \since build 936
+template<class _tRange, yimpl(typename... _tParams,
+	typename = enable_if_t<sizeof...(_tParams) == 0>)>
+YB_ATTR_nodiscard YB_PURE yconstfn auto
+end(_tRange& c, yimpl(_tParams&&...)) -> decltype(c.end())
 {
 	return c.end();
 }
-template<class _tRange>
-yconstfn auto
-end(const _tRange& c) -> decltype(c.end())
+//! \since build 936
+template<class _tRange, yimpl(typename... _tParams,
+	typename = enable_if_t<sizeof...(_tParams) == 0>)>
+YB_ATTR_nodiscard YB_PURE yconstfn auto
+end(const _tRange& c, yimpl(_tParams&&...)) -> decltype(c.end())
 {
 	return c.end();
 }
-// NOTE: See above.
+// NOTE: Ditto.
 //! \since build 834
 template<typename _type, size_t _vN>
-yconstfn _type*
+YB_ATTR_nodiscard YB_PURE yconstfn _type*
 end(_type(&array)[_vN]) ynothrow
 {
 	return array + _vN;
@@ -372,7 +380,7 @@ end(_type(&array)[_vN]) ynothrow
 //@{
 //! \since build 664
 template<typename _type, size_t _vN>
-yconstfn _type*
+YB_ATTR_nodiscard YB_PURE yconstfn _type*
 begin(_type(&&array)[_vN]) ynothrow
 {
 	return array;
@@ -380,21 +388,21 @@ begin(_type(&&array)[_vN]) ynothrow
 
 //! \since build 664
 template<typename _type, size_t _vN>
-yconstfn _type*
+YB_ATTR_nodiscard YB_PURE yconstfn _type*
 end(_type(&&array)[_vN]) ynothrow
 {
 	return array + _vN;
 }
 
 template<typename _type, size_t _vN>
-yconstfn reverse_iterator<_type*>
+YB_ATTR_nodiscard YB_PURE yconstfn reverse_iterator<_type*>
 rbegin(_type(&&array)[_vN])
 {
 	return reverse_iterator<_type*>(array + _vN);
 }
 
 template<typename _type, size_t _vN>
-yconstfn reverse_iterator<_type*>
+YB_ATTR_nodiscard YB_PURE yconstfn reverse_iterator<_type*>
 rend(_type(&&array)[_vN])
 {
 	return reverse_iterator<_type*>(array);
@@ -415,7 +423,7 @@ using std::cend;
 #else
 //! \since build 834
 template<typename _tRange>
-yconstfn auto
+YB_ATTR_nodiscard YB_PURE yconstfn auto
 cbegin(const _tRange& c) ynoexcept_spec(ystdex::begin(c))
 	-> decltype(ystdex::begin(c))
 {
@@ -424,7 +432,7 @@ cbegin(const _tRange& c) ynoexcept_spec(ystdex::begin(c))
 
 //! \since build 834
 template<typename _tRange>
-yconstfn auto
+YB_ATTR_nodiscard YB_PURE yconstfn auto
 cend(const _tRange& c) ynoexcept_spec(ystdex::end(c))
 	-> decltype(ystdex::end(c))
 {
@@ -448,69 +456,68 @@ using std::crbegin;
 using std::crend;
 #else
 template<class _tRange>
-yconstfn auto
+YB_ATTR_nodiscard YB_PURE yconstfn auto
 rbegin(_tRange& c) -> decltype(c.rbegin())
 {
 	return c.rbegin();
 }
 template<class _tRange>
-yconstfn auto
+YB_ATTR_nodiscard YB_PURE yconstfn auto
 rbegin(const _tRange& c) -> decltype(c.rbegin())
 {
 	return c.rbegin();
 }
 //! \since build 833
 template<typename _type, size_t _vN>
-yconstfn reverse_iterator<_type*>
+YB_ATTR_nodiscard YB_PURE yconstfn reverse_iterator<_type*>
 rbegin(_type(&array)[_vN])
 {
 	return reverse_iterator<_type*>(array + _vN);
 }
-
 //! \since build 833
 template<typename _tElem>
-yconstfn reverse_iterator<const _tElem*>
+YB_ATTR_nodiscard YB_PURE yconstfn reverse_iterator<const _tElem*>
 rbegin(std::initializer_list<_tElem> il)
 {
 	return reverse_iterator<const _tElem*>(il.end());
 }
 
 template<class _tRange>
-yconstfn auto
+YB_ATTR_nodiscard YB_PURE yconstfn auto
 rend(_tRange& c) -> decltype(c.rend())
 {
 	return c.rend();
 }
 template<class _tRange>
-yconstfn auto
+YB_ATTR_nodiscard YB_PURE yconstfn auto
 rend(const _tRange& c) -> decltype(c.rend())
 {
 	return c.rend();
 }
 //! \since build 833
 template<typename _type, size_t _vN>
-yconstfn reverse_iterator<_type*>
+YB_ATTR_nodiscard YB_PURE yconstfn reverse_iterator<_type*>
 rend(_type(&array)[_vN])
 {
 	return reverse_iterator<_type*>(array);
 }
 //! \since build 833
 template<typename _tElem>
-yconstfn reverse_iterator<const _tElem*>
+YB_ATTR_nodiscard YB_PURE yconstfn reverse_iterator<const _tElem*>
 rend(std::initializer_list<_tElem> il)
 {
 	return reverse_iterator<const _tElem*>(il.begin());
 }
 
 template<typename _tRange>
-yconstfn auto
+YB_ATTR_nodiscard YB_PURE yconstfn auto
 crbegin(const _tRange& c) -> decltype(ystdex::rbegin(c))
 {
 	return ystdex::rbegin(c);
 }
 
 template<typename _tRange>
-yconstfn auto
+YB_ATTR_nodiscard YB_PURE yconstfn auto
 crend(const _tRange& c) -> decltype(ystdex::rend(c))
 {
 	return ystdex::rend(c);
@@ -535,7 +542,6 @@ using std::size;
 using std::empty;
 using std::data;
 #else
-
 template<class _tRange>
 yconstfn auto
 size(const _tRange& c) -> decltype(c.size())
@@ -543,7 +549,7 @@ size(const _tRange& c) -> decltype(c.size())
 	return c.size();
 }
 template<typename _type, size_t _vN>
-yconstfn size_t
+YB_ATTR_nodiscard YB_PURE yconstfn size_t
 size(const _type(&)[_vN]) ynothrow
 {
 	return _vN;
@@ -551,7 +557,7 @@ size(const _type(&)[_vN]) ynothrow
 #if __cplusplus <= 201402L
 //! \see CWG 1591 。
 template<typename _tElem>
-yconstfn size_t
+YB_ATTR_nodiscard YB_PURE yconstfn size_t
 size(std::initializer_list<_tElem> il) ynothrow
 {
 	return il.size();
@@ -559,44 +565,44 @@ size(std::initializer_list<_tElem> il) ynothrow
 #endif
 
 template<class _tRange>
-YB_ATTR_nodiscard yconstfn auto
+YB_ATTR_nodiscard YB_PURE yconstfn auto
 empty(const _tRange& c) -> decltype(c.empty())
 {
 	return c.empty();
 }
 template<typename _type, size_t _vN>
-YB_ATTR_nodiscard yconstfn bool
+YB_ATTR_nodiscard YB_PURE yconstfn bool
 empty(const _type(&)[_vN]) ynothrow
 {
 	return {};
 }
 template<typename _tElem>
-YB_ATTR_nodiscard yconstfn bool
+YB_ATTR_nodiscard YB_PURE yconstfn bool
 empty(std::initializer_list<_tElem> il) ynothrow
 {
 	return il.size() == 0;
 }
 
 template<typename _tRange>
-yconstfn auto
+YB_ATTR_nodiscard YB_PURE yconstfn auto
 data(_tRange& c) -> decltype(c.data())
 {
 	return c.data();
 }
 template<typename _tRange>
-yconstfn auto
+YB_ATTR_nodiscard YB_PURE yconstfn auto
 data(const _tRange& c) -> decltype(c.data())
 {
 	return c.data();
 }
 template<typename _type, size_t _vN>
-yconstfn _type*
+YB_ATTR_nodiscard YB_PURE yconstfn _type*
 data(_type(&array)[_vN]) ynothrow
 {
 	return array;
 }
 template<typename _tElem>
-yconstfn const _tElem*
+YB_ATTR_nodiscard YB_PURE yconstfn const _tElem*
 data(std::initializer_list<_tElem> il) ynothrow
 {
 	return il.begin();
@@ -607,7 +613,7 @@ data(std::initializer_list<_tElem> il) ynothrow
 
 //! \ingroup YBase_replacement_features
 template<typename _type, size_t _vN>
-yconstfn _type*
+YB_ATTR_nodiscard YB_PURE yconstfn _type*
 data(_type(&&array)[_vN]) ynothrow
 {
 	return array;
@@ -624,15 +630,14 @@ inline namespace cpp2014
 //! \see CWG 1591 。
 //@{
 template<typename _tElem>
-yconstfn const _tElem*
+YB_ATTR_nodiscard YB_PURE yconstfn const _tElem*
 cbegin(std::initializer_list<_tElem> il) ynothrow
 {
 	return il.begin();
 }
 
-//! \see CWG 1591 。
 template<typename _tElem>
-yconstfn const _tElem*
+YB_ATTR_nodiscard YB_PURE yconstfn const _tElem*
 cend(std::initializer_list<_tElem> il) ynothrow
 {
 	return il.end();
@@ -640,7 +645,7 @@ cend(std::initializer_list<_tElem> il) ynothrow
 
 //! \since build 833
 template<typename _tElem>
-yconstfn reverse_iterator<const _tElem*>
+YB_ATTR_nodiscard YB_PURE yconstfn reverse_iterator<const _tElem*>
 crbegin(std::initializer_list<_tElem> il) ynothrow
 {
 	return ystdex::rbegin(il);
@@ -648,7 +653,7 @@ crbegin(std::initializer_list<_tElem> il) ynothrow
 
 //! \since build 833
 template<typename _tElem>
-yconstfn reverse_iterator<const _tElem*>
+YB_ATTR_nodiscard YB_PURE yconstfn reverse_iterator<const _tElem*>
 crend(std::initializer_list<_tElem> il) ynothrow
 {
 	return ystdex::rend(il);

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2019 FrankHB.
+	© 2011-2016, 2018-2019, 2021 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file deref_op.hpp
 \ingroup YStandardEx
 \brief 解引用操作。
-\version r261
+\version r263
 \author FrankHB <frankhb1989@gmail.com>
 \since build 576
 \par 创建时间:
 	2015-02-10 13:12:26 +0800
 \par 修改时间:
-	2019-08-06 22:05 +0800
+	2021-12-29 01:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_deref_op_hpp_
 #define YB_INC_ystdex_deref_op_hpp_ 1
 
-#include "meta.hpp" // for internal "meta.hpp", decay_t;
+#include "meta.hpp" // for internal "meta.hpp", decay_t, nullptr_t;
 #include "cassert.h" // for yverify;
 
 namespace ystdex
