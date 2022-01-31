@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2021 FrankHB.
+	© 2013-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4783
+\version r4830
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2021-12-22 02:30 +0800
+	2022-01-23 06:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -4687,6 +4687,7 @@ The implementation of 'ystdex::swap_underlying' is fixed.
 	
 $2021-12:
 
+report.impl:
 Replacements of features in ISO C++20 <bit> header is now supported, as well as several extensions.
 	Only 'std::countl_zero' and 'std::countr_zero' in 'std' are implemented now.
 		More interface would be implemented in future.
@@ -4725,6 +4726,53 @@ Replacements of features in ISO C++20 <bit> header is now supported, as well as 
 						These are supported by GCC, but not other implementations.
 							This is fit for working around the GCC-specific issues.
 					As a fallback, inlining assembly code is used for GCC.
+
+$2022-01:
+
+report.impl:
+Allocator argument passing has been revised.
+	The $2020-09 report.impl results are still remained effective for current x86_64-pc-linux G++ 11.1.
+	However, interface correctness are more important.
+		The bugs of support of lvalue references of allocator deleters have been fixed.
+			One of the fix is to change the parameter in a constructor of 'ystdex::allocator_guard_delete' to reference.
+				The constructor is changed to a template.
+				This is more consistent to 'ystdex::allocator_delete'.
+			This has some performance peanlty in some containers, but finally worked around and resulted even a slightly better than before. See below.
+		The alias template 'ystdex::allocator_guard' is also fixed to support of the lvalue reference parameter.
+	Allocator passing in creating nodes are changed in containers in (YStandardEx::List and YStandardEx::Tree).
+		Now the allocator is copied when it is reasonbly small.
+			This is a heuristic assumption of the cost of copying, working well at least with stateless allocators and 'ystdex::pmr::polymorphic_allocator'.
+			This may likely result better code, at least with G++ 11.1.
+		And if the allocator is not copied at the first place, the guard now avoids to store a copy of the allocator.
+			This depends on the fix of the support of lvalue reference allocator type in 'ystdex::allocator_guard'.
+		This still meets ISO C++20 [container.requirements.general]/3.
+			Although implementation of libstdc++, libc++ and Microsoft VC++ all uses lvalue reference to the stored allocator object to construct the node, there are no requirements to do so.
+The 'max_size' member function for node-based containers in YBase ('ystdex::list' and 'ystdex::map') are revised and fixed.
+	The old implementations are same to libstdc++.
+	There are many subtleties, see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=104191.
+		Basically they should not follow the allocator's 'max_size' call, since the node count type is effectively 'std::size_t'.
+		If allocators with fancy pointer allowing more than 'std::numeric_limits<std::size_t>::max()' bytes to be totally allocated, the old implementation is just wrong.
+			If the alloator's 'size_type' can be larger than 'std::size_t', the limit is easy to reach, and it would be more flawed due to the truncation of the 'size_type' to the container's 'size_type' (which is 'std::size_t').
+			This is no longer allowed since ISO C++17 due to LWG 2794.
+				This effectively requires pointers used in the allocators always pointing to contiguous memory.
+				This is over-restricted for containers without the need to expose the contiguous memory interface like the member function 'data', but it also limits the allowed allocations.
+		Another headache is to follow the change in https://gcc.gnu.org/bugzilla/show_bug.cgi?id=78448.
+			This is not accepted for various reasons.
+				The operational definitions of 'size' and 'max_size' results relying on 'std::distance', which does not renders to overflow (which is undefined behavior) in the middle of the call.
+					If 'difference_type' is not enough to hold the size, it can turn out to be a final conversion from 'size_type' to 'difference_type', which is implementation-defined rather than undefined behavior.
+					Since the result type ('size_type') is unsigned, conversion back to the type is predicatable.
+				Despite the operational definition of 'size', [container.requirements.general]/5 kicks in for general cases.
+					This can be still consistent to the definition of the 'size' even when the conversion is existed.
+				Using 'difference_type' as an upper bound is totally redundant when 'difference_type' is large enough to contain any differences between 'size_type'.
+					This is possible, although not on platforms with same width on 'std::size_t' and 'std::ptrdiff_t' (including most platforms like Win32 and Linux).
+				Using 'difference_type' as an upper bound does not keep the invariant 'size() <= max_size()' naturally.
+					There need extra checks to keep the invariant when the size changes.
+					The node-based containers are not required to throw 'std::length_error' as 'std::vector' in some operations.
+					So to check the length to keep the invariant (as Microsoft VC++'s 'std::list' implementation does) would incur pure overhead.
+		Finally, the easy fix of returning a maximum 'size_type' value is adopted.
+			This keeps the invariant 'size() <= max_size()' without the overhead of checks.
+			This conforms [container.requirements.general]/5.
+			The 'size' does not wrap, since the allocations are expected to fail before reaching the maximum size in a container object with the limitation of LWG 2794.
 
 ////
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2019, 2021 FrankHB.
+	© 2012-2019, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,19 +11,20 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r686
+\version r699
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2021-09-22 23:01 +0800
+	2022-01-23 20:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Pointer
 
-间接扩展标准库头 \c \<iterator> ，提供指针的迭代器适配器包装及其它和指针类型相关的模板。
+间接扩展标准库头 \c \<iterator> ，
+提供指针的迭代器适配器包装及其它和指针类型相关的模板。
 */
 
 
@@ -45,6 +46,7 @@ namespace ystdex
 namespace details
 {
 
+#if !(__cpp_lib_to_address >= 201711L)
 //! \since build 846
 //@{
 template<class _tPointer>
@@ -62,6 +64,7 @@ to_address(void*, const _tPointer& p)
 	return details::to_address(nullptr, p.operator->());
 }
 //@}
+#endif
 
 template<typename _type>
 using nptr_eq1 = bool_<_type() == _type()>;
@@ -85,6 +88,13 @@ struct nptr_eq_checks
 } // namespace details;
 
 
+//! \since build 937
+inline namespace cpp2020
+{
+
+#if __cpp_lib_to_address >= 201711L
+using std::to_address;
+#else
 /*!
 \ingroup YBase_replacement_features
 \brief 转换指针。
@@ -108,6 +118,9 @@ to_address(_type* p) ynothrow
 	return p;
 }
 //@}
+#endif
+
+} // inline namespace cpp2020;
 
 
 //! \since build 560

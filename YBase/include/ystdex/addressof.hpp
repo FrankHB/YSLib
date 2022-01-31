@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016, 2018-2019, 2021 FrankHB.
+	© 2015-2016, 2018-2019, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file addressof.hpp
 \ingroup YStandardEx
 \brief 一元操作符 & 和取指针的相关接口。
-\version r232
+\version r237
 \author FrankHB <frankhb1989@gmail.com>
 \since build 660
 \par 创建时间:
 	2015-12-17 10:07:56 +0800
 \par 修改时间:
-	2021-11-20 23:48 +0800
+	2022-01-21 20:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,6 +39,7 @@
 \brief \c \<memory> 特性测试宏。
 \see https://isocpp.org/std/standing-documents/sd-6-sg10-feature-test-recommendations 。
 \see https://blogs.msdn.microsoft.com/vcblog/2015/06/19/c111417-features-in-vs-2015-rtm/ 。
+\see https://docs.microsoft.com/cpp/preprocessor/predefined-macros 。
 \since build 832
 */
 //@{
@@ -47,7 +48,8 @@
 //	Not sure which is the initial version as it seems undocumented.
 // TODO: Get more accurate version.
 #ifndef __cpp_lib_addressof_constexpr
-#	if (YB_IMPL_MSCPP >= 1913 && _MSVC_LANG >= 201606) || __cplusplus >= 201606L
+#	if (YB_IMPL_MSCPP >= 1913 && _MSVC_LANG >= 201606L) \
+	|| __cplusplus >= 201606L
 #		define __cpp_lib_addressof_constexpr 201606L
 #	endif
 #endif
@@ -104,7 +106,7 @@ struct has_no_overloaded_addressof
 \see https://reviews.llvm.org/rL186053 。
 
 提供和 ISO C++17 的 std::addressof 尽可能相同的接口。
-在 ISO C++17 前， constexpr 需要扩展支持。
+在 ISO C++17 前，constexpr 需要扩展支持。
 返回值的 nodiscard 标记是类似 P0600R1 理由的兼容扩展。
 Microsoft VC++ 15.7.5 也使用 [[nodiscard]] 。
 */

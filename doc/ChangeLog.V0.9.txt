@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r7328
+\version r7547
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-01-21 18:05 +0800
+	2022-01-31 17:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,226 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ $re_add(b936) DLDI "adjusted minor comments" @ %(YBase.YStandardEx.(
+		Addressof, Allocator, MemoryResource, Placement, Pointer, PseudoMutex,
+		Rational, StringView), YFramework.NPL.(Dependency, NPLA1)),
+	/ $re_add(b936) DLDI "simplified localized URLs" @ "comments"
+		@ %(YBase.YStandardEx.(MemoryResource, Placement, StringView),
+		YFramework.'YCLib_(Win32)'.(MinGW32, NLS)),
+	/ $re_add(b934) DLDI "ensured suffix 'L'" @ "all values compared with \
+		%_MSVC_LANG" $effective %YBase.YStandardEx.AddressOf,
+	/ $re_add(b933) DLB "updated %__cplusplus detection except for \
+		experimental headers" $=
+	(
+		/ $impl '__cplusplus > 201703L' -> '__cplusplus >= 202002L'
+			$effective @ %YBase.YStandardEx.Allocator
+		/ $impl '__cplusplus > 201103L' -> '__cplusplus >= 201402L'
+			$effective @ %YFramework.Helper.ShellHelper
+	),
+	/ %YBase.YStandardEx $=
+	(
+		* $re_add(b935) $lib $impl "missing undefining 'YB_Impl_P0339R6'"
+			@ %MemoryResource $since b863,
+		* "unsupported member pointer invocation"
+			@ "function template %call_once" @ PseudoMutex $since b692
+			$= (/ $impl ^ "%ystdex::invoke"),
+		/ %Pointer $=
+		(
+			/ "%ystdex::to_address" >> "inline namespace %cpp2020";
+			/ "%ystdex::to_address" @ "inline namespace %cpp2020"
+				@ '__cpp_lib_to_address >= 201711L' -> 'using std::to_address;'
+		),
+		/ %Allocator $=
+		(
+			+ DLI 'inline' @ "constructor template"
+				@ "class template %allocator_delete",
+			(
+			* "wrong internal type for allocator deleters when the allocator \
+				template parameter is a reference" $orig (@ %Memory $since b846)
+				$= (/ $impl ^ "%rmove_reference_t"),
+				// This would incorrectly form a reference parameter of %lref.
+			* "wrong constructor always copying the allocator object"
+				@ "class template %allocator_guard_delete"
+				$orig (@ %Memory $since b846)
+				$= (/ "constructor" -> "constructor template");
+				// See $2021-10 @ %Documentation::Workflow.
+			* "missing support of reference types" @ "alias template \
+				%allocator_guard" $orig (@ %Memory $since b846)
+				$= (/ $impl ^ "%rmove_reference_t")
+			),
+			/ DLDI ("adjusted 'class'" -> 'typename') @ "all allocator \
+				parameters" @ "templates supporting allocator references",
+			/ DLDI ("adjusted 'typename'" -> 'class') @ "all allocator \
+				parameters" @ "templates not supporting allocator references",
+			/ DLDI "renamed internal macro",
+			* "missing the %to_address call around the allocator pointer"
+				@ "function template %create_with_allocator"
+				$orig (@ %Memory $since b849),
+				// It would break construction using an allocator with a fancy \
+					pointer type. Now it is consistent to %allocator_delete.
+			- $revert(b887) DLI "all 'YB_FLATTEN"
+				// They have no effects now.
+		),
+		/ DLI "container internal representation class template"
+			@ %(Tree, List) $=
+		(
+			/ @ "node creation" $=
+			(
+				/ "copied the allocator if the size of the allocator is \
+					reasonbly samll";
+					// See $2021-10 @ %Documentation::Workflow.
+				/ "avoided copying allocator in the guard if the allocator is \
+					not copied" $dep_from ("%allocator_guard" @ %Allocator)
+			),
+			+ $design 'const' @ "allocator copy" @ "%operator=",
+			* "wrong %max_size dependency on allocator %max_size"
+				@ (%List $since b866, %Tree $since b830)
+				// See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=104191.
+		),
+		+ DLI 'inline' @ "internal member template for node creation" @ %List,
+			// This is same in %Tree.
+		/ DLI @ %Tree $=
+		(
+			+ 'YB_ATTR_nodiscard' @ "all functions and function templates \
+				named %(maximum, minimum, is_insert_left, \
+				is_insert_left_strict, insert_left_q, copy_node)",
+			/ @ "class template %tree" $=
+			(
+				- $revert(b864) "all 'YB_FLATTEN" @ %Tree,
+					// Now it is less time-comsuing in compilation, and even a \
+						bit better code with x86_64-pc-linux G++ 11.1.
+				+ 'YB_ATTR_nodiscard YB_PURE' @ "all functions %(root, \
+					leftmost, rightmost, node_begin, node_end, select_key, \
+					select_value, get_left, get_right, operator==, operator<)",
+				/ $design "declaration order" @ "private %copy_node"
+			)
+		),
+		+ "class template %ntcts_compare" @ %CString
+	),
+	/ %YFramework $=
+	(
+		/ %'YCLib_(Win32)' $=
+		(
+			/ DLDI "avoided 'using namespace' internally" @ %(MinGW32, NLS),
+			/ %MinGW32 $=
+			(
+				* DLDI "wrong URL" @ "internal comments" $since b664,
+				(
+				+ "inline function %FetchModuleHandle";
+				/ DLDI "simplified function template %LoadProc#3"
+					^ "%FetchModuleHandle",
+				(
+				+ "function %FetchModuleHandleCached"
+					^ $dep_from ("%ntcts_compare" @ %YBase.YStandardEx.CString);
+				+ "function %LoadProcCached";
+				+ "2 function templates %LoadProcCached";
+				/ DLI "optimized by caching" @ "macro %YCL_DeclW32Call"
+					^ "%LoadProcCached" ~ "%LoadProc"
+				)
+				),
+				/ DLDI "simplified %TryCategorizeNodeAttributes",
+				/ DLDI "reordered declarations",
+					// As the declaration order of the underlying Win32 APIs \
+						declared in <winbase.h>.
+				+ DD '\ingroup functors' @ "Doxygen comment"
+					@ "classes %(GlobalDelete, LocalDelete)",
+				+ DD "'\warning' command for missing virtual destruction"
+					@ "Doxygen comment" @ "class %GlobalLocked",
+				+ DLDI "header inclusion %YBase.YStandardEx.Base",
+					// For %ystdex::noncopyable. Except names like \
+						%YSLib::Debug related to %YSLib::RecordLeval which is \
+						in the public API, names not in %YSLib are preferred, \
+						to get less dependencies involved in.
+				(
+				+ "function %IsWOW64Process";
+				+ "class %WOW64FileSystemRedirectionGuard"
+				)
+			),
+			/ %NLS $=
+			(
+				(
+				+ DLDI "header inclusion %YCLib.Mutex";
+				/ DLDI ^ "%platform::(mutex, lock_guard)"
+					~ "%YSLib::(mutex, lock_guard)"
+					// To be consistent with using %platform::Deref and \
+						%platform::Nonnull instead %YSLib ones.
+				),
+				/ @ "function %FetchDBCSOffset" $=
+				(
+					/ DLI "internal NLS cache" ^ "%ystdex::map" ~ "%YSLib::map",
+						// There is no custom allocator to use.
+					* "missing disabling WOW64 file system redirection on \
+						loading the entry" $orig (@ %MinGW32 $since b552)
+						/ $= (/ $impl ^ $dep_from
+							("%WOW64FileSystemRedirectionGuard" @ %MinGW32))
+				)
+			)
+		),
+		/ DLDI @ %YCLib.XCB $=
+		(
+			(
+			+ "header inclusion %YBase.YStandardEx.Base";
+			/ ^ "%platform::(noncopyable, nonmovable)"
+				~ "%YSLib::(noncopyable, nonmovable)" @ %YCLib.XCB,
+				// Ditto.
+			),
+			- "header inclusion %YBase.YStandardEx.Pointer"
+		)
+		/ %NPL $=
+		(
+			/ "merged namespace %SXML" @ %NPL >> %SXML,
+			* "non-deducible redundant template parameter" @ "function \
+				template %EmplaceCallResultOrReturn#5" @ %NPLA $since b936,
+			/ %NPLAMath $=
+			(
+				/ @ "inline namespace %Math" $=
+				(
+					* DD "wrong function name" @ "Doxygen comment"
+						@ "functions %(IsOdd, IsEven)" $since b930,
+					* "wrong result for negative odd flonums"
+						@ "function %IsOdd" $since b930,
+					+ "functions %(FloorDivides, FloorQuotient, \
+						FloorRemainder, TruncateDivides, TruncateQuotient, \
+						TruncateRemainder)" $dep_from %NPLA
+						$dep_to "R7RS dividing",
+					+ DLI 'YB_ATTR_nodiscard YB_PURE' @ "internal math \
+						operations not modifying the parameter",
+					/ DLDI "simplified unary operations" $effective
+						@ ("functions %(IsZero, IsPositive, IsNegative, IsOdd, \
+						IsEven, Add1, Sub1, Abs)"),
+					/ DLDI "simplified internal SFINAE expressions",
+					/ DLDI "simplified binary operations" $effective
+						@ ("functions %(Max, Min, Plus, Minus, Multiplies, \
+						Divides, Equal, Less, Greater, LessEqual, \
+						GreaterEqual)"),
+					* "unnecessary inexact value introduced" @ "%Divides on \
+						underflow" $since b930
+						$= (/ $impl ^ 'unsigned long long' ~ "%double")
+						// Inexact number should not be introduced when there \
+							are types being able to represent the value. Now \
+							this is also consistent to %Abs.
+				),
+				* "undefined behavior on priting negative floating-point \
+					values" @ "functions %WriteFPString" $since b932,
+				/ "%Math::StringBufferSize" -> "%NPL::NumberStringBufferSize",
+				/ ("function %ReadDecimal", "function template %WriteFPString",
+					"function %FPToString", $impl
+					"internal math implemenations") @ "inline namespace %Math"
+					>> "%namespace NPL"
+			),
+			+ "applicatives ('floor/', 'floor-quotient', 'floor-remainder', \
+				'truncate/', 'truncate-quotient', 'truncate-remainder')"
+				@ "function %LoadModule_std_math" @ %Dependency
+				$dep_from "R7RS dividing"
+		)
+	),
+	* "missing specialized rules for the inexact zero dividend"
+		@ "applicative '/'" @ "module %std.math" @ %Documentation.NPL
+		$mismatch %YFramework.NPL.NPLAMath $since b930
+),
+
+b936
 (
 	/ $re_add(b935) DLDI "adjusted minor comments" @ %(YBase.YStandardEx.(
 		Base, CAssert, Cache, DereferenceOperation, Range, TypeOperation,

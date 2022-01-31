@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2016, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPL.h
 \ingroup NPL
 \brief NPL 公共接口。
-\version r78
+\version r95
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:44:40 +0800
 \par 修改时间:
-	2016-02-25 10:27 +0800
+	2022-01-24 02:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,26 +46,6 @@ struct YF_API NPLTag
 
 using YSLib::byte;
 //@}
-
-
-/*!
-\brief SXML 表示。
-\see http://okmij.org/ftp/Scheme/SXML.html 。
-\since build 597
-*/
-namespace SXML
-{
-
-//! \brief 限定解析选项。
-enum class ParseOption
-{
-	Normal,
-	Strict,
-	String,
-	Attribute
-};
-
-} // namespace SXML;
 
 } // namespace NPL;
 

@@ -11,13 +11,13 @@
 /*!	\file SXML.h
 \ingroup NPL
 \brief NPL SXML 实现。
-\version r11562
+\version r11576
 \author FrankHB <frankhb1989@gmail.com>
 \since build 936
 \par 创建时间:
 	2022-01-20 17:41:14 +0800
 \par 修改时间:
-	2022-01-21 02:03 +0800
+	2022-01-24 02:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA // for std::initializer_list, TermNode, string,
-//	ParseOption, IndentGenerator, MakeIndex;
+//	IndentGenerator, MakeIndex;
 
 namespace NPL
 {
@@ -85,9 +85,23 @@ InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, NodeLiteral&& nl)
 //@}
 //@}
 
-//! \since build 597
+/*!
+\brief SXML 表示。
+\see http://okmij.org/ftp/Scheme/SXML.html 。
+\since build 597
+*/
 namespace SXML
 {
+
+//! \brief 限定解析选项。
+enum class ParseOption
+{
+	Normal,
+	Strict,
+	String,
+	Attribute
+};
+
 
 //! \since build 674
 //@{

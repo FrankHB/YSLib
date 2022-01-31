@@ -1,5 +1,5 @@
 ﻿/*
-	© 2019-2021 FrankHB.
+	© 2019-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file list.hpp
 \ingroup YStandardEx
 \brief 列表容器。
-\version r1675
+\version r1693
 \author FrankHB <frankhb1989@gmail.com>
 \since build 864
 \par 创建时间:
 	2019-08-14 14:48:52 +0800
 \par 修改时间:
-	2021-09-26 04:23 +0800
+	2022-01-26 06:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,15 +35,15 @@ LWG 2839 ：允许自转移赋值。
 #define YB_INC_ystdex_list_hpp_ 1
 
 #include "node_base.h" // for "node_base.h", std::move, std::addressof;
+#include <limits> // for std::numeric_limits;
 #include <list> // for <list>, std::initializer_list;
 #include "allocator.hpp" // for replace_storage_t, bidirectional_iteratable,
 //	equality_comparable, totally_ordered, rebind_alloc_t, allocator_traits,
 //	yverify, false_, true_, ystdex::make_move_if_noexcept_iterator,
-//	std::advance, ystdex::alloc_on_move, allocator_guard,
-//	allocator_guard_delete, ystdex::alloc_on_swap, ystdex::swap_dependent,
-//	std::allocator, is_object, is_unqualified, and_, is_allocator_for,
-//	ystdex::reverse_iterator, is_nothrow_constructible, less, ref_eq, equal_to,
-//	is_bitwise_swappable;
+//	std::advance, ystdex::alloc_on_move, conditional_t, allocator_guard,
+//	ystdex::alloc_on_swap, ystdex::swap_dependent, std::allocator, is_object,
+//	is_unqualified, and_, is_allocator_for, ystdex::reverse_iterator,
+//	is_nothrow_constructible, less, ref_eq, equal_to, is_bitwise_swappable;
 #include "base.h" // for noncopyable, nonmovable;
 #include "iterator_trait.hpp" // for enable_for_input_iterator_t;
 #include <algorithm> // for std::equal, std::lexicographical_compare;
@@ -375,7 +375,7 @@ public:
 				node_ator_traits::propagate_on_container_copy_assignment())
 			{
 				auto& this_alloc(get_node_allocator());
-				auto& that_alloc(x.get_node_allocator());
+				const auto& that_alloc(x.get_node_allocator());
 
 				if(!typename node_ator_traits::is_always_equal()
 					&& this_alloc != that_alloc)
@@ -478,7 +478,8 @@ public:
 	YB_ATTR_nodiscard YB_PURE size_type
 	max_size() const ynothrow
 	{
-		return node_ator_traits::max_size(get_node_allocator());
+		// XXX: See $2022-01 @ %Documentation::Workflow.
+		return std::numeric_limits<size_type>::max();
 	}
 
 	const_iterator
@@ -681,18 +682,20 @@ protected:
 		// XXX: Ensure no need to use placment new for the node.
 		static_assert(is_trivially_default_constructible<value_node>(),
 			"Invalid node type found.");
-		auto& a(get_node_allocator());
+		// XXX: See $2022-01 @ %Documentation::Workflow.
+		using guard_alloc_t = conditional_t<sizeof(node_allocator)
+			<= sizeof(void*), node_allocator, node_allocator&>;
+		guard_alloc_t a(get_node_allocator());
 		// NOTE: This should be same to %deallocate_node(nd) on exception
-		//	thrown.
-		allocator_guard<node_allocator>
-			gd(nd, allocator_guard_delete<node_allocator>(a, 1));
+		//	thrown, except a copy of allocator may be used.
+		allocator_guard<guard_alloc_t> gd(nd, a);
 
 		node_ator_traits::construct(a, nd->access_ptr(), yforward(args)...);
 		gd.release();
 	}
 
 	template<typename... _tParams>
-	YB_ATTR_nodiscard YB_ATTR_returns_nonnull link_type
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull inline link_type
 	create_node(_tParams&&... args)
 	{
 		const auto nd(allocate_node());

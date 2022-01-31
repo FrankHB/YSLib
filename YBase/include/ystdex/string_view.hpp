@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2021 FrankHB.
+	© 2015-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file string_view.hpp
 \ingroup YStandardEx
 \brief 只读字符串视图。
-\version r641
+\version r645
 \author FrankHB <frankhb1989@gmail.com>
 \since build 640
 \par 创建时间:
 	2015-09-28 12:04:58 +0800
 \par 修改时间:
-	2021-12-21 20:14 +0800
+	2022-01-21 20:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,9 +62,11 @@
 
 /*!
 \brief \c \<string> 特性测试宏。
+\see ISO C++20 [version.syn] 。
 \see WG21 P0254R2 。
 \see WG21 P0941R2 2.2 。
-\see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
+\see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
+\see https://docs.microsoft.com/cpp/preprocessor/predefined-macros 。
 \since build 837
 */
 //@{

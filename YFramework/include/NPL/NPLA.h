@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r9265
+\version r9267
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2022-01-21 02:36 +0800
+	2022-01-28 05:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1841,8 +1841,8 @@ EmplaceCallResultOrReturn(TermNode& term, any_ops::trivial_swap_t,
 		term.get_allocator());
 	return ReductionStatus::Clean;
 }
-//! \since build 936
-template<typename _tParam, size_t _vN>
+//! \since build 937
+template<size_t _vN>
 YB_ATTR_nodiscard inline ReductionStatus
 EmplaceCallResultOrReturn(TermNode& term, array<ValueObject, _vN> arg)
 {

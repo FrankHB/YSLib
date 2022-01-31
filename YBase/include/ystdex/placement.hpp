@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016, 2018-2021 FrankHB.
+	© 2015-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r1027
+\version r1036
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2021-12-20 22:54 +0800
+	2022-01-21 20:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,8 @@
 //	mainstream implementations yet. See https://groups.google.com/a/isocpp.org/forum/#!topic/std-discussion/1rO2FiqWgtI
 //	and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=79433 for details. For
 //	feature-test marcos, see https://isocpp.org/std/standing-documents/sd-6-sg10-feature-test-recommendations.
-//	See also https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance.
+//	See also https://docs.microsoft.com/cpp/visual-cpp-language-conformance and
+//	https://docs.microsoft.com/cpp/preprocessor/predefined-macros.
 #if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603L) \
 	|| (__cplusplus >= 201603L && __has_include(<optional>))
 #	include <optional>
@@ -72,8 +73,10 @@
 
 /*!
 \brief \c \<optional> 特性测试宏。
+\see ISO C++20 [version.syn] 。
 \see WG21 P0941R2 2.2 。
-\see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
+\see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
+\see https://docs.microsoft.com/cpp/preprocessor/predefined-macros 。
 \since build 842
 */
 //@{
@@ -429,12 +432,13 @@ inline namespace cpp2017
 \note 不保证支持带有执行策略的重载。
 \see ISO C++17 [specialized.destroy] 。
 \see WG21 P0040R3 。
-\see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
+\see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
 */
 //@{
 /*!
 \see libstdc++ 5 和 Microsoft VC++ 2013 标准库在命名空间 std 内对指针类型的实现：
 	_Destroy 模板。
+\see https://docs.microsoft.com/cpp/preprocessor/predefined-macros 。
 */
 #if (YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201606L) \
 	|| (((YB_IMPL_GNUCPP >= 80000 && __GLIBCXX__ > 20160914) \
@@ -558,7 +562,7 @@ inline namespace cpp2017
 /*!
 \note 不保证支持带有执行策略的重载。
 \see WG21 P0040R3 。
-\see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
+\see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
 \see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=77619 。
 \see http://lists.llvm.org/pipermail/cfe-commits/Week-of-Mon-20161010/173499.html 。
 */

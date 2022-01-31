@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2021 FrankHB.
+	© 2013-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1999
+\version r2005
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2021-05-06 19:42 +0800
+	2022-01-21 20:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -419,11 +419,12 @@ UpdateContentTo(NativeWindowHandle h_wnd, const Rect& r, const ConstGraphics& g)
 ::HBITMAP
 CreateCompatibleDIBSection(const YSLib::Drawing::Size& s, BitmapPtr& p_buffer)
 {
-	// NOTE: There is no resolution information created. See https://msdn.microsoft.com/en-us/library/dd183494.aspx.
+	// NOTE: There is no resolution information created. See
+	//	https://msdn.microsoft.com/library/dd183494.aspx.
 	// NOTE: It would return %ERROR_INVALID_PARAMETER for many calls if
 	//	allocated memory is not on 32-bit boundary. Anyway it is not a matter
 	//	here because the pixel is at least 32-bit. See
-	//	http://msdn2.microsoft.com/en-us/library/ms532292.aspx and https://msdn.microsoft.com/en-us/library/dd183494.aspx.
+	//	https://docs.microsoft.com/windows/win32/api/wingdi/nf-wingdi-createdibsection.
 	// NOTE: Bitmap format is hard coded here for explicit buffer
 	//	compatibility. %::CreateCompatibleBitmap is not fit for unknown
 	//	windows.
@@ -897,8 +898,8 @@ WindowInputHost::WindowInputHost(HostWindow& wnd)
 		if(YB_LIKELY(::GetRawInputData(::HRAWINPUT(l_param), RID_INPUT, &ri,
 			&size, sizeof(::RAWINPUTHEADER)) != unsigned(-1) && ri.header.dwType
 			== RIM_TYPEMOUSE) && ri.data.mouse.usButtonFlags == RI_MOUSE_WHEEL)
-			// NOTE: This value is safe to cast because it is
-			//	specified as a signed value, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms645578(v=vs.85).aspx.
+			// NOTE: This value is safe to cast because it is specified as a
+			//	signed value, see https://msdn.microsoft.com/library/windows/desktop/ms645578(v=vs.85).aspx.
 			RawMouseButton = short(ri.data.mouse.usButtonData);
 	},
 	m[WM_CHAR] += [this](::WPARAM w_param, ::LPARAM l_param){

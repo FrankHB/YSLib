@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018-2021 FrankHB.
+	© 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file tree.h
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r3381
+\version r3497
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2021-09-26 04:22 +0800
+	2022-01-31 16:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,13 +45,14 @@
 //	std::allocator, std::bidirectional_iterator_tag, rebind_alloc_t,
 //	ystdex::reverse_iterator, is_same, cond_t, is_nothrow_move_assignable, or_,
 //	and_, is_invocable, std::declval, ystdex::alloc_on_copy,
-//	std::move_if_noexcept, is_trivially_default_constructible,
-//	allocator_guard_delete, allocator_guard, is_trivially_destructible,
-//	std::pair, enable_if_t, is_nothrow_swappable, ystdex::alloc_on_swap,
-//	ystdex::alloc_on_move, is_bitwise_swappable;
+//	std::move_if_noexcept, ystdex::alloc_on_move,
+//	is_trivially_default_constructible, allocator_guard, conditional_t,
+//	is_trivially_destructible, std::pair, enable_if_t, is_nothrow_swappable,
+//	ystdex::alloc_on_swap, is_bitwise_swappable;
 #include "optional.h" // for optional, bidirectional_iteratable,
 //	equality_comparable, totally_ordered, has_mem_is_transparent;
 #include "utility.hpp" // for noncopyable, ystdex::as_const;
+#include <limits> // for std::numeric_limits;
 #include "iterator_trait.hpp" // for has_iterator_value_type;
 #include <algorithm> // for std::equal, std::lexicographical_compare;
 
@@ -359,14 +360,14 @@ struct tree_node_base
 	tree_color color;
 	base_ptr parent, left, right;
 
-	YB_PURE static base_ptr
+	YB_ATTR_nodiscard YB_PURE static base_ptr
 	maximum(base_ptr x) ynothrow
 	{
 		while(x->right)
 			x = x->right;
 		return x;
 	}
-	YB_PURE static const_base_ptr
+	YB_ATTR_nodiscard YB_PURE static const_base_ptr
 	maximum(const_base_ptr x) ynothrow
 	{
 		while(x->right)
@@ -374,14 +375,14 @@ struct tree_node_base
 		return x;
 	}
 
-	YB_PURE static base_ptr
+	YB_ATTR_nodiscard YB_PURE static base_ptr
 	minimum(base_ptr x) ynothrow
 	{
 		while(x->left)
 			x = x->left;
 		return x;
 	}
-	YB_PURE static const_base_ptr
+	YB_ATTR_nodiscard YB_PURE static const_base_ptr
 	minimum(const_base_ptr x) ynothrow
 	{
 		while(x->left)
@@ -926,7 +927,7 @@ public:
 				node_ator_traits::propagate_on_container_copy_assignment())
 			{
 				auto& this_alloc(get_node_allocator());
-				auto& that_alloc(x.get_node_allocator());
+				const auto& that_alloc(x.get_node_allocator());
 
 				if(!typename node_ator_traits::is_always_equal()
 					&& this_alloc != that_alloc)
@@ -965,6 +966,65 @@ public:
 	}
 
 private:
+	template<class _tNodeGen>
+	YB_ATTR_nodiscard link_type
+	copy_node(const_link_type x, base_ptr p, const _tNodeGen& node_gen)
+	{
+		yassume(x), yassume(p);
+
+		const auto clone_node([&](const_link_type s){
+			link_type res(node_gen(*s->access_ptr()));
+
+			yunseq(res->color = s->color, res->left = {}, res->right = {});
+			return res;
+		});
+		const auto top(clone_node(x));
+
+		top->parent = p;
+		try
+		{
+			if(x->right)
+				top->right = copy_node(get_right(x), top, node_gen);
+			p = top;
+			x = get_left(x);
+
+			while(x)
+			{
+				const auto y(clone_node(x));
+
+				p->left = y;
+				y->parent = p;
+				if(x->right)
+					y->right = copy_node(get_right(x), y, node_gen);
+				p = y;
+				x = get_left(x);
+			}
+		}
+		catch(...)
+		{
+			erase_node(top);
+			throw;
+		}
+		return top;
+	}
+	template<class _tNodeGen>
+	YB_ATTR_nodiscard link_type
+	copy_node(const tree& x, const _tNodeGen& node_gen)
+	{
+		const auto root(copy_node(x.node_begin(), node_end(), node_gen));
+
+		yunseq(leftmost() = minimum(root), rightmost() = maximum(root),
+			objects.header.node_count = x.objects.header.node_count);
+		return root;
+	}
+	YB_ATTR_nodiscard link_type
+	copy_node(const tree& x)
+	{
+		alloc_node an(*this);
+
+		return copy_node(x, an);
+	}
+
 	/*!
 	\brief 转移可能不相等分配器的容器元素。
 	\note 从不相等分配器转移元素结果是复制而不是转移对象。
@@ -1112,7 +1172,8 @@ public:
 	YB_ATTR_nodiscard size_type
 	max_size() const ynothrow
 	{
-		return node_ator_traits::max_size(get_node_allocator());
+		// XXX: See $2022-01 @ %Documentation::Workflow.
+		return std::numeric_limits<size_type>::max();
 	}
 
 protected:
@@ -1137,11 +1198,13 @@ protected:
 		// XXX: Ensure no need to use placment new for the node.
 		static_assert(is_trivially_default_constructible<value_node>(),
 			"Invalid node type found.");
-		auto& a(get_node_allocator());
+		// XXX: See $2022-01 @ %Documentation::Workflow.
+				using guard_alloc_t = conditional_t<sizeof(node_allocator)
+			<= sizeof(void*), node_allocator, node_allocator&>;
+		guard_alloc_t a(get_node_allocator());
 		// NOTE: This should be same to %deallocate_node(nd) on exception
 		//	thrown.
-		allocator_guard<node_allocator>
-			gd(nd, allocator_guard_delete<node_allocator>(a, 1));
+		allocator_guard<guard_alloc_t> gd(nd, a);
 
 		node_ator_traits::construct(a, nd->access_ptr(), yforward(args)...);
 		gd.release();
@@ -1191,122 +1254,122 @@ private:
 	}
 
 protected:
-	base_ptr&
+	YB_ATTR_nodiscard YB_PURE base_ptr&
 	root() ynothrow
 	{
 		return objects.header.parent;
 	}
-	const_base_ptr
+	YB_ATTR_nodiscard YB_PURE const_base_ptr
 	root() const ynothrow
 	{
 		return objects.header.parent;
 	}
 
-	base_ptr&
+	YB_ATTR_nodiscard YB_PURE base_ptr&
 	leftmost() ynothrow
 	{
 		return objects.header.left;
 	}
-	const_base_ptr
+	YB_ATTR_nodiscard YB_PURE const_base_ptr
 	leftmost() const ynothrow
 	{
 		return objects.header.left;
 	}
 
-	base_ptr&
+	YB_ATTR_nodiscard YB_PURE base_ptr&
 	rightmost() ynothrow
 	{
 		return objects.header.right;
 	}
-	const_base_ptr
+	YB_ATTR_nodiscard YB_PURE const_base_ptr
 	rightmost() const ynothrow
 	{
 		return objects.header.right;
 	}
 
-	link_type
+	YB_ATTR_nodiscard YB_PURE link_type
 	node_begin() ynothrow
 	{
 		return link_type(objects.header.parent);
 	}
-	const_link_type
+	YB_ATTR_nodiscard YB_PURE const_link_type
 	node_begin() const ynothrow
 	{
 		return const_link_type(objects.header.parent);
 	}
 
-	base_ptr
+	YB_ATTR_nodiscard YB_PURE base_ptr
 	node_end() ynothrow
 	{
 		return &objects.header;
 	}
-	const_base_ptr
+	YB_ATTR_nodiscard YB_PURE const_base_ptr
 	node_end() const ynothrow
 	{
 		return &objects.header;
 	}
 
-	static const _tKey&
+	YB_ATTR_nodiscard YB_PURE static const _tKey&
 	select_key(const_base_ptr x)
 	{
 		return _fKeyOfValue()(select_value(x));
 	}
-	static const _tKey&
+	YB_ATTR_nodiscard YB_PURE static const _tKey&
 	select_key(const_link_type x)
 	{
 		return _fKeyOfValue()(select_value(x));
 	}
 
-	static const_reference
+	YB_ATTR_nodiscard YB_PURE static const_reference
 	select_value(const_link_type x)
 	{
 		return *x->access_ptr();
 	}
-	static const_reference
+	YB_ATTR_nodiscard YB_PURE static const_reference
 	select_value(const_base_ptr x)
 	{
 		return *const_link_type(x)->access_ptr();
 	}
 
-	static link_type
+	YB_ATTR_nodiscard YB_PURE static link_type
 	get_left(base_ptr x) ynothrow
 	{
 		return link_type(x->left);
 	}
-	static const_link_type
+	YB_ATTR_nodiscard YB_PURE static const_link_type
 	get_left(const_base_ptr x) ynothrow
 	{
 		return const_link_type(x->left);
 	}
 
-	static link_type
+	YB_ATTR_nodiscard YB_PURE static link_type
 	get_right(base_ptr x) ynothrow
 	{
 		return link_type(x->right);
 	}
-	static const_link_type
+	YB_ATTR_nodiscard YB_PURE static const_link_type
 	get_right(const_base_ptr x) ynothrow
 	{
 		return const_link_type(x->right);
 	}
 
-	YB_PURE static base_ptr
+	YB_ATTR_nodiscard YB_PURE static base_ptr
 	maximum(base_ptr x) ynothrow
 	{
 		return tree_node_base::maximum(x);
 	}
-	YB_PURE static const_base_ptr
+	YB_ATTR_nodiscard YB_PURE static const_base_ptr
 	maximum(const_base_ptr x) ynothrow
 	{
 		return tree_node_base::maximum(x);
 	}
 
-	YB_PURE static base_ptr
+	YB_ATTR_nodiscard YB_PURE static base_ptr
 	minimum(base_ptr x) ynothrow
 	{
 		return tree_node_base::minimum(x);
 	}
-	YB_PURE static const_base_ptr
+	YB_ATTR_nodiscard YB_PURE static const_base_ptr
 	minimum(const_base_ptr x) ynothrow
 	{
 		return tree_node_base::minimum(x);
@@ -1315,7 +1378,7 @@ protected:
 private:
 	//! \since build 840
 	template<typename _tParam>
-	inline bool
+	YB_ATTR_nodiscard inline bool
 	is_insert_left(base_ptr p, const _tParam& arg)
 	{
 		return p == node_end() || !objects.key_compare(select_key(p), arg);
@@ -1323,7 +1386,7 @@ private:
 
 	//! \since build 840
 	template<typename _tParam>
-	inline bool
+	YB_ATTR_nodiscard inline bool
 	is_insert_left_strict(base_ptr p, const _tParam& arg)
 	{
 		return p == node_end() || objects.key_compare(arg, select_key(p));
@@ -1338,7 +1401,7 @@ private:
 	}
 
 	//! \since build 866
-	bool
+	YB_ATTR_nodiscard bool
 	insert_left_q(const std::pair<base_ptr, base_ptr>& pr, const key_type& k)
 	{
 		return bool(pr.first) || is_insert_left_strict(pr.second, k);
@@ -1385,65 +1448,6 @@ private:
 				? get_left(x) : get_right(x);
 		}
 		return insert_attach(is_insert_left(y, select_key(nd)), y, nd);
-	}
-
-	template<class _tNodeGen>
-	link_type
-	copy_node(const_link_type x, base_ptr p, const _tNodeGen& node_gen)
-	{
-		yassume(x), yassume(p);
-
-		const auto clone_node([&](const_link_type s){
-			link_type res(node_gen(*s->access_ptr()));
-
-			yunseq(res->color = s->color, res->left = {}, res->right = {});
-			return res;
-		});
-		const auto top(clone_node(x));
-
-		top->parent = p;
-		try
-		{
-			if(x->right)
-				top->right = copy_node(get_right(x), top, node_gen);
-			p = top;
-			x = get_left(x);
-
-			while(x)
-			{
-				const auto y(clone_node(x));
-
-				p->left = y;
-				y->parent = p;
-				if(x->right)
-					y->right = copy_node(get_right(x), y, node_gen);
-				p = y;
-				x = get_left(x);
-			}
-		}
-		catch(...)
-		{
-			erase_node(top);
-			throw;
-		}
-		return top;
-	}
-	template<class _tNodeGen>
-	link_type
-	copy_node(const tree& x, const _tNodeGen& node_gen)
-	{
-		const auto root(copy_node(x.node_begin(), node_end(), node_gen));
-
-		yunseq(leftmost() = minimum(root), rightmost() = maximum(root),
-			objects.header.node_count = x.objects.header.node_count);
-		return root;
-	}
-	link_type
-	copy_node(const tree& x)
-	{
-		alloc_node an(*this);
-
-		return copy_node(x, an);
 	}
 
 	void
@@ -1838,7 +1842,7 @@ private:
 
 public:
 	template<typename... _tParams>
-	YB_FLATTEN inline std::pair<iterator, bool>
+	inline std::pair<iterator, bool>
 	emplace_unique(_tParams&&... args)
 	{
 		return emplace_unique_node(create_node(yforward(args)...));
@@ -1862,7 +1866,7 @@ private:
 
 public:
 	template<typename... _tParams>
-	YB_FLATTEN inline iterator
+	inline iterator
 	emplace_equal(_tParams&&... args)
 	{
 		return emplace_equal_node(create_node(yforward(args)...));
@@ -1882,7 +1886,7 @@ private:
 
 public:
 	template<typename... _tParams>
-	YB_FLATTEN inline iterator
+	inline iterator
 	emplace_hint_unique(const_iterator position, _tParams&&... args)
 	{
 		return
@@ -1906,7 +1910,7 @@ private:
 
 public:
 	template<typename... _tParams>
-	YB_FLATTEN inline iterator
+	inline iterator
 	emplace_hint_equal(const_iterator position, _tParams&&... args)
 	{
 		return
@@ -1985,7 +1989,7 @@ private:
 	}
 
 public:
-	YB_FLATTEN iterator
+	iterator
 	erase(const_iterator position)
 	{
 		yconstraint(position != end());
@@ -1996,7 +2000,7 @@ public:
 		erase_it(position.cast_mutable());
 		return res;
 	}
-	YB_FLATTEN iterator
+	iterator
 	erase(iterator position)
 	{
 		yconstraint(position != end());
@@ -2007,7 +2011,7 @@ public:
 		erase_it(position);
 		return res;
 	}
-	YB_FLATTEN size_type
+	size_type
 	erase(const key_type& x)
 	{
 		const auto pr(equal_range(x));
@@ -2016,7 +2020,7 @@ public:
 		erase_it(pr.first, pr.second);
 		return old_size - size();
 	}
-	YB_FLATTEN iterator
+	iterator
 	erase(const_iterator first, const_iterator last)
 	{
 		const auto res(last.cast_mutable());
@@ -2024,7 +2028,7 @@ public:
 		erase_it(first.cast_mutable(), res);
 		return res;
 	}
-	YB_FLATTEN void
+	void
 	erase(const key_type* first, const key_type* last)
 	{
 		while(first != last)
@@ -2464,14 +2468,14 @@ public:
 		}
 	}
 
-	friend bool
+	YB_ATTR_nodiscard YB_PURE friend bool
 	operator==(const tree& x, const tree& y)
 	{
 		return x.size() == y.size()
 			&& std::equal(x.cbegin(), x.cend(), y.cbegin());
 	}
 
-	friend bool
+	YB_ATTR_nodiscard YB_PURE friend bool
 	operator<(const tree& x, const tree& y)
 	{
 		return std::lexicographical_compare(x.cbegin(), x.cend(), y.cbegin(),

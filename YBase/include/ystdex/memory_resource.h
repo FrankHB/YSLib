@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018-2021 FrankHB.
+	© 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1512
+\version r1517
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2021-12-20 22:54 +0800
+	2022-01-21 20:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -128,8 +128,10 @@ pmr::polymorphic_allocator 对 is_bitwise_swappable 特化。
 
 /*!
 \brief \c \<memory_resource> 特性测试宏。
+\see ISO C++20 [version.syn] 。
 \see WG21 P0941R2 2.2 。
-\see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
+\see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
+\see https://docs.microsoft.com/cpp/preprocessor/predefined-macros 。
 \since build 842
 */
 //@{
@@ -440,6 +442,7 @@ operator!=(const polymorphic_allocator<_type1>& a,
 	return !(a == b);
 }
 #endif
+#undef YB_Impl_P0339R6
 
 
 inline namespace cpp2017

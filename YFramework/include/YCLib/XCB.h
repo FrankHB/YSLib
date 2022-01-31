@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015, 2018, 2021 FrankHB.
+	© 2014-2015, 2018, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief XCB GUI 接口。
-\version r409
+\version r414
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2014-12-14 14:40:34 +0800
 \par 修改时间:
-	2021-02-23 23:23 +0800
+	2022-01-25 05:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,10 +33,10 @@
 #include YFM_YCLib_Platform
 #if YF_Use_XCB
 //	#include <xcb/xcb.h>
-#	include YFM_YCLib_Host // for platform::string, platform::string_view,
+#	include YFM_YCLib_Host // for platform::string_view,
 //	platform_ex::Exception;
+#	include <ystdex/base.h> // for ystdex::noncopyable, ystdex::nonmovable;
 #	include YFM_YCLib_Debug // for platform::Deref;
-#	include <ystdex/pointer.hpp> // for ystdex::nptr;
 #	include YFM_YSLib_Core_YGraphics
 #	include <atomic>
 
@@ -170,7 +170,7 @@ public:
 \invariant \c get(*this) 。
 */
 class YF_API Connection final : private ConnectionReference,
-	private YSLib::noncopyable, private YSLib::nonmovable
+	private ystdex::noncopyable, private ystdex::nonmovable
 {
 private:
 	//! \since build 593

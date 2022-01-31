@@ -1,5 +1,5 @@
 ﻿/*
-	© 2021 FrankHB.
+	© 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLAMath.cpp
 \ingroup NPL
 \brief NPLA 数学功能。
-\version r27524
+\version r28192
 \author FrankHB <frankhb1989@gmail.com>
 \since build 930
 \par 创建时间:
 	2021-11-03 12:50:49 +0800
 \par 修改时间:
-	2021-12-28 08:57 +0800
+	2022-01-31 07:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,10 +31,11 @@
 //	std::is_signed, ystdex::_t, NPL::TryAccessValue, std::string, TypeError,
 //	ystdex::sfmt, std::isfinite, std::nearbyint, ystdex::exclude_self_t,
 //	ystdex::enable_if_t, std::is_floating_point, std::fmod, std::to_string,
-//	ystdex::and_, std::is_unsigned, std::abs, InvalidSyntax, ptrdiff_t,
-//	std::ldexp, std::pow, string_view, ReductionStatus, std::isinf, std::isnan,
-//	std::floor, std::log2, ystdex::is_explicitly_constructible, ystdex::byte;
-#include <ystdex/exception.h> // for ystdex::unsupported;
+//	ystdex::and_, std::is_unsigned, std::abs, std::floor, std::trunc,
+//	InvalidSyntax, ptrdiff_t, std::ldexp, std::pow, string_view,
+//	ReductionStatus, std::isinf, std::isnan, std::log2,
+//	ystdex::is_explicitly_constructible, ystdex::byte;
+#include <ystdex/exception.h> // for ystdex::unsupported, std::domain_error;
 #include <ystdex/cstdint.hpp> // for std::numeric_limits,
 //	ystdex::make_widen_int;
 #include <ystdex/functional.hpp> // for ystdex::retry_on_cond, ystdex::equal_to,
@@ -52,8 +53,9 @@
 // NOTE: Detecting the 128-bit unsigned type.
 // NOTE: The availablity is target-dependent, see
 //	https://gcc.gnu.org/onlinedocs/gcc/_005f_005fint128.html#g_t_005f_005fint128,
-//	In particular, 32-bit GCC usually has no such support, see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60846.
-//	Clang usually has a policy to be binary compatible to GCC (e.g.
+//	In particular, 32-bit GCC usually has no such support, see
+//	https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60846. Clang usually has a
+//	policy to be binary compatible to GCC (e.g.
 //	https://reviews.llvm.org/D43105?id=133546), so it is also limited here.
 // XXX: There are also legacy %__uint128_t type supported by older versions of
 //	compilers, but no one is in the supported platforms. So they are ignored.
@@ -117,9 +119,6 @@
 namespace NPL
 {
 
-inline namespace Math
-{
-
 //! \since build 929
 namespace
 {
@@ -157,7 +156,7 @@ enum NumCode : size_t
 	LongLong,
 	ULongLong,
 	IntMax = ULongLong,
-	// TODO: Use bigint.
+	// TODO: Support bigint.
 	Float,
 	Double,
 	LongDouble,
@@ -180,7 +179,7 @@ MapTypeIdToNumCode(const type_info& ti) ynothrow
 		return ULongLong;
 	if(IsTyped<double>(ti))
 		return Double;
-	// TODO: Use bigint.
+	// TODO: Support bigint.
 	if(IsTyped<long>(ti))
 		return Long;
 	if(IsTyped<unsigned long>(ti))
@@ -268,8 +267,8 @@ using MakeMulExtType = ystdex::_t<MulExtType<_type>>;
 //@}
 
 
-//! \since build 932
-template<typename _type, typename _func, class _tValue>
+//! \since build 937
+template<typename _type, class _tValue, typename _func>
 YB_ATTR_nodiscard _type
 DoNumLeaf(_tValue& x, _func f)
 {
@@ -283,7 +282,7 @@ DoNumLeaf(_tValue& x, _func f)
 		return f(*p_ull);
 	if(const auto p_d = NPL::TryAccessValue<double>(x))
 		return f(*p_d);
-	// TODO: Use bigint.
+	// TODO: Support bigint.
 	if(const auto p_l = NPL::TryAccessValue<long>(x))
 		return f(*p_l);
 	if(const auto p_ul = NPL::TryAccessValue<unsigned long>(x))
@@ -303,8 +302,8 @@ DoNumLeaf(_tValue& x, _func f)
 	return f(x);
 }
 
-//! \since build 932
-template<typename _type, typename _func, class... _tValue>
+//! \since build 937
+template<typename _type, class... _tValue, typename _func>
 YB_ATTR_nodiscard _type
 DoNumLeafHinted(NumCode code, _func f, _tValue&... xs)
 {
@@ -320,7 +319,7 @@ DoNumLeafHinted(NumCode code, _func f, _tValue&... xs)
 		return f(xs.template GetObject<unsigned long long>()...);
 	case Double:
 		return f(xs.template GetObject<double>()...);
-	// TODO: Use bigint.
+	// TODO: Support bigint.
 	case Long:
 		return f(xs.template GetObject<long>()...);
 	case ULong:
@@ -340,6 +339,35 @@ DoNumLeafHinted(NumCode code, _func f, _tValue&... xs)
 	default:
 		return f(xs...);
 	}
+}
+
+
+//! \since build 937
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE inline ValueObject
+QuotientOverflow(const _type& x)
+{
+	// TODO: Support bigint.
+#if false
+	// NOTE: This is unnecessary since the result is representable in
+	//	the range 'unsigned long long'.
+	if(std::numeric_limits<_type>::min()
+		== std::numeric_limits<long long>::min())
+		return -double(x);
+#endif
+#if YB_IMPL_MSCPP >= 1200
+	YB_Diag_Push
+	YB_Diag_Ignore(4146)
+	// NOTE: Same to the %ystdex::fixed_point::operator- implementation in
+	//	%YStandardEx.Rational in YBase. A different reason to disable the
+	//	warning instead of a workaround with prefix '0 - ' is theat such case is
+	//	guaranteed in 2's complement representation, and not even occurs
+	//	otherwise (plus all platforms supported by Microsoft VC++ imply it).
+#endif
+	return -MakeExtType<_type>(x);
+#if YB_IMPL_MSCPP >= 1200
+	YB_Diag_Pop
+#endif
 }
 
 
@@ -377,14 +405,24 @@ FloatIsInteger(const _type& x) ynothrow
 }
 //@}
 
+//! \since build 937
+YB_NORETURN ValueObject
+ThrowDivisionByZero()
+{
+	throw std::domain_error("Division by zero.");
+}
+
 
 //! \ingroup functors
 //@{
 //! \since build 930
-template<typename _type = void>
+template<typename _tRet = void>
 struct GUAssertMismatch
 {
-	YB_NORETURN _type
+	//! \since build 937
+	using result_type = _tRet;
+
+	YB_NORETURN result_type
 	operator()(const ValueObject&) const ynothrowv
 	{
 		AssertMismatch();
@@ -392,10 +430,25 @@ struct GUAssertMismatch
 };
 
 
-template<typename _type = void>
+//! \since build 930
+template<typename _tRet = ValueObject>
+struct GBAssertMismatch
+{
+	//! \since build 937
+	using result_type = _tRet;
+
+	YB_NORETURN result_type
+	operator()(const ValueObject&, const ValueObject&) const ynothrowv
+	{
+		AssertMismatch();
+	}
+};
+
+
+template<typename _tRet = void>
 struct ReportMismatch
 {
-	YB_NORETURN _type
+	YB_NORETURN _tRet
 	operator()(const ValueObject&) const
 	{
 		ThrowForUnsupportedNumber();
@@ -408,9 +461,9 @@ struct Cast : GUAssertMismatch<_tDst>
 {
 	//! \since build 930
 	using GUAssertMismatch<_tDst>::operator();
-	template<typename _tSrc,
-		yimpl(typename = ystdex::exclude_self_t<ValueObject, _tSrc>)>
-	YB_ATTR_nodiscard YB_PURE yconstfn _tDst
+	template<typename _tSrc>
+	YB_ATTR_nodiscard YB_PURE yconstfn
+		yimpl(ystdex::exclude_self_t)<ValueObject, _tSrc, _tDst>
 	operator()(const _tSrc& x) const ynothrow
 	{
 		return _tDst(x);
@@ -428,10 +481,10 @@ struct DynNumCast : ReportMismatch<ValueObject>
 	{}
 
 	using ReportMismatch<ValueObject>::operator();
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
-	inline ValueObject
-	operator()(const _type& x) const
+	template<typename _tParam>
+	YB_ATTR_nodiscard inline
+		yimpl(ystdex::exclude_self_t)<ValueObject, _tParam, ValueObject>
+	operator()(const _tParam& x) const
 	{
 		// TODO: Use allocator?
 		switch(Code)
@@ -446,7 +499,7 @@ struct DynNumCast : ReportMismatch<ValueObject>
 			return static_cast<unsigned long long>(x);
 		case Double:
 			return static_cast<double>(x);
-		// TODO: Use bigint.
+		// TODO: Support bigint.
 		case Long:
 			return static_cast<long>(x);
 		case ULong:
@@ -480,12 +533,49 @@ struct DynNumCast : ReportMismatch<ValueObject>
 // XXX: Operations on flonums are always closed even on overflow.
 
 
-struct EqZero : GUAssertMismatch<bool>
+//! \since build 937
+template<class _tBase, typename _tRet = void>
+struct GUOp : GUAssertMismatch<_tRet>, _tBase
 {
-	//! \since build 930
-	using GUAssertMismatch<bool>::operator();
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
+	using _tBase::_tBase;
+
+	using GUAssertMismatch<_tRet>::operator();
+	// XXX: This is not %YB_PURE, as the implementation provided by
+	//	%_tBase::operator() may modify the operand.
+	template<typename _tParam>
+	YB_ATTR_nodiscard yconstfn
+		yimpl(ystdex::exclude_self_t)<ValueObject, _tParam, _tRet>
+	operator()(_tParam&& x) const
+		ynoexcept_spec(_tBase::operator()(yforward(x)))
+	{
+		return _tBase::operator()(yforward(x));
+	}
+};
+
+
+//! \since build 937
+template<class _tBase, typename _tRet = ValueObject>
+struct GBOp : GBAssertMismatch<_tRet>, _tBase
+{
+	using _tBase::_tBase;
+
+	using GBAssertMismatch<_tRet>::operator();
+	template<typename _tParam1, typename _tParam2,
+		yimpl(typename = ystdex::exclude_self_t<ValueObject, _tParam1>)>
+	YB_ATTR_nodiscard yconstfn
+		yimpl(ystdex::exclude_self_t)<ValueObject, _tParam2, _tRet>
+	operator()(_tParam1&& x, _tParam2&& y) const
+		ynoexcept_spec(_tBase::operator()(yforward(x), yforward(y)))
+	{
+		return _tBase::operator()(yforward(x), yforward(y));
+	}
+};
+
+
+struct EqZero
+{
+	//! \since build 937
+	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE yconstfn bool
 	operator()(const _type& x) const ynothrow
 	{
@@ -503,11 +593,10 @@ struct EqZero : GUAssertMismatch<bool>
 
 //! \since build 930
 //@{
-struct Positive : GUAssertMismatch<bool>
+struct Positive
 {
-	using GUAssertMismatch<bool>::operator();
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
+	//! \since build 937
+	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE yconstfn bool
 	operator()(const _type& x) const ynothrow
 	{
@@ -517,11 +606,10 @@ struct Positive : GUAssertMismatch<bool>
 };
 
 
-struct Negative : GUAssertMismatch<bool>
+struct Negative
 {
-	using GUAssertMismatch<bool>::operator();
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
+	//! \since build 937
+	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE yconstfn bool
 	operator()(const _type& x) const ynothrow
 	{
@@ -530,58 +618,48 @@ struct Negative : GUAssertMismatch<bool>
 };
 
 
-struct Odd : GUAssertMismatch<bool>
+struct Odd
 {
-	using GUAssertMismatch<bool>::operator();
+	//! \since build 937
 	template<typename _type>
-	inline yimpl(ystdex::exclude_self_t<ValueObject, _type, bool>)
+	YB_ATTR_nodiscard YB_PURE inline
+		yimpl(ystdex::enable_if_t)<std::is_floating_point<_type>::value, bool>
 	operator()(const _type& x) const
-	{
-		return Do(x);
-	}
-
-private:
-	template<typename _type>
-	static inline
-		ystdex::enable_if_t<std::is_floating_point<_type>::value, bool>
-	Do(const _type& x)
 	{
 #if YB_IMPL_GNUCPP || YB_IMPL_CLANGPP
 	YB_Diag_Push
 	YB_Diag_Ignore(float-equal)
 #endif
 		if(FloatIsInteger(x))
-			return std::fmod(x, _type(2)) == _type(1);
+			// XXX: This is truncated division. Avoid to expect the exact value
+			//	of the remainder. See also
+			//	https://en.wikipedia.org/wiki/Modulo_operation#Common_pitfalls.
+			return std::fmod(x, _type(2)) != _type(0);
 #if YB_IMPL_GNUCPP || YB_IMPL_CLANGPP
 	YB_Diag_Pop
 #endif
 		ThrowTypeErrorForInteger(std::to_string(x));
 	}
+	//! \since build 937
 	template<typename _type, yimpl(ystdex::enable_if_t<
 		!std::is_floating_point<_type>::value, int> = 0)>
-	static inline bool
-	Do(const _type& x) ynothrow
+	YB_ATTR_nodiscard YB_PURE inline bool
+	operator()(const _type& x) const ynothrow
 	{
+		// TODO: Support bigint?
+		// XXX: Ditto.
 		return x % _type(2) != _type(0);
 	}
 };
 
 
-struct Even : GUAssertMismatch<bool>
+struct Even
 {
-	using GUAssertMismatch<bool>::operator();
+	//! \since build 937
 	template<typename _type>
-	inline yimpl(ystdex::exclude_self_t<ValueObject, _type, bool>)
+	YB_ATTR_nodiscard YB_PURE inline
+		yimpl(ystdex::enable_if_t)<std::is_floating_point<_type>::value, bool>
 	operator()(const _type& x) const
-	{
-		return Do(x);
-	}
-
-private:
-	template<typename _type>
-	static inline
-		ystdex::enable_if_t<std::is_floating_point<_type>::value, bool>
-	Do(const _type& x)
 	{
 #if YB_IMPL_GNUCPP || YB_IMPL_CLANGPP
 	YB_Diag_Push
@@ -594,175 +672,121 @@ private:
 #endif
 		ThrowTypeErrorForInteger(std::to_string(x));
 	}
+	//! \since build 937
 	template<typename _type, yimpl(ystdex::enable_if_t<
 		!std::is_floating_point<_type>::value, int> = 0)>
-	static inline bool
-	Do(const _type& x) ynothrow
+	YB_ATTR_nodiscard YB_PURE inline bool
+	operator()(const _type& x) const ynothrow
 	{
 		return x % _type(2) == _type(0);
 	}
 };
 
 
-template<typename _type = ValueObject>
-struct GBAssertMismatch
+struct BMax
 {
-	YB_NORETURN _type
-	operator()(const ValueObject&, const ValueObject&) const ynothrowv
-	{
-		AssertMismatch();
-	}
-};
-
-
-template<class _tBase>
-struct GBCompare : GBAssertMismatch<bool>, _tBase
-{
-	using GBAssertMismatch<bool>::operator();
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
-	inline bool
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE inline ValueObject
 	operator()(const _type& x, const _type& y) const ynothrow
 	{
-		return _tBase::operator()(x, y);
-	}
-};
-
-
-struct BMax : GBAssertMismatch<>
-{
-	using GBAssertMismatch<>::operator();
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
-	inline ValueObject
-	operator()(const _type& x, const _type& y) const ynothrow
-	{
-		// TODO: Use allocator for bignum?
+		// TODO: Support bigint with allocator?
 		return x > y ? x : y;
 	}
 };
 
 
-struct BMin : GBAssertMismatch<>
+struct BMin
 {
-	using GBAssertMismatch<>::operator();
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
-	inline ValueObject
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE inline ValueObject
 	operator()(const _type& x, const _type& y) const ynothrow
 	{
-		// TODO: Use allocator for bignum?
+		// TODO: Support bigint with allocator?
 		return x < y ? x : y;
 	}
 };
 //@}
 
 
-struct AddOne : GUAssertMismatch<>
+struct AddOne
 {
-	ValueObject& Result;
+	//! \since build 937
+	lref<ValueObject> Result;
 
-	AddOne(ValueObject& res)
+	//! \since build 937
+	AddOne(ValueObject& res) ynothrow
 		: Result(res)
 	{}
 
-	//! \since build 930
-	using GUAssertMismatch<>::operator();
+	//! \since build 937
 	template<typename _type>
-	inline yimpl(ystdex::exclude_self_t<ValueObject, _type>)
+	inline yimpl(ystdex::enable_if_t)<std::is_floating_point<_type>::value>
 	operator()(_type& x) const ynothrow
-	{
-		Perform(x);
-	}
-
-private:
-	//! \since build 930
-	template<typename _type>
-	inline ystdex::enable_if_t<std::is_floating_point<_type>::value>
-	Perform(_type& x) const ynothrow
 	{
 		x += _type(1);
 	}
-	//! \since build 930
+	//! \since build 937
 	template<typename _type, yimpl(ystdex::enable_if_t<
 		!std::is_floating_point<_type>::value, int> = 0)>
 	inline void
-	Perform(_type& x) const
+	operator()(_type& x) const
 	{
 		if(x != std::numeric_limits<_type>::max())
 			++x;
 		else
-			// TODO: Allocator?
-			Result = ValueObject(MakeExtType<_type>(x) + 1);
+			// TODO: Support bigint with allocator?
+			Result.get() = ValueObject(MakeExtType<_type>(x) + 1);
 	}
 };
 
-struct SubOne : GUAssertMismatch<>
+struct SubOne
 {
-	ValueObject& Result;
+	//! \since build 937
+	lref<ValueObject> Result;
 
-	SubOne(ValueObject& res)
+	//! \since build 937
+	SubOne(ValueObject& res) ynothrow
 		: Result(res)
 	{}
 
-	//! \since build 930
-	using GUAssertMismatch<>::operator();
+	//! \since build 937
 	template<typename _type>
-	inline yimpl(ystdex::exclude_self_t<ValueObject, _type>)
+	inline yimpl(ystdex::enable_if_t)<std::is_floating_point<_type>::value>
 	operator()(_type& x) const ynothrow
-	{
-		Perform(x);
-	}
-
-private:
-	//! \since build 930
-	template<typename _type>
-	inline ystdex::enable_if_t<std::is_floating_point<_type>::value>
-	Perform(_type& x) const ynothrow
 	{
 		x -= _type(1);
 	}
-	//! \since build 930
+	//! \since build 937
 	template<typename _type, yimpl(ystdex::enable_if_t<
 		!std::is_floating_point<_type>::value, int> = 0)>
 	inline void
-	Perform(_type& x) const
+	operator()(_type& x) const
 	{
 		if(x != std::numeric_limits<_type>::min())
 			--x;
 		else
-			// TODO: Allocator?
-			Result = ValueObject(MakeNExtType<_type>(x) - 1);
+			// TODO: Support bigint with allocator?
+			Result.get() = ValueObject(MakeNExtType<_type>(x) - 1);
 	}
 };
 
 
-struct BPlus : GBAssertMismatch<>
+struct BPlus
 {
-	//! \since build 930
-	using GBAssertMismatch<>::operator();
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
-	inline ValueObject
+	//! \since build 937
+	//@{
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE inline
+		yimpl(ystdex::enable_if_t)<!std::is_integral<_type>::value, _type>
 	operator()(const _type& x, const _type& y) const ynothrow
 	{
-		return Do(x, y);
-	}
-
-private:
-	template<typename _type>
-	static inline
-		ystdex::enable_if_t<!std::is_integral<_type>::value, _type>
-	Do(const _type& x, const _type& y) ynothrow
-	{
-		// TODO: Use bigint with allocator?
+		// TODO: Support bigint with allocator?
 		return x + y;
 	}
-	template<typename _type, yimpl(ystdex::enable_if_t<
-		ystdex::and_<std::is_integral<_type>,
-		std::is_signed<_type>>::value, int> = 0)>
-	static inline ValueObject
-	Do(const _type& x, const _type& y)
+	template<typename _type, yimpl(ystdex::enable_if_t<ystdex::and_<
+		std::is_integral<_type>, std::is_signed<_type>>::value, int> = 0)>
+	YB_ATTR_nodiscard YB_PURE inline ValueObject
+	operator()(const _type& x, const _type& y) const
 	{
 #if __has_builtin(__builtin_add_overflow)
 		_type r;
@@ -782,8 +806,8 @@ private:
 	}
 	template<typename _type, yimpl(ystdex::enable_if_t<
 		std::is_unsigned<_type>::value, long> = 0L)>
-	static inline ValueObject
-	Do(const _type& x, const _type& y)
+	inline ValueObject
+	operator()(const _type& x, const _type& y) const
 	{
 #if __has_builtin(__builtin_add_overflow)
 		_type r;
@@ -802,35 +826,26 @@ private:
 #endif
 		return MakeExtType<_type>(x) + MakeExtType<_type>(y);
 	}
+	//@}
 };
 
 
-struct BMinus : GBAssertMismatch<>
+struct BMinus
 {
-	//! \since build 930
-	using GBAssertMismatch<>::operator();
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
-	inline ValueObject
+	//! \since build 937
+	//@{
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE inline
+		yimpl(ystdex::enable_if_t)<!std::is_integral<_type>::value, _type>
 	operator()(const _type& x, const _type& y) const ynothrow
 	{
-		return Do(x, y);
-	}
-
-private:
-	template<typename _type>
-	static inline
-		ystdex::enable_if_t<!std::is_integral<_type>::value, _type>
-	Do(const _type& x, const _type& y) ynothrow
-	{
-		// TODO: Use bigint with allocator?
+		// TODO: Support bigint with allocator?
 		return x - y;
 	}
-	template<typename _type, yimpl(ystdex::enable_if_t<
-		ystdex::and_<std::is_integral<_type>,
-		std::is_signed<_type>>::value, int> = 0)>
-	static inline ValueObject
-	Do(const _type& x, const _type& y)
+	template<typename _type, yimpl(ystdex::enable_if_t<ystdex::and_<
+		std::is_integral<_type>, std::is_signed<_type>>::value, int> = 0)>
+	YB_ATTR_nodiscard YB_PURE inline ValueObject
+	operator()(const _type& x, const _type& y) const
 	{
 #if __has_builtin(__builtin_sub_overflow)
 		_type r;
@@ -852,43 +867,35 @@ private:
 	}
 	template<typename _type, yimpl(ystdex::enable_if_t<
 		std::is_unsigned<_type>::value, long> = 0L)>
-	static inline ValueObject
-	Do(const _type& x, const _type& y)
+	YB_ATTR_nodiscard YB_PURE inline ValueObject
+	operator()(const _type& x, const _type& y) const
 	{
 		// XXX: This is efficient enough to avoid builtins.
 		if(y <= x)
 			return x - y;
-		// TODO: Use bigint with allocator?
+		// TODO: Support bigint with allocator?
 		return MakeExtType<_type>(x) - MakeExtType<_type>(y);
 	}
+	//@}
 };
 
 
-struct BMultiplies : GBAssertMismatch<>
+struct BMultiplies
 {
-	//! \since build 930
-	using GBAssertMismatch<>::operator();
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
-	inline ValueObject
+	//! \since build 937
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE inline
+		yimpl(ystdex::enable_if_t)<!std::is_integral<_type>::value, _type>
 	operator()(const _type& x, const _type& y) const ynothrow
 	{
-		return Do(x, y);
-	}
-
-private:
-	template<typename _type>
-	static inline
-		ystdex::enable_if_t<!std::is_integral<_type>::value, _type>
-	Do(const _type& x, const _type& y) ynothrow
-	{
-		// TODO: Use bigint with allocator?
+		// TODO: Support bigint with allocator?
 		return x * y;
 	}
+	//! \since build 937
 	template<typename _type, yimpl(ystdex::enable_if_t<
 		std::is_integral<_type>::value, int> = 0)>
-	static inline ValueObject
-	Do(const _type& x, const _type& y)
+	YB_ATTR_nodiscard YB_PURE inline ValueObject
+	operator()(const _type& x, const _type& y) const
 	{
 #if __has_builtin(__builtin_mul_overflow)
 		_type r;
@@ -909,110 +916,69 @@ private:
 
 
 //! \since build 930
-struct BDivides : GBAssertMismatch<>
+struct BDivides
 {
-	using GBAssertMismatch<>::operator();
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
-	inline ValueObject
-	operator()(const _type& x, const _type& y) const
-	{
-		return Do(x, y);
-	}
-
-private:
+	//! \since build 937
+	//@{
 	template<typename _type>
-	static inline
-		ystdex::enable_if_t<!std::is_integral<_type>::value, _type>
-	Do(const _type& x, const _type& y) ynothrow
+	YB_ATTR_nodiscard YB_PURE inline
+		yimpl(ystdex::enable_if_t)<!std::is_integral<_type>::value, _type>
+	operator()(const _type& x, const _type& y) const ynothrow
 	{
-		// TODO: Use bigint with allocator?
+		// TODO: Support bigint with allocator?
 		return x / y;
 	}
-	template<typename _type, yimpl(ystdex::enable_if_t<
-		ystdex::and_<std::is_integral<_type>,
-		std::is_signed<_type>>::value, int> = 0)>
-	static inline ValueObject
-	Do(const _type& x, const _type& y)
+	template<typename _type, yimpl(ystdex::enable_if_t<ystdex::and_<
+		std::is_integral<_type>, std::is_signed<_type>>::value, int> = 0)>
+	YB_ATTR_nodiscard YB_PURE inline ValueObject
+	operator()(const _type& x, const _type& y) const
 	{
-		if(y != 0)
-		{
-			// NOTE: To avoid undefined behavior of when the value is in the 2's
-			//	complement representation (required since ISO C++20).
-			if(y != _type(-1) || x != std::numeric_limits<_type>::min())
-				return DoInt(x, y);
-			if(std::numeric_limits<_type>::min()
-				== std::numeric_limits<long long>::min())
-				return -double(x);
-#if YB_IMPL_MSCPP >= 1200
-	YB_Diag_Push
-	YB_Diag_Ignore(4146)
-	// NOTE: Same to the %ystdex::fixed_point::operator- implementation in
-	//	%YStandardEx.Rational in YBase. A different reason to disable the
-	//	warning instead of a workaround with prefix '0 - ' is theat such case is
-	//	guaranteed in 2's complement representation, and not even occurs
-	//	otherwise (plus all platforms supported by Microsoft VC++ imply it).
-#endif
-			return -MakeExtType<_type>(x);
-#if YB_IMPL_MSCPP >= 1200
-	YB_Diag_Pop
-#endif
-		}
-		ThrowDivideByZero();
+		// NOTE: To avoid undefined behavior of when the value is in the 2's
+		//	complement representation (required since ISO C++20).
+		return y != 0 ? (y != _type(-1) || x != std::numeric_limits<
+			_type>::min() ? DoInt(x, y) : QuotientOverflow(x))
+			: ThrowDivisionByZero();
 	}
 	template<typename _type, yimpl(ystdex::enable_if_t<
 		std::is_unsigned<_type>::value, long> = 0L)>
-	static inline ValueObject
-	Do(const _type& x, const _type& y)
+	YB_ATTR_nodiscard YB_PURE inline ValueObject
+	operator()(const _type& x, const _type& y) const
 	{
-		if(y != 0)
-			return DoInt(x, y);
-		ThrowDivideByZero();
+		return y != 0 ? DoInt(x, y) : ThrowDivisionByZero();
 	}
+	//@}
 
+private:
 	template<typename _type>
-	static inline ValueObject
+	YB_ATTR_nodiscard YB_PURE static inline ValueObject
 	DoInt(const _type& x, const _type& y) ynothrowv
 	{
 		static_assert(std::is_integral<_type>(), "Invalid type found.");
 
 		YAssert(y != 0, "Invalid value found.");
 
-		_type r(x / y);
+		const _type r(x / y);
 
 		if(r * y == x)
 			return r;
 		return double(x) / double(y);
 	}
-
-	YB_NORETURN static ValueObject
-	ThrowDivideByZero()
-	{
-		throw std::domain_error("Division by zero.");
-	}
 };
 
 
-struct ReplaceAbs : GUAssertMismatch<>
+struct ReplaceAbs
 {
-	ValueObject& Result;
+	lref<ValueObject> Result;
 
-	ReplaceAbs(ValueObject& res)
+	//! \since build 937
+	ReplaceAbs(ValueObject& res) ynothrow
 		: Result(res)
 	{}
 
-	using GUAssertMismatch<>::operator();
+	//! \since build 937
 	template<typename _type>
-	inline yimpl(ystdex::exclude_self_t<ValueObject, _type>)
+	inline yimpl(ystdex::enable_if_t)<!std::is_integral<_type>::value>
 	operator()(_type& x) const
-	{
-		Perform(x);
-	}
-
-private:
-	template<typename _type>
-	inline ystdex::enable_if_t<!std::is_integral<_type>::value>
-	Perform(_type& x) const
 	{
 		using std::abs;
 
@@ -1020,33 +986,262 @@ private:
 		//	original target type.
 		x = abs(x);
 	}
-	template<typename _type, yimpl(ystdex::enable_if_t<
-		ystdex::and_<std::is_integral<_type>,
-		std::is_signed<_type>>::value, int> = 0)>
+	//! \since build 937
+	template<typename _type, yimpl(ystdex::enable_if_t<ystdex::and_<
+		std::is_integral<_type>, std::is_signed<_type>>::value, int> = 0)>
 	inline void
-	Perform(_type& x) const
+	operator()(_type& x) const
 	{
 		// NOTE: To avoid undefined behavior of when the value is in the 2's
 		//	complement representation (required since ISO C++20).
 		if(x != std::numeric_limits<_type>::min())
 			x = _type(std::abs(x));
 		else
-#if YB_IMPL_MSCPP >= 1200
-	YB_Diag_Ignore(4146)
-	// NOTE: See %BDivides::Do.
-#endif
-			Result = -MakeExtType<_type>(x);
-#if YB_IMPL_MSCPP >= 1200
-	YB_Diag_Push
-	YB_Diag_Pop
-#endif
+			Result.get() = QuotientOverflow(x);
 	}
+	//! \since build 937
 	template<typename _type, yimpl(ystdex::enable_if_t<
 		std::is_unsigned<_type>::value, long> = 0L)>
 	inline void
-	Perform(_type&) const ynothrow
+	operator()(_type&) const ynothrow
 	{}
 };
+
+
+//! \since build 937
+template<class _tOpPolicy>
+struct GBDivRemBase
+{
+	using result_type = typename _tOpPolicy::result_type;
+
+	template<typename _type, yimpl(ystdex::enable_if_t<
+		std::is_unsigned<_type>::value, long> = 0L)>
+	YB_ATTR_nodiscard YB_PURE inline result_type
+	operator()(const _type& x, const _type& y) const
+	{
+		if(y != 0)
+			return _tOpPolicy::DoInt(x, y);
+		ThrowDivisionByZero();
+	}
+};
+
+
+//! \since build 937
+template<class _tPolicy, class _tOpPolicy>
+struct GBDivRem : GBDivRemBase<_tOpPolicy>
+{
+	using typename GBDivRemBase<_tOpPolicy>::result_type;
+
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE inline yimpl(ystdex::enable_if_t)<
+		std::is_floating_point<_type>::value, result_type>
+	operator()(const _type& x, const _type& y) const
+	{
+#if YB_IMPL_GNUCPP || YB_IMPL_CLANGPP
+	YB_Diag_Push
+	YB_Diag_Ignore(float-equal)
+#endif
+		if(FloatIsInteger(x))
+		{
+			if(FloatIsInteger(y))
+				return _tOpPolicy::DoFloat(_tPolicy::FloatQuotient(x, y), x, y);
+			ThrowTypeErrorForInteger(std::to_string(y));
+		}
+#if YB_IMPL_GNUCPP || YB_IMPL_CLANGPP
+	YB_Diag_Pop
+#endif
+		ThrowTypeErrorForInteger(std::to_string(x));
+	}
+	// TODO: Support bigint with allocator?
+	template<typename _type, yimpl(ystdex::enable_if_t<ystdex::and_<
+		std::is_integral<_type>, std::is_signed<_type>>::value, int> = 0)>
+	YB_ATTR_nodiscard YB_PURE inline result_type
+	operator()(const _type& x, const _type& y) const
+	{
+		return _tPolicy::Int(_tOpPolicy(), x, y);
+	}
+	using GBDivRemBase<_tOpPolicy>::operator();
+};
+//@}
+
+
+//! \since build 937
+//@{
+using DivRemResult = array<ValueObject, 2>;
+
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE inline DivRemResult
+DividesOverflow(const _type& x)
+{
+	return {QuotientOverflow(x), _type(0)};
+}
+
+
+//! \brief 二元除法策略类。
+//@{
+struct BDividesPolicy final
+{
+	using result_type = DivRemResult;
+
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE static inline result_type
+	DoFloat(const _type& q, const _type& x, const _type& y) ynothrow
+	{
+		return {q, x - y * q};
+	}
+
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE static inline result_type
+	DoInt(const _type& x, const _type& y) ynothrowv
+	{
+		YAssert(y != 0, "Invalid divisor found.");
+		return {_type(x / y), _type(x % y)};
+	}
+};
+
+
+struct BQuotientPolicy final
+{
+	using result_type = ValueObject;
+
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE static inline result_type
+	DoFloat(const _type& q, const _type&, const _type&) ynothrow
+	{
+		return q;
+	}
+
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE static inline result_type
+	DoInt(const _type& x, const _type& y) ynothrowv
+	{
+		YAssert(y != 0, "Invalid divisor found.");
+		return _type(x / y);
+	}
+};
+
+
+struct BRemainderPolicy final
+{
+	using result_type = ValueObject;
+
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE static inline result_type
+	DoFloat(const _type& q, const _type& x, const _type& y) ynothrow
+	{
+		// XXX: Ideally %std::fmod should be used, but it is not guaranteed
+		//	consistent to 'floor/' or 'truncate/' by implentations, so the
+		//	congruency may not hold, see also e.g. comments in the
+		//	implementation in GNU Guile. This also avoids implementation-defined
+		//	behavior of %std::fmod when underflow.
+		return x - y * q;
+	}
+
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE static inline result_type
+	DoInt(const _type& x, const _type& y) ynothrowv
+	{
+		YAssert(y != 0, "Invalid divisor found.");
+		return _type(x % y);
+	}
+};
+
+
+struct BFloorPolicy final
+{
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE static inline _type
+	FloatQuotient(const _type& x, const _type& y) ynothrow
+	{
+		return std::floor(x / y);
+	}
+
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE static inline DivRemResult
+	Int(BDividesPolicy, const _type& x, const _type& y) ynothrowv
+	{
+		YAssert(y != 0, "Invalid divisor found.");
+		if(y > 0)
+		{
+			const _type r(x % y);
+
+			return {_type(x < 0 ? (x + 1) / y - 1 : x / y), r < 0 ? r + y : r};
+		}
+		if(x != std::numeric_limits<_type>::min())
+		{
+			const _type r(x % y);
+
+			return {_type((x - 1) / y - 1), r > 0 ? r + y : r};
+		}
+		if(y != _type(-1))
+		{
+			const _type r(x % y);
+
+			return {_type((x - y + 1) / y), r > 0 ? r + y : r};
+		}
+		return DividesOverflow(x);
+	}
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE static inline ValueObject
+	Int(BQuotientPolicy, const _type& x, const _type& y) ynothrowv
+	{
+		YAssert(y != 0, "Invalid divisor found.");
+		if(y > 0)
+			return _type(x < 0 ? (x + 1) / y - 1 : x / y);
+		if(x != std::numeric_limits<_type>::min())
+			return _type((x - 1) / y - 1);
+		if(y != _type(-1))
+			return _type((x - y + 1) / y);
+		return QuotientOverflow(x);
+	}
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE static inline _type
+	Int(BRemainderPolicy, const _type& x, const _type& y) ynothrowv
+	{
+		YAssert(y != 0, "Invalid divisor found.");
+
+		const _type r(x % y);
+
+		return (y > 0 ? r < 0 : r > 0) ? r + y : r;
+	}
+};
+
+
+struct BTruncatePolicy final
+{
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE static inline _type
+	FloatQuotient(const _type& x, const _type& y) ynothrow
+	{
+		return std::trunc(x / y);
+	}
+
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE static inline DivRemResult
+	Int(BDividesPolicy, const _type& x, const _type& y) ynothrowv
+	{
+		// NOTE: See %BDivides::operator().
+		return y != _type(-1) || x != std::numeric_limits<_type>::min()
+			? DivRemResult{_type(x / y), _type(x % y)} : DividesOverflow(x);
+	}
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE static inline ValueObject
+	Int(BQuotientPolicy, const _type& x, const _type& y) ynothrowv
+	{
+		YAssert(y != 0, "Invalid divisor found.");
+		// NOTE: See %BDivides::operator().
+		return y != _type(-1) || x != std::numeric_limits<_type>::min()
+			? _type(x / y) : QuotientOverflow(x);
+	}
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE static inline _type
+	Int(BRemainderPolicy, const _type& x, const _type& y) ynothrowv
+	{
+		YAssert(y != 0, "Invalid divisor found.");
+		return x % y;
+	}
+};
+//@}
 //@}
 
 
@@ -1054,6 +1249,25 @@ YB_ATTR_nodiscard YB_PURE ValueObject
 Promote(NumCode code, const ValueObject& x, NumCode src_code)
 {
 	return DoNumLeafHinted<ValueObject>(src_code, DynNumCast(code), x);
+}
+
+//! \since build 937
+template<class _tBase>
+YB_ATTR_nodiscard bool
+NumUnaryPredicate(const ValueObject& x) ynothrowv
+{
+	return DoNumLeaf<bool>(x, GUOp<_tBase, bool>());
+}
+
+//! \since build 937
+template<class _fUnary, typename _tRet = void>
+YB_ATTR_nodiscard ValueObject
+NumUnaryOp(ResolvedArg<>& x)
+{
+	auto res(MoveUnary(x));
+
+	DoNumLeaf<void>(res, GUOp<_fUnary, _tRet>(res));
+	return res;
 }
 
 //! \since build 930
@@ -1064,21 +1278,22 @@ NumBinaryComp(const ValueObject& x, const ValueObject& y) ynothrow
 	const auto xcode(MapTypeIdToNumCode(x));
 	const auto ycode(MapTypeIdToNumCode(y));
 	const auto ret_bin([](ValueObject u, ValueObject v, NumCode code){
-		return DoNumLeafHinted<bool>(code, _fBinary(), u, v);
+		return DoNumLeafHinted<bool>(code, GBOp<_fBinary, bool>(), u, v);
 	});
 
 	return size_t(xcode) >= size_t(ycode) ? ret_bin(x, Promote(xcode, y, ycode),
 		xcode) : ret_bin(Promote(ycode, x, xcode), y, ycode);
 }
 
-template<class _fBinary>
-ValueObject
+//! \since build 937
+template<class _fBinary, typename _tRet = ValueObject>
+YB_ATTR_nodiscard _tRet
 NumBinaryOp(ResolvedArg<>& x, ResolvedArg<>& y)
 {
 	const auto xcode(MapTypeIdToNumCode(x));
 	const auto ycode(MapTypeIdToNumCode(y));
 	const auto ret_bin([](ValueObject u, ValueObject v, NumCode code){
-		return DoNumLeafHinted<ValueObject>(code, _fBinary(), u, v);
+		return DoNumLeafHinted<_tRet>(code, GBOp<_fBinary, _tRet>(), u, v);
 	});
 
 	return size_t(xcode) >= size_t(ycode) ?
@@ -1772,6 +1987,8 @@ template<typename _type, yimpl(enable_if_uint_t<_type> = 0)>
 YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS yconstfn bool
 is_odd(_type x) ynothrow
 {
+	// XXX: Unlike %Odd::Do, this is safe as only unsigned integer types are
+	//	supported here.
 	return bool(x & 1);
 }
 
@@ -1816,7 +2033,8 @@ fp_to_int(_tFloat x) ynothrowv
 
 
 #if !NPL_Impl_NPLAMath_LongDoubleAsDouble
-// NOTE: This is an optimization of division, see
+// NOTE: Using devision by constant as an optimization of division, see
+//	https://en.wikipedia.org/wiki/Division_algorithm#Division_by_a_constant and
 //	https://gmplib.org/~tege/divcnst-pldi94.pdf. Nevertheless, it is necessary
 //	because %uint128_t replacement does not implement operator%=, since all use
 //	cases using invariant divisors.
@@ -3148,6 +3366,8 @@ YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_NONNULL(1) char*
 WriteFPNormal(char* buf, _type val, char e, size_t prec,
 	std::uint_fast8_t left_max, std::uint_fast8_t right_max)
 {
+	YAssert(val >= 0, "Invalid value found.");
+
 	// XXX: %std::ilogb is generally inefficient for checking of the special
 	//	values already excluded here.
 	const auto
@@ -3190,6 +3410,8 @@ template<typename _type>
 YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_NONNULL(1) char*
 WriteFPSubnormal(char* buf, _type val, char e, size_t prec) ynothrowv
 {
+	YAssert(val >= 0, "Invalid value found.");
+
 	using carrier_type = typename fp_traits<_type>::carrier_type;
 	const auto exp_bin(std::numeric_limits<_type>::min_exponent
 		- std::numeric_limits<_type>::digits);
@@ -3229,6 +3451,9 @@ WriteFPSubnormal(char* buf, long double val, char e, size_t prec) ynothrowv
 //@}
 
 } // unnamed namespace
+
+inline namespace Math
+{
 
 bool
 IsExactValue(const ValueObject& vo) ynothrow
@@ -3329,62 +3554,62 @@ IsNaN(const ValueObject& x) ynothrowv
 bool
 Equal(const ValueObject& x, const ValueObject& y) ynothrowv
 {
-	return NumBinaryComp<GBCompare<ystdex::equal_to<>>>(x, y);
+	return NumBinaryComp<ystdex::equal_to<>>(x, y);
 }
 
 bool
 Less(const ValueObject& x, const ValueObject& y) ynothrowv
 {
-	return NumBinaryComp<GBCompare<ystdex::less<>>>(x, y);
+	return NumBinaryComp<ystdex::less<>>(x, y);
 }
 
 bool
 Greater(const ValueObject& x, const ValueObject& y) ynothrowv
 {
-	return NumBinaryComp<GBCompare<ystdex::greater<>>>(x, y);
+	return NumBinaryComp<ystdex::greater<>>(x, y);
 }
 
 bool
 LessEqual(const ValueObject& x, const ValueObject& y) ynothrowv
 {
-	return NumBinaryComp<GBCompare<ystdex::less_equal<>>>(x, y);
+	return NumBinaryComp<ystdex::less_equal<>>(x, y);
 }
 
 bool
 GreaterEqual(const ValueObject& x, const ValueObject& y) ynothrowv
 {
-	return NumBinaryComp<GBCompare<ystdex::greater_equal<>>>(x, y);
+	return NumBinaryComp<ystdex::greater_equal<>>(x, y);
 }
 
 
 bool
 IsZero(const ValueObject& x) ynothrowv
 {
-	return DoNumLeaf<bool>(x, EqZero());
+	return NumUnaryPredicate<EqZero>(x);
 }
 
 bool
 IsPositive(const ValueObject& x) ynothrowv
 {
-	return DoNumLeaf<bool>(x, Positive());
+	return NumUnaryPredicate<Positive>(x);
 }
 
 bool
 IsNegative(const ValueObject& x) ynothrowv
 {
-	return DoNumLeaf<bool>(x, Negative());
+	return NumUnaryPredicate<Negative>(x);
 }
 
 bool
 IsOdd(const ValueObject& x) ynothrowv
 {
-	return DoNumLeaf<bool>(x, Odd());
+	return NumUnaryPredicate<Odd>(x);
 }
 
 bool
 IsEven(const ValueObject& x) ynothrowv
 {
-	return DoNumLeaf<bool>(x, Even());
+	return NumUnaryPredicate<Even>(x);
 }
 
 
@@ -3403,19 +3628,13 @@ Min(ResolvedArg<>&& x, ResolvedArg<>&& y)
 ValueObject
 Add1(ResolvedArg<>&& x)
 {
-	auto res(MoveUnary(x));
-
-	DoNumLeaf<void>(res, AddOne(res));
-	return res;
+	return NumUnaryOp<AddOne>(x);
 }
 
 ValueObject
 Sub1(ResolvedArg<>&& x)
 {
-	auto res(MoveUnary(x));
-
-	DoNumLeaf<void>(res, SubOne(res));
-	return res;
+	return NumUnaryOp<SubOne>(x);
 }
 
 ValueObject
@@ -3445,12 +3664,48 @@ Divides(ResolvedArg<>&& x, ResolvedArg<>&& y)
 ValueObject
 Abs(ResolvedArg<>&& x)
 {
-	auto res(MoveUnary(x));
-
-	DoNumLeaf<void>(res, ReplaceAbs(res));
-	return res;
+	return NumUnaryOp<ReplaceAbs>(x);
 }
 
+array<ValueObject, 2>
+FloorDivides(ResolvedArg<>&& x, ResolvedArg<>&& y)
+{
+	return NumBinaryOp<GBDivRem<BFloorPolicy, BDividesPolicy>,
+		BDividesPolicy::result_type>(x, y);
+}
+
+ValueObject
+FloorQuotient(ResolvedArg<>&& x, ResolvedArg<>&& y)
+{
+	return NumBinaryOp<GBDivRem<BFloorPolicy, BQuotientPolicy>>(x, y);
+}
+
+ValueObject
+FloorRemainder(ResolvedArg<>&& x, ResolvedArg<>&& y)
+{
+	return NumBinaryOp<GBDivRem<BFloorPolicy, BRemainderPolicy>>(x, y);
+}
+
+array<ValueObject, 2>
+TruncateDivides(ResolvedArg<>&& x, ResolvedArg<>&& y)
+{
+	return NumBinaryOp<GBDivRem<BTruncatePolicy, BDividesPolicy>,
+		BDividesPolicy::result_type>(x, y);
+}
+
+ValueObject
+TruncateQuotient(ResolvedArg<>&& x, ResolvedArg<>&& y)
+{
+	return NumBinaryOp<GBDivRem<BTruncatePolicy, BQuotientPolicy>>(x, y);
+}
+
+ValueObject
+TruncateRemainder(ResolvedArg<>&& x, ResolvedArg<>&& y)
+{
+	return NumBinaryOp<GBDivRem<BTruncatePolicy, BRemainderPolicy>>(x, y);
+}
+
+} // inline namespace Math;
 
 void
 ReadDecimal(ValueObject& vo, string_view id, string_view::const_iterator first)
@@ -3510,7 +3765,7 @@ WriteFPString(char* buf, _type val, char e, size_t prec, std::uint_fast8_t left_
 	// XXX: Actually less buffer bytes are used. However, keep it to reserve for
 	//	the future ues.
 #if __has_builtin(__builtin_object_size)
-	YAssert(__builtin_object_size(buf, 0) >= StringBufferSize,
+	YAssert(__builtin_object_size(buf, 0) >= NumberStringBufferSize,
 		"Insufficient buffer found.");
 #endif
 
@@ -3534,10 +3789,11 @@ WriteFPString(char* buf, _type val, char e, size_t prec, std::uint_fast8_t left_
 	//	and L = 3.) H is defined in the Schubfach paper §8.1 D6.
 #if NPL_Impl_NPLAMath_HasSubnorm
 	case FP_SUBNORMAL:
-		return WriteFPSubnormal(buf, val, e, prec);
+		return WriteFPSubnormal(buf, sign ? -val : val, e, prec);
 #endif
 	default:
-		return WriteFPNormal(buf, val, e, prec, left_max, right_max);
+		return
+			WriteFPNormal(buf, sign ? -val : val, e, prec, left_max, right_max);
 	}
 }
 
@@ -3563,21 +3819,21 @@ WriteFPString(char*, long double, char, size_t, std::uint_fast8_t,
 string
 FPToString(float x, string::allocator_type a)
 {
-	char buf[StringBufferSize];
+	char buf[NumberStringBufferSize];
 
 	return string(&buf[0], WriteFPString(buf, x, 'f'), a);
 }
 string
 FPToString(double x, string::allocator_type a)
 {
-	char buf[StringBufferSize];
+	char buf[NumberStringBufferSize];
 
 	return string(&buf[0], WriteFPString(buf, x, 'e'), a);
 }
 string
 FPToString(long double x, string::allocator_type a)
 {
-	char buf[StringBufferSize];
+	char buf[NumberStringBufferSize];
 
 	return string(&buf[0], WriteFPString(buf, x, 'l'), a);
 }
@@ -3586,8 +3842,6 @@ FPToString(long double x, string::allocator_type a)
 #undef NPL_Impl_NPLAMath_HasSubnorm
 #undef NPL_Impl_NPLAMath_IEC_60559_BFP
 //@}
-
-} // inline namespace Math;
 
 } // namespace NPL;
 

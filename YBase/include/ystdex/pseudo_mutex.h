@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2019, 2021 FrankHB.
+	© 2014-2016, 2019, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file pseudo_mutex.h
 \ingroup YStandardEx
 \brief 伪互斥量。
-\version r1648
+\version r1653
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-03 13:53:34 +0800
 \par 修改时间:
-	2021-09-24 02:43 +0800
+	2022-01-21 20:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_pseudo_mutex_h_
 #define YB_INC_ystdex_pseudo_mutex_h_ 1
 
-#include "ref.hpp" // for lref, std::declval;
+#include "ref.hpp" // for lref, std::declval, ystdex::invoke;
 #include "base.h" // for noncopyable, nonmovable;
 #include <chrono> // for std::chrono::duration, std::chrono::time_point;
 #include "exception.h" // for std::addressof, throw_error, std::errc;
@@ -1003,8 +1003,7 @@ struct YB_API once_flag : private yimpl(noncopyable), private yimpl(nonmovable)
 /*!
 \brief 按标识调用函数，保证调用一次。
 \note 类似 std::call_once ，但不保证线程安全性。
-\note ISO C++11（至 N3691 ） 30.4 synopsis 处的声明存在错误。
-\bug 未实现支持成员指针。
+\note ISO C++11（至 N3691 ）30.4 synopsis 处的声明存在错误。
 \see https://github.com/cplusplus/draft/issues/151 。
 \see CWG 1591 。
 \see CWG 2442 。
@@ -1017,7 +1016,7 @@ call_once(once_flag& flag, _fCallable&& f, _tParams&&... args)
 {
 	if(!flag.state)
 	{
-		f(yforward(args)...);
+		ystdex::invoke(f, yforward(args)...);
 		flag.state = true;
 	}
 }

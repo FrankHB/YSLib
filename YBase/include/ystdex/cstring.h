@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018-2021 FrankHB.
+	© 2009-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r2664
+\version r2693
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2021-12-16 02:34 +0800
+	2022-01-24 18:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -221,7 +221,7 @@ ntctsicmp(const _tChar* s1, const _tChar* s2) ynothrowv
 	return int(ystdex::towlower(*s1) - ystdex::towlower(*s2));
 }
 /*!
-\brief 按字典序比较不超过指定长度的简单 NTCTS （忽略大小写）。
+\brief 按字典序比较不超过指定长度的简单 NTCTS（忽略大小写）。
 \note 语义同 std::basic_string<_tChar>::compare ，但忽略大小写，
 	使用字符串结束符判断结束。
 */
@@ -716,6 +716,37 @@ str_find_last_not_of(const _tChar* p, _tSize sz, const _tChar* s, _tSize pos,
 	return _vNPos;
 }
 //@}
+//@}
+
+
+/*!
+\ingroup functors
+\brief NTCTS 比较仿函数。
+\since build 937
+*/
+//@{
+template<typename _tChar = void>
+struct ntcts_compare
+{
+	YB_ATTR_nodiscard YB_NONNULL(2, 3) YB_PURE bool
+	operator()(const _tChar* x, const _tChar* y) const ynothrowv
+	{
+		return x != y && ystdex::ntctscmp(x, y) < 0;
+	}
+};
+
+template<>
+struct ntcts_compare<void>
+{
+	using is_transparent = yimpl(void);
+
+	template<typename _tChar>
+	YB_ATTR_nodiscard YB_NONNULL(2, 3) YB_PURE bool
+	operator()(const _tChar* x, const _tChar* y) const ynothrowv
+	{
+		return x != y && ystdex::ntctscmp(x, y) < 0;
+	}
+};
 //@}
 
 } // namespace ystdex;

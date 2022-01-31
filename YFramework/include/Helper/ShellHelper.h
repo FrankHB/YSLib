@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2019, 2021 FrankHB.
+	© 2010-2016, 2019, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r2063
+\version r2065
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2021-08-01 03:29 +0800
+	2022-01-21 20:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -107,7 +107,7 @@ using EncodingInfoItem = pair<Encoding, const char16_t*>;
 \brief 编码信息。
 \since build 307
 */
-#if __cplusplus > 201103L
+#if __cplusplus >= 201402L
 // XXX: The constructor of %std::pair used here has 'constexpr' since ISO C++14.
 yconstexpr
 #endif

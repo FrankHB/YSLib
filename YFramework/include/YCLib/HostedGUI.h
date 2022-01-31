@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2021 FrankHB.
+	© 2013-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1601
+\version r1603
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2021-12-21 21:09 +0800
+	2022-01-21 20:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1158,7 +1158,7 @@ private:
 \warning 当不能保证不使用 COM 时，要求 COM 被适当初始化。
 \warning 不附加检查：命令执行路径指定为文档时，命令参数应为空。
 \warning 不附加检查：命令执行路径为相对路径时，工作目录路径不应为相对路径。
-\see https://msdn.microsoft.com/en-us/library/windows/desktop/bb762153(v=vs.85).aspx 。
+\see https://msdn.microsoft.com/library/windows/desktop/bb762153(v=vs.85).aspx 。
 \since build 592
 
 使用 ::ShellExecuteW 执行 Shell 命令。

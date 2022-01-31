@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2018, 2020-2021 FrankHB.
+	© 2014-2016, 2018, 2020-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief Win32 平台自然语言处理支持扩展接口。
-\version r371
+\version r408
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2013-11-25 17:33:25 +0800
 \par 修改时间:
-	2021-05-18 01:23 +0800
+	2022-01-25 05:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,16 +31,25 @@
 #if YCL_Win32
 #	include <libdefect/exception.h> // for std::throw_with_nested;
 #	include <stdexcept> // for std::invalid_argument;
-#	include YFM_Win32_YCLib_NLS // for map, ystdex::trivially_copy_n,
-//	ystdex::try_emplace;
-#	include YFM_Win32_YCLib_Registry // for FetchRegistryString;
-#	include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositive;
-#	include <ystdex/base.h> // for ystdex::noncopyable, ystdex::nonmovable;
+#	include YFM_Win32_YCLib_NLS // for platform::Nonnull,
+//	ystdex::trivially_copy_n, ystdex::try_emplace, ystdex::noncopyable,
+//	ystdex::nonmovable, WOW64FileSystemRedirectionGuard;
+#	include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositive,
+//	YSLib::CheckNonnegative;
+#	include YFM_YCLib_Mutex // for platform::Concurrency::mutex,
+//	platform::Concurrency::lock_guard;
+#	include YFM_Win32_YCLib_Registry // for FetchRegistryString,
+//	HKEY_LOCAL_MACHINE;
 #	include YFM_YCLib_MemoryMapping // for platform::MappedFile;
 #	include <ystdex/type_pun.hpp> // for ystdex::aligned_cast;
+#	include <ystdex/map.hpp> // for ystdex::map;
 
-using namespace YSLib;
-using namespace Drawing;
+//! \since build 937
+//@{
+using YSLib::CheckPositive;
+using platform::Concurrency::mutex;
+using YSLib::CheckNonnegative;
+//@}
 #endif
 
 namespace platform_ex
@@ -51,7 +60,7 @@ namespace platform_ex
 inline namespace Windows
 {
 
-//! \see https://technet.microsoft.com/en-us/library/cc976084.aspx 。
+//! \see https://technet.microsoft.com/library/cc976084.aspx 。
 YB_NONNULL(1) wstring
 FetchNLSItemFromRegistry(const wchar_t* name)
 {
@@ -72,8 +81,8 @@ MBCSToMBCSImpl(const string::allocator_type& a, int l, const char* str,
 {
 	if(cp_src != cp_dst)
 	{
-		const int
-			w_len(::MultiByteToWideChar(cp_src, 0, Nonnull(str), l, {}, 0));
+		const int w_len(::MultiByteToWideChar(cp_src, 0, platform::Nonnull(str),
+			l, {}, 0));
 
 		if(w_len != 0)
 		{
@@ -95,7 +104,7 @@ MBCSToWCSImpl(const wstring::allocator_type& a, int l, const char* str,
 	unsigned cp)
 {
 	const int
-		w_len(::MultiByteToWideChar(cp, 0, Nonnull(str), l, {}, 0));
+		w_len(::MultiByteToWideChar(cp, 0, platform::Nonnull(str), l, {}, 0));
 
 	if(w_len != 0)
 	{
@@ -113,7 +122,8 @@ YB_ATTR_nodiscard YB_NONNULL(3) string
 WCSToMBCSImpl(const string::allocator_type& a, int l, const wchar_t* str,
 	unsigned cp)
 {
-	const int r_l(::WideCharToMultiByte(cp, 0, Nonnull(str), l, {}, 0, {}, {}));
+	const int r_l(
+		::WideCharToMultiByte(cp, 0, platform::Nonnull(str), l, {}, 0, {}, {}));
 
 	if(r_l != 0)
 	{
@@ -160,7 +170,8 @@ struct CPTABLEINFO
 };
 
 
-class NLSTableEntry final : private noncopyable, private nonmovable
+class NLSTableEntry final
+	: private ystdex::noncopyable, private ystdex::nonmovable
 {
 private:
 	//! \since build 713
@@ -173,11 +184,13 @@ public:
 };
 
 NLSTableEntry::NLSTableEntry(int cp)
-	// FIXME: Some NLS files are missing from SysWOW64 directory in some
-	//	versions of 64-bit Windows 10. There should be ways to detect it.
 	: mapped([](const string& path){
-		TryRet(MappedFile(path))
-		// XXX: This would be caught by %TryInvoke in the call to
+		// NOTE: Some NLS files are missing from SysWOW64 directory in some
+		//	versions of 64-bit Windows 10.
+		WOW64FileSystemRedirectionGuard gd(true);
+
+		TryRet(platform::MappedFile(path))
+		// XXX: This would be caught by %YSLib::TryInvoke in the call to
 		//	%FetchDBCSOffset.
 		CatchExpr(..., std::throw_with_nested(std::invalid_argument(
 			ystdex::sfmt("Failed initializing NLS table entry specified from"
@@ -211,8 +224,8 @@ NLSTableEntry::NLSTableEntry(int cp)
 
 
 mutex NLSCacheMutex;
-//! \since build 693
-map<int, NLSTableEntry> NLSCache;
+//! \since build 937
+ystdex::map<int, NLSTableEntry> NLSCache;
 
 } // unnamed namespace;
 
@@ -258,9 +271,9 @@ WCSToMBCS(const string::allocator_type& a, wstring_view sv, unsigned cp)
 const unsigned short*
 FetchDBCSOffset(int cp) ynothrow
 {
-	return TryInvoke([=]{
-		lock_guard<mutex> lck(NLSCacheMutex);
-		// TODO: Enable concurrent initialization using 'call_once', etc?
+	return YSLib::TryInvoke([=]{
+		platform::Concurrency::lock_guard<mutex> lck(NLSCacheMutex);
+		// TODO: Enable concurrent initialization using %call_once?
 		auto& tbl(ystdex::try_emplace(NLSCache, cp, cp).first
 			->second.GetTable());
 

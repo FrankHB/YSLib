@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2017, 2019-2021 FrankHB.
+	© 2013-2017, 2019-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2320
+\version r2478
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2021-10-11 19:11 +0800
+	2022-01-25 05:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,29 +29,45 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Platform
 #if YCL_Win32
-#	include YFM_Win32_YCLib_Registry // for platform::NodeCategory, ERROR_*,
-//	std::string, UniqueHandle, ::BY_HANDLE_FILE_INFORMATION, YCL_CallF_Win32,
-//	YCL_Raise_Win32E, NO_ERROR, ::OVERLAPPED, ::GetSystemDirectoryW,
-//	::GetSystemWindowsDirectoryW, ystdex::rtrim, ::FormatMessageW, ::HMODULE,
-//	::GetProcAddress, ::GetModuleFileNameW, FILE_TYPE_CHAR, FILE_TYPE_PIPE,
-//	FILE_TYPE_UNKNOWN, NO_ERROR, ::CreateFileW, INVALID_HANDLE_VALUE,
-//	RegistryKey, HKEY_*, FindClose, ystdex::throw_error, ::FindFirstFileW,
+#	include YFM_Win32_YCLib_Registry // for platform::NodeCategory,
+//	platform::Concurrency::mutex, YSLib::Warning, YSLib::TryInvoke, YSLib::Err,
+//	YSLib::RecordLevel, platform::Nonnull, ERROR_*, std::string, UniqueHandle,
+//	::BY_HANDLE_FILE_INFORMATION, YCL_CallF_Win32, YCL_Raise_Win32E, NO_ERROR,
+//	::OVERLAPPED, wstring, ::GetSystemDirectoryW, ::GetSystemWindowsDirectoryW,
+//	::HMODULE, ystdex::ntcts_compare, ystdex::rtrim, ::FormatMessageW,
+//	::GetLastError, FILE_TYPE_CHAR, FILE_TYPE_PIPE, FILE_TYPE_UNKNOWN, NO_ERROR,
+//	::CreateFileW, INVALID_HANDLE_VALUE, RegistryKey, HKEY_*,
+//	YSLib::FilterExceptions, FindClose, ystdex::throw_error, ::FindFirstFileW,
 //	::FindNextFileW, std::errc::not_supported, std::invalid_argument,
-//	::LARGE_INTEGER, ::GetFileTime, ::SetFileTime, ::LockFileEx, ::UnlockFileEx,
-//	::WaitForSingleObject;
+//	::GetModuleFileNameW, ::LARGE_INTEGER, ::GetFileTime, ::SetFileTime,
+//	::LockFileEx, ::UnlockFileEx, ::WaitForSingleObject, ::GetProcAddress;
 #	include <cerrno> // for EINVAL, ENOENT, EMFILE, EACCESS, EBADF, ENOMEM,
 //	ENOEXEC, EXDEV, EEXIST, EAGAIN, EPIPE, ENOSPC, ECHILD, ENOTEMPTY;
+#	include YFM_YCLib_Mutex // for platform::Concurrency::mutex,
+//	platform::Concurrency::lock_guard;
 #	include YFM_YSLib_Core_YCoreUtilities // for YSLib::IsInClosedInterval,
-//	YSLib::make_unique_default_init, YSLib::TryInvoke,
-//	platform::EndsWithNonSeperator;
+//	YSLib::make_unique_default_init, platform::EndsWithNonSeperator;
+#	include <ystdex/map.hpp> // for ystdex::map;
 #	include YFM_Win32_YCLib_NLS // for WCSToUTF8;
+#	include <ystdex/cache.hpp> // for ystdex::cache_lookup;
 #	include <ystdex/container.hpp> // for ystdex::retry_for_vector;
 #	include <ystdex/scope_guard.hpp> // for ystdex::unique_guard,
 //	ystdex::dismiss, std::bind, std::placeholders::_1;
+#	include <ystdex/swap.hpp> // for ystdex::exchange;
 
-using namespace YSLib;
 //! \since build 658
 using platform::NodeCategory;
+//! \since build 937
+//@{
+using platform::Concurrency::mutex;
+using YSLib::Warning;
+using YSLib::TryInvoke;
+using YSLib::Err;
+using YSLib::IsInClosedInterval;
+using YSLib::RecordLevel;
+using platform::Concurrency::lock_guard;
+using platform::Nonnull;
+//@}
 #endif
 
 namespace platform_ex
@@ -269,6 +285,16 @@ FetchFixedSystemPath(SystemPaths e, size_t s)
 }
 //@}
 
+
+//! \since build 937
+//@{
+mutex ModuleCacheMutex;
+ystdex::map<const wchar_t*, ::HMODULE, ystdex::ntcts_compare<>> ModuleCache;
+
+mutex LoadProcMutex;
+ystdex::map<::HMODULE, ModuleProc*> LoadProcCache;
+//@}
+
 } // unnamed namespace;
 
 
@@ -310,6 +336,7 @@ Win32Exception::FormatMessage(ErrorCode ec) ynothrow
 		{
 			wchar_t* buf{};
 
+			// NOTE: See See https://msdn.microsoft.com/library/windows/desktop/ms679351(v=vs.85).aspx.
 			YCL_CallF_Win32(FormatMessageW, FORMAT_MESSAGE_ALLOCATE_BUFFER
 				| FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_FROM_SYSTEM,
 				{}, ec, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
@@ -324,68 +351,10 @@ Win32Exception::FormatMessage(ErrorCode ec) ynothrow
 }
 
 
-ModuleProc*
-LoadProc(::HMODULE h_module, const char* proc)
-{
-	return YCL_CallF_Win32(GetProcAddress, h_module, proc);
-}
-
-
-wstring
-FetchModuleFileName(::HMODULE h_module, RecordLevel lv)
-{
-	// TODO: Avoid retry for NT 6 %::GetModuleFileNameW?
-	return ystdex::retry_for_vector<wstring>(MAX_PATH,
-		[=](wstring& res, size_t s) -> bool{
-		const auto r(size_t(::GetModuleFileNameW(h_module, &res[0],
-			static_cast<unsigned long>(s))));
-		const auto err(::GetLastError());
-
-		if(err != ERROR_SUCCESS && err != ERROR_INSUFFICIENT_BUFFER)
-			throw Win32Exception(err, "GetModuleFileNameW", lv);
-		if(r < s)
-		{
-			res.resize(r);
-			return {};
-		}
-		return true;
-	});
-}
-
-
-void
-GlobalDelete::operator()(pointer h) const ynothrow
-{
-	// NOTE: %::GlobalFree does not ignore null handle value.
-	if(h && YB_UNLIKELY(::GlobalFree(h)))
-		YCL_Trace_Win32E(Warning, GlobalFree, yfsig);
-}
-
-
-GlobalLocked::GlobalLocked(::HGLOBAL h)
-	: p_locked(YCL_CallF_Win32(GlobalLock, h))
-{}
-GlobalLocked::~GlobalLocked()
-{
-	YCL_TraceCallF_Win32(GlobalUnlock, p_locked);
-}
-
-
-void
-LocalDelete::operator()(pointer h) const ynothrow
-{
-	// FIXME: For some platforms, no %::LocalFree is available. See https://msdn.microsoft.com/zh-cn/library/windows/desktop/ms679351(v=vs.85).aspx.
-	// NOTE: %::LocalFree ignores null handle value.
-	if(YB_UNLIKELY(::LocalFree(h)))
-		YCL_Trace_Win32E(Warning, LocalFree, yfsig);
-}
-
-
 NodeCategory
 TryCategorizeNodeAttributes(UniqueHandle::pointer h)
 {
-	return FetchFileInfo([&](::BY_HANDLE_FILE_INFORMATION& info)
-		-> NodeCategory{
+	return FetchFileInfo([&](::BY_HANDLE_FILE_INFORMATION& info){
 		return CategorizeNode(FileAttributes(info.dwFileAttributes));
 	}, h);
 }
@@ -398,7 +367,7 @@ TryCategorizeNodeDevice(UniqueHandle::pointer h)
 	switch(::GetFileType(h))
 	{
 	// NOTE: %FILE_TYPE_REMOTE is ignored because unused, see
-	//	https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfiletype.
+	//	https://docs.microsoft.com/windows/win32/api/fileapi/nf-fileapi-getfiletype.
 	case FILE_TYPE_CHAR:
 		res = NodeCategory::Character;
 		break;
@@ -485,7 +454,7 @@ CheckWine()
 void
 DirectoryFindData::Deleter::operator()(pointer p) const ynothrowv
 {
-	FilterExceptions(std::bind(YCL_WrapCall_Win32(FindClose, p), yfsig),
+	YSLib::FilterExceptions(std::bind(YCL_WrapCall_Win32(FindClose, p), yfsig),
 		"directory find data deleter");
 }
 
@@ -949,6 +918,132 @@ wstring
 FetchWindowsPath(size_t s)
 {
 	return FetchFixedSystemPath(SystemPaths::Windows, s);
+}
+
+
+bool
+IsWOW64Process() ynothrow
+{
+	static bool res([]() ynothrow{
+		int r;
+
+		// XXX: Ignore the error (this should not occur if the underlying
+		//	implementation is correct, since the current process pseudo handle
+		//	has all privileges). Assume it is not a WOW64 process on failure.
+		return bool(::IsWow64Process(::GetCurrentProcess(), &r)) && r != 0;
+	}());
+
+	return res;
+}
+
+WOW64FileSystemRedirectionGuard::WOW64FileSystemRedirectionGuard(
+	bool try_activate)
+	: activated(try_activate && IsWOW64Process())
+{
+	if(activated && YB_UNLIKELY(!::Wow64DisableWow64FsRedirection(&old_value)))
+	{
+		// XXX: Deactivate the state on failure.
+		activated = {};
+		YCL_Trace_Win32E(Warning, Wow64DisableWow64FsRedirection, yfsig);
+	}
+}
+WOW64FileSystemRedirectionGuard::WOW64FileSystemRedirectionGuard(
+	WOW64FileSystemRedirectionGuard&& g)
+	: activated(g.activated)
+{
+	g.activated = {};
+}
+WOW64FileSystemRedirectionGuard::~WOW64FileSystemRedirectionGuard()
+{
+	if(activated && YB_UNLIKELY(!::Wow64RevertWow64FsRedirection(&old_value)))
+		YCL_Trace_Win32E(Warning, Wow64RevertWow64FsRedirection, yfsig);
+}
+
+WOW64FileSystemRedirectionGuard&
+WOW64FileSystemRedirectionGuard::operator=(WOW64FileSystemRedirectionGuard&& g)
+	ynothrow
+{
+	activated = ystdex::exchange<bool>(g.activated, {});
+	return *this;
+}
+
+
+wstring
+FetchModuleFileName(::HMODULE h_module, RecordLevel lv)
+{
+	// TODO: Avoid retry for NT 6 %::GetModuleFileNameW?
+	return ystdex::retry_for_vector<wstring>(MAX_PATH,
+		[=](wstring& res, size_t s) -> bool{
+		const auto r(size_t(::GetModuleFileNameW(h_module, &res[0],
+			static_cast<unsigned long>(s))));
+		const auto err(::GetLastError());
+
+		if(err != ERROR_SUCCESS && err != ERROR_INSUFFICIENT_BUFFER)
+			throw Win32Exception(err, "GetModuleFileNameW", lv);
+		if(r < s)
+		{
+			res.resize(r);
+			return {};
+		}
+		return true;
+	});
+}
+
+::HMODULE
+FetchModuleHandleCached(const wchar_t* module)
+{
+	lock_guard<mutex> lck(ModuleCacheMutex);
+
+	// TODO: Enable concurrent initialization using %call_once?
+	return ystdex::cache_lookup(ModuleCache, Nonnull(module), [=]{
+		return FetchModuleHandle(module);
+	});
+}
+
+ModuleProc*
+LoadProc(::HMODULE h_module, const char* proc)
+{
+	return YCL_CallF_Win32(GetProcAddress, h_module, proc);
+}
+
+ModuleProc*
+LoadProcCached(::HMODULE h_module, const char* proc)
+{
+	lock_guard<mutex> lck(LoadProcMutex);
+
+	// TODO: Ditto.
+	return ystdex::cache_lookup(LoadProcCache, h_module, [=]{
+		return YCL_CallF_Win32(GetProcAddress, h_module, Nonnull(proc));
+	});
+}
+
+
+void
+GlobalDelete::operator()(pointer h) const ynothrow
+{
+	// NOTE: %::GlobalFree does not ignore null handle value.
+	if(h && YB_UNLIKELY(::GlobalFree(h)))
+		YCL_Trace_Win32E(Warning, GlobalFree, yfsig);
+}
+
+
+GlobalLocked::GlobalLocked(::HGLOBAL h)
+	: p_locked(YCL_CallF_Win32(GlobalLock, h))
+{}
+GlobalLocked::~GlobalLocked()
+{
+	YCL_TraceCallF_Win32(GlobalUnlock, p_locked);
+}
+
+
+void
+LocalDelete::operator()(pointer h) const ynothrow
+{
+	// XXX: All platforms supported now provides %LocalFree. See
+	//	https://docs.microsoft.com/windows/win32/api/winbase/nf-winbase-localfree.
+	// NOTE: %::LocalFree ignores null handle value.
+	if(YB_UNLIKELY(::LocalFree(h)))
+		YCL_Trace_Win32E(Warning, LocalFree, yfsig);
 }
 
 } // inline namespace Windows;

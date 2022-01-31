@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2017, 2019, 2021 FrankHB.
+	© 2011-2017, 2019, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2263
+\version r2267
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2021-12-12 02:09 +0805
+	2022-01-21 20:45 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_rational_hpp_
 #define YB_INC_ystdex_rational_hpp_ 1
 
-#include "cstdint.hpp" // for operators, true_, false_, make_width_int,
+#include "cstdint.hpp" // for operators, raw_tag, true_, false_, make_width_int,
 //	std::common_type, common_type_t, std::numeric_limits;
 #include <libdefect/cmath.h> // for std::fpclassify, FP_ZERO, std::llround;
 #include "placement.hpp" // for is_bitwise_swappable;
@@ -299,7 +299,7 @@ public:
 #if YB_IMPL_MSCPP >= 1200
 	YB_Diag_Push
 	YB_Diag_Ignore(4146)
-	// NOTE: See https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-2-c4146.
+	// NOTE: See https://docs.microsoft.com/cpp/error-messages/compiler-warnings/compiler-warning-level-2-c4146.
 	// NOTE: The operation is known implemented intentionally by the underlying
 	//	unary - operation exactly. The warning is useless as it is not the case
 	//	of misusing a '-' before an integer literal, like shown in
@@ -471,7 +471,7 @@ private:
 #if YB_IMPL_MSCPP >= 1200
 	YB_Diag_Push
 	YB_Diag_Ignore(4554)
-	// NOTE: See https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-3-c4554.
+	// NOTE: See https://docs.microsoft.com/cpp/error-messages/compiler-warnings/compiler-warning-level-3-c4554.
 	// NOTE: This warning seems buggy because there is no real place for
 	//	parentheses, although '(_vShiftBits)' will make it disappeared. Changing
 	//	the type of %_vShiftBits to any type other than 'unsigned' (or 'unsigned

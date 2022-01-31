@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r6506
+\version r6521
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2022-01-20 01:40 +0800
+	2022-01-31 17:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -768,6 +768,8 @@ LoadBasicDerived(REPLContext& context)
 			return ReductionStatus::Retained;
 		}, term);
 	});
+	// NOTE: The list operator is also available as infix ',' syntax sugar. See
+	//	%SeparatorPass in NPLA1.cpp for details.
 	RegisterStrict(renv, "list%", ReduceBranchToList);
 	RegisterStrict(renv, "rlist", [](TermNode& term, ContextNode& ctx){
 		return Forms::CallRawUnary([&](TermNode& tm){
@@ -791,6 +793,7 @@ LoadBasicDerived(REPLContext& context)
 	RegisterForm(renv, "$lambda/e", LambdaWithEnvironment);
 	RegisterForm(renv, "$lambda/e%", LambdaWithEnvironmentRef);
 	// NOTE: The sequence operator is also available as infix ';' syntax sugar.
+	//	See %SeparatorPass in NPLA1.cpp for details.
 	RegisterForm(renv, "$sequence", Sequence);
 	RegisterStrict(renv, "collapse", [](TermNode& term){
 		return Forms::CallRawUnary([&](TermNode& tm){
@@ -1796,6 +1799,18 @@ LoadModule_std_math(REPLContext& context)
 	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "*", Multiplies);
 	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "/", Divides);
 	RegisterUnary<Strict, NumberNode>(renv, "abs", Abs);
+	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "floor/",
+		FloorDivides);
+	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "floor-quotient",
+		FloorQuotient);
+	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "floor-remainder",
+		FloorRemainder);
+	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "truncate/",
+		TruncateDivides);
+	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "truncate-quotient",
+		TruncateQuotient);
+	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "truncate-remainder",
+		TruncateRemainder);
 }
 
 void
@@ -2088,7 +2103,7 @@ LoadModule_std_modules(REPLContext& context)
 		[&](TermNode& term, ContextNode& ctx) -> ReductionStatus{
 		auto i(term.begin());
 		const auto& req(NPL::ResolveRegular<const string>(NPL::Deref(++i)));
-		
+
 		CheckRequirement(req);
 		if(!ystdex::exists(registry, req))
 		{

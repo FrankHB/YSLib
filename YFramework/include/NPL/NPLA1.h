@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2021 FrankHB.
+	© 2014-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9270
+\version r9279
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2021-12-28 18:30 +0800
+	2022-01-21 20:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,9 +38,9 @@
 //	ystdex::exclude_self_params_t, YSLib::AreEqualHeld,
 //	ystdex::make_parameter_list_t, ystdex::make_function_type_t, ystdex::true_,
 //	ystdex::decay_t, ystdex::expanded_caller, std::is_constructible,
-//	ystdex::or_, TermTags, RegularizeTerm, type_id, TokenValue, Environment,
-//	ParseResultOf, ByteParser, SourcedByteParser, type_info, SourceInformation,
-//	std::integral_constant, SourceName, NPL::tuple, NPL::get,
+//	ystdex::or_, ArityMismatch, TermTags, RegularizeTerm, type_id, TokenValue,
+//	Environment, ParseResultOf, ByteParser, SourcedByteParser, type_info,
+//	SourceInformation, std::integral_constant, SourceName, NPL::tuple, NPL::get,
 //	NPL::forward_as_tuple, ReaderState, YSLib::allocate_shared,
 //	ThrowTypeErrorForInvalidType, ystdex::is_bitwise_swappable;
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, YSLib::GCombinerInvoker,
@@ -848,6 +848,12 @@ ParseLeafWithSourceInformation(TermNode&, string_view,
 \note 忽略被包装的上下文处理器可能存在的返回值，自适应默认返回规约结果。
 \warning 非虚析构。
 \since build 751
+
+使用 WrappedContextHandler 也可代替 NPL::EmplaceCallResultOrReturn ，
+	直接支持隐式返回 ReductionStatus::Clean 状态的处理器，
+	但返回类型为 void 而不是 ReductionStatus 。
+理论上通过完全的内联，使用 WrappedContextHandler 不影响性能；通常的 C++ 实现中，
+	依赖 WrappedContextHandler 可能较小地影响性能。
 */
 template<typename _func>
 class WrappedContextHandler

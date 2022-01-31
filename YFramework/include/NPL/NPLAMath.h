@@ -1,5 +1,5 @@
 ﻿/*
-	© 2021 FrankHB.
+	© 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLAMath.h
 \ingroup NPL
 \brief NPLA 数学功能。
-\version r11308
+\version r11370
 \author FrankHB <frankhb1989@gmail.com>
 \since build 930
 \par 创建时间:
 	2021-11-03 12:49:54 +0800
 \par 修改时间:
-	2021-12-21 20:15 +0800
+	2022-01-31 05:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define NPL_INC_NPLAMath_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_NPLA // for NPL, any_ops, ValueObject, ResolvedArg,
+#include YFM_NPL_NPLA // for NPL, any_ops, ValueObject, ResolvedArg, array,
 //	string_view, std::uint_fast8_t, TypedValueAccessor;
 #include <limits> // for std::numeric_limits;
 
@@ -271,7 +271,7 @@ IsNegative(const ValueObject&) ynothrowv;
 \brief 判断参数表示奇数。
 
 参考调用文法：
-<pre>positive? \<integer></pre>
+<pre>odd? \<integer></pre>
 */
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsOdd(const ValueObject&) ynothrowv;
@@ -280,7 +280,7 @@ IsOdd(const ValueObject&) ynothrowv;
 \brief 判断参数表示偶数。
 
 参考调用文法：
-<pre>negative? \<integer></pre>
+<pre>even? \<integer></pre>
 */
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsEven(const ValueObject&) ynothrowv;
@@ -351,10 +351,9 @@ YB_ATTR_nodiscard YF_API YB_PURE ValueObject
 Multiplies(ResolvedArg<>&&, ResolvedArg<>&&);
 //@}
 
-//! \since build 930
-//@{
 /*!
 \brief 除法。
+\since build 930
 
 参考调用文法：
 <pre>/ \<number1> \<number2></pre>
@@ -365,6 +364,7 @@ Divides(ResolvedArg<>&&, ResolvedArg<>&&);
 /*!
 \brief 计算绝对值。
 \note 当前实现同 Scheme 和 Kernel ，仅支持实数。
+\since build 930
 
 参考调用文法：
 <pre>abs \<real></pre>
@@ -372,11 +372,70 @@ Divides(ResolvedArg<>&&, ResolvedArg<>&&);
 YB_ATTR_nodiscard YF_API YB_PURE ValueObject
 Abs(ResolvedArg<>&&);
 
+//! \since build 937
+//@{
+/*!
+\brief 计算向下取整的数论除法的商和余数。
+
+参考调用文法：
+<pre>floor/ \<integer1> \<integer2></pre>
+*/
+YB_ATTR_nodiscard YF_API YB_PURE array<ValueObject, 2>
+FloorDivides(ResolvedArg<>&&, ResolvedArg<>&&);
+
+/*!
+\brief 计算向下取整的数论除法的商。
+
+参考调用文法：
+<pre>floor-quotient \<integer1> \<integer2></pre>
+*/
+YB_ATTR_nodiscard YF_API YB_PURE ValueObject
+FloorQuotient(ResolvedArg<>&&, ResolvedArg<>&&);
+
+/*!
+\brief 计算向下取整的数论除法的余数。
+
+参考调用文法：
+<pre>floor-remainder \<integer1> \<integer2></pre>
+*/
+YB_ATTR_nodiscard YF_API YB_PURE ValueObject
+FloorRemainder(ResolvedArg<>&&, ResolvedArg<>&&);
+
+/*!
+\brief 计算截断的数论除法的商和余数。
+
+参考调用文法：
+<pre>truncate/ \<integer1> \<integer2></pre>
+*/
+YB_ATTR_nodiscard YF_API YB_PURE array<ValueObject, 2>
+TruncateDivides(ResolvedArg<>&&, ResolvedArg<>&&);
+
+/*!
+\brief 计算截断的数论除法的商。
+
+参考调用文法：
+<pre>truncate-quotient \<integer1> \<integer2></pre>
+*/
+YB_ATTR_nodiscard YF_API YB_PURE ValueObject
+TruncateQuotient(ResolvedArg<>&&, ResolvedArg<>&&);
+
+/*!
+\brief 计算截断的数论除法的余数。
+
+参考调用文法：
+<pre>truncate-remainder \<integer1> \<integer2></pre>
+*/
+YB_ATTR_nodiscard YF_API YB_PURE ValueObject
+TruncateRemainder(ResolvedArg<>&&, ResolvedArg<>&&);
+//@}
+
+} // inline namespace Math;
 
 /*!
 \brief 读取指定位置的十进制数值表示。
 \pre 第三参数是第二参数的迭代器。
 \throw InvalidSyntax 数值表示不被支持。
+\since build 930
 
 第一参数指定保存结果的对象。
 第二参数指定输入的数值表示的完整形式。
@@ -384,10 +443,9 @@ Abs(ResolvedArg<>&&);
 */
 void
 ReadDecimal(ValueObject&, string_view, string_view::const_iterator);
-//@}
 
 
-//! \since build 932
+//! \since build 937
 //@{
 /*!
 \brief 保留给默认数值输出使用的缓冲区字节大小。
@@ -395,14 +453,18 @@ ReadDecimal(ValueObject&, string_view, string_view::const_iterator);
 缓冲区能保存 NPLAMath 数值字面量，包括浮点字面量的默认输出表示。
 假定支持的浮点数使用科学记数法时，指数不超过 5 位十进制数字。
 */
-yconstexpr const size_t StringBufferSize(yimpl(64));
+yconstexpr const size_t NumberStringBufferSize(yimpl(64));
 
 static_assert((std::numeric_limits<long double>::max_digits10 + 5 + 3
-	<= StringBufferSize), "The buffer size is not fit for the implementation");
+	<= NumberStringBufferSize),
+	"The buffer size is not fit for the implementation");
+//@}
 
+//! \since build 932
+//@{
 /*!
 \brief 写浮点数据到字符串缓冲区。
-\pre 缓冲区应至少具有连续可读写的 StringBufferSize 字节。
+\pre 缓冲区应至少具有连续可读写的 NumberStringBufferSize 字节。
 \pre 最后两个参数不超过 std::uint8_t 的范围。
 \warning 当前不支持对不满足特定要求的 ISO C++ 实现，且不排除这些实现上的未定义行为。
 \return 输出结束的指针。
@@ -475,8 +537,6 @@ YB_ATTR_nodiscard YF_API YB_PURE string
 FPToString(long double, string::allocator_type = {});
 //@}
 //@}
-
-} // inline namespace Math;
 
 //! \since YSLib build 929
 //@{

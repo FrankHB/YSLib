@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2021 FrankHB.
+	© 2013-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2186
+\version r2476
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2021-12-13 01:25 +0800
+	2022-01-25 05:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,17 +30,19 @@
 #define YCL_Win32_INC_MinGW32_h_ 1
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_Host // for string, ystdex::remove_pointer_t, wstring,
-//	unique_ptr_from, ystdex::ends_with, ystdex::aligned_storage_t,
-//	ystdex::pun_ref, pair;
-#include YFM_YCLib_NativeAPI // for ERROR_SUCCESS,
-//	MAXIMUM_REPARSE_DATA_BUFFER_SIZE, INFINITE, MAX_PATH;
+#include YFM_YCLib_Host // for YSLib::RecordLevel, YSLib::Emergent, std::string,
+//	string_view, wstring, unique_ptr_from, ystdex::ends_with,
+//	ystdex::aligned_storage_t, ystdex::pun_ref, vector, string, pair,
+//	ystdex::remove_pointer_t, std::is_function, YSLib::Err;
+#include YFM_YCLib_NativeAPI // for ERROR_SUCCESS, ::HMODULE, GetModuleHandleW,
+//	MAXIMUM_REPARSE_DATA_BUFFER_SIZE, INFINITE, MAX_PATH, ::HGLOBAL, ::HLOCAL;
 #if !YCL_Win32
 #	error "This file is only for Win32."
 #endif
-#include YFM_YCLib_Debug // for platform::Deref;
 #include <ystdex/enum.hpp> // for ystdex::enum_union,
 //	ystdex::wrapped_enum_traits_t;
+#include <ystdex/base.h> // for ystdex::noncopyable;
+#include YFM_YCLib_Debug // for platform::Nonnull, platform::Deref;
 #include YFM_YCLib_FileIO // for platform::NodeCategory;
 #include <chrono> // for std::chrono::nanoseconds;
 
@@ -226,185 +228,12 @@ public:
 //@}
 
 
-//! \since build 651
-//@{
-//! \brief 加载过程地址得到的过程类型。
-using ModuleProc
-	= ystdex::remove_pointer_t<decltype(::GetProcAddress(::HMODULE(), {}))>;
-// XXX: Microsoft VC++'s compiler (but not IntelliSense) would not play well on
-//	'decltype' with an lvalue of function type, as there is an unexpected
-//	function-to-pointer conversion, so
-//	'decltype(*::GetProcAddress(::HMODULE(), {}))' is actually a function
-//	pointer type, instead of a function reference type in an conforming
-//	implementation. An alternative workaround is
-//	'decltype(::GetProcAddress(::HMODULE(), {})())(__stdcall)()', requiring the
-//	explicit calling conversion Anyway, handling on the pointer here is simpler.
-
-//! \since build 923
-static_assert(std::is_function<ModuleProc>(), "Invalid type found.");
-
-/*!
-\brief 从模块加载指定过程的指针。
-\pre 参数非空。
-\exception Win32Exception 动态加载失败。
-\todo 支持缓存加载结果。
-*/
-//@{
-YB_ATTR_nodiscard YF_API YB_ATTR_returns_nonnull YB_NONNULL(2) ModuleProc*
-LoadProc(::HMODULE, const char*);
-template<typename _func>
-YB_ATTR_nodiscard YB_NONNULL(2) inline _func&
-LoadProc(::HMODULE h_module, const char* proc)
-{
-	static_assert(std::is_function<_func>(), "Invalid function type found.");
-
-	// NOTE: See https://gcc.gnu.org/gcc-8/changes.html.
-#if YB_IMPL_GNUCPP >= 80000
-#	pragma GCC diagnostic push
-#	pragma GCC diagnostic ignored "-Wcast-function-type"
-#endif
-	// NOTE: This should be safe with the additional ABI guarantees, similar to
-	//	https://debarshiray.wordpress.com/2019/04/01/about-wextra-and-wcast-function-type/.
-	return
-	// XXX: This should be OK for other implementations, but just keep it for
-	//	the specific buggy implementations.
-#if YB_IMPL_MSCPP
-		// XXX: This is required sometimes with %platform::Deref, as the result
-		//	may be a function pointer instead of the function reference. It
-		//	seems a compiler bug in VC++ for the inconsistent behaviors. The
-		//	diagnostic message shows the type of the expression is the type
-		//	the template parameter '_type' in of %platform::Deref, which
-		//	indicates some improper deduction directly performed in the call and
-		//	there is an unexpected function-to-pointer conversion. Such
-		//	conversion seems to be in the unevaluated lvalue operand of
-		//	'decltype', behaving same to the common implementation of
-		//	%ModuleProc.
-		*
-#endif
-		platform::Deref(reinterpret_cast<_func*>(LoadProc(h_module, proc)));
-#if YB_IMPL_GNUCPP >= 80000
-#	pragma GCC diagnostic pop
-#endif
-}
-template<typename _func>
-YB_ATTR_nodiscard YB_NONNULL(1, 2) inline _func&
-LoadProc(const wchar_t* module, const char* proc)
-{
-	return LoadProc<_func>(YCL_CallF_Win32(GetModuleHandleW, module), proc);
-}
-//@}
-
-
-#define YCL_Impl_W32Call_Fn(_fn) W32_##_fn##_t
-#define YCL_Impl_W32Call_FnCall(_fn) W32_##_fn##_call
-
-/*!
-\brief 声明调用 WinAPI 的例程。
-\note 函数名称使用 ADL 查找调用，应为非限定名称。当没有合式调用时从指定模块加载。
-\note 为避免歧义，应在非全局命名空间中使用；注意类作用域名称查找顺序会引起歧义。
-\note 为避免无限递归实例化，需声明的参数类型应在当前命名空间之外提前声明。
-*/
-#define YCL_DeclW32Call(_fn, _module, _tRet, ...) \
-	YCL_DeclCheck_t(_fn, _fn) \
-	using YCL_Impl_W32Call_Fn(_fn) = _tRet __stdcall(__VA_ARGS__); \
-	\
-	template<typename... _tParams> \
-	auto \
-	YCL_Impl_W32Call_FnCall(_fn)(_tParams&&... args) \
-		-> YCL_CheckDecl_t(_fn)<_tParams...> \
-	{ \
-		return _fn(yforward(args)...); \
-	} \
-	template<typename... _tParams> \
-	ystdex::enable_fallback_t<YCL_CheckDecl_t(_fn), \
-		YCL_Impl_W32Call_Fn(_fn), _tParams...> \
-	YCL_Impl_W32Call_FnCall(_fn)(_tParams&&... args) \
-	{ \
-		return platform_ex::Windows::LoadProc<YCL_Impl_W32Call_Fn(_fn)>( \
-			L###_module, #_fn)(yforward(args)...); \
-	} \
-	\
-	template<typename... _tParams> \
-	auto \
-	_fn(_tParams&&... args) \
-		-> decltype(YCL_Impl_W32Call_FnCall(_fn)(yforward(args)...)) \
-	{ \
-		return YCL_Impl_W32Call_FnCall(_fn)(yforward(args)...); \
-	}
-//@}
-
-
-/*!
-\brief 取模块映像路径。
-\since build 701
-*/
-YB_ATTR_nodiscard YF_API wstring
-FetchModuleFileName(::HMODULE = {}, YSLib::RecordLevel = YSLib::Err);
-
-
-
-//! \since build 593
-//@{
-//! \brief 全局存储删除器。
-struct YF_API GlobalDelete
-{
-	using pointer = ::HGLOBAL;
-
-	void
-	operator()(pointer) const ynothrow;
-};
-
-
-//! \brief 全局锁定存储。
-class YF_API GlobalLocked
-{
-private:
-	//! \invariant <tt>bool(p_locked)</tt> 。
-	void* p_locked;
-
-public:
-	/*!
-	\brief 构造：锁定存储。
-	\throw Win32Exception ::GlobalLock 调用失败。
-	*/
-	//@{
-	GlobalLocked(::HGLOBAL);
-	template<typename _tPointer>
-	GlobalLocked(const _tPointer& p)
-		: GlobalLocked(p.get())
-	{}
-	//@}
-	~GlobalLocked();
-
-	template<typename _type = void>
-	YB_ATTR_nodiscard observer_ptr<_type>
-	GetPtr() const ynothrow
-	{
-		return make_observer(static_cast<_type*>(p_locked));
-	}
-};
-//@}
-
-
-/*!
-\brief 局部存储删除器。
-\since build 658
-*/
-struct YF_API LocalDelete
-{
-	using pointer = ::HLOCAL;
-
-	void
-	operator()(pointer) const ynothrow;
-};
-
-
 //! \since build 629
 //@{
 /*!
 \brief 访问权限。
-\see https://msdn.microsoft.com/en-us/library/windows/desktop/aa374892(v=vs.85).aspx 。
-\see https://msdn.microsoft.com/en-us/library/windows/desktop/aa374896(v=vs.85).aspx 。
+\see https://msdn.microsoft.com/library/windows/desktop/aa374892(v=vs.85).aspx 。
+\see https://msdn.microsoft.com/library/windows/desktop/aa374896(v=vs.85).aspx 。
 */
 enum class AccessRights : ::ACCESS_MASK
 {
@@ -496,7 +325,7 @@ enum class CreationDisposition : unsigned long
 
 //! \since build 639
 //@{
-//! \see https://msdn.microsoft.com/en-us/library/gg258117(v=vs.85).aspx 。
+//! \see https://msdn.microsoft.com/library/gg258117(v=vs.85).aspx 。
 enum FileAttributes : unsigned long
 {
 	ReadOnly = FILE_ATTRIBUTE_READONLY,
@@ -524,7 +353,7 @@ enum FileAttributes : unsigned long
 	Invalid = INVALID_FILE_ATTRIBUTES
 };
 
-//! \see https://msdn.microsoft.com/en-us/library/aa363858(v=vs.85).aspx 。
+//! \see https://msdn.microsoft.com/library/aa363858(v=vs.85).aspx 。
 enum FileFlags : unsigned long
 {
 	WriteThrough = FILE_FLAG_WRITE_THROUGH,
@@ -538,7 +367,7 @@ enum FileFlags : unsigned long
 	SessionAware = FILE_FLAG_SESSION_AWARE,
 	OpenReparsePoint = FILE_FLAG_OPEN_REPARSE_POINT,
 	OpenNoRecall = FILE_FLAG_OPEN_NO_RECALL,
-	// \see https://msdn.microsoft.com/zh-cn/library/windows/desktop/aa365150(v=vs.85).aspx 。
+	// \see https://msdn.microsoft.com/library/windows/desktop/aa365150(v=vs.85).aspx 。
 	FirstPipeInstance = FILE_FLAG_FIRST_PIPE_INSTANCE
 };
 
@@ -896,7 +725,7 @@ ParseCommandArguments(const wchar_t*, vector<string>::allocator_type = {});
 
 
 /*!
-\see https://msdn.microsoft.com/zh-cn/library/windows/desktop/aa363788(v=vs.85).aspx 。
+\see https://msdn.microsoft.com/library/windows/desktop/aa363788(v=vs.85).aspx 。
 \since build 638
 */
 //@{
@@ -927,7 +756,8 @@ QueryFileLinks(const wchar_t*, bool = {});
 \brief 查询文件标识。
 \return 卷标识和卷上文件的标识的二元组。
 \bug ReFS 上不保证唯一。
-\see https://msdn.microsoft.com/zh-cn/library/windows/desktop/aa363788(v=vs.85).aspx 。
+\see https://msdn.microsoft.com/library/windows/desktop/aa363788(v=vs.85).aspx 。
+\see https://bugs.python.org/issue40095 。
 */
 //@{
 //! \since build 638
@@ -1128,6 +958,270 @@ FetchSystemPath(size_t = MAX_PATH);
 YB_ATTR_nodiscard YF_API wstring
 FetchWindowsPath(size_t = MAX_PATH);
 //@}
+
+
+/*!
+\note 当前只支持 x64 系统下 32 位进程启用的重定向，不支持包括 ARM64 的其它情形。
+\since build 937
+*/
+//@{
+/*!
+\brief 判断当前进程是否为 WOW64 进程。
+\note 调用的 API 结果会被缓存，在进程生存期中不会改变。
+*/
+YB_ATTR_nodiscard YF_API YB_STATELESS bool
+IsWOW64Process() ynothrow;
+
+/*!
+\brief WOW64 文件系统重定向守卫：允许临时禁用重定向。
+\warning 非虚析构。
+*/
+class YF_API WOW64FileSystemRedirectionGuard : private ystdex::noncopyable
+{
+private:
+	bool activated;
+	void* old_value;
+
+public:
+	//! \brief 构造：通过参数指定是否激活临时禁用重定向。
+	WOW64FileSystemRedirectionGuard(bool = {});
+	WOW64FileSystemRedirectionGuard(WOW64FileSystemRedirectionGuard&&);
+	~WOW64FileSystemRedirectionGuard();
+
+	WOW64FileSystemRedirectionGuard&
+	operator=(WOW64FileSystemRedirectionGuard&&) ynothrow;
+
+	DefPred(ynothrow, Activated, activated)
+};
+//@}
+
+
+/*!
+\brief 取模块映像路径。
+\since build 701
+*/
+YB_ATTR_nodiscard YF_API wstring
+FetchModuleFileName(::HMODULE = {}, YSLib::RecordLevel = YSLib::Err);
+
+//! \since build 937
+//@{
+//! \brief 取进程已加载的指定名称的模块句柄。
+YB_ATTR_nodiscard YB_NONNULL(1) inline
+	PDefH(::HMODULE, FetchModuleHandle, const wchar_t* module)
+	ImplRet(YCL_CallF_Win32(GetModuleHandleW, platform::Nonnull(module)))
+
+//! \brief 取内部缓存的进程已加载的指定名称的模块句柄。
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) ::HMODULE
+FetchModuleHandleCached(const wchar_t*);
+//@}
+
+//! \since build 651
+//@{
+//! \brief 加载过程地址得到的过程类型。
+using ModuleProc
+	= ystdex::remove_pointer_t<decltype(::GetProcAddress(::HMODULE(), {}))>;
+// XXX: Microsoft VC++'s compiler (but not IntelliSense) would not play well on
+//	'decltype' with an lvalue of function type, as there is an unexpected
+//	function-to-pointer conversion, so
+//	'decltype(*::GetProcAddress(::HMODULE(), {}))' is actually a function
+//	pointer type, instead of a function reference type in an conforming
+//	implementation. An alternative workaround is
+//	'decltype(::GetProcAddress(::HMODULE(), {})())(__stdcall)()', requiring the
+//	explicit calling conversion Anyway, handling on the pointer here is simpler.
+
+//! \since build 923
+static_assert(std::is_function<ModuleProc>(), "Invalid type found.");
+
+/*!
+\brief 从模块加载指定过程的指针。
+\pre 参数非空。
+\exception Win32Exception 动态加载失败。
+*/
+//@{
+YB_ATTR_nodiscard YF_API YB_ATTR_returns_nonnull YB_NONNULL(2) ModuleProc*
+LoadProc(::HMODULE, const char*);
+template<typename _func>
+YB_ATTR_nodiscard YB_NONNULL(2) inline _func&
+LoadProc(::HMODULE h_module, const char* proc)
+{
+	static_assert(std::is_function<_func>(), "Invalid function type found.");
+
+	// NOTE: See https://gcc.gnu.org/gcc-8/changes.html.
+#if YB_IMPL_GNUCPP >= 80000
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+	// NOTE: This should be safe with the additional ABI guarantees, similar to
+	//	https://debarshiray.wordpress.com/2019/04/01/about-wextra-and-wcast-function-type/.
+	return
+	// XXX: This should be OK for other implementations, but just keep it for
+	//	the specific buggy implementations.
+#if YB_IMPL_MSCPP
+		// XXX: This is required sometimes with %platform::Deref, as the result
+		//	may be a function pointer instead of the function reference. It
+		//	seems a compiler bug in VC++ for the inconsistent behaviors. The
+		//	diagnostic message shows the type of the expression is the type
+		//	the template parameter '_type' in of %platform::Deref, which
+		//	indicates some improper deduction directly performed in the call and
+		//	there is an unexpected function-to-pointer conversion. Such
+		//	conversion seems to be in the unevaluated lvalue operand of
+		//	'decltype', behaving same to the common implementation of
+		//	%ModuleProc.
+		*
+#endif
+		platform::Deref(reinterpret_cast<_func*>(LoadProc(h_module, proc)));
+#if YB_IMPL_GNUCPP >= 80000
+#	pragma GCC diagnostic pop
+#endif
+}
+template<typename _func>
+YB_ATTR_nodiscard YB_NONNULL(1, 2) inline _func&
+LoadProc(const wchar_t* module, const char* proc)
+{
+	return LoadProc<_func>(FetchModuleHandle(module), proc);
+}
+
+/*!
+\pre 加载的模块不被改变（包括卸载）。
+\note 使用全局内部缓存以减少重复的 Win32 API 调用。
+*/
+//@{
+YB_ATTR_nodiscard YF_API YB_ATTR_returns_nonnull YB_NONNULL(2) ModuleProc*
+LoadProcCached(::HMODULE, const char*);
+template<typename _func>
+YB_ATTR_nodiscard YB_NONNULL(2) inline _func&
+LoadProcCached(::HMODULE h_module, const char* proc)
+{
+	static_assert(std::is_function<_func>(), "Invalid function type found.");
+
+	// NOTE: See https://gcc.gnu.org/gcc-8/changes.html.
+#if YB_IMPL_GNUCPP >= 80000
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+	// NOTE: Ditto.
+	return
+	// XXX: Ditto.
+#if YB_IMPL_MSCPP
+	// XXX: Ditto.
+		*
+#endif
+		platform::Deref(
+			reinterpret_cast<_func*>(LoadProcCached(h_module, proc)));
+#if YB_IMPL_GNUCPP >= 80000
+#	pragma GCC diagnostic pop
+#endif
+}
+template<typename _func>
+YB_ATTR_nodiscard YB_NONNULL(1, 2) inline _func&
+LoadProcCached(const wchar_t* module, const char* proc)
+{
+	return LoadProcCached<_func>(FetchModuleHandleCached(module), proc);
+}
+//@}
+//@}
+
+
+#define YCL_Impl_W32Call_Fn(_fn) W32_##_fn##_t
+#define YCL_Impl_W32Call_FnCall(_fn) W32_##_fn##_call
+
+/*!
+\brief 声明调用 WinAPI 的例程。
+\note 函数名称使用 ADL 查找调用，应为非限定名称。当没有合式调用时从指定模块加载。
+\note 为避免歧义，应在非全局命名空间中使用；注意类作用域名称查找顺序会引起歧义。
+\note 为避免无限递归实例化，需声明的参数类型应在当前命名空间之外提前声明。
+*/
+#define YCL_DeclW32Call(_fn, _module, _tRet, ...) \
+	YCL_DeclCheck_t(_fn, _fn) \
+	using YCL_Impl_W32Call_Fn(_fn) = _tRet __stdcall(__VA_ARGS__); \
+	\
+	template<typename... _tParams> \
+	auto \
+	YCL_Impl_W32Call_FnCall(_fn)(_tParams&&... args) \
+		-> YCL_CheckDecl_t(_fn)<_tParams...> \
+	{ \
+		return _fn(yforward(args)...); \
+	} \
+	template<typename... _tParams> \
+	ystdex::enable_fallback_t<YCL_CheckDecl_t(_fn), \
+		YCL_Impl_W32Call_Fn(_fn), _tParams...> \
+	YCL_Impl_W32Call_FnCall(_fn)(_tParams&&... args) \
+	{ \
+		return platform_ex::Windows::LoadProcCached<YCL_Impl_W32Call_Fn(_fn)>( \
+			L###_module, #_fn)(yforward(args)...); \
+	} \
+	\
+	template<typename... _tParams> \
+	auto \
+	_fn(_tParams&&... args) \
+		-> decltype(YCL_Impl_W32Call_FnCall(_fn)(yforward(args)...)) \
+	{ \
+		return YCL_Impl_W32Call_FnCall(_fn)(yforward(args)...); \
+	}
+//@}
+
+
+//! \since build 593
+//@{
+/*!
+\ingroup functors
+\brief 全局存储删除器。
+*/
+struct YF_API GlobalDelete
+{
+	using pointer = ::HGLOBAL;
+
+	void
+	operator()(pointer) const ynothrow;
+};
+
+
+/*!
+\brief 全局锁定存储。
+\warning 非虚析构。
+*/
+class YF_API GlobalLocked
+{
+private:
+	//! \invariant <tt>bool(p_locked)</tt> 。
+	void* p_locked;
+
+public:
+	/*!
+	\brief 构造：锁定存储。
+	\throw Win32Exception ::GlobalLock 调用失败。
+	*/
+	//@{
+	GlobalLocked(::HGLOBAL);
+	template<typename _tPointer>
+	GlobalLocked(const _tPointer& p)
+		: GlobalLocked(p.get())
+	{}
+	//@}
+	~GlobalLocked();
+
+	template<typename _type = void>
+	YB_ATTR_nodiscard observer_ptr<_type>
+	GetPtr() const ynothrow
+	{
+		return make_observer(static_cast<_type*>(p_locked));
+	}
+};
+//@}
+
+
+/*!
+\ingroup functors
+\brief 局部存储删除器。
+\since build 658
+*/
+struct YF_API LocalDelete
+{
+	using pointer = ::HLOCAL;
+
+	void
+	operator()(pointer) const ynothrow;
+};
 
 } // inline namespace Windows;
 
