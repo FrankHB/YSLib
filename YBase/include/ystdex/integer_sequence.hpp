@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013, 2015-2016, 2018-2019, 2021 FrankHB.
+	© 2012-2013, 2015-2016, 2018-2019, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file integer_sequence.hpp
 \ingroup YStandardEx
 \brief 整数序列元编程接口。
-\version r615
+\version r634
 \author FrankHB <frankhb1989@gmail.com>
 \since build 589
 \par 创建时间:
 	2013-03-30 00:55:06 +0800
 \par 修改时间:
-	2021-12-26 13:47 +0800
+	2022-02-05 19:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YB_INC_ystdex_sequence_hpp_ 1
 
 #include "variadic.hpp" // for "variadic.hpp", __cpp_lib_integer_sequence,
-//	empty_base, vseq::defer_i, _t, common_type_t;
+//	std::integer_sequence, std::index_sequence, is_integral, size_t, empty_base,
+//	vseq::defer_i, _t, common_type_t;
 
 /*!
 \brief \c \<utility> 特性测试宏。
@@ -60,10 +61,17 @@ inline namespace cpp2014
 using std::integer_sequence;
 using std::index_sequence;
 #else
-//! \ingroup YBase_replacement_features
+/*!
+\ingroup YBase_replacement_features
+\tparam _tInt 序列元素类型。
+\pre 静态断言：_tInt 是整数类型。
+*/
 template<typename _tInt, _tInt... _vSeq>
 struct integer_sequence
 {
+	//! \since build 938
+	yimpl(static_assert)(is_integral<_tInt>::value,
+		"Invalid 1st template parameter type found.");
 	using value_type = _tInt;
 
 	static yconstfn size_t
@@ -227,7 +235,11 @@ using vseq::vdefer_i;
 \since build 590
 */
 //@{
-//! \brief 取整数序列的自然数后继。
+/*!
+\brief 取整数序列的自然数后继。
+\tparam _tInt 序列元素类型。
+\pre 静态断言：_tInt 是整数类型。
+*/
 //@{
 template<typename _tInt, _tInt, class>
 struct make_successor;
@@ -239,6 +251,9 @@ template<typename _tInt, _tInt _vBase, _tInt... _vSeq>
 struct make_successor<_tInt, _vBase, integer_sequence<_tInt, _vSeq...>>
 {
 private:
+	//! \since build 938
+	static_assert(is_integral<_tInt>::value,
+		"Invalid 1st template parameter type found.");
 	using common_t = common_type_t<size_t, _tInt>;
 
 public:

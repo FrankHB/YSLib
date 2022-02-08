@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2018-2021 FrankHB.
+	© 2012-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file function.hpp
 \ingroup YStandardEx
 \brief 函数基本操作和调用包装对象。
-\version r4938
+\version r4941
 \author FrankHB <frankhb1989@gmail.com>
 \since build 847
 \par 创建时间:
 	2018-12-13 01:24:06 +0800
 \par 修改时间:
-	2021-09-25 23:29 +0800
+	2022-02-04 16:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -572,6 +572,7 @@ struct function_traits<_tRet(_tParams...), empty_function_policy::throwing>
 //! \since build 848
 //@{
 /*!
+\ingroup functors
 \brief 函数包装类模板。
 \since build 849
 */
@@ -613,7 +614,7 @@ function_not_empty(_tRet _tClass::* p) ynothrow
 	return p;
 }
 template<typename _type>
-YB_ATTR_nodiscard YB_STATELESS yconstfn static bool
+YB_ATTR_nodiscard YB_STATELESS static yconstfn bool
 function_not_empty(const _type&) ynothrow
 {
 	return true;

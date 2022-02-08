@@ -11,13 +11,13 @@
 /*!	\file NPLAMath.cpp
 \ingroup NPL
 \brief NPLA 数学功能。
-\version r28192
+\version r28310
 \author FrankHB <frankhb1989@gmail.com>
 \since build 930
 \par 创建时间:
 	2021-11-03 12:50:49 +0800
 \par 修改时间:
-	2022-01-31 07:24 +0800
+	2022-02-08 22:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,14 +27,14 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLAMath // for ValueObject, ResolvedArg, size_t, type_info,
-//	TermNode, ystdex::identity, ystdex::conditional_t, ystdex::cond_t,
-//	std::is_signed, ystdex::_t, NPL::TryAccessValue, std::string, TypeError,
-//	ystdex::sfmt, std::isfinite, std::nearbyint, ystdex::exclude_self_t,
-//	ystdex::enable_if_t, std::is_floating_point, std::fmod, std::to_string,
-//	ystdex::and_, std::is_unsigned, std::abs, std::floor, std::trunc,
+//	TermNode, ystdex::identity, ystdex::conditional_t, std::is_signed,
+//	ystdex::_t, NPL::TryAccessValue, YAssert, TypeError, ystdex::sfmt,
+//	NPL::Nonnull, std::string, ystdex::enable_if_t, std::is_floating_point,
+//	NPL::Deref, std::isfinite, std::nearbyint, ystdex::exclude_self_t,
+//	std::fmod, ystdex::and_, std::is_unsigned, std::abs, std::floor, std::trunc,
 //	InvalidSyntax, ptrdiff_t, std::ldexp, std::pow, string_view,
-//	ReductionStatus, std::isinf, std::isnan, std::log2,
-//	ystdex::is_explicitly_constructible, ystdex::byte;
+//	ReductionStatus, std::isinf, std::isnan, std::log2, ystdex::cond_t,
+//	ystdex::byte;
 #include <ystdex/exception.h> // for ystdex::unsupported, std::domain_error;
 #include <ystdex/cstdint.hpp> // for std::numeric_limits,
 //	ystdex::make_widen_int;
@@ -122,6 +122,21 @@ namespace NPL
 //! \since build 929
 namespace
 {
+
+//! \since build 938
+//@{
+template<typename _type>
+using has_special_value_t = ystdex::bool_<std::numeric_limits<
+	_type>::has_infinity && std::numeric_limits<_type>::has_quiet_NaN>;
+
+static_assert(has_special_value_t<float>::value,
+	"Unsupported implementation found.");
+static_assert(has_special_value_t<double>::value,
+	"Unsupported implementation found.");
+static_assert(has_special_value_t<long double>::value,
+	"Unsupported implementation found.");
+//@}
+
 
 YB_ATTR_nodiscard ValueObject
 MoveUnary(ResolvedArg<>& x)
@@ -381,11 +396,29 @@ AssertMismatch() ynothrowv
 }
 
 
+//! \since build 938
+YB_NORETURN YB_NONNULL(1) void
+ThrowTypeErrorForInteger(const char* val)
+{
+	throw TypeError(ystdex::sfmt(
+		"Expected a value of type 'integer', got '%s'.", NPL::Nonnull(val)));
+}
+#if false
 YB_NORETURN void
 ThrowTypeErrorForInteger(const std::string& val)
 {
-	throw TypeError(ystdex::sfmt(
-		"Expected a value of type 'integer', got '%s'.", val.c_str()));
+	ThrowTypeErrorForInteger(val.c_str());
+}
+#endif
+//! \since build 938
+template<typename _type>
+YB_NORETURN yimpl(ystdex::enable_if_t)<std::is_floating_point<_type>::value>
+ThrowTypeErrorForInteger(const _type& val)
+{
+	char buf[NumberStringBufferSize];
+
+	NPL::Deref(WriteFPString(buf, val)) = char();
+	ThrowTypeErrorForInteger(buf);
 }
 
 //! \since build 932
@@ -638,7 +671,7 @@ struct Odd
 #if YB_IMPL_GNUCPP || YB_IMPL_CLANGPP
 	YB_Diag_Pop
 #endif
-		ThrowTypeErrorForInteger(std::to_string(x));
+		ThrowTypeErrorForInteger(x);
 	}
 	//! \since build 937
 	template<typename _type, yimpl(ystdex::enable_if_t<
@@ -670,7 +703,7 @@ struct Even
 #if YB_IMPL_GNUCPP || YB_IMPL_CLANGPP
 	YB_Diag_Pop
 #endif
-		ThrowTypeErrorForInteger(std::to_string(x));
+		ThrowTypeErrorForInteger(x);
 	}
 	//! \since build 937
 	template<typename _type, yimpl(ystdex::enable_if_t<
@@ -1014,10 +1047,11 @@ struct GBDivRemBase
 {
 	using result_type = typename _tOpPolicy::result_type;
 
-	template<typename _type, yimpl(ystdex::enable_if_t<
-		std::is_unsigned<_type>::value, long> = 0L)>
+	// XXX: See $2022-02 @ %Documentation::Workflow.
+	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE inline result_type
-	operator()(const _type& x, const _type& y) const
+	operator()(const _type& x, const _type& y, yimpl(
+		ystdex::enable_if_t<std::is_unsigned<_type>::value, int> = 0)) const
 	{
 		if(y != 0)
 			return _tOpPolicy::DoInt(x, y);
@@ -1045,12 +1079,12 @@ struct GBDivRem : GBDivRemBase<_tOpPolicy>
 		{
 			if(FloatIsInteger(y))
 				return _tOpPolicy::DoFloat(_tPolicy::FloatQuotient(x, y), x, y);
-			ThrowTypeErrorForInteger(std::to_string(y));
+			ThrowTypeErrorForInteger(y);
 		}
 #if YB_IMPL_GNUCPP || YB_IMPL_CLANGPP
 	YB_Diag_Pop
 #endif
-		ThrowTypeErrorForInteger(std::to_string(x));
+		ThrowTypeErrorForInteger(x);
 	}
 	// TODO: Support bigint with allocator?
 	template<typename _type, yimpl(ystdex::enable_if_t<ystdex::and_<
@@ -1061,6 +1095,41 @@ struct GBDivRem : GBDivRemBase<_tOpPolicy>
 		return _tPolicy::Int(_tOpPolicy(), x, y);
 	}
 	using GBDivRemBase<_tOpPolicy>::operator();
+};
+
+
+//! \since build 938
+struct ReplaceInexact
+{
+	lref<ValueObject> Result;
+
+	ReplaceInexact(ValueObject& res) ynothrow
+		: Result(res)
+	{}
+
+	// NOTE: All inexact numbers are flonums at current. The empty
+	//	implementation implies the idempodent requirement.
+	template<typename _type>
+	inline yimpl(ystdex::enable_if_t)<std::is_floating_point<_type>::value>
+	operator()(_type&) const ynothrow
+	{}
+	template<typename _type, yimpl(ystdex::enable_if_t<
+		!std::is_floating_point<_type>::value, int> = 0)>
+	inline void
+	operator()(_type& x) const
+	{
+		// TODO: Support bigint with allocator?
+		// XXX: It is safe to assume no undefined behavior due to out of the
+		//	range, since the infinity values are required and the range is the
+		//	all real numbers (cf. ISO C17 5.2.4.2.2/5).
+		// NOTE: Prefer %double over other floating-point types to get it more
+		//	portable (e.g. to implementations of [RnRS] which only guarantee to
+		//	support +inf.0/-inf.0 but not other infinity values, as well as many
+		//	actual implementations using 'double' in interoperations). Also
+		//	'long double' (if not has the same binary representation of
+		//	'double') may be likely less efficient.
+		Result.get() = double(x);
+	}
 };
 //@}
 
@@ -1320,7 +1389,7 @@ DecimalCarryAddDigit(_type x, char c)
 }
 
 template<typename _tInt>
-YB_ATTR_nodiscard YB_FLATTEN inline bool
+YB_ATTR_nodiscard inline bool
 DecimalAccumulate(_tInt& ans, char c)
 {
 	static yconstexpr const auto i_thr(std::numeric_limits<_tInt>::max() / 10);
@@ -1685,7 +1754,7 @@ umul_32_64(std::uint32_t a, std::uint64_t b, std::uint32_t& hi,
 #if NPL_Impl_NPLAMath_has_uint128
 	const auto m(uint128_t(a) * b);
 
-	yunseq(hi = std::uint64_t(m >> 64), lo = std::uint64_t(m));
+	yunseq(hi = std::uint32_t(m >> 64), lo = std::uint64_t(m));
 #elif NPL_Impl_NPLAMath_has_umul128
 	std::uint32_t h;
 
@@ -1699,25 +1768,23 @@ umul_32_64(std::uint32_t a, std::uint64_t b, std::uint32_t& hi,
 #endif
 }
 
+#if !NPL_Impl_NPLAMath_has_uint128
 YB_ATTR_always_inline inline void
 umul_64_64(std::uint64_t a, std::uint64_t b, std::uint64_t& hi,
 	std::uint64_t& lo)
 {
-#if NPL_Impl_NPLAMath_has_uint128
-	const auto m(uint128_t(a) * b);
-
-	yunseq(hi = std::uint64_t(m >> 64), lo = std::uint64_t(m));
-#elif NPL_Impl_NPLAMath_has_umul128
+#	if NPL_Impl_NPLAMath_has_umul128
 	lo = _umul128(a, b, &hi);
-#else
+#	else
 	const std::uint64_t a0(static_cast<std::uint32_t>(a)), a1(a >> 32),
 		b0(static_cast<std::uint32_t>(b)), b1(b >> 32), p00(a0 * b0),
 		m0(a0 * b1 + (p00 >> 32)), m1(a1 * b0 + std::uint32_t(m0));
 
 	yunseq(hi = a1 * b1 + std::uint32_t(m0 >> 32) + std::uint32_t(m1 >> 32),
 		lo = (std::uint64_t(std::uint32_t(m1)) << 32) | std::uint32_t(p00));
-#endif
+#	endif
 }
+#endif
 
 YB_ATTR_always_inline inline std::uint64_t
 umul_64_64_hi(std::uint64_t a, std::uint64_t b)
@@ -1992,10 +2059,13 @@ is_odd(_type x) ynothrow
 	return bool(x & 1);
 }
 
-template<typename _type>
+//! \since build 938
+template<typename _type, typename _type2>
 YB_ATTR_nodiscard YB_STATELESS yconstfn _type
-upow(_type x, unsigned e) noexcept
+upow(_type x, _type2 e) noexcept
 {
+	static_assert(std::is_unsigned<_type2>::value, "Invalid power type found.");
+
 	return e == 0 ? _type(1)
 		: e == 1 ? x : upow(x * x, e >> 1) * (is_odd(e) ? x : _type(1));
 }
@@ -2852,8 +2922,8 @@ ComputeDecimalExponent(int exp_bin, bool shorter) ynothrow
 	//	However, greater 'u' needs more bits in the integer used here, hence
 	//	likely ineffieicent. (Similar in the discussion for 'Q' in Schubfach
 	//	paper §9.1.1, but more conservative decision is made here.)
-	return
-		(std::int_fast64_t(exp_bin) * 20201781 - (shorter ? 8384497 : 0)) >> 26;
+	return int((std::int_fast64_t(exp_bin) * 20201781L
+		- (shorter ? 8384497L : 0)) >> 26);
 #endif
 }
 
@@ -3339,18 +3409,7 @@ WriteFPSpecial(char* buf, int fc, char e) ynothrowv
 		yunseq(buf[0] = 'i', buf[1] = 'n', buf[2] = 'f');
 	else
 		yunseq(buf[0] = 'n', buf[1] = 'a', buf[2] = 'n');
-	buf[3] = '.';
-	switch(e)
-	{
-	case 'f':
-		buf[4] = 'f';
-		break;
-	case 'l':
-		buf[4] = 't';
-		break;
-	default:
-		buf[4] = '0';
-	}
+	yunseq(buf[3] = '.', buf[4] = e);
 	return buf + 5;
 }
 
@@ -3705,6 +3764,13 @@ TruncateRemainder(ResolvedArg<>&& x, ResolvedArg<>&& y)
 	return NumBinaryOp<GBDivRem<BTruncatePolicy, BRemainderPolicy>>(x, y);
 }
 
+ValueObject
+Inexact(ResolvedArg<>&& x)
+{
+	return NumUnaryOp<ReplaceInexact>(x);
+}
+
+
 } // inline namespace Math;
 
 void
@@ -3757,8 +3823,8 @@ ReadDecimal(ValueObject& vo, string_view id, string_view::const_iterator first)
 //@{
 template<typename _type>
 YB_NONNULL(1) char*
-WriteFPString(char* buf, _type val, char e, size_t prec, std::uint_fast8_t left_max,
-	std::uint_fast8_t right_max) ynothrowv
+WriteFPString(char* buf, _type val, char e, size_t prec,
+	std::uint_fast8_t left_max, std::uint_fast8_t right_max) ynothrowv
 {
 	static_assert(std::is_floating_point<_type>(), "Invalid type found.");
 
@@ -3779,7 +3845,7 @@ WriteFPString(char* buf, _type val, char e, size_t prec, std::uint_fast8_t left_
 	// NOTE: This requires 6 characters in NPLAMath.
 	case FP_INFINITE:
 	case FP_NAN:
-		return WriteFPSpecial(buf, fc, e);
+		return WriteFPSpecial(buf, fc, FPCharTraits<_type>::Special);
 	// NOTE: This requires 4 characters in NPLAMath.
 	case FP_ZERO:
 		return WriteFPZero(buf);
@@ -3821,27 +3887,30 @@ FPToString(float x, string::allocator_type a)
 {
 	char buf[NumberStringBufferSize];
 
-	return string(&buf[0], WriteFPString(buf, x, 'f'), a);
+	return string(&buf[0],
+		WriteFPString(buf, x, FPCharTraits<float>::Exponent), a);
 }
 string
 FPToString(double x, string::allocator_type a)
 {
 	char buf[NumberStringBufferSize];
 
-	return string(&buf[0], WriteFPString(buf, x, 'e'), a);
+	return string(&buf[0],
+		WriteFPString(buf, x, FPCharTraits<double>::Exponent), a);
 }
 string
 FPToString(long double x, string::allocator_type a)
 {
 	char buf[NumberStringBufferSize];
 
-	return string(&buf[0], WriteFPString(buf, x, 'l'), a);
+	return string(&buf[0],
+		WriteFPString(buf, x, FPCharTraits<long double>::Exponent), a);
 }
+//@}
 
 #undef NPL_Impl_NPLAMath_PrintLargeSignificant
 #undef NPL_Impl_NPLAMath_HasSubnorm
 #undef NPL_Impl_NPLAMath_IEC_60559_BFP
-//@}
 
 } // namespace NPL;
 

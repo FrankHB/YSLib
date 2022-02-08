@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015, 2018 FrankHB.
+	© 2012-2015, 2018, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file array.hpp
 \ingroup YStandardEx
 \brief 数组操作。
-\version r166
+\version r170
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-09-01 18:39:25 +0800
 \par 修改时间:
-	2018-11-26 14:01 +0800
+	2022-02-06 18:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_array_hpp_
 #define YB_INC_ystdex_array_hpp_ 1
 
-#include "utility.hpp" // for yforward, decay_copy;
+#include "utility.hpp" // for yforward, ystdex::decay_copy;
 #include "type_op.hpp" // for common_nonvoid_t;
 #include <array> // for std::array;
 #include <algorithm> // for std::copy_n;
@@ -59,7 +59,7 @@ template<typename _type = void, typename... _tParams>
 yconstfn common_array_t<_type, _tParams...>
 cast_array(_tParams&&... args)
 {
-	return {{decay_copy(common_nonvoid_t<_type, _tParams...>(args))...}};
+	return {{common_nonvoid_t<_type, _tParams...>(args)...}};
 }
 
 //! \brief 转移指定参数至 std::array 对象。
@@ -78,7 +78,7 @@ template<typename _type = void, typename... _tParams>
 yconstfn common_array_t<_type, _tParams...>
 make_array(_tParams&&... args)
 {
-	return {{decay_copy(args)...}};
+	return {{ystdex::decay_copy(args)...}};
 }
 //@}
 

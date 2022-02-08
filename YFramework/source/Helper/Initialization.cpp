@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2021 FrankHB.
+	© 2009-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3957
+\version r3959
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2021-12-13 01:21 +0800
+	2022-01-31 20:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -272,7 +272,7 @@ FetchPreferredConfPath()
 //! \since build 693
 inline PDefH(string, FetchSystemFontDirectory_Win32, )
 	// NOTE: Hard-coded as Shell32 special path with %CSIDL_FONTS or
-	//	%CSIDL_FONTS. See https://msdn.microsoft.com/en-us/library/dd378457.aspx.
+	//	%CSIDL_FONTS. See https://msdn.microsoft.com/library/dd378457.aspx.
 	ImplRet(platform_ex::WCSToUTF8(platform_ex::FetchWindowsPath()) + "Fonts\\")
 #elif YCL_Android
 #	define YF_Helper_Initialization_DataDirectory_ \

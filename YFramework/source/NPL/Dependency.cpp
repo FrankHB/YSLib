@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r6521
+\version r6522
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2022-01-31 17:13 +0800
+	2022-02-04 07:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1811,6 +1811,7 @@ LoadModule_std_math(REPLContext& context)
 		TruncateQuotient);
 	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "truncate-remainder",
 		TruncateRemainder);
+	RegisterUnary<Strict, NumberNode>(renv, "inexact", Inexact);
 }
 
 void

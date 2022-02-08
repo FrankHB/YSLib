@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015, 2017-2019, 2021 FrankHB.
+	© 2013-2015, 2017-2019, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,17 +11,29 @@
 /*!	\file base.h
 \ingroup YStandardEx
 \brief 基类实用设施。
-\version r245
+\version r262
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2014-11-28 11:59:15 +0800
 \par 修改时间:
-	2021-12-29 01:58 +0800
+	2022-02-08 03:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Base
+
+提供若干基类。
+一些基类相对显式定义 = delete 的特殊成员函数兼容性更友好，
+	避免如 Clang++ 警告 [-Wdeprecated] 的问题。
+一些基类被设计为空类（非虚析构），以允许 ISO C++11 保证对标准布局的类启用空基类优化；
+	参见 ISO C++11 9.1/7 和 ISO C++11 9.2/19 ，以及
+	https://stackoverflow.com/questions/10788823 的讨论。
+ISO C++20 的规则（自 WG21 P840R2 ）进一步明确了空基类的情形，但没有实质变化。
+Microsoft VC++ 因为 ABI 兼容问题不会在短期实现符合 ISO C++11 要求的空基类优化，
+	而同时需要使用 __declspec(empty_bases) 变通，参见：	
+https://devblogs.microsoft.com/cppblog/optimizing-the-layout-of-empty-base-classes-in-vs2015-update-2-3/ ；
+https://developercommunity.visualstudio.com/t/no-unique-address-attribute-isnt-working/954963 。
 */
 
 
@@ -41,13 +53,13 @@ namespace ystdex
 namespace bases
 {
 
-// XXX: A simpler version of %noncopyable was proposed in WG21 N2600 before ISO
-//	C++11, but not adopted.
-
+//! \warning 非虚析构。
+//@{
 /*!
 \brief 不可复制对象：禁止派生类调用默认原型的复制构造函数和复制赋值操作符。
-\warning 非虚析构。
+\note WG21 N2600 在 ISO C++11 之前提议一个更简单的实现，但没有被标准采纳。
 \since build 373
+\see WG21 N2600 。
 */
 class noncopyable
 {
@@ -119,6 +131,7 @@ public:
 	operator=(nonmovable&&) = delete;
 	//@}
 };
+//@}
 
 
 /*!

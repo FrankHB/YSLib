@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2021 FrankHB.
+	© 2011-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ref.hpp
 \ingroup YStandardEx
 \brief 引用包装。
-\version r524
+\version r530
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:29:20 +0800
 \par 修改时间:
-	2021-12-24 18:09 +0800
+	2022-02-07 23:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,6 +59,9 @@ namespace ystdex
 和 std::reference_wrapper 不同而和 \c boost::reference_wrapper 类似，
 	不提供 weak result type ，不要求模板参数为完整类型。
 使用 exclude_self_t 实现，不需要 LWG 3041 的解决方案但等效。
+同时，和 std::reference_wrapper 不同，保证标准布局，
+	以允许具有引用包装值实例作为成员的类能在 ISO C++11 保证启用空基类优化；
+	相关规则另见 Base 模块的说明。
 */
 //@{
 template<typename _type>
@@ -72,9 +75,9 @@ private:
 
 	//! \since build 870
 	//@{
-	yconstfn static _type*
+	static yconstfn _type*
 	fun(_type&) ynothrow;
-	yconstfn static _type*
+	static yconstfn _type*
 	fun(_type&&) = delete;
 
 public:

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2021 FrankHB.
+	© 2010-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file invoke.hpp
 \ingroup YStandardEx
 \brief 可调用对象和调用包装接口。
-\version r4726
+\version r4739
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-24 05:03:12 +0800
 \par 修改时间:
-	2021-12-26 13:54 +0800
+	2022-02-08 22:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,6 @@
 //	__cpp_lib_is_invocable, __cpp_lib_invoke, void_t, false_, true_,
 //	remove_cvref, is_base_of, or_, is_void, is_same_or_convertible,
 //	is_implicitly_nothrow_constructible, and_, nullptr_t;
-#include "variadic.hpp" // for vseq::apply_t, vseq::_a, conditional_t;
 #include <functional> // for <functional>, std::reference_wrapper;
 #include "cassert.h" // for yconstraint;
 
@@ -202,13 +201,22 @@ struct is_std_reference_wrapper<std::reference_wrapper<_type>> : true_type
 //@}
 
 
+// XXX: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91456.
+//! \since build 938
+#if __cpp_lib_is_invocable >= 201703L && (__cplusplus < 201703L \
+	|| !defined(__GLIBCXX__) || __GLIBCXX__ > 20191024) 
+#	define YB_Impl_has_invocable true
+#else
+#	define YB_Impl_has_invocable false
+#endif
+
 //! \since build 612
 namespace details
 {
 
 //! \since build 832
 //@{
-#if !(__cpp_lib_is_invocable >= 201703L)
+#if !YB_Impl_has_invocable
 template<typename _type, typename _type2 = decay_t<_type>>
 struct inv_unwrap
 {
@@ -486,7 +494,7 @@ inline namespace cpp2017
 
 //! \since build 832
 //@{
-#if __cpp_lib_is_invocable >= 201703L
+#if YB_Impl_has_invocable
 using std::is_invocable;
 using std::is_invocable_r;
 using std::is_nothrow_invocable;
@@ -533,6 +541,8 @@ using invoke_result_t = _t<invoke_result<_fCallable, _tParams...>>;
 //@}
 #endif
 //@}
+
+#undef YB_Impl_has_invocable
 
 #if __cpp_lib_invoke >= 201411L
 //! \since build 617

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2021 FrankHB.
+	© 2010-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r2331
+\version r2338
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2021-12-24 22:39 +0800
+	2022-02-05 09:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,18 +125,12 @@ range_size(const _tRange& c)
 {
 	return details::range_size(c, details::has_range_size<_tRange>());
 }
-#if __cplusplus <= 201402L
-/*!
-\see CWG 1591 。
-\since build 664
-*/
 template<typename _tElem>
 yconstfn size_t
 range_size(std::initializer_list<_tElem> il)
 {
 	return size(il);
 }
-#endif
 //@}
 
 

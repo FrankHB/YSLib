@@ -11,13 +11,13 @@
 /*!	\file range.hpp
 \ingroup YStandardEx
 \brief 范围操作。
-\version r1020
+\version r1167
 \author FrankHB <frankhb1989@gmail.com>
 \since build 624
 \par 创建时间:
 	2015-08-18 22:33:54 +0800
 \par 修改时间:
-	2022-01-01 14:58 +0800
+	2022-02-05 09:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -315,23 +315,26 @@ operator-(const reverse_iterator<_tIter>& x, const reverse_iterator<_tIter2>& y)
 #endif
 
 
+#define YB_Impl_Range_DisambiguousParams \
+	yimpl(typename... _tParams, \
+	typename = enable_if_t<sizeof...(_tParams) == 0>)
+#define YB_Impl_Range_DisambiguousArgs yimpl(_tParams&&...)
+
 #if __cpp_lib_array_constexpr >= 201603L
 //! \since build 624
 using std::begin;
 //! \since build 624
 using std::end;
 #else
-template<class _tRange, yimpl(typename... _tParams,
-	typename = enable_if_t<sizeof...(_tParams) == 0>)>
+template<class _tRange, YB_Impl_Range_DisambiguousParams>
 YB_ATTR_nodiscard YB_PURE yconstfn auto
-begin(_tRange& c, yimpl(_tParams&&...)) -> decltype(c.begin())
+begin(_tRange& c, YB_Impl_Range_DisambiguousArgs) -> decltype(c.begin())
 {
 	return c.begin();
 }
-template<class _tRange, yimpl(typename... _tParams,
-	typename = enable_if_t<sizeof...(_tParams) == 0>)>
+template<class _tRange, YB_Impl_Range_DisambiguousParams>
 YB_ATTR_nodiscard YB_PURE yconstfn auto
-begin(const _tRange& c, yimpl(_tParams&&...)) -> decltype(c.begin())
+begin(const _tRange& c, YB_Impl_Range_DisambiguousArgs) -> decltype(c.begin())
 {
 	return c.begin();
 }
@@ -346,18 +349,16 @@ begin(_type(&array)[_vN]) ynothrow
 }
 
 //! \since build 936
-template<class _tRange, yimpl(typename... _tParams,
-	typename = enable_if_t<sizeof...(_tParams) == 0>)>
+template<class _tRange, YB_Impl_Range_DisambiguousParams>
 YB_ATTR_nodiscard YB_PURE yconstfn auto
-end(_tRange& c, yimpl(_tParams&&...)) -> decltype(c.end())
+end(_tRange& c, YB_Impl_Range_DisambiguousArgs) -> decltype(c.end())
 {
 	return c.end();
 }
 //! \since build 936
-template<class _tRange, yimpl(typename... _tParams,
-	typename = enable_if_t<sizeof...(_tParams) == 0>)>
+template<class _tRange, YB_Impl_Range_DisambiguousParams>
 YB_ATTR_nodiscard YB_PURE yconstfn auto
-end(const _tRange& c, yimpl(_tParams&&...)) -> decltype(c.end())
+end(const _tRange& c, YB_Impl_Range_DisambiguousArgs) -> decltype(c.end())
 {
 	return c.end();
 }
@@ -409,64 +410,58 @@ rend(_type(&&array)[_vN])
 }
 //@}
 
-//! \since build 624
-//@{
-inline namespace cpp2014
-{
-
-#if (__cpp_lib_nonmember_container_access >= 201411L \
-	|| (__cplusplus >= 201402L && (!defined(__GLIBCXX__) \
-	|| __GLIBCXX__ > 20150119))) || (_LIBCPP_VERSION >= 1101 \
-	&& _LIBCPP_STD_VER > 11) || YB_IMPL_MSCPP >= 1800
-using std::cbegin;
-using std::cend;
-#else
-//! \since build 834
-template<typename _tRange>
-YB_ATTR_nodiscard YB_PURE yconstfn auto
-cbegin(const _tRange& c) ynoexcept_spec(ystdex::begin(c))
-	-> decltype(ystdex::begin(c))
-{
-	return ystdex::begin(c);
-}
-
-//! \since build 834
-template<typename _tRange>
-YB_ATTR_nodiscard YB_PURE yconstfn auto
-cend(const _tRange& c) ynoexcept_spec(ystdex::end(c))
-	-> decltype(ystdex::end(c))
-{
-	return ystdex::end(c);
-}
-#endif
-
-} // inline namespace cpp2014;
-//@}
-
 //! \since build 834
 inline namespace cpp2017
 {
 
 //! \since build 624
 //@{
-#if __cpp_lib_array_constexpr >= 201603L
+// XXX: To prevent introduce non-'constexpr' version of %std::(begin, end),
+//	%__cpp_lib_array_constexpr is also checked, even the direct interface is not
+//	changed from the original version in ISO C++14.
+#if __cpp_lib_array_constexpr >= 201603L \
+	&& ((__cpp_lib_nonmember_container_access >= 201411L \
+	|| (__cplusplus >= 201402L && (!defined(__GLIBCXX__) \
+	|| __GLIBCXX__ > 20150119))) || (_LIBCPP_VERSION >= 1101 \
+	&& _LIBCPP_STD_VER > 11) || YB_IMPL_MSCPP >= 1800)
+using std::cbegin;
+using std::cend;
 using std::rbegin;
 using std::rend;
 using std::crbegin;
 using std::crend;
 #else
-template<class _tRange>
+//! \since build 938
+//@{
+template<typename _tRange, YB_Impl_Range_DisambiguousParams>
 YB_ATTR_nodiscard YB_PURE yconstfn auto
-rbegin(_tRange& c) -> decltype(c.rbegin())
+cbegin(const _tRange& c, YB_Impl_Range_DisambiguousArgs)
+	ynoexcept_spec(ystdex::begin(c)) -> decltype(ystdex::begin(c))
+{
+	return ystdex::begin(c);
+}
+
+template<typename _tRange, YB_Impl_Range_DisambiguousParams>
+YB_ATTR_nodiscard YB_PURE yconstfn auto
+cend(const _tRange& c, YB_Impl_Range_DisambiguousArgs)
+	ynoexcept_spec(ystdex::end(c)) -> decltype(ystdex::end(c))
+{
+	return ystdex::end(c);
+}
+
+template<class _tRange, YB_Impl_Range_DisambiguousParams>
+YB_ATTR_nodiscard YB_PURE yconstfn auto
+rbegin(_tRange& c, YB_Impl_Range_DisambiguousArgs) -> decltype(c.rbegin())
 {
 	return c.rbegin();
 }
-template<class _tRange>
+template<class _tRange, YB_Impl_Range_DisambiguousParams>
 YB_ATTR_nodiscard YB_PURE yconstfn auto
-rbegin(const _tRange& c) -> decltype(c.rbegin())
+rbegin(const _tRange& c, YB_Impl_Range_DisambiguousArgs) -> decltype(c.rbegin())
 {
 	return c.rbegin();
 }
+//@}
 //! \since build 833
 template<typename _type, size_t _vN>
 YB_ATTR_nodiscard YB_PURE yconstfn reverse_iterator<_type*>
@@ -482,15 +477,17 @@ rbegin(std::initializer_list<_tElem> il)
 	return reverse_iterator<const _tElem*>(il.end());
 }
 
-template<class _tRange>
+//! \since build 938
+template<class _tRange, YB_Impl_Range_DisambiguousParams>
 YB_ATTR_nodiscard YB_PURE yconstfn auto
-rend(_tRange& c) -> decltype(c.rend())
+rend(_tRange& c, YB_Impl_Range_DisambiguousArgs) -> decltype(c.rend())
 {
 	return c.rend();
 }
-template<class _tRange>
+//! \since build 938
+template<class _tRange, YB_Impl_Range_DisambiguousParams>
 YB_ATTR_nodiscard YB_PURE yconstfn auto
-rend(const _tRange& c) -> decltype(c.rend())
+rend(const _tRange& c, YB_Impl_Range_DisambiguousArgs) -> decltype(c.rend())
 {
 	return c.rend();
 }
@@ -509,22 +506,73 @@ rend(std::initializer_list<_tElem> il)
 	return reverse_iterator<const _tElem*>(il.begin());
 }
 
-template<typename _tRange>
+//! \since build 938
+template<typename _tRange, YB_Impl_Range_DisambiguousParams>
 YB_ATTR_nodiscard YB_PURE yconstfn auto
-crbegin(const _tRange& c) -> decltype(ystdex::rbegin(c))
+crbegin(const _tRange& c, YB_Impl_Range_DisambiguousArgs) -> decltype(ystdex::rbegin(c))
 {
 	return ystdex::rbegin(c);
 }
 
-template<typename _tRange>
+//! \since build 938
+template<typename _tRange, YB_Impl_Range_DisambiguousParams>
 YB_ATTR_nodiscard YB_PURE yconstfn auto
-crend(const _tRange& c) -> decltype(ystdex::rend(c))
+crend(const _tRange& c, YB_Impl_Range_DisambiguousArgs) -> decltype(ystdex::rend(c))
 {
 	return ystdex::rend(c);
 }
 #endif
+//@}
+
+#undef YB_Impl_Range_DisambiguousArgs
+#undef YB_Impl_Range_DisambiguousParams
 
 } // inline namespace cpp2017;
+
+/*!
+\ingroup YBase_replacement_extensions
+\brief 初值符列表常量迭代器访问重载扩展。
+\since build 664
+
+访问 std::initializer_list 的实例是特殊的，因为它们只有成员 begin 和 end ，
+	而没有其它的访问。逆向和常量访问都依赖非成员函数。
+通过 CWG 1591 的解决可以在存在数组类型参数的重载时推导 std::initializer_list 实例，
+	但标准库中，只有非常量的访问有数组类型的重载（且非常量的访问同时对
+	std::initializer_list 已有针对性的重载而不需要依赖 CWG 1591 的解决），
+	所以不能帮助推导需要常量访问初值符列表的情形。
+因此，在此提供扩展，以允许和其它方式相同的方式直接以初值符调用这些访问函数模板。
+*/
+//@{
+template<typename _tElem>
+YB_ATTR_nodiscard YB_PURE yconstfn const _tElem*
+cbegin(std::initializer_list<_tElem> il) ynothrow
+{
+	return il.begin();
+}
+
+template<typename _tElem>
+YB_ATTR_nodiscard YB_PURE yconstfn const _tElem*
+cend(std::initializer_list<_tElem> il) ynothrow
+{
+	return il.end();
+}
+
+//! \since build 833
+template<typename _tElem>
+YB_ATTR_nodiscard YB_PURE yconstfn reverse_iterator<const _tElem*>
+crbegin(std::initializer_list<_tElem> il) ynothrow
+{
+	return ystdex::rbegin(il);
+}
+
+//! \since build 833
+template<typename _tElem>
+YB_ATTR_nodiscard YB_PURE yconstfn reverse_iterator<const _tElem*>
+crend(std::initializer_list<_tElem> il) ynothrow
+{
+	return ystdex::rend(il);
+}
+//@}
 
 /*!
 \brief 类容器访问。
@@ -619,50 +667,6 @@ data(_type(&&array)[_vN]) ynothrow
 	return array;
 }
 //@}
-
-//! \since build 624
-inline namespace cpp2014
-{
-
-//! \since build 664
-//@{
-#if __cplusplus <= 201402L
-//! \see CWG 1591 。
-//@{
-template<typename _tElem>
-YB_ATTR_nodiscard YB_PURE yconstfn const _tElem*
-cbegin(std::initializer_list<_tElem> il) ynothrow
-{
-	return il.begin();
-}
-
-template<typename _tElem>
-YB_ATTR_nodiscard YB_PURE yconstfn const _tElem*
-cend(std::initializer_list<_tElem> il) ynothrow
-{
-	return il.end();
-}
-
-//! \since build 833
-template<typename _tElem>
-YB_ATTR_nodiscard YB_PURE yconstfn reverse_iterator<const _tElem*>
-crbegin(std::initializer_list<_tElem> il) ynothrow
-{
-	return ystdex::rbegin(il);
-}
-
-//! \since build 833
-template<typename _tElem>
-YB_ATTR_nodiscard YB_PURE yconstfn reverse_iterator<const _tElem*>
-crend(std::initializer_list<_tElem> il) ynothrow
-{
-	return ystdex::rend(il);
-}
-//@}
-#endif
-//@}
-
-} // inline namespace cpp2014;
 
 /*!
 \ingroup metafunctions

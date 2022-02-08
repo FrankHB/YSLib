@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2021 FrankHB.
+	© 2011-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r957
+\version r959
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2021-12-13 01:01 +0800
+	2022-01-31 20:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -434,7 +434,7 @@ void
 SendDebugString(Logger::Level lv, Logger&, const char* str) ynothrowv
 {
 	// TODO: Use %::WaitForDebugEventEx if possible. See
-	//	https://msdn.microsoft.com/en-us/library/windows/desktop/mt171594(v=vs.85).aspx.
+	//	https://msdn.microsoft.com/library/windows/desktop/mt171594(v=vs.85).aspx.
 	TryExpr(::OutputDebugStringA(
 		FetchThreadedMessage(FetchCurrentThreadID(), lv, str).c_str()))
 	CatchIgnore(...)

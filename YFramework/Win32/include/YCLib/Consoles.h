@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2019-2021 FrankHB.
+	© 2013-2016, 2019-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 控制台。
-\version r329
+\version r332
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2013-05-09 11:01:12 +0800
 \par 修改时间:
-	2021-06-25 12:41 +0800
+	2022-01-31 20:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,8 +47,8 @@ inline namespace Windows
 \throw Win32Exception 设置失败。
 \note 默认行为使用 <tt>::ExitProcess</tt> ，可能造成 C/C++ 运行时无法正常清理。
 \warning 默认不应在 \c std::at_quick_exit 注册依赖静态或线程生存期对象状态的回调。
-\see http://msdn.microsoft.com/en-us/library/windows/desktop/ms682658(v=vs.85).aspx 。
-\see http://msdn.microsoft.com/en-us/library/windows/desktop/ms686016(v=vs.85).aspx 。
+\see http://msdn.microsoft.com/library/windows/desktop/ms682658(v=vs.85).aspx 。
+\see http://msdn.microsoft.com/library/windows/desktop/ms686016(v=vs.85).aspx 。
 \see $2015-01 @ %Documentation::Workflow.
 \since build 565
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2019, 2021 FrankHB.
+	© 2014-2019, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r692
+\version r762
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-10 05:09:57 +0800
 \par 修改时间:
-	2021-09-26 00:39 +0800
+	2022-02-05 09:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,6 +40,10 @@
 #include <ystdex/mixin.hpp>
 #include <ystdex/bitseg.hpp>
 
+// NOTE: %YB_ATTR_nodiscard is not used to improve the translation performance
+//	of the test, if any. %YB_PURE and some other attributes are also not used
+//	for translation performance unless ohterwise specified.
+
 namespace
 {
 
@@ -53,6 +57,8 @@ show_result(std::ostream& out, const std::string& name, size_t pass_n,
 
 using namespace ystdex;
 using namespace ytest;
+//! \since build 938
+using std::abs;
 
 //! \since build 926
 static_assert(is_bitwise_swappable<lref<yimpl(int)>>(),
@@ -65,7 +71,7 @@ static_assert(is_bitwise_swappable<observer_ptr<yimpl(int)>>(),
 using std::vector;
 
 //! \since build 664
-struct cwam
+struct cwam final
 {
 	// NOTE: Class with array member, used to test member prvalue before CWG616
 	//	is resoved, or member xvalue after CWG616 is resolved.
@@ -197,7 +203,7 @@ f()
 namespace memory_test
 {
 
-struct t1
+struct t1 final
 {
 	const t1*
 	operator&() const ynothrow
@@ -206,7 +212,7 @@ struct t1
 	}
 };
 
-struct t2
+struct t2 final
 {};
 
 const t2*
@@ -238,7 +244,7 @@ t_constfn() ynothrow
 namespace function_test
 {
 
-struct C
+struct C final
 {
 	C() = default;
 	C(function<C(int)>);
@@ -251,6 +257,63 @@ struct C
 	operator()(_type&&, _type&&);
 };
 
+
+//! \since build 938
+//@{
+struct explicit_conv final
+{
+	explicit
+	operator int() const ynothrow
+	{
+		return 0;
+	}
+};
+
+static_assert(is_invocable_r<explicit_conv, explicit_conv(*)()>::value,
+	"Bad 'is_invocable_r' implementation found.");
+static_assert(!is_invocable_r<int, explicit_conv(*)()>::value,
+	"Bad 'is_invocable_r' implementation found.");
+
+
+// NOTE: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91456.
+#if __cpp_guaranteed_copy_elision >= 201606L || __cplusplus >= 201703L
+struct immovable final
+{
+	immovable() = default;
+	immovable(const immovable&) = delete;
+	immovable&
+	operator=(const immovable&) = delete;
+};
+
+immovable
+get_immovable() ynothrow
+{
+	return {};
+}
+
+const immovable immovable_object = get_immovable();
+ystdex::function<const immovable()> f_get_immovable{&get_immovable};
+const immovable immovable_object2 = f_get_immovable();
+
+const immovable
+cget_immovable() ynothrow
+{
+	return {};
+}
+
+immovable cimmovable_object = cget_immovable();
+ystdex::function<immovable()> f_cget_immovable{&cget_immovable};
+immovable cimmovable_object2 = f_cget_immovable();
+
+static_assert(ystdex::is_invocable_r<immovable, immovable(*)()>::value,
+	"Bad 'is_invocable_r' implementation found.");
+static_assert(ystdex::is_invocable_r<const immovable, immovable(*)()>::value,
+	"Bad 'is_invocable_r' implementation found.");
+static_assert(ystdex::is_invocable_r<immovable, const immovable(*)()>::value,
+	"Bad 'is_invocable_r' implementation found.");
+#endif
+//@}
+
 } // namespace function_test;
 
 //! \since build 549
@@ -258,7 +321,7 @@ namespace bitseg_test
 {
 
 template<size_t _vN, bool _bEndian = false>
-static bool
+bool
 expect(const string& str, vector<byte>&& seq)
 {
 	using bit = bitseg_iterator<_vN, _bEndian>;
@@ -583,19 +646,18 @@ main()
 		})
 	);
 	// 3 cases covering: ystdex::bitseg_iterator.
+	const std::initializer_list<byte> bytes{byte(1), byte(2), byte(3), byte(5),
+		byte(0x17), byte(0xC0), byte(0xF0), byte(0xFF)};
+
 	seq_apply(make_guard("YStandard.BitSegment").get(pass, fail),
 		bitseg_test::expect<1>("1000000001000000110000001010000011101000"
-			"000000110000111111111111", {1, 2, 3, 5, 0x17, 0xC0, 0xF0, 0xFF}),
+			"000000110000111111111111", bytes),
 		bitseg_test::expect<1, true>("0000000100000010000000110000010100010111"
-			"110000001111000011111111", {1, 2, 3, 5, 0x17, 0xC0, 0xF0, 0xFF}),
-		bitseg_test::expect<2>("10002000300011003110000300333333",
-			{1, 2, 3, 5, 0x17, 0xC0, 0xF0, 0xFF}),
-		bitseg_test::expect<2, true>("00010002000300110113300033003333",
-			{1, 2, 3, 5, 0x17, 0xC0, 0xF0, 0xFF}),
-		bitseg_test::expect<4>("10203050710c0fff",
-			{1, 2, 3, 5, 0x17, 0xC0, 0xF0, 0xFF}),
-		bitseg_test::expect<4, true>("0102030517c0f0ff",
-			{1, 2, 3, 5, 0x17, 0xC0, 0xF0, 0xFF})
+			"110000001111000011111111", bytes),
+		bitseg_test::expect<2>("10002000300011003110000300333333", bytes),
+		bitseg_test::expect<2, true>("00010002000300110113300033003333", bytes),
+		bitseg_test::expect<4>("10203050710c0fff", bytes),
+		bitseg_test::expect<4, true>("0102030517c0f0ff", bytes)
 	);
 	show_result(cout, "ALL", pass_n, fail_n);
 }

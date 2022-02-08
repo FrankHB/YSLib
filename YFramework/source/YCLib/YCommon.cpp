@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018-2021 FrankHB.
+	© 2009-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2956
+\version r2958
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:42 +0800
 \par 修改时间:
-	2021-10-21 18:09 +0800
+	2022-01-31 20:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,7 +82,7 @@ uspawn(const char* cmd)
 	auto wcmd(platform_ex::UTF8ToWCS(cmd));
 	// NOTE: See https://blogs.msdn.microsoft.com/oldnewthing/20031210-00/?p=41553/.
 	// XXX: With inspection of UCRT source (SDK version 10.0.17134.0), some MSDN
-	//	documents seems to be wrong of the limit, e.g. https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/spawnvpe-wspawnvpe?view=vs-2017.
+	//	documents seems to be wrong of the limit, e.g. https://docs.microsoft.com/cpp/c-runtime-library/reference/spawnvpe-wspawnvpe?view=vs-2017.
 	//	The actual limit should be same to %::_wexecvp and %::CreateProcessW in
 	//	current versions of Windows, i.e. 32767.
 	::STARTUPINFOW startup_info{};

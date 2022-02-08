@@ -31,6 +31,7 @@
     <ClInclude Include="include\ystdex\cassert.h" />
     <ClInclude Include="include\ystdex\cast.hpp" />
     <ClInclude Include="include\ystdex\cctype.h" />
+    <ClInclude Include="include\ystdex\compressed_pair.hpp" />
     <ClInclude Include="include\ystdex\concurrency.h" />
     <ClInclude Include="include\ystdex\container.hpp" />
     <ClInclude Include="include\ystdex\csignal.h" />

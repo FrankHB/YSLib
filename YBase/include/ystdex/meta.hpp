@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2021 FrankHB.
+	© 2011-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file meta.hpp
 \ingroup YStandardEx
 \brief 通用元编程设施。
-\version r1824
+\version r1973
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:28 +0800
 \par 修改时间:
-	2021-12-26 12:29 +0800
+	2022-02-08 22:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,11 +28,10 @@
 #ifndef YB_INC_ystdex_meta_hpp_
 #define YB_INC_ystdex_meta_hpp_ 1
 
-#include "type_inspection.hpp" // for "type_inspection.hpp",
+#include "type_inspection.hpp" // for "type_inspection.hpp", <type_traits>,
 //	__cpp_lib_transformation_trait_aliases, __cpp_lib_remove_cvref,
-//	__cpp_lib_void_t, __cpp_lib_type_identity, is_same, or_, nor_, and_,
-//	is_trivial, is_class, is_union, is_convertible, not_, is_unsigned;
-#include "integral_constant.hpp" // for true_, size_t_;
+//	__cpp_lib_void_t, __cpp_lib_type_identity, true_, is_same, is_convertible,
+//	or_, nor_, and_, is_class, is_union, is_trivial, not_, size_t_, is_unsigned;
 
 /*!
 \brief \c \<type_traits> 特性测试宏。
@@ -129,13 +128,11 @@ using std::aligned_union;
 using std::decay;
 using std::enable_if;
 using std::conditional;
-using std::common_type;
 //! \since build 439
 using std::underlying_type;
 //@}
 
 } // inline namespace cpp2011;
-
 
 /*!
 \brief 包含 ISO C++ 2014 引入的名称的命名空间。
@@ -175,7 +172,6 @@ using std::aligned_union_t;
 using std::decay_t;
 using std::enable_if_t;
 using std::conditional_t;
-using std::common_type_t;
 using std::underlying_type_t;
 #else
 //! \since build 340
@@ -249,9 +245,6 @@ using enable_if_t = typename enable_if<_bCond, _type>::type;
 template<bool _bCond, typename _type, typename _type2>
 using conditional_t = typename conditional<_bCond, _type, _type2>::type;
 
-template<typename... _types>
-using common_type_t = typename common_type<_types...>::type;
-
 template<typename _type>
 using underlying_type_t = typename underlying_type<_type>::type;
 //@}
@@ -259,6 +252,29 @@ using underlying_type_t = typename underlying_type<_type>::type;
 //@}
 
 } // inline namespace cpp2014;
+
+// NOTE: This requires the support some features of WG21 P0898R3. See
+//	https://docs.microsoft.com/cpp/visual-cpp-language-conformance and
+//	https://docs.microsoft.com/cpp/preprocessor/predefined-macros.
+#if (YB_IMPL_MSCPP >= 1923 && _MSVC_LANG >= 202002L) || __cplusplus >= 202002L
+#	define YB_Impl_TypeTraits_has_cpp20_common_type true
+#else
+#	define YB_Impl_TypeTraits_has_cpp20_common_type false
+//! \since build 938
+namespace details
+{
+
+template<typename _type1, typename _type2, typename = decay_t<_type1>,
+	typename = decay_t<_type2>>
+struct common_type2;
+
+// XXX: This is to be specialized later.
+template<typename, typename, typename, typename...>
+struct common_type3
+{};
+
+} // namespace details;
+#endif
 
 //! \since build 934
 inline namespace cpp2020
@@ -288,6 +304,77 @@ template<typename _type>
 using remove_cvref_t = _t<remove_cvref<_type>>;
 #endif
 //@}
+
+
+#if YB_Impl_TypeTraits_has_cpp20_common_type
+//! \since build 245
+using std::common_type;
+//! \since build 607
+using std::common_type_t;
+#else
+//! \since build 938
+//@{
+/*!
+\ingroup YBase_replacement_features
+\brief 取公共类型。
+\note 兼容 ISO C++20 的要求。
+\see LWG 2141 。
+\see LWG 2408 。
+\see LWG 2465 。
+\see LWG 2763 。
+\see LWG 3205 。
+\see WG21 P0435R1 。
+\see WG21 P0548R1 。
+\see WG21 P0898R3 。
+
+同 ISO C++20 的 std::common_type ，但不支持程序定义的特化，
+	而直接使用 std::common_type 的程序定义的特化（若存在）。
+从 ISO C++11 起提供 std::common_type 的要求在不同标准版本中略有不同，如：
+自 ISO C++14 起 LWG 2141 的解决要求成员 type 类型（若存在）为退化类型；
+WG21 P0435R1 解决 LWG 2465（同时涵盖 LWG 2460 的第一部分），
+	不再允许程序提供具有 cv 限定符的特化的模板参数。
+符合先前版本（如 ISO C++11 ）要求的程序定义的特化，因为这些新增的限制，
+	可能不再符合之后版本的 std::common_type 的要求。
+本特征在确定二元形式的 type 时，依次使用：
+	std::common_type 特化的 type 类型（若存在），
+		或其退化类型（在使用 ISO C++14 前的标准版本时）；
+	若不存在上述类型，依照 ISO C++20 起自 WG21 P0898R3 的新增规则，
+		尝试确定并提供 type 类型。
+上述策略兼容 ISO C++20 的 std::common_type 的行为，
+	同时支持为之前版本标准的 std::common_type 提供的特化。
+其它变化包括：
+LWG 2408 的解决要求实现支持 SFINAE ；
+LWG 2763 的解决修复了一处特化问题；
+P0548R1 调整了 P0435R1 依赖的特化；
+在 ISO C++20 之后，LWG 3205 简化了 ISO C++20 新增规则的实现，但没有改变实质性要求。
+以上特性和修正都在本特征的实现中被支持。
+关于 ISO C++11 以来的 SFINAE 支持的其它提案，另见 N3843 和 P0015 。
+*/
+//@{
+template<typename...>
+struct common_type
+{};
+
+template<typename _type>
+struct common_type<_type> : common_type<_type, _type>
+{};
+
+template<typename _type1, typename _type2>
+struct common_type<_type1, _type2> : details::common_type2<_type1, _type2>
+{};
+
+template<typename _type1, typename _type2, typename... _types>
+struct common_type<_type1, _type2, _types...>
+	: details::common_type3<void, _type1, _type2, _types...>
+{};
+
+
+//! \since build 340
+template<typename... _types>
+using common_type_t = typename common_type<_types...>::type;
+//@}
+//@}
+#endif
 //@}
 
 } // inline namespace cpp2020;
@@ -355,7 +442,7 @@ using void_t = well_formed_t<void, _types...>;
 \note 无定义。
 \since build 684
 */
-template<bool _bCond>
+template<bool>
 struct when;
 
 /*!
@@ -376,6 +463,81 @@ template<bool _bCond>
 using enable_when = enable_if_t<_bCond, when<true>>;
 //@}
 //@}
+
+
+#if !YB_Impl_TypeTraits_has_cpp20_common_type
+//! \since build 938
+namespace details
+{
+
+template<typename _type1, typename _type2>
+using cond_test_t
+	= decltype(true ? std::declval<_type1>() : std::declval<_type2>());
+
+#if false
+// NOTE: Exposition only. This is the implementation conforming to
+//	%std::common_type by default (without the program-defined specialization).
+template<typename _type1, typename _type2>
+using common_type2_specialized_t = cond_test_t<_type1, _type2>;
+#else
+// NOTE: This supports %std::common_type specializations for %common_type.
+#	if __cplusplus >= 201411L
+template<typename _type1, typename _type2>
+using common_type2_specialized_t = std::common_type_t<_type1, _type2>;
+#	else
+// NOTE: The resolution of LWG 2141 is mandated since ISO C++14. For a valid
+//	specialization of %std::common_type in ISO C++11, it might has a nested
+//	member %type of a reference, which is not conforming since ISO C++14. So,
+//	just decay it here.
+template<typename _type1, typename _type2>
+using common_type2_specialized_t
+	= decay_t<typename std::common_type<_type1, _type2>::type>;
+#	endif
+#endif
+
+template<typename _type1, typename _type2, typename = void>
+struct common_type_cond_ref
+{};
+
+// NOTE: See LWG 3205. Current libstdc++, libc++ and Microsoft VC++'s
+//	implementations all applies the resolution in ISO C++20 mode.
+template<typename _type1, typename _type2>
+struct common_type_cond_ref<_type1, _type2,
+	void_t<cond_test_t<const _type1&, const _type2&>>>
+	: remove_cvref<cond_test_t<_type1, _type2>>
+{};
+
+
+template<typename _type1, typename _type2, typename = void>
+struct common_type2_decayed : common_type_cond_ref<_type1, _type2>
+{};
+
+// NOTE: See WG21 P0898R3.
+template<typename _type1, typename _type2>
+struct common_type2_decayed<_type1, _type2,
+	void_t<common_type2_specialized_t<_type1, _type2>>>
+	: decay<common_type2_specialized_t<_type1, _type2>>
+{};
+
+
+template<typename, typename, typename _tDecayed1, typename _tDecayed2>
+struct common_type2 : common_type<_tDecayed1, _tDecayed2>
+{};
+
+template<typename _type1, typename _type2>
+struct common_type2<_type1, _type2, _type1, _type2>
+	: common_type2_decayed<_type1, _type2>
+{};
+
+
+template<typename _type1, typename _type2, typename... _types>
+struct common_type3<
+	void_t<common_type_t<_type1, _type2>>, _type1, _type2, _types...>
+	: common_type<common_type_t<_type1, _type2>, _types...>
+{};
+
+} // namespace details;
+#endif
 
 
 /*!
@@ -852,7 +1014,7 @@ using cond_t = _t<cond<_tCond, _tThen, _tElse>>;
 //@{
 /*!
 \brief 恒等元函数。
-\note 功能可以使用 ISO C++ 11 的 std::common_type 的单一参数实例替代。
+\note 功能可以使用 ISO C++11 的 std::common_type 的单一参数实例替代。
 \note LWG 2141 建议更改 std::common_type 的实现，无法替代。
 \note 这里的实现不依赖 std::common_type 。
 \note 同 boost::mpl::identity 。

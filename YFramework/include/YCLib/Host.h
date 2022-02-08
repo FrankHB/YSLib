@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2020 FrankHB.
+	© 2014-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r675
+\version r677
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2021-07-05 21:43 +0800
+	2022-01-31 20:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -177,7 +177,7 @@ public:
 	/*!
 	\brief 以指定名称和初始值创建命名信号量。
 	\pre 间接断言：参数非空。
-	\see https://msdn.microsoft.com/en-us/library/windows/desktop/ms682438(v=vs.85).aspx 。
+	\see https://msdn.microsoft.com/library/windows/desktop/ms682438(v=vs.85).aspx 。
 	\see http://pubs.opengroup.org/onlinepubs/9699919799/functions/sem_open.html 。
 
 	若指定名称的信号量已存在，则打开此信号量，忽略名称以外的参数。

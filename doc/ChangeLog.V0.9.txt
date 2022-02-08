@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r7547
+\version r7788
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-01-31 17:14 +0800
+	2022-02-09 05:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,245 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ $re_add(b937) DLDI "simplified localized URLs" @ "comments" $effective
+		@ %YFramework.(YCLib.(Debug, FileIO, Host, HostedGUI, NativeAPI,
+		YCommon), 'YCLib_(Win32)'.Consoles, Helper.Initialization),
+	* DLDI 'yconstfn static' $mismatch(%Documentation.ProjectRules)
+		$effective @ %YBase.YStandardEx.(Examiner $since b895,
+		Function $since b848, Ref $since b870)
+		/ $= (/ ^ 'static yconstfn' ~ 'yconstfn static'),
+	/ %YBase.YStandardEx $=
+	(
+		+ DD '\ingroup functors' @ "Doxygen comment"
+			@ "class template %function_base" @ %Function,
+		/ %Range $=
+		(
+			* "incomplete inclusion condition check" @ "using declarations of \
+				%std::(rbegin, rend, crbegin, crend)" $since b834
+				$= (/ $impl ^ "conditions as %ystdex::(cbegin, cend)"),
+			* $re_add(b836) "ambiguous calls by ADL from %std"
+				@ "function templates %(rbegin, rend, crbegin, crend) when ISO \
+				C++14 and above is enabled"
+				@ !'__cpp_lib_array_constexpr >= 201603L' $since b834,
+				// The function templates are already defined in %std since \
+					C++14.
+			(
+			/ "enhanced %ystdex::(cbegin, cend) with underlying 'constexpr' \
+				guarantee on calling %std::(begin, end)"
+				$= (/ $impl ^ '__cpp_lib_array_constexpr >= 201603L');
+			/ "all %(cbegin, cend) overloads except for \
+				%std::initializer_list instances" @ "inline namespace %cpp2014"
+				>> "inline namespace %cpp2017"
+			),
+			* "YStandard extensions of %(cbegin, cend, crbegin, crend) \
+				overloads for %std::initializer_list instances wrongly treated \
+				as replacements depending on missing of the resolution of CWG \
+				1591" $since b664 $=
+			(
+				/ "definitions" >> "namespace %ystdex"
+					~ "inline namespace %cpp2014";
+				/ "defined unconditionally"
+					$dep_to "initializer_list range access fix";
+				+ DD '\ingroup YBase_replacement_extensions'
+					@ "Doxygen comment"
+			)
+		),
+		* "wrongly defined %range_size overload for %std::initializer_list \
+			instances conditionally" @ %Container $since b664,
+		/ %IntegerSequence $=
+		(
+			+ $doc "'\pre' command to constraint the 1st template parameter"
+				@ "Doxygen comment" @ ("class template %integer_sequence",
+				"metafunction %make_successor"),
+			* "missing check to ensure the 1st template parameter as an \
+				integer type" @ "class template %integer_sequence" $since b589
+				$= (+ $impl "static assertion"),
+				// ISO C++ mandates the check.
+			+ DLI "static assertion to ensure the 1st template parameter is \
+				valid" @ "metafunction %make_successor"
+				// Witout the check, it can produce the wrong result using \
+					%common_type_t without the resolution of LWG 2141 \
+					(since ISO C++14). This would still be constrianted in \
+					a conforming implementation of %integer_sequence. \
+					Nevertheless, check it earlier is better.
+		),
+		/ DLDI "made internal identifier in small cases"
+			$effective @ %TypeOperation,
+			// To be consistent with other names in %YBase.
+		/ %TypeInspection $=
+		(
+			/ "header inclusion %CStandardDefinition" -> "%IntegralConstant"
+				$dep_to "collapsed type inspection header inclusion",
+			+ "conditionally defined macro %__cpp_lib_is_final";
+			+ "unary type trait %is_final" @ "inline namespace %cpp2014"
+		),
+		/ %Meta $=
+		(
+			- DLDI "unused template parameter name" @ "primary template"
+				@ "metafunction %when",
+			/ "transformation traits %(common_type, common_type_t)"
+				-> "traits compatatible to ISO C++20 definitions"
+				@ "inline namespace %cpp2020"
+				$dep_to "LWG 2141 fix on common_type",
+				// The fix is in ISO C++14. Features in the future versions of \
+					the standard are not yet relied on in YSLib. Most use \
+					cases do not rely on LWG 2141, as all the template \
+					arguments are explicitly decayed (uses in \
+					%YBase.YStandardEx.Rational) or guaranteed already decayed \
+					if well-formed (%ystdex::common_underlying_t, uses in \
+					%YBase.YStandardEx.(Enum, IntegerSequence, Pointer) and \
+					%YFramework.(YCLib.Common, \
+					'YCLib_(DS)'.DSIO, NPL.NPLAMath)). Derivative uses of \
+					%ystdex::common_array_t (using %ystdex::common_nonvoid_t) \
+					is also guaranteed to have decayed types when well-formed.
+			- DLDI "header inclusion %IntegralConstant"
+				$dep_from "collapsed type inspection header inclusion"
+		),
+		/ $comp "guaranteed a decayed type as the result (if any)"
+			@ ("transformation trait %common_nonvoid_t" @ %TypeOperation,
+			"function %invoke_for_value" @ %Functional)
+			$dep_from ("ystdex::common_type_t" @ %Meta),
+		/ %Array $=
+		(
+			/ "simplified function template %cast_array" !^ "%decay_copy"
+				$dep_from ("%common_nonvoid_t" @ %TypeOperation);
+			* "missing qualified 'ystdex::' before 'decay_copy'" $since b562
+				$= (+ $impl "'ystdex::' before 'decay_copy'"
+					@ "function template %make_array")
+		),
+		+ DD "explicitly guarantee of standard layout class"
+			(%Base; "Doxygen comment" @ "class template %lref" @ %Ref),
+		/ %Invoke $=
+		(
+			/ "worked around libstdc++ bugs for C++17 mode or above on invocable \
+				traits only" @  $=
+				// XXX: See GCC PR 91456.
+				(/ $impl !^ "%std names" @ !'__cplusplus < 201703L \
+					|| !defined(__GLIBCXX__) || __GLIBCXX__ > 20191024'),
+			- DLDI $revert(b845) "redundant header inclusion %Variadic"
+		),
+		+ %CompressedPair $=
+			(+ "class templates %(compressed_pair_element; compressed_pair)")
+	),
+	* $comp "wrong result when template parameter types have reference type"
+		$effective @ ("binary_type_traits \
+		%(is_narrowing_from_floating_to_floating, \
+		is_narrowing_from_floating_to_integer; is_narrowing_from_floating)"
+		@ %YBase.YStandardEx.Cast $since b709
+		$dep_from "LWG 2141 fix on common_type",
+		// This does not affect the only use case of the %Cast API in YSLib, \
+			i.e.%ystdex::narrow_cast, because the template arguments of \
+			%is_narrowing_from_floating has been checked with static \
+			assertions in its implementation.
+	* $comp "missing to prevent a reference type as result" @ ("transformation \
+		trait %common_int_type" @ %YBase.YStandardEx.CStandardInteger;
+		"function templates %(CheckLowerBound, CheckUpperBound)"
+		@ %YFramework.YSLib.Core.YCoreUtilities $since b833) $since b744
+		$dep_from ("ystdex::common_type_t" @ %YBase.YStandardEx.Meta),
+	/ %Test.YBase $=
+	(
+		- "redundant 'static'" $effective
+			@ "function template %bitseg_test::expect",
+		+ "test cases for %ystdex::(function, is_invocable_r) with guaranteed \
+			copy elision" @ '__cpp_guaranteed_copy_elision >= 201606L \
+			|| __cplusplus >= 201703L',
+			// As GCC PR 91456. It turns out that %ystdex::invocable_r is OK \
+				because %is_convertible is not used.
+		+ "test case for %ystdex::is_invocable_r with explicit convertible \
+			result type",
+			// To test the current simpler implementation (than the GCC fix \
+				for PR 91456) with direct use %is_constructible is OK.
+		+ DLI 'final' @ "all class definitions not in a class hierarchy"
+			// Just add them even G++ 11.1 does not warn with \
+				[-Wsuggest-final-types] and '-O3', as it seems no translation \
+				performance hit. Note %ystdex::(has_nonempty_virtual_base, \
+				have_common_nonempty_virtual_base) do not support final \
+				classes, so not all instances of non-base classe can use it.
+		(
+		* "missing support of %std::byte" @ '__cpp_lib_byte >= 201603'
+			$since b802;
+			// The case of using %byte is since b549, and the support of \
+				%std::byte is added to %YBase.YDefinition since b802.
+		* $comp "failed building when ISO C++17 and above is enabled"
+			$since b664 $dep_from ("initializer_list range access fix",
+			%YBase.YStandardEx.Container)
+		),
+		* "missing using %std::abs" $since b588
+			// This would cause wrong integer %abs used instead of %std::abs. \
+				Also to eliminate Clang++ warning: [-Wabsolute-value].
+	),
+	/ %YFramework $=
+	(
+		/ $re_add(b934) DLDI "updated outdated URLs" @ "comments"
+			@ %YCLib.HostedGUI,
+		/ %NPL $=
+		(
+			/ @ %NPLAMath $=
+			(
+				- $re_add(b937) $revert(b930) DLI 'YB_FLATTEN' @ %NPLAMath,
+					// This has no effects now.
+				(
+				+ "traits %FPCharTraits";
+				/ "function %WriteFPString" $=
+				(
+					/ "default argument" @ "3rd parameter"
+						^ "traits %FPCharTraits",
+					/ "letter for special value" ^ "traits %FPCharTraits"
+						~ "3rd parameter" $dep_to "fixed special value letter"
+						// This is also a bit more efficient.
+				)
+				),
+				/ "exception messages for interger type checking failure"
+					^ "output as %FPToString results" $effective
+					@ "%Math::(IsOdd, IsEven, FloorDivides, FloorQuotient, \
+					FloorRemainder, TruncateDivides, TruncateQuotient, \
+					TruncateRemainder)",
+				+ DLI "internal static assertions to ensure the standard \
+					floating-point types supporting infinity and quiet NaN \
+					values",
+				/ @ "inline namespace %Math" $=
+				(
+					+ "function %Inexact",
+					* "ill-formed due to hidden member not introced by \
+						using-declarations" @ "functions %(FloorDivides, \
+						FloorQuotient, FloorRemainder, TruncateDivides, \
+						TruncateQuotient, TruncateRemainder)" $since b937
+						$dep_to "base SFINAE fix",
+						// See $2022-02 @ %Documentation::Workflow.
+				),
+				/ DLDI @ "implementation"
+					@ "function template specializations %WriteFPString" $=
+				(
+					- "unused unsigned 64-bit multiplication routine"
+						@ 'NPL_Impl_NPLAMath_has_uint128'
+						// Also to eliminate Clang++ warning: \
+							[-Wunused-function].
+					/ DLDI "cast to 'int'" @ "'long' result of internal \
+						computation of decimal exponent",
+						// Also to eliminate x86_64-pc-linux Clang++ warning: \
+							[-Wshorten-64-to-32].
+					* DLDI "wrongly cast to 'std::uint64_t'" @ "32-bit result"
+						@ 'NPL_Impl_NPLAMath_has_uint128' @ "internal 32-bit \
+						and 64-bit multiplication routine" $since b932,
+						// Also to eliminate Clang++ warning: \
+							[-Wshorten-64-to-32].
+					/ DLDI "parameterized power type"
+						@ "internal power computation function template"
+						// Also to eliminate Clang++ warning: \
+							[-Wshorten-64-to-32] in instances of routine to \
+							round significands.
+				)
+			),
+			+ "applicative %inexact" @ "function %LoadModule_std_math"
+				@ %Dependency ^ $dep_from ("%Math::Inexact" @ %NPLAMath)
+		)
+	),
+	* $comp "building failure" @ "platform %Android" $since b937
+		$dep_from "base SFINAE fix"
+),
+
+b937
 (
 	/ $re_add(b936) DLDI "adjusted minor comments" @ %(YBase.YStandardEx.(
 		Addressof, Allocator, MemoryResource, Placement, Pointer, PseudoMutex,
@@ -695,7 +934,7 @@ b934
 			),
 			(
 			+ "conditionally defined macro %__cpp_lib_remove_cvref";
-			/ "detected %(std::remove_cvref, remove_cvref_t)"
+			/ "detected %std::(remove_cvref, remove_cvref_t)"
 				^ "%__cpp_lib_remove_cvref" ~ "%__cplusplus"
 				// This also does not require the update on '__cplusplus' value.
 			),
@@ -7163,11 +7402,11 @@ b900
 				(
 					(
 					+ "alias %ClusterCount";
-					+ "static yconstfn object %UnknownFreeCount"
+					+ "static yconstexpr object %UnknownFreeCount"
 						@ "namespace %Clusters"
 					),
 					(
-					+ "static yconstfn object %FATSignature";
+					+ "static yconstexpr object %FATSignature";
 					+ "function %MatchSignature";
 					+ "function %CheckValidMBR"
 					),

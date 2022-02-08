@@ -11,13 +11,13 @@
 /*!	\file NPLAMath.h
 \ingroup NPL
 \brief NPLA 数学功能。
-\version r11370
+\version r11412
 \author FrankHB <frankhb1989@gmail.com>
 \since build 930
 \par 创建时间:
 	2021-11-03 12:49:54 +0800
 \par 修改时间:
-	2022-01-31 05:27 +0800
+	2022-02-04 05:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -429,7 +429,46 @@ YB_ATTR_nodiscard YF_API YB_PURE ValueObject
 TruncateRemainder(ResolvedArg<>&&, ResolvedArg<>&&);
 //@}
 
+/*!
+\brief 取和参数值最接近的不精确数。
+
+参考调用文法：
+<pre>inexact \<number></pre>
+*/
+YB_ATTR_nodiscard YF_API YB_PURE ValueObject
+Inexact(ResolvedArg<>&&);
+
 } // inline namespace Math;
+
+/*!
+\ingroup traits
+\brief 浮点字符特征：取特定类型浮点数据的值输出表示所需的字符。
+\note 包括指数字符和特殊值中的字符。
+\since build 938
+*/
+//@{
+template<typename>
+struct FPCharTraits
+{
+	static yconstexpr const char Exponent = 'e'; 
+	static yconstexpr const char Special = '0'; 
+};
+
+template<>
+struct FPCharTraits<float>
+{
+	static yconstexpr const char Exponent = 'f'; 
+	static yconstexpr const char Special = 'f'; 
+};
+
+template<>
+struct FPCharTraits<long double>
+{
+	static yconstexpr const char Exponent = 'l'; 
+	static yconstexpr const char Special = 't'; 
+};
+//@}
+
 
 /*!
 \brief 读取指定位置的十进制数值表示。
@@ -492,6 +531,9 @@ static_assert((std::numeric_limits<long double>::max_digits10 + 5 + 3
 参数分别指定：
 字符缓冲区的起始指针、浮点数据的值、浮点字母、数值在小数点后的保留的精度、
 	使用科学记数法表示的小数点位置的下限（不含）和上限（含）的绝对值。
+浮点字母是科学记数法表示使用的指数位置字母。
+因为合法的字面量表示不唯一，浮点字母被通过函数参数指定；默认使用浮点字符特征确定。
+特殊值中的字母总是使用浮点字符特征确定。
 小数点位置由小数表示中消除结尾的 0 后，在小数点左侧存在的有效数字的个数定义：
 	当小数点左侧存在非零数字，则小数点位置是正数；
 	当小数点左侧不存在非零数字，则小数点位置是右侧补零数值的相反数。
@@ -509,15 +551,17 @@ static_assert((std::numeric_limits<long double>::max_digits10 + 5 + 3
 //@{
 template<typename _type>
 YB_ATTR_returns_nonnull YB_NONNULL(1) char*
-WriteFPString(char*, _type, char = 'e', size_t = std::numeric_limits<
-	_type>::digits10, std::uint_fast8_t = 6, std::uint_fast8_t
-	= std::numeric_limits<_type>::digits10) ynothrowv;
+WriteFPString(char*, _type, char = FPCharTraits<_type>::Exponent,
+	size_t = std::numeric_limits<_type>::digits10, std::uint_fast8_t = 6,
+	std::uint_fast8_t = std::numeric_limits<_type>::digits10) ynothrowv;
+//! \since build 938
 extern template YF_API YB_ATTR_returns_nonnull YB_NONNULL(1) char*
 WriteFPString(char*, float, char, size_t, std::uint_fast8_t, std::uint_fast8_t)
 	ynothrowv;
 extern template YF_API YB_ATTR_returns_nonnull YB_NONNULL(1) char*
 WriteFPString(char*, double, char, size_t, std::uint_fast8_t, std::uint_fast8_t)
 	ynothrowv;
+//! \since build 938
 extern template YF_API YB_ATTR_returns_nonnull YB_NONNULL(1) char*
 WriteFPString(char*, long double, char, size_t, std::uint_fast8_t,
 	std::uint_fast8_t) ynothrowv;
@@ -525,6 +569,7 @@ WriteFPString(char*, long double, char, size_t, std::uint_fast8_t,
 
 /*!
 \brief 转换浮点数为 NPLA flonum 外部格式的字符串。
+\note 使用默认浮点字母。
 \note 缓冲区使用第二参数指定的分配器创建。
 \return 使用 WriteFPString 转换数据，具有第二参数指定的分配器的转换结果。
 */

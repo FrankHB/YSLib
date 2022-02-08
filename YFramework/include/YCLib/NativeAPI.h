@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2017, 2019, 2021 FrankHB.
+	© 2011-2017, 2019, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台本机应用程序接口描述。
-\version r1691
+\version r1697
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2021-12-19 02:36 +0800
+	2022-01-31 20:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,8 +55,8 @@
 \def YCL_ReservedGlobal
 \brief 按实现修饰全局保留名称。
 \see ISO C11 7.1.3 和 WG21 N4594 17.6.4.3 。
-\see https://msdn.microsoft.com/en-us/library/ttcz0bys.aspx 。
-\see https://msdn.microsoft.com/en-us/library/ms235384(v=vs.100).aspx#Anchor_0 。
+\see https://msdn.microsoft.com/library/ttcz0bys.aspx 。
+\see https://msdn.microsoft.com/library/ms235384(v=vs.100).aspx#Anchor_0 。
 */
 #if YCL_Win32
 #	define YCL_ReservedGlobal(_n) _##_n
@@ -621,7 +621,7 @@ public:
 #if YB_IMPL_MSCPP >= 1915
 YB_Diag_Push
 	YB_Diag_Ignore(5105)
-	// NOTE: See https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/c5105.
+	// NOTE: See https://docs.microsoft.com/cpp/error-messages/compiler-warnings/c5105.
 	// NOTE: This is only effective for non-conforming WinSDK headers currently.
 #endif
 #	include <Windows.h>
@@ -684,8 +684,8 @@ namespace platform_ex
 \brief 取 ::_get_osfhandle 返回值对应的句柄。
 \note 检查特殊值 -2 。这个值仅在较新版本的 CRT 文档中被明确。
 \since build 901
-\see https://docs.microsoft.com/en-us/previous-versions/ks2530z6(v=vs.140) 。
-\see https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/get-osfhandle?view=vs-2019 。
+\see https://docs.microsoft.com/previous-versions/ks2530z6(v=vs.140) 。
+\see https://docs.microsoft.com/cpp/c-runtime-library/reference/get-osfhandle?view=vs-2019 。
 */
 inline PDefH(::HANDLE, IntPtrToHandle, std::intptr_t h) ynothrow
 	ImplRet(h != -2 ? ::HANDLE(h) : INVALID_HANDLE_VALUE)

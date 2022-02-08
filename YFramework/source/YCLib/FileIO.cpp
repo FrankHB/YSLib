@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2021 FrankHB.
+	© 2011-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3916
+\version r3918
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2021-12-13 01:21 +0800
+	2022-01-31 20:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -659,7 +659,7 @@ DefaultPMode() ynothrow
 {
 #if YCL_Win32
 	// XXX: For compatibility with newer version of MSVCRT, no %_umask call
-	//	would be considered. See https://msdn.microsoft.com/en-us/library/z0kc8e3z.aspx.
+	//	would be considered. See https://msdn.microsoft.com/library/z0kc8e3z.aspx.
 	return mode_t(Mode::UserReadWrite);
 #else
 	return mode_t(Mode::UserReadWrite | Mode::GroupReadWrite | Mode::OtherRead);
