@@ -1,5 +1,5 @@
 ﻿/*
-	© 2017-2021 FrankHB.
+	© 2017-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r21814
+\version r21877
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2021-11-20 22:17 +0800
+	2022-02-25 00:25 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -36,8 +36,8 @@
 //	make_observer, std::bind, std::placeholders, std::ref,
 //	A1::NameTypedReducerHandler, A1::NameTypedContextHandler, ystdex::bind1,
 //	std::placeholders::_2, TermReference, ThrowTypeErrorForInvalidType,
-//	type_id, ParameterMismatch, NPL::TryAccessLeaf, ystdex::update_thunk,
-//	IsIgnore;
+//	type_id, ystdex::exclude_self_t, ParameterMismatch, NPL::TryAccessLeaf,
+//	ystdex::update_thunk, IsIgnore;
 #include <ystdex/ref.hpp> // for ystdex::unref;
 
 namespace NPL
@@ -289,6 +289,9 @@ public:
 		req_lift_result(lift ? 1 : 0), xgds(ctx.get_allocator()), EnvGuard(ctx),
 		RecordList(ctx.get_allocator()), OperatorName(ctx.get_allocator())
 	{
+		// XXX: Do not call %AssertValueTags on %term, as it is usually a
+		//	combinitation instead of the representation of some object language
+		//	value.
 		YAssert(IsTyped<TokenValue>(term) || !term.Value,
 			"Invalid value for combining term found.");
 		OperatorName = std::move(term.Value);
@@ -522,12 +525,12 @@ AssertNextTerm(ContextNode& ctx, TermNode& term)
 //! \since build 879
 //@{
 #if NPL_Impl_NPLA1_Enable_Thunked
-// NOTE: Normally these overloads do not need %any_ops::trivial_swap_t because
+// NOTE: Normally these overloads do not need %trivial_swap_t because
 //	both %Continuation and %std::reference_wrapper instances are specialized
 //	enough to make the %Reducer constructor behave expectedly. However, to
 //	simplify the caller sites which does not differentiate these types (e.g.
-//	%TailCall::RelayNextGuardedLifted below), overloads with
-//	%any_ops::trivial_swap_t are provided anyway.
+//	%TailCall::RelayNextGuardedLifted below), overloads with %trivial_swap_t are
+//	provided anyway.
 YB_ATTR_always_inline inline ReductionStatus
 RelayCurrent(ContextNode& ctx, Continuation&& cur)
 {
@@ -535,7 +538,7 @@ RelayCurrent(ContextNode& ctx, Continuation&& cur)
 }
 //! \since build 929
 YB_ATTR_always_inline inline ReductionStatus
-RelayCurrent(ContextNode& ctx, any_ops::trivial_swap_t, Continuation&& cur)
+RelayCurrent(ContextNode& ctx, trivial_swap_t, Continuation&& cur)
 {
 	return RelaySwitched(ctx, std::move(cur));
 }
@@ -546,7 +549,7 @@ RelayCurrent(ContextNode& ctx, std::reference_wrapper<Continuation> cur)
 }
 //! \since build 929
 YB_ATTR_always_inline inline ReductionStatus
-RelayCurrent(ContextNode& ctx, any_ops::trivial_swap_t,
+RelayCurrent(ContextNode& ctx, trivial_swap_t,
 	std::reference_wrapper<Continuation> cur)
 {
 	return RelaySwitched(ctx, cur);
@@ -561,11 +564,11 @@ RelayCurrent(ContextNode& ctx, _fCurrent&& cur)
 //! \since build 926
 template<typename _fCurrent>
 YB_ATTR_always_inline inline auto
-RelayCurrent(ContextNode& ctx, any_ops::trivial_swap_t, _fCurrent&& cur)
+RelayCurrent(ContextNode& ctx, trivial_swap_t, _fCurrent&& cur)
 	-> decltype(cur(std::declval<TermNode&>(), ctx))
 {
 	return A1::RelayCurrent(ctx,
-		Continuation(any_ops::trivial_swap, yforward(cur), ctx));
+		Continuation(trivial_swap, yforward(cur), ctx));
 }
 #endif
 //@}
@@ -612,14 +615,14 @@ RelayCurrentOrDirect(ContextNode& ctx, _fCurrent&& cur, TermNode& term)
 //! \since build 926
 template<typename _fCurrent>
 YB_ATTR_always_inline inline ReductionStatus
-RelayCurrentOrDirect(ContextNode& ctx, any_ops::trivial_swap_t, _fCurrent&& cur,
+RelayCurrentOrDirect(ContextNode& ctx, trivial_swap_t, _fCurrent&& cur,
 	TermNode& term)
 {
 #	if !NPL_Impl_NPLA1_Enable_Thunked || NPL_Impl_NPLA1_Enable_InlineDirect
 	return A1::RelayDirect(ctx, yforward(cur), term);
 #	else
 	yunused(term);
-	return A1::RelayCurrent(ctx, any_ops::trivial_swap, yforward(cur));
+	return A1::RelayCurrent(ctx, trivial_swap, yforward(cur));
 #	endif
 }
 //@}
@@ -643,10 +646,10 @@ RelayCurrentNext(ContextNode& ctx, TermNode& term, _fCurrent&& cur,
 template<typename _fCurrent, typename _fNext>
 YB_FLATTEN inline ReductionStatus
 RelayCurrentNext(ContextNode& ctx, TermNode& term, _fCurrent&& cur,
-	any_ops::trivial_swap_t, _fNext&& next)
+	trivial_swap_t, _fNext&& next)
 {
 #if NPL_Impl_NPLA1_Enable_Thunked
-	NPL::RelaySwitched(ctx, any_ops::trivial_swap, yforward(next));
+	NPL::RelaySwitched(ctx, trivial_swap, yforward(next));
 	return A1::RelayCurrentOrDirect(ctx, yforward(cur),
 		term);
 #else
@@ -656,12 +659,12 @@ RelayCurrentNext(ContextNode& ctx, TermNode& term, _fCurrent&& cur,
 //! \since build 926
 template<typename _fCurrent, typename _fNext>
 YB_FLATTEN inline ReductionStatus
-RelayCurrentNext(ContextNode& ctx, TermNode& term, any_ops::trivial_swap_t,
+RelayCurrentNext(ContextNode& ctx, TermNode& term, trivial_swap_t,
 	_fCurrent&& cur, _fNext&& next)
 {
 #if NPL_Impl_NPLA1_Enable_Thunked
 	NPL::RelaySwitched(ctx, yforward(next));
-	return A1::RelayCurrentOrDirect(ctx, any_ops::trivial_swap, yforward(cur),
+	return A1::RelayCurrentOrDirect(ctx, trivial_swap, yforward(cur),
 		term);
 #else
 	return A1::RelayCurrentNext(ctx, term, yforward(cur), yforward(next));
@@ -670,12 +673,12 @@ RelayCurrentNext(ContextNode& ctx, TermNode& term, any_ops::trivial_swap_t,
 //! \since build 926
 template<typename _fCurrent, typename _fNext>
 YB_FLATTEN inline ReductionStatus
-RelayCurrentNext(ContextNode& ctx, TermNode& term, any_ops::trivial_swap_t,
-	_fCurrent&& cur, any_ops::trivial_swap_t, _fNext&& next)
+RelayCurrentNext(ContextNode& ctx, TermNode& term, trivial_swap_t,
+	_fCurrent&& cur, trivial_swap_t, _fNext&& next)
 {
 #if NPL_Impl_NPLA1_Enable_Thunked
-	NPL::RelaySwitched(ctx, any_ops::trivial_swap, yforward(next));
-	return A1::RelayCurrentOrDirect(ctx, any_ops::trivial_swap, yforward(cur),
+	NPL::RelaySwitched(ctx, trivial_swap, yforward(next));
+	return A1::RelayCurrentOrDirect(ctx, trivial_swap, yforward(cur),
 		term);
 #else
 	return A1::RelayCurrentNext(ctx, term, yforward(cur), yforward(next));
@@ -700,11 +703,11 @@ RelayCurrentNextThunked(ContextNode& ctx, TermNode& term, _fCurrent&& cur,
 template<typename _fCurrent, typename _fNext>
 YB_FLATTEN inline ReductionStatus
 RelayCurrentNextThunked(ContextNode& ctx, TermNode& term, _fCurrent&& cur,
-	any_ops::trivial_swap_t, _fNext&& next)
+	trivial_swap_t, _fNext&& next)
 {
 #if NPL_Impl_NPLA1_Enable_Thunked
 	yunused(term);
-	NPL::RelaySwitched(ctx, any_ops::trivial_swap, yforward(next));
+	NPL::RelaySwitched(ctx, trivial_swap, yforward(next));
 	return A1::RelayCurrent(ctx, yforward(cur));
 #else
 	return A1::RelayCurrentNext(ctx, term, yforward(cur), yforward(next));
@@ -713,13 +716,13 @@ RelayCurrentNextThunked(ContextNode& ctx, TermNode& term, _fCurrent&& cur,
 //! \since build 926
 template<typename _fCurrent, typename _fNext>
 YB_FLATTEN inline ReductionStatus
-RelayCurrentNextThunked(ContextNode& ctx, TermNode& term,
-	any_ops::trivial_swap_t, _fCurrent&& cur, _fNext&& next)
+RelayCurrentNextThunked(ContextNode& ctx, TermNode& term, trivial_swap_t,
+	_fCurrent&& cur, _fNext&& next)
 {
 #if NPL_Impl_NPLA1_Enable_Thunked
 	yunused(term);
 	NPL::RelaySwitched(ctx, yforward(next));
-	return A1::RelayCurrent(ctx, any_ops::trivial_swap, yforward(cur));
+	return A1::RelayCurrent(ctx, trivial_swap, yforward(cur));
 #else
 	return A1::RelayCurrentNext(ctx, term, yforward(cur), yforward(next));
 #endif
@@ -727,14 +730,13 @@ RelayCurrentNextThunked(ContextNode& ctx, TermNode& term,
 //! \since build 926
 template<typename _fCurrent, typename _fNext>
 YB_FLATTEN inline ReductionStatus
-RelayCurrentNextThunked(ContextNode& ctx, TermNode& term,
-	any_ops::trivial_swap_t, _fCurrent&& cur, any_ops::trivial_swap_t,
-	_fNext&& next)
+RelayCurrentNextThunked(ContextNode& ctx, TermNode& term, trivial_swap_t,
+	_fCurrent&& cur, trivial_swap_t, _fNext&& next)
 {
 #if NPL_Impl_NPLA1_Enable_Thunked
 	yunused(term);
-	NPL::RelaySwitched(ctx, any_ops::trivial_swap, yforward(next));
-	return A1::RelayCurrent(ctx, any_ops::trivial_swap, yforward(cur));
+	NPL::RelaySwitched(ctx, trivial_swap, yforward(next));
+	return A1::RelayCurrent(ctx, trivial_swap, yforward(cur));
 #else
 	return A1::RelayCurrentNext(ctx, term, yforward(cur), yforward(next));
 #endif
@@ -777,9 +779,9 @@ inline ReductionStatus
 ReduceSubsequent(TermNode& term, ContextNode& ctx, _fNext&& next)
 {
 	// XXX: The %std::reference_wrapper instance is specialized enough without
-	//	%any_ops::trivial_swap.
+	//	%trivial_swap.
 	return A1::ReduceCurrentNext(term, ctx,
-		std::ref(ContextState::Access(ctx).ReduceOnce), any_ops::trivial_swap,
+		std::ref(ContextState::Access(ctx).ReduceOnce), trivial_swap,
 		yforward(next));
 }
 
@@ -816,8 +818,8 @@ struct NonTailCall final
 #if NPL_Impl_NPLA1_Enable_Thunked
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
-		return A1::RelayCurrentNext(ctx, term, yforward(cur),
-			any_ops::trivial_swap, MakeMoveGuard(gd));
+		return A1::RelayCurrentNext(ctx, term, yforward(cur), trivial_swap,
+			MakeMoveGuard(gd));
 #else
 		yunused(gd);
 		return A1::RelayDirect(ctx, cur, term);
@@ -841,11 +843,11 @@ struct NonTailCall final
 			return ReduceForLiftedResult(term);
 		}, "eval-lift-result"), ctx);
 
-		RelaySwitched(ctx, any_ops::trivial_swap, std::move(act));
+		RelaySwitched(ctx, trivial_swap, std::move(act));
 		// XXX: %Continuation is specialized enough without
-		//	%any_ops::trivial_swap.
-		return A1::RelayCurrentNext(ctx, term, any_ops::trivial_swap,
-			yforward(cur), std::move(cont));
+		//	%trivial_swap.
+		return A1::RelayCurrentNext(ctx, term, trivial_swap, yforward(cur),
+			std::move(cont));
 #else
 		yunused(gd);
 		RelayDirect(ctx, cur, term);
@@ -873,14 +875,14 @@ struct NonTailCall final
 				return ReduceForLiftedResult(term);
 			}, "eval-lift-result"), ctx);
 
-			RelaySwitched(ctx, any_ops::trivial_swap, std::move(act));
+			RelaySwitched(ctx, trivial_swap, std::move(act));
 			// XXX: %Continuation is specialized enough without
-			//	%any_ops::trivial_swap.
-			return A1::RelayCurrentNext(ctx, term, any_ops::trivial_swap,
+			//	%trivial_swap.
+			return A1::RelayCurrentNext(ctx, term, trivial_swap,
 				yforward(cur), std::move(cont));
 		}
-		return A1::RelayCurrentNext(ctx, term, any_ops::trivial_swap,
-			yforward(cur), any_ops::trivial_swap, std::move(act));
+		return A1::RelayCurrentNext(ctx, term, trivial_swap, yforward(cur),
+			trivial_swap, std::move(act));
 #else
 		yunused(gd);
 
@@ -926,8 +928,7 @@ struct TailCall final
 		// XXX: See %NonTailCall::RelayNextGuarded.
 #if NPL_Impl_NPLA1_Enable_TCO
 		PrepareTCOEvaluation(ctx, term, std::move(gd));
-		return A1::RelayCurrentOrDirect(ctx, any_ops::trivial_swap,
-			yforward(cur), term);
+		return A1::RelayCurrentOrDirect(ctx, trivial_swap, yforward(cur), term);
 #else
 		return NonTailCall::RelayNextGuarded(ctx, term, std::move(gd),
 			yforward(cur));
@@ -943,8 +944,7 @@ struct TailCall final
 		// XXX: See %NonTailCall::RelayNextGuardedLifted.
 #if NPL_Impl_NPLA1_Enable_TCO
 		PrepareTCOEvaluation(ctx, term, std::move(gd)).SetupLift();
-		return A1::RelayCurrentOrDirect(ctx, any_ops::trivial_swap,
-			yforward(cur), term);
+		return A1::RelayCurrentOrDirect(ctx, trivial_swap, yforward(cur), term);
 #else
 		return NonTailCall::RelayNextGuardedLifted(ctx, term, std::move(gd),
 			yforward(cur));
@@ -959,7 +959,7 @@ struct TailCall final
 		// XXX: See %TailCall::RelayNextGuarded.
 #if NPL_Impl_NPLA1_Enable_TCO
 		PrepareTCOEvaluation(ctx, term, std::move(gd)).SetupLift(lift);
-		return A1::RelayCurrentOrDirect(ctx, any_ops::trivial_swap,
+		return A1::RelayCurrentOrDirect(ctx, trivial_swap,
 			yforward(cur), term);
 #else
 		return NonTailCall::RelayNextGuardedProbe(ctx, term, std::move(gd),
@@ -1001,7 +1001,7 @@ struct Combine final
 		//	%EvalImplUnchecked in the presense of the assumption that %term is
 		//	from the current term saved in the context.
 		// XXX: The %std::reference_wrapper instance is specialized enough
-		//	without %any_ops::trivial_swap.
+		//	without %trivial_swap.
 		return _tTraits::RelayNextGuarded(ctx, term, std::move(gd),
 			std::ref(ReduceCombinedBranch));
 	}
@@ -1083,7 +1083,7 @@ YB_FLATTEN inline PDefH(void, SetEvaluatedValue, TermNode& term,
 
 //! \since build 917
 YB_NORETURN void
-ThrowNestedParameterTreeCheckError();
+ThrowNestedParameterTreeMismatch();
 
 //! \since build 917
 YB_NORETURN inline PDefH(void, ThrowFormalParameterTypeError,
@@ -1107,8 +1107,11 @@ private:
 	mutable Action act{};
 
 public:
-	template<class _type>
-	GParameterValueMatcher(_type&& arg)
+	//! \since build 939
+	template<class _tParam, yimpl(typename
+		= ystdex::exclude_self_t<GParameterValueMatcher, _tParam>)>
+	inline
+	GParameterValueMatcher(_tParam&& arg)
 		: BindValue(yforward(arg))
 	{}
 
@@ -1128,7 +1131,7 @@ public:
 			}
 		}
 		CatchExpr(ParameterMismatch&, throw)
-		CatchExpr(..., ThrowNestedParameterTreeCheckError())
+		CatchExpr(..., ThrowNestedParameterTreeMismatch())
 	}
 
 private:
@@ -1179,6 +1182,10 @@ MakeParameterValueMatcher(_fBindValue bind_value)
 //@}
 
 
+// NOTE: This implements binding tags of temporary objects, to allow distinguish
+//	bound xvalues from lvalues by inspecting the result of evaluating an
+//	identifier (which will never be an xvalue, cf. %EvaluateIdentifier in
+//	NPLA1.cpp).
 //! \since build 897
 YB_ATTR_nodiscard YB_STATELESS yconstfn
 	PDefH(TermTags, BindReferenceTags, TermTags ref_tags) ynothrow

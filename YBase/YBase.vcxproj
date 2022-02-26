@@ -25,12 +25,14 @@
     <ClInclude Include="include\ystdex\apply.hpp" />
     <ClInclude Include="include\ystdex\array.hpp" />
     <ClInclude Include="include\ystdex\base.h" />
+    <ClInclude Include="include\ystdex\bind.hpp" />
     <ClInclude Include="include\ystdex\bit.hpp" />
     <ClInclude Include="include\ystdex\bitseg.hpp" />
     <ClInclude Include="include\ystdex\cache.hpp" />
     <ClInclude Include="include\ystdex\cassert.h" />
     <ClInclude Include="include\ystdex\cast.hpp" />
     <ClInclude Include="include\ystdex\cctype.h" />
+    <ClInclude Include="include\ystdex\compose.hpp" />
     <ClInclude Include="include\ystdex\compressed_pair.hpp" />
     <ClInclude Include="include\ystdex\concurrency.h" />
     <ClInclude Include="include\ystdex\container.hpp" />
@@ -45,8 +47,10 @@
     <ClInclude Include="include\ystdex\enum.hpp" />
     <ClInclude Include="include\ystdex\examiner.hpp" />
     <ClInclude Include="include\ystdex\exception.h" />
+    <ClInclude Include="include\ystdex\expanded_function.hpp" />
     <ClInclude Include="include\ystdex\function.hpp" />
     <ClInclude Include="include\ystdex\functional.hpp" />
+    <ClInclude Include="include\ystdex\function_adaptor.hpp" />
     <ClInclude Include="include\ystdex\functor.hpp" />
     <ClInclude Include="include\ystdex\future.hpp" />
     <ClInclude Include="include\ystdex\hash.hpp" />

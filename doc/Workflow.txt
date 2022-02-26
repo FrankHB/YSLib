@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4840
+\version r4855
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2022-02-08 12:16 +0800
+	2022-02-10 16:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -4785,6 +4785,21 @@ Some notes are worth noting for a bug fix of ill-formed code in YFramework modul
 	Microsoft VC++ (cl 14.30.30705) rejects it correctly, but also permissive to take the return type into account, which is not conforming to the current rules.
 	Clang++ 13.0.0 complain it correctly.
 	See https://github.com/llvm/llvm-project/issues/38929 for some other details.
+Uses of traits have been fixed to avoid of unexpected ADL.
+	In particular, metafunction results used directly as the operand of '!' are concerned.
+		Such uses may incur ADL by unqualified 'operator!'.
+	The program may incur ADL by user code on instantiating 'some_trait<T>', where 'some_trait' is any trait being used and 'T' is some program-provided type used in the client code.
+		When 'T' is a class type and when ADL is involved in, it is effectively required to be complete (to figure out its associated entities as per ISO C++ [base.lookup.argdep]/3).
+			This is sometimes unnecessary and unwanted, since it can undermine the availablily of the trait, e.g. when 'some_trait' is 'std::is_same', which allows incomplete types for legitimate use.
+		Furthermore, when 'T' is a class template specialization, any template type arguments of 'T' (and the template arguments of these arguments, recursively), are also required to be complete.
+			This is even more confusing.
+		The overloads found by ADL may also result unexpected results, instead of the result 'bool' implicitly converted by the conversion operator inherited from the base characteristic (defined by ISO C++ [meta.rqmts], usually an instance of 'bool_constant').
+			This is almost always unwanted.
+	There are no need to forbid the ADL overloads in the client code specifically.
+		Just use '::value' in such cases should be enough.
+		Use of traits named with '_v' postfixes are even more preferred, but not available yet, as the YSLib project currently does not rely on variable templates (which requires ISO C++14).
+		Use of expicit cast to 'bool' is unnecessary verbose and still a bit error-prone (for the unclear intent), so, not adopted.
+		ISO also does not not forbid the overloads.
 
 ////
 

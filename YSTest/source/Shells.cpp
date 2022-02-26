@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2019, 2021 FrankHB.
+	© 2010-2016, 2019, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6477
+\version r6482
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2021-10-22 18:10 +0800
+	2022-02-14 07:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -198,8 +198,8 @@ TestNPL(NPL::pmr::memory_resource& rsrc, std::istream&& is, std::ostream& os)
 		context.ShareCurrentSource("*TEST*");
 		try
 		{
-			context.Root.Rewrite(NPL::ToReducer(context.Allocator,
-				any_ops::trivial_swap, [&](ContextNode& ctx){
+			context.Root.Rewrite(NPL::ToReducer(context.Allocator, trivial_swap,
+				[&](ContextNode& ctx){
 				ctx.SaveExceptionHandler();
 				// TODO: Blocked. Use C++14 lambda initializers to simplify the
 				//	implementation.
@@ -208,6 +208,8 @@ TestNPL(NPL::pmr::memory_resource& rsrc, std::istream&& is, std::ostream& os)
 					ctx.TailAction = nullptr;
 #	if YReader_Impl_TestNPL_UseBacktrace
 					ctx.Shift(backtrace, i);
+#	else
+					yunused(i);
 #	endif
 					YAssertNonnull(p);
 					TryExpr(std::rethrow_exception(std::move(p)))

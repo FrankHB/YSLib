@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2021 FrankHB.
+	© 2014-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r4502
+\version r4507
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2021-10-22 18:11 +0800
+	2022-02-14 07:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ See readme file for details.
 //	IO::FetchNativeDynamicModuleExtension, YSLib::uremove,
 //	YSLib::CommandArguments, YSLib::istringstream, EXIT_FAILURE, EXIT_SUCCESS;
 #include YFM_YSLib_Core_YEvent // for YSLib::function, ystdex::bind1,
-//	any_ops::trivial_swap;
+//	trivial_swap;
 #include YFM_YSLib_Service_FileSystem // for namespace YSLib::IO, IO::Path,
 //	YSLib::Deployment;
 #include YFM_YSLib_Core_YString // for YSLib::String, ystdex::raise_exception,
@@ -515,8 +515,8 @@ RunNPLFromStream(const char* name, std::istream&& is,
 		context.ShareCurrentSource(name);
 		try
 		{
-			context.Root.Rewrite(NPL::ToReducer(context.Allocator,
-				any_ops::trivial_swap, [&](ContextNode& ctx){
+			context.Root.Rewrite(NPL::ToReducer(context.Allocator, trivial_swap,
+				[&](ContextNode& ctx){
 				ctx.SaveExceptionHandler();
 				// TODO: Blocked. Use C++14 lambda initializers to simplify the
 				//	implementation.
@@ -1116,7 +1116,7 @@ main(int argc, char* argv[])
 
 			// XXX: The memory resource is not used here to avoid the destructor
 			//	of the object referenced by %YSLib::LockCommandArguments
-			//	accessing the invalid resource. 
+			//	accessing the invalid resource.
 			vector<string> args;
 			bool opt_trans(true);
 

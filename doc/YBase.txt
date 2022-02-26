@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r1909
+\version r1962
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2022-02-09 02:25 +0800
+	2022-02-15 18:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,7 +133,7 @@ https://clang.llvm.org/docs/LanguageExtensions.html#checked-arithmetic-builtins
 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92137
 
 @2.1.1.3 扩展属性：
-使用扩展属性（以宏 YDefinition 定义的 YB_ATTR 的形式调用）时若不支持，应被忽略。其中的标识符应保证不被替换，清单参见 [Documentation::Definitions] 中的 $attr 列表。
+使用扩展属性（以宏 YDefinition 定义的 YB_ATTR 的形式或者特定实现支持的关键字引入）时若不支持，应被忽略。其中的标识符应保证不被替换，清单参见 [Documentation::Definitions] 中的 $attr 列表。
 允许使用去除后不影响语义正确性和可观察行为的扩展。
 除以上或另行指定（参见 @2.4 、@2.5 和 @2.6），不使用不向后兼容 ISO C++11 或更新版本的语言特性，或依赖特定平台实现的接口。
 
@@ -301,7 +301,17 @@ CStandardDefintion(@2.5.5.1) 具有同 YDefinition 相同的更宽松的向前�
 因为后者的部分接口在迁移至标准时可能有修改或者涉及现有标准库其它接口的改动，为保证兼容性和简化使用，可能不使用 std::experimental 提供的接口而直接提供替代接口和实现。
 
 @2.5.1 文件依赖性：
-非头文件依赖对应的头文件。
+#include 预处理指定包含的关系指定文件依赖。这些关系应避免构成循环引用。
+YBase 要求以下显式的依赖：
+	非头文件依赖对应的头文件。
+	头文件和部分对标准库头或其它头文件的直接依赖，包括：
+		对扩展和替代标准库头的公开依赖(@2.5.1.1) 。
+		显式要求的作为公开接口可用的文件依赖(@2.5.1.2) ；
+		内部头文件之间的其它依赖。
+依赖包括以上规则确定的直接依赖和这些依赖构成的传递闭包。
+直接公开依赖和它们的传递闭包是公开依赖。其它依赖是非公开依赖。
+头文件之间的非公开依赖是内部依赖。
+每个被依赖的头文件在翻译单元中最终被包含至少一次。
 
 @2.5.1.1 标准库扩展和替代：
 部分头文件以一对一或多对一的形式在相似接口意义上扩展或替代 ISO C++ 标准库，参见 @2.5.7 和 @2.5.8 。
@@ -319,23 +329,22 @@ CStandardDefintion(@2.5.5.1) 具有同 YDefinition 相同的更宽松的向前�
 "utility.hpp" 依赖 "swap.hpp" 、"enum.hpp" 和 "integer_sequence.hpp" ；
 "tuple.hpp" 依赖 "apply.hpp" ；
 "memory.hpp" 依赖 "pointer.hpp" ；
-"functional.hpp" 依赖 "invoke.hpp" 、"ref.hpp" 、"functor.hpp" 、"function.hpp" 和 "hash.hpp"；
+"functional.hpp" 依赖 "invoke.hpp" 、"ref.hpp" 、"functor.hpp" 、"bind.hpp" 、"function.hpp" 和 "hash.hpp"；
 "string.hpp" 、"string_view" 、"map.hpp" 和 "set.hpp" 依赖 "range.hpp" ；
 "iterator.hpp" 依赖 "iterator_op.hpp" 。
 因其它接口设计原因，以下依赖性作为接口公开：
 "type_inspection.hpp" 依赖 "integral_constant.hpp" ；
 "meta.hpp" 依赖 "type_inspection.hpp" ；
 "variadic.hpp" 和 "invoke.hpp" 依赖 "meta.hpp" ；
-"integer_sequence.hpp" 依赖 "variadic.hpp" ；
-"type_op.hpp" 依赖 "integer_sequence.hpp" ；
+"integer_sequence.hpp" 和 "type_op.hpp" 依赖 "variadic.hpp" ；
 "placement.hpp" 、"range.hpp" 和 "operators.hpp" 依赖 "addressof.hpp" ；
 "pointer.hpp" 和 "memory.hpp" 依赖 "iterator_op.hpp" ；
-"compressed_pair.hpp" 依赖 "placement.hpp" ；
 "apply.hpp" 依赖 "invoke.hpp" ；
 "string_view.hpp" 依赖 <libdefect/string.h> ；
 "hash.hpp" 和 "mixin.hpp" 依赖 "tuple.hpp" ；
 "functor.hpp" 依赖 "ref.hpp" 和 "type_traits.hpp" ；
-"functional.hpp" 依赖 "swap.hpp" ；
+"function_adaptor.hpp" 依赖 "bind.hpp" 和 "compose.hpp" ；
+"functional.hpp" 依赖 "function_adaptor.hpp" 和 "expanded_function.hpp" ；
 "tree.hpp" 和 "container.hpp" 依赖 "range.hpp" ；
 "string.hpp" 依赖 "container.hpp" ；
 "list.hpp" 依赖 "node_base.h" 。
@@ -344,13 +353,13 @@ CStandardDefintion(@2.5.5.1) 具有同 YDefinition 相同的更宽松的向前�
 另见 @2.5.4 和以下各节。
 
 @2.5.1.2 内部头文件依赖性：
-在满足 @2.5.1.1 的基础上，当前实现保持以下内部依赖供实现参考（不在 @2.5.1.1 中要求的标记为内部依赖），可简化头文件包含和避免循环引用：
+除标准库头外，当前实现保持以下内部直接依赖（及通过传递闭包蕴含实现的公开依赖）供实现参考，可简化头文件包含和避免循环引用：
 "type_inspection.hpp" 依赖 "integral_constant.hpp" ；
 "meta.hpp" 依赖 "type_inspection.hpp" ；
 "variadic.hpp" 和 "invoke.hpp" 依赖 "meta.hpp" ；
-"integer_sequence.hpp" 依赖 "variadic.hpp" ；
-"type_op.hpp" 依赖 "integer_sequence.hpp" ；
+"integer_sequence.hpp" 和 "type_op.hpp" 依赖 "variadic.hpp" ；
 "deref_op.hpp" 和 "addressof.hpp" 内部依赖 "meta.hpp" ；
+"deref_op.hpp" 内部依赖 "cassert.h" ；
 "ref.hpp" 依赖 "addressof.hpp" 和 "invoke.hpp" ；
 "placement.hpp" 依赖 "addressof.hpp" ；
 "type_pun.hpp" 内部依赖 "placement.hpp" ；
@@ -359,7 +368,7 @@ CStandardDefintion(@2.5.5.1) 具有同 YDefinition 相同的更宽松的向前�
 "iterator_op.hpp" 依赖 "range.hpp" 和 "deref_op.hpp" ；
 "typeindex.h" 依赖 "typeinfo.h" 和 <typeindex> ；
 "type_traits.hpp" 依赖 "invoke.hpp" 和 "swap.hpp" ；
-"compressed_pair.hpp" 依赖 "placement.hpp" ；
+"compressed_pair.hpp" 内部依赖 "placement.hpp" ；
 "utility.hpp" 依赖 "swap.hpp" 、"enum.hpp" 和 "integer_sequence.hpp" ；
 "apply.hpp" 依赖 "invoke.hpp" ；
 "tuple.hpp" 依赖 "apply.hpp" ；
@@ -369,16 +378,22 @@ CStandardDefintion(@2.5.5.1) 具有同 YDefinition 相同的更宽松的向前�
 "memory_resource.h" 内部依赖 "memory.hpp" ；
 "hash.hpp" 和 "mixin.hpp" 依赖 "tuple.hpp" ；
 "functor.hpp" 依赖 "ref.hpp" 和 "type_traits.hpp" ；
-"function.hpp" 内部依赖 "type_op.hpp" ；
-"functional.hpp" 依赖 "invoke.hpp" 、"ref.hpp" 、"functor.hpp" 、"function.hpp" 、"hash.hpp" 和 "swap.hpp" ；
+"compose.hpp" 内部依赖 "functor.hpp" ；
+"function.hpp" 内部依赖 "type_op.hpp" 和 "apply.h" ；
+"function_adaptor.hpp" 依赖 "bind.hpp" 和 "compose.hpp" ；
+"function_adaptor.hpp" 内部依赖 "swap.hpp" ；
+"expanded_function.hpp" 内部依赖 "function.hpp" ；
+"functional.hpp" 依赖 "invoke.hpp" 、"ref.hpp" 、"functor.hpp" 、"bind.hpp" 、"function.hpp" 、"hash.hpp" 、"function_adaptor.hpp" 和 "expanded_function.hpp" ；
 "any.h" 内部依赖 "typeinfo.h" 和 "utility.hpp" ；
 "iterator.hpp" 依赖 "iterator_op.hpp" ；
 "tree.hpp" 和 "string_view.hpp" 依赖 "range.hpp" ；
 "container.hpp" 依赖 "range.hpp" ；
+"container.hpp" 内部依赖 "integer_sequence.hpp" ；
 "any_iterator.hpp" 依赖 "any.h" ；
 "string.hpp" 依赖 "container.hpp" ；
-"string.hpp" 内部依赖 "string_view.hpp"（蕴含公开依赖 "range.hpp" 和 <libdefect/string.h> ）；
+"string.hpp" 内部依赖 "allocator.hpp" 和 "string_view.hpp"（蕴含公开依赖 "range.hpp" ）；
 "map.hpp" 和 "set.hpp" 依赖 "tree.hpp"（蕴含公开依赖 "range.hpp" ）。
+除此之外，内部依赖对标准库头的依赖也视为内部依赖。
 
 @2.5.2 命名空间和模板特化：
 除在块作用域、非公开的实现命名空间和此处列明的例外，禁止其它的别名声明引入 std 成员命名空间：
@@ -495,7 +510,7 @@ YStandardEx 的一些公开接口实体和标准库命名空间 std 或 TS（技
 同时也提供空（引用值）联合(null coalescing) 相关操作的模板。
 
 @2.5.7.2 一元操作符 & 和取指针的相关接口 AddressOf
-提供 std::addressof 相关的接口。
+间接扩展 <memory> ，提供和 std::addressof 兼容的接口。
 ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证支持。
 
 @2.5.7.3 范围操作 Range ：
@@ -517,16 +532,16 @@ ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证�
 提供的基于存储布局的存储转换设施，作为实现类型擦除等的基础。
 
 @2.5.7.9 交换操作 Swap ：
-扩展标准库头 <utility> ，提供一些基于 std::swap 的交换操作，以及 std::exchange 的替代实现。
+部分扩展标准库头 <utility> ，提供一些基于 std::swap 的交换操作，以及 std::exchange 的替代实现。
 
 @2.5.7.10 枚举相关操作 Enum ：
-扩展标准库头 <utility> ，提供枚举相关操作和类型。
+部分扩展标准库头 <utility> ，提供枚举相关操作和类型。
 
-@2.5.7.11 重载操作符 Operators
+@2.5.7.11 重载操作符 Operators ：
 引入隐式定义重载操作符的模板。
 
 @2.5.7.12 迭代器操作 IteratorOperation ：
-扩展标准库头 <iterator> 中的部分接口。
+部分扩展标准库头 <iterator> 中的接口。
 
 @2.5.7.13 通用指针 Pointer ：
 间接扩展标准库头 <iterator> 和 <memory> ，提供指针的迭代器适配器包装及其它和指针类型相关的模板。
@@ -582,21 +597,33 @@ ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证�
 提供 ISO C++17 标准库头 <string_view> 的替代接口和实现。
 
 @2.5.9.11 散列接口 Hash ：
-间接扩展标准库头 <functional> ，提供散列相关操作。
+部分扩展标准库头 <functional> ，提供散列相关操作。
 
 @2.5.9.12 通用仿函数 Functor ：
-间接扩展标准库头 <functional> ，提供通用的函数对象。
+部分扩展标准库头 <functional> ，提供通用的函数对象。
 
-@2.5.9.13 函数基本操作和调用包装对象 Function ：
-扩展标准库头 <functional> ，提供函数类型基本操作。
+@2.5.9.13 函数适配器 FunctorAdaptor ：
+部分扩展标准库头 <functional> ，提供通用的函数适配器扩展。
 
-@2.5.9.14 函数和可调用对象 Functional ：
+@2.5.9.14 函数部分应用 Bind ：
+部分扩展标准库头 <functional> ，提供类似 std::bind 的函数部分应用接口扩展。
+
+@2.5.9.15 函数复合 Compose ：
+提供通用的函数复合接口扩展。
+
+@2.5.9.16 函数基本操作和调用包装对象 Function ：
+部分扩展标准库头 <functional> ，提供函数类型基本操作。
+
+@2.5.9.17 展开调用的函数对象 ExpandedFunction ：
+提供通用的允许实际参数列表的后缀在调用时被忽略的调用接口和对应的调用包装。
+
+@2.5.9.18 函数和可调用对象 Functional ：
 扩展标准库头 <functional> ，提供函数类型操作和各种一般调用的实现。
 
-@2.5.9.15 可选对象类型 Optional ：
+@2.5.9.19 可选对象类型 Optional ：
 提供 ISO C++17 标准库头 <optional> 的替代接口和实现，并提供一些扩展。
 
-@2.5.9.16 动态泛型类型 Any ：
+@2.5.9.20 动态泛型类型 Any ：
 主要提供 Boost.Any 和提议的 ISO C++ std::experiment::any 的类似的基于类型擦除实现的用于保存运行时确定类型的值的对象，默认使用和 libstdc++ 5 类似的小对象优化实现。
 命名空间 any_ops 提供更多可供用户调整的内部接口。
 提供了一些其它不和 any 类直接相关的类型擦除接口。
@@ -669,7 +696,7 @@ ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证�
 参数限制同 Algorithm(@2.5.10.3) 。
 
 @2.5.11.4 动态泛型迭代器 AnyIterator ：
-基于 Any(@2.5.9.16) 实现的用于保存运行时确定类型迭代器的对象。
+基于 Any(@2.5.9.20) 实现的用于保存运行时确定类型迭代器的对象。
 
 @2.5.11.5 基于类继承的混入接口 Mixin ：
 提供基本的混入接口类型。

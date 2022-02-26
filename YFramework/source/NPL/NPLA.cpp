@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3904
+\version r3921
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2022-01-21 02:36 +0800
+	2022-02-26 20:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,8 +32,9 @@
 //	NPL::AccessPtr, ystdex::value_or, ystdex::write, TraverseSubnodes,
 //	bad_any_cast, std::allocator_arg, YSLib::NodeSequence, NPL::Deref,
 //	AccessFirstSubterm, ystdex::unimplemented, IsTyped, ystdex::quote,
-//	ystdex::call_value_or, ystdex::begins_with, ystdex::sfmt,
-//	NPL::make_observer, YSLib::sfmt, GetLValueTagsOf, std::mem_fn,
+//	ystdex::call_value_or, ystdex::begins_with, ystdex::sfmt, function,
+//	observer_ptr, ystdex::make_obj_using_allocator, trivial_swap, std::bind,
+//	TermTags NPL::make_observer, YSLib::sfmt, GetLValueTagsOf, std::mem_fn,
 //	ystdex::compose, ystdex::invoke_value_or, NPL::TryAccessLeaf
 //	NPL::IsMovable, ystdex::ref, PropagateTo, YSLib::FilterExceptions,
 //	type_id, ystdex::id, ystdex::retry_on_cond, type_info, pair, ystdex::addrof,
@@ -218,8 +219,8 @@ RedirectEnvironmentList(Environment::allocator_type a, Redirector& cont,
 {
 	if(first != last)
 	{
-		cont = ystdex::make_obj_using_allocator<Redirector>(a,
-			any_ops::trivial_swap, std::bind(
+		cont = ystdex::make_obj_using_allocator<Redirector>(a, trivial_swap,
+			std::bind(
 			[=, &cont](EnvironmentList::const_iterator i, Redirector& c){
 			cont = std::move(c);
 			return RedirectEnvironmentList(a, cont, i, last);
@@ -248,7 +249,7 @@ MoveRValueFor(TermNode& term, TermNode& tm, bool(TermReference::*pm)() const)
 		if(!p->IsReferencedLValue())
 			return LiftMovedOther(term, *p, ((*p).*pm)());
 	}
-	LiftOther(term, tm);
+	LiftOtherValue(term, tm);
 }
 
 
@@ -576,7 +577,7 @@ MoveRValueToForward(TermNode& term, TermNode& tm)
 #else
 	// NOTE: For exposition only. The optimized implemenation shall be
 	//	equivalent to this, except for the copy elision.
-	LiftOther(term, tm);
+	LiftOtherValue(term, tm);
 	if(!IsBoundLValueTerm(term))
 	{
 		if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
@@ -593,7 +594,7 @@ MoveRValueToReturn(TermNode& term, TermNode& tm)
 #else
 	// NOTE: For exposition only. The optimized implemenation shall be
 	//	equivalent to this, except for the copy elision.
-	LiftOther(term, tm);
+	LiftOtherValue(term, tm);
 	if(!IsBoundLValueTerm(term))
 		LiftToReturn(term);
 #endif
@@ -665,20 +666,23 @@ ReduceToReference(TermNode& term, TermNode& tm, ResolvedTermReferencePtr p_ref)
 		if(!p_ref)
 			LiftOther(term, tm);
 		else
-		{
 			// XXX: Both can be even more efficient than %LiftOtherOrCopy.
+		{
 #if true
-			// XXX: As %LiftTermOtherOrCopy.
+			// XXX: As %LiftOtherOrCopy.
 			term.CopyContent(tm);
 
 			auto& ref(term.Value.GetObject<TermReference>());
 
 			ref.SetTags(PropagateTo(ref.GetTags(), p_ref->GetTags()));
 #else
+			// XXX: Save the reference at first to prevented invalidation if %tm
+			//	is a owned by %term (e.g. in a subterm reference).
+			TermReference ref(PropagateTo(p->GetTags(),
+				p_ref->GetTags()), p->get(), p->GetEnvironmentReference());
+
 			term.CopyContainer(tm);
-			term.Value = TermReference(PropagateTo(p->GetTags(),
-				p_ref->GetTags()), p->get(),
-				NPL::Deref(p_ref).GetEnvironmentReference());
+			term.Value = std::move(ref);
 #endif
 		}
 		// XXX: The resulted representation can be irregular.

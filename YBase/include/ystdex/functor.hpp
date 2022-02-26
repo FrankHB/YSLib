@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2021 FrankHB.
+	© 2010-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r1013
+\version r1050
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2021-12-26 13:52 +0800
+	2022-02-20 17:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 //	is_reference_wrapper, and_;
 #include "type_traits.hpp" // for ystdex::addrof_t, ystdex::indirect_t,
 //	ystdex::first_t, ystdex::second_t;
-#include <string> // for std::char_traits;
+#include <numeric> // for std::accumulate;
 
 /*!
 \brief \c \<functional> 特性测试宏。
@@ -102,6 +102,9 @@ using enable_if_transparent_t
 /*!
 \brief 恒等仿函数。
 \since build 689
+
+类似 ISO C++20 的 std::identity ，但支持模板参数。
+这个仿函数的命名被保持和范畴论的恒等函子(identity functor) 的一般表达一致。
 */
 //@{
 template<typename _type = void>
@@ -126,8 +129,9 @@ struct id
 template<>
 struct id<void>
 {
+	//! \since build 939
 	template<typename _type>
-	YB_PURE yconstfn _type
+	YB_PURE yconstfn _type&&
 	operator()(_type&& x) const ynothrow
 	{
 		return yforward(x);
@@ -508,6 +512,40 @@ YB_Impl_Functor_Ops_Spec(ynothrow, second_of, typename _type, _type&& x,
 #undef YB_Impl_Functor_pushf
 
 
+/*!
+\brief 合并值序列。
+\note 语义同 Boost.Signal2 的 \c boost::last_value 但对非 \c void 类型使用默认值。
+\since build 675
+*/
+//@{
+template<typename _type>
+struct default_last_value
+{
+	template<typename _tIn>
+	_type
+	operator()(_tIn first, _tIn last, const _type& val = {}) const
+	{
+		return std::accumulate(first, last, val,
+			[](const _type&, decltype(*first) v){
+			return yforward(v);
+		});
+	}
+};
+
+template<>
+struct default_last_value<void>
+{
+	template<typename _tIn>
+	void
+	operator()(_tIn first, _tIn last) const
+	{
+		for(; first != last; ++first)
+			*first;
+	}
+};
+//@}
+
+
 //! \brief 选择自增/自减运算仿函数。
 //@{
 template<bool, typename _tScalar>
@@ -531,6 +569,7 @@ struct xcrease_t<false, _tScalar>
 	}
 };
 //@}
+
 
 /*!
 \brief 选择加法/减法复合赋值运算仿函数。
@@ -556,6 +595,7 @@ struct delta_assignment<false, _tScalar1, _tScalar2>
 	}
 };
 //@}
+
 
 //! \brief 选择自增/自减运算。
 template<bool _bIsPositive, typename _tScalar>

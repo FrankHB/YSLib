@@ -11,13 +11,13 @@
 /*!	\file function.hpp
 \ingroup YStandardEx
 \brief 函数基本操作和调用包装对象。
-\version r4941
+\version r4953
 \author FrankHB <frankhb1989@gmail.com>
 \since build 847
 \par 创建时间:
 	2018-12-13 01:24:06 +0800
 \par 修改时间:
-	2022-02-04 16:13 +0800
+	2022-02-14 18:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,15 +28,15 @@
 #ifndef YB_INC_ystdex_function_hpp_
 #define YB_INC_ystdex_function_hpp_ 1
 
-#include "any.h" // for internal "type_op.hpp", index_sequence, true_,
-//	std::tuple, is_convertible, vseq::at, bool_, index_sequence_for,
+#include "any.h" // for internal "type_op.hpp", <functional>, index_sequence,
+//	true_, std::tuple, is_convertible, vseq::at, bool_, index_sequence_for,
 //	remove_cvref_t, _t, vseq::at_t, vseq::seq_size_t, enable_if_t,
 //	vseq::join_n_t, yconstraint, is_function, any, nullptr_t, ystdex::invoke,
-//	std::allocator_arg_t, exclude_self_t, is_invocable_r,
-//	any_ops::trivial_swap_t, any_ops::trivial_swap, std::allocator_arg,
-//	std::reference_wrapper, std::swap, is_bitwise_swappable;
-#include "apply.hpp" // for call_projection;
-#include "operators.hpp" // for operators::equality_comparable;
+//	std::allocator_arg_t, exclude_self_t, is_invocable_r, trivial_swap_t,
+//	trivial_swap, std::allocator_arg, std::reference_wrapper, std::swap,
+//	is_bitwise_swappable;
+#include "apply.hpp" // for internal "apply.hpp", call_projection;
+#include "operators.hpp" // for equality_comparable;
 
 namespace ystdex
 {
@@ -714,10 +714,10 @@ public:
 	template<typename _fCallable, yimpl(typename
 		= exclude_self_t<function_base, _fCallable>), yimpl(typename
 		= enable_if_t<is_invocable_r<_tRet, _fCallable&, _tParams...>::value>)>
-	function_base(any_ops::trivial_swap_t, _fCallable f)
+	function_base(trivial_swap_t, _fCallable f)
 	{
 		if(ystdex::function_not_empty(f))
-			yunseq(content = any(any_ops::trivial_swap, std::move(f)),
+			yunseq(content = any(trivial_swap, std::move(f)),
 				// XXX: Here lambda-expression is buggy in G++ LTO.
 				p_invoke = invoker<any_ops::value_handler<_fCallable,
 				any_ops::is_in_place_storable<_fCallable, true_>>>::invoke);
@@ -741,11 +741,11 @@ public:
 	template<typename _fCallable, class _tAlloc, yimpl(typename
 		= exclude_self_t<function_base, _fCallable>), yimpl(typename
 		= enable_if_t<is_invocable_r<_tRet, _fCallable&, _tParams...>::value>)>
-	function_base(std::allocator_arg_t, const _tAlloc& a,
-		any_ops::trivial_swap_t, _fCallable f)
+	function_base(std::allocator_arg_t, const _tAlloc& a, trivial_swap_t,
+		_fCallable f)
 	{
 		if(ystdex::function_not_empty(f))
-			yunseq(content = any(std::allocator_arg, a, any_ops::trivial_swap,
+			yunseq(content = any(std::allocator_arg, a, trivial_swap,
 				std::move(f)),
 				// XXX: Here lambda-expression is buggy in G++ LTO.
 				p_invoke = invoker<any::allocated_value_handler_t<_tAlloc,

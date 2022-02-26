@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2021 FrankHB.
+	© 2012-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r4122
+\version r4148
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2021-11-20 22:19 +0800
+	2022-02-22 19:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -158,6 +158,15 @@ enum class TermTags
 DefBitmaskEnum(TermTags)
 
 /*!
+\brief 判断标签是否表示可转移值。
+\since build 939
+*/
+YB_ATTR_nodiscard YB_STATELESS yconstfn
+	PDefH(bool, IsMovable, TermTags tags) ynothrow
+	ImplRet((tags & (TermTags::Unique | TermTags::Nonmodifying))
+		== TermTags::Unique)
+
+/*!
 \brief 取转发推断为左值表达式时保留的标签。
 \sa TermTags::Temporary
 
@@ -188,11 +197,11 @@ YB_ATTR_nodiscard YB_STATELESS yconstfn
 清除参数中不被一等对象的值的表示支持的位。
 当前实现中，标签的所有的位都不被右值支持，而所有左值中的标签都不在项而在项引用上；
 	因此，可直接修改参数为非限定对象标签。
-但因为当前实现中只引入了临时对象标签的非一等对象（在被绑定对象中支持），
-	为减少错误的使用，仅保守清除这些此标签。
+但因为当前实现中只引入具有临时对象标签的非一等对象（在被绑定对象中支持），
+	为减少错误的使用，仅保守清除这些标签。
 */
 inline PDefH(void, EnsureValueTags, TermTags& tags) ynothrow
-	ImplExpr(tags &= ~TermTags::Temporary)
+	ImplExpr(tags &= ~yimpl(TermTags::Temporary))
 //@}
 //@}
 
@@ -760,7 +769,7 @@ AccessPtr(const TermNode& nd) ynothrow
 \pre 断言：参数指定的项是枝节点。
 \since build 761
 */
-inline PDefH(void, AssertBranch, const TermNode& nd,
+YB_NONNULL(2) inline PDefH(void, AssertBranch, const TermNode& nd,
 	const char* msg = "Invalid term found.") ynothrowv
 	ImplExpr(yunused(nd), yunused(msg), YAssert(IsBranch(nd), msg))
 
@@ -769,9 +778,22 @@ inline PDefH(void, AssertBranch, const TermNode& nd,
 \pre 断言：参数指定的项是分支列表节点。
 \since build 918
 */
-inline PDefH(void, AssertBranchedList, const TermNode& nd,
+YB_NONNULL(2) inline PDefH(void, AssertBranchedList, const TermNode& nd,
 	const char* msg = "Invalid term found.") ynothrowv
 	ImplExpr(yunused(nd), yunused(msg), YAssert(IsBranchedList(nd), msg))
+
+/*!
+\brief 断言具有可作为一等对象的值的表示的标签节点。
+\pre 断言：参数的标签可作为一等对象的值的表示。
+\note 较 EnsureValueTags 更严格，对不符合要求的项总是断言失败。
+\sa EnsureValueTags
+\since build 939
+*/
+YB_NONNULL(2) inline
+	PDefH(void, AssertValueTags, const TermNode& nd, const char* msg
+	= "Invalid term of first-class value found.") ynothrowv
+	ImplExpr(yunused(nd), yunused(msg),
+		YAssert(nd.Tags == TermTags::Unqualified, msg))
 
 //! \brief 创建项节点。
 //@{

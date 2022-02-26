@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2021 FrankHB.
+	© 2009-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r6930
+\version r6965
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2021-12-26 18:59 +0800
+	2022-02-14 07:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,8 +37,8 @@
 #include <ystdex/any.h> // for ystdex::any, ystdex::any_ops,
 //	ystdex::bad_any_cast, ystdex::in_place_type, ystdex::in_place_type_t,
 //	ystdex::any_cast, ystdex::unchecked_any_cast, ystdex::unsafe_any_cast,
-//	ystdex::make_any, ystdex::exclude_tagged_params_t, any_ops::trivial_swap_t,
-//	any_ops::trivial_swap;
+//	ystdex::make_any, ystdex::exclude_tagged_params_t, trivial_swap_t,
+//	trivial_swap;
 #include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
 #include <ystdex/exception.h> // for ystdex::throw_invalid_construction;
 #include <ystdex/type_op.hpp> // for ystdex::false_, ystdex::true_,
@@ -570,7 +570,7 @@ class ValueHolder
 	: protected ystdex::boxed_value<_type>, implements IValueHolder
 {
 	static_assert(std::is_object<_type>(), "Non-object type found.");
-	static_assert(!ystdex::is_cv<_type>(), "Cv-qualified type found.");
+	static_assert(!ystdex::is_cv<_type>::value, "Cv-qualified type found.");
 
 public:
 	//! \since build 352
@@ -1145,8 +1145,8 @@ public:
 		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>),
 		yimpl(typename = ystdex::exclude_self_t<std::allocator_arg_t, _type>)>
 	inline
-	ValueObject(any_ops::trivial_swap_t, _type&& obj)
-		: content(any_ops::trivial_swap, any_ops::use_holder,
+	ValueObject(trivial_swap_t, _type&& obj)
+		: content(trivial_swap, any_ops::use_holder,
 		in_place_type<add_vh_t<ystdex::decay_t<_type>>>, yforward(obj))
 	{}
 	//@}
@@ -1167,9 +1167,9 @@ public:
 	template<typename _type, class _tAlloc,
 		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
 	inline
-	ValueObject(std::allocator_arg_t, const _tAlloc& a, any_ops::trivial_swap_t,
+	ValueObject(std::allocator_arg_t, const _tAlloc& a, trivial_swap_t,
 		_type&& arg)
-		: ValueObject(std::allocator_arg, a, any_ops::trivial_swap,
+		: ValueObject(std::allocator_arg, a, trivial_swap,
 		in_place_type<ystdex::decay_t<_type>>, yforward(arg))
 	{}
 	//@}
@@ -1192,9 +1192,9 @@ public:
 	//! \since build 927
 	template<typename _type, typename... _tParams>
 	explicit inline
-	ValueObject(any_ops::trivial_swap_t, in_place_type_t<_type>,
+	ValueObject(trivial_swap_t, in_place_type_t<_type>,
 		_tParams&&... args)
-		: content(any_ops::trivial_swap, any_ops::use_holder,
+		: content(trivial_swap, any_ops::use_holder,
 		in_place_type<ValueHolder<_type>>, yforward(args)...)
 	{}
 	//@}
@@ -1215,9 +1215,9 @@ public:
 	//! \since build 927
 	template<typename _type, class _tAlloc, typename... _tParams>
 	inline
-	ValueObject(std::allocator_arg_t, const _tAlloc& a, any_ops::trivial_swap_t,
+	ValueObject(std::allocator_arg_t, const _tAlloc& a, trivial_swap_t,
 		in_place_type_t<_type>, _tParams&&... args)
-		: content(std::allocator_arg, a, any_ops::trivial_swap,
+		: content(std::allocator_arg, a, trivial_swap,
 		any_ops::use_holder, in_place_type<alloc_holder_t<_type, _tAlloc>>,
 		yforward(args)...)
 	{
@@ -1245,9 +1245,9 @@ public:
 	//! \since builld 927
 	template<typename _tHolder, typename... _tParams>
 	inline
-	ValueObject(any_ops::trivial_swap_t, any_ops::use_holder_t,
+	ValueObject(trivial_swap_t, any_ops::use_holder_t,
 		in_place_type_t<_tHolder>, _tParams&&... args)
-		: content(any_ops::trivial_swap, any_ops::use_holder,
+		: content(trivial_swap, any_ops::use_holder,
 		in_place_type<_tHolder>, yforward(args)...)
 	{
 		static_assert(ystdex::is_convertible<_tHolder&, IValueHolder&>(),
@@ -1272,10 +1272,10 @@ public:
 	//! \since builld 927
 	template<typename _tHolder, class _tAlloc, typename... _tParams>
 	inline
-	ValueObject(std::allocator_arg_t, const _tAlloc& a, any_ops::trivial_swap_t,
+	ValueObject(std::allocator_arg_t, const _tAlloc& a, trivial_swap_t,
 		any_ops::use_holder_t,
 		in_place_type_t<_tHolder>, _tParams&&... args)
-		: content(std::allocator_arg, a, any_ops::trivial_swap,
+		: content(std::allocator_arg, a, trivial_swap,
 		any_ops::use_holder, in_place_type<_tHolder>, yforward(args)...)
 	{
 		static_assert(ystdex::is_convertible<_tHolder&, IValueHolder&>(),
@@ -1783,71 +1783,71 @@ EmplaceCallResult(ValueObject& vo, _type&& res, const _tAlloc& a)
 //@{
 template<typename _type, typename... _tParams>
 void
-EmplaceCallResult(ValueObject&, any_ops::trivial_swap_t, _type&&,
+EmplaceCallResult(ValueObject&, trivial_swap_t, _type&&,
 	ystdex::false_, _tParams&&...) ynothrow
 {}
 template<typename _type>
 inline void
-EmplaceCallResult(ValueObject& vo, any_ops::trivial_swap_t, _type&& res,
+EmplaceCallResult(ValueObject& vo, trivial_swap_t, _type&& res,
 	ystdex::true_, ystdex::true_)
-	ynoexcept_spec(vo = ValueObject(any_ops::trivial_swap, res))
+	ynoexcept_spec(vo = ValueObject(trivial_swap, res))
 {
-	vo = ValueObject(any_ops::trivial_swap, res);
+	vo = ValueObject(trivial_swap, res);
 }
 template<typename _type, class _tAlloc>
 inline void
-EmplaceCallResult(ValueObject& vo, any_ops::trivial_swap_t, _type&& res,
+EmplaceCallResult(ValueObject& vo, trivial_swap_t, _type&& res,
 	ystdex::true_, ystdex::true_, const _tAlloc&)
-	ynoexcept_spec(vo = ValueObject(any_ops::trivial_swap, res))
+	ynoexcept_spec(vo = ValueObject(trivial_swap, res))
 {
 	// XXX: Ditto.
-	vo = ValueObject(any_ops::trivial_swap, res);
+	vo = ValueObject(trivial_swap, res);
 }
 template<typename _type, class _tAlloc>
 inline void
-EmplaceCallResult(ValueObject& vo, any_ops::trivial_swap_t, _type&& res,
+EmplaceCallResult(ValueObject& vo, trivial_swap_t, _type&& res,
 	ystdex::true_, ystdex::false_, const _tAlloc& a)
 {
 	vo.emplace<ystdex::decay_t<_type>>(std::allocator_arg, a,
-		any_ops::trivial_swap, yforward(res));
+		trivial_swap, yforward(res));
 }
 template<typename _type>
 inline void
-EmplaceCallResult(ValueObject& vo, any_ops::trivial_swap_t, _type&& res,
+EmplaceCallResult(ValueObject& vo, trivial_swap_t, _type&& res,
 	ystdex::true_, ystdex::false_)
 {
-	vo.emplace<ystdex::decay_t<_type>>(any_ops::trivial_swap, yforward(res));
+	vo.emplace<ystdex::decay_t<_type>>(trivial_swap, yforward(res));
 }
 template<typename _type>
 inline void
-EmplaceCallResult(ValueObject& vo, any_ops::trivial_swap_t, _type&& res,
+EmplaceCallResult(ValueObject& vo, trivial_swap_t, _type&& res,
 	ystdex::true_)
 {
-	YSLib::EmplaceCallResult(vo, any_ops::trivial_swap, yforward(res),
+	YSLib::EmplaceCallResult(vo, trivial_swap, yforward(res),
 		ystdex::true_(), std::is_same<ystdex::decay_t<_type>, ValueObject>());
 }
 template<typename _type, class _tAlloc>
 inline void
-EmplaceCallResult(ValueObject& vo, any_ops::trivial_swap_t, _type&& res,
+EmplaceCallResult(ValueObject& vo, trivial_swap_t, _type&& res,
 	ystdex::true_, const _tAlloc& a)
 {
-	YSLib::EmplaceCallResult(vo, any_ops::trivial_swap, yforward(res),
+	YSLib::EmplaceCallResult(vo, trivial_swap, yforward(res),
 		ystdex::true_(), std::is_same<ystdex::decay_t<_type>, ValueObject>(), a);
 }
 template<typename _type>
 inline void
-EmplaceCallResult(ValueObject& vo, any_ops::trivial_swap_t, _type&& res)
+EmplaceCallResult(ValueObject& vo, trivial_swap_t, _type&& res)
 {
-	YSLib::EmplaceCallResult(vo, any_ops::trivial_swap, yforward(res),
+	YSLib::EmplaceCallResult(vo, trivial_swap, yforward(res),
 		ystdex::not_<
 		std::is_same<ystdex::decay_t<_type>, ystdex::pseudo_output>>());
 }
 template<typename _type, class _tAlloc>
 inline void
-EmplaceCallResult(ValueObject& vo, any_ops::trivial_swap_t, _type&& res,
+EmplaceCallResult(ValueObject& vo, trivial_swap_t, _type&& res,
 	const _tAlloc& a)
 {
-	YSLib::EmplaceCallResult(vo, any_ops::trivial_swap, yforward(res),
+	YSLib::EmplaceCallResult(vo, trivial_swap, yforward(res),
 		ystdex::not_<
 		std::is_same<ystdex::decay_t<_type>, ystdex::pseudo_output>>(), a);
 }

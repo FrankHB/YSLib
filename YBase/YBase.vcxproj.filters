@@ -290,6 +290,18 @@
     <ClInclude Include="include\ystdex\compressed_pair.hpp">
       <Filter>include\ystdex</Filter>
     </ClInclude>
+    <ClInclude Include="include\ystdex\bind.hpp">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ystdex\compose.hpp">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ystdex\expanded_function.hpp">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ystdex\function_adaptor.hpp">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ystdex\cstdio.cpp">

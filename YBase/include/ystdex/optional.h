@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2021 FrankHB.
+	© 2015-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r1335
+\version r1341
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2021-12-26 13:56 +0800
+	2022-02-15 06:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,8 +47,8 @@ WG21 N3765 ：支持不同的比较操作。
 #ifndef YB_INC_ystdex_optional_h_
 #define YB_INC_ystdex_optional_h_ 1
 
-#include "placement.hpp" // for conditional <optional>,
-//	__cpp_inheriting_constructors, tagged_value;
+#include "swap.hpp" // for conditional <optional>,
+//	__cpp_inheriting_constructors, tagged_value, ystdex::swap_dependent;
 #if YB_Has_optional != 1
 #	include "operators.hpp" // for or_, is_trivially_destructible, is_cv,
 //	std::move, empty_base, is_nothrow_moveable, and_, nullptr_t, remove_cv_t,
@@ -58,8 +58,7 @@ WG21 N3765 ：支持不同的比较操作。
 #	include <initializer_list> // for std::initializer_list;
 #	include <stdexcept> // for std::logic_error;
 #endif
-#include "functional.hpp" // for ystdex::swap_dependent, default_last_value,
-//	std::accumulate, std::hash;
+#include "functor.hpp" // for std::accumulate, default_last_value, std::hash;
 
 namespace ystdex
 {
@@ -145,7 +144,7 @@ template<typename _type>
 class optional_base<_type, true> : protected tagged_value<bool, _type>
 {
 	// NOTE: See WG21 N3770 comment FI 15, also CWG 1776.
-	static_assert(!is_cv<_type>(), "Cv-qualified type found.");
+	static_assert(!is_cv<_type>::value, "Cv-qualified type found.");
 
 protected:
 	//! \since build 718

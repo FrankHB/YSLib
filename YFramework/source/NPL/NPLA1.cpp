@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r22216
+\version r22280
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2022-01-15 01:51 +0800
+	2022-02-25 00:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,26 +26,27 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA1Forms // for NPL, lref, RelaySwitched,
-//	any_ops::trivial_swap, type_index, string_view, std::hash, ystdex::equal_to,
-//	YSLib::unordered_map, std::piecewise_construct, YSLib::lock_guard,
-//	YSLib::mutex, type_id, ContextHandler, NPL::make_observer, IsBranch,
+#include YFM_NPL_NPLA1Forms // for NPL, EvaluationPasses, lref, ContextHandler,
+//	RelaySwitched, trivial_swap, type_index, string_view, std::hash,
+//	ystdex::equal_to, YSLib::unordered_map, std::piecewise_construct,
+//	YSLib::lock_guard, YSLib::mutex, type_id, NPL::make_observer, IsBranch,
 //	CheckReducible, IsNPLAExtendedLiteralNonDigitPrefix, IsAllSignLexeme,
 //	AllocatorHolder, ystdex::ref, YSLib::IValueHolder,
 //	YSLib::AllocatedHolderOperations, any, ystdex::as_const,
-//	NPL::forward_as_tuple, uintmax_t, ystdex::bind1, TokenValue, Forms,
-//	std::allocator_arg, YSLib::stack, YSLib::vector, TermTags, function,
-//	TermReference, GetLValueTagsOf, NPL::TryAccessLeaf, ListReductionFailure,
-//	ystdex::sfmt, PropagateTo, NPL::IsMovable, in_place_type, InvalidReference,
-//	NPL::Deref, IsLeaf, ResolveTerm, ThrowInsufficientTermsError,
-//	ThrowListTypeErrorForNonlist, ystdex::update_thunk, Environment, shared_ptr,
-//	NPL::AsTermNode, IsTyped, ystdex::retry_on_cond, AccessFirstSubterm,
-//	ystdex::make_transform, IsBranchedList, std::placeholders, NoContainer,
-//	ystdex::try_emplace, NPL::Access, YSLib::Informative, ystdex::unique_guard,
+//	NPL::forward_as_tuple, uintmax_t, ystdex::bind1, TokenValue,
+//	Forms::Sequence, std::allocator_arg, ReduceBranchToList, YSLib::stack,
+//	YSLib::vector, TermTags, function, TermReference, GetLValueTagsOf,
+//	NPL::TryAccessLeaf, ListReductionFailure, ystdex::sfmt, PropagateTo,
+//	NPL::IsMovable, in_place_type, InvalidReference, NPL::Deref, IsLeaf,
+//	ResolveTerm, ThrowInsufficientTermsError, ThrowListTypeErrorForNonlist,
+//	ystdex::update_thunk, Environment, shared_ptr, NPL::AsTermNode, IsTyped,
+//	ystdex::retry_on_cond, AccessFirstSubterm, ystdex::make_transform,
+//	IsBranchedList, std::placeholders, NoContainer, ystdex::try_emplace,
+//	NPL::Access, YSLib::Informative, ystdex::unique_guard,
 //	CategorizeBasicLexeme, DeliteralizeUnchecked, Deliteralize,
-//	ystdex::isdigit, INT_MAX, ResolveIdentifier, ystdex::ref_eq,
-//	NPL::TryAccessTerm, YSLib::share_move, ystdex::call_value_or,
-//	std::to_string, YSLib::Notice, YSLib::FilterException, Session;
+//	ystdex::isdigit, INT_MAX, ystdex::ref_eq, NPL::TryAccessTerm,
+//	YSLib::share_move, ystdex::call_value_or, std::to_string, YSLib::Notice,
+//	YSLib::FilterException, Session;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_NPLAMath // for ReadDecimal;
 #include <limits> // for std::numeric_limits;
@@ -128,7 +129,7 @@ PushActionsRange(EvaluationPasses::const_iterator first,
 			//	%ContextState::DefaultReduceOnce) or all previous actions are
 			//	known not to change the next term in the context. See
 			//	%SetupDefaultInterpretation for example.
-			RelaySwitched(ctx, any_ops::trivial_swap,
+			RelaySwitched(ctx, trivial_swap,
 				PushedAction{first, last, f, term, ctx});
 		}
 	}
@@ -161,8 +162,12 @@ PushedAction::operator()(ContextNode&) const
 }
 #endif
 
+//! \since build 939
+using YSLib::lock_guard;
+//! \since build 939
+using YSLib::mutex;
 //! \since build 893
-YSLib::mutex NameTableMutex;
+mutex NameTableMutex;
 
 //! \since build 892
 //@{
@@ -191,7 +196,7 @@ ReduceChildrenOrderedAsyncUnchecked(TNIter first, TNIter last, ContextNode& ctx)
 
 	auto& term(*first++);
 
-	return ReduceSubsequent(term, ctx, Continuation(any_ops::trivial_swap,
+	return ReduceSubsequent(term, ctx, Continuation(trivial_swap,
 		NameTypedContextHandler([first, last](TermNode&, ContextNode& c){
 		return ReduceChildrenOrderedAsync(first, last, c);
 	}, "eval-argument-list"), ctx));
@@ -232,7 +237,7 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	//	optimized with %NPL_Impl_NPLA1_Enable_InlineDirect remaining the nested
 	//	call safety.
 	// XXX: The %std::reference_wrapper instance is specialized enough without
-	//	%any_ops::trivial_swap.
+	//	%trivial_swap.
 	return RelaySwitched(ctx, Continuation(std::ref(lf ? *lf : h), ctx));
 #else
 
@@ -249,14 +254,14 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	SetupNextTerm(ctx, term);
 	// TODO: Blocked. Use C++14 lambda initializers to simplify the
 	//	implementation.
-	RelaySwitched(ctx, any_ops::trivial_swap, A1::NameTypedReducerHandler(
+	RelaySwitched(ctx, trivial_swap, A1::NameTypedReducerHandler(
 		std::bind([&](decltype(gd)& g, const _tParams&...){
 		ystdex::dismiss(g);
 		// NOTE: Captured argument pack is only needed when %h actually shares.
 		return RegularizeTerm(term, ctx.LastStatus);
 	}, std::move(gd), std::move(args)...), "combine-return"));
 	// XXX: The %std::reference_wrapper instance is specialized enough without
-	//	%any_ops::trivial_swap.
+	//	%trivial_swap.
 	return RelaySwitched(ctx, Continuation(std::ref(h), ctx));
 #	else
 	const auto res(RegularizeTerm(term, h(term, ctx)));
@@ -679,7 +684,7 @@ struct ParameterCheck final
 			f();
 		}
 		CatchExpr(ParameterMismatch&, throw)
-		CatchExpr(..., ThrowNestedParameterTreeCheckError())
+		CatchExpr(..., ThrowNestedParameterTreeMismatch())
 	}
 };
 
@@ -705,7 +710,6 @@ struct NoParameterCheck final
 			const auto p(TermToNamePtr(t));
 
 			YAssert(bool(p), "Invalid parameter tree found.");
-
 			f(*p);
 		}
 	}
@@ -854,8 +858,9 @@ private:
 								const auto ref_tags(p_ref->GetTags());
 
 								// NOTE: Drop the temporary tag unconditionally.
-								//	Even a list is a prvalue, its element cannot
-								//	be a prvalue being matched.
+								//	Even the referent is a list temporary
+								//	object, its elements are not prvalues to be
+								//	matched (whatever the types thereof).
 								tags = (tags
 									& ~(TermTags::Unique | TermTags::Temporary))
 									| (ref_tags & TermTags::Unique);
@@ -893,7 +898,7 @@ private:
 		{
 			auto& nd(p_t->get());
 
-			ystdex::update_thunk(act, o.get_allocator(), any_ops::trivial_swap,
+			ystdex::update_thunk(act, o.get_allocator(), trivial_swap,
 				[&, o_tags]{
 				DispatchMatch(typename _tTraits::HasReferenceArg(), nd, o,
 					o_tags, r_env, ystdex::true_());
@@ -918,8 +923,8 @@ private:
 		{
 			// XXX: Use explicit captures here to ensure ISO C++20
 			//	compatibility.
-			ystdex::update_thunk(act, o_tm.get_allocator(),
-				any_ops::trivial_swap, [this, i, j, last, tags, ellipsis,
+			ystdex::update_thunk(act, o_tm.get_allocator(), trivial_swap,
+				[this, i, j, last, tags, ellipsis,
 #if NPL_Impl_NPLA1_AssertParameterMatch
 				t_end,
 #endif
@@ -1096,7 +1101,7 @@ ContextState::ContextState(pmr::memory_resource& rsrc)
 	: ContextNode(rsrc)
 {
 	// NOTE: The guard object shall be fresh on the calls for reentrancy.
-	// XXX: The empty type is specialized enough without %any_ops::trivial_swap.
+	// XXX: The empty type is specialized enough without %trivial_swap.
 	Guard += GuardPasses::HandlerType(std::allocator_arg, get_allocator(),
 		[](TermNode&, ContextNode& ctx){
 		// TODO: Support guarding for other states?
@@ -1133,6 +1138,8 @@ ContextState::GetNextTermRef() const
 ReductionStatus
 ContextState::DefaultReduceOnce(TermNode& term, ContextNode& ctx)
 {
+	AssertValueTags(term);
+
 	auto& cs(ContextState::Access(ctx));
 	const bool non_list(term.Value);
 
@@ -1182,15 +1189,17 @@ ContextState::RewriteGuarded(TermNode& term, Reducer reduce)
 ReductionStatus
 ContextState::RewriteTerm(TermNode& term)
 {
+	AssertValueTags(term);
 	SetNextTermRef(term);
 	// XXX: The %std::reference_wrapper instance is specialized enough without
-	//	%any_ops::trivial_swap.
+	//	%trivial_swap.
 	return Rewrite(NPL::ToReducer(get_allocator(), std::ref(ReduceOnce)));
 }
 
 ReductionStatus
 ContextState::RewriteTermGuarded(TermNode& term)
 {
+	AssertValueTags(term);
 	SetNextTermRef(term);
 	// XXX: Ditto.
 	return RewriteGuarded(term,
@@ -1262,6 +1271,9 @@ ReduceFirst(TermNode& term, ContextNode& ctx)
 ReductionStatus
 ReduceOnce(TermNode& term, ContextNode& ctx)
 {
+	// XXX: Check explicitly here to prevent custom implementation of
+	//	%ContextState::ReduceOnce from missing the check.
+	AssertValueTags(term);
 	// NOTE: See $2021-01 @ %Documentation::Workflow.
 #if NPL_Impl_NPLA1_Enable_Thunked
 	SetupNextTerm(ctx, term);
@@ -1280,12 +1292,12 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 	return ReductionStatus::Retained;
 #	else
 	AssertNextTerm(ctx, term);
-	// XXX: %Continuation is specialized enough without %any_ops::trivial_swap.
+	// XXX: %Continuation is specialized enough without %trivial_swap.
 	return A1::RelayCurrentNext(ctx, term, Continuation(
 		// XXX: The function after decayed is specialized enough without
-		//	%any_ops::trivial_swap.
+		//	%trivial_swap.
 		static_cast<ReductionStatus(&)(TermNode&, ContextNode&)>(
-		ReduceChildrenOrdered), ctx), any_ops::trivial_swap,
+		ReduceChildrenOrdered), ctx), trivial_swap,
 		A1::NameTypedReducerHandler([&]{
 		ReduceOrderedResult(term);
 		return ReductionStatus::Regular;
@@ -1534,15 +1546,14 @@ FormContextHandler::CallN(size_t n, TermNode& term, ContextNode& ctx) const
 	if(n == 0 || term.size() <= 1)
 		// XXX: Assume the term has been setup by the caller.
 		// XXX: The %std::reference_wrapper instance is specialized enough
-		//	without %any_ops::trivial_swap.
+		//	without %trivial_swap.
 		return RelayCurrentOrDirect(ctx, std::ref(Handler), term);
-	// XXX: The empty type is specialized enough without %any_ops::trivial_swap.
+	// XXX: The empty type is specialized enough without %trivial_swap.
 	return A1::RelayCurrentNext(ctx, term, [](TermNode& t, ContextNode& c){
 		YAssert(!t.empty(), "Invalid term found.");
 		ReduceChildrenOrderedAsyncUnchecked(std::next(t.begin()), t.end(), c);
 		return ReductionStatus::Partial;
-	}, any_ops::trivial_swap,
-		A1::NameTypedReducerHandler([&, n](ContextNode& c){
+	}, trivial_swap, A1::NameTypedReducerHandler([&, n](ContextNode& c){
 		SetupNextTerm(c, term);
 		return CallN(n - 1, term, c);
 	}, "eval-combine-operator"));
@@ -1738,9 +1749,10 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 		//	that the term tags are always not touched and the term container is
 		//	also not touched when the result is not a reference.
 		// NOTE: Every reference to the object in the environment is assumed
-		//	aliased, so no %TermTags::Unique is preserved. In the object
-		//	language, this implies that id-expressions are always lvalues, as
-		//	same to C++.
+		//	aliased (even the environment object is unique), so no
+		//	%TermTags::Unique is preserved in the result. In the
+		//	object language, this implies that id-expressions are always
+		//	lvalues, as same to C++.
 		// XXX: Allocators are not used here on %TermReference to avoid G++ from
 		//	folding code with other basic blocks with more inefficient
 		//	implementations.
@@ -1748,7 +1760,8 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 		{
 			p_rterm = &p->get();
 			// NOTE: If the bound object is a term reference, referencing it
-			//	implies reference collapsing.
+			//	implies reference collapsing. See also %ResolveIdentifier in
+			//	NPLA.cpp for a simpler implemenation of the collapse.
 			SetEvaluatedReference(term, bound, *p);
 		}
 		else
@@ -1801,12 +1814,12 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 	// NOTE: If this call returns normally, the combiner object implied by %fm
 	//	is not owned by %term.
 	// XXX: %SetupNextTerm is to be called in %CombinerReturnThunk.
-	// NOTE: The tag is intended to be consumed by %VauHandler in %NPLA1Forms.
-	//	As the irregular representation has a handler of %RefContextHandler,
-	//	the tag is consumed only by the underlying handler, so the irregular
-	//	representation behaves same to glvalue here. The value of %term.Tags may
-	//	indicate a temporary of %TermReference value of %fm. This shall be
-	//	cleared if the object represented by %fm is not a prvalue.
+	// NOTE: The tag is intended to be consumed by %VauHandler in
+	//	NPLA1Forms.cpp. As the irregular representation has a handler of
+	//	%RefContextHandler, the tag is consumed only by the underlying handler,
+	//	so the irregular representation behaves same to glvalue here. The value
+	//	of %term.Tags may indicate a temporary of %TermReference value of %fm.
+	//	This shall be cleared if the object represented by %fm is not a prvalue.
 	if(p_ref_fm)
 	{
 		// XXX: This is nothing to do with %EnsureValueTags, so keep it
@@ -2007,7 +2020,7 @@ SetupDefaultInterpretation(ContextState& cs, EvaluationPasses passes)
 	const auto a(cs.get_allocator());
 
 	// XXX: Empty types and functions after decayed are specialized enough
-	//	without %any_ops::trivial_swap.
+	//	without %trivial_swap.
 #if true
 	// NOTE: This is an example of merged passes.
 	passes += Pass(std::allocator_arg, a,
@@ -2071,7 +2084,7 @@ AddTypeNameTableEntry(const type_info& ti, string_view sv)
 {
 	YAssertNonnull(sv.data());
 
-	const YSLib::lock_guard<YSLib::mutex> gd(NameTableMutex);
+	const lock_guard<mutex> gd(NameTableMutex);
 
 	return FetchNameTableRef<NPLA1Tag>().emplace(std::piecewise_construct,
 		NPL::forward_as_tuple(ti), NPL::forward_as_tuple(sv)).second;
@@ -2131,7 +2144,7 @@ QueryTailOperatorName(const Reducer& act)
 string_view
 QueryTypeName(const type_info& ti)
 {
-	const YSLib::lock_guard<YSLib::mutex> gd(NameTableMutex);
+	const lock_guard<mutex> gd(NameTableMutex);
 	const auto& tbl(FetchNameTableRef<NPLA1Tag>());
 	const auto i(tbl.find(ti));
 

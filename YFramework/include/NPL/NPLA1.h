@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9279
+\version r9327
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-01-21 20:38 +0800
+	2022-02-23 12:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,10 +31,10 @@
 #include "YModules.h"
 #include YFM_NPL_NPLA // for NPLATag, TermNode, ContextNode,
 //	ystdex::equality_comparable, std::declval, ystdex::exclude_self_t,
-//	any_ops::trivial_swap_t, any_ops::trivial_swap, ystdex::ref_eq,
-//	CombineReductionResult, pmr::memory_resource, NPL::make_observer, TNIter,
-//	LiftOther, ValueNode, NPL::Deref, NPL::AsTermNode, std::make_move_iterator,
-//	IsBranch, std::next, ystdex::retry_on_cond, std::find_if, string_view,
+//	trivial_swap_t, trivial_swap, ystdex::ref_eq, CombineReductionResult,
+//	pmr::memory_resource, NPL::make_observer, TNIter, LiftOtherValue, ValueNode,
+//	NPL::Deref, NPL::AsTermNode, std::make_move_iterator, IsBranch, std::next,
+//	ystdex::retry_on_cond, std::find_if, string_view,
 //	ystdex::exclude_self_params_t, YSLib::AreEqualHeld,
 //	ystdex::make_parameter_list_t, ystdex::make_function_type_t, ystdex::true_,
 //	ystdex::decay_t, ystdex::expanded_caller, std::is_constructible,
@@ -145,9 +145,9 @@ public:
 	template<typename _func, yimpl(typename
 		= ystdex::exclude_self_t<Continuation, _func>)>
 	inline
-	Continuation(any_ops::trivial_swap_t, _func&& handler, allocator_type a)
+	Continuation(trivial_swap_t, _func&& handler, allocator_type a)
 		: Handler(ystdex::make_obj_using_allocator<ContextHandler>(a,
-		any_ops::trivial_swap, yforward(handler)))
+		trivial_swap, yforward(handler)))
 	{}
 	template<typename _func, yimpl(typename
 		= ystdex::exclude_self_t<Continuation, _func>)>
@@ -159,9 +159,9 @@ public:
 	template<typename _func, yimpl(typename
 		= ystdex::exclude_self_t<Continuation, _func>)>
 	inline
-	Continuation(any_ops::trivial_swap_t, _func&& handler,
+	Continuation(trivial_swap_t, _func&& handler,
 		const ContextNode& ctx)
-		: Continuation(any_ops::trivial_swap, yforward(handler),
+		: Continuation(trivial_swap, yforward(handler),
 		ctx.get_allocator())
 	{}
 	Continuation(const Continuation& cont, allocator_type a)
@@ -414,6 +414,7 @@ public:
 
 	/*!
 	\brief NPLA1 表达式节点一次规约默认实现：调用求值例程规约子表达式。
+	\pre 间接断言：第一参数的标签可作为一等对象的值的表示。
 	\pre 第二参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
 	\return 规约状态。
 	\note 异常安全为调用遍的最低异常安全保证。
@@ -464,6 +465,7 @@ public:
 	RewriteGuarded(TermNode&, Reducer);
 
 	/*!
+	\pre 间接断言：参数的标签可作为一等对象的值的表示。
 	\sa ReduceOnce
 	\since build 892
 	*/
@@ -505,6 +507,7 @@ inline PDefH(ReductionStatus, Continuation::operator(), ContextNode& ctx) const
 //@{
 /*!
 \brief NPLA1 表达式节点规约：调用至少一次求值例程规约子表达式。
+\pre 间接断言：第一参数的标签可作为一等对象的值的表示。
 \return 规约状态。
 \sa ContextState::RewriteGuarded
 \sa ReduceOnce
@@ -585,6 +588,7 @@ ReduceFirst(TermNode&, ContextNode&);
 
 /*!
 \brief NPLA1 表达式节点一次规约：转发调用到 NPLA1 表达式节点一次规约续延并调用。
+\pre 间接断言：第一参数的标签可作为一等对象的值的表示。
 \pre 第二参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
 \return 规约状态。
 \note 默认实现由 ContextState::DefaultReduceOnce 提供。
@@ -604,15 +608,15 @@ ReduceOnce(TermNode&, ContextNode&);
 \brief 再次规约提升后的项。
 \pre 间接断言：第一和第三参数指定不相同的项。
 \return 同 ReduceOnce 。
-\sa LiftOther
+\sa LiftOtherValue
 \sa ReduceOnce
 \since build 869
 
-调用 LiftOther 提升项，再调用 ReduceOnce 规约。
+调用 LiftOtherValue 提升项，再调用 ReduceOnce 规约。
 */
 inline PDefH(ReductionStatus, ReduceOnceLifted, TermNode& term,
 	ContextNode& ctx, TermNode& tm)
-	ImplRet(LiftOther(term, tm), ReduceOnce(term, ctx))
+	ImplRet(LiftOtherValue(term, tm), ReduceOnce(term, ctx))
 
 /*!
 \brief 规约有序序列：顺序规约子项，结果为最后一个子项的规约结果。
@@ -961,46 +965,44 @@ WrapContextHandler(_func&& h, const _tAlloc& a)
 //@{
 template<class _tDst, typename _func>
 YB_ATTR_nodiscard YB_PURE inline _tDst
-WrapContextHandler(any_ops::trivial_swap_t, _func&& h, ystdex::false_)
+WrapContextHandler(trivial_swap_t, _func&& h, ystdex::false_)
 {
 	return WrappedContextHandler<YSLib::GHEvent<ystdex::make_function_type_t<
 		void, ystdex::make_parameter_list_t<typename _tDst::BaseType>>>>(
-		any_ops::trivial_swap, yforward(h));
+		trivial_swap, yforward(h));
 }
 template<class, typename _func>
 YB_ATTR_nodiscard YB_PURE inline _func
-WrapContextHandler(any_ops::trivial_swap_t, _func&& h, ystdex::true_)
+WrapContextHandler(trivial_swap_t, _func&& h, ystdex::true_)
 {
 	return yforward(h);
 }
 template<class _tDst, typename _func>
 YB_ATTR_nodiscard YB_PURE inline _tDst
-WrapContextHandler(any_ops::trivial_swap_t, _func&& h)
+WrapContextHandler(trivial_swap_t, _func&& h)
 {
-	return A1::WrapContextHandler<_tDst>(any_ops::trivial_swap, yforward(h),
+	return A1::WrapContextHandler<_tDst>(trivial_swap, yforward(h),
 		WrapContextHandlerTarget<_func, _tDst>());
 }
 template<class _tDst, typename _func, class _tAlloc>
 YB_ATTR_nodiscard YB_PURE inline _tDst
-WrapContextHandler(any_ops::trivial_swap_t, _func&& h, const _tAlloc& a,
-	ystdex::false_)
+WrapContextHandler(trivial_swap_t, _func&& h, const _tAlloc& a, ystdex::false_)
 {
 	return WrappedContextHandler<YSLib::GHEvent<ystdex::make_function_type_t<
 		void, ystdex::make_parameter_list_t<typename _tDst::BaseType>>>>(
-		std::allocator_arg, a, any_ops::trivial_swap, yforward(h));
+		std::allocator_arg, a, trivial_swap, yforward(h));
 }
 template<class, typename _func, class _tAlloc>
 YB_ATTR_nodiscard YB_PURE inline _func
-WrapContextHandler(any_ops::trivial_swap_t, _func&& h, const _tAlloc&,
-	ystdex::true_)
+WrapContextHandler(trivial_swap_t, _func&& h, const _tAlloc&, ystdex::true_)
 {
 	return yforward(h);
 }
 template<class _tDst, typename _func, class _tAlloc>
 YB_ATTR_nodiscard YB_PURE inline _tDst
-WrapContextHandler(any_ops::trivial_swap_t, _func&& h, const _tAlloc& a)
+WrapContextHandler(trivial_swap_t, _func&& h, const _tAlloc& a)
 {
-	return A1::WrapContextHandler<_tDst>(any_ops::trivial_swap, yforward(h), a,
+	return A1::WrapContextHandler<_tDst>(trivial_swap, yforward(h), a,
 		WrapContextHandlerTarget<_func, _tDst>());
 }
 //@}
@@ -1037,8 +1039,8 @@ public:
 	//! \since build 927
 	template<typename _func,
 		yimpl(typename = ystdex::exclude_self_t<FormContextHandler, _func>)>
-	FormContextHandler(any_ops::trivial_swap_t, _func&& f, size_t n = 0)
-		: Handler(A1::WrapContextHandler<ContextHandler>(any_ops::trivial_swap,
+	FormContextHandler(trivial_swap_t, _func&& f, size_t n = 0)
+		: Handler(A1::WrapContextHandler<ContextHandler>(trivial_swap,
 		yforward(f))), Wrapping(n)
 	{}
 	//! \since build 886
@@ -1051,9 +1053,9 @@ public:
 	//! \since build 927
 	template<typename _func, class _tAlloc>
 	FormContextHandler(std::allocator_arg_t, const _tAlloc& a,
-		any_ops::trivial_swap_t, _func&& f, size_t n = 0)
+		trivial_swap_t, _func&& f, size_t n = 0)
 		: Handler(std::allocator_arg, a, A1::WrapContextHandler<ContextHandler>(
-		any_ops::trivial_swap, yforward(f), a)), Wrapping(n)
+		trivial_swap, yforward(f), a)), Wrapping(n)
 	{}
 	//@}
 	//! \since build 757
@@ -1168,7 +1170,7 @@ inline void
 RegisterHandler(_tTarget& target, string_view name, _tParams&&... args)
 {
 	// XXX: Both %ContextHandler and %FormContexthandler are specialized enough
-	//	without %any_ops::trivial_swap.
+	//	without %trivial_swap.
 	NPL::EmplaceLeaf<ContextHandler>(target, name,
 		std::allocator_arg, ToBindingsAllocator(target),
 		FormContextHandler(yforward(args)..., _vWrapping));
@@ -1228,6 +1230,24 @@ YB_ATTR_nodiscard YB_PURE inline
 inline PDefH(void, CheckVariadicArity, TermNode& term, size_t n)
 	ImplExpr(FetchArgumentN(term) > n ? void()
 		: (RemoveHead(term), ThrowInsufficientTermsError(term, {})))
+
+/*!
+\brief 清除参数中作为规约合并项的标签。
+\post 间接断言：参数的标签可作为一等对象的值的表示。
+\note 因为项中的内容可能已被单独修改，不检查参数是规约合并项。
+\since build 939
+*/
+inline PDefH(void, ClearCombiningTags, TermNode& term) ynothrowv
+	ImplExpr(EnsureValueTags(term.Tags), AssertValueTags(term))
+
+/*!
+\brief 判断项是规约合并项。
+\since build 895
+*/
+YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsCombiningTerm,
+	const TermNode& term) ynothrow
+	ImplRet(!(term.empty()
+		|| (term.Value && !IsTyped<TokenValue>(term.Value.type()))))
 
 /*!
 \note 保留求值留作保留用途，一般不需要被作为用户代码直接使用。
@@ -1358,15 +1378,6 @@ inline PDefH(void, EvaluateLiteralHandler, TermNode& term,
 		if(const auto p_handler = NPL::TryAccessTerm<const LiteralHandler>(tm))
 			RegularizeTerm(term, (*p_handler)(ctx));
 	}())
-
-/*!
-\brief 判断项是规约合并项。
-\since build 895
-*/
-YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsCombiningTerm,
-	const TermNode& term) ynothrow
-	ImplRet(!(term.empty()
-		|| (term.Value && !IsTyped<TokenValue>(term.Value.type()))))
 
 /*!
 \brief 规约合并项：检查项的第一个子项尝试作为操作符进行函数应用，并规范化。

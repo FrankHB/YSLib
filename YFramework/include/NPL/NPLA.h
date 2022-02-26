@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r9267
+\version r9308
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2022-01-28 05:16 +0800
+	2022-02-22 18:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,17 +36,18 @@
 //	ystdex::is_nothrow_copy_constructible, ystdex::is_nothrow_copy_assignable,
 //	ystdex::is_nothrow_move_constructible, ystdex::is_nothrow_move_assignable,
 //	ThrowListTypeErrorForInvalidType, observer_ptr, TryAccessValue, IsLeaf,
-//	ystdex::equality_comparable, weak_ptr, lref, ystdex::get_equal_to, pair,
-//	ystdex::invoke_value_or, ystdex::expand_proxy, NPL::Access, ystdex::ref_eq,
-//	ValueObject, NPL::SetContentWith, std::for_each, AccessFirstSubterm,
-//	AssertBranch, NPL::Deref, YSLib::EmplaceCallResult, ystdex::less,
-//	YSLib::map, pmr, ystdex::copy_and_swap, NoContainer, ystdex::try_emplace,
+//	ystdex::equality_comparable, weak_ptr, lref, ystdex::get_equal_to,
+//	NPL::IsMovable, pair, ystdex::invoke_value_or, ystdex::expand_proxy,
+//	NPL::Access, AssertValueTags, ystdex::ref_eq, ValueObject,
+//	NPL::SetContentWith, std::for_each, AccessFirstSubterm, AssertBranch,
+//	NPL::Deref, YSLib::EmplaceCallResult, ystdex::less, YSLib::map, pmr,
+//	ystdex::copy_and_swap, NoContainer, ystdex::try_emplace,
 //	ystdex::try_emplace_hint, ystdex::insert_or_assign, type_info,
 //	ystdex::expanded_function, ystdex::enable_if_same_param_t,
 //	ystdex::exclude_self_t, ystdex::make_obj_using_allocator,
 //	YSLib::forward_list, ystdex::swap_dependent, NPL::make_observer,
-//	YSLib::allocate_shared, YSLib::Logger, any_ops::trivial_swap,
-//	ystdex::exchange, NPL::AsTermNode, ystdex::is_bitwise_swappable;
+//	YSLib::allocate_shared, YSLib::Logger, trivial_swap, ystdex::exchange,
+//	NPL::AsTermNode, ystdex::is_bitwise_swappable;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include <libdefect/exception.h> // for std::exception_ptr;
 
@@ -62,6 +63,10 @@ namespace NPL
 
 //! \since build 851
 namespace any_ops = YSLib::any_ops;
+//! \since build 939
+using YSLib::trivial_swap;
+//! \since build 939
+using YSLib::trivial_swap_t;
 
 //! \since build 600
 using YSLib::NodeLiteral;
@@ -826,8 +831,7 @@ public:
 	//! \since build 857
 	//@{
 	//! \brief 判断被引用的对象是否可通过引用值被转移。
-	DefPred(const ynothrow, Movable, (tags
-		& (TermTags::Unique | TermTags::Nonmodifying)) == TermTags::Unique)
+	DefPred(const ynothrow, Movable, NPL::IsMovable(tags))
 	/*!
 	\brief 判断引用值是否表示被引用的被绑定对象左值。
 
@@ -1329,12 +1333,20 @@ struct TypedValueAccessor<ResolvedArg<>>
 不修改项的子项和值数据成员以外的的内容。
 */
 //@{
-/*!
-\pre 间接断言：第一和第二参数指定不相同的项。
-\since build 876
-*/
+//! \pre 间接断言：第一和第二参数指定不相同的项。
+//@{
+//! \since build 876
 inline PDefH(void, LiftOther, TermNode& term, TermNode& tm)
 	ImplExpr(term.MoveContent(std::move(tm)))
+
+/*!
+\pre 间接断言：第二参数的标签可作为一等对象的值的表示。
+\post 第一参数的标签可作为一等对象的值的表示。
+\since build 939
+*/
+inline PDefH(void, LiftOtherValue, TermNode& term, TermNode& tm)
+	ImplExpr(AssertValueTags(tm), term.MoveContent(std::move(tm)))
+//@}
 
 /*!
 \note 参数相同时作用为空，但可能有额外开销。
@@ -1499,6 +1511,8 @@ LiftToReturn(TermNode&);
 
 /*!
 \pre 间接断言：参数指定不相同的项。
+\pre 间接断言：第二参数是项引用或参数的标签可作为一等对象的值的表示。
+\post 间接断言：第一参数的标签可作为一等对象的值的表示。
 \note 等价使用 TermReference::IsReferencedLValue 区分左值。
 \sa TermNode::MoveContent
 \sa TermReference::IsReferencedLValue
@@ -1704,6 +1718,8 @@ ReduceBranchToListValue(TermNode&) ynothrowv;
 /*!
 \brief 规约提升结果。
 \return ReductionStatus::Retained 。
+\pre 间接断言：参数是项引用或参数的标签可作为一等对象的值的表示。
+\post 间接断言：参数的标签可作为一等对象的值的表示。
 \sa LiftToReturn
 \since build 855
 
@@ -1816,8 +1832,8 @@ YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(ReductionStatus,
 	EmplaceCallResultOrReturn, TermNode&, ReductionStatus status) ynothrow
 	ImplRet(status)
 //! \since build 927
-YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(ReductionStatus,
-	EmplaceCallResultOrReturn, TermNode&, any_ops::trivial_swap_t,
+YB_ATTR_nodiscard YB_STATELESS yconstfn
+	PDefH(ReductionStatus, EmplaceCallResultOrReturn, TermNode&, trivial_swap_t,
 	ReductionStatus status) ynothrow
 	ImplRet(status)
 template<typename _tParam, typename... _tParams, yimpl(
@@ -1833,11 +1849,10 @@ EmplaceCallResultOrReturn(TermNode& term, _tParam&& arg)
 template<typename _tParam, typename... _tParams, yimpl(
 	typename = ystdex::exclude_self_t<ReductionStatus, _tParam>)>
 YB_ATTR_nodiscard inline ReductionStatus
-EmplaceCallResultOrReturn(TermNode& term, any_ops::trivial_swap_t,
-	_tParam&& arg)
+EmplaceCallResultOrReturn(TermNode& term, trivial_swap_t, _tParam&& arg)
 {
 	// NOTE: Ditto.
-	YSLib::EmplaceCallResult(term.Value, any_ops::trivial_swap, yforward(arg), 
+	YSLib::EmplaceCallResult(term.Value, trivial_swap, yforward(arg),
 		term.get_allocator());
 	return ReductionStatus::Clean;
 }
@@ -2661,7 +2676,7 @@ public:
 	PDefH(void, SaveExceptionHandler, )
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
-		ImplExpr(SetupFront(any_ops::trivial_swap,
+		ImplExpr(SetupFront(trivial_swap,
 			std::bind([this](ExceptionHandler& h) ynothrow{
 			HandleException = std::move(h);
 			return LastStatus;
@@ -2692,10 +2707,10 @@ public:
 		ImplExpr(!stashed.empty() ? (stashed.front() = std::move(act),
 			current.splice_after(current.cbefore_begin(), stashed,
 			stashed.cbefore_begin())) : current.push_front(std::move(act)))
-	YB_FLATTEN PDefH(void, SetupFront, any_ops::trivial_swap_t,
+	YB_FLATTEN PDefH(void, SetupFront, trivial_swap_t,
 		const Reducer& act)
 		ImplExpr(SetupFront(act));
-	YB_FLATTEN PDefH(void, SetupFront, any_ops::trivial_swap_t,
+	YB_FLATTEN PDefH(void, SetupFront, trivial_swap_t,
 		Reducer&& act)
 		ImplExpr(SetupFront(std::move(act)));
 	//@}
@@ -2716,12 +2731,12 @@ public:
 		ynothrow
 		ImplExpr(rs.splice_after(rs.cbefore_begin(), current,
 			current.cbefore_begin(), i))
- 	/*!
+	/*!
 	\brief 切换当前动作序列。
 	\since build 893
 
 	交换当前动作序列并返回旧的值。
- 	*/
+	*/
 	//@{
 	PDefH(ReducerSequence, Switch, ) ynothrowv
 		ImplRet(Switch(ReducerSequence(get_allocator())))
@@ -2891,11 +2906,11 @@ EmplaceLeaf(Environment::BindingMap& m, string_view name, _tParams&&... args)
 template<typename _type, typename... _tParams>
 inline bool
 EmplaceLeaf(Environment::BindingMap& m, string_view name,
-	any_ops::trivial_swap_t, _tParams&&... args)
+	trivial_swap_t, _tParams&&... args)
 {
 	YAssertNonnull(name.data());
 	return ystdex::insert_or_assign(m, name, NPL::AsTermNode(m.get_allocator(),
-		any_ops::trivial_swap, in_place_type<_type>, yforward(args)...)).second;
+		trivial_swap, in_place_type<_type>, yforward(args)...)).second;
 }
 template<typename _type, typename... _tParams>
 inline bool

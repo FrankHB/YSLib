@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2021 FrankHB.
+	© 2014-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file swap.hpp
 \ingroup YStandardEx
 \brief 交换操作。
-\version r689
+\version r701
 \author FrankHB <frankhb1989@gmail.com>
 \since build 831
 \par 创建时间:
 	2018-07-12 16:38:36 +0800
 \par 修改时间:
-	2021-12-26 13:50 +0800
+	2022-02-15 18:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,13 +28,13 @@
 #ifndef YB_INC_ystdex_swap_hpp_
 #define YB_INC_ystdex_swap_hpp_ 1
 
-#include "type_pun.hpp" // for internal "type_pun.hpp", __cpp_lib_is_swappable,
-//	__cpp_lib_exchange_function, and_, is_move_constructible,
-//	is_move_assignable, is_nothrow_move_constructible,
+#include "type_pun.hpp" // for internal "type_pun.hpp", <utility>,
+//	__cpp_lib_is_swappable, __cpp_lib_exchange_function, and_,
+//	is_move_constructible, is_move_assignable, is_nothrow_move_constructible,
 //	is_nothrow_move_assignable, enable_if_t, std::move, std::declval,
 //	false_, bool_, is_referenceable, true_, is_class, is_enum, bool_, is_void,
 //	is_nothrow_constructible, is_nothrow_assignable, add_volatile_t,
-//	std::addressof, is_bitwise_swappable, pun_storage_t, aligned_replace_cast;
+//	std::addressof, is_bitwise_swappable, pun_storage_t;
 #include <cstring> // for std::memcpy;
 
 /*!
@@ -485,7 +485,7 @@ swap_underlying(_type& x, _type& y) ynothrow
 	using utype = pun_storage_t<_type>;
 	utype t;
 
-	// NOTE: This does not detect the availability %std::bit_cast and similar
+	// NOTE: This does not detect the availability of %std::bit_cast and similar
 	//	builtins, since %is_bitwise_swappable is required. Also note there is no
 	//	%yconstfn_relaxed here, since it is not intended to be used during
 	//	translation.
@@ -589,6 +589,14 @@ exchange(_type& obj, _type2&& new_val)
 #endif
 
 } // inline namespace cpp2014;
+
+
+/*!
+\ingroup tags
+\brief 假定可平凡交换标记。
+\since build 926
+*/
+yconstexpr_inline const struct trivial_swap_t{} trivial_swap{};
 
 } // namespace ystdex;
 

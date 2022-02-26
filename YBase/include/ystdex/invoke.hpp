@@ -11,13 +11,13 @@
 /*!	\file invoke.hpp
 \ingroup YStandardEx
 \brief 可调用对象和调用包装接口。
-\version r4739
+\version r4768
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-24 05:03:12 +0800
 \par 修改时间:
-	2022-02-08 22:26 +0800
+	2022-02-14 12:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,11 +117,11 @@ struct pseudo_output
 //@{
 //! \brief 若类型不是空类型则取后备结果类型（默认为 pseudo_output ）。
 template<typename _type, typename _tRes = pseudo_output>
-using nonvoid_result_t = cond_t<not_<is_void<_type>>, _type, pseudo_output>;
+using nonvoid_result_t = cond_t<is_void<_type>, _tRes, _type>;
 
 //! \brief 若类型不是对象类型则取后备结果类型（默认为 pseudo_output ）。
 template<typename _type, typename _tRes = pseudo_output>
-using object_result_t = cond_t<is_object<_type>, _type, pseudo_output>;
+using object_result_t = cond_t<is_object<_type>, _type, _tRes>;
 //@}
 
 
@@ -589,6 +589,22 @@ invoke_nonvoid_impl(false_, _fCallable&& f, _tParams&&... args)
 	return ystdex::invoke(yforward(f), yforward(args)...);
 }
 
+//! \since build 939
+template<typename _type, typename _fCallable, typename... _tParams>
+YB_ATTR_nodiscard _type
+invoke_for_value_impl(true_, _type&& val, _fCallable&& f, _tParams&&... args)
+{
+	ystdex::invoke(yforward(f), yforward(args)...);
+	return yforward(val);
+}
+//! \since build 939
+template<typename _type, typename _fCallable, typename... _tParams>
+YB_ATTR_nodiscard inline invoke_result_t<_fCallable, _tParams...>
+invoke_for_value_impl(false_, _type&&, _fCallable&& f, _tParams&&... args)
+{
+	return ystdex::invoke(yforward(f), yforward(args)...);
+}
+
 } // namespace details;
 
 /*!
@@ -602,6 +618,19 @@ invoke_nonvoid(_fCallable&& f, _tParams&&... args)
 {
 	return details::invoke_nonvoid_impl(is_void<invoke_result_t<
 		_fCallable, _tParams...>>(), yforward(f), yforward(args)...);
+}
+
+/*!
+\brief 调用第二参数起指定的函数对象，若返回空类型则使用第一参数的值为返回值。
+\since build 939
+*/
+template<typename _type, typename _fCallable, typename... _tParams>
+YB_ATTR_nodiscard yimpl(yconstfn)
+	nonvoid_result_t<invoke_result_t<_fCallable, _tParams...>, _type>
+invoke_for_value(_type&& val, _fCallable&& f, _tParams&&... args)
+{
+	return details::invoke_for_value_impl(is_void<invoke_result_t<_fCallable,
+		_tParams...>>(), yforward(val), yforward(f), yforward(args)...);
 }
 
 

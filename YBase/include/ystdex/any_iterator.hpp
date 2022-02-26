@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2018-2019, 2021 FrankHB.
+	© 2012-2016, 2018-2019, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r1534
+\version r1549
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2021-10-05 18:43 +0800
+	2022-02-14 07:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -281,7 +281,7 @@ public:
 	//! \since build 927
 	template<typename _tIter,
 		yimpl(typename = exclude_self_t<any_input_iterator, _tIter>)>
-	any_input_iterator(any_ops::trivial_swap_t, _tIter&& i)
+	any_input_iterator(trivial_swap_t, _tIter&& i)
 		: any_input_iterator(any_ops::with_handler_t<
 		any_ops::input_iterator_handler<decay_t<_tIter>, reference, true_>>(),
 		yforward(i))
@@ -312,7 +312,7 @@ public:
 	operator=(any_input_iterator&&) = default;
 	//@}
 
-	reference
+	YB_ATTR_nodiscard reference
 	operator*() const
 	{
 		// TODO: More graceful implementation for unused value?
@@ -325,7 +325,7 @@ public:
 			*ystdex::unchecked_any_cast<remove_reference_t<reference>>(&res));
 	}
 
-	pointer
+	YB_ATTR_nodiscard YB_PURE pointer
 	operator->() const
 	{
 		return &**this;
@@ -339,7 +339,7 @@ public:
 	}
 
 	//! \since build 676
-	friend bool
+	YB_ATTR_nodiscard YB_PURE friend bool
 	operator==(const any_input_iterator& x, const any_input_iterator& y)
 	{
 		if(x.has_value() || y.has_value())
@@ -352,18 +352,17 @@ public:
 	}
 
 	//! \since build 615
-	//@{
-	any&
+	YB_ATTR_nodiscard YB_PURE any&
 	get() ynothrow
 	{
 		return *this;
 	}
-	const any&
+	//! \since build 615
+	YB_ATTR_nodiscard YB_PURE const any&
 	get() const ynothrow
 	{
 		return *this;
 	}
-	//@}
 
 	//! \since build 854
 	using any::get_object_ptr;
@@ -372,7 +371,7 @@ public:
 	\ingroup is_undereferenceable
 	\since build 676
 	*/
-	friend bool
+	YB_ATTR_nodiscard YB_PURE friend bool
 	is_undereferenceable(const any_input_iterator& i)
 	{
 		return i.has_value() ? i.template unchecked_access<bool>(
@@ -436,7 +435,7 @@ public:
 	//! \since build 927
 	template<typename _tIter,
 		yimpl(typename = exclude_self_t<any_forward_iterator, _tIter>)>
-	any_forward_iterator(any_ops::trivial_swap_t, _tIter&& i)
+	any_forward_iterator(trivial_swap_t, _tIter&& i)
 		: any_forward_iterator(any_ops::with_handler_t<
 		any_ops::forward_iterator_handler<decay_t<_tIter>, reference, true_>>(),
 		yforward(i))
@@ -470,7 +469,7 @@ public:
 	}
 
 	//! \since build 676
-	friend bool
+	YB_ATTR_nodiscard YB_PURE friend bool
 	operator==(const any_forward_iterator& x, const any_forward_iterator& y)
 	{
 		return static_cast<const base&>(x) == static_cast<const base&>(y);
@@ -527,7 +526,7 @@ public:
 	//! \since build 927
 	template<typename _tIter,
 		yimpl(typename = exclude_self_t<any_bidirectional_iterator, _tIter>)>
-	any_bidirectional_iterator(any_ops::trivial_swap_t, _tIter&& i)
+	any_bidirectional_iterator(trivial_swap_t, _tIter&& i)
 		: any_bidirectional_iterator(any_ops::with_handler_t<
 		any_ops::bidirectional_iterator_handler<decay_t<_tIter>, reference,
 		true_>>(), yforward(i))
@@ -568,7 +567,7 @@ public:
 	}
 
 	//! \since build 676
-	friend bool
+	YB_ATTR_nodiscard YB_PURE friend bool
 	operator==(const any_bidirectional_iterator& x,
 		const any_bidirectional_iterator& y)
 	{

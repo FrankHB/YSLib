@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r7788
+\version r8140
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-02-09 05:25 +0800
+	2022-02-26 20:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,343 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	* "unexpected ADL '!' of traits results"
+		$effective @ %YBase.YStandardEx.(Any, CompressedPair, Optional),
+	+ DLDI "%yunused" @ '!YReader_Impl_TestNPL_UseBacktrace'
+		@ "function %TestNPL" @ %YSTest.Shells
+		// To eliminate G++ warning in release modes: [-Wunused-parameter].
+	/ %YBase.YStandardEx $=
+	(
+		/ %CompressedPair $=
+		(
+			/ DLDI 'typename' @ "template parameter list"
+				@ "class template specialization %compressed_pair_element"
+				-> 'class' ~ 'typename',
+			/ $lib "worked around EBO not enabled for Microsoft VC++ in \
+				multiple inheritance by default"
+				@ "class template %compressed_pair" ^ '__declspec(empty_bases)',
+			/ @ "class template %compressed_pair_element" $=
+			(
+				+ "default argument '0'" @ "2nd template parameter",
+				(
+				+ $impl 'mutable' @ "internal value" @ "primary template";
+				+ "function %get_mutable"
+				),
+				+ "friend function %swap"
+			),
+			+ $re_add(b931) $lib "class template specialization \
+				%is_bitwise_swappable for %compressed_pair_element"
+		),
+		/ %Any $=
+		(
+			+ DD "detailed descriptions" @ "Doxygen comment"
+				@ "union %any_trivial_local_data"
+			/ @ "class template %allocator_value_handler" $=
+			(
+				- DLDI "redudant template parameters" @ "internal \
+					implementations",
+				/ "optimized" ^ $dep_from "%compressed_pair"
+				/ "owner type implementations" $=
+				(
+					// There are no effects for some cases since the \
+						alternative implemenation of the owner type is disabled.
+					* DLDI "wrong owner type" $since b926,
+					* DLDI "missing member function %get_allocator"
+						@ "alternative implementation" $since b887,
+						// The current implementation does not need this since \
+							it directly inherits the function from the \
+							allocator deleter.
+					/ $lib "worked %is_in_place_storable checks failures on \
+						owners for Microsoft VC++" ^ '__declspec(empty_bases)',
+					* "wrong internal data type not guaranteed for EBO as per \
+						ISO C++11 rules" $since b887
+						$= (/ $impl ^ "%(lref, compressed_pair)")
+				)
+			),
+			/ "%(trivial_swap_t, trivial_swap)" @ "namespace %any_ops" @ %Any
+				>> ("namespace %ystdex" @ %Swap) $dep_to "trivial tag move"
+		),
+		/ $dev $lib @ %AnyItearator $=
+		(
+			+ 'YB_ATTR_nodiscard YB_PURE' @ "all functions named %(get, \
+				is_undereferenceable, operator==, operator->)",
+			+ 'YB_ATTR_nodiscard' @ "function %operator*"
+				@ "class template %any_input_iterator"
+		),
+		* "2nd parameter not used" @ "metafunctions %(nonvoid_result_t, \
+			object_result_t)" @ %Invoke $orig (@ %Ref $since b636),
+			// This is buggy in the very first: the result type is always the \
+				template default argument.
+		- DLDI "redundant header inclusion <cstring>" @ %Functor,
+		/ "split %Functional" $dep_from "functional trivial tag move" $=
+		(
+			(
+			+ %Bind,
+			+ %Compose
+				$= (+ "inclusion %Functor"),
+			+ %FunctionAdaptor
+				$= (+ "inclusion %(Bind, Compose)");
+			+ "inclusion %FunctionAdaptor" @ %Functional;
+			/ "%(bind1, bind_forward)" @ %Functional >> %Bind,
+			/ "%(composed, compose, composed_n, compose_n, \
+				generalized_composed, generalized_compose, get_equal_to, \
+				get_less)" @ %Functional >> %Compose,
+			/ "%(update_thunk, one_shot)" @ %Functional >> FunctionAdaptor;
+			- DLDI "inclusion %Functor"
+			),
+			(
+			+ %ExpandedFunction
+				$= (+ "inclusion %Function");
+			+ "inclusion %ExpandedFunction" @ %Functional;
+			/ "%(expand_proxy, expanded_caller, make_expanded, \
+				is_expandable, expanded_function, retry_on_cond)"
+				@ %Functional >> %ExpandedFunction;
+			- DLDI "inclusion %Function"
+			)
+		),
+		/ %Functional $=
+		(
+			/ "function template %invoke_for_value",
+			(
+				* "unexpectedly decayed results"
+					$orig @ ("%call_for_value" $since b606)
+					$= (/ "return type" ^ $dep_from
+						("%nonvoid_result_t" @ %Invoke) ~ "%common_nonvoid_t");
+					// This is buggy because it is intended to forward the \
+						value for a void call result, and if the result is \
+						decayed, it voids the effort. Since %common_type_t \
+						fixed in b938, %common_nonvoid_t result is always \
+						decaysed, so it is always wrong.
+				>> %Invoke
+					// Using of %common_nonvoid_t needs dependency on \
+						%Variadic, which is not intended. With the fix above, \
+						this is not the case.
+			),
+			/ ("header inclusion <numeric>", "functor %default_last_value")
+				>> %Functor $dep_to "default value functor lift"
+		),
+		/ DLDI "header inclusions" @ %Optional $=
+		(
+			/ %Placement -> %Swap;
+			/ %Functional -> %Functor $dep_from "default value functor lift"
+		),
+		/ $re_add(b937) DLDI "adjusted minor comments" @ %Swap,
+		+ '&&' @ "return type" @ "%operator()" @ "class specialization"
+			@ "functor %id" @ %Functor
+			// Now it is more consistent to other functors, and same to \
+				%std::identity of ISO C++20.
+	),
+	/ $forced "removed 'any_ops::' before 'trivial_swap_t' and 'trivial_swap'"
+		$dep_from "trivial tag move" $effective
+		@ %(YBase.YStandardEx.(Functional $dep_to "functional trivial tag move",
+		Function, AnyIterator), YFramework.(YSLib.Core.(YEvent $dep_to
+		"trivial tag simplification", YObject) $dep_from %Adaptor.YAdaptor,
+		NPL.(NPLA, NPLA1, NPLA1Internals, NPLA1Forms, Dependency) $dep_from
+		"NPL trivial tag adaption"), YSTest.Shells, Tools.SHBuild.Main),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			+ ('using ystdex::trivial_swap;', 'using ystdex::trivial_swap_t')
+				@ %YSLib.Adaptor.YAdaptor $dep_from "trivial tag move",
+			- $revert(b926) 'namespace any_ops = ystdex::any_ops;'
+				@ %Core.YEvent $dep_from "trivial tag simplification"
+		),
+		/ %NPL $=
+		(
+			/ %SContext $=
+			(
+				+ "function %IsMovable with %TermTags parameter",
+				+ $lib $impl 'YB_NONNULL(2)' @ "functions %(AssertBranch, \
+					AssertBranchedList)",
+				+ "function %AssertValueTags"
+			),
+			/ %NPLA $=
+			(
+				+ ('using YSLib::trivial_swap;', 'using YSLib::trivial_swap_t')
+					$dep_from %YSLib.Adaptor.YAdaptor
+					$dep_to "NPL trivial tag adaption",
+				/ DLDI "simplified member function %TermReference::IsMovable"
+					^ ("%NPL::IsMovable" @ %SContext),
+				* DLDI "wrong environment reference source"
+					@ "alternative implementation"
+					@ "function %ReduceToReference" $since b915,
+					// Also to be consistent to the existing implementation \
+						contributing to the reference elimination of 'first&', \
+						which is same to the alternative derivation after the \
+						change below.
+				/ ^ $dep_from ("%AssertValueTags" @ %SContext) $=
+				(
+					+ "function %LiftOtherValue",
+					/ "ensured value representation of first-class object on \
+						the parameter as conditional preconditon and \
+						postcondition" @ ("functions %(MoveRValueToForward, \
+						MoveRValueToReturn)" ^ $dep_from "%LiftOtherValue")
+				),
+				* DLDI "alternative implementation" @ "function" $since b915
+			),
+			/ %NPLA1 $=
+			(
+				/ DLD "function %ReduceOnceLifted" @ %NPLA1
+					^ $dep_from (("%LiftOtherValue" ~ "%LiftOther") @ %NPLA),
+				+ "precondition to ensure value representation of first-class \
+					object on the parameter in the post condition"
+					@ (("functions %(RewriteTerm, RewriteTermGuarded)")
+					@ "class %ContextState", (("member function \
+					%ContextState::DefaultReduceOnce", "function %ReduceOnce"
+					$dep_all_from "combining tags fixes");
+					$comp "function %Reduce")
+					^ $dep_from ("%AssertValueTags" @ %SContext),
+				/ DLDI "declaration order" @ "function %IsCombiningTerm",
+				+ "function %ClearCombiningTags"
+			),
+			* $re_add(b849) "missing exclusion of self type"
+				@ "constructor template %GParameterValueMatcher" $since b917,
+			/ "threw nested exception when matching parameter failure without \
+				%ParameterMismatch already thrown" @ %(NPLA1, NPLA1Internals)
+				^ "%ParameterMismatch" ~ "%InvalidSyntax" $=
+				$= (/ "function %ThrowNestedParameterTreeCheckError"
+					-> "%ThrowNestedParameterTreeMismatch")
+			/ %NPLA1Forms $=
+			(
+				// These are not less efficient with x86_64-pc-linux G++ 11.1 \
+					at current.
+				- $re_add(b937) $revert(b876) DLI 'YB_FLATTEN'
+					@ ("internal function reducing the 1st subterm"
+					@ "functions %(FirstAt, FirstRef)", "wrapping and \
+					unwrapping" @ "functions %(Wrap, WrapRef, WrapOnce, \
+					WrapOnceRef, Unwrap)"),
+				/ DLI "enabled simpler implementation for reducing the 1st \
+					subterm" @ "functions %(ListExtractFirst, Let, LetRef, \
+					LetWithEnvironment, LetWithEnvironmentRef, LetRec, \
+					LetRecRef, LetAsterisk, LetAsteriskRef, First, \
+					BindingsToEnvironment, BindingsWithParentToEnvironment)",
+				- $revert_ex(b912) DLI "simplified function %Append"
+					!^ 'YB_FLATTEN',
+				* "missing specifying no lifting on result"
+					@ "function %LetRecRef" $since b917,
+				- $re_add(b937) $revert_ex(b914) DLI "several 'YB_FLATTEN'"
+					@ "internal function reducing the rest subterms"
+					@ "functions %(RestFwd, RestVal, Let, LetRef, \
+					LetWithEnvironment, LetWithEnvironmentRef, LetRec, \
+					LetRecRef, LetAsterisk, LetAsteriskRef, \
+					ListExtractRestFwd, ProvideLet, BindingsToEnvironment, \
+					BindingsWithParentToEnvironment)",
+					// The shared implementation of %(RestFwd, RestVal) is \
+						less optimal without the changes in the list \
+						extraction simplification above.
+				(
+				/ $revert(b875) "removed unified forwarding"
+					@ "function %First" $dep_from ("applicative %assv"
+					@ "function %LoadGroundContext" @ %Dependency);
+					// See the comment on the change of %assv below.
+				/ DLI "simplified list exraction" @ "functions %(Let, LetRef, \
+					LetRec, LetRecRef, BindingsWithParentToEnvironment, \
+					BindingsToEnvironment, ProvideLet, ListExtractFirst, \
+					ListExtractRestFwd, LetAsterisk, LetAsteriskRef)"
+					^ $dep_from
+					("%IsMovable" @ %SContext, "%LiftMovedOther" @ %NPLA)
+					// No %TermTags::Temporary in the references are cared now.
+				),
+				/ @ "constructor" @ "vau handler" $=
+				(
+					* "missing cleanup combining tags for the evaluation \
+						structure" $orig (@ %NPLA1 $since b860)
+						$dep_to "combining tags fixes"
+						// %TermTags::Temporary is introduced in \
+							%ReduceCombined since b860.
+						$= (/ $impl ^ $dep_from
+							("%ClearCombiningTags" @ %NPLA1));
+					/ DLDI "ensured no comining tags for the evaluation \
+						structure" ^ $dep_from ("%AssertValueTags" @ %SContext)
+				),
+				* "missing cleanup combining tags" @ ("functions %(Eval, \
+					EvalRef, EvalString, EvalStringRef, RemoteEval, \
+					RemoteEvalRef)" $orig (@ "functions %(Eval, EvalRef, \
+					EvalString, EvalStringRef)" @ %NPLA1 $since b860)
+					"functions %(DefineLazy, DefineWithNoRecursion, \
+					DefineWithRecursion, SetWithNoRecursion, SetWithRecursion)")
+					$dep_to "combining tags fixes"
+					// Ditto.
+					$= (/ $impl ^ $dep_from ("%ClearCombiningTags" @ %NPLA1))
+				/ DLDI "simplified" @ "functions %(DefineLazy, \
+					DefineWithNoRecursion, DefineWithRecursion, \
+					SetWithNoRecursion, SetWithRecursion)",
+				* "missing copy elision for movable lists" @ "function \
+					%FirstVal" $orig (@ %NPLA1 $mismatch(Documentation.NPL)
+					$since b870),
+					// %FirstVal did not support elision at all since b859, \
+						but this was not required then. It was changed in b874 \
+						but it is still not sufficient. Note %RestVal \
+						(introduced since b910) did splice in other paths for \
+						xvalues, so it is not directly affected.
+				* "missing returning value conversion for reference values from \
+					rvalue lists" @ "function %First" $since b925
+					// This should have been changed as the alternative derivation.
+			),
+			/ DLDI "simplified internal %YSLib names" @ %NPLA1
+				^ "using declarations",
+			/ @ "function %LoadGroundContext" @ %Dependency $=
+			(
+				(
+				/ DLDI "applicative %assv" ^ 'first%' ~ 'first';
+					// This is needed for the following change, otherwise it \
+						would incur undefined behavior with some nested list \
+						prvalue operand (easily detectable by \
+						%NPL_Impl_NPLA1_Enable_Thunked disabled).
+				* "wrongly moved object referenenced by reference in lists \
+					with the temporary tag" @ ("applicative %first" $since b875
+					$dep_from ("%First" @ %NPLA1Forms), "alternative derivation"
+					@ "applicative 'first%'" $since b913),
+					// Only temporary tags on the element should be respected. \
+						This also included the wrong copying behavior of \
+						%first when the 1st element is an unique nonmodifying \
+						reference.
+				* $comp $re_add(b925) "missing return value conversion for \
+					elements in rvalue lists"
+					$dep_from ("%First" @ %NPLA1Forms) $since b859
+					// This was fixed in alternative derivations since b925.
+				),
+				* $comp "missing preserving reference on the result"
+					@ "native implementation" @ "operative '$letrec%'"
+					$since b917 $dep_from ("%LetRecRef" @ %NPLA1Forms),
+				* "unique tag not collapsed in the reference results"
+					@ "native derivation"
+					@ "applicatives (%first, 'first&')" $since b873,
+					// It is intended to get the result by reference value \
+						elimination instead of reference collapsing here.
+				* "missing copy elision on xvalue parameters" @ ("applicative \
+					%firstv" $since b870, "alternative implementation"
+					@ "applicative %collapse" $since b870) $=
+				(
+					/ $comp "native implementation"
+						$dep_from ("%FirstVal" @ %NPLA1Forms),
+					/ "altarenative derivations" ^ '$move-resolved!'
+						// This was never changed since the introducing in \
+							b859 of %first and b869 of %collapse. It was \
+							not required to support the elision until the \
+							documentation did.
+				),
+				* "nonmodifying tag not propagated to results" @ "alternative \
+					derivation" @ "applicative %collapse" $since b869
+			),
+			/ @ "promise creation" @ "function %LoadModule_std_promises" $=
+			(
+				* "missing cleanup combining tags for the saved expression"
+					@ "native implementation" @ "operatives '$lazy', \
+					'$lazy%', '$lazy/d', '$lazy/d%'"
+					$dep_to "combining tags fixes"
+					$= (/ $impl
+						^ $dep_from ("%ClearCombiningTags" @ %NPLA1));
+				/ DLDI "ensured no comining tags for the saved expression \
+					structure" ^ $dep_from ("%AssertValueTags" @ %SContext)
+			)
+		)
+	)
+),
+
+b938
 (
 	/ $re_add(b937) DLDI "simplified localized URLs" @ "comments" $effective
 		@ %YFramework.(YCLib.(Debug, FileIO, Host, HostedGUI, NativeAPI,
@@ -94,15 +431,20 @@ $now
 					a conforming implementation of %integer_sequence. \
 					Nevertheless, check it earlier is better.
 		),
-		/ DLDI "made internal identifier in small cases"
-			$effective @ %TypeOperation,
-			// To be consistent with other names in %YBase.
 		/ %TypeInspection $=
 		(
 			/ "header inclusion %CStandardDefinition" -> "%IntegralConstant"
 				$dep_to "collapsed type inspection header inclusion",
 			+ "conditionally defined macro %__cpp_lib_is_final";
 			+ "unary type trait %is_final" @ "inline namespace %cpp2014"
+				// This is implemented with compatibility limitations, i.e. \
+					either %std::is_final or __is_final is used to get the \
+					correct result. Otherwise, it would be always treated \
+					non-fianl, which is wrong for final classes. Though naive \
+					implementations %is_empty also does not work on final \
+					classes, it is already supported via %std::is_empty, which \
+					is in ISO C++11. For final class it also internally \
+					requires an implementation-specific intrinsic.
 		),
 		/ %Meta $=
 		(
@@ -122,7 +464,7 @@ $now
 					%YFramework.(YCLib.Common, \
 					'YCLib_(DS)'.DSIO, NPL.NPLAMath)). Derivative uses of \
 					%ystdex::common_array_t (using %ystdex::common_nonvoid_t) \
-					is also guaranteed to have decayed types when well-formed.
+					are also guaranteed to have decayed types when well-formed.
 			- DLDI "header inclusion %IntegralConstant"
 				$dep_from "collapsed type inspection header inclusion"
 		),
@@ -548,9 +890,9 @@ b936
 					the array types, so the overload for initializer lists is \
 					needed anyway.
 			(
-			* "missing excluding arrays" @ "function templates %(string_begin, \
-				string_end, string_length, string_empty) with range parameters"
-				$since b519;
+			* "missing exclusion of arrays" @ "function templates \
+				%(string_begin, string_end, string_length, string_empty) with \
+				range parameters" $since b519;
 			/ @ "function templates %ystdex::(string_begin, string_end) with \
 				range parameters" $=
 			(
@@ -2486,7 +2828,7 @@ b926
 					// Also to eliminate Clang++ warning: [-Wnonnull].
 				/ DLDI "simplified internal metafunctions"
 					^ $dep_from "%any_ops::is_handler_constructible",
-				* $re_ex(b851) "missing excluding non-allocators"
+				* $re_ex(b851) "missing exclusion of non-allocators"
 					@ "SFINAE-friendly constructor overloads with \
 					%use_holder_t and allocator parameters" $since b851
 					$dep_to "any constructor SFINAE fix"

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2021 FrankHB.
+	© 2010-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r6192
+\version r6211
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2021-09-24 18:04 +0800
+	2022-02-14 07:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,11 +30,10 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YFunc // for module YSLib::Core::YFunc,
-//	ystdex::any_ops, ystdex::is_expandable, ystdex::is_decayed,
-//	any_ops::trivial_swap_t, any_ops::trivial_swap, std::allocator_arg_t,
-//	std::allocator_arg, ystdex::make_expanded, ystdex::default_last_value,
-//	std::piecewise_construct, YSLib::forward_as_tuple,
-//	ystdex::is_bitwise_swappable;
+//	ystdex::is_expandable, ystdex::is_decayed, trivial_swap_t, trivial_swap,
+//	std::allocator_arg_t, std::allocator_arg, ystdex::make_expanded,
+//	ystdex::default_last_value, std::piecewise_construct,
+//	YSLib::forward_as_tuple, ystdex::is_bitwise_swappable;
 #include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
 #include <ystdex/type_op.hpp> // for ystdex::exclude_self_t,
 //	ystdex::exclude_self_params_t;
@@ -47,9 +46,6 @@
 
 namespace YSLib
 {
-
-//! \since build 926
-namespace any_ops = ystdex::any_ops;
 
 /*!
 \brief 标准事件处理器模板。
@@ -158,7 +154,7 @@ public:
 		comp_eq(GEquality<ystdex::decay_t<FuncType>>::AreEqual)
 	{}
 	//! \since build 926
-	GHEvent(any_ops::trivial_swap_t, FuncType* f = {}) ynothrow
+	GHEvent(trivial_swap_t, FuncType* f = {}) ynothrow
 		: GHEvent(f)
 	{}
 	//@}
@@ -173,9 +169,9 @@ public:
 	//! \since build 926
 	template<class _tAlloc>
 	inline
-	GHEvent(std::allocator_arg_t, const _tAlloc& a, any_ops::trivial_swap_t,
+	GHEvent(std::allocator_arg_t, const _tAlloc& a, trivial_swap_t,
 		FuncType* f = {}) ynothrow
-		: BaseType(std::allocator_arg, a, any_ops::trivial_swap, f),
+		: BaseType(std::allocator_arg, a, trivial_swap, f),
 		comp_eq(GEquality<ystdex::decay_t<FuncType>>::AreEqual)
 	{}
 	//@}
@@ -196,8 +192,8 @@ public:
 		_fCallable>, typename = ystdex::enable_if_t<std::is_constructible<
 		function<FuncType>, _fCallable>::value>)>
 	inline
-	GHEvent(any_ops::trivial_swap_t, _fCallable f)
-		: BaseType(any_ops::trivial_swap, std::move(f)),
+	GHEvent(trivial_swap_t, _fCallable f)
+		: BaseType(trivial_swap, std::move(f)),
 		comp_eq(GEquality<_fCallable>::AreEqual)
 	{}
 	//@}
@@ -219,9 +215,9 @@ public:
 		typename = ystdex::enable_if_t<
 		std::is_constructible<function<FuncType>, _fCallable>::value>)>
 	inline
-	GHEvent(std::allocator_arg_t, const _tAlloc& a, any_ops::trivial_swap_t,
+	GHEvent(std::allocator_arg_t, const _tAlloc& a, trivial_swap_t,
 		_fCallable&& f)
-		: BaseType(std::allocator_arg, a, any_ops::trivial_swap, yforward(f)),
+		: BaseType(std::allocator_arg, a, trivial_swap, yforward(f)),
 		comp_eq(GEquality<_fCallable>::AreEqual)
 	{}
 	//@}
@@ -241,8 +237,8 @@ public:
 	template<typename _fCallable,
 		yimpl(typename = enable_if_expandable_t<_fCallable>)>
 	inline
-	GHEvent(any_ops::trivial_swap_t, _fCallable f)
-		: BaseType(any_ops::trivial_swap,
+	GHEvent(trivial_swap_t, _fCallable f)
+		: BaseType(trivial_swap,
 		ystdex::make_expanded<FuncType>(std::move(f))),
 		// XXX: Here lambda-expression is buggy on G++ LTO, at least G++ 7.1.0
 		//	(failure of multiple definitions).
@@ -266,9 +262,9 @@ public:
 	template<typename _fCallable, class _tAlloc,
 		yimpl(typename = enable_if_expandable_t<_fCallable>)>
 	inline
-	GHEvent(std::allocator_arg_t, const _tAlloc& a, any_ops::trivial_swap_t,
+	GHEvent(std::allocator_arg_t, const _tAlloc& a, trivial_swap_t,
 		_fCallable f)
-		: BaseType(std::allocator_arg, a, any_ops::trivial_swap,
+		: BaseType(std::allocator_arg, a, trivial_swap,
 		ystdex::make_expanded<FuncType>(std::move(f))),
 		// XXX: Here lambda-expression is buggy on G++ LTO, at least G++ 7.1.0
 		//	(failure of multiple definitions).

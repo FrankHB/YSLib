@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018-2021 FrankHB.
+	© 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20565
+\version r20570
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2021-11-03 18:13 +0800
+	2022-02-25 00:47 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -132,7 +132,7 @@ TCOAction::operator()(ContextNode& ctx) const
 	//	the implementation-dependent ones.
 	// NOTE: If this is called properly, %ctx.LastStatus should be maintained to
 	//	refer to the reduction status of the right term by
-	//	%PushedAction::operator() in %NPLA1.cpp.
+	//	%PushedAction::operator() in NPLA1.cpp.
 	const auto res([&]() -> ReductionStatus{
 		// NOTE: This implies the call of %RegularizeTerm before lifting.
 		// XXX: Since the call of %RegularizeTerm is idempotent without term
@@ -222,10 +222,10 @@ EnsureTCOAction(ContextNode& ctx, TermNode& term)
 
 
 void
-ThrowNestedParameterTreeCheckError()
+ThrowNestedParameterTreeMismatch()
 {
-	std::throw_with_nested(InvalidSyntax("Failed checking for parameter in a"
-		" parameter tree (expected a list, a symbol or '#ignore')."));
+	std::throw_with_nested(ParameterMismatch("Failed initializing the operand"
+		" in a parameter tree (expected a list, a symbol or '#ignore')."));
 }
 
 char

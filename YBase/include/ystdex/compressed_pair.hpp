@@ -11,13 +11,13 @@
 /*!	\file compressed_pair.hpp
 \ingroup YStandardEx
 \brief 压缩存储对类型。
-\version r242
+\version r301
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2022-02-08 23:56:14 +0800
 \par 修改时间:
-	2022-02-09 03:02 +0800
+	2022-02-11 02:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,12 +31,13 @@
 #ifndef YB_INC_ystdex_compressed_pair_hpp_
 #define YB_INC_ystdex_compressed_pair_hpp_ 1
 
-#include "placement.hpp" // for internal "placement.hpp", _tIdx, default_init_t,
-//	value_init_t, std::piecewise_construct_t, value_init, is_bitwise_swappable;
+#include "placement.hpp" // for internal "placement.hpp", size_t,
+//	default_init_t, value_init_t, std::piecewise_construct_t, value_init,
+//	is_bitwise_swappable;
 #include "integer_sequence.hpp" // for and_, is_empty, not_, is_final,
 //	index_sequence, is_default_constructible, index_sequence_for,
 //	vseq::seq_size, remove_cvref_t;
-#include "swap.hpp" // for is_nothrow_swappable;
+#include "swap.hpp" // for is_nothrow_swappable, ystdex::swap_dependent;
 
 namespace ystdex
 {
@@ -51,7 +52,7 @@ namespace ystdex
 \note 模板参数分别表示元素值的类型、支持在同一个类继承的冗余索引和指定压缩。
 */
 //@{
-template<typename _type, size_t,
+template<typename _type, size_t = 0,
 	bool = and_<is_empty<_type>, not_<is_final<_type>>>::value>
 class compressed_pair_element
 {
@@ -61,7 +62,8 @@ public:
 	using const_reference = const _type&;
 
 private:
-	value_type value;
+	//! \since build 939
+	mutable value_type value;
 
 public:
 	yconstfn
@@ -94,9 +96,24 @@ public:
 	{
 		return value;
 	}
+
+	//! \since build 939
+	YB_ATTR_nodiscard yconstfn_relaxed YB_PURE _type&
+	get_mutable() const ynothrow
+	{
+		return value;
+	}
+
+	//! \since build 939
+	friend void
+	swap(compressed_pair_element& x, compressed_pair_element& y)
+		ynoexcept(is_nothrow_swappable<_type>())
+	{
+		ystdex::swap_dependent(get(), get());
+	}
 };
 
-template<typename _type, size_t _tIdx>
+template<class _type, size_t _tIdx>
 class compressed_pair_element<_type, _tIdx, true> : private _type
 {
 public:
@@ -140,18 +157,56 @@ public:
 	{
 		return *this;
 	}
+
+	//! \since build 939
+	YB_ATTR_nodiscard yconstfn_relaxed YB_PURE _type&
+	get_mutable() const ynothrow
+	{
+		return const_cast<compressed_pair_element&>(*this);
+	}
+
+	//! \since build 939
+	friend void
+	swap(compressed_pair_element& x, compressed_pair_element& y)
+		ynoexcept(is_nothrow_swappable<_type>())
+	{
+		ystdex::swap_dependent(get(), get());
+	}
 };
+
+/*!
+\relates compressed_pair_element
+\since build 939
+*/
+template<typename _type, size_t _vIdx, bool _bOptimizeEmpty>
+struct is_bitwise_swappable<
+	compressed_pair_element<_type, _vIdx, _bOptimizeEmpty>>
+	: is_bitwise_swappable<_type>
+{};
 //@}
 
 
 template<typename _type1, typename _type2>
-class compressed_pair : private compressed_pair_element<_type1, 0>,
+class
+// XXX: Microsoft VC++ needs workaround. See also the comments of
+//	%YStandardEx.Base and %YStandardEx.Ref.
+// NOTE: See https://dev.to/yumetodo/list-of-mscver-and-mscfullver-8nd.
+#if YB_IMPL_MSCPP && _MSC_FULL_VER >= 190023918L
+	__declspec(empty_bases)
+#endif
+	compressed_pair : private compressed_pair_element<_type1, 0>,
 	private compressed_pair_element<_type2, 1>
 {
-	static_assert(!is_same<_type1, _type2>(),
-		"Duplicate template parameters are currently not supported.");
+	// XXX: See $2022-02 @ %Documentation::Workflow. The types %_type1 and
+	//	%_type2 can be types of template classes with incomplete arguments in
+	//	this context. This is especially crucial to support incomplete types in
+	//	containers. 
+	static_assert(!is_same<_type1, _type2>::value,
+		"Duplicate template arguments are currently not supported.");
 
 public:
+	// XXX: Not collapsing %compressed_pair_element. This avoids some complexity
+	//	on value accesses.
 	using base1 = compressed_pair_element<_type1, 0>;
 	using base2 = compressed_pair_element<_type2, 1>;
 

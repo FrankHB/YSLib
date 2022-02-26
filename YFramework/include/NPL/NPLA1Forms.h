@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8627
+\version r8641
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2022-01-20 18:01 +0800
+	2022-02-14 07:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,8 +37,8 @@
 //	NPL::AccessTypedValue, ystdex::make_transform, std::accumulate,
 //	std::placeholders::_2, ystdex::bind1, ContextNode,
 //	ystdex::equality_comparable, ystdex::exclude_self_params_t,
-//	ystdex::examiners::equal_examiner, Environment,
-//	ystdex::is_bitwise_swappable, ystdex::true_;
+//	ystdex::examiners::equal_examiner, trivial_swap_t, trivial_swap,
+//	Environment, ystdex::is_bitwise_swappable, ystdex::true_;
 
 namespace NPL
 {
@@ -608,11 +608,10 @@ RegisterUnary(_tTarget& target, string_view name, _func f)
 //! \since build 927
 template<size_t _vWrapping = Strict, typename _func, class _tTarget>
 inline void
-RegisterUnary(_tTarget& target, string_view name, any_ops::trivial_swap_t,
-	_func f)
+RegisterUnary(_tTarget& target, string_view name, trivial_swap_t, _func f)
 {
 	A1::RegisterHandler<_vWrapping>(target, name,
-		any_ops::trivial_swap, UnaryExpansion<_func>(std::move(f)));
+		trivial_swap, UnaryExpansion<_func>(std::move(f)));
 }
 template<size_t _vWrapping = Strict, typename _type, typename _func,
 	class _tTarget>
@@ -626,11 +625,10 @@ RegisterUnary(_tTarget& target, string_view name, _func f)
 template<size_t _vWrapping = Strict, typename _type, typename _func,
 	class _tTarget>
 inline void
-RegisterUnary(_tTarget& target, string_view name, any_ops::trivial_swap_t,
-	_func f)
+RegisterUnary(_tTarget& target, string_view name, trivial_swap_t, _func f)
 {
 	A1::RegisterHandler<_vWrapping>(target, name,
-		any_ops::trivial_swap, UnaryAsExpansion<_type, _func>(std::move(f)));
+		trivial_swap, UnaryAsExpansion<_type, _func>(std::move(f)));
 }
 //@}
 
@@ -646,11 +644,10 @@ RegisterBinary(_tTarget& target, string_view name, _func f)
 //! \since build 927
 template<size_t _vWrapping = Strict, typename _func, class _tTarget>
 inline void
-RegisterBinary(_tTarget& target, string_view name, any_ops::trivial_swap_t,
-	_func f)
+RegisterBinary(_tTarget& target, string_view name, trivial_swap_t, _func f)
 {
 	A1::RegisterHandler<_vWrapping>(target, name,
-		any_ops::trivial_swap, BinaryExpansion<_func>(std::move(f)));
+		trivial_swap, BinaryExpansion<_func>(std::move(f)));
 }
 template<size_t _vWrapping = Strict, typename _type, typename _type2,
 	typename _func, class _tTarget>
@@ -664,10 +661,9 @@ RegisterBinary(_tTarget& target, string_view name, _func f)
 template<size_t _vWrapping = Strict, typename _type, typename _type2,
 	typename _func, class _tTarget>
 inline void
-RegisterBinary(_tTarget& target, string_view name, any_ops::trivial_swap_t,
-	_func f)
+RegisterBinary(_tTarget& target, string_view name, trivial_swap_t, _func f)
 {
-	A1::RegisterHandler<_vWrapping>(target, name, any_ops::trivial_swap,
+	A1::RegisterHandler<_vWrapping>(target, name, trivial_swap,
 		BinaryAsExpansion<_type, _type2, _func>(std::move(f)));
 }
 //@}
