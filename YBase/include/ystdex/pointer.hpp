@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r699
+\version r702
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2022-01-23 20:48 +0800
+	2022-02-28 05:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,8 +31,8 @@
 #ifndef YB_INC_ystdex_pointer_hpp_
 #define YB_INC_ystdex_pointer_hpp_ 1
 
-#include "iterator_op.hpp" // for "iterator_op.hpp", <memory>, pointer_traits,
-//	nullptr_t, bool_, not_, is_function, true_, detected_or_t,
+#include "iterator_op.hpp" // for "iterator_op.hpp", <iterator>, <memory>,
+//	pointer_traits, nullptr_t, bool_, not_, is_function, true_, detected_or_t,
 //	totally_ordered, equality_comparable, add_pointer_t, add_lvalue_reference_t,
 //	yconstraint, iterator_operators_t, std::iterator_traits;
 #include "functor.hpp" // for indirect_t, std::equal_to, std::less, std::hash,
@@ -354,7 +354,7 @@ public:
 	\ingroup is_undereferenceable
 	\since build 878
 	*/
-	friend yconstfn YB_PURE bool
+	friend YB_PURE yconstfn bool
 	is_undereferenceable(const observer_ptr& p) ynothrow
 	{
 		return !p;

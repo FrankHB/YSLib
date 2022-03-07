@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2019, 2021 FrankHB.
+	© 2012-2019, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r902
+\version r908
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2021-12-20 22:55 +0800
+	2022-02-26 23:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,9 +26,11 @@
 
 
 #include "YSLib/Core/YModules.h"
-#include YFM_YSLib_Core_ValueNode // for ystdex::invoke_value_or,
-//	ystdex::addrof, ystdex::compose, std::mem_fn, ystdex::bind1, ystdex::ref_eq;
-#include <ystdex/deref_op.hpp> // for ystdex::call_value_or;
+#include YFM_YSLib_Core_ValueNode // for ystdex::ref_eq, std::out_of_range,
+//	ystdex::sfmt, make_observer, ystdex::call_value_or, ystdex::addrof,
+//	ystdex::end, ptrdiff_t, std::next, ystdex::invoke_value_or, std::mem_fn;
+#include <ystdex/bind.hpp> // for ystdex::bind1;
+#include <ystdex/compose.hpp> // for ystdex::compose;
 #include <ystdex/bit.hpp> // for ystdex::floor_lb;
 
 namespace YSLib

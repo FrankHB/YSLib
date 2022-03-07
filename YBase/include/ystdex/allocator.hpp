@@ -11,13 +11,13 @@
 /*!	\file allocator.hpp
 \ingroup YStandardEx
 \brief 分配器接口。
-\version r5701
+\version r5793
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-10 21:34:28 +0800
 \par 修改时间:
-	2022-01-23 23:21 +0800
+	2022-02-28 20:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,18 +30,20 @@
 #ifndef YB_INC_ystdex_allocator_hpp_
 #define YB_INC_ystdex_allocator_hpp_ 1
 
-#include "placement.hpp" // for internal "placement.hpp", <memory>,
+#include "compressed_pair.hpp" // for internal "placement.hpp", <memory>,
 //	std::pair, false_, true_, std::allocator_arg, is_constructible, not_, and_,
 //	is_explicitly_constructible, is_implicitly_constructible, enable_if_t,
 //	detected_or_t, is_unqualified_object, is_copy_constructible, is_class_type,
 //	is_same, std::pointer_traits, std::declval, is_detected, detected_t,
-//	is_detected_exact, cond, remove_cvref_t, bool_, is_lvalue_reference,
-//	remove_reference_t, exclude_self_t;
+//	is_detected_exact, cond, remove_cvref_t, bool_, is_lvalue_reference, cond_t,
+//	remove_reference_t, compressed_pair, compressed_pair_element,
+//	exclude_self_t, is_bitwise_swappable;
 #include "apply.hpp" // for std::tuple, std::forward_as_tuple,
 //	std::piecewise_construct_t, std::piecewise_construct, std::make_tuple,
 //	ystdex::apply;
 #include "type_op.hpp" // for internal "type_op.hpp", cond_or_t;
-#include "pointer.hpp" // for ystdex::swap_dependent, ystdex::to_address;
+#include "pointer.hpp" // for internal "pointer.hpp", ystdex::swap_dependent,
+//	ystdex::to_address;
 #include "exception.h" // for throw_invalid_construction;
 
 /*!
@@ -674,39 +676,18 @@ struct has_get_allocator : cond_or_t<is_detected<details::mem_get_allocator_t>,
 namespace details
 {
 
-//! \since build 846
+//! \since build 940
 template<typename _tAlloc>
-class allocator_delete_base
+struct allocator_deleter_traits
+	: allocator_traits<remove_cvref_t<_tAlloc>>
 {
-protected:
-	using ator_traits = allocator_traits<remove_cvref_t<_tAlloc>>;
 	// XXX: Rvalue references are not supported.
-	using stored_ator_t = cond_t<is_lvalue_reference<_tAlloc>,
+	using stored_type = cond_t<is_lvalue_reference<_tAlloc>,
 		lref<remove_reference_t<_tAlloc>>, _tAlloc>;
-
-	//! \since build 843
-	mutable stored_ator_t alloc;
-
-	template<class _tParam,
-		yimpl(typename = exclude_self_t<allocator_delete_base, _tParam>)>
-	inline
-	allocator_delete_base(_tParam&& a) ynothrow
-		: alloc(yforward(a))
-	{}
-	allocator_delete_base(const allocator_delete_base&) = default;
-	allocator_delete_base(allocator_delete_base&&) = default;
-
-	allocator_delete_base&
-	operator=(const allocator_delete_base&) = default;
-	allocator_delete_base&
-	operator=(allocator_delete_base&&) = default;
-
-	//! \since build 887
-	YB_ATTR_nodiscard YB_PURE _tAlloc&
-	get_allocator() const ynothrow
-	{
-		return alloc;
-	}
+	using size_type = typename
+		allocator_traits<remove_cvref_t<_tAlloc>>::size_type;
+	using guard_delete_base = compressed_pair<stored_type, size_type>;
+	using delete_base = compressed_pair_element<stored_type>;
 };
 
 
@@ -755,16 +736,6 @@ do_alloc_on_swap(_tAlloc& x, _tAlloc& y, true_)
 
 } // namespace details;
 
-/*!
-\relates details::allocator_delete_base
-\since build 926
-*/
-template<class _tAlloc>
-struct is_bitwise_swappable<details::allocator_delete_base<_tAlloc>>
-	: or_<is_lvalue_reference<remove_cvref_t<_tAlloc>>,
-	is_bitwise_swappable<remove_cvref_t<_tAlloc>>>
-{};
-
 
 /*!
 \note 模板参数可能是引用。
@@ -776,55 +747,48 @@ struct is_bitwise_swappable<details::allocator_delete_base<_tAlloc>>
 \since build 846
 */
 template<typename _tAlloc>
-class allocator_guard_delete : private details::allocator_delete_base<_tAlloc>
+class allocator_guard_delete
+	: private details::allocator_deleter_traits<_tAlloc>::guard_delete_base
 {
 private:
+	//! \since build 940
+	using traits = typename details::allocator_deleter_traits<_tAlloc>;
 	//! \since build 846
-	using base = details::allocator_delete_base<_tAlloc>;
-	//! \since build 846
-	using typename base::ator_traits;
+	using base = typename traits::guard_delete_base;
 
 public:
 	//! \since build 595
-	using pointer = typename ator_traits::pointer;
+	using pointer = typename traits::pointer;
 	//! \since build 595
-	using size_type = typename ator_traits::size_type;
+	using size_type = typename traits::size_type;
 
-private:
-	//! \since build 843
-	size_type count;
-
-public:
 	//! \since build 937
 	template<class _tParam,
 		yimpl(typename = exclude_self_t<allocator_guard_delete, _tParam>)>
 	inline
 	allocator_guard_delete(_tParam&& a, size_type n = 1) ynothrow
-		: base(yforward(a)), count(n)
+		: base(yforward(a), n)
 	{}
-	allocator_guard_delete(const allocator_guard_delete&) = default;
-	allocator_guard_delete(allocator_guard_delete&&) = default;
-
-	allocator_guard_delete&
-	operator=(const allocator_guard_delete&) = default;
-	allocator_guard_delete&
-	operator=(allocator_guard_delete&&) = default;
 
 	//! \since build 595
 	void
 	operator()(pointer p) const ynothrowv
 	{
-		ator_traits::deallocate(base::alloc, p, count);
+		traits::deallocate(get_allocator(), p, get_count());
 	}
 
 	//! \since build 846
-	yimpl(using) base::get_allocator;
+	YB_ATTR_nodiscard YB_PURE _tAlloc&
+	get_allocator() const ynothrow
+	{
+		return base::first_base().get_mutable();
+	}
 
 	//! \since build 887
 	YB_ATTR_nodiscard YB_PURE size_type
 	get_count() const ynothrow
 	{
-		return count;
+		return base::second();
 	}
 };
 
@@ -834,7 +798,8 @@ public:
 */
 template<class _tAlloc>
 struct is_bitwise_swappable<allocator_guard_delete<_tAlloc>>
-	: is_bitwise_swappable<details::allocator_delete_base<_tAlloc>>
+	: is_bitwise_swappable<
+	typename details::allocator_deleter_traits<_tAlloc>::guard_delete_base>
 {};
 
 
@@ -843,17 +808,18 @@ struct is_bitwise_swappable<allocator_guard_delete<_tAlloc>>
 \since build 595
 */
 template<typename _tAlloc>
-class allocator_delete : private details::allocator_delete_base<_tAlloc>
+class allocator_delete
+	: private details::allocator_deleter_traits<_tAlloc>::delete_base
 {
 private:
+	//! \since build 940
+	using traits = typename details::allocator_deleter_traits<_tAlloc>;
 	//! \since build 846
-	using base = details::allocator_delete_base<_tAlloc>;
-	//! \since build 846
-	using typename base::ator_traits;
+	using base = typename traits::delete_base;
 
 public:
 	//! \since build 595
-	using pointer = typename ator_traits::pointer;
+	using pointer = typename traits::pointer;
 
 	//! \since build 847
 	template<class _tParam,
@@ -862,26 +828,20 @@ public:
 	allocator_delete(_tParam&& a) ynothrow
 		: base(yforward(a))
 	{}
-	//! \since build 843
-	//@{
-	allocator_delete(const allocator_delete&) = default;
-	allocator_delete(allocator_delete&&) = default;
-
-	allocator_delete&
-	operator=(const allocator_delete&) = default;
-	allocator_delete&
-	operator=(allocator_delete&&) = default;
-	//@}
 
 	void
 	operator()(pointer p) const ynothrowv
 	{
-		ator_traits::destroy(base::alloc, ystdex::to_address(p));
-		ator_traits::deallocate(base::alloc, p, 1);
+		traits::destroy(get_allocator(), ystdex::to_address(p));
+		traits::deallocate(get_allocator(), p, 1);
 	}
 
 	//! \since build 846
-	yimpl(using) base::get_allocator;
+	YB_ATTR_nodiscard YB_PURE _tAlloc&
+	get_allocator() const ynothrow
+	{
+		return base::get_mutable();
+	}
 };
 //@}
 
@@ -891,7 +851,8 @@ public:
 */
 template<typename _tAlloc>
 struct is_bitwise_swappable<allocator_delete<_tAlloc>>
-	: is_bitwise_swappable<details::allocator_delete_base<_tAlloc>>
+	: is_bitwise_swappable<
+		typename details::allocator_deleter_traits<_tAlloc>::delete_base>
 {};
 
 

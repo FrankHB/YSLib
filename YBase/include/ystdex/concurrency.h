@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2018-2019 FrankHB.
+	© 2014-2016, 2018-2019, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file concurrency.h
 \ingroup YStandardEx
 \brief 并发操作。
-\version r590
+\version r592
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 18:57:13 +0800
 \par 修改时间:
-	2019-08-01 18:23 +0800
+	2022-02-26 22:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 #include <queue> // for std::queue;
 #include "future.hpp" // for std::packaged_task, future_result_t, pack_task;
 #include <condition_variable> // for std::condition_variable;
-#include "functional.hpp" // for std::bind, function, ystdex::invoke;
+#include "function.hpp" // for std::bind, function, ystdex::invoke;
 #include "cassert.h" // for yassume;
 
 namespace ystdex

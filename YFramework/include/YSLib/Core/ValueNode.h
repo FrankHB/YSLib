@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2021 FrankHB.
+	© 2012-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r4272
+\version r4284
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2021-04-15 22:17 +0800
+	2022-02-26 22:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,19 +29,20 @@
 #define YSL_INC_Core_ValueNode_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YObject // for pmr, ystdex::invoke,
-//	ystdex::is_interoperable, ystdex::enable_if_t, std::allocator_arg_t,
-//	std::allocator_arg, ystdex::and_, ystdex::remove_cvref_t, in_place_type,
-//	to_string, to_pmr_string;
+#include YFM_YSLib_Core_YObject // for pmr, ystdex::is_interoperable,
+//	ystdex::enable_if_t, std::allocator_arg_t, std::allocator_arg, ystdex::and_,
+//	ystdex::remove_cvref_t, in_place_type, ystdex::end, to_string,
+//	to_pmr_string;
 #include <ystdex/operators.hpp> // for ystdex::totally_ordered;
 #include <ystdex/set.hpp> // for ystdex::mapped_set;
-#include <ystdex/variadic.hpp> // for ystdex::vseq;
-#include <ystdex/tuple.hpp> // for ystdex::make_from_tuple;
+#include <ystdex/tuple.hpp> // for ystdex::invoke, ystdex::make_from_tuple;
 #include <ystdex/swap.hpp> // for ystdex::copy_and_swap;
 #include <ystdex/path.hpp> // for ystdex::path;
 #include <ystdex/utility.hpp> // for ystdex::forward_like;
 #include <ystdex/algorithm.hpp> // for std::for_each_if;
 #include <numeric> // for std::accumulate;
+#include <ystdex/deref_op.hpp> // for ystdex::call_value_or;
+#include <ystdex/functor.hpp> // for ystdex::addrof;
 
 namespace YSLib
 {
@@ -673,10 +674,10 @@ public:
 	{
 		Container res(con.get_allocator());
 
-		for(auto&& tm : con)
+		for(auto&& nd : con)
 			res.emplace(CreateRecursively(
-				ystdex::forward_like<_tCon>(tm.container), f), tm.GetName(),
-				ystdex::invoke(f, ystdex::forward_like<_tCon>(tm.Value)));
+				ystdex::forward_like<_tCon>(nd.container), f), nd.GetName(),
+				ystdex::invoke(f, ystdex::forward_like<_tCon>(nd.Value)));
 		return res;
 	}
 

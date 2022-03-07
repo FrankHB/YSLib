@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r26096
+\version r26355
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2022-02-25 20:47 +0800
+	2022-03-07 05:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -742,11 +742,13 @@ public:
 	/*!
 	\pre 间接断言：形式参数对象指针非空。
 	\pre 第三参数满足 Environment::CheckParent 检查不抛出异常。
-	\pre 间接断言：第四参数的标签可作为一等对象的值的表示。
+	\pre 间接断言：第四参数的标签可表示一等对象的值。
 	\sa MakeParent
 	\sa MakeParentSingle
 	\since build 918
 	*/
+	// XXX: Keep parameters of reference types, as it is more efficient, at
+	//	least in code generation by x86_64-pc-linux G++ 11.1.
 	VauHandler(string&& ename, shared_ptr<TermNode>&& p_fm,
 		ValueObject&& vo, TermNode& term, bool nl)
 		: eformal(std::move(ename)), p_formals((CheckParameterTree(Deref(p_fm)),
@@ -975,29 +977,19 @@ ConsItem(TermNode& term, TermNode& y)
 }
 
 //! \since build 912
-//@{
-void
-ConsMove(TermNode& term, TNIter i)
-{
-	ConsItem(term, NPL::Deref(i));
-	term.erase(i);
-}
-
-ReductionStatus
-ConsMoveSubNext(TermNode& term)
-{
-	ConsMove(term, std::next(term.begin()));
-	return ReductionStatus::Retained;
-}
-
 ReductionStatus
 ConsImpl(TermNode& term)
 {
 	RetainN(term, 2);
 	RemoveHead(term);
-	return ConsMoveSubNext(term);
+
+	auto i(term.begin());
+
+	++i;
+	ConsItem(term, NPL::Deref(i));
+	term.erase(i);
+	return ReductionStatus::Retained;
 }
-//@}
 
 
 //! \since build 859
@@ -1094,28 +1086,25 @@ void
 BindMoveLocalObject(TermNode& o, _fMove mv)
 {
 	// NOTE: Simplified from 'sigil == '&' and 'can_modify && temp' branch in
-	//	%BindParameterObject::operator().
+	//	%BindParameterObject::operator(), except that %TermTags::Temporary is
+	//	not set as %MarkTemporaryTerm in NPLA1.cpp.
 	if(const auto p = NPL::TryAccessLeaf<TermReference>(o))
 		// NOTE: Reference collapsed by move.
 		mv(std::move(o.GetContainerRef()),
 			TermReference(BindReferenceTags(*p), std::move(*p)));
 	else
-		// NOTE: As %MarkTemporaryTerm in %NPLA1.
-		(mv(std::move(o.GetContainerRef()),
-			std::move(o.Value))).get().Tags |= TermTags::Temporary;
+		mv(std::move(o.GetContainerRef()), std::move(o.Value));
 }
 
 void
 BindMoveLocalObjectInPlace(TermNode& o)
 {
 	// NOTE: Simplified from 'sigil == '&' and 'can_modify && temp' branch in
-	//	%BindParameterObject::operator().
+	//	%BindParameterObject::operator(), except that %TermTags::Temporary is
+	//	not set as %MarkTemporaryTerm in NPLA1.cpp.
 	if(const auto p = NPL::TryAccessLeaf<TermReference>(o))
 		// NOTE: Reference collapsed by move.
 		p->SetTags(BindReferenceTags(*p));
-	else
-		// NOTE: As %MarkTemporaryTerm in %NPLA1.
-		o.Tags |= TermTags::Temporary;
 }
 
 void
@@ -1183,13 +1172,15 @@ EvaluateBoundLValueMoved(TermNode& term, const shared_ptr<Environment>& p_env)
 YB_ATTR_nodiscard TermNode
 EvaluateLocalObject(TermNode& o, const shared_ptr<Environment>& p_env)
 {
-	// NOTE: Make unique reference as bound temporary object.
+	// NOTE: Make unique reference as a bound temporary object.
 	if(const auto p = NPL::TryAccessLeaf<TermReference>(o))
 	{
 		p->SetTags(BindReferenceTags(*p));
 		return TermNode(std::allocator_arg, o.get_allocator(),
 			o.GetContainer(), EnsureLValueReference(*p));
 	}
+	// NOTE: Different to %BindMoveLocalObjectInPlace, tags are set as
+	//	%MarkTemporaryTerm in NPLA1.cpp.
 	o.Tags |= TermTags::Temporary;
 	return EvaluateToLValueReference(o, p_env);
 }
@@ -1200,7 +1191,7 @@ EvaluateLocalObject(TermNode& o, const shared_ptr<Environment>& p_env)
 YB_ATTR_nodiscard TermNode
 EvaluateLocalObjectMoved(TermNode& o, const shared_ptr<Environment>& p_env)
 {
-	// NOTE: Make unique reference as bound temporary object.
+	// NOTE: Make unique reference as a bound temporary object.
 	if(const auto p = NPL::TryAccessLeaf<TermReference>(o))
 	{
 		// NOTE: See also %EnsureLValueReference.
@@ -1208,6 +1199,8 @@ EvaluateLocalObjectMoved(TermNode& o, const shared_ptr<Environment>& p_env)
 			std::move(*p));
 		return std::move(o);
 	}
+	// NOTE: Different to %BindMoveLocalObjectInPlace, tags are set as
+	//	%MarkTemporaryTerm in NPLA1.cpp.
 	o.Tags |= TermTags::Temporary;
 	return EvaluateToLValueReference(o, p_env);
 }
@@ -1283,7 +1276,7 @@ LiftCopyPropagate(TermNode& term, TermNode& tm, TermTags tags)
 	term.CopyContent(tm);
 	// NOTE: Propagate tags if it is a term reference.
 	if(const auto p = NPL::TryAccessLeaf<TermReference>(term))
-		p->SetTags(PropagateTo(p->GetTags(), tags));
+		p->PropagateFrom(tags);
 	// XXX: Term tags are currently not respected in prvalues.
 }
 //! \since build 915
@@ -1291,11 +1284,11 @@ inline PDefH(void, LiftCopyPropagate, TermNode& term, TermNode& tm,
 	const TermReference& ref)
 	ImplExpr(LiftCopyPropagate(term, tm, ref.GetTags()))
 
-//! \since build 939
+//! \since build 940
 void
-LiftOtherOrCopyPropagateTags(TermNode& term, TermNode& tm, TermTags tags)
+LiftOtherOrCopyPropagate(TermNode& term, TermNode& tm, bool move, TermTags tags)
 {
-	if(NPL::IsMovable(tags))
+	if(move)
 		// XXX: Using %LiftOther (from %LiftOtherOrCopy) instead of
 		//	%LiftTermOrCopy is safe, because the referent is not allowed to have
 		//	cyclic reference to %term. And %LiftTermOrCopy is in that case is
@@ -1306,6 +1299,13 @@ LiftOtherOrCopyPropagateTags(TermNode& term, TermNode& tm, TermTags tags)
 		// XXX: The call to %NPL::IsMovable has guarantees %p_ref is nonnull
 		//	here.
 		LiftCopyPropagate(term, tm, tags);
+}
+
+//! \since build 939
+void
+LiftOtherOrCopyPropagateTags(TermNode& term, TermNode& tm, TermTags tags)
+{
+	return LiftOtherOrCopyPropagate(term, tm, NPL::IsMovable(tags), tags);
 }
 
 //! \since build 914
@@ -1320,13 +1320,7 @@ ReduceToFirst(TermNode& term, TermNode& tm, ResolvedTermReferencePtr p_ref)
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
 	{
 		if(list_not_move)
-		{
-			term.CopyContent(tm);
-
-			auto& ref(term.Value.GetObject<TermReference>());
-
-			ref.SetTags(PropagateTo(ref.GetTags(), p_ref->GetTags()));
-		}
+			LiftPropagatedReference(term, tm, p_ref->GetTags());
 		else
 			LiftMovedOther(term, *p, p->IsMovable());
 		return ReductionStatus::Retained;
@@ -1334,14 +1328,13 @@ ReduceToFirst(TermNode& term, TermNode& tm, ResolvedTermReferencePtr p_ref)
 	else if(list_not_move)
 		return ReduceToReferenceAt(term, tm, p_ref);
 	// XXX: Term tags are currently not respected in prvalues.
-	LiftOther(term, tm);
+	LiftOtherValue(term, tm);
 	return ReductionStatus::Retained;
 #else
-	// NOTE: For exposition only. The optimized implemenation shall be
-	//	equivalent to this.
+	// NOTE: Any optimized implemenations shall be equivalent to this.
 	if(NPL::IsMovable(p_ref))
 	{
-		LiftOther(term, tm);
+		LiftOtherValue(term, tm);
 		return ReduceForLiftedResult(term);
 	}
 	// XXX: The call to %ReduceToReference should be safe, since the parent list
@@ -1353,39 +1346,37 @@ ReduceToFirst(TermNode& term, TermNode& tm, ResolvedTermReferencePtr p_ref)
 /*!
 \pre 间接断言：第一和第二参数指定不相同的项。
 \pre 第一参数不是第二参数的直接或间接子项。
-\since build 939
+\since build 940
 */
 void
-BranchFirstReferenced(TermNode& term, TermNode& nd, const TermReference& oref,
-	TermTags tags)
+BranchFirstReferenced(TermNode& term, TermNode& nd,
+	const EnvironmentReference& r_env, TermTags tags)
 {
 	// NOTE: The parameter %nd is expected to be a list object in the reference
 	//	term formed by the last 2 parameters. See also the comment in
 	//	%ListRangeExtract. There used to be a call to %BindReferenceTags on
 	//	%tags, but now for the similar reason, it is unnecessary.
 #if true
-	auto& x(AccessFirstSubterm(nd));
+	auto& tm(AccessFirstSubterm(nd));
 	const bool move(NPL::IsMovable(tags));
 
-	if(const auto p = NPL::TryAccessLeaf<const TermReference>(x))
+	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
 	{
 		if(move)
 		{
 			if(!p->IsReferencedLValue())
 				LiftMovedOther(term, *p, p->IsMovable());
 			else
-				LiftOtherValue(term, x);
+				LiftOtherValue(term, tm);
 		}
 		else
 			// XXX: The term %term is not %nd or any of its descendants
 			//	(including %x). However, %x can still be a descendant of %term,
 			//	so %TermNode::SetContainer cannot be used on %x directly.
-			term.CopyContainer(x),
-			term.Value = TermReference(PropagateTo(p->GetTags(), tags), p->get(),
-				p->GetEnvironmentReference());
+			LiftPropagatedReference(term, tm, tags);
 	}
 	else if(move)
-		LiftOtherValue(term, x);
+		LiftOtherValue(term, tm);
 	else
 	{
 		// XXX: Do not bother moving %oref because the branching is usually
@@ -1393,16 +1384,14 @@ BranchFirstReferenced(TermNode& term, TermNode& nd, const TermReference& oref,
 		//	not unique due to 2-pass iterations (e.g. it may be also used in
 		//	a interleaved call to %BranchRestFwdReferenced with unspecified
 		//	order to this call).
-		term.Value = TermReference(PropagateTo(x.Tags, tags), x,
-			oref.GetEnvironmentReference());
+		term.Value = TermReference(PropagateTo(tm.Tags, tags), tm, r_env);
 		// NOTE: No %TermNode::ClearContainer is here because %term is expected
 		//	newly created.
 		YAssert(IsLeaf(term), "Invalid term found");
 	}
 #else
-	// NOTE: For exposition only. The optimized implemenation shall be
-	//	equivalent to this.
-	TermReference ref(tags, oref);
+	// NOTE: Any optimized implemenations shall be equivalent to this.
+	TermReference ref(tags, nd, r_env);
 
 	RegularizeTerm(term, ReduceToFirst(term, AccessFirstSubterm(nd), &ref));
 #endif
@@ -1473,7 +1462,7 @@ void
 BranchRestFwdReferenced(TermNode& term, TermNode& nd, bool move)
 {
 	TransactRest(term, nd, move, std::mem_fn(&TermNode::GetContainerRef),
-		ystdex::bind1(LiftOtherOrCopy, std::placeholders::_2, move));
+		ystdex::bind1(&TermNode::CopyContent, std::placeholders::_2));
 }
 
 //! \since build 918
@@ -1894,7 +1883,8 @@ Acc(_func f, TermNode& term, ContextNode& ctx)
 	});
 
 	// NOTE: This shall be stored separatedly to %l because %l is abstract,
-	//	which can be a non-list.
+	//	which can be a non-list. Also %l is not first-class since it may have
+	//	%TermTags::Temporary.
 	lv_l = EvaluateLocalObject(l, d);
 	nterm_cons_combine(pred);
 	return Combine<NonTailCall>::ReduceCallSubsequent(nterm, ctx, d,
@@ -2015,6 +2005,7 @@ struct TermRange final
 	//	%BindParameterObject::operator() in NPLA1.cpp. Implementations shall
 	//	prepare the range with the tags reflecting the handling of the operand
 	//	lists in %GParameterMatcher::operator() in NPLA1.cpp.
+	// XXX: %TermTags::Temporary is actually not used at current.
 	TermTags Tags = TermTags::Unqualified;
 
 	TermRange(TermNode& nd, TermTags tags = TermTags::Unqualified) ynothrow
@@ -2025,6 +2016,10 @@ struct TermRange final
 		ImplRet(First == Last)
 };
 
+//! \since build 940
+YB_ATTR_nodiscard YB_PURE PDefH(bool, IsExpiredRange, TermNode& term)
+	ImplRet(!bool(term.Tags & TermTags::Nonmodifying))
+
 /*!
 \brief 准备递归调用使用的列表对象：绑定对象为列表临时对象范围。
 \since build 913
@@ -2032,9 +2027,13 @@ struct TermRange final
 YB_FLATTEN void
 PrepareFoldRList(TermNode& term)
 {
-	// NOTE: The 1st call can be applied to reference to list, but the nested
-	//	application is only for non-list objects due to the rest list is extract
-	//	as if a call of 'rest%' to the references of the list subobjects.
+	// NOTE: Conceptually, the 1st call to the list element can be applied to
+	//	the reference to list, but the subsequent application to the collection
+	//	of the rest list elements is only for the sublist (as an non-list
+	//	object) due to the rest list is extract as if a call of 'rest%' to the
+	//	reference to list, resulting in a sublist reference. %TermRange need to
+	//	simulate as such way to avoid unexpected differences of observable
+	//	behavior in the object language.
 	NPL::ResolveTerm([&] YB_LAMBDA_ANNOTATE(
 		(TermNode& nd, ResolvedTermReferencePtr p_ref) , , flatten){
 		// NOTE: This is only needed for the outermost call.
@@ -2049,9 +2048,16 @@ PrepareFoldRList(TermNode& term)
 					term.SetValue(TermRange(term));
 				}
 				else
+					// NOTE: Encode the value category information of the list.
+					//	This is done in the derivations by tags of reference
+					//	values in one more level of indirection, which is less
+					//	efficient and not available here. It should be safe
+					//	once %TermRange is not visible as first-class objects.
 					// XXX: Term tags are currently not respected in prvalues.
 					//	This is used to indicate the list is an lvalue which
-					//	shall be copied on the element accesses later.
+					//	shall be copied on the element accesses later. This is
+					//	comsumed by %IsExpiredRange, only used to provide the
+					//	3rd argument to the call to %ExtractRangeFirstOrCopy.
 					term.Tags |= TermTags::Nonmodifying,
 						term.SetValue(TermRange(nd, p_ref->GetTags()));
 			}
@@ -2071,10 +2077,7 @@ void
 ExtractRangeFirstOrCopy(TermNode& term, TermRange& tr, bool move)
 {
 	YAssert(!tr.empty(), "Invalid term found.");
-	if(move)
-		LiftOther(term, NPL::Deref(tr.First));
-	else
-		LiftCopyPropagate(term, NPL::Deref(tr.First), tr.Tags);
+	LiftOtherOrCopyPropagate(term, NPL::Deref(tr.First), move, tr.Tags);
 	++tr.First;
 }
 
@@ -2095,14 +2098,13 @@ ReduceFoldR1(TermNode& term, ContextNode& ctx)
 	auto i(term.begin());
 
 	if(!tr.empty())
-	{
 		return A1::ReduceCurrentNextThunked(
 			*term.emplace(ystdex::exchange(con, [&]{
 			TermNode::Container tcon(term.get_allocator());
 
 			tcon.push_back(*i);
 			ExtractRangeFirstOrCopy(tcon.emplace_back(), tr,
-				!bool(tm.Tags & TermTags::Nonmodifying));
+				IsExpiredRange(tm));
 			return tcon;
 		}())), ctx, ReduceFoldR1, trivial_swap,
 			A1::NameTypedReducerHandler(std::bind(
@@ -2112,7 +2114,6 @@ ReduceFoldR1(TermNode& term, ContextNode& ctx)
 			return
 				Combine<NonTailCall>::ReduceEnvSwitch(term, ctx, std::move(d));
 		}, ctx.ShareRecord()), "eval-foldr1-kons"));
-	}
 	LiftOther(term, *++i);
 	return ReductionStatus::Retained;
 }
@@ -2139,8 +2140,7 @@ ReduceMap1(TermNode& term, ContextNode& ctx)
 		auto& tcon(nterm.GetContainerRef());
 
 		tcon.push_back(con.front());
-		ExtractRangeFirstOrCopy(tcon.emplace_back(), tr,
-			!bool(tm.Tags & TermTags::Nonmodifying));
+		ExtractRangeFirstOrCopy(tcon.emplace_back(), tr, IsExpiredRange(tm));
 		return Combine<NonTailCall>::ReduceCallSubsequent(nterm, ctx,
 			ctx.ShareRecord(),
 			A1::NameTypedReducerHandler([&] YB_LAMBDA_ANNOTATE(() , , flatten){
@@ -2245,6 +2245,8 @@ ListRangeExtract(TermNode& term, _func f, _func2 f2)
 	// NOTE: The term is the term range of 'l' with optional temporary list.
 	auto& con(term.GetContainerRef());
 	auto& tr(term.Value.GetObject<TermRange>());
+	const auto tags(tr.Tags);
+	const auto val_tags(IsExpiredRange(term) ? tags | TermTags::Unique : tags);
 	TermNode::Container tcon(con.get_allocator());
 
 	while(!tr.empty())
@@ -2266,18 +2268,21 @@ ListRangeExtract(TermNode& term, _func f, _func2 f2)
 			auto& nd(p->get());
 
 			if(IsBranchedList(nd))
-				f(nterm, nd, *p, PropagateTo(p->GetTags(), tr.Tags));
+				f(nterm, nd, p->GetEnvironmentReference(),
+					PropagateTo(p->GetTags(), tags));
 			else
 				ThrowInsufficientTermsError(nd, true);
 		}
 		else if(IsBranchedList(o))
-			f2(nterm, o, tr.Tags);
+			f2(nterm, o, val_tags);
 		else
 			ThrowInsufficientTermsError(o, true);
 		++tr.First;
 	}
 	tcon.swap(con),
 	term.Value.Clear(),
+	// XXX: To cleanup the local tag introduced by %PrepareFoldRList,
+	//	%EnsureValueTags is not necessarily enough.
 	term.Tags = TermTags::Unqualified;
 }
 
@@ -2286,19 +2291,26 @@ ReduceListExtractFirst(TermNode& term)
 {
 	ListRangeExtract(term, BranchFirstReferenced,
 		[](TermNode& nterm, TermNode& o, TermTags o_tags){
-		auto& x(AccessFirstSubterm(o));
+		auto& tm(AccessFirstSubterm(o));
+		const bool move(NPL::IsMovable(o_tags));
 
-		if(const auto p = NPL::TryAccessLeaf<const TermReference>(x))
+#if false
+		if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
 		{
-			if(!p->IsReferencedLValue())
-			{
-				LiftMovedOther(nterm, *p, p->IsMovable());
-				return;
-			}
+			LiftOtherOrCopy(nterm, p->get(), move ? p->IsMovable()
+				: NPL::IsMovable(PropagateTo(p->GetTags(), o_tags)));
+			EnsureValueTags(nterm.Tags);
 		}
-		// XXX: Term tags are currently not respected in prvalues.
-		LiftOtherOrCopy(nterm, x,
-			!bool((o.Tags | x.Tags | o_tags) & TermTags::Nonmodifying));
+		else
+			LiftOtherOrCopy(nterm, tm, move);
+#else
+		// NOTE: Any optimized implemenations shall be equivalent to this.
+		if(move)
+			LiftOther(nterm, tm);
+		else
+			LiftCopyPropagate(nterm, tm, o_tags);
+		LiftToReturn(nterm);
+#endif
 	});
 	return ReductionStatus::Retained;
 }
@@ -2306,15 +2318,14 @@ ReduceListExtractFirst(TermNode& term)
 ReductionStatus
 ReduceListExtractRestFwd(TermNode& term)
 {
-	ListRangeExtract(term,
-		[](TermNode& nterm, TermNode& nd, const TermReference&, TermTags tags){
+	ListRangeExtract(term, [](TermNode& nterm, TermNode& nd,
+		const EnvironmentReference&, TermTags tags){
 		// NOTE: As binding of trailing lists, %BindReferenceTags is not called
 		//	to make the list elements having %TermTags::Temporary.
 		BranchRestFwdReferenced(nterm, nd, NPL::IsMovable(tags));
 	}, [](TermNode& nterm, TermNode& o, TermTags o_tags){
-		TransactRest(nterm, o, !bool((o.Tags | o_tags)
-			& TermTags::Nonmodifying), std::mem_fn(&TermNode::GetContainerRef),
-			std::mem_fn(&TermNode::CopyContent));
+		TransactRest(nterm, o, NPL::IsMovable(o.Tags | o_tags), std::mem_fn(
+			&TermNode::GetContainerRef), std::mem_fn(&TermNode::CopyContent));
 	});
 	return ReductionStatus::Retained;
 }
@@ -2399,7 +2410,7 @@ LetCallBody(TermNode& term, ContextNode& ctx, TermNode& body,
 	EnvironmentGuard& gd, bool no_lift)
 {
 	// NOTE: Set 'body'.
-	LiftOther(term, body);
+	LiftOtherValue(term, body);
 #if NPL_Impl_NPLA1_Enable_Thunked
 	SetupNextTerm(ctx, term);
 #endif
@@ -2411,8 +2422,8 @@ ReductionStatus
 LetCombineBody(_func f, TermNode& term, ContextNode& ctx)
 {
 	// NOTE: Subterms are extracted arguments for the call plus the parent in
-	//	%Value, extracted 'formals' for the lambda abstraction,
-	//	unused 'bindings', trailing 'body'.
+	//	%Value, extracted 'formals' for the lambda abstraction, unused
+	//	'bindings', trailing 'body'.
 	YAssert(term.size() >= 3, "Invalid nested call found.");
 
 	EnvironmentGuard gd(ctx, NPL::SwitchToFreshEnvironment(ctx));
@@ -2426,7 +2437,9 @@ LetCombineBody(_func f, TermNode& term, ContextNode& ctx)
 	auto& formals(*++i);
 	auto& body(*++i);
 
-	body.ClearContainer();
+	// XXX: The %Value is only used in lvalue 'bindings'. Nevertheless, cleanup
+	//	anyway.
+	body.Clear();
 	CollectSubterms(body, term, ++i);
 	return f(operand, formals, body, gd);
 }
@@ -2439,8 +2452,8 @@ LetCombineApplicative(TermNode& term, ContextNode& ctx, bool no_lift)
 	//	%FormContextHandler::CallN in NPLA1.cpp, since the fast path is
 	//	preferred in %LetCombineEmpty (by a caller like %LetEmpty).
 	// NOTE: Subterms are extracted arguments for the call plus the parent in
-	//	%Value, extracted 'formals' for the lambda abstraction,
-	//	unused 'bindings', trailing 'body'.
+	//	%Value, extracted 'formals' for the lambda abstraction, unused
+	//	'bindings', trailing 'body'.
 	YAssert(term.size() >= 3, "Invalid nested call found.");
 	return RelayApplicativeNext(ctx, *term.begin(),
 		A1::NameTypedReducerHandler([&, no_lift]{
@@ -2534,8 +2547,8 @@ ReductionStatus
 LetCommon(TermNode& term, ContextNode& ctx, bool no_lift, bool with_env)
 {
 	// NOTE: Subterms are extracted arguments for the call, optional 'e',
-	//	extracted 'formals' for the lambda abstraction,
-	//	unused 'bindings', trailing 'body'.
+	//	extracted 'formals' for the lambda abstraction, unused 'bindings',
+	//	trailing 'body'.
 	YAssert(term.size() >= (with_env ? 4U : 3U), "Invalid nested call found.");
 	return LetCombinePrepare([&, no_lift]{
 		// NOTE: Now subterms are extracted arguments for the call plus
@@ -2558,17 +2571,18 @@ ReductionStatus
 LetCore(TermNode& term, ContextNode& ctx, bool no_lift, bool with_env)
 {
 	// NOTE: Subterms are %operand (the term range of 'bindings' with optional
-	//	temporary list), optional 'e', originally bound 'bindings',
-	//	trailing 'body'.
+	//	temporary list), optional 'e', originally bound 'bindings', trailing
+	//	'body'.
 	YAssert(term.size() >= (with_env ? 3U : 2U), "Invalid nested call found.");
 	LetBindingsExtract(term, with_env);
-	// NOTE: Now subterms are extracted arguments for the call,
-	//	optional 'e', extracted 'formals' for the lambda abstraction,
-	//	originally bound 'bindings', trailing 'body'.
+	// NOTE: Now subterms are extracted arguments for the call, optional 'e',
+	//	extracted 'formals' for the lambda abstraction, originally bound
+	//	'bindings', trailing 'body'.
 	return LetCommon(term, ctx, no_lift, with_env);
 }
 
 // NOTE: Specialized %LetCore implementation for empty binding list.
+//! \pre 绑定列表项是空项。
 ReductionStatus
 LetEmpty(TermNode& term, ContextNode& ctx, bool no_lift, bool with_env)
 {
@@ -2579,8 +2593,8 @@ LetEmpty(TermNode& term, ContextNode& ctx, bool no_lift, bool with_env)
 	// NOTE: This is required by %LetCombinePrepare.
 	term.begin()->Clear();
 	// NOTE: Now subterms are unused arguments for the call (an empty list),
-	//	optional 'e', unused 'formals' for the lambda abstraction
-	//	(an empty list), unused 'bindings' (an empty term), trailing 'body'.
+	//	optional 'e', unused 'formals' for the lambda abstraction (an empty
+	//	list), unused 'bindings' (an empty term), trailing 'body'.
 	return LetCombinePrepare([&, no_lift]{
 		return LetCombineEmpty(term, ctx, no_lift);
 	}, term, ctx, with_env);
@@ -2635,6 +2649,8 @@ LetAsteriskImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 	// NOTE: Optimize by the fast path for cases of zero arguments.
 	if(IsEmpty(bindings))
 		return LetEmpty(term, ctx, no_lift, {});
+	// NOTE: If %binding is a reference, it is converted to %TermRange internal
+	//	representation. See also the comment in %PrepareFoldRList.
 	if(const auto p = NPL::TryAccessLeaf<TermReference>(bindings))
 	{
 		auto& nd(p->get());
@@ -2647,10 +2663,10 @@ LetAsteriskImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 		}
 		if(p->IsMovable())
 			con.splice(con.begin(), nd.GetContainerRef(), nd.begin());
-		// NOTE: As %PrepareFoldRList.
+		// NOTE: As %PrepareFoldRList, except that setting of
+		//	%TermTags::Nonmodifying on %bindings is omitted.
 		else if(IsList(nd))
 		{
-			p->AddTags(TermTags::Nonmodifying);
 			bindings.ClearContainer(),
 			bindings.SetValue(TermRange(nd, p->GetTags()));
 			con.push_front(nd.GetContainer().front());
@@ -2659,6 +2675,7 @@ LetAsteriskImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 		else
 			ThrowInsufficientTermsError(nd, true);
 	}
+	// NOTE: The %TermRange is from the converted result above.
 	else if(const auto p_tr = NPL::TryAccessLeaf<TermRange>(bindings))
 	{
 		if(p_tr->empty())
@@ -2666,43 +2683,94 @@ LetAsteriskImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 			bindings.Clear();
 			return LetEmpty(term, ctx, no_lift, {});
 		}
+		// XXX: This assume %TermTags::Nonmodifying even it is not on
+		//	%bindings, since %TermRange here can only be converted from the initial
+		//	%bindings, see above.
 		con.push_front(NPL::Deref(p_tr->First++));
 	}
 	else
 		con.splice(con.begin(), bindings.GetContainerRef(),
 			bindings.begin());
 
-	// NOTE: This is the 1st binding extracted for the immediate '$let'
-	//	combination. This may represents a reference value.
+	// NOTE: This is the 1st binding extracted for the immediate '$let' or
+	//	'$let%' combination. This may represents a reference value.
 	auto& extracted(con.front());
 #if true
 	// NOTE: As the %LetExpireChecked call with a binding list prvalue
 	//	containing 1 binding subterm (see below).
-	auto ref([&]() -> TermReference{
-		// XXX: The call to %GetLValueTagsOf is unnecessary. See the comment in
-		//	%ListRangeExtract.
-		if(const auto p = NPL::TryAccessLeaf<TermReference>(extracted))
-			// XXX: Do not bother move of '*p', as the similar reason in the
-			//	coment in %BranchFirstReferenced.
-			return *p;
-		return TermReference(extracted.Tags | TermTags::Unique, extracted,
-			ctx.GetRecordPtr());
-	}());
-	auto& nd(ref.get());
-
-	if(IsBranchedList(nd))
-	{
-		BranchFirstReferenced(*con.emplace_front().emplace(), nd, ref,
-			ref.GetTags());
-		BranchRestFwdReferenced(*con.emplace_front().emplace(), nd,
-			ref.IsMovable());
-		// XXX: The original 'bindings' (i.e. %extract) is not a binding
+	const auto letc([&]{
+		// XXX: The original 'bindings' (i.e. %extracted) is not a binding
 		//	list. Nevertheless, %LetCommon would not touch the term.
 		return LetCommon(term, ctx, no_lift, {});
+	});
+
+	// XXX: The call to %GetLValueTagsOf on the tag argument for
+	//	%BranchFirstReferenced is unnecessary. See the comment in %ListRangeExtract.
+	if(const auto p = NPL::TryAccessLeaf<TermReference>(extracted))
+	{
+		auto& nd(p->get());
+
+		if(IsBranchedList(nd))
+		{
+			BranchFirstReferenced(*con.emplace_front().emplace(), nd,
+				p->GetEnvironmentReference(), p->GetTags());
+			BranchRestFwdReferenced(*con.emplace_front().emplace(), nd,
+				p->IsMovable());
+			return letc();
+		}
+		ThrowInsufficientTermsError(nd, true);
 	}
-	ThrowInsufficientTermsError(nd, true);
+	else if(IsBranchedList(extracted))
+	{
+		// XXX: As %BranchFirstReferenced, with 'NPL::IsMovable(tags)'
+		//	always 'true'.
+		auto& nterm(*con.emplace_front().emplace());
+		auto& tm(AccessFirstSubterm(extracted));
+
+		if(const auto p_ref = NPL::TryAccessLeaf<const TermReference>(tm))
+		{
+			if(!p_ref->IsReferencedLValue())
+				LiftMovedOther(nterm, *p_ref, p_ref->IsMovable());
+			else
+				LiftOtherValue(nterm, tm);
+		}
+		else
+			LiftOtherValue(nterm, tm);
+
+		// XXX: As %BranchRestFwdReferenced, with %move always 'true'.
+		auto& ncon(con.emplace_front().emplace()->GetContainerRef());
+
+		ncon.splice(ncon.end(), extracted.GetContainerRef(),
+			std::next(extracted.begin()), extracted.end());
+		return letc();
+	}
+	ThrowInsufficientTermsError(extracted, true);
+#elif true
+	// NOTE: Ditto. This is a slightly succinct but probably less efficient than
+	//	the implementation above.
+	const auto letc([&](TermNode& nd, const EnvironmentReference& r_env,
+		TermTags tags, bool move){
+		// XXX: Ditto.
+		if(IsBranchedList(nd))
+		{
+			BranchFirstReferenced(*con.emplace_front().emplace(), nd,
+				r_env, tags);
+			BranchRestFwdReferenced(*con.emplace_front().emplace(), nd, move);
+			// XXX: Ditto.
+			return LetCommon(term, ctx, no_lift, {});
+		}
+		ThrowInsufficientTermsError(nd, true);
+	});
+
+	if(const auto p = NPL::TryAccessLeaf<TermReference>(extracted))
+		return letc(p->get(), p->GetEnvironmentReference(), p->GetTags(),
+			p->IsMovable());
+	return letc(extracted, ctx.GetRecordPtr(),
+		extracted.Tags | TermTags::Unique, true);
 #else
 
+	// NOTE: For exposition only. The optimized implemenation shall be
+	//	equivalent to this.
 	// NOTE: Make %extracted a binding list prvalue to fit to the expect of
 	//	%LetExpireChecked.
 	extracted.emplace(
@@ -2744,16 +2812,12 @@ LetOrRecImpl(TermNode& term, ContextNode& ctx, ReductionStatus(&let_core)(
 		if(p->IsMovable())
 			LetExpireChecked(forwarded, nd, p->GetEnvironmentReference(),
 				p->GetTags());
-		else
-		{
-			p->AddTags(TermTags::Nonmodifying);
+		else if(IsList(nd))
 			// NOTE: As %PrepareFoldRList.
-			if(IsList(nd))
-				forwarded.SetValue(TermRange(nd, p->GetTags())),
-					forwarded.Tags = TermTags::Nonmodifying;
-			else
-				ThrowInsufficientTermsError(nd, true);
-		}
+			forwarded.SetValue(TermRange(nd, p->GetTags())),
+				forwarded.Tags = TermTags::Nonmodifying;
+		else
+			ThrowInsufficientTermsError(nd, true);
 	}
 	else
 		LetExpireChecked(forwarded, bindings, ctx.GetRecordPtr(),
@@ -3347,19 +3411,20 @@ ForwardFirst(TermNode& term, ContextNode& ctx)
 				//	the referent.
 				op = TermNode(std::allocator_arg, term.get_allocator(),
 					std::move(c), std::move(vo));
-				return std::ref(op);
 			});
-			auto& x(AccessFirstSubterm(nd));
+			// NOTE: This is the term of the object referenced by variable 'x'
+			//	in the specification.
+			auto& tm(AccessFirstSubterm(nd));
 
 			// NOTE: As %BindParameterObject::Match in NPLA1.cpp, never bind a
 			//	temporary to a glvalue list element. Thus, no tag is checked in
 			//	the condition here.
 			if(p_ref)
 				BindLocalReference(p_ref->GetTags()
-					& (TermTags::Unique | TermTags::Nonmodifying), x,
+					& (TermTags::Unique | TermTags::Nonmodifying), tm,
 					assign_term, p_ref->GetEnvironmentReference());
 			else
-				BindMoveLocalObject(x, assign_term);
+				BindMoveLocalObject(tm, assign_term);
 			ForwardToUnwrapped(appv);
 			{
 				TermNode::Container tcon(term.get_allocator());
@@ -4074,7 +4139,7 @@ AsEnvironment(TermNode& term, ContextNode& ctx)
 
 	ctx.GetRecordRef().Parent.assign(std::allocator_arg,
 		term.get_allocator(), std::move(p_parent));
-	// XXX: As %LetCallBodyCurrent.
+	// XXX: As %LetCallBody.
 	AssertNextTerm(ctx, term);
 	// NOTE: The lifting is not enabled because the result is directly
 	//	specified as a prvalue in the implementation.
@@ -4206,6 +4271,7 @@ ProvideLet(TermNode& term, ContextNode& ctx)
 	auto& bindings(*++++i);
 
 	// TODO: Optimize the case of empty binding lists, as %LetEmpty.
+	// NOTE: As %LetOrRecImpl.
 	if(const auto p = NPL::TryAccessLeaf<TermReference>(bindings))
 	{
 		auto& nd(p->get());
@@ -4213,15 +4279,11 @@ ProvideLet(TermNode& term, ContextNode& ctx)
 		if(p->IsMovable())
 			LetExpireChecked(forwarded, nd, p->GetEnvironmentReference(),
 				p->GetTags());
+		else if(IsList(nd))
+			forwarded.SetValue(TermRange(nd, p->GetTags())),
+				forwarded.Tags = TermTags::Nonmodifying;
 		else
-		{
-			p->AddTags(TermTags::Nonmodifying);
-			if(IsList(nd))
-				forwarded.SetValue(TermRange(nd, p->GetTags())),
-					forwarded.Tags = TermTags::Nonmodifying;
-			else
-				ThrowInsufficientTermsError(nd, true);
-		}
+			ThrowInsufficientTermsError(nd, true);
 	}
 	else
 		LetExpireChecked(forwarded, bindings, ctx.GetRecordPtr(),

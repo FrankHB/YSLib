@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3615
+\version r3623
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2022-01-01 00:44 +0800
+	2022-02-26 22:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,10 +33,11 @@
 //	is_nothrow_constructible, enable_if_convertible_t, is_bitwise_swappable,
 //	yassume, ystdex::construct_in, ystdex::destruct_in;
 #include "enum.hpp" // for "enum.hpp";
-#include "type_op.hpp" // for "integer_sequence.hpp", exclude_self_params_t;
+#include "integer_sequence.hpp" // for "integer_sequence.hpp";
+#include "type_op.hpp" // for exclude_self_params_t;
 #include "base.h" // for noncopyable, nonmovable;
 #include <functional> // for std::bind, std::ref
-#include <tuple> // for tuple workaround;
+#include <tuple> // for the workaround of std::tuple;
 
 /*!
 \brief \c \<utility> 特性测试宏。
@@ -200,13 +201,13 @@ struct boxed_value
 	operator=(boxed_value&&) = default;
 	//@}
 
-	YB_ATTR_nodiscard
+	YB_ATTR_nodiscard YB_PURE yconstfn_relaxed
 	operator _type&() ynothrow
 	{
 		return value;
 	}
 
-	YB_ATTR_nodiscard
+	YB_ATTR_nodiscard YB_PURE yconstfn
 	operator const _type&() const ynothrow
 	{
 		return value;
@@ -334,7 +335,9 @@ class nifty_counter
 public:
 	using object_type = _type;
 
-	template<typename... _tParams>
+	//! \since build 839
+	template<typename... _tParams,
+		yimpl(typename = exclude_self_params_t<nifty_counter, _tParams...>)>
 	nifty_counter(_tParams&&... args)
 	{
 		if(get_count()++ == 0)

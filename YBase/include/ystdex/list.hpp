@@ -11,13 +11,13 @@
 /*!	\file list.hpp
 \ingroup YStandardEx
 \brief 列表容器。
-\version r1693
+\version r1743
 \author FrankHB <frankhb1989@gmail.com>
 \since build 864
 \par 创建时间:
 	2019-08-14 14:48:52 +0800
 \par 修改时间:
-	2022-01-26 06:24 +0800
+	2022-03-07 07:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,16 +35,18 @@ LWG 2839 ：允许自转移赋值。
 #define YB_INC_ystdex_list_hpp_ 1
 
 #include "node_base.h" // for "node_base.h", std::move, std::addressof;
-#include <limits> // for std::numeric_limits;
 #include <list> // for <list>, std::initializer_list;
 #include "allocator.hpp" // for replace_storage_t, bidirectional_iteratable,
 //	equality_comparable, totally_ordered, rebind_alloc_t, allocator_traits,
-//	yverify, false_, true_, ystdex::make_move_if_noexcept_iterator,
-//	std::advance, ystdex::alloc_on_move, conditional_t, allocator_guard,
-//	ystdex::alloc_on_swap, ystdex::swap_dependent, std::allocator, is_object,
-//	is_unqualified, and_, is_allocator_for, ystdex::reverse_iterator,
-//	is_nothrow_constructible, less, ref_eq, equal_to, is_bitwise_swappable;
+//	conditional_t, yverify, false_, true_,
+//	ystdex::make_move_if_noexcept_iterator, std::advance, ystdex::alloc_on_move,
+//	allocator_guard, ystdex::alloc_on_swap, ystdex::swap_dependent,
+//	std::allocator, is_object, is_unqualified, and_, is_allocator_for,
+//	ystdex::reverse_iterator, is_nothrow_constructible, less, ref_eq, equal_to,
+//	is_bitwise_swappable;
+#include "compressed_pair.hpp" // for compressed_base;
 #include "base.h" // for noncopyable, nonmovable;
+#include <limits> // for std::numeric_limits;
 #include "iterator_trait.hpp" // for enable_for_input_iterator_t;
 #include <algorithm> // for std::equal, std::lexicographical_compare;
 
@@ -266,30 +268,49 @@ private:
 	using node_ator_traits = allocator_traits<node_allocator>;
 	using equal_alloc_or_pocma = or_<typename node_ator_traits::is_always_equal,
 		typename node_ator_traits::propagate_on_container_move_assignment>;
+	// XXX: See $2022-01 @ %Documentation::Workflow.
+	using allocator_reference = conditional_t<sizeof(node_allocator)
+		<= sizeof(void*), node_allocator, node_allocator&>;
 
 protected:
-	// TODO: Resolve LWG 2112 with %is_final support.
-	struct components : node_allocator
+	// XXX: Using %compressed_base is efficient than %compressed_pair_element
+	//	directly, at list with x86_64-pc-linux G++ 11.1.
+	struct components : compressed_base<node_allocator>
 	{
+		//! \since build 940
+		using base = compressed_base<node_allocator>;
 		list_header header{};
 
 		components() ynoexcept_spec(node_allocator())
-			: node_allocator()
+			: base()
 		{}
 		//! \since build 867
 		explicit
 		components(node_allocator a) ynothrow
-			: node_allocator(std::move(a))
+			: base(std::move(a))
 		{}
 		components(const components& x)
-			: node_allocator(
-			node_ator_traits::select_on_container_copy_construction(x))
+			: base(
+			node_ator_traits::select_on_container_copy_construction(x.get()))
 		{}
 		components(components&&) = default;
 		//! \since build 867
 		components(components&& x, node_allocator a) ynothrow
-			: node_allocator(std::move(a)), header(std::move(x.header))
+			: base(std::move(a)), header(std::move(x.header))
 		{}
+
+		//! \since build 940
+		YB_ATTR_nodiscard YB_PURE node_allocator&
+		get() ynothrow
+		{
+			return static_cast<node_allocator&>(*this);
+		}
+		//! \since build 940
+		YB_ATTR_nodiscard YB_PURE const node_allocator&
+		get() const ynothrow
+		{
+			return static_cast<const node_allocator&>(*this);
+		}
 	};
 
 private:
@@ -426,12 +447,12 @@ public:
 	YB_ATTR_nodiscard YB_PURE node_allocator&
 	get_node_allocator() ynothrow
 	{
-		return objects;
+		return objects.get();
 	}
 	YB_ATTR_nodiscard YB_PURE const node_allocator&
 	get_node_allocator() const ynothrow
 	{
-		return objects;
+		return objects.get();
 	}
 
 	YB_ATTR_nodiscard YB_PURE iterator
@@ -663,16 +684,22 @@ public:
 	}
 
 protected:
-	YB_ATTR_nodiscard typename node_ator_traits::pointer
+	//! \since build 940
+	YB_ALLOCATOR YB_ATTR_returns_nonnull link_type
 	allocate_node()
 	{
-		return node_ator_traits::allocate(objects, 1);
+		allocator_reference a(get_node_allocator());
+
+		return node_ator_traits::allocate(a, 1);
 	}
 
+	//! \since build 940
 	void
-	deallocate_node(typename node_ator_traits::pointer p) ynothrow
+	deallocate_node(link_type p) ynothrow
 	{
-		node_ator_traits::deallocate(objects, p, 1);
+		allocator_reference a(get_node_allocator());
+
+		node_ator_traits::deallocate(a, p, 1);
 	}
 
 	template<typename... _tParams>
@@ -682,13 +709,10 @@ protected:
 		// XXX: Ensure no need to use placment new for the node.
 		static_assert(is_trivially_default_constructible<value_node>(),
 			"Invalid node type found.");
-		// XXX: See $2022-01 @ %Documentation::Workflow.
-		using guard_alloc_t = conditional_t<sizeof(node_allocator)
-			<= sizeof(void*), node_allocator, node_allocator&>;
-		guard_alloc_t a(get_node_allocator());
+		allocator_reference a(get_node_allocator());
 		// NOTE: This should be same to %deallocate_node(nd) on exception
 		//	thrown, except a copy of allocator may be used.
-		allocator_guard<guard_alloc_t> gd(nd, a);
+		allocator_guard<allocator_reference> gd(nd, a);
 
 		node_ator_traits::construct(a, nd->access_ptr(), yforward(args)...);
 		gd.release();
@@ -710,7 +734,9 @@ protected:
 		// XXX: Ensure no need to use explicit destructor call for the node.
 		static_assert(is_trivially_destructible<value_node>(),
 			"Invalid node type found.");
-		node_ator_traits::destroy(get_node_allocator(), nd->access_ptr());
+		allocator_reference a(get_node_allocator());
+
+		node_ator_traits::destroy(a, nd->access_ptr());
 	}
 
 	void

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012, 2015-2016, 2018-2019, 2021 FrankHB.
+	© 2012, 2015-2016, 2018-2019, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file integral_constant.hpp
 \ingroup YStandardEx
 \brief 整数类型常量。
-\version r1966
+\version r1984
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:36 +0800
 \par 修改时间:
-	2021-12-27 18:07 +0800
+	2022-02-26 22:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,13 +35,21 @@
 \brief \c \<type_traits> 特性测试宏。
 \see ISO C++20 [version.syn] 。
 \see WG21 P0941R2 2.2 。
+\see https://dev.to/yumetodo/list-of-mscver-and-mscfullver-8nd 。
+\see https://docs.microsoft.com/cpp/preprocessor/predefined-macros 。
 \see https://blogs.msdn.microsoft.com/vcblog/2016/10/11/c1417-features-and-stl-fixes-in-vs-15-preview-5/ 。
 \since build 679
 */
 //@{
+// XXX: Available by default (/std:c++14), so no %_MSVC_LANG is checked.
 #ifndef __cpp_lib_bool_constant
 #	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201505L
 #		define __cpp_lib_bool_constant 201505L
+#	endif
+#endif
+#ifndef __cpp_lib_logical_traits
+#	if _MSC_FULL_VER >= 190023918L || __cplusplus >= 201510L
+#		define __cpp_lib_logical_traits 201510L
 #	endif
 #endif
 //@}
@@ -228,6 +236,14 @@ struct nor_ : not_<or_<_bSeq...>>
 inline namespace cpp2017
 {
 
+#if __cpp_lib_logical_traits >= 201510L
+//! \since build 940
+//@{
+using std::conjunction;
+using std::disjunction;
+using std::negation;
+//@}
+#else
 /*!
 \ingroup YBase_replacement_features
 \ingroup traits
@@ -247,6 +263,7 @@ template<class _b>
 struct negation : yimpl(not_<_b>)
 {};
 //@}
+#endif
 
 } // inline namespace cpp2017;
 

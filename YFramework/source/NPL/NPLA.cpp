@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3921
+\version r3966
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2022-02-26 20:47 +0800
+	2022-03-07 04:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -242,6 +242,7 @@ MergeTermTags(TermTags x, TermTags y) ynothrow
 void
 MoveRValueFor(TermNode& term, TermNode& tm, bool(TermReference::*pm)() const)
 {
+	AssertValueTags(tm);
 	// XXX: Term tags are currently not respected in prvalues. However, this
 	//	should be neutral here due to copy elision in the object language.
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
@@ -482,9 +483,9 @@ LiftOtherOrCopy(TermNode& term, TermNode& tm, bool move)
 		// NOTE: Although %tm is required to be not same to %term, it can still
 		//	be an object exclusively owned by %term, e.g. when %term represents
 		//	a reference value with irregular representation and %tm is the term
-		//	referenced uniquely by %term.Value. Explicit copying is necessary
-		//	for such cases to prevent invalidating the subterm reference
-		//	prematurely.
+		//	referenced uniquely by %term.Value and owned by a subterm of %term.
+		//	Explicit copying is necessary for such cases to prevent invalidating
+		//	the subterm (i.e. the owner of %tm) prematurely.
 		term.CopyContent(tm);
 }
 
@@ -535,6 +536,27 @@ MoveCollapsed(TermNode& term, TermNode& tm)
 }
 
 void
+LiftPropagatedReference(TermNode& term, TermNode& tm, TermTags tags)
+{
+	// NOTE: Save the reference at first to prevent the possible
+	//	invalidation of the object %ref by the modification of the subterms
+	//	of %term. See also %LiftOtherOrCopy.
+#if false
+	// XXX: This is verbose but no more efficient, at least with
+	//	x86_64-pc-linux G++ 11.1.
+	const auto& ref(tm.Value.GetObject<TermReference>());
+	TermReference nref(PropagateTo(ref.GetTags(), tags), ref.get(),
+		ref.GetEnvironmentReference());
+
+	term.CopyContainer(tm);
+	term.Value = std::move(nref);
+#else
+	term.CopyContent(tm);
+	term.Value.GetObject<TermReference>().PropagateFrom(tags);
+#endif
+}
+
+void
 LiftToReference(TermNode& term, TermNode& tm)
 {
 	if(tm)
@@ -567,6 +589,7 @@ LiftToReturn(TermNode& term)
 		// XXX: Using %LiftMovedOther instead of %LiftMoved is safe, because the
 		//	referent is not allowed to be same to %term in NPLA.
 		LiftMovedOther(term, *p, p->IsMovable());
+	AssertValueTags(term);
 }
 
 void
@@ -625,6 +648,7 @@ CheckReducible(ReductionStatus status)
 ReductionStatus
 RegularizeTerm(TermNode& term, ReductionStatus status) ynothrow
 {
+	ClearCombiningTags(term);
 	// NOTE: Cleanup if and only if necessary.
 	if(status == ReductionStatus::Clean)
 		term.ClearContainer();
@@ -660,31 +684,16 @@ ReduceToReference(TermNode& term, TermNode& tm, ResolvedTermReferencePtr p_ref)
 {
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
 	{
+		AssertValueTags(tm);
 		// NOTE: Reference collapsed.
-		// XXX: As %LiftOtherOrCopy, except that tags spcfified %p_ref are also
-		//	Propagated.
+		// XXX: As %LiftOtherOrCopy, except that tags specified by %p_ref are
+		//	also propagated.
+		// XXX: This can be more efficient than %LiftOtherOrCopy with additional
+		//	modification on the tags.
 		if(!p_ref)
 			LiftOther(term, tm);
 		else
-			// XXX: Both can be even more efficient than %LiftOtherOrCopy.
-		{
-#if true
-			// XXX: As %LiftOtherOrCopy.
-			term.CopyContent(tm);
-
-			auto& ref(term.Value.GetObject<TermReference>());
-
-			ref.SetTags(PropagateTo(ref.GetTags(), p_ref->GetTags()));
-#else
-			// XXX: Save the reference at first to prevented invalidation if %tm
-			//	is a owned by %term (e.g. in a subterm reference).
-			TermReference ref(PropagateTo(p->GetTags(),
-				p_ref->GetTags()), p->get(), p->GetEnvironmentReference());
-
-			term.CopyContainer(tm);
-			term.Value = std::move(ref);
-#endif
-		}
+			LiftPropagatedReference(term, tm, p_ref->GetTags());
 		// XXX: The resulted representation can be irregular.
 		return ReductionStatus::Retained;
 	}
@@ -695,6 +704,7 @@ ReductionStatus
 ReduceToReferenceAt(TermNode& term, TermNode& tm,
 	ResolvedTermReferencePtr p_ref)
 {
+	AssertValueTags(tm);
 	// XXX: Term tags on prvalues are reserved and should be ignored normally
 	//	except for future internal use. Since %tm is a term,
 	//	%TermTags::Temporary is not expected, %GetLValueTagsOf is also not used.

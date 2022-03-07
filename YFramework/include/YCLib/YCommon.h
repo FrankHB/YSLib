@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018-2021 FrankHB.
+	© 2009-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r4098
+\version r4100
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2021-12-12 17:26 +0800
+	2022-02-26 22:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_YCLib_Platform
-#include <ystdex/functional.hpp> // for ystdex::decay_t,
+#include <ystdex/expanded_function.hpp> // for ystdex::decay_t,
 //	ystdex::invoke_result_t, ystdex::retry_on_cond, yfsig;
 #include <ystdex/cassert.h> // yconstraint, yassume for other headers;
 #include <cerrno> // for errno, ENOMEM;

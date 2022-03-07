@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2017, 2019, 2021 FrankHB.
+	© 2009-2017, 2019, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGDI.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r4050
+\version r4055
 \author FrankHB <frankhb1989@gmail.com>
 \since build 566
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2021-12-21 21:30 +0800
+	2022-02-28 05:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,24 +103,24 @@ struct YF_API Padding
 //! \relates Padding
 //@{
 //! \brief 加法逆元：对应分量调用一元 operator- 。
-YB_ATTR_nodiscard yconstfn YB_PURE
+YB_ATTR_nodiscard YB_PURE yconstfn
 	PDefHOp(Padding, -, const Padding& x) ynothrow
 	ImplRet(Padding(-x.Left, -x.Right, -x.Top, -x.Bottom))
 
 //! \brief 加法：对应分量调用 operator+ 。
-YB_ATTR_nodiscard yconstfn YB_PURE
+YB_ATTR_nodiscard YB_PURE yconstfn
 	PDefHOp(Padding, +, const Padding& x, const Padding& y) ynothrow
 	ImplRet(Padding(x.Left + y.Left, x.Right + y.Right, x.Top + y.Top,
 		x.Bottom + y.Bottom))
 
 //! \brief 减法：对应分量调用 operator- 。
-YB_ATTR_nodiscard yconstfn YB_PURE
+YB_ATTR_nodiscard YB_PURE yconstfn
 	PDefHOp(Padding, -, const Padding& x, const Padding& y) ynothrow
 	ImplRet(Padding(x.Left - y.Left, x.Right - y.Right, x.Top - y.Top,
 		x.Bottom - y.Bottom))
 
 //! \brief 乘法：对应分量调用 operator* 。
-YB_ATTR_nodiscard yconstfn YB_PURE
+YB_ATTR_nodiscard YB_PURE yconstfn
 	PDefHOp(Padding, *, const Padding& x, size_t n) ynothrow
 	ImplRet(Padding(SPos(x.Left * ptrdiff_t(n)), SPos(x.Right * ptrdiff_t(n)),
 		SPos(x.Top * ptrdiff_t(n)), SPos(x.Bottom * ptrdiff_t(n))))

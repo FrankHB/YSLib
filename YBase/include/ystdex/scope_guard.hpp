@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2019, 2021 FrankHB.
+	© 2015-2019, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守卫。
-\version r612
+\version r615
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2021-09-23 03:07 +0800
+	2022-02-26 22:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,8 @@
 #include "utility.hpp" // for exclude_self_params_t, and_,
 //	is_nothrow_constructible, is_bitwise_swappable, decay_t, is_reference,
 //	ystdex::vswap, tagged_value, noncopyable, std::declval, is_nothrow_copyable;
-#include "functional.hpp" // for one_shot, function;
+#include "function_adaptor.hpp" // for one_shot;
+#include "function.hpp" // for function;
 
 namespace ystdex
 {

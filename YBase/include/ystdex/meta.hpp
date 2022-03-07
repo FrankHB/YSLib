@@ -11,13 +11,13 @@
 /*!	\file meta.hpp
 \ingroup YStandardEx
 \brief 通用元编程设施。
-\version r1973
+\version r1988
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:28 +0800
 \par 修改时间:
-	2022-02-08 22:26 +0800
+	2022-02-28 21:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,8 @@
 #include "type_inspection.hpp" // for "type_inspection.hpp", <type_traits>,
 //	__cpp_lib_transformation_trait_aliases, __cpp_lib_remove_cvref,
 //	__cpp_lib_void_t, __cpp_lib_type_identity, true_, is_same, is_convertible,
-//	or_, nor_, and_, is_class, is_union, is_trivial, not_, size_t_, is_unsigned;
+//	or_, nor_, and_, is_class, is_union, is_trivial, not_, is_final, size_t_,
+//	is_unsigned;
 
 /*!
 \brief \c \<type_traits> 特性测试宏。
@@ -792,6 +793,15 @@ template<typename _type>
 struct is_trivial_union : and_<is_trivial<_type>, is_union<_type>>
 {};
 //@}
+
+
+/*!
+\brief 判断指定类型是否是可被继承的类类型。
+\since build 940
+*/
+template<typename _type>
+struct is_inheritable_class : and_<is_class<_type>, not_<is_final<_type>>>
+{};
 //@}
 
 
@@ -1019,11 +1029,18 @@ using cond_t = _t<cond<_tCond, _tThen, _tElse>>;
 \note 这里的实现不依赖 std::common_type 。
 \note 同 boost::mpl::identity 。
 \note Microsoft VC++ 2013 使用 LWG 2141 建议的实现。
+\sa id
 \see LWG 2141 。
 \see http://www.boost.org/doc/libs/1_55_0/libs/mpl/doc/refmanual/identity.html 。
 \see http://msdn.microsoft.com/library/vstudio/bb531344%28v=vs.120%29.aspx 。
 \see http://lists.cs.uiuc.edu/pipermail/cfe-commits/Week-of-Mon-20131007/090403.html 。
 \since build 334
+
+结果总是和参数类型相同的元函数。
+注意和 ISO C++ 从 Range TS 引入的 std::identity 不同，
+	后者是 <functional> 中提供的关于值的仿函数。
+在 ystdex 中，identity 的名称保留为元函数。
+可使用 id 代替 std::identity 的使用：id<> 实现和 std::identity 的相同的功能。
 */
 //@{
 template<typename _type>

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018-2021 FrankHB.
+	© 2010-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r706
+\version r708
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2021-11-03 03:29 +0800
+	2022-02-26 23:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 #include <stdexcept> // for mandated header;
 #include YFM_YSLib_Adaptor_YTextBase // for string_view;
 #include <string> // for std::string;
-#include <ystdex/functional.hpp> // for ystdex::nonvoid_result_t,
+#include <ystdex/invoke.hpp> // for ystdex::nonvoid_result_t,
 //	ystdex::invoke_result_t, ystdex::invoke_nonvoid;
 
 namespace YSLib

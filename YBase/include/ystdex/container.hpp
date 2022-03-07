@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r2338
+\version r2345
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2022-02-05 09:09 +0800
+	2022-02-26 22:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,13 +28,14 @@
 #ifndef YB_INC_ystdex_container_hpp_
 #define YB_INC_ystdex_container_hpp_ 1
 
-#include "iterator.hpp" // for "range.hpp", std::initializer_list,
-//	ystdex::begin, ystdex::end, make_transform, std::declval, size,
-//	is_detected_convertible, std::distance, std::make_move_iterator,
-//	yassume, ystdex::cbegin, ystdex::cend, YAssert, std::piecewise_construct_t,
-//	std::piecewise_construct, enable_if_convertible_t;
+#include "iterator.hpp" // for "range.hpp", internal "integreal_sequence.hpp",
+//	std::initializer_list, ystdex::begin, ystdex::end, make_transform,
+//	std::declval, size, is_detected_convertible, std::distance,
+//	std::make_move_iterator, yassume, ystdex::cbegin, ystdex::cend, YAssert,
+//	std::piecewise_construct_t, std::piecewise_construct,
+//	enable_if_convertible_t;
 #include "algorithm.hpp" // for YB_VerifyIterator, sort_unique;
-#include "functional.hpp" // for ystdex::seq_apply;
+#include "function.hpp" // for ystdex::seq_apply;
 #include "utility.hpp" // for ystdex::as_const;
 
 namespace ystdex

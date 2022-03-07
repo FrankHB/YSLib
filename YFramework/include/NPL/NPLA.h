@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r9308
+\version r9371
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2022-02-22 18:56 +0800
+	2022-03-07 06:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,10 +35,10 @@
 //	std::initializer_list, IsBranch, type_id, shared_ptr,
 //	ystdex::is_nothrow_copy_constructible, ystdex::is_nothrow_copy_assignable,
 //	ystdex::is_nothrow_move_constructible, ystdex::is_nothrow_move_assignable,
-//	ThrowListTypeErrorForInvalidType, observer_ptr, TryAccessValue, IsLeaf,
-//	ystdex::equality_comparable, weak_ptr, lref, ystdex::get_equal_to,
-//	NPL::IsMovable, pair, ystdex::invoke_value_or, ystdex::expand_proxy,
-//	NPL::Access, AssertValueTags, ystdex::ref_eq, ValueObject,
+//	EnsureValueTags, AssertValueTags, IsTyped, ThrowListTypeErrorForInvalidType,
+//	observer_ptr, TryAccessValue, IsLeaf, ystdex::equality_comparable, weak_ptr,
+//	lref, ystdex::get_equal_to, NPL::IsMovable, pair, ystdex::invoke_value_or,
+//	ystdex::expand_proxy, NPL::Access, ystdex::ref_eq, ValueObject,
 //	NPL::SetContentWith, std::for_each, AccessFirstSubterm, AssertBranch,
 //	NPL::Deref, YSLib::EmplaceCallResult, ystdex::less, YSLib::map, pmr,
 //	ystdex::copy_and_swap, NoContainer, ystdex::try_emplace,
@@ -437,6 +437,25 @@ static_assert(ystdex::is_nothrow_move_assignable<AnchorPtr>(),
 static_assert(ystdex::is_nothrow_move_constructible<AnchorPtr>(),
 	"Invalid type found.");
 //@}
+
+
+/*!
+\brief 清除参数中作为规约合并项而不是一等对象的表示的标签。
+\post 间接断言：参数的标签可表示一等对象的值。
+\note 因为项中的内容可能已被单独修改，不检查参数是规约合并项。
+\since build 939
+*/
+inline PDefH(void, ClearCombiningTags, TermNode& term) ynothrowv
+	ImplExpr(EnsureValueTags(term.Tags), AssertValueTags(term))
+
+/*!
+\brief 判断项是规约合并项。
+\since build 895
+*/
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, IsCombiningTerm, const TermNode& term) ynothrow
+	ImplRet(!(term.empty()
+		|| (term.Value && !IsTyped<TokenValue>(term.Value.type()))))
 
 
 /*!	\defgroup TermAccessAuxiliary Term Access Auxiliary API
@@ -873,15 +892,6 @@ public:
 	*/
 	DefPred(const ynothrow, Unique, bool(tags & TermTags::Unique))
 
-	DefGetter(const ynothrow, TermTags, Tags, tags)
-
-	//! \since build 873
-	DefSetter(ynothrow, TermNode&, Referent, term_ref)
-	//! \since build 873
-	DefSetter(ynothrow, TermTags, Tags, tags)
-
-	explicit DefCvtMem(const ynothrow, TermNode&, term_ref)
-
 	/*!
 	\brief 取锚对象指针。
 	\since build 847
@@ -893,6 +903,14 @@ public:
 	*/
 	DefGetter(const ynothrow, const EnvironmentReference&, EnvironmentReference,
 		r_env)
+	DefGetter(const ynothrow, TermTags, Tags, tags)
+
+	//! \since build 873
+	DefSetter(ynothrow, TermNode&, Referent, term_ref)
+	//! \since build 873
+	DefSetter(ynothrow, TermTags, Tags, tags)
+
+	explicit DefCvtMem(const ynothrow, TermNode&, term_ref)
 
 	/*
 	\brief 添加标签。
@@ -900,6 +918,14 @@ public:
 	*/
 	PDefH(void, AddTags, TermTags t) ynothrow
 		ImplExpr(tags |= t)
+
+	/*
+	\brief 从参数传播标签。
+	\sa PropagateTo
+	\since build 940
+	*/
+	PDefH(void, PropagateFrom, TermTags t) ynothrow
+		ImplExpr(tags = PropagateTo(tags, t))
 
 	/*
 	\brief 移除标签。
@@ -1340,8 +1366,8 @@ inline PDefH(void, LiftOther, TermNode& term, TermNode& tm)
 	ImplExpr(term.MoveContent(std::move(tm)))
 
 /*!
-\pre 间接断言：第二参数的标签可作为一等对象的值的表示。
-\post 第一参数的标签可作为一等对象的值的表示。
+\pre 间接断言：第二参数的标签可表示一等对象的值。
+\post 第一参数的标签可表示一等对象的值。
 \since build 939
 */
 inline PDefH(void, LiftOtherValue, TermNode& term, TermNode& tm)
@@ -1433,6 +1459,17 @@ MoveCollapsed(TermNode&, TermNode&);
 //@}
 
 /*!
+\brief 提升引用项为传播指定标签中的不可修改引用的引用项。
+\pre 间接断言：第二参数是引用项。
+\note 第三参数表示被传播的可能指定不可修改引用的标签值。
+\sa PropagateTo
+\sa TermReference
+\since build 940
+*/
+YF_API void
+LiftPropagatedReference(TermNode&, TermNode&, TermTags);
+
+/*!
 \warning 引入的间接值无所有权，应注意在生存期内使用以保证内存安全。
 \todo 支持消亡值和复制。
 */
@@ -1487,17 +1524,21 @@ inline
 /*!
 \pre 间接断言：非直接提升或第一和第二参数指定不相同的项。
 \pre 直接提升或第二参数指定的项不共享第一参数的项的子项。
+\post 间接断言：第一参数的标签可表示一等对象的值。
 \sa LiftOtherOrCopy
 \since build 876
 */
 inline PDefH(void, LiftMovedOther, TermNode& term, const TermReference& ref,
 	bool move)
-	ImplExpr(LiftOtherOrCopy(term, ref.get(), move), EnsureValueTags(term.Tags))
+	ImplExpr(LiftOtherOrCopy(term, ref.get(), move), EnsureValueTags(term.Tags),
+		AssertValueTags(term))
 //@}
 
 /*!
 \brief 提升项作为返回值。
 \sa LiftMoved
+\pre 间接断言：参数是项引用或参数的标签可表示一等对象的值。
+\post 间接断言：参数的标签可表示一等对象的值。
 \since build 828
 
 提升项的值数据成员可能包含的引用值以满足返回值的内存安全要求。
@@ -1511,8 +1552,8 @@ LiftToReturn(TermNode&);
 
 /*!
 \pre 间接断言：参数指定不相同的项。
-\pre 间接断言：第二参数是项引用或参数的标签可作为一等对象的值的表示。
-\post 间接断言：第一参数的标签可作为一等对象的值的表示。
+\pre 间接断言：第二参数的标签可表示一等对象的值。
+\post 间接断言：第一参数的标签可表示一等对象的值。
 \note 等价使用 TermReference::IsReferencedLValue 区分左值。
 \sa TermNode::MoveContent
 \sa TermReference::IsReferencedLValue
@@ -1689,7 +1730,9 @@ YB_ATTR_nodiscard YB_PURE inline
 
 /*!
 \brief 按规约结果正规化项。
+\post 间接断言：参数的标签可表示一等对象的值。
 \return 第二参数。
+\sa ClearCombiningTags
 \since build 841
 */
 YF_API ReductionStatus
@@ -1718,8 +1761,8 @@ ReduceBranchToListValue(TermNode&) ynothrowv;
 /*!
 \brief 规约提升结果。
 \return ReductionStatus::Retained 。
-\pre 间接断言：参数是项引用或参数的标签可作为一等对象的值的表示。
-\post 间接断言：参数的标签可作为一等对象的值的表示。
+\pre 间接断言：参数是项引用或参数的标签可表示一等对象的值。
+\post 间接断言：参数的标签可表示一等对象的值。
 \sa LiftToReturn
 \since build 855
 
@@ -1772,6 +1815,8 @@ inline PDefH(ReductionStatus, ReduceToListValue, TermNode& term) ynothrow
 
 /*!
 \pre 间接断言：第一和第二参数指定不相同的项。
+\pre 间接断言：第二参数的标签可表示一等对象的值。
+\post 第一参数的标签可表示一等对象的值。
 \since build 871
 */
 //@{
@@ -2707,11 +2752,9 @@ public:
 		ImplExpr(!stashed.empty() ? (stashed.front() = std::move(act),
 			current.splice_after(current.cbefore_begin(), stashed,
 			stashed.cbefore_begin())) : current.push_front(std::move(act)))
-	YB_FLATTEN PDefH(void, SetupFront, trivial_swap_t,
-		const Reducer& act)
+	YB_FLATTEN PDefH(void, SetupFront, trivial_swap_t, const Reducer& act)
 		ImplExpr(SetupFront(act));
-	YB_FLATTEN PDefH(void, SetupFront, trivial_swap_t,
-		Reducer&& act)
+	YB_FLATTEN PDefH(void, SetupFront, trivial_swap_t, Reducer&& act)
 		ImplExpr(SetupFront(std::move(act)));
 	//@}
 	//! \since build 892

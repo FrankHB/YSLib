@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9327
+\version r9347
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-02-23 12:10 +0800
+	2022-03-07 02:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -414,7 +414,7 @@ public:
 
 	/*!
 	\brief NPLA1 表达式节点一次规约默认实现：调用求值例程规约子表达式。
-	\pre 间接断言：第一参数的标签可作为一等对象的值的表示。
+	\pre 间接断言：第一参数的标签可表示一等对象的值。
 	\pre 第二参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
 	\return 规约状态。
 	\note 异常安全为调用遍的最低异常安全保证。
@@ -465,7 +465,7 @@ public:
 	RewriteGuarded(TermNode&, Reducer);
 
 	/*!
-	\pre 间接断言：参数的标签可作为一等对象的值的表示。
+	\pre 间接断言：参数的标签可表示一等对象的值。
 	\sa ReduceOnce
 	\since build 892
 	*/
@@ -507,7 +507,7 @@ inline PDefH(ReductionStatus, Continuation::operator(), ContextNode& ctx) const
 //@{
 /*!
 \brief NPLA1 表达式节点规约：调用至少一次求值例程规约子表达式。
-\pre 间接断言：第一参数的标签可作为一等对象的值的表示。
+\pre 间接断言：第一参数的标签可表示一等对象的值。
 \return 规约状态。
 \sa ContextState::RewriteGuarded
 \sa ReduceOnce
@@ -588,7 +588,7 @@ ReduceFirst(TermNode&, ContextNode&);
 
 /*!
 \brief NPLA1 表达式节点一次规约：转发调用到 NPLA1 表达式节点一次规约续延并调用。
-\pre 间接断言：第一参数的标签可作为一等对象的值的表示。
+\pre 间接断言：第一参数的标签可表示一等对象的值。
 \pre 第二参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
 \return 规约状态。
 \note 默认实现由 ContextState::DefaultReduceOnce 提供。
@@ -1230,24 +1230,6 @@ YB_ATTR_nodiscard YB_PURE inline
 inline PDefH(void, CheckVariadicArity, TermNode& term, size_t n)
 	ImplExpr(FetchArgumentN(term) > n ? void()
 		: (RemoveHead(term), ThrowInsufficientTermsError(term, {})))
-
-/*!
-\brief 清除参数中作为规约合并项的标签。
-\post 间接断言：参数的标签可作为一等对象的值的表示。
-\note 因为项中的内容可能已被单独修改，不检查参数是规约合并项。
-\since build 939
-*/
-inline PDefH(void, ClearCombiningTags, TermNode& term) ynothrowv
-	ImplExpr(EnsureValueTags(term.Tags), AssertValueTags(term))
-
-/*!
-\brief 判断项是规约合并项。
-\since build 895
-*/
-YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsCombiningTerm,
-	const TermNode& term) ynothrow
-	ImplRet(!(term.empty()
-		|| (term.Value && !IsTyped<TokenValue>(term.Value.type()))))
 
 /*!
 \note 保留求值留作保留用途，一般不需要被作为用户代码直接使用。

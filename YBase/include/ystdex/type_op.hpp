@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2021 FrankHB.
+	© 2011-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r2903
+\version r2922
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2021-12-29 01:16 +0800
+	2022-02-26 22:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,10 +31,10 @@
 #ifndef YB_INC_ystdex_type_op_hpp_
 #define YB_INC_ystdex_type_op_hpp_ 1
 
-#include "integer_sequence.hpp" // for "integer_sequence.hpp", is_class,
-//	std::declval, is_detected, vseq::apply, _t, bool_, subscript_t, is_void,
-//	equal_t, is_same, detected_or_t, remove_reference_t, and_, cond_t, is_enum,
-//	vdefer, underlying_type_t, common_type_t;
+#include "variadic.hpp" // for "variadic.hpp", is_class, std::declval,
+//	is_detected, vseq::apply, _t, bool_, is_void, equal_t, is_same,
+//	detected_or_t, remove_reference_t, and_, cond_t, is_enum, vdefer,
+//	underlying_type_t, common_type_t;
 
 namespace ystdex
 {
@@ -83,17 +83,17 @@ struct has_nonempty_virtual_base
 		"Non-class type found @ ystdex::has_nonempty_virtual_base;");
 
 private:
-	struct A : _type
+	struct a : _type
 	{};
 
-	struct B : _type
+	struct b : _type
 	{};
 
-	struct C : A, B
+	struct c : a, b
 	{};
 
 public:
-	static yconstexpr const bool value = sizeof(C) < sizeof(A) + sizeof(B);
+	static yconstexpr const bool value = sizeof(c) < sizeof(a) + sizeof(b);
 };
 
 
@@ -105,10 +105,10 @@ struct have_common_nonempty_virtual_base
 		"Non-class type found @ ystdex::has_common_nonempty_virtual_base;");
 
 private:
-	struct A : virtual _type1
+	struct a : virtual _type1
 	{};
 
-	struct B : virtual _type2
+	struct b : virtual _type2
 	{};
 
 #ifdef YB_IMPL_GNUCPP
@@ -119,7 +119,7 @@ private:
 #	endif
 #endif
 
-	struct C : A, B
+	struct c : a, b
 	{};
 
 #if YB_IMPL_GNUCPP
@@ -127,7 +127,7 @@ private:
 #endif
 
 public:
-	static yconstexpr const bool value = sizeof(C) < sizeof(A) + sizeof(B);
+	static yconstexpr const bool value = sizeof(c) < sizeof(a) + sizeof(b);
 };
 
 //! \since build 649
@@ -185,6 +185,11 @@ struct has_mem_value_type : is_detected<details::mem_value_type_t, _type>
 
 
 /*!
+\pre 类可被继承。
+\todo 支持 final 类。
+*/
+//@{
+/*!
 \ingroup unary_type_traits
 \brief 判断指定类型是否有非空虚基类。
 \since build 175
@@ -198,14 +203,13 @@ struct has_nonempty_virtual_base
 /*!
 \ingroup binary_type_traits
 \brief 判断指定的两个类类型是否不同且有公共非空虚基类。
-\pre 类可被继承。
 \since build 660
-\todo 支持 final 类。
 */
 template<class _type1, class _type2>
 struct have_common_nonempty_virtual_base : bool_<!is_same<_type1, _type2>::value
 	&& details::have_common_nonempty_virtual_base<_type1, _type2>::value>
 {};
+//@}
 
 
 /*!

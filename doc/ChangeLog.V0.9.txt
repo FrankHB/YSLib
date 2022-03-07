@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r8140
+\version r8422
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-02-26 20:53 +0800
+	2022-03-07 07:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,281 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	* DD "wrong value category" @ "descriptions" @ "applicative %rulist"
+		@ %Documentation.NPL $since b915,
+	/ %YBase.YStandardEx $=
+	(
+		/ %IntegralConstant $=
+		(
+			+ "conditionally defined macro %__cpp_lib_logical_traits";
+			/ "detected and used %std::(conjunction, disjunction, negation)"
+				@ "inline namespace %cpp2017" ^ "%__cpp_lib_logical_traits"
+		),
+		/ %Utilities $=
+		(
+			* "missing excluding parameters" @ "construct template"
+				@ "class template %nifty_counter" $since b425
+				$= (/ $impl ^ "%exclude_self_params_t"),
+			+ $dev $lib "'YB_PURE yconstfn' or 'YB_PURE yconstfn_relaxed'"
+				@ "member conversion functions" @ "class template %boxed_value"
+		),
+		/ DLDI "made internal identifier in small cases"
+			$effective @ %TypeOperation,
+			// To be consistent with other names in %YBase.
+		* "missing inclusion <tuple>" $since b833 @ %Iterator
+			$= (+ $revert(b667) $impl '#include <tuple>'),
+			// Since b650, %TypeOperation included <tuple> indirectly by \
+				including %Tuple, but this is changed in b833.
+		(
+		+ DLDI "header inclusion %IntegerSequence" @ %(Iterator, Utilities);
+		/ "inclusion %IntegerSequence" @ %TypeOperation -> %Variadic
+		),
+		/ DLI "lifted internal allocator guard types to the classes and \
+			used it at several other member functions requiring lvalues"
+			@ %(Tree, List),
+		+ "unary type trait %is_inheritable_class" @ %Meta,
+		/ %CompressedPair $=
+		(
+			+ "unary type trait %is_compressible_class",
+			/ @ "class template %compressed_pair_element" $=
+			(
+				/ DLDI "simplified default template argument"
+					^ $dep_from "%is_compressible_class",
+				* $src "redundant %value_type data member"
+					@ "explicit specialization" $since b938,
+				+ "default constructor" @ "primary template",
+					// To be consistent to the explicit specialization.
+				+ "2 explicit conversion operators"
+			);
+			+ "transformation trait %compressed_base"
+				^ $dep_from ("%is_inheritable_class" @ %Meta)
+		),
+		/ %Allocator $=
+		(
+			- DLDI "defaulted (copy, move) (constructor, %operator=)",
+				 @ ($revert(b718) "class template %allocator_guard_delete",
+				 $revert(b843) "class template %allocator_delete"),
+				 // They should be same to implicily declared ones, hence \
+					redundant.
+			(
+			/ "header inclusion %Placement" -> "%ComporessedPair",
+			/ DLDI "function %get_allocator"
+				@ "class templates %(allocator_guard_delete, allocator_delete)"
+				!^ "using-declaration",
+			/ DLI "optimized and simplified class templates \
+				%(allocator_guard_delete, allocator_delete)"
+				^ $dep_from ("%compressed_pair_element" @ %CompressedPair)
+				~ "internal base class"
+				// This depends on the 2nd template default argument and \
+					%get_mutable in %compressed_pair_element since b939.
+			)
+		),
+		/ %Tree $=
+		(
+			* $revert(b864) DLDI "redundant %YB_PURE" @ "member function \
+				%access" @ "class template %tree_node" $since b864,
+			/ DLI "optimized %tree_key_compare"
+				^ $dep_from ("%compressed_pair_element" @ %CompressedPair)
+		),
+		* "missing support of final allocators" $effective @ (%List $since b865,
+			(%Tree; $comp %Map) $since b830)
+			// This is also buggy in libstdc++ and still not fixed \
+				yet, see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=82758, \
+				and more generally, \
+				https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60921.
+			$= (/ $impl ^ "%(compressed_base, compressed_pair)"
+				$dep_from %CompressedPair),
+				// The incomplete type support relies on the fix of traits in \
+					%compressed_pair in b939.
+		/ DLI "internal representaton class template" @ %List $=
+		(
+			/ "functions %(allocate_node, deallocate_node)" ^ "%link_type"
+				~ "allocator pointers",
+				// As %Tree. Fancy pointers are not yet supported.
+			/ 'YB_ATTR_nodiscard' @ "function %allocate_node"
+				-> 'YB_ALLOCATOR YB_ATTR_returns_nonnull'
+				// Ditto. Note 'YB_ATTR_returns_nonnull' only works for raw \
+					pointers, which is satisfied by %link_type.
+		)
+	),
+	/ DLDI "all 'yconstfn YB_PURE'" -> 'YB_PURE yconstfn' $effective \
+		@ %(YBase.YStandardEx.(CompressedPair, MemoryResource, Path, Pointer),
+		YFramework.YSLib.Service.YGDI),
+	/ DLDI "all 'yconstfn_relaxed YB_PURE'" -> 'YB_PURE yconstfn_relaxed'
+		$effective @ %YBase.YStandardEx.CompressedPair,
+	/ $re_add(b939) DLDI "header inclusion %Functional" @ ((%(Concurrency,
+		Container) -> %Function, %ScopeGuard -> %(FunctionAdaptor, Function))
+		@ %YBase.YStandardEx, (%YCLib.YCommon -> %ExpandedFunction,
+		(%YSLib.Core.YException -> %Invoke)) @ %YFramework)
+		$dep_from "reducing header dependencies",
+	/ %YFramework $=
+	(
+		/ %YSLib.Core.ValueNode $=
+		(
+			/ $re_add(b915) DLDI "all %TermNode argument 'node' to be accessed \
+				directly" @ %ValueNode => 'nd',
+				// As %TermNode in %NPL.SContext.
+			- "header inclusion %Variadic",
+			(
+			- "header inclusions %(Functor, DereferenceOperation)",
+			+ DLDI "header inclusion %(Bind, Compose)"
+				$dep_to "reducing header dependencies"
+			)
+		),
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				/ "functions %(ClearCombiningTags, IsCombiningTerm)"
+					>> ("namespace %NPL" @ %NPLA);
+				* $comp DD "wrong '\pre' command" @ "Doxygen comment"
+					@ "function %IsCombiningTerm" $since b939
+			),
+			/ %NPLA $=
+			(
+				/ "ensured value representation of the terms" @ "function \
+					%RegularizeTerm" ^ $dep_from "%ClearCombiningTags",
+				/ "ensured value representation of first-class object on \
+					the parameter as conditional preconditon and \
+					postcondition" @ (("function %LiftToReturn";
+					$comp "function %ReduceForLiftedResult"))
+					$dep_all_from "native forms temporary tag fixes",
+				/ @ "class %TermReference" $=
+				(
+					/ DLDI "declaration order" @ "getters",
+					+ "function %PropagateFrom"
+				),
+				(
+				+ "function %LiftPropagatedReference"
+					^ $dep_from "%TermReference::PropagateFrom";
+				/ DLDI "simplified function %ReduceToReference"
+					^ "%LiftPropagatedReference",
+				),
+				/ DLI "ensured value tags on the 2nd argument"
+					@ "function %(ReduceToReference, \
+					ReduceToReferenceAt)" ^ "%AssertValueTags",
+				/ DLI "ensured postcondition" @ "function %LiftMovedOther"
+					^ "%AssertValueTags"
+			),
+			* $re_add(b939) $comp "missing cleanup combining tags for results \
+				of operations in general" $since b860
+				$dep_from ("%RegularizeTerm" @ %NPLA)
+				$dep_to "native forms temporary tag fixes",
+				// %TermTags::Temporary was introduced in %ReduceCombined \
+					since b860, while some functions were introduced previously.
+			/ %NPLA1Forms $=
+			(
+				/ DLDI "internal variable name 'x' got from \
+					%AccessFirstSubterm calls" => 'tm',
+					// This is usually not the variable, but the referenced \
+						object.
+				/ DLDI "simplified the call to detect internal range expiration"
+					@ "functions %(FoldR1, Map1)",
+				/ DLDI "simplified functions %(Let, LetRef, LetRec, LetRecRef, \
+					ProvideLet)",
+				* DLI "redundant nonmodifying tag setting on the lvalue terms"
+					@ "functions %(LetAsterisk, LetAsteriskRef)" $since b917
+					// This may cause unnecessary copies.
+				(
+				* ("missing detecting movable list xvalues for non-reference \
+					elements"; "wrongly moved non-unique non-reference \
+					elements") @ "functions %(ListExtractFirst, \
+					ListExtractRest, Let, LetRef, LetWithEnvironment, \
+					LetWithEnvironmentRef, LetRec, LetRecRef, \
+					BindingsToEnvironment, BindingsWithParentToEnvironment)"
+					$since b917;
+					// Uses of term tags with %TermRange should be consistent \
+						to %(FoldR1, Map1).
+				* DLI "redundant nonmodifying tag setting on the lvalue terms"
+					@ "functions %(Let, LetRef, LetWithEnvironment, \
+					LetWithEnvironmentRef, LetRec, LetRecRef)" $since b917
+					// Ditto. However, this rely on the fix above, otherwise \
+						it might moved the binding list elements unexpectedly.
+				),
+				* $re_add(b927) "body not evaluated properly for non-empty \
+					lvalue binding lists due to missing cleanup of %Value \
+					before the call" @ "functions %(Let, LetRef, LetRec, \
+					LetRecRef, LetAsterisk, LetAsteriskRef, ProvideLet)"
+					$since b919,
+					// This is in %LetCombineBody. Empty lists are optimized \
+						in other paths in %LetEmpty which has the precondition \
+						check to prevent non-empty %Value objects which have \
+						been fixed since b92u7. Note %(LetAsterisk, \
+						LetAsteriskRef) are not affected because they have \
+						only prvalues non-empty binding lists.
+				* $re_add(b925) "wrong temporary tag preserved"
+					$dep_to "native forms temporary tag fixes" $=
+				(
+					* "before the application" @ "function %ForwardFirst"
+						$orig (@ "%ForwardListFirst" @ %NPLA1 $since b875),
+					* "for the forwarded arguments"
+						@ ("functions %(AccL, AccR)" $since b898
+						@ "functions %(FoldR1, Map1)" $since b899)
+				),
+				/ $re_add(b939) DLI "internal body lifting for let-family \
+					bodies" ^ "%LiftOtherValue" ~ "%LiftOther",
+				/ DLDI "simplified functions %(Cons, ConsRef)",
+				/ DLDI "simplified alternative implementations" @ "functions \
+					%(First, ListExtractFirst, LetAsterisk, LetAsteriskRef, \
+					Let, LetRef, LetRec, LetRecRef, BindingsToEnvironment, \
+					BindingsWithParentToEnvironment, ProvideLet)"
+					^ $dep_from ("%LiftPropagatedReference" @ %NPLA)
+			),
+			/ @ "function %LoadGroundContext" %Dependency $=
+			(
+				/ @ "applicatives ('list-extract-first', 'list-extract-rest%')"
+					$=
+				(
+					* "missing forwarding xvalues" @ "alternative derivations"
+						$since b916
+						$= (/ $impl ^ 'forward!');
+						// The implementations had used 'map1' since b916, \
+							which had used 'forward!' since b915.
+					* $comp "inconsistency of native implementation of "
+						// The native implementations since b917 also assumed \
+							the forwarding.
+				),
+				* DLI "redudant copy made for lvalues" $since b917
+				(
+					/ @ "operative ('$let*', '$let*%')" $since b917 $=
+					(
+						/ $comp "native implemenation" $dep_from
+							("%(LetAsterisk, LetAsteriskRef)" @ %NPLA1Forms),
+						/ "alternative derivations" ^ 'id' ~ 'as-const'
+					),
+					/ @ "operative ('$let', '$let%', '$let/e', '$let/e%', \
+						'$letrec', '$letrec%')"
+						$since b917 $=
+					(
+						/ $comp "native implemenation" $dep_from
+							("%(Let, LetRef, LetWithEnvironment, \
+							LetWithEnvironmentRef, LetRec, LetRecRef)"
+							@ %NPLA1Forms),
+						/ "alternative derivations" ^ 'id' ~ 'as-const'
+					)
+				),
+				(
+				/ "simplified common native implementations"
+					@ "operatives ('$resolve-identifier', '$move-resolved!')"
+					$= (/ ^ $impl "%EnsureValueTags");
+				* $comp $re_add(b925) "possible wrong temporary preserved"
+					@ "native implementation"
+					@ "operative '$resolve-identifier'" $since b857
+					$dep_to "native forms temporary tag fixes"
+					// As '$move-resolved!'. The operative was introduced in \
+						b834, but the %TermTags::Temporary was used since b857.
+				),
+				* $comp $re_add(b925) "possible wrong temporary preserved for \
+					prvalue lists" @ "native implementation" @ "applicative \
+					'forward-first%'" $orig @ ('forward-list-first' $since b875)
+					$dep_from ("%function %ForwardFirst" @ %NPLA1Forms)
+			)
+		)
+	)
+),
+
+b939
 (
 	* "unexpected ADL '!' of traits results"
 		$effective @ %YBase.YStandardEx.(Any, CompressedPair, Optional),
@@ -285,10 +560,10 @@ $now
 				* "missing cleanup combining tags" @ ("functions %(Eval, \
 					EvalRef, EvalString, EvalStringRef, RemoteEval, \
 					RemoteEvalRef)" $orig (@ "functions %(Eval, EvalRef, \
-					EvalString, EvalStringRef)" @ %NPLA1 $since b860)
+					EvalString, EvalStringRef)" @ %NPLA1)
 					"functions %(DefineLazy, DefineWithNoRecursion, \
-					DefineWithRecursion, SetWithNoRecursion, SetWithRecursion)")
-					$dep_to "combining tags fixes"
+					DefineWithRecursion, SetWithNoRecursion, SetWithRecursion)"
+					$orig %NPLA1) $since b860 $dep_to "combining tags fixes",
 					// Ditto.
 					$= (/ $impl ^ $dep_from ("%ClearCombiningTags" @ %NPLA1))
 				/ DLDI "simplified" @ "functions %(DefineLazy, \
@@ -2720,9 +2995,10 @@ b927
 					/ @ "function %(Let, LetRef, LetRec, LetRecRef, \
 						LetAsterisk, LetAsteriskRef)" $=
 					(
-						* "wrong result when the binding is an empty list \
-							lvalue caused by missing clear the %Value data \
-							member of the term to store the body" $since b919;
+						* "body not evaluated properly for empty lvalue \
+							binding lists due to missing cleanup of %Value \
+							before the call" $since b919;
+							// This would probably cause wrong results.
 						+ $lib $impl "assertion to ensure the empty term layout"
 					)
 				),
@@ -3231,7 +3507,7 @@ b925
 						$dep_from ("%NPL::MoveCollapsed" @ %NPLA),
 						"native implementation" @ "applicative 'set-first%!'"
 						$since b857 $dep_from ("%NPL::LiftCollapsed" @ %NPLA)),
-					* "possible wrong temporary preseved"
+					* "possible wrong temporary preserved"
 						@ ($comp "applicative %list" $since b857
 						$dep_from ("%ReduceBranchToListValue" @ %NPLA),
 						("operative '$move-resolved!" ^ $impl $dep_from

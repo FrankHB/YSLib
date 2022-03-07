@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r6591
+\version r6634
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2022-02-26 02:04 +0800
+	2022-03-07 02:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,21 +29,23 @@
 #include YFM_NPL_Dependency // for set, string, UnescapeContext, string_view,
 //	ystdex::isspace, std::istream, YSLib::unique_ptr, std::throw_with_nested,
 //	std::invalid_argument, ystdex::sfmt, YSLib::share_move, REPLContext,
-//	RetainN, NPL::ResolveRegular, NPL::Deref, RelaySwitched,
-//	trivial_swap, A1::NameTypedReducerHandler, std::bind, std::ref,
-//	ResolvedTermReferencePtr, NPL::TryAccessLeaf, TermReference, LiftTerm,
-//	MoveResolved, NPL::AllocateEnvironment, function, ValueObject,
-//	EnvironmentReference, std::piecewise_construct, NPL::forward_as_tuple,
-//	LiftOther, ThrowNonmodifiableErrorForAssignee, ThrowValueCategoryError,
-//	ValueToken, ResolveTerm, std::placeholders, TokenValue, CheckVariadicArity,
-//	A1::AsForm, NPL::CollectTokens, Strict, IsEmpty, ComposeReferencedTermOp,
-//	IsBranch, IsReferenceTerm, IsBoundLValueTerm, IsUncollapsedTerm,
-//	IsUniqueTerm, IsModifiableTerm, IsTemporaryTerm, ReferenceTerm, LiftTermRef,
-//	NPL::SetContentWith, ResolveName, Environment::EnsureValid, LiftOtherOrCopy,
-//	ystdex::bind1, LiftTermValueOrCopy, ResolveIdentifier, NPLException,
-//	ReduceToReferenceList, MoveCollapsed, NPL::IsMovable, LiftTermOrCopy,
-//	IsBranchedList, AccessFirstSubterm, ThrowInsufficientTermsError, Retain,
-//	NPL::AsTermNode, ystdex::fast_any_of, Ensigil, YSLib::ufexists,
+//	RetainN, NPL::ResolveRegular, NPL::Deref, RelaySwitched, trivial_swap,
+//	A1::NameTypedReducerHandler, std::bind, std::ref, Forms::CallResolvedUnary,
+//	EnsureValueTags, ResolvedTermReferencePtr, NPL::TryAccessLeaf,
+//	TermReference, LiftTerm, MoveResolved, NPL::AllocateEnvironment, function,
+//	ValueObject, EnvironmentReference, std::piecewise_construct,
+//	NPL::forward_as_tuple, LiftOther, ThrowNonmodifiableErrorForAssignee,
+//	ThrowValueCategoryError, ValueToken, ResolveTerm, TokenValue,
+//	CheckVariadicArity, A1::AsForm, ystdex::bind1, std::placeholders,
+//	NPL::CollectTokens, Strict, LiftOtherOrCopy, IsEmpty,
+//	ComposeReferencedTermOp, IsBranch, IsReferenceTerm, IsBoundLValueTerm,
+//	IsUncollapsedTerm, IsUniqueTerm, IsModifiableTerm, IsTemporaryTerm,
+//	LiftTermRef, NPL::SetContentWith, Environment::EnsureValid,
+//	LiftTermValueOrCopy, ResolveIdentifier, NPLException, ReduceToReferenceList,
+//	MoveCollapsed, NPL::IsMovable, LiftTermOrCopy, IsBranchedList,
+//	AccessFirstSubterm, ThrowInsufficientTermsError, AssertValueTags, Retain,
+//	RemoveHead, ClearCombiningTags, EmplaceCallResultOrReturn, NPL::AsTermNode,
+//	ReferenceTerm, ResolveName, ystdex::fast_any_of, Ensigil, YSLib::ufexists,
 //	YSLib::to_std_string, EmplaceCallResultOrReturn, NPL::TryAccessTerm,
 //	ystdex::plus, ystdex::tolower, YSLib::OwnershipTag, YSLib::IO::StreamPut,
 //	YSLib::FetchEnvironmentVariable, YSLib::SetEnvironmentVariable,
@@ -79,6 +81,10 @@ namespace NPL
 //	(relatively to the ground environment) statement are in the same group. The
 //	native implementation of forms should provide better performance in general,
 //	thus it is enabled by default.
+// NOTE: Several derivations are known to result different unspecified values to
+//	the native implementations as the effects of the invocations, which are
+//	conforming to the specifications. Currently such cases include: '$let*' and
+//	'$let*%' move non-empty rvalues bindings differently.
 
 //! \since build 837
 //@{
@@ -282,16 +288,6 @@ Qualify(TermNode& term, TermTags tag_add)
 	}, term);
 }
 
-//! \since build 925
-YB_ATTR_nodiscard TermNode
-MoveResolvedValue(const ContextNode& ctx, string_view id)
-{
-	auto tm(MoveResolved(ctx, id));
-
-	EnsureValueTags(tm.Tags);
-	return tm;
-}
-
 //! \since build 794
 //@{
 void
@@ -400,6 +396,7 @@ DoResolve(TermNode(&f)(const ContextNode&, string_view), TermNode& term,
 	Forms::CallRegularUnaryAs<const TokenValue>(
 		[&] YB_LAMBDA_ANNOTATE((string_view id), , flatten){
 		term = f(c, id);
+		EnsureValueTags(term.Tags);
 	}, term);
 	return ReductionStatus::Retained;
 }
@@ -617,7 +614,7 @@ LoadEnvironments(ContextNode& ctx)
 	RegisterForm(ctx, "$resolve-identifier", trivial_swap,
 		std::bind(DoResolve, std::ref(ResolveIdentifier), _1, _2));
 	RegisterForm(ctx, "$move-resolved!", trivial_swap,
-		std::bind(DoResolve, std::ref(MoveResolvedValue), _1, _2));
+		std::bind(DoResolve, std::ref(MoveResolved), _1, _2));
 	// NOTE: This is now primitive since in NPL environment capture is more
 	//	basic than vau.
 	RegisterStrict(ctx, "copy-environment", CopyEnvironment);
@@ -1184,8 +1181,8 @@ $defl%! rulist (&l)
 		(idv (forward! l));
 $defl! list-concat (&x &y) foldr1 cons% (forward! y) (forward! x);
 $defl! append (.&ls) foldr1 list-concat () (move! ls);
-$defl%! list-extract-first (&l) map1 first l;
-$defl%! list-extract-rest% (&l) map1 rest% l;
+$defl%! list-extract-first (&l) map1 first (forward! l);
+$defl%! list-extract-rest% (&l) map1 rest% (forward! l);
 $defl! list-push-front! (&l &x) $if (modifiable? l)
 	(assign! l (cons% (forward! x)
 		(($lambda ((.l)) (move! l)) (forward! l))))
@@ -1195,11 +1192,9 @@ $def! ($let $let% $let/e $let/e% $let* $let*% $letrec $letrec%) ($lambda (&ce)
 	$def! mods () ($lambda/e ce ()
 	(
 		$defv%! $lqual (&ls) d
-			($if (eval (list $lvalue-identifier? ls) d) as-const rulist)
-				(eval% ls d);
+			($if (eval (list $lvalue-identifier? ls) d) id rulist) (eval% ls d);
 		$defv%! $lqual* (&x) d
-			($if (eval (list $lvalue-identifier? x) d) as-const expire)
-				(eval% x d);
+			($if (eval (list $lvalue-identifier? x) d) id expire) (eval% x d);
 		$defl%! mk-let ($ctor &bindings &body)
 			list* () (list* $ctor (list-extract-first bindings)
 				(list (move! body))) (list-extract-rest% bindings);
@@ -1231,8 +1226,7 @@ $def! ($let $let% $let/e $let/e% $let* $let*% $letrec $letrec%) ($lambda (&ce)
 		eval% (mk-letrec $let ($lqual bindings) (move! body)) d;
 	$defv/e%! $letrec% mods (&bindings .&body) d
 		eval% (mk-letrec $let% ($lqual bindings) (move! body)) d;
-	map1 move!
-		(list% $let $let% $let/e $let/e% $let* $let*% $letrec $letrec%)
+	map1 move! (list% $let $let% $let/e $let/e% $let* $let*% $letrec $letrec%)
 )) (() get-current-environment);
 $defw! derive-current-environment (.&envs) d
 	apply make-environment (append envs (list d)) d;
@@ -1438,14 +1432,16 @@ private:
 	bool eval_ref = true;
 
 public:
-	//! \pre 间接断言：第二参数的标签可作为一等对象的值的表示。
+	// XXX: Keep parameters of 'TermNode' object type, as it is more efficient, at
+	//	least in code generation by x86_64-pc-linux G++ 11.1.
+	//! \pre 间接断言：第二参数的标签可表示一等对象的值。
 	Promise(ContextNode& ctx, TermNode tm) ynothrow
 		: r_env(ctx.WeakenRecord()), tm_obj(std::move(tm)),
 		tm_env(tm.get_allocator())
 	{
 		AssertValueTags(tm_obj);
 	}
-	//! \pre 间接断言：第三参数的标签可作为一等对象的值的表示。
+	//! \pre 间接断言：第三参数的标签可表示一等对象的值。
 	Promise(ContextNode& ctx, TermNode tm_e, TermNode tm, bool no_lift) ynothrow
 		: r_env(ctx.WeakenRecord()), tm_obj(std::move(tm)),
 		tm_env(std::move(tm_e)), eval_ref(no_lift)

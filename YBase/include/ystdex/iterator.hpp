@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2021 FrankHB.
+	© 2011-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r6227
+\version r6231
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2021-10-05 19:30 +0800
+	2022-02-26 22:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,8 +33,9 @@
 //	exclude_self_t, enable_if_convertible_t, and_, std::input_iterator_tag,
 //	ystdex::swap_dependent, YB_VerifyIterator, is_undereferenceable, yassume,
 //	yconstraint, random_access_iteratable;
-#include "type_op.hpp" // for first_tag, second_tag, std::tuple,
-//	make_index_sequence, index_sequence, std::get;
+#include "type_op.hpp" // for first_tag, second_tag;
+#include <tuple> // for std::tuple, std::get, std::tuple_size;
+#include "integer_sequence.hpp" // for make_index_sequence, index_sequence;
 #include "ref.hpp" // for invoke_result_t, ystdex::invoke, lref;
 
 namespace ystdex

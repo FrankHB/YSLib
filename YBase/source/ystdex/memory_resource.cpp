@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018-2021 FrankHB.
+	© 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1739
+\version r1743
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2021-11-06 15:41 +0800
+	2022-02-28 05:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -165,7 +165,7 @@ struct intrusive_stack
 	intrusive_stack&
 	operator=(intrusive_stack&&) = default;
 
-	static yconstfn YB_PURE link_ptr
+	static YB_PURE yconstfn link_ptr
 	as_link(item_ptr p) ynothrow
 	{
 		static_assert(is_base_of<link_type, _type>::value,
@@ -174,7 +174,7 @@ struct intrusive_stack
 		return link_ptr(make_observer(static_cast<link_type*>(p.get().get())));
 	}
 
-	static yconstfn YB_PURE item_ptr
+	static YB_PURE yconstfn item_ptr
 	as_item(link_ptr p) ynothrow
 	{
 		static_assert(is_base_of<link_type, _type>::value,
@@ -189,7 +189,7 @@ struct intrusive_stack
 		return !head;
 	}
 
-	yconstfn YB_PURE item_ptr
+	YB_PURE yconstfn item_ptr
 	top() const ynothrow
 	{
 		return as_item(head);

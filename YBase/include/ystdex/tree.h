@@ -11,13 +11,13 @@
 /*!	\file tree.h
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r3497
+\version r3580
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2022-01-31 16:46 +0800
+	2022-02-28 20:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,6 +51,8 @@
 //	ystdex::alloc_on_swap, is_bitwise_swappable;
 #include "optional.h" // for optional, bidirectional_iteratable,
 //	equality_comparable, totally_ordered, has_mem_is_transparent;
+#include "compressed_pair.hpp" // for compressed_pair_element, compressed_pair,
+//	value_init;
 #include "utility.hpp" // for noncopyable, ystdex::as_const;
 #include <limits> // for std::numeric_limits;
 #include "iterator_trait.hpp" // for has_iterator_value_type;
@@ -194,8 +196,8 @@ private:
 	//! \since build 864
 	using ator_traits = allocator_traits<_tNodeAlloc>;
 	template<typename _tObj>
-	using ptr_t = typename std::pointer_traits<typename
-		ator_traits::pointer>::template rebind<remove_reference_t<_tObj>>;
+	using ptr_t = typename std::pointer_traits<typename ator_traits::pointer
+		>::template rebind<remove_reference_t<_tObj>>;
 
 	ptr_t<_tKey> p_key = {};
 	ptr_t<typename _type::second_type> p_mapped = {};
@@ -408,17 +410,18 @@ struct tree_node_base
 };
 
 
-// TODO: Optimize once %is_final is supported.
 template<typename _tKeyComp>
-struct tree_key_compare
+struct tree_key_compare : compressed_pair_element<_tKeyComp>
 {
-	_tKeyComp key_compare{};
+	//! \since build 940
+	using base = compressed_pair_element<_tKeyComp>;
 
 	//! \since build 864
 	tree_key_compare() ynoexcept_spec(_tKeyComp())
+		: base()
 	{}
 	tree_key_compare(const _tKeyComp& comp)
-		: key_compare(comp)
+		: base(comp)
 	{}
 	tree_key_compare(const tree_key_compare&) = default;
 	// NOTE: As per ISO C++17 [associative.reqmts], the comparison object shall
@@ -426,7 +429,7 @@ struct tree_key_compare
 	// XXX: This is copied.
 	tree_key_compare(tree_key_compare&& x)
 		ynoexcept(is_nothrow_copy_constructible<_tKeyComp>())
-		: key_compare(x.key_compare)
+		: tree_key_compare(x)
 	{}
 };
 
@@ -484,12 +487,12 @@ private:
 	replace_storage_t<_type> storage;
 
 public:
-	YB_PURE yconstfn_relaxed YB_PURE _type*
+	YB_PURE yconstfn_relaxed _type*
 	access_ptr()
 	{
 		return static_cast<_type*>(storage.access());
 	}
-	YB_PURE yconstfn YB_PURE const _type*
+	YB_PURE yconstfn const _type*
 	access_ptr() const
 	{
 		return static_cast<const _type*>(storage.access());
@@ -729,6 +732,9 @@ private:
 	//! \since build 865
 	using equal_alloc_or_pocma = or_<typename node_ator_traits::is_always_equal,
 		typename node_ator_traits::propagate_on_container_move_assignment>;
+	// XXX: See $2022-01 @ %Documentation::Workflow.
+	using allocator_reference = conditional_t<sizeof(node_allocator)
+		<= sizeof(void*), node_allocator, node_allocator&>;
 	struct alloc_node
 	{
 		tree& tree_ref;
@@ -820,36 +826,38 @@ private:
 		= tree<_tKey, _type, _fKeyOfValue, _fComp2, _tAlloc>;
 
 protected:
-	// TODO: Resolve LWG 2112 with %is_final support.
 	template<typename _tKeyComp>
-	struct components : node_allocator, tree_key_compare<_tKeyComp>
+	struct components
+		: compressed_pair<node_allocator, tree_key_compare<_tKeyComp>>
 	{
 		using base_key_compare = tree_key_compare<_tKeyComp>;
+		//! \since build 940
+		using base = compressed_pair<node_allocator, base_key_compare>;
 
 		tree_header header{};
 
 		//! \since build 864
 		components() ynoexcept(
 			noexcept(node_allocator()) && noexcept(base_key_compare()))
-			: node_allocator(), base_key_compare()
+			: base()
 		{}
 		//! \since build 867
 		explicit
 		components(node_allocator a) ynothrow
-			: node_allocator(std::move(a))
+			: base(std::move(a), value_init)
 		{}
 		components(const _tKeyComp& comp, node_allocator&& a)
-			: node_allocator(std::move(a)), base_key_compare(comp)
+			: base(std::move(a), base_key_compare(comp))
 		{}
 		components(const components& x)
-			: node_allocator(
-			node_ator_traits::select_on_container_copy_construction(x)),
-			base_key_compare(x.key_compare)
+			: base(node_allocator(
+			node_ator_traits::select_on_container_copy_construction(x.first())),
+			x.get_key_comp())
 		{}
 		components(components&&) = default;
 		//! \since build 867
 		components(components&& x, node_allocator a)
-			: node_allocator(std::move(a)), base_key_compare(std::move(x)),
+			: base(std::move(a), std::move(x)),
 			header(std::move(x.header))
 		{}
 
@@ -858,6 +866,17 @@ protected:
 		move_data(components& from) ynothrow
 		{
 			header.move_data(from.header);
+		}
+
+		YB_ATTR_nodiscard YB_PURE _tKeyComp&
+		get_key_comp() ynothrow
+		{
+			return base::second().get();
+		}
+		YB_ATTR_nodiscard YB_PURE const _tKeyComp&
+		get_key_comp() const ynothrow
+		{
+			return base::second().get();
 		}
 	};
 
@@ -878,7 +897,7 @@ public:
 			root() = copy_node(x);
 	}
 	tree(const tree& x, const allocator_type& a)
-		: objects(x.objects.key_compare, node_allocator(a))
+		: objects(x.objects.get_key_comp(), node_allocator(a))
 	{
 		if(x.root())
 			root() = copy_node(x);
@@ -905,7 +924,7 @@ private:
 	{}
 	//! \since build 867
 	tree(tree&& x, node_allocator a, false_)
-		: objects(x.objects.key_compare, std::move(a))
+		: objects(x.objects.get_key_comp(), std::move(a))
 	{
 		if(x.root())
 			move_data(x, false_());
@@ -938,7 +957,7 @@ public:
 			reuse_or_alloc_node roan(*this);
 
 			objects.header.reset();
-			objects.key_compare = x.objects.key_compare;
+			objects.get_key_comp() = x.objects.get_key_comp();
 			if(x.root())
 				root() = copy_node(x, roan);
 		}
@@ -960,7 +979,7 @@ public:
 		//	support incomplete element types so the recursive container type
 		//	itself causes undefined behavior in such cases. Use %swap if the
 		//	operand can reference to the object itself or its subtrees thereby.
-		objects.key_compare = std::move(x.objects.key_compare);
+		objects.get_key_comp() = std::move(x.objects.get_key_comp());
 		move_assign_elements(x, equal_alloc_or_pocma());
 		return *this;
 	}
@@ -1105,12 +1124,12 @@ public:
 	YB_ATTR_nodiscard YB_PURE node_allocator&
 	get_node_allocator() ynothrow
 	{
-		return objects;
+		return objects.first();
 	}
 	YB_ATTR_nodiscard YB_PURE const node_allocator&
 	get_node_allocator() const ynothrow
 	{
-		return objects;
+		return objects.first();
 	}
 
 	YB_ATTR_nodiscard YB_PURE iterator
@@ -1181,14 +1200,18 @@ protected:
 	YB_ALLOCATOR YB_ATTR_returns_nonnull link_type
 	allocate_node()
 	{
-		return node_ator_traits::allocate(get_node_allocator(), 1);
+		allocator_reference a(get_node_allocator());
+
+		return node_ator_traits::allocate(a, 1);
 	}
 
 	//! \since build 865
 	void
 	deallocate_node(link_type p) ynothrow
 	{
-		node_ator_traits::deallocate(get_node_allocator(), p, 1);
+		allocator_reference a(get_node_allocator());
+
+		node_ator_traits::deallocate(a, p, 1);
 	}
 
 	template<typename... _tParams>
@@ -1198,13 +1221,10 @@ protected:
 		// XXX: Ensure no need to use placment new for the node.
 		static_assert(is_trivially_default_constructible<value_node>(),
 			"Invalid node type found.");
-		// XXX: See $2022-01 @ %Documentation::Workflow.
-				using guard_alloc_t = conditional_t<sizeof(node_allocator)
-			<= sizeof(void*), node_allocator, node_allocator&>;
-		guard_alloc_t a(get_node_allocator());
+		allocator_reference a(get_node_allocator());
 		// NOTE: This should be same to %deallocate_node(nd) on exception
 		//	thrown.
-		allocator_guard<guard_alloc_t> gd(nd, a);
+		allocator_guard<allocator_reference> gd(nd, a);
 
 		node_ator_traits::construct(a, nd->access_ptr(), yforward(args)...);
 		gd.release();
@@ -1226,7 +1246,9 @@ protected:
 		// XXX: Ensure no need to use explicit destructor call for the node.
 		static_assert(is_trivially_destructible<value_node>(),
 			"Invalid node type found.");
-		node_ator_traits::destroy(get_node_allocator(), nd->access_ptr());
+		allocator_reference a(get_node_allocator());
+
+		node_ator_traits::destroy(a, nd->access_ptr());
 	}
 
 	void
@@ -1381,7 +1403,7 @@ private:
 	YB_ATTR_nodiscard inline bool
 	is_insert_left(base_ptr p, const _tParam& arg)
 	{
-		return p == node_end() || !objects.key_compare(select_key(p), arg);
+		return p == node_end() || !objects.get_key_comp()(select_key(p), arg);
 	}
 
 	//! \since build 840
@@ -1389,7 +1411,7 @@ private:
 	YB_ATTR_nodiscard inline bool
 	is_insert_left_strict(base_ptr p, const _tParam& arg)
 	{
-		return p == node_end() || objects.key_compare(arg, select_key(p));
+		return p == node_end() || objects.get_key_comp()(arg, select_key(p));
 	}
 
 	//! \since build 866
@@ -1424,7 +1446,7 @@ private:
 		while(x)
 		{
 			y = x;
-			x = !objects.key_compare(select_key(x), _fKeyOfValue()(v))
+			x = !objects.get_key_comp()(select_key(x), _fKeyOfValue()(v))
 				? get_left(x) : get_right(x);
 		}
 
@@ -1444,7 +1466,7 @@ private:
 		while(x)
 		{
 			y = x;
-			x = !objects.key_compare(select_key(x), select_key(nd))
+			x = !objects.get_key_comp()(select_key(x), select_key(nd))
 				? get_left(x) : get_right(x);
 		}
 		return insert_attach(is_insert_left(y, select_key(nd)), y, nd);
@@ -1469,7 +1491,7 @@ private:
 	lower_bound_impl(_tTree& t, _tLink x, _tBasePtr y, const _tKey& k)
 	{
 		while(x)
-			if(!t.objects.key_compare(select_key(x), k))
+			if(!t.objects.get_key_comp()(select_key(x), k))
 			{
 				y = x;
 				x = get_left(x);
@@ -1490,7 +1512,7 @@ private:
 	upper_bound_impl(_tTree& t, _tLink x, _tBasePtr y, const _tKey& k)
 	{
 		while(x)
-			if(t.objects.key_compare(k, select_key(x)))
+			if(t.objects.get_key_comp()(k, select_key(x)))
 			{
 				y = x;
 				x = get_left(x);
@@ -1517,7 +1539,7 @@ private:
 
 		while(x)
 		{
-			const auto& t_comp(t.objects.key_compare);
+			const auto& t_comp(t.objects.get_key_comp());
 
 			if(t_comp(select_key(x), k))
 				x = get_right(x);
@@ -1549,7 +1571,7 @@ private:
 			j(lower_bound_impl<_tIter>(t, t.node_begin(), t.node_end(), k));
 
 		return (j == t.end()
-			|| t.objects.key_compare(k, select_key(j.p_node))) ? t.end() : j;
+			|| t.objects.get_key_comp()(k, select_key(j.p_node))) ? t.end() : j;
 	}
 
 	iterator
@@ -1586,7 +1608,7 @@ public:
 		while(x)
 		{
 			y = x;
-			comp = objects.key_compare(k, select_key(x));
+			comp = objects.get_key_comp()(k, select_key(x));
 			x = comp ? get_left(x) : get_right(x);
 		}
 
@@ -1599,7 +1621,7 @@ public:
 			else
 				--j;
 		}
-		if(objects.key_compare(select_key(j.p_node), k))
+		if(objects.get_key_comp()(select_key(j.p_node), k))
 			return res_t(x, y);
 		return res_t(j.p_node, {});
 	}
@@ -1613,7 +1635,7 @@ public:
 		while(x)
 		{
 			y = x;
-			x = objects.key_compare(k, select_key(x)) ? get_left(x)
+			x = objects.get_key_comp()(k, select_key(x)) ? get_left(x)
 				: get_right(x);
 		}
 		return std::pair<base_ptr, base_ptr>(x, y);
@@ -1628,30 +1650,30 @@ public:
 
 		if(mpos.p_node == node_end())
 		{
-			if(size() > 0 && objects.key_compare(select_key(rightmost()), k))
+			if(size() > 0 && objects.get_key_comp()(select_key(rightmost()), k))
 				return res_t({}, rightmost());
 			else
 				return get_insert_unique_pos(k);
 		}
-		else if(objects.key_compare(k, select_key(mpos.p_node)))
+		else if(objects.get_key_comp()(k, select_key(mpos.p_node)))
 		{
 			auto before(mpos);
 
 			if(mpos.p_node == leftmost())
 				return res_t(leftmost(), leftmost());
-			else if(objects.key_compare(select_key((--before).p_node), k))
+			else if(objects.get_key_comp()(select_key((--before).p_node), k))
 				return !get_right(before.p_node) ? res_t({}, before.p_node)
 					: res_t(mpos.p_node, mpos.p_node);
 			else
 				return get_insert_unique_pos(k);
 		}
-		else if(objects.key_compare(select_key(mpos.p_node), k))
+		else if(objects.get_key_comp()(select_key(mpos.p_node), k))
 		{
 			auto after(mpos);
 
 			if(mpos.p_node == rightmost())
 				return res_t({}, rightmost());
-			else if(objects.key_compare(k, select_key((++after).p_node)))
+			else if(objects.get_key_comp()(k, select_key((++after).p_node)))
 				return !get_right(mpos.p_node) ? res_t({}, mpos.p_node)
 					: res_t(after.p_node, after.p_node);
 			else
@@ -1669,18 +1691,18 @@ public:
 
 		if(mpos.p_node == node_end())
 		{
-			if(size() > 0 && !objects.key_compare(k, select_key(rightmost())))
+			if(size() > 0 && !objects.get_key_comp()(k, select_key(rightmost())))
 				return res_t(0, rightmost());
 			else
 				return get_insert_equal_pos(k);
 		}
-		else if(!objects.key_compare(select_key(mpos.p_node), k))
+		else if(!objects.get_key_comp()(select_key(mpos.p_node), k))
 		{
 			auto before(mpos);
 
 			if(mpos.p_node == leftmost())
 				return res(leftmost(), leftmost());
-			else if(!objects.key_compare(k, select_key((--before).p_node)))
+			else if(!objects.get_key_comp()(k, select_key((--before).p_node)))
 			{
 				if(!get_right(before.p_node))
 					return res_t(0, before.p_node);
@@ -1696,7 +1718,7 @@ public:
 
 			if(mpos.p_node == rightmost())
 				return res_t(0, rightmost());
-			else if(!objects.key_compare(select_key((++after).p_node), k))
+			else if(!objects.get_key_comp()(select_key((++after).p_node), k))
 			{
 				if(!get_right(mpos.p_node))
 					return res_t({}, mpos.p_node);
@@ -2057,7 +2079,7 @@ public:
 		}
 		// NOTE: As libstdc++'s implementation, the header's color does not
 		//	change.
-		std::swap(x.objects.key_compare, y.objects.key_compare);
+		std::swap(x.objects.get_key_comp(), y.objects.get_key_comp());
 		ystdex::alloc_on_swap(x.get_node_allocator(), y.get_node_allocator());
 	}
 
@@ -2080,7 +2102,7 @@ public:
 	YB_ATTR_nodiscard _fComp
 	key_comp() const
 	{
-		return objects.key_compare;
+		return objects.get_key_comp();
 	}
 
 	YB_ATTR_nodiscard YB_PURE iterator
@@ -2151,7 +2173,7 @@ public:
 	{
 		const auto j(lower_bound_tr(k));
 
-		return j != end() && objects.key_compare(k, select_key(j.p_node))
+		return j != end() && objects.get_key_comp()(k, select_key(j.p_node))
 			? end() : j;
 	}
 
@@ -2181,7 +2203,7 @@ public:
 		auto y(node_end());
 
 		while(x)
-			if(!objects.key_compare(select_key(x), k))
+			if(!objects.get_key_comp()(select_key(x), k))
 			{
 				y = x;
 				x = get_left(x);
@@ -2207,7 +2229,7 @@ public:
 		auto y(node_end());
 
 		while(x)
-			if(objects.key_compare(k, select_key(x)))
+			if(objects.get_key_comp()(k, select_key(x)))
 			{
 				y = x;
 				x = get_left(x);
@@ -2233,7 +2255,7 @@ public:
 	{
 		auto low(lower_bound_tr(k));
 		auto high(low);
-		auto& t_cmp(objects.key_compare);
+		auto& t_cmp(objects.get_key_comp());
 
 		while(high != end() && !t_cmp(k, select_key(high.p_node)))
 			++high;
@@ -2266,9 +2288,9 @@ public:
 				if((l && l->color == tree_color::red)
 					|| (r && r->color == tree_color::red))
 					return {};
-			if(l && objects.key_compare(select_key(x), select_key(l)))
+			if(l && objects.get_key_comp()(select_key(x), select_key(l)))
 				return {};
-			if(r && objects.key_compare(select_key(r), select_key(x)))
+			if(r && objects.get_key_comp()(select_key(r), select_key(x)))
 				return {};
 			if(!l && !r && tree_black_count(x, root()) != len)
 				return {};

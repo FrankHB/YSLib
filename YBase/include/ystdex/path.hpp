@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2021 FrankHB.
+	© 2013-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r1625
+\version r1629
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2021-09-26 04:24 +0800
+	2022-02-28 05:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,7 +53,8 @@
 #define YB_INC_ystdex_path_hpp_ 1
 
 #include "string.hpp" // for basic_string, string_view, nested_allocator_base,
-//	enable_if_t, ystdex::erase_all_if, to_array, string_traits;
+//	enable_if_t, ystdex::erase_all_if, to_array, string_traits,
+//	is_bitwise_swappable;
 #include "operators.hpp" // for dividable, totally_ordered;
 #include "type_op.hpp" // for cond_or_t;
 
@@ -216,7 +217,7 @@ struct path_traits<basic_string<_tChar, _tTraits, _tAlloc>>
 \since build 901
 */
 template<typename _type>
-YB_ATTR_nodiscard yconstfn YB_PURE bool
+YB_ATTR_nodiscard YB_PURE yconstfn bool
 is_parent_or_self(const _type& s) ynothrow
 {
 	return path_traits<_type>::is_parent(s) || path_traits<_type>::is_self(s);
