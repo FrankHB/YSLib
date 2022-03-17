@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2021 FrankHB.
+	© 2012-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2064
+\version r2120
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2021-06-25 12:28 +0800
+	2022-03-14 18:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,7 @@ void
 TermNode::ClearContainer() ynothrow
 {
 	// NOTE: See %~TermNode.
+#if true
 	while(!container.empty())
 	{
 		const auto i(container.begin());
@@ -44,6 +45,24 @@ TermNode::ClearContainer() ynothrow
 		container.splice(i, std::move(NPL::Deref(i).container));
 		container.erase(i);
 	}
+#else
+	// NOTE: The alternative implementation may be more efficient, but only
+	//	for cases with sufficient large amount of subterms.
+	for(auto i(container.begin()); i != container.end(); ++i)
+		// NOTE: The loop invariant is that no subterms left to 'i' have not
+		//	finished the container cleanup (with moved-after state) and the
+		//	%Value in these terms are kept in a prefix DFS traverse order in
+		//	the resulted sequence. Flatten the subterms and insert them after
+		//	'*i' to keep the loop invariant at first.
+		container.splice(std::next(i), std::move(i->container));
+		// NOTE: Subterms are not erased at once in the loop to prevent the
+		//	overhead of internal housekeeping (for the size) in the %container.
+	// NOTE: All flattened subterms and remained %Value objects are cleanup.
+	container.clear();
+#endif
+	// XXX: Assertion failure may be caused by undefined behavior or wrong
+	//	implmenetation.
+	YAssert(IsLeaf(*this), "Failed clearing the container of a term.");
 }
 
 // XXX: Simplify with %CreateRecursively?
@@ -84,53 +103,6 @@ TermNode::ConCons(ValueNode::Container&& con, allocator_type a)
 		res.emplace_back(ConCons(std::move(item.GetContainerRef())),
 			std::move(item.Value));
 	return res;
-}
-
-void
-TermNode::MoveContainer(TermNode&& nd)
-{
-	YAssert(!ystdex::ref_eq<>()(*this, nd), "Invalid self move found.");
-
-	// NOTE: Similar to %ValueNode::MoveContainer.
-	const auto t(std::move(GetContainerRef()));
-
-	SwapContainer(nd);
-}
-
-void
-TermNode::MoveContent(TermNode&& nd)
-{
-	YAssert(!ystdex::ref_eq<>()(*this, nd), "Invalid self move found.");
-
-	// NOTE: Similar to %ValueNode::MoveContent.
-	const auto t(std::move(*this));
-
-	SetContent(std::move(nd));
-}
-
-void
-TermNode::MoveValue(TermNode&& nd)
-{
-	YAssert(!ystdex::ref_eq<>()(*this, nd), "Invalid self move found.");
-
-	// NOTE: Similar to %ValueNode::MoveValue.
-	const auto t(std::move(Value));
-
-	Value = std::move(nd.Value);
-}
-
-void
-TermNode::SwapContent(TermNode& term) ynothrowv
-{
-	SwapContainer(term),
-	swap(Value, term.Value);
-}
-
-void
-swap(TermNode& x, TermNode& y) ynothrowv
-{
-	x.SwapContent(y),
-	std::swap(x.Tags, y.Tags);
 }
 
 

@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r4284
+\version r4285
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2022-02-26 22:53 +0800
+	2022-03-10 20:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,7 +79,7 @@ public:
 	\brief 分配器类型。
 	\note 支持 uses-allocator 构造并适合直接传递对象的值。
 	*/
-	using allocator_type = pmr::polymorphic_allocator<ValueNode>;
+	using allocator_type = default_allocator<ValueNode>;
 	template<typename _type>
 	using is_key_t = ystdex::is_interoperable<const _type&, const string&>;
 	template<typename _tKey>

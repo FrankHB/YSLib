@@ -11,13 +11,13 @@
 /*!	\file compressed_pair.hpp
 \ingroup YStandardEx
 \brief 压缩存储对类型。
-\version r362
+\version r368
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2022-02-08 23:56:14 +0800
 \par 修改时间:
-	2022-02-28 21:10 +0800
+	2022-03-11 22:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,9 +104,9 @@ public:
 	{
 		return value;
 	}
-	//! \since build 940
+	//! \since build 941
 	YB_ATTR_nodiscard YB_PURE explicit yconstfn
-	operator const _type&() ynothrow
+	operator const _type&() const ynothrow
 	{
 		return value;
 	}
@@ -134,7 +134,7 @@ public:
 	swap(compressed_pair_element& x, compressed_pair_element& y)
 		ynoexcept(is_nothrow_swappable<_type>())
 	{
-		ystdex::swap_dependent(get(), get());
+		ystdex::swap_dependent(x.get(), y.get());
 	}
 };
 
@@ -174,9 +174,9 @@ public:
 	{
 		return *this;
 	}
-	//! \since build 940
+	//! \since build 941
 	YB_ATTR_nodiscard YB_PURE explicit yconstfn
-	operator const _type&() ynothrow
+	operator const _type&() const ynothrow
 	{
 		return *this;
 	}
@@ -204,7 +204,7 @@ public:
 	swap(compressed_pair_element& x, compressed_pair_element& y)
 		ynoexcept(is_nothrow_swappable<_type>())
 	{
-		ystdex::swap_dependent(get(), get());
+		ystdex::swap_dependent(x.get(), y.get());
 	}
 };
 

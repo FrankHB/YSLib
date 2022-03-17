@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r21877
+\version r21955
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-02-25 00:25 +0800
+	2022-03-08 00:46 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -30,15 +30,21 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA1 // for ContextNode, TermNode, ContextState,
-//	ReductionStatus, Reducer, YSLib::map, lref, Environment, ystdex::get_less,
+//	ReductionStatus, Reducer, YSLib::map, lref, Environment,
 //	set, NPL::Deref, IsTyped, EnvironmentList, EnvironmentReference, tuple,
-//	YSLib::get, list, ystdex::unique_guard, std::declval, EnvironmentGuard,
-//	make_observer, std::bind, std::placeholders, std::ref,
-//	A1::NameTypedReducerHandler, A1::NameTypedContextHandler, ystdex::bind1,
-//	std::placeholders::_2, TermReference, ThrowTypeErrorForInvalidType,
-//	type_id, ystdex::exclude_self_t, ParameterMismatch, NPL::TryAccessLeaf,
-//	ystdex::update_thunk, IsIgnore;
+//	YSLib::get, YSLib::forward_list, size_t, list, std::declval,
+//	EnvironmentGuard, NPL::make_observer, std::allocator_arg,
+//	A1::NameTypedReducerHandler, A1::NameTypedContextHandler, TermReference,
+//	ThrowTypeErrorForInvalidType, type_id, ystdex::exclude_self_t,
+//	ParameterMismatch, NPL::TryAccessLeaf, IsIgnore;
+#include <ystdex/compose.hpp> // for ystdex::get_less;
+#include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
+#include <ystdex/utility.hpp> // for ystdex::exchange;
+#include <iterator> // for std::next;
 #include <ystdex/ref.hpp> // for ystdex::unref;
+#include <ystdex/bind.hpp> // for std::bind, std::placeholders::_1, std::ref,
+//	ystdex::bind1, std::placeholders::_2;
+#include <ystdex/function_adaptor.hpp> // for ystdex::update_thunk;
 
 namespace NPL
 {
@@ -242,8 +248,11 @@ using FrameRecord = tuple<ContextHandler, shared_ptr<Environment>>;
 \brief 帧记录列表。
 \sa FrameRecord
 \since build 827
+
+表示帧记录的序列。
+随子过程调用的添加到序列起始位置。
 */
-using FrameRecordList = yimpl(list)<FrameRecord>;
+using FrameRecordList = yimpl(YSLib::forward_list)<FrameRecord>;
 
 //! \since build 818
 class TCOAction final
@@ -268,13 +277,13 @@ private:
 		term_guard;
 	//! \since build 910
 	mutable size_t req_lift_result = 0;
-	//! \since build 827
-	mutable list<ContextHandler> xgds;
+	// NOTE: This was a sequence in the earlier design. See $2018-06 and
+	//	$2021-02 @ %Documentation::Workflow for details. Now the use case is
+	//	more strict and only one guard is supported.
+	//! \since build 940
+	mutable ContextHandler stashed{};
 
 public:
-	// See $2018-06 and $2021-02 @ %Documentation::Workflow for details.
-	//! \since build 825
-	mutable observer_ptr<const ContextHandler> LastFunction{};
 	//! \since build 820
 	mutable EnvironmentGuard EnvGuard;
 	//! \since build 825
@@ -286,25 +295,29 @@ public:
 	//! \since build 819
 	TCOAction(ContextNode& ctx, TermNode& term, bool lift)
 		: term_guard(ystdex::unique_guard(GuardFunction{term})),
-		req_lift_result(lift ? 1 : 0), xgds(ctx.get_allocator()), EnvGuard(ctx),
-		RecordList(ctx.get_allocator()), OperatorName(ctx.get_allocator())
-	{
+		req_lift_result(lift ? 1 : 0), EnvGuard(ctx),
+		RecordList(ctx.get_allocator()), OperatorName([&]() ynothrow{
+			// NOTE: Rather than only the target %TokenValue value, the whole
+			//	%term.Value is needed, since it can have the source information
+			//	in its holder and %QuerySourceInformation requires an object of
+			//	%ValueObject.
+			YAssert(IsTyped<TokenValue>(term) || !term.Value,
+				"Invalid value for combining term found.");
+			return std::move(term.Value);
+			// XXX: After the move, %term.Value is unspecified.
+		}())
 		// XXX: Do not call %AssertValueTags on %term, as it is usually a
 		//	combinitation instead of the representation of some object language
 		//	value.
-		YAssert(IsTyped<TokenValue>(term) || !term.Value,
-			"Invalid value for combining term found.");
-		OperatorName = std::move(term.Value);
-		// XXX: After the move, %term.Value is unspecified.
-	}
+	{}
 	// XXX: Not used, but provided for well-formness.
 	//! \since build 819
 	TCOAction(const TCOAction& a)
 		// XXX: Some members are moved. This is only safe when newly constructed
 		//	object always live longer than the older one.
 		: term_guard(std::move(a.term_guard)),
-		req_lift_result(a.req_lift_result), xgds(std::move(a.xgds)),
-		EnvGuard(std::move(a.EnvGuard))
+		req_lift_result(a.req_lift_result), stashed(ystdex::exchange(a.stashed,
+		ContextHandler())), EnvGuard(std::move(a.EnvGuard))
 	{}
 	DefDeMoveCtor(TCOAction)
 	// XXX: Out of line destructor here is inefficient.
@@ -327,19 +340,26 @@ public:
 		RecordList.emplace_front(MoveFunction(), std::move(p_env));
 	}
 
-	//! \since build 825
+	//! \since build 940
 	YB_ATTR_nodiscard lref<const ContextHandler>
-	AttachFunction(ContextHandler&& h)
+	Attach(const ContextHandler& h) const
 	{
-		// NOTE: This scans guards to hold function prvalues, which are safe to
-		//	be removed as per the equivalence (hopefully, of beta reduction)
-		//	defined by %operator== of the handler. No new instance is to be
-		//	added.
-		ystdex::erase_all(xgds, h);
-		xgds.emplace_back();
-		// NOTE: Strong exception guarantee is kept here.
-		swap(xgds.back(), h);
-		return ystdex::as_const(xgds.back());
+		return h;
+	}
+	//! \since build 940
+	YB_ATTR_nodiscard lref<const ContextHandler>
+	Attach(const ContextHandler&, ContextHandler&& h)
+	{
+		// NOTE: This does not compare the stashed object and the hold function
+		//	in the newcoming prvalues, as temporary object of prvalues have their
+		//	unique identities (in spite of the result of %operator== of
+		//	%ContextHandler). There is also no environment pointer being shared
+		//	since all required ones (if any) in well-defined programs should be
+		//	saved in %h.
+		if(stashed)
+			AddRecord({});
+		ystdex::swap_dependent(stashed, h);
+		return stashed;
 	}
 
 	//! \since build 910
@@ -362,7 +382,7 @@ public:
 		// NOTE: If there is no environment set in %act.EnvGuard yet, there is
 		//	ideally no need to save the components to the frame record list
 		//	for recursive calls. In such case, each operation making
-		//	potentionally overwriting of %act.LastFunction will always get into
+		//	potentionally overwriting of %act.attached_owned will always get into
 		//	this call and that time %act.EnvGuard should be set.
 		if(EnvGuard.func.SavedPtr)
 		{
@@ -386,28 +406,12 @@ public:
 	}
 	//@}
 
-	//! \since build 825
+	//! \since build 940
 	YB_ATTR_nodiscard ContextHandler
-	MoveFunction()
+	MoveFunction() const
 	{
-		ContextHandler res(std::allocator_arg, xgds.get_allocator());
-
-		if(LastFunction)
-		{
-			const auto i(std::find_if(xgds.rbegin(), xgds.rend(),
-				[this](const ContextHandler& h) ynothrow{
-				return NPL::make_observer(&h) == LastFunction;
-			}));
-
-			if(i != xgds.rend())
-			{
-				res = ContextHandler(std::allocator_arg, xgds.get_allocator(),
-					std::move(*i));
-				xgds.erase(std::next(i).base());
-			}
-			LastFunction = {};
-		}
-		return res;
+		// NOTE: Do not assume the move-after state is empty.
+		return ystdex::exchange(stashed, ContextHandler());
 	}
 
 	//! \since build 911

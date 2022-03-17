@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018-2021 FrankHB.
+	© 2010-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Container.h
 \ingroup YCLib
 \brief 容器、拟容器和适配器。
-\version r1175
+\version r1211
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2021-05-19 22:56 +0800
+	2022-03-11 23:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,7 +57,8 @@
 #include <debug/unordered_set>
 #include <debug/unordered_map>
 #endif
-#include <ystdex/allocator.hpp> // for ystdex::make_obj_using_allocator;
+#include <ystdex/allocator.hpp> // for ystdex::propagating_allocator_adaptor,
+//	ystdex::make_obj_using_allocator;
 #include <iosfwd> // for std::basic_istringstream, std::basic_ostringstream,
 //	std::basic_stringstream;
 #include <ystdex/hash.hpp> // for std::hash, ystdex::hash_range;
@@ -102,21 +103,37 @@ namespace yimpl(stdd) = __gnu_debug;
 namespace yimpl(stdd) = std;
 #endif
 
+/*!
+\brief 默认使用的分配器模板。
+\since build 941
+*/
+#if false
+// XXX: For exposition only. This shall be well-formed unless a memory resource
+//	not compatible to propagatation is used. However, it is still not efficient
+//	otherwise.
+template<typename _type>
+using default_allocator
+	= ystdex::propagating_allocator_adaptor<pmr::polymorphic_allocator<_type>>;
+#else
+template<typename _type>
+using default_allocator = pmr::polymorphic_allocator<_type>;
+#endif
+
 // XXX: The class template %__gnu_debug::array has been removed since GCC 11.
 //	See https://gcc.gnu.org/git/?p=gcc.git;h=6db082477ad839438c4b54fc61083276c68d47ec.
 using std::array;
 //! \since build 843
 //@{
-template<typename _type, class _tAlloc = pmr::polymorphic_allocator<_type>>
+template<typename _type, class _tAlloc = default_allocator<_type>>
 using deque = stdd::deque<_type, _tAlloc>;
 
-template<typename _type, class _tAlloc = pmr::polymorphic_allocator<_type>>
+template<typename _type, class _tAlloc = default_allocator<_type>>
 using forward_list = stdd::forward_list<_type, _tAlloc>;
 
-template<typename _type, class _tAlloc = pmr::polymorphic_allocator<_type>>
+template<typename _type, class _tAlloc = default_allocator<_type>>
 using list = ystdex::list<_type, _tAlloc>;
 
-template<typename _type, class _tAlloc = pmr::polymorphic_allocator<_type>>
+template<typename _type, class _tAlloc = default_allocator<_type>>
 using vector = stdd::vector<_type, _tAlloc>;
 
 
@@ -127,44 +144,44 @@ using vector = stdd::vector<_type, _tAlloc>;
 //	is an implementation detail.
 template<typename _tKey, typename _tMapped, typename _fComp
 	= ystdex::less<_tKey>, class _tAlloc
-	= pmr::polymorphic_allocator<std::pair<const _tKey, _tMapped>>>
+	= default_allocator<std::pair<const _tKey, _tMapped>>>
 using map = ystdex::map<_tKey, _tMapped, _fComp, _tAlloc>;
 
 template<typename _tKey, typename _tMapped, typename _fComp
 	= ystdex::less<_tKey>, class _tAlloc
-	= pmr::polymorphic_allocator<std::pair<const _tKey, _tMapped>>>
+	= default_allocator<std::pair<const _tKey, _tMapped>>>
 using multimap = stdd::multimap<_tKey, _tMapped, _fComp, _tAlloc>;
 
 template<typename _tKey, typename _fComp = ystdex::less<_tKey>,
-	class _tAlloc = pmr::polymorphic_allocator<_tKey>>
+	class _tAlloc = default_allocator<_tKey>>
 using multiset = stdd::multiset<_tKey, _fComp, _tAlloc>;
 
 template<typename _tKey, typename _fComp = ystdex::less<_tKey>,
-	class _tAlloc = pmr::polymorphic_allocator<_tKey>>
+	class _tAlloc = default_allocator<_tKey>>
 using set = stdd::set<_tKey, _fComp, _tAlloc>;
 
 
 template<typename _tKey, typename _tMapped, typename _fHash = std::hash<_tKey>,
 	typename _fEqual = ystdex::equal_to<_tKey>, class _tAlloc
-	= pmr::polymorphic_allocator<std::pair<const _tKey, _tMapped>>>
+	= default_allocator<std::pair<const _tKey, _tMapped>>>
 using unordered_map
 	= stdd::unordered_map<_tKey, _tMapped, _fHash, _fEqual, _tAlloc>;
 
 template<typename _tKey, typename _tMapped, typename _fHash = std::hash<_tKey>,
 	typename _fEqual = ystdex::equal_to<_tKey>, class _tAlloc
-	= pmr::polymorphic_allocator<std::pair<const _tKey, _tMapped>>>
+	= default_allocator<std::pair<const _tKey, _tMapped>>>
 using unordered_multimap
 	= stdd::unordered_multimap<_tKey, _tMapped, _fHash, _fEqual, _tAlloc>;
 
 template<typename _tKey, typename _fHash = std::hash<_tKey>,
 	typename _fEqual = ystdex::equal_to<_tKey>,
-	class _tAlloc = pmr::polymorphic_allocator<_tKey>>
+	class _tAlloc = default_allocator<_tKey>>
 using unordered_multiset
 	= stdd::unordered_multiset<_tKey, _fHash, _fEqual, _tAlloc>;
 
 template<typename _tKey, typename _fHash = std::hash<_tKey>,
 	typename _fEqual = ystdex::equal_to<_tKey>,
-	class _tAlloc = pmr::polymorphic_allocator<_tKey>>
+	class _tAlloc = default_allocator<_tKey>>
 using unordered_set = stdd::unordered_set<_tKey, _fHash, _fEqual, _tAlloc>;
 
 template<typename _type, class _tSeqCon = deque<_type>>
@@ -189,7 +206,7 @@ inline namespace strings
 \since build 597
 */
 template<typename _tChar, typename _tTraits = std::char_traits<_tChar>,
-	class _tAlloc = pmr::polymorphic_allocator<_tChar>>
+	class _tAlloc = default_allocator<_tChar>>
 using basic_string = ystdex::basic_string<_tChar, _tTraits, _tAlloc>;
 //	using versa_string = __gnu_cxx::__versa_string<_tChar>;
 
@@ -438,15 +455,15 @@ namespace std
 \brief 使用多态分配器的 ystdex::basic_string 散列支持。
 \since build 861
 \see LWG 2978 。
+\since build 941
 \todo 在合适的 YBase.YStandardEx 头文件中扩展并使用 WG21 P1406R1 的解决方案。
 */
 template<typename _tChar, class _tTraits>
-struct hash<ystdex::basic_string<_tChar, _tTraits,
-	ystdex::pmr::polymorphic_allocator<_tChar>>>
+struct hash<platform::strings::basic_string<_tChar, _tTraits>>
 {
 	size_t
-	operator()(const ystdex::basic_string<_tChar, _tTraits,
-		ystdex::pmr::polymorphic_allocator<_tChar>>& k) const ynothrow
+	operator()(const platform::strings::basic_string<_tChar, _tTraits>& k) const
+		ynothrow
 	{
 		// NOTE: This is similar to %ystdex::basic_string_view.
 		return ystdex::hash_range(k.data(), k.data() + k.size());

@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1517
+\version r1564
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2022-01-21 20:38 +0800
+	2022-03-16 21:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,13 +26,14 @@
 提供 ISO C++17 标准库头 \c \<memory_resource> 兼容的替代接口和实现。
 除了部分关系操作使用 operators 实现而不保留命名空间内的声明及散列支持提供偏特化外，
 其它接口同 std::pmr 中的对应接口。
+原始设计主要来自 Library fundamental TS ，参见 WG21 P0220R1 。
 因为一些兼容问题，std::experimental::pmr 中的接口不被可选地使用，
 	即使其可用性仍然会被检查。
 和原始的 std::experimental::pmr 中提供的接口及其实现有以下不同：
 LWG 2724 ：纯虚函数为 private 而不是 protected 。
 LWG 2843 ：成员 do_allocate 对不支持的对齐值直接抛出异常而非回退 std::max_align 。
 WG21 P0337R0 ：polymorphic_allocator 的默认 operator= 定义为 = delete 。
-包括以下已有其它实现支持的 ISO C++17 后的修改：
+包括以下已有其它实现支持的 ISO C++17 后的缺陷修复：
 LWG 2961 ：不需要考虑无法实现的后置条件。
 LWG 2969 ：明确 polymorphic_allocator 的 construct 函数模板使用 *this 而不是
 	memory_resource 进行构造。
@@ -42,8 +43,9 @@ LWG 3000 ：存储资源类的 do_is_equal 的实现没有冗余的 dynamic_cast
 LWG 3036 ：删除 polymorphic_allocator 的 destroy 函数模板，
 	因为 allocator_traits 已提供实现。
 LWG 3037 : 明确 polymorphic_allocator 支持不完整的值类型。
-LWG 3038 ：在 polymorphic_allocator 的 allocate 函数处理整数溢出。
+LWG 3038 ：在 polymorphic_allocator 的 allocate 函数处理不能被 size_t 表示的大小。
 LWG 3113 ：明确 polymorphic_allocator 的 construct 函数模板转移构造的元组值。
+LWG 3237 ：修改 LWG 3038 和 WG21 P0339R6 抛出的异常类型。
 包括以下 ISO C++17 后的修改：
 WG21 P0339R6 ：支持 polymorphic_allocator 的 byte 默认模板参数和对象分配函数模板。
 WG21 P0591R4 ：在 polymorphic_allocator 中支持递归构造 std::pair 。
@@ -70,8 +72,8 @@ pmr::polymorphic_allocator 对 is_bitwise_swappable 特化。
 #ifndef YB_INC_ystdex_memory_resource_h_
 #define YB_INC_ystdex_memory_resource_h_ 1
 
-#include "memory.hpp" // for internal "memory.hpp", byte, size_t, yalignof,
-//	yconstraint, yaligned, SIZE_MAX, std::length_error, yforward,
+#include "memory.hpp" // for internal "memory.hpp", byte, size_t,
+//	std::bad_array_new_length, yalignof, yconstraint, yaligned, yforward,
 //	ystdex::uninitialized_construct_using_allocator, std::pair, yassume, list,
 //	equal_to, std::hash, is_bitwise_swappable;
 // NOTE: See "placement.hpp" for comments on inclusion conditions.
@@ -80,6 +82,8 @@ pmr::polymorphic_allocator 对 is_bitwise_swappable 特化。
 #	include <memory_resource>
 #	if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603L) \
 	|| __cpp_lib_memory_resource >= 201603L
+// NOTE: This is for %std::memory_resource, not the header. WG21 P0619R4 does
+//	not change the available features, so '201603L' is enough.
 #		define YB_Has_memory_resource 1
 #	endif
 #elif __cplusplus > 201402L && __has_include(<experimental/memory_resource>)
@@ -105,9 +109,9 @@ pmr::polymorphic_allocator 对 is_bitwise_swappable 特化。
 #include "base.h" // for noncopyable, nonmovable;
 #include "bit.hpp" // for is_power_of_2_positive;
 #include "list.hpp"// for list;
-#include <vector> // for std::vector;
-#include <unordered_map> // for std::unordered_map;
 #include "algorithm.hpp" // for ystdex::max;
+#include <unordered_map> // for std::unordered_map;
+#include <vector> // for std::vector;
 #if YB_Has_memory_resource != 1
 #	if (defined(__GLIBCXX__) && !(defined(_GLIBCXX_USE_C99_STDINT_TR1) \
 	&& defined(_GLIBCXX_HAS_GTHREADS))) \
@@ -153,18 +157,21 @@ namespace ystdex
 namespace details
 {
 
-//! \note 和 Microsoft VC++ 实现中的 %_Get_size_of_n 类似。
+//! \note 和 Microsoft VC++ 实现中的 %std::_Get_size_of_n 类似。
 //@{
+// XXX: Neither %SIZE_MAX nor %std::numeric_limits<size_t>::max() (as per LWG
+//	3310) are used, to avoid dependencies on <climits> or <limits>. This is
+//	totally legimate as %size_t(-1) is equivalent.
 template<size_t _vSize>
 YB_ATTR_nodiscard YB_PURE inline size_t
 get_size_of_n(size_t n)
 {
-	size_t res(n * _vSize);
-
-	return size_t(static_cast<size_t>(-1) / _vSize) < n ? size_t(-1) : res;
+	if(size_t(-1) / _vSize >= n)
+		return size_t(n * _vSize);
+	throw std::bad_array_new_length();
 }
 template<>
-YB_ATTR_nodiscard YB_PURE inline size_t
+YB_ATTR_nodiscard YB_PURE yconstfn size_t
 get_size_of_n<1>(size_t n)
 {
 	return n;
@@ -195,7 +202,7 @@ using std::pmr::get_default_resource;
 \see LWG 2724 。
 */
 class YB_API YB_ATTR_novtable memory_resource
-	: private equality_comparable<memory_resource>
+	yimpl(: private equality_comparable<memory_resource>)
 {
 private:
 	static constexpr size_t max_align = yalignof(std::max_align_t);
@@ -209,9 +216,12 @@ public:
 	memory_resource() = default;
 	memory_resource(const memory_resource&) = default;
 	//@}
-	// XXX: Microsoft VC++, libstdc++ and libc++ all defined the destructor
-	//	inline. Keeping it out-of-line for the style consistency and to avoid
-	//	Clang++ warning [-Wweak-vtables] reilably.
+	// XXX: Microsoft VC++, libstdc++ (in GCC 9.1 and 9.2) and libc++
+	//	(in %std::experimanetal) all defined the destructor inline. Keeping it
+	//	out-of-line for the style consistency and to avoid Clang++ warning
+	//	[-Wweak-vtables] reilably.
+	// TODO: Measure the benefits preciesly. Alternatively, change it as
+	//	https://github.com/microsoft/STL/issues/1314?
 	//! \brief 虚析构：类定义外默认实现。
 	virtual
 	~memory_resource();
@@ -285,7 +295,10 @@ get_default_resource() ynothrow;
 } // inline namespace cpp2017;
 
 
+//! \ingroup allocators
+//@{
 #if YB_Impl_P0339R6
+//! \since build 863
 using std::pmr::polymorphic_allocator;
 #else
 /*!
@@ -306,10 +319,9 @@ public:
 	polymorphic_allocator() ynothrow
 		: memory_rsrc(get_default_resource())
 	{}
-
 	//! \pre 断言：参数指针非空。
 	YB_NONNULL(2)
-	polymorphic_allocator(memory_resource* r)
+	polymorphic_allocator(memory_resource* r) ynothrowv
 		: memory_rsrc(r)
 	{
 		yconstraint(r);
@@ -335,8 +347,8 @@ public:
 	void
 	deallocate(_type* p, size_t n)
 	{
-		memory_rsrc->deallocate(p, details::get_size_of_n<sizeof(_type)>(n),
-			yalignof(_type));
+		// XXX: No need to verify that %size_t can represent the size.
+		memory_rsrc->deallocate(p, sizeof(_type) * n, yalignof(_type));
 	}
 
 	/*!
@@ -361,10 +373,10 @@ public:
 	_tObj*
 	allocate_object(size_t n = 1)
 	{
-		if(SIZE_MAX / sizeof(_tObj) >= n)
+		if(size_t(-1) / sizeof(_tObj) >= n)
 			return static_cast<_tObj*>(allocate_bytes(n * sizeof(_tObj),
 				yalignof(_tObj)));
-		throw std::length_error("polymorphic_allocator::allocate_object");
+		throw std::bad_array_new_length();
 	}
 
 	template<typename _tObj>
@@ -426,6 +438,8 @@ public:
 	}
 };
 
+//! \relates polymorphic_allocator
+//@{
 template<typename _type1, typename _type2>
 YB_ATTR_nodiscard inline bool
 operator==(const polymorphic_allocator<_type1>& a,
@@ -441,8 +455,10 @@ operator!=(const polymorphic_allocator<_type1>& a,
 {
 	return !(a == b);
 }
+//@}
 #endif
 #undef YB_Impl_P0339R6
+//@}
 
 
 inline namespace cpp2017
@@ -553,12 +569,16 @@ private:
 	//! \brief 被池所有的块。
 	chunks_t chunks;
 	//! \since build 864
-	//@{
-	//! \brief 快速待分配贮藏迭代器。
+	/*!
+	\brief 待分配贮藏迭代器。
+	\since build 864
+	*/
 	chunks_iter_t i_stashed;
-	//! \brief 快速待分配空块迭代器。
-	chunks_iter_t i_empty;
-	//@}
+	/*!
+	\brief 后备块迭代器。
+	\since build 941
+	*/
+	chunks_iter_t i_backup;
 	//! \brief 下一可用的块中分配块的容量。
 	size_t next_capacity;
 	/*!
@@ -933,11 +953,11 @@ public:
 	}
 
 protected:
+	//! \note 实现定义：增长因子为 2 。
 	YB_ALLOCATOR YB_ATTR(alloc_align(3), alloc_size(2)) YB_ATTR_returns_nonnull
 		void*
 	do_allocate(size_t, size_t) override;
 
-	//! \note 实现定义：增长因子为 2 。
 	void
 	do_deallocate(void*, size_t, size_t) override
 	{}

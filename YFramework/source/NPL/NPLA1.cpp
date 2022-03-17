@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r22280
+\version r22291
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2022-02-25 00:26 +0800
+	2022-03-12 21:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -221,16 +221,10 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	static_assert(sizeof...(args) < 2, "Unsupported owner arguments found.");
 #if NPL_Impl_NPLA1_Enable_TCO
 	auto& act(EnsureTCOAction(ctx, term));
-	auto& lf(act.LastFunction);
 
 	ContextState::Access(ctx).ClearCombiningTerm();
 	// XXX: This is necessary to the precondition for calling the handler.
 	term.Value.Clear();
-	lf = {};
-	// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
-	//	error: Segmentation fault.
-	yunseq(0, (lf = NPL::make_observer(
-		&act.AttachFunction(std::forward<_tParams>(args)).get()), 0)...);
 	SetupNextTerm(ctx, term);
 	// XXX: %A1::RelayCurrentOrDirect is not used to allow the call to the
 	//	underlying handler implementation (e.g. %FormContextHandler::CallN)
@@ -238,7 +232,8 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	//	call safety.
 	// XXX: The %std::reference_wrapper instance is specialized enough without
 	//	%trivial_swap.
-	return RelaySwitched(ctx, Continuation(std::ref(lf ? *lf : h), ctx));
+	return
+		RelaySwitched(ctx, Continuation(act.Attach(h, yforward(args)...), ctx));
 #else
 
 	ContextState::Access(ctx).ClearCombiningTerm();
@@ -394,7 +389,7 @@ ParseSymbol(TermNode& term, string_view id)
 
 //! \since build 891
 //@{
-using SourcedByteAllocator = pmr::polymorphic_allocator<yimpl(byte)>;
+using SourcedByteAllocator = YSLib::default_allocator<yimpl(byte)>;
 
 using SourceInfoMetadata = lref<const SourceInformation>;
 
@@ -1023,7 +1018,7 @@ BindParameterImpl(const shared_ptr<Environment>& p_env, const TermNode& t,
 				}
 				else
 				{
-					// NOTE: Make list subobject reference.
+					// NOTE: Make sublist reference.
 					for(; first != last; ++first)
 						BindParameterObject{r_env}(sigil, {}, o_tags,
 							NPL::Deref(first), [&](const TermNode& tm){
@@ -1037,7 +1032,7 @@ BindParameterImpl(const shared_ptr<Environment>& p_env, const TermNode& t,
 					if(sigil == '&')
 					{
 						// NOTE: Irregular representation is constructed for the
-						//	list subobject reference.
+						//	sublist reference.
 						// XXX: As %ReduceAsSubobjectReference in
 						//	NPLA1Internals.
 						auto p_sub(YSLib::allocate_shared<TermNode>(a,

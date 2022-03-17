@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r4148
+\version r4178
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2022-02-22 19:55 +0800
+	2022-03-14 18:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -337,12 +337,13 @@ public:
 		Value(std::move(nd.Value))
 	{}
 	/*!
-	\brief 复制构造：使用参数和参数指定的分配器。
+	\brief 复制构造：使用参数和参数的分配器。
 	\since build 879
 	*/
 	TermNode(const TermNode& nd)
 		: TermNode(nd, nd.get_allocator())
 	{}
+	//! \brief 复制构造：使用参数和参数指定的分配器。
 	TermNode(const TermNode& nd, allocator_type a)
 		: container(nd.container, a), Value(nd.Value), Tags(nd.Tags)
 	{}
@@ -461,7 +462,11 @@ public:
 		// XXX: The order can be siginificant.
 		ImplExpr(Value.Clear(), ClearContainer())
 
-	//! \note 支持移除任意子节点时的嵌套调用安全。
+	/*!
+	\brief 清除容器。
+	\post 断言：\c IsLeaf(*this) 。
+	\note 支持移除任意子节点时的嵌套调用安全。
+	*/
 	void
 	ClearContainer() ynothrow;
 
@@ -543,24 +548,25 @@ public:
 	//@{
 	/*!
 	\brief 转移容器。
-	\pre 间接断言：容器分配器和参数的容器分配器相等。
 
 	转移参数指定的节点的容器到对象。
 	转移后的节点的容器是转移前的参数的容器。
 	*/
-	void
-	MoveContainer(TermNode&&);
+	PDefH(void, MoveContainer, TermNode&& nd)
+		ImplExpr(
+			YAssert(!ystdex::ref_eq<>()(*this, nd), "Invalid self move found."),
+			GetContainerRef() = Container(std::move(nd.GetContainerRef())))
 
 	/*!
 	\brief 转移内容。
-	\pre 间接断言：容器分配器和参数的容器分配器相等。
 	\since build 853
 
 	转移参数指定的节点的内容到对象。
 	转移后的节点的内容是转移前的参数的内容。
 	*/
-	void
-	MoveContent(TermNode&&);
+	PDefH(void, MoveContent, TermNode&& nd)
+		ImplExpr(YAssert(!ystdex::ref_eq<>()(*this, nd),
+			"Invalid self move found."), SetContent(TermNode(std::move(nd))))
 
 	/*!
 	\brief 转移值数据成员。
@@ -568,10 +574,11 @@ public:
 	转移参数指定的节点的值数据成员到对象。
 	转移后的节点的值数据成员是转移前的参数内容。
 	*/
-	void
-	MoveValue(TermNode&&);
+	PDefH(void, MoveValue, TermNode&& nd)
+		ImplExpr(
+			YAssert(!ystdex::ref_eq<>()(*this, nd), "Invalid self move found."),
+			Value = ValueObject(std::move(nd.Value)))
 	//@}
-
 
 	PDefH(void, Remove, const_iterator i)
 		ImplExpr(erase(i))
@@ -581,8 +588,8 @@ public:
 		ImplExpr(YAssert(get_allocator() == nd.get_allocator(),
 			"Invalid allocator found."), container.swap(nd.container))
 
-	void
-	SwapContent(TermNode&) ynothrowv;
+	PDefH(void, SwapContent, TermNode& term) ynothrowv
+		ImplExpr(SwapContainer(term), swap(Value, term.Value))
 
 	YB_ATTR_nodiscard YB_PURE PDefH(iterator, begin, ) ynothrow
 		ImplRet(container.begin())
@@ -631,8 +638,8 @@ public:
 	YB_ATTR_nodiscard YB_PURE PDefH(size_t, size, ) const ynothrow
 		ImplRet(container.size())
 
-	YF_API friend void
-	swap(TermNode&, TermNode&) ynothrowv;
+	friend PDefH(void, swap, TermNode& x, TermNode& y) ynothrowv
+		ImplExpr(x.SwapContent(y), std::swap(x.Tags, y.Tags))
 };
 
 //! \relates TermNode
@@ -783,8 +790,8 @@ YB_NONNULL(2) inline PDefH(void, AssertBranchedList, const TermNode& nd,
 	ImplExpr(yunused(nd), yunused(msg), YAssert(IsBranchedList(nd), msg))
 
 /*!
-\brief 断言具有可作为一等对象的值的表示的标签节点。
-\pre 断言：参数的标签可作为一等对象的值的表示。
+\brief 断言具有可表示一等对象的值的标签节点。
+\pre 断言：参数的标签可表示一等对象的值。
 \note 较 EnsureValueTags 更严格，对不符合要求的项总是断言失败。
 \sa EnsureValueTags
 \since build 939
@@ -994,14 +1001,14 @@ public:
 	LexicalAnalyzer Lexer{};
 
 private:
-	//! \since build 890
-	pmr::polymorphic_allocator<yimpl(byte)> allocator;
+	//! \since build 941
+	YSLib::default_allocator<yimpl(byte)> allocator;
 
 public:
 	//! \since build 618
 	DefDeCtor(Session)
 	//! \since build 887
-	Session(pmr::polymorphic_allocator<yimpl(byte)> a)
+	Session(YSLib::default_allocator<yimpl(byte)> a)
 		: allocator(a)
 	{}
 
@@ -1212,7 +1219,7 @@ public:
 	\brief 取使用的分配器。
 	\since build 890
 	*/
-	YB_ATTR_nodiscard YB_PURE PDefH(pmr::polymorphic_allocator<yimpl(byte)>,
+	YB_ATTR_nodiscard YB_PURE PDefH(YSLib::default_allocator<yimpl(byte)>,
 		get_allocator, ) const ynothrow
 		ImplRet(allocator)
 };

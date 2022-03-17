@@ -11,13 +11,13 @@
 /*!	\file allocator.hpp
 \ingroup YStandardEx
 \brief 分配器接口。
-\version r5793
+\version r5941
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-10 21:34:28 +0800
 \par 修改时间:
-	2022-02-28 20:03 +0800
+	2022-03-16 20:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,8 @@
 //	is_same, std::pointer_traits, std::declval, is_detected, detected_t,
 //	is_detected_exact, cond, remove_cvref_t, bool_, is_lvalue_reference, cond_t,
 //	remove_reference_t, compressed_pair, compressed_pair_element,
-//	exclude_self_t, is_bitwise_swappable;
+//	exclude_self_t, is_bitwise_swappable, ystdex::copy_assign,
+//	is_nothrow_copy_constructible, is_nothrow_default_constructible;
 #include "apply.hpp" // for std::tuple, std::forward_as_tuple,
 //	std::piecewise_construct_t, std::piecewise_construct, std::make_tuple,
 //	ystdex::apply;
@@ -63,12 +64,6 @@
 #endif
 //@}
 
-/*!	\defgroup allocators Allcators
-\brief 分配器。
-\see WG21 N4606 17.6.3.5 [allocator.requirements] 。
-\since build 746
-*/
-
 namespace ystdex
 {
 
@@ -84,6 +79,10 @@ namespace ystdex
 #if __cplusplus >= 202002L && (!defined(__GLIBCXX__) || __GLIBCXX__ > 20190731)
 // XXX: See https://github.com/cplusplus/draft/issues/3111.
 // XXX: See https://gcc.gnu.org/git/?p=gcc.git;a=blobdiff;f=libstdc%2B%2B-v3/include/std/memory;h=0a483d2d8d1a1287685cb5cc8a7d338a14e7fef3;hp=3036802f8c3eb1c3013dc1720ad85087e5202694;hb=3090082cbefd8b1374f237bd4242b554490b2933;hpb=e6c847fb8f90b1c119a677b81cfc294b13eb7772.
+// XXX: The source of libstdc++ uses '__cpp_lib_make_obj_using_allocator'
+//	internally in headers like <memory_resource> and <scoped_allocator> to
+//	detect the existence of the features. This is not in ISO C++ or proposals
+//	and not used here.
 //! \since build 863
 //@{
 using std::uses_allocator_construction_args;
@@ -752,15 +751,15 @@ class allocator_guard_delete
 {
 private:
 	//! \since build 940
-	using traits = typename details::allocator_deleter_traits<_tAlloc>;
+	using traits_type = typename details::allocator_deleter_traits<_tAlloc>;
 	//! \since build 846
-	using base = typename traits::guard_delete_base;
+	using base = typename traits_type::guard_delete_base;
 
 public:
 	//! \since build 595
-	using pointer = typename traits::pointer;
+	using pointer = typename traits_type::pointer;
 	//! \since build 595
-	using size_type = typename traits::size_type;
+	using size_type = typename traits_type::size_type;
 
 	//! \since build 937
 	template<class _tParam,
@@ -774,7 +773,7 @@ public:
 	void
 	operator()(pointer p) const ynothrowv
 	{
-		traits::deallocate(get_allocator(), p, get_count());
+		traits_type::deallocate(get_allocator(), p, get_count());
 	}
 
 	//! \since build 846
@@ -813,13 +812,13 @@ class allocator_delete
 {
 private:
 	//! \since build 940
-	using traits = typename details::allocator_deleter_traits<_tAlloc>;
+	using traits_type = typename details::allocator_deleter_traits<_tAlloc>;
 	//! \since build 846
-	using base = typename traits::delete_base;
+	using base = typename traits_type::delete_base;
 
 public:
 	//! \since build 595
-	using pointer = typename traits::pointer;
+	using pointer = typename traits_type::pointer;
 
 	//! \since build 847
 	template<class _tParam,
@@ -832,8 +831,8 @@ public:
 	void
 	operator()(pointer p) const ynothrowv
 	{
-		traits::destroy(get_allocator(), ystdex::to_address(p));
-		traits::deallocate(get_allocator(), p, 1);
+		traits_type::destroy(get_allocator(), ystdex::to_address(p));
+		traits_type::deallocate(get_allocator(), p, 1);
 	}
 
 	//! \since build 846
@@ -1053,6 +1052,149 @@ alloc_on_swap(_tAlloc& x, _tAlloc& y) ynothrow
 //@}
 
 #undef YB_Impl_has_allocator_traits_is_always_equal
+
+
+//! \since build 941
+//@{
+/*!
+\ingroup customization_points
+\ingroup traits
+\note 可定制和分配器的定义中不同的操作。
+*/
+//! \brief 分配器在容器中的使用复制构造的传播特征。
+template<bool _bPOCCA = true, bool _bPOCMA = true, bool _bPOCS = true>
+struct propagate_copy
+{
+	using on_copy_assignment = bool_<_bPOCCA>;
+	using on_move_assignment = bool_<_bPOCMA>;
+	using on_swap = bool_<_bPOCS>;
+
+	template<class _tAlloc>
+	YB_ATTR_nodiscard YB_ATTR_always_inline static yconstfn _tAlloc
+	copy(const _tAlloc& a) ynoexcept(is_nothrow_copy_constructible<_tAlloc>())
+	{
+		return a;
+	}
+};
+
+
+//! \brief 分配器在容器中使用默认构造的的传播特征。
+template<bool _bPOCCA = false, bool _bPOCMA = false, bool _bPOCS = false>
+struct propagate_default
+{
+	using on_copy_assignment = bool_<_bPOCCA>;
+	using on_move_assignment = bool_<_bPOCMA>;
+	using on_swap = bool_<_bPOCS>;
+
+	template<class _tAlloc>
+	YB_ATTR_nodiscard static YB_ATTR_always_inline yconstfn _tAlloc
+	copy(const _tAlloc&)
+		ynoexcept(is_nothrow_default_constructible<_tAlloc>())
+	{
+		return {};
+	}
+};
+
+
+/*!
+\ingroup allocators
+\brief 传播分配器适配器。
+\pre 第一参数是可被继承的分配器类型。
+\pre 分配器类型可复制构造或被用户程序特化。
+*/
+template<class _tAlloc, class _tTraits = propagate_copy<>>
+class propagating_allocator_adaptor : public _tAlloc
+{
+	static_assert(is_allocator<_tAlloc>(), "Invalid type found.");
+	static_assert(is_copy_constructible<_tAlloc>(), "Invalid type found.");
+
+public:
+	using allocator_type = _tAlloc;
+	using propagating_traits_type = _tTraits;
+	using traits_type = std::allocator_traits<allocator_type>;
+	//! \ingroup functors
+	template<typename _tOther>
+	struct rebind
+	{
+		using other = propagating_allocator_adaptor<rebind_alloc_t<
+			allocator_type, _tOther>, propagating_traits_type>;
+	};
+	using propagate_on_container_copy_assignment
+		= typename propagating_traits_type::on_copy_assignment;
+	using propagate_on_container_move_assignment
+		= typename propagating_traits_type::on_move_assignment;
+	using propagate_on_container_swap
+		= typename propagating_traits_type::on_swap;
+	using is_always_equal = typename traits_type::is_always_equal;
+
+	/*!
+	\warning 语义视基类对象构造函数的形式可能不同。
+	\sa __cpp_inheriting_constructors
+	\see WG21 P0136R1 。
+	*/
+	using allocator_type::allocator_type;
+	propagating_allocator_adaptor(const allocator_type& a)
+		: allocator_type(a)
+	{}
+	propagating_allocator_adaptor(const propagating_allocator_adaptor&)
+		= default;
+	propagating_allocator_adaptor(propagating_allocator_adaptor&&) = default;
+	template<class _tOther, class _tOtherTraits>
+	propagating_allocator_adaptor(const
+		propagating_allocator_adaptor<_tOther, _tOtherTraits>& other)
+		ynoexcept_spec(allocator_type(other))
+		: allocator_type(other)
+	{}
+	template<class _tOther, class _tOtherTraits>
+	propagating_allocator_adaptor(
+		propagating_allocator_adaptor<_tOther, _tOtherTraits>&& other)
+		ynoexcept_spec(allocator_type(std::move(other)))
+		: allocator_type(std::move(other))
+	{}
+
+	// NOTE: The base allocator may have a deleted copy %operator=.
+	YB_ATTR_always_inline propagating_allocator_adaptor&
+	operator=(const propagating_allocator_adaptor& a) ynoexcept_spec(
+		ystdex::copy_assign(std::declval<allocator_type&>(),
+		std::declval<const allocator_type&>()))
+	{
+		ystdex::copy_assign(static_cast<allocator_type&>(*this),
+			static_cast<const allocator_type&>(a));
+		return *this;
+	}
+	propagating_allocator_adaptor&
+	operator=(propagating_allocator_adaptor&&) = default;
+
+	YB_ATTR_nodiscard YB_ATTR_always_inline propagating_allocator_adaptor
+	select_on_container_copy_construction() const
+	{
+		return propagating_traits_type::copy(*this);
+	}
+};
+
+//! \relates propagating_allocator_adaptor
+//@{
+template<class _tAlloc1, class _tTraits1, class _tAlloc2, class _tTraits2>
+YB_ATTR_nodiscard YB_ATTR_always_inline inline bool
+operator==(const propagating_allocator_adaptor<_tAlloc1, _tTraits1>& x,
+	const propagating_allocator_adaptor<_tAlloc2, _tTraits2>& y) ynothrow
+{
+	return static_cast<const _tAlloc1&>(x) == static_cast<const _tAlloc2&>(y);
+}
+
+template<class _tAlloc1, class _tTraits1, class _tAlloc2, class _tTraits2>
+YB_ATTR_nodiscard YB_ATTR_always_inline inline bool
+operator!=(const propagating_allocator_adaptor<_tAlloc1, _tTraits1>& x,
+	const propagating_allocator_adaptor<_tAlloc2, _tTraits2>& y) ynothrow
+{
+	return !(x == y);
+}
+
+template<class _tAlloc, class _tTraits>
+struct is_bitwise_swappable<propagating_allocator_adaptor<_tAlloc, _tTraits>>
+	: is_bitwise_swappable<_tAlloc>
+{};
+//@}
 
 } // namespace ystdex;
 

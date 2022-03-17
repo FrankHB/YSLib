@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r9371
+\version r9401
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2022-03-07 06:20 +0800
+	2022-03-13 01:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2827,9 +2827,9 @@ public:
 	\brief 取用于初始化环境以外的对象使用的分配器。
 	\since build 851
 	*/
-	YB_ATTR_nodiscard YB_PURE PDefH(pmr::polymorphic_allocator<yimpl(byte)>,
+	YB_ATTR_nodiscard YB_PURE PDefH(YSLib::default_allocator<yimpl(byte)>,
 		get_allocator, ) const ynothrow
-		ImplRet(pmr::polymorphic_allocator<yimpl(byte)>(
+		ImplRet(YSLib::default_allocator<yimpl(byte)>(
 			&GetMemoryResourceRef()))
 
 	/*!
@@ -2848,6 +2848,32 @@ public:
 	swap(ContextNode&, ContextNode&) ynothrow;
 };
 
+
+/*!
+\brief 断言分配器和项节点容器的分配器匹配。
+\pre 断言：参数指定的分配器相等。
+\since build 941
+*/
+//@{
+YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators,
+	const TermNode::allocator_type& a, const TermNode::Container& con,
+	const char* msg = "Allocators mismatch to the term container.") ynothrowv
+	ImplExpr(yunused(a), yunused(con), yunused(msg),
+		YAssert(a == con.get_allocator(), msg))
+YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators,
+	const TermNode::allocator_type& a, const TermNode& nd, const char* msg
+	= "Allocators mismatch to the term node.") ynothrowv
+	ImplExpr(AssertMatchedAllocators(a, nd.GetContainer(), msg))
+YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators,
+	const ContextNode& ctx, const TermNode::Container& con, const char* msg
+	= "Allocators mismatch between the term container and the context.")
+	ynothrowv
+	ImplExpr(NPL::AssertMatchedAllocators(ctx.get_allocator(), con, msg))
+YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators,
+	const ContextNode& ctx, const TermNode& nd, const char* msg
+	= "Allocators mismatch between the term node and the context.") ynothrowv
+	ImplExpr(NPL::AssertMatchedAllocators(ctx.get_allocator(), nd, msg))
+//@}
 
 /*!
 \brief 分配环境。
@@ -2875,9 +2901,7 @@ AllocateEnvironment(TermNode& term, ContextNode& ctx, _tParams&&... args)
 {
 	const auto a(ctx.GetBindingsRef().get_allocator());
 
-	yunused(term);
-	YAssert(a == term.get_allocator(),
-		"Allocator mismatch between term and context.");
+	NPL::AssertMatchedAllocators(a, term);
 	return NPL::AllocateEnvironment(a, yforward(args)...);
 }
 //@}

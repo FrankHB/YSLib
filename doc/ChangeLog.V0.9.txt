@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r8422
+\version r8636
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-03-07 07:27 +0800
+	2022-03-17 21:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,216 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Placement $=
+		(
+			/ DLDI "header inclusion %IteratorOperation"
+				-> ("%DereferenceOperation", "<iterator>", "%Variadic"),
+			/ @ "class template %default_init_allocator" $=
+			(
+				+ DD '\ingroup allocators' @ "Doxygen comment",
+				+ DD '\ingroup functors' @ "Doxygen comment"
+					@ "class template %rebind"
+			),
+			+ "5 function templates %copy_assign",
+			(
+			+ DLDI 'yunused'
+				@ "function templates %(construct_default_in, construct_in)",
+			/ DLDI "simplified function %construct" ^ "%construct_in"
+				~ "%construct_within",
+			/ DLDI "simplified function %construct_default"
+				^ "%construct_default_in" ~ "%construct_default_within";
+			+ $dev $lib 'YB_ATTR_nodiscard YB_ATTR_returns_nonnull'
+				@ "function templates %(construct_default_within, \
+				contruct_within)"
+			)
+		),
+		/ %Allocator $=
+		(
+			/ DD "Doxygen group %functors" >> %Placement,
+			/ DLDI "all member type %traits" => "%traits_type",
+			(
+			+ "customization points %(propagate_copy, propagate_default)";
+			+ "class template %propagating_allocator_adaptor"
+				^ $dep_from ("%copy_assign" @ %Placement);
+			+ $re_add(b939) $lib "class template specialization \
+				%is_bitwise_swappable for %propagating_allocator_adaptor"
+			)
+		),
+		/ "class template specializations %compressed_pair_element"
+			@ %CompressedPair $=
+		(
+			// Both the primary template and the explicit specialization are \
+				affected.
+			* "ill-formed friend functions %swap" $since b939,
+			* "missing 'const'"
+				@ "conversion function overloads for 'const' type" $since b940
+				// This would be ill-formed for ISO C++14 and above because \
+					'constexpr' no longer implies no 'const' and the overloads \
+					would clash non-const overloads. Also to eliminate Clang++ \
+					warning: [-Wconstexpr-not-const].
+		),
+		/ %MemoryResource $=
+		(
+			/ @ "class template %polymorphic_allocator" @ %MemoryResource $=
+			(
+				// Since the member %destroy is deprecated but not removed, \
+					%polymorphic_allocator still cannot be in %cpp2020.
+				+ '\ingroup allocators' @ "Doxygen comment",
+				+ $lib 'ynothrowv' @ "constructor#2",
+				/ "redundant verification of length overflow"
+					@ "function %deallocate",
+				* "wrong resolution implemented for LWG 3038 and missing of \
+					LWG 3237" @ "function %allocate" $mismatch $since b842,
+					// The proposed resolution was superseded since 2018-06 \
+						and this outdated solution should not have been \
+						adopted.
+				/ @ "function template %allocate_object" $=
+				(
+					/ DLDI 'SIZE_MAX' -> 'size_t(-1)',
+						// To be consisten with the supposed implementation of \
+							LWG 3038 above (which was already correct \
+							previously).
+					/ "implemented LWG 3237" ^ "%std::bad_new_array_length"
+						~ "%std::length_error"
+				)
+			),
+			/ DLI "optimized class %resource_pool" $=
+			(
+				/ @ "function %deallocate" $=
+				(
+					+ "internal assertion to ensure one more dereferenceable \
+						iterator",
+					/ "simplified full chunk handling",
+					/ "simplified full chunk detection",
+					/ "rechecked candidate chunk empty"
+						$dep_to "allowing deferred empty chunks"
+				),
+				/ "reduced iterator accesses" @ "function %allocate"
+					$dep_from "allowing deferred empty chunks"
+			),
+			/ @ "class %monotonic_buffer_resource" $=
+			(
+				* DD "wrong '\note' command" @ "Doxygen comment"
+					@ "function %do_deallocate" $since b845
+					$= (/ "Doxygen comment" >> "%do_allocate"),
+				/ @ "function %do_allocate" $=
+				(
+					(
+					- DLDI "redundant 'const'" @ "parameters";
+					* "missing adjusting zero size allocation to ensure it \
+						meeting to the ISO C++ allcation function requirements \
+						on the results" $since b845
+					),
+					* "violating the ISO C++ requirment of throwing" $since b845
+						$= (/ $impl ^ "throwing upstream allocation requrest")
+				)
+			)
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib.Container $=
+		(
+			(
+			+ "alias template %default_allocator" $dep_from
+				("%ystdex::propagating_allocator_adaptor"
+				@ %YBase.YStandardEx.Allocator);
+				// This is not enabled by default.
+			/ DLDI "all container templates with allocator default template \
+				argument" ^ "%default_allocator" ~ "%pmr::polymorphic_allocator"
+				$dep_to "default allocator changes"
+			),
+			/ "class template specialization %std::hash for \
+				%ystdex::basic_string instances"
+				-> "for %platform::strings::basic_string instances"
+		),
+		/ ^ ("default_allocator" ~ "%pmr::polymorphic_allocator")
+			$effective %(NPL.(SContext.NPLA, NPLA1), YSLib.Core.ValueNode)
+			$dep_from "default allocator changes",
+		/ %NPL $=
+		(
+			/ %NPLA1Internals $=
+			(
+				+ $design "%YBase.YStandardEx inclusions for %ystdex names",
+				+ $design "inclusion for %std::next",
+				/ "simplified constructor %TCOAction",
+				(
+				/ DLI "simplified member function %TCOAction::CompressFrameList" $=
+				(
+					!^ "%ystdex::cast_mutable",
+					^ "%FrameRecordList::remove_if"
+				);
+				/ DLI "%FrameRecordList" ^ "%forward_list" ~ "%list"
+					// Other sequences are likely more inefficient (e.g. %vector \
+						with reversed sequence) with proper alloators.
+				),
+				/ @ "class %TCOAction" $=
+				(
+					/ "function %AttachFunction" -> "2 functions %Attach";
+					/ "added a record before each prvalue attaching" @ "function \
+						%Attach with parameter of 'ContextHandler&&'";
+					/ DLI "simplified function %MoveFunction"
+						!^ "%LastFunction";
+					+ 'const' @ "function %MoveFunction";
+					/ "simplified guards release" @ "%operator()";
+					/ "data member %LastFunction"
+						-> "simplified stashed handlers",
+						// Instead of guards, one stashed function is enough.
+					* $comp "wrong order of function prvalue stored" $orig
+						(@ 'YF_Impl_NPLA1_Enable_TCO' @ %NPLA1 $since b820)
+						// This also implies the order of destruction and the \
+							interleaving behavior with releasing of the \
+							environment pointers stored in the frame records.
+				),
+				/ DLI "constructions of %ReferenceSet"
+					@ "member function %RecordCompressor::Compress" ^ "allocators"
+			),
+			/ $forced "simplified functions %(ReduceCombined, \
+				ReduceCombinedBranch, ReduceCombinedReferent)" @ %NPLA1
+				$dep_from (("%TCOAction::LastFunction"
+				^ $dep_from "%TCOAction::Attach") @ %NPLA1Internals),
+			/ %NPLA $=
+			(
+				+ "4 functions %AssertMatchedAllocators";
+				/ DLI "simplified function template %AllocateEnvironment#3"
+			),
+			/ @ "class %TermNode" @ %SContext $=
+			(
+				(
+				/ "function %MoveContainer" ^ "%Container::operator="
+					~ "%SwapContainer";
+				- $revert(b917) "redundant allocator equality"
+					@ "functions %(MoveContent, MoveContainer)";
+					// This was never actually required for %MoveContent.
+				* DD "wrong '\pre' command" @ "Doxygen comment"
+					@ "function %MoveContent"
+				),
+				/ DLI "inlined functions %(MoveContainer, MoveContent, \
+					MoveValue)" !^ "local object",
+				* DD "wrong Doxygen '\brief' command" @ "comment"
+					@ "copy constructor" $since b879,
+				+ $dev $lib ($design $impl "alternative implementation",
+					"postcondition and assertion") @ "function %ClearContainer",
+				/ DLI ("function %SwapContent", "friend function %swap")
+					-> "inlined functions"
+			),
+			/ DLDI %NPLA1Forms $=
+			(
+				/ "simplified" @ 'NPL_Impl_NPLA1_Enable_TCO'
+					@ "%operator()" @ "vau handler",
+				/ "simplified" @ "functions %(Let, LetRef, LetWithEnviornment, \
+					LetWithEnvironmentRef, LetAsterisk, LetAsteriskRef, \
+					LetRec, LetRecRef)" ^ "%TermNode::Remove"
+					~ "%TermNode::Container::erase"
+			)
+		)
+	)
+),
+
+b940
 (
 	* DD "wrong value category" @ "descriptions" @ "applicative %rulist"
 		@ %Documentation.NPL $since b915,
@@ -1046,7 +1256,7 @@ b937
 		/ DLDI @ %YCLib.XCB $=
 		(
 			(
-			+ "header inclusion %YBase.YStandardEx.Base";
+			+ "inclusion %YBase.YStandardEx.Base";
 			/ ^ "%platform::(noncopyable, nonmovable)"
 				~ "%YSLib::(noncopyable, nonmovable)" @ %YCLib.XCB,
 				// Ditto.
@@ -1128,10 +1338,10 @@ b936
 		/ %Utilities $=
 		(
 			(
-			+ "header inclusion %Enum";
+			+ "inclusion %Enum";
 			/ $lib "function template %underlying" >> %Enum
 			),
-			+ "header inclusion %IntegerSequence"
+			+ "inclusion %IntegerSequence"
 		),
 		/ %Range $=
 		(
@@ -1674,7 +1884,7 @@ b933
 		/ %YStandardEx
 		(
 			+ $dev $lib "public inclusion %Hash" @ %Functional,
-			+ "header inclusion %CWideCharacterType" @ %CString,
+			+ "inclusion %CWideCharacterType" @ %CString,
 			(
 			/ ("function templates %(towlower, towupper)";
 				"header inclusion <cwctype>") @ %CCharacterType
@@ -6760,7 +6970,7 @@ b905
 					// To eliminate Clang++ warning: [-Wunused-value].
 				/ "platform %Win32" @ "function %SetEnvironmentVariable"
 					^ "%_wputenv" ~ "%_putenv",
-				+ "header inclusion %Container"
+				+ "inclusion %Container"
 					$dep_from "removal of YCommon for Container";
 					// This allows %string used in API declarations.
 			)

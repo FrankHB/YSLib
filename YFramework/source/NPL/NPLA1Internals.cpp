@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20570
+\version r20595
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-02-25 00:47 +0800
+	2022-03-09 02:27 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -27,8 +27,8 @@
 
 #include "NPL/YModules.h"
 #include "NPLA1Internals.h" // for NPL::Deref, Environment, ystdex::dismiss,
-//	shared_ptr, std::throw_with_nested, InvalidSyntax, std::make_move_iterator,
-//	NPL::AsTermNode;
+//	shared_ptr, NPL::get, std::throw_with_nested, InvalidSyntax,
+//	std::make_move_iterator, NPL::AsTermNode;
 
 namespace NPL
 {
@@ -46,6 +46,7 @@ RecordCompressor::Compress()
 {
 	// NOTE: This is need to keep the root as external reference.
 	const auto p_root(NPL::Nonnull(RootPtr.lock()));
+	const auto a(NPL::Deref(p_root).Bindings.get_allocator());
 
 	// NOTE: Trace.
 	for(auto& pr : Universe)
@@ -70,7 +71,7 @@ RecordCompressor::Compress()
 		}
 		else
 			++i;
-	for(ReferenceSet rs; !NewlyReachable.empty();
+	for(ReferenceSet rs(a); !NewlyReachable.empty();
 		NewlyReachable = std::move(rs))
 	{
 		for(const auto& e : NewlyReachable)
@@ -92,7 +93,7 @@ RecordCompressor::Compress()
 	}
 
 	// XXX: Need full support of PTC by direct DFS traverse?
-	ReferenceSet accessed;
+	ReferenceSet accessed(a);
 
 	ystdex::retry_on_cond(ystdex::id<>(), [&]() -> bool{
 		bool collected = {};
@@ -160,15 +161,14 @@ TCOAction::operator()(ContextNode& ctx) const
 	{
 		const auto egd(std::move(EnvGuard));
 	}
-	while(!xgds.empty())
-		xgds.pop_back();
+	yunused(MoveFunction());
 	while(!RecordList.empty())
 	{
 		// NOTE: The order is significant, as the destruction order of
 		//	components of %FrameRecord is unspecified.
 		auto& front(RecordList.front());
 
-		get<ActiveCombiner>(front) = {};
+		NPL::get<ActiveCombiner>(front) = {};
 		RecordList.pop_front();
 	}
 	return res;
@@ -180,28 +180,29 @@ TCOAction::CompressFrameList()
 	auto i(RecordList.cbegin());
 
 	ystdex::retry_on_cond(ystdex::id<>(), [&]() -> bool{
-		const auto orig_size(RecordList.size());
+		bool removed = {};
 
 		// NOTE: The following code searches the frames to be removed, in the
 		//	order from new to old. After merging, the guard slot %EnvGuard owns
 		//	the resources of the expression (and its enclosed subexpressions)
 		//	being TCO'd.
-		i = RecordList.cbegin();
-		while(i != RecordList.cend())
-		{
-			auto& p_frame_env_ref(NPL::get<ActiveEnvironmentPtr>(
-				*ystdex::cast_mutable(RecordList, i)));
+		// TODO: Use %FrameRecordList implementation having %remove_if with a
+		//	non-void return type compatible to ISO C++20?
+		RecordList.remove_if([&](const FrameRecord& r) ynothrowv -> bool{
+			const auto& p_frame_env_ref(NPL::get<ActiveEnvironmentPtr>(r));
 
+			// NOTE: The whole frame is to be removed. The function prvalue is
+			//	expected to live only in the subexpression evaluation. This has
+			//	equivalent effects of evlis tail recursion.
 			if(p_frame_env_ref.use_count() != 1
 				|| NPL::Deref(p_frame_env_ref).IsOrphan())
-				// NOTE: The whole frame is to be removed. The function prvalue
-				//	is expected to live only in the subexpression evaluation.
-				//	This has equivalent effects of evlis tail recursion.
-				i = RecordList.erase(i);
-			else
-				++i;
-		}
-		return RecordList.size() != orig_size;
+			{
+				removed = true;
+				return true;
+			}
+			return {};
+		});
+		return removed;
 	});
 }
 

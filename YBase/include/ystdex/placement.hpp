@@ -11,13 +11,13 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r1036
+\version r1117
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2022-01-21 20:38 +0800
+	2022-03-11 22:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,13 +32,14 @@
 
 #include "addressof.hpp" // for "addressof.hpp", cond_t, is_void, _t, vdefer,
 //	std::align, sizeof_t, size_t_, identity, empty_base, YB_ASSUME,
-//	ystdex::addressof, is_lvalue_reference, std::pair, or_,
-//	is_trivially_copyable, is_empty, std::reference_wrapper, std::unique_ptr,
-//	std::shared_ptr, std::weak_ptr, std::allocator, std::allocator_traits,
-//	enable_if_convertible_t, is_nothrow_destructible, and_;
+//	ystdex::addressof, is_lvalue_reference, std::pair, is_nothrow_destructible,
+//	or_, is_trivially_copyable, is_empty, std::reference_wrapper,
+//	std::unique_ptr, std::shared_ptr, std::weak_ptr, std::allocator,
+//	std::allocator_traits, enable_if_convertible_t, and_;
+#include "deref_op.hpp" // for yconstraint, YB_VerifyIterator;
 #include "bit.hpp" // for is_power_of_2_positive;
-#include "iterator_op.hpp" // for yconstraint, YB_VerifyIterator,
-//	std::iterator_traits, vseq, ctor_of, when, _a;
+#include "variadic.hpp" // for vseq, ctor_of, when, _a;
+#include <iterator> // for std::iterator_traits;
 #include <new> // for placement ::operator new from standard library;
 // NOTE: The following code is necessary to check for header <optional> to
 //	ensure it has %in_place_t consistently. Other implementations are in
@@ -87,6 +88,13 @@
 #	endif
 #endif
 //@}
+
+/*!	\defgroup allocators Allcators
+\brief 分配器。
+\warning 一般非虚析构。
+\see WG21 N4606 17.6.3.5 [allocator.requirements] 。
+\since build 746
+*/
 
 namespace ystdex
 {
@@ -314,7 +322,7 @@ struct ctor_of<in_place_index_t<_vIdx>, when<true>>
 //@{
 //! \brief 以默认初始化在对象中构造。
 template<typename _type, typename _tObj>
-yconstfn _type*
+YB_ATTR_nodiscard YB_ATTR_returns_nonnull yconstfn _type*
 construct_default_within(_tObj& obj)
 {
 	return ::new(
@@ -333,7 +341,7 @@ template<typename _type, typename _tObj, typename... _tParams>
 #if (YB_IMPL_GNUCPP && !YB_IMPL_CLANGPP) && defined(NDEBUG) && __OPTIMIZE__
 YB_ATTR_always_inline
 #endif
-yconstfn _type*
+YB_ATTR_nodiscard YB_ATTR_returns_nonnull yconstfn _type*
 construct_within(_tObj& obj, _tParams&&... args)
 {
 	return ::new(static_cast<void*>(
@@ -351,7 +359,7 @@ template<typename _type>
 yconstfn_relaxed void
 construct_default_in(_type& obj)
 {
-	ystdex::construct_default_within<_type>(obj);
+	yunused(ystdex::construct_default_within<_type>(obj));
 }
 
 /*!
@@ -364,7 +372,7 @@ template<typename _type, typename... _tParams>
 yconstfn_relaxed void
 construct_in(_type& obj, _tParams&&... args)
 {
-	ystdex::construct_within<_type>(obj, yforward(args)...);
+	yunused(ystdex::construct_within<_type>(obj, yforward(args)...));
 }
 
 //! \since build 602
@@ -391,7 +399,7 @@ construct(_tIter i, _tParams&&... args)
 	using value_type = typename std::iterator_traits<_tIter>::value_type;
 
 	YB_VerifyIterator(i);
-	ystdex::construct_within<value_type>(*i, yforward(args)...);
+	ystdex::construct_in<value_type>(*i, yforward(args)...);
 }
 
 /*!
@@ -406,7 +414,7 @@ construct_default(_tIter i)
 	using value_type = typename std::iterator_traits<_tIter>::value_type;
 
 	YB_VerifyIterator(i);
-	ystdex::construct_default_within<value_type>(*i);
+	ystdex::construct_default_in<value_type>(*i);
 }
 
 /*!
@@ -718,6 +726,65 @@ uninitialized_construct_n(_tFwd first, _tSize n, _tParams&&... args)
 
 
 /*!
+\brief 复制赋值操作。
+\note 允许不可复制赋值或转移赋值的类型通过复制构造实现复制赋值。
+\since build 941
+*/
+//@{
+//! \note 直接使用赋值操作。
+template<typename _type>
+inline _type&
+copy_assign(_type& x, const _type& y, true_) ynoexcept_spec(x = y)
+{
+	x = y;
+	return x;
+}
+//! \note 使用复制构造和转移赋值操作。
+template<typename _type>
+inline _type&
+copy_assign(_type& x, const _type& y, false_, true_) ynoexcept_spec(x = _type(y))
+{
+	x = _type(y);
+	return x;
+}
+/*!
+\note 使用析构和复制构造操作。
+\note 非强异常安全：若复制构造对象抛出异常，被赋值的对象已被销毁。
+*/
+template<typename _type>
+inline _type&
+copy_assign(_type& x, const _type& y, false_, false_)
+	ynoexcept_spec(ystdex::construct_in(x, y))
+{
+	static_assert(is_nothrow_destructible<_type>(), "Invalid type found.");
+
+	ystdex::destruct_in(x);
+	ystdex::construct_in(x, y);
+	return x;
+}
+//! \warning 不完全强异常安全：对不可复制和转移赋值的类型。
+//@{
+//! \note 使用复制构造和转移赋值或析构和复制构造操作。
+template<typename _type>
+inline _type&
+copy_assign(_type& x, const _type& y, false_) ynoexcept_spec(
+	ystdex::copy_assign(x, y, false_(), is_move_assignable<_type>()))
+{
+	return ystdex::copy_assign(x, y, false_(), is_move_assignable<_type>());
+}
+//! \note 根据是否可直接复制赋值选择操作。
+template<typename _type>
+inline _type&
+copy_assign(_type& x, const _type& y)
+	ynoexcept_spec(ystdex::copy_assign(x, y, is_copy_assignable<_type>()))
+{
+	return ystdex::copy_assign(x, y, is_copy_assignable<_type>());
+}
+//@}
+//@}
+
+
+/*!
 \ingroup customization_points
 \ingroup unary_type_traits
 \brief 判断类型是否可交换对象的表示。
@@ -791,13 +858,18 @@ struct is_bitwise_swappable<std::weak_ptr<_type>> : true_
 
 //! \since build 716
 //@{
-//! \brief 默认初始化构造分配器。
+/*!
+\ingroup allocators
+\pre 第二参数是可被继承可复制构造的分配器类型。
+\brief 默认初始化构造分配器。
+*/
 template<typename _type, class _tAlloc = std::allocator<_type>>
 class default_init_allocator : public _tAlloc
 {
 public:
 	using allocator_type = _tAlloc;
 	using traits_type = std::allocator_traits<allocator_type>;
+	//! \ingroup functors
 	template<typename _tOther>
 	struct rebind
 	{

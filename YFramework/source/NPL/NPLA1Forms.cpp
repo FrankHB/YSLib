@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r26355
+\version r26358
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2022-03-07 05:43 +0800
+	2022-03-14 18:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -881,12 +881,9 @@ private:
 			//	the call to %RelayForCall.
 			term.SetContent(std::move(Deref(p_eval_struct)));
 #if NPL_Impl_NPLA1_Enable_TCO
-
-			auto& act(RefTCOAction(ctx));
-
 			// XXX: Assume the last function being handled in %TCOAction is this
 			//	object. This would make '*this' invalid.
-			yunused(act.MoveFunction());
+			yunused(RefTCOAction(ctx).MoveFunction());
 #endif
 		}
 		else
@@ -2538,7 +2535,7 @@ LetCombinePrepare(_func f, TermNode& term, ContextNode& ctx, bool with_env)
 			else
 				ThrowInvalidEnvironmentType(nd, p_ref);
 		}, *i);
-		term.GetContainerRef().erase(i);
+		term.Remove(i);
 		return f();
 	}, "eval-let-parent"));
 }

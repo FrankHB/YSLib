@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1743
+\version r1798
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2022-02-28 05:48 +0800
+	2022-03-16 14:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 //	std::align_val_t, std::align, __cpp_sized_deallocation, std::bad_alloc,
 //	::operator new, ::operator delete, std::unique_ptr, make_observer, YAssert,
 //	lref, yassume, ystdex::destruct_in, yverify, yconstraint, CHAR_BIT,
-//	is_power_of_2_positive, ceiling_lb, std::piecewise_construct,
+//	is_power_of_2_positive, ceiling_lb, std::swap, std::piecewise_construct,
 //	std::forward_as_tuple, PTRDIFF_MAX, ystdex::aligned_store_cast;
 #if YB_Has_memory_resource != 1
 #	include <atomic> // for std::atomic;
@@ -553,7 +553,7 @@ resource_pool::chunk_t::operator=(chunk_t&& cnk) ynothrow
 resource_pool::resource_pool(memory_resource& up_rsrc, size_t mbpc,
 	size_t blk_size, size_t extra, size_t n_cap) ynothrowv
 	: max_blocks_per_chunk(mbpc), chunks(&up_rsrc), i_stashed(chunks.end()),
-	i_empty(i_stashed), next_capacity((yconstraint(n_cap > 1), n_cap)),
+	i_backup(i_stashed), next_capacity((yconstraint(n_cap > 1), n_cap)),
 	block_size((yconstraint(blk_size >= resource_pool::min_block_size),
 	blk_size)), extra_data(extra)
 {
@@ -562,17 +562,17 @@ resource_pool::resource_pool(memory_resource& up_rsrc, size_t mbpc,
 resource_pool::resource_pool(resource_pool&& pl) ynothrow
 	: max_blocks_per_chunk(pl.max_blocks_per_chunk),
 	chunks(pl.chunks.get_allocator()), i_stashed(pl.i_stashed),
-	i_empty(pl.i_empty), next_capacity(pl.next_capacity),
+	i_backup(pl.i_backup), next_capacity(pl.next_capacity),
 	block_size(pl.block_size), extra_data(pl.extra_data)
 {
 	const bool no_stashed(pl.i_stashed == pl.chunks.end()),
-		no_empty(pl.i_empty == pl.chunks.end());
+		no_empty(pl.i_backup == pl.chunks.end());
 
 	std::swap(chunks, pl.chunks);
 	if(no_stashed)
 		i_stashed = chunks.end();
 	if(no_empty)
-		i_empty = chunks.end();
+		i_backup = chunks.end();
 }
 // XXX: The order destruction among chunks is unspecified.
 resource_pool::~resource_pool() = yimpl(default);
@@ -583,12 +583,12 @@ resource_pool::operator=(resource_pool&& pl) ynothrowv
 	yconstraint(chunks.get_allocator() == pl.chunks.get_allocator());
 
 	const bool no_stashed(pl.i_stashed == pl.chunks.end()),
-		no_empty(pl.i_empty == pl.chunks.end());
+		no_empty(pl.i_backup == pl.chunks.end());
 
 	std::swap(chunks, pl.chunks);
 	yunseq(
 	i_stashed = no_stashed ? chunks.end() : pl.i_stashed,
-	i_empty = no_empty ? chunks.end() : pl.i_empty,
+	i_backup = no_empty ? chunks.end() : pl.i_backup,
 	max_blocks_per_chunk = pl.max_blocks_per_chunk,
 	next_capacity = pl.next_capacity,
 	block_size = pl.block_size,
@@ -617,24 +617,14 @@ resource_pool::allocate()
 				: chunks.begin()->first + 1),
 				std::forward_as_tuple(*this, gd.get(), next_capacity));
 			gd.release();
-			i_stashed = chunks.begin();
-			i_empty = i_stashed;
+			yunseq(i_stashed = chunks.begin(), i_backup = chunks.end());
 			// NOTE: See $2018-11 @ %Documentation::Workflow.
 			next_capacity = std::min(next_capacity << 1, max_blocks_per_chunk);
 		}
 		else if(i_stashed->second.has_free_block())
-		{
-			if(i_stashed == i_empty)
-				i_empty = chunks.end();
 			return i_stashed->second.allocate_block_free();
-		}
-
-		auto& cnk(i_stashed->second);
-
-		if(const auto p = cnk.allocate_block_seq())
+		if(const auto p = i_stashed->second.allocate_block_seq())
 		{
-			if(i_stashed == i_empty)
-				i_empty = chunks.end();
 			::new(&access_meta(p, block_size)) block_meta_t{i_stashed};
 			return p;
 		}
@@ -646,7 +636,7 @@ resource_pool::allocate()
 void
 resource_pool::clear() ynothrow
 {
-	yunseq(i_empty = chunks.end(), i_stashed = chunks.end(),
+	yunseq(i_backup = chunks.end(), i_stashed = chunks.end(),
 		next_capacity = default_capacity);
 	chunks.clear();
 }
@@ -657,33 +647,29 @@ resource_pool::deallocate(void* p) ynothrowv
 	auto i_chunk(access_meta(p, block_size).i_chunk);
 
 	yverify(i_chunk != chunks.end());
-	yverify(i_chunk != i_empty);
+	yverify(i_stashed != chunks.end());
 
-	const auto mid(i_chunk->first);
 	auto& cnk(i_chunk->second);
-	const bool full(cnk.is_full());
 
-	cnk.add_free(p);
-	if(YB_UNLIKELY(full))
+	if(YB_UNLIKELY(cnk.is_full()))
 	{
-		if(YB_UNLIKELY(i_stashed == chunks.end() || i_stashed->first < mid))
+		if(YB_UNLIKELY(i_stashed->first < i_chunk->first))
 			i_stashed = i_chunk;
 	}
-	else if(YB_UNLIKELY(cnk.is_empty()))
+	cnk.add_free(p);
+	if(YB_UNLIKELY(cnk.is_empty() && i_backup != i_chunk))
 	{
-		if(i_empty != chunks.end())
+		if(i_backup != chunks.end() && i_backup->second.is_empty())
 		{
-			const auto eid(i_empty->first);
-
-			if(eid < mid)
-				std::swap(i_chunk, i_empty);
+			if(i_backup->first < i_chunk->first)
+				std::swap(i_chunk, i_backup);
 			if(i_stashed == i_chunk)
-				i_stashed = i_empty;
+				i_stashed = i_backup;
 			yverify(i_chunk->second.is_empty());
 			chunks.erase(i_chunk);
 		}
 		else
-			i_empty = i_chunk;
+			i_backup = i_chunk;
 	}
 }
 
@@ -811,14 +797,19 @@ monotonic_buffer_resource::release() yimpl(ynothrow)
 }
 
 void*
-monotonic_buffer_resource::do_allocate(const size_t bytes,
-	const size_t alignment)
+monotonic_buffer_resource::do_allocate(size_t bytes, size_t alignment)
 {
+	// NOTE: Ensure the result is different to previously return values, to
+	//	meet to ISO C++ [basic.stc.dynamic.allocation]/2 (implied by
+	//	[mem.res.private]/2). This is needed only when no upstream resource
+	//	handling the request, so it is typically unnecessary for other
+	//	memory resources. See also LWG 3637.
+	// XXX: This is done correctly in libstdc++, but not Microsoft VC++. See
+	//	https://github.com/microsoft/STL/issues/2609.
+	if(YB_UNLIKELY(bytes == 0))
+		bytes = 1;
 	if(!std::align(alignment, bytes, current_buffer, space_available))
 	{
-		// XXX: ISO C++ [mem.res.monotonic.buffer.mem]/6 does not allow
-		//	throwing here, but it seems a defect that impossible to implement.
-		//	Go along with Microsoft VC++ 15.8.2.
 		if(bytes <= mono_alloc_max - sizeof(monobuf_header))
 		{
 			auto new_size(next_buffer_size);
@@ -841,7 +832,16 @@ monotonic_buffer_resource::do_allocate(const size_t bytes,
 			next_buffer_size = monobuf_scale(new_size);
 		}
 		else
-			throw std::bad_alloc();
+		{
+			// XXX: ISO C++ [mem.res.monotonic.buffer.mem]/6 does not allow
+			//	throwing here. Request impossible large size and alignment
+			//	to ask the failure from the upstream resource. See also the
+			//	issue above. The size is not 'size_t(-1)' to avoid G++ warning:
+			//	[-Walloc-size-larger-than=].
+			yunused(upstream_rsrc->allocate(size_t(-1) >> 1,
+				~(size_t(-1) >> 1)));
+			yassume(false);
+		}
 	}
 
 	const auto res(current_buffer);
