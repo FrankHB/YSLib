@@ -407,10 +407,14 @@ $defl! build-with-conf-opt (outdir host-os debug dynamic shbopt-ext app
 	$def! prom_C_CXXFLAGS_PIC
 		$lazy-env-val "C_CXXFLAGS_PIC"
 			$if (win32? host-os) "" "-fPIC -fno-semantic-interposition";
+	$def! prom_C_CXXFLAGS_EXT
+		$lazy-env-val "C_CXXFLAGS_EXT"
+			$if (win32? host-os) "" "-D_POSIX_C_SOURCE=200809L";
 	$def! prom_C_CXXFLAGS_COMMON
 		$lazy-env-val "C_CXXFLAGS_COMMON" cons-cmd "-pipe"
 			(first (force prom_gcflags_))
-			(safeenv-get "C_CXXFLAGS_ARCH") "-pedantic-errors";
+			(safeenv-get "C_CXXFLAGS_ARCH") "-pedantic-errors"
+			(force prom_C_CXXFLAGS_EXT);
 	$def! prom_C_CXXFLAGS_OPT_LV $lazy-env-val "C_CXXFLAGS_OPT_LV" "-O3";
 	$def! prom_C_CXXFLAGS_WARNING $lazy-env-val "C_CXXFLAGS_WARNING"
 		cons-cmd "-Wall" "-Wcast-align" "-Wdeprecated"

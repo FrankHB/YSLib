@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r22291
+\version r22297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2022-03-12 21:58 +0800
+	2022-04-03 02:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -661,13 +661,10 @@ struct ParameterCheck final
 	}
 
 	template<typename _func>
-	static void
+	static inline void
 	HandleLeaf(_func f, const TermNode& t, bool t_has_ref)
 	{
-		if(const auto p = TermToNamePtr(t))
-			f(*p);
-		else if(!IsIgnore(t))
-			ThrowFormalParameterTypeError(t, t_has_ref);
+		HandleOrIgnore(std::ref(f), t, t_has_ref);
 	}
 
 	template<typename _func>
@@ -697,7 +694,7 @@ struct NoParameterCheck final
 	}
 
 	template<typename _func>
-	static void
+	static inline void
 	HandleLeaf(_func f, const TermNode& t)
 	{
 		if(!IsIgnore(t))

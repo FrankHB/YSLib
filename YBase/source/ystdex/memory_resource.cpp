@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1798
+\version r1805
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2022-03-16 14:37 +0800
+	2022-03-30 12:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,11 +34,10 @@
 #if YB_Has_memory_resource != 1
 #	include <atomic> // for std::atomic;
 #endif
-#include "ystdex/map.hpp" // for map, greater;
 #include "ystdex/pointer.hpp" // for tidy_ptr;
-#include "ystdex/algorithm.hpp" // for std::max, std::min,
-//	ystdex::lower_bound_n;
 #include "ystdex/scope_guard.hpp" // for unique_guard, ystdex::dismiss;
+#include "ystdex/algorithm.hpp" // for std::min, std::max,
+//	ystdex::lower_bound_n;
 
 namespace ystdex
 {
@@ -268,7 +267,7 @@ new_delete_resource_t::do_allocate(size_t bytes, size_t alignment)
 	if(alignment > 1)
 	{
 		// TODO: Record 'sizeof' value for debugging?
-		// TODO: Extract as %::operator new with extended alignment?
+		// TODO: Provide as an additonal %::operator new with extended alignment?
 		// NOTE: The checks are necessary to prevent wrapping of the
 		//	results of '+'. See also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=19351.
 		if(bytes + alignment > bytes)
@@ -369,7 +368,7 @@ adjust_pool_options(pool_options& opts)
 	static_assert(is_power_of_2_positive(largest_required_pool_block_limit),
 		"Invalid limit value found.");
 
-	// TODO: Use interval arithmetic libraries.
+	// TODO: Add and use interval arithmetic library calls.
 	if(opts.max_blocks_per_chunk - 1 >= max_blocks_per_chunk_limit)
 		opts.max_blocks_per_chunk = max_blocks_per_chunk_limit;
 	if(opts.largest_required_pool_block - 1
@@ -764,7 +763,8 @@ monotonic_buffer_resource::monotonic_buffer_resource(size_t initial_size,
 	: upstream_rsrc(upstream), next_buffer_size([](size_t size) ynothrow{
 		// NOTE: Since 'mono_alloc_max == -yalignof(monobuf_header)',
 		//	'size < mono_alloc_max' implies that
-		//	'size + yalignof(monobuf_header) - 1' does not overflow.
+		//	'size + yalignof(monobuf_header) - 1' will always representable in
+		//	the range of %size_t.
 		return size < mono_alloc_min ? mono_alloc_min : (size >= mono_alloc_max
 			? mono_alloc_max : ((size + yalignof(monobuf_header) - 1)
 			& mono_alloc_max));

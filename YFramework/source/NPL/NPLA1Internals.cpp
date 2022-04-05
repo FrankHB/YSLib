@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20595
+\version r20599
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-03-09 02:27 +0800
+	2022-04-05 15:19 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -27,8 +27,8 @@
 
 #include "NPL/YModules.h"
 #include "NPLA1Internals.h" // for NPL::Deref, Environment, ystdex::dismiss,
-//	shared_ptr, NPL::get, std::throw_with_nested, InvalidSyntax,
-//	std::make_move_iterator, NPL::AsTermNode;
+//	shared_ptr, std::make_move_iterator, NPL::get, std::throw_with_nested,
+//	ParameterMismatch, std::allocator_arg, NPL::AsTermNode;
 
 namespace NPL
 {
@@ -211,10 +211,10 @@ EnsureTCOAction(ContextNode& ctx, TermNode& term)
 {
 	auto p_act(AccessTCOAction(ctx));
 
-	if(!p_act)
+	if(YB_UNLIKELY(!p_act))
 	{
 		SetupTailTCOAction(ctx, term, {});
-		p_act = AccessTCOAction(ctx);
+		p_act = AccessTCOActionUnchecked(ctx);
 	}
 	return NPL::Deref(p_act);
 }

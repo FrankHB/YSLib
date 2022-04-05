@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r9401
+\version r9422
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2022-03-13 01:56 +0800
+	2022-04-05 15:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -737,8 +737,8 @@ public:
 	//! \since build 926
 	PDefHOp(EnvironmentReference&, =, const EnvironmentReference& env_ref)
 		ImplRet(ystdex::copy_and_swap(*this, env_ref))
-	//! \since build 926
-	PDefHOp(EnvironmentReference&, =, EnvironmentReference&& env_ref)
+	//! \since build 942
+	PDefHOp(EnvironmentReference&, =, EnvironmentReference&& env_ref) ynothrow
 		ImplRet(swap(*this, env_ref), *this)
 #else
 	//! \since build 894
@@ -2616,15 +2616,32 @@ public:
 
 	/*!
 	\brief 访问指定类型的当前动作目标。
-	\since build 892
 	\todo 添加 const 重载。
+	*/
+	//@{
+	/*!
+	\sa AccessCurrentAsUnchecked
+	\since build 892
 	*/
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE _type*
 	AccessCurrentAs()
 	{
-		return IsAlive() ? current.front().template target<_type>() : nullptr;
+		return IsAlive() ? AccessCurrentAsUnchecked<_type>() : nullptr;
 	}
+
+	/*!
+	\pre 断言：\c IsAlive() 。
+	\since build 942
+	*/
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE _type*
+	AccessCurrentAsUnchecked()
+	{
+		YAssert(IsAlive(), "No tail action found.");
+		return current.front().template target<_type>();
+	}
+	//@}
 
 	/*!
 	\brief 转移并应用作为尾动作的当前动作，并设置 LastStatus 。
@@ -2877,6 +2894,7 @@ YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators,
 
 /*!
 \brief 分配环境。
+\return 新创建环境的非空指针。
 \relates Environment
 \since build 847
 */

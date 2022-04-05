@@ -11,13 +11,13 @@
 /*!	\file NPLAMath.cpp
 \ingroup NPL
 \brief NPLA 数学功能。
-\version r28310
+\version r28330
 \author FrankHB <frankhb1989@gmail.com>
 \since build 930
 \par 创建时间:
 	2021-11-03 12:50:49 +0800
 \par 修改时间:
-	2022-02-08 22:27 +0800
+	2022-02-08 19:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,8 +38,9 @@
 #include <ystdex/exception.h> // for ystdex::unsupported, std::domain_error;
 #include <ystdex/cstdint.hpp> // for std::numeric_limits,
 //	ystdex::make_widen_int;
-#include <ystdex/functional.hpp> // for ystdex::retry_on_cond, ystdex::equal_to,
-//	ystdex::less, ystdex::greater, ystdex::less_equal, ystdex::greater_equal;
+#include <ystdex/expanded_function.hpp> // for ystdex::retry_on_cond;
+#include <ystdex/functor.hpp> // for ystdex::equal_to, ystdex::less,
+//	ystdex::greater, ystdex::less_equal, ystdex::greater_equal;
 // XXX: The type 'long double' may be also IEC 60559 binary64 format, e.g. in
 //	Microsoft VC++.
 #include <cfloat> // for FLT_*, DBL_*, LDBL_*;
@@ -129,11 +130,11 @@ template<typename _type>
 using has_special_value_t = ystdex::bool_<std::numeric_limits<
 	_type>::has_infinity && std::numeric_limits<_type>::has_quiet_NaN>;
 
-static_assert(has_special_value_t<float>::value,
+static_assert(has_special_value_t<float>(),
 	"Unsupported implementation found.");
-static_assert(has_special_value_t<double>::value,
+static_assert(has_special_value_t<double>(),
 	"Unsupported implementation found.");
-static_assert(has_special_value_t<long double>::value,
+static_assert(has_special_value_t<long double>(),
 	"Unsupported implementation found.");
 //@}
 
@@ -579,7 +580,12 @@ struct GUOp : GUAssertMismatch<_tRet>, _tBase
 	YB_ATTR_nodiscard yconstfn
 		yimpl(ystdex::exclude_self_t)<ValueObject, _tParam, _tRet>
 	operator()(_tParam&& x) const
+	// XXX: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52869. 
+#if !YB_IMPL_GNUCPP || YB_IMPL_GNUCPP >= 90000
 		ynoexcept_spec(_tBase::operator()(yforward(x)))
+#else
+		ynoexcept_spec(std::declval<GUOp>()._tBase::operator()(yforward(x)))
+#endif
 	{
 		return _tBase::operator()(yforward(x));
 	}
@@ -598,7 +604,13 @@ struct GBOp : GBAssertMismatch<_tRet>, _tBase
 	YB_ATTR_nodiscard yconstfn
 		yimpl(ystdex::exclude_self_t)<ValueObject, _tParam2, _tRet>
 	operator()(_tParam1&& x, _tParam2&& y) const
+	// XXX: Ditto.
+#if !YB_IMPL_GNUCPP || YB_IMPL_GNUCPP >= 90000
 		ynoexcept_spec(_tBase::operator()(yforward(x), yforward(y)))
+#else
+		ynoexcept_spec(
+			std::declval<GBOp>()._tBase::operator()(yforward(x), yforward(y)))
+#endif
 	{
 		return _tBase::operator()(yforward(x), yforward(y));
 	}
@@ -2963,8 +2975,8 @@ FPBinaryToDecimal(bool shorter, typename fp_traits<_type>::carrier_type sig_bin,
 	int exp_bin, typename fp_traits<_type>::carrier_type& sig_dec, int& exp_dec)
 	ynothrow
 {
-	using traits = fp_traits<_type>;
-	using carrier_type = typename traits::carrier_type;
+	using traits_type = fp_traits<_type>;
+	using carrier_type = typename traits_type::carrier_type;
 	// NOTE: This algorithm requires extra 2 bits in %sig_bin to prevent
 	//	overflow. Every conforming floating-point format shall meet the
 	//	requirement, since the sign bit and the exponent bits shall be no less
@@ -2974,7 +2986,7 @@ FPBinaryToDecimal(bool shorter, typename fp_traits<_type>::carrier_type sig_bin,
 		"Invalid carrier type found.");
 
 	// NOTE: Ditto.
-	YAssert(sig_bin >> (traits::value_bits - 2) == carrier_type(),
+	YAssert(sig_bin >> (traits_type::value_bits - 2) == carrier_type(),
 		"Invalid significand value found.");
 
 	// NOTE: %shorter indicates the lower bound is closer, i.e. the "shorter

@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r4178
+\version r4186
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2022-03-14 18:23 +0800
+	2022-03-18 03:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,9 +40,8 @@
 //	YSLib::ListContainerTag, std::initializer_list,
 //	ystdex::enable_if_same_param_t, ystdex::exclude_self_t,
 //	ystdex::enable_if_inconvertible_t, ystdex::forward_like, ystdex::invoke,
-//	YSLib::AccessPtr, ystdex::not_, ystdex::cond_or_t, ystdex::bool_,
-//	ystdex::false_, std::is_convertible, ystdex::decay_t, ystdex::addrof,
-//	ystdex::compose, pair, std::is_lvalue_reference, YSLib::Alert, YSLib::stack;
+//	YSLib::AccessPtr, ystdex::head_of_t, ystdex::addrof, ystdex::compose, pair,
+//	std::is_lvalue_reference, YSLib::Alert, YSLib::stack;
 #include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
 #include <ystdex/deref_op.hpp> // for ystdex::call_value_or;
 #include <ystdex/range.hpp> // for std::iterator_traits,
@@ -418,7 +417,7 @@ public:
 		yimpl(ystdex::enable_if_t<sizeof...(_tParams) != 0
 		|| !ystdex::is_same_param<ValueObject, _tParam>::value, int> = 0,
 		ystdex::exclude_self_t<std::allocator_arg_t, _tParam, int> = 0)>
-	inline yimpl(ystdex::enable_if_inconvertible_t)<ystdex::decay_t<_tParam>,
+	inline yimpl(ystdex::enable_if_inconvertible_t)<_tParam,
 		TermNode::allocator_type, void>
 	SetValue(_tParam&& arg, _tParams&&... args) ynoexcept_spec(Value.assign(
 		std::allocator_arg, std::declval<TermNode::allocator_type&>(),
@@ -804,12 +803,11 @@ YB_NONNULL(2) inline
 
 //! \brief 创建项节点。
 //@{
-//! \since build 853
+//! \since build 942
 template<typename... _tParam, typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline
-ystdex::enable_if_t<ystdex::not_<ystdex::cond_or_t<ystdex::bool_<
-	(sizeof...(_tParams) >= 1)>, ystdex::false_, std::is_convertible,
-	ystdex::decay_t<_tParams>..., TermNode::allocator_type>>::value, TermNode>
+yimpl(ystdex::enable_if_inconvertible_t)<ystdex::head_of_t<_tParams...>,
+	TermNode::allocator_type, TermNode>
 AsTermNode(_tParams&&... args)
 {
 	return TermNode(NoContainer, yforward(args)...);

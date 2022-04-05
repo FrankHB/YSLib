@@ -11,13 +11,13 @@
 /*!	\file range.hpp
 \ingroup YStandardEx
 \brief 范围操作。
-\version r1167
+\version r1225
 \author FrankHB <frankhb1989@gmail.com>
 \since build 624
 \par 创建时间:
 	2015-08-18 22:33:54 +0800
 \par 修改时间:
-	2022-02-05 09:01 +0800
+	2022-03-21 12:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,11 @@
 #ifndef YB_INC_ystdex_range_hpp_
 #define YB_INC_ystdex_range_hpp_ 1
 
-#include "addressof.hpp" // for <initializer_list>, ystdex::addressof,
-//	enable_if_t;
+#include "addressof.hpp" // for "addressof.hpp", <initializer_list>,
+//	ystdex::addressof, enable_if_t, std::initializer_list;
 #include <iterator> // for <iteartor>, std::reverse_iterator, std::begin,
 //	std::end;
+#include <algorithm> // for internal <algorithm>, std::distance;
 // XXX: For efficiency, <valarray> is not supported here. Use %std names
 //	instead.
 
@@ -679,6 +680,68 @@ using range_iterator_t = decltype(ystdex::begin(std::declval<_tRange&>()));
 template<typename _tRange>
 using range_const_iterator_t
 	= decltype(ystdex::cbegin(std::declval<const _tRange&>()));
+//@}
+
+//! \since build 546
+namespace details
+{
+
+//! \since build 663
+template<class _type>
+using range_size_t = decltype(size(std::declval<_type>()));
+
+//! \since build 663
+template<class _type>
+using has_range_size = is_detected_convertible<size_t, range_size_t, _type>;
+
+//! \since buld 730
+template<typename _tRange>
+yconstfn auto
+range_size(const _tRange& c, true_) -> decltype(size(c))
+{
+	return size(c);
+}
+//! \since buld 730
+template<typename _tRange>
+inline auto
+range_size(const _tRange& c, false_)
+	-> decltype(std::distance(ystdex::begin(c), ystdex::end(c)))
+{
+	return std::distance(ystdex::begin(c), ystdex::end(c));
+}
+
+} // namespace details;
+
+/*!
+\ingroup algorithms
+\pre 参数指定的迭代器范围（若存在）有效。
+\note 参数 \c first 和 \c last 指定迭代器范围。
+\note 对不以迭代器指定的范围，使用 ystdex::begin 和 ystdex::end 取迭代器。
+\note 确定为 const 迭代器时使用 ystdex::cbegin 和 ystdex::cend 代替。
+*/
+//@{
+/*!
+\brief 取范围大小。
+\since build 546
+
+对 std::initializer_list 的实例直接返回大小，否则：
+若可调用结果可转换为 size_t 的 ADL 函数 size 则使用 ADL size ；
+否则使用 std::distance 计算范围迭代器确定范围大小。
+*/
+//@{
+template<typename _tRange>
+yconstfn auto
+range_size(const _tRange& c)
+	-> decltype(details::range_size(c, details::has_range_size<_tRange>()))
+{
+	return details::range_size(c, details::has_range_size<_tRange>());
+}
+template<typename _tElem>
+yconstfn size_t
+range_size(std::initializer_list<_tElem> il)
+{
+	return size(il);
+}
 //@}
 
 } // namespace ystdex;

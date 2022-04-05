@@ -11,13 +11,13 @@
 /*!	\file meta.hpp
 \ingroup YStandardEx
 \brief 通用元编程设施。
-\version r1988
+\version r2002
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:28 +0800
 \par 修改时间:
-	2022-02-28 21:08 +0800
+	2022-03-18 03:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1077,7 +1077,22 @@ using type_identity_t = _t<type_identity<_type>>;
 //@}
 
 
-//! \since build 843
+/*!
+\ingroup transformation_traits
+\since build 942
+*/
+//@{
+template<typename... _types>
+using empty_pack_t = bool_<sizeof...(_types) == 0>;
+
+template<typename... _types>
+using sizeof_pack_t = size_t_<sizeof...(_types)>;
+//@}
+
+/*!
+\ingroup unary_type_traits
+\since build 843
+*/
 template<typename _type>
 using sizeof_t = size_t_<sizeof(_type)>;
 

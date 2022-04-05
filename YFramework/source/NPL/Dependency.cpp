@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r6634
+\version r6880
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2022-03-07 02:50 +0800
+	2022-03-31 02:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,8 +32,9 @@
 //	RetainN, NPL::ResolveRegular, NPL::Deref, RelaySwitched, trivial_swap,
 //	A1::NameTypedReducerHandler, std::bind, std::ref, Forms::CallResolvedUnary,
 //	EnsureValueTags, ResolvedTermReferencePtr, NPL::TryAccessLeaf,
-//	TermReference, LiftTerm, MoveResolved, NPL::AllocateEnvironment, function,
-//	ValueObject, EnvironmentReference, std::piecewise_construct,
+//	TermReference, LiftTerm, MoveResolved, Environment,
+//	NPL::AllocateEnvironment, function, ValueObject, NPL::AccessPtr,
+//	EnvironmentReference, shared_ptr, std::piecewise_construct,
 //	NPL::forward_as_tuple, LiftOther, ThrowNonmodifiableErrorForAssignee,
 //	ThrowValueCategoryError, ValueToken, ResolveTerm, TokenValue,
 //	CheckVariadicArity, A1::AsForm, ystdex::bind1, std::placeholders,
@@ -48,9 +49,11 @@
 //	ReferenceTerm, ResolveName, ystdex::fast_any_of, Ensigil, YSLib::ufexists,
 //	YSLib::to_std_string, EmplaceCallResultOrReturn, NPL::TryAccessTerm,
 //	ystdex::plus, ystdex::tolower, YSLib::OwnershipTag, YSLib::IO::StreamPut,
-//	YSLib::FetchEnvironmentVariable, YSLib::SetEnvironmentVariable,
+//	YSLib::FetchEnvironmentVariable, YSLib::SetEnvironmentVariable, NPL::tuple,
 //	YSLib::IO::UniqueFile, YSLib::uremove, YSLib::allocate_shared,
 //	ReduceReturnUnspecified, ystdex::throw_error;
+#include <ystdex/container.hpp> // for ystdex::exists, ystdex::search_map,
+//	ystdex::emplace_hint_in_place;
 #include YFM_NPL_NPLA1Forms // for EncapsulateValue, Encapsulate, Encapsulated,
 //	Decapsulate, NPL::Forms functions, StringToSymbol, SymbolToString;
 #include YFM_NPL_NPLAMath // for NumerLeaf, NumberNode, NPL math functions;
@@ -60,11 +63,10 @@
 //	ystdex::make_transform;
 #include YFM_YSLib_Service_TextFile // for
 //	YSLib::IO::SharedInputMappedFileStream, YSLib::Text;
-#include <cerrno> // for errno, ERANGE;
 #include <regex> // for std::regex, std::regex_replace, std::regex_match;
 #include <ostream> // for std::endl;
 #include "NPLA1Internals.h" // for NPL_Impl_NPLA1_Enable_Thunked,
-//	ReduceSubsequent;
+//	ReduceSubsequent, A1::RelayCurrentNext, MakeKeptGuard;
 #include YFM_YSLib_Core_YCoreUtilities // for YSLib::LockCommandArguments,
 //	YSLib::FetchCommandOutput, YSLib::RandomizeTemplatedString;
 #include <ystdex/string.hpp> // for ystdex::begins_with;
@@ -231,7 +233,7 @@ ReductionStatus
 ReduceToLoadFile(TermNode& term, ContextNode& ctx, REPLContext& context,
 	string filename)
 {
-	term = context.Load(context, ctx, filename);
+	term = context.Load(context, ctx, std::move(filename));
 	// NOTE: This is explicitly not same to klisp. This is also friendly to PTC.
 	// XXX: Same to %A1::ReduceOnce, without setup the next term.
 	return ContextState::Access(ctx).ReduceOnce.Handler(term, ctx);
@@ -243,8 +245,9 @@ ReductionStatus
 ReduceToLoadExternal(TermNode& term, ContextNode& ctx, REPLContext& context)
 {
 	RetainN(term);
-	return ReduceToLoadFile(term, ctx, context,
-		NPL::ResolveRegular<const string>(NPL::Deref(std::next(term.begin()))));
+	return ReduceToLoadFile(term, ctx, context, string(
+		NPL::ResolveRegular<const string>(NPL::Deref(std::next(term.begin()))),
+		term.get_allocator()));
 }
 
 ReductionStatus
@@ -468,7 +471,7 @@ AddDefineFunction(ContextNode& ctx, const char* fn,
 	NPL::AddToken(t2, "body");
 	NPL::AddToken(term, "d");
 	Reduce(term, ctx);
-#if false
+#	if false
 	// NOTE: Usage:
 	AddDefineFunction(rctx, "$defv!", {"&$f", "&formals", "&ef"},
 		{"$f", "$vau", "formals", "ef"});
@@ -494,10 +497,27 @@ AddDefineFunction(ContextNode& ctx, const char* fn,
 		}, {"f", "$lambda/e", "p", "formals"});
 	AddDefineFunction(rctx, "$defl/e%!", {"&f", "&p", "&formals",
 		}, {"f", "$lambda/e%", "p", "formals"});
-#endif
+#	endif
 }
 #endif
 //@}
+
+/*!
+\brief 创建环境弱引用作为单一父环境的新环境。
+\return 新创建环境的非空指针。
+\sa NPL::AllocateEnvironment
+\since build 942
+*/
+YB_ATTR_nodiscard YB_FLATTEN shared_ptr<Environment>
+CreateEnvironmentWithParent(const Environment::allocator_type& a,
+	const EnvironmentReference& r_env)
+{
+	// XXX: Simlar to %MakeEnvironment.
+	ValueObject parent;
+
+	parent.emplace<EnvironmentReference>(r_env);
+	return NPL::AllocateEnvironment(a, std::move(parent));
+}
 #endif
 
 //! \since build 834
@@ -619,8 +639,8 @@ LoadEnvironments(ContextNode& ctx)
 	//	basic than vau.
 	RegisterStrict(ctx, "copy-environment", CopyEnvironment);
 	RegisterUnary<Strict, const EnvironmentReference>(ctx, "lock-environment",
-		[](const EnvironmentReference& wenv) ynothrow{
-		return wenv.Lock();
+		[](const EnvironmentReference& r_env) ynothrow{
+		return r_env.Lock();
 	});
 	RegisterUnary(ctx, "freeze-environment!", [](TermNode& x){
 		Environment::EnsureValid(ResolveEnvironment(x).first).Frozen = true;
@@ -893,16 +913,9 @@ LoadBasicDerived(REPLContext& context)
 		//	shall not be moved after being called.
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
-		ystdex::bind1([] YB_LAMBDA_ANNOTATE(
-		(TermNode& term, const EnvironmentReference& ce), , flatten){
+		ystdex::bind1([](TermNode& term, const EnvironmentReference& ce){
 		RetainN(term, 0);
-
-		// XXX: Simlar to %MakeEnvironment.
-		ValueObject parent;
-
-		parent.emplace<EnvironmentReference>(ce);
-		term.Value
-			= NPL::AllocateEnvironment(term.get_allocator(), std::move(parent));
+		term.Value = CreateEnvironmentWithParent(term.get_allocator(), ce);
 	}, context.Root.WeakenRecord()));
 	RegisterStrict(renv, "derive-current-environment",
 		[] YB_LAMBDA_ANNOTATE((TermNode& term, ContextNode& ctx), , flatten){
@@ -1146,14 +1159,14 @@ $defv%! $and &x d
 	$cond
 		((null? x) #t)
 		((null? (rest& x)) eval% (first (forward! x)) d)
-		((eval% (first& x) d) apply (wrap $and) (rest% (forward! x)) d)
+		((eval% (first& x) d) eval% (cons% $and (rest% (forward! x))) d)
 		(#t #f);
 $defv%! $or &x d
 	$cond
 		((null? x) #f)
 		((null? (rest& x)) eval% (first (forward! x)) d)
-		(#t ($lambda% (&r) $if r (forward! r) (apply (wrap $or)
-			(rest% (forward! x)) d)) (eval% (move! (first& x)) d));
+		(#t ($lambda% (&r) $if r (forward! r) (eval% (cons% $or (rest% (forward! x)))
+			d)) (eval% (move! (first& x)) d));
 $defw%! accl (&l &pred? &base &head &tail &sum) d
 	$if (apply pred? (list% l) d) (forward! base)
 		(apply accl (list% (apply tail (list% l) d) pred?
@@ -1400,9 +1413,9 @@ CheckRequirement(const string& req)
 		throw NPLException("Empty requirement name found.");
 }
 
-//! \since build 923
+//! \since build 941
 YB_ATTR_nodiscard string
-FindValidRequirementIn(const vector<string>& specs, const string req)
+FindValidRequirementIn(const vector<string>& specs, const string& req)
 {
 	YAssert(!req.empty(), "Invalid requirement found.");
 	const std::regex re("\\?");
@@ -1601,8 +1614,8 @@ ForcePromise(TermNode& term, ContextNode& ctx, Promise& prom, TermNode& nd,
 		ystdex::bind1([&, lift](TermNode& t, ContextNode& c,
 		shared_ptr<Environment>& p_env){
 		return NonTailCall::RelayNextGuardedProbe(c, t,
-			EnvironmentGuard(c, c.SwitchEnvironment(std::move(p_env))),
-			lift, std::ref(ContextState::Access(c).ReduceOnce));
+			EnvironmentGuard(c, c.SwitchEnvironment(std::move(p_env))), lift,
+			std::ref(ContextState::Access(c).ReduceOnce));
 	}, std::placeholders::_2, std::move(p_env_saved)),
 		trivial_swap, A1::NameTypedReducerHandler([&, p_ref]{
 		// NOTE: Different to [RnRK], the promise object may be assigned and
@@ -1635,6 +1648,26 @@ ForcePromise(TermNode& term, ContextNode& ctx, Promise& prom, TermNode& nd,
 	}, "promise-handle-result"));
 }
 //@}
+
+
+//! \since build 942
+template<typename _func>
+ReductionStatus
+ReduceToLoadGuarded(TermNode& term, ContextNode& ctx, REPLContext& context,
+	shared_ptr<Environment> p_env, _func reduce)
+{
+#	if NPL_Impl_NPLA1_Enable_Thunked
+	return A1::RelayCurrentNext(ctx, term, trivial_swap, std::bind(
+		std::move(reduce), std::ref(term), std::ref(ctx), std::ref(context)),
+		trivial_swap, MakeKeptGuard(EnvironmentGuard(ctx,
+		ctx.SwitchEnvironmentUnchecked(std::move(p_env)))));
+#	else
+	const EnvironmentGuard gd(ctx,
+		ctx.SwitchEnvironmentUnchecked(p_env));
+
+	return reduce(term, ctx, context);
+#	endif
+}
 #endif
 
 
@@ -1911,8 +1944,11 @@ LoadModule_std_strings(REPLContext& context)
 }
 
 void
-LoadModule_std_io(REPLContext& context)
+LoadModule_std_io(REPLContext& context,
+	const shared_ptr<Environment>& p_ground)
 {
+	YAssertNonnull(p_ground);
+
 	auto& renv(context.Root.GetRecordRef());
 
 	RegisterUnary<Strict, const string>(renv, "readable-file?",
@@ -1966,6 +2002,66 @@ $defl! puts (&s) $sequence (put s) (() newline);
 		return ValueToken::Unspecified;
 	});
 #endif
+#if NPL_Impl_NPLA1_Native_Forms
+	RegisterStrict(renv, "get-module", trivial_swap,
+		ystdex::bind1([&](TermNode& term, ContextNode& ctx,
+		const EnvironmentReference& r_ground){
+		CheckVariadicArity(term, 0);
+
+		const auto size(term.size());
+
+		if(size <= 3)
+		{
+			// XXX: As 'make-standard-environment'.
+			auto p_env(
+				CreateEnvironmentWithParent(term.get_allocator(), r_ground));
+
+			switch(size)
+			{
+			case 3:
+				{
+					auto& con(term.GetContainerRef());
+
+					p_env->Bind("module-parameters", NPL::AsTermNode(
+						ResolveEnvironment(std::move(*con.rbegin())).first));
+					// XXX: This is needed for the call to %ReduceToLoadExternal
+					//	later.
+					term.GetContainerRef().pop_back();
+				}
+				YB_ATTR_fallthrough;
+			case 2:
+#	if NPL_Impl_NPLA1_Enable_Thunked
+				RelaySwitched(ctx, trivial_swap, A1::NameTypedReducerHandler(
+					std::bind([&](shared_ptr<Environment> p_res){
+					term.Value = std::move(p_res);
+					return ReductionStatus::Clean;
+				}, p_env), "get-module-return"));
+				return ReduceToLoadGuarded(term, ctx, context, std::move(p_env),
+					ReduceToLoadExternal);
+#	else
+				ReduceToLoadGuarded(term, ctx, context, std::move(p_env),
+					ReduceToLoadExternal);
+				term.Value = std::move(p_env);
+				return ReductionStatus::Clean;
+#	endif
+			}
+			YAssert(false, "Invalid state found.");
+		}
+		ThrowInvalidSyntaxError("Syntax error in get-module.");
+	}, std::placeholders::_2, EnvironmentReference(p_ground)));
+#else
+	yunused(p_ground);
+	context.ShareCurrentSource("<lib:std.io-1>");
+	context.Perform(R"NPL(
+$defl! get-module (&filename .&opt)	
+	$let ((env $if (null? opt) (() make-standard-environment)
+		($let (((&e .&eopt) opt)) $if (null? eopt)
+			($let ((env () make-standard-environment)) $sequence
+				($set! env module-parameters (check-environemnt e)) env)
+			(raise-invalid-syntax-error "Syntax error in get-module."))))
+		$sequence (eval% (list load filename) env) env;
+	)NPL");
+#endif
 }
 
 void
@@ -2005,8 +2101,8 @@ LoadModule_std_system(REPLContext& context)
 	});
 	context.ShareCurrentSource("<lib:std.system>");
 	context.Perform(R"NPL(
-$defl/e! env-empty? (derive-current-environment std.strings) (&n) string-empty?
-	(env-get n);
+$defl/e! env-empty? (derive-current-environment std.strings) (&n)
+	string-empty? (env-get n);
 	)NPL");
 	RegisterStrict(renv, "system", CallSystem);
 	RegisterStrict(renv, "system-get", [](TermNode& term){
@@ -2034,13 +2130,18 @@ $defl/e! env-empty? (derive-current-environment std.strings) (&n) string-empty?
 }
 
 void
-LoadModule_std_modules(REPLContext& context)
+LoadModule_std_modules(REPLContext& context,
+	const shared_ptr<Environment>& p_ground)
 {
+	YAssertNonnull(p_ground);
 #if NPL_Impl_NPLA1_Native_Forms
+
+	using namespace std::placeholders;
 	using YSLib::to_std_string;
 	auto& renv(context.Root.GetRecordRef());
 	const auto a(renv.Bindings.get_allocator());
-	const auto p_registry(YSLib::allocate_shared<set<string>>(a));
+	const auto p_registry(YSLib::allocate_shared<YSLib::map<string,
+		pair<TermNode, shared_ptr<Environment>>>>(a));
 	auto& registry(*p_registry);
 	const auto p_specs([&]{
 		auto p_vec(YSLib::allocate_shared<vector<string>>(a));
@@ -2077,16 +2178,28 @@ LoadModule_std_modules(REPLContext& context)
 		throw NPLException("Empty requirement name found.");
 	});
 	RegisterStrict(renv, "register-requirement!", trivial_swap,
-		[&](TermNode& term){
+		ystdex::bind1([&](TermNode& term, const EnvironmentReference& r_ground){
 		auto i(term.begin());
 		const auto& req(NPL::ResolveRegular<const string>(NPL::Deref(++i)));
 
 		CheckRequirement(req);
-		if(registry.insert(req).second)
-			return ReduceReturnUnspecified(term);
+
+		const auto pr(ystdex::search_map(registry, req));
+
+		if(pr.second)
+		{
+			term.Value.emplace<EnvironmentReference>(
+				ystdex::emplace_hint_in_place(registry, pr.first, req,
+				std::piecewise_construct, NPL::tuple<>(),
+				NPL::forward_as_tuple([&]{
+				return CreateEnvironmentWithParent(term.get_allocator(),
+					r_ground);
+			}()))->second.second);
+			return ReductionStatus::Clean;
+		}
 		throw NPLException("Requirement '" + to_std_string(req)
 			+ "' is already registered.");
-	});
+	}, EnvironmentReference(p_ground)));
 	RegisterUnary<Strict, const string>(renv, "unregister-requirement!",
 		trivial_swap, [&](const string& req){
 		CheckRequirement(req);
@@ -2103,26 +2216,83 @@ LoadModule_std_modules(REPLContext& context)
 		return FindValidRequirementIn(NPL::Deref(p_specs), req);
 	});
 	RegisterStrict(renv, "require", trivial_swap,
-		[&](TermNode& term, ContextNode& ctx) -> ReductionStatus{
+		ystdex::bind1([&](TermNode& term, ContextNode& ctx,
+		const EnvironmentReference& r_ground) -> ReductionStatus{
+		CheckVariadicArity(term, 0);
+
 		auto i(term.begin());
 		const auto& req(NPL::ResolveRegular<const string>(NPL::Deref(++i)));
 
 		CheckRequirement(req);
-		if(!ystdex::exists(registry, req))
+
+		auto pr(ystdex::search_map(registry, req));
+		const auto reduce_to_res([&](TermNode& tm){
+			// XXX: As %ReduceToReference for modifiable lvalues (with default
+			//	tags).
+			AssertValueTags(tm);
+			if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
+			{
+				// XXX: Since %tm is not shared with %term, it is safe to use
+				//	%TermNode::SetContent instead of %TermNode::CopyContent.
+				term.SetContent(tm);
+				return ReductionStatus::Retained;
+			}
+			term.Value
+				= TermReference(TermTags::Unqualified, tm, ctx.WeakenRecord());
+			return ReductionStatus::Clean;
+		});
+
+		if(pr.second)
 		{
 			auto filename(FindValidRequirementIn(specs, req));
 
-			registry.insert(req);
-			return ReduceToLoadFile(term, ctx, context, std::move(filename));
+			pr.first = ystdex::emplace_hint_in_place(registry, pr.first, req,
+				std::piecewise_construct, NPL::tuple<>(),
+				NPL::forward_as_tuple([&]{
+				return CreateEnvironmentWithParent(term.get_allocator(),
+					r_ground);
+			}()));
+
+			auto& val(pr.first->second);
+			auto& con(term.GetContainerRef());
+
+			// XXX: As 'get-module'.
+			switch(con.size())
+			{
+			case 3:
+				val.second->Bind("module-parameters", NPL::AsTermNode(
+					ResolveEnvironment(std::move(*con.rbegin())).first));
+				con.pop_back();
+				YB_ATTR_fallthrough;
+			case 2:
+				// TODO: Blocked. Use C++14 lambda initializers to optimize
+				//	the implementation.
+				return A1::RelayCurrentNext(ctx, term, trivial_swap,
+					ystdex::bind1([&](TermNode& t, ContextNode& c,
+					string& fname, shared_ptr<Environment>& p_env){
+					return ReduceToLoadGuarded(t, c, context, std::move(p_env),
+						ystdex::bind1([&](TermNode& t_0, ContextNode& c_0,
+						REPLContext& rc, string& fname_0){
+						return
+							ReduceToLoadFile(t_0, c_0, rc, std::move(fname_0));
+					}, _2, _3, std::move(fname)));
+				}, _2, std::move(filename), val.second),
+					A1::NameTypedReducerHandler([&, reduce_to_res]{
+					MoveCollapsed(val.first, term);
+					return reduce_to_res(val.first);
+				}, "require-return"));
+			}
+			ThrowInvalidSyntaxError("Syntax error in require.");
 		}
-		return ReduceReturnUnspecified(term);
-	});
+		return reduce_to_res(pr.first->second.first);
+	}, _2, EnvironmentReference(p_ground)));
 #else
+	yunused(p_ground);
 	context.ShareCurrentSource("<lib:std.modules>");
 	// XXX: Thread-safety is not respected currently.
 	context.Perform(R"NPL(
 $provide/let! (registered-requirement? register-requirement!
-	unregister-requirement! find-requirement-filename)
+	unregister-requirement! find-requirement-filename require)
 ((mods $as-environment (
 	$import! std.strings &string-empty? &++ &string->symbol;
 
@@ -2132,9 +2302,10 @@ $provide/let! (registered-requirement? register-requirement!
 	$def! registry () make-environment;
 	$defl! bound-name? (&req)
 		$and (eval (list bound? req) registry)
-			(not? (string-empty? (eval (string->symbol req) registry))),
+			(not? (null? (eval (string->symbol req) registry))),
+	$defl%! get-cell% (&req) first& (eval% (string->symbol req) registry),
 	$defl! set-value! (&req &v)
-		eval (list $def! (string->symbol req) v) registry
+		eval (list $def! (string->symbol req) $quote (forward! v)) registry
 	),
 	$def! prom_pathspecs ($remote-eval% $lazy std.promises)
 		$let ((spec ($remote-eval% env-get std.system) "NPLA1_PATH"))
@@ -2159,21 +2330,32 @@ $provide/let! (registered-requirement? register-requirement!
 		$if (string-empty? req) (() requirement-error) (bound-name? req),
 	$defl/e! &register-requirement! mods (&req)
 		$if (string-empty? req) (() requirement-error)
-			($if (bound-name? req) (raise-error (++ "Requirement '" req
-				"' is already registered.")) (set-value! req req)),
+			($if (bound-name? req) (raise-error
+				(++ "Requirement '" req "' is already registered."))
+				($let ((env () make-standard-environment))
+					$sequence (set-value! req (list () env))
+						(weaken-environment (move! env)))),
 	$defl/e! &unregister-requirement! mods (&req)
 		$if (string-empty? req) (() requirement-error)
-			($if (bound-name? req) (set-value! req "") (raise-error
+			($if (bound-name? req) (set-value! req ()) (raise-error
 				(++ "Requirement '" req "' is not registered."))),
 	$defl/e! &find-requirement-filename mods (&req)
 		get-requirement-filename
-			(($remote-eval% force std.promises) prom_pathspecs) req
+			(($remote-eval% force std.promises) prom_pathspecs) req;
+	$defl/e%! require mods (&req .&opt)
+		$if (registered-requirement? req) (get-cell% (move! req))
+			($let*% ((filename find-requirement-filename req)
+				(env register-requirement! req) (&res get-cell% (move! req)))
+				$sequence
+					($unless (null? opt)
+						($set! env module-parameters $let (((&e .&eopt) opt))
+							$if (null? eopt) (check-environemnt e)
+								(raise-invalid-syntax-error
+									"Syntax error in require.")))
+					(assign%! res (eval% (list ($remote-eval% load std.io)
+						(move! filename)) (move! env)))
+					res);
 );
-$defl%! require (&req)
-	$if (registered-requirement? req) #inert
-		($let ((filename find-requirement-filename req))
-			$sequence (register-requirement! (move! req))
-				(($remote-eval% load std.io) filename));
 	)NPL");
 #endif
 }
@@ -2384,10 +2566,13 @@ LoadModule_SHBuild(REPLContext& context)
 				continue;
 #endif
 		}
+
 		// NOTE: This is nearly fatal. It is not intended to be handled in
 		//	the object language in general. Thus, currently it is not
 		//	wrapped in %NPLException.
-		ystdex::throw_error(errno, "Failed opening temporary file with the"
+		int err(errno);
+
+		ystdex::throw_error(err, "Failed opening temporary file with the"
 			" prefix '" + to_std_string(pfx) + '\'');
 	});
 }
@@ -2397,19 +2582,26 @@ LoadStandardContext(REPLContext& context)
 {
 	LoadGroundContext(context);
 
+	const auto pfx("std.");
+	string mod(pfx, context.Allocator);
 	auto& rctx(context.Root);
-	const auto load_std_module([&](string_view module_name,
-		void(&load_module)(REPLContext&)){
-		LoadModuleChecked(rctx, "std." + string(module_name),
-			std::bind(load_module, std::ref(context)));
+	const auto load_std_module(
+		[&](string_view module_name, void(&load_module)(REPLContext&)){
+		// XXX: Using %context.Allocator or %std::string are both a bit less
+		//	efficient.
+		mod += module_name;
+		LoadModuleChecked(rctx, mod, load_module, context);
+		mod.resize(ystdex::string_length(pfx));
 	});
+	const auto p_ground(rctx.ShareRecord());
 
 	load_std_module("promises", LoadModule_std_promises);
 	load_std_module("math", LoadModule_std_math),
-	load_std_module("strings", LoadModule_std_strings),
-	load_std_module("io", LoadModule_std_io),
+	load_std_module("strings", LoadModule_std_strings);
+	LoadModuleChecked(rctx, "std.io", LoadModule_std_io, context, p_ground);
 	load_std_module("system", LoadModule_std_system);
-	load_std_module("modules", LoadModule_std_modules);
+	LoadModuleChecked(rctx, "std.modules", LoadModule_std_modules, context,
+		p_ground);
 }
 
 } // namespace Forms;

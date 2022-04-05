@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8641
+\version r8664
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2022-02-14 07:39 +0800
+	2022-03-26 05:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -231,7 +231,10 @@ public:
 \pre 设置为处理器调用的操作在进入调用前应确保设置尾上下文等内部状态。
 \pre 作为操作数的项的子项不包含引用或非正规表示引入的对操作数内的子项的循环引用。
 \pre 作为 NPLA1 规约函数的函数的参数符合规约函数实现约定。
+\pre 若参数指定被规约项，参数是分支列表节点。
+\pre 若参数指定被规约项的容器非空，参数非空（对应枝节点）。
 \pre 间接断言：作为规约函数第一参数指定的项是枝节点，以符合语法形式的实现要求。
+\post 第一参数指定的被规约项在规约函数调用完成可表示一等对象。
 \sa ContextState
 \see %Documentation::NPL.
 \since build 732
@@ -239,14 +242,12 @@ public:
 提供支持 NPLA1 对象语言文法的操作的接口。
 提供的操作用于实现操作子或应用子底层的操作子。
 除非另行指定，操作子的参数被通过直接转移项的形式转发。
-对其中符合规约函数的 API ，在 NPLA1 规约函数约定的基础上，除非另行指定：
+对其中符合规约函数的 API ，满足各项前置和后置条件，且除非另行指定：
 	可能使用同步（不依赖上下文）或异步（依赖上下文）实现；
 	没有依赖上下文参数的规约函数使用同步实现；
 	异步实现依赖的上下文是当前上下文；
 	在异步实现中都要求下一项项和参数指定的项相同；
-	对规约函数的约定可隐含使用间接的断言检查；
-	参数指定的被规约项是分支列表节点；
-	参数指定的被规约项的容器非空（对应枝节点）。
+	对规约函数的上述约定（及各项前置和后置条件）可隐含使用间接的断言检查。
 */
 namespace Forms
 {
@@ -602,24 +603,24 @@ template<size_t _vWrapping = Strict, typename _func, class _tTarget>
 inline void
 RegisterUnary(_tTarget& target, string_view name, _func f)
 {
-	A1::RegisterHandler<_vWrapping>(target, name,
-		UnaryExpansion<_func>(std::move(f)));
+	A1::RegisterFormHandler(target, name,
+		UnaryExpansion<_func>(std::move(f)), _vWrapping);
 }
 //! \since build 927
 template<size_t _vWrapping = Strict, typename _func, class _tTarget>
 inline void
 RegisterUnary(_tTarget& target, string_view name, trivial_swap_t, _func f)
 {
-	A1::RegisterHandler<_vWrapping>(target, name,
-		trivial_swap, UnaryExpansion<_func>(std::move(f)));
+	A1::RegisterFormHandler(target, name, trivial_swap,
+		UnaryExpansion<_func>(std::move(f)), _vWrapping);
 }
 template<size_t _vWrapping = Strict, typename _type, typename _func,
 	class _tTarget>
 inline void
 RegisterUnary(_tTarget& target, string_view name, _func f)
 {
-	A1::RegisterHandler<_vWrapping>(target, name,
-		UnaryAsExpansion<_type, _func>(std::move(f)));
+	A1::RegisterFormHandler(target, name,
+		UnaryAsExpansion<_type, _func>(std::move(f)), _vWrapping);
 }
 //! \since build 927
 template<size_t _vWrapping = Strict, typename _type, typename _func,
@@ -627,8 +628,8 @@ template<size_t _vWrapping = Strict, typename _type, typename _func,
 inline void
 RegisterUnary(_tTarget& target, string_view name, trivial_swap_t, _func f)
 {
-	A1::RegisterHandler<_vWrapping>(target, name,
-		trivial_swap, UnaryAsExpansion<_type, _func>(std::move(f)));
+	A1::RegisterFormHandler(target, name, trivial_swap,
+		UnaryAsExpansion<_type, _func>(std::move(f)), _vWrapping);
 }
 //@}
 
@@ -638,24 +639,24 @@ template<size_t _vWrapping = Strict, typename _func, class _tTarget>
 inline void
 RegisterBinary(_tTarget& target, string_view name, _func f)
 {
-	A1::RegisterHandler<_vWrapping>(target, name,
-		BinaryExpansion<_func>(std::move(f)));
+	A1::RegisterFormHandler(target, name,
+		BinaryExpansion<_func>(std::move(f)), _vWrapping);
 }
 //! \since build 927
 template<size_t _vWrapping = Strict, typename _func, class _tTarget>
 inline void
 RegisterBinary(_tTarget& target, string_view name, trivial_swap_t, _func f)
 {
-	A1::RegisterHandler<_vWrapping>(target, name,
-		trivial_swap, BinaryExpansion<_func>(std::move(f)));
+	A1::RegisterFormHandler(target, name, trivial_swap,
+		BinaryExpansion<_func>(std::move(f)), _vWrapping);
 }
 template<size_t _vWrapping = Strict, typename _type, typename _type2,
 	typename _func, class _tTarget>
 inline void
 RegisterBinary(_tTarget& target, string_view name, _func f)
 {
-	A1::RegisterHandler<_vWrapping>(target, name,
-		BinaryAsExpansion<_type, _type2, _func>(std::move(f)));
+	A1::RegisterFormHandler(target, name,
+		BinaryAsExpansion<_type, _type2, _func>(std::move(f)), _vWrapping);
 }
 //! \since build 927
 template<size_t _vWrapping = Strict, typename _type, typename _type2,
@@ -663,8 +664,8 @@ template<size_t _vWrapping = Strict, typename _type, typename _type2,
 inline void
 RegisterBinary(_tTarget& target, string_view name, trivial_swap_t, _func f)
 {
-	A1::RegisterHandler<_vWrapping>(target, name, trivial_swap,
-		BinaryAsExpansion<_type, _type2, _func>(std::move(f)));
+	A1::RegisterFormHandler(target, name, trivial_swap,
+		BinaryAsExpansion<_type, _type2, _func>(std::move(f)), _vWrapping);
 }
 //@}
 //@}

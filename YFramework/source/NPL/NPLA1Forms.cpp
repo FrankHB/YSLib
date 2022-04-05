@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r26358
+\version r26431
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2022-03-14 18:22 +0800
+	2022-03-29 02:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,6 +53,8 @@
 //	LiftCollapsed, YSLib::usystem;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_SContext // for Session;
+#include <ystdex/scope_guard.hpp> // for ystdex::unique_guard, ystdex::dismiss;
+#include <ystdex/container.hpp> // for ystdex::prefix_eraser;
 
 namespace NPL
 {
@@ -1855,6 +1857,45 @@ ListAsteriskImpl(TermNode& term)
 		LiftOther(term, head);
 }
 
+//! \since build 942
+//@{
+using TermPrefixGuard = decltype(ystdex::unique_guard(ystdex::prefix_eraser<
+	TermNode::Container>(std::declval<TermNode::Container&>())));
+
+TermPrefixGuard
+GuardTermPrefix(TermNode::Container& con) ynothrow
+{
+	return
+		ystdex::unique_guard(ystdex::prefix_eraser<TermNode::Container>(con));
+}
+
+void
+RemoveTermPostfix(TermPrefixGuard& gd) ynothrow
+{
+	auto& eraser(gd.func.func);
+	auto& tcon(eraser.container);
+
+	tcon.erase(eraser.position, tcon.end());
+	ystdex::dismiss(gd);
+}
+
+template<class _tTerm>
+void
+AccSetTerm(TermNode& term, _tTerm&& lv_l, TermNode& tail,
+	const shared_ptr<Environment>& d)
+{
+	{
+		auto& con(term.GetContainerRef());
+		auto gd(GuardTermPrefix(con));
+
+		con.insert(con.insert(con.begin(), yforward(lv_l)),
+			EvaluateBoundLValueUnwrapped(tail, d));
+		RemoveTermPostfix(gd);
+	}
+	term.Value.Clear();
+}
+//@}
+
 /*!
 \pre 第一参数的类型可平凡交换。
 \since build 917
@@ -1871,12 +1912,7 @@ Acc(_func f, TermNode& term, ContextNode& ctx)
 	auto& con(term.GetContainerRef());
 	auto& lv_l(con.back());
 	const auto nterm_cons_combine([&, d](TermNode& tm){
-		TermNode::Container tcon(nterm.get_allocator());
-
-		tcon.push_back(EvaluateBoundLValueUnwrapped(tm, d));
-		tcon.push_back(lv_l);
-		tcon.swap(nterm.GetContainerRef());
-		nterm.Value.Clear();
+		AccSetTerm(nterm, lv_l, tm, d);
 	});
 
 	// NOTE: This shall be stored separatedly to %l because %l is abstract,
@@ -1898,7 +1934,7 @@ Acc(_func f, TermNode& term, ContextNode& ctx)
 			return Combine<NonTailCall>::ReduceCallSubsequent(nterm, ctx, d,
 				A1::NameTypedReducerHandler(
 				std::bind([&, d, f](TNIter& i_1){
-				return f(l, base, lv_l, nterm, d, i_1);
+				return f(l, base, lv_l, nterm, d, ++i_1);
 			}, std::move(i_0)), "eval-acc-head-next"));
 		}
 		LiftOther(term, base);
@@ -1917,7 +1953,7 @@ ReduceAccL(TermNode& term, ContextNode& ctx)
 	return Acc([&] YB_LAMBDA_ANNOTATE(
 		(TermNode& l, TermNode& base, TermNode& lv_l, TermNode& nterm,
 		const shared_ptr<Environment>& d, TNIter& i) , , flatten){
-		auto& tail(*++i);
+		auto& tail(*i);
 
 		{
 			TermNode::Container tcon(base.get_allocator());
@@ -1932,14 +1968,7 @@ ReduceAccL(TermNode& term, ContextNode& ctx)
 			A1::NameTypedReducerHandler(
 			// XXX: Capture of %d by copy is a slightly more efficient.
 			[&, d] YB_LAMBDA_ANNOTATE(() , , flatten){
-			{
-				TermNode::Container tcon(nterm.get_allocator());
-
-				tcon.push_back(EvaluateBoundLValueUnwrapped(tail, d));
-				tcon.push_back(std::move(lv_l));
-				tcon.swap(nterm.GetContainerRef());
-			}
-			nterm.Value.Clear();
+			AccSetTerm(nterm, std::move(lv_l), tail, d);
 			return Combine<NonTailCall>::ReduceCallSubsequent(nterm, ctx, d,
 				A1::NameTypedReducerHandler(
 				[&] YB_LAMBDA_ANNOTATE(() , , flatten){
@@ -1959,23 +1988,18 @@ ReduceAccR(TermNode& term, ContextNode& ctx)
 	return Acc([&] YB_LAMBDA_ANNOTATE(
 		(TermNode& l, TermNode&, TermNode& lv_l, TermNode& nterm,
 		const shared_ptr<Environment>& d, TNIter& i) , , flatten){
+		auto& tail(*i);
 		auto& n2term(*std::next(term.rbegin()));
-		auto& tail(*++i);
 		const auto& lv_sum_op(*++i);
 
-		{
-			TermNode::Container tcon(n2term.get_allocator());
-
-			tcon.push_back(EvaluateBoundLValueUnwrapped(tail, d));
-			tcon.push_back(std::move(lv_l));
-			tcon.swap(n2term.GetContainerRef());
-		}
-		n2term.Value.Clear();
+		AccSetTerm(n2term, std::move(lv_l), tail, d);
 		return Combine<NonTailCall>::ReduceCallSubsequent(n2term, ctx, d,
 			// XXX: Capture of %d by copy is a slightly more efficient.
 			A1::NameTypedReducerHandler(
 			[&, d] YB_LAMBDA_ANNOTATE(() , , flatten){
 			l = std::move(n2term);
+			// XXX: %A1::ReduceCurrentNext would not prevent direct recursive
+			//	calls to %ReduceAccR on %NPL_Impl_NPLA1_Enable_InlineDirect.
 			return A1::ReduceCurrentNextThunked(
 				*term.emplace(ystdex::exchange(term.GetContainerRef(), [&]{
 				TermNode::Container tcon(term.get_allocator());
@@ -1984,9 +2008,9 @@ ReduceAccR(TermNode& term, ContextNode& ctx)
 				tcon.push_back(std::move(nterm));
 				return tcon;
 			}())), ctx,
-			// XXX: The function after decayed is specialized enough without
-			//	%trivial_swap.
-			ReduceAccR, trivial_swap, A1::NameTypedReducerHandler(
+				// XXX: The function after decayed is specialized enough without
+				//	%trivial_swap.
+				ReduceAccR, trivial_swap, A1::NameTypedReducerHandler(
 				[&, d] YB_LAMBDA_ANNOTATE(() , , flatten){
 				return Combine<NonTailCall>::ReduceEnvSwitch(term, ctx, d);
 			}, "eval-accr-sum"));
@@ -2021,7 +2045,7 @@ YB_ATTR_nodiscard YB_PURE PDefH(bool, IsExpiredRange, TermNode& term)
 \brief 准备递归调用使用的列表对象：绑定对象为列表临时对象范围。
 \since build 913
 */
-YB_FLATTEN void
+void
 PrepareFoldRList(TermNode& term)
 {
 	// NOTE: Conceptually, the 1st call to the list element can be applied to
@@ -2095,6 +2119,8 @@ ReduceFoldR1(TermNode& term, ContextNode& ctx)
 	auto i(term.begin());
 
 	if(!tr.empty())
+		// XXX: %A1::ReduceCurrentNext would not prevent direct recursive calls
+		//	to %ReduceFoldR1 on %NPL_Impl_NPLA1_Enable_InlineDirect.
 		return A1::ReduceCurrentNextThunked(
 			*term.emplace(ystdex::exchange(con, [&]{
 			TermNode::Container tcon(term.get_allocator());
@@ -2188,14 +2214,15 @@ ReduceFoldRMap1(TermNode& term, ContextNode& ctx,
 {
 	auto& con(term.GetContainerRef());
 
-	con.pop_front();
 	// NOTE: Bind the last argument as the local reference to list temporary
 	//	object.
 	PrepareFoldRList(con.back());
 
-	auto& rterm(*term.emplace(ystdex::exchange(con,
-		TermNode::Container(term.get_allocator()))));
+	auto i(con.begin());
+	auto& rterm(*i);
 
+	rterm.Clear();
+	rterm.GetContainerRef().splice(rterm.end(), con, ++i, con.end());
 	// NOTE: Save 'kons' (for %FoldR1) or 'appv' (for %Map1).
 	PrepareTailOp(term, ctx, *rterm.begin());
 	return ReduceLiftSum(term, ctx, rterm, f);
@@ -2719,8 +2746,8 @@ LetAsteriskImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 	}
 	else if(IsBranchedList(extracted))
 	{
-		// XXX: As %BranchFirstReferenced, with 'NPL::IsMovable(tags)'
-		//	always 'true'.
+		// XXX: As %BranchFirstReferenced, with 'NPL::IsMovable(tags)' always
+		//	'true'.
 		auto& nterm(*con.emplace_front().emplace());
 		auto& tm(AccessFirstSubterm(extracted));
 

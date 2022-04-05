@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2021 FrankHB.
+	© 2015-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r500
+\version r549
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2021-11-04 02:51 +0800
+	2022-03-26 09:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -119,64 +119,64 @@ RelayToLoadExternal(ContextNode&, TermNode&, REPLContext&);
 namespace Forms
 {
 
-/*!
-\brief 加载代码调用。
-\since build 889
-*/
-template<typename _fCallable>
+//! \since build 942
+//@{
+//! \brief 加载代码调用。
+template<typename _fCallable, typename... _tParams>
 void
-InvokeIn(ContextNode& ctx, _fCallable&& f)
+InvokeIn(ContextNode& ctx, _fCallable&& f, _tParams&&... args)
 {
 	EnvironmentGuard gd(ctx,
 		NPL::SwitchToFreshEnvironment(ctx, ValueObject(ctx.WeakenRecord())));
 
-	ystdex::invoke(f);
+	ystdex::invoke(yforward(f), yforward(args)...);
 }
 
 /*!
 \brief 加载代码作为模块。
 \return 作为环境模块的环境对象强引用。
 \post 返回值非空，指定冻结的环境。
-\since build 838
 */
-template<typename _fCallable>
+template<typename _fCallable, typename... _tParams>
 shared_ptr<Environment>
-GetModuleFor(ContextNode& ctx, _fCallable&& f)
+GetModuleFor(ContextNode& ctx, _fCallable&& f, _tParams&&... args)
 {
 	EnvironmentGuard gd(ctx,
 		NPL::SwitchToFreshEnvironment(ctx, ValueObject(ctx.WeakenRecord())));
 
-	ystdex::invoke(f);
+	ystdex::invoke(yforward(f), yforward(args)...);
 	ctx.GetRecordRef().Frozen = true;
 	return ctx.ShareRecord();
 }
 
-//! \pre 间接断言：模块名称字符串的数据指针非空。
-//@{
 /*!
-\brief 加载模块为变量，若已存在则忽略。
-\since build 871
+\pre 间接断言：模块名称字符串的数据指针非空。
+\sa Forms::GetModuleFor
 */
-template<typename _fCallable>
+//@{
+//! \brief 加载模块为变量，若已存在则忽略。
+template<typename _fCallable, typename... _tParams>
 inline void
-LoadModule(ContextNode& ctx, string_view module_name, _fCallable&& f)
+LoadModule(ContextNode& ctx, string_view module_name, _fCallable&& f,
+	_tParams&&... args)
 {
 	ctx.GetRecordRef().Define(module_name,
-		Forms::GetModuleFor(ctx, yforward(f)));
+		Forms::GetModuleFor(ctx, yforward(f), yforward(args)...));
 }
 
 /*!
 \brief 加载模块为变量，若已存在抛出异常。
 \exception BadIdentifier 变量绑定已存在。
-\since build 867
 */
-template<typename _fCallable>
+template<typename _fCallable, typename... _tParams>
 inline void
-LoadModuleChecked(ContextNode& ctx, string_view module_name, _fCallable&& f)
+LoadModuleChecked(ContextNode& ctx, string_view module_name, _fCallable&& f,
+	_tParams&&... args)
 {
 	ctx.GetRecordRef().DefineChecked(module_name,
-		Forms::GetModuleFor(ctx, yforward(f)));
+		Forms::GetModuleFor(ctx, yforward(f), yforward(args)...));
 }
+//@}
 //@}
 
 
@@ -192,6 +192,7 @@ LoadModuleChecked(ContextNode& ctx, string_view module_name, _fCallable&& f)
 支持的语法形式包括预定义对象、基本操作和定义在基础环境中的派生操作。
 其中，派生操作包括基本派生操作和核心库函数。
 加载的基础环境被冻结。
+当前派生实现：求值合并子调用前已加载字符串模块或等价方式初始化为模块 std.strings 。
 */
 YF_API void
 LoadGroundContext(REPLContext&);
@@ -230,37 +231,50 @@ YF_API void
 LoadModule_std_strings(REPLContext&);
 
 /*!
+\pre 当前派生实现：已加载和初始化依赖的模块，在当前环境可访问的指定的模块名称。
+\exception NPLException 违反加载模块的前置条件而无法成功初始化。
+*/
+//@{
+/*!
 \brief 加载输入/输出模块。
+\pre 断言：第二参数非空。
+\note 第二参数指定基础环境。
+\since build 942
 
 加载输入/输出库操作。
+派生实现依赖模块：
+字符串模块 std.strings 。
 */
 YF_API void
-LoadModule_std_io(REPLContext&);
+LoadModule_std_io(REPLContext&, const shared_ptr<Environment>&);
 
 /*!
 \brief 加载系统模块。
 \sa LoadModule_std_strings
 
 加载系统库操作。
-当前实现：求值合并子调用前已加载字符串模块或等价方式初始化为模块 std.strings 。
+派生实现依赖模块：
+字符串模块 std.strings 。
 */
 YF_API void
 LoadModule_std_system(REPLContext&);
 
 /*!
 \brief 加载模块管理模块。
-\pre 当前实现：已加载初始化依赖的模块。
-\since build 923
+\pre 断言：第二参数非空。
+\note 第二参数指定基础环境。
+\since build 942
 
 加载模块管理操作。
-当前实现：已加载初始化以下模块：
+派生实现依赖模块：
 字符串模块 std.strings ；
 输入/输出模块 std.io ；
 代理求值模块 std.promises ；
 系统模块 std.system 。
 */
 YF_API void
-LoadModule_std_modules(REPLContext&);
+LoadModule_std_modules(REPLContext&, const shared_ptr<Environment>&);
+//@}
 
 /*!
 \brief 加载 SHBuild 使用的内部模块。

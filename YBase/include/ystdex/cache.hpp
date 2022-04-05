@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2021 FrankHB.
+	© 2013-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cache.hpp
 \ingroup YStandardEx
 \brief 高速缓冲容器模板。
-\version r604
+\version r748
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-12-22 20:19:14 +0800
 \par 修改时间:
-	2021-12-29 01:58 +0800
+	2022-03-22 18:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,13 +28,16 @@
 #ifndef YB_INC_ystdex_cache_hpp_
 #define YB_INC_ystdex_cache_hpp_ 1
 
-#include "allocator.hpp" // for std::pair, yassume, allocator_traits, are_same,
-//	rebind_alloc_t, std::hash;
+#include "allocator.hpp" // for std::pair, yassume, rebind_alloc_t, are_same,
+//	nor_, is_convertible, enable_if_convertible_t, std::piecewise_construct_t,
+//	std::get, std::piecewise_construct, enable_if_t, head_of_t;
 #include <list> // for std::list;
+#include "scope_guard.hpp" // for std::hash, optional_function, std::ref,
+//	ystdex::unique_guard, ystdex::dismiss;
 #include <unordered_map> // for std::unordered_map;
 #include <map> // for std::map;
-#include "function.hpp" // for function;
-#include <stdexcept> // for std::runtime_error;
+#include "container.hpp" // for ystdex::begin, ystdex::cbegin,
+//	ystdex::search_map_by, ystdex::end, ystdex::cend;
 
 namespace ystdex
 {
@@ -44,6 +47,7 @@ namespace ystdex
 /*!
 \brief 使用双向链表实现的最近使用列表。
 \note 保证移除项时的顺序为最远端先移除。
+\warning 非虚析构。
 */
 template<typename _tKey, typename _tMapped,
 	class _tAlloc = std::allocator<std::pair<const _tKey, _tMapped>>>
@@ -56,12 +60,22 @@ public:
 	*/
 	using allocator_type = _tAlloc;
 	using value_type = std::pair<const _tKey, _tMapped>;
-	using list_type = std::list<value_type>;
+	using list_type = std::list<value_type, allocator_type>;
 	using size_type = typename list_type::size_type;
 	using const_iterator = typename list_type::const_iterator;
 	using iterator = typename list_type::iterator;
 
+	//! \since build 942
+	using list_type::list_type;
+
 	using list_type::begin;
+
+	//! \since build 942
+	YB_ATTR_nodiscard YB_PURE friend inline iterator
+	cast_mutable(recent_used_list& con, const_iterator i) ynothrow
+	{
+		return con.erase(i, i);
+	}
 
 	using list_type::cbegin;
 
@@ -109,8 +123,7 @@ public:
 
 		auto& val(list_type::back());
 
-		if(f)
-			f(val);
+		f(val);
 		m.erase(val.first);
 		list_type::pop_back();
 	}
@@ -121,22 +134,24 @@ public:
 		while(max_use < size_type(m.size()))
 		{
 			yassume(!m.empty());
-
 			shrink(m, yforward(args)...);
 		}
 	}
 
+	//! \since build 942
 	void
-	undo_emplace() ynothrow
+	undo_emplace() ynothrowv
 	{
 		yassume(!empty());
-
 		list_type::pop_front();
 	}
 };
 
 
-//! \brief 最近刷新策略的缓存特征。
+/*!
+\brief 最近刷新策略的缓存特征。
+\ingroup traits
+*/
 //@{
 template<typename _tKey, typename _tMapped, typename _fHash = std::hash<_tKey>,
 	class _tAlloc = std::allocator<std::pair<const _tKey, _tMapped>>,
@@ -166,6 +181,7 @@ struct used_list_cache_traits<_tKey, _tMapped, void, _tAlloc, _tList>
 /*!
 \brief 按最近使用策略刷新的缓存。
 \note 默认策略替换最近最少使用的项，保留其它项。
+\warning 非虚析构。
 \todo 加入异常安全的复制构造函数和复制赋值操作符。
 \todo 支持其它刷新策略。
 */
@@ -188,8 +204,13 @@ public:
 	//! \since build 611
 	static_assert(are_same<size_type, typename used_list_type::size_type,
 		typename used_cache_type::size_type>(), "Invalid size found.");
-
+		
 private:
+	//! \since build 942
+	template<typename _tParam>
+	using not_key_t = nor_<is_convertible<_tParam, const key_type&>,
+		is_convertible<_tParam, std::piecewise_construct_t>>;
+
 	/*!
 	\invariant <tt>std::count(used_list.begin(), used_list.end())
 		== used_cache.size()</tt> 。
@@ -202,8 +223,13 @@ private:
 	size_type max_use;
 
 public:
-	//! \since build 870
-	function<void(value_type&)> flush{};
+	/*!
+	\brief 刷新函数。
+	\invariant 为空值或目标调用时不抛出异常。
+	\warning 若调用抛出异常，使用刷新函数的调用行为可能未定义。
+	\since build 942
+	*/
+	optional_function<void(value_type&)> flush{};
 
 	explicit
 	used_list_cache(size_type s = yimpl(15U))
@@ -223,7 +249,7 @@ private:
 	void
 	check_max_used() ynothrowv
 	{
-		used_list.shrink(used_cache, max_use, flush);
+		used_list.shrink(used_cache, max_use, std::ref(flush));
 	}
 
 public:
@@ -243,17 +269,24 @@ public:
 
 	//! \since build 611
 	//@{
-	iterator
-	begin()
+	YB_ATTR_nodiscard YB_PURE iterator
+	begin() ynothrow
 	{
-		return used_list.begin();
+		return ystdex::begin(used_list);
 	}
-	iterator
-	begin() const
+	YB_ATTR_nodiscard YB_PURE iterator
+	begin() const ynothrow
 	{
-		return used_list.cbegin();
+		return ystdex::begin(used_list);
 	}
 	//@}
+
+	//! \since build 942
+	YB_ATTR_nodiscard YB_PURE friend inline iterator
+	cast_mutable(used_list_cache& con, const_iterator i) ynothrow
+	{
+		return cast_mutable(con.used_list, i);
+	}
 
 	void
 	clear() ynothrow
@@ -263,79 +296,89 @@ public:
 	}
 
 	template<typename... _tParams>
-	std::pair<iterator, bool>
+	inline std::pair<iterator, bool>
 	emplace(const key_type& k, _tParams&&... args)
 	{
-		check_max_used();
-
-		const auto i_cache(used_cache.find(k));
-
-		if(i_cache == used_cache.end())
-		{
-			const auto i(used_list.emplace(k, yforward(args)...));
-
-			try
-			{
-				used_cache.emplace(k, i);
-			}
-			catch(...)
-			{
-				used_list.undo_emplace();
-				throw;
-			}
-			return {i, true};
-		}
-		else
-			return {i_cache->second, false};
+		return emplace_with_key(k, k, yforward(args)...);
 	}
+	//! \since build 942
+	template<typename _tParam, typename... _tParams>
+	inline yimpl(enable_if_convertible_t)<_tParam, const key_type&,
+		std::pair<iterator, bool>>
+	emplace(std::piecewise_construct_t, std::tuple<_tParam> arg,
+		std::tuple<_tParams...> args)
+	{
+		return emplace_with_key(std::get<0>(arg), std::piecewise_construct,
+			std::move(arg), std::move(args));
+	}
+	//! \since build 942
 	template<typename... _tParams>
-	std::pair<iterator, bool>
+	yimpl(enable_if_t)<not_key_t<head_of_t<_tParams...>>::value,
+		std::pair<iterator, bool>>
 	emplace(_tParams&&... args)
 	{
 		check_max_used();
 
-		const auto i(used_list.emplace_front(yforward(args)...));
-
-		try
-		{
-			const auto pr(used_cache.emplace(i->first, i));
-
-			if(!pr.second)
-			{
-				used_list.undo_emplace();
-				return {pr.first, false};
-			}
-		}
-		catch(...)
-		{
+		const auto i(used_list.emplace(yforward(args)...));
+		auto gd(ystdex::unique_guard([&]() ynothrowv{
 			used_list.undo_emplace();
-			throw;
+		}));
+		const auto pr(used_cache.emplace(i->first, i));
+
+		if(pr.second)
+		{
+			ystdex::dismiss(gd);
+			return {i, true};
 		}
-		return {i, true};
+		return {pr.first->second, false};
 	}
 
+private:
+	//! \since build 942
+	template<typename... _tParams>
+	std::pair<iterator, bool>
+	emplace_with_key(const key_type& k, _tParams&&... args)
+	{
+		check_max_used();
+
+		const auto pr(ystdex::search_map_by(
+			[&](typename used_cache_type::const_iterator j){
+			const auto i(used_list.emplace(yforward(args)...));
+			auto gd(ystdex::unique_guard([&]() ynothrowv{
+				used_list.undo_emplace();
+			}));
+			const auto r(used_cache.emplace_hint(j, k, i));
+
+			ystdex::dismiss(gd);
+			return r;
+		}, used_cache, k));
+
+		return {pr.first->second, pr.second};
+	}
+	
+public:
 	//! \since build 611
 	//@{
-	iterator
-	end()
+	YB_ATTR_nodiscard YB_PURE iterator
+	end() ynothrow
 	{
-		return used_list.end();
+		return ystdex::end(used_list);
 	}
-	iterator
-	end() const
+	YB_ATTR_nodiscard YB_PURE iterator
+	end() const ynothrow
 	{
-		return used_list.cend();
+		return ystdex::end(used_list);
 	}
 	//@}
 
-	iterator
+	YB_ATTR_nodiscard iterator
 	find(const key_type& k)
 	{
 		const auto i(used_cache.find(k));
 
 		return i != used_cache.end() ? used_list.refresh(i->second) : end();
 	}
-	const_iterator
+	YB_ATTR_nodiscard const_iterator
 	find(const key_type& k) const
 	{
 		const auto i(used_cache.find(k));
@@ -345,13 +388,13 @@ public:
 
 	//! \since build 646
 	//@{
-	const used_cache_type&
+	YB_ATTR_nodiscard YB_PURE const used_cache_type&
 	get() const ynothrow
 	{
 		return used_cache;
 	}
 
-	const used_list_type&
+	YB_ATTR_nodiscard YB_PURE const used_list_type&
 	list() const ynothrow
 	{
 		return used_list;
@@ -359,7 +402,7 @@ public:
 	//@}
 
 	//! \since build 611
-	size_type
+	YB_ATTR_nodiscard YB_PURE size_type
 	size() const ynothrow
 	{
 		return used_cache.size();
@@ -369,28 +412,25 @@ public:
 
 
 /*!
-\brief 以指定的关键字查找作为缓存的无序关联容器，
-	若没有找到使用指定的可调用对象和参数初始化内容。
-\tparam _tMap 映射类型，可以是 std::map 、 std::unordered_map
+\brief 以指定的关键字查找关联容器访问对应的元素并按需初始化其中的条目。
+\tparam _tMap 映射类型，可以是 std::map 、std::unordered_map
 	或 ystdex::used_list_cache 等。
+\note 若没有找到使用指定的可调用对象和参数初始化内容。
+\note 使用 ADL emplace_hint_in_place 。
+\sa emplace_hint_in_place
+\sa ystdex::try_emplace
 \since build 521
 */
 template<class _tMap, typename _tKey, typename _func, typename... _tParams>
 auto
-cache_lookup(_tMap& cache, const _tKey& key, _func init, _tParams&&... args)
-	-> decltype((cache.begin()->second))
+cache_lookup(_tMap& m, const _tKey& k, _func init, _tParams&&... args)
+	-> decltype((m.begin()->second))
 {
-	auto i(cache.find(key));
-
-	if(i == cache.end())
-	{
-		const auto pr(cache.emplace(key, init(yforward(args)...)));
-
-		if(YB_UNLIKELY(!pr.second))
-			throw std::runtime_error("Cache insertion failed.");
-		i = pr.first;
-	}
-	return i->second;
+	return ystdex::search_map_by([&](typename _tMap::const_iterator i){
+		// XXX: Blocked. 'yforward' may cause G++ 5.2 silent crash.
+		return emplace_hint_in_place(m, i, k,
+			init(std::forward<_tParams>(args)...));
+	}, m, k).first->second;
 }
 
 } // namespace ystdex;

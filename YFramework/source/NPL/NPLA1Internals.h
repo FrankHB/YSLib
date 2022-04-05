@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r21955
+\version r22014
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-03-08 00:46 +0800
+	2022-04-05 13:40 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -33,18 +33,17 @@
 //	ReductionStatus, Reducer, YSLib::map, lref, Environment,
 //	set, NPL::Deref, IsTyped, EnvironmentList, EnvironmentReference, tuple,
 //	YSLib::get, YSLib::forward_list, size_t, list, std::declval,
-//	EnvironmentGuard, NPL::make_observer, std::allocator_arg,
-//	A1::NameTypedReducerHandler, A1::NameTypedContextHandler, TermReference,
-//	ThrowTypeErrorForInvalidType, type_id, ystdex::exclude_self_t,
-//	ParameterMismatch, NPL::TryAccessLeaf, IsIgnore;
+//	EnvironmentGuard, MakeKeptGuard, A1::NameTypedContextHandler, TermReference,
+//	ThrowTypeErrorForInvalidType, NPL::TryAccessLeaf, type_id,
+//	TermToNamePtr, IsIgnore, ystdex::exclude_self_t, ParameterMismatch;
 #include <ystdex/compose.hpp> // for ystdex::get_less;
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
 #include <ystdex/utility.hpp> // for ystdex::exchange;
-#include <iterator> // for std::next;
-#include <ystdex/ref.hpp> // for ystdex::unref;
-#include <ystdex/bind.hpp> // for std::bind, std::placeholders::_1, std::ref,
-//	ystdex::bind1, std::placeholders::_2;
+#include <ystdex/ref.hpp> // for std::reference_wrapper, std::ref,
+//	ystdex::unref;
+#include <ystdex/bind.hpp> // for ystdex::bind1, std::placeholders::_2;
 #include <ystdex/function_adaptor.hpp> // for ystdex::update_thunk;
+#include <iterator> // for std::next;
 
 namespace NPL
 {
@@ -85,7 +84,7 @@ static_assert(!NPL_Impl_NPLA1_Enable_TCO || NPL_Impl_NPLA1_Enable_Thunked,
 	"Invalid combination of build options found.");
 
 //! \since build 842
-YB_FLATTEN inline PDefH(void, SetupNextTerm, ContextNode& ctx, TermNode& term)
+inline PDefH(void, SetupNextTerm, ContextNode& ctx, TermNode& term)
 	ImplExpr(ContextState::Access(ctx).SetNextTermRef(term))
 
 // NOTE: See $2018-09 @ %Documentation::Workflow for rationale of the
@@ -382,8 +381,8 @@ public:
 		// NOTE: If there is no environment set in %act.EnvGuard yet, there is
 		//	ideally no need to save the components to the frame record list
 		//	for recursive calls. In such case, each operation making
-		//	potentionally overwriting of %act.attached_owned will always get into
-		//	this call and that time %act.EnvGuard should be set.
+		//	potentionally calling to %Attach will always get into this call and
+		//	that time %EnvGuard should be set.
 		if(EnvGuard.func.SavedPtr)
 		{
 			// NOTE: Operand saving is performed whether the frame compression
@@ -444,6 +443,12 @@ public:
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TCOAction*, AccessTCOAction, ContextNode& ctx) ynothrow
 	ImplRet(ctx.AccessCurrentAs<TCOAction>())
+
+//! \since build 942
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(TCOAction*, AccessTCOActionUnchecked, ContextNode& ctx) ynothrowv
+	ImplRet(ctx.AccessCurrentAsUnchecked<TCOAction>())
+
 // NOTE: There is no need to check term like
 //	'if(&p->GetTermPtr().get() == &term)'. It should be same to saved enclosing
 //	term unless a nested TCO action is needed explicitly (by following
@@ -491,25 +496,6 @@ PrepareTCOEvaluation(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd)
 	return act;
 }
 #	endif
-
-//! \since build 879
-inline ReductionStatus
-MoveGuard(EnvironmentGuard& gd, ContextNode& ctx) ynothrow
-{
-	const auto egd(std::move(gd));
-
-	return ctx.LastStatus;
-}
-
-//! \since build 898
-using MoveGuardAction = decltype(std::bind(MoveGuard,
-	std::declval<EnvironmentGuard>(), std::placeholders::_1));
-
-//! \since build 898
-YB_ATTR_nodiscard inline
-	PDefH(MoveGuardAction, MakeMoveGuard, EnvironmentGuard& gd)
-	ImplRet(A1::NameTypedReducerHandler(std::bind(MoveGuard, std::move(gd),
-		std::placeholders::_1), "eval-guard"))
 #endif
 
 
@@ -633,7 +619,7 @@ RelayCurrentOrDirect(ContextNode& ctx, trivial_swap_t, _fCurrent&& cur,
 
 //! \since build 910
 template<typename _fCurrent, typename _fNext>
-YB_FLATTEN inline ReductionStatus
+inline ReductionStatus
 RelayCurrentNext(ContextNode& ctx, TermNode& term, _fCurrent&& cur,
 	_fNext&& next)
 {
@@ -648,7 +634,7 @@ RelayCurrentNext(ContextNode& ctx, TermNode& term, _fCurrent&& cur,
 }
 //! \since build 926
 template<typename _fCurrent, typename _fNext>
-YB_FLATTEN inline ReductionStatus
+inline ReductionStatus
 RelayCurrentNext(ContextNode& ctx, TermNode& term, _fCurrent&& cur,
 	trivial_swap_t, _fNext&& next)
 {
@@ -662,7 +648,7 @@ RelayCurrentNext(ContextNode& ctx, TermNode& term, _fCurrent&& cur,
 }
 //! \since build 926
 template<typename _fCurrent, typename _fNext>
-YB_FLATTEN inline ReductionStatus
+inline ReductionStatus
 RelayCurrentNext(ContextNode& ctx, TermNode& term, trivial_swap_t,
 	_fCurrent&& cur, _fNext&& next)
 {
@@ -676,7 +662,7 @@ RelayCurrentNext(ContextNode& ctx, TermNode& term, trivial_swap_t,
 }
 //! \since build 926
 template<typename _fCurrent, typename _fNext>
-YB_FLATTEN inline ReductionStatus
+inline ReductionStatus
 RelayCurrentNext(ContextNode& ctx, TermNode& term, trivial_swap_t,
 	_fCurrent&& cur, trivial_swap_t, _fNext&& next)
 {
@@ -691,7 +677,7 @@ RelayCurrentNext(ContextNode& ctx, TermNode& term, trivial_swap_t,
 
 //! \since build 916
 template<typename _fCurrent, typename _fNext>
-YB_FLATTEN inline ReductionStatus
+inline ReductionStatus
 RelayCurrentNextThunked(ContextNode& ctx, TermNode& term, _fCurrent&& cur,
 	_fNext&& next)
 {
@@ -705,7 +691,7 @@ RelayCurrentNextThunked(ContextNode& ctx, TermNode& term, _fCurrent&& cur,
 }
 //! \since build 926
 template<typename _fCurrent, typename _fNext>
-YB_FLATTEN inline ReductionStatus
+inline ReductionStatus
 RelayCurrentNextThunked(ContextNode& ctx, TermNode& term, _fCurrent&& cur,
 	trivial_swap_t, _fNext&& next)
 {
@@ -719,7 +705,7 @@ RelayCurrentNextThunked(ContextNode& ctx, TermNode& term, _fCurrent&& cur,
 }
 //! \since build 926
 template<typename _fCurrent, typename _fNext>
-YB_FLATTEN inline ReductionStatus
+inline ReductionStatus
 RelayCurrentNextThunked(ContextNode& ctx, TermNode& term, trivial_swap_t,
 	_fCurrent&& cur, _fNext&& next)
 {
@@ -733,7 +719,7 @@ RelayCurrentNextThunked(ContextNode& ctx, TermNode& term, trivial_swap_t,
 }
 //! \since build 926
 template<typename _fCurrent, typename _fNext>
-YB_FLATTEN inline ReductionStatus
+inline ReductionStatus
 RelayCurrentNextThunked(ContextNode& ctx, TermNode& term, trivial_swap_t,
 	_fCurrent&& cur, trivial_swap_t, _fNext&& next)
 {
@@ -817,13 +803,13 @@ struct NonTailCall final
 		//	being captured and it is not capturable here. No %SetupNextTerm
 		//	needs to be called here. Otherwise, %cur is not a %Contiuation and
 		//	it shall still handle the capture of the term by itself. The %term
-		//	is optinonally used in direct calls instead of the next term setup,
+		//	is optionally used in direct calls instead of the next term setup,
 		//	while they shall be equivalent.
 #if NPL_Impl_NPLA1_Enable_Thunked
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
 		return A1::RelayCurrentNext(ctx, term, yforward(cur), trivial_swap,
-			MakeMoveGuard(gd));
+			MakeKeptGuard(gd));
 #else
 		yunused(gd);
 		return A1::RelayDirect(ctx, cur, term);
@@ -837,7 +823,7 @@ struct NonTailCall final
 	{
 		// XXX: See %RelayNextGuarded.
 #if NPL_Impl_NPLA1_Enable_Thunked
-		auto act(MakeMoveGuard(gd));
+		auto act(MakeKeptGuard(gd));
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
 		// XXX: Term reused. Call of %SetupNextTerm is not needed as the next
@@ -868,7 +854,7 @@ struct NonTailCall final
 #if NPL_Impl_NPLA1_Enable_Thunked
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
-		auto act(MakeMoveGuard(gd));
+		auto act(MakeKeptGuard(gd));
 
 		if(lift)
 		{
@@ -941,7 +927,7 @@ struct TailCall final
 
 	//! \pre TCO 实现：当前动作是 TCO 动作，且其中的当前项和被规约的项相同。
 	template<typename _fCurrent>
-	YB_FLATTEN static inline ReductionStatus
+	static inline ReductionStatus
 	RelayNextGuardedLifted(ContextNode& ctx, TermNode& term,
 		EnvironmentGuard&& gd, _fCurrent&& cur)
 	{
@@ -1079,7 +1065,7 @@ inline PDefH(void, SetEvaluatedReference, TermNode& term, const TermNode& bound,
 		bound.GetContainer(), EnsureLValueReference(TermReference(ref))))
 
 //! \since build 920
-YB_FLATTEN inline PDefH(void, SetEvaluatedValue, TermNode& term,
+inline PDefH(void, SetEvaluatedValue, TermNode& term,
 	TermNode& bound, shared_ptr<Environment>& p_env)
 	ImplExpr(term.Value = TermReference(NPL::Deref(p_env).MakeTermTags(bound)
 		& ~TermTags::Unique, bound, std::move(p_env)))
@@ -1097,6 +1083,17 @@ YB_NORETURN inline PDefH(void, ThrowFormalParameterTypeError,
 //! \since build 917
 char
 ExtractSigil(string_view&);
+
+//! \since build 942
+template<typename _func>
+YB_FLATTEN inline void
+HandleOrIgnore(_func f, const TermNode& t, bool t_has_ref)
+{
+	if(const auto p = TermToNamePtr(t))
+		f(*p);
+	else if(!IsIgnore(t))
+		ThrowFormalParameterTypeError(t, t_has_ref);
+}
 
 
 //! \since build 917
@@ -1155,10 +1152,8 @@ private:
 				Match(nd, true);
 			});
 		}
-		else if(const auto p = TermToNamePtr(t))
-			BindValue(*p);
-		else if(!IsIgnore(t))
-			ThrowFormalParameterTypeError(t, t_has_ref);
+		else
+			HandleOrIgnore(std::ref(BindValue), t, t_has_ref);
 	}
 
 	void

@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r2922
+\version r2944
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2022-02-26 22:51 +0800
+	2022-03-18 03:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,9 @@
 #define YB_INC_ystdex_type_op_hpp_ 1
 
 #include "variadic.hpp" // for "variadic.hpp", is_class, std::declval,
-//	is_detected, vseq::apply, _t, bool_, is_void, equal_t, is_same,
-//	detected_or_t, remove_reference_t, and_, cond_t, is_enum, vdefer,
-//	underlying_type_t, common_type_t;
+//	vseq::ctor_of_t, is_detected, vseq::apply, _t, bool_, is_void, equal_t,
+//	is_same, detected_or_t, remove_reference_t, and_, cond_t, is_enum, vdefer,
+//	underlying_type_t, empty_pack_t, vseq::front_t, common_type_t;
 
 namespace ystdex
 {
@@ -270,6 +270,27 @@ using cond_or = cond_t<_tCond, vdefer<_gOp, _tParams...>, identity<_tDefault>>;
 template<class _tCond, typename _tDefault, template<typename...> class _gOp,
 	typename... _tParams>
 using cond_or_t = _t<cond_or<_tCond, _tDefault, _gOp, _tParams...>>;
+//@}
+
+//! \since build 942
+//@{
+/*!
+\brief 参数包判断，若为空参数包使用默认类型。
+\sa cond_or_t
+\sa empty_pack_t
+*/
+template<typename _tDefault, template<typename...> class _gOp,
+	typename... _tParams>
+using nonempty_pack_or_t = cond_or_t<not_<empty_pack_t<_tParams...>>, _tDefault,
+	_gOp, _tParams...>;
+
+/*!
+\brief 取参数包的第一个类型。
+\note 若类型不存在，则视为 void 。
+*/
+template<typename... _tParams>
+using head_of_t
+	= nonempty_pack_or_t<void, vseq::front_t, empty_base<_tParams...>>;
 //@}
 
 /*!

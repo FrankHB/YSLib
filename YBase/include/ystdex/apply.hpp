@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2021 FrankHB.
+	© 2013-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,14 +10,14 @@
 
 /*!	\file apply.hpp
 \ingroup YStandardEx
-\brief 元组应用操作。
-\version r994
+\brief 元组和函数应用操作。
+\version r1102
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2019-01-11 19:43:23 +0800
 \par 修改时间:
-	2021-12-26 12:32 +0800
+	2022-03-21 12:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,8 @@
 #ifndef YB_INC_ystdex_apply_hpp_
 #define YB_INC_ystdex_apply_hpp_ 1
 
-#include "invoke.hpp" // for "invoke.hpp", index_sequence, ystdex::invoke,
-//	make_index_sequence, decay_t;
-#include "integer_sequence.hpp" // for index_sequence;
+#include "invoke.hpp" // for "invoke.hpp", ystdex::invoke, decay_t;
+#include "integer_sequence.hpp" // for index_sequence, make_index_sequence;
 #include <tuple> // for <tuple>, __cpp_lib_apply, __cpp_lib_tuple_element_t,
 //	__cpp_lib_make_from_tuple, std::tuple, std::get, std::forward_as_tuple,
 //	std::tuple_size, std::make_from_tuple;
@@ -195,6 +194,7 @@ using std::apply;
 \brief 应用函数对象和参数元组。
 \tparam _func 函数对象及其引用类型。
 \see ISO C++17 [tuple.apply]/1 。
+\see WG21 P0220R1 。
 \since build 547
 */
 template<typename _func, class _tTuple>
@@ -230,6 +230,120 @@ make_from_tuple(_tTuple&& t)
 //@}
 
 } // inline namespace cpp2017;
+
+//! \since build 594
+//@{
+//! \brief 统计函数参数列表中的参数个数。
+template<typename... _tParams>
+yconstfn size_t
+sizeof_params(_tParams&&...) ynothrow
+{
+	return sizeof...(_tParams);
+}
+
+
+//! \since build 412
+//@{
+/*!
+\brief 变长参数操作模板。
+\warning 非虚析构。
+*/
+//@{
+template<size_t _vN>
+struct variadic_param
+{
+	//! \since build 594
+	template<typename _type, typename... _tParams>
+	static yconstfn auto
+	get(_type&&, _tParams&&... args) ynothrow
+		-> decltype(variadic_param<_vN - 1>::get(yforward(args)...))
+	{
+		static_assert(sizeof...(args) == _vN,
+			"Wrong variadic arguments number found.");
+
+		return variadic_param<_vN - 1>::get(yforward(args)...);
+	}
+};
+
+template<>
+struct variadic_param<0U>
+{
+	//! \since build 594
+	template<typename _type>
+	static yconstfn auto
+	get(_type&& arg) ynothrow -> decltype(yforward(arg))
+	{
+		return yforward(arg);
+	}
+};
+//@}
+
+
+/*!
+\brief 取指定位置的变长参数。
+\tparam _vN 表示参数位置的非负数，从左开始计数，第一参数为 0 。
+*/
+template<size_t _vN, typename... _tParams>
+yconstfn auto
+varg(_tParams&&... args) ynothrow
+	-> decltype(variadic_param<_vN>::get(yforward(args)...))
+{
+	static_assert(_vN < sizeof...(args),
+		"Out-of-range index of variadic argument found.");
+
+	return variadic_param<_vN>::get(yforward(args)...);
+}
+//@}
+
+
+//! \see 关于调用参数类型： ISO C++11 30.3.1.2 [thread.thread.constr] 。
+//@{
+//! \brief 顺序链式调用。
+//@{
+template<typename _func>
+inline void
+chain_apply(_func&& f) ynothrow
+{
+	return yforward(f);
+}
+template<typename _func, typename _type, typename... _tParams>
+inline void
+chain_apply(_func&& f, _type&& arg, _tParams&&... args)
+	ynoexcept_spec(ystdex::chain_apply(
+	yforward(yforward(f)(yforward(arg))), yforward(args)...))
+{
+	return ystdex::chain_apply(yforward(yforward(f)(yforward(arg))),
+		yforward(args)...);
+}
+//@}
+
+//! \brief 顺序递归调用。
+//@{
+template<typename _func>
+inline void
+seq_apply(_func&&) ynothrow
+{}
+//! \since build 595
+template<typename _func, typename _type, typename... _tParams>
+inline void
+seq_apply(_func&& f, _type&& arg, _tParams&&... args)
+	ynoexcept_spec(yimpl(yunseq(0, (void(yforward(f)(yforward(args))), 0)...)))
+{
+	yforward(f)(yforward(arg));
+	ystdex::seq_apply(yforward(f), yforward(args)...);
+}
+//@}
+
+//! \brief 无序调用。
+template<typename _func, typename... _tParams>
+inline void
+unseq_apply(_func&& f, _tParams&&... args)
+	ynoexcept_spec(yimpl(yunseq((void(yforward(f)(yforward(args))), 0)...)))
+{
+	yunseq((void(yforward(f)(yforward(args))), 0)...);
+}
+//@}
+//@}
 
 } // namespace ystdex;
 

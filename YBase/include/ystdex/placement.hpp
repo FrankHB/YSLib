@@ -11,13 +11,13 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r1117
+\version r1127
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2022-03-11 22:38 +0800
+	2022-03-21 12:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,8 +89,14 @@
 #endif
 //@}
 
+/*!	\defgroup guards Guards
+\brief 守卫：销毁时确保外部不变量有效的类型或实例是这些类型的模板。
+\warning 一般非虚析构。
+\since build 942
+*/
+
 /*!	\defgroup allocators Allcators
-\brief 分配器。
+\brief 分配器：满足分配器要求的类型或实例是这些类型的模板。
 \warning 一般非虚析构。
 \see WG21 N4606 17.6.3.5 [allocator.requirements] 。
 \since build 746
@@ -925,7 +931,10 @@ struct placement_delete
 };
 
 
-//! \brief 独占放置存储的对象所有权的指针。
+/*!
+\ingroup guards
+\brief 独占放置存储的对象所有权的指针。
+*/
 template<typename _type, typename _tPointer = _type*>
 using placement_ptr
 	= std::unique_ptr<_type, placement_delete<_type, _tPointer>>;

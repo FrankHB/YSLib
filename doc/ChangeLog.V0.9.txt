@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r8636
+\version r8973
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-03-17 21:08 +0800
+	2022-04-05 16:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,341 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		+ "transformation_traits %(empty_pack_t, sizeof_pack_t)" @ %Meta,
+		/ %TypeOperation $=
+		(
+			+ "metafunction %nonempty_pack_or_t"
+				^ $dep_from ("%empty_pack_t" @ %Meta);
+			+ "metafunction %head_of_t"
+		),
+		/ DLDI "all '_tKey' parameter 'key'" => 'k'
+			$effective ("%exists" @ %Container, "%cache_lookup" @ %Cache),
+			// To be consistent to most other container routines.
+		/ DD %Placement $=
+		(
+			+ "Doxygen group %guards";
+			+ '\ingroup grauds' @ "Doxygen comment"
+				@ "alias template %placement_ptr"
+		),
+		/ ("class template %variadic_param", "function templates \
+			%(sizeof_params, varg, chain_apply, unseq_apply)") @ %Function
+			>> %Apply,
+		/ %Container $=
+		(
+			/ DLI "%is_piecewise_mapped" ^ '_tCon' ~ '_tAssocCon',
+			+ 'ynothrow'
+				@ "function templates %(extract_key, extract_mapped)",
+			(
+			+ "type traits %(has_mem_key_comp, has_mem_lower_bound)";
+			* "missing support of unordered containers"
+				@ ("function templates %search_map" $since b680,
+				"function template %emplace_hint_in_place" $since b708;
+				$comp "function templates %search_map_by" $since b734,
+				$comp "function templates %(try_emplace, try_emplace_hint, \
+				insert_or_assign, insert_or_assign_hint)" $since b680)
+			),
+			/ "function templates %(cast_mutable#2, search_map, search_map_by)"
+				^ "ADL %cast_mutable" ~ "%ystdex::cast_mutable",
+			/ @ "all 2 function templates %cast_mutable" $=
+			(
+				+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+				+ "exception specification"
+			),
+			/ "all 2 function templates %range_size" >> %Range,
+			/ DLDI "inclusion %Function" -> "%Apply"
+				$dep_from ("%seq_apply" @ %Function),
+			+ "functor %prefix_eraser",
+			+ "support of default key template argument"
+				@ "all 2 function templates %search_map"
+		),
+		/ %Cache $=
+		(
+			+ $re_add(b937) DD "'\warning' command for missing virtual \
+				destruction" @ "Doxygen comment" @ "class templates \
+				%(recent_used_list, used_list_cache)",
+			/ @ "class template %recent_used_list" $=
+			(
+				/ "enabled allocator" $=
+				(
+					/ "type %list_type" ^ "%allocator_type",
+					+ 'using list_type::list_type;'
+				),
+				- "check on the function" @ "function template %shrink#2",
+				/ 'ynothrow' @ "function %undo_emplace" -> 'ynothrowv'
+			),
+			/ @ "class template %used_list_cache" $=
+			(
+				+ $dev $lib 'YB_ATTR_nodiscard YB_PURE' @ ("all 2 functions \
+					%(begin, end)", "functions %(get, list, size)")
+				+ 'ynothrow' @ "all 2 functions %(begin, end)",
+				/ $forced DLDI "removed internal checks"
+					@ "%recent_used_list::shrink",
+				/ @ "data member %flush" $=
+				(
+					/ "supported empty state" ^ "%optional_function"
+						~ "%function" $dep_to "optional flush",
+					+ DD "commands" @ "Doxygen comment"
+				),
+				/ "internal maximum elements checks" $=
+				(
+					/ $comp $forced DLDI $dep_from "optional flush"
+						$dep_from "%recent_used_list::shrink",
+					/ DLI "prevended copy of %flush" ^ "%std::ref"
+				),
+				/ @ "function template %emplace with parameter of \
+					'const key_type&'" $=
+				(
+					* "missing excluding key type at the front of the \
+						parameter type" $since b611
+						$= (/ $impl
+							^ $dep_from ("%head_of_t" @ %TypeOperation)),
+					* "wrong used list access" $since b611
+						$= (/ $impl ^ 'emplace' ~ 'emplace_front'),
+					* "ill-formed iterator component returned" $since b611,
+					/ DLDI "simplified" ^ "%ystdex::make_guard"
+				),
+				+ "function template %emplace with parameter of \
+					%std::piecewise_construct_t",
+				/ @ "function template %emplace with parameter of '_tParams&&'"
+					$=
+				(
+					/ "optimized for associative containers"
+						^ ($dep_from ("%ystdex::search_map_by" @ %Container),
+						"%used_cache_type::emplace_hint")
+						~ "%used_cache_type::emplace",
+					/ DLDI "simplified" ^ "%ystdex::unique_guard"
+				),
+				* "wrong return value for const-qualified %(begin, end)"
+					$since b611
+					$= (/ ^ ('begin', 'end') ~ ('cbegin' ~ 'cend')),
+					// The results are from the mutable data member. 
+				/ $lib "functions %(begin, end)" ^ "%ystdex::(begin, end)"
+					~ "member functions"
+			),
+			+ "friend function %cast_mutable" @ "class templates \
+				%(recent_used_list; used_list_cache)";
+			/ @ "function template %cache_lookup" $=
+			(
+				/ DLDI "parameter 'cache'" => 'm',
+				/ ^ $dep_from ("%ystdex::search_map_by",
+					"ADL %emplace_hint_in_place") @ %Container
+					~ "check to throwing exception on insertion failure"
+					$dep_from ("%(cast_mutable, emplace)" @ "%used_list_cache",
+					"%cast_mutable" @ %Container)
+					// The check is needed because no support of concurrent \
+						accesses is provided.
+			)
+		),
+		- DLDI "redundant header inclusion" @ %MemoryResource
+	),
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %SContext $=
+			(
+				/ DLDI !^ "%ystdex::decay_t",
+				/ @ $impl "return type" @ "function template %AsTermNode#1" $=
+				(
+					/ "allowed not excluding allocator type other than at the \
+						front of the parameter pack"
+						^ $dep_from ("%ystdex::head_of_t"
+						@ %YBase.YStandardEx.TypeOperation)
+						~ "%ystdex::(bool_, cond_or_t_)";
+					/ DLDI "simplified" ^ "%enable_if_convertible_t"
+						~ ("%ystdex::(enable_if_t, not_, false_)",
+						"%std::isconvertible", 'sizeof...')
+				)
+			),
+			/ DLI %NPLA1Forms $=
+			(
+				- "several internal 'YB_FLATTEN'",
+				/ "reused subterm on preparation" @ "functions %(FoldR1, Map1)",
+				/ $forced $design "function templates %(RegisterUnary, \
+					RegisterBinary)" $dep_from ("%RegisterHandler" @ %NPLA1)
+			),
+			/ %NPLA1 $=
+			(
+				+ '\ingroup grauds' @ "Doxygen comment"
+					@ "alias %EnvironmentGuard",
+				/ "function template %RegisterHandler"
+					-> "2 function templates %RegisterFormHandler",
+				/ DLI @ "functions %(RegisterForm, RegisterStrict)" $=
+				(
+					/ $forced $design $dep_from "%RegisterHandler"
+					+ 'YB_ATTR_always_inline'
+				),
+				/ DLDI "leaf handling" @ "functions %(MatchParameter, \
+					BindParameter, BindParameterWellFormed)" $=
+				(
+					"simplified the check"
+						^ $dep_from ("%HandleOrIgnore" @ %NPLA1Interals),
+					+ 'inline' @ "internal function templates"
+				)
+			),
+			/ DLI %Dependency $=
+			(
+				/ DLI "avoided redundant %string copy" @ ("function \
+					%ReduceToLoadExternal", "native implementation"
+					@ "applicative %require"
+					@ "function %LoadModule_std_modules"),
+				/ DLI "function %ReduceToLoadExternal" ^ "allocator",
+					// The copy constructor would not propagate the allocator \
+						by default.
+				/ DLI "module name concatenations" @ "function \
+					%LoadStandardContext" ^ ("allocator", "%string::resize"),
+				* DLI "redundant %string argument copying"
+					@ "native implementation"
+					@ "applicatives ('find-requirement-filename', %require)"
+					@ "function %LoadModule_std_modules" $since b923,
+				/ DLI "simplified %(AccL, AccR)" ^ $dep_from
+					("%ystdex::prefix_eraser" @ %YBase.YStandardEx.Container),
+				/ DLDI "newline" @ "alternative derivation" @ "appliative \
+					'env-empty?'" @ "function %LoadModule_std_system",
+				+ DD ("'\pre' command", "'\exception' command") @ "Doxygen comment"
+					@ "functions %(LoadModule_std_io, LoadModule_std_system, \
+					LoadModule_std_modules)",
+				/ "forwareded function parameter"
+					@ "function templates %(InvokeIn, GetModuleFor)",
+				+ "pamameter pack as invocation arguments" @ "function templates \
+					%(InvokeIn, (GetModuleFor; LoadModule; LoadModuleChecked))",
+				/ DLI @ "function %LoadGroundContext" $=
+				(
+					/ $design "parameter name 'wenv'" @ "native implementation"
+						@ "applicative 'lock-environment'" -> 'r_env',
+						// To be consistent to other uses.
+					/ "simplified native implementation"
+						@ "applicative 'make-standard-environment'"
+						!^ ('YB_LAMBDA_ANNOTATE', 'flatten'),
+					/ DLDI "alternative derivation" @ "operatives ('$and', \
+						'$or')" ^ ('eval%', 'cons') ~ ("%apply", 'wrap')
+						// See also the update in the rationale in \
+							%Documentation.NPL (zh-CN).
+				),
+				/ @ "function %LoadModule_std_io" $=
+				(
+					+ "2nd parameter of 'const shared_ptr<Environment>&' to \
+						reperesent the ground environment"
+						$dep_to "requiring ground for std.io";
+					+ "applicative 'get-module'"
+						$dep_from ("%MakeKeptGuard" @ %NPLA1)
+				),
+				/ @ "function %LoadModule_std_modules" $=
+				(
+					+ "2nd parameter of 'const shared_ptr<Environment>&' to \
+						reperesent the ground environment"
+						$dep_to "requiring ground for std.modules",
+					(
+					+ $impl "interna registry saved fresh standard environment";
+					/ "returned the fresh standard environment"
+						@ "appliative 'register-requirement!'"
+					),
+					/ @ "applicative %require" $=
+					(
+						* "missing parameter arity check"
+							@ "native implementation" $since b923,
+						* "wrongly moved arguments if modifiable when loaded at \
+							1st time" $since b923,
+						* "missing switching to the fresh standard environment \
+							before loading" $since b923
+							$dep_from "appliative 'register-requirement!'",
+						(
+						* "missing preserving reference results"
+							@ "alternative derivation" $since b923;
+						/ "saved cached result and took it as the call result \
+							after the 1st loading"
+							// This is an explicit change on the interface \
+								different to [RnRK] to make it easier to use.
+						),
+						+ "support of optional 'module-parameters'",
+							// As 'get-module'.
+						/ DLDI "simplified guard"
+							^ $dep_from ("%MakeKeptGuard" @ %NPLA1)
+					),
+					* "missing saving %errno before throwing the exception"
+						@ "applicative %SHBuild_MakeTempFilename"
+						@ "function %LoadModule_SHBuild" $since b904
+						// The evaluation of the other argument may overwrite \
+							%errno.
+				),
+				/ DLDI "function %LoadStandardContext" $=
+				(
+					/ "simplified"
+						$dep_from "%LoadModuleChecked" !^ "%std::(bind, ref)",
+					/ $forced $dep_from ("requiring ground for std.io",
+						"requiring ground for std.modules")
+				)
+			),
+			/ %NPLAMath $=
+			(
+				/ DLDI "simplified internal static assertions" ^ '()'
+					~ '::value',
+				/ $re_add(b941) DLDI "all member type %traits"
+					=> "%traits_type",
+				+ DLI "workaround on exception specifications"
+					@ !'!YB_IMPL_GNUCPP || YB_IMPL_GNUCPP >= 90000'
+			),
+			/ %NPLA $=
+			(
+				+ DD "'\return' command" @ "Doxygen comment"
+					@ "function templates %AllocateEnvironment"
+				+ 'ynothrow' @ "move %operator="
+					@ 'NPL_NPLA_CheckEnvironmentReferenceCount'
+					@ "class %EnvironmentReference",
+					// Also to eliminate Microsoft VC++ 2022 warning: C26439.
+				/ @ "class %ContextNode" $=
+				(
+					+ "function template %AccessCurrentAsUnchecked";
+					/ DLDI "simplified function template %AccessCurrentAs"
+						^ "%AccessCurrentAsUnchecked"
+				)
+			),
+			/ %NPLA1Internals $=
+			(
+				/ ("functions %(MoveGuard, MakeMoveGuard)",
+					"alias %MoveGuardAction") @ 'NPL_Impl_NPLA1_Enable_Thunked'
+					-> ("function templates %(KeepGuard, MakeKeptGuard)",
+					("alias tempalte %GKeptGuardAction") @ %NPLA1),
+					// Since the guard is sequenced in %ReducerSequence, it \
+						is guaranteed to be released in order in both the \
+						normal and exceptional paths, so there is no need to \
+						explicit move and release the guard (except in \
+						%TCOAction::operator() needing to be ordered with \
+						other resource releases in the same action, which is \
+						not handled here).
+				/ $forced DLI "simplified guard" $effective
+					@ "class %NonTailCall",
+				(
+				+ "function template %HandleOrIgnore";
+				/ DLDI "simplified matching" @ "class tmeplate \
+					%GParameterValueMatcher" ^ "%HandleOrIgnore"
+				),
+				- DLDI 'YB_FLATTEN' @ ("function %SetupNextTerm",
+					@ "all 4 function templates %RelayCurrentNextThunked",
+					"function template %RelayNextGuardedLifted"
+					@ "struct %TailCall"),
+				- DLI 'YB_FLATTEN' @ ("all 4 function templates \
+					%RelayCurrentNext", "function %SetEvaluatedValue"),
+					// This now improves the performance.
+				(
+				+ "function %AccessTCOActionUnchecked" ^ $dep_from
+					("%ContextNode::AccessCurrentAsUnchecked" @ %NPLA);
+				/ DLI "optimized %EnsureTCOAction"
+					^ ('YB_UNLIKELY', "%AccessTCOActionUnchecked")
+				)
+			)
+		)
+	),
+	+ "support of varaible %C_CXXFLAGS_EXT" @ "%SHBuild-YSLib-common.txt"
+		@ %Tools.Scripts
+		// This allows to configure %_POSIX_C_SOURCE automatically when it is \
+			not available by default (e.g. native Termux).
+),
+
+b941
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -2199,7 +2534,7 @@ b932
 			(
 				- 'YB_ATTR(always_inline)' @ "function template %destruct_in",
 					// Ditto.
-				+ "workaround to avoid removing the inlineing attribute"
+				+ DLI "workaround to avoid removing the inlining attribute"
 					@ '(YB_IMPL_GNUCPP && !YB_IMPL_CLANGPP) && \
 					defined(NDEBUG) && __OPTIMIZE__'
 					@ "function template %construct_within"
@@ -3414,7 +3749,7 @@ b926
 				/ DLDI "simplified function %CheckEnvironmentFormal"
 					!^ 'YB_UNLIKELY',
 				/ DLI "optimized member function %FormContextHandler::operator()"
-					!^ "%NPL::ToReducer",
+					^ "%any_ops::trivial_swap" ~ "%NPL::ToReducer",
 				/ @ "function %DefaultEvaluateLeaf" $=
 				(
 					- "'#n' and '#null' handling",
@@ -6753,7 +7088,7 @@ b906
 					// See $2020-10 @ %Documentation::Workflow.
 					- "variables %(LDFLAGS_DYN; LDFLAGS_DYN_BASE, \
 						LDFLAGS_DYN_EXTRA)";
-					- "variables %(LIBS_RPATH, LIBPFX, DSOSFX)"
+					- "variables %(LIBS_RPATH, LIBPFX, DSOSFX)",
 					- "variable %EXESFX"
 						$dep_from ("build command line" @ %Test)
 				),

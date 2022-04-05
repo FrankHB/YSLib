@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9347
+\version r9423
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-03-07 02:49 +0800
+	2022-03-29 18:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,18 +31,18 @@
 #include "YModules.h"
 #include YFM_NPL_NPLA // for NPLATag, TermNode, ContextNode,
 //	ystdex::equality_comparable, std::declval, ystdex::exclude_self_t,
-//	trivial_swap_t, trivial_swap, ystdex::ref_eq, CombineReductionResult,
-//	pmr::memory_resource, NPL::make_observer, TNIter, LiftOtherValue, ValueNode,
-//	NPL::Deref, NPL::AsTermNode, std::make_move_iterator, IsBranch, std::next,
-//	ystdex::retry_on_cond, std::find_if, string_view,
-//	ystdex::exclude_self_params_t, YSLib::AreEqualHeld,
+//	trivial_swap_t, trivial_swap, ystdex::ref_eq, string_view,
+//	CombineReductionResult, pmr::memory_resource, NPL::make_observer,
+//	AssertMatchedAllocators, TNIter, LiftOtherValue, ValueNode, NPL::Deref,
+//	NPL::AsTermNode, std::make_move_iterator, std::next, ystdex::retry_on_cond,
+//	std::find_if, ystdex::exclude_self_params_t, YSLib::AreEqualHeld,
 //	ystdex::make_parameter_list_t, ystdex::make_function_type_t, ystdex::true_,
 //	ystdex::decay_t, ystdex::expanded_caller, std::is_constructible,
 //	ystdex::or_, ArityMismatch, TermTags, RegularizeTerm, type_id, TokenValue,
 //	Environment, ParseResultOf, ByteParser, SourcedByteParser, type_info,
-//	SourceInformation, std::integral_constant, SourceName, NPL::tuple, NPL::get,
-//	NPL::forward_as_tuple, ReaderState, YSLib::allocate_shared,
-//	ThrowTypeErrorForInvalidType, ystdex::is_bitwise_swappable;
+//	SourceInformation, std::bind, std::placeholders::_1, std::integral_constant,
+//	SourceName, NPL::tuple, NPL::get, NPL::forward_as_tuple, ReaderState,
+//	YSLib::allocate_shared, ystdex::is_bitwise_swappable;
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, YSLib::GCombinerInvoker,
 //	YSLib::GDefaultLastValueInvoker;
 #include <ystdex/algorithm.hpp> // for ystdex::fast_any_of, ystdex::split;
@@ -1145,11 +1145,36 @@ AsForm(TermNode::allocator_type a, _tParams&&... args)
 //@}
 
 
-//! \since build 871
+/*!
+\brief 注册一般形式上下文处理器。
+\pre 间接断言：第二参数的数据指针非空。
+\since build 942
+*/
 //@{
+template<class _tTarget>
+YB_ATTR_always_inline inline void
+RegisterFormHandler(_tTarget& target, string_view name, FormContextHandler fm)
+{
+	// XXX: %ContextHandler is specialized enough without %trivial_swap.
+	NPL::EmplaceLeaf<ContextHandler>(target, name,
+		std::allocator_arg, ToBindingsAllocator(target), std::move(fm));
+}
+//! \note 使用 ADL ToBindingsAllocator 。
+template<class _tTarget, typename... _tParams, yimpl(typename
+	= ystdex::exclude_self_params_t<FormContextHandler, _tParams...>)>
+YB_ATTR_always_inline inline void
+RegisterFormHandler(_tTarget& target, string_view name, _tParams&&... args)
+{
+	// XXX: %FormContextHandler is specialized enough without %trivial_swap.
+	A1::RegisterFormHandler(target, name,
+		FormContextHandler(yforward(args)...));
+}
+//@}
+
 /*!
 \brief 包装数种类枚举。
 \note 用于指定创建上下文处理器的种类。
+\since build 871
 */
 enum WrappingKind : decltype(FormContextHandler::Wrapping)
 {
@@ -1159,24 +1184,6 @@ enum WrappingKind : decltype(FormContextHandler::Wrapping)
 	Strict = 1
 };
 
-
-/*!
-\brief 注册一般形式上下文处理器。
-\pre 间接断言：第二参数的数据指针非空。
-\note 使用 ADL ToBindingsAllocator 。
-*/
-template<size_t _vWrapping = Strict, class _tTarget, typename... _tParams>
-inline void
-RegisterHandler(_tTarget& target, string_view name, _tParams&&... args)
-{
-	// XXX: Both %ContextHandler and %FormContexthandler are specialized enough
-	//	without %trivial_swap.
-	NPL::EmplaceLeaf<ContextHandler>(target, name,
-		std::allocator_arg, ToBindingsAllocator(target),
-		FormContextHandler(yforward(args)..., _vWrapping));
-}
-//@}
-
 /*!
 \pre 间接断言：第二参数的数据指针非空。
 \since build 838
@@ -1184,18 +1191,18 @@ RegisterHandler(_tTarget& target, string_view name, _tParams&&... args)
 //@{
 //! \brief 注册一般形式上下文处理器。
 template<class _tTarget, typename... _tParams>
-inline void
+YB_ATTR_always_inline inline void
 RegisterForm(_tTarget& target, string_view name, _tParams&&... args)
 {
-	A1::RegisterHandler<Form>(target, name, yforward(args)...);
+	A1::RegisterFormHandler(target, name, yforward(args)..., Form);
 }
 
 //! \brief 注册严格上下文处理器。
 template<class _tTarget, typename... _tParams>
-inline void
+YB_ATTR_always_inline inline void
 RegisterStrict(_tTarget& target, string_view name, _tParams&&... args)
 {
-	A1::RegisterHandler<>(target, name, yforward(args)...);
+	A1::RegisterFormHandler(target, name, yforward(args)..., Strict);
 }
 //@}
 
@@ -1421,6 +1428,7 @@ ReduceLeafToken(TermNode&, ContextNode&);
 //! \since build 876
 //@{
 /*!
+\ingroup guards
 \brief 求值环境守卫。
 
 作用域退出时调用环境切换器恢复保存的环境的作用域守卫。
@@ -1815,6 +1823,40 @@ SetupTailOperatorName(TermNode&, const ContextNode&);
 */
 YF_API void
 TraceBacktrace(const ContextNode::ReducerSequence&, YSLib::Logger&) ynothrow;
+//@}
+
+
+//! \since build 942
+//@{
+//! \brief 保持环境守卫。
+template<class _tGuard>
+inline ReductionStatus
+KeepGuard(_tGuard&, ContextNode& ctx) ynothrow
+{
+	return ctx.LastStatus;
+}
+
+//! \brief 环境守卫类型。
+template<class _tGuard>
+using GKeptGuardAction = decltype(std::bind(KeepGuard<_tGuard>,
+	std::declval<_tGuard&>(), std::placeholders::_1));
+
+//! \brief 创建保持环境守卫。
+//@{
+template<class _tGuard>
+YB_ATTR_nodiscard inline GKeptGuardAction<_tGuard>
+MakeKeptGuard(_tGuard& gd)
+{
+	return A1::NameTypedReducerHandler(std::bind(KeepGuard<_tGuard>,
+		std::move(gd), std::placeholders::_1), "eval-guard");
+}
+template<class _tGuard>
+YB_ATTR_nodiscard inline GKeptGuardAction<_tGuard>
+MakeKeptGuard(_tGuard&& gd)
+{
+	return A1::MakeKeptGuard(gd);
+}
+//@}
 //@}
 
 

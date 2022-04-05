@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r2345
+\version r2610
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2022-02-26 22:49 +0800
+	2022-04-05 07:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,13 +29,14 @@
 #define YB_INC_ystdex_container_hpp_ 1
 
 #include "iterator.hpp" // for "range.hpp", internal "integreal_sequence.hpp",
-//	std::initializer_list, ystdex::begin, ystdex::end, make_transform,
-//	std::declval, size, is_detected_convertible, std::distance,
-//	std::make_move_iterator, yassume, ystdex::cbegin, ystdex::cend, YAssert,
-//	std::piecewise_construct_t, std::piecewise_construct,
-//	enable_if_convertible_t;
+//	ystdex::begin, ystdex::end, ystdex::make_transform, lref, std::declval,
+//	std::make_move_iterator, is_detected_convertible, yassume, ystdex::cbegin,
+//	ystdex::cend, YAssert, std::distance, std::next, size, ystdex::range_size,
+//	std::piecewise_construct_t, std::tuple, std::piecewise_construct,
+//	std::forward_as_tuple, cond_or_t, is_detected, enable_if_convertible_t,
+//	and_;
 #include "algorithm.hpp" // for YB_VerifyIterator, sort_unique;
-#include "function.hpp" // for ystdex::seq_apply;
+#include "apply.hpp" // for ystdex::seq_apply;
 #include "utility.hpp" // for ystdex::as_const;
 
 namespace ystdex
@@ -69,69 +70,6 @@ make_container(_tRange&& c, _func f)
 		ystdex::make_transform(ystdex::end(c), f));
 }
 //@}
-//@}
-
-
-//! \since build 546
-namespace details
-{
-
-//! \since build 663
-template<class _type>
-using range_size_t = decltype(size(std::declval<_type>()));
-
-//! \since build 663
-template<class _type>
-using has_range_size = is_detected_convertible<size_t, range_size_t, _type>;
-
-//! \since buld 730
-template<typename _tRange>
-yconstfn auto
-range_size(const _tRange& c, true_) -> decltype(size(c))
-{
-	return size(c);
-}
-//! \since buld 730
-template<typename _tRange>
-inline auto
-range_size(const _tRange& c, false_)
-	-> decltype(std::distance(ystdex::begin(c), ystdex::end(c)))
-{
-	return std::distance(ystdex::begin(c), ystdex::end(c));
-}
-
-} // namespace details;
-
-/*!
-\ingroup algorithms
-\pre 参数指定的迭代器范围（若存在）有效。
-\note 参数 \c first 和 \c last 指定迭代器范围。
-\note 对不以迭代器指定的范围，使用 ystdex::begin 和 ystdex::end 取迭代器。
-\note 确定为 const 迭代器时使用 ystdex::cbegin 和 ystdex::cend 代替。
-*/
-//@{
-/*!
-\brief 取范围大小。
-\since build 546
-
-对 std::initializer_list 的实例直接返回大小，否则：
-若可调用结果可转换为 size_t 的 ADL 函数 size 则使用 ADL size ；
-否则使用 std::distance 计算范围迭代器确定范围大小。
-*/
-//@{
-template<typename _tRange>
-yconstfn auto
-range_size(const _tRange& c)
-	-> decltype(details::range_size(c, details::has_range_size<_tRange>()))
-{
-	return details::range_size(c, details::has_range_size<_tRange>());
-}
-template<typename _tElem>
-yconstfn size_t
-range_size(std::initializer_list<_tElem> il)
-{
-	return size(il);
-}
 //@}
 
 
@@ -248,6 +186,38 @@ seq_insert(_tCon& con, _tParams&&... args)
 }
 
 
+/*!
+\ingroup functor
+\brief 擦除容器前缀：移除容器起始至指定迭代器的元素。
+\warning 非虚析构。
+\since build 942
+*/
+template<class _tCon>
+struct prefix_eraser
+{
+	using container_type = _tCon;
+	using const_iterator = typename _tCon::const_iterator;
+
+	container_type& container;
+	const_iterator position;
+
+	prefix_eraser(container_type& con) ynothrow
+		: prefix_eraser(con, con.end())
+	{}
+	//! \pre 第二参数是第一参数的迭代器。
+	prefix_eraser(container_type& con, const_iterator i)
+		ynothrow
+		: container(con), position(i)
+	{}
+
+	void
+	operator()() const ynothrow
+	{
+		container.erase(container.begin(), position);
+	}
+};
+
+
 //! \since build 488
 namespace details
 {
@@ -271,28 +241,28 @@ using has_mem_find = is_detected_convertible<bool, mem_count_t, _type, _tKey>;
 
 template<class _tCon, typename _tKey>
 YB_ATTR_nodiscard YB_PURE bool
-exists(const _tCon& con, const _tKey& key, false_, false_)
+exists(const _tCon& con, const _tKey& k, false_, false_)
 {
-	return std::find(ystdex::cbegin(con), ystdex::cend(con), key)
+	return std::find(ystdex::cbegin(con), ystdex::cend(con), k)
 		!= ystdex::cend(con);
 }
 template<class _tCon, typename _tKey>
 YB_ATTR_nodiscard YB_PURE bool
-exists(const _tCon& con, const _tKey& key, false_, true_)
+exists(const _tCon& con, const _tKey& k, false_, true_)
 {
-	return con.count(key) != 0;
+	return con.count(k) != 0;
 }
 template<class _tCon, typename _tKey>
 YB_ATTR_nodiscard YB_PURE bool
-exists(const _tCon& con, const _tKey& key, false_)
+exists(const _tCon& con, const _tKey& k, false_)
 {
-	return details::exists(con, key, false_(), has_mem_count<_tCon, _tKey>());
+	return details::exists(con, k, false_(), has_mem_count<_tCon, _tKey>());
 }
 template<class _tCon, typename _tKey>
 YB_ATTR_nodiscard YB_PURE bool
-exists(const _tCon& con, const _tKey& key, true_)
+exists(const _tCon& con, const _tKey& k, true_)
 {
-	return con.find(key) != ystdex::cend(con);
+	return con.find(k) != ystdex::cend(con);
 }
 //@}
 
@@ -454,9 +424,9 @@ erase_all_if(_tCon& con, _fPred pred, false_)
 */
 template<class _tCon, typename _tKey>
 YB_ATTR_nodiscard YB_PURE inline bool
-exists(const _tCon& con, const _tKey& key)
+exists(const _tCon& con, const _tKey& k)
 {
-	return details::exists(con, key, details::has_mem_find<_tCon, _tKey>());
+	return details::exists(con, k, details::has_mem_find<_tCon, _tKey>());
 }
 
 /*!
@@ -611,21 +581,22 @@ erase_n(_tCon& con, typename _tCon::iterator i,
 
 /*!
 \brief 移除 const_iterator 的 const 限定。
-\since build 680
+\since build 942
 */
 //@{
 template<class _tCon>
-inline typename _tCon::iterator
-cast_mutable(_tCon& con, typename _tCon::const_iterator i)
+YB_ATTR_nodiscard YB_PURE inline typename _tCon::iterator
+cast_mutable(_tCon& con, typename _tCon::const_iterator i) ynothrow
 {
 	return con.erase(i, i);
 }
+//! \note 对迭代器数据成员使用 ADL cast_mutable 。
 template<class _tCon, typename _type>
-inline std::pair<typename _tCon::iterator, _type>
-cast_mutable(_tCon& con,
-	const std::pair<typename _tCon::const_iterator, _type>& pr)
+YB_ATTR_nodiscard YB_PURE inline std::pair<typename _tCon::iterator, _type>
+cast_mutable(_tCon& con, const std::pair<typename _tCon::const_iterator,
+	_type>& pr) ynoexcept(is_nothrow_constructible<_type>())
 {
-	return {ystdex::cast_mutable(con, pr.first), pr.second};
+	return {cast_mutable(con, pr.first), pr.second};
 }
 //@}
 
@@ -776,11 +747,11 @@ replace_value(_tAssocCon& con, const _tKey& k, _func f)
 
 /*!
 \ingroup metafunctions
-\brief 判断关联容器、键和参数类型是否可以按 map 的方式无转移地构造。
+\brief 判断容器、键和参数类型是否可以按 map 的方式无转移地构造。
 \since build 681
 */
-template<class _tAssocCon, typename _tKey, typename... _tParams>
-using is_piecewise_mapped = is_constructible<typename _tAssocCon::value_type,
+template<class _tCon, typename _tKey, typename... _tParams>
+using is_piecewise_mapped = is_constructible<typename _tCon::value_type,
 	std::piecewise_construct_t, std::tuple<_tKey&&>, std::tuple<_tParams&&...>>;
 
 
@@ -788,62 +759,102 @@ using is_piecewise_mapped = is_constructible<typename _tAssocCon::value_type,
 namespace details
 {
 
+//! \since build 942
+//@{
+template<class _tAssocCon>
+using mem_key_compare_t = decltype(_tAssocCon::key_compare);
+
+template<class _tAssocCon>
+using key_comp_res_t = decltype(std::declval<_tAssocCon&>().key_comp());
+
+template<class _tAssocCon>
+using has_mem_key_comp_impl
+	= is_detected_convertible<typename _tAssocCon::key_compare,
+	details::key_comp_res_t, _tAssocCon>;
+
+template<class _tAssocCon, typename _tKey = typename _tAssocCon::key_type>
+using lower_bound_res_t = decltype(std::declval<_tAssocCon&>().lower_bound(
+	std::declval<const _tKey&>()));
+//@}
+
+
 //! \since build 708
 template<class _tAssocCon>
 struct assoc_con_traits
 {
-	//! \since build 730
+	//! \since build 942
 	//@{
+	// XXX: For general cases, the hint is ignored. This is also true in the
+	//	implementations of the ISO C++ unordered containers in libstdc++ and
+	//	libc++. It is even more unlikely to have some efficient way without
+	//	knowing the internal implementation details of the containers.
 	template<typename _tKey, typename... _tParams>
 	static inline typename _tAssocCon::iterator
-	emplace_hint_in_place(false_, _tAssocCon& con,
+	emplace_hint_in_place(false_, false_, _tAssocCon& con,
+		typename _tAssocCon::const_iterator, _tKey&&, _tParams&&... args)
+	{
+		return con.emplace(yforward(args)...).first;
+	}
+	template<typename _tKey, typename... _tParams>
+	static inline typename _tAssocCon::iterator
+	emplace_hint_in_place(false_, true_, _tAssocCon& con,
+		typename _tAssocCon::const_iterator, _tKey&& k, _tParams&&... args)
+	{
+		return con.emplace(std::piecewise_construct, std::forward_as_tuple(
+			yforward(k)), std::forward_as_tuple(yforward(args)...)).first;
+	}
+	// XXX: Assume %_tAssocCon is ordered (as %_tOrderCon) in the following 2
+	//	overloads.
+	template<typename _tKey, typename... _tParams>
+	static inline typename _tAssocCon::iterator
+	emplace_hint_in_place(true_, false_, _tAssocCon& con,
 		typename _tAssocCon::const_iterator hint, _tKey&&, _tParams&&... args)
 	{
 		return con.emplace_hint(hint, yforward(args)...);
 	}
 	template<typename _tKey, typename... _tParams>
 	static inline typename _tAssocCon::iterator
-	emplace_hint_in_place(true_, _tAssocCon& con,
+	emplace_hint_in_place(true_, true_, _tAssocCon& con,
 		typename _tAssocCon::const_iterator hint, _tKey&& k, _tParams&&... args)
 	{
 		return con.emplace_hint(hint, std::piecewise_construct,
 			std::forward_as_tuple(yforward(k)),
 			std::forward_as_tuple(yforward(args)...));
 	}
+	//@}
 
+	//! \since build 942
+	//@{
 	static inline const typename _tAssocCon::key_type&
-	extract_key(false_, const typename _tAssocCon::value_type& val)
+	extract_key(false_, const typename _tAssocCon::value_type& val) ynothrow
 	{
 		return val;
 	}
 	static inline const typename _tAssocCon::key_type&
-	extract_key(true_, const typename _tAssocCon::value_type& val)
+	extract_key(true_, const typename _tAssocCon::value_type& val) ynothrow
 	{
 		return val.first;
 	}
-	//@}
 
-	//! \since build 792
-	//@{
 	static inline typename _tAssocCon::value_type&
-	extract_mapped(false_, typename _tAssocCon::value_type& val)
+	extract_mapped(false_, typename _tAssocCon::value_type& val) ynothrow
 	{
 		return val;
 	}
 	static inline const typename _tAssocCon::value_type&
-	extract_mapped(false_, const typename _tAssocCon::value_type& val)
+	extract_mapped(false_, const typename _tAssocCon::value_type& val) ynothrow
 	{
 		return val;
 	}
 	template<typename _tMap = _tAssocCon>
 	static inline typename _tMap::mapped_type&
-	extract_mapped(true_, typename _tAssocCon::value_type& val)
+	extract_mapped(true_, typename _tAssocCon::value_type& val) ynothrow
 	{
 		return val.second;
 	}
 	template<typename _tMap = _tAssocCon>
 	static inline const typename _tMap::mapped_type&
-	extract_mapped(true_, const typename _tAssocCon::value_type& val)
+	extract_mapped(true_, const typename _tAssocCon::value_type& val) ynothrow
 	{
 		return val.second;
 	}
@@ -853,7 +864,28 @@ struct assoc_con_traits
 template<class _type>
 using mapped_type_t = typename _type::mapped_type;
 
-} // unnamed namespace details;
+} // namespace details;
+
+/*!
+\ingroup type_traits_operations
+\since build 942
+*/
+//@{
+/*!
+\brief 判断容器是否可按键类型比较。
+\note 判断键类型即判断存在 key_compare 成员类型；若不存在，则视为不可比较。
+\note 按键类型可比较，即具有返回可转换为 key_compare 类型的值的 key_comp 成员函数。
+*/
+template<class _tCon>
+using has_mem_key_comp = cond_or_t<is_detected<details::mem_key_compare_t,
+	_tCon>, false_, details::has_mem_key_comp_impl, _tCon>;
+
+//! \brief 判断容器是否具有接受指定键类型的值返回迭代器的 lower_bound 成员函数。
+template<class _tCon, typename _tKey = typename _tCon::key_type>
+using has_mem_lower_bound = is_detected_convertible<typename
+	_tCon::const_iterator, details::lower_bound_res_t, _tCon, _tKey>;
+//@}
+
 
 /*!
 \brief 带有提示的原地插入构造。
@@ -865,44 +897,94 @@ emplace_hint_in_place(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
 	_tKey&& k, _tParams&&... args) -> typename _tAssocCon::iterator
 {
 	return details::assoc_con_traits<_tAssocCon>::emplace_hint_in_place(
-		is_piecewise_mapped<_tAssocCon, _tKey, _tParams...>(), con, hint,
-		yforward(k), yforward(args)...);
+		has_mem_lower_bound<_tAssocCon>(), is_piecewise_mapped<_tAssocCon,
+		_tKey, _tParams...>(), con, hint, yforward(k), yforward(args)...);
 }
 
-/*!
-\brief 从关联容器的值取键。
-\since build 679
-*/
+//! \since build 942
+//@{
+//! \brief 从关联容器的值取键。
 template<class _tAssocCon, typename _type,
 	yimpl(typename = enable_if_convertible_t<const _type&,
 	const typename _tAssocCon::value_type&>)>
 inline const typename _tAssocCon::key_type&
-extract_key(const _type& val)
+extract_key(const _type& val) ynothrow
 {
 	return details::assoc_con_traits<_tAssocCon>::extract_key(
 		is_detected<details::mapped_type_t, _tAssocCon>(), val);
 }
 
-/*!
-\brief 从关联容器的值取映射的值。
-\since build 792
-*/
+//! \brief 从关联容器的值取映射的值。
 template<class _tAssocCon, typename _type,
 	yimpl(typename = enable_if_convertible_t<_type&,
 	typename _tAssocCon::value_type&>)>
 inline auto
-extract_mapped(_type& val)
+extract_mapped(_type& val) ynothrow
 	-> decltype(details::assoc_con_traits<_tAssocCon>::extract_mapped(
 		is_detected<details::mapped_type_t, _tAssocCon>(), val))
 {
 	return details::assoc_con_traits<_tAssocCon>::extract_mapped(
 		is_detected<details::mapped_type_t, _tAssocCon>(), val);
 }
+//@}
 
 
 //! \since build 792
 namespace details
 {
+
+//! \since build 942
+//@{
+template<class _tAssocCon, typename _tKey>
+YB_ATTR_nodiscard YB_PURE std::pair<typename _tAssocCon::const_iterator, bool>
+search_map(false_, const _tAssocCon& con, const _tKey& k)
+{
+	const auto i(con.find(k));
+
+	return {i, i == ystdex::end(con)};
+}
+//! \since build 942
+template<class _tOrdCon, typename _tKey>
+YB_ATTR_nodiscard YB_PURE std::pair<typename _tOrdCon::const_iterator, bool>
+search_map(true_, const _tOrdCon& con, const _tKey& k)
+{
+	const auto i(con.lower_bound(k));
+
+	return {i, i == ystdex::end(con)
+		|| con.key_comp()(k, extract_key<_tOrdCon>(*i))};
+}
+//! \since build 942
+template<class _tAssocCon, typename _tKey>
+YB_ATTR_nodiscard YB_PURE inline
+	std::pair<typename _tAssocCon::const_iterator, bool>
+search_map(false_, const _tAssocCon& con, typename _tAssocCon::const_iterator,
+	const _tKey& k)
+{
+	// XXX: See the comments in %details::assoc_con_traits.
+	return details::search_map(false_(), con, k);
+}
+//! \since build 942
+template<class _tOrdCon, typename _tKey>
+YB_ATTR_nodiscard YB_PURE std::pair<typename _tOrdCon::const_iterator, bool>
+search_map(true_, const _tOrdCon& con, typename _tOrdCon::const_iterator hint,
+	const _tKey& k)
+{
+	if(!con.empty())
+	{
+		const auto& comp(con.key_comp());
+		const bool fit_before(hint == ystdex::cbegin(con)
+			|| bool(comp(extract_key<_tOrdCon>(*std::prev(hint)), k))),
+			fit_after(hint == ystdex::cend(con)
+			|| bool(comp(k, extract_key<_tOrdCon>(*hint))));
+
+		if(fit_before == fit_after)
+			return {hint, fit_before && fit_after};
+		return details::search_map(false_(), con, k);
+	}
+	yconstraint(hint == ystdex::cend(con));
+	return {hint, true};
+}
+//@}
 
 /*!
 \since build 681
@@ -925,31 +1007,35 @@ insert_or_assign(std::pair<typename _tAssocCon::iterator, bool> pr,
 
 
 /*!
-\return 一个用于表示结果的 std::pair 值，其成员 \c first 为迭代器，
-	\c second 表示是否没有找到。
-\note 使用 ystdex::cend 和 extract_key 。
+\return 一个用于表示结果的 std::pair 实例的值，其成员 \c first 为迭代器，
+	\c second 表示未搜索到指定的键。
+\note 对非 const 容器使用 ADL cast_mutable 转换迭代器。
+\note 对使用提示参数的实现使用 ystdex::cend 和 extract_key 。
 */
 //@{
 /*!
 \brief 按指定键搜索指定关联容器。
-\since build 677
+\since build 942
 */
 //@{
-template<class _tAssocCon, typename _tKey>
-YB_ATTR_nodiscard YB_PURE std::pair<typename _tAssocCon::const_iterator, bool>
+template<class _tAssocCon, typename _tKey = typename _tAssocCon::key_type>
+YB_ATTR_nodiscard YB_PURE inline
+	std::pair<typename _tAssocCon::const_iterator, bool>
 search_map(const _tAssocCon& con, const _tKey& k)
 {
-	const auto i(con.lower_bound(k));
-
-	return {i, i == ystdex::end(con)
-		|| con.key_comp()(k, extract_key<_tAssocCon>(*i))};
+	// XXX: Sole %has_mem_lower_bound is not sufficient even for standard
+	//	containers, since (at least) %std::unordered_map in Microsoft VC++
+	//	has non-standard extensions (actually warned as C4996 by
+	//	%_DEPRECATE_STDEXT_HASH_LOWER_BOUND in VC++ 2022), leading to
+	//	ill-formed calls (e.g. in VC++, error C2039).
+	return details::search_map(and_<has_mem_lower_bound<_tAssocCon, const _tKey>,
+		has_mem_key_comp<_tAssocCon>>(), con, k);
 }
-template<class _tAssocCon, typename _tKey>
+template<class _tAssocCon, typename _tKey = typename _tAssocCon::key_type>
 YB_ATTR_nodiscard YB_PURE inline std::pair<typename _tAssocCon::iterator, bool>
 search_map(_tAssocCon& con, const _tKey& k)
 {
-	return
-		ystdex::cast_mutable(con, ystdex::search_map(ystdex::as_const(con), k));
+	return cast_mutable(con, ystdex::search_map(ystdex::as_const(con), k));
 }
 //@}
 //! \since build 680
@@ -958,35 +1044,26 @@ search_map(_tAssocCon& con, const _tKey& k)
 \brief 按指定键和提示的迭代器位置搜索指定关联容器。
 \pre 容器非空或提示的迭代器位置指向尾部。
 \note 使用 ystdex::cbegin 。
+\since build 942
 */
 //@{
-template<class _tAssocCon, typename _tKey>
-YB_ATTR_nodiscard YB_PURE std::pair<typename _tAssocCon::const_iterator, bool>
+template<class _tAssocCon, typename _tKey = typename _tAssocCon::key_type>
+YB_ATTR_nodiscard YB_PURE inline
+	std::pair<typename _tAssocCon::const_iterator, bool>
 search_map(const _tAssocCon& con, typename _tAssocCon::const_iterator hint,
 	const _tKey& k)
 {
-	if(!con.empty())
-	{
-		const auto& comp(con.key_comp());
-		const bool fit_before(hint == ystdex::cbegin(con)
-			|| bool(comp(extract_key<_tAssocCon>(*std::prev(hint)), k))),
-			fit_after(hint == ystdex::cend(con)
-			|| bool(comp(k, extract_key<_tAssocCon>(*hint))));
-
-		if(fit_before == fit_after)
-			return {hint, fit_before && fit_after};
-		return ystdex::search_map(con, k);
-	}
-	yconstraint(hint == ystdex::cend(con));
-	return {hint, true};
+	// XXX: Assume %_tAssonCon is an ordered associative container type, so
+	//	%key_comp is also available.
+	return details::search_map(has_mem_lower_bound<_tAssocCon>(), con, hint, k);
 }
-template<class _tAssocCon, typename _tKey>
+template<class _tAssocCon, typename _tKey = typename _tAssocCon::key_type>
 YB_ATTR_nodiscard YB_PURE inline std::pair<typename _tAssocCon::iterator, bool>
 search_map(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
 	const _tKey& k)
 {
-	return ystdex::cast_mutable(con,
-		ystdex::search_map(ystdex::as_const(con), hint, k));
+	return
+		cast_mutable(con, ystdex::search_map(ystdex::as_const(con), hint, k));
 }
 //@}
 
@@ -1012,7 +1089,7 @@ template<typename _func, class _tAssocCon, typename... _tParams>
 inline std::pair<typename _tAssocCon::iterator, bool>
 search_map_by(_func f, _tAssocCon& con, _tParams&&... args)
 {
-	return ystdex::cast_mutable(con,
+	return cast_mutable(con,
 		ystdex::search_map_by(f, ystdex::as_const(con), yforward(args)...));
 }
 //@}
@@ -1032,8 +1109,8 @@ template<class _tAssocCon, typename _tKey, typename... _tParams>
 std::pair<typename _tAssocCon::iterator, bool>
 try_emplace(_tAssocCon& con, _tKey&& k, _tParams&&... args)
 {
-	// XXX: Blocked. 'yforward' may cause G++ 5.2 silent crash.
 	return ystdex::search_map_by([&](typename _tAssocCon::const_iterator i){
+		// XXX: Blocked. 'yforward' may cause G++ 5.2 silent crash.
 		return emplace_hint_in_place(con, i, yforward(k),
 			std::forward<_tParams>(args)...);
 	}, con, k);
@@ -1044,8 +1121,8 @@ std::pair<typename _tAssocCon::iterator, bool>
 try_emplace_hint(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
 	_tKey&& k, _tParams&&... args)
 {
-	// XXX: Blocked. 'yforward' may cause G++ 5.2 silent crash.
 	return ystdex::search_map_by([&](typename _tAssocCon::const_iterator i){
+		// XXX: Blocked. 'yforward' may cause G++ 5.2 silent crash.
 		return emplace_hint_in_place(con, i, yforward(k),
 			std::forward<_tParams>(args)...);
 	}, con, hint, k);
