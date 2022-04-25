@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2021 FrankHB.
+# (C) 2014-2022 FrankHB.
 # Common options script to build projects in the shell.
 
 # NOTE: This is mainly for stage 1 SHBuild bootstrap and the test. The options
@@ -51,8 +51,11 @@ fi
 #	also https://clang.llvm.org/docs/ClangCommandLineReference.html#linker-flags.
 : "${LDFLAGS_STRIP:=-s}"
 
+if [[ "$SHBuild_Host_OS" != 'Win32' ]]; then
+	: "${C_CXXFLAGS_EXT="-D_POSIX_C_SOURCE=200809L"}"
+fi
 : "${C_CXXFLAGS_COMMON:= \
-"-pipe $C_CXXFLAGS_GC $C_CXXFLAGS_ARCH -pedantic-errors"}"
+"-pipe $C_CXXFLAGS_GC $C_CXXFLAGS_ARCH -pedantic-errors $C_CXXFLAGS_EXT"}"
 : "${C_CXXFLAGS_OPT_LV:=-O3}"
 : "${C_CXXFLAGS_WARNING:="-Wall \
 -Wcast-align \

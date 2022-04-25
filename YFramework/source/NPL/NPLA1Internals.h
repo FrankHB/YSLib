@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r22014
+\version r22076
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-04-05 13:40 +0800
+	2022-04-25 01:04 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -33,11 +33,12 @@
 //	ReductionStatus, Reducer, YSLib::map, lref, Environment,
 //	set, NPL::Deref, IsTyped, EnvironmentList, EnvironmentReference, tuple,
 //	YSLib::get, YSLib::forward_list, size_t, list, std::declval,
-//	EnvironmentGuard, MakeKeptGuard, A1::NameTypedContextHandler, TermReference,
+//	EnvironmentGuard, MoveKeptGuard, A1::NameTypedContextHandler, TermReference,
 //	ThrowTypeErrorForInvalidType, NPL::TryAccessLeaf, type_id,
 //	TermToNamePtr, IsIgnore, ystdex::exclude_self_t, ParameterMismatch;
 #include <ystdex/compose.hpp> // for ystdex::get_less;
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
+#include <ystdex/optional.h> // for ystdex::optional;
 #include <ystdex/utility.hpp> // for ystdex::exchange;
 #include <ystdex/ref.hpp> // for std::reference_wrapper, std::ref,
 //	ystdex::unref;
@@ -89,10 +90,45 @@ inline PDefH(void, SetupNextTerm, ContextNode& ctx, TermNode& term)
 
 // NOTE: See $2018-09 @ %Documentation::Workflow for rationale of the
 //	implementation.
-// XXX: First-class continuations are not implemented yet, due to lack of term
-//	replacement mechanism in captured continuation. Kernel-style continuation
-//	interception is also unsupported because no reference for parantage is
-//	maintained in the context currently.
+// XXX: First-class continuations are not implemented completely yet, due to
+//	lack of term replacement mechanism in captured continuation. Kernel-style
+//	continuation interception is also unsupported because no reference for
+//	parantage is maintained in the context currently.
+
+/*!
+\brief 一次续延检查器。
+\since build 943
+*/
+class OneShotChecker final
+{
+private:
+	shared_ptr<bool> p_shot;
+
+public:
+	OneShotChecker(ContextNode& ctx)
+		: p_shot(YSLib::allocate_shared<bool>(ctx.get_allocator()))
+	{}
+
+	void
+	operator()() const ynothrow
+	{
+		// XXX: To allow the move of %p_shot, this check is necessary.
+		if(p_shot)
+			NPL::Deref(p_shot) = true;
+	}
+
+	void
+	Check() const
+	{
+		auto& shot(NPL::Deref(p_shot));
+
+		if(!shot)
+			shot = true;
+		else
+			throw NPLException("One-shot continuation expired.");
+	}
+};
+
 
 #if NPL_Impl_NPLA1_Enable_Thunked
 #	if false
@@ -290,6 +326,13 @@ public:
 	//! \since build 896
 	mutable ValueObject OperatorName;
 
+private:
+	/*!
+	\brief 一次调用检查守卫。
+	\since build 943
+	*/
+	mutable ystdex::optional<ystdex::guard<OneShotChecker>> one_shot_guard;
+
 public:
 	//! \since build 819
 	TCOAction(ContextNode& ctx, TermNode& term, bool lift)
@@ -304,7 +347,7 @@ public:
 				"Invalid value for combining term found.");
 			return std::move(term.Value);
 			// XXX: After the move, %term.Value is unspecified.
-		}())
+		}()), one_shot_guard()
 		// XXX: Do not call %AssertValueTags on %term, as it is usually a
 		//	combinitation instead of the representation of some object language
 		//	value.
@@ -316,8 +359,12 @@ public:
 		//	object always live longer than the older one.
 		: term_guard(std::move(a.term_guard)),
 		req_lift_result(a.req_lift_result), stashed(ystdex::exchange(a.stashed,
-		ContextHandler())), EnvGuard(std::move(a.EnvGuard))
-	{}
+		ContextHandler())), EnvGuard(std::move(a.EnvGuard)),
+		one_shot_guard()
+	{
+		if(a.one_shot_guard.has_value())
+			one_shot_guard.emplace((*a.one_shot_guard).func);
+	}
 	DefDeMoveCtor(TCOAction)
 	// XXX: Out of line destructor here is inefficient.
 
@@ -404,6 +451,18 @@ public:
 		AddRecord({});
 	}
 	//@}
+
+	//! \since build 943
+	YB_ATTR_nodiscard OneShotChecker
+	MakeOneShotChecker()
+	{
+		if(!one_shot_guard.has_value())
+			// XXX: The context is only used to determine the allocator, which
+			//	is an implementation detail. Usually the context in caller
+			//	should be the same, though.
+			one_shot_guard.emplace(EnvGuard.func.Context.get());
+		return (*one_shot_guard).func;
+	}
 
 	//! \since build 940
 	YB_ATTR_nodiscard ContextHandler
@@ -809,7 +868,7 @@ struct NonTailCall final
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
 		return A1::RelayCurrentNext(ctx, term, yforward(cur), trivial_swap,
-			MakeKeptGuard(gd));
+			MoveKeptGuard(gd));
 #else
 		yunused(gd);
 		return A1::RelayDirect(ctx, cur, term);
@@ -823,7 +882,7 @@ struct NonTailCall final
 	{
 		// XXX: See %RelayNextGuarded.
 #if NPL_Impl_NPLA1_Enable_Thunked
-		auto act(MakeKeptGuard(gd));
+		auto act(MoveKeptGuard(gd));
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
 		// XXX: Term reused. Call of %SetupNextTerm is not needed as the next
@@ -854,7 +913,7 @@ struct NonTailCall final
 #if NPL_Impl_NPLA1_Enable_Thunked
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
-		auto act(MakeKeptGuard(gd));
+		auto act(MoveKeptGuard(gd));
 
 		if(lift)
 		{

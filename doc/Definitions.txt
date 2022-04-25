@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2021 FrankHB.
+	© 2010-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14423
+\version r14440
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2021-12-27 12:18 +0800
+	2022-04-22 19:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -175,6 +175,7 @@ yverify(_expr)
 $header IntegralConstant
 {
 #__cpp_lib_bool_constant
+#__cpp_lib_logical_traits
 }
 $header TypeInspection
 {
@@ -214,6 +215,10 @@ $header Swap
 {
 #__cpp_lib_is_swappable
 #__cpp_lib_exchange_function
+}
+$header Enum
+{
+!__cpp_lib_to_underlying
 }
 $header IntegerSequence
 {
@@ -278,18 +283,22 @@ YF_* // 保留给 YFramework 使用。
 	YF_Impl_* // 保留用于 YFramework 实现。
 YFM_* // 保留作为 YFramework 模块包含文件宏。
 CHRLib_* // 保留给 YFramework.CHRLib 使用。
-YCL_* // 保留给 YFramework.YCLib 使用。
+YCL_* // 保留给 YFramework.YCLib 使用。对特定平台 $plat ：
 	YCL_INC_* // YCLib 公开头文件包含守卫宏。
+	YCL_$plat_INC_* // YCLib 特定平台公开头文件包含守卫宏。
 	YCL_Inc_* // YCLib 非公开头文件包含守卫宏。
+	YCL_$plat_Inc_* // YCLib 特定平台非公开头文件包含守卫宏。
 YSL_* // 保留给 YFramework.YSLib 使用。
 	YSL_DEBUG_*
 	YSL_INC_* // YSLib 公开头文件包含守卫宏。
 	YSL_Inc_* // YSLib 非公开头文件包含守卫宏。
 NPL_* // 保留给 YFramework.NPL 使用。
 	NPL_Impl_* // 保留用于 YFrameowrk.NPL 实现。
-// 对 YFramework 的次级子项目 $lib ，同时保留以下名称：
+// 对 YFramework 的次级子项目 $lib 和特定平台 $plat ，同时保留以下名称：
 INC_$lib_* // 保留作为（除 YCLib 和 YSLib 外）公开头文件守卫宏使用。
+INC_$platform_$lib_* // 保留作为（除 YCLib 和 YSLib 外）公开头文件守卫宏使用。
 Inc_$lib_* // 保留作为（除 YCLib 和 YSLib 外）非公开头文件守卫宏使用。
+Inc_$platform_$lib_* // 保留作为（除 YCLib 和 YSLib 外）非公开头文件守卫宏使用。
 $lib_Impl* // 保留作为实现相关的宏。
 
 $dir CHRLib
@@ -527,6 +536,10 @@ $unit NPLAMath
 NPL_NPLA_EnsureInPlaceNativeNumbers
 #NPL_Impl_NPLAMath_UseQuadMath
 #NPL_Impl_NPLAMath_Has_UInt128
+}
+$unit NPLA1Forms
+{
+NPL_NPLA1Forms_CheckContinuationFrames
 }
 $internal $unit NPLA1Internals
 {
@@ -972,6 +985,7 @@ $attr $=
 	always_inline,
 	dllimport,
 	dllexport,
+	empty_bases,
 	flatten,
 	may_alias,
 	noinline,

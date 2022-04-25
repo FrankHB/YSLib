@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r22297
+\version r22322
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2022-04-03 02:07 +0800
+	2022-04-26 00:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -299,7 +299,8 @@ DoAdministratives(const EvaluationPasses& passes, TermNode& term,
 {
 #if NPL_Impl_NPLA1_Enable_Thunked
 	// XXX: No %SetupNextTerm call is needed here because it should have been
-	//	called before entering %ContextState::DefaultReduceOnce.
+	//	called before entering %ContextState::DefaultReduceOnce (e.g. in
+	//	%ReduceOnce).
 	AssertNextTerm(ctx, term);
 	// XXX: Be cautious with overflow risks in call of %ContextNode::ApplyTail
 	//	when TCO is not enabled.
@@ -1526,6 +1527,18 @@ ParseLeafWithSourceInformation(TermNode& term, string_view id,
 
 
 ReductionStatus
+FormContextHandler::CallHandler(TermNode& term, ContextNode& ctx) const
+{
+#if NPL_Impl_NPLA1_Enable_Thunked
+	// XXX: The %std::reference_wrapper instance is specialized enough
+	//	without %trivial_swap.
+	return RelayCurrentOrDirect(ctx, std::ref(Handler), term);
+#else
+	return Handler(term, ctx);
+#endif
+}
+
+ReductionStatus
 FormContextHandler::CallN(size_t n, TermNode& term, ContextNode& ctx) const
 {
 	// NOTE: This implementes arguments evaluation in applicative order when
@@ -1537,9 +1550,7 @@ FormContextHandler::CallN(size_t n, TermNode& term, ContextNode& ctx) const
 	// NOTE: Optimize for cases with no argument.
 	if(n == 0 || term.size() <= 1)
 		// XXX: Assume the term has been setup by the caller.
-		// XXX: The %std::reference_wrapper instance is specialized enough
-		//	without %trivial_swap.
-		return RelayCurrentOrDirect(ctx, std::ref(Handler), term);
+		return CallHandler(term, ctx);
 	// XXX: The empty type is specialized enough without %trivial_swap.
 	return A1::RelayCurrentNext(ctx, term, [](TermNode& t, ContextNode& c){
 		YAssert(!t.empty(), "Invalid term found.");
@@ -1554,7 +1565,7 @@ FormContextHandler::CallN(size_t n, TermNode& term, ContextNode& ctx) const
 	//	calls is almost PTC in reality.
 	while(n-- != 0)
 		ReduceArguments(term, ctx);
-	return Handler(term, ctx);
+	return CallHandler(term, ctx);
 #endif
 }
 
@@ -1814,9 +1825,7 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 	//	This shall be cleared if the object represented by %fm is not a prvalue.
 	if(p_ref_fm)
 	{
-		// XXX: This is nothing to do with %EnsureValueTags, so keep it
-		//	explicit.
-		term.Tags &= ~TermTags::Temporary;
+		ClearCombiningTags(term);
 		// XXX: The following irregular term conversion is not necessary. It is
 		//	even better to be avoid for easier handling of reference values.
 #if false
@@ -1884,9 +1893,9 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 ReductionStatus
 ReduceCombinedReferent(TermNode& term, ContextNode& ctx, const TermNode& fm)
 {
+	YAssert(IsCombiningTerm(term), "Invalid term found for combined term.");
 	// XXX: %SetupNextTerm is to be called in %CombinerReturnThunk.
-	// XXX: As %ReduceCombinedBranch, keep it explicit.
-	term.Tags &= ~TermTags::Temporary;
+	ClearCombiningTags(term);
 	if(const auto p_handler = NPL::TryAccessLeaf<const ContextHandler>(fm))
 		return CombinerReturnThunk(*p_handler, term, ctx);
 	return ThrowCombiningFailure(term, fm, true);
@@ -2063,10 +2072,11 @@ SetupDefaultInterpretation(ContextState& cs, EvaluationPasses passes)
 void
 SetupTailContext(ContextNode& ctx, TermNode& term)
 {
+	YAssert(IsCombiningTerm(term), "Invalid term found for combined term.");
 #if NPL_Impl_NPLA1_Enable_TCO
 	yunused(EnsureTCOAction(ctx, term));
 #else
-	yunused(ctx), yunused(term);
+	yunused(ctx);
 #endif
 }
 

@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r549
+\version r557
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2022-03-26 09:25 +0800
+	2022-04-20 19:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -205,10 +205,19 @@ LoadGroundContext(REPLContext&);
 */
 //@{
 /*!
+\brief 加载续延模块。
+\since build 943
+
+加载一等续延和相关操作。
+*/
+YF_API void
+LoadModule_std_continuations(REPLContext&);
+
+/*!
 \brief 加载代理求值模块。
 \since build 856
 
-加载 promise 等类型和延迟求值等操作。
+加载 promise 类型和延迟求值等操作。
 */
 YF_API void
 LoadModule_std_promises(REPLContext&);

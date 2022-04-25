@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3966
+\version r3989
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2022-03-07 04:12 +0800
+	2022-04-18 00:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -436,21 +436,6 @@ IsReferenceTerm(const TermNode& term)
 }
 
 bool
-IsBoundLValueTerm(const TermNode& term)
-{
-	return ystdex::invoke_value_or(&TermReference::IsReferencedLValue,
-		NPL::TryAccessLeaf<const TermReference>(term));
-}
-
-bool
-IsUncollapsedTerm(const TermNode& term)
-{
-	return ystdex::call_value_or(ystdex::compose(IsReferenceTerm,
-		std::mem_fn(&TermReference::get)),
-		NPL::TryAccessLeaf<const TermReference>(term));
-}
-
-bool
 IsUniqueTerm(const TermNode& term)
 {
 	return ystdex::invoke_value_or(&TermReference::IsUnique,
@@ -471,6 +456,21 @@ IsTemporaryTerm(const TermNode& term)
 	return ystdex::invoke_value_or(&TermReference::IsTemporary,
 		NPL::TryAccessLeaf<const TermReference>(term),
 		bool(term.Tags & TermTags::Temporary));
+}
+
+bool
+IsBoundLValueTerm(const TermNode& term)
+{
+	return ystdex::invoke_value_or(&TermReference::IsReferencedLValue,
+		NPL::TryAccessLeaf<const TermReference>(term));
+}
+
+bool
+IsUncollapsedTerm(const TermNode& term)
+{
+	return ystdex::call_value_or(ystdex::compose(IsReferenceTerm,
+		std::mem_fn(&TermReference::get)),
+		NPL::TryAccessLeaf<const TermReference>(term));
 }
 
 
@@ -936,14 +936,19 @@ ContextNode::~ContextNode()
 ReductionStatus
 ContextNode::ApplyTail()
 {
-	// TODO: Add check to avoid stack overflow when the current action is
+	// TODO: Add check to avoid native stack overflow when the current action is
 	//	called?
 	YAssert(IsAlive(), "No tail action found.");
+	// NOTE: This also overwrites any previously stored value of %TailAction.
 	TailAction = std::move(current.front());
 	stashed.splice_after(stashed.cbefore_begin(), current,
 		current.cbefore_begin());
 	TryExpr(LastStatus = TailAction(*this))
 	CatchExpr(..., HandleException(std::current_exception()))
+	// NOTE: To make PTC works, %TailAction is not released after the call. It
+	//	should be overwritten by the next call to %ApplyTail normally. When
+	//	abnormally exited (e.g. in a call to %HandleException), %TailAction is
+	//	usually to be cleanup separately.
 	return LastStatus;
 }
 

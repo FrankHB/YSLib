@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r26431
+\version r26599
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2022-03-29 02:31 +0800
+	2022-04-26 00:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -115,7 +115,7 @@ CondClauseCheck(TermNode& clause)
 YB_ATTR_nodiscard bool
 CondTest(TermNode& clause, TNIter j)
 {
-	if(ExtractBool(*j))
+	if(ExtractBool(NPL::Deref(j)))
 	{
 		clause.erase(j);
 		return true;
@@ -267,8 +267,8 @@ EqualSubterm(bool& r, ContextNode& ctx, bool orig, TNCIter first1,
 {
 	if(first1 != last1)
 	{
-		auto& x(ReferenceTerm(*first1));
-		auto& y(ReferenceTerm(*first2));
+		auto& x(ReferenceTerm(NPL::Deref(first1)));
+		auto& y(ReferenceTerm(NPL::Deref(first2)));
 
 		if(TermUnequal(x, y))
 		{
@@ -298,8 +298,8 @@ EqualSubterm(TNCIter first1, TNCIter first2, TNCIter last1)
 {
 	if(first1 != last1)
 	{
-		auto& x(ReferenceTerm(*first1));
-		auto& y(ReferenceTerm(*first2));
+		auto& x(ReferenceTerm(NPL::Deref(first1)));
+		auto& y(ReferenceTerm(NPL::Deref(first2)));
 
 		if(TermUnequal(x, y))
 			return {};
@@ -669,7 +669,8 @@ MakeEnvironmentParent(TNIter first, TNIter last,
 	const auto tr([&](TNIter iter){
 		return ystdex::make_transform(iter, [&](TNIter i) -> ValueObject{
 			// XXX: Like %LiftToReturn, but for %Value only.
-			if(const auto p = NPL::TryAccessLeaf<const TermReference>(*i))
+			if(const auto p
+				= NPL::TryAccessLeaf<const TermReference>(NPL::Deref(i)))
 			{
 				if(nonmodifying || !p->IsMovable())
 					return p->get().Value;
@@ -1027,6 +1028,19 @@ WrapH(TermNode& term, ContextHandler h, size_t n)
 	return ReductionStatus::Clean;
 }
 
+//! \since build 943
+ReductionStatus
+WrapO(TermNode& term, ContextHandler& h, ResolvedTermReferencePtr p_ref)
+{
+	// XXX: Allocators are not used on %FormContextHandler for performance in
+	//	most cases.
+	return WrapH(term, MakeValueOrMove(p_ref, [&]{
+		return h;
+	}, [&]{
+		return std::move(h);
+	}), 1);
+}
+
 //! \since build 913
 ReductionStatus
 UnwrapResolved(TermNode& term, FormContextHandler& fch,
@@ -1110,7 +1124,7 @@ void
 BindMoveNextNLocalSubobjectInPlace(TNIter i, size_t n)
 {
 	while(n-- != 0)
-		BindMoveLocalObjectInPlace(*++i);
+		BindMoveLocalObjectInPlace(NPL::Deref(++i));
 }
 
 // NOTE: The bound term cannot be reused later because %o can be the referent.
@@ -1796,8 +1810,8 @@ EqualSubterm(bool& r, Action& act, TermNode::allocator_type a, TNCIter first1,
 {
 	if(first1 != last1)
 	{
-		auto& x(ReferenceTerm(*first1));
-		auto& y(ReferenceTerm(*first2));
+		auto& x(ReferenceTerm(NPL::Deref(first1)));
+		auto& y(ReferenceTerm(NPL::Deref(first2)));
 
 		if(TermUnequal(x, y))
 			r = {};
@@ -1904,6 +1918,8 @@ template<typename _func>
 YB_FLATTEN ReductionStatus
 Acc(_func f, TermNode& term, ContextNode& ctx)
 {
+	YAssert(term.size() >= 8, "Invalid recursive call found.");
+
 	auto i(term.begin());
 	auto& nterm(*i);
 	auto& l(*++i);
@@ -2219,7 +2235,7 @@ ReduceFoldRMap1(TermNode& term, ContextNode& ctx,
 	PrepareFoldRList(con.back());
 
 	auto i(con.begin());
-	auto& rterm(*i);
+	auto& rterm(NPL::Deref(i));
 
 	rterm.Clear();
 	rterm.GetContainerRef().splice(rterm.end(), con, ++i, con.end());
@@ -3147,6 +3163,48 @@ ImportImpl(TermNode& term, ContextNode& ctx, bool ref_symbols)
 	}, ctx.ShareRecord()), "import-bindings"));
 }
 
+//! \since build 943
+YB_FLATTEN YB_NONNULL(2) ReductionStatus
+AssocImpl(TermNode& term, bool(*eq)(const ValueObject&, const ValueObject&))
+{
+	RetainN(term, 2);
+	RemoveHead(term);
+
+	auto i(term.begin());
+	auto& nd_x(ReferenceTerm(*i));
+
+	return ResolveTerm(
+		[&](TermNode& nd, ResolvedTermReferencePtr p_ref) -> ReductionStatus{
+		if(IsList(nd))
+		{
+			for(auto& tm : nd)
+			{
+				auto& sub(ReferenceTerm(tm));
+
+				CheckResolvedListReference(sub, true);
+
+				auto& sub2(ReferenceTerm(AccessFirstSubterm(sub)));
+
+				if(IsLeaf(nd_x) && IsLeaf(sub2) ? eq(nd_x.Value, sub2.Value)
+					: ystdex::ref_eq<>()(nd_x, sub2))
+				{
+					if(!p_ref)
+						LiftOther(term, tm);
+					else
+						LiftOtherOrCopyPropagateTags(term, tm,
+							p_ref->GetTags());
+					return ReductionStatus::Retained;
+				}
+			}
+			term.Clear();
+			return ReductionStatus::Clean;
+		}
+		// XXX: This is known to be different to the derivation using 'first&'
+		//	in the exception message.
+		ThrowListTypeErrorForNonlist(nd, true);
+	}, *++i);
+}
+
 } // unnamed namespace;
 
 bool
@@ -3783,13 +3841,7 @@ Wrap(TermNode& term)
 {
 	return WrapOrRef<WrapN>(term,
 		[&](ContextHandler& h, ResolvedTermReferencePtr p_ref){
-		// XXX: Allocators are not used on %FormContextHandler for performance
-		//	in most cases.
-		return WrapH(term, MakeValueOrMove(p_ref, [&]{
-			return h;
-		}, [&]{
-			return std::move(h);
-		}), 1);
+		return WrapO(term, h, p_ref);
 	});
 }
 
@@ -4346,6 +4398,119 @@ ReductionStatus
 ImportRef(TermNode& term, ContextNode& ctx)
 {
 	return ImportImpl(term, ctx, true);
+}
+
+ReductionStatus
+Assq(TermNode& term)
+{
+	return AssocImpl(term, YSLib::HoldSame);
+}
+
+ReductionStatus
+Assv(TermNode& term)
+{
+	return AssocImpl(term, [] YB_LAMBDA_ANNOTATE(
+		(const ValueObject& x, const ValueObject& y), , pure){
+		return x == y;
+	});
+}
+
+
+ReductionStatus
+Call1CC(TermNode& term, ContextNode& ctx)
+{
+	RetainN(term);
+	yunused(NPL::ResolveRegular<const ContextHandler>(
+		NPL::Deref(std::next(term.begin()))));
+	RemoveHead(term);
+
+	auto& current(ctx.GetCurrentRef());
+	// NOTE: The checker is a barrier to mark the capture beginning. When
+	//	called, the continuation is invalidated.
+#if !NPL_Impl_NPLA1_Enable_TCO
+	OneShotChecker check(ctx);
+
+	RelaySwitched(ctx,
+		MoveKeptGuard(ystdex::guard<OneShotChecker>(check)));
+#endif
+
+	const auto i_captured(current.begin());
+
+	// TODO: Blocked. Use ISO C++14 lambda initializers to simplify
+	//	the implementation.
+	term.GetContainerRef().push_back(NPL::AsTermNode(term.get_allocator(),
+		// XXX: The name is usually uninterested by direct invocation, but when
+		//	the continuation is extended, it can be somewhat useful to identify
+		//	the source in the capture-time instead of extending-time (although
+		//	currently there is just one source here).
+		A1::Continuation(A1::NameTypedContextHandler(
+		ystdex::bind1([&, i_captured](TermNode& t, OneShotChecker& osc){
+		Retain(t);
+		osc.Check();
+
+		// XXX: It is necessary to back %current and %i_captured up since the
+		//	unwinding below may likely to invalidate the reducer here, hence
+		//	the captured variables will also be destroyed.
+		auto& cur(current);
+		// XXX: Assume the frame referenced by %i_captured is in the reduction
+		//	sequence, as the check of %NPL_NPLA1Forms_CheckContinuationFrames.
+		const auto i_top(i_captured);
+		// NOTE: The term %t is not owned by the reducers. It shall be backed up
+		//	to skip the possible calls for the local cleanup (e.g.
+		//	%TCOAction::GuardFunction). It shall not be saved directly to %term,
+		//	as the existing subnodes in %term are usually also subject to the
+		//	cleanup and shall not be invalidated before the cleanup.
+		// XXX: This is not guarded. If any exception is throw, the values are
+		//	to be discarded.
+		auto con(std::move(t.GetContainerRef()));
+		auto vo(std::move(t.Value));
+
+#if NPL_NPLA1Forms_CheckContinuationFrames
+		{
+			auto i(cur.begin());
+
+			while(i != cur.end() && i != i_captured)
+				++i;
+			YAssert(i != cur.end(), "The top frame of the reinstated captured"
+				" continuation is missing.");
+		}
+#endif
+		// NOTE: Now unwind the reducer sequence upon to the delimiter. This
+		//	switches the control to the position to the captured one.
+		while(cur.begin() != i_top)
+			cur.pop_front();
+		// NOTE: Drop the top check frame itself.
+		cur.pop_front();
+		// NOTE: After the cleanup, %t is usually invalidated, but %term is not.
+		yunseq(term.GetContainerRef() = std::move(con),
+			term.Value = std::move(vo));
+		SetupNextTerm(ctx, term);
+		ClearCombiningTags(term);
+		RemoveHead(term);
+		return ReductionStatus::Retained;
+	},
+#if NPL_Impl_NPLA1_Enable_TCO
+		RefTCOAction(ctx).MakeOneShotChecker()
+#else
+		std::move(check)
+#endif
+	), "captured-one-shot-continuation"), ctx)));
+	// NOTE: Tail call.
+	// XXX: Only the underlying operative is used and the operand is a
+	//	self-evaluating value, so the wrapper count is irrelevant. However, just
+	//	leave it untouched to avoid dig into the internals of
+	//	%FormContextHandler, as well as to be neutral to extended combiners not
+	//	having %FormContextHandler at all.
+	return ReduceCombinedBranch(term, ctx);
+}
+
+ReductionStatus
+ContinuationToApplicative(TermNode& term)
+{
+	return Forms::CallRegularUnaryAs<Continuation>(
+		[&](Continuation& cont, ResolvedTermReferencePtr p_ref){
+		return WrapO(term, cont.Handler, p_ref);
+	}, term);
 }
 
 

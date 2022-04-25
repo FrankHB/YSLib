@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2018, 2020-2021 FrankHB.
+# (C) 2014-2018, 2020-2022 FrankHB.
 # SHBuild installation script.
 
 set -e
@@ -22,12 +22,6 @@ set -e
 : "${YSLib_BaseDir:="$SHBuild_ToolDir/../.."}"
 
 SHBuild_Puts 'Configuring ...'
-: "${SHBuild_BuildOpt:="-xj,6"}"
-export SHBuild_BuildOpt
-: "${SHBuild_LogOpt:="-xlogfl,128"}"
-export SHBuild_LogOpt
-: "${SHBuild_Opt:="$SHBuild_LogOpt $SHBuild_BuildOpt"}"
-export SHBuild_Opt
 : "${SHBuild_SysRoot:="$YSLib_BaseDir/sysroot"}"
 YSLib_BaseDir=$(cd "$YSLib_BaseDir"; pwd)
 export YSLib_BaseDir
@@ -39,9 +33,6 @@ SHBuild_PrepareBuild
 : "${SHBuild_BuildDir:="$YSLib_BaseDir/build/$(SHBuild_GetBuildName)"}"
 export SHBuild_BuildDir
 SHBuild_Puts "Build directory is \"$SHBuild_BuildDir\"."
-if [[ -z ${SHBuild_UseRelease+x} ]]; then
-	SHBuild_UseRelease=true
-fi
 SHBuild_Puts 'Done.'
 
 SHBuild_Puts 'Bootstraping ...'
@@ -54,8 +45,7 @@ S1_SHBuild="$S1_BuildDir/SHBuild"
 # shellcheck disable=2154
 if [[ "$SHBuild_Rebuild_S1" == '' ]]; then
 	if command -v "$S1_SHBuild" > /dev/null ; then
-		SHBuild_Puts \
-			"Found stage 1 SHBuild \"$S1_SHBuild\", building skipped."
+		SHBuild_Puts "Found stage 1 SHBuild \"$S1_SHBuild\", building skipped."
 	else
 		SHBuild_Puts 'Stage 1 SHBuild not found.'
 		SHBuild_Rebuild_S1_=true
@@ -71,18 +61,19 @@ if [[ "$SHBuild_Rebuild_S1_" == 'true' ]]; then
 	SHBuild_Puts 'Finished building stage 1 SHBuild.'
 fi
 
-# Stage 1 SHBuild done. Following code call stage 1 SHBuild by default.
+# NOTE: Stage 1 SHBuild done. The following code call stage 1 SHBuild by
+#	default.
 : "${SHBuild:="$S1_SHBuild"}"
 SHBuild_AssertNonempty SHBuild
 # XXX: Variable %SHBuild_Opt can have whitespaces.
 # XXX: Variables here are assigned locally and guaranteed to be expanded to the
 #	same values to avoid 'export' pollution.
-# shellcheck disable=2086,2097,2098,2154
+# shellcheck disable=2097,2098,2154
 SHBuild="$SHBuild" SHBuild_Epoch=0 SHBuild_ToolDir="$SHBuild_ToolDir" \
 	SHBuild_NoStatic="$SHBuild_NoStatic" \
 	SHBuild_NoDynamic="$SHBuild_NoDynamic" \
 	SHBuild_UseDebug="$SHBuild_UseDebug" \
 	SHBuild_UseRelease="$SHBuild_UseRelease" \
 	"$SHBuild" -xcmd,RunNPLFile \
-	"$SHBuild_ToolDir/SHBuild-YSLib-build.txt" -- $SHBuild_Opt
+	"$SHBuild_ToolDir/SHBuild-YSLib-build.txt" -- "$@"
 

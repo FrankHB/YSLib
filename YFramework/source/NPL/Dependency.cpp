@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r6880
+\version r6902
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2022-03-31 02:43 +0800
+	2022-04-25 18:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,7 +66,7 @@
 #include <regex> // for std::regex, std::regex_replace, std::regex_match;
 #include <ostream> // for std::endl;
 #include "NPLA1Internals.h" // for NPL_Impl_NPLA1_Enable_Thunked,
-//	ReduceSubsequent, A1::RelayCurrentNext, MakeKeptGuard;
+//	ReduceSubsequent, A1::RelayCurrentNext, MoveKeptGuard;
 #include YFM_YSLib_Core_YCoreUtilities // for YSLib::LockCommandArguments,
 //	YSLib::FetchCommandOutput, YSLib::RandomizeTemplatedString;
 #include <ystdex/string.hpp> // for ystdex::begins_with;
@@ -560,11 +560,11 @@ LoadObjects(ContextNode& ctx)
 	RegisterUnary(ctx, "branch?", ComposeReferencedTermOp(IsBranch));
 	RegisterUnary(ctx, "branchv?", IsBranch);
 	RegisterUnary(ctx, "reference?", IsReferenceTerm);
-	RegisterUnary(ctx, "bound-lvalue?", IsBoundLValueTerm);
-	RegisterUnary(ctx, "uncollapsed?", IsUncollapsedTerm);
 	RegisterUnary(ctx, "unique?", IsUniqueTerm);
 	RegisterUnary(ctx, "modifiable?", IsModifiableTerm);
 	RegisterUnary(ctx, "temporary?", IsTemporaryTerm);
+	RegisterUnary(ctx, "bound-lvalue?", IsBoundLValueTerm);
+	RegisterUnary(ctx, "uncollapsed?", IsUncollapsedTerm);
 	RegisterStrict(ctx, "deshare", [](TermNode& term){
 		return CallRawUnary([&](TermNode& tm){
 			if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
@@ -952,6 +952,8 @@ LoadBasicDerived(REPLContext& context)
 		// XXX: This is from 'first-null?' in the alternative derivation.
 		ThrowInsufficientTermsError(nd, x.second);
 	});
+	RegisterStrict(renv, "assq", Assq);
+	RegisterStrict(renv, "assv", Assv);
 	{
 		const auto a(context.Allocator);
 		// NOTE: As %MakeEncapsulationType.
@@ -1310,6 +1312,12 @@ $defv! $import&! (&e .&symbols) d
 		((unwrap list%) .)) (symbols->imports symbols)) (eval e d);
 $defl! nonfoldable? (&l)
 	$if (null? l) #f ($if (first-null? l) #t (nonfoldable? (rest& l)));
+$defl%! assq (&x &alist) $cond ((null? alist))
+	((eq? x (first& (first& alist))) first% alist)
+	(#t assq (forward! x) (rest& alist));
+$defl%! assv (&x &alist) $cond ((null? alist))
+	((eqv? x (first& (first& alist))) first% alist)
+	(#t assv (forward! x) (rest% alist));
 $def! (box% box? unbox) () make-encapsulation-type;
 $defl! box (x) box% (move! x);
 	)NPL"
@@ -1366,9 +1374,6 @@ LoadCore(REPLContext& context)
 {
 	context.ShareCurrentSource("<root:core>");
 	context.Perform(R"NPL(
-$defl%! assv (&x &alist) $cond ((null? alist) ())
-	((eqv? x (first& (first& alist))) first% alist)
-	(#t assv (forward! x) (rest% alist));
 $defw%! map-reverse (&appv .&ls) d
 	accl (move! ls) nonfoldable? () list-extract-first list-extract-rest%
 		($lambda (&x &xs) cons% (apply appv (forward! x) d) xs);
@@ -1659,7 +1664,7 @@ ReduceToLoadGuarded(TermNode& term, ContextNode& ctx, REPLContext& context,
 #	if NPL_Impl_NPLA1_Enable_Thunked
 	return A1::RelayCurrentNext(ctx, term, trivial_swap, std::bind(
 		std::move(reduce), std::ref(term), std::ref(ctx), std::ref(context)),
-		trivial_swap, MakeKeptGuard(EnvironmentGuard(ctx,
+		trivial_swap, MoveKeptGuard(EnvironmentGuard(ctx,
 		ctx.SwitchEnvironmentUnchecked(std::move(p_env)))));
 #	else
 	const EnvironmentGuard gd(ctx,
@@ -1693,6 +1698,16 @@ LoadGroundContext(REPLContext& context)
 	// NOTE: Dynamic separator handling is lifted to %REPLContext::Preprocess.
 	//	See $2020-02 @ %Documentation::Workflow.
 	Ground::Load(context);
+}
+
+void
+LoadModule_std_continuations(REPLContext& context)
+{
+	auto& renv(context.Root.GetRecordRef());
+
+	RegisterStrict(renv, "call/1cc", Call1CC);
+	RegisterStrict(renv, "continuation->applicative",
+		ContinuationToApplicative);
 }
 
 void
@@ -2595,6 +2610,7 @@ LoadStandardContext(REPLContext& context)
 	});
 	const auto p_ground(rctx.ShareRecord());
 
+	load_std_module("continuations", LoadModule_std_continuations),
 	load_std_module("promises", LoadModule_std_promises);
 	load_std_module("math", LoadModule_std_math),
 	load_std_module("strings", LoadModule_std_strings);

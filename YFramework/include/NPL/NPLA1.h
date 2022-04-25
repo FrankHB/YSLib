@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9423
+\version r9447
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-03-29 18:07 +0800
+	2022-04-26 00:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1088,6 +1088,13 @@ public:
 	PDefHOp(ReductionStatus, (), TermNode& term, ContextNode& ctx) const
 		ImplRet(CallN(Wrapping, term, ctx))
 
+	/*!
+	\brief 调用上下文处理器。
+	\since build 943
+	*/
+	ReductionStatus
+	CallHandler(TermNode&, ContextNode&) const;
+
 private:
 	/*!
 	\pre 断言：对异步实现，参数指定的项和下一求值项相同。
@@ -1375,6 +1382,7 @@ inline PDefH(void, EvaluateLiteralHandler, TermNode& term,
 \exception bad_any_cast 异常中立：子对象引用持有的值不是 ContextHandler 类型。
 \throw ListReductionFailure 规约失败：枝节点的第一个子项不表示上下文处理器。
 \sa ContextHandler
+\sa IsCombiningTerm
 \sa Reduce
 \sa TermTags::Temporary
 \since build 766
@@ -1389,13 +1397,14 @@ inline PDefH(void, EvaluateLiteralHandler, TermNode& term,
 	可使用 TermNode::SetContent 代替 LiftOther 提升项。
 */
 //@{
-//! \note 对不满足 IsCombiningTerm 的项直接返回 ReductionStatus::Regular 。
+//! \note 对非规约合并项直接返回 ReductionStatus::Regular 。
 YF_API ReductionStatus
 ReduceCombined(TermNode&, ContextNode&);
 
+//! \pre 断言：第一参数是规约合并项。
+//@{
 /*!
 \brief 规约列表合并项：同 ReduceCombined ，但只适用于枝节点。
-\pre 断言：项满足 IsCombiningTerm 。
 \since build 882
 */
 YF_API ReductionStatus
@@ -1408,6 +1417,7 @@ ReduceCombinedBranch(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 ReduceCombinedReferent(TermNode&, ContextNode&, const TermNode&);
+//@}
 //@}
 
 /*!
@@ -1632,7 +1642,9 @@ SetupDefaultInterpretation(ContextState&, EvaluationPasses);
 
 /*!
 \brief 设置参数指定的上下文为尾上下文。
-\note 在不支持 TCO 的实现忽略。
+\pre 断言：第二参数是规约合并项。
+\note 在不支持 TCO 的实现忽略设置上下文。
+\sa IsCombiningTerm
 \since build 895
 */
 YF_API void
@@ -1740,8 +1752,8 @@ template<typename _fCallable>
 YB_ATTR_nodiscard YB_PURE inline _fCallable
 NameTypedReducerHandler(_fCallable&& x, string_view desc)
 {
-	return A1::NameExpandedHandler<Reducer,
-		ReducerFunctionType>(yforward(x), desc);
+	return A1::NameExpandedHandler<Reducer, ReducerFunctionType>(yforward(x),
+		desc);
 }
 //@}
 
@@ -1841,20 +1853,23 @@ template<class _tGuard>
 using GKeptGuardAction = decltype(std::bind(KeepGuard<_tGuard>,
 	std::declval<_tGuard&>(), std::placeholders::_1));
 
-//! \brief 创建保持环境守卫。
+/*!
+\brief 转移保持环境守卫。
+\since build 943
+*/
 //@{
 template<class _tGuard>
 YB_ATTR_nodiscard inline GKeptGuardAction<_tGuard>
-MakeKeptGuard(_tGuard& gd)
+MoveKeptGuard(_tGuard& gd)
 {
 	return A1::NameTypedReducerHandler(std::bind(KeepGuard<_tGuard>,
 		std::move(gd), std::placeholders::_1), "eval-guard");
 }
 template<class _tGuard>
 YB_ATTR_nodiscard inline GKeptGuardAction<_tGuard>
-MakeKeptGuard(_tGuard&& gd)
+MoveKeptGuard(_tGuard&& gd)
 {
-	return A1::MakeKeptGuard(gd);
+	return A1::MoveKeptGuard(gd);
 }
 //@}
 //@}

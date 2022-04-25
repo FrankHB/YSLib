@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8664
+\version r8723
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2022-03-26 05:26 +0800
+	2022-04-25 18:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,6 +46,23 @@ namespace NPL
 //! \since build 665
 namespace A1
 {
+
+/*!
+\brief 续延帧检查。
+\note 因对性能有影响，默认仅调试配置下启用。
+\sa Continuation
+\since build 943
+
+若定义为 true ，则在续延调用时断言被捕获的帧在当前动作序列中存在。
+*/
+#ifndef NPL_NPLA1Forms_CheckContinuationFrames
+#	ifndef NDEBUG
+#		define NPL_NPLA1Forms_CheckContinuationFrames true
+#	else
+#		define NPL_NPLA1Forms_CheckContinuationFrames false
+#	endif
+#endif
+
 
 /*!
 \brief 判断字符串值是否可构成符号。
@@ -1666,8 +1683,8 @@ ListAsteriskRef(TermNode&);
 /*!
 \since build 898
 
-对 <object1> 指定的抽象列表进行处理，取得部分和。
-当谓词 <predicate> 对列表应用结果不为假时，处理的结果为参数 <object2> 指定的对象；
+对 \<object1> 指定的抽象列表进行处理，取得部分和。
+当谓词 \<predicate> 对列表应用结果不为假时，处理的结果为参数 \<object2> 指定的对象；
 	否则，继续处理抽象列表中余下的元素。
 处理抽象的列表的操作通过余下的应用子分别定义：
 取列表头、取列表尾和部分和的二元合并操作。
@@ -1698,11 +1715,11 @@ AccR(TermNode&, ContextNode&);
 \brief 在列表元素上应用右结合的二元操作。
 \since build 899
 
-对 <list> 指定的列表进行处理，取得部分和。
+对 \<list> 指定的列表进行处理，取得部分和。
 当列表非空时，处理的结果为参数 <object> 指定的对象；
 	否则，继续处理列表中余下的元素。
-参数 <applicative> 定义部分和的二元合并操作，应为列表构造器。
-名称中的 1 指 <list> 参数的个数。
+参数 \<applicative> 定义部分和的二元合并操作，应为列表构造器。
+名称中的 1 指 \<list> 参数的个数。
 
 参考调用文法：
 <pre>foldr1 \<applicative> \<object> \<list></pre>
@@ -1941,6 +1958,58 @@ Import(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 ImportRef(TermNode&, ContextNode&);
+
+/*!
+\since build 943
+
+若不存在相等的元素，结果为空列表右值；否则是同 first% 访问得到的等价的列表的值。
+*/
+//@{
+/*!
+\brief 取关联列表中和参数的引用相同的元素。
+\since build 943
+
+以 eq? 依次判断第二参数指定的列表中的第一个元素是否和第一参数指定的元素等价。
+
+参考调用文法：
+<pre>assq \<object> \<list></pre>
+*/
+YF_API ReductionStatus
+Assq(TermNode&);
+
+/*!
+\brief 取关联列表中和参数的值相等的元素。
+
+以 eqv? 依次判断第二参数指定的列表中的第一个元素是否和第一参数指定的元素等价。
+
+参考调用文法：
+<pre>assv \<object> \<list></pre>
+*/
+YF_API ReductionStatus
+Assv(TermNode&);
+//@}
+
+
+//! \since build 943
+//@{
+/*!
+\brief 捕获一次续延，具现为一等续延作为参数调用合并子。
+
+参考调用文法：
+<pre>call/1cc \<combiner></pre>
+*/
+YF_API ReductionStatus
+Call1CC(TermNode&, ContextNode&);
+
+/*!
+\brief 捕获一次续延，具现为一等续延作为参数调用合并子。
+
+参考调用文法：
+<pre>continuation->applicative \<continuation></pre>
+*/
+YF_API ReductionStatus
+ContinuationToApplicative(TermNode&);
+//@}
 
 
 /*!

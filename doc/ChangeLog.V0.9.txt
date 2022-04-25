@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r8973
+\version r9118
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-04-05 16:32 +0800
+	2022-04-26 01:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,136 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %Tools $=
+	(
+		/ %Scripts $=
+		(
+			+ $re_add(b942) "support of varaible %C_CXXFLAGS_EXT"
+				@ "%SHBuild-common-options.sh",
+				// This should better be consistent between stage 1 and stage \
+					2. It is also actually relied on in the stage 1 \
+					bootstraping.
+			/ @ "%SHBuild-YSLib-build.txt" $=
+			(
+				* "minor descriptions when adding addtional fixes of the \
+					options" $since b906,
+				* $re_ex(b900) $revert_ex(b904) "missing restoring %LIBS \
+					before building the YBase library" $since b904
+					// This fixes the regression since b904, which was an old \
+						bug since b796 fixed by b900 and revised in b902. The \
+						restore should not be removed even it is set in the \
+						YFramework library build later, because it would \
+						affect the YBase library build.				
+					$= (+ "restore of %LIBS before building the libraries of \
+						each configuration"),
+						// This fix is different to b902, because %LIBS is \
+							printed in the call to 'build-with-conf-opt' with \
+							possible changes on %LIBS by the call to \
+							'SHBuild_Extend_CallVariables' since b906. The \
+							value must include these changes (if applicable).
+				// There is no need to restore %LDFLAGS as \
+					'build-with-conf-opt' will always set it with \
+					'safeenv-set' based on the initial value get by \
+					'safeenv-get' implied by '$env-de!' since b840.
+				- DLDI $revert(b838) "restore of the saved %LDFLAGS before \
+					stage 2 %SHBuild build",
+					// Ditto. Note the original one used ad-hoc saved value \
+						instead of the cached environment variable and \
+						'safeenv-restore' was later introduced in b840.
+				- DLDI $revert(b900)
+					"restore of %LIBS before stage 2 %SHBuild build",
+					// The value from 'safeenv-get "LIBS"' is enough.
+				/ DLDI "simplified the definition of 'extra-opts'"
+			)
+		),
+		/ DLI @ "%install-sysroot.sh" $=
+		(
+			- "unused setting of %SHBuild_UseRelease",
+				// The concrete value is not used.
+			(
+			/ "stage 2 SHBuild call" ^ '"$@"' ~ 'SHBuild_Opt'
+				$dep_to "removal the use of SHBuild_Opt";
+			- DLD "ShellCheck directive on the last command to eliminate \
+				warning SC2086"
+			),
+			(
+			- $revert(b546) "exports of variables \
+				%(SHBuild_LogOpt, SHBuild_BuildOpt, SHBuild_Opt)";
+				// They are only used in this script.
+			- $revert(b546) "variables %(SHBuild_Opt; SHBuild_LogOpt, \
+				SHBuild_BuildOpt)" $dep_from "removal the use of SHBuild_Opt"
+			)
+		)
+	),
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA $=
+		(
+			/ DLDI "reordered object predicate functions",
+			/ DLDI "simplified function %IsCombiningTerm",
+			+ DD "Doxygen command '\ingroup guards'"
+				@ "class %ContextNode::ReductionGuard",
+			+ DLDI 'yimpl' @ "function %ClearCombiningTags",
+			+ "function %GetCurrentRef" @ "class %ContextNode"
+		),
+		/ %NPLA1 $=
+		(
+			+ $lib "assertion for comining terms"
+				@ "functions %(ReduceCombinedReferent, SetupTailContext)",
+			/ "function templates %MakeKeptGuard" => "%MoveKeptGuard",
+			/ DLDI "simplified functions %(ReduceCombined, \
+				ReduceCombinedReferent)" ^ "%ClearCombiningTags",
+			/ @ "class %FormContextHandler" $=
+			(
+				+ "function %CallHandler";
+				/ DLDI "simplified internal calls" @ "%operator()"
+			)
+		),
+		/ %NPLA1Internals $=
+		(
+			+ "class %OneShotChecker";
+			/ @ "class %TCOAction" $=
+			(
+				+ "data member %OneShotGuard";
+				+ "support of early check by moved %OneShotGuard away"
+					@ "%operator()"
+			)
+		),
+		/ %NPLA1Forms $=
+		(
+			(
+			+ "macro %NPL_NPLA1Forms_CheckContinuationFrames";
+			+ "function %Call1CC" $dep_from %NPLA1Internals
+			),
+			+ "function %ContinuationToApplicative",
+			(
+			+ DLI "assertion for the common internal call"
+				@ "functions %(AccL, AccR)";
+			/ DLDI "internal calls for iterator arguments with narrow \
+				contracts and no other implied assertions" ^ "%NPL::Deref" ~ '*'
+			),
+			* DD "missing escaping '\' before '<'" @ "Doxygen comment"
+				@ ("functions %(AccL, AccR)" $since b898,
+				"function %FoldR1" $since b899)
+		),
+		/ %Dependency $=
+		(
+			/ DLI @ "function %LoadGroundContext" $=
+			(
+				/ $design "reordered object predicates",
+				/ "simplified derivation" @ "applicative %assv" !^ '()',
+				/ $lib "added native implementation enabled by default"
+					@ "applicative %assv" $dep_from ("%Assv" @ %NPLA1Forms),
+				+ "applicative %assq" $dep_from ("%Assq" @ %NPLA1Forms)
+			),
+			+ "function %LoadModule_std_continuations" ^ $dep_from
+				"%(Call1CC, ContinuationToApplicative)" @ %NPLA1Forms
+		)
+	)
+),
+
+b942
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -7589,10 +7719,10 @@ b904
 	),
 	/ %Tools.Scripts $=
 	(
-		/ DLDI @ "%SHBuild-YSLib-build.txt" $=
+		/ $dev @ "%SHBuild-YSLib-build.txt" $=
 		(
-			- "redundant restore of %LIBS before dynamic library building",
-			/ "simplified import of 'env-get'"
+			- "restore of %LIBS before dynamic library building",
+			/ $lib $impl $design "simplified the import of 'env-get'"
 		),
 		/ @ "%SHBuild-BuildApp.txt" $=
 		(
@@ -8168,7 +8298,7 @@ b902
 				/ DLDI "simplified 'system-quote' with 'SHBuild_2m' calls",
 				/ "YSLib libraries building" $=
 				(
-					/ DLDI "removed unused %LIBS restoring",
+					/ $dev "restored %LIBS only for dynamic libraries",
 					* $re_add(b838) "possibly missing quotes on '-L' argument \
 						of output directory on the %LIBS environment"
 						$since b796 ^ 'system-quote',
@@ -8754,16 +8884,17 @@ b900
 				@ "platform %MinGW64" @ "YFramework DLL build",
 				// See $2020-10 @ %Documentation::Workflow.
 			* "missing restoring %LIBS before %YBase build" $since b796,
-				// This makes dynamic library in %release configuration having \
-					polluted %LIBS by the %debug configuration of YFramework \
-					(so YBase release dynamic library would be then linked to \
-					YBase debug dynamic library) when both %debug and \
-					%release configurations are enabled in the same script run.
-			* "missing restoring %LIBS before stage 2 %SHBuild build"
-				$since b838,
-				// Ditto, although this is only bad when after a debug-only \
-					build of YBase + YFramework if YBase dynamic library are \
-					built correctly.
+				// This makes the dynamic library of YBase in the %release \
+					configuration having polluted %LIBS by the dynamic library \
+					of YFramework in the %debug configuration (so YBase \
+					release dynamic library would be then linked to YBase \
+					debug dynamic library) when both %debug and %release \
+					configurations are enabled in the same script run.
+			+ $dev "restore of %LIBS before stage 2 %SHBuild build",
+				// Ditto, although this is only bad after a debug-only build \
+					of YBase + YFramework if the YBase dynamic library is \
+					built correctly and 'env-get' is used instead of \
+					'safeenv-get'.
 			(
 			+ $deploy "installing directory %var/NPLA1 under SysRoot";
 			/ "NPLA1 module directory" -> "%var/NPLA1" ~ "%bin";

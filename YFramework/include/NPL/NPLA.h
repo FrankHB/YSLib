@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r9422
+\version r9455
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2022-04-05 15:16 +0800
+	2022-04-22 19:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -446,7 +446,7 @@ static_assert(ystdex::is_nothrow_move_constructible<AnchorPtr>(),
 \since build 939
 */
 inline PDefH(void, ClearCombiningTags, TermNode& term) ynothrowv
-	ImplExpr(EnsureValueTags(term.Tags), AssertValueTags(term))
+	ImplExpr(yimpl(EnsureValueTags(term.Tags)), AssertValueTags(term))
 
 /*!
 \brief 判断项是规约合并项。
@@ -454,8 +454,13 @@ inline PDefH(void, ClearCombiningTags, TermNode& term) ynothrowv
 */
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(bool, IsCombiningTerm, const TermNode& term) ynothrow
-	ImplRet(!(term.empty()
-		|| (term.Value && !IsTyped<TokenValue>(term.Value.type()))))
+#if true
+	// XXX: This might be slightly more efficient.
+	ImplRet(IsBranch(term) && (IsList(term) || IsTyped<TokenValue>(term)))
+#else
+	ImplRet(IsBranchedList(term)
+		|| (IsBranch(term) && IsTyped<TokenValue>(term)))
+#endif
 
 
 /*!	\defgroup TermAccessAuxiliary Term Access Auxiliary API
@@ -631,7 +636,6 @@ TokenizeTerm(TermNode&);
 若引用计数来源都是 Environment 、EnvironmentReference 或 TermReference ，
 	则表示正常；否则，使用 YTraceDe 输出错误消息。
 注意绑定析构顺序不确定，可能导致依赖不确定而误报。
-因对性能有影响，默认仅调试配置下启用。
 */
 #ifndef NPL_NPLA_CheckEnvironmentReferenceCount
 #	ifndef NDEBUG
@@ -1141,23 +1145,6 @@ YB_ATTR_nodiscard YF_API YB_PURE bool
 IsReferenceTerm(const TermNode&);
 
 /*!
-\brief 判断项（的值数据成员）是否表示被绑定的左值引用。
-\sa TermReference::IsReferencedLValue
-\since build 871
-
-判断项是否表示引用且 TermReference::IsReferencedLValue 的结果为 true 。
-*/
-YB_ATTR_nodiscard YF_API YB_PURE bool
-IsBoundLValueTerm(const TermNode&);
-
-/*!
-\brief 判断项（的值数据成员）是否表示未折叠的引用。
-\since build 869
-*/
-YB_ATTR_nodiscard YF_API YB_PURE bool
-IsUncollapsedTerm(const TermNode&);
-
-/*!
 \brief 判断项（的值数据成员）是否表示非引用项或唯一引用。
 \sa TermReference::IsUnique
 \since build 859
@@ -1180,6 +1167,23 @@ IsModifiableTerm(const TermNode&);
 */
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsTemporaryTerm(const TermNode&);
+
+/*!
+\brief 判断项（的值数据成员）是否表示被绑定的左值引用。
+\sa TermReference::IsReferencedLValue
+\since build 871
+
+判断项是否表示引用且 TermReference::IsReferencedLValue 的结果为 true 。
+*/
+YB_ATTR_nodiscard YF_API YB_PURE bool
+IsBoundLValueTerm(const TermNode&);
+
+/*!
+\brief 判断项（的值数据成员）是否表示未折叠的引用。
+\since build 869
+*/
+YB_ATTR_nodiscard YF_API YB_PURE bool
+IsUncollapsedTerm(const TermNode&);
 //@}
 
 //! \since build 859
@@ -2413,7 +2417,10 @@ public:
 			ImplRet(ystdex::ref_eq<>()(x, y))
 	};
 
-	//! \brief 规约守卫：暂存当前动作序列。
+	/*!
+	\ingroup guards
+	\brief 规约守卫：暂存当前动作序列。
+	*/
 	class YF_API ReductionGuard
 	{
 	private:
@@ -2594,6 +2601,8 @@ public:
 	DefGetter(const ynothrow, Environment::BindingMap&, BindingsRef,
 		GetRecordRef().GetMapRef())
 	DefGetter(const ynothrow, const ReducerSequence&, Current, current)
+	//! \since build 943
+	DefGetter(ynothrow, ReducerSequence&, CurrentRef, current)
 	DefGetter(const ynothrow
 		-> decltype(std::declval<Reducer>().target_type()), auto,
 		CurrentActionType, IsAlive() ? current.front().target_type()
@@ -2785,6 +2794,7 @@ public:
 
 	/*!
 	\brief 转移第二参数指定的位置之前的当前动作序列的动作到第一参数。
+	\pre 第二参数是当前动作的迭代器。
 	\since build 895
 	*/
 	PDefH(void, Shift, ReducerSequence& rs, ReducerSequence::const_iterator i)

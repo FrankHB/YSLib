@@ -54,7 +54,7 @@ $defl! SHBuild_EchoVar_E (env var) SHBuild_EchoVar var
 	(eval (string->symbol (SHBuild_SDot_ var)) env);
 
 "#", "Whole script variables.";
-$def! extra-opts (restv (() cmd-get-args));
+$def! extra-opts restv (() cmd-get-args);
 $def! (host-arch host-os) () SHBuild_GetPlatformStrings;
 $assert-nonempty host-arch,
 $assert-nonempty host-os;
@@ -139,6 +139,9 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 		$let ((outdir get-lib-outdir_ dynamic debug))
 		(
 			putss "Building " target-name " ...";
+			"XXX", "No need to set %LDFLAGS, since it is always set in the",
+				" call to 'build-with-conf-opt' for dynamic libraries.";
+			$if dynamic (safeenv-restore "LIBS");
 			build-with-conf-opt outdir host-os debug dynamic
 				"-xid,alternative -xid,data -xid,include -xid,Android" #f
 				ld-ext-noadjust_ ($lambda (CXX CXXFLAGS SHBOPT LIBPFX)
@@ -207,7 +210,7 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 					(
 						$def! extra () add-fix-flags;
 						$unless (string-empty? extra) (putss
-							"WARNING: Additional option are prepended to work"
+							"WARNING: Additional options are prepended to work"
 							" around the YFramework build: '" extra "'.");
 						extra
 					);
@@ -322,8 +325,6 @@ $let ()
 "NOTE", "Following settings are shared by stage 2 builds.",
 	"See user documentation Tools/Scripts.zh-CN.md.",
 	"Only SHBuild environment variables not otherwise set need to be restored.";
-safeenv-restore "LDFLAGS",
-safeenv-restore "LIBS";
 safeenv-set "LIBS" (SHBuild_TrimOptions_ (cons-cmd (safeenv-get "LIBS") "-L"
 	(system-quote-m_ SR_Lib_) "-lYFramework -lYBase"));
 $def! INCLUDES_ ++ (safeenv-get "INCLUDES") " -I" (system-quote-m_ SR_Include_);
