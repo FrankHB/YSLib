@@ -11,13 +11,13 @@
 /*!	\file function.hpp
 \ingroup YStandardEx
 \brief 函数基本操作和调用包装对象。
-\version r5052
+\version r5053
 \author FrankHB <frankhb1989@gmail.com>
 \since build 847
 \par 创建时间:
 	2018-12-13 01:24:06 +0800
 \par 修改时间:
-	2022-03-21 12:08 +0800
+	2022-04-29 00:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -377,7 +377,7 @@ struct function_traits<_tRet(_tParams...), empty_function_policy::no_check>
 	static _tRet
 	call(const _tContent& content, const _fInvoke& f, _tParams&&... args)
 	{
-		yconstraint(bool(content));
+		yconstraint(bool(content.has_value()));
 		yassume(f);
 		return f(content, yforward(args)...);
 	}

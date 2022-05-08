@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r22322
+\version r22367
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2022-04-26 00:32 +0800
+	2022-05-02 05:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -474,19 +474,24 @@ public:
 		: alloc(a)
 	{}
 
-	YB_FLATTEN ReductionStatus
+	ReductionStatus
 	operator()(TermNode& term) const
 	{
 #if NPL_Impl_NPLA1_Enable_ThunkedSeparatorPass
 		YAssert(remained.empty(), "Invalid state found.");
-		Transform(term, remained);
+		Transform(term);
+#	if NPL_Impl_NPLA1_Enable_ThunkedThreshold == 0
+		YAssert(!remained.empty(), "Invalid state found.");
+		// XXX: For some reason, 'while' here is more efficient than 'do' in the
+		//	generated code with x86_64-pc-linux G++ 11.1.0.
+#	endif
 		while(!remained.empty())
 		{
 			const auto term_ref(std::move(remained.top()));
 
 			remained.pop();
 			for(auto& tm : term_ref.get())
-				Transform(tm, remained);
+				Transform(tm);
 		}
 #else
 		Transform(term);
@@ -495,25 +500,40 @@ public:
 	}
 
 private:
+	YB_FLATTEN void
+	Transform(TermNode& term
+#	if defined(NPL_Impl_NPLA1_Enable_ThunkedSeparatorPass) \
+	&& NPL_Impl_NPLA1_Enable_ThunkedThreshold != 0
+		, size_t n = 0
+#	endif
+	) const
+	{
 #if NPL_Impl_NPLA1_Enable_ThunkedSeparatorPass
-	//! \since build 882
-	void
-	Transform(TermNode& term, TermStack& terms) const
-	{
-		terms.push(term);
-		SeparatorTransformer::ReplaceChildren(term, pfx, std::ref(filter));
-		SeparatorTransformer::ReplaceChildren(term, pfx2, std::ref(filter2));
-	}
+#	if NPL_Impl_NPLA1_Enable_ThunkedThreshold != 0
+		if(++n < NPL_Impl_NPLA1_Enable_ThunkedThreshold)
+		{
+			TransformLeaf(term);
+			for(auto& tm : term)
+				Transform(tm, n);
+			return;
+		}
+#	endif
+		remained.push(term);
+		TransformLeaf(term);
 #else
-	void
-	Transform(TermNode& term) const
-	{
-		SeparatorTransformer::ReplaceChildren(term, pfx, std::ref(filter));
-		SeparatorTransformer::ReplaceChildren(term, pfx2, std::ref(filter2));
+		TransformLeaf(term);
 		for(auto& tm : term)
 			Transform(tm);
-	}
 #endif
+	}
+
+	//! \since build 944
+	void
+	TransformLeaf(TermNode& term) const
+	{
+		SeparatorTransformer::ReplaceChildren(term, pfx, std::ref(filter));
+		SeparatorTransformer::ReplaceChildren(term, pfx2, std::ref(filter2));
+	}
 };
 
 
@@ -702,7 +722,7 @@ struct NoParameterCheck final
 		{
 			const auto p(TermToNamePtr(t));
 
-			YAssert(bool(p), "Invalid parameter tree found.");
+			YAssert(p, "Invalid parameter tree found.");
 			f(*p);
 		}
 	}
@@ -1614,10 +1634,7 @@ DefaultEvaluateLeaf(TermNode& term, string_view id)
 				break;
 			case 'i':
 				if(id.substr(1) == "nert")
-				{
-					term.Value = ValueToken::Unspecified;
-					return ReductionStatus::Clean;
-				}
+					return ReduceReturnUnspecified(term);
 				else if(id.substr(1) == "gnore")
 				{
 					term.Value = ValueToken::Ignore;

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r9118
+\version r9260
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-04-26 01:15 +0800
+	2022-05-08 21:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,149 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		* "ill-formed expression" @ "'yconstraint' operand"
+			@ "static function %call" @ "class template specialization \
+			%function_traits for %empty_function_policy::no_check"
+			@ %YBase.YStandardEx.Function $since b849,
+		/ "constructor#1" @ "class template %prefix_eraser" @ %Container
+			^ "first iterator in the range" ~ "last iterator in the range"
+			// Subsequent insertions would not be guarded by the old behavior. \
+				And it is also more natural to construct a no-op guard by \
+				default.
+	),
+	/ DLDI "simplified 1st operand" @ "%YAssert invocations" !^ 'bool'
+		$effective @ %(YBase.YStandardEx.CAssert,
+		YFramework.(Helper.ShellHelper, NPL.(NPLA1, NPLA1Internals),
+		YCLib.FileSystem, YSLib.Service.(ImageProcessing, TextRenderer,
+		YBlend))),
+		// A few exceptions are in %YFramework.YSLib.Service.YGDI, which need \
+			casts.
+	/ %YFramework.NPL $=
+	(
+		/ @ "class %TermNode" @ %Scontext $=
+		(
+			(
+			* "missing swapping tags" @ "function %SetContent#3"
+				$since b857 ^ "%std::swap";
+				// Also to be consistent %SetContnet. Now this is same to the \
+					friend function %swap.
+			/ DLDI "simplified friend function %swap" !^ "%std::swap"
+			),
+			(
+			+ "2 static function %AreEqual";
+			+ "friend function %operator==";
+			+ "friend %operator!="
+				^ "private base %ystdex::equality_comparable<TermNode>"
+			// If a container of list is saved in %Value, it requires '==' of \
+				%TermNode to work with %ValueObject.
+			),
+			(
+			/ "constructors with parameter of 'const TermNode&'"
+				^ "allocator from the 1st argument";
+				// This is more consistent to the copy constructor.
+			* $re_add(b916) "missing nested call safety in handling terms from \
+				object language" @ (("copy constructor with allocator";
+				$comp "copy constructor"), "constructors with pamameter of \
+				'const Container&'") $orig (@ "type %TermNode" $since b674)
+				$= (/ $impl ^ ("%ystdex::unchecked_function"
+					@ $dep_from %YBase.YStandardEx.Function))
+			)
+		),
+		/ %NPLA1Internals $=
+		(
+			- DLDI "unused variable" @ "member function \
+				%TCOAction::CompressFrameList",
+				// Also to eliminate G++ waraning: [-Wunused-variable].
+			/ DLDI "simplified one shot guard initialization"
+				^ "brace-initializer '{}'",
+			/ DLDI "simplified" @ ("copy constructor",
+				"function %MakeOneShotChecker")
+				^ ('->' ~ ('*', '.'), "cast" ~ "%optional::has_value"),
+			/ "%Action" ^ "%ystdex::unchecked_function" ~ "%function",
+			+ "macro %NPL_Impl_NPLA1_Enable_ThunkedThreshold",
+			/ "function %SetEvaluatedValue" $=
+			(
+				+ 'const' @ "3rd parameter",
+				+ DD "'\pre' command" @ "Doxygen comment",
+				/ DLI "optimized for nonnull value"
+					^ "explicit %EnvironmentReference construction",
+				/ DLI ^ "allocator"
+			)
+		),
+		/ %NPLA $=
+		(
+			+ "function %LiftSubtermsToReturn with parameter of \
+				'TermNode::Container&'";
+			/ DLDI "simplified %LiftSubtermsToReturn#2"
+		),
+		/ %NPLA1 $=
+		(
+			/ @ "constructors %REPLContext" $=
+			(
+				+ DLDI "assertion" @ "default %Preprocess",
+				/ DLI "improved nested calls efficiency"
+					^ $dep_from ("%NPL_Impl_NPLA1_Enable_ThunkedThreshold"
+					@ %NPLA1Internals)
+			),
+			/ DLDI "simplified function %DefaultEvaluateLeaf"
+				^ "%ReduceReturnUnspecified",
+			/ DLDI "simplified function %ReduceReturnUnspecified"
+				!^ "%TermNode::SetValue",
+				// To be consistent with other uses. This is also a bit \
+					tighter in generated code.
+			(
+			+ "enumerator %Pair" @ "enum class %ValueToken";
+			+ "%ValueToken::Pair support" @ "%to_string"
+			)
+		),
+		/ @ "namespace %Forms" @ %NPLA1Forms $=
+		(
+			/ @ "function %Apply" $=
+			(
+				+ DLDI "internal assertion",
+				* $re_ex(b913) "move-only object not allowed in terms handled \
+					by functions as native implemention of applicatives"
+					@ ("function %Apply" $since b859)
+					$= (/ $re_ex(b914) "avoided unexpected copy by list \
+						initialization via %std::initializer_list instance"
+						@ "%TermNode construction")
+			),
+			/ DLDI "accessed rest list value by container" @ "functions \
+				%(LetAsterisk, LetAsteriskRef, RestFwd, RestVal, SetRest, \
+				SetRestRef)" $dep_from ("%LiftSubtermsToReturn" @ %NPLA),
+			- $revert(b943) DLI "redundant %ClearCombiningTags call"
+				@ "function %Call1CC",
+			* "missing preserving tags" @ "modified lists" @ "functions \
+				%(SetRest, SetRestRef)" $orig (@ %NPLA1 $since b857),
+			* $comp DLI "missing clearing the container before the calls \
+				of the applicative" @ "functions %(AccL, AccR)" $since b942
+				$dep_from %YBase.YStadardEx.Container,
+				// This would not be exposed when the 1st subterm of the \
+					combining term is regular. However, it is unreliable.
+			/ DLDI "all %YSLib::in_place_type" -> "%in_place_type",
+				// The using declaration is already in NPLA.h.
+			/ DLI "setting reference result" @ "%(ListExtractFirst, \
+				LetAsterisk, LetAsteriskRef)" ^ "allocator"
+		),
+		/ %Dependency $=
+		(
+			* $comp "unexpected copy of initializers on calls"
+				@ "native implementation" @ "applicative %apply" $since b859
+				$dep_from ("%Apply" @ %NPLA1Forms)
+			* $comp "missing preserving reference property" @ "modified lists"
+				@ "applicatives ('set-rest!', 'set-rest%!')"
+				$dep_from ("functions %(SetRest, SetRestRef)" @ %NPLA1Forms)
+				$since b857
+				// The applicatives were introduced in b834, but the \
+					%TermTags::Temporary was used since b857.
+		)
+	)
+),
+
+b943
 (
 	/ %Tools $=
 	(

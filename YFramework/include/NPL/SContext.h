@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r4186
+\version r4233
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2022-03-18 03:12 +0800
+	2022-04-28 03:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,9 @@
 #define NPL_INC_SContext_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_Lexical // for ystdex::copy_and_swap, pmr, ByteParser,
-//	ystdex::expand_proxy, ystdex::unref, ystdex::as_const, LexemeList;
+#include YFM_NPL_Lexical // for ystdex::copy_and_swap, std::swap, pmr,
+//	ByteParser, ystdex::expand_proxy, ystdex::unref, ystdex::as_const,
+//	LexemeList;
 #include YFM_YSLib_Core_ValueNode // for YSLib::Deref, YSLib::MakeIndex,
 //	YSLib::NoContainer, YSLib::NoContainerTag, YSLib::ValueNode,
 //	YSLib::ValueObject, YSLib::forward_as_tuple, YSLib::get,
@@ -43,6 +44,7 @@
 //	YSLib::AccessPtr, ystdex::head_of_t, ystdex::addrof, ystdex::compose, pair,
 //	std::is_lvalue_reference, YSLib::Alert, YSLib::stack;
 #include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
+#include <ystdex/operators.hpp> // for ystdex::equality_comparable;
 #include <ystdex/deref_op.hpp> // for ystdex::call_value_or;
 #include <ystdex/range.hpp> // for std::iterator_traits,
 //	ystdex::range_iterator_t, ystdex::begin, ystdex::end,
@@ -213,7 +215,7 @@ inline PDefH(void, EnsureValueTags, TermTags& tags) ynothrow
 类似 ValueNode 的节点类型，但没有名称数据成员、按键比较和按键访问，
 	且使用 list 而不是 ystdex::mapped_set 作为容器。
 */
-class YF_API TermNode
+class YF_API TermNode : private ystdex::equality_comparable<TermNode>
 {
 private:
 	// TODO: Deduplicate within %ValueNode?
@@ -254,12 +256,15 @@ public:
 		: container(a)
 	{}
 	TermNode(const Container& con)
-		: container(con)
+		: TermNode(con, con.get_allocator())
 	{}
 	TermNode(Container&& con)
 		: container(std::move(con))
 	{}
-	//! \since build 853
+	/*!
+	\note 除非 Value 的构造非嵌套调用安全，支持构造任意子节点时的嵌套调用安全。
+	\since build 853
+	*/
 	//@{
 	template<typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
@@ -270,7 +275,8 @@ public:
 	template<typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	TermNode(const Container& con, _tParams&&... args)
-		: container(con), Value(yforward(args)...)
+		: TermNode(std::allocator_arg, con.get_allocator(), con,
+		yforward(args)...)
 	{}
 	template<typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
@@ -289,7 +295,7 @@ public:
 	inline
 	TermNode(std::allocator_arg_t, allocator_type a, const Container& con,
 		_tParams&&... args)
-		: container(con, a), Value(yforward(args)...)
+		: container(ConSub(con, a)), Value(yforward(args)...)
 	{}
 	template<typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
@@ -299,11 +305,11 @@ public:
 		: container(std::move(con), a), Value(yforward(args)...)
 	{}
 	//@}
-	//! \warning 非嵌套调用安全。
+	//! \warning 不保证嵌套调用安全。
 	TermNode(const ValueNode& nd, allocator_type a)
 		: container(ConCons(nd.GetContainer(), a)), Value(nd.Value)
 	{}
-	//! \warning 非嵌套调用安全。
+	//! \warning 不保证嵌套调用安全。
 	TermNode(ValueNode&& nd, allocator_type a)
 		: container(ConCons(std::move(nd.GetContainerRef()), a)),
 		Value(std::move(nd.Value))
@@ -324,17 +330,19 @@ public:
 		std::initializer_list<TermNode> il, _tParams&&... args)
 		: TermNode(std::allocator_arg, a, Container(il, a), yforward(args)...)
 	{}
-	//! \warning 非嵌套调用安全。
+	//! \warning 不保证嵌套调用安全。
 	explicit
 	TermNode(const ValueNode& nd)
 		: container(ConCons(nd.GetContainer())), Value(nd.Value)
 	{}
-	//! \warning 非嵌套调用安全。
+	//! \warning 不保证嵌套调用安全。
 	explicit
 	TermNode(ValueNode&& nd)
 		: container(ConCons(std::move(nd.GetContainer()))),
 		Value(std::move(nd.Value))
 	{}
+	//! \note 除非 Value 的构造非嵌套调用安全，支持构造任意子节点时的嵌套调用安全。
+	//@{
 	/*!
 	\brief 复制构造：使用参数和参数的分配器。
 	\since build 879
@@ -344,13 +352,14 @@ public:
 	{}
 	//! \brief 复制构造：使用参数和参数指定的分配器。
 	TermNode(const TermNode& nd, allocator_type a)
-		: container(nd.container, a), Value(nd.Value), Tags(nd.Tags)
+		: container(ConSub(nd.container, a)), Value(nd.Value), Tags(nd.Tags)
 	{}
 	DefDeMoveCtor(TermNode)
 	TermNode(TermNode&& nd, allocator_type a)
 		: container(std::move(nd.container), a), Value(std::move(nd.Value)),
 		Tags(nd.Tags)
 	{}
+	//@}
 
 	/*!
 	\brief 复制赋值：使用参数副本和交换操作。
@@ -365,7 +374,7 @@ public:
 	DefDeMoveAssignment(TermNode)
 	/*
 	\brief 析构：类定义外默认实现。
-	\note 支持移除任意子节点时的嵌套调用安全。
+	\note 除非 Value 的析构非嵌套调用安全，支持移除任意子节点时的嵌套调用安全。
 	\since build 916
 	*/
 	~TermNode()
@@ -379,6 +388,16 @@ public:
 		//	%any has branch. Keep it as-is at current.
 		Clear();
 	}
+
+	/*!
+	\brief 比较相等。
+	\warning 不保证嵌套调用安全。
+	\since build 944
+	*/
+	YB_ATTR_nodiscard YB_PURE friend
+		PDefHOp(bool, ==, const TermNode& x, const TermNode& y) ynothrow
+		ImplRet(x.Tags == y.Tags && x.GetContainer() == y.GetContainer()
+			&& x.Value == y.Value)
 
 	//! \since build 853
 	YB_PURE DefBoolNeg(YB_PURE explicit, bool(Value) || !empty())
@@ -456,6 +475,8 @@ public:
 		con.emplace(position, NoContainer, yforward(args)...);
 	}
 
+	//! \note 除非 Value 的析构非嵌套调用安全，支持移除任意子节点时的嵌套调用安全。
+	//@{
 	//! \note 不访问 Tags 。
 	PDefH(void, Clear, ) ynothrow
 		// XXX: The order can be siginificant.
@@ -464,10 +485,10 @@ public:
 	/*!
 	\brief 清除容器。
 	\post 断言：\c IsLeaf(*this) 。
-	\note 支持移除任意子节点时的嵌套调用安全。
 	*/
 	void
 	ClearContainer() ynothrow;
+	//@}
 
 	/*!
 	\note 允许被参数中被复制的对象直接或间接地被目标引用。
@@ -485,17 +506,21 @@ public:
 	//@}
 
 private:
-	//! \warning 非嵌套调用安全。
+	//! \warning 不保证嵌套调用安全。
 	//@{
-	static TermNode::Container
+	YB_ATTR_nodiscard YB_PURE static TermNode::Container
 	ConCons(const ValueNode::Container&);
-	static TermNode::Container
+	YB_ATTR_nodiscard YB_PURE static TermNode::Container
 	ConCons(ValueNode::Container&&);
-	static TermNode::Container
+	YB_ATTR_nodiscard YB_PURE static TermNode::Container
 	ConCons(const ValueNode::Container&, allocator_type);
-	static TermNode::Container
+	YB_ATTR_nodiscard YB_PURE static TermNode::Container
 	ConCons(ValueNode::Container&&, allocator_type);
 	//@}
+
+	//! \since build 934
+	YB_ATTR_nodiscard YB_PURE static Container
+	ConSub(const Container&, allocator_type);
 
 public:
 	template<class _tCon, typename _fCallable,
@@ -588,7 +613,8 @@ public:
 			"Invalid allocator found."), container.swap(nd.container))
 
 	PDefH(void, SwapContent, TermNode& term) ynothrowv
-		ImplExpr(SwapContainer(term), swap(Value, term.Value))
+		ImplExpr(SwapContainer(term), swap(Value, term.Value),
+			std::swap(Tags, term.Tags))
 
 	YB_ATTR_nodiscard YB_PURE PDefH(iterator, begin, ) ynothrow
 		ImplRet(container.begin())
@@ -638,7 +664,7 @@ public:
 		ImplRet(container.size())
 
 	friend PDefH(void, swap, TermNode& x, TermNode& y) ynothrowv
-		ImplExpr(x.SwapContent(y), std::swap(x.Tags, y.Tags))
+		ImplExpr(x.SwapContent(y))
 };
 
 //! \relates TermNode
@@ -871,7 +897,7 @@ inline PDefH(void, RemoveHead, TermNode& nd) ynothrowv
 /*!
 \brief 根据节点和节点容器创建操作设置目标节点的值或子节点。
 \note 可用于创建副本。
-\warning 不检查嵌套深度，不支持嵌套调用安全。
+\warning 不保证嵌套调用安全。
 */
 template<typename _fCallable, class _tNode>
 void

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015 FrankHB.
+	© 2015, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBlend.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r56
+\version r59
 \author FrankHB <frankhb1989@gmail.com>
 \since build 584
 \par 创建时间:
 	2015-03-17 06:19:55 +0800
 \par 修改时间:
-	2015-03-17 06:45 +0800
+	2022-04-30 21:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ namespace Drawing
 void
 BlendRect(const Graphics& g, const Rect& r, Color c)
 {
-	YAssert(bool(g), "Invalid graphics context found.");
+	YAssert(g, "Invalid graphics context found.");
 	BlendRectRaw(g.GetBufferPtr(), Pixel(c), g.GetSize(), r);
 }
 
@@ -47,7 +47,7 @@ BlendRect(const Graphics& g, const Rect& r, Color c)
 void
 CompositeRect(const Graphics& g, const Rect& r, Color c)
 {
-	YAssert(bool(g), "Invalid graphics context found.");
+	YAssert(g, "Invalid graphics context found.");
 	CompositeRectRaw(g.GetBufferPtr(), Pixel(c), g.GetSize(), r);
 }
 

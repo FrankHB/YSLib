@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14440
+\version r14455
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2022-04-22 19:28 +0800
+	2022-04-30 02:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -524,6 +524,11 @@ YSL_UI_Impl_ATrack_Partial_Invalidation
 
 $dir NPL
 {
+$unit SContext
+{
+NPL_Impl_SContext_Enable_ThunkedActions
+#NPL_Impl_SContext_Enable_ThunkedThreshold
+}
 $unit NPLA
 {
 #NPL_NPLA_CheckEnvironmentReferenceCount
@@ -535,18 +540,23 @@ $unit NPLAMath
 {
 NPL_NPLA_EnsureInPlaceNativeNumbers
 #NPL_Impl_NPLAMath_UseQuadMath
-#NPL_Impl_NPLAMath_Has_UInt128
-}
-$unit NPLA1Forms
-{
-NPL_NPLA1Forms_CheckContinuationFrames
+#NPL_Impl_NPLAMath_has_uint128
 }
 $internal $unit NPLA1Internals
 {
 NPL_Impl_NPLA1_Enable_InlineDirect
 NPL_Impl_NPLA1_Enable_TCO
 NPL_Impl_NPLA1_Enable_Thunked
+#NPL_Impl_NPLA1_Enable_ThunkedThreshold
 NPL_Impl_NPLA1_Enable_ThunkedSeparatorPass
+}
+$unit NPLA1
+{
+NPL_Impl_NPLA1_AssertParameterMatch
+}
+$unit NPLA1Forms
+{
+NPL_NPLA1Forms_CheckContinuationFrames
 }
 $unit Dependency
 {

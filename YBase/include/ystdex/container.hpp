@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r2610
+\version r2611
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2022-04-05 07:04 +0800
+	2022-05-05 02:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -202,7 +202,7 @@ struct prefix_eraser
 	const_iterator position;
 
 	prefix_eraser(container_type& con) ynothrow
-		: prefix_eraser(con, con.end())
+		: prefix_eraser(con, con.begin())
 	{}
 	//! \pre 第二参数是第一参数的迭代器。
 	prefix_eraser(container_type& con, const_iterator i)

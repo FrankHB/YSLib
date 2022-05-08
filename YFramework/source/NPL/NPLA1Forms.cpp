@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r26599
+\version r26663
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2022-04-26 00:40 +0800
+	2022-05-06 01:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 //	std::placeholders, std::ref, std::bind, ystdex::as_const, IsLeaf,
 //	ValueObject, ystdex::ref_eq, RelaySwitched, trivial_swap, shared_ptr,
 //	ContextHandler, YSLib::unordered_map, string, Environment, lref, TokenValue,
-//	any_ops::use_holder, YSLib::in_place_type, YSLib::HolderFromPointer,
+//	any_ops::use_holder, in_place_type, YSLib::HolderFromPointer,
 //	YSLib::allocate_shared, InvalidReference, BindParameter, MoveFirstSubterm,
 //	ResolveEnvironment, ShareMoveTerm, BindParameterWellFormed, ystdex::sfmt,
 //	TermToStringWithReferenceMark, ResolveTerm, LiftOtherOrCopy,
@@ -46,13 +46,14 @@
 //	NPL::SwitchToFreshEnvironment, TermTags, YSLib::Debug, YSLib::sfmt,
 //	A1::MakeForm, ystdex::expand_proxy, NPL::AccessRegular, GetLValueTagsOf,
 //	RegularizeTerm, IsBranchedList, LiftMovedOther, LiftOtherValue,
-//	ThrowValueCategoryError, std::mem_fn, ystdex::bind1,
-//	ThrowListTypeErrorForNonlist, ThrowInvalidSyntaxError,
-//	CheckEnvironmentFormal, type_id, ystdex::update_thunk, IsTyped, BindSymbol,
-//	IsNPLASymbol, ystdex::fast_all_of, ystdex::call_value_or, A1::AsForm,
-//	LiftCollapsed, YSLib::usystem;
+//	ThrowValueCategoryError, std::mem_fn, ThrowListTypeErrorForNonlist,
+//	ThrowInvalidSyntaxError, CheckEnvironmentFormal, type_id,
+//	ystdex::update_thunk, IsTyped, BindSymbol, A1::AsForm, ystdex::bind1,
+//	IsNPLASymbol, ystdex::fast_all_of, ystdex::call_value_or, LiftCollapsed,
+//	YSLib::usystem;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_SContext // for Session;
+#include <ystdex/functor.hpp> // for ystdex::id;
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard, ystdex::dismiss;
 #include <ystdex/container.hpp> // for ystdex::prefix_eraser;
 
@@ -365,7 +366,7 @@ private:
 				//	bound symbol can then be rebound to an ordinary
 				//	(non-sharing object.
 				env.Bind(k, TermNode(TermNode::Container(t.get_allocator()),
-					ValueObject(any_ops::use_holder, YSLib::in_place_type<
+					ValueObject(any_ops::use_holder, in_place_type<
 					YSLib::HolderFromPointer<shared_ptr_t>>,
 					store[k] = YSLib::allocate_shared<ContextHandler>(
 					t.get_allocator(), ThrowInvalidCyclicReference))));
@@ -941,17 +942,17 @@ public:
 };
 
 
-//! \since build 874
+//! \since build 944
 void
-MakeValueListOrMove(TermNode& term, TermNode& nd,
+MakeValueListOrMove(TermNode::Container& con, TermNode& nd,
 	ResolvedTermReferencePtr p_ref)
 {
 	MakeValueOrMove(p_ref, [&]{
 		for(const auto& sub : nd)
-			term.Add(sub);
+			con.push_back(sub);
 	}, [&]{
 		// XXX: No cyclic reference check.
-		term.GetContainerRef().splice(term.end(), nd.GetContainerRef());
+		con.splice(con.end(), nd.GetContainerRef());
 	});
 }
 
@@ -964,16 +965,22 @@ ThrowConsError(TermNode& nd, ResolvedTermReferencePtr p_ref)
 		TermToStringWithReferenceMark(nd, p_ref).c_str()));
 }
 
+//! \since build 944
+void
+ConsItem(TermNode::Container& con, TermNode& y)
+{
+	ResolveTerm([&](TermNode& nd_y, ResolvedTermReferencePtr p_ref){
+		if(IsList(nd_y))
+			MakeValueListOrMove(con, nd_y, p_ref);
+		else
+			ThrowConsError(nd_y, p_ref);
+	}, y);
+}
 //! \since build 859
 void
 ConsItem(TermNode& term, TermNode& y)
 {
-	ResolveTerm([&](TermNode& nd_y, ResolvedTermReferencePtr p_ref){
-		if(IsList(nd_y))
-			MakeValueListOrMove(term, nd_y, p_ref);
-		else
-			ThrowConsError(nd_y, p_ref);
-	}, y);
+	ConsItem(term.GetContainerRef(), y);
 }
 
 //! \since build 912
@@ -1397,7 +1404,9 @@ BranchFirstReferenced(TermNode& term, TermNode& nd,
 		//	not unique due to 2-pass iterations (e.g. it may be also used in
 		//	a interleaved call to %BranchRestFwdReferenced with unspecified
 		//	order to this call).
-		term.Value = TermReference(PropagateTo(tm.Tags, tags), tm, r_env);
+		term.Value = ValueObject(std::allocator_arg, term.get_allocator(),
+			in_place_type<TermReference>, PropagateTo(tm.Tags, tags), tm,
+			r_env);
 		// NOTE: No %TermNode::ClearContainer is here because %term is expected
 		//	newly created.
 		YAssert(IsLeaf(term), "Invalid term found");
@@ -1463,7 +1472,7 @@ TransactRest(TermNode& term, TermNode& nd, bool move, _func f, _func2 f2)
 
 	++first;
 	if(move)
-		con.splice(con.end(), f(nd), first, last);
+		con.splice(con.end(), f(nd.GetContainerRef()), first, last);
 	else
 		for(; first != last; ++first)
 			f2(con.emplace_back(), *first);
@@ -1474,21 +1483,21 @@ TransactRest(TermNode& term, TermNode& nd, bool move, _func f, _func2 f2)
 void
 BranchRestFwdReferenced(TermNode& term, TermNode& nd, bool move)
 {
-	TransactRest(term, nd, move, std::mem_fn(&TermNode::GetContainerRef),
-		ystdex::bind1(&TermNode::CopyContent, std::placeholders::_2));
+	TransactRest(term, nd, move, ystdex::id<>(),
+		std::mem_fn(&TermNode::CopyContent));
 }
 
-//! \since build 918
-template<void(&_rLift)(TermNode&), typename _fInsert>
+//! \since build 944
+template<void(&_rLift)(TermNode::Container&), typename _fInsert>
 ReductionStatus
 RestOrVal(TermNode& term, _fInsert insert)
 {
 	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
 		if(IsBranchedList(nd))
 			TransactRest(term, nd, NPL::IsMovable(p_ref),
-				[](TermNode& tm) -> TermNode::Container&{
-				_rLift(tm);
-				return tm.GetContainerRef();
+				[](TermNode::Container& con) -> TermNode::Container&{
+				_rLift(con);
+				return con;
 			}, [&](TermNode& nterm, TermNode& tm){
 				insert(nterm, tm, p_ref->GetTags());
 			});
@@ -1529,17 +1538,17 @@ DoSetFirst(TermNode& term, _func f)
 	}, term);
 }
 
-//! \since build 853
+//! \since build 944
 void
-LiftNoOp(TermNode&)
+LiftNoOp(TermNode::Container&)
 // XXX: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100472.
 #if !(YB_IMPL_GNUCPP && YB_HAS_NOEXCEPT && __cplusplus >= 201703L)
 	ynothrow
 #endif
 {}
 
-//! \since build 918
-template<void(&_rLift)(TermNode&)>
+//! \since build 944
+template<void(&_rLift)(TermNode::Container&)>
 void
 SetRestImpl(TermNode& term)
 {
@@ -1549,14 +1558,15 @@ SetRestImpl(TermNode& term)
 			if(IsList(nd_y))
 			{
 				const auto a(nd_x.get_allocator());
-				TermNode nd_new(a);
+				TermNode::Container con_new(a);
 
-				nd_new.emplace();
-				MakeValueListOrMove(nd_new, nd_y, p_ref_y);
-				_rLift(nd_new);
+				con_new.emplace_back();
+				MakeValueListOrMove(con_new, nd_y, p_ref_y);
+				_rLift(con_new);
 				// XXX: The order is significant.
-				AccessFirstSubterm(nd_new) = MoveFirstSubterm(nd_x);
-				swap(nd_x, nd_new);
+				con_new.front() = MoveFirstSubterm(nd_x);
+				swap(nd_x.GetContainerRef(), con_new);
+				nd_x.Value.Clear();
 			}
 			else
 				ThrowListTypeErrorForNonlist(nd_y, p_ref_y);
@@ -1832,19 +1842,27 @@ EqualSubterm(bool& r, Action& act, TermNode::allocator_type a, TNCIter first1,
 }
 
 
-//! \since build 859
+/*!
+\pre 第三参数非空。
+\since build 859
+*/
 ReductionStatus
 ApplyImpl(TermNode& term, ContextNode& ctx, shared_ptr<Environment> p_env)
 {
+	YAssert(p_env, "Invalid environment found.");
+
 	auto i(term.begin());
 	auto& comb(NPL::Deref(++i));
 
 	ForwardToUnwrapped(comb);
+	{
+		TermNode::Container tcon(term.get_allocator());
 
-	TermNode expr(std::allocator_arg, term.get_allocator(), {std::move(comb)});
-
-	ConsItem(expr, NPL::Deref(++i));
-	term = std::move(expr);
+		tcon.push_back(std::move(comb));
+		ConsItem(tcon, NPL::Deref(++i));
+		tcon.swap(term.GetContainerRef());
+	}
+	ClearCombiningTags(term);
 	// NOTE: The precondition is same to the last call in %EvalImplUnchecked.
 	//	See also the precondition of %Combine<TailCall>::RelayEnvSwitch.
 	return Combine<TailCall>::RelayEnvSwitch(ctx, term, std::move(p_env));
@@ -1907,6 +1925,8 @@ AccSetTerm(TermNode& term, _tTerm&& lv_l, TermNode& tail,
 		RemoveTermPostfix(gd);
 	}
 	term.Value.Clear();
+	// XXX: No %ClearCombiningTags is called, as it would be determined later
+	//	in the subsequent combiner call.
 }
 //@}
 
@@ -2364,8 +2384,8 @@ ReduceListExtractRestFwd(TermNode& term)
 		//	to make the list elements having %TermTags::Temporary.
 		BranchRestFwdReferenced(nterm, nd, NPL::IsMovable(tags));
 	}, [](TermNode& nterm, TermNode& o, TermTags o_tags){
-		TransactRest(nterm, o, NPL::IsMovable(o.Tags | o_tags), std::mem_fn(
-			&TermNode::GetContainerRef), std::mem_fn(&TermNode::CopyContent));
+		TransactRest(nterm, o, NPL::IsMovable(o.Tags | o_tags), ystdex::id<>(),
+			std::mem_fn(&TermNode::CopyContent));
 	});
 	return ReductionStatus::Retained;
 }
@@ -4485,7 +4505,6 @@ Call1CC(TermNode& term, ContextNode& ctx)
 		yunseq(term.GetContainerRef() = std::move(con),
 			term.Value = std::move(vo));
 		SetupNextTerm(ctx, term);
-		ClearCombiningTags(term);
 		RemoveHead(term);
 		return ReductionStatus::Retained;
 	},

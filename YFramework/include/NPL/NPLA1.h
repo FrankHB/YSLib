@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9447
+\version r9448
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-04-26 00:10 +0800
+	2022-05-02 05:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -677,7 +677,7 @@ ReduceToReferenceUList(TermNode&, TermNode&);
 \since build 896
 */
 inline PDefH(ReductionStatus, ReduceReturnUnspecified, TermNode& term) ynothrow
-	ImplRet(term.SetValue(ValueToken::Unspecified), ReductionStatus::Clean)
+	ImplRet(term.Value = ValueToken::Unspecified, ReductionStatus::Clean)
 
 
 /*!

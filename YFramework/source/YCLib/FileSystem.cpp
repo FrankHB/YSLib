@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2021 FrankHB.
+	© 2011-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4989
+\version r4991
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2021-12-12 16:54 +0800
+	2022-04-30 21:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -711,7 +711,7 @@ HDirectory::GetNodeCategory() const ynothrow
 {
 	if(*this)
 	{
-		YAssert(bool(GetNativeHandle()), "Invariant violation found.");
+		YAssert(GetNativeHandle(), "Invariant violation found.");
 
 #if YCL_Win32
 		const auto res(Deref(static_cast<platform_ex::DirectoryFindData*>(

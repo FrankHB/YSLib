@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015, 2019-2021 FrankHB.
+	© 2010-2015, 2019-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r633
+\version r636
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2021-12-13 01:21 +0800
+	2022-04-30 21:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,7 +73,7 @@ inline void
 snftime(char* buf, size_t n, const std::tm& tm,
 	const char* format = DefaultTimeFormat)
 {
-	// FIXME: correct behavior for time with BC date(i.e. tm_year < -1900);
+	// FIXME: Correct behavior for time with BC date(i.e. tm_year < -1900).
 	std::snprintf(buf, n, format, tm.tm_year + 1900,
 		tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 }
@@ -165,7 +165,7 @@ FetchVisualStyleNames(String default_name)
 	auto p_list(make_shared<TextList::ListType>(styles.cbegin()
 		| ystdex::get_key, styles.cend() | ystdex::get_key));
 
-	YAssert(bool(p_list) && !p_list->empty(),
+	YAssert(p_list && !p_list->empty(),
 		"Invalid style mapping state found");
 	p_list->front() = std::move(default_name);
 	return make_shared<TextList::ListType>(p_list->cbegin(), p_list->cend());

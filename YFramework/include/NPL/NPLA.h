@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r9455
+\version r9468
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2022-04-22 19:31 +0800
+	2022-05-08 16:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -613,6 +613,7 @@ TermToTags(TermNode&);
 /*!
 \brief 标记记号节点：递归变换节点，转换其中的词素为记号值。
 \note 先变换子节点。
+\warning 不保证嵌套调用安全。
 \since build 753
 */
 YF_API void
@@ -1602,10 +1603,15 @@ MoveRValueToReturn(TermNode&, TermNode&);
 /*!
 \brief 对每个子项提升项的值数据成员可能包含的引用值。
 \sa LiftToReturn
-\since build 830
 */
+//@{
+//! \since build 944
+inline PDefH(void, LiftSubtermsToReturn, TermNode::Container& con)
+	ImplExpr(std::for_each(con.begin(), con.end(), LiftToReturn))
+//! \since build 830
 inline PDefH(void, LiftSubtermsToReturn, TermNode& term)
-	ImplExpr(std::for_each(term.begin(), term.end(), LiftToReturn))
+	ImplExpr(LiftSubtermsToReturn(term.GetContainerRef()))
+//@}
 
 //! \pre 断言：参数指定的项是枝节点。
 //@{
@@ -1947,7 +1953,9 @@ public:
 	\brief 名称解析结果。
 	\since build 821
 
-	名称解析的返回结果是环境中的绑定目标的对象指针和直接保存绑定目标的环境的引用。
+	名称解析结果可以是：
+	环境中的绑定目标的非空对象指针和直接保存绑定目标的环境的引用；
+	表示没有找到指定变量的空指针和未指定的环境引用的值。
 	*/
 	using NameResolution
 		= pair<observer_ptr<BindingMap::mapped_type>, shared_ptr<Environment>>;
@@ -2699,7 +2707,7 @@ public:
 	若重定向可能具有共享所有权的失败，则表示资源访问错误，如构成循环引用；
 		发现环境的循环引用视为失败，抛出异常；其它情形行为未定义。
 	以上支持的宿主值类型被依次尝试访问。若成功，则使用此宿主值类型访问环境。
-	对列表，使用 DFS （深度优先搜索）依次递归检查其元素。
+	对列表，使用 DFS（深度优先搜索）依次递归检查其元素。
 	循环重定向不终止。
 	*/
 	YB_ATTR_nodiscard static Environment::NameResolution

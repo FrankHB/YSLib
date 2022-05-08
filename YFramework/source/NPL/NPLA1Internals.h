@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r22076
+\version r22108
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-04-25 01:04 +0800
+	2022-05-06 01:22 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -29,9 +29,9 @@
 #define NPL_INC_NPLA1Internals_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_NPLA1 // for ContextNode, TermNode, ContextState,
-//	ReductionStatus, Reducer, YSLib::map, lref, Environment,
-//	set, NPL::Deref, IsTyped, EnvironmentList, EnvironmentReference, tuple,
+#include YFM_NPL_NPLA1 // for shared_ptr, ContextNode, NPL::Deref, NPLException,
+//	TermNode, ReductionStatus, Reducer, YSLib::map, lref, Environment,
+//	set, IsTyped, EnvironmentList, EnvironmentReference, tuple,
 //	YSLib::get, YSLib::forward_list, size_t, list, std::declval,
 //	EnvironmentGuard, MoveKeptGuard, A1::NameTypedContextHandler, TermReference,
 //	ThrowTypeErrorForInvalidType, NPL::TryAccessLeaf, type_id,
@@ -43,6 +43,7 @@
 #include <ystdex/ref.hpp> // for std::reference_wrapper, std::ref,
 //	ystdex::unref;
 #include <ystdex/bind.hpp> // for ystdex::bind1, std::placeholders::_2;
+#include <ystdex/function.hpp> // for ystdex::unchecked_function;
 #include <ystdex/function_adaptor.hpp> // for ystdex::update_thunk;
 #include <iterator> // for std::next;
 
@@ -78,6 +79,13 @@ inline namespace Internals
 //	supporting PTC are noted in implementations separatedly.
 #define NPL_Impl_NPLA1_Enable_TCO true
 #define NPL_Impl_NPLA1_Enable_Thunked true
+// NOTE: If non zero, thunks are only used only for more than certain level of
+//	nested calls occur. The value should be small enough to ensure the nested
+//	call safety guarantee still works in practice. Currently only enabled for
+//	thunked separator passes (see below).
+#ifndef NPL_Impl_NPLA1_Enable_ThunkedThreshold
+#	define NPL_Impl_NPLA1_Enable_ThunkedThreshold yimpl(16U)
+#endif
 #define NPL_Impl_NPLA1_Enable_ThunkedSeparatorPass NPL_Impl_NPLA1_Enable_Thunked
 
 //! \since build 820
@@ -331,7 +339,7 @@ private:
 	\brief 一次调用检查守卫。
 	\since build 943
 	*/
-	mutable ystdex::optional<ystdex::guard<OneShotChecker>> one_shot_guard;
+	mutable ystdex::optional<ystdex::guard<OneShotChecker>> one_shot_guard{};
 
 public:
 	//! \since build 819
@@ -347,7 +355,7 @@ public:
 				"Invalid value for combining term found.");
 			return std::move(term.Value);
 			// XXX: After the move, %term.Value is unspecified.
-		}()), one_shot_guard()
+		}())
 		// XXX: Do not call %AssertValueTags on %term, as it is usually a
 		//	combinitation instead of the representation of some object language
 		//	value.
@@ -359,11 +367,10 @@ public:
 		//	object always live longer than the older one.
 		: term_guard(std::move(a.term_guard)),
 		req_lift_result(a.req_lift_result), stashed(ystdex::exchange(a.stashed,
-		ContextHandler())), EnvGuard(std::move(a.EnvGuard)),
-		one_shot_guard()
+		ContextHandler())), EnvGuard(std::move(a.EnvGuard))
 	{
-		if(a.one_shot_guard.has_value())
-			one_shot_guard.emplace((*a.one_shot_guard).func);
+		if(a.one_shot_guard)
+			one_shot_guard.emplace(a.one_shot_guard->func);
 	}
 	DefDeMoveCtor(TCOAction)
 	// XXX: Out of line destructor here is inefficient.
@@ -456,12 +463,12 @@ public:
 	YB_ATTR_nodiscard OneShotChecker
 	MakeOneShotChecker()
 	{
-		if(!one_shot_guard.has_value())
+		if(!one_shot_guard)
 			// XXX: The context is only used to determine the allocator, which
 			//	is an implementation detail. Usually the context in caller
 			//	should be the same, though.
 			one_shot_guard.emplace(EnvGuard.func.Context.get());
-		return (*one_shot_guard).func;
+		return one_shot_guard->func;
 	}
 
 	//! \since build 940
@@ -1099,7 +1106,7 @@ struct Combine final
 
 
 //! \since build 881
-using Action = function<void()>;
+using Action = ystdex::unchecked_function<void()>;
 
 
 //! \since build 897
@@ -1123,11 +1130,18 @@ inline PDefH(void, SetEvaluatedReference, TermNode& term, const TermNode& bound,
 		== &ref, "Invalid term or reference value found."), term.SetContent(
 		bound.GetContainer(), EnsureLValueReference(TermReference(ref))))
 
-//! \since build 920
-inline PDefH(void, SetEvaluatedValue, TermNode& term,
-	TermNode& bound, shared_ptr<Environment>& p_env)
-	ImplExpr(term.Value = TermReference(NPL::Deref(p_env).MakeTermTags(bound)
-		& ~TermTags::Unique, bound, std::move(p_env)))
+/*!
+\pre 第三参数非空。
+\since build 944
+*/
+inline PDefH(void, SetEvaluatedValue, TermNode& term, TermNode& bound,
+	const shared_ptr<Environment>& p_env)
+	ImplExpr(term.Value = [&](Environment& env){
+		return ValueObject(std::allocator_arg, term.get_allocator(),
+			in_place_type<TermReference>, env.MakeTermTags(bound)
+			& ~TermTags::Unique, bound,
+			EnvironmentReference(p_env, env.GetAnchorPtr()));
+	}(NPL::Deref(p_env)))
 
 
 //! \since build 917

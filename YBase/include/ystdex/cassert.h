@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2018-2021 FrankHB.
+	© 2012-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cassert.h
 \ingroup YStandardEx
 \brief ISO C 断言/调试跟踪扩展。
-\version r309
+\version r311
 \author FrankHB <frankhb1989@gmail.com>
 \since build 432
 \par 创建时间:
 	2013-07-27 04:11:53 +0800
 \par 修改时间:
-	2021-12-13 12:37 +0800
+	2022-04-30 21:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,7 +150,7 @@ ytrace(std::FILE*, std::uint8_t, std::uint8_t, const char*, int, const char*,
 // NOTE: As %assert, this may be undefined and redefined.
 #ifndef YAssertNonnull
 //! \since build 495
-#	define YAssertNonnull(_expr) YAssert(bool(_expr), "Null reference found.")
+#	define YAssertNonnull(_expr) YAssert(_expr, "Null reference found.")
 #endif
 
 #ifndef YTrace

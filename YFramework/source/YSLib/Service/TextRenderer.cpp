@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015, 2017, 2019 FrankHB.
+	© 2009-2015, 2017, 2019, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2766
+\version r2768
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2019-01-14 18:54 +0800
+	2022-04-30 21:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,7 +48,7 @@ namespace
 YB_ATTR_nodiscard PaintContext
 ClipChar(const Graphics& g, const Point& pen, const CharBitmap& cbmp, Rect r)
 {
-	YAssert(bool(g), "Invalid graphics context found.");
+	YAssert(g, "Invalid graphics context found.");
 
 	const auto pt(ClipBounds(r, Rect(pen.X + cbmp.GetLeft(),
 		pen.Y - cbmp.GetTop(), cbmp.GetWidth(), cbmp.GetHeight())));

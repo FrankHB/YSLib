@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20599
+\version r20602
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-04-05 15:19 +0800
+	2022-04-30 21:54 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -177,8 +177,6 @@ TCOAction::operator()(ContextNode& ctx) const
 void
 TCOAction::CompressFrameList()
 {
-	auto i(RecordList.cbegin());
-
 	ystdex::retry_on_cond(ystdex::id<>(), [&]() -> bool{
 		bool removed = {};
 
@@ -250,8 +248,7 @@ ReductionStatus
 ReduceAsSubobjectReference(TermNode& term, shared_ptr<TermNode> p_sub,
 	const EnvironmentReference& r_env)
 {
-	YAssert(bool(p_sub),
-		"Invalid subterm to form a subobject reference found.");
+	YAssert(p_sub, "Invalid subterm to form a subobject reference found.");
 
 	// NOTE: Irregular representation is constructed for the subobject
 	//	reference.
