@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4855
+\version r4913
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2022-02-10 16:06 +0800
+	2022-05-25 03:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1742,7 +1742,7 @@ Style of the Kernel language can be compared with current NPL, esp. NPLA1.
 							The basic one may not support recusion at all.
 							The advanced one can support recursion by nesting one more static environment internally.
 							For "letrec" families, it can be composed by basic primitives, similar to Kernel.
-						This also has impacts on resouce management in closures, notably, when mutual closures are incurred.
+						This also has impacts on resource management in closures, notably, when mutual closures are incurred.
 							The lexical mutual references are still allowed.
 							However, acyclic ownership relationship are effectively required, otherwise the behavior may be undefined indetermintely.
 							To reduce undefined behavior by accident, some mechanism for resource management is needed, optionally.
@@ -2220,12 +2220,12 @@ NPLA term lifting at end of returning from closure is reconsidered.
 		Becuase the inserted lifting operation is the tail context, direct switching to next continuation will change the semantics.
 		Since it is idempotent operation, it need only occur before the next continuation only once.
 			If it has already existed, it should be already in the tail context.
-	The conbiners '$and?' and '$or?' can not be directly implemented without new conbiner constructor.
+	The conbiners '$and?' and '$or?' can not be directly implemented without new conbiner constructors.
 		Since lvalue reference is always be lifted (i.e. lvalue-to-rvalue conversion), the result would not be reference, even the reference here is safe.
 			Here all retained reference can only be from the operand, which is safe for lvalues, so lifting would be overkill.
 		Without lifting, it can be expressed by other primitives like in Kernel.
 			Even the G1b guideline is not enforced in NPLA1, consistency is still important.
-		This is to be changed in future by providing conbiner constructor other than '$vau'.
+		This is to be changed in future by providing conbiner abstraction forms other than '$vau'.
 
 $2018-05:
 
@@ -2596,10 +2596,10 @@ PTC implementation in NPLA1 has been revisited.
 $2018-10:
 
 $report.impl:
-Last reduction status interaction has been simplified in thunked code of NPLA and NPLA1 implementation.
-	The status shared in evalation passes of a single evaluation now is placed as the last status in the context.
-		This avoid additional allocation with 'shared_ptr<ReductionStatus>'.
-	Note rewriting last status is unavoidable for thunked code even the reducer does not always relies on the result.
+The last reduction status interaction has been simplified in the thunked code of NPLA and NPLA1 implementation.
+	The status shared in evalation passes of a single evatluation now is placed as the last status in the context.
+		This avoids the additional allocation for 'shared_ptr<ReductionStatus>' shared in passes within an evaluation.
+	Note rewriting last status is unavoidable for the thunked code even if the reducer does not always relies on the result.
 		Because there is no simple way to know what is the last status when it is needed in an asynchronous action, the last status has to be always kept and updated in time.
 		This is true even when it can be predicated statically about which of the asynchronous actions need to use the previous status.
 Retionale of reductions in NPLA1 (esp. implementation of 'A1::ReduceOnce') is restated here for clarity.
@@ -3486,7 +3486,7 @@ YBase now provides 'ystdex::list' class template.
 		The pool finding is optimized with 'ystdex::lower_bound_n' instead of 'ystdex::lower_bound' (see above).
 			This have few effects for 'std::list' in libstdc++ because it is already optimized.
 			However, this is necessary to prevent performance degression for other implementations without such optimization.
-		Strictly speaking, since 'ystdex::pmr::resouce_pool' now is not an incomplete type, and no allocator-extended constructors are relied on here, there is no necessary to change the list type.
+		Strictly speaking, since 'ystdex::pmr::resource_pool' now is not an incomplete type, and no allocator-extended constructors are relied on here, there is no necessary to change the list type.
 			However, the optimization of using 'ystdex::lower_bound_n' can have slightly better performance with 'ystdex::list' instead of 'std::list'.
 		A side effect is that the change removes the debug interface used for the list type of libstdc++ in several debug configuarations, which should be OK for now, as the implementation of 'ystdex::pmr::pool_resource' before the change is considered stable enough.
 Android platform toolchain has been updated.
@@ -4084,8 +4084,8 @@ Several NPLA1 improvements are made.
 			This is in alignment to the applicative 'get-module' in [RnRK],
 				The stability in 'get-module' is get by a fresh environment made by 'make-kernel-standard-environment' as the parent.
 				This is also similar to '$let-safe' in [RnRK], though '$let-safe' is not specific to module interface.
-	The synchronous (non-thunked) implementation has been reviewed and several bug has been fixed.
-		The bugs in the native implementations of sequence algorithms ('AccR', 'FoldR1' and 'Map1' in namespace 'NPL::Forms' has been fixed).
+	The synchronous (non-thunked) implementation has been reviewed and several bugs have been fixed.
+		The bugs in the native implementations of sequence algorithms ('AccR', 'FoldR1' and 'Map1' in namespace 'NPL::A1::Forms' has been fixed).
 			One of the bug is the wrong use of 'RelaySwitched'.
 				This should not be used by the synchronous implementation.
 				It would cause invalid results and invalid memory accesses eventually becuase of the unexpected early return.
@@ -4106,15 +4106,15 @@ Several NPLA1 improvements are made.
 				However, overhead of new environment list support is still more significant.
 				In fact, the overhead of saving the owning parent to the TCO action in the TCO implementation for combiner rvalues in each call is also greater.
 			Since this is already undefined behavior, no compatibility issues should be raised.
-	Requirements of reduction function implementations are changed, to allow getting rid of some redundant operations to set the next term in the NPLA1 context in asynchronous reductions.
+	Requirements on reduction function implementations are changed, to allow getting rid of some redundant operations to set the next term in the NPLA1 context in asynchronous reductions.
 		The 'A1::ReduceOnce' is changed to have the setup at first.
 			This behavior is now consistent to the main reduction function 'A1::Reduce'.
 			This is only changed in asynchronous implementations, different to context rewriting functions which always setup the next term at first.
 			This is the only change that should be taken before the remained changes below.
 			The change is made here to minimize the incompatibility issues.
 				The 'A1::ReduceOnce' without next term setup before its call is used in several cases.
-				To name a few, YFramework module NPL::Dependency and the SHBuild implementation both rely on the behavior.
-				The change makes the loading in NPL::Dependency a bit less optimal. This can be improved later.
+				To name a few, YFramework module NPL::Dependency and the SHBuild implementation both work with the old behavior.
+				The change makes the loading in these call sites a bit less optimal. This can be improved later.
 		An internal helper function is provided to assert the next term stored in 'A1::ContextState' same to the current term (specified by 'TermNode&' argument of the reduction functions). 
 		'A1::ContextState::ReduceOnce' now requires more explicit precondition to ensure the next term would be always setup properly unless there is no 'A1::Continuation' calls implied by the impementation.
 		'A1::ContextState::DefaultReduceOnce' is simplified.
@@ -4800,6 +4800,53 @@ Uses of traits have been fixed to avoid of unexpected ADL.
 		Use of traits named with '_v' postfixes are even more preferred, but not available yet, as the YSLib project currently does not rely on variable templates (which requires ISO C++14).
 		Use of expicit cast to 'bool' is unnecessary verbose and still a bit error-prone (for the unclear intent), so, not adopted.
 		ISO also does not not forbid the overloads.
+
+$2022-05:
+
+report.impl:
+The most recent supported GCC version on x86_64 Linux has been updated to 12.1.0.
+	This is changed after some workarounds in the source code, otherwise it would generate wrong code crashing runtime.
+		Both '-fdisable-tree-einline' in the command line options and 'no-tree-pta' optimization attribute work it around, revealing this an issue related to point-to anlysis.
+	The previous version is 11.1.0.
+		No further 11.x versions are supported because at least GCC 11.2.0 on Arch Linux would crash on LTO.
+	Several places critical to performance have also been tweaked for x86_64-pc-linux G++ 12.1.0.
+		One notable instance is the removal of flatten attributes in the enclosing loop (but not the inner one) of the default name resolution implementation in NPLA.
+			The attributes lead to less efficient code than in G++ 11.1.0.
+			Without the attributes the code is even more efficient than before.
+			Nevertheless, the attributes are still preserved for the old version of GCC which will still be supported for years.
+		Another instance is the adjustment on 'ystdex::resource_pool::deallocate', now annotated with 'YB_ATTR(optimize("Os"))'.
+			For some reason, x86_64-pc-linux G++ 12.1 '-O3' generated worse code around the chunk 'add_free' add_free by one more redundant 'mov QWORD PTR [rsp+8], rsi' instruction.
+				This also looks like issues on point-to analysis.
+				The instruction saves the old value of 'p_link->next' (in rsi) in 'intrusive_stack::push' to the memory before it is overwritten by 'head'.
+					The saved value is then never used.
+					This is generated for 'ystdex::tidy_ptr' copy constructor.
+				OTOH, x86_64-pc-linux Clang++ 13.0.1 always move the 'free_count' value from and to the memory in the call to 'add_free'.
+					The code generated is not changed by 'YB_ATTR(optimize("Os"))'.
+			Different to 'resource_pool::allocate', there is less chances to predicate the branches correctly, so more compact CMOVcc instructions can be a win. (And actually it generate worse code using '-Os' on 'resouce_pool::allocate'.
+				Note plain branch instructions can still be more compact in binary representations (and the compiler does not necessarily correctly figure that out), e.g. see https://bugs.llvm.org/show_bug.cgi?id=33013#c8.
+				This does not makes any differences with x86_64-pc-linux Clang++ 13.0.1, though.
+			Now the generated code is more compact in instructions, at least with x86_64-pc-linux G++ 12.1.
+				The actual calls saves several instructions in the realease configuration, from a typically 22 (21 with G++ 11.1.0) instructions to 17.
+				The layout is very different, though.
+				The code does not use significantly more instructions of more latency (as well as CMOVcc), so it should not be worse in the view of microarchitecture.
+LTO options in the toolchain calling commands in some build scripts are updated.
+	Both '-flto=jobserver' in the compiler command and '-flto' in the linker command are replaced by '-flto=auto' for non-MinGW32 builds.
+		This requires GCC 10, added by https://gcc.gnu.org/legacy-ml/gcc-patches/2019-07/msg01488.html.
+		For older GCC versions currently used in MinGW32 builds, this is not changed. Otherwise it would pass '-jauto' to '$MAKE' and lead to an error.
+		Recent Clang will ignore this silently, see https://bugs.llvm.org/show_bug.cgi?id=49553.
+		It is used to eliminate GCC 12.1 lto-wrapper warning: 'using serial compilation of N LTRANS jobs' when the job server is not available.
+			This is the normal case when using Sysroot scripts, which have no GNU make instance to run.
+			It also makes LTO performace better by parallel builds.
+			The linker command change is necessary here.
+		This is not changed makefiles.
+	For MinGW32, '-flto' in the linker commands is changed to '-flto=jobserver'.
+		This also includes the code generation in Tools.ProjectGenerator.Main.
+A bug of parent environment resolution is fixed for 'LetWithEnvironment' and 'LetWithEnvironmentRef' in namespace 'NPL::A1::Forms' of NPLA1.
+	It would incorrectly capture weak environment references as strong ones unexpectedly.
+		Although it would usually only affect code already with undefined behavior, it is unexpected and it would lead to more difficulties to find the bug in the user programs.
+	For example, with native derivations (using these affected functions), the following will cause leaks instead of undefined behavior checked and reported by 'NPL_NPLA_CheckParentEnvironment'.
+		eval ($quote x) ($let ((x 42)) $let/e (() get-current-environment) () () lock-current-environment);
+	After the fix, it also shares more common logic to the function abstraction creation, so more native code is reused.
 
 ////
 

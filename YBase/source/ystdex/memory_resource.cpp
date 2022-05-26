@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1805
+\version r1819
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2022-03-30 12:10 +0800
+	2022-05-18 22:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -269,7 +269,8 @@ new_delete_resource_t::do_allocate(size_t bytes, size_t alignment)
 		// TODO: Record 'sizeof' value for debugging?
 		// TODO: Provide as an additonal %::operator new with extended alignment?
 		// NOTE: The checks are necessary to prevent wrapping of the
-		//	results of '+'. See also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=19351.
+		//	results of '+'. See also
+		//	https://gcc.gnu.org/bugzilla/show_bug.cgi?id=19351.
 		if(bytes + alignment > bytes)
 		{
 			auto space(offset_n_t::value + bytes + alignment);
@@ -293,7 +294,8 @@ new_delete_resource_t::do_allocate(size_t bytes, size_t alignment)
 
 					yassume(off >= offset_n_t::value);
 
-					// XXX: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70834.
+					// XXX: See
+					//	https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70834.
 					(::new(&ptr[off - offset_n_t::value])
 						hdr_t)->p_block = ptr.get();
 					ptr.release();
@@ -596,6 +598,7 @@ resource_pool::operator=(resource_pool&& pl) ynothrowv
 	return *this;
 }
 
+// XXX: This makes the generated code more compact.
 void*
 resource_pool::allocate()
 {
@@ -640,7 +643,8 @@ resource_pool::clear() ynothrow
 	chunks.clear();
 }
 
-void
+// NOTE: See $2019-03 @ %Documentation::Workflow.
+YB_ATTR(optimize("Os")) void
 resource_pool::deallocate(void* p) ynothrowv
 {
 	auto i_chunk(access_meta(p, block_size).i_chunk);
@@ -655,6 +659,13 @@ resource_pool::deallocate(void* p) ynothrowv
 		if(YB_UNLIKELY(i_stashed->first < i_chunk->first))
 			i_stashed = i_chunk;
 	}
+	// XXX: For some reason, x86_64-pc-linux G++ 12.1 '-O3' generated worse code
+	//	around this for the copy of %tidy_ptr instance by one more redundant
+	//	'mov QWORD PTR [rsp+8], rsi' instruction saving the old value of
+	//	'p_link->next' (in rsi) in %intrusive_stack::push to the memory before
+	//	it is overwritten by %head. That saved value is then never used. OTOH,
+	//	x86_64-pc-linux Clang++ 13.0.1 always move the %free_count value from
+	//	and to the memory in the call to %add_free.
 	cnk.add_free(p);
 	if(YB_UNLIKELY(cnk.is_empty() && i_backup != i_chunk))
 	{

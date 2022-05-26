@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r9260
+\version r9396
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-05-08 21:29 +0800
+	2022-05-26 08:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,130 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	(
+	+ DLI "workaround for GCC 12" $effective @ "functions %Forms::(ProvideLet, \
+		Provide, MakeEncapsulationType)" @ %YFramework.NPL.NPLA1Forms;
+		// See $2022-05 @ %Documentation::Workflow.
+	/ $re_ex(b919) DLP "updated platform %Linux toolchain";
+	/ $re_ex(b919) $forced "rebuilt library %FreeImage" @ "platform %Linux"
+		// This is required because for incompatibility in LTO update.
+	),
+	/ $build %Tools $=
+	(
+		/ ('-flto=jobserver' -> '-flto=auto') @ !"platform %Win32"
+			$effective @ ("%SHBuild-common-options.sh", \
+			"%SHBuild-YSLib-common.txt") @ %Scripts,
+			// See $2022-05 @ %Documentation::Workflow.
+		/ ('-flto' -> '-flto=jobserver') @ "platform %Win32"
+			$effective @ (("%SHBuild-common-options.sh",
+			"%SHBuild-YSLib-common.txt") @ %Scripts, %ProjectGenerator.Main)
+			// Ditto.
+	),
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA $=
+		(
+			/ DLI @ "static member function %ContextNode::DefaultResolve" $=
+			(
+				/ $impl "simplified" ^ ("%ystdex::unchecked_function"),
+				/ "disabled the flatten attribute on the enclosing loop"
+					@ 'YB_IMPL_GNUCPP >= 120000'
+					// See $2022-05 @ %Documentation::Workflow.
+			)
+		),
+		/ @ %NPLInternals $=
+		(
+			+ "function %ReleaseOneShotGuard" @ "class %TCOAction",
+			(
+			+ "function template %RelaySubsequent";
+			/ DLDI "simplified function template %ReduceSubsequent"
+			)
+		),
+		/ %NPLA1 $=
+		(
+			/ @ "static function member %ContextState::DefaultReduceOnce" $=
+			(
+				/ DLDI "non-list check" ^ "%IsList",
+				* "missing excluding non-list values for nested one-element \
+					list reductions" $since b881
+					// This leads to wrong results of self-evaluation of \
+						objects with irrgular representation (e.g. reference \
+						to subobjects) enclosed in one-element lists.
+			),
+			+ "function template %GuardFreshEnvironment" @ %NPLA1,
+		),
+		/ @ "namespace %Forms" @ %NPLA1Forms $=
+		(
+			/ DLI "macro %NPL_Impl_NPLA1_TraceVauCall"
+				=> 'NPL_Impl_NPLA1Forms_TraceVauCall',
+			/ DLI @ "functions %(LetAsterisk, LetAsteriskRef)" $=
+			(
+				/ "simplified %TermRange handling",
+				+ "macro %NPL_Impl_NPLA1Forms_LetAsterisk_ExpandLevel to \
+					control the conditional inclusion branch used",
+				+ "more specific optimized expansion of non-empty calls"
+			),
+			- DLI "redundant call to setting next term"
+				@ 'NPL_Impl_NPLA1_Enable_Thunked'
+				@ "functions %(Let, LetRef, LetWithEnvironment, \
+					LetWithEnvironmentRef, LetRec, LetRecRef, LetAsterisk, \
+					LetAsteriskRef, ProvideLet)",
+			/ "avoided dending on the 1st subterm"
+				@ "functions %(And, Or, LetAsterisk, LetAsteriskRef)",
+			/ DLI "merged assertions and simplified common internal calls"
+				@ "functions %(Let, LetRef, LetWithEnvironment, \
+				LetWithEnvironmentRef, LetRec, LetRecRef)",
+			/ @ 'NPL_Impl_NPLA1_Enable_TCO' @ "captured function body"
+				@ "function %Call1CC" $=
+			(
+				+ DLI "assertions for TCO action as the top of current \
+					captured frame" @ 'NPL_NPLA1Forms_CheckContinuationFrames',
+				* "incorrectly released TCO action instead of the one-shot \
+					guard" $since b943
+					// This is not observable in the current implementation of \
+						the object language, but not expected. And it is a \
+						performance defect because of unnecessary destroy and \
+						creation of TCO actions.
+					$= (/ $impl ^ $dep_from ("%TCOAction::ReleaseOneShotGuard"
+						@ %NPLA1Internals))
+			),
+			/ DLI @ "functions 'Let*'" $=
+			(
+				+ "macro %NPL_Impl_NPLA1Forms_LetParent_ExpandLevel to \
+					control the conditional inclusion branch used",
+				/ "expanded branch without parent"
+			),
+			(
+			// See $2022-05 @ %Documentation::Workflow.
+			* "incorrectly captured strong environment reference for weak \
+				environment reference" @ "parent environment evaluation"
+				@ "functions %(LetWithEnvironment, LetWithEnvironmentRef)"
+				$since b917;
+			/ DLDI "simplified common parent evaluation"
+				@ "functions %(LetWithEnvironment, LetWithEnvironmentRef, \
+				LambdaWithEnvironment, LambdaWithEnvironmentRef, \
+				VauWithEnvironment, VauWithEnvironmentRef, \
+				WVauWithEnvironment, WVauWithEnvironmentRef)"
+			),
+			/ DLDI "simplified" ^ ("%GuardFreshEnvironment" @ %NPLA1)
+				~ "%(EnvironmentGuard, SwitchToFreshEnvironment)"
+				$effective "all functions with prefixes ('Let', 'Lambda', \
+				'Vau', 'WLambda')",
+			/ DLDI "simplified function %AsEnvironment" (!^ 'p_parent',
+				^ $dep_from ("%RelaySubsequent" @ %NPLA1Internals)
+				~ "%A1::RelayCurrentNext"),
+				// This is a weak reference, not a pointer.
+			/ DLI "optimized call by avoiding body lifting"
+				@ "functions %(Let, LetRef, LetWithEnvironment, \
+				LetWithEnvironmentRef, LetRec, LetRecRef, LetAsterisk, \
+				LetAsteriskRef, Provide, ProvideLet)",
+			/ DLI "optimized interal call layout"
+				@ "functions %(ProvideLet, Provide)"
+	)
+),
+
+b944
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -56,8 +180,8 @@ $now
 		/ @ "class %TermNode" @ %Scontext $=
 		(
 			(
-			* "missing swapping tags" @ "function %SetContent#3"
-				$since b857 ^ "%std::swap";
+			* "missing swapping tags" @ "function %SetContent#3" $since b857
+				^ "%std::swap";
 				// Also to be consistent %SetContnet. Now this is same to the \
 					friend function %swap.
 			/ DLDI "simplified friend function %swap" !^ "%std::swap"
@@ -1577,8 +1701,8 @@ b938
 			(%Base; "Doxygen comment" @ "class template %lref" @ %Ref),
 		/ %Invoke $=
 		(
-			/ "worked around libstdc++ bugs for C++17 mode or above on invocable \
-				traits only" @  $=
+			/ "worked around libstdc++ bugs for C++17 mode or above on \
+				invocable traits only" @  $=
 				// XXX: See GCC PR 91456.
 				(/ $impl !^ "%std names" @ !'__cplusplus < 201703L \
 					|| !defined(__GLIBCXX__) || __GLIBCXX__ > 20191024'),
@@ -4634,7 +4758,7 @@ b923
 			/ %NPLA1Forms $=
 			(
 				/ $re_add(b617) DLDI "integer-literal" @ "functions"
-					^ "unsigned-suffix",
+					^ "unsigned-suffix 'U'",
 					// To eliminate Microsoft VC++ warning: C4018.
 				* "wrong '\return' command" @ "Doxygen comment"
 					@ "functions %(EvalString, EvalStringRef)" $since b835,
@@ -5090,6 +5214,11 @@ b919
 			modules in shared input file streams in %Helper.Initialization. \
 			This also avoids confusion of errors in loading nested source \
 			files in NPLA1.
+	(
+	/ $re_ex(b916) DLP "updated platform %Linux toolchain",
+	/ $re_ex(b916) $forced "rebuilt library %FreeImage" @ "platform %Linux"
+		// This is required because for incompatibility in LTO update.
+	),
 	/ %YFramework $=
 	(
 		/ %NPL $=
@@ -5265,7 +5394,7 @@ b918
 					@ "function %MakeEncapsulationType")
 					^ $dep_from ("%TermNode::SetValue" @ %SContext),
 				/ DLI "optimized parent environment initialization"
-					@ "functions %(VauWithenEnvironment, \
+					@ "functions %(VauWithEnvironment, \
 					VauWithEnvironmentRef, LetWithEnvironment, \
 					LetWithEnvrionmentRef)" !^ "%ValueObject::emplace",
 				/ DLDI "removed redundant %std::move" @ "function %AccL",
@@ -5662,9 +5791,10 @@ b917
 b916
 (
 	(
+	/ $re_ex(b900) DLP "updated platform %Linux toolchain",
 	/ "supported 'FREEIMAGE_LIBRARY_TYPE=STATIC'"
 		@ "%3rdparty/FreeImage/Makefile.gnu";
-	/ "rebuilt library %FreeImage" @ "platform %Linux"
+	/ $re_ex(b900) "rebuilt library %FreeImage" @ "platform %Linux"
 		// This eliminates unnecessary FreeImage initialization (by calling \
 			%::FreeImage_SO_Initialise) and finalization (by calling \
 			%::FreeImage_SO_DeInitialise) on loading libYFramework.so.

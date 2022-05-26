@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3989
+\version r4013
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2022-04-18 00:19 +0800
+	2022-05-18 03:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,18 +29,18 @@
 #include YFM_NPL_NPLA // for YSLib::Warning, YSLib::Err, YSLib::RecordLevel,
 //	string, YSLib::make_string_view, std::to_string, YSLib::DecodeIndex,
 //	std::invalid_argument, ValueNode, NPL::Access, EscapeLiteral, Literalize,
-//	NPL::AccessPtr, ystdex::value_or, ystdex::write, TraverseSubnodes,
-//	bad_any_cast, std::allocator_arg, YSLib::NodeSequence, NPL::Deref,
-//	AccessFirstSubterm, ystdex::unimplemented, IsTyped, ystdex::quote,
-//	ystdex::call_value_or, ystdex::begins_with, ystdex::sfmt, function,
-//	observer_ptr, ystdex::make_obj_using_allocator, trivial_swap, std::bind,
-//	TermTags NPL::make_observer, YSLib::sfmt, GetLValueTagsOf, std::mem_fn,
-//	ystdex::compose, ystdex::invoke_value_or, NPL::TryAccessLeaf
-//	NPL::IsMovable, ystdex::ref, PropagateTo, YSLib::FilterExceptions,
-//	type_id, ystdex::id, ystdex::retry_on_cond, type_info, pair, ystdex::addrof,
-//	ystdex::second_of, std::current_exception, std::rethrow_exception,
-//	std::throw_with_nested, YSLib::ExtractException;
-#include YFM_NPL_SContext
+//	NPL::AccessPtr, ystdex::value_or, ystdex::write, std::bind,
+//	TraverseSubnodes, bad_any_cast, std::allocator_arg, YSLib::NodeSequence,
+//	ystdex::begins_with, ystdex::sfmt, observer_ptr,
+//	ystdex::make_obj_using_allocator, trivial_swap, NPL::make_observer,
+//	TermTags, NPL::TryAccessLeaf, NPL::Deref, YSLib::sfmt,
+//	ystdex::call_value_or, IsTyped, ystdex::compose, GetLValueTagsOf,
+//	std::mem_fn, ystdex::invoke_value_or, ystdex::ref, PropagateTo,
+//	NPL::IsMovable, AccessFirstSubterm, YSLib::FilterExceptions, type_id,
+//	ystdex::addrof, ystdex::second_of, type_info, std::current_exception,
+//	std::rethrow_exception, std::throw_with_nested, ystdex::retry_on_cond,
+//	ystdex::id, pair, YSLib::ExtractException;
+#include <ystdex/function.hpp> // for ystdex::unchecked_function;
 
 //! \since build 903
 //@{
@@ -210,7 +210,8 @@ RedirectToShared(string_view id, shared_ptr<Environment> p_env)
 
 //! \since build 869
 // XXX: Use other type without overhead of check on call of %operator()?
-using Redirector = function<observer_ptr<const ValueObject>()>;
+using Redirector
+	= ystdex::unchecked_function<observer_ptr<const ValueObject>()>;
 
 //! \since build 931
 observer_ptr<const ValueObject>
@@ -235,7 +236,7 @@ YB_ATTR_nodiscard YB_STATELESS TermTags
 MergeTermTags(TermTags x, TermTags y) ynothrow
 {
 	return (((x & ~TermTags::Temporary) | y) & ~TermTags::Unique)
- 		| (x & y & TermTags::Unique);
+		| (x & y & TermTags::Unique);
 }
 
 //! \since build 874
@@ -969,8 +970,15 @@ ContextNode::DefaultResolve(shared_ptr<Environment> p_env, string_view id)
 	Redirector cont;
 	// NOTE: Blocked. Use ISO C++14 deduced lambda return type (cf. CWG 975)
 	//	compatible to G++ attribute.
-	const auto p_obj(ystdex::retry_on_cond([&] YB_LAMBDA_ANNOTATE(
+	const auto p_obj(ystdex::retry_on_cond(
+		// XXX: Flatten attribute is less efficient with x86_64-pc-linux G++
+		//	12.1.
+#if YB_IMPL_GNUCPP >= 120000
+		[&](Environment::NameResolution::first_type p)
+#else
+		[&] YB_LAMBDA_ANNOTATE(
 		(Environment::NameResolution::first_type p), , flatten)
+#endif
 	// XXX: This uses G++ extension to work around the compatible issue. See
 	//	also %YB_ATTR_LAMBDA_QUAL.
 #if !(YB_IMPL_GNUCPP >= 90000)
@@ -983,6 +991,7 @@ ContextNode::DefaultResolve(shared_ptr<Environment> p_env, string_view id)
 			shared_ptr<Environment> p_redirected{};
 
 			ystdex::retry_on_cond(ystdex::id<>(),
+				// XXX: This is still more efficient with G++ 12.1.
 				[&] YB_LAMBDA_ANNOTATE((), , flatten)
 			// XXX: Ditto.
 #if !(YB_IMPL_GNUCPP >= 90000)

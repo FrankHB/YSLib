@@ -129,17 +129,23 @@ elif [[ $SHBuild_CXX_Style_ == "G++" ]]; then
 -Wsuggest-final-types \
 -Wsuggest-final-methods \
 -Wzero-as-null-pointer-constant"}"
-	: "${CXXFLAGS_IMPL_OPT:="-fexpensive-optimizations \
+	if [[ "$SHBuild_Host_OS" == 'Win32' ]]; then
+		: "${CXXFLAGS_IMPL_OPT:="-fexpensive-optimizations \
 -flto=jobserver \
 -fno-enforce-eh-specs"}"
+	else
+		: "${CXXFLAGS_IMPL_OPT:="-fexpensive-optimizations \
+-flto=auto \
+-fno-enforce-eh-specs"}"
+	fi
 	# XXX: Workarond for LTO bug on MinGW. See https://sourceware.org/bugzilla/show_bug.cgi?id=12762.
 	# XXX: %SHBuild_Host_OS is external.
 	# shellcheck disable=2154
 	if [[ "$SHBuild_Host_OS" == 'Win32' ]]; then
-		: "${LDFLAGS_IMPL_OPT:="-fexpensive-optimizations -flto \
+		: "${LDFLAGS_IMPL_OPT:="-fexpensive-optimizations -flto=jobserver \
 -Wl,-allow-multiple-definition"}"
 	else
-		: "${LDFLAGS_IMPL_OPT:=-fexpensive-optimizations -flto}"
+		: "${LDFLAGS_IMPL_OPT:=-fexpensive-optimizations -flto=auto}"
 	fi
 fi
 

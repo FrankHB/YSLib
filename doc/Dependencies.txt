@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2021 FrankHB.
+	© 2009-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r1630
+\version r1680
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2021-05-19 21:14 +0800
+	2022-05-17 18:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,16 +37,20 @@
 基准实现要求参见 https://frankhb.github.io/YSLib-book/Development.zh-CN.html ；
 使用的标准特性参见 https://frankhb.github.io/YSLib-book/StandardUsing.en-US.html 。
 除非另行指定，使用同基准实现要求的默认配置的 ABI 。
-本章内列出的构建环境经过测试并用于发布。可能有其它可用兼容环境，不在此列出。
+本章通过指定依赖项构成平台环境组合，作为构建环境经过测试并用于发布。可能有其它可用兼容环境，不在此列出。
+其中，各个版本按不同的支持等级([Documentation::ProjectRules @@2.1.1]) 进行构建，一些平台和版本的组合可被跳过而没有实际验证。
 未来可能会提升实现的最低支持版本要求，并移除针对特定版本的变通(workaround) 代码。
 以下支持的构建环境中，不限定版本的不被直接调用的非工具链依赖项不被列出。
 
 @1.1 具体实现支持：
-YSLib 整体要求 G++ 5 或以上版本。
-当前经过实际验证支持的最低版本实现为 G++ 5.3 。
-G++ 5 以外的其它版本当前未测试，也不作为特定编译器选项的优化目标；其中更高版本可能会有诊断消息或优化选项等改动，可能需要手动修改命令行以实现构建效果一致。
-一般地，仅有 YBase.LibDefect 保持提供对旧版本具体实现的支持，参见源码中的注释；对其它代码，除上述(@1) 要求外，不保证未来版本保持支持；不符合标准实现的变通可能在之后逐渐移除。
+YSLib 整体要求 GCC 5 或以上版本的 C++ 工具链。
+经实际验证的被支持的最低版本实现为 G++ 5.3 。
+若存在兼容的 LLVM/Clang 可用，视同具有对应的平台环境下具有不超过第四类支持([Documentation::ProjectRules @@2.1.1]) 。
+**注释** 这不要求实际验证。
+未验证的版本不保证可用，也不作为特定编译器选项的优化目标；其中更高版本可能会有诊断消息或优化选项等改动，可能需要手动修改命令行以实现构建效果一致。
+一般地，仅有 YBase.LibDefect 保持提供对较以上整体要求更旧版本具体实现的支持，参见源码中的注释；除非另行指定，其它代码不保证未来版本保持支持；不符合标准实现的变通可能在之后逐渐移除。
 YBase.YDefinition 检查特性对应的实现版本。
+构建脚本可比源代码要求更严格的工具链版本（例如默认使用的一些选项可能只支持较新的版本）；仅对上述被验证的版本提供支持。
 外部依赖项可能包含启用 LTO 选项的构建静态库。当前仅提供按以 3rdparty 目录的文档中描述的方法构建的以特定 GCC 版本工具链生成的预编译二进制映像，其它实现（其它 GCC 版本和 LLVM/Clang ）不保证二进制兼容，可能需要自行重新构建。
 除以上列出外的其它实现不保证支持。
 
@@ -61,6 +65,7 @@ G++ 10 到 G++ 10.3 使用 C++20（如 -std=c++2a ）同时保留 -pedantic 选�
 
 @1.1.2 非支持实现的已知问题：
 本节问题不提供变通。
+G++ 11.1.0 之后 12.1.0 前 LTO 因编译器内部错误不被支持。
 
 @1.1.2.1 历史版本的实现的问题：
 已知以下历史问题：
@@ -75,7 +80,7 @@ G++ 5.0 r217250 之前没有支持 CWG 1558 的解，参见 https://gcc.gnu.org/
 已知以下问题可能通过构建系统提供通用的自动检测机制而避免，但当前没有实现：
 MinGW 平台输出可执行文件的后缀默认不为 .exe（如某些版本的 Clang++ ）。
 
-@1.1.3 支持变更记录：
+@1.1.3 正式支持变更记录：
 YSLib 整体正式支持编译器版本要求变更如下：
 build 132 前：
 要求使用 G++ 4.3 或更新版本。
@@ -93,11 +98,21 @@ build 132 前：
 2016-09-17(build 727) 起：
 正式移除 G++ 4.x 支持。
 
-@1.2 非正式构建支持：
+@1.1.4 非正式构建支持变更记录：
 YBase 版本 b452-b589（包括若干变通）非正式支持 Microsoft Visual C++ 2013 ：
 仅保证编译成功；
 已知 ystdex::pod_storage::operator= 等使用递归重载会被错误地递归调用因此导致相关接口如 ystdex::any 不可用；
 b590 起开始依赖 std::integral_constant 实例的 constexpr 成员函数 operator()（参见 https://bitbucket.org/FrankHB/yslib/issues/32 ），放弃支持。
+
+@1.4 公共环境概述：
+2014-02-11(build 474) 起：
+宿主平台支持使用脚本。
+2014-10-17(build 546) 起：
+宿主平台支持使用 Sysroot 构建脚本。
+2015-05-26(V0.6) 起：
+Sysroot 构建脚本正式作为宿主平台首选的构建方式。
+**注释** 此时只正式支持 Windows 。DS 和 Android 等其它平台仍依赖 Makefile 。
+Windows 上的 Code::Blocks 仍在之后的版本中被支持，但其项目文件仅保证在发布版本([Documentation::ProjectRules @@2.2.3]) 时更新。
 
 @1.3 Windows 构建宿主公共环境：
 使用 MSYS 作为 Windows 上版本的基础构建环境。
@@ -110,6 +125,8 @@ build 458 前：
 对 GCC 命令行选项 -flto 并行使用的 make（实际使用 -flto=jobserver ，需要 GNU make ），使用未指定版本（滚动更新）的 MSYS2 或其它非 MinGW 的 make（默认文件名不为 make ，不被 GCC LTO wrapper 使用），初始版本 MSYS2 GNU make 4.0 。
 同时使用 "Tools/msys2-update-pacman.sh" 更新包。
 每次主分支版本前同步 MSYS 环境（ @1.5 中明确提到的除外）至最新版本，但保证只依赖对基础环境向后兼容的特性，因此应可直接升级到更新版本使用，除非基础环境的根目录布局有改变（此时应该使用最新版本的基础环境后更新，或至少同步目录布局）。
+2015-05-26(V0.6) 起：
+默认使用 Sysroot 构建(@1.4) 。
 
 @1.3.1 文档工具：
 build 170 前：
@@ -376,6 +393,22 @@ Oracle JDK 8u5 x64 / Android SDK / Android SDK Build-tools 19.0.3 。
 升级 Android NDK r21b (21.0.6352462) x86_64 ：
 升级 Clang++ 版本：Android (6317467 based on r365631c1) clang version 9.0.8 。
 
+@1.6.1 Android 平台构建说明：
+需要使用宏 ANDROID_SDK 指定 Android SDK 的路径。
+路径使用 / 作为分隔符。
+构建 YSTest 主目标时不依赖 NDK ，仅需 JDK 、Android SDK 和独立工具链。
+构建脚本会对生成的包签名，因此需要需要准备私钥。用 Tools/create-android-debug-keystore.sh 可生成默认私钥。
+构建脚本接受 APK_KEYSTORE 宏指定私钥路径，默认值为 ~/.android/debug.keystore 。可在环境中覆盖。
+
+@1.6.2 Android 测试程序运行附加说明：
+使用 Tools/create-android-debug-keystore.sh 创建或更新密钥存储。
+安装不同签名的程序需先卸载旧程序，否则出现 INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES 错误，安装失败。
+YSTest 历史更新记录如下。
+2014-05-12(build 498) 起：
+使用同一认证。
+2014-10-07(build 543) 起：
+使用 Tools/create-android-debug-keystore.sh 更新认证。
+
 @1.7 MinGW64 平台工具链和标准库实现：
 除非以下说明，配置同 MinGW32(@1.5) 。
 目标为 x86_64-w64-mingw32 ，操作系统 Windows XP x64/Windows Server 2003 x64（对应 Windows SDK 版本宏 WINVER 值 0x0501 ）及以上。
@@ -450,22 +483,9 @@ build 560 前：
 2021-05-18(build 919) 起：
 升级包 core/binutils 版本 2.36.1-3 。
 升级包 core/gcc 和 core/gcc-libs 版本 11.1.0-1 。
-
-@1.6.1 Android 平台构建说明：
-需要使用宏 ANDROID_SDK 指定 Android SDK 的路径。
-路径使用 / 作为分隔符。
-构建 YSTest 主目标时不依赖 NDK ，仅需 JDK 、Android SDK 和独立工具链。
-构建脚本会对生成的包签名，因此需要需要准备私钥。用 Tools/create-android-debug-keystore.sh 可生成默认私钥。
-构建脚本接受 APK_KEYSTORE 宏指定私钥路径，默认值为 ~/.android/debug.keystore 。可在环境中覆盖。
-
-@1.6.2 Android 测试程序运行附加说明：
-使用 Tools/create-android-debug-keystore.sh 创建或更新密钥存储。
-安装不同签名的程序需先卸载旧程序，否则出现 INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES 错误，安装失败。
-YSTest 历史更新记录如下。
-2014-05-12(build 498) 起：
-使用同一认证。
-2014-10-07(build 543) 起：
-使用 Tools/create-android-debug-keystore.sh 更新认证。
+2022-05-17(build 945) 起：
+升级包 core/binutils 版本 2.38-5 。
+升级包 core/gcc 和 core/gcc-libs 版本 12.1.0-2 。
 
 @2 外部库依赖：
 本章按引入版本顺序记录历史版本使用的外部非系统库。系统库参见 @1 。
@@ -615,9 +635,11 @@ MinGW32 的默认 CFLAGS 移除 -fomit-frame-pointer（因为被 -O3 隐含）�
 2020-10-10(build 900) 起：
 支持 makefile 命令行选项 CONF=debug 指定 debug 配置的 YFreamwork 库文件。
 追加 debug 配置的 DS 、MinGW32 、Linux 和 MinGW64 库文件，并重新构建这些平台上非 debug 配置的库文件。
-2021-03-27(build 915) 起：
+2021-03-27(build 916) 起：
 指定 FREEIMAGE_LIBRARY_TYPE=STATIC 重新构建 Linux 库文件。
 2021-05-18(build 919) 起：
+重新构建 Linux 的 release 配置库文件。
+2022-05-17(build 945) 起：
 重新构建 Linux 的 release 配置库文件。
 
 @3 可选外部依赖：
@@ -732,7 +754,9 @@ PreAlpha 2(Build 200) 发布。
 
 @5.3 PreAlpha 3 ：
 2012-07-10 ：
-更改了 CHRLib 载入非 Unicode 编码（目前只有 GBK ）的方式，由纯静态链接改为数据从路径 /Data 中的编码表文件读入。当前 GBK 对应的编码表文件为 cp113.bin 。
+更改了 CHRLib 载入非 Unicode 编码（目前只有 GBK ）的方式，由纯静态链接改为数据从路径 /Data 中的编码表文件读入。
+其中的数据项为 16 位字符的代码点数值，使用本机字节序。
+当前 GBK 对应的编码表文件为 cp113.bin ，使用小端序。
 需要在初始化时保证载入正确，否则可能引起断言失败（ debug 配置下）或未定义行为（ release 配置下）。
 2012-04-12(PreAlpha 3) ：
 增加 MinGW 动态链接库。
@@ -1060,6 +1084,7 @@ any_input_iterator 支持非引用的 reference 类型。
 区分记号值和字符串值，修复规约的规范化性质，避免因为字符串值无条件作为标识符规约导致的无限递归。
 中间值类型使用类型别名代替节点类型。
 支持左值引用表达式。
+添加 GCC -MMD 输出解析 API 。
 [YFramework.YCLib]
 修复访问文件目录内容时遗漏的错误处理。
 完善基于路径的文件系统访问接口。
@@ -1102,7 +1127,7 @@ FreeImage makefile 使用配置支持不同配置的 YFramework 构建。
 [YBase.YStandardEx]
 修复作用域守卫的一些问题，并在部分 API 中支持转移可调用对象参数。
 添加 map 模板，替代 ISO C++17 API 并支持不完整模板参数类型。
-改进和添加 optional 、basic_string 和 string_view 等直接替代 ISO C++17 的库 API 。
+改进和添加 optional 、basic_string 、string_view 和 pmr（存储资源和多态分配器）等直接替代 ISO C++17 的库 API 。
 改进 lref 、invoke 和 apply 等替代 ISO C++17 的库 API 。
 添加 string_view_t 等基于 ISO C++ 替代 API 的扩展 API 。
 类模板 path 支持使用分配器的构造。
@@ -1123,6 +1148,7 @@ Win32 和 Linux（除 Android ）平台配置访问支持后备配置路径。
 主要操作实现使用引用。
 提供更多的 NPLA1 操作。
 分离部分操作以单独的环境提供。
+添加加载代理求值模块的初始化例程。
 [YFrameowrk.NPL.Lexical]
 改进词法分析实现，支持源代码信息。
 [YFramework.NPL.NPLA]

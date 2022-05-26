@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r22367
+\version r22377
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2022-05-02 05:35 +0800
+	2022-05-20 18:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1154,7 +1154,7 @@ ContextState::DefaultReduceOnce(TermNode& term, ContextNode& ctx)
 	AssertValueTags(term);
 
 	auto& cs(ContextState::Access(ctx));
-	const bool non_list(term.Value);
+	const bool non_list(!IsList(term));
 
 	// NOTE: Empty list or special value token has no-op to do with.
 	if(non_list)
@@ -1178,10 +1178,16 @@ ContextState::DefaultReduceOnce(TermNode& term, ContextNode& ctx)
 		auto term_ref(ystdex::ref(term));
 
 		ystdex::retry_on_cond([&]{
-			return term_ref.get().size() == 1;
+			auto& tm(term_ref.get());
+
+			return IsList(tm) && tm.size() == 1;
 		}, [&]{
 			term_ref = AccessFirstSubterm(term_ref);
 		});
+		// XXX: No need to use %A1::RelayCurrent here since it should not be
+		//	reentered after the %ystdex::retry_on_cond call above as per the
+		//	semantic rules of the default NPLA1 reduction. This also implies no
+		//	continuation or reducer name.
 		return ReduceOnceLifted(term, ctx, term_ref);
 	}
 	return ReductionStatus::Retained;
@@ -2047,6 +2053,8 @@ SetupDefaultInterpretation(ContextState& cs, EvaluationPasses passes)
 		if(IsBranchedList(term))
 		{
 			ContextState::Access(ctx).SetCombiningTermRef(term);
+			// NOTE: Asynchronous reduction on the 1st term is needed for the
+			//	continuation capture.
 			// XXX: Without %NPL_Impl_NPLA1_Enable_InlineDirect, the
 			//	asynchronous calls are actually more inefficient than separated
 			//	calls.
@@ -2064,6 +2072,7 @@ SetupDefaultInterpretation(ContextState& cs, EvaluationPasses passes)
 		ReduceHeadEmptyList(term);
 		if(IsBranchedList(term))
 			ContextState::Access(ctx).SetCombiningTermRef(term);
+		// NOTE: This is needed for the continuation capture.
 		return ReduceFirst(term, ctx);
 	});
 #	else

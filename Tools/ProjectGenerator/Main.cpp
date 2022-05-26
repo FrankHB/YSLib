@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r865
+\version r866
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-18 20:45:11 +0800
 \par 修改时间:
-	2022-01-20 18:32 +0800
+	2022-05-17 12:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -410,7 +410,7 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 				child = TransformToSyntaxNode(NodeLiteral("Linker"));
 				if(!debug)
 					// XXX: Workarond for LTO bug on MinGW. See https://sourceware.org/bugzilla/show_bug.cgi?id=12762.
-					ystdex::seq_apply(opt_add, "-s", "-flto",
+					ystdex::seq_apply(opt_add, "-s", "-flto=jobserver",
 						"-Wl,-allow-multiple-definition");
 				if(project != "YBase")
 				{

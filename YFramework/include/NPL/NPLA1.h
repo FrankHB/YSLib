@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9448
+\version r9462
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-05-02 05:35 +0800
+	2022-05-25 08:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -382,14 +382,14 @@ public:
 	YB_ATTR_nodiscard YB_PURE TermNode&
 	GetNextTermRef() const;
 
- 	/*!
+	/*!
 	\brief 设置规约合并项引用。
 	\sa combining_term_ptr
 	\since build 895
 	*/
 	PDefH(void, SetCombiningTermRef, TermNode& term) ynothrow
 		ImplExpr(combining_term_ptr = NPL::make_observer(&term))
- 	/*!
+	/*!
 	\brief 设置下一求值项引用。
 	\sa next_term_ptr
 	\since build 883
@@ -1447,6 +1447,19 @@ using EnvironmentGuard = ystdex::guard<EnvironmentSwitcher>;
 
 
 /*!
+\brief 创建和切换新环境并以结果初始化求值环境守卫。
+\since build 945
+*/
+template<typename... _tParams>
+YB_ATTR_nodiscard inline EnvironmentGuard
+GuardFreshEnvironment(ContextNode& ctx, _tParams&&... args)
+{
+	return EnvironmentGuard(ctx, NPL::SwitchToFreshEnvironment(ctx),
+		yforward(args)...);
+}
+
+
+/*!
 \pre ContextNode& 类型的参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
 \pre TCO 实现：当前动作是 TCO 动作，且其中的当前项和被规约的项相同。
 \note 参数分别表示规约上下文、被规约的项和待被保存的当前求值环境守卫。
@@ -1464,7 +1477,7 @@ YF_API ReductionStatus
 RelayForEval(ContextNode&, TermNode&, EnvironmentGuard&&, bool, Continuation);
 
 /*!
-\brief 函数调用规约（ β-规约）。
+\brief 函数调用规约（ β-规约）中的函数体规约。
 \pre 不存在临时函数或已通过 ReduceCombined 的内部实现调用被适当保存。
 \since build 876
 */

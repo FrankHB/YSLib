@@ -465,16 +465,17 @@ $defl! build-with-conf-opt (outdir host-os debug dynamic shbopt-ext app
 				"-Wconditionally-supported" "-Wno-noexcept-type"
 				"-Wstrict-null-sentinel" "-Wzero-as-null-pointer-constant";
 			$redef! prom_CXXFLAGS_IMPL_OPT $lazy-env-val "CXXFLAGS_IMPL_OPT"
-				cons-cmd "-fexpensive-optimizations" "-flto=jobserver"
+				cons-cmd "-fexpensive-optimizations"
+				($if (win32? host-os) "-flto=auto" "-flto=jobserver")
 				"-fno-enforce-eh-specs";
 			$if use-ld
 			(
 				"XXX", "Workaround for LTO bug on MinGW. See https://sourceware.org/bugzilla/show_bug.cgi?id=12762.";
 				$redef! prom_LDFLAGS_IMPL_OPT $lazy-env-val "LDFLAGS_IMPL_OPT"
 					$if (win32? host-os)
-						(++ "-fexpensive-optimizations -flto"
+						(++ "-fexpensive-optimizations -flto=jobserver"
 							" -Wl,-allow-multiple-definition")
-						"-fexpensive-optimizations -flto"
+						"-fexpensive-optimizations -flto=auto"
 			)
 		));
 	$def! prom_CFLAGS_STD $lazy-env-val "CFLAGS_STD" "-std=c11";

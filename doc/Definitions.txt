@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14455
+\version r14458
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2022-04-30 02:36 +0800
+	2022-05-24 18:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -557,6 +557,9 @@ NPL_Impl_NPLA1_AssertParameterMatch
 $unit NPLA1Forms
 {
 NPL_NPLA1Forms_CheckContinuationFrames
+NPL_Impl_NPLA1Forms_TraceVauCall
+#NPL_Impl_NPLA1Forms_LetAsterisk_ExpandLevel
+#NPL_Impl_NPLA1Forms_LetParent_ExpandLevel
 }
 $unit Dependency
 {

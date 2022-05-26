@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r22108
+\version r22143
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-05-06 01:22 +0800
+	2022-05-26 05:21 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -73,7 +73,7 @@ inline namespace Internals
 #define NPL_Impl_NPLA1_Enable_InlineDirect true
 
 // NOTE: The following options provide documented alternative implementations.
-//	They are for exposition only. The code without TCO or asynchrous thunked
+//	They are for exposition only. The code without TCO or asynchronous thunked
 //	calls works without several guarantees in the specification (notably,
 //	support of PTC), which is not conforming. Other documented cases not
 //	supporting PTC are noted in implementations separatedly.
@@ -120,7 +120,7 @@ public:
 	void
 	operator()() const ynothrow
 	{
-		// XXX: To allow the move of %p_shot, this check is necessary.
+		// XXX: To allow moving %OneShotChecker, check of %p_shot is necessary.
 		if(p_shot)
 			NPL::Deref(p_shot) = true;
 	}
@@ -479,6 +479,17 @@ public:
 		return ystdex::exchange(stashed, ContextHandler());
 	}
 
+	/*!
+	\pre \c one_shot_guard 。
+	\since build 945
+	*/
+	void
+	ReleaseOneShotGuard()
+	{
+		YAssert(one_shot_guard, "One-shot guard is not initialized properly.");
+		return one_shot_guard.reset();
+	}
+
 	//! \since build 911
 	//@{
 	//! \brief 设置提升请求。
@@ -826,25 +837,32 @@ ReduceCurrentNextThunked(TermNode& term, ContextNode& ctx, _tParams&&... args)
 }
 
 
-/*!
-\pre 最后一个参数的类型退化后可平凡交换。
-\since build 821
-*/
+//! \since build 821
+//@{
+//! \pre 最后一个参数的类型退化后可平凡交换。
+//@{
 template<typename _fNext>
 inline ReductionStatus
-ReduceSubsequent(TermNode& term, ContextNode& ctx, _fNext&& next)
+RelaySubsequent(ContextNode& ctx, TermNode& term, _fNext&& next)
 {
 	// XXX: The %std::reference_wrapper instance is specialized enough without
 	//	%trivial_swap.
-	return A1::ReduceCurrentNext(term, ctx,
+	return A1::RelayCurrentNext(ctx, term,
 		std::ref(ContextState::Access(ctx).ReduceOnce), trivial_swap,
 		yforward(next));
 }
 
-/*!
-\note 同 ReduceSubsequent ，但不要求最后一个参数的类型退化后满足可平凡交换。
-\since build 821
-*/
+//! \since build 945
+template<typename _fNext>
+inline ReductionStatus
+ReduceSubsequent(TermNode& term, ContextNode& ctx, _fNext&& next)
+{
+	SetupNextTerm(ctx, term);
+	return A1::RelaySubsequent(ctx, term, yforward(next));
+}
+//@}
+
+//! \note 同 ReduceSubsequent ，但不要求最后一个参数的类型退化后满足可平凡交换。
 template<typename _fNext>
 inline ReductionStatus
 ReduceSubsequentPinned(TermNode& term, ContextNode& ctx, _fNext&& next)
@@ -852,6 +870,7 @@ ReduceSubsequentPinned(TermNode& term, ContextNode& ctx, _fNext&& next)
 	return A1::ReduceCurrentNext(term, ctx,
 		std::ref(ContextState::Access(ctx).ReduceOnce), yforward(next));
 }
+//@}
 
 
 //! \since build 911
