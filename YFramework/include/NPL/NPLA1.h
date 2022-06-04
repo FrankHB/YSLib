@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9462
+\version r9469
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-05-25 08:06 +0800
+	2022-05-30 18:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1929,9 +1929,11 @@ private:
 	{
 		const REPLContext& Context;
 
-		PDefHOp(TermNode, (), const GParsedValue<ByteParser>& val) const
+		YB_ATTR_nodiscard
+			PDefHOp(TermNode, (), const GParsedValue<ByteParser>& val) const
 			ImplRet(Context.ConvertLeaf(val))
-		PDefHOp(TermNode, (), const GParsedValue<SourcedByteParser>& val) const
+		YB_ATTR_nodiscard PDefHOp(TermNode, (),
+			const GParsedValue<SourcedByteParser>& val) const
 			ImplRet(Context.ConvertLeafSourced(val))
 	};
 
@@ -1958,6 +1960,8 @@ public:
 	TermPasses::HandlerType Preprocess{std::allocator_arg, Allocator};
 	//! \since build 891
 	//@{
+	//! \invariant 值被调用时若返回，能被视为是纯函数。
+	//@{
 	/*!
 	\brief 叶节点词素转换器。
 	\sa ParseLeaf
@@ -1968,6 +1972,7 @@ public:
 	\sa ParseLeafWithSourceInformation
 	*/
 	SourcedTokenizer ConvertLeafSourced;
+	//@}
 	//! \brief 当前源代码名称。
 	SourceName CurrentSource{};
 	/*!

@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r1962
+\version r1976
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2022-02-15 18:03 +0800
+	2022-06-05 01:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -185,6 +185,8 @@ YStandardEx::Bit(@2.5.7.6) 使用 GCC 时，对 i386 和 x86_64 的部分实现�
 
 @2.1.3 对程序的其它约束：
 设计库的接口及其使用时，对程序的要求的基本规则同 [Documentation::LanguageConvention @@6] 。
+特别地，除非文档说明，程序对库提供的公开头文件的使用应同程序对标准库头的使用具有相同的限制。
+**注释** 这保证引入头文件时，其中声明的名称具有预期的上下文。使用这些头文件引入的全局名称前一般不需要添加 :: ，除非其前缀（包括前缀的命名空间以及全限定名的情形）在局部也可能出现而隐藏全局名称。
 存在文档说明的前提下，部分 API 可调整关于 ISO C++ [res.on.arguments] 和 [lib.types.movedfrom] 相关的规则，但 YBase 只允许更严格的要求（如 @2.1.4.1 ）。
 
 @2.1.4 接口设计保证：
@@ -320,7 +322,7 @@ YBase 要求以下显式的依赖：
 扩展的标准库头及 LibDefect(@2.6) 对应的头文件被直接或间接地包含。若已包含 LibDefect 头文件，不直接包含对应的标准库头。
 
 @2.5.1.2 头文件依赖性：
-因标准库头及其中被 YStandard 替换特性与 YStandardEx 对应头文件和 API 的对应关系，除 @2.5.1.1 外，以下依赖性同时作为接口公开：
+因标准库头及其中被 YStandard 替换特性与 YStandardEx 对应头文件和 API 的对应关系，除标准库扩展和替代(@2.5.1.1) 外，以下依赖性同时作为接口公开：
 "ref.hpp" 依赖 "addressof.hpp" 和 "invoke.hpp" ；
 "iterator_op.hpp" 依赖 "range.hpp" 和 "deref_op.hpp" ；
 "exception.h" 依赖 <libdefect/exception.h> 、<stdexcept> 和 <system_error> ；
@@ -330,7 +332,7 @@ YBase 要求以下显式的依赖：
 "tuple.hpp" 依赖 "apply.hpp" ；
 "memory.hpp" 依赖 "pointer.hpp" ；
 "functional.hpp" 依赖 "invoke.hpp" 、"ref.hpp" 、"functor.hpp" 、"bind.hpp" 、"function.hpp" 和 "hash.hpp"；
-"string.hpp" 、"string_view" 、"map.hpp" 和 "set.hpp" 依赖 "range.hpp" ；
+"string.hpp" 、"array.hpp" 、"string_view" 、"list.hpp" 、"map.hpp" 和 "set.hpp" 依赖 "range.hpp" ；
 "iterator.hpp" 依赖 "iterator_op.hpp" 。
 因其它接口设计原因，以下依赖性作为接口公开：
 "type_inspection.hpp" 依赖 "integral_constant.hpp" ；
@@ -351,9 +353,11 @@ YBase 要求以下显式的依赖：
 "map.hpp" 和 "set.hpp" 依赖 "tree.hpp" ；
 "any_iterator.hpp" 依赖 "any.h" 。
 另见 @2.5.4 和以下各节。
+**注释**
+"range.hpp" 被多个容器相关的头文件公开依赖，类似 ISO C++ [iterator.range]/1 对 <iterator> 外的多个标准库头提供自定义范围访问的约定。
 
 @2.5.1.2 内部头文件依赖性：
-除标准库头外，当前实现保持以下内部直接依赖（及通过传递闭包蕴含实现的公开依赖）供实现参考，可简化头文件包含和避免循环引用：
+除对标准库头的公开依赖外，当前实现保持以下内部直接依赖（及通过传递闭包蕴含实现的公开依赖）供实现参考，可简化头文件包含和避免循环引用：
 "type_inspection.hpp" 依赖 "integral_constant.hpp" ；
 "meta.hpp" 依赖 "type_inspection.hpp" ；
 "variadic.hpp" 和 "invoke.hpp" 依赖 "meta.hpp" ；
@@ -365,8 +369,10 @@ YBase 要求以下显式的依赖：
 "type_pun.hpp" 内部依赖 "placement.hpp" ；
 "swap.hpp" 内部依赖 "type_pun.hpp" ；
 "operators.hpp" 和 "range.hpp" 依赖 "addressof.hpp" ；
+"range.hpp" 内部依赖 "addressof.hpp" 和 <algorithm> ；
 "iterator_op.hpp" 依赖 "range.hpp" 和 "deref_op.hpp" ；
-"typeindex.h" 依赖 "typeinfo.h" 和 <typeindex> ；
+"iterator_op.hpp" 内部依赖 "ref.hpp" ；
+"typeindex.h" 依赖 "typeinfo.h" ；
 "type_traits.hpp" 依赖 "invoke.hpp" 和 "swap.hpp" ；
 "compressed_pair.hpp" 内部依赖 "placement.hpp" ；
 "utility.hpp" 依赖 "swap.hpp" 、"enum.hpp" 和 "integer_sequence.hpp" ；
@@ -386,13 +392,16 @@ YBase 要求以下显式的依赖：
 "functional.hpp" 依赖 "invoke.hpp" 、"ref.hpp" 、"functor.hpp" 、"bind.hpp" 、"function.hpp" 、"hash.hpp" 、"function_adaptor.hpp" 和 "expanded_function.hpp" ；
 "any.h" 内部依赖 "typeinfo.h" 和 "utility.hpp" ；
 "iterator.hpp" 依赖 "iterator_op.hpp" ；
+"iterator.hpp" 内部依赖 "ref.hpp" ；
 "tree.hpp" 和 "string_view.hpp" 依赖 "range.hpp" ；
 "container.hpp" 依赖 "range.hpp" ；
 "container.hpp" 内部依赖 "integer_sequence.hpp" ；
 "any_iterator.hpp" 依赖 "any.h" ；
 "string.hpp" 依赖 "container.hpp" ；
 "string.hpp" 内部依赖 "allocator.hpp" 和 "string_view.hpp"（蕴含公开依赖 "range.hpp" ）；
-"map.hpp" 和 "set.hpp" 依赖 "tree.hpp"（蕴含公开依赖 "range.hpp" ）。
+"list.hpp" 依赖 "range.hpp" ；
+"map.hpp" 和 "set.hpp" 依赖 "tree.hpp"（蕴含公开依赖 "range.hpp" ）；
+"scope_guard.hpp" 内部依赖 "function.hpp" 。
 除此之外，内部依赖对标准库头的依赖也视为内部依赖。
 
 @2.5.2 命名空间和模板特化：

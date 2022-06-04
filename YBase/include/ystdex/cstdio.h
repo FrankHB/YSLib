@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2021 FrankHB.
+	© 2011-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r835
+\version r838
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2021-08-07 23:29 +0800
+	2022-06-05 01:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include <cstdarg> // for std::va_list;
 #include <memory> // for std::unique_ptr;
 #include <ios> // for std::ios_base::openmode;
-#include "operators.hpp" // for input_iteratable;
+#include "operators.hpp" // for input_iteratable, byte;
 
 namespace ystdex
 {
@@ -123,7 +123,7 @@ YB_ATTR_nodiscard YB_STATELESS const _tChar*
 openmode_conv(std::ios_base::openmode mode) ynothrow
 {
 	using namespace std;
-	yconstexpr static const _tChar modes[12][4] = {
+	static yconstexpr const _tChar modes[12][4] = {
 		{_tChar('w'), _tChar('b'), _tChar()},
 		{_tChar('w'), _tChar()},
 		{_tChar('a'), _tChar('b'), _tChar()},

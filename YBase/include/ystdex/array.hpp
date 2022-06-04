@@ -11,13 +11,13 @@
 /*!	\file array.hpp
 \ingroup YStandardEx
 \brief 数组操作。
-\version r170
+\version r175
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-09-01 18:39:25 +0800
 \par 修改时间:
-	2022-02-06 18:47 +0800
+	2022-06-05 01:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,12 +28,11 @@
 #ifndef YB_INC_ystdex_array_hpp_
 #define YB_INC_ystdex_array_hpp_ 1
 
+#include <array> // for <array>, std::array, std::initializer_list;
 #include "utility.hpp" // for yforward, ystdex::decay_copy;
 #include "type_op.hpp" // for common_nonvoid_t;
-#include <array> // for std::array;
-#include <algorithm> // for std::copy_n;
-#include <memory> // for std::addressof;
-#include <iterator> // for std::make_move_iterator;
+#include "range.hpp" // for "range.hpp", std::copy_n, std::addressof,
+//	std::make_move_iterator;
 
 namespace ystdex
 {

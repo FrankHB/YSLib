@@ -11,13 +11,13 @@
 /*!	\file tree.h
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r3580
+\version r3590
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2022-02-28 20:03 +0800
+	2022-06-05 01:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,16 +39,17 @@
 #ifndef YB_INC_ystdex_tree_hpp_
 #define YB_INC_ystdex_tree_hpp_ 1
 
-#include "allocator.hpp" // for allocator_traits, is_move_assignable,
-//	ystdex::swap_dependent, YAssert, yassume, yconstraint, true_, false_,
-//	std::pointer_traits, is_nothrow_copy_constructible, replace_storage_t,
-//	std::allocator, std::bidirectional_iterator_tag, rebind_alloc_t,
-//	ystdex::reverse_iterator, is_same, cond_t, is_nothrow_move_assignable, or_,
-//	and_, is_invocable, std::declval, ystdex::alloc_on_copy,
-//	std::move_if_noexcept, ystdex::alloc_on_move,
+#include "allocator.hpp" // for "range.hpp", allocator_traits,
+//	is_move_assignable, ystdex::swap_dependent, YAssert, yassume, yconstraint,
+//	true_, false_, std::pointer_traits, is_nothrow_copy_constructible,
+//	replace_storage_t, std::allocator, std::bidirectional_iterator_tag,
+//	rebind_alloc_t, ystdex::reverse_iterator, is_same, cond_t,
+//	is_nothrow_move_assignable, or_, and_, is_invocable, std::declval,
+//	ystdex::alloc_on_copy, std::move_if_noexcept, ystdex::alloc_on_move,
 //	is_trivially_default_constructible, allocator_guard, conditional_t,
 //	is_trivially_destructible, std::pair, enable_if_t, is_nothrow_swappable,
-//	ystdex::alloc_on_swap, is_bitwise_swappable;
+//	ystdex::alloc_on_swap, std::equal, std::lexicographical_compare,
+//	is_bitwise_swappable;
 #include "optional.h" // for optional, bidirectional_iteratable,
 //	equality_comparable, totally_ordered, has_mem_is_transparent;
 #include "compressed_pair.hpp" // for compressed_pair_element, compressed_pair,
@@ -56,7 +57,6 @@
 #include "utility.hpp" // for noncopyable, ystdex::as_const;
 #include <limits> // for std::numeric_limits;
 #include "iterator_trait.hpp" // for has_iterator_value_type;
-#include <algorithm> // for std::equal, std::lexicographical_compare;
 
 namespace ystdex
 {

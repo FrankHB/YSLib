@@ -11,13 +11,13 @@
 /*!	\file list.hpp
 \ingroup YStandardEx
 \brief 列表容器。
-\version r1743
+\version r1750
 \author FrankHB <frankhb1989@gmail.com>
 \since build 864
 \par 创建时间:
 	2019-08-14 14:48:52 +0800
 \par 修改时间:
-	2022-03-07 07:25 +0800
+	2022-06-05 01:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,19 +36,18 @@ LWG 2839 ：允许自转移赋值。
 
 #include "node_base.h" // for "node_base.h", std::move, std::addressof;
 #include <list> // for <list>, std::initializer_list;
-#include "allocator.hpp" // for replace_storage_t, bidirectional_iteratable,
-//	equality_comparable, totally_ordered, rebind_alloc_t, allocator_traits,
-//	conditional_t, yverify, false_, true_,
+#include "allocator.hpp" // for "range.hpp", replace_storage_t,
+//	bidirectional_iteratable, equality_comparable, totally_ordered,
+//	rebind_alloc_t, allocator_traits, conditional_t, yverify, false_, true_,
 //	ystdex::make_move_if_noexcept_iterator, std::advance, ystdex::alloc_on_move,
 //	allocator_guard, ystdex::alloc_on_swap, ystdex::swap_dependent,
 //	std::allocator, is_object, is_unqualified, and_, is_allocator_for,
 //	ystdex::reverse_iterator, is_nothrow_constructible, less, ref_eq, equal_to,
-//	is_bitwise_swappable;
+//	is_bitwise_swappable, std::equal, std::lexicographical_compare;
 #include "compressed_pair.hpp" // for compressed_base;
 #include "base.h" // for noncopyable, nonmovable;
 #include <limits> // for std::numeric_limits;
 #include "iterator_trait.hpp" // for enable_for_input_iterator_t;
-#include <algorithm> // for std::equal, std::lexicographical_compare;
 
 namespace ystdex
 {
@@ -636,7 +635,8 @@ public:
 	void
 	erase_range(iterator first, iterator last) ynothrow
 	{
-		// XXX: The naive implementation have good performance in general.
+		// XXX: The naive implementations have enough good performance in
+		//	general.
 #if false
 		if(first == begin() && last == end())
 			clear();

@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4913
+\version r4943
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2022-05-25 03:10 +0800
+	2022-06-05 02:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -4847,6 +4847,38 @@ A bug of parent environment resolution is fixed for 'LetWithEnvironment' and 'Le
 	For example, with native derivations (using these affected functions), the following will cause leaks instead of undefined behavior checked and reported by 'NPL_NPLA_CheckParentEnvironment'.
 		eval ($quote x) ($let ((x 42)) $let/e (() get-current-environment) () () lock-current-environment);
 	After the fix, it also shares more common logic to the function abstraction creation, so more native code is reused.
+
+$2022-06:
+
+report.impl:
+NPLA1 TCO action has been revised and further optimized.
+	The stashed function prvalue is now removed.
+		There was a sequence for the stashed function prvalues in the earlier design.
+			See $2018-06 and $2021-02 for details.
+		This was then changed to one context handler since build 940.
+			The use case was then stricter and only one guard was supported.
+			This came after the frame record list because it was more recent to any saved function prvalues (if any) and it should be released before any of them on destruction.
+		Now it is removed and the 1st entry of the frame record list holds the recent temporary caller function prvalue (if any).
+			The modifications of the recent function prvalue are mostly in the TCO action, except one case that the vau handler explicitly released the handling owning '*this'.
+	Some data members like 'EnvGuard' (the environment guard) are made private, since there are no use cases outside the TCO action class.
+	The order of class member is revised and fixed to ensure the destruction has the expected order and to make additional optimization possible.
+		First, the frame entry now uses 'pair' to ensure the environment pointer is released before the function prvalue in the same entry, so it would not wrongly destroy the environment just because all strong environment references are owned in the same frame.
+			This should be safe to the frame compression because the object language semantics disallow the environment pointer shared by the function prvalue.
+				The environment (if any) of the frame should be the local environment used in some previous evaluation of combination.
+					This environment should be owned by the context but not the combiner in the combination.
+				So, if the frame compression wronly destroyed the environment, either there is cyclic references (undefined behavior in the object language), or the encapsulation of the static environment in the combiners is violated in the design of the concerned object language operations.
+		Second, the environment guard is concerned.
+			Logically the environment guard saves the environment of the 1st frame (having the most long lifetime).
+			However, the current environment in the context should be exchanged before any of the frame (including the recent function prvalue, if any) is released, so it comes after the frame record list in the class definition.
+			Then the environment previously saved in the environment guard is the current environment in the context and it would not be released.
+		Different to other function prvalues in the usual frames (all in the frame record list), the 1st function prvalue (if any) would not live longer than this environment anyway.
+			So it is just saved in the 1st frame in the frame record list by 'CompressForGuard' (or kept in the stashed function prvalue if there when it is not changed as above).
+		The term cleanup shall be performed before the environment switch to ensure no stray reference being used in the term lifting, so this comes after than the environment guard in the class definition.
+			The order requirement was missed when introducing the term cleanup guard.
+		After the order fix, 'operator()' and the destructor share a common operation sequence.
+			This sequence is precisely implied by the destructor, as well as the the suffix except the returning value in 'operator()'.
+				By the call to 'dismiss' of the term guard in 'operator()' before the sequence, it remains compatible to both normal ('operator()') and abnormal (destructor entered by exception) returning.
+			Based on the fact that 'operator()' does not have custom actions relying on the program of the object language, the common sequence of the operation is deferred to the modification of 'ContextNode::TailAction' in 'ContextNode::ApplyTail'.
 
 ////
 

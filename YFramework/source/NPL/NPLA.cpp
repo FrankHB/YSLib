@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4013
+\version r4016
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2022-05-18 03:52 +0800
+	2022-05-29 08:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -542,9 +542,8 @@ LiftPropagatedReference(TermNode& term, TermNode& tm, TermTags tags)
 	// NOTE: Save the reference at first to prevent the possible
 	//	invalidation of the object %ref by the modification of the subterms
 	//	of %term. See also %LiftOtherOrCopy.
-#if false
-	// XXX: This is verbose but no more efficient, at least with
-	//	x86_64-pc-linux G++ 11.1.
+#if YB_IMPL_GNUCPP >= 120000
+	// XXX: This is verbose but no more efficient with x86_64-pc-linux G++ 11.1.
 	const auto& ref(tm.Value.GetObject<TermReference>());
 	TermReference nref(PropagateTo(ref.GetTags(), tags), ref.get(),
 		ref.GetEnvironmentReference());

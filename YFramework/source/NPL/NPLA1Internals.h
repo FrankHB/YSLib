@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r22143
+\version r22245
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-05-26 05:21 +0800
+	2022-06-05 01:26 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -30,12 +30,12 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA1 // for shared_ptr, ContextNode, NPL::Deref, NPLException,
-//	TermNode, ReductionStatus, Reducer, YSLib::map, lref, Environment,
-//	set, IsTyped, EnvironmentList, EnvironmentReference, tuple,
-//	YSLib::get, YSLib::forward_list, size_t, list, std::declval,
-//	EnvironmentGuard, MoveKeptGuard, A1::NameTypedContextHandler, TermReference,
-//	ThrowTypeErrorForInvalidType, NPL::TryAccessLeaf, type_id,
-//	TermToNamePtr, IsIgnore, ystdex::exclude_self_t, ParameterMismatch;
+//	TermNode, ReductionStatus, Reducer, YSLib::map, lref, Environment, set,
+//	IsTyped, EnvironmentList, EnvironmentReference, pair, YSLib::forward_list,
+//	size_t, list, std::declval, EnvironmentGuard, MoveKeptGuard,
+//	A1::NameTypedContextHandler, TermReference, ThrowTypeErrorForInvalidType,
+//	NPL::TryAccessLeaf, type_id, TermToNamePtr, IsIgnore,
+//	ystdex::exclude_self_t, ParameterMismatch;
 #include <ystdex/compose.hpp> // for ystdex::get_less;
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
 #include <ystdex/optional.h> // for ystdex::optional;
@@ -282,20 +282,64 @@ enum RecordFrameIndex : size_t
 /*!
 \brief 帧记录。
 \note 成员顺序和 RecordFrameIndex 中的项对应。
+\note 成员析构的顺序是确定的。
 \since build 842
 \sa RecordFrameIndex
 */
-using FrameRecord = tuple<ContextHandler, shared_ptr<Environment>>;
+using FrameRecord = pair<ContextHandler, shared_ptr<Environment>>;
+
 
 /*!
 \brief 帧记录列表。
 \sa FrameRecord
-\since build 827
+\since build 946
 
 表示帧记录的序列。
 随子过程调用的添加到序列起始位置。
 */
-using FrameRecordList = yimpl(YSLib::forward_list)<FrameRecord>;
+class YF_API FrameRecordList : public yimpl(YSLib::forward_list)<FrameRecord>
+{
+private:
+	using Base = yimpl(YSLib::forward_list)<FrameRecord>;
+
+public:
+#if YB_IMPL_CLANGPP || YB_IMPL_GNUCPP >= 100000
+	// XXX: See ContextNode::ReducerSequence.
+	FrameRecordList() ynoexcept_spec(FrameRecordList())
+		: Base()
+	{}
+#elif __cpp_inheriting_constructors < 201511L
+	DefDeCtor(FrameRecordList)
+#endif
+	using Base::Base;
+	// XXX: This ignores %select_on_container_copy_construction.
+	FrameRecordList(const FrameRecordList& l)
+		: Base(l, l.get_allocator())
+	{}
+	DefDeMoveCtor(FrameRecordList)
+	~FrameRecordList()
+	{
+		clear();
+	}
+
+	DefDeCopyMoveAssignment(FrameRecordList)
+
+	void
+	clear() ynothrow
+	{
+		// NOTE: The order is significant, as the destruction order of
+		//	components of %FrameRecord is unspecified.
+		// XXX: Different to %ContextNode::ReducerSequence::clear, this is a bit
+		//	more efficient.
+		auto i(before_begin());
+
+		while(!empty())
+			// NOTE: The order of destruction of the members in each frame is
+			//	implied by %FrameRecord.
+			pop_front();
+	}
+};
+
 
 //! \since build 818
 class TCOAction final
@@ -315,22 +359,18 @@ private:
 			ImplExpr(TermRef.get().Clear())
 	};
 
+	//! \since build 910
+	mutable size_t req_lift_result = 0;
+	//! \since build 946
+	mutable FrameRecordList record_list;
+	// NOTE: See $2022-06 @ %Documentation::Workflow for details.
+	//! \since build 820
+	mutable EnvironmentGuard env_guard;
 	//! \since build 909
 	mutable decltype(ystdex::unique_guard(std::declval<GuardFunction>()))
 		term_guard;
-	//! \since build 910
-	mutable size_t req_lift_result = 0;
-	// NOTE: This was a sequence in the earlier design. See $2018-06 and
-	//	$2021-02 @ %Documentation::Workflow for details. Now the use case is
-	//	more strict and only one guard is supported.
-	//! \since build 940
-	mutable ContextHandler stashed{};
 
 public:
-	//! \since build 820
-	mutable EnvironmentGuard EnvGuard;
-	//! \since build 825
-	mutable FrameRecordList RecordList;
 	//! \since build 896
 	mutable ValueObject OperatorName;
 
@@ -344,9 +384,9 @@ private:
 public:
 	//! \since build 819
 	TCOAction(ContextNode& ctx, TermNode& term, bool lift)
-		: term_guard(ystdex::unique_guard(GuardFunction{term})),
-		req_lift_result(lift ? 1 : 0), EnvGuard(ctx),
-		RecordList(ctx.get_allocator()), OperatorName([&]() ynothrow{
+		: req_lift_result(lift ? 1 : 0),record_list(ctx.get_allocator()),
+		env_guard(ctx), term_guard(ystdex::unique_guard(GuardFunction{term})),
+		OperatorName([&]() ynothrow{
 			// NOTE: Rather than only the target %TokenValue value, the whole
 			//	%term.Value is needed, since it can have the source information
 			//	in its holder and %QuerySourceInformation requires an object of
@@ -365,15 +405,14 @@ public:
 	TCOAction(const TCOAction& a)
 		// XXX: Some members are moved. This is only safe when newly constructed
 		//	object always live longer than the older one.
-		: term_guard(std::move(a.term_guard)),
-		req_lift_result(a.req_lift_result), stashed(ystdex::exchange(a.stashed,
-		ContextHandler())), EnvGuard(std::move(a.EnvGuard))
+		: req_lift_result(a.req_lift_result),
+		env_guard(std::move(a.env_guard)), term_guard(std::move(a.term_guard))
 	{
 		if(a.one_shot_guard)
 			one_shot_guard.emplace(a.one_shot_guard->func);
 	}
 	DefDeMoveCtor(TCOAction)
-	// XXX: Out of line destructor here is inefficient.
+	// XXX: Out-of-line destructor here is inefficient.
 
 	DefDeMoveAssignment(TCOAction)
 
@@ -383,15 +422,6 @@ public:
 
 	//! \since build 913
 	DefGetter(const ynothrow, TermNode&, TermRef, term_guard.func.func.TermRef)
-
-	//! \since build 857
-	void
-	AddRecord(shared_ptr<Environment>&& p_env)
-	{
-		// NOTE: The temporary function and the environment are saved in the
-		//	frame record list as a new entry.
-		RecordList.emplace_front(MoveFunction(), std::move(p_env));
-	}
 
 	//! \since build 940
 	YB_ATTR_nodiscard lref<const ContextHandler>
@@ -404,15 +434,13 @@ public:
 	Attach(const ContextHandler&, ContextHandler&& h)
 	{
 		// NOTE: This does not compare the stashed object and the hold function
-		//	in the newcoming prvalues, as temporary object of prvalues have their
-		//	unique identities (in spite of the result of %operator== of
+		//	in the newcoming prvalues, as temporary object of prvalues have
+		//	their unique identities (in spite of the result of %operator== of
 		//	%ContextHandler). There is also no environment pointer being shared
 		//	since all required ones (if any) in well-defined programs should be
 		//	saved in %h.
-		if(stashed)
-			AddRecord({});
-		ystdex::swap_dependent(stashed, h);
-		return stashed;
+		record_list.emplace_front(std::move(h), nullptr);
+		return record_list.front().first;
 	}
 
 	//! \since build 910
@@ -432,19 +460,26 @@ public:
 	void
 	CompressForGuard(ContextNode& ctx, EnvironmentGuard&& gd)
 	{
-		// NOTE: If there is no environment set in %act.EnvGuard yet, there is
+		// NOTE: If there is no environment set in %act.env_guard yet, there is
 		//	ideally no need to save the components to the frame record list
 		//	for recursive calls. In such case, each operation making
-		//	potentionally calling to %Attach will always get into this call and
-		//	that time %EnvGuard should be set.
-		if(EnvGuard.func.SavedPtr)
+		//	potentionally calling to %Attach (e.g. in %ReduceCombined) will
+		//	always go into this call (unless some exception is thrown) and that
+		//	time %env_guard should be set.
+		if(env_guard.func.SavedPtr)
 		{
 			// NOTE: Operand saving is performed whether the frame compression
 			//	is needed, once there is a saved environment set.
 			if(auto& p_saved = gd.func.SavedPtr)
 			{
 				CompressForContext(ctx);
-				AddRecord(std::move(p_saved));
+				// NOTE: The temporary function and the environment are saved in
+				//	the frame record list as a new entry if necessary.
+				if(!record_list.empty() && !record_list.front().second)
+					record_list.front().second = std::move(p_saved);
+				else
+					record_list.emplace_front(ContextHandler(),
+						std::move(p_saved));
 				return;
 			}
 			// XXX: Normally this should not occur, but this is allowed by the
@@ -452,10 +487,9 @@ public:
 			//	without an environment).
 		}
 		else
-			EnvGuard = std::move(gd);
-		// XXX: Not with a guarded tail environment, setting the environment to
-		//	empty.
-		AddRecord({});
+			env_guard = std::move(gd);
+		// XXX: Not with a guarded tail environment, the environment (if any)
+		//	remains empty.
 	}
 	//@}
 
@@ -467,7 +501,7 @@ public:
 			// XXX: The context is only used to determine the allocator, which
 			//	is an implementation detail. Usually the context in caller
 			//	should be the same, though.
-			one_shot_guard.emplace(EnvGuard.func.Context.get());
+			one_shot_guard.emplace(env_guard.func.Context.get());
 		return one_shot_guard->func;
 	}
 
@@ -475,8 +509,12 @@ public:
 	YB_ATTR_nodiscard ContextHandler
 	MoveFunction() const
 	{
-		// NOTE: Do not assume the move-after state is empty.
-		return ystdex::exchange(stashed, ContextHandler());
+		YAssert(!record_list.empty() && !record_list.front().second,
+			"Invalid state found.");
+		auto r(std::move(record_list.front().first));
+
+		record_list.pop_front();
+		return r;
 	}
 
 	/*!

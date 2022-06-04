@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r27221
+\version r27233
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2022-05-26 06:58 +0800
+	2022-05-29 08:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -102,7 +102,7 @@ using Forms::CallUnary;
 
 //! \since build 874
 // XXX: This is more efficient, at least in code generation by x86_64-pc-linux
-//	G++ 9.2 for %WrapN, as well as G++ 11.1.
+//	G++ 9.2 for %WrapN, as well as G++ 11.1 and 12.1.
 template<typename _fCopy, typename _fMove>
 YB_ATTR_nodiscard YB_FLATTEN auto
 MakeValueOrMove(ResolvedTermReferencePtr p_ref, _fCopy cp, _fMove mv)
@@ -480,6 +480,11 @@ SplitFirstSubterm(TermNode& term)
 
 //! \since build 921
 template<typename _func>
+// XXX: It also cannot used with G++ 12.1.0, to avoid ICE in
+//	'gimple_duplicate_bb' at 'tree-cfg.c:6420'.
+#if YB_IMPL_GNUCPP > 0 && YB_IMPL_GNUCPP < 100000
+YB_FLATTEN
+#endif
 auto
 DoDefine(TermNode& term, _func f) -> decltype(f(std::declval<TermNode>()))
 {
@@ -489,6 +494,9 @@ DoDefine(TermNode& term, _func f) -> decltype(f(std::declval<TermNode>()))
 }
 
 template<typename _func>
+#if !(YB_IMPL_GNUCPP >= 110000 && YB_IMPL_GNUCPP < 120000)
+YB_FLATTEN
+#endif
 ReductionStatus
 DoSet(TermNode& term, ContextNode& ctx, _func f)
 {
@@ -1376,9 +1384,9 @@ LiftOtherOrCopyPropagateTags(TermNode& term, TermNode& tm, TermTags tags)
 ReductionStatus
 ReduceToFirst(TermNode& term, TermNode& tm, ResolvedTermReferencePtr p_ref)
 {
-#if false
+#if YB_IMPL_GNUCPP < 110000
 	// XXX: This is verbose but perhaps more efficient with old versions of G++,
-	//	 however, not current G++ 11.1.
+	//	 however, not x86_64-pc-linux G++ 11.1.
 	const bool list_not_move(!NPL::IsMovable(p_ref));
 
 	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
@@ -2523,7 +2531,7 @@ LetCall(TermNode& term, ContextNode& ctx, EnvironmentGuard& gd, bool no_lift)
 	// XXX: To Allow using with %RelayApplicativeNext, there should be a call to
 	//	%SetupNextTerm. This is implied in the call to %RelayForCall, so it can
 	//	be omitted again. However, it seems preserve it here is a bit more
-	//	efficient, at least with x86_64-pc-linux G++ 11.1.0.
+	//	efficient, at least with x86_64-pc-linux G++ 11.1.
 #if NPL_Impl_NPLA1_Enable_Thunked
 	SetupNextTerm(ctx, term);
 #endif

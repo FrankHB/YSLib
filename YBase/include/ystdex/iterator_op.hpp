@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2021 FrankHB.
+	© 2013-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file iterator_op.hpp
 \ingroup YStandardEx
 \brief 迭代器操作。
-\version r277
+\version r280
 \author FrankHB <frankhb1989@gmail.com>
 \since build 576
 \par 创建时间:
 	2015-02-09 11:28:52 +0800
 \par 修改时间:
-	2021-12-26 20:50 +0800
+	2022-06-05 01:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,7 @@
 
 #include "range.hpp" // for "range.hpp", std::next, std::prev,
 //	std::make_move_iterator, std::reverse_iterator, std::make_pair, begin, end;
-#include "cassert.h" // for yconstraint;
-#include "deref_op.hpp" // for "deref_op.hpp", YB_VerifyIterator;
+#include "deref_op.hpp" // for "deref_op.hpp", yconstraint, YB_VerifyIterator;
 #include "operators.hpp" // for input_iteratable, output_iteratable,
 //	forward_iteratable, bidirectional_iteratable, random_access_iteratable, _t;
 

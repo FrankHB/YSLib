@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r9396
+\version r9480
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-05-26 08:04 +0800
+	2022-06-05 02:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,84 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YFramework.NPL $=
+	(
+		/ DLI "enabled conditinoal inclusion for different G++ versions"
+			@ %(NPLA, NPLA1Forms),
+		/ @ "class %REPLContext" %NPLA1 $=
+		(
+			+ "'\invariant' command to ensure the values as pure functions \
+				when returning" @ "Doxygen comment"
+				@ "data member %(ConvertLeaf, ConvertLeafSourced)";
+			+ DLI 'YB_ATTR_nodiscard YB_PURE' @ "internal converter"
+		),
+		/ @ 'NPL_Impl_NPLA1_Enable_TCO' @ %NPLInternals $=
+		(
+			/ "%FrameRecord" ^ "%pair" ~ "%tuple";
+				// This makes the destruction of its data members fully \
+					defined. This makes real differences in implementations, \
+					see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66699.
+				$dep_from "function %TCOAction::operator()",
+			/ "alias %FrameRecordList" -> "class",
+				// As %ContextNode::ReducerSequence with defined order of \
+					elements destrution.
+			/ @ "class %TCOAction" $=
+			(
+				* "wrong destruction order between the handlers holding \
+					combiner prvalues and environment guard"
+					@ $orig (@ 'YF_Impl_NPLA1_Enable_TCO' @ %NPLA1 $since b820)
+					$= (/ $impl
+						"reordered data member of the stashed context handler")
+						// This is also consistent to the destruction in \
+							%operator(). Note simply reorder of the stashed \
+							context handler after the frame record list would \
+							be (somewhat surprisingly) significantly more \
+							efficient, but this should be logically wrong.
+				/ @ "function %operator()" $=
+				(
+					* "active combiner prvalues wrongly released before the \
+						environment pointer in the frame list entry"
+						$since b910,
+						// This was inversed, if the frame reusing in the call \
+							to %Attach#2 previously was not considered.
+					/ DLI "simplified" !^ "%(NPL::get, ActiveEnvironmentPtr)"
+						$dep_from "%FrameRecord"
+				),
+				* "wrong destruction order between term guard and frame record \
+					list" $since b909
+					$= (/ $impl
+						"reordered data member of the stashed context handler"),
+				* $comp "underspecified order of destruction of frame records"
+					$dep_from "%FrameRecordList"
+					@ $orig (@ 'YF_Impl_NPLA1_Enable_TCO' @ %NPLA1 $since b820),
+				- $dev "public data members %(RecordList, EnvGuard, AddRecord)"
+					// Some members are made public only for convenience when \
+						%TCOAction is private to %NPLA1. This is not necessary \
+						because %TCOAction is now local to %NPLA1Internals. \
+						By having more data members declared 'private', it \
+						also makes most data members private and free to the \
+						layout restrictions of ISO C++ [class.mem] (although \
+						already relaxed in a different way by CWG 2404 but \
+						blocked by incoming WG21 P1847).
+			)
+		)
+	),
+	/ DLDI "all 'yconstexpr static'" -> 'static yconstexpr'
+		$effective @ "function template %openmode_conv#1"
+		@ %YBase.YStandardEx.CStandardIO,
+	/ %YBase.YStandardEx $=
+	(
+		- DLDI "header inclusion %CAssert" @ %IteratorOperation,
+			// This is already included in %DereferenceOperation.
+		- DLDI "inclusion <algorithm>" @ %(Tree, List),
+			// This is now already included by %Range from %Allocator.
+		/ "inclusions (<algorithm>, <memory>, <iterator>)" @ %Array -> %Range
+			// Ditto.
+	)
+),
+
+b945
 (
 	(
 	+ DLI "workaround for GCC 12" $effective @ "functions %Forms::(ProvideLet, \
@@ -53,15 +131,12 @@ $now
 	),
 	/ %YFramework.NPL $=
 	(
-		/ %NPLA $=
+		/ DLI @ "static member function %ContextNode::DefaultResolve" @ %NPLA $=
 		(
-			/ DLI @ "static member function %ContextNode::DefaultResolve" $=
-			(
-				/ $impl "simplified" ^ ("%ystdex::unchecked_function"),
-				/ "disabled the flatten attribute on the enclosing loop"
-					@ 'YB_IMPL_GNUCPP >= 120000'
-					// See $2022-05 @ %Documentation::Workflow.
-			)
+			/ $impl "simplified" ^ ("%ystdex::unchecked_function"),
+			/ "disabled the flatten attribute on the enclosing loop"
+				@ 'YB_IMPL_GNUCPP >= 120000'
+				// See $2022-05 @ %Documentation::Workflow.
 		),
 		/ @ %NPLInternals $=
 		(
@@ -82,7 +157,7 @@ $now
 						objects with irrgular representation (e.g. reference \
 						to subobjects) enclosed in one-element lists.
 			),
-			+ "function template %GuardFreshEnvironment" @ %NPLA1,
+			+ "function template %GuardFreshEnvironment"
 		),
 		/ @ "namespace %Forms" @ %NPLA1Forms $=
 		(

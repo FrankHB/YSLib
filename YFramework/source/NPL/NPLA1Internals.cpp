@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20602
+\version r20628
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-04-30 21:54 +0800
+	2022-06-05 01:26 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -27,8 +27,9 @@
 
 #include "NPL/YModules.h"
 #include "NPLA1Internals.h" // for NPL::Deref, Environment, ystdex::dismiss,
-//	shared_ptr, std::make_move_iterator, NPL::get, std::throw_with_nested,
-//	ParameterMismatch, std::allocator_arg, NPL::AsTermNode;
+//	shared_ptr, std::make_move_iterator, NPL::get, ActiveEnvironmentPtr,
+//	std::throw_with_nested, ParameterMismatch, std::allocator_arg,
+//	NPL::AsTermNode;
 
 namespace NPL
 {
@@ -124,7 +125,7 @@ RecordCompressor::Compress()
 ReductionStatus
 TCOAction::operator()(ContextNode& ctx) const
 {
-	YAssert(ystdex::ref_eq<>()(EnvGuard.func.Context.get(), ctx),
+	YAssert(ystdex::ref_eq<>()(env_guard.func.Context.get(), ctx),
 		"Invalid context found.");
 
 	// NOTE: Many orders are siginificant, see %Documentation::NPL. For example,
@@ -158,19 +159,16 @@ TCOAction::operator()(ContextNode& ctx) const
 	}());
 
 	ystdex::dismiss(term_guard);
+	// XXX: The following operations are fine, but since there are no other
+	//	user-defined operations to be invoked in %TCOAction before them, it
+	//	should be more efficient to just delay them to the action rewriting (of
+	//	%ContextNode::TailAction) in %ContextNode::ApplyTail.
+#if false
 	{
-		const auto egd(std::move(EnvGuard));
+		const auto egd(std::move(env_guard));
 	}
-	yunused(MoveFunction());
-	while(!RecordList.empty())
-	{
-		// NOTE: The order is significant, as the destruction order of
-		//	components of %FrameRecord is unspecified.
-		auto& front(RecordList.front());
-
-		NPL::get<ActiveCombiner>(front) = {};
-		RecordList.pop_front();
-	}
+	record_list.clear();
+#endif
 	return res;
 }
 
@@ -181,18 +179,24 @@ TCOAction::CompressFrameList()
 		bool removed = {};
 
 		// NOTE: The following code searches the frames to be removed, in the
-		//	order from new to old. After merging, the guard slot %EnvGuard owns
+		//	order from new to old. After merging, the guard slot %env_guard owns
 		//	the resources of the expression (and its enclosed subexpressions)
 		//	being TCO'd.
 		// TODO: Use %FrameRecordList implementation having %remove_if with a
 		//	non-void return type compatible to ISO C++20?
-		RecordList.remove_if([&](const FrameRecord& r) ynothrowv -> bool{
+		record_list.remove_if([&](const FrameRecord& r) ynothrowv -> bool{
 			const auto& p_frame_env_ref(NPL::get<ActiveEnvironmentPtr>(r));
 
 			// NOTE: The whole frame is to be removed. The function prvalue is
-			//	expected to live only in the subexpression evaluation. This has
-			//	equivalent effects of evlis tail recursion.
+			//	expected to live only in the subexpression evaluation, whose
+			//	owned static environments (if any) share nothing with the
+			//	environment (which is a local environment not owning the static
+			//	environments) in the same record entry, so the whole entry is
+			//	safe to be removed when the count is not 1. This has equivalent
+			//	effects of evlis tail recursion.
 			if(p_frame_env_ref.use_count() != 1
+				// XXX: %NPL::Deref is safe because this can be null only when
+				//	the use count is 0.
 				|| NPL::Deref(p_frame_env_ref).IsOrphan())
 			{
 				removed = true;
