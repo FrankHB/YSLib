@@ -154,8 +154,8 @@ $if (string-empty? arg1) (() SHBuild_PrintUsage)
 	putss "Found SHBuild build directory \"" SHBuild_BuildDir "\".";
 	$env-de! SHBuild ++ SR_Bin_ "/SHBuild";
 	$assert-nonempty SHBuild;
-	build-with-conf-opt (++ SHBuild_BuildDir "." SHBuild_Conf) host-os debug
-		dynamic "" #t ($if debug ld-ext-noadjust_
+	build-with-conf-opt (++ SHBuild_BuildDir "." SHBuild_Conf) host-arch host-os
+		debug dynamic "" #t ($if debug ld-ext-noadjust_
 		ld-ext-adjust_win32_subsystem_) ($lambda (#ignore CXXFLAGS SHBOPT .)
 		(
 			"TODO", "Support precompiled headers?";

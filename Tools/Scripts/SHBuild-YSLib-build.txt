@@ -104,6 +104,11 @@ $defl! get-lib-outdir_ (dynamic debug)
 	++ SHBuild_BuildDir "/.shbuild" ($if dynamic "-dll" "")
 		($if debug "-debug" "");
 
+$defl! host-build-with-conf-opt_
+	(outdir debug dynamic shbopt-ext app do-ld-ext do-build)
+	build-with-conf-opt outdir host-arch host-os debug dynamic shbopt-ext app
+		do-ld-ext do-build;
+
 SHBuild_EnsureDirectory_ SHBuild_BuildDir;
 $defl! skip-or-build_ (nskip dynamic debug) $let
 (
@@ -142,7 +147,7 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 			"XXX", "No need to set %LDFLAGS, since it is always set in the",
 				" call to 'build-with-conf-opt' for dynamic libraries.";
 			$if dynamic (safeenv-restore "LIBS");
-			build-with-conf-opt outdir host-os debug dynamic
+			host-build-with-conf-opt_ outdir debug dynamic
 				"-xid,alternative -xid,data -xid,include -xid,Android" #f
 				ld-ext-noadjust_ ($lambda (CXX CXXFLAGS SHBOPT LIBPFX)
 				(
@@ -336,8 +341,8 @@ $let ((target-name "stage 2 SHBuild"))
 		putss "Building " target-name " ...";
 		$assert-absolute-path src-dir;
 		"XXX", "Extra options for SHBOPT are always empty now.";
-		build-with-conf-opt SR_SHBuild_ host-os #f #t "" #t ld-ext-noadjust_
-			($lambda (CXX CXXFLAGS SHBOPT LIBPFX)
+		host-build-with-conf-opt_ SR_SHBuild_ #f #t "" #t
+			ld-ext-noadjust_ ($lambda (CXX CXXFLAGS SHBOPT LIBPFX)
 				system-check (apply cons-cmd (append (list e_S1_SHBuild_
 					src-dir SHBOPT) extra-opts (list CXXFLAGS INCLUDES_))));
 		putss "Finished building " target-name "."
@@ -366,7 +371,7 @@ $if (safeenv-empty? "SHBuild_NoDev")
 	$def! tools-list list "RevisionPatcher" "SXML2XML" "ProjectGenerator";
 	"XXX", "'SHBuild_BaseDir' is fixed in parallel to these directories of",
 		" these tools, while 'SHBuild_ToolDir' is expected more portable.";
-	build-with-conf-opt SR_SHBuild_ host-os #f #t "" #t
+	host-build-with-conf-opt_ SR_SHBuild_ #f #t "" #t
 		ld-ext-noadjust_ ($lambda (CXX CXXFLAGS SHBOPT LIBPFX)
 		for-each-ltr ($lambda (name)
 			system-check (apply cons-cmd (append

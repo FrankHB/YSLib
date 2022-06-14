@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4016
+\version r4055
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2022-05-29 08:09 +0800
+	2022-06-14 18:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,18 +28,17 @@
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLA // for YSLib::Warning, YSLib::Err, YSLib::RecordLevel,
 //	string, YSLib::make_string_view, std::to_string, YSLib::DecodeIndex,
-//	std::invalid_argument, ValueNode, NPL::Access, EscapeLiteral, Literalize,
-//	NPL::AccessPtr, ystdex::value_or, ystdex::write, std::bind,
-//	TraverseSubnodes, bad_any_cast, std::allocator_arg, YSLib::NodeSequence,
-//	ystdex::begins_with, ystdex::sfmt, observer_ptr,
-//	ystdex::make_obj_using_allocator, trivial_swap, NPL::make_observer,
-//	TermTags, NPL::TryAccessLeaf, NPL::Deref, YSLib::sfmt,
-//	ystdex::call_value_or, IsTyped, ystdex::compose, GetLValueTagsOf,
-//	std::mem_fn, ystdex::invoke_value_or, ystdex::ref, PropagateTo,
-//	NPL::IsMovable, AccessFirstSubterm, YSLib::FilterExceptions, type_id,
-//	ystdex::addrof, ystdex::second_of, type_info, std::current_exception,
-//	std::rethrow_exception, std::throw_with_nested, ystdex::retry_on_cond,
-//	ystdex::id, pair, YSLib::ExtractException;
+//	std::invalid_argument, ValueNode, Access, EscapeLiteral, Literalize,
+//	AccessPtr, ystdex::value_or, ystdex::write, std::bind, TraverseSubnodes,
+//	bad_any_cast, std::allocator_arg, YSLib::NodeSequence, ystdex::begins_with,
+//	ystdex::sfmt, observer_ptr, ystdex::make_obj_using_allocator, trivial_swap,
+//	make_observer, TermTags, TryAccessLeafAtom, NPL::Deref, YSLib::sfmt,
+//	AssertReferentTags, ystdex::call_value_or, ystdex::compose, GetLValueTagsOf,
+//	std::mem_fn, IsTyped, ystdex::invoke_value_or, ystdex::ref, PropagateTo,
+//	NPL::IsMovable, TryAccessLeaf, AccessFirstSubterm, YSLib::FilterExceptions,
+//	type_id, ystdex::addrof, ystdex::second_of, type_info,
+//	std::current_exception, std::rethrow_exception, std::throw_with_nested,
+//	ystdex::retry_on_cond, ystdex::id, pair, YSLib::ExtractException;
 #include <ystdex/function.hpp> // for ystdex::unchecked_function;
 
 //! \since build 903
@@ -71,7 +70,7 @@ DecodeNodeIndex(const string& name)
 string
 EscapeNodeLiteral(const ValueNode& node)
 {
-	return EscapeLiteral(NPL::Access<string>(node));
+	return EscapeLiteral(Access<string>(node));
 }
 
 string
@@ -83,7 +82,7 @@ LiteralizeEscapeNodeLiteral(const ValueNode& node)
 string
 ParseNPLANodeString(const ValueNode& node)
 {
-	return ystdex::value_or(NPL::AccessPtr<string>(node));
+	return ystdex::value_or(AccessPtr<string>(node));
 }
 
 
@@ -140,7 +139,7 @@ PrintNodeString(std::ostream& os, const ValueNode& node,
 string
 ParseNPLATermString(const TermNode& term)
 {
-	return ystdex::value_or(NPL::AccessPtr<string>(term));
+	return ystdex::value_or(AccessPtr<string>(term));
 }
 
 ValueNode
@@ -162,7 +161,7 @@ TransformToSyntaxNode(ValueNode&& node)
 
 	if(node.empty())
 	{
-		if(const auto p = NPL::AccessPtr<YSLib::NodeSequence>(node))
+		if(const auto p = AccessPtr<YSLib::NodeSequence>(node))
 			for(auto& nd : *p)
 				nested_call(nd);
 		else
@@ -226,7 +225,7 @@ RedirectEnvironmentList(Environment::allocator_type a, Redirector& cont,
 			cont = std::move(c);
 			return RedirectEnvironmentList(a, cont, i, last);
 		}, std::next(first), std::move(cont)));
-		return NPL::make_observer(&*first);
+		return make_observer(&*first);
 	}
 	return {};
 }
@@ -246,7 +245,7 @@ MoveRValueFor(TermNode& term, TermNode& tm, bool(TermReference::*pm)() const)
 	AssertValueTags(tm);
 	// XXX: Term tags are currently not respected in prvalues. However, this
 	//	should be neutral here due to copy elision in the object language.
-	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
+	if(const auto p = TryAccessLeafAtom<const TermReference>(tm))
 	{
 		if(!p->IsReferencedLValue())
 			return LiftMovedOther(term, *p, ((*p).*pm)());
@@ -376,9 +375,10 @@ TermToStringWithReferenceMark(const TermNode& term, bool has_ref)
 TermTags
 TermToTags(TermNode& term)
 {
+	AssertReferentTags(term);
 	return ystdex::call_value_or(ystdex::compose(GetLValueTagsOf,
 		std::mem_fn(&TermReference::GetTags)),
-		NPL::TryAccessLeaf<const TermReference>(term), term.Tags);
+		TryAccessLeafAtom<const TermReference>(term), term.Tags);
 }
 
 void
@@ -386,7 +386,7 @@ TokenizeTerm(TermNode& term)
 {
 	for(auto& child : term)
 		TokenizeTerm(child);
-	if(const auto p = NPL::AccessPtr<string>(term))
+	if(const auto p = AccessPtr<string>(term))
 		term.Value.emplace<TokenValue>(std::move(*p));
 }
 
@@ -406,7 +406,7 @@ TermReference::get() const
 pair<TermReference, bool>
 Collapse(TermReference ref)
 {
-	if(const auto p = NPL::TryAccessLeaf<TermReference>(ref.get()))
+	if(const auto p = TryAccessLeafAtom<TermReference>(ref.get()))
 	{
 		// XXX: Term tags on prvalues are reserved and should be ignored
 		//	normally except for future internal use. The only case making the
@@ -433,21 +433,21 @@ PrepareCollapse(TermNode& term, const shared_ptr<Environment>& p_env)
 bool
 IsReferenceTerm(const TermNode& term)
 {
-	return bool(NPL::TryAccessLeaf<const TermReference>(term));
+	return bool(TryAccessLeafAtom<const TermReference>(term));
 }
 
 bool
 IsUniqueTerm(const TermNode& term)
 {
 	return ystdex::invoke_value_or(&TermReference::IsUnique,
-		NPL::TryAccessLeaf<const TermReference>(term), true);
+		TryAccessLeafAtom<const TermReference>(term), true);
 }
 
 bool
 IsModifiableTerm(const TermNode& term)
 {
 	return ystdex::invoke_value_or(&TermReference::IsModifiable,
-		NPL::TryAccessLeaf<const TermReference>(term),
+		TryAccessLeafAtom<const TermReference>(term),
 		!bool(term.Tags & TermTags::Nonmodifying));
 }
 
@@ -455,7 +455,7 @@ bool
 IsTemporaryTerm(const TermNode& term)
 {
 	return ystdex::invoke_value_or(&TermReference::IsTemporary,
-		NPL::TryAccessLeaf<const TermReference>(term),
+		TryAccessLeafAtom<const TermReference>(term),
 		bool(term.Tags & TermTags::Temporary));
 }
 
@@ -463,7 +463,7 @@ bool
 IsBoundLValueTerm(const TermNode& term)
 {
 	return ystdex::invoke_value_or(&TermReference::IsReferencedLValue,
-		NPL::TryAccessLeaf<const TermReference>(term));
+		TryAccessLeafAtom<const TermReference>(term));
 }
 
 bool
@@ -471,7 +471,7 @@ IsUncollapsedTerm(const TermNode& term)
 {
 	return ystdex::call_value_or(ystdex::compose(IsReferenceTerm,
 		std::mem_fn(&TermReference::get)),
-		NPL::TryAccessLeaf<const TermReference>(term));
+		TryAccessLeafAtom<const TermReference>(term));
 }
 
 
@@ -529,7 +529,7 @@ LiftCollapsed(TermNode& term, TermNode& tm, TermReference ref)
 void
 MoveCollapsed(TermNode& term, TermNode& tm)
 {
-	if(const auto p = NPL::TryAccessLeaf<TermReference>(tm))
+	if(const auto p = TryAccessLeafAtom<TermReference>(tm))
 		term.SetContent(TermNode(std::move(tm.GetContainerRef()),
 			Collapse(std::move(*p)).first));
 	else
@@ -567,9 +567,8 @@ LiftToReference(TermNode& term, TermNode& tm)
 		else if(tm.Value.OwnsCount() > 1)
 			// XXX: This is unsafe and not checkable because the anchor is not
 			//	referenced.
-			// XXX: Allocators are not used here for performance.
-			term.Value = TermReference(TermTags::Unqualified, tm,
-				EnvironmentReference());
+			term.SetValue(in_place_type<TermReference>, TermTags::Unqualified,
+				tm, EnvironmentReference());
 		else
 			throw InvalidReference(
 				"Value of a temporary shall not be referenced.");
@@ -585,7 +584,7 @@ LiftToReturn(TermNode& term)
 	//	should be neutral here due to copy elision in the object language. Note
 	//	the operation here is idempotent for qualified expressions.
 	// TODO: Detect lifetime escape to perform copy elision?
-	if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
+	if(const auto p = TryAccessLeafAtom<const TermReference>(term))
 		// XXX: Using %LiftMovedOther instead of %LiftMoved is safe, because the
 		//	referent is not allowed to be same to %term in NPLA.
 		LiftMovedOther(term, *p, p->IsMovable());
@@ -603,7 +602,7 @@ MoveRValueToForward(TermNode& term, TermNode& tm)
 	LiftOtherValue(term, tm);
 	if(!IsBoundLValueTerm(term))
 	{
-		if(const auto p = NPL::TryAccessLeaf<const TermReference>(term))
+		if(const auto p = TryAccessLeafAtom<const TermReference>(term))
 			LiftMovedOther(term, *p, p->IsModifiable());
 	}
 #endif
@@ -682,7 +681,7 @@ ReduceHeadEmptyList(TermNode& term) ynothrow
 ReductionStatus
 ReduceToReference(TermNode& term, TermNode& tm, ResolvedTermReferencePtr p_ref)
 {
-	if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
+	if(const auto p = TryAccessLeafAtom<const TermReference>(tm))
 	{
 		AssertValueTags(tm);
 		// NOTE: Reference collapsed.
@@ -708,9 +707,8 @@ ReduceToReferenceAt(TermNode& term, TermNode& tm,
 	// XXX: Term tags on prvalues are reserved and should be ignored normally
 	//	except for future internal use. Since %tm is a term,
 	//	%TermTags::Temporary is not expected, %GetLValueTagsOf is also not used.
-	// XXX: Allocators are not used here for performance.
-	term.Value = TermReference(PropagateTo(tm.Tags, p_ref->GetTags()), tm,
-		NPL::Deref(p_ref).GetEnvironmentReference());
+	term.SetValue(in_place_type<TermReference>, PropagateTo(tm.Tags,
+		p_ref->GetTags()), tm, NPL::Deref(p_ref).GetEnvironmentReference());
 	return ReductionStatus::Clean;
 }
 
@@ -834,7 +832,7 @@ Environment::NameResolution::first_type
 Environment::LookupName(string_view id) const
 {
 	YAssertNonnull(id.data());
-	return NPL::make_observer(ystdex::call_value_or<BindingMap::mapped_type*>(
+	return make_observer(ystdex::call_value_or<BindingMap::mapped_type*>(
 		ystdex::compose(ystdex::addrof<>(), ystdex::second_of<>()),
 		Bindings.find(id), {}, Bindings.cend()));
 }

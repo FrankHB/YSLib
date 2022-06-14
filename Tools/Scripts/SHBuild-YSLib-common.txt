@@ -382,8 +382,8 @@ $defl! use-msan? (opt) use-fsanitize? "memory" opt;
 $defl! use-ubsan? (opt) use-fsanitize? "undefined" opt;
 $defl! use-lsan? (opt) use-fsanitize? "leak" opt;
 
-$defl! build-with-conf-opt (outdir host-os debug dynamic shbopt-ext app
-	do-ld-ext do-build)
+$defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
+	app do-ld-ext do-build)
 (
 	$import! std.strings string->symbol,
 	$import! std.promises $lazy force,
@@ -464,18 +464,19 @@ $defl! build-with-conf-opt (outdir host-os debug dynamic shbopt-ext app
 				"CXXFLAGS_IMPL_WARNING" cons-cmd
 				"-Wconditionally-supported" "-Wno-noexcept-type"
 				"-Wstrict-null-sentinel" "-Wzero-as-null-pointer-constant";
+			$def! LTO_ $if ($and (win32? host-os) (eqv? host-arch "i686"))
+				"-flto=jobserver" "-flto=auto";
 			$redef! prom_CXXFLAGS_IMPL_OPT $lazy-env-val "CXXFLAGS_IMPL_OPT"
-				cons-cmd "-fexpensive-optimizations"
-				($if (win32? host-os) "-flto=auto" "-flto=jobserver")
+				cons-cmd "-fexpensive-optimizations" LTO_
 				"-fno-enforce-eh-specs";
 			$if use-ld
 			(
-				"XXX", "Workaround for LTO bug on MinGW. See https://sourceware.org/bugzilla/show_bug.cgi?id=12762.";
+				"XXX", "Workaround for LTO bug on MinGW. See",
+					" https://sourceware.org/bugzilla/show_bug.cgi?id=12762.";
 				$redef! prom_LDFLAGS_IMPL_OPT $lazy-env-val "LDFLAGS_IMPL_OPT"
-					$if (win32? host-os)
-						(++ "-fexpensive-optimizations -flto=jobserver"
-							" -Wl,-allow-multiple-definition")
-						"-fexpensive-optimizations -flto=auto"
+					(++ "-fexpensive-optimizations " LTO_
+						($if (win32? host-os) " -Wl,-allow-multiple-definition"
+							""))
 			)
 		));
 	$def! prom_CFLAGS_STD $lazy-env-val "CFLAGS_STD" "-std=c11";

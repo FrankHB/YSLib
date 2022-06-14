@@ -115,7 +115,8 @@ if [[ $SHBuild_CXX_Style_ == "Clang++" ]]; then
 	#	LDFLAGS_IMPL_USE_LLD_=true
 	#: "${CXXFLAGS_IMPL_OPT:=-flto}"
 	#: "${LDFLAGS_IMPL_OPT:=-flto}"
-	# XXX: LTO is disabled by default for compatibility to the prebuilt binaries.
+	# XXX: LTO is disabled by default for compatibility to the prebuilt
+	#	binaries (by G++).
 elif [[ $SHBuild_CXX_Style_ == "G++" ]]; then
 	: "${C_CXXFLAGS_IMPL_WARNING:="-Wdouble-promotion \
 -Wlogical-op \
@@ -129,23 +130,27 @@ elif [[ $SHBuild_CXX_Style_ == "G++" ]]; then
 -Wsuggest-final-types \
 -Wsuggest-final-methods \
 -Wzero-as-null-pointer-constant"}"
-	if [[ "$SHBuild_Host_OS" == 'Win32' ]]; then
-		: "${CXXFLAGS_IMPL_OPT:="-fexpensive-optimizations \
--flto=jobserver \
--fno-enforce-eh-specs"}"
+	# XXX: %SHBuild_Host_OS and %SHBuild_host_Arch are external.
+	# shellcheck disable=2154
+	# XXX: Only i686 MinGW32 uses old GCC not supporting -flto=auto now.
+	if [[ "$SHBuild_Host_OS" == 'Win32' && "$SHBuild_Host_Arch" == 'i686' ]]; \
+then
+		LTO_=-flto=jobserver
 	else
-		: "${CXXFLAGS_IMPL_OPT:="-fexpensive-optimizations \
--flto=auto \
--fno-enforce-eh-specs"}"
+		LTO_=-flto=auto
 	fi
-	# XXX: Workarond for LTO bug on MinGW. See https://sourceware.org/bugzilla/show_bug.cgi?id=12762.
+	: "${CXXFLAGS_IMPL_OPT:="-fexpensive-optimizations \
+$LTO_ \
+-fno-enforce-eh-specs"}"
 	# XXX: %SHBuild_Host_OS is external.
 	# shellcheck disable=2154
 	if [[ "$SHBuild_Host_OS" == 'Win32' ]]; then
-		: "${LDFLAGS_IMPL_OPT:="-fexpensive-optimizations -flto=jobserver \
+		# XXX: Workarond for LTO bug on MinGW. See
+		#	https://sourceware.org/bugzilla/show_bug.cgi?id=12762.
+		: "${LDFLAGS_IMPL_OPT:="-fexpensive-optimizations $LTO_ \
 -Wl,-allow-multiple-definition"}"
 	else
-		: "${LDFLAGS_IMPL_OPT:=-fexpensive-optimizations -flto=auto}"
+		: "${LDFLAGS_IMPL_OPT:=-fexpensive-optimizations $LTO_}"
 	fi
 fi
 

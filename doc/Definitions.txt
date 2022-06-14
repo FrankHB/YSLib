@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14458
+\version r14459
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2022-05-24 18:20 +0800
+	2022-06-11 03:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -526,6 +526,7 @@ $dir NPL
 {
 $unit SContext
 {
+#NPL_SContext_CompressTermTags
 NPL_Impl_SContext_Enable_ThunkedActions
 #NPL_Impl_SContext_Enable_ThunkedThreshold
 }

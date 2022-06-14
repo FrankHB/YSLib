@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r22377
+\version r22423
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2022-05-20 18:06 +0800
+	2022-06-14 18:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,23 +29,23 @@
 #include YFM_NPL_NPLA1Forms // for NPL, EvaluationPasses, lref, ContextHandler,
 //	RelaySwitched, trivial_swap, type_index, string_view, std::hash,
 //	ystdex::equal_to, YSLib::unordered_map, std::piecewise_construct,
-//	YSLib::lock_guard, YSLib::mutex, type_id, NPL::make_observer, IsBranch,
+//	YSLib::lock_guard, YSLib::mutex, type_id, make_observer, IsBranch,
 //	CheckReducible, IsNPLAExtendedLiteralNonDigitPrefix, IsAllSignLexeme,
 //	AllocatorHolder, ystdex::ref, YSLib::IValueHolder,
 //	YSLib::AllocatedHolderOperations, any, ystdex::as_const,
 //	NPL::forward_as_tuple, uintmax_t, ystdex::bind1, TokenValue,
 //	Forms::Sequence, std::allocator_arg, ReduceBranchToList, YSLib::stack,
 //	YSLib::vector, TermTags, function, TermReference, GetLValueTagsOf,
-//	NPL::TryAccessLeaf, ListReductionFailure, ystdex::sfmt, PropagateTo,
-//	NPL::IsMovable, in_place_type, InvalidReference, NPL::Deref, IsLeaf,
-//	ResolveTerm, ThrowInsufficientTermsError, ThrowListTypeErrorForNonlist,
-//	ystdex::update_thunk, Environment, shared_ptr, NPL::AsTermNode, IsTyped,
-//	ystdex::retry_on_cond, AccessFirstSubterm, ystdex::make_transform,
-//	IsBranchedList, std::placeholders, NoContainer, ystdex::try_emplace,
-//	NPL::Access, YSLib::Informative, ystdex::unique_guard,
-//	CategorizeBasicLexeme, DeliteralizeUnchecked, Deliteralize,
-//	ystdex::isdigit, INT_MAX, ystdex::ref_eq, NPL::TryAccessTerm,
-//	YSLib::share_move, ystdex::call_value_or, std::to_string, YSLib::Notice,
+//	TryAccessLeaf, ListReductionFailure, ystdex::sfmt, TryAccessLeafAtom,
+//	PropagateTo, NPL::IsMovable, in_place_type, InvalidReference, NPL::Deref,
+//	IsLeaf, ResolveTerm, ThrowInsufficientTermsError,
+//	ThrowListTypeErrorForNonlist, ystdex::update_thunk, Environment, shared_ptr,
+//	NPL::AsTermNode, IsTyped, ystdex::retry_on_cond, AccessFirstSubterm,
+//	ystdex::make_transform, IsBranchedList, std::placeholders, NoContainer,
+//	ystdex::try_emplace, Access, YSLib::Informative, ystdex::unique_guard,
+//	CategorizeBasicLexeme, DeliteralizeUnchecked, Deliteralize, ystdex::isdigit,
+//	INT_MAX, ystdex::ref_eq, TryAccessTerm, YSLib::share_move,
+//	ystdex::call_value_or, std::to_string, YSLib::Notice,
 //	YSLib::FilterException, Session;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_NPLAMath // for ReadDecimal;
@@ -241,6 +241,7 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	term.Value.Clear();
 
 	auto gd(ystdex::unique_guard([&]() ynothrow{
+		// XXX: This term is fixed, as in the term cleanup in %TCOAction.
 		term.Clear();
 	}));
 #	if NPL_Impl_NPLA1_Enable_Thunked
@@ -276,7 +277,7 @@ ThrowCombiningFailure(TermNode& term, const TermNode& fm, bool has_ref)
 	string name(term.get_allocator());
 
 	// XXX: As %TermToNamePtr.
-	if(const auto p = NPL::TryAccessLeaf<TokenValue>(term))
+	if(const auto p = TryAccessLeaf<TokenValue>(term))
 	{
 		name = std::move(*p);
 		name += ": ";
@@ -483,7 +484,7 @@ public:
 #	if NPL_Impl_NPLA1_Enable_ThunkedThreshold == 0
 		YAssert(!remained.empty(), "Invalid state found.");
 		// XXX: For some reason, 'while' here is more efficient than 'do' in the
-		//	generated code with x86_64-pc-linux G++ 11.1.0.
+		//	generated code with x86_64-pc-linux G++ 11.1.
 #	endif
 		while(!remained.empty())
 		{
@@ -586,7 +587,7 @@ struct BindParameterObject
 
 			// NOTE: Subterms in arguments retained are also transferred for
 			//	values.
-			if(const auto p = NPL::TryAccessLeaf<TermReference>(o))
+			if(const auto p = TryAccessLeafAtom<TermReference>(o))
 			{
 				if(sigil != char())
 				{
@@ -839,7 +840,8 @@ private:
 					//	here.
 					if(IsLeaf(back))
 					{
-						if(const auto p = NPL::TryAccessLeaf<TokenValue>(back))
+						if(const auto p
+							= TryAccessLeafAtom<TokenValue>(back))
 						{
 							if(!p->empty() && p->front() == '.')
 								--last;
@@ -907,7 +909,7 @@ private:
 							has_ref).c_str()));
 				}, o);
 		}
-		else if(const auto p_t = NPL::TryAccessLeaf<const TermReference>(t))
+		else if(const auto p_t = TryAccessLeafAtom<const TermReference>(t))
 		{
 			auto& nd(p_t->get());
 
@@ -1153,13 +1155,15 @@ ContextState::DefaultReduceOnce(TermNode& term, ContextNode& ctx)
 {
 	AssertValueTags(term);
 
+	// NOTE: For efficiency, only quite a few kinds of terms would be reduced
+	//	here. More specific handling can be implemented by context handlers or
+	//	replacement of %ContextState::DefaultReduceOnce.
 	auto& cs(ContextState::Access(ctx));
 	const bool non_list(!IsList(term));
 
 	// NOTE: Empty list or special value token has no-op to do with.
 	if(non_list)
 	{
-		// XXX: Add logic to directly handle special value tokens here?
 		// NOTE: The reduction relies on proper handling of reduction status and
 		//	proper tail action for the thunked implementations.
 		if(!IsTyped<ValueToken>(term))
@@ -1360,7 +1364,7 @@ ReduceToReferenceList(TermNode& term, ContextNode& ctx, TermNode& tm)
 
 				// XXX: As %BindParameter.
 				for(auto& o : nd)
-					if(const auto p = NPL::TryAccessLeaf<TermReference>(o))
+					if(const auto p = TryAccessLeafAtom<TermReference>(o))
 						EmplaceReference(con, o, *p, !p_ref);
 					else if(p_ref)
 						con.emplace_back(TermNode::Container(o.get_allocator()),
@@ -1397,13 +1401,13 @@ ReduceToReferenceUList(TermNode& term, TermNode& tm)
 				const auto add_tags(p_ref->GetTags() | TermTags::Unique);
 
 				for(auto& o : nd)
-					if(const auto p = NPL::TryAccessLeaf<TermReference>(o))
+					if(const auto p = TryAccessLeafAtom<TermReference>(o))
 						EmplaceReference(con, o, *p, {});
 					else
 						con.emplace_back(TermNode::Container(o.get_allocator()),
-							ValueObject(std::allocator_arg, a, in_place_type<
-							TermReference>, o.Tags | add_tags, o,
-							p_ref->GetEnvironmentReference()));
+							std::allocator_arg, a, in_place_type<TermReference>,
+							o.Tags | add_tags, o,
+							p_ref->GetEnvironmentReference());
 				con.swap(term.GetContainerRef());
 			}
 			else
@@ -1431,7 +1435,7 @@ SetupTraceDepth(ContextState& cs, const string& name)
 		if(const auto p = p_e->LookupName(name))
 		{
 			using ystdex::pvoid;
-			auto& depth(NPL::Access<size_t>(*p));
+			auto& depth(Access<size_t>(*p));
 
 			yunused(term), yunused(ctx);
 			YTraceDe(YSLib::Informative, "Depth = %zu, context = %p, semantics"
@@ -1495,6 +1499,8 @@ void
 ParseLeaf(TermNode& term, string_view id)
 {
 	YAssertNonnull(id.data());
+	// NOTE: The lexeme shall not be empty, although the code literal '' can be
+	//	converted to an empty symbol after the processing here.
 	YAssert(!id.empty(), "Invalid leaf token found.");
 	switch(CategorizeBasicLexeme(id))
 	{
@@ -1527,8 +1533,7 @@ ParseLeafWithSourceInformation(TermNode& term, string_view id,
 	// NOTE: Most are same to %ParseLeaf, except for additional source
 	//	information mixed into the values of %TokenValue.
 	YAssertNonnull(id.data());
-	// NOTE: The lexeme shall not be empty, although the code literal '' can be
-	//	converted to an empty symbol after the processing here.
+	// NOTE: Ditto.
 	YAssert(!id.empty(), "Invalid leaf token found.");
 	switch(CategorizeBasicLexeme(id))
 	{
@@ -1582,7 +1587,7 @@ FormContextHandler::CallN(size_t n, TermNode& term, ContextNode& ctx) const
 		YAssert(!t.empty(), "Invalid term found.");
 		ReduceChildrenOrderedAsyncUnchecked(std::next(t.begin()), t.end(), c);
 		return ReductionStatus::Partial;
-	}, trivial_swap, A1::NameTypedReducerHandler([&, n](ContextNode& c){
+	}, trivial_swap, NameTypedReducerHandler([&, n](ContextNode& c){
 		SetupNextTerm(c, term);
 		return CallN(n - 1, term, c);
 	}, "eval-combine-operator"));
@@ -1782,7 +1787,7 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 		// XXX: Allocators are not used here on %TermReference to avoid G++ from
 		//	folding code with other basic blocks with more inefficient
 		//	implementations.
-		if(const auto p = NPL::TryAccessLeaf<const TermReference>(bound))
+		if(const auto p = TryAccessLeafAtom<const TermReference>(bound))
 		{
 			p_rterm = &p->get();
 			// NOTE: If the bound object is a term reference, referencing it
@@ -1835,7 +1840,7 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 	YAssert(IsCombiningTerm(term), "Invalid term found for combined term.");
 
 	auto& fm(AccessFirstSubterm(term));
-	const auto p_ref_fm(NPL::TryAccessLeaf<const TermReference>(fm));
+	const auto p_ref_fm(TryAccessLeafAtom<const TermReference>(fm));
 
 	// NOTE: If this call returns normally, the combiner object implied by %fm
 	//	is not owned by %term.
@@ -1866,7 +1871,7 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 			//	in %ReduceForCombinerRef.
 			const auto& referenced(p_ref_fm->get());
 
-			YAssert(ystdex::ref_eq<>()(NPL::Deref(NPL::Access<
+			YAssert(ystdex::ref_eq<>()(NPL::Deref(Access<
 				shared_ptr<TermNode>>(*fm.begin())), referenced),
 				"Invalid subobject reference found.");
 			// XXX: Explicit copy is necessary as in the implementation of
@@ -1879,7 +1884,7 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 #endif
 		// NOTE: The combiner object is in an lvalue. It is not saved by %term.
 		if(const auto p_handler
-			= NPL::TryAccessLeaf<const ContextHandler>(p_ref_fm->get()))
+			= TryAccessLeafAtom<const ContextHandler>(p_ref_fm->get()))
 			// NOTE: This is neutral to %NPL_Impl_NPLA1_Enable_Thunked.
 			return CombinerReturnThunk(*p_handler, term, ctx);
 	}
@@ -1891,7 +1896,7 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 	// XXX: Converted terms (if used, see above) are also handled here as in
 	//	prvalues.
 	// NOTE: To allow being moved, %p_handler is not qualified by 'const'.
-	if(const auto p_handler = NPL::TryAccessTerm<ContextHandler>(fm))
+	if(const auto p_handler = TryAccessTerm<ContextHandler>(fm))
 #if NPL_Impl_NPLA1_Enable_TCO
 		return
 			CombinerReturnThunk(*p_handler, term, ctx, std::move(*p_handler));
@@ -1919,7 +1924,7 @@ ReduceCombinedReferent(TermNode& term, ContextNode& ctx, const TermNode& fm)
 	YAssert(IsCombiningTerm(term), "Invalid term found for combined term.");
 	// XXX: %SetupNextTerm is to be called in %CombinerReturnThunk.
 	ClearCombiningTags(term);
-	if(const auto p_handler = NPL::TryAccessLeaf<const ContextHandler>(fm))
+	if(const auto p_handler = TryAccessLeafAtom<const ContextHandler>(fm))
 		return CombinerReturnThunk(*p_handler, term, ctx);
 	return ThrowCombiningFailure(term, fm, true);
 }
@@ -2157,12 +2162,12 @@ YB_PURE
 YB_STATELESS
 #endif
 observer_ptr<const ValueObject>
-QueryTailOperatorName(const Reducer& act)
+QueryTailOperatorName(const Reducer& act) ynothrow
 {
 #if NPL_Impl_NPLA1_Enable_TCO
 	if(const auto p_act = act.target<TCOAction>())
 		if(p_act->OperatorName.type() == type_id<TokenValue>())
-			return NPL::make_observer(&p_act->OperatorName);
+			return make_observer(&p_act->OperatorName);
 #else
 	yunused(act);
 #endif
@@ -2182,7 +2187,7 @@ QueryTypeName(const type_info& ti)
 }
 
 bool
-SetupTailOperatorName(TermNode& term, const ContextNode& ctx)
+SetupTailOperatorName(TermNode& term, const ContextNode& ctx) ynothrow
 {
 	if(const auto p_combining = ContextState::Access(ctx).GetCombiningTermPtr())
 	{
@@ -2210,16 +2215,16 @@ TraceBacktrace(const ContextNode::ReducerSequence& backtrace,
 			{
 				const auto name(QueryContinuationName(act));
 				const auto p(name.data() ? name.data() :
-#	if NDEBUG
+#if NDEBUG
 					"?"
-#	else
+#else
 					// XXX: This is enabled for debugging only because the name
 					//	is not guaranteed steady.
 					ystdex::call_value_or([](const Continuation& cont)
 						-> const type_info&{
 						return cont.Handler.target_type();
 					}, act.target<Continuation>(), act.target_type()).name()
-#	endif
+#endif
 				);
 				const auto p_opn_vo(QueryTailOperatorName(act));
 				// XXX: No %NPL::TryAccessValue is needed, since %p_opn_vo comes
@@ -2231,14 +2236,14 @@ TraceBacktrace(const ContextNode::ReducerSequence& backtrace,
 				{
 					// XXX: This clause relies on the source information for
 					//	meaningful output. Assume it is used.
-#	if true
+#if true
 					if(const auto p_si = QuerySourceInformation(*p_opn_vo))
 						trace.TraceFormat(Notice, "#[continuation: %s (%s) @"
 							" %s (line %zu, column %zu)]", p_o, p,
 							p_si->first ? p_si->first->c_str() : "<unknown>",
 							p_si->second.Line + 1, p_si->second.Column + 1);
 					else
-#	endif
+#endif
 						trace.TraceFormat(Notice, "#[continuation: %s (%s)]",
 							p_o, p);
 				}

@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8723
+\version r8742
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2022-04-25 18:07 +0800
+	2022-06-14 18:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,11 +31,10 @@
 #include "YModules.h"
 #include YFM_NPL_NPLA1 // for shared_ptr, TermNode, ReductionStatus, string,
 //	TokenValue, AssertBranch, ystdex::exclude_self_t, ystdex::expand_proxy,
-//	NPL::ResolveTerm, std::next, NPL::Access, NPL::Deref,
-//	Forms::CallResolvedUnary, ResolvedTermReferencePtr, NPL::AccessRegular,
-//	ystdex::make_expanded, std::ref, ystdex::invoke_nonvoid, TNIter,
-//	NPL::AccessTypedValue, ystdex::make_transform, std::accumulate,
-//	std::placeholders::_2, ystdex::bind1, ContextNode,
+//	NPL::ResolveTerm, std::next, Access, NPL::Deref, Forms::CallResolvedUnary,
+//	ResolvedTermReferencePtr, AccessRegular, ystdex::make_expanded, std::ref,
+//	ystdex::invoke_nonvoid, TNIter, AccessTypedValue, ystdex::make_transform,
+//	std::accumulate, std::placeholders::_2, ystdex::bind1, ContextNode,
 //	ystdex::equality_comparable, ystdex::exclude_self_params_t,
 //	ystdex::examiners::equal_examiner, trivial_swap_t, trivial_swap,
 //	Environment, ystdex::is_bitwise_swappable, ystdex::true_;
@@ -53,7 +52,7 @@ namespace A1
 \sa Continuation
 \since build 943
 
-若定义为 true ，则在续延调用时断言被捕获的帧在当前动作序列中存在。
+若定义为 true ，则在续延调用时断言被捕获的帧在当前动作序列中存在且满足实现约束。
 */
 #ifndef NPL_NPLA1Forms_CheckContinuationFrames
 #	ifndef NDEBUG
@@ -302,7 +301,7 @@ template<typename _type, typename _func, typename... _tParams>
 inline auto
 CallResolvedUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 	-> yimpl(decltype(ystdex::expand_proxy<void(_type&, const
-	ResolvedTermReferencePtr&, _tParams&&...)>::call(f, NPL::Access<_type>(
+	ResolvedTermReferencePtr&, _tParams&&...)>::call(f, Access<_type>(
 	term), ResolvedTermReferencePtr(), std::forward<_tParams>(args)...)))
 {
 	using handler_t
@@ -314,21 +313,21 @@ CallResolvedUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 		-> decltype(ystdex::expand_proxy<handler_t>::call(f,
 		std::declval<_type&>(), p_ref)){
 		// XXX: Blocked. 'yforward' cause G++ 7.1.0 failed silently.
-		return ystdex::expand_proxy<handler_t>::call(f, NPL::Access<_type>(nd),
+		return ystdex::expand_proxy<handler_t>::call(f, Access<_type>(nd),
 			p_ref, std::forward<_tParams>(args)...);
 	}, term);
 }
 
 /*!
 \note 访问节点的子节点，以正规值调用一元函数。
-\sa NPL::AccessRegular
+\sa AccessRegular
 \exception ListTypeError 异常中立：项为列表项。
 */
 template<typename _type, typename _func, typename... _tParams>
 inline auto
 CallRegularUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 	-> yimpl(decltype(ystdex::expand_proxy<void(_type&, const
-	ResolvedTermReferencePtr&, _tParams&&...)>::call(f, NPL::Access<_type>(
+	ResolvedTermReferencePtr&, _tParams&&...)>::call(f, Access<_type>(
 	term), ResolvedTermReferencePtr(), std::forward<_tParams>(args)...)))
 {
 	using handler_t
@@ -340,7 +339,7 @@ CallRegularUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 		-> decltype(ystdex::expand_proxy<handler_t>::call(f,
 		std::declval<_type&>(), p_ref)){
 		// XXX: Blocked. 'yforward' cause G++ 7.1.0 failed silently.
-		return ystdex::expand_proxy<handler_t>::call(f, NPL::AccessRegular<
+		return ystdex::expand_proxy<handler_t>::call(f, AccessRegular<
 			_type>(nd, p_ref), p_ref, std::forward<_tParams>(args)...);
 	}, term);
 }
@@ -381,8 +380,8 @@ CallUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 		// XXX: This is a bit more efficient than directly use of
 		//	%ystdex::expand_proxy for G++.
 		return ystdex::make_expanded<void(decltype(
-			NPL::AccessTypedValue<_type>(tm)), _tParams&&...)>(std::ref(f))(
-			NPL::AccessTypedValue<_type>(tm), std::forward<_tParams>(args)...);
+			AccessTypedValue<_type>(tm)), _tParams&&...)>(std::ref(f))(
+			AccessTypedValue<_type>(tm), std::forward<_tParams>(args)...);
 	}, term);
 }
 //@}
@@ -410,12 +409,12 @@ CallBinaryAs(_func&& f, TermNode& term, _tParams&&... args)
 	RetainN(term, 2);
 
 	auto i(term.begin());
-	auto&& x(NPL::AccessTypedValue<_type>(NPL::Deref(++i)));
+	auto&& x(AccessTypedValue<_type>(NPL::Deref(++i)));
 
 	return NPL::EmplaceCallResultOrReturn(term, ystdex::invoke_nonvoid(
 		ystdex::make_expanded<void(decltype(x), decltype(
-		NPL::AccessTypedValue<_type2>(*i)), _tParams&&...)>(std::ref(f)),
-		yforward(x), NPL::AccessTypedValue<_type2>(NPL::Deref(++i)),
+		AccessTypedValue<_type2>(*i)), _tParams&&...)>(std::ref(f)),
+		yforward(x), AccessTypedValue<_type2>(NPL::Deref(++i)),
 		yforward(args)...));
 }
 //@}
@@ -432,7 +431,7 @@ CallBinaryFold(_func f, _type val, TermNode& term, _tParams&&... args)
 	const auto n(FetchArgumentN(term));
 	auto i(term.begin());
 	const auto j(ystdex::make_transform(++i, [](TNIter it){
-		return NPL::AccessTypedValue<_type>(NPL::Deref(it));
+		return AccessTypedValue<_type>(NPL::Deref(it));
 	}));
 
 	return NPL::EmplaceCallResultOrReturn(term, std::accumulate(j, std::next(
@@ -856,7 +855,6 @@ Or(TermNode&, ContextNode&);
 \since build 779
 
 按值传递返回值。构造的对象中的元素转换为右值。
-替代引用值通过 NPL::LiftSubtermsToReturn(@6.6.2) 提升求值后的项的每个子项实现。
 
 参考调用文法：
 <pre>cons \<object> \<list></pre>
@@ -1035,7 +1033,6 @@ SetFirstRef(TermNode&);
 \sa LiftSubtermsToReturn
 
 第二参数的元素转换为右值。
-替代引用值通过 LiftSubtermsToReturn 插入第一个元素前的每个子项实现。
 
 参考调用文法：
 <pre>set-rest! \<list> \<object></pre>

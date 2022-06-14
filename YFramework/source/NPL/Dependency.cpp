@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r6902
+\version r6958
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2022-04-25 18:07 +0800
+	2022-06-14 18:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,11 +29,11 @@
 #include YFM_NPL_Dependency // for set, string, UnescapeContext, string_view,
 //	ystdex::isspace, std::istream, YSLib::unique_ptr, std::throw_with_nested,
 //	std::invalid_argument, ystdex::sfmt, YSLib::share_move, REPLContext,
-//	RetainN, NPL::ResolveRegular, NPL::Deref, RelaySwitched, trivial_swap,
-//	A1::NameTypedReducerHandler, std::bind, std::ref, Forms::CallResolvedUnary,
-//	EnsureValueTags, ResolvedTermReferencePtr, NPL::TryAccessLeaf,
-//	TermReference, LiftTerm, MoveResolved, Environment,
-//	NPL::AllocateEnvironment, function, ValueObject, NPL::AccessPtr,
+//	RelaySwitched, trivial_swap, std::bind, SourceName, RetainN,
+//	NPL::ResolveRegular, NPL::Deref, A1::NameTypedReducerHandler, std::ref,
+//	Forms::CallResolvedUnary, EnsureValueTags, ResolvedTermReferencePtr,
+//	TryAccessLeafAtom, TermReference, LiftTerm, MoveResolved, Environment,
+//	NPL::AllocateEnvironment, function, ValueObject, AccessPtr,
 //	EnvironmentReference, shared_ptr, std::piecewise_construct,
 //	NPL::forward_as_tuple, LiftOther, ThrowNonmodifiableErrorForAssignee,
 //	ThrowValueCategoryError, ValueToken, ResolveTerm, TokenValue,
@@ -47,7 +47,7 @@
 //	AccessFirstSubterm, ThrowInsufficientTermsError, AssertValueTags, Retain,
 //	RemoveHead, ClearCombiningTags, EmplaceCallResultOrReturn, NPL::AsTermNode,
 //	ReferenceTerm, ResolveName, ystdex::fast_any_of, Ensigil, YSLib::ufexists,
-//	YSLib::to_std_string, EmplaceCallResultOrReturn, NPL::TryAccessTerm,
+//	YSLib::to_std_string, EmplaceCallResultOrReturn, TryAccessTerm,
 //	ystdex::plus, ystdex::tolower, YSLib::OwnershipTag, YSLib::IO::StreamPut,
 //	YSLib::FetchEnvironmentVariable, YSLib::SetEnvironmentVariable, NPL::tuple,
 //	YSLib::IO::UniqueFile, YSLib::uremove, YSLib::allocate_shared,
@@ -212,7 +212,8 @@ OpenUnique(REPLContext& context, string filename)
 {
 	auto p_is(A1::OpenFile(filename.c_str()));
 
-	// NOTE: Swap guard for %Context.CurrentSource is not used to support PTC.
+	// NOTE: Swap guard for %Context.CurrentSource is not used. It is up to the
+	//	caller to support PTC or not.
 	context.CurrentSource = YSLib::share_move(filename);
 	return p_is;
 }
@@ -233,10 +234,31 @@ ReductionStatus
 ReduceToLoadFile(TermNode& term, ContextNode& ctx, REPLContext& context,
 	string filename)
 {
-	term = context.Load(context, ctx, std::move(filename));
 	// NOTE: This is explicitly not same to klisp. This is also friendly to PTC.
 	// XXX: Same to %A1::ReduceOnce, without setup the next term.
+#if NPL_Impl_NPLA1_Enable_Thunked
+#	if NPL_Impl_NPLA1_Enable_TCO
+	RefTCOAction(ctx).SaveTailSourceName(context.CurrentSource,
+		std::move(context.CurrentSource));
+#	else
+	RelaySwitched(ctx, trivial_swap,
+		A1::NameTypedReducerHandler(std::bind([&](SourceName& saved_src){
+		context.CurrentSource = std::move(saved_src);
+		return ctx.LastStatus;
+	}, std::move(context.CurrentSource)), "recover-source-name"));
+#	endif
+	term = context.Load(context, ctx, std::move(filename));
 	return ContextState::Access(ctx).ReduceOnce.Handler(term, ctx);
+#else
+	auto saved_src(std::move(context.CurrentSource));
+
+	term = context.Load(context, ctx, std::move(filename));
+
+	const auto res(ContextState::Access(ctx).ReduceOnce.Handler(term, ctx));
+
+	context.CurrentSource = std::move(saved_src);
+	return res;
+#endif
 }
 
 } // unnamed namespace;
@@ -284,7 +306,7 @@ YB_ATTR_nodiscard ReductionStatus
 Qualify(TermNode& term, TermTags tag_add)
 {
 	return Forms::CallRawUnary([&](TermNode& tm){
-		if(const auto p = NPL::TryAccessLeaf<TermReference>(tm))
+		if(const auto p = TryAccessLeafAtom<TermReference>(tm))
 			p->AddTags(tag_add);
 		LiftTerm(term, tm);
 		return ReductionStatus::Retained;
@@ -308,14 +330,14 @@ CopyEnvironmentDFS(Environment& d, const Environment& e)
 	});
 	const auto copy_parent_ptr(
 		[&](function<Environment&()> mdst, const ValueObject& vo) -> bool{
-		if(const auto p = NPL::AccessPtr<EnvironmentReference>(vo))
+		if(const auto p = AccessPtr<EnvironmentReference>(vo))
 		{
 			if(const auto p_parent = p->Lock())
 				copy_parent(mdst(), *p_parent);
 			// XXX: Failure of locking is ignored.
 			return true;
 		}
-		else if(const auto p_e = NPL::AccessPtr<shared_ptr<Environment>>(vo))
+		else if(const auto p_e = AccessPtr<shared_ptr<Environment>>(vo))
 		{
 			if(const auto p_parent = *p_e)
 				copy_parent(mdst(), *p_parent);
@@ -567,7 +589,7 @@ LoadObjects(ContextNode& ctx)
 	RegisterUnary(ctx, "uncollapsed?", IsUncollapsedTerm);
 	RegisterStrict(ctx, "deshare", [](TermNode& term){
 		return CallRawUnary([&](TermNode& tm){
-			if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
+			if(const auto p = TryAccessLeafAtom<const TermReference>(tm))
 				LiftTermRef(tm, p->get());
 			NPL::SetContentWith(term, std::move(tm),
 				&ValueObject::MakeMoveCopy);
@@ -770,7 +792,7 @@ LoadBasicDerived(REPLContext& context)
 					auto& tm(*pr.first);
 
 					if(const auto p
-						= NPL::TryAccessLeaf<const TermReference>(tm))
+						= TryAccessLeafAtom<const TermReference>(tm))
 						return p->IsReferencedLValue();
 					return !(bool(tm.Tags & TermTags::Unique)
 						|| bool(tm.Tags & TermTags::Temporary));
@@ -915,7 +937,7 @@ LoadBasicDerived(REPLContext& context)
 		//	implementation.
 		ystdex::bind1([](TermNode& term, const EnvironmentReference& ce){
 		RetainN(term, 0);
-		term.Value = CreateEnvironmentWithParent(term.get_allocator(), ce);
+		term.SetValue(CreateEnvironmentWithParent(term.get_allocator(), ce));
 	}, context.Root.WeakenRecord()));
 	RegisterStrict(renv, "derive-current-environment",
 		[] YB_LAMBDA_ANNOTATE((TermNode& term, ContextNode& ctx), , flatten){
@@ -1532,7 +1554,7 @@ Promise::ReduceToResult(TermNode& term, ResolvedTermReferencePtr p_ref)
 	//	is trustable to have only the tags of modifiable first-class object.
 	const bool list_not_move(!NPL::IsMovable(p_ref) || p_back);
 
-	if(const auto p = NPL::TryAccessLeaf<const TermReference>(nd))
+	if(const auto p = TryAccessLeafAtom<const TermReference>(nd))
 	{
 		if(list_not_move)
 		{
@@ -1548,7 +1570,7 @@ Promise::ReduceToResult(TermNode& term, ResolvedTermReferencePtr p_ref)
 	else if(list_not_move)
 	{
 		// XXX: Allocators are not used here for performance.
-		term.Value.assign(in_place_type<TermReference>, nd.Tags, nd,
+		term.SetValue(in_place_type<TermReference>, nd.Tags, nd,
 			p_ref ? p_ref->GetEnvironmentReference() : r_env);
 		return ReductionStatus::Clean;
 	}
@@ -1629,7 +1651,7 @@ ForcePromise(TermNode& term, ContextNode& ctx, Promise& prom, TermNode& nd,
 		//	the recursive call to %ForcePromise also reuses %nterm to hold the
 		//	old %nprom for nested promise evaluation, so lifetimes of %prom and
 		//	%nprom should not overlap.
-		auto& nprom(NPL::AccessRegular<Promise>(nd, p_ref));
+		auto& nprom(AccessRegular<Promise>(nd, p_ref));
 
 		// NOTE: This is necessary to handle the promise forced during the
 		//	evaluation on %nterm, see [RnRK].
@@ -1880,8 +1902,8 @@ LoadModule_std_strings(REPLContext& context)
 		"string<-", [](ResolvedArg<>&& x, ResolvedArg<>&& y){
 		if(x.IsModifiable())
 		{
-			auto& str_x(NPL::AccessRegular<string>(x.get(), x.second));
-			auto& str_y(NPL::AccessRegular<string>(y.get(), y.second));
+			auto& str_x(AccessRegular<string>(x.get(), x.second));
+			auto& str_y(AccessRegular<string>(y.get(), y.second));
 
 			if(y.IsMovable())
 				str_x = std::move(str_y);
@@ -2001,22 +2023,13 @@ LoadModule_std_io(REPLContext& context,
 $defl! puts (&s) $sequence (put s) (() newline);
 	)NPL");
 #endif
-#if true
 	RegisterStrict(renv, "load", trivial_swap,
 		[&](TermNode& term, ContextNode& ctx){
+		// NOTE: Since %load requires no additional barrier of catching the
+		//	inner exceptions and the reset of the source name, %TryLoadSource or
+		//	%PreloadExternal is not applicable here.
 		return ReduceToLoadExternal(term, ctx, context);
 	});
-#else
-	RegisterUnary<Strict, string>(renv, "load", [&](string& filename){
-		// NOTE: This is not applicable since %load has no additional barrier
-		//	here.
-		// XXX: As %PreloadExternal.
-		const auto p_is(OpenUnique(context, std::move(filename)));
-
-		TryLoadSource(context, context.CurrentSource->c_str(), *p_is);
-		return ValueToken::Unspecified;
-	});
-#endif
 #if NPL_Impl_NPLA1_Native_Forms
 	RegisterStrict(renv, "get-module", trivial_swap,
 		ystdex::bind1([&](TermNode& term, ContextNode& ctx,
@@ -2048,7 +2061,7 @@ $defl! puts (&s) $sequence (put s) (() newline);
 #	if NPL_Impl_NPLA1_Enable_Thunked
 				RelaySwitched(ctx, trivial_swap, A1::NameTypedReducerHandler(
 					std::bind([&](shared_ptr<Environment> p_res){
-					term.Value = std::move(p_res);
+					term.SetValue(std::move(p_res));
 					return ReductionStatus::Clean;
 				}, p_env), "get-module-return"));
 				return ReduceToLoadGuarded(term, ctx, context, std::move(p_env),
@@ -2056,7 +2069,7 @@ $defl! puts (&s) $sequence (put s) (() newline);
 #	else
 				ReduceToLoadGuarded(term, ctx, context, std::move(p_env),
 					ReduceToLoadExternal);
-				term.Value = std::move(p_env);
+				term.SetValue(std::move(p_env));
 				return ReductionStatus::Clean;
 #	endif
 			}
@@ -2087,7 +2100,7 @@ LoadModule_std_system(REPLContext& context)
 	RegisterStrict(renv, "get-current-repl", trivial_swap,
 		[&](TermNode& term){
 		RetainN(term, 0);
-		term.Value = ValueObject(context, YSLib::OwnershipTag<>());
+		term.Value.assign(context, YSLib::OwnershipTag<>());
 	});
 	RegisterStrict(renv, "eval-string", EvalString);
 	RegisterStrict(renv, "eval-string%", EvalStringRef);
@@ -2245,15 +2258,15 @@ LoadModule_std_modules(REPLContext& context,
 			// XXX: As %ReduceToReference for modifiable lvalues (with default
 			//	tags).
 			AssertValueTags(tm);
-			if(const auto p = NPL::TryAccessLeaf<const TermReference>(tm))
+			if(const auto p = TryAccessLeafAtom<const TermReference>(tm))
 			{
 				// XXX: Since %tm is not shared with %term, it is safe to use
 				//	%TermNode::SetContent instead of %TermNode::CopyContent.
 				term.SetContent(tm);
 				return ReductionStatus::Retained;
 			}
-			term.Value
-				= TermReference(TermTags::Unqualified, tm, ctx.WeakenRecord());
+			term.SetValue(in_place_type<TermReference>, TermTags::Unqualified,
+				tm, ctx.WeakenRecord());
 			return ReductionStatus::Clean;
 		});
 

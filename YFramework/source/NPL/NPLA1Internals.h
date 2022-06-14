@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r22245
+\version r22378
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-06-05 01:26 +0800
+	2022-06-14 18:24 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -32,10 +32,10 @@
 #include YFM_NPL_NPLA1 // for shared_ptr, ContextNode, NPL::Deref, NPLException,
 //	TermNode, ReductionStatus, Reducer, YSLib::map, lref, Environment, set,
 //	IsTyped, EnvironmentList, EnvironmentReference, pair, YSLib::forward_list,
-//	size_t, list, std::declval, EnvironmentGuard, MoveKeptGuard,
+//	size_t, tuple, std::declval, EnvironmentGuard, MoveKeptGuard,
 //	A1::NameTypedContextHandler, TermReference, ThrowTypeErrorForInvalidType,
-//	NPL::TryAccessLeaf, type_id, TermToNamePtr, IsIgnore,
-//	ystdex::exclude_self_t, ParameterMismatch;
+//	TryAccessLeafAtom, type_id, TermToNamePtr, IsIgnore, ystdex::exclude_self_t,
+//	ParameterMismatch;
 #include <ystdex/compose.hpp> // for ystdex::get_less;
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
 #include <ystdex/optional.h> // for ystdex::optional;
@@ -97,7 +97,33 @@ inline PDefH(void, SetupNextTerm, ContextNode& ctx, TermNode& term)
 	ImplExpr(ContextState::Access(ctx).SetNextTermRef(term))
 
 // NOTE: See $2018-09 @ %Documentation::Workflow for rationale of the
-//	implementation.
+//	implementation of PTC.
+
+/*!
+\brief 源代码名称恢复器。
+\since build 947
+*/
+class SourceNameRecoverer final
+{
+private:
+	observer_ptr<SourceName> p_current{};
+	SourceName Saved{};
+
+public:
+	DefDeCtor(SourceNameRecoverer)
+	SourceNameRecoverer(SourceName& cur, SourceName name)
+		: p_current(&cur), Saved(name)
+	{}
+	DefDeCopyMoveCtorAssignment(SourceNameRecoverer)
+
+	void
+	operator()() const ynothrow
+	{
+		if(p_current)
+			*p_current = std::move(Saved);
+	}
+};
+
 // XXX: First-class continuations are not implemented completely yet, due to
 //	lack of term replacement mechanism in captured continuation. Kernel-style
 //	continuation interception is also unsupported because no reference for
@@ -116,6 +142,8 @@ public:
 	OneShotChecker(ContextNode& ctx)
 		: p_shot(YSLib::allocate_shared<bool>(ctx.get_allocator()))
 	{}
+	//! \since build 947
+	DefDeCopyMoveCtorAssignment(OneShotChecker)
 
 	void
 	operator()() const ynothrow
@@ -305,7 +333,7 @@ private:
 public:
 #if YB_IMPL_CLANGPP || YB_IMPL_GNUCPP >= 100000
 	// XXX: See ContextNode::ReducerSequence.
-	FrameRecordList() ynoexcept_spec(FrameRecordList())
+	FrameRecordList() ynoexcept_spec(Base())
 		: Base()
 	{}
 #elif __cpp_inheriting_constructors < 201511L
@@ -358,6 +386,27 @@ private:
 		PDefHOp(void, (), ) const ynothrow
 			ImplExpr(TermRef.get().Clear())
 	};
+	//! \since build 947
+	//@{
+	/*!
+	\brief 附加信息索引。
+	\note 顺序保持和 ExtraInfo 的元素对应一致。
+	*/
+	enum ExtraInfoIndex : size_t
+	{
+		RecoverSourceName,
+		CheckOneShot
+	};
+
+	/*!
+	\brief 帧记录。
+	\note 成员顺序和 RecordFrameIndex 中的项对应。
+	\note 成员析构的顺序是未指定的。
+	\sa RecordFrameIndex
+	*/
+	using ExtraInfo = tuple<ystdex::guard<SourceNameRecoverer>,
+		ystdex::optional<ystdex::guard<OneShotChecker>>>;
+	//@}
 
 	//! \since build 910
 	mutable size_t req_lift_result = 0;
@@ -376,10 +425,10 @@ public:
 
 private:
 	/*!
-	\brief 一次调用检查守卫。
-	\since build 943
+	\brief 可选的附加信息。
+	\since build 947
 	*/
-	mutable ystdex::optional<ystdex::guard<OneShotChecker>> one_shot_guard{};
+	mutable ystdex::optional<ExtraInfo> opt_extra_info{};
 
 public:
 	//! \since build 819
@@ -407,10 +456,7 @@ public:
 		//	object always live longer than the older one.
 		: req_lift_result(a.req_lift_result),
 		env_guard(std::move(a.env_guard)), term_guard(std::move(a.term_guard))
-	{
-		if(a.one_shot_guard)
-			one_shot_guard.emplace(a.one_shot_guard->func);
-	}
+	{}
 	DefDeMoveCtor(TCOAction)
 	// XXX: Out-of-line destructor here is inefficient.
 
@@ -420,6 +466,17 @@ public:
 	ReductionStatus
 	operator()(ContextNode&) const;
 
+private:
+	//! \since build 947
+	YB_ATTR_nodiscard ExtraInfo&
+	GetExtraInfoRef()
+	{
+		if(!opt_extra_info)
+			opt_extra_info.emplace();
+		return *opt_extra_info;
+	}
+
+public:
 	//! \since build 913
 	DefGetter(const ynothrow, TermNode&, TermRef, term_guard.func.func.TermRef)
 
@@ -474,13 +531,15 @@ public:
 			{
 				CompressForContext(ctx);
 				// NOTE: The temporary function and the environment are saved in
-				//	the frame record list as a new entry if necessary.
+				//	the frame record list as a new entry if necessary. The
+				//	existence of the entry shall be checked because it may be
+				//	missing for function lvalues or calls not from a combiner
+				//	(e.g. by 'eval').
 				if(!record_list.empty() && !record_list.front().second)
 					record_list.front().second = std::move(p_saved);
 				else
 					record_list.emplace_front(ContextHandler(),
 						std::move(p_saved));
-				return;
 			}
 			// XXX: Normally this should not occur, but this is allowed by the
 			//	interface (for an object %EnvironmentSwitcher initialized
@@ -497,6 +556,8 @@ public:
 	YB_ATTR_nodiscard OneShotChecker
 	MakeOneShotChecker()
 	{
+		auto& one_shot_guard(NPL::get<CheckOneShot>(GetExtraInfoRef()));
+
 		if(!one_shot_guard)
 			// XXX: The context is only used to determine the allocator, which
 			//	is an implementation detail. Usually the context in caller
@@ -518,14 +579,27 @@ public:
 	}
 
 	/*!
-	\pre \c one_shot_guard 。
+	\pre \c NPL::get<CheckOneShot>(GetExtraInfoRef()) 。
 	\since build 945
 	*/
 	void
 	ReleaseOneShotGuard()
 	{
+		auto& one_shot_guard(NPL::get<CheckOneShot>(GetExtraInfoRef()));
+
 		YAssert(one_shot_guard, "One-shot guard is not initialized properly.");
 		return one_shot_guard.reset();
+	}
+
+	/*!
+	\brief 保存尾上下文中的源代码名称。
+	\since build 947
+	*/
+	void
+	SaveTailSourceName(SourceName& cur, SourceName name)
+	{
+		NPL::get<RecoverSourceName>(GetExtraInfoRef())
+			= SourceNameRecoverer(cur, std::move(name));
 	}
 
 	//! \since build 911
@@ -589,6 +663,10 @@ inline
 	ImplExpr(SetupTailAction(ctx, TCOAction(ctx, term, lift)))
 
 
+// XXX: It is accidentally close to ECMAScript 6's %PrepareForTailCall in both
+//	name and semantics, but actually independent. In particular, ES6's "pop"
+//	wording indicates it only operate on one side of the activation records in
+//	relavant contexts, which differs than the %TCOAction here.
 /*!
 \brief 准备 TCO 求值。
 \param ctx 规约上下文。
@@ -915,6 +993,30 @@ ReduceSubsequentPinned(TermNode& term, ContextNode& ctx, _fNext&& next)
 //@{
 struct NonTailCall final
 {
+#if NPL_Impl_NPLA1_Enable_Thunked
+	//! \since build 947
+	YB_ATTR_nodiscard YB_FLATTEN static Reducer
+	MakeLiftResult(TermNode& term, ContextNode& ctx)
+	{
+		// NOTE: The term to be lifted is fixed regardless of continuation
+		//	capture, so this needs no setup of the next term and the reducer
+		//	does not need to be a %Continuation.
+		// XXX: However, %Containuation is actually more efficient. Whether
+		//	%Continuation is used, %NPL::ToReducer here would be a bit
+		//	inefficient.
+#if true
+		return Continuation(NameTypedContextHandler([&]{
+			return ReduceForLiftedResult(term);
+		}, "eval-lift-result"), ctx);
+#else
+		yunused(ctx);
+		return NameTypedContextHandler([&]{
+			return ReduceForLiftedResult(term);
+		}, "eval-lift-result");
+#endif
+	}
+#endif
+
 	//! \pre 最后一个参数的类型退化后可平凡交换。
 	//@{
 	template<typename _fCurrent>
@@ -940,27 +1042,20 @@ struct NonTailCall final
 	}
 
 	template<typename _fCurrent>
-	YB_FLATTEN static inline ReductionStatus
+	static inline ReductionStatus
 	RelayNextGuardedLifted(ContextNode& ctx, TermNode& term,
 		EnvironmentGuard&& gd, _fCurrent&& cur)
 	{
 		// XXX: See %RelayNextGuarded.
 #if NPL_Impl_NPLA1_Enable_Thunked
 		auto act(MoveKeptGuard(gd));
-		// TODO: Blocked. Use C++14 lambda initializers to simplify the
-		//	implementation.
-		// XXX: Term reused. Call of %SetupNextTerm is not needed as the next
-		//	term is guaranteed not changed when %cur is a continuation.
-		Continuation cont(A1::NameTypedContextHandler([&]{
-			// TODO: Avoid fixed continuation parameter.
-			return ReduceForLiftedResult(term);
-		}, "eval-lift-result"), ctx);
 
+		// XXX: Call of %SetupNextTerm is not needed because the next term is
+		//	guaranteed not changed whether %cur is a continuation.
 		RelaySwitched(ctx, trivial_swap, std::move(act));
-		// XXX: %Continuation is specialized enough without
-		//	%trivial_swap.
+		// XXX: %Reducer is specialized enough without %trivial_swap.
 		return A1::RelayCurrentNext(ctx, term, trivial_swap, yforward(cur),
-			std::move(cont));
+			MakeLiftResult(term, ctx));
 #else
 		yunused(gd);
 		RelayDirect(ctx, cur, term);
@@ -981,18 +1076,11 @@ struct NonTailCall final
 
 		if(lift)
 		{
-			// XXX: Term reused. Call of %SetupNextTerm is not needed as the
-			//	next term is guaranteed not changed when %cur is a continuation.
-			Continuation cont(A1::NameTypedContextHandler([&]{
-				// TODO: Avoid fixed continuation parameter.
-				return ReduceForLiftedResult(term);
-			}, "eval-lift-result"), ctx);
-
+			// XXX: As %RelayNextGuardedLifted.
 			RelaySwitched(ctx, trivial_swap, std::move(act));
-			// XXX: %Continuation is specialized enough without
-			//	%trivial_swap.
-			return A1::RelayCurrentNext(ctx, term, trivial_swap,
-				yforward(cur), std::move(cont));
+			// XXX: As %RelayNextGuardedLifted.
+			return A1::RelayCurrentNext(ctx, term, trivial_swap, yforward(cur),
+				MakeLiftResult(term, ctx));
 		}
 		return A1::RelayCurrentNext(ctx, term, trivial_swap, yforward(cur),
 			trivial_swap, std::move(act));
@@ -1183,7 +1271,7 @@ inline PDefH(void, SetEvaluatedReference, TermNode& term, const TermNode& bound,
 	const TermReference& ref)
 	// XXX: It is assumed that %term is not an ancestor of %bound. The source
 	//	term tags are ignored.
-	ImplExpr(YAssert(NPL::TryAccessLeaf<const TermReference>(bound).get()
+	ImplExpr(YAssert(TryAccessLeafAtom<const TermReference>(bound).get()
 		== &ref, "Invalid term or reference value found."), term.SetContent(
 		bound.GetContainer(), EnsureLValueReference(TermReference(ref))))
 
@@ -1274,7 +1362,7 @@ private:
 			if(IsBranch(t))
 				MatchSubterms(t.begin(), t.end());
 		}
-		else if(const auto p_t = NPL::TryAccessLeaf<const TermReference>(t))
+		else if(const auto p_t = TryAccessLeafAtom<const TermReference>(t))
 		{
 			auto& nd(p_t->get());
 

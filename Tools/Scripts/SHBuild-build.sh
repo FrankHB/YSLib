@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2018, 2020-2021 FrankHB.
+# (C) 2014-2018, 2020-2022 FrankHB.
 # Build script for SHBuild.
 
 set -e
@@ -33,19 +33,28 @@ LDFLAGS_IMPL_OPT=' '
 
 : "${SHBuild_Output:=SHBuild}"
 
-# XXX: After MSYS2 enables ASLR by default, x86_64 binutils with g++ is buggy.
+# XXX: After MSYS2 enabling ASLR by default, x86_64 binutils with g++ is buggy.
 #	See https://www.msys2.org/news/#2021-01-31-aslr-enabled-by-default,
 #	https://github.com/msys2/MINGW-packages/issues/6986,
 #	https://github.com/msys2/MINGW-packages/issues/7023,
 #	and https://sourceware.org/bugzilla/show_bug.cgi?id=26659. Here is a
 #	workaround to the issue.
+# XXX: This is now fixed by https://github.com/msys2/MINGW-packages/pull/8259.
+# TODO: Detect precise version?
+# XXX: There are some other bugs not resolved for ld.bfd on PE targets:
+#	https://sourceware.org/bugzilla/show_bug.cgi?id=11539,
+#	https://sourceware.org/bugzilla/show_bug.cgi?id=19803.
 if [[ "$SHBuild_Host_OS" == 'Win32' && "$SHBuild_Host_Arch" == 'x86_64' \
 	&& "$SHBuild_CXX_Style_" == 'G++' ]]; then
-	LDFLAGS_LOWBASE_="$(SHBuild_CheckCompiler "$CXX" \
-		'int main(){}' -Wl,--default-image-base-low '' \
-		-xc++ -Wl,--default-image-base-low)"
+#	LDFLAGS_WKRD_="$(SHBuild_CheckCompiler "$CXX" \
+#		'int main(){}' -Wl,--default-image-base-low '' \
+#		-xc++ -Wl,--default-image-base-low)"
+	# XXX: The linker (ld) from mingw-w64-x86_64-binutils 2.38-3 versions does
+	#	not work otherwise. And mingw-w64-x86_64-lld-14.0.4-1 does not work with
+	#	LTO here.
+	LDFLAGS_WKRD_='-fuse-ld=lld'
 else
-	LDFLAGS_LOWBASE_=
+	LDFLAGS_WKRD_=
 fi
 
 SHBuild_Pushd .
@@ -71,11 +80,11 @@ if [[ "$SHBuild_Verbose_" != '' ]]; then
 	# XXX: Value of several variables may contain whitespaces.
 	# shellcheck disable=2086
 	SHBuild_Puts "$CXX" Main.cpp -o"$SHBuild_Output" $CXXFLAGS $LDFLAGS \
-		$LDFLAGS_LOWBASE_ $SHBuild_IncPCH $INCLUDES $LIBS
+		$LDFLAGS_WKRD_ $SHBuild_IncPCH $INCLUDES $LIBS
 fi
 # XXX: Value of several variables may contain whitespaces.
 # shellcheck disable=2086
-"$CXX" Main.cpp -o"$SHBuild_Output" $CXXFLAGS $LDFLAGS $LDFLAGS_LOWBASE_ \
+"$CXX" Main.cpp -o"$SHBuild_Output" $CXXFLAGS $LDFLAGS $LDFLAGS_WKRD_ \
 	$SHBuild_IncPCH $INCLUDES $LIBS
 
 SHBuild_Popd

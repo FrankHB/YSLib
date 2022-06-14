@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2292
+\version r2314
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2022-04-29 18:57 +0800
+	2022-06-13 01:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,7 +150,7 @@ struct ConSubThunk final
 	}
 
 	// XXX: Making it a separate definition slightly improves the generated code
-	//	quality with x86_64-pc-linux G++ 11.1.0.
+	//	quality with x86_64-pc-linux G++ 11.1.
 	void
 	UpdateCopyValueAndTags(TermNode& dst, const TermNode& src) const
 	{
@@ -198,41 +198,22 @@ TermNode::ClearContainer() ynothrow
 }
 
 // XXX: Simplify with %CreateRecursively?
-TermNode::Container
-TermNode::ConCons(const ValueNode::Container& con)
-{
-	Container res;
-
-	for(const auto& item : con)
-		res.emplace_back(ConCons(item.GetContainer()), item.Value);
-	return res;
-}
-TermNode::Container
-TermNode::ConCons(ValueNode::Container&& con)
-{
-	Container res;
-
-	for(auto& item : con)
-		res.emplace_back(ConCons(std::move(item.GetContainerRef())),
-			std::move(item.Value));
-	return res;
-}
-TermNode::Container
+YB_FLATTEN TermNode::Container
 TermNode::ConCons(const ValueNode::Container& con, allocator_type a)
 {
 	Container res(a);
 
 	for(const auto& item : con)
-		res.emplace_back(ConCons(item.GetContainer()), item.Value);
+		res.emplace_back(ConCons(item.GetContainer(), a), item.Value);
 	return res;
 }
-TermNode::Container
+YB_FLATTEN TermNode::Container
 TermNode::ConCons(ValueNode::Container&& con, allocator_type a)
 {
 	Container res(a);
 
 	for(auto& item : con)
-		res.emplace_back(ConCons(std::move(item.GetContainerRef())),
+		res.emplace_back(ConCons(std::move(item.GetContainerRef()), a),
 			std::move(item.Value));
 	return res;
 }

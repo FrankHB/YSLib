@@ -11,13 +11,13 @@
 /*!	\file SXML.cpp
 \ingroup NPL
 \brief NPL SXML 实现。
-\version r4729
+\version r4735
 \author FrankHB <frankhb1989@gmail.com>
 \since build 936
 \par 创建时间:
 	2022-01-20 17:41:15 +0800
 \par 修改时间:
-	2022-01-21 02:03 +0800
+	2022-06-14 18:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_SXML // for YSLib::Warning, NPL::Access, string, NPL::Deref,
+#include YFM_NPL_SXML // for YSLib::Warning, Access, string, NPL::Deref,
 //	ystdex::write, AccessFirstSubterm, ystdex::unimplemented, IsTyped,
 //	bad_any_cast, ystdex::quote, ystdex::call_value_or;
 
@@ -50,13 +50,13 @@ ConvertAttributeNodeString(const TermNode& term)
 	case 2:
 		{
 			auto i(term.begin());
-			const auto& n(NPL::Access<string>(NPL::Deref(i)));
+			const auto& n(Access<string>(NPL::Deref(i)));
 
-			return n + '=' + NPL::Access<string>(NPL::Deref(++i));
+			return n + '=' + Access<string>(NPL::Deref(++i));
 		}
 		YB_ATTR_fallthrough;
 	case 1:
-		return NPL::Access<string>(AccessFirstSubterm(term));
+		return Access<string>(AccessFirstSubterm(term));
 	case 0:
 		break;
 	}
@@ -79,7 +79,7 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 				try
 				{
 					auto i(term.begin());
-					const auto& str(NPL::Access<string>(NPL::Deref(i)));
+					const auto& str(Access<string>(NPL::Deref(i)));
 
 					++i;
 					if(str == "@")
@@ -167,7 +167,7 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 string
 ConvertStringNode(const TermNode& term)
 {
-	return ystdex::call_value_or(EscapeXML, NPL::AccessPtr<string>(term));
+	return ystdex::call_value_or(EscapeXML, AccessPtr<string>(term));
 }
 
 void

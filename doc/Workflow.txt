@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4943
+\version r4958
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2022-06-05 02:19 +0800
+	2022-06-14 18:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2590,7 +2590,7 @@ PTC implementation in NPLA1 has been revisited.
 			This would cause undefined behavior with environment locking, e.g. in evaluation of expression '$let/e (() make-environment) () 42'.
 		The resolution of the bug also relies on removing the hack of collecting function prvalues (see below).
 	Now hack of prvalue function collection is also removed.
-		It seems at current it does not effect PTC typically.
+		It seems at current it does not affect PTC typically.
 		See $2018-06 for descriptions of original design.
 
 $2018-10:
@@ -4821,7 +4821,7 @@ The most recent supported GCC version on x86_64 Linux has been updated to 12.1.0
 					The saved value is then never used.
 					This is generated for 'ystdex::tidy_ptr' copy constructor.
 				OTOH, x86_64-pc-linux Clang++ 13.0.1 always move the 'free_count' value from and to the memory in the call to 'add_free'.
-					The code generated is not changed by 'YB_ATTR(optimize("Os"))'.
+					The code generated is not changed by 'YB_ATTR(optimize("Os"))' (actually ignored).
 			Different to 'resource_pool::allocate', there is less chances to predicate the branches correctly, so more compact CMOVcc instructions can be a win. (And actually it generate worse code using '-Os' on 'resouce_pool::allocate'.
 				Note plain branch instructions can still be more compact in binary representations (and the compiler does not necessarily correctly figure that out), e.g. see https://bugs.llvm.org/show_bug.cgi?id=33013#c8.
 				This does not makes any differences with x86_64-pc-linux Clang++ 13.0.1, though.
@@ -4879,6 +4879,19 @@ NPLA1 TCO action has been revised and further optimized.
 			This sequence is precisely implied by the destructor, as well as the the suffix except the returning value in 'operator()'.
 				By the call to 'dismiss' of the term guard in 'operator()' before the sequence, it remains compatible to both normal ('operator()') and abnormal (destructor entered by exception) returning.
 			Based on the fact that 'operator()' does not have custom actions relying on the program of the object language, the common sequence of the operation is deferred to the modification of 'ContextNode::TailAction' in 'ContextNode::ApplyTail'.
+Some calls to qualified functions are cleanup.
+	For calls with all function arguments of known types not being template specializations, ADL is not performed or has the results same to the unqualified name lookup.
+		In such cases, the prefix (with '::') can be safely omitted without side effects, except there can be a bit worse compilation performance (usually ignored).
+	It is now clear 'TermNode' and some other types defined as classes in namespace 'NPL' are the instances conform to the descriptions above.
+		Notably, there are many calls to function templates named with prefix 'TryAccess'.
+		Some other function templates named with prefix 'Access' and with the name 'TryAccessValue' are from namespace 'YSLib' by using declarations.
+			Nevertheless, the only supported arguments 'ValueObject' is also introduced from 'YSLib' by same way.
+		Additionally, function template 'NPL::make_observer' from 'YSLib' only accept built-in pointers, which have no associated namespaces respected to ADL.
+			So it is also safe to remove the 'NPL::' prefix here.
+		On the other hand, some calls to functions like 'TermToNamePtr', 'AccessFirstSubterm' and 'IsBranch' already has no 'NPL::' prefix.
+			The changed calls would be more consistent to these calls.
+	Similar calls out of the NPL implementation and calls like 'YSLib::make_observer' are also subjected to the cleanup.
+		To make the changes in the current revision neat, the changes are planned in future.
 
 ////
 

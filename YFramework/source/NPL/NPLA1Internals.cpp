@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20628
+\version r20644
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-06-05 01:26 +0800
+	2022-06-13 23:54 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -256,19 +256,20 @@ ReduceAsSubobjectReference(TermNode& term, shared_ptr<TermNode> p_sub,
 
 	// NOTE: Irregular representation is constructed for the subobject
 	//	reference.
-	const auto a(term.get_allocator());
-	auto& sub(NPL::Deref(p_sub));
+	auto& con(term.GetContainerRef());
+	auto i(con.begin());
 
-#if true
-	TermNode tm(std::allocator_arg, a, {NPL::AsTermNode(a, std::move(p_sub))},
-		std::allocator_arg, a, TermReference(sub, r_env));
-
-	term.SetContent(std::move(tm));
-#else
-	term = TermNode(std::allocator_arg, a,
-		{NPL::AsTermNode(a, std::move(p_sub))},
-		std::allocator_arg, a, TermReference(sub, r_env));
-#endif
+	// XXX: Set %Value first. Although this is not strongly exception-safe,
+	//	it guarantees no unexpected copies of user-defined objects remained even
+	//	if the following operations exit via exception. The order of setting of
+	//	%Tags is insignificant, though.
+	term.SetValue(TermReference(NPL::Deref(p_sub), r_env)),
+	term.Tags = TermTags::Unqualified;
+	// XXX: Not using %ystdex::prefix_eraser because there is known 1 subterm to
+	//	be inserted.
+	con.insert(i, NPL::AsTermNodeTagged(con.get_allocator(), TermTags::Sticky,
+		std::move(p_sub)));
+	con.erase(i, con.end());
 	return ReductionStatus::Retained;
 }
 

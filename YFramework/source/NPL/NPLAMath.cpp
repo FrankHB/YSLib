@@ -11,13 +11,13 @@
 /*!	\file NPLAMath.cpp
 \ingroup NPL
 \brief NPLA 数学功能。
-\version r28330
+\version r28361
 \author FrankHB <frankhb1989@gmail.com>
 \since build 930
 \par 创建时间:
 	2021-11-03 12:50:49 +0800
 \par 修改时间:
-	2022-02-08 19:39 +0800
+	2022-06-14 18:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLAMath // for ValueObject, ResolvedArg, size_t, type_info,
 //	TermNode, ystdex::identity, ystdex::conditional_t, std::is_signed,
-//	ystdex::_t, NPL::TryAccessValue, YAssert, TypeError, ystdex::sfmt,
+//	ystdex::_t, TryAccessValue, YAssert, TypeError, ystdex::sfmt,
 //	NPL::Nonnull, std::string, ystdex::enable_if_t, std::is_floating_point,
 //	NPL::Deref, std::isfinite, std::nearbyint, ystdex::exclude_self_t,
 //	std::fmod, ystdex::and_, std::is_unsigned, std::abs, std::floor, std::trunc,
@@ -288,32 +288,32 @@ template<typename _type, class _tValue, typename _func>
 YB_ATTR_nodiscard _type
 DoNumLeaf(_tValue& x, _func f)
 {
-	if(const auto p_i = NPL::TryAccessValue<int>(x))
+	if(const auto p_i = TryAccessValue<int>(x))
 		return f(*p_i);
-	if(const auto p_u = NPL::TryAccessValue<unsigned>(x))
+	if(const auto p_u = TryAccessValue<unsigned>(x))
 		return f(*p_u);
-	if(const auto p_ll = NPL::TryAccessValue<long long>(x))
+	if(const auto p_ll = TryAccessValue<long long>(x))
 		return f(*p_ll);
-	if(const auto p_ull = NPL::TryAccessValue<unsigned long long>(x))
+	if(const auto p_ull = TryAccessValue<unsigned long long>(x))
 		return f(*p_ull);
-	if(const auto p_d = NPL::TryAccessValue<double>(x))
+	if(const auto p_d = TryAccessValue<double>(x))
 		return f(*p_d);
 	// TODO: Support bigint.
-	if(const auto p_l = NPL::TryAccessValue<long>(x))
+	if(const auto p_l = TryAccessValue<long>(x))
 		return f(*p_l);
-	if(const auto p_ul = NPL::TryAccessValue<unsigned long>(x))
+	if(const auto p_ul = TryAccessValue<unsigned long>(x))
 		return f(*p_ul);
-	if(const auto p_s = NPL::TryAccessValue<short>(x))
+	if(const auto p_s = TryAccessValue<short>(x))
 		return f(*p_s);
-	if(const auto p_us = NPL::TryAccessValue<unsigned short>(x))
+	if(const auto p_us = TryAccessValue<unsigned short>(x))
 		return f(*p_us);
-	if(const auto p_sc = NPL::TryAccessValue<signed char>(x))
+	if(const auto p_sc = TryAccessValue<signed char>(x))
 		return f(*p_sc);
-	if(const auto p_uc = NPL::TryAccessValue<unsigned char>(x))
+	if(const auto p_uc = TryAccessValue<unsigned char>(x))
 		return f(*p_uc);
-	if(const auto p_f = NPL::TryAccessValue<float>(x))
+	if(const auto p_f = TryAccessValue<float>(x))
 		return f(*p_f);
-	if(const auto p_ld = NPL::TryAccessValue<long double>(x))
+	if(const auto p_ld = TryAccessValue<long double>(x))
 		return f(*p_ld);
 	return f(x);
 }
@@ -780,7 +780,7 @@ struct AddOne
 			++x;
 		else
 			// TODO: Support bigint with allocator?
-			Result.get() = ValueObject(MakeExtType<_type>(x) + 1);
+			Result.get().assign(MakeExtType<_type>(x) + 1);
 	}
 };
 
@@ -811,7 +811,7 @@ struct SubOne
 			--x;
 		else
 			// TODO: Support bigint with allocator?
-			Result.get() = ValueObject(MakeNExtType<_type>(x) - 1);
+			Result.get().assign(ValueObject(MakeNExtType<_type>(x) - 1));
 	}
 };
 
@@ -3563,11 +3563,11 @@ IsFlonumValue(const ValueObject& vo) ynothrow
 bool
 IsRationalValue(const ValueObject& vo) ynothrow
 {
-	if(const auto p_d = NPL::TryAccessValue<double>(vo))
+	if(const auto p_d = TryAccessValue<double>(vo))
 		return std::isfinite(*p_d);
-	if(const auto p_f = NPL::TryAccessValue<float>(vo))
+	if(const auto p_f = TryAccessValue<float>(vo))
 		return std::isfinite(*p_f);
-	if(const auto p_ld = NPL::TryAccessValue<long double>(vo))
+	if(const auto p_ld = TryAccessValue<long double>(vo))
 		return std::isfinite(*p_ld);
 	return IsExactValue(vo);
 }
@@ -3575,11 +3575,11 @@ IsRationalValue(const ValueObject& vo) ynothrow
 bool
 IsIntegerValue(const ValueObject& vo) ynothrow
 {
-	if(const auto p_d = NPL::TryAccessValue<double>(vo))
+	if(const auto p_d = TryAccessValue<double>(vo))
 		return FloatIsInteger(*p_d);
-	if(const auto p_f = NPL::TryAccessValue<float>(vo))
+	if(const auto p_f = TryAccessValue<float>(vo))
 		return FloatIsInteger(*p_f);
-	if(const auto p_ld = NPL::TryAccessValue<long double>(vo))
+	if(const auto p_ld = TryAccessValue<long double>(vo))
 		return FloatIsInteger(*p_ld);
 	return IsExactValue(vo);
 }
@@ -3588,11 +3588,11 @@ IsIntegerValue(const ValueObject& vo) ynothrow
 bool
 IsFinite(const ValueObject& x) ynothrowv
 {
-	if(const auto p_d = NPL::TryAccessValue<double>(x))
+	if(const auto p_d = TryAccessValue<double>(x))
 		return std::isfinite(*p_d);
-	if(const auto p_f = NPL::TryAccessValue<float>(x))
+	if(const auto p_f = TryAccessValue<float>(x))
 		return std::isfinite(*p_f);
-	if(const auto p_ld = NPL::TryAccessValue<long double>(x))
+	if(const auto p_ld = TryAccessValue<long double>(x))
 		return std::isfinite(*p_ld);
 	return true;
 }
@@ -3600,11 +3600,11 @@ IsFinite(const ValueObject& x) ynothrowv
 bool
 IsInfinite(const ValueObject& x) ynothrowv
 {
-	if(const auto p_d = NPL::TryAccessValue<double>(x))
+	if(const auto p_d = TryAccessValue<double>(x))
 		return std::isinf(*p_d);
-	if(const auto p_f = NPL::TryAccessValue<float>(x))
+	if(const auto p_f = TryAccessValue<float>(x))
 		return std::isinf(*p_f);
-	if(const auto p_ld = NPL::TryAccessValue<long double>(x))
+	if(const auto p_ld = TryAccessValue<long double>(x))
 		return std::isinf(*p_ld);
 	return {};
 }
@@ -3612,11 +3612,11 @@ IsInfinite(const ValueObject& x) ynothrowv
 bool
 IsNaN(const ValueObject& x) ynothrowv
 {
-	if(const auto p_d = NPL::TryAccessValue<double>(x))
+	if(const auto p_d = TryAccessValue<double>(x))
 		return std::isnan(*p_d);
-	if(const auto p_f = NPL::TryAccessValue<float>(x))
+	if(const auto p_f = TryAccessValue<float>(x))
 		return std::isnan(*p_f);
-	if(const auto p_ld = NPL::TryAccessValue<long double>(x))
+	if(const auto p_ld = TryAccessValue<long double>(x))
 		return std::isnan(*p_ld);
 	return {};
 }

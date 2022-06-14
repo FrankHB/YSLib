@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r4233
+\version r4421
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2022-04-28 03:46 +0800
+	2022-06-13 18:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,15 +97,34 @@ using YSLib::type_info;
 using YSLib::weak_ptr;
 
 
+/*!
+\brief 压缩项标签。
+\since build 947
+
+若定义为 true ，则特定的项标签复用其它项标签的位。
+因为这些标签预期不会在表示一等对象中出现，非一等对象的表示可复用相同的位置。
+公开接口中使用的对象表示的这些标签是否复用这些位在是未指定的。
+为避免依赖实现配置，判断对应的标签是否存在时，
+	应使用 API 而不是直接依赖标签的数值的操作（例如比较和位运算）。
+*/
+#ifndef NPL_SContext_CompressTermTags
+#	define NPL_SContext_CompressTermTags true
+#endif
+
 //! \since build 857
 //@{
 //! \brief 项标签索引：指定项标签元数据掩码的位。
 enum TermTagIndices : size_t
 {
-	UnqualifiedIndex = 0,
 	UniqueIndex,
 	NonmodifyingIndex,
-	TemporaryIndex
+	TemporaryIndex,
+	StickyIndex
+#if NPL_SContext_CompressTermTags
+		// NOTE: This can be any other index except %UnqualifiedIndex, because
+		//	all other indices do not qualify subobjects.
+		= yimpl(NonmodifyingIndex)
+#endif
 };
 
 /*!
@@ -122,7 +141,7 @@ enum class TermTags
 	指定默认情形的对象或对象引用。
 	当前用于实现对象语言的被绑定的对象或消亡值以外的表达式。
 	*/
-	Unqualified = 1 << UnqualifiedIndex,
+	Unqualified = 0,
 	/*!
 	\brief 唯一引用。
 
@@ -151,7 +170,19 @@ enum class TermTags
 		而不引入项引用。
 	不取得范式的项中，派生语言可指定指示被绑定对象以外的语义。
 	*/
-	Temporary = 1 << TemporaryIndex
+	Temporary = 1 << TemporaryIndex,
+	/*!
+	\brief 粘滞项。
+
+	指定非平凡非正规表示中的第一个不作为一等对象的子项。
+	在非平凡非正规表示的项的子项以外的其它项的标签中不具有这个标签值，
+		但数值相等的其它标签值可在项引用中使用。
+	若这个标签值在第一个子项的标签设置，则包含这个子项的整个项不是非真列表。
+	在这个标签值不在第一个子项的标签设置时，非平凡非正规表示的项表示非真列表：
+	在第一个具有这个标签值的子项前的子项表示 cons 对的第二个元素以外的列表元素；
+	其它子项和值数据成员表示最后的 cons 对的第二个元素。
+	*/
+	Sticky = 1 << StickyIndex
 };
 
 //! \relates TermTags
@@ -166,6 +197,24 @@ YB_ATTR_nodiscard YB_STATELESS yconstfn
 	PDefH(bool, IsMovable, TermTags tags) ynothrow
 	ImplRet((tags & (TermTags::Unique | TermTags::Nonmodifying))
 		== TermTags::Unique)
+
+/*!
+\brief 判断标签可表示被引用对象。
+\note 一等对象的表示的标签可表示被引用对象。
+\since build 947
+*/
+YB_ATTR_nodiscard YB_STATELESS yconstfn
+	PDefH(bool, IsReferentTags, TermTags tags) ynothrow
+	ImplRet((tags & (TermTags::Unique | TermTags::Nonmodifying
+		| TermTags::Temporary)) == tags)
+
+/*!
+\brief 判断标签具有粘滞位。
+\since build 947
+*/
+YB_ATTR_nodiscard YB_STATELESS yconstfn
+	PDefH(bool, IsSticky, TermTags tags) ynothrow
+	ImplRet(bool(tags & TermTags::Sticky))
 
 /*!
 \brief 取转发推断为左值表达式时保留的标签。
@@ -255,11 +304,28 @@ public:
 	TermNode(allocator_type a)
 		: container(a)
 	{}
+	//! \since build 947
+	explicit
+	TermNode(TermTags tags)
+		: Tags(tags)
+	{}
+	//! \since build 947
+	TermNode(TermTags tags, allocator_type a)
+		: container(a), Tags(tags)
+	{}
 	TermNode(const Container& con)
-		: TermNode(con, con.get_allocator())
+		: TermNode(TermTags::Unqualified, con)
 	{}
 	TermNode(Container&& con)
 		: container(std::move(con))
+	{}
+	//! \since build 947
+	TermNode(TermTags tags, const Container& con)
+		: TermNode(std::allocator_arg, con.get_allocator(), tags, con)
+	{}
+	//! \since build 947
+	TermNode(TermTags tags, Container&& con)
+		: container(std::move(con)), Tags(tags)
 	{}
 	/*!
 	\note 除非 Value 的构造非嵌套调用安全，支持构造任意子节点时的嵌套调用安全。
@@ -283,6 +349,26 @@ public:
 	TermNode(Container&& con, _tParams&&... args)
 		: container(std::move(con)), Value(yforward(args)...)
 	{}
+	//! \since build 947
+	//@{
+	template<typename... _tParams,
+		yimpl(typename = enable_value_constructible_t<_tParams...>)>
+	inline
+	TermNode(TermTags tags, NoContainerTag, _tParams&&... args)
+		: Value(yforward(args)...), Tags(tags)
+	{}
+	template<typename... _tParams,
+		yimpl(typename = enable_value_constructible_t<_tParams...>)>
+	TermNode(TermTags tags, const Container& con, _tParams&&... args)
+		: TermNode(std::allocator_arg, con.get_allocator(), tags, con,
+		yforward(args)...)
+	{}
+	template<typename... _tParams,
+		yimpl(typename = enable_value_constructible_t<_tParams...>)>
+	TermNode(TermTags tags, Container&& con, _tParams&&... args)
+		: container(std::move(con)), Value(yforward(args)...), Tags(tags)
+	{}
+	//@}
 	template<typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	inline
@@ -304,20 +390,59 @@ public:
 		_tParams&&... args)
 		: container(std::move(con), a), Value(yforward(args)...)
 	{}
+	//! \since build 947
+	//@{
+	template<typename... _tParams,
+		yimpl(typename = enable_value_constructible_t<_tParams...>)>
+	inline
+	TermNode(std::allocator_arg_t, allocator_type a, TermTags tags,
+		NoContainerTag, _tParams&&... args)
+		: container(a), Value(yforward(args)...), Tags(tags)
+	{}
+	template<typename... _tParams,
+		yimpl(typename = enable_value_constructible_t<_tParams...>)>
+	inline
+	TermNode(std::allocator_arg_t, allocator_type a, TermTags tags,
+		const Container& con, _tParams&&... args)
+		: container(ConSub(con, a)), Value(yforward(args)...), Tags(tags)
+	{}
+	template<typename... _tParams,
+		yimpl(typename = enable_value_constructible_t<_tParams...>)>
+	inline
+	TermNode(std::allocator_arg_t, allocator_type a, TermTags tags,
+		Container&& con, _tParams&&... args)
+		: container(std::move(con), a), Value(yforward(args)...), Tags(tags)
+	{}
+	//@}
 	//@}
 	//! \warning 不保证嵌套调用安全。
+	//@{
+	explicit
+	TermNode(const ValueNode& nd)
+		: container(ConCons(nd.GetContainer())), Value(nd.Value)
+	{}
 	TermNode(const ValueNode& nd, allocator_type a)
 		: container(ConCons(nd.GetContainer(), a)), Value(nd.Value)
 	{}
-	//! \warning 不保证嵌套调用安全。
+	explicit
+	TermNode(ValueNode&& nd)
+		: container(ConCons(std::move(nd.GetContainerRef()))),
+		Value(std::move(nd.Value))
+	{}
 	TermNode(ValueNode&& nd, allocator_type a)
 		: container(ConCons(std::move(nd.GetContainerRef()), a)),
 		Value(std::move(nd.Value))
 	{}
 	//@}
+	//@}
 	// XXX: This needs tag to avoid clash with other constructors.
 	TermNode(YSLib::ListContainerTag, std::initializer_list<TermNode> il)
 		: container(il)
+	{}
+	//! \since build 947
+	TermNode(TermTags tags, std::initializer_list<TermNode> il,
+		allocator_type a = {})
+		: container(il, a), Tags(tags)
 	{}
 	TermNode(std::initializer_list<TermNode> il, allocator_type a)
 		: container(il, a)
@@ -330,16 +455,14 @@ public:
 		std::initializer_list<TermNode> il, _tParams&&... args)
 		: TermNode(std::allocator_arg, a, Container(il, a), yforward(args)...)
 	{}
-	//! \warning 不保证嵌套调用安全。
-	explicit
-	TermNode(const ValueNode& nd)
-		: container(ConCons(nd.GetContainer())), Value(nd.Value)
-	{}
-	//! \warning 不保证嵌套调用安全。
-	explicit
-	TermNode(ValueNode&& nd)
-		: container(ConCons(std::move(nd.GetContainer()))),
-		Value(std::move(nd.Value))
+	//! \since build 947
+	template<typename... _tParams,
+		yimpl(typename = enable_value_constructible_t<_tParams...>)>
+	inline
+	TermNode(std::allocator_arg_t, allocator_type a, TermTags tags,
+		std::initializer_list<TermNode> il, _tParams&&... args)
+		: TermNode(std::allocator_arg, a, tags, Container(il, a),
+		yforward(args)...)
 	{}
 	//! \note 除非 Value 的构造非嵌套调用安全，支持构造任意子节点时的嵌套调用安全。
 	//@{
@@ -424,14 +547,15 @@ public:
 	PDefH(void, SetContent, TermNode&& nd)
 		ImplExpr(SwapContainer(nd), Value = std::move(nd.Value), Tags = nd.Tags)
 	//@}
-	//! \since build 918
-	//@{
+	//! \since build 947
 	template<typename _tParam>
 	inline yimpl(ystdex::enable_if_same_param_t<ValueObject, _tParam>)
-	SetValue(_tParam&& arg) ynoexcept_spec(yforward(arg))
+	SetValue(_tParam&& arg) ynoexcept_spec(Value = yforward(arg))
 	{
 		Value = yforward(arg);
 	}
+	//! \since build 918
+	//@{
 	template<typename _tParam, typename... _tParams,
 		yimpl(ystdex::enable_if_t<sizeof...(_tParams) != 0
 		|| !ystdex::is_same_param<ValueObject, _tParam>::value, int> = 0,
@@ -508,14 +632,10 @@ public:
 private:
 	//! \warning 不保证嵌套调用安全。
 	//@{
-	YB_ATTR_nodiscard YB_PURE static TermNode::Container
-	ConCons(const ValueNode::Container&);
-	YB_ATTR_nodiscard YB_PURE static TermNode::Container
-	ConCons(ValueNode::Container&&);
-	YB_ATTR_nodiscard YB_PURE static TermNode::Container
-	ConCons(const ValueNode::Container&, allocator_type);
-	YB_ATTR_nodiscard YB_PURE static TermNode::Container
-	ConCons(ValueNode::Container&&, allocator_type);
+	YB_ATTR_nodiscard YB_FLATTEN YB_PURE static TermNode::Container
+	ConCons(const ValueNode::Container&, allocator_type = {});
+	YB_ATTR_nodiscard YB_FLATTEN YB_PURE static TermNode::Container
+	ConCons(ValueNode::Container&&, allocator_type = {});
 	//@}
 
 	//! \since build 934
@@ -725,6 +845,16 @@ YB_ATTR_nodiscard YB_PURE inline
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(bool, IsRegular, const TermNode& nd) ynothrow
 	ImplRet(IsLeaf(nd) || IsList(nd))
+
+//! \brief 判断项是否为原子节点：不能表示为一等对象的有序对的节点。
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, IsAtom, const TermNode& nd) ynothrow
+	ImplRet(IsLeaf(nd) || IsSticky(nd.begin()->Tags))
+
+//! \brief 判断项是否为有序对节点。
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, IsPair, const TermNode& nd) ynothrow
+	ImplRet(!IsAtom(nd))
 //@}
 
 //! \since build 928
@@ -815,6 +945,23 @@ YB_NONNULL(2) inline PDefH(void, AssertBranchedList, const TermNode& nd,
 	ImplExpr(yunused(nd), yunused(msg), YAssert(IsBranchedList(nd), msg))
 
 /*!
+\brief 断言具有可表示被引用对象的标签节点。
+\pre 断言：参数的标签可表示被引用对象的值。
+\sa IsReferentTags
+\since build 947
+*/
+//@{
+YB_NONNULL(2) inline
+	PDefH(void, AssertReferentTags, TermTags tags, const char* msg
+	= "Invalid term of referent found.") ynothrowv
+	ImplExpr(yunused(tags), yunused(msg), YAssert(IsReferentTags(tags), msg))
+YB_NONNULL(2) inline
+	PDefH(void, AssertReferentTags, const TermNode& nd, const char* msg
+	= "Invalid term of referent found.") ynothrowv
+	ImplExpr(AssertReferentTags(nd.Tags, msg))
+//@}
+
+/*!
 \brief 断言具有可表示一等对象的值的标签节点。
 \pre 断言：参数的标签可表示一等对象的值。
 \note 较 EnsureValueTags 更严格，对不符合要求的项总是断言失败。
@@ -844,6 +991,24 @@ YB_ATTR_nodiscard YB_PURE inline TermNode
 AsTermNode(TermNode::allocator_type a, _tParams&&... args)
 {
 	return TermNode(std::allocator_arg, a, NoContainer, yforward(args)...);
+}
+
+//! \since build 947
+template<typename... _tParam, typename... _tParams>
+YB_ATTR_nodiscard YB_PURE inline
+yimpl(ystdex::enable_if_inconvertible_t)<ystdex::head_of_t<_tParams...>,
+	TermNode::allocator_type, TermNode>
+AsTermNodeTagged(TermTags tags, _tParams&&... args)
+{
+	return TermNode(tags, NoContainer, yforward(args)...);
+}
+//! \since build 947
+template<typename... _tParams>
+YB_ATTR_nodiscard YB_PURE inline TermNode
+AsTermNodeTagged(TermNode::allocator_type a, TermTags tags, _tParams&&... args)
+{
+	return
+		TermNode(std::allocator_arg, a, tags, NoContainer, yforward(args)...);
 }
 //@}
 

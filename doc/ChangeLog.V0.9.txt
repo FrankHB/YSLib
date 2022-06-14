@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r9480
+\version r9726
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-06-05 02:22 +0800
+	2022-06-15 01:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,241 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	(
+	/ DLP "updated platform %MinGW64 toolchain"
+		$dep_to "MinGW64 toolchain update";
+	/ $re_ex(b900) $forced "rebuilt library %FreeImage"
+	),
+	/ $build %Tools $=
+	(
+		/ @ "%SHbuild-build.sh" $=
+		(
+			/ DLI "%LDFLAGS_LOWBASE_" => "%LDFLAGS_WKRD_",
+			/ "disabled workaround" @ "platform %MinGW64",
+			+ $forced "workaround for mingw-w64-x86_64-binutils 2.38-3"
+				^ '-fuse-ld=lld' $dep_from "MinGW64 toolchain update"
+				// This is also faster.
+		),
+		+ "selected '-flto=jobserver' over '-flto=auto' for G++ only on \
+			platform %MinGW32" @ "%SHBuild-common-options.sh",
+			// Now only MinGW32 uses '-flto=jobserver'.
+		/ @ "applicative %build-with-conf-opt"
+			@ "%SHBuild-YSLib-common.txt" $=
+		(
+			+ "2nd argument 'host-arch'"
+				$dep_to "passing host architecture to build";
+			+ "selected '-flto=jobserver' over '-flto=auto' for G++ only on \
+				platform %MinGW32"
+				// Ditto.
+		),
+		/ $forced "%SHBuild-YSLib-build.txt"
+			$dep_from "passing host architecture to build"
+	),
+	/ %YFramework.NPL $=
+	(
+		+ 'ynothrow' @ "function %(QueryTailOperatorName, \
+			SetupTailOperatorName)" @ %NPLA1,
+		- "unnecessary 'A1::' before 'NameTypedReducerHandler'"
+			$effective @ "%(NPLA1, NPLA1Internals, NPLA1Forms)",
+		/ DLI "simplified term value setting with a single value of types \
+			except environment references" ^ '=' ~ "%TermValue::SetValue"
+			$effective %(NPLAMath, NPLA1Forms),
+			// In %NPLA1Forms, all modified instances are for %TermRange. It \
+				is a bit more efficient to use assignment directly in this case.
+		/ %Dependency $=
+		(
+			* "missing source name recovery" @ (("functions \
+				%(ReduceToLoadExternal, RelayToLoadExternal)",
+				"applicative %load" @ "function %LoadModule_std_io")
+				$since b899, "native implementation" @ "applicative %require"
+				@ "function %LoadModule_std_modules" $since b923)
+				$= (/ $impl ^ $dep_from
+					("%TCOAction::SaveTailSourceName" @ %NPLA1Internals)),
+			/ DLDI "simplified native implementation" @ "applicative %force"
+				@ "function %LoadModule_std_promises"
+				^ "%TermNode::SetValue" ~ "%ValueObject::assign",
+			/ DLI ("applicative 'make-standard-environment'" @ "funciton \
+				%LoadGroundContext", "native implementation"
+				@ "applicative 'get-module'" @ "function \
+				%LoadModule_std_modules") ^ "%TermNode::SetValue" ~ '.Value =',
+				// To be consistent to other modificiation of environments.
+			/ DLI "applicative 'get-current-repl'" @ "%function \
+				%LoadModule_std_system" ^ "%TermNode::Value::assign" ~ '='
+		),
+		/ DLI "all term value assignment from %TermReference"
+			^ "%(SetValue, in_place_type<TermReference>)" $effective
+			@ %(NPLA, Dependency)
+			// It is a bit more efficient with the tag argument.
+		/ DLDI "simplified term container construction" $effective
+			@ ("functions %(ReduceToReferenceList, ReduceToReferenceUList)"
+			@ %NPLA1, "functions %Forms::(Let, LetRef, LetWithEnvironment, \
+			LetWithEnvironmentRef, LetRec, LetRecRef, \
+			BindingsWithParentToEnvironment, BindingsToEnvironment, ProvideLet)"
+			!^ "explicit %ValueObject initialization" @ %NPLA1Forms),
+		/ @ %NPLA1Internals $=
+		(
+			+ 'DefDeCopyMoveCtorAssignment(OneShotChecker)'
+				@ "class %OneShotChecker",
+			+ "class %SourceNameRecovery"
+			/ @ "class %TCOAction" $=
+			(
+				/ DLDI "simplified function %CompressForGuard",
+				/ DLDI "simplified copy constructior",
+				(
+				/ DLDI "functions %(MakeOneShotChecker, ReleaseOneShotGuard)";
+				+ "support of source name guard" @ "data members"
+					^ $dep_from "%SourceNameRecovery";
+				+ "function %SaveTailSourceName"
+				)
+			),
+			/ @ 'NPL_Impl_NPLA1_Enable_Thunked' @ "class %NonTailCall" $=
+			(
+				- DLDI 'YB_FLATTEN' @ "static function %RelayNextGuardedLifted",
+				(
+				+ "static function %MakeLiftResult";
+				/ DLI "simplified static function templates \
+					%(RelayNextGuardedLifted, RelayNextGuardedProbe)"
+				)
+			),
+			* "exception specification" @ "constructor %FrameRecordList"
+				$since b946,
+				// Also to eliminate Clang++ error. This is related to CWG \
+					1330. The original code is really not wanted here. \
+					(Clang++ does have other related bugs as in \
+					https://stackoverflow.com/questions/48340412.)
+			/ @ "function %ReduceAsSubobjectReference" $=
+			(
+				/ DLI "avoided redundant term container copy",
+				/ "tagged for irregular representation" ^ $dep_from
+					("%(TermTags::Sticky, NPL::AsTermNodeTagged)" @ %SContext)
+			)
+		),
+		/ %SContext $=
+		(
+			(
+			/ $src "initializer" @ "enumerator %Unqualified"
+				@ "enum class %TermTags" -> '0' ~ '1 << UnqualifiedIndex';
+				// Actually the non-zero value is not expected at the very \
+					beginning of the design. However, no other code relies on \
+					the fact previously, so this is not a bug.
+			(
+			- "enumerator %UnqualifiedIndex" @ "enum %TermTagIndices";
+			/ $comp $src "underlying values" @ "all enumerators"
+				@ "enum %TermTags"
+			),
+			* "exception specification"
+				@ "member function template % TermNode::SetValue#1" $since b918,
+			(
+			+ "function %IsReferentTags";
+				// To be simpler, this relies on the change of \
+					%TermTags::Unqualified above.
+			+ "2 functions %AssertReferentTags"
+			)
+			),
+			/ @ "constructors %TermNode" $=
+			(
+				/ DLDI "reordered and simplified with %ValueNode::Container \
+					parameter",
+				(
+				+ "12 overloads with %TermTags parameter"
+					$dep_to "tagged term constructor";
+				* "allocator used to initialize %Value instead of the container"
+					@ "overload with 'const Container&' parameter" $since b944
+				),
+				(
+				* "copy" @ "overload with single 'ValueNode&&' parameter"
+					$since b853
+					$= (/ $impl ^ "%GetContainerRef" ~ "%GetContainer"),
+				* "missing propagating allocator to subterms"
+					@ "all 2 overloads with single %ValueNode reference and \
+					allocator parameters" $since b853,
+				)
+			),
+			+ "2 function templates %AsTermNodeTagged"
+				$dep_from "tagged term constructor",
+			(
+			+ "macro %NPL_SContext_CompressTermTags";
+			+ "enumerator %StickyIndex" @ "enum %TermTagIndices";
+			+ "enumerator %Sticky" @ "enum class %TermTags";
+			+ "functions %(IsPair; IsAtom)"
+			)
+		),
+		/ %NPLA $=
+		(
+			+ DLI "invariant, precondition and check" @ "constuctors \
+				%TermReference" ^ $dep_from "%AssertReferentTags#1",
+			+ DLI "precondition and check" @ "function %TermToTags"
+				^ $dep_from "%AssertReferentTags#2",
+			+ "2 function templates %TryAccessLeafAtom"
+				^ $dep_from ("%IsAtom" @ %SContext),
+			+ DLDI 'const' @ "operand" @ "exception specification"
+				@ "function template %ReferenceTerm#2",
+			+ "function %LiftElementsToReturn"
+		),
+		/ "distinguished pairs from leaf values for first-class object accesses"
+			$effective @ (("function template %ResolveTerm", ("all 2 functions \
+			%ReferenceTerm"; $comp "functor %ReferenceTermOp"), "all 2 \
+			function templates %TryAccessReferencedLeaf", "functions \
+			%(Collapse, MoveCollapsed, TermToTags, IsReferenceTerm, \
+			IsUniqueTerm, IsModifiableTerm, IsTemporaryTerm, \
+			IsBoundLValueTerm, IsUncollapsedTerm, LiftToReturn, \
+			MoveRValueToForward, MoveRValueToReturn, ReduceToReference)")
+			@ %NPLA, "functions %(EvaluateIdentifier, ReduceCombinedBranch, \
+			ReduceCombinedReferent, MatchParameter, BindParameter, \
+			BindParameterWellFormed, BindSymbol, ReduceToReferenceList, \
+			ReduceToReferenceUList)" @ %NPLA1, ("function \
+			%SetEvaluatedReference", "class template %GParameterValueMatcher")
+			@ %NPLA1Internals, ("function %Decapsulate::operator()",
+			("all functions with prefix 'Lambda', 'Vau', 'WVau', 'SetFirst', \
+			'Acc', 'Let', 'Bindings', 'ListExtract', 'Import' or 'Ass'",
+			"functions %(MakeEnvironment, CheckParent, ForwardFirst, First, \
+			FirstFwd, FirstVal, RestFwd, RestVal, FoldR1, Map1, ListConcat, \
+			Append, SymbolsToImports, ProvideLet, ListPushFront)")
+			@ "namespace %Forms") @ %NPLA1Forms, ("combiners ('as-const', \
+			%(expire, deshare), '$lvalue-identifier?')" @ "function \
+			%LoadGroundContext", "native implementation" @ ("applicative \
+			%force" @ "function %LoadModule_std_promises", "applicative \
+			%require" @ "function %LoadModule_std_modules")) @ %Dependency) 
+			// These include almost all call sites of %TryAccessLeaf \
+				except a few exceptions: the implementation of \
+				%(TryAccessLeafAtom, TryAccessTerm), the internal \
+				exception throwing in %ReduceCombinedBranch and %TermRange \
+				accesses. Also 'GetObject<TermReference>()' calls in \
+				%LiftPropagatedReference would be protected by these changes.
+			$= (/ $impl
+				^ ($dep_from "%TryAccessLeafAtom" ~ "%TryAccessLeaf") @ %NPLA),
+		/ @ "namespace %Forms" @ %NPLA1Forms $=
+		(
+			+ DLDI 'YB_ATTR_nodiscard' @ "internal implemenation"
+				@ "%(AccL, AccR)",
+			/ DLDI "simplified member function %Decapsulate::operator()"
+				^ "%TermNode::SetValue" ~ "%ValueObject::assign",
+			/ DLDI "simplified explicit %ValueObject with allocator \
+				assignment" ^ "%TermNode::SetValue" ~ '.Value =',
+			/ @ "functions %(Cons, ConsRef, SetRest, SetRestRef, \
+				ListAsterisk, ListAsteriskRef, Apply)" $=
+			(
+				/ DLDI "simplified by transferring 1st subterm from the \
+					operand instead of the rest";
+				+ DLDI "assertion to check against self move"
+					^ "%ystdex::ref_eq",
+				(
+				/ DLDI "throwing exception" ^ "%ThrowListTypeErrorForNonlist";
+					// This changes the exception message a bit.
+				/ "merged error handling"
+				)
+			)
+		),
+		- DLDI "all 'NPL::' prefix" @ "calls to function templates with \
+			prefix 'Access' or 'TryAccess', or name %make_observer"
+			$effective @ %(NPLA, NPLAMath, NPLA1, NPLA1Forms, NPLA1Internals,
+			Dependency, SXML)
+			// See $2022-06 @ %Documentation::Workflow.
+	)
+),
+
+b946
 (
 	/ %YFramework.NPL $=
 	(
@@ -129,6 +364,10 @@ b945
 			"%SHBuild-YSLib-common.txt") @ %Scripts, %ProjectGenerator.Main)
 			// Ditto.
 	),
+	+ $lib $impl 'YB_ATTR(optimize("Os"))' @ "member function \
+		%resource_pool::deallocate" @ %YBase.YStandardEx.MemoryResource,
+		// GCC 12.1 does not generate optimal code as before without this \
+			attribute. See also $2022-05 @ %Documentation::Workflow.
 	/ %YFramework.NPL $=
 	(
 		/ DLI @ "static member function %ContextNode::DefaultResolve" @ %NPLA $=
@@ -773,6 +1012,8 @@ b942
 			),
 			/ %NPLAMath $=
 			(
+				/ $re_add(b940) DLDI "header inclusion %Functional"
+					-> %(ExpandedFunction, Functor),
 				/ DLDI "simplified internal static assertions" ^ '()'
 					~ '::value',
 				/ $re_add(b941) DLDI "all member type %traits"
@@ -1106,7 +1347,7 @@ b940
 				 // They should be same to implicily declared ones, hence \
 					redundant.
 			(
-			/ "header inclusion %Placement" -> "%ComporessedPair",
+			/ "inclusion %Placement" -> "%ComporessedPair",
 			/ DLDI "function %get_allocator"
 				@ "class templates %(allocator_guard_delete, allocator_delete)"
 				!^ "using-declaration",
@@ -1725,7 +1966,7 @@ b938
 		),
 		/ %TypeInspection $=
 		(
-			/ "header inclusion %CStandardDefinition" -> "%IntegralConstant"
+			/ "inclusion %CStandardDefinition" -> "%IntegralConstant"
 				$dep_to "collapsed type inspection header inclusion",
 			+ "conditionally defined macro %__cpp_lib_is_final";
 			+ "unary type trait %is_final" @ "inline namespace %cpp2014"
@@ -2138,7 +2379,7 @@ b936
 			(
 			/ DLDI "simplified constructor template" @ "class %enum_union"
 				^ "%empty_base" ~ "%std::tuple";
-			/ DLDI "header inclusion %Tuple" -> "%Variadic"
+			/ DLDI "inclusion %Tuple" -> "%Variadic"
 			),
 			+ "function template %to_underlying"
 		),
@@ -2759,8 +3000,8 @@ b933
 		/ "functions %((is_power_of_2; is_power_of_2_positive), ceiling_lb, \
 			floor_lb)" -> "function templates with 'YB_ATTR_always_inline'"
 			@ %Bits;
-		- DLDI "header inclusion %CStandardInteger" @ %MemoryResource,
-		- ("header inclusion %CStandardInteger" -> "%IteratorOperation")
+		- DLDI "inclusion %CStandardInteger" @ %MemoryResource,
+		/ ("header inclusion %CStandardInteger" -> "%IteratorOperation")
 			@ %Placement,
 		+ $dev $lib 'YB_ATTR_always_inline'
 			@ "functions %(is_power_of_2, is_power_of_2_positive)"
@@ -5594,7 +5835,7 @@ b918
 				for GCC 9.0.x.
 		+ "macro %YB_LAMBDA_ANNOTATE"
 	),
-	+ $lib $impl "support of extra attributes powered by 'YB_ATTR_LAMBDA_PFRX'"
+	/ $lib $impl "supported of extra attributes powered by 'YB_ATTR_LAMBDA_PFX'"
 		@ "all non-standard attributes" @ "lambda-expression" ^ $dep_from
 		('YB_LAMBDA_ANNOTATE' @ %YBase.YDefinition) ~ ("'YB_*' attributes",
 		'YB_LAMBDA_QUAL') $effective @ ("function %main" @ %SHBuild.Main,

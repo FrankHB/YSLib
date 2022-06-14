@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9469
+\version r9480
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-05-30 18:54 +0800
+	2022-06-14 18:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include YFM_NPL_NPLA // for NPLATag, TermNode, ContextNode,
 //	ystdex::equality_comparable, std::declval, ystdex::exclude_self_t,
 //	trivial_swap_t, trivial_swap, ystdex::ref_eq, string_view,
-//	CombineReductionResult, pmr::memory_resource, NPL::make_observer,
+//	CombineReductionResult, pmr::memory_resource, make_observer,
 //	AssertMatchedAllocators, TNIter, LiftOtherValue, ValueNode, NPL::Deref,
 //	NPL::AsTermNode, std::make_move_iterator, std::next, ystdex::retry_on_cond,
 //	std::find_if, ystdex::exclude_self_params_t, YSLib::AreEqualHeld,
@@ -388,14 +388,14 @@ public:
 	\since build 895
 	*/
 	PDefH(void, SetCombiningTermRef, TermNode& term) ynothrow
-		ImplExpr(combining_term_ptr = NPL::make_observer(&term))
+		ImplExpr(combining_term_ptr = make_observer(&term))
 	/*!
 	\brief 设置下一求值项引用。
 	\sa next_term_ptr
 	\since build 883
 	*/
 	PDefH(void, SetNextTermRef, TermNode& term) ynothrow
-		ImplExpr(next_term_ptr = NPL::make_observer(&term))
+		ImplExpr(next_term_ptr = make_observer(&term))
 
 	/*!
 	\brief 清除规约合并项指针。
@@ -1371,7 +1371,7 @@ inline PDefH(void, EvaluateLiteralHandler, TermNode& term,
 	// NOTE: This is optional, as it is not guaranteed to be saved as
 	//	%ContextHandler in %ReduceCombined.
 	ImplExpr([&]{
-		if(const auto p_handler = NPL::TryAccessTerm<const LiteralHandler>(tm))
+		if(const auto p_handler = TryAccessTerm<const LiteralHandler>(tm))
 			RegularizeTerm(term, (*p_handler)(ctx));
 	}())
 
@@ -1800,10 +1800,10 @@ QuerySourceInformation(const ValueObject&);
 \note 当参数指定 TCO 时且保存记号值时保存的值即为名称，否则名称不存在。
 \return 若存在名称则为内部保存的名称字符串，否则是数据指针为空的结果。
 \note 仅在 TCO 动作存在时支持。
-\since build 896
+\since build 947
 */
 YB_ATTR_nodiscard YF_API observer_ptr<const ValueObject>
-QueryTailOperatorName(const Reducer&);
+QueryTailOperatorName(const Reducer&) ynothrow;
 
 /*!
 \brief 查询全局类型名称表。
@@ -1817,13 +1817,13 @@ QueryTypeName(const type_info&);
 \return 是否成功。
 \warning 若不满足上下文状态类型要求，行为未定义。
 \sa ContextState::GetCombiningTermPtr
-\since build 896
+\since build 947
 
 检查第一参数指定的项是否同第二参数保存的规约合并项的第一项，若成功视为操作符项，
 	并转移操作符项的值数据成员到规约合并项。
 */
-YF_API bool
-SetupTailOperatorName(TermNode&, const ContextNode&);
+bool
+SetupTailOperatorName(TermNode&, const ContextNode&) ynothrow;
 
 /*!
 \brief 追踪记录 NPL 续延。
@@ -2234,7 +2234,9 @@ public:
 \brief 尝试加载源代码。
 \exception NPLException 嵌套异常：加载失败。
 \note 第二参数表示来源，仅用于诊断消息。
+\note 不使用可能自定义的 REPLContext::Load 。
 \relates REPLContext
+\sa REPLContext::LoadFrom
 \since build 838
 */
 template<typename... _tParams>
