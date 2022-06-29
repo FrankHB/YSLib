@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r6958
+\version r6961
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2022-06-14 18:33 +0800
+	2022-06-21 01:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1221,8 +1221,7 @@ $defl! append (.&ls) foldr1 list-concat () (move! ls);
 $defl%! list-extract-first (&l) map1 first (forward! l);
 $defl%! list-extract-rest% (&l) map1 rest% (forward! l);
 $defl! list-push-front! (&l &x) $if (modifiable? l)
-	(assign! l (cons% (forward! x)
-		(($lambda ((.l)) (move! l)) (forward! l))))
+	(assign! l (cons% (forward! x) (($lambda ((.l)) (move! l)) (forward! l))))
 	(raise-type-error "Modifiable object expected.");
 $def! ($let $let% $let/e $let/e% $let* $let*% $letrec $letrec%) ($lambda (&ce)
 (
@@ -1398,7 +1397,7 @@ LoadCore(REPLContext& context)
 	context.Perform(R"NPL(
 $defw%! map-reverse (&appv .&ls) d
 	accl (move! ls) nonfoldable? () list-extract-first list-extract-rest%
-		($lambda (&x &xs) cons% (apply appv (forward! x) d) xs);
+		($lambda (&x &xs) cons% (apply appv (forward! x) d) (forward! xs));
 $defw! for-each-ltr &ls d $sequence (apply map-reverse ls d) #inert;
 	)NPL");
 }

@@ -11,13 +11,13 @@
 /*!	\file NPLAMath.cpp
 \ingroup NPL
 \brief NPLA 数学功能。
-\version r28361
+\version r28364
 \author FrankHB <frankhb1989@gmail.com>
 \since build 930
 \par 创建时间:
 	2021-11-03 12:50:49 +0800
 \par 修改时间:
-	2022-06-14 18:30 +0800
+	2022-06-24 02:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,8 +33,8 @@
 //	NPL::Deref, std::isfinite, std::nearbyint, ystdex::exclude_self_t,
 //	std::fmod, ystdex::and_, std::is_unsigned, std::abs, std::floor, std::trunc,
 //	InvalidSyntax, ptrdiff_t, std::ldexp, std::pow, string_view,
-//	ReductionStatus, std::isinf, std::isnan, std::log2, ystdex::cond_t,
-//	ystdex::byte;
+//	ystdex::isdigit, ReductionStatus, std::isinf, std::isnan, std::log2,
+//	ystdex::cond_t, ystdex::byte;
 #include <ystdex/exception.h> // for ystdex::unsupported, std::domain_error;
 #include <ystdex/cstdint.hpp> // for std::numeric_limits,
 //	ystdex::make_widen_int;
@@ -2614,7 +2614,7 @@ WriteFPExponentSubnormalAbs<float>(char* buf, unsigned exp) ynothrowv
 	DecimalDigits<2>::Write(buf, exp % 100);
 	return buf + 2;
 #else
-	return WriteDecimalDigitsIn<8>(buf, DigitsMinUInt<8i>(exp));
+	return WriteDecimalDigitsIn<8>(buf, DigitsMinUInt<8>(exp));
 #endif
 }
 template<>

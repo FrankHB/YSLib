@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r9726
+\version r9866
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-06-15 01:04 +0800
+	2022-06-30 07:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,142 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ $lib $impl %YBase.YStandardEx.MemoryResource $=
+	(
+		/ $re_ex(b945) "disabled the attribute" @ (!'defined(NDEBUG)',
+			!'YB_IMPL_GNUCPP >= 90100')
+			@ "member function %resource_pool::deallocate",
+			// Also to eliminate Clang++ 13.0.1 warning: [-Wunknown-attributes].
+		+ $re_add(b928) $dev "#pragma directive" @ 'YB_IMPL_CLANGPP'
+			@ "member function %monotonic_buffer_resource::do_allocate"
+			// To elimiante Clang++ 13.0.1 warning: \
+				[-Wbuiltin-assume-aligned-alignment].
+	),
+	/ %YFramework.NPL $=
+	(
+		* "ill-formed literal" @ !'NPL_Impl_NPLAMath_IEC_60559_BFP'
+			@ "function template specialization \
+			%WriteFPExponentSubnormalAbs<float>" @ %NPLAMath $since b933,
+		/ %Exception $=
+		(
+			+ "function %ThrowListTypeErrorForAtom",
+			/ "function %ThrowListTypeErrorForNonlist"
+				=> "%ThrowListTypeErrorForNonList"
+		),
+		/ %SContext $=
+		(
+			/ @ "function %RemoveHead" $=
+			(
+				/ DLI ^ "%pop_front" ~ "%erase",
+					// This is now a bit more efficient.
+				/ DLI ^ "%AssertBranch",
+				/ "stenthened check" @ "assertion" ^ "%IsSticky"
+			),
+			+ "2 functions %CountPrefix",
+			(
+			+ "function template %FindSticky";
+			+ "2 functions %FindStickySubterms";
+			+ "function %HasStickySubterm"
+			)
+		),
+		/ %NPLA $=
+		(
+			(
+			+ "functions %(LiftPrefixToReturn; LiftElementsToReturn)",
+			/ "supported pairs" @ "list result lifting"
+				^ "%LiftElementsToReturn" ~ "%LiftSubtermsToReturn"
+				$effective @ "function %ReduceBranchToListValue"
+			),
+			/ "changed condition as %IsPair" @ "function %IsCombiningTerm"
+				$dep_all_from "operator name out of the combining term",
+			/ DLDI "simplified function %LiftOtherValue"
+				^ "function %LiftOther",
+			/ "supported list for pair terms" @ "function %TermToString"
+		),
+		/ %NPLA1 $=
+		(
+			+ "functions %(TryGetTailOperatorName, TrySetTailOperatorName, \
+				GetOperatorNameRef)" @ "class %ContextState";
+			(
+			/ "function %EvaluateIdentifier set tail operator name"
+				^ "member function %ContextState::TrySetTailOperatorName"
+				~ "function %SetupTailOperatorName" $dep_to
+				"operator name out of the combining term";
+			- "function %SetupTailOperatorName"
+			),
+			/ "consumed operator name on exception"
+				@ "functions %(ReduceCombinedBranch, ReduceCombinedReferent)"
+				^ "%ContextState::TryGetTailOperatorName" $dep_to
+				"operator name out of the combining term",
+			/ @ "class %FormContextHandler" $=
+			(
+				+ "function %CheckArguments"
+					^ $dep_from ("%HasStickySubterm" @ %SContext);
+				/ "checked arguments list for applicative calls"
+					@ "function %operator()"
+			),
+			/ DLD "assertion string"
+				@ "static member function %ContextState::DefaultReduceOnce",
+			/ @ "functions %(BindSymbol, BindParameter, \
+				BindParamaterWellFormed)" $=
+			(
+				/ $re_add(b947) @ "'&' binding handling" $=
+					// As %ReduceAsSubobjectReference in %NPLA1Internals.
+				(
+					/ DLI "avoided redundant term container copy"
+						!^ "initializer-list",
+					* "missing tagging for the irregular representation" $since
+						b947
+						$= (/ $impl
+							^ "%(TermTags::Sticky, NPL::AsTermNodeTagged)")
+						// With the changes in %(ResolveReference, \
+							ResolveTerm) in b947, this would cause various \
+							failure among subjobject bindings, e.g. using of \
+							the derivation of applicative %apply.
+				),
+				/ DLI "adjusted internal inlining by controlling macro \
+					%NPL_Impl_NPLA1Forms_LetAsterisk_ExpandLevel"
+					// Now the compilation time of NPLA1.cpp is reduced in the \
+						release configurations at the cost of a bit worse \
+						generated code.
+			)
+		),
+		/ $forced "constructor %TCOAction" @ %NPLA1Internals
+			$dep_from ("%EvaluateIdentifier" @ %NPLA1)
+			$= (/ $impl ^ $dep_from "%ContestState::GetOperatorNameRef"),
+		/ DLDI "simplified function %ReduceForCombinerRef" @ %NPLA1Internals,
+		/ %NPLA1Forms $=
+		(
+			* "redundant subterms for equal arguments"
+				@ "function %EqualTermValue" $since b904,
+			* "wrong exception thrown for non-list argument in list position"
+				@ ("functions %(FoldR1, Map1)" $since b916,
+				"functions %(ListConcat, Append, ListExtractFirst, \
+				ListExtractRestFwd)" $since b917),
+				// The native check was first introduced in b913, which was \
+					consistent to the derivation then. This is broken since \
+					b916 when the derivations introduced the check in \
+					'foldr1', which should be more proper with regard to the \
+					'<list>' typecheck for the arguments.
+				$= (/ $impl ^ "%ThrowListTypeErrorForNonlist"
+					~ "%ThrowInsufficientTermsError")
+		),
+		/ @ "function %LoadGroundContext" @ %Dependency $=
+		(
+			/ DLDI "simplified indent" @ "derivation"
+				@ "applicative 'list-push-front!'",
+			* "missing moving the list for the 'cons%' call"
+				@ "derivation" @ "applicative 'map-reverse'" $since b875,
+				// The applicative was introduced since b791, but forwarding \
+					was supposed to work since b828 and 'cons%' was used since \
+					b875. This change also makes it not relying on that \
+					'cons%' always treats its 2nd parameter as a prvalue.
+		)
+	)
+),
+
+b947
 (
 	(
 	/ DLP "updated platform %MinGW64 toolchain"
@@ -136,7 +272,8 @@ $now
 					https://stackoverflow.com/questions/48340412.)
 			/ @ "function %ReduceAsSubobjectReference" $=
 			(
-				/ DLI "avoided redundant term container copy",
+				/ DLI "avoided redundant term container copy"
+					!^ "initializer-list",
 				/ "tagged for irregular representation" ^ $dep_from
 					("%(TermTags::Sticky, NPL::AsTermNodeTagged)" @ %SContext)
 			)
@@ -200,8 +337,7 @@ $now
 			+ "2 function templates %TryAccessLeafAtom"
 				^ $dep_from ("%IsAtom" @ %SContext),
 			+ DLDI 'const' @ "operand" @ "exception specification"
-				@ "function template %ReferenceTerm#2",
-			+ "function %LiftElementsToReturn"
+				@ "function template %ReferenceTerm#2"
 		),
 		/ "distinguished pairs from leaf values for first-class object accesses"
 			$effective @ (("function template %ResolveTerm", ("all 2 functions \
@@ -414,7 +550,7 @@ b945
 				@ "functions %(Let, LetRef, LetWithEnvironment, \
 					LetWithEnvironmentRef, LetRec, LetRecRef, LetAsterisk, \
 					LetAsteriskRef, ProvideLet)",
-			/ "avoided dending on the 1st subterm"
+			/ "avoided denpending on the 1st subterm"
 				@ "functions %(And, Or, LetAsterisk, LetAsteriskRef)",
 			/ DLI "merged assertions and simplified common internal calls"
 				@ "functions %(Let, LetRef, LetWithEnvironment, \

@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r4421
+\version r4472
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2022-06-13 18:16 +0800
+	2022-06-30 04:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -846,6 +846,8 @@ YB_ATTR_nodiscard YB_PURE inline
 	PDefH(bool, IsRegular, const TermNode& nd) ynothrow
 	ImplRet(IsLeaf(nd) || IsList(nd))
 
+//! \since build 947
+//@{
 //! \brief 判断项是否为原子节点：不能表示为一等对象的有序对的节点。
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(bool, IsAtom, const TermNode& nd) ynothrow
@@ -855,6 +857,7 @@ YB_ATTR_nodiscard YB_PURE inline
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(bool, IsPair, const TermNode& nd) ynothrow
 	ImplRet(!IsAtom(nd))
+//@}
 //@}
 
 //! \since build 928
@@ -891,6 +894,51 @@ HasValue(const TermNode& nd, const _type& x)
 {
 	return nd.Value == x;
 }
+
+//! \since build 948
+//@{
+//! \brief 对不具有粘滞位的子项前缀计数。
+YB_ATTR_nodiscard YB_PURE YB_FLATTEN inline
+	PDefH(size_t, CountPrefix, const TermNode::Container& con) ynothrow
+	ImplRet([&]{
+		size_t i(0);
+
+		for(const auto& t : con)
+		{
+			if(IsSticky(t.Tags))
+				break;
+			++i;
+		}
+		return i;
+	}())
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(size_t, CountPrefix, const TermNode& tm) ynothrow
+	ImplRet(CountPrefix(tm.GetContainer()))
+
+//! \brief 从迭代器范围查找含有粘滞位的第一个项。
+template<typename _tIn>
+YB_ATTR_nodiscard YB_PURE _tIn
+FindSticky(_tIn first, _tIn last) ynothrow
+{
+	return std::find_if(first, last, [&](const TermNode& tm){
+		return IsSticky(tm.Tags);
+	});
+}
+
+//! \brief 从节点容器查找含有粘滞位的第一个子项。
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(TNCIter, FindStickySubterm, const TermNode::Container& con) ynothrow
+	ImplRet(NPL::FindSticky(con.begin(), con.end()))
+//! \brief 从节点查找含有粘滞位的第一个子项。
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(TNCIter, FindStickySubterm, const TermNode& nd) ynothrow
+	ImplRet(NPL::FindStickySubterm(nd.GetContainer()))
+
+//! \brief 判断节点中是否具有标签包含粘滞位的子节点。
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(bool, HasStickySubterm, const TermNode& nd) ynothrow
+	ImplRet(FindStickySubterm(nd) != nd.end())
+//@}
 
 //! \since build 853
 using YSLib::Access;
@@ -1054,10 +1102,15 @@ YB_ATTR_nodiscard inline
 	ImplRet(YSLib::share_move(nd.get_allocator(), nd))
 //@}
 
-//! \pre 断言：项节点容器非空。
+/*!
+\brief 移除项中第一个表示一等对象的子节点。
+\pre 断言：项节点容器非空且第一个子节点的标签不具有粘滞位。
+\sa IsSticky
+\pre 断言：\c AssertBranch(nd) 。
+*/
 inline PDefH(void, RemoveHead, TermNode& nd) ynothrowv
-	ImplExpr(YAssert(!nd.empty(), "Empty term container found."),
-		nd.erase(nd.begin()))
+	ImplExpr(YAssert(!IsSticky(AccessFirstSubterm(nd).Tags),
+		"No valid subterm found."), nd.GetContainerRef().pop_front())
 
 /*!
 \brief 根据节点和节点容器创建操作设置目标节点的值或子节点。

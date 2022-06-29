@@ -11,13 +11,13 @@
 /*!	\file Exception.h
 \ingroup NPL
 \brief NPL 异常。
-\version r11480
+\version r11489
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2022-01-21 01:59:22 +0800
 \par 修改时间:
-	2022-01-21 02:36 +0800
+	2022-06-26 04:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -302,6 +302,14 @@ YB_NORETURN YF_API void
 ThrowInsufficientTermsError(const TermNode&, bool);
 
 /*!
+\brief 抛出对非有序对值预期列表类型的异常。
+\throw ListTypeError 值不是有序对。
+\since build 948
+*/
+YB_NORETURN YF_API void
+ThrowListTypeErrorForAtom(const TermNode&, bool);
+
+/*!
 \brief 对列表项抛出指定预期访问值的类型的异常。
 \throw ListTypeError 消息中包含由参数指定的预期访问值的类型的异常。
 */
@@ -317,10 +325,10 @@ ThrowListTypeErrorForInvalidType(const type_info&, const TermNode&, bool);
 /*!
 \brief 抛出对非列表值预期列表类型的异常。
 \throw ListTypeError 值不是列表。
-\since build 902
+\since build 948
 */
 YB_NORETURN YF_API void
-ThrowListTypeErrorForNonlist(const TermNode&, bool);
+ThrowListTypeErrorForNonList(const TermNode&, bool);
 
 /*!
 \brief 对项抛出指定预期访问值的类型的异常。

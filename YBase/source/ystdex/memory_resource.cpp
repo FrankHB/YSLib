@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1819
+\version r1841
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2022-05-18 22:18 +0800
+	2022-06-27 03:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -337,8 +337,7 @@ new_delete_resource_t::do_deallocate(void* p, size_t bytes, size_t alignment)
 	{
 		// TODO: Blocked. Use [[assume_aligned]]? See WG21 P0886R0.
 		const auto p_hdr(static_cast<hdr_t*>(static_cast<void*>(
-			static_cast<byte*>(yaligned(p, alignment))
-			- offset_n_t::value)));
+			static_cast<byte*>(yaligned(p, alignment)) - offset_n_t::value)));
 
 		yassume(p_hdr);
 
@@ -643,8 +642,11 @@ resource_pool::clear() ynothrow
 	chunks.clear();
 }
 
-// NOTE: See $2019-03 @ %Documentation::Workflow.
-YB_ATTR(optimize("Os")) void
+// NOTE: See $2022-05 @ %Documentation::Workflow.
+#if defined(NDEBUG) && YB_IMPL_GNUCPP >= 90100
+YB_ATTR(optimize("Os"))
+#endif
+void
 resource_pool::deallocate(void* p) ynothrowv
 {
 	auto i_chunk(access_meta(p, block_size).i_chunk);
@@ -847,10 +849,24 @@ monotonic_buffer_resource::do_allocate(size_t bytes, size_t alignment)
 			// XXX: ISO C++ [mem.res.monotonic.buffer.mem]/6 does not allow
 			//	throwing here. Request impossible large size and alignment
 			//	to ask the failure from the upstream resource. See also the
-			//	issue above. The size is not 'size_t(-1)' to avoid G++ warning:
+			//	issue above.
+			// XXX: The size is not 'size_t(-1)' to avoid G++ warning:
 			//	[-Walloc-size-larger-than=].
+			// XXX: The size is not restricted at runtime, but values greater
+			//	than '1 << 29' are not supported by LLVM. See
+			//	https://bugs.llvm.org/show_bug.cgi?id=43638. The support in LLVM
+			//	IR has been changed since LLVM 14 (see
+			//	https://releases.llvm.org/14.0.0/docs/ReleaseNotes.html#changes-to-the-llvm-ir),
+			//	but just keep it the assumption conservative.
+#if YB_IMPL_CLANGPP
+	YB_Diag_Push
+	YB_Diag_Ignore(builtin-assume-aligned-alignment)
+#endif
 			yunused(upstream_rsrc->allocate(size_t(-1) >> 1,
 				~(size_t(-1) >> 1)));
+#if YB_IMPL_CLANGPP
+	YB_Diag_Pop
+#endif
 			yassume(false);
 		}
 	}

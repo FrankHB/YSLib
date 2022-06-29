@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r22423
+\version r22575
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2022-06-14 18:22 +0800
+	2022-06-30 06:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@
 //	TryAccessLeaf, ListReductionFailure, ystdex::sfmt, TryAccessLeafAtom,
 //	PropagateTo, NPL::IsMovable, in_place_type, InvalidReference, NPL::Deref,
 //	IsLeaf, ResolveTerm, ThrowInsufficientTermsError,
-//	ThrowListTypeErrorForNonlist, ystdex::update_thunk, Environment, shared_ptr,
+//	ThrowListTypeErrorForNonList, ystdex::update_thunk, Environment, shared_ptr,
 //	NPL::AsTermNode, IsTyped, ystdex::retry_on_cond, AccessFirstSubterm,
 //	ystdex::make_transform, IsBranchedList, std::placeholders, NoContainer,
 //	ystdex::try_emplace, Access, YSLib::Informative, ystdex::unique_guard,
@@ -62,6 +62,45 @@ namespace NPL
 #	define NPL_Impl_NPLA1_AssertParameterMatch true
 #else
 #	define NPL_Impl_NPLA1_AssertParameterMatch false
+#endif
+//@}
+//! \since build 948
+//@{
+// XXX: Different 'optimize' attributes of the caller and callees in GCC
+//	prevents IPA inlining unconditionally (see %can_inline_edge_by_limits_p in
+//	ipa-inline.cc) unless the caller has 'flatten' attribute or the callee has
+//	'always_inline' attribute. These attributes should be propagated explicitly.
+// So, they are not used in %GParameterMatcher. Only 'YB_ATTR_always_inline' is
+//	conservatively used to reduce the overhead of inlining heuristics. Such
+//	changes may reduce the typical build time (release, LTO) of libYFramework
+//	with only changes in NPLA1.cpp using x86_64-pc-linux G++ 12.1 LTO for a
+//	single instance of %GParameterMatcher (%BindParameterWellFormed only) from
+//	360s to less than 90s, at the cost of a bit worse generated code. See also
+//	https://gcc.gnu.org/bugzilla/show_bug.cgi?id=101279.
+// NOTE: Optimization value for call expansions in %Forms::(LetAsterisk,
+//	LetAsteriskRef), in range [0, 3]. The meanings of the value are:
+//	0: Flatten no %BindParameterImpl instances
+//		(defualt to debug or size-optimized releases).
+//	1: Flatten only %BindParameterWellFormed.
+//	2: Flatten all %BindParameterImpl instances (default for other releases).
+//		This may even a bit better than 3 below for some compilation
+//		configurations.
+//	3: Flatten all %BindParameterImpl instances, (much) slower build (~7x).
+#ifndef NPL_Impl_NPLA1_BindParameter_ExpandLevel
+#	if !defined(NDEBUG) || __OPTIMIZE_SIZE__
+#		define NPL_Impl_NPLA1_BindParameter_ExpandLevel 0
+#	else
+#		define NPL_Impl_NPLA1_BindParameter_ExpandLevel 2
+#	endif
+#endif
+#if NPL_Impl_NPLA1_BindParameter_ExpandLevel == 1 \
+		|| NPL_Impl_NPLA1_BindParameter_ExpandLevel == 2
+#	define NPL_Impl_NPLA1_BindParameter_Inline YB_ATTR_always_inline
+#	define NPL_Impl_NPLA1_BindParameter_InlineAnnotate(_arglist) \
+	YB_LAMBDA_ANNOTATE(_arglist, , always_inline)
+#else
+#	define NPL_Impl_NPLA1_BindParameter_Inline
+#	define NPL_Impl_NPLA1_BindParameter_InlineAnnotate(_arglist) _arglist
 #endif
 //@}
 
@@ -269,15 +308,18 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 #endif
 }
 
-//! \since build 925
+/*!
+\warning 若不满足 NPLA1 规约函数上下文状态类型要求，行为未定义。
+\since build 948
+*/
 YB_NORETURN ReductionStatus
-ThrowCombiningFailure(TermNode& term, const TermNode& fm, bool has_ref)
+ThrowCombiningFailure(TermNode& term, const ContextNode& ctx,
+	const TermNode& fm, bool has_ref)
 {
 	// NOTE: Try to extract the identifier set by %SetupTailOperatorName.
 	string name(term.get_allocator());
 
-	// XXX: As %TermToNamePtr.
-	if(const auto p = TryAccessLeaf<TokenValue>(term))
+	if(const auto p = ContextState::Access(ctx).TryGetTailOperatorName(term))
 	{
 		name = std::move(*p);
 		name += ": ";
@@ -675,7 +717,7 @@ struct ParameterCheck final
 {
 	using HasReferenceArg = ystdex::true_;
 
-	static void
+	NPL_Impl_NPLA1_BindParameter_Inline static void
 	CheckBack(const TermNode& t, bool t_has_ref)
 	{
 		if(YB_UNLIKELY(!IsList(t)))
@@ -683,14 +725,14 @@ struct ParameterCheck final
 	}
 
 	template<typename _func>
-	static inline void
+	NPL_Impl_NPLA1_BindParameter_Inline static inline void
 	HandleLeaf(_func f, const TermNode& t, bool t_has_ref)
 	{
 		HandleOrIgnore(std::ref(f), t, t_has_ref);
 	}
 
 	template<typename _func>
-	static void
+	NPL_Impl_NPLA1_BindParameter_Inline static inline void
 	WrapCall(_func f)
 	{
 		try
@@ -716,7 +758,7 @@ struct NoParameterCheck final
 	}
 
 	template<typename _func>
-	static inline void
+	NPL_Impl_NPLA1_BindParameter_Inline static inline void
 	HandleLeaf(_func f, const TermNode& t)
 	{
 		if(!IsIgnore(t))
@@ -729,7 +771,7 @@ struct NoParameterCheck final
 	}
 
 	template<typename _func>
-	static void
+	static inline void
 	WrapCall(_func f)
 	{
 		f();
@@ -769,6 +811,7 @@ private:
 public:
 	//! \since build 882
 	template<class _type, class _type2>
+	inline
 	GParameterMatcher(_type&& arg, _type2&& arg2)
 		: BindTrailing(yforward(arg)), BindValue(yforward(arg2))
 	{}
@@ -786,7 +829,7 @@ public:
 	operator()(const TermNode& t, TermNode& o, TermTags o_tags,
 		const EnvironmentReference& r_env) const
 	{
-		_tTraits::WrapCall([&]{
+		_tTraits::WrapCall([&] NPL_Impl_NPLA1_BindParameter_InlineAnnotate(()){
 			// NOTE: This is a trampoline to eliminate the call depth
 			//	limitation.
 			DispatchMatch(typename _tTraits::HasReferenceArg(), t, o, o_tags,
@@ -802,14 +845,14 @@ public:
 
 private:
 	template<class _tArg>
-	void
+	NPL_Impl_NPLA1_BindParameter_Inline inline void
 	DispatchMatch(ystdex::true_, const TermNode& t, TermNode& o,
 		TermTags o_tags, const EnvironmentReference& r_env, _tArg) const
 	{
 		Match(t, o, o_tags, r_env, _tArg::value);
 	}
 	template<class _tArg>
-	void
+	NPL_Impl_NPLA1_BindParameter_Inline inline void
 	DispatchMatch(ystdex::false_, const TermNode& t, TermNode& o,
 		TermTags o_tags, const EnvironmentReference& r_env, _tArg) const
 	{
@@ -820,7 +863,7 @@ private:
 	//	known to bound to some non-temporary objects not stored in the term tree
 	//	to be reduced.
 	template<typename... _tParams>
-	YB_FLATTEN void
+	NPL_Impl_NPLA1_BindParameter_Inline YB_FLATTEN inline void
 	Match(const TermNode& t, TermNode& o, TermTags o_tags,
 		const EnvironmentReference& r_env, _tParams&&... args) const
 	{
@@ -852,8 +895,9 @@ private:
 				}
 				// XXX: There is only one level of indirection. It should work
 				//	with the correct implementation of the reference collapse.
-				ResolveTerm([&, n_p, o_tags](TermNode& nd,
-					ResolvedTermReferencePtr p_ref){
+				ResolveTerm([&, o_tags]
+					NPL_Impl_NPLA1_BindParameter_InlineAnnotate(
+					(TermNode& nd, ResolvedTermReferencePtr p_ref)){
 					if(IsList(nd))
 					{
 						const bool ellipsis(last != t.end());
@@ -897,7 +941,7 @@ private:
 							ThrowInsufficientTermsError(nd, p_ref);
 					}
 					else
-						ThrowListTypeErrorForNonlist(nd, p_ref);
+						ThrowListTypeErrorForNonList(nd, p_ref);
 				}, o);
 			}
 			else
@@ -914,19 +958,20 @@ private:
 			auto& nd(p_t->get());
 
 			ystdex::update_thunk(act, o.get_allocator(), trivial_swap,
-				[&, o_tags]{
+				[&, o_tags] NPL_Impl_NPLA1_BindParameter_InlineAnnotate(()){
 				DispatchMatch(typename _tTraits::HasReferenceArg(), nd, o,
 					o_tags, r_env, ystdex::true_());
 			});
 		}
 		else
-			_tTraits::HandleLeaf([&](const TokenValue& n){
+			_tTraits::HandleLeaf([&] NPL_Impl_NPLA1_BindParameter_InlineAnnotate
+				((const TokenValue& n)){
 				BindValue(n, o, o_tags, r_env);
 			}, t, yforward(args)...);
 	}
 
 	//! \since build 898
-	void
+	NPL_Impl_NPLA1_BindParameter_Inline void
 	MatchSubterms(TNCIter i, TNCIter last, TermNode& o_tm, TNIter j,
 		TermTags tags, const EnvironmentReference& r_env, bool ellipsis
 #if NPL_Impl_NPLA1_AssertParameterMatch
@@ -971,7 +1016,7 @@ private:
 
 //! \relates GParameterMatcher
 template<class _tTraits, typename _fBindTrailing, typename _fBindValue>
-YB_ATTR_nodiscard inline
+YB_ATTR_nodiscard NPL_Impl_NPLA1_BindParameter_Inline inline
 	GParameterMatcher<_tTraits, _fBindTrailing, _fBindValue>
 MakeParameterMatcher(_fBindTrailing bind_trailing_seq, _fBindValue bind_value)
 {
@@ -979,15 +1024,14 @@ MakeParameterMatcher(_fBindTrailing bind_trailing_seq, _fBindValue bind_value)
 		std::move(bind_trailing_seq), std::move(bind_value));
 }
 
-
-//! \since build 920
-YB_FLATTEN void
-BindSymbolImpl(const EnvironmentReference& r_env, const TokenValue& n,
-	TermNode& b, TermTags o_tags, Environment& env)
+//! \since build 948
+// XXX: 'YB_FLATTEN' cannot used with G++ 12.1.0 when %BindParameterImpl is also
+//	using 'YB_FLATTEN', to avoid ICE in 'gimple_duplicate_bb' at
+//	'tree-cfg.c:6420'. This is no more efficient otherwise.
+void
+BindRawSymbol(const EnvironmentReference& r_env, string_view id,
+	TermNode& b, TermTags o_tags, Environment& env, char sigil)
 {
-	string_view id(n);
-	const char sigil(ExtractSigil(id));
-
 	BindParameterObject{r_env}(sigil, sigil == '&', o_tags, b,
 		[&](const TermNode& tm){
 		CopyTermTags(env.Bind(id, tm), tm);
@@ -997,16 +1041,37 @@ BindSymbolImpl(const EnvironmentReference& r_env, const TokenValue& n,
 	});
 }
 
+//! \since build 920
+// XXX: 'YB_FLATTEN' does not work better than 'inline'.
+NPL_Impl_NPLA1_BindParameter_Inline inline void
+BindSymbolImpl(const EnvironmentReference& r_env, const TokenValue& n,
+	TermNode& b, TermTags o_tags, Environment& env)
+{
+	string_view id(n);
+	const char sigil(ExtractSigil(id));
+
+	BindRawSymbol(r_env, id, b, o_tags, env, sigil);
+}
+
 template<class _tTraits>
-YB_FLATTEN void
+// XXX: 'YB_FLATTEN' here may make the generated code a bit more efficient, but
+//	significantly slow in compiling without manually annotated 'always_inline',
+//	and the call sites may have other choices, so it is conditonally enabled.
+//	(It is actually not better than combination with manually annotated
+//	'always_inline', at least with x86_64-pc-linux G++ 12.1.) The 'inline' is
+//	significant for the generated code quality when 'YB_FLATTEN' is missing with
+//	almost same compilation efficient as before, and 'YB_ATTR_always_inline' is
+//	worse. See %NPL_Impl_NPLA1_BindParameter_ExpandLevel for more details.
+#if NPL_Impl_NPLA1_BindParameter_ExpandLevel >= 2
+YB_FLATTEN
+#endif
+inline void
 BindParameterImpl(const shared_ptr<Environment>& p_env, const TermNode& t,
 	TermNode& o)
 {
 	auto& env(NPL::Deref(p_env));
 
 	// NOTE: No duplication check here. Symbols can be rebound.
-	// TODO: Additional ownership and lifetime check to kept away undefined
-	//	behavior?
 	// NOTE: The call is essentially same as %MatchParameter, with a bit better
 	//	performance by avoiding %function instances.
 	MakeParameterMatcher<_tTraits>([&](TermNode& o_tm, TNIter first,
@@ -1059,9 +1124,13 @@ BindParameterImpl(const shared_ptr<Environment>& p_env, const TermNode& t,
 							std::move(con)));
 						auto& sub(NPL::Deref(p_sub));
 
-						env.Bind(id, TermNode(std::allocator_arg, a,
-							{NPL::AsTermNode(a, std::move(p_sub))},
-							std::allocator_arg, a, TermReference(sub, r_env)));
+						env.Bind(id, TermNode(std::allocator_arg, a, [&]{
+							TermNode::Container tcon(a);
+
+							tcon.push_back(NPL::AsTermNodeTagged(a,
+								TermTags::Sticky, std::move(p_sub)));
+							return tcon;
+						}(), std::allocator_arg, a, TermReference(sub, r_env)));
 					}
 					else
 						MarkTemporaryTerm(env.Bind(id,
@@ -1069,8 +1138,8 @@ BindParameterImpl(const shared_ptr<Environment>& p_env, const TermNode& t,
 				}
 			}
 		}
-	}, [&](const TokenValue& n, TermNode& b, TermTags o_tags,
-		const EnvironmentReference& r_env){
+	}, [&] NPL_Impl_NPLA1_BindParameter_InlineAnnotate((const TokenValue& n,
+		TermNode& b, TermTags o_tags, const EnvironmentReference& r_env)){
 		BindSymbolImpl(r_env, n, b, o_tags, env);
 	})(t, o, TermTags::Temporary, p_env);
 }
@@ -1171,7 +1240,7 @@ ContextState::DefaultReduceOnce(TermNode& term, ContextNode& ctx)
 	}
 	else if(IsBranch(term))
 	{
-		YAssert(term.size() != 0, "Invalid node found.");
+		YAssert(term.size() != 0, "Invalid term found.");
 		// NOTE: List with single element shall be reduced as the element.
 		if(term.size() != 1)
 			return DoAdministratives(cs.EvaluateList, term, ctx);
@@ -1227,6 +1296,22 @@ ContextState::RewriteTermGuarded(TermNode& term)
 	// XXX: Ditto.
 	return RewriteGuarded(term,
 		NPL::ToReducer(get_allocator(), std::ref(ReduceOnce)));
+}
+
+bool
+ContextState::TrySetTailOperatorName(TermNode& term) const ynothrow
+{
+	if(combining_term_ptr)
+	{
+		auto& comb(*combining_term_ptr);
+
+		if(IsBranch(comb) && ystdex::ref_eq<>()(AccessFirstSubterm(comb), term))
+		{
+			OperatorName = std::move(term.Value);
+			return true;
+		}
+	}
+	return {};
 }
 
 
@@ -1382,7 +1467,7 @@ ReduceToReferenceList(TermNode& term, ContextNode& ctx, TermNode& tm)
 			return ReductionStatus::Retained;
 		}
 		else
-			ThrowListTypeErrorForNonlist(nd, p_ref);
+			ThrowListTypeErrorForNonList(nd, p_ref);
 	}, tm);
 }
 
@@ -1415,7 +1500,7 @@ ReduceToReferenceUList(TermNode& term, TermNode& tm)
 			return ReductionStatus::Retained;
 		}
 		else
-			ThrowListTypeErrorForNonlist(nd, p_ref);
+			ThrowListTypeErrorForNonList(nd, p_ref);
 	}, tm);
 }
 
@@ -1600,6 +1685,15 @@ FormContextHandler::CallN(size_t n, TermNode& term, ContextNode& ctx) const
 #endif
 }
 
+void
+FormContextHandler::CheckArguments(size_t n, TermNode& term)
+{
+	YAssert(!(IsList(term) && HasStickySubterm(term)),
+		"Invalid representation found.");
+	if(YB_UNLIKELY(n != 0 && !IsList(term)))
+		throw ListReductionFailure("List expected in the applicative call.");
+}
+
 bool
 FormContextHandler::Equals(const FormContextHandler& fch) const
 {
@@ -1773,8 +1867,10 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 	{
 		auto& bound(*pr.first);
 		TermNode* p_rterm;
+		auto& cs(ContextState::Access(ctx));
 
-		SetupTailOperatorName(term, ctx);
+		if(!cs.TrySetTailOperatorName(term))
+			cs.OperatorName.Clear();
 		// NOTE: This is essentially similar to a successful call to
 		//	%ResolveIdentifier plus a call to %EnsureLValueReference, except
 		//	that the term tags are always not touched and the term container is
@@ -1915,7 +2011,7 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 			ctx);
 #endif
 	return ResolveTerm(std::bind(ThrowCombiningFailure, std::ref(term),
-		std::placeholders::_1, std::placeholders::_2), fm);
+		std::ref(ctx), std::placeholders::_1, std::placeholders::_2), fm);
 }
 
 ReductionStatus
@@ -1926,7 +2022,7 @@ ReduceCombinedReferent(TermNode& term, ContextNode& ctx, const TermNode& fm)
 	ClearCombiningTags(term);
 	if(const auto p_handler = TryAccessLeafAtom<const ContextHandler>(fm))
 		return CombinerReturnThunk(*p_handler, term, ctx);
-	return ThrowCombiningFailure(term, fm, true);
+	return ThrowCombiningFailure(term, ctx, fm, true);
 }
 
 ReductionStatus
@@ -2016,6 +2112,10 @@ MatchParameter(const TermNode& t, TermNode& o, function<void(TermNode&, TNIter,
 		std::move(bind_value))(t, o, o_tags, r_env);
 }
 
+// XXX: 'YB_FLATTEN' is a bit better for the quality of the generated code with
+//	significantly worse performance of compilation (at least as costly as
+//	%BindParameterWellFormed), so it is not used here if compilation time is
+//	concerned. See %NPL_Impl_NPLA1_BindParameter_ExpandLevel for more details.
 void
 BindParameter(const shared_ptr<Environment>& p_env, const TermNode& t,
 	TermNode& o)
@@ -2023,6 +2123,10 @@ BindParameter(const shared_ptr<Environment>& p_env, const TermNode& t,
 	BindParameterImpl<ParameterCheck>(p_env, t, o);
 }
 
+// XXX: 'YB_FLATTEN' is significant for the quality of generated code.
+#if NPL_Impl_NPLA1_BindParameter_ExpandLevel == 1
+YB_FLATTEN
+#endif
 void
 BindParameterWellFormed(const shared_ptr<Environment>& p_env, const TermNode& t,
 	TermNode& o)
@@ -2040,6 +2144,8 @@ BindSymbol(const shared_ptr<Environment>& p_env, const TokenValue& n,
 
 	BindSymbolImpl(p_env, n, o, TermTags::Temporary, env);
 }
+#undef NPL_Impl_NPLA1_BindParameter_InlineAttr
+#undef NPL_Impl_NPLA1_BindParameter_Inline
 
 
 void
@@ -2183,21 +2289,6 @@ QueryTypeName(const type_info& ti)
 
 	if(i != tbl.cend())
 		return i->second;
-	return {};
-}
-
-bool
-SetupTailOperatorName(TermNode& term, const ContextNode& ctx) ynothrow
-{
-	if(const auto p_combining = ContextState::Access(ctx).GetCombiningTermPtr())
-	{
-		if(!p_combining->empty()
-			&& ystdex::ref_eq<>()(AccessFirstSubterm(*p_combining), term))
-		{
-			p_combining->Value = std::move(term.Value);
-			return true;
-		}
-	}
 	return {};
 }
 

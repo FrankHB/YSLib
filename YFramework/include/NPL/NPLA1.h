@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9480
+\version r9538
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-06-14 18:41 +0800
+	2022-06-18 02:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,10 +32,10 @@
 #include YFM_NPL_NPLA // for NPLATag, TermNode, ContextNode,
 //	ystdex::equality_comparable, std::declval, ystdex::exclude_self_t,
 //	trivial_swap_t, trivial_swap, ystdex::ref_eq, string_view,
-//	CombineReductionResult, pmr::memory_resource, make_observer,
-//	AssertMatchedAllocators, TNIter, LiftOtherValue, ValueNode, NPL::Deref,
-//	NPL::AsTermNode, std::make_move_iterator, std::next, ystdex::retry_on_cond,
-//	std::find_if, ystdex::exclude_self_params_t, YSLib::AreEqualHeld,
+//	CombineReductionResult, pmr::memory_resource, make_observer, TNIter,
+//	LiftOtherValue, ValueNode, NPL::Deref, NPL::AsTermNode,
+//	std::make_move_iterator, std::next, ystdex::retry_on_cond, std::find_if,
+//	ystdex::exclude_self_params_t, YSLib::AreEqualHeld,
 //	ystdex::make_parameter_list_t, ystdex::make_function_type_t, ystdex::true_,
 //	ystdex::decay_t, ystdex::expanded_caller, std::is_constructible,
 //	ystdex::or_, ArityMismatch, TermTags, RegularizeTerm, type_id, TokenValue,
@@ -340,6 +340,12 @@ private:
 
 public:
 	/*!
+	\brief 规约合并项操作符名称。
+	\since build 948
+	*/
+	mutable ValueObject OperatorName{};
+
+	/*!
 	\brief 构造：使用指定的存储资源。
 	\since build 845
 	*/
@@ -486,6 +492,31 @@ public:
 	RewriteTermGuarded(TermNode&);
 	//@}
 
+	//! \since build 948
+	//@{
+	/*!
+	\brief 尝试取当前尾动作规约的操作符名称。
+	\return 若调用成功，操作符的名称符号；否则为空指针。
+
+	对参数和已知的规约合并项比较，若不相同则调用失败。
+	否则，尝试以 TokenValue 访问保存的操作符名称对象。若类型不匹配则调用不成功。
+	*/
+	YB_ATTR_nodiscard PDefH(observer_ptr<TokenValue>, TryGetTailOperatorName,
+		TermNode& term) const ynothrow
+		ImplRet(combining_term_ptr.get() == &term
+			? TryAccessValue<TokenValue>(OperatorName) : nullptr)
+
+	/*!
+	\brief 尝试设置当前尾动作规约的操作符名称。
+	\return 是否成功。
+
+	检查第一参数指定的项是否同第二参数保存的规约合并项的第一项，若成功视为操作符项，
+		并转移操作符项的值数据成员到规约合并项。
+	*/
+	bool
+	TrySetTailOperatorName(TermNode&) const ynothrow;
+	//@}
+
 	friend PDefH(void, swap, ContextState& x, ContextState& y) ynothrow
 		ImplExpr(swap(static_cast<ContextNode&>(x), static_cast<ContextNode&>(
 			y)), swap(x.combining_term_ptr, y.combining_term_ptr),
@@ -540,6 +571,7 @@ Reduce(TermNode&, ContextNode&);
 //@{
 YF_API void
 ReduceArguments(TNIter, TNIter, ContextNode&);
+//! \warning 不检查列表表示，假定参数指定的项是真列表。
 inline PDefH(void, ReduceArguments, TermNode& term, ContextNode& ctx)
 	ImplRet(ReduceArguments(term.begin(), term.end(), ctx))
 //@}
@@ -1086,7 +1118,7 @@ public:
 	无参数时第一参数应具有两个子项且第二项为空节点。
 	*/
 	PDefHOp(ReductionStatus, (), TermNode& term, ContextNode& ctx) const
-		ImplRet(CallN(Wrapping, term, ctx))
+		ImplRet(CheckArguments(Wrapping, term), CallN(Wrapping, term, ctx))
 
 	/*!
 	\brief 调用上下文处理器。
@@ -1103,6 +1135,18 @@ private:
 	ReductionStatus
 	CallN(size_t, TermNode&, ContextNode&) const;
 
+public:
+	/*!
+	\brief 检查是否符合应用子的参数列表。
+	\pre 断言：若为列表，不具有粘滞位。
+	\throw ListReductionFailure 第一参数不等于 0 且第二参数不表示列表。
+	\note 因为对象语言中的参数求值规则不影响参数项的结构，所以调用前只需要检查一次。
+	\since build 948
+	*/
+	static void
+	CheckArguments(size_t, TermNode&);
+
+private:
 	//! \since build 859
 	YB_ATTR_nodiscard YB_PURE bool
 	Equals(const FormContextHandler&) const;
@@ -1307,7 +1351,10 @@ RetainN(const TermNode& term, size_t m = 1)
 YF_API ReductionStatus
 DefaultEvaluateLeaf(TermNode&, string_view);
 
-//! \exception BadIdentifier 未在环境中找到指定标识符的绑定。
+/*!
+\exception BadIdentifier 未在环境中找到指定标识符的绑定。
+\warning 若不满足上下文状态类型要求，行为未定义。
+*/
 //@{
 /*!
 \brief 求值标识符。
@@ -1324,7 +1371,8 @@ DefaultEvaluateLeaf(TermNode&, string_view);
 解析名称并初始化目标项的值；然后检查字面量处理器，若存在则调用。
 具体依次进行以下求值操作：
 调用 ResolveIdentifier 解析指定的标识符，若失败则抛出异常；
-调用 SetupTailOperatorName 检查操作符项，可能设置第一参数的值数据成员；
+以第二参数作为 ContextState ，调用 TrySetTailOperatorName 设置上下文中的操作符，
+	若失败则清空上下文中的操作符；
 解析的结果进行引用折叠后重新引用为左值，并赋值到第一参数指定的项的值数据成员；
 以 LiteralHandler 访问字面量处理器，若成功调用并返回字面量处理器的处理结果；
 否则，返回 ReductionStatus::Neutral 。
@@ -1344,7 +1392,6 @@ EvaluateIdentifier(TermNode&, const ContextNode&, string_view);
 \brief 求值叶节点记号。
 \pre 第二参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
 \return 求值标识符的结果或 ReductionStatus::Retained 。
-\warning 若不满足上下文状态类型要求，行为未定义。
 \sa CategorizeLexeme
 \sa ContextNode::EvaluateLiteral
 \sa DeliteralizeUnchecked
@@ -1811,19 +1858,6 @@ QueryTailOperatorName(const Reducer&) ynothrow;
 */
 YB_ATTR_nodiscard YB_PURE YF_API string_view
 QueryTypeName(const type_info&);
-
-/*!
-\brief 设置当前尾动作规约的操作符名称。
-\return 是否成功。
-\warning 若不满足上下文状态类型要求，行为未定义。
-\sa ContextState::GetCombiningTermPtr
-\since build 947
-
-检查第一参数指定的项是否同第二参数保存的规约合并项的第一项，若成功视为操作符项，
-	并转移操作符项的值数据成员到规约合并项。
-*/
-bool
-SetupTailOperatorName(TermNode&, const ContextNode&) ynothrow;
 
 /*!
 \brief 追踪记录 NPL 续延。

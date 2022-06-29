@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4055
+\version r4137
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2022-06-14 18:41 +0800
+	2022-06-25 18:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,10 +35,11 @@
 //	make_observer, TermTags, TryAccessLeafAtom, NPL::Deref, YSLib::sfmt,
 //	AssertReferentTags, ystdex::call_value_or, ystdex::compose, GetLValueTagsOf,
 //	std::mem_fn, IsTyped, ystdex::invoke_value_or, ystdex::ref, PropagateTo,
-//	NPL::IsMovable, TryAccessLeaf, AccessFirstSubterm, YSLib::FilterExceptions,
-//	type_id, ystdex::addrof, ystdex::second_of, type_info,
-//	std::current_exception, std::rethrow_exception, std::throw_with_nested,
-//	ystdex::retry_on_cond, ystdex::id, pair, YSLib::ExtractException;
+//	NPL::IsMovable, IsSticky, TryAccessLeaf, AccessFirstSubterm,
+//	YSLib::FilterExceptions, type_id, ystdex::addrof, ystdex::second_of,
+//	type_info, std::current_exception, std::rethrow_exception,
+//	std::throw_with_nested, ystdex::retry_on_cond, ystdex::id, pair,
+//	YSLib::ExtractException;
 #include <ystdex/function.hpp> // for ystdex::unchecked_function;
 
 //! \since build 903
@@ -360,8 +361,15 @@ TermToString(const TermNode& term)
 {
 	if(const auto p = TermToNamePtr(term))
 		return *p;
-	return YSLib::sfmt<string>("#<unknown{%zu}:%s>", term.size(),
-		term.Value.type().name());
+
+	const bool is_pair(IsPair(term));
+	const bool non_list(!IsList(term));
+
+	// TODO: Use allocator?
+	return IsEmpty(term) ? string("()") : YSLib::sfmt<string>("#<%s{%zu}%s%s>",
+		is_pair ? (non_list ? "improper-list" : "list") : "unknown",
+		term.size(), is_pair ? " . " : (non_list ? ":" : ""),
+		non_list ? term.Value.type().name() : "");
 }
 
 string
@@ -622,6 +630,79 @@ MoveRValueToReturn(TermNode& term, TermNode& tm)
 #endif
 }
 
+void
+LiftElementsToReturn(TermNode& term)
+{
+	const auto i(LiftPrefixToReturn(term));
+
+	// NOTE: As %LiftToReturn without overriding the previous transformed terms.
+	if(const auto p = TryAccessLeaf<const TermReference>(term))
+	{
+		auto& nd(p->get());
+		const bool move(p->IsMovable());
+		// XXX: As %LiftOtherOrCopy without touching %term.Tags.
+		const auto lift_content([&]{
+			const auto set_content([&](TermNode::Container con, ValueObject vo){
+				term.SetContent(std::move(con), std::move(vo));
+			});
+
+			if(move)
+				set_content(std::move(nd.GetContainerRef()),
+					ValueObject(std::move(nd.Value)));
+			else
+				set_content(TermNode::Container(nd.GetContainer(),
+					nd.get_allocator()), nd.Value);
+		});
+		auto& con(term.GetContainerRef());
+
+		if(i == con.begin())
+			lift_content();
+		else
+		{
+#if false
+			// XXX: This is less efficient at least with x86_64-pc-linux G++
+			//	12.1.
+			const auto lift([&](TermNode::Container tcon, ValueObject vo){
+				term.Value = std::move(vo);
+				con.splice(i, tcon);
+				con.erase(i, con.end());
+			});
+
+			if(move)
+				lift(TermNode::Container(nd.GetContainer(), nd.get_allocator()),
+					nd.Value);
+			else
+				lift(std::move(nd.GetContainerRef()), std::move(nd.Value));
+#else
+			// NOTE: Any optimized implemenations shall be equivalent to this.
+			TermNode::Container tcon(con.get_allocator());
+
+			tcon.splice(tcon.end(), con);
+			lift_content();
+			con.splice(con.begin(), tcon);
+#endif
+		}
+	}
+	// NOTE: %AssertValueTags shall not be called here because %term.Tags may
+	//	have %TermTags::Temporary at the beginning at the call. This is expected
+	//	to be cleared later when needed (e.g. by %ClearCombiningTags called
+	//	later in %RegularizeTerm).
+}
+
+TNIter
+LiftPrefixToReturn(TermNode& term)
+{
+	auto i(term.begin());
+
+	while(i != term.end() && !IsSticky(i->Tags))
+	{
+		LiftToReturn(*i);
+		++i;
+	}
+	YAssert(term.Value || i == term.end(), "Invalid representation found.");
+	return i;
+}
+
 
 bool
 CheckReducible(ReductionStatus status)
@@ -659,6 +740,9 @@ ReductionStatus
 ReduceBranchToList(TermNode& term) ynothrowv
 {
 	RemoveHead(term);
+	// XXX: Not using %EmplaceCallResultOrReturn because this may be called on a
+	//	bound object (rather than a call result). Notice in such case, the
+	//	retained value is not neccessarily a first-class value.
 	return ReductionStatus::Retained;
 }
 
@@ -666,7 +750,8 @@ ReductionStatus
 ReduceBranchToListValue(TermNode& term) ynothrowv
 {
 	RemoveHead(term);
-	LiftSubtermsToReturn(term);
+	LiftElementsToReturn(term);
+	// XXX: Ditto.
 	return ReductionStatus::Retained;
 }
 

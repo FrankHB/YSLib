@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r27377
+\version r27403
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2022-06-14 18:34 +0800
+	2022-06-30 06:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,21 +39,21 @@
 //	ResolveEnvironment, ShareMoveTerm, BindParameterWellFormed, ystdex::sfmt,
 //	TermToStringWithReferenceMark, ResolveTerm, LiftOtherOrCopy,
 //	ClearCombiningTags, SContext::Analyze, std::allocator_arg,
-//	NPL::ResolveRegular, ystdex::make_transform, TryAccessLeaf, TermReference,
+//	NPL::ResolveRegular, ystdex::make_transform, TermReference,
 //	EnvironmentList, NPL::AllocateEnvironment, ystdex::equality_comparable,
 //	CheckParameterTree, AssertValueTags, NPL::AsTermNode, ystdex::exchange,
 //	NPLException, GuardFreshEnvironment, TermTags, YSLib::Debug, YSLib::sfmt,
-//	A1::MakeForm, ystdex::expand_proxy, AccessRegular, GetLValueTagsOf,
-//	RegularizeTerm, IsBranchedList, LiftMovedOther, LiftOtherValue,
-//	ThrowValueCategoryError, std::mem_fn, ThrowListTypeErrorForNonlist,
+//	ThrowListTypeErrorForNonList, A1::MakeForm, ystdex::expand_proxy,
+//	AccessRegular, GetLValueTagsOf, RegularizeTerm, IsBranchedList,
+//	LiftMovedOther, LiftOtherValue, ThrowValueCategoryError, std::mem_fn,
 //	ThrowInvalidSyntaxError, CheckEnvironmentFormal, type_id,
-//	ystdex::update_thunk, IsTyped, EnvironmentGuard, BindSymbol, A1::AsForm,
-//	ystdex::bind1, IsNPLASymbol, ystdex::fast_all_of, ystdex::call_value_or,
-//	LiftCollapsed, YSLib::usystem;
+//	ystdex::update_thunk, IsTyped, EnvironmentGuard, TryAccessLeaf, BindSymbol,
+//	A1::AsForm, ystdex::bind1, IsNPLASymbol, ystdex::fast_all_of,
+//	ystdex::call_value_or, LiftCollapsed, YSLib::usystem;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_SContext // for Session;
-#include <ystdex/functor.hpp> // for ystdex::id;
-#include <ystdex/scope_guard.hpp> // for ystdex::unique_guard, ystdex::dismiss;
+#include <ystdex/scope_guard.hpp> // for ystdex::unique_guard, ystdex::dismiss,
+//	ystdex::make_guard;
 #include <ystdex/container.hpp> // for ystdex::prefix_eraser;
 
 namespace NPL
@@ -296,10 +296,10 @@ EqualSubterm(bool& r, ContextNode& ctx, bool orig, TNCIter first1,
 		// XXX: The continuations in the middle are not required to be
 		//	preserved.
 		RelaySwitched(ctx, trivial_swap,
-			A1::NameTypedReducerHandler([&, first1, first2, last1]{
+			A1::NameTypedReducerHandler([&, orig, first1, first2, last1]{
 			// XXX: This is not effective if the result is known to be false.
-			return r ? EqualSubterm(r, ctx, {}, first1, first2, last1)
-				: ReductionStatus::Neutral;
+			return r ? EqualSubterm(r, ctx, orig, first1, first2, last1)
+				: ReductionStatus::Clean;
 		}, "equal-siblings"));
 		return RelaySwitched(ctx, A1::NameTypedReducerHandler([&]{
 			return
@@ -1028,7 +1028,7 @@ ConsItem(TermNode& y)
 				return std::move(nd_y);
 			});
 		else
-			ThrowListTypeErrorForNonlist(nd_y, p_ref_y);
+			ThrowListTypeErrorForNonList(nd_y, p_ref_y);
 	}, y);
 }
 //@}
@@ -2164,6 +2164,11 @@ PrepareFoldRList(TermNode& term)
 					//	shall be copied on the element accesses later. This is
 					//	comsumed by %IsExpiredRange, only used to provide the
 					//	3rd argument to the call to %ExtractRangeFirstOrCopy.
+					// XXX: %TermTags::Nonmodifying may have same encoding of
+					//	%TermTags::Sticky. This is safe because the term with
+					//	%Value of %TermRange target is only used internally in
+					//	specific context forms handlers, invisible to any
+					//	first-class objects.
 					yunseq(term.Tags |= TermTags::Nonmodifying,
 						term.Value = TermRange(nd, p_ref->GetTags()));
 			}
@@ -2174,7 +2179,7 @@ PrepareFoldRList(TermNode& term)
 			// NOTE: Always treat the list as an lvalue as in the derivation.
 			//	This is done only once here, since all recursive calls still
 			//	keep %term as a list.
-			ThrowInsufficientTermsError(nd, true);
+			ThrowListTypeErrorForNonList(nd, true);
 	}, term);
 }
 
@@ -2342,7 +2347,7 @@ PrependList(TermNode::Container& tcon, TermNode& tm)
 			}
 		}
 		else
-			ThrowInsufficientTermsError(nd, true);
+			ThrowListTypeErrorForNonList(nd, true);
 		tcon.splice(tcon.begin(), tm.GetContainerRef());
 	}, tm);
 }
@@ -2385,7 +2390,7 @@ ListRangeExtract(TermNode& term, _func f, _func2 f2)
 		else if(IsBranchedList(o))
 			f2(nterm, o, val_tags);
 		else
-			ThrowInsufficientTermsError(o, true);
+			ThrowInsufficientTermsError(o, {});
 		++tr.First;
 	}
 	tcon.swap(con),
@@ -2905,7 +2910,7 @@ LetExpireChecked(TermNode& term, TermNode& nd,
 	if(IsList(nd))
 		LetExpire(term, nd, r_env, o_tags);
 	else
-		ThrowListTypeErrorForNonlist(nd, true);
+		ThrowListTypeErrorForNonList(nd, true);
 }
 
 //! \since build 917
@@ -3381,7 +3386,7 @@ ProvideLetCommon(TermNode& term, ContextNode& ctx)
 		for(const auto& x : nd)
 			yunused(NPL::ResolveRegular<TokenValue>(x));
 	else
-		ThrowListTypeErrorForNonlist(nd, true);
+		ThrowListTypeErrorForNonList(nd, true);
 	con.splice(++++++i, con, i_symbols);
 	// NOTE: Now subterms are extracted arguments to the call, extracted
 	//	'formals' for the lambda abstraction, originally bound 'bindings',
@@ -3491,7 +3496,7 @@ AssocImpl(TermNode& term, bool(*eq)(const ValueObject&, const ValueObject&))
 		}
 		// XXX: This is known to be different to the derivation using 'first&'
 		//	in the exception message.
-		ThrowListTypeErrorForNonlist(nd, true);
+		ThrowListTypeErrorForNonList(nd, true);
 	}, *++i);
 }
 
@@ -4441,7 +4446,7 @@ ListPushFront(TermNode& term)
 					i);
 			}
 			else
-				ThrowListTypeErrorForNonlist(nd, p_ref);
+				ThrowListTypeErrorForNonList(nd, p_ref);
 		}
 		else
 			throw TypeError("Modifiable object expected.");
@@ -4619,7 +4624,7 @@ SymbolsToImports(TermNode& term)
 			YAssert(IsEmpty(term), "Invalid term found.");
 			return ReductionStatus::Regular;
 		}
-		ThrowListTypeErrorForNonlist(nd, true);
+		ThrowListTypeErrorForNonList(nd, true);
 	}, NPL::Deref(term.begin()));
 }
 

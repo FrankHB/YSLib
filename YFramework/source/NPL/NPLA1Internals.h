@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r22378
+\version r22387
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-06-14 18:24 +0800
+	2022-06-16 01:42 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -431,19 +431,21 @@ private:
 	mutable ystdex::optional<ExtraInfo> opt_extra_info{};
 
 public:
-	//! \since build 819
+	/*!
+	\warning 若不满足 NPLA1 规约函数上下文状态类型要求，行为未定义。
+	\since build 819
+	*/
 	TCOAction(ContextNode& ctx, TermNode& term, bool lift)
 		: req_lift_result(lift ? 1 : 0),record_list(ctx.get_allocator()),
 		env_guard(ctx), term_guard(ystdex::unique_guard(GuardFunction{term})),
 		OperatorName([&]() ynothrow{
 			// NOTE: Rather than only the target %TokenValue value, the whole
-			//	%term.Value is needed, since it can have the source information
+			//	%ValueObject is needed, since it can have the source information
 			//	in its holder and %QuerySourceInformation requires an object of
 			//	%ValueObject.
-			YAssert(IsTyped<TokenValue>(term) || !term.Value,
-				"Invalid value for combining term found.");
-			return std::move(term.Value);
-			// XXX: After the move, %term.Value is unspecified.
+			return std::move(ContextState::Access(ctx).OperatorName);
+			// XXX: After the move, the value is unspecified. This should be no
+			//	longer used, so it is irrelavant.
 		}())
 		// XXX: Do not call %AssertValueTags on %term, as it is usually a
 		//	combinitation instead of the representation of some object language

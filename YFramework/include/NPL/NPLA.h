@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r9543
+\version r9592
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2022-06-14 18:41 +0800
+	2022-06-20 23:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,10 +40,11 @@
 //	weak_ptr, lref, AssertReferentTags, ystdex::get_equal_to, NPL::IsMovable,
 //	pair, std::declval, ystdex::invoke_value_or, ystdex::expand_proxy,
 //	Access, ystdex::ref_eq, ValueObject, NPL::SetContentWith, std::for_each,
-//	AccessFirstSubterm, AssertBranch, NPL::Deref, YSLib::EmplaceCallResult,
-//	ystdex::less, YSLib::map, pmr, ystdex::copy_and_swap, NoContainer,
-//	ystdex::try_emplace, ystdex::try_emplace_hint, ystdex::insert_or_assign, 
-//	type_info, ystdex::expanded_function, ystdex::enable_if_same_param_t,
+//	TNIter, AccessFirstSubterm, AssertBranch, NPL::Deref,
+//	YSLib::EmplaceCallResult, ystdex::less, YSLib::map, pmr,
+//	ystdex::copy_and_swap, NoContainer, ystdex::try_emplace,
+//	ystdex::try_emplace_hint, ystdex::insert_or_assign,  type_info,
+//	ystdex::expanded_function, ystdex::enable_if_same_param_t,
 //	ystdex::exclude_self_t, ystdex::make_obj_using_allocator,
 //	YSLib::forward_list, ystdex::swap_dependent, make_observer,
 //	YSLib::allocate_shared, YSLib::Logger, trivial_swap, ystdex::exchange,
@@ -440,7 +441,7 @@ static_assert(ystdex::is_nothrow_move_constructible<AnchorPtr>(),
 
 
 /*!
-\brief 清除参数中作为规约合并项而不是一等对象的表示的标签。
+\brief 清除参数中作为规约合并项而非一等对象的表示的标签。
 \post 间接断言：参数的标签可表示一等对象的值。
 \note 因为项中的内容可能已被单独修改，不检查参数是规约合并项。
 \since build 939
@@ -454,13 +455,7 @@ inline PDefH(void, ClearCombiningTags, TermNode& term) ynothrowv
 */
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(bool, IsCombiningTerm, const TermNode& term) ynothrow
-#if true
-	// XXX: This might be slightly more efficient.
-	ImplRet(IsBranch(term) && (IsList(term) || IsTyped<TokenValue>(term)))
-#else
-	ImplRet(IsBranchedList(term)
-		|| (IsBranch(term) && IsTyped<TokenValue>(term)))
-#endif
+	ImplRet(IsPair(term))
 
 
 /*!	\defgroup TermAccessAuxiliary Term Access Auxiliary API
@@ -1225,7 +1220,6 @@ IsUncollapsedTerm(const TermNode&);
 \brief 解析并间接引用处理可能是引用值的项。
 \note 假定项不使用平凡正规表示，不需要对间接值检查 IsBranch 或 IsLeaf 。
 \sa NPL::ResolveToTermReferencePtr
-\sa ResolveTermHandler
 \sa ResolvedTermReferencePtr
 \sa TermReference
 \sa TryAccessLeafAtom
@@ -1411,7 +1405,7 @@ inline PDefH(void, LiftOther, TermNode& term, TermNode& tm)
 \since build 939
 */
 inline PDefH(void, LiftOtherValue, TermNode& term, TermNode& tm)
-	ImplExpr(AssertValueTags(tm), term.MoveContent(std::move(tm)))
+	ImplExpr(AssertValueTags(tm), LiftOther(term, tm))
 //@}
 
 /*!
@@ -1636,17 +1630,43 @@ MoveRValueToReturn(TermNode&, TermNode&);
 //@}
 
 /*!
-\brief 对每个子项提升项的值数据成员可能包含的引用值。
+\brief 提升（可能非真）列表的每个元素项的值数据成员可能包含的引用值。
+\note 不修改参数指定的项的标签。
+\note 蕴含 LiftPrefixToReturn 。
+\sa LiftPrefixToReturn
+\sa LiftToReturn
+\since build 948
+*/
+YF_API void
+LiftElementsToReturn(TermNode&);
+
+/*!
+\brief 提升每个子项项的值数据成员可能包含的引用值。
+\note 对表示真列表的项，作用同 LiftElementsToReturn 。
 \sa LiftToReturn
 */
 //@{
 //! \since build 944
 inline PDefH(void, LiftSubtermsToReturn, TermNode::Container& con)
 	ImplExpr(std::for_each(con.begin(), con.end(), LiftToReturn))
-//! \since build 830
+/*!
+\note 不修改参数指定的项的标签。
+\warning 不检查列表表示。
+\warning 若参数表示非真列表，则最后的一等对象修改上可能无法保证强异常安全。
+\since build 830
+*/
 inline PDefH(void, LiftSubtermsToReturn, TermNode& term)
 	ImplExpr(LiftSubtermsToReturn(term.GetContainerRef()))
 //@}
+
+/*!
+\brief 提升（可能非真）列表的最后一个前的每个元素项的值数据成员可能包含的引用值。
+\note 真列表的最后一个元素为值数据成员的默认值构成的空列表。
+\note 不修改参数指定的项的标签。
+\since build 948
+*/
+YF_API TNIter
+LiftPrefixToReturn(TermNode&);
 
 //! \pre 断言：参数指定的项是枝节点。
 //@{
@@ -1791,13 +1811,13 @@ RegularizeTerm(TermNode&, ReductionStatus) ynothrow;
 \since build 823
 */
 //@{
-//! \brief 规约为列表：对枝节点移除第一个子项，保留余下的子项作为列表。
+//! \brief 规约为列表：对枝节点移除第一个子项，保留余下列表元素作为列表。
 YF_API ReductionStatus
 ReduceBranchToList(TermNode&) ynothrowv;
 
 /*!
-\brief 规约为列表值：对枝节点移除第一个子项，保留余下的子项提升后作为列表的值。
-\sa LiftSubtermsToReturn
+\brief 规约为列表值：对枝节点移除第一个子项，保留余下的列表元素提升后作为列表的值。
+\sa LiftElementsToReturn
 */
 YF_API ReductionStatus
 ReduceBranchToListValue(TermNode&) ynothrowv;
@@ -1847,7 +1867,7 @@ inline PDefH(ReductionStatus, ReduceToList, TermNode& term) ynothrow
 		: ReductionStatus::Regular)
 
 /*!
-\brief 规约为列表值：对分支列表节点移除第一个子项，保留余下的子项提升后作为列表的值。
+\brief 规约为列表值：对分支列表节点移除第一个子项，保留余下的元素提升后作为列表的值。
 \sa ReduceBranchToListValue
 \since build 821
 
@@ -1904,6 +1924,7 @@ inline PDefH(ReductionStatus, ReduceToValue, TermNode& term, TermNode& tm)
 /*!
 \brief 直接返回状态或取返回值替换指定的项的值数据成员。
 \return 规约结果。
+\sa RegularizeTerm
 \sa YSLib::EmplaceCallResult
 \since build 922
 
@@ -1915,7 +1936,9 @@ inline PDefH(ReductionStatus, ReduceToValue, TermNode& term, TermNode& tm)
 合并处理替换值的部分可以简化一些规约处理器的实现。
 一般地，替换值数据成员隐含不保留子项，而返回 ReductionStatus::Clean ；
 否则，应在此之前直接处理子项，并返回其它规约结果。
-考虑一般实现的性能不确定性，当前实现中，调用 YSLib::EmplaceCallResult 不使用分配器。
+虽然规约得到求值结果时，值的表示应为一等对象，但为避免开销，
+	这里不隐含 ClearCombiningTags 调用。
+对一等对象的标签的维护通常延迟到正规化时完成。
 */
 //@{
 YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(ReductionStatus,

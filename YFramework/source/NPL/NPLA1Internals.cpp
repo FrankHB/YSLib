@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20644
+\version r20646
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-06-13 23:54 +0800
+	2022-06-17 00:49 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -286,8 +286,7 @@ ReduceForCombinerRef(TermNode& term, const TermReference& ref,
 	//	most cases.
 	return ReduceAsSubobjectReference(term, YSLib::allocate_shared<TermNode>(a,
 		NPL::AsTermNode(a, ContextHandler(std::allocator_arg, a,
-		FormContextHandler(RefContextHandler(h, r_env), n)))),
-		ref.GetEnvironmentReference());
+		FormContextHandler(RefContextHandler(h, r_env), n)))), r_env);
 }
 
 } // inline namespace Internals;

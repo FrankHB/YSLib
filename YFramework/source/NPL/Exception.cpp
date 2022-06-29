@@ -11,13 +11,13 @@
 /*!	\file Exception.cpp
 \ingroup NPL
 \brief NPL 异常。
-\version r4812
+\version r4819
 \author FrankHB <frankhb1989@gmail.com>
 \since build 936
 \par 创建时间:
 	2022-01-21 01:59:50 +0800
 \par 修改时间:
-	2022-01-21 02:36 +0800
+	2022-06-26 04:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,6 +103,13 @@ ThrowInsufficientTermsError(const TermNode& term, bool has_ref)
 }
 
 void
+ThrowListTypeErrorForAtom(const TermNode& term, bool has_ref)
+{
+	throw ListTypeError(ystdex::sfmt("Expected a pair, got '%s'.",
+		TermToStringWithReferenceMark(term, has_ref).c_str()));
+}
+
+void
 ThrowListTypeErrorForInvalidType(const char* name, const TermNode& term,
 	bool has_ref)
 {
@@ -117,7 +124,7 @@ ThrowListTypeErrorForInvalidType(const type_info& ti,
 }
 
 void
-ThrowListTypeErrorForNonlist(const TermNode& term, bool has_ref)
+ThrowListTypeErrorForNonList(const TermNode& term, bool has_ref)
 {
 	throw ListTypeError(ystdex::sfmt("Expected a list, got '%s'.",
 		TermToStringWithReferenceMark(term, has_ref).c_str()));
