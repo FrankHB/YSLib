@@ -11,13 +11,13 @@
 /*!	\file Exception.cpp
 \ingroup NPL
 \brief NPL 异常。
-\version r4819
+\version r4840
 \author FrankHB <frankhb1989@gmail.com>
 \since build 936
 \par 创建时间:
 	2022-01-21 01:59:50 +0800
 \par 修改时间:
-	2022-06-26 04:07 +0800
+	2022-07-05 04:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,53 +95,59 @@ ImplDeDtor(InvalidReference)
 
 
 void
-ThrowInsufficientTermsError(const TermNode& term, bool has_ref)
+ThrowInsufficientTermsError(const TermNode& term, bool has_ref, size_t n_skip)
 {
 	throw ParameterMismatch(ystdex::sfmt(
 		"Insufficient subterms found in '%s' for the list parameter.",
-		TermToStringWithReferenceMark(term, has_ref).c_str()));
+		TermToStringWithReferenceMark(term, has_ref, n_skip).c_str()));
 }
 
 void
-ThrowListTypeErrorForAtom(const TermNode& term, bool has_ref)
+ThrowListTypeErrorForAtom(const TermNode& term, bool has_ref, size_t n_skip)
 {
 	throw ListTypeError(ystdex::sfmt("Expected a pair, got '%s'.",
-		TermToStringWithReferenceMark(term, has_ref).c_str()));
+		TermToStringWithReferenceMark(term, has_ref, n_skip).c_str()));
 }
 
 void
 ThrowListTypeErrorForInvalidType(const char* name, const TermNode& term,
-	bool has_ref)
+	bool has_ref, size_t n_skip)
 {
 	throw ListTypeError(ystdex::sfmt("Expected a value of type '%s', got a list"
-		" '%s'.", name, TermToStringWithReferenceMark(term, has_ref).c_str()));
+		" '%s'.", name, TermToStringWithReferenceMark(term, has_ref, n_skip).c_str()));
 }
 void
 ThrowListTypeErrorForInvalidType(const type_info& ti,
-	const TermNode& term, bool has_ref)
+	const TermNode& term, bool has_ref, size_t n_skip)
 {
-	ThrowListTypeErrorForInvalidType(ti.name(), term, has_ref);
+	ThrowListTypeErrorForInvalidType(ti.name(), term, has_ref, n_skip);
 }
 
 void
-ThrowListTypeErrorForNonList(const TermNode& term, bool has_ref)
+ThrowListTypeErrorForNonList(const TermNode& term, bool has_ref, size_t n_skip)
 {
 	throw ListTypeError(ystdex::sfmt("Expected a list, got '%s'.",
-		TermToStringWithReferenceMark(term, has_ref).c_str()));
+		TermToStringWithReferenceMark(term, has_ref, n_skip).c_str()));
 }
 
 void
-ThrowTypeErrorForInvalidType(const char* name, const TermNode& term,
-	bool has_ref)
+ThrowTypeErrorForInvalidType(const char* name, const char* rep)
 {
 	throw TypeError(ystdex::sfmt("Expected a value of type '%s', got '%s'.",
-		name, TermToStringWithReferenceMark(term, has_ref).c_str()));
+		name, rep));
+}
+void
+ThrowTypeErrorForInvalidType(const char* name, const TermNode& term,
+	bool has_ref, size_t n_skip)
+{
+	ThrowTypeErrorForInvalidType(name,
+		TermToStringWithReferenceMark(term, has_ref, n_skip).c_str());
 }
 void
 ThrowTypeErrorForInvalidType(const type_info& ti, const TermNode& term,
-	bool has_ref)
+	bool has_ref, size_t n_skip)
 {
-	ThrowTypeErrorForInvalidType(ti.name(), term, has_ref);
+	ThrowTypeErrorForInvalidType(ti.name(), term, has_ref, n_skip);
 }
 
 } // namespace NPL;

@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r4472
+\version r4516
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2022-06-30 04:09 +0800
+	2022-07-06 08:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -267,7 +267,6 @@ inline PDefH(void, EnsureValueTags, TermTags& tags) ynothrow
 class YF_API TermNode : private ystdex::equality_comparable<TermNode>
 {
 private:
-	// TODO: Deduplicate within %ValueNode?
 	template<typename... _tParams>
 	using enable_value_constructible_t = ystdex::enable_if_t<
 		std::is_constructible<ValueObject, _tParams...>::value>;
@@ -484,17 +483,6 @@ public:
 	{}
 	//@}
 
-	/*!
-	\brief 复制赋值：使用参数副本和交换操作。
-	\since build 879
-	*/
-	PDefHOp(TermNode&, =, const TermNode& nd)
-		ImplRet(ystdex::copy_and_swap(*this, nd))
-	/*!
-	\pre 被转移的参数不是被子节点容器直接或间接所有的其它节点。
-	\warning 违反前置条件的转移可能引起循环引用。
-	*/
-	DefDeMoveAssignment(TermNode)
 	/*
 	\brief 析构：类定义外默认实现。
 	\note 除非 Value 的析构非嵌套调用安全，支持移除任意子节点时的嵌套调用安全。
@@ -511,6 +499,19 @@ public:
 		//	%any has branch. Keep it as-is at current.
 		Clear();
 	}
+
+	/*!
+	\brief 复制赋值：使用参数副本和交换操作。
+	\since build 879
+	*/
+	PDefHOp(TermNode&, =, const TermNode& nd)
+		ImplRet(ystdex::copy_and_swap(*this, nd))
+	/*!
+	\pre 被转移的参数不是被子节点容器直接或间接所有的其它节点。
+	\warning 违反前置条件的转移可能引起循环引用。
+	*/
+	DefDeMoveAssignment(TermNode)
+
 
 	/*!
 	\brief 比较相等。
@@ -993,6 +994,36 @@ YB_NONNULL(2) inline PDefH(void, AssertBranchedList, const TermNode& nd,
 	ImplExpr(yunused(nd), yunused(msg), YAssert(IsBranchedList(nd), msg))
 
 /*!
+\brief 断言参数或其分配器匹配。
+\pre 断言：参数指定的分配器相等。
+\since build 941
+*/
+//@{
+YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators,
+	const TermNode::allocator_type& a, const TermNode::Container& con,
+	const char* msg = "Allocators mismatch to the term container.") ynothrowv
+	ImplExpr(yunused(a), yunused(con), yunused(msg),
+		YAssert(a == con.get_allocator(), msg))
+//! \since build 949
+YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators,
+	const TermNode::Container& x, const TermNode::Container& y,
+	const char* msg = "Allocators for term containers mismatch.")
+	ynothrowv
+	ImplExpr(yunused(x), yunused(y), yunused(msg),
+		NPL::AssertMatchedAllocators(x.get_allocator(), y))
+YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators,
+	const TermNode::allocator_type& a, const TermNode& nd, const char* msg
+	= "Allocators mismatch to the term node.") ynothrowv
+	ImplExpr(AssertMatchedAllocators(a, nd.GetContainer(), msg))
+//! \since build 949
+YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators, const TermNode& x,
+	const TermNode& y, const char* msg = "Allocators for terms mismatch.")
+	ynothrowv
+	ImplExpr(yunused(x), yunused(y), yunused(msg),
+		NPL::AssertMatchedAllocators(x.GetContainer(), y.GetContainer()))
+//@}
+
+/*!
 \brief 断言具有可表示被引用对象的标签节点。
 \pre 断言：参数的标签可表示被引用对象的值。
 \sa IsReferentTags
@@ -1142,7 +1173,6 @@ template<typename _fCallable, class _tNode>
 void
 TraverseSubnodes(_fCallable f, const _tNode& nd)
 {
-	// TODO: Null coalescing or variant value?
 	if(const auto p = AccessPtr<YSLib::NodeSequence>(nd))
 		for(const auto& sub : *p)
 			ystdex::invoke(f, _tNode(sub));

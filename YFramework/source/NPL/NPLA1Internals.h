@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r22387
+\version r22439
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-06-16 01:42 +0800
+	2022-07-12 12:50 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -1295,10 +1295,11 @@ inline PDefH(void, SetEvaluatedValue, TermNode& term, TermNode& bound,
 YB_NORETURN void
 ThrowNestedParameterTreeMismatch();
 
-//! \since build 917
+//! \since build 949
 YB_NORETURN inline PDefH(void, ThrowFormalParameterTypeError,
-	const TermNode& term, bool has_ref)
-	ImplExpr(ThrowTypeErrorForInvalidType(type_id<TokenValue>(), term, has_ref))
+	const TermNode& term, bool has_ref, size_t n_skip = 0)
+	ImplExpr(
+	ThrowTypeErrorForInvalidType(type_id<TokenValue>(), term, has_ref, n_skip))
 
 //! \since build 917
 char
@@ -1317,38 +1318,44 @@ HandleOrIgnore(_func f, const TermNode& t, bool t_has_ref)
 
 
 //! \since build 917
-//@{
 template<typename _fBindValue>
 class GParameterValueMatcher final
 {
+	//! \since build 949
+	using MEntry = pair<TNCIter, TNCIter>;
+
 public:
 	_fBindValue BindValue;
 
 private:
-	mutable Action act{};
+	//! \since build 949
+	mutable YSLib::stack<MEntry, vector<MEntry>> remained;
 
 public:
-	//! \since build 939
-	template<class _tParam, yimpl(typename
-		= ystdex::exclude_self_t<GParameterValueMatcher, _tParam>)>
+	//! \since build 949
+	template<typename... _tParams>
 	inline
-	GParameterValueMatcher(_tParam&& arg)
-		: BindValue(yforward(arg))
+	GParameterValueMatcher(TermNode::allocator_type a, _tParams&&... args)
+		: BindValue(yforward(args)...), remained(a)
 	{}
 
 	void
 	operator()(const TermNode& t) const
 	{
+		// As %ParameterCheck::WrapCall in NPLA1.cpp.
 		try
 		{
+			Match(t, {});
 			// NOTE: This is a trampoline to eliminate the call depth
 			//	limitation.
-			Match(t, {});
-			while(act)
+			while(!remained.empty())
 			{
-				const auto a(std::move(act));
+				auto& e(remained.top());
 
-				a();
+				if(e.first == e.second)
+					remained.pop();
+				else
+					Match(NPL::Deref(e.first++), {});
 			}
 		}
 		CatchExpr(ParameterMismatch&, throw)
@@ -1356,49 +1363,52 @@ public:
 	}
 
 private:
-	YB_FLATTEN void
-	Match(const TermNode& t, bool t_has_ref) const
+	void
+	Match(const TermNode& t, bool indirect) const
 	{
 		if(IsList(t))
-		{
-			if(IsBranch(t))
-				MatchSubterms(t.begin(), t.end());
-		}
+			MatchList(t);
 		else if(const auto p_t = TryAccessLeafAtom<const TermReference>(t))
 		{
 			auto& nd(p_t->get());
 
-			ystdex::update_thunk(act, [&]{
-				Match(nd, true);
-			});
+			if(IsList(nd))
+				MatchList(nd);
+			else
+				MatchNonList(nd, true);
 		}
 		else
-			HandleOrIgnore(std::ref(BindValue), t, t_has_ref);
+			MatchNonList(t, indirect);
 	}
 
+	//! \since build 949
 	void
-	MatchSubterms(TNCIter i, TNCIter last) const
+	MatchList(const TermNode& t) const
 	{
-		if(i != last)
-		{
-			// XXX: Use explicit captures here to ensure ISO C++20
-			//	compatibility.
-			ystdex::update_thunk(act, [this, i, last]{
-				return MatchSubterms(std::next(i), last);
-			});
-			Match(NPL::Deref(i), {});
-		}
+		YAssert(IsList(t), "Invalid term found.");
+		if(IsBranch(t))
+			remained.emplace(t.begin(), t.end());
+	}
+
+	//! \since build 949
+	void
+	MatchNonList(const TermNode& t, bool indirect) const
+	{
+		YAssert(!IsList(t), "Invalid term found.");
+		HandleOrIgnore(std::ref(BindValue), t, indirect);
 	}
 };
 
-//! \relates GParameterValueMatcher
+/*!
+\relates GParameterValueMatcher
+\since build 949
+*/
 template<typename _fBindValue>
 YB_ATTR_nodiscard inline GParameterValueMatcher<_fBindValue>
-MakeParameterValueMatcher(_fBindValue bind_value)
+MakeParameterValueMatcher(TermNode::allocator_type a, _fBindValue bind_value)
 {
-	return GParameterValueMatcher<_fBindValue>(std::move(bind_value));
+	return GParameterValueMatcher<_fBindValue>(a, std::move(bind_value));
 }
-//@}
 
 
 // NOTE: This implements binding tags of temporary objects, to allow distinguish

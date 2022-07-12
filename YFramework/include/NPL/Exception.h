@@ -11,13 +11,13 @@
 /*!	\file Exception.h
 \ingroup NPL
 \brief NPL 异常。
-\version r11489
+\version r11508
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2022-01-21 01:59:22 +0800
 \par 修改时间:
-	2022-06-26 04:06 +0800
+	2022-07-05 03:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -289,58 +289,57 @@ public:
 
 
 /*!
-\note 后两个参数传递给 TermToStringWithReferenceMark ，预期用法通常相同。
+\note 非字符串的后三个参数传递给 TermToStringWithReferenceMark ，预期用法通常相同。
 \sa TermToStringWithReferenceMark
+\since build 949
 */
 //@{
 /*!
 \brief 抛出缺少项的异常。
 \throw ParameterMismatch 缺少项的错误。
-\since build 904
 */
 YB_NORETURN YF_API void
-ThrowInsufficientTermsError(const TermNode&, bool);
+ThrowInsufficientTermsError(const TermNode&, bool, size_t = 0);
 
 /*!
 \brief 抛出对非有序对值预期列表类型的异常。
 \throw ListTypeError 值不是有序对。
-\since build 948
 */
 YB_NORETURN YF_API void
-ThrowListTypeErrorForAtom(const TermNode&, bool);
+ThrowListTypeErrorForAtom(const TermNode&, bool, size_t = 0);
 
 /*!
 \brief 对列表项抛出指定预期访问值的类型的异常。
 \throw ListTypeError 消息中包含由参数指定的预期访问值的类型的异常。
 */
 //@{
-//! \since build 928
 YB_NORETURN YF_API YB_NONNULL(1) void
-ThrowListTypeErrorForInvalidType(const char*, const TermNode&, bool);
-//! \since build 855
+ThrowListTypeErrorForInvalidType(const char*, const TermNode&, bool,
+	size_t = 0);
 YB_NORETURN YF_API void
-ThrowListTypeErrorForInvalidType(const type_info&, const TermNode&, bool);
+ThrowListTypeErrorForInvalidType(const type_info&, const TermNode&, bool,
+	size_t = 0);
 //@}
 
 /*!
 \brief 抛出对非列表值预期列表类型的异常。
 \throw ListTypeError 值不是列表。
-\since build 948
 */
 YB_NORETURN YF_API void
-ThrowListTypeErrorForNonList(const TermNode&, bool);
+ThrowListTypeErrorForNonList(const TermNode&, bool, size_t = 0);
 
 /*!
 \brief 对项抛出指定预期访问值的类型的异常。
 \throw TypeError 消息中包含由参数指定的预期访问值的类型的异常。
 */
 //@{
-//! \since build 928
+YB_NORETURN YF_API YB_NONNULL(1,2) void
+ThrowTypeErrorForInvalidType(const char*, const char*);
 YB_NORETURN YF_API YB_NONNULL(1) void
-ThrowTypeErrorForInvalidType(const char*, const TermNode&, bool);
-//! \since build 917
+ThrowTypeErrorForInvalidType(const char*, const TermNode&, bool, size_t = 0);
 YB_NORETURN YF_API void
-ThrowTypeErrorForInvalidType(const type_info&, const TermNode&, bool);
+ThrowTypeErrorForInvalidType(const type_info&, const TermNode&, bool,
+	size_t = 0);
 //@}
 //@}
 

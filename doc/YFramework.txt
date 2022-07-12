@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2021 FrankHB.
+	© 2009-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1596
+\version r1602
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2021-12-21 12:12 +0800
+	2022-07-09 12:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -420,10 +420,9 @@ https://docs.microsoft.com/en-us/cpp/intrinsics/umul128
 	ystdex::octet 是对象类型。
 		**注释** 由 YDefinition([Documentation::YBase @@2.4]) ，这蕴含 CHAR_BIT == 8 。
 NPL::NPLAMath([Documentation::NPL @@6.14]) 对实现具有以下限制：
-	不使用以下不符合标准的实现配置：
-		不使用不能正确处理浮点特殊值的实现。
-		**注释** 例如，不使用 GCC 等蕴含 -ffinite-math-only 的 -ffast-math 或 Microsoft VC++ 的 /fp:fast 等选项。
 	标准浮点类型满足以下要求：
+		支持带符号的特殊值：无限大值和不引起错误的 quiet NaN 值。
+		**注释** std::numeric_limits 的对应类型的实例的成员 has_infinity 和 has_quiet_NaN 都不等于 false 。
 		大小不超过 128 位。
 			**注释** 由 CHAR_BIT 推论，大小不超过 16 字节。
 		float 和 double 类型的有效数字都不大于 53 位。
@@ -434,6 +433,9 @@ NPL::NPLAMath([Documentation::NPL @@6.14]) 对实现具有以下限制：
 			long double 实现和 double 的浮点格式不同，且 long double 的有效数字在 64 位到 113 位之间。
 				**注释** <cfloat> 标准库宏 LDBL_MANT_DIG >= 64 且 LDBL_MANT_DIG <= 113 。
 				**注释** 可以使用 IEC 60559 binary64 的扩展 80 位格式或 IEC 60559 binary128 格式。
+	不使用以下不符合标准的实现配置：
+		不使用不能正确处理浮点特殊值的实现。
+		**注释** 例如，不使用 GCC 等蕴含 -ffinite-math-only 的 -ffast-math 或 Microsoft VC++ 的 /fp:fast 等选项。
 	**注释** 不要求浮点格式具有非规格(subnormal) 数表示。但是，实现可能针对规格数和非规格数表示不同的优化算法，以减少处理数值时内部表示的精度损失。
 不符合以上预期的实现无法构建，或不保证结果构建正确。
 此外，特定操作对不符合预期浮点类型实现格式的值的处理结果的正确性不作保证，且不排除因此具有未定义行为。

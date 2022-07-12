@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2021 FrankHB.
+	© 2012-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCLib.txt
 \ingroup Documentation
 \brief YCLib 说明。
-\version r576
+\version r592
 \author FrankHB <frankhb1989@gmail.com>
 \since build 651
 \par 创建时间:
 	2015-11-19 09:05:02 +0800
 \par 修改时间:
-	2021-07-21 19:28 +0800
+	2022-07-09 18:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,8 +79,9 @@ inline platform_ex::Windows ：Windows 平台内联命名空间。
 @1.3.2 using 指令和 using 声明：
 基本规则参见 [Documentation::CommonRules @@3.3.1] 和 [Documentation::LanguageConvention @@5.5.7] 。
 依赖 YSLib 的公开头文件不使用 using 指令或 using 声明引入 YSLib 名称。
-注意在依赖 YSLib 的非头文件（实现）中，可能使用 using namespace YSLib; 引入 YSLib 名称。
-由于 platform_ex 可能以整体引入 namespace platform 名称，而 YSLib 也可能引入相同的名称；当引入的名称实体不等价时直接使用可能造成歧义，此时有必要单独使用 using 声明以允许 platform 和 YSLib 中同名声明指称不同实体。
+注意在依赖 YSLib 的非头文件（实现）中，可能使用 using namespace YSLib; 等 using 指令引入 YSLib 或其它名称。
+为减小逻辑上的依赖性，除在公开头文件的公开 API 中引入的 YSLib 名称及作为（类、命名空间或枚举等的）成员关联的名称外，若 ystdex 及 platform 或其成员命名空间中存在相同的名称，使用后者代替 YSLib 名称。
+由于 platform_ex 可能以整体引入 namespace platform 名称，而 YSLib 也可能引入相同的名称；当引入的名称实体不等价时直接使用可能造成歧义，此时有必要直接使用限定名称或单独使用 using 声明而不是非限定名称，以允许 platform 和 YSLib 中同名声明指称不同实体。
 如 platform_ex 通过 using platform::containers; 引入 platform::string ，而 YSLib 也声明 string （具体由 YAdaptor 指定）。默认实现类型相同，但配置 YAdaptor 后可能造成歧义。
 一般地，若指称的是被设计为不易转换或开销较大的对象类型（如 string ）被作为参数时优先使用 YSLib 中的名称，以减少用户代码适配的困难；否则优先使用 platform 内的名称以简化（特别是头文件内无法用 using 声明或指令简化的）声明。
 另见 [Documentation::YSLib @@3.5] 。
@@ -168,6 +169,16 @@ YCLib 不直接使用 YBase.YStandardEx.Path([Documentation::YBase @@2.5.9.12]) 
 和 POSIX 不同，和特定文件关联的文件系统元数据（如文件修改时间）视为从属文件本身。因此相关操作位于 FileIO 而非 FileSystem 。注意其它项的操作（如创建新的符号链接）不属于此范围，仍位于 YCLib.FileSystem 。
 另见 @3.3 、@4.1.6 和 @4.2.1 。
 
+@1.6.3.1 文件系统重定向：
+涉及文件系统操作的实现只考虑以下重定向行为：
+基于文件支持的重定向，如符号链接和 NTFS 重分析点；
+基于公开接口的系统重定向。
+后者当前包括 64 位 Microsoft Windows 中 32 位进程的 WoW64 的重定向（如系统目录 System32 重定向到 SysWOW64 ）。其它兼容环境（如 ReactOS 和 WINE ）因为可能未实现对应的 API ，在此不保证提供支持。
+这忽略文件系统以上不可见的其它重定向行为。例如，不考虑设备驱动实现对打开文件和读取文件元数据检查文件存在性的行为差异（详见 https://devblogs.microsoft.com/oldnewthing/20071023-00/?p=24713 ）。
+
+@1.6.3.2 实现限制：
+因为文件系统不保证事务操作的支持，允许存在一般意义上无法确保可在应用程序中修复的 TOCTTOU 缺陷。
+
 @1.6.4 长度限制：
 不一定直接使用本机的长度限制。
 直接使用依赖系统 API 的宏仅适用于 YCLib 。在用户代码中可使用其它 API （如 YSLib 中使用 YSLib::IO::MaxPathLength ）。
@@ -232,10 +243,12 @@ Win32 平台直接使用 UCS-2LE 作为 UTF-16LE 路径，或 UTF-8 转换得到
 注意 WINVER 和 Win32 SDK 实现中 _WIN32_WINNT 等宏的值决定某些 API 是否被声明。
 这些宏之间的关联和差异参见 http://blogs.msdn.com/b/oldnewthing/archive/2007/04/11/2079137.aspx 。
 选择宏的使用遵循最小依赖原则，如确定 Windows NT 实现的 Win32 使用 _WIN32_WINNT 而不是 WINVER 。后者一般只在 YCLib::NativeAPI(@5.2) 出现。
+按支持的 MinGW32 平台([Documentation::Dependencies @@1.5]) ，这些值至少为 0x0501 。
 当前不涉及 DDK ，因此不适用 NTDDI_VERSION 以避免混淆。
 
 @4.1.1.2 兼容性：
-不直接调用 Windows Vista 后支持的 API ，以动态加载（通过 ::GetProcessAddress ）代替。
+不直接调用 SDK 头文件中声明的要求以上(@4.1.1.1) 中约定的 Windows 版本之后支持的 Win32 API ，以动态加载（一般通过 ::GetProcessAddress ）后调用代替。
+仅在必要时使用 Windows NT API 。这些 API 不从 SDK 头文件引入声明，因此总是使用动态加载。
 对需编译时确定特定 API 声明存在性的场合，尽可能使用 SFINAE([Documentation::Designation @@3.2.4)] 而不是显式判断版本宏(@4.1.1.1) 检查可用性并自动匹配调用。
 不使用当前最新版本 Win32 SDK 中被标记为过时的 API 如 IsBadReadPtr 。
 
@@ -287,6 +300,7 @@ GetFileAttributesW
 例如使用 ::GetSystemWindowsDirectoryW 而不是 ::GetWindowsDirectoryW （区别参见 http://stackoverflow.com/questions/13489746/difference-between-getwindowsdirectory-and-getsystemwindowsdirectory ）。
 
 @4.2 POSIX ：
+使用 POSIX.1 文件系统 API 的实现要求最低版本 POSIX.1-2008 。
 
 @4.2.1 平台约定：
 DS 平台可沿用部分 POSIX 限制。

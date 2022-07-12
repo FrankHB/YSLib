@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2021 FrankHB.
+	© 2009-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r4738
+\version r4774
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2021-07-21 18:18 +0800
+	2022-07-09 18:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,7 +76,7 @@
 
 @0.3 可读性(readability) ：
 一般意义的可读性包含主观因素，即在一定的背景下，特定读者对特定书面文本材料的理解能力可能不同。
-为便于规范描述， [Documentation] 中的文档约定忽略主观可读性，由理想情况下的某个读者（参考读者）对不同材料的认识界定使之成为文本材料决定的性质。
+为便于规范描述，[Documentation] 中的文档约定忽略主观可读性，由理想情况下的某个读者（参考读者）对不同材料的认识界定使之成为文本材料决定的性质。
 
 @1 绪论(Introduction) ：
 
@@ -90,7 +90,8 @@
 — ISO/IEC 14882:2003, Information technology — Programming languages — C++
 — ISO/IEC 14882:2011, Information technology — Programming languages — C++
 — ISO/IEC 14882:2014, Information technology — Programming languages — C++
-— ISO 80000-2:2009, Quantities and units — Part 2: Mathematical signs and symbols to be usedin the natural sciences and technology
+— ISO 80000-2:2009, Quantities and units
+	— Part 2: Mathematical signs and symbols to be usedin the natural sciences and technology
 — 1003.1-2003 - IEEE Standard for IEEE Information Technology - Portable Operating System Interface (POSIX(R))
 — 1003.1-2008 - IEEE Standard for IEEE Information Technology - Portable Operating System Interface (POSIX(R))
 — The Unicode Standard — Version 6.0 – Core Specification
@@ -98,14 +99,14 @@
 	http://gcc.gnu.org/codingconventions.html
 
 @1.1.1 引用简写：
-ISO C ： ISO/IEC 9899 。
-ISO C11 ： ISO/IEC 9899:2011 。
-ISO C17 ： ISO/IEC 9899:2018 。
-ISO C++ ： ISO/IEC 14882 。
-ISO C++03 ： ISO/IEC 14882:2003 。
-ISO C++11 ： ISO/IEC 14882:2011 。
-ISO C++14 ： ISO/IEC 14882:2014 。
-POSIX.1 ： ISO/IEC 9945:2003 （引用内容同 IEEE Std 1003.1-2003 ）。
+ISO C ：ISO/IEC 9899 。
+ISO C11 ：ISO/IEC 9899:2011 。
+ISO C17 ：ISO/IEC 9899:2018 。
+ISO C++ ：ISO/IEC 14882 。
+ISO C++03 ：ISO/IEC 14882:2003 。
+ISO C++11 ：ISO/IEC 14882:2011 。
+ISO C++14 ：ISO/IEC 14882:2014 。
+POSIX.1 ：ISO/IEC 9945:2003（引用内容同 IEEE Std 1003.1-2003 ）。
 POSIX.1-2008 ：IEEE Std 1003.1-2008 。
 
 @1.2 术语：
@@ -181,7 +182,7 @@ POSIX.1-2008 ：IEEE Std 1003.1-2008 。
 ……
 
 @2.1.6 实现模式/代码模式/惯用法(Idioms) ：
-语言相关。举例： C++ 的 pImpl 、 copy & swap 。
+语言相关。举例： C++ 的 pImpl 、copy & swap 。
 
 @2.1.7 其它通用设计要点：
 
@@ -771,7 +772,7 @@ API 的直接用户是程序员。
 使用 C++ 的 pImpl 惯用法(@2.1.6) 辅助封装并分离接口与实现(@3.5.1) 。
 
 @3.5.2.1 封装范围限制实例：
-对以类实例的整体为客体的操作（如 Activate 方法；注意无参数的 Clear 、 Reset 等方法不在此列），除了和对象生存期相关的行为（例如构造、析构和初始化），在翻译单元及命名空间内而不是类的内部封装。
+对以类实例的整体为客体的操作（如 Activate 方法；注意无参数的 Clear 、Reset 等方法不在此列），除了和对象生存期相关的行为（例如构造、析构和初始化），在翻译单元及命名空间内而不是类的内部封装。
 
 @3.5.3 基于类的(class-based) 面向对象设计：
 使用合适的语言特性限制类外对类成员或基类的访问：
@@ -858,7 +859,7 @@ API 的直接用户是程序员。
 迁移困难；
 平台依赖。
 限制使用的范围包括：
-公开的特定厂商的规范，如 Microsoft COM/DCOM 、 Mozilla XPCOM 、CATIA CAA 等；
+公开的特定厂商的规范，如 Microsoft COM/DCOM 、Mozilla XPCOM 、CATIA CAA 等；
 公开的厂商中立的规范，如 CORBA ；
 其它基于特定应用类似非公开机制。
 合理使用特定语言的 FFI(foreign function interface) 。
@@ -1152,12 +1153,12 @@ Update ：更新（完成参数的特定同步操作）。
 *RRef ：右值引用（类型为非 const 右值引用类型）
 *To ：操作名称起始，第一参数指定目标的函数。
 Be*With ：* 为操作名称过去分词（被动语态）；按参数完成特定操作达成特定状态。
-Get* ： * 不以 Of 结尾，为目标名称；取特定目标的获取器(@3.12.4) ；通常是 const 非静态成员函数或模板。
-Get*Of ： 同 Get* ，但通常为非成员函数或模板，第一参数为目标操作对象的 const 引用。
-Is* ： * 为目标名称；谓词：计算目标状态，返回类型为 bool 的结果。
-Set* ： * 不以 Of 结尾，为目标名称；修改特定目标的设置器(@3.12.4) ；通常是非 const 非静态成员函数或模板。
-Set*Of ： 同 Set* ，但通常为非成员函数或模板，第一参数为目标操作对象的非 const 引用。
-On* ： * 为描述事件及事件响应目标的名称；事件处理器。
+Get* ：* 不以 Of 结尾，为目标名称；取特定目标的获取器(@3.12.4) ；通常是 const 非静态成员函数或模板。
+Get*Of ：同 Get* ，但通常为非成员函数或模板，第一参数为目标操作对象的 const 引用。
+Is* ：* 为目标名称；谓词：计算目标状态，返回类型为 bool 的结果。
+Set* ：* 不以 Of 结尾，为目标名称；修改特定目标的设置器(@3.12.4) ；通常是非 const 非静态成员函数或模板。
+Set*Of ：同 Set* ，但通常为非成员函数或模板，第一参数为目标操作对象的非 const 引用。
+On* ：* 为描述事件及事件响应目标的名称；事件处理器。
 Check* ：含义同 check_*(@4.1.7.4) 。
 Throw* ：含义同 throw_*(@4.1.7.4) 。
 Try* ：含义同 try_*(@4.1.7.3) 。
@@ -1194,7 +1195,7 @@ cbegin ：用于 range based for 的起始只读迭代器。
 cend ：用于 range based for 的终止只读迭代器。
 包括以下前缀：
 try_* ：尝试进行状态检查并非阻塞地调用，失败时可能对非预期状态进行原地处理，可捕获并重新抛出异常，或抛出其它异常（包括嵌套异常）。
-类似 ISO C++ 标准库的 try_lock 、 try_emplace 和 WG21 P0042 的 try_recover 等；可对应没有前缀的接口抛出异常表示这些错误，此时带前缀 try_* 的版本在返回值中应蕴含操作是否成功。
+类似 ISO C++ 标准库的 try_lock 、try_emplace 和 WG21 P0042 的 try_recover 等；可对应没有前缀的接口抛出异常表示这些错误，此时带前缀 try_* 的版本在返回值中应蕴含操作是否成功。
 
 @4.1.7.4 其它惯用命名：
 包括以下前缀：
@@ -1329,12 +1330,12 @@ throw_*： 总是抛出特定的异常。不返回，一般使用 [[noreturn]]([
 @5.2.4 括号：
 除了典型的防止被认为错误（如 if 条件中的赋值表达式或不同层次连续嵌套的 if 和 else 子句）避免警告，不使用不改变语义的冗余的小括号或大括号。
 注意小括号可避免使用 ADL ([Documentation::LanguageConvention @@5.2.4.1]) 。
-alignas 、 alignof 和 sizeof 表达式使用最外层有括号的形式。
+alignas 、alignof 和 sizeof 表达式使用最外层有括号的形式。
 注意 decltype 表达式的子表达式的括号的语义。
 return 语句使用无最外层括号形式。
 
 @5.2.5 填充空白符：
-作为后缀表达式的组成部分或控制语句紧接关键字后的组成部分的 ( 和左边的标识符（包括关键字，如 catch 、 if 、 for 和 while ）之间不插入额外的空白符。
+作为后缀表达式的组成部分或控制语句紧接关键字后的组成部分的 ( 和左边的标识符（包括关键字，如 catch 、if 、for 和 while ）之间不插入额外的空白符。
 不使用针对标点的后缀空白符。
 
 @5.3 行首空白符：
@@ -1407,7 +1408,7 @@ labeled-statement 中 : 和之前的记号单独占一行。
 对使用内建 operator, 的情况，除语法意义上的不同语句可以合并为同一语句这一变化外，仅作为对代码阅读者的提示。
 
 @5.4.5 括号：
-括号 { 、 } 、 [ 、] 、 ( 、 ) 标识声明符以上层次的语法（包括领域专门内嵌语言(domain-specific embedded language)）结构（如函数体）时应独立占一行，除了以下例外：
+括号 { 、} 、[ 、] 、( 、) 标识声明符以上层次的语法（包括领域专门内嵌语言(domain-specific embedded language)）结构（如函数体）时应独立占一行，除了以下例外：
 构成空序列时连写（如 {} 表示空函数体）独立占一行，除非表示此处代码未完成（需要继续扩展）；
 lambda 表达式中起始的 { 前不换行。
 除此之外，列表分行以括号右边优先于括号左边，即左括号在分行后作为末尾的记号。例如函数参数列表或后缀调用表达式太长时，可在 ( 之后而不是之前分行；模板参数列表太长时，可在 < 之后而不是之前分行。
@@ -1456,7 +1457,7 @@ lambda 表达式中起始的 { 前不换行。
 除临时用途（如测试）外，块内不使用函数声明，因此空行可有效分隔和标识 using /类型/变量声明和其它代码。
 必要时多个声明可以被拆分为若干不连续的部分，之间允许存在其它代码。
 除非特殊需要，连续的声明的顺序依次为 using 声明、类型声明和变量声明。
-因逻辑原因标识分隔语句块的，应考虑改用（未命名命名空间的、 inline 的）函数 、 lambda 表达式或其它实体形式包装，而不是插入空行进行分隔。另见 @5.8.1 。
+因逻辑原因标识分隔语句块的，应考虑改用（未命名命名空间的、inline 的）函数 、lambda 表达式或其它实体形式包装，而不是插入空行进行分隔。另见 @5.8.1 。
 
 @5.6 分词：
 除 @5.3 和 @5.4 外，仅使用空格分隔记号。
@@ -1527,7 +1528,7 @@ lambda 表达式中起始的 { 前不换行。
 按 @5.8.2.4 处理。
 
 @5.8.2.4 非复合语句缩进、分行和空行策略：
-试验符合 @5.3 、 @5.4.1 、 @5.4.2 和 @5.6 的规则约束下最紧凑（尽可能少地使用空白符）的代码格式，记录代码行数；
+试验符合 @5.3 、@5.4.1 、@5.4.2 和 @5.6 的规则约束下最紧凑（尽可能少地使用空白符）的代码格式，记录代码行数；
 在满足以上规则和结果行数的约束下增加 @5.4 的其余约束，若存在解则算法结束；
 否则结果行数增加 1 ，继续验证上述增加 @5.4 的其余约束的解是否存在。
 显然不限制结果行数上限时解存在。
@@ -1568,7 +1569,7 @@ using 声明（非别名声明）和 static_assert 声明不受区段顺序规�
 分为两个区段，以静态数据成员、非静态数据成员的顺序排列。
 
 @5.9.5.2.1 静态数据成员
-按 cv-qualifier 和 constepxr 分为以下区段，以 constexpr 、 const 、 const volatile 、 无限定 、 volatile的顺序排列。
+按 cv-qualifier 和 constepxr 分为以下区段，以 constexpr 、const 、const volatile 、无限定 、volatile的顺序排列。
 
 @5.9.5.3 其它成员或非成员：
 
@@ -1586,7 +1587,7 @@ using 声明（非别名声明）和 static_assert 声明不受区段顺序规�
 对同一个名称的成员，成员重载先于非成员重载。
 对仅有参数列表不同的重载函数或重载函数模板，以从左至右的前缀顺序排列。
 涉及特殊成员函数的重载以默认构造函数、其它构造函数/构造模板、复制构造函数、转移构造函数、析构函数、其它赋值操作符函数/模板、复制赋值操作符函数、转移复制操作符函数的顺序声明，优先于以下子区段规则。
-仅限定符不同或仅修饰相同位置参数中的限定符构成重载的区段：首先按 cv-qualifier 以无限定、const 、volatile 、const volatile 排列，其次按 ref-qualifier 以无限定、 & 、 && 排列；但命名空间作用域中若在接口语义或实现中存在声明（调用）依赖则允许使用其它顺序（但应尽少改变）。
+仅限定符不同或仅修饰相同位置参数中的限定符构成重载的区段：首先按 cv-qualifier 以无限定、const 、volatile 、const volatile 排列，其次按 ref-qualifier 以无限定、& 、&& 排列；但命名空间作用域中若在接口语义或实现中存在声明（调用）依赖则允许使用其它顺序（但应尽少改变）。
 类型和所有的限定符一致的成员函数先于成员函数模板。
 
 @5.9.5.3.4 伪重载区段：
@@ -1629,18 +1630,18 @@ typedef 或代替 typedef 的 using 别名；
 和复制赋值操作符的第一参数相同的其它转移操作符；
 （对类模板）和复制赋值操作符仅有第一个函数参数类型的模板参数不同的简单赋值操作符模板；
 第一参数为初值符列表的赋值操作符；
-组合赋值操作符（以 += 、 -= 、 *= 、 /= 、 %= 、 <<= 、 >>= 、 &= 、 |= 的顺序）；
-一元操作符（以 ! 、 ~ 、 + 、 - 、 & 、 * 的顺序)；
+组合赋值操作符（以 += 、-= 、*= 、/= 、%= 、<<= 、>>= 、&= 、|= 的顺序）；
+一元操作符（以 ! 、~ 、+ 、- 、& 、* 的顺序)；
 重载 operator-> ；
 重载 operator->* ；
 自增/自减（以前缀自增、后缀自增、前缀自减、后缀自减的顺序）；
 重载 operator[] ；
-关系操作符（以 == 、 != 、 < 、 <= 、 > 、 >= 的顺序）；
-算术操作符（以 + 、 - 、 * 、 / 、 % ）的顺序；
-二元位操作符（以 << 、 >> 、 & 、 | 、 ^ 的顺序）；
-逻辑操作符（以 && 、 || ）的顺序；
+关系操作符（以 == 、!= 、< 、<= 、> 、>= 的顺序）；
+算术操作符（以 + 、- 、* 、/ 、% ）的顺序；
+二元位操作符（以 << 、>> 、& 、| 、^ 的顺序）；
+逻辑操作符（以 && 、|| ）的顺序；
 重载 operator() ；
-分配/去配操作符（以 new 、new[] 、 delete 、 delete[] 的顺序）；
+分配/去配操作符（以 new 、new[] 、delete 、delete[] 的顺序）；
 转换操作符（以整数类型、枚举类型、其它基本类型、类类型顺序；整数类型之间以转换阶(conversion rank) 从小到大的顺序排列）；
 其它函数或函数模板。
 

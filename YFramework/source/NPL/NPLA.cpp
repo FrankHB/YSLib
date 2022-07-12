@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4137
+\version r4188
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2022-06-25 18:21 +0800
+	2022-07-06 20:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,14 +32,14 @@
 //	AccessPtr, ystdex::value_or, ystdex::write, std::bind, TraverseSubnodes,
 //	bad_any_cast, std::allocator_arg, YSLib::NodeSequence, ystdex::begins_with,
 //	ystdex::sfmt, observer_ptr, ystdex::make_obj_using_allocator, trivial_swap,
-//	make_observer, TermTags, TryAccessLeafAtom, NPL::Deref, YSLib::sfmt,
-//	AssertReferentTags, ystdex::call_value_or, ystdex::compose, GetLValueTagsOf,
-//	std::mem_fn, IsTyped, ystdex::invoke_value_or, ystdex::ref, PropagateTo,
-//	NPL::IsMovable, IsSticky, TryAccessLeaf, AccessFirstSubterm,
-//	YSLib::FilterExceptions, type_id, ystdex::addrof, ystdex::second_of,
-//	type_info, std::current_exception, std::rethrow_exception,
-//	std::throw_with_nested, ystdex::retry_on_cond, ystdex::id, pair,
-//	YSLib::ExtractException;
+//	CountPrefix, make_observer, TermTags, TryAccessLeafAtom, NPL::Deref,
+//	YSLib::sfmt, AssertReferentTags, ystdex::call_value_or, ystdex::compose,
+//	GetLValueTagsOf, std::mem_fn, IsTyped, ystdex::invoke_value_or, ystdex::ref,
+//	PropagateTo, IsSticky, FindSticky, std::distance, ystdex::as_const,
+//	TryAccessLeaf, AccessFirstSubterm, YSLib::FilterExceptions, type_id,
+//	ystdex::addrof, ystdex::second_of, type_info, std::current_exception,
+//	std::rethrow_exception, std::throw_with_nested, ystdex::retry_on_cond,
+//	ystdex::id, pair, NPL::IsMovable, YSLib::ExtractException;
 #include <ystdex/function.hpp> // for ystdex::unchecked_function;
 
 //! \since build 903
@@ -357,25 +357,42 @@ IsNPLAExtendedLiteral(string_view id) ynothrowv
 
 
 string
-TermToString(const TermNode& term)
+TermToString(const TermNode& term, size_t n_skip)
 {
 	if(const auto p = TermToNamePtr(term))
 		return *p;
 
-	const bool is_pair(IsPair(term));
 	const bool non_list(!IsList(term));
 
 	// TODO: Use allocator?
-	return IsEmpty(term) ? string("()") : YSLib::sfmt<string>("#<%s{%zu}%s%s>",
-		is_pair ? (non_list ? "improper-list" : "list") : "unknown",
-		term.size(), is_pair ? " . " : (non_list ? ":" : ""),
+	// NOTE: The case for no skip is shown below.
+#if false
+	if(n_skip == 0)
+	{
+		const bool is_pair(IsPair(term));
+
+		return IsEmpty(term) ? string("()") : YSLib::sfmt<string>(
+			"#<%s{%zu}%s%s>", is_pair ? (non_list ? "improper-list" : "list")
+			: "unknown", term.size(), is_pair ? " . " : (non_list ? ":" : ""),
+			non_list ? term.Value.type().name() : "");
+	}
+#endif
+	YAssert(n_skip <= CountPrefix(term), "Invalid skip number found.");
+
+	const bool s_is_pair(n_skip < term.size()
+		&& IsSticky(std::next(term.begin(), ptrdiff_t(n_skip))->Tags));
+
+	return !non_list && n_skip == term.size() ? string("()")
+		: YSLib::sfmt<string>("#<%s{%zu}%s%s>",
+		s_is_pair ? (non_list ? "improper-list" : "list") : "unknown",
+		term.size() - n_skip, s_is_pair ? " . " : (non_list ? ":" : ""),
 		non_list ? term.Value.type().name() : "");
 }
 
 string
-TermToStringWithReferenceMark(const TermNode& term, bool has_ref)
+TermToStringWithReferenceMark(const TermNode& term, bool has_ref, size_t n_skip)
 {
-	auto term_str(TermToString(term));
+	auto term_str(TermToString(term, n_skip));
 
 	return has_ref ? "[*] " + std::move(term_str) : std::move(term_str);
 }
@@ -630,11 +647,28 @@ MoveRValueToReturn(TermNode& term, TermNode& tm)
 #endif
 }
 
-void
-LiftElementsToReturn(TermNode& term)
+TNIter
+LiftPrefixToReturn(TermNode& term, TNCIter it)
 {
-	const auto i(LiftPrefixToReturn(term));
+	YAssert(size_t(std::distance(ystdex::as_const(term).begin(), it))
+		<= CountPrefix(term), "Invalid arguments found.");
 
+	auto i(ystdex::cast_mutable(term.GetContainerRef(), it));
+
+	while(i != term.end() && !IsSticky(i->Tags))
+	{
+		LiftToReturn(*i);
+		++i;
+	}
+	YAssert(term.Value || i == term.end(), "Invalid representation found.");
+	return i;
+}
+
+void
+LiftSuffixToReturn(TermNode& term, TNCIter i)
+{
+	YAssert(FindSticky(ystdex::as_const(term).begin(),
+		ystdex::as_const(term).end()) == i, "Invalid arguments found.");
 	// NOTE: As %LiftToReturn without overriding the previous transformed terms.
 	if(const auto p = TryAccessLeaf<const TermReference>(term))
 	{
@@ -687,20 +721,6 @@ LiftElementsToReturn(TermNode& term)
 	//	have %TermTags::Temporary at the beginning at the call. This is expected
 	//	to be cleared later when needed (e.g. by %ClearCombiningTags called
 	//	later in %RegularizeTerm).
-}
-
-TNIter
-LiftPrefixToReturn(TermNode& term)
-{
-	auto i(term.begin());
-
-	while(i != term.end() && !IsSticky(i->Tags))
-	{
-		LiftToReturn(*i);
-		++i;
-	}
-	YAssert(term.Value || i == term.end(), "Invalid representation found.");
-	return i;
 }
 
 
@@ -848,7 +868,7 @@ Environment::CheckParent(const ValueObject& vo)
 {
 	const auto& ti(vo.type());
 
-	if(ti == type_id<EnvironmentList>())
+	if(IsTyped<EnvironmentList>(ti))
 	{
 		for(const auto& env : vo.GetObject<EnvironmentList>())
 			CheckParent(env);

@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r9592
+\version r9695
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2022-06-20 23:02 +0800
+	2022-07-06 08:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,12 +43,12 @@
 //	TNIter, AccessFirstSubterm, AssertBranch, NPL::Deref,
 //	YSLib::EmplaceCallResult, ystdex::less, YSLib::map, pmr,
 //	ystdex::copy_and_swap, NoContainer, ystdex::try_emplace,
-//	ystdex::try_emplace_hint, ystdex::insert_or_assign,  type_info,
+//	ystdex::try_emplace_hint, ystdex::insert_or_assign, type_info,
 //	ystdex::expanded_function, ystdex::enable_if_same_param_t,
 //	ystdex::exclude_self_t, ystdex::make_obj_using_allocator,
 //	YSLib::forward_list, ystdex::swap_dependent, make_observer,
 //	YSLib::allocate_shared, YSLib::Logger, trivial_swap, ystdex::exchange,
-//	NPL::AsTermNode, ystdex::is_bitwise_swappable;
+//	NPL::AssertMatchedAllocators, NPL::AsTermNode, ystdex::is_bitwise_swappable;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include <libdefect/exception.h> // for std::exception_ptr;
 
@@ -593,27 +593,27 @@ YB_ATTR_nodiscard YB_PURE inline
 
 /*!
 \return 转换得到的字符串。
+\pre 断言：跳过的子项数不超过构成有序对的前缀项数。
+\note 最后一个参数表示跳过的子项数。
+\sa CountPrefix
 \sa TermToString
+\since build 949
 
 访问项的值作为名称转换为字符串，若失败则提取值的类型和子项数作为构成值的表示。
+项的值的表示首先忽略其中的若干个子项前缀，其数量由最后一个参数指定。
 除名称外的外部表示方法未指定；结果可能随实现变化。
 */
 //@{
-/*!
-\brief 访问项的值并转换为字符串形式的外部表示。
-\since build 801
-*/
+//! \brief 访问项的值并转换为字符串形式的外部表示。
 YB_ATTR_nodiscard YF_API YB_PURE string
-TermToString(const TermNode&);
+TermToString(const TermNode&, size_t = 0);
 
 /*!
 \brief 访问项的值并转换为可选带有引用标记的字符串形式。
 \note 当前使用前缀 [*] 和空格表示引用项。直接附加字符串，因此通常表示已解析的引用。
-\sa TermToString
-\since build 840
 */
 YB_ATTR_nodiscard YF_API YB_PURE string
-TermToStringWithReferenceMark(const TermNode&, bool);
+TermToStringWithReferenceMark(const TermNode&, bool, size_t = 0);
 //@}
 
 /*!
@@ -1224,8 +1224,9 @@ IsUncollapsedTerm(const TermNode&);
 \sa TermReference
 \sa TryAccessLeafAtom
 
-接受指定解析实现的函数和被解析的项作为参数，尝试访问其中是否具有引用值。
-若确定是引用值，则被引用的项是被引用值引用的项；否则，被引用的项是第二参数指定的项。
+接受指定解析实现的函数和被解析的项作为参数。
+若确定可通过引用值访问，
+	则被引用的项是被引用值引用的项；否则，被引用的项是第二参数指定的项。
 确定被引用的项后，调用解析函数继续处理。
 参数指定解析函数和被解析的项。
 解析函数应具有第一参数取被解析的项的引用，还可以具有第二可选参数。后者是
@@ -1236,9 +1237,14 @@ IsUncollapsedTerm(const TermNode&);
 和 observer_ptr<const TermReference> 不同，因为这个类型允许隐式转换为 bool ，
 	所以解析函数的实现中可直接以 bool 作为第二形式参数。
 */
+//@{
+/*!
+\note 第三参数指定引用项的指针，当且仅当非空表示可通过引用值访问。
+\since build 949
+*/
 template<typename _func, class _tTerm>
-auto
-ResolveTerm(_func do_resolve, _tTerm&& term)
+inline auto
+ResolveBy(_func do_resolve, _tTerm&& term, observer_ptr<const TermReference> p)
 	-> yimpl(decltype(ystdex::expand_proxy<yimpl(void)(_tTerm&&,
 	ResolvedTermReferencePtr)>::call(do_resolve, yforward(term),
 	ResolvedTermReferencePtr())))
@@ -1246,14 +1252,42 @@ ResolveTerm(_func do_resolve, _tTerm&& term)
 	using handler_t = yimpl(void)(_tTerm&&, ResolvedTermReferencePtr);
 
 	// XXX: Assume value representation of %term is not trivially regular.
-	if(const auto p = TryAccessLeafAtom<const TermReference>(term))
-	{
+	if(p)
 		return ystdex::expand_proxy<handler_t>::call(do_resolve, p->get(),
 			NPL::ResolveToTermReferencePtr(p));
-	}
 	return ystdex::expand_proxy<handler_t>::call(do_resolve,
 		yforward(term), ResolvedTermReferencePtr());
 }
+
+/*!
+\note 引用值在视为非有序对的节点或有序对后缀的被解析的项中确定。
+\sa TryAccessLeaf
+\since build 949
+*/
+template<typename _func, class _tTerm>
+inline auto
+ResolveSuffix(_func do_resolve, _tTerm&& term)
+	-> yimpl(decltype(NPL::ResolveBy(std::move(do_resolve), yforward(term),
+	TryAccessLeaf<const TermReference>(term))))
+{
+	return NPL::ResolveBy(std::move(do_resolve), yforward(term),
+		TryAccessLeaf<const TermReference>(term));
+}
+
+/*
+\note 引用值在被解析的项中确定。
+\sa TryAccessLeafAtom
+*/
+template<typename _func, class _tTerm>
+inline auto
+ResolveTerm(_func do_resolve, _tTerm&& term)
+	-> yimpl(decltype(NPL::ResolveBy(std::move(do_resolve), yforward(term),
+	TryAccessLeafAtom<const TermReference>(term))))
+{
+	return NPL::ResolveBy(std::move(do_resolve), yforward(term),
+		TryAccessLeafAtom<const TermReference>(term));
+}
+//@}
 
 /*!
 \brief 访问一次解析引用值后的项的指定类型正规值。
@@ -1630,6 +1664,11 @@ MoveRValueToReturn(TermNode&, TermNode&);
 //@}
 
 /*!
+\note 真列表的最后一个元素为值数据成员的默认值构成的空列表。
+\note 不修改参数指定的项的标签。
+*/
+//@{
+/*!
 \brief 提升（可能非真）列表的每个元素项的值数据成员可能包含的引用值。
 \note 不修改参数指定的项的标签。
 \note 蕴含 LiftPrefixToReturn 。
@@ -1637,8 +1676,28 @@ MoveRValueToReturn(TermNode&, TermNode&);
 \sa LiftToReturn
 \since build 948
 */
-YF_API void
+inline void
 LiftElementsToReturn(TermNode&);
+
+/*!
+\brief 提升（可能非真）列表的最后一个前的元素项的值数据成员可能包含的引用值。
+\note 不修改参数指定的项的标签。
+\since build 948
+*/
+inline TNIter
+LiftPrefixToReturn(TermNode&);
+/*!
+\brief 提升（可能非真）列表指定子项起最后一个前的元素项的值数据成员可能包含的引用值。
+\pre 第二参数是第一参数子项的迭代器。
+\pre 断言：第二参数是第一参数的前缀范围中或是其结尾迭代器。
+\note 第二参数指定起始子项。
+\since build 949
+*/
+YF_API TNIter
+LiftPrefixToReturn(TermNode&, TNCIter);
+
+inline PDefH(TNIter, LiftPrefixToReturn, TermNode& term)
+	ImplRet(LiftPrefixToReturn(term, term.begin()))
 
 /*!
 \brief 提升每个子项项的值数据成员可能包含的引用值。
@@ -1660,13 +1719,17 @@ inline PDefH(void, LiftSubtermsToReturn, TermNode& term)
 //@}
 
 /*!
-\brief 提升（可能非真）列表的最后一个前的每个元素项的值数据成员可能包含的引用值。
-\note 真列表的最后一个元素为值数据成员的默认值构成的空列表。
-\note 不修改参数指定的项的标签。
-\since build 948
+\brief 提升（可能非真）列表的指定子项开始的每个元素项的值数据成员可能包含的引用值。
+\pre 第二参数是第一参数子项的迭代器。
+\pre 断言：第二参数是第一参数的前缀的结尾迭代器。
+\since build 949
 */
-YF_API TNIter
-LiftPrefixToReturn(TermNode&);
+YF_API void
+LiftSuffixToReturn(TermNode&, TNCIter);
+
+inline PDefH(void, LiftElementsToReturn, TermNode& term)
+	ImplExpr(LiftSuffixToReturn(term, LiftPrefixToReturn(term)))
+//@}
 
 //! \pre 断言：参数指定的项是枝节点。
 //@{
@@ -2004,7 +2067,6 @@ using EnvironmentList = vector<ValueObject>;
 class YF_API Environment : private ystdex::equality_comparable<Environment>
 {
 public:
-	// TODO: Wait for %unordered_set to support transparent keys.
 	//! \since build 788
 	using BindingMap = YSLib::map<string, TermNode, ystdex::less<>>;
 	/*!
@@ -2475,8 +2537,9 @@ public:
 		//! \since build 893
 		friend
 			PDefH(void, swap, ReducerSequence& x, ReducerSequence& y) ynothrowv
+			// XXX: As %NPL::AssertMatchedAllocators.
 			ImplExpr(YAssert(x.get_allocator() == y.get_allocator(),
-				"Invalid allocator found."), x.swap(y),
+				"Mismatched allocators found."), x.swap(y),
 				ystdex::swap_dependent(x.Parent, y.Parent))
 
 		//! \since build 893
@@ -2943,30 +3006,21 @@ public:
 	swap(ContextNode&, ContextNode&) ynothrow;
 };
 
-
 /*!
-\brief 断言分配器和项节点容器的分配器匹配。
+\brief 断言分配器和项节容器的分配器匹配。
 \pre 断言：参数指定的分配器相等。
 \since build 941
+\relates ContextNode
 */
 //@{
 YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators,
-	const TermNode::allocator_type& a, const TermNode::Container& con,
-	const char* msg = "Allocators mismatch to the term container.") ynothrowv
-	ImplExpr(yunused(a), yunused(con), yunused(msg),
-		YAssert(a == con.get_allocator(), msg))
-YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators,
-	const TermNode::allocator_type& a, const TermNode& nd, const char* msg
-	= "Allocators mismatch to the term node.") ynothrowv
-	ImplExpr(AssertMatchedAllocators(a, nd.GetContainer(), msg))
-YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators,
 	const ContextNode& ctx, const TermNode::Container& con, const char* msg
-	= "Allocators mismatch between the term container and the context.")
+	= "Allocators for the context and the term node container mismatch.")
 	ynothrowv
 	ImplExpr(NPL::AssertMatchedAllocators(ctx.get_allocator(), con, msg))
 YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators,
 	const ContextNode& ctx, const TermNode& nd, const char* msg
-	= "Allocators mismatch between the term node and the context.") ynothrowv
+	= "Allocators for the context and the term node mismatch.") ynothrowv
 	ImplExpr(NPL::AssertMatchedAllocators(ctx.get_allocator(), nd, msg))
 //@}
 

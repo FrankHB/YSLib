@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r27403
+\version r27404
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2022-06-30 06:48 +0800
+	2022-07-05 05:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -368,7 +368,7 @@ private:
 		// XXX: This is served as the addtional static environment.
 		auto& env(NPL::Deref(p_env));
 
-		MakeParameterValueMatcher([&](const TokenValue& n){
+		MakeParameterValueMatcher(t.get_allocator(), [&](const TokenValue& n){
 			string_view id(n);
 
 			ExtractSigil(id);

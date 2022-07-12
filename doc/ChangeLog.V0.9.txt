@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r9866
+\version r10004
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-06-30 07:11 +0800
+	2022-07-12 18:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,145 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	+ DD "'\pre' commmand" @ "Doxygen comment" @ "member function \
+		%memory_resource::deallocate" @ %YBase.YStandardEx.MemoryResource,
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA $=
+		(
+			(
+			+ 2 "function templates %AssertMatchedAllocators" >> %SContext
+				$dep_to "lifting allocator assertions";
+			/ $lib $design "adjusted assertion messages" @ "remained overloads"
+				@ "function template overloads %AssertMatchedAllocators"
+			),
+			(
+			+ "function template %ResolveBy";
+			+ "function template %ResolveSuffix",
+			/ DLDI "simplified function template %ResolveTerm" ^ "%ResolveBy"
+			),
+			+ DLI 'inline' @ "function template %ResolveTerm",
+				// This is a bit significant to the generate code performance.
+			/ "added last parameter with default value '0' to support skipping \
+				prefix subterms"
+				@ "functions %(TermToString; TermToStringWithReferenceMark)",
+			/ $re_add(b928) "simplified member function \
+				%Environment::CheckParent" ^ "%IsTyped",
+			/ DLDI "declaration order" @ "function %LiftPrefixToReturn",
+			(
+			+ "function %LiftSuffixToReturn";
+			/ DLDI "simplified function %LiftElementsToReturn as inlining \
+				function"
+			),
+			(
+			+ "function %LiftPrefixToReturn with 2 parameters";
+			/ DLDI "simplified %LiftPrefixToReturn#1"
+			)
+		),
+		/ %SContext $=
+		(
+			/ DLDI "declaration order" @ "destructor and move %operator="
+				@ "class %TermNode",
+			+ "2 function template overloads %AssertMatchedAllocators"
+				$dep_from "lifting allocator assertions"
+		),
+		/ %Exception $=
+		(
+			/ "added last parameter with default value '0' to support skipping \
+				prefix subterms" @ "functions with 'const TermNode&' parameter"
+				$effective @ "functions %(ThrowInsufficientTermsError, \
+				ThrowListTypeErrorForAtom, ThrowListTypeErrorForInvalidType, \
+				ThrowListTypeErrorForNonList, ThrowTypeErrorForInvalidType)"
+				$impl $dep_from ("%TermToStringWithReferenceMark" @ %NPLA),
+			(
+			+ "function %ThrowTypeErrorForInvalidType with 2 'const char*' \
+				parameters";
+			/ DLDI "simplified function %ThrowTypeErrorForInvalidType#2"
+			)
+		),
+		/ "added last parameter with default value '0' to support skipping \
+			prefix subterms" @ "functions %ThrowFormalParameterTypeError"
+			@ %NPLA1Internals
+			$impl $dep_from ("%TermToStringWithReferenceMark" @ %NPLA),
+		/ %NPLA1Internals $=
+		(
+			/ DLI "optimized internal matching thunked calls"
+				@ "class template %GParameterValueMatcher"
+				^ "%(YSLib::stack, vector)" ~ "%Action",
+				// As %(MatchParameter, BindParameter, BindParamaterWellFormed).
+			/ "enabled allocators" (@ "class template %GParameterValueMatcher";
+				"function template %MakeParameterValueMatcher")
+		),
+		/ %NPLA1 $=
+		(
+			/ $re_add(b928) DLDI "simplified function %QueryTailOperatorName"
+				@ 'NPL_Impl_NPLA1_Enable_TCO' ^ "%IsTyped",
+			/ @ "functions %(MatchParameter, BindParameter, \
+				BindParamaterWellFormed)" $=
+			(
+				* "minor internal comments on \
+					%NPL_Impl_NPLA1_BindParameter_ExpandLevel" $since b948,
+				/ DLI "enabled allocators for parameter matcher",
+				/ DLI "refactored internal calls",
+				/ DLI "optimized internal matching thunked calls"
+					^ "%(YSLib::stack, vector)" ~ "%Action",
+					// Without %vector, it is less efficient than the previous \
+						implementation.
+				* "unexpected support of more than 1 level of indirection on \
+					uncollapsed references" @ "parameter tree"
+					$mismatch(Documentation.NPL)
+					$orig (@ "function %MatchParameter" $since b855),
+					// By adjustment of inlining with one less 'YB_FLATTEN', \
+						the fix makes the generated code a bit efficient, but \
+						the compilation time still increses due to more split \
+						function templates.
+				* "missing reference mark" @ "exception message for last \
+					parameter subterm check failure" $since b917
+					^ "%ResolveTerm" ~ "%ResolveReference",
+					// This should respect not only to the term being \
+						resolved, but also to the subterm itself.
+				/ "trailing ellipsis handling" $=
+				(
+					* "overly restrictive assertion wrongly against references \
+						to the ellipsis sequence token subterm on the matching \
+						after the check" $since b858,
+						// The original code was added in function \
+							%MatchParameter since b780. This only supports to \
+							resolve references to symbols since b858.
+						$= (/ $impl ^ "%(IsTyped, ReferenceTerm)");
+					/ $dev $lib @ "initial check" $=
+					(
+						/ "supported subterms having irregular representation \
+							along with the %TokenValue value"
+							// This is not visible since no irregular \
+								representation of symbol are yet supported. \
+								However, this is more compatible to any future \
+								handling on these currently unused \
+								representatios.
+							$= (/ $impl ^ "%IsAtom" ~ "%IsLeaf");
+								// The use of %IsLeaf was also introduced in \
+									b858.
+						/ $impl "simplified" ^ "%TryAccessLeaf"
+							~ "%TryAccessLeafAtom"
+					)
+				),
+				/ DLDI "simplified move check" ^ "%IsMovable",
+			),
+			/ DLDI "simplified move check" @ "function %ReduceToReferenceList"
+				^ "%NPL::IsMovable"
+		),
+		/ $forced "enabled allocator for parameter value matcher" $efficient
+			@ ("function %CheckParameterTree" @ %NPLA1,
+			"function %Forms::DefineWithRecursion" @ %NPLA1Forms)
+			$dep_from ("%MakeParameterValueMatcher" @ %NPLA1Internals),
+			// As %(MatchParameter, BindParameter, BindParamaterWellFormed).
+	),
+	+ "message after linking finished" @ "member function %BuildContext::Build"
+		@ %Tools.SHBuild.Main
+),
+
+b948
 (
 	/ $lib $impl %YBase.YStandardEx.MemoryResource $=
 	(

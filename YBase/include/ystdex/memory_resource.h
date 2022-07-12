@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1564
+\version r1570
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2022-03-16 21:58 +0800
+	2022-07-10 17:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,7 +57,7 @@ pmr::polymorphic_allocator 对 is_bitwise_swappable 特化。
 	[wide.stream.objects] 通过 [basic.ios.cons] 和 [ios.init]
 	允许程序创建 std::basic_ios::Init 对象而隐含指定相对其它静态对象销毁的顺序要求。
 	其它静态对象包括 pmr 资源没有相应的保证。
-和 libstdc++ 、libc++ 和 Microsoft VC++ 的实现（另见 WG21 P01247 ）不同，在
+和 libstdc++ 、libc++ 和 Microsoft VC++ 的实现（另见 WG21 P1247 ）不同，在
 	ISO C++17 中指定为静态对象的资源仍保证析构，且不保证常量初始化，
 	而无法保证和其它静态对象之间的析构顺序。
 使用默认资源初始化的静态对象可能因销毁时资源对象的生存期已终止而引起未定义行为；
@@ -232,10 +232,9 @@ public:
 		return &a == &b || a.is_equal(b);
 	}
 
-	/*!
-	\pre 断言：对齐值是 2 的整数次幂。
-	\post 断言：返回值符合参数指定的对齐值要求。
-	*/
+	//! \pre 断言：对齐值是 2 的整数次幂。
+	//@{
+	//! \post 断言：返回值符合参数指定的对齐值要求。
 	YB_ALLOCATOR YB_ATTR(alloc_align(3), alloc_size(2)) YB_ATTR_returns_nonnull
 		void*
 	allocate(size_t bytes, size_t alignment = max_align)
@@ -260,6 +259,7 @@ public:
 		yconstraint(is_power_of_2_positive(alignment));
 		return do_deallocate(p, bytes, alignment);
 	}
+	//@}
 
 	YB_ATTR_nodiscard bool
 	is_equal(const memory_resource& other) const ynothrow

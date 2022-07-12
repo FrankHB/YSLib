@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r4507
+\version r4509
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2022-02-14 07:29 +0800
+	2022-07-11 18:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -481,7 +481,7 @@ RunNPLFromStream(const char* name, std::istream&& is,
 	//	intended at least in the stage 1.
 	context.Root.Trace.FilterLevel = Logger::Level::Informative;
 	LoadStandardContext(context);
-	context.OutputStreamPtr = NPL::make_observer(&std::cout);
+	context.OutputStreamPtr = make_observer(&std::cout);
 
 	auto& rctx(context.Root);
 
@@ -971,6 +971,7 @@ BuildContext::Build()
 					PrintInfo("Deleted file " + Quote(target) + '.', Debug);
 				}
 				CallWithException(str, 1);
+				print("Built file: " + Quote(target) + '.', Informative);
 			}
 		}
 		else
