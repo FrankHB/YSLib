@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8742
+\version r8766
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2022-06-14 18:32 +0800
+	2022-07-25 01:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -105,9 +105,6 @@ SymbolToString(const TokenValue&) ynothrow;
 class YF_API EncapsulationBase
 {
 private:
-	// XXX: Is it possible to support %TermReference safety check here with
-	//	anchors?
-	// TODO: Add naming scheme and persistence interoperations?
 	shared_ptr<void> p_type;
 
 public:
@@ -278,8 +275,12 @@ CallRawUnary(_func&& f, TermNode& term, _tParams&&... args)
 	::call(f, NPL::Deref(std::next(term.begin())), yforward(args)...)))
 {
 	RetainN(term);
+
+	auto& x(NPL::Deref(std::next(term.begin())));
+
+	AssertValueTags(x);
 	return ystdex::expand_proxy<yimpl(void)(TermNode&, _tParams&&...)>::call(f,
-		NPL::Deref(std::next(term.begin())), yforward(args)...);
+		x, yforward(args)...);
 }
 
 //! \brief 解析节点的子节点并调用一元函数。
@@ -397,9 +398,11 @@ CallBinary(_func&& f, TermNode& term, _tParams&&... args)
 	auto i(term.begin());
 	auto& x(NPL::Deref(++i));
 
+	AssertValueTags(x);
+	AssertValueTags(NPL::Deref(++i));
 	return NPL::EmplaceCallResultOrReturn(term, ystdex::invoke_nonvoid(
 		ystdex::make_expanded<void(TermNode&, TermNode&, _tParams&&...)>(
-		std::ref(f)), x, NPL::Deref(++i), yforward(args)...));
+		std::ref(f)), x, *i, yforward(args)...));
 }
 
 template<typename _type, typename _type2, typename _func, typename... _tParams>
@@ -1363,7 +1366,7 @@ LambdaRef(TermNode&, ContextNode&);
 按值传递返回值：提升项。
 
 参考调用文法：
-<pre>$lambda/e \<environment> \<formals> \<body></pre>
+<pre>$lambda/e \<parent> \<formals> \<body></pre>
 */
 YF_API ReductionStatus
 LambdaWithEnvironment(TermNode&, ContextNode&);
@@ -1372,7 +1375,7 @@ LambdaWithEnvironment(TermNode&, ContextNode&);
 在返回时不提升项，允许返回引用。
 
 参考调用文法：
-<pre>$lambda/e% \<environment> \<formals> \<body></pre>
+<pre>$lambda/e% \<parent> \<formals> \<body></pre>
 */
 YF_API ReductionStatus
 LambdaWithEnvironmentRef(TermNode&, ContextNode&);
@@ -1427,7 +1430,7 @@ VauRef(TermNode&, ContextNode&);
 按值传递返回值：提升项以避免返回引用造成内存安全问题。
 
 参考调用文法：
-<pre>$vau/e \<environment> \<formals> \<eformal> \<body></pre>
+<pre>$vau/e \<parent> \<formals> \<eformal> \<body></pre>
 */
 YF_API ReductionStatus
 VauWithEnvironment(TermNode&, ContextNode&);
@@ -1436,7 +1439,7 @@ VauWithEnvironment(TermNode&, ContextNode&);
 在返回时不提升项，允许返回引用。
 
 参考调用文法：
-<pre>$vau/e% \<environment> \<formals> \<eformal> \<body></pre>
+<pre>$vau/e% \<parent> \<formals> \<eformal> \<body></pre>
 */
 YF_API ReductionStatus
 VauWithEnvironmentRef(TermNode&, ContextNode&);
@@ -1480,7 +1483,7 @@ WVauRef(TermNode&, ContextNode&);
 按值传递返回值：提升项以避免返回引用造成内存安全问题。
 
 参考调用文法：
-<pre>$wvau/e \<environment> \<formals> \<eformal> \<body></pre>
+<pre>$wvau/e \<parent> \<formals> \<eformal> \<body></pre>
 */
 YF_API ReductionStatus
 WVauWithEnvironment(TermNode&, ContextNode&);
@@ -1489,7 +1492,7 @@ WVauWithEnvironment(TermNode&, ContextNode&);
 在返回时不提升项，允许返回引用。
 
 参考调用文法：
-<pre>$wvau/e% \<environment> \<formals> \<eformal> \<body></pre>
+<pre>$wvau/e% \<parent> \<formals> \<eformal> \<body></pre>
 */
 YF_API ReductionStatus
 WVauWithEnvironmentRef(TermNode&, ContextNode&);
@@ -1653,12 +1656,12 @@ Apply(TermNode&, ContextNode&);
 
 /*!
 \brief 使用可选的参数指定的不定数量的元素和结尾列表构造新列表。
-\exception ParameterMismatch 参数不是
-\throw ListTypeError 参数超过一个，且最后参数不是列表。
 \since build 860
 */
 //@{
 /*!
+\sa LiftToReturn
+
 结果是构造的列表的值。不保留结果中的引用值。
 
 参考调用文法：
@@ -1991,9 +1994,16 @@ Assv(TermNode&);
 //@{
 /*!
 \brief 捕获一次续延，具现为一等续延作为参数调用合并子。
+\warning 应确保实现选项以避免未定义行为。
 
 参考调用文法：
 <pre>call/1cc \<combiner></pre>
+
+对捕获的续延，若被合并子调用，则可移除特定的对象语言活动记录。
+调用捕获的合并子应确保启用实现选项 NPL_Impl_NPLA1_Enable_Thunked ，
+	以确保随活动记录时同时在宿主语言中移除对相应资源访问；
+否则，除非被抛出异常，之后在宿主语言（主调函数）中访问这些活动记录，
+	总是存在未定义行为。
 */
 YF_API ReductionStatus
 Call1CC(TermNode&, ContextNode&);

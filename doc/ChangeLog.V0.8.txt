@@ -1,5 +1,5 @@
 ﻿/*
-	© 2017-2021 FrankHB.
+	© 2017-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r21186
+\version r21399
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2021-02-23 23:24 +0800
+	2022-07-25 04:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -224,10 +224,10 @@ b899
 				(
 					/ @ "function %LoadGroundContext" $=
 					(
-						+ "native derivation" @ "applicative %foldr1 and \
+						+ "native implementation" @ "applicative %foldr1 and \
 							enabled by default"
 							^ $dep_from ("%FoldR1" @ %NPLA1Forms),
-						/ $lib "added native derivation enabled by default"
+						/ $lib "added native implementation enabled by default"
 							@ "applicative %map1"
 							^ $dep_from ("%Map1" @ %NPLA1Forms),
 						/ DLI "alternative derivation" @ "applicative 'not?'"
@@ -436,7 +436,7 @@ b898
 				* "duplicated evaluation for matched subexpression not at the \
 					last position" @ "derivation" @ "operative '$or?'"
 					$since b860,
-				/ $lib "added native derivation enabled by default"
+				/ $lib "added native implementation enabled by default"
 					@ "applicative %accl" ^ $dep_from ("%AccL" @ %NPLA1Forms),
 				(
 				/ "applicative 'unfoldable?'" -> "'nonfoldable?' allowing an \
@@ -451,7 +451,7 @@ b898
 				(
 				* $comp "operative used as an argument of %accl call"
 					@ "applicative 'unfoldable?'" $since b791;
-				/ $lib "added native derivation enabled by default"
+				/ $lib "added native implementation enabled by default"
 					@ "applicative %accr" ^ $dep_from ("%AccR" @ %NPLA1Forms)
 				),
 				* "missing unwrapping on applicative arguments" @ "derivation"
@@ -924,7 +924,7 @@ b896
 		(
 			/ $dev $lib %Lexical $=
 			(
-				/ DLI "inlined function %Deliteralize",
+				/ DLI $src "inlined function %Deliteralize",
 				+ "copy constructor" @ "class %SourceLocation"
 					// Also to eliminate Clang++ warning: [-Wdeprecated].
 			),
@@ -1035,7 +1035,7 @@ b896
 				),
 				* "wrong 'ynothrow'"
 					@ "function template %SwitchToFreshEnvironment" $since b838,
-				/ DLI "inlined constructor %EnvironmentReference",
+				/ DLI $src "inlined constructor %EnvironmentReference",
 				(
 				/ DLDI "function %PrintNode" !^ "%TraverseNodeChildAndPrint";
 				- $revert(b851) "function template %TraverseNodeChildAndPrint"
@@ -1055,9 +1055,8 @@ b896
 	),
 	/ %YReader $=
 	(
-		* "failed to conversion of terms with strings" @ %ReaderSetting $since b833
-			$dep_from %YSLib.ValueNode
-			$=
+		* "failed to conversion of terms with strings" @ %ReaderSetting
+			$since b833 $dep_from %YSLib.ValueNode $=
 		(
 			* $comp "failed conversion of strings",
 			* "failed conversion of %Color nodes"
@@ -1369,7 +1368,7 @@ b893
 			$effective @ %(NPLA1Internals, NPLA1Forms),
 		/ "namespace %Forms" @ %NPLA1Forms $=
 		(
-			* "wrong order of pseudo keywords" @ "function 'Throw*'"
+			* "wrong order of pseudo keywords" @ "functions 'Throw*'"
 				$orig (@ %NPLA1 $since b859)
 				/ $= (/ 'YF_API YB_NORETURN' -> 'YB_NORETURN YF_API'),
 				// To avoid Clang++ error.
@@ -1441,7 +1440,7 @@ b893
 		),
 		/ %NPLA1 $=
 		(
-			/ DLDI "supported reduce names by named type"
+			/ DLDI "supported reducer names by named type"
 				~ "lambda-expression" @ 'NPL_Impl_NPLA1_Enable_TCO'
 				@ "function %ReduceOrdered",
 			/ @ "function %QueryContinuationName" $=
@@ -1550,7 +1549,7 @@ b892
 					+ DLI "stashed empty action sequence"
 						^ 'YSLib::forward_list';
 						// This improves perforamnce significantly.
-					+ $foced DLDI "swapped stashed empty action sequence"
+					+ $forced DLDI "swapped stashed empty action sequence"
 						@ "friend function %swap",
 					+ "function %shrink_to_fit"
 					),
@@ -1573,7 +1572,7 @@ b892
 					$dep_from "avoiding directly composed actions";
 				- "function template %ComposeSwitchedUnchecked";
 				- "function template %ComposeActions";
-				* $re_add(b865) $comp "missing qualified 'NPL::'" @ ("call of \
+				* $comp $re_add(b865) "missing qualified 'NPL::'" @ ("call to \
 					%ComposeSwitchedUnchecked" @ "function template \
 					%ComposeSwitched" @ $since b856, ("call of %ComposeActions"
 					@ "function template %RelayNext", "call of %RelayNext"
@@ -1675,7 +1674,7 @@ b891
 				- 'explicit' @ "constructor with allocator parameter and \
 					in-place value tag",
 					// To be consistent to %any.
-				+ $dev "static assert to ensure reference to the holder type \
+				+ $dev "static assertion to ensure reference to the holder type \
 					convertible to 'IValueHolder&'"
 					@ "constructor template with holder tag",
 				+ "constuctor template with allocator parameter and in-place \
@@ -2365,7 +2364,7 @@ b888
 					%InvalidSyntax for cases of <eformal> error"
 					@ "functions 'Vau*'",
 				/ "thrown exception of %InvalidSyntax derived with nested \
-					%InvalidSyntax for cases of \<environment> error"
+					%InvalidSyntax for cases of <environment> error"
 					@ "functions %(VauWithEnvironment, LambdaWithEnvironment)"
 					$dep_from %NPL.Documentation
 			)
@@ -2803,11 +2802,12 @@ b886
 						("%LexicalAnalyzer::(PrefixHandler, Unescaper)"
 						@ %Lexical, "in-buffer prefix") $=
 					(
-						/ $impl ^ $dep_from "%UnescapeContext::VerifyBufferLength",
+						/ $impl
+							^ $dep_from "%UnescapeContext::VerifyBufferLength",
 						/ $impl !^ "%UnescapeContext::GetSequence"
 							$dep_to "avoiding in-context sequence reference",
-						+ $forced "%char as 2nd parameter to split the buffer and \
-							the current character",
+						+ $forced "%char as 2nd parameter to split the buffer \
+							and the current character",
 					),
 					+ DLI "line concatenation" @ "unescaping"
 						$dep_to "unescaping concatenation support",
@@ -3016,16 +3016,15 @@ b885
 				@ "%SHBuild-YSLib-common.txt")),
 			/ "supported system prefix directory name instead of '/usr' \
 				with overridable variable %SHBuild_SystemPrefix"
-				@ ("%SHBuild-BuildApp.sh"
-				^ "functions %(SHBuild_Platform_Detect, \
+				@ ("%SHBuild-BuildApp.sh" ^ "%(SHBuild_Platform_Detect, \
 				SHBuild_CheckHostPlatform)" @ "%SHBuild-common.sh",
 				"%SHBuild-YSLib-build.txt" ^ ("%SHBuild_GetSystemPrefix"
 				@ "%SHBuild-YSLib-common.txt"))
 			),
 			/ @ "%SHBuild-YSLib-build.txt" $=
 			(
-				/ "changed YFramework host library directory without postfix of \
-					'-' and the name of host architecture"
+				/ "changed YFramework host library directory without postfix \
+					of '-' and the name of host architecture"
 					$dep_to "host library directory",
 					// This changes effectively for %MinGW32 (from 'lib-i686' \
 						to 'lib') since previously this is the only formally \
@@ -3068,7 +3067,7 @@ b885
 						'$SHBuild_Bin/../lib/'"
 						$dep_from "%SHBuild_SystemPrefix";
 					* "missing library prefix '-L' option for static library \
-						building" $since b,
+						building" $since b556,
 					+ "support of dynamic libfreetype detection with \
 						'pkg-config' if %libfreetype.a is missing in the \
 						sysroot 'lib' directory" @ !"platform %Win32"
@@ -3218,11 +3217,11 @@ b884
 			detection is to including Clang++ specifically. The only valid \
 			case for %YB_IMPL_GUNCremained is the definition of %YB_ATTR.
 		/ "simplified" @ "macro %YB_ATTR_gnu_printf" @ %YBase.YDefinition
-		* "missing excluding Clang++" $effective
+		* "missing exclsion of Clang++" $effective
 			@ %(YBase.YStandardEx.CAssert $since b739,
 			YFramework.YSLib.Core.YEvent $since b792),
 	),
-	* $re_add(b866) $comp "build failure" @ "platform %Android" $since b850
+	* $comp $re_add(b866) "build failure" @ "platform %Android" $since b850
 		$dep_from %YFramework.YSLib.Core.YMessage
 		// This causes armv7a-linux-androideabi21-clang++ fails to compile.
 ),
@@ -3318,7 +3317,7 @@ b882
 				%Allocator $dep_to "seperated allocator API header",
 				// The order of declarations is now also consistent to WG21 \
 					N4830 [memory.syn].
-			/ DLDI "header inclusion %Tuple" -> "%Apply"
+			/ DLDI "inclusion %Tuple" -> "%Apply"
 		),
 		+ DLDI 'YB_ATTR_nodiscard' @ "function template \
 			%uses_allocator_construction_args implementations" @ %Allocator
@@ -3326,9 +3325,8 @@ b882
 			// G++ 7.1 warning: [-Wsuggest-attribute=const] is wrong here \
 				and %YB_STATELESS would cause crash.
 		(
-		/ DLDI ("simplified header inclusion %Memory" -> "%Allocator")
-			@ %(Tree, String, List, Cache)
-			$dep_from "seperated allocator API header";
+		/ DLDI ("simplified inclusion %Memory" -> "%Allocator") @ %(Tree,
+			String, List, Cache) $dep_from "seperated allocator API header";
 		/ DLDI "header inclusion %IteratorOperation" @ %List
 		)
 	),
@@ -3476,14 +3474,16 @@ b881
 			"function %Contains" @ "class template %GHandlerRegisterBase"
 			@ %Core.YFunc) @ %YSLib),
 			// Also to eliminate G++ 7.1 warning: [-Wsuggest-attribute=pure].
-		+ $dev $lib 'YB_ATTR_nodiscard' @ ("member function \
+		+ $dev $lib 'YB_ATTR_nodiscard' @ ("functions or function templates \
+			with names %(VerifyEncoding, CheckBOM, DetectBOM)"
+			@ %Service.TextFile, ("member function \
 			%GUIApplication::GetEnvironmentHostRef" @ %Helper.GUIApplication
 			("member functions %(GetFullViewHeight, GetItemHeight, \
 			GetItemHeightCore, GetLastLabelIndexClipped, GetUnitLocation, \
 			GetViewPosition, CheckPoint)" @ "class %AMUnitList"
 			@ %Viewer, "member function %AMUnitControlList::MakeIterator"
 			@ %ListControl, "member functions \
-			%TreeList::(GetNodePath, GetNodeRef)" @ %TreeView) @ %YSLib.UI),
+			%TreeList::(GetNodePath, GetNodeRef)" @ %TreeView) @ %UI) @ %YSLib,
 		+ $dev $lib 'yimpl(YB_STATELESS)' @ "member function \
 			%GUIApplication::GetGUIHostRef" @ %Helper.GUIApplication',
 			// To eliminate G++ 9.2 warning: [-Wsuggest-attribute=const].
@@ -3536,7 +3536,7 @@ b881
 			/ "optimized emplacement operations" @ "class %ValueObject"
 				@ %YObject ^ 'YB_ATTR(always_inline)'
 		),
-		* "missing %YFramework.YSLib.UI.YPanel file renaming"
+		* $dev "missing %YFramework.YSLib.UI.YPanel file renaming"
 			@ "Microsoft VC++ project files" $since b672
 			$= (/ "%ypanel.cpp" => "%YPanel.cpp")
 	),
@@ -3795,7 +3795,7 @@ b879
 		(
 			/ "optimized move %operator=" @ "class template specializations \
 				%one_shot" ^ "%ystdex::swap_dependent"
-				~ "%ystdex::move_and_swap" @ %Functional,
+				~ ("%ystdex::move_and_swap" @ %Functional),
 			/ %Swap $=
 			(
 				/ "class template %move_and_swap" -> "create_and_swap"
@@ -3898,15 +3898,10 @@ b879
 						// This also avoids redundant copy.
 				)
 			),
-			/ %UI $=
-			(
-				- $lib "all explicit defaulted move constructor"
-					@ "widget classes as subclass of %Widget" @ %UI
-					// To eliminate Clang++ 8 warning: \
-						[-Wdefaulted-function-deleted].
-				/ "header %ypanel.h" => "%YPanel.h",
-				/ "header %form.h" => "%Form.h"
-			),
+			- $lib "all explicit defaulted move constructor"
+				@ "widget classes as subclass of %Widget" @ %UI,
+				// To eliminate Clang++ 8 warning: \
+					[-Wdefaulted-function-deleted].
 			/ @ "class %ImageMetadataFindData" @ %Adaptor.Image $=
 			(
 				/ "base class %noncopyable" -> "move constructor",
@@ -4016,7 +4011,7 @@ b879
 					@ 'YB_IMPL_CLANGPP'
 					// To eliminate Clang++ warning: [-Wunused-function].
 			),
-			* $dev "missing excluding Clang++" @ "G++ workaround"
+			* $dev "missing exclusion of Clang++" @ "G++ workaround"
 				@ %Lexical $since b858
 				// Also to eliminate Clang++ warning: [-Wunknown-attributes].
 		),
@@ -4099,7 +4094,10 @@ b879
 				@ "%(SHBuild-YSLib-common.txt, SHBuild-common-options.sh)"
 				// See $2020-01 @ %Documentation::Workflow.
 		)
-	)
+	),
+	/ $dev $repo $re_add(b826) "all edited file with module name not the same \
+		as base filename" ^ 'hg mv' $effective @ %YFramework.YSLib.UI.(
+		"%ypanel.h" => "%YPanel.h", "%form.h" => "%Form.h")
 ),
 
 b878
@@ -4202,8 +4200,8 @@ b878
 					/ "redirected calls"
 						^ $dep_from "%ContextState::ReduceOnce",
 					(
-					* "missing call of %ContextState::SetNextTermRef \
-						from 2nd passes" $since b842,
+					* "missing the call to %ContextState::SetNextTermRef from \
+						2nd passes" $since b842,
 					/ $revert_ex(b842) DLI "avoided call of \
 						%ContextState::SetNextTermRef for empty passes sequence"
 						// This would cause wront term in the call of \
@@ -4287,7 +4285,7 @@ b877
 		+ "explicit rules to allowing different order of typechecking of \
 			NPLA1 operations" @ %Documentation.NPLA1,
 		/ "merged files with glob pattern 'Workflow.*.txt'" -> %Workflow;
-		/ $foced DLD "cross references" $dep_to %(YCLib, Dependencies,
+		/ $forced DLD "cross references" $dep_to %(YCLib, Dependencies,
 			ChangeLog.(PreAlpha4, PreAlpha5, 'V0.6', 'V0.7', 'V0.8'))
 	),
 	/ $forced DLD "source comments with %Documentation.Workflow" $dep_from \
@@ -4399,7 +4397,7 @@ b877
 		/ @ "function %LoadGroundContext" @ %Dependency $=
 		(
 			* $comp "behaviors on exception disagreed in multiple typechecking \
-				failure between the native implementation and alternatmive \
+				failure between the native implementation and the alternative \
 				derivation" @ "applicative 'forward-list-first'" $since b875
 				$dep_from %Documentation.NPL
 		),
@@ -4563,7 +4561,7 @@ b876
 					// The divergence of counts should not be assumed normal \
 						since %EnvironmentReference contains the anchor pointer.
 			),
-			* $re_add(b869) "missing support irregular reprenstation for \
+			* $re_add(b869) "missing support of irregular reprensentation for \
 				reference results"
 				$dep_from ("function %ResolveIdentifier" @ %NPLA)
 				// An object of irregular representation could be sliced here.
@@ -4572,7 +4570,8 @@ b876
 		(
 			/ $revert_ex(b875) "simplified alternative derivation"
 				@ "applicative %first",
-			/ DLDI "simplified native derivation" @ "applications %(id, idv)"
+			/ DLDI "simplified native implementation"
+				@ "applications %(id, idv)"
 				^ $dep_from ("%LiftOther" @ %NPLA) ~ "%TermNode::MoveContent",
 			/ DLDI "simplified alternative derivation"
 				@ "operative '$sequence'",
@@ -4612,8 +4611,9 @@ b876
 			),
 			* "wrong 'forward! called on applicative parameter"
 				@ "applicative 'map-reverse'" $since b875,
-			* $re_add(b869) $forced "missing support irregular reprenstation \
-				for reference results" @ "applicative '$resolve-identifier'"
+			* $re_add(b869) $forced "missing support of irregular \
+				reprensentation for reference results"
+				@ "applicative '$resolve-identifier'"
 				$since b858 $dep_from ("function %ResolveIdentifier" @ %NPLA),
 				// Same to %A1::EvaluateIdentifier.
 			* "values set not respective to reference" @ "alternative \
@@ -4660,11 +4660,11 @@ b875
 			),
 			/ "namespace %Forms" @ %NPLA1 $=
 			(
-				/ "supported options tags of %TermTags::Temporary"
+				/ "supported operand tag %TermTags::Temporary"
 					@ "function %MatchParameter" $=
 				(
-					/ DLDI "exlucded %TermTags::Temporary"
-						@ "creatd references bound with sigil '%'"
+					/ $revert_ex(b859) "exlucded %TermTags::Temporary" @ "tags"
+						@ "created collapsed references bound with sigil '%'"
 						$dep_to "binding temporary option tags";
 					/ "supported binding references to xvalues with sigil '@'",
 					/ "bound xvalues as references instead of moved temporary \
@@ -4672,18 +4672,28 @@ b875
 						// This is needed in partially binding elements of a \
 							list and the elements in the list can be further \
 							bound as subterms again.
+					/ $revert_ex(b859) "bound additional %TermTags::Temporary"
+						@ "binding xvalue operands with sigil '&'"
+						$dep_to "unified xvalues binding"
+						// This effectively makes a bound reference has \
+							%TermTags::Temporary from %TermTags::Unique in the \
+							operand. Adding %TermTags::Temporary is a backup \
+							option based on the change of b859. Now a plain \
+							variable access (instead of a call to \
+							'$resolved-identifier') is sufficient to forward \
+							an xvalue argument not as a list element in the \
+							calls to 'forward!' because the existence of \
+							%TermTags::Unique is preserved in references as \
+							%TermTags::Temporary from the evaluation of \
+							resolved identifiers.
 				),
 				/ "function %BindParameter" $=
 				(
-					/ $forced DLDI $dep_from
-						"binding temporary option tags",
-					/ "bound additional %TermTags::Temporary"
-						@ "binding xvalue operands with sigil '&'"
-						$dep_to "unified xvalues binding"
-						// Like C++, prvalue and xvalues are both bound to \
-							deduced argument. Now '$resolved-identifier' is \
-							not needed for 'forward!' for an xvalue not in as \
-							a list element.
+					/ "prevented inherited %TermTags::Temporary propagated to \
+						subterms";
+					/ $forced DLDI "initial top-level operand tag"
+						-> "%TermTags::Temporary" ~ "%TermTag::Unique"
+						$dep_from "binding temporary option tags"
 				),
 				(
 				/ DLDI "function %Apply";
@@ -4692,9 +4702,9 @@ b875
 				/ "function %First" $=
 				(
 					/ "supported unified forwarding",
-					* "moved or subterm of nonmodifying lists" $since b869
-						^ $dep_from ("%LiftTermOrCopyUnchecked" @ %NPLA)
-						~ "%LiftTermOrCopy"
+					* "possibly moved subobjects of nonmodifiable lists"
+						$since b869 ^ $dep_from ("%LiftTermOrCopyUnchecked"
+						@ %NPLA) ~ "%TermNode::MoveContent"
 				),
 				/ DLI ("functions %(FirstVal, Eval, EvalRef, EvalString, \
 					EvalStringRef)", "%operator()" @ "vau handler") ^ $dep_from
@@ -4712,7 +4722,8 @@ b875
 					("%ForwardListFirst" @ %NPLA1),
 				/ "supported unified forwarding" @ "applicative %first" $=
 				(
-					/ $comp "native derivation" $dep_from ("%First" @ %NPLA1),
+					/ $comp "native implementation"
+						$dep_from ("%First" @ %NPLA1),
 					/ $impl "alternative derivation" ^ "sigil '%' binding"
 						$dep_from "unified xvalues binding"
 				),
@@ -4785,7 +4796,7 @@ b874
 						// This allows explicit 'expire' to be used to list \
 							lvalues to make subobjects moved solely.
 				),
-				/ $impl "forwarding value for reference" $=
+				/ $impl "forwarding values for references" $=
 				(
 					* $dev "invalid %YB_PURE used" $effective @ "functions \
 						%(Wrap, Wrap, WrapOnce, Unwrap, Apply) and \
@@ -4912,14 +4923,14 @@ b874
 					/ "transferred or returned values by term move except for \
 						'transfer!'" $=
 					(
-						/ $comp "native derivations" $dep_from
+						/ $comp "native implementations" $dep_from
 							("%(LiftToReturn, MoveRValueToForward, \
 							MoveRValueToReturn)" @ %NPLA,
 						/ "alternative derivation" @ "applicative 'forward!"
 							^ 'move!' ~ 'transfer!'
 					);
-					/ $comp DLI "optimized native and alternative derivations \
-						to return list"
+					/ $comp DLI "optimized native and alternative \
+						implementations to return list"
 					);
 					/ DLI "optimized trailing parameter forwarding"
 						@ "operatives ('$let*', '$let*%')" ^ 'move!' ~ 'idv',
@@ -5122,14 +5133,14 @@ b871
 				(
 					/ DLDI "simplified applicative 'move!'"
 						^ "%Forms::CallResolvedUnary",
-					/ DLI "simplified native derivations" @ "applicatives \
+					/ DLI "simplified native implementations" @ "applicatives \
 						%(deshare, collapse)" ^ "%Forms::CallRawUnary",
-					/ DLI @ "native derivations" @ "applicatives %(id, idv)" $=
+					/ DLI @ "native implementations" @ "applicatives %(id, idv)" $=
 					(
 						/ $design ^ "%Forms::CallRawUnary",
 						/ ^ "%TermNode::MoveContent" ~ "%LiftTerm"
 					),
-					/ @ "native derivation" @ "applicative %forward" $=
+					/ @ "native implementation" @ "applicative %forward" $=
 					(
 						/ DLDI ^ "%Forms::CallRawUnary",
 						* "wrong %ReductionStatus::Neutral status instead of \
@@ -5138,7 +5149,7 @@ b871
 							@ %NPLA) ~ "%ReduceForwarded" $since b869 $dep_to
 							"removal of ReduceForwarded"
 					),
-					/ $forced DLI "native derivation" @ "applicatives \
+					/ $forced DLI "native implementation" @ "applicatives \
 						(%collapse, 'assign%!')" ^ (($dep_from "%MoveCollapsed"
 						~ "%LiftCollapsedTerm") @ %NPLA),
 					(
@@ -5165,7 +5176,7 @@ b871
 					$dep_from ("%(RegisterUnaryStrict, RegisterBinaryStrict)"
 					@ %NPLA1)
 			),
-			/ $revert_ex(b869) DLDI "renamed internal 'TermNode&' parameter \
+			/ $revert_ex(b869) DLDI "renamed internal 'TermNode&' variable \
 				names" $effective @ (("functions %(CheckEnvironment, \
 				EqualLeaf, EqualReference, FirstVal, MakeEncapsulationType)",
 				"function templates %(CallUnary, CallUnaryAs, \
@@ -5247,8 +5258,9 @@ b870
 			),
 			/ @ "function %LoadGroundContext" @ %Dependency $=
 			(
-				/ "simplified native derivation" @ "applicatives (%collapse, \
-					'assign%!')" ^ $dep_from ("%LiftCollapsedTerm" @ %NPLA),
+				/ "simplified native implementation"
+					@ "applicatives (%collapse, 'assign%!')"
+					^ $dep_from ("%LiftCollapsedTerm" @ %NPLA),
 				+ "alternative derivation" @ "applicative 'assign%!'"
 					^ "applicative %collapse"
 				/ DLI "alternative derivation" @ "applicative 'assign!'"
@@ -5269,7 +5281,7 @@ b870
 			(
 				* $re_add(b660) DD "wrong Doxygen command '\breif' used"
 					~ '\brief' @ "class template %AXYZValueTraits",
-				* $dev "spelling error" @ "static assert message of integer \
+				* $dev "spelling error" @ "static assertion message of integer \
 					width check failure"
 			),
 			/ DLDI @ "platform %DS" @ "function %SetEnvironmentVariable"
@@ -5303,7 +5315,7 @@ b869
 				@ "functions %(ReduceToList, ReduceToListValue)",
 			- $revert(b769) "function %CheckNorm" $dep_from
 				("%EvaluateIdentifier" @ %NPLA1),
-			* $lib "missing support to irregular representation for references \
+			* $lib "missing support of irregular representation for references \
 				to reference with irregular representation"
 				@ "function %ReduceForLiftedResult" $since b858
 				// This is still compatible because the values of the \
@@ -5455,15 +5467,16 @@ b869
 			(
 				/ $re_add(b868) DLI
 					"optimized derivation" @ "applicative %accl",
-				/ DLDI "native derivation" @ "applicative %idv"
+				/ DLDI "native implementation" @ "applicative %idv"
 					^ "%ReduceForLiftedResult" ~ "%LiftToReturn",
-				/ DLI "native derivation" @ "applicative %id"
+				/ DLI "native implementation" @ "applicative %id"
 					^ 'YB_ATTR_LAMBDA(const)',
-				/ DLI "native derivation" @ "applicative %forward" ^ (($dep_from
-					"%ReduceForwarded" ~ "%LiftRValueToReturn") @ %NPLA),
+				/ DLI "native implementation"
+					@ "applicative %forward" ^ (($dep_from "%ReduceForwarded"
+					~ "%LiftRValueToReturn") @ %NPLA),
 					// This now has %ReductionStatus::Neutral if the value is \
 						not lifted.
-				/ DLDI "native derivation" @ "applicative %deshare"
+				/ DLDI "native implementation" @ "applicative %deshare"
 				* $lib $impl "missing previous derivation of applicative \
 					'first@' for internal use" @ "alternative derivation"
 					@ "applicatives ('set-first!', 'set-first%!', \
@@ -5483,7 +5496,7 @@ b869
 				/ DLDI "simplified applicative 'assign%!'"
 					// By sharing implementation with applicative %collapse.
 			),
-			/ @ "native derivations" @ "function %LoadModule_std_strings" $=
+			/ @ "native implementations" @ "function %LoadModule_std_strings" $=
 			(
 				/ DLDI "simplified variable names"
 					@ "applicative 'string<-'",
@@ -5491,7 +5504,7 @@ b869
 					@ "applicative 'string-contains-ci?'"
 			)
 		),
-		/ DLDI "renamed internal 'TermNode&' parameter names" $effective
+		/ DLDI "renamed internal 'TermNode&' variable names" $effective
 			@ ("functions %Forms::(CheckEnvironment, 'Eval*', 'First*', \
 			MatchParameter, MakeEncapsulationType, 'SetFirst*', 'SetRest*')"
 			@ %NPLA1, "functions %(LoadGroundContext, LoadModule_std_strings)"
@@ -5600,10 +5613,10 @@ b868
 					^ 'exprseq' ~ ('vexpr' or 'body'),
 					// To be consistent with the current %Documentation::NPL.
 				/ DLDI "derivation" @ "operative '$unless'" ^ '#inert' ~ 'not?',
-				/ $lib "added native derivation enabled by default"
+				/ $lib "added native implementation enabled by default"
 					@ "operative '$set!'"
 					^ $dep_from ("%SetWithNoRecursion" @ %NPLA1),
-				/ $lib "added native derivation enabled by default"
+				/ $lib "added native implementation enabled by default"
 					@ "operative '$setrec!'"
 					^ $dep_from ("%SetWithRecursion" @ %NPLA1),
 				/ DLI "optimized derivation" @ "applicative %accr",
@@ -5668,7 +5681,7 @@ b867
 			/ "simplified binary type trait %has_equality_operator"
 				>> %TypeTraits ^ $dep_from ("%equal_t" @ %TypeTraits)
 		),
-		/ $foced "inclusion %TypeOperation" @ %Examiner -> "%TypeTraits"
+		/ $forced "inclusion %TypeOperation" @ %Examiner -> "%TypeTraits"
 			$dep_from ("%has_equality_operator" @ %TypeOperation),
 		/ DLDI "simplified %list internal construction" @ %List
 			// To make it more like %Tree.
@@ -5939,27 +5952,31 @@ b866
 			(
 				+ DD "'yimpl' for strengthened exception specifications",
 				/ DLDI "reordered declarations of %swap",
-				+ DD $lib 'yimpl' @ "all '= default'" @ "special member functions",
-					// Some implicitly defaulted exception specifications are also \
-						strengthened.
-				/ DLDI "simplified function %get_allocator and constructors with \
-					allocator parameter" !^ "explicit cast to %allocate_type",
-					// Different to libstdc++, there is no support for extension \
-						of different allocators between %allocator_type and \
-						allocator type rebound to %value_type.
+				+ DD $lib 'yimpl' @ "all '= default'"
+					@ "special member functions",
+					// Some implicitly defaulted exception specifications are \
+						also strengthened.
+				/ DLDI "simplified function %get_allocator and constructors \
+					with allocator parameter"
+					!^ "explicit cast to %allocate_type",
+					// Different to libstdc++, there is no support for \
+						extension of different allocators between \
+						%allocator_type and allocator type rebound to \
+						%value_type.
 				/ DLI "simplified tree constructor with a single allocator \
 					parameter" ^ "default constructed comparison object"
 					~ "comparison object copy",
 					// As GCC r260806.
-				* "improper exception specficiation of allocator-extended move \
-					constructor" $since b830 $dep_from "tree constructor fix",
-					// See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91541 and \
-						LWG 3267.
+				* "improper exception specficiation of allocator-extended \
+					move constructor" $since b830
+					$dep_from "tree constructor fix",
+					// See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91541 \
+						and LWG 3267.
 				* "missing support of LWG 2005" @ "function templates %insert"
 					$since b830
 					^ $dep_from ("%has_iterator_value_type" @ %IteratorTrait),
-					// Since ISO C++17 features are documented, this is a bug. As \
-						GCC r264059 and GCC r264060. See \
+					// Since ISO C++17 features are documented, this is a bug. \
+						As GCC r264059 and GCC r264060. See \
 						https://gcc.gnu.org/bugzilla/show_bug.cgi?id=78595 and \
 						https://gcc.gnu.org/bugzilla/show_bug.cgi?id=87194.
 				+ "(function, function template) %contains"
@@ -5995,8 +6012,8 @@ b866
 					(
 						+ "#error directive to exclude configuration having \
 							%_LIBCPP_HAS_NO_GLOBAL_FILESYSTEM_NAMESPACE",
-						+ "%yconstexpr extended modes objects %(ios_nocreate, ios\
-							_noreplace)",
+						+ "%yconstexpr extended modes objects %(ios_nocreate, \
+							ios_noreplace)",
 						+ "%basic_filebuf %open support"
 					),
 					* "missing exclusion of extended modes" @ '__GLIBCXX__'
@@ -6110,7 +6127,7 @@ b866
 			)
 		)
 	);
-	* $re_add(b849) $comp "build failure" @ "platform %Android" $since b850
+	* $comp $re_add(b849) "build failure" @ "platform %Android" $since b850
 		$dep_to "unneeded workaround for incomplete C++11 implementation"
 	)
 ),
@@ -6345,8 +6362,8 @@ b864
 					'__has_builtin(__builtin_assume) \
 					|| YB_IMPL_CLANGPP >= 35100'",
 				/ $impl ^ 'void()' ~ 'void(0)'
-					// To be consistent to %YStandardEx.CAssert. This header has \
-						already no support ISO C anyway.
+					// To be consistent to %YStandardEx.CAssert. This header \
+						has already no support ISO C anyway.
 			),
 			+ "macro %YB_ATTR_QUAL",
 			+ $dev $re_add(b862) "preceding and following '__' for attribute \
@@ -6679,7 +6696,7 @@ b864
 		+ "'-flto -Wl,-allow-multiple-definition' after '-s' @ "linker option"
 			@ "non-debug configurations" @ %ProjectGenerator.Main
 	),
-	* $re_ex(b825) $comp $build "propable build failure with LTO"
+	* $comp $re_ex(b825) $build "propable build failure with LTO"
 		@ "%release configurations" @ "platform %Win32" $since b353
 		$dep_from ("script LTO workaround", %Tools.ProjectGenerator.Main)
 ),
@@ -6953,7 +6970,10 @@ b862
 					// To eliminate Clang++ warning on '__nonnull__' attribute.
 			),
 			/ $resolve(#35) "functon template %destruct_in" @ %Placement
-				$= (+ $workaround(#35) @ 'YB_IMPL_MSCPP < 1921')
+				$= (+ $workaround(#35) "workaround for failure of compilation \
+					due to pseudo destructor call with noexcept-specifier \
+					using Microsoft VC++ 2017" @ 'YB_IMPL_MSCPP < 1921')
+				// This is fixed in Microsoft VC++ 2019.
 		),
 		/ %YDefinition $=
 		(
@@ -7102,10 +7122,11 @@ b862
 		@ "main function" @ %SHBuild.Main $since b657) $dep_to
 		"wrong use of YB_NONNULL on member functions"
 		$= (/ 'YB_NONNULL(1)' -> "'YB_NONNULL(2)' or 'YB_NONNULL(3)'"),
-	/ $build "Microsoft VC++ projects" $=
+	/ $build "Microsoft VC++ projects" $effective @ %(YBase, YFramework,
+		Tools.(CreationTimeManager, PredefinedMacroDetector, SHBuild)) $=
 	(
-		/ $resolve(#36, #37) "retargeted toolchain to Microsoft VC++ 2019 \
-			(vc142)" ~ "Microsoft VC++2017 (vc141)",
+		/ $resolve(#36, #37) $re_ex(b773) "retargeted platform toolset"
+			-> 'v142' ~ 'v141',
 			// There are new issues not yet reported to be resolved, though.
 		/ $re_ex(b832) $dev $lib "updated 'WindowsTargetPlatformVersion' value \
 			'10.0'" ~ '10.0.17134.0'
@@ -7407,7 +7428,7 @@ b861
 						'map-reverse'"), "applicatives %(accr; foldr1; map1)")
 						$since b829
 						$= (- "redundant %forward call"),
-					/ $lib "added native derivation enabled by default"
+					/ $lib "added native implementation enabled by default"
 						@ "applicative 'not?'" ^ $dep_from ("%Cond" @ %NPLA1),
 					/ $forced DLDI "simplified applicative 'resolve-identifier'"
 						$dep_from ("%ResolveIdentifier" @ %NPLA)
@@ -7534,8 +7555,8 @@ b860
 				/ @ "namespace %Forms" $=
 				(
 					/ DLDI "simplified" @ ("functions %(Eval, EvalRef, \
-						EvalString, EvalStringRef)", "%operator()"
-						@ "vau handlers"),
+						EvalString, EvalStringRef)",
+						"%operator()" @ "vau handlers"),
 					/ "supported move of rvalue expressions" @ "functions \
 						%(Eval, EvalRef, EvalString, EvalStringRef)"
 						^ ("%NPL::IsMovable" @ %NPLA),
@@ -7608,7 +7629,7 @@ b860
 			(
 				/ "function %LoadGroundContext" $=
 				(
-					/ $lib "added native derivation enabled by default"
+					/ $lib "added native implementation enabled by default"
 						@ ("applicative %list" ^ $dep_from
 						("%ListAsterisk" @ %NPLA1), "applicative 'list%'"
 						^ $dep_from ("%ListAsteriskRef" @ %NPLA1),
@@ -7658,7 +7679,7 @@ b859
 				// The call to %LiftTermIndirection should be avoid in cases \
 					other than a few like applicative %deshare. This is \
 					basically not guaranteed in interface (and annoying to \
-					simulate in non-native derivations). This also improves \
+					simulate in non-native implementations). This also improves \
 					performance in many cases.
 			),
 			/ @ "function template %CheckRegular" $=
@@ -7753,9 +7774,18 @@ b859
 						* "missing removing %TermTags::Temporary from the \
 							source term" $since b857;
 							// Since the referent can be bound in an \
-								environment, it may have this tag.
+								environment, it may have this tag. Like C++, \
+								prvalue and xvalues are both bound to deduced \
+								argument, but in NPLA1 there is no way to \
+								distinguish 'T&&' or 'T&', so there is only \
+								one option of the two. As needed by forwarding \
+								lvalues, preserving %TermTags::Unique is \
+								inappropriate.
 						* "bogus %TermTags::Nonmodifying added" $since b856
 							$dep_to "modifying qualification fix",
+							// Likewise, to allow forwarding lvalues of 'T&' \
+								but not just 'const T&', the nonmodifying tag \
+								shall not be implicitly implied.
 						/ "inherited input tags"
 					),
 					* "bogus %TermTags::Temporary initialized for references"
@@ -7858,10 +7888,10 @@ b859
 				+ "applicative 'wrap%'" ^ $dep_from ("%WrapRef" @ %NPLA1),
 				/ DLDI "simplified" @ "applicative 'assign!'" ^ $dep_from
 					("%NPL::IsMovable" @ %NPLA),
-				+ "native derivation" @ "applicative 'check-environment' and \
-					enabled by default" ^ $dep_from
+				+ "native implementation" @ "applicative 'check-environment' \
+					and enabled by default" ^ $dep_from
 					("%CheckEnvironment" @ %NPLA1),
-				/ $lib "added native derivation enabled by default"
+				/ $lib "added native implementation enabled by default"
 					@ ("applicative 'first&'" ^ $dep_from ("%FirstRef"
 					@ %NPLA1), "applicative 'first@'"
 					^ $dep_from ("%FirstRefAt" @ %NPLA1)),
@@ -7905,14 +7935,15 @@ b859
 						"%forward" $dep_from "shared temporaries fix";
 						// This is not effective as long as the terms operated \
 							are preserved.
-					* DLDI "%ReductionStatus use" @ "native derivations did \
-						not respect irregular representation of references"
+					* DLDI "%ReductionStatus use" @ "native implementations \
+						did not respect irregular representation of references"
 						$since b858
-						$= (/ DLDI "native derivation" @ "applicatives ('id', \
-							'idv', 'ref&')" ^ "%ReductionStatus::Retained"
+						$= (/ DLDI "native implementation" @ "applicatives \
+							('id', 'idv', 'ref&')"
+							^ "%ReductionStatus::Retained"
 							~ "%ReductionStats::Regular"),
-					/ $lib "added native derivation enabled by default" @ "applicative \
-						%first" ^ $dep_from ("%First" @ %NPLA1)
+					/ $lib "added native implementation enabled by default"
+						@ "applicative %first" ^ $dep_from ("%First" @ %NPLA1)
 						// Only with the bug above fixed, the native \
 							implementation can behave the same.
 				)
@@ -7938,7 +7969,7 @@ b859
 					/ "handled error" ^ $dep_from 'raise-invalid-syntax';
 						// This is also needed to make the equivalent native \
 							implementation simpler.
-					/ $lib "added native derivation enabled by default"
+					/ $lib "added native implementation enabled by default"
 						@ "applicative %apply" ^ ("%Apply" @ %NPLA1)
 				)
 			),
@@ -8508,14 +8539,14 @@ b857
 							inner call";
 						- $impl "'forward' before %body"
 					),
-					/ $lib "added native derivation enabled by default"
+					/ $lib "added native implementation enabled by default"
 						@ "operative '$quote'",
 					* $comp "wrong result of applicative 'lvalue?' for named \
 						lvalue references" $since b828 $dep_from
 						"fixed lvalue resolution",
 					/ @ "applicative 'forward'" $=
 					(
-						/ $lib "added native derivation enabled by default"
+						/ $lib "added native implementation enabled by default"
 							^ $dep_from ("%LiftRValueToReturn" @ %NPLA),
 							// See $2019-04 @ %Documentation::Workflow.
 						/ DLI "original derivation" ^ "%unwrap" ~ '$quote'
@@ -8527,12 +8558,10 @@ b857
 						// This is consistent to 'first@'. Only these \
 							functions can return references to reference.
 					(
-					+ $forced "applicative <-%" ^ $dep_from
-						("%Collapse" @ %NPLA);
-
-				//	* $comp "missing collapse" @ "alternative derivation"
-						@ "applicative 'set-first%!'" $since b;
-
+					+ $forced "applicative <-%"
+						^ $dep_from ("%Collapse" @ %NPLA);
+					* $comp "missing collapse" @ "alternative derivation"
+						@ "applicative 'set-first%!'" $since b855,
 					* "possible cyclic reference move self or subterm"
 						@ "applicatives ('<-', '<-%')" $since b856
 						^ $dep_from ("%LiftTerm#1" @ %NPLA)
@@ -9734,10 +9763,10 @@ b852
 	),
 	/ %YFramework $=
 	(
-		/ "improved compatibility" @ "alias %ModuleProc"
-			@ %YCLib_MinGW32.MinGW32 ^ '__stdcall',
-			// This allows Microsoft VC++ which does not has extension for \
-				'__stdcall' in %std::remove_reference.
+		/ $dev $lib "improved compatibility" @ "alias %ModuleProc"
+			@ 'YB_IMPL_MSCPP' @ %'YCLib_(Win32)'.MinGW32 ^ '__stdcall',
+			// This makes Microsoft VC++ happy with the implementation of \
+				%LoadProc.
 		/ %YSLib.Core.ValueNode $=
 		(
 			+ "trait class MappedSetTraits" @ "class %ValueNode",
@@ -10047,7 +10076,7 @@ b852
 		"avoided MakeIndex with container"
 ),
 
-b851,
+b851
 (
 	/ $re_add(b850) DLDI ^ "%YSLib::unchecked_any_cast"
 		~ "%ystdex::unchecked_any_cast" $effective
@@ -10224,9 +10253,9 @@ b851,
 				+ "function templates %(allocate_unique; allocate_shared) for \
 					parameters of %std::initializer_list instances",
 				+ 'using std::make_shared',
-				* "self recursive calls" @ "make_unique for parameters of \
-					%std::initializer_list instances" $since b
-					$= (/ ^ "%ystdex::cpp2014::make_unique"
+				* "self recursive calls" @ "%make_unique for parameters of \
+					%std::initializer_list instances" $since b574
+					$= (/ $impl ^ "%ystdex::cpp2014::make_unique"
 						~ "%ystdex::make_unique"),
 				/ @ "functiont templates %(share_copy, share_forward, \
 					share_move, unique_copy, unique_forward, unique_move)" $=
@@ -10599,9 +10628,9 @@ b850
 				(
 					(
 					/ $lib $impl "optimized %RefHolder" !^ "%ValueHolder";
-					+ $dev "static assertion of %RefHolder instances to ensure \
-						efficient allocation" @ "constructor %ValueObject with \
-						%OwnershipTag<> parameter"
+					+ $dev $lib "static assertion of %RefHolder instances to \
+						ensure efficient allocation" @ "constructor \
+						%ValueObject with %OwnershipTag<> parameter"
 						^ "%ystdex::any_ops::is_in_place_storable"
 					),
 					- DLDI "redundant '&&'" @ "'*_constructible' template \
@@ -10649,8 +10678,8 @@ b850
 								has to be constructed otherwise.
 						),
 						(
-						/ DLI "all 2 function templates %Add"
-							^ "function templates %Insert" ~ "functions %Add";
+						/ DLI "all 2 function templates %Add" ^ "%Insert"
+							~ "%Add";
 							// Similar to implementations of %Insert.
 						- "all 2 functions %Add"
 						),
@@ -11224,7 +11253,7 @@ b849
 									b246
 									$= (- 'yconstfn')
 							),
-							/ $revert_ex(b948) $comp "throwing behavior for \
+							/ $comp $revert_ex(b948) "throwing behavior for \
 								empty targets" @ "%operator()" $dep_from
 								("%ystdex::function"
 								@ %YBase.YStandardEx.Function),
@@ -11341,7 +11370,7 @@ b849
 		%(CompactPixmap, []), %GetPixels" @ "class %HBitmap" $since b430)
 		@ %Image) @ %Adaptor, "functions %(RenderChar, RenderCharAlpha)"
 		@ %Service.CharRenderer $since b415) @ %YSLib, "member function \
-		%RegistryKey::GetRawValue" @ %'YCLib_(MinGW32)'.Registry $since b633,
+		%RegistryKey::GetRawValue" @ %'YCLib_(Win32)'.Registry $since b633,
 		("static member function template %GUCSMapper<CharSet::GBK>::Decode"
 		@ %MappingEx $orig (@ %StaticMapping $since b272), "static member \
 		functions %GUCSMapper<CharSet::UTF_8>::(Decode, Encode), \
@@ -11350,7 +11379,7 @@ b849
 		@ %YFramework ^ "%ystdex::(replace_cast, octet)",
 		// This would be ill-formed once the %byte is %std::byte or other \
 			types not implicitly convertible to %char.
-	* $re_add(b839) $comp "build failure" @ "platform %Android" $since b841
+	* $comp $re_add(b839) "build failure" @ "platform %Android" $since b841
 		($dep_from ("%Reducer" @ %YFramework.NPL.NPLA), $dep_all_from
 		"G++ 5.3 workarounds"),
 	* $comp "configuration loading failure" @ "platform %Android" $since b838
@@ -13195,7 +13224,7 @@ b843
 						/ "passed allocator by value",
 						+ "'1' as 2nd default parameter"
 					),
-					+ "defaulted (copy, move) (constructor, %operaotr=)"
+					+ "defaulted (copy, move) (constructor, %operator=)"
 				),
 				/ @ "function templates %make_unique_with" $=
 				(
@@ -13370,7 +13399,7 @@ b843
 		/ $re_add(b830) $forced $build "updated %LIBS for \
 			%YBase.YStandardEx.MemoryResource" @ "%SHBuild-bootstrap.sh"
 			$dep_from %YFramework.YCLib.Container,
-		* "redundant escape '\' for default variable value %LIBS_RPATH \
+		* "redundant escaping '\' for default variable value %LIBS_RPATH \
 			quoted by %SHBuild_QuoteS_" @ "%SHBuild-YSLib-common.txt"
 			@ %Scripts $since b797,
 			// This was buggy for a long time, but since b838 it was used.
@@ -13777,8 +13806,8 @@ b840
 			),
 			/ @ "class %MappedFile" $=
 			(
-				/ DLDI @ "platform %Win32" @ "constructor" ^ 'CreateFileMappingW'
-					~ 'CreateFileMappign',
+				/ DLDI @ "platform %Win32" @ "constructor"
+					^ 'CreateFileMappingW' ~ 'CreateFileMappign',
 				(
 				/ "supported empty file" @ "constructors";
 					// Although for non Windows or POSIX configurations like \
@@ -13943,6 +13972,7 @@ b840
 		(
 			/ "cached and guarded environment variables" ^ 'safeenv-*'
 				~ "environment variable saving";
+				// This includes functions like '$env-de!'.
 			/ $comp "allowed debug environment setting with nonempty variable \
 				%SS_DebugEnv",
 			* $comp "externally set %INCLUDES not effective"
@@ -14780,7 +14810,7 @@ b837
 	(
 		/ %SHBuild.Main $=
 		(
-			/ "help message" $=
+			/ @ "help message" $=
 			(
 				+ "clearer description of ignored subdirectories in SRCPATH"
 				/ "clarified option '-xd,' accepted paths"
@@ -16325,7 +16355,7 @@ b831
 			),
 			/ DLDI "all 2 function template %stable_unique" @ %Algorithm
 				^ "%std::iter_swap" ~ "ADL swap",
-			* $revert(b576) "missing header inclusion '<initialization_list>'"
+			* $revert(b576) "missing inclusion <initialization_list>"
 				@ %Container $since b576,
 			(
 			+ DLDI "header %Memory"
@@ -16385,7 +16415,7 @@ b831
 				(
 					// The not changed specialized interface include LWG 2766 \
 						(swap) and WG21 P0513R0 (std::hash).
-					/ $lib "object %nullopt" ^ $dep_from
+					/ DLD "object %nullopt" ^ $dep_from
 						("%yconstexpr_inline" @ %YDefinition) ~ "%yconstexpr",
 					(
 						+ $lib "overrder %what";
@@ -17395,11 +17425,9 @@ b823
 		(
 		* "contract violated by missing exclusion of invalid value for \
 			%std::(tolower, toupper, towlower, towupper)"
-			@ "(function, function templates) %(tolower, toupper)"
-			$since b605;
+			@ "(function, function templates) %(tolower, toupper)" $since b605;
 			// See ISO C11 7.4/1 and ISO C11 7.30.1/5.
-		/ "function templates %(tolower, toupper)"
-			=> "%(towlower, towupper)";
+		/ "function templates %(tolower, toupper)" => "%(towlower, towupper)";
 		+ $doc "guaranteed no other overloads for each function name"
 		)
 	),
@@ -17681,7 +17709,7 @@ b822
 		/ "loaded derived functions" @ "function %LoadNPLContextForSHBuild"
 			@ %Dependency $=
 		(
-			* $re_add(b821) $comp "unsafe applicative %cons" $since b800,
+			* $comp $re_add(b821) "unsafe applicative %cons" $since b800,
 				// This is now also consistent with 'list'.
 			+ "applicative 'cons&'" ^ $dep_from ("%ConsRef" @ %NPLA1),
 				// Similar to 'list&'.
@@ -18349,7 +18377,7 @@ b810
 			(
 				- "parameters" @ "type %Reducer, function %ApplyTail";
 				(
-				- $foced "1st parameter" @ "functions %(ApplyTail; Rewrite)";
+				- $forced "1st parameter" @ "functions %(ApplyTail; Rewrite)";
 				/ $forced DLDI "function %RewriteGuarded"
 				),
 				/ $forced DLDI "function template %SetupBoundedTail",
@@ -18986,8 +19014,7 @@ b804
 			mismatched type of unevaluated symbols" $since b803 $dep_from
 			(('$assert-nonempty', '$set-system-var!', '$env-de!')
 			@ "%SHBuild-YSLib-common.txt" @ %Scripts)
-			// Mangled type names \
-				'N6ystdex14derived_entityINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEJN3NPL7NPLATagEEEE' \
+			// Mangled type names 'N6ystdex14derived_entityINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEJN3NPL7NPLATagEEEE' \
 				and 'NSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE' are \
 				shown in exception message (of %ystdex::bad_any_cast) in case \
 				using libstdc++.
@@ -19369,7 +19396,7 @@ b800
 			(
 				/ $impl "simplified" ^ "%OpenMode::CreateExclusive"
 					~ "%OpenMode::(Create, Exclusive)";
-				* "wrong result for %platform::ios_nocreate" $since b722
+				* $comp "wrong result for %platform::ios_nocreate" $since b722
 			),
 			/ $re_add(b793) "marked fallthrough" @ "function \
 				%ExecuteShellCommand" @ "platform %Win32" @ %HostedGUI

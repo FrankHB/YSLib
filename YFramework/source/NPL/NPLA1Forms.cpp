@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r27404
+\version r27432
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2022-07-05 05:49 +0800
+	2022-07-25 01:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,14 +26,15 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA1Forms // for YSLib, std::next, ReduceOnceLifted,
-//	ResolvedTermReferencePtr, NPL::IsMovable, TryAccessReferencedTerm,
-//	ystdex::value_or, ThrowInsufficientTermsError, NPL::Deref,
-//	A1::NameTypedReducerHandler, ReduceReturnUnspecified, RemoveHead, IsBranch,
-//	AccessFirstSubterm, ReduceSubsequent, ReduceCombinedBranch,
-//	std::placeholders, std::ref, std::bind, ystdex::as_const, IsLeaf,
-//	ValueObject, ystdex::ref_eq, RelaySwitched, trivial_swap, shared_ptr,
-//	ContextHandler, YSLib::unordered_map, string, Environment, lref, TokenValue,
+#include YFM_NPL_NPLA1Forms // for ResolvedTermReferencePtr, NPL::IsMovable,
+//	ystdex::value_or, TryAccessReferencedTerm, IsBranch,
+//	ThrowInsufficientTermsError, NPL::Deref, ReduceSubsequent,
+//	A1::NameTypedReducerHandler, ReduceOnceLifted, std::next,
+//	ReduceReturnUnspecified, CheckVariadicArity, RemoveHead, AccessFirstSubterm,
+//	ReduceOrdered, std::bind, std::ref, std::placeholders, std::declval,
+//	RetainList, RetainN, ystdex::as_const, ValueObject, ReferenceTerm, IsLeaf,
+//	ystdex::ref_eq, RelaySwitched, trivial_swap, shared_ptr, ContextHandler,
+//	YSLib::unordered_map, string, Environment, lref, TokenValue,
 //	any_ops::use_holder, in_place_type, YSLib::HolderFromPointer,
 //	YSLib::allocate_shared, InvalidReference, BindParameter, MoveFirstSubterm,
 //	ResolveEnvironment, ShareMoveTerm, BindParameterWellFormed, ystdex::sfmt,
@@ -268,7 +269,7 @@ EqTermReference(TermNode& term, _func f)
 {
 	EqTermRet(term,
 		[f] YB_LAMBDA_ANNOTATE((const TermNode& x, const TermNode& y), , pure){
-		return IsLeaf(x) && IsLeaf(y) ? f(x.Value, y.Value)
+		return IsAtom(x) && IsAtom(y) ? f(x.Value, y.Value)
 			: ystdex::ref_eq<>()(x, y);
 	}, static_cast<const TermNode&(&)(const TermNode&)>(ReferenceTerm));
 }
@@ -637,6 +638,7 @@ EvalImplUnchecked(TermNode& term, ContextNode& ctx, bool no_lift)
 	ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
 		LiftOtherOrCopy(term, nd, NPL::IsMovable(p_ref));
 	}, NPL::Deref(i));
+	// XXX: This implies %EnsureValueTags.
 	ClearCombiningTags(term);
 	// NOTE: On %NPL_Impl_NPLA1_Enable_TCO, this assumes %term is same to the
 	//	current term in %TCOAction, which is initialized by %CombinerReturnThunk
@@ -666,7 +668,7 @@ EvalStringImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 
 	SContext::Analyze(std::allocator_arg, ctx.get_allocator(), sess,
 		sess.Process(NPL::ResolveRegular<const string>(expr)))
-		.SwapContainer(expr);
+		.SwapContent(expr);
 	return EvalImplUnchecked(term, ctx, no_lift);
 }
 
@@ -995,7 +997,6 @@ public:
 
 
 //! \since build 947
-//@{
 template<typename... _tParams>
 void
 ConsSplice(TermNode tm, TermNode& nd, _tParams&&... args)
@@ -1012,6 +1013,7 @@ ConsSplice(TermNode tm, TermNode& nd, _tParams&&... args)
 // XXX: Returning term instead of the container allows to pass improper lists,
 //	also perserves the allocator on
 //	copy.
+//! \since build 947
 YB_ATTR_nodiscard TermNode
 ConsItem(TermNode& y)
 {
@@ -1031,7 +1033,6 @@ ConsItem(TermNode& y)
 			ThrowListTypeErrorForNonList(nd_y, p_ref_y);
 	}, y);
 }
-//@}
 
 //! \since build 912
 ReductionStatus
@@ -1621,6 +1622,8 @@ MakeResolvedParent(TermNode& nd, ResolvedTermReferencePtr p_ref)
 	if(IsList(nd))
 		return VauHandler::MakeParent(MakeEnvironmentParent(
 			nd.begin(), nd.end(), nd.get_allocator(), !NPL::IsMovable(p_ref)));
+	// XXX: Currently all supported environment representations of a single
+	//	object are in the leaf.
 	if(IsLeaf(nd))
 		return VauHandler::MakeParentSingle(nd.get_allocator(),
 			ResolveEnvironment(nd.Value, NPL::IsMovable(p_ref)));
@@ -1725,6 +1728,11 @@ LambdaVauWithEnvironment(TermNode& term, ContextNode& ctx, size_t wrap,
 	auto i(term.begin());
 	auto& tm(NPL::Deref(++i));
 
+	// XXX: As %EvalImplUnchecked, with in-place term modification.
+	ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
+		LiftTermOrCopy(tm, nd, NPL::IsMovable(p_ref));
+	}, tm);
+	EnsureValueTags(tm.Tags);
 	return ReduceSubsequent(tm, ctx,
 		NameTypedReducerHandler([&, i, wrap, no_lift]{
 		return ReduceCreateFunction(term, [&]{
@@ -4768,7 +4776,12 @@ Call1CC(TermNode& term, ContextNode& ctx)
 		}
 #endif
 		// NOTE: Now unwind the reducer sequence upon to the delimiter. This
-		//	switches the control to the position to the captured one.
+		//	switches the control to the position to the captured one. Unwinding
+		//	frames would need %NPL_Impl_NPLA1_Enable_Thunked, otherwise it would
+		//	leat to undefined behavior when the removed frames are accessed
+		//	later, because only thunked implementations guarantees the future
+		//	accesses are also removed, rather than remaining in the activation
+		//	records of the host language.
 		while(cur.begin() != i_top)
 			cur.pop_front();
 #if NPL_Impl_NPLA1_Enable_TCO

@@ -11,13 +11,13 @@
 /*!	\file Exception.cpp
 \ingroup NPL
 \brief NPL 异常。
-\version r4840
+\version r4842
 \author FrankHB <frankhb1989@gmail.com>
 \since build 936
 \par 创建时间:
 	2022-01-21 01:59:50 +0800
 \par 修改时间:
-	2022-07-05 04:50 +0800
+	2022-07-17 08:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,8 +113,8 @@ void
 ThrowListTypeErrorForInvalidType(const char* name, const TermNode& term,
 	bool has_ref, size_t n_skip)
 {
-	throw ListTypeError(ystdex::sfmt("Expected a value of type '%s', got a list"
-		" '%s'.", name, TermToStringWithReferenceMark(term, has_ref, n_skip).c_str()));
+	throw ListTypeError(ystdex::sfmt("Expected a value of type '%s', got '%s'.",
+		name, TermToStringWithReferenceMark(term, has_ref, n_skip).c_str()));
 }
 void
 ThrowListTypeErrorForInvalidType(const type_info& ti,

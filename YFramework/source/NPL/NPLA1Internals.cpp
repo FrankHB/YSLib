@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20646
+\version r20651
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-06-17 00:49 +0800
+	2022-07-12 21:28 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -267,8 +267,8 @@ ReduceAsSubobjectReference(TermNode& term, shared_ptr<TermNode> p_sub,
 	term.Tags = TermTags::Unqualified;
 	// XXX: Not using %ystdex::prefix_eraser because there is known 1 subterm to
 	//	be inserted.
-	con.insert(i, NPL::AsTermNodeTagged(con.get_allocator(), TermTags::Sticky,
-		std::move(p_sub)));
+	con.insert(i,
+		A1::MakeSubobjectReferent(con.get_allocator(), std::move(p_sub)));		
 	con.erase(i, con.end());
 	return ReductionStatus::Retained;
 }
@@ -284,9 +284,9 @@ ReduceForCombinerRef(TermNode& term, const TermReference& ref,
 
 	// XXX: Allocators are not used on %FormContextHandler for performance in
 	//	most cases.
-	return ReduceAsSubobjectReference(term, YSLib::allocate_shared<TermNode>(a,
-		NPL::AsTermNode(a, ContextHandler(std::allocator_arg, a,
-		FormContextHandler(RefContextHandler(h, r_env), n)))), r_env);
+	return ReduceAsSubobjectReference(term,
+		A1::AllocateSharedTermValue(a, ContextHandler(std::allocator_arg, a,
+		FormContextHandler(RefContextHandler(h, r_env), n))), r_env);
 }
 
 } // inline namespace Internals;

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r23050
+\version r23076
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2022-07-12 18:03 +0800
+	2022-07-24 22:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA1Forms // for NPL, EvaluationPasses, lref, ContextHandler,
+#include YFM_NPL_NPLA1Forms // for EvaluationPasses, lref, ContextHandler,
 //	RelaySwitched, trivial_swap, type_index, string_view, std::hash,
 //	ystdex::equal_to, YSLib::unordered_map, YSLib::lock_guard, YSLib::mutex,
 //	std::ref, ListReductionFailure, ystdex::sfmt, FetchArgumentN, std::next,
@@ -489,6 +489,13 @@ public:
 };
 //@}
 
+//! \since build 950
+YB_NORETURN void
+ThrowForInvalidArgumentLists()
+{
+	throw ListReductionFailure("List expected in the applicative call.");
+}
+
 
 //! \since build 881
 class SeparatorPass
@@ -549,7 +556,7 @@ public:
 private:
 	YB_FLATTEN void
 	Transform(TermNode& term
-#	if defined(NPL_Impl_NPLA1_Enable_ThunkedSeparatorPass) \
+#	if NPL_Impl_NPLA1_Enable_ThunkedSeparatorPass \
 	&& NPL_Impl_NPLA1_Enable_ThunkedThreshold != 0
 		, size_t n = 0
 #	endif
@@ -618,6 +625,8 @@ struct BindParameterObject
 	operator()(char sigil, bool ref_temp, TermTags o_tags, TermNode& o,
 		_fCopy cp, _fMove mv) const
 	{
+		// NOTE: For elements binding here, %TermTags::Unique in %o_tags is
+		//	irrelavant.
 		// NOTE: This shall be %true if the operand is stored in a term tree to
 		//	be reduced (and eventually cleanup). See also
 		//	%GParameterMatcher::Match.
@@ -639,6 +648,10 @@ struct BindParameterObject
 			{
 				if(sigil != char())
 				{
+					// NOTE: If %ref_temp is set, xvalues are treated as
+					//	prvalues in terms of the tags of the bound object. This
+					//	only occurs on sigil '&' as per the object language
+					//	rules.
 					const auto ref_tags(PropagateTo(ref_temp
 						? BindReferenceTags(*p) : p->GetTags(), o_tags));
 
@@ -1788,12 +1801,18 @@ FormContextHandler::CallN(size_t n, TermNode& term, ContextNode& ctx) const
 }
 
 void
-FormContextHandler::CheckArguments(size_t n, TermNode& term)
+FormContextHandler::CheckArguments(const TermNode& term)
 {
-	YAssert(!(IsList(term) && HasStickySubterm(term)),
-		"Invalid representation found.");
+	AssertCombiningTerm(term);
+	if(YB_UNLIKELY(!IsList(term)))
+		ThrowForInvalidArgumentLists();
+}
+void
+FormContextHandler::CheckArguments(size_t n, const TermNode& term)
+{
+	AssertCombiningTerm(term);
 	if(YB_UNLIKELY(n != 0 && !IsList(term)))
-		throw ListReductionFailure("List expected in the applicative call.");
+		ThrowForInvalidArgumentLists();
 }
 
 bool
@@ -2035,7 +2054,7 @@ ReduceCombined(TermNode& term, ContextNode& ctx)
 ReductionStatus
 ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 {
-	YAssert(IsCombiningTerm(term), "Invalid term found for combined term.");
+	AssertCombiningTerm(term);
 
 	auto& fm(AccessFirstSubterm(term));
 	const auto p_ref_fm(TryAccessLeafAtom<const TermReference>(fm));
@@ -2315,7 +2334,7 @@ SetupTailContext(ContextNode& ctx, TermNode& term)
 #if NPL_Impl_NPLA1_Enable_TCO
 	yunused(EnsureTCOAction(ctx, term));
 #else
-	yunused(ctx);
+	yunused(ctx), yunused(term);
 #endif
 }
 

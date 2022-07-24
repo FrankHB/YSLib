@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9538
+\version r9551
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-06-18 02:40 +0800
+	2022-07-24 21:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1138,13 +1138,19 @@ private:
 public:
 	/*!
 	\brief 检查是否符合应用子的参数列表。
-	\pre 断言：若为列表，不具有粘滞位。
-	\throw ListReductionFailure 第一参数不等于 0 且第二参数不表示列表。
+	\pre 参数指定的项是规约合并项。
 	\note 因为对象语言中的参数求值规则不影响参数项的结构，所以调用前只需要检查一次。
-	\since build 948
+	\sa AssertCombiningTerm
+	\since build 950
 	*/
+	//@{
+	//! \throw ListReductionFailure 参数不表示列表。
 	static void
-	CheckArguments(size_t, TermNode&);
+	CheckArguments(const TermNode&);
+	//! \throw ListReductionFailure 第一参数不等于 0 且第二参数不表示列表。
+	static void
+	CheckArguments(size_t, const TermNode&);
+	//@}
 
 private:
 	//! \since build 859
@@ -1597,7 +1603,7 @@ CheckEnvironmentFormal(const TermNode&);
 参数指定形式参数、实际参数、两个处理器、绑定选项和引用值关联的环境。
 其中，形式参数被视为作为形式参数树的右值。
 绑定选项以 TermTags 编码，但含义和作用在项上时不完全相同：
-Unique 表示唯一引用项（在此即消亡值值）；
+Unique 表示唯一引用项（在此即消亡值）；
 Nonmodifying 表示需要复制；
 Temporary 表示不被共享的项（在此即纯右值或没有匹配列表的引用值）。
 当需要复制时，递归处理的所有对实际参数的绑定以复制代替转移；
@@ -1617,7 +1623,7 @@ Temporary 表示不被共享的项（在此即纯右值或没有匹配列表的�
 		若最后的子项为 . 起始的记号，则匹配操作数中结尾的任意个数的项作为结尾序列。
 		其它子项一一匹配操作数的子项。
 	若项是空列表，则操作数的对应的项应为空列表。
-	若项是引用值，则以表示其被引用对象的项作为子项继续匹配。
+	若项是引用值，则以表示其被引用对象的项作为子项，继续匹配一次。
 	若项是 #ignore ，则忽略操作数对应的项。
 	若项的值不是符号，则匹配出错。
 	否则，匹配非列表项。

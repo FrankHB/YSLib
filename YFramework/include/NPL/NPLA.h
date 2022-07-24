@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r9695
+\version r9714
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2022-07-06 08:28 +0800
+	2022-07-24 21:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,14 +35,14 @@
 //	std::initializer_list, IsBranch, type_id, shared_ptr,
 //	ystdex::is_nothrow_copy_constructible, ystdex::is_nothrow_copy_assignable,
 //	ystdex::is_nothrow_move_constructible, ystdex::is_nothrow_move_assignable,
-//	EnsureValueTags, AssertValueTags, IsTyped, ThrowListTypeErrorForInvalidType,
-//	observer_ptr, TryAccessValue, IsAtom, IsLeaf, ystdex::equality_comparable,
-//	weak_ptr, lref, AssertReferentTags, ystdex::get_equal_to, NPL::IsMovable,
-//	pair, std::declval, ystdex::invoke_value_or, ystdex::expand_proxy,
-//	Access, ystdex::ref_eq, ValueObject, NPL::SetContentWith, std::for_each,
-//	TNIter, AccessFirstSubterm, AssertBranch, NPL::Deref,
-//	YSLib::EmplaceCallResult, ystdex::less, YSLib::map, pmr,
-//	ystdex::copy_and_swap, NoContainer, ystdex::try_emplace,
+//	EnsureValueTags, AssertValueTags, IsPair, IsList, HasStickySubterm,
+//	ThrowListTypeErrorForInvalidType, observer_ptr, TryAccessValue, IsAtom,
+//	IsLeaf, ystdex::equality_comparable, weak_ptr, lref, AssertReferentTags,
+//	ystdex::get_equal_to, NPL::IsMovable, pair, std::declval,
+//	ystdex::invoke_value_or, ystdex::expand_proxy, Access, ystdex::ref_eq,
+//	ValueObject, NPL::SetContentWith, std::for_each, TNIter, AccessFirstSubterm,
+//	AssertBranch, NPL::Deref, YSLib::EmplaceCallResult, ystdex::less,
+//	YSLib::map, pmr, ystdex::copy_and_swap, NoContainer, ystdex::try_emplace,
 //	ystdex::try_emplace_hint, ystdex::insert_or_assign, type_info,
 //	ystdex::expanded_function, ystdex::enable_if_same_param_t,
 //	ystdex::exclude_self_t, ystdex::make_obj_using_allocator,
@@ -456,6 +456,18 @@ inline PDefH(void, ClearCombiningTags, TermNode& term) ynothrowv
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(bool, IsCombiningTerm, const TermNode& term) ynothrow
 	ImplRet(IsPair(term))
+
+/*!
+\brief 断言规约合并项。
+\pre 断言：参数指定的项是规约合并项。
+\pre 断言：若为列表，不具有粘滞位。
+\since build 950
+*/
+YB_NONNULL(2) inline PDefH(void, AssertCombiningTerm, const TermNode& term,
+	const char* msg = "Invalid term found for combined term.") ynothrowv
+	ImplExpr(yunused(term), yunused(msg), YAssert(IsCombiningTerm(term), msg),
+		YAssert(!(IsList(term) && HasStickySubterm(term)),
+		"Invalid representation found."))
 
 
 /*!	\defgroup TermAccessAuxiliary Term Access Auxiliary API

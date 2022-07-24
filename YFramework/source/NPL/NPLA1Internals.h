@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r22439
+\version r22469
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-07-12 12:50 +0800
+	2022-07-23 09:34 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -29,13 +29,14 @@
 #define NPL_INC_NPLA1Internals_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_NPLA1 // for shared_ptr, ContextNode, NPL::Deref, NPLException,
-//	TermNode, ReductionStatus, Reducer, YSLib::map, lref, Environment, set,
-//	IsTyped, EnvironmentList, EnvironmentReference, pair, YSLib::forward_list,
-//	size_t, tuple, std::declval, EnvironmentGuard, MoveKeptGuard,
-//	A1::NameTypedContextHandler, TermReference, ThrowTypeErrorForInvalidType,
-//	TryAccessLeafAtom, type_id, TermToNamePtr, IsIgnore, ystdex::exclude_self_t,
-//	ParameterMismatch;
+#include YFM_NPL_NPLA1 // for shared_ptr, ContextNode, YSLib::allocate_shared,
+//	NPL::Deref, NPLException, TermNode, ReductionStatus, Reducer, YSLib::map,
+//	lref, Environment, set, IsTyped, EnvironmentList, EnvironmentReference,
+//	pair, YSLib::forward_list, size_t, tuple, std::declval, EnvironmentGuard,
+//	MoveKeptGuard, A1::NameTypedContextHandler, TermReference, TermTags,
+//	ThrowTypeErrorForInvalidType, TryAccessLeafAtom, type_id, TermToNamePtr,
+//	IsIgnore, ParameterMismatch, IsPair, IsEmpty, IsList, NPL::AsTermNode,
+//	NPL::AsTermNodeTagged;
 #include <ystdex/compose.hpp> // for ystdex::get_less;
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
 #include <ystdex/optional.h> // for ystdex::optional;
@@ -436,7 +437,7 @@ public:
 	\since build 819
 	*/
 	TCOAction(ContextNode& ctx, TermNode& term, bool lift)
-		: req_lift_result(lift ? 1 : 0),record_list(ctx.get_allocator()),
+		: req_lift_result(lift ? 1 : 0), record_list(ctx.get_allocator()),
 		env_guard(ctx), term_guard(ystdex::unique_guard(GuardFunction{term})),
 		OperatorName([&]() ynothrow{
 			// NOTE: Rather than only the target %TokenValue value, the whole
@@ -447,9 +448,9 @@ public:
 			// XXX: After the move, the value is unspecified. This should be no
 			//	longer used, so it is irrelavant.
 		}())
-		// XXX: Do not call %AssertValueTags on %term, as it is usually a
-		//	combinitation instead of the representation of some object language
-		//	value.
+		// XXX: Do not call %AssertValueTags on %term, as it can be (and is
+		//	usually) a combiniation instead of the representation of some
+		//	object language value.
 	{}
 	// XXX: Not used, but provided for well-formness.
 	//! \since build 819
@@ -1476,6 +1477,28 @@ public:
 #	endif
 #endif
 };
+
+
+//! \since build 950
+//@{
+template<class _tAlloc, typename... _tParams>
+YB_ATTR_nodiscard YB_ATTR_always_inline inline shared_ptr<TermNode>
+AllocateSharedTerm(const _tAlloc& a, _tParams&&... args)
+{
+	return YSLib::allocate_shared<TermNode>(a, yforward(args)...);
+}
+
+template<class _tAlloc, typename... _tParams>
+YB_ATTR_nodiscard YB_ATTR_always_inline inline shared_ptr<TermNode>
+AllocateSharedTermValue(const _tAlloc& a, _tParams&&... args)
+{
+	return A1::AllocateSharedTerm(a, NPL::AsTermNode(a, yforward(args)...));
+}
+
+YB_ATTR_nodiscard inline PDefH(TermNode, MakeSubobjectReferent,
+	TermNode::allocator_type a, shared_ptr<TermNode> p_sub)
+	ImplRet(NPL::AsTermNodeTagged(a, TermTags::Sticky, std::move(p_sub)))
+//@}
 
 
 //! \since build 913

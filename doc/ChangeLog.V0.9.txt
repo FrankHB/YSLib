@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r10004
+\version r10215
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-07-12 18:45 +0800
+	2022-07-25 04:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,193 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA1Internals $=
+		(
+			(
+			+ "function template %AllocateSharedTerm";
+			+ "function template %AllocateSharedTermValue";
+			/ DLDI "simplified function %ReduceForCombinerRef"
+			),
+			(
+			+ "function %MakeSubobjectReferent";
+			/ DLDI "simplified function %ReduceAsSubobjectReference"
+			)
+		),
+		* "misleading exception message"
+			@ "function %ThrowListTypeErrorForInvalidType" @ %Exception
+			$orig (@ %NPLA $since b859)
+			// This was OK for original %AccessTerm in NPLA.cpp in b840, but \
+				not synchrnized with %CheckRegular in b859.
+			$= (- ' a list'),
+		+ "function %AssertCombiningTerm" @ %NPLA,
+		/ %NPLA1 $=
+		(
+			/ DLDI @ '!NPL_Impl_NPLA1_Enable_TCO' @ "function %SetupTailContext"
+				^ 'yunused',
+				// To eliminate G++ warning: [-Wunused-parameter].
+			* DLI "wrong 'defined' condition for \
+				%NPL_Impl_NPLA1_Enable_ThunkedSeparatorPass"
+				@ "constructor %REPLContext#2" $since b944,
+				// Also to eliminate G++ warning: [-Wunused-parameter].
+			/ DLI "simplified function %ReduceCombinedBranch"
+				^ $dep_from ("%AssertCombiningTerm" @ %NPLA),
+				// This enhanced the assertion.
+			/ @ "class %FormContextHandler" $=
+			(
+				/ @ "static function %CheckArguments" $=
+				(
+					/ DLDI "simplified"
+						^ $dep_from ("%AssertCombiningTerm" @ %NPLA),
+					+ 'const' @ "term reference parameter"
+				),
+				+ "overload %CheckArguments without wrapping count"
+					// This is intended to used for known applicatives.
+			)
+		),
+		/ @ "namespace %Forms" @ %NPLA1Forms $=
+		(
+			+ $dev $lib "check on arguments" @ "function templates \
+				%(CallRawUnary, CallBinary)" ^ "%AssertValueTags",
+			* DD "argument formal syntax" @ "Doxygen comment" @ ("functions \
+				%(LambdaWithEnvironment, LambdaWithEnvironmentRef, \
+				VauWithEnvironment, VauWithEnvironmentRef)" $since b914,
+				"functions %(WVauWithEnvironment, WVauWithEnvironmentRef)"
+				$since b921),
+			/ "lifted the indirect value" @ "evaluating parent term"
+				@ "all functions with name suffix ('WithEnvironment', \
+				'WithEnvironmentRef')"
+				$dep_to "indirect parent environment evaluation",
+				// The original implementation in b909 did not support \
+					reference values. This is now similar to %Eval.
+			/ "supported leaf access of referents with irregular \
+				representations" @ "functions %(EqReference, EqValue)"
+				^ "%IsAtom" ~ "%IsLeaf",
+			* DD "redundant '\exception' command" @ "Doxygen comment"
+				@ "functions %(ListAsterisk, ListAsteriskRef)" $since b860,
+			* "missing cleanup of %Value of term before evaluation"
+				@ "functions %(EvalString, EvalStringRef)" $since b835
+				$= (/ ^ $impl ^ "%TermNode::SwapContent"
+					~ "%TermNode::SwapContainer")
+		),
+		/ %Dependency $=
+		(
+			/ @ "function %LoadGroundContext" $=
+			(
+				/ DLDI "indent" @ "derivation" @ "operative '$or'",
+				+ "applicative 'pair?'",
+				+ "applicative 'pairv?'",
+				/ "forwarded argument" @ "applicative 'for-each-ltr'",
+					// Like the change in 'map-reserve' in b948.
+				* "missing preserving reference values" @ "alternative \
+					derivation" @ "applicative 'list-push-front!'" $since b921
+					$= (/ $impl "simplified" ^ "idv"),
+				/ "supported comparing referents with irregular representations"
+					$=
+				(
+					/ $comp @ "applicatives ('eqv', 'eqv?')"
+						$dep_from "%Forms::(EqReference, EqValue)";
+					/ "alternative derivation" @ "applicative 'equal?'"
+						^ $dep_from 'pair?'
+					// The desired behavior is already supported in native \
+						implementation 'equal?' by %Forms::EqualTermValue in \
+						%NPLA1Forms so there requires no change.
+				),
+				* "redandant copying expression operand" @ "alternative \
+					derivation" @ "operative '$deflazy!'" $since b873
+					$dep_to "forwarding trailing"
+					// It was not named 'body', hence omitted.
+					$= (/ $impl ^ 'forward!'),
+					// The original change applied on 'body' was 'move!'.
+				/ DLI "reduced value copy for combiner calls" @ "alternative \
+					derivations" $dep_to "moving body preparation" $=
+				(
+					(
+					/ "moved alternative derivation of applicative %forward to \
+						top" @ 'NPL_Impl_NPLA1_Native_EnvironmentPrimitives';
+						// This is necessary for the derivation of '$vau' to \
+							use 'forward!'.
+					/ $design "forwarded all paramter trees"
+						$effective @ "operatives ('$vau', '$vau%', \
+						'$deflazy!', '$set!', '$setrec!', '$wvau', '$wvau%', \
+						'$wvau/e', '$wvau/e%, '$lambda', '$lambda%', \
+						'$lambda/e', '$lambda/e%', '$defv!', '$defv%!', \
+						'$defv/e!', '$defv/e%!', '$defw!', '$defw%!', \
+						'$defw/e!', '$defw/e%!', '$defl!', '$defl%!', \
+						'$defl/e!', '$defl/e%!')" ^ 'forward!',
+						// This is necessary for the following changes without \
+							undefined behavior.
+					),
+					/ $design "alternative derivations" @ "operatives \
+						('$deflazy!', '$set!', '$setrec!', '$let', '$let%', \
+						'$let/e', '$let/e%', '$as-environment')" ^ 'list%'
+						~ 'list',
+					/ $design "combination for arguments from parameter tree"
+						@ "alternative derivations" @ "operatives ('$vau', \
+						'$vau%', '$wvau', '$wvau%', '$wvau/e', '$wvau/e%', \
+						'$lambda', '$lambda%', '$lambda/e', '$lambda/e%')"
+						^ 'cons%' ~ 'cons',
+						// For dynamic environment and the operative, this is \
+							unnecessary.
+					/ $design "operatives ('$defv!', '$defv%!', '$defv/e!', \
+						'$defv/e%!', '$defw!', '$defw%!', '$defw/e!', \
+						'$defw/e%!', '$defl!', '$defl%!', '$defl/e!', \
+						'$defl/e%!')" ^ 'list*%' ~ 'list*'
+						$dep_from "indirect parent environment evaluation"
+				),
+				/ DLI "forwarding non-body trailing sequence" @ "derivation"
+					$dep_to "forwarding trailing" ^ 'forward!' ~ 'move!' $=
+				(
+					/ "clauses" @ "operative '$cond'",
+					/ "expression sequences" @ "operatives \
+						('$sequence', '$when', '$unless')",
+					/ "tail sequences" @ ("operative '$sequence'",
+						"applicatives ('list*', 'list*%')"),
+					/ "list sequences"
+						@ "applicatives (%append, 'map-reverse')",
+					/ "binding sequence" @ "operative '$bindings->environment'"
+				)
+			),
+			* DLDI "incomplete inactive alternative native implementations \
+				sample of combiner definition operations" $since b921,
+			/ "supported forwarding body" @ "alternative \
+				derivations" ^ 'forward!' ~ 'move!' $effective
+				@ "alternative derivation" @ ("operatives ('$vau', '$vau%', \
+				'$deflazy!', '$set!', '$setrec!', '$wvau', '$wvau%', \
+				'$wvau/e', '$wvau/e%, '$lambda', '$lambda%', '$lambda/e', \
+				'$lambda/e%', '$defv!', '$defv%!', '$defv/e!', '$defv/e%!', \
+				'$defw!', '$defw%!', '$defw/e!', '$defw/e%!', '$defl!', \
+				'$defl%!', '$defl/e!', '$defl/e%!', '$cond', '$let', '$let%', \
+				'$let/e', '$let/e%', '$let*', '$let*%', '$letrec', '$letrec%', \
+				'$as-environment')" @ "function %LoadGroundContext" $dep_from
+				"moving body preparation", "operatives ('$lazy', '$lazy%', \
+				'$lazy/d', '$lazy/d%')" @ "function %LoadModule_std_promises")
+				 $dep_to "forwarding trailing",
+			/ $comp DLDI "prevented relying on trailing prvalues" ($dep_all_from
+				"forwarding trailing", $dep_from "applicative 'for-each-ltr'"
+				@ "function %LoadGroundContext")
+				// The style matter. Further, it allows the extensions of \
+					trailing sequence not as a list prvalue.
+		)
+	),
+	/ DD %Documentation.NPL $=
+	(
+		* "missing ordinals" @ "operands" @ "applicative 'equal?'" $since b926
+		* "wrong name used in the description"
+			@ "operative $bindings->environment" $since b839,
+		* "missing update description of '<parent>'" $mismatch(
+			YFramework.NPL.NPLA1Forms) $since b909,
+			// The old description was imprecise for the original \
+				implementation because only reference to the single \
+				environment was not support and other combination of reference \
+				(to the list or to the element of the list) were already \
+				supported.
+	)
+),
+
+b949
 (
 	+ DD "'\pre' commmand" @ "Doxygen comment" @ "member function \
 		%memory_resource::deallocate" @ %YBase.YStandardEx.MemoryResource,
@@ -162,7 +349,7 @@ $now
 		/ $forced "enabled allocator for parameter value matcher" $efficient
 			@ ("function %CheckParameterTree" @ %NPLA1,
 			"function %Forms::DefineWithRecursion" @ %NPLA1Forms)
-			$dep_from ("%MakeParameterValueMatcher" @ %NPLA1Internals),
+			$dep_from ("%MakeParameterValueMatcher" @ %NPLA1Internals)
 			// As %(MatchParameter, BindParameter, BindParamaterWellFormed).
 	),
 	+ "message after linking finished" @ "member function %BuildContext::Build"
@@ -219,8 +406,7 @@ b948
 			),
 			/ "changed condition as %IsPair" @ "function %IsCombiningTerm"
 				$dep_all_from "operator name out of the combining term",
-			/ DLDI "simplified function %LiftOtherValue"
-				^ "function %LiftOther",
+			/ DLDI "simplified function %LiftOtherValue" ^ "%LiftOther",
 			/ "supported list for pair terms" @ "function %TermToString"
 		),
 		/ %NPLA1 $=
@@ -255,8 +441,8 @@ b948
 				(
 					/ DLI "avoided redundant term container copy"
 						!^ "initializer-list",
-					* "missing tagging for the irregular representation" $since
-						b947
+					* "missing tagging for the irregular representation"
+						$since b947
 						$= (/ $impl
 							^ "%(TermTags::Sticky, NPL::AsTermNodeTagged)")
 						// With the changes in %(ResolveReference, \
@@ -289,7 +475,12 @@ b948
 					'foldr1', which should be more proper with regard to the \
 					'<list>' typecheck for the arguments.
 				$= (/ $impl ^ "%ThrowListTypeErrorForNonlist"
-					~ "%ThrowInsufficientTermsError")
+					~ "%ThrowInsufficientTermsError"),
+			* "wrong mark for rvalues" @ "exception messages for insufficient \
+				subterms" @ "functions %(ListExtractFirst, ListExtractRestFwd) \
+				and functions prefixed with 'Let'" $since b940
+				// The extraction applicatives were added with 'forward!' in \
+					the derivations.
 		),
 		/ @ "function %LoadGroundContext" @ %Dependency $=
 		(
@@ -504,10 +695,12 @@ b947
 			%require" @ "function %LoadModule_std_modules")) @ %Dependency) 
 			// These include almost all call sites of %TryAccessLeaf \
 				except a few exceptions: the implementation of \
-				%(TryAccessLeafAtom, TryAccessTerm), the internal \
-				exception throwing in %ReduceCombinedBranch and %TermRange \
-				accesses. Also 'GetObject<TermReference>()' calls in \
-				%LiftPropagatedReference would be protected by these changes.
+				%(TryAccessLeafAtom, TryAccessTerm), the access of leaf for \
+				saved operand name before throwing %ListReductionFailure in \
+				%ReduceCombinedBranch, and %TermRange accesses. In particular, \
+				the 'GetObject<TermReference>()' call in \
+				%LiftPropagatedReference would be protected by these changes \
+				in the call sites.
 			$= (/ $impl
 				^ ($dep_from "%TryAccessLeafAtom" ~ "%TryAccessLeaf") @ %NPLA),
 		/ @ "namespace %Forms" @ %NPLA1Forms $=
@@ -5151,8 +5344,8 @@ b924
 						-> 'const TermNode&',
 					/ DLI "checked term" @ "%operator()" @ "vau handler"
 						^ "%Retain" ~ ("%IsBranchedList", 'throw'),
-						// This is also more consistent to other \
-							context handler implementations.
+						// This is also more consistent to other context \
+							handler implementations.
 					(
 					/ DLI "function %RetainN" -> "inline function";
 					/ "functions %(Retain, RetainN)" >> "namespace %A1"
@@ -7092,7 +7285,7 @@ b912
 			/ %NPLA1 $=
 			(
 				/ DLDI "functions %(RelayForEval, RelayForCall)"
-					!^ "function %RelayForEvalOrDirect"
+					!^ "%RelayForEvalOrDirect"
 					$dep_to "simplified evaluation relay",
 				/ "bound subobject reference with sigil '&' for traling list \
 					arguments" @ "function %BindParameter"
@@ -7102,7 +7295,7 @@ b912
 			/ @ "namespace %Forms" @ %NPLA1Forms $=
 			(
 				/ DLDI "functions %(Eval, EvalRef, EvalString, EvalStringRef)"
-					!^ "function %RelayForEvalOrDirect"
+					!^ "%RelayForEvalOrDirect"
 					$dep_to "simplified evaluation relay",
 				+ "function %ListConcat",
 				* DLDI "missing term cleanup"
@@ -8399,12 +8592,10 @@ b905
 		),
 		/ %SHBuild.Main $=
 		(
-			/ @ "option table entries" $=
-			(
-				/ $impl "reordered '-xcmd,'" $dep_to "command entry reordering"
-					// This also makes the entries ordered alphabatically by \
-						chance.
-			),
+			/ $impl "reordered '-xcmd,'" $dep_to "command entry reordering"
+				@ "option table entries"
+				// This also makes the entries ordered alphabatically by \
+					chance.
 			/ @ "help message" $=
 			(
 				(
