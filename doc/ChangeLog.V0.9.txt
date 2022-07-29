@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r10215
+\version r10497
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-07-25 04:47 +0800
+	2022-07-29 03:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,289 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA1 $=
+		(
+			/ @ "functions %(MatchParameter, BindParameter, \
+				BindParamaterWellFormed)" $=
+			(
+				/ "excluded subterms with %TermTags::Sticky in matching \
+					subterms before the ellipsis";
+				/ "supported matching pairs"
+					^ ("%IsPair" ~ "%IsList", ("%ThrowListTypeErrorForAtom"
+					~ "%ThrowListTypeErrorForNonList") @ %Exception)
+					$dep_all_from "adding list checks",
+					// It depends on the newly added list reference check to \
+						keep the old behavior for specific functions.
+				/ DLI "enhanced checks" @ 'NPL_Impl_NPLA1_AssertParameterMatch'
+					@ "trailing ellipsis handling",
+					// Now the term itself is checked agains to pair \
+						values when it is used as the suffix of ptree, in \
+						addition to the original end iterator check.
+				/ "trailing bindings" $=
+				(
+					(
+					/ "no longer expected removal of '.' prefix in the symbol"
+						@ "entry";
+						// This is a breaking change in the interface of \
+							%BindParameter.
+					/ "supported binding trailing pairs" $dep_from
+						"forwarding trailing"
+						// This also relies on "forwarding trailing" changes \
+							in b950, which also use 'forward!' instead of \
+							'move!'.
+						$= (/ $impl ^ ("%A1::(AllocateSharedTerm, \
+							MakeSubobjectReferent)" @ %NPLA1Internals))
+					),
+					/ "propagated tags as non-trailing bindings",
+						// This is more consistent in rules.
+					/ "forbade '@' binding for prvalues"
+						// Ditto. This are no use cases in current derivations.
+				)
+			),
+			/ "static functions %CheckArguments" @ "class %FormContextHandler"
+				$=
+			(
+				/ "overload#2" -> "function %CheckArgumentList"
+					@ "namespace %A1";
+				/ "simplified" ^ "%CheckArgumentList";
+				/ $comp "threw %ListTypeError on error"
+					~ "%ListReductionFailure" ^ "%ThrowListTypeErrorForNonList"
+			),
+			/ DLDI "reordered declarations"
+				@ "functions %(FetchArgumentN, CheckVariadicArity)",
+			(
+			/ "supported improper lists" !^ "%FetchArgument" $=
+			(
+				/ @ "function %CheckVariadicArity"
+					^ "%(IsCombiningTerm, CountPrefix)",
+				/ @ "exception message" @ "throwing error"
+					@ "functions %(ReduceCombinedBranch, \
+					ReduceCombinedReferent)" ^ "%TermToStringWithReferenceMark"
+			);
+			/ @ "function %FetchArgumentN" $=
+			(
+				- 'ynothrowv';
+				/ "checked against improper lists"
+					^ $dep_from "%CheckArgumentList"
+					~ "%AssertBranchedList" $dep_to "list argument checks"
+			)
+			),
+			+ "function %RetainList" ^ $dep_from "%CheckArgumentList",
+			(
+			/ "supported pair instead of list as the combining term"
+				@ "functions %(FetchArgumentN, Retain)" ^ $dep_from
+				("%AssertCombiningTerm" @ %NPLA) ~ "%AssertBranchedList"
+				$dep_to "list argument checks",
+			/ "supported improper lists" @ "function %ReduceCombinedBranch";
+				// By preventing to call %ValueObject::Clear, now the last \
+					element would be preserved.
+			/ "supported pairs instead of lists"
+				@ "member function %ContextState::DefaultReduceOnce",
+				"function %ReduceFirst"; "function %SetupDefaultInterpretation"
+				($dep_all_from "list argument checks", $dep_from
+				("functions %Forms::(EvalString, EvalStringRef)" @ %NPLA1Forms))
+				$= (/ $impl ^ "%IsCombiningTerm" ~ "%(IsList, IsBranch, \
+					IsBranchedList)")
+				// The evaluation algorithm implemented here is now more like \
+					[RnRK].
+			)
+		),
+		/ $re_add(b949) DLI "supported checking binding trailing pairs"
+			@ "internal matching thunked calls"
+			@ "class template %GParameterValueMatcher" @ %NPLA1Internals,
+			// As %(MatchParameter, BindParameter, BindParamaterWellFormed).
+		/ @ "namespace %Forms" @ %NPLA1Forms $=
+		(
+			* "redundant term copy" @ "functions %(SetRest, SetRestRef)"
+				$since b947,
+			/ DLI "optimized functions %(RestFwd, RestVal) without redundant \
+				check for move",
+			+ DLDI "internal assertion to rule out %TermTags::Sticky"
+				@ "functions %(First, FirstFwd, FirstVal)",
+			/ "supported object references for 2nd argument"
+				@ "function %Forms::ConsRef" ($dep_from "forwarding trailing",
+				$dep_all_from "list argument checks") $dep_to "cons reference"
+				// It is a breaking change to preserve the reference elements \
+					in the 2nd argument. This relies on the changes to avoid \
+					the assumption that trailing sequence are always bound as \
+					a value ready to move or the non-referent argument for \
+					some contexts in derivations, which was changed by \
+					"forwarding trailing" massively in b950. This also relies \
+					on changes of 'map-reserve' in b948, as well \
+					preventing relying on trailing prvalues and predicates \
+					changes ('eq?', 'eqv?', 'equal?') in b950.
+			+ "function %CheckPairReference",
+				// This also changes the exception message.
+			/ "allowed empty lists" @ "function %CheckListReference",
+			(
+			/ "preserved references in elements of the last argument"
+				@ "functions %(Cons, SetRest, ListAsterisk)",
+				// Even there are unsafe operations, they are not introduced \
+					merely by 'cons', 'set-rest!' or 'list*', because the \
+					results having unchecked references are from the argument \
+					constructed by some other unsafe operations elsewhere. So, \
+					there is no need to lift the elements here.
+			* $comp "applicative 'set-rest!'"
+				$mismatch(Documentation.NPL) $since b868
+				// The description only supports the modification on elements \
+					other than the 1st one, so there should be no lifting \
+					expected. Now even other elements are not lifted (see \
+					above) by 'set-rest!'. Compared to 'set-rest%!', it sets \
+					the referent of the 2nd argument instead of the reference. \
+					This is exactly the old behavior of 'set-rest%!'. The new \
+					behavior of 'set-rest%!' allows to set a reference as the \
+					rest component, see the pair support below.
+			),
+			/ @ "functions %(Cons, ConsRef, SetRest, SetRestRef, ListAsterisk, \
+				ListAsteriskRef)" $=
+			(
+				- "list checks by %(IsList, ThrowListTypeErrorForList)";
+				/ "supported constructing pairs" $dep_from "cons reference"
+			),
+			/ "loosed checks of list to pairs" !^ "%IsBranchedList"
+				$dep_to "pair handling in native implementations" $=
+			(
+				/ "loosed list lvalue checks to pairs" $effective @ "functions \
+					%(FirstAt, FirstRef, RestRef, SetFirst, SetFirstAt, \
+					SetFirstRef, SetRest, SetRestRef, Assq, Assv)"
+					^ ("%ThrowListTypeErrorForAtom" @ %Exception),
+					// These checks share the implementation of \
+						%CheckPairReference.
+				/ "loosed list lvalues branching" @ "functions %(First, \
+					FirstVal, RestFwd, RestVal, ForwardFirst)"
+					// These function still use %ThrowInsufficientTermsError \
+						on error.
+			),
+			/ "checked against improper argument lists" @ "all native \
+				combiners expecting list operands not implied by other changes"
+				$effective @ "functions %Forms::(And, Or, If, Cond, When, \
+				Unless, Seqeuence, MakeEnvironment, ListAsterisk, \
+				ListAsteriskRef, Append, BindingsWithParentToEnvironment, \
+				BindingsToEnvironment, Import, ImportRef)" $dep_to
+				"list argument checks"
+				$= (/ $impl ^ ("%RetainList" @ %NPLA1) ~ "%Retain"),
+			/ DLDI "reordered declarations" @ "functions %(Sequence, Apply)",
+				// As in alternative derivations.
+			+ "function %ApplyList" ^ $dep_from ("%RetainList" @ %NPLA1),
+			/ "preserved %Value of the result to support concatnating on \
+				non-list objects" @ "function %ListConcat",
+				// The alternative derivation needs no special change.
+			/ DLI @ "function %SymbolsToImports" $=
+			(
+				/ $design "simplified indirect calls",
+				+ "assertion to ensure the argument to internal applicative is \
+					a list"
+			)
+		),
+		/ $re_add(b948) "supported pairs" @ "list result lifting"
+			!^ "%LiftSubtermsToReturn" $effective
+			@ ("value binding without sigil"
+			@ "functions %(BindParameter, BindParameterWellFormed)" @ %NPLA1,
+			("functions %Forms::(Cons, ListAsterisk, RestVal, SetRest)"
+			@ %NPLA1Forms) ^ ("%LiftPrefixToReturn" @ %NPLA)),
+		/ %Dependency $=
+		(
+			/ @ "function %LoadGroundContext" $=
+			(
+				+ "applicative 'check-pair-reference'"
+					^ $dep_from ("%Forms::CheckPairReference" @%NPLA1Forms),
+				/ "supported pairs" @ "applicatives ('first@', 'first&', \
+					'rest&')" $=
+				(
+					/ $comp "native implementation" $dep_from ("functions \
+						%Forms::(FirstAt, FirstRef, RestRef)" @ %NPLA1Forms),
+					/ "alternative derivations" ^ $dep_from
+						'check-pair-reference' ~ 'check-list-reference'
+				),
+				/ "supported returning reference values"
+					@ "applicatives ('rest%', %restv)" $=
+				(
+					/ $comp "native implementation"
+						$dep_from ("%Forms::(RestFwd, RestVal)" @ %NPLA1Forms),
+					/ "alternative derivations"
+						^ ('$defl%!' ~ '$defl!', '$move-resolved!' ~ 'move!')
+						// To allow reference to reference, 'restv' also make \
+							the result forwarded, as 'idv'. '$move-resolved!' \
+							is necessary for 'restv' whose parameter has no \
+							sigil in the derivation, and also good for 'rest%'.
+				),
+				(
+				/ $comp "accepted empty lists"
+					@ "applicative 'check-list-reference'"
+					$dep_from ("%Forms::CheckListReference" @ %NPLA1Forms);
+				/ DLDI "checked the list parameter" @ "derivations"
+					@ "applicatives (%(rlist, foldr1, rulist), 'map-reverse')"
+					^ 'check-list-reference'
+					$dep_to "adding list checks",
+					// This is nothing different without the changes in the \
+						support pairs of variable binding.
+				/ $forced DLDI "checked parameter to ensure list"
+					$dep_from "cons reference" @ "alternative derivation"
+					@ "applicative 'list-push-front!'"
+					$= (/ $impl ^ 'check-list-reference')
+				),
+				/ $comp "supported pairs as argument" @ "applicatives \
+					(%(first, firstv, restv), 'first&', 'first%', 'rest&')" $=
+				(
+					/ "native implementation" $dep_from
+						"pair handling in native implementations",
+					/ "alternative derivations" @ ("trailing bindings" @ %NPLA1)
+				)
+				/ $comp "supported forwarding non-list argument"
+					@ "applicative %apply" $dep_from ("cons reference",
+					"%ContextState::DefaultReduceOnce" @ %NPLA1),
+				/ DLDI "reordered alternative derivation"
+					@ "applicative %apply before operative '$sequence'",
+					// Now 'apply' is more fundamental.
+				/ $re_add(b950) "forward parameter" @ "alternative derivation"
+					@ "applicative 'rlist'" ^ 'forward!' ~ 'move!'
+					$dep_to "forwarding trailing",
+					// This is no change even when the traling sequence is a \
+						reference, since the bound referent is in the \
+						irregular representation. However, it is relied on by \
+						the change of trailing binding conceptually.
+				(
+				+ "applicative 'list?';
+				+ "applicative 'apply-list'"
+					$dep_from ("%Forms::ApplyList" @ %NPLA1Forms);
+				/ $forced DLI "checked against non-list arugment alternative \
+					derivations" @ ("operative '$sequence'" $dep_from
+					("%Forms::Sequence" @ %NPLA1Forms), "operative '$cond'"
+					$dep_from ("%Forms::Cond" @ %NPLA1Forms))
+					// The check to ensure the combination having an argument \
+						list is before the actual access in the old \
+						implementation. It is necessary for the correct \
+						behavior of side effects and the exception message \
+						("expect a list" instead of "expect a pair").
+					$= (/ $impl ^ 'apply-list')
+				),
+				/ DLI "simplified alternative derivation"
+					@ "applicative 'equal?'"
+			)
+		)
+	),
+	* $comp "missing non-empty list condition" @ "description of applicative \
+		'check-list-reference'" @ %Documentation.NPL $since b858
+		$dep_from ("function %CheckListReference" @ %YFramework.NPL.NPLA1Forms),
+	/ $doc $lib "%LICENSE.txt" $=
+	(
+		/ @ "preamble" $=
+		(
+			+ "explicitly referred BSD 2-Clause license with related URLs as \
+				intentional equivalence",
+			+ "additional permission of the text replacements"
+			// These should retain the previous permissions. Additional \
+				permissions of not keeping this document are also clarified.
+		),
+		/ "minor adjustment of clauses",
+			// These chagnes should not alter the essential meanings.
+	)
+),
+
+b950
 (
 	/ %YFramework.NPL $=
 	(

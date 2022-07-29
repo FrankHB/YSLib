@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r22469
+\version r22496
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-07-23 09:34 +0800
+	2022-07-26 03:57 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -1367,36 +1367,39 @@ private:
 	void
 	Match(const TermNode& t, bool indirect) const
 	{
-		if(IsList(t))
-			MatchList(t);
-		else if(const auto p_t = TryAccessLeafAtom<const TermReference>(t))
+		if(IsPair(t))
+			MatchPair(t);
+		else if(!IsEmpty(t))
 		{
-			auto& nd(p_t->get());
+			if(const auto p_t = TryAccessLeafAtom<const TermReference>(t))
+			{
+				auto& nd(p_t->get());
 
-			if(IsList(nd))
-				MatchList(nd);
+				if(IsPair(nd))
+					MatchPair(nd);
+				else if(!IsEmpty(nd))
+					MatchLeaf(nd, true);
+			}
 			else
-				MatchNonList(nd, true);
+				MatchLeaf(t, indirect);
 		}
-		else
-			MatchNonList(t, indirect);
 	}
 
-	//! \since build 949
+	//! \since build 951
 	void
-	MatchList(const TermNode& t) const
-	{
-		YAssert(IsList(t), "Invalid term found.");
-		if(IsBranch(t))
-			remained.emplace(t.begin(), t.end());
-	}
-
-	//! \since build 949
-	void
-	MatchNonList(const TermNode& t, bool indirect) const
+	MatchLeaf(const TermNode& t, bool indirect) const
 	{
 		YAssert(!IsList(t), "Invalid term found.");
 		HandleOrIgnore(std::ref(BindValue), t, indirect);
+	}
+
+	//! \since build 951
+	void
+	MatchPair(const TermNode& t) const
+	{
+		YAssert(IsPair(t), "Invalid term found.");
+		if(IsBranch(t))
+			remained.emplace(t.begin(), t.end());
 	}
 };
 

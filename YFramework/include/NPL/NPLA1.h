@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9551
+\version r9631
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-07-24 21:31 +0800
+	2022-07-26 22:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,11 +35,12 @@
 //	CombineReductionResult, pmr::memory_resource, make_observer, TNIter,
 //	LiftOtherValue, ValueNode, NPL::Deref, NPL::AsTermNode,
 //	std::make_move_iterator, std::next, ystdex::retry_on_cond, std::find_if,
-//	ystdex::exclude_self_params_t, YSLib::AreEqualHeld,
+//	ystdex::exclude_self_params_t, YSLib::AreEqualHeld, ystdex::or_,
+//	std::is_constructible, ystdex::decay_t, ystdex::expanded_caller,
 //	ystdex::make_parameter_list_t, ystdex::make_function_type_t, ystdex::true_,
-//	ystdex::decay_t, ystdex::expanded_caller, std::is_constructible,
-//	ystdex::or_, ArityMismatch, TermTags, RegularizeTerm, type_id, TokenValue,
-//	Environment, ParseResultOf, ByteParser, SourcedByteParser, type_info,
+//	AssertCombiningTerm, IsList, ThrowListTypeErrorForNonList, RemoveHead,
+//	ArityMismatch, TermTags, RegularizeTerm, TokenValue, Environment,
+//	ParseResultOf, ByteParser, SourcedByteParser, type_info, type_id,
 //	SourceInformation, std::bind, std::placeholders::_1, std::integral_constant,
 //	SourceName, NPL::tuple, NPL::get, NPL::forward_as_tuple, ReaderState,
 //	YSLib::allocate_shared, ystdex::is_bitwise_swappable;
@@ -606,14 +607,17 @@ inline PDefH(ReductionStatus, ReduceChildrenOrdered, TermNode& term,
 /*!
 \brief 规约第一个子项。
 \return 规约状态。
+\sa IsCombiningTerm
 \sa ReduceOnce
 \see https://en.wikipedia.org/wiki/Fexpr 。
 \since build 730
 
 快速严格性分析：
-当节点为分支列表的节点时，无条件求值第一项以避免非确定性推断子表达式求值的附加复杂度；
+当节点求值合并项项的节点时，无条件求值第一个子项；
 否则，返回 ReductionStatus::Regular 。
-调用 ReduceOnce 规约子项。
+这可避免非确定性推断子表达式求值的附加复杂度。
+其中，判断求值合并项调用 IsCombiningTerm ，被求值的第一个子项能作为一等对象的表示；
+规约子项调用 ReduceOnce 。
 */
 YF_API ReductionStatus
 ReduceFirst(TermNode&, ContextNode&);
@@ -652,6 +656,7 @@ inline PDefH(ReductionStatus, ReduceOnceLifted, TermNode& term,
 
 /*!
 \brief 规约有序序列：顺序规约子项，结果为最后一个子项的规约结果。
+\note 忽略项的值数据成员。
 \sa ReduceChildrenOrdered
 \since build 764
 */
@@ -1137,20 +1142,15 @@ private:
 
 public:
 	/*!
-	\brief 检查是否符合应用子的参数列表。
+	\brief 检查参数是否符合应用子要求。
 	\pre 参数指定的项是规约合并项。
+	\exception ListTypeError 第一参数不等于 0 且第二参数不表示列表。
 	\note 因为对象语言中的参数求值规则不影响参数项的结构，所以调用前只需要检查一次。
 	\sa AssertCombiningTerm
 	\since build 950
 	*/
-	//@{
-	//! \throw ListReductionFailure 参数不表示列表。
-	static void
-	CheckArguments(const TermNode&);
-	//! \throw ListReductionFailure 第一参数不等于 0 且第二参数不表示列表。
 	static void
 	CheckArguments(size_t, const TermNode&);
-	//@}
 
 private:
 	//! \since build 859
@@ -1265,25 +1265,24 @@ RegisterStrict(_tTarget& target, string_view name, _tParams&&... args)
 
 
 /*!
-\pre 间接断言：参数指定的项是分支列表节点或项的容器非空（对应枝节点）。
-\sa AssertBranchedList
+\brief 检查参数是否是列表。
+\pre 参数指定的项是规约合并项。
+\throw ListTypeError 参数不表示列表。
+\sa AssertCombiningTerm
+\since build 951
+
+检查合并子的参数是列表。若检查失败，抛出异常。
+抛出的异常同 FormContextHandler::CheckArguments ，但通常直接用于底层合并子实现。
 */
-//@{
-/*!
-\brief 取项的参数个数：子项数减 1 。
-\pre 间接断言：参数指定的项是分支列表节点。
-\return 项作为列表操作数被匹配的最大实际参数的个数。
-\since build 733
-*/
-YB_ATTR_nodiscard YB_PURE inline
-	PDefH(size_t, FetchArgumentN, const TermNode& term) ynothrowv
-	ImplRet(AssertBranchedList(term), term.size() - 1)
+inline PDefH(void, CheckArgumentList, const TermNode& term)
+	ImplExpr(AssertCombiningTerm(term), IsList(term) ? void()
+		// NOTE: The combiner position is skipped.
+		: ThrowListTypeErrorForNonList(term, {}, 1))
 
 /*!
 \brief 检查可变参数数量。
 \pre 间接断言：参数指定的项是分支列表节点。
 \exception ParameterMismatch 缺少项的错误。
-\sa FetchArgumentN
 \sa RemoveHead
 \sa ThrowInsufficientTermsError
 \since build 924
@@ -1292,13 +1291,30 @@ YB_ATTR_nodiscard YB_PURE inline
 若具有不大于第二参数指定的参数个数，则移除第一个子项，抛出缺少项的异常。
 */
 inline PDefH(void, CheckVariadicArity, TermNode& term, size_t n)
-	ImplExpr(FetchArgumentN(term) > n ? void()
+	ImplExpr(AssertCombiningTerm(term), CountPrefix(term) - 1 > n ? void()
 		: (RemoveHead(term), ThrowInsufficientTermsError(term, {})))
+
+/*!
+\pre 间接断言：参数指定的项是分支列表节点或项的容器非空（对应枝节点）。
+\sa AssertBranchedList
+*/
+//@{
+/*!
+\brief 取项的参数个数：子项数减 1 。
+\pre 间接断言：参数指定的项是分支列表节点。
+\return 项作为列表操作数被匹配的最大实际参数的个数。
+\exception ListReductionFailure 异常中立：由 CheckArgumentList 抛出。
+\since build 951
+*/
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(size_t, FetchArgumentN, const TermNode& term)
+	ImplRet(CheckArgumentList(term), term.size() - 1)
 
 /*!
 \note 保留求值留作保留用途，一般不需要被作为用户代码直接使用。
 \note 只用于检查项的个数时，可忽略返回值。
 \since build 765
+\sa AssertCombiningTerm
 
 可使用 RegisterForm 注册上下文处理器，参考文法：
 $retain|$retainN \<expression>
@@ -1312,15 +1328,24 @@ $retain|$retainN \<expression>
 #endif
 //! \brief 保留项：保留求值。
 inline PDefH(ReductionStatus, Retain, const TermNode& term) ynothrowv
-	ImplRet(AssertBranchedList(term), ReductionStatus::Regular)
+	ImplRet(AssertCombiningTerm(term), ReductionStatus::Regular)
 #if defined(NDEBUG) && YB_IMPL_GNUCPP >= 100000
 	YB_Diag_Pop
 #endif
 
 /*!
+\brief 保留列表项：保留求值且检查参数是列表。
+\exception ListReductionFailure 异常中立：由 CheckArgumentList 抛出。
+\since build 951
+*/
+inline PDefH(ReductionStatus, RetainList, const TermNode& term)
+	ImplRet(CheckArgumentList(term), ReductionStatus::Regular)
+
+/*!
 \brief 保留经检查确保具有指定个数参数的项：保留求值。
 \pre 间接断言：参数指定的项是分支列表节点。
 \return 项的参数个数。
+\exception ListReductionFailure 异常中立：由 FetchArgumentN 抛出。
 \throw ArityMismatch 项的参数个数不等于第二参数。
 \sa FetchArgumentN
 */
@@ -1595,8 +1620,9 @@ CheckEnvironmentFormal(const TermNode&);
 /*!
 \brief 匹配参数。
 \exception std::bad_function_call 异常中立：参数指定的处理器为空。
+\sa FindStickySubterm
 \sa TermTags
-\since build 898
+\since build 951
 
 进行匹配的算法递归搜索形式参数及其子项。
 若匹配成功，调用参数指定的匹配处理器。
@@ -1609,15 +1635,22 @@ Temporary 表示不被共享的项（在此即纯右值或没有匹配列表的�
 当需要复制时，递归处理的所有对实际参数的绑定以复制代替转移；
 可能被共享的项在发现表达数树中存在需被匹配的列表后失效，对之后的子项进行递归处理。
 以上处理的操作数的子项仅在确定参数对应位置是列表时进行。
-处理器为参数列表结尾的结尾序列处理器和值处理器，分别匹配以 . 起始的项和非列表项。
-处理器参数列表中的记号值为匹配的名称；
-处理器最后的参数指定按值传递时的复制（而非转移）；
-其余参数指定被匹配的操作数子项。
-其中，序列处理器的前两个参数指定操作数项和起始迭代器；
-	操作数子项以起始迭代器到项的容器终止作为范围。
-若操作数的某一个需匹配的列表子项是 TermReference 或复制标识为 true ，
-	序列处理器中需要进行复制。
-结尾序列处理器传入的字符串参数表示需绑定的表示结尾序列的列表标识符。
+处理器为参数列表结尾的结尾序列处理器和值处理器：
+	结尾序列处理器匹配以 . 起始的真列表的最后一项，或匹配非真列表的最后一项。
+	值处理器匹配其它项。
+处理器类型的参数列表中：
+	TermNode& 参数指定被匹配的操作数所在的操作数项：
+		结尾序列处理器中，同时使用 TNIter 参数指定操作数子项的起始位置：
+			操作数项的子项的范围是起始迭代器到项的终止迭代器。
+		值处理器中，所在的操作数项即为被匹配的操作数项。
+	const TokenValue& 或 sting_view 参数指定匹配的名称。
+	TermTags 参数指定匹配使用的标签，如决定按值传递时是否转移。
+	const EnvironmentReference& 参数指定初始化被绑定的引用值时使用的环境。
+值处理器中不匹配形式参数树中子项前缀的终止迭代器（即此项作为参数调用
+	FindStickySubterm 的结果）之后的子项；
+	序列处理器负责匹配剩余子项（若存在）和值数据成员表示的形式参数和对应操作数。
+若操作数的某一个需匹配的子项通过 TermTags 参数或者 TermReference 的标签决定不可转移，
+	则需要进行复制。
 匹配规则如下：
 	若项是非空列表，则操作数的对应的项应为满足确定子项数的列表：
 		若最后的子项为 . 起始的记号，则匹配操作数中结尾的任意个数的项作为结尾序列。
@@ -1630,7 +1663,7 @@ Temporary 表示不被共享的项（在此即纯右值或没有匹配列表的�
 */
 YF_API void
 MatchParameter(const TermNode&, TermNode&, function<void(TermNode&, TNIter,
-	const TokenValue&, TermTags, const EnvironmentReference&)>, function<
+	string_view, TermTags, const EnvironmentReference&)>, function<
 	void(const TokenValue&, TermNode&, TermTags, const EnvironmentReference&)>,
 	TermTags, const EnvironmentReference&);
 

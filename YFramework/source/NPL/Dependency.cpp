@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r7069
+\version r7113
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2022-07-20 22:19 +0800
+	2022-07-27 12:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -713,6 +713,7 @@ LoadErrorsAndChecks(ContextNode& ctx)
 		throw TypeError(str);
 	});
 	RegisterStrict(ctx, "check-list-reference", CheckListReference);
+	RegisterStrict(ctx, "check-pair-reference", CheckPairReference);
 }
 
 //! \since build 855
@@ -832,6 +833,9 @@ LoadBasicDerived(REPLContext& context)
 	RegisterForm(renv, "$lambda%", LambdaRef);
 	RegisterForm(renv, "$lambda/e", LambdaWithEnvironment);
 	RegisterForm(renv, "$lambda/e%", LambdaWithEnvironmentRef);
+	RegisterUnary(renv, "list?", ComposeReferencedTermOp(IsList));
+	RegisterStrict(renv, "apply", Apply);
+	RegisterStrict(renv, "apply-list", ApplyList);
 	// NOTE: The sequence operator is also available as infix ';' syntax sugar.
 	//	See %SeparatorPass in NPLA1.cpp for details.
 	RegisterForm(renv, "$sequence", Sequence);
@@ -858,7 +862,6 @@ LoadBasicDerived(REPLContext& context)
 			}, y);
 		}, x);
 	});
-	RegisterStrict(renv, "apply", Apply);
 	RegisterStrict(renv, "list*", ListAsterisk);
 	RegisterStrict(renv, "list*%", ListAsteriskRef);
 	RegisterForm(renv, "$defv!", trivial_swap, BindDefComb(Vau, 2));
@@ -1054,7 +1057,7 @@ $def! forward! wrap
 #		endif
 	R"NPL(
 $def! list% wrap ($vau &x #ignore forward! x);
-$def! rlist wrap ($vau ((.&x)) #ignore move! x);
+$def! rlist wrap ($vau ((.&x)) #ignore forward! (check-list-reference x));
 	)NPL"
 #	else
 #		if !NPL_Impl_NPLA1_Native_EnvironmentPrimitives
@@ -1109,10 +1112,28 @@ $def! $lambda/e $vau (&p &formals .&body) d
 $def! $lambda/e% $vau (&p &formals .&body) d
 	wrap (eval (cons $vau/e%
 		(cons p (cons% (forward! formals) (cons% #ignore (forward! body))))) d);
+$def! list? $lambda (&o)
+	$if (null? o) #t ($if (pair? o) (($lambda ((#ignore .&o)) list? o) o) #f);
+$def! apply $lambda% (&appv &arg .&opt)
+	eval% (cons% () (cons% (unwrap (forward! appv)) (forward! arg)))
+		($if (null? opt) (() make-environment)
+			(($lambda ((&e .&eopt))
+				$if (null? eopt) e
+					(raise-invalid-syntax-error
+						"Syntax error in applying form.")) opt));
+$def! apply-list $lambda% (&appv &arg .&opt)
+	eval% (cons% ($if (list? arg) () $if) (cons% (unwrap (forward! appv))
+		(forward! arg)))
+		($if (null? opt) (() make-environment)
+			(($lambda ((&e .&eopt))
+				$if (null? eopt) e
+					(raise-invalid-syntax-error
+						"Syntax error in applying form.")) opt));
 $def! $sequence
 	($lambda (&se)
 		($lambda #ignore $vau/e% se &exprseq d
-			$if (null? exprseq) #inert (eval% (cons% $aux (forward! exprseq)) d))
+			$if (null? exprseq) #inert
+				(apply-list (wrap $aux) (forward! exprseq) d))
 		($set! se $aux
 			$vau/e% (weaken-environment se) (&head .&tail) d
 				$if (null? tail) (eval% (forward! head) d)
@@ -1126,13 +1147,6 @@ $def! collapse $lambda% (%x)
 $def! forward $lambda% (%x) $if ($lvalue-identifier? x) x (idv x);
 $def! assign! $lambda (&x &y) assign@! (forward! x) (idv (collapse y));
 $def! assign%! $lambda (&x &y) assign@! (forward! x) (forward! (collapse y));
-$def! apply $lambda% (&appv &arg .&opt)
-	eval% (cons% () (cons% (unwrap (forward! appv)) (forward! arg)))
-		($if (null? opt) (() make-environment)
-			(($lambda ((&e .&eopt))
-				$if (null? eopt) e
-					(raise-invalid-syntax-error
-						"Syntax error in applying form.")) opt));
 $def! list* $lambda (&head .&tail)
 	$if (null? tail) (forward! head)
 		(cons (forward! head) (apply list* (forward! tail)));
@@ -1169,23 +1183,21 @@ $defl%! first (&l)
 	$if ($lvalue-identifier? l) (($lambda% ((@x .)) $if (uncollapsed? x)
 		($if (modifiable? x) (idv x) (as-const (idv x))) x) l)
 		(forward-first% idv (expire l));
-$defl%! first@ (&l) ($lambda% ((@x .)) x) (check-list-reference (forward! l));
+$defl%! first@ (&l) ($lambda% ((@x .)) x) (check-pair-reference (forward! l));
 $defl%! first% (&l)
 	($lambda (fwd (@x .)) fwd x) ($if ($lvalue-identifier? l) id expire) l;
 $defl%! first& (&l)
 	($lambda% ((@x .)) $if (uncollapsed? x) (idv x) x)
-		(check-list-reference (forward! l));
+		(check-pair-reference (forward! l));
 $defl! firstv ((&x .)) $move-resolved! x;
-$defl! rest% ((#ignore .%xs)) move! xs;
+$defl%! rest% ((#ignore .%xs)) $move-resolved! xs;
 $defl%! rest& (&l)
-	($lambda% ((#ignore .&xs)) xs) (check-list-reference (forward! l));
-$defl! restv ((#ignore .xs)) move! xs;
+	($lambda% ((#ignore .&xs)) xs) (check-pair-reference (forward! l));
+$defl%! restv ((#ignore .xs)) $move-resolved! xs;
 $defl! set-first! (&l x) assign@! (first@ (forward! l)) (move! x);
 $defl! set-first@! (&l &x) assign@! (first@ (forward! l)) (forward! x);
 $defl! set-first%! (&l &x) assign%! (first@ (forward! l)) (forward! x);
-$def! equal? ($lambda (&ce)
-(
-	$lambda/e (() ($lambda/e ce ()
+$defl/e! equal? (() ($lambda/e (() get-current-environment) ()
 	(
 		$defl! peq? (&x &y)
 		(
@@ -1196,16 +1208,14 @@ $def! equal? ($lambda (&ce)
 				(eqv? px py)
 		);
 		() lock-current-environment
-	))) (&x &y) $if (eql? x y) (peq? x y) #f
-)) (() get-current-environment);
+	))) (&x &y) $if (eql? x y) (peq? x y) #f;
 $defl%! check-environment (&e) $sequence (eval% #inert e) (forward! e);
 $defl%! check-parent (&p) $sequence ($vau/e% p . #ignore) (forward! p);
 $defv%! $cond &clauses d
 	$if (null? clauses) #inert
-		(apply ($lambda% ((&test .&body) .&clauses)
+		(apply-list ($lambda% ((&test .&body) .&clauses)
 			$if (eval test d) (eval% (forward! body) d)
-				(apply (wrap $cond) (forward! clauses) d))
-				(forward! clauses));
+			(apply (wrap $cond) (forward! clauses) d)) (forward! clauses));
 $defv%! $when (&test .&exprseq) d
 	$if (eval test d) (eval% (list* () $sequence (forward! exprseq)) d);
 $defv%! $unless (&test .&exprseq) d
@@ -1235,8 +1245,8 @@ $defw%! accr (&l &pred? &base &head &tail &sum) d
 			(apply accr (list% (apply tail (list% l) d)
 			pred? (forward! base) head tail sum) d)) d);
 $defw%! foldr1 (&kons &knil &l) d
-	apply accr (list% (($lambda ((.@xs)) xs) l) null? (forward! knil)
-		($if ($lvalue-identifier? l) ($lambda (&l) first% l)
+	apply accr (list% (($lambda ((.@xs)) xs) (check-list-reference l)) null?
+		(forward! knil) ($if ($lvalue-identifier? l) ($lambda (&l) first% l)
 		($lambda (&l) expire (first% l))) rest% kons) d;
 $defw%! map1 (&appv &l) d
 	foldr1 ($lambda (%x &xs) cons%
@@ -1244,16 +1254,16 @@ $defw%! map1 (&appv &l) d
 $defl! first-null? (&l) null? (first l);
 $defl%! rulist (&l)
 	$if ($lvalue-identifier? l)
-		(accr (($lambda ((.@xs)) xs) l) null? ()
+		(accr (($lambda ((.@xs)) xs) (check-list-reference l)) null? ()
 			($lambda% (%l) $sequence ($def! %x idv (first@ l))
 				(($if (uncollapsed? x) idv expire) (expire x))) rest%
 			($lambda (%x &xs) (cons% ($resolve-identifier x) (move! xs))))
-		(idv (forward! l));
+		(idv (forward! (check-list-reference l)));
 $defl! list-concat (&x &y) foldr1 cons% (forward! y) (forward! x);
 $defl! append (.&ls) foldr1 list-concat () (forward! ls);
 $defl%! list-extract-first (&l) map1 first (forward! l);
 $defl%! list-extract-rest% (&l) map1 rest% (forward! l);
-$defl! list-push-front! (&l &x) $if (modifiable? l)
+$defl! list-push-front! (&l &x) $if (modifiable? (check-list-reference l))
 	(assign! l (cons% (forward! x) (idv l)))
 	(raise-type-error "Modifiable object expected.");
 $def! ($let $let% $let/e $let/e% $let* $let*% $letrec $letrec%) ($lambda (&ce)
@@ -1429,7 +1439,8 @@ LoadCore(REPLContext& context)
 	context.ShareCurrentSource("<root:core>");
 	context.Perform(R"NPL(
 $defw%! map-reverse (&appv .&ls) d
-	accl (forward! ls) nonfoldable? () list-extract-first list-extract-rest%
+	accl (forward! (check-list-reference ls)) nonfoldable? () list-extract-first
+		list-extract-rest%
 		($lambda (&x &xs) cons% (apply appv (forward! x) d) (forward! xs));
 $defw! for-each-ltr &ls d $sequence (apply map-reverse (forward! ls) d) #inert;
 	)NPL");

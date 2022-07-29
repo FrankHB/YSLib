@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2021 FrankHB.
+	© 2009-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r3261
+\version r3263
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2021-06-25 12:57 +0800
+	2022-07-28 21:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,7 +110,7 @@ UI::YStyle 包含 <typeindex> 。
 Adapor::YAdaptor 需确保以下 YBase::YStandardEx([Documentation::YBase @@2.5]) 头文件被包含：
 <ystdex/memory_resource.h> 。
 本体头文件对 YBase 依赖性：
-Core::YObject 依赖 <ystdex/any.h> ；
+Core::YObject 依赖 <ystdex/any.h> 和 <ystdex/typeindex.h> ；
 Core::YFunc 依赖 <ystdex/functional.hpp> ；
 Service::YBlit 依赖 <ystdex/iterator.hpp> 。
 以上部分 YBase 中的 ystdex API 因为提供标准库同名接口不具备的功能，不能被 std 替代。

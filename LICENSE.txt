@@ -1,19 +1,42 @@
 ﻿OVERALL LICENSE of the YSLib Project
 
-© 2010-2014 FrankHB <frankhb1989@gmail.com>.
+© 2010-2022 FrankHB <frankhb1989@gmail.com>.
 
-Everyone is permitted to copy and distribute verbatim copies of this license document, but changing it is not allowed.
+Everyone is permitted to copy and distribute verbatim copies of this license document, but changing it is not allowed without written permission.
 
 Preamble
 
 This file is the overall license document of the YSLib Project.
+
 This document is for the current version. See LICENSE_HISTORY.txt about licenses for history versions.
+
+This document contains multiple options of license application combination.
+
+The copyright notice above, as well as the clauses of basic permissions and the disclaimer, are intended to be equivalent to the license derived from the template of BSD 2-Clause license (https://spdx.org/licenses/BSD-2-Clause.html) in legal effects. This is treated as the minimal basis of this document, applicable for all works not covered by other required licenses for external dependencies.
+
+Although not strictly required, it is recommended to redistribute this document instead of the minimal terms and conditions implied.
+
+Otherwise, if the minimal basis is retained, it is permitted to have differences conforming to following rules:
+
+	The word "shall" in the subclauses may be replaced by the word "must".
+
+	The equivalent replacements established in SPDX License List Matching Guidelines, v2.1 (https://spdx.dev/license-list/matching-guidelines/) are allowed, such as:
+
+		The copyright sign (©) in the copyright notice may be replaced by alternative equivalent expressions.
+
+		Ordinals may be added to the subclauses.
+
+	Any other visible texts in the subclauses are kept verbatim, or kept in a form allowing to reproduce the texts with the replacements in the rule above.
+
+The permission of replacements above allows appliations of the minimal basis to denote the license in compatible ways of BSD 2-Clause license without a copy of this document, for example, by using a SPDX identifier defined in https://spdx.org/licenses/ or ISO/IEC 5962:2021.
 
 TERMS AND CONDITIONS
 
 0. OVERALL DEFINITIONS
 
-The documents in following files are defined hereby as LICENSE DOCUMENTS.
+DOCUMENTS are materials of human-readable texts and/or images not in the program code.
+
+DOCUMENTS in following files are defined hereby as LICENSE DOCUMENTS.
 
 LICENSE.txt
 LICENSE_HISTORY.txt
@@ -22,13 +45,11 @@ gpl-2.0.txt
 gpl-3.0.txt
 FTL.TXT
 
-The documents created by the YSLib project, whose names match the glob pattern "Readme*.*", are README DOCUMENTS.
+DOCUMENTS created by the YSLib project, whose names have the prefix "Readme", are README DOCUMENTS.
 
 1. NORMATIVE REFERENCES
 
 CC BY-SA 3.0 legalcode.txt:
-http://creativecommons.org/licenses/by-sa/3.0/
-http://creativecommons.org/licenses/by-sa/3.0/legalcode
 http://creativecommons.org/licenses/by-sa/3.0/legalcode.txt
 
 gpl-2.0.txt:
@@ -40,25 +61,27 @@ http://www.gnu.org/licenses/gpl-3.0.txt
 FTL.txt:
 http://www.freetype.org/FTL.TXT
 
-The YSLib Project carries some copyrighted materials from several external projects(with or without modification), and distributes them according to following terms.
-These referenced documents may be used as license of each part of these external dependencies.
-
 2. Basic Permissions
 
-Unless otherwise noted by the LICENSE DOCUMENTS, redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+	Redistributions of source code shall retain the above copyright notice, this list of conditions and the following disclaimer.
+
+	Redistributions in binary form shall reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
 
 3. Documents
 
-License for all documents created by the YSLib Project except for LICENSE DOCUMENTS:
+All DOCUMENTS in the YSLib Project except LICENSE DOCUMENTS are also licensed under:
 
 Creative Commons Attribution-ShareAlike 3.0 Unported - See CC BY-SA 3.0 legalcode.txt.
 
 In the directory "3rdparty", if not otherwise specified in LICENSE DOCUMENTS or README DOCUMENTS in the corresponding library directories, all derived work are licensed as the same as the original materials.
 
 4. External Dependencies
+
+Some copyrighted materials from external projects (with or without modifications) are used in the YSLib project.
+Permissions subject to these materials may be also granted separatedly according to the corresponding terms in LICENSE DOCUMENTS when applicable, referred as "independert distribution" below.
+They are used in the YSLib project in following ways with permissions from appropriate licences in LICENSE DOCUMENTS.
 
 4.1 License for FreeType
 
@@ -67,14 +90,16 @@ At least one of the following licenses shall be used for independert distributio
 The FreeType Project LICENSE - See FTL.txt;
 GNU General Public License Version 2 - See gpl-2.0.txt.
 
-FreeType License is adopted here for statically linked binaries or whole project distribution because of license compatibility.
-See http://www.freetype.org/license.html for details.
+To satisfy the license compatibility requiements, FreeType License is adopted for the whole YSLib project distribution and any use relying on statically linked FreeType binaries in the YSLib project.
 
 4.2 License for FreeImage
 
 At least one of the following licenses shall be used for independert distribution:
+
 FreeImage Public License - Version 1.0 - See license-fi.txt;
 GNU General Public License Version 2 - See gpl-2.0.txt.
+
+To satisfy the license compatibility requiements, FreeImage Public License is adopted for the whole YSLib project distribution and any use relying on statically linked FreeImage binaries in the YSLib project.
 
 5. DISCLAMER
 
@@ -82,6 +107,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 Appendix A. Important Note of Licensing
 
-There are several licenses can be incompatible to others. Some of them may not allow relicensing.
-Make sure choose the correct licenses before redistribution, especially for derivative work.
+Several licenses may have conflict requirements to be applicable. Some of them may not allow relicensing.
+Make sure the appropriate choice of the license combination before redistribution, especially for derivative works.
+
+See also http://www.freetype.org/license.html for some details.
 

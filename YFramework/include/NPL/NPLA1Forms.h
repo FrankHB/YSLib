@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8766
+\version r8865
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2022-07-25 01:51 +0800
+	2022-07-27 22:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,10 +31,11 @@
 #include "YModules.h"
 #include YFM_NPL_NPLA1 // for shared_ptr, TermNode, ReductionStatus, string,
 //	TokenValue, AssertBranch, ystdex::exclude_self_t, ystdex::expand_proxy,
-//	NPL::ResolveTerm, std::next, Access, NPL::Deref, Forms::CallResolvedUnary,
-//	ResolvedTermReferencePtr, AccessRegular, ystdex::make_expanded, std::ref,
-//	ystdex::invoke_nonvoid, TNIter, AccessTypedValue, ystdex::make_transform,
-//	std::accumulate, std::placeholders::_2, ystdex::bind1, ContextNode,
+//	NPL::ResolveTerm, std::next, AssertValueTags, Access, NPL::Deref,
+//	Forms::CallResolvedUnary, ResolvedTermReferencePtr, AccessRegular,
+//	ystdex::make_expanded, std::ref, ystdex::invoke_nonvoid, TNIter,
+//	AccessTypedValue, ystdex::make_transform, std::accumulate,
+//	std::placeholders::_2, ystdex::bind1, ContextNode,
 //	ystdex::equality_comparable, ystdex::exclude_self_params_t,
 //	ystdex::examiners::equal_examiner, trivial_swap_t, trivial_swap,
 //	Environment, ystdex::is_bitwise_swappable, ystdex::true_;
@@ -244,11 +245,12 @@ public:
 \pre 设置为处理器调用的操作在进入调用前应确保设置尾上下文等内部状态。
 \pre 作为操作数的项的子项不包含引用或非正规表示引入的对操作数内的子项的循环引用。
 \pre 作为 NPLA1 规约函数的函数的参数符合规约函数实现约定。
-\pre 若参数指定被规约项，参数是分支列表节点。
-\pre 若参数指定被规约项的容器非空，参数非空（对应枝节点）。
+\pre 若规约函数的参数指定被规约项，参数是规约合并项。
+\pre 若规约函数的参数指定被规约项的容器非空，参数非空（满足规约合并项的要求）。
 \pre 间接断言：作为规约函数第一参数指定的项是枝节点，以符合语法形式的实现要求。
 \post 第一参数指定的被规约项在规约函数调用完成可表示一等对象。
 \sa ContextState
+\sa IsCombiningTerm
 \see %Documentation::NPL.
 \since build 732
 
@@ -449,8 +451,8 @@ CallBinaryFold(_func f, _type val, TermNode& term, _tParams&&... args)
 \warning 非虚析构。
 
 适配作为上下文处理器的除项以外可选参数的函数对象。
-为适合作为上下文处理器，支持的参数列表类型实际存在限制：
-参数列表以和元数相同数量的必须的 TermNode& 类型的参数起始；
+为适合作为上下文处理器，支持的参数树类型实际存在限制：
+参数树作为参数列表，以和元数相同数量的必须的 TermNode& 类型的参数起始；
 之后是可选的 ContextNode& 可转换到的类型的参数。
 使用明确指定类型的 Forms::CallUnaryAs 等函数模板可以减少规约处理器的实现中的转换。
 这类调用中，回调函数（数据成员 \c Function ）通常不需要返回规约结果，因为：
@@ -747,6 +749,7 @@ EqualTermValue(TermNode&, ContextNode&);
 
 /*!
 \note 测试条件成立，当且仅当 \<test> 非 #f 。
+\exception ListReductionFailure 合并子的参数不是列表。
 \sa ReduceOnce
 */
 //@{
@@ -814,6 +817,7 @@ Not(const TermNode&);
 
 /*!
 \note 支持保存当前动作。
+\exception ListReductionFailure 合并子的参数不是列表。
 \sa ReduceOnce
 \since build 754
 */
@@ -847,20 +851,18 @@ Or(TermNode&, ContextNode&);
 
 
 /*!
-\brief 接受两个参数，返回以第一参数作为第一个元素插入第二参数创建的新的列表。
+\brief 接受两个参数，返回以第一参数作为第一个元素插入第二参数创建的新的有序对。
 \return ReductionStatus::Retained 。
-\throw ListTypeError 第二参数不是列表。
-\note NPLA 无 cons 对，所以要求创建的总是列表。
 */
 //@{
 /*!
-\sa LiftSubtermsToReturn
+\sa LiftToReturn
 \since build 779
 
 按值传递返回值。构造的对象中的元素转换为右值。
 
 参考调用文法：
-<pre>cons \<object> \<list></pre>
+<pre>cons \<object> \<pair></pre>
 */
 YF_API ReductionStatus
 Cons(TermNode&);
@@ -871,29 +873,29 @@ Cons(TermNode&);
 在返回时不提升项，允许返回引用。
 
 参考调用文法：
-<pre>cons% \<object> \<list></pre>
+<pre>cons% \<object> \<pair></pre>
 */
 YF_API ReductionStatus
 ConsRef(TermNode&);
 //@}
 
-//! \throw ListTypeError 参数不是非空列表。
+//! \throw ListTypeError 参数不是有序对。
 //@{
 /*!
-\brief 取列表的第一元素并转发给指定的应用子。
+\brief 取有序对的第一个元素并转发给指定的应用子。
 \since build 911
 
-取第三参数指定的列表的第一个元素作为参数，调用第二参数指定的应用子。
-列表参数在对象语言中按引用传递。
+取第三参数指定的有序对的第一个元素作为参数，调用第二参数指定的应用子。
+有序对参数在对象语言中按引用传递。
 
 参考调用文法：
-<pre>forward-first% \<applicative> \<list></pre>
+<pre>forward-first% \<applicative> \<pair></pre>
 */
 YF_API ReductionStatus
 ForwardFirst(TermNode&, ContextNode&);
 
 /*!
-\brief 取参数指定的列表中的第一元素的值。
+\brief 取参数指定的有序对的第一个元素的值。
 \since build 859
 */
 //@{
@@ -901,7 +903,7 @@ ForwardFirst(TermNode&, ContextNode&);
 转发参数的元素和函数值。
 
 参考调用文法：
-<pre>first \<list></pre>
+<pre>first \<pair></pre>
 */
 YF_API ReductionStatus
 First(TermNode&);
@@ -911,10 +913,10 @@ First(TermNode&);
 /*!
 \since build 873
 
-结果是列表的第一个元素的引用值。保留结果中未折叠的引用值。
+结果是有序对的第一个元素的引用值。保留结果中未折叠的引用值。
 
 参考调用文法：
-<pre>first@ \<list></pre>
+<pre>first@ \<pair></pre>
 */
 YF_API ReductionStatus
 FirstAt(TermNode&);
@@ -922,43 +924,44 @@ FirstAt(TermNode&);
 /*!
 \since build 913
 
-结果是列表的第一个元素经过转发的引用值。保留结果中的引用值。
+结果是有序对的第一个元素经过转发的引用值。保留结果中的引用值。
 
 参考调用文法：
-<pre>first% \<list></pre>
+<pre>first% \<pair></pre>
 */
 YF_API ReductionStatus
 FirstFwd(TermNode&);
 
 /*!
-结果是列表的第一个元素引用的对象的引用值。保留结果中的引用值。
+结果是有序对的第一个元素引用的对象的引用值。保留结果中的引用值。
 
 参考调用文法：
-<pre>first& \<list></pre>
+<pre>first& \<pair></pre>
 */
 YF_API ReductionStatus
 FirstRef(TermNode&);
 //@}
 
 /*!
-结果是列表的第一个元素经过返回值转换的值。不保留结果中的引用值。
+结果是有序对的第一个元素经过返回值转换的值。不保留结果中的引用值。
 
 参考调用文法：
-<pre>firstv \<list></pre>
+<pre>firstv \<pair></pre>
 */
 YF_API ReductionStatus
 FirstVal(TermNode&);
 //@}
 
-//! \brief 取列表第一个元素以外的元素值构成的列表。
+//! \brief 取有序对的第一个元素以外的元素值构成的有序对。
 //@{
 /*!
 \since build 913
 
-结果是列表第一个元素以外的元素值经过转发的值构成的列表。保留结果中的引用值。
+结果是有序对的第一个元素以外的元素值经过转发的值构成的有序对。
+保留结果中的引用值。
 
 参考调用文法：
-<pre>rest% \<list></pre>
+<pre>rest% \<pair></pre>
 */
 YF_API ReductionStatus
 RestFwd(TermNode&);
@@ -966,19 +969,21 @@ RestFwd(TermNode&);
 /*!
 \since build 913
 
-结果是列表第一个元素以外的元素值的引用值构成的列表。保留结果中的引用值。
+结果是有序对第一个元素以外的元素值的引用值构成的有序对。
+保留结果中的引用值。
 
 参考调用文法：
-<pre>rest& \<list></pre>
+<pre>rest& \<pair></pre>
 */
 YF_API ReductionStatus
 RestRef(TermNode&, ContextNode&);
 
 /*!
-结果是列表的第一个元素以外的元素经过返回值转换的值构成的列表。不保留结果中的引用值。
+结果是有序对的第一个元素以外的元素经过返回值转换的值构成的有序对。
+不保留结果中的引用值。
 
 参考调用文法：
-<pre>restv \<list></pre>
+<pre>restv \<pair></pre>
 */
 YF_API ReductionStatus
 RestVal(TermNode&);
@@ -986,19 +991,19 @@ RestVal(TermNode&);
 //@}
 
 /*!
-\throw ListTypeError 第一参数不是非空列表。
+\throw ListTypeError 第一参数不是有序对。
 \throw ValueCategoryMismatch 第一参数不是引用值。
 \since build 834
 */
 //@{
-//! \brief 修改第一参数指定的列表以第二参数作为第一个元素。
+//! \brief 修改第一参数指定的有序对以第二参数作为第一个元素。
 //@{
 /*!
 第二参数转换为右值。
 替代引用值直接通过插入第一个元素引用的值实现。
 
 参考调用文法：
-<pre>set-first! \<list> \<object></pre>
+<pre>set-first! \<pair> \<object></pre>
 */
 YF_API void
 SetFirst(TermNode&);
@@ -1011,7 +1016,7 @@ SetFirst(TermNode&);
 保留第二参数未折叠的引用值。
 
 参考调用文法：
-<pre>set-first@! \<list> \<object></pre>
+<pre>set-first@! \<pair> \<object></pre>
 */
 YF_API void
 SetFirstAt(TermNode&);
@@ -1020,25 +1025,21 @@ SetFirstAt(TermNode&);
 保留第二参数引用值。
 
 参考调用文法：
-<pre>set-first%! \<list> \<object></pre>
+<pre>set-first%! \<pair> \<object></pre>
 */
 YF_API void
 SetFirstRef(TermNode&);
 //@}
 //@}
 
-/*!
-\brief 修改第一参数指定的列表以第二参数作为第一个元素外的列表。
-\throw ListTypeError 第二参数不是列表。
-*/
+//! \brief 修改第一参数指定的有序对以第二参数作为第一个元素外的有序对。
 //@{
 /*!
-\sa LiftSubtermsToReturn
-
-第二参数的元素转换为右值。
+第二参数被转换为右值。
+但第二参数的元素不被转换。
 
 参考调用文法：
-<pre>set-rest! \<list> \<object></pre>
+<pre>set-rest! \<pair> \<object></pre>
 */
 YF_API void
 SetRest(TermNode&);
@@ -1049,7 +1050,7 @@ SetRest(TermNode&);
 保留第二参数元素中的引用值。
 
 参考调用文法：
-<pre>set-rest%! \<list> \<object></pre>
+<pre>set-rest%! \<pair> \<object></pre>
 */
 YF_API void
 SetRestRef(TermNode&);
@@ -1158,11 +1159,12 @@ RemoteEvalRef(TermNode&, ContextNode&);
 
 /*!
 \brief 创建空环境。
+\exception ListReductionFailure 合并子的参数不是列表。
 \exception NPLException 异常中立：由 Environment 的构造函数抛出。
 \sa Environment::CheckParent
 \sa EnvironmentList
 \since build 798
-\todo 使用专用的异常类型。
+\todo 使用专用的异常类型替代 NPLException 。
 
 取以参数指定父环境的空环境。
 可选地通过参数指定的一个或多个环境作为父环境。
@@ -1595,11 +1597,11 @@ YF_API ReductionStatus
 CheckParent(TermNode&);
 
 /*!
-\brief 检查参数指定的项表示非空列表的引用。
-\exception ListTypeError 检查失败：参数指定的项不表示非空列表。
+\brief 检查参数指定的项表示列表的引用。
+\exception ListTypeError 检查失败：参数指定的项不表示列表的引用值。
 \since build 857
 
-若接受的对象语言参数不表示非空列表引用值，抛出异常；
+若接受的对象语言参数不表示列表的引用值，抛出异常；
 	否则，对象语言中返回为参数指定的值。
 
 参考调用文法：
@@ -1608,6 +1610,20 @@ CheckParent(TermNode&);
 YF_API ReductionStatus
 CheckListReference(TermNode&);
 //@}
+
+/*!
+\brief 检查参数指定的项表示有序对的引用。
+\exception ListTypeError 检查失败：参数指定的项不表示有序对的引用值。
+\since build 951
+
+若接受的对象语言参数不表示有序对的引用值，抛出异常；
+	否则，对象语言中返回为参数指定的值。
+
+参考调用文法：
+<pre>check-pair-reference \<object></pre>
+*/
+YF_API ReductionStatus
+CheckPairReference(TermNode&);
 
 
 /*!
@@ -1628,21 +1644,7 @@ MakeEncapsulationType(TermNode&);
 
 
 /*!
-\brief 序列有序参数规约：移除第一项后顺序规约子项，结果为最后一个子项的规约结果。
-\return 子项被规约时为最后一个子项的规约状态，否则为 ReductionStatus::Clean 。
-\note 可直接实现顺序求值。在对象语言中，若参数为空，返回未指定值。
-\sa ReduceOrdered
-\sa RemoveHead
-\since build 823
-
-参考调用文法：
-<pre>$sequence \<expression-sequence>...</pre>
-*/
-YF_API ReductionStatus
-Sequence(TermNode&, ContextNode&);
-
-/*!
-\brief 函数应用：应用参数指定的函数和作为函数参数的列表。
+\brief 函数应用：应用参数指定的函数和作为函数参数的对象。
 \since build 859
 
 结果是对解包装的应用子应用参数的函数值。保留结果中的引用值。
@@ -1655,6 +1657,35 @@ YF_API ReductionStatus
 Apply(TermNode&, ContextNode&);
 
 /*!
+\brief 函数应用：应用参数指定的函数和作为函数参数的列表。
+\exception ListReductionFailure 合并子的参数不是列表。
+\since build 951
+
+结果是对解包装的应用子应用参数的函数值。保留结果中的引用值。
+首先检查参数是列表。
+
+参考调用文法：
+<pre>apply-list \<applicative> \<list> \<environment>
+apply-list \<applicative> \<list></pre>
+*/
+YF_API ReductionStatus
+ApplyList(TermNode&, ContextNode&);
+
+/*!
+\brief 序列有序参数规约：移除第一项后顺序规约子项，结果为最后一个子项的规约结果。
+\return 子项被规约时为最后一个子项的规约状态，否则为 ReductionStatus::Clean 。
+\exception ListReductionFailure 合并子的参数不是列表。
+\note 可直接实现顺序求值。在对象语言中，若参数为空，返回未指定值。
+\sa RemoveHead
+\since build 823
+
+参考调用文法：
+<pre>$sequence \<expression-sequence>...</pre>
+*/
+YF_API ReductionStatus
+Sequence(TermNode&, ContextNode&);
+
+/*!
 \brief 使用可选的参数指定的不定数量的元素和结尾列表构造新列表。
 \since build 860
 */
@@ -1663,6 +1694,7 @@ Apply(TermNode&, ContextNode&);
 \sa LiftToReturn
 
 结果是构造的列表的值。不保留结果中的引用值。
+但若最后一个参数是有序对，其元素在结果中不被转换。
 
 参考调用文法：
 <pre>list* \<object>+</pre>
@@ -1745,7 +1777,7 @@ Map1(TermNode&, ContextNode&);
 \brief 顺序连接两个列表。
 
 参考调用文法：
-<pre>list-concat \<list1> \<list2></pre>
+<pre>list-concat \<list> \<object></pre>
 */
 YF_API ReductionStatus
 ListConcat(TermNode&);

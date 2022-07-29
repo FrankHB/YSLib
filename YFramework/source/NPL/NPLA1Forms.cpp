@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r27432
+\version r27814
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2022-07-25 01:51 +0800
+	2022-07-29 03:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,27 +30,30 @@
 //	ystdex::value_or, TryAccessReferencedTerm, IsBranch,
 //	ThrowInsufficientTermsError, NPL::Deref, ReduceSubsequent,
 //	A1::NameTypedReducerHandler, ReduceOnceLifted, std::next,
-//	ReduceReturnUnspecified, CheckVariadicArity, RemoveHead, AccessFirstSubterm,
-//	ReduceOrdered, std::bind, std::ref, std::placeholders, std::declval,
-//	RetainList, RetainN, ystdex::as_const, ValueObject, ReferenceTerm, IsLeaf,
+//	ReduceReturnUnspecified, RetainList, CheckVariadicArity, RemoveHead,
+//	AccessFirstSubterm, ReduceOrdered, std::bind, std::ref, std::placeholders,
+//	std::declval, RetainN, ystdex::as_const, ValueObject, ReferenceTerm, IsLeaf,
 //	ystdex::ref_eq, RelaySwitched, trivial_swap, shared_ptr, ContextHandler,
 //	YSLib::unordered_map, string, Environment, lref, TokenValue,
 //	any_ops::use_holder, in_place_type, YSLib::HolderFromPointer,
-//	YSLib::allocate_shared, InvalidReference, BindParameter, MoveFirstSubterm,
-//	ResolveEnvironment, ShareMoveTerm, BindParameterWellFormed, ystdex::sfmt,
-//	TermToStringWithReferenceMark, ResolveTerm, LiftOtherOrCopy,
-//	ClearCombiningTags, SContext::Analyze, std::allocator_arg,
-//	NPL::ResolveRegular, ystdex::make_transform, TermReference,
-//	EnvironmentList, NPL::AllocateEnvironment, ystdex::equality_comparable,
-//	CheckParameterTree, AssertValueTags, NPL::AsTermNode, ystdex::exchange,
-//	NPLException, GuardFreshEnvironment, TermTags, YSLib::Debug, YSLib::sfmt,
-//	ThrowListTypeErrorForNonList, A1::MakeForm, ystdex::expand_proxy,
-//	AccessRegular, GetLValueTagsOf, RegularizeTerm, IsBranchedList,
-//	LiftMovedOther, LiftOtherValue, ThrowValueCategoryError, std::mem_fn,
-//	ThrowInvalidSyntaxError, CheckEnvironmentFormal, type_id,
-//	ystdex::update_thunk, IsTyped, EnvironmentGuard, TryAccessLeaf, BindSymbol,
-//	A1::AsForm, ystdex::bind1, IsNPLASymbol, ystdex::fast_all_of,
-//	ystdex::call_value_or, LiftCollapsed, YSLib::usystem;
+//	YSLib::allocate_shared, InvalidReference, std::throw_with_nested, TypeError,
+//	BindParameter, Retain, MoveFirstSubterm, ResolveEnvironment, ShareMoveTerm,
+//	BindParameterWellFormed, ystdex::sfmt, TermToStringWithReferenceMark,
+//	ResolveTerm, LiftOtherOrCopy, ClearCombiningTags, SContext::Analyze,
+//	std::allocator_arg, NPL::ResolveRegular, ystdex::make_transform,
+//	TryAccessLeafAtom, TermReference, EnvironmentList, NPL::AllocateEnvironment,
+//	ystdex::equality_comparable, CheckParameterTree, AssertValueTags,
+//	NPL::AsTermNode, ystdex::exchange, NPLException, GuardFreshEnvironment,
+//	TermTags, YSLib::Debug, YSLib::sfmt, ReduceCombinedBranch, A1::MakeForm,
+//	ystdex::expand_proxy, AccessRegular, GetLValueTagsOf, RegularizeTerm,
+//	IsPair, IsSticky, LiftMovedOther, LiftOtherValue, IsList,
+//	ThrowValueCategoryError, IsAtom, ThrowListTypeErrorForAtom,
+//	ThrowInvalidSyntaxError, CheckEnvironmentFormal, LiftTermOrCopy,
+//	EnsureValueTags, type_id, ystdex::update_thunk,
+//	ThrowListTypeErrorForNonList, IsTyped, IsBranchedList, EnvironmentGuard,
+//	TryAccessLeaf, BindSymbol, A1::AsForm, ystdex::bind1, IsNPLASymbol,
+//	ystdex::fast_all_of, ystdex::isdigit, std::strchr, ystdex::call_value_or,
+//	LiftCollapsed, YSLib::usystem, std::mem_fn;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_SContext // for Session;
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard, ystdex::dismiss,
@@ -166,6 +169,7 @@ ReduceCond(TermNode& term, ContextNode& ctx, TNIter i)
 ReductionStatus
 WhenUnless(TermNode& term, ContextNode& ctx, bool is_when)
 {
+	RetainList(term);
 	CheckVariadicArity(term, 0);
 	RemoveHead(term);
 
@@ -214,7 +218,7 @@ template<ReductionStatus(&_rAndOr)(TermNode&, ContextNode&, TNIter)>
 ReductionStatus
 AndOr(TermNode& term, ContextNode& ctx)
 {
-	Retain(term);
+	RetainList(term);
 
 	auto i(term.begin());
 
@@ -999,15 +1003,19 @@ public:
 //! \since build 947
 template<typename... _tParams>
 void
-ConsSplice(TermNode tm, TermNode& nd, _tParams&&... args)
+ConsSplice(TermNode t, TermNode& nd, _tParams&&... args)
 {
-	auto& tcon(tm.GetContainerRef());
+	auto& tcon(t.GetContainerRef());
 	auto& con(nd.GetContainerRef());
 
 	// XXX: No other cyclic reference check.
 	YAssert(!ystdex::ref_eq<>()(con, tcon), "Invalid self move found.");
-	tcon.splice(tcon.begin(), con, con.begin(), yforward(args)...);
+	tcon.splice(tcon.begin(), con, con.begin(), yforward(args)...),
 	tcon.swap(con);
+	nd.Value = std::move(t.Value);
+	// NOTE: %AssertValueTags shall not be called here because %nd.Tags may
+	//	have %TermTags::Temporary at the beginning at the call. This is used in
+	//	%SetFirsRest.
 }
 
 // XXX: Returning term instead of the container allows to pass improper lists,
@@ -1018,33 +1026,39 @@ YB_ATTR_nodiscard TermNode
 ConsItem(TermNode& y)
 {
 	return ResolveTerm([&](TermNode& nd_y, ResolvedTermReferencePtr p_ref_y){
-		if(IsList(nd_y))
-			// TODO: Use %LiftOtherOrCopy?
-			return MakeValueOrMove(p_ref_y, [&]{
-				// XXX: The order is significant for the exception safety
-				//	guarantee.
-				return nd_y;
-			}, [&]{
-				// NOTE: This is necessary because %con can be moved to its
-				//	ancestors.
-				return std::move(nd_y);
-			});
-		else
-			ThrowListTypeErrorForNonList(nd_y, p_ref_y);
+		return MakeValueOrMove(p_ref_y, [&]{
+			// XXX: Returning a copy is significant for the exception safety
+			//	guarantee.
+			return nd_y;
+		}, [&]{
+			// NOTE: Returning a copy is necessary because %nd_y can be moved to
+			//	its ancestors.
+			return std::move(nd_y);
+		});
 	}, y);
 }
 
-//! \since build 912
-ReductionStatus
-ConsImpl(TermNode& term)
+//! \since build 951
+YB_ATTR_nodiscard inline TermNode
+ConsItemRef(TermNode& y)
+{
+	// NOTE: Returning a copy is necessary because %nd_y can be moved to
+	//	its ancestors.
+	return std::move(y);
+}
+
+//! \since build 951
+void
+ConsImpl(TermNode& term, TermNode(&cons_item)(TermNode& y))
 {
 	RetainN(term, 2);
 	RemoveHead(term);
 
 	auto i(term.begin());
 
-	ConsSplice(ConsItem(NPL::Deref(++i)), term);
-	return ReductionStatus::Retained;
+	if(cons_item == ConsItem)
+		LiftToReturn(*i);
+	ConsSplice(cons_item(NPL::Deref(++i)), term);
 }
 
 
@@ -1331,8 +1345,13 @@ ReductionStatus
 FirstOrVal(TermNode& term, _func f)
 {
 	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
-		if(IsBranchedList(nd))
-			return f(AccessFirstSubterm(nd), p_ref);
+		if(IsPair(nd))
+		{
+			auto& tm(AccessFirstSubterm(nd));
+
+			YAssert(!IsSticky(tm.Tags), "Invalid tags found.");
+			return f(tm, p_ref);
+		}
 		ThrowInsufficientTermsError(nd, p_ref);
 	}, term);
 }
@@ -1467,19 +1486,45 @@ BranchFirstReferenced(TermNode& term, TermNode& nd,
 #endif
 }
 
+//! \since build 951
+//@{
+ReductionStatus
+CheckReference(TermNode& term, void(&f)(TermNode&, bool))
+{
+	return CallResolvedUnary([&](TermNode& nd, bool has_ref){
+		f(nd, has_ref);
+		// XXX: Similar to %DoIdFunc in %NPL.Dependency.
+		LiftTerm(term, NPL::Deref(std::next(term.begin())));
+		return ReductionStatus::Regular;
+	}, term);
+}
+
 //! \since build 859
 void
 CheckResolvedListReference(TermNode& nd, bool has_ref)
 {
 	if(has_ref)
 	{
-		if(YB_UNLIKELY(!IsBranchedList(nd)))
-			throw ListTypeError(ystdex::sfmt("Expected a non-empty list, got"
-				" '%s'.", TermToStringWithReferenceMark(nd, true).c_str()));
+		if(YB_UNLIKELY(!IsList(nd)))
+			throw ListTypeError(ystdex::sfmt("Expected a list, got '%s'.",
+				TermToStringWithReferenceMark(nd, true).c_str()));
 	}
 	else
 		ThrowValueCategoryError(nd);
 }
+
+void
+CheckResolvedPairReference(TermNode& nd, bool has_ref)
+{
+	if(has_ref)
+	{
+		if(YB_UNLIKELY(IsAtom(nd)))
+			ThrowListTypeErrorForAtom(nd, true);
+	}
+	else
+		ThrowValueCategoryError(nd);
+}
+//@}
 
 //! \since build 874
 template<typename _func>
@@ -1487,73 +1532,79 @@ ReductionStatus
 FirstAtRef(TermNode& term, _func f)
 {
 	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
-		CheckResolvedListReference(nd, p_ref);
+		CheckResolvedPairReference(nd, p_ref);
 		// XXX: The call to %AccessFirstSubterm should be safe, since the parent
-		//	list is guaranteed an lvalue by %CheckResolvedListReference.
+		//	list is guaranteed an lvalue by %CheckResolvedPairReference.
 		return f(term, AccessFirstSubterm(nd), p_ref);
 	}, term);
 }
 
-//! \since build 939
+//! \since build 951
+//@{
 void
-LiftFirstRestVal(TermNode& term, TermNode& tm, bool move)
+CopyRestContainer(TermNode::Container& tcon, TNIter first, TNIter last)
 {
-	// XXX: Simple 'ReduceToValue(term, tm)' is wrong because it may move
-	//	non-unqiue reference object away.
-	if(const auto p = TryAccessLeafAtom<const TermReference>(tm))
-		LiftMovedOther(term, *p, move && p->IsMovable());
-	else
-		// XXX: Term tags are currently not respected in prvalues.
-		LiftOtherOrCopy(term, tm, move);
+	const auto i(tcon.end());
+
+	while(first != last)
+		tcon.insert(i, *first++);
 }
 
-//! \since build 939
-template<typename _func, typename _func2>
 void
-TransactRest(TermNode& term, TermNode& nd, bool move, _func f, _func2 f2)
+CopyRest(TermNode& t, TNIter first, TNIter last, const ValueObject& vo)
 {
-	AssertBranch(nd);
-
-	TermNode::Container con(term.get_allocator());
-	auto first(nd.begin());
-	const auto last(nd.end());
-
-	++first;
-	if(move)
-		con.splice(con.end(), f(nd.GetContainerRef()), first, last);
-	else
-		for(; first != last; ++first)
-			f2(con.emplace_back(), *first);
-	con.swap(term.GetContainerRef());
+	CopyRestContainer(t.GetContainerRef(), first, last);
+	t.Value = vo;
 }
 
 //! \since build 939
 void
 BranchRestFwdReferenced(TermNode& term, TermNode& nd, bool move)
 {
-	TransactRest(term, nd, move, ystdex::id<>(),
-		std::mem_fn(&TermNode::CopyContent));
+	AssertBranch(nd);
+
+	auto first(nd.begin());
+	const auto last(nd.end());
+
+	YAssert(!IsSticky(first->Tags), "Invalid tags found.");
+	++first;
+	// XXX: The transaction is not for providing more enhanced exception safety,
+	//	but being more consistent to derived implementations.
+	if(move)
+	{
+		TermNode::Container tcon(term.get_allocator());
+
+		tcon.splice(tcon.end(), nd.GetContainerRef(), first, last);
+		term.Value = std::move(nd.Value);
+		tcon.swap(term.GetContainerRef());
+	}
+	else
+	{
+		TermNode t(term.get_allocator());
+
+		CopyRest(t, first, last, nd.Value);
+		swap(t, term);
+	}
 }
 
-//! \since build 944
-template<void(&_rLift)(TermNode::Container&), typename _fInsert>
+template<typename _func>
 ReductionStatus
-RestOrVal(TermNode& term, _fInsert insert)
+RestOrVal(TermNode& term, _func f)
 {
 	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
-		if(IsBranchedList(nd))
-			TransactRest(term, nd, NPL::IsMovable(p_ref),
-				[](TermNode::Container& con) -> TermNode::Container&{
-				_rLift(con);
-				return con;
-			}, [&](TermNode& nterm, TermNode& tm){
-				insert(nterm, tm, p_ref->GetTags());
-			});
+		if(IsPair(nd))
+		{
+			TermNode::Container tcon(term.get_allocator());
+			YAssert(!IsSticky(nd.begin()->Tags), "Invalid tags found.");
+			f(tcon, nd, p_ref);
+			tcon.swap(term.GetContainerRef());
+		}
 		else
 			ThrowInsufficientTermsError(nd, p_ref);
 		return ReductionStatus::Retained;
 	}, term);
 }
+//@}
 
 //! \since build 834
 template<typename _func>
@@ -1565,7 +1616,7 @@ SetFirstRest(_func f, TermNode& term)
 	auto i(term.begin());
 
 	ResolveTerm([&](TermNode& nd_x, bool has_ref){
-		CheckResolvedListReference(nd_x, has_ref);
+		CheckResolvedPairReference(nd_x, has_ref);
 		return f(nd_x, *++i);
 	}, *++i);
 	term.Value = ValueToken::Unspecified;
@@ -1583,34 +1634,6 @@ DoSetFirst(TermNode& term, _func f)
 			f(dst, y, *p);
 		else
 			LiftTerm(dst, y);
-	}, term);
-}
-
-//! \since build 944
-void
-LiftNoOp(TermNode::Container&)
-// XXX: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100472.
-#if !(YB_IMPL_GNUCPP && YB_HAS_NOEXCEPT && __cplusplus >= 201703L)
-	ynothrow
-#endif
-{}
-
-//! \since build 944
-template<void(&_rLift)(TermNode::Container&)>
-void
-SetRestImpl(TermNode& term)
-{
-	SetFirstRest([](TermNode& nd_x, TermNode& y){
-		auto tcon(ConsItem(y));
-
-		ConsSplice(tcon, nd_x);
-		// XXX: Assume the call to %_rLift does not throw, so it can be
-		//	reordered here.
-		// TODO: What to do on %nd_x.Value if lifting is requested?
-		_rLift(nd_x.GetContainerRef());
-		// XXX: The order is significant for the exception safety
-		//	guarantee.
-		nd_x.Value.Clear();
 	}, term);
 }
 
@@ -1899,12 +1922,11 @@ EqualSubterm(bool& r, Action& act, TermNode::allocator_type a, TNCIter first1,
 }
 
 
-/*!
-\pre 第三参数非空。
-\since build 859
-*/
+//! \since build 951
+//@{
+//! \pre 第三参数非空。
 ReductionStatus
-ApplyImpl(TermNode& term, ContextNode& ctx, shared_ptr<Environment> p_env)
+ApplyFor(TermNode& term, ContextNode& ctx, shared_ptr<Environment> p_env)
 {
 	YAssert(p_env, "Invalid environment found.");
 
@@ -1923,24 +1945,47 @@ ApplyImpl(TermNode& term, ContextNode& ctx, shared_ptr<Environment> p_env)
 	return Combine<TailCall>::RelayEnvSwitch(ctx, term, std::move(p_env));
 }
 
-//! \since build 860
-void
-ListAsteriskImpl(TermNode& term)
+ReductionStatus
+ApplyImpl(TermNode& term, ContextNode& ctx)
 {
+	const auto size(term.size());
+
+	if(size == 3)
+		return ApplyFor(term, ctx,
+			NPL::AllocateEnvironment(term.get_allocator()));
+	if(size == 4)
+		return ApplyFor(term, ctx, FetchValidEnvironment(
+			ResolveEnvironment(*std::next(term.begin(), 3)).first));
+	ThrowInvalidSyntaxError("Syntax error in applying form.");
+}
+//@}
+
+//! \since build 951
+void
+ListAsteriskImpl(TermNode& term, TermNode(&cons_item)(TermNode& y))
+{
+	RetainList(term);
 	CheckVariadicArity(term, 0);
 
 	auto i(term.begin());
 	auto& head(NPL::Deref(++i));
 
-	if(++i != term.end())
+	if(std::next(i) != term.end())
 	{
 		const auto last(std::prev(term.end()));
 
 		RemoveHead(term);
-		ConsSplice(ConsItem(NPL::Deref(last)), term, last);
+		if(cons_item == ConsItem)
+			while(i != last)
+				LiftToReturn(*i++);
+		ConsSplice(cons_item(NPL::Deref(last)), term, last);
 	}
 	else
+	{
 		LiftOther(term, head);
+		if(cons_item == ConsItem)
+			LiftToReturn(term);
+	}
 }
 
 //! \since build 942
@@ -2446,8 +2491,7 @@ ReduceListExtractRestFwd(TermNode& term)
 		//	to make the list elements having %TermTags::Temporary.
 		BranchRestFwdReferenced(nterm, nd, NPL::IsMovable(tags));
 	}, [](TermNode& nterm, TermNode& o, TermTags o_tags){
-		TransactRest(nterm, o, NPL::IsMovable(o.Tags | o_tags), ystdex::id<>(),
-			std::mem_fn(&TermNode::CopyContent));
+		BranchRestFwdReferenced(nterm, o, NPL::IsMovable(o.Tags | o_tags));
 	});
 	return ReductionStatus::Retained;
 }
@@ -3247,26 +3291,6 @@ YB_ATTR_nodiscard YB_PURE inline
 
 //! \since build 919
 //@{
-void
-ForwardImports(TermNode& term)
-{
-	for(auto& x : term)
-		// NOTE: As %MoveRValueToForward, but with same term to
-		//	be lifted.
-		if(const auto p = TryAccessLeafAtom<const TermReference>(x))
-			if(!p->IsReferencedLValue())
-				LiftOtherOrCopy(x, p->get(), p->IsModifiable());
-}
-
-ReductionStatus
-SymbolsToImportsApp(TermNode& term)
-{
-	Retain(term);
-	RemoveHead(term);
-	ForwardImports(term);
-	return ReductionStatus::Retained;
-}
-
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TokenValue, CopyImportName, const TokenValue& s)
 	ImplRet(HasImportsSigil(s) ? TokenValue(s.substr(1)) : s)
@@ -3325,8 +3349,9 @@ BindImports(const shared_ptr<Environment>& p_env, TermNode& term,
 				auto& bound(*pr.first);
 				TermNode nterm(bound.get_allocator());
 
-				// XXX: As %EvaluateIdentifier and the loop body in
-				//	%ForwardImports, with some optimizations (see below).
+				// XXX: As %EvaluateIdentifier and the loop body in the
+				//	applicative in %SymbolsToImports, with some optimizations
+				//	(see below).
 				// XXX: Different to %EvaluateIdentifier, identifiers here are
 				//	not used of operator, so %SetupTailOperatorName is not
 				//	called.
@@ -3447,6 +3472,7 @@ ProvideLetCommon(TermNode& term, ContextNode& ctx)
 ReductionStatus
 ImportImpl(TermNode& term, ContextNode& ctx, bool ref_symbols)
 {
+	RetainList(term);
 	CheckVariadicArity(term, 0);
 	RemoveHead(term);
 
@@ -3484,7 +3510,7 @@ AssocImpl(TermNode& term, bool(*eq)(const ValueObject&, const ValueObject&))
 			{
 				auto& sub(ReferenceTerm(tm));
 
-				CheckResolvedListReference(sub, true);
+				CheckResolvedPairReference(sub, true);
 
 				auto& sub2(ReferenceTerm(AccessFirstSubterm(sub)));
 
@@ -3685,7 +3711,7 @@ EqualTermValue(TermNode& term, ContextNode& ctx)
 ReductionStatus
 If(TermNode& term, ContextNode& ctx)
 {
-	Retain(term);
+	RetainList(term);
 
 	const auto size(term.size());
 
@@ -3710,7 +3736,7 @@ If(TermNode& term, ContextNode& ctx)
 ReductionStatus
 Cond(TermNode& term, ContextNode& ctx)
 {
-	Retain(term);
+	RetainList(term);
 	RemoveHead(term);
 #if NPL_Impl_NPLA1_Enable_Thunked
 	return ReduceCond(term, ctx, term.begin());
@@ -3764,17 +3790,15 @@ Or(TermNode& term, ContextNode& ctx)
 ReductionStatus
 Cons(TermNode& term)
 {
-	ConsImpl(term);
-	LiftSubtermsToReturn(term);
+	ConsImpl(term, ConsItem);
 	return ReductionStatus::Retained;
 }
 
 ReductionStatus
 ConsRef(TermNode& term)
 {
-	// XXX: %ConsRef is declared external by %YF_API. %ConsImpl is not allowed
-	//	for ELF symbol interposition anyway.
-	return ConsImpl(term);
+	ConsImpl(term, ConsItemRef);
+	return ReductionStatus::Retained;
 }
 
 ReductionStatus
@@ -3788,7 +3812,7 @@ ForwardFirst(TermNode& term, ContextNode& ctx)
 
 	return NPL::ResolveTerm([&] YB_LAMBDA_ANNOTATE(
 		(TermNode& nd, ResolvedTermReferencePtr p_ref) , , flatten){
-		if(IsBranchedList(nd))
+		if(IsPair(nd))
 		{
 			const auto assign_term([&] YB_LAMBDA_ANNOTATE(
 				(TermNode::Container&& c, ValueObject&& vo) , , flatten){
@@ -3864,7 +3888,17 @@ ReductionStatus
 FirstVal(TermNode& term)
 {
 	return FirstOrVal(term, [&](TermNode& tm, ResolvedTermReferencePtr p_ref){
-		LiftFirstRestVal(term, tm, NPL::IsMovable(p_ref));
+		const bool move(NPL::IsMovable(p_ref));
+
+		// NOTE: As %ReduceToReturn to another term, with restrictrion from
+		//	propagated tags.
+		// XXX: Simple 'ReduceToValue(term, tm)' is wrong because it may move
+		//	non-unqiue reference object away.
+		if(const auto p = TryAccessLeafAtom<const TermReference>(tm))
+			LiftMovedOther(term, *p, move && p->IsMovable());
+		else
+			// XXX: Term tags are currently not respected in prvalues.
+			LiftOtherOrCopy(term, tm, move);
 		return ReductionStatus::Retained;
 	});
 }
@@ -3872,14 +3906,41 @@ FirstVal(TermNode& term)
 ReductionStatus
 RestFwd(TermNode& term)
 {
-	return RestOrVal<LiftNoOp>(term, LiftOtherOrCopyPropagateTags);
+	return RestOrVal(term, [&](TermNode::Container& tcon,
+		TermNode& nd, ResolvedTermReferencePtr p_ref){
+		auto first(nd.begin());
+		const auto last(nd.end());
+
+		++first;
+		if(NPL::IsMovable(p_ref))
+		{
+			tcon.splice(tcon.end(), nd.GetContainerRef(), first, last);
+			term.Value = std::move(nd.Value);
+		}
+		else
+		{
+			// NOTE: Not moving, but the tags are needed for propagation.
+			const auto tags(NPL::Deref(p_ref).GetTags());
+
+			// XXX: As %LiftElementsToReturn.
+			for(; first != last && !IsSticky(first->Tags); ++first)
+				LiftCopyPropagate(tcon.emplace_back(), *first, tags);
+			// XXX: As %LiftCopyPropagate, with range suffix instead of
+			//	the subterm container.
+			CopyRestContainer(tcon, first, last);
+			term.Value = nd.Value;
+			// NOTE: Propagate tags if it is a term reference.
+			if(const auto p = TryAccessLeaf<TermReference>(term))
+				p->PropagateFrom(tags);
+		}
+	});
 }
 
 ReductionStatus
 RestRef(TermNode& term, ContextNode& ctx)
 {
 	return CallResolvedUnary([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
-		CheckResolvedListReference(nd, p_ref);
+		CheckResolvedPairReference(nd, p_ref);
 
 		const auto a(term.get_allocator());
 		auto p_sub(YSLib::allocate_shared<TermNode>(a));
@@ -3898,9 +3959,71 @@ RestRef(TermNode& term, ContextNode& ctx)
 ReductionStatus
 RestVal(TermNode& term)
 {
-	return RestOrVal<LiftSubtermsToReturn>(term,
-		[](TermNode& dst, TermNode& tm, TermTags tags){
-		LiftFirstRestVal(dst, tm, NPL::IsMovable(tags));
+	return RestOrVal(term, [&] YB_LAMBDA_ANNOTATE((TermNode::Container& tcon,
+		TermNode& nd, ResolvedTermReferencePtr p_ref) , , flatten){
+		auto first(nd.begin());
+		const auto last(nd.end());
+
+		++first;
+		if(NPL::IsMovable(p_ref))
+		{
+			auto& con(nd.GetContainerRef());
+
+			// NOTE: Split the rest subterms without invalidating the 1st
+			//	subterm in %nd.
+			tcon.splice(tcon.end(), con, first, last);
+			// NOTE: Swap the containers to make %nd the rest.
+			tcon.swap(con);
+
+			const auto gd(ystdex::make_guard([&]() ynothrow{
+				// NOTE: Swap back to restore the 1st subterm in %nd.
+				tcon.swap(con);
+			}));
+
+			// XXX: As %LiftElementsToReturn without using extra containers.
+			tcon.splice(tcon.end(), con, con.begin(), LiftPrefixToReturn(nd));
+			LiftToReturn(nd);
+			con.splice(con.begin(), tcon, std::next(tcon.begin()), tcon.end());
+			term.Value = std::move(nd.Value);
+		}
+		else
+		{
+			// XXX: As %LiftElementsToReturn.
+			for(; first != last && !IsSticky(first->Tags); ++first)
+			{
+				auto& tm(*first);
+
+				// NOTE: As in %FirstVal, but move is not allowed. This
+				//	restriction is assumed by propagated tags.
+				if(const auto p = TryAccessLeafAtom<const TermReference>(tm))
+					EnsureValueTags(tcon.insert(tcon.end(), p->get())->Tags);
+				else
+					tcon.push_back(tm);
+				AssertValueTags(tcon.back());
+			}
+			// XXX: As above, with range suffix instead of the subterm
+			//	container.
+			if(const auto p = TryAccessValue<const TermReference>(nd.Value))
+			{
+				auto& src(p->get());
+#if false
+				// XXX: This is not that efficient.
+				TermNode::Container ncon(src.get_allocator());
+
+				CopyRestContainer(ncon, src.begin(), src.end());
+				tcon.splice(tcon.end(), ncon);
+#else
+				tcon.splice(tcon.end(), TermNode::Container(src.GetContainer(),
+					src.get_allocator()));
+#endif
+				term.Value = src.Value;
+			}
+			else
+			{
+				CopyRestContainer(tcon, first, last);
+				term.Value = nd.Value;
+			}
+		}
 	});
 }
 
@@ -3932,13 +4055,17 @@ SetFirstRef(TermNode& term)
 void
 SetRest(TermNode& term)
 {
-	SetRestImpl<LiftSubtermsToReturn>(term);
+	SetFirstRest([](TermNode& nd_x, TermNode& y){
+		ConsSplice(ConsItem(y), nd_x);
+	}, term);
 }
 
 void
 SetRestRef(TermNode& term)
 {
-	SetRestImpl<LiftNoOp>(term);
+	SetFirstRest([](TermNode& nd_x, TermNode& y){
+		ConsSplice(ConsItemRef(y), nd_x);
+	}, term);
 }
 
 
@@ -3992,7 +4119,7 @@ RemoteEvalRef(TermNode& term, ContextNode& ctx)
 void
 MakeEnvironment(TermNode& term)
 {
-	Retain(term);
+	RetainList(term);
 	RemoveHead(term);
 	term.SetValue(CreateEnvironment(term));
 }
@@ -4221,12 +4348,13 @@ CheckParent(TermNode& term)
 ReductionStatus
 CheckListReference(TermNode& term)
 {
-	return CallResolvedUnary([&](TermNode& nd, bool has_ref){
-		CheckResolvedListReference(nd, has_ref);
-		// XXX: Similar to %DoIdFunc in %NPL.Dependency.
-		LiftTerm(term, NPL::Deref(std::next(term.begin())));
-		return ReductionStatus::Regular;
-	}, term);
+	return CheckReference(term, CheckResolvedListReference);
+}
+
+ReductionStatus
+CheckPairReference(TermNode& term)
+{
+	return CheckReference(term, CheckResolvedPairReference);
 }
 
 
@@ -4255,41 +4383,38 @@ MakeEncapsulationType(TermNode& term)
 
 
 ReductionStatus
-Sequence(TermNode& term, ContextNode& ctx)
+Apply(TermNode& term, ContextNode& ctx)
 {
 	Retain(term);
+	return ApplyImpl(term, ctx);
+}
+
+ReductionStatus
+ApplyList(TermNode& term, ContextNode& ctx)
+{
+	RetainList(term);
+	return ApplyImpl(term, ctx);
+}
+
+ReductionStatus
+Sequence(TermNode& term, ContextNode& ctx)
+{
+	RetainList(term);
 	RemoveHead(term);
 	return ReduceOrdered(term, ctx);
 }
 
 ReductionStatus
-Apply(TermNode& term, ContextNode& ctx)
-{
-	Retain(term);
-
-	const auto size(term.size());
-
-	if(size == 3)
-		return ApplyImpl(term, ctx,
-			NPL::AllocateEnvironment(term.get_allocator()));
-	if(size == 4)
-		return ApplyImpl(term, ctx, FetchValidEnvironment(
-			ResolveEnvironment(*std::next(term.begin(), 3)).first));
-	ThrowInvalidSyntaxError("Syntax error in applying form.");
-}
-
-ReductionStatus
 ListAsterisk(TermNode& term)
 {
-	ListAsteriskImpl(term);
-	LiftSubtermsToReturn(term);
+	ListAsteriskImpl(term, ConsItem);
 	return ReductionStatus::Retained;
 }
 
 ReductionStatus
 ListAsteriskRef(TermNode& term)
 {
-	ListAsteriskImpl(term);
+	ListAsteriskImpl(term, ConsItemRef);
 	return ReductionStatus::Retained;
 }
 
@@ -4361,14 +4486,14 @@ ListConcat(TermNode& term)
 
 	LiftToReturn(y);
 	PrependList(ycon, x);
-	TermNode::Container(std::move(ycon)).swap(term.GetContainerRef());
+	LiftOther(term, y);
 	return ReductionStatus::Retained;
 }
 
 ReductionStatus
 Append(TermNode& term)
 {
-	Retain(term);
+	RetainList(term);
 #if true
 	// XXX: This is likely a bit more efficient.
 	RemoveHead(term);
@@ -4539,6 +4664,7 @@ AsEnvironment(TermNode& term, ContextNode& ctx)
 ReductionStatus
 BindingsWithParentToEnvironment(TermNode& term, ContextNode& ctx)
 {
+	RetainList(term);
 	CheckVariadicArity(term, 0);
 
 	auto i(term.begin());
@@ -4578,7 +4704,7 @@ BindingsWithParentToEnvironment(TermNode& term, ContextNode& ctx)
 ReductionStatus
 BindingsToEnvironment(TermNode& term, ContextNode& ctx)
 {
-	Retain(term);
+	RetainList(term);
 
 	auto& con(term.GetContainerRef());
 	auto p_env(NPL::AllocateEnvironment(con.get_allocator()));
@@ -4625,7 +4751,19 @@ SymbolsToImports(TermNode& term)
 					for(const auto& x : nd)
 						add_val(CopyImportName(
 							NPL::ResolveRegular<const TokenValue>(x)));
-				con.front() = A1::AsForm(a, SymbolsToImportsApp, Strict);
+				con.front() = A1::AsForm(a, [](TermNode& t){
+					Retain(t);
+					RemoveHead(t);
+					YAssert(IsList(t), "Invalid term found.");
+					for(auto& x : t)
+						// NOTE: As %MoveRValueToForward, but with same term to
+						//	be lifted.
+						if(const auto p
+							= TryAccessLeafAtom<const TermReference>(x))
+							if(!p->IsReferencedLValue())
+								LiftOtherOrCopy(x, p->get(), p->IsModifiable());
+					return ReductionStatus::Retained;
+				}, Strict);
 				return ReductionStatus::Retained;
 			}
 			term.ClearContainer();
