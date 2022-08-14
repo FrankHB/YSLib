@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r10497
+\version r10766
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-07-29 03:10 +0800
+	2022-08-15 06:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,201 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	+ $revert_ex(b826) "recovered header %ftmodapi.h from FreeType"
+		@ "directory %freetype/include/freetype" @ "%3rdparty",
+		// See $2022-08 @ %Documentation::Workflow.
+	/ %YFramework $=
+	(
+		/ %YSLib.YAdaptor.Font $=
+		(
+			/ DLDI "simplified internal FreeType version access" ^ "macro",
+			/ "prevented <freetype/internal/internal.h> and \
+				%FT_INTERNAL_TRUETYPE_TYPES_H" @ \
+				"'defined(FT_CONFIG_OPTION_OLD_INTERNALS)' since FreeType 2.5"
+				// See $2022-08 @ %Documentation::Workflow.
+			(
+			/ @ "class %FontCache" $=
+			(
+				/ "initialized %::FT_Library instance" ^ "%::(FT_New_Library, \
+					FT_Add_Default_Modules, FT_Done_Library)"
+					~ "%::(FT_Init_FreeType, FT_Done_FreeType)"
+					$dep_from "%3rdparty",
+				- $comp "the call to %FT_Set_Default_Properties whether \
+					FreeType is configured with \
+					%FT_CONFIG_OPTION_ENVIRONMENT_PROPERTIES"
+					// See $2022-08 @ %Documentation::Workflow.
+			);
+			* $comp $lib "mismatched deallocation"
+				@ "destructor %Typeface::SmallBitmapData" $since b420
+				// See $2022-08 @ %Documentation::Workflow.
+			),
+			/ DLDI "simplified header inclusion" $=
+			(
+				/ ^ %YSLib.Core.Exception ~ %YSLib.Core.YApplication,
+				- "unused FreeType header inclusions"
+			)
+		),
+		/ %NPL $=
+		(
+			/ %SContext $=
+			(
+				+ "4 constructors with %TermTags parameters with \
+					'const TermNode&'/'TermNode&&' and optional \
+					%allocator_type parameter" @ "class %TermNode",
+					// Other constructors are not touched, as the \
+						simplification of other constructors using new ones \
+						would be inefficient.
+				+ "function %IsSingleElementList"
+			),
+			* "missing support irregular representation of reference \
+				values to environment"
+				@ "functions %ResolveEnvironment#(3, 4)" @ %NPLA $since b949
+				// The irregular representation was supported since b949 and \
+					it could be introduced by interoperations, while the \
+					object language devices (non-list trailing sequences in \
+					binding constructs) allowing to construct such reference \
+					values was supported since b951.
+				$= (/ $impl ^ "%IsAtom" ~ "%IsExtendedList"),
+			/ %NPLA1 $=
+			(
+				* DD "outdated mentioning of the tail operator name setting \
+					function" @ "Doxgyen comment"
+					@ "function %EvaluateIdentifier" $since b948
+					$= (/ "'\sa' command"
+						^ 'ContextState::TrySetTailOperatorName'
+						~ 'EvaluateIdentifier'),
+				/ ("alias template %GTokenizer", "alias %REPLContext::Loader")
+					^ "%ystdex::unchecked_function" ~ "%function",
+				/ DLDI "simplified allocator using" @ "binding with sigil '&'"
+					@ "functions %(BindParameter, BindParameterWellFormed, \
+					BindSymbol)",
+				* "ill-formed access of non-existing state" @ "trailing \
+					sequence matching" @ !'NPL_Impl_NPLA1_AssertParameterMatch'
+					@ "functions %(MatchParameter, BindParameter, \
+					BindParameterWellFormed)" $since b951,
+				/ DLI "simplified static member function \
+					%ContextState::DefaultReduceOnce" ^ ($dep_from
+					("%IsSingleElementList" @ %SContext), 'YB_PURE'),
+				* "redundant indirection level of the referent of subpair \
+					reference created" @ "trailing bindings with sigil '&'"
+					@ "functions %(MatchParameter, BindParameter, \
+					BindParamaterWellFormed)" $since b951,
+				/ @ "function %CheckVariadicArity" $=
+				(
+					/ "%RemoveHead call"
+						-> ("skipping the 1st subterm" @ "exception message");
+					+ 'const' @ "term parameter type"
+				),
+				/ @ "function %CheckArgumentList" $=
+				(
+					* "missing accepting list with null reference element at \
+						end" $since b951
+						$= (/ $impl ^ ("%ResolveSuffix" @ %NPLA)),
+					* "missing supported reference mark" @ "exception message"
+						$since b951
+				),
+				* "incorrect results for list with irregular representation of \
+					last element" @ "function %FetchArgumentN" $since b951
+					^ "%CountPrefix" ~ "%TermNode::size"
+			),
+			/ @ %NPLA1Forms $=
+			(
+				+ DLDI "header inclusion <ystdex/functor.hpp>",
+				/ @ "namespace %Forms" $=
+				(
+					/ DLDI "simplified function %CheckListReference"
+						^ "%ThrowListTypeErrorForNonList",
+					/ DLDI "alternative implementation" @ "functions \
+						%ListExtractFirst and other binding functions"
+						^ "%AssertValueTags",
+						// To be consistent with the changes below.
+					* "missing clear tags for nested list elements from the \
+						referent" @ ("functions %(ListContcat, Append)"
+						$since b912, "function %RestFwd" $since b913,
+						("functions %(FoldR1, Map1)") $since b899)
+						^ "%EnsureValueTags",
+					/ DLI "simplified reference propagation" @ "functions \
+						%(RestFwd, FoldR1, Map1, ListConcat, Append, \
+						ListExtractFirst, Let, LetRef, LetWithEnvironment, \
+						LetWithEnvironmentRef, LetRec, LetRecRef, LetAsterisk, \
+						LetAsteriskRef, BindingsWithParentToEnvironment, \
+						BindingsToEnvironment, ProvideLet, Assq, Assv)"
+						^ "%LiftPropagatedReference",
+					/ @ "functions %(Apply, ApplyList)" $=
+					(
+						/ "checked variadic arguments at first"
+							^ $dep_from ("%CheckVariadicArity" @ %NPLA1),
+						* $comp "missing support irregular representation as \
+							the last element in the object parameter"
+							$since b951
+							// Previously the object is a list as %ApplyList \
+								not requiring to support the non-list argument.
+					),
+					* "missing checking against improper lists"
+						@ "function %Apply" $since b951,
+						// This shall be same to %Apply. Only in one of the \
+							argument there are differences.
+					* "missing checking against non-list 2nd argument"
+						@ "function %ApplyList" $since b951,
+					+ "function %ApplyContinuation"
+				)
+			),
+			/ %Dependency $=
+			(
+				/ @ "function %LoadGroundContext" $=
+				(
+					/ DLDI "alternative derivation" @ "applicative %restv"
+						^ '$defl!' ~ '$def%!',
+						// To be more consistent to 'firstv'.
+					* "missing forwarding and checking the list parameter"
+						@ '!NPL_Impl_NPLA1_Use_Id_Vau' @ "alternative derivation"
+						@ "applicative %rlist" $since b951
+						// This is inconsistent to the derivation with \
+							'NPL_Impl_NPLA1_Use_Id_Vau'.
+						$= (/ $re_ex(b951)
+							^ (('forward!' ~ 'move!'), 'check-list-reference')),
+					* "native implemenation behaviors not same to derivations \
+						on syntax error" @ ("applicative %apply" $dep_from
+						("%Forms::Apply" @ %NPLA1Forms) $since b859,
+						@ "applicative %apply" $dep_from
+						("%Forms::ApplyList" @ %NPLA1Forms) $since b951)
+						// The old diagnostics in native implemenations were \
+							less clear because the exception message of \
+							violation of subterms size check would have no \
+							term information at all and such check would come \
+							first.
+				),
+				* "unexpectedly moved the 1st argument"
+					@ "alternative derivation" @ "applicative %require"
+					@ "function %LoadModule_std_modules" $since b942,
+				+ "applicative 'apply-continuation'"
+					@ "function %LoadModule_std_continuations"
+					^ $dep_from ("function %ApplyContinuation" @ %NPLA1Forms)
+			)
+		)
+	),
+	/ %Tools.Scripts $=
+	(
+		/ @ "%SHBuild-BuildApp.txt" $=
+		(
+			/ "handled empty SHBOPT_BASE as if a single '.'";
+			* $comp "implicit building command line argument implied for \
+				SRCPATH in SHBOPT_BASE" $since b900
+				// Defferent to the previous shell script, SHBOPT_BASE in this \
+					NPLA1 script is optional. The wrong SRCPATH is \
+					'-std=c++11'. Now it is default to '.' when empty, but \
+					still can be wrong when SHBOPT_BASE only has SHBuild \
+					options.
+		),
+		* $comp "possible crashes caused by automatically detected library \
+			when external dynamically linked FreeType library is used"
+			@ !"platform %(DS, MinGW32, Android)" $since b563
+			// See $2022-08 @ %Documentation::Workflow.
+	)
+),
+
+b951
 (
 	/ %YFramework.NPL $=
 	(
@@ -214,85 +409,81 @@ $now
 			@ "functions %(BindParameter, BindParameterWellFormed)" @ %NPLA1,
 			("functions %Forms::(Cons, ListAsterisk, RestVal, SetRest)"
 			@ %NPLA1Forms) ^ ("%LiftPrefixToReturn" @ %NPLA)),
-		/ %Dependency $=
+		/ %Dependency @ "function %LoadGroundContext" $=
 		(
-			/ @ "function %LoadGroundContext" $=
+			+ "applicative 'check-pair-reference'"
+				^ $dep_from ("%Forms::CheckPairReference" @%NPLA1Forms),
+			/ "supported pairs" @ "applicatives ('first@', 'first&', 'rest&')"
+				$=
 			(
-				+ "applicative 'check-pair-reference'"
-					^ $dep_from ("%Forms::CheckPairReference" @%NPLA1Forms),
-				/ "supported pairs" @ "applicatives ('first@', 'first&', \
-					'rest&')" $=
-				(
-					/ $comp "native implementation" $dep_from ("functions \
-						%Forms::(FirstAt, FirstRef, RestRef)" @ %NPLA1Forms),
-					/ "alternative derivations" ^ $dep_from
-						'check-pair-reference' ~ 'check-list-reference'
-				),
-				/ "supported returning reference values"
-					@ "applicatives ('rest%', %restv)" $=
-				(
-					/ $comp "native implementation"
-						$dep_from ("%Forms::(RestFwd, RestVal)" @ %NPLA1Forms),
-					/ "alternative derivations"
-						^ ('$defl%!' ~ '$defl!', '$move-resolved!' ~ 'move!')
-						// To allow reference to reference, 'restv' also make \
-							the result forwarded, as 'idv'. '$move-resolved!' \
-							is necessary for 'restv' whose parameter has no \
-							sigil in the derivation, and also good for 'rest%'.
-				),
-				(
-				/ $comp "accepted empty lists"
-					@ "applicative 'check-list-reference'"
-					$dep_from ("%Forms::CheckListReference" @ %NPLA1Forms);
-				/ DLDI "checked the list parameter" @ "derivations"
-					@ "applicatives (%(rlist, foldr1, rulist), 'map-reverse')"
-					^ 'check-list-reference'
-					$dep_to "adding list checks",
-					// This is nothing different without the changes in the \
-						support pairs of variable binding.
-				/ $forced DLDI "checked parameter to ensure list"
-					$dep_from "cons reference" @ "alternative derivation"
-					@ "applicative 'list-push-front!'"
-					$= (/ $impl ^ 'check-list-reference')
-				),
-				/ $comp "supported pairs as argument" @ "applicatives \
-					(%(first, firstv, restv), 'first&', 'first%', 'rest&')" $=
-				(
-					/ "native implementation" $dep_from
-						"pair handling in native implementations",
-					/ "alternative derivations" @ ("trailing bindings" @ %NPLA1)
-				)
-				/ $comp "supported forwarding non-list argument"
-					@ "applicative %apply" $dep_from ("cons reference",
-					"%ContextState::DefaultReduceOnce" @ %NPLA1),
-				/ DLDI "reordered alternative derivation"
-					@ "applicative %apply before operative '$sequence'",
-					// Now 'apply' is more fundamental.
-				/ $re_add(b950) "forward parameter" @ "alternative derivation"
-					@ "applicative 'rlist'" ^ 'forward!' ~ 'move!'
-					$dep_to "forwarding trailing",
-					// This is no change even when the traling sequence is a \
-						reference, since the bound referent is in the \
-						irregular representation. However, it is relied on by \
-						the change of trailing binding conceptually.
-				(
-				+ "applicative 'list?';
-				+ "applicative 'apply-list'"
-					$dep_from ("%Forms::ApplyList" @ %NPLA1Forms);
-				/ $forced DLI "checked against non-list arugment alternative \
-					derivations" @ ("operative '$sequence'" $dep_from
-					("%Forms::Sequence" @ %NPLA1Forms), "operative '$cond'"
-					$dep_from ("%Forms::Cond" @ %NPLA1Forms))
-					// The check to ensure the combination having an argument \
-						list is before the actual access in the old \
-						implementation. It is necessary for the correct \
-						behavior of side effects and the exception message \
-						("expect a list" instead of "expect a pair").
-					$= (/ $impl ^ 'apply-list')
-				),
-				/ DLI "simplified alternative derivation"
-					@ "applicative 'equal?'"
-			)
+				/ $comp "native implementation" $dep_from ("functions \
+					%Forms::(FirstAt, FirstRef, RestRef)" @ %NPLA1Forms),
+				/ "alternative derivations" ^ $dep_from
+					'check-pair-reference' ~ 'check-list-reference'
+			),
+			/ "supported returning reference values"
+				@ "applicatives ('rest%', %restv)" $=
+			(
+				/ $comp "native implementation"
+					$dep_from ("%Forms::(RestFwd, RestVal)" @ %NPLA1Forms),
+				/ "alternative derivations"
+					^ ('$defl%!' ~ '$defl!', '$move-resolved!' ~ 'move!')
+					// To allow reference to reference, 'restv' also make the \
+						result forwarded, as 'idv'. '$move-resolved!' is \
+						necessary for 'restv' whose parameter has no sigil in \
+						the derivation, and also good for 'rest%'.
+			),
+			(
+			/ $comp "accepted empty lists"
+				@ "applicative 'check-list-reference'"
+				$dep_from ("%Forms::CheckListReference" @ %NPLA1Forms);
+			/ DLDI "checked the list parameter" @ "derivations"
+				@ "applicatives (%(rlist, foldr1, rulist), 'map-reverse')"
+				^ 'check-list-reference' $dep_to "adding list checks",
+				// This is nothing different without the changes in the \
+					support pairs of variable binding.
+			/ $forced DLDI "checked parameter to ensure list"
+				$dep_from "cons reference" @ "alternative derivation"
+				@ "applicative 'list-push-front!'"
+				$= (/ $impl ^ 'check-list-reference')
+			),
+			/ $comp "supported pairs as argument" @ "applicatives (%(first, \
+				firstv, restv), 'first&', 'first%', 'rest&')" $=
+			(
+				/ "native implementation"
+					$dep_from "pair handling in native implementations",
+				/ "alternative derivations" @ ("trailing bindings" @ %NPLA1)
+			),
+			/ $comp "supported forwarding non-list argument"
+				@ "applicative %apply" $dep_from ("cons reference",
+				"%ContextState::DefaultReduceOnce" @ %NPLA1),
+			/ DLDI "reordered alternative derivation"
+				@ "applicative %apply before operative '$sequence'",
+				// Now 'apply' is more fundamental.
+			/ $re_add(b950) "forward parameter" @ "alternative derivation"
+				@ "applicative 'rlist'" ^ 'forward!' ~ 'move!'
+				$dep_to "forwarding trailing",
+				// This is no change even when the traling sequence is a \
+					reference, since the bound referent is in the \
+					irregular representation. However, it is relied on by \
+					the change of trailing binding conceptually.
+			(
+			+ "applicative 'list?';
+			+ "applicative 'apply-list'"
+				$dep_from ("%Forms::ApplyList" @ %NPLA1Forms);
+			/ $forced DLI "checked against non-list arugment alternative \
+				derivations" @ ("operative '$sequence'" $dep_from
+				("%Forms::Sequence" @ %NPLA1Forms), "operative '$cond'"
+				$dep_from ("%Forms::Cond" @ %NPLA1Forms))
+				// The check to ensure the combination having an argument \
+					list is before the actual access in the old \
+					implementation. It is necessary for the correct \
+					behavior of side effects and the exception message \
+					("expect a list" instead of "expect a pair").
+				$= (/ $impl ^ 'apply-list')
+			),
+			/ DLI "simplified alternative derivation"
+				@ "applicative 'equal?'"
 		)
 	),
 	* $comp "missing non-empty list condition" @ "description of applicative \

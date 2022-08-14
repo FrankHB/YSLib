@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规范和实现规格说明。
-\version r29342
+\version r29354
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2022-07-28 12:09 +0800
+	2022-08-15 03:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2813,6 +2813,8 @@ IsList
 按以上基本分类和第一个子项（若存在）的粘滞位(@6.2.2) ，提供以下扩展分类谓词：
 IsAtom
 IsPair
+判断特定结构的列表可使用以下谓词：
+IsSingleElementList
 判断值数据成员(@6.2) 具有的类型或值的模板以 Is 或 Has 起始：
 IsTyped
 IsTypedRegular
@@ -5885,10 +5887,11 @@ NPL_Impl_NPLA1Forms_LetParent_ExpandLevel ：
 Forms::FoldR1 和 Forms::Map1 当前可使用不在对象语言中的右值的表示中支持的标签(@6.2.2.1) 。
 
 @8.4.10 一等续延支持：
+一等续延的实现依赖实现选项 NPL_Impl_NPLA1_Enable_Thunked 启用异步规约(@7.9.2) ，否则应用续延的行为未定义。
 Forms 提供以下在对象语言中实现一等续延(@4.5.3.3) 相关操作：
 Forms::Call1CC
 Forms::ContinuationToApplicative
-一等续延的实现依赖实现选项 NPL_Impl_NPLA1_Enable_Thunked 启用异步规约(@7.9.2) ，否则应用续延的行为未定义。
+Forms::ApplyContinuation
 
 @8.4.11 外部调用：
 Forms 提供以下在对象语言中调用实现环境外部功能的函数：
@@ -8057,9 +8060,9 @@ NPL_Impl_NPLA1_Use_LockEnvironment
 不直接使用本机实现的替代实现仅供参考，可能引入和本机实现不同的未指定行为（如子对象(@9.8.2) 的生存期(@5.6.6) 不同），且可能有和核心特性实现相关的限制，包括：
 	以下不同实现可引起不同的诊断：
 		由合并子调用的参数绑定(@8.4.5.3) 引起(@9.5.1) 的静态语法错误(@9.5.1) 。
-		类型检查(@9.5.4.1) 可具有不同的顺序而引起不同的类型错误。
-		对要求为列表的参数的类型检查中的诊断消息(@1.2.4) 可能指示对象或其子对象不符合要求。
-		列表元素检查的错误中的诊断消息。
+		类型检查(@9.5.4.1) 可具有不同的顺序而引起不同的类型错误(@9.5.4.1) 。
+		类型错误中关于元素的表示的诊断消息可能不同。
+			例如，对要求为列表的参数的类型检查中的诊断消息(@1.2.4) 可能指示对象或其子对象不符合要求。
 	使用 TCO 实现 PTC(@9.7.4) ，可能具有不同的支持(@9.7.4.1) 和实现（如 TCO 动作消除(@7.10.9) ）。
 	操作的语义允许时，操作的结果和作用(@10.3.1) 引起改变的对象中可包含符合具体操作的约定的未指定值（但不含没有附加限制条件的未指定值(@10.7.2.3) ）。
 	没有明确指定时，创建的对象的具体内部表示及其宿主类型。
@@ -8471,6 +8474,9 @@ call/1cc <combiner> ：捕获一次续延(@4.5.3.3) ，具现(@1.2.4) 为一等�
 捕获的续延之后允许被复制。
 continuation->applicative <continuation> ：转换续延为应用子。
 结果是转换的 <applicative> 类型的值。调用这个值蕴含以相同参数对参数指定的续延的调用。
+apply-continuation <continuation> <object> ：应用续延。
+以第二参数作为参数，以 apply 应用第一参数指定的续延转换的应用子，即同求值：
+apply (apply-continuation <continuation>) <object>
 **原理**
 类似 Kernel 语言，NPLA1 续延不是合并子。这一设计的基本原理参见 [RnRK] §7 ，但理由不充分。更完整的分析如下：
 	使用守卫选择子(guard selector) 是 Kernel 的具体特性的设计，不是一般求值算法中蕴含需要实现的选项，因此仅在 [RnRK] 内部生效。
@@ -8545,10 +8551,12 @@ NPLA1 首先提供关于一等续延而不是一等协程(@4.5.2.3) 的控制操
 			在 [RnRK] ，正常程序运行的顶层续延界限以 root-continuation 提供。此外，提供 error-continuation 处理错误。
 			在完善的设计中，提供一个顶层的续延界限并非困难。因此，可能缺少取得续延界限的方法的问题不是核心困难。此外，如 [RnRK] 的 error-continuation 显示了其它类似的续延的实用性。
 				类似的特性可能会被加入此处的设计中 NPLA1 。
+同 [RnRK] ，apply-continuation 不接受可选的环境，因为非正常控制忽略动态环境。
 **注释**
 call1/cc 的名称来自 https://legacy.cs.indiana.edu/~dyb/pubs/call1cc.pdf ，同 Chez Scheme 。
 类似 Kernel 而不同于 Scheme ，续延具有单独的类型，续延应用也不是蕴含过程调用的函数应用。
 另见关于一次调用检查的实现(@7.4.2.1) 。
+apply-continuation 同 [RnRK] 。取得非 <list> 结果依赖 apply 对 <pair> 的支持，这在 Scheme 中无法实现。
 
 @12.2 代理求值：
 通过初始化基础上下文后调用 Forms::LoadModule_std_promises(@8.5.2) 初始化，默认加载为根环境下的 std.promises 环境。

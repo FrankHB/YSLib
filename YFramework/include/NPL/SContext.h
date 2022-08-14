@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r4516
+\version r4552
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2022-07-06 08:26 +0800
+	2022-08-06 01:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -474,12 +474,39 @@ public:
 	{}
 	//! \brief 复制构造：使用参数和参数指定的分配器。
 	TermNode(const TermNode& nd, allocator_type a)
+		// XXX: Explicit inlining is more efficient.
+#if false
+		: TermNode(nd.Tags, nd, a)
+#else
 		: container(ConSub(nd.container, a)), Value(nd.Value), Tags(nd.Tags)
+#endif
+	{}
+	//! \since build 952
+	TermNode(TermTags tags, const TermNode& nd)
+		: TermNode(tags, nd, nd.get_allocator())
+	{}
+	//! \since build 952
+	TermNode(TermTags tags, const TermNode& nd, allocator_type a)
+		: container(ConSub(nd.container, a)), Value(nd.Value), Tags(tags)
 	{}
 	DefDeMoveCtor(TermNode)
-	TermNode(TermNode&& nd, allocator_type a)
+	TermNode(TermNode&& nd, allocator_type a)	
+		// XXX: Ditto.
+#if false
+		: TermNode(nd.Tags, std::move(nd), a)
+#else
 		: container(std::move(nd.container), a), Value(std::move(nd.Value)),
 		Tags(nd.Tags)
+#endif
+	{}
+	//! \since build 952
+	TermNode(TermTags tags, TermNode&& nd)
+		: TermNode(tags, std::move(nd), nd.get_allocator())
+	{}
+	//! \since build 952
+	TermNode(TermTags tags, TermNode&& nd, allocator_type a)
+		: container(std::move(nd.container), a), Value(std::move(nd.Value)),
+		Tags(tags)
 	{}
 	//@}
 
@@ -859,6 +886,15 @@ YB_ATTR_nodiscard YB_PURE inline
 	PDefH(bool, IsPair, const TermNode& nd) ynothrow
 	ImplRet(!IsAtom(nd))
 //@}
+
+/*!
+\brief 判断项表示具有一个元素的列表。
+\since build 952
+*/
+YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsSingleElementList,
+	const TermNode& term) ynothrow
+	// XXX: First calling %IsList is more efficient in most case.
+	ImplRet(IsList(term) && term.size() == 1)
 //@}
 
 //! \since build 928

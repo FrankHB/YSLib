@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9631
+\version r9692
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-07-26 22:05 +0800
+	2022-08-15 05:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,12 +38,14 @@
 //	ystdex::exclude_self_params_t, YSLib::AreEqualHeld, ystdex::or_,
 //	std::is_constructible, ystdex::decay_t, ystdex::expanded_caller,
 //	ystdex::make_parameter_list_t, ystdex::make_function_type_t, ystdex::true_,
-//	AssertCombiningTerm, IsList, ThrowListTypeErrorForNonList, RemoveHead,
-//	ArityMismatch, TermTags, RegularizeTerm, TokenValue, Environment,
-//	ParseResultOf, ByteParser, SourcedByteParser, type_info, type_id,
-//	SourceInformation, std::bind, std::placeholders::_1, std::integral_constant,
-//	SourceName, NPL::tuple, NPL::get, NPL::forward_as_tuple, ReaderState,
-//	YSLib::allocate_shared, ystdex::is_bitwise_swappable;
+//	AssertCombiningTerm, IsList, TryAccessLeaf, TermReference, IsSticky,
+//	ThrowListTypeErrorForNonList, ResolveSuffix, ThrowInsufficientTermsError,
+//	CountPrefix, ArityMismatch, TermTags, RegularizeTerm, TokenValue, function,
+//	Environment, ParseResultOf, ByteParser, SourcedByteParser, type_info,
+//	type_id, SourceInformation, std::bind, std::placeholders::_1,
+//	std::integral_constant, SourceName, NPL::tuple, NPL::get,
+//	NPL::forward_as_tuple, ReaderState, YSLib::allocate_shared,
+//	ystdex::is_bitwise_swappable;
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, YSLib::GCombinerInvoker,
 //	YSLib::GDefaultLastValueInvoker;
 #include <ystdex/algorithm.hpp> // for ystdex::fast_any_of, ystdex::split;
@@ -632,10 +634,12 @@ ReduceFirst(TermNode&, ContextNode&);
 \warning 若不满足上下文状态类型要求，行为未定义。
 \sa ContextState::DefaultReduceOnce
 \sa ContextState::ReduceOnce
+\sa ContextState::SetNextTermRef
 \since build 806
 
 转换第二参数为 NPLA1 上下文状态引用，访问其中的 NPLA1 表达式节点一次规约续延并调用。
-若使用异步实现，在尾上下文支持尾调用优化。
+若使用异步实现，首先设置下一求值项为第一参数指定的项。
+对使用 TCO 的异步实现，在尾上下文支持尾调用优化。
 */
 YF_API ReductionStatus
 ReduceOnce(TermNode&, ContextNode&);
@@ -1275,24 +1279,60 @@ RegisterStrict(_tTarget& target, string_view name, _tParams&&... args)
 抛出的异常同 FormContextHandler::CheckArguments ，但通常直接用于底层合并子实现。
 */
 inline PDefH(void, CheckArgumentList, const TermNode& term)
-	ImplExpr(AssertCombiningTerm(term), IsList(term) ? void()
-		// NOTE: The combiner position is skipped.
-		: ThrowListTypeErrorForNonList(term, {}, 1))
+#if true
+	ImplExpr(AssertCombiningTerm(term), YB_LIKELY(IsList(term)) ? void()
+		: [&] YB_LAMBDA_ANNOTATE(() , , flatten){
+		if(const auto p = TryAccessLeaf<const TermReference>(term))
+		{
+			auto& nd(p->get());
+
+			if(!IsList(nd))
+			{
+				const bool is_ref(term.size() == 1
+					|| IsSticky(std::next(term.begin())->Tags));
+
+				ThrowListTypeErrorForNonList(nd, is_ref, is_ref ? 0 : 1);
+			}
+		}
+		else
+			// NOTE: The combiner position is skipped.
+			ThrowListTypeErrorForNonList(term, {}, 1);
+	}())
+#else
+	// NOTE: Any optimized implemenations shall be equivalent to this.
+	ImplExpr(AssertCombiningTerm(term),
+		ResolveSuffix([&](const TermNode& nd, bool has_ref){
+		if(YB_UNLIKELY(!IsList(nd)))
+		{
+			// NOTE: The combination of a pair with a prefixed subterm and
+			//	another object is recognized as %IsAtom with 1 prefixed
+			//	subterm.
+			// XXX: Currently only subobject references can have irregular
+			//	subterms. Nevertheless, this is not assumed in general.
+			const bool is_ref(has_ref && (term.size() == 1
+				|| IsSticky(std::next(term.begin())->Tags)));
+
+			// NOTE: The combiner position is skipped unless the rest
+			//	subterms are parts of a reference value.
+			ThrowListTypeErrorForNonList(nd, is_ref, is_ref ? 0 : 1);
+		}
+	}, term))
+#endif
 
 /*!
 \brief 检查可变参数数量。
 \pre 间接断言：参数指定的项是分支列表节点。
 \exception ParameterMismatch 缺少项的错误。
-\sa RemoveHead
 \sa ThrowInsufficientTermsError
-\since build 924
+\since build 952
 
 检查第一参数的子项数大于第二参数指定的参数个数。
-若具有不大于第二参数指定的参数个数，则移除第一个子项，抛出缺少项的异常。
+若具有不大于第二参数指定的参数个数，则抛出缺少项的异常。
+抛出缺少项的异常时，异常消息的项移除第一个子项。
 */
-inline PDefH(void, CheckVariadicArity, TermNode& term, size_t n)
+inline PDefH(void, CheckVariadicArity, const TermNode& term, size_t n)
 	ImplExpr(AssertCombiningTerm(term), CountPrefix(term) - 1 > n ? void()
-		: (RemoveHead(term), ThrowInsufficientTermsError(term, {})))
+		: ThrowInsufficientTermsError(term, {}, 1))
 
 /*!
 \pre 间接断言：参数指定的项是分支列表节点或项的容器非空（对应枝节点）。
@@ -1304,11 +1344,12 @@ inline PDefH(void, CheckVariadicArity, TermNode& term, size_t n)
 \pre 间接断言：参数指定的项是分支列表节点。
 \return 项作为列表操作数被匹配的最大实际参数的个数。
 \exception ListReductionFailure 异常中立：由 CheckArgumentList 抛出。
+\sa CountPrefix
 \since build 951
 */
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(size_t, FetchArgumentN, const TermNode& term)
-	ImplRet(CheckArgumentList(term), term.size() - 1)
+	ImplRet(CheckArgumentList(term), CountPrefix(term) - 1)
 
 /*!
 \note 保留求值留作保留用途，一般不需要被作为用户代码直接使用。
@@ -1390,10 +1431,10 @@ DefaultEvaluateLeaf(TermNode&, string_view);
 /*!
 \brief 求值标识符。
 \note 不验证标识符是否为字面量；仅以字面量处理时可能需要重规约。
+\sa ContextState::TrySetTailOperatorName
 \sa LiteralHandler
 \sa ReferenceTerm
 \sa ResolveIdentifier
-\sa SetupTailOperatorName
 \sa TermReference
 \since build 745
 
@@ -1759,6 +1800,8 @@ SetupTailContext(ContextNode&, TermNode&);
 template<typename _fParse>
 using GParsedValue = typename ParseResultOf<_fParse>::value_type;
 
+// XXX: Use %function instead of %ystdex::unchecked_function is no less
+//	efficient.
 //! \brief 泛型标记器：分析解析结果元素转换为可能包含记号的节点。
 template<typename _fParse>
 using GTokenizer = function<TermNode(const GParsedValue<_fParse>&)>;
@@ -1989,6 +2032,8 @@ public:
 	template<LoadOption _vOpt = Contextual>
 	using LoadOptionTag = std::integral_constant<LoadOption, _vOpt>;
 	//@}
+	// XXX: Use %function instead of %ystdex::unchecked_function is a bit more
+	//	efficient.
 	/*!
 	\brief 加载器。
 	\since build 899

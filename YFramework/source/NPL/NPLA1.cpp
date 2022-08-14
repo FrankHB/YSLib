@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r23582
+\version r23611
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2022-07-29 03:04 +0800
+	2022-08-11 02:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,17 +31,17 @@
 //	ystdex::equal_to, YSLib::unordered_map, YSLib::lock_guard, YSLib::mutex,
 //	std::ref, ListReductionFailure, ystdex::sfmt, TermToStringWithReferenceMark,
 //	std::next, IsBranch, TermReference, std::allocator_arg, in_place_type,
-//	CheckReducible, IsNPLAExtendedLiteralNonDigitPrefix, IsAllSignLexeme,
-//	AllocatorHolder, YSLib::IValueHolder, ystdex::ref,
+//	CheckReducible, IsNPLAExtendedLiteralNonDigitPrefix,
+//	IsAllSignLexeme, AllocatorHolder, YSLib::IValueHolder, ystdex::ref,
 //	YSLib::AllocatedHolderOperations, any, ystdex::as_const,
 //	NPL::forward_as_tuple, uintmax_t, ystdex::bind1, TokenValue,
 //	Forms::Sequence, ReduceBranchToList, YSLib::stack, vector, GetLValueTagsOf,
 //	TermTags, function, TryAccessLeafAtom, PropagateTo, InvalidReference,
-//	IsList, IsIgnore, tuple, TNCIter, NPL::get, NPL::Deref,
-//	YSLib::allocate_shared, LiftTermRef, TryAccessLeaf, IsTyped, ResolveTerm,
-//	std::prev, ThrowListTypeErrorForNonList, ThrowInsufficientTermsError,
-//	ReferenceTerm, ystdex::begins_with, FindStickySubterm, Environment,
-//	shared_ptr, ystdex::retry_on_cond, AccessFirstSubterm, ystdex::ref_eq,
+//	IsList, IsIgnore, tuple, TNCIter, NPL::get, NPL::Deref, LiftTermRef,
+//	TryAccessLeaf, IsTyped, ResolveTerm, std::prev,
+//	ThrowListTypeErrorForNonList, ThrowInsufficientTermsError, ReferenceTerm,
+//	ystdex::begins_with, FindStickySubterm, Environment, shared_ptr,
+//	ystdex::retry_on_cond, AccessFirstSubterm, ystdex::ref_eq,
 //	ystdex::make_transform, IsCombiningTerm, NPL::IsMovable, std::placeholders,
 //	NoContainer, ystdex::try_emplace, Access, YSLib::Informative,
 //	ystdex::unique_guard, CategorizeBasicLexeme, DeliteralizeUnchecked,
@@ -318,7 +318,8 @@ YB_NORETURN ReductionStatus
 ThrowCombiningFailure(TermNode& term, const ContextNode& ctx,
 	const TermNode& fm, bool has_ref)
 {
-	// NOTE: Try to extract the identifier set by %SetupTailOperatorName.
+	// NOTE: Try to extract the identifier set by
+	//	%ContextState::TrySetTailOperatorName.
 	string name(term.get_allocator());
 
 	if(const auto p = ContextState::Access(ctx).TryGetTailOperatorName(term))
@@ -687,7 +688,7 @@ public:
 				//	The anchor here (if any) is not accurate because it refers
 				//	to the anchor saved by the reference (if any), not
 				//	necessarily the original environment owning the referent.
-				mv(TermNode::Container(o.get_allocator()),
+				mv(TermNode::Container(a),
 					// XXX: Term tags on prvalues are reserved and should be
 					//	ignored normally except for future internal use. Note
 					//	that %TermTags::Temporary can be provided by a bound
@@ -732,21 +733,10 @@ public:
 				if(sigil == '%' || sigil == char())
 					BindSubpairCopySubterms(t, o, first);
 				else
-				{
-					auto p_sub(A1::AllocateSharedTerm(a));
-					auto& sub(NPL::Deref(p_sub));
-
 					// XXX: The container is ignored, since it is assumed always
 					//	living when %Value is accessed (otherwise, the behavior
 					//	is undefined in the object language).
-					LiftTermRef(sub, o.Value);
-					tcon.push_back(
-						A1::MakeSubobjectReferent(a, std::move(p_sub)));
-					// XXX: The anchor indicated by %Referenced is not accurate,
-					//	as the overload %operator() above.
-					t.Value = ValueObject(std::allocator_arg, a,
-						in_place_type<TermReference>, tags, sub, Referenced);
-				}
+					LiftTermRef(t.Value, o.Value);
 			}
 			else
 				// XXX: As in %LiftPrefixToReturn.
@@ -766,7 +756,8 @@ public:
 				// XXX: Reuse %tcon.
 				tcon.clear();
 				tcon.push_back(MakeSubobjectReferent(a, std::move(p_sub)));
-				// XXX: Ditto.
+				// XXX: The anchor indicated by %Referenced is not accurate, as
+				//	the overload %operator() above.
 				mv(std::move(tcon), ValueObject(std::allocator_arg, a,
 					in_place_type<TermReference>, tags, sub, Referenced));
 			}
@@ -1305,8 +1296,10 @@ private:
 			// NOTE: The remained ptree subterms (if any) shall be parts of the
 			//	suffix. This may happen when the suffix is a reference to
 			//	symbol. The operand may still be a pair, though.
+#if NPL_Impl_NPLA1_AssertParameterMatch
 			YAssert(mid == FindStickySubterm(NPL::get<PTreeRef>(e)),
 				"Invalid state found.");
+#endif
 			Bind(o_nd, NPL::get<OperandFirst>(e), *p, NPL::get<OperandTags>(e),
 				NPL::get<EnvironmentRef>(e));
 		}
@@ -1534,7 +1527,7 @@ ContextState::DefaultReduceOnce(TermNode& term, ContextNode& ctx)
 	{
 		YAssert(term.size() != 0, "Invalid term found.");
 		// NOTE: List with single element shall be reduced as the element.
-		if(!IsList(term) || term.size() != 1)
+		if(!IsSingleElementList(term))
 			return DoAdministratives(cs.EvaluateList, term, ctx);
 
 		// XXX: This may be slightly more efficient, and more importantly,
@@ -1542,10 +1535,8 @@ ContextState::DefaultReduceOnce(TermNode& term, ContextNode& ctx)
 		//	implementation well by only allow one level of direct recursion.
 		auto term_ref(ystdex::ref(term));
 
-		ystdex::retry_on_cond([&]{
-			auto& tm(term_ref.get());
-
-			return IsList(tm) && tm.size() == 1;
+		ystdex::retry_on_cond([&] YB_LAMBDA_ANNOTATE((), ynothrow, pure){
+			return IsSingleElementList(term_ref);
 		}, [&]{
 			term_ref = AccessFirstSubterm(term_ref);
 		});

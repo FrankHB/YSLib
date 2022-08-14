@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3682
+\version r3727
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2021-12-24 23:50 +0800
+	2022-08-01 19:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,26 +27,36 @@
 
 #include "Helper/YModules.h"
 #include YFM_YSLib_Adaptor_Font
-#include YFM_YSLib_Core_YApplication
+#include YFM_YSLib_Core_YException // for LoggedEvent;
 #include YFM_YSLib_Service_FileSystem
 #include YFM_Helper_Initialization
 #include YFM_YCLib_Debug
 #include <ystdex/deref_op.hpp> // for ystdex::call_value_or;
 #include <ft2build.h>
-#include FT_FREETYPE_H
-#include FT_CACHE_H
-#include FT_SIZES_H
-#include FT_BITMAP_H
-//#include FT_GLYPH_H
-//#include FT_OUTLINE_H
-//#include FT_SYNTHESIS_H
+#include FT_FREETYPE_H // for ::FT_Matrix, ::FT_Memory;
+#include FT_SIZES_H // for ::FT_New_Size, FT_Done::Size;
+#include FT_BITMAP_H // for ::FT_GlyphSlot_Own_Bitmap, ::FT_Bitmap_Embolden;
+//! \since build 952
+#define YF_Impl_Adaptor_Font_FreeTypeVer \
+	(FREETYPE_MAJOR * 10000 + FREETYPE_MINOR * 100 + FREETYPE_PATCH)
+// XXX: This is only used when the modified version in "3rdparty" is enabled,
+//	current only for platform %DS and %MinGW32.
 #if defined(FT_CONFIG_OPTION_OLD_INTERNALS) \
-	&& (FREETYPE_MAJOR * 10000 + FREETYPE_MINOR * 100 + FREETYPE_PATCH >= 20500)
+	&& YF_Impl_Adaptor_Font_FreeTypeVer >= 20500
 #	define YF_Impl_Use_FT_Internal true
-#	include <freetype/internal/internal.h> // for FreeType internal macros;
-#	include FT_INTERNAL_TRUETYPE_TYPES_H // for TT_Face, TT_FaceRec_;
+// XXX: The internal header <freetype/internal/internal.h> was removed since
+//	FreeType 2.10.3. (Before that, the macro for the internal header is only
+//	available when %FT2_BUILD_LIBRARY is defined, so it would still rely on the
+//	layout which was once changed in FreeType 2.5; although the modified version
+//	in "3rdparty" always has the known layout and fixed header names.) Thus, the
+//	header is not used.
+#	include <freetype/internal/tttypes.h> // for ::TT_Face;
 #	include <ystdex/type_pun.hpp> // for ystdex::aligned_cast;
 #endif
+#include <cstdlib> // for std::malloc, std::free, std::realloc;
+#include FT_MODULE_H // for ::FT_New_Library, ::FT_Add_Default_Modules,
+//	::FT_Done_Library;
+#include <ystdex/string.hpp> // for ystdex::sfmt;
 
 using namespace ystdex;
 using namespace platform;
@@ -105,6 +115,8 @@ CvtFixed26_6ToI8(::FT_Pos v)
 	return v >> 6;
 }
 
+// XXX: This should be 'const', but not allowed by the signature of
+//	%::FT_Set_Transform.
 /*!
 \since build 421
 \see ::FT_GlyphSlot_Oblique 实现。
@@ -260,6 +272,8 @@ Typeface::SmallBitmapData::SmallBitmapData(::FT_GlyphSlot slot, FontStyle style)
 			//	memory handlers are not customized.
 			// NOTE: Be cautious for DLLs. For documented default behavior, see:
 			//	http://www.freetype.org/freetype2/docs/design/design-4.html.
+			//	This is now implemented in the constructor of %FontCache.
+			// NOTE: See also $2022-08 @ %Documentation::Workflow.
 			return;
 		}
 #undef YSL_Impl_SB_CheckChar
@@ -277,7 +291,7 @@ Typeface::SmallBitmapData::SmallBitmapData(SmallBitmapData&& sbit_dat)
 }
 Typeface::SmallBitmapData::~SmallBitmapData()
 {
-	// NOTE: See constructor.
+	// NOTE: See the notes in the constructor.
 	std::free(buffer);
 }
 
@@ -404,8 +418,25 @@ FontCache::FontCache(size_t /*cache_size*/)
 {
 	::FT_Error error;
 
-	if(YB_LIKELY((error = ::FT_Init_FreeType(&library)) == 0))
+	if(YB_LIKELY((error = [&]{
+		// XXX: This should be probably 'const', but not allowed by the
+		//	signature of %::FT_New_Library. Note that exception specifications
+		//	are not allowed by FreeType.
+		static ::FT_MemoryRec_ mrec{yimpl({}), [](::FT_Memory, long size){
+			return std::malloc(size_t(size));
+		}, [](::FT_Memory, void* block){
+			std::free(block);
+		},
+			[](::FT_Memory, long, long new_size, void* block){
+			return ::realloc(block, size_t(new_size));
+		}};
+
+		return ::FT_New_Library(&mrec, &library);
+	}()) == 0))
+	{
+		::FT_Add_Default_Modules(library);
 		YTraceDe(Informative, "FreeType library instance initialized.");
+	}
 	else
 		// TODO: More precise error message.
 		throw LoggedEvent(
@@ -415,7 +446,7 @@ FontCache::~FontCache()
 {
 	mFaces.clear();
 	mFamilies.clear();
-	::FT_Done_FreeType(library);
+	::FT_Done_Library(library);
 }
 
 observer_ptr<const FontFamily>
@@ -572,6 +603,8 @@ Font::SetStyle(FontStyle fs)
 }
 
 } // namespace Drawing;
+
+#undef YF_Impl_Adaptor_Font_FreeTypeVer
 
 } // namespace YSLib;
 

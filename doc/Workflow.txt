@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4958
+\version r4995
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2022-06-14 18:57 +0800
+	2022-08-03 02:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -249,7 +249,7 @@ report.impl:
 The reference-counted 'std::basic_string' implementation in libstdc++ is still not conforming to ISO C++11.
 	See $2013-10 report.impl.
 	See $ref b449 "libstdc++ std::basic_string conformance" for references.
-	Though ABI has changed before, the string implementation is not included, and even other breaking changes like 'std::list::size' implementation are reverted: http://gcc.gnu.org/wiki/Cxx11AbiCompatibility.
+	Though the ABI has changed before, the string implementation is not included, and even other breaking changes like 'std::list::size' implementation are reverted: http://gcc.gnu.org/wiki/Cxx11AbiCompatibility.
 	It seems that the ABI would not switched in near future, or at early as of GCC 4.9: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56166.
 	Use libstdc++ '__gnu_cxx::__versa_string' from <ext/vstring.h> instead, if necessary.
 		See $2013-10 report.impl.
@@ -4892,6 +4892,44 @@ Some calls to qualified functions are cleanup.
 			The changed calls would be more consistent to these calls.
 	Similar calls out of the NPL implementation and calls like 'YSLib::make_observer' are also subjected to the cleanup.
 		To make the changes in the current revision neat, the changes are planned in future.
+
+$2022-08:
+
+report.impl:
+A bug in YSLib Font module of deallocating small bitmap memory has been fixed.
+	This is caused directly by mismatching of 'std::free' call from the allocation calls in the FreeType implementation.
+	The bug will typically cause application crash for dynamically linked FreeType with different source of allocations, e.g. Windows DLLs.
+		It is known and acknowledged but it is not a breking bug since build 420 because there are no such configurations using dynamically linked FreeType.
+			This is not totally true now, since there can be external binary FreeType library used mixing with the shipped modified headers located in the top-level directory "3rdparty".
+			For MinGW platforms, FreeType headers in "3rdparty" are used. Otherwise, since build 563, the headers are detected via 'pkg-config' detection of "freetype2" instead of "3rdparty" one.
+			The detection in YFramework building is implemented in the NPLA1 script "Tools/Scripts/SHBuild-YSLib-build.txt".
+				The detection of pre-built binary files is derived from the shell script "Tools/install-sysroot.sh" since build 838.
+			The similar logic for application building is implemented in the NPLA1 script "Tools/Scripts/SHBuild-BuildApp.txt", which also detects the existense of static library deployed in the YSLib Sysroot installation (basically same to the pre-built libraries).
+				The detection of pre-built binary files is derived from the shell script "Tools/Scripts/SHBuild-BuildApp.sh" since build 885.
+			The pre-built FreeType binary library images are official available only for "arm-ds-eabi", "i686-w64-mingw32" and "arm-linux-androideabi" targets.
+		Platform MinGW32 uses the shipped modified version and statically links to the library, so it should not be affected.
+		However, there can be some bit subtle configurations for other platforms, like MSYS2 with package "mingw64/mingw-w64-x86_64-freetype" installed.
+			Because there are no pre-built binary FreeType library used for these platforms, this would use the system FreeType library, which is dynamically link to libFramework.
+		Otherwise, having dynamically linked FreeType are not formally supported unitl now (esp. platform MinGW64).
+			The change now also fix for these cases.
+	To implemented the change, '::FT_New_libaray' is used instead '::FT_Init_FreeType' as well as some other calls, as suggested in http://www.freetype.org/freetype2/docs/design/design-4.html.
+		As a result, parsing of the 'FREETYPE_PROPERTIES' environment variable is no longer performed even when the the library is configured with 'FT_CONFIG_OPTION_ENVIRONMENT_PROPERTIES'.
+			This is more efficient by default, at the cost of not supporting the 'FREETYPE_PROPERTIES' environment variable.
+				However, the feature was introduced in 2.6.5 and never relied on by the modified build in YFramework, so it should be OK in most cases.
+		API allowing direct hack on internal '::FT_Library' by dedicated FreeType library calls to recover the old behavior is possible, but not provided at current.
+		The calls need header <freetype/ftmodapi.h> is needed.
+			The file is directly reverted from build 826, as there are no real differences to the current newest release (2.12.1) except that some macro checks change since 2.10.3 (see below) which is not relied on here.
+	Besides the change above, there is also a bit cleanup on the internal headers of modified "3rdparty" version (configured with 'FT_CONFIG_OPTION_OLD_INTERNALS') used.
+		Notably, <freetype/internal/internal.h> and 'FT_INTERNAL_TRUETYPE_TYPES_H' are no longer used.
+			Instead, <freetype/internal/tttypes.h> is used directly.
+			This is neutral to the directory layout change of headers in FreeType 2.5.1 (but laterly reverted in 2.6.1), because the layout is fixed in "3rdparty".
+				See https://sourceforge.net/projects/freetype/files/freetype2/2.5.1/.
+				See https://sourceforge.net/projects/freetype/files/freetype2/2.6.1/.
+				See also http://lists.nongnu.org/archive/html/freetype-devel/2015-06/msg00041.html.
+		The cleanup is compatible to newer FreeType, which has removed the internal header since 2.10.3.
+			See https://sourceforge.net/projects/freetype/files/freetype2/2.10.3/.
+		FreeType still support external header names named by macros for compatibility, so there are no other changes needed for public header inclusions.
+			This is neutral to the directory layout change of headers in FreeType 2.5.1, as stated in the release notes (see above).
 
 ////
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8865
+\version r8873
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2022-07-27 22:56 +0800
+	2022-08-13 17:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2049,6 +2049,16 @@ Call1CC(TermNode&, ContextNode&);
 YF_API ReductionStatus
 ContinuationToApplicative(TermNode&);
 //@}
+
+/*!
+\brief 应用续延。
+\since build 952
+
+参考调用文法：
+<pre>apply-continuation \<continuation> \<object></pre>
+*/
+YF_API ReductionStatus
+ApplyContinuation(TermNode&, ContextNode&);
 
 
 /*!

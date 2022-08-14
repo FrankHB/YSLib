@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r7113
+\version r7133
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2022-07-27 12:34 +0800
+	2022-08-15 06:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1067,7 +1067,7 @@ $def! forward! $lambda% (%x) $if ($lvalue-identifier? x) x (move! x);
 #		endif
 	R"NPL(
 $def! list% $lambda &x forward! x;
-$def! rlist $lambda ((.&x)) move! x;
+$def! rlist $lambda ((.&x)) forward! (check-list-reference x);
 	)NPL"
 #	endif
 	R"NPL(
@@ -1193,7 +1193,7 @@ $defl! firstv ((&x .)) $move-resolved! x;
 $defl%! rest% ((#ignore .%xs)) $move-resolved! xs;
 $defl%! rest& (&l)
 	($lambda% ((#ignore .&xs)) xs) (check-pair-reference (forward! l));
-$defl%! restv ((#ignore .xs)) $move-resolved! xs;
+$defl! restv ((#ignore .xs)) $move-resolved! xs;
 $defl! set-first! (&l x) assign@! (first@ (forward! l)) (move! x);
 $defl! set-first@! (&l &x) assign@! (first@ (forward! l)) (forward! x);
 $defl! set-first%! (&l &x) assign%! (first@ (forward! l)) (forward! x);
@@ -1773,6 +1773,16 @@ LoadModule_std_continuations(REPLContext& context)
 	RegisterStrict(renv, "call/1cc", Call1CC);
 	RegisterStrict(renv, "continuation->applicative",
 		ContinuationToApplicative);
+#if NPL_Impl_NPLA1_Native_Forms
+	RegisterStrict(renv, "apply-continuation",
+		ApplyContinuation);
+#else
+	context.ShareCurrentSource("<lib:std.continuations>");
+	context.Perform(R"NPL(
+$defl! apply-continuation (&k &arg)
+	apply (continuation->applicative (forward! k)) (forward! arg);
+	)NPL");
+#endif
 }
 
 void
@@ -1815,8 +1825,13 @@ LoadModule_std_promises(REPLContext& context)
 	});
 #else
 	context.ShareCurrentSource("<lib:std.promises>");
-	// NOTE: Call of 'set-first%!' does not check cyclic references. This is
+	// NOTE: The call to 'set-first%!' does not check cyclic references. This is
 	//	kept safe since it can occur only with NPLA1 undefined behavior.
+	// XXX: The internal construct uses lists instead of pairs as [RnRK] even
+	//	after pairs are supported, since the assignment to the referent of the
+	//	value introduced by trailing sequence has unspecified behavior in the
+	//	object language (and it will not change the shared referent in the
+	//	current implementation)..
 	context.Perform(R"NPL(
 $provide/let! (promise? memoize $lazy $lazy% $lazy/d $lazy/d% force)
 ((mods $as-environment (
@@ -2414,9 +2429,9 @@ $provide/let! (registered-requirement? register-requirement!
 		get-requirement-filename
 			(($remote-eval% force std.promises) prom_pathspecs) req;
 	$defl/e%! require mods (&req .&opt)
-		$if (registered-requirement? req) (get-cell% (move! req))
+		$if (registered-requirement? req) (get-cell% (forward! req))
 			($let*% ((filename find-requirement-filename req)
-				(env register-requirement! req) (&res get-cell% (move! req)))
+				(env register-requirement! req) (&res get-cell% (forward! req)))
 				$sequence
 					($unless (null? opt)
 						($set! env module-parameters $let (((&e .&eopt) opt))

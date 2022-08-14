@@ -59,7 +59,8 @@ $defl! SHBuild_PrintUsage () putss "Usage: SHBuild -xcmd,RunNPLFile \"" prog
 	"\tThe output directory is determined as \".CONF\".\n"
 	"\n"
 	"SHBOPT_BASE ...\n"
-	"\tThe base options remained to pass to SHBuild, including SRCPATH.\n\n"
+	"\tThe base options remained to pass to SHBuild, including SRCPATH. If"
+	" this is empty, it is assumed as a single '.'.\n\n"
 	"There are several other environment variables to control the build.\n"
 	"\n"
 	"SHBuild_NoAdjustSubsystem\n"
@@ -72,6 +73,7 @@ $if (string-empty? arg1) (() SHBuild_PrintUsage)
 (
 	putss "Found configuration \"" arg1 "\".";
 	$def! SHBOPT_BASE arg-rest args;
+	$if (null? SHBOPT_BASE) ($redef! SHBOPT_BASE list ".");
 	$assert-nonempty arg1;
 	"XXX", "The argument cannot be empty, so there is no default value.";
 	$def! SHBuild_Conf arg1;

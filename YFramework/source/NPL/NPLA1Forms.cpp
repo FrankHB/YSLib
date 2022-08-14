@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r27814
+\version r27920
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2022-07-29 03:07 +0800
+	2022-08-15 06:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,19 +46,21 @@
 //	NPL::AsTermNode, ystdex::exchange, NPLException, GuardFreshEnvironment,
 //	TermTags, YSLib::Debug, YSLib::sfmt, ReduceCombinedBranch, A1::MakeForm,
 //	ystdex::expand_proxy, AccessRegular, GetLValueTagsOf, RegularizeTerm,
-//	IsPair, IsSticky, LiftMovedOther, LiftOtherValue, IsList,
-//	ThrowValueCategoryError, IsAtom, ThrowListTypeErrorForAtom,
+//	IsPair, IsSticky, LiftPropagatedReference, LiftMovedOther, LiftOtherValue,
+//	IsList, ThrowValueCategoryError, IsAtom, ThrowListTypeErrorForAtom,
 //	ThrowInvalidSyntaxError, CheckEnvironmentFormal, LiftTermOrCopy,
 //	EnsureValueTags, type_id, ystdex::update_thunk,
 //	ThrowListTypeErrorForNonList, IsTyped, IsBranchedList, EnvironmentGuard,
 //	TryAccessLeaf, BindSymbol, A1::AsForm, ystdex::bind1, IsNPLASymbol,
 //	ystdex::fast_all_of, ystdex::isdigit, std::strchr, ystdex::call_value_or,
-//	LiftCollapsed, YSLib::usystem, std::mem_fn;
+//	LiftCollapsed, AssertCombiningTerm, CountPrefix, YSLib::usystem,
+//	std::mem_fn;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_SContext // for Session;
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard, ystdex::dismiss,
 //	ystdex::make_guard;
 #include <ystdex/container.hpp> // for ystdex::prefix_eraser;
+#include <ystdex/functor.hpp> // for ystdex::equal_to;
 
 namespace NPL
 {
@@ -1019,8 +1021,8 @@ ConsSplice(TermNode t, TermNode& nd, _tParams&&... args)
 }
 
 // XXX: Returning term instead of the container allows to pass improper lists,
-//	also perserves the allocator on
-//	copy.
+//	also perserves the allocator on copy.
+// XXX: This is like %LiftOtherOrCopy, but with the result in the return value.
 //! \since build 947
 YB_ATTR_nodiscard TermNode
 ConsItem(TermNode& y)
@@ -1361,10 +1363,18 @@ void
 LiftCopyPropagate(TermNode& term, TermNode& tm, TermTags tags)
 {
 	// XXX: Similar to the implementation of %ReduceToReference in NPLA.cpp.
+#if true
+	// NOTE: Propagate tags if it is a term reference.
+	if(const auto p = TryAccessLeafAtom<TermReference>(term))
+		LiftPropagatedReference(term, tm, tags);
+	else
+		term.CopyContent(tm);
+#else
 	term.CopyContent(tm);
 	// NOTE: Propagate tags if it is a term reference.
 	if(const auto p = TryAccessLeafAtom<TermReference>(term))
 		p->PropagateFrom(tags);
+#endif
 	// XXX: Term tags are currently not respected in prvalues.
 }
 //! \since build 915
@@ -1411,6 +1421,7 @@ ReduceToFirst(TermNode& term, TermNode& tm, ResolvedTermReferencePtr p_ref)
 			LiftPropagatedReference(term, tm, p_ref->GetTags());
 		else
 			LiftMovedOther(term, *p, p->IsMovable());
+		// XXX: %RegularizeTerm would imply %EnsureValueTags.
 		return ReductionStatus::Retained;
 	}
 	else if(list_not_move)
@@ -1499,21 +1510,24 @@ CheckReference(TermNode& term, void(&f)(TermNode&, bool))
 	}, term);
 }
 
+// XXX: Following instances of %YB_FLATTEN keep the implementations same
+//	efficient to those previously not using %ThrowListTypeErrorForNonList in
+//	%CheckResolvedListReference.
+
 //! \since build 859
-void
+YB_FLATTEN void
 CheckResolvedListReference(TermNode& nd, bool has_ref)
 {
 	if(has_ref)
 	{
 		if(YB_UNLIKELY(!IsList(nd)))
-			throw ListTypeError(ystdex::sfmt("Expected a list, got '%s'.",
-				TermToStringWithReferenceMark(nd, true).c_str()));
+			ThrowListTypeErrorForNonList(nd, true);
 	}
 	else
 		ThrowValueCategoryError(nd);
 }
 
-void
+YB_FLATTEN void
 CheckResolvedPairReference(TermNode& nd, bool has_ref)
 {
 	if(has_ref)
@@ -1922,43 +1936,58 @@ EqualSubterm(bool& r, Action& act, TermNode::allocator_type a, TNCIter first1,
 }
 
 
-//! \since build 951
-//@{
-//! \pre 第三参数非空。
+/*!
+\pre 断言：<tt>n <= term.size()</tt> 。
+\since build 952
+*/
 ReductionStatus
-ApplyFor(TermNode& term, ContextNode& ctx, shared_ptr<Environment> p_env)
+ApplyImpl(TermNode& term, ContextNode& ctx, bool check_list = {})
 {
-	YAssert(p_env, "Invalid environment found.");
+	RetainList(term);
+
+	const auto n(CountPrefix(term));
+
+	// NOTE: The count of the prefix shall not great than the number of
+	//	subterms.
+	YAssert(n <= term.size(), "Invalid size found.");
+#if true
+	AssertCombiningTerm(term);
+	if(YB_UNLIKELY(n <= 2))
+		ThrowInsufficientTermsError(term, {}, 1);
+#else
+	// NOTE: Any optimized implemenations shall be equivalent to this.
+	CheckVariadicArity(term, 1);
+#endif
 
 	auto i(term.begin());
-	auto& comb(NPL::Deref(++i));
+	auto i_comb(++i);
 
-	ForwardToUnwrapped(comb);
-	{
-		auto t(ConsItem(NPL::Deref(++i)));
+	ForwardToUnwrapped(NPL::Deref(i_comb));
 
-		t.GetContainerRef().push_front(std::move(comb));
-		swap(t, term);
-	}
+	auto& arg(NPL::Deref(++i));
+
+	if(check_list)
+		ResolveTerm([&](const TermNode& nd, bool has_ref){
+			if(YB_UNLIKELY(!IsList(nd)))
+				ThrowListTypeErrorForNonList(nd, has_ref);
+		}, arg);
+		
+	auto t(ConsItem(arg));
+
+	t.GetContainerRef().splice(t.begin(), term.GetContainerRef(), i_comb);
+	swap(t, term);
 	// NOTE: The precondition is same to the last call in %EvalImplUnchecked.
 	//	See also the precondition of %Combine<TailCall>::RelayEnvSwitch.
-	return Combine<TailCall>::RelayEnvSwitch(ctx, term, std::move(p_env));
+	return Combine<TailCall>::RelayEnvSwitch(ctx, term,
+		[&]() -> shared_ptr<Environment>{
+		if(n == 3)
+			return NPL::AllocateEnvironment(term.get_allocator());
+		if(n == 4)
+			return FetchValidEnvironment(
+				ResolveEnvironment(NPL::Deref(++i)).first);
+		ThrowInvalidSyntaxError("Syntax error in applying form.");
+	}());
 }
-
-ReductionStatus
-ApplyImpl(TermNode& term, ContextNode& ctx)
-{
-	const auto size(term.size());
-
-	if(size == 3)
-		return ApplyFor(term, ctx,
-			NPL::AllocateEnvironment(term.get_allocator()));
-	if(size == 4)
-		return ApplyFor(term, ctx, FetchValidEnvironment(
-			ResolveEnvironment(*std::next(term.begin(), 3)).first));
-	ThrowInvalidSyntaxError("Syntax error in applying form.");
-}
-//@}
 
 //! \since build 951
 void
@@ -2242,7 +2271,7 @@ ExtractRangeFirstOrCopy(TermNode& term, TermRange& tr, bool move)
 {
 	YAssert(!tr.empty(), "Invalid term found.");
 	LiftOtherOrCopyPropagate(term, NPL::Deref(tr.First), move, tr.Tags);
-	++tr.First;
+	EnsureValueTags(term.Tags), ++tr.First;
 }
 
 ReductionStatus
@@ -2385,7 +2414,10 @@ PrependList(TermNode::Container& tcon, TermNode& tm)
 			if(p_ref)
 			{
 				if(p_ref->IsMovable())
+				{
 					LiftOther(tm, nd);
+					EnsureValueTags(tm.Tags);
+				}
 				else
 				{
 					auto i(tcon.begin());
@@ -2394,6 +2426,7 @@ PrependList(TermNode::Container& tcon, TermNode& tm)
 					{
 						i = tcon.emplace(i);
 						LiftCopyPropagate(*i, *j, *p_ref);
+						EnsureValueTags(i->Tags);
 					}
 					return;
 				}
@@ -2471,6 +2504,7 @@ ReduceListExtractFirst(TermNode& term)
 		else
 			LiftOtherOrCopy(nterm, tm, move);
 #else
+		AssertValueTags(nterm);
 		// NOTE: Any optimized implemenations shall be equivalent to this.
 		if(move)
 			LiftOther(nterm, tm);
@@ -3353,10 +3387,9 @@ BindImports(const shared_ptr<Environment>& p_env, TermNode& term,
 				//	applicative in %SymbolsToImports, with some optimizations
 				//	(see below).
 				// XXX: Different to %EvaluateIdentifier, identifiers here are
-				//	not used of operator, so %SetupTailOperatorName is not
-				//	called.
-				if(const auto p
-					= TryAccessLeafAtom<const TermReference>(bound))
+				//	not used as operators, so
+				//	%ContextState::TrySetTailOperatorName is not called.
+				if(const auto p = TryAccessLeafAtom<const TermReference>(bound))
 				{
 					if(p->IsTemporary())
 						LiftOtherOrCopy(nterm, p->get(), p->IsModifiable());
@@ -3522,6 +3555,7 @@ AssocImpl(TermNode& term, bool(*eq)(const ValueObject&, const ValueObject&))
 					else
 						LiftOtherOrCopyPropagateTags(term, tm,
 							p_ref->GetTags());
+					// XXX: %RegularizeTerm would imply %EnsureValueTags.
 					return ReductionStatus::Retained;
 				}
 			}
@@ -3874,6 +3908,7 @@ FirstFwd(TermNode& term)
 			LiftOther(term, tm);
 		else
 			LiftOtherOrCopyPropagateTags(term, tm, p_ref->GetTags());
+		// XXX: %RegularizeTerm would imply %EnsureValueTags.
 		return ReductionStatus::Retained;
 	});
 }
@@ -3924,7 +3959,12 @@ RestFwd(TermNode& term)
 
 			// XXX: As %LiftElementsToReturn.
 			for(; first != last && !IsSticky(first->Tags); ++first)
-				LiftCopyPropagate(tcon.emplace_back(), *first, tags);
+			{
+				auto& nterm(tcon.emplace_back());
+
+				LiftCopyPropagate(nterm, *first, tags);
+				EnsureValueTags(nterm.Tags);
+			}
 			// XXX: As %LiftCopyPropagate, with range suffix instead of
 			//	the subterm container.
 			CopyRestContainer(tcon, first, last);
@@ -4385,15 +4425,13 @@ MakeEncapsulationType(TermNode& term)
 ReductionStatus
 Apply(TermNode& term, ContextNode& ctx)
 {
-	Retain(term);
 	return ApplyImpl(term, ctx);
 }
 
 ReductionStatus
 ApplyList(TermNode& term, ContextNode& ctx)
 {
-	RetainList(term);
-	return ApplyImpl(term, ctx);
+	return ApplyImpl(term, ctx, true);
 }
 
 ReductionStatus
@@ -4965,6 +5003,31 @@ ContinuationToApplicative(TermNode& term)
 		[&](Continuation& cont, ResolvedTermReferencePtr p_ref){
 		return WrapO(term, cont.Handler, p_ref);
 	}, term);
+}
+
+ReductionStatus
+ApplyContinuation(TermNode& term, ContextNode& ctx)
+{
+	RetainN(term, 2);
+
+	auto i(term.begin());
+	auto i_comb(++i);
+	auto& comb(NPL::Deref(i_comb));
+
+	// NOTE: As %ContinuationToApplicative.
+	NPL::ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
+		WrapO(comb, AccessRegular<Continuation>(nd, p_ref).Handler, p_ref);
+	}, comb);
+	comb.ClearContainer();
+	// NOTE: As %ApplyImpl.
+	ForwardToUnwrapped(comb);
+
+	auto t(ConsItem(NPL::Deref(++i)));
+
+	t.GetContainerRef().splice(t.begin(), term.GetContainerRef(), i_comb);
+	swap(t, term);
+	return Combine<TailCall>::RelayEnvSwitch(ctx, term,
+		NPL::AllocateEnvironment(term.get_allocator()));
 }
 
 

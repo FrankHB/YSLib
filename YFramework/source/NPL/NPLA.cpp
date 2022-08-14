@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4188
+\version r4191
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2022-07-06 20:50 +0800
+	2022-08-10 23:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@
 //	TryAccessLeaf, AccessFirstSubterm, YSLib::FilterExceptions, type_id,
 //	ystdex::addrof, ystdex::second_of, type_info, std::current_exception,
 //	std::rethrow_exception, std::throw_with_nested, ystdex::retry_on_cond,
-//	ystdex::id, pair, NPL::IsMovable, YSLib::ExtractException;
+//	ystdex::id, pair, IsAtom, NPL::IsMovable, YSLib::ExtractException;
 #include <ystdex/function.hpp> // for ystdex::unchecked_function;
 
 //! \since build 903
@@ -1229,7 +1229,7 @@ pair<shared_ptr<Environment>, bool>
 ResolveEnvironment(const TermNode& term)
 {
 	return ResolveTerm([&](const TermNode& nd, bool has_ref){
-		if(!IsExtendedList(nd))
+		if(IsAtom(nd))
 			return ResolveEnvironment(nd.Value);
 		ThrowResolveEnvironmentFailure(nd, has_ref);
 	}, term);
@@ -1238,7 +1238,7 @@ pair<shared_ptr<Environment>, bool>
 ResolveEnvironment(TermNode& term)
 {
 	return ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
-		if(!IsExtendedList(nd))
+		if(IsAtom(nd))
 			return ResolveEnvironment(nd.Value, NPL::IsMovable(p_ref));
 		ThrowResolveEnvironmentFailure(nd, p_ref);
 	}, term);

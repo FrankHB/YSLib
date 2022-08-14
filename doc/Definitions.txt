@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14460
+\version r14477
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2022-06-29 08:34 +0800
+	2022-08-01 19:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -692,6 +692,14 @@ GetDebugMemoryList()
 {
 	static recursive_mutex mtx;
 }
+
+$unit Font
+{
+FontCache::FontCache(size_t)
+{
+	static ::FT_MemoryRec_ mrec;
+}
+}
 }
 
 $unit Image
@@ -834,6 +842,19 @@ extern byte* cp2026;
 
 $dir YSLib
 {
+
+$dir Adaptor
+{
+
+$unit Font
+{
+namespace
+{
+::FT_Matrix italic_matrix;
+}
+}
+
+}
 
 $dir Core
 {
