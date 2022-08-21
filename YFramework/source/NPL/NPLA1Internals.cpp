@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20651
+\version r20655
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-07-12 21:28 +0800
+	2022-08-18 07:51 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -250,7 +250,7 @@ ExtractSigil(string_view& id)
 
 ReductionStatus
 ReduceAsSubobjectReference(TermNode& term, shared_ptr<TermNode> p_sub,
-	const EnvironmentReference& r_env)
+	const EnvironmentReference& r_env, TermTags tags)
 {
 	YAssert(p_sub, "Invalid subterm to form a subobject reference found.");
 
@@ -263,7 +263,7 @@ ReduceAsSubobjectReference(TermNode& term, shared_ptr<TermNode> p_sub,
 	//	it guarantees no unexpected copies of user-defined objects remained even
 	//	if the following operations exit via exception. The order of setting of
 	//	%Tags is insignificant, though.
-	term.SetValue(TermReference(NPL::Deref(p_sub), r_env)),
+	term.SetValue(TermReference(tags, NPL::Deref(p_sub), r_env)),
 	term.Tags = TermTags::Unqualified;
 	// XXX: Not using %ystdex::prefix_eraser because there is known 1 subterm to
 	//	be inserted.
@@ -286,7 +286,8 @@ ReduceForCombinerRef(TermNode& term, const TermReference& ref,
 	//	most cases.
 	return ReduceAsSubobjectReference(term,
 		A1::AllocateSharedTermValue(a, ContextHandler(std::allocator_arg, a,
-		FormContextHandler(RefContextHandler(h, r_env), n))), r_env);
+		FormContextHandler(RefContextHandler(h, r_env), n))), r_env,
+		ref.GetTags());
 }
 
 } // inline namespace Internals;

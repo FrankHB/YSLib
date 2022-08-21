@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r4995
+\version r5011
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2022-08-03 02:58 +0800
+	2022-08-21 09:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -4930,6 +4930,22 @@ A bug in YSLib Font module of deallocating small bitmap memory has been fixed.
 			See https://sourceforge.net/projects/freetype/files/freetype2/2.10.3/.
 		FreeType still support external header names named by macros for compatibility, so there are no other changes needed for public header inclusions.
 			This is neutral to the directory layout change of headers in FreeType 2.5.1, as stated in the release notes (see above).
+The constructs of lists in NPLA is clarified.
+	This makes many behaviors not bugs since build 951 due to pairs with a reference to an empty list as the 2nd element:
+		The implementation of applicative 'list?' excludes such non-lists.
+		The trailing sequence check in the binding construct against such non-lists.
+		Native implementations of functions like 'Map1' and 'CheckListReference' in namespace 'NPL::A1::Forms' throw for such non-lists.
+	It also makes the name 'NPL::IsList' more consistent to the real meaning.
+	There is only 2 changes in build 952 needs to be modified.
+		'NPL::A1::CheckArgumentList' is all reverted, and 'YB_LIKELY' is even less efficient here.
+		The alternative of applicative 'list?' is reimplemented using 'eql?' instead of 'pair?'.
+			The applicative 'eql?' is also fixed for a more previous bug in 'NPL::A1::Forms::EqLeaf' since build 947.
+			The new implementation is significantly simpler and it is O(1) rather than O(n) in the old one.
+			This change also fixes the inconsistency between the native implementation and the derivation of 'list?'.
+	Addionally, some implmenetations can be reverted.
+		This is not strictly required for behavior correctness, but it is preferred for performance.
+		This relies on the old behavior of 'NPL::A1::CheckArgumentList' which rules out the irregular representation of the arguments.
+		The implementations include 'NPL::A1::FetchArgumentN', as well as 'Apply' and 'ApplyList' in namespace 'NPL::A1::Forms'.
 
 ////
 

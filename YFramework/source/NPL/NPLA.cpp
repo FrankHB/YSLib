@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4191
+\version r4202
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2022-08-10 23:09 +0800
+	2022-08-21 23:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -382,11 +382,10 @@ TermToString(const TermNode& term, size_t n_skip)
 	const bool s_is_pair(n_skip < term.size()
 		&& IsSticky(std::next(term.begin(), ptrdiff_t(n_skip))->Tags));
 
-	return !non_list && n_skip == term.size() ? string("()")
-		: YSLib::sfmt<string>("#<%s{%zu}%s%s>",
-		s_is_pair ? (non_list ? "improper-list" : "list") : "unknown",
-		term.size() - n_skip, s_is_pair ? " . " : (non_list ? ":" : ""),
-		non_list ? term.Value.type().name() : "");
+	return !non_list && n_skip == term.size() ? string("()") : YSLib::sfmt<
+		string>("#<%s{%zu}%s%s>", s_is_pair ? (non_list ? "improper-list"
+		: "list") : "unknown", term.size() - n_skip, s_is_pair ? " . "
+		: (non_list ? ":" : ""), non_list ? term.Value.type().name() : "");
 }
 
 string
@@ -592,8 +591,8 @@ LiftToReference(TermNode& term, TermNode& tm)
 		else if(tm.Value.OwnsCount() > 1)
 			// XXX: This is unsafe and not checkable because the anchor is not
 			//	referenced.
-			term.SetValue(in_place_type<TermReference>, TermTags::Unqualified,
-				tm, EnvironmentReference());
+			term.SetValue(term.get_allocator(), in_place_type<TermReference>,
+				TermTags::Unqualified, tm, EnvironmentReference());
 		else
 			throw InvalidReference(
 				"Value of a temporary shall not be referenced.");
@@ -811,9 +810,10 @@ ReduceToReferenceAt(TermNode& term, TermNode& tm,
 	AssertValueTags(tm);
 	// XXX: Term tags on prvalues are reserved and should be ignored normally
 	//	except for future internal use. Since %tm is a term,
-	//	%TermTags::Temporary is not expected, %GetLValueTagsOf is also not used.
-	term.SetValue(in_place_type<TermReference>, PropagateTo(tm.Tags,
-		p_ref->GetTags()), tm, NPL::Deref(p_ref).GetEnvironmentReference());
+	//	%TermTags::Temporary is not expected.
+	term.SetValue(term.get_allocator(), in_place_type<TermReference>,
+		GetLValueTagsOf(tm.Tags | p_ref->GetTags()), tm,
+		NPL::Deref(p_ref).GetEnvironmentReference());
 	return ReductionStatus::Clean;
 }
 

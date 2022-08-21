@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r7133
+\version r7181
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2022-08-15 06:18 +0800
+	2022-08-22 03:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1112,8 +1112,7 @@ $def! $lambda/e $vau (&p &formals .&body) d
 $def! $lambda/e% $vau (&p &formals .&body) d
 	wrap (eval (cons $vau/e%
 		(cons p (cons% (forward! formals) (cons% #ignore (forward! body))))) d);
-$def! list? $lambda (&o)
-	$if (null? o) #t ($if (pair? o) (($lambda ((#ignore .&o)) list? o) o) #f);
+$def! list? $lambda (&o) eql? o ();
 $def! apply $lambda% (&appv &arg .&opt)
 	eval% (cons% () (cons% (unwrap (forward! appv)) (forward! arg)))
 		($if (null? opt) (() make-environment)
@@ -1149,10 +1148,10 @@ $def! assign! $lambda (&x &y) assign@! (forward! x) (idv (collapse y));
 $def! assign%! $lambda (&x &y) assign@! (forward! x) (forward! (collapse y));
 $def! list* $lambda (&head .&tail)
 	$if (null? tail) (forward! head)
-		(cons (forward! head) (apply list* (forward! tail)));
-$def! list*% $lambda (&head .&tail)
+		(cons (forward! head) (apply-list list* (forward! tail)));
+$def! list*% $lambda% (&head .&tail)
 	$if (null? tail) (forward! head)
-		(cons% (forward! head) (apply list*% (forward! tail)));
+		(cons% (forward! head) (apply-list list*% (forward! tail)));
 $def! $defv! $vau (&$f &formals &ef .&body) d
 	eval (list*% $def! $f $vau (forward! formals) ef (forward! body)) d;
 $defv! $defv%! (&$f &formals &ef .&body) d
@@ -1179,36 +1178,38 @@ $defv! $defl/e%! (&f &p &formals .&body) d
 	eval (list*% $def! f $lambda/e% p (forward! formals) (forward! body)) d;
 $defw%! forward-first% (&appv (&x .)) d
 	apply (forward! appv) (list% ($move-resolved! x)) d;
-$defl%! first (&l)
-	$if ($lvalue-identifier? l) (($lambda% ((@x .)) $if (uncollapsed? x)
-		($if (modifiable? x) (idv x) (as-const (idv x))) x) l)
-		(forward-first% idv (expire l));
-$defl%! first@ (&l) ($lambda% ((@x .)) x) (check-pair-reference (forward! l));
-$defl%! first% (&l)
-	($lambda (fwd (@x .)) fwd x) ($if ($lvalue-identifier? l) id expire) l;
-$defl%! first& (&l)
-	($lambda% ((@x .)) $if (uncollapsed? x) (idv x) x)
-		(check-pair-reference (forward! l));
+$defl%! first (&pr)
+	$if ($lvalue-identifier? pr) (($lambda% ((@x .)) $if (uncollapsed? x)
+		($if (modifiable? x) (idv x) (as-const (idv x))) x) pr)
+		(forward-first% idv (expire pr));
+$defl%! first@ (&pr) ($lambda% ((@x .))
+	$if (unique? ($resolve-identifier pr)) (expire x) x)
+	($if (unique? ($resolve-identifier pr)) pr
+		(check-pair-reference (forward! pr)));
+$defl%! first% (&pr)
+	($lambda (fwd (@x .)) fwd x) ($if ($lvalue-identifier? pr) id expire) pr;
+$defl%! first& (&pr)
+	($lambda% ((@x .)) $if (uncollapsed? x)
+		($if (modifiable? pr) (idv x) (as-const (idv x)))
+		($if (unique? ($resolve-identifier pr)) (expire x) x))
+	($if (unique? ($resolve-identifier pr)) pr
+		(check-pair-reference (forward! pr)));
 $defl! firstv ((&x .)) $move-resolved! x;
 $defl%! rest% ((#ignore .%xs)) $move-resolved! xs;
-$defl%! rest& (&l)
-	($lambda% ((#ignore .&xs)) xs) (check-pair-reference (forward! l));
+$defl%! rest& (&pr)
+	($lambda% ((#ignore .@xs)) $if (uncollapsed? xs)
+		($if (modifiable? pr) (idv xs) (as-const (idv xs)))
+		($if (unique? ($resolve-identifier pr)) (expire xs) xs))
+	($if (unique? ($resolve-identifier pr)) pr
+		(check-pair-reference (forward! pr)));
 $defl! restv ((#ignore .xs)) $move-resolved! xs;
-$defl! set-first! (&l x) assign@! (first@ (forward! l)) (move! x);
-$defl! set-first@! (&l &x) assign@! (first@ (forward! l)) (forward! x);
-$defl! set-first%! (&l &x) assign%! (first@ (forward! l)) (forward! x);
-$defl/e! equal? (() ($lambda/e (() get-current-environment) ()
-	(
-		$defl! peq? (&x &y)
-		(
-			$def! (px py) list (pair? x) (pair? y);
-			$if ($if px py #f)
-				($if (equal? (first& x) (first& y)) (peq? (rest& x) (rest& y)) 
-					#f)
-				(eqv? px py)
-		);
-		() lock-current-environment
-	))) (&x &y) $if (eql? x y) (peq? x y) #f;
+$defl! set-first! (&pr x) assign@! (first@ (forward! pr)) (move! x);
+$defl! set-first@! (&pr &x) assign@! (first@ (forward! pr)) (forward! x);
+$defl! set-first%! (&pr &x) assign%! (first@ (forward! pr)) (forward! x);
+$defl! equal? (&x &y)
+	$if ($if (pair? x) (pair? y) #f)
+		($if (equal? (first& x) (first& y)) (equal? (rest& x) (rest& y)) #f)
+		(eqv? x y);
 $defl%! check-environment (&e) $sequence (eval% #inert e) (forward! e);
 $defl%! check-parent (&p) $sequence ($vau/e% p . #ignore) (forward! p);
 $defv%! $cond &clauses d
@@ -1613,8 +1614,8 @@ Promise::ReduceToResult(TermNode& term, ResolvedTermReferencePtr p_ref)
 	else if(list_not_move)
 	{
 		// XXX: Allocators are not used here for performance.
-		term.SetValue(in_place_type<TermReference>, nd.Tags, nd,
-			p_ref ? p_ref->GetEnvironmentReference() : r_env);
+		term.SetValue(term.get_allocator(), in_place_type<TermReference>,
+			nd.Tags, nd, p_ref ? p_ref->GetEnvironmentReference() : r_env);
 		return ReductionStatus::Clean;
 	}
 	LiftOther(term, nd);
@@ -1627,6 +1628,7 @@ LazyImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 {
 	Retain(term);
 	RemoveHead(term);
+	// XXX: This implies %EnsureValueTags.
 	ClearCombiningTags(term);
 	return EmplaceCallResultOrReturn(term, Promise(ctx, NPL::AsTermNode(
 		term.get_allocator(), ctx.WeakenRecord()), std::move(term), no_lift));
@@ -1650,6 +1652,7 @@ LazyWithDynamic(TermNode& term, ContextNode& ctx, bool no_lift)
 		auto tm(std::move(*i));
 
 		term.erase(i);
+		// XXX: This implies %EnsureValueTags.
 		ClearCombiningTags(term);
 		return EmplaceCallResultOrReturn(term,
 			Promise(ctx, std::move(tm), std::move(term), no_lift));
@@ -2323,8 +2326,8 @@ LoadModule_std_modules(REPLContext& context,
 				term.SetContent(tm);
 				return ReductionStatus::Retained;
 			}
-			term.SetValue(in_place_type<TermReference>, TermTags::Unqualified,
-				tm, ctx.WeakenRecord());
+			term.SetValue(term.get_allocator(), in_place_type<TermReference>,
+				TermTags::Unqualified, tm, ctx.WeakenRecord());
 			return ReductionStatus::Clean;
 		});
 

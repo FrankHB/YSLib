@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r9714
+\version r9772
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2022-07-24 21:14 +0800
+	2022-08-17 03:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1024,13 +1024,34 @@ Collapse(TermReference);
 YB_ATTR_nodiscard YF_API TermNode
 PrepareCollapse(TermNode&, const shared_ptr<Environment>&);
 
+//! \sa TermReference
+//@{
 /*!
-\brief 访问项并取解析 TermReference 间接值后的引用。
-\return 若项的 Value 数据成员为 TermReference 则为其中的引用，否则为参数。
-\sa TermReference
+\brief 访问项并取解析项引用的引用项。
+\return 若项的值数据成员为 TermReference 则为其中的引用，否则为参数。
+\sa TryAccessLeaf
+\since build 952
+*/
+//@{
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(TermNode&, ReferenceLeaf, TermNode& term)
+	ynoexcept_spec(std::declval<TermReference>().get())
+	ImplRet(ystdex::invoke_value_or(&TermReference::get,
+		TryAccessLeaf<TermReference>(term), term))
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(const TermNode&, ReferenceLeaf, const TermNode& term)
+	ynoexcept_spec(std::declval<const TermReference>().get())
+	ImplRet(ystdex::invoke_value_or(&TermReference::get,
+		TryAccessLeaf<const TermReference>(term), term))
+//@}
+
+/*!
+\brief 访问不构成有序对并取解析项引用的引用项。
+\return 若项不表示有序对且值数据成员为 TermReference 则为其中的引用，否则为参数。
 \sa TryAccessLeafAtom
 \since build 854
 */
+//@{
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TermNode&, ReferenceTerm, TermNode& term)
 	ynoexcept_spec(std::declval<TermReference>().get())
@@ -1041,9 +1062,30 @@ YB_ATTR_nodiscard YB_PURE inline
 	ynoexcept_spec(std::declval<const TermReference>().get())
 	ImplRet(ystdex::invoke_value_or(&TermReference::get,
 		TryAccessLeafAtom<const TermReference>(term), term))
+//@}
+//@}
+
+//! \ingroup functors
+//@{
+/*!
+\brief 项引用值函数对象操作。
+\note 这是 NPL::ReferenceLeaf 的函数对象形式。
+\sa ReferenceLeaf
+\since build 953
+*/
+struct ReferenceLeafOp
+{
+	template<typename _type>
+	auto
+	operator()(_type&& term) const
+		ynoexcept_spec(NPL::ReferenceLeaf(yforward(term)))
+		-> decltype(NPL::ReferenceLeaf(yforward(term)))
+	{
+		return NPL::ReferenceLeaf(yforward(term));
+	}
+};
 
 /*!
-\ingroup functors
 \brief 项引用函数对象操作。
 \note 这是 NPL::ReferenceTerm 的函数对象形式。
 \sa ReferenceTerm
@@ -1061,6 +1103,20 @@ struct ReferenceTermOp
 		return NPL::ReferenceTerm(yforward(term));
 	}
 };
+//@}
+
+/*!
+\brief 包装一个非项引用的操作为 NPL::ReferenceLeafOp 以支持项引用。
+\relates ReferenceLeafOp
+\since build 953
+*/
+template<typename _func>
+YB_STATELESS auto
+ComposeReferencedLeafOp(_func f)
+	-> yimpl(decltype(ystdex::compose_n(f, ReferenceLeafOp())))
+{
+	return ystdex::compose_n(f, ReferenceLeafOp());
+}
 
 /*!
 \brief 包装一个非项引用的操作为 NPL::ReferenceTermOp 以支持项引用。

@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r4552
+\version r4575
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2022-08-06 01:10 +0800
+	2022-08-17 22:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -963,13 +963,25 @@ FindSticky(_tIn first, _tIn last) ynothrow
 }
 
 //! \brief 从节点容器查找含有粘滞位的第一个子项。
+//@{
+//! \since build 953
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(TNIter, FindStickySubterm, TermNode::Container& con) ynothrow
+	ImplRet(NPL::FindSticky(con.begin(), con.end()))
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TNCIter, FindStickySubterm, const TermNode::Container& con) ynothrow
 	ImplRet(NPL::FindSticky(con.begin(), con.end()))
+//@}
 //! \brief 从节点查找含有粘滞位的第一个子项。
+//@{
+//! \since build 953
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(TNIter, FindStickySubterm, TermNode& nd) ynothrow
+	ImplRet(NPL::FindStickySubterm(nd.GetContainerRef()))
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TNCIter, FindStickySubterm, const TermNode& nd) ynothrow
 	ImplRet(NPL::FindStickySubterm(nd.GetContainer()))
+//@}
 
 //! \brief 判断节点中是否具有标签包含粘滞位的子节点。
 YB_ATTR_nodiscard YB_PURE inline
@@ -1081,13 +1093,20 @@ YB_NONNULL(2) inline
 \pre 断言：参数的标签可表示一等对象的值。
 \note 较 EnsureValueTags 更严格，对不符合要求的项总是断言失败。
 \sa EnsureValueTags
-\since build 939
 */
+//@{
+//! \since build 953
+YB_NONNULL(2) inline
+	PDefH(void, AssertValueTags, TermTags tags, const char* msg
+	= "Invalid term of first-class value found.") ynothrowv
+	ImplExpr(yunused(tags), yunused(msg),
+		YAssert(tags == TermTags::Unqualified, msg))
+//! \since build 939
 YB_NONNULL(2) inline
 	PDefH(void, AssertValueTags, const TermNode& nd, const char* msg
 	= "Invalid term of first-class value found.") ynothrowv
-	ImplExpr(yunused(nd), yunused(msg),
-		YAssert(nd.Tags == TermTags::Unqualified, msg))
+	ImplExpr(AssertValueTags(nd.Tags, msg))
+//@}
 
 //! \brief 创建项节点。
 //@{

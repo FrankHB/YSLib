@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9692
+\version r9735
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-08-15 05:15 +0800
+	2022-08-20 16:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1279,45 +1279,9 @@ RegisterStrict(_tTarget& target, string_view name, _tParams&&... args)
 抛出的异常同 FormContextHandler::CheckArguments ，但通常直接用于底层合并子实现。
 */
 inline PDefH(void, CheckArgumentList, const TermNode& term)
-#if true
-	ImplExpr(AssertCombiningTerm(term), YB_LIKELY(IsList(term)) ? void()
-		: [&] YB_LAMBDA_ANNOTATE(() , , flatten){
-		if(const auto p = TryAccessLeaf<const TermReference>(term))
-		{
-			auto& nd(p->get());
-
-			if(!IsList(nd))
-			{
-				const bool is_ref(term.size() == 1
-					|| IsSticky(std::next(term.begin())->Tags));
-
-				ThrowListTypeErrorForNonList(nd, is_ref, is_ref ? 0 : 1);
-			}
-		}
-		else
-			// NOTE: The combiner position is skipped.
-			ThrowListTypeErrorForNonList(term, {}, 1);
-	}())
-#else
-	// NOTE: Any optimized implemenations shall be equivalent to this.
-	ImplExpr(AssertCombiningTerm(term),
-		ResolveSuffix([&](const TermNode& nd, bool has_ref){
-		if(YB_UNLIKELY(!IsList(nd)))
-		{
-			// NOTE: The combination of a pair with a prefixed subterm and
-			//	another object is recognized as %IsAtom with 1 prefixed
-			//	subterm.
-			// XXX: Currently only subobject references can have irregular
-			//	subterms. Nevertheless, this is not assumed in general.
-			const bool is_ref(has_ref && (term.size() == 1
-				|| IsSticky(std::next(term.begin())->Tags)));
-
-			// NOTE: The combiner position is skipped unless the rest
-			//	subterms are parts of a reference value.
-			ThrowListTypeErrorForNonList(nd, is_ref, is_ref ? 0 : 1);
-		}
-	}, term))
-#endif
+	ImplExpr(AssertCombiningTerm(term), IsList(term) ? void()
+		// NOTE: The combiner position is skipped.
+		: ThrowListTypeErrorForNonList(term, {}, 1))
 
 /*!
 \brief 检查可变参数数量。
@@ -1349,7 +1313,7 @@ inline PDefH(void, CheckVariadicArity, const TermNode& term, size_t n)
 */
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(size_t, FetchArgumentN, const TermNode& term)
-	ImplRet(CheckArgumentList(term), CountPrefix(term) - 1)
+	ImplRet(CheckArgumentList(term), term.size() - 1)
 
 /*!
 \note 保留求值留作保留用途，一般不需要被作为用户代码直接使用。
@@ -1656,11 +1620,10 @@ CheckEnvironmentFormal(const TermNode&);
 若匹配失败，则抛出异常。
 */
 //@{
-//! \throw InvalidSyntax 嵌套异常 InvalidSyntax ：形式参数项不符合语法要求。
-//@{
 /*!
 \brief 匹配参数。
 \exception std::bad_function_call 异常中立：参数指定的处理器为空。
+\throw InvalidSyntax 嵌套异常 ParameterMismatch ：形式参数项不符合语法要求。
 \sa FindStickySubterm
 \sa TermTags
 \since build 951
@@ -1708,11 +1671,14 @@ MatchParameter(const TermNode&, TermNode&, function<void(TermNode&, TNIter,
 	void(const TokenValue&, TermNode&, TermTags, const EnvironmentReference&)>,
 	TermTags, const EnvironmentReference&);
 
+//! \pre 间接断言：第三参数的标签可表示一等对象的值。
+//@{
 /*!
 \brief 使用操作数结构化匹配并绑定参数。
 \pre 间接断言：第一参数非空。
 \throw ArityMismatch 子项数匹配失败。
 \throw InvalidReference 非法的 @ 引用标记字符绑定。
+\throw InvalidSyntax 嵌套异常 ParameterMismatch ：形式参数项不符合语法要求。
 \note 第一参数指定绑定所在的环境。
 \sa MatchParameter
 \sa TermReference
@@ -1732,7 +1698,6 @@ MatchParameter(const TermNode&, TermNode&, function<void(TermNode&, TNIter,
 */
 YF_API void
 BindParameter(const shared_ptr<Environment>&, const TermNode&, TermNode&);
-//@}
 
 /*!
 \brief 使用操作数结构化匹配并绑定参数到合式的形式参数树。
@@ -1751,6 +1716,7 @@ BindParameter(const shared_ptr<Environment>&, const TermNode&, TermNode&);
 YF_API void
 BindParameterWellFormed(const shared_ptr<Environment>&, const TermNode&,
 	TermNode&);
+//@}
 //@}
 
 /*!

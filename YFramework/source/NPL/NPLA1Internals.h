@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r22496
+\version r22506
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-07-26 03:57 +0800
+	2022-08-18 07:51 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -1286,13 +1286,13 @@ inline PDefH(void, SetEvaluatedValue, TermNode& term, TermNode& bound,
 	const shared_ptr<Environment>& p_env)
 	ImplExpr(term.Value = [&](Environment& env){
 		return ValueObject(std::allocator_arg, term.get_allocator(),
-			in_place_type<TermReference>, env.MakeTermTags(bound)
-			& ~TermTags::Unique, bound,
+			in_place_type<TermReference>,
+			env.MakeTermTags(bound) & ~TermTags::Unique, bound,
 			EnvironmentReference(p_env, env.GetAnchorPtr()));
 	}(NPL::Deref(p_env)))
 
 
-//! \since build 917
+//! \since build 939
 YB_NORETURN void
 ThrowNestedParameterTreeMismatch();
 
@@ -1464,7 +1464,11 @@ public:
 		ImplRet(x.HandlerRef.get() == y.HandlerRef.get())
 
 	PDefHOp(ReductionStatus, (), TermNode& term, ContextNode& ctx) const
-		ImplRet(HandlerRef.get()(term, ctx))
+		// NOTE: The referent is uncontionally treated as an lvalue to prevent
+		//	the unexpected move of the referenced resources in %HandlerRef (e.g.
+		//	in %VauHandler in NPLA1Forms.cpp) for prvalues. See also
+		//	%ReduceCombinedBranch in NPLA1.cpp for the introducing of the tag.
+		ImplRet(ClearCombiningTags(term), HandlerRef.get()(term, ctx))
 
 // XXX: This is currently unused and Clang++ would complain with
 //	[-Wunused-function].
@@ -1504,10 +1508,10 @@ YB_ATTR_nodiscard inline PDefH(TermNode, MakeSubobjectReferent,
 //@}
 
 
-//! \since build 913
+//! \since build 953
 ReductionStatus
 ReduceAsSubobjectReference(TermNode&, shared_ptr<TermNode>,
-	const EnvironmentReference&);
+	const EnvironmentReference&, TermTags);
 
 //! \since build 913
 ReductionStatus

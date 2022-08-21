@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r23611
+\version r23682
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2022-08-11 02:15 +0800
+	2022-08-22 02:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,7 @@
 //	TryAccessLeaf, IsTyped, ResolveTerm, std::prev,
 //	ThrowListTypeErrorForNonList, ThrowInsufficientTermsError, ReferenceTerm,
 //	ystdex::begins_with, FindStickySubterm, Environment, shared_ptr,
-//	ystdex::retry_on_cond, AccessFirstSubterm, ystdex::ref_eq,
+//	AssertValueTags, ystdex::retry_on_cond, AccessFirstSubterm, ystdex::ref_eq,
 //	ystdex::make_transform, IsCombiningTerm, NPL::IsMovable, std::placeholders,
 //	NoContainer, ystdex::try_emplace, Access, YSLib::Informative,
 //	ystdex::unique_guard, CategorizeBasicLexeme, DeliteralizeUnchecked,
@@ -398,14 +398,14 @@ void
 EmplaceReference(TermNode::Container& con, TermNode& o, TermReference& ref,
 	bool move)
 {
+	const auto a(con.get_allocator());
+
 	if(move)
 		con.emplace_back(std::move(o.GetContainerRef()),
-			ValueObject(std::allocator_arg, con.get_allocator(),
-			in_place_type<TermReference>, std::move(ref)));
+			ValueObject(in_place_type<TermReference>, std::move(ref)));
 	else
-		con.emplace_back(o.GetContainer(),
-			ValueObject(std::allocator_arg, con.get_allocator(),
-			in_place_type<TermReference>, ref.GetTags(), ref));
+		con.emplace_back(TermNode::Container(o.GetContainer(), a),
+			ValueObject(in_place_type<TermReference>, ref.GetTags(), ref));
 }
 
 
@@ -615,8 +615,9 @@ public:
 		// NOTE: For elements binding here, %TermTags::Unique in %o_tags is
 		//	irrelavant.
 		// NOTE: This shall be %true if the operand is stored in a term tree to
-		//	be reduced (and eventually cleanup). See also
-		//	%GParameterMatcher::Match.
+		//	be reduced (and eventually cleanup) directly, but never for the
+		//	elements of a referent thereof. See also %GParameterMatcher::Match
+		//	and the tags inheritance in %GParameterMatcher::MatchPair.
 		const bool temp(bool(o_tags & TermTags::Temporary));
 
 		// NOTE: The binding rules here should be carefully tweaked to make them
@@ -647,13 +648,13 @@ public:
 					if(can_modify && temp)
 						// NOTE: Reference collapsed by move.
 						mv(std::move(o.GetContainerRef()),
-							ValueObject(std::allocator_arg, a, in_place_type<
-							TermReference>, ref_tags, std::move(*p)));
+							ValueObject(in_place_type<TermReference>, ref_tags,
+							std::move(*p)));
 					else
 						// NOTE: Reference collapsed by copy.
-						mv(TermNode::Container(o.GetContainer()),
-							ValueObject(std::allocator_arg, a,
-							in_place_type<TermReference>, ref_tags, *p));
+						mv(TermNode::Container(o.GetContainer(), a),
+							ValueObject(in_place_type<TermReference>, ref_tags,
+							*p));
 				}
 				else
 				{
@@ -689,12 +690,16 @@ public:
 				//	to the anchor saved by the reference (if any), not
 				//	necessarily the original environment owning the referent.
 				mv(TermNode::Container(a),
-					// XXX: Term tags on prvalues are reserved and should be
-					//	ignored normally except for future internal use. Note
-					//	that %TermTags::Temporary can be provided by a bound
-					//	object (indicated by %o) in an environment.
+					// NOTE: Term tags on prvalues are reserved and should be
+					//	ignored normally except for the possible overlapped
+					//	encoding of %TermTags::Sticky and future internal use.
+					//	Note that %TermTags::Temporary can be provided by a
+					//	bound object (indicated by %o) in an environment, which
+					//	is usually intialized from a prvalue.
 					ValueObject(std::allocator_arg, a,
 					in_place_type<TermReference>,
+					// NOTE: The call to %GetLValueTagsOf here is equivalent to
+					//	%PropagateTo in functionality except %TermTags::Unique.
 					GetLValueTagsOf(o.Tags | o_tags), o, Referenced));
 			else
 				cp(o);
@@ -722,8 +727,14 @@ public:
 		// NOTE: Same to the overload above, except that %o can be a pair and %j
 		//	specifies the 1st subterm of the suffix.
 		const bool temp(bool(o_tags & TermTags::Temporary));
-		const auto a(o.get_allocator());
 		const auto bind_subpair([&](TermTags tags){
+			// NOTE: There is no %TermTags::Temprary in %tags due to the
+			//	constrains in the caller. This guarantees no element will have
+			//	%TermTags::Temporary.
+			YAssert(!bool(tags & TermTags::Temporary),
+				"Unexpected temporary tag found.");
+
+			const auto a(o.get_allocator());
 			TermNode t(a);
 			auto& tcon(t.GetContainerRef());
 
@@ -737,11 +748,13 @@ public:
 					//	living when %Value is accessed (otherwise, the behavior
 					//	is undefined in the object language).
 					LiftTermRef(t.Value, o.Value);
+				// NOTE: No tags are set in %t, implying no %TermTags::Temporary
+				//	in the elements finally.
 			}
 			else
 				// XXX: As in %LiftPrefixToReturn.
 				YAssert(first == o.end(), "Invalid representation found.");
-			if(sigil != '&')
+			if(sigil != '&' && sigil != '@')
 				MarkTemporaryTerm(mv(std::move(tcon), std::move(t.Value)),
 					sigil);
 			else
@@ -766,6 +779,7 @@ public:
 		if(sigil != '@')
 		{
 			const bool can_modify(!bool(o_tags & TermTags::Nonmodifying));
+			const auto a(o.get_allocator());
 
 			if(const auto p = TryAccessLeaf<TermReference>(o))
 			{
@@ -776,12 +790,12 @@ public:
 
 					if(can_modify && temp)
 						mv(MoveSuffix(o, first),
-							ValueObject(std::allocator_arg, a, in_place_type<
-							TermReference>, ref_tags, std::move(*p)));
+							ValueObject(in_place_type<TermReference>, ref_tags,
+							std::move(*p)));
 					else
-						mv(TermNode::Container(first, o.end(),
-							o.get_allocator()), ValueObject(std::allocator_arg,
-							a, in_place_type<TermReference>, ref_tags, *p));
+						mv(TermNode::Container(first, o.end(), a),
+							ValueObject(in_place_type<TermReference>, ref_tags,
+							*p));
 				}
 				else
 				{
@@ -811,7 +825,9 @@ public:
 			}
 			// NOTE: This is different to the element binding overload above. It
 			//	is necessary to enable the movable elements for xvalue pairs by
-			//	this manner.
+			//	this manner. This also makes all nested prvalues (implying
+			//	nested %TermTags::Temporary) in the subobjects handled here,
+			//	instead of the subpair branch below. 
 			else if((can_modify || sigil == '%')
 				&& (temp || bool(o_tags & TermTags::Unique)))
 			{
@@ -821,6 +837,7 @@ public:
 					sigil);
 			}
 			else
+				// NOTE: All temporary tags will not come here.
 				bind_subpair(
 					sigil == '&' ? GetLValueTagsOf(o.Tags | o_tags) : o_tags);
 		}
@@ -844,11 +861,14 @@ private:
 	BindSubpairSubterms(char sigil, TermNode::Container& tcon, TermNode& o,
 		TNIter& j, TermTags tags) const
 	{
+		// NOTE: This guarantees no subpair element will have
+		//	%TermTags::Temporary.
+		YAssert(!bool(tags & TermTags::Temporary),
+			"Unexpected temporary tag found.");
 		// NOTE: Make a list as a copy of the sublist or as a list of references
 		//	to the elements of the sublist, depending on the sigil.
 		for(; j != o.end() && !IsSticky(j->Tags); ++j)
-			(*this)(sigil, {}, tags, NPL::Deref(j),
-				[&](const TermNode& tm){
+			(*this)(sigil, {}, tags, NPL::Deref(j), [&](const TermNode& tm){
 				CopyTermTags(tcon.emplace_back(tm.GetContainer(), tm.Value),
 					tm);
 			}, [&](TermNode::Container&& c, ValueObject&& vo) -> TermNode&{
@@ -1074,7 +1094,10 @@ public:
 				{
 					auto& j(NPL::get<OperandFirst>(e));
 
-					YAssert(!IsSticky(i->Tags), "Invalid term found."),
+					YAssert(!IsSticky(i->Tags),
+						"Invalid representation found."),
+					YAssert(!IsSticky(j->Tags),
+						"Invalid representation found."),
 					YAssert(j != NPL::get<OperandRef>(e).get().end(),
 						"Invalid state of operand found.");
 					// XXX: The iterators are incremented here to allow
@@ -1202,9 +1225,14 @@ private:
 			//	pair for the ptree, so the exception message is irrelavant.
 			if(IsPair(nd) || (ellipsis && IsEmpty(nd)))
 			{
+				// NOTE: By the rules, the referent of %nd is ignored, so
+				//	additional checks like 'IsList(ReferenceLeaf(nd))' or
+				//	'IsEmpty(ReferenceLeaf(nd)' are not needed.
 				if(is_list && !ellipsis && !IsList(nd))
 					ThrowListTypeErrorForNonList(nd, p_ref);
 
+				// NOTE: Ditto. There is no need to count any subnode prefix not
+				//	in %nd.
 				const auto n_o(CountPrefix(nd));
 
 				if(n_p == n_o || (ellipsis && n_o >= n_p - 1))
@@ -1431,6 +1459,7 @@ BindParameterImpl(const shared_ptr<Environment>& p_env, const TermNode& t,
 {
 	auto& env(NPL::Deref(p_env));
 
+	AssertValueTags(o);
 	// XXX: This should normally be true, but not yet relied on.
 //	AssertMatchedAllocators(t, o);
 	// NOTE: No duplication check here. Symbols can be rebound.
@@ -1737,6 +1766,10 @@ ReduceToReferenceList(TermNode& term, ContextNode& ctx, TermNode& tm)
 
 				// XXX: As %BindParameter.
 				for(auto& o : nd)
+				{
+					// XXX: This is guaranteed by the convention of tags.
+					AssertValueTags(o);
+
 					if(const auto p = TryAccessLeafAtom<TermReference>(o))
 						EmplaceReference(con, o, *p, !p_ref);
 					else if(p_ref)
@@ -1750,6 +1783,7 @@ ReduceToReferenceList(TermNode& term, ContextNode& ctx, TermNode& tm)
 							std::move(o.Value));
 						con.back().Tags |= TermTags::Temporary;
 					}
+				}
 				con.swap(term.GetContainerRef());
 			}
 			return ReductionStatus::Retained;
@@ -1774,6 +1808,9 @@ ReduceToReferenceUList(TermNode& term, TermNode& tm)
 				const auto add_tags(p_ref->GetTags() | TermTags::Unique);
 
 				for(auto& o : nd)
+				{
+					// XXX: This is guaranteed by the convention of tags.
+					AssertValueTags(o);
 					if(const auto p = TryAccessLeafAtom<TermReference>(o))
 						EmplaceReference(con, o, *p, {});
 					else
@@ -1781,6 +1818,7 @@ ReduceToReferenceUList(TermNode& term, TermNode& tm)
 							std::allocator_arg, a, in_place_type<TermReference>,
 							o.Tags | add_tags, o,
 							p_ref->GetEnvironmentReference());
+				}
 				con.swap(term.GetContainerRef());
 			}
 			else
@@ -2397,6 +2435,9 @@ MatchParameter(const TermNode& t, TermNode& o, function<void(TermNode&, TNIter,
 	const EnvironmentReference&)> bind_value, TermTags o_tags,
 	const EnvironmentReference& r_env)
 {
+	// XXX: This is currently not checked as in %BindParameterImpl to allow more
+	//	permissive use without the precondition.
+//	AssertValueTags(o);
 	// XXX: See %BindParameterImpl.
 //	AssertMatchedAllocators(t, o);
 	MakeParameterMatcher<ParameterCheck>(t.get_allocator(),
@@ -2430,6 +2471,7 @@ void
 BindSymbol(const shared_ptr<Environment>& p_env, const TokenValue& n,
 	TermNode& o)
 {
+	AssertValueTags(o);
 	// NOTE: As %BindSymbolImpl expecting the parameter tree as a single symbol
 	//	term without trailing handling.
 	DefaultBinder(NPL::Deref(p_env))(n, o, TermTags::Temporary, p_env);

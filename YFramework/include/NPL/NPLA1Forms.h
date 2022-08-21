@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8873
+\version r8876
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2022-08-13 17:19 +0800
+	2022-08-22 03:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -967,7 +967,7 @@ YF_API ReductionStatus
 RestFwd(TermNode&);
 
 /*!
-\since build 913
+\since build 953
 
 结果是有序对第一个元素以外的元素值的引用值构成的有序对。
 保留结果中的引用值。
@@ -976,9 +976,11 @@ RestFwd(TermNode&);
 <pre>rest& \<pair></pre>
 */
 YF_API ReductionStatus
-RestRef(TermNode&, ContextNode&);
+RestRef(TermNode&);
 
 /*!
+\since build 910
+
 结果是有序对的第一个元素以外的元素经过返回值转换的值构成的有序对。
 不保留结果中的引用值。
 

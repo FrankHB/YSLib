@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r10766
+\version r11098
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-08-15 06:19 +0800
+	2022-08-22 05:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,296 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ DD %Documentation.NPL $=
+	(
+		* "inconsistent grammar of alternative expressions" $since b855
+			$= (/ "all '<alternate>'" => '<alternative>'),
+			// This is also like [RnRK].
+		* "wrong description on evaluation result of consequent and \
+			alternative expression",
+			// The change is also consistent to the document for '$if'.
+		/ "clarified the construct of list to reject reference to list element \
+			in a pair as a proper list" $dep_to "list definition clarification",
+			// See $2022-08 @ %Documentation::Workflow.
+		* "wrong description of the result type" @ "applicative 'rest%'"
+			$since b951,
+		/ $lib "reordered applicatives prefixed with 'set-first'"
+			// This is consistent to both native implementation and \
+				derivations in %YFramework.NPL.Dependency at current, as \
+				well as the module order in [RnRK].
+	),
+	/ %YFramework.NPL $=
+	(
+		/ %SContext $=
+		(
+			+ "2 function overloads %FindStickySubterm for non-const parameter \
+				types",
+			(
+			+ "function overload %AssertValueTags for tags parameter";
+			/ DLDI "simplified function %AssertValueTags#2"
+			// Similar to %AssertReferentTags.
+			)
+		),
+		/ DLI "checked to ensure first-class object representation in subterms"
+			@ ("functions %(ReduceToReferenceList, ReduceToReferenceUList)"
+			@ %NPLA1, "functions whose name match glob pattern '*Let*'"
+			@ "namespace %Forms" @ %NPLA1Forms) ^ "%AssertValueTags",
+			// This reflects the fact that %TermTags::Temporary is not \
+				allowed in the subterms by convention. This relies on the \
+				trailing sequence binding change in b951, albeit the \
+				convention is new.
+		/ @ "namespace %A1" @ %NPLA1Forms $=
+		(
+			/ @ "namespace %Forms" $=
+			(
+				/ $re_add(b869) DLDI "simplified subterm accesses with already \
+					verified boundary" ^ '*' ~ "%NPL::Deref" $effective
+					@ "functions %(Cons, ConsRef, CheckListReference, \
+					CheckPairReference, Apply, ApplyList, ListAsterisk, \
+					ListAsteriskRef, SymbolsToImports, Call1CC, \
+					ApplyContinuation)",
+				/ DLI "functions %(Or, Apply, ApplyList, Cons, ConsRef, \
+					ListAsterisk, ListAsteriskRef, AccL, AccR, FoldR1, \
+					SetFirstAt, CheckEnvironment, CheckParent, ListConcat, \
+					ApplyContinuation)" ^ "%LiftOtherValue" ~ "%LiftOther",
+				/ @ "functions %(Apply, ApplyList)" $=
+				(
+					/ DLI "simplified"
+						!^ ("common cons implementation", "new term"),
+						// This also decouples with the implemenations of \
+							%(Cons, ConsRef, SetRest, SetRestRef).
+					/ $revert_ex(b952) "removed improper list handling"
+						$dep_from "list definition clarification"
+				),
+				(
+				/ DLI "simplified functions %(ListAsterisk, ListAsteriskRef)"
+					!^ ("common splicing implementation",
+					"internal check argument");
+					// The common splicing shared with other implementations \
+						of %(Cons, ConsRef, SetRest, SetRestRef) with \
+						different number of arguments is not \
+						necessary and a %TermNode::Container::splice call is \
+						more succinct.
+				/ DLI "simplified"
+					@ "functions %(Cons, ConsRef, SetRest, SetRestRef)",
+					// The splicing now has same no additional argument \
+						required before. Also %(Apply, ApplyList) not sharing \
+						the implemenation here can be more efficient.
+				),
+				* "missing ignoring non-leaf values"
+					@ "functions %(EqLeaf, EqReference)" $since b947
+					// The meaning was changed by %ReferenceTerm.
+					$= (/ $impl ^ $dep_from
+						("%ReferenceLeaf" ~ "%ReferenceTerm") @ %NPLA),
+				* "missing clear the combining tag before creation of the \
+					parameter binding" @ "%operator()" @ "vau handler"
+					$since b860
+					// The tags is visible in %BindParameterWellFormed, albeit \
+						no effects at current. See the comment to the change \
+						in %NPLA1Internals above for revision information. By \
+						reodering of existing checks, this is even more \
+						efficent than before.
+					$= (/ $impl ^ "%ClearCombiningTags"),
+				* $comp "missing nonmodifying tags in lvalue results"
+					@ "functions whose name have prefix 'Unwrap'" $since b858
+					$from ("%ReduceForCombinerRef" @ %NPLA1Internals),
+				/ DLI "checked to ensure first-class object representation in \
+					subterms" @ "functions %(ListExtractFirst, ListExtractRest)"
+					^ "%(LiftOtherValue, AssertValueTags)" ~ "%LiftOther",
+					// As in %ReduceToReferenceList.
+				/ @ "function %RestRef" $=
+				(
+					* "missing propagation of nonmodifiable object reference \
+						to the result" $since b939,
+						// The elements in the subterms in the referent were \
+							correctly propagated to, though.
+					* "missing support of irregular lists" $since b951,
+					(
+					/ DLI "simplified environment reference";
+						// The checked argument is always a reference value.
+					- $revert(b913) "2nd parameter"
+					)
+				),
+				* $comp "missing propagation of the unique tag on acceesing \
+					non-reference elements" @ "function %(FirstRef, FirstRefAt)"
+					$since b925 $dep_from
+					("%(ReduceToReference, ReduceToReferenceAt)" @ %NPLA),
+				* $re_add(b952) "missing clear tags for newly created operand \
+					of binding" @ "function %BindImports" $since b920
+					^ "%EnsureValueTags"
+			),
+			* "missing support objects with irregular represenatation"
+				@ ("function %Forms::EqualTermValue" $since b904,
+				"static member function %Encapsulation::Equal" $orig
+				(@ "function %MakeEncapsulationType" @ %NPLA1 $since b858)),
+				// This should have been supported in the very first, because \
+					such operands were introduced since b858 (e.g. by %Unwrap).
+		),
+		/ %NPLA1 $=
+		(
+			/ @ "functions %(BindParameter, BindParameterWellFormed, \
+				BindSymbol)" $=
+			(
+				/ DLI "enabled allocator" @ "non-trailing sequence copy of \
+					subterms for reference operands",
+				* DD "outdated nested exception for parameter checks"
+					@ "Doxygen comment" $since b939,
+					// This was changed in %NPLA1Internals.cpp.
+				+ DLI "assertions to ensure value representation on bound \
+					objects" $dep_from (("vau handler", "function %BindImports")
+					@ "namespace %Forms" %NPLA1Forms),
+					// This is only added in entry of the functions here \
+						because internally referents are allowed to have the \
+						temporary tag in recursive binding.
+				+ DLI "assertions to ensure no unexpected temporary tags added \
+					on subpairs to be bound",
+					// This checks the newly established convention.
+				/ DLD "assertion string for unexpected parameter tree \
+					reprensentation",
+				+ $dev $lib "assertion to ensure the operand term having no \
+					sticky bit",
+				/ @ "binding trailing sequence" $=
+				(
+					/ $re_ex(b952) DLDI "simplified allocator using",
+						// This is more consistent to non-trailing sequence \
+							cases. It has no similar magic performance boost, \
+							though.
+					* "wrong handling of sigil '@' for the last non-null \
+						element" @ "trailing sequence" $since b951
+						$dep_to "trailing @ binding fix"
+						// This should be like '&' instead of others.
+				)
+			),
+			/ "enabled allocator for inserting reference values"
+				@ "functions %(ReduceToReferenceList, \
+				ReduceToReferenceUList)",
+			(
+			/ $forced $revert(b952) @ "function %CheckArgumentList"
+				$dep_from "list definition clarification";
+			/ $revert(b952) DLI @ "function %FetchArgumentN"
+			)
+		),
+		/ %NPLA1Internals $=
+		(
+			* "missing protecting the resources from unexpected move as \
+				prvalues" @ "member function %RefContextHandler::operator()"
+				@ %NPLA1Internals $orig (@ %NPLA1 $since b860),
+				// The context handler was originally %GRefContextHandler in \
+					%NPLA1 since b858. The tag to enable the optimization and \
+					the optimization in %VauHandler were add in \
+					%ReduceCombined since b860.
+				$= (/ $impl ^ "%ClearCombiningTags"),
+			+ "%TermTags parameter" @ "function %ReduceAsSubobjectReference",
+			/ @ "function %ReduceForCombinerRef" $=
+			(
+				/ $forced "specified tags from reference"
+					$dep_from "function %ReduceAsSubobjectReference";
+				* $comp "missing propagation of reference tags"
+					$orig (@ %NPLA1 $since b859)
+					// Currently only %TermTags::Nonmodifying is significant. \
+						The real original implementation was in %Forms::Unwrap \
+						in b858, but this was not a separated interface.
+			)
+		),
+		/ $re_ex(b947) DLI "all term value construction of %TermReference \
+			values with no %TermReference arguments" ^ "allocator"
+			$effective @ %(NPLA1, NPLA1Forms),
+			// This is generally more efficient.
+		/ $revert_ex(b947) DLI "all term value setting with \
+			%TermNode::SetValue calls %TermReference values" ^ "allocator"
+			$effective @ %(NPLA, NPLA1Forms, Dependency),
+			// Ditto. There are no arguments of %TermReference.
+		/ %NPLA $=
+		(
+			(
+			+ "2 functions %ReferenceLeaf";
+			+ "functor %ReferenceLeafOp";
+			+ "function template %ComposeReferencedLeafOp"
+			),
+			* "missing propagation of tags other than %TermNode::Nonmodifying"
+				@ ("function %ReduceToReferenceAt";
+				$comp "function %ReduceToReference") $since b925
+				// The default rules of accessing subobject were changed \
+					since b925. Even without this change, the description \
+					of getting the uncollapsed reference value also \
+					implied it should not only propagate the nonmodifying \
+					property.
+		),
+		/ @ "function %LoadGroundContext" %Dependency $=
+		(
+			* "missing preserving reference value in the result"
+				@ "applicative 'list*%'" $since b951
+				$= (/ ^ '$lambda%' ~ '$lambda'),
+			* $comp "missing ignoring non-leaf values" @ ("applicative 'eql?'"
+				$dep_from "%EqLeaf" @ %NPLA1Forms, "applicative 'eqr?'"
+				$dep_from "%EqReference" @ %NPLA1Forms) $since b947,
+			/ @ "applicative 'equal?'" $=
+			(
+				/ @ "alternative derivation" $=
+				(
+					* "wrong leaf comparison for 'eqv?'" $since b950;
+						// This would be always '#t' for both atom values in \
+							enclosing elements, albeit the top-level ones are \
+							guarded by 'eql?'.
+					/ $revert(b950) DLI "simplified" !^ ('$lambda/e', 'eql?',
+						'get-current-environment', 'lock-current-environment')
+						// These are not necessary once 'rest&' is correct. \
+							Even the old derivation (before b950) would \
+							succeed in most cases. Actually the only \
+							difference the current derivation applied is \
+							replacing 'branch?' to 'pair?'.
+				),
+				/ $comp $re_add(b950) "missing support objects with irregular \
+					represenatation" @ "native implemenation" $since b951
+					$dep_from ("%EqualTermValue" @ %NPLA1Forms)
+			),
+			* "missing propagation of nonmodifiable reference elements"
+				@ "alternative derivation" @ "applicative 'first&'" $since b939,
+			* $comp "native implementation" @ "applicative 'rest%'" $since b951
+				$dep_from ("%RestRef" @ %NPLA1Forms),
+			* "misleading error message for improper lists" @ "derivation"
+				@ "applicatives ('list%', 'list*%')" $since b951
+				// It would report expecting a pair (by binding \
+					mismatching in the last recursive call) instead of \
+					a list.
+				$= (/ $impl ^ 'apply-list' ~ 'apply'),
+			/ "all <pair> argument 'l'" => 'pr' $effective @ "derivation"
+				@ "applicatives (%first, 'first@', 'first%', 'first&', \
+				'rest&', 'set-first!', 'set-first@!', 'set-first%!')",
+			/ $forced "alternative derivation" @ "applicative 'list$'"
+				$dep_from "list definition clarification"
+				$= (/ $impl ^ $dep_from 'eql?' ~ 'null?'),
+			* $comp "unique reference not preserved on accessing \
+				non-reference elements of xvalue arguments"
+				@ "native implementation" @ "applicatives ('first@', \
+				'first&', 'rest&')" $since b951
+				$dep_from ("%(FirstRef, FirstRefAt, RestRef)" @ %NPLA1Forms)
+				// The common rule was changed since b925, but invisible until \
+					the removal of special rule in b951.
+			/ "derivation" @ "applicative 'first@', 'first&'" $=
+			(
+				* "missing support of xvalue arguments" $since b951;
+					// The supported was dropped in b913 and documented. This \
+						was changed by dropping the explicit check in b951 to \
+						follow the common convention of element access since \
+						b925, which requires to support xvalue arguments.
+				* "unique reference not preserved on accessing \
+					non-reference elements of xvalue arguments" $since b951
+					// This is invisible without the change above.
+			),
+			/ @ "derivation" @ "applicative 'rest&'" $=
+			(
+				* "missing support of xvalue arguments" $since b951,
+				* "unique reference not preserved on accessing \
+					non-reference elements of xvalue arguments" $since b951
+					$= (/ $impl $dep_from "trailing @ binding fix")
+			)
+		)
+	)
+),
+
+b952
 (
 	+ $revert_ex(b826) "recovered header %ftmodapi.h from FreeType"
 		@ "directory %freetype/include/freetype" @ "%3rdparty",
@@ -125,9 +415,9 @@ $now
 					* "missing supported reference mark" @ "exception message"
 						$since b951
 				),
-				* "incorrect results for list with irregular representation of \
-					last element" @ "function %FetchArgumentN" $since b951
-					^ "%CountPrefix" ~ "%TermNode::size"
+				* "incorrect results for lists with irregular representation \
+					as the last pair element" @ "function %FetchArgumentN"
+					$since b951 ^ "%CountPrefix" ~ "%TermNode::size"
 			),
 			/ @ %NPLA1Forms $=
 			(
@@ -140,10 +430,10 @@ $now
 						%ListExtractFirst and other binding functions"
 						^ "%AssertValueTags",
 						// To be consistent with the changes below.
-					* "missing clear tags for nested list elements from the \
-						referent" @ ("functions %(ListContcat, Append)"
-						$since b912, "function %RestFwd" $since b913,
-						("functions %(FoldR1, Map1)") $since b899)
+					* $re_add(b925) "missing clear %TermTags::Termporary for \
+						nested list elements from the referent" @ ("functions \
+						%(ListContcat, Append)" $since b912, "function %RestFwd"
+						$since b913, "functions %(FoldR1, Map1)" $since b899)
 						^ "%EnsureValueTags",
 					/ DLI "simplified reference propagation" @ "functions \
 						%(RestFwd, FoldR1, Map1, ListConcat, Append, \
@@ -155,8 +445,9 @@ $now
 					/ @ "functions %(Apply, ApplyList)" $=
 					(
 						/ "checked variadic arguments at first"
-							^ $dep_from ("%CheckVariadicArity" @ %NPLA1),
-						* $comp "missing support irregular representation as \
+							^ $dep_from ("%CheckVariadicArity" @ %NPLA1);
+						* $comp "probable wrong handling of lists due to \
+							missing the support of irregular representation as \
 							the last element in the object parameter"
 							$since b951
 							// Previously the object is a list as %ApplyList \
@@ -164,8 +455,8 @@ $now
 					),
 					* "missing checking against improper lists"
 						@ "function %Apply" $since b951,
-						// This shall be same to %Apply. Only in one of the \
-							argument there are differences.
+						// This shall be same to %ApplyList. Only in one of \
+							the argument there are differences.
 					* "missing checking against non-list 2nd argument"
 						@ "function %ApplyList" $since b951,
 					+ "function %ApplyContinuation"
@@ -252,8 +543,7 @@ b951
 					(
 					/ "no longer expected removal of '.' prefix in the symbol"
 						@ "entry";
-						// This is a breaking change in the interface of \
-							%BindParameter.
+						// This is a breaking change on %BindParameter.
 					/ "supported binding trailing pairs" $dep_from
 						"forwarding trailing"
 						// This also relies on "forwarding trailing" changes \
@@ -263,7 +553,8 @@ b951
 							MakeSubobjectReferent)" @ %NPLA1Internals))
 					),
 					/ "propagated tags as non-trailing bindings",
-						// This is more consistent in rules.
+						// Notably, '&' guarantees no temporary tag is added \
+							to subterms. This is more consistent in rules.
 					/ "forbade '@' binding for prvalues"
 						// Ditto. This are no use cases in current derivations.
 				)
@@ -409,7 +700,7 @@ b951
 			@ "functions %(BindParameter, BindParameterWellFormed)" @ %NPLA1,
 			("functions %Forms::(Cons, ListAsterisk, RestVal, SetRest)"
 			@ %NPLA1Forms) ^ ("%LiftPrefixToReturn" @ %NPLA)),
-		/ %Dependency @ "function %LoadGroundContext" $=
+		/ @ "function %LoadGroundContext" @ %Dependency $=
 		(
 			+ "applicative 'check-pair-reference'"
 				^ $dep_from ("%Forms::CheckPairReference" @%NPLA1Forms),
@@ -482,13 +773,23 @@ b951
 					("expect a list" instead of "expect a pair").
 				$= (/ $impl ^ 'apply-list')
 			),
-			/ DLI "simplified alternative derivation"
-				@ "applicative 'equal?'"
+			/ DLI "simplified alternative derivation" @ "applicative 'equal?'",
+			* $comp "mismatched native implementation for ('first&', 'rest&')"
+				$mismatch(Documentation.NPL) $since b913
+				$dep_from %Documentation.NPL
 		)
 	),
-	* $comp "missing non-empty list condition" @ "description of applicative \
-		'check-list-reference'" @ %Documentation.NPL $since b858
-		$dep_from ("function %CheckListReference" @ %YFramework.NPL.NPLA1Forms),
+	/ %NPL.Documentation $=
+	(
+		* $comp "missing non-empty list condition" @ "description of \
+			applicative 'check-list-reference'" @ %Documentation.NPL $since b858
+			$dep_from
+			("function %CheckListReference" @ %YFramework.NPL.NPLA1Forms),
+		/ "removed the requirement of calling 'check-list-reference' to check \
+			against rvalue arguments support"
+			@ "applicatives ('first&', 'rest&')"
+			// Now The common rules for subobject access since b925 take effect.
+	),
 	/ $doc $lib "%LICENSE.txt" $=
 	(
 		/ @ "preamble" $=
@@ -588,10 +889,12 @@ b950
 				* "missing preserving reference values" @ "alternative \
 					derivation" @ "applicative 'list-push-front!'" $since b921
 					$= (/ $impl "simplified" ^ "idv"),
-				/ "supported comparing referents with irregular representations"
-					$=
+				* "missing support of comparing objects with irregular"
+					$since b858 $=
+					// Objects with irregular representation were introduced \
+						since b858 (e.g. by %Unwrap).
 				(
-					/ $comp @ "applicatives ('eqv', 'eqv?')"
+					/ $comp @ "applicatives ('eq?', 'eqv?')"
 						$dep_from "%Forms::(EqReference, EqValue)";
 					/ "alternative derivation" @ "applicative 'equal?'"
 						^ $dep_from 'pair?'
@@ -1336,7 +1639,8 @@ b945
 					list reductions" $since b881
 					// This leads to wrong results of self-evaluation of \
 						objects with irrgular representation (e.g. reference \
-						to subobjects) enclosed in one-element lists.
+						to subobjects introduced by %Forms::Unwrap since b858) \
+						enclosed in one-element lists.
 			),
 			+ "function template %GuardFreshEnvironment"
 		),
@@ -5691,9 +5995,9 @@ b925
 							references" $since b869
 							$dep_to "collapse result fix"
 					),
-					* "unique reference tag unexpetedly changed in the results \
-						for xvalue or reference to temporary elements of \
-						lvalue lists" @ "alternative derivations"
+					* "unique reference tag unexpectedly changed in the \
+						results for xvalue or reference to temporary elements \
+						of lvalue lists" @ "alternative derivations"
 						@ "applicatives (%first, 'first&')" $since b859
 						$= (/ $impl ^ "%collapse"
 							$dep_from "collapse result fix"),
