@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2020 FrankHB.
+	© 2012-2016, 2020, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r582
+\version r592
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2020-12-24 12:07 +0800
+	2022-09-03 22:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "Helper/YModules.h"
-#include YFM_Helper_GUIApplication
+#include YFM_Helper_GUIApplication // for YSLib::allocate_shared;
 #include YFM_Helper_Environment
 #include YFM_YCLib_Input // for platform_ex::FetchCursor;
 #if YCL_Win32
@@ -34,6 +34,7 @@
 #elif YCL_Android
 #	include YFM_Android_Helper_AndroidHost // for Android::NativeHost;
 #endif
+#include YFM_Helper_GUIShell // for Shells::GUIShell;
 
 namespace YSLib
 {
@@ -227,7 +228,7 @@ GUIHost::UpdateRenderWindows()
 
 
 GUIApplication::InitBlock::InitBlock(Application& app)
-	: p_env(new Environment(app))
+	: p_env(YSLib::allocate_unique<Environment>(app.get_allocator(), app))
 {}
 
 GUIApplication::GUIApplication()
@@ -306,6 +307,12 @@ LockInstance()
 }
 
 
+void
+Execute(GUIApplication& app)
+{
+	return Execute(app,
+		YSLib::allocate_shared<Shells::GUIShell>(app.get_allocator()));
+}
 void
 Execute(GUIApplication& app, shared_ptr<Shell> p_shl)
 {

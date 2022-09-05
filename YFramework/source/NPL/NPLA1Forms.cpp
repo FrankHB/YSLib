@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r28193
+\version r28289
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2022-08-22 04:57 +0800
+	2022-09-05 08:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 //	ReduceReturnUnspecified, RetainList, CheckVariadicArity, RemoveHead,
 //	AccessFirstSubterm, ReduceOrdered, LiftOtherValue, std::bind, std::ref,
 //	std::placeholders, std::declval, RetainN, ystdex::as_const, ValueObject,
-//	ReferenceLeaf, IsAtom, ReferenceTerm, ystdex::ref_eq, CountPrefix,
+//	ReferenceLeaf, IsAtom, ReferenceTerm, ystdex::ref_eq, CountPrefix, IsSticky,
 //	RelaySwitched, trivial_swap, shared_ptr, ContextHandler,
 //	YSLib::unordered_map, string, Environment, lref, TokenValue,
 //	any_ops::use_holder, in_place_type, YSLib::HolderFromPointer,
@@ -45,16 +45,16 @@
 //	TryAccessLeafAtom, TermReference, EnvironmentList, NPL::AllocateEnvironment,
 //	ystdex::equality_comparable, CheckParameterTree, AssertValueTags,
 //	NPL::AsTermNode, ystdex::exchange, NPLException, GuardFreshEnvironment,
-//	TermTags, YSLib::Debug, YSLib::sfmt, ReduceCombinedBranch, A1::MakeForm,
+//	TermTags, YSLib::Debug, YSLib::sfmt, AssignParent, A1::MakeForm,
 //	ystdex::expand_proxy, AccessRegular, GetLValueTagsOf, RegularizeTerm,
-//	IsPair, IsSticky, LiftPropagatedReference, LiftOther, LiftMovedOther,
-//	IsLeaf, LiftTerm, IsList, ThrowListTypeErrorForNonList,
-//	ThrowValueCategoryError, ThrowListTypeErrorForAtom, ThrowInvalidSyntaxError,
-//	CheckEnvironmentFormal, LiftTermOrCopy, EnsureValueTags, type_id,
-//	ystdex::update_thunk, AssertCombiningTerm, LiftToReturn, IsTyped,
-//	IsBranchedList, EnvironmentGuard, TryAccessLeaf, BindSymbol, A1::AsForm,
+//	IsPair, LiftPropagatedReference, LiftOther, LiftMovedOther, IsLeaf,
+//	LiftTerm, IsList, ThrowListTypeErrorForNonList, ThrowValueCategoryError,
+//	ThrowListTypeErrorForAtom, ThrowInvalidSyntaxError, CheckEnvironmentFormal,
+//	LiftTermOrCopy, EnsureValueTags, type_id, ystdex::update_thunk,
+//	AssertCombiningTerm, LiftToReturn, IsTyped, IsBranchedList,
+//	EnvironmentGuard, AssignWeakParent, TryAccessLeaf, BindSymbol, A1::AsForm,
 //	ystdex::bind1, IsNPLASymbol, ystdex::fast_all_of, ystdex::isdigit,
-//	std::strchr, ystdex::call_value_or, LiftCollapsed, FindStickySubterm,
+//	std::strchr, ystdex::call_value_or, LiftCollapsed, ReduceCombinedBranch,
 //	YSLib::usystem, std::mem_fn;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_SContext // for Session;
@@ -295,6 +295,11 @@ EqualSubterm(bool& r, ContextNode& ctx, bool orig, TNCIter first1,
 {
 	if(first1 != last1)
 	{
+		YAssert(!IsSticky(NPL::Deref(first1).Tags),
+			"Invalid representation found."),
+		YAssert(!IsSticky(NPL::Deref(first2).Tags),
+			"Invalid representation found.");
+
 		auto& x(ReferenceTerm(NPL::Deref(first1)));
 		auto& y(ReferenceTerm(NPL::Deref(first2)));
 
@@ -326,6 +331,11 @@ EqualSubterm(TNCIter first1, TNCIter first2, TNCIter last1)
 {
 	if(first1 != last1)
 	{
+		YAssert(!IsSticky(NPL::Deref(first1).Tags),
+			"Invalid representation found."),
+		YAssert(!IsSticky(NPL::Deref(first2).Tags),
+			"Invalid representation found.");
+
 		auto& x(ReferenceTerm(NPL::Deref(first1)));
 		auto& y(ReferenceTerm(NPL::Deref(first2)));
 
@@ -729,34 +739,6 @@ MakeEnvironmentParent(TNIter first, TNIter last,
 #endif
 }
 
-//! \since build 945
-//@{
-inline PDefH(void, AssignParent, ValueObject& parent, const ValueObject& vo)
-	ImplExpr(parent = vo)
-inline PDefH(void, AssignParent, ValueObject& parent, ValueObject&& vo)
-	ImplExpr(parent = std::move(vo))
-inline PDefH(void, AssignParent, ValueObject& parent,
-	TermNode::allocator_type a, EnvironmentReference&& r_env)
-	ImplExpr(AssignParent(parent,
-		ValueObject(std::allocator_arg, a, std::move(r_env))))
-inline PDefH(void, AssignParent, ValueObject& parent, TermNode& term,
-	EnvironmentReference&& r_env)
-	ImplExpr(AssignParent(parent, term.get_allocator(), std::move(r_env)))
-template<typename... _tParams>
-inline void
-AssignParent(ContextNode& ctx, _tParams&&... args)
-{
-	AssignParent(ctx.GetRecordRef().Parent, yforward(args)...);
-}
-
-inline PDefH(void, AssignWeakParent, ValueObject& parent,
-	TermNode::allocator_type a, ContextNode& ctx)
-	ImplExpr(AssignParent(parent, a, ctx.WeakenRecord()))
-inline PDefH(void, AssignWeakParent, ValueObject& parent, TermNode& term,
-	ContextNode& ctx)
-	ImplExpr(AssignWeakParent(parent, term.get_allocator(), ctx))
-//@}
-
 //! \since build 918
 YB_ATTR_nodiscard shared_ptr<Environment>
 CreateEnvironment(TermNode& term)
@@ -811,8 +793,10 @@ public:
 	\pre 间接断言：形式参数对象指针非空。
 	\pre 第三参数满足 Environment::CheckParent 检查不抛出异常。
 	\pre 间接断言：第四参数的标签可表示一等对象的值。
+	\pre 假定第三参数可表示父环境。
 	\sa MakeParent
 	\sa MakeParentSingle
+	\sa MakeParentSingleNonOwning
 	\since build 918
 	*/
 	// XXX: Keep parameters of reference types, as it is more efficient, at
@@ -870,6 +854,13 @@ private:
 		//	bindings would behave as in the old environment, which is too
 		//	expensive for direct execution of programs with first-class
 		//	environments.
+		// NOTE: This call does not have the parent argument as it would be
+		//	assigned later in %DoCall by a call to %AssignParent. This allows
+		//	conditionally moving (instead of copying) the parent. Since %parent
+		//	is initialized from a value in the constructor of %VauHandler which
+		//	only accepts checked values, it need no redundant check in the
+		//	constructor of %Environment, hence the argument should also not be
+		//	used for %GuardFreshEnvironment.
 		auto gd(GuardFreshEnvironment(ctx));
 
 		vau.BindEnvironment(ctx, std::move(r_env));
@@ -1333,7 +1324,7 @@ FirstOrVal(TermNode& term, _func f)
 		{
 			auto& tm(AccessFirstSubterm(nd));
 
-			YAssert(!IsSticky(tm.Tags), "Invalid tags found.");
+			YAssert(!IsSticky(tm.Tags), "Invalid representation found.");
 			return f(tm, p_ref);
 		}
 		ThrowInsufficientTermsError(nd, p_ref);
@@ -1563,7 +1554,7 @@ BranchRestFwdReferenced(TermNode& term, TermNode& nd, bool move)
 	auto first(nd.begin());
 	const auto last(nd.end());
 
-	YAssert(!IsSticky(first->Tags), "Invalid tags found.");
+	YAssert(!IsSticky(first->Tags), "Invalid representation found.");
 	++first;
 	// XXX: The transaction is not for providing more enhanced exception safety,
 	//	but being more consistent to derived implementations.
@@ -1592,7 +1583,9 @@ RestOrVal(TermNode& term, _func f)
 		if(IsPair(nd))
 		{
 			TermNode::Container tcon(term.get_allocator());
-			YAssert(!IsSticky(nd.begin()->Tags), "Invalid tags found.");
+
+			YAssert(!IsSticky(nd.begin()->Tags),
+				"Invalid representation found.");
 			f(tcon, nd, p_ref);
 			tcon.swap(term.GetContainerRef());
 		}
@@ -1627,6 +1620,7 @@ DoSetFirst(TermNode& term, _func f)
 	SetFirstRest([f](TermNode& nd_x, TermNode& y){
 		auto& dst(AccessFirstSubterm(nd_x));
 
+		AssertValueTags(dst);
 		if(const auto p = TryAccessLeafAtom<TermReference>(y))
 			f(dst, y, *p);
 		else
@@ -1757,7 +1751,7 @@ LambdaVauWithEnvironment(TermNode& term, ContextNode& ctx, size_t wrap,
 		NameTypedReducerHandler([&, i, wrap, no_lift]{
 		return ReduceCreateFunction(term, [&]{
 			// XXX: Keep %ResolveParentFrom in lambda-expression is a bit more
-			//	efficient for x86_64-pc-linux G++ 12.1.
+			//	efficient with x86_64-pc-linux G++ 12.1.
 			return MakeVau(term, no_lift, _rShift, i, [&]{
 				return ResolveParentFrom(tm);
 			}());
@@ -1897,6 +1891,11 @@ EqualSubterm(bool& r, Action& act, TermNode::allocator_type a, TNCIter first1,
 {
 	if(first1 != last1)
 	{
+		YAssert(!IsSticky(NPL::Deref(first1).Tags),
+			"Invalid representation found."),
+		YAssert(!IsSticky(NPL::Deref(first2).Tags),
+			"Invalid representation found.");
+
 		auto& x(ReferenceTerm(NPL::Deref(first1)));
 		auto& y(ReferenceTerm(NPL::Deref(first2)));
 
@@ -2595,7 +2594,7 @@ LetCall(TermNode& term, ContextNode& ctx, EnvironmentGuard& gd, bool no_lift)
 
 //! \since build 945
 //@{
-// XXX: Having 'YB_ATTR(always_inline)' here makes performace significantly
+// XXX: Having 'YB_ATTR_always_inline' here makes performace significantly
 //	better, at least with x86_64-pc-linux G++ 12.1. However, it will also warns
 //	about failing to inline with [-Wattributes]. To work it around, just ignore
 //	the warning here (and it seems that there is no effect to ignore it around
@@ -3054,6 +3053,7 @@ LetAsteriskImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 		// XXX: As the following code with lower expansion level, but more
 		//	specialized.
 		YAssert(term.size() >= 3, "Invalid nested call found.");
+
 		auto j(term.begin());
 		auto& operand(*j);
 		auto& formals(*++j);
@@ -3900,6 +3900,10 @@ FirstFwd(TermNode& term)
 ReductionStatus
 FirstRef(TermNode& term)
 {
+	// XXX: The pointer for the call to %ReduceToReference is guarnateed not
+	//	null. However, explicit inline expansion here does not make it more
+	//	efficient at least in code generation by x86_64-pc-linux G++ 12.1 when
+	//	not called.
 	return FirstAtRef(term, ReduceToReference);
 }
 
@@ -3986,8 +3990,8 @@ RestRef(TermNode& term)
 			// NOTE: As %BindParameterObject::operator()#2 in NPLA1.cpp.
 			// XXX: Initial tags are trailing sequence tags for '&' bindings.
 			const auto tags(GetLValueTagsOf(nd.Tags | o_tags));
-			TermNode t(a);
-			auto& tcon(t.GetContainerRef());
+			auto p_sub(A1::AllocateSharedTerm(a));
+			auto& tcon(p_sub->GetContainerRef());
 			const auto& r_env(p_ref->GetEnvironmentReference());
 
 			for(; first != nd.end() && !IsSticky(first->Tags); ++first)
@@ -4017,18 +4021,11 @@ RestRef(TermNode& term)
 #endif
 			}
 			if(nd.Value)
-				LiftTermRef(t.Value, nd.Value);
+				LiftTermRef(p_sub->Value, nd.Value);
 			else
 				YAssert(first == nd.end(), "Invalid representation found.");
-
-			auto p_sub(A1::AllocateSharedTerm(a, std::move(t)));
-			auto& sub(NPL::Deref(p_sub));
-
-			tcon.clear();
-			tcon.push_back(MakeSubobjectReferent(a, std::move(p_sub)));
-			term.GetContainerRef() = std::move(tcon),
-			term.Value = ValueObject(std::allocator_arg, a,
-				in_place_type<TermReference>, tags, sub, r_env);
+			return
+				ReduceAsSubobjectReference(term, std::move(p_sub), r_env, tags);
 		}
 		return ReductionStatus::Retained;
 	}, term);
@@ -5066,20 +5063,28 @@ ApplyContinuation(TermNode& term, ContextNode& ctx)
 	auto i_comb(++i);
 	auto& comb(*i_comb);
 
-	// NOTE: As %ContinuationToApplicative.
-	NPL::ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
-		WrapO(comb, AccessRegular<Continuation>(nd, p_ref).Handler, p_ref);
-	}, comb);
-	comb.ClearContainer();
-	// NOTE: As %ApplyImpl.
-	ForwardToUnwrapped(comb);
+	AssertValueTags(comb);
 	[&] YB_LAMBDA_ANNOTATE(() , , flatten){
+		// NOTE: As %ContinuationToApplicative and %ApplyImpl.
+		ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
+			auto& h(AccessRegular<Continuation>(nd, p_ref).Handler);
+
+			comb.Value = A1::MakeForm(comb, MakeValueOrMove(p_ref, [&]{
+				return h;
+			}, [&]{
+				return std::move(h);
+			}));
+		}, comb);
+		comb.ClearContainer();
+
 		auto& t(*++i);
 
 		LiftToReturn(t);
 		t.GetContainerRef().splice(t.begin(), term.GetContainerRef(), i_comb);
 		LiftOtherValue(term, t);
 	}();
+	// XXX: Explicit inline expansion here does not make it more efficient at
+	//	least in code generation by x86_64-pc-linux G++ 12.1 when not called.
 	return Combine<TailCall>::RelayEnvSwitch(ctx, term,
 		NPL::AllocateEnvironment(term.get_allocator()));
 }

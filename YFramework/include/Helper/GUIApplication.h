@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2019-2020 FrankHB.
+	© 2012-2016, 2019-2020, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r565
+\version r587
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2020-01-31 15:57 +0800
+	2022-09-03 22:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,15 +29,14 @@
 #define INC_Helper_GUIApplication_h_ 1
 
 #include "YModules.h"
-#include YFM_Helper_YGlobal // for Environment;
+#include YFM_Helper_YGlobal // for YSLib::allocate_unique, Environment;
 #include YFM_Helper_HostWindow // for Host::Window;
 #include YFM_YCLib_NativeAPI
-#include YFM_YSLib_Core_YApplication // for Application;
+#include YFM_YSLib_Core_YApplication // for Application, Shell;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
-#include YFM_Helper_GUIShell
 #include YFM_YCLib_HostedGUI
 #include YFM_YCLib_Mutex // for once_flag;
-#include <ystdex/utility.hpp> // for ystdex::call_once_init;
+#include <ystdex/utility.hpp> // for std::declval, ystdex::call_once_init;
 #if YCL_Win32
 #	include YFM_YSLib_UI_YPanel
 #elif YCL_Android
@@ -202,8 +201,12 @@ private:
 	//! \since build 692
 	struct InitBlock final
 	{
-		//! \brief 环境状态。
-		unique_ptr<Environment> p_env;
+		/*!
+		\brief 环境状态。
+		\since build 954
+		*/
+		decltype(YSLib::allocate_unique<Environment>(
+			Application::allocator_type(), std::declval<Application&>())) p_env;
 		//! \brief GUI 宿主状态。
 		mutable GUIHost host{};
 
@@ -217,9 +220,11 @@ private:
 public:
 	/*!
 	\brief 用户界面输入响应阈值。
+	\warning 非线程安全。
 	\sa DSApplication::Run
 
 	用于主消息队列的消息循环中控制后台消息生成策略的全局消息优先级。
+	一般在进入消息循环前指定并不再修改，以避免并发访问冲突。
 	*/
 	Messaging::Priority UIResponseLimit = 0x40;
 
@@ -261,6 +266,8 @@ public:
 \brief 取全局应用程序实例。
 \throw GeneralEvent 不存在初始化完成的应用程序实例。
 \warning 调用线程安全，但不保证调用结束后实例仍在生存期内。
+\warning 取得的实例上的操作不保证线程安全。
+\sa LockInstance
 \since build 550
 */
 //@{
@@ -302,10 +309,15 @@ inline PDefH(GUIHost&, FetchGUIHost, )
 \brief 执行程序主消息循环。
 \throw GeneralEvent 激活主 shell 失败。
 \note 对宿主实现，设置退出所有窗口时向 YSLib 发送退出消息。
-\since build 399
+\since build 954
 */
+//@{
+//! \note 创建 \c Shells::GUIShell 的对象作为 Shell 。
 YF_API void
-Execute(GUIApplication&, shared_ptr<Shell> = make_shared<Shells::GUIShell>());
+Execute(GUIApplication&);
+YF_API void
+Execute(GUIApplication&, shared_ptr<Shell>);
+//@}
 
 } // namespace YSLib;
 

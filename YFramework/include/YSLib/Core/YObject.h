@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r6965
+\version r6971
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2022-02-14 07:40 +0800
+	2022-08-31 12:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,7 @@
 #include <ystdex/memory.hpp> // for ystdex::default_init,
 //	ystdex::is_allocatable, ystdex::is_byte_allocator,
 //	ystdex::has_get_allocator, ystdex::is_sharing, ystdex::rebind_alloc_t,
-//	YSLib::make_observer, ystdex::is_bitwise_swappable;
+//	make_observer, ystdex::is_bitwise_swappable;
 #include <ystdex/utility.hpp> // for ystdex::boxed_value, ystdex::as_const,
 //	ystdex::copy_or_move;
 #include <ystdex/ref.hpp> // for ystdex::ref, ystdex::cond_t,
@@ -662,7 +662,7 @@ public:
 
 	YB_ATTR_nodiscard YB_PURE PDefH(bool, Equals, const void* p) const
 		ImplI(IValueHolder)
-		ImplRet(bool(p) && IsTyped<value_type>(base::type) && AreEqualHeld(
+		ImplRet(bool(p) && IsTyped<value_type>(base::type()) && AreEqualHeld(
 			this->value, Deref(static_cast<const value_type*>(p))))
 
 	//! \since build 900
@@ -1469,13 +1469,13 @@ public:
 	YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
 	AccessPtr() ynothrow
 	{
-		return YSLib::make_observer(YSLib::any_cast<_type>(&content));
+		return make_observer(YSLib::any_cast<_type>(&content));
 	}
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE inline observer_ptr<const _type>
 	AccessPtr() const ynothrow
 	{
-		return YSLib::make_observer(YSLib::any_cast<const _type>(&content));
+		return make_observer(YSLib::any_cast<const _type>(&content));
 	}
 	//@}
 
@@ -1690,14 +1690,14 @@ template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
 TryAccessValue(ValueObject& vo)
 {
-	return IsTyped<_type>(vo) ? YSLib::make_observer(
+	return IsTyped<_type>(vo) ? make_observer(
 		std::addressof(vo.GetObject<_type>())) : nullptr;
 }
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<const _type>
 TryAccessValue(const ValueObject& vo)
 {
-	return IsTyped<_type>(vo) ? YSLib::make_observer(
+	return IsTyped<_type>(vo) ? make_observer(
 		std::addressof(vo.GetObject<_type>())) : nullptr;
 }
 //@}

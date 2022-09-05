@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r11098
+\version r11302
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-08-22 05:03 +0800
+	2022-09-05 21:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,195 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib.Core $=
+		(
+			/ %YObject $=
+			(
+				- DLDI $re_add(b954) "'YSLib::' prefix"
+					@ "calls to %YSLib::make_observer",
+					// As %NPL changes in b947.
+				* "ill-formed type access" @ "function %Equals"
+					@ "class template %PolymorphicValueHolder" $since b899
+			),
+			+ "allocator support" @ "class %MessageQueue" @ %YMessage $=
+			(
+				+ 'using BaseType::get_allocator;';
+				+ "constructor with 1 allocator parameter",
+				+ 'using BaseType::get_allocator;'
+			),
+			+ "allocator support" @ "class %Application" @ %YApplication $=
+			(
+				+ "alias %allocator_type";
+				+ "constructor with 1 allocator parameter" ^ $dep_from
+					("constructor %MessageQueue with 1 allocator parameter"
+					@ %YMessage),
+				+ "function %get_allocator"
+					^ $dep_from ("%MessageQueue::get_allocator @ "%YMessage)
+			)
+		),
+		/ DLDI "internal header inclusion" @ %'Helper_(DS)'.DSMain
+			^ %YSLib.UI.YGUI,
+		/ %NPL $=
+		(
+			/ %Dependency $=
+			(
+				/ @ "function %Forms::LoadGroundContext" $=
+				(
+					/ @ "alternative derivation" @ "applicative 'rest&'" $=
+					(
+						* $revert_ex(b953) "unexpected uncollapsed elements \
+							in the result" $since b953;
+							$= (/ $impl ^ '&' ~ '@');
+						* "xvalue arguments not properly preserved in the \
+							result" $since b951
+							$= (/ $impl ^ '$resolve-identifier') 
+					)
+				),
+				/ "reducer name 'recover-source-name'" => 'restore-source-name'
+					$effective @ "functions %(ReduceToLoadExternal, \
+						RelayToLoadExternal, Forms::LoadModule_std_modules)",
+				/ "function templates %(InvokeIn, GetModuleFor, LoadModule, \
+					LoadModuleChecked)" @ "namespace %Forms"
+					>> ("namespace %A1" @ %NPLA1)
+			),
+			/ %NPLA $=
+			(
+				+ $dev $lib 'YB_ATTR_nodiscard'
+					@ "all 3 function templates %AllocateEnvironment",
+				(
+				+ "4 functions %AssignParent";
+				+ "function template %AssignParent",
+				+ "2 functions %AssignWeakParent"
+				)
+			),
+			/ %NPLA1 $=
+			(
+				/ @ "trailing sequence binding" @ "functions %(BindParameter, \
+					BindParameterWellFormed, BindSymbol)" $=
+				(
+					+ $design "alternative implementation of creation of the \
+						subobject reference" ^ "%ReduceAsSubobjectReference",
+						// This is not enabled, because the current \
+							implementation is better a bit in performance.
+					^ $re_add(b953) $design '*' ~ "%NPL::Deref",
+					/ "optimized subpair creation"
+				),
+				* "wrong handling of trailing arguments"
+					@ "function template %GuardFreshEnvironment" $since b945,
+					// It would be ill-formed if there is any argument.
+				/ DLI "removed redundant check on the parent" @ "function \
+					templates %(InvokeIn, GetModuleFor)"
+					^ "%GuardFreshEnvironment" $dep_from
+					("%Forms::(InvokeIn, GetModuleFor)" @ %Dependency),
+			),
+			/ %NPLA1Forms %=
+			(
+				+ $dev $lib "assertion to check against the sticky tag"
+					@ ("function %Forms::EqualTermValue",
+					"static member function %Encapsulation::Equal"),
+				/ @ "namespace %Forms" $=
+				(
+					/ $dev $lib "assertion string for sticky tag check failure"
+						@ "functions %(First, FirstVal, Rest, RestFwd, \
+						RestVal, Let, LetRef, LetWithEnvironment, \
+						LetWithEnvironmentRef, LetRec, LetRecRef, LetAsterisk, \
+						LetAsteriskRef, BindingsWithParentToEnvironment, \
+						BindingsToEnvironment)",
+						// To be more consistent with other similar \
+							implementations.
+					/ DLI "simplified function %RestRef"
+						^ "%ReduceAsSubobjectReference",
+					/ $re_add(b853) DLI "checked to ensure first-class object \
+						representation in the subterm" @ "functions \
+						%(SetFirst, SetFirstAt, SetFirstRef, ApplyContinuation)"
+						^ "%AssertValueTags",
+					/ DLI "simplified function %ApplyContinuation",
+					/ DLDI "simplified" @ ("%operator" @ "vau handler",
+						"functions whose name have prefix 'Let' or 'Provide'")
+						$dep_from
+						^ ("%(AssignParent, AssignWeakParent)" @ %NPLA)
+				)
+			)
+		),
+		/ %Helper $=
+		(
+			/ %GUIApplication $=
+			(
+				/ DLI "allocated %Environment with allocator"
+					@ "class %GUIApplication"
+					^ $dep_from ("%Application::(allocator_type, get_allocator)"
+					@ %YSLib.Core.Application),
+				(
+				/ "function %Execute" -> "2 functions" $=
+				(
+					- "default argument";
+					+ "overload with 1 parameter"
+						^ $dep_from ("%Application::get_allocator"
+						@ %YSLib.Core.Application)
+				);
+				- "header inclusion %GUIShell" $dep_from %'Helper_(DS)'.DSMain
+				)
+			)
+			/ %Environment $=
+			(
+				/ DLI @ "constructor %Environment" $=
+				(
+					/ $design "simplified" @ "platform %DS" ^ (("%make_any"
+						~ "%(any, in_place_type)") @ %YSLib.Core.YObject),
+					/ ^ "allocator" @ "initalizing %Root"
+						^ $dep_from ("%Application::get_allocator"
+						@ %YSLib.Core.YApplication),
+					* $design "redundant unused %string variable" $since b725
+				),
+				(
+				+ "macros %(YF_Helper_Environment_UseStdout, \
+					YF_Helper_Environment_NPL_UseBacktrace, \
+					YF_Helper_Environment_NPL_UseSourceInfo";
+				/ @ "class %Environment" $=
+				(
+					+ "data members %(DefaultOutputStream, Context)";
+					+ "non-trivial initialization of %NPL::REPLContext"
+						@ "constructor",
+					+ "2 function templates %ExecuteNPLA1"
+						$dep_from ("%InvokeIn" @ %NPL.Dependency)
+				)
+				)
+			)
+		)
+	),
+	/ %YReader $=
+	(
+		/ %Shells $=
+		(
+			/ @ "function %TestNPL" $=
+			(
+				/ "simplified" ^ $dep_from ("%Environment::ExecuteNPLA1"
+					@ %YFramework.Helper.Environment);
+				* $comp "mentioned backtrace in the message of the nested \
+					exception when the backtrace is not used" $since b928,
+					// This should not affect the call site in %ShlExplorer \
+						since it should not fail to throw the exception.
+				- "'NPL::pmr::memory_resource&', 'std::ostream&' parameters",
+				+ "'Environment&' parameter"
+			);
+			- "header inclusion %NPL::Lexical"
+		),
+		/ DLI %ShlExplorer $=
+		(
+			/ $re_add(b942) $design "header inclusion %Functional" -> %Bind,
+			/ $forced "NPL test entry for test subitem 2"
+				@ "constructor %ShlExplorer" $dep_from ("%TestNPL" @ %Shells)
+				^ $dep_from (("%Environment::DefaultOutputStream",
+				"%YF_Helper_Environment_UseStdout")
+				@ %YFramework.Helper.Environment)
+		)
+	)
+),
+
+b953
 (
 	/ DD %Documentation.NPL $=
 	(
@@ -180,7 +369,7 @@ $now
 					reprensentation",
 				+ $dev $lib "assertion to ensure the operand term having no \
 					sticky bit",
-				/ @ "binding trailing sequence" $=
+				/ @ "trailing sequence binding" $=
 				(
 					/ $re_ex(b952) DLDI "simplified allocator using",
 						// This is more consistent to non-trailing sequence \
@@ -250,7 +439,7 @@ $now
 		/ @ "function %LoadGroundContext" %Dependency $=
 		(
 			* "missing preserving reference value in the result"
-				@ "applicative 'list*%'" $since b951
+				@ "alternative derivation" @ "applicative 'list*%'" $since b918
 				$= (/ ^ '$lambda%' ~ '$lambda'),
 			* $comp "missing ignoring non-leaf values" @ ("applicative 'eql?'"
 				$dep_from "%EqLeaf" @ %NPLA1Forms, "applicative 'eqr?'"
@@ -279,8 +468,9 @@ $now
 				@ "alternative derivation" @ "applicative 'first&'" $since b939,
 			* $comp "native implementation" @ "applicative 'rest%'" $since b951
 				$dep_from ("%RestRef" @ %NPLA1Forms),
-			* "misleading error message for improper lists" @ "derivation"
-				@ "applicatives ('list%', 'list*%')" $since b951
+			* "misleading error message for improper lists"
+				@ "alternative derivation" @ "applicatives ('list%', 'list*%')"
+				$since b951
 				// It would report expecting a pair (by binding \
 					mismatching in the last recursive call) instead of \
 					a list.
@@ -430,7 +620,7 @@ b952
 						%ListExtractFirst and other binding functions"
 						^ "%AssertValueTags",
 						// To be consistent with the changes below.
-					* $re_add(b925) "missing clear %TermTags::Termporary for \
+					* $re_add(b925) "missing clearing %TermTags::Temporary for \
 						nested list elements from the referent" @ ("functions \
 						%(ListContcat, Append)" $since b912, "function %RestFwd"
 						$since b913, "functions %(FoldR1, Map1)" $since b899)
@@ -1129,8 +1319,14 @@ b949
 			$dep_from ("%MakeParameterValueMatcher" @ %NPLA1Internals)
 			// As %(MatchParameter, BindParameter, BindParamaterWellFormed).
 	),
-	+ "message after linking finished" @ "member function %BuildContext::Build"
-		@ %Tools.SHBuild.Main
+	/ %Tools.SHBuild.Main $=
+	(
+		- DLDI "'NPL::' prefix" @ "calls to %NPL::make_observer",
+			// As %NPL changes in b947, but with a different reason: the name \
+				is introced by a using directive.
+		+ "message after linking finished"
+			@ "member function %BuildContext::Build"
+	)
 ),
 
 b948
@@ -2814,7 +3010,7 @@ b939
 	* "unexpected ADL '!' of traits results"
 		$effective @ %YBase.YStandardEx.(Any, CompressedPair, Optional),
 	+ DLDI "%yunused" @ '!YReader_Impl_TestNPL_UseBacktrace'
-		@ "function %TestNPL" @ %YSTest.Shells
+		@ "function %TestNPL" @ %YSTest.Shells,
 		// To eliminate G++ warning in release modes: [-Wunused-parameter].
 	/ %YBase.YStandardEx $=
 	(
@@ -5935,7 +6131,7 @@ b925
 				conversion" @ "reducer functions and binding parameter \
 				functions" @ %(NPLA1, NPLA1Forms) $since b857
 				$dep_from ("%LiftSubtermsToReturn" @ %NPLA),
-			* "missing clear %TermTags::Termporary of the result from \
+			* "missing clearing %TermTags::Temporary of the result from \
 				possibly bound objects in referents" @ (("function \
 				%LiftMovedOther" $since b876; $comp ("function \
 				%MoveRValueToForward" $since b872, "function \

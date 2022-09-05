@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r7181
+\version r7189
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2022-08-22 03:19 +0800
+	2022-09-04 23:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -245,7 +245,7 @@ ReduceToLoadFile(TermNode& term, ContextNode& ctx, REPLContext& context,
 		A1::NameTypedReducerHandler(std::bind([&](SourceName& saved_src){
 		context.CurrentSource = std::move(saved_src);
 		return ctx.LastStatus;
-	}, std::move(context.CurrentSource)), "recover-source-name"));
+	}, std::move(context.CurrentSource)), "restore-source-name"));
 #	endif
 	term = context.Load(context, ctx, std::move(filename));
 	return ContextState::Access(ctx).ReduceOnce.Handler(term, ctx);
@@ -1197,9 +1197,8 @@ $defl%! first& (&pr)
 $defl! firstv ((&x .)) $move-resolved! x;
 $defl%! rest% ((#ignore .%xs)) $move-resolved! xs;
 $defl%! rest& (&pr)
-	($lambda% ((#ignore .@xs)) $if (uncollapsed? xs)
-		($if (modifiable? pr) (idv xs) (as-const (idv xs)))
-		($if (unique? ($resolve-identifier pr)) (expire xs) xs))
+	($lambda% ((#ignore .&xs)) $if (unique? ($resolve-identifier pr))
+		(expire xs) ($resolve-identifier xs))
 	($if (unique? ($resolve-identifier pr)) pr
 		(check-pair-reference (forward! pr)));
 $defl! restv ((#ignore .xs)) $move-resolved! xs;
@@ -1777,8 +1776,7 @@ LoadModule_std_continuations(REPLContext& context)
 	RegisterStrict(renv, "continuation->applicative",
 		ContinuationToApplicative);
 #if NPL_Impl_NPLA1_Native_Forms
-	RegisterStrict(renv, "apply-continuation",
-		ApplyContinuation);
+	RegisterStrict(renv, "apply-continuation", ApplyContinuation);
 #else
 	context.ShareCurrentSource("<lib:std.continuations>");
 	context.Perform(R"NPL(
@@ -2086,8 +2084,8 @@ $defl! puts (&s) $sequence (put s) (() newline);
 #endif
 	RegisterStrict(renv, "load", trivial_swap,
 		[&](TermNode& term, ContextNode& ctx){
-		// NOTE: Since %load requires no additional barrier of catching the
-		//	inner exceptions and the reset of the source name, %TryLoadSource or
+		// NOTE: Since %load disallows additional barrier of catching the inner
+		//	exceptions and the reset of the source name, %TryLoadSource or
 		//	%PreloadExternal is not applicable here.
 		return ReduceToLoadExternal(term, ctx, context);
 	});

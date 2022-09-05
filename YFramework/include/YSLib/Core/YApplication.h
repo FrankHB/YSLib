@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018-2019 FrankHB.
+	© 2009-2016, 2018-2019, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YApplication.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1785
+\version r1800
 \author FrankHB <frankhb1989@gmail.com>
 \since build 577
 \par 创建时间:
 	2009-12-27 17:12:27 +0800
 \par 修改时间:
-	2019-01-16 06:03 +0800
+	2022-09-03 21:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YSL_INC_Core_YApplication_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YShell // for Shell, any, stack,
+#include YFM_YSLib_Core_YShell // for Messaging::MessageQueue, Shell,
+//	default_allocator, byte, stack, any, stack, recursive_mutex, shared_ptr,
 //	std::is_nothrow_copy_constructible, locked_ptr, ystdex::decay_t,
 //	YSLib::unchecked_any_cast;
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
@@ -45,6 +46,10 @@ using Messaging::MessageQueue;
 */
 class YF_API Application : public Shell
 {
+public:
+	//! \since build 954
+	using allocator_type = default_allocator<yimpl(byte)>;
+
 private:
 	/*!
 	\brief 初始化守卫。
@@ -77,7 +82,11 @@ protected:
 public:
 	//! \brief 无参数构造：默认构造。
 	Application();
-
+	/*!
+	\brief 构造：使用分配器。
+	\since build 954
+	*/
+	Application(allocator_type);
 	//! \brief 析构：释放 Shell 所有权和其它资源。
 	~Application() override;
 
@@ -180,6 +189,11 @@ public:
 	*/
 	PDefH(bool, Switch, shared_ptr<Shell>&& h) ynothrow
 		ImplRet(Switch(h))
+
+	//! \since build 954
+	YB_ATTR_nodiscard YB_PURE
+		PDefH(allocator_type, get_allocator, ) const ynothrow
+		ImplRet(qMain.get_allocator())
 };
 
 

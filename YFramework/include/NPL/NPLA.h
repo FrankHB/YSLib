@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r9772
+\version r9807
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2022-08-17 03:54 +0800
+	2022-09-05 08:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -3101,20 +3101,20 @@ YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators,
 //@{
 //! \since build 867
 template<typename... _tParams>
-inline shared_ptr<Environment>
+YB_ATTR_nodiscard inline shared_ptr<Environment>
 AllocateEnvironment(const Environment::allocator_type& a, _tParams&&... args)
 {
 	return YSLib::allocate_shared<Environment>(a, yforward(args)...);
 }
 template<typename... _tParams>
-inline shared_ptr<Environment>
+YB_ATTR_nodiscard inline shared_ptr<Environment>
 AllocateEnvironment(ContextNode& ctx, _tParams&&... args)
 {
 	return NPL::AllocateEnvironment(ctx.GetBindingsRef().get_allocator(),
 		yforward(args)...);
 }
 template<typename... _tParams>
-inline shared_ptr<Environment>
+YB_ATTR_nodiscard inline shared_ptr<Environment>
 AllocateEnvironment(TermNode& term, ContextNode& ctx, _tParams&&... args)
 {
 	const auto a(ctx.GetBindingsRef().get_allocator());
@@ -3296,6 +3296,41 @@ ResolveEnvironment(const TermNode& term);
 YB_ATTR_nodiscard YF_API pair<shared_ptr<Environment>, bool>
 ResolveEnvironment(TermNode& term);
 //@}
+//@}
+//@}
+
+
+//! \since build 954
+//@{
+//! \brief 设置参数指定的父环境。
+//@{
+inline PDefH(void, AssignParent, ValueObject& parent, const ValueObject& vo)
+	ImplExpr(parent = vo)
+inline PDefH(void, AssignParent, ValueObject& parent, ValueObject&& vo)
+	ImplExpr(parent = std::move(vo))
+inline PDefH(void, AssignParent, ValueObject& parent,
+	TermNode::allocator_type a, EnvironmentReference&& r_env)
+	ImplExpr(AssignParent(parent,
+		ValueObject(std::allocator_arg, a, std::move(r_env))))
+inline PDefH(void, AssignParent, ValueObject& parent, TermNode& term,
+	EnvironmentReference&& r_env)
+	ImplExpr(AssignParent(parent, term.get_allocator(), std::move(r_env)))
+template<typename... _tParams>
+inline void
+AssignParent(ContextNode& ctx, _tParams&&... args)
+{
+	AssignParent(ctx.GetRecordRef().Parent, yforward(args)...);
+}
+//@}
+
+//! \brief 设置参数指定的父环境弱引用。
+//@{
+inline PDefH(void, AssignWeakParent, ValueObject& parent,
+	TermNode::allocator_type a, ContextNode& ctx)
+	ImplExpr(AssignParent(parent, a, ctx.WeakenRecord()))
+inline PDefH(void, AssignWeakParent, ValueObject& parent, TermNode& term,
+	ContextNode& ctx)
+	ImplExpr(AssignWeakParent(parent, term.get_allocator(), ctx))
 //@}
 //@}
 

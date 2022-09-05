@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2019, 2021 FrankHB.
+	© 2010-2019, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1628
+\version r1664
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2021-10-23 00:06 +0800
+	2022-09-04 22:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,25 +26,14 @@
 
 
 #include "ShlExplorer.h" // for ystdex::polymorphic_cast, ystdex::tolower,
-//	to_string, make_string_view, YReader_Impl_TestNPL, NPL::pmr::pool_resource,
-//	TestNPL;
+//	to_string, make_string_view, TestNPL;
 #include "ShlReader.h"
 #include YFM_YSLib_UI_ExStyle
-#include <ystdex/functional.hpp> // for ystdex::bind1;
-#if YReader_Impl_TestNPL
-#	include YFM_YSLib_Core_YShellDefinition // for YSLib::ostringstream,
+#include <ystdex/bind.hpp> // for ystdex::bind1;
+#include YFM_YSLib_Core_YShellDefinition // for YSLib::ostringstream,
 //	YSLib::string, YSLib::istringstream;
-#	if YF_Hosted
-#		include <iostream> // for std::cout;
-#		if YCL_Win32 && defined(NDEBUG)
-// XXX: Use Win32 subsystem.
-#			define YReader_Impl_TestNPL_NoStdout true
-#		endif
-#	else
-#		define YReader_Impl_TestNPL_NoStdout true
-#	endif
-#	include YFM_NPL_Dependency // for NPL, LoadStandardContext, InvokeIn;
-#endif
+#include YFM_Helper_Environment // for YF_Helper_Environment_UseStdout;
+#include YFM_Helper_Initialization // for FetchEnvironment;
 
 namespace YReader
 {
@@ -235,6 +224,12 @@ const char TU_Explorer_Sub[]{R"NPL(root
 IO::Path
 FetchDefaultShellDirectory()
 {
+	// NOTE: It is intended to get the current working directory as the entry of
+	//	the shell, except on platforms where the current working directory is
+	//	not steadily available. For example, in Android NDK, the current working
+	//	directory is "/", which is usually not accessible by unprivileged
+	//	processes. And in Windows CE, there is no current working directory at
+	//	all.
 #if YCL_Android
 	return
 		Path(AccessChild<string>(FetchRoot()["YFramework"], "DataDirectory"));
@@ -607,32 +602,28 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 #endif
 			if(e.Value == 0)
 				SwitchVisibleToFront(pnlTest1);
-#if YReader_Impl_TestNPL
 			else if(e.Value == 1)
 			{
-				// TODO: Share the resource with other tests?
+				// TODO: Share more resources with other tests?
 				// TODO: Count allocation & memory stats?
+				auto& env(FetchEnvironment());
 				// TODO: Use something like %boost::tee_device to duplicate the
 				//	output result for both the standard output and GUI output?
-				NPL::pmr::pool_resource rsrc;
-#	if YReader_Impl_TestNPL_NoStdout
-				YSLib::ostringstream os{YSLib::string(&rsrc)};
-#	else
-				auto& os(std::cout);
-#	endif
+#if !YF_Helper_Environment_UseStdout
+				auto& os(env.DefaultOutputStream);
+#endif
 				const char unit[]{R"NPL(
 $import! std.io &puts;
 
 puts "ShlExplorer: Hello, world!";
 				)NPL"};
 
-				TestNPL(rsrc, YSLib::istringstream(unit), os);
-#	if YReader_Impl_TestNPL_NoStdout
+				TestNPL(env, YSLib::istringstream(unit));
+#if !YF_Helper_Environment_UseStdout
 				lblInfo.Text = os.str();
 				Invalidate(lblInfo);
-#	endif
-			}
 #endif
+			}
 		},
 		AddWidgetsZ(GetSubDesktop(), DefaultMenuZOrder, m0, m1),
 		mhMain += m0, mhMain += m1,

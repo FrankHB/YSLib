@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2018, 2020-2021 FrankHB.
+	© 2009-2018, 2020-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YMessage.h
 \ingroup Core
 \brief 消息处理。
-\version r2081
+\version r2093
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2021-02-06 22:56 +0800
+	2022-09-03 21:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -162,6 +162,8 @@ class YF_API MessageQueue : private noncopyable,
 public:
 	//! \since build 449
 	using BaseType = YSLib::multimap<Priority, Message, std::greater<Priority>>;
+	//! \since build 954
+	using allocator_type = BaseType::allocator_type;
 	/*!
 	\brief 迭代器。
 	\since build 460
@@ -171,10 +173,15 @@ public:
 	using BaseType::const_iterator;
 	//@}
 
-	/*!
-	\brief 无参数构造：默认实现。
-	*/
+	//! \brief 无参数构造：默认实现。
 	DefDeCtor(MessageQueue)
+	/*!
+	\brief 构造：使用分配器。
+	\since build 954
+	*/
+	MessageQueue(allocator_type a) ynoexcept_spec(BaseType())
+		: BaseType(a)
+	{}
 	DefDeDtor(MessageQueue)
 
 	/*!
@@ -268,6 +275,9 @@ public:
 
 	using BaseType::size;
 	//@}
+
+	//! \since build 954
+	using BaseType::get_allocator;
 };
 
 

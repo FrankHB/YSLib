@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9735
+\version r9803
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-08-20 16:35 +0800
+	2022-09-05 10:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,11 +40,11 @@
 //	ystdex::make_parameter_list_t, ystdex::make_function_type_t, ystdex::true_,
 //	AssertCombiningTerm, IsList, TryAccessLeaf, TermReference, IsSticky,
 //	ThrowListTypeErrorForNonList, ResolveSuffix, ThrowInsufficientTermsError,
-//	CountPrefix, ArityMismatch, TermTags, RegularizeTerm, TokenValue, function,
-//	Environment, ParseResultOf, ByteParser, SourcedByteParser, type_info,
-//	type_id, SourceInformation, std::bind, std::placeholders::_1,
-//	std::integral_constant, SourceName, NPL::tuple, NPL::get,
-//	NPL::forward_as_tuple, ReaderState, YSLib::allocate_shared,
+//	CountPrefix, ArityMismatch, TermTags, RegularizeTerm, ystdex::invoke,
+//	AssignParent, TokenValue, function, Environment, ParseResultOf, ByteParser,
+//	SourcedByteParser, type_info, type_id, SourceInformation, std::bind,
+//	std::placeholders::_1, std::integral_constant, SourceName, NPL::tuple,
+//	NPL::get, NPL::forward_as_tuple, ReaderState, YSLib::allocate_shared,
 //	ystdex::is_bitwise_swappable;
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, YSLib::GCombinerInvoker,
 //	YSLib::GDefaultLastValueInvoker;
@@ -1532,14 +1532,82 @@ using EnvironmentGuard = ystdex::guard<EnvironmentSwitcher>;
 /*!
 \brief 创建和切换新环境并以结果初始化求值环境守卫。
 \since build 945
+
+以第一参数作为上下文，切换到参数指定的新创建的环境，并创建被切换的环境的守卫。
+其余参数被作为初始化新创建环境的参数。
+其余参数指定的父环境被 Environment 的构造函数检查。若不需检查（如已在之前调用
+	Environment::CheckParent 或 Environment::EnsureValid ），可不使用其余参数，
+	而在创建环境后设置当前环境的父环境对象。
 */
 template<typename... _tParams>
 YB_ATTR_nodiscard inline EnvironmentGuard
 GuardFreshEnvironment(ContextNode& ctx, _tParams&&... args)
 {
-	return EnvironmentGuard(ctx, NPL::SwitchToFreshEnvironment(ctx),
-		yforward(args)...);
+	return EnvironmentGuard(ctx,
+		NPL::SwitchToFreshEnvironment(ctx, yforward(args)...));
 }
+
+//! \since build 942
+//@{
+//! \brief 加载代码调用。
+template<typename _fCallable, typename... _tParams>
+void
+InvokeIn(ContextNode& ctx, _fCallable&& f, _tParams&&... args)
+{
+	ValueObject parent(ctx.WeakenRecord());
+	auto gd(GuardFreshEnvironment(ctx));
+
+	AssignParent(ctx, std::move(parent));
+	ystdex::invoke(yforward(f), yforward(args)...);
+}
+
+/*!
+\brief 加载代码作为模块。
+\return 作为环境模块的环境对象强引用。
+\post 返回值非空，指定冻结的环境。
+*/
+template<typename _fCallable, typename... _tParams>
+shared_ptr<Environment>
+GetModuleFor(ContextNode& ctx, _fCallable&& f, _tParams&&... args)
+{
+	ValueObject parent(ctx.WeakenRecord());
+	auto gd(GuardFreshEnvironment(ctx));
+
+	AssignParent(ctx, std::move(parent));
+	ystdex::invoke(yforward(f), yforward(args)...);
+	ctx.GetRecordRef().Frozen = true;
+	return ctx.ShareRecord();
+}
+
+/*!
+\pre 间接断言：模块名称字符串的数据指针非空。
+\sa A1::GetModuleFor
+*/
+//@{
+//! \brief 加载模块为变量，若已存在则忽略。
+template<typename _fCallable, typename... _tParams>
+inline void
+LoadModule(ContextNode& ctx, string_view module_name, _fCallable&& f,
+	_tParams&&... args)
+{
+	ctx.GetRecordRef().Define(module_name,
+		A1::GetModuleFor(ctx, yforward(f), yforward(args)...));
+}
+
+/*!
+\brief 加载模块为变量，若已存在抛出异常。
+\exception BadIdentifier 变量绑定已存在。
+*/
+template<typename _fCallable, typename... _tParams>
+inline void
+LoadModuleChecked(ContextNode& ctx, string_view module_name, _fCallable&& f,
+	_tParams&&... args)
+{
+	ctx.GetRecordRef().DefineChecked(module_name,
+		A1::GetModuleFor(ctx, yforward(f), yforward(args)...));
+}
+//@}
+//@}
 
 
 /*!

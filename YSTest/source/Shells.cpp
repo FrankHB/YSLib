@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6482
+\version r6555
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2022-02-14 07:53 +0800
+	2022-09-05 00:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,19 +25,12 @@
 */
 
 
-#include "Shells.h"
+#include "Shells.h" // for std::throw_with_nested;
 #include "ShlExplorer.h"
 #include "ShlReader.h"
 #include <ytest/timing.hpp>
-#if YReader_Impl_TestNPL
-#	if YF_Hosted
-#		define YReader_Impl_TestNPL_UseBacktrace true
-#		include <ystdex/scope_guard.hpp> // for ystdex::make_guard;
-#		define YReader_Impl_TestNPL_UseSourceInfo true
-#	endif
-#	include YFM_NPL_Dependency // for NPL, LoadStandardContext, InvokeIn,
-//	ContextNode;
-#endif
+#include YFM_NPL_Dependency // for NPL, A1::Forms::InvokeIn;
+#include YFM_Helper_Environment // for complete Environment;
 
 namespace YReader
 {
@@ -173,77 +166,18 @@ AddButtonToTabBar(TabControl& tc, ValueNode& node, const string& name,
 }
 
 
-#if YReader_Impl_TestNPL
 void
-TestNPL(NPL::pmr::memory_resource& rsrc, std::istream&& is, std::ostream& os)
+TestNPL(Environment& env, std::istream&& is)
 {
 	using namespace NPL;
-	using namespace A1;
-	using namespace Forms;
-	REPLContext context{rsrc};
-	TermNode term{context.Allocator};
-#	if YReader_Impl_TestNPL_UseBacktrace
-	ContextNode::ReducerSequence backtrace{context.Allocator};
-#	endif
 
-#	if YReader_Impl_TestNPL_UseSourceInfo
-	context.UseSourceLocation = true;
-#	endif
-	LoadStandardContext(context);
-	context.OutputStreamPtr = NPL::make_observer(&os);
-
-	auto& rctx(context.Root);
-
-	InvokeIn(rctx, [&]{
-		context.ShareCurrentSource("*TEST*");
-		try
-		{
-			context.Root.Rewrite(NPL::ToReducer(context.Allocator, trivial_swap,
-				[&](ContextNode& ctx){
-				ctx.SaveExceptionHandler();
-				// TODO: Blocked. Use C++14 lambda initializers to simplify the
-				//	implementation.
-				ctx.HandleException = ystdex::bind1([&](std::exception_ptr p,
-					const ContextNode::ReducerSequence::const_iterator& i){
-					ctx.TailAction = nullptr;
-#	if YReader_Impl_TestNPL_UseBacktrace
-					ctx.Shift(backtrace, i);
-#	else
-					yunused(i);
-#	endif
-					YAssertNonnull(p);
-					TryExpr(std::rethrow_exception(std::move(p)))
-					catch(std::exception& e)
-					{
-#	if YReader_Impl_TestNPL_UseBacktrace
-						const auto gd(ystdex::make_guard([&]() ynothrowv{
-							backtrace.clear();
-						}));
-#	endif
-						auto& trace(ctx.Trace);
-
-						TraceException(e, trace);
-						trace.TraceFormat(Notice, "Location: %s.",
-							context.CurrentSource
-							? context.CurrentSource->c_str() : "<unknown>");
-#	if YReader_Impl_TestNPL_UseBacktrace
-						TraceBacktrace(backtrace, trace);
-#	endif
-						// NOTE: As %Tools.SHBuild.Main.
-						throw NPLException("Error detected in the execution"
-							" (see the backtrace for details).");
-					}
-				}, ctx.GetCurrent().cbegin());
-				term = context.ReadFrom(is);
-				return A1::ReduceOnce(term, ctx);
-			}));
-		}
-		// NOTE: As %A1::TryLoadSource.
-		CatchExpr(..., std::throw_with_nested(
-			NPLException("Failed loading the test unit.")));
-	});
+	TryExpr(env.ExecuteNPLA1([&](TermNode& term){
+		term = env.Context.ReadFrom(is);
+	}))
+	// NOTE: Like %A1::TryLoadSource, but not in the inner reduction.
+	CatchExpr(..., std::throw_with_nested(
+		NPLException("Failed loading the test unit.")))
 }
-#endif
 
 } // namespace YReader;
 

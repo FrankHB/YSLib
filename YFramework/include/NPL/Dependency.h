@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r557
+\version r617
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2022-04-20 19:22 +0800
+	2022-09-05 08:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,7 @@
 #define NPL_INC_Dependency_h_
 
 #include "YModules.h"
-#include YFM_NPL_NPLA1 // for string, vector, REPLContext, ystdex::invoke,
-//	YSLib::unique_ptr;
+#include YFM_NPL_NPLA1 // for string, vector, REPLContext, YSLib::unique_ptr;
 #include <istream> // for std::istream;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard;
 
@@ -82,7 +81,7 @@ OpenFile(const char*);
 
 //! \since build 899
 //@{
-//! \brief 打开指定路径的文件作为 NPL 输入流并在上下文设置名称。
+//! \brief 打开指定路径的文件作为 NPL 输入流并在上下文设置源代码名称。
 YB_ATTR_nodiscard YF_API YSLib::unique_ptr<std::istream>
 OpenUnique(REPLContext&, string);
 
@@ -90,7 +89,9 @@ OpenUnique(REPLContext&, string);
 /*!
 \brief 在 REPL 上下文中加载指定名称的外部翻译单元。
 \note 使用跳板，不直接改变上下文中的续延。
-\sa Reduce
+\note 加载时在上下文中设置源代码名称。
+\sa OpenUnique
+\sa TryLoadSource
 */
 YB_NONNULL(2) YF_API void
 PreloadExternal(REPLContext&, const char*);
@@ -118,67 +119,6 @@ RelayToLoadExternal(ContextNode&, TermNode&, REPLContext&);
 
 namespace Forms
 {
-
-//! \since build 942
-//@{
-//! \brief 加载代码调用。
-template<typename _fCallable, typename... _tParams>
-void
-InvokeIn(ContextNode& ctx, _fCallable&& f, _tParams&&... args)
-{
-	EnvironmentGuard gd(ctx,
-		NPL::SwitchToFreshEnvironment(ctx, ValueObject(ctx.WeakenRecord())));
-
-	ystdex::invoke(yforward(f), yforward(args)...);
-}
-
-/*!
-\brief 加载代码作为模块。
-\return 作为环境模块的环境对象强引用。
-\post 返回值非空，指定冻结的环境。
-*/
-template<typename _fCallable, typename... _tParams>
-shared_ptr<Environment>
-GetModuleFor(ContextNode& ctx, _fCallable&& f, _tParams&&... args)
-{
-	EnvironmentGuard gd(ctx,
-		NPL::SwitchToFreshEnvironment(ctx, ValueObject(ctx.WeakenRecord())));
-
-	ystdex::invoke(yforward(f), yforward(args)...);
-	ctx.GetRecordRef().Frozen = true;
-	return ctx.ShareRecord();
-}
-
-/*!
-\pre 间接断言：模块名称字符串的数据指针非空。
-\sa Forms::GetModuleFor
-*/
-//@{
-//! \brief 加载模块为变量，若已存在则忽略。
-template<typename _fCallable, typename... _tParams>
-inline void
-LoadModule(ContextNode& ctx, string_view module_name, _fCallable&& f,
-	_tParams&&... args)
-{
-	ctx.GetRecordRef().Define(module_name,
-		Forms::GetModuleFor(ctx, yforward(f), yforward(args)...));
-}
-
-/*!
-\brief 加载模块为变量，若已存在抛出异常。
-\exception BadIdentifier 变量绑定已存在。
-*/
-template<typename _fCallable, typename... _tParams>
-inline void
-LoadModuleChecked(ContextNode& ctx, string_view module_name, _fCallable&& f,
-	_tParams&&... args)
-{
-	ctx.GetRecordRef().DefineChecked(module_name,
-		Forms::GetModuleFor(ctx, yforward(f), yforward(args)...));
-}
-//@}
-//@}
-
 
 /*!
 \note 支持的具体语法形式参考 Documentation::NPL 。
