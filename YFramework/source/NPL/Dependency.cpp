@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r7189
+\version r7359
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2022-09-04 23:03 +0800
+	2022-09-14 01:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "NPL/YModules.h"
 #include YFM_NPL_Dependency // for set, string, UnescapeContext, string_view,
 //	ystdex::isspace, std::istream, YSLib::unique_ptr, std::throw_with_nested,
-//	std::invalid_argument, ystdex::sfmt, YSLib::share_move, REPLContext,
+//	std::invalid_argument, ystdex::sfmt, YSLib::share_move, GlobalState,
 //	RelaySwitched, trivial_swap, std::bind, SourceName, RetainN,
 //	NPL::ResolveRegular, NPL::Deref, A1::NameTypedReducerHandler, std::ref,
 //	Forms::CallResolvedUnary, EnsureValueTags, ResolvedTermReferencePtr,
@@ -39,19 +39,20 @@
 //	ThrowValueCategoryError, ValueToken, ResolveTerm, TokenValue,
 //	CheckVariadicArity, A1::AsForm, ystdex::bind1, std::placeholders,
 //	NPL::CollectTokens, Strict, LiftOtherOrCopy, IsEmpty,
-//	ComposeReferencedTermOp, IsBranch, IsReferenceTerm, IsBoundLValueTerm,
-//	IsUncollapsedTerm, IsUniqueTerm, IsModifiableTerm, IsTemporaryTerm,
-//	LiftTermRef, NPL::SetContentWith, Environment::EnsureValid,
-//	LiftTermValueOrCopy, ResolveIdentifier, NPLException, ReduceToReferenceList,
+//	ComposeReferencedTermOp, IsBranch, IsTypedRegular, ReferenceTerm,
+//	IsReferenceTerm, IsBoundLValueTerm, IsUniqueTerm, IsModifiableTerm,
+//	IsTemporaryTerm, IsUncollapsedTerm, LiftTermRef, NPL::SetContentWith,
+//	LiftTermValueOrCopy, ResolveName, ResolveIdentifier,
+//	Environment::EnsureValid, NPLException, ReduceToReferenceList,
 //	MoveCollapsed, NPL::IsMovable, LiftTermOrCopy, IsBranchedList,
-//	AccessFirstSubterm, ThrowInsufficientTermsError, AssertValueTags, Retain,
-//	RemoveHead, ClearCombiningTags, EmplaceCallResultOrReturn, NPL::AsTermNode,
-//	ReferenceTerm, ResolveName, ystdex::fast_any_of, Ensigil, YSLib::ufexists,
-//	YSLib::to_std_string, EmplaceCallResultOrReturn, TryAccessTerm,
-//	ystdex::plus, ystdex::tolower, YSLib::OwnershipTag, YSLib::IO::StreamPut,
-//	YSLib::FetchEnvironmentVariable, YSLib::SetEnvironmentVariable, NPL::tuple,
-//	YSLib::IO::UniqueFile, YSLib::uremove, YSLib::allocate_shared,
-//	ReduceReturnUnspecified, ystdex::throw_error;
+//	AccessFirstSubterm, ThrowInsufficientTermsError, Retain, NPL::AsTermNode,
+//	ystdex::fast_any_of, A1::Perform, Ensigil, YSLib::ufexists,
+//	YSLib::to_std_string, AssertValueTags, ClearCombiningTags,
+//	EmplaceCallResultOrReturn, RemoveHead, TryAccessTerm, ystdex::plus,
+//	ystdex::tolower, ReduceReturnUnspecified, YSLib::IO::StreamPut,
+//	YSLib::OwnershipTag, YSLib::FetchEnvironmentVariable,
+//	YSLib::SetEnvironmentVariable, YSLib::uremove, YSLib::allocate_shared,
+//	NPL::tuple, YSLib::IO::UniqueFile, ystdex::throw_error;
 #include <ystdex/container.hpp> // for ystdex::exists, ystdex::search_map,
 //	ystdex::emplace_hint_in_place;
 #include YFM_NPL_NPLA1Forms // for EncapsulateValue, Encapsulate, Encapsulated,
@@ -208,55 +209,62 @@ OpenFile(const char* filename)
 }
 
 YSLib::unique_ptr<std::istream>
-OpenUnique(REPLContext& context, string filename)
+OpenUnique(ContextState& cs, string filename)
 {
 	auto p_is(A1::OpenFile(filename.c_str()));
 
-	// NOTE: Swap guard for %Context.CurrentSource is not used. It is up to the
+	// NOTE: Swap guard for %cs.CurrentSource is not used. It is up to the
 	//	caller to support PTC or not.
-	context.CurrentSource = YSLib::share_move(filename);
+	cs.CurrentSource = YSLib::share_move(filename);
 	return p_is;
 }
 
 
 void
-PreloadExternal(REPLContext& context, const char* filename)
+PreloadExternal(ContextState& cs, const char* filename)
 {
-	TryLoadSource(context, filename,
-		*OpenUnique(context, string(filename, context.Allocator)));
+	const auto& global(cs.Global.get());
+
+	TryLoadSource(cs, filename,
+		*OpenUnique(cs, string(filename, global.Allocator)));
 }
 
 //! \since build 923
 namespace
 {
 
+//! \since build 955
 ReductionStatus
-ReduceToLoadFile(TermNode& term, ContextNode& ctx, REPLContext& context,
-	string filename)
+ReduceToLoadFile(TermNode& term, ContextNode& ctx, string filename)
 {
+	auto& cs(ContextState::Access(ctx));
+	const auto& global(cs.Global.get());
+
 	// NOTE: This is explicitly not same to klisp. This is also friendly to PTC.
 	// XXX: Same to %A1::ReduceOnce, without setup the next term.
 #if NPL_Impl_NPLA1_Enable_Thunked
 #	if NPL_Impl_NPLA1_Enable_TCO
-	RefTCOAction(ctx).SaveTailSourceName(context.CurrentSource,
-		std::move(context.CurrentSource));
+	RefTCOAction(ctx).SaveTailSourceName(cs.CurrentSource,
+		std::move(cs.CurrentSource));
 #	else
 	RelaySwitched(ctx, trivial_swap,
 		A1::NameTypedReducerHandler(std::bind([&](SourceName& saved_src){
-		context.CurrentSource = std::move(saved_src);
+		cs.CurrentSource = std::move(saved_src);
 		return ctx.LastStatus;
-	}, std::move(context.CurrentSource)), "restore-source-name"));
+	}, std::move(cs.CurrentSource)), "restore-source-name"));
 #	endif
-	term = context.Load(context, ctx, std::move(filename));
+	term = global.Load(cs, std::move(filename));
+	global.Preprocess(term);
 	return ContextState::Access(ctx).ReduceOnce.Handler(term, ctx);
 #else
-	auto saved_src(std::move(context.CurrentSource));
+	auto saved_src(std::move(cs.CurrentSource));
 
-	term = context.Load(context, ctx, std::move(filename));
+	term = global.Load(cs, std::move(filename));
+	global.Prerpocess(term);
 
 	const auto res(ContextState::Access(ctx).ReduceOnce.Handler(term, ctx));
 
-	context.CurrentSource = std::move(saved_src);
+	cs.CurrentSource = std::move(saved_src);
 	return res;
 #endif
 }
@@ -264,20 +272,19 @@ ReduceToLoadFile(TermNode& term, ContextNode& ctx, REPLContext& context,
 } // unnamed namespace;
 
 ReductionStatus
-ReduceToLoadExternal(TermNode& term, ContextNode& ctx, REPLContext& context)
+ReduceToLoadExternal(TermNode& term, ContextNode& ctx)
 {
 	RetainN(term);
-	return ReduceToLoadFile(term, ctx, context, string(
-		NPL::ResolveRegular<const string>(NPL::Deref(std::next(term.begin()))),
-		term.get_allocator()));
+	return ReduceToLoadFile(term, ctx, string(NPL::ResolveRegular<const string>(
+		NPL::Deref(std::next(term.begin()))), term.get_allocator()));
 }
 
 ReductionStatus
-RelayToLoadExternal(ContextNode& ctx, TermNode& term, REPLContext& context)
+RelayToLoadExternal(ContextNode& ctx, TermNode& term)
 {
 	return RelaySwitched(ctx, trivial_swap,
 		A1::NameTypedReducerHandler(std::bind(ReduceToLoadExternal,
-		std::ref(term), std::ref(ctx), std::ref(context)), "load-external"));
+		std::ref(term), std::ref(ctx)), "load-external"));
 }
 
 namespace Forms
@@ -494,29 +501,29 @@ AddDefineFunction(ContextNode& ctx, const char* fn,
 	Reduce(term, ctx);
 #	if false
 	// NOTE: Usage:
-	AddDefineFunction(rctx, "$defv!", {"&$f", "&formals", "&ef"},
+	AddDefineFunction(ctx, "$defv!", {"&$f", "&formals", "&ef"},
 		{"$f", "$vau", "formals", "ef"});
-	AddDefineFunction(rctx, "$defv%!", {"&$f", "&formals", "&ef"},
+	AddDefineFunction(ctx, "$defv%!", {"&$f", "&formals", "&ef"},
 		{"$f", "$vau%", "formals", "ef"});
-	AddDefineFunction(rctx, "$defv/e!", {"&$f", "&p", "&formals", "&ef"},
+	AddDefineFunction(ctx, "$defv/e!", {"&$f", "&p", "&formals", "&ef"},
 		{"$f", "$vau/e", "p", "formals", "ef"});
-	AddDefineFunction(rctx, "$defv/e%!", {"&$f", "&p", "&formals", "&ef"},
+	AddDefineFunction(ctx, "$defv/e%!", {"&$f", "&p", "&formals", "&ef"},
 		{"$f", "$vau/e%", "p", "formals", "ef"});
-	AddDefineFunction(rctx, "$defw!", {"&f", "&formals", "&ef"},
+	AddDefineFunction(ctx, "$defw!", {"&f", "&formals", "&ef"},
 		{"f", "$wvau", "formals", "ef"});
-	AddDefineFunction(rctx, "$defw%!", {"&f", "&formals", "&ef"},
+	AddDefineFunction(ctx, "$defw%!", {"&f", "&formals", "&ef"},
 		{"f", "$wvau%", "formals", "ef"});
-	AddDefineFunction(rctx, "$defw/e!", {"&f", "&p", "&formals", "&ef"},
+	AddDefineFunction(ctx, "$defw/e!", {"&f", "&p", "&formals", "&ef"},
 		{"f", "$wvau/e", "p", "formals", "ef"});
-	AddDefineFunction(rctx, "$defw/e%!", {"&f", "&p", "&formals", "&ef"},
+	AddDefineFunction(ctx, "$defw/e%!", {"&f", "&p", "&formals", "&ef"},
 		{"f", "$wvau/e%", "p", "formals", "ef"});
-	AddDefineFunction(rctx, "$defl!", {"&f", "&formals"},
+	AddDefineFunction(ctx, "$defl!", {"&f", "&formals"},
 		{"f", "$lambda", "formals"});
-	AddDefineFunction(rctx, "$defl%!", {"&f", "&formals"},
+	AddDefineFunction(ctx, "$defl%!", {"&f", "&formals"},
 		{"f", "$lambda%", "formals"});
-	AddDefineFunction(rctx, "$defl/e!", {"&f", "&p", "&formals"},
+	AddDefineFunction(ctx, "$defl/e!", {"&f", "&p", "&formals"},
 		{"f", "$lambda/e", "p", "formals"});
-	AddDefineFunction(rctx, "$defl/e%!", {"&f", "&p", "&formals"},
+	AddDefineFunction(ctx, "$defl/e%!", {"&f", "&p", "&formals"},
 		{"f", "$lambda/e%", "p", "formals"});
 #	endif
 }
@@ -582,6 +589,10 @@ LoadObjects(ContextNode& ctx)
 	RegisterUnary(ctx, "branchv?", IsBranch);
 	RegisterUnary(ctx, "pair?", ComposeReferencedTermOp(IsPair));
 	RegisterUnary(ctx, "pairv?", IsPair);
+	RegisterUnary(ctx, "symbol?",
+		[] YB_LAMBDA_ANNOTATE((const TermNode& x), ynothrow, pure){
+		return IsTypedRegular<TokenValue>(ReferenceTerm(x));
+	});
 	RegisterUnary(ctx, "reference?", IsReferenceTerm);
 	RegisterUnary(ctx, "unique?", IsUniqueTerm);
 	RegisterUnary(ctx, "modifiable?", IsModifiableTerm);
@@ -620,9 +631,6 @@ LoadObjects(ContextNode& ctx)
 void
 LoadLists(ContextNode& ctx)
 {
-	// NOTE: Though NPLA does not use cons pairs, corresponding primitives are
-	//	still necessary.
-	// NOTE: Since NPL has no con pairs, it only added head to existed list.
 	RegisterStrict(ctx, "cons", Cons);
 	RegisterStrict(ctx, "cons%", ConsRef);
 	// NOTE: Like '$set-cdr!' in Kernel, with no references.
@@ -751,12 +759,12 @@ Load(ContextNode& ctx)
 namespace Derived
 {
 
-//! \since build 909
+//! \since build 955
+//@{
 void
-LoadBasicDerived(REPLContext& context)
+LoadBasicDerived(ContextState& cs)
 {
-	auto& rctx(context.Root);
-	auto& renv(rctx.GetRecordRef());
+	auto& renv(cs.GetRecordRef());
 
 	// NOTE: Some combiners are provided here as host primitives for
 	//	more efficiency and less dependencies.
@@ -942,7 +950,7 @@ LoadBasicDerived(REPLContext& context)
 		ystdex::bind1([](TermNode& term, const EnvironmentReference& ce){
 		RetainN(term, 0);
 		term.SetValue(CreateEnvironmentWithParent(term.get_allocator(), ce));
-	}, context.Root.WeakenRecord()));
+	}, cs.WeakenRecord()));
 	RegisterStrict(renv, "derive-current-environment",
 		[] YB_LAMBDA_ANNOTATE((TermNode& term, ContextNode& ctx), , flatten){
 		Retain(term);
@@ -958,7 +966,7 @@ LoadBasicDerived(REPLContext& context)
 		Retain(term);
 		term.emplace(NPL::AsTermNode(term.get_allocator(), ce));
 		return MakeEnvironment(term);
-	}, context.Root.WeakenRecord()));
+	}, cs.WeakenRecord()));
 	RegisterForm(renv, "$as-environment", AsEnvironment);
 	RegisterForm(renv, "$bindings/p->environment",
 		BindingsWithParentToEnvironment);
@@ -981,7 +989,7 @@ LoadBasicDerived(REPLContext& context)
 	RegisterStrict(renv, "assq", Assq);
 	RegisterStrict(renv, "assv", Assv);
 	{
-		const auto a(context.Allocator);
+		const auto a(cs.get_allocator());
 		// NOTE: As %MakeEncapsulationType.
 		shared_ptr<void> p_type(new yimpl(byte));
 
@@ -991,8 +999,8 @@ LoadBasicDerived(REPLContext& context)
 		renv.Define("unbox", A1::MakeForm(a, Decapsulate(p_type), Strict));
 	}
 #else
-	context.ShareCurrentSource("<root:basic-derived>");
-	context.Perform(
+	cs.ShareCurrentSource("<root:basic-derived>");
+	A1::Perform(cs,
 #	if NPL_Impl_NPLA1_Native_EnvironmentPrimitives
 	R"NPL(
 $def! forward! wrap
@@ -1037,8 +1045,8 @@ $def! list wrap ($vau (.x) #ignore move! x);
 	);
 	RegisterForm(renv, "$lambda", Lambda);
 	RegisterForm(renv, "$lambda%", LambdaRef);
-	context.ShareCurrentSource("<root:basic-derived-1>");
-	context.Perform(R"NPL(
+	cs.ShareCurrentSource("<root:basic-derived-1>");
+	A1::Perform(cs, R"NPL(
 $def! id $lambda% (%x) $move-resolved! x;
 $def! idv $lambda% (x) $move-resolved! x;
 $def! list $lambda (.x) move! x;
@@ -1389,12 +1397,11 @@ $defl! box (x) box% (move! x);
 #endif
 }
 
-//! \since build 909
 void
-LoadStandardDerived(REPLContext& context)
+LoadStandardDerived(ContextState& cs)
 {
 #if NPL_Impl_NPLA1_Native_Forms
-	auto& renv(context.Root.GetRecordRef());
+	auto& renv(cs.GetRecordRef());
 
 	RegisterUnary<Strict, const TokenValue>(renv, "ensigil", Ensigil);
 	RegisterForm(renv, "$binds1?", [](TermNode& term, ContextNode& ctx){
@@ -1417,8 +1424,8 @@ LoadStandardDerived(REPLContext& context)
 	//	derivations available later in the bodies. Otherwise, they are not
 	//	relied on. To avoid cyclic dependencies, the derivation of %ensigl
 	//	further avoids specific core functions.
-	context.ShareCurrentSource("<root:standard-derived>");
-	context.Perform(R"NPL(
+	cs.ShareCurrentSource("<root:standard-derived>");
+	A1::Perform(cs, R"NPL(
 $def! ensigil $lambda (&s)
 	$let/e (derive-current-environment std.strings) ()
 		$let ((&str symbol->string s))
@@ -1431,13 +1438,11 @@ $def! $binds1? $vau (&e &s) d
 #endif
 }
 
-//! \since build 839
-//@{
 void
-LoadCore(REPLContext& context)
+LoadCore(ContextState& cs)
 {
-	context.ShareCurrentSource("<root:core>");
-	context.Perform(R"NPL(
+	cs.ShareCurrentSource("<root:core>");
+	A1::Perform(cs, R"NPL(
 $defw%! map-reverse (&appv .&ls) d
 	accl (forward! (check-list-reference ls)) nonfoldable? () list-extract-first
 		list-extract-rest%
@@ -1447,26 +1452,25 @@ $defw! for-each-ltr &ls d $sequence (apply map-reverse (forward! ls) d) #inert;
 }
 
 void
-Load(REPLContext& context)
+Load(ContextState& cs)
 {
-	LoadBasicDerived(context);
-	LoadStandardDerived(context);
-	LoadCore(context);
+	LoadBasicDerived(cs);
+	LoadStandardDerived(cs);
+	LoadCore(cs);
 }
 //@}
 
 } // namespace Derived;
 
-//! \since build 839
+//! \since build 955
 void
-Load(REPLContext& context)
+Load(ContextState& cs)
 {
-	auto& rctx(context.Root);
-	auto& renv(rctx.GetRecordRef());
+	auto& renv(cs.GetRecordRef());
 
 //	LoadObjects(renv);
-	Primitive::Load(rctx);
-	Derived::Load(context);
+	Primitive::Load(cs);
+	Derived::Load(cs);
 	// NOTE: Prevent the ground environment from modification.
 	renv.Frozen = true;
 }
@@ -1722,22 +1726,21 @@ ForcePromise(TermNode& term, ContextNode& ctx, Promise& prom, TermNode& nd,
 //@}
 
 
-//! \since build 942
+//! \since build 955
 template<typename _func>
 ReductionStatus
-ReduceToLoadGuarded(TermNode& term, ContextNode& ctx, REPLContext& context,
+ReduceToLoadGuarded(TermNode& term, ContextNode& ctx,
 	shared_ptr<Environment> p_env, _func reduce)
 {
 #	if NPL_Impl_NPLA1_Enable_Thunked
 	return A1::RelayCurrentNext(ctx, term, trivial_swap, std::bind(
-		std::move(reduce), std::ref(term), std::ref(ctx), std::ref(context)),
+		std::move(reduce), std::ref(term), std::ref(ctx)),
 		trivial_swap, MoveKeptGuard(EnvironmentGuard(ctx,
 		ctx.SwitchEnvironmentUnchecked(std::move(p_env)))));
 #	else
-	const EnvironmentGuard gd(ctx,
-		ctx.SwitchEnvironmentUnchecked(p_env));
+	const EnvironmentGuard gd(ctx, ctx.SwitchEnvironmentUnchecked(p_env));
 
-	return reduce(term, ctx, context);
+	return reduce(term, ctx);
 #	endif
 }
 #endif
@@ -1760,17 +1763,17 @@ struct LeafPred
 } // unnamed namespace;
 
 void
-LoadGroundContext(REPLContext& context)
+LoadGroundContext(ContextState& cs)
 {
-	// NOTE: Dynamic separator handling is lifted to %REPLContext::Preprocess.
+	// NOTE: Dynamic separator handling is lifted to %GlobalState::Preprocess.
 	//	See $2020-02 @ %Documentation::Workflow.
-	Ground::Load(context);
+	Ground::Load(cs);
 }
 
 void
-LoadModule_std_continuations(REPLContext& context)
+LoadModule_std_continuations(ContextState& cs)
 {
-	auto& renv(context.Root.GetRecordRef());
+	auto& renv(cs.GetRecordRef());
 
 	RegisterStrict(renv, "call/1cc", Call1CC);
 	RegisterStrict(renv, "continuation->applicative",
@@ -1778,8 +1781,8 @@ LoadModule_std_continuations(REPLContext& context)
 #if NPL_Impl_NPLA1_Native_Forms
 	RegisterStrict(renv, "apply-continuation", ApplyContinuation);
 #else
-	context.ShareCurrentSource("<lib:std.continuations>");
-	context.Perform(R"NPL(
+	cs.ShareCurrentSource("<lib:std.continuations>");
+	A1::Perform(cs, R"NPL(
 $defl! apply-continuation (&k &arg)
 	apply (continuation->applicative (forward! k)) (forward! arg);
 	)NPL");
@@ -1787,10 +1790,10 @@ $defl! apply-continuation (&k &arg)
 }
 
 void
-LoadModule_std_promises(REPLContext& context)
+LoadModule_std_promises(ContextState& cs)
 {
 #if NPL_Impl_NPLA1_Native_Forms
-	auto& renv(context.Root.GetRecordRef());
+	auto& renv(cs.GetRecordRef());
 
 	RegisterUnary(renv, "promise?",
 		[] YB_LAMBDA_ANNOTATE((const TermNode& x), ynothrow, pure){
@@ -1825,7 +1828,7 @@ LoadModule_std_promises(REPLContext& context)
 		}, term);
 	});
 #else
-	context.ShareCurrentSource("<lib:std.promises>");
+	cs.ShareCurrentSource("<lib:std.promises>");
 	// NOTE: The call to 'set-first%!' does not check cyclic references. This is
 	//	kept safe since it can occur only with NPLA1 undefined behavior.
 	// XXX: The internal construct uses lists instead of pairs as [RnRK] even
@@ -1833,7 +1836,7 @@ LoadModule_std_promises(REPLContext& context)
 	//	value introduced by trailing sequence has unspecified behavior in the
 	//	object language (and it will not change the shared referent in the
 	//	current implementation)..
-	context.Perform(R"NPL(
+	A1::Perform(cs, R"NPL(
 $provide/let! (promise? memoize $lazy $lazy% $lazy/d $lazy/d% force)
 ((mods $as-environment (
 	$def! (encapsulate% promise? decapsulate) () make-encapsulation-type;
@@ -1877,9 +1880,9 @@ $provide/let! (promise? memoize $lazy $lazy% $lazy/d $lazy/d% force)
 }
 
 void
-LoadModule_std_math(REPLContext& context)
+LoadModule_std_math(ContextState& cs)
 {
-	auto& renv(context.Root.GetRecordRef());
+	auto& renv(cs.GetRecordRef());
 
 	RegisterUnary(renv, "number?", trivial_swap,
 		ComposeReferencedTermOp(ystdex::bind1(LeafPred(), IsNumberValue)));
@@ -1946,10 +1949,14 @@ LoadModule_std_math(REPLContext& context)
 }
 
 void
-LoadModule_std_strings(REPLContext& context)
+LoadModule_std_strings(ContextState& cs)
 {
-	auto& renv(context.Root.GetRecordRef());
+	auto& renv(cs.GetRecordRef());
 
+	RegisterUnary(renv, "string?",
+		[] YB_LAMBDA_ANNOTATE((const TermNode& x), ynothrow, pure){
+		return IsTypedRegular<string>(ReferenceTerm(x));
+	});
 	RegisterStrict(renv, "++", trivial_swap,
 		std::bind(CallBinaryFold<string, ystdex::plus<>>,
 		ystdex::plus<>(), string(), std::placeholders::_1));
@@ -1957,8 +1964,8 @@ LoadModule_std_strings(REPLContext& context)
 		[](const string& str) ynothrow{
 		return str.empty();
 	});
-	RegisterBinary<Strict, ResolvedArg<>, ResolvedArg<>>(renv,
-		"string<-", [](ResolvedArg<>&& x, ResolvedArg<>&& y){
+	RegisterBinary<Strict, ResolvedArg<>, ResolvedArg<>>(renv, "string<-",
+		[](ResolvedArg<>&& x, ResolvedArg<>&& y){
 		if(x.IsModifiable())
 		{
 			auto& str_x(AccessRegular<string>(x.get(), x.second));
@@ -2040,12 +2047,12 @@ LoadModule_std_strings(REPLContext& context)
 }
 
 void
-LoadModule_std_io(REPLContext& context,
+LoadModule_std_io(ContextState& cs,
 	const shared_ptr<Environment>& p_ground)
 {
 	YAssertNonnull(p_ground);
 
-	auto& renv(context.Root.GetRecordRef());
+	auto& renv(cs.GetRecordRef());
 
 	RegisterUnary<Strict, const string>(renv, "readable-file?",
 		[](const string& str) ynothrow{
@@ -2055,21 +2062,24 @@ LoadModule_std_io(REPLContext& context,
 		[](const string& str) ynothrow{
 		return YSLib::ufexists(str.c_str(), true);
 	});
-	RegisterStrict(renv, "newline", trivial_swap, [&](TermNode& term){
+	RegisterStrict(renv, "newline", trivial_swap,
+		[&](TermNode& term, ContextNode& ctx){
 		RetainN(term, 0);
-		if(auto& os{context.GetOutputStreamRef()})
+		if(auto&
+			os{ContextState::Access(ctx).Global.get().GetOutputStreamRef()})
 			os << std::endl;
 		return ReduceReturnUnspecified(term);
 	});
 	RegisterUnary<Strict, const string>(renv, "put", trivial_swap,
-		[&](const string& str){
-		YSLib::IO::StreamPut(context.GetOutputStreamRef(), str.c_str());
+		[&](const string& str, ContextNode& ctx){
+		YSLib::IO::StreamPut(ContextState::Access(ctx).Global.get()
+			.GetOutputStreamRef(), str.c_str());
 		return ValueToken::Unspecified;
 	});
 #if NPL_Impl_NPLA1_Native_Forms
 	RegisterUnary<Strict, const string>(renv, "puts", trivial_swap,
-		[&](const string& str){
-		auto& os(context.GetOutputStreamRef());
+		[&](const string& str, ContextNode& ctx){
+		auto& os(ContextState::Access(ctx).Global.get().GetOutputStreamRef());
 
 		YSLib::IO::StreamPut(os, str.c_str());
 		if(os)
@@ -2077,18 +2087,15 @@ LoadModule_std_io(REPLContext& context,
 		return ValueToken::Unspecified;
 	});
 #else
-	context.ShareCurrentSource("<lib:std.io>");
-	context.Perform(R"NPL(
+	cs.ShareCurrentSource("<lib:std.io>");
+	A1::Perform(cs, R"NPL(
 $defl! puts (&s) $sequence (put s) (() newline);
 	)NPL");
 #endif
-	RegisterStrict(renv, "load", trivial_swap,
-		[&](TermNode& term, ContextNode& ctx){
-		// NOTE: Since %load disallows additional barrier of catching the inner
-		//	exceptions and the reset of the source name, %TryLoadSource or
-		//	%PreloadExternal is not applicable here.
-		return ReduceToLoadExternal(term, ctx, context);
-	});
+	// NOTE: Since %load disallows additional barrier of catching the inner
+	//	exceptions and the reset of the source name, %TryLoadSource or
+	//	%PreloadExternal is not applicable here.
+	RegisterStrict(renv, "load", ReduceToLoadExternal);
 #if NPL_Impl_NPLA1_Native_Forms
 	RegisterStrict(renv, "get-module", trivial_swap,
 		ystdex::bind1([&](TermNode& term, ContextNode& ctx,
@@ -2123,10 +2130,10 @@ $defl! puts (&s) $sequence (put s) (() newline);
 					term.SetValue(std::move(p_res));
 					return ReductionStatus::Clean;
 				}, p_env), "get-module-return"));
-				return ReduceToLoadGuarded(term, ctx, context, std::move(p_env),
+				return ReduceToLoadGuarded(term, ctx, std::move(p_env),
 					ReduceToLoadExternal);
 #	else
-				ReduceToLoadGuarded(term, ctx, context, std::move(p_env),
+				ReduceToLoadGuarded(term, ctx, std::move(p_env),
 					ReduceToLoadExternal);
 				term.SetValue(std::move(p_env));
 				return ReductionStatus::Clean;
@@ -2138,8 +2145,8 @@ $defl! puts (&s) $sequence (put s) (() newline);
 	}, std::placeholders::_2, EnvironmentReference(p_ground)));
 #else
 	yunused(p_ground);
-	context.ShareCurrentSource("<lib:std.io-1>");
-	context.Perform(R"NPL(
+	cs.ShareCurrentSource("<lib:std.io-1>");
+	A1::Perform(cs, R"NPL(
 $defl! get-module (&filename .&opt)	
 	$let ((env $if (null? opt) (() make-standard-environment)
 		($let (((&e .&eopt) opt)) $if (null? eopt)
@@ -2152,14 +2159,15 @@ $defl! get-module (&filename .&opt)
 }
 
 void
-LoadModule_std_system(REPLContext& context)
+LoadModule_std_system(ContextState& cs)
 {
-	auto& renv(context.Root.GetRecordRef());
+	auto& renv(cs.GetRecordRef());
 
 	RegisterStrict(renv, "get-current-repl", trivial_swap,
-		[&](TermNode& term){
+		[&](TermNode& term, ContextNode& ctx){
 		RetainN(term, 0);
-		term.Value.assign(context, YSLib::OwnershipTag<>());
+		term.Value.assign(ContextState::Access(ctx).Global.get(),
+			YSLib::OwnershipTag<>());
 	});
 	RegisterStrict(renv, "eval-string", EvalString);
 	RegisterStrict(renv, "eval-string%", EvalStringRef);
@@ -2186,8 +2194,8 @@ LoadModule_std_system(REPLContext& context)
 		[](const string& var, const string& val){
 		YSLib::SetEnvironmentVariable(var.c_str(), val.c_str());
 	});
-	context.ShareCurrentSource("<lib:std.system>");
-	context.Perform(R"NPL(
+	cs.ShareCurrentSource("<lib:std.system>");
+	A1::Perform(cs, R"NPL(
 $defl/e! env-empty? (derive-current-environment std.strings) (&n)
 	string-empty? (env-get n);
 	)NPL");
@@ -2217,15 +2225,15 @@ $defl/e! env-empty? (derive-current-environment std.strings) (&n)
 }
 
 void
-LoadModule_std_modules(REPLContext& context,
+LoadModule_std_modules(ContextState& cs,
 	const shared_ptr<Environment>& p_ground)
 {
 	YAssertNonnull(p_ground);
-#if NPL_Impl_NPLA1_Native_Forms
 
+#if NPL_Impl_NPLA1_Native_Forms
 	using namespace std::placeholders;
 	using YSLib::to_std_string;
-	auto& renv(context.Root.GetRecordRef());
+	auto& renv(cs.GetRecordRef());
 	const auto a(renv.Bindings.get_allocator());
 	const auto p_registry(YSLib::allocate_shared<YSLib::map<string,
 		pair<TermNode, shared_ptr<Environment>>>>(a));
@@ -2357,12 +2365,12 @@ LoadModule_std_modules(REPLContext& context,
 				return A1::RelayCurrentNext(ctx, term, trivial_swap,
 					ystdex::bind1([&](TermNode& t, ContextNode& c,
 					string& fname, shared_ptr<Environment>& p_env){
-					return ReduceToLoadGuarded(t, c, context, std::move(p_env),
-						ystdex::bind1([&](TermNode& t_0, ContextNode& c_0,
-						REPLContext& rc, string& fname_0){
+					return ReduceToLoadGuarded(t, c, std::move(p_env),
+						ystdex::bind1(
+						[&](TermNode& t_0, ContextNode& c_0, string& fname_0){
 						return
-							ReduceToLoadFile(t_0, c_0, rc, std::move(fname_0));
-					}, _2, _3, std::move(fname)));
+							ReduceToLoadFile(t_0, c_0, std::move(fname_0));
+					}, _2, std::move(fname)));
 				}, _2, std::move(filename), val.second),
 					A1::NameTypedReducerHandler([&, reduce_to_res]{
 					MoveCollapsed(val.first, term);
@@ -2448,16 +2456,17 @@ $provide/let! (registered-requirement? register-requirement!
 }
 
 void
-LoadModule_SHBuild(REPLContext& context)
+LoadModule_SHBuild(ContextState& cs)
 {
 	using namespace YSLib;
-	auto& renv(context.Root.GetRecordRef());
+	auto& renv(cs.GetRecordRef());
+	const auto& global(cs.Global.get());
 
 	// NOTE: SHBuild builtins.
 	renv.DefineChecked("SHBuild_BaseTerminalHook_",
 		ValueObject(function<void(const string&, const string&)>(
 		[&](const string& n, const string& val) ynothrow{
-		auto& os(context.GetOutputStreamRef());
+		auto& os(global.GetOutputStreamRef());
 
 		IO::StreamPut(os,
 			YSLib::sfmt("%s = \"%s\"", n.c_str(), val.c_str()).c_str());
@@ -2665,31 +2674,29 @@ LoadModule_SHBuild(REPLContext& context)
 }
 
 void
-LoadStandardContext(REPLContext& context)
+LoadStandardContext(ContextState& cs)
 {
-	LoadGroundContext(context);
+	LoadGroundContext(cs);
 
 	const auto pfx("std.");
-	string mod(pfx, context.Allocator);
-	auto& rctx(context.Root);
+	string mod(pfx, cs.get_allocator());
 	const auto load_std_module(
-		[&](string_view module_name, void(&load_module)(REPLContext&)){
-		// XXX: Using %context.Allocator or %std::string are both a bit less
+		[&](string_view module_name, void(&load_module)(ContextState&)){
+		// XXX: Using allocator of the state or %std::string are both a bit less
 		//	efficient.
 		mod += module_name;
-		LoadModuleChecked(rctx, mod, load_module, context);
+		LoadModuleChecked(cs, mod, load_module, cs);
 		mod.resize(ystdex::string_length(pfx));
 	});
-	const auto p_ground(rctx.ShareRecord());
+	const auto p_ground(cs.ShareRecord());
 
 	load_std_module("continuations", LoadModule_std_continuations),
 	load_std_module("promises", LoadModule_std_promises);
 	load_std_module("math", LoadModule_std_math),
 	load_std_module("strings", LoadModule_std_strings);
-	LoadModuleChecked(rctx, "std.io", LoadModule_std_io, context, p_ground);
+	LoadModuleChecked(cs, "std.io", LoadModule_std_io, cs, p_ground);
 	load_std_module("system", LoadModule_std_system);
-	LoadModuleChecked(rctx, "std.modules", LoadModule_std_modules, context,
-		p_ground);
+	LoadModuleChecked(cs, "std.modules", LoadModule_std_modules, cs, p_ground);
 }
 
 } // namespace Forms;

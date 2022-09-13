@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r11302
+\version r11547
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-09-05 21:41 +0800
+	2022-09-14 04:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,247 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	* "missing refinement on Clang++ version" @ "#pragma directive"
+		@ "member function %monotonic_buffer_resource::do_allocate"
+		@ %YBase.YStandardEx.MemoryResource $since b948,
+		$= (/ $impl '#if YB_IMPL_CLANGPP' -> '#if YB_IMPL_CLANGPP >= 100000'),
+		// To eliminate Clang++ warning [-Wunknown-warning-option], or error \
+			with [-Werror,-Wunknown-warning-option].
+	* $re_add(b953) DD "wrong description of the result type" @ "applicatives \
+		('rest&', %restv)" @ %Documentation.NPL $since b951,
+	/ %YFramework $=
+	(
+		/ %YSLib.Core $=
+		(
+			/ %YCoreUtilities $=
+			(
+				/ DLDI "constructor#2" @ "class %ArgumentsVector"
+					^ "%CommandArguments::VectorType::allocator_type"
+					~ "%vector<string>::allocator_type"
+				/ "function %PerformKeyAction" @ %YCoreUtilities
+					-> "function template" $=
+				(
+					^ "template argument" ~ "%function",
+					^ "%std::string" ~ "%string"
+					* $comp "unexpected implicit dependency on \
+						%pmr::get_default_resource"
+						// This would cause it not usable during \
+							initialization of namespace scope variables, which \
+							was undocumented.
+				)
+			),
+			* $re_add(b879) "missing using allocator for container copy"
+				@ "all constructors \
+				with 'const Container&' parameter" @ "class %ValueNode"
+				@ %ValueNode $since b844,
+				// The allocator would not be propagated implicitly (not \
+					affected by the constructor transitions from b844 to \
+					b845, which were all inconsist to the copy assignment). \
+					Now it also behaves as the copy constrctor of %ValueNode \
+					and %TermNode. This change effects a call sites in a \
+					compatible way.
+			* "missing removal of cv-qualifiers for %ValueHolder argument"
+				@ "static function template %CreateHolder"
+				@ "interface %IValueHolder" @ %YObject $since b761
+				// This would make creation of cv-qualified %RefHolder \
+					ill-formed.
+		),
+		/ %NPL $=
+		(
+			/ %NPLA1Internals $=
+			(
+				* $doc $impl "wrong internal %ExtraInfo comments"
+					@ "class %TCOAction" $since b947,
+				/ DLI "simplified member function %TCOAction::operator()",
+				* DLDI "redundant unused iterator variable" @ "function %clear"
+					@ "class template %FrameRecordList" $since b946,
+					// To eliminate Clang++ warning: [-Wunused variable].
+				- DLI "anchor" @ !'YB_IMPL_GNUCPP < 120000'
+					@ "class %RefContextHandler"
+			),
+			/ %NPLA1 $=
+			(
+				* "mismatched argument type" @ "%GKeptGuardAction"
+					$since b942
+					$= (/ $impl ^ 'std::declval<_tGuard&&>'
+						~ 'std::declval<_tGuard&>'),
+				/ "allowed return non-void type"
+					@ "function template %InvokeIn",
+				/ DLI "simplified 3rd parameter type"
+					@ "function %ParseLeafWithSourceInformation"
+					^ "%SourceName",
+				/ "supported trailing parameter pack"
+					@ "alias template %GTokenizer",
+				/ "class %REPLContext" -> "class %GlobalState" $=
+				(
+					- "function template %LoadFrom";
+						// All instances should use %Perform instead.
+					/ "split preprocessing out of term prepration" $=
+					(
+						- "nested call" @ "function template %Prepare#2";
+						- "function template %Prepare#1",
+						- $comp "preprocessing" @ ("all overloads %ReadFrom",
+							"static function %DefaultLoad";
+							"data member %Load"),
+						// Preprocessing is now optional and it should be \
+							called externally if needed.
+						/ $forced DLDI "called %Preprocess"
+							@ "function template %Perform"
+					),
+					(
+					+ 'mutable' @ "data member %CurrentSource";
+					+ 'const' @ "all member function and function templates \
+						not modifying objects except %Root"
+					),
+					(
+					+ "explicit 1st parameter 'ContextNode&' type"
+						@ "function templates %(Perform, Prepare)";
+						// The change to %Prepare passes the context in the session.
+					- "use of %Root" @ "members";
+						// This includes %ReadFrom overloads without trailing \
+							'ContextNode&' parameter but implying %Root in the \
+							implementation.
+					- "data member %Root",
+					(
+					/ "all 9 functions and 2 function templates with trailing \
+						context parameter" ^ 'ContextState&' ~ 'ContextNode&';
+					/ $forced DLDI "simplified function template %Perform",
+					/ $forced DLI "simplified static function %DefaultLoad"
+					)
+					),
+					/ @ "parameter list"
+						@ ("alias %Loader", "static function %DefaultLoad") $=
+					(
+						/ "type of parameter 'ContextNode&'" -> 'ContextState&',
+							// This is needed for the source information \
+								change of %CurrentSource, see below.
+						- "1st parameter"
+					),
+					(
+					/ "added additional source parameter" @ "%SourcedTokenizer"
+						$dep_from "%GTokenizer",
+					/ ("data member %CurrentSource", "function template \
+						%ShareCurrentSource") >> "class %ContextState";
+						// So there is no need of 'mutable' and protection \
+							(like the global interpreter lock) against \
+							concurrent accesses via 'const GlobalState&', \
+							which allows concurrent loading on different \
+							%ContextState instances.
+					/ $forced DLDI "constructor" $dep_from "%CurrentSource"
+					)
+				),
+				(
+				+ "class name declaration %GlobalState";
+				/ @ "class %ContextState" $=
+				(
+					+ "data member %Global";
+					+ "parameter type" @ "constructor#1"
+						-> 'const GlobalState&' ~ 'pmr::memory_resource&',
+					/ $forced DLI "constructors" $dep_from "%REPLContext"
+				)
+				),
+				/ $forced "1st parameter type 'REPLContext&'"
+					@ "function template %TryLoadSource"
+					-> 'const GlobalState&' $dep_from "%REPLContext",
+				+ "function template %Perform"
+					$dep_from ("%Perform" @ "GlobalState"),
+				/ "data members %(EvaluationPasses, EvaluateLeaf, \
+					EvaluateLiteral)" @ "class %ContextState"
+					>> "class %GlobalState" $dep_to "pass lifting";
+					// The guard pass which has no context parameter is not \
+						moved.
+				/ $forced "simplified constructors and friend function %swap"
+					@ "class %ContextState" $dep_from "pass lifting",
+				/ $forced "1st parameter type 'ContextState&'"
+					@ "function %SetupDefaultInterpretation"
+					-> 'GlobalState&' $dep_from ("class %REPLContext",
+					"pass lifting")
+					// This is required by both %GlobalState constructor and \
+						the passes lifted to the global state.
+			),
+			/ %Configuration $=
+			(
+				+ "allocator support" @ "class %Configuration" $=
+				(
+					+ "alias %allocator_type";
+					+ "constructor with allocator parameter",
+					+ "constructor template with allocator parameter and \
+						parameter pack",
+					+ "function %get_allocator"
+				),
+				/ DLI "supported allocator" @ "function operator>>"
+					^ $dep_from "%Configuration::get_allocator",
+				/ "function template %LoadNode" -> "function"
+			),
+			/ $forced "function %Forms::EvalUnit used context instead of \
+				2nd argument from the object language" @ %NPLA1Forms
+				$dep_from ("%REPLContext" @ %NPLA1) $=
+			(
+				+ "2nd parameter of 'ContextNode&' type";
+				/ $impl ^ $dep_from ("%A1::Perform" @ %NPLA1)
+			),
+			/ %Dependency $=
+			(
+				/ $forced DLDI
+					"functions %(ReduceToLoadExternal, RelayToLoadExternal)"
+					$dep_from ("%REPLContext::Load" @ %NPLA1),
+				+ "applicative 'symbol?'" @ "function %LoadGroundContext",
+				+ "applicative 'string?'" @ "function %LoadModule_std_strings",
+				/ "1st parameter type 'REPLContext&'" -> 'const GlobalState&'
+				/ $forced (("functions %OpenUnique"; "function %PreloadExternal"
+					$dep_from ("%TryLoadSource" @ %NPLA1)),
+					"function whose name have prefix 'Load'"
+					$dep_from ("%REPLContext" @ %NPLA1))
+					/ $= ($impl ^ $dep_from ("%A1::Perform" @ %NPLA1))
+			)
+		),
+		/ @ "class %Environment" @ %Helper.Environment $=
+		(
+			/ $forced DLDI "constructor"
+				$dep_from ("%LoadStandardContext" @ %NPL.Dependency),
+			(
+			/ "data member %Context" => "%Global";
+			+ "data member %Main";
+			/ "context" ^ "%Main" ~ "%Global.Root"
+			)
+		)
+	),
+	* $comp "building failure" @ "platform %Android" $since b942
+		$dep_from %(YBase.YStandardEx.MemoryResource,
+		"%GKeptGuardAction" @ YFramework.NPL.NPLA1),
+	/ %Tools.SHBuild.Main $=
+	(
+		/ @ "help message" $=
+		(
+			* "incorrect effect for multiple instances"
+				@ "descriptions for the '-xcmd,' option" $since b659,
+			/ @ "common descriptions" $=
+			(
+				* "missing indent before the paragraph of the session epoch"
+					$since b905
+				+ "newlines between paragraphs"
+			),
+			* "missing specifying the empty string after ',' for \
+				descriptions of OPTIONS" $since b659,
+			/ DLDI
+				"simplified descriptions for the '-xmode,' option" ^ "macro"
+		),
+		/ DLI "optional table" ^ "%ystdex::unchecked_function" ~ "%function",
+		/ $forced DLI "function %RunNPLFromStream" $dep_from
+			("%(LoadStandardContext, LoadModule_SHBuild)"
+			@ %YFramework.NPL.Dependency)
+	),
+	/ $forced DLDI "called %Preprocess function from the global state instance"
+		$effective @ ("all 2 function templates %ExecuteNPLA1"
+		@ "class %Environment" @ %YFramework.Helper.Environment,
+		"function %RunNPLFromStream" @ %Tools.SHBuild.Main)
+		$dep_from ("%REPLContext" @ %YFramework.NPL.NPLA1),
+	/ $forced DLI "function %TestNPL" @ %YReader.Shells
+		$dep_from %YFramework.Helper.Environment
+),
+
+b954
 (
 	/ %YFramework $=
 	(
@@ -47,14 +288,14 @@ $now
 			+ "allocator support" @ "class %MessageQueue" @ %YMessage $=
 			(
 				+ 'using BaseType::get_allocator;';
-				+ "constructor with 1 allocator parameter",
+				+ "constructor with allocator parameter",
 				+ 'using BaseType::get_allocator;'
 			),
 			+ "allocator support" @ "class %Application" @ %YApplication $=
 			(
 				+ "alias %allocator_type";
-				+ "constructor with 1 allocator parameter" ^ $dep_from
-					("constructor %MessageQueue with 1 allocator parameter"
+				+ "constructor with allocator parameter" ^ $dep_from
+					("constructor %MessageQueue with allocator parameter"
 					@ %YMessage),
 				+ "function %get_allocator"
 					^ $dep_from ("%MessageQueue::get_allocator @ "%YMessage)
@@ -1323,7 +1564,7 @@ b949
 	(
 		- DLDI "'NPL::' prefix" @ "calls to %NPL::make_observer",
 			// As %NPL changes in b947, but with a different reason: the name \
-				is introced by a using directive.
+				is introduced by a using directive.
 		+ "message after linking finished"
 			@ "member function %BuildContext::Build"
 	)
@@ -5482,7 +5723,7 @@ b928
 		+ DLI 'YB_UNLIKELY' @ "'--' handling",
 		/ $re_add(b926) DLDI "all 'yconstexpr const'" @ "namespace scope"
 			-> 'yconstexpr_inline const',
-		/ DLI "function %RunNPLStream" ^ "any_ops::trivial_swap_t",
+		/ DLI "function %RunNPLFromStream" ^ "any_ops::trivial_swap_t",
 		* DLDI "PMR container" @ "option table" $since b861,
 			// This is safe only when the allocator lives longer. This is the \
 				current case, so it is only a bug of the implementation. \

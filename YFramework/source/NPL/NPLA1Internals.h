@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r22506
+\version r22522
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-08-18 07:51 +0800
+	2022-09-08 12:34 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -360,8 +360,6 @@ public:
 		//	components of %FrameRecord is unspecified.
 		// XXX: Different to %ContextNode::ReducerSequence::clear, this is a bit
 		//	more efficient.
-		auto i(before_begin());
-
 		while(!empty())
 			// NOTE: The order of destruction of the members in each frame is
 			//	implied by %FrameRecord.
@@ -400,10 +398,10 @@ private:
 	};
 
 	/*!
-	\brief 帧记录。
-	\note 成员顺序和 RecordFrameIndex 中的项对应。
+	\brief 附加信息记录。
+	\note 成员顺序和 ExtraInfoIndex 中的项对应。
 	\note 成员析构的顺序是未指定的。
-	\sa RecordFrameIndex
+	\sa ExtraInfoIndex
 	*/
 	using ExtraInfo = tuple<ystdex::guard<SourceNameRecoverer>,
 		ystdex::optional<ystdex::guard<OneShotChecker>>>;
@@ -428,6 +426,8 @@ private:
 	/*!
 	\brief 可选的附加信息。
 	\since build 947
+
+	保存不是每个 TCO 动作都需被使用的信息，避免频繁创建的性能开销。
 	*/
 	mutable ystdex::optional<ExtraInfo> opt_extra_info{};
 
@@ -1438,10 +1438,11 @@ private:
 #if NPL_NPLA_CheckEnvironmentReferenceCount
 	//! \since build 876
 	EnvironmentReference environment_ref;
-#else
+#elif YB_IMPL_GNUCPP < 120000
 	// XXX: The anchor pointer here is for more efficient native code generation
-	//	(at least with x86_64-pc-linux G++ 9.2), though there are still more
-	//	than necessary memory allocations should have been better avoided.
+	//	(at least with x86_64-pc-linux G++ 9.2, but not G++ 12.1), though there
+	//	are still more than necessary memory allocations should have been better
+	//	avoided.
 	AnchorPtr anchor_ptr;
 #endif
 
@@ -1453,8 +1454,10 @@ public:
 		const EnvironmentReference& env_ref) ynothrow
 #if NPL_NPLA_CheckEnvironmentReferenceCount
 		: environment_ref(env_ref), HandlerRef(h)
-#else
+#elif YB_IMPL_GNUCPP < 120000
 		: anchor_ptr(env_ref.GetAnchorPtr()), HandlerRef(h)
+#else
+		: HandlerRef((yunused(env_ref), h))
 #endif
 	{}
 	DefDeCopyMoveCtorAssignment(RefContextHandler)
@@ -1477,10 +1480,13 @@ public:
 	friend DefSwap(ynothrow, RefContextHandler,
 		(std::swap(_x.environment_ref, _y.environment_ref),
 		std::swap(_x.HandlerRef, _y.HandlerRef)))
-#	else
+#	elif YB_IMPL_GNUCPP < 120000
 	friend DefSwap(ynothrow, RefContextHandler,
 		(std::swap(_x.anchor_ptr, _y.anchor_ptr),
 		std::swap(_x.HandlerRef, _y.HandlerRef)))
+#	else
+	friend DefSwap(ynothrow, RefContextHandler,
+		(std::swap(_x.HandlerRef, _y.HandlerRef)))
 #	endif
 #endif
 };

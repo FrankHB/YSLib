@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r617
+\version r640
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2022-09-05 08:50 +0800
+	2022-09-14 01:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define NPL_INC_Dependency_h_
 
 #include "YModules.h"
-#include YFM_NPL_NPLA1 // for string, vector, REPLContext, YSLib::unique_ptr;
+#include YFM_NPL_NPLA1 // for string, vector, GlobalState, YSLib::unique_ptr;
 #include <istream> // for std::istream;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard;
 
@@ -79,11 +79,11 @@ namespace A1
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) YSLib::unique_ptr<std::istream>
 OpenFile(const char*);
 
-//! \since build 899
+//! \since build 955
 //@{
 //! \brief 打开指定路径的文件作为 NPL 输入流并在上下文设置源代码名称。
 YB_ATTR_nodiscard YF_API YSLib::unique_ptr<std::istream>
-OpenUnique(REPLContext&, string);
+OpenUnique(ContextState&, string);
 
 
 /*!
@@ -94,7 +94,7 @@ OpenUnique(REPLContext&, string);
 \sa TryLoadSource
 */
 YB_NONNULL(2) YF_API void
-PreloadExternal(REPLContext&, const char*);
+PreloadExternal(ContextState&, const char*);
 
 //! \note 以参数指定的项的第一个子项作为 string 类型的名称指定翻译单元。
 //@{
@@ -105,7 +105,7 @@ PreloadExternal(REPLContext&, const char*);
 \sa OpenUnique
 */
 YF_API ReductionStatus
-ReduceToLoadExternal(TermNode&, ContextNode&, REPLContext&);
+ReduceToLoadExternal(TermNode&, ContextNode&);
 
 /*!
 \brief 异步规约加载外部翻译单元。
@@ -113,7 +113,7 @@ ReduceToLoadExternal(TermNode&, ContextNode&, REPLContext&);
 \sa ReduceToLoadExternal
 */
 YF_API ReductionStatus
-RelayToLoadExternal(ContextNode&, TermNode&, REPLContext&);
+RelayToLoadExternal(ContextNode&, TermNode&);
 //@}
 //@}
 
@@ -122,7 +122,7 @@ namespace Forms
 
 /*!
 \note 支持的具体语法形式参考 Documentation::NPL 。
-\since build 839
+\since build 955
 */
 //@{
 /*!
@@ -135,7 +135,7 @@ namespace Forms
 当前派生实现：求值合并子调用前已加载字符串模块或等价方式初始化为模块 std.strings 。
 */
 YF_API void
-LoadGroundContext(REPLContext&);
+LoadGroundContext(ContextState&);
 
 /*!
 \pre 已加载基础 NPLA1 上下文或等价方式初始化。
@@ -146,30 +146,27 @@ LoadGroundContext(REPLContext&);
 //@{
 /*!
 \brief 加载续延模块。
-\since build 943
 
 加载一等续延和相关操作。
 */
 YF_API void
-LoadModule_std_continuations(REPLContext&);
+LoadModule_std_continuations(ContextState&);
 
 /*!
 \brief 加载代理求值模块。
-\since build 856
 
 加载 promise 类型和延迟求值等操作。
 */
 YF_API void
-LoadModule_std_promises(REPLContext&);
+LoadModule_std_promises(ContextState&);
 
 /*!
 \brief 加载数学功能模块。
-\since build 930
 
 加载数学功能相关操作。
 */
 YF_API void
-LoadModule_std_math(REPLContext&);
+LoadModule_std_math(ContextState&);
 
 /*!
 \brief 加载字符串模块。
@@ -177,7 +174,7 @@ LoadModule_std_math(REPLContext&);
 加载字符串库操作。
 */
 YF_API void
-LoadModule_std_strings(REPLContext&);
+LoadModule_std_strings(ContextState&);
 
 /*!
 \pre 当前派生实现：已加载和初始化依赖的模块，在当前环境可访问的指定的模块名称。
@@ -188,14 +185,13 @@ LoadModule_std_strings(REPLContext&);
 \brief 加载输入/输出模块。
 \pre 断言：第二参数非空。
 \note 第二参数指定基础环境。
-\since build 942
 
 加载输入/输出库操作。
 派生实现依赖模块：
 字符串模块 std.strings 。
 */
 YF_API void
-LoadModule_std_io(REPLContext&, const shared_ptr<Environment>&);
+LoadModule_std_io(ContextState&, const shared_ptr<Environment>&);
 
 /*!
 \brief 加载系统模块。
@@ -206,13 +202,12 @@ LoadModule_std_io(REPLContext&, const shared_ptr<Environment>&);
 字符串模块 std.strings 。
 */
 YF_API void
-LoadModule_std_system(REPLContext&);
+LoadModule_std_system(ContextState&);
 
 /*!
 \brief 加载模块管理模块。
 \pre 断言：第二参数非空。
 \note 第二参数指定基础环境。
-\since build 942
 
 加载模块管理操作。
 派生实现依赖模块：
@@ -222,7 +217,7 @@ LoadModule_std_system(REPLContext&);
 系统模块 std.system 。
 */
 YF_API void
-LoadModule_std_modules(REPLContext&, const shared_ptr<Environment>&);
+LoadModule_std_modules(ContextState&, const shared_ptr<Environment>&);
 //@}
 
 /*!
@@ -232,7 +227,7 @@ LoadModule_std_modules(REPLContext&, const shared_ptr<Environment>&);
 用于内部使用。加载的环境的具体内容未指定。
 */
 YF_API void
-LoadModule_SHBuild(REPLContext&);
+LoadModule_SHBuild(ContextState&);
 //@}
 //@}
 
@@ -245,7 +240,7 @@ LoadModule_SHBuild(REPLContext&);
 \sa LoadModule_std_promises
 \sa LoadModule_std_strings
 \sa LoadModule_std_system
-\since build 898
+\since build 955
 
 调用 LoadGroundContext 并加载标准库模块。
 加载的标准库模块名称符合 NPLA1 参考实现扩展环境约定。
@@ -253,7 +248,7 @@ LoadModule_SHBuild(REPLContext&);
 加载的标准库模块被冻结。
 */
 YF_API void
-LoadStandardContext(REPLContext&);
+LoadStandardContext(ContextState&);
 
 } // namespace Forms;
 

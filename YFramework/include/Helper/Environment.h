@@ -11,13 +11,13 @@
 /*!	\file Environment.h
 \ingroup Helper
 \brief 环境。
-\version r1146
+\version r1160
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2022-09-05 08:41 +0800
+	2022-09-13 06:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,7 @@
 #	define YF_Helper_Environment_NPL_UseSourceInfo false
 #endif
 #include YFM_YSLib_Core_YShellDefinition // for ostringstream;
-#include YFM_NPL_NPLA1 // for NPL::A1::REPLContext, NPL::TermNode,
+#include YFM_NPL_NPLA1 // for NPL::A1::GlobalState, NPL::TermNode,
 //	NPL::ContextNode, NPL::A1::InvokeIn, NPL::Environment,
 //	NPL::A1::EnvironmentGuard, NPL::ToReducer, NPL::A1::ReduceOnce;
 
@@ -76,6 +76,7 @@ class NativeHost;
 /*!
 \brief 应用程序环境。
 \warning 非线程安全。
+\warning 初始化后不检查成员使用的分配器相等性。
 \since build 378
 
 应用程序实例使用的环境。
@@ -92,12 +93,15 @@ public:
 	//! \since build 954
 	//@{
 	ostringstream DefaultOutputStream;
-	NPL::A1::REPLContext Context;
-	NPL::TermNode Term{Context.Allocator};
+	//! \since build 955
+	NPL::A1::GlobalState Global;
+	//! \since build 955
+	NPL::A1::ContextState Main{Global};
+	NPL::TermNode Term{Global.Allocator};
 
 private:
 #	if YF_Helper_Environment_NPL_UseBacktrace
-	NPL::ContextNode::ReducerSequence backtrace{Context.Allocator};
+	NPL::ContextNode::ReducerSequence backtrace{Global.Allocator};
 #	endif
 	//@}
 
@@ -129,7 +133,7 @@ public:
 	{
 		// NOTE: The ground environment is saved during the call to
 		//	%NPL::A1::InvokeIn.
-		NPL::A1::InvokeIn(Context.Root, [&]{
+		NPL::A1::InvokeIn(Main, [&]{
 			RewriteNPLA1(f);
 		});
 	}
@@ -141,11 +145,11 @@ public:
 	void
 	ExecuteNPLA1(_func f, shared_ptr<NPL::Environment> p_env)
 	{
-		YAssert(p_env != Context.Root.GetRecordPtr(),
+		YAssert(p_env != Main.GetRecordPtr(),
 			"Invalid environment found.");
 
-		NPL::A1::EnvironmentGuard gd(Context.Root,
-			Context.Root.SwitchEnvironmentUnchecked(std::move(p_env)));
+		NPL::A1::EnvironmentGuard gd(Main,
+			Main.SwitchEnvironmentUnchecked(std::move(p_env)));
 
 		RewriteNPLA1(f);
 	}
@@ -158,10 +162,11 @@ private:
 	void
 	RewriteNPLA1(_func f)
 	{
-		Context.Root.Rewrite(NPL::ToReducer(Context.Allocator, trivial_swap,
+		Main.Rewrite(NPL::ToReducer(Global.Allocator, trivial_swap,
 			[&](NPL::ContextNode& ctx){
 			PrepareExecution(ctx);
 			f(Term);
+			Global.Preprocess(Term);
 			return NPL::A1::ReduceOnce(Term, ctx);
 		}));
 	}

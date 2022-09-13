@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r28289
+\version r28294
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2022-09-05 08:54 +0800
+	2022-09-13 02:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -4170,11 +4170,10 @@ EvalStringRef(TermNode& term, ContextNode& ctx)
 }
 
 ReductionStatus
-EvalUnit(TermNode& term)
+EvalUnit(TermNode& term, ContextNode& ctx)
 {
-	CallBinaryAs<const string, REPLContext>(
-		[&](const string& unit, REPLContext& rctx){
-		term.SetContent(rctx.Perform(unit));
+	CallUnaryAs<const string>([&](const string& unit){
+		term.SetContent(A1::Perform(ContextState::Access(ctx), unit));
 	}, term);
 	return ReductionStatus::Retained;
 }

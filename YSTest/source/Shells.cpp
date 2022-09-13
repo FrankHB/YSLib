@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6555
+\version r6556
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2022-09-05 00:51 +0800
+	2022-09-14 03:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -172,7 +172,7 @@ TestNPL(Environment& env, std::istream&& is)
 	using namespace NPL;
 
 	TryExpr(env.ExecuteNPLA1([&](TermNode& term){
-		term = env.Context.ReadFrom(is);
+		term = env.Global.ReadFrom(is, env.Main);
 	}))
 	// NOTE: Like %A1::TryLoadSource, but not in the inner reduction.
 	CatchExpr(..., std::throw_with_nested(

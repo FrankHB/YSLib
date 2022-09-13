@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r23847
+\version r23927
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2022-08-25 12:06 +0800
+	2022-09-14 02:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1575,8 +1575,9 @@ ThrowValueCategoryError(const TermNode& term)
 }
 
 
-ContextState::ContextState(pmr::memory_resource& rsrc)
-	: ContextNode(rsrc)
+ContextState::ContextState(const GlobalState& g)
+	: ContextNode(*g.Allocator.resource()),
+	Global(g)
 {
 	// NOTE: The guard object shall be fresh on the calls for reentrancy.
 	// XXX: The empty type is specialized enough without %trivial_swap.
@@ -1586,19 +1587,15 @@ ContextState::ContextState(pmr::memory_resource& rsrc)
 			in_place_type<ReductionGuard>, ctx);
 	});
 }
-ContextState::ContextState(const ContextState& ctx)
-	: ContextNode(ctx),
-	EvaluateLeaf(ctx.EvaluateLeaf), EvaluateList(ctx.EvaluateList),
-	EvaluateLiteral(ctx.EvaluateLiteral), Guard(ctx.Guard),
-	ReduceOnce(ctx.ReduceOnce)
+ContextState::ContextState(const ContextState& cs)
+	: ContextNode(cs),
+	Global(cs.Global), Guard(cs.Guard), ReduceOnce(cs.ReduceOnce)
 {}
-ContextState::ContextState(ContextState&& ctx)
-	: ContextNode(std::move(ctx)),
-	EvaluateLeaf(ctx.EvaluateLeaf), EvaluateList(ctx.EvaluateList),
-	EvaluateLiteral(ctx.EvaluateLiteral), Guard(ctx.Guard),
-	ReduceOnce(ctx.ReduceOnce)
+ContextState::ContextState(ContextState&& cs)
+	: ContextNode(std::move(cs)),
+	Global(cs.Global), Guard(cs.Guard), ReduceOnce(cs.ReduceOnce)
 {
-	swap(next_term_ptr, ctx.next_term_ptr);
+	swap(next_term_ptr, cs.next_term_ptr);
 }
 ContextState::ImplDeDtor(ContextState)
 
@@ -1621,13 +1618,14 @@ ContextState::DefaultReduceOnce(TermNode& term, ContextNode& ctx)
 	//	here. More specific handling can be implemented by context handlers or
 	//	replacement of %ContextState::DefaultReduceOnce.
 	auto& cs(ContextState::Access(ctx));
+	auto& global(cs.Global.get());
 
 	if(IsCombiningTerm(term))
 	{
 		YAssert(term.size() != 0, "Invalid term found.");
 		// NOTE: List with single element shall be reduced as the element.
 		if(!IsSingleElementList(term))
-			return DoAdministratives(cs.EvaluateList, term, ctx);
+			return DoAdministratives(global.EvaluateList, term, ctx);
 
 		// XXX: This may be slightly more efficient, and more importantly,
 		//	respecting to the nested call safety on %ReduceOnce for the thunked
@@ -1649,7 +1647,7 @@ ContextState::DefaultReduceOnce(TermNode& term, ContextNode& ctx)
 	else if(!IsTyped<ValueToken>(term))
 		// NOTE: The reduction relies on proper handling of reduction status and
 		//	proper tail action for the thunked implementations.
-		return DoAdministratives(cs.EvaluateLeaf, term, ctx);
+		return DoAdministratives(global.EvaluateLeaf, term, ctx);
 	return ReductionStatus::Retained;
 }
 
@@ -2009,7 +2007,7 @@ ParseLeaf(TermNode& term, string_view id)
 
 void
 ParseLeafWithSourceInformation(TermNode& term, string_view id,
-	const shared_ptr<string>& name, const SourceLocation& src_loc)
+	const SourceName& name, const SourceLocation& src_loc)
 {
 	// NOTE: Most are same to %ParseLeaf, except for additional source
 	//	information mixed into the values of %TokenValue.
@@ -2306,6 +2304,7 @@ ReductionStatus
 EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 {
 	auto& cs(ContextState::Access(ctx));
+	auto& global(cs.Global.get());
 
 	YAssertNonnull(id.data());
 	// NOTE: Only string node of identifier is tested.
@@ -2313,10 +2312,11 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 	//	results from the analysis result of %ParseLeaf. If necessary, there can
 	//	be inserted some additional cleanup to remove empty tokens, returning
 	//	%ReductionStatus::Partial. Separators should have been handled in
-	//	appropriate preprocessing passes like %REPLContext::Preprocess.
+	//	appropriate preprocessing passes like %GlobalState::Preprocess.
 	// XXX: Asynchronous reduction is currently not supported.
-	return cs.EvaluateLiteral.empty() || CheckReducible(cs.EvaluateLiteral(term,
-		cs, id)) ? EvaluateIdentifier(term, cs, id) : ReductionStatus::Retained;
+	return global.EvaluateLiteral.empty()
+		|| CheckReducible(global.EvaluateLiteral(term, cs, id))
+		? EvaluateIdentifier(term, cs, id) : ReductionStatus::Retained;
 }
 
 ReductionStatus
@@ -2550,10 +2550,10 @@ BindSymbol(const shared_ptr<Environment>& p_env, const TokenValue& n,
 
 
 void
-SetupDefaultInterpretation(ContextState& cs, EvaluationPasses passes)
+SetupDefaultInterpretation(GlobalState& global, EvaluationPasses passes)
 {
 	using Pass = EvaluationPasses::HandlerType;
-	const auto a(cs.get_allocator());
+	const auto a(global.Allocator);
 
 	// XXX: Empty types and functions after decayed are specialized enough
 	//	without %trivial_swap.
@@ -2601,9 +2601,9 @@ SetupDefaultInterpretation(ContextState& cs, EvaluationPasses passes)
 	//	implementation, assumed by TCO action.
 	passes += Pass(std::allocator_arg, a, ReduceCombined);
 #endif
-	cs.EvaluateList = std::move(passes);
+	global.EvaluateList = std::move(passes);
 	// NOTE: This implies the %RegularizeTerm call when necessary.
-	cs.EvaluateLeaf = Pass(std::allocator_arg, a, ReduceLeafToken);
+	global.EvaluateLeaf = Pass(std::allocator_arg, a, ReduceLeafToken);
 }
 
 void
@@ -2746,40 +2746,42 @@ TraceBacktrace(const ContextNode::ReducerSequence& backtrace,
 }
 
 
-REPLContext::REPLContext(pmr::memory_resource& rsrc)
-	: REPLContext([this](const GParsedValue<ByteParser>& str){
+GlobalState::GlobalState(pmr::memory_resource& rsrc)
+	: GlobalState([this](const GParsedValue<ByteParser>& str){
 		TermNode term(Allocator);
 		const auto id(YSLib::make_string_view(str));
 
 		if(!id.empty())
 			ParseLeaf(term, id);
 		return term;
-	}, [this](const GParsedValue<SourcedByteParser>& val){
+	}, [this](const GParsedValue<SourcedByteParser>& val,
+		const ContextState& cs){
 		TermNode term(Allocator);
 		const auto id(YSLib::make_string_view(val.second));
 
 		if(!id.empty())
-			ParseLeafWithSourceInformation(term, id, CurrentSource, val.first);
+			ParseLeafWithSourceInformation(term, id, cs.CurrentSource,
+				val.first);
 		return term;
 	}, rsrc)
 {}
-REPLContext::REPLContext(Tokenizer leaf_conv,
+GlobalState::GlobalState(Tokenizer leaf_conv,
 	SourcedTokenizer sourced_leaf_conv, pmr::memory_resource& rsrc)
-	: Allocator(&rsrc), Root(rsrc), Preprocess(SeparatorPass(Allocator)),
+	: Allocator(&rsrc), Preprocess(SeparatorPass(Allocator)),
 	ConvertLeaf(std::move(leaf_conv)),
 	ConvertLeafSourced(std::move(sourced_leaf_conv))
 {
-	SetupDefaultInterpretation(Root, EvaluationPasses(Allocator));
+	SetupDefaultInterpretation(*this, EvaluationPasses(Allocator));
 }
 
 bool
-REPLContext::IsAsynchronous() const ynothrow
+GlobalState::IsAsynchronous() const ynothrow
 {
 	return NPL_Impl_NPLA1_Enable_Thunked;
 }
 
 std::ostream&
-REPLContext::GetOutputStreamRef() const
+GlobalState::GetOutputStreamRef() const
 {
 	if(OutputStreamPtr)
 		return *OutputStreamPtr;
@@ -2787,119 +2789,119 @@ REPLContext::GetOutputStreamRef() const
 }
 
 TermNode
-REPLContext::DefaultLoad(REPLContext& context, ContextNode& ctx,
-	string filename)
+GlobalState::DefaultLoad(ContextState& cs, string filename)
 {
-	return context.ReadFrom(*A1::OpenUnique(context, std::move(filename)), ctx);
+	return
+		cs.Global.get().ReadFrom(*A1::OpenUnique(cs, std::move(filename)), cs);
 }
 
 TermNode
-REPLContext::ReadFrom(LoadOptionTag<>, std::streambuf& buf, ContextNode& ctx)
+GlobalState::ReadFrom(LoadOptionTag<>, std::streambuf& buf, ContextState& cs)
 	const
 {
 	using s_it_t = std::istreambuf_iterator<char>;
-	Session sess(ctx.get_allocator());
+	Session sess(cs.get_allocator());
 
 	if(UseSourceLocation)
 	{
 		SourcedByteParser parse(sess.Lexer, sess.get_allocator());
 
-		return Prepare(sess,
+		return Prepare(cs, sess,
 			sess.Process(s_it_t(&buf), s_it_t(), ystdex::ref(parse)));
 	}
-	return Prepare(sess, sess.Process(s_it_t(&buf), s_it_t()));
+	return Prepare(cs, sess, sess.Process(s_it_t(&buf), s_it_t()));
 }
 TermNode
-REPLContext::ReadFrom(LoadOptionTag<>, std::streambuf& buf, ReaderState& rs,
-	ContextNode& ctx) const
+GlobalState::ReadFrom(LoadOptionTag<>, std::streambuf& buf, ReaderState& rs,
+	ContextState& cs) const
 {
 	using s_it_t = std::istreambuf_iterator<char>;
-	Session sess(ctx.get_allocator());
+	Session sess(cs.get_allocator());
 
 	if(UseSourceLocation)
 	{
 		SourcedByteParser parse(sess.Lexer, sess.get_allocator());
 
-		return Prepare(sess, sess.ProcessOne(rs, s_it_t(&buf), s_it_t(),
+		return Prepare(cs, sess, sess.ProcessOne(rs, s_it_t(&buf), s_it_t(),
 			ystdex::ref(parse)).first);
 	}
-	return Prepare(sess, sess.ProcessOne(rs, s_it_t(&buf), s_it_t()).first);
+	return Prepare(cs, sess, sess.ProcessOne(rs, s_it_t(&buf), s_it_t()).first);
 }
 TermNode
-REPLContext::ReadFrom(LoadOptionTag<WithSourceLocation>, std::streambuf& buf,
-	ContextNode& ctx) const
+GlobalState::ReadFrom(LoadOptionTag<WithSourceLocation>, std::streambuf& buf,
+	ContextState& cs) const
 {
 	using s_it_t = std::istreambuf_iterator<char>;
-	Session sess(ctx.get_allocator());
+	Session sess(cs.get_allocator());
 	SourcedByteParser parse(sess.Lexer, sess.get_allocator());
 
-	return
-		Prepare(sess, sess.Process(s_it_t(&buf), s_it_t(), ystdex::ref(parse)));
+	return Prepare(cs, sess,
+		sess.Process(s_it_t(&buf), s_it_t(), ystdex::ref(parse)));
 }
 TermNode
-REPLContext::ReadFrom(LoadOptionTag<WithSourceLocation>, std::streambuf& buf,
-	ReaderState& rs, ContextNode& ctx) const
+GlobalState::ReadFrom(LoadOptionTag<WithSourceLocation>, std::streambuf& buf,
+	ReaderState& rs, ContextState& cs) const
 {
 	using s_it_t = std::istreambuf_iterator<char>;
-	Session sess(ctx.get_allocator());
+	Session sess(cs.get_allocator());
 	SourcedByteParser parse(sess.Lexer, sess.get_allocator());
 
-	return Prepare(sess,
+	return Prepare(cs, sess,
 		sess.ProcessOne(rs, s_it_t(&buf), s_it_t(), ystdex::ref(parse)).first);
 }
 TermNode
-REPLContext::ReadFrom(LoadOptionTag<NoSourceInformation>, std::streambuf& buf,
-	ContextNode& ctx) const
+GlobalState::ReadFrom(LoadOptionTag<NoSourceInformation>, std::streambuf& buf,
+	ContextState& cs) const
 {
 	using s_it_t = std::istreambuf_iterator<char>;
-	Session sess(ctx.get_allocator());
+	Session sess(cs.get_allocator());
 
-	return Prepare(sess, sess.Process(s_it_t(&buf), s_it_t()));
+	return Prepare(cs, sess, sess.Process(s_it_t(&buf), s_it_t()));
 }
 TermNode
-REPLContext::ReadFrom(LoadOptionTag<NoSourceInformation>, std::streambuf& buf,
-	ReaderState& rs, ContextNode& ctx) const
+GlobalState::ReadFrom(LoadOptionTag<NoSourceInformation>, std::streambuf& buf,
+	ReaderState& rs, ContextState& cs) const
 {
 	using s_it_t = std::istreambuf_iterator<char>;
-	Session sess(ctx.get_allocator());
+	Session sess(cs.get_allocator());
 
-	return Prepare(sess, sess.ProcessOne(rs, s_it_t(&buf), s_it_t()).first);
+	return Prepare(cs, sess, sess.ProcessOne(rs, s_it_t(&buf), s_it_t()).first);
 }
 TermNode
-REPLContext::ReadFrom(LoadOptionTag<>, string_view unit, ContextNode& ctx) const
+GlobalState::ReadFrom(LoadOptionTag<>, string_view unit, ContextState& cs) const
 {
 	YAssertNonnull(unit.data());
 
-	Session sess(ctx.get_allocator());
+	Session sess(cs.get_allocator());
 
 	if(UseSourceLocation)
 	{
 		SourcedByteParser parse(sess.Lexer, sess.get_allocator());
 
-		return Prepare(sess, sess.Process(unit, ystdex::ref(parse)));
+		return Prepare(cs, sess, sess.Process(unit, ystdex::ref(parse)));
 	}
-	return Prepare(sess, sess.Process(unit));
+	return Prepare(cs, sess, sess.Process(unit));
 }
 TermNode
-REPLContext::ReadFrom(LoadOptionTag<WithSourceLocation>, string_view unit,
-	ContextNode& ctx) const
+GlobalState::ReadFrom(LoadOptionTag<WithSourceLocation>, string_view unit,
+	ContextState& cs) const
 {
 	YAssertNonnull(unit.data());
 
-	Session sess(ctx.get_allocator());
+	Session sess(cs.get_allocator());
 	SourcedByteParser parse(sess.Lexer, sess.get_allocator());
 
-	return Prepare(sess, sess.Process(unit, ystdex::ref(parse)));
+	return Prepare(cs, sess, sess.Process(unit, ystdex::ref(parse)));
 }
 TermNode
-REPLContext::ReadFrom(LoadOptionTag<NoSourceInformation>, string_view unit,
-	ContextNode& ctx) const
+GlobalState::ReadFrom(LoadOptionTag<NoSourceInformation>, string_view unit,
+	ContextState& cs) const
 {
 	YAssertNonnull(unit.data());
 
-	Session sess(ctx.get_allocator());
+	Session sess(cs.get_allocator());
 
-	return Prepare(sess, sess.Process(unit));
+	return Prepare(cs, sess, sess.Process(unit));
 }
 
 } // namesapce A1;

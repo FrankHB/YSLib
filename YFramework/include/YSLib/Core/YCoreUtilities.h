@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2021 FrankHB.
+	© 2010-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2629
+\version r2653
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2021-05-18 02:01 +0800
+	2022-09-06 12:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,9 @@
 #define YSL_INC_Core_YCoreUtilities_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YException // for LoggedEvent, string, function,
-//	string_view;
+#include YFM_YSLib_Core_YException // for LoggedEvent, string, string_view,
+//	std::string, std::exception, size_t, ExtractException, FatalError,
+//	to_std_string, make_string_view, function;
 #include <ystdex/algorithm.hpp> // for ystdex::clamp;
 
 namespace YSLib
@@ -305,7 +306,7 @@ CheckUpperBound(_type val, const string& name = {}, RecordLevel lv = Err)
 	// TODO: Add and use safe %common_arithmetic_type interface instead?
 	// TODO: Add direct integer rank comparison?
 	using common_t = typename ystdex::common_int_type<_tDst, _type>::type;
-	
+
 	if((std::is_signed<common_t>() && std::is_unsigned<_tDst>()
 		&& ystdex::integer_width<common_t>() <= ystdex::integer_width<_tDst>())
 		|| !(common_t(std::numeric_limits<common_t>::max()) < common_t(val)))
@@ -371,10 +372,26 @@ ClearSequence(_tOut dst, size_t n) ynothrowv
 \brief 执行关键动作。
 \throw FatalError 调用失败。
 \note 第二参数表示调用签名；后两个参数用于抛出异常。
-\since build 899
+\since build 955
 */
-YF_API void
-PerformKeyAction(function<void()>, const char*, const char*, string_view);
+template<typename _func>
+void
+PerformKeyAction(_func f, const char* sig, const char* t, string_view sv)
+{
+	std::string res;
+
+	try
+	{
+		f();
+		return;
+	}
+	CatchExpr(std::exception& e, ExtractException(
+		[&](const std::string & str, size_t level){
+		res += std::string(level, ' ') + "ERROR: " + str + '\n';
+	}, e))
+	CatchExpr(..., res += std::string("Unknown exception @ ") + sig + ".\n")
+	throw FatalError(t, make_string_view(to_std_string(sv) + res));
+}
 
 
 /*!
@@ -401,7 +418,7 @@ public:
 	//! \since build 919
 	//@{
 	DefDeCtor(ArgumentsVector)
-	ArgumentsVector(vector<string>::allocator_type a)
+	ArgumentsVector(CommandArguments::VectorType::allocator_type a)
 		: Arguments(a)
 	{}
 	DefDeCopyMoveCtorAssignment(ArgumentsVector)
@@ -434,6 +451,7 @@ public:
 /*!
 \brief 锁定默认命令行参数对象。
 \return 静态对象的非空锁定指针。
+\note 使用默认分配器而不支持指定分配器，以避免静态对象析构时超出分配器的生存期。
 \relates ArgumentsVector
 \since build 839
 */

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015, 2017-2018, 2020 FrankHB.
+	© 2014-2015, 2017-2018, 2020, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.cpp
 \ingroup Core
 \brief 核心实用模块。
-\version r167
+\version r187
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2014-10-01 08:52:17 +0800
 \par 修改时间:
-	2020-12-12 10:09 +0800
+	2022-09-05 22:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,8 +26,8 @@
 
 
 #include "YSLib/Core/YModules.h"
-#include YFM_YSLib_Core_YCoreUtilities // for std::exception, ExtractException,
-//	FatalError, upopen, upclose, ExtractAndTrace;
+#include YFM_YSLib_Core_YCoreUtilities // for FatalError, upopen, upclose,
+//	ExtractAndTrace;
 #include <random> // for std::random_device, std::mt19937,
 //	std::uniform_int_distribution;
 #include <cstdlib> // for std::getenv;
@@ -35,26 +35,6 @@
 
 namespace YSLib
 {
-
-void
-PerformKeyAction(function<void()> f, const char* sig,
-	const char* t, string_view sv)
-{
-	string res;
-
-	try
-	{
-		f();
-		return;
-	}
-	CatchExpr(std::exception& e, ExtractException(
-		[&](const string& str, size_t level){
-		res += string(level, ' ') + "ERROR: " + str + '\n';
-	}, e))
-	CatchExpr(..., res += string("Unknown exception @ ") + sig + ".\n")
-	throw FatalError(t, string(sv) + res);
-}
-
 
 string
 RandomizeTemplatedString(string str, char mask, string_view tmpl)

@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r6971
+\version r6977
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2022-08-31 12:40 +0800
+	2022-09-13 03:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include "YModules.h"
 #include YFM_YSLib_Core_YShellDefinition // for std::is_base_of,
 //	std::allocator_arg_t, std::allocator_arg, std::is_constructible,
-//	std::addressof, YSLib::forward_as_tuple;
+//	std::addressof, YSLib::forward_as_tuple, ystdex::remove_cv_t;
 #include <ystdex/typeindex.h> // for ystdex::type_id, ystdex::type_info,
 //	ystdex::type_index;
 #include <ystdex/any.h> // for ystdex::any, ystdex::any_ops,
@@ -156,7 +156,7 @@ DeclDerivedI(YF_API, IValueHolder, any_ops::holder)
 		\brief 创建不具有所有权的间接持有者。
 		\warning 应适当维护所有权避免未定义行为。
 
-		派生实现应保证持有对应的 lref<T> 类型的值引用当前持有的 T 类型的值。
+		派生实现应保证持有对应的 \c lref<T> 类型的值引用当前持有的 \c T 类型的值。
 		*/
 		Indirect,
 		/*!
@@ -1053,10 +1053,11 @@ IValueHolder::CreateHolder(Creation c, _type& obj)
 		return
 			HolderOperations<RefHolder<_type>>::CreateInPlace(ystdex::ref(obj));
 	case Copy:
-		return HolderOperations<ValueHolder<_type>>::CreateInPlace(obj);
+		return HolderOperations<
+			ValueHolder<ystdex::remove_cv_t<_type>>>::CreateInPlace(obj);
 	case Move:
-		return
-			HolderOperations<ValueHolder<_type>>::CreateInPlace(std::move(obj));
+		return HolderOperations<ValueHolder<
+			ystdex::remove_cv_t<_type>>>::CreateInPlace(std::move(obj));
 	default:
 		ystdex::throw_invalid_construction();
 	}

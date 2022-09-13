@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r4509
+\version r4580
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2022-07-11 18:05 +0800
+	2022-09-14 03:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,8 @@ See readme file for details.
 //	ystdex::exists_substr, YSLib::uspawn, YSLib::ifstream,
 //	IO::FetchNativeDynamicModuleExtension, YSLib::uremove,
 //	YSLib::CommandArguments, YSLib::istringstream, EXIT_FAILURE, EXIT_SUCCESS;
-#include YFM_YSLib_Core_YEvent // for YSLib::function, ystdex::bind1,
+#include <ystdex/function.hpp> // for ystdex::unchecked_function;
+#include YFM_YSLib_Core_YEvent // for ystdex::bind1, YSLib::function,
 //	trivial_swap;
 #include YFM_YSLib_Service_FileSystem // for namespace YSLib::IO, IO::Path,
 //	YSLib::Deployment;
@@ -49,7 +50,8 @@ See readme file for details.
 #include YFM_YSLib_Service_YTimer // for namespace std::chrono;
 #include <ystdex/mixin.hpp> // for ystdex::wrap_mixin_t;
 #include YFM_NPL_Dependency // for NPL::DepsEventType, NPL::Deliteralize,
-//	NPL::pmr::memory_resource, NPL, A1, Forms, TraceException, TraceBacktrace,
+//	NPL::pmr::memory_resource, NPL, A1, Forms, LoadStandardContext,
+//	LoadModule_SHBuild, TraceException, TraceBacktrace,
 //	NPL::DecomposeMakefileDepList, NPL::FilterMakefileDependencies,
 //	NPL::pmr::pool_resource;
 #include <ystdex/concurrency.h> // for std::mutex, std::lock_guard,
@@ -78,12 +80,13 @@ using YSLib::size_t;
 using YSLib::RecordLevel;
 using YSLib::Notice;
 using YSLib::FetchStaticRef;
+using YSLib::Logger;
 using YSLib::string;
 using YSLib::set;
 using YSLib::map;
 using YSLib::vector;
-using YSLib::Logger;
-using YSLib::function;
+//! \since build 955
+using ystdex::unchecked_function;
 using YSLib::Warning;
 using YSLib::to_std_string;
 using YSLib::string_view;
@@ -92,6 +95,7 @@ using YSLib::to_string;
 namespace IO = YSLib::IO;
 using YSLib::Debug;
 using YSLib::Informative;
+using YSLib::function;
 using IO::Path;
 using YSLib::String;
 using YSLib::FilterExceptions;
@@ -207,12 +211,12 @@ const struct Option
 	//	cannot use custom PMR allocators.
 	//! \since build 928
 	std::vector<const char*> option_details;
-	//! \since build 852
-	function<bool(const string&)> filter;
+	//! \since build 955
+	unchecked_function<bool(const string&)> filter;
 
-	//! \since build 852
+	//! \since build 955
 	Option(const char* pfx, const char* n, const char* opt_arg,
-		function<void(string&&)> parse,
+		unchecked_function<void(string&&)> parse,
 		std::initializer_list<const char*> il)
 		: prefix(pfx), name(n), option_arg(opt_arg), option_details(il),
 		filter(ystdex::bind1(ystdex::filter_prefix<string, string,
@@ -255,9 +259,10 @@ const struct Option
 	{"-xcmd,", "command", "COMMAND", [](string&& val) ynothrow{
 		RequestedCommand = std::move(val);
 	}, {"Specify the name of a command to run.", "If this option is set, all"
-		" other parameters not recognized as options are treated as arguments"
-		" of the command. Currently the following COMMAND name and arguments"
-		" combinations are supported:",
+		" other following parameters not recognized as options are treated as"
+		" arguments of the command. An option of empty COMMAND is ignored.",
+		" Currently the"
+		" following COMMAND name and arguments combinations are supported:",
 		"  EnsureDirectory PATH",
 		"    Make PATH available as a directory, as 'mkdir -p PATH'.",
 		"  InstallFile DST SRC",
@@ -278,7 +283,7 @@ const struct Option
 		" UNIT.",
 		"  RunNPLFile SRC [ARGS...]",
 		"    Read and execute NPLA1 translation unit specified by file path"
-		" SRC with optional arguments ARGS.", OPT_des_mul}},
+		" SRC with optional arguments ARGS.", OPT_des_last}},
 	{"-xd,", "output directory path", "DIR_PATH", [](string&& val){
 		string raw(NPL::Deliteralize(val));
 
@@ -378,9 +383,7 @@ const struct Option
 	}, 0x3UL, {"The target action mode.",
 		"Value '1' represents call of AR for the final target, and '2' is LD."
 		" Other value is reserved and to be ignored."
-		" Default value is '1'.",
-		"If this option occurs more than once, only the last one is"
-		" effective."}},
+		" Default value is '1'.", OPT_des_last}},
 	{"-xn,", "Target name", "OBJ_NAME", [](string&& val){
 		PrintInfo("Target name is switched to " + Quote(val) + '.');
 		TargetName = std::move(val);
@@ -468,34 +471,32 @@ RunNPLFromStream(const char* name, std::istream&& is,
 	using namespace NPL;
 	using namespace A1;
 	using namespace Forms;
-	REPLContext context{rsrc};
-	TermNode term{context.Allocator};
+	GlobalState global{rsrc};
+	TermNode term{global.Allocator};
 #if SHBuild_UseBacktrace
-	ContextNode::ReducerSequence backtrace{context.Allocator};
+	ContextNode::ReducerSequence backtrace{global.Allocator};
 #endif
+	ContextState cs(global);
 
 #if SHBuild_UseSourceInfo
-	context.UseSourceLocation = true;
+	global.UseSourceLocation = true;
 #endif
 	// NOTE: Set the filter level to avoid uninterested NPLA messages. This is
 	//	intended at least in the stage 1.
-	context.Root.Trace.FilterLevel = Logger::Level::Informative;
-	LoadStandardContext(context);
-	context.OutputStreamPtr = make_observer(&std::cout);
-
-	auto& rctx(context.Root);
-
-	InvokeIn(rctx, [&]{
-		context.Root.GetRecordRef().DefineChecked("env_SHBuild_",
-			GetModuleFor(rctx, [&]{
-			LoadModule_SHBuild(context);
+	cs.Trace.FilterLevel = Logger::Level::Informative;
+	LoadStandardContext(cs);
+	global.OutputStreamPtr = make_observer(&std::cout);
+	// NOTE: The ground environment is saved during the call to %InvokeIn.
+	InvokeIn(cs, [&]{
+		cs.GetRecordRef().DefineChecked("env_SHBuild_", GetModuleFor(cs, [&]{
+			LoadModule_SHBuild(cs);
 			// XXX: Overriding.
-			rctx.GetRecordRef().Define("SHBuild_BaseTerminalHook_",
+			cs.GetRecordRef().Define("SHBuild_BaseTerminalHook_",
 				ValueObject(function<void(const string&, const string&)>(
 				[&](const string& n, const string& val){
 					using namespace YSLib::Consoles;
 					using IO::StreamPut;
-					auto& os(context.GetOutputStreamRef());
+					auto& os(global.GetOutputStreamRef());
 					Terminal te;
 
 					{
@@ -512,10 +513,10 @@ RunNPLFromStream(const char* name, std::istream&& is,
 					os.put('"') << std::endl;
 			})));
 		}));
-		context.ShareCurrentSource(name);
+		cs.ShareCurrentSource(name);
 		try
 		{
-			context.Root.Rewrite(NPL::ToReducer(context.Allocator, trivial_swap,
+			cs.Rewrite(NPL::ToReducer(global.Allocator, trivial_swap,
 				[&](ContextNode& ctx){
 				ctx.SaveExceptionHandler();
 				// TODO: Blocked. Use C++14 lambda initializers to simplify the
@@ -542,8 +543,8 @@ RunNPLFromStream(const char* name, std::istream&& is,
 						LastLogGroup = LogGroup::General;
 						TraceException(e, trace);
 						trace.TraceFormat(Notice, "Location: %s.",
-							context.CurrentSource
-							? context.CurrentSource->c_str() : "<unknown>");
+							cs.CurrentSource ? cs.CurrentSource->c_str()
+							: "<unknown>");
 #if SHBuild_UseBacktrace
 						TraceBacktrace(backtrace, trace);
 #endif
@@ -555,7 +556,8 @@ RunNPLFromStream(const char* name, std::istream&& is,
 							" (see the backtrace for details).");
 					}
 				}, ctx.GetCurrent().cbegin());
-				term = context.ReadFrom(is);
+				term = global.ReadFrom(is, cs);
+				global.Preprocess(term);
 				// XXX: Is it necessary to change the text color here?
 				return A1::ReduceOnce(term, ctx);
 			}));
@@ -1240,8 +1242,8 @@ main(int argc, char* argv[])
 				if(!OutputDir.empty())
 					bctx.OutputDir = std::move(OutputDir);
 				// NOTE: Remained command line arguments are moved as options
-				//	saved in the build context options. SRCPATH is expected as
-				//	the 1st build context option, following by the options in
+				//	saved in the build global options. SRCPATH is expected as
+				//	the 1st build global option, following by the options in
 				//	interface specification.
 				yunseq(bctx.IgnoredDirs = std::move(IgnoredDirs),
 					bctx.Options = std::move(args), bctx.Mode = Mode);
@@ -1260,17 +1262,17 @@ main(int argc, char* argv[])
 
 			StreamPut(os, sfmt("Usage: \"%s\" [OPTIONS ...] SRCPATH"
 				" [OPTIONS ... [-- [ARGS...]]]\n  or:"
-				"  \"%s\" [OPTIONS ... [-- [[SRCPATH] ARGS ...]]]\n"
+				"  \"%s\" [OPTIONS ... [-- [[SRCPATH] ARGS ...]]]\n\n"
 				"\tThis program is a tool to build the source tree, with some"
 				" additional functionalities. If there are no command"
 				" arguments, this help message is shown. Otherwise, the program"
 				" will try working in a specific execution mode based on"
-				" the specific command arguments.\n"
+				" the specific command arguments.\n\n"
 				"\tThere are two execution modes, building mode and command"
 				" requesting mode, exclusively. In building mode, building"
 				" backends (commands for compiling) are called. The latter is"
 				" only enabled when there are some options beginned with"
-				" '-xcmd,', see below for details.\n"
+				" '-xcmd,', see below for details.\n\n"
 				"\tThe execution of the program may entail nested instances of"
 				" execution initiated by the command being executed. Such"
 				" instances can be grouped by sessions. Each session shares the"
@@ -1278,9 +1280,9 @@ main(int argc, char* argv[])
 				" epoch, which determines the base time point used in the"
 				" logging messages. The initial instance and any non-nested"
 				" instances have their epochs independently to other instances."
-				"\n"
-				"The session epoch for each instance is currently configured by"
-				" an environment variable (see below). If its value is"
+				"\n\n"
+				"\tThe session epoch for each instance is currently configured"
+				" by an environment variable (see below). If its value is"
 				" '0', the instance is the initial one and it will maintain"
 				" the value for their nested instance by replace the value"
 				" before calling the commands for the nested instances. The"
@@ -1289,9 +1291,10 @@ main(int argc, char* argv[])
 				" maintained value is guraranteed not empty. So, set it to '0'"
 				" or empty, or unset the variable before the execution of this"
 				" program, to ensure it independent to other instances (i.e. in"
-				" a different session).\n"
-				"\tThere are no checks on the values. Any behaviors depending"
-				" on the locale-specific values are unspecified.\n"
+				" a different session).\n\n"
+				"\tThere are no checks on the values unless otherwise"
+				" specified. Any behaviors depending on the locale-specific"
+				" values are unspecified.\n\n"
 				"\tCurrently accepted environment variable settings are:\n\n",
 				prog.c_str(), prog.c_str()).c_str());
 			for(const auto& env : DeEnvs)
@@ -1312,22 +1315,28 @@ main(int argc, char* argv[])
 				" names specified by '-xid,' option (see below) will also be"
 				" ignored.\n\n"
 				"OPTIONS ...\nOPTIONS ... -- [[SRCPATH] ARGS ...]\n"
-				"\tThe options and arguments for the tool execution. After"
-				" '--', options parsing is turned off and every remained"
-				" command line argument (if any) is interpreted as an argument,"
-				" except that in building mode, the 1st command line argument"
-				" after '--' (if any) is treated as SRCPATH when there is no"
-				" SRCPATH before '--'.\n"
-				"\tRecognized options are handled in this program, and the"
-				" remained arguments will either be the arguments to the"
-				" command specified in the options in command requesting mode,"
-				" or as options come after values of the environment variable"
+				"\tThe options and arguments for the tool execution. Options"
+				" parsing in this program regonizes options from command line"
+				" arguments. After '--', options parsing is turned off and"
+				" every remained command line argument (if any) is interpreted"
+				" as an argument, except that in building mode, the 1st command"
+				" line argument after '--' (if any) is treated as SRCPATH when"
+				" there is no recognized SRCPATH before '--'.\n"
+				"\tFor recognized options having a fixed prefix, if the"
+				" following substring in the option is empty, the whole option"
+				" is ignored. Otherwise, it is then handled in some"
+				" option-specific manner, which may or may not support multiple"
+				" instances of the option.\n"
+				"\tThe remained command line arguments not recognized as"
+				" options will either be the arguments to the command specified"
+				" in the options in command requesting mode, or as options"
+				" coming after values of the environment variable"
 				" SHBuild_CFLAGS or SHBuild_CXXFLAGS and a single space"
 				" character when CC or CXX is called in building mode,"
 				" respectively. In building mode, all command line arguments"
-				" except SRCPATH and the recoginzed options as well as the"
+				" except SRCPATH and the recoginzed options, as well as the"
 				" (prefixed) values specified by the environment variables"
-				" SHBuild_CFLAGS or SHBuild_CXXFLAGS will be sent to the"
+				" SHBuild_CFLAGS or SHBuild_CXXFLAGS, will be sent to the"
 				" building backends.\n"
 				"\tThe recognized options are:\n\n");
 			for(const auto& opt : OptionsTable)

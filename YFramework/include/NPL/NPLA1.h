@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r9803
+\version r10005
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-09-05 10:51 +0800
+	2022-09-14 02:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,8 +32,8 @@
 #include YFM_NPL_NPLA // for NPLATag, TermNode, ContextNode,
 //	ystdex::equality_comparable, std::declval, ystdex::exclude_self_t,
 //	trivial_swap_t, trivial_swap, ystdex::ref_eq, string_view,
-//	CombineReductionResult, pmr::memory_resource, make_observer, TNIter,
-//	LiftOtherValue, ValueNode, NPL::Deref, NPL::AsTermNode,
+//	CombineReductionResult, SourceName, make_observer, YSLib::allocate_shared,
+//	TNIter, LiftOtherValue, ValueNode, NPL::Deref, NPL::AsTermNode,
 //	std::make_move_iterator, std::next, ystdex::retry_on_cond, std::find_if,
 //	ystdex::exclude_self_params_t, YSLib::AreEqualHeld, ystdex::or_,
 //	std::is_constructible, ystdex::decay_t, ystdex::expanded_caller,
@@ -43,9 +43,8 @@
 //	CountPrefix, ArityMismatch, TermTags, RegularizeTerm, ystdex::invoke,
 //	AssignParent, TokenValue, function, Environment, ParseResultOf, ByteParser,
 //	SourcedByteParser, type_info, type_id, SourceInformation, std::bind,
-//	std::placeholders::_1, std::integral_constant, SourceName, NPL::tuple,
-//	NPL::get, NPL::forward_as_tuple, ReaderState, YSLib::allocate_shared,
-//	ystdex::is_bitwise_swappable;
+//	std::placeholders::_1, std::integral_constant, pmr::memory_resource,
+//	ReaderState, ystdex::is_bitwise_swappable;
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, YSLib::GCombinerInvoker,
 //	YSLib::GDefaultLastValueInvoker;
 #include <ystdex/algorithm.hpp> // for ystdex::fast_any_of, ystdex::split;
@@ -299,6 +298,9 @@ using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
 //@}
 
 
+//! \since build 955
+class GlobalState;
+
 /*!
 \brief NPLA1 上下文状态。
 \note 扩展 ContextNode 。
@@ -310,13 +312,7 @@ NPLA1 上下文状态扩展 NPLA 上下文。
 class YF_API ContextState : public ContextNode
 {
 public:
-	// XXX: Allocators are not used here for performance.
-	//! \brief 叶遍。
-	EvaluationPasses EvaluateLeaf{};
-	//! \brief 列表遍。
-	EvaluationPasses EvaluateList{};
-	//! \brief 字面量遍。
-	LiteralPasses EvaluateLiteral{};
+	lref<const GlobalState> Global;
 	//! \brief 守卫遍。
 	GuardPasses Guard{};
 	/*!
@@ -347,12 +343,17 @@ public:
 	\since build 948
 	*/
 	mutable ValueObject OperatorName{};
+	/*!
+	\brief 当前源代码名称。
+	\since build 955
+	*/
+	SourceName CurrentSource{};
 
 	/*!
-	\brief 构造：使用指定的存储资源。
-	\since build 845
+	\brief 构造：使用指定的全局状态引用。
+	\since build 955
 	*/
-	ContextState(pmr::memory_resource&);
+	ContextState(const GlobalState&);
 	//! \brief 复制构造：复制下一项的指针以外的子对象。
 	ContextState(const ContextState&);
 	//! \brief 转移构造：转移基类子对象和下一项的指针，并复制其余子对象。
@@ -431,8 +432,8 @@ public:
 	\note 默认不需要重规约。这可被求值遍改变。
 	\note 可被求值遍调用以实现递归求值。
 	\warning 若不满足上下文状态类型要求，行为未定义。
-	\sa EvaluateLeaf
-	\sa EvaluateList
+	\sa GlobalState::EvaluateLeaf
+	\sa GlobalState::EvaluateList
 	\sa ReduceOnce
 	\sa ValueToken
 	\since build 878
@@ -445,9 +446,9 @@ public:
 	在已进入异步规约时，则在上下文最后一次规约状态设置为
 		ReductionStatus::Retrying 时，不继续设置异步求值遍而跳过剩余的求值遍。
 	对应不同的节点次级结构分类，一次迭代按以下顺序选择以下分支之一，按需规约子项：
-	对枝节点调用 EvaluateList 求值；
+	对枝节点调用 Global 的 EvaluateList 求值；
 	对空节点或值数据成员为 ValueToken 类型的值的叶节点不进行操作；
-	对其它叶节点调用 EvaluateList 求值。
+	对其它叶节点调用 Global 的 EvaluateList 求值。
 	支持重规约。异步重规约由 ContextNode 支持。
 	此处约定的迭代中对节点的具体结构分类默认也适用于其它 NPLA1 实现 API ；
 	例外情况应单独指定明确的顺序。
@@ -495,6 +496,18 @@ public:
 	RewriteTermGuarded(TermNode&);
 	//@}
 
+	/*!
+	\brief 设置当前源代码名称为参数指定初始化的新分配的共享名称。
+	\since build 955
+	*/
+	template<typename... _tParams>
+	void
+	ShareCurrentSource(_tParams&&... args)
+	{
+		CurrentSource = YSLib::allocate_shared<string>(get_allocator(),
+			yforward(args)...);
+	}
+
 	//! \since build 948
 	//@{
 	/*!
@@ -523,9 +536,7 @@ public:
 	friend PDefH(void, swap, ContextState& x, ContextState& y) ynothrow
 		ImplExpr(swap(static_cast<ContextNode&>(x), static_cast<ContextNode&>(
 			y)), swap(x.combining_term_ptr, y.combining_term_ptr),
-			swap(x.next_term_ptr, y.next_term_ptr), swap(x.EvaluateLeaf,
-			y.EvaluateLeaf), swap(x.EvaluateList, y.EvaluateList),
-			swap(x.EvaluateLiteral, y.EvaluateLiteral), swap(x.Guard, y.Guard))
+			swap(x.next_term_ptr, y.next_term_ptr), swap(x.Guard, y.Guard))
 };
 
 
@@ -883,8 +894,8 @@ ParseLeaf(TermNode&, string_view);
 第三参数表示记号在源代码中的位置。
 */
 YF_API void
-ParseLeafWithSourceInformation(TermNode&, string_view,
-	const shared_ptr<string>&, const SourceLocation&);
+ParseLeafWithSourceInformation(TermNode&, string_view, const SourceName&,
+	const SourceLocation&);
 //@}
 
 
@@ -1429,7 +1440,7 @@ EvaluateIdentifier(TermNode&, const ContextNode&, string_view);
 \pre 第二参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
 \return 求值标识符的结果或 ReductionStatus::Retained 。
 \sa CategorizeLexeme
-\sa ContextNode::EvaluateLiteral
+\sa GlobalState::EvaluateLiteral
 \sa DeliteralizeUnchecked
 \sa EvaluateIdentifier
 \since build 736
@@ -1547,20 +1558,24 @@ GuardFreshEnvironment(ContextNode& ctx, _tParams&&... args)
 		NPL::SwitchToFreshEnvironment(ctx, yforward(args)...));
 }
 
-//! \since build 942
-//@{
-//! \brief 加载代码调用。
+/*!
+\brief 加载代码调用。
+\since build 955
+*/
 template<typename _fCallable, typename... _tParams>
-void
+auto
 InvokeIn(ContextNode& ctx, _fCallable&& f, _tParams&&... args)
+	-> decltype(ystdex::invoke(yforward(f), yforward(args)...))
 {
 	ValueObject parent(ctx.WeakenRecord());
 	auto gd(GuardFreshEnvironment(ctx));
 
 	AssignParent(ctx, std::move(parent));
-	ystdex::invoke(yforward(f), yforward(args)...);
+	return ystdex::invoke(yforward(f), yforward(args)...);
 }
 
+//! \since build 942
+//@{
 /*!
 \brief 加载代码作为模块。
 \return 作为环境模块的环境对象强引用。
@@ -1804,7 +1819,7 @@ BindSymbol(const shared_ptr<Environment>&, const TokenValue&, TermNode&);
 \sa ReduceFirst
 \sa ReduceHeadEmptyList
 \sa ReduceLeafToken
-\since build 842
+\since build 955
 
 设置默认解释的求值遍到第一参数指定的上下文的列表求值遍和叶求值遍中。
 列表求值遍等效第二参数后依次添加 ReduceFirst 、ReduceHeadEmptyList 和
@@ -1812,7 +1827,7 @@ BindSymbol(const shared_ptr<Environment>&, const TokenValue&, TermNode&);
 叶求值遍设置为 ReduceLeafToken 。
 */
 YF_API void
-SetupDefaultInterpretation(ContextState&, EvaluationPasses);
+SetupDefaultInterpretation(GlobalState&, EvaluationPasses);
 
 /*!
 \brief 设置参数指定的上下文为尾上下文。
@@ -1837,8 +1852,9 @@ using GParsedValue = typename ParseResultOf<_fParse>::value_type;
 // XXX: Use %function instead of %ystdex::unchecked_function is no less
 //	efficient.
 //! \brief 泛型标记器：分析解析结果元素转换为可能包含记号的节点。
-template<typename _fParse>
-using GTokenizer = function<TermNode(const GParsedValue<_fParse>&)>;
+template<typename _fParse, typename... _tParams>
+using GTokenizer
+	= function<TermNode(const GParsedValue<_fParse>&, _tParams...)>;
 //@}
 
 /*!
@@ -1848,7 +1864,7 @@ using GTokenizer = function<TermNode(const GParsedValue<_fParse>&)>;
 using Tokenizer = GTokenizer<ByteParser>;
 
 //! \brief 标记器：分析带有源代码位置信息的词素转换为可能包含记号的节点。
-using SourcedTokenizer = GTokenizer<SourcedByteParser>;
+using SourcedTokenizer = GTokenizer<SourcedByteParser, ContextState&>;
 
 
 //! \ingroup NPLDiagnostics
@@ -2014,7 +2030,7 @@ KeepGuard(_tGuard&, ContextNode& ctx) ynothrow
 //! \brief 环境守卫类型。
 template<class _tGuard>
 using GKeptGuardAction = decltype(std::bind(KeepGuard<_tGuard>,
-	std::declval<_tGuard&>(), std::placeholders::_1));
+	std::declval<_tGuard&&>(), std::placeholders::_1));
 
 /*!
 \brief 转移保持环境守卫。
@@ -2039,15 +2055,19 @@ MoveKeptGuard(_tGuard&& gd)
 
 
 /*
-\brief REPL 上下文。
+\brief 全局状态。
 \warning 非虚析构。
-\since build 740
+\warning 初始化后不检查成员使用的分配器相等性。
+\since build 955
 
-REPL 表示读取-求值-输出循环。
+提供各个上下文共享的实现 REPL（读取-求值-输出循环）的数据和可变状态。
 每个循环包括一次翻译。
-这只是一个基本的可扩展实现。功能通过操作数据成员控制。
+这只是一个基本的可扩展实现。
+部分功能可通过操作数据成员控制，但一般在初始化后不改变非可变状态，
+	因此通常使用 const GlobalState& 访问，且不提供全局状态锁。
+一般仅需锁定派生实现中的可能共享操可变状态。
 */
-class YF_API REPLContext
+class YF_API GlobalState
 {
 public:
 	//! \since build 891
@@ -2072,21 +2092,23 @@ public:
 	\brief 加载器。
 	\since build 899
 
-	接受 REPL 上下文、规约上下文和指定名称，转换翻译单元内容为待求值节点的例程。
+	接受上下文状态和指定名称，转换翻译单元内容为待求值节点的例程。
 	*/
-	using Loader = function<TermNode(REPLContext&, ContextNode&, string)>;
+	using Loader = function<TermNode(ContextState&, string)>;
 
 private:
+	//! \since build 891
 	struct LeafConverter final
 	{
-		const REPLContext& Context;
+		//! \since build 955
+		ContextState& Context;
 
 		YB_ATTR_nodiscard
 			PDefHOp(TermNode, (), const GParsedValue<ByteParser>& val) const
-			ImplRet(Context.ConvertLeaf(val))
+			ImplRet(Context.Global.get().ConvertLeaf(val))
 		YB_ATTR_nodiscard PDefHOp(TermNode, (),
 			const GParsedValue<SourcedByteParser>& val) const
-			ImplRet(Context.ConvertLeafSourced(val))
+			ImplRet(Context.Global.get().ConvertLeafSourced(val, Context))
 	};
 
 public:
@@ -2095,11 +2117,12 @@ public:
 	\since build 845
 	*/
 	TermNode::allocator_type Allocator;
-	/*!
-	\brief 上下文根节点。
-	\since build 842
-	*/
-	ContextState Root;
+	//! \brief 叶遍。
+	EvaluationPasses EvaluateLeaf{Allocator};
+	//! \brief 列表遍。
+	EvaluationPasses EvaluateList{Allocator};
+	//! \brief 字面量遍。
+	LiteralPasses EvaluateLiteral{Allocator};
 	/*!
 	\brief 预处理例程：每次翻译时预先处理调用的公共例程。
 	\sa Prepare
@@ -2125,8 +2148,6 @@ public:
 	*/
 	SourcedTokenizer ConvertLeafSourced;
 	//@}
-	//! \brief 当前源代码名称。
-	SourceName CurrentSource{};
 	/*!
 	\brief 默认启用源代码位置。
 	\sa Perform
@@ -2154,16 +2175,12 @@ public:
 	*/
 	//@{
 	/*!
-	\brief 构造：使用默认的解释、指定的存储资源和默认的叶节点词素转换器。
+	\brief 构造：使用默认解释、指定的存储资源和默认的叶节点词素转换器。
 	\sa ParseLeaf
-	\since build 879
 	*/
-	REPLContext(pmr::memory_resource& = NPL::Deref(pmr::new_delete_resource()));
-	/*!
-	\brief 构造：使用默认的解释、指定的存储资源和叶节点词素转换器。
-	\since build 891
-	*/
-	REPLContext(Tokenizer, SourcedTokenizer,
+	GlobalState(pmr::memory_resource& = NPL::Deref(pmr::new_delete_resource()));
+	//! \brief 构造：使用默认解释、指定的存储资源和叶节点词素转换器。
+	GlobalState(Tokenizer, SourcedTokenizer,
 		pmr::memory_resource& = NPL::Deref(pmr::new_delete_resource()));
 	//@}
 
@@ -2181,142 +2198,75 @@ public:
 	\brief 取输出流引用。
 	\throw ystdex::unsupported 不支持的输出流：流指针为空。
 	\sa OutputStreamPtr
+	\since build 901
 	*/
 	YB_ATTR_nodiscard YB_PURE std::ostream&
 	GetOutputStreamRef() const;
 
 	/*!
 	\brief 默认加载。
-	\since build 899
 
 	以参数作为文件名读取内容并转换。
 	不处理文件名。
 	若被平台支持，使用相对路径文件名指定的文件位置可能和当前工作目录相关。
 	*/
 	YB_ATTR_nodiscard static TermNode
-	DefaultLoad(REPLContext&, ContextNode&, string);
+	DefaultLoad(ContextState&, string);
 
-private:
-	//! \since build 891
-	template<typename _tParam>
-	YB_ATTR_nodiscard inline ContextNode&
-	FetchContextParameter(_tParam&&)
-	{
-		return Root;
-	}
-	//! \since build 899
-	template<typename... _tParams>
-	YB_ATTR_nodiscard inline ContextNode&
-	FetchContextParameter(NPL::tuple<_tParams..., ContextNode&> args)
-	{
-		return NPL::get<sizeof...(_tParams)>(args);
-	}
-
-public:
 	/*!
+	\brief 执行：从指定参数指定的来源读取并翻译源代码，并返回处理结果。
 	\exception std::invalid_argument 异常中立：由 ReadFrom 抛出。
+	\sa Preprocess
 	\sa ReadFrom
 	\sa Reduce
-	\since build 891
 	*/
-	//@{
-	//! \brief 加载：从指定参数指定的来源读取并翻译源代码。
-	//@{
-	template<typename... _tParams>
-	inline void
-	LoadFrom(_tParams&&... args)
-	{
-		auto term(ReadFrom(yforward(args)...));
-
-		Reduce(term,
-			FetchContextParameter(NPL::forward_as_tuple(yforward(args)...)));
-	}
-	//@}
-
-	//! \brief 执行循环：从指定参数指定的来源读取并翻译源代码，并返回处理结果。
 	template<typename... _tParams>
 	// XXX: No %YB_ATTR_nodiscard.
 	inline TermNode
-	Perform(_tParams&&... args)
+	Perform(ContextState& cs, _tParams&&... args) const
 	{
-		auto term(ReadFrom(yforward(args)...));
+		auto term(ReadFrom(yforward(args)..., cs));
 
-		Reduce(term,
-			FetchContextParameter(NPL::forward_as_tuple(yforward(args)...)));
+		Preprocess(term);
+		Reduce(term, cs);
 		return term;
 	}
-	//@}
 
 	/*!
-	\brief 准备规约项：分析输入并标记记号节点和预处理。
-	\return 预处理后的项。
-	\sa Preprocess
-	\since build 890
-
-	按需分析并调用预处理例程。
-	词素的处理由分析完成，不需单独调用 TokenizeTerm 转换。
-	*/
-	//@{
-	YB_ATTR_nodiscard PDefH(TermNode, Prepare, TermNode&& term) const
-		ImplRet(Preprocess(term), std::move(term))
-	/*!
+	\brief 准备规约项：分析输入并标记记号节点。
 	\return 从参数输入读取的准备的项。
 	\sa SContext::Analyze
+
+	按需分析。
+	词素的处理由分析完成，不需单独调用 TokenizeTerm 转换。
+	之后可能需另行调用预处理例程。
 	*/
 	template<typename... _tParams>
 	YB_ATTR_nodiscard TermNode
-	Prepare(_tParams&&... args) const
+	Prepare(ContextState& cs, _tParams&&... args) const
 	{
-		return Prepare(SContext::Analyze(std::allocator_arg, Allocator,
-			LeafConverter{*this}, yforward(args)...));
+		return SContext::Analyze(std::allocator_arg, Allocator,
+			LeafConverter{cs}, yforward(args)...);
 	}
-	//@}
 
 	/*!
 	\brief 读取：从指定参数指定的来源输入源代码并准备规约项。
 	\return 从参数输入读取的准备的项。
 	\sa Prepare
-	\since build 891
+	\since build 955
 	*/
 	//@{
 	template<class _type>
 	YB_ATTR_nodiscard inline TermNode
-	ReadFrom(_type&& input)
+	ReadFrom(_type&& input, ContextState& cs) const
 	{
-		return ReadFrom(yforward(input), Root);
-	}
-	//! \since bulid 899
-	template<class _type>
-	YB_ATTR_nodiscard inline TermNode
-	ReadFrom(_type&& input, ReaderState& rs)
-	{
-		return ReadFrom(yforward(input), rs, Root);
+		return ReadFrom(LoadOptionTag<>(), yforward(input), cs);
 	}
 	template<class _type>
 	YB_ATTR_nodiscard inline TermNode
-	ReadFrom(_type&& input, ContextNode& ctx) const
+	ReadFrom(_type&& input, ReaderState& rs, ContextState& cs) const
 	{
-		return ReadFrom(LoadOptionTag<>(), yforward(input), ctx);
-	}
-	//! \since build 899
-	template<class _type>
-	YB_ATTR_nodiscard inline TermNode
-	ReadFrom(_type&& input, ReaderState& rs, ContextNode& ctx) const
-	{
-		return ReadFrom(LoadOptionTag<>(), yforward(input), rs, ctx);
-	}
-	template<LoadOption _vOpt, class _type>
-	YB_ATTR_nodiscard inline TermNode
-	ReadFrom(LoadOptionTag<_vOpt> opt, _type&& input)
-	{
-		return ReadFrom(opt, yforward(input), Root);
-	}
-	//! \since build 899
-	template<LoadOption _vOpt, class _type>
-	YB_ATTR_nodiscard inline TermNode
-	ReadFrom(LoadOptionTag<_vOpt> opt, _type&& input, ReaderState& rs)
-	{
-		return ReadFrom(opt, yforward(input), rs, Root);
+		return ReadFrom(LoadOptionTag<>(), yforward(input), rs, cs);
 	}
 	/*!
 	\throw std::invalid_argument 流状态错误或缓冲区不存在。
@@ -2337,65 +2287,59 @@ public:
 			throw std::invalid_argument("Invalid stream found.");
 	}
 	YB_ATTR_nodiscard TermNode
-	ReadFrom(LoadOptionTag<>, std::streambuf&, ContextNode&) const;
-	//! \since build 899
+	ReadFrom(LoadOptionTag<>, std::streambuf&, ContextState&) const;
 	YB_ATTR_nodiscard TermNode
-	ReadFrom(LoadOptionTag<>, std::streambuf&, ReaderState&, ContextNode&)
+	ReadFrom(LoadOptionTag<>, std::streambuf&, ReaderState&, ContextState&)
 		const;
 	YB_ATTR_nodiscard TermNode
-	ReadFrom(LoadOptionTag<WithSourceLocation>, std::streambuf&, ContextNode&)
+	ReadFrom(LoadOptionTag<WithSourceLocation>, std::streambuf&, ContextState&)
 		const;
-	//! \since build 899
 	YB_ATTR_nodiscard TermNode
 	ReadFrom(LoadOptionTag<WithSourceLocation>, std::streambuf&, ReaderState&,
-		ContextNode&) const;
+		ContextState&) const;
 	YB_ATTR_nodiscard TermNode
-	ReadFrom(LoadOptionTag<NoSourceInformation>, std::streambuf&, ContextNode&)
+	ReadFrom(LoadOptionTag<NoSourceInformation>, std::streambuf&, ContextState&)
 		const;
-	//! \since build 899
 	YB_ATTR_nodiscard TermNode
 	ReadFrom(LoadOptionTag<NoSourceInformation>, std::streambuf&, ReaderState&,
-		ContextNode&) const;
+		ContextState&) const;
 	//! \pre 断言：字符串的数据指针非空。
 	//@{
 	YB_ATTR_nodiscard TermNode
-	ReadFrom(LoadOptionTag<>, string_view, ContextNode&) const;
+	ReadFrom(LoadOptionTag<>, string_view, ContextState&) const;
 	YB_ATTR_nodiscard TermNode
-	ReadFrom(LoadOptionTag<WithSourceLocation>, string_view, ContextNode&)
+	ReadFrom(LoadOptionTag<WithSourceLocation>, string_view, ContextState&)
 		const;
 	YB_ATTR_nodiscard TermNode
-	ReadFrom(LoadOptionTag<NoSourceInformation>, string_view, ContextNode&)
+	ReadFrom(LoadOptionTag<NoSourceInformation>, string_view, ContextState&)
 		const;
 	//@}
 	//@}
-
-	/*!
-	\brief 设置当前源代码名称为参数指定初始化的新分配的共享名称。
-	\since build 899
-	*/
-	template<typename... _tParams>
-	void
-	ShareCurrentSource(_tParams&&... args)
-	{
-		CurrentSource
-			= YSLib::allocate_shared<string>(Allocator, yforward(args)...);
-	}
 };
+
+//! \since build 955
+template<typename... _tParams>
+// XXX: No %YB_ATTR_nodiscard.
+inline TermNode
+Perform(ContextState& cs, _tParams&&... args)
+{
+	return cs.Global.get().Perform(cs, yforward(args)...);
+}
 
 /*!
 \brief 尝试加载源代码。
 \exception NPLException 嵌套异常：加载失败。
 \note 第二参数表示来源，仅用于诊断消息。
-\note 不使用可能自定义的 REPLContext::Load 。
-\relates REPLContext
-\sa REPLContext::LoadFrom
-\since build 838
+\note 不使用可能自定义的 GlobalState::Load 。
+\relates GlobalState
+\sa GlobalState::LoadFrom
+\since build 955
 */
 template<typename... _tParams>
 YB_NONNULL(2) void
-TryLoadSource(REPLContext& context, const char* name, _tParams&&... args)
+TryLoadSource(ContextState& cs, const char* name, _tParams&&... args)
 {
-	TryExpr(context.LoadFrom(yforward(args)...))
+	TryExpr(A1::Perform(cs, yforward(args)...))
 	CatchExpr(..., std::throw_with_nested(NPLException(
 		ystdex::sfmt("Failed loading external unit '%s'.", name))));
 }

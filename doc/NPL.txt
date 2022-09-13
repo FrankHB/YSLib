@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规范和实现规格说明。
-\version r29667
+\version r29695
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2022-09-05 08:39 +0800
+	2022-09-14 01:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2013,12 +2013,13 @@ NPLA 数值(@5.2.2) 在对象语言中具有数值类型，具体类型映射未
 
 @5.5.1 广义列表：
 列表(list) 是元素(element) 的序列(sequence) 。
-NPLA 中，列表的元素是一等对象(@4.1) 。真列表(proper list) 是有限个列表元素构成的列表。
+真列表(proper list) 是有限个列表元素构成的列表。
 空列表(empty list) 是不含有元素的列表。
 每个真列表和有限个有序对(pair) 的嵌套组合表示同构。每个有序对具有两个元素。
 有序对的第二个元素是列表时，则有序对是（非空的）真列表。否则，有序对是非真列表(improper list) 。
-NPLA 对象不支持自引用和循环数据结构(@4.2.4) ，因此非真列表是无环(acyclic) 的，不包含环(cycle) 。
-NPLA 广义列表是真列表或无环非真列表。
+NPLA 广义列表(generalized list) 是真列表或非真列表。
+广义列表的元素是一等对象(@4.1) ，是广义列表对象的子对象(@4.2.4.1) 。
+NPLA 对象不支持自引用和循环数据结构(@4.2.4) ，因此作为广义列表的非真列表是无环(acyclic) 的，不包含环(cycle) 。
 取得嵌套的有序对的广义列表的同构表示分解(decompose) 这个广义列表。广义列表分解后若得到有序对，可继续被分解。经有限次分解后，广义列表不再可取得不同的同构表示，即被完全分解。
 广义列表的元素是其完全分解后得到的元素，且当广义列表是真列表时，最后一个（空列表）元素。
 广义列表对元素具有所有权。同一个广义列表的不同元素之间不具有所有权，生存期不相交。
@@ -4318,7 +4319,7 @@ NPLA1 实现可在实现中提供构建时确定的实现选项，以宿主语�
 除非另行指定，对 NPLA1 实现选项的宏的要求和约定同 NPLA 实现选项(@6.1.2) 。
 和 NPLA 不同，这些选项主要用于提供参考实现，不应被直接作为公开接口；通常情形不需要更改。
 特定的 API 可间接依赖这些特性，以便派生实现提供不同的优化实现，包括：
-	A1::REPLContext::IsAsynchronous(@7.8.1)
+	A1::GlobalState::IsAsynchronous(@7.8.1)
 部分 NPLA 安全保证(@6.1.4) 依赖：
 	特定的实现选项支持（如 NPL_Impl_NPLA1_Enable_ThunkedSeparatorPass(@7.9.2) ），当没有启用时可能不满足。
 	被调用的互操作(@5.3) 实现支持相应的安全保证。
@@ -4548,14 +4549,15 @@ NPLA1 内部提供调用检查类在一次续延(@4.5.3.3) 被捕获时共享状
 @7.4.3 NPLA1 上下文状态：
 类 ContextState 是 ContextNode 的 public 派生类，其对象表示 NPLA1 上下文状态，包含 NPLA 上下文的状态(@6.11.3) 。
 A1::ContextState 包含作为之后的异步求值规约动作(@6.12.1) 使用的当前项(@6.10) 的下一求值项。
-NPLA1 上下文状态提供以下的供迭代的公共遍：
+NPLA1 上下文状态可访问以下的供迭代的公共遍：
 守卫遍(guard pass) ，类型是一个 GuardPasses(@7.4.1.3) ，用于提供调试回调等。
 叶遍(leaf pass) ，类型是一个 EvaluationPasses(@7.4.1.2) ，用于实现叶节点(@6.2.1) 对应表达式的求值。
 列表遍(list pass) ，类型是一个 EvaluationPasses ，用于实现列表节点对应表达式的求值。
 字面量遍(literal pass) ，类型是附加 string_view 参数的 EvaluationPasses ，用于在叶遍的处理器内部调用，处理不同类型的扩展字面量(@5.2) 。
 尽管 NPLA 已约定字面量的词法构成(@5.2) ，仍使用字面量遍而不是固定的扩展字面量处理逻辑以便派生实现决定具体字面量的关于不同字面量和不同语义的处理方式，同时能保证实现逻辑的局域性。
 A1::ContextState 提供以下公开 API ：
-数据成员 EvaluateLeaf 、EvaluateList 、EvaluateLiteral 和 Guard 是上下文提供的公共遍，分别为叶遍、列表遍和守卫遍。
+数据成员 Global 指定全局状态(@7.8) 的引用，包含共享的公共求值遍。
+数据成员 Guard 是上下文提供的公共遍守卫遍。
 数据成员 ReduceOnce
 成员函数 RewriteGuarded 和 ContextNode::Rewrite 类似，但首先调用成员 Guard 动作。
 成员函数 Access 通过指定的 ContextNode 对象中访问对应的 ContextState 引用。
@@ -5113,23 +5115,24 @@ NPLA1 提供 API 通过解释器的各个模块的组件组装 REPL(read-eval-pr
 别名模板 A1::GTokenizer 提供标记器，即和解析器的解析结果类型中的元素类型为参数的转换为 TermNode 的例程。对应解析器类型提供以下实例：
 类型 A1::Tokenizer
 类型 A1::SourcedTokenizer
-类 A1::REPLContext 可直接作为 REPL 原型。
-A1::REPLContext 以 ContextNode::EvaluateList(@6.11.3.1) 为第二参数调用 A1::SetupDefaultInterpretation 初始化，之后默认解释配置 ContextNode 具有以下能在 A1::ReduceOnce(@7.4.4) 运行的规约算法：
-A1::REPLContext 使用 @7.5.3 的 API 实现标记器。
+类 A1::GlobalState 提供全局状态，可直接作为 REPL 原型。
+其中，数据成员 EvaluateLeaf 、EvaluateList 、EvaluateLiteral 是全局公共遍(@7.4.3) ，分别为叶遍、列表遍和字面量求值遍。
+A1::GlobalState 以 ContextNode::EvaluateList(@6.11.3.1) 为第二参数调用 A1::SetupDefaultInterpretation 初始化，之后默认解释配置 ContextNode 具有以下能在 A1::ReduceOnce(@7.4.4) 运行的规约算法：
+A1::GlobalState 使用 @7.5.3 的 API 实现标记器。
 若项是具有一个子项的列表节点，则规约为这个子项；
 若项是具有多个子项的列表节点，依次调用 NPL::ReduceHeadEmptyList(@6.10.7.1) 、A1::ReduceFirst(@7.4.6) 和 A1::ReduceCombined(@7.6.4.2) 规约列表项；
 否则调用 A1::ReduceLeafToken(@7.6.4) 规约叶节点。
-A1::REPLContext(@7.8.1)
+A1::GlobalState(@7.8.1)
 函数模板 A1::TryLoadSource
 
-@7.8.1 类 A1::REPLContext ：
-A1::REPLContext REPL 是上下文对象类。
-类 A1::REPLContext 还提供以下 API ：
+@7.8.1 类 A1::GlobalState ：
+A1::GlobalState REPL 是上下文对象类。
+类 A1::GlobalState 还提供以下 API ：
 数据成员 Preprocess 是内部保存的求值表达式一次预处理的处理器。这在 NPLA1 规范求值算法(@7.8.2) 前生效，不处理子表达式。
 成员函数 IsAsynchronous 判断是否启用异步规约实现(@7.9.2) 。
 
 @7.8.2 NPLA1 规范(canonical) 求值算法：
-A1::REPLContext(@7.8.1) 配置的主规约函数实现的(@7.4.4) 具体求值算法(@4.4.1) 称为 NPLA1 规范求值算法。
+A1::GlobalState(@7.8.1) 配置的主规约函数实现的(@7.4.4) 具体求值算法(@4.4.1) 称为 NPLA1 规范求值算法。
 NPLA1 规范求值算法和 [RnRK] 中定义的 Kernel 求值算法（以及 [Shu10] 中定义的 vau 演算(@1.4) ）类似，差异为：
 求值算法不直接约定取得 WHNF(@4.4.5.1) 以外的子项是否被求值，而由被调用的第一个子项的处理器 A1::FormContextHandler::operator() (@7.6.1.2) 决定；
 求值符号同 A1::EvaluateIdentifier(@7.6.4) ，包含对引用值的区分；
@@ -5184,7 +5187,7 @@ NPLA1 规范求值算法和 [RnRK] 的求值算法具有近似的简单性。
 和 klisp 不同，NPLA1 允许使用 . 作为变量名，但在特定的上下文不被求值时符号 . 可被特别处理，如变量绑定匹配(@7.7.3.3) 时忽略以 . 为符号的忽略绑定。
 和 klisp 不同，NPLA1 允许使用 ++ 等全以 + 或 - 组成的字符序列构成标识符。
 以 # 、+ 或 - 起始的不能构成标识符的词素是 NPLA 扩展字面量(@5.2.3.2) 。
-一些求值算法的性质在实现上由 NPLA1 间接值使用规则(@7.1.3) 、A1::EvaluateIdentifier(@7.6.4) 和 A1::REPLContext 配置的求值遍保证。
+一些求值算法的性质在实现上由 NPLA1 间接值使用规则(@7.1.3) 、A1::EvaluateIdentifier(@7.6.4) 和 A1::GlobalState 配置的求值遍保证。
 
 @7.9 异步规约支持：
 异步规约(@6.12) 支持基于异步规约动作(@6.12.1) 实现。
@@ -6109,7 +6112,7 @@ get-module-return ：异步规约的 LoadModule_std_io 实现 get-module 返回�
 load-external ：A1::RelayToLoadExternal(@8.5.2) 加载外部翻译单元。
 match-ptree-recursive ：支持延迟递归绑定（ Forms::DefineWithRecursion 和 Forms::SetWithRecursion(@8.4.4.3) ）。
 provide-let-return ：Forms::ProvideLet(@8.4.9) 返回环境。
-restore-source-name ：非 TCO 的 A1::ReduceToLoadExternal 和 A1::RelayToLoadExternal(@8.5.1) 及 Forms::LoadModule_std_modules(@8.5.2) 在加载模块求值后恢复 REPLContext(@7.8) 中保存的源代码名称。
+restore-source-name ：非 TCO 的 A1::ReduceToLoadExternal 和 A1::RelayToLoadExternal(@8.5.1) 及 Forms::LoadModule_std_modules(@8.5.2) 在加载模块求值后恢复 GlobalState(@7.8) 中保存的源代码名称。
 require-return ：异步规约的 LoadModule_std_module 实现 require 加载翻译单元后设置和返回结果。
 sequence-return ：非 TCO 的 A1::ReduceOrdered(@7.4.6) 实现中设置规约合并最后的返回结果。
 **注释**
@@ -7992,12 +7995,13 @@ NPLA1 不会如 Racket 一样在此避免遗漏 <alternative> 导致的非预期
 null? <object> ：判断操作数是否为空列表。
 nullv? <object> ：判断操作数是否为空列表纯右值。
 同 null? ，但不支持引用值。
-branch? <object> ：判断操作数是否具有枝节点表示。
+branch? <object> ：判断操作数是否具有枝节点(@6.2.1) 表示。
 branchv? <object> ：判断操作数是否为具有枝节点表示的纯右值。
 同 branch? ，但不支持引用值。
 pair? <object> ：<pair> 的类型谓词(@10.7.2.1) 。
 pairv? <object> ：判断操作数是否为有序对纯右值。
 同 pair? ，但不支持引用值。
+symbol? <object> : <symbol> 的类型谓词。
 reference? <object> ：判断操作数是否为引用值。
 unique? <object> ：判断操作数是否为唯一引用(@6.2.2) 。
 modifiable? <object> ：判断操作数是否为可修改对象或可修改对象的引用值。
@@ -8320,11 +8324,11 @@ first& <pair> ：同 first@ ，但结果总是折叠的引用值。
 firstv <pair> ：同 first ，但结果总是返回值转换后的值。
 rest% <pair> ：取有序对的第一个元素以外的元素值经过转发的值构成的有序对。
 若结果构成子有序对(@9.9.4.1) ，可能引入子有序对引用(@9.9.4.1) 。
-rest& <pair> ：取有序对的第一个元素以外的元素值的引用值构成的列表的子对象引用(@11.2.4) 。
-首先调用 check-pair-reference 检查参数是列表引用，对右值引发错误。
+rest& <pair> ：取有序对的第一个元素以外的元素值的引用值构成的有序对的子对象引用(@11.2.4) 。
+首先调用 check-pair-reference 检查参数是有序对引用，对右值引发错误。
 若结果构成子有序对，引入子有序对引用。
-restv <pair> ：取有序对的第一个元素以外的元素值构成的列表。
-结果是列表对象。
+restv <pair> ：取有序对的第一个元素以外的元素值构成的有序对。
+结果是有序对对象。
 set-first! <pair> <object> ：修改有序对的第一个元素。
 和 [RnRK] 的 set-car! 类似，但可派生，检查列表是左值，且不保留引用值。
 set-first@! <pair> <object> ：同 set-first%! ，但保留未折叠的引用值。
@@ -8841,6 +8845,7 @@ std::regex_constants::ECMAScript ；
 std::regex_constants::match_default ；
 std::regex_constants::format_default 。
 操作：
+string? <object> ：<string> 的类型谓词(@10.7.2.1) 。
 ++ <string>... ：字符串串接。
 string-empty? <string> ：判断字符串是否为空。
 string<- <string1> <string2> ：字符串赋值(@9.8.3.1) 。
@@ -8887,8 +8892,8 @@ load 的语义隐含从外部来源取得求值构造后在当前环境求值，
 因为当前不提供取得求值构造的读取(read) 等函数，不要求 load 具有非本机的派生实现。并且，取得求值构造可能有其它方式，如从二进制映像映射(map) 到内部表示等替代，这些实现通常不应被要求为总是具有本机派生实现而降低实现质量。
 **注释**
 关于 newline 、put 和 puts ：
-实现使用 REPLContext::GetOutputStreamRef(@7.8.1) 。
-在使用前，一般应初始化 REPLContext::OutputStreamPtr(@7.8.1) 指向特定的 std::ostream 对象；否则，总是失败，引起错误(@9.5.1) 。
+实现使用 GlobalState::GetOutputStreamRef(@7.8.1) 。
+在使用前，一般应初始化 GlobalState::OutputStreamPtr(@7.8.1) 指向特定的 std::ostream 对象；否则，总是失败，引起错误(@9.5.1) 。
 关于 load 和 get-module ：
 参数一般指定视为外部翻译单元的文件名。
 http://klisp.org/docs/Ports.html#Ports 的 load 描述中求值环境有误：

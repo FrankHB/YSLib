@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1995
+\version r2001
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2022-09-05 12:33 +0800
+	2022-09-14 01:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,7 +60,7 @@ using namespace Host;
 
 Environment::Environment(Application& app)
 	: Root(app.get_allocator()), DefaultOutputStream(string(
-	app.get_allocator())), Context(*app.get_allocator().resource())
+	app.get_allocator())), Global(*app.get_allocator().resource())
 {
 #if !YF_Hosted
 	// NOTE: This only effects freestanding implementations now, which may need
@@ -143,16 +143,16 @@ Environment::Environment(Application& app)
 	// XXX: This should not fail.
 	PerformKeyAction([&]{
 #	if YF_Helper_Environment_NPL_UseSourceInfo
-		Context.UseSourceLocation = true;
+		Global.UseSourceLocation = true;
 #	endif
-		Context.OutputStreamPtr = NPL::make_observer(&
+		Global.OutputStreamPtr = NPL::make_observer(&
 #	if YF_Helper_Environment_UseStdout
 			std::cout
 #	else
 			DefaultOutputStream
 #	endif
 		);
-		NPL::A1::Forms::LoadStandardContext(Context);
+		NPL::A1::Forms::LoadStandardContext(Main);
 	}, yfsig, "         NPLA1 Failure         ",
 		" An unexpected error occurs \n"
 		" during the initializaiton.\n");
@@ -202,8 +202,8 @@ Environment::PrepareExecution(NPL::ContextNode& ctx)
 			auto& trace(ctx.Trace);
 
 			TraceException(e, trace);
-			trace.TraceFormat(Notice, "Location: %s.", Context.CurrentSource
-				? Context.CurrentSource->c_str() : "<unknown>");
+			trace.TraceFormat(Notice, "Location: %s.", Main.CurrentSource
+				? Main.CurrentSource->c_str() : "<unknown>");
 #	if YF_Helper_Environment_NPL_UseBacktrace
 			A1::TraceBacktrace(backtrace, trace);
 			// NOTE: As %Tools.SHBuild.Main.

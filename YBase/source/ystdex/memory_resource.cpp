@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1841
+\version r1844
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2022-06-27 03:57 +0800
+	2022-09-05 22:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -857,14 +857,14 @@ monotonic_buffer_resource::do_allocate(size_t bytes, size_t alignment)
 			//	https://bugs.llvm.org/show_bug.cgi?id=43638. The support in LLVM
 			//	IR has been changed since LLVM 14 (see
 			//	https://releases.llvm.org/14.0.0/docs/ReleaseNotes.html#changes-to-the-llvm-ir),
-			//	but just keep it the assumption conservative.
-#if YB_IMPL_CLANGPP
+			//	but just keep the assumption conservative.
+#if YB_IMPL_CLANGPP >= 100000
 	YB_Diag_Push
 	YB_Diag_Ignore(builtin-assume-aligned-alignment)
 #endif
 			yunused(upstream_rsrc->allocate(size_t(-1) >> 1,
 				~(size_t(-1) >> 1)));
-#if YB_IMPL_CLANGPP
+#if YB_IMPL_CLANGPP >= 100000
 	YB_Diag_Pop
 #endif
 			yassume(false);

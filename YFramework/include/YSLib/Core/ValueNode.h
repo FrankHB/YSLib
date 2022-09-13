@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r4285
+\version r4291
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2022-03-10 20:09 +0800
+	2022-09-09 00:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -241,7 +241,7 @@ public:
 	*/
 	//@{
 	ValueNode(const Container& con)
-		: container(con)
+		: ValueNode(con, con.get_allocator())
 	{}
 	ValueNode(const Container& con, allocator_type a)
 		: container(con, a)
@@ -279,7 +279,8 @@ public:
 	template<typename _tString, typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	ValueNode(const Container& con, _tString&& str, _tParams&&... args)
-		: name(yforward(str)), container(con), Value(yforward(args)...)
+		: ValueNode(std::allocator_arg, con.get_allocator(), con, yforward(str),
+		yforward(args)...)
 	{}
 	template<typename _tString, typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
@@ -295,8 +296,7 @@ public:
 	inline
 	ValueNode(std::allocator_arg_t, allocator_type a, const Container& con,
 		_tString&& str, _tParams&&... args)
-		: name(yforward(str)), container(con, a),
-		Value(yforward(args)...)
+		: name(yforward(str)), container(con, a), Value(yforward(args)...)
 	{}
 	template<typename _tString, typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
@@ -345,7 +345,7 @@ public:
 	{}
 	//@}
 	/*!
-	\brief 复制构造：使用参数和参数指定的分配器。
+	\brief 复制构造：使用参数和参数的分配器。
 	\since build 879
 	*/
 	ValueNode(const ValueNode& nd)

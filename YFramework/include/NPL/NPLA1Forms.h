@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8876
+\version r8880
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2022-08-22 03:07 +0800
+	2022-09-12 02:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1117,18 +1117,16 @@ YF_API ReductionStatus
 EvalStringRef(TermNode&, ContextNode&);
 
 /*!
-\brief 在参数指定的 REPL 环境中规约字符串表示的翻译单元以求值。
+\brief 在当前环境中规约字符串表示的翻译单元以求值。
 \exception LoggedEvent 翻译单元为空串。
 \return ReductionStatus::Retained 。
 \sa Reduce
 
-提供创建 REPL 新实例并求值的便利接口。
-
 参考调用文法：
-<pre>eval-unit \<string> \<object></pre>
+<pre>eval-unit \<string></pre>
 */
 YF_API ReductionStatus
-EvalUnit(TermNode&);
+EvalUnit(TermNode&, ContextNode&);
 //@}
 
 /*!
