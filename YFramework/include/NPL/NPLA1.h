@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r10005
+\version r10057
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-09-14 02:53 +0800
+	2022-09-22 20:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,7 +50,8 @@
 #include <ystdex/algorithm.hpp> // for ystdex::fast_any_of, ystdex::split;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard;
-#include <iosfwd> // for std::ostream;
+#include <iosfwd> // for std::ostream, std::streambuf;
+#include <istream> // for std::istream;
 
 namespace NPL
 {
@@ -452,7 +453,7 @@ public:
 	支持重规约。异步重规约由 ContextNode 支持。
 	此处约定的迭代中对节点的具体结构分类默认也适用于其它 NPLA1 实现 API ；
 	例外情况应单独指定明确的顺序。
-	例外情况包括输入节点不是表达式语义结构（而是 AST ）的 API ，如 TransformNode 。
+	例外情况包括输入节点不是表达式语义结构（而是 AST ）的 API 。
 	规约结果由以下规则确定：
 	对异步规约，返回 Reduction::Partial ；
 	否则，对枝节点，返回被调用的规约遍的求值结果；
@@ -742,43 +743,6 @@ inline PDefH(ReductionStatus, ReduceReturnUnspecified, TermNode& term) ynothrow
 */
 YF_API void
 SetupTraceDepth(ContextState&, const string& = yimpl("$__depth"));
-
-
-/*!
-\brief 插入 NPLA1 子节点。
-\note 插入后按名称排序顺序。
-\since build 852
-
-第一参数指定的变换结果插入第二参数指定的容器。
-若映射操作返回节点名称为空则根据当前容器内子节点数量加前缀 $ 命名以避免重复。
-*/
-YF_API void
-InsertChild(ValueNode&&, ValueNode::Container&);
-
-/*!
-\brief 变换 NPLA1 节点 S 表达式抽象语法树为 NPLA1 语义结构。
-\exception std::bad_function_call 第三至五参数为空。
-\return 变换后的新节点（及子节点）。
-\sa InsertChild
-\sa MapNPLALeafNode
-\sa ParseNPLATermString
-\since build 897
-
-第一参数指定源节点，其余参数指定部分变换规则。
-当被调用的第三参数不修改传入的节点参数时变换不修改源节点。
-过程如下：
-若源节点为叶节点，直接返回使用 MapNPLALeafNode 创建映射的节点。
-若源节点只有一个子节点，直接返回这个子节点的变换结果。
-否则，使用 ParseNPLATermString 从第一个子节点取作为变换结果名称的字符串。
-	若名称非空则忽略第一个子节点，只变换剩余子节点。
-		当剩余一个子节点（即源节点有两个子节点）时，直接递归变换这个节点并返回。
-		若变换后的结果名称非空，则作为结果的值；否则，结果作为容器内单一的值。
-	否则，新建节点容器，遍历并变换剩余的节点插入其中，返回以之构造的节点。
-		调用 InsertChild 插入映射的结果到容器。
-子节点的映射操作使用递归 TransformNode 调用。
-*/
-YF_API ValueNode
-TransformNode(const TermNode&);
 
 
 /*!
@@ -2172,16 +2136,26 @@ public:
 	/*!
 	\sa ListTermPreprocess
 	\sa SetupDefaultInterpretation
+	\since build 566
 	*/
 	//@{
-	/*!
-	\brief 构造：使用默认解释、指定的存储资源和默认的叶节点词素转换器。
-	\sa ParseLeaf
-	*/
-	GlobalState(pmr::memory_resource& = NPL::Deref(pmr::new_delete_resource()));
+	//! \sa ParseLeaf
+	//@{
+	//! \brief 构造：使用默认解释、指定的分配器和默认的叶节点词素转换器。
+	GlobalState(TermNode::allocator_type a = {});
+	//! \brief 构造：使用默认解释、指定的存储资源和默认的叶节点词素转换器。
+	GlobalState(pmr::memory_resource& rsrc)
+		: GlobalState(TermNode::allocator_type(&rsrc))
+	{}
+	//@}
+	//! \brief 构造：使用默认解释、指定的分配器和叶节点词素转换器。
+	GlobalState(Tokenizer, SourcedTokenizer, TermNode::allocator_type a = {});
 	//! \brief 构造：使用默认解释、指定的存储资源和叶节点词素转换器。
-	GlobalState(Tokenizer, SourcedTokenizer,
-		pmr::memory_resource& = NPL::Deref(pmr::new_delete_resource()));
+	GlobalState(Tokenizer leaf_conv,
+		SourcedTokenizer sourced_leaf_conv, pmr::memory_resource& rsrc)
+		: GlobalState(std::move(leaf_conv), std::move(sourced_leaf_conv),
+		TermNode::allocator_type(&rsrc))
+	{}
 	//@}
 
 	/*!

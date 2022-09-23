@@ -11,13 +11,13 @@
 /*!	\file Configuration.h
 \ingroup NPL
 \brief 配置设置。
-\version r445
+\version r468
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:08 +0800
 \par 修改时间:
-	2022-09-10 02:11 +0800
+	2022-09-23 01:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA1 // for YSLib::default_allocator, byte, ValueNode,
-//	NoContainer, ystdex::exclude_self_params_t;
+//	TermNode, ContextState, GlobalState, shared_ptr, Environment, std::istream,
+//	string_view, ystdex::exclude_self_params_t, NoContainer;
 
 namespace NPL
 {
@@ -40,12 +41,30 @@ namespace A1
 {
 
 /*!
-\brief 加载 NPLA1 翻译单元。
-\throw LoggedEvent 警告：被加载配置中的实体转换失败。
-\since build 955
+\brief 节点加载器。
+\since build 956
 */
-YF_API YB_ATTR_nodiscard ValueNode
-LoadNode(const TermNode&);
+class YF_API NodeLoader
+{
+private:
+	mutable ContextState cs;
+
+public:
+	NodeLoader(const GlobalState&);
+
+	YB_ATTR_nodiscard YB_PURE ValueNode
+	LoadNode(const TermNode&) const;
+	template<typename _type,
+		yimpl(typename = ystdex::exclude_self_t<TermNode, _type>)>
+	YB_ATTR_nodiscard YB_PURE inline ValueNode
+	LoadNode(_type&& obj) const
+	{
+		return LoadNode(cs.Global.get().ReadFrom(GlobalState::LoadOptionTag<
+			GlobalState::NoSourceInformation>(), yforward(obj), cs));
+	}
+
+	DefGetter(const ynothrow, ContextState&, Context, cs)
+};
 
 } // namespace A1;
 

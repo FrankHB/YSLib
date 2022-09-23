@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2018, 2020-2021 FrankHB.
+	© 2015-2018, 2020-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Test.txt
 \ingroup Documentation
 \brief 测试项目说明。
-\version r357
+\version r362
 \author FrankHB <frankhb1989@gmail.com>
 \since build 597
 \par 创建时间:
 	2015-05-09 13:10:21 +0800
 \par 修改时间:
-	2021-10-22 18:05 +0800
+	2022-09-23 02:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -242,6 +242,11 @@ MinGW32 平台支持 UNC 路径，可以在局域网中远程启动。
 
 @4.1.3.7 build 885 起：
 MinGW64 平台支持同上(@4.1.3.6) 。
+
+@4.1.3.8 build 956 起：
+支持格式变更同 [Documentation::YFramework @@5.2.10] 。
+**注释**
+书签中的路径使用字符串字面量作为键，不受变更影响。
 
 @5 测试注记：
 以下注记仅适用提交版本([Documentation::ProjectRules @@3.2.1.2]) ，对已提交的版本为测试记录，未提交的版本为测试计划。

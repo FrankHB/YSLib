@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r640
+\version r646
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2022-09-14 01:32 +0800
+	2022-09-22 20:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,7 @@
 #define NPL_INC_Dependency_h_
 
 #include "YModules.h"
-#include YFM_NPL_NPLA1 // for string, vector, GlobalState, YSLib::unique_ptr;
-#include <istream> // for std::istream;
+#include YFM_NPL_NPLA1 // for string, vector, std::istream, YSLib::unique_ptr;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard;
 
 namespace NPL
@@ -185,13 +184,14 @@ LoadModule_std_strings(ContextState&);
 \brief 加载输入/输出模块。
 \pre 断言：第二参数非空。
 \note 第二参数指定基础环境。
+\since build 956
 
 加载输入/输出库操作。
 派生实现依赖模块：
 字符串模块 std.strings 。
 */
 YF_API void
-LoadModule_std_io(ContextState&, const shared_ptr<Environment>&);
+LoadModule_std_io(ContextState&);
 
 /*!
 \brief 加载系统模块。
@@ -208,6 +208,7 @@ LoadModule_std_system(ContextState&);
 \brief 加载模块管理模块。
 \pre 断言：第二参数非空。
 \note 第二参数指定基础环境。
+\since build 956
 
 加载模块管理操作。
 派生实现依赖模块：
@@ -217,7 +218,7 @@ LoadModule_std_system(ContextState&);
 系统模块 std.system 。
 */
 YF_API void
-LoadModule_std_modules(ContextState&, const shared_ptr<Environment>&);
+LoadModule_std_modules(ContextState&);
 //@}
 
 /*!

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2021 FrankHB.
+	© 2013-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r383
+\version r395
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2021-12-24 23:56 +0800
+	2022-09-22 23:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,11 +26,10 @@
 
 
 #include "YSLib/UI/YModules.h"
-#include "NPL/YModules.h"
-#include YFM_YSLib_UI_Loader // for to_std_string, istringtream;
+#include YFM_YSLib_UI_Loader // for to_std_string, istringtream,
+//	std::allocator_arg, shared_ptr;
 #include <sstream> // for complete istringtream;
-#include YFM_YSLib_UI_YPanel
-#include YFM_NPL_Configuration // for NPL, Session, A1::LoadNode;
+#include <limits> // for std::numeric_limits;
 
 namespace YSLib
 {
@@ -53,6 +52,7 @@ ParseRect(const string& str)
 	catch(std::exception& e)
 	{
 		YTraceDe(Warning, "Error: %s", e.what());
+		YTraceDe(Informative, "The string is: '%s'.", str.c_str());
 		throw std::invalid_argument("Parse 'Rect' failed: bad state.");
 	}
 	YTraceDe(Debug, "ParseRect: %s.", to_string(res).c_str());
@@ -96,11 +96,7 @@ WidgetLoader::DetectWidgetNode(const ValueNode& node) const
 ValueNode
 WidgetLoader::LoadUILayout(string_view sv) const
 {
-	using namespace NPL;
-	Session sess{};
-
-	return TransformUILayout(
-		A1::LoadNode(SContext::Analyze(sess, sess.Process(sv))));
+	return TransformUILayout(Convert(sv));
 }
 
 ValueNode
@@ -137,8 +133,7 @@ WidgetLoader::TransformUILayout(const ValueNode& node) const
 									const auto
 										r(std::stoul(to_std_string(*p_z)));
 
-									// TODO: Do not use magic number.
-									if(r < 0x100)
+									if(r <= std::numeric_limits<ZOrder>::max())
 										z = r;
 								}
 								CatchIgnore(std::invalid_argument&)

@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r7359
+\version r7396
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2022-09-14 01:45 +0800
+	2022-09-17 23:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1401,10 +1401,9 @@ void
 LoadStandardDerived(ContextState& cs)
 {
 #if NPL_Impl_NPLA1_Native_Forms
-	auto& renv(cs.GetRecordRef());
-
-	RegisterUnary<Strict, const TokenValue>(renv, "ensigil", Ensigil);
-	RegisterForm(renv, "$binds1?", [](TermNode& term, ContextNode& ctx){
+	// XXX: Using %cs instead of 'renv' is occasionally more efficient.
+	RegisterUnary<Strict, const TokenValue>(cs, "ensigil", Ensigil);
+	RegisterForm(cs, "$binds1?", [](TermNode& term, ContextNode& ctx){
 		RetainN(term, 2);
 
 		auto i(term.begin());
@@ -1466,13 +1465,11 @@ Load(ContextState& cs)
 void
 Load(ContextState& cs)
 {
-	auto& renv(cs.GetRecordRef());
-
-//	LoadObjects(renv);
+//	LoadObjects(cs.GetRecordRef());
 	Primitive::Load(cs);
 	Derived::Load(cs);
 	// NOTE: Prevent the ground environment from modification.
-	renv.Frozen = true;
+	cs.GetRecordRef().Frozen = true;
 }
 
 } // namespace Ground;
@@ -2047,11 +2044,8 @@ LoadModule_std_strings(ContextState& cs)
 }
 
 void
-LoadModule_std_io(ContextState& cs,
-	const shared_ptr<Environment>& p_ground)
+LoadModule_std_io(ContextState& cs)
 {
-	YAssertNonnull(p_ground);
-
 	auto& renv(cs.GetRecordRef());
 
 	RegisterUnary<Strict, const string>(renv, "readable-file?",
@@ -2142,9 +2136,8 @@ $defl! puts (&s) $sequence (put s) (() newline);
 			YAssert(false, "Invalid state found.");
 		}
 		ThrowInvalidSyntaxError("Syntax error in get-module.");
-	}, std::placeholders::_2, EnvironmentReference(p_ground)));
+	}, std::placeholders::_2, cs.WeakenRecord()));
 #else
-	yunused(p_ground);
 	cs.ShareCurrentSource("<lib:std.io-1>");
 	A1::Perform(cs, R"NPL(
 $defl! get-module (&filename .&opt)	
@@ -2225,11 +2218,8 @@ $defl/e! env-empty? (derive-current-environment std.strings) (&n)
 }
 
 void
-LoadModule_std_modules(ContextState& cs,
-	const shared_ptr<Environment>& p_ground)
+LoadModule_std_modules(ContextState& cs)
 {
-	YAssertNonnull(p_ground);
-
 #if NPL_Impl_NPLA1_Native_Forms
 	using namespace std::placeholders;
 	using YSLib::to_std_string;
@@ -2287,14 +2277,14 @@ LoadModule_std_modules(ContextState& cs,
 				ystdex::emplace_hint_in_place(registry, pr.first, req,
 				std::piecewise_construct, NPL::tuple<>(),
 				NPL::forward_as_tuple([&]{
-				return CreateEnvironmentWithParent(term.get_allocator(),
-					r_ground);
+				return
+					CreateEnvironmentWithParent(term.get_allocator(), r_ground);
 			}()))->second.second);
 			return ReductionStatus::Clean;
 		}
 		throw NPLException("Requirement '" + to_std_string(req)
 			+ "' is already registered.");
-	}, EnvironmentReference(p_ground)));
+	}, cs.WeakenRecord()));
 	RegisterUnary<Strict, const string>(renv, "unregister-requirement!",
 		trivial_swap, [&](const string& req){
 		CheckRequirement(req);
@@ -2380,9 +2370,8 @@ LoadModule_std_modules(ContextState& cs,
 			ThrowInvalidSyntaxError("Syntax error in require.");
 		}
 		return reduce_to_res(pr.first->second.first);
-	}, _2, EnvironmentReference(p_ground)));
+	}, _2, cs.WeakenRecord()));
 #else
-	yunused(p_ground);
 	context.ShareCurrentSource("<lib:std.modules>");
 	// XXX: Thread-safety is not respected currently.
 	context.Perform(R"NPL(
@@ -2677,26 +2666,18 @@ void
 LoadStandardContext(ContextState& cs)
 {
 	LoadGroundContext(cs);
-
-	const auto pfx("std.");
-	string mod(pfx, cs.get_allocator());
-	const auto load_std_module(
-		[&](string_view module_name, void(&load_module)(ContextState&)){
-		// XXX: Using allocator of the state or %std::string are both a bit less
-		//	efficient.
-		mod += module_name;
-		LoadModuleChecked(cs, mod, load_module, cs);
-		mod.resize(ystdex::string_length(pfx));
-	});
-	const auto p_ground(cs.ShareRecord());
-
-	load_std_module("continuations", LoadModule_std_continuations),
-	load_std_module("promises", LoadModule_std_promises);
-	load_std_module("math", LoadModule_std_math),
-	load_std_module("strings", LoadModule_std_strings);
-	LoadModuleChecked(cs, "std.io", LoadModule_std_io, cs, p_ground);
-	load_std_module("system", LoadModule_std_system);
-	LoadModuleChecked(cs, "std.modules", LoadModule_std_modules, cs, p_ground);
+	// XXX: A lambda-expression is OK and the generated code can be equally
+	//	efficient, but not succinct as using macro in the invocation sites. 
+#define NPL_Impl_LoadStd(_name) \
+	LoadModuleChecked(cs, "std." #_name, LoadModule_std_##_name, cs)
+	NPL_Impl_LoadStd(continuations),
+	NPL_Impl_LoadStd(promises);
+	NPL_Impl_LoadStd(math),
+	NPL_Impl_LoadStd(strings);
+	NPL_Impl_LoadStd(io);
+	NPL_Impl_LoadStd(system);
+	NPL_Impl_LoadStd(modules);
+#undef NPL_Impl_LoadStd
 }
 
 } // namespace Forms;

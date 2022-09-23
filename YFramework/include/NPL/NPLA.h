@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r9807
+\version r9835
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2022-09-05 08:44 +0800
+	2022-09-17 02:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -206,27 +206,6 @@ PrintNodeString(std::ostream&, const ValueNode&,
 //@}
 //@}
 
-
-/*!
-\brief 解析 NPLA 项节点字符串。
-\since build 852
-
-以 string 类型访问节点，若失败则结果为空串。
-*/
-YB_ATTR_nodiscard YF_API YB_PURE string
-ParseNPLATermString(const TermNode&);
-
-
-/*!
-\brief 映射 NPLA 叶节点。
-\return 创建的新节点。
-\sa ParseNPLANodeString
-\since build 674
-
-创建新节点。若参数为空则返回值为空串的新节点；否则值以 ParseNPLANodeString 取得。
-*/
-YB_ATTR_nodiscard YF_API YB_PURE ValueNode
-MapNPLALeafNode(const TermNode&);
 
 /*!
 \brief 变换 NPLA 语法节点为语法分析树的叶节点。
@@ -2207,6 +2186,14 @@ public:
 	Environment(BindingMap&& m)
 		: Bindings(std::move(m))
 	{}
+	//! \since build 956
+	Environment(const BindingMap& m, allocator_type a)
+		: Bindings(m, a)
+	{}
+	//! \since build 956
+	Environment(BindingMap&& m, allocator_type a)
+		: Bindings(std::move(m), a)
+	{}
 	//@}
 	/*!
 	\brief 构造：使用父环境。
@@ -3325,6 +3312,10 @@ AssignParent(ContextNode& ctx, _tParams&&... args)
 
 //! \brief 设置参数指定的父环境弱引用。
 //@{
+//! \since build 956
+inline PDefH(void, AssignWeakParent, ValueObject& parent,
+	TermNode::allocator_type a, EnvironmentReference r_env)
+	ImplExpr(AssignParent(parent, a, std::move(r_env)))
 inline PDefH(void, AssignWeakParent, ValueObject& parent,
 	TermNode::allocator_type a, ContextNode& ctx)
 	ImplExpr(AssignParent(parent, a, ctx.WeakenRecord()))

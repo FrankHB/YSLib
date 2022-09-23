@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3959
+\version r3970
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2022-01-31 20:02 +0800
+	2022-09-23 01:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,8 +41,7 @@
 //	platform_ex::WCSToUTF8, platform_ex::UTF8ToWCS;
 #endif
 #include YFM_CHRLib_MappingEx // for CHRLib::cp113_lkp;
-#include YFM_NPL_Configuration // for NPL::Configuration, NPL::Session,
-//	A1::LoadNode;
+#include YFM_NPL_Configuration // for NPL::Configuration, A1::NodeLoader;
 #include YFM_YSLib_Service_TextFile // for Text::BOM_UTF_8, Text::CheckBOM;
 #include <ystdex/string.hpp> // for ystdex::write_literal, ystdex::sfmt;
 #include <cerrno> // for errno;
@@ -410,10 +409,10 @@ LoadNPLA1FileDirect(const char* disp, const char* path, bool show_info)
 	yunused(disp);
 	if(show_info)
 		YTraceDe(Notice, "Found %s '%s'.", Nonnull(disp), path);
-	// XXX: Race condition may cause failure, though file would not be
-	//	corrupted now.
+	// XXX: Race condition may cause failure, though file would not be corrupted
+	//	now.
 	// XXX: Exception thrown here would be caught by %TryInvoke in the call to
-	//	%LoadNPLA1FileVec or %LoadNPLA1File, so there is no need to attatch the
+	//	%LoadNPLA1FileVec or %LoadNPLA1File, so there is no need to attach the
 	//	additional filename information here.
 	if(SharedInputMappedFileStream sifs{path})
 	{
@@ -831,9 +830,8 @@ FetchDefaultFontCache()
 		return make_unique<Drawing::FontCache>();
 	}, [](ValueNode& node, unique_ptr<Drawing::FontCache>& locked)
 		-> Drawing::FontCache&{
-		InitializeSystemFontCache(*locked,
-			AccessChild<string>(node, "FontFile"),
-			AccessChild<string>(node, "FontDirectory"));
+		InitializeSystemFontCache(*locked, AccessChild<string>(node,
+			"FontFile"), AccessChild<string>(node, "FontDirectory"));
 		return *locked.get();
 	});
 }
@@ -846,10 +844,8 @@ FetchMIMEBiMapping()
 	}, [](ValueNode& node, MIMEBiMapping& locked) -> MIMEBiMapping&{
 		AddMIMEItems(locked, LoadNPLA1File("MIME database", (AccessChild<string>
 			(node, "DataDirectory") + "MIMEExtMap.txt").c_str(), []{
-				NPL::Session sess{};
-
-				return A1::LoadNode(
-					SContext::Analyze(sess, sess.Process(TU_MIME)));
+				return
+					A1::NodeLoader(FetchEnvironment().Global).LoadNode(TU_MIME);
 			}, true));
 		return locked;
 	});

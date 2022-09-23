@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2019-2020 FrankHB.
+	© 2009-2016, 2019-2020, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 框架初始化。
-\version r893
+\version r896
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2020-10-05 09:19 +0800
+	2022-09-23 01:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -156,7 +156,7 @@ InitializeSystemFontCache(Drawing::FontCache&, const string&, const string&);
 
 /*!
 \brief 取值类型根节点。
-\pre 断言：已初始化。
+\exception GeneralEvent 异常中立：由 FetchEnvironmnet 抛出。
 \since build 688
 */
 YF_API ValueNode&
@@ -172,6 +172,7 @@ FetchDefaultFontCache();
 
 /*!
 \brief 取 MIME 类型名和文件扩展名双向映射对象。
+\exception GeneralEvent 异常中立：由 FetchEnvironmnet 抛出。
 \since build 450
 */
 YF_API MIMEBiMapping&

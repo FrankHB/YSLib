@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4202
+\version r4213
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2022-08-21 23:32 +0800
+	2022-09-23 01:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -136,19 +136,6 @@ PrintNodeString(std::ostream& os, const ValueNode& node,
 	return {};
 }
 
-
-string
-ParseNPLATermString(const TermNode& term)
-{
-	return ystdex::value_or(AccessPtr<string>(term));
-}
-
-ValueNode
-MapNPLALeafNode(const TermNode& term)
-{
-	return YSLib::AsNode(ValueNode::allocator_type(term.get_allocator()),
-		string(), string(Deliteralize(ParseNPLATermString(term))));
-}
 
 TermNode
 TransformToSyntaxNode(ValueNode&& node)

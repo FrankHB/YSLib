@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r23927
+\version r23965
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2022-09-14 02:53 +0800
+	2022-09-21 23:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1930,51 +1930,6 @@ SetupTraceDepth(ContextState& cs, const string& name)
 
 
 void
-InsertChild(ValueNode&& node, ValueNode::Container& con)
-{
-	con.insert(node.GetName().empty() ? YSLib::AsNode(node.get_allocator(),
-		'$' + MakeIndex(con.size()), std::move(node.Value)) : std::move(node));
-}
-
-ValueNode
-TransformNode(const TermNode& term)
-{
-	auto s(term.size());
-
-	if(s == 0)
-		return MapNPLALeafNode(term);
-
-	auto i(term.begin());
-
-	if(s == 1)
-		return TransformNode(*i);
-
-	const auto& name(ParseNPLATermString(*i));
-
-	if(!name.empty())
-		yunseq(++i, --s);
-	if(s == 1)
-	{
-		auto&& nd(TransformNode(*i));
-
-		if(nd.GetName().empty())
-			return YSLib::AsNode(ValueNode::allocator_type(
-				term.get_allocator()), name, std::move(nd.Value));
-		return
-			{ValueNode::Container({std::move(nd)}, term.get_allocator()), name};
-	}
-
-	ValueNode::Container node_con;
-
-	std::for_each(i, term.end(), [&](const TermNode& tm){
-		InsertChild(TransformNode(tm), node_con);
-	});
-	return
-		{std::allocator_arg, term.get_allocator(), std::move(node_con), name};
-}
-
-
-void
 ParseLeaf(TermNode& term, string_view id)
 {
 	YAssertNonnull(id.data());
@@ -2746,7 +2701,7 @@ TraceBacktrace(const ContextNode::ReducerSequence& backtrace,
 }
 
 
-GlobalState::GlobalState(pmr::memory_resource& rsrc)
+GlobalState::GlobalState(TermNode::allocator_type a)
 	: GlobalState([this](const GParsedValue<ByteParser>& str){
 		TermNode term(Allocator);
 		const auto id(YSLib::make_string_view(str));
@@ -2763,11 +2718,11 @@ GlobalState::GlobalState(pmr::memory_resource& rsrc)
 			ParseLeafWithSourceInformation(term, id, cs.CurrentSource,
 				val.first);
 		return term;
-	}, rsrc)
+	}, a)
 {}
 GlobalState::GlobalState(Tokenizer leaf_conv,
-	SourcedTokenizer sourced_leaf_conv, pmr::memory_resource& rsrc)
-	: Allocator(&rsrc), Preprocess(SeparatorPass(Allocator)),
+	SourcedTokenizer sourced_leaf_conv, TermNode::allocator_type a)
+	: Allocator(a), Preprocess(SeparatorPass(Allocator)),
 	ConvertLeaf(std::move(leaf_conv)),
 	ConvertLeafSourced(std::move(sourced_leaf_conv))
 {

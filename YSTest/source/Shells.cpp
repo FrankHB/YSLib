@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6556
+\version r6565
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2022-09-14 03:06 +0800
+	2022-09-23 00:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,11 +25,13 @@
 */
 
 
-#include "Shells.h" // for std::throw_with_nested;
+#include "Shells.h" // for std::throw_with_nested, make_shared,
+//	FetchEnvironment;
 #include "ShlExplorer.h"
 #include "ShlReader.h"
-#include <ytest/timing.hpp>
-#include YFM_NPL_Dependency // for NPL, A1::Forms::InvokeIn;
+#include <ytest/timing.hpp> // for ytest::timing::once;
+#include YFM_NPL_Configuration // for NPL::A1::NodeLoader, ystdex::trivial_swap,
+//	std::bind, string_view, std::placeholders::_1;
 #include YFM_Helper_Environment // for complete Environment;
 
 namespace YReader
@@ -126,7 +128,10 @@ FetchImageLoadTime()
 WidgetLoader&
 FetchWidgetLoader()
 {
-	static WidgetLoader wgt_ldr;
+	static const NPL::A1::NodeLoader loader(FetchEnvironment().Global);
+	static WidgetLoader wgt_ldr(decltype(WidgetLoader::Convert)(
+		ystdex::trivial_swap, std::bind(&NPL::A1::NodeLoader::LoadNode<
+		string_view>, &loader, std::placeholders::_1)));
 	static const struct Init
 	{
 		Init()

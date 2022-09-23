@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1602
+\version r1625
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2022-07-09 12:12 +0800
+	2022-09-23 11:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -699,6 +699,7 @@ YSLib 不依赖这些接口以外的特性。
 除 @2.8.2 外，当前取得单态状态的接口包括：
 FetchRoot ：取值类型根节点；
 FetchDefaultFontCache ：取默认字体缓存。
+FetchMIMEBiMapping ：取 MIME 数据映射。
 
 @2.8.5 多线程同步：
 特定于平台，Helper 可能提供的多线程同步接口。
@@ -967,6 +968,17 @@ Win32 框架公共配置文件路径修改为以程序映像所在的目录下�
 @5.2.9 build 710 起：
 Linux 框架公共配置文件路径修改为以程序映像所在的目录下的 yconf.txt 的绝对路径（不再是依赖初始化时当前工作目录的相对路径）。
 
+@5.2.10 build 956 起：
+配置节点的叶节点的值被 NPL::ParseLeaf([Documentation::NPL @@7.5.2]) 处理，因此：
+	配置的键（子节点中第一个叶节点）支持 NPLA1 代码字面量和字符串字面量，不再支持数值和其它构成字面量的词素。
+	配置的非键的值（除键的叶节点）区分不同的字面量，不再支持非字符串字面量的值。
+以上不被支持的值在转换为内部表示时，被视为空值。
+对符号，空值转换为键的 "$"（兼容处理 YSLib::ValueNode([Documentation.YSLib @@3.16]) 的函数 YSLib::IsPrefixedIndex ）；对字符串，空值转换为空字符串。
+**注释**
+构成符号的词素仍被键支持。
+字符串字面量仍被非键的配置值。
+这不影响默认生成的配置，因为这些配置中的键都使用符号，非键的值都使用字符串字面量。
+
 @5.3 附加配置：
 附加配置是可选的。
 build 654 起，Win32 平台支持环境变量 YF_DEBUG_OUTPUT 设置值为 1 时初始化默认日志记录跟踪发送到调试器。
@@ -976,6 +988,21 @@ build 654 起，Win32 平台支持环境变量 YF_DEBUG_OUTPUT 设置值为 1 �
 用户可以自行初始化这些对象。当前这些 API 包括：
 初始化模块 Adaptor::Image 中的 YSLib::Drawing::ImageCodec 对象。
 非框架初始化的内部实现也可能使用类似框架初始化的实现(@2.8.4) 。
+
+@5.5 其它外部数据文件：
+其它外部数据文件可能使用类似配置文件(@5.2) 的方式访问。
+当外部数据文件不可用时，可使用内置的默认值。
+
+@5.5.1 build 450 起：
+外部文件 MIMEExtMap.txt 提供 MIME 数据。
+使用的格式同 yconf.txt(@5.2.2) 。
+**注释**
+解析 MIME 数据的函数 FetchMIMEBiMapping 在初始化模块(@2.8.4) 一并提供，但当前这不依赖框架初始化。
+
+@5.5.2 build 956 起：
+外部文件 MIMEExtMap.txt 支持格式变更同 @5.2.10 。
+**注释**
+解析 MIME 数据的函数 FetchMIMEBiMapping 依赖框架初始化。
 
 */
 ////

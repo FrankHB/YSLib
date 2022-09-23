@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r11547
+\version r11673
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-09-14 04:19 +0800
+	2022-09-23 18:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,133 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %UI.Loader $=
+			(
+				+ "tracing of the string value with level %Informative after \
+					the warning message on failure" @ "function %ParseRect",
+				/ @ "class %WidgetLoader" $=
+				(
+					/ DLDI "avoided the use of magic number"
+						@ "function %TransformUILayout",
+					(
+					+ "data member %Convert";
+					+ "constructor",
+					/ DLI "simplified function %LoadUILayout" ^ "%Convert"
+						~ "%NPL"
+					)
+				),
+			),
+			/ "parameter type 'const shared_ptr<Shell>&'" @ "function %Activate"
+				@ %Core.YApplication -> 'shared_ptr<Shell>'
+		),
+		/ "parameter type 'const shared_ptr<Shell>&'" @ "function %NowShellTo"
+			@ %Helper.ShellHelper -> 'shared_ptr<Shell>',
+			// As in %YSLib.Core.YApplication.
+		/ %NPL $=
+		(
+			/ %Dependency $=
+			(
+				(
+				/ @ "functions %(LoadModule_std_io, LoadModule_std_modules)" $=
+				(
+					/ DLI "simplified" !^ "2nd argument";
+					- $revert(b942) "2nd parameter"
+				);
+				/ $forced $revert(b942) DLI
+					"simplified function %LoadStandardContext",
+				),
+				/ DLI "several target" @ "function %LoadGroundContext" ^ 'cs'
+					~ 'renv',
+					// Only in a few cases it would be more efficient.
+				/ DLDI ^ 'ynothrow' @ "applicative 'remove-file'"
+					@ "function %LoadModule_std_system",
+				- DLDI "inclusion <istream>" @ "header"
+					$dep_from "NPLA1 inclusion of <istream>"
+			),
+			/ %Configuration $=
+			(
+				+ "class %NodeLoader";
+					// This is like %A1::LoadNode, except that the supported \
+						values are already converted by %NPL::A1::ParseLeaf, \
+						so both supported format of the keys and non-key leaf \
+						values are different. See %Documentation.YFramework.
+				/ DLI "simplified function %operator>>" ^ "%NodeLoader",
+					// This is a breaking change on the key format as above.
+				- "function %LoadNode" $dep_from ("%FetchMIMEBiMapping"
+					@ %Helper.Initialization, %Yeader.Shells)
+			),
+			/ %NPLA1 $=
+			(
+				/ @ "constructos %GlobalState" $=
+				(
+					+ "2 overloads with allocator parameter";
+					/ "default argument" @ "'pmr::memory_resource&' parameter"
+						-> ("default argument '{}'" @ "allocator parameter")
+				),
+				* DLDI "missing inclusion <istream>" @ "header" $since b758
+					$dep_to "NPLA1 inclusion of <istream>",
+					// This was needed for %(std::istream, streambuf). It was \
+						fixed for %std::streambuf but not %std::istream by the \
+						inclusion of <iosfwd> since b901 because the complete \
+						type %std::istream was used since b891. This bug was \
+						not shown due to the inclusion of <istream> in \
+						%YBase.YStandardEx.String, but this should not been \
+						relied on.
+				- "functions %(TransformNode; InsertChild)"
+					$dep_from ("%A1::LoadNode" @ %Configuration)
+			),
+			/ @ %NPLA $=
+			(
+				+ "overload %AssignWeakParent with %EnvironmentReference \
+					parameter",
+				+ "2 constructor with %allocator_type parameter"
+					@ "class %Environment",
+				(
+				- "function %ParseNPLATermString";
+				- "function %MapNPLALeafNode"
+					$dep_from ("%TranformNode" @ %NPLA1)
+				)
+			)
+		),
+		/ %Helper $=
+		(
+			/ @ "constructor %Environment" @ %Environment $=
+			(
+				/ "froze the current environment after the call to \
+					%NPL::A1::Forms::LoadStandardContext",
+				/ DLI "simplified"
+					$dep_from ("constructors %GlobalState" @ %NPL.NPLA1)
+			),
+			/ %Initialization $=
+			(
+				* DD "wrong precondition" @ "Doxygen comment"
+					@ "function %FetchRoot" $since b550
+					$= (/ "'\pre' command" -> "'exception' command"),
+				/ @ "function %FetchMIMEBiMapping" $=
+				(
+					/ "simplified"
+						^ $dep_from ("%NodeLoader" @ %NPL.Configuration);
+						// This changes the precondition and it is not fully \
+							compatible to the old version. This also a \
+							breaking change, see %NPL::A1::NodeLoader.
+					+ DD "'\exception' command" @ "Doxygen comment"
+				)
+			)
+		)
+	),
+	/ $forced DLDI "function %FetchWidgetLoader" @ %YReader.Shells
+		$dep_from ("constructor %WidgetLoader" @ %YFramework.UI.Loader)
+		^ $dep_from ("%NodeLoader" @ %YFramework.NPL.Configuration)
+		// This is a breaking change as %NPL::A1::NoadLoader. See also \
+			%Documentation.Test.
+),
+
+b955
 (
 	* "missing refinement on Clang++ version" @ "#pragma directive"
 		@ "member function %monotonic_buffer_resource::do_allocate"

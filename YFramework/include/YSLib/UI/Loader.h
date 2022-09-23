@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2019-2020 FrankHB.
+	© 2013-2016, 2019-2020, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Loader.h
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r676
+\version r684
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:37:16 +0800
 \par 修改时间:
-	2020-04-07 00:20 +0800
+	2022-09-22 23:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include YFM_YSLib_UI_YUIContainer
 #include YFM_YSLib_Core_ValueNode
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
+#include <ystdex/function.hpp> // for ystdex::unchecked_function;
 
 namespace YSLib
 {
@@ -236,12 +237,19 @@ public:
 class YF_API WidgetLoader
 {
 public:
+	//! \since build 956
+	ystdex::unchecked_function<ValueNode(string_view)> Convert;
 	GWidgetRegister<> Default{};
 	GWidgetRegister<const Rect&> Bounds{};
 	//! \since build 495
 	GWidgetInserterRegister<IWidget&> Insert{};
 	//! \since build 555
 	GWidgetInserterRegister<IWidget&, const ZOrder&> InsertZOrdered{};
+
+	//! \since build 956
+	WidgetLoader(ystdex::unchecked_function<ValueNode(string_view)> conv)
+		: Convert(std::move(conv))
+	{}
 
 	//! \since build 888
 	//@{
