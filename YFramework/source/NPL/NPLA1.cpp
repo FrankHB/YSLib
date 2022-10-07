@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r23965
+\version r24180
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2022-09-21 23:46 +0800
+	2022-10-04 22:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,14 +29,14 @@
 #include YFM_NPL_NPLA1Forms // for EvaluationPasses, lref, ContextHandler,
 //	RelaySwitched, trivial_swap, type_index, string_view, std::hash,
 //	ystdex::equal_to, YSLib::unordered_map, YSLib::lock_guard, YSLib::mutex,
-//	std::ref, ListReductionFailure, ystdex::sfmt, TermToStringWithReferenceMark,
-//	std::next, IsBranch, TermReference, std::allocator_arg, in_place_type,
-//	CheckReducible, IsNPLAExtendedLiteralNonDigitPrefix, IsAllSignLexeme,
-//	AllocatorHolder, YSLib::IValueHolder, ystdex::ref,
-//	YSLib::AllocatedHolderOperations, any, ystdex::as_const,
-//	NPL::forward_as_tuple, uintmax_t, ystdex::bind1, TokenValue,
-//	Forms::Sequence, ReduceBranchToList, YSLib::stack, vector, size_t,
-//	GetLValueTagsOf, TermTags, function, TryAccessLeafAtom, PropagateTo,
+//	ystdex::ref, std::ref, ListReductionFailure, ystdex::sfmt,
+//	TermToStringWithReferenceMark, std::next, IsBranch, TermReference,
+//	std::allocator_arg, in_place_type, CheckReducible,
+//	IsNPLAExtendedLiteralNonDigitPrefix, IsAllSignLexeme, AllocatorHolder,
+//	YSLib::IValueHolder, YSLib::AllocatedHolderOperations, any,
+//	ystdex::as_const, NPL::forward_as_tuple, uintmax_t, ystdex::bind1,
+//	TokenValue, Forms::Sequence, ReduceBranchToList, YSLib::stack, vector,
+//	size_t, GetLValueTagsOf, TermTags, function, TryAccessLeafAtom, PropagateTo,
 //	InvalidReference, LiftTermRef, TryAccessLeaf, LiftPrefixToReturn,
 //	NPL::Deref, ystdex::true_, IsList, ThrowFormalParameterTypeError,
 //	CountPrefix, ThrowNestedParameterTreeMismatch, ystdex::false_, IsIgnore,
@@ -268,20 +268,19 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 {
 	// NOTE: See $2021-01 @ %Documentation::Workflow.
 	static_assert(sizeof...(args) < 2, "Unsupported owner arguments found.");
-#if NPL_Impl_NPLA1_Enable_TCO
-	auto& act(EnsureTCOAction(ctx, term));
 
 	ContextState::Access(ctx).ClearCombiningTerm();
+#if NPL_Impl_NPLA1_Enable_TCO
+
+	static_assert(sizeof...(args) == 0, "Unsupported owner arguments found.");
+
 	SetupNextTerm(ctx, term);
 	// XXX: %A1::RelayCurrentOrDirect is not used to allow the call to the
 	//	underlying handler implementation (e.g. %FormContextHandler::CallN)
 	//	optimized with %NPL_Impl_NPLA1_Enable_InlineDirect remaining the nested
 	//	call safety.
-	return
-		RelaySwitched(ctx, Continuation(act.Attach(h, yforward(args)...), ctx));
+	return RelaySwitched(ctx, Continuation(ystdex::ref(h), ctx));
 #else
-
-	ContextState::Access(ctx).ClearCombiningTerm();
 
 	auto gd(ystdex::unique_guard([&]() ynothrow{
 		// XXX: This term is fixed, as in the term cleanup in %TCOAction.
@@ -313,6 +312,7 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 }
 
 /*!
+\pre 第二参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
 \warning 若不满足 NPLA1 规约函数上下文状态类型要求，行为未定义。
 \since build 948
 */
@@ -322,16 +322,11 @@ ThrowCombiningFailure(TermNode& term, const ContextNode& ctx,
 {
 	// NOTE: Try to extract the identifier set by
 	//	%ContextState::TrySetTailOperatorName.
-	string name(term.get_allocator());
+	const auto p(ContextState::Access(ctx).TryGetTailOperatorName(term));
 
-	if(const auto p = ContextState::Access(ctx).TryGetTailOperatorName(term))
-	{
-		name = std::move(*p);
-		name += ": ";
-	}
-	name += TermToStringWithReferenceMark(fm, has_ref).c_str();
 	throw ListReductionFailure(ystdex::sfmt(
-		"No matching combiner '%s' for operand '%s'.", name.c_str(),
+		"No matching combiner '%s%s%s' for operand '%s'.", p ? p->c_str() : "",
+		p ? ": " : "", TermToStringWithReferenceMark(fm, has_ref).c_str(),
 		TermToStringWithReferenceMark(term, {}, 1).c_str()));
 }
 
@@ -471,9 +466,9 @@ public:
 	{
 		// XXX: Always use the allocator to hold the source information.
 		return YSLib::AllocatedHolderOperations<SourcedHolder,
-			_tByteAlloc>::CreateHolder(c, x, value, NPL::forward_as_tuple(
-			source_information, ystdex::as_const(value)), NPL::forward_as_tuple(
-			source_information, std::move(value)));
+			_tByteAlloc>::CreateHolder(c, x, value,
+			NPL::forward_as_tuple(source_information, ystdex::as_const(value)),
+			NPL::forward_as_tuple(source_information, std::move(value)));
 	}
 
 	YB_ATTR_nodiscard YB_PURE PDefH(any, Query, uintmax_t) const ynothrow
@@ -1688,9 +1683,9 @@ ContextState::TrySetTailOperatorName(TermNode& term) const ynothrow
 {
 	if(combining_term_ptr)
 	{
-		auto& comb(*combining_term_ptr);
+		auto& tm(*combining_term_ptr);
 
-		if(IsBranch(comb) && ystdex::ref_eq<>()(AccessFirstSubterm(comb), term))
+		if(IsBranch(tm) && ystdex::ref_eq<>()(AccessFirstSubterm(tm), term))
 		{
 			OperatorName = std::move(term.Value);
 			return true;
@@ -2281,13 +2276,14 @@ ReduceCombined(TermNode& term, ContextNode& ctx)
 		: ReductionStatus::Regular;
 }
 
-ReductionStatus
+YB_ATTR(hot) ReductionStatus
 ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 {
 	AssertCombiningTerm(term);
 
 	auto& fm(AccessFirstSubterm(term));
 	const auto p_ref_fm(TryAccessLeafAtom<const TermReference>(fm));
+	auto& cs(ContextState::Access(ctx));
 
 	// NOTE: If this call returns normally, the combiner object implied by %fm
 	//	is not owned by %term.
@@ -2318,8 +2314,8 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 			//	in %ReduceForCombinerRef.
 			const auto& referenced(p_ref_fm->get());
 
-			YAssert(ystdex::ref_eq<>()(NPL::Deref(Access<
-				shared_ptr<TermNode>>(*fm.begin())), referenced),
+			YAssert(ystdex::ref_eq<>()(NPL::Deref(
+				Access<shared_ptr<TermNode>>(*fm.begin())), referenced),
 				"Invalid subobject reference found.");
 			// XXX: Explicit copy is necessary as in the implementation of
 			//	%LiftOtherOrCopy.
@@ -2332,8 +2328,13 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 		// NOTE: The combiner object is in an lvalue. It is not saved by %term.
 		if(const auto p_handler
 			= TryAccessLeafAtom<const ContextHandler>(p_ref_fm->get()))
+		{
+#if NPL_Impl_NPLA1_Enable_TCO
+			EnsureTCOAction(ctx, term).AddOperator(cs.OperatorName);
+#endif
 			// NOTE: This is neutral to %NPL_Impl_NPLA1_Enable_Thunked.
 			return CombinerReturnThunk(*p_handler, term, ctx);
+		}
 	}
 	else
 		term.Tags |= TermTags::Temporary;
@@ -2342,12 +2343,24 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 	//	The implementation varies on different configurations.
 	// XXX: Converted terms (if used, see above) are also handled here as in
 	//	prvalues.
+#if NPL_Impl_NPLA1_Enable_TCO
+	if(TryAccessTerm<const ContextHandler>(fm))
+		// NOTE: This does not compare the stashed object and the hold function
+		//	in the newcoming prvalues, as temporary object of prvalues have
+		//	their unique identities (in spite of the result of %operator== of
+		//	%ContextHandler). There is also no environment pointer being shared
+		//	since all required ones (if any) in well-defined programs should be
+		//	saved in the %ContextHandler value.
+		// XXX: After the call, the value of %Value member of the 1st subterm of
+		//	%term is valid but unspecified. This splits the term representation
+		//	if it is irregular. Since currently no irregular representation of
+		//	combiner prvalues are supported, it is safe and it should be more
+		//	efficient to use %ValueObject instead of %TermNode in %FrameRecord.
+		return CombinerReturnThunk(EnsureTCOAction(ctx, term).Attach(
+			fm.Value).GetObject<ContextHandler>(), term, ctx);
+#elif NPL_Impl_NPLA1_Enable_Thunked
 	// NOTE: To allow being moved, %p_handler is not qualified by 'const'.
 	if(const auto p_handler = TryAccessTerm<ContextHandler>(fm))
-#if NPL_Impl_NPLA1_Enable_TCO
-		return
-			CombinerReturnThunk(*p_handler, term, ctx, std::move(*p_handler));
-#elif NPL_Impl_NPLA1_Enable_Thunked
 	{
 		// XXX: Optimize for performance using context-dependent store?
 		// XXX: This should ideally be a member of handler. However, it makes no
@@ -2358,6 +2371,8 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 		return CombinerReturnThunk(*p, term, ctx, std::move(p));
 	}
 #else
+	// NOTE: Ditto.
+	if(const auto p_handler = TryAccessTerm<ContextHandler>(fm))
 		return CombinerReturnThunk(ContextHandler(std::move(*p_handler)), term,
 			ctx);
 #endif
@@ -2365,15 +2380,45 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 		std::ref(ctx), std::placeholders::_1, std::placeholders::_2), fm);
 }
 
-ReductionStatus
+YB_ATTR(hot) ReductionStatus
 ReduceCombinedReferent(TermNode& term, ContextNode& ctx, const TermNode& fm)
 {
 	YAssert(IsCombiningTerm(term), "Invalid term found for combined term.");
 	// XXX: %SetupNextTerm is to be called in %CombinerReturnThunk.
 	ClearCombiningTags(term);
 	if(const auto p_handler = TryAccessLeafAtom<const ContextHandler>(fm))
+	{
+#if NPL_Impl_NPLA1_Enable_TCO
+		// XXX: Assume %fm is owned outside.
+		EnsureTCOAction(ctx, term).AddOperator(
+			ContextState::Access(ctx).OperatorName);
+#endif
 		return CombinerReturnThunk(*p_handler, term, ctx);
-	return ThrowCombiningFailure(term, ctx, fm, true);
+	}
+	ThrowCombiningFailure(term, ctx, fm, true);
+}
+
+YB_ATTR(hot) ReductionStatus
+ReduceCombinedReferentWithOperator(TermNode& term, ContextNode& ctx,
+	const TermNode& fm, ValueObject& op)
+{
+	YAssert(IsCombiningTerm(term), "Invalid term found for combined term.");
+
+	auto& cs(ContextState::Access(ctx));
+
+	ClearCombiningTags(term);
+	if(const auto p_handler = TryAccessLeafAtom<const ContextHandler>(fm))
+	{
+#if NPL_Impl_NPLA1_Enable_TCO
+		EnsureTCOAction(ctx, term).AddOperator(op);
+#else
+		yunused(op);
+#endif
+		return CombinerReturnThunk(*p_handler, term, ctx);
+	}
+	cs.OperatorName = std::move(op),
+	cs.SetCombiningTermRef(term);
+	ThrowCombiningFailure(term, ctx, fm, true);
 }
 
 ReductionStatus
@@ -2505,63 +2550,6 @@ BindSymbol(const shared_ptr<Environment>& p_env, const TokenValue& n,
 
 
 void
-SetupDefaultInterpretation(GlobalState& global, EvaluationPasses passes)
-{
-	using Pass = EvaluationPasses::HandlerType;
-	const auto a(global.Allocator);
-
-	// XXX: Empty types and functions after decayed are specialized enough
-	//	without %trivial_swap.
-#if true
-	// NOTE: This is an example of merged passes.
-	passes += Pass(std::allocator_arg, a,
-		[](TermNode& term, ContextNode& ctx) -> ReductionStatus{
-		ReduceHeadEmptyList(term);
-		if(IsCombiningTerm(term))
-		{
-			ContextState::Access(ctx).SetCombiningTermRef(term);
-			// NOTE: Asynchronous reduction on the 1st term is needed for the
-			//	continuation capture.
-			// XXX: Without %NPL_Impl_NPLA1_Enable_InlineDirect, the
-			//	asynchronous calls are actually more inefficient than separated
-			//	calls.
-			return ReduceSubsequent(AccessFirstSubterm(term), ctx,
-				A1::NameTypedReducerHandler(
-				std::bind(ReduceCombinedBranch, std::ref(term),
-				std::placeholders::_1), "eval-combine-operands"));
-		}
-		return ReductionStatus::Clean;
-	});
-#else
-#	if true
-	// XXX: Optimization based on the synchronous call of %ReduceHeadEmptyList.
-	passes += Pass(std::allocator_arg, a, [](TermNode& term, ContextNode& ctx){
-		ReduceHeadEmptyList(term);
-		if(IsCombiningTerm(term))
-			ContextState::Access(ctx).SetCombiningTermRef(term);
-		// NOTE: This is needed for the continuation capture.
-		return ReduceFirst(term, ctx);
-	});
-#	else
-	passes += Pass(std::allocator_arg, a, ReduceHeadEmptyList);
-	passes += Pass(std::allocator_arg, a, [](TermNode& term, ContextNode& ctx){
-		if(IsCombiningTerm(term))
-			ContextState::Access(ctx).SetCombiningTermRef(term);
-		return ReductionStatus::Neutral;
-	});
-	passes += Pass(std::allocator_arg, a, ReduceFirst);
-#	endif
-	// NOTE: This implies the %RegularizeTerm call when necessary.
-	// XXX: This should be the last of list pass for current TCO
-	//	implementation, assumed by TCO action.
-	passes += Pass(std::allocator_arg, a, ReduceCombined);
-#endif
-	global.EvaluateList = std::move(passes);
-	// NOTE: This implies the %RegularizeTerm call when necessary.
-	global.EvaluateLeaf = Pass(std::allocator_arg, a, ReduceLeafToken);
-}
-
-void
 SetupTailContext(ContextNode& ctx, TermNode& term)
 {
 	YAssert(IsCombiningTerm(term), "Invalid term found for combined term.");
@@ -2617,24 +2605,6 @@ QuerySourceInformation(const ValueObject& vo)
 	}, val.try_get_object_ptr<SourceInfoMetadata>());
 }
 
-#if NPL_Impl_NPLA1_Enable_TCO
-YB_PURE
-#else
-YB_STATELESS
-#endif
-observer_ptr<const ValueObject>
-QueryTailOperatorName(const Reducer& act) ynothrow
-{
-#if NPL_Impl_NPLA1_Enable_TCO
-	if(const auto p_act = act.target<TCOAction>())
-		if(IsTyped<TokenValue>(p_act->OperatorName))
-			return make_observer(&p_act->OperatorName);
-#else
-	yunused(act);
-#endif
-	return {};
-}
-
 string_view
 QueryTypeName(const type_info& ti)
 {
@@ -2672,32 +2642,114 @@ TraceBacktrace(const ContextNode::ReducerSequence& backtrace,
 					}, act.target<Continuation>(), act.target_type()).name()
 #endif
 				);
-				const auto p_opn_vo(QueryTailOperatorName(act));
-				// XXX: No %NPL::TryAccessValue is needed, since %p_opn_vo comes
-				//	from %TCOAction::OperatorName, which is not a term value.
-				const auto p_opn_t(p_opn_vo ? p_opn_vo->AccessPtr<TokenValue>()
-					: nullptr);
-
-				if(const auto p_o = p_opn_t ? p_opn_t->data() : nullptr)
-				{
-					// XXX: This clause relies on the source information for
-					//	meaningful output. Assume it is used.
-#if true
-					if(const auto p_si = QuerySourceInformation(*p_opn_vo))
-						trace.TraceFormat(Notice, "#[continuation: %s (%s) @"
-							" %s (line %zu, column %zu)]", p_o, p,
-							p_si->first ? p_si->first->c_str() : "<unknown>",
-							p_si->second.Line + 1, p_si->second.Column + 1);
-					else
-#endif
-						trace.TraceFormat(Notice, "#[continuation: %s (%s)]",
-							p_o, p);
-				}
-				else
+				const auto print_cont([&]{
 					trace.TraceFormat(Notice, "#[continuation (%s)]", p);
+				});
+#if NPL_Impl_NPLA1_Enable_TCO
+				if(const auto p_act = act.target<TCOAction>())
+				{
+					for(const auto& r : p_act->GetFrameRecordList())
+					{
+						const auto& op(NPL::get<ActiveCombiner>(r));
+
+						if(IsTyped<TokenValue>(op))
+						{
+							// XXX: No %NPL::TryAccessValue is needed, since %op
+							//	comes from operators from the record list of
+							//	%TCOAction, which is not a term value.
+							const auto p_opn_t(op.AccessPtr<TokenValue>());
+
+							if(p_opn_t)
+							{
+								const auto p_o(p_opn_t->data());
+								// XXX: This clause relies on the source
+								//	information for meaningful output. Assume it
+								//	is used.
+#	if true
+								if(const auto p_si = QuerySourceInformation(op))
+									trace.TraceFormat(Notice, "#[continuation:"
+										" %s (%s) @ %s (line %zu, column %zu)]",
+										p_o, p, p_si->first
+										? p_si->first->c_str() : "<unknown>",
+										p_si->second.Line + 1,
+										p_si->second.Column + 1);
+								else
+#	endif
+									trace.TraceFormat(Notice,
+										"#[continuation: %s (%s)]", p_o, p);
+							}
+							else
+								print_cont();
+						}
+						else
+							print_cont();
+					}
+				}
+				print_cont();
+#else
+				print_cont();
+#endif
 			}
 		}, "guard unwinding for backtrace");
 	}
+}
+
+
+void
+SetupDefaultInterpretation(GlobalState& global, EvaluationPasses passes)
+{
+	using Pass = EvaluationPasses::HandlerType;
+	const auto a(global.Allocator);
+
+	// XXX: Empty types and functions after decayed are specialized enough
+	//	without %trivial_swap.
+#if true
+	// NOTE: This is an example of merged passes.
+	passes += Pass(std::allocator_arg, a,
+		[](TermNode& term, ContextNode& ctx) -> ReductionStatus{
+		ReduceHeadEmptyList(term);
+		if(IsCombiningTerm(term))
+		{
+			ContextState::Access(ctx).SetCombiningTermRef(term);
+			// NOTE: Asynchronous reduction on the 1st term is needed for the
+			//	continuation capture.
+			// XXX: Without %NPL_Impl_NPLA1_Enable_InlineDirect, the
+			//	asynchronous calls are actually more inefficient than separated
+			//	calls.
+			return ReduceSubsequent(AccessFirstSubterm(term), ctx,
+				A1::NameTypedReducerHandler(
+				std::bind(ReduceCombinedBranch, std::ref(term),
+				std::placeholders::_1), "eval-combine-operands"));
+		}
+		return ReductionStatus::Clean;
+	});
+#else
+#	if true
+	// XXX: Optimization based on the synchronous call of %ReduceHeadEmptyList.
+	passes += Pass(std::allocator_arg, a, [](TermNode& term, ContextNode& ctx){
+		ReduceHeadEmptyList(term);
+		if(IsCombiningTerm(term))
+			ContextState::Access(ctx).SetCombiningTermRef(term);
+		// NOTE: This is needed for the continuation capture.
+		return ReduceFirst(term, ctx);
+	});
+#	else
+	passes += Pass(std::allocator_arg, a, ReduceHeadEmptyList);
+	passes += Pass(std::allocator_arg, a, [](TermNode& term, ContextNode& ctx){
+		if(IsCombiningTerm(term))
+			ContextState::Access(ctx).SetCombiningTermRef(term);
+		return ReductionStatus::Neutral;
+	});
+	passes += Pass(std::allocator_arg, a, ReduceFirst);
+#	endif
+	// NOTE: This implies the %RegularizeTerm call when necessary.
+	// XXX: This should be the last of list pass for current TCO
+	//	implementation, assumed by TCO action.
+	passes += Pass(std::allocator_arg, a, ReduceCombined);
+#endif
+	global.EvaluateList = std::move(passes);
+	// NOTE: This implies the %RegularizeTerm call when necessary.
+	global.EvaluateLeaf = Pass(std::allocator_arg, a, ReduceLeafToken);
 }
 
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r28294
+\version r28304
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2022-09-13 02:31 +0800
+	2022-10-07 16:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -665,9 +665,13 @@ EvalImplUnchecked(TermNode& term, ContextNode& ctx, bool no_lift)
 	//	in NPLA1.cpp.
 	// XXX: The mandated host value check is in the call to
 	//	%ContextNode::SwitchEnvironment.
-	return TailCall::RelayNextGuardedProbe(ctx, term,
-		EnvironmentGuard(ctx, ctx.SwitchEnvironment(std::move(p_env))),
-		!no_lift, std::ref(ContextState::Access(ctx).ReduceOnce));
+	// XXX: %TailCall::RelayNextGuardedProbe is a bit inefficient, and missing
+	//	of inlining of the call to %RelayForCall is significantly more
+	//	inefficient.
+	return [&] YB_LAMBDA_ANNOTATE(() , , flatten){
+		return RelayForCall(ctx, term, EnvironmentGuard(ctx,
+			ctx.SwitchEnvironment(std::move(p_env))), no_lift);
+	}();
 }
 
 //! \since build 822
@@ -943,7 +947,7 @@ private:
 #if NPL_Impl_NPLA1_Enable_TCO
 			// XXX: Assume the last function being handled in %TCOAction is this
 			//	object. This would make '*this' invalid.
-			yunused(RefTCOAction(ctx).MoveFunction());
+			RefTCOAction(ctx).PopTopFrame();
 #endif
 		}
 		else
@@ -953,6 +957,7 @@ private:
 		}
 		// NOTE: The precondition is same to the last call in
 		//	%EvalImplUnchecked.
+		// XXX: The 'flatten' attribute here does not make it more efficient.
 		return RelayForCall(ctx, term, std::move(gd), no_lift);
 	}
 
@@ -2589,6 +2594,7 @@ LetCall(TermNode& term, ContextNode& ctx, EnvironmentGuard& gd, bool no_lift)
 #if NPL_Impl_NPLA1_Enable_Thunked
 	SetupNextTerm(ctx, term);
 #endif
+	// XXX: The 'flatten' attribute here does not make it more efficient.
 	return RelayForCall(ctx, term, std::move(gd), no_lift);
 }
 

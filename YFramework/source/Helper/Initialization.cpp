@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3970
+\version r3981
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2022-09-23 01:04 +0800
+	2022-10-01 01:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,9 +26,10 @@
 
 
 #include "Helper/YModules.h"
-#include YFM_Helper_Initialization // for IO::Path, IO::FetchSeparator,
-//	IO::MaxPathLength, FetchCurrentWorkingDirectory, ystdex::nptr, pair, map,
-//	mutex, lock_guard, IO::EnsureDirectory, IO::VerifyDirectory,
+#include YFM_Helper_Initialization // for IO::Path,
+//	FetchCurrentWorkingDirectory, IO::FetchSeparator, IO::MaxPathLength,
+//	IO::FetchSeparator, GeneralEvent, pmr::new_delete_resource_t, ystdex::nptr,
+//	pair, map, mutex, lock_guard, IO::EnsureDirectory, IO::VerifyDirectory,
 //	PerformKeyAction, IO::TraverseChildren, NativePathView;
 #if !(YCL_Win32 || YCL_Linux)
 #	include <ystdex/string.hpp> // for ystdex::rtrim;
@@ -116,11 +117,12 @@ struct RootPathCache
 	IO::Path Parent;
 
 	// XXX: Similar to %FetchConfPaths as of the concurrent execution.
-	RootPathCache()
-		: PathString([]{
+	//! \since build 957
+	RootPathCache(string::allocator_type a)
+		: PathString([&]{
 #if YCL_Win32
 			IO::Path image(platform::ucast(
-				platform_ex::FetchModuleFileName().data()));
+				platform_ex::FetchModuleFileName().data()), a);
 
 			if(!image.empty())
 			{
@@ -174,7 +176,7 @@ struct RootPathCache
 // TODO: Add similar implemnetation for BSD family OS, etc.
 #endif
 			throw GeneralEvent("Failed finding working root path.");
-		}()), Path(PathString), Parent(Path / u"..")
+		}()), Path(PathString, a), Parent(Path / u"..", a)
 	{
 		YTraceDe(Informative, "Initialized root directory path '%s'.",
 			PathString.c_str());
@@ -184,7 +186,8 @@ struct RootPathCache
 YB_ATTR_nodiscard YB_PURE const RootPathCache&
 FetchRootPathCache()
 {
-	static const RootPathCache cache;
+	pmr::new_delete_resource_t r;
+	static const RootPathCache cache(&r);
 
 	return cache;
 }

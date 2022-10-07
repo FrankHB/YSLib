@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# (C) 2014-2016, 2020 FrankHB.
+# (C) 2014-2016, 2020, 2022 FrankHB.
 # Revision patching script: patching source revisions using RevisionPatcher.
-# Required: hg, sed.
+# Required: hg / git, sed.
 
 set -e
 # NOTE: Relative location of %SHBuild-common.sh is depends on both in stage 1
@@ -17,9 +17,51 @@ SHBuild_CheckedCallSilent SHBuild_Put x | sed 's/x/x/g'
 : "${RevisionPatcher:="$(which RevisionPatcher)"}"
 SHBuild_CheckedCallSilent SHBuild_Put x | "$RevisionPatcher"
 
-SHBuild_Pushd "$(SHBuild_2u "$(hg root)")"
+root_=''
+use_hg_=''
+use_git_=''
 
-hg status --color=none -amn0 | xargs -0 hg diff --color=none > bak.patch
+test_hg_()
+{
+	if [[ $root_ == '' ]] && hash hg > /dev/null 2>& 1; then
+		root_="$(SHBuild_2u "$(hg root 2> /dev/null)")"
+		if [[ $root_ != '' ]]; then
+			use_hg_=hg
+		fi
+	fi
+}
+
+test_git_()
+{
+	if [[ $root_ == '' ]] && hash git > /dev/null 2>& 1; then
+		root_="$(SHBuild_2u "$(git rev-parse --show-toplevel 2> /dev/null)")"
+		if [[ root_ != '' ]]; then
+			use_git_=git
+		fi
+	fi
+}
+
+if [[ $PatchHg != '' ]]; then
+	test_hg_
+elif [[ $PatchGit != '' ]]; then
+	test_git_
+else
+	test_hg_
+	test_git_
+fi
+
+SHBuild_Pushd "$root_"
+
+if [[ $use_hg_ != '' ]]; then
+	SHBuild_Puts "Using hg."
+	hg status --color=none -amn0 | xargs -0 hg diff --color=none > bak.patch
+elif [[ $use_git_ != '' ]]; then
+	SHBuild_Puts "Using git."
+	git diff --diff-filter=d --color=never > bak.patch
+else
+	SHBuild_Puts "ERROR: either 'hg' or 'git' should exist." >& 2
+	exit 1
+fi
 
 # XXX: This requires Bash 4.x.
 mapfile -t Versions < <(< bak.patch $RevisionPatcher)

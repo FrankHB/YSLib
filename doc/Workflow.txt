@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r5011
+\version r5025
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2022-08-21 09:12 +0800
+	2022-10-01 16:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -4946,6 +4946,22 @@ The constructs of lists in NPLA is clarified.
 		This is not strictly required for behavior correctness, but it is preferred for performance.
 		This relies on the old behavior of 'NPL::A1::CheckArgumentList' which rules out the irregular representation of the arguments.
 		The implementations include 'NPL::A1::FetchArgumentN', as well as 'Apply' and 'ApplyList' in namespace 'NPL::A1::Forms'.
+
+$2022-10:
+
+report.impl:
+Static debug build of YFramework for MinGW64 is fixed.
+	The build of debug static library would cause crash during checking installation in the framework initialization in 'YReader'.
+		Specifically, this would be on 'IDTag' instance construction in a call to 'platform::FetchRootPathLength_P<char16_t>'.
+	This is fixed by replacing '-O1' to '-Og'.
+		See $2020-10 report.impl for the original issue.
+	The workaround is still preserved since removal of it would failure with the current toolchain in building 'Dependency.cpp.o'.
+	This issue has been effective at least since V0.9.
+		With the current provided external dependencies in Documentation::Dependencies since build 947, it also does not work for revisions since V0.9 before this fix.
+		It may also worth noting that the runtime failure is different before build 916. The initialization would just fail, instead of a crash.
+			However, there are other undefined behavior on the destructor of container or string objects using the default PMR memory resource.
+				This mainly affects 'YSLib::FetchRootPathCache' and it is also fixed now.
+		Since MinGW64 now has the 3rd-class formal support (see Documentation::ProjectRules and Documentation::Test.txt), this has been a bug since build 947.
 
 ////
 

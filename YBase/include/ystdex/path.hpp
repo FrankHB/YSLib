@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r1629
+\version r1700
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2022-02-28 05:47 +0800
+	2022-10-01 11:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -269,6 +269,7 @@ classify_path(const _tString& name) ynothrow
 表示一般路径的模板，是元素类型 value_type 的容器。
 初始化路径时可通过路径名解析确定，但作为抽象的路径，
 	不直接提供处理具体 value_type 值的接口。
+一般路径的容器不依赖分配器。若需使用分配器，可通过序列容器访问。
 和 ISO C++17 [fs.class.path] 的 std::filesystem::path 的作用和设计有类似之处，
 	但有一些显著不同：
 	非单一类型而是被特征参数化的类模板。
@@ -703,21 +704,18 @@ normalize(path<_tSeqCon, _tTraits>& pth)
 	pth.filter_self(), pth.merge_parents();
 }
 
-//! \brief 取字符串表示。
+//! \since build 957
+namespace details
+{
+
 template<class _tSeqCon, class _tTraits>
-typename _tSeqCon::value_type
-to_string(const path<_tSeqCon, _tTraits>& pth,
-	const typename _tSeqCon::value_type& seperator = &to_array<
-	typename string_traits<typename _tSeqCon::value_type>::value_type>("/")[0])
+void
+to_string_impl(const path<_tSeqCon, _tTraits>& pth, const typename
+	_tSeqCon::value_type& seperator, typename path<_tSeqCon,
+	_tTraits>::const_iterator& i, typename _tSeqCon::value_type& res)
 {
 	static_assert(is_object<typename _tSeqCon::value_type>(),
 		"Invalid type found.");
-
-	if(pth.empty())
-		return {};
-
-	auto i(pth.begin());
-	typename _tSeqCon::value_type res(*i);
 
 	if(_tTraits::has_root_path(res))
 	{
@@ -734,19 +732,16 @@ to_string(const path<_tSeqCon, _tTraits>& pth,
 		res += seperator;
 		res += *i;
 	}
-	return res;
 }
 
-//! \brief 取以分隔符结束的字符串表示。
 template<class _tSeqCon, class _tTraits>
-typename _tSeqCon::value_type
-to_string_d(const path<_tSeqCon, _tTraits>& pth, typename string_traits<typename
-	_tSeqCon::value_type>::value_type delimiter = '/')
+void
+to_string_d_impl(const path<_tSeqCon, _tTraits>& pth, typename string_traits<
+	typename _tSeqCon::value_type>::value_type delimiter, typename path<
+	_tSeqCon, _tTraits>::const_iterator& i, typename _tSeqCon::value_type& res)
 {
 	static_assert(is_object<typename _tSeqCon::value_type>(),
 		"Invalid type found.");
-	auto i(pth.begin());
-	typename _tSeqCon::value_type res(*i);
 
 	if(!_tTraits::has_root_path(res))
 		res += delimiter;
@@ -755,8 +750,73 @@ to_string_d(const path<_tSeqCon, _tTraits>& pth, typename string_traits<typename
 		res += *i;
 		res += delimiter;
 	}
+}
+
+} // namespace details;
+
+//! \brief 取字符串表示。
+//@{
+template<class _tSeqCon, class _tTraits>
+typename _tSeqCon::value_type
+to_string(const path<_tSeqCon, _tTraits>& pth,
+	const typename _tSeqCon::value_type& seperator = &to_array<
+	typename string_traits<typename _tSeqCon::value_type>::value_type>("/")[0])
+{
+	if(pth.empty())
+		return typename _tSeqCon::value_type();
+
+	auto i(pth.begin());
+	typename _tSeqCon::value_type res(*i);
+
+	details::to_string_impl(pth, seperator, i, res);
 	return res;
 }
+//! \since build 957
+template<class _tSeqCon, class _tTraits>
+typename _tSeqCon::value_type
+to_string(const path<_tSeqCon, _tTraits>& pth,
+	typename _tSeqCon::value_type::allocator_type a,
+	const typename _tSeqCon::value_type& seperator = &to_array<
+	typename string_traits<typename _tSeqCon::value_type>::value_type>("/")[0])
+{
+	if(pth.empty())
+		return typename _tSeqCon::value_type(a);
+
+	auto i(pth.begin());
+	typename _tSeqCon::value_type res(*i, a);
+
+	details::to_string_impl(pth, seperator, i, res);
+	return res;
+}
+//@}
+
+//! \brief 取以分隔符结束的字符串表示。
+//@{
+template<class _tSeqCon, class _tTraits>
+typename _tSeqCon::value_type
+to_string_d(const path<_tSeqCon, _tTraits>& pth, typename string_traits<typename
+	_tSeqCon::value_type>::value_type delimiter = '/')
+{
+	auto i(pth.begin());
+	typename _tSeqCon::value_type res(*i);
+
+	details::to_string_d_impl(pth, delimiter, i, res);
+	return res;
+}
+//! \since build 957
+template<class _tSeqCon, class _tTraits>
+typename _tSeqCon::value_type
+to_string_d(const path<_tSeqCon, _tTraits>& pth, typename
+	_tSeqCon::value_type::allocator_type a,typename string_traits<typename
+	_tSeqCon::value_type>::value_type delimiter = '/')
+{
+	auto i(pth.begin());
+	typename _tSeqCon::value_type res(*i, a);
+
+	details::to_string_d_impl(pth, delimiter, i, res);
+	return res;
+}
+//@}
 
 //! \since build 927
 template<class _tSeqCon, class _tTraits>

@@ -201,9 +201,7 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 					$def! SHBuild_LDFLAGS safeenv-get "SHBuild_LDFLAGS";
 					$defl! add-fix-flags ()
 						$cond
-							(mingw64g $if dynamic
-								"-Og -g -fno-var-tracking-assignments"
-								"-O1 -g -fno-var-tracking-assignments")
+							(mingw64g "-Og -g -fno-var-tracking-assignments")
 							(($and use-g++ (not? debug) dynamic
 								(eqv? host-platform_ "Linux")
 								($or (use-ubsan? SHBuild_CXXFLAGS)

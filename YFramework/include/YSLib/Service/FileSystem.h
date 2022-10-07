@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018-2021 FrankHB.
+	© 2010-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r3573
+\version r3614
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2021-08-01 03:29 +0800
+	2022-10-01 01:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -222,53 +222,69 @@ public:
 	using ypath::value_type;
 	//! \since build 708
 	using ypath::traits_type;
+	//! \since build 957
+	using allocator_type = ypath::container_type::allocator_type;
 
 public:
 	/*!
 	\brief 无参数构造：默认实现。
 	*/
 	DefDeCtor(Path)
+	//! \since build 957
+	//@{
+	Path(allocator_type a) ynothrow
+		: ypath(a)
+	{}
 	//! \since build 635
 	explicit
 	Path(ypath pth) ynothrow
 		: ypath(std::move(pth))
 	{}
+	Path(ypath pth, allocator_type a) ynothrow
+		: ypath(std::move(pth), a)
+	{}
 	/*!
 	\pre 间接断言：初始化的视图的路径参数的数据指针非空。
-	\since build 837
 	*/
 	template<typename _type, yimpl(typename = ystdex::enable_if_t<
 		ystdex::or_<std::is_constructible<u16string_view, _type>,
 		std::is_constructible<String, _type>>::value>,
 		typename = ystdex::exclude_self_t<Path, _type>)>
 	explicit
-	Path(_type&& arg)
-		: ypath(ParsePath<ypath>(u16string_view(AsStringArg(yforward(arg)))))
+	Path(_type&& arg, allocator_type a = {})
+		: ypath(ParsePath<ypath>(u16string_view(AsStringArg(yforward(arg))),
+		Path(a)))
 	{}
-	//! \since build 730
 	template<typename _type>
-	explicit
-	Path(_type&& arg, Text::Encoding enc)
-		: ypath(ParsePath<ypath>(u16string_view(String(yforward(arg), enc))))
+	Path(_type&& arg, Text::Encoding enc, allocator_type a = {})
+		: ypath(ParsePath<ypath>(u16string_view(String(yforward(arg), enc)),
+		Path(a)))
 	{}
-	//! \since build 599
 	template<typename _tIn>
-	Path(_tIn first, _tIn last)
-		: ypath(first, last)
+	Path(_tIn first, _tIn last, allocator_type a = {})
+		: ypath(first, last, a)
 	{}
-	//! \since build 599
 	template<typename _tElem>
-	Path(std::initializer_list<_tElem> il)
-		: ypath(il)
+	Path(std::initializer_list<_tElem> il, allocator_type a = {})
+		: ypath(il, a)
 	{}
+	//@}
 	/*!
 	\brief 复制构造：默认实现。
 	*/
 	DefDeCopyCtor(Path)
+	//! \since build 957
+	Path(const Path& pth, allocator_type a)
+		: ypath(pth, a)
+	{}
 	/*!
 	\brief 转移构造：默认实现。
 	*/
 	DefDeMoveCtor(Path)
+	//! \since build 957
+	Path(Path&& pth, allocator_type a)
+		: ypath(std::move(pth), a)
+	{}
 	DefDeDtor(Path)
 
 	/*!
@@ -347,7 +363,6 @@ public:
 
 private:
 	//! \since build 837
-	//@{
 	template<typename _tParam>
 	auto
 	AsStringArg(_tParam&& arg) -> yimpl(ystdex::enable_if_t)<
@@ -355,6 +370,7 @@ private:
 	{
 		return u16string_view(yforward(arg));
 	}
+	//! \since build 837
 	template<typename _tParam, yimpl(typename = ystdex::enable_if_t<
 		ystdex::and_<ystdex::not_<std::is_constructible<u16string_view,
 		_tParam>>, std::is_constructible<String, _tParam>>::value>)>
@@ -363,7 +379,6 @@ private:
 	{
 		return String(yforward(arg));
 	}
-	//@}
 
 public:
 	/*!
@@ -425,6 +440,7 @@ public:
 	using ypath::is_absolute;
 
 	using ypath::is_relative;
+	//@}
 
 	//! \since build 599
 	using ypath::max_size;
@@ -457,10 +473,14 @@ public:
 		ImplExpr(y.GetBaseRef().swap(x))
 	//@}
 
+	//! \since build 957
+	YB_ATTR_nodiscard YB_PURE
+		PDefH(allocator_type, get_allocator, ) const ynothrow
+		ImplRet(ypath::get_container().get_allocator())
+
 	//! \since build 475
 	friend PDefH(String, to_string, const Path& pth)
 		ImplRet(to_string(pth.GetBase(), {FetchSeparator<char16_t>()}))
-	//@}
 };
 
 

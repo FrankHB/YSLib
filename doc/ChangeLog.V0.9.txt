@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r11673
+\version r11857
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-09-23 18:50 +0800
+	2022-10-07 19:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,176 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ "%PatchRevision.sh" @ %Tools.Scripts $=
+	(
+		* "wrongly ignored the error of 'hg root' call" $since b565,
+			// It should normally not fail, though.
+		(
+		+ "'git' support";
+		+ "variables %(PatchHg, PatchGit)"
+		)
+	),
+	/ %YBase.YStandardEx.Path $=
+	(
+		* "function template %to_string relying on non-explicit default \
+			constructor of sequence container value type" $since b408
+			$= (/ $impl !^ '{}')
+		+ "overload with allocator parameter"
+			@ "function templates %(to_string, to_string_d)"
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			+ "allocator support"  @ "class %Path" @ %Service.FileSystem $=
+			(
+				+ "alias %allocator_type";
+				(
+				+ "4 constructors with %allocator_type parameter";
+				+ "parameter 'allocator = {}' for all other non-default \
+					constructors"
+				),
+				+ "function %get_allocator",
+				/ DLI @ "function %GetString" $=
+				(
+					- "redundant 'const' preventing copy elision"
+						@ "local object";
+						// This is necessary for allocators because the \
+							allocator here does not propagate on copy (but \
+							only on move).
+					/ "enabled allocator" ^ $dep_from ("%get_allocator"
+						("%ystdex::to_string_d" @ %YBase.YStandardEx.Path)),
+				)
+			),
+			* "missing excluding potentional unexpected ADL lookup"
+				@ "friend function templates %operator=" @ "class %ValueObject"
+				@ %Core.YObject $since b753
+				$= (/ $impl ^ "%ystdex::enable_if_same_param_t")
+		),
+		/ %NPL $=
+		(
+			/ %NPLA1Internals $=
+			(
+				/ "1st element type" @ "type %FrameRecord" -> "%ValueObject"
+					~ "%ContextHandler" $dep_from %YSLib.Core.YObject,
+					// This relies on the %ValueObject fix to prevent the \
+						ambiguity on '==' in the implemenation of \
+						%TCOAction::CompressFrameList.
+				/ @ "class %TCOAction" $=
+				(
+					/ DLDI "functions %(CompressForGuard, MoveFunction)"
+						^ "%NPL::get",
+					/ "function %MoveFunction" -> "function %PopTopFrame",
+					+ "function %GetFrameRecordList",
+					(
+					+ "function %AddOperator";
+					/ $forced "2 function overloads %Attach"
+						-> "function %Attach" $dep_from "%FrameRecord",
+					),
+					(
+					- "data member %OperatorName"
+						$dep_to "removal of TCOAction operator name";
+					/ $forced DLI "simplified constructor"
+					),
+					+ DLI 'YB_ATTR(hot)'
+						@ "functions %(MakeOneShotChecker, SaveTailSourceName)",
+					/ @ "function %CompressForGuard" $=
+					(
+						+ DLI 'YB_ATTR(cold)',
+						/ "delayed the call to %CompressForContext"
+							// This preserves more operator names.
+					)
+				),
+				/ "dropped guard with empty enviroment pointer support"
+					@ ("member functions %(Combine::RelayEnvSwitch#1, \
+					(TailCall::NonTailCall)::(RelayNextGuarded, \
+					RelayNextGuardedLifted, RelayNextGuardedProbe))";
+					$comp "function %PrepareTCOEvaluation",
+					"member function %TCOAction::CompressForGuard")
+					// The guard should not be constructed with a null pointer \
+						value from a running instance of the context normally, \
+						because there is the nonnull invariant on the current \
+						environment. This is also more consistent to the \
+						existing precondition of %Combine::RelayEnvSwitch#2.
+			),
+			/ %NPLA1 $=
+			(
+				/ DLDI "reordered declarations of function %SetupTailContext",
+				/ @ "functions %(ReduceCombined, ReduceCombinedReferent)" $=
+				(
+					/ "error handling" $=
+					(
+						/ "prevented moving of %ContextState::OperandName";
+							// This makes it still usable for the handling \
+								later.
+						/ DLI "prvented allocation for message"
+					),
+					(
+					/ "handled operator before accessing the context handler"
+						^ $dep_from ("%TCOAction::(AddOperator, Attach)"
+						@ %NPLA1Internals) $dep_to "tail operator setup";
+					/ @ 'NPL_Impl_NPLA1_Enable_TCO' $=
+					(
+						/ "saved operator for each frame instead of \
+							the 1st bottom frame of %TCOAction";
+						/ "passed prvalues as lvalues" $dep_to
+					)
+					),
+					+ DLI 'YB_ATTR(hot)'
+				),
+				(
+				* "missing supported frames other than the 1st bottom frame of \
+					%TCOAction" @ 'NPL_Impl_NPLA1_Enable_TCO'
+					@ "function %TraceBacktrace" $since b925
+					$= (/ $impl ^ $dep_from ("%TCOAction::GetFrameRecordList"
+						@ %NPLA1Internals) ~ "%QueryTailOperatorName");
+						// This also relies on the change on \
+							%TCOAction::CompressForGuard to get more names.
+				- $revert(b947) "function %QueryTailOperatorName"
+					$dep_from "removal of TCOAction operator name"
+				),
+				+ "function %ReduceCombinedReferentWithOperator",
+				/ DLDI "renamed internal term name"
+					@ "member function %ContextState::TrySetTailOperatorName"
+			),
+			/ DLI %NPLA1Forms $=
+			(
+				/ $forced $design "%operator()" @ "vau handler" @ %NPLA1Forms
+					$dep_from ("%TCOAction::MoveFunction" @ %NPLA1Internals),
+				/ @ "namespace %Forms" $=
+				(
+					/ "optimized" @ "functions %(Eval, \
+						EvalRef, EvalString, EvalStringRef, RemoteEval, \
+						RemoteEvalRef)" ^ ("%RelayForCall",
+						'YB_LAMBDA_ANNOTATE', 'flatten'),
+					/ "optimized functions whose name match glob pattern \
+						'*Let*'" !^ "%RelayForCall"
+				),
+				/ "optimized around the call to %RelayForCall"
+					@ "vau handler call" ^ ('YB_LAMBDA_ANNOTATE', 'flatten')
+			)
+		),
+	),
+	/ @ "function %FetchRootPathCache" @ %Helper.Initialization $=
+	(
+		/ DLI "enabled allocator" @ "cache"
+			^ $dep_from ("constructors %Path" @ %YSLib.Service.FileSystem);
+		* $re_add(b930) "allocator of internal resources might be used out of \
+			lifetime" $since b861 ^ "%pmr::new_delete_resource_t"
+			// See $2022-10 @ %Documentation::Workflow.
+	),
+	/ @ "platform %MinGW64" $=
+	(
+		// See $2022-10 @ %Documentation::Workflow.
+		/ $revert_ex(b900) $build "simplified workaround"
+			@ "%YFramework library build" ^ '-Og' ~ 'O1';
+		* "failed to initializing the framework" @ "static debug configuration"
+			$since b947
+	)
+),
+
+b956
 (
 	/ %YFramework $=
 	(
@@ -180,12 +350,14 @@ b955
 					-> "function template" $=
 				(
 					^ "template argument" ~ "%function",
-					^ "%std::string" ~ "%string"
+					(
+					^ "%std::string" ~ "%string";
 					* $comp "unexpected implicit dependency on \
-						%pmr::get_default_resource"
+						%pmr::get_default_resource" $since b861
 						// This would cause it not usable during \
 							initialization of namespace scope variables, which \
 							was undocumented.
+					)
 				)
 			),
 			* $re_add(b879) "missing using allocator for container copy"
@@ -9382,8 +9554,8 @@ b907
 			),
 			/ DLDI "simplified quotes" @ "%SHBuild_Verbose_ check"
 				@ "%SHBuild-build.sh",
-			- DLDI "%SHBuild_BaseDir" @ "%(SHBuild-build.sh, SHBuild-self-host.sh, \
-				SHBuild-self-host-DLL.sh)",
+			- DLDI "%SHBuild_BaseDir" @ "%(SHBuild-build.sh, \
+				SHBuild-self-host.sh, SHBuild-self-host-DLL.sh)",
 				// This is set in %SHBuild-bootstrap.sh.
 			/ DLDI @ "%SHBuild-bootstrap.sh" $=
 			(
@@ -11298,11 +11470,15 @@ b900
 			+ $deploy "installing new files" @ !"%SHBuild_NoDev"
 				$dep_from "%(SHBuild-BuildApp.txt, SHBuild-BuildPkg.sh)"
 			),
-			+ $build "options '-O1 -g -fno-var-tracking-assignments' as \
-				workaround"
-				@ "%YFramework static library build" @ "configuration% debug"
-				@ "platform %MinGW64" -> '-O1'
+			/ $build "worked around" @ "%YFramework library build"
+				@ "platform %MinGW64" $=
+			(
 				// See $2020-10 @ %Documentation::Workflow.
+				+ "options '-Og -g -fno-var-tracking-assignments' as \
+					workaround" @ "dynamic library build",
+				+ "options '-O1 -g -fno-var-tracking-assignments' as \
+					workaround" @ "static library build"
+			)
 		)
 	),
 	/ $re_ex(b800) "regenerated Code::Blocks projects"

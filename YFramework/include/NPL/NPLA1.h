@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r10057
+\version r10124
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-09-22 20:16 +0800
+	2022-10-04 16:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1436,7 +1436,9 @@ inline PDefH(void, EvaluateLiteralHandler, TermNode& term,
 /*!
 \brief 规约合并项：检查项的第一个子项尝试作为操作符进行函数应用，并规范化。
 \pre 断言：若第一个子项表示子对象引用，则符合子对象引用的非正规表示约定。
+\pre ContextNode& 类型的参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
 \return 规约状态。
+\warning 若不满足上下文状态类型要求，行为未定义。
 \exception bad_any_cast 异常中立：子对象引用持有的值不是 ContextHandler 类型。
 \throw ListReductionFailure 规约失败：枝节点的第一个子项不表示上下文处理器。
 \sa ContextHandler
@@ -1468,13 +1470,28 @@ ReduceCombined(TermNode&, ContextNode&);
 YF_API ReductionStatus
 ReduceCombinedBranch(TermNode&, ContextNode&);
 
+//! \note 若第三参数不表示上下文处理器的宿主值，抛出的异常消息指定其为引用项。
+//@{
 /*!
 \brief 规约列表合并项：同 ReduceCombined ，但使用第三参数指定的值。
-\note 若第三参数不表示上下文处理器的宿主值，抛出的异常消息指定其为引用项。
+\pre 第二参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
+\sa ContextState::OperatorName 
 \since build 883
 */
 YF_API ReductionStatus
 ReduceCombinedReferent(TermNode&, ContextNode&, const TermNode&);
+
+/*!
+\brief 规约列表合并项：同 ReduceCombinedReferent ，但使用第四参数指定操作符名称。
+\note 若抛出异常，则先设置上下文中的规约合并项操作符名称和规约合并项引用。
+\sa ContextState::OperatorName
+\sa ContextState::SetCombiningTermRef
+\since build 957
+*/
+YF_API ReductionStatus
+ReduceCombinedReferentWithOperator(TermNode&, ContextNode&, const TermNode&,
+	ValueObject&);
+//@}
 //@}
 //@}
 
@@ -1777,23 +1794,6 @@ BindSymbol(const shared_ptr<Environment>&, const TokenValue&, TermNode&);
 
 
 /*!
-\brief 设置默认解释：解释使用的公共处理遍。
-\note 非强异常安全：加入遍可能提前设置状态而不在失败时回滚。
-\sa ReduceCombined
-\sa ReduceFirst
-\sa ReduceHeadEmptyList
-\sa ReduceLeafToken
-\since build 955
-
-设置默认解释的求值遍到第一参数指定的上下文的列表求值遍和叶求值遍中。
-列表求值遍等效第二参数后依次添加 ReduceFirst 、ReduceHeadEmptyList 和
-	ReduceCombined ，但不保证分别作为单独的遍添加。
-叶求值遍设置为 ReduceLeafToken 。
-*/
-YF_API void
-SetupDefaultInterpretation(GlobalState&, EvaluationPasses);
-
-/*!
 \brief 设置参数指定的上下文为尾上下文。
 \pre 断言：第二参数是规约合并项。
 \note 在不支持 TCO 的实现忽略设置上下文。
@@ -1802,33 +1802,6 @@ SetupDefaultInterpretation(GlobalState&, EvaluationPasses);
 */
 YF_API void
 SetupTailContext(ContextNode&, TermNode&);
-
-
-/*!
-\ingroup metafunctions
-\since build 891
-*/
-//@{
-//! \brief 解析结果元素类型。
-template<typename _fParse>
-using GParsedValue = typename ParseResultOf<_fParse>::value_type;
-
-// XXX: Use %function instead of %ystdex::unchecked_function is no less
-//	efficient.
-//! \brief 泛型标记器：分析解析结果元素转换为可能包含记号的节点。
-template<typename _fParse, typename... _tParams>
-using GTokenizer
-	= function<TermNode(const GParsedValue<_fParse>&, _tParams...)>;
-//@}
-
-/*!
-\brief 标记器：分析词素转换为可能包含记号的节点。
-\since build 880
-*/
-using Tokenizer = GTokenizer<ByteParser>;
-
-//! \brief 标记器：分析带有源代码位置信息的词素转换为可能包含记号的节点。
-using SourcedTokenizer = GTokenizer<SourcedByteParser, ContextState&>;
 
 
 //! \ingroup NPLDiagnostics
@@ -1939,16 +1912,6 @@ YB_ATTR_nodiscard YB_PURE YF_API observer_ptr<const SourceInformation>
 QuerySourceInformation(const ValueObject&);
 
 /*!
-\brief 查询续延指定的当前尾动作规约的操作符名称项。
-\note 当参数指定 TCO 时且保存记号值时保存的值即为名称，否则名称不存在。
-\return 若存在名称则为内部保存的名称字符串，否则是数据指针为空的结果。
-\note 仅在 TCO 动作存在时支持。
-\since build 947
-*/
-YB_ATTR_nodiscard YF_API observer_ptr<const ValueObject>
-QueryTailOperatorName(const Reducer&) ynothrow;
-
-/*!
 \brief 查询全局类型名称表。
 \since build 896
 */
@@ -2016,6 +1979,51 @@ MoveKeptGuard(_tGuard&& gd)
 }
 //@}
 //@}
+
+
+/*!
+\brief 设置默认解释：解释使用的公共处理遍。
+\note 非强异常安全：加入遍可能提前设置状态而不在失败时回滚。
+\sa ReduceCombined
+\sa ReduceFirst
+\sa ReduceHeadEmptyList
+\sa ReduceLeafToken
+\since build 955
+
+设置默认解释的求值遍到第一参数指定的上下文的列表求值遍和叶求值遍中。
+列表求值遍等效第二参数后依次添加 ReduceFirst 、ReduceHeadEmptyList 和
+	ReduceCombined ，但不保证分别作为单独的遍添加。
+叶求值遍设置为 ReduceLeafToken 。
+*/
+YF_API void
+SetupDefaultInterpretation(GlobalState&, EvaluationPasses);
+
+
+/*!
+\ingroup metafunctions
+\since build 891
+*/
+//@{
+//! \brief 解析结果元素类型。
+template<typename _fParse>
+using GParsedValue = typename ParseResultOf<_fParse>::value_type;
+
+// XXX: Use %function instead of %ystdex::unchecked_function is no less
+//	efficient.
+//! \brief 泛型标记器：分析解析结果元素转换为可能包含记号的节点。
+template<typename _fParse, typename... _tParams>
+using GTokenizer
+	= function<TermNode(const GParsedValue<_fParse>&, _tParams...)>;
+//@}
+
+/*!
+\brief 标记器：分析词素转换为可能包含记号的节点。
+\since build 880
+*/
+using Tokenizer = GTokenizer<ByteParser>;
+
+//! \brief 标记器：分析带有源代码位置信息的词素转换为可能包含记号的节点。
+using SourcedTokenizer = GTokenizer<SourcedByteParser, ContextState&>;
 
 
 /*

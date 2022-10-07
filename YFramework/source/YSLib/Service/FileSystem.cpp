@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2019-2021 FrankHB.
+	© 2010-2016, 2019-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2310
+\version r2313
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2021-08-08 14:57 +0800
+	2022-10-01 11:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "YSLib/Service/YModules.h"
-#include YFM_YSLib_Service_FileSystem
+#include YFM_YSLib_Service_FileSystem // for ystdex::to_string_d;
 #include <ystdex/cstring.h>
 #include <ystdex/exception.h> // for ystdex::throw_error, system_error;
 #include YFM_YSLib_Service_File // for OpenFile;
@@ -42,7 +42,7 @@ namespace IO
 String
 Path::GetString(char16_t delimiter) const
 {
-	const auto res(ystdex::to_string_d(GetBase(), delimiter));
+	auto res(ystdex::to_string_d(GetBase(), get_allocator(), delimiter));
 
 	YAssert(res.empty() || res.back() == delimiter,
 		"Invalid conversion result found.");

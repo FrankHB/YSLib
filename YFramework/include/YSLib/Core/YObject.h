@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r6977
+\version r6992
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2022-09-13 03:33 +0800
+	2022-10-03 00:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,7 @@
 #include <ystdex/exception.h> // for ystdex::throw_invalid_construction;
 #include <ystdex/type_op.hpp> // for ystdex::false_, ystdex::true_,
 //	ystdex::enable_if_t, ystdex::exclude_self_t, ystdex::exclude_self_params_t,
-//	ystdex::decay_t;
+//	ystdex::decay_t, ystdex::enable_if_same_param_t;
 #include <ystdex/memory.hpp> // for ystdex::default_init,
 //	ystdex::is_allocatable, ystdex::is_byte_allocator,
 //	ystdex::has_get_allocator, ystdex::is_sharing, ystdex::rebind_alloc_t,
@@ -1369,17 +1369,26 @@ public:
 		ImplRet(x.Equals(y))
 	//! \since build 753
 	//@{
-	//! \brief 比较相等：存储的对象值相等。
+	/*!
+	\brief 比较相等：存储的对象值相等。
+	\note 排除非 ValueObject 类型的实际参数转换为 ValueObject 以避免 ADL 歧义。
+	\since build 957
+	*/
 	//@{
-	template<typename _type>
+	// NOTE: Unexpected ambiguity of ADL can be formed by arguments of
+	//	'iterator' and 'const_iterator' to container having element with
+	//	template parameter argument of %ValueObject.
+	template<typename _type, class _tParam,
+		yimpl(typename = ystdex::enable_if_same_param_t<ValueObject, _tParam>)>
 	YB_ATTR_nodiscard YB_PURE friend inline bool
-	operator==(const ValueObject& x, const _type& y)
+	operator==(const _tParam& x, const _type& y)
 	{
 		return x.Equals(y);
 	}
-	template<typename _type>
+	template<typename _type, class _tParam,
+		yimpl(typename = ystdex::enable_if_same_param_t<ValueObject, _tParam>)>
 	YB_ATTR_nodiscard YB_PURE friend inline bool
-	operator==(const _type& x, const ValueObject& y)
+	operator==(const _tParam& x, const ValueObject& y)
 	{
 		return y.Equals(x);
 	}

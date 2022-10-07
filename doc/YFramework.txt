@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1625
+\version r1648
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2022-09-23 11:24 +0800
+	2022-10-01 12:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -350,13 +350,13 @@ YFramework 应满足 [Documentation::Projects @@1.3] 蕴含的平台配置和实
 模块化设计原则参见 [Documentation::CommonRules @@3.7.1] 。
 一个模块目录([Documentation::ProjectRules @@3.2]) 中的模块组成一个系统。
 名称使用前提约束：参见 [Documentation::CommonRules @@7.2] 。
-关于源代码组织，参见 [Documentation::ProjectRules @@3.3] 。
-关于文件名和目录名，参见 [Documentation::ProjectRules @@3.4] 。
+关于源代码组织，参见 [Documentation::ProjectRules @@3.4] 。
+关于文件名和目录名，参见 [Documentation::ProjectRules @@3.5] 。
 使用嵌套命名空间，避免过长的标识符命名。
 关于一些文件的文件名的额外约定参见 @2.2 。
 
 @2.1 框架组成和依赖项规则：
-基本目录和文件组织规则以及原始目录的概念参见 [Documentation::ProjectRules @@3.3] 。
+基本目录和文件组织规则以及原始目录的概念参见 [Documentation::ProjectRules @@3.4] 。
 YFramework 可分为几个目录表示具有特定功能集合的库的子集。在讨论具体目录下的库时，路径表示以此库的根目录。
 除非另行指定，仅保证非成员函数（排除声明紧随在某个类之后，第一个参数为该类类型引用的人本接口）和静态成员函数的可重入性和线程安全性。
 关于 YBase 的文件依赖性参见 [Documentation::YBase @@2.2] 。
@@ -375,7 +375,7 @@ YFramework 集成的第三方库([Documentation::Designation @@5]) ，位于 "/3
 附加库分为基础附加库和扩展附加库，参见 @2.1.2.1 。
 
 @2.1.2.1 依赖性概览：
-其中一部分除了平台扩展([ProjectRules @@3.3]) 外不依赖 YSLib ，称为基础附加库，包括 CHRLib(@2.7) 和 YCLib([Documentation::YCLib]) 。
+其中一部分除了平台扩展([ProjectRules @@3.4]) 外不依赖 YSLib ，称为基础附加库，包括 CHRLib(@2.7) 和 YCLib([Documentation::YCLib]) 。
 其它附加库总是允许依赖 YSLib 库，称为扩展附加库，包括 NPL(@2.9) 和 Helper(@2.8) 。其它具体说明参见 [Documentation::Designation @@5] 。
 基础附加库被 YSLib 库的 Adaptor 直接依赖，其它附加库不应被这些组件依赖。
 每个附加库都有相对独立的功能，且与框架程序实现相关但相对独立，因此不作为 YSLib 库(@2.1.1) 的组成部分。
@@ -471,7 +471,7 @@ YSLib 和 Helper(@2.8) 文件中，文件名以 y 或 Y 起始且非限定模块
 描述依赖性时，直接包含的头文件不被间接包含的其它文件视为依赖。
 以下非公开头文件的适用规则同非头文件，统称为实现；头文件指公开头文件。
 以下规则以优先级顺序排列，即后者不满足前者的部分以前者为准。
-基本内容参见 [ProjectRules @@3.4.5] 。
+基本内容参见 [ProjectRules @@3.5.5] 。
 
 @2.2.1 平台扩展依赖规则：
 除非以下显式说明，平台中立文件不依赖平台扩展；例外的被依赖项视为具体实现，不应作为公开接口。
@@ -529,7 +529,7 @@ Adaptor 的头文件依赖 YFramework 的 YFM_YBaseMacro 。
 
 @2.3.2 模块名称宏：
 YFramework 使用模块名称进行组织。使用公开头文件时，以模块名称（接口）代替头文件名（实现）以保持良好的兼容性。
-模块名称宏在各个公开头文件([Documentation::ProjectRules @@3.3.1]) 目录中的 YModules.h 定义。
+模块名称宏在各个公开头文件([Documentation::ProjectRules @@3.4.1]) 目录中的 YModules.h 定义。
 
 @2.3.2.1 命名变换：
 模块名称宏作为标识符的命名和模块名称对应。按以下规则变换模块名称为模块名称宏标识符：
@@ -655,7 +655,7 @@ YFramework 直接通用基础设施 YBaseMacro ：定义了各种基础平台无
 
 @2.6.9 异常类总览：
 专用于被 C++ 异常机制捕获的类称为异常类。
-异常类不一定在特定的命名空间中定义，但 YSLib 集中使用某些异常，参见 [Documentation::YSLib @@3.5] 。
+异常类不一定在特定的命名空间中定义，但 YSLib 集中使用某些异常，参见 [Documentation::YSLib @@3.6] 。
 
 @2.7 字符表示结构支持库 CHRLib ：
 位于 "/CHRLib" 。非外部依赖项。
@@ -718,46 +718,51 @@ Application 派生类(@2.8.3) 使用这些封装的接口。
 使用 [Documentation::YBase @@3.2] 的别名策略规则，除 ystdex 相关命名空间替换为 YSLib 。
 
 @3.2 异常使用规则：
-使用 [Documentation::YBase @@3.3] 的异常使用规则，但抛出异常明确性([Documentation::YBase @@3.3.2]) 除外。
+使用 [Documentation::YBase @@3.4] 的异常使用规则，但抛出异常明确性([Documentation::YBase @@3.4.2]) 除外。
 作为例外，接口和实现非平台中立的部分(@2.1.3) 可以使用 catch(...) 捕获所有异常。
 
-@3.3 文本操作：
+@3.3 存储管理：
+使用 [Documentation::YBase @@3.4] 的相关规则。
+类似 YBase ，YFramework 不使用在公开 API 中约定以外的静态对象，但被 [Documentation::Definition] 明确指定的除外。
+**注释** 内部依赖 pmr([Documentation::YBase @@2.5.9.8]) 的资源一般在 YFramework 实现的对应每个翻译单元中都有单独的实例。
 
-@3.3.1 文本编码：
+@3.4 文本操作：
+
+@3.4.1 文本编码：
 YFramework 使用 UTF-8 作为外部文本编码。
 除非显式指定表示编码的参数或另行指定，以 char 作为字符类型的 C 风格字符串使用外部文本编码。
 关于 YSLib 使用的内部文本编码参见 [Documentation::YSLib @@3.6] 。
 
-@3.3.2 字符串：
+@3.4.2 字符串：
 约定表示字符串的类型中，值不包括空字符，即和 NTCTS([Documentation::LanguageConvention @@6.11]) 兼容。
 可能被用于表示字符串的类型包括但不限于：
 类模板 basic_string（注意不限于 std::basic_string ，也包括类似的部分兼容的模板）的实例；
 用于表示 C 风格字符串的字符数组、std::array 或类似类型，以及字符指针类型。
 除非在文档中显式指定，明确表示字符串的类型的值约定不包括作为结束标记的空字符。对 basic_string 实例的值可以直接取长度，即为串长。
 
-@3.4 实现定义行为使用：
+@3.5 实现定义行为使用：
 基本内容参见 [Documentation::LanguageConvention @@5.1.3] 。以下为补充例外约定。
 允许未回绕([Documentation::LanguageConvention @@5.8.8.2]) 的无符号整数算术表达式计算结果向有符号整数显式转换，不需特别在接口说明范围，仅需实现注释。注意仍然禁止依赖无符号整数隐式转换为有符号整数。
 
-@3.5 目标风格与最佳实践：
+@3.6 目标风格与最佳实践：
 本节概述基于 [Documentation::Designation @@2.1] 和 @1.3 的约束下，组件和 UI 库接口设计的总体风格和对用户代码的影响。
 
-@3.5.1 引用参照：
+@3.6.1 引用参照：
 Ultimate++ ：http://www.ultimatepp.org/www$uppweb$overview$en-us.html 。
 
-@3.5.2 库使用：
+@3.6.2 库使用：
 参见 [Documentation::CommonRules @@3.13] 。
 
-@3.5.3 资源管理：
+@3.6.3 资源管理：
 基于对象所有权，方法参见 [Documentation::YSLib @@2.2.2] 。
 基于和 Ultimate++ 相同的理由，除非必要，接口不使用智能指针，且用户代码而不是被依赖的组件决定部件对象的所有权从属。
 但总体风格上没有限定作用域和所有权的严格对应关系，也因此能够自然地使用部件指针的标准库容器。这点同时简化基于迭代器模式的实现。
-此外，YSLib 不排斥在部件实现([Documentation::YSLib @3.3]) 中提供（有限的）复制和转移支持以保证值语义。
+此外，YSLib 不排斥在部件实现([Documentation::YSLib @3.4]) 中提供（有限的）复制和转移支持以保证值语义。
 
-@3.5.4 泛型值类型：
+@3.6.4 泛型值类型：
 适当使用 YBase([Documentation::YBase]) 提供的基于类型擦除的泛型值语义对象 ystdex::any([Documentation::YBase @@2.5.7.5]) 等类型实现。允许空值。
 
-@3.5.5 虚函数：
+@3.6.5 虚函数：
 不要求总是使用 NVI 模式([Documentation::LanguageConvention @5.13.7.3]) ，但适合复用（如检查代码）时应当使用。
 
 @4 命名和编码风格导引：

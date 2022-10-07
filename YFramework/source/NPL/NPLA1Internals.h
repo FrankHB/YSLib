@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r22522
+\version r22634
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-09-08 12:34 +0800
+	2022-10-07 18:09 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -31,12 +31,12 @@
 #include "YModules.h"
 #include YFM_NPL_NPLA1 // for shared_ptr, ContextNode, YSLib::allocate_shared,
 //	NPL::Deref, NPLException, TermNode, ReductionStatus, Reducer, YSLib::map,
-//	lref, Environment, set, IsTyped, EnvironmentList, EnvironmentReference,
-//	pair, YSLib::forward_list, size_t, tuple, std::declval, EnvironmentGuard,
-//	MoveKeptGuard, A1::NameTypedContextHandler, TermReference, TermTags,
-//	ThrowTypeErrorForInvalidType, TryAccessLeafAtom, type_id, TermToNamePtr,
-//	IsIgnore, ParameterMismatch, IsPair, IsEmpty, IsList, NPL::AsTermNode,
-//	NPL::AsTermNodeTagged;
+//	size_t, lref, Environment, set, IsTyped, EnvironmentList,
+//	EnvironmentReference, pair, YSLib::forward_list, tuple, std::declval,
+//	EnvironmentGuard, NPL::get, A1::NameTypedContextHandler, MoveKeptGuard,
+//	TermReference, TermTags, TryAccessLeafAtom, ThrowTypeErrorForInvalidType,
+//	type_id, TermToNamePtr, IsIgnore, ParameterMismatch, IsPair, IsEmpty,
+//	IsList, NPL::AsTermNode, NPL::AsTermNodeTagged;
 #include <ystdex/compose.hpp> // for ystdex::get_less;
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
 #include <ystdex/optional.h> // for ystdex::optional;
@@ -315,7 +315,7 @@ enum RecordFrameIndex : size_t
 \since build 842
 \sa RecordFrameIndex
 */
-using FrameRecord = pair<ContextHandler, shared_ptr<Environment>>;
+using FrameRecord = pair<ValueObject, shared_ptr<Environment>>;
 
 
 /*!
@@ -325,6 +325,8 @@ using FrameRecord = pair<ContextHandler, shared_ptr<Environment>>;
 
 表示帧记录的序列。
 随子过程调用的添加到序列起始位置。
+一般地，基类不应被依赖；
+但这里基类的 remove_if 等算法的复杂度要求隐含对元素处理的顺序。
 */
 class YF_API FrameRecordList : public yimpl(YSLib::forward_list)<FrameRecord>
 {
@@ -332,14 +334,14 @@ private:
 	using Base = yimpl(YSLib::forward_list)<FrameRecord>;
 
 public:
-#if YB_IMPL_CLANGPP || YB_IMPL_GNUCPP >= 100000
+#	if YB_IMPL_CLANGPP || YB_IMPL_GNUCPP >= 100000
 	// XXX: See ContextNode::ReducerSequence.
 	FrameRecordList() ynoexcept_spec(Base())
 		: Base()
 	{}
-#elif __cpp_inheriting_constructors < 201511L
+#	elif __cpp_inheriting_constructors < 201511L
 	DefDeCtor(FrameRecordList)
-#endif
+#	endif
 	using Base::Base;
 	// XXX: This ignores %select_on_container_copy_construction.
 	FrameRecordList(const FrameRecordList& l)
@@ -412,15 +414,11 @@ private:
 	//! \since build 946
 	mutable FrameRecordList record_list;
 	// NOTE: See $2022-06 @ %Documentation::Workflow for details.
-	//! \since build 820
+	//! \since build 946
 	mutable EnvironmentGuard env_guard;
 	//! \since build 909
 	mutable decltype(ystdex::unique_guard(std::declval<GuardFunction>()))
 		term_guard;
-
-public:
-	//! \since build 896
-	mutable ValueObject OperatorName;
 
 private:
 	/*!
@@ -438,16 +436,7 @@ public:
 	*/
 	TCOAction(ContextNode& ctx, TermNode& term, bool lift)
 		: req_lift_result(lift ? 1 : 0), record_list(ctx.get_allocator()),
-		env_guard(ctx), term_guard(ystdex::unique_guard(GuardFunction{term})),
-		OperatorName([&]() ynothrow{
-			// NOTE: Rather than only the target %TokenValue value, the whole
-			//	%ValueObject is needed, since it can have the source information
-			//	in its holder and %QuerySourceInformation requires an object of
-			//	%ValueObject.
-			return std::move(ContextState::Access(ctx).OperatorName);
-			// XXX: After the move, the value is unspecified. This should be no
-			//	longer used, so it is irrelavant.
-		}())
+		env_guard(ctx), term_guard(ystdex::unique_guard(GuardFunction{term}))
 		// XXX: Do not call %AssertValueTags on %term, as it can be (and is
 		//	usually) a combiniation instead of the representation of some
 		//	object language value.
@@ -482,26 +471,31 @@ private:
 public:
 	//! \since build 913
 	DefGetter(const ynothrow, TermNode&, TermRef, term_guard.func.func.TermRef)
+	//! \since build 957
+	//@{
+	DefGetter(const ynothrow, FrameRecordList&, FrameRecordList, record_list)
 
-	//! \since build 940
-	YB_ATTR_nodiscard lref<const ContextHandler>
-	Attach(const ContextHandler& h) const
+	YB_ATTR(hot) void
+	AddOperator(ValueObject& op) const
 	{
-		return h;
+		// NOTE: Rather than only the target %TokenValue value, the whole
+		//	%ValueObject is needed, since it can have the source information
+		//	in its holder and %QuerySourceInformation requires an object of
+		//	%ValueObject.
+		record_list.emplace_front(std::move(op), nullptr);
+		// XXX: After the move, the value is unspecified. This should be no
+		//	longer used, so it is irrelavant.
 	}
-	//! \since build 940
-	YB_ATTR_nodiscard lref<const ContextHandler>
-	Attach(const ContextHandler&, ContextHandler&& h)
+
+	YB_ATTR_nodiscard ValueObject&
+	Attach(ValueObject& op) const
 	{
-		// NOTE: This does not compare the stashed object and the hold function
-		//	in the newcoming prvalues, as temporary object of prvalues have
-		//	their unique identities (in spite of the result of %operator== of
-		//	%ContextHandler). There is also no environment pointer being shared
-		//	since all required ones (if any) in well-defined programs should be
-		//	saved in %h.
-		record_list.emplace_front(std::move(h), nullptr);
-		return record_list.front().first;
+		AddOperator(op);
+		// TODO: Blocked. Use ISO C++17 return value of %forward_list as the
+		//	call to %emplace_front in %AddOperator.
+		return NPL::get<ActiveCombiner>(record_list.front());
 	}
+	//@}
 
 	//! \since build 910
 	//@{
@@ -517,9 +511,14 @@ public:
 		RecordCompressor(ctx.GetRecordPtr()).Compress();
 	}
 
-	void
+	//! \pre 断言：第二参数中的环境非空。
+	YB_ATTR(hot) void
 	CompressForGuard(ContextNode& ctx, EnvironmentGuard&& gd)
 	{
+		// NOTE: An empty saved pointer is allowed by the interface (for an
+		//	object %EnvironmentSwitcher initialized without an environment) but
+		//	unsupported here.
+		YAssert(gd.func.SavedPtr, "Invalid guard found.");
 		// NOTE: If there is no environment set in %act.env_guard yet, there is
 		//	ideally no need to save the components to the frame record list
 		//	for recursive calls. In such case, each operation making
@@ -530,33 +529,28 @@ public:
 		{
 			// NOTE: Operand saving is performed whether the frame compression
 			//	is needed, once there is a saved environment set.
-			if(auto& p_saved = gd.func.SavedPtr)
-			{
-				CompressForContext(ctx);
-				// NOTE: The temporary function and the environment are saved in
-				//	the frame record list as a new entry if necessary. The
-				//	existence of the entry shall be checked because it may be
-				//	missing for function lvalues or calls not from a combiner
-				//	(e.g. by 'eval').
-				if(!record_list.empty() && !record_list.front().second)
-					record_list.front().second = std::move(p_saved);
-				else
-					record_list.emplace_front(ContextHandler(),
-						std::move(p_saved));
-			}
-			// XXX: Normally this should not occur, but this is allowed by the
-			//	interface (for an object %EnvironmentSwitcher initialized
-			//	without an environment).
+			auto& p_saved(gd.func.SavedPtr);
+
+			// NOTE: The the environment are saved in the frame record list as a
+			//	new entry if necessary. The existence of the entry shall be
+			//	checked because it may be missing for not from a combiner (e.g.
+			//	by 'eval').
+			if(!record_list.empty()
+				&& !NPL::get<ActiveEnvironmentPtr>(record_list.front()))
+				NPL::get<ActiveEnvironmentPtr>(record_list.front())
+					= std::move(p_saved);
+			else
+				record_list.emplace_front(ValueObject(
+					record_list.get_allocator()), std::move(p_saved));
+			CompressForContext(ctx);
 		}
 		else
 			env_guard = std::move(gd);
-		// XXX: Not with a guarded tail environment, the environment (if any)
-		//	remains empty.
 	}
 	//@}
 
 	//! \since build 943
-	YB_ATTR_nodiscard OneShotChecker
+	YB_ATTR_nodiscard YB_ATTR(cold) OneShotChecker
 	MakeOneShotChecker()
 	{
 		auto& one_shot_guard(NPL::get<CheckOneShot>(GetExtraInfoRef()));
@@ -569,16 +563,13 @@ public:
 		return one_shot_guard->func;
 	}
 
-	//! \since build 940
-	YB_ATTR_nodiscard ContextHandler
-	MoveFunction() const
+	//! \since build 957
+	void
+	PopTopFrame() const
 	{
-		YAssert(!record_list.empty() && !record_list.front().second,
-			"Invalid state found.");
-		auto r(std::move(record_list.front().first));
-
+		YAssert(!record_list.empty() && !NPL::get<ActiveEnvironmentPtr>(
+			record_list.front()), "Invalid state found.");
 		record_list.pop_front();
-		return r;
 	}
 
 	/*!
@@ -598,7 +589,7 @@ public:
 	\brief 保存尾上下文中的源代码名称。
 	\since build 947
 	*/
-	void
+	YB_ATTR(cold) void
 	SaveTailSourceName(SourceName& cur, SourceName name)
 	{
 		NPL::get<RecoverSourceName>(GetExtraInfoRef())
@@ -674,8 +665,10 @@ inline
 \brief 准备 TCO 求值。
 \param ctx 规约上下文。
 \param term 被求值项。
-\param act TCO 动作。
-\pre 当前动作是 TCO 动作，且其中的当前项和被规约的项相同。
+\param gd 环境守卫。
+\pre 断言：当前动作是 TCO 动作，且其中的当前项和被规约的项相同。
+\pre 间接断言：第三参数中的环境非空且 TCO 动作中的状态满足 CompressForGuard 。
+\sa TCOAction::CompressForGuard
 \since build 878
 
 访问现有的 TCO 动作进行操作压缩，以复用其中已被分配的资源。
@@ -777,7 +770,8 @@ RelayDirect(ContextNode& ctx, _fCurrent&& cur, TermNode& term)
 	-> decltype(cur(term, ctx))
 {
 	// XXX: This works around %std::reference_wrapper in libstdc++ to function
-	//	type in C++2a mode with Clang++. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93470.
+	//	type in C++2a mode with Clang++. See
+	//	https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93470.
 	return ystdex::unref(cur)(term, ctx);
 }
 #endif
@@ -1020,13 +1014,17 @@ struct NonTailCall final
 	}
 #endif
 
-	//! \pre 最后一个参数的类型退化后可平凡交换。
+	/*!
+	\pre 最后一个参数的类型退化后可平凡交换。
+	\pre 断言：第三参数中的环境非空。
+	*/
 	//@{
 	template<typename _fCurrent>
 	YB_FLATTEN static inline ReductionStatus
 	RelayNextGuarded(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
 		_fCurrent&& cur)
 	{
+		YAssert(gd.func.SavedPtr, "Invalid guard found.");
 		// XXX: For thunked code, %cur shall likely be a %Continuation before
 		//	being captured and it is not capturable here. No %SetupNextTerm
 		//	needs to be called here. Otherwise, %cur is not a %Contiuation and
@@ -1049,6 +1047,7 @@ struct NonTailCall final
 	RelayNextGuardedLifted(ContextNode& ctx, TermNode& term,
 		EnvironmentGuard&& gd, _fCurrent&& cur)
 	{
+		YAssert(gd.func.SavedPtr, "Invalid guard found.");
 		// XXX: See %RelayNextGuarded.
 #if NPL_Impl_NPLA1_Enable_Thunked
 		auto act(MoveKeptGuard(gd));
@@ -1071,6 +1070,7 @@ struct NonTailCall final
 	RelayNextGuardedProbe(ContextNode& ctx, TermNode& term,
 		EnvironmentGuard&& gd, bool lift, _fCurrent&& cur)
 	{
+		YAssert(gd.func.SavedPtr, "Invalid guard found.");
 		// XXX: See %RelayNextGuarded.
 #if NPL_Impl_NPLA1_Enable_Thunked
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
@@ -1121,9 +1121,12 @@ struct NonTailCall final
 
 struct TailCall final
 {
-	//! \pre 最后一个参数的类型退化后可平凡交换。
+	/*!
+	\pre 最后一个参数的类型退化后可平凡交换。
+	\pre 断言：第三参数中的环境非空。
+	\pre TCO 实现：同 PrepareTCOEvaluation 。
+	*/
 	//@{
-	//! \pre TCO 实现：当前动作是 TCO 动作，且其中的当前项和被规约的项相同。
 	template<typename _fCurrent>
 	YB_FLATTEN static inline ReductionStatus
 	RelayNextGuarded(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
@@ -1134,12 +1137,12 @@ struct TailCall final
 		PrepareTCOEvaluation(ctx, term, std::move(gd));
 		return A1::RelayCurrentOrDirect(ctx, trivial_swap, yforward(cur), term);
 #else
+		YAssert(gd.func.SavedPtr, "Invalid guard found.");
 		return NonTailCall::RelayNextGuarded(ctx, term, std::move(gd),
 			yforward(cur));
 #endif
 	}
 
-	//! \pre TCO 实现：当前动作是 TCO 动作，且其中的当前项和被规约的项相同。
 	template<typename _fCurrent>
 	static inline ReductionStatus
 	RelayNextGuardedLifted(ContextNode& ctx, TermNode& term,
@@ -1150,6 +1153,7 @@ struct TailCall final
 		PrepareTCOEvaluation(ctx, term, std::move(gd)).SetupLift();
 		return A1::RelayCurrentOrDirect(ctx, trivial_swap, yforward(cur), term);
 #else
+		YAssert(gd.func.SavedPtr, "Invalid guard found.");
 		return NonTailCall::RelayNextGuardedLifted(ctx, term, std::move(gd),
 			yforward(cur));
 #endif
@@ -1163,9 +1167,9 @@ struct TailCall final
 		// XXX: See %TailCall::RelayNextGuarded.
 #if NPL_Impl_NPLA1_Enable_TCO
 		PrepareTCOEvaluation(ctx, term, std::move(gd)).SetupLift(lift);
-		return A1::RelayCurrentOrDirect(ctx, trivial_swap,
-			yforward(cur), term);
+		return A1::RelayCurrentOrDirect(ctx, trivial_swap, yforward(cur), term);
 #else
+		YAssert(gd.func.SavedPtr, "Invalid guard found.");
 		return NonTailCall::RelayNextGuardedProbe(ctx, term, std::move(gd),
 			lift, yforward(cur));
 #endif
@@ -1191,6 +1195,7 @@ struct Combine final
 	//! \pre TCO 实现：当前动作是 TCO 动作，且其中的当前项和被规约的项相同。
 	//@{
 	// XXX: Do not use %YB_FLATTEN here for LTO compiling performance.
+	//! \pre 断言：第三参数中的环境非空。
 	static ReductionStatus
 	RelayEnvSwitch(ContextNode& ctx, TermNode& term, EnvironmentGuard gd)
 	{

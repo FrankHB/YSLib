@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r1976
+\version r1981
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2022-06-05 01:39 +0800
+	2022-10-01 12:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -599,6 +599,10 @@ ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证�
 @2.5.9.8 存储资源 MemoryResource ：
 扩展 ISO C++17 标准库头 <memory_resource> 的替代接口和实现，并提供一些附加的接口。
 其中，分配器 pmr::pool_resource 接口同 ISO C++17 的 std::pmr::unsynchronized_pool_resource ，但保证能在上游的分配器分配的块为空时去配。
+注意，ISO C++ 没有保证 pmr 中取得的静态存储期对象的可用性如同标准库流对象依赖 [iostream.objects.overview]/5 对 std::ios_base::Init 可用。
+虽然主流实现（如 GNU C++、Microsoft VC++ 和 Clang++ ）实际都（使用特定于实现的不可移植方式，以及 ISO C++20 constinit ）支持先于其它静态对象的初始化（因此晚于其它静态对象释放），ystdex 的对应不提供这些特性以避免不可移植的实现。
+相对地，ystdex::pmr::new_delete_resource 蕴含的 ystdex::pmr::new_delete_resource_t 类型被作为公开接口直接提供。若有必要，用户可在每个翻译单元中定义和使用单独的资源对象，以避免潜在的生存期问题。
+但是因为没有使用 nifty counter 等方式定义在头文件，用户仍应确保跨翻译单元的资源初始化和释放顺序符合预期而避免未定义行为。
 
 @2.5.9.9 ISO C 标准字符串扩展 CString
 
@@ -789,6 +793,7 @@ YBase 不重载 operator, ，也不对其它代码是否重载 operator, 做出�
 
 @3.4 存储管理：
 一般地，使用智能指针([Documentation::LanguageConvention @@6.9.2]) 或更高层次的封装 API（如自定义池）代替直接分配创建动态生存期的对象。
+YBase 不使用在公开 API 中约定以外的静态对象（如 MemoryResource(@2.5.9.8) 存储资源自定义实例）。
 
 */
 ////
