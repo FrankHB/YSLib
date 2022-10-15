@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r5025
+\version r5095
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2022-10-01 16:54 +0800
+	2022-10-15 21:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -4962,6 +4962,76 @@ Static debug build of YFramework for MinGW64 is fixed.
 			However, there are other undefined behavior on the destructor of container or string objects using the default PMR memory resource.
 				This mainly affects 'YSLib::FetchRootPathCache' and it is also fixed now.
 		Since MinGW64 now has the 3rd-class formal support (see Documentation::ProjectRules and Documentation::Test.txt), this has been a bug since build 947.
+Range insertion of 'ystdex::details::tree' has been revised.
+	The changes were first added in build 866 for the resolution of LWG 2005, following the fix in https://gcc.gnu.org/bugzilla/show_bug.cgi?id=87194.
+		They were intended to have equivalent effects as the fix of libstdc++, as shown in https://gcc.gnu.org/git/?p=gcc.git;a=blobdiff;f=libstdc%2B%2B-v3/include/bits/stl_tree.h;h=70d7483c7b17c4077e2ca212afb672c85cc0209d;hp=09e8d758873ab5d0b700a196e6d6fe3879f133b4;hb=83a840a91fb3281f8980eaacdb7b5377778da3bb;hpb=bc62e155e412fd2230ec0538e2bef86211d26301.
+		However, several changes were occasionally different in details, i.e. the choices of calls to underlying insertion functions with hint or not.
+		All 4 overloads are actually different to libstdc++.
+			The original fix in libstdc++ used the hint argument (equivalent to 'cend()') only when for direct insertions (when the 'value_type' matches), but not for emplacment otherwise.
+			Instead, the 'ystdex' implemenation only used the hint argument for emplacments, but not direct insertions.
+		It seems no reason to differentiate the behavior upon LWG 2005.
+			There should be a net win for both cases when the input range is sorted as the comparison object.
+		There should be a slightly improvement on the code size if insertion without hint is not otherwise used.
+		Some other implementations, notably libc++ and Microsoft VC++'s STL, also just use the hint argument (also equivalent to 'cend()') for the range insertion calls.
+		So, now all overloads of range insertion in 'ystdex::details::tree' use the hint argument.
+	Some related bugs are also fixed.
+		The call to 'emplace_hint_equal' is fixed, otherwise the overload of emplacment the equal range does not work.
+			This does not affect the current code.
+				It is not used yet (out of 'ystdex::details').
+				There is no replacement like 'std::multimap' in 'ystdex' at current.
+		There was a redundant variable of allocator in the equal range inseration in the original fix of libstdc++.
+			This is now removed in 'ystdex::details::tree::insert_range_equal'.
+		They are collectively reported for libstdc++ at https://gcc.gnu.org/bugzilla/show_bug.cgi?id=107189.
+The NPLA1 TCO frame list implementation has been revised.
+	A bug of missing saving some of the operator name in frames has been fixed.
+		The missed operator names are in the leaf (non-tail) frames stored in the frame record list in the TCO action.
+		Now the 'Value' data member in the operand term is stored directly, instead of the resolved 'NPL::A1::ContextHandler' instances.
+			Operator names are saved earlier than before, to maintain the lifetime of operators.
+			For operator prvalues, the resolved value is invalidated after the move, so it is accessed again.
+			It now saves all operators for the frames, including lvalue operators, which are not used yet. Still, only prvalues may carry the source information.
+		The implemenation of function 'NPL::A1::TraceBacktrace' is also updated to use these additional frames (instead of the 'TCOAction' itself) to get richer operator names.
+		For non-TCO implementations, nothing are changed.
+	In the frame record list compression of TCO action, the use of 'remove_if' is replaced by an explicit loop.
+		The 'remove_if' in ISO C++ containers does not guarantee the order of destruction of the removed elements, which are explicitly insufficient for the purpose here documented in the comments.
+			The actual implemenations usually behave as expected, as a result of [LWG 526].
+				See also $2019-09.
+					The bug has been fixed in libstdc++ since GCC 11, see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91620.
+					The change to avoid 'remove_if' also works around for these unconforming implementations for older versions of GCC (which might be still supported here).
+				Typically an implemenation splice the elements to another container before the final removal.
+					This is true for 'std::list' and 'std::forward_list' in libstdc++, libc++ and Microsoft VC++'s STL, as well as 'ystdex::list' in YBase module YStandardEx::List.
+				On the other hand, the original SGI STL's 'list' and 'slist' directly call 'erase' for each element to be erased, because there are no requirements as strict as ISO C++ (see [LWG 526]).
+				Nevertheless, there are no different conclusions besides the operation relying on the objects living before the final removal.
+			However, while [LWG 526] is not relied on here, the final removal order in the container (if any) is also unspecified.
+			Moreover, an implementation can, say, save the elements to be removed in a doubly linked list and reverse it before the final removal, albeit this seems useless in practice.
+			That said, all known implementations for supported platforms seem support the expected behavior.
+			The implementation for [LWG 526] is also preserved, because avoiding it by direct erasure does not more efficient.
+				Although direct eruasure can provide additional non-throwing gurarntee, this is exposed neither on 'remove_if' nor the interface here.
+		The change also enables the possibility to cache the removed objects in a stashed container (as 'NPL::ContextNode' done for 'NPL::Reducer').
+			This is not enabled because it does not actually more efficient.
+	For better performance, stashing of the frame record list is implemented in 'NPL::A1::ContextState', based on the change above.
+		This is a breaking change on ABI.
+Implementations related to 'ystdex::apply' are revised and some bugs are fixed.
+	The implementation of 'ystdex::call_projection' has specialized for 'std::tuple' instances without cv-qualifiers.
+		The missing 'remove_reference_t' is fixed.
+	The implementation of 'ystdex::call_projection' is updated.
+		There are 2 specailizations, one for the function types (used by 'ystdex::expanded_caller' via 'ystdex::expand_proxy'), and the other is for 'std::tuple' instances (used by 'ystdex::apply').
+		In each specialization, there are 4 function templates in 2 groups: 'apply_call' used by 'call', and 'apply_invoke' used by 'invoke'.
+		Once only rvalues of some 'std::tuple' instance are accepted in member 'apply_call' and 'apply_invoke' function templates.
+			The restriction of rvalue reference (not as a forwarding reference) is unnecessary.
+			Now arbitrary tuple-like values are supported by a forwarding reference.
+		There are some nasty bugs of GCC in generated code with the change above in the debug configurations, at least with x86_64-pc-linux G++ 12.1.
+			It will break call sites using 'ystdex::expanded_caller', such as 'force-promise' applicative implemented natively in YFramework module NPL::Dependency.
+				It would just crash at the call of 'call'.
+				The backtrace would be destroyed without any clue of the call history.
+				Valgrind would show there exist some invalid reads before SIGSEGV, exactly for the call.
+			On the other hand, Clang++ or inlined calls work well.
+		As a workaround, 'YB_ATTR_always_inline' is added for GCC builds.
+			Because it is suspected to be a code generation issue in similar cases (at least for cases using a forwarding reference accessed by calls to 'std::get'), it may be appropriate for not only 'apply_invoke' in the 'ystdex::call_projection' specializations using called by 'ystdex::expanded_caller', but also 'apply_call' and other specializations of 'ystdex::call_projection'.
+			However, for now, keep the change conservative: all of them are in the specialization for function types.
+			The generated code is actually a bit more efficient with the change on 'apply_invoke' in the specialization for function types, but somewhat significantly less efficient if the change is also applied to any of other places. 
+			For the function template 'call', 'YB_ATTR_always_inline' is added only when 'defined(__linux__) && !__OPTIMIZE__'.
+		The implementation of trailing parameter with the default argument (in the specialization of function types) is now removed because it is redundant when the trailing return type exists.
+			This should be better for inheriting with using-declarations when the argument before it is deduced, such as in 'ystdex::expand_proxy'.
 
 ////
 

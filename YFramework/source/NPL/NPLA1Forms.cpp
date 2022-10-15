@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r28304
+\version r28319
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2022-10-07 16:36 +0800
+	2022-10-12 02:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1096,12 +1096,12 @@ ReductionStatus
 UnwrapResolved(TermNode& term, FormContextHandler& fch,
 	ResolvedTermReferencePtr p_ref)
 {
-	if(fch.Wrapping != 0)
+	if(fch.GetWrappingCount() != 0)
 		return MakeValueOrMove(p_ref, [&]{
 			return ReduceForCombinerRef(term, NPL::Deref(p_ref),
-				fch.Handler, fch.Wrapping - 1);
+				fch.Handler, fch.GetWrappingCount() - 1);
 		}, [&]{
-			--fch.Wrapping;
+			fch.Unwrap();
 			return WrapH(term, std::move(fch));
 		});
 	ThrowUnwrappingFailureOnOperative();
@@ -1293,11 +1293,12 @@ EvaluateBoundUnwrappedLValueDispatch(TermNode::allocator_type a,
 	{
 		auto& fch(*p);
 
-		if(fch.Wrapping != 0)
+		if(fch.GetWrappingCount() != 0)
 		{
 			TermNode term(std::allocator_arg, a, con);
 
-			ReduceForCombinerRef(term, ref, fch.Handler, fch.Wrapping - 1);
+			ReduceForCombinerRef(term, ref, fch.Handler,
+				fch.GetWrappingCount() - 1);
 			return term;
 		}
 		ThrowUnwrappingFailureOnOperative();
@@ -1808,10 +1809,9 @@ WVauWithEnvironmentImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 }
 
 
-//! \since build 859
-//@{
-size_t
-AddWrapperCount(size_t n)
+//! \since build 958
+YB_ATTR_nodiscard size_t
+AddWrappingCount(size_t n)
 {
 	++n;
 	if(n != 0)
@@ -1819,6 +1819,8 @@ AddWrapperCount(size_t n)
 	throw NPLException("Wrapping count overflow detected.");
 }
 
+//! \since build 859
+//@{
 YB_NORETURN ReductionStatus
 ThrowForWrappingFailure(const type_info& ti)
 {
@@ -1868,7 +1870,8 @@ WrapOrRef(TermNode& term, _func f)
 {
 	return WrapUnwrap(term,
 		[&](FormContextHandler& fch, ResolvedTermReferencePtr p_ref){
-		return _rWrap(term, p_ref, fch, AddWrapperCount(fch.Wrapping));
+		return _rWrap(term, p_ref, fch,
+			AddWrappingCount(fch.GetWrappingCount()));
 	}, f);
 }
 
@@ -1880,7 +1883,7 @@ WrapOnceOrOnceRef(TermNode& term)
 {
 	return WrapUnwrap(term,
 		[&](FormContextHandler& fch, ResolvedTermReferencePtr p_ref){
-		return fch.Wrapping == 0 ? _rWrap(term, p_ref, fch, 1)
+		return fch.IsOperative() ? _rWrap(term, p_ref, fch, 1)
 			: ThrowForWrappingFailure(type_id<FormContextHandler>());
 	}, [] YB_LAMBDA_ANNOTATE((const ContextHandler& h), , noreturn)
 		-> ReductionStatus{
@@ -4361,7 +4364,7 @@ WrapRef(TermNode& term)
 {
 	return WrapOrRef<WrapRefN>(term,
 		[&](ContextHandler& h, ResolvedTermReferencePtr p_ref){
-		// XXX: Ditto.
+		// XXX: Allocators are not used, as %WrapO.
 		return p_ref ? ReduceForCombinerRef(term, *p_ref, h, 1)
 			: WrapH(term, std::move(std::move(h)), 1);
 	});

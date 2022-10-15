@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r7396
+\version r7402
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2022-09-17 23:01 +0800
+	2022-10-12 18:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,7 @@
 //	ystdex::tolower, ReduceReturnUnspecified, YSLib::IO::StreamPut,
 //	YSLib::OwnershipTag, YSLib::FetchEnvironmentVariable,
 //	YSLib::SetEnvironmentVariable, YSLib::uremove, YSLib::allocate_shared,
-//	NPL::tuple, YSLib::IO::UniqueFile, ystdex::throw_error;
+//	tuple, YSLib::IO::UniqueFile, ystdex::throw_error;
 #include <ystdex/container.hpp> // for ystdex::exists, ystdex::search_map,
 //	ystdex::emplace_hint_in_place;
 #include YFM_NPL_NPLA1Forms // for EncapsulateValue, Encapsulate, Encapsulated,
@@ -260,7 +260,7 @@ ReduceToLoadFile(TermNode& term, ContextNode& ctx, string filename)
 	auto saved_src(std::move(cs.CurrentSource));
 
 	term = global.Load(cs, std::move(filename));
-	global.Prerpocess(term);
+	global.Preprocess(term);
 
 	const auto res(ContextState::Access(ctx).ReduceOnce.Handler(term, ctx));
 
@@ -2275,8 +2275,7 @@ LoadModule_std_modules(ContextState& cs)
 		{
 			term.Value.emplace<EnvironmentReference>(
 				ystdex::emplace_hint_in_place(registry, pr.first, req,
-				std::piecewise_construct, NPL::tuple<>(),
-				NPL::forward_as_tuple([&]{
+				std::piecewise_construct, tuple<>(), NPL::forward_as_tuple([&]{
 				return
 					CreateEnvironmentWithParent(term.get_allocator(), r_ground);
 			}()))->second.second);
@@ -2332,8 +2331,7 @@ LoadModule_std_modules(ContextState& cs)
 			auto filename(FindValidRequirementIn(specs, req));
 
 			pr.first = ystdex::emplace_hint_in_place(registry, pr.first, req,
-				std::piecewise_construct, NPL::tuple<>(),
-				NPL::forward_as_tuple([&]{
+				std::piecewise_construct, tuple<>(), NPL::forward_as_tuple([&]{
 				return CreateEnvironmentWithParent(term.get_allocator(),
 					r_ground);
 			}()));

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r10124
+\version r10311
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-10-04 16:15 +0800
+	2022-10-15 20:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,23 +33,30 @@
 //	ystdex::equality_comparable, std::declval, ystdex::exclude_self_t,
 //	trivial_swap_t, trivial_swap, ystdex::ref_eq, string_view,
 //	CombineReductionResult, SourceName, make_observer, YSLib::allocate_shared,
-//	TNIter, LiftOtherValue, ValueNode, NPL::Deref, NPL::AsTermNode,
+//	TNIter, LiftOtherValue, NPL::Deref, NPL::AsTermNode,
 //	std::make_move_iterator, std::next, ystdex::retry_on_cond, std::find_if,
-//	ystdex::exclude_self_params_t, YSLib::AreEqualHeld, ystdex::or_,
-//	std::is_constructible, ystdex::decay_t, ystdex::expanded_caller,
-//	ystdex::make_parameter_list_t, ystdex::make_function_type_t, ystdex::true_,
-//	AssertCombiningTerm, IsList, TryAccessLeaf, TermReference, IsSticky,
-//	ThrowListTypeErrorForNonList, ResolveSuffix, ThrowInsufficientTermsError,
-//	CountPrefix, ArityMismatch, TermTags, RegularizeTerm, ystdex::invoke,
-//	AssignParent, TokenValue, function, Environment, ParseResultOf, ByteParser,
-//	SourcedByteParser, type_info, type_id, SourceInformation, std::bind,
-//	std::placeholders::_1, std::integral_constant, pmr::memory_resource,
-//	ReaderState, ystdex::is_bitwise_swappable;
+//	YSLib::AreEqualHeld, ystdex::or_, std::is_constructible, ystdex::decay_t,
+//	ystdex::expanded_caller, ystdex::false_, ystdex::true_, ystdex::nor_, tuple,
+//	ystdex::enable_if_t, std::is_same, ystdex::is_same_param, ystdex::size_t_,
+//	AssertCombiningTerm, IsList, ThrowListTypeErrorForNonList,
+//	ThrowInsufficientTermsError, CountPrefix, ArityMismatch, TermReference,
+//	TermTags, RegularizeTerm, ystdex::guard, ystdex::invoke, AssignParent,
+//	shared_ptr, Environment, TokenValue, function, type_info, type_id,
+//	SourceInformation, std::bind, std::placeholders::_1, ParseResultOf,
+//	ByteParser, SourcedByteParser, std::integral_constant, pmr::memory_resource,
+//	ystdex::well_formed_t, ystdex::ref, ReaderState,
+//	ystdex::is_bitwise_swappable;
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, YSLib::GCombinerInvoker,
 //	YSLib::GDefaultLastValueInvoker;
 #include <ystdex/algorithm.hpp> // for ystdex::fast_any_of, ystdex::split;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
-#include <ystdex/scope_guard.hpp> // for ystdex::guard;
+#include <ystdex/type_op.hpp> // for ystdex::exclude_self_params_t,
+//	ystdex::is_instance_of;
+#include <ystdex/function.hpp> // for ystdex::make_parameter_list_t,
+//	ystdex::make_function_type_t;
+#include <ystdex/integer_sequence.hpp> // for ystdex::index_sequence,
+//	ystdex::vseq::_a;
+#include <ystdex/apply.hpp> // for ystdex::apply;
 #include <iosfwd> // for std::ostream, std::streambuf;
 #include <istream> // for std::istream;
 
@@ -162,10 +169,8 @@ public:
 	template<typename _func, yimpl(typename
 		= ystdex::exclude_self_t<Continuation, _func>)>
 	inline
-	Continuation(trivial_swap_t, _func&& handler,
-		const ContextNode& ctx)
-		: Continuation(trivial_swap, yforward(handler),
-		ctx.get_allocator())
+	Continuation(trivial_swap_t, _func&& handler, const ContextNode& ctx)
+		: Continuation(trivial_swap, yforward(handler), ctx.get_allocator())
 	{}
 	Continuation(const Continuation& cont, allocator_type a)
 		: Handler(ystdex::make_obj_using_allocator<ContextHandler>(a,
@@ -1037,43 +1042,101 @@ class YF_API FormContextHandler
 {
 public:
 	ContextHandler Handler;
-	//! \since build 859
+
+private:
+	//! \since build 958
 	//@{
+	// XXX: This is needed because the following %NotTag does not exclude
+	//	%ystdex::index_sequence instances not intended to be the function type.
+	struct PTag final
+	{};
+	template<typename _type>
+	using NotTag = ystdex::nor_<ystdex::is_instance_of<_type,
+		ystdex::vseq::_a<tuple>>, std::is_same<_type, PTag>,
+		std::is_same<_type, std::allocator_arg_t>,
+		std::is_same<_type, trivial_swap_t>>;
+	template<typename _tParam>
+	using MaybeFunc = ystdex::enable_if_t<NotTag<_tParam>::value
+		&& !ystdex::is_same_param<FormContextHandler, _tParam>::value>;
+	using Caller = ReductionStatus(*)(const FormContextHandler&,
+		TermNode&, ContextNode&);
+	//@}
+
 	/*!
 	\brief 包装数。
 	\note 决定调用前需要对操作数进行求值的次数。
+	\since build 958
 	*/
-	size_t Wrapping;
+	size_t wrapping;
+	/*!
+	\invariant \c call_n 。
+	\invariant <tt>InitCall(wrapping) == call_n</tt> 。
+	\since build 958
+	*/
+	mutable Caller call_n = DoCallN;
 
-	//! \since build 697
-	template<typename _func,
-		yimpl(typename = ystdex::exclude_self_t<FormContextHandler, _func>)>
-	FormContextHandler(_func&& f, size_t n = 0)
-		: Handler(A1::WrapContextHandler<ContextHandler>(yforward(f))),
-		Wrapping(n)
+public:
+	//! \since build 958
+	//@{
+	template<typename _func, typename... _tParams,
+		yimpl(typename = MaybeFunc<_func>)>
+	inline
+	FormContextHandler(_func&& f, _tParams&&... args)
+		: FormContextHandler(
+		NPL::forward_as_tuple(yforward(f)), yforward(args)...)
 	{}
-	//! \since build 927
-	template<typename _func,
-		yimpl(typename = ystdex::exclude_self_t<FormContextHandler, _func>)>
-	FormContextHandler(trivial_swap_t, _func&& f, size_t n = 0)
-		: Handler(A1::WrapContextHandler<ContextHandler>(trivial_swap,
-		yforward(f))), Wrapping(n)
+	template<typename _func, typename... _tParams,
+		yimpl(typename = MaybeFunc<_func>)>
+	inline
+	FormContextHandler(trivial_swap_t, _func&& f, _tParams&&... args)
+		: FormContextHandler(NPL::forward_as_tuple(trivial_swap, yforward(f)),
+		yforward(args)...)
 	{}
-	//! \since build 886
-	template<typename _func, class _tAlloc>
+	template<typename _func, class _tAlloc, typename... _tParams>
+	inline
 	FormContextHandler(std::allocator_arg_t, const _tAlloc& a, _func&& f,
-		size_t n = 0)
-		: Handler(std::allocator_arg, a, A1::WrapContextHandler<ContextHandler>(
-		yforward(f), a)), Wrapping(n)
+		_tParams&&... args)
+		: FormContextHandler(NPL::forward_as_tuple(std::allocator_arg, a,
+		yforward(f)), yforward(args)...)
 	{}
-	//! \since build 927
-	template<typename _func, class _tAlloc>
+	template<typename _func, class _tAlloc, typename... _tParams>
+	inline
 	FormContextHandler(std::allocator_arg_t, const _tAlloc& a,
-		trivial_swap_t, _func&& f, size_t n = 0)
-		: Handler(std::allocator_arg, a, A1::WrapContextHandler<ContextHandler>(
-		trivial_swap, yforward(f), a)), Wrapping(n)
+		trivial_swap_t, _func&& f, _tParams&&... args)
+		: FormContextHandler(NPL::forward_as_tuple(std::allocator_arg, a,
+		trivial_swap, yforward(f)), yforward(args)...)
+	{}
+
+private:
+	template<typename... _tFuncParams>
+	inline
+	FormContextHandler(tuple<_tFuncParams...> func_args)
+		: Handler(InitWrap(func_args)), wrapping(0), call_n(DoCall0)
+	{}
+	template<typename... _tFuncParams>
+	inline
+	FormContextHandler(tuple<_tFuncParams...> func_args, ystdex::size_t_<0>)
+		: Handler(InitWrap(func_args)), wrapping(0), call_n(DoCall0)
+	{}
+	template<typename... _tFuncParams>
+	inline
+	FormContextHandler(tuple<_tFuncParams...> func_args, ystdex::size_t_<1>)
+		: Handler(InitWrap(func_args)), wrapping(1), call_n(DoCall1)
+	{}
+	template<typename... _tFuncParams, size_t _vN,
+		yimpl(typename = ystdex::enable_if_t<(_vN > 1)>)>
+	inline
+	FormContextHandler(tuple<_tFuncParams...> func_args, ystdex::size_t_<_vN>)
+		: Handler(InitWrap(func_args)), wrapping(_vN), call_n(DoCallN)
+	{}
+	template<typename... _tFuncParams>
+	inline
+	FormContextHandler(tuple<_tFuncParams...> func_args, size_t n)
+		: Handler(InitWrap(func_args)), wrapping(n), call_n(InitCall(n))
 	{}
 	//@}
+
+public:
 	//! \since build 757
 	DefDeCopyMoveCtorAssignment(FormContextHandler)
 
@@ -1088,22 +1151,31 @@ public:
 
 	/*!
 	\brief 处理一般形式。
+	\pre 断言：若使用异步实现，参数指定的项和下一求值项相同。
 	\return Handler 调用的返回值，或 ReductionStatus::Clean 。
 	\note 断言调用 Handler 前的项符合 IsBranchedList 。
 	\warning 要求异步实现中对 Handler 调用时保证此对象生存期，否则行为未定义。
 	\sa ReduceArguments
-	\sa Wrapping
+	\sa wrapping
 	\since build 751
 
-	求值每一个参数子项，整体重复 Wrapping 次；
+	求值每一个参数子项，整体重复 wrapping 次；
 	然后断言检查项，对可调用的项调用 Hanlder 。
 	项检查不存在或在检查通过后，变换无参数规约，然后对节点调用 Hanlder ，
 		否则抛出异常。
 	无参数时第一参数应具有两个子项且第二项为空节点。
 	*/
 	PDefHOp(ReductionStatus, (), TermNode& term, ContextNode& ctx) const
-		ImplRet(CheckArguments(Wrapping, term), CallN(Wrapping, term, ctx))
+		ImplRet(CheckArguments(wrapping, term), call_n(*this, term, ctx))
 
+	//! \since build 958
+	DefPred(const ynothrow, Operative, wrapping == 0)
+
+	//! \since build 958
+	DefGetter(const ynothrow, size_t, WrappingCount, wrapping)
+
+	//! \pre 断言：若使用异步实现，参数指定的项和下一求值项相同。
+	//@{
 	/*!
 	\brief 调用上下文处理器。
 	\since build 943
@@ -1113,11 +1185,12 @@ public:
 
 private:
 	/*!
-	\pre 断言：对异步实现，参数指定的项和下一求值项相同。
+	\sa CallHandler
 	\since build 859
 	*/
 	ReductionStatus
 	CallN(size_t, TermNode&, ContextNode&) const;
+	//@}
 
 public:
 	/*!
@@ -1132,14 +1205,58 @@ public:
 	CheckArguments(size_t, const TermNode&);
 
 private:
+	//! \since build 958
+	//@{
+	//! \pre 断言：若使用异步实现，参数指定的项和下一求值项相同。
+	//@{
+	//! \pre 断言：第一参数的包装数等于 0 。
+	static ReductionStatus
+	DoCall0(const FormContextHandler&, TermNode&, ContextNode&);
+
+	//! \pre 断言：第一参数的包装数等于 1 。
+	static ReductionStatus
+	DoCall1(const FormContextHandler&, TermNode&, ContextNode&);
+
+	//! \pre 断言：第一参数的包装数大于 1 。
+	static ReductionStatus
+	DoCallN(const FormContextHandler&, TermNode&, ContextNode&);
+	//@}
+
 	//! \since build 859
 	YB_ATTR_nodiscard YB_PURE bool
 	Equals(const FormContextHandler&) const;
 
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE yconstfn static
+		PDefH(Caller, InitCall, size_t n) ynothrow
+		ImplRet(n == 0 ? DoCall0 : (n == 1 ? DoCall1 : DoCallN))
+
+	template<typename... _tParams>
+	YB_ATTR_nodiscard static inline auto
+	InitHandler(_tParams&&... args)
+		-> decltype(A1::WrapContextHandler<ContextHandler>(yforward(args)...))
+	{
+		return A1::WrapContextHandler<ContextHandler>(yforward(args)...);
+	}
+
+	template<typename... _tFuncParams>
+	YB_ATTR_nodiscard static inline auto
+	InitWrap(tuple<_tFuncParams...>& func_args) -> decltype(ystdex::apply(
+		InitHandler<_tFuncParams...>, std::move(func_args)))
+	{
+		return ystdex::apply(InitHandler<_tFuncParams...>,
+			std::move(func_args));
+	}
+
 public:
+	//! \pre 断言：包装数不等于 0 。
+	PDefH(void, Unwrap, ) ynothrowv
+		ImplExpr(YAssert(wrapping != 0, "An operative cannot be unwrapped."),
+			--wrapping, call_n = InitCall(wrapping))
+	//@}
+
 	//! \since build 834
 	friend DefSwap(ynothrow, FormContextHandler, (swap(_x.Handler, _y.Handler),
-		std::swap(_x.Wrapping, _y.Wrapping)))
+		std::swap(_x.wrapping, _y.wrapping)))
 };
 
 /*!
@@ -1202,8 +1319,15 @@ YB_ATTR_always_inline inline void
 RegisterFormHandler(_tTarget& target, string_view name, _tParams&&... args)
 {
 	// XXX: %FormContextHandler is specialized enough without %trivial_swap.
+#if true
+	NPL::EmplaceLeaf<ContextHandler>(target, name,
+		std::allocator_arg, ToBindingsAllocator(target),
+		FormContextHandler(yforward(args)...));
+#else
+	// NOTE: Any optimized implemenations shall be equivalent to this.
 	A1::RegisterFormHandler(target, name,
 		FormContextHandler(yforward(args)...));
+#endif
 }
 //@}
 
@@ -1212,7 +1336,8 @@ RegisterFormHandler(_tTarget& target, string_view name, _tParams&&... args)
 \note 用于指定创建上下文处理器的种类。
 \since build 871
 */
-enum WrappingKind : decltype(FormContextHandler::Wrapping)
+enum WrappingKind
+	: decltype(std::declval<FormContextHandler>().GetWrappingCount())
 {
 	//! \brief 一般形式：不对参数求值。
 	Form = 0,
@@ -1451,6 +1576,10 @@ inline PDefH(void, EvaluateLiteralHandler, TermNode& term,
 否则视为规约成功，没有其它作用。
 若发生 ContextHandler 调用，调用前先转移处理器保证生存期，
 	以允许处理器内部移除或修改之前占用的第一个子项（包括其中的 Value 数据成员）。
+调用处理器时：
+	对异步实现，首先创建用于异步调用的对象并以 \c std::ref(Handler) 初始化，
+		并调用创建的对象。
+	否则，直接调用 Handler 数据成员。
 在被规约的项没有取得范式时，标记临时对象标签以允许转移作为操作符的函数右值。
 成功调用后，第一个子项指定的合并子被转移到第一参数以外的位置保存。
 这允许简化之后的项的处理，如可假定合并子对象可能所有的项不是第一参数的子项，
@@ -2126,7 +2255,6 @@ public:
 	*/
 	bool UseSourceLocation = {};
 	//@}
-
 	/*!
 	\brief 加载例程。
 	\since build 899
@@ -2197,22 +2325,39 @@ public:
 
 	/*!
 	\brief 执行：从指定参数指定的来源读取并翻译源代码，并返回处理结果。
+	\note 不使用 YB_ATTR_nodiscard 。
 	\exception std::invalid_argument 异常中立：由 ReadFrom 抛出。
-	\sa Preprocess
 	\sa ReadFrom
 	\sa Reduce
 	*/
+	//@{
+	/*!
+	\note 使用默认预处理例程。
+	\sa Preprocess
+	*/
 	template<typename... _tParams>
-	// XXX: No %YB_ATTR_nodiscard.
 	inline TermNode
 	Perform(ContextState& cs, _tParams&&... args) const
 	{
+		return Perform(ystdex::ref(Preprocess), cs, yforward(args)...);
+	}
+	/*!
+	\note 使用第一参数指定的预处理例程。
+	\since build 958
+	*/
+	template<typename _func, typename... _tParams>
+	inline auto
+	Perform(_func preprocess, ContextState& cs, _tParams&&... args) const
+		-> yimpl(ystdex::well_formed_t)<TermNode,
+		decltype(preprocess(std::declval<TermNode&>()))>
+	{
 		auto term(ReadFrom(yforward(args)..., cs));
 
-		Preprocess(term);
+		preprocess(term);
 		Reduce(term, cs);
 		return term;
 	}
+	//@}
 
 	/*!
 	\brief 准备规约项：分析输入并标记记号节点。

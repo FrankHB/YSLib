@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2019 FrankHB.
+	© 2013-2016, 2018-2019, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file tuple.hpp
 \ingroup YStandardEx
 \brief 元组类型和操作。
-\version r912
+\version r917
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2013-09-24 22:29:55 +0800
 \par 修改时间:
-	2019-01-11 20:06 +0800
+	2022-10-15 05:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YB_INC_ystdex_tuple_hpp_ 1
 
 #include "apply.hpp" // for <tuple>, "apply.hpp", std::tuple_element_t,
-//	std::tuple_element, std::tuple, index_sequence, integral_constant, size_t_;
+//	std::tuple_element, std::tuple, tuple_size, index_sequence,
+//	integral_constant, size_t_;
 
 namespace ystdex
 {
@@ -59,8 +60,7 @@ namespace vseq
 {
 
 template<typename... _types>
-struct seq_size<std::tuple<_types...>>
-	: std::tuple_size<std::tuple<_types...>>::type
+struct seq_size<std::tuple<_types...>> : tuple_size<std::tuple<_types...>>::type
 {};
 
 

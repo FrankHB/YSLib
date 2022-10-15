@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r22634
+\version r22721
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-10-07 18:09 +0800
+	2022-10-11 01:52 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -304,8 +304,22 @@ private:
 */
 enum RecordFrameIndex : size_t
 {
-	ActiveCombiner,
-	ActiveEnvironmentPtr
+	/*!
+	\brief 活动环境。
+	
+	作为尾上下文的求值的组成活动记录的环境指针。
+	环境指针在求值中是可选的，但只有最终为非空值时，活动的帧记录被保留。
+	若环境指针为空值，最终所在的帧记录被移除。
+	*/
+	ActiveEnvironmentPtr,
+	/*!
+	\brief 活动合并子。
+
+	在活动环境中调用的对象。
+	因为尾调用不都是函数合并，合并子是可选的。
+	当前直接转移从合并项转移。左值可带有源信息。
+	*/
+	ActiveCombiner
 };
 
 /*!
@@ -315,7 +329,7 @@ enum RecordFrameIndex : size_t
 \since build 842
 \sa RecordFrameIndex
 */
-using FrameRecord = pair<ValueObject, shared_ptr<Environment>>;
+using FrameRecord = pair<shared_ptr<Environment>, ValueObject>;
 
 
 /*!
@@ -325,8 +339,7 @@ using FrameRecord = pair<ValueObject, shared_ptr<Environment>>;
 
 表示帧记录的序列。
 随子过程调用的添加到序列起始位置。
-一般地，基类不应被依赖；
-但这里基类的 remove_if 等算法的复杂度要求隐含对元素处理的顺序。
+一般地，基类不应被依赖。若需确定的资源释放顺序，直接使用这个类而非其基类。
 */
 class YF_API FrameRecordList : public yimpl(YSLib::forward_list)<FrameRecord>
 {
@@ -413,14 +426,14 @@ private:
 	mutable size_t req_lift_result = 0;
 	//! \since build 946
 	mutable FrameRecordList record_list;
+	// NOTE: The guard to swap external environment pointer is separated from
+	//	the frame record list to allow less resources kept in the list.
 	// NOTE: See $2022-06 @ %Documentation::Workflow for details.
 	//! \since build 946
 	mutable EnvironmentGuard env_guard;
 	//! \since build 909
 	mutable decltype(ystdex::unique_guard(std::declval<GuardFunction>()))
 		term_guard;
-
-private:
 	/*!
 	\brief 可选的附加信息。
 	\since build 947
@@ -436,6 +449,8 @@ public:
 	*/
 	TCOAction(ContextNode& ctx, TermNode& term, bool lift)
 		: req_lift_result(lift ? 1 : 0), record_list(ctx.get_allocator()),
+		// NOTE: The external environment pointer is not saved in the guard yet,
+		//	and it should be set later if any environment switch is needed.
 		env_guard(ctx), term_guard(ystdex::unique_guard(GuardFunction{term}))
 		// XXX: Do not call %AssertValueTags on %term, as it can be (and is
 		//	usually) a combiniation instead of the representation of some
@@ -447,6 +462,7 @@ public:
 		// XXX: Some members are moved. This is only safe when newly constructed
 		//	object always live longer than the older one.
 		: req_lift_result(a.req_lift_result),
+		record_list(a.record_list.get_allocator()),
 		env_guard(std::move(a.env_guard)), term_guard(std::move(a.term_guard))
 	{}
 	DefDeMoveCtor(TCOAction)
@@ -469,12 +485,18 @@ private:
 	}
 
 public:
+	//! \since build 958
+	DefGetter(const ynothrow, ContextNode&, ContextRef, env_guard.func.Context)
 	//! \since build 913
 	DefGetter(const ynothrow, TermNode&, TermRef, term_guard.func.func.TermRef)
 	//! \since build 957
 	//@{
 	DefGetter(const ynothrow, FrameRecordList&, FrameRecordList, record_list)
 
+	// NOTE: The allocation of the active combiner should normally be done
+	//	before the assignment of the environment pointer, because the object
+	//	should be stable (i.e. pinned) before the environment can be determined. 
+	//! \post \c AssertAttched() 。
 	YB_ATTR(hot) void
 	AddOperator(ValueObject& op) const
 	{
@@ -482,17 +504,31 @@ public:
 		//	%ValueObject is needed, since it can have the source information
 		//	in its holder and %QuerySourceInformation requires an object of
 		//	%ValueObject.
-		record_list.emplace_front(std::move(op), nullptr);
+		record_list.emplace_front(nullptr, std::move(op));
 		// XXX: After the move, the value is unspecified. This should be no
 		//	longer used, so it is irrelavant.
 	}
 
+	/*!
+	\pre 断言：帧记录列表非空。
+	\pre 断言：帧记录中的环境指针为空值。
+	\since build 958
+	*/
+	void
+	AssertAttached() const ynothrowv
+	{
+		YAssert(!record_list.empty(), "No entry found in the record list");
+		YAssert(!NPL::get<ActiveEnvironmentPtr>(record_list.front()),
+			"Missing the fresh frame in the record list.");
+	}
+
+	//! \post \c AssertAttched() 。
 	YB_ATTR_nodiscard ValueObject&
 	Attach(ValueObject& op) const
 	{
 		AddOperator(op);
 		// TODO: Blocked. Use ISO C++17 return value of %forward_list as the
-		//	call to %emplace_front in %AddOperator.
+		//	call to %emplace_front implied in %AddOperator.
 		return NPL::get<ActiveCombiner>(record_list.front());
 	}
 	//@}
@@ -511,41 +547,54 @@ public:
 		RecordCompressor(ctx.GetRecordPtr()).Compress();
 	}
 
-	//! \pre 断言：第二参数中的环境非空。
+	/*!
+	\pre 断言：第二参数中的上下文和 TCO 动作保存的上下文一致。
+	\pre 断言：第二参数中的环境非空。
+	*/
 	YB_ATTR(hot) void
 	CompressForGuard(ContextNode& ctx, EnvironmentGuard&& gd)
 	{
+		// NOTE: Operand saving is performed whether the frame compression is
+		//	needed, once there is a saved environment.
+		auto& p_saved(gd.func.SavedPtr);
+
+		// NOTE: The guard must reference the same context here.
+		YAssert(ystdex::ref_eq<>()(GetContextRef(), ctx),
+			"Invalid context found.");
+		YAssert(ystdex::ref_eq<>()(gd.func.Context.get(), ctx),
+			"Invalid guard found.");
 		// NOTE: An empty saved pointer is allowed by the interface (for an
 		//	object %EnvironmentSwitcher initialized without an environment) but
 		//	unsupported here.
-		YAssert(gd.func.SavedPtr, "Invalid guard found.");
+		YAssert(p_saved, "Invalid guard found.");
 		// NOTE: If there is no environment set in %act.env_guard yet, there is
 		//	ideally no need to save the components to the frame record list
-		//	for recursive calls. In such case, each operation making
-		//	potentionally calling to %Attach (e.g. in %ReduceCombined) will
-		//	always go into this call (unless some exception is thrown) and that
-		//	time %env_guard should be set.
+		//	for recursive calls.
 		if(env_guard.func.SavedPtr)
 		{
-			// NOTE: Operand saving is performed whether the frame compression
-			//	is needed, once there is a saved environment set.
-			auto& p_saved(gd.func.SavedPtr);
-
-			// NOTE: The the environment are saved in the frame record list as a
-			//	new entry if necessary. The existence of the entry shall be
-			//	checked because it may be missing for not from a combiner (e.g.
-			//	by 'eval').
+			// NOTE: The environment is saved in the frame record list as a new
+			//	entry if necessary. The existence of the entry shall be checked
+			//	because it may be missing or not from a combiner (e.g. by
+			//	'eval'). The view of active combiners eases the comsumer (e.g.
+			//	%TraceBacktrace) to get all active combiners of %TCOAction.
 			if(!record_list.empty()
 				&& !NPL::get<ActiveEnvironmentPtr>(record_list.front()))
 				NPL::get<ActiveEnvironmentPtr>(record_list.front())
 					= std::move(p_saved);
 			else
-				record_list.emplace_front(ValueObject(
-					record_list.get_allocator()), std::move(p_saved));
+				record_list.emplace_front(std::move(p_saved), ValueObject(
+					record_list.get_allocator()));
+			// NOTE: If the external pointer (saved in %env_guard) is reused, it
+			//	will be compressed and the active combiner will be abandoned.
 			CompressForContext(ctx);
 		}
 		else
-			env_guard = std::move(gd);
+			env_guard.func.SavedPtr = std::move(gd.func.SavedPtr);
+		// NOTE: Each further operation making potentionally calling to
+		//	%AddOperator (e.g. in %ReduceCombined) should always go into this
+		//	function (unless some exception is thrown) and that time there
+		//	should be a new active combiner, or the current active combiner is
+		//	reused for the new environment.
 	}
 	//@}
 
@@ -559,16 +608,21 @@ public:
 			// XXX: The context is only used to determine the allocator, which
 			//	is an implementation detail. Usually the context in caller
 			//	should be the same, though.
-			one_shot_guard.emplace(env_guard.func.Context.get());
+			one_shot_guard.emplace(GetContextRef());
 		return one_shot_guard->func;
 	}
 
-	//! \since build 957
+	/*!
+	\pre 间接断言：满足 AssertAttached 的要求。
+	\since build 957
+	*/
 	void
 	PopTopFrame() const
 	{
-		YAssert(!record_list.empty() && !NPL::get<ActiveEnvironmentPtr>(
-			record_list.front()), "Invalid state found.");
+		// XXX: At current, no additional environment pointer is allowed. This
+		//	is intended to be used for the vau handler before the call to
+		//	%RelayForCall (which would set the pointer).
+		AssertAttached();
 		record_list.pop_front();
 	}
 

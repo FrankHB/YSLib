@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4213
+\version r4221
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2022-09-23 01:05 +0800
+	2022-10-11 18:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -190,8 +190,7 @@ RedirectToShared(string_view id, shared_ptr<Environment> p_env)
 	// XXX: Consider use more concrete semantic failure exception.
 	throw InvalidReference(ystdex::sfmt("Invalid reference found for%s name"
 		" '%s', probably due to invalid context access by a dangling"
-		" reference.",
-		IsReserved(id) ? " reserved" : "", id.data()));
+		" reference.", IsReserved(id) ? " reserved" : "", id.data()));
 #endif
 }
 
@@ -1023,16 +1022,19 @@ ContextNode::~ContextNode()
 	UnwindCurrent();
 }
 
-ReductionStatus
+YB_ATTR(hot) ReductionStatus
 ContextNode::ApplyTail()
 {
 	// TODO: Add check to avoid native stack overflow when the current action is
 	//	called?
 	YAssert(IsAlive(), "No tail action found.");
-	// NOTE: This also overwrites any previously stored value of %TailAction.
-	TailAction = std::move(current.front());
+	// XXX: Splicing first is more efficient. This should be OK because it would
+	//	be moved in the next step, which should never fail according to the
+	//	assumption on %Reducer.
 	stashed.splice_after(stashed.cbefore_begin(), current,
 		current.cbefore_begin());
+	// NOTE: This also overwrites any previously stored value of %TailAction.
+	TailAction = std::move(stashed.front());
 	TryExpr(LastStatus = TailAction(*this))
 	CatchExpr(..., HandleException(std::current_exception()))
 	// NOTE: To make PTC works, %TailAction is not released after the call. It

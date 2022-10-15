@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8880
+\version r8897
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2022-09-12 02:53 +0800
+	2022-10-13 12:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,8 +37,8 @@
 //	AccessTypedValue, ystdex::make_transform, std::accumulate,
 //	std::placeholders::_2, ystdex::bind1, ContextNode,
 //	ystdex::equality_comparable, ystdex::exclude_self_params_t,
-//	ystdex::examiners::equal_examiner, trivial_swap_t, trivial_swap,
-//	Environment, ystdex::is_bitwise_swappable, ystdex::true_;
+//	ystdex::examiners::equal_examiner, ystdex::size_t_, trivial_swap_t,
+//	trivial_swap, Environment, ystdex::is_bitwise_swappable, ystdex::true_;
 
 namespace NPL
 {
@@ -625,7 +625,7 @@ inline void
 RegisterUnary(_tTarget& target, string_view name, _func f)
 {
 	A1::RegisterFormHandler(target, name,
-		UnaryExpansion<_func>(std::move(f)), _vWrapping);
+		UnaryExpansion<_func>(std::move(f)), ystdex::size_t_<_vWrapping>());
 }
 //! \since build 927
 template<size_t _vWrapping = Strict, typename _func, class _tTarget>
@@ -633,15 +633,15 @@ inline void
 RegisterUnary(_tTarget& target, string_view name, trivial_swap_t, _func f)
 {
 	A1::RegisterFormHandler(target, name, trivial_swap,
-		UnaryExpansion<_func>(std::move(f)), _vWrapping);
+		UnaryExpansion<_func>(std::move(f)), ystdex::size_t_<_vWrapping>());
 }
 template<size_t _vWrapping = Strict, typename _type, typename _func,
 	class _tTarget>
 inline void
 RegisterUnary(_tTarget& target, string_view name, _func f)
 {
-	A1::RegisterFormHandler(target, name,
-		UnaryAsExpansion<_type, _func>(std::move(f)), _vWrapping);
+	A1::RegisterFormHandler(target, name, UnaryAsExpansion<_type, _func>(
+		std::move(f)), ystdex::size_t_<_vWrapping>());
 }
 //! \since build 927
 template<size_t _vWrapping = Strict, typename _type, typename _func,
@@ -649,8 +649,8 @@ template<size_t _vWrapping = Strict, typename _type, typename _func,
 inline void
 RegisterUnary(_tTarget& target, string_view name, trivial_swap_t, _func f)
 {
-	A1::RegisterFormHandler(target, name, trivial_swap,
-		UnaryAsExpansion<_type, _func>(std::move(f)), _vWrapping);
+	A1::RegisterFormHandler(target, name, trivial_swap, UnaryAsExpansion<_type,
+		_func>(std::move(f)), ystdex::size_t_<_vWrapping>());
 }
 //@}
 
@@ -661,7 +661,7 @@ inline void
 RegisterBinary(_tTarget& target, string_view name, _func f)
 {
 	A1::RegisterFormHandler(target, name,
-		BinaryExpansion<_func>(std::move(f)), _vWrapping);
+		BinaryExpansion<_func>(std::move(f)), ystdex::size_t_<_vWrapping>());
 }
 //! \since build 927
 template<size_t _vWrapping = Strict, typename _func, class _tTarget>
@@ -669,15 +669,15 @@ inline void
 RegisterBinary(_tTarget& target, string_view name, trivial_swap_t, _func f)
 {
 	A1::RegisterFormHandler(target, name, trivial_swap,
-		BinaryExpansion<_func>(std::move(f)), _vWrapping);
+		BinaryExpansion<_func>(std::move(f)), ystdex::size_t_<_vWrapping>());
 }
 template<size_t _vWrapping = Strict, typename _type, typename _type2,
 	typename _func, class _tTarget>
 inline void
 RegisterBinary(_tTarget& target, string_view name, _func f)
 {
-	A1::RegisterFormHandler(target, name,
-		BinaryAsExpansion<_type, _type2, _func>(std::move(f)), _vWrapping);
+	A1::RegisterFormHandler(target, name, BinaryAsExpansion<_type, _type2,
+		_func>(std::move(f)), ystdex::size_t_<_vWrapping>());
 }
 //! \since build 927
 template<size_t _vWrapping = Strict, typename _type, typename _type2,
@@ -685,8 +685,8 @@ template<size_t _vWrapping = Strict, typename _type, typename _type2,
 inline void
 RegisterBinary(_tTarget& target, string_view name, trivial_swap_t, _func f)
 {
-	A1::RegisterFormHandler(target, name, trivial_swap,
-		BinaryAsExpansion<_type, _type2, _func>(std::move(f)), _vWrapping);
+	A1::RegisterFormHandler(target, name, trivial_swap, BinaryAsExpansion<_type,
+		_type2, _func>(std::move(f)), ystdex::size_t_<_vWrapping>());
 }
 //@}
 //@}
@@ -1505,6 +1505,8 @@ WVauWithEnvironmentRef(TermNode&, ContextNode&);
 
 //! \since build 913
 //@{
+//! \brief 若被包装的合并子是非真合并子，则视为以其作为处理器的操作子。
+//@{
 /*!
 \brief 包装合并子为应用子。
 \exception NPLException 包装数溢出。
@@ -1526,6 +1528,7 @@ Wrap(TermNode&);
 */
 YF_API ReductionStatus
 WrapRef(TermNode&);
+//@}
 
 //! \exception TypeError 应用子参数的类型不符合要求。
 //@{

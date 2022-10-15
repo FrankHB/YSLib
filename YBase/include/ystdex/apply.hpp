@@ -11,13 +11,13 @@
 /*!	\file apply.hpp
 \ingroup YStandardEx
 \brief 元组和函数应用操作。
-\version r1102
+\version r1202
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2019-01-11 19:43:23 +0800
 \par 修改时间:
-	2022-03-21 12:08 +0800
+	2022-10-15 06:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YB_INC_ystdex_apply_hpp_
 #define YB_INC_ystdex_apply_hpp_ 1
 
-#include "invoke.hpp" // for "invoke.hpp", ystdex::invoke, decay_t;
+#include "invoke.hpp" // for "invoke.hpp", ystdex::invoke, remove_cvref_t,
+//	remove_reference_t;
 #include "integer_sequence.hpp" // for index_sequence, make_index_sequence;
 #include <tuple> // for <tuple>, __cpp_lib_apply, __cpp_lib_tuple_element_t,
 //	__cpp_lib_make_from_tuple, std::tuple, std::get, std::forward_as_tuple,
@@ -62,6 +63,75 @@
 namespace ystdex
 {
 
+//! \since build 958
+//@{
+// XXX: See https://gcc.gnu.org/git/?p=gcc.git;h=f859f912e4df1a6dad3ab6f61e8b8ce0dd77e16d.
+#if (__cplusplus >= 201703L && !defined(__GLIBCXX__)) \
+	|| (defined(__GLIBCXX__) && __GLIBCXX__ > 20170512)
+#	define YB_Impl_use_tuple_size true
+#else
+#	define YB_Impl_use_tuple_size false
+#endif
+
+#if YB_Impl_use_tuple_size
+namespace details
+{
+
+// XXX: See LWG 2446 and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=78939.
+template<class _tTuple, typename = void>
+struct tuple_size_impl;
+
+template<class _tTuple>
+struct tuple_size_impl<_tTuple,
+	void_t<decltype(std::tuple_size<_tTuple>::value)>>
+	// NOTE: This makes the specialization of user-defined types still work
+	//	here. However, they shall follow the refinement as the resolution of
+	//	LWG 2313, i.e. the %value data member shall be of type equivalent to
+	//	%std::size_t, otherwise the behavior is undefined as per ISO C++. There
+	//	is no check here.
+	: std::tuple_size<_tTuple>
+{};
+
+} // namespace details;
+#endif
+
+inline namespace cpp2011
+{
+
+#if YB_Impl_use_tuple_size
+using std::tuple_size;
+#else
+/*!
+\see LWG 2313 。
+\see LWG 2770 。
+*/
+//@{
+template<class _tTuple>
+struct tuple_size : details::tuple_size_impl<_tTuple>
+{};
+
+//! \see LWG 1118 。
+//@{
+template<class _tTuple>
+struct tuple_size<const _tTuple> : details::tuple_size_impl<_tTuple>
+{};
+
+template<class _tTuple>
+struct tuple_size<volatile _tTuple> : details::tuple_size_impl<_tTuple>
+{};
+
+template<class _tTuple>
+struct tuple_size<const volatile _tTuple> : details::tuple_size_impl<_tTuple>
+{};
+//@}
+//@}
+#endif
+
+#undef YB_Impl_use_tuple_size
+
+} // inline namespace cpp2011;
+//@}
+
 /*!
 \brief 调用投影：向原调用传递序列指定的位置的参数。
 \since build 447
@@ -73,30 +143,34 @@ struct call_projection;
 template<typename _tRet, typename... _tParams, size_t... _vSeq>
 struct call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 {
-	//! \since build 810
-	//@{
-	template<typename _func>
+	//! \since build 958
+	template<typename _func, class _tTuple>
 	static yconstfn auto
-	apply_call(_func&& f, std::tuple<_tParams...>&& args, yimpl(decay_t<
-		decltype(yforward(f)(std::get<_vSeq>(yforward(args))...))>* = {}))
-		-> yimpl(decltype(yforward(f)(std::get<_vSeq>(yforward(args))...)))
+	apply_call(_func&& f, _tTuple&& t)
+		-> yimpl(decltype(yforward(f)(std::get<_vSeq>(yforward(t))...)))
 	{
-		return yforward(f)(std::get<_vSeq>(yforward(args))...);
+		return yforward(f)(std::get<_vSeq>(yforward(t))...);
 	}
 
-	template<typename _fCallable>
+	//! \since build 958
+	template<typename _fCallable, class _tTuple>
+	// See $2022-10 @ %Documentation::Workflow.
+#if YB_IMPL_GNUCPP
+	YB_ATTR_always_inline
+#endif
 	static yconstfn auto
-	apply_invoke(_fCallable&& f, std::tuple<_tParams...>&& args,
-		yimpl(decay_t<decltype(ystdex::invoke(yforward(f),
-		std::get<_vSeq>(yforward(args))...))>* = {})) -> yimpl(decltype(
-		ystdex::invoke(yforward(f), std::get<_vSeq>(yforward(args))...)))
+	apply_invoke(_fCallable&& f, _tTuple&& t) -> yimpl(decltype(
+		ystdex::invoke(yforward(f), std::get<_vSeq>(yforward(t))...)))
 	{
-		return ystdex::invoke(yforward(f), std::get<_vSeq>(yforward(args))...);
+		return ystdex::invoke(yforward(f), std::get<_vSeq>(yforward(t))...);
 	}
-	//@}
 
 	//! \since build 634
 	template<typename _func>
+	// See $2022-10 @ %Documentation::Workflow.
+#if YB_IMPL_GNUCPP && defined(__linux__) && !__OPTIMIZE__
+	YB_ATTR_always_inline
+#endif
 	static yconstfn auto
 	call(_func&& f, _tParams&&... args) -> yimpl(decltype(
 		apply_call(yforward(f), std::forward_as_tuple(yforward(args)...))))
@@ -123,23 +197,23 @@ struct call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 template<typename... _tParams, size_t... _vSeq>
 struct call_projection<std::tuple<_tParams...>, index_sequence<_vSeq...>>
 {
-	//! \since build 810
-	template<typename _func>
+	//! \since build 958
+	template<typename _func, class _tTuple>
 	static yconstfn auto
-	apply_call(_func&& f, std::tuple<_tParams...>&& args)
-		-> yimpl(decltype(yforward(f)(std::get<_vSeq>(yforward(args))...)))
+	apply_call(_func&& f, _tTuple&& t)
+		-> yimpl(decltype(yforward(f)(std::get<_vSeq>(yforward(t))...)))
 	{
-		return yforward(f)(std::get<_vSeq>(yforward(args))...);
+		return yforward(f)(std::get<_vSeq>(yforward(t))...);
 	}
 
-	//! \since build 810
-	template<typename _fCallable>
+	//! \since build 958
+	template<typename _fCallable, class _tTuple>
 	static yconstfn auto
-	apply_invoke(_fCallable&& f, std::tuple<_tParams...>&& args)
+	apply_invoke(_fCallable&& f, _tTuple&& t)
 		-> yimpl(decltype(ystdex::invoke(yforward(f),
-		std::get<_vSeq>(yforward(args))...)))
+		std::get<_vSeq>(yforward(t))...)))
 	{
-		return ystdex::invoke(yforward(f), std::get<_vSeq>(yforward(args))...);
+		return ystdex::invoke(yforward(f), std::get<_vSeq>(yforward(t))...);
 	}
 
 	//! \since build 751
@@ -169,7 +243,7 @@ struct call_projection<std::tuple<_tParams...>, index_sequence<_vSeq...>>
 namespace details
 {
 
-template<typename _type, typename _tTuple, size_t... _vSeq>
+template<typename _type, class _tTuple, size_t... _vSeq>
 yconstfn _type
 make_from_tuple_impl(_tTuple&& t, index_sequence<_vSeq...>)
 {
@@ -200,12 +274,13 @@ using std::apply;
 template<typename _func, class _tTuple>
 yconstfn auto
 apply(_func&& f, _tTuple&& t)
-	-> yimpl(decltype(call_projection<_tTuple, make_index_sequence<
-	std::tuple_size<decay_t<_tTuple>>::value>>::apply_invoke(yforward(f),
-	yforward(t))))
+	-> yimpl(decltype(call_projection<remove_cvref_t<_tTuple>,
+	make_index_sequence<tuple_size<remove_reference_t<
+	_tTuple>>::value>>::apply_invoke(yforward(f), yforward(t))))
 {
-	return call_projection<_tTuple, make_index_sequence<std::tuple_size<
-		decay_t<_tTuple>>::value>>::apply_invoke(yforward(f), yforward(t));
+	return call_projection<remove_cvref_t<_tTuple>, make_index_sequence<
+		tuple_size<remove_reference_t<_tTuple>>::value>>::apply_invoke(
+		yforward(f), yforward(t));
 }
 #endif
 
@@ -224,7 +299,7 @@ yconstfn _type
 make_from_tuple(_tTuple&& t)
 {
 	return details::make_from_tuple_impl<_type>(yforward(t),
-		make_index_sequence<std::tuple_size<decay_t<_tTuple>>::value>());
+		make_index_sequence<tuple_size<remove_reference_t<_tTuple>>::value>());
 }
 #endif
 //@}

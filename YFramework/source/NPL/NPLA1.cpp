@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r24180
+\version r24276
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2022-10-04 22:03 +0800
+	2022-10-12 05:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -257,6 +257,33 @@ ReduceChildrenOrderedAsync(TNIter first, TNIter last, ContextNode& ctx)
 	return first != last ? ReduceChildrenOrderedAsyncUnchecked(first, last, ctx)
 		: ReductionStatus::Neutral;
 }
+
+//! \since build 958
+ReductionStatus
+ReduceCallArguments(TermNode& term, ContextNode& ctx)
+{
+	YAssert(!term.empty(), "Invalid term found.");
+	ReduceChildrenOrderedAsyncUnchecked(std::next(term.begin()), term.end(), ctx);
+	return ReductionStatus::Partial;
+}
+
+
+// NOTE: As %Continuation, but without type erasure on the handler.
+//! \since build 958
+struct LContinuation final
+{
+	lref<const ContextHandler> Handler;
+
+	LContinuation(const ContextHandler& h)
+		: Handler(h)
+	{}
+
+	ReductionStatus
+	operator()(ContextNode& ctx) const
+	{
+		return Handler(ContextState::Access(ctx).GetNextTermRef(), ctx);
+	}
+};
 #endif
 
 
@@ -279,7 +306,7 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	//	underlying handler implementation (e.g. %FormContextHandler::CallN)
 	//	optimized with %NPL_Impl_NPLA1_Enable_InlineDirect remaining the nested
 	//	call safety.
-	return RelaySwitched(ctx, Continuation(ystdex::ref(h), ctx));
+	return RelaySwitched(ctx, LContinuation(h));
 #else
 
 	auto gd(ystdex::unique_guard([&]() ynothrow{
@@ -300,7 +327,7 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	}, std::move(gd), std::move(args)...), "combine-return"));
 	// XXX: The %std::reference_wrapper instance is specialized enough without
 	//	%trivial_swap.
-	return RelaySwitched(ctx, Continuation(std::ref(h), ctx));
+	return RelaySwitched(ctx, LContinuation(h));
 #	else
 	const auto res(RegularizeTerm(term, h(term, ctx)));
 
@@ -495,7 +522,7 @@ private:
 	// XXX: More allocators are not used here for performance.
 	ValueObject pfx{std::allocator_arg, alloc, ContextHandler(Forms::Sequence)};
 	ValueObject pfx2{std::allocator_arg, alloc,
-		ContextHandler(FormContextHandler(ReduceBranchToList, 1))};
+		ContextHandler(FormContextHandler(ReduceBranchToList, Strict))};
 #if NPL_Impl_NPLA1_Enable_ThunkedSeparatorPass
 
 	//! \since build 882
@@ -2003,20 +2030,28 @@ FormContextHandler::CallN(size_t n, TermNode& term, ContextNode& ctx) const
 {
 	// NOTE: This implementes arguments evaluation in applicative order when
 	//	%Wrapping is not zero.
-#if NPL_Impl_NPLA1_Enable_Thunked
-	// XXX: No %SetupNextTerm call is needed because it should have been called
-	//	in %CombinerReturnThunk.
+	// XXX: No %SetupNextTerm call is needed when %NPL_Impl_NPLA1_Enable_Thunked
+	//	because it should have been called in %CombinerReturnThunk.
 	AssertNextTerm(ctx, term);
+#if NPL_Impl_NPLA1_Enable_Thunked
 	// NOTE: Optimize for cases with no argument.
 	if(n == 0 || term.size() <= 1)
 		// XXX: Assume the term has been setup by the caller.
 		return CallHandler(term, ctx);
-	// XXX: The empty type is specialized enough without %trivial_swap.
-	return A1::RelayCurrentNext(ctx, term, [](TermNode& t, ContextNode& c){
-		YAssert(!t.empty(), "Invalid term found.");
-		ReduceChildrenOrderedAsyncUnchecked(std::next(t.begin()), t.end(), c);
-		return ReductionStatus::Partial;
-	}, trivial_swap, NameTypedReducerHandler([&, n](ContextNode& c){
+	// XXX: The type of %ReduceCallArguments is specialized enough without
+	//	%trivial_swap.
+#	if true
+	// XXX: This is an optimization based on the assumption that the underlying
+	//	combiner of most applicatives is are operatives.
+	if(YB_LIKELY(n == 1))
+		return A1::RelayCurrentNext(ctx, term, ReduceCallArguments,
+			trivial_swap, NameTypedReducerHandler([&](ContextNode& c){
+			SetupNextTerm(c, term);
+			return CallHandler(term, c);
+		}, "eval-combine-operator"));
+#	endif
+	return A1::RelayCurrentNext(ctx, term, ReduceCallArguments, trivial_swap,
+		NameTypedReducerHandler([&, n](ContextNode& c){
 		SetupNextTerm(c, term);
 		return CallN(n - 1, term, c);
 	}, "eval-combine-operator"));
@@ -2038,10 +2073,56 @@ FormContextHandler::CheckArguments(size_t n, const TermNode& term)
 		AssertCombiningTerm(term);
 }
 
+ReductionStatus
+FormContextHandler::DoCall0(const FormContextHandler& fch, TermNode& term,
+	ContextNode& ctx)
+{
+	YAssert(fch.wrapping == 0, "Unexpected wrapping count found.");
+#if true
+	AssertNextTerm(ctx, term);
+	return fch.CallHandler(term, ctx);
+#else
+	// NOTE: Any optimized implemenations shall be equivalent to this.
+	return fch.CallN(0, term, ctx);
+#endif
+}
+
+ReductionStatus
+FormContextHandler::DoCall1(const FormContextHandler& fch, TermNode& term,
+	ContextNode& ctx)
+{
+	YAssert(fch.wrapping == 1, "Unexpected wrapping count found.");
+#if true
+	AssertNextTerm(ctx, term);
+#	if NPL_Impl_NPLA1_Enable_Thunked
+	return term.size() <= 1 ? fch.CallHandler(term, ctx)
+		: A1::RelayCurrentNext(ctx, term, ReduceCallArguments, trivial_swap,
+		NameTypedReducerHandler([&](ContextNode& c){
+		SetupNextTerm(c, term);
+		return fch.CallHandler(term, c);
+	}, "eval-combine-operator"));
+#	else
+	ReduceArguments(term, ctx);
+	return fch.CallHandler(term, ctx);
+#	endif
+#else
+	// NOTE: Any optimized implemenations shall be equivalent to this.
+	return fch.CallN(1, term, ctx);
+#endif
+}
+
+ReductionStatus
+FormContextHandler::DoCallN(const FormContextHandler& fch, TermNode& term,
+	ContextNode& ctx)
+{
+	YAssert(fch.wrapping > 1, "Unexpected wrapping count found.");
+	return fch.CallN(fch.wrapping, term, ctx);
+}
+
 bool
 FormContextHandler::Equals(const FormContextHandler& fch) const
 {
-	if(Wrapping == fch.Wrapping)
+	if(wrapping == fch.wrapping)
 	{
 		if(Handler == fch.Handler)
 			return true;
@@ -2283,7 +2364,9 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 
 	auto& fm(AccessFirstSubterm(term));
 	const auto p_ref_fm(TryAccessLeafAtom<const TermReference>(fm));
+#if NPL_Impl_NPLA1_Enable_TCO
 	auto& cs(ContextState::Access(ctx));
+#endif
 
 	// NOTE: If this call returns normally, the combiner object implied by %fm
 	//	is not owned by %term.
@@ -2575,6 +2658,12 @@ AddTypeNameTableEntry(const type_info& ti, string_view sv)
 string_view
 QueryContinuationName(const Reducer& act)
 {
+#if NPL_Impl_NPLA1_Enable_Thunked
+	// XXX: %LContinuation is normally not visible to the user program, but just
+	//	keep it here.
+	if(IsTyped<LContinuation>(act))
+		return QueryTypeName(type_id<ContextHandler>());
+#endif
 	if(const auto p_cont = act.target<Continuation>())
 		return QueryTypeName(p_cont->Handler.target_type());
 #if NPL_Impl_NPLA1_Enable_Thunked

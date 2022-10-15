@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r11857
+\version r12145
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-10-07 19:25 +0800
+	2022-10-15 22:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,294 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ DLI "reordered headers to keep <ydef.h> included at first"
+			@ %Exception,
+			// To ensure configuration macros in <ydef.h> take effect before \
+				the inclusion of any standard headers.
+		* "ill-formed internal construction for allocators not \
+			default-constructible" @ "class template %list" @ %List
+			$since b866
+			$= (/ $impl ^ "%is_nothrow_default_constructible" ~ 'noexcept'),
+			// See also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=87809.
+		/ "tree class template" @ %Tree $=
+		(
+			/ $dev $lib "reduced the requirement on complete types of template \
+				arguments"
+				$= (/ $impl ^ 'std::addressof' ~ '&'),
+				// See also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60497.
+			(
+			// See $2022-10 @ %Documentation::Workflow.
+			* "ill-formed internal call due to missing 'nd' argument"
+				@ "function template %emplace_hint_equal" $since b864;
+			/ $lib "enabled hint for all range insertion functions" $=
+			(
+				/ $impl "%insert_range_unique#1" ^ "%insert_hint_unique"
+					~ "%insert_hint",
+				/ $impl "%insert_range_equal#1" ^ "%insert_hint_equal"
+					~ "%insert_equal",
+				* $comp "%insert_range_equal#2" $since b864
+					$dep_from "%emplace_hint_equal"
+			)
+			),
+			- $dev $impl "redundant node allocator initialization"
+				@ "function template %insert_range_equal#2",
+				// See $2022-10 @ %Documentation::Workflow.
+			/ DLDI "reordered declarations of %select_value",
+				// As %select_key.
+			(
+			/ DLDI "function %select_key#2" ^ "%select_key#1" ~ "%select_value";
+			/ $dev "improved diagnostics by moving class-scope static \
+				assertions to the definition of %select_key#2"
+				// As https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85965.
+			),
+			/ DLI "simplified node copy"
+				// See also https://gcc.gnu.org/git/?p=gcc.git;a=blobdiff;f=libstdc%2B%2B-v3/include/bits/stl_tree.h;h=a51d6da4ae864391d8c7ccf09bdcd288c61864da;hp=ec141ea01c76d447ecd5e91b75967af78e608720;hb=90bf60c3c24c6c99ebbecf9d08a6d0d916d73721;hpb=d1081010a1addfcf156b7042f581f0698ea25f61.
+		),
+		/ ($impl %Tree; $comp "class template %map" @ %Map) $=
+		(
+			* "nonconforming to ISO C++ behavior of move %operator= for \
+				throwing %operator= on element types with non-POCMA and not \
+				always-equal allocators"
+				// As https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92124.
+			@ (
+				%List $since b866
+					$= (/ ^ $impl ^ "%std::make_move_iterator"
+						~ "%ystdex::make_move_if_noexcept_iterator"),
+				%Tree $since b830
+					$= (/ ^ $impl ^ "%std::move" ~ "%std::move_if_noexcept")
+			),
+			* "ill-formed internal construction for allocators or key \
+				comparison objects not default-constructible" $since b864
+				$= (/ $revert(b864) $impl
+					^ "%is_nothrow_default_constructible" ~ "%ynoexcept"),
+				// This is not the same to %List and libstdc++ has no such \
+					bug.
+			* "missing noexcept-specification for move constructor"
+				@ "internal representation on move" $since b830
+				$= (/ $impl ^ "%is_nothrow_move_constructible"),
+				// See also https://gcc.gnu.org/git/?p=gcc.git;a=blobdiff;f=libstdc%2B%2B-v3/include/bits/stl_tree.h;h=21b72cebf2e078ae893c61917ff1094b81bfeefd;hp=5be15afa25754f8a7a2c405c55328a08bbf1be34;hb=c832cf1c1d114aed70c2f84566cf4d63de0a56d0;hpb=fccb41b909cb207174d3270ce69e6729e2db28fa.
+			* "invalid moved-from state left after allocator-extended move \
+				construction with different allocators" $since b830
+				// As https://gcc.gnu.org/bugzilla/show_bug.cgi?id=103501.
+		),
+		/ DLI "simplified container iterator class templates"
+			$effective @ %(List, Tree) $=
+		(
+			- ("iterators comparison functions with different types";
+				"base of %equality_comparable instances");
+				// Since the constant iterators are implicitly \
+					constructible from the non-const iterators and the \
+					cost of the construction is negligible, it is \
+					redundant to have the mixed comparison functions. This \
+					simplification is necessary, or the following change \
+					would be ill-formed due to member access failure.
+			/ "function %operator==" -> "friend function"
+		),
+		/ %Apply $=
+		(
+			+ "metafunction %tuple_size" @ "inline namespace %cpp2011",
+			// See $2022-10 @ %Documentation::Workflow.
+			* "missing support of tuples other than cv-unqualifed type of \
+				rvalue reference to std::tuple instances" @ "member unction \
+				templates %(apply_call, apply_invoke)" @ "class template \
+				specializations %call_projection" $since b810 $orig
+				(@ "function template %call" @ "class template specialization \
+				%call_projection" @ %Functional $since b447) $=
+			(
+				- DLDI "trailing parameter and argument";
+				+ "deduced tuple parameter"
+			),
+			/ @ '__cpp_lib_apply >= 201603L' $=
+			(
+				/ @ "function template %apply" $dep_to "apply fix" $=
+				(
+					* "missing removing reference for lvalue tuples" @ "call \
+						projection argument" $orig (@ %Functional $since b547)
+						$= (/ $impl ^ "%remove_cvref_t");
+					* $comp "missing support of tuples of type other than \
+						cv-unqualifed type of rvalue reference to \
+						%std::tuple instances" $orig (@ %Functional $since b547)
+						$dep_from ("%apply_invoke" @ "class template \
+						specializations %call_projection")
+				),
+				/ DLI ^ ("%remove_reference_t" ~ "%decay_t")
+					$effective @ "function templates %(apply, make_from_tuple)"
+			)
+		)
+	),
+	/ $dev $lib "incorperated the resolution of LWG 2770"
+		^ "%ystdex::tuple_size" ~ "%std::tuple_size" $effective @ ("function \
+		templates %(apply, make_from_tuple)" @ %Apply, "metafunction \
+		specialization %vseq::seq_size" @ %Tuple) @ %YBase.YStandardEx,
+		// It seems that all supported platforms actually behave the same, \
+			though. All other uses (in %YBase.YStandardEx.Iterator \
+			and %YFramework.YSLib.Core.YFunc) of %std::tuple are not relying \
+			on SFINAE, so there needs no change for simplicity (anyway, \
+			%ystdex::tuple_size relies on %std::tuple_size directly).
+	/ %YFramework $=
+	(
+		* $re_add(b957) "missing excluding potentional unexpected ADL lookup"
+			@ "friend function templates %operator!=" @ "class %ValueObject"
+			@ %YSLib.Core.YObject $since b753
+			$= (/ $impl ^ "%ystdex::enable_if_same_param_t"),
+		/ %NPL $=
+		(
+			/ %Dependency $=
+			(
+				* "ill-formed call" @ '!NPL_Impl_NPLA1_Enable_Thunked'
+					$effective @ ("function %ReduceToLoadExternal",
+					"native implementation" @ "applicative %require"
+					@ "function %LoadModule_std_modules") $since b955,
+				- DLDI 'NPL::' @ 'NPL::tuple' $effective @ "native \
+					implementation" @ "applicatives ('register-requirement!', \
+					%require)" @ "function %LoadModule_std_modules"
+			),
+			/ DLI %NPLA $=
+			(
+				/ $design "removed redundant newline",
+				/ "optimized member function %ContextNode::ApplyTail by \
+					reording the move of the reducer",
+				+ 'YB_ATTR(hot)' @ "member function %ContextNode::ApplyTail"
+			),
+			/ %NPLA1Internals $=
+			(
+				/ @ "class %TCOAction" $=
+				(
+					/ @ "function %CompressFrameList" $=
+					(
+						/ $impl !^ "%remove_if";
+						* $comp $dev $impl "insufficient guarantee of the \
+							order of removal of the frames" $since b941
+							// See $2022-10 @ %Documentation::Workflow.
+					),
+					- DLI "redundant 'private:'",
+					/ "function %CompressForGuard" $=
+					(
+						/ DLI "lifted local variable initialization to the \
+							beginning",
+						+ $dev $lib "assertion to ensure the guard context is \
+							same in the context in the action",
+						- "1st parameter" $dep_to "simplified guard compression"
+					),
+					* "wrong order of combiner and environment pointer \
+						components" @ "%(RecordFrameIndex, FrameRecord)"
+						$orig (@ %NPLA1 $since b842),
+						// The environment is not the fresh one in the call to \
+							the combiner, but the one for evaluating the call, \
+							so it should live longer. This change is normally \
+							invisible (except for interoperations which \
+							inserts visible effects between the destructor \
+							calls), though.
+					(
+					+ "function %GetContextRef";
+					/ DLDI "simplified functions %(MakeOneShotChecker, \
+						operator())",
+					),
+					(
+					+ "function %AssertAttached";
+					/ DLDI "simplified function %PopTopFrame",
+					+ DD "'\post' command" @ "Doxygen comment"
+						@ "function %AddOperator"
+					),
+					/ DLI "initializing frame record list" @ "copy constructor"
+						^ "allocator from the source frame record list"
+						// This is more consistent to other implementations \
+							and a bit more efficient than other \
+							implementations. It also allows further stashing \
+							of the list elements by splicing with other lists \
+							(albeit not necessary more efficient).
+				),
+				/ $forced "function %PrepareTCOEvaluation"
+					$dep_from "simplified guard compression"
+					$= (- "1st parameter");
+				/ $forced $dev $impl "required specific contexts"
+					@ 'NPL_Impl_NPLA1_Enable_TCO' @ "static member \
+					function templates %TailCall::(RelayNextGuarded, \
+					RelayNextGuardedLifted, RelayNextGuardedProbe)"
+			),
+			/ %NPLA1 $=
+			(
+				/ @ 'NPL_Impl_NPLA1_Enable_Thunked'
+				(
+					/ DLI "prevented creation of %Continuation"
+						@ "functions whose name have prefix 'ReduceCombined'";
+						// This is not visible except for interoperations, \
+							which is not documented.
+					/ "supported internal thunk object"
+						@ "function %QueryContinuationName"
+				),
+				/ DLDI "combiner wrapping" @ "separator pass"
+					@ "constructor %GlobalState" ^ "%Strict" ~ '1',
+					// Also to eliminate potential warning: [-Wsign-conversion].
+				+ $dev $lib "header inclusions \
+					%YBase.YStandardEx.(IntegerSequence, TypeOperation, \
+					Function)",
+				- $dev $lib "header inclusion %YBase.YStandardEx.ScopeGuard",
+					// This is already included in %SContext.
+				/ @ "class %FormContextHandler" $=
+				(
+					/ "data member %Wrapping"
+						-> "functions %(IsOperative, GetWrappingCount, Unwrap)",
+					+ $src DLI "internal call pointer",
+					(
+					/ @ "function %operator()" $=
+					(
+						/ "optimized for applicative with wrap count 1",
+						/ "optimized call dispatching" ^ "internal call pointer"
+					);
+					/ "constructors" $=
+					(
+						/ $dev "split constructor overloads"
+							!^ "default arguments"
+							$= (/ $impl ^ "%ystdex::apply"
+								$dep_from "apply fix");
+								// Using of %ystdex::apply is not absolutely \
+									necessary, but for convenience.
+						+ "overloads to accept constant wrapping counts"
+							^ "%ystdex::size_t_"
+					)
+					)
+				),
+				/ $forced DLDI "underlying type" @ "enum %WrappingKind"
+					$dep_from "%FormContextHandler::Wrapping"
+					^ $dep_from "%FormContextHandler::GetWrappingCount",
+				/ DLI "function template %RegisterFormHandler#2"
+					!^ "%A1::RegisterFormHandler",
+				/ @ "class %GlobalState" $=
+				(
+					+ "function template %Perform with 1st function object \
+						parameter for preprocessing overriding"
+						^ "%ystdex::well_formed_t";
+					/ DLI "simplified function template %Perform#1"
+						^ ("%Perform#2", "%ystdex::ref")
+						// This is actually a bit more efficient compared to \
+							the old implementation as well as using %std::ref.
+				),
+				/ DLDI "function %ReduceCombinedBranch"
+					// To eliminate G++ warning: [-Wunused-variable] \
+						@ 'NPL_Impl_NPLA1_Enable_Thunked' $since b957.
+			),
+			/ DLI @ "namespace %Forms" @ %NPLA1Forms $=
+			(
+				/ $design "wrapping count access" $effective @ ("functions \
+					whose name have prefix 'Wrap', 'Unwrap' or 'Apply'",
+					"function %ForwardFirst")
+					$dep_from ("%FormContextHandler::Wrapping" @ %NPLA1)
+					$= (/ $impl ^ $dep_from
+						("FormContextHandler::(IsOperative, GetWrappingCount, \
+						Unwrap)" @ %NPLA1)),
+				/ "optimized all 4 function templates %(RegisterUnary, \
+					RegisterBinary)" ^ "%ystdex::size_t_" $dep_from
+					("constructor %FormContextHandler" @ %NPLA1)
+			)
+		)
+	)
+),
+
+b957
 (
 	/ "%PatchRevision.sh" @ %Tools.Scripts $=
 	(
@@ -74,7 +362,7 @@ $now
 				)
 			),
 			* "missing excluding potentional unexpected ADL lookup"
-				@ "friend function templates %operator=" @ "class %ValueObject"
+				@ "friend function templates %operator==" @ "class %ValueObject"
 				@ %Core.YObject $since b753
 				$= (/ $impl ^ "%ystdex::enable_if_same_param_t")
 		),

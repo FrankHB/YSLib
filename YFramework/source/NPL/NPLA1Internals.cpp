@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20663
+\version r20682
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-09-05 22:12 +0800
+	2022-10-11 01:55 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -125,8 +125,7 @@ RecordCompressor::Compress()
 ReductionStatus
 TCOAction::operator()(ContextNode& ctx) const
 {
-	YAssert(ystdex::ref_eq<>()(env_guard.func.Context.get(), ctx),
-		"Invalid context found.");
+	YAssert(ystdex::ref_eq<>()(GetContextRef(), ctx), "Invalid context found.");
 
 	// NOTE: Many orders are siginificant, see %Documentation::NPL. For example,
 	//	lifting (if any) shall be performed before release of guards (see also
@@ -176,33 +175,38 @@ TCOAction::CompressFrameList()
 {
 	ystdex::retry_on_cond(ystdex::id<>(), [&]() -> bool{
 		bool removed = {};
-
 		// NOTE: The following code searches the frames to be removed, in the
 		//	order from new to old. After merging, the guard slot %env_guard owns
 		//	the resources of the expression (and its enclosed subexpressions)
 		//	being TCO'd.
-		// TODO: Use %FrameRecordList implementation having %remove_if with a
-		//	non-void return type compatible to ISO C++20?
-		record_list.remove_if([&](const FrameRecord& r) ynothrowv -> bool{
-			const auto& p_frame_env_ref(NPL::get<ActiveEnvironmentPtr>(r));
+		// NOTE: See $2022-10 @ %Documentation::Workflow for some choices of
+		//	implemenation details.
+		decltype(record_list) spliced(record_list.get_allocator());
+		auto i(record_list.cbefore_begin());
+		const auto last(record_list.cend());
 
-			// NOTE: The whole frame is to be removed. The function prvalue is
-			//	expected to live only in the subexpression evaluation, whose
+		while(std::next(i) != last)
+		{
+			const auto& p_env(NPL::get<ActiveEnvironmentPtr>(*std::next(i)));
+
+			// NOTE: The whole frame is to be removed. Any function prvalue
+			//	is expected to live only in the subexpression evaluation, whose
 			//	owned static environments (if any) share nothing with the
 			//	environment (which is a local environment not owning the static
 			//	environments) in the same record entry, so the whole entry is
 			//	safe to be removed when the count is not 1. This has equivalent
 			//	effects of evlis tail recursion.
-			if(p_frame_env_ref.use_count() != 1
+			if(p_env.use_count() != 1
 				// XXX: %NPL::Deref is safe because this can be null only when
 				//	the use count is 0.
-				|| NPL::Deref(p_frame_env_ref).IsOrphan())
+				|| NPL::Deref(p_env).IsOrphan())
 			{
+				spliced.splice_after(spliced.cbefore_begin(), record_list, i);
 				removed = true;
-				return true;
 			}
-			return {};
-		});
+			else
+				++i;
+		}
 		return removed;
 	});
 }

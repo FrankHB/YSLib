@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2018, 2020-2021 FrankHB.
+	© 2014-2018, 2020-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r339
+\version r341
 \author FrankHB <frankhb1989@gmail.com>
 \since build 522
 \par 创建时间:
 	2014-07-25 20:14:51 +0800
 \par 修改时间:
-	2021-12-21 20:52 +0800
+	2022-10-07 20:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,9 @@
 #ifndef YB_INC_ystdex_exception_h_
 #define YB_INC_ystdex_exception_h_ 1
 
+#include "deref_op.hpp" // for call_value_or, remove_cv_t;
 #include <libdefect/exception.h> // for std::exception_ptr,
 //	std::nested_exception;
-#include "deref_op.hpp" // for call_value_or, remove_cv_t;
 #include <functional> // for std::mem_fn;
 #include <memory> // for std::addressof;
 #include <stdexcept> // for std::logic_error;

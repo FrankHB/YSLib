@@ -11,13 +11,13 @@
 /*!	\file list.hpp
 \ingroup YStandardEx
 \brief 列表容器。
-\version r1750
+\version r1779
 \author FrankHB <frankhb1989@gmail.com>
 \since build 864
 \par 创建时间:
 	2019-08-14 14:48:52 +0800
 \par 修改时间:
-	2022-06-05 01:39 +0800
+	2022-10-08 20:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,13 +37,14 @@ LWG 2839 ：允许自转移赋值。
 #include "node_base.h" // for "node_base.h", std::move, std::addressof;
 #include <list> // for <list>, std::initializer_list;
 #include "allocator.hpp" // for "range.hpp", replace_storage_t,
-//	bidirectional_iteratable, equality_comparable, totally_ordered,
-//	rebind_alloc_t, allocator_traits, conditional_t, yverify, false_, true_,
-//	ystdex::make_move_if_noexcept_iterator, std::advance, ystdex::alloc_on_move,
-//	allocator_guard, ystdex::alloc_on_swap, ystdex::swap_dependent,
-//	std::allocator, is_object, is_unqualified, and_, is_allocator_for,
-//	ystdex::reverse_iterator, is_nothrow_constructible, less, ref_eq, equal_to,
-//	is_bitwise_swappable, std::equal, std::lexicographical_compare;
+//	bidirectional_iteratable, totally_ordered, rebind_alloc_t, allocator_traits,
+//	conditional_t, is_nothrow_default_constructible, yverify, false_, true_,
+//	ystdex::make_move_if_noexcept_iterator, std::advance,
+//	std::make_move_iterator, ystdex::alloc_on_move, allocator_guard,
+//	ystdex::alloc_on_swap, ystdex::swap_dependent, std::allocator, is_object,
+//	is_unqualified, and_, is_allocator_for, ystdex::reverse_iterator,
+//	is_nothrow_constructible, less, ref_eq, equal_to, is_bitwise_swappable,
+//	std::equal, std::lexicographical_compare;
 #include "compressed_pair.hpp" // for compressed_base;
 #include "base.h" // for noncopyable, nonmovable;
 #include <limits> // for std::numeric_limits;
@@ -154,18 +155,18 @@ public:
 		return *this;
 	}
 
-	YB_ATTR_nodiscard YB_PURE bool
-	operator==(const list_iterator& x) const ynothrow
+	//! \since build 958
+	YB_ATTR_nodiscard YB_PURE friend bool
+	operator==(const list_iterator& x, const list_iterator& y) ynothrow
 	{
-		return p_node == x.p_node;
+		return x.p_node == y.p_node;
 	}
 };
 
 
 template<typename _type>
 class list_const_iterator
-	: public bidirectional_iteratable<list_const_iterator<_type>, const _type&>,
-	public equality_comparable<list_const_iterator<_type>, list_iterator<_type>>
+	: public bidirectional_iteratable<list_const_iterator<_type>, const _type&>
 {
 	//! \since build 866
 	template<typename, class>
@@ -222,15 +223,12 @@ public:
 		return *this;
 	}
 
-	YB_ATTR_nodiscard YB_PURE bool
-	operator==(const list_const_iterator& x) const ynothrow
+	//! \since build 958
+	YB_ATTR_nodiscard YB_PURE friend bool
+	operator==(const list_const_iterator& x, const list_const_iterator& y)
+		ynothrow
 	{
-		return p_node == x.p_node;
-	}
-	YB_ATTR_nodiscard YB_PURE bool
-	operator==(const iterator& x) const ynothrow
-	{
-		return p_node == x.p_node;
+		return x.p_node == y.p_node;
 	}
 };
 
@@ -280,7 +278,9 @@ protected:
 		using base = compressed_base<node_allocator>;
 		list_header header{};
 
-		components() ynoexcept_spec(node_allocator())
+		//! \since build 958
+		components()
+			ynoexcept(is_nothrow_default_constructible<node_allocator>())
 			: base()
 		{}
 		//! \since build 867
@@ -577,8 +577,8 @@ protected:
 		if(get_node_allocator() == x.get_node_allocator())
 			move_assign_elements(x, true_());
 		else
-			assign_range(ystdex::make_move_if_noexcept_iterator(x.begin()),
-				ystdex::make_move_if_noexcept_iterator(x.end()));
+			assign_range(std::make_move_iterator(x.begin()),
+				std::make_move_iterator(x.end()));
 	}
 	//! \brief 转移赋值相等或在转移赋值时传播的分配器的容器元素。
 	void

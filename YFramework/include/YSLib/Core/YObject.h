@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r6992
+\version r7009
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2022-10-03 00:13 +0800
+	2022-10-08 20:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1367,17 +1367,19 @@ public:
 	YB_ATTR_nodiscard YB_PURE friend
 		PDefHOp(bool, ==, const ValueObject& x, const ValueObject& y)
 		ImplRet(x.Equals(y))
-	//! \since build 753
-	//@{
 	/*!
-	\brief 比较相等：存储的对象值相等。
+	\note 提供函数模板以避免隐式初始化 ValueObject 对象的开销。
 	\note 排除非 ValueObject 类型的实际参数转换为 ValueObject 以避免 ADL 歧义。
-	\since build 957
 	*/
 	//@{
 	// NOTE: Unexpected ambiguity of ADL can be formed by arguments of
 	//	'iterator' and 'const_iterator' to container having element with
 	//	template parameter argument of %ValueObject.
+	/*!
+	\brief 比较相等：ValueObject 存储的对象值和其它参数相等。
+	\since build 957
+	*/
+	//@{
 	template<typename _type, class _tParam,
 		yimpl(typename = ystdex::enable_if_same_param_t<ValueObject, _tParam>)>
 	YB_ATTR_nodiscard YB_PURE friend inline bool
@@ -1394,17 +1396,22 @@ public:
 	}
 	//@}
 
-	//! \brief 比较不等：存储的对象值不等。
+	/*!
+	\brief 比较不等：ValueObject 存储的对象值和其它参数不等。
+	\since build 958
+	*/
 	//@{
-	template<typename _type>
+	template<typename _type, class _tParam,
+		yimpl(typename = ystdex::enable_if_same_param_t<ValueObject, _tParam>)>
 	YB_ATTR_nodiscard friend inline bool
-	operator!=(const ValueObject& x, const _type& y)
+	operator!=(const _tParam& x, const _type& y)
 	{
 		return !(x == y);
 	}
-	template<typename _type>
+	template<typename _type, class _tParam,
+		yimpl(typename = ystdex::enable_if_same_param_t<ValueObject, _tParam>)>
 	YB_ATTR_nodiscard friend inline bool
-	operator!=(const _type& x, const ValueObject& y)
+	operator!=(const _tParam& x, const ValueObject& y)
 	{
 		return !(x == y);
 	}
