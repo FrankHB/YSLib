@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r7009
+\version r7011
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2022-10-08 20:06 +0800
+	2022-10-23 05:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1670,10 +1670,10 @@ public:
 \since build 748
 */
 //@{
-//! \since build 928
+//! \since build 959
 template<typename _type>
 YB_ATTR_nodiscard YB_ATTR_always_inline YB_PURE inline bool
-IsTyped(const ValueObject& vo)
+IsTyped(const ValueObject& vo) ynothrow
 {
 	return IsTyped<_type>(vo.type());
 }

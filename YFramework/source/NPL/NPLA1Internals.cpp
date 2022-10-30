@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20682
+\version r20697
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-10-11 01:55 +0800
+	2022-10-23 10:10 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -26,10 +26,11 @@
 
 
 #include "NPL/YModules.h"
-#include "NPLA1Internals.h" // for NPL::Deref, Environment, ystdex::dismiss,
-//	shared_ptr, std::make_move_iterator, NPL::get, ActiveEnvironmentPtr,
-//	std::throw_with_nested, ParameterMismatch, std::allocator_arg,
-//	NPL::AsTermNode;
+#include "NPLA1Internals.h" // for NPL::Nonnull, NPL::Deref, shared_ptr,
+//	Environment, std::make_move_iterator, ystdex::retry_on_cond,
+//	ystdex::dismiss, ystdex::id, NPL::get, ActiveEnvironmentPtr,
+//	std::throw_with_nested, ParameterMismatch, ResolveTerm,
+//	TermToStringWithReferenceMark, std::allocator_arg,
 
 namespace NPL
 {
@@ -248,6 +249,17 @@ ExtractSigil(string_view& id)
 		return sigil;
 	}
 	return char();
+}
+
+void
+CheckForEmptyParameter(const TermNode& o)
+{
+	ResolveTerm([&](const TermNode& nd, bool has_ref){
+		if(nd)
+			throw ParameterMismatch(ystdex::sfmt("Invalid nonempty operand"
+				" value '%s' found for empty list parameter.",
+				TermToStringWithReferenceMark(nd, has_ref).c_str()));
+	}, o);
 }
 
 

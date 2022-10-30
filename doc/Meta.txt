@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2021 FrankHB.
+	© 2013-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元信息。
-\version r1690
+\version r1693
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2021-12-21 23:09 +0800
+	2022-10-18 06:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,7 +58,8 @@ $map(_f); // the 'map' higher order function;
 
 // Abstract operations for dependencies:
 $dep_from; // take evaluation dependence from;
-$dep_all_from; // take all evaluation dependence from;
+$dep_all_from; // take all evaluations dependence from;
+$dep_any_from; // take any evaluations dependence from;
 $dep_to; // put evaluation dependence to;
 $effective; // only have effect on the given entity, e.g. a subset of the \
 	performed namespace;

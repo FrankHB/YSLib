@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r12145
+\version r12380
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-10-15 22:03 +0800
+	2022-10-30 17:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,210 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	+ "all native platforms supported by MSYS2 at current" @ %Tools.Scripts
+		$effective @ "%(SHBuild-common.sh, SHBuild-YSLib-common.txt)" $=
+	(
+		(
+		/ "function %SHBuild_Platform_Detect" $=
+		(
+			- "aarch64 error";
+			+ "platform strings names %(MinGW_Clang64, MinGW_Clang32, \
+				MinGW_ClangARM64, MinGW_UCRT64) for %MSYSTEM values %(CLANG64, \
+				CLANG32, CLANGARM64, UCRT64) on platform %Win32"
+		);
+		+ "system prefixes ('/clang64', 'clang32', '/clangarm64', '/ucrt64') \
+			for platform strings %(MinGW_Clang64, MinGW_Clang32, \
+			MinGW_ClangARM64, MinGW_UCRT64)"
+			@ "function %SHBuild_GetSystemPrefix"
+		),
+		+ "architecture detection for %MSYSTEM values %(CLANG64, CLANG32, \
+			CLANGARM64, UCRT64)" @ "function %SHBuild_PrepareBuild"
+	),
+	/ %YFramework $=
+	(
+		+ 'ynothrow' @ "function %IsTyped" @ %YSLib.YObject,
+		/ %NPL $=
+		(
+			- DLDI "inclusion %YBase.YStandard.Function" @ %(NPLA, NPLA1),
+				// %YBase.YStandard.Function is implied by the inclusion \
+					%YSLib.Core.Func in %Lexical.
+			/ %SContext $=
+			(
+				/ @ "class %Session" $=
+				(
+					+ "alias %allocator_tpye";
+					/ DLDI "simplified" !^ "%YSLib::default_allocator"
+						$effective @ ("private data member" @ "constructor \
+						with 1 allocator parameter", "function %get_allocator")
+				),
+				+ 'ynothrow' @ "function templates %(IsTyped; IsTypedRegular)"
+					$dep_from %YSLib.YObject
+			),
+			/ %NPLA1Internals $=
+			(
+				+ "function %CheckForEmptyParameter",
+				/ $dev $lib "header inclusion %YBase.YStandardEx.Optional"
+					>> %NPLA1 $dep_to "optional header move"
+			),
+			/ %NPLA $=
+			(
+				+ $dev $lib "header inclusion %YBase.YStandardEx.Container",
+				/ "class %ContextNode" $=
+				(
+					/ "type %ExceptionHandler"
+						^ "%ystdex::unchecked_function" ~ "%function",
+					+ "functions %(IsAliveBefore; RewriteLoopUntil; \
+						RewriteUntil)",
+					(
+					+ "function %UnwindCurrent" @ "class %ReducerSequence";
+					+ "function %UnwindCurrentUntil"
+					),
+					/ DLDI "function %DefaultResolve"
+				),
+				+ "function %TermToNamePtr with 'TermNode&' parameter",
+				/ DLI "optimized function %PrepareCollapse"
+					^ "%Environment::GetAnchorPtr"
+			),
+			/ %NPLA1 $=
+			(
+				+ $dev $lib "header inclusion %YBase.YStandardEx.String",
+				/ @ "class %FormContextHandler" $=
+				(
+					/ $revert_ex(b958) DLI "disabled the additional path for \
+						applicative with wrap count 1",
+						// This is a bit less efficient when most wrapping \
+							counts are constant.
+					+ "function %IsDynamicWrapper",
+					/ DLDI "member declaration order",
+						// This does not change any layout since only some \
+							type aliases are effectively reordered with 1st \
+							data member.
+					* DLDI "missing qualified 'A1::' before \
+						'RelayCurrentOrDirect'"
+						@ 'NPL_Impl_NPLA1_Enable_Thunked'
+						@ "function %CallHandler" $since b943
+						// This The argument type is an instance of \
+							%std::reference_wrapper which is out of the scope \
+							of %NPL and it is not immuned from ADL, although \
+							it should work with known header inclusions (so \
+							this have not broken the interface).
+				),
+				/ @ "class %ContextState" $=
+				(
+					/ "kept current reducers" ^ (($dep_from
+						"%(UnwindCurrentUntil, RewriteUntil)"
+						~ "%(UnwindCurrent, Rewrite)") @ "class %ContextNode"
+						@ %NPLA),
+					- $forced $revert_ex(b892) "guard initialization"
+						@ "constructor#1";
+					* "unexpected and unnecessary invalidation on iterators in \
+						the current reducer sequence" $since b892
+				),
+				/ DLI @ "functions %(ReduceChildren, ReduceChildrenOrdered, \
+					FormContextHandler::operator())"
+					@ 'NPL_Impl_NPLA1_Enable_Thunked' $=
+				(
+					/ $re_add(b858) "prevented creation of %Continuation" @
+						"list element reductions",
+					/ "improved the reduction for the last element"
+						^ "%ReduceOnce"
+				),
+				/ DLDI "simplified functions %(BindParameter, \
+					BindParameterWellFormed, MatchParameter)"
+					^ $dep_from ("%CheckForEmptyParameter" @ %NPLA1Internals),
+				/ "function %CheckEnvironmentFormal"
+					-> "%ExtractEnvironmentFormal"
+					$dep_from "optional header move" $=
+				(
+					/ "distinguished '#ignore' and empty formal parameter name",
+					/ "allowed moving of the term value"
+				)
+			),
+			- DLDI "inclusion %YBase.YStandard.Container" @ %(NPLA1Forms,
+				Dependency) $dep_any_from
+				("header inclusion %YBase.YStandardEx.Container" @ %NPLA,
+				"header inclusion %YBase.YStandardEx.String" @ %NPLA1),
+			/ %NPLA1Forms $=
+			(
+				/ DLDI @ "namespace %Forms" $=
+				(
+					/ "simplified function %Call1CC"
+						^ $dep_from ("%ContextNode::ReduceSequence::UnwindUntil"
+						@ %NPLA, "%std::distance") ~ 'while',
+					/ "simplified internal unwrapping"
+						^ "%FormContextHandler::IsOperative"
+						~ "%FormContextHandler::GetWrappingCount",
+					/ DLI "optimized local reference accesses"
+						^ "%Environment::GetAnchorPtr" $effective
+						@ "functions %(AccL, AccR, FoldR1, Map1)"
+				),
+				- "inclusion %YBase.YStandard.Function",
+				+ DLI "macro %NPL_Impl_NPLA1Forms_VauHandler_OptimizeLevel",
+				/ DLI @ "vau handler" $=
+				(
+					/ $design "reordered the internal reference data member \
+						for the call",
+					/ "removed the 1st subterm and determined whether to move \
+						eariler" @ "%operator()",
+					/ "split guard calls";
+					/ "optimized the call" $=
+					(
+						/ "specializing for empty parameter tree"
+							@ 'NPL_Impl_NPLA1Forms_VauHandler_OptimizeLevel \
+							== 1' ^ $dep_from
+							("%CheckForEmptyParameter" @ %NPLA1Internals),
+						/ "specializing for parameter list"
+							@ 'NPL_Impl_NPLA1Forms_VauHandler_OptimizeLevel \
+							>= 2',
+						/ "specializing for parameter list with 1 subterm"
+							@ 'NPL_Impl_NPLA1Forms_VauHandler_OptimizeLevel \
+							>= 2',
+						+ $design 'YB_ATTR_nodiscard'
+							@ "friend function %operator==",
+							// This is not visible as the public API, though.
+						+ $design "assertion for unique shared value of \
+							evaluation structor" @ "constructor"
+					),
+					/ "enabled allocator"
+						@ "dynamic environment formal parameter assignment",
+					/ "extract initialization of terms out from the constructor"
+				),
+				* "missing of supporting empty symbol ('') as the name of \
+					dynamic environment" @ "functions whose name have prefixes \
+					'Vau', 'WVau' or 'Lambda'" $since b929 $=
+					// Empty symbols were not allowed to be the variable name \
+						until b929. Now there are different classes for these \
+						case so empty string does represent the empty symbol \
+						rather than '#ignore'.
+				(
+					/ "split vau handler classes",
+					/ $forced "initialized"
+						^ ($dep_from ("%ExtractEnvironmentFormal"
+						~ "%CheckEnvironmentFormal") @ %NPLA1)
+				)
+			),
+			/ %Dependency $=
+			(
+				- DLDI "inclusion %YBase.YStandard.String" @ %Dependency
+					$dep_from "header inclusion %YBase.YStandardEx.String"
+					@ %NPLA1,
+				* $comp "missing support of empty symbol ('') as the dynamic \
+					environment name" @ "operatives whose name have the \
+					prefixes '$vau', '$wvau', '$defv' or '$defw'" @ "function \
+					%LoadGroundContext" $since b929 $dep_from
+					"empty dynamic environment fix",
+					// This is broken both for native implementations and \
+						derivations.
+				* $re_add(b958) "ill-formed call"
+					@ '!NPL_Impl_NPLA1_Enable_Thunked'
+					@ "function %LoadModule_std_modules") $since b955
+			)
+		)
+	)
+),
+
+b958
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -189,10 +393,10 @@ $now
 				(
 					/ @ "function %CompressFrameList" $=
 					(
+						// See $2022-10 @ %Documentation::Workflow.
 						/ $impl !^ "%remove_if";
 						* $comp $dev $impl "insufficient guarantee of the \
 							order of removal of the frames" $since b941
-							// See $2022-10 @ %Documentation::Workflow.
 					),
 					- DLI "redundant 'private:'",
 					/ "function %CompressForGuard" $=
@@ -266,7 +470,7 @@ $now
 					(
 					/ @ "function %operator()" $=
 					(
-						/ "optimized for applicative with wrap count 1",
+						/ "optimized for applicative with wrapping count 1",
 						/ "optimized call dispatching" ^ "internal call pointer"
 					);
 					/ "constructors" $=
@@ -470,7 +674,8 @@ b957
 			)
 		),
 	),
-	/ @ "function %FetchRootPathCache" @ %Helper.Initialization $=
+	/ @ "functions %(FetchLocalFHSRootPath, FetchRootPathString)"
+		@ %Helper.Initialization $=
 	(
 		/ DLI "enabled allocator" @ "cache"
 			^ $dep_from ("constructors %Path" @ %YSLib.Service.FileSystem);
@@ -810,7 +1015,7 @@ b955
 					$dep_from ("%TryLoadSource" @ %NPLA1)),
 					"function whose name have prefix 'Load'"
 					$dep_from ("%REPLContext" @ %NPLA1))
-					/ $= ($impl ^ $dep_from ("%A1::Perform" @ %NPLA1))
+					$= (/ $impl ^ $dep_from ("%A1::Perform" @ %NPLA1))
 			)
 		),
 		/ @ "class %Environment" @ %Helper.Environment $=
@@ -2333,7 +2538,7 @@ b947
 	(
 		+ 'ynothrow' @ "function %(QueryTailOperatorName, \
 			SetupTailOperatorName)" @ %NPLA1,
-		- "unnecessary 'A1::' before 'NameTypedReducerHandler'"
+		- DLDI "unnecessary qualified 'A1::' before 'NameTypedReducerHandler'"
 			$effective @ "%(NPLA1, NPLA1Internals, NPLA1Forms)",
 		/ DLI "simplified term value setting with a single value of types \
 			except environment references" ^ '=' ~ "%TermValue::SetValue"
@@ -4178,7 +4383,7 @@ b938
 	* DLDI 'yconstfn static' $mismatch(%Documentation.ProjectRules)
 		$effective @ %YBase.YStandardEx.(Examiner $since b895,
 		Function $since b848, Ref $since b870)
-		/ $= (/ ^ 'static yconstfn' ~ 'yconstfn static'),
+		$= (/ ^ 'static yconstfn' ~ 'yconstfn static'),
 	/ %YBase.YStandardEx $=
 	(
 		+ DD '\ingroup functors' @ "Doxygen comment"
@@ -4566,7 +4771,7 @@ b937
 						// There is no custom allocator to use.
 					* "missing disabling WOW64 file system redirection on \
 						loading the entry" $orig (@ %MinGW32 $since b552)
-						/ $= (/ $impl ^ $dep_from
+						$= (/ $impl ^ $dep_from
 							("%WOW64FileSystemRedirectionGuard" @ %MinGW32))
 				)
 			)
@@ -5213,14 +5418,13 @@ b933
 			),
 			(
 			+ %CStandardDefinition;
-			/ "header inclusion %YDefinition"
+			/ "inclusion %YDefinition"
 				@ %(TypeInspection, IntegralConstant) -> %CStandardDefinition
 				$dep_to ("ystdex::nullptr_t transition",
 				"ystdex::ptrdiff_t transition", "ystdex::size_t transition",
 				"ystdex::byte transition")
 			),
-			+ DLDI "header inclusion <cstdint>"
-				@ %(CAssertion, CStandardInteger),
+			+ DLDI "inclusion <cstdint>" @ %(CAssertion, CStandardInteger),
 			/ DLB "updated %__cplusplus detection except for experimental \
 				headers" @ %MemoryResource
 				(/ $impl '__cplusplus > 201703L' -> '__cplusplus >= 202002L')
@@ -5249,11 +5453,11 @@ b933
 			/ ("class %offsetof_check"; "pseudo keyword %yoffsetof";
 				"header inclusion <type_traits>")
 				>> $dep_from %YStandardEx.CStandardDefinition
-				/ $= (/ DLDI ^ 'struct' ~ 'class'),
+				$= (/ DLDI ^ 'struct' ~ 'class'),
 			/ ("class template %empty_base", "struct raw_tag",
 				"header inclusion <cstddef>")
 				>> $dep_from %YStandardEx.CStandardDefinition,
-			/ "header inclusion <cassert>"
+			/ "inclusion <cassert>"
 				>> ("implementation" @ %YFramework.YCLib.Debug),
 			/ DLI "all default substitution '1' of macros" -> 'true'
 				$effective @ "macros %(YB_Use_YAssert, YB_Use_StrictNoThrow, \
@@ -5311,7 +5515,7 @@ b933
 					|| YB_IMPL_GNUCPP >= 40000 || YB_IMPL_CLANGPP >= 20800)'
 					~ 'YB_IMPL_GNUCPP >= 40000',
 					// Similar to %YB_API.
-				/ "header inclusion %YBase.YDefinition"
+				/ "inclusion %YBase.YDefinition"
 					-> $dep_from %YBase.YStandardEx.CStandardDefinition
 					$dep_to "standard type header transition"
 			),
@@ -7072,8 +7276,7 @@ b925
 							conversion correction fixed in \
 							%NPL::ReduceForLiftedResult.
 				)
-			),
-
+			)
 		)
 	),
 	* "missing the guarded backtrace cleanup" @ "handler for NPLA1 exceptions"
@@ -7119,8 +7322,8 @@ b924
 		(
 			/ %NPLA1 $=
 			(
-				* "missing qualified 'A1::'" @ "function template %MakeForm#2"
-					$since b921,
+				* "missing qualified 'A1::' before 'MakeForm'"
+					@ "function template %MakeForm#2" $since b921,
 				+ "function %CheckVariadicArity"
 			),
 			/ %NPLA1Forms $=
@@ -7183,11 +7386,11 @@ b924
 						@ "functions %(RemoteEval, RemoteEvalRef)" $since b923,
 					* "environment prvalue wrongly moved after the check"
 						@ "function %CheckEnvironment" $since b909
-						/ $= (/ $impl ^ "%ystdex::as_const"),
+						$= (/ $impl ^ "%ystdex::as_const"),
 					* $lib "environment wrongly copied for reference value to \
 						temporaries" @ ("function %CheckEnvironment"
 						$since b859, "function %CheckParent" $since b909)
-						/ $= (/ $impl ^ "%LiftOther" ~ "%MoveRValueToReturn"),
+						$= (/ $impl ^ "%LiftOther" ~ "%MoveRValueToReturn"),
 					* "object in environment list wrongly moved after the \
 						construction for nonmodifying contexts" @ "functions \
 						%CheckParent and all constructor forms of combiner \
@@ -7626,7 +7829,7 @@ b921
 							not modifiable before the final failure. The \
 							diagnostic message was also not helpful for a \
 							non-list argument.
-						/ $= (/ $impl ^ ('$if','modifiable?',
+						$= (/ $impl ^ ('$if','modifiable?',
 							$dep_from 'raise-type-error', '$lambda')),
 					/ DLI "optimized native implementation"
 						@ "applicative 'assign@!'" ^ "%LiftOther" ~ "%LiftTerm",
@@ -7653,7 +7856,7 @@ b921
 					* $impl "undeclared defined function"
 						@ "alternative derivation"
 						@ "operatives ('$lambda%', '$lambda/e%')" $since b918
-						/ $= (^ 'cons' ~ 'list*'),
+						$= (/ ^ 'cons' ~ 'list*'),
 						// The order changes made it undeclared before the \
 							defintions not introduced in the context. This was \
 							still well-formed due to the openness of the \
@@ -8410,7 +8613,7 @@ b916
 			/ DLDI "function %RelayCurrentNext" ^ "%A1::RelayCurrentOrDirect"
 				~ "%RelayNextOrDirect";
 			- $revert(b879) "function templates %ReduceNextOrDirect";
-			* "missing qualified 'NPL::'" @ "call to %ReduceSwitched"
+			* "missing 'NPL::' before 'ReduceSwitched'"
 				$effective @ "function template %RelayCurrentNext",
 			(
 			/ "enabled functions %RelayCurrent"
@@ -8665,7 +8868,7 @@ b915
 						$= (/ $impl ^ '$move-resolved!');
 						// This relies on the parameters passed by value.
 					* "unexpected result copy"
-						/ $= ($impl ^ ('$lambda%', '$vau%')
+						$= (/ $impl ^ ('$lambda%', '$vau%')
 							~ ('$lambda', '$vau'))
 						// This relies on forwarding' to ensure memory safety.
 				);
@@ -9133,7 +9336,7 @@ b912
 					* "missing refinement of argument count" @ "native \
 						derivation" @ "applicative 'make-standard-environment'"
 						$since b910
-						/ $= (/ $impl ^ "%RetainN" ~ "%Retain"),
+						$= (/ $impl ^ "%RetainN" ~ "%Retain"),
 				//	/ DLDI "simplified derivation" @ "applicative \
 						'list-extract'" ^ ('map1', 'list%') ~ ('accr', 'null?',
 						'forward-first%', 'rest%', 'cons%'),
@@ -9766,7 +9969,7 @@ b908
 				* $design "missing reduction status" @ "one of alternative \
 					implementations" @ "function %SetupDefaultInterpretation"
 					$since b895
-					/ $= (+ "returning %ReductionStatus::Neutral")
+					$= (+ "returning %ReductionStatus::Neutral")
 					// See $2021-01 @ %Documentation::Workflow.
 			),
 			/ %Dependency $=
@@ -9793,7 +9996,7 @@ b908
 					/ DLI "moved 'exprseq'" $effective
 						@ "alternative derivation"
 						@ "operatives ('$sequence', '$when', '$unless')"
-						/ $= (/ ^ 'move!'),
+						$= (/ ^ 'move!'),
 					/ DLDI "construction of evaluation structure" ^ 'list*'
 						~ 'list*%' $effective @ ("alternative derivations"
 						@ "operatives ('$when', '$unless')",
@@ -10130,7 +10333,7 @@ b906
 			)
 		),
 		/ $dev $lib "split header inclusions" !^ %YSBuild @ %SHBuild.Main
-			/ $= (/ '<YSBuild.h>' -> %(YSLib.Service, NPL).YModules)
+			$= (/ '<YSBuild.h>' -> %(YSLib.Service, NPL).YModules)
 			// This should be better for the build performance. And it is bad \
 				that stage 1 build is affected by failure of building \
 				unrelated modules (like %YFramework.YCLib.HostedGUI worked \
@@ -10323,7 +10526,7 @@ b905
 		/ %Scripts $=
 		(
 			(
-			/ "exposed intialization of external %SHBuild_Env_TempDir"
+			/ "exposed initialization of external %SHBuild_Env_TempDir"
 				@ "function %SHBuild_PrepareBuild" @ "%SHBuild-common.sh";
 			/ @ "%SHBuild-common-toolchain.sh" $=
 			(
@@ -10475,7 +10678,7 @@ b905
 	),
 	* "missing prefix for %SHBuild-common.sh inclusion" @ "%build-all.sh"
 		@ %YDE $since b903,
-		/ $= (+ "prefix '$(dirname "$SHBuild")/'"),
+		$= (+ "prefix '$(dirname "$SHBuild")/'"),
 		// This should have been changed as %SHBuild-YSTest.sh in %YSTest for \
 			consistency.
 	/ "shell variables handling cleanup"
@@ -10531,7 +10734,7 @@ b904
 		/ %NPL $=
 		(
 			* "wrong check" @ "function template %CheckRegular" $since b855
-				/ $= (/ $impl ^ "%IsBranch" ~ "%IsList"),
+				$= (/ $impl ^ "%IsBranch" ~ "%IsList"),
 			(
 			/ "function %A1::ThrowInsufficientTermsError" @ %NPLA1
 				-> ("%NPL::ThrowInsufficientTermsError with 2 parameters"
@@ -10966,7 +11169,7 @@ b903
 		"%SHBuild-bootstrap.sh", "%SHBuild-self-host.sh",
 		"%SHBuild-self-host-DLL.sh") @ %Scripts $since b540) @ %Tools,
 		"%test.sh" @ %Test $since b575)
-		/ $= (/ $impl ^ '${BASH_SOURCE[0]}' ~ '$0'),
+		$= (/ $impl ^ '${BASH_SOURCE[0]}' ~ '$0'),
 	/ "exposed overridable variable %SHBuild_ToolDir"
 		$effective @ (("%install-sysroot.sh", ("%SHBuild-bootstrap.sh",
 		"%SHBuild-self-host.sh", "%SHBuild-self-host-DLL.sh") @ %Scripts)

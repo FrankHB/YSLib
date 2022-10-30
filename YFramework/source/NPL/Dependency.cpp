@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r7402
+\version r7416
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2022-10-12 18:05 +0800
+	2022-10-18 06:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,14 +27,14 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_Dependency // for set, string, UnescapeContext, string_view,
-//	ystdex::isspace, std::istream, YSLib::unique_ptr, std::throw_with_nested,
-//	std::invalid_argument, ystdex::sfmt, YSLib::share_move, GlobalState,
-//	RelaySwitched, trivial_swap, std::bind, SourceName, RetainN,
-//	NPL::ResolveRegular, NPL::Deref, A1::NameTypedReducerHandler, std::ref,
-//	Forms::CallResolvedUnary, EnsureValueTags, ResolvedTermReferencePtr,
-//	TryAccessLeafAtom, TermReference, LiftTerm, MoveResolved, Environment,
-//	NPL::AllocateEnvironment, function, ValueObject, AccessPtr,
-//	EnvironmentReference, shared_ptr, std::piecewise_construct,
+//	ystdex::isspace, ystdex::exists, std::istream, YSLib::unique_ptr,
+//	std::throw_with_nested, std::invalid_argument, ystdex::sfmt,
+//	YSLib::share_move, RelaySwitched, trivial_swap, std::bind, SourceName,
+//	RetainN, NPL::ResolveRegular, NPL::Deref, A1::NameTypedReducerHandler,
+//	std::ref, Forms::CallResolvedUnary, EnsureValueTags,
+//	ResolvedTermReferencePtr, TryAccessLeafAtom, TermReference, LiftTerm,
+//	MoveResolved, Environment, NPL::AllocateEnvironment, function, ValueObject,
+//	AccessPtr, EnvironmentReference, shared_ptr, std::piecewise_construct,
 //	NPL::forward_as_tuple, LiftOther, ThrowNonmodifiableErrorForAssignee,
 //	ThrowValueCategoryError, ValueToken, ResolveTerm, TokenValue,
 //	CheckVariadicArity, A1::AsForm, ystdex::bind1, std::placeholders,
@@ -52,9 +52,8 @@
 //	ystdex::tolower, ReduceReturnUnspecified, YSLib::IO::StreamPut,
 //	YSLib::OwnershipTag, YSLib::FetchEnvironmentVariable,
 //	YSLib::SetEnvironmentVariable, YSLib::uremove, YSLib::allocate_shared,
-//	tuple, YSLib::IO::UniqueFile, ystdex::throw_error;
-#include <ystdex/container.hpp> // for ystdex::exists, ystdex::search_map,
-//	ystdex::emplace_hint_in_place;
+//	ystdex::search_map, ystdex::emplace_hint_in_place, tuple,
+//	YSLib::IO::UniqueFile, ystdex::begins_with, ystdex::throw_error;
 #include YFM_NPL_NPLA1Forms // for EncapsulateValue, Encapsulate, Encapsulated,
 //	Decapsulate, NPL::Forms functions, StringToSymbol, SymbolToString;
 #include YFM_NPL_NPLAMath // for NumerLeaf, NumberNode, NPL math functions;
@@ -70,7 +69,6 @@
 //	ReduceSubsequent, A1::RelayCurrentNext, MoveKeptGuard;
 #include YFM_YSLib_Core_YCoreUtilities // for YSLib::LockCommandArguments,
 //	YSLib::FetchCommandOutput, YSLib::RandomizeTemplatedString;
-#include <ystdex/string.hpp> // for ystdex::begins_with;
 #include <ystdex/cstdio.h> // for ystdex::fexists;
 #include <cerrno> // for errno, EEXIST, EPERM;
 
@@ -2370,9 +2368,9 @@ LoadModule_std_modules(ContextState& cs)
 		return reduce_to_res(pr.first->second.first);
 	}, _2, cs.WeakenRecord()));
 #else
-	context.ShareCurrentSource("<lib:std.modules>");
+	cs.ShareCurrentSource("<lib:std.modules>");
 	// XXX: Thread-safety is not respected currently.
-	context.Perform(R"NPL(
+	A1::Perform(cs, R"NPL(
 $provide/let! (registered-requirement? register-requirement!
 	unregister-requirement! find-requirement-filename require)
 ((mods $as-environment (

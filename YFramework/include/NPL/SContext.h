@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r4575
+\version r4585
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2022-08-17 22:05 +0800
+	2022-10-23 05:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -901,22 +901,22 @@ YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsSingleElementList,
 using YSLib::IsTyped;
 /*!
 \brief 判断项节点的值数据成员具有指定的目标类型。
-\since build 924
+\since build 959
 */
 template<typename _type>
 YB_ATTR_nodiscard YB_ATTR_always_inline YB_PURE inline bool
-IsTyped(const TermNode& nd)
+IsTyped(const TermNode& nd) ynothrow
 {
 	return IsTyped<_type>(nd.Value);
 }
 
 /*!
 \brief 判断项节点是具有指定目标类型的值数据成员的正规节点。
-\since build 924
+\since build 959
 */
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline bool
-IsTypedRegular(const TermNode& nd)
+IsTypedRegular(const TermNode& nd) ynothrow
 {
 	return IsLeaf(nd) && IsTyped<_type>(nd);
 }
@@ -1324,18 +1324,20 @@ class YF_API Session
 public:
 	//! \since build 890
 	using DefaultParser = ByteParser;
+	//! \since build 959
+	using allocator_type = YSLib::default_allocator<yimpl(byte)>;
 	//! \since build 592
 	LexicalAnalyzer Lexer{};
 
 private:
 	//! \since build 941
-	YSLib::default_allocator<yimpl(byte)> allocator;
+	allocator_type allocator;
 
 public:
 	//! \since build 618
 	DefDeCtor(Session)
 	//! \since build 887
-	Session(YSLib::default_allocator<yimpl(byte)> a)
+	Session(allocator_type a)
 		: allocator(a)
 	{}
 
@@ -1546,8 +1548,8 @@ public:
 	\brief 取使用的分配器。
 	\since build 890
 	*/
-	YB_ATTR_nodiscard YB_PURE PDefH(YSLib::default_allocator<yimpl(byte)>,
-		get_allocator, ) const ynothrow
+	YB_ATTR_nodiscard YB_PURE
+		PDefH(allocator_type, get_allocator, ) const ynothrow
 		ImplRet(allocator)
 };
 //@}

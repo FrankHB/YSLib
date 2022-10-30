@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r22721
+\version r22738
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-10-11 01:52 +0800
+	2022-10-29 10:09 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -32,14 +32,14 @@
 #include YFM_NPL_NPLA1 // for shared_ptr, ContextNode, YSLib::allocate_shared,
 //	NPL::Deref, NPLException, TermNode, ReductionStatus, Reducer, YSLib::map,
 //	size_t, lref, Environment, set, IsTyped, EnvironmentList,
-//	EnvironmentReference, pair, YSLib::forward_list, tuple, std::declval,
-//	EnvironmentGuard, NPL::get, A1::NameTypedContextHandler, MoveKeptGuard,
-//	TermReference, TermTags, TryAccessLeafAtom, ThrowTypeErrorForInvalidType,
-//	type_id, TermToNamePtr, IsIgnore, ParameterMismatch, IsPair, IsEmpty,
-//	IsList, NPL::AsTermNode, NPL::AsTermNodeTagged;
+//	EnvironmentReference, pair, YSLib::forward_list, tuple, ystdex::optional,
+//	std::declval, EnvironmentGuard, NPL::get, A1::NameTypedContextHandler,
+//	MoveKeptGuard, TermReference, TermTags, TryAccessLeafAtom,
+//	ThrowTypeErrorForInvalidType, type_id, TermToNamePtr, IsIgnore,
+//	ParameterMismatch, IsPair, IsEmpty, IsList, NPL::AsTermNode,
+//	NPL::AsTermNodeTagged;
 #include <ystdex/compose.hpp> // for ystdex::get_less;
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
-#include <ystdex/optional.h> // for ystdex::optional;
 #include <ystdex/utility.hpp> // for ystdex::exchange;
 #include <ystdex/ref.hpp> // for std::reference_wrapper, std::ref,
 //	ystdex::unref;
@@ -1344,9 +1344,10 @@ inline PDefH(void, SetEvaluatedReference, TermNode& term, const TermNode& bound,
 inline PDefH(void, SetEvaluatedValue, TermNode& term, TermNode& bound,
 	const shared_ptr<Environment>& p_env)
 	ImplExpr(term.Value = [&](Environment& env){
-		return ValueObject(std::allocator_arg, term.get_allocator(),
-			in_place_type<TermReference>,
-			env.MakeTermTags(bound) & ~TermTags::Unique, bound,
+		return
+			ValueObject(std::allocator_arg, term.get_allocator(), in_place_type<
+			TermReference>, env.MakeTermTags(bound) & ~TermTags::Unique, bound,
+			// XXX: Using explicit anchor pointer is more efficient.
 			EnvironmentReference(p_env, env.GetAnchorPtr()));
 	}(NPL::Deref(p_env)))
 
@@ -1375,6 +1376,13 @@ HandleOrIgnore(_func f, const TermNode& t, bool t_has_ref)
 	else if(!IsIgnore(t))
 		ThrowFormalParameterTypeError(t, t_has_ref);
 }
+
+/*!
+\throw ParameterMismatch 解析的操作数非空。
+\since build 959
+*/
+void
+CheckForEmptyParameter(const TermNode&);
 
 
 //! \since build 917

@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r9835
+\version r9935
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2022-09-17 02:28 +0800
+	2022-10-29 09:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,23 +32,25 @@
 #include YFM_NPL_Exception // for YSLib::any_ops, YSLib::NodeLiteral,
 //	YSLib::any, YSLib::bad_any_cast, YSLib::in_place_type, YSLib::to_string,
 //	NPLTag, string, ValueNode, function, std::ostream, ystdex::invoke, TermNode,
-//	std::initializer_list, IsBranch, type_id, shared_ptr,
+//	std::initializer_list, NoContainer, shared_ptr,
 //	ystdex::is_nothrow_copy_constructible, ystdex::is_nothrow_copy_assignable,
 //	ystdex::is_nothrow_move_constructible, ystdex::is_nothrow_move_assignable,
 //	EnsureValueTags, AssertValueTags, IsPair, IsList, HasStickySubterm,
-//	ThrowListTypeErrorForInvalidType, observer_ptr, TryAccessValue, IsAtom,
-//	IsLeaf, ystdex::equality_comparable, weak_ptr, lref, AssertReferentTags,
-//	ystdex::get_equal_to, NPL::IsMovable, pair, std::declval,
-//	ystdex::invoke_value_or, ystdex::expand_proxy, Access, ystdex::ref_eq,
-//	ValueObject, NPL::SetContentWith, std::for_each, TNIter, AccessFirstSubterm,
-//	AssertBranch, NPL::Deref, YSLib::EmplaceCallResult, ystdex::less,
-//	YSLib::map, pmr, ystdex::copy_and_swap, NoContainer, ystdex::try_emplace,
-//	ystdex::try_emplace_hint, ystdex::insert_or_assign, type_info,
-//	ystdex::expanded_function, ystdex::enable_if_same_param_t,
-//	ystdex::exclude_self_t, ystdex::make_obj_using_allocator,
+//	IsBranch, ThrowListTypeErrorForInvalidType, type_id, Access, observer_ptr,
+//	TryAccessValue, IsAtom, IsLeaf, ystdex::equality_comparable, weak_ptr, lref,
+//	AssertReferentTags, ystdex::get_equal_to, NPL::IsMovable, pair,
+//	std::declval, ystdex::invoke_value_or, ystdex::expand_proxy,
+//	ystdex::ref_eq, ValueObject, NPL::SetContentWith, std::for_each, TNIter,
+//	AccessFirstSubterm, AssertBranch, NPL::Deref, ystdex::retry_on_cond,
+//	YSLib::EmplaceCallResult, ystdex::exclude_self_t, ystdex::less, YSLib::map,
+//	pmr, ystdex::copy_and_swap, type_info, ystdex::expanded_function,
+//	ystdex::enable_if_same_param_t, ystdex::make_obj_using_allocator,
 //	YSLib::forward_list, ystdex::swap_dependent, make_observer,
-//	YSLib::allocate_shared, YSLib::Logger, trivial_swap, ystdex::exchange,
-//	NPL::AssertMatchedAllocators, NPL::AsTermNode, ystdex::is_bitwise_swappable;
+//	ystdex::unchecked_function, YSLib::allocate_shared, YSLib::Logger,
+//	trivial_swap, ystdex::exchange, NPL::AssertMatchedAllocators,
+//	NPL::AsTermNode, ystdex::is_bitwise_swappable;
+#include <ystdex/container.hpp> // for ystdex::try_emplace,
+//	ystdex::try_emplace_hint, ystdex::insert_or_assign;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include <libdefect/exception.h> // for std::exception_ptr;
 
@@ -576,11 +578,17 @@ TryAccessTerm(const TermNode& term)
 /*!
 \brief 访问项的值作为记号。
 \return 通过访问项的值取得的记号的指针，或空指针表示无法取得名称。
-\since build 782
 */
+//@{
+//! \since build 959
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(observer_ptr<TokenValue>, TermToNamePtr, TermNode& term)
+	ImplRet(TryAccessTerm<TokenValue>(term))
+//! \since build 782
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(observer_ptr<const TokenValue>, TermToNamePtr, const TermNode& term)
 	ImplRet(TryAccessTerm<TokenValue>(term))
+//@}
 
 /*!
 \return 转换得到的字符串。
@@ -726,11 +734,15 @@ public:
 	DefDeCtor(EnvironmentReference)
 	//! \since build 894
 	//@{
-	//! \brief 构造：使用指定的环境指针和此环境的锚对象指针。
+	/*!
+	\brief 构造：使用指定的环境指针和此环境的锚对象指针。
+	\note 若参数为空值，则锚对象指针是空指针值。
+	*/
 	EnvironmentReference(const shared_ptr<Environment>&) ynothrow;
 	/*!
 	\brief 构造：使用指定的环境指针和锚对象指针。
-	\pre 第二参数表示由环境提供的锚对象指针。
+	\pre 第二参数应当表示和环境指针指向的环境关联的锚对象指针。
+	\note 单独提供锚对象指针参数，而不需要判断参数是否为空值。
 	*/
 	template<typename _tParam1, typename _tParam2>
 	EnvironmentReference(_tParam1&& arg1, _tParam2&& arg2) ynothrow
@@ -2524,7 +2536,8 @@ public:
 	\brief 异常处理器类型。
 	\since build 895
 	*/
-	using ExceptionHandler = function<void(std::exception_ptr)>;
+	using ExceptionHandler
+		= ystdex::unchecked_function<void(std::exception_ptr)>;
 
 private:
 	/*!
@@ -2579,6 +2592,13 @@ public:
 
 		//! \since build 893
 		DefDeCopyMoveAssignment(ReducerSequence)
+
+		//! \since build 959
+		PDefH(void, UnwindUntil, const_iterator i) ynothrow
+			ImplExpr([&]{
+				while(cbegin() != i)
+					pop_front();
+			}())
 
 		void
 		clear() ynothrow
@@ -2702,9 +2722,11 @@ private:
 	ReducerSequence
 		current{ReducerSequence::allocator_type(&memory_rsrc.get())};
 	/*!
-	\brief 空动作序列缓存。
+	\brief 暂存的动作。
 	\sa ApplyTail
 	\sa SetupFront
+
+	暂存的空规约器或转移后的规约器对象的序列。
 	*/
 	ReducerSequenceBase stashed{current.get_allocator()};
 	/*!
@@ -2782,6 +2804,10 @@ public:
 	//@{
 	//! \brief 判断当前动作序列非空。
 	DefPred(const ynothrow, Alive, !current.empty())
+	//! \brief 判断当前动作序列中的起始迭代器不等于参数。
+	PDefH(bool, IsAliveBefore, ReducerSequence::const_iterator i) const
+		ynothrow
+		ImplRet(current.cbegin() != i)
 
 	//! \since build 788
 	DefGetter(const ynothrow, Environment::BindingMap&, BindingsRef,
@@ -2843,14 +2869,18 @@ public:
 	\note 非强异常安全：当动作调用抛出异常，不恢复已转移的动作。
 	\note 不无效化作序列中第一个动作以外的元素。
 	\pre 断言：\c IsAlive() 。
+	\pre 被调用的动作中的可调用对象不依赖动作在当前序列中的迭代器、指针或引用。
 	\sa TailAction
 	\sa HandleException
 	\sa LastStatus
+	\sa SetupFront
 	\since build 810
 
-	转移当前动作序列的第一个动作，然后调用。
+	转移当前动作序列的第一个动作，然后以 \c *this 作为实际参数调用被转移的动作。
 	调用前的转移允许调用 SetupCurrent 或 SetupFront 等设置新的尾调用。
 	此时，不需要处理已被转移的即已激活的动作。
+	转移可能引起被转移的动作在当前动作序列中的迭代器和引用失效，
+		因此应当避免被调用的动作依赖当做先前在当前动作序列中的迭代器、指针或引用。
 	*/
 	ReductionStatus
 	ApplyTail();
@@ -2900,28 +2930,62 @@ public:
 	//@{
 	/*!
 	\brief 重写项。
+	\sa SetupCurrent
+	*/
+	//@{
+	/*!
 	\pre 间接断言：\c !IsAlive() 。
 	\sa RewriteLoop
-	\sa SetupCurrent
 	\since build 810
 
-	调用 SetupCurrent 设置当前动作，然后返回调用 RewriteLoop 的结果。
+	设置当前动作，然后返回调用 RewriteLoop 的结果。
 	*/
 	YB_FLATTEN PDefH(ReductionStatus, Rewrite, Reducer reduce)
 		ImplRet(SetupCurrent(std::move(reduce)), RewriteLoop())
 
+	/*!
+	\pre 断言：\c !IsAliveBefore(i) 。
+	\sa RewriteLoopUntil
+	\since build 959
+
+	设置当前动作，然后返回调用 RewriteLoopUntil 的结果。
+	*/
+	YB_FLATTEN PDefH(ReductionStatus, RewriteUntil, Reducer reduce,
+		ReducerSequence::const_iterator i)
+		ImplRet(YAssert(!IsAliveBefore(i), "Unexpected continuation barrier"
+			" found."), SetupFront(std::move(reduce)), RewriteLoopUntil(i))
+	//@}
+
+	/*!
+	\return 最后一次当前动作调用结果。
+
+	因为递归重写平摊到单一的循环 CheckReducible 不用于判断是否需要继续重写循环。
+	每次调用当前动作的结果同步到 TailResult 。
+	*/
+	//@{
 	/*!
 	\brief 重写项循环。
 	\pre 断言：\c IsAlive() 。
 	\since build 895
 
 	调用 IsAlive 判断状态，当可规约时调用 ApplyTail 迭代规约重写。
-	因为递归重写平摊到单一的循环 CheckReducible 不用于判断是否需要继续重写循环。
-	每次调用当前动作的结果同步到 TailResult 。
-	返回值为最后一次当前动作调用结果。
 	*/
 	YB_FLATTEN ReductionStatus
 	RewriteLoop();
+
+	/*!
+	\brief 重写项循环，直到指定的迭代器。
+	\pre 断言：对参数 \c i ，\c IsAliveBefore(i) 。
+	\pre 参数是当前动作序列中的有效迭代器或结尾迭代器。
+	\pre 调用的动作不无效化参数。
+	\invariant 参数不被无效化；若不是结尾迭代器，指向的动作的引用和指针不被无效化。
+	\since build 959
+
+	调用 IsAliveBefore 判断状态，当可规约时调用 ApplyTail 迭代规约重写。
+	*/
+	ReductionStatus
+	RewriteLoopUntil(ReducerSequence::const_iterator);
+	//@}
 	//@}
 
 	/*!
@@ -2940,9 +3004,10 @@ public:
 		}, std::move(HandleException))))
 
 	/*!
-	\brief 设置当前动作以重规约。
+	\brief 设置当前动作以被规约。
 	\pre 断言：\c !IsAlive() 。
 	\pre 动作转移无异常抛出。
+	\sa SetupFront
 	\since build 887
 	*/
 	template<typename... _tParams>
@@ -2956,6 +3021,10 @@ public:
 	/*!
 	\brief 在当前动作序列中添加动作以重规约。
 	\pre 动作转移无异常抛出。
+
+	一般地，因为通常不易预测 ApplyTail 中具体的被调用动作，
+		这个约束可在此处对所有的动作附加，即 SetupFront 的调用者自行确保
+		参数的可调用对象不依赖会被更新的当前动作序列中新的动作的迭代器、指针或引用。
 	*/
 	//@{
 	//! \since build 926
@@ -3031,6 +3100,14 @@ public:
 	PDefH(void, UnwindCurrent, ) ynothrow
 		ImplExpr(current.clear())
 
+	/*!
+	\brief 顺序移除当前动作序列中的所有动作，直至参数指定的迭代器。
+	\pre 参数是当前动作序列中的有效迭代器或结尾迭代器。
+	\since build 959
+	*/
+	PDefH(void, UnwindCurrentUntil, ReducerSequence::const_iterator i) ynothrow
+		ImplExpr(current.UnwindUntil(i))
+
 	//! \since build 894
 	YB_ATTR_nodiscard YB_PURE
 		PDefH(EnvironmentReference, WeakenRecord, ) const ynothrow
@@ -3046,7 +3123,7 @@ public:
 			&GetMemoryResourceRef()))
 
 	/*!
-	\brief 缩小存储资源占用：清空缓存。
+	\brief 缩小存储资源占用：清空暂存的对象。
 	\sa stashed
 	\since build 892
 	*/
@@ -3172,7 +3249,9 @@ EmplaceLeaf(Environment::BindingMap& m, string_view name, _tParams&&... args)
 		in_place_type<_type>, yforward(args)...)).second;
 	// NOTE: The following code is incorrect because the subterms are not
 	//	cleared, as well as lacking of %bool return value of insertion result.
-//	m[name].Value.emplace<_type>(yforward(args)...);
+#if false
+	m[name].Value.emplace<_type>(yforward(args)...);
+#endif
 }
 //! \since build 927
 template<typename _type, typename... _tParams>

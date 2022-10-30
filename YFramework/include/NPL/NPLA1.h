@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r10311
+\version r10344
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-10-15 20:55 +0800
+	2022-10-28 18:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,8 @@
 //	TNIter, LiftOtherValue, NPL::Deref, NPL::AsTermNode,
 //	std::make_move_iterator, std::next, ystdex::retry_on_cond, std::find_if,
 //	YSLib::AreEqualHeld, ystdex::or_, std::is_constructible, ystdex::decay_t,
-//	ystdex::expanded_caller, ystdex::false_, ystdex::true_, ystdex::nor_, tuple,
+//	ystdex::expanded_caller, ystdex::false_, ystdex::make_parameter_list_t,
+//	ystdex::make_function_type_t, ystdex::true_, ystdex::nor_, tuple,
 //	ystdex::enable_if_t, std::is_same, ystdex::is_same_param, ystdex::size_t_,
 //	AssertCombiningTerm, IsList, ThrowListTypeErrorForNonList,
 //	ThrowInsufficientTermsError, CountPrefix, ArityMismatch, TermReference,
@@ -52,13 +53,13 @@
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 #include <ystdex/type_op.hpp> // for ystdex::exclude_self_params_t,
 //	ystdex::is_instance_of;
-#include <ystdex/function.hpp> // for ystdex::make_parameter_list_t,
-//	ystdex::make_function_type_t;
 #include <ystdex/integer_sequence.hpp> // for ystdex::index_sequence,
 //	ystdex::vseq::_a;
 #include <ystdex/apply.hpp> // for ystdex::apply;
+#include <ystdex/optional.h> // for ystdex::optional;
 #include <iosfwd> // for std::ostream, std::streambuf;
 #include <istream> // for std::istream;
+#include <ystdex/string.hpp> // for ystdex::sfmt;
 
 namespace NPL
 {
@@ -1040,9 +1041,6 @@ WrapContextHandler(trivial_swap_t, _func&& h, const _tAlloc& a)
 class YF_API FormContextHandler
 	: private ystdex::equality_comparable<FormContextHandler>
 {
-public:
-	ContextHandler Handler;
-
 private:
 	//! \since build 958
 	//@{
@@ -1058,10 +1056,14 @@ private:
 	template<typename _tParam>
 	using MaybeFunc = ystdex::enable_if_t<NotTag<_tParam>::value
 		&& !ystdex::is_same_param<FormContextHandler, _tParam>::value>;
-	using Caller = ReductionStatus(*)(const FormContextHandler&,
-		TermNode&, ContextNode&);
+	using Caller = ReductionStatus(*)(const FormContextHandler&, TermNode&,
+		ContextNode&);
 	//@}
 
+public:
+	ContextHandler Handler;
+
+private:
 	/*!
 	\brief 包装数。
 	\note 决定调用前需要对操作数进行求值的次数。
@@ -1170,6 +1172,18 @@ public:
 
 	//! \since build 958
 	DefPred(const ynothrow, Operative, wrapping == 0)
+	/*!
+	\brief 判断合并子的实现是否在初始化时按非常量值的包装数确定调用例程。
+	\since build 959
+	*/
+#if __OPTIMIZE_SIZE__
+	// XXX: Avoid to mention %DoCallN to allow it opted-out by static linking if
+	//	not used.
+	DefPred(const ynothrow, DynamicWrapper,
+		!(call_n == DoCall0 || call_n == DoCall1))
+#else
+	DefPred(const ynothrow, DynamicWrapper, call_n == DoCallN)
+#endif
 
 	//! \since build 958
 	DefGetter(const ynothrow, size_t, WrappingCount, wrapping)
@@ -1243,15 +1257,15 @@ private:
 	InitWrap(tuple<_tFuncParams...>& func_args) -> decltype(ystdex::apply(
 		InitHandler<_tFuncParams...>, std::move(func_args)))
 	{
-		return ystdex::apply(InitHandler<_tFuncParams...>,
-			std::move(func_args));
+		return
+			ystdex::apply(InitHandler<_tFuncParams...>, std::move(func_args));
 	}
 
 public:
 	//! \pre 断言：包装数不等于 0 。
 	PDefH(void, Unwrap, ) ynothrowv
 		ImplExpr(YAssert(wrapping != 0, "An operative cannot be unwrapped."),
-			--wrapping, call_n = InitCall(wrapping))
+			call_n = InitCall(--wrapping))
 	//@}
 
 	//! \since build 834
@@ -1784,11 +1798,11 @@ Ensigil(TokenValue);
 /*!
 \throw InvalidSyntax 嵌套异常：项不符合语法要求。
 \note 异常条件视为语法错误而非直接的类型错误。
-\since build 917
 */
 //@{
 /*!
 \brief 检查形式参数树。
+\since build 917
 
 递归遍历项及其子项，检查其中的子项符合对象语言 \<ptree> 形式的语法要求。
 一般适用提前检查对象语言操作的 \<formals> 而不是 \<definiend> 描述的参数。
@@ -1797,11 +1811,12 @@ YF_API void
 CheckParameterTree(const TermNode&);
 
 /*!
-\brief 检查环境形式参数。
-\return 项表示 \c #ignore 时为空串，否则为非空的环境形式参数。
+\brief 从项中提取环境形式参数。
+\return 项表示 \c #ignore 时为空值，否则为和环境形式参数相等的字符串。
+\since build 959
 */
-YB_ATTR_nodiscard YF_API YB_PURE string
-CheckEnvironmentFormal(const TermNode&);
+YB_ATTR_nodiscard YF_API YB_PURE ystdex::optional<string>
+ExtractEnvironmentFormal(TermNode&);
 //@}
 
 /*!
@@ -1916,7 +1931,7 @@ BindParameterWellFormed(const shared_ptr<Environment>&, const TermNode&,
 \brief 使用操作数结构化匹配并绑定符号。
 \since build 920
 
-同 BindParameter ，但形式参数指定为符号，不进行递归绑定匹配。
+同 BindParameter ，但形式参数指定为符号，不进行递归绑定或结尾序列匹配。
 */
 YF_API void
 BindSymbol(const shared_ptr<Environment>&, const TokenValue&, TermNode&);

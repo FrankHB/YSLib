@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r24276
+\version r24359
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2022-10-12 05:26 +0800
+	2022-10-28 18:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,18 +29,19 @@
 #include YFM_NPL_NPLA1Forms // for EvaluationPasses, lref, ContextHandler,
 //	RelaySwitched, trivial_swap, type_index, string_view, std::hash,
 //	ystdex::equal_to, YSLib::unordered_map, YSLib::lock_guard, YSLib::mutex,
-//	ystdex::ref, std::ref, ListReductionFailure, ystdex::sfmt,
+//	std::declval, std::ref, ListReductionFailure, ystdex::sfmt,
 //	TermToStringWithReferenceMark, std::next, IsBranch, TermReference,
 //	std::allocator_arg, in_place_type, CheckReducible,
 //	IsNPLAExtendedLiteralNonDigitPrefix, IsAllSignLexeme, AllocatorHolder,
 //	YSLib::IValueHolder, YSLib::AllocatedHolderOperations, any,
-//	ystdex::as_const, NPL::forward_as_tuple, uintmax_t, ystdex::bind1,
-//	TokenValue, Forms::Sequence, ReduceBranchToList, YSLib::stack, vector,
-//	size_t, GetLValueTagsOf, TermTags, function, TryAccessLeafAtom, PropagateTo,
-//	InvalidReference, LiftTermRef, TryAccessLeaf, LiftPrefixToReturn,
-//	NPL::Deref, ystdex::true_, IsList, ThrowFormalParameterTypeError,
-//	CountPrefix, ThrowNestedParameterTreeMismatch, ystdex::false_, IsIgnore,
-//	TermToNamePtr, tuple, TNCIter, NPL::get, ResolveTerm, IsTyped, std::prev,
+//	ystdex::as_const, NPL::forward_as_tuple, uintmax_t, ystdex::ref,
+//	ystdex::bind1, TokenValue, Forms::Sequence, ReduceBranchToList,
+//	YSLib::stack, vector, size_t, GetLValueTagsOf, TermTags, function,
+//	TryAccessLeafAtom, PropagateTo, InvalidReference, LiftTermRef,
+//	TryAccessLeaf, LiftPrefixToReturn, NPL::Deref, ystdex::true_, IsList,
+//	ThrowFormalParameterTypeError, CountPrefix,
+//	ThrowNestedParameterTreeMismatch, ystdex::false_, IsIgnore, TermToNamePtr,
+//	tuple, TNCIter, NPL::get, ResolveTerm, IsTyped, std::prev,
 //	ThrowListTypeErrorForNonList, ThrowInsufficientTermsError, ReferenceTerm,
 //	ystdex::begins_with, FindStickySubterm, Environment, shared_ptr,
 //	AssertValueTags, ystdex::retry_on_cond, AccessFirstSubterm, ystdex::ref_eq,
@@ -233,6 +234,35 @@ FetchNameTableRef()
 //@}
 
 #if NPL_Impl_NPLA1_Enable_Thunked
+// NOTE: As %Continuation, but without type erasure on the handler.
+//! \since build 959
+//@{
+template<typename _func = lref<const ContextHandler>>
+struct GLContinuation final
+{
+	_func Handler;
+
+	GLContinuation(_func h) ynoexcept(noexcept(std::declval<_func>()))
+		: Handler(std::move(h))
+	{}
+
+	ReductionStatus
+	operator()(ContextNode& ctx) const
+	{
+		return Handler(ContextState::Access(ctx).GetNextTermRef(), ctx);
+	}
+};
+
+//! \relates GLContinuation
+template<typename _func>
+YB_ATTR_nodiscard YB_PURE inline GLContinuation<_func>
+MakeGLContinuation(_func f) ynoexcept(noexcept(std::declval<_func>()))
+{
+	return GLContinuation<_func>(f);
+}
+//@}
+
+
 //! \since build 810
 YB_ATTR_always_inline inline ReductionStatus
 ReduceChildrenOrderedAsync(TNIter, TNIter, ContextNode&);
@@ -245,10 +275,11 @@ ReduceChildrenOrderedAsyncUnchecked(TNIter first, TNIter last, ContextNode& ctx)
 
 	auto& term(*first++);
 
-	return ReduceSubsequent(term, ctx, Continuation(trivial_swap,
-		NameTypedContextHandler([first, last](TermNode&, ContextNode& c){
-		return ReduceChildrenOrderedAsync(first, last, c);
-	}, "eval-argument-list"), ctx));
+	return first != last
+		? A1::ReduceSubsequent(term, ctx, NameTypedReducerHandler(
+		MakeGLContinuation([first, last](TermNode&, ContextNode& c){
+		return ReduceChildrenOrderedAsyncUnchecked(first, last, c);
+	}), "eval-argument-list")) : ReduceOnce(term, ctx);
 }
 
 YB_ATTR_always_inline inline ReductionStatus
@@ -263,27 +294,10 @@ ReductionStatus
 ReduceCallArguments(TermNode& term, ContextNode& ctx)
 {
 	YAssert(!term.empty(), "Invalid term found.");
-	ReduceChildrenOrderedAsyncUnchecked(std::next(term.begin()), term.end(), ctx);
+	ReduceChildrenOrderedAsyncUnchecked(std::next(term.begin()), term.end(),
+		ctx);
 	return ReductionStatus::Partial;
 }
-
-
-// NOTE: As %Continuation, but without type erasure on the handler.
-//! \since build 958
-struct LContinuation final
-{
-	lref<const ContextHandler> Handler;
-
-	LContinuation(const ContextHandler& h)
-		: Handler(h)
-	{}
-
-	ReductionStatus
-	operator()(ContextNode& ctx) const
-	{
-		return Handler(ContextState::Access(ctx).GetNextTermRef(), ctx);
-	}
-};
 #endif
 
 
@@ -306,7 +320,7 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	//	underlying handler implementation (e.g. %FormContextHandler::CallN)
 	//	optimized with %NPL_Impl_NPLA1_Enable_InlineDirect remaining the nested
 	//	call safety.
-	return RelaySwitched(ctx, LContinuation(h));
+	return RelaySwitched(ctx, GLContinuation<>(h));
 #else
 
 	auto gd(ystdex::unique_guard([&]() ynothrow{
@@ -327,7 +341,7 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	}, std::move(gd), std::move(args)...), "combine-return"));
 	// XXX: The %std::reference_wrapper instance is specialized enough without
 	//	%trivial_swap.
-	return RelaySwitched(ctx, LContinuation(h));
+	return RelaySwitched(ctx, GLContinuation<>(h));
 #	else
 	const auto res(RegularizeTerm(term, h(term, ctx)));
 
@@ -1430,12 +1444,7 @@ private:
 	NPL_Impl_NPLA1_BindParameter_Inline static void
 	ThrowIfNonempty(const TermNode& o, _tParams&&...)
 	{
-		ResolveTerm([&](const TermNode& nd, bool has_ref){
-			if(nd)
-				throw ParameterMismatch(ystdex::sfmt("Invalid nonempty operand"
-					" value '%s' found for empty list parameter.",
-					TermToStringWithReferenceMark(nd, has_ref).c_str()));
-		}, o);
+		return CheckForEmptyParameter(o);
 	}
 	//! \since build 951
 	template<typename... _tParams>
@@ -1601,6 +1610,13 @@ ContextState::ContextState(const GlobalState& g)
 	: ContextNode(*g.Allocator.resource()),
 	Global(g)
 {
+#if false
+	// XXX: For exposition only. This is only useful for %RewriteGuarded when
+	//	%(UnwindCurrentUntil, RewriteUntil) are replaced by %(UnwindCurrent,
+	//	Rewrite). This may be not safe in general because %ReductionGuard will
+	//	invalidate all previously valid iterators, so the iterator cannot be
+	//	captured outside (e.g. in a exception handler). This is a severe and
+	//	unnecessary restriction on the call site.
 	// NOTE: The guard object shall be fresh on the calls for reentrancy.
 	// XXX: The empty type is specialized enough without %trivial_swap.
 	Guard += GuardPasses::HandlerType(std::allocator_arg, get_allocator(),
@@ -1608,6 +1624,7 @@ ContextState::ContextState(const GlobalState& g)
 		return A1::Guard(std::allocator_arg, ctx.get_allocator(),
 			in_place_type<ReductionGuard>, ctx);
 	});
+#endif
 }
 ContextState::ContextState(const ContextState& cs)
 	: ContextNode(cs),
@@ -1677,12 +1694,13 @@ ReductionStatus
 ContextState::RewriteGuarded(TermNode& term, Reducer reduce)
 {
 	const auto gd(Guard(term, *this));
-	const auto unwind(ystdex::make_guard([this]() ynothrow{
+	const auto i(GetCurrent().cbegin());
+	const auto unwind(ystdex::make_guard([i, this]() ynothrow{
 		TailAction = nullptr;
-		UnwindCurrent();
+		UnwindCurrentUntil(i);
 	}));
 
-	return Rewrite(std::move(reduce));
+	return RewriteUntil(std::move(reduce), i);
 }
 
 ReductionStatus
@@ -2019,7 +2037,7 @@ FormContextHandler::CallHandler(TermNode& term, ContextNode& ctx) const
 #if NPL_Impl_NPLA1_Enable_Thunked
 	// XXX: The %std::reference_wrapper instance is specialized enough
 	//	without %trivial_swap.
-	return RelayCurrentOrDirect(ctx, std::ref(Handler), term);
+	return A1::RelayCurrentOrDirect(ctx, std::ref(Handler), term);
 #else
 	return Handler(term, ctx);
 #endif
@@ -2040,9 +2058,11 @@ FormContextHandler::CallN(size_t n, TermNode& term, ContextNode& ctx) const
 		return CallHandler(term, ctx);
 	// XXX: The type of %ReduceCallArguments is specialized enough without
 	//	%trivial_swap.
-#	if true
+#	if false
 	// XXX: This is an optimization based on the assumption that the underlying
-	//	combiner of most applicatives is are operatives.
+	//	combiner of most applicatives is are operatives. However, since the
+	//	wrapping counts are mostly constant from the constructors, this can be a
+	//	bit less efficient.
 	if(YB_LIKELY(n == 1))
 		return A1::RelayCurrentNext(ctx, term, ReduceCallArguments,
 			trivial_swap, NameTypedReducerHandler([&](ContextNode& c){
@@ -2567,15 +2587,20 @@ CheckParameterTree(const TermNode& term)
 		[&](const TokenValue&) ynothrow{})(term);
 }
 
-string
-CheckEnvironmentFormal(const TermNode& term)
+ystdex::optional<string>
+ExtractEnvironmentFormal(TermNode& term)
 {
-	TryRet(ResolveTerm([&](const TermNode& nd, bool has_ref) -> string{
+	TryRet(ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref)
+		-> string{
 		if(const auto p = TermToNamePtr(nd))
+		{
+			if(NPL::IsMovable(p_ref))
+				return string(std::move(*p));
 			return string(*p, term.get_allocator());
+		}
 		else if(!IsIgnore(nd))
-			ThrowFormalParameterTypeError(nd, has_ref);
-		return string(term.get_allocator());
+			ThrowFormalParameterTypeError(nd, p_ref);
+		return {};
 	}, term))
 	CatchExpr(..., std::throw_with_nested(InvalidSyntax("Failed checking for"
 		" environment formal parameter (expected a symbol or #ignore).")))
@@ -2659,9 +2684,9 @@ string_view
 QueryContinuationName(const Reducer& act)
 {
 #if NPL_Impl_NPLA1_Enable_Thunked
-	// XXX: %LContinuation is normally not visible to the user program, but just
-	//	keep it here.
-	if(IsTyped<LContinuation>(act))
+	// XXX: %GLContinuation<> is normally not visible to the user program, 
+	//	just keep it here.
+	if(IsTyped<GLContinuation<>>(act))
 		return QueryTypeName(type_id<ContextHandler>());
 #endif
 	if(const auto p_cont = act.target<Continuation>())

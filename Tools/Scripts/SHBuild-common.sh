@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2018, 2020 FrankHB.
+# (C) 2014-2018, 2020, 2022 FrankHB.
 # Common source script.
 
 [[ "$INC_SHBuild_common" == '' ]] && INC_SHBuild_common=1 || return 0
@@ -222,16 +222,21 @@ SHBuild_Platform_Detect()
 	local result
 
 	if [[ "$1" == 'Win32' ]]; then
+		# XXX: See '/etc/msystem' distributed by MSYS2.
 		if [[ "$MSYSTEM" == 'MINGW64' ]]; then
 			result='MinGW64'
 		elif [[ "$MSYSTEM" == 'MINGW32' ]]; then
 			result='MinGW32'
+		elif [[ "$MSYSTEM" == 'CLANG64' ]]; then
+			result='MinGW_Clang64'
+		elif [[ "$MSYSTEM" == 'CLANG32' ]]; then
+			result='MinGW_Clang32'
+		elif [[ "$MSYSTEM" == 'CLANGARM64' ]]; then
+			result='MinGW_ClangARM64'
+		elif [[ "$MSYSTEM" == 'UCRT64' ]]; then
+			result='MinGW_UCRT64'
 		elif [[ "$2" == 'x86_64' ]]; then
 			result='MinGW64'
-		elif [[ "$2" == 'aarch64' ]]; then
-			SHBuild_Puts \
-				"ERROR: The architecture aarch64 is not supported in MinGW."
-			exit 1
 		else
 			result='MinGW32'
 		fi
@@ -245,10 +250,19 @@ SHBuild_Platform_Detect()
 SHBuild_PrepareBuild_Init_Host_Arch_()
 {
 	if [[ "$SHBuild_Host_OS" == 'Win32' ]]; then
+		# XXX: See '/etc/msystem' distributed by MSYS2.
 		if [[ "$MSYSTEM" == 'MINGW64' ]]; then
 			SHBuild_Host_Arch=x86_64
 		elif [[ "$MSYSTEM" == 'MINGW32' ]]; then
 			SHBuild_Host_Arch=i686
+		elif [[ "$MSYSTEM" == 'CLANG64' ]]; then
+			SHBuild_Host_Arch=x86_64
+		elif [[ "$MSYSTEM" == 'CLANG32' ]]; then
+			SHBuild_Host_Arch=i686
+		elif [[ "$MSYSTEM" == 'CLANGARM64' ]]; then
+			SHBuild_Host_Arch=aarch64
+		elif [[ "$MSYSTEM" == 'UCRT64' ]]; then
+			SHBuild_Host_Arch=x86_64
 		else
 			SHBuild_Host_Arch="$SHBuild_Env_Arch"
 		fi
@@ -374,10 +388,19 @@ SHBuild_Install_Link()
 #	%SHBuild_Platform_Detect.
 SHBuild_GetSystemPrefix()
 {
+	# XXX: See '/etc/msystem' distributed by MSYS2.
 	if [[ "$1" == 'MinGW64' ]]; then
 		echo '/mingw64'
 	elif [[ "$1" == 'MinGW32' ]]; then
 		echo '/mingw32'
+	elif [[ "$1" == 'MinGW_Clang64' ]]; then
+		echo '/clang64'
+	elif [[ "$1" == 'MinGW_Clang32' ]]; then
+		echo '/clang32'
+	elif [[ "$1" == 'MinGW_ClangARM64' ]]; then
+		echo '/clangarm64'
+	elif [[ "$1" == 'MinGW_UCRT64' ]]; then
+		echo '/ucrt64'
 	else
 		echo '/usr'
 	fi

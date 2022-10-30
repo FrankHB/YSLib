@@ -156,11 +156,16 @@ $provide! (SHBuild_Env_OS SHBuild_Env_Arch)
 $defl! SHBuild_GetPlatformStrings ()
 (
 	$env-de! SHBuild_Host_OS SHBuild_Env_OS;
+	"XXX", "See 'CARCH' in '/etc/msystem' distributed by MSYS2.";
 	$env-de! SHBuild_Host_Arch $if (win32? SHBuild_Host_OS)
 		($let ((msystem safeenv-get "MSYSTEM"))
 			$cond
 				((eqv? msystem "MINGW64") "x86_64")
 				((eqv? msystem "MINGW32") "i686")
+				((eqv? msystem "CLANG64") "x86_64")
+				((eqv? msystem "CLANG32") "i686")
+				((eqv? msystem "CLANGARM64") "aarch64")
+				((eqv? msystem "UCRT64") "x86_64")
 				(#t SHBuild_Env_Arch))
 		SHBuild_Env_Arch;
 	list SHBuild_Host_Arch SHBuild_Host_OS
@@ -231,6 +236,11 @@ $defl/e! SHBuild_EchoVar_N (derive-current-environment env_SHBuild_) (var)
 $defl! SHBuild_GetSystemPrefix (platform) $cond
 	((eqv? platform "MinGW64") "/mingw64")
 	((eqv? platform "MinGW32") "/mingw32")
+	((eqv? platform "MinGW32") "/mingw32")
+	((eqv? platform "MinGW_Clang64") "/clang64")
+	((eqv? platform "MinGW_Clang32") "/clang32")
+	((eqv? platform "MinGW_UCRT64") "/ucrt64")
+	((eqv? platform "MinGW_ClangARM64") "/clangarm64")
 	(#t "/usr");
 $defl! SHBuild_Platform_Detect (os arch)
 (
@@ -239,9 +249,11 @@ $defl! SHBuild_Platform_Detect (os arch)
 		((win32? os) $cond
 			((eqv? MSYSTEM "MINGW64") "MinGW64")
 			((eqv? MSYSTEM "MINGW32") "MinGW32")
+			((eqv? MSYSTEM "CLANG64") "MinGW_Clang64")
+			((eqv? MSYSTEM "CLANG32") "MinGW_Clang32")
+			((eqv? MSYSTEM "CLANGARM64") "MinGW_ClangARM64")
+			((eqv? MSYSTEM "UCRT64") "MinGW_UCRT64")
 			((eqv? arch "x86_64") "MinGW64")
-			((eqv? arch "aarch64") raise-error
-				"ERROR: The architecture aarch64 is not supported in MinGW.")
 			(#t "MinGW32"))
 		(#t os)
 );

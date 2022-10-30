@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4221
+\version r4245
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2022-10-11 18:51 +0800
+	2022-10-29 10:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,16 +31,16 @@
 //	std::invalid_argument, ValueNode, Access, EscapeLiteral, Literalize,
 //	AccessPtr, ystdex::value_or, ystdex::write, std::bind, TraverseSubnodes,
 //	bad_any_cast, std::allocator_arg, YSLib::NodeSequence, ystdex::begins_with,
-//	ystdex::sfmt, observer_ptr, ystdex::make_obj_using_allocator, trivial_swap,
-//	CountPrefix, make_observer, TermTags, TryAccessLeafAtom, NPL::Deref,
-//	YSLib::sfmt, AssertReferentTags, ystdex::call_value_or, ystdex::compose,
-//	GetLValueTagsOf, std::mem_fn, IsTyped, ystdex::invoke_value_or, ystdex::ref,
-//	PropagateTo, IsSticky, FindSticky, std::distance, ystdex::as_const,
-//	TryAccessLeaf, AccessFirstSubterm, YSLib::FilterExceptions, type_id,
-//	ystdex::addrof, ystdex::second_of, type_info, std::current_exception,
-//	std::rethrow_exception, std::throw_with_nested, ystdex::retry_on_cond,
+//	shared_ptr, ystdex::sfmt, ystdex::unchecked_function, observer_ptr,
+//	ystdex::make_obj_using_allocator, trivial_swap, CountPrefix, make_observer,
+//	TermTags, TryAccessLeafAtom, NPL::Deref, YSLib::sfmt, AssertReferentTags,
+//	ystdex::call_value_or, ystdex::compose, GetLValueTagsOf, std::mem_fn,
+//	IsTyped, ystdex::invoke_value_or, ystdex::ref, PropagateTo, IsSticky,
+//	FindSticky, std::distance, ystdex::as_const, TryAccessLeaf,
+//	AccessFirstSubterm, YSLib::FilterExceptions, type_id, ystdex::addrof,
+//	ystdex::second_of, type_info, std::current_exception,
+//	std::rethrow_exception, std::throw_with_nested, lref, ystdex::retry_on_cond,
 //	ystdex::id, pair, IsAtom, NPL::IsMovable, YSLib::ExtractException;
-#include <ystdex/function.hpp> // for ystdex::unchecked_function;
 
 //! \since build 903
 //@{
@@ -436,7 +436,9 @@ PrepareCollapse(TermNode& term, const shared_ptr<Environment>& p_env)
 {
 	return IsTyped<TermReference>(term) ? term
 		: NPL::AsTermNode(term.get_allocator(),
-		TermReference(p_env->MakeTermTags(term), term, NPL::Nonnull(p_env)));
+		TermReference(p_env->MakeTermTags(term), term, NPL::Nonnull(p_env),
+		// XXX: Using explicit anchor pointer is more efficient.
+		NPL::Deref(p_env).GetAnchorPtr()));
 }
 
 
@@ -1110,7 +1112,7 @@ ContextNode::DefaultResolve(shared_ptr<Environment> p_env, string_view id)
 
 					if(IsTyped<EnvironmentList>(ti))
 					{
-						auto& envs(parent.GetObject<EnvironmentList>());
+						const auto& envs(parent.GetObject<EnvironmentList>());
 
 						p_next = RedirectEnvironmentList(
 							p_env->Bindings.get_allocator(), cont,
@@ -1144,6 +1146,17 @@ ContextNode::RewriteLoop()
 	YAssert(IsAlive(), "No action to reduce.");
 	// NOTE: Rewrite until no actions remain.
 	return ystdex::retry_on_cond(std::bind(&ContextNode::IsAlive, this), [&]{
+		return ApplyTail();
+	});
+}
+
+ReductionStatus
+ContextNode::RewriteLoopUntil(ReducerSequence::const_iterator i)
+{
+	YAssert(IsAliveBefore(i), "No action to reduce.");
+	// NOTE: Rewrite until no actions before %i pointed to remain.
+	return ystdex::retry_on_cond(
+		std::bind(&ContextNode::IsAliveBefore, this, i), [&]{
 		return ApplyTail();
 	});
 }
