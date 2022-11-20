@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r4291
+\version r4369
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2022-09-09 00:08 +0800
+	2022-11-20 22:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,7 @@
 //	ystdex::enable_if_t, std::allocator_arg_t, std::allocator_arg, ystdex::and_,
 //	ystdex::remove_cvref_t, in_place_type, ystdex::end, to_string,
 //	to_pmr_string;
+#include <ystdex/container.hpp> // for ystdex::has_mem_key_type;
 #include <ystdex/operators.hpp> // for ystdex::totally_ordered;
 #include <ystdex/set.hpp> // for ystdex::mapped_set;
 #include <ystdex/tuple.hpp> // for ystdex::invoke, ystdex::make_from_tuple;
@@ -54,6 +55,53 @@ yconstexpr const struct ListContainerTag{} ListContainer{};
 
 //! \brief 标记不使用容器。
 yconstexpr const struct NoContainerTag{} NoContainer{};
+//@}
+
+
+/*!
+\brief 向容器添加前缀不使用容器标记和参数指定值的子节点。
+\sa NoContainer
+\since build 960
+*/
+//@{
+template<class _tSeqCon, typename... _tParams>
+inline auto
+AddValueTo(_tSeqCon& con, _tParams&&... args)
+	-> ystdex::enable_if_t<yimpl(!ystdex::has_mem_key_type<_tSeqCon>::value),
+	decltype(con.emplace_back(NoContainer, yforward(args)...))>
+{
+	return con.emplace_back(NoContainer, yforward(args)...);
+}
+template<class _tSeqCon, typename... _tParams>
+inline auto
+AddValueTo(typename _tSeqCon::const_iterator position, _tSeqCon& con,
+	_tParams&&... args)
+	-> ystdex::enable_if_t<yimpl(!ystdex::has_mem_key_type<_tSeqCon>::value),
+	decltype(con.emplace(position, NoContainer, yforward(args)...))>
+{
+	return con.emplace(position, NoContainer, yforward(args)...);
+}
+//! \sa ystdex::try_emplace
+template<class _tAssocCon, typename _tKey, typename... _tParams>
+inline auto
+AddValueTo(_tAssocCon& con, _tKey&& k, _tParams&&... args)
+	-> ystdex::enable_if_t<yimpl(ystdex::has_mem_key_type<_tAssocCon>::value),
+	decltype(ystdex::try_emplace(con, k, NoContainer,
+	yforward(args)...).second)>
+{
+	return ystdex::try_emplace(con, k, NoContainer, yforward(args)...).second;
+}
+//! \sa ystdex::try_emplace_hint
+template<class _tAssocCon, typename _tKey, typename... _tParams>
+inline auto
+AddValueTo(typename _tAssocCon::const_iterator hint, _tAssocCon& con, _tKey&& k,
+	_tParams&&... args) -> ystdex::enable_if_t<yimpl(ystdex::has_mem_key_type<
+	_tAssocCon>::value), decltype(ystdex::try_emplace_hint(con, hint, k,
+	NoContainer, yforward(args)...).second)>
+{
+	return ystdex::try_emplace_hint(con, hint, k, NoContainer,
+		yforward(args)...).second;
+}
 //@}
 
 
@@ -554,7 +602,7 @@ public:
 	\since build 845
 	*/
 	//@{
-	//! \sa ystdex::try_emplace
+	//! \sa try_emplace
 	template<typename _tKey, typename _tNode,
 		yimpl(typename = ystdex::enable_if_t<
 		std::is_same<ValueNode&, ystdex::remove_cvref_t<_tNode>&>::value>)>
@@ -564,8 +612,7 @@ public:
 		return try_emplace(k, yforward(nd).container, yforward(k),
 			yforward(nd).Value).second;
 	}
-	//! \sa ystdex::try_emplace_hint
-	//@{
+	//! \sa try_emplace_hint
 	template<typename _tKey, typename _tNode,
 		yimpl(typename = ystdex::enable_if_t<
 		std::is_same<ValueNode&, ystdex::remove_cvref_t<_tNode>&>::value>)>
@@ -575,7 +622,6 @@ public:
 		return try_emplace_hint(hint, k, yforward(nd).container, yforward(k),
 			yforward(nd).Value);
 	}
-	//@}
 	//@}
 
 	/*!
@@ -589,40 +635,13 @@ public:
 		yimpl(ystdex::enable_if_inconvertible_t)<_tKey&&, const_iterator, bool>
 	AddValue(_tKey&& k, _tParams&&... args)
 	{
-		return AddValueTo(container, k, yforward(args)...);
+		return AddValueTo(container, k, yforward(k), yforward(args)...);
 	}
 	template<typename _tKey, typename... _tParams>
 	inline bool
 	AddValue(const_iterator hint, _tKey&& k, _tParams&&... args)
 	{
-		return AddValueTo(hint, container, k, yforward(args)...);
-	}
-	//@}
-
-	//! \brief 向容器添加参数指定值的子节点。
-	//@{
-	/*!
-	\sa ystdex::try_emplace
-	\since build 674
-	*/
-	template<typename _tKey, typename... _tParams>
-	static inline bool
-	AddValueTo(Container& con, _tKey&& k, _tParams&&... args)
-	{
-		return ystdex::try_emplace(con, k, NoContainer, yforward(k),
-			yforward(args)...).second;
-	}
-	/*!
-	\sa ystdex::try_emplace_hint
-	\since build 845
-	*/
-	template<typename _tKey, typename... _tParams>
-	static inline bool
-	AddValueTo(const_iterator hint, Container& con, _tKey&& k,
-		_tParams&&... args)
-	{
-		return ystdex::try_emplace_hint(con, hint, k, NoContainer, yforward(k),
-			yforward(args)...).second;
+		return AddValueTo(hint, container, k, yforward(k), yforward(args)...);
 	}
 	//@}
 

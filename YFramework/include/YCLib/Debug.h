@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r949
+\version r1051
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2021-12-13 01:20 +0800
+	2022-11-05 20:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -145,10 +145,10 @@ public:
 	//@{
 	/*!
 	\brief 无参数构造：使用过滤器和发送器。
-	\note 异常中立：同 FetchDefaultSender 。
-	\note 由 ystdex::function 的构造模板提供的保证确保无其它异常抛出。
+	\note 由 ystdex::function 的构造模板提供的保证确保无异常抛出。
+	\since build 960
 	*/
-	DefDeCtor(Logger)
+	Logger() ynothrow = default;
 	//! \brief 复制构造：复制过滤等级、过滤器和发送器，使用新创建的互斥量。
 	Logger(const Logger&);
 	/*!
@@ -259,11 +259,10 @@ public:
 	/*!
 	\brief 取新建的平台相关的默认发送：按指定的标签取平台相关实现。
 	\pre 断言：参数的数据指针非空。
-	\note 非 Android 平台：无异常抛出。
-	\since build 658
+	\since build 960
 	*/
-	static Sender
-	FetchDefaultSender(string_view = "YFramework");
+	YB_ATTR_nodiscard static Sender
+	FetchDefaultSender(string_view = "YFramework") ynothrow;
 
 	/*!
 	\brief 以参数指定的等级和调用结果记录日志。
@@ -353,10 +352,10 @@ public:
 
 /*!
 \brief 取公共日志记录器。
-\since build 498
+\since build 960
 */
 YF_API Logger&
-FetchCommonLogger();
+FetchCommonLogger() ynothrow;
 
 
 /*!
@@ -371,7 +370,7 @@ LogWithSource(const char*, int, const char*, ...);
 
 
 /*!
-\note 使用 FetchCommonLogger 保证串行输出
+\note 使用 FetchCommonLogger 保证串行输出。
 \note 无异常抛出。
 */
 //@{
@@ -411,6 +410,71 @@ LogWithSource(const char*, int, const char*, ...);
 #else
 #	define YTraceDe(...) []{}()
 #endif
+
+
+/*!
+\brief 断言并返回非空参数。
+\pre 断言：参数非空。
+\since build 702
+*/
+template<typename _type>
+YB_PURE inline _type&&
+Nonnull(_type&& p) ynothrowv
+{
+	YAssertNonnull(p);
+	return yforward(p);
+}
+
+/*!
+\brief 断言并返回可解引用的迭代器。
+\pre 断言：迭代器非确定不可解引用。
+\since build 702
+*/
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE inline _type&&
+FwdIter(_type&& i) ynothrowv
+{
+	using ystdex::is_undereferenceable;
+
+	YAssert(!is_undereferenceable(i), "Invalid iterator found.");
+	return yforward(i);
+}
+
+/*!
+\brief 断言并解引用非空指针。
+\pre 使用 ADL 指定的 FwdIter 调用表达式的值等价于调用 platform::FwdIter 。
+\pre 间接断言：指针非空。
+\since build 553
+*/
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE yconstfn auto
+Deref(_type&& p) -> decltype(*p)
+{
+	return *FwdIter(yforward(p));
+}
+
+/*!
+\ingroup diagnostic
+\brief 组合消息和函数签名字符串。
+\pre 间接断言：指针参数非空。
+\note 使用 ADL to_string 。
+\since build 861
+*/
+//@{
+YB_NONNULL(2) YB_PURE inline PDefH(std::string, ComposeMessageWithSignature,
+	const std::string& msg, const char* sig)
+	ImplRet(msg + " @ " + Nonnull(sig))
+YB_NONNULL(1, 2) YB_PURE inline PDefH(std::string, ComposeMessageWithSignature,
+	const char* msg, const char* sig)
+	ImplRet(std::string(Nonnull(msg)) + " @ " + Nonnull(sig))
+//! \note 使用 ADL to_std_string 。
+template<class _type>
+YB_NONNULL(2) YB_PURE inline std::string
+ComposeMessageWithSignature(const _type& msg, const char* sig)
+{
+	return to_std_string(msg) + " @ " + Nonnull(sig);
+}
+//@}
 
 } // namespace platform;
 
@@ -487,97 +551,37 @@ public:
 	using Level = Logger::Level;
 
 private:
-	string tag;
+	/*!
+	\invariant \c tag 。
+	\since build 960
+	*/
+	const char* tag;
 
 public:
 	/*!
-	\pre 间接断言：参数的数据指针非空。
-	\since build 658
+	\pre 间接断言：参数非空。
+	\since build 960
 	*/
-	AndroidLogSender(string_view);
+	YB_NONNULL(2)
+	AndroidLogSender(const char* s) ynothrowv
+		: tag(platform::Nonnull(s))
+	{}
 	//! \since build 560
 	DefDeCopyMoveCtorAssignment(AndroidLogSender)
 	//! \brief 非虚析构：类定义外默认实现。
 	~AndroidLogSender();
 
 	//! \pre 间接断言：字符串非空。
-	void
+	YB_NONNULL(4) void
 	operator()(Level, Logger&, const char*) const;
 
-	DefGetter(const ynothrow, const string&, Tag, tag)
+	//! \since build 960
+	YB_ATTR_returns_nonnull
+	DefGetter(const ynothrow, const char*, Tag, tag)
 };
 #endif
 
 } // namespace platform_ex;
-
-namespace platform
-{
-
-/*!
-\brief 断言并返回非空参数。
-\pre 断言：参数非空。
-\since build 702
-*/
-template<typename _type>
-YB_PURE inline _type&&
-Nonnull(_type&& p) ynothrowv
-{
-	YAssertNonnull(p);
-	return yforward(p);
-}
-
-/*!
-\brief 断言并返回可解引用的迭代器。
-\pre 断言：迭代器非确定不可解引用。
-\since build 702
-*/
-template<typename _type>
-YB_ATTR_nodiscard YB_PURE inline _type&&
-FwdIter(_type&& i) ynothrowv
-{
-	using ystdex::is_undereferenceable;
-
-	YAssert(!is_undereferenceable(i), "Invalid iterator found.");
-	return yforward(i);
-}
-
-/*!
-\brief 断言并解引用非空指针。
-\pre 使用 ADL 指定的 FwdIter 调用表达式的值等价于调用 platform::FwdIter 。
-\pre 间接断言：指针非空。
-\since build 553
-*/
-template<typename _type>
-YB_ATTR_nodiscard YB_PURE yconstfn auto
-Deref(_type&& p) -> decltype(*p)
-{
-	return *FwdIter(yforward(p));
-}
-
-/*!
-\ingroup diagnostic
-\brief 组合消息和函数签名字符串。
-\pre 间接断言：指针参数非空。
-\note 使用 ADL to_string 。
-\since build 861
-*/
-//@{
-YB_NONNULL(2) YB_PURE inline PDefH(std::string, ComposeMessageWithSignature,
-	const std::string& msg, const char* sig)
-	ImplRet(msg + " @ " + Nonnull(sig))
-YB_NONNULL(1, 2) YB_PURE inline PDefH(std::string, ComposeMessageWithSignature,
-	const char* msg, const char* sig)
-	ImplRet(std::string(Nonnull(msg)) + " @ " + Nonnull(sig))
-//! \note 使用 ADL to_std_string 。
-template<class _type>
-YB_NONNULL(2) YB_PURE inline std::string
-ComposeMessageWithSignature(const _type& msg, const char* sig)
-{
-	return to_std_string(msg) + " @ " + Nonnull(sig);
-}
-//@}
-
-} // namespace platform;
 
 #endif
 

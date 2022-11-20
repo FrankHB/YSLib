@@ -11,13 +11,13 @@
 /*!	\file apply.hpp
 \ingroup YStandardEx
 \brief 元组和函数应用操作。
-\version r1202
+\version r1209
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2019-01-11 19:43:23 +0800
 \par 修改时间:
-	2022-10-15 06:18 +0800
+	2022-11-05 19:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,15 +65,18 @@ namespace ystdex
 
 //! \since build 958
 //@{
-// XXX: See https://gcc.gnu.org/git/?p=gcc.git;h=f859f912e4df1a6dad3ab6f61e8b8ce0dd77e16d.
-#if (__cplusplus >= 201703L && !defined(__GLIBCXX__)) \
-	|| (defined(__GLIBCXX__) && __GLIBCXX__ > 20170512)
+// XXX: See https://gcc.gnu.org/git/?p=gcc.git;h=f859f912e4df1a6dad3ab6f61e8b8ce0dd77e16d,
+//	and https://reviews.llvm.org/rL290846.
+#if (__cplusplus >= 201703L && !defined(__GLIBCXX__) \
+	&& !defined(_LIBCPP_VERSION)) \
+	|| (defined(__GLIBCXX__) && __GLIBCXX__ > 20170512) \
+	|| (defined(_LIBCPP_VERSION) && _LIBCPP_VERSION > 5000)
 #	define YB_Impl_use_tuple_size true
 #else
 #	define YB_Impl_use_tuple_size false
 #endif
 
-#if YB_Impl_use_tuple_size
+#if !YB_Impl_use_tuple_size
 namespace details
 {
 

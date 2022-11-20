@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4991
+\version r4997
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2022-04-30 21:54 +0800
+	2022-11-05 21:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -952,19 +952,19 @@ YCL_Impl_FileSystem_ufunc_2(std::remove, )
 #if YCL_Win32
 template<>
 YF_API string
-FetchCurrentWorkingDirectory(size_t init)
+FetchCurrentWorkingDirectory(size_t init, string::allocator_type a)
 {
-	return MakePathString(FetchCurrentWorkingDirectory<char16_t>(init));
+	return MakePathString(FetchCurrentWorkingDirectory<char16_t>(init, a));
 }
 template<>
 YF_API u16string
-FetchCurrentWorkingDirectory(size_t)
+FetchCurrentWorkingDirectory(size_t, u16string::allocator_type a)
 {
-	u16string res;
+	u16string res(a);
 	unsigned long len, rlen(0);
 
-	// NOTE: Retry is necessary to prevent failure due to modification of
-	//	current directory from other threads.
+	// NOTE: Retry is necessary to prevent the failure due to modification of
+	//	the current working directory from other threads.
 	ystdex::retry_on_cond([&]() -> bool{
 		if(rlen < len)
 		{

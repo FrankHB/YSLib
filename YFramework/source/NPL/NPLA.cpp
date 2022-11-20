@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4245
+\version r4270
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2022-10-29 10:09 +0800
+	2022-11-21 04:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,8 +37,8 @@
 //	ystdex::call_value_or, ystdex::compose, GetLValueTagsOf, std::mem_fn,
 //	IsTyped, ystdex::invoke_value_or, ystdex::ref, PropagateTo, IsSticky,
 //	FindSticky, std::distance, ystdex::as_const, TryAccessLeaf,
-//	AccessFirstSubterm, YSLib::FilterExceptions, type_id, ystdex::addrof,
-//	ystdex::second_of, type_info, std::current_exception,
+//	AccessFirstSubterm, YSLib::FilterExceptions, YSLib::allocate_shared,
+//	ystdex::addrof, ystdex::second_of, type_info, std::current_exception,
 //	std::rethrow_exception, std::throw_with_nested, lref, ystdex::retry_on_cond,
 //	ystdex::id, pair, IsAtom, NPL::IsMovable, YSLib::ExtractException;
 
@@ -809,24 +809,24 @@ ReduceToReferenceAt(TermNode& term, TermNode& tm,
 #if NPL_NPLA_CheckEnvironmentReferenceCount
 Environment::~Environment()
 {
-	if(p_anchor)
+	if(const auto& p_a = GetAnchorPtr())
 	{
-		const auto acnt(p_anchor.use_count());
+		const auto acnt(p_a.use_count());
 
 		if(acnt >= 1)
 		{
 			// XXX: Assume this would not wrap.
-			const auto ecnt(AnchorData::Access(p_anchor).GetCount() + 1);
+			const auto ecnt(AnchorData::Access(p_a).GetCount() + 1);
 
 			if(ecnt < size_t(acnt))
 				YSLib::FilterExceptions([this, acnt, ecnt]{
-					const size_t n(Bindings.size());
+					const size_t n(bindings.size());
 					size_t i(0);
-					string str(Bindings.get_allocator());
+					string str(bindings.get_allocator());
 					// XXX: The value is heuristic for common cases.
 					str.reserve(n * yimpl(8));
 
-					for(const auto& pr : Bindings)
+					for(const auto& pr : bindings)
 					{
 						str += pr.first;
 						if(++i != n)
@@ -892,18 +892,23 @@ Environment::Deduplicate(BindingMap& dst, const BindingMap& src)
 }
 
 void
-Environment::Define(string_view id, ValueObject&& vo)
+Environment::Define(BindingMap& m, string_view id, ValueObject&& vo)
 {
 	YAssertNonnull(id.data());
+
+	// XXX: Construction of the key here is a bit more efficient.
+	auto& t(m[string(id, m.get_allocator())]);
+
 	// XXX: Self overwriting is possible.
-	swap((*this)[id].Value, vo);
+	t.Value = std::move(vo);
+	t.ClearContainer();
 }
 
 void
-Environment::DefineChecked(string_view id, ValueObject&& vo)
+Environment::DefineChecked(BindingMap& m, string_view id, ValueObject&& vo)
 {
 	YAssertNonnull(id.data());
-	if(!AddValue(id, std::move(vo)))
+	if(!NPL::AddValueTo(m, id, std::move(vo)))
 		throw BadIdentifier(id, 2);
 }
 
@@ -916,9 +921,9 @@ Environment::EnsureValid(const shared_ptr<Environment>& p_env)
 }
 
 AnchorPtr
-Environment::InitAnchor() const
+Environment::InitAnchor(allocator_type a)
 {
-	return YSLib::allocate_shared<AnchorData>(Bindings.get_allocator());
+	return YSLib::allocate_shared<AnchorData>(a);
 }
 
 Environment::NameResolution::first_type
@@ -927,7 +932,7 @@ Environment::LookupName(string_view id) const
 	YAssertNonnull(id.data());
 	return make_observer(ystdex::call_value_or<BindingMap::mapped_type*>(
 		ystdex::compose(ystdex::addrof<>(), ystdex::second_of<>()),
-		Bindings.find(id), {}, Bindings.cend()));
+		bindings.find(id), {}, bindings.cend()));
 }
 
 bool
@@ -936,7 +941,7 @@ Environment::Remove(string_view id)
 	YAssertNonnull(id.data());
 	// XXX: %BindingMap does not have transparent key %erase. This is like
 	//	%std::set.
-	return ystdex::erase_first(Bindings, id);
+	return ystdex::erase_first(bindings, id);
 }
 
 void
@@ -983,15 +988,15 @@ Environment::ThrowForInvalidValue(bool record)
 #if NPL_NPLA_CheckEnvironmentReferenceCount
 EnvironmentReference::~EnvironmentReference()
 {
-	if(p_anchor)
-		AnchorData::Access(p_anchor).RemoveReference();
+	if(GetAnchorPtr())
+		AnchorData::Access(GetAnchorPtr()).RemoveReference();
 }
 
 void
 EnvironmentReference::ReferenceEnvironmentAnchor()
 {
-	if(p_anchor)
-		AnchorData::Access(p_anchor).AddReference();
+	if(GetAnchorPtr())
+		AnchorData::Access(GetAnchorPtr()).AddReference();
 }
 #endif
 
@@ -1115,7 +1120,7 @@ ContextNode::DefaultResolve(shared_ptr<Environment> p_env, string_view id)
 						const auto& envs(parent.GetObject<EnvironmentList>());
 
 						p_next = RedirectEnvironmentList(
-							p_env->Bindings.get_allocator(), cont,
+							NPL::ToBindingsAllocator(*p_env), cont,
 							envs.cbegin(), envs.cend());
 					}
 					while(!p_next && bool(cont))
@@ -1188,7 +1193,7 @@ MoveResolved(const ContextNode& ctx, string_view id)
 
 	if(const auto p = pr.first)
 	{
-		if(NPL::Deref(pr.second).Frozen)
+		if(NPL::Deref(pr.second).IsFrozen())
 			return *p;
 		return std::move(*p);
 	}

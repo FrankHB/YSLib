@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20697
+\version r20703
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-10-23 10:10 +0800
+	2022-11-07 12:02 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -26,11 +26,11 @@
 
 
 #include "NPL/YModules.h"
-#include "NPLA1Internals.h" // for NPL::Nonnull, NPL::Deref, shared_ptr,
-//	Environment, std::make_move_iterator, ystdex::retry_on_cond,
-//	ystdex::dismiss, ystdex::id, NPL::get, ActiveEnvironmentPtr,
-//	std::throw_with_nested, ParameterMismatch, ResolveTerm,
-//	TermToStringWithReferenceMark, std::allocator_arg,
+#include "NPLA1Internals.h" // for NPL::Nonnull, NPL::ToBindingsAllocator,
+//	NPL::Deref, shared_ptr, Environment, std::make_move_iterator,
+//	ystdex::retry_on_cond, ystdex::dismiss, ystdex::id, NPL::get,
+//	ActiveEnvironmentPtr, std::throw_with_nested, ParameterMismatch,
+//	ResolveTerm, TermToStringWithReferenceMark, std::allocator_arg,
 
 namespace NPL
 {
@@ -48,7 +48,7 @@ RecordCompressor::Compress()
 {
 	// NOTE: This is need to keep the root as external reference.
 	const auto p_root(NPL::Nonnull(RootPtr.lock()));
-	const auto a(NPL::Deref(p_root).Bindings.get_allocator());
+	const auto a(NPL::ToBindingsAllocator(NPL::Deref(p_root)));
 
 	// NOTE: Trace.
 	for(auto& pr : Universe)

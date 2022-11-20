@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r10344
+\version r10362
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-10-28 18:51 +0800
+	2022-11-06 20:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,9 +35,10 @@
 //	CombineReductionResult, SourceName, make_observer, YSLib::allocate_shared,
 //	TNIter, LiftOtherValue, NPL::Deref, NPL::AsTermNode,
 //	std::make_move_iterator, std::next, ystdex::retry_on_cond, std::find_if,
-//	YSLib::AreEqualHeld, ystdex::or_, std::is_constructible, ystdex::decay_t,
-//	ystdex::expanded_caller, ystdex::false_, ystdex::make_parameter_list_t,
-//	ystdex::make_function_type_t, ystdex::true_, ystdex::nor_, tuple,
+//	ystdex::exclude_self_params_t, YSLib::AreEqualHeld, ystdex::or_,
+//	std::is_constructible, ystdex::decay_t, ystdex::expanded_caller,
+//	ystdex::false_, ystdex::make_parameter_list_t, ystdex::make_function_type_t,
+//	ystdex::true_, ystdex::nor_, ystdex::is_instance_of, tuple,
 //	ystdex::enable_if_t, std::is_same, ystdex::is_same_param, ystdex::size_t_,
 //	AssertCombiningTerm, IsList, ThrowListTypeErrorForNonList,
 //	ThrowInsufficientTermsError, CountPrefix, ArityMismatch, TermReference,
@@ -51,8 +52,6 @@
 //	YSLib::GDefaultLastValueInvoker;
 #include <ystdex/algorithm.hpp> // for ystdex::fast_any_of, ystdex::split;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
-#include <ystdex/type_op.hpp> // for ystdex::exclude_self_params_t,
-//	ystdex::is_instance_of;
 #include <ystdex/integer_sequence.hpp> // for ystdex::index_sequence,
 //	ystdex::vseq::_a;
 #include <ystdex/apply.hpp> // for ystdex::apply;
@@ -1044,6 +1043,13 @@ class YF_API FormContextHandler
 private:
 	//! \since build 958
 	//@{
+	// NOTE: The call is specialized by %call_n. This is done regardless of
+	//	%__OPTIMIZE_SIZE__, because by default the generic case (using %DoCallN)
+	//	is not present for the ground environment of the object language, so the
+	//	specialization can be actually more space friendly in the binary image
+	//	(when the definitions are statically linked) in platforms with extreme
+	//	memory pressure on the loading time, at the cost of runtime space
+	//	overhead of %call_n.
 	// XXX: This is needed because the following %NotTag does not exclude
 	//	%ystdex::index_sequence instances not intended to be the function type.
 	struct PTag final
@@ -1314,6 +1320,7 @@ AsForm(TermNode::allocator_type a, _tParams&&... args)
 
 /*!
 \brief 注册一般形式上下文处理器。
+\note 使用 ADL ToBindingsAllocator 。
 \pre 间接断言：第二参数的数据指针非空。
 \since build 942
 */
@@ -1326,7 +1333,6 @@ RegisterFormHandler(_tTarget& target, string_view name, FormContextHandler fm)
 	NPL::EmplaceLeaf<ContextHandler>(target, name,
 		std::allocator_arg, ToBindingsAllocator(target), std::move(fm));
 }
-//! \note 使用 ADL ToBindingsAllocator 。
 template<class _tTarget, typename... _tParams, yimpl(typename
 	= ystdex::exclude_self_params_t<FormContextHandler, _tParams...>)>
 YB_ATTR_always_inline inline void
@@ -1714,7 +1720,7 @@ GetModuleFor(ContextNode& ctx, _fCallable&& f, _tParams&&... args)
 
 	AssignParent(ctx, std::move(parent));
 	ystdex::invoke(yforward(f), yforward(args)...);
-	ctx.GetRecordRef().Frozen = true;
+	ctx.GetRecordRef().Freeze();
 	return ctx.ShareRecord();
 }
 
@@ -1729,7 +1735,7 @@ inline void
 LoadModule(ContextNode& ctx, string_view module_name, _fCallable&& f,
 	_tParams&&... args)
 {
-	ctx.GetRecordRef().Define(module_name,
+	Environment::Define(ctx.GetRecordRef().GetMapRef(), module_name,
 		A1::GetModuleFor(ctx, yforward(f), yforward(args)...));
 }
 
@@ -1742,7 +1748,7 @@ inline void
 LoadModuleChecked(ContextNode& ctx, string_view module_name, _fCallable&& f,
 	_tParams&&... args)
 {
-	ctx.GetRecordRef().DefineChecked(module_name,
+	Environment::DefineChecked(ctx.GetRecordRef().GetMapRef(), module_name,
 		A1::GetModuleFor(ctx, yforward(f), yforward(args)...));
 }
 //@}

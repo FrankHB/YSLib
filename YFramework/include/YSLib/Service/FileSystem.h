@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r3614
+\version r3759
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2022-10-01 01:34 +0800
+	2022-11-05 21:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,11 +29,12 @@
 #define YSL_INC_Service_FileSystem_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Service_File // for YSLib::CheckNonnegative, function,
-//	IO::Remove;
+#include YFM_YSLib_Service_File // for YSLib::CheckNonnegative,
+//	FetchCurrentWorkingDirectory, function, IO::Remove;
 #include YFM_YSLib_Core_YString
 #include <ystdex/algorithm.hpp> // for ystdex::split;
 #include <ystdex/path.hpp> // for ystdex::path;
+#include <ystdex/allocator.hpp> // for ystdex::make_obj_using_allocator;
 
 namespace YSLib
 {
@@ -151,17 +152,16 @@ NormalizeDirectoryPathTail(_tString&& str, typename
 \note 使用 ADL cbegin 和 cend 。
 \note 忽略空路径组件。
 \note 检查根路径。若存在根路径且提供的 Path 参数为空则覆盖。
-\since build 708
+\since build 960
 */
 //@{
-/*!
-\pre 断言：路径参数的数据指针非空。
-\since build 836
-*/
+//! \pre 断言：路径参数的数据指针非空。
+//@{
+//! \since build 836
 template<class _tPath, typename _func,
 	class _tStringView = string_view_t<typename _tPath::value_type>,
 	class _tTraits = typename _tPath::traits_type>
-_tPath
+YB_ATTR_nodiscard _tPath
 ParsePathWith(_tStringView sv, _func f, _tPath res = {})
 {
 	using ystdex::cbegin;
@@ -183,11 +183,48 @@ ParsePathWith(_tStringView sv, _func f, _tPath res = {})
 	});
 	return res;
 }
-
-template<class _tPath,
+template<class _tPath, typename _func,
 	class _tStringView = string_view_t<typename _tPath::value_type>,
 	class _tTraits = typename _tPath::traits_type>
-_tPath
+YB_ATTR_nodiscard _tPath
+ParsePathWith(_tStringView sv, _func f,
+	typename _tPath::value_type::allocator_type a, _tPath res)
+{
+	using ystdex::cbegin;
+	using ystdex::cend;
+
+	YAssertNonnull(sv.data());
+
+	const auto l(IO::FetchRootPathLength(sv));
+
+	if(l != 0 && res.empty())
+		res.push_back(ystdex::make_obj_using_allocator<typename
+			_tPath::value_type>(a, sv.substr(0, l)));
+	// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
+	ystdex::split(cbegin(sv) + YSLib::CheckNonnegative<ptrdiff_t>(l), cend(sv),
+		[](decltype(*cbegin(sv)) c) ynothrow{
+		return _tTraits::IsDelimiter(c);
+	}, [&](decltype(cbegin(sv)) b, decltype(cend(sv)) e){
+		if(b != e)
+			f(res, b, e);
+	});
+	return res;
+}
+template<class _tPath, typename _func,
+	class _tStringView = string_view_t<typename _tPath::value_type>,
+	class _tTraits = typename _tPath::traits_type>
+YB_ATTR_nodiscard inline _tPath
+ParsePathWith(_tStringView sv, _func f,
+	typename _tPath::value_type::allocator_type a)
+{
+	return IO::ParsePathWith(sv, f, a, _tPath(a));
+}
+//@}
+
+//! \since build 708
+template<class _tPath, class _tStringView = string_view_t<typename
+	_tPath::value_type>, class _tTraits = typename _tPath::traits_type>
+YB_ATTR_nodiscard _tPath
 ParsePath(_tStringView sv, _tPath res = {})
 {
 	using ystdex::cbegin;
@@ -197,6 +234,28 @@ ParsePath(_tStringView sv, _tPath res = {})
 		[&](_tPath& pth, decltype(cbegin(sv)) b, decltype(cend(sv)) e){
 		pth.push_back(typename _tPath::value_type(b, e));
 	}, std::move(res));
+}
+template<class _tPath, class _tStringView = string_view_t<typename
+	_tPath::value_type>, class _tTraits = typename _tPath::traits_type>
+YB_ATTR_nodiscard _tPath
+ParsePath(_tStringView sv, typename _tPath::value_type::allocator_type a,
+	_tPath res)
+{
+	using ystdex::cbegin;
+	using ystdex::cend;
+
+	return IO::ParsePathWith<_tPath>(sv,
+		[&](_tPath& pth, decltype(cbegin(sv)) b, decltype(cend(sv)) e){
+		pth.push_back(ystdex::make_obj_using_allocator<typename
+			_tPath::value_type>(a, b, e));
+	}, a, std::move(res));
+}
+template<class _tPath, class _tStringView = string_view_t<typename
+	_tPath::value_type>, class _tTraits = typename _tPath::traits_type>
+YB_ATTR_nodiscard inline _tPath
+ParsePath(_tStringView sv, typename _tPath::value_type::allocator_type a)
+{
+	return IO::ParsePath(sv, a, _tPath(a));
 }
 //@}
 
@@ -252,34 +311,40 @@ public:
 		typename = ystdex::exclude_self_t<Path, _type>)>
 	explicit
 	Path(_type&& arg, allocator_type a = {})
-		: ypath(ParsePath<ypath>(u16string_view(AsStringArg(yforward(arg))),
-		Path(a)))
+		: ypath(
+		ParsePath<ypath>(u16string_view(AsStringArg(yforward(arg), a)), a))
 	{}
 	template<typename _type>
 	Path(_type&& arg, Text::Encoding enc, allocator_type a = {})
-		: ypath(ParsePath<ypath>(u16string_view(String(yforward(arg), enc)),
-		Path(a)))
+		: ypath(
+		ParsePath<ypath>(u16string_view(String(yforward(arg), enc, a)), a))
 	{}
 	template<typename _tIn>
 	Path(_tIn first, _tIn last, allocator_type a = {})
-		: ypath(first, last, a)
-	{}
+		: ypath(a)
+	{
+		// NOTE: Always propagate the allocator for elements.
+		for(; first != last; ++first)
+			push_back(ystdex::make_obj_using_allocator<value_type>(a, *first));
+	}
 	template<typename _tElem>
 	Path(std::initializer_list<_tElem> il, allocator_type a = {})
-		: ypath(il, a)
+		: Path(il.begin(), il.end(), a)
 	{}
 	//@}
-	/*!
-	\brief 复制构造：默认实现。
-	*/
-	DefDeCopyCtor(Path)
+	//! \brief 复制构造：使用参数和参数的分配器。
+	Path(const Path& pth)
+		: Path(pth, pth.get_allocator())
+	{}
 	//! \since build 957
 	Path(const Path& pth, allocator_type a)
-		: ypath(pth, a)
-	{}
-	/*!
-	\brief 转移构造：默认实现。
-	*/
+		: ypath(a)
+	{
+		// NOTE: Always propagate the allocator for elements.
+		for(const auto& x : pth)
+			push_back(ystdex::make_obj_using_allocator<value_type>(a, x));
+	}
+	//! \brief 转移构造：默认实现。
 	DefDeMoveCtor(Path)
 	//! \since build 957
 	Path(Path&& pth, allocator_type a)
@@ -317,7 +382,8 @@ public:
 		// NOTE: Since effective insertion of path needs %value_type, the
 		//	conversion to %String is always required here. No other string view
 		//	type is needed to be handled specially.
-		return GetBaseRef() /= String(AsStringArg(yforward(arg))), *this;
+		return GetBaseRef() /= String(AsStringArg(yforward(arg),
+			get_allocator())), *this;
 	}
 	//@}
 
@@ -362,22 +428,23 @@ public:
 	//@}
 
 private:
-	//! \since build 837
+	//! \since build 960
 	template<typename _tParam>
-	auto
-	AsStringArg(_tParam&& arg) -> yimpl(ystdex::enable_if_t)<
-		std::is_constructible<u16string_view, _tParam>::value, u16string_view>
+	YB_ATTR_nodiscard static YB_PURE auto
+	AsStringArg(_tParam&& arg, allocator_type = {})
+		-> yimpl(ystdex::enable_if_t)<std::is_constructible<u16string_view,
+		_tParam>::value, u16string_view>
 	{
 		return u16string_view(yforward(arg));
 	}
-	//! \since build 837
+	//! \since build 960
 	template<typename _tParam, yimpl(typename = ystdex::enable_if_t<
 		ystdex::and_<ystdex::not_<std::is_constructible<u16string_view,
 		_tParam>>, std::is_constructible<String, _tParam>>::value>)>
-	String
-	AsStringArg(_tParam&& arg)
+	YB_ATTR_nodiscard static YB_PURE String
+	AsStringArg(_tParam&& arg, allocator_type a = {})
 	{
-		return String(yforward(arg));
+		return ystdex::make_obj_using_allocator<String>(a, yforward(arg));
 	}
 
 public:
@@ -597,10 +664,10 @@ inline PDefH(void, EnsureDirectory, const String& path)
 \note 第三参数指定解析链接的次数上限。
 \since build 836
 */
-template<class _tPath = Path,
-	class _tStringView = string_view_t<typename _tPath::value_type>,
-	class _tTraits = typename _tPath::traits_type>
-_tPath
+//@{
+template<class _tPath = Path, class _tStringView = string_view_t<typename
+	_tPath::value_type>, class _tTraits = typename _tPath::traits_type>
+YB_ATTR_nodiscard _tPath
 ResolvePathWithBase(_tStringView sv, _tPath base,
 	size_t n = FetchLimit(SystemOption::MaxSymlinkLoop))
 {
@@ -624,22 +691,62 @@ ResolvePathWithBase(_tStringView sv, _tPath base,
 			pth.redirect(IO::ParsePath<_tPath>(std::move(str)));
 	}, std::move(base));
 }
+//! \since build 960
+template<class _tPath = Path, class _tStringView = string_view_t<typename
+	_tPath::value_type>, class _tTraits = typename _tPath::traits_type>
+YB_ATTR_nodiscard _tPath
+ResolvePathWithBase(_tStringView sv, _tPath base,
+	typename _tPath::value_type::allocator_type a,
+	size_t n = FetchLimit(SystemOption::MaxSymlinkLoop))
+{
+	using ystdex::cbegin;
+	using ystdex::cend;
+
+	if(IsAbsolute(sv.data()))
+		base.clear();
+	return IO::ParsePathWith<_tPath>(sv,
+		[&](_tPath& pth, decltype(cbegin(sv)) b, decltype(cend(sv)) e){
+		// NOTE: Ditto.
+		pth.push_back(typename _tPath::value_type(b, e));
+
+		// XXX: Ditto.
+		auto str(to_string(pth, a));
+
+		// FIXME: Blocked. TOCTTOU access.
+		if(IO::IterateLink(str, n))
+			pth.redirect(IO::ParsePath<_tPath>(std::move(str), a));
+	}, a, std::move(base));
+}
+//@}
 
 /*!
 \note 第二参数指定解析链接的次数上限。
 \note 第三参数指定起始路径使用的初始缓冲区大小。
 */
+//@{
 template<class _tPath = Path, class _tString = typename _tPath::value_type,
 	class _tTraits = typename _tPath::traits_type>
-_tPath
-ResolvePath(const _tString& str,
-	size_t n = FetchLimit(SystemOption::MaxSymlinkLoop),
-	size_t init_len = MaxPathLength)
+YB_ATTR_nodiscard _tPath
+ResolvePath(const _tString& str, size_t n
+	= FetchLimit(SystemOption::MaxSymlinkLoop), size_t init_len = MaxPathLength)
 {
 	return IO::ResolvePathWithBase(str, IsAbsolute(str.data()) ? _tPath()
 		: IO::ParsePath<_tPath>(FetchCurrentWorkingDirectory<typename
 		_tString::value_type>(init_len)), n);
 }
+//! \since build 960
+template<class _tPath = Path, class _tString = typename _tPath::value_type,
+	class _tTraits = typename _tPath::traits_type>
+YB_ATTR_nodiscard _tPath
+ResolvePath(const _tString& str, typename _tPath::value_type::allocator_type a,
+	size_t n = FetchLimit(SystemOption::MaxSymlinkLoop),
+	size_t init_len = MaxPathLength)
+{
+	return IO::ResolvePathWithBase(str, IsAbsolute(str.data()) ? _tPath(a)
+		: IO::ParsePath<_tPath>(FetchCurrentWorkingDirectory<typename
+		_tString::value_type>(init_len, a), a), a, n);
+}
+//@}
 //@}
 
 

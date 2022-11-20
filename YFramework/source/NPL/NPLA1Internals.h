@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r22738
+\version r22808
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-10-29 10:09 +0800
+	2022-11-07 12:01 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -31,13 +31,13 @@
 #include "YModules.h"
 #include YFM_NPL_NPLA1 // for shared_ptr, ContextNode, YSLib::allocate_shared,
 //	NPL::Deref, NPLException, TermNode, ReductionStatus, Reducer, YSLib::map,
-//	size_t, lref, Environment, set, IsTyped, EnvironmentList,
-//	EnvironmentReference, pair, YSLib::forward_list, tuple, ystdex::optional,
-//	std::declval, EnvironmentGuard, NPL::get, A1::NameTypedContextHandler,
-//	MoveKeptGuard, TermReference, TermTags, TryAccessLeafAtom,
-//	ThrowTypeErrorForInvalidType, type_id, TermToNamePtr, IsIgnore,
-//	ParameterMismatch, IsPair, IsEmpty, IsList, NPL::AsTermNode,
-//	NPL::AsTermNodeTagged;
+//	size_t, lref, Environment, set, NPL::ToBindingsAllocator, IsTyped,
+//	EnvironmentList, EnvironmentReference, pair, YSLib::forward_list, tuple,
+//	ystdex::optional, std::declval, EnvironmentGuard, NPL::get,
+//	A1::NameTypedContextHandler, MoveKeptGuard, TermReference, TermTags,
+//	TryAccessLeafAtom, ThrowTypeErrorForInvalidType, type_id, TermToNamePtr,
+//	IsIgnore, ParameterMismatch, IsPair, IsEmpty, IsList, NPL::AsTermNode,
+//	NPL::AsTermNodeTagged, ystdex::is_bitwise_swappable;
 #include <ystdex/compose.hpp> // for ystdex::get_less;
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
 #include <ystdex/utility.hpp> // for ystdex::exchange;
@@ -203,9 +203,12 @@ struct RecordCompressor final
 	ReferenceSet Reachable, NewlyReachable;
 	RecordInfo Universe;
 
-	//! \since build 894
+	/*!
+	\pre 间接断言：参数非空。
+	\since build 894
+	*/
 	RecordCompressor(const shared_ptr<Environment>& p_root)
-		: RecordCompressor(p_root, NPL::Deref(p_root).Bindings.get_allocator())
+		: RecordCompressor(p_root, NPL::ToBindingsAllocator(NPL::Deref(p_root)))
 	{}
 	//! \since build 894
 	RecordCompressor(const shared_ptr<Environment>& p_root,
@@ -543,6 +546,17 @@ public:
 	void
 	CompressForContext(ContextNode& ctx)
 	{
+		// TODO: Concurrency safety of accessing the referernce counts?
+		// XXX: This should be locked if the environment reference being
+		//	processed are shared across different (native) threads (before this
+		//	is supportd), since the strong reference can be temporarily
+		//	constructed to access the environment concurrently, which leads to
+		//	incorrect reference counts being reserved here. To avoid the need of
+		//	GIL (global interprete lock), a finer-grained lock is needed for
+		//	each environment object possibly shared among different threads.
+		//	Alternatively, there should be a field to inform the runtime the
+		//	thread ownership of the environment (probably appropriate lived in
+		//	the referent of the anchor).
 		CompressFrameList();
 		RecordCompressor(ctx.GetRecordPtr()).Compress();
 	}
@@ -755,15 +769,44 @@ AssertNextTerm(ContextNode& ctx, TermNode& term)
 }
 
 
-//! \since build 879
-//@{
 #if NPL_Impl_NPLA1_Enable_Thunked
+// NOTE: As %Continuation, but without type erasure on the handler.
+//! \since build 959
+//@{
+template<typename _func = lref<const ContextHandler>>
+struct GLContinuation final
+{
+	_func Handler;
+
+	GLContinuation(_func h) ynoexcept(noexcept(std::declval<_func>()))
+		: Handler(std::move(h))
+	{}
+
+	ReductionStatus
+	operator()(ContextNode& ctx) const
+	{
+		return Handler(ContextState::Access(ctx).GetNextTermRef(), ctx);
+	}
+};
+
+//! \relates GLContinuation
+template<typename _func>
+YB_ATTR_nodiscard YB_PURE inline GLContinuation<_func>
+MakeGLContinuation(_func f) ynoexcept(noexcept(std::declval<_func>()))
+{
+	return GLContinuation<_func>(f);
+}
+//@}
+
+
 // NOTE: Normally these overloads do not need %trivial_swap_t because
 //	both %Continuation and %std::reference_wrapper instances are specialized
 //	enough to make the %Reducer constructor behave expectedly. However, to
 //	simplify the caller sites which does not differentiate these types (e.g.
 //	%TailCall::RelayNextGuardedLifted below), overloads with %trivial_swap_t are
 //	provided anyway.
+//! \since build 879
+//@{
 YB_ATTR_always_inline inline ReductionStatus
 RelayCurrent(ContextNode& ctx, Continuation&& cur)
 {
@@ -794,6 +837,7 @@ RelayCurrent(ContextNode& ctx, _fCurrent&& cur)
 {
 	return A1::RelayCurrent(ctx, Continuation(yforward(cur), ctx));
 }
+//@}
 //! \since build 926
 template<typename _fCurrent>
 YB_ATTR_always_inline inline auto
@@ -804,7 +848,6 @@ RelayCurrent(ContextNode& ctx, trivial_swap_t, _fCurrent&& cur)
 		Continuation(trivial_swap, yforward(cur), ctx));
 }
 #endif
-//@}
 
 //! \since build 878
 //@{
@@ -834,6 +877,15 @@ RelayDirect(ContextNode& ctx, const Continuation& cur, TermNode& term)
 {
 	return cur.Handler(term, ctx);
 }
+#if NPL_Impl_NPLA1_Enable_Thunked
+//! \since build 960
+template<typename _func>
+YB_ATTR_always_inline inline ReductionStatus
+RelayDirect(ContextNode& ctx, const GLContinuation<_func>& cur, TermNode& term)
+{
+	return cur.Handler(term, ctx);
+}
+#endif
 
 template<typename _fCurrent>
 YB_ATTR_always_inline inline ReductionStatus
@@ -1596,6 +1648,20 @@ ReduceForCombinerRef(TermNode&, const TermReference&, const ContextHandler&,
 } // namesapce A1;
 
 } // namespace NPL;
+
+#if NPL_Impl_NPLA1_Enable_Thunked
+//! \since build 960
+namespace ystdex
+{
+
+//! \relates NPL::A1::GLContinuation
+template<typename _func>
+struct is_bitwise_swappable<NPL::A1::GLContinuation<_func>>
+	: is_bitwise_swappable<_func>
+{};
+
+} // namespace ystdex;
+#endif
 
 #endif
 

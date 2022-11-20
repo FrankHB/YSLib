@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r24359
+\version r24399
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2022-10-28 18:59 +0800
+	2022-11-12 21:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -234,35 +234,6 @@ FetchNameTableRef()
 //@}
 
 #if NPL_Impl_NPLA1_Enable_Thunked
-// NOTE: As %Continuation, but without type erasure on the handler.
-//! \since build 959
-//@{
-template<typename _func = lref<const ContextHandler>>
-struct GLContinuation final
-{
-	_func Handler;
-
-	GLContinuation(_func h) ynoexcept(noexcept(std::declval<_func>()))
-		: Handler(std::move(h))
-	{}
-
-	ReductionStatus
-	operator()(ContextNode& ctx) const
-	{
-		return Handler(ContextState::Access(ctx).GetNextTermRef(), ctx);
-	}
-};
-
-//! \relates GLContinuation
-template<typename _func>
-YB_ATTR_nodiscard YB_PURE inline GLContinuation<_func>
-MakeGLContinuation(_func f) ynoexcept(noexcept(std::declval<_func>()))
-{
-	return GLContinuation<_func>(f);
-}
-//@}
-
-
 //! \since build 810
 YB_ATTR_always_inline inline ReductionStatus
 ReduceChildrenOrderedAsync(TNIter, TNIter, ContextNode&);
@@ -293,7 +264,9 @@ ReduceChildrenOrderedAsync(TNIter first, TNIter last, ContextNode& ctx)
 ReductionStatus
 ReduceCallArguments(TermNode& term, ContextNode& ctx)
 {
-	YAssert(!term.empty(), "Invalid term found.");
+	// NOTE: The precondition is strciter than it in %ReduceArguments and this
+	//	is hopefully more efficient.
+	YAssert(term.size() > 1, "Invalid term found.");
 	ReduceChildrenOrderedAsyncUnchecked(std::next(term.begin()), term.end(),
 		ctx);
 	return ReductionStatus::Partial;
@@ -1825,12 +1798,13 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 	return ReductionStatus::Retained;
 #	else
 	AssertNextTerm(ctx, term);
-	// XXX: %Continuation is specialized enough without %trivial_swap.
-	return A1::RelayCurrentNext(ctx, term, Continuation(
+	// XXX: The result of the call to %MakeGLContinuation is specialized enough
+	//	without %trivial_swap.
+	return A1::RelayCurrentNext(ctx, term, MakeGLContinuation(
 		// XXX: The function after decayed is specialized enough without
 		//	%trivial_swap.
 		static_cast<ReductionStatus(&)(TermNode&, ContextNode&)>(
-		ReduceChildrenOrdered), ctx), trivial_swap,
+		ReduceChildrenOrdered)), trivial_swap,
 		A1::NameTypedReducerHandler([&]{
 		ReduceOrderedResult(term);
 		return ReductionStatus::Regular;
@@ -1945,6 +1919,7 @@ SetupTraceDepth(ContextState& cs, const string& name)
 	using namespace std::placeholders;
 	auto p_env(cs.ShareRecord());
 
+	// TODO: Support different place if the environment is frozen?
 	ystdex::try_emplace(p_env->GetMapRef(), name, NoContainer,
 		in_place_type<size_t>);
 	// TODO: Blocked. Use C++14 lambda initializers to simplify the
@@ -2591,7 +2566,7 @@ ystdex::optional<string>
 ExtractEnvironmentFormal(TermNode& term)
 {
 	TryRet(ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref)
-		-> string{
+		-> ystdex::optional<string>{
 		if(const auto p = TermToNamePtr(nd))
 		{
 			if(NPL::IsMovable(p_ref))
@@ -2688,6 +2663,13 @@ QueryContinuationName(const Reducer& act)
 	//	just keep it here.
 	if(IsTyped<GLContinuation<>>(act))
 		return QueryTypeName(type_id<ContextHandler>());
+	// XXX: Other instances of %GLContinuation with template argument as a
+	//	non-closure type should normally never used, at least when
+	//	'NPL_Impl_NPLA1_Enable_InlineDirect' is set. Keep it simple, so they are
+	//	not supported here. Instances of %GLContinuation instantiated by
+	//	%MakeGLContinuation (usually for a closure type from a
+	//	lambda-expression) can still be wrapped in NameTypedReducerHandler and
+	//	handled below.
 #endif
 	if(const auto p_cont = act.target<Continuation>())
 		return QueryTypeName(p_cont->Handler.target_type());

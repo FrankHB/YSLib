@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4234
+\version r4250
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2022-01-13 22:17 +0800
+	2022-11-06 02:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -975,7 +975,7 @@ uremove(const char*) ynothrowv;
 //@}
 
 
-//! \since build 713
+//! \since build 960
 //@{
 /*!
 \brief 尝试按指定的起始缓冲区大小取当前工作目录的路径。
@@ -984,9 +984,10 @@ uremove(const char*) ynothrowv;
 */
 template<typename _tChar>
 YB_ATTR_nodiscard basic_string<_tChar>
-FetchCurrentWorkingDirectory(size_t init)
+FetchCurrentWorkingDirectory(size_t init,
+	typename basic_string<_tChar>::allocator_type a = {})
 {
-	return ystdex::retry_for_vector<basic_string<_tChar>>(init,
+	return ystdex::retry_for_vector<basic_string<_tChar>>(init, a,
 		[](basic_string<_tChar>& res, size_t) -> bool{
 		const auto r(platform::ugetcwd(&res[0], res.length()));
 
@@ -1004,14 +1005,24 @@ FetchCurrentWorkingDirectory(size_t init)
 	});
 }
 #if YCL_Win32
-//! \note 参数被忽略。
+/*!
+\note 第一参数被忽略。
+
+使用 \c ::GetCurrentDirectoryW 取本机工作目录。
+作为实现细节，和本机工作目录不同，UCRT 访问 CRT 工作目录如 \c ::_wgetcwd 可能使用
+	\c ::GetFullPathNameW 对当前路径 \c . 取得正规化路径。这可能显著更低效。
+其它 CRT 实现可能直接使用 \c GetCurrentDirectory ，对应 \c ::GetCurrentDirectoryW
+	和 \c ::GetCurrentDirectoryA 调用。这也可能更低效。
+除了未指定的 \c errno 值，这些不同实现都不应当修改 CRT 全局状态，
+	在 Win32 的实现中作用应当相同：读取每进程 PEB 中存储的当前目录。
+*/
 //@{
 template<>
 YB_ATTR_nodiscard YF_API string
-FetchCurrentWorkingDirectory(size_t);
+FetchCurrentWorkingDirectory(size_t, string::allocator_type);
 template<>
 YB_ATTR_nodiscard YF_API u16string
-FetchCurrentWorkingDirectory(size_t);
+FetchCurrentWorkingDirectory(size_t, u16string::allocator_type);
 //@}
 #endif
 //@}

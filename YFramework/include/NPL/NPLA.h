@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r9935
+\version r10114
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2022-10-29 09:08 +0800
+	2022-11-21 03:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,15 +43,15 @@
 //	ystdex::ref_eq, ValueObject, NPL::SetContentWith, std::for_each, TNIter,
 //	AccessFirstSubterm, AssertBranch, NPL::Deref, ystdex::retry_on_cond,
 //	YSLib::EmplaceCallResult, ystdex::exclude_self_t, ystdex::less, YSLib::map,
-//	pmr, ystdex::copy_and_swap, type_info, ystdex::expanded_function,
+//	pmr, ystdex::copy_and_swap, type_info, std::swap, ystdex::expanded_function,
 //	ystdex::enable_if_same_param_t, ystdex::make_obj_using_allocator,
 //	YSLib::forward_list, ystdex::swap_dependent, make_observer,
 //	ystdex::unchecked_function, YSLib::allocate_shared, YSLib::Logger,
 //	trivial_swap, ystdex::exchange, NPL::AssertMatchedAllocators,
 //	NPL::AsTermNode, ystdex::is_bitwise_swappable;
-#include <ystdex/container.hpp> // for ystdex::try_emplace,
-//	ystdex::try_emplace_hint, ystdex::insert_or_assign;
 #include <ystdex/base.h> // for ystdex::derived_entity;
+#include <ystdex/type_op.hpp> // for ystdex::exclude_self_params_t;
+#include <ystdex/container.hpp> // for ystdex::insert_or_assign;
 #include <libdefect/exception.h> // for std::exception_ptr;
 
 namespace NPL
@@ -712,22 +712,50 @@ TokenizeTerm(TermNode&);
 class Environment;
 
 /*!
+\brief 环境基类。
+\warning 非虚析构。
+\since build 960
+*/
+class EnvironmentBase
+{
+private:
+	//! \brief 锚对象指针：提供被引用计数。
+	AnchorPtr p_anchor{};
+
+public:
+	DefDeCtor(EnvironmentBase)
+	template<typename... _tParams, yimpl(typename
+		= ystdex::exclude_self_params_t<EnvironmentBase, _tParams...>)>
+	inline
+	EnvironmentBase(_tParams&&... args) ynothrow
+		: p_anchor(yforward(args)...)
+	{}
+	DefDeCopyMoveCtorAssignment(EnvironmentBase)
+
+	friend PDefH(void, swap, EnvironmentBase& x, EnvironmentBase& y) ynothrow
+		ImplExpr(swap(x.p_anchor, y.p_anchor))
+
+	//! \brief 判断锚对象未被外部引用。
+	DefPred(const ynothrow, Orphan, p_anchor.use_count() == 1)
+
+	//! \brief 取锚对象指针。
+	DefGetter(const ynothrow, const AnchorPtr&, AnchorPtr, p_anchor)
+	//! \brief 取锚对象指针的引用计数。
+	DefGetter(const ynothrow, size_t, AnchorCount, size_t(p_anchor.use_count()))
+};
+
+/*!
 \brief 环境引用。
 \sa NPL_NPLA_CheckEnvironmentReferenceCount
 \since build 823
 
 可能共享所有权环境的弱引用。
 */
-class YF_API EnvironmentReference
-	: private ystdex::equality_comparable<EnvironmentReference>
+class YF_API EnvironmentReference : private EnvironmentBase,
+	private ystdex::equality_comparable<EnvironmentReference>
 {
 private:
 	weak_ptr<Environment> p_weak{};
-	/*!
-	\brief 引用的锚对象指针。
-	\since build 847
-	*/
-	AnchorPtr p_anchor{};
 
 public:
 	//! \since build 869
@@ -746,7 +774,8 @@ public:
 	*/
 	template<typename _tParam1, typename _tParam2>
 	EnvironmentReference(_tParam1&& arg1, _tParam2&& arg2) ynothrow
-		: p_weak(yforward(arg1)), p_anchor(yforward(arg2))
+		: EnvironmentBase(yforward(arg2)),
+		p_weak(yforward(arg1))
 	{
 #if NPL_NPLA_CheckEnvironmentReferenceCount
 		ReferenceEnvironmentAnchor();
@@ -755,7 +784,8 @@ public:
 #if NPL_NPLA_CheckEnvironmentReferenceCount
 	//! \since build 856
 	EnvironmentReference(const EnvironmentReference& env_ref) ynothrow
-		: p_weak(env_ref.p_weak), p_anchor(env_ref.p_anchor)
+		: EnvironmentBase(env_ref.GetAnchorPtr()),
+		p_weak(env_ref.p_weak)
 	{
 		ReferenceEnvironmentAnchor();
 	}
@@ -780,7 +810,7 @@ public:
 		ImplRet(x.p_weak.lock() == y.p_weak.lock())
 
 	//! \since build 847
-	DefGetter(const ynothrow, const AnchorPtr&, AnchorPtr, p_anchor)
+	using EnvironmentBase::GetAnchorPtr;
 	DefGetter(const ynothrow, const weak_ptr<Environment>&, Ptr, p_weak)
 
 	PDefH(shared_ptr<Environment>, Lock, ) const ynothrow
@@ -796,7 +826,8 @@ private:
 	//! \since build 926
 	friend PDefH(void, swap, EnvironmentReference& x, EnvironmentReference& y)
 		ynothrow
-		ImplExpr(swap(x.p_weak, y.p_weak), swap(x.p_anchor, y.p_anchor))
+		ImplExpr(swap(static_cast<EnvironmentBase&>(x),
+			static_cast<EnvironmentBase&>(y)), swap(x.p_weak, y.p_weak))
 };
 
 
@@ -2123,7 +2154,8 @@ using EnvironmentList = vector<ValueObject>;
 \sa AllocateEnvironment
 \since build 787
 */
-class YF_API Environment : private ystdex::equality_comparable<Environment>
+class YF_API Environment : private EnvironmentBase,
+	private ystdex::equality_comparable<Environment>
 {
 public:
 	//! \since build 788
@@ -2150,34 +2182,33 @@ public:
 	*/
 	using allocator_type = BindingMap::allocator_type;
 
-	//! \since build 788
-	mutable BindingMap Bindings;
+private:
+	//! \since build 960
+	mutable BindingMap bindings;
+
+public:
 	/*!
 	\brief 父环境：被解释的重定向目标。
 	\sa ContextNode::DefaultResolve
 	\since build 798
 	*/
 	ValueObject Parent{};
-	/*!
-	\brief 冻结状态。
-	\sa MakeTermTags
-	\since build 871
-	*/
-	bool Frozen = {};
 
 private:
 	/*!
-	\brief 锚对象指针：提供被引用计数。
-	\since build 869
+	\brief 冻结状态。
+	\sa MakeTermTags
+	\since build 960
 	*/
-	AnchorPtr p_anchor{InitAnchor()};
+	bool frozen = {};
 
 public:
 	//! \since build 845
 	//@{
 	//! \brief 构造：使用指定的绑定映射分配器初始化空环境。
 	Environment(allocator_type a)
-		: Bindings(a)
+		: EnvironmentBase(InitAnchor(a)),
+		bindings(a)
 	{}
 	//! \brief 构造：使用指定的存储资源构造的绑定映射分配器初始化空环境。
 	Environment(pmr::memory_resource& rsrc)
@@ -2192,19 +2223,23 @@ public:
 	//! \since build 845
 	explicit
 	Environment(const BindingMap& m)
-		: Bindings(m)
+		: EnvironmentBase(InitAnchor(m.get_allocator())),
+		bindings(m, m.get_allocator())
 	{}
 	explicit
 	Environment(BindingMap&& m)
-		: Bindings(std::move(m))
+		: EnvironmentBase(InitAnchor(m.get_allocator())),
+		bindings(std::move(m))
 	{}
 	//! \since build 956
 	Environment(const BindingMap& m, allocator_type a)
-		: Bindings(m, a)
+		: EnvironmentBase(InitAnchor(a)),
+		bindings(m, a)
 	{}
 	//! \since build 956
 	Environment(BindingMap&& m, allocator_type a)
-		: Bindings(std::move(m), a)
+		: EnvironmentBase(InitAnchor(a)),
+		bindings(std::move(m), a)
 	{}
 	//@}
 	/*!
@@ -2217,10 +2252,12 @@ public:
 	//! \since build 847
 	//@{
 	Environment(const ValueObject& vo, allocator_type a)
-		: Bindings(a), Parent((CheckParent(vo), vo))
+		: EnvironmentBase(InitAnchor(a)),
+		bindings(a), Parent((CheckParent(vo), vo))
 	{}
 	Environment(ValueObject&& vo, allocator_type a)
-		: Bindings(a), Parent((CheckParent(vo), std::move(vo)))
+		: EnvironmentBase(InitAnchor(a)),
+		bindings(a), Parent((CheckParent(vo), std::move(vo)))
 	{}
 	//@}
 	Environment(pmr::memory_resource& rsrc, const ValueObject& vo)
@@ -2233,7 +2270,8 @@ public:
 	//! \since build 847
 	//@{
 	Environment(const Environment& e)
-		: Bindings(e.Bindings), Parent(e.Parent)
+		: EnvironmentBase(InitAnchor(e.bindings.get_allocator())),
+		bindings(e.bindings), Parent(e.Parent)
 	{}
 	DefDeMoveCtor(Environment)
 
@@ -2250,15 +2288,6 @@ public:
 	DefDeMoveAssignment(Environment)
 	//@}
 
-	//! \since build 852
-	template<typename _tKey>
-	TermNode&
-	operator[](_tKey&& k)
-	{
-		return NPL::Deref(ystdex::try_emplace(Bindings, yforward(k),
-			NoContainer).first).second;
-	}
-
 	YB_ATTR_nodiscard YB_PURE friend
 		PDefHOp(bool, ==, const Environment& x, const Environment& y) ynothrow
 		// XXX: This is usd rarely (more often, equality on
@@ -2267,47 +2296,35 @@ public:
 		ImplRet(ystdex::ref_eq<>()(x, y))
 
 	/*!
+	\brief 判断冻结状态。
+	\since build 960
+	*/
+	DefPred(const ynothrow, Frozen, frozen)
+	/*!
 	\brief 判断锚对象未被外部引用。
 	\since build 830
 	*/
-	DefPred(const ynothrow, Orphan, p_anchor.use_count() == 1)
+	using EnvironmentBase::IsOrphan;
 
-	/*!
-	\brief 取锚对象指针。
-	\since build 856
-	*/
-	DefGetter(const ynothrow, const AnchorPtr&, AnchorPtr, p_anchor)
 	/*!
 	\brief 取锚对象指针的引用计数。
 	\since build 847
 	*/
-	DefGetter(const ynothrow, size_t, AnchorCount, size_t(p_anchor.use_count()))
+	using EnvironmentBase::GetAnchorCount;
 	/*!
-	\brief 取名称绑定映射。
-	\since build 788
+	\brief 取锚对象指针。
+	\since build 856
 	*/
-	DefGetter(const ynothrow, BindingMap&, MapRef, Bindings)
-
-	/*!
-	\brief 添加绑定。
-	\since build 852
-	*/
+	using EnvironmentBase::GetAnchorPtr;
+	//! \since build 960
 	//@{
-	template<typename _tKey, typename... _tParams>
-	inline yimpl(ystdex::enable_if_inconvertible_t)<_tKey&&,
-		BindingMap::const_iterator, bool>
-	AddValue(_tKey&& k, _tParams&&... args)
-	{
-		return ystdex::try_emplace(Bindings, yforward(k), NoContainer,
-			yforward(args)...).second;
-	}
-	template<typename _tKey, typename... _tParams>
-	inline bool
-	AddValue(BindingMap::const_iterator hint, _tKey&& k, _tParams&&... args)
-	{
-		return ystdex::try_emplace_hint(Bindings, hint, yforward(k),
-			NoContainer, yforward(args)...).second;
-	}
+	//! \brief 取名称绑定映射。
+	DefGetter(const ynothrow, const BindingMap&, Map, bindings)
+	/*!
+	\brief 取可变名称绑定映射。
+	\warning 不检查冻结状态。
+	*/
+	DefGetter(ynothrow, BindingMap&, MapRef, bindings)
 	//@}
 
 	/*!
@@ -2320,7 +2337,7 @@ public:
 	{
 		// XXX: %YSLib::map::insert_or_assign does not allows keys not of
 		//	%BindingMap::key_type to be directly forwarded.
-		return NPL::Deref(ystdex::insert_or_assign(Bindings, yforward(k),
+		return NPL::Deref(ystdex::insert_or_assign(GetMapRef(), yforward(k),
 			yforward(tm)).first).second;
 	}
 
@@ -2347,24 +2364,24 @@ public:
 	Deduplicate(BindingMap&, const BindingMap&);
 
 	/*!
-	\pre 断言：第一参数的数据指针非空。
-	\since build 867
+	\pre 断言：第二参数的数据指针非空。
+	\since build 960
 	*/
 	//@{
 	/*!
-	\brief 以字符串为标识符在指定上下文中添加或覆盖定义。
+	\brief 以字符串为标识符在指定上下文中添加或覆盖变量绑定。
 	\note 不检查标识符合法性。
-	\note 若定义已存在，覆盖这个定义。覆盖相同的定义无作用。
+	\note 若变量绑定已存在，覆盖其中的被绑定对象。覆盖相同的定义无作用。
 	*/
-	void
-	Define(string_view, ValueObject&&);
+	static void
+	Define(BindingMap&, string_view, ValueObject&&);
 
 	/*!
-	\brief 以字符串为标识符在指定上下文中定义值。
+	\brief 以字符串为标识符在指定上下文中添加变量绑定。
 	\throw BadIdentifier 定义已存在。
 	*/
-	void
-	DefineChecked(string_view, ValueObject&&);
+	static void
+	DefineChecked(BindingMap&, string_view, ValueObject&&);
 	//@}
 
 	/*!
@@ -2377,13 +2394,21 @@ public:
 	static Environment&
 	EnsureValid(const shared_ptr<Environment>&);
 
+	/*!
+	\brief 冻结。
+	\sa MakeTermTags
+	\since build 960
+	*/
+	PDefH(void, Freeze, )
+		ImplExpr(frozen = true)
+
 private:
 	/*!
 	\brief 初始化锚对象指针。
-	\since build 869
+	\since build 960
 	*/
-	YB_ATTR_nodiscard YB_PURE AnchorPtr
-	InitAnchor() const;
+	YB_ATTR_nodiscard YB_PURE static AnchorPtr
+	InitAnchor(allocator_type);
 
 public:
 	/*!
@@ -2403,7 +2428,7 @@ public:
 	*/
 	YB_ATTR_nodiscard YB_PURE
 		PDefH(TermTags, MakeTermTags, const TermNode& term) const ynothrow
-		ImplRet(Frozen ? term.Tags | TermTags::Nonmodifying : term.Tags)
+		ImplRet(frozen ? term.Tags | TermTags::Nonmodifying : term.Tags)
 
 	/*!
 	\pre 断言：第一参数的数据指针非空。
@@ -2460,14 +2485,30 @@ public:
 	ThrowForInvalidValue(bool = {});
 
 	/*!
+	\brief 解冻。
+	\warning 对解冻后的环境操作可能破坏假定已冻结的不变量。
+	\sa MakeTermTags
+	\since build 960
+
+	撤销冻结状态。
+	对一个已被绑定的环境可不假设其可被修改，撤销时不再保证不变量。
+	在此之后，访问环境中被冻结的状态（如变量绑定或者冻结状态本身）的行为可能发生变化，
+		包括引起对象语言的未定义行为。
+	一般地，应仅在可证明改变状态安全时临时使用，之后再次冻结。
+	*/
+	PDefH(void, Unfreeze, )
+		ImplExpr(frozen = {})
+
+	/*!
 	\brief 交换。
 	\since build 746
 
 	交换环境对象的绑定、算法和锚对象指针。
 	*/
 	friend PDefH(void, swap, Environment& x, Environment& y) ynothrow
-		ImplExpr(swap(x.Bindings, y.Bindings), swap(x.Parent, y.Parent),
-			swap(x.p_anchor, y.p_anchor))
+		ImplExpr(swap(static_cast<EnvironmentBase&>(x),
+			static_cast<EnvironmentBase&>(y)), swap(x.bindings, y.bindings),
+			swap(x.Parent, y.Parent), std::swap(x.frozen, y.frozen))
 };
 
 inline
@@ -2786,7 +2827,7 @@ public:
 	ContextNode(const ContextNode&);
 	/*!
 	\brief 转移构造。
-	\post <tt>p_record->Bindings.empty()</tt> 。
+	\post <tt>GetRecordRef().GetMap().empty()</tt> 。
 	\since build 811
 	*/
 	ContextNode(ContextNode&&) ynothrow;
@@ -2809,9 +2850,6 @@ public:
 		ynothrow
 		ImplRet(current.cbegin() != i)
 
-	//! \since build 788
-	DefGetter(const ynothrow, Environment::BindingMap&, BindingsRef,
-		GetRecordRef().GetMapRef())
 	DefGetter(const ynothrow, const ReducerSequence&, Current, current)
 	//! \since build 943
 	DefGetter(ynothrow, ReducerSequence&, CurrentRef, current)
@@ -3156,6 +3194,23 @@ YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators,
 	ImplExpr(NPL::AssertMatchedAllocators(ctx.get_allocator(), nd, msg))
 //@}
 
+
+/*!
+\brief 取参数蕴含的绑定映射对象的分配器。
+\since build 927
+*/
+//@{
+YB_ATTR_nodiscard YB_PURE inline PDefH(Environment::allocator_type,
+	ToBindingsAllocator, const Environment::BindingMap& m) ynothrow
+	ImplRet(m.get_allocator())
+YB_ATTR_nodiscard YB_PURE inline PDefH(Environment::allocator_type,
+	ToBindingsAllocator, const Environment& env) ynothrow
+	ImplRet(NPL::ToBindingsAllocator(env.GetMap()))
+YB_ATTR_nodiscard YB_PURE inline PDefH(Environment::allocator_type,
+	ToBindingsAllocator, const ContextNode& ctx) ynothrow
+	ImplRet(NPL::ToBindingsAllocator(ctx.GetRecordRef()))
+//@}
+
 /*!
 \brief 分配环境。
 \return 新创建环境的非空指针。
@@ -3174,14 +3229,14 @@ template<typename... _tParams>
 YB_ATTR_nodiscard inline shared_ptr<Environment>
 AllocateEnvironment(ContextNode& ctx, _tParams&&... args)
 {
-	return NPL::AllocateEnvironment(ctx.GetBindingsRef().get_allocator(),
+	return NPL::AllocateEnvironment(NPL::ToBindingsAllocator(ctx),
 		yforward(args)...);
 }
 template<typename... _tParams>
 YB_ATTR_nodiscard inline shared_ptr<Environment>
 AllocateEnvironment(TermNode& term, ContextNode& ctx, _tParams&&... args)
 {
-	const auto a(ctx.GetBindingsRef().get_allocator());
+	const auto a(NPL::ToBindingsAllocator(ctx));
 
 	NPL::AssertMatchedAllocators(a, term);
 	return NPL::AllocateEnvironment(a, yforward(args)...);
@@ -3210,29 +3265,14 @@ SwitchToFreshEnvironment(ContextNode& ctx, _tParams&&... args)
 //! \ingroup BindingAccess
 //@{
 /*!
-\brief 取参数蕴含的绑定映射对象的分配器。
-\since build 927
-*/
-//@{
-YB_ATTR_nodiscard YB_PURE inline PDefH(Environment::allocator_type,
-	ToBindingsAllocator, const Environment::BindingMap& m) ynothrow
-	ImplRet(m.get_allocator())
-YB_ATTR_nodiscard YB_PURE inline PDefH(Environment::allocator_type,
-	ToBindingsAllocator, const Environment& env) ynothrow
-	ImplRet(NPL::ToBindingsAllocator(env.Bindings))
-YB_ATTR_nodiscard YB_PURE inline PDefH(Environment::allocator_type,
-	ToBindingsAllocator, const ContextNode& ctx) ynothrow
-	ImplRet(NPL::ToBindingsAllocator(ctx.GetRecordRef()))
-//@}
-
-/*!
 \brief 构造并向绑定目标添加叶节点值。
 \return 对应的值在构造前不存在。
 \pre 断言：第二参数的数据指针非空。
 \since build 838
 
 设置被绑定对象的值数据成员并清空子项。
-可访问 Environment::Bindings 、Environment 或 ContextNode 类型中指定名称的绑定。
+可访问 Environment::GetMapRef() 、Environment
+	或 ContextNode 类型中指定名称的绑定。
 因为直接替换被绑定对象，不需要检查目标是否和 TermNode 的正规表示一致。
 */
 //@{
@@ -3267,7 +3307,7 @@ template<typename _type, typename... _tParams>
 inline bool
 EmplaceLeaf(Environment& env, string_view name, _tParams&&... args)
 {
-	return NPL::EmplaceLeaf<_type>(env.Bindings, name, yforward(args)...);
+	return NPL::EmplaceLeaf<_type>(env.GetMapRef(), name, yforward(args)...);
 }
 template<typename _type, typename... _tParams>
 inline bool

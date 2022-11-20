@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r7416
+\version r7656
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2022-10-18 06:35 +0800
+	2022-11-21 04:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,16 +33,16 @@
 //	RetainN, NPL::ResolveRegular, NPL::Deref, A1::NameTypedReducerHandler,
 //	std::ref, Forms::CallResolvedUnary, EnsureValueTags,
 //	ResolvedTermReferencePtr, TryAccessLeafAtom, TermReference, LiftTerm,
-//	MoveResolved, Environment, NPL::AllocateEnvironment, function, ValueObject,
-//	AccessPtr, EnvironmentReference, shared_ptr, std::piecewise_construct,
-//	NPL::forward_as_tuple, LiftOther, ThrowNonmodifiableErrorForAssignee,
-//	ThrowValueCategoryError, ValueToken, ResolveTerm, TokenValue,
-//	CheckVariadicArity, A1::AsForm, ystdex::bind1, std::placeholders,
-//	NPL::CollectTokens, Strict, LiftOtherOrCopy, IsEmpty,
+//	Environment, NPL::ToBindingsAllocator, NPL::AllocateEnvironment, function,
+//	ValueObject, AccessPtr, EnvironmentReference, shared_ptr,
+//	std::piecewise_construct, NPL::forward_as_tuple, LiftOther,
+//	ThrowNonmodifiableErrorForAssignee, ThrowValueCategoryError, ValueToken,
+//	ResolveTerm, TokenValue, CheckVariadicArity, A1::AsForm, ystdex::bind1,
+//	std::placeholders, NPL::CollectTokens, Strict, LiftOtherOrCopy, IsEmpty,
 //	ComposeReferencedTermOp, IsBranch, IsTypedRegular, ReferenceTerm,
 //	IsReferenceTerm, IsBoundLValueTerm, IsUniqueTerm, IsModifiableTerm,
 //	IsTemporaryTerm, IsUncollapsedTerm, LiftTermRef, NPL::SetContentWith,
-//	LiftTermValueOrCopy, ResolveName, ResolveIdentifier,
+//	LiftTermValueOrCopy, ResolveName, ResolveIdentifier, MoveResolved,
 //	Environment::EnsureValid, NPLException, ReduceToReferenceList,
 //	MoveCollapsed, NPL::IsMovable, LiftTermOrCopy, IsBranchedList,
 //	AccessFirstSubterm, ThrowInsufficientTermsError, Retain, NPL::AsTermNode,
@@ -325,7 +325,7 @@ CopyEnvironmentDFS(Environment& d, const Environment& e)
 {
 	auto& m(d.GetMapRef());
 	// TODO: Check environments allocator equality.
-	const auto a(m.get_allocator());
+	const auto a(NPL::ToBindingsAllocator(m));
 	const auto copy_parent([&](Environment& dst, const Environment& parent){
 		auto p_env(NPL::AllocateEnvironment(a));
 
@@ -354,7 +354,7 @@ CopyEnvironmentDFS(Environment& d, const Environment& e)
 	copy_parent_ptr([&]() ynothrow -> Environment&{
 		return d;
 	}, e.Parent);
-	for(const auto& b : e.GetMapRef())
+	for(const auto& b : e.GetMap())
 		m.emplace(std::piecewise_construct, NPL::forward_as_tuple(b.first),
 			NPL::forward_as_tuple(b.second.CreateWith(
 			[&](const ValueObject& vo) -> ValueObject{
@@ -672,7 +672,7 @@ LoadEnvironments(ContextNode& ctx)
 		return r_env.Lock();
 	});
 	RegisterUnary(ctx, "freeze-environment!", [](TermNode& x){
-		Environment::EnsureValid(ResolveEnvironment(x).first).Frozen = true;
+		Environment::EnsureValid(ResolveEnvironment(x).first).Freeze();
 		return ValueToken::Unspecified;
 	});
 	RegisterStrict(ctx, "make-environment", MakeEnvironment);
@@ -762,17 +762,17 @@ namespace Derived
 void
 LoadBasicDerived(ContextState& cs)
 {
-	auto& renv(cs.GetRecordRef());
+	auto& m(cs.GetRecordRef().GetMapRef());
 
 	// NOTE: Some combiners are provided here as host primitives for
 	//	more efficiency and less dependencies.
 #if NPL_Impl_NPLA1_Native_Forms || NPL_Impl_NPLA1_Native_EnvironmentPrimitives
-	RegisterStrict(renv, "get-current-environment", GetCurrentEnvironment);
-	RegisterStrict(renv, "lock-current-environment", LockCurrentEnvironment);
+	RegisterStrict(m, "get-current-environment", GetCurrentEnvironment);
+	RegisterStrict(m, "lock-current-environment", LockCurrentEnvironment);
 #endif
 #if NPL_Impl_NPLA1_Native_Forms || !NPL_Impl_NPLA1_Native_EnvironmentPrimitives
-	RegisterForm(renv, "$vau", Vau);
-	RegisterForm(renv, "$vau%", VauRef);
+	RegisterForm(m, "$vau", Vau);
+	RegisterForm(m, "$vau%", VauRef);
 #endif
 #if NPL_Impl_NPLA1_Native_Forms
 
@@ -781,15 +781,15 @@ LoadBasicDerived(ContextState& cs)
 		return DoIdFunc(ReduceForLiftedResult, term);
 	});
 
-	RegisterForm(renv, "$quote", idv);
-	RegisterStrict(renv, "id", [](TermNode& term){
+	RegisterForm(m, "$quote", idv);
+	RegisterStrict(m, "id", [](TermNode& term){
 		return DoIdFunc([] YB_LAMBDA_ANNOTATE((TermNode&), ynothrow, const){
 			return ReductionStatus::Retained;
 		}, term);
 	});
-	RegisterStrict(renv, "idv", idv);
-	RegisterStrict(renv, "list", ReduceBranchToListValue);
-	RegisterForm(renv, "$lvalue-identifier?",
+	RegisterStrict(m, "idv", idv);
+	RegisterStrict(m, "list", ReduceBranchToListValue);
+	RegisterForm(m, "$lvalue-identifier?",
 		[](TermNode& term, ContextNode& ctx){
 		Forms::CallRegularUnaryAs<const TokenValue>([&](string_view id){
 			auto pr(ResolveName(ctx, id));
@@ -809,7 +809,7 @@ LoadBasicDerived(ContextState& cs)
 			}();
 		}, term);
 	});
-	RegisterStrict(renv, "forward!", [](TermNode& term){
+	RegisterStrict(m, "forward!", [](TermNode& term){
 		return Forms::CallRawUnary([&](TermNode& tm){
 			MoveRValueToForward(term, tm);
 			return ReductionStatus::Retained;
@@ -817,48 +817,48 @@ LoadBasicDerived(ContextState& cs)
 	});
 	// NOTE: The list operator is also available as infix ',' syntax sugar. See
 	//	%SeparatorPass in NPLA1.cpp for details.
-	RegisterStrict(renv, "list%", ReduceBranchToList);
-	RegisterStrict(renv, "rlist", [](TermNode& term, ContextNode& ctx){
+	RegisterStrict(m, "list%", ReduceBranchToList);
+	RegisterStrict(m, "rlist", [](TermNode& term, ContextNode& ctx){
 		return Forms::CallRawUnary([&](TermNode& tm){
 			return ReduceToReferenceList(term, ctx, tm);
 		}, term);
 	});
-	RegisterForm(renv, "$remote-eval", RemoteEval);
-	RegisterForm(renv, "$remote-eval%", RemoteEvalRef);
+	RegisterForm(m, "$remote-eval", RemoteEval);
+	RegisterForm(m, "$remote-eval%", RemoteEvalRef);
 	// NOTE: Conceptionally the lazy form '$deflazy!' is a more basic operation
 	//	than other environment mutation operations, which may bind parameter as
 	//	unevaluated operands.
-	RegisterForm(renv, "$deflazy!", DefineLazy);
-	RegisterForm(renv, "$set!", SetWithNoRecursion);
-	RegisterForm(renv, "$setrec!", SetWithRecursion);
-	RegisterForm(renv, "$wvau", WVau);
-	RegisterForm(renv, "$wvau%", WVauRef);
-	RegisterForm(renv, "$wvau/e", WVauWithEnvironment);
-	RegisterForm(renv, "$wvau/e%", WVauWithEnvironmentRef);
-	RegisterForm(renv, "$lambda", Lambda);
-	RegisterForm(renv, "$lambda%", LambdaRef);
-	RegisterForm(renv, "$lambda/e", LambdaWithEnvironment);
-	RegisterForm(renv, "$lambda/e%", LambdaWithEnvironmentRef);
-	RegisterUnary(renv, "list?", ComposeReferencedTermOp(IsList));
-	RegisterStrict(renv, "apply", Apply);
-	RegisterStrict(renv, "apply-list", ApplyList);
+	RegisterForm(m, "$deflazy!", DefineLazy);
+	RegisterForm(m, "$set!", SetWithNoRecursion);
+	RegisterForm(m, "$setrec!", SetWithRecursion);
+	RegisterForm(m, "$wvau", WVau);
+	RegisterForm(m, "$wvau%", WVauRef);
+	RegisterForm(m, "$wvau/e", WVauWithEnvironment);
+	RegisterForm(m, "$wvau/e%", WVauWithEnvironmentRef);
+	RegisterForm(m, "$lambda", Lambda);
+	RegisterForm(m, "$lambda%", LambdaRef);
+	RegisterForm(m, "$lambda/e", LambdaWithEnvironment);
+	RegisterForm(m, "$lambda/e%", LambdaWithEnvironmentRef);
+	RegisterUnary(m, "list?", ComposeReferencedTermOp(IsList));
+	RegisterStrict(m, "apply", Apply);
+	RegisterStrict(m, "apply-list", ApplyList);
 	// NOTE: The sequence operator is also available as infix ';' syntax sugar.
 	//	See %SeparatorPass in NPLA1.cpp for details.
-	RegisterForm(renv, "$sequence", Sequence);
-	RegisterStrict(renv, "collapse", [](TermNode& term){
+	RegisterForm(m, "$sequence", Sequence);
+	RegisterStrict(m, "collapse", [](TermNode& term){
 		return Forms::CallRawUnary([&](TermNode& tm){
 			MoveCollapsed(term, tm);
 			return ReductionStatus::Retained;
 		}, term);
 	});
-	RegisterStrict(renv, "forward", [](TermNode& term){
+	RegisterStrict(m, "forward", [](TermNode& term){
 		return Forms::CallRawUnary(std::bind(ReduceToValue, std::ref(term),
 			std::placeholders::_1), term);
 	});
-	RegisterBinary(renv, "assign%!", [](TermNode& x, TermNode& y){
+	RegisterBinary(m, "assign%!", [](TermNode& x, TermNode& y){
 		return DoAssign(ystdex::bind1(MoveCollapsed, std::ref(y)), x);
 	});
-	RegisterBinary(renv, "assign!", [](TermNode& x, TermNode& y){
+	RegisterBinary(m, "assign!", [](TermNode& x, TermNode& y){
 		return DoAssign([&](TermNode& nd_x){
 			ResolveTerm([&](TermNode& nd_y, ResolvedTermReferencePtr p_ref_y){
 				// NOTE: Self-assignment is not checked directly. This allows
@@ -868,79 +868,79 @@ LoadBasicDerived(ContextState& cs)
 			}, y);
 		}, x);
 	});
-	RegisterStrict(renv, "list*", ListAsterisk);
-	RegisterStrict(renv, "list*%", ListAsteriskRef);
-	RegisterForm(renv, "$defv!", trivial_swap, BindDefComb(Vau, 2));
-	RegisterForm(renv, "$defv%!", trivial_swap, BindDefComb(VauRef, 2));
-	RegisterForm(renv, "$defv/e!", trivial_swap,
+	RegisterStrict(m, "list*", ListAsterisk);
+	RegisterStrict(m, "list*%", ListAsteriskRef);
+	RegisterForm(m, "$defv!", trivial_swap, BindDefComb(Vau, 2));
+	RegisterForm(m, "$defv%!", trivial_swap, BindDefComb(VauRef, 2));
+	RegisterForm(m, "$defv/e!", trivial_swap,
 		BindDefComb(VauWithEnvironment, 3));
-	RegisterForm(renv, "$defv/e%!", trivial_swap,
+	RegisterForm(m, "$defv/e%!", trivial_swap,
 		BindDefComb(VauWithEnvironmentRef, 3));
-	RegisterForm(renv, "$defw!", trivial_swap, BindDefComb(WVau, 2));
-	RegisterForm(renv, "$defw%!", trivial_swap, BindDefComb(WVauRef, 2));
-	RegisterForm(renv, "$defw/e!", trivial_swap,
+	RegisterForm(m, "$defw!", trivial_swap, BindDefComb(WVau, 2));
+	RegisterForm(m, "$defw%!", trivial_swap, BindDefComb(WVauRef, 2));
+	RegisterForm(m, "$defw/e!", trivial_swap,
 		BindDefComb(WVauWithEnvironment, 3));
-	RegisterForm(renv, "$defw/e%!", trivial_swap,
+	RegisterForm(m, "$defw/e%!", trivial_swap,
 		BindDefComb(WVauWithEnvironmentRef, 3));
-	RegisterForm(renv, "$defl!", trivial_swap, BindDefComb(Lambda, 1));
-	RegisterForm(renv, "$defl%!", trivial_swap, BindDefComb(LambdaRef, 1));
-	RegisterForm(renv, "$defl/e!", trivial_swap,
+	RegisterForm(m, "$defl!", trivial_swap, BindDefComb(Lambda, 1));
+	RegisterForm(m, "$defl%!", trivial_swap, BindDefComb(LambdaRef, 1));
+	RegisterForm(m, "$defl/e!", trivial_swap,
 		BindDefComb(LambdaWithEnvironment, 2));
-	RegisterForm(renv, "$defl/e%!", trivial_swap,
+	RegisterForm(m, "$defl/e%!", trivial_swap,
 		BindDefComb(LambdaWithEnvironmentRef, 2));
-	RegisterStrict(renv, "forward-first%", ForwardFirst);
-	RegisterStrict(renv, "first", First);
-	RegisterStrict(renv, "first@", FirstAt);
-	RegisterStrict(renv, "first%", FirstFwd);
-	RegisterStrict(renv, "first&", FirstRef);
-	RegisterStrict(renv, "firstv", FirstVal);
-	RegisterStrict(renv, "rest%", RestFwd);
-	RegisterStrict(renv, "rest&", RestRef);
-	RegisterStrict(renv, "restv", RestVal);
+	RegisterStrict(m, "forward-first%", ForwardFirst);
+	RegisterStrict(m, "first", First);
+	RegisterStrict(m, "first@", FirstAt);
+	RegisterStrict(m, "first%", FirstFwd);
+	RegisterStrict(m, "first&", FirstRef);
+	RegisterStrict(m, "firstv", FirstVal);
+	RegisterStrict(m, "rest%", RestFwd);
+	RegisterStrict(m, "rest&", RestRef);
+	RegisterStrict(m, "restv", RestVal);
 	// NOTE: Like 'set-car!' in Kernel, with no references.
-	RegisterStrict(renv, "set-first!", SetFirst);
+	RegisterStrict(m, "set-first!", SetFirst);
 	// NOTE: Like 'set-car!' in Kernel, with reference not collapsed.
-	RegisterStrict(renv, "set-first@!", SetFirstAt);
+	RegisterStrict(m, "set-first@!", SetFirstAt);
 	// NOTE: Like 'set-car!' in Kernel, with reference collapsed.
-	RegisterStrict(renv, "set-first%!", SetFirstRef);
-	RegisterStrict(renv, "equal?", EqualTermValue);
-	RegisterStrict(renv, "check-environment", CheckEnvironment);
-	RegisterStrict(renv, "check-parent", CheckParent);
-	RegisterForm(renv, "$cond", Cond);
-	RegisterForm(renv, "$when", When);
-	RegisterForm(renv, "$unless", Unless);
-	RegisterUnary(renv, "not?", Not);
-	RegisterForm(renv, "$and", And);
-	RegisterForm(renv, "$or", Or);
-	RegisterStrict(renv, "accl", AccL);
-	RegisterStrict(renv, "accr", AccR);
-	RegisterStrict(renv, "foldr1", FoldR1);
-	RegisterStrict(renv, "map1", Map1);
-	RegisterUnary<Strict, ResolvedArg<>>(renv, "first-null?",
+	RegisterStrict(m, "set-first%!", SetFirstRef);
+	RegisterStrict(m, "equal?", EqualTermValue);
+	RegisterStrict(m, "check-environment", CheckEnvironment);
+	RegisterStrict(m, "check-parent", CheckParent);
+	RegisterForm(m, "$cond", Cond);
+	RegisterForm(m, "$when", When);
+	RegisterForm(m, "$unless", Unless);
+	RegisterUnary(m, "not?", Not);
+	RegisterForm(m, "$and", And);
+	RegisterForm(m, "$or", Or);
+	RegisterStrict(m, "accl", AccL);
+	RegisterStrict(m, "accr", AccR);
+	RegisterStrict(m, "foldr1", FoldR1);
+	RegisterStrict(m, "map1", Map1);
+	RegisterUnary<Strict, ResolvedArg<>>(m, "first-null?",
 		[](ResolvedArg<>&& x){
 		if(IsBranchedList(x.first))
 			return IsEmpty(ReferenceTerm(AccessFirstSubterm(x.first)));
 		ThrowInsufficientTermsError(x.first, x.second);
 	});
-	RegisterStrict(renv, "rulist", [](TermNode& term){
+	RegisterStrict(m, "rulist", [](TermNode& term){
 		return Forms::CallRawUnary([&](TermNode& tm){
 			return ReduceToReferenceUList(term, tm);
 		}, term);
 	});
-	RegisterStrict(renv, "list-concat", ListConcat);
-	RegisterStrict(renv, "append", Append);
-	RegisterStrict(renv, "list-extract-first", ListExtractFirst);
-	RegisterStrict(renv, "list-extract-rest%", ListExtractRestFwd);
-	RegisterStrict(renv, "list-push-front!", ListPushFront);
-	RegisterForm(renv, "$let", Let);
-	RegisterForm(renv, "$let%", LetRef);
-	RegisterForm(renv, "$let/e", LetWithEnvironment);
-	RegisterForm(renv, "$let/e%", LetWithEnvironmentRef);
-	RegisterForm(renv, "$let*", LetAsterisk);
-	RegisterForm(renv, "$let*%", LetAsteriskRef);
-	RegisterForm(renv, "$letrec", LetRec);
-	RegisterForm(renv, "$letrec%", LetRecRef);
-	RegisterStrict(renv, "make-standard-environment", trivial_swap,
+	RegisterStrict(m, "list-concat", ListConcat);
+	RegisterStrict(m, "append", Append);
+	RegisterStrict(m, "list-extract-first", ListExtractFirst);
+	RegisterStrict(m, "list-extract-rest%", ListExtractRestFwd);
+	RegisterStrict(m, "list-push-front!", ListPushFront);
+	RegisterForm(m, "$let", Let);
+	RegisterForm(m, "$let%", LetRef);
+	RegisterForm(m, "$let/e", LetWithEnvironment);
+	RegisterForm(m, "$let/e%", LetWithEnvironmentRef);
+	RegisterForm(m, "$let*", LetAsterisk);
+	RegisterForm(m, "$let*%", LetAsteriskRef);
+	RegisterForm(m, "$letrec", LetRec);
+	RegisterForm(m, "$letrec%", LetRecRef);
+	RegisterStrict(m, "make-standard-environment", trivial_swap,
 		// NOTE: The weak reference of the ground environment is saved and it
 		//	shall not be moved after being called.
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
@@ -949,13 +949,13 @@ LoadBasicDerived(ContextState& cs)
 		RetainN(term, 0);
 		term.SetValue(CreateEnvironmentWithParent(term.get_allocator(), ce));
 	}, cs.WeakenRecord()));
-	RegisterStrict(renv, "derive-current-environment",
+	RegisterStrict(m, "derive-current-environment",
 		[] YB_LAMBDA_ANNOTATE((TermNode& term, ContextNode& ctx), , flatten){
 		Retain(term);
 		term.emplace(NPL::AsTermNode(term.get_allocator(), ctx.WeakenRecord()));
 		return MakeEnvironment(term);
 	});
-	RegisterStrict(renv, "derive-environment", trivial_swap,
+	RegisterStrict(m, "derive-environment", trivial_swap,
 		// NOTE: As 'make-standard-environment'.
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
@@ -965,16 +965,16 @@ LoadBasicDerived(ContextState& cs)
 		term.emplace(NPL::AsTermNode(term.get_allocator(), ce));
 		return MakeEnvironment(term);
 	}, cs.WeakenRecord()));
-	RegisterForm(renv, "$as-environment", AsEnvironment);
-	RegisterForm(renv, "$bindings/p->environment",
+	RegisterForm(m, "$as-environment", AsEnvironment);
+	RegisterForm(m, "$bindings/p->environment",
 		BindingsWithParentToEnvironment);
-	RegisterForm(renv, "$bindings->environment", BindingsToEnvironment);
-	RegisterStrict(renv, "symbols->imports", SymbolsToImports);
-	RegisterForm(renv, "$provide/let!", ProvideLet);
-	RegisterForm(renv, "$provide!", Provide);
-	RegisterForm(renv, "$import!", Import);
-	RegisterForm(renv, "$import&!", ImportRef);
-	RegisterUnary<Strict, ResolvedArg<>>(renv, "nonfoldable?",
+	RegisterForm(m, "$bindings->environment", BindingsToEnvironment);
+	RegisterStrict(m, "symbols->imports", SymbolsToImports);
+	RegisterForm(m, "$provide/let!", ProvideLet);
+	RegisterForm(m, "$provide!", Provide);
+	RegisterForm(m, "$import!", Import);
+	RegisterForm(m, "$import&!", ImportRef);
+	RegisterUnary<Strict, ResolvedArg<>>(m, "nonfoldable?",
 		[](ResolvedArg<>&& x){
 		auto& nd(x.get());
 
@@ -984,17 +984,21 @@ LoadBasicDerived(ContextState& cs)
 		// XXX: This is from 'first-null?' in the alternative derivation.
 		ThrowInsufficientTermsError(nd, x.second);
 	});
-	RegisterStrict(renv, "assq", Assq);
-	RegisterStrict(renv, "assv", Assv);
+	RegisterStrict(m, "assq", Assq);
+	RegisterStrict(m, "assv", Assv);
 	{
 		const auto a(cs.get_allocator());
 		// NOTE: As %MakeEncapsulationType.
 		shared_ptr<void> p_type(new yimpl(byte));
 
-		renv.Define("box", A1::MakeForm(a, EncapsulateValue(p_type), Strict)),
-		renv.Define("box%", A1::MakeForm(a, Encapsulate(p_type), Strict)),
-		renv.Define("box?", A1::MakeForm(a, Encapsulated(p_type), Strict)),
-		renv.Define("unbox", A1::MakeForm(a, Decapsulate(p_type), Strict));
+		Environment::Define(m, "box",
+			A1::MakeForm(a, EncapsulateValue(p_type), Strict)),
+		Environment::Define(m, "box%",
+			A1::MakeForm(a, Encapsulate(p_type), Strict)),
+		Environment::Define(m, "box?",
+			A1::MakeForm(a, Encapsulated(p_type), Strict)),
+		Environment::Define(m, "unbox",
+			A1::MakeForm(a, Decapsulate(p_type), Strict));
 	}
 #else
 	cs.ShareCurrentSource("<root:basic-derived>");
@@ -1041,8 +1045,8 @@ $def! list wrap ($vau (.x) #ignore move! x);
 	)NPL"
 #	else
 	);
-	RegisterForm(renv, "$lambda", Lambda);
-	RegisterForm(renv, "$lambda%", LambdaRef);
+	RegisterForm(m, "$lambda", Lambda);
+	RegisterForm(m, "$lambda%", LambdaRef);
 	cs.ShareCurrentSource("<root:basic-derived-1>");
 	A1::Perform(cs, R"NPL(
 $def! id $lambda% (%x) $move-resolved! x;
@@ -1399,9 +1403,10 @@ void
 LoadStandardDerived(ContextState& cs)
 {
 #if NPL_Impl_NPLA1_Native_Forms
-	// XXX: Using %cs instead of 'renv' is occasionally more efficient.
-	RegisterUnary<Strict, const TokenValue>(cs, "ensigil", Ensigil);
-	RegisterForm(cs, "$binds1?", [](TermNode& term, ContextNode& ctx){
+	auto& m(cs.GetRecordRef().GetMapRef());
+
+	RegisterUnary<Strict, const TokenValue>(m, "ensigil", Ensigil);
+	RegisterForm(m, "$binds1?", [](TermNode& term, ContextNode& ctx){
 		RetainN(term, 2);
 
 		auto i(term.begin());
@@ -1467,7 +1472,7 @@ Load(ContextState& cs)
 	Primitive::Load(cs);
 	Derived::Load(cs);
 	// NOTE: Prevent the ground environment from modification.
-	cs.GetRecordRef().Frozen = true;
+	cs.GetRecordRef().Freeze();
 }
 
 } // namespace Ground;
@@ -1768,13 +1773,12 @@ LoadGroundContext(ContextState& cs)
 void
 LoadModule_std_continuations(ContextState& cs)
 {
-	auto& renv(cs.GetRecordRef());
+	auto& m(cs.GetRecordRef().GetMapRef());
 
-	RegisterStrict(renv, "call/1cc", Call1CC);
-	RegisterStrict(renv, "continuation->applicative",
-		ContinuationToApplicative);
+	RegisterStrict(m, "call/1cc", Call1CC);
+	RegisterStrict(m, "continuation->applicative", ContinuationToApplicative);
 #if NPL_Impl_NPLA1_Native_Forms
-	RegisterStrict(renv, "apply-continuation", ApplyContinuation);
+	RegisterStrict(m, "apply-continuation", ApplyContinuation);
 #else
 	cs.ShareCurrentSource("<lib:std.continuations>");
 	A1::Perform(cs, R"NPL(
@@ -1788,29 +1792,29 @@ void
 LoadModule_std_promises(ContextState& cs)
 {
 #if NPL_Impl_NPLA1_Native_Forms
-	auto& renv(cs.GetRecordRef());
+	auto& m(cs.GetRecordRef().GetMapRef());
 
-	RegisterUnary(renv, "promise?",
+	RegisterUnary(m, "promise?",
 		[] YB_LAMBDA_ANNOTATE((const TermNode& x), ynothrow, pure){
 		return IsTypedRegular<Promise>(ReferenceTerm(x));
 	});
-	RegisterUnary(renv, "memoize",
+	RegisterUnary(m, "memoize",
 		[] YB_LAMBDA_ANNOTATE((TermNode& x, ContextNode& ctx), , pure){
 		return Promise(ctx, std::move(x));
 	});
-	RegisterForm(renv, "$lazy", [](TermNode& term, ContextNode& ctx){
+	RegisterForm(m, "$lazy", [](TermNode& term, ContextNode& ctx){
 		return LazyImpl(term, ctx, {});
 	});
-	RegisterForm(renv, "$lazy%", [](TermNode& term, ContextNode& ctx){
+	RegisterForm(m, "$lazy%", [](TermNode& term, ContextNode& ctx){
 		return LazyImpl(term, ctx, true);
 	});
-	RegisterForm(renv, "$lazy/d", [](TermNode& term, ContextNode& ctx){
+	RegisterForm(m, "$lazy/d", [](TermNode& term, ContextNode& ctx){
 		return LazyWithDynamic(term, ctx, {});
 	});
-	RegisterForm(renv, "$lazy/d%", [](TermNode& term, ContextNode& ctx){
+	RegisterForm(m, "$lazy/d%", [](TermNode& term, ContextNode& ctx){
 		return LazyWithDynamic(term, ctx, true);
 	});
-	RegisterStrict(renv, "force", [](TermNode& term, ContextNode& ctx){
+	RegisterStrict(m, "force", [](TermNode& term, ContextNode& ctx){
 		return CallRawUnary([&](TermNode& tm){
 			return
 				ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
@@ -1877,89 +1881,89 @@ $provide/let! (promise? memoize $lazy $lazy% $lazy/d $lazy/d% force)
 void
 LoadModule_std_math(ContextState& cs)
 {
-	auto& renv(cs.GetRecordRef());
+	auto& m(cs.GetRecordRef().GetMapRef());
 
-	RegisterUnary(renv, "number?", trivial_swap,
+	RegisterUnary(m, "number?", trivial_swap,
 		ComposeReferencedTermOp(ystdex::bind1(LeafPred(), IsNumberValue)));
 	// NOTE: Currently all numbers are complex numbers.
-	RegisterUnary(renv, "complex?", trivial_swap,
+	RegisterUnary(m, "complex?", trivial_swap,
 		ComposeReferencedTermOp(ystdex::bind1(LeafPred(), IsNumberValue)));
 	// NOTE: Currently all numbers are real numbers.
-	RegisterUnary(renv, "real?", trivial_swap,
+	RegisterUnary(m, "real?", trivial_swap,
 		ComposeReferencedTermOp(ystdex::bind1(LeafPred(), IsNumberValue)));
-	RegisterUnary(renv, "rational?", trivial_swap,
+	RegisterUnary(m, "rational?", trivial_swap,
 		ComposeReferencedTermOp(ystdex::bind1(LeafPred(), IsRationalValue)));
-	RegisterUnary(renv, "integer?", trivial_swap,
+	RegisterUnary(m, "integer?", trivial_swap,
 		ComposeReferencedTermOp(ystdex::bind1(LeafPred(), IsIntegerValue)));
 	// NOTE: Currently all exact numbers are integers. This should actually be
 	//	the union of fixnum and bignum.
-	RegisterUnary(renv, "exact-integer?", trivial_swap,
+	RegisterUnary(m, "exact-integer?", trivial_swap,
 		ComposeReferencedTermOp(ystdex::bind1(LeafPred(), IsExactValue)));
-	RegisterUnary(renv, "fixnum?", trivial_swap,
+	RegisterUnary(m, "fixnum?", trivial_swap,
 		ComposeReferencedTermOp(ystdex::bind1(LeafPred(), IsFixnumValue)));
-	RegisterUnary(renv, "flonum?", trivial_swap,
+	RegisterUnary(m, "flonum?", trivial_swap,
 		ComposeReferencedTermOp(ystdex::bind1(LeafPred(), IsFlonumValue)));
-	RegisterUnary<Strict, const NumberLeaf>(renv, "exact?", IsExactValue);
-	RegisterUnary<Strict, const NumberLeaf>(renv, "inexact?", IsInexactValue);
-	RegisterUnary<Strict, const NumberLeaf>(renv, "finite?", IsFinite);
-	RegisterUnary<Strict, const NumberLeaf>(renv, "infinite?", IsInfinite);
-	RegisterUnary<Strict, const NumberLeaf>(renv, "nan?", IsNaN);
-	RegisterBinary<Strict, const NumberLeaf, const NumberLeaf>(renv, "=?",
+	RegisterUnary<Strict, const NumberLeaf>(m, "exact?", IsExactValue);
+	RegisterUnary<Strict, const NumberLeaf>(m, "inexact?", IsInexactValue);
+	RegisterUnary<Strict, const NumberLeaf>(m, "finite?", IsFinite);
+	RegisterUnary<Strict, const NumberLeaf>(m, "infinite?", IsInfinite);
+	RegisterUnary<Strict, const NumberLeaf>(m, "nan?", IsNaN);
+	RegisterBinary<Strict, const NumberLeaf, const NumberLeaf>(m, "=?",
 		Equal);
-	RegisterBinary<Strict, const NumberLeaf, const NumberLeaf>(renv, "<?",
+	RegisterBinary<Strict, const NumberLeaf, const NumberLeaf>(m, "<?",
 		Less);
-	RegisterBinary<Strict, const NumberLeaf, const NumberLeaf>(renv, ">?",
+	RegisterBinary<Strict, const NumberLeaf, const NumberLeaf>(m, ">?",
 		Greater);
-	RegisterBinary<Strict, const NumberLeaf, const NumberLeaf>(renv, "<=?",
+	RegisterBinary<Strict, const NumberLeaf, const NumberLeaf>(m, "<=?",
 		LessEqual);
-	RegisterBinary<Strict, const NumberLeaf, const NumberLeaf>(renv, ">=?",
+	RegisterBinary<Strict, const NumberLeaf, const NumberLeaf>(m, ">=?",
 		GreaterEqual);
-	RegisterUnary<Strict, const NumberLeaf>(renv, "zero?", IsZero);
-	RegisterUnary<Strict, const NumberLeaf>(renv, "positive?", IsPositive);
-	RegisterUnary<Strict, const NumberLeaf>(renv, "negative?", IsNegative);
-	RegisterUnary<Strict, const NumberLeaf>(renv, "odd?", IsOdd);
-	RegisterUnary<Strict, const NumberLeaf>(renv, "even?", IsEven);
-	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "max", Max);
-	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "min", Min);
-	RegisterUnary<Strict, NumberNode>(renv, "add1", Add1);
-	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "+", Plus);
-	RegisterUnary<Strict, NumberNode>(renv, "sub1", Sub1);
-	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "-", Minus);
-	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "*", Multiplies);
-	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "/", Divides);
-	RegisterUnary<Strict, NumberNode>(renv, "abs", Abs);
-	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "floor/",
+	RegisterUnary<Strict, const NumberLeaf>(m, "zero?", IsZero);
+	RegisterUnary<Strict, const NumberLeaf>(m, "positive?", IsPositive);
+	RegisterUnary<Strict, const NumberLeaf>(m, "negative?", IsNegative);
+	RegisterUnary<Strict, const NumberLeaf>(m, "odd?", IsOdd);
+	RegisterUnary<Strict, const NumberLeaf>(m, "even?", IsEven);
+	RegisterBinary<Strict, NumberNode, NumberNode>(m, "max", Max);
+	RegisterBinary<Strict, NumberNode, NumberNode>(m, "min", Min);
+	RegisterUnary<Strict, NumberNode>(m, "add1", Add1);
+	RegisterBinary<Strict, NumberNode, NumberNode>(m, "+", Plus);
+	RegisterUnary<Strict, NumberNode>(m, "sub1", Sub1);
+	RegisterBinary<Strict, NumberNode, NumberNode>(m, "-", Minus);
+	RegisterBinary<Strict, NumberNode, NumberNode>(m, "*", Multiplies);
+	RegisterBinary<Strict, NumberNode, NumberNode>(m, "/", Divides);
+	RegisterUnary<Strict, NumberNode>(m, "abs", Abs);
+	RegisterBinary<Strict, NumberNode, NumberNode>(m, "floor/",
 		FloorDivides);
-	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "floor-quotient",
+	RegisterBinary<Strict, NumberNode, NumberNode>(m, "floor-quotient",
 		FloorQuotient);
-	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "floor-remainder",
+	RegisterBinary<Strict, NumberNode, NumberNode>(m, "floor-remainder",
 		FloorRemainder);
-	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "truncate/",
+	RegisterBinary<Strict, NumberNode, NumberNode>(m, "truncate/",
 		TruncateDivides);
-	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "truncate-quotient",
+	RegisterBinary<Strict, NumberNode, NumberNode>(m, "truncate-quotient",
 		TruncateQuotient);
-	RegisterBinary<Strict, NumberNode, NumberNode>(renv, "truncate-remainder",
+	RegisterBinary<Strict, NumberNode, NumberNode>(m, "truncate-remainder",
 		TruncateRemainder);
-	RegisterUnary<Strict, NumberNode>(renv, "inexact", Inexact);
+	RegisterUnary<Strict, NumberNode>(m, "inexact", Inexact);
 }
 
 void
 LoadModule_std_strings(ContextState& cs)
 {
-	auto& renv(cs.GetRecordRef());
+	auto& m(cs.GetRecordRef().GetMapRef());
 
-	RegisterUnary(renv, "string?",
+	RegisterUnary(m, "string?",
 		[] YB_LAMBDA_ANNOTATE((const TermNode& x), ynothrow, pure){
 		return IsTypedRegular<string>(ReferenceTerm(x));
 	});
-	RegisterStrict(renv, "++", trivial_swap,
+	RegisterStrict(m, "++", trivial_swap,
 		std::bind(CallBinaryFold<string, ystdex::plus<>>,
 		ystdex::plus<>(), string(), std::placeholders::_1));
-	RegisterUnary<Strict, const string>(renv, "string-empty?",
+	RegisterUnary<Strict, const string>(m, "string-empty?",
 		[](const string& str) ynothrow{
 		return str.empty();
 	});
-	RegisterBinary<Strict, ResolvedArg<>, ResolvedArg<>>(renv, "string<-",
+	RegisterBinary<Strict, ResolvedArg<>, ResolvedArg<>>(m, "string<-",
 		[](ResolvedArg<>&& x, ResolvedArg<>&& y){
 		if(x.IsModifiable())
 		{
@@ -1975,7 +1979,7 @@ LoadModule_std_strings(ContextState& cs)
 			ThrowNonmodifiableErrorForAssignee();
 		return ValueToken::Unspecified;
 	});
-	RegisterStrict(renv, "string-split", [](TermNode& term){
+	RegisterStrict(m, "string-split", [](TermNode& term){
 		return CallBinaryAs<string, const string>(
 			[&](string& x, const string& y) -> ReductionStatus{
 			if(!x.empty())
@@ -1989,20 +1993,20 @@ LoadModule_std_strings(ContextState& cs)
 
 					while((pos = x.find(y, pos)) != string::npos)
 					{
-						TermNode::AddValueTo(con, x.substr(orig, pos - orig));
+						NPL::AddValueTo(con, x.substr(orig, pos - orig));
 						orig = (pos += len);
 					}
-					TermNode::AddValueTo(con, x.substr(orig, pos - orig));
+					NPL::AddValueTo(con, x.substr(orig, pos - orig));
 				}
 				else
-					TermNode::AddValueTo(con, std::move(x));
+					NPL::AddValueTo(con, std::move(x));
 				con.swap(term.GetContainerRef());
 				return ReductionStatus::Retained;
 			}
 			return ReductionStatus::Clean;
 		}, term);
 	});
-	RegisterBinary<Strict, string, string>(renv, "string-contains-ci?",
+	RegisterBinary<Strict, string, string>(m, "string-contains-ci?",
 		[](string x, string y){
 		// TODO: Extract 'strlwr'.
 		const auto to_lwr([](string& str) ynothrow{
@@ -2014,22 +2018,22 @@ LoadModule_std_strings(ContextState& cs)
 		to_lwr(y);
 		return x.find(y) != string::npos;
 	});
-	RegisterUnary<Strict, ResolvedArg<string>>(renv, "string->symbol",
+	RegisterUnary<Strict, ResolvedArg<string>>(m, "string->symbol",
 		[](ResolvedArg<string>&& x){
 		return x.IsMovable() ? StringToSymbol(std::move(x.first))
 			: StringToSymbol(x.first);
 	});
-	RegisterUnary<Strict, const TokenValue>(renv, "symbol->string",
+	RegisterUnary<Strict, const TokenValue>(m, "symbol->string",
 		SymbolToString);
-	RegisterUnary<Strict, const string>(renv, "string->regex",
+	RegisterUnary<Strict, const string>(m, "string->regex",
 		[](const string& str){
 		return std::regex(str);
 	});
-	RegisterBinary<Strict, const string, const std::regex>(renv, "regex-match?",
+	RegisterBinary<Strict, const string, const std::regex>(m, "regex-match?",
 		[](const string& str, const std::regex& re){
 		return std::regex_match(str, re);
 	});
-	RegisterStrict(renv, "regex-replace", [](TermNode& term){
+	RegisterStrict(m, "regex-replace", [](TermNode& term){
 		RetainN(term, 3);
 
 		auto i(term.begin());
@@ -2044,17 +2048,17 @@ LoadModule_std_strings(ContextState& cs)
 void
 LoadModule_std_io(ContextState& cs)
 {
-	auto& renv(cs.GetRecordRef());
+	auto& m(cs.GetRecordRef().GetMapRef());
 
-	RegisterUnary<Strict, const string>(renv, "readable-file?",
+	RegisterUnary<Strict, const string>(m, "readable-file?",
 		[](const string& str) ynothrow{
 		return YSLib::ufexists(str.c_str());
 	});
-	RegisterUnary<Strict, const string>(renv, "writable-file?",
+	RegisterUnary<Strict, const string>(m, "writable-file?",
 		[](const string& str) ynothrow{
 		return YSLib::ufexists(str.c_str(), true);
 	});
-	RegisterStrict(renv, "newline", trivial_swap,
+	RegisterStrict(m, "newline", trivial_swap,
 		[&](TermNode& term, ContextNode& ctx){
 		RetainN(term, 0);
 		if(auto&
@@ -2062,14 +2066,14 @@ LoadModule_std_io(ContextState& cs)
 			os << std::endl;
 		return ReduceReturnUnspecified(term);
 	});
-	RegisterUnary<Strict, const string>(renv, "put", trivial_swap,
+	RegisterUnary<Strict, const string>(m, "put", trivial_swap,
 		[&](const string& str, ContextNode& ctx){
 		YSLib::IO::StreamPut(ContextState::Access(ctx).Global.get()
 			.GetOutputStreamRef(), str.c_str());
 		return ValueToken::Unspecified;
 	});
 #if NPL_Impl_NPLA1_Native_Forms
-	RegisterUnary<Strict, const string>(renv, "puts", trivial_swap,
+	RegisterUnary<Strict, const string>(m, "puts", trivial_swap,
 		[&](const string& str, ContextNode& ctx){
 		auto& os(ContextState::Access(ctx).Global.get().GetOutputStreamRef());
 
@@ -2087,9 +2091,9 @@ $defl! puts (&s) $sequence (put s) (() newline);
 	// NOTE: Since %load disallows additional barrier of catching the inner
 	//	exceptions and the reset of the source name, %TryLoadSource or
 	//	%PreloadExternal is not applicable here.
-	RegisterStrict(renv, "load", ReduceToLoadExternal);
+	RegisterStrict(m, "load", ReduceToLoadExternal);
 #if NPL_Impl_NPLA1_Native_Forms
-	RegisterStrict(renv, "get-module", trivial_swap,
+	RegisterStrict(m, "get-module", trivial_swap,
 		ystdex::bind1([&](TermNode& term, ContextNode& ctx,
 		const EnvironmentReference& r_ground){
 		CheckVariadicArity(term, 0);
@@ -2152,36 +2156,36 @@ $defl! get-module (&filename .&opt)
 void
 LoadModule_std_system(ContextState& cs)
 {
-	auto& renv(cs.GetRecordRef());
+	auto& m(cs.GetRecordRef().GetMapRef());
 
-	RegisterStrict(renv, "get-current-repl", trivial_swap,
+	RegisterStrict(m, "get-current-repl", trivial_swap,
 		[&](TermNode& term, ContextNode& ctx){
 		RetainN(term, 0);
 		term.Value.assign(ContextState::Access(ctx).Global.get(),
 			YSLib::OwnershipTag<>());
 	});
-	RegisterStrict(renv, "eval-string", EvalString);
-	RegisterStrict(renv, "eval-string%", EvalStringRef);
-	RegisterStrict(renv, "eval-unit", EvalUnit);
-	RegisterStrict(renv, "cmd-get-args", [](TermNode& term){
+	RegisterStrict(m, "eval-string", EvalString);
+	RegisterStrict(m, "eval-string%", EvalStringRef);
+	RegisterStrict(m, "eval-unit", EvalUnit);
+	RegisterStrict(m, "cmd-get-args", [](TermNode& term){
 		RetainN(term, 0);
 		{
 			const auto p_cmd_args(YSLib::LockCommandArguments());
 			TermNode::Container con(term.get_allocator());
 
 			for(const auto& arg : p_cmd_args->Arguments)
-				TermNode::AddValueTo(con, in_place_type<string>, arg);
+				NPL::AddValueTo(con, in_place_type<string>, arg);
 			con.swap(term.GetContainerRef());
 		}
 		return ReductionStatus::Retained;
 	});
-	RegisterUnary<Strict, const string>(renv, "env-get", [](const string& var){
+	RegisterUnary<Strict, const string>(m, "env-get", [](const string& var){
 		string res(var.get_allocator());
 
 		YSLib::FetchEnvironmentVariable(res, var.c_str());
 		return res;
 	});
-	RegisterBinary<Strict, const string, const string>(renv, "env-set",
+	RegisterBinary<Strict, const string, const string>(m, "env-set",
 		[](const string& var, const string& val){
 		YSLib::SetEnvironmentVariable(var.c_str(), val.c_str());
 	});
@@ -2190,26 +2194,26 @@ LoadModule_std_system(ContextState& cs)
 $defl/e! env-empty? (derive-current-environment std.strings) (&n)
 	string-empty? (env-get n);
 	)NPL");
-	RegisterStrict(renv, "system", CallSystem);
-	RegisterStrict(renv, "system-get", [](TermNode& term){
+	RegisterStrict(m, "system", CallSystem);
+	RegisterStrict(m, "system-get", [](TermNode& term){
 		CallUnaryAs<const string>([&](const string& cmd){
 			TermNode::Container con(term.get_allocator());
 			auto res(YSLib::FetchCommandOutput(cmd.c_str()));
 
-			TermNode::AddValueTo(con, ystdex::trim(std::move(res.first)));
-			TermNode::AddValueTo(con, res.second);
+			NPL::AddValueTo(con, ystdex::trim(std::move(res.first)));
+			NPL::AddValueTo(con, res.second);
 			con.swap(term.GetContainerRef());
 		}, term);
 		return ReductionStatus::Retained;
 	});
-	RegisterUnary<Strict, const string>(renv, "system-quote",
+	RegisterUnary<Strict, const string>(m, "system-quote",
 		[](const string& w){
 		return !w.empty() ? ((CheckLiteral(w) == char() && (w.find(' ')
 			!= string::npos || w.find('\t') != string::npos))
 			|| (w.front() == '\'' || w.front() == '"' || w.back() == '\''
 			|| w.back() == '"') ? ystdex::quote(w, '"') : w) : "\"\"";
 	});
-	RegisterUnary<Strict, const string>(renv, "remove-file",
+	RegisterUnary<Strict, const string>(m, "remove-file",
 		[](const string& filename){
 		return YSLib::uremove(filename.c_str());
 	});
@@ -2221,8 +2225,8 @@ LoadModule_std_modules(ContextState& cs)
 #if NPL_Impl_NPLA1_Native_Forms
 	using namespace std::placeholders;
 	using YSLib::to_std_string;
-	auto& renv(cs.GetRecordRef());
-	const auto a(renv.Bindings.get_allocator());
+	auto& m(cs.GetRecordRef().GetMapRef());
+	const auto a(NPL::ToBindingsAllocator(m));
 	const auto p_registry(YSLib::allocate_shared<YSLib::map<string,
 		pair<TermNode, shared_ptr<Environment>>>>(a));
 	auto& registry(*p_registry);
@@ -2251,7 +2255,7 @@ LoadModule_std_modules(ContextState& cs)
 	}());
 	auto& specs(*p_specs);
 
-	RegisterUnary<Strict, const string>(renv, "registered-requirement?",
+	RegisterUnary<Strict, const string>(m, "registered-requirement?",
 		// TODO: Blocked. Use C++14 lambda initializers to optimize the
 		//	implementation.
 		// XXX: Not using binding to prevent overloading ambiguity.
@@ -2260,7 +2264,7 @@ LoadModule_std_modules(ContextState& cs)
 			return ystdex::exists(NPL::Deref(p_registry), req);
 		throw NPLException("Empty requirement name found.");
 	});
-	RegisterStrict(renv, "register-requirement!", trivial_swap,
+	RegisterStrict(m, "register-requirement!", trivial_swap,
 		ystdex::bind1([&](TermNode& term, const EnvironmentReference& r_ground){
 		auto i(term.begin());
 		const auto& req(NPL::ResolveRegular<const string>(NPL::Deref(++i)));
@@ -2282,14 +2286,14 @@ LoadModule_std_modules(ContextState& cs)
 		throw NPLException("Requirement '" + to_std_string(req)
 			+ "' is already registered.");
 	}, cs.WeakenRecord()));
-	RegisterUnary<Strict, const string>(renv, "unregister-requirement!",
+	RegisterUnary<Strict, const string>(m, "unregister-requirement!",
 		trivial_swap, [&](const string& req){
 		CheckRequirement(req);
 		if(YB_UNLIKELY(registry.erase(req) == 0))
 			throw NPLException("Requirement '" + to_std_string(req)
 				+ "' is not registered.");
 	});
-	RegisterUnary<Strict, const string>(renv, "find-requirement-filename",
+	RegisterUnary<Strict, const string>(m, "find-requirement-filename",
 		// TODO: Blocked. Use C++14 lambda initializers to optimize the
 		//	implementation.
 		// XXX: Not using binding to prevent overloading ambiguity.
@@ -2297,7 +2301,7 @@ LoadModule_std_modules(ContextState& cs)
 		CheckRequirement(req);
 		return FindValidRequirementIn(NPL::Deref(p_specs), req);
 	});
-	RegisterStrict(renv, "require", trivial_swap,
+	RegisterStrict(m, "require", trivial_swap,
 		ystdex::bind1([&](TermNode& term, ContextNode& ctx,
 		const EnvironmentReference& r_ground) -> ReductionStatus{
 		CheckVariadicArity(term, 0);
@@ -2445,10 +2449,11 @@ LoadModule_SHBuild(ContextState& cs)
 {
 	using namespace YSLib;
 	auto& renv(cs.GetRecordRef());
+	auto& m(renv.GetMapRef());
 	const auto& global(cs.Global.get());
 
 	// NOTE: SHBuild builtins.
-	renv.DefineChecked("SHBuild_BaseTerminalHook_",
+	Environment::DefineChecked(m, "SHBuild_BaseTerminalHook_",
 		ValueObject(function<void(const string&, const string&)>(
 		[&](const string& n, const string& val) ynothrow{
 		auto& os(global.GetOutputStreamRef());
@@ -2458,13 +2463,13 @@ LoadModule_SHBuild(ContextState& cs)
 		if(os)
 			os << std::endl;
 	})));
-	RegisterUnary<Strict, const string>(renv, "SHBuild_BuildGCH_existed_",
+	RegisterUnary<Strict, const string>(m, "SHBuild_BuildGCH_existed_",
 		[](const string& str) -> bool{
 		if(IO::UniqueFile file{uopen(str.c_str(), {}, std::ios_base::in)})
 			return file->GetSize() > 0;
 		return {};
 	});
-	RegisterUnary<Strict, const string>(renv, "SHBuild_BuildGCH_mkpdirp_",
+	RegisterUnary<Strict, const string>(m, "SHBuild_BuildGCH_mkpdirp_",
 		[](const string& str){
 		IO::Path pth(str);
 
@@ -2475,7 +2480,7 @@ LoadModule_SHBuild(ContextState& cs)
 		}
 		return ValueToken::Unspecified;
 	});
-	RegisterUnary<Strict, const string>(renv, "SHBuild_DirectoryOf_",
+	RegisterUnary<Strict, const string>(m, "SHBuild_DirectoryOf_",
 		[](const string& str){
 		IO::Path pth(str);
 
@@ -2483,12 +2488,12 @@ LoadModule_SHBuild(ContextState& cs)
 			pth.pop_back();
 		return string(pth);
 	});
-	RegisterUnary<Strict, const string>(renv, "SHBuild_EnsureDirectory_",
+	RegisterUnary<Strict, const string>(m, "SHBuild_EnsureDirectory_",
 		[](const string& str){
 		EnsureDirectory(IO::Path(str));
 		return ValueToken::Unspecified;
 	});
-	RegisterStrict(renv, "SHBuild_EchoVar", trivial_swap,
+	RegisterStrict(m, "SHBuild_EchoVar", trivial_swap,
 		[&](TermNode& term){
 		// XXX: To be overriden if %Terminal is usable (platform specific).
 		CallBinaryAs<const string, const string>(
@@ -2503,24 +2508,24 @@ LoadModule_SHBuild(ContextState& cs)
 			return ValueToken::Unspecified;
 		}, term);
 	});
-	RegisterBinary<Strict, const string, const string>(renv,
+	RegisterBinary<Strict, const string, const string>(m,
 		"SHBuild_Install_HardLink", [](const string& dst, const string& src){
 		Deployment::InstallHardLink(dst.c_str(), src.c_str());
 		return ValueToken::Unspecified;
 	});
 	// TODO: Implement by derivations instead?
-	RegisterUnary<Strict, const string>(renv, "SHBuild_QuoteS_",
+	RegisterUnary<Strict, const string>(m, "SHBuild_QuoteS_",
 		[](const string& str){
 		if(str.find('\'') == string::npos)
 			return ystdex::quote(str, '\'');
 		throw NPLException("Error in quoted string.");
 	});
-	RegisterBinary<Strict, const string, const string>(renv,
+	RegisterBinary<Strict, const string, const string>(m,
 		"SHBuild_RemovePrefix_",
 		[](const string& str, const string& pfx){
 		return ystdex::begins_with(str, pfx) ? str.substr(pfx.length()) : str;
 	});
-	RegisterUnary<Strict, const string>(renv, "SHBuild_SDot_",
+	RegisterUnary<Strict, const string>(m, "SHBuild_SDot_",
 		[](const string& str){
 		auto res(str);
 
@@ -2529,11 +2534,11 @@ LoadModule_SHBuild(ContextState& cs)
 				c = '_';
 		return res;
 	});
-	RegisterUnary<Strict, const string>(renv, "SHBuild_String_absolute_path?_",
+	RegisterUnary<Strict, const string>(m, "SHBuild_String_absolute_path?_",
 		[](const string& str){
 		return IO::IsAbsolute(str);
 	});
-	RegisterUnary<Strict, const string>(renv, "SHBuild_TrimOptions_",
+	RegisterUnary<Strict, const string>(m, "SHBuild_TrimOptions_",
 		[](const string& src, const ContextNode& ctx){
 		string res(src.get_allocator());
 		const auto a(ctx.get_allocator());
@@ -2597,9 +2602,8 @@ LoadModule_SHBuild(ContextState& cs)
 			res.pop_back();
 		return res;
 	});
-	RegisterBinary<Strict, const string, const string>(renv,
-		"SHBuild_MakeTempFilename",
-		[](const string& pfx, const string& sfx){
+	RegisterBinary<Strict, const string, const string>(m,
+		"SHBuild_MakeTempFilename", [](const string& pfx, const string& sfx){
 		// NOTE: POSIX functions are not used for compatibility and for retrying
 		//	issues (see below). On the other hand, Win32's %::GetTempPathW is
 		//	not reliable across different Windows versions. See

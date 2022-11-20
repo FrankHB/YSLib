@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2478
+\version r2481
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2022-01-25 05:14 +0800
+	2022-11-05 20:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -969,10 +969,11 @@ WOW64FileSystemRedirectionGuard::operator=(WOW64FileSystemRedirectionGuard&& g)
 
 
 wstring
-FetchModuleFileName(::HMODULE h_module, RecordLevel lv)
+FetchModuleFileName(::HMODULE h_module, wstring::allocator_type a,
+	RecordLevel lv)
 {
 	// TODO: Avoid retry for NT 6 %::GetModuleFileNameW?
-	return ystdex::retry_for_vector<wstring>(MAX_PATH,
+	return ystdex::retry_for_vector<wstring>(MAX_PATH, a,
 		[=](wstring& res, size_t s) -> bool{
 		const auto r(size_t(::GetModuleFileNameW(h_module, &res[0],
 			static_cast<unsigned long>(s))));

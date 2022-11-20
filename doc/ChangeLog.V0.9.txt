@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r12380
+\version r12759
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-10-30 17:14 +0800
+	2022-11-21 05:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,386 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ @ "trait %tuple_size" %Apply $=
+		(
+			* "missing deailed code inclusion when %std::tuple_size is not used"
+				$since b958 $dep_to "tuple_size defect 1",
+			* "missing detection of %_LIBCPP_VERSION" $since b958
+				$dep_to "tuple_size defect 2"
+				$= (+ DLI "check of 'defined(_LIBCPP_VERSION) \
+					&& _LIBCPP_VERSION > 50000')
+		),
+		/ %Container $=
+		(
+			/ @ "function template %retry_for_vector" $=
+			(
+				+ $dev $lib 'YB_ATTR_nodiscard',
+				+ "overload with allocator parameter"
+					^ "%ystdex::make_obj_using_allocator"
+			),
+			/ "Doxygen group %type_traits_operations" $=
+			(
+				(
+				/ DLDI "reordered declarations";
+				+ "type traits operation %(has_mem_count, has_mem_find, \
+					has_mem_remove, has_mem_remove_if, has_mem_key_type)"
+				),
+				/ @ "type traits operation %has_mem_lower_bound" $=
+				(
+					+ "3rd template parameter with default argument as the \
+						iterator type";
+					/ $comp "allowed general type instead of class type as 1st \
+						template parameter"
+				)
+			),
+			* "internal %count detection used for member %find"
+				@ "function template %exists" $since b888
+				^ $dep_from "%has_mem_find",
+			/ DLDI ("function templates %erase_all#(2, 3)",
+				"all 2 function templates %erase_all_if")
+				^ $dep_from "%has_mem_key_type",
+			/ DLI "function templates %insert_or_assign"
+				^ "%ystdex::try_emplace" ~ "%ystdex::ystdex::search_map",
+			/ DLI "function templates %insert_or_assign_hint"
+				^ "%ystdex::try_emplace_hint" ~ "%ystdex::ystdex::search_map"
+		),
+		* DD "part of Doxygen group %algorithms wrongly transferred from \
+			%Container to %Range" $since b942
+			// This caused both unbalanced tokens in %Container and %Range.
+	),
+	* $comp "building failure" @ "platform %Android" $since b948
+		$dep_any_from ("tuple_size defect 1", "tuple_size defect 2")
+		// '_LIBCPP_VERSION' is assumed for all configurations in platform \
+			%Android since the official NDK is used (which implies at least \
+			'>= 80000').
+	/ %YFramework $=
+	(
+		+ "allocator parameter with default argument '{}' as 2nd parameter"
+			@ "function %FetchModuleFileName" @ (%'YCLib_(Win32)'.MinGW32,
+			"function template its spaecializations \
+			%FetchCurrentWorkingDirectory" @ %YCLib.FileSystem)
+			$= (/ $impl ^ $dep_from ("%ystdex::retry_for_vector#2"
+				@ %YBase.YStandardEx.Container)),
+		/ %YCLib.Debug $=
+		(
+			/ "merged %platform declarations",
+			/ @ "class %AndroidLogSender" @ "platform %Android" $=
+			(
+				(
+				/ ("parameter type" @ "constructor", "return type"
+					@ "function %GetTag") -> 'const char*' ~ 'string_view';
+				+ ($dev $lib 'YB_NONNULL(2)', 'ynothrowv') @ "constructor",
+				+ $dev $lib 'YB_returns_nonnull' @ "function %GetTag"
+				),
+				/ $dev $lib $design "out-of-line definition" @ "constructor"
+					-> "inline function"
+					$= (/ $impl ^ "%platform::Nonnull"
+						$dep_from "merged %platform declarations")
+			),
+			/ @ "class %Logger" $=
+			(
+				/ @ "static function %FetchDefaultSender" $=
+				(
+					(
+					/ DLDI $dep_from "class %AndroidLogSender"
+						@ "platform %Android";
+					+ 'ynothrow' $dep_from "platform %Android"
+					),
+					+ DLDI 'YB_STATELESS' @ '!(YCL_Win32 || YCL_Android)',
+						// Also to eliminate G++ warning: \
+							[-Wsuggest-attribute=const].
+					+ $dev $lib 'YB_ATTR_nodiscard'
+				),
+				/ @ "default constructor" $=
+				(
+					/ DLDI !^ 'DefDeCtor';
+					+ 'ynothrow' $dep_from ('ynothrow' @ "%FetchDefaultSender")
+				)
+			),
+			+ 'ynothrow' @ "function %FetchCommonLogger"
+				$dep_from "default constructor %Logger"
+		),
+		* $comp "fallback tracing not guaranteed nonthrowing"
+			@ "platform %Android" @ %YSLib.Core.YException $since b591
+			$dep_from ("%FetchCommonLogger" @ %YCLib.Debug),
+			// This is even undefined behavior after adding \
+				'fno-enforce-eh-specs' since b898.
+		/ %YSLib $=
+		(
+			/ %Service.FileSystem $=
+			(
+				+ $dev $lib 'YB_ATTR_nodiscard'
+					@ "function templates %(ParsePathWith, ParsePath, \
+					ResolvePathWithBase, ResolvePath)",
+				+ "overload with value allocator argument" @ ("function \
+					template %ParsePathWith"
+					^ "%ystdex::make_obj_using_allocator";
+					"function templates %(ParsePath; ResolvePathWithBase)";
+					"function template %ResolvePath"
+					^ $dep_from ("%FetchCurrentWorkingDirectory"
+					@ %YCLib.FileSystem));
+				/ @ "class %Path" $=
+				(
+					/ @ "constructor#(5,6)" $=
+					(
+						/ "enabled allocator" @ "internal construction of \
+							%String" ^ "%ystdex::make_obj_using_allocator",
+						* "missing using the allocator argument for %String"
+							$since b957 ^ $dep_from
+							"%ParsePath overload with value allocator argument"
+					),
+					* "missing using the allocator for element"
+						@ ("copy constructor", "copy constructor with \
+						allocator parameter", "constructor with iterator and \
+						allocator parameters", "constructor with instance of \
+						%std::initializer_list and allocator parameter")
+						$since b957 ^ "%ystdex::make_obj_using_allocator",
+					* "missing using the allocator"
+						@ ("%operator/="; $comp "%operator/") $since b957
+				),
+				/ "enabled allocator" @ "call to %MakeNormalizedAbsolute"
+					@ "function %MakeNormalizedAbsolute"
+					^ $dep_from %YCLib.FileSystem
+			),
+			/ %Core.ValueNode $=
+			(
+				+ "2 function templates %AddValueTo for sequence containers"
+					^ $dep_from ("%ystdex::has_mem_key_type"
+					@ %YBase.YStandardEx.Container),
+				(
+				/ "all 2 static function templates %AddValueTo"
+					@ "class %ValueNode"
+					-> ("2 function templates" @ "namespace %YSLib");
+				/ $forced "all 2 member function templates %ValueNode::AddValue"
+					// The arguments are a bit different.
+				)
+			)
+		),
+		/ %Helper.Initialization $=
+		(
+			/ @ "functions %(FetchLocalFHSRootPath, FetchRootPathString)" $=
+			(
+				/ DLDI "simplified path copy"
+					$dep_from ("copy constructor %Path" @ %YSLib.FileSystem),
+				(
+				+ DLDI "'yunused' on internal allocator argument"
+					@ "platforms %Android";
+					// To prevent Clang++ warning: [-Wunused-parameter].
+				* $re_ex(b957) "allocator of internal resources might be used \
+					out of lifetime" $since b861 $=
+					// The previous fix in b957 is incomplete.
+				(
+					* "missing 'static' for local memory resource" $since b957,
+					* $comp "missing using the allocator argument for \
+						%Path::operator/ argument of string literal"
+						@ "parent path initialization" $since b957
+						$dep_from ("%Path::operator/" @ %YSLib.FileSystem),
+					* "enabled allocator argument" @ 'YCL_Linux' ^ $dep_from
+						("%IO::ResolvePath with value allocator argument"
+						@ %YSLib.FileSystem)
+				)
+				),
+				/ "enabled allocator" @ ("call to %FetchModuleFileName"
+					@ "platform %Win32" ^ $dep_from %'YCLib_(Win32)'.MinGW32,
+					"call to %FetchCurrentWorkingDirectory" @ !"platforms \
+					%(Win32, Android, Linux)" ^ $dep_from %YCLib.FileSystem)
+					// There is no '$forced' because the changes need no \
+						modification on the call sites originally with no \
+						allocator argument.
+			),
+			* $re_add(b957) "missing propagation of the allocator"
+				@ "configuartion paths accesses" @ "function %LoadConfiguration"
+				$since b957
+		),
+		/ %NPL $=
+		(
+			/ $dev $lib "inclusion %YBase.YStandardEx.TypeOperations"
+				@ %NPLA1 >> %NPLA $dep_to "NPLA1 header lifting",
+			(
+			+ ("class template %GLContinuation"; "function template \
+				%MakeGLContinuation", "function template %RelayDirect for \
+				parameters of %GLConinuation instances", "class template \
+				specialization %ystdex::is_bitwise_swappable for \
+				%NPL::A1::GLContinuation") @ 'NPL_Impl_NPLA1_Enable_Thunked'
+				@ %NPLA1Internals,
+			/ DLDI "simplified" @ %NPLA1
+			),
+			/ $re_add(b859) DLI "prevented creation of %Continuation"
+				@ 'NPL_Impl_NPLA1_Enable_Thunked'
+				@ ('!NPL_Impl_NPLA1_Enable_TCO' @ "function %ReduceOrdered"
+				@ %NPLA1, "functions %Forms::(LetAsterisk, LetAsteriskRef)"
+				@ %NPLA1Forms) ^ ("%MakeGLContinuation" @ %NPLA1Internals),
+			/ "all %TermNode::AddValueTo calls" -> $dep_from ("%NPL::AddValueTo"
+				@ %SContext) $effective @ "native implementation"
+				@ ("applicative 'string-split'" @ "function \
+				%LoadModule_std_strings", "applicative 'system-get'"
+				@ "function %LoadModule_std_system" @ %Dependency)
+				$dep_to "avoiding TermNode::AddValueTo",
+			/ %SContext $=
+			(
+				+ 'using YSLib::AddValueTo;' $dep_from %YSLib.Core.ValueNode,
+				- $revert(b853) "all 2 static member function \
+					%TermNode::AddValueTo"
+					$dep_from "avoiding TermNode::AddValueTo"
+			),
+			/ %NPLA $=
+			(
+				(
+				+ "class %EnvironmentBase"
+					$impl ^ "%ystdex::exclude_self_params_t"
+					$dep_from "NPLA1 header lifting";
+				/ DLI "simplified classes %(EnvironmentReference, Environment)"
+					$=
+				(
+					+ "private base class %EnvironmentBase";
+					/ $forced "initialization" @ "constructors",
+					^ "using declarations for some members available from \
+						%EnvironmentBase"
+				)
+				),
+				(
+				/ DD "removed all 3 functions %ToBindingsAllocator away from \
+					Doxygen group %BindingAccess and reordered the \
+					declarations before funtions %AllocateEnvironment";
+				/ DLDI "functions %AllocateEnvironment#(2, 3)"
+					^ "%NPL::ToBindingsAllocator"
+					~ "%ContextNode::GetBindingsRef"
+				),
+				/ @ "class %Environment" $=
+				(
+					+ "function %GetMap",
+					- 'const' @ "function %GetMapRef",
+					(
+					/ DLDI "function %DefineChecked" ^ $dep_from
+						("%NPL::AddValueTo" @ %SContext) ~ "%AddValue";
+					- $revert(b852) "all 2 function template %AddValue"
+						$dep_from "avoiding Environment::AddValue"
+					),
+					/ "data member %Frozen"
+						-> "functions %(IsFrozen, Freeze, Unfreeze)",
+					* "missing swapping the frozen state"
+						@ "friend function %swap" $since b871
+						$= (/ $impl ^ "%std::swap"),
+					/ DLDI ("functions %(operator[], DefineChecked)",
+						"function template %Bind") ^ "%GetMapRef",
+					* "missing clear the container of the existing binding \
+						object" @ "function %Define" $since b867,
+					(
+					/ DLI "function %Define" !^ "%operator[]";
+						// This is a bit more efficient by using explicit key \
+							constructed with %string_view value and the \
+							allocator.
+					- $revert(b852) "member function %operator[]"
+						// As WG21 N4279, transparent keys are not available \
+							for mutators. This is at least simpler.
+					),
+					/ "functions %(Define, DefineChecked)"
+						-> "static member functions" $dep_to "static Define"
+				),
+				/ @ "class %ContextNode" $=
+				(
+					/ "enabled allocator propagation from the argument"
+						@ "constructor with 'const BindingMap&' parameter",
+					- $revert(b788) "function %GetBindingsRef"
+						$dep_from "%AllocatorEnvironment#(2, 3)",
+					/ DD "Doxygen comment" @ "move constructor"
+						^ $dep_from "%Environment::GetMap"
+				)
+			),
+			(
+			/ DLDI "external access of bindings map" !^ "%Environment::Mappings"
+				$=
+			(
+				/ "function template %ToBindingsAllocator#2" @ %NPLA
+					^ $dep_from "%Environment::GetMap",
+				/ "function template %EmplaceLeaf#3" @ %NPLA
+					^ "%Environment::GetMapRef",
+				/ ("static member function %ContextNode::DefaultResolve"
+					@ %NPLA, 'NPL_Impl_NPLA1_Enable_TCO' @ ("constructor#1",
+					"function %Compress") @ "class %RecordCompressor"
+					@ %NPLA1Internals, 'NPL_Impl_NPLA1_Native_Forms'
+					@ "function %LoadModule_std_modules" @ %Dependency)
+					^ "%NPL::ToBindingsAllocator"
+			),
+			/ "data member %Bindings" @ "class %Environment" @ %NPLA
+				-> "private data member"
+			),
+			/ %NPLA1 $=
+			(
+				/ DLI "strengthen internal precondition check on check"
+					@ "argument list evaluation"
+					@ "member function %FormContextHandler::operator()",
+				* "'#ignore' treated as empty variable name"
+					@ "function %ExtractEnvironmentFormal" $since b959
+			),
+			/ @ %NPLA1Forms $=
+			(
+				/ DLI 'NPL_Impl_NPLA1_Enable_Thunked'
+					@ "functions %Forms::(LetAsterisk, LetAsteriskRef)"
+					^ "%A1::RelayCurrentOrDirect" ~ "%RelaySwitched",
+					// This should only make differences with \
+						'NPL_Impl_NPLA1_Enable_InlineDirect'. It is a bit more \
+						efficient.
+				* DLDI "missing qualified 'NPL::' before 'Deref' " $effective
+					@ ("vau handlers" $since b861,
+					!'NPL_Impl_NPLA1_Enable_Thunked' @ "function %Forms::Cond"
+					$since b860),
+					// The types of arguments are known but not guaranteed as \
+						class types in %NPL.
+				* $comp "'#ignore' treated as empty variable name"
+					@ "functions %Forms::('WVau*', 'Vau*')" $since b959
+					$dep_from ("function %ExtractEnvironmentFormal" @ %NPLA1),
+				/ DLDI "dynamic vau handler" ^ $dep_from
+					("%NPL::AddValueTo" @ %SContext, "%Environment::GetMapRef")
+					~ "%Enviornment::AddValue"
+					$dep_to "avoiding Environment::AddValue"
+			),
+			/ %Dependency $=
+			(
+				/ @ "function %LoadGroundContext" $=
+				(
+					/ DLDI "native implementation"
+						@ "applicative 'copy-environment'" $=
+					(
+						^ "%NPL::ToBindingsAllocator",
+						/ "bindings map access on the source environment"
+							^ $dep_from "%Environment::GetMap"
+							~ "%Environment::GetRef"
+					),
+					* $comp "'#ignore' treated as empty variable name"
+						@ "native implementations" @ "operatives whose name \
+						with prefixes ('$wvau', '$vau', '$defv', '$defw')"
+						$dep_from @ ("functions %Forms::('WVau*', 'Vau*')"
+						@ %NPLA1Forms) $since b959
+				),
+				/ $revert(b956) DLI "targets" @ 'NPL_Impl_NPLA1_Native_Forms'
+					@ "all functions with prefix 'Load' except \
+					%LoadModule_SHBuild" !^ ('renv', 'cs')
+					$= (/ $impl ^ "%Environment::GetMapRef")
+					// Different to b956, avoiding 'cs' now is more efficient, \
+						although avoiding 'renv' is not. Now explicit \
+						'GetMapRef' calls are exposed, which can be further \
+						refactored with some additional checks.
+			)
+		),
+		/ $forced DLDI $dep_from ("%Environment::Frozen" @ %NPL.NPLA)
+			$effective (("function %MoveResolved" @ %NPLA, "function template \
+			%GetModuleFor" @ %NPLA1, "functions %Forms::('Define*', \
+			'SetWith*', 'Import*', %Undefine)" @ %NPLA1Forms, ("native \
+			implementation" @ "applicatives 'freeze-environment!'", "final \
+			freezing") @ "function %LoadGroundContext" @ %Dependency) @ %NPL,
+			"constructor %Environment" @ %Helper.Environment)
+	),
+	/ $forced DLDI (("function templates %(LoadModule, LoadModuleChecked)"
+		@ %NPLA1, "functions %(LoadGroundContext, LoadModule_SHBuild)"
+		@ %Dependency) @ %YFramework.NPL, "function %RunNPLFromStream"
+		@ %Tools.SHBuild.Main) $dep_from "static Define"
+),
+
+b959
 (
 	+ "all native platforms supported by MSYS2 at current" @ %Tools.Scripts
 		$effective @ "%(SHBuild-common.sh, SHBuild-YSLib-common.txt)" $=

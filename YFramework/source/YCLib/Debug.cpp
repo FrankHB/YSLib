@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r959
+\version r971
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2022-01-31 20:02 +0800
+	2022-11-05 19:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,8 +26,8 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_Debug // for wstring, string_view, std::puts, std::fflush,
-//	pmr::new_delete_resource_t, stderr, YB_Use_YTrace;
+#include YFM_YCLib_Debug // for wstring, Nonnull, string_view, std::puts,
+//	std::fflush, pmr::new_delete_resource_t, stderr, YB_Use_YTrace;
 #if YCL_Win32
 #	include YFM_Win32_YCLib_Consoles // for platform_ex::WConsole,
 //	STD_OUTPUT_HANDLE, STD_ERROR_HANDLE, platform_ex::Win32Exception;
@@ -228,8 +228,11 @@ Logger::DoLogException(Level lv, const std::exception& e) ynothrow
 	CatchExpr(..., do_log_excetpion_raw("<unknown>"))
 }
 
+#if !(YCL_Win32 || YCL_Android)
+YB_STATELESS
+#endif
 Logger::Sender
-Logger::FetchDefaultSender(string_view tag)
+Logger::FetchDefaultSender(string_view tag) ynothrow
 {
 	yunused(tag);
 	YAssertNonnull(tag.data());
@@ -250,7 +253,7 @@ Logger::FetchDefaultSender(string_view tag)
 		CatchExpr(platform_ex::Win32Exception&, DefaultSendLog(lv, logger, str))
 	};
 #elif YCL_Android
-	return platform_ex::AndroidLogSender(tag);
+	return platform_ex::AndroidLogSender(tag.data());
 #else
 	return DefaultSendLog;
 #endif
@@ -329,7 +332,7 @@ swap(Logger& x, Logger& y) ynothrow
 
 
 Logger&
-FetchCommonLogger()
+FetchCommonLogger() ynothrow
 {
 	static Logger logger;
 
@@ -448,9 +451,6 @@ MapAndroidLogLevel(Descriptions::RecordLevel lv)
 }
 
 
-AndroidLogSender::AndroidLogSender(string_view sv)
-	: tag((yunused(Nonnull(sv.data())), sv))
-{}
 ImplDeDtor(AndroidLogSender)
 
 void
@@ -461,7 +461,7 @@ AndroidLogSender::operator()(Level lv, Logger& logger, const char* str) const
 		::__android_log_assert("", "YFramework", "[%#X]: %s\n", unsigned(lv),
 			str);
 	else
-		PrintAndroidLog(lv, tag.c_str(), "[%#X]: %s\n", unsigned(lv), str);
+		PrintAndroidLog(lv, tag, "[%#X]: %s\n", unsigned(lv), str);
 }
 
 #endif

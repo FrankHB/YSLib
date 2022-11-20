@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r2611
+\version r2770
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2022-05-05 02:34 +0800
+	2022-11-21 01:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,14 +29,15 @@
 #define YB_INC_ystdex_container_hpp_ 1
 
 #include "iterator.hpp" // for "range.hpp", internal "integreal_sequence.hpp",
-//	ystdex::begin, ystdex::end, ystdex::make_transform, lref, std::declval,
-//	std::make_move_iterator, is_detected_convertible, yassume, ystdex::cbegin,
-//	ystdex::cend, YAssert, std::distance, std::next, size, ystdex::range_size,
-//	std::piecewise_construct_t, std::tuple, std::piecewise_construct,
-//	std::forward_as_tuple, cond_or_t, is_detected, enable_if_convertible_t,
+//	ystdex::begin, ystdex::end, ystdex::make_transform, std::make_move_iterator,
+//	yassume, std::declval, is_detected_convertible, is_detected, cond_or_t,
+//	ystdex::cbegin, ystdex::cend, std::distance, YAssert, std::next, size,
+//	ystdex::range_size, std::piecewise_construct_t, std::tuple,
+//	std::piecewise_construct, std::forward_as_tuple, enable_if_convertible_t,
 //	and_;
 #include "algorithm.hpp" // for YB_VerifyIterator, sort_unique;
 #include "apply.hpp" // for ystdex::seq_apply;
+#include "allocator.hpp" // for ystdex::make_obj_using_allocator;
 #include "utility.hpp" // for ystdex::as_const;
 
 namespace ystdex
@@ -73,6 +74,14 @@ make_container(_tRange&& c, _func f)
 //@}
 
 
+/*!
+\ingroup algorithms
+\pre 参数指定的迭代器范围（若存在）有效。
+\note 参数 \c first 和 \c last 指定迭代器范围。
+\note 对不以迭代器指定的范围，使用 ystdex::begin 和 ystdex::end 取迭代器。
+\note 确定为 const 迭代器时使用 ystdex::cbegin 和 ystdex::cend 代替。
+*/
+//@{
 /*!
 \brief 插入参数指定的元素到容器。
 \since build 274
@@ -222,23 +231,107 @@ struct prefix_eraser
 namespace details
 {
 
+//! \since build 663
+//@{
+template<class _type, typename... _tParams>
+using mem_remove_t
+	= decltype(std::declval<_type>().remove(std::declval<_tParams>()...));
+
+template<class _type, typename... _tParams>
+using mem_remove_if_t
+	= decltype(std::declval<_type>().remove_if(std::declval<_tParams>()...));
+
+template<class _type>
+using key_type_t = typename _type::key_type;
+//@}
+
+//! \since build 942
+//@{
+template<class _type>
+using mem_key_compare_t = decltype(_type::key_compare);
+
+template<class _type>
+using key_comp_res_t = decltype(std::declval<_type&>().key_comp());
+
+template<class _tAssocCon>
+using has_mem_key_comp_impl = is_detected_convertible<typename
+	_tAssocCon::key_compare, details::key_comp_res_t, _tAssocCon>;
+
+template<class _tAssocCon, typename _tKey = typename _tAssocCon::key_type>
+using lower_bound_res_t = decltype(std::declval<_tAssocCon&>().lower_bound(
+	std::declval<const _tKey&>()));
+//@}
+
 //! \since build 888
 //@{
 template<class _type, typename _tKey>
 using mem_count_t = decltype(std::declval<const _type&>().count(
 	std::declval<const _tKey&>()));
 
-template<typename _type, typename _tKey>
-using has_mem_count
-	= is_detected_convertible<size_t, mem_count_t, _type, _tKey>;
-
 template<class _type, typename _tKey>
 using mem_find_t = decltype(std::declval<const _type&>().find(
 	std::declval<const _tKey&>()) == ystdex::end(std::declval<const _type&>()));
+//@}
 
-template<typename _type, typename _tKey>
-using has_mem_find = is_detected_convertible<bool, mem_count_t, _type, _tKey>;
+} // namespace details;
 
+//! \ingroup type_traits_operations
+//@{
+//! \since build 960
+//@{
+//! \brief 判断类型是否具有接受指定参数类型的 remove 成员类型。
+template<typename _type, typename... _tParams>
+using has_mem_remove = is_detected<details::mem_remove_t, _type, _tParams...>;
+
+//! \brief 判断类型是否具有接受指定参数类型的 remove_if 成员类型。
+template<typename _type, typename... _tParams>
+using has_mem_remove_if
+	= is_detected<details::mem_remove_if_t, _type, _tParams...>;
+
+//! \brief 判断类型是否具有接受 key_type 成员类型。
+template<typename _type>
+using has_mem_key_type = is_detected<details::key_type_t, _type>;
+//@}
+
+//! \since build 942
+//@{
+/*!
+\brief 判断类型是否为可按键类型比较的容器。
+\note 判断键类型即判断存在 key_compare 成员类型；若不存在，则视为不可比较。
+\note 按键类型可比较，即具有返回可转换为 key_compare 类型的值的 key_comp 成员函数。
+*/
+template<typename _type>
+using has_mem_key_comp = cond_or_t<is_detected<details::mem_key_compare_t,
+	_type>, false_, details::has_mem_key_comp_impl, _type>;
+
+//! \brief 判断类型是否具有接受指定键类型的值返回迭代器的 lower_bound 成员函数。
+template<class _type, typename _tKey = typename _type::key_type,
+	typename _tIter = typename _type::const_iterator>
+using has_mem_lower_bound = is_detected_convertible<_tIter,
+	details::lower_bound_res_t, _type, _tKey>;
+//@}
+
+//! \since build 960
+//@{
+//! \brief 判断类型是否具有接受指定键类型参数的 count 成员函数。
+template<typename _type, typename _tKey = typename _type::key_type>
+using has_mem_count
+	= is_detected_convertible<size_t, details::mem_count_t, _type, _tKey>;
+
+//! \brief 判断类型是否具有接受指定键类型参数的 find 成员函数。
+template<typename _type, typename _tKey = typename _type::key_type>
+using has_mem_find = is_detected_convertible<bool, details::mem_find_t, _type,
+	_tKey>;
+//@}
+//@}
+
+
+//! \since build 488
+namespace details
+{
+
+//! \since build 888
+//@{
 template<class _tCon, typename _tKey>
 YB_ATTR_nodiscard YB_PURE bool
 exists(const _tCon& con, const _tKey& k, false_, false_)
@@ -266,30 +359,8 @@ exists(const _tCon& con, const _tKey& k, true_)
 }
 //@}
 
-
 //! \since build 663
 //@{
-template<class _type, typename... _tParams>
-using mem_remove_t
-	= decltype(std::declval<_type>().remove(std::declval<_tParams>()...));
-
-template<typename _type, typename... _tParams>
-using has_mem_remove = is_detected<mem_remove_t, _type, _tParams...>;
-
-template<class _type, typename... _tParams>
-using mem_remove_if_t
-	= decltype(std::declval<_type>().remove_if(std::declval<_tParams>()...));
-
-template<typename _type, typename... _tParams>
-using has_mem_remove_if = is_detected<mem_remove_if_t, _type, _tParams...>;
-
-template<class _type>
-using key_type_t = typename _type::key_type;
-
-template<typename _type>
-using has_mem_key_type = is_detected<key_type_t, _type>;
-
-
 template<typename _tSeqCon, typename _type>
 inline void
 erase_remove(_tSeqCon& con, decltype(ystdex::begin(con)) first,
@@ -338,8 +409,8 @@ erase_all_if_in_seq(_tSeqCon& con, _fPred pred, false_)
 //! \pre 调用 erase 之后的迭代器不失效。
 template<typename _tCon, typename _type>
 void
-erase_all(_tCon& con, decltype(ystdex::cbegin(con)) first, decltype(ystdex::cend(con)) last,
-	const _type& value, true_)
+erase_all(_tCon& con, decltype(ystdex::cbegin(con)) first,
+	decltype(ystdex::cend(con)) last, const _type& value, true_)
 {
 	while(first != last)
 		if(*first == value)
@@ -426,7 +497,7 @@ template<class _tCon, typename _tKey>
 YB_ATTR_nodiscard YB_PURE inline bool
 exists(const _tCon& con, const _tKey& k)
 {
-	return details::exists(con, k, details::has_mem_find<_tCon, _tKey>());
+	return details::exists(con, k, has_mem_find<_tCon, _tKey>());
 }
 
 /*!
@@ -465,14 +536,13 @@ template<typename _tCon, typename _tIter, typename _type>
 inline void
 erase_all(_tCon& con, _tIter first, _tIter last, const _type& value)
 {
-	details::erase_all(con, first, last, value,
-		details::has_mem_key_type<_tCon>());
+	details::erase_all(con, first, last, value, has_mem_key_type<_tCon>());
 }
 template<typename _tCon, typename _type>
 inline void
 erase_all(_tCon& con, const _type& value)
 {
-	details::erase_all(con, value, details::has_mem_key_type<_tCon>());
+	details::erase_all(con, value, has_mem_key_type<_tCon>());
 }
 //@}
 
@@ -489,14 +559,13 @@ template<typename _tCon, typename _tIter, typename _fPred>
 inline void
 erase_all_if(_tCon& con, _tIter first, _tIter last, _fPred pred)
 {
-	details::erase_all_if(con, first, last, pred,
-		details::has_mem_key_type<_tCon>());
+	details::erase_all_if(con, first, last, pred, has_mem_key_type<_tCon>());
 }
 template<typename _tCon, typename _fPred>
 inline void
 erase_all_if(_tCon& con, _fPred pred)
 {
-	details::erase_all_if(con, pred, details::has_mem_key_type<_tCon>());
+	details::erase_all_if(con, pred, has_mem_key_type<_tCon>());
 }
 //@}
 //@}
@@ -713,8 +782,9 @@ vector_concat(_tVector& vec, _tRange&& c)
 \see LWG 2466 。
 \since build 699
 */
+//@{
 template<class _tVector, typename _func>
-_tVector
+YB_ATTR_nodiscard _tVector
 retry_for_vector(typename _tVector::size_type s, _func f)
 {
 	yconstraint(s != 0);
@@ -725,6 +795,21 @@ retry_for_vector(typename _tVector::size_type s, _func f)
 		res.resize(s *= yimpl(2));
 	return res;
 }
+//! \since build 960
+template<class _tVector, typename _func>
+YB_ATTR_nodiscard _tVector
+retry_for_vector(typename _tVector::size_type s,
+	typename _tVector::allocator_type a, _func f)
+{
+	yconstraint(s != 0);
+
+	auto res(ystdex::make_obj_using_allocator<_tVector>(a));
+
+	for(res.resize(s); f(res, s) && s < res.max_size() yimpl(/ 2); )
+		res.resize(s *= yimpl(2));
+	return res;
+}
+//@}
 
 
 /*!
@@ -758,25 +843,6 @@ using is_piecewise_mapped = is_constructible<typename _tCon::value_type,
 //! \since build 677
 namespace details
 {
-
-//! \since build 942
-//@{
-template<class _tAssocCon>
-using mem_key_compare_t = decltype(_tAssocCon::key_compare);
-
-template<class _tAssocCon>
-using key_comp_res_t = decltype(std::declval<_tAssocCon&>().key_comp());
-
-template<class _tAssocCon>
-using has_mem_key_comp_impl
-	= is_detected_convertible<typename _tAssocCon::key_compare,
-	details::key_comp_res_t, _tAssocCon>;
-
-template<class _tAssocCon, typename _tKey = typename _tAssocCon::key_type>
-using lower_bound_res_t = decltype(std::declval<_tAssocCon&>().lower_bound(
-	std::declval<const _tKey&>()));
-//@}
-
 
 //! \since build 708
 template<class _tAssocCon>
@@ -865,26 +931,6 @@ template<class _type>
 using mapped_type_t = typename _type::mapped_type;
 
 } // namespace details;
-
-/*!
-\ingroup type_traits_operations
-\since build 942
-*/
-//@{
-/*!
-\brief 判断容器是否可按键类型比较。
-\note 判断键类型即判断存在 key_compare 成员类型；若不存在，则视为不可比较。
-\note 按键类型可比较，即具有返回可转换为 key_compare 类型的值的 key_comp 成员函数。
-*/
-template<class _tCon>
-using has_mem_key_comp = cond_or_t<is_detected<details::mem_key_compare_t,
-	_tCon>, false_, details::has_mem_key_comp_impl, _tCon>;
-
-//! \brief 判断容器是否具有接受指定键类型的值返回迭代器的 lower_bound 成员函数。
-template<class _tCon, typename _tKey = typename _tCon::key_type>
-using has_mem_lower_bound = is_detected_convertible<typename
-	_tCon::const_iterator, details::lower_bound_res_t, _tCon, _tKey>;
-//@}
 
 
 /*!
@@ -987,20 +1033,16 @@ search_map(true_, const _tOrdCon& con, typename _tOrdCon::const_iterator hint,
 //@}
 
 /*!
-\since build 681
 \note 使用 ADL extract_mapped 。
+\since build 960
 */
-template<class _tAssocCon, typename _tKey, typename _tParam>
-std::pair<typename _tAssocCon::iterator, bool>
-insert_or_assign(std::pair<typename _tAssocCon::iterator, bool> pr,
-	_tAssocCon& con, _tKey&& k, _tParam&& arg)
+template<class _tAssocCon, typename _tParam>
+void
+extract_mapped_if(const std::pair<typename _tAssocCon::iterator, bool>& pr,
+	_tParam&& arg)
 {
-	if(pr.second)
-		pr.first
-			= emplace_hint_in_place(con, pr.first, yforward(k), yforward(arg));
-	else
+	if(!pr.second)
 		extract_mapped<_tAssocCon>(*pr.first) = yforward(arg);
-	return pr;
 }
 
 } // namespace details;
@@ -1028,8 +1070,8 @@ search_map(const _tAssocCon& con, const _tKey& k)
 	//	has non-standard extensions (actually warned as C4996 by
 	//	%_DEPRECATE_STDEXT_HASH_LOWER_BOUND in VC++ 2022), leading to
 	//	ill-formed calls (e.g. in VC++, error C2039).
-	return details::search_map(and_<has_mem_lower_bound<_tAssocCon, const _tKey>,
-		has_mem_key_comp<_tAssocCon>>(), con, k);
+	return details::search_map(and_<has_mem_lower_bound<_tAssocCon,
+		const _tKey>, has_mem_key_comp<_tAssocCon>>(), con, k);
 }
 template<class _tAssocCon, typename _tKey = typename _tAssocCon::key_type>
 YB_ATTR_nodiscard YB_PURE inline std::pair<typename _tAssocCon::iterator, bool>
@@ -1098,7 +1140,7 @@ search_map_by(_func f, _tAssocCon& con, _tParams&&... args)
 
 /*!
 \note 使用 ADL emplace_hint_in_place 。
-\sa emplace_hint_in_place
+\sa ystdex::emplace_hint_in_place
 \note 和 WG21 N4279 不同，支持透明比较器和非特定的键类型。
 \see WG21 N4279 。
 */
@@ -1130,7 +1172,7 @@ try_emplace_hint(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
 //@}
 
 /*!
-\note 使用 ADL extract_mapped 。
+\note 使用 ADL emplace_hint_in_place 和 extract_mapped 。
 \since build 681
 */
 //@{
@@ -1138,8 +1180,10 @@ template<class _tAssocCon, typename _tKey, typename _tParam>
 inline std::pair<typename _tAssocCon::iterator, bool>
 insert_or_assign(_tAssocCon& con, _tKey&& k, _tParam&& arg)
 {
-	return details::insert_or_assign(ystdex::search_map(con, k), con,
-		yforward(k), yforward(arg));
+	auto pr(ystdex::try_emplace(con, yforward(k), yforward(arg)));
+
+	details::extract_mapped_if<_tAssocCon>(pr, yforward(arg));
+	return pr;
 }
 
 template<class _tAssocCon, typename _tKey, typename _tParam>
@@ -1147,8 +1191,10 @@ inline std::pair<typename _tAssocCon::iterator, bool>
 insert_or_assign_hint(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
 	_tKey&& k, _tParam&& arg)
 {
-	return details::insert_or_assign(ystdex::search_map(con, hint, k), con,
-		yforward(k), yforward(arg));
+	auto pr(ystdex::try_emplace_hint(con, hint, yforward(k), yforward(arg)));
+
+	details::extract_mapped_if<_tAssocCon>(pr, yforward(arg));
+	return pr;
 }
 //@}
 //@}

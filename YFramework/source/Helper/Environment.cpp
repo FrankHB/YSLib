@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r2004
+\version r2005
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2022-09-22 00:20 +0800
+	2022-11-02 03:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -153,7 +153,7 @@ Environment::Environment(Application& app)
 #	endif
 		);
 		NPL::A1::Forms::LoadStandardContext(Main);
-		Main.GetRecordRef().Frozen = true;
+		Main.GetRecordRef().Freeze();
 	}, yfsig, "         NPLA1 Failure         ",
 		" An unexpected error occurs \n"
 		" during the initializaiton.\n");

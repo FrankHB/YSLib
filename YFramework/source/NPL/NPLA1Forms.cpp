@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r28900
+\version r28919
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2022-10-29 10:15 +0800
+	2022-11-15 00:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -463,7 +463,7 @@ ThrowInsufficientTermsErrorFor(const TermNode& term, InvalidSyntax&& e)
 void
 CheckFrozenEnvironment(const shared_ptr<Environment>& p_env)
 {
-	if(YB_UNLIKELY(NPL::Deref(p_env).Frozen))
+	if(YB_UNLIKELY(NPL::Deref(p_env).IsFrozen()))
 		throw TypeError("Cannot define variables in a frozen environment.");
 }
 
@@ -879,8 +879,7 @@ VauBindList(ContextNode& ctx, const TermNode& formals, TermNode& term)
 
 				for(const auto& tm_n : formals)
 				{
-					BindSymbol(p_env, tm_n.Value.GetObject<TokenValue>(),
-						*i);
+					BindSymbol(p_env, tm_n.Value.GetObject<TokenValue>(), *i);
 					++i;
 				}
 			}
@@ -1084,6 +1083,7 @@ public:
 			bool move = {};
 
 			if(bool(term.Tags & TermTags::Temporary))
+				// TODO: Concurrency safety of accessing the referernce count?
 				ClearCombiningTags(term), move = p_eval_struct.use_count() == 1;
 			// NOTE: Since the 1st subterm is expected to be saved (e.g. by
 			//	%ReduceCombined), it is safe to be removed directly.
@@ -1121,7 +1121,7 @@ protected:
 	YB_ATTR_nodiscard YB_PURE static GuardCall&
 	InitCall(shared_ptr<TermNode>& p_fm)
 	{
-		auto& formals(Deref(p_fm));
+		auto& formals(NPL::Deref(p_fm));
 
 #	if NPL_Impl_NPLA1Forms_VauHandler_OptimizeLevel == 1
 		if(IsEmpty(formals))
@@ -1177,7 +1177,7 @@ private:
 			auto gd(GuardFreshEnvironment(ctx));
 
 			// NOTE: Bound the dynamic environment.
-			ctx.GetRecordRef().AddValue(static_cast<const
+			NPL::AddValueTo(ctx.GetRecordRef().GetMapRef(), static_cast<const
 				DynamicVauHandler&>(vau).eformal, std::allocator_arg,
 				ctx.get_allocator(), std::move(r_env));
 			// NOTE: The dynamic environment is either out of TCO action or
@@ -1892,7 +1892,7 @@ CheckToUndefine(TermNode& term, ContextNode& ctx)
 			n(NPL::ResolveRegular<const TokenValue>(*std::next(term.begin())));
 		auto& env(ctx.GetRecordRef());
 
-		if(!env.Frozen)
+		if(!env.IsFrozen())
 			return {env, n};
 		throw TypeError("Cannot remove a variable in a frozen environment.");
 	}
@@ -3347,16 +3347,19 @@ LetAsteriskImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 #		endif
 				ContextState::Access(ctx).ClearCombiningTerm();
 				term.Value.Clear();
-				// XXX: The nested 'combine-return' continuations in
+				// XXX: The usual nested 'combine-return' continuations in
 				//	%ReduceCombined are omitted even when TCO is not available,
 				//	since they are still idempotent in the tail context
 				//	(guaranteed by the semantics of the derivation in the
-				//	operation). The enclosing call initialiating %LetAsterisk or
+				//	operation). The enclosing call initiating %LetAsterisk or
 				//	%LetAsteriskRef shall still have the continuation.
 #		if NPL_Impl_NPLA1_Enable_Thunked
 				// XXX: This is not needed because it is called above.
 			//	SetupNextTerm(ctx, term);
-				return RelaySwitched(ctx, Continuation(std::ref(h), ctx));
+				// XXX: 'MakeGLContinuation(h)' is specialized enough without
+				//	%trivial_swap.
+				return
+					A1::RelayCurrentOrDirect(ctx, MakeGLContinuation(h), term);
 #		else
 				return h(term, ctx);
 #		endif
@@ -3521,9 +3524,8 @@ ReduceMoveEnv1(TermNode& term, shared_ptr<Environment>& p_env)
 }
 
 ReductionStatus
-DoBindingsToEnvironment(TermNode& term, ContextNode& ctx,
-	shared_ptr<Environment>& p_env, TNIter i, TermNode& bindings,
-	TermNode& operand)
+DoBindingsToEnvironment(TermNode& term, ContextNode& ctx, shared_ptr<
+	Environment>& p_env, TNIter i, TermNode& bindings, TermNode& operand)
 {
 	auto& con(term.GetContainerRef());
 
@@ -3628,7 +3630,7 @@ BindImports(const shared_ptr<Environment>& p_env, TermNode& term, ContextNode&
 				}
 				else if(bool(bound.Tags & TermTags::Temporary))
 					LiftOtherOrCopy(nterm, bound,
-						!NPL::Deref(pr.second).Frozen);
+						!NPL::Deref(pr.second).IsFrozen());
 				else
 					SetEvaluatedValue(nterm, bound, pr.second);
 				// XXX: Different to %EvaluateIdentifier, only
@@ -4007,10 +4009,10 @@ Cond(TermNode& term, ContextNode& ctx)
 #else
 	for(auto i(term.begin()); i != term.end(); ++i)
 	{
-		auto& clause(Deref(i));
+		auto& clause(NPL::Deref(i));
 		auto j(CondClauseCheck(clause));
 
-		ReduceOnce(Deref(j), ctx);
+		ReduceOnce(NPL::Deref(j), ctx);
 		if(CondTest(clause, j))
 			return ReduceOnceLifted(term, ctx, clause);
 	}

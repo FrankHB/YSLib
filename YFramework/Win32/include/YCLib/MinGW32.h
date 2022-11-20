@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2476
+\version r2479
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2022-01-25 05:23 +0800
+	2022-11-05 20:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -998,10 +998,11 @@ public:
 
 /*!
 \brief 取模块映像路径。
-\since build 701
+\since build 960
 */
 YB_ATTR_nodiscard YF_API wstring
-FetchModuleFileName(::HMODULE = {}, YSLib::RecordLevel = YSLib::Err);
+FetchModuleFileName(::HMODULE = {}, wstring::allocator_type = {},
+	YSLib::RecordLevel = YSLib::Err);
 
 //! \since build 937
 //@{

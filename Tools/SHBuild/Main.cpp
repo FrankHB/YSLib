@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r4580
+\version r4588
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2022-09-14 03:06 +0800
+	2022-11-21 04:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,10 +35,11 @@ See readme file for details.
 //	YSLib::vector, YSLib::Logger, YSLib::Warning, YSLib::to_std_string,
 //	YSLib::string_view, YSLib::to_pmr_string, YSLib::to_string, YSLib::Debug,
 //	YSLib::Informative, YSLib::Err, namespace std::placeholders, std::vector,
-//	std::initializer_list, std::invalid_argument, ystdex::exists,
-//	ystdex::exists_substr, YSLib::uspawn, YSLib::ifstream,
+//	std::initializer_list, std::invalid_argument, YSLib::uspawn,
+//	YSLib::ifstream, ystdex::exists, ystdex::exists_substr,
 //	IO::FetchNativeDynamicModuleExtension, YSLib::uremove,
-//	YSLib::CommandArguments, YSLib::istringstream, EXIT_FAILURE, EXIT_SUCCESS;
+//	YSLib::FetchEnvironmentVariable, YSLib::CommandArguments,
+//	YSLib::istringstream, EXIT_FAILURE, EXIT_SUCCESS;
 #include <ystdex/function.hpp> // for ystdex::unchecked_function;
 #include YFM_YSLib_Core_YEvent // for ystdex::bind1, YSLib::function,
 //	trivial_swap;
@@ -488,10 +489,12 @@ RunNPLFromStream(const char* name, std::istream&& is,
 	global.OutputStreamPtr = make_observer(&std::cout);
 	// NOTE: The ground environment is saved during the call to %InvokeIn.
 	InvokeIn(cs, [&]{
-		cs.GetRecordRef().DefineChecked("env_SHBuild_", GetModuleFor(cs, [&]{
+		Environment::DefineChecked(cs.GetRecordRef().GetMapRef(),
+			"env_SHBuild_", GetModuleFor(cs, [&]{
 			LoadModule_SHBuild(cs);
 			// XXX: Overriding.
-			cs.GetRecordRef().Define("SHBuild_BaseTerminalHook_",
+			Environment::Define(cs.GetRecordRef().GetMapRef(),
+				"SHBuild_BaseTerminalHook_",
 				ValueObject(function<void(const string&, const string&)>(
 				[&](const string& n, const string& val){
 					using namespace YSLib::Consoles;

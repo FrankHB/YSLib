@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3981
+\version r3997
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2022-10-01 01:39 +0800
+	2022-11-05 21:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,11 +26,11 @@
 
 
 #include "Helper/YModules.h"
-#include YFM_Helper_Initialization // for IO::Path,
-//	FetchCurrentWorkingDirectory, IO::FetchSeparator, IO::MaxPathLength,
-//	IO::FetchSeparator, GeneralEvent, pmr::new_delete_resource_t, ystdex::nptr,
-//	pair, map, mutex, lock_guard, IO::EnsureDirectory, IO::VerifyDirectory,
-//	PerformKeyAction, IO::TraverseChildren, NativePathView;
+#include YFM_Helper_Initialization // for IO::Path, IO::FetchSeparator,
+//	FetchCurrentWorkingDirectory, IO::MaxPathLength, GeneralEvent,
+//	pmr::new_delete_resource_t, ystdex::nptr, pair, map, mutex, lock_guard,
+//	IO::EnsureDirectory, IO::VerifyDirectory, PerformKeyAction,
+//	IO::TraverseChildren, NodeCategory, NativePathView, String;
 #if !(YCL_Win32 || YCL_Linux)
 #	include <ystdex/string.hpp> // for ystdex::rtrim;
 #	include YFM_YCLib_FileSystem // for platform::EndsWithNonSeperator;
@@ -38,8 +38,9 @@
 #include <ystdex/range.hpp> // for ystdex::begin, ystdex::end;
 #include <ystdex/algorithm.hpp> // for ystdex::fast_all_of;
 #if YCL_Win32
-#	include YFM_Win32_YCLib_NLS // for platform_ex::FetchDBCSOffset,
-//	platform_ex::WCSToUTF8, platform_ex::UTF8ToWCS;
+#	include YFM_Win32_YCLib_NLS // for FetchModuleFileName,
+//	platform_ex::FetchDBCSOffset, platform_ex::WCSToUTF8,
+//	platform_ex::UTF8ToWCS;
 #endif
 #include YFM_CHRLib_MappingEx // for CHRLib::cp113_lkp;
 #include YFM_NPL_Configuration // for NPL::Configuration, A1::NodeLoader;
@@ -122,7 +123,7 @@ struct RootPathCache
 		: PathString([&]{
 #if YCL_Win32
 			IO::Path image(platform::ucast(
-				platform_ex::FetchModuleFileName().data()), a);
+				platform_ex::FetchModuleFileName({}, a).data()), a);
 
 			if(!image.empty())
 			{
@@ -137,6 +138,7 @@ struct RootPathCache
 			const char*
 				sd_paths[]{"/sdcard/", "/mnt/sdcard/", "/storage/sdcard0/"};
 
+			yunused(a);
 			for(const auto& path : sd_paths)
 				if(IO::VerifyDirectory(path))
 				{
@@ -151,7 +153,7 @@ struct RootPathCache
 			// FIXME: What if link reading failed (i.e. permission denied)?
 			// XXX: Link content like 'node_type:[inode]' is not supported.
 			auto image(IO::ResolvePath<ystdex::path<vector<string>,
-				IO::PathTraits>>(string_view("/proc/self/exe")));
+				IO::PathTraits>>(string_view("/proc/self/exe"), a));
 
 			if(!image.empty())
 			{
@@ -167,7 +169,7 @@ struct RootPathCache
 			// XXX: Trimming is necessary, because it is unspecified to have
 			//	trailing slashes with %platform::ugetcwd as POSIX.1 2004.
 			auto root_path(ystdex::rtrim(FetchCurrentWorkingDirectory<char>(
-				IO::MaxPathLength), IO::FetchSeparator<char>()));
+				IO::MaxPathLength, a), IO::FetchSeparator<char>()));
 
 			YAssert(platform::EndsWithNonSeperator(root_path),
 				"Invalid argument found.");
@@ -176,7 +178,7 @@ struct RootPathCache
 // TODO: Add similar implemnetation for BSD family OS, etc.
 #endif
 			throw GeneralEvent("Failed finding working root path.");
-		}()), Path(PathString, a), Parent(Path / u"..", a)
+		}()), Path(PathString), Parent(Path / u"..")
 	{
 		YTraceDe(Informative, "Initialized root directory path '%s'.",
 			PathString.c_str());
@@ -186,7 +188,7 @@ struct RootPathCache
 YB_ATTR_nodiscard YB_PURE const RootPathCache&
 FetchRootPathCache()
 {
-	pmr::new_delete_resource_t r;
+	static pmr::new_delete_resource_t r;
 	static const RootPathCache cache(&r);
 
 	return cache;
@@ -253,7 +255,10 @@ FetchPreferredConfPath()
 		}
 		YTraceDe(Informative, "FHS layout is not detected, using the root path"
 			" as the preferred configuration path.");
-		return FetchRootPathString();
+
+		const auto& r(FetchRootPathString());
+
+		return string(r, r.get_allocator());
 	}());
 
 	return conf_path;

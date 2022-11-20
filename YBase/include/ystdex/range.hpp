@@ -11,13 +11,13 @@
 /*!	\file range.hpp
 \ingroup YStandardEx
 \brief 范围操作。
-\version r1225
+\version r1233
 \author FrankHB <frankhb1989@gmail.com>
 \since build 624
 \par 创建时间:
 	2015-08-18 22:33:54 +0800
 \par 修改时间:
-	2022-03-21 12:08 +0800
+	2022-11-21 01:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -712,14 +712,6 @@ range_size(const _tRange& c, false_)
 
 } // namespace details;
 
-/*!
-\ingroup algorithms
-\pre 参数指定的迭代器范围（若存在）有效。
-\note 参数 \c first 和 \c last 指定迭代器范围。
-\note 对不以迭代器指定的范围，使用 ystdex::begin 和 ystdex::end 取迭代器。
-\note 确定为 const 迭代器时使用 ystdex::cbegin 和 ystdex::cend 代替。
-*/
-//@{
 /*!
 \brief 取范围大小。
 \since build 546
