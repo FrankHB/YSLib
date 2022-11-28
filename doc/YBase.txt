@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r1981
+\version r1984
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2022-10-01 12:57 +0800
+	2022-11-21 05:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -327,10 +327,10 @@ YBase 要求以下显式的依赖：
 "iterator_op.hpp" 依赖 "range.hpp" 和 "deref_op.hpp" ；
 "exception.h" 依赖 <libdefect/exception.h> 、<stdexcept> 和 <system_error> ；
 "typeindex.h" 依赖 "typeinfo.h" ；
-"type_traits.hpp" 依赖 "type_inspection.hpp" 、"integral_constant.hpp" 、"invoke.hpp" 和  "swap.hpp" ；
+"type_traits.hpp" 依赖 "type_inspection.hpp" 、"integral_constant.hpp" 、"invoke.hpp" 和 "swap.hpp" ；
 "utility.hpp" 依赖 "swap.hpp" 、"enum.hpp" 和 "integer_sequence.hpp" ；
 "tuple.hpp" 依赖 "apply.hpp" ；
-"memory.hpp" 依赖 "pointer.hpp" ；
+"memory.hpp" 依赖 "pointer.hpp" 和 "allocator.hpp" ；
 "functional.hpp" 依赖 "invoke.hpp" 、"ref.hpp" 、"functor.hpp" 、"bind.hpp" 、"function.hpp" 和 "hash.hpp"；
 "string.hpp" 、"array.hpp" 、"string_view" 、"list.hpp" 、"map.hpp" 和 "set.hpp" 依赖 "range.hpp" ；
 "iterator.hpp" 依赖 "iterator_op.hpp" 。
@@ -379,7 +379,7 @@ YBase 要求以下显式的依赖：
 "apply.hpp" 依赖 "invoke.hpp" ；
 "tuple.hpp" 依赖 "apply.hpp" ；
 "allocator.hpp" 内部依赖 "type_op.hpp" 和 "pointer.hpp" ；
-"memory.hpp" 依赖 "pointer.hpp"（蕴含内部依赖 "iterator_op.hpp" ）；
+"memory.hpp" 依赖 "pointer.hpp"（蕴含内部依赖 "iterator_op.hpp" ）和 "allocator.hpp" ；
 "memory.hpp" 内部依赖 "placement.hpp" 和 "ref.hpp" ；
 "memory_resource.h" 内部依赖 "memory.hpp" ；
 "hash.hpp" 和 "mixin.hpp" 依赖 "tuple.hpp" ；

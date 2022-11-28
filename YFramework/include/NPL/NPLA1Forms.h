@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8897
+\version r8898
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2022-10-13 12:57 +0800
+	2022-11-26 09:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1282,7 +1282,7 @@ SetWithRecursion(TermNode&, ContextNode&);
 
 /*!
 \throw InvalidSyntax 标识符不是符号。
-\throw TypeError 当前环境被冻结。
+\throw TypeError 嵌套异常 TypeError ：当前环境被冻结。
 \sa RemoveIdentifier
 \since build 867
 */

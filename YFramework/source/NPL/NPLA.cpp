@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4270
+\version r4318
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2022-11-21 04:37 +0800
+	2022-11-28 05:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,15 +32,16 @@
 //	AccessPtr, ystdex::value_or, ystdex::write, std::bind, TraverseSubnodes,
 //	bad_any_cast, std::allocator_arg, YSLib::NodeSequence, ystdex::begins_with,
 //	shared_ptr, ystdex::sfmt, ystdex::unchecked_function, observer_ptr,
-//	ystdex::make_obj_using_allocator, trivial_swap, CountPrefix, make_observer,
-//	TermTags, TryAccessLeafAtom, NPL::Deref, YSLib::sfmt, AssertReferentTags,
-//	ystdex::call_value_or, ystdex::compose, GetLValueTagsOf, std::mem_fn,
-//	IsTyped, ystdex::invoke_value_or, ystdex::ref, PropagateTo, IsSticky,
-//	FindSticky, std::distance, ystdex::as_const, TryAccessLeaf,
-//	AccessFirstSubterm, YSLib::FilterExceptions, YSLib::allocate_shared,
-//	ystdex::addrof, ystdex::second_of, type_info, std::current_exception,
-//	std::rethrow_exception, std::throw_with_nested, lref, ystdex::retry_on_cond,
-//	ystdex::id, pair, IsAtom, NPL::IsMovable, YSLib::ExtractException;
+//	ystdex::make_obj_using_allocator, trivial_swap, make_observer, TermTags,
+//	TryAccessLeafAtom, NPL::Deref, YSLib::sfmt, CountPrefix, IsSticky,
+//	AssertReferentTags, ystdex::call_value_or, ystdex::compose, GetLValueTagsOf,
+//	std::mem_fn, IsTyped, ystdex::invoke_value_or, ystdex::ref, PropagateTo,
+//	std::distance, ystdex::as_const, FindSticky, TryAccessLeaf,
+//	AccessFirstSubterm, ystdex::addrof, ystdex::second_of,
+//	YSLib::FilterExceptions, YSLib::allocate_shared, type_info,
+//	std::current_exception, std::rethrow_exception, std::throw_with_nested,
+//	lref, ystdex::retry_on_cond, ystdex::id, pair, IsAtom, NPL::IsMovable,
+//	YSLib::ExtractException;
 
 //! \since build 903
 //@{
@@ -851,6 +852,14 @@ Environment::~Environment()
 ImplDeDtor(Environment)
 #endif
 
+YB_ATTR_nodiscard YB_PURE BindingMap&
+Environment::GetMapCheckedRef()
+{
+	if(!IsFrozen())
+		return GetMapRef();
+	throw TypeError("Frozen environment found.");
+}
+
 void
 Environment::CheckParent(const ValueObject& vo)
 {
@@ -926,35 +935,17 @@ Environment::InitAnchor(allocator_type a)
 	return YSLib::allocate_shared<AnchorData>(a);
 }
 
-Environment::NameResolution::first_type
-Environment::LookupName(string_view id) const
-{
-	YAssertNonnull(id.data());
-	return make_observer(ystdex::call_value_or<BindingMap::mapped_type*>(
-		ystdex::compose(ystdex::addrof<>(), ystdex::second_of<>()),
-		bindings.find(id), {}, bindings.cend()));
-}
-
-bool
-Environment::Remove(string_view id)
-{
-	YAssertNonnull(id.data());
-	// XXX: %BindingMap does not have transparent key %erase. This is like
-	//	%std::set.
-	return ystdex::erase_first(bindings, id);
-}
-
 void
-Environment::RemoveChecked(string_view id)
+Environment::RemoveChecked(BindingMap& m, string_view id)
 {
-	if(!Remove(id))
+	if(!Remove(m, id))
 		throw BadIdentifier(id, 0);
 }
 
 bool
-Environment::Replace(string_view id, ValueObject&& vo)
+Environment::Replace(BindingMap& m, string_view id, ValueObject&& vo)
 {
-	if(const auto p = LookupName(id))
+	if(const auto p = LookupName(m, id))
 	{
 		swap(p->Value, vo);
 		return true;
@@ -963,9 +954,9 @@ Environment::Replace(string_view id, ValueObject&& vo)
 }
 
 void
-Environment::ReplaceChecked(string_view id, ValueObject&& vo)
+Environment::ReplaceChecked(BindingMap& m, string_view id, ValueObject&& vo)
 {
-	if(!Replace(id, std::move(vo)))
+	if(!Replace(m, id, std::move(vo)))
 		throw BadIdentifier(id, 0);
 }
 
@@ -979,9 +970,8 @@ Environment::ThrowForInvalidType(const type_info& ti)
 void
 Environment::ThrowForInvalidValue(bool record)
 {
-	throw std::invalid_argument(record
-		? "Invalid environment record pointer found."
-		: "Invalid environment found.");
+	throw std::invalid_argument(record ? "Invalid environment record pointer"
+		" found." : "Invalid environment found.");
 }
 
 
@@ -1060,7 +1050,7 @@ ContextNode::DefaultHandleException(std::exception_ptr p)
 		std::throw_with_nested(TypeError(MismatchedTypesToString(e))))
 }
 
-Environment::NameResolution
+NameResolution
 ContextNode::DefaultResolve(shared_ptr<Environment> p_env, string_view id)
 {
 	YAssertNonnull(p_env);
@@ -1072,10 +1062,9 @@ ContextNode::DefaultResolve(shared_ptr<Environment> p_env, string_view id)
 		// XXX: Flatten attribute is less efficient with x86_64-pc-linux G++
 		//	12.1.
 #if YB_IMPL_GNUCPP >= 120000
-		[&](Environment::NameResolution::first_type p)
+		[&](NameResolution::first_type p)
 #else
-		[&] YB_LAMBDA_ANNOTATE(
-		(Environment::NameResolution::first_type p), , flatten)
+		[&] YB_LAMBDA_ANNOTATE((NameResolution::first_type p), , flatten)
 #endif
 	// XXX: This uses G++ extension to work around the compatible issue. See
 	//	also %YB_ATTR_LAMBDA_QUAL.
@@ -1139,7 +1128,7 @@ ContextNode::DefaultResolve(shared_ptr<Environment> p_env, string_view id)
 		}
 		return false;
 	}, [&, id]{
-		return p_env->LookupName(id);
+		return LookupName(p_env->GetMapUncheckedRef(), id);
 	}));
 
 	return {p_obj, std::move(p_env)};
@@ -1167,10 +1156,10 @@ ContextNode::RewriteLoopUntil(ReducerSequence::const_iterator i)
 }
 
 shared_ptr<Environment>
-ContextNode::SwitchEnvironment(const shared_ptr<Environment>& p_env)
+ContextNode::SwitchEnvironment(shared_ptr<Environment> p_env)
 {
 	if(p_env)
-		return SwitchEnvironmentUnchecked(p_env);
+		return SwitchEnvironmentUnchecked(std::move(p_env));
 	Environment::ThrowForInvalidValue(true);
 }
 

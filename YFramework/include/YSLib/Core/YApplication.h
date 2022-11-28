@@ -11,13 +11,13 @@
 /*!	\file YApplication.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1800
+\version r1802
 \author FrankHB <frankhb1989@gmail.com>
 \since build 577
 \par 创建时间:
 	2009-12-27 17:12:27 +0800
 \par 修改时间:
-	2022-09-03 21:39 +0800
+	2022-11-21 07:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 //	default_allocator, byte, stack, any, stack, recursive_mutex, shared_ptr,
 //	std::is_nothrow_copy_constructible, locked_ptr, ystdex::decay_t,
 //	YSLib::unchecked_any_cast;
-#include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
+#include <ystdex/scope_guard.hpp> // for ystdex::make_unique_guard;
 
 namespace YSLib
 {
@@ -130,7 +130,7 @@ public:
 			"Invalid guard function found.");
 		lock_guard<recursive_mutex> lck(on_exit_mutex);
 
-		TryExpr(PushExit(ystdex::unique_guard(f)))
+		TryExpr(PushExit(ystdex::make_unique_guard(f)))
 		catch(...)
 		{
 			f();

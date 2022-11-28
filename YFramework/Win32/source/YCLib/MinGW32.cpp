@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2481
+\version r2483
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2022-11-05 20:53 +0800
+	2022-11-21 07:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,7 @@
 #	include YFM_Win32_YCLib_NLS // for WCSToUTF8;
 #	include <ystdex/cache.hpp> // for ystdex::cache_lookup;
 #	include <ystdex/container.hpp> // for ystdex::retry_for_vector;
-#	include <ystdex/scope_guard.hpp> // for ystdex::unique_guard,
+#	include <ystdex/scope_guard.hpp> // for ystdex::make_unique_guard,
 //	ystdex::dismiss, std::bind, std::placeholders::_1;
 #	include <ystdex/swap.hpp> // for ystdex::exchange;
 
@@ -490,7 +490,7 @@ DirectoryFindData::GetNodeCategory() const ynothrow
 
 		name.remove_suffix(1);
 		TryInvoke([&]{
-			auto gd(ystdex::unique_guard([&]() ynothrow{
+			auto gd(ystdex::make_unique_guard([&]() ynothrow{
 				res |= NodeCategory::Invalid;
 			}));
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r10362
+\version r10448
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-11-06 20:14 +0800
+	2022-11-28 05:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1721,7 +1721,7 @@ GetModuleFor(ContextNode& ctx, _fCallable&& f, _tParams&&... args)
 	AssignParent(ctx, std::move(parent));
 	ystdex::invoke(yforward(f), yforward(args)...);
 	ctx.GetRecordRef().Freeze();
-	return ctx.ShareRecord();
+	return gd.func.Switch();
 }
 
 /*!
@@ -1730,27 +1730,67 @@ GetModuleFor(ContextNode& ctx, _fCallable&& f, _tParams&&... args)
 */
 //@{
 //! \brief 加载模块为变量，若已存在则忽略。
+//@{
+//! \since build 961
+template<typename _fCallable, typename... _tParams>
+inline void
+LoadModule(BindingMap& m, ContextNode& ctx, string_view module_name,
+	_fCallable&& f, _tParams&&... args)
+{
+	Environment::Define(m, module_name,
+		A1::GetModuleFor(ctx, yforward(f), yforward(args)...));
+}
+//! \since build 961
+template<typename _fCallable, typename... _tParams>
+inline void
+LoadModule(Environment& env, ContextNode& ctx, string_view module_name,
+	_fCallable&& f, _tParams&&... args)
+{
+	A1::LoadModule(env.GetMapCheckedRef(), ctx, module_name, yforward(f),
+		yforward(args)...);
+}
 template<typename _fCallable, typename... _tParams>
 inline void
 LoadModule(ContextNode& ctx, string_view module_name, _fCallable&& f,
 	_tParams&&... args)
 {
-	Environment::Define(ctx.GetRecordRef().GetMapRef(), module_name,
-		A1::GetModuleFor(ctx, yforward(f), yforward(args)...));
+	A1::LoadModule(ctx.GetRecordRef(), ctx, module_name, yforward(f),
+		yforward(args)...);
 }
+//@}
 
 /*!
 \brief 加载模块为变量，若已存在抛出异常。
 \exception BadIdentifier 变量绑定已存在。
 */
+//@{
+//! \since build 961
+template<typename _fCallable, typename... _tParams>
+inline void
+LoadModuleChecked(BindingMap& m, ContextNode& ctx, string_view module_name,
+	_fCallable&& f, _tParams&&... args)
+{
+	Environment::DefineChecked(m, module_name,
+		A1::GetModuleFor(ctx, yforward(f), yforward(args)...));
+}
+//! \since build 961
+template<typename _fCallable, typename... _tParams>
+inline void
+LoadModuleChecked(Environment& env, ContextNode& ctx, string_view module_name,
+	_fCallable&& f, _tParams&&... args)
+{
+	A1::LoadModuleChecked(env.GetMapCheckedRef(), ctx, module_name, yforward(f),
+		yforward(args)...);
+}
 template<typename _fCallable, typename... _tParams>
 inline void
 LoadModuleChecked(ContextNode& ctx, string_view module_name, _fCallable&& f,
 	_tParams&&... args)
 {
-	Environment::DefineChecked(ctx.GetRecordRef().GetMapRef(), module_name,
-		A1::GetModuleFor(ctx, yforward(f), yforward(args)...));
+	A1::LoadModuleChecked(ctx.GetRecordRef(), ctx, module_name, yforward(f),
+		yforward(args)...);
 }
+//@}
 //@}
 //@}
 
@@ -1825,10 +1865,12 @@ YB_ATTR_nodiscard YF_API YB_PURE ystdex::optional<string>
 ExtractEnvironmentFormal(TermNode&);
 //@}
 
+//! \pre 间接断言：第三参数的标签可表示一等对象的值。
+//@{
 /*!
 \throw InvalidSyntax 嵌套异常 ArityMismatch ：参数数匹配失败。
 \throw InvalidSyntax 嵌套异常 ParameterMismatch ：参数匹配失败。
-\note 不具有强异常安全保证。匹配失败时，其它的绑定状态未指定。
+\note 不具有强异常安全保证：匹配失败时，其它的绑定状态未指定。
 
 递归遍历参数和操作数树进行结构化匹配。
 若匹配失败，则抛出异常。
@@ -1885,20 +1927,22 @@ MatchParameter(const TermNode&, TermNode&, function<void(TermNode&, TNIter,
 	void(const TokenValue&, TermNode&, TermTags, const EnvironmentReference&)>,
 	TermTags, const EnvironmentReference&);
 
-//! \pre 间接断言：第三参数的标签可表示一等对象的值。
-//@{
 /*!
 \brief 使用操作数结构化匹配并绑定参数。
 \pre 间接断言：第一参数非空。
 \throw ArityMismatch 子项数匹配失败。
 \throw InvalidReference 非法的 @ 引用标记字符绑定。
 \throw InvalidSyntax 嵌套异常 ParameterMismatch ：形式参数项不符合语法要求。
-\note 第一参数指定绑定所在的环境。
+\note 第一参数指定绑定的目标。
 \sa MatchParameter
 \sa TermReference
 \since build 894
 
 形式参数和操作数为项指定的表达式树。
+若第一参数是绑定映射，则绑定的目标是第一参数，
+	且最后一个参数指定绑定时使用的环境引用；
+否则，绑定的目标是第一参数中的非冻结的可变名称绑定映射，
+	且绑定时使用的环境引用是第一参数初始化的环境弱引用。
 第二参数指定形式参数，第三参数指定操作数。
 进行匹配的算法递归搜索形式参数及其子项，要求参见 MatchParameter 。
 若匹配成功，在第一参数指定的环境内绑定未被忽略的匹配的非列表项。
@@ -1910,8 +1954,18 @@ MatchParameter(const TermNode&, TermNode&, function<void(TermNode&, TNIter,
 	当绑定的引用标记字符为 @ 且不是列表项时抛出异常。
 	按引用传递绑定直接转移该项的内容。
 */
+//@{
+//! \since build 961
+YF_API void
+BindParameter(BindingMap&, const TermNode&, TermNode&,
+	const EnvironmentReference&);
+/*!
+\throw TypeError 嵌套异常 TypeError ：第一参数被冻结。
+\sa Environment::GetMapCheckedRef
+*/
 YF_API void
 BindParameter(const shared_ptr<Environment>&, const TermNode&, TermNode&);
+//@}
 
 /*!
 \brief 使用操作数结构化匹配并绑定参数到合式的形式参数树。
@@ -1921,16 +1975,25 @@ BindParameter(const shared_ptr<Environment>&, const TermNode&, TermNode&);
 \sa CheckParameterTree
 \since build 917
 
-同 BindParameter ，但假定形式参数树确保通过检查没有语法错误，否则行为未定义。
+同 BindParameter ，但假定形式参数树确保通过检查没有语法错误。
+调用时应当确保满足假设，否则行为未定义。
 实现假定不存在形式参数树具有引起语法错误的错误条件。
 通过先前在同一形式参数树上的 CheckParameterTree 调用可保证符合前置条件。
 若确保绑定不具有引起对象语言中可观察行为的副作用，先前的 BindParameter
 	或 BindParameterWellFormed 也可确保满足前置条件。
 */
+//@{
+//! \since build 961
+YF_API void
+BindParameterWellFormed(BindingMap&, const TermNode&, TermNode&,
+	const EnvironmentReference&);
+/*!
+\throw TypeError 嵌套异常 TypeError ：第一参数被冻结。
+\sa Environment::GetMapCheckedRef
+*/
 YF_API void
 BindParameterWellFormed(const shared_ptr<Environment>&, const TermNode&,
 	TermNode&);
-//@}
 //@}
 
 /*!
@@ -1939,8 +2002,20 @@ BindParameterWellFormed(const shared_ptr<Environment>&, const TermNode&,
 
 同 BindParameter ，但形式参数指定为符号，不进行递归绑定或结尾序列匹配。
 */
+//@{
+//! \since build 961
+YF_API void
+BindSymbol(BindingMap&, const TokenValue&, TermNode&,
+	const EnvironmentReference&);
+/*!
+\throw TypeError 嵌套异常 TypeError ：第一参数被冻结。
+\sa Environment::GetMapCheckedRef
+*/
 YF_API void
 BindSymbol(const shared_ptr<Environment>&, const TokenValue&, TermNode&);
+//@}
+//@}
+//@}
 
 
 /*!

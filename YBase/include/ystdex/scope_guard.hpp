@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守卫。
-\version r615
+\version r655
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2022-02-26 22:50 +0800
+	2022-11-21 08:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,6 +40,7 @@ namespace ystdex
 {
 
 /*!
+\ingroup guards
 \brief 作用域守卫：析构时调用保存的函数对象或引用。
 \note 不可复制，不提供其它状态。
 \since build 605
@@ -70,21 +71,21 @@ struct guard
 //@{
 //! \brief 创建作用域守卫。
 //@{
-//! \since build 649
-template<typename _type, bool _bNoThrow = true, typename... _tParams>
-guard<_type>
-make_guard(_tParams&&... args) ynoexcept_spec(guard<_type, _bNoThrow>(
-	guard<_type, _bNoThrow>(yforward(args)...)))
+//! \since build 961
+template<typename _func, bool _bNoThrow = true, typename... _tParams>
+YB_ATTR_nodiscard inline guard<_func, _bNoThrow>
+make_guard(_tParams&&... args) ynoexcept_spec(guard<_func, _bNoThrow>(
+	guard<_func, _bNoThrow>(yforward(args)...)))
 {
-	return guard<_type, _bNoThrow>(yforward(args)...);
+	return guard<_func, _bNoThrow>(yforward(args)...);
 }
-//! \since build 606
-template<bool _bNoThrow = true, typename _type>
-guard<_type>
-make_guard(_type f)
-	ynoexcept_spec(guard<_type, _bNoThrow>(guard<_type, _bNoThrow>(f)))
+//! \since build 961
+template<bool _bNoThrow = true, typename _func>
+YB_ATTR_nodiscard inline guard<_func, _bNoThrow>
+make_guard(_func f)
+	ynoexcept_spec(guard<_func, _bNoThrow>(guard<_func, _bNoThrow>(f)))
 {
-	return guard<_type, _bNoThrow>(f);
+	return guard<_func, _bNoThrow>(f);
 }
 //@}
 
@@ -95,29 +96,37 @@ struct is_bitwise_swappable<guard<_func, _bNoThrow>>
 {};
 //@}
 
-//! \since build 820
+//! \since build 961
 //@{
-template<typename _tState = bool, bool _bNoThrow = true, typename _func>
-guard<one_shot<decay_t<_func>, void, decay_t<_tState>>, _bNoThrow>
-unique_guard(_func&& f, _tState&& s = true) ynoexcept_spec(
-	guard<one_shot<decay_t<_func>, void, decay_t<_tState>>, _bNoThrow>(
-	guard<one_shot<decay_t<_func>, void, decay_t<_tState>>,
-	_bNoThrow>(yforward(f), yforward(s))))
+template<typename _func, typename _tCond = bool, bool _bNoThrow = true>
+using unique_guard
+	= guard<one_shot<decay_t<_func>, void, decay_t<_tCond>>, _bNoThrow>;
+
+template<typename _type, typename _func, typename _tCond = bool,
+	bool _bNoThrow = true>
+using unique_state_guard
+	= guard<one_shot<decay_t<_func>, _type, decay_t<_tCond>>, _bNoThrow>;
+
+//! \relates unique_guard
+template<typename _tCond = bool, bool _bNoThrow = true, typename _func>
+YB_ATTR_nodiscard inline unique_guard<_func, _tCond, _bNoThrow>
+make_unique_guard(_func&& f, _tCond&& cond = true)
+	ynoexcept_spec(unique_guard<_func, _tCond, _bNoThrow>(
+	unique_guard<_func, _tCond, _bNoThrow>(yforward(f), yforward(cond))))
 {
-	return guard<one_shot<decay_t<_func>, void, decay_t<_tState>>, _bNoThrow>(
-		yforward(f), yforward(s));
+	return unique_guard<_func, _tCond, _bNoThrow>(yforward(f), yforward(cond));
 }
 
-template<typename _tRes, typename _tState = bool, bool _bNoThrow = true,
+//! \relates unique_state_guard
+template<typename _type, typename _tCond = bool, bool _bNoThrow = true,
 	typename _func>
-guard<one_shot<_func, _tRes, decay_t<_tState>>, _bNoThrow>
-unique_state_guard(_func&& f, _tRes r = {}, _tState&& s = true) ynoexcept_spec(
-	guard<one_shot<decay_t<_func>, _tRes, decay_t<_tState>>, _bNoThrow>(
-	guard<one_shot<decay_t<_func>, _tRes, decay_t<_tState>>, _bNoThrow>(
-	yforward(f), r, s)))
+YB_ATTR_nodiscard inline unique_state_guard<_type, _func, _tCond, _bNoThrow>
+make_unique_state_guard(_func&& f, _type r = {}, _tCond&& cond = true)
+	ynoexcept_spec(unique_state_guard<_type, _func, _tCond, _bNoThrow>(
+	unique_state_guard<_type, _func, _tCond, _bNoThrow>(yforward(f), r, cond)))
 {
-	return guard<one_shot<decay_t<_func>, _tRes, decay_t<_tState>>, _bNoThrow>(
-		yforward(f), r, yforward(s));
+	return unique_state_guard<_type, _func, _tCond, _bNoThrow>(yforward(f), r,
+		yforward(cond));
 }
 //@}
 
@@ -267,6 +276,7 @@ struct state_guard_impl : public tagged_value<_tToken, _type>,
 } // namespace details;
 
 /*!
+\ingroup guards
 \brief 使用临时状态暂存对象的作用域守卫。
 \since build 569
 \warning 非虚析构。
@@ -387,6 +397,7 @@ struct is_bitwise_swappable<state_guard<_type, void, _tToken>>
 
 
 /*!
+\ingroup guards
 \brief 使用 ystdex::vswap 调用暂存对象的作用域守卫。
 \since build 569
 \todo 支持分配器。

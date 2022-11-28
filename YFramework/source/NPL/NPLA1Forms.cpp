@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r28919
+\version r29048
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2022-11-15 00:37 +0800
+	2022-11-28 05:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,34 +34,34 @@
 //	AccessFirstSubterm, ReduceOrdered, LiftOtherValue, std::bind, std::ref,
 //	std::placeholders, std::declval, RetainN, ystdex::as_const, ValueObject,
 //	ReferenceLeaf, IsAtom, ReferenceTerm, ystdex::ref_eq, CountPrefix, IsSticky,
-//	RelaySwitched, trivial_swap, shared_ptr, ContextHandler,
-//	YSLib::unordered_map, string, Environment, lref, TokenValue,
+//	RelaySwitched, trivial_swap, shared_ptr, ContextHandler, string_view,
+//	YSLib::unordered_map, Environment, std::throw_with_nested, string, TokenValue,
 //	any_ops::use_holder, in_place_type, YSLib::HolderFromPointer,
-//	YSLib::allocate_shared, InvalidReference, std::throw_with_nested, TypeError,
-//	BindParameter, Retain, MoveFirstSubterm,L ResolveEnvironment, ShareMoveTerm,
-//	BindParameterWellFormed, ystdex::sfmt, TermToStringWithReferenceMark,
-//	ResolveTerm, LiftOtherOrCopy, ClearCombiningTags, SContext::Analyze,
-//	std::allocator_arg, NPL::ResolveRegular, ystdex::make_transform,
-//	TryAccessLeafAtom, TermReference, EnvironmentList, NPL::AllocateEnvironment,
-//	IsTypedRegular, TryAccessLeaf, ystdex::equality_comparable, IsList,
+//	YSLib::allocate_shared, InvalidReference, TypeError, BindParameter, Retain,
+//	MoveFirstSubterm, ResolveEnvironment, BindParameterWellFormed, ystdex::sfmt,
+//	TermToStringWithReferenceMark, ResolveTerm, LiftOtherOrCopy,
+//	ClearCombiningTags, SContext::Analyze, std::allocator_arg,
+//	NPL::ResolveRegular, ystdex::make_transform, TryAccessLeafAtom,
+//	TermReference, EnvironmentList, NPL::AllocateEnvironment, IsTypedRegular,
+//	TryAccessLeaf, BindSymbol, ystdex::equality_comparable, IsList,
 //	ystdex::fast_all_of, IsEmpty, CheckParameterTree, AssertValueTags,
 //	NPL::AsTermNode, ystdex::exchange, TermTags, YSLib::Debug, NPLException,
 //	YSLib::sfmt, AssignParent, ThrowListTypeErrorForNonList,
 //	GuardFreshEnvironment, A1::MakeForm, ystdex::expand_proxy, AccessRegular,
 //	GetLValueTagsOf, RegularizeTerm, IsPair, LiftPropagatedReference, LiftOther,
 //	IsLeaf, LiftMovedOther, LiftTerm, ThrowValueCategoryError,
-//	ThrowListTypeErrorForAtom, ThrowInvalidSyntaxError,
+//	ThrowListTypeErrorForAtom, ThrowInvalidSyntaxError, ShareMoveTerm,
 //	ExtractEnvironmentFormal, LiftTermOrCopy, EnsureValueTags, type_id,
 //	ystdex::update_thunk, AssertCombiningTerm, LiftToReturn,
 //	ystdex::prefix_eraser, IsTyped, IsBranchedList, EnvironmentGuard,
-//	AssignWeakParent, TryAccessLeaf, BindSymbol, A1::AsForm, ystdex::bind1,
-//	IsNPLASymbol, ystdex::isdigit, std::strchr, ystdex::call_value_or,
-//	ystdex::equal_to, LiftCollapsed, std::distance, ReduceCombinedBranch,
-//	YSLib::usystem, std::mem_fn;
+//	AssignWeakParent, lref, A1::AsForm, ystdex::bind1, IsNPLASymbol,
+//	ystdex::isdigit, std::strchr, ystdex::call_value_or, ystdex::equal_to,
+//	LiftCollapsed, std::distance, ReduceCombinedBranch, YSLib::usystem,
+//	std::mem_fn;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_SContext // for Session;
-#include <ystdex/scope_guard.hpp> // for ystdex::unique_guard, ystdex::dismiss,
-//	ystdex::make_guard;
+#include <ystdex/scope_guard.hpp> // for ystdex::unique_guard,
+//	ystdex::make_unique_guard, ystdex::dismiss, ystdex::make_guard;
 
 namespace NPL
 {
@@ -77,7 +77,8 @@ namespace NPL
 #		define NPL_Impl_NPLA1Forms_VauHandler_OptimizeLevel 3
 #	endif
 #endif
-//@}//! \since build 945
+//@}
+//! \since build 945
 //@{
 #ifndef NDEBUG
 #	define NPL_Impl_NPLA1Forms_TraceVauCall true
@@ -361,6 +362,15 @@ EqualSubterm(TNCIter first1, TNCIter first2, TNCIter last1)
 #endif
 //@}
 
+//! \since build 961
+YB_ATTR_nodiscard YB_PURE BindingMap&
+FetchDefineMapRef(const shared_ptr<Environment>& p_env)
+{
+	TryRet(NPL::Deref(p_env).GetMapCheckedRef())
+	CatchExpr(..., std::throw_with_nested(
+		TypeError("Cannot define variables in a frozen environment.")))
+}
+
 
 // NOTE: This type is a thunk, but not used as a thunk value stored in
 //	%TermNode::ValueObject, hence not an NPLA1 thunk value type.
@@ -373,34 +383,28 @@ private:
 	using shared_ptr_t = shared_ptr<ContextHandler>;
 	//! \since build 784
 	YSLib::unordered_map<string, shared_ptr_t> store;
-
 public:
-	//! \since build 894
-	shared_ptr<Environment> RecordPtr;
-	//! \since build 893
-	lref<const TermNode> TermRef;
+#if NPL_Impl_NPLA1_Enable_Thunked
+	//! \since build 961
+	TermNode Saved;
+#endif
 
-	//! \since build 917
-	RecursiveThunk(const shared_ptr<Environment>& p_env, const TermNode& t)
-		: store(t.get_allocator()), RecordPtr(p_env), TermRef(t)
+	//! \since build 961
+#if NPL_Impl_NPLA1_Enable_Thunked
+	RecursiveThunk(BindingMap& m, TermNode& formals)
+		: store(formals.get_allocator()), Saved(std::move(formals))
+#else
+	RecursiveThunk(BindingMap& m, const TermNode& t)
+		: store(t.get_allocator())
+#endif
 	{
-		Fix(RecordPtr, TermRef);
-	}
-	//! \since build 841
-	DefDeMoveCtor(RecursiveThunk)
+#if NPL_Impl_NPLA1_Enable_Thunked
+		const auto& t(Saved);
+#endif
+		const auto a(t.get_allocator());
 
-	//! \since build 841
-	DefDeMoveAssignment(RecursiveThunk)
-
-private:
-	//! \since build 894
-	void
-	Fix(const shared_ptr<Environment>& p_env, const TermNode& t)
-	{
 		// XXX: This is served as the addtional static environment.
-		auto& env(NPL::Deref(p_env));
-
-		MakeParameterValueMatcher(t.get_allocator(), [&](const TokenValue& n){
+		MakeParameterValueMatcher(a, [&](const TokenValue& n){
 			string_view id(n);
 
 			ExtractSigil(id);
@@ -413,14 +417,20 @@ private:
 				// NOTE: This binds value to a local thunk value. The
 				//	bound symbol can then be rebound to an ordinary
 				//	(non-sharing object.
-				env.Bind(k, TermNode(TermNode::Container(t.get_allocator()),
+				Environment::Bind(m, k, TermNode(TermNode::Container(a),
 					ValueObject(any_ops::use_holder, in_place_type<
 					YSLib::HolderFromPointer<shared_ptr_t>>,
-					store[k] = YSLib::allocate_shared<ContextHandler>(
-					t.get_allocator(), ThrowInvalidCyclicReference))));
+					store[k] = YSLib::allocate_shared<ContextHandler>(a,
+					ThrowInvalidCyclicReference))));
 		})(t);
 	}
+	//! \since build 841
+	DefDeMoveCtor(RecursiveThunk)
 
+	//! \since build 841
+	DefDeMoveAssignment(RecursiveThunk)
+
+private:
 	//! \since build 780
 	YB_NORETURN static ReductionStatus
 	ThrowInvalidCyclicReference(TermNode&, ContextNode&)
@@ -459,21 +469,12 @@ ThrowInsufficientTermsErrorFor(const TermNode& term, InvalidSyntax&& e)
 	CatchExpr(..., std::throw_with_nested(std::move(e)))
 }
 
-//! \since build 917
-void
-CheckFrozenEnvironment(const shared_ptr<Environment>& p_env)
-{
-	if(YB_UNLIKELY(NPL::Deref(p_env).IsFrozen()))
-		throw TypeError("Cannot define variables in a frozen environment.");
-}
-
 //! \since build 919
 void
 CheckBindParameter(const shared_ptr<Environment>& p_env, const TermNode& t,
 	TermNode& o)
 {
-	CheckFrozenEnvironment(p_env);
-	BindParameter(p_env, t, o);
+	BindParameter(FetchDefineMapRef(p_env), t, o, p_env);
 }
 
 //! \since build 868
@@ -586,41 +587,42 @@ struct DoDefineOrSet<true> final
 	Call(TermNode& term, ContextNode& ctx, shared_ptr<Environment> p_env,
 		TermNode& formals, _tParams&&... args)
 	{
+		auto& m(FetchDefineMapRef(p_env));
 #if NPL_Impl_NPLA1_Enable_Thunked
-		// XXX: Terms shall be moved and saved into the actions.
-		auto p_saved(ShareMoveTerm(formals));
 
-		// TODO: Avoid %shared_ptr?
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
 		//	implementation.
-		return ReduceSubsequentPinned(term, ctx,
-			A1::NameTypedReducerHandler(std::bind([&](const
-			shared_ptr<TermNode>&, const shared_ptr<RecursiveThunk>& p_gd,
-			const _tParams&...){
-			CheckFrozenEnvironment(p_gd->RecordPtr);
-			// NOTE: The parameter tree shall have been checked in the
-			//	initialization of %RecursiveThunk.
-			BindParameterWellFormed(p_gd->RecordPtr, p_gd->TermRef, term);
-			// NOTE: This support PTC only when the thunk cleanup is not existed
-			//	at the tail context.
-			return ReduceReturnUnspecified(term);
-		}, std::move(p_saved), YSLib::allocate_shared<RecursiveThunk>(
-			term.get_allocator(), std::move(p_env), *p_saved),
+		return ReduceSubsequentPinned(term, ctx, A1::NameTypedReducerHandler(
+			std::bind([&](const shared_ptr<Environment>& p_e,
+			const RecursiveThunk& gd, const _tParams&...){
+			return ReduceCallBind(m, p_e, gd.Saved, term);
+			// XXX: Terms shall be moved and saved into the actions.
+		}, std::move(p_env), RecursiveThunk(m, formals),
 			std::move(args)...), "match-ptree-recursive"));
 #else
 		// NOTE: This does not support PTC.
-		RecursiveThunk gd(std::move(p_env), formals);
+		RecursiveThunk gd(m, formals);
 
 		yunseq(0, args...);
 		ReduceOnce(term, ctx);
-		CheckFrozenEnvironment(gd.RecordPtr);
+		return ReduceCallBind(m, p_env, formals, term);
+#endif
+	}
+
+private:
+	//! \since build 961
+	YB_ATTR_always_inline static ReductionStatus
+	ReduceCallBind(BindingMap& m, const shared_ptr<Environment>& p_env,
+		const TermNode& formals, TermNode& term)
+	{
 		// NOTE: The parameter tree shall have been checked in the
 		//	initialization of %RecursiveThunk.
-		BindParameterWellFormed(gd.RecordPtr, formals, term);
+		// XXX: Using explicit anchor pointer is more efficient.
+		BindParameterWellFormed(m, formals, term, EnvironmentReference(p_env,
+			NPL::Deref(p_env).GetAnchorPtr()));
 		// NOTE: This support PTC only when the thunk cleanup is not existed at
 		//	the tail context.
 		return ReduceReturnUnspecified(term);
-#endif
 	}
 };
 
@@ -840,7 +842,7 @@ VauBind(ContextNode& ctx, const TermNode& formals, TermNode& term)
 	// NOTE: Forming beta-reducible terms using parameter binding, to substitute
 	//	them as arguments for later closure reduction.
 	// NOTE: The environment is assumed not frozen, so no need to use
-	//	%CheckFrozenEnvironment.
+	//	%FetchDefineMapRef.
 	// NOTE: The parameter tree shall have been checked in the initialization of
 	//	%VauHandler.
 	BindParameterWellFormed(ctx.GetRecordPtr(), formals, term);
@@ -1177,6 +1179,7 @@ private:
 			auto gd(GuardFreshEnvironment(ctx));
 
 			// NOTE: Bound the dynamic environment.
+			// XXX: The fresh environment is always not frozen.
 			NPL::AddValueTo(ctx.GetRecordRef().GetMapRef(), static_cast<const
 				DynamicVauHandler&>(vau).eformal, std::allocator_arg,
 				ctx.get_allocator(), std::move(r_env));
@@ -1881,24 +1884,23 @@ ResolveParentFrom(TermNode& term)
 	return ResolveTerm(MakeResolvedParent, term);
 }
 
-//! \since build 899
-pair<lref<Environment>, lref<const TokenValue>>
-CheckToUndefine(TermNode& term, ContextNode& ctx)
+//! \since build 961
+YB_ATTR_nodiscard const TokenValue&
+UndefineId(TermNode& term)
 {
 	Retain(term);
 	if(term.size() == 2)
-	{
-		const auto&
-			n(NPL::ResolveRegular<const TokenValue>(*std::next(term.begin())));
-		auto& env(ctx.GetRecordRef());
+		return NPL::ResolveRegular<const TokenValue>(*std::next(term.begin()));
+	ThrowInvalidSyntaxError("Expected exact one term as name to be undefined.");
+}
 
-		if(!env.IsFrozen())
-			return {env, n};
-		throw TypeError("Cannot remove a variable in a frozen environment.");
-	}
-	else
-		ThrowInvalidSyntaxError(
-			"Expected exact one term as name to be undefined.");
+//! \since build 961
+YB_ATTR_nodiscard BindingMap&
+FetchUndefineMapRef(ContextNode& ctx)
+{
+	TryRet(ctx.GetRecordRef().GetMapCheckedRef())
+	CatchExpr(..., std::throw_with_nested(
+		TypeError("Cannot remove a variable in a frozen environment.")))
 }
 
 // NOTE: This assumes %f is called synchrnously.
@@ -2243,14 +2245,14 @@ ListAsteriskTail(TermNode& term)
 
 //! \since build 942
 //@{
-using TermPrefixGuard = decltype(ystdex::unique_guard(ystdex::prefix_eraser<
-	TermNode::Container>(std::declval<TermNode::Container&>())));
+using TermPrefixGuard
+	= ystdex::unique_guard<ystdex::prefix_eraser<TermNode::Container>>;
 
 YB_ATTR_nodiscard inline TermPrefixGuard
 GuardTermPrefix(TermNode::Container& con) ynothrow
 {
-	return
-		ystdex::unique_guard(ystdex::prefix_eraser<TermNode::Container>(con));
+	return ystdex::make_unique_guard(
+		ystdex::prefix_eraser<TermNode::Container>(con));
 }
 
 //! \since build 947
@@ -3563,12 +3565,11 @@ YB_ATTR_nodiscard YB_PURE inline
 	ImplRet(HasImportsSigil(s) ? TokenValue(s.substr(1)) : s)
 //@}
 
-//! \since build 920
-//@{
 #if false
 // NOTE: Lock a weak environment reference to a strong environment reference
 //	accepting modifications later.
-shared_ptr<Environment>
+//! \since build 920
+YB_ATTR_nodiscard pair<shared_ptr<Environment>, lref<BindingMap>>
 LockEnvironmentToModify(const EnvironmentReference& r_env)
 {
 	auto p_env(r_env.Lock());
@@ -3579,12 +3580,12 @@ LockEnvironmentToModify(const EnvironmentReference& r_env)
 	Environment::EnsureValid(p_env);
 	// NOTE: Evaluate only once. Equivalent to %SymbolsToImports for more than
 	//	one calls of assignment with less overhead.
-	CheckFrozenEnvironment(p_env);
-	return p_env;
+	return {p_env, p_env->GetMapCheckedRef()};
 }
 #endif
 
-inline void
+//! \since build 961
+YB_ATTR_nodiscard inline BindingMap&
 ShareEnvironmentToModify(const shared_ptr<Environment>& p_env)
 {
 	// NOTE: This is like the type check in %SetWithNoRecursion, expecting
@@ -3592,9 +3593,10 @@ ShareEnvironmentToModify(const shared_ptr<Environment>& p_env)
 	YAssert(p_env, "Invalid environment found.");
 	// NOTE: Evaluate only once. Equivalent to %SymbolsToImports for more than
 	//	one calls of assignment with less overhead.
-	CheckFrozenEnvironment(p_env);
+	return p_env->GetMapCheckedRef();
 }
 
+//! \since build 920
 void
 BindImports(const shared_ptr<Environment>& p_env, TermNode& term, ContextNode&
 	ctx, const shared_ptr<Environment>& p_src, bool ref_symbols = {})
@@ -3602,7 +3604,8 @@ BindImports(const shared_ptr<Environment>& p_env, TermNode& term, ContextNode&
 	YAssert(IsList(term), "Invalid symbols term found.");
 	if(IsBranch(term))
 	{
-		ShareEnvironmentToModify(p_env);
+		auto& m(ShareEnvironmentToModify(p_env));
+
 		for(auto& x : term)
 		{
 			auto& n(NPL::ResolveRegular<TokenValue>(x));
@@ -3614,6 +3617,7 @@ BindImports(const shared_ptr<Environment>& p_env, TermNode& term, ContextNode&
 			{
 				auto& bound(*pr.first);
 				TermNode nterm(bound.get_allocator());
+				auto& env(NPL::Deref(p_env));
 
 				// XXX: As %EvaluateIdentifier and the loop body in the
 				//	applicative in %SymbolsToImports, with some optimizations
@@ -3639,7 +3643,9 @@ BindImports(const shared_ptr<Environment>& p_env, TermNode& term, ContextNode&
 				if(ref_symbols)
 					n = Ensigil(n);
 				EnsureValueTags(nterm.Tags);
-				BindSymbol(p_env, n, nterm);
+				// XXX: Using explicit anchor pointer is more efficient.
+				BindSymbol(m, n, nterm,
+					EnvironmentReference(p_env, env.GetAnchorPtr()));
 			}
 			else
 				TryExpr(throw BadIdentifier(s))
@@ -3656,7 +3662,6 @@ BindImports(const shared_ptr<Environment>& p_env, TermNode& term, ContextNode&
 		}
 	}
 }
-//@}
 
 //! \since build 919
 // NOTE: See $2022-05 @ %Documentation::Workflow.
@@ -4506,17 +4511,17 @@ SetWithRecursion(TermNode& term, ContextNode& ctx)
 void
 Undefine(TermNode& term, ContextNode& ctx)
 {
-	const auto pr(CheckToUndefine(term, ctx));
+	const auto& id(UndefineId(term));
 
-	term.Value = pr.first.get().Remove(pr.second.get());
+	term.Value = Environment::Remove(FetchUndefineMapRef(ctx), id);
 }
 
 void
 UndefineChecked(TermNode& term, ContextNode& ctx)
 {
-	const auto pr(CheckToUndefine(term, ctx));
+	const auto& id(UndefineId(term));
 
-	pr.first.get().RemoveChecked(pr.second.get());
+	Environment::RemoveChecked(FetchUndefineMapRef(ctx), id);
 }
 
 

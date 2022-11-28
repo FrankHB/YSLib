@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r7656
+\version r7761
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2022-11-21 04:37 +0800
+	2022-11-28 06:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -323,7 +323,7 @@ Qualify(TermNode& term, TermTags tag_add)
 void
 CopyEnvironmentDFS(Environment& d, const Environment& e)
 {
-	auto& m(d.GetMapRef());
+	auto& m(d.GetMapUncheckedRef());
 	// TODO: Check environments allocator equality.
 	const auto a(NPL::ToBindingsAllocator(m));
 	const auto copy_parent([&](Environment& dst, const Environment& parent){
@@ -560,44 +560,45 @@ LoadObjects(Environment& env)
 namespace Primitive
 {
 
+//! \since build 961
+//@{
 void
-LoadEquals(ContextNode& ctx)
+LoadEquals(BindingMap& m)
 {
-	RegisterStrict(ctx, "eq?", Eq);
-	RegisterStrict(ctx, "eql?", EqLeaf);
-	RegisterStrict(ctx, "eqr?", EqReference);
-	RegisterStrict(ctx, "eqv?", EqValue);
+	RegisterStrict(m, "eq?", Eq);
+	RegisterStrict(m, "eql?", EqLeaf);
+	RegisterStrict(m, "eqr?", EqReference);
+	RegisterStrict(m, "eqv?", EqValue);
 }
 
 void
-LoadControl(ContextNode& ctx)
+LoadControl(BindingMap& m)
 {
 	// NOTE: Like Scheme but not Kernel, '$if' treats non-boolean value as
 	//	'#f', for zero overhead principle.
-	RegisterForm(ctx, "$if", If);
+	RegisterForm(m, "$if", If);
 }
 
-//! \since build 855
 void
-LoadObjects(ContextNode& ctx)
+LoadObjects(BindingMap& m)
 {
-	RegisterUnary(ctx, "null?", ComposeReferencedTermOp(IsEmpty));
-	RegisterUnary(ctx, "nullv?", IsEmpty);
-	RegisterUnary(ctx, "branch?", ComposeReferencedTermOp(IsBranch));
-	RegisterUnary(ctx, "branchv?", IsBranch);
-	RegisterUnary(ctx, "pair?", ComposeReferencedTermOp(IsPair));
-	RegisterUnary(ctx, "pairv?", IsPair);
-	RegisterUnary(ctx, "symbol?",
+	RegisterUnary(m, "null?", ComposeReferencedTermOp(IsEmpty));
+	RegisterUnary(m, "nullv?", IsEmpty);
+	RegisterUnary(m, "branch?", ComposeReferencedTermOp(IsBranch));
+	RegisterUnary(m, "branchv?", IsBranch);
+	RegisterUnary(m, "pair?", ComposeReferencedTermOp(IsPair));
+	RegisterUnary(m, "pairv?", IsPair);
+	RegisterUnary(m, "symbol?",
 		[] YB_LAMBDA_ANNOTATE((const TermNode& x), ynothrow, pure){
 		return IsTypedRegular<TokenValue>(ReferenceTerm(x));
 	});
-	RegisterUnary(ctx, "reference?", IsReferenceTerm);
-	RegisterUnary(ctx, "unique?", IsUniqueTerm);
-	RegisterUnary(ctx, "modifiable?", IsModifiableTerm);
-	RegisterUnary(ctx, "temporary?", IsTemporaryTerm);
-	RegisterUnary(ctx, "bound-lvalue?", IsBoundLValueTerm);
-	RegisterUnary(ctx, "uncollapsed?", IsUncollapsedTerm);
-	RegisterStrict(ctx, "deshare", [](TermNode& term){
+	RegisterUnary(m, "reference?", IsReferenceTerm);
+	RegisterUnary(m, "unique?", IsUniqueTerm);
+	RegisterUnary(m, "modifiable?", IsModifiableTerm);
+	RegisterUnary(m, "temporary?", IsTemporaryTerm);
+	RegisterUnary(m, "bound-lvalue?", IsBoundLValueTerm);
+	RegisterUnary(m, "uncollapsed?", IsUncollapsedTerm);
+	RegisterStrict(m, "deshare", [](TermNode& term){
 		return CallRawUnary([&](TermNode& tm){
 			if(const auto p = TryAccessLeafAtom<const TermReference>(tm))
 				LiftTermRef(tm, p->get());
@@ -606,77 +607,76 @@ LoadObjects(ContextNode& ctx)
 			return ReductionStatus::Retained;
 		}, term);
 	});
-	RegisterStrict(ctx, "as-const", trivial_swap,
+	RegisterStrict(m, "as-const", trivial_swap,
 		ystdex::bind1(Qualify, TermTags::Nonmodifying));
-	RegisterStrict(ctx, "expire", trivial_swap,
+	RegisterStrict(m, "expire", trivial_swap,
 		ystdex::bind1(Qualify, TermTags::Unique));
-	RegisterStrict(ctx, "move!", trivial_swap,
+	RegisterStrict(m, "move!", trivial_swap,
 		ystdex::bind1(DoMoveOrTransfer, std::ref(LiftOtherOrCopy)));
-	RegisterStrict(ctx, "transfer!", trivial_swap,
+	RegisterStrict(m, "transfer!", trivial_swap,
 		ystdex::bind1(DoMoveOrTransfer, std::ref(LiftTermValueOrCopy)));
-	RegisterStrict(ctx, "ref&", [](TermNode& term){
+	RegisterStrict(m, "ref&", [](TermNode& term){
 		CallUnary([&](TermNode& tm){
 			LiftToReference(term, tm);
 		}, term);
 		return ReductionStatus::Retained;
 	});
-	RegisterBinary(ctx, "assign@!", [](TermNode& x, TermNode& y){
+	RegisterBinary(m, "assign@!", [](TermNode& x, TermNode& y){
 		return DoAssign(ystdex::bind1(static_cast<void(&)(TermNode&,
 			TermNode&)>(LiftOther), std::ref(y)), x);
 	});
 }
 
 void
-LoadLists(ContextNode& ctx)
+LoadLists(BindingMap& m)
 {
-	RegisterStrict(ctx, "cons", Cons);
-	RegisterStrict(ctx, "cons%", ConsRef);
+	RegisterStrict(m, "cons", Cons);
+	RegisterStrict(m, "cons%", ConsRef);
 	// NOTE: Like '$set-cdr!' in Kernel, with no references.
-	RegisterStrict(ctx, "set-rest!", SetRest);
+	RegisterStrict(m, "set-rest!", SetRest);
 	// NOTE: Like '$set-cdr!' in Kernel.
-	RegisterStrict(ctx, "set-rest%!", SetRestRef);
+	RegisterStrict(m, "set-rest%!", SetRestRef);
 }
 
-//! \since build 908
 void
-LoadSymbols(ContextNode& ctx)
+LoadSymbols(BindingMap& m)
 {
-	RegisterUnary<Strict, const TokenValue>(ctx, "desigil", [](TokenValue s){
+	RegisterUnary<Strict, const TokenValue>(m, "desigil", [](TokenValue s){
 		return TokenValue(!s.empty() && (s.front() == '&' || s.front() == '%')
 			? s.substr(1) : std::move(s));
 	});
 }
 
 void
-LoadEnvironments(ContextNode& ctx)
+LoadEnvironments(BindingMap& m)
 {
 	using namespace std::placeholders;
 
 	// NOTE: The applicative 'copy-es-immutable' is unsupported currently due to
 	//	different implementation of control primitives.
-	RegisterStrict(ctx, "eval", Eval);
-	RegisterStrict(ctx, "eval%", EvalRef);
-	RegisterUnary<Strict, const string>(ctx, "bound?",
+	RegisterStrict(m, "eval", Eval);
+	RegisterStrict(m, "eval%", EvalRef);
+	RegisterUnary<Strict, const string>(m, "bound?",
 		[](const string& id, ContextNode& c){
 		return bool(ResolveName(c, id).first);
 	});
-	RegisterForm(ctx, "$resolve-identifier", trivial_swap,
+	RegisterForm(m, "$resolve-identifier", trivial_swap,
 		std::bind(DoResolve, std::ref(ResolveIdentifier), _1, _2));
-	RegisterForm(ctx, "$move-resolved!", trivial_swap,
+	RegisterForm(m, "$move-resolved!", trivial_swap,
 		std::bind(DoResolve, std::ref(MoveResolved), _1, _2));
 	// NOTE: This is now primitive since in NPL environment capture is more
 	//	basic than vau.
-	RegisterStrict(ctx, "copy-environment", CopyEnvironment);
-	RegisterUnary<Strict, const EnvironmentReference>(ctx, "lock-environment",
+	RegisterStrict(m, "copy-environment", CopyEnvironment);
+	RegisterUnary<Strict, const EnvironmentReference>(m, "lock-environment",
 		[](const EnvironmentReference& r_env) ynothrow{
 		return r_env.Lock();
 	});
-	RegisterUnary(ctx, "freeze-environment!", [](TermNode& x){
+	RegisterUnary(m, "freeze-environment!", [](TermNode& x){
 		Environment::EnsureValid(ResolveEnvironment(x).first).Freeze();
 		return ValueToken::Unspecified;
 	});
-	RegisterStrict(ctx, "make-environment", MakeEnvironment);
-	RegisterUnary<Strict, const shared_ptr<Environment>>(ctx,
+	RegisterStrict(m, "make-environment", MakeEnvironment);
+	RegisterUnary<Strict, const shared_ptr<Environment>>(m,
 		"weaken-environment", [](const shared_ptr<Environment>& p_env) ynothrow{
 		return EnvironmentReference(p_env);
 	});
@@ -685,52 +685,50 @@ LoadEnvironments(ContextNode& ctx)
 	//	'$def!') is preferred. The recursion variant (named '$defrec!') is more
 	//	than '$define!' in Kernel because of more native interoperations
 	//	(shared object holders) supported, and is used only when necessary.
-	RegisterForm(ctx, "$def!", DefineWithNoRecursion);
-	RegisterForm(ctx, "$defrec!", DefineWithRecursion);
+	RegisterForm(m, "$def!", DefineWithNoRecursion);
+	RegisterForm(m, "$defrec!", DefineWithRecursion);
 }
 
 void
-LoadCombiners(ContextNode& ctx)
+LoadCombiners(BindingMap& m)
 {
 	// NOTE: For ground environment applicatives (see below for
 	//	'get-current-environment'), the result of evaluation of expression
 	//	'eqv? (() get-current-environment) (() ($vau () d d))' shall be '#t'.
-	RegisterForm(ctx, "$vau/e", VauWithEnvironment);
-	RegisterForm(ctx, "$vau/e%", VauWithEnvironmentRef);
-	RegisterStrict(ctx, "wrap", Wrap);
-	RegisterStrict(ctx, "wrap%", WrapRef);
-	RegisterStrict(ctx, "unwrap", Unwrap);
+	RegisterForm(m, "$vau/e", VauWithEnvironment);
+	RegisterForm(m, "$vau/e%", VauWithEnvironmentRef);
+	RegisterStrict(m, "wrap", Wrap);
+	RegisterStrict(m, "wrap%", WrapRef);
+	RegisterStrict(m, "unwrap", Unwrap);
 }
 
-//! \since build 859
 void
-LoadErrorsAndChecks(ContextNode& ctx)
+LoadErrorsAndChecks(BindingMap& m)
 {
-	RegisterUnary<Strict, const string>(ctx, "raise-error",
+	RegisterUnary<Strict, const string>(m, "raise-error",
 		[] YB_LAMBDA_ANNOTATE((const string& str), , noreturn){
 		throw NPLException(str);
 	});
-	RegisterUnary<Strict, const string>(ctx, "raise-invalid-syntax-error",
+	RegisterUnary<Strict, const string>(m, "raise-invalid-syntax-error",
 		[] YB_LAMBDA_ANNOTATE((const string& str), , noreturn){
 		ThrowInvalidSyntaxError(str);
 	});
-	RegisterUnary<Strict, const string>(ctx, "raise-type-error",
+	RegisterUnary<Strict, const string>(m, "raise-type-error",
 		[] YB_LAMBDA_ANNOTATE((const string& str), , noreturn){
 		throw TypeError(str);
 	});
-	RegisterStrict(ctx, "check-list-reference", CheckListReference);
-	RegisterStrict(ctx, "check-pair-reference", CheckPairReference);
+	RegisterStrict(m, "check-list-reference", CheckListReference);
+	RegisterStrict(m, "check-pair-reference", CheckPairReference);
 }
 
-//! \since build 855
 void
-LoadEncapsulations(ContextNode& ctx)
+LoadEncapsulations(BindingMap& m)
 {
-	RegisterStrict(ctx, "make-encapsulation-type", MakeEncapsulationType);
+	RegisterStrict(m, "make-encapsulation-type", MakeEncapsulationType);
 }
 
 void
-Load(ContextNode& ctx)
+Load(BindingMap& m)
 {
 	// NOTE: Primitive features, listed as RnRK, except mentioned above.
 /*
@@ -741,16 +739,17 @@ Load(ContextNode& ctx)
 	There are some difference of listed primitives.
 	See $2017-02 @ %Documentation::Workflow.
 */
-	LoadEquals(ctx);
-	LoadControl(ctx);
-	LoadObjects(ctx);
-	LoadLists(ctx);
-	LoadSymbols(ctx);
-	LoadEnvironments(ctx);
-	LoadCombiners(ctx);
-	LoadErrorsAndChecks(ctx);
-	LoadEncapsulations(ctx);
+	LoadEquals(m);
+	LoadControl(m);
+	LoadObjects(m);
+	LoadLists(m);
+	LoadSymbols(m);
+	LoadEnvironments(m);
+	LoadCombiners(m);
+	LoadErrorsAndChecks(m);
+	LoadEncapsulations(m);
 }
+//@}
 
 } // namespace Primitive;
 
@@ -1388,7 +1387,7 @@ $defl! nonfoldable? (&l)
 	$if (null? l) #f ($if (first-null? l) #t (nonfoldable? (rest& l)));
 $defl%! assq (&x &alist) $cond ((null? alist))
 	((eq? x (first& (first& alist))) first% alist)
-	(#t assq (forward! x) (rest& alist));
+	(#t assq (forward! x) (rest% alist));
 $defl%! assv (&x &alist) $cond ((null? alist))
 	((eqv? x (first& (first& alist))) first% alist)
 	(#t assv (forward! x) (rest% alist));
@@ -1468,11 +1467,13 @@ Load(ContextState& cs)
 void
 Load(ContextState& cs)
 {
-//	LoadObjects(cs.GetRecordRef());
-	Primitive::Load(cs);
+	auto& env(cs.GetRecordRef());
+
+//	LoadObjects(env);
+	Primitive::Load(env.GetMapRef());
 	Derived::Load(cs);
 	// NOTE: Prevent the ground environment from modification.
-	cs.GetRecordRef().Freeze();
+	env.Freeze();
 }
 
 } // namespace Ground;
@@ -2112,7 +2113,8 @@ $defl! puts (&s) $sequence (put s) (() newline);
 				{
 					auto& con(term.GetContainerRef());
 
-					p_env->Bind("module-parameters", NPL::AsTermNode(
+					Environment::Bind(p_env->GetMapRef(), "module-parameters",
+						NPL::AsTermNode(
 						ResolveEnvironment(std::move(*con.rbegin())).first));
 					// XXX: This is needed for the call to %ReduceToLoadExternal
 					//	later.
@@ -2289,9 +2291,10 @@ LoadModule_std_modules(ContextState& cs)
 	RegisterUnary<Strict, const string>(m, "unregister-requirement!",
 		trivial_swap, [&](const string& req){
 		CheckRequirement(req);
-		if(YB_UNLIKELY(registry.erase(req) == 0))
-			throw NPLException("Requirement '" + to_std_string(req)
-				+ "' is not registered.");
+		if(registry.erase(req) != 0)
+			return ValueToken::Unspecified;
+		throw NPLException(
+			"Requirement '" + to_std_string(req) + "' is not registered.");
 	});
 	RegisterUnary<Strict, const string>(m, "find-requirement-filename",
 		// TODO: Blocked. Use C++14 lambda initializers to optimize the
@@ -2345,7 +2348,8 @@ LoadModule_std_modules(ContextState& cs)
 			switch(con.size())
 			{
 			case 3:
-				val.second->Bind("module-parameters", NPL::AsTermNode(
+				Environment::Bind(val.second->GetMapRef(), "module-parameters",
+					NPL::AsTermNode(
 					ResolveEnvironment(std::move(*con.rbegin())).first));
 				con.pop_back();
 				YB_ATTR_fallthrough;
@@ -2493,15 +2497,14 @@ LoadModule_SHBuild(ContextState& cs)
 		EnsureDirectory(IO::Path(str));
 		return ValueToken::Unspecified;
 	});
-	RegisterStrict(m, "SHBuild_EchoVar", trivial_swap,
-		[&](TermNode& term){
+	RegisterStrict(m, "SHBuild_EchoVar", trivial_swap, [&](TermNode& term){
 		// XXX: To be overriden if %Terminal is usable (platform specific).
-		CallBinaryAs<const string, const string>(
+		return CallBinaryAs<const string, const string>(
 			[&](const string& n, const string& val){
 			// NOTE: Since root environment can be switched, reference to the
 			//	initial instance is necessary to be captured explicitly.
-			if(const auto p = GetValuePtrOf(renv.LookupName(
-				"SHBuild_BaseTerminalHook_")))
+			if(const auto p = GetValuePtrOf(LookupName(
+				renv.GetMapUncheckedRef(), "SHBuild_BaseTerminalHook_")))
 				if(const auto p_hook = AccessPtr<
 					function<void(const string&, const string&)>>(*p))
 					(*p_hook)(n, val);
@@ -2665,11 +2668,13 @@ LoadModule_SHBuild(ContextState& cs)
 void
 LoadStandardContext(ContextState& cs)
 {
+	auto& m(cs.GetRecordRef().GetMapRef());
+
 	LoadGroundContext(cs);
 	// XXX: A lambda-expression is OK and the generated code can be equally
 	//	efficient, but not succinct as using macro in the invocation sites. 
 #define NPL_Impl_LoadStd(_name) \
-	LoadModuleChecked(cs, "std." #_name, LoadModule_std_##_name, cs)
+	LoadModuleChecked(m, cs, "std." #_name, LoadModule_std_##_name, cs)
 	NPL_Impl_LoadStd(continuations),
 	NPL_Impl_LoadStd(promises);
 	NPL_Impl_LoadStd(math),

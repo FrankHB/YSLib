@@ -11,13 +11,13 @@
 /*!	\file cache.hpp
 \ingroup YStandardEx
 \brief 高速缓冲容器模板。
-\version r748
+\version r751
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-12-22 20:19:14 +0800
 \par 修改时间:
-	2022-03-22 18:11 +0800
+	2022-11-21 07:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 //	std::get, std::piecewise_construct, enable_if_t, head_of_t;
 #include <list> // for std::list;
 #include "scope_guard.hpp" // for std::hash, optional_function, std::ref,
-//	ystdex::unique_guard, ystdex::dismiss;
+//	ystdex::make_unique_guard, ystdex::dismiss;
 #include <unordered_map> // for std::unordered_map;
 #include <map> // for std::map;
 #include "container.hpp" // for ystdex::begin, ystdex::cbegin,
@@ -320,7 +320,7 @@ public:
 		check_max_used();
 
 		const auto i(used_list.emplace(yforward(args)...));
-		auto gd(ystdex::unique_guard([&]() ynothrowv{
+		auto gd(ystdex::make_unique_guard([&]() ynothrowv{
 			used_list.undo_emplace();
 		}));
 		const auto pr(used_cache.emplace(i->first, i));
@@ -344,7 +344,7 @@ private:
 		const auto pr(ystdex::search_map_by(
 			[&](typename used_cache_type::const_iterator j){
 			const auto i(used_list.emplace(yforward(args)...));
-			auto gd(ystdex::unique_guard([&]() ynothrowv{
+			auto gd(ystdex::make_unique_guard([&]() ynothrowv{
 				used_list.undo_emplace();
 			}));
 			const auto r(used_cache.emplace_hint(j, k, i));

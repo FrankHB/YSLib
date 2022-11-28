@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r12759
+\version r13039
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-11-21 05:12 +0800
+	2022-11-28 08:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,232 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		+ DD '\ingroup grauds' @ "Doxygen comment" @ ("alias template \
+			%pun_ptr" @ %TypePun, ("class templates (guard, state_guard)",
+			"alias template %swap_guard") @ %ScopeGuard),
+		/ %ScopeGuard $=
+		(
+			* "missing %_bNoThrow as the template argument" @ "return type"
+				@ "all 2 function templates %make_guard" $since b605,
+			(
+			/ "function template %unique_guard" => "%make_unique_guard"
+			+ "alias template %unique_guard";
+			/ DLDI "simplified %make_unique_guard" ^ "%unique_guard"
+			),
+			(
+			/ "function template %unique_state_guard"
+				=> "%make_unique_state_guard"
+			+ "alias template %unique_state_guard";
+			/ DLDI "simplified %make_unique_state_guard" ^ "%unique_state_guard"
+			);
+			/ $dev $lib @ "all function templates %(make_guard, \
+				make_unique_guard, make_unique_state_guard)" $=
+			(
+				+ 'YB_ATTR_nodiscard inline',
+				/ $design $impl "all %_tState" => "%_tCond"
+					// To be consistent with %state_guard.
+			)
+		),
+		+ DLI 'YB_LIKELY' @ "success branch for overflow check" @ "member \
+			function %new_delete_resource_t::do_allocate" @ %MemoryResource
+	),
+	* DD "outdated %Environment::DefaultResolve" @ %Documentation.NPL
+		$since 884,
+	/ $forced DLDI $effective %(YBase.YStandardEx.(Cache, MemoryResource),
+		YFramework.('YCLib_(Win32)'.MinGW32, YSLib.Core.YApplication,
+		NPL.(NPLA1, NPLA1Forms, NPLA1Internals), Helper.HostRenderer))
+		$dep_from "%make_unique_guard" @ %ScopeGuard,
+	/ %YFramework $=
+	(
+		* DLDI "missing header inclusinon %YBase.YStandardEx.Allocator"
+			@ %CHRLib.CharacterProcessing $since b861,
+			// This is the internal dependency which should not be used out of \
+				%YBase.
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				/ @ "class %Environment" $=
+				(
+					(
+					/ "aliases %(BindingMap; NameResolution)"
+						>> "namespace %NPL";
+					/ "function %LookupName" -> ("inline function" @ "%NPL")
+						// This can more efficient by inlining in the key paths.
+					),
+					+ "function %GetMapCheckedRef",
+					(
+					+ "function %GetMapUncheckedRef";
+						// As old %GetMapRef.
+					/ DLDI "static function %DefaultResolve"
+						$dep_from $forced "%LookupName",
+						$= (/ $impl ^ "%GetMapUncheckedRef");
+					/ @ "function %GetMapRef" $dep_from ("function \
+						%SetupTraceDepth" @ %NPLA1, "native implementation"
+						@ "applicative 'copy-environment'"
+						@ "function %LoadGroundContext" @ %Dependency) $=
+					(
+						/ 'ynothrow' -> 'ynothrowv';
+						+ "assertion to ensure non-frozen environment";
+						+ DD "'\pre' command" @ "Doxygen comment"
+					)
+					),
+					/ $re_add(b960) "function template %Bind"
+						-> "static function template",
+					/ $re_add(b960) "functions %(Remove, RemoveChecked)"
+						-> "static functions",
+					/ $re_add(b960) "functions %(Replace, ReplaceChecked)"
+						-> "static functions"
+						$= (/ DLDI $dep_from $forced ^ "%LookupName"),
+					/ DLI "functions %(Remove, EnsureValid)"
+						-> "inline functions"
+				),
+				/ "checked against frozen environments" @ ("function template \
+					%EmplaceLeaf#3"; $comp "function templates %EmplaceLeaf#4")
+					^ ($dep_from "%Environment::GetMapCheckedRef")
+					~ "%Environment::GetMapRef",
+				/ "parameter type 'const shared_ptr<Environment>&'" @ "member \
+					functions %ContextNode::(SwitchEnvironment, \
+					SwitchEnvironmentUnchecked)" -> 'shared_ptr<Environment>',
+					// This at least improves %EnvironmentSwitcher::operator().
+				/ @ "class %EnvironmentSwitcher" $=
+				(
+					+ DD '\ingroup functors' @ "Doxygen comment",
+					+ 'ynothrow' @ "constructor",
+					+ "function %Switch",
+					+ "friend function %dismiss"
+				)
+			),
+			/ %NPLA1 $=
+			(
+				/ "functions %(BindParameter, BindParameterWellFormed, \
+					BindSymbol)" $=
+				(
+					/ DLI "simplified sigil handling initialization",
+						// The common paths for handling the sigil for \
+							non-trailing and trailing binding are merged as \
+							they are the same by propagating tags as \
+							non-trailing bindings since b951, after the \
+							subterms binding is specialized. This is a bit \
+							less inefficient, but the further simplificiation \
+							makes it a bit more efficient overall.
+					/ DLDI $dep_from $forced ("%Environment::Bind" @ %NPLA)
+						$= (/ $dep_from "%Environment::BindingMap"),
+					(
+					+ "overload with 'BindingMap&' and \
+						'const EnvironmentReference&' parameters"
+						$dep_from ("%Environment::BindingMap" @ %NPLA)
+						$= (/ $impl ^ (($dep_from
+							"%Environment::GetMapCheckedRef",
+							$re_add(b959) "%Environment::GetAnchorPtr")
+							@ %NPLA));
+					/ "simplified overload with 'Environment&' parameter with \
+						the additional check from %GetMapCheckedRef"
+						^ "overload with 'BindingMap&' and \
+						'const EnvironmentReference&' parameters"
+					),
+					/ $dev $build "worked around native GCC's cc1plus.exe \
+						out-of-memory problem \
+						'NPL_Impl_NPLA1_BindParameter_ExpandLevel' defaulted \
+						to '0'" @ "platform %MinGW32"
+				),
+				/ "function %SetupTraceDepth"
+					$dep_from $forced "%Environment::LookupName"
+					$= (/ $impl ^ ("%Environment::GetMapUncheckedRef" @ %NPLA)),
+				/ DLI "avoided redundant result copy" @ "function template \
+					%GetModuleFor" ^ ($dep_from "%EnvironmentSwitcher::Switch"
+					~ "%ContextNode::ShareRecord") @ %NPLA,
+				/ @ "function templates %(LoadModule, LoadModuleChecked)" $=
+				(
+					// As %EmplaceLeaf.
+					+ "2 overloads with 'BidingMap&' or 'Environment&' as \
+						additional 1st parameter";
+					/ "overload#3" ^ "overload#2";
+					+ $comp "checked against frozen environments" @ "overload#3"
+				)
+			),
+			/ @ "namespace %Forms" @ %NPLA1Forms $=
+			(
+				/ DLI @ "functions %(DefineWithRecursion, SetWithRecursion)" $=
+				(
+					/ $design
+						^ $dep_from $forced ("%Environment::Bind" @ %NPLA),
+					/ "simplified initialization without redundant environment \
+						pointer copy"
+						^ $dep_from ("%Environment::GetMapCheckedRef" @ %NPLA),
+					/ $re_add(b959) DLI "optimized environment reference \
+						accesses for defining" ^ "%Environment::GetAnchorPtr",
+					/ "simplified" !^ ("saving the term reference in the thunk",
+						("%shared_ptr for terms or thunks"; "%ShareMoveTerm"))
+						@ 'NPL_Impl_NPLA1_Enable_Thunked'
+				),
+				/ DLDI "function %Undefine"
+					^ $dep_from $forced ("%Environment::Remove" @ %NPLA),
+				/ DLDI "function %UndefineChecked"
+					^ $dep_from $forced ("%Environment::RemoveChecked" @ %NPLA),
+				/ "threw nested %TypeError on non-frozen environment check \
+					failure" @ ("functions %(Undefine, UndefineChecked)",
+					"functions %(DefineLazy, DefineWithNoRecursion, \
+					DefineWithRecursion, SetWithNoRecursion, SetWithRecursion)"
+					^ $dep_from ("%BindParameterWellFormed" @ %NPLA))
+					^ $dep_from ("%Environment::GetMapCheckedRef" @ %NPLA),
+				/ $re_add(b959) DLI "optimized environment reference accesses \
+					for imports" $effective @ "functions %(Provide, \
+					ProvideLet, Import, ImportRef)"
+					^ "%Environment::GetAnchorPtr"
+			),
+			/ "namespace %Forms" @ %Dependency $=
+			(
+				/ DLDI "native implementation" @ ("applicative 'get-module'"
+					@ "function %LoadModule_std_io", "applicative %require"
+					@ "function %LoadModule_std_modules")
+					$dep_from $forced ("%Environment::Bind" @ %NPLA),
+				/ @ "function %LoadGroundContext" $=
+				(
+					* "possible invalid reference values in the result"
+						@ "alternative derivation" @ "applicative %assq"
+						$since b943
+						$= (/ $impl ^ 'rest%' ~ 'rest&'),
+					/ DLI "primitive bindings" ^ "%BindingMap",
+						// This is a bit inefficient, but better for the \
+							change after %EmplaceLeaf because there are no \
+							redundant checks.
+					/ DLDI "native implementation" @ "applicative \
+						'copy-environment'" ^ ($dep_from
+						"%Environment::GetMapUncheckedRef"
+						~ "%Environment::GetMapRef") @ %NPLA
+				),
+				* $re_add(b928) "wrong result" @ "native implemenation"
+					@ "applicative 'unregister-requirement!'"
+					@ "function %LoadModule_std_modules" $since b923
+					// This was a bug because of the consistency with the \
+						derivation.
+					$= (/ $impl "returned %ValueToken::Unspecified"),
+				/ DLDI @ "function %LoadModule_SHBuild" $=
+				(
+					/ "returned the value of the call to %CallBinaryAs"
+						@ "applicative %SHBuild_EchoVar",
+					/ "applicative %SHBuild_EchoVar"
+						$dep_from $forced ("%Environment::LookupName" @ %NPLA)
+						$= (/ $impl
+							^ ("%Environment::GetMapUncheckedRef" @ %NPLA))
+				),
+				/ DLDI "function %LoadStandardContext"
+					^ $dep_from ("%LoadModuleChecked#1" @ %NPLA1),
+				+ DD "'\pre' command" @ "Doxygen comment" @ "all functions"
+					$dep_from ("%Environment::GetMapRef" @ %NPLA)
+			)
+		),
+		+ DLDI 'YB_PURE' @ "member function %HostRenderer::Wait"
+			@ %Helper.HostRenderer
+			// To eliminate G++ 12.1 warning: [-Wsuggest-attribute=pure].
+	)
+),
+
+b960
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -396,7 +622,7 @@ $now
 						refactored with some additional checks.
 			)
 		),
-		/ $forced DLDI $dep_from ("%Environment::Frozen" @ %NPL.NPLA)
+		/ DLDI $dep_from $forced ("%Environment::Frozen" @ %NPL.NPLA)
 			$effective (("function %MoveResolved" @ %NPLA, "function template \
 			%GetModuleFor" @ %NPLA1, "functions %Forms::('Define*', \
 			'SetWith*', 'Import*', %Undefine)" @ %NPLA1Forms, ("native \
@@ -545,7 +771,7 @@ b959
 					/ "simplified internal unwrapping"
 						^ "%FormContextHandler::IsOperative"
 						~ "%FormContextHandler::GetWrappingCount",
-					/ DLI "optimized local reference accesses"
+					/ DLI "optimized local environment reference accesses"
 						^ "%Environment::GetAnchorPtr" $effective
 						@ "functions %(AccL, AccR, FoldR1, Map1)"
 				),
@@ -967,8 +1193,8 @@ b957
 					+ "function %GetFrameRecordList",
 					(
 					+ "function %AddOperator";
-					/ $forced "2 function overloads %Attach"
-						-> "function %Attach" $dep_from "%FrameRecord",
+					/ "2 function overloads %Attach"
+						-> "function %Attach" $dep_from $forced "%FrameRecord",
 					),
 					(
 					- "data member %OperatorName"
@@ -1343,9 +1569,9 @@ b955
 					/ $forced DLI "constructors" $dep_from "%REPLContext"
 				)
 				),
-				/ $forced "1st parameter type 'REPLContext&'"
+				/ "1st parameter type 'REPLContext&'"
 					@ "function template %TryLoadSource"
-					-> 'const GlobalState&' $dep_from "%REPLContext",
+					-> 'const GlobalState&' $dep_from $forced "%REPLContext",
 				+ "function template %Perform"
 					$dep_from ("%Perform" @ "GlobalState"),
 				/ "data members %(EvaluationPasses, EvaluateLeaf, \
@@ -1353,12 +1579,11 @@ b955
 					>> "class %GlobalState" $dep_to "pass lifting";
 					// The guard pass which has no context parameter is not \
 						moved.
-				/ $forced "simplified constructors and friend function %swap"
-					@ "class %ContextState" $dep_from "pass lifting",
-				/ $forced "1st parameter type 'ContextState&'"
-					@ "function %SetupDefaultInterpretation"
-					-> 'GlobalState&' $dep_from ("class %REPLContext",
-					"pass lifting")
+				/ "simplified constructors and friend function %swap"
+					@ "class %ContextState" $dep_from $forced "pass lifting",
+				/ "1st parameter type 'ContextState&'" @ "function \
+					%SetupDefaultInterpretation" -> 'GlobalState&'
+					$dep_from $forced ("class %REPLContext", "pass lifting")
 					// This is required by both %GlobalState constructor and \
 						the passes lifted to the global state.
 			),
@@ -1623,8 +1848,8 @@ b954
 		/ DLI %ShlExplorer $=
 		(
 			/ $re_add(b942) $design "header inclusion %Functional" -> %Bind,
-			/ $forced "NPL test entry for test subitem 2"
-				@ "constructor %ShlExplorer" $dep_from ("%TestNPL" @ %Shells)
+			/ "NPL test entry for test subitem 2" @ "constructor %ShlExplorer"
+				$dep_from $forced ("%TestNPL" @ %Shells)
 				^ $dep_from (("%Environment::DefaultOutputStream",
 				"%YF_Helper_Environment_UseStdout")
 				@ %YFramework.Helper.Environment)
@@ -2895,8 +3120,8 @@ b947
 		(
 			/ DLI "%LDFLAGS_LOWBASE_" => "%LDFLAGS_WKRD_",
 			/ "disabled workaround" @ "platform %MinGW64",
-			+ $forced "workaround for mingw-w64-x86_64-binutils 2.38-3"
-				^ '-fuse-ld=lld' $dep_from "MinGW64 toolchain update"
+			+ "workaround for mingw-w64-x86_64-binutils 2.38-3"
+				^ '-fuse-ld=lld' $dep_from $forced "MinGW64 toolchain update"
 				// This is also faster.
 		),
 		+ "selected '-flto=jobserver' over '-flto=auto' for G++ only on \
@@ -3667,20 +3892,20 @@ b942
 				+ $dev $lib 'YB_ATTR_nodiscard YB_PURE' @ ("all 2 functions \
 					%(begin, end)", "functions %(get, list, size)")
 				+ 'ynothrow' @ "all 2 functions %(begin, end)",
-				/ $forced DLDI "removed internal checks"
-					@ "%recent_used_list::shrink",
 				/ @ "data member %flush" $=
 				(
 					/ "supported empty state" ^ "%optional_function"
 						~ "%function" $dep_to "optional flush",
 					+ DD "commands" @ "Doxygen comment"
 				),
-				/ "internal maximum elements checks" $=
+				/ DLI "internal maximum used elements check" $=
 				(
-					/ $comp $forced DLDI $dep_from "optional flush"
-						$dep_from "%recent_used_list::shrink",
-					/ DLI "prevended copy of %flush" ^ "%std::ref"
+					/ $comp $design $dep_from "optional flush"
+						$dep_to "optional flush for internal check",
+					/ "prevented copy of data member %flush" ^ "%std::ref"
 				),
+				/ DLDI "removed internal checks" @ "%recent_used_list::shrink"
+					$forced $dep_from "optional flush for internal check",
 				/ @ "function template %emplace with parameter of \
 					'const key_type&'" $=
 				(
@@ -3761,7 +3986,7 @@ b942
 					-> "2 function templates %RegisterFormHandler",
 				/ DLI @ "functions %(RegisterForm, RegisterStrict)" $=
 				(
-					/ $forced $design $dep_from "%RegisterHandler"
+					/ $design $dep_from $forced "%RegisterHandler",
 					+ 'YB_ATTR_always_inline'
 				),
 				/ DLDI "leaf handling" @ "functions %(MatchParameter, \
@@ -3791,9 +4016,9 @@ b942
 					("%ystdex::prefix_eraser" @ %YBase.YStandardEx.Container),
 				/ DLDI "newline" @ "alternative derivation" @ "appliative \
 					'env-empty?'" @ "function %LoadModule_std_system",
-				+ DD ("'\pre' command", "'\exception' command") @ "Doxygen comment"
-					@ "functions %(LoadModule_std_io, LoadModule_std_system, \
-					LoadModule_std_modules)",
+				+ DD ("'\pre' command", "'\exception' command")
+					@ "Doxygen comment" @ "functions %(LoadModule_std_io, \
+					LoadModule_std_system, LoadModule_std_modules)",
 				/ "forwareded function parameter"
 					@ "function templates %(InvokeIn, GetModuleFor)",
 				+ "pamameter pack as invocation arguments" @ "function templates \
@@ -6016,10 +6241,10 @@ b933
 				ParseLeafWithSourceInformation)" @ %NPLA1
 				!^ "%IsNPLAExtendedLiteral"
 		),
-		/ $forced DLDI @ "%floor_lb" @ %YBase.YStandardEx.CStandardInteger
+		/ DLDI @ "%floor_lb" @ %YBase.YStandardEx.CStandardInteger
 			@ %YSLib.Core.ValueNode ^ $dep_from %YBase.YStandardEx.Bit,
-		/ $forced DLDI @ "%byte_order" @ %YBase.YStandardEx.CStandardInteger
-			@ %CHRLib.Encoding ^ $dep_from %YBase.YStandardEx.Bit
+		/ DLDI @ "%byte_order" @ %YBase.YStandardEx.CStandardInteger
+			@ %CHRLib.Encoding ^ $dep_from $forced %YBase.YStandardEx.Bit
 	)
 ),
 
@@ -6847,6 +7072,10 @@ b928
 					$comp "alternative derivation" @ "applicative %puts")
 					@ "function %LoadModule_std_io" $since b925
 					$= (/ $impl ^ "%ReduceReturnUnspecified")
+					// This is different to b922 where the similar change is \
+						not a bug then. This is buggy because 'newline' \
+						returns '#inert' and it is required by \
+						%NPL.Documentation since b858 to be the same here.
 			),
 			/ %NPLA1 $=
 			(
@@ -7744,7 +7973,7 @@ b924
 							different to that in the derivations.
 					/ "simplified exception thrown for insufficient subterms"
 						@ "functions %(Vau, VauRef, Lambda, LambdaRef, WVau, \
-						WVauRef, VauWithEnvironment, VauWithEnvrionmentRef, \
+						WVauRef, VauWithEnvironment, VauWithEnvironmentRef, \
 						LambdaWithEnvironment, LambdaWithEnvironmentRef, \
 						WVauWithEnvironment, WVauWithEnvironmentRef)"
 						^ $dep_from ("%CheckVariadicArity" @ %NPLA1);
@@ -8534,7 +8763,7 @@ b918
 			/ @ "namespace %Forms" @ %NPLA1Forms $=
 			(
 				/ $lib @ "functions %(Let, LetRef, LetWithEnvironment, \
-					LetWithEnvrionmentRef, LetAsterisk, LetAsteriskRef, \
+					LetWithEnvironmentRef, LetAsterisk, LetAsteriskRef, \
 					LetRec, LetRecRef)" $=
 				(
 					/ "minor adjustment" @ "assertion",
@@ -8547,7 +8776,7 @@ b918
 				),
 				/ DLI ^ "allocator" @ ("setting the environment"
 					$effective @ "functions %(LetWithEnvironment, \
-					LetWithEnvrionmentRef, GetCurrentEnvironment, \
+					LetWithEnvironmentRef, GetCurrentEnvironment, \
 					LockCurrentEnvironment, MakeEnvironment)",
 					"list prepareation" $effective @ ("functions \
 					%(FoldR1, Map1, ListExtractFirst, ListExtractRest)",
@@ -8565,7 +8794,7 @@ b918
 				/ DLI "optimized parent environment initialization"
 					@ "functions %(VauWithEnvironment, \
 					VauWithEnvironmentRef, LetWithEnvironment, \
-					LetWithEnvrionmentRef)" !^ "%ValueObject::emplace",
+					LetWithEnvironmentRef)" !^ "%ValueObject::emplace",
 				/ DLDI "removed redundant %std::move" @ "function %AccL",
 					// Also to eliminate Clang++ warning: [-Wpessimizing-move].
 				- DLI 'YB_FLATTEN' @ "internal implementation"
@@ -9538,11 +9767,11 @@ b913
 					@ "function %MakeEncapsulationType"
 					$dep_to "removal of tail environment check",
 				(
-				/ $forced DLI "simplified combiner subobject reference \
-					construction" $dep_from "simplified combiner subobjct \
-					reference construction" $effective @ "functions (AccL, \
-					AccR, Apply, FoldR1, ForwardFirst, Map1, Unwrap, Wrap, \
-					WrapOnce, WrapOnceRef, WrapRef)";
+				/ DLI "simplified combiner subobject reference construction"
+					$dep_from $forced "simplified combiner subobjct reference \
+					construction" $effective @ "functions (AccL, AccR, Apply, \
+					FoldR1, ForwardFirst, Map1, Unwrap, Wrap, WrapOnce, \
+					WrapOnceRef, WrapRef)";
 				- "context parameter" @ "functions %(Unwrap, Wrap, WrapOnce, \
 					WrapOnceRef, WrapRef)"
 				),
@@ -10210,13 +10439,13 @@ b909
 				(
 				+ "applicative 'check-parent'"
 					^ $dep_from ("%CheckParent" @ %NPLA1Forms);
-				/ $forced "all uses of applicative 'check-environment' for \
-					applicative derivation of function name with '/e'"
-					-> 'check-parent' $dep_from ("%(VauWithEnvironment, \
+				/ "all uses of applicative 'check-environment' for applicative \
+					derivation of function name with '/e'" -> 'check-parent'
+					$dep_from $forced ("%(VauWithEnvironment, \
 					VauWithEnvironmentRef)" @ %NPLA1Forms)
 				),
-				/ $forced "alternative derivation" @ "applicative \
-					'check-environment'" $dep_from ("%(VauWithEnvironment, \
+				/ "alternative derivation" @ "applicative 'check-environment'"
+					$dep_from $forced ("%(VauWithEnvironment, \
 					VauWithEnvironmentRef)" @ %NPLA1Forms)
 					$= (/ $impl ^ 'eval%' ~ '$vau/e%'),
 				/ "simplified derivation" @ "applicative 'derive-environment'"
@@ -12105,8 +12334,9 @@ b900
 					// To avoid unexpected copies.
 				+ 'const' @ "parameter" @ "constructor#1"
 			),
-			/ $forced DLDI "simplified (member function %Partition::ChangeDir, \
-				constructor %DirState)" $dep_from "DEntry constructor split",
+			/ DLDI "simplified (member function %Partition::ChangeDir, \
+				constructor %DirState)"
+				$dep_from $forced "DEntry constructor split",
 			+ DLD "2 'nullptr' at end of %devoptab_t object"
 				$dep_from "devkitARM update"
 				// To eliminate G++ warning: [-Wmissing-field-initializers].
@@ -12317,7 +12547,7 @@ b900
 		),
 		/ @ "%SHBuild-YSLib-build.txt" $=
 		(
-			+ $forced "libFreeImaged support" $dep_from "libFreeImaged",
+			+ "libFreeImaged support" $dep_from $forced "libFreeImaged",
 			/ "checked %(SHBuild_UseDebug, SHBuild_UseRelease)"
 				@ "3rdparty library installation",
 			+ $re_add(b885) $re_ex(b897) "'-gdwarf-3' as workaround after '-Og'"

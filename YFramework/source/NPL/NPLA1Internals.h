@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r22808
+\version r22815
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-11-07 12:01 +0800
+	2022-11-21 08:06 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -39,7 +39,8 @@
 //	IsIgnore, ParameterMismatch, IsPair, IsEmpty, IsList, NPL::AsTermNode,
 //	NPL::AsTermNodeTagged, ystdex::is_bitwise_swappable;
 #include <ystdex/compose.hpp> // for ystdex::get_less;
-#include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
+#include <ystdex/scope_guard.hpp> // for ystdex::unique_guard,
+//	ystdex::make_unique_guard;
 #include <ystdex/utility.hpp> // for ystdex::exchange;
 #include <ystdex/ref.hpp> // for std::reference_wrapper, std::ref,
 //	ystdex::unref;
@@ -390,8 +391,8 @@ public:
 class TCOAction final
 {
 private:
-	// NOTE: Specialized guard type (instead of using %ystdex::unique_guard) is
-	//	more efficient here.
+	// NOTE: Specialized guard type (instead of %ystdex::unique_guard) is more
+	//	efficient here.
 	// XXX: More specialized guard type without %ystdex::unique_guard works, but
 	//	it is acually less efficient, at least on x86_64-pc-linux G++ 10.2.
 	//! \since build 910
@@ -435,8 +436,7 @@ private:
 	//! \since build 946
 	mutable EnvironmentGuard env_guard;
 	//! \since build 909
-	mutable decltype(ystdex::unique_guard(std::declval<GuardFunction>()))
-		term_guard;
+	mutable ystdex::unique_guard<GuardFunction> term_guard;
 	/*!
 	\brief 可选的附加信息。
 	\since build 947
@@ -454,7 +454,7 @@ public:
 		: req_lift_result(lift ? 1 : 0), record_list(ctx.get_allocator()),
 		// NOTE: The external environment pointer is not saved in the guard yet,
 		//	and it should be set later if any environment switch is needed.
-		env_guard(ctx), term_guard(ystdex::unique_guard(GuardFunction{term}))
+		env_guard(ctx), term_guard(ystdex::make_unique_guard(GuardFunction{term}))
 		// XXX: Do not call %AssertValueTags on %term, as it can be (and is
 		//	usually) a combiniation instead of the representation of some
 		//	object language value.

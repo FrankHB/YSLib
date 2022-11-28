@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r10114
+\version r10228
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2022-11-21 03:32 +0800
+	2022-11-28 05:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,8 @@
 //	NPL::AsTermNode, ystdex::is_bitwise_swappable;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include <ystdex/type_op.hpp> // for ystdex::exclude_self_params_t;
-#include <ystdex/container.hpp> // for ystdex::insert_or_assign;
+#include <ystdex/container.hpp> // for ystdex::insert_or_assign,
+//	ystdex::erase_first;
 #include <libdefect/exception.h> // for std::exception_ptr;
 
 namespace NPL
@@ -2147,6 +2148,37 @@ EmplaceCallResultOrReturn(TermNode& term, array<ValueObject, _vN> arg)
 */
 using EnvironmentList = vector<ValueObject>;
 
+/*!
+\brief 绑定映射。
+\since build 788
+*/
+using BindingMap = YSLib::map<string, TermNode, ystdex::less<>>;
+
+/*!
+\brief 名称解析结果。
+\since build 821
+
+名称解析结果可以是：
+环境中的绑定目标的非空对象指针和直接保存绑定目标的环境的引用；
+表示没有找到指定变量的空指针和未指定的环境引用的值。
+*/
+using NameResolution
+	= pair<observer_ptr<BindingMap::mapped_type>, shared_ptr<Environment>>;
+
+
+/*!
+\brief 查找名称。
+\return 查找到的名称，或查找失败时的空值。
+\since build 961
+
+在绑定列表中查找名称。
+*/
+YB_ATTR_nodiscard YB_PURE inline PDefH(NameResolution::first_type, LookupName,
+	BindingMap& m, string_view id)
+	ImplRet(YAssertNonnull(id.data()), make_observer(ystdex::call_value_or<
+		BindingMap::mapped_type*>(ystdex::compose(ystdex::addrof<>(),
+		ystdex::second_of<>()), m.find(id), {}, m.cend())))
+
 
 /*!
 \brief 环境。
@@ -2158,18 +2190,6 @@ class YF_API Environment : private EnvironmentBase,
 	private ystdex::equality_comparable<Environment>
 {
 public:
-	//! \since build 788
-	using BindingMap = YSLib::map<string, TermNode, ystdex::less<>>;
-	/*!
-	\brief 名称解析结果。
-	\since build 821
-
-	名称解析结果可以是：
-	环境中的绑定目标的非空对象指针和直接保存绑定目标的环境的引用；
-	表示没有找到指定变量的空指针和未指定的环境引用的值。
-	*/
-	using NameResolution
-		= pair<observer_ptr<BindingMap::mapped_type>, shared_ptr<Environment>>;
 	/*!
 	\brief 绑定映射对象使用的分配器类型。
 	\note 支持 uses-allocator 构造。
@@ -2322,22 +2342,37 @@ public:
 	DefGetter(const ynothrow, const BindingMap&, Map, bindings)
 	/*!
 	\brief 取可变名称绑定映射。
-	\warning 不检查冻结状态。
+	\throw TypeError 环境被冻结。
+	\since build 961
 	*/
-	DefGetter(ynothrow, BindingMap&, MapRef, bindings)
+	YB_ATTR_nodiscard YB_PURE BindingMap&
+	GetMapCheckedRef();
+	/*!
+	\brief 取可变名称绑定映射。
+	\pre 断言：环境未被冻结。
+	\since build 961
+	*/
+	DefGetter(ynothrowv, BindingMap&, MapRef,
+		YAssert(!IsFrozen(), "Frozen environment found."), bindings)
+	/*!
+	\brief 取可变名称绑定映射。
+	\warning 不检查冻结状态。
+	\since build 961
+	*/
+	DefGetter(ynothrow, BindingMap&, MapUncheckedRef, bindings)
 	//@}
 
 	/*!
-	\brief 添加或覆盖绑定。
-	\since build 857
+	\brief 在第一参数添加或覆盖绑定。
+	\since build 961
 	*/
 	template<typename _tKey, class _tNode>
-	TermNode&
-	Bind(_tKey&& k, _tNode&& tm)
+	static TermNode&
+	Bind(BindingMap& m, _tKey&& k, _tNode&& tm)
 	{
-		// XXX: %YSLib::map::insert_or_assign does not allows keys not of
+		// XXX: %BindingMap::insert_or_assign does not allows keys not of
 		//	%BindingMap::key_type to be directly forwarded.
-		return NPL::Deref(ystdex::insert_or_assign(GetMapRef(), yforward(k),
+		return NPL::Deref(ystdex::insert_or_assign(m, yforward(k),
 			yforward(tm)).first).second;
 	}
 
@@ -2412,16 +2447,6 @@ private:
 
 public:
 	/*!
-	\brief 查找名称。
-	\return 查找到的名称，或查找失败时的空值。
-	\since build 852
-
-	在环境中查找名称。
-	*/
-	YB_ATTR_nodiscard YB_PURE NameResolution::first_type
-	LookupName(string_view) const;
-
-	/*!
 	\brief 根据当前状态创建指定项的引用。
 	\note 项通常表示当前环境对象所有的被绑定对象。
 	\since build 906
@@ -2433,37 +2458,39 @@ public:
 	/*!
 	\pre 断言：第一参数的数据指针非空。
 	\warning 应避免对被替换或移除的值的悬空引用。
-	\since build 867
+	\since build 961
 	*/
 	//@{
 	/*!
 	\brief 以字符串为标识符在指定上下文移除定义。
 	\return 是否成功移除。
 	*/
-	bool
-	Remove(string_view);
+	static PDefH(bool, Remove, BindingMap& m, string_view id)
+		ImplRet(YAssertNonnull(id.data()),
+			// XXX: %BindingMap does not have transparent key %erase. This is
+			//	like %std::set.
+			ystdex::erase_first(m, id))
 	/*!
 	\brief 以字符串为标识符在指定上下文移除定义并检查是否成功。
 	\throw BadIdentifier 定义不存在。
 	*/
-	void
-	RemoveChecked(string_view);
+	static void
+	RemoveChecked(BindingMap&, string_view);
 
 	/*!
 	\brief 以字符串为标识符在指定上下文的名称查找结果中替换定义。
 	\note 若定义不存在则忽略。
 	\return 是否成功替换。
-	\since build 899
 	*/
-	bool
-	Replace(string_view, ValueObject&&);
+	static bool
+	Replace(BindingMap&, string_view, ValueObject&&);
 
 	/*!
 	\brief 以字符串为标识符在指定上下文的名称查找结果中替换已存在的定义。
 	\throw BadIdentifier 定义不存在。
 	*/
-	void
-	ReplaceChecked(string_view, ValueObject&&);
+	static void
+	ReplaceChecked(BindingMap&, string_view, ValueObject&&);
 	//@}
 
 	/*!
@@ -2750,7 +2777,7 @@ public:
 		此后，名称解析最终应失败或不终止。
 	若使用被解析的对象的循环引用，可在对象语言中引起未定义行为。
 	*/
-	function<Environment::NameResolution(shared_ptr<Environment>, string_view)>
+	function<NameResolution(shared_ptr<Environment>, string_view)>
 		Resolve{DefaultResolve};
 
 private:
@@ -2956,7 +2983,7 @@ public:
 	对列表，使用 DFS（深度优先搜索）依次递归检查其元素。
 	循环重定向不终止。
 	*/
-	YB_ATTR_nodiscard static Environment::NameResolution
+	YB_ATTR_nodiscard static NameResolution
 	DefaultResolve(shared_ptr<Environment>, string_view);
 
 	/*!
@@ -3110,7 +3137,7 @@ public:
 
 	/*!
 	\brief 切换环境。
-	\since build 872
+	\since build 961
 	*/
 	//@{
 	/*!
@@ -3118,12 +3145,13 @@ public:
 	\sa SwitchEnvironmentUnchecked
 	*/
 	shared_ptr<Environment>
-	SwitchEnvironment(const shared_ptr<Environment>&);
+	SwitchEnvironment(shared_ptr<Environment>);
 
 	//! \pre 断言：参数指针非空。
 	PDefH(shared_ptr<Environment>, SwitchEnvironmentUnchecked,
-		const shared_ptr<Environment>& p_env) ynothrowv
-		ImplRet(YAssertNonnull(p_env), ystdex::exchange(p_record, p_env))
+		shared_ptr<Environment> p_env) ynothrowv
+		ImplRet(YAssertNonnull(p_env),
+			ystdex::exchange(p_record, std::move(p_env)))
 	//@}
 
 	//! \since build 894
@@ -3201,7 +3229,7 @@ YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators,
 */
 //@{
 YB_ATTR_nodiscard YB_PURE inline PDefH(Environment::allocator_type,
-	ToBindingsAllocator, const Environment::BindingMap& m) ynothrow
+	ToBindingsAllocator, const BindingMap& m) ynothrow
 	ImplRet(m.get_allocator())
 YB_ATTR_nodiscard YB_PURE inline PDefH(Environment::allocator_type,
 	ToBindingsAllocator, const Environment& env) ynothrow
@@ -3271,14 +3299,14 @@ SwitchToFreshEnvironment(ContextNode& ctx, _tParams&&... args)
 \since build 838
 
 设置被绑定对象的值数据成员并清空子项。
-可访问 Environment::GetMapRef() 、Environment
+可访问 Environment::GetMapCheckedRef() 、Environment
 	或 ContextNode 类型中指定名称的绑定。
 因为直接替换被绑定对象，不需要检查目标是否和 TermNode 的正规表示一致。
 */
 //@{
 template<typename _type, typename... _tParams>
 inline bool
-EmplaceLeaf(Environment::BindingMap& m, string_view name, _tParams&&... args)
+EmplaceLeaf(BindingMap& m, string_view name, _tParams&&... args)
 {
 	YAssertNonnull(name.data());
 	// XXX: The implementation is depended on the fact that %TermNode is simply
@@ -3296,8 +3324,7 @@ EmplaceLeaf(Environment::BindingMap& m, string_view name, _tParams&&... args)
 //! \since build 927
 template<typename _type, typename... _tParams>
 inline bool
-EmplaceLeaf(Environment::BindingMap& m, string_view name,
-	trivial_swap_t, _tParams&&... args)
+EmplaceLeaf(BindingMap& m, string_view name, trivial_swap_t, _tParams&&... args)
 {
 	YAssertNonnull(name.data());
 	return ystdex::insert_or_assign(m, name, NPL::AsTermNode(m.get_allocator(),
@@ -3307,7 +3334,8 @@ template<typename _type, typename... _tParams>
 inline bool
 EmplaceLeaf(Environment& env, string_view name, _tParams&&... args)
 {
-	return NPL::EmplaceLeaf<_type>(env.GetMapRef(), name, yforward(args)...);
+	return NPL::EmplaceLeaf<_type>(env.GetMapCheckedRef(), name,
+		yforward(args)...);
 }
 template<typename _type, typename... _tParams>
 inline bool
@@ -3328,7 +3356,7 @@ EmplaceLeaf(ContextNode& ctx, string_view name, _tParams&&... args)
 解析指定上下文的当前环境中的名称。
 解析名称以当前当前环境作为参数调用上下文的 ContextNode::Resolve 实现。
 */
-YB_ATTR_nodiscard inline PDefH(Environment::NameResolution, ResolveName,
+YB_ATTR_nodiscard inline PDefH(NameResolution, ResolveName,
 	const ContextNode& ctx, string_view id)
 	ImplRet(YAssertNonnull(id.data()), ctx.Resolve(ctx.GetRecordPtr(), id))
 
@@ -3447,11 +3475,12 @@ inline PDefH(void, AssignWeakParent, ValueObject& parent, TermNode& term,
 
 /*!
 \brief 环境切换器。
+\ingroup functors
 \warning 非虚析构。
 \sa Environment::SwitchEnvironmentUnchecked
 \since build 821
 
-类 NPL::EnvironmentSwitcher 用于保存切换上下文的当前环境的结果。
+用于保存切换上下文的当前环境的结果的仿函数。
 配合作用域守卫可用于以异常中立的方式恢复被切换的环境。
 */
 struct EnvironmentSwitcher
@@ -3460,8 +3489,9 @@ struct EnvironmentSwitcher
 	lref<ContextNode> Context;
 	mutable shared_ptr<Environment> SavedPtr;
 
-	//! \since build 911
+	//! \since build 961
 	EnvironmentSwitcher(ContextNode& ctx, shared_ptr<Environment> p_saved = {})
+		ynothrow
 		: Context(ctx), SavedPtr(std::move(p_saved))
 	{}
 	DefDeMoveCtor(EnvironmentSwitcher)
@@ -3474,6 +3504,23 @@ struct EnvironmentSwitcher
 		if(SavedPtr)
 			Context.get().SwitchEnvironmentUnchecked(std::move(SavedPtr));
 	}
+
+	//! \since build 961
+	//@{
+	shared_ptr<Environment>
+	Switch() const ynothrowv
+	{
+		return SavedPtr ? Context.get().SwitchEnvironmentUnchecked(
+			std::move(SavedPtr)) : nullptr;
+	}
+
+	//! \sa ystdex::dismiss 。
+	friend void
+	dismiss(EnvironmentSwitcher& s) ynothrow
+	{
+		s.SavedPtr.reset();
+	}
+	//@}
 };
 
 

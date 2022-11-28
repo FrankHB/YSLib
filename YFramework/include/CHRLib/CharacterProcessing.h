@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015, 2018-2019, 2021 FrankHB.
+	© 2009-2015, 2018-2019, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CharacterProcessing.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r2416
+\version r2420
 \author FrankHB <frankhb1989@gmail.com>
 \since build 565
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2021-12-27 03:15 +0800
+	2022-11-21 05:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,8 +32,9 @@
 #include YFM_CHRLib_CharacterMapping
 #include <ystdex/cstring.h> // for ystdex::uchar_t;
 #include <ystdex/string.hpp> // for ystdex::is_null, ystdex::ntctslen,
-//	ystdex::string_traits, std::allocator_arg_t,
-//	ystdex::make_obj_using_allocator, std::basic_string, std::allocator_arg;
+//	ystdex::string_traits, std::basic_string;
+#include <ystdex/allocator.hpp> // for std::allocator_arg_t,
+//	ystdex::make_obj_using_allocator, std::allocator_arg;
 #include <cstdio> // for std::FILE;
 #include <memory> // for std::move;
 

@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1844
+\version r1859
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2022-09-05 22:07 +0800
+	2022-11-21 07:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 #	include <atomic> // for std::atomic;
 #endif
 #include "ystdex/pointer.hpp" // for tidy_ptr;
-#include "ystdex/scope_guard.hpp" // for unique_guard, ystdex::dismiss;
+#include "ystdex/scope_guard.hpp" // for make_unique_guard, ystdex::dismiss;
 #include "ystdex/algorithm.hpp" // for std::min, std::max,
 //	ystdex::lower_bound_n;
 
@@ -266,12 +266,9 @@ new_delete_resource_t::do_allocate(size_t bytes, size_t alignment)
 #else
 	if(alignment > 1)
 	{
-		// TODO: Record 'sizeof' value for debugging?
-		// TODO: Provide as an additonal %::operator new with extended alignment?
-		// NOTE: The checks are necessary to prevent wrapping of the
-		//	results of '+'. See also
-		//	https://gcc.gnu.org/bugzilla/show_bug.cgi?id=19351.
-		if(bytes + alignment > bytes)
+		// NOTE: The checks are necessary to prevent wrapping of the results of
+		//	'+'. See also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=19351.
+		if(YB_LIKELY(bytes + alignment > bytes))
 		{
 			auto space(offset_n_t::value + bytes + alignment);
 
@@ -303,12 +300,11 @@ new_delete_resource_t::do_allocate(size_t bytes, size_t alignment)
 				}
 			}
 		}
-		// NOTE: If the wrapping checks fail or there is not suitable
-		//	aligned storage available, the allocation fails. No
-		//	exception matching %std::bad_array_new_length is thrown even
-		//	it is caused by the wrapping failure, since it is never
-		//	thrown in an allocation function in the default case
-		//	specified by ISO C++.
+		// NOTE: If the wrapping checks fail or there is no suitable aligned
+		//	storage available, the allocation fails. No exception matching
+		//	%std::bad_array_new_length is thrown even it is caused by the
+		//	wrapping failure, since it is never thrown in an allocation function
+		//	in the default case specified by ISO C++.
 		throw std::bad_alloc();
 	}
 	return ::operator new(bytes);
@@ -369,7 +365,6 @@ adjust_pool_options(pool_options& opts)
 	static_assert(is_power_of_2_positive(largest_required_pool_block_limit),
 		"Invalid limit value found.");
 
-	// TODO: Add and use interval arithmetic library calls.
 	if(opts.max_blocks_per_chunk - 1 >= max_blocks_per_chunk_limit)
 		opts.max_blocks_per_chunk = max_blocks_per_chunk_limit;
 	if(opts.largest_required_pool_block - 1
@@ -396,7 +391,7 @@ oversized_map::allocate(size_t bytes, size_t alignment)
 {
 	auto& upstream_ref(upstream());
 	const auto p(upstream_ref.allocate(bytes, alignment));
-	auto gd(unique_guard([&]() ynothrow{
+	auto gd(make_unique_guard([&]() ynothrow{
 		upstream_ref.deallocate(p, bytes, alignment);
 	}));
 

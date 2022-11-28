@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r24399
+\version r24638
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2022-11-12 21:00 +0800
+	2022-11-27 12:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,7 @@
 //	AssertValueTags, ystdex::retry_on_cond, AccessFirstSubterm, ystdex::ref_eq,
 //	ystdex::make_transform, IsCombiningTerm, NPL::IsMovable, std::placeholders,
 //	NoContainer, ystdex::try_emplace, Access, YSLib::Informative,
-//	ystdex::unique_guard, CategorizeBasicLexeme, DeliteralizeUnchecked,
+//	ystdex::make_unique_guard, CategorizeBasicLexeme, DeliteralizeUnchecked,
 //	Deliteralize, IsLeaf, TryAccessTerm, YSLib::share_move,
 //	ystdex::call_value_or, std::piecewise_construct, type_id, make_observer,
 //	YSLib::Notice, YSLib::FilterException, Session;
@@ -98,7 +98,11 @@ namespace NPL
 //		compared to expansion level 2 (~7x when using %Action or ~1.5x when
 //		using %YSLib::stack and %vector).
 #ifndef NPL_Impl_NPLA1_BindParameter_ExpandLevel
-#	if !defined(NDEBUG) || __OPTIMIZE_SIZE__
+// XXX: 'YCL_Win32 && YCL_MinGW' is added temporarily to work around MinGW32
+//	native GCC's cc1plus.exe out-of-memory problem. This is not accurate e.g.
+//	for cross compilers from x86_64 which have sufficient address space.
+#	if !defined(NDEBUG) || __OPTIMIZE_SIZE__ \
+	|| (YB_IMPL_GNUCPP && YCL_Win32 && YCL_MinGW)
 #		define NPL_Impl_NPLA1_BindParameter_ExpandLevel 0
 #	else
 #		define NPL_Impl_NPLA1_BindParameter_ExpandLevel 1
@@ -296,7 +300,7 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	return RelaySwitched(ctx, GLContinuation<>(h));
 #else
 
-	auto gd(ystdex::unique_guard([&]() ynothrow{
+	auto gd(ystdex::make_unique_guard([&]() ynothrow{
 		// XXX: This term is fixed, as in the term cleanup in %TCOAction.
 		term.Clear();
 	}));
@@ -592,18 +596,45 @@ private:
 inline PDefH(void, CopyTermTags, TermNode& term, const TermNode& tm) ynothrow
 	ImplExpr(term.Tags = GetLValueTagsOf(tm.Tags))
 
-//! \since build 858
-void
-MarkTemporaryTerm(TermNode& term, char sigil) ynothrow
+//! \since build 961
+struct BindAdd final
 {
-	if(sigil != char())
-		// XXX: This is like lifetime extension of temporary objects with rvalue
-		//	references in the host language.
-		term.Tags |= TermTags::Temporary;
-}
+	BindingMap& m;
+	string_view& id;
+
+	void
+	operator()(const TermNode& tm) const
+	{
+		CopyTermTags(Environment::Bind(m, id, tm), tm);
+	}
+	TermNode&
+	operator()(TermNode::Container&& c, ValueObject&& vo)
+	{
+		// XXX: Allocators are not used here for performance.
+		return Environment::Bind(m, id, TermNode(std::move(c), std::move(vo)));
+	}
+};
+
+//! \since build 961
+struct BindInsert final
+{
+	TermNode::Container& tcon;
+
+	void
+	operator()(const TermNode& tm) const
+	{
+		CopyTermTags(tcon.emplace_back(tm.GetContainer(), tm.Value), tm);
+	}
+	TermNode&
+	operator()(TermNode::Container&& c, ValueObject&& vo) const
+	{
+		tcon.emplace_back(std::move(c), std::move(vo));
+		return tcon.back();
+	}
+};
 
 //! \since build 828
-class BindParameterObject
+class BindParameterObject final
 {
 public:
 	// XXX: This is actually used for references of lvalues and it
@@ -612,16 +643,19 @@ public:
 	//! \since build 882
 	lref<const EnvironmentReference> Referenced;
 
-	//! \since build 882
-	BindParameterObject(const EnvironmentReference& r_env)
-		: Referenced(r_env)
+private:
+	//! \since build 961
+	//@{
+	char sigil;
+
+public:
+	BindParameterObject(const EnvironmentReference& r_env, char s) ynothrow
+		: Referenced(r_env), sigil(s)
 	{}
 
-	//! \since build 916
-	template<typename _fCopy, typename _fMove>
+	template<typename _fInit>
 	void
-	operator()(char sigil, bool ref_temp, TermTags o_tags, TermNode& o,
-		_fCopy cp, _fMove mv) const
+	operator()(TermTags o_tags, TermNode& o, _fInit init) const
 	{
 		// NOTE: For elements binding here, %TermTags::Unique in %o_tags is
 		//	irrelavant.
@@ -647,23 +681,25 @@ public:
 			{
 				if(sigil != char())
 				{
-					// NOTE: If %ref_temp is set, xvalues are treated as
-					//	prvalues in terms of the tags of the bound object. This
-					//	only occurs on sigil '&' as per the object language
+					// NOTE: If the sigil is '&', xvalues are treated as
+					//	prvalues in terms of the tags of the bound object by
+					//	calling to %BindReferenceTags instead of
+					//	%TermReference::GetTags. This only occurs on sigil '&'
+					//	for non-trailing binding as per the object language
 					//	rules.
-					const auto ref_tags(PropagateTo(ref_temp
+					const auto ref_tags(PropagateTo(sigil == '&'
 						? BindReferenceTags(*p) : p->GetTags(), o_tags));
 
 					// XXX: Allocators are not used here on %TermReference for
 					//	performance in most cases.
 					if(can_modify && temp)
 						// NOTE: Reference collapsed by move.
-						mv(std::move(o.GetContainerRef()),
+						init(std::move(o.GetContainerRef()),
 							ValueObject(in_place_type<TermReference>, ref_tags,
 							std::move(*p)));
 					else
 						// NOTE: Reference collapsed by copy.
-						mv(TermNode::Container(o.GetContainer(), a),
+						init(TermNode::Container(o.GetContainer(), a),
 							ValueObject(in_place_type<TermReference>, ref_tags,
 							*p));
 				}
@@ -674,9 +710,9 @@ public:
 					// NOTE: Since it is passed by value copy, direct
 					//	destructive lifting cannot be used.
 					if(!p->IsMovable())
-						cp(src);
+						init(src);
 					else
-						mv(std::move(src.GetContainerRef()),
+						init(std::move(src.GetContainerRef()),
 							std::move(src.Value));
 				}
 			}
@@ -688,8 +724,8 @@ public:
 			else if((can_modify || sigil == '%') && temp)
 				// XXX: The object is bound to reference as temporary, implying
 				//	copy elision in the object language.
-				MarkTemporaryTerm(mv(std::move(o.GetContainerRef()),
-					std::move(o.Value)), sigil);
+				MarkTemporaryTerm(init(std::move(o.GetContainerRef()),
+					std::move(o.Value)));
 			// NOTE: Binding on list prvalues is always unsafe. However, since
 			//	%TermTags::Nonmodifying is not allowed on prvalues, being not
 			//	%can_modify currently implies some ancestor of %o is a
@@ -700,7 +736,7 @@ public:
 				//	The anchor here (if any) is not accurate because it refers
 				//	to the anchor saved by the reference (if any), not
 				//	necessarily the original environment owning the referent.
-				mv(TermNode::Container(a),
+				init(TermNode::Container(a),
 					// NOTE: Term tags on prvalues are reserved and should be
 					//	ignored normally except for the possible overlapped
 					//	encoding of %TermTags::Sticky and future internal use.
@@ -713,14 +749,14 @@ public:
 					//	%PropagateTo in functionality except %TermTags::Unique.
 					GetLValueTagsOf(o.Tags | o_tags), o, Referenced));
 			else
-				cp(o);
+				init(o);
 		}
 		else if(!temp)
 			// XXX: Ditto, except that tags other than %TermTags::Nonmodifying
 			//	as well as %o.Tags are ignored intentionally. This may cause
 			//	differences on derivations using '@' or not, see $2021-08
 			//	@ %Documentation::Workflow.
-			mv(TermNode::Container(o.get_allocator()),
+			init(TermNode::Container(o.get_allocator()),
 				ValueObject(std::allocator_arg, o.get_allocator(),
 				in_place_type<TermReference>, o_tags & TermTags::Nonmodifying,
 				o, Referenced));
@@ -728,11 +764,9 @@ public:
 			throw
 				InvalidReference("Invalid operand found on binding sigil '@'.");
 	}
-	//! \since build 951
-	template<typename _fMove>
+	template<typename _fInit>
 	void
-	operator()(char sigil, bool ref_temp, TermTags o_tags, TermNode& o,
-		TNIter first, _fMove mv) const
+	operator()(TermTags o_tags, TermNode& o, TNIter first, _fInit init) const
 	{
 		// NOTE: Same to the overload above, except that %o can be a pair and %j
 		//	specifies the 1st subterm of the suffix.
@@ -743,16 +777,16 @@ public:
 			[&](TermNode& src, TNIter j, TermTags tags) -> TermNode&{
 			YAssert(sigil == char() || sigil == '%', "Invalid sigil found.");
 
-			auto t(CreateForBindSubpairPrefix(sigil, src, j, tags));
+			auto t(CreateForBindSubpairPrefix(src, j, tags));
 
 			if(o.Value)
 				BindSubpairCopySuffix(t, src, j);
-			return mv(std::move(t.GetContainerRef()), std::move(t.Value));
+			return init(std::move(t.GetContainerRef()), std::move(t.Value));
 		});
 		const auto bind_subpair_ref_at([&](TermTags tags){
 			YAssert(sigil == '&' || sigil == '@', "Invalid sigil found.");
 
-			auto t(CreateForBindSubpairPrefix(sigil, o, first, tags));
+			auto t(CreateForBindSubpairPrefix(o, first, tags));
 
 			if(o.Value)
 				// XXX: The container is ignored, since it is assumed always
@@ -773,16 +807,14 @@ public:
 			// XXX: Reuse %tcon.
 			tcon.clear();
 			tcon.push_back(MakeSubobjectReferent(a, std::move(p_sub)));
-			// XXX: The anchor indicated by %Referenced is not accurate, as
-			//	the overload %operator() above.
-			mv(std::move(tcon), ValueObject(std::allocator_arg, a,
+			// XXX: The anchor indicated by %Referenced is not accurate, as the
+			//	overload %operator() above.
+			init(std::move(tcon), ValueObject(std::allocator_arg, a,
 				in_place_type<TermReference>, tags, sub, Referenced));
 #else
-			// NOTE: Any optimized implemenations shall be equivalent to
-			//	this.
-			ReduceAsSubobjectReference(t, std::move(p_sub), Referenced,
-				tags);
-			mv(std::move(tcon), std::move(t.Value));
+			// NOTE: Any optimized implemenations shall be equivalent to this.
+			ReduceAsSubobjectReference(t, std::move(p_sub), Referenced, tags);
+			init(std::move(tcon), std::move(t.Value));
 #endif
 		});
 
@@ -795,15 +827,15 @@ public:
 			{
 				if(sigil != char())
 				{
-					const auto ref_tags(PropagateTo(ref_temp
+					const auto ref_tags(PropagateTo(sigil == '&'
 						? BindReferenceTags(*p) : p->GetTags(), o_tags));
 
 					if(can_modify && temp)
-						mv(MoveSuffix(o, first),
+						init(MoveSuffix(o, first),
 							ValueObject(in_place_type<TermReference>, ref_tags,
 							std::move(*p)));
 					else
-						mv(TermNode::Container(first, o.end(), a),
+						init(TermNode::Container(first, o.end(), a),
 							ValueObject(in_place_type<TermReference>, ref_tags,
 							*p));
 				}
@@ -815,7 +847,7 @@ public:
 						CopyTermTags(bind_subpair_val_fwd(src, src.begin(),
 							GetLValueTagsOf(o_tags & ~TermTags::Unique)), src);
 					else
-						mv(MoveSuffix(o, first), std::move(src.Value));
+						init(MoveSuffix(o, first), std::move(src.Value));
 				}
 			}
 			// NOTE: This is different to the element binding overload above. It
@@ -828,15 +860,14 @@ public:
 			{
 				if(sigil == char())
 					LiftPrefixToReturn(o, first);
-				MarkTemporaryTerm(mv(MoveSuffix(o, first), std::move(o.Value)),
-					sigil);
+				MarkTemporaryTerm(init(MoveSuffix(o, first),
+					std::move(o.Value)));
 			}
 			else if(sigil == '&')
 				bind_subpair_ref_at(GetLValueTagsOf(o.Tags | o_tags));
 			// NOTE: The temporary tag cannot be in %o_tags here.
 			else
-				MarkTemporaryTerm(bind_subpair_val_fwd(o, first, o_tags),
-					sigil);
+				MarkTemporaryTerm(bind_subpair_val_fwd(o, first, o_tags));
 		}
 		else if(!temp)
 			bind_subpair_ref_at(o_tags & TermTags::Nonmodifying);
@@ -847,7 +878,6 @@ public:
 
 private:
 	//! \since build 954
-	//@{
 	static void
 	BindSubpairCopySuffix(TermNode& t, TermNode& o, TNIter& j)
 	{
@@ -857,8 +887,8 @@ private:
 	}
 
 	void
-	BindSubpairPrefix(char sigil, TermNode::Container& tcon, TermNode& o,
-		TNIter& j, TermTags tags) const
+	BindSubpairPrefix(TermNode::Container& tcon, TermNode& o, TNIter& j,
+		TermTags tags) const
 	{
 		// NOTE: This guarantees no subpair element will have
 		//	%TermTags::Temporary.
@@ -868,35 +898,24 @@ private:
 		//	to the elements of the sublist, depending on the sigil.
 		for(; j != o.end() && !IsSticky(j->Tags); ++j)
 #if true
-			BindSubpairSubterm(sigil, tcon, tags, NPL::Deref(j));
+			BindSubpairSubterm(tcon, tags, NPL::Deref(j));
 #else
-			// NOTE: Any optimized implemenations shall be equivalent to this.
-			(*this)(sigil, {}, tags, NPL::Deref(j), [&](const TermNode& tm){
-				CopyTermTags(tcon.emplace_back(tm.GetContainer(), tm.Value),
-					tm);
-			}, [&](TermNode::Container&& c, ValueObject&& vo) -> TermNode&{
-				tcon.emplace_back(std::move(c), std::move(vo));
-				return tcon.back();
-			});
+			// NOTE: Any optimized implemenations shall be equivalent to this,
+			//	except that the 1st argument of the call to %PropagateTo is
+			//	always assumed '{}'.
+			(*this)(tags, NPL::Deref(j), BindInsert{tcon});
 #endif
 	}
 
 	// XXX: Keep this a separated function may lead to more efficient code.
 	void
-	BindSubpairSubterm(char sigil, TermNode::Container& tcon, TermTags o_tags,
-		TermNode& o) const
+	BindSubpairSubterm(TermNode::Container& tcon, TermTags o_tags, TermNode& o)
+		const
 	{
 		// NOTE: As %BindSubpairPrefix.
 		YAssert(!bool(o_tags & TermTags::Temporary),
 			"Unexpected temporary tag found.");
-		const auto cp([&](const TermNode& tm){
-			CopyTermTags(tcon.emplace_back(tm.GetContainer(), tm.Value), tm);
-		});
-		const auto
-			mv([&](TermNode::Container&& c, ValueObject&& vo) -> TermNode&{
-			tcon.emplace_back(std::move(c), std::move(vo));
-			return tcon.back();
-		});
+		const BindInsert init{tcon};
 
 		if(sigil != '@')
 		{
@@ -905,37 +924,39 @@ private:
 			if(const auto p = TryAccessLeafAtom<TermReference>(o))
 			{
 				if(sigil != char())
-					mv(TermNode::Container(o.GetContainer(), a),
+					init(TermNode::Container(o.GetContainer(), a),
 						ValueObject(in_place_type<TermReference>,
+						// XXX: Do not use %BindReferenceTags as in
+						//	%operator()#1. This is required by the object
+						//	language rules. 
 						PropagateTo(p->GetTags(), o_tags), *p));
 				else
 				{
 					auto& src(p->get());
 
 					if(!p->IsMovable())
-						cp(src);
+						init(src);
 					else
-						mv(std::move(src.GetContainerRef()),
+						init(std::move(src.GetContainerRef()),
 							std::move(src.Value));
 				}
 			}
 			else if(sigil == '&')
-				mv(TermNode::Container(a), ValueObject(std::allocator_arg, a,
+				init(TermNode::Container(a), ValueObject(std::allocator_arg, a,
 					in_place_type<TermReference>,
 					GetLValueTagsOf(o.Tags | o_tags), o, Referenced));
 			else
-				cp(o);
+				init(o);
 		}
 		else
-			mv(TermNode::Container(o.get_allocator()),
+			init(TermNode::Container(o.get_allocator()),
 				ValueObject(std::allocator_arg, o.get_allocator(),
 				in_place_type<TermReference>, o_tags & TermTags::Nonmodifying,
 				o, Referenced));
 	}
 
 	TermNode
-	CreateForBindSubpairPrefix(char sigil, TermNode& o, TNIter first,
-		TermTags tags) const
+	CreateForBindSubpairPrefix(TermNode& o, TNIter first, TermTags tags) const
 	{
 		// NOTE: There is no %TermTags::Temprary in %tags due to the constrains
 		//	in the caller. This guarantees no element will have
@@ -948,11 +969,20 @@ private:
 
 		// NOTE: No tags are set in the result implies no %TermTags::Temporary
 		//	in the elements finally.
-		BindSubpairPrefix(sigil, t.GetContainerRef(), o, first, tags);
+		BindSubpairPrefix(t.GetContainerRef(), o, first, tags);
 		if(!o.Value)
 			// XXX: As in %LiftPrefixToReturn.
 			YAssert(first == o.end(), "Invalid representation found.");
 		return t;
+	}
+
+	void
+	MarkTemporaryTerm(TermNode& term) const ynothrow
+	{
+		if(sigil != char())
+			// XXX: This is like lifetime extension of temporary objects with
+			//	rvalue references in the host language.
+			term.Tags |= TermTags::Temporary;
 	}
 	//@}
 
@@ -1442,40 +1472,24 @@ YB_ATTR_nodiscard inline
 MakeParameterMatcher(TermNode::allocator_type a,
 	_fBindTrailing bind_trailing_seq, _fBindValue bind_value)
 {
-	return GParameterMatcher<_tTraits, GBinder<_fBindTrailing, _fBindValue>>(
-		a, std::move(bind_trailing_seq), std::move(bind_value));
+	return GParameterMatcher<_tTraits, GBinder<_fBindTrailing, _fBindValue>>(a,
+		std::move(bind_trailing_seq), std::move(bind_value));
 }
 //@}
-
-//! \since build 948
-// XXX: 'YB_FLATTEN' cannot used with G++ 12.1.0 when %BindParameterImpl is also
-//	using 'YB_FLATTEN', to avoid ICE in 'gimple_duplicate_bb' at
-//	'tree-cfg.c:6420'. This is no more efficient otherwise.
-void
-BindRawSymbol(const EnvironmentReference& r_env, string_view id,
-	TermNode& o, TermTags o_tags, Environment& env, char sigil)
-{
-	BindParameterObject{r_env}(sigil, sigil == '&', o_tags, o,
-		[&](const TermNode& tm){
-		CopyTermTags(env.Bind(id, tm), tm);
-	}, [&](TermNode::Container&& c, ValueObject&& vo) -> TermNode&{
-		// XXX: Allocators are not used here for performance.
-		return env.Bind(id, TermNode(std::move(c), std::move(vo)));
-	});
-}
 
 
 //! \since build 949
 struct DefaultBinder final
 {
-	lref<Environment> EnvRef;
+	//! \since build 961
+	lref<BindingMap> MapRef;
 
-	inline
-	DefaultBinder(Environment& env)
-		: EnvRef(env)
+	//! \since build 961
+	DefaultBinder(BindingMap& m) ynothrow
+		: MapRef(m)
 	{}
 
-	void
+	YB_FLATTEN void
 	operator()(TermNode& o_nd, TNIter first, string_view id, TermTags o_tags,
 		const EnvironmentReference& r_env) const
 	{
@@ -1489,32 +1503,41 @@ struct DefaultBinder final
 			// NOTE: Ignore the name of single '.' followed by a sigil (if it is
 			//	from the trailing subterm of the list).
 			if(!id.empty())
-			{
-				auto& env(EnvRef.get());
-
-				BindParameterObject{r_env}(sigil, sigil == '&', o_tags, o_nd,
-					first,
-					[&](TermNode::Container&& c, ValueObject&& vo) -> TermNode&{
-					// XXX: Allocators are not used here for performance.
-					return env.Bind(id, TermNode(std::move(c), std::move(vo)));
-				});
-			}
+				Bind(r_env, sigil, id, o_tags, o_nd, first);
 		}
 	}
+	// XXX: As of b948, 'YB_FLATTEN' cannot be used with G++ 12.1.0 on a
+	//	separated function for binding raw symbols when %BindParameterImpl is
+	//	also using 'YB_FLATTEN', to avoid ICE in 'gimple_duplicate_bb' at
+	//	'tree-cfg.c:6420'. This is no more efficient otherwise. However, this is
+	//	not the case as of b961, and it makes improvement to all values of
+	//	%NPL_Impl_NPLA1_BindParameter_ExpandLevel, so it is enabled
+	//	unconditionally except for value '0' where the debug information and
+	//	binary size may take higher priority.
+#if NPL_Impl_NPLA1_BindParameter_ExpandLevel > 0
+	YB_FLATTEN
+#endif
 	void
 	operator()(string_view id, TermNode& o, TermTags o_tags,
 		const EnvironmentReference& r_env) const
 	{
-		// XXX: This shall be sequenced before the following call since %id can
-		//	be modified.
-		const char sigil(ExtractSigil(id));
+		// XXX: The call to %ExtractSigil shall be sequenced before the
+		//	following call since %id can be modified.
+		Bind(r_env, ExtractSigil(id), id, o_tags, o);
+	}
 
-		BindRawSymbol(r_env, id, o, o_tags, EnvRef, sigil);
+	template<typename... _tParams>
+	YB_FLATTEN inline void
+	Bind(const EnvironmentReference& r_env, char sigil, string_view& id,
+		_tParams&&... args) const
+	{
+		BindParameterObject(r_env, sigil)(yforward(args)...,
+			BindAdd{MapRef, id});
 	}
 };
 
 
-//! \since build 917
+//! \since build 961
 template<class _tTraits>
 // XXX: 'YB_FLATTEN' here may make the generated code a bit more efficient, but
 //	significantly slow in compiling without manually annotated 'always_inline',
@@ -1528,19 +1551,30 @@ template<class _tTraits>
 YB_FLATTEN
 #endif
 inline void
-BindParameterImpl(const shared_ptr<Environment>& p_env, const TermNode& t,
-	TermNode& o)
+BindParameterImpl(BindingMap& m, const TermNode& t, TermNode& o,
+	const EnvironmentReference& r_env)
 {
-	auto& env(NPL::Deref(p_env));
-
 	AssertValueTags(o);
 	// XXX: This should normally be true, but not yet relied on.
 //	AssertMatchedAllocators(t, o);
 	// NOTE: No duplication check here. Symbols can be rebound.
 	// NOTE: The call is essentially same as %MatchParameter, with a bit better
 	//	performance by avoiding %function instances.
-	MakeParameterMatcher<_tTraits>(t.get_allocator(), DefaultBinder(env))(t, o,
-		TermTags::Temporary, p_env);
+	MakeParameterMatcher<_tTraits>(t.get_allocator(), DefaultBinder(m))(t, o,
+		TermTags::Temporary, r_env);
+}
+//! \since build 917
+template<class _tTraits>
+#if NPL_Impl_NPLA1_BindParameter_ExpandLevel >= 2
+YB_FLATTEN
+#endif
+inline void
+BindParameterImpl(const shared_ptr<Environment>& p_env, const TermNode& t,
+	TermNode& o)
+{
+	// NOTE: See below.
+	BindParameterImpl<_tTraits>(NPL::Deref(p_env).GetMapCheckedRef(), t, o,
+		p_env);
 }
 
 } // unnamed namespace;
@@ -1920,13 +1954,13 @@ SetupTraceDepth(ContextState& cs, const string& name)
 	auto p_env(cs.ShareRecord());
 
 	// TODO: Support different place if the environment is frozen?
-	ystdex::try_emplace(p_env->GetMapRef(), name, NoContainer,
+	ystdex::try_emplace(p_env->GetMapUncheckedRef(), name, NoContainer,
 		in_place_type<size_t>);
 	// TODO: Blocked. Use C++14 lambda initializers to simplify the
 	//	implementation.
-	cs.Guard += std::bind([name](TermNode& term, ContextNode& ctx,
-		shared_ptr<Environment>& p_e){
-		if(const auto p = p_e->LookupName(name))
+	cs.Guard += std::bind(
+		[name](TermNode& term, ContextNode& ctx, shared_ptr<Environment>& p_e){
+		if(const auto p = LookupName(p_e->GetMapUncheckedRef(), name))
 		{
 			using ystdex::pvoid;
 			auto& depth(Access<size_t>(*p));
@@ -1935,7 +1969,7 @@ SetupTraceDepth(ContextState& cs, const string& name)
 			YTraceDe(YSLib::Informative, "Depth = %zu, context = %p, semantics"
 				" = %p.", depth, pvoid(&ctx), pvoid(&term));
 			++depth;
-			return ystdex::unique_guard([&]() ynothrow{
+			return ystdex::make_unique_guard([&]() ynothrow{
 				--depth;
 			});
 		}
@@ -2593,15 +2627,20 @@ MatchParameter(const TermNode& t, TermNode& o, function<void(TermNode&, TNIter,
 //	AssertValueTags(o);
 	// XXX: See %BindParameterImpl.
 //	AssertMatchedAllocators(t, o);
-	MakeParameterMatcher<ParameterCheck>(t.get_allocator(),
-		std::move(bind_trailing_seq),
-		std::move(bind_value))(t, o, o_tags, r_env);
+	MakeParameterMatcher<ParameterCheck>(t.get_allocator(), std::move(
+		bind_trailing_seq), std::move(bind_value))(t, o, o_tags, r_env);
 }
 
 // XXX: 'YB_FLATTEN' is a bit better for the quality of the generated code with
 //	significantly worse performance of compilation (at least as costly as
 //	%BindParameterWellFormed), so it is not used here if compilation time is
 //	concerned. See %NPL_Impl_NPLA1_BindParameter_ExpandLevel for more details.
+void
+BindParameter(BindingMap& m, const TermNode& t, TermNode& o,
+	const EnvironmentReference& r_env)
+{
+	BindParameterImpl<ParameterCheck>(m, t, o, r_env);
+}
 void
 BindParameter(const shared_ptr<Environment>& p_env, const TermNode& t,
 	TermNode& o)
@@ -2614,6 +2653,16 @@ BindParameter(const shared_ptr<Environment>& p_env, const TermNode& t,
 YB_FLATTEN
 #endif
 void
+BindParameterWellFormed(BindingMap& m, const TermNode& t, TermNode& o,
+	const EnvironmentReference& r_env)
+{
+	BindParameterImpl<NoParameterCheck>(m, t, o, r_env);
+}
+// XXX: Ditto.
+#if NPL_Impl_NPLA1_BindParameter_ExpandLevel == 1
+YB_FLATTEN
+#endif
+void
 BindParameterWellFormed(const shared_ptr<Environment>& p_env, const TermNode& t,
 	TermNode& o)
 {
@@ -2621,13 +2670,25 @@ BindParameterWellFormed(const shared_ptr<Environment>& p_env, const TermNode& t,
 }
 
 void
-BindSymbol(const shared_ptr<Environment>& p_env, const TokenValue& n,
-	TermNode& o)
+BindSymbol(BindingMap& m, const TokenValue& n, TermNode& o,
+	const EnvironmentReference& r_env)
 {
 	AssertValueTags(o);
 	// NOTE: As %BindSymbolImpl expecting the parameter tree as a single symbol
 	//	term without trailing handling.
-	DefaultBinder(NPL::Deref(p_env))(n, o, TermTags::Temporary, p_env);
+	DefaultBinder{m}(n, o, TermTags::Temporary, r_env);
+}
+void
+BindSymbol(const shared_ptr<Environment>& p_env, const TokenValue& n,
+	TermNode& o)
+{
+	// NOTE: As %BindSymbolImpl expecting the parameter tree as a single symbol
+	//	term without trailing handling.
+	auto& env(NPL::Deref(p_env));
+
+	// XXX: Using explicit anchor pointer is more efficient.
+	BindSymbol(env.GetMapCheckedRef(), n, o,
+		EnvironmentReference(p_env, env.GetAnchorPtr()));
 }
 #undef NPL_Impl_NPLA1_BindParameter_Inline
 

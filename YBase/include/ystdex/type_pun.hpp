@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2018, 2021 FrankHB.
+	© 2014-2016, 2018, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file type_pun.hpp
 \ingroup YStandardEx
 \brief 共享存储和直接转换。
-\version r578
+\version r583
 \author FrankHB <frankhb1989@gmail.com>
 \since build 629
 \par 创建时间:
 	2015-09-04 12:16:27 +0800
 \par 修改时间:
-	2021-11-22 04:03 +0800
+	2022-11-21 05:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -268,7 +268,10 @@ public:
 
 //! \since build 716
 //@{
-//! \brief 避免严格别名分析限制的缓冲独占所有权指针。
+/*!
+\ingroup guards
+\brief 避免严格别名分析限制的缓冲独占所有权指针。
+*/
 template<typename _type>
 using pun_ptr = placement_ptr<decay_t<_type>>;
 

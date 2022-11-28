@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r718
+\version r721
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2021-12-29 01:37 +0800
+	2022-11-28 07:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 #elif YCL_Win32
 #	include YFM_Win32_Helper_Win32Control
 #endif
-#include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
+#include <ystdex/scope_guard.hpp> // for ystdex::make_unique_guard;
 
 namespace YSLib
 {
@@ -112,7 +112,7 @@ WindowThread::DefaultGenerateGuard(Window& wnd)
 {
 #if YF_Multithread == 1
 	wnd.GetGUIHostRef().EnterWindowThread();
-	return ystdex::unique_guard([&]() ynothrow{
+	return ystdex::make_unique_guard([&]() ynothrow{
 		FilterExceptions([&]{
 			wnd.GetGUIHostRef().LeaveWindowThread();
 		}, "default event guard destructor");
@@ -345,7 +345,7 @@ HostRenderer::Update(ConstBitmapPtr p, const Rect& r)
 		CatchExpr(LoggedEvent& e, ExtractAndTrace(e, Warning))
 }
 
-Window&
+YB_PURE Window&
 HostRenderer::Wait()
 {
 	observer_ptr<Host::Window> p_wnd;
