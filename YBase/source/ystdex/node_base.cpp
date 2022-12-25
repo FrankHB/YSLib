@@ -1,5 +1,5 @@
 ﻿/*
-	© 2019 FrankHB.
+	© 2019, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file node_base.cpp
 \ingroup YStandardEx
 \brief 作为节点序列容器实现的节点基础。
-\version r174
+\version r176
 \author FrankHB <frankhb1989@gmail.com>
 \since build 865
 \par 创建时间:
 	2019-08-22 17:48:43 +0800
 \par 修改时间:
-	2019-09-12 03:40 +0800
+	2022-11-28 19:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "ystdex/node_base.h"
-#include "ystdex/functional.hpp" // for yverify, ystdex::retry_on_cond;
+#include "ystdex/expanded_function.hpp" // for yverify, ystdex::retry_on_cond;
 
 namespace ystdex
 {

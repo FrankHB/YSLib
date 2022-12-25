@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2021 FrankHB.
+	© 2009-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 语言实现和系统环境相关特性及公用类型和宏的基础定义。
-\version r4408
+\version r4421
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2021-12-26 20:03 +0800
+	2022-11-28 19:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -138,6 +138,19 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 //! \since build 835
 #	ifndef _SCL_SECURE_NO_WARNINGS
 #		define _SCL_SECURE_NO_WARNINGS
+#	endif
+#endif
+
+// XXX: %_MSVC_STL_UPDATE is not used because it is defined in <yvals_core.h>.
+#if YB_IMPL_MSCPP >= 1933
+// XXX: See https://github.com/microsoft/STL/commit/cbd964dd8f10285b9f6dacc06bbd1b6287e2dfc6.
+//! \since build 958
+#	ifndef _SILENCE_CXX23_ALIGNED_STORAGE_DEPRECATION_WARNING
+#		define _SILENCE_CXX23_ALIGNED_STORAGE_DEPRECATION_WARNING
+#	endif
+//! \since build 958
+#	ifndef _SILENCE_CXX23_ALIGNED_UNION_DEPRECATION_WARNING
+#		define _SILENCE_CXX23_ALIGNED_UNION_DEPRECATION_WARNING
 #	endif
 #endif
 //@}

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2019-2020 FrankHB.
+	© 2011-2016, 2019-2020, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YUIContainer.h
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r2156
+\version r2159
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2020-01-31 16:00 +0800
+	2022-11-28 20:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_UI_YUIContainer_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_UI_YWidget // for ystdex::unseq_apply;
+#include YFM_YSLib_UI_YWidget // for make_observer, ystdex::unseq_apply;
 #include <ystdex/iterator.hpp>
 
 namespace YSLib
@@ -119,7 +119,7 @@ LocateForWidgetNode(IWidget& wgt, _fFetcher fetch_ptr)
 
 	_tWidget* const pNode(fetch_ptr(wgt));
 
-	return pNode ? LocateOffset(pNode, Point(), YSLib::make_observer(&wgt))
+	return pNode ? LocateOffset(pNode, Point(), make_observer(&wgt))
 		: Point::Invalid;
 }
 

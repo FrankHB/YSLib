@@ -11,13 +11,13 @@
 /*!	\file invoke.hpp
 \ingroup YStandardEx
 \brief 可调用对象和调用包装接口。
-\version r4768
+\version r4807
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-24 05:03:12 +0800
 \par 修改时间:
-	2022-02-14 12:19 +0800
+	2022-11-30 05:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,9 +36,9 @@
 #define YB_INC_ystdex_invoke_hpp_ 1
 
 #include "meta.hpp" // for "meta.hpp", <type_traits>, std::declval,
-//	__cpp_lib_is_invocable, __cpp_lib_invoke, void_t, false_, true_,
-//	remove_cvref, is_base_of, or_, is_void, is_same_or_convertible,
-//	is_implicitly_nothrow_constructible, and_, nullptr_t;
+//	__cpp_lib_is_invocable, __cpp_lib_invoke, decay_t, cond_t, is_object,
+//	void_t, false_, true_, remove_cvref, is_base_of, or_, is_void,
+//	is_same_or_convertible, and_, nullptr_t;
 #include <functional> // for <functional>, std::reference_wrapper;
 #include "cassert.h" // for yconstraint;
 
@@ -203,11 +203,18 @@ struct is_std_reference_wrapper<std::reference_wrapper<_type>> : true_type
 
 // XXX: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91456.
 //! \since build 938
-#if __cpp_lib_is_invocable >= 201703L && (__cplusplus < 201703L \
-	|| !defined(__GLIBCXX__) || __GLIBCXX__ > 20191024) 
-#	define YB_Impl_has_invocable true
+#if __cpp_lib_is_invocable >= 201703L && (!defined(__GLIBCXX__) \
+	|| ((YB_IMPL_GNUCPP >= 120200 && YB_IMPL_GNUCPP < 130000 \
+	&& __GLIBCXX__ > 20221124) || (!(YB_IMPL_GNUCPP >= 120200 \
+	&& YB_IMPL_GNUCPP < 130000) && __GLIBCXX__ > 20220924)))
+#	define YB_Impl_has_invocable 1
+#elif __cpp_lib_is_invocable >= 201703L && (!defined(__GLIBCXX__) \
+	|| ((YB_IMPL_GNUCPP >= 90201 && YB_IMPL_GNUCPP < 100000 && \
+	__GLIBCXX__ > 20191024) || (!(YB_IMPL_GNUCPP >= 90201 \
+	&& YB_IMPL_GNUCPP < 100000) && __GLIBCXX__ > 20190815)))
+#	define YB_Impl_has_invocable 2
 #else
-#	define YB_Impl_has_invocable false
+#	define YB_Impl_has_invocable 0
 #endif
 
 //! \since build 612
@@ -216,7 +223,7 @@ namespace details
 
 //! \since build 832
 //@{
-#if !YB_Impl_has_invocable
+#if YB_Impl_has_invocable != 1
 template<typename _type, typename _type2 = decay_t<_type>>
 struct inv_unwrap
 {
@@ -342,6 +349,7 @@ template<typename _fCallable, typename... _tParams>
 using inv_result = inv_test<is_member_pointer<
 	remove_reference_t<_fCallable>>::value, _fCallable, _tParams...>;
 
+#	if YB_Impl_has_invocable == 0
 template<typename _fCallable, typename... _tParams>
 using inv_result_t = _t<inv_result<_fCallable, _tParams...>>;
 
@@ -354,21 +362,10 @@ struct inv_enabled : false_
 template<typename _tRet, typename _fCallable, typename... _tParams>
 struct inv_enabled<_fCallable, fproto<_tRet, _tParams...>,
 	void_t<inv_result_t<_fCallable, _tParams...>>>
-	: or_<is_void<_tRet>,
-	is_same_or_convertible<inv_result_t<_fCallable, _tParams...>, _tRet>>
+	: or_<is_void<_tRet>, is_same_or_convertible<decay_t<inv_result_t<
+	_fCallable, _tParams...>>, decay_t<_tRet>>>
 {};
-
-template<typename, typename, typename = void>
-struct inv_enabled_nt : false_
-{};
-
-//! \since build 850
-template<typename _tRet, typename _fCallable, typename... _tParams>
-struct inv_enabled_nt<_fCallable, fproto<_tRet, _tParams...>,
-	void_t<inv_result_t<_fCallable, _tParams...>>>
-	: or_<is_void<_tRet>, is_implicitly_nothrow_constructible<_tRet,
-	inv_result_t<_fCallable, _tParams...>>>
-{};
+#	endif
 #endif
 //@}
 
@@ -494,17 +491,20 @@ inline namespace cpp2017
 
 //! \since build 832
 //@{
-#if YB_Impl_has_invocable
+#if YB_Impl_has_invocable != 0
 using std::is_invocable;
 using std::is_invocable_r;
 using std::is_nothrow_invocable;
+#	if YB_Impl_has_invocable == 1
 using std::is_nothrow_invocable_r;
+#	endif
 
 using std::invoke_result;
 using std::invoke_result_t;
-#else
+#endif
 //! \ingroup binary_type_traits
 //@{
+#if YB_Impl_has_invocable == 0
 template<typename _fCallable, typename... _tParams>
 struct is_invocable
 	: details::inv_enabled<_fCallable, details::fproto<void, _tParams...>>
@@ -520,15 +520,19 @@ struct is_nothrow_invocable
 	: bool_constant<is_invocable<_fCallable, _tParams...>::value
 	&& details::inv_result<_fCallable, _tParams...>::noexcept_v>
 {};
+#endif
 
+#if YB_Impl_has_invocable != 1
 template<typename _tRet, typename _fCallable, typename... _tParams>
-struct is_nothrow_invocable_r : bool_constant<details::inv_enabled_nt<
-	_fCallable, details::fproto<_tRet, _tParams...>>::value
+struct is_nothrow_invocable_r
+	: bool_constant<is_invocable_r<_tRet, _fCallable, _tParams...>::value
 	&& details::inv_result<_fCallable, _tParams...>::noexcept_v>
 {};
+#endif
 //@}
 
 
+#if YB_Impl_has_invocable == 0
 //! \ingroup transformation_traits
 //@{
 template<typename _fCallable, typename... _tParams>

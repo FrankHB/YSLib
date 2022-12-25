@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2016, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ImageProcessing.h
 \ingroup Service
 \brief 图像处理。
-\version r282
+\version r284
 \author FrankHB <frankhb1989@gmail.com>
 \since build 554
 \par 创建时间:
 	2014-11-16 16:33:35 +0800
 \par 修改时间:
-	2016-04-23 03:39 +0800
+	2022-11-28 20:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 //	Drawing::ImageBrush;
 #include YFM_YSLib_Adaptor_Image // for Drawing::HBitmap;
 #include <ystdex/hash.hpp> // for ystdex::hash_combine_seq;
-#include <ystdex/cache.hpp>
+#include <ystdex/cache.hpp> // for ystdex::used_list_cache;
 
 namespace YSLib
 {

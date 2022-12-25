@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2019-2020 FrankHB.
+	© 2010-2016, 2019-2020, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YControl.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4878
+\version r4880
 \author FrankHB <frankhb1989@gmail.com>
 \since build 572
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2020-01-25 16:25 +0800
+	2022-11-28 20:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,7 +86,7 @@ public:
 	PDefH(EventRef, GetEvent, VisualEvent id) const ImplI(AController)
 		ImplRet(EventRef(EventMap.at(id)))
 	//! \since build 850
-	EventRef
+	YB_ATTR_nodiscard YB_PURE EventRef
 	GetEventRef(VisualEvent, EventItem(&)()) const override;
 	//@}
 	//! \brief 取事件映射表。

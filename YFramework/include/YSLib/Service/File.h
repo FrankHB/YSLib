@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2021 FrankHB.
+	© 2009-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台中立的文件抽象。
-\version r1694
+\version r1697
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2021-08-03 19:35 +0800
+	2022-11-28 19:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,6 +104,7 @@ class YF_API SharedInputMappedFileStream : private MappedFile,
 	public std::istream
 {
 public:
+	//! \exception 异常中立：创建映射文件失败。
 	// NOTE: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91127.
 #if YB_IMPL_GNUCPP
 	YB_ATTR(nonnull)
@@ -146,7 +147,7 @@ public:
 	\note 为避免误用，打开模式不提供默认参数。
 	*/
 	template<typename _tChar>
-	// XXX: Not sure why this is not effected by the bug of GCC reported at PR
+	// XXX: Not sure why this is not affected by the bug of GCC reported at PR
 	//	91127.
 	YB_NONNULL(3)
 	UniqueLockedOutputFileStream(int omode, const _tChar* filename,

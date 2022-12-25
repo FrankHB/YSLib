@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2021 FrankHB.
+	© 2011-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4923
+\version r4925
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2021-12-21 20:16 +0800
+	2022-11-28 18:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "ShlReader.h" // for ystdex::ltrim, make_string_view;
 #include "ShlExplorer.h"
-#include <ystdex/functional.hpp> // for ystdex::bind1;
+#include <ystdex/bind.hpp> // for ystdex::bind1;
 #include <ystdex/algorithm.hpp> // for ystdex::split;
 
 namespace YReader

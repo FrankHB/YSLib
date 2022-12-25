@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2021 FrankHB.
+	© 2013-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r9361
+\version r9364
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2021-12-21 12:30 +0800
+	2022-12-22 21:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -171,7 +171,7 @@ b498
 		),
 		/ %YSLib $=
 		(
-			+ "inclusion %YFM_YCLib_Keys" @ %Adaptor.YAdaptor,
+			+ "header inclusion %YFM_YCLib_Keys" @ %Adaptor.YAdaptor,
 				// To prevent %YTraceDe undefined.
 			/ @ %UI.Loader $=
 			(
@@ -2676,7 +2676,7 @@ b459
 				/ "namespace %platform_replace" @ "platform %Win32"
 					>> "all platforms",
 				(
-					+ "header inclusion '<direct.h>'";
+					+ "header inclusion <direct.h>";
 					* "deprecated function '::mkdir' used" @ "platform %Win32"
 						$since b298
 						$= (^ '::_mkdir' ~ '::mkdir')

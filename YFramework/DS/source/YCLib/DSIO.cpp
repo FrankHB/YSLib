@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2021 FrankHB.
+	© 2015-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r4944
+\version r4952
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2021-05-06 20:16 +0800
+	2022-11-28 19:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,8 +38,9 @@
 #	include "YSLib/Core/YModules.h"
 #	include YFM_YSLib_Core_YException // for YSLib::TryInvoke,
 //	YSLib::FilterExceptions;
-#	include <ystdex/functional.hpp> // for std::all_of,
-//	ystdex::common_nonvoid_t, ystdex::invoke_result_t, ystdex::invoke_for_value;
+#	include <functional> // for std::all_of;
+#	include <ystdex/invoke.hpp> // for ystdex::nonvoid_result_t,
+//	ystdex::invoke_result_t, ystdex::invoke_for_value;
 #	include "CHRLib/YModules.h"
 #	include YFM_CHRLib_CharacterProcessing // for ystdex::read_uint_le,
 //	ystdex::write_uint_le, CHRLib::MakeUCS2LE, ystdex::ntctsicmp,
@@ -2182,7 +2183,7 @@ namespace
 {
 
 template<typename _func, typename... _tParams>
-using FilterRes = ystdex::common_nonvoid_t<
+using FilterRes = ystdex::nonvoid_result_t<
 	ystdex::invoke_result_t<_func, _tParams...>, int>;
 
 inline PDefH(int, seterr, int& re, int e) ynothrow
@@ -2197,7 +2198,7 @@ auto
 FilterDevOps(::_reent* r, _func f) ynothrowv -> FilterRes<_func>
 {
 	using fres_t = decltype(f());
-	using res_t = ystdex::common_nonvoid_t<fres_t, int>;
+	using res_t = ystdex::nonvoid_result_t<fres_t, int>;
 	static yconstexpr const auto
 		de_val(std::is_pointer<fres_t>::value ? res_t() : res_t(-1));
 
@@ -2376,8 +2377,8 @@ const ::devoptab_t dotab_fat{
 		return op_path_locked(r, path, &Partition::MakeDir, path);
 	}, sizeof(DirState), [] YB_LAMBDA_ANNOTATE((::_reent* r,
 		::DIR_ITER* dir_state, const char* path), ynothrowv, nonnull(2, 3, 4)){
-		return op_path_locked(r, path, [=, &path](Partition& part)
-			-> ::DIR_ITER*{
+		return
+			op_path_locked(r, path, [=, &path](Partition& part) -> ::DIR_ITER*{
 			const auto p(dir_state->dirStruct);
 
 			::new(Nonnull(p)) DirState(part, path);

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2018, 2020 FrankHB.
+	© 2010-2018, 2020, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextManager.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3967
+\version r3970
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2020-01-27 18:29 +0800
+	2022-11-28 20:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -221,14 +221,14 @@ public:
 	\brief 取文本缓冲区起始迭代器。
 	\note 指向起始字符。
 	*/
-	iterator
+	YB_ATTR_nodiscard YB_PURE iterator
 	begin() ynothrow;
 
 	/*!
 	\brief 取文本缓冲区终止迭代器。
 	\note 指向终止字符后一位置。
 	*/
-	iterator
+	YB_ATTR_nodiscard YB_PURE iterator
 	end() ynothrow;
 	//@}
 };

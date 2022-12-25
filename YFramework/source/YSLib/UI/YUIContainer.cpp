@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2021 FrankHB.
+	© 2011-2016, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YUIContainer.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1945
+\version r1947
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2021-12-24 23:45 +0800
+	2022-11-28 18:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "YSLib/UI/YModules.h"
 #include YFM_YSLib_UI_YDesktop
-#include <ystdex/functional.hpp> // for ystdex::bind1;
+#include <ystdex/bind.hpp> // for ystdex::bind1;
 
 using namespace ystdex;
 

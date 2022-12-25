@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2021 FrankHB.
+	© 2015-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r12365
+\version r12466
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2021-12-24 12:31 +0800
+	2022-12-22 21:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,13 +95,12 @@ b699
 		),
 		/ %YSLib
 		(
-			/ $forced DLD 'using platform::u16getcwd_n;'
-				-> 'using platform::ugetcwd' @ %Adaptor.YAdaptor $dep_from
-				%YCLib.FileIO,
+			/ DLD 'using platform::u16getcwd_n;' @ %Adaptor.YAdaptor
+				-> 'using platform::ugetcwd' $dep_from $forced %YCLib.FileIO,
 			/ %Service.FileSystem $=
 			(
-				/ $forced DLDI "function %FetchCurrentWorkingDirectory"
-					$dep_from %Adaptor.YAdaptor,
+				/ DLDI "function %FetchCurrentWorkingDirectory"
+					$dep_from $forced %Adaptor.YAdaptor,
 				/ @ "functions %VerifyDirectory" $=
 				(
 					// To utilize optimal %DirectorySession constructors, esp. \
@@ -165,7 +164,7 @@ b697
 			(
 				/ "forwarding reference parameter",
 				/ DLDI "simplified" $dep_from "%ToContextHandler",
-				/ $forced DLDI $dep_from "%RegisterContextHandler" ^ 'NPL::'
+				/ DLDI $dep_from $forced "%RegisterContextHandler" ^ 'NPL::'
 					~ 'A1::'
 			),
 			/ "supportted empty node" @ "function %ReduceFirst"
@@ -391,8 +390,8 @@ b695
 		),
 		/ @ "class %ShlExplorer" @ %ShlExplorer $=
 		(
-			/ $forced "protected data member 'unique_ptr<FrmAbout> pFrmAbout;'"
-				-> 'AboutPanel pnlAbout{};' $dep_from %About,
+			/ "protected data member 'unique_ptr<FrmAbout> pFrmAbout;'"
+				-> 'AboutPanel pnlAbout{};' $dep_from $forced %About,
 			/ "made node name shown" @ "tree view test" @ "constructor"
 		)
 	)
@@ -553,9 +552,9 @@ b693
 					~ ("hard-coded 'C:\Windows\Fonts'" @ "platform %MinGW32")
 					^ $dep_from ("%platform_ex::FetchWindowsPath"
 					@ %'YCLib_(Win32)'.MinGW32),
-				/ $forced "1st parameter" -> 'Application&' ~ 'Environment&'
-					@ "functino %LoadComponents" $dep_from
-					"guard stack trasportation"
+				/ "1st parameter" -> 'Application&' ~ 'Environment&'
+					@ "functino %LoadComponents"
+					$dep_from $forced "guard stack trasportation"
 			),
 			/ @ "class %Enviornment" @ %Environment $=
 			(
@@ -746,7 +745,7 @@ b691
 			/ @ "macro %YCL_WrapCallWin32_Trace" $=
 			(
 				/ DLDI "simplified" ^ $dep_from "%YCL_Trace_Win32Error",
-				* "missing qualified prefix" @ "trace level" $orig
+				* "missing qualified prefix before 'Warning'" $orig
 					(@ "macro %YCL_CallWin32_Trace" $since b464)
 			)
 		),
@@ -1041,7 +1040,7 @@ b689
 					// It should also be called for other hosted platforms.
 			)
 		),
-		/ $forced "%Environment" -> "%GUIHost" $dep_from %Helper $effective
+		/ "%Environment" -> "%GUIHost" $dep_from $forced %Helper $effective
 			@ %('Helper_(DS)'.DSMain, 'Helper_(Win32)'.Win32Control),
 		/ DLDI "member functions" ("%DSWindow::UpdateTextInputFocus"
 			@ %'Helper_(DS)'.DSWindow, "%InputManager::DispatchInput"
@@ -1382,14 +1381,14 @@ b685
 		and output library file" @ "target %clean"
 		@ "makefiles" @ "platforms %(DS, Android)" @ %(YBase, YFramework),
 		// Now '*.log' from Microsoft Visual Studio would not be cleaned.
-	/ DLDI "replaced inclusion %YBase.YStandardEx.Cast" $effective
+	/ DLDI "replaced header inclusion %YBase.YStandardEx.Cast" $effective
 		@ ("non-header files" @ %YFramework) $dep_from %YBase.YStandardEx.Cast
 		$=
 	(
-		- "redundant inclusion %YBase.YStandardEx.Cast" $effective
+		- "redundant header inclusion %YBase.YStandardEx.Cast" $effective
 			@ %(Helper.(HostedUI, HostRenderer), NPL.NPLA1, YSLib.Adaptor.YNew),
-		/ $forced "inclusion %YBase.YStandardEx.Cast"
-			-> "inclusion %YStandardEx.AddressOf" $effective @ %YCLib.XCB
+		/ $forced "header inclusion %YBase.YStandardEx.Cast"
+			-> "%YStandardEx.AddressOf" $effective @ %YCLib.XCB
 	)
 ),
 
@@ -2117,7 +2116,7 @@ b678
 					),
 					/ "alias %Container" ^ "comparison object type \
 						%ystdex::less" ~ "default comparison object type",
-					+ "%operaotr< for 'const ValueNode&' and 'const string&'",
+					+ "%operator< for 'const ValueNode&' and 'const string&'",
 					- "%operator const string&",
 					+ "private base class %ystdex::totally_ordered<ValueNode>",
 					+ "private base class %ystdex::totally_ordered<ValueNode, \
@@ -2612,8 +2611,8 @@ b674
 					),
 					+ "functions %(RemoveEmptyChildren, 2 RemoveHead)"
 				),
-				/ $forced DLDI "function templates %(AsNode, MakeNode, \
-					StringifyToNode)" $dep_from "constructor template \
+				/ DLDI "function templates %(AsNode, MakeNode, \
+					StringifyToNode)" $dep_from $forced "constructor template \
 					%ValueNode" ^ $dep_from "%NoContainer",
 				(
 				+ "yconstexpr tag %ListContainerTag %ListContainer";
@@ -2637,9 +2636,10 @@ b674
 				+ "functions %(RegisterContextHandler, RegisterLiteralHandler)",
 				+ "class %FormContextHandler"
 				),
-				/ $forced "type" @ ("parameters" @ "functions %(InsertChild, \
+				/ "type" @ ("parameters" @ "functions %(InsertChild, \
 					InsertSequenceChild; TransformNode, TransformNodeSequence)")
-					^ $dep_from ("%TermNode" @ %SContext) ~ "%ValueNode",
+					^ $dep_from $forced ("%TermNode" @ %SContext)
+					~ "%ValueNode",
 				/ DLDI @ "function templates %(LoadNode, LoadNodeSequence)"
 					$dep_from %SContext $=
 				(
@@ -2812,7 +2812,7 @@ b673
 		/ %Set $=
 		(
 			+ "function template %set_value_move",
-			/  @ "class template %mapped_set" $=
+			/ @ "class template %mapped_set" $=
 			(
 				/ "optimized value move" ^ "ADL %set_value_move" $dep_from
 					"%set_value_move" $=
@@ -2875,8 +2875,8 @@ b672
 						(
 							(
 							/ "key type" -> 'lref<IWidget>' ~ 'IWidget*';
-							/ $forced "comparison object type"
-								^ $dep_from ("%ystdex::lref_less"
+							/ "comparison object type"
+								^ $dep_from $forced ("%ystdex::lref_less"
 								@ %YBase.YStandardEx.Functional)
 								~ "implicit %less<IWidget*>"
 							),
@@ -2911,7 +2911,7 @@ b672
 						"wrapped 3rd parameter type" @ "function \
 						%SetContainerPtrOf") $dep_from
 						("%AView::ContainerPtr" @ %YWidgetView);
-					/ $foced DLDI @ "functions %(Invalidate, \
+					/ $forced DLDI @ "functions %(Invalidate, \
 						InvalidateVisible, RequestToFront)"
 					),
 					/ $re_add(b671) $forced "wrapped return type with \
@@ -3006,8 +3006,9 @@ b672
 		),
 		/ $re_add(b671) "wrapped private input cache type with %observer_ptr"
 			@ "platform %Win32" @ "class %InputManager" @ %Helper.InputManager,
-		/ $forced "alias %OpenFileSet" @ "class %Partition" @ %'YCLib_(DS)'.DSIO
-			^ $dep_from ("%ystdex::lref_less" @ %YBase.YStandardEx.Functional)
+		/ "alias %OpenFileSet" @ "class %Partition" @ %'YCLib_(DS)'.DSIO
+			^ $dep_from $forced
+			("%ystdex::lref_less" @ %YBase.YStandardEx.Functional)
 	),
 	/ $forced DLDI %YReader $=
 	(
@@ -3056,13 +3057,13 @@ b671
 			(
 				+ $lib 'YB_NONNULL(1)' @ "function \
 					%FAT::LFN::GenerateAliasChecksum" @ "namespace %platform",
-				/ $forced DLDI "simplified member function \
-					%HDirectory::operator++" @ %FileSystem $dep_from
+				/ DLDI "simplified member function %HDirectory::operator++"
+					@ %FileSystem $dep_from $forced
 					("%DirectoryFindData::Read" @ %'YCLib_(Win32)'.MinGW32)
 			),
-			/ $forced DLDI "member functions %(Clipboard::Receive#(1, 2), Send#3)"
-				@ %HostedGUI $dep_from ("%GlobalLocked::GetPtr"
-				@ %'YCLib_(Win32)'.MinGW32),
+			/ DLDI "member functions %(Clipboard::Receive#(1, 2), Send#3)"
+				@ %HostedGUI $dep_from $forced
+				("%GlobalLocked::GetPtr" @ %'YCLib_(Win32)'.MinGW32),
 			+ "metafunction %unique_ptr_from" @ %Reference ^ $dep_from
 				("%ystdex::(defer_element, unique_ptr_pointer)"
 				@ %YBase.YStandardEx.Memory),
@@ -3084,8 +3085,8 @@ b671
 		),
 		/ %YSLib $=
 		(
-			/ $forced DLDI "all 2 functions %AccessPtr" @ "class %ValueObject"
-				@ %Core.YObject $dep_from
+			/ DLDI "all 2 functions %AccessPtr" @ "class %ValueObject"
+				@ %Core.YObject $dep_from $forced
 				("%ystdex::any_cast" @ %YBase.YStandardEx.Any),
 			/ %Adaptor $=
 			(
@@ -3163,15 +3164,15 @@ b671
 						@ "multiline Doxygen comment"
 						@ "function template %OnEvent_StopRouting" $since b285
 				),
-				/ $forced "member function %ScrollBar::GetBoundControlPtr"
-					@ %Scroll $dep_from ("%Control" @ %YControl)
+				/ "member function %ScrollBar::GetBoundControlPtr"
+					@ %Scroll $dep_from $forced ("%Control" @ %YControl)
 			)
 		),
 		/ $re_add(b670) "wrapped return type with %observer_ptr"
 			@ "member function %DirectoryFindData::Read", "member function \
 				template %GlobalLocked::GetPtr" @ %'YCLib_(Win32)'.MinGW32,
-		/ $re_add(b670) $forced DLDI "function %InitializeSystemFontCache"
-			@ %Helper.Initialization $dep_from
+		/ $re_add(b670) DLDI "function %InitializeSystemFontCache"
+			@ %Helper.Initialization $dep_from $forced
 			("%FontCache::GetDefaultTypefacePtr" @ %YSLib.Adaptor.Font)
 	),
 	/ %YBase.YStandardEx $=
@@ -3368,7 +3369,7 @@ b670
 						// Polymorphic functors should be better typed in \
 							construction side. Other removed call wrappers \
 							should be better be replaced by lambda-expressions.
-					- "inclusion (<functional>, <typeinfo>)" $dep_from
+					- "header inclusion (<functional>, <typeinfo>)" $dep_from
 						%(UI.YComponent, Documentation.YSLib)
 						// No YFramework code will be implicitly break due to \
 							new guarantees.
@@ -3387,10 +3388,10 @@ b670
 					/ "function template %AccessWidgetNode, member function \
 						%WidgetLoader::TransformUILayout" ^ "%AccessNode"
 						~ "%ValueNode::at",
-					/ $forced "function %AccessWidget" ^ "%AccessWidget"
-						~ $dep_from ("%ValueNode::at_p" @ %Core.ValueNode)
+					/ "function %AccessWidget" ^ "%AccessWidget" ~ $dep_from
+						$forced ("%ValueNode::at_p" @ %Core.ValueNode)
 				),
-				+ "including <typeinfo>" @ %UI.YComoponent,
+				+ "header inclusion <typeinfo>" @ %UI.YComoponent,
 				/ DLDI @ "class %TreeList" @ %TreeView ^ "%AccessNode"
 					~ "%at for %ValueNode"
 			)
@@ -3401,7 +3402,7 @@ b670
 		(
 			/ DLDI "function %InitializeInstalled" @ %Initialization
 				^ "%AccessNode" ~ "%ValueNode::at",
-			/ %Envrionment $=
+			/ %Environment $=
 			(
 				* $impl "wrong pointer cast" @ "window procedure" $since b430,
 					// Not synchronized with %HostWindow, insignificant since \
@@ -3724,9 +3725,9 @@ b667
 				(
 				- 'const' @ ("function %GetContainerRef" $dep_from
 					%(NPL.NPLA, YReader.ShlReader), "functions %(SetChildren, \
-					(Clear; ClearContainer))", "all 2 functions %(operaotr+=, \
+					(Clear; ClearContainer))", "all 2 functions %(operator+=, \
 					Add)" $dep_from %(NPL.SContext, YReader.Shells), "function \
-					template %SplitChildren; all functions %(2 operaotr-=, \
+					template %SplitChildren; all functions %(2 operator-=, \
 					Remove)", "functions %(SwapContainer, SwapContent) and \
 					their parameter type", "function template %(insert, \
 					emplace_hint)", ("return type" @ "all 2 functions \
@@ -3877,7 +3878,7 @@ b666
 		(
 			+ 'yconstfn' @ "function %operator*, friend function %operator==",
 			+ 'yconstfn_relaxed' @ "functions %operator(+=, -=, ++, --)",
-			+ "friend function %operaotr<"
+			+ "friend function %operator<"
 		),
 		/ %Tuple $=
 		(
@@ -4072,8 +4073,8 @@ b664
 		/ %YSLib $=
 		(
 			(
-			/ $forced 'using ystdex::arrlen' -> 'using platform::size;'
-				@ %Adaptor.YAdaptor $dep_from %YCLib.Container;
+			/ 'using ystdex::arrlen' -> 'using platform::size;'
+				@ %Adaptor.YAdaptor $dep_from $forced %YCLib.Container;
 			/ $forced DLDI @ %Service.TextFile
 			),
 			/ @ "class %ValueNode" @ %ValueNode $=
@@ -4165,7 +4166,7 @@ b664
 	(
 		/ %YBase.Main $=
 		(
-			/ $forced "test case for %ystdex::string_length" $dep_from
+			/ "test case for %ystdex::string_length" $dep_from $forced
 				("%string_length" @ %YBase.YStandardEx.String),
 			+ "1 test case" ^ "%ystdex::string_begin",
 			+ "2 test cases"
@@ -4404,7 +4405,7 @@ b661
 			(
 			- "functor %deref_comp" $dep_from
 				("%FontCache::FaceMap" @ %YFramework.YSLib.Adaptor.Font);
-			* $comp $re_add(b644)  DD "missing '!'" @ "end of '/*'"
+			* $comp $re_add(b644) DD "missing '!'" @ "end of '/*'"
 				@ "multiline Doxygen comment" @ "%deref_comp::operator()"
 				$orig (@ %Utilities $since b315)
 			)
@@ -4514,8 +4515,8 @@ b660
 						@ %'YCLib_(Win32)'.MinGW32) @ "platform %Win32",
 					/ DLDI ^ "%::(lstat, readlink)" @ !"platforms %(DS, Win32)"
 				),
-				/ $forced DLDI @ "platform %Win32" @ "member function \
-					%HDirectory::GetNodeCategory" $dep_from
+				/ DLDI @ "platform %Win32" @ "member function \
+					%HDirectory::GetNodeCategory" $dep_from $forced
 					("%DirectoryFindData" @ %'YCLib_(Win32)'.MinGW32),
 				* "exceptions might be thrown" @ "'ynothrow' member function \
 					%HDirectory::GetNodeCategory" @ %FileSystem $since b543 $=
@@ -4544,8 +4545,8 @@ b660
 					("platform_ex::QueryFileNodeID" @ %'YCLib_(Win32)'.MinGW32),
 				/ DLDI "simplified" @ !"platform %Win32"
 			),
-			/ $forced DLDI "functions %('FileDescriptor::Get*Time', \
-				'GetFile*TimeOf')" $dep_from
+			/ DLDI "functions %('FileDescriptor::Get*Time', \
+				'GetFile*TimeOf')" $dep_from $forced
 				("%QueryFileTime" @ %'YCLib_(Win32)'.MinGW32),
 			+ "function ::linkat" @ "platform %Android" @ %NativeAPI
 		),
@@ -4810,8 +4811,9 @@ b659
 				/ "2nd parameter type 'const string&'" -> 'string_view',
 				+ "assertion to ensure nonnull data pointer of string view"
 			),
-			/ $forced DLDI @ "functions %(MapNPLALeafNode, ConvertDocumentNode)"
-				@ %NPLA1 $dep_from ("return type" @ "%Deliteralize" @ %Lexical)
+			/ DLDI @ "functions %(MapNPLALeafNode, ConvertDocumentNode)"
+				@ %NPLA1
+				$dep_from $forced ("return type" @ "%Deliteralize" @ %Lexical)
 		),
 		/ %YSLib $=
 		(
@@ -4908,7 +4910,7 @@ b659
 	(
 		/ %SHBuild.Main $=
 		(
-			/ $forced DLDI $dep_from "function %FetchEnvironmentVariable"
+			/ DLDI $dep_from $forced "function %FetchEnvironmentVariable"
 				@ %YFramework.YSLib.Core.YCoreUtilities,
 			+ "'-cmd,' option with commands %(EnsureDirectory, InstallFile, \
 				InstallDirectory, InstallHardLink, InstallSymbolicLink, \
@@ -5017,12 +5019,12 @@ b658
 			(
 				/ @ "function %FetchCommandOutput" @ %Host $=
 				(
-					/ "1st pamameter type 'const string&'"  -> 'const char*';
+					/ "1st pamameter type 'const string&'" -> 'const char*';
 					+ $lib 'YB_NONNULL(1)'
 				),
 				/ @ "function %FetchCachedCommandResult" $=
 				(
-					/ $forced DLDI $dep_from "%FetchCommandOutput",
+					/ DLDI $dep_from $forced "%FetchCommandOutput",
 					- "trailing '.'" @ "traced exception message"
 				)
 			)
@@ -5183,9 +5185,9 @@ b657
 				),
 				/ @ "class %FileInfo" $=
 				(
-					/ $forced DLDI "simplified cluster number argument"
-						@ "function %Truncate" $dep_from
-						"AllocationTable::TrimChain",
+					/ DLDI "simplified cluster number argument"
+						@ "function %Truncate"
+						$dep_from $forced "AllocationTable::TrimChain",
 					/ "merged function %Shrink" -> "function %Truncate"
 				),
 				/ "merged function %Sync"
@@ -5349,8 +5351,8 @@ b656
 			(
 			/ $impl "treated allocation failure as conversion failure"
 				~ "%ENOMEM" @ "member function %Partition::EntryExists";
-			/ $forced DLDI "simplified (constructor %DEntry, member function \
-				Partition::EntryExists)" $dep_from %YCLib.FileSystem
+			/ DLDI "simplified (constructor %DEntry, member function \
+				Partition::EntryExists)" $dep_from $forced %YCLib.FileSystem
 			),
 			/ DLDI "simplified by merging throwing %std::system_error with \
 				%std::errc::io_error",
@@ -5380,8 +5382,8 @@ b656
 					@ "member function %FileInfo::TryWrite" $since b611 $dep_to
 					"missing setting appending error"
 			),
-			/ $forced DLDI ("destructor %Partition", "%devoptab_t routine \
-				%close_r") $dep_from "file synchronization return value",
+			/ DLDI ("destructor %Partition", "%devoptab_t routine %close_r")
+				$dep_from $forced "file synchronization return value",
 			(
 			/ "constructor %DirState accepted partition and path without root \
 				parameters";
@@ -5485,8 +5487,8 @@ b655
 			+ "parameters for logger";
 			+ "logged thread id and level information"
 		),
-		/ $forced DLDI @ "platform %Win32" @ "function %InitializeEnvironment"
-			@ %Helper.Initialization $dep_from %YCLib.Debug;
+		/ DLDI @ "platform %Win32" @ "function %InitializeEnvironment"
+			@ %Helper.Initialization $dep_from $forced %YCLib.Debug;
 
 	),
 	/ @ "platform %DS" $=
@@ -6366,14 +6368,14 @@ b649
 			/ "struct %any_constructible" >> @ %TypeTraits,
 			(
 			- "struct %not_constructible"
-			/ $forced "return type" @ "function %dependent_swap::swap#1"
-				^ $dep_from ("%nonsuch" @ %TypeTraits) ~ "%not_constructible"
+			/ "return type" @ "function %dependent_swap::swap#1" ^ $dep_from
+				$forced ("%nonsuch" @ %TypeTraits) ~ "%not_constructible"
 			)
 		),
 		/ @ "function templates %constfn_addressof" @ %Memory $=
 		(
-			/ $forced DLDI $dep_from ("%has_overloaded_addressof"
-				@ %TypeOperation),
+			/ DLDI $dep_from $forced
+				("%has_overloaded_addressof" @ %TypeOperation),
 			* "invalid 2nd function template parameter"
 				@ "overloading for type with overloaded %operator&" $since b591
 		),
@@ -6402,9 +6404,9 @@ b649
 		),
 		/ "simplified header dependency" @ %(Exception, Cache, Future, \
 			IteratorTrait) ^ %TypeTraits ~ %TypeOperation
-		* "missing inclusion header for %exclude_self_ctor_t" @ %Ref $since b640
+		* "missing header inclusion for %exclude_self_ctor_t" @ %Ref $since b640
 			// Originally this should be %TypeOperation.
-			$= (+ $dev "inclusion %TypeTraits" ),
+			$= (+ $dev "header inclusion %TypeTraits" ),
 		/ DLDI "simplified %make_successor" @ %IntegerSequence $dep_from
 			"variadic sequence using traits" ^ "%common_type_t"
 			~ "%std::common_type"
@@ -6481,9 +6483,9 @@ b648
 				- "redundant source mode parameter"
 					@ "functions %CopyFile#(2, 4)"
 			),
-			+ $forced DLDI "catching and ignoring exception \
+			+ DLDI "catching and ignoring exception \
 				'FileOperationFailure&'" @ "member function %FileBox::ListItems"
-				@ %UI.ComboList $dep_from ("%ListFiles" @ %Service.FileSystem),
+				@ %UI.ComboList $dep_from $forced ("%ListFiles" @ %Service.FileSystem),
 		),
 		/ DLDI "path string parameter" @ "callback" $effective @ ("function \
 			templates %(Traverse, TraverseChildren), function %(ClearTree, \
@@ -6665,7 +6667,7 @@ b646
 		),
 		/ %Helper.Initialization
 		(
-			/ $forced DLDI $dep_from %CHRLib.MappingEx,
+			/ DLDI $dep_from $forced %CHRLib.MappingEx,
 			/ $forced DLDI "function %HandleFatalError" $dep_from
 				("%FatalError::GetContent" @ %YSLib.Core.YException)
 		)
@@ -7087,8 +7089,8 @@ b642
 	),
 	/ %Test $=
 	(
-		/ $forced "updated %LIBS" @ "%test.sh" $dep_from
-			%YBase.YStandardEx.CAssert,
+		/ "updated %LIBS" @ "%test.sh" $dep_from
+			$forced %YBase.YStandardEx.CAssert,
 		/ %YBase $=
 		(
 			+ "2 test cases" ^ ("%ystdex::string_view"
@@ -7203,7 +7205,7 @@ b641
 			),
 			/ @ "function %LFN::ConvertToMBCS" @ %FileSystem $=
 			(
-				/ $forced $impl $dep_from ("%CHRLib::MakeMBCS"
+				/ $impl $dep_from $forced ("%CHRLib::MakeMBCS"
 					@ %CHRLib.CharacterProcessing);
 				/ $comp "length calculation to ensure no null embedded in the \
 					string"
@@ -7759,7 +7761,7 @@ b637
 					YCL_FS_StringIsRoot)" $since b409, ("enum \
 					%EntryData::Offsets" $since b609, "alias %VolumeLabel"
 					$since b610) @ "namespace %platform_ex"),
-				/ $forced DLDI $dep_from %YBase.YStandardEx.Exception
+				/ DLDI $dep_from $forced %YBase.YStandardEx.Exception
 			),
 			+ '#	undef CopyFile' @ "platform %Win32" @ %NativeAPI,
 			/ %FileIO $=
@@ -8109,9 +8111,9 @@ b633
 			$dep_from @ "function %ListFiles"
 			@ %YFramework.YSLib.Service.FileSystem
 	),
-	/ $forced "including paths"
+	/ "including paths"
 		@ "%(SHBuild-bootstrap.sh, SHBuild-YSLib-common.sh)"
-		@ %Tools.Scripts $dep_from %YFramework.'YCLib_(Win32)',
+		@ %Tools.Scripts $dep_from $forced %YFramework.'YCLib_(Win32)',
 	/ @ "Microsoft VC++ project" @ %YBase $=
 	(
 		/ $revert(b457) "warning level" -> '/W3',
@@ -8122,7 +8124,7 @@ b633
 	(
 		/ $design "exception decription" -> '::main' ~ 'main'
 			@ "function %::main",
-		+ $forced "searching 'Win32' directory for platform %MinGW32" $dep_from
+		+ "searching 'Win32' directory for platform %MinGW32" $dep_from $forced
 			%YFramework.('YCLib_(Win32)', 'Helper_(Win32)')
 	),
 	/ $re(b386) $dev $doc $term "all" ('标量' -> '纯量') $effective
@@ -8490,8 +8492,8 @@ b630
 			* $re_add(b586) DD "missing '!'" @ "end of '/*'" @ "multiline \
 				Doxygen comments" @ "MBCS conversion functions" $since b544
 		),
-		/ $forced DLDI "desturctor %WindowRegionDeviceContext"
-			@ "platform %Win32" @ %HostedGUI $dep_from
+		/ DLDI "desturctor %WindowRegionDeviceContext"
+			@ "platform %Win32" @ %HostedGUI $dep_from $forced
 			("%ystdex::is_aligned_storable" @ %YBase.YStandardEx.TypePun)
 	)
 ),
@@ -9644,8 +9646,8 @@ b618
 				constructor" @ "class %Session";
 			- 'using YSLib::TextFile'
 			),
-			/ $forced DLDI "friend function %operator>> for %Configuration"
-				@ %Configuration $dep_from ("class %Session" @ %Session)
+			/ DLDI "friend function %operator>> for %Configuration"
+				@ %Configuration $dep_from $forced ("class %Session" @ %Session)
 		)
 	),
 	/ $forced DLD "dependency checking" @ %Tools.SHBuild.Main $dep_from
@@ -9721,7 +9723,7 @@ b617
 		/ %YStandardEx $=
 		(
 			/ DLDI @ "integer-literal" @ "function %operator/="
-				@ "class template %path" @ %Path ^ "unsigned-suffix",
+				@ "class template %path" @ %Path ^ "unsigned-suffix 'U'",
 				// To eliminate Microsoft VC++ 2015 warning: C4018.
 			/ %Memory $=
 			(
@@ -9970,7 +9972,7 @@ b613
 				/ @ "class TextFileBuffer" @ %TextManager $=
 				(
 					(
-					/ "static yconstfn object %BlockSize" -> "%BlockShift";
+					/ "static yconstexpr object %BlockSize" -> "%BlockShift";
 					/ $forced DLDI "position calculation",
 					),
 					/ @ "class iterator" $=
@@ -10379,7 +10381,7 @@ b610
 			@ CStandardInteger,
 			// To eliminate warning: [-Wshadow] to 'uint_t' on platform
 				%Android. Note the global '::*_t' is reserved by POSIX.
-		* "missing exclusion non-class string type for function template \
+		* "missing exclusion of non-class string type for function template \
 			%ntctsncpy" @ %String,
 			// These function templates would be used instead of %ntctsncpy in
 				%CString for non class type, which cause ill-formed programs.
@@ -10753,8 +10755,8 @@ b604
 		+ "class %SectionCache" ^ $dep_from
 			("%block_buffer" @ %YBase.StandardEx.CStandardIO)
 	),
-	* $dev "wrongly placed %test.cpp in filter %ystdex" @ "Microsoft VC++ project %YBase"
-		$since b519,
+	* $dev "wrongly placed %test.cpp in filter %ystdex"
+		@ "Microsoft VC++ project %YBase" $since b519,
 	/ @ "main function" @ %Main $=
 	(
 		(
@@ -10961,7 +10963,7 @@ b601
 					/ $impl !^ "unneeded volatile type cast"
 				),
 				+ "function %InitializeFileSystem",
-				- "inclusion <nds.h>" @ "header" $dep_from
+				- "header inclusion <nds.h>" @ "header" $dep_from
 					"hiding libfat interface"
 			)
 		),
@@ -11430,7 +11432,7 @@ b600
 	),
 	/ "regenerated Code::Blocks projects"
 		^ ("%GenerateProjects.sh" @ %Tools.Scripts) $effective @ %YBase,
-	/ $forced "inserted qualifiers" @ "macro 'DefSetter' invocations" $dep_from
+	/ "inserted qualifiers" @ "macro 'DefSetter' invocations" $dep_from $forced
 		%YFramework.YBaseMacro $effective @ %YFramework.(YSLib.(Core.(YDevice, \
 		YGDIBase), Service.YGDI, UI.(Process, Scroll, Selector, YWidgetEvent, \
 		YWidgetView, ComboList, YWiget)), YCLib.HostedGUI),

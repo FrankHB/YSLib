@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018-2019, 2021 FrankHB.
+	© 2018-2019, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file map.hpp
 \ingroup YStandardEx
 \brief 映射容器。
-\version r1200
+\version r1209
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:12:51 +0800
 \par 修改时间:
-	2021-12-21 20:46 +0800
+	2022-11-28 19:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,9 +34,9 @@ LWG 2839 ：允许自转移赋值。
 #ifndef YB_INC_ystdex_map_hpp_
 #define YB_INC_ystdex_map_hpp_ 1
 
-#include "tree.h" // for "tree.h" (implying "range.hpp"), less, std::pair,
-//	std::allocator, totally_ordered, is_allocator_for, allocator_traits,
-//	first_of, is_nothrow_copy_constructible, and_, YAssert,
+#include "tree.h" // for "tree.h" (implying "range.hpp"),
+//	__cpp_lib_allocator_traits_is_always_equal, less, std::pair, std::allocator,
+//	totally_ordered, is_allocator_for, allocator_traits, first_of, YAssert,
 //	is_constructible, enable_if_t, ystdex::swap_dependent;
 #include <map> // for <map>, std::initializer_list;
 #include <tuple> // for std::piecewise_construct, std::tuple;
@@ -457,14 +457,17 @@ private:
 		// NOTE: The following code with %ystdex::try_emplace_hint is not used
 		//	because there is more specific internal method to deal with internal
 		//	knowledge of node pointers of underlying tree and case for %end().
-	//	return ystdex::try_emplace_hint(*this, hint, k,
-	//		yforward(args)...).first;
+#if false
+		return
+			ystdex::try_emplace_hint(*this, hint, k, yforward(args)...).first;
+#else
 		const auto pr(tree.get_insert_hint_unique_pos(hint, k));
 
 		return pr.second ? emplace_hint(iterator(pr.second),
 			std::piecewise_construct, std::forward_as_tuple(yforward(k)),
 			std::forward_as_tuple(yforward(args)...))
 			: iterator(pr.first);
+#endif
 	}
 
 public:

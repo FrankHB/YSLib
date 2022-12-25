@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r29048
+\version r29077
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2022-11-28 05:25 +0800
+	2022-12-09 08:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -983,21 +983,20 @@ protected:
 	//! \since build 959
 	//@{
 	using GuardCall
-		= EnvironmentGuard(const VauHandler&, TermNode&, ContextNode&);
+		= void(const VauHandler&, EnvironmentGuard&, TermNode&, ContextNode&);
 	using GuardDispatch = void(ContextNode&, const TermNode&, TermNode&);
 
 private:
 	template<GuardDispatch& _rDispatch>
 	struct GuardStatic final
 	{
-		static EnvironmentGuard
-		Call(const VauHandler& vau, TermNode& term, ContextNode& ctx)
+		//! \since build 962
+		static void
+		Call(const VauHandler& vau, EnvironmentGuard&, TermNode& term,
+			ContextNode& ctx)
 		{
 			// NOTE: See %DynamicVauHandler::GuardDynamic.
-			auto gd(GuardFreshEnvironment(ctx));
-
 			_rDispatch(ctx, vau.GetFormalsRef(), term);
-			return gd;
 		}
 	};
 	//@}
@@ -1091,7 +1090,17 @@ public:
 			//	%ReduceCombined), it is safe to be removed directly.
 			RemoveHead(term);
 
-			auto gd(guard_call(*this, term, ctx));
+			// NOTE: This call does not have the parent argument as it would be
+			//	assigned later in %operator() by a call to %AssignParent. This
+			//	allows conditionally moving (instead of copying) the parent.
+			//	Since %parent is initialized from a value in the constructor of
+			//	%DynamicVauHandler which only accepts checked values, it needs
+			//	no redundant check in the constructor of %Environment, hence the
+			//	argument should also not be used for %GuardFreshEnvironment.
+			auto gd(GuardFreshEnvironment(ctx));
+
+			guard_call(*this, gd, term, ctx);
+
 			// NOTE: Saved the no lift flag here to avoid branching in the
 			//	following implementation.
 			const bool no_lift(NoLifting);
@@ -1158,31 +1167,25 @@ private:
 	template<GuardDispatch& _rDispatch>
 	struct GuardDynamic final
 	{
-		//! \pre 第一参数的动态类型是 DynamicVauHandler 。
-		static EnvironmentGuard
-		Call(const VauHandler& vau, TermNode& term, ContextNode& ctx)
+		/*!
+		\pre 第一参数的动态类型是 DynamicVauHandler 。
+		\since build 962
+		*/
+		static void
+		Call(const VauHandler& vau, EnvironmentGuard& gd, TermNode& term,
+			ContextNode& ctx)
 		{
 			// NOTE: Evaluation in the local context: using the activation
 			//	record frame with outer scope bindings.
-			auto r_env(ctx.WeakenRecord());
 			// XXX: Reuse of frame cannot be done here unless it can be proved
 			//	all bindings would behave as in the old environment, which is
 			//	too expensive for direct execution of programs with first-class
 			//	environments.
-			// NOTE: This call does not have the parent argument as it would be
-			//	assigned later in %operator() by a call to %AssignParent. This
-			//	allows conditionally moving (instead of copying) the parent.
-			//	Since %parent is initialized from a value in the constructor of
-			//	%DynamicVauHandler which only accepts checked values, it needs
-			//	no redundant check in the constructor of %Environment, hence the
-			//	argument should also not be used for %GuardFreshEnvironment.
-			auto gd(GuardFreshEnvironment(ctx));
-
 			// NOTE: Bound the dynamic environment.
 			// XXX: The fresh environment is always not frozen.
 			NPL::AddValueTo(ctx.GetRecordRef().GetMapRef(), static_cast<const
 				DynamicVauHandler&>(vau).eformal, std::allocator_arg,
-				ctx.get_allocator(), std::move(r_env));
+				ctx.get_allocator(), EnvironmentReference(gd.func.SavedPtr));
 			// NOTE: The dynamic environment is either out of TCO action or
 			//	referenced by other environments already in TCO action, so there
 			//	is no need to treat as root.
@@ -1192,7 +1195,6 @@ private:
 			//	The lifting of call result is enabled to prevent this, unless
 			//	%NoLifting is %true. See also %BindParameter.
 			_rDispatch(ctx, vau.GetFormalsRef(), term);
-			return gd;
 		}
 	};
 
@@ -1929,8 +1931,8 @@ MakeCombinerEvalStruct(TermNode& term, TNIter i)
 {
 	term.erase(term.begin(), i);
 	ClearCombiningTags(term);
-	return ShareMoveTerm(ystdex::exchange(term,
-		NPL::AsTermNode(term.get_allocator())));
+	return ShareMoveTerm(
+		ystdex::exchange(term, NPL::AsTermNode(term.get_allocator())));
 }
 
 template<bool>
@@ -3688,7 +3690,7 @@ ProvideLetCommon(TermNode& term, ContextNode& ctx)
 	if(IsList(nd))
 		// NOTE: Checks are required before the evaluation of 'body'.
 		for(const auto& x : nd)
-			yunused(NPL::ResolveRegular<TokenValue>(x));
+			yunused(NPL::ResolveRegular<const TokenValue>(x));
 	else
 		ThrowListTypeErrorForNonList(nd, true);
 	con.splice(++++++i, con, i_symbols);

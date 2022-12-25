@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018, 2020 FrankHB.
+	© 2009-2016, 2018, 2020, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup DS
 \brief 主源文件。
-\version r1980
+\version r1986
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2020-12-24 12:06 +0800
+	2022-11-28 14:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,9 @@
 */
 
 
-#include "ShlExplorer.h"
-#include YFM_Helper_Initialization
+#include "ShlExplorer.h" // for platform, std::puts, YSLib, yfsig, Alert,
+//	EXIT_FAILURE, EXIT_SUCCESS
+#include YFM_Helper_Initialization // for TraceForOutermost;
 
 using namespace platform;
 using std::puts;
@@ -198,8 +199,7 @@ main()
 #ifdef YSL_USE_MEMORY_DEBUG
 		OnExit_DebugMemory();
 #endif
-	}, yfsig, Alert, TraceForOutermost)
-	? EXIT_FAILURE : EXIT_SUCCESS);
+	}, yfsig, Alert, TraceForOutermost) ? EXIT_FAILURE : EXIT_SUCCESS);
 	return res;
 }
 

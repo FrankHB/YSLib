@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2021 FrankHB.
+	© 2011-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3346
+\version r3358
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2021-08-08 15:00 +0800
+	2022-11-28 19:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,18 +63,20 @@ namespace platform
 */
 //@{
 //! \pre 间接断言：参数非空。
-YB_ATTR_nodiscard YB_NONNULL(1) inline
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE inline
 	PDefH(string, MakePathString, const char* s)
 	ImplRet(Nonnull(s))
-YB_ATTR_nodiscard inline PDefH(const string&, MakePathString, const string& str)
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(const string&, MakePathString, const string& str)
 	ImplRet(str)
 //! \pre Win32 平台：因实现不直接访问左值，字符的动态类型可为布局兼容的整数类型。
 //@{
 //! \pre 间接断言：参数非空。
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) string
+YB_ATTR_nodiscard YF_API YB_PURE YB_NONNULL(1) string
 MakePathString(const char16_t*);
 //! \since build 658
-YB_ATTR_nodiscard inline PDefH(string, MakePathString, u16string_view sv)
+YB_ATTR_nodiscard inline YB_PURE
+	PDefH(string, MakePathString, u16string_view sv)
 	ImplRet(MakePathString(sv.data()))
 //@}
 //@}
@@ -1229,16 +1231,17 @@ inline PDefH(wstring, MakePathStringW, string_view sv)
 */
 //@{
 //! \pre 间接断言：参数非空。
-YB_ATTR_nodiscard YB_NONNULL(1) inline
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE inline
 	PDefH(u16string, MakePathStringU, const char16_t* str)
 	ImplRet(platform::Nonnull(str))
-YB_ATTR_nodiscard inline
+YB_ATTR_nodiscard YB_PURE inline
 	PDefH(const u16string&, MakePathStringU, const u16string& str)
 	ImplRet(str)
 //! \pre 间接断言：参数非空。
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) u16string
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) YB_PURE u16string
 MakePathStringU(const char*);
-YB_ATTR_nodiscard inline PDefH(u16string, MakePathStringU, string_view sv)
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(u16string, MakePathStringU, string_view sv)
 	ImplRet(MakePathStringU(sv.data()))
 //@}
 #endif

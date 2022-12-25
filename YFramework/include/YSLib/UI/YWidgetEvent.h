@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2019, 2021 FrankHB.
+	© 2010-2016, 2019, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YWidgetEvent.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1939
+\version r1942
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2021-12-29 01:57 +0800
+	2022-11-28 19:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -518,6 +518,8 @@ public:
 	EventRef(GEvent<_fSig>& e)
 		: content(e, OwnershipTag<>())
 	{}
+	// XXX: Use %ystdex::enable_if_same_t instead of
+	//	%ystdex::enable_if_same_param_t to ensure only lvalues are supported.
 	//! \since build 851
 	template<class _tParam,
 		yimpl(typename = ystdex::enable_if_same_t<EventItem, _tParam>)>

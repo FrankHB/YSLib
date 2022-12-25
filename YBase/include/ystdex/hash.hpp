@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015, 2019 FrankHB.
+	© 2015, 2019, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file hash.hpp
 \ingroup YStandardEx
 \brief 散列接口。
-\version r182
+\version r184
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:12:11 +0800
 \par 修改时间:
-	2019-11-27 02:03 +0800
+	2022-11-28 19:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "tuple.hpp" // for "tuple.hpp", std::tuple, index_sequence, std::get,
 //	std::declval, index_sequence_for, std::pair;
-#include <functional> // for std::hash;
+#include <functional> // for <functional>, std::hash;
 #include <numeric> // for std::accumulate;
 
 namespace ystdex

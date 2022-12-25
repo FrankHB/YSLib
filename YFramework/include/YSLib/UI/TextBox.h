@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2018, 2020 FrankHB.
+	© 2014-2018, 2020, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r434
+\version r437
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2020-05-12 17:34 +0800
+	2022-11-28 19:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_UI_TextBox_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_UI_YControl
+#include YFM_YSLib_UI_YControl // for make_observer;
 #include YFM_YSLib_UI_Label
 #include YFM_YSLib_Service_YTimer
 #include YFM_YSLib_UI_YGUI
@@ -76,7 +76,7 @@ public:
 			if(!p_captured && ctl.Text.empty())
 			{
 				ystdex::invoke(f, this, ctl);
-				p_captured = YSLib::make_observer(std::addressof(ctl));
+				p_captured = make_observer(std::addressof(ctl));
 			}
 		}
 		);

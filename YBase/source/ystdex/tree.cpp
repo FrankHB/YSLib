@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018, 2020-2021 FrankHB.
+	© 2018, 2020-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file tree.cpp
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r412
+\version r416
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2021-12-24 22:14 +0800
+	2022-11-28 19:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -305,10 +305,11 @@ tree_rebalance_for_erase(tree_node_base* z, tree_node_base& header) ynothrow
 	}
 	if(y->color != tree_color::red)
 	{
-		while(x != root && (!x|| x->color == tree_color::black))
+		while(x != root && (!x || x->color == tree_color::black))
 			if(x == x_parent->left)
 			{
-				tree_node_base* w = x_parent->right;
+				auto w(x_parent->right);
+
 				if(w->color == tree_color::red)
 				{
 					w->color = tree_color::black;
@@ -342,7 +343,8 @@ tree_rebalance_for_erase(tree_node_base* z, tree_node_base& header) ynothrow
 			}
 			else
 			{
-				tree_node_base* w = x_parent->left;
+				auto w(x_parent->left);
+
 				if(w->color == tree_color::red)
 				{
 					w->color = tree_color::black;

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2021 FrankHB.
+	© 2013-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r5720
+\version r5723
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2021-12-21 12:30 +0800
+	2022-12-22 21:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2297,7 +2297,7 @@ b333
 		)
 		+ "header %functional.hpp as %Function" $=
 		(
-			+ $lib "inclusion (<tuple>, <functional>, <string>)";
+			+ $lib "header inclusion (<tuple>, <functional>, <string>)";
 			+ "function templates %(make_parameter_tuple, return_of, \
 				parameter_of, paramlist_size)"
 		)
@@ -2464,7 +2464,7 @@ b329
 			/ "function template %sntctslen" => "%ntctslen",
 			(
 			(
-			+ "including header '<string>'";
+			+ "header inclusion <string>";
 			/ "returning types of function templates for NTCTS \
 				comparing" ^ "%std::char_traits::int_type" ~ "%wint_t",
 			/ "names of function templates for NTCTS",

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2021 FrankHB.
+	© 2014-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r1142
+\version r1144
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2021-09-26 04:28 +0800
+	2022-11-28 19:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@
 #include <ystdex/deref_op.hpp> // for ystdex::call_value_or;
 #include <cstdlib> // for std::getenv;
 #if YCL_Win32
-// XXX: This is not used because currently no '-lntdll' is expetected in the
+// XXX: This is not used because currently no '-lntdll' is expected in the
 //	linker command line, and the dynamic loading should be better in
 //	compatibility.
 #	if false && __has_include(<winternl.h>)

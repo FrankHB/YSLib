@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2017, 2019-2021 FrankHB.
+	© 2010-2017, 2019-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r1451
+\version r1463
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2021-12-21 20:40 +0800
+	2022-12-22 21:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -203,8 +203,8 @@ not_widen(_tSrc v)
 \brief 多态类指针类型转换。
 \tparam _tSrc 源类型。
 \tparam _pDst 目标类型。
-\pre 静态断言： _tSrc 是多态类。
-\pre 静态断言： _pDst 是内建指针。
+\pre 静态断言：_tSrc 是多态类。
+\pre 静态断言：_pDst 是内建指针。
 \throw std::bad_cast dynamic_cast 失败。
 \since build 175
 */
@@ -228,9 +228,9 @@ polymorphic_cast(_tSrc* v)
 /*!
 \tparam _tSrc 源类型。
 \tparam _pDst 目标类型。
-\pre 静态断言： _tSrc 是多态类。
-\pre 静态断言： _pDst 是内建指针。
-\pre 静态断言： _tSrc 是 _pDst 指向的类去除修饰符后的基类。
+\pre 静态断言：_tSrc 是多态类。
+\pre 静态断言：_pDst 是内建指针。
+\pre 静态断言：_tSrc 是 _pDst 指向的类去除修饰符后的基类。
 \pre 断言： dynamic_cast 成功。
 */
 template<typename _pDst, class _tSrc>
@@ -248,7 +248,7 @@ polymorphic_downcast(_tSrc* v) ynothrowv
 /*!
 \tparam _tSrc 源类型。
 \tparam _rDst 目标类型。
-\pre 静态断言： _rDst 是左值引用。
+\pre 静态断言：_rDst 是左值引用。
 */
 template<typename _rDst, class _tSrc>
 YB_ATTR_nodiscard YB_PURE yconstfn
@@ -261,7 +261,7 @@ polymorphic_downcast(_tSrc& v) ynothrowv
 /*!
 \tparam _tSrc 源类型。
 \tparam _rDst 目标类型。
-\pre 静态断言： _rDst 是右值引用。
+\pre 静态断言：_rDst 是右值引用。
 */
 template<typename _rDst, class _tSrc>
 YB_ATTR_nodiscard YB_PURE yconstfn yimpl(enable_if_t)<
@@ -313,8 +313,8 @@ polymorphic_downcast(const std::unique_ptr<_tSrc>& v) ynothrowv
 /*!
 \tparam _tSrc 源类型。
 \tparam _pDst 目标类型。
-\pre 静态断言： _tSrc 是多态类。
-\pre 静态断言： _pDst 是内建指针。
+\pre 静态断言：_tSrc 是多态类。
+\pre 静态断言：_pDst 是内建指针。
 \pre 断言： dynamic_cast 成功。
 \return 非空结果。
 \note 空指针作为参数一定失败。
@@ -335,7 +335,7 @@ polymorphic_crosscast(_tSrc* v)
 /*!
 \tparam _tSrc 源类型。
 \tparam _rDst 目标类型。
-\pre 静态断言： _rDst 是左值引用。
+\pre 静态断言：_rDst 是左值引用。
 \since build 496
 */
 template<typename _rDst, class _tSrc>
@@ -351,7 +351,7 @@ polymorphic_crosscast(_tSrc& v)
 /*!
 \tparam _tSrc 源类型。
 \tparam _rDst 目标类型。
-\pre 静态断言： _rDst 是右值引用。
+\pre 静态断言：_rDst 是右值引用。
 \since build 496
 */
 template<typename _rDst, class _tSrc>

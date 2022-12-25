@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013, 2015-2016, 2018-2021 FrankHB.
+	© 2012-2013, 2015-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型和相关扩展操作。
-\version r911
+\version r915
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2021-12-20 22:54 +0800
+	2022-11-28 19:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "iterator_op.hpp" // for <cstdint>, CHAR_BIT, size_t_, make_signed,
 //	make_unsigned, size_t, std::uint_fast8_t, std::int64_t, std::uint64_t,
-//	is_signed, _t, common_type, cond_t, and_, is_unsigned, bool_, 
+//	is_signed, _t, common_type, cond_t, and_, is_unsigned, bool_,
 //	std::uintmax_t, yconstraint, YB_VerifyIterator,
 //	ystdex::make_reverse_iterator;
 #include <limits> // for std::numeric_limits;
@@ -157,7 +157,8 @@ public:
 
 /*!
 \brief 公共整数类型。
-\note 同 common_type 但如果可能，按需自动扩展整数位宽避免缩小数值范围。
+\note 同 common_type ，但如果可能，按需自动扩展整数位宽避免缩小数值范围。
+\note 和 common_type 不同，当前不支持程序对本模板提供特化。
 \since build 744
 */
 //@{

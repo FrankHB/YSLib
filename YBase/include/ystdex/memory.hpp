@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2021 FrankHB.
+	© 2011-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r4941
+\version r4943
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2021-12-26 19:15 +0800
+	2022-11-28 19:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@
 //	remove_pointer_t, is_void, indirect_element_t, not_, yconstraint,
 //	is_pointer, enable_if_t, is_array, extent, remove_extent_t, is_polymorphic;
 #include <limits> // for std::numeric_limits;
-#include "ref.hpp" // for is_reference_wrapper, nullptr_t;
+#include "ref.hpp" // for internal "ref.hpp", is_reference_wrapper, nullptr_t;
 
 /*!
 \brief \c \<memory> 特性测试宏。

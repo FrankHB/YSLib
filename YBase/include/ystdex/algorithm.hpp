@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2021 FrankHB.
+	© 2010-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r1237
+\version r1240
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2021-12-28 18:51 +0800
+	2022-11-28 19:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 #include <algorithm> // for <algorithm>, __cpp_lib_clamp,
 //	__cpp_lib_robust_nonmodifying_seq_ops;
 #include "functor.hpp" // for is_equal, less, std::bind, std::placeholders::_1;
-#include "deref_op.hpp" // for YB_VerifyIterator, yconstraint;
+#include "deref_op.hpp" // for YB_VerifyIterator, yconstraint, byte;
 #include <cstring> // for std::memcpy, std::memmove;
 
 /*!
@@ -684,7 +684,7 @@ template<typename _type>
 YB_ATTR_nodiscard YB_PURE yconstfn const _type&
 clamp(const _type& v, const _type& lo, const _type& hi)
 {
-    return ystdex::clamp(v, lo, hi, less<_type>());
+	return ystdex::clamp(v, lo, hi, less<_type>());
 }
 //@}
 #endif

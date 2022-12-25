@@ -1,5 +1,5 @@
 ﻿/*
-	© 2016-2021 FrankHB.
+	© 2016-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r8251
+\version r8304
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2021-12-21 12:31 +0800
+	2022-12-22 21:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,7 +76,7 @@ $now
 			(
 				* $comp "missing parent environment type check"
 					@ "function %MakeEnvironment" $since b798 $dep_from
-					("%Envrionment::CheckParent" @ %NPLA),
+					("%Environment::CheckParent" @ %NPLA),
 				/ "exception message for wrong evironment formal parameter"
 					@ "functions %(Vau, VauWithEnvironment)",
 				/ @ "vau handler" $=
@@ -293,9 +293,9 @@ b797
 					$= (/ "%SHBuild_FLAGS" -> "%SHBuild_CXXFLAGS")
 			)
 		),
-		/ $forced "stage 2 YSLib building" @ "%install-sysroot.sh"
-			~ "%SHBuild-YSLib.sh" ^ $dep_from ("%SHBuild-YSLib-build.txt"
-			@ %Scripts, ("command line arguments initialization support",
+		/ "stage 2 YSLib building" @ "%install-sysroot.sh" ~ "%SHBuild-YSLib.sh"
+			^ $dep_from $forced ("%SHBuild-YSLib-build.txt" @ %Scripts,
+			("command line arguments initialization support",
 			"optional options parsing controlled by '--'") @ %SHBuild.Main)
 	),
 	/ %YFramework $=
@@ -754,7 +754,7 @@ b790
 					- DLDI "self reference check assertion" @ "call",
 					/ "differentiated shared and weakly shared environment \
 						 count" @ "trace message";
-					/ $forced "differentiated owning environment" $dep_from
+					/ "differentiated owning environment" $dep_from $forced
 						"%MatchParameter"
 						// Otherwise it would cause cyclic references.
 				);
@@ -848,7 +848,7 @@ b788
 					/ $forced $revert_ex(b787) "exposed environment reference \
 						in host as %shared_ptr<Environment> or \
 						%weak_ptr<Environment> (defaulted to weak pointer) \
-						instead of object reference on %Envrionment"
+						instead of object reference on %Environment"
 						@ "functions %(VauWithEnvironment, Eval, \
 						GetCurrentEnvironment), vau handler"
 						$dep_from ("%(Environment, ContextNode)" @ %NPLA);
@@ -919,8 +919,8 @@ b788
 					~ "%ContextNode"
 				),
 			),
-			/ $re_ex(b787) $forced DLDI "function %LoadNPLContextForSHBuild"
-				@ %Dependency $dep_from %NPLA
+			/ $re_ex(b787) DLDI "function %LoadNPLContextForSHBuild"
+				@ %Dependency $dep_from $forced %NPLA
 		),
 		+ "function %GetHolderPtr" @ "class template %PointerHolder"
 			@ %YSLib.Core.YObject
@@ -1095,9 +1095,9 @@ b786
 				-> "%OwnsCount";
 			/ $forced "overrider %OwnsUnique"
 				@ "class templates %(ValueHolder, RefHolder)" -> "%OwnsCount",
-			/ $forced "overrider %OwnsUnique"
+			/ "overrider %OwnsUnique"
 				@ "class template %PointerHolder, RefHolder"
-				-> "%OwnsCount" ^ $dep_from "%PointerHolderTraits";
+				-> "%OwnsCount" ^ $dep_from $forced "%PointerHolderTraits";
 			/ @ "class %ValueObject" $=
 			(
 				+ "function %OwnsCount",
@@ -1663,7 +1663,7 @@ b776
 	(
 		/ %NPL $=
 		(
-			/ "form %'$or'" => '$or?' @ "loaded functions"
+			/ "form '$or'" => '$or?' @ "loaded functions"
 				@ "function %LoadNPLContextForSHBuild" @ %Dependency,
 			/ @ %NPLA1 $=
 			(
@@ -3097,7 +3097,7 @@ b752
 				@ "class templates %(ValueHolder, PointerHolder, RefHolder)";
 			/ DLDI "member function %ValueObject" ^ "%IValueHolder::Equals"
 				~ "%IValueHolder::operator==";
-			- $foced "overrider %operator=="
+			- $forced "overrider %operator=="
 				@ "class templates %(ValueHolder, PointerHolder, RefHolder)"
 			),
 			/ @ "class %ValueObject" $=
@@ -3154,9 +3154,9 @@ b752
 				+ "3 function templates %WrapContextHandler"
 				),
 				(
-				/ $forced "support for void and non-void handler result"
-					@ "class %FormContextHandler" $dep_from
-					("%ContextHandler" @ %NPLA)
+				/ "support for void and non-void handler result"
+					@ "class %FormContextHandler"
+					$dep_from $forced ("%ContextHandler" @ %NPLA)
 					$= (/ "constructor templates" ^ $dep_from
 						"WrapContextHandler");
 				/ "supported reduction status propagation"
@@ -3396,9 +3396,8 @@ b747
 					+ "abstract method %Refer"
 				),
 				+ "class template %RefHolder",
-				+ $forced DLDI "overrider %Refer"
-					@ "class templates %(ValueHolder, PointerHolder)" $dep_from
-					"%IValueHolder::Refer"
+				+ DLDI "overrider %Refer" @ "class templates %(ValueHolder, \
+					PointerHolder)" $dep_from $forced "%IValueHolder::Refer"
 					$= (/ $impl ^ $dep_from "%RefHolder"),
 				+ "function %MakeIndirect" @ "class %ValueObject" ^ $dep_from
 					"%IValueHolder::Refer"
@@ -4272,9 +4271,9 @@ b733
 						+ $doc "required nonempty term node",
 						* $comp "ordinal of subterm" $mismatch $since b732
 					);
-					/ $forced DLDI "function template %ReduceWithModifier"
+					/ DLDI "function template %ReduceWithModifier"
 					),
-					/ DLDI "assertion" @ "function %Quote" ^ $dep_from
+					/ DLDI "assertion" @ "function %Quote" ^ $dep_from $forced
 						("%IsBranch" @ %SContext)
 				),
 				/ DLDI "functions %(Reduce, ReduceFirst, \
@@ -4287,7 +4286,7 @@ b733
 				(
 					/ "%(TransformForSeparator, \
 						TransformForSeparatorRecursive)"
-					/ $forced "%Reduce" $dep_from ("%DetectReducible" @ %NPLA)
+					/ "%Reduce" $dep_from $forced ("%DetectReducible" @ %NPLA)
 				),
 				(
 				/ @ "class %FormContextHandler" $=
@@ -4410,7 +4409,7 @@ b732
 				templates %(any_input_iterator, any_forward_iterator)"
 				^ "%decay_unwrap_t" ~ "%(unwrap_reference_t, decay_t)"
 		),
-		/ $forced %Thunk $dep_from ("%unwrap_reference" @ %Ref) $=
+		/ %Thunk $dep_from $forced ("%unwrap_reference" @ %Ref) $=
 		(
 			/ DLDI "constructor template" @ "class template %thunk_caller",
 			/ "template default argument" @ "class template %thunk"
@@ -4581,7 +4580,7 @@ b730
 						+ "traits and allocator template parameter support"
 					),
 					/ $re(b641) "supporting character string range" ~ "NTCTS"
-						$= (/ "intialization" ^ "%basic_string_view instance \
+						$= (/ "initialization" ^ "%basic_string_view instance \
 							with known length from string" ~ "%c_str()")
 					// This would crash previously (since b641). It was \
 						suspicious as a G++ bug, like https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67795. \
@@ -4768,7 +4767,7 @@ b728
 			* "parameter types" @ "constructor with component parameters"
 				@ "class template %RGBA" $since b441,
 		),
-		/ $forced %YSLib $dep_from "merged mask traits" $=
+		/ %YSLib $dep_from $forced "merged mask traits" $=
 		(
 			/ %Adaptor.YAdaptor $=
 			(
@@ -4839,7 +4838,7 @@ b727
 				'defined(_GLIBCXX_DEBUG) && YB_IMPL_GNUCPP < 40902'"
 				@ %UI.TreeView $dep_from %Documentation.Dependencies
 		),
-		/ $foced DLDI "function %SaveConfiguration" @ %Helper.Initialization
+		/ $forced DLDI "function %SaveConfiguration" @ %Helper.Initialization
 			$dep_from ("%UniqueLockedOutputFileStream" @ %YSLib.Service.File)
 	),
 	/ %YBase $=
@@ -5075,13 +5074,13 @@ b724
 				@ "platform %DS" @ %NativeAPI $since b690
 		),
 		(
-		/ $forced $dev $dep_from ("%YCL_TraceRaw" @ %YCLib.Debug)
+		/ $dev $dep_from $forced ("%YCL_TraceRaw" @ %YCLib.Debug)
 			$effective @ (%YSLib.Core.YException, YCLib.(NativeAPI, Debug));
 		* $comp $dev "'YCL_*' reserved macros used" @ %YSLib $effective
 			@ %YSLib.Core.YException $mismatch(%Documentation.YSLib $since b481)
 			$since b591
 		),
-		/ $forced $dev $dep_from ("%YCL_Trace" @ %YCLib.Debug)
+		/ $dev $dep_from $forced ("%YCL_Trace" @ %YCLib.Debug)
 			$effective @ (%Helper.(GUIApplication, Environment), YCLib.Debug),
 		/ %YSLib $=
 		(
@@ -5504,9 +5503,10 @@ b720
 			),
 			/ %NativeAPI $=
 			(
-				+ "including <semphore.h>" @ $dep_from
+				+ "header inclusion <semphore.h>" @ $dep_from
 					("%YCL_API_Has_semaphore_h" @ %Platform),
-				+ "including <sys/mman.h>" @ "platforms %(Linux, 'OS X')";
+				+ "header inclusion <sys/mman.h>"
+					@ "platforms %(Linux, 'OS X')";
 				+ $dev "161 '#undef' directives for identifier of POSIX \
 					functions declared in <stdio.h>, <dirent.h>, <fcntl.h>, \
 					<semaphore.h>, <unistd.h>, <sys/mman.h> and <sys/stat.h>",
@@ -5573,9 +5573,9 @@ b720
 					Helper.Initialization, Tools.SHBuild.Main)
 			)
 		),
-		/ $forced "caught %std::system_error" @ "function %InstallFile"
-			@ %NPL.Dependency ~ "caught %FileOperationFailure" $dep_from
-			("%HaveSameContents" @ %YCLib.FileIO,
+		/ "caught %std::system_error" @ "function %InstallFile"
+			@ %NPL.Dependency ~ "caught %FileOperationFailure"
+			$dep_from $forced ("%HaveSameContents" @ %YCLib.FileIO,
 			"%CopyFile" @ %YSLib.Service.FileSystem),
 		* "%std::system_error caused wrong behavior on font file access failure"
 			@ "function %InitializeSystemFontCache" @ %Helper.Initialization
@@ -5734,8 +5734,9 @@ b719
 			/ DLDI "simplified destructor" @ "classes %(GlobalDelete, \
 				LocalDelete)" ^ "%YCL_Trace_Win32E" ~ "%YTraceDe"
 		),
-		/ $forced DLDI "caught 'std::system_error&'" ~ 'FileOperationFailure&'
-			@ "functions %VerifyDirectory" @ %YSLib.Service.FileSystem $dep_from
+		/ DLDI "caught 'std::system_error&'" ~ 'FileOperationFailure&'
+			@ "functions %VerifyDirectory" @ %YSLib.Service.FileSystem
+			$dep_from $forced
 			("constructors %platform::DirectorySession" @ %YCLib.FileSystem)
 	),
 	* "'$lib' did not covered possible public API break caused overload \
@@ -6312,7 +6313,7 @@ b714
 		)
 	),
 	* "missing inclusion %CAssert" @ %YBase.YStandardEx.Functional $since b612
-	/ $forced DLDI $dep_from %YFramework.YCLib_(Win32).MinGW32 $effective
+	/ DLDI $dep_from $forced %YFramework.YCLib_(Win32).MinGW32 $effective
 		@ %(YCLib_(Win32), YCLib.(Host, HostedGUI, FileIO, MemoryMapping,
 		FileSystem), Helper.(GUIApplication, HostRenderer)) @ %YFramework
 ),
@@ -6352,7 +6353,7 @@ b713
 				/ %FileIO $dep_from "%platform_ex::(UTF8ToWCS, WCSToUTF8)",
 				/ %HostedGUI $dep_from "%platform_ex::WCSToUTF8"
 			),
-			/ $forced %FileIO $dep_from %Documentation.CommonRules $=
+			/ %FileIO $dep_from $forced %Documentation.CommonRules $=
 			(
 				/ DLDI "renamed internal file time routines"
 					@ !"platform %Win32",
@@ -6381,7 +6382,7 @@ b713
 				$= (/ DLDI ^ "%platform_ex::UTF8ToMBCS"
 					~ "%platform_ex::MBCSToWCS")
 		),
-		/ $forced %'YCLib_(DS)'.DSIO $dep_from %Documentation.CommonRules $=
+		/ %'YCLib_(DS)'.DSIO $dep_from $forced %Documentation.CommonRules $=
 		(
 			/ "functions %(TryRead, TrySeek, TryWrite)" @ "class %FileInfo"
 				=> "%(Read, Seek, Write)",
@@ -6418,11 +6419,11 @@ b713
 				("%FetchCurrentWorkingDirectory" @ %Adaptor.YAdaptor),
 			/ %Service $=
 			(
-				/ $forced "function templates %(TryRemove, TryUnlink)"
-					=> "%(Remove, Unlink)" @ %File $dep_from
-					%Documentation.CommonRules
+				/ "function templates %(TryRemove, TryUnlink)"
+					=> "%(Remove, Unlink)" @ %File
+					$dep_from %Documentation.CommonRules,
 				/ DLI "simplified function template %Traverse"
-					^ "range-based for" ~ "%std::for_each" $dep_from
+					^ "range-based for" ~ "%std::for_each" $dep_from $forced
 					("%HDirectory::begin" @ %YCLib.FileSystem)
 			)
 		)
@@ -6534,7 +6535,7 @@ b712
 			/ "simplified CHRLib mapping initialization"
 				@ "function %LoadComponents" @ %Initialization $dep_from
 				("%MappedFile" @ %YCLib.MemoryMapping),
-			/ $forced %Enviornment $dep_from
+			/ %Enviornment $dep_from $forced
 				("%FixConsoleHandler" @ %'YCLib_(Win32)'.MinGW32.Consoles)
 		)
 	)
@@ -7567,9 +7568,9 @@ b702
 				/ "wrapped return type with %ystdex::nonvoid_result_t",
 				/ $impl ^ "%ystdex::invoke_nonvoid" ~ "%ystdex::invoke"
 			),
-			/ $forced DLDI 'using platform::CheckIter;' @ %Adaptor.YAdaptor
-				-> 'using platform::FwdIter;' $dep_from
-				("%FwdIter" @ %YCLib.Debug)
+			/ DLDI 'using platform::CheckIter;' @ %Adaptor.YAdaptor
+				-> 'using platform::FwdIter;'
+				$dep_from $forced ("%FwdIter" @ %YCLib.Debug)
 		),
 		/ @ "class %DirectoryFindData" %'YCLib_(Win32)'.MinGW32 $=
 		(
@@ -7892,11 +7893,11 @@ b700
 	),
 	/ %YFramework $=
 	(
-		+ $forced DLDI '-DFT_CONFIG_OPTION_OLD_INTERNALS' @ "%CPPFLAGS"
-			@ "makefile" @ "platform %DS" $dep_from
-			"FreeType old internals command line",
-		/ $forced DLDI "FreeType internal header path" @ %YSLib.Adaptor.Font
-			$dep_from "FreeType inclusion path"
+		+ DLDI '-DFT_CONFIG_OPTION_OLD_INTERNALS' @ "%CPPFLAGS"
+			@ "makefile" @ "platform %DS"
+			$dep_from $forced "FreeType old internals command line",
+		/ DLDI "FreeType internal header path" @ %YSLib.Adaptor.Font
+			$dep_from $forced "FreeType inclusion path"
 	),
 	/ $re_ex(b585) "updated %SUBTITLE2 year" @ "makefile" @ "platform %DS"
 		@ "project %YSTest",

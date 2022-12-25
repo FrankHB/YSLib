@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2021 FrankHB.
+	© 2009-2016, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YNew.cpp
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r1010
+\version r1013
 \author FrankHB <frankhb1989@gmail.com>
 \since build 173
 \par 创建时间:
 	2010-12-02 19:49:41 +0800
 \par 修改时间:
-	2021-12-29 01:47 +0800
+	2022-11-28 18:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 #include <cstdlib> // for std::atexit;
 #include <cassert> // for assert;
 #include <algorithm> // for std::for_each;
-#include <ystdex/functional.hpp> // for ystdex::bind1, ystdex::pvoid;
+#include <ystdex/addressof.hpp> // for ystdex::pvoid;
+#include <ystdex/bind.hpp> // for ystdex::bind1;
 
 #ifdef YSL_USE_MEMORY_DEBUG
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2021 FrankHB.
+	© 2012-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r2190
+\version r2192
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2021-12-21 21:27 +0800
+	2022-12-28 19:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -348,7 +348,7 @@ UpdateByteRaw(_fAdd add, _fAppend append, _tParseResult& res, bool got_delim,
 			const char c(cbuf.back());
 			const bool unquoted(lexer.GetDelimiter() == char());
 
- 			if(got_delim)
+			if(got_delim)
 			{
 				update_c(c);
 				update_current = !unquoted;

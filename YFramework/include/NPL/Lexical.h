@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2021 FrankHB.
+	© 2012-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r2369
+\version r2384
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2021-12-21 21:27 +0800
+	2022-12-02 04:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,12 +31,13 @@
 #include "YModules.h"
 #include YFM_NPL_NPL // for YSLib::pmr, YSLib::begin, YSLib::end, YSLib::list,
 //	YSLib::lref, YSLib::pair, YSLib::set, YSLib::shared_ptr, YSLib::string,
-//	YSLib::string_view, YSLib::vector, CHAR_MIN, ystdex::unwrap_ref_decay_t,
-//	ystdex::remove_reference_t, ystdex::detected_or_t, byte,
-//	ystdex::copy_and_swap;
+//	YSLib::string_view, YSLib::vector, CHAR_MIN, byte;
 #include YFM_YSLib_Core_YFunc // for YSLib::function;
 #include YFM_YSLib_Adaptor_YTextBase
 #include <ystdex/cctype.h> // for ystdex::isspace;
+#include <ystdex/ref.hpp> // for ystdex::unwrap_ref_decay_t,
+//	ystdex::remove_reference_t, ystdex::detected_or_t;
+#include <ystdex/swap.hpp> // for ystdex::copy_and_swap;
 
 namespace NPL
 {
@@ -45,6 +46,8 @@ namespace NPL
 namespace pmr = YSLib::pmr;
 //! \since build 546
 using YSLib::begin;
+//! \since build 962
+using YSLib::default_allocator;
 //! \since build 546
 using YSLib::end;
 //! \since build 851
@@ -92,7 +95,8 @@ struct YF_API SourceLocation final
 	size_t Column = 0;
 
 	DefDeCtor(SourceLocation)
-	SourceLocation(size_t line, size_t col)
+	//! \since build 962
+	SourceLocation(size_t line, size_t col) ynothrow
 		: Line(line), Column(col)
 	{}
 	//! \since build 896
@@ -476,7 +480,7 @@ private:
 
 public:
 	BufferedByteParserBase(LexicalAnalyzer& lexer,
-		pmr::polymorphic_allocator<yimpl(byte)> a = {})
+		default_allocator<yimpl(byte)> a = {})
 		: lexer_ref(lexer), buffer(a)
 	{}
 
@@ -537,7 +541,7 @@ private:
 
 public:
 	ByteParser(LexicalAnalyzer& lexer,
-		pmr::polymorphic_allocator<yimpl(byte)> a = {})
+		default_allocator<yimpl(byte)> a = {})
 		: BufferedByteParserBase(lexer, a), lexemes(a)
 	{}
 	//! \since build 890
@@ -627,7 +631,7 @@ private:
 
 public:
 	SourcedByteParser(LexicalAnalyzer& lexer,
-		pmr::polymorphic_allocator<yimpl(byte)> a = {})
+		default_allocator<yimpl(byte)> a = {})
 		: BufferedByteParserBase(lexer, a), lexemes(a)
 	{}
 	SourcedByteParser(const SourcedByteParser& parse)
@@ -698,7 +702,7 @@ private:
 
 public:
 	DelimitedByteParser(LexicalAnalyzer& lexer,
-		pmr::polymorphic_allocator<yimpl(byte)> a)
+		default_allocator<yimpl(byte)> a)
 		: BufferedByteParserBase(lexer, a), qlist(a)
 	{}
 	DelimitedByteParser(const DelimitedByteParser& parse)

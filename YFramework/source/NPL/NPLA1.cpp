@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r24638
+\version r24687
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2022-11-27 12:14 +0800
+	2022-12-10 02:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -524,8 +524,8 @@ private:
 #endif
 
 public:
-	//! \since build 888
-	SeparatorPass(TermPasses::allocator_type a)
+	//! \since build 962
+	SeparatorPass(TermPasses::allocator_type a) ynothrow
 		: alloc(a)
 	{}
 
@@ -777,32 +777,35 @@ public:
 			[&](TermNode& src, TNIter j, TermTags tags) -> TermNode&{
 			YAssert(sigil == char() || sigil == '%', "Invalid sigil found.");
 
-			auto t(CreateForBindSubpairPrefix(src, j, tags));
+			TermNode::Container tcon(src.get_allocator());
+			ValueObject vo;
 
-			if(o.Value)
-				BindSubpairCopySuffix(t, src, j);
-			return init(std::move(t.GetContainerRef()), std::move(t.Value));
+			CreateForBindSubpairPrefix(tcon, src, j, tags);
+			if(src.Value)
+				BindSubpairCopySuffix(tcon, vo, src, j);
+			return init(std::move(tcon), std::move(vo));
 		});
 		const auto bind_subpair_ref_at([&](TermTags tags){
 			YAssert(sigil == '&' || sigil == '@', "Invalid sigil found.");
 
-			auto t(CreateForBindSubpairPrefix(o, first, tags));
-
-			if(o.Value)
-				// XXX: The container is ignored, since it is assumed always
-				//	living when %Value is accessed (otherwise, the behavior
-				//	is undefined in the object language).
-				LiftTermRef(t.Value, o.Value);
-
 			const auto a(o.get_allocator());
+#if true
+			TermNode::Container tcon(a);
+
+			CreateForBindSubpairPrefix(tcon, o, first, tags);
+
 			// NOTE: Make a subpair reference whose referent is the copy
 			//	constructed above. Irregular representation is constructed
 			//	for the subpair reference.
 			// XXX: As %ReduceAsSubobjectReference in NPLA1Internals.
-			auto p_sub(A1::AllocateSharedTerm(a, std::move(t)));
-#if true
+			auto p_sub(A1::AllocateSharedTerm(a, std::move(tcon),
+				// XXX: As %LiftTermRef to a temporary %ValueObject value if
+				//	%o.Value is not empty. The container is ignored in this
+				//	case, since it is assumed always living when %Value is
+				//	accessed (otherwise, the behavior is undefined in the object
+				//	language).
+				o.Value ? o.Value.MakeIndirect() : ValueObject()));
 			auto& sub(*p_sub);
-			auto& tcon(t.GetContainerRef());
 
 			// XXX: Reuse %tcon.
 			tcon.clear();
@@ -813,6 +816,15 @@ public:
 				in_place_type<TermReference>, tags, sub, Referenced));
 #else
 			// NOTE: Any optimized implemenations shall be equivalent to this.
+			TermNode t(a);
+			auto& tcon(t.GetContainerRef());
+
+			CreateForBindSubpairPrefix(tcon, o, first, tags);
+			if(o.Value)
+				LiftTermRef(t.Value, o.Value);
+
+			auto p_sub(A1::AllocateSharedTerm(a, std::move(t)));
+
 			ReduceAsSubobjectReference(t, std::move(p_sub), Referenced, tags);
 			init(std::move(tcon), std::move(t.Value));
 #endif
@@ -877,13 +889,15 @@ public:
 	}
 
 private:
-	//! \since build 954
+	// XXX: Keep this out-of-line is a bit more efficient.
+	//! \since build 962
 	static void
-	BindSubpairCopySuffix(TermNode& t, TermNode& o, TNIter& j)
+	BindSubpairCopySuffix(TermNode::Container& tcon, ValueObject& vo,
+		TermNode& o, TNIter j)
 	{
-		while(j != o.end())
-			t.emplace(*j++);
-		t.Value = ValueObject(o.Value);
+		for(; j != o.end(); ++j)
+			tcon.emplace_back(*j);
+		vo = ValueObject(o.Value);
 	}
 
 	void
@@ -955,25 +969,22 @@ private:
 				o, Referenced));
 	}
 
-	TermNode
-	CreateForBindSubpairPrefix(TermNode& o, TNIter first, TermTags tags) const
+	//! \since build 962
+	YB_ATTR(noinline) void
+	CreateForBindSubpairPrefix(TermNode::Container& tcon, TermNode& o,
+		TNIter first, TermTags tags) const
 	{
 		// NOTE: There is no %TermTags::Temprary in %tags due to the constrains
 		//	in the caller. This guarantees no element will have
 		//	%TermTags::Temporary.
 		YAssert(!bool(tags & TermTags::Temporary),
 			"Unexpected temporary tag found.");
-
-		const auto a(o.get_allocator());
-		TermNode t(a);
-
 		// NOTE: No tags are set in the result implies no %TermTags::Temporary
 		//	in the elements finally.
-		BindSubpairPrefix(t.GetContainerRef(), o, first, tags);
+		BindSubpairPrefix(tcon, o, first, tags);
 		if(!o.Value)
 			// XXX: As in %LiftPrefixToReturn.
 			YAssert(first == o.end(), "Invalid representation found.");
-		return t;
 	}
 
 	void
@@ -1545,7 +1556,7 @@ template<class _tTraits>
 //	(It is actually not better than combination with manually annotated
 //	'always_inline', at least with x86_64-pc-linux G++ 12.1.) The 'inline' is
 //	significant for the generated code quality when 'YB_FLATTEN' is missing with
-//	almost same compilation efficient as before, and 'YB_ATTR_always_inline' is
+//	almost same compilation efficiency as before, and 'YB_ATTR_always_inline' is
 //	worse. See %NPL_Impl_NPLA1_BindParameter_ExpandLevel for more details.
 #if NPL_Impl_NPLA1_BindParameter_ExpandLevel >= 2
 YB_FLATTEN
@@ -1565,14 +1576,11 @@ BindParameterImpl(BindingMap& m, const TermNode& t, TermNode& o,
 }
 //! \since build 917
 template<class _tTraits>
-#if NPL_Impl_NPLA1_BindParameter_ExpandLevel >= 2
-YB_FLATTEN
-#endif
 inline void
 BindParameterImpl(const shared_ptr<Environment>& p_env, const TermNode& t,
 	TermNode& o)
 {
-	// NOTE: See below.
+	// NOTE: See above.
 	BindParameterImpl<_tTraits>(NPL::Deref(p_env).GetMapCheckedRef(), t, o,
 		p_env);
 }
@@ -1954,7 +1962,7 @@ SetupTraceDepth(ContextState& cs, const string& name)
 	auto p_env(cs.ShareRecord());
 
 	// TODO: Support different place if the environment is frozen?
-	ystdex::try_emplace(p_env->GetMapUncheckedRef(), name, NoContainer,
+	ystdex::try_emplace(p_env->GetMapCheckedRef(), name, NoContainer,
 		in_place_type<size_t>);
 	// TODO: Blocked. Use C++14 lambda initializers to simplify the
 	//	implementation.

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r10448
+\version r10450
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-11-28 05:29 +0800
+	2022-12-01 06:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -741,6 +741,8 @@ inline PDefH(ReductionStatus, ReduceReturnUnspecified, TermNode& term) ynothrow
 /*!
 \brief 设置跟踪深度节点：调用规约时显示深度和上下文等信息。
 \note 主要用于调试。
+\pre 第一参数指定的上下文的当前环境未被冻结。
+\exception TypeError 环境被冻结。
 \sa ContextState::Guard
 \since build 842
 

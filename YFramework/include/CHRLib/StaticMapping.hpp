@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2017, 2019, 2021 FrankHB.
+	© 2009-2017, 2019, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file StaticMapping.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2652
+\version r2657
 \author FrankHB <frankhb1989@gmail.com>
 \since build 587
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2021-11-22 22:19 +0800
+	2022-11-28 19:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,8 +82,8 @@ FillByte(_tIn& i, _tState& st) ynoexcept(noexcept(byte(*i)) && noexcept(++i)
 {
 	if(CheckIterator(i))
 	{
-		static_assert(!std::is_volatile<ystdex::remove_reference_t<_tState>>(),
-			"Volatile state is not supported.");
+		static_assert(!std::is_volatile<ystdex::remove_reference_t<
+			_tState>>::value, "Volatile state is not supported.");
 		const auto r = byte(*i);
 
 		yunseq(++i, GetSequenceOf(st)[GetIndexOf(st)++] = r);
@@ -454,7 +454,7 @@ private:
 	}
 };
 
-//! \see 参考规范： RFC 2781 ，见 http://tools.ietf.org/html/rfc2781 。
+//! \see 参考规范：RFC 2781 ，见 http://tools.ietf.org/html/rfc2781 。
 template<>
 struct GUCSMapper<CharSet::UTF_16BE> : UCSMapperBase
 {
@@ -512,7 +512,7 @@ struct GUCSMapper<CharSet::UTF_16BE> : UCSMapperBase
 	}
 };
 
-//! \see 参考规范： RFC 2781 ，见 http://tools.ietf.org/html/rfc2781 。
+//! \see 参考规范：RFC 2781 ，见 http://tools.ietf.org/html/rfc2781 。
 template<>
 struct GUCSMapper<CharSet::UTF_16LE> : UCSMapperBase
 {

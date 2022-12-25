@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2018-2019 FrankHB.
+	© 2014-2016, 2018-2019, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file thunk.hpp
 \ingroup YStandardEx
 \brief 间接和惰性求值。
-\version r235
+\version r240
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:32:13 +0800
 \par 修改时间:
-	2019-11-04 18:01 +0800
+	2022-11-28 19:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,11 @@
 #ifndef YB_INC_ystdex_thunk_hpp_
 #define YB_INC_ystdex_thunk_hpp_ 1
 
-#include "functional.hpp" // for unwrap_reference_t, decay_t, std::forward,
+#include "ref.hpp" // for unwrap_reference_t, decay_t, std::forward,
 //	is_reference_wrapper, enable_if_t, exclude_self_t, is_same,
-//	remove_reference_t, std::move, function, enable_if_convertible_t,
-//	ystdex::invoke, invoke_result_t;
+//	remove_reference_t, std::move, enable_if_convertible_t, ystdex::invoke,
+//	invoke_result_t;
+#include "function.hpp" // for function;
 
 namespace ystdex
 {

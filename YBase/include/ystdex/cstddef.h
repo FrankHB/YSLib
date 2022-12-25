@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015, 2021 FrankHB.
+	© 2011-2015, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstddef.h
 \ingroup YStandardEx
 \brief ISO C 标准库类型定义扩展。
-\version r5522
+\version r5538
 \author FrankHB <frankhb1989@gmail.com>
 \since build 933
 \par 创建时间:
 	2021-12-12 21:17:52 +0800
 \par 修改时间:
-	2021-12-19 02:47 +0800
+	2022-11-28 19:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,25 +28,25 @@
 #ifndef YB_INC_ystdex_cstddef_h_
 #define YB_INC_ystdex_cstddef_h_ 1
 
-#include "../ydef.h" // for std::is_member_object_pointer;
+#include "../ydef.h"
 #include <cstddef> // for __cpp_lib_byte, std::byte, std::nullptr_t,
 //	std::size_t, std::ptrdiff_t, offsetof;
 #include <climits> // for CHAR_BIT;
-#include <type_traits> // for std::is_class, std::is_standard_layout;
+#include <type_traits> // for std::is_class, std::is_standard_layout,
+//	std::is_member_object_pointer;
 
 namespace ystdex
 {
 
 /*!
+\brief \c \<cstddef> 特性测试宏。
+\see ISO C++20 [version.syn] 。
 \see WG21 P0941R2 2.2 。
 \see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
-*/
-//@{
-/*!
-\brief \c \<cstddef> 特性测试宏。
-\since build 832
 \see https://blogs.msdn.microsoft.com/vcblog/2017/05/10/c17-features-in-vs-2017-3/ 。
+\see https://docs.microsoft.com/cpp/preprocessor/predefined-macros 。
 \see https://gcc.gnu.org/onlinedocs/libstdc++/manual/status.html#status.iso.2017 。
+\since build 832
 */
 //@{
 #ifndef __cpp_lib_byte
@@ -56,7 +56,6 @@ namespace ystdex
 #		define __cpp_lib_byte 201603L
 #	endif
 #endif
-//@}
 //@}
 
 /*!
@@ -219,9 +218,13 @@ struct offsetof_check
 \see https://docs.microsoft.com/cpp/cpp-conformance-improvements-2017?view=vs-2017 。
 \see https://reviews.llvm.org/rL46515 。
 \see https://bugs.llvm.org/show_bug.cgi?id=31178 。
+\see https://reviews.llvm.org/D66100 。
 */
 #if __has_builtin(__builtin_offsetof) || YB_IMPL_GNUCPP >= 40000 \
 	|| YB_IMPL_CLANGPP >= 20200
+	// XXX: The %__has_builtin condition does not work for old versions of
+	//	Clang due to LLVM PR31178. In this case, it is enabled by version
+	//	detection.
 #	define yoffsetof(_type, _member) \
 	(decltype(sizeof(ystdex::offsetof_check< \
 	std::is_member_object_pointer<decltype(&_type::_member)>::value, \

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016, 2021 FrankHB.
+	© 2015-2016, 2021-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file enum.hpp
 \ingroup YStandardEx
 \brief 枚举相关操作。
-\version r162
+\version r165
 \author FrankHB <frankhb1989@gmail.com>
 \since build 629
 \par 创建时间:
 	2015-09-02 10:28:23 +0800
 \par 修改时间:
-	2021-12-30 00:33 +0800
+	2022-11-28 19:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_enum_hpp_
 #define YB_INC_ystdex_enum_hpp_ 1
 
-#include "variadic.hpp" // for false_, underlying_type_t, _t, and_, or_,
-//	is_enum, common_type_t, vseq::find, empty_base, true_;
+#include "variadic.hpp" // for <utility>, false_, underlying_type_t, _t, and_,
+//	or_, is_enum, common_type_t, vseq::find, empty_base, true_;
 
 namespace ystdex
 {

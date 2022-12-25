@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2019, 2021 FrankHB.
+	© 2013-2016, 2018-2019, 2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file bitseg.hpp
 \ingroup YStandardEx
 \brief 位段数据结构和访问。
-\version r588
+\version r590
 \author FrankHB <frankhb1989@gmail.com>
 \since build 507
 \par 创建时间:
 	2014-06-12 21:42:50 +0800
 \par 修改时间:
-	2021-12-21 20:11 +0800
+	2022-12-22 21:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YB_INC_ystdex_bitseg_hpp_ 1
 
 #include "iterator_op.hpp" // for size_t, index_sequence, fseq::fold,
-//	fseq::plus, std::integral_constant, CHAR_BIT, byte, vseq::at_t,
+//	fseq::plus, size_t_, std::integral_constant, CHAR_BIT, byte, vseq::at_t,
 //	vseq::split_n_t, fseq::vfold, std::random_access_iterator_tag, ptrdiff_t,
 //	yconstraint, yassume;
 #include "cstdint.hpp" // for ystdex::make_width_int;

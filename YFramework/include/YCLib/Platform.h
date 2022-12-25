@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018-2021 FrankHB.
+	© 2009-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r860
+\version r864
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2021-12-21 21:09 +0800
+	2022-11-28 19:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -383,7 +383,9 @@
 
 #if YF_Hosted && YCL_API_POSIXFileSystem
 #	if _POSIX_C_SOURCE < 200809L
-// NOTE: This is required at least for 'at*' functions.
+// NOTE: This is required at least for 'at*' functions. Also for '::lstat', the
+//	resulted version should be valid for most fields which is guaranteed since
+//	POSIX.1-2008.
 #		error "POSIX.1-2008 is required for hosted implementations using POSIX \
 file systems."
 #	endif

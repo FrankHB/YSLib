@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r13039
+\version r13330
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-11-28 08:41 +0800
+	2022-12-25 17:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,146 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ $re_add(b954) DLDI "header inclusion %Functional"
+		@ ((%Thunk -> %(Ref, Function), %CStandardIO -> %(Compose, Functor),
+		%NodeBase -> %ExpandedFunction) @ %YBase.YStandardEx
+		(%Adaptor.YNew -> %(Bind, AddressOf), %UI.YUIContainer -> %Bind)
+		@ %YFramework.YSLib, %YReader.ShlReader -> %Bind),
+	/ $re_add(b934) DD "adjusted minor texts" @ "Doxygen comments"
+		@ %(YBase.YStandardEx.(Cast, CStandardDefinition, CStandardInteger),
+		YFramework.CHRLib.StaticMapping),
+	/ $re_add(b939) DLDI "adjusted minor comments" @ %(YBase.YStandardEx.(
+		BitSegment, CStandardDefinition, CStandardIO, CStandardInteger,
+		DereferenceOperation, Enum, Hash, Map, Memory, Thunk), YFramework.(
+		YCLib.Platform, YSLib.(Core.(YDevice, YObject), Service.ImageProcessing,
+		UI.(YUIContainer, YWidgetEvent))), YReader.Main),
+	/ DLDI "adjusted minor indents"
+		@ %(YFramework.('YCLib(DS).DSIO', CHRLib.StaticMapping), YReader.Main),
+	* "indent" @ ("function template %clamp#2" @ %YBase.YStandardEx.Algorithm
+		$since b835, %YFramework.NPL.Lexical $since b862),
+	/ %YBase $=
+	(
+		+ "macros %(_SILENCE_CXX23_ALIGNED_STORAGE_DEPRECATION_WARNING, \
+			_SILENCE_CXX23_ALIGNED_UNION_DEPRECATION_WARNING) if not defined"
+			@ 'YB_IMPL_MSCPP >= 1933' @ %YDefinition,
+		/ DLDI %YStandardEx $=
+		(
+			- "outdated TODO comments" @ %Bit,
+			/ %Tree ^ 'auto',
+			/ %Invoke $=
+			(
+				/ $re_ex(b938)
+					"supported GCC 9.3 branch for using C++17 mode %std names",
+				* "missing decaying before comparing the result types"
+					@ "type traits %(is_invocable_r, is_nothrow_invocable_r)"
+					$since b850 $dep_to "missing result decaying",
+				(
+				/ @ "type trait %is_nothrow_invocable_r" $=
+				(
+					/ "simplified" ^ "%is_invocable_r"
+						~ "%is_implicitly_nothrow_constructible";
+						// To be more consistent with %is_nothrow_invocable.
+					* $comp "possible wrong results" $since b832
+						$dep_from "missing result decaying"
+						// See the update of GCC PR 91456.	
+				);
+				/ $re_add(b938) "worked around libstdc++ bugs for C++17 mode \
+					or above" @ "%is_nothrow_invocable_r"
+					// Ditto.
+				)
+			),
+			/ "function templates %try_emplace with hint"
+				@ "class template %map" @ %Map ^ "conditional inclusion"
+		)
+	),
+	/ ($re_ex(b934) "updated copyright year", "version") @ "label text"
+		@ "constructor %AboutPanel" @ %YReader.About,
+	/ %YFramework $=
+	(
+		- DLDI $re_add(b954) "'YSLib::' prefix"
+			@ "calls to %YSLib::make_observer"
+			$effective @ %YSLib.UI.(TextBox, YUIContainer),
+			// As %NPL changes in b947.
+		/ DLDI @ "platform %DS" @ %'YCLib(DS)'.DSIO $=
+		(
+			/ ^ ("%ystdex::nonvoid_result_t" @ %YBase.YStandardEx.Invoke)
+				~ "%ystdex::common_nonvoid_t"
+				// As %ystdex::invoke_for_value. This is not a bug in spite of \
+					%ystdex::common_type_t because the functions used here do \
+					not return references.
+			/ "simplified header inclusions",
+		),
+		* DLDI "spelling error" @ "comments" @ %(YCLib.Host $since b921,
+			%YSLib.Service.File $since b862),
+		/ %YSLib $=
+		(
+			+ DLDI "header inclusions %YBase.YStandardEx.(Invoke, \
+				DereferenceOperation)" @ %Core.YObject,
+			+ $dev $lib 'YB_ATTR_nodiscard YB_PURE' @ ("member functions \
+				%TextFileBuffer::(begin, end)" @ %Service.TextManager,
+				"member function %Controller::GetEventRef" @ %UI.YControl),
+			+ DD "'\exception' command" @ "constructor \
+				%SharedInputMappedFileStream" @ %Service.File
+		),
+		+ $dev $lib 'YB_PURE' @ "all functions %(MakePathString, \
+			MakePathStringU)" @ %YCLib.FileIO,
+			// Also to eliminate G++ 12.1 warning: [-Wsuggest-attribute=pure].
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				/ $revert_ex(b961) "checked at 1st modification" @ "function \
+					%SetupTraceDepth" ^ "%Environment::GetMapCheckedRef"
+					~ "%Environment::GetMapUncheckedRef",
+				/ DLI @ "functions %(BindParameter, BindParameterWellFormed)" $=
+				(
+					- $revert(b961) 'YB_FLATTEN' @ "internal calls"
+						@ 'NPL_Impl_NPLA1_BindParameter_ExpandLevel >= 2'
+						@ "overloads#2"
+						// This would improve both the generated code quality \
+							and compilation time with G++.
+					+ 'YB_ATTR_nodiscard YB_ATTR(noinline)'
+						@ "subpair prefix binding",
+						// This would be better in code quality at the cost of \
+							a bit inefficient compilation.
+					/ "suffix copy" @ "trailing binding" $=
+					(
+						/ "split term components to be written",
+						* "incorrect source object checked during suffix copy \
+							without sigil or with sigil '%' incorrectly"
+							$since b954
+							// This should check the referent if the operand \
+								is a reference value. The result would still \
+								be correct in all cases due to the object \
+								representation assumption that %Value is not \
+								empty for any reference values, so no suffix \
+								would be missing to copy. This fix has little \
+								effect on performance (if any, it should be \
+								better because less objects need to be copied).
+					)
+				),
+				+ DLDI 'ynothrow' @ "separator pass constructor"
+					@ "constructors %GlobalState"
+			),
+			/ %Lexical $=
+			(
+				* DLDI "indent" $since b891,
+				+ $dev $lib "header inclusions %YBase.YStandardEx.(Ref, Swap)",
+				+ 'using YSLib::default_allocator',
+				+ 'ynothrow' @ "constructor#2 %SourceLocation"
+			),
+			/ DLDI "%pmr::polymorphic_allocator" -> $dep_from
+				("%default_allocator" @ %Lexical) $effective @ %Lexical,
+			+ DLDI 'const' @ "type argument" @ "calls to %ResolveRegular to \
+				retrive 'const' references" $effective
+				@ "functions %Forms::(Provide, ProvideLet)" @ %NPLA1Forms,
+			/ DLI "optimized guard calls" @ "vau handlers" @ %NPLA1Forms
+		)
+	)
+),
+
+b961
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -65,10 +205,10 @@ $now
 	),
 	* DD "outdated %Environment::DefaultResolve" @ %Documentation.NPL
 		$since 884,
-	/ $forced DLDI $effective %(YBase.YStandardEx.(Cache, MemoryResource),
+	/ DLDI $effective %(YBase.YStandardEx.(Cache, MemoryResource),
 		YFramework.('YCLib_(Win32)'.MinGW32, YSLib.Core.YApplication,
 		NPL.(NPLA1, NPLA1Forms, NPLA1Internals), Helper.HostRenderer))
-		$dep_from "%make_unique_guard" @ %ScopeGuard,
+		$dep_from $forced "%make_unique_guard" @ %ScopeGuard,
 	/ %YFramework $=
 	(
 		* DLDI "missing header inclusinon %YBase.YStandardEx.Allocator"
@@ -453,7 +593,7 @@ b960
 		),
 		/ %NPL $=
 		(
-			/ $dev $lib "inclusion %YBase.YStandardEx.TypeOperations"
+			/ $dev $lib "header inclusion %YBase.YStandardEx.TypeOperations"
 				@ %NPLA1 >> %NPLA $dep_to "NPLA1 header lifting",
 			(
 			+ ("class template %GLContinuation"; "function template \
@@ -630,10 +770,10 @@ b960
 			freezing") @ "function %LoadGroundContext" @ %Dependency) @ %NPL,
 			"constructor %Environment" @ %Helper.Environment)
 	),
-	/ $forced DLDI (("function templates %(LoadModule, LoadModuleChecked)"
+	/ DLDI (("function templates %(LoadModule, LoadModuleChecked)"
 		@ %NPLA1, "functions %(LoadGroundContext, LoadModule_SHBuild)"
 		@ %Dependency) @ %YFramework.NPL, "function %RunNPLFromStream"
-		@ %Tools.SHBuild.Main) $dep_from "static Define"
+		@ %Tools.SHBuild.Main) $dep_from $forced "static Define"
 ),
 
 b959
@@ -662,7 +802,7 @@ b959
 		+ 'ynothrow' @ "function %IsTyped" @ %YSLib.YObject,
 		/ %NPL $=
 		(
-			- DLDI "inclusion %YBase.YStandard.Function" @ %(NPLA, NPLA1),
+			- DLDI "header inclusion %YBase.YStandard.Function" @ %(NPLA, NPLA1),
 				// %YBase.YStandard.Function is implied by the inclusion \
 					%YSLib.Core.Func in %Lexical.
 			/ %SContext $=
@@ -757,7 +897,7 @@ b959
 					/ "allowed moving of the term value"
 				)
 			),
-			- DLDI "inclusion %YBase.YStandard.Container" @ %(NPLA1Forms,
+			- DLDI "header inclusion %YBase.YStandard.Container" @ %(NPLA1Forms,
 				Dependency) $dep_any_from
 				("header inclusion %YBase.YStandardEx.Container" @ %NPLA,
 				"header inclusion %YBase.YStandardEx.String" @ %NPLA1),
@@ -775,7 +915,7 @@ b959
 						^ "%Environment::GetAnchorPtr" $effective
 						@ "functions %(AccL, AccR, FoldR1, Map1)"
 				),
-				- "inclusion %YBase.YStandard.Function",
+				- "header inclusion %YBase.YStandard.Function",
 				+ DLI "macro %NPL_Impl_NPLA1Forms_VauHandler_OptimizeLevel",
 				/ DLI @ "vau handler" $=
 				(
@@ -822,7 +962,7 @@ b959
 			),
 			/ %Dependency $=
 			(
-				- DLDI "inclusion %YBase.YStandard.String" @ %Dependency
+				- DLDI "header inclusion %YBase.YStandard.String" @ %Dependency
 					$dep_from "header inclusion %YBase.YStandardEx.String"
 					@ %NPLA1,
 				* $comp "missing support of empty symbol ('') as the dynamic \
@@ -904,8 +1044,8 @@ b958
 				comparison objects not default-constructible" $since b864
 				$= (/ $revert(b864) $impl
 					^ "%is_nothrow_default_constructible" ~ "%ynoexcept"),
-				// This is not the same to %List and libstdc++ has no such \
-					bug.
+				// This is not the same to %List and libstdc++ which have no \
+					such bug.
 			* "missing noexcept-specification for move constructor"
 				@ "internal representation on move" $since b830
 				$= (/ $impl ^ "%is_nothrow_move_constructible"),
@@ -993,61 +1133,48 @@ b958
 					reording the move of the reducer",
 				+ 'YB_ATTR(hot)' @ "member function %ContextNode::ApplyTail"
 			),
-			/ %NPLA1Internals $=
+			/ @ "class %TCOAction" @ %NPLA1Internals $=
 			(
-				/ @ "class %TCOAction" $=
+				/ @ "function %CompressFrameList" $=
 				(
-					/ @ "function %CompressFrameList" $=
-					(
-						// See $2022-10 @ %Documentation::Workflow.
-						/ $impl !^ "%remove_if";
-						* $comp $dev $impl "insufficient guarantee of the \
-							order of removal of the frames" $since b941
-					),
-					- DLI "redundant 'private:'",
-					/ "function %CompressForGuard" $=
-					(
-						/ DLI "lifted local variable initialization to the \
-							beginning",
-						+ $dev $lib "assertion to ensure the guard context is \
-							same in the context in the action",
-						- "1st parameter" $dep_to "simplified guard compression"
-					),
-					* "wrong order of combiner and environment pointer \
-						components" @ "%(RecordFrameIndex, FrameRecord)"
-						$orig (@ %NPLA1 $since b842),
-						// The environment is not the fresh one in the call to \
-							the combiner, but the one for evaluating the call, \
-							so it should live longer. This change is normally \
-							invisible (except for interoperations which \
-							inserts visible effects between the destructor \
-							calls), though.
-					(
-					+ "function %GetContextRef";
-					/ DLDI "simplified functions %(MakeOneShotChecker, \
-						operator())",
-					),
-					(
-					+ "function %AssertAttached";
-					/ DLDI "simplified function %PopTopFrame",
-					+ DD "'\post' command" @ "Doxygen comment"
-						@ "function %AddOperator"
-					),
-					/ DLI "initializing frame record list" @ "copy constructor"
-						^ "allocator from the source frame record list"
-						// This is more consistent to other implementations \
-							and a bit more efficient than other \
-							implementations. It also allows further stashing \
-							of the list elements by splicing with other lists \
-							(albeit not necessary more efficient).
+					// See $2022-10 @ %Documentation::Workflow.
+					/ $impl !^ "%remove_if";
+					* $comp $dev $impl "insufficient guarantee of the order of \
+						removal of the frames" $since b941
 				),
-				/ $forced "function %PrepareTCOEvaluation"
-					$dep_from "simplified guard compression"
-					$= (- "1st parameter");
-				/ $forced $dev $impl "required specific contexts"
-					@ 'NPL_Impl_NPLA1_Enable_TCO' @ "static member \
-					function templates %TailCall::(RelayNextGuarded, \
-					RelayNextGuardedLifted, RelayNextGuardedProbe)"
+				- DLI "redundant 'private:'",
+				/ "function %CompressForGuard" $=
+				(
+					/ DLI
+						"lifted local variable initialization to the beginning",
+					+ $dev $lib "assertion to ensure the guard context is same \
+						in the context in the action"
+				),
+				* "wrong order of combiner and environment pointer components"
+					@ "%(RecordFrameIndex, FrameRecord)"
+					$orig (@ %NPLA1 $since b842),
+					// The environment is not the fresh one in the call to the \
+						combiner, but the one for evaluating the call, so it \
+						should live longer. This change is normally invisible \
+						(except for interoperations which inserts visible \
+						effects between the destructor calls), though.
+				(
+				+ "function %GetContextRef";
+				/ DLDI "simplified functions %(MakeOneShotChecker, operator())",
+				),
+				(
+				+ "function %AssertAttached";
+				/ DLDI "simplified function %PopTopFrame",
+				+ DD "'\post' command" @ "Doxygen comment"
+					@ "function %AddOperator"
+				),
+				/ DLI "initializing frame record list" @ "copy constructor"
+					^ "allocator from the source frame record list"
+					// This is more consistent to other implementations and a \
+						bit more efficient than other implementations. It also \
+						allows further stashing of the list elements by \
+						splicing with other lists (albeit not necessarily more \
+						efficient).
 			),
 			/ %NPLA1 $=
 			(
@@ -1092,8 +1219,8 @@ b958
 					)
 					)
 				),
-				/ $forced DLDI "underlying type" @ "enum %WrappingKind"
-					$dep_from "%FormContextHandler::Wrapping"
+				/ DLDI "underlying type" @ "enum %WrappingKind"
+					$dep_from $forced "%FormContextHandler::Wrapping"
 					^ $dep_from "%FormContextHandler::GetWrappingCount",
 				/ DLI "function template %RegisterFormHandler#2"
 					!^ "%A1::RegisterFormHandler",
@@ -1151,7 +1278,7 @@ b957
 	(
 		/ %YSLib $=
 		(
-			+ "allocator support"  @ "class %Path" @ %Service.FileSystem $=
+			+ "allocator support" @ "class %Path" @ %Service.FileSystem $=
 			(
 				+ "alias %allocator_type";
 				(
@@ -1201,16 +1328,16 @@ b957
 						$dep_to "removal of TCOAction operator name";
 					/ $forced DLI "simplified constructor"
 					),
-					+ DLI 'YB_ATTR(hot)'
+					+ DLI 'YB_ATTR(cold)'
 						@ "functions %(MakeOneShotChecker, SaveTailSourceName)",
 					/ @ "function %CompressForGuard" $=
 					(
-						+ DLI 'YB_ATTR(cold)',
+						+ DLI 'YB_ATTR(hot)',
 						/ "delayed the call to %CompressForContext"
 							// This preserves more operator names.
 					)
 				),
-				/ "dropped guard with empty enviroment pointer support"
+				/ "dropped guard with empty environment pointer support"
 					@ ("member functions %(Combine::RelayEnvSwitch#1, \
 					(TailCall::NonTailCall)::(RelayNextGuarded, \
 					RelayNextGuardedLifted, RelayNextGuardedProbe))";
@@ -1345,7 +1472,7 @@ b956
 					// Only in a few cases it would be more efficient.
 				/ DLDI ^ 'ynothrow' @ "applicative 'remove-file'"
 					@ "function %LoadModule_std_system",
-				- DLDI "inclusion <istream>" @ "header"
+				- DLDI "header inclusion <istream>" @ "header"
 					$dep_from "NPLA1 inclusion of <istream>"
 			),
 			/ %Configuration $=
@@ -1406,7 +1533,7 @@ b956
 			(
 				* DD "wrong precondition" @ "Doxygen comment"
 					@ "function %FetchRoot" $since b550
-					$= (/ "'\pre' command" -> "'exception' command"),
+					$= (/ "'\pre' command" -> "'\exception' command"),
 				/ @ "function %FetchMIMEBiMapping" $=
 				(
 					/ "simplified"
@@ -1419,8 +1546,8 @@ b956
 			)
 		)
 	),
-	/ $forced DLDI "function %FetchWidgetLoader" @ %YReader.Shells
-		$dep_from ("constructor %WidgetLoader" @ %YFramework.UI.Loader)
+	/ DLDI "function %FetchWidgetLoader" @ %YReader.Shells
+		$dep_from $forced ("constructor %WidgetLoader" @ %YFramework.UI.Loader)
 		^ $dep_from ("%NodeLoader" @ %YFramework.NPL.Configuration)
 		// This is a breaking change as %NPL::A1::NoadLoader. See also \
 			%Documentation.Test.
@@ -1676,7 +1803,7 @@ b954
 		(
 			/ %YObject $=
 			(
-				- DLDI $re_add(b954) "'YSLib::' prefix"
+				- DLDI $re_ex(b949) "'YSLib::' prefix"
 					@ "calls to %YSLib::make_observer",
 					// As %NPL changes in b947.
 				* "ill-formed type access" @ "function %Equals"
@@ -2959,7 +3086,7 @@ b949
 	),
 	/ %Tools.SHBuild.Main $=
 	(
-		- DLDI "'NPL::' prefix" @ "calls to %NPL::make_observer",
+		- DLDI "'NPL::' before calls to %NPL::make_observer",
 			// As %NPL changes in b947, but with a different reason: the name \
 				is introduced by a using directive.
 		+ "message after linking finished"
@@ -3336,7 +3463,7 @@ b947
 				)
 			)
 		),
-		- DLDI "all 'NPL::' prefix" @ "calls to function templates with \
+		- DLDI "all 'NPL::' before calls to function templates with \
 			prefix 'Access' or 'TryAccess', or name %make_observer"
 			$effective @ %(NPLA, NPLAMath, NPLA1, NPLA1Forms, NPLA1Internals,
 			Dependency, SXML)
@@ -3415,9 +3542,10 @@ b946
 	(
 		- DLDI "header inclusion %CAssert" @ %IteratorOperation,
 			// This is already included in %DereferenceOperation.
-		- DLDI "inclusion <algorithm>" @ %(Tree, List),
+		- DLDI "header inclusion <algorithm>" @ %(Tree, List),
 			// This is now already included by %Range from %Allocator.
-		/ "inclusions (<algorithm>, <memory>, <iterator>)" @ %Array -> %Range
+		/ "header inclusions (<algorithm>, <memory>, <iterator>)" @ %Array
+			-> %Range
 			// Ditto.
 	)
 ),
@@ -3866,7 +3994,7 @@ b942
 				+ "exception specification"
 			),
 			/ "all 2 function templates %range_size" >> %Range,
-			/ DLDI "inclusion %Function" -> "%Apply"
+			/ DLDI "header inclusion %Function" -> "%Apply"
 				$dep_from ("%seq_apply" @ %Function),
 			+ "functor %prefix_eraser",
 			+ "support of default key template argument"
@@ -3905,7 +4033,7 @@ b942
 					/ "prevented copy of data member %flush" ^ "%std::ref"
 				),
 				/ DLDI "removed internal checks" @ "%recent_used_list::shrink"
-					$forced $dep_from "optional flush for internal check",
+					$dep_from $forced "optional flush for internal check",
 				/ @ "function template %emplace with parameter of \
 					'const key_type&'" $=
 				(
@@ -4086,7 +4214,7 @@ b942
 				(
 					/ "simplified"
 						$dep_from "%LoadModuleChecked" !^ "%std::(bind, ref)",
-					/ $forced $dep_from ("requiring ground for std.io",
+					/ $dep_from $forced ("requiring ground for std.io",
 						"requiring ground for std.modules")
 				)
 			),
@@ -4293,7 +4421,8 @@ b941
 			/ %NPLA1Internals $=
 			(
 				+ $design "%YBase.YStandardEx inclusions for %ystdex names",
-				+ $design "inclusion for %std::next",
+				+ $design "header inclusion <iterator>",
+					// For %std::next.
 				/ "simplified constructor %TCOAction",
 				(
 				/ DLI "simplified member function %TCOAction::CompressFrameList" $=
@@ -4397,7 +4526,7 @@ b940
 				including %Tuple, but this is changed in b833.
 		(
 		+ DLDI "header inclusion %IntegerSequence" @ %(Iterator, Utilities);
-		/ "inclusion %IntegerSequence" @ %TypeOperation -> %Variadic
+		/ "header inclusion %IntegerSequence" @ %TypeOperation -> %Variadic
 		),
 		/ DLI "lifted internal allocator guard types to the classes and \
 			used it at several other member functions requiring lvalues"
@@ -4427,7 +4556,7 @@ b940
 				 // They should be same to implicily declared ones, hence \
 					redundant.
 			(
-			/ "inclusion %Placement" -> "%ComporessedPair",
+			/ "header inclusion %Placement" -> "%ComporessedPair",
 			/ DLDI "function %get_allocator"
 				@ "class templates %(allocator_guard_delete, allocator_delete)"
 				!^ "using-declaration",
@@ -4487,7 +4616,7 @@ b940
 			- "header inclusion %Variadic",
 			(
 			- "header inclusions %(Functor, DereferenceOperation)",
-			+ DLDI "header inclusion %(Bind, Compose)"
+			+ DLDI "header inclusions %(Bind, Compose)"
 				$dep_to "reducing header dependencies"
 			)
 		),
@@ -4654,7 +4783,7 @@ b939
 	(
 		/ %CompressedPair $=
 		(
-			/ DLDI 'typename' @ "template parameter list"
+			/ DLDI "type-parameter-key" @ "template parameter list"
 				@ "class template specialization %compressed_pair_element"
 				-> 'class' ~ 'typename',
 			/ $lib "worked around EBO not enabled for Microsoft VC++ in \
@@ -4718,25 +4847,25 @@ b939
 			(
 			+ %Bind,
 			+ %Compose
-				$= (+ "inclusion %Functor"),
+				$= (+ "header inclusion %Functor"),
 			+ %FunctionAdaptor
-				$= (+ "inclusion %(Bind, Compose)");
-			+ "inclusion %FunctionAdaptor" @ %Functional;
+				$= (+ "header inclusions %(Bind, Compose)");
+			+ "header inclusion %FunctionAdaptor" @ %Functional;
 			/ "%(bind1, bind_forward)" @ %Functional >> %Bind,
 			/ "%(composed, compose, composed_n, compose_n, \
 				generalized_composed, generalized_compose, get_equal_to, \
 				get_less)" @ %Functional >> %Compose,
 			/ "%(update_thunk, one_shot)" @ %Functional >> FunctionAdaptor;
-			- DLDI "inclusion %Functor"
+			- DLDI "header inclusion %Functor"
 			),
 			(
 			+ %ExpandedFunction
-				$= (+ "inclusion %Function");
-			+ "inclusion %ExpandedFunction" @ %Functional;
+				$= (+ "header inclusion %Function");
+			+ "header inclusion %ExpandedFunction" @ %Functional;
 			/ "%(expand_proxy, expanded_caller, make_expanded, \
 				is_expandable, expanded_function, retry_on_cond)"
 				@ %Functional >> %ExpandedFunction;
-			- DLDI "inclusion %Function"
+			- DLDI "header inclusion %Function"
 			)
 		),
 		/ %Functional $=
@@ -5046,7 +5175,7 @@ b938
 		),
 		/ %TypeInspection $=
 		(
-			/ "inclusion %CStandardDefinition" -> "%IntegralConstant"
+			/ "header inclusion %CStandardDefinition" -> "%IntegralConstant"
 				$dep_to "collapsed type inspection header inclusion",
 			+ "conditionally defined macro %__cpp_lib_is_final";
 			+ "unary type trait %is_final" @ "inline namespace %cpp2014"
@@ -5098,8 +5227,8 @@ b938
 		/ %Invoke $=
 		(
 			/ "worked around libstdc++ bugs for C++17 mode or above on \
-				invocable traits only" @  $=
-				// XXX: See GCC PR 91456.
+				invocable traits only" @ $=
+				// See GCC PR 91456.
 				(/ $impl !^ "%std names" @ !'__cplusplus < 201703L \
 					|| !defined(__GLIBCXX__) || __GLIBCXX__ > 20191024'),
 			- DLDI $revert(b845) "redundant header inclusion %Variadic"
@@ -5384,7 +5513,7 @@ b937
 		/ DLDI @ %YCLib.XCB $=
 		(
 			(
-			+ "inclusion %YBase.YStandardEx.Base";
+			+ "header inclusion %YBase.YStandardEx.Base";
 			/ ^ "%platform::(noncopyable, nonmovable)"
 				~ "%YSLib::(noncopyable, nonmovable)" @ %YCLib.XCB,
 				// Ditto.
@@ -5459,17 +5588,17 @@ b936
 			(
 			/ DLDI "simplified constructor template" @ "class %enum_union"
 				^ "%empty_base" ~ "%std::tuple";
-			/ DLDI "inclusion %Tuple" -> "%Variadic"
+			/ DLDI "header inclusion %Tuple" -> "%Variadic"
 			),
 			+ "function template %to_underlying"
 		),
 		/ %Utilities $=
 		(
 			(
-			+ "inclusion %Enum";
+			+ "header inclusion %Enum";
 			/ $lib "function template %underlying" >> %Enum
 			),
-			+ "inclusion %IntegerSequence"
+			+ "header inclusion %IntegerSequence"
 		),
 		/ %Range $=
 		(
@@ -5572,7 +5701,7 @@ b936
 			(
 				* "invalid 'ynothrowv' around unsupported literals check"
 					@ "functions %(ParseLeaf, ParseLeafWithSourceInformation)"
-					$since b936,
+					$since b933,
 					// This would terminate with ISO C++, but undefined with \
 						'-fno-enforce-eh-specs'.
 				/ DLDI "simplified"
@@ -5602,19 +5731,21 @@ b936
 			)
 		)
 	),
-	/ DLDI %Tools $=
+	/ %Tools $=
 	(
 		/ %Scripts $=
 		(
-			/ ("simplified 'for-each-ltr' arguments", "loading")
+			/ DLDI ("simplified 'for-each-ltr' arguments", "loading")
 				@ "%SHBuild-YSLib-build.txt",
-			/ "simplified minor newlines"
+			/ DLDI "simplified minor newlines"
 				@ "%(SHBuild-YSLib-common.txt, SHBuild-BuildApp.txt)",
-			/ $forced ('$and?', '$or?') -> ('$and', '$or')
-				$dep_from %YFramework.NPL.Dependency
+			/ DLDI ('$and?', '$or?') -> ('$and', '$or')
+				$dep_from $forced %YFramework.NPL.Dependency,
+			/ $re_add(b930) $build "updated %LIBS for %YFramework.NPL.Exception"
+				$dep_from $forced %YFramework.NPL.Exception
 		),
-		/ $forced "header inclusion" @ %(SXML2XML, ProjectGenerator).Main
-			$dep_from ("namespace %SXML" @ %YFramework.NPL.NPLA)
+		/ DLDI "header inclusion" @ %(SXML2XML, ProjectGenerator).Main
+			$dep_from $forced ("namespace %SXML" @ %YFramework.NPL.NPLA)
 	)
 ),
 
@@ -5822,9 +5953,9 @@ b934
 	/ DLDI "changed the format of copyright notice" $effective
 		@ %(YFramework.(YCLib.Input, Helper.ScreenBuffer,
 		'Helper_(DS)'.DSScreen), Tools.PredefinedMacroDetector.Main),
-		//  This includes fixes on the initial copyright format (see \
-				'$long_term_code_evolution' in %Documentation.Meta) and years \
-				(to make it more precisely fit to the contents).
+		// This includes fixes on the initial copyright format (see \
+			'$long_term_code_evolution' in %Documentation.Meta) and years (to \
+			make it more precisely fit to the contents).
 	/ DLDI "updated outdated URLs" @ "comments"
 		@ %(YBase.YStandardEx.CWideCharacterType,
 		YFramework.YSLib.Service.YGDI),
@@ -5836,7 +5967,8 @@ b934
 	/ DD "adjusted minor texts" @ "Doxygen comments" @ %(YBase.YStandardEx.(
 		Cast, Invoke, Map, NodeBase, Ref), YFramework.YSLib.(Core.YConsole,
 		Service.(YBrush, YTimer), UI.ComboList)),
-	/ DLDI "adjust declaration orders" @ %YBase.YStandardEx.(Ref, TStringView),
+	/ DLDI "adjusted declaration orders"
+		@ %YBase.YStandardEx.(Ref, TStringView),
 	/ DLDI "adjusted newlines for code" @ %(YBase.(LibDefect.String,
 		YStandardEx.Mixin), YFramework.(YSLib.UI.Animation,
 		'Helper_(Android)'.AndroidHost, 'Helper_(DS)'.Shell_DS),
@@ -6012,7 +6144,7 @@ b933
 		/ %YStandardEx
 		(
 			+ $dev $lib "public inclusion %Hash" @ %Functional,
-			+ "inclusion %CWideCharacterType" @ %CString,
+			+ "header inclusion %CWideCharacterType" @ %CString,
 			(
 			/ ("function templates %(towlower, towupper)";
 				"header inclusion <cwctype>") @ %CCharacterType
@@ -6023,21 +6155,22 @@ b933
 			),
 			(
 			+ %CStandardDefinition;
-			/ "inclusion %YDefinition"
+			/ "header inclusion %YDefinition"
 				@ %(TypeInspection, IntegralConstant) -> %CStandardDefinition
 				$dep_to ("ystdex::nullptr_t transition",
 				"ystdex::ptrdiff_t transition", "ystdex::size_t transition",
 				"ystdex::byte transition")
 			),
-			+ DLDI "inclusion <cstdint>" @ %(CAssertion, CStandardInteger),
+			+ DLDI "header inclusion <cstdint>"
+				@ %(CAssertion, CStandardInteger),
 			/ DLB "updated %__cplusplus detection except for experimental \
 				headers" @ %MemoryResource
 				(/ $impl '__cplusplus > 201703L' -> '__cplusplus >= 202002L')
 		),
 		/ %YDefinition $=
 		(
-			/ ("alias %wint_t"; "inclusion <cwchar>") >> %CWideCharacterType
-				$dep_from (%CCharacterType,
+			/ ("alias %wint_t"; "header inclusion <cwchar>")
+				>> %CWideCharacterType $dep_from (%CCharacterType,
 				"removal of ystdex::wint_t in the platform header"),
 			* DD "wrong group name" @ "command '\ingroup'"
 				@ "Doxygen comment" @ "pseudo keyword %yunused" $since b435,
@@ -6062,7 +6195,7 @@ b933
 			/ ("class template %empty_base", "struct raw_tag",
 				"header inclusion <cstddef>")
 				>> $dep_from %YStandardEx.CStandardDefinition,
-			/ "inclusion <cassert>"
+			/ "header inclusion <cassert>"
 				>> ("implementation" @ %YFramework.YCLib.Debug),
 			/ DLI "all default substitution '1' of macros" -> 'true'
 				$effective @ "macros %(YB_Use_YAssert, YB_Use_StrictNoThrow, \
@@ -6079,7 +6212,7 @@ b933
 		/ "functions %((is_power_of_2; is_power_of_2_positive), ceiling_lb, \
 			floor_lb)" -> "function templates with 'YB_ATTR_always_inline'"
 			@ %Bits;
-		- DLDI "inclusion %CStandardInteger" @ %MemoryResource,
+		- DLDI "header inclusion %CStandardInteger" @ %MemoryResource,
 		/ ("header inclusion %CStandardInteger" -> "%IteratorOperation")
 			@ %Placement,
 		+ $dev $lib 'YB_ATTR_always_inline'
@@ -6116,11 +6249,11 @@ b933
 			/ %Platform $=
 			(
 				/ $re_add(b932) DLB "condition of defining macro %YF_API"
-					@ 'YF_BUILD_DLL' @  ^ '(__has_attribute(__visibility__) \
+					@ 'YF_BUILD_DLL' @ ^ '(__has_attribute(__visibility__) \
 					|| YB_IMPL_GNUCPP >= 40000 || YB_IMPL_CLANGPP >= 20800)'
 					~ 'YB_IMPL_GNUCPP >= 40000',
 					// Similar to %YB_API.
-				/ "inclusion %YBase.YDefinition"
+				/ "header inclusion %YBase.YDefinition"
 					-> $dep_from %YBase.YStandardEx.CStandardDefinition
 					$dep_to "standard type header transition"
 			),
@@ -6724,9 +6857,9 @@ b930
 			)
 		)
 	),
-	/ $re_add(b882) $forced "updated %LIBS for %YFramework.NPL.NPLAMath"
-		$dep_from $dep_from (("function %DefaultEvaluateLeaf" @ %NPLA1,
-		%Dependency) @ %YFramework.NPL) $dep_from %YFramework.NPL.NPLAMath
+	/ $re_add(b882) $build "updated %LIBS for %YFramework.NPL.NPLAMath"
+		$dep_from $forced %YFramework.NPL.NPLAMath $dep_from (("function \
+		%DefaultEvaluateLeaf" @ %NPLA1, %Dependency) @ %YFramework.NPL)
 ),
 
 b929
@@ -6948,7 +7081,7 @@ b928
 					^ "allocator specified on construction"
 					$dep_from "%constructor %CommandArguments",
 				* $dev $lib "wrong pragmas" @ 'YB_IMPL_CLANGPP' $since b689
-					$= (/ $impl 'pragma GCC'  -> 'pragma clang')
+					$= (/ $impl 'pragma GCC' -> 'pragma clang')
 					// Although not complained, "-Wweak-vtables" should be \
 						indeed Clang++ specific.
 			),
@@ -9222,8 +9355,8 @@ b916
 			/ DLDI "function %RelayCurrentNext" ^ "%A1::RelayCurrentOrDirect"
 				~ "%RelayNextOrDirect";
 			- $revert(b879) "function templates %ReduceNextOrDirect";
-			* "missing 'NPL::' before 'ReduceSwitched'"
-				$effective @ "function template %RelayCurrentNext",
+			* "missing qualified 'NPL::' before 'RelaySwitched'"
+				$effective @ "function template %RelayCurrentNext" $since b878,
 			(
 			/ "enabled functions %RelayCurrent"
 				@ 'NPL_Impl_NPLA1_Enable_InlineDirect';
@@ -9444,7 +9577,7 @@ b915
 			(
 				/ "avoided redundant copy of the parent environment object for \
 					combiner prvalues",
-				/ "removed redundant enviroment saving for combiner prvalues"
+				/ "removed redundant environment saving for combiner prvalues"
 					@ 'NPL_Impl_NPLA1_Enable_TCO'
 					// This is actually already saved in the parent.
 			)
@@ -9968,7 +10101,7 @@ b912
 		- DLDI "unused lambda-capture" @ "member function %ValueObject::Query"
 			@ %YSLib.Core.YObject,
 			// To eliminate Clang++ warning: [-Wunused-lambda-capture].
-		- $dev $lib "inclusion %YSLib.Core.YEvent" @ 'YF_Use_XCB' @ %XCB
+		- $dev $lib "header inclusion %YSLib.Core.YEvent" @ 'YF_Use_XCB' @ %XCB
 	),
 	/ $dev "enhanced %YB_IMPL_GNUPP detection" @ %YBase.YDefinition
 ),
@@ -9979,7 +10112,7 @@ b911
 	(
 		* "passed wrongly quoted string as the command"
 			@ "applicative 'compile-ok'" @ "platform %Win32"
-			@ "%SHBuild-YSLib-common.txt" @  $since b796
+			@ "%SHBuild-YSLib-common.txt" @ $since b796
 			// This would detected the wrong compiler style and the compiler \
 				options.
 			$= (/ ^ "negated %COMSPEC detection" ~ "%SHELL detection"),
@@ -9998,7 +10131,7 @@ b911
 			/ DLDI "quoted all arguments" @ "%SHBuild_Puts calls"
 				@ "%SHBuild-build.sh",
 			+ "workaround to MSYS2 x86_64 binutils with ASLR enabled by \
-				default used with G++"  ^ $dep_from
+				default used with G++" ^ $dep_from
 				("%SHBuild_CheckCompiler" @ "%SHBuild-common-toolchain.sh")
 		)
 	),
@@ -10008,7 +10141,7 @@ b911
 			$since b872,
 		/ %NPL $=
 		(
-			+ $dev "inclusion %YException" @ %SContext,
+			+ $dev "header inclusion %YException" @ %SContext,
 			/ %NPLA1Internals $=
 			(
 				/ @ 'NPL_Impl_NPLA1_Enable_TCO' $=
@@ -10079,17 +10212,17 @@ b911
 		(
 			/ %Core $=
 			(
-				/ $dev "inclusion %YObject" @ %YEvent
-					-> "inclusion %YBase.YStandardEx.Examiner",
+				/ $dev "header inclusion %YObject" @ %YEvent
+					-> "%YBase.YStandardEx.Examiner",
 				(
 				+ $dev $lib "include %YException" @ %YMessage;
-				/ $dev "inclusion %YCoreUtilities" @ %YObject
-					-> "inclusion %YShellDefinition" $dep_from %NPL.SContext,
+				/ $dev "header inclusion %YCoreUtilities" @ %YObject
+					-> "%YShellDefinition" $dep_from %NPL.SContext,
 				),
-				/ $dev "include %YObject" @ %YString
-					-> "inclusion %YShellDefinition",
-				/ $dev "inclusion %YObject" @ %YDevice
-					-> "inclusion %(YFunc, YBase.YStandardEx.Exception)"
+				/ $dev "header inclusion %YObject" @ %YString
+					-> "%YShellDefinition",
+				/ $dev "header inclusion %YObject" @ %YDevice
+					-> "%(YFunc, YBase.YStandardEx.Exception)"
 			)
 		)
 	)
@@ -10393,7 +10526,7 @@ b909
 		/ $dev %NPLA1 $=
 		(
 			(
-			/ $lib $design $impl  "setup next term"
+			/ $lib $design $impl "setup next term"
 				@ 'NPL_Impl_NPLA1_Enable_Thunked' @ "function %ReduceOnce",
 				// See $2021-01 @ %Documentation::Workflow.
 			+ $doc "'\pre' command to ensure proper next term set"
@@ -10818,7 +10951,7 @@ b907
 					// To be consistent to %NPL.Documentation changes.
 				/ "optimized expression parameter"
 					@ "operatives ('$lazy', '$lazy/e')"
-					@ "function %LoadModule_std_promises" ^  'move!',
+					@ "function %LoadModule_std_promises" ^ 'move!',
 				/ "providing symbols"
 					^ $dep_from (('$provide/let!', '$as-environment')
 					@ "%LoadGroundContext") ~ ('$provide!', '__')
@@ -11106,7 +11239,7 @@ b905
 					// To eliminate Clang++ warning: [-Wunused-value].
 				/ "platform %Win32" @ "function %SetEnvironmentVariable"
 					^ "%_wputenv" ~ "%_putenv",
-				+ "inclusion %Container"
+				+ "header inclusion %Container"
 					$dep_from "removal of YCommon for Container";
 					// This allows %string used in API declarations.
 			)
@@ -11197,7 +11330,7 @@ b905
 				@ ("building YSLib libraries" @ "%SHBuild-YSLib-build.txt"
 				$orig (@ "%SHBuild-YSLib.sh" @ %Tools.SHBuild $since b520))
 				// This could be injected through the command line arguments \
-					of the srcipt since b797 and from the enviroment variable \
+					of the srcipt since b797 and from the environment variable \
 					%args b796. The latter is also possible through the \
 					command line arguments of \
 					%Tools/Scripts/SHBuild-YSLib-common.sh since b791, and \
@@ -12041,7 +12174,7 @@ b901
 			(
 				(
 				+ "specialization for %basic_string_view instantiations";
-				/ "simplified specialization for %basic_string  instantiations",
+				/ "simplified specialization for %basic_string instantiations",
 				),
 				+ $dev $lib 'YB_ATTR_nodiscard' @ "all static memeber functions"
 			),
