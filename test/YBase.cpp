@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2019, 2021-2022 FrankHB.
+	© 2014-2019, 2021-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r762
+\version r796
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-10 05:09:57 +0800
 \par 修改时间:
-	2022-02-05 09:34 +0800
+	2023-01-01 03:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,6 +66,41 @@ static_assert(is_bitwise_swappable<lref<yimpl(int)>>(),
 //! \since build 926
 static_assert(is_bitwise_swappable<observer_ptr<yimpl(int)>>(),
 	"Invalid implementation found.");
+
+#if __cplusplus >= 201703L
+struct imm_t : ystdex::noncopyable, ystdex::nonmovable
+{};
+
+// 9 static cases covering: ystdex::is_invocable_r.
+static_assert(ystdex::is_invocable_r<imm_t, imm_t(*)()>::value);
+static_assert(ystdex::is_invocable_r<const imm_t, imm_t(*)()>::value);
+static_assert(ystdex::is_invocable_r<imm_t, const imm_t(*)()>::value);
+static_assert(ystdex::is_invocable_r<imm_t&&, imm_t(*)()>::value);
+static_assert(ystdex::is_invocable_r<const imm_t&&, imm_t(*)()>::value);
+static_assert(ystdex::is_invocable_r<const imm_t&&, const imm_t(*)()>::value);
+static_assert(!ystdex::is_invocable_r<int, imm_t(*)()>::value);
+static_assert(!ystdex::is_invocable_r<const int, imm_t(*)()>::value);
+static_assert(!ystdex::is_invocable_r<int, const imm_t(*)()>::value);
+// 9 static cases covering: ystdex::is_nothrow_invocable_r.
+static_assert(
+	ystdex::is_nothrow_invocable_r<imm_t, imm_t(*)() noexcept>::value);
+static_assert(
+	ystdex::is_nothrow_invocable_r<const imm_t, imm_t(*)() noexcept>::value);
+static_assert(
+	ystdex::is_nothrow_invocable_r<imm_t, const imm_t(*)() noexcept>::value);
+static_assert(
+	ystdex::is_nothrow_invocable_r<imm_t&&, imm_t(*)() noexcept>::value);
+static_assert(
+	ystdex::is_nothrow_invocable_r<const imm_t&&, imm_t(*)() noexcept>::value);
+static_assert(ystdex::is_nothrow_invocable_r<const imm_t&&,
+	const imm_t(*)() noexcept>::value);
+static_assert(
+	!ystdex::is_nothrow_invocable_r<int, imm_t(*)() noexcept>::value);
+static_assert(
+	!ystdex::is_nothrow_invocable_r<const int, imm_t(*)() noexcept>::value);
+static_assert(
+	!ystdex::is_nothrow_invocable_r<int, const imm_t(*)() noexcept>::value);
+#endif
 
 //! \since build 833
 using std::vector;

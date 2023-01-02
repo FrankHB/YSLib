@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2016, 2020, 2022 FrankHB.
+# (C) 2014-2016, 2020, 2022-2023 FrankHB.
 # Revision patching script: patching source revisions using RevisionPatcher.
 # Required: hg / git, sed.
 
@@ -57,7 +57,7 @@ if [[ $use_hg_ != '' ]]; then
 	hg status --color=none -amn0 | xargs -0 hg diff --color=none > bak.patch
 elif [[ $use_git_ != '' ]]; then
 	SHBuild_Puts "Using git."
-	git diff --diff-filter=d --color=never > bak.patch
+	git diff --diff-filter=d --color=never HEAD > bak.patch
 else
 	SHBuild_Puts "ERROR: either 'hg' or 'git' should exist." >& 2
 	exit 1

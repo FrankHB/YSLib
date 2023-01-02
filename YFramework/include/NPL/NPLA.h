@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2022 FrankHB.
+	© 2014-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r10228
+\version r10328
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2022-11-28 05:13 +0800
+	2023-01-02 08:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,22 +32,23 @@
 #include YFM_NPL_Exception // for YSLib::any_ops, YSLib::NodeLiteral,
 //	YSLib::any, YSLib::bad_any_cast, YSLib::in_place_type, YSLib::to_string,
 //	NPLTag, string, ValueNode, function, std::ostream, ystdex::invoke, TermNode,
-//	std::initializer_list, NoContainer, shared_ptr,
+//	ystdex::isdigit, std::initializer_list, NoContainer, shared_ptr,
 //	ystdex::is_nothrow_copy_constructible, ystdex::is_nothrow_copy_assignable,
 //	ystdex::is_nothrow_move_constructible, ystdex::is_nothrow_move_assignable,
 //	EnsureValueTags, AssertValueTags, IsPair, IsList, HasStickySubterm,
 //	IsBranch, ThrowListTypeErrorForInvalidType, type_id, Access, observer_ptr,
 //	TryAccessValue, IsAtom, IsLeaf, ystdex::equality_comparable, weak_ptr, lref,
 //	AssertReferentTags, ystdex::get_equal_to, NPL::IsMovable, pair,
-//	std::declval, ystdex::invoke_value_or, ystdex::expand_proxy,
-//	ystdex::ref_eq, ValueObject, NPL::SetContentWith, std::for_each, TNIter,
-//	AccessFirstSubterm, AssertBranch, NPL::Deref, ystdex::retry_on_cond,
-//	YSLib::EmplaceCallResult, ystdex::exclude_self_t, ystdex::less, YSLib::map,
-//	pmr, ystdex::copy_and_swap, type_info, std::swap, ystdex::expanded_function,
+//	std::declval, ystdex::invoke_value_or, ystdex::compose_n,
+//	ystdex::expand_proxy, ystdex::ref_eq, ValueObject, NPL::SetContentWith,
+//	std::for_each, TNIter, AccessFirstSubterm, AssertBranch, NPL::Deref,
+//	ystdex::retry_on_cond, YSLib::EmplaceCallResult, ystdex::exclude_self_t,
+//	ystdex::less, YSLib::map, ystdex::compose, pmr, ystdex::copy_and_swap,
+//	type_info, std::swap, ystdex::expanded_function,
 //	ystdex::enable_if_same_param_t, ystdex::make_obj_using_allocator,
 //	YSLib::forward_list, ystdex::swap_dependent, make_observer,
 //	ystdex::unchecked_function, YSLib::allocate_shared, YSLib::Logger,
-//	trivial_swap, ystdex::exchange, NPL::AssertMatchedAllocators,
+//	ystdex::exchange, NPL::AssertMatchedAllocators, default_allocator,
 //	NPL::AsTermNode, ystdex::is_bitwise_swappable;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include <ystdex/type_op.hpp> // for ystdex::exclude_self_params_t;
@@ -712,6 +713,7 @@ TokenizeTerm(TermNode&);
 //! \since build 869
 class Environment;
 
+
 /*!
 \brief 环境基类。
 \warning 非虚析构。
@@ -744,6 +746,7 @@ public:
 	//! \brief 取锚对象指针的引用计数。
 	DefGetter(const ynothrow, size_t, AnchorCount, size_t(p_anchor.use_count()))
 };
+
 
 /*!
 \brief 环境引用。
@@ -2379,6 +2382,7 @@ public:
 	/*!
 	\brief 检查可作为父环境的宿主对象。
 	\note 若存在父环境，首先对父环境递归检查。
+	\warning 不保证嵌套调用安全。
 	\exception NPLException 异常中立：由 ThrowForInvalidType 抛出。
 	\since build 798
 	\todo 使用专用的异常类型。
@@ -2432,9 +2436,9 @@ public:
 	/*!
 	\brief 冻结。
 	\sa MakeTermTags
-	\since build 960
+	\since build 963
 	*/
-	PDefH(void, Freeze, )
+	PDefH(void, Freeze, ) ynothrow
 		ImplExpr(frozen = true)
 
 private:
@@ -2515,7 +2519,7 @@ public:
 	\brief 解冻。
 	\warning 对解冻后的环境操作可能破坏假定已冻结的不变量。
 	\sa MakeTermTags
-	\since build 960
+	\since build 963
 
 	撤销冻结状态。
 	对一个已被绑定的环境可不假设其可被修改，撤销时不再保证不变量。
@@ -2523,7 +2527,7 @@ public:
 		包括引起对象语言的未定义行为。
 	一般地，应仅在可证明改变状态安全时临时使用，之后再次冻结。
 	*/
-	PDefH(void, Unfreeze, )
+	PDefH(void, Unfreeze, ) ynothrow
 		ImplExpr(frozen = {})
 
 	/*!
@@ -3183,10 +3187,9 @@ public:
 	\brief 取用于初始化环境以外的对象使用的分配器。
 	\since build 851
 	*/
-	YB_ATTR_nodiscard YB_PURE PDefH(YSLib::default_allocator<yimpl(byte)>,
+	YB_ATTR_nodiscard YB_PURE PDefH(default_allocator<yimpl(byte)>,
 		get_allocator, ) const ynothrow
-		ImplRet(YSLib::default_allocator<yimpl(byte)>(
-			&GetMemoryResourceRef()))
+		ImplRet(default_allocator<yimpl(byte)>(&GetMemoryResourceRef()))
 
 	/*!
 	\brief 缩小存储资源占用：清空暂存的对象。
@@ -3396,7 +3399,6 @@ ResolveIdentifier(const ContextNode&, string_view);
 //@}
 
 /*!
-\brief 解析环境：在可能表示环境的 ValueObject 值中取表示环境的宿主类型的值。
 \return 取得所有权的环境指针及是否具有所有权。
 \sa Environment::EnsureValid
 \sa EnvironmentReference::Lock
@@ -3408,31 +3410,76 @@ ResolveIdentifier(const ContextNode&, string_view);
 不检查宿主值类型以外的有效性。成功访问的环境指针的值可能为空，可能需进一步检查。
 */
 //@{
-//! \since build 830
-YB_ATTR_nodiscard YF_API pair<shared_ptr<Environment>, bool>
-ResolveEnvironment(const ValueObject&);
 /*!
-\note 第二参数指定是否转移第一参数。
-\since build 909
-*/
-YB_ATTR_nodiscard YF_API pair<shared_ptr<Environment>, bool>
-ResolveEnvironment(ValueObject&, bool);
-/*!
-\throw ListTypeError 参数是列表节点。
-\note 当前使用和 TermToStringWithReferenceMark 相同的方式在异常消息中表示引用项。
-\sa TermToStringWithReferenceMark
+\brief 解析环境项：在可能表示环境或其引用值的项中取表示环境的宿主类型的值。
+\exception ListTypeError 参数是列表节点。
+\note 使用 ResolveTerm 支持解析环境引用的项引用。
+\sa ResolveEnvironmentReferent
 */
 //@{
 //! \since build 840
 YB_ATTR_nodiscard YF_API pair<shared_ptr<Environment>, bool>
-ResolveEnvironment(const TermNode& term);
+ResolveEnvironment(const TermNode&);
 //! \since build 909
 YB_ATTR_nodiscard YF_API pair<shared_ptr<Environment>, bool>
-ResolveEnvironment(TermNode& term);
+ResolveEnvironment(TermNode&);
+//@}
+
+//! \since build 963
+//@{
+/*!
+\brief 解析环境纯右值：在可能表示环境的项中取表示环境的宿主类型的值。
+\throw ListTypeError 参数是列表节点。
+\note 当前使用和 TermToStringWithReferenceMark 相同的方式在异常消息中表示引用项。
+\sa IsAtom
+\sa ResolveEnvironmentValue
+\sa TermToStringWithReferenceMark
+*/
+//@{
+YB_ATTR_nodiscard YF_API pair<shared_ptr<Environment>, bool>
+ResolveEnvironmentReferent(const TermNode&, bool);
+YB_ATTR_nodiscard YF_API pair<shared_ptr<Environment>, bool>
+ResolveEnvironmentReferent(TermNode&, ResolvedTermReferencePtr);
+//@}
+
+//! \brief 解析环境：在可能表示环境的 ValueObject 值中取表示环境的宿主类型的值。
+//@{
+YB_ATTR_nodiscard YF_API pair<shared_ptr<Environment>, bool>
+ResolveEnvironmentValue(const ValueObject&);
+//! \note 第二参数指定是否转移第一参数。
+YB_ATTR_nodiscard YF_API pair<shared_ptr<Environment>, bool>
+ResolveEnvironmentValue(ValueObject&, bool);
+//@}
 //@}
 //@}
 //@}
 
+
+//! \since build 963
+//@{
+//! \brief 转换为父环境。
+//@{
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(ValueObject, ToParent, const ValueObject& vo)
+	ImplRet(vo)
+YB_ATTR_nodiscard YB_PURE inline PDefH(ValueObject, ToParent, ValueObject&& vo)
+	ImplRet(std::move(vo))
+//@}
+
+/*!
+\brief 创建可作为父环境的 ValueObject 对象。
+\sa Environment::CheckParent
+*/
+template<typename... _tParams>
+YB_ATTR_nodiscard YB_PURE inline ValueObject
+MakeParent(_tParams&&... args)
+{
+	auto parent(NPL::ToParent(yforward(args)...));
+
+	Environment::CheckParent(parent);
+	return parent;
+}
+//@}
 
 //! \since build 954
 //@{
@@ -3442,18 +3489,26 @@ inline PDefH(void, AssignParent, ValueObject& parent, const ValueObject& vo)
 	ImplExpr(parent = vo)
 inline PDefH(void, AssignParent, ValueObject& parent, ValueObject&& vo)
 	ImplExpr(parent = std::move(vo))
-inline PDefH(void, AssignParent, ValueObject& parent,
-	TermNode::allocator_type a, EnvironmentReference&& r_env)
-	ImplExpr(AssignParent(parent,
-		ValueObject(std::allocator_arg, a, std::move(r_env))))
-inline PDefH(void, AssignParent, ValueObject& parent, TermNode& term,
-	EnvironmentReference&& r_env)
-	ImplExpr(AssignParent(parent, term.get_allocator(), std::move(r_env)))
+//! \since build 963
+template<typename... _tParams>
+inline void
+AssignParent(ValueObject& parent, TermNode::allocator_type a,
+	_tParams&&... args)
+{
+	parent.assign(std::allocator_arg, a, yforward(args)...);
+}
+//! \since build 963
+template<typename... _tParams>
+inline void
+AssignParent(ValueObject& parent, TermNode& term, _tParams&&... args)
+{
+	NPL::AssignParent(parent, term.get_allocator(), yforward(args)...);
+}
 template<typename... _tParams>
 inline void
 AssignParent(ContextNode& ctx, _tParams&&... args)
 {
-	AssignParent(ctx.GetRecordRef().Parent, yforward(args)...);
+	NPL::AssignParent(ctx.GetRecordRef().Parent, yforward(args)...);
 }
 //@}
 
@@ -3462,13 +3517,13 @@ AssignParent(ContextNode& ctx, _tParams&&... args)
 //! \since build 956
 inline PDefH(void, AssignWeakParent, ValueObject& parent,
 	TermNode::allocator_type a, EnvironmentReference r_env)
-	ImplExpr(AssignParent(parent, a, std::move(r_env)))
+	ImplExpr(NPL::AssignParent(parent, a, std::move(r_env)))
 inline PDefH(void, AssignWeakParent, ValueObject& parent,
 	TermNode::allocator_type a, ContextNode& ctx)
-	ImplExpr(AssignParent(parent, a, ctx.WeakenRecord()))
+	ImplExpr(NPL::AssignWeakParent(parent, a, ctx.WeakenRecord()))
 inline PDefH(void, AssignWeakParent, ValueObject& parent, TermNode& term,
 	ContextNode& ctx)
-	ImplExpr(AssignWeakParent(parent, term.get_allocator(), ctx))
+	ImplExpr(NPL::AssignWeakParent(parent, term.get_allocator(), ctx))
 //@}
 //@}
 
@@ -3560,6 +3615,14 @@ TraceException(std::exception&, YSLib::Logger&);
 //! \since build 926
 namespace ystdex
 {
+
+/*!
+\relates NPL::EnvironmentBase
+\since build 963
+*/
+template<>
+struct is_bitwise_swappable<NPL::EnvironmentBase> : true_
+{};
 
 //! \relates NPL::EnvironmentReference
 template<>

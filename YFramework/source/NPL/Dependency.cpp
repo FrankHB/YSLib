@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2022 FrankHB.
+	© 2015-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r7761
+\version r7771
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2022-11-28 06:49 +0800
+	2023-01-01 08:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -323,14 +323,14 @@ Qualify(TermNode& term, TermTags tag_add)
 void
 CopyEnvironmentDFS(Environment& d, const Environment& e)
 {
-	auto& m(d.GetMapUncheckedRef());
+	auto& m(d.GetMapRef());
 	// TODO: Check environments allocator equality.
 	const auto a(NPL::ToBindingsAllocator(m));
 	const auto copy_parent([&](Environment& dst, const Environment& parent){
 		auto p_env(NPL::AllocateEnvironment(a));
 
 		CopyEnvironmentDFS(*p_env, parent);
-		dst.Parent = std::move(p_env);
+		NPL::AssignParent(dst.Parent, a, std::move(p_env));
 	});
 	const auto copy_parent_ptr(
 		[&](function<Environment&()> mdst, const ValueObject& vo) -> bool{
@@ -360,7 +360,7 @@ CopyEnvironmentDFS(Environment& d, const Environment& e)
 			[&](const ValueObject& vo) -> ValueObject{
 			shared_ptr<Environment> p_env;
 
-			if(copy_parent_ptr([&]() ynothrow -> Environment&{
+			if(copy_parent_ptr([&]() -> Environment&{
 				p_env = NPL::AllocateEnvironment(a);
 				return *p_env;
 			}, vo))
@@ -1416,7 +1416,7 @@ LoadStandardDerived(ContextState& cs)
 			auto p_env(ResolveEnvironment(eterm).first);
 
 			Environment::EnsureValid(p_env);
-				term.Value = bool(ctx.Resolve(std::move(p_env), id).first);
+			term.Value = bool(ctx.Resolve(std::move(p_env), id).first);
 			return ReductionStatus::Clean;
 		}, "eval-$binds1?-env"));
 	});
@@ -1617,9 +1617,8 @@ Promise::ReduceToResult(TermNode& term, ResolvedTermReferencePtr p_ref)
 	}
 	else if(list_not_move)
 	{
-		// XXX: Allocators are not used here for performance.
-		term.SetValue(term.get_allocator(), in_place_type<TermReference>,
-			nd.Tags, nd, p_ref ? p_ref->GetEnvironmentReference() : r_env);
+		term.SetValue(in_place_type<TermReference>, nd.Tags, nd,
+			p_ref ? p_ref->GetEnvironmentReference() : r_env);
 		return ReductionStatus::Clean;
 	}
 	LiftOther(term, nd);
@@ -2326,8 +2325,8 @@ LoadModule_std_modules(ContextState& cs)
 				term.SetContent(tm);
 				return ReductionStatus::Retained;
 			}
-			term.SetValue(term.get_allocator(), in_place_type<TermReference>,
-				TermTags::Unqualified, tm, ctx.WeakenRecord());
+			term.SetValue(in_place_type<TermReference>, TermTags::Unqualified,
+				tm, ctx.WeakenRecord());
 			return ReductionStatus::Clean;
 		});
 

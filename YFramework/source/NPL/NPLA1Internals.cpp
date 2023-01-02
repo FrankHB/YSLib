@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018-2022 FrankHB.
+	© 2018-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20703
+\version r20708
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-11-07 12:02 +0800
+	2023-01-01 01:41 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -28,8 +28,8 @@
 #include "NPL/YModules.h"
 #include "NPLA1Internals.h" // for NPL::Nonnull, NPL::ToBindingsAllocator,
 //	NPL::Deref, shared_ptr, Environment, std::make_move_iterator,
-//	ystdex::retry_on_cond, ystdex::dismiss, ystdex::id, NPL::get,
-//	ActiveEnvironmentPtr, std::throw_with_nested, ParameterMismatch,
+//	ystdex::retry_on_cond, NPL::AssignParent, ystdex::dismiss, ystdex::id,
+//	NPL::get, ActiveEnvironmentPtr, std::throw_with_nested, ParameterMismatch,
 //	ResolveTerm, TermToStringWithReferenceMark, std::allocator_arg,
 
 namespace NPL
@@ -113,7 +113,7 @@ RecordCompressor::Compress()
 				// XXX: The envionment would be finally collected after the last
 				//	reference is destroyed. The order of destruction of
 				//	environments is unspecified but determined by the parentage.
-				parent = dst.Parent;
+				NPL::AssignParent(parent, dst.Parent);
 				collected = true;
 			}
 			return {};
@@ -278,7 +278,7 @@ ReduceAsSubobjectReference(TermNode& term, shared_ptr<TermNode> p_sub,
 	//	it guarantees no unexpected copies of user-defined objects remained even
 	//	if the following operations exit via exception. The order of setting of
 	//	%Tags is insignificant, though.
-	term.SetValue(TermReference(tags, NPL::Deref(p_sub), r_env)),
+	term.SetValue(in_place_type<TermReference>, tags, NPL::Deref(p_sub), r_env),
 	term.Tags = TermTags::Unqualified;
 	// XXX: Not using %ystdex::prefix_eraser because there is known 1 subterm to
 	//	be inserted.

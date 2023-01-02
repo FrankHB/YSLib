@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2022 FrankHB.
+	© 2014-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4318
+\version r4389
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2022-11-28 05:25 +0800
+	2023-01-02 08:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 //	AccessPtr, ystdex::value_or, ystdex::write, std::bind, TraverseSubnodes,
 //	bad_any_cast, std::allocator_arg, YSLib::NodeSequence, ystdex::begins_with,
 //	shared_ptr, ystdex::sfmt, ystdex::unchecked_function, observer_ptr,
-//	ystdex::make_obj_using_allocator, trivial_swap, make_observer, TermTags,
+//	ystdex::make_obj_using_allocator, make_observer, TermTags,
 //	TryAccessLeafAtom, NPL::Deref, YSLib::sfmt, CountPrefix, IsSticky,
 //	AssertReferentTags, ystdex::call_value_or, ystdex::compose, GetLValueTagsOf,
 //	std::mem_fn, IsTyped, ystdex::invoke_value_or, ystdex::ref, PropagateTo,
@@ -167,31 +167,20 @@ TransformToSyntaxNode(ValueNode&& node)
 namespace
 {
 
-#if NPL_NPLA_CheckParentEnvironment
-YB_ATTR_nodiscard YB_PURE bool
-IsReserved(string_view id) ynothrowv
-{
-	YAssertNonnull(id.data());
-	return ystdex::begins_with(id, "__");
-}
-#endif
-
-//! \since build 894
-shared_ptr<Environment>
-RedirectToShared(string_view id, shared_ptr<Environment> p_env)
+//! \since build 963
+YB_ATTR_nodiscard const shared_ptr<Environment>&
+RedirectToShared(const shared_ptr<Environment>& p_env)
 {
 #if NPL_NPLA_CheckParentEnvironment
 	if(p_env)
 #else
-	yunused(id);
 	YAssertNonnull(p_env);
 #endif
 		return p_env;
 #if NPL_NPLA_CheckParentEnvironment
 	// XXX: Consider use more concrete semantic failure exception.
-	throw InvalidReference(ystdex::sfmt("Invalid reference found for%s name"
-		" '%s', probably due to invalid context access by a dangling"
-		" reference.", IsReserved(id) ? " reserved" : "", id.data()));
+	throw InvalidReference(ystdex::sfmt("Invalid reference found for name,"
+		" probably due to invalid context access by a dangling reference."));
 #endif
 }
 
@@ -387,8 +376,8 @@ TermTags
 TermToTags(TermNode& term)
 {
 	AssertReferentTags(term);
-	return ystdex::call_value_or(ystdex::compose(GetLValueTagsOf,
-		std::mem_fn(&TermReference::GetTags)),
+	return ystdex::call_value_or(
+		ystdex::compose(GetLValueTagsOf, std::mem_fn(&TermReference::GetTags)),
 		TryAccessLeafAtom<const TermReference>(term), term.Tags);
 }
 
@@ -580,8 +569,8 @@ LiftToReference(TermNode& term, TermNode& tm)
 		else if(tm.Value.OwnsCount() > 1)
 			// XXX: This is unsafe and not checkable because the anchor is not
 			//	referenced.
-			term.SetValue(term.get_allocator(), in_place_type<TermReference>,
-				TermTags::Unqualified, tm, EnvironmentReference());
+			term.SetValue(in_place_type<TermReference>, TermTags::Unqualified,
+				tm, EnvironmentReference());
 		else
 			throw InvalidReference(
 				"Value of a temporary shall not be referenced.");
@@ -800,9 +789,8 @@ ReduceToReferenceAt(TermNode& term, TermNode& tm,
 	// XXX: Term tags on prvalues are reserved and should be ignored normally
 	//	except for future internal use. Since %tm is a term,
 	//	%TermTags::Temporary is not expected.
-	term.SetValue(term.get_allocator(), in_place_type<TermReference>,
-		GetLValueTagsOf(tm.Tags | p_ref->GetTags()), tm,
-		NPL::Deref(p_ref).GetEnvironmentReference());
+	term.SetValue(in_place_type<TermReference>, GetLValueTagsOf(tm.Tags
+		| p_ref->GetTags()), tm, NPL::Deref(p_ref).GetEnvironmentReference());
 	return ReductionStatus::Clean;
 }
 
@@ -852,7 +840,7 @@ Environment::~Environment()
 ImplDeDtor(Environment)
 #endif
 
-YB_ATTR_nodiscard YB_PURE BindingMap&
+BindingMap&
 Environment::GetMapCheckedRef()
 {
 	if(!IsFrozen())
@@ -1090,13 +1078,13 @@ ContextNode::DefaultResolve(shared_ptr<Environment> p_env, string_view id)
 
 				if(IsTyped<EnvironmentReference>(ti))
 				{
-					p_redirected = RedirectToShared(id,
+					p_redirected = RedirectToShared(
 						parent.GetObject<EnvironmentReference>().Lock());
 					p_env.swap(p_redirected);
 				}
 				else if(IsTyped<shared_ptr<Environment>>(ti))
 				{
-					p_redirected = RedirectToShared(id,
+					p_redirected = RedirectToShared(
 						parent.GetObject<shared_ptr<Environment>>());
 					p_env.swap(p_redirected);
 				}
@@ -1200,18 +1188,47 @@ ResolveIdentifier(const ContextNode& ctx, string_view id)
 }
 
 pair<shared_ptr<Environment>, bool>
-ResolveEnvironment(const ValueObject& vo)
+ResolveEnvironment(const TermNode& term)
+{
+	return ResolveTerm(static_cast<pair<shared_ptr<Environment>, bool>(&)(
+		const TermNode&, bool)>(ResolveEnvironmentReferent), term);
+}
+pair<shared_ptr<Environment>, bool>
+ResolveEnvironment(TermNode& term)
+{
+	return ResolveTerm(static_cast<pair<shared_ptr<Environment>, bool>(&)(
+		TermNode&, ResolvedTermReferencePtr)>(ResolveEnvironmentReferent),
+		term);
+}
+
+pair<shared_ptr<Environment>, bool>
+ResolveEnvironmentReferent(const TermNode& nd, bool has_ref)
+{
+	if(IsAtom(nd))
+		return ResolveEnvironmentValue(nd.Value);
+	ThrowResolveEnvironmentFailure(nd, has_ref);
+}
+pair<shared_ptr<Environment>, bool>
+ResolveEnvironmentReferent(TermNode& nd, ResolvedTermReferencePtr p_ref)
+{
+	if(IsAtom(nd))
+		return ResolveEnvironmentValue(nd.Value, NPL::IsMovable(p_ref));
+	ThrowResolveEnvironmentFailure(nd, p_ref);
+}
+
+pair<shared_ptr<Environment>, bool>
+ResolveEnvironmentValue(const ValueObject& vo)
 {
 	// XXX: Support more environment types?
-	if(const auto p = vo.AccessPtr<const EnvironmentReference>())
+	if(const auto p = vo.AccessPtr<EnvironmentReference>())
 		return {p->Lock(), {}};
-	if(const auto p = vo.AccessPtr<const shared_ptr<Environment>>())
+	if(const auto p = vo.AccessPtr<shared_ptr<Environment>>())
 		return {*p, true};
 	// TODO: Merge with %Environment::CheckParent?
 	Environment::ThrowForInvalidType(vo.type());
 }
 pair<shared_ptr<Environment>, bool>
-ResolveEnvironment(ValueObject& vo, bool move)
+ResolveEnvironmentValue(ValueObject& vo, bool move)
 {
 	// XXX: Ditto.
 	if(const auto p = vo.AccessPtr<const EnvironmentReference>())
@@ -1220,24 +1237,6 @@ ResolveEnvironment(ValueObject& vo, bool move)
 		return {move ? std::move(*p) : *p, true};
 	// TODO: Ditto.
 	Environment::ThrowForInvalidType(vo.type());
-}
-pair<shared_ptr<Environment>, bool>
-ResolveEnvironment(const TermNode& term)
-{
-	return ResolveTerm([&](const TermNode& nd, bool has_ref){
-		if(IsAtom(nd))
-			return ResolveEnvironment(nd.Value);
-		ThrowResolveEnvironmentFailure(nd, has_ref);
-	}, term);
-}
-pair<shared_ptr<Environment>, bool>
-ResolveEnvironment(TermNode& term)
-{
-	return ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
-		if(IsAtom(nd))
-			return ResolveEnvironment(nd.Value, NPL::IsMovable(p_ref));
-		ThrowResolveEnvironmentFailure(nd, p_ref);
-	}, term);
 }
 
 

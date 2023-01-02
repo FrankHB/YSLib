@@ -1,5 +1,5 @@
 ﻿/*
-	© 2020-2022 FrankHB.
+	© 2020-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r13330
+\version r13461
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2022-12-25 17:45 +0800
+	2023-01-02 08:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,137 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ @ '__cplusplus >= 201703L' $dev %Test.YBase $=
+	(
+		+ "9 static test cases covering %ystdex::is_invocable_r"
+			^ ("%ystdex::is_invocable_r" @ %YBase.YStandardEx.Invoke),
+		+ "9 static test cases covering %ystdex::is_nothrow_invocable_r"
+			^ ("%ystdex::is_nothrow_invocable_r" @ %YBase.YStandardEx.Invoke)
+	),
+	* "missing 'HEAD' for 'git diff'" @ "%PatchRevision.sh" @ %Tools.Script
+		$since b957,
+		// To be consistent with 'hg diff', this should compare the changes \
+			relative to HEAD, not the changes relative to the index. This also \
+			fixes for the typical use during 'git merge'.
+	/ %YFramework $=
+	(
+		+ "macro %DeclBasedI" @ %YBaseMacro,
+		/ %YSLib.Core.YObject $=
+		(
+			+ "3 function templates %AreEqualHeldPolymorphic",
+			* "function %Equals" @ "class templates %(PolymorphicValueHolder, \
+				PolymorphicAllocatorHolder)" $since b899 $=
+			(
+				* "incorrect types compared always 'false'"
+				* "imprecise comparations for different polymorphic types"
+					$= (/ $impl ^ $dep_from
+						"%YSLib::AreEqualHeldPolymorphic" ~ "%AreEqualHeld")
+			),
+			* "missing qualified 'NPL::' before 'Deref'" $since b561
+		),
+		/ %NPL $=
+		(
+			+ DLDI "'NPL::' before calls to %AssignParent" $effective
+				@ %(NPLA, NPLA1Forms) $dep_to "qualified AssignParent calls",
+			+ DLDI "'NPL::' before calls to %AssignWeakParent" $effective
+				@ %(NPLA, NPLA1Forms),
+			/ DLDI "simplified %TermNode::SetValue calls without 1st argument \
+				of allocator" $effective @ %(NPLA, NPLA1Forms, Dependency),
+				// The allocator is implied by the %TermNode::SetValue overload.
+			/ $re_ex(b960) $dev $lib
+				"header inclusion %YBase.YStandardEx.TypeOperations" @ %NPLA
+				>> %SContext,
+			+ $dev $lib "header inclusion %YBase.YStandardEx.Utilities"
+				@ %SContext,
+			/ %NPLA $=
+			(
+				/ @ "class %Environment" $=
+				(
+					+ 'ynothrow' @ "functions %(Freeze, Unfreeze)",
+					- DLDI "redundant attributes" @ "definition"
+						@ "function %GetMapCheckedRef"
+				),
+				- "identifier for exception message of %InvalidReference"
+					@ "static member function %ContextNode::DefaultResolve",
+				/ "all 2 functions %AssignParent with 'EnvironmentReference&&' \
+					parameter" -> "2 function templates with parameter pack"
+					$dep_from "qualified AssignParent calls",
+				+ $re_add(b941) $lib "class template specializations \
+					%is_bitwise_swappable for %NPL::EnvironmentBase"
+					@ "namespace %ystdex",
+				(
+				+ "2 functions %ToParent";
+				+ "function template %MakeParent"
+				),
+				/ @ "Doxygen group %BindingAccess" $=
+				(
+					+ "2 functions %ResolveEnvironmentTerm";
+					/ DLDI "simplified 2 functions %ResolveEnvironment with \
+						parameter of reference to %TermNode"
+						^ "%ResolveEnvironmentTerm",
+					(
+					/ "all 2 overloads %ResolveEnvironment with parameter of \
+						reference to %ValueObject"
+						=> "%ResolveEnvironmentValue";
+						// The name was error-prone because these overloads do \
+							less than others.
+					- DLDI 'const' @ "type-id for casts"
+						@ "function %ResolveEnvironmentValue#1"
+						// This is redundant because the source is implying \
+							'const'.
+					)
+				)
+			),
+			/ "set parent with implicit allocator argument"
+				@ "function templates %(InvokeIn, GetModuleFor)" @ %NPLA1
+				^ "%(ToBindingsAlloator, in_place_type)",
+				// It would be less efficient without %in_place_type.
+			/ %NPLA1Internals $=
+			(
+				/ DLI "functions %(SetEvaluatedReference, \
+					ReduceAsSubobjectReference)"
+					^ "%in_place_type<TermReference>",
+				/ DLDI "member function %RecordCompressor::Compress"
+					^ "%NPL::AssignParent"
+			),
+			/ DLI @ "namespace %Forms" @ %NPLA1Forms $=
+			(
+				/ @ "function %MakeEnvironment" ^ 'flatten',
+				/ @ "functions %(GetCurrentEnvironment, \
+					LockCurrentEnvironment, MakeEnvironment)"
+					^ "%in_place_type",
+				/ $design "simplified parent check"
+					^ $dep_from ("%NPL::MakeParent" @ %NPLA),
+				/ "simplified list element parent check without call site \
+					check",
+				/ $design @ "functions '*WithEnvironment'" $=
+				(
+					/ "simplified parent list construction"
+						@ "creation of parent object",
+					/ $forced $dep_from ("%ResolveEnvironment" @ %NPLA)
+						$= (/ ^ $dep_from "%ResolveEnvironmentValue" @ %NPLA)
+				)
+			),
+			/ "DFS traverse" @ "native implementation"
+				@ "applicative 'copy-environment'"
+				@ "function %Forms::LoadGroundContext" @ %Dependency $=
+			(
+				/ $revert(b961) DLI "getting destination binding map"
+					^ ("%Environment::GetMapRef"
+					~ "%Environment::GetMapUncheckedRef") @ %NPLA,
+					// The check is not needed because the fresh environment \
+						would not be frozen.
+				/ DLI "setting destination parent with allocator"
+					^ "%NPL::AssignParent",
+				* "wrong 'ynothrow' for allocating fresh environment for \
+					subnodes" $since b854
+			)
+		)
+	)
+),
+
+b962
 (
 	/ $re_add(b954) DLDI "header inclusion %Functional"
 		@ ((%Thunk -> %(Ref, Function), %CStandardIO -> %(Compose, Functor),

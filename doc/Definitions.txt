@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2022 FrankHB.
+	© 2010-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14486
+\version r14488
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2022-10-21 20:56 +0800
+	2023-01-01 01:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -405,6 +405,7 @@ $header YBaseMacro
 YInterface(_attr, _n)
 YInterfaceHead(_n)
 DeclI(_attr, _n)
+DeclBasedI(_attr, _n, ...)
 DeclDerivedI(_attr, _n, ...)
 ImplI(...)
 ImplA(...)

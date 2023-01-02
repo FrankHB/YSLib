@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2022 FrankHB.
+	© 2009-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r7011
+\version r7068
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2022-10-23 05:34 +0800
+	2023-01-01 01:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,11 +39,12 @@
 //	ystdex::any_cast, ystdex::unchecked_any_cast, ystdex::unsafe_any_cast,
 //	ystdex::make_any, ystdex::exclude_tagged_params_t, trivial_swap_t,
 //	trivial_swap;
+#include <ystdex/type_op.hpp> // for std::is_base_of, ystdex::false_,
+//	ystdex::true_, ystdex::and_, std::is_polymorphic, ystdex::enable_if_t,
+//	ystdex::exclude_self_t, ystdex::exclude_self_params_t, ystdex::decay_t,
+//	ystdex::enable_if_same_param_t, std::is_same;
 #include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
 #include <ystdex/exception.h> // for ystdex::throw_invalid_construction;
-#include <ystdex/type_op.hpp> // for ystdex::false_, ystdex::true_,
-//	ystdex::enable_if_t, ystdex::exclude_self_t, ystdex::exclude_self_params_t,
-//	ystdex::decay_t, ystdex::enable_if_same_param_t;
 #include <ystdex/memory.hpp> // for ystdex::default_init,
 //	ystdex::is_allocatable, ystdex::is_byte_allocator,
 //	ystdex::has_get_allocator, ystdex::is_sharing, ystdex::rebind_alloc_t,
@@ -266,13 +267,41 @@ struct HeldEqual<pair<_type1, _type2>, pair<_type3, _type4>>
 \brief 判断动态泛型的持有值是否相等。
 \note 不直接使用 ystdex::examiners::equal_examiner 判断，
 	因为可以有其它重载操作符。
-\since build 454
 */
 template<typename _type1, typename _type2>
 YB_ATTR_nodiscard YB_PURE yconstfn bool
 AreEqualHeld(const _type1& x, const _type2& y)
 {
 	return HeldEqual<_type1, _type2>::are_equal(x, y);
+}
+//@}
+
+/*!
+\since build 963
+\note 非多态类型或相同的类型的比较使用 ADL AreEqualHeld 。
+*/
+//@{
+//! \brief 判断动态泛型的不全是多态类型的持有值是否相等。
+template<typename _type1, typename _type2>
+YB_ATTR_nodiscard YB_PURE yconstfn bool
+AreEqualHeldPolymorphic(const _type1& x, const _type2& y, ystdex::false_)
+{
+	return AreEqualHeld(x, y);
+}
+//! \brief 判断动态泛型的多态类型的持有值是否相等。
+template<typename _type1, typename _type2>
+YB_ATTR_nodiscard YB_PURE yconstfn bool
+AreEqualHeldPolymorphic(const _type1& x, const _type2& y, ystdex::true_)
+{
+	return typeid(x) == typeid(y) && AreEqualHeld(x, y);
+}
+//! \brief 判断动态泛型的可能多态类型的持有值是否相等。
+template<typename _type1, typename _type2>
+YB_ATTR_nodiscard YB_PURE yconstfn bool
+AreEqualHeldPolymorphic(const _type1& x, const _type2& y)
+{
+	return YSLib::AreEqualHeldPolymorphic(x, y, ystdex::and_<
+		std::is_polymorphic<_type1>, std::is_polymorphic<_type2>>());
 }
 //@}
 
@@ -496,8 +525,9 @@ private:
 			default_init, any_ops::get_allocator_type)),
 			"Invalid allocator found.");
 
-		return Deref(static_cast<const _tByteAlloc*>(x.unchecked_access<void*>(
-			default_init, any_ops::get_allocator_ptr)));
+		return YSLib::Deref(static_cast<const _tByteAlloc*>(
+			x.unchecked_access<void*>(default_init,
+			any_ops::get_allocator_ptr)));
 	}
 };
 
@@ -601,7 +631,7 @@ public:
 	YB_ATTR_nodiscard YB_PURE PDefH(bool, Equals, const void* p) const
 		ImplI(IValueHolder)
 		ImplRet(bool(p) && AreEqualHeld(this->value,
-			Deref(static_cast<const value_type*>(p))))
+			YSLib::Deref(static_cast<const value_type*>(p))))
 
 	//! \since build 786
 	YB_ATTR_nodiscard YB_PURE PDefH(size_t, OwnsCount, ) const ynothrow
@@ -662,8 +692,9 @@ public:
 
 	YB_ATTR_nodiscard YB_PURE PDefH(bool, Equals, const void* p) const
 		ImplI(IValueHolder)
-		ImplRet(bool(p) && IsTyped<value_type>(base::type()) && AreEqualHeld(
-			this->value, Deref(static_cast<const value_type*>(p))))
+		ImplRet(bool(p) && YSLib::AreEqualHeldPolymorphic(static_cast<const
+			value_type&>(this->value),
+			YSLib::Deref(static_cast<const value_type*>(p))))
 
 	//! \since build 900
 	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE PDefH(void*, get, ) const
@@ -776,14 +807,15 @@ public:
 	YB_ATTR_nodiscard PDefH(any, Create, Creation c, const any& x) const
 		ImplI(IValueHolder)
 		ImplRet(AllocatedHolderOperations<PolymorphicAllocatorHolder,
-			_tByteAlloc>::CreateHolder(c, x, value, YSLib::forward_as_tuple(
-			ystdex::as_const(value)),
+			_tByteAlloc>::CreateHolder(c, x, value,
+			YSLib::forward_as_tuple(ystdex::as_const(value)),
 			YSLib::forward_as_tuple(std::move(value))))
 
 	YB_ATTR_nodiscard YB_PURE PDefH(bool, Equals, const void* p) const
 		ImplI(IValueHolder)
-		ImplRet(bool(p) && IsTyped<value_type>(base::type()) && AreEqualHeld(
-			this->value, Deref(static_cast<const value_type*>(p))))
+		ImplRet(bool(p) && YSLib::AreEqualHeldPolymorphic(static_cast<const
+			value_type&>(this->value),
+			YSLib::Deref(static_cast<const value_type*>(p))))
 
 	//! \since build 900
 	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE PDefH(void*, get, ) const
@@ -942,8 +974,8 @@ public:
 	YB_ATTR_nodiscard YB_PURE PDefH(bool, Equals, const void* p) const
 		ImplI(IValueHolder)
 		ImplRet(traits_type::is_owner(p_held) && p
-			? AreEqualHeld(Deref(traits_type::get(p_held)),
-			Deref(static_cast<const value_type*>(p))) : false)
+			? AreEqualHeld(YSLib::Deref(traits_type::get(p_held)),
+			YSLib::Deref(static_cast<const value_type*>(p))) : false)
 
 	//! \since build 786
 	YB_ATTR_nodiscard YB_PURE PDefH(size_t, OwnsCount, ) const ynothrow
@@ -1010,8 +1042,9 @@ public:
 	//! \since build 752
 	YB_ATTR_nodiscard PDefH(bool, Equals, const void* p) const
 		ImplI(IValueHolder)
-		ImplRet(bool(p) && AreEqualHeld(Deref(static_cast<const value_type*>(
-			get())), Deref(static_cast<const value_type*>(p))))
+		ImplRet(bool(p) && AreEqualHeld(YSLib::Deref(static_cast<const
+			value_type*>(get())),
+			YSLib::Deref(static_cast<const value_type*>(p))))
 
 	//! \since build 786
 	YB_ATTR_nodiscard YB_PURE PDefH(size_t, OwnsCount, ) const ynothrow
@@ -1447,13 +1480,13 @@ public:
 	YB_ATTR_nodiscard YB_PURE inline _type&
 	GetObject()
 	{
-		return Deref(YSLib::unchecked_any_cast<_type>(&content));
+		return YSLib::Deref(YSLib::unchecked_any_cast<_type>(&content));
 	}
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE inline const _type&
 	GetObject() const
 	{
-		return Deref(YSLib::unchecked_any_cast<const _type>(&content));
+		return YSLib::Deref(YSLib::unchecked_any_cast<const _type>(&content));
 	}
 	//@}
 
@@ -1942,7 +1975,7 @@ public:
 		if(!ptr)
 			ptr = PointerType(new DependentType());
 		else if(ptr.use_count() != 1)
-			ptr = PointerType(ystdex::clone_monomorphic(Deref(ptr)));
+			ptr = PointerType(ystdex::clone_monomorphic(YSLib::Deref(ptr)));
 		return Nonnull(ptr);
 	}
 

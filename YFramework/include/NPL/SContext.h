@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2022 FrankHB.
+	© 2012-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r4602
+\version r4613
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2022-11-14 18:46 +0800
+	2023-01-01 02:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,20 +29,21 @@
 #define NPL_INC_SContext_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_Lexical // for ystdex::copy_and_swap, std::swap, pmr,
-//	ByteParser, ystdex::expand_proxy, ystdex::unref, ystdex::as_const,
-//	LexemeList;
+#include YFM_NPL_Lexical // for ystdex::copy_and_swap, ystdex::ref_eq,
+//	std::swap, ystdex::addrof, ystdex::compose, ByteParser,
+//	ystdex::expand_proxy, ystdex::unref, ystdex::as_const, LexemeList, pair;
 #include YFM_YSLib_Core_ValueNode // for YSLib::AddValueTo, YSLib::Deref,
 //	YSLib::MakeIndex, YSLib::NoContainer, YSLib::NoContainerTag,
 //	YSLib::ValueNode, YSLib::ValueObject, YSLib::forward_as_tuple, YSLib::get,
 //	YSLib::make_observer, YSLib::make_pair, YSLib::make_shared,
 //	YSLib::make_weak, YSLib::observer_ptr, YSLib::share_move, YSLib::tuple,
-//	YSLib::weak_ptr, ystdex::enable_if_t, list, std::allocator_arg_t,
-//	YSLib::ListContainerTag, std::initializer_list,
-//	ystdex::enable_if_same_param_t, ystdex::exclude_self_t,
-//	ystdex::enable_if_inconvertible_t, ystdex::forward_like, ystdex::invoke,
-//	YSLib::AccessPtr, ystdex::head_of_t, ystdex::addrof, ystdex::compose, pair,
-//	std::is_lvalue_reference, YSLib::Alert, YSLib::stack;
+//	YSLib::weak_ptr, list, std::allocator_arg_t, YSLib::ListContainerTag,
+//	std::initializer_list, YSLib::AccessPtr, YSLib::Alert, YSLib::stack;
+#include <ystdex/type_op.hpp> // for ystdex::enable_if_t, std::is_constructible,
+//	ystdex::enable_if_same_param_t, ystdex::is_same_param,
+//	ystdex::exclude_self_t, ystdex::enable_if_inconvertible_t,
+//	ystdex::head_of_t, std::is_lvalue_reference;
+#include <ystdex/utility.hpp> // for ystdex::forward_like;
 #include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
 #include <ystdex/deref_op.hpp> // for ystdex::call_value_or;

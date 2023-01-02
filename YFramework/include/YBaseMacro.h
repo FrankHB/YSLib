@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018-2021 FrankHB.
+	© 2010-2016, 2018-2022 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2809
+\version r2820
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2021-04-25 02:24 +0800
+	2022-12-31 16:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -378,6 +378,17 @@ public:
 */
 #define DeclI(_attr, _n) \
 	YInterface(_attr, _n) \
+	YInterfaceHead(_n) \
+	virtual \
+	~_n();
+
+/*!
+\brief 定义带有基类的接口类型。
+\note 基类可以都不是多肽类。
+\since build 963
+*/
+#define DeclBasedI(_attr, _n, ...) \
+	YInterface(_attr, _n) : __VA_ARGS__ \
 	YInterfaceHead(_n) \
 	virtual \
 	~_n();

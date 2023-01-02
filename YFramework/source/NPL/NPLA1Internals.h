@@ -1,5 +1,5 @@
 ﻿/*
-	© 2017-2022 FrankHB.
+	© 2017-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r22815
+\version r22824
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2022-11-21 08:06 +0800
+	2023-01-01 01:41 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -31,9 +31,9 @@
 #include "YModules.h"
 #include YFM_NPL_NPLA1 // for shared_ptr, ContextNode, YSLib::allocate_shared,
 //	NPL::Deref, NPLException, TermNode, ReductionStatus, Reducer, YSLib::map,
-//	size_t, lref, Environment, set, NPL::ToBindingsAllocator, IsTyped,
-//	EnvironmentList, EnvironmentReference, pair, YSLib::forward_list, tuple,
-//	ystdex::optional, std::declval, EnvironmentGuard, NPL::get,
+//	size_t, lref, Environment, set, NPL::ToBindingsAllocator, ValueObject,
+//	IsTyped, EnvironmentList, EnvironmentReference, pair, YSLib::forward_list,
+//	tuple, ystdex::optional, std::declval, EnvironmentGuard, NPL::get,
 //	A1::NameTypedContextHandler, MoveKeptGuard, TermReference, TermTags,
 //	TryAccessLeafAtom, ThrowTypeErrorForInvalidType, type_id, TermToNamePtr,
 //	IsIgnore, ParameterMismatch, IsPair, IsEmpty, IsList, NPL::AsTermNode,
@@ -270,12 +270,12 @@ struct RecordCompressor final
 		}
 		else if(IsTyped<EnvironmentReference>(ti))
 		{
-			if(auto p = parent.GetObject<EnvironmentReference>().Lock())
+			if(auto p = parent.GetObject<const EnvironmentReference>().Lock())
 				TraverseForSharedPtr(e, parent, trace, p);
 		}
 		else if(IsTyped<shared_ptr<Environment>>(ti))
 		{
-			if(auto p = parent.GetObject<shared_ptr<Environment>>())
+			if(auto p = parent.GetObject<const shared_ptr<Environment>>())
 				TraverseForSharedPtr(e, parent, trace, p);
 		}
 	}
@@ -1387,7 +1387,9 @@ inline PDefH(void, SetEvaluatedReference, TermNode& term, const TermNode& bound,
 	//	term tags are ignored.
 	ImplExpr(YAssert(TryAccessLeafAtom<const TermReference>(bound).get()
 		== &ref, "Invalid term or reference value found."), term.SetContent(
-		bound.GetContainer(), EnsureLValueReference(TermReference(ref))))
+		bound.GetContainer(), ValueObject(std::allocator_arg,
+		term.get_allocator(), in_place_type<TermReference>,
+		EnsureLValueReference(TermReference(ref)))))
 
 /*!
 \pre 第三参数非空。

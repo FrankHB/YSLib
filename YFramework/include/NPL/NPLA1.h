@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2022 FrankHB.
+	© 2014-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r10450
+\version r10471
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2022-12-01 06:10 +0800
+	2023-01-02 07:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,17 +37,17 @@
 //	std::make_move_iterator, std::next, ystdex::retry_on_cond, std::find_if,
 //	ystdex::exclude_self_params_t, YSLib::AreEqualHeld, ystdex::or_,
 //	std::is_constructible, ystdex::decay_t, ystdex::expanded_caller,
-//	ystdex::false_, ystdex::make_parameter_list_t, ystdex::make_function_type_t,
-//	ystdex::true_, ystdex::nor_, ystdex::is_instance_of, tuple,
+//	ystdex::false_, ystdex::make_function_type_t, ystdex::make_parameter_list_t,
+//	ystdex::true_, std::allocator_arg, ystdex::nor_, ystdex::is_instance_of, tuple,
 //	ystdex::enable_if_t, std::is_same, ystdex::is_same_param, ystdex::size_t_,
-//	AssertCombiningTerm, IsList, ThrowListTypeErrorForNonList,
-//	ThrowInsufficientTermsError, CountPrefix, ArityMismatch, TermReference,
-//	TermTags, RegularizeTerm, ystdex::guard, ystdex::invoke, AssignParent,
-//	shared_ptr, Environment, TokenValue, function, type_info, type_id,
-//	SourceInformation, std::bind, std::placeholders::_1, ParseResultOf,
-//	ByteParser, SourcedByteParser, std::integral_constant, pmr::memory_resource,
-//	ystdex::well_formed_t, ystdex::ref, ReaderState,
-//	ystdex::is_bitwise_swappable;
+//	AssertCombiningTerm, NPL::EmplaceLeaf, ToBindingsAllocator, IsList,
+//	ThrowListTypeErrorForNonList, ThrowInsufficientTermsError, CountPrefix,
+//	ArityMismatch, TermReference, TermTags, RegularizeTerm, ystdex::guard,
+//	ystdex::invoke, NPL::AssignParent, shared_ptr, Environment, TokenValue,
+//	function, type_info, type_id, SourceInformation, std::bind,
+//	std::placeholders::_1, ParseResultOf, ByteParser, SourcedByteParser,
+//	std::integral_constant, pmr::memory_resource, ystdex::well_formed_t,
+//	ystdex::ref, ReaderState, ystdex::is_bitwise_swappable;
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, YSLib::GCombinerInvoker,
 //	YSLib::GDefaultLastValueInvoker;
 #include <ystdex/algorithm.hpp> // for ystdex::fast_any_of, ystdex::split;
@@ -1699,10 +1699,13 @@ auto
 InvokeIn(ContextNode& ctx, _fCallable&& f, _tParams&&... args)
 	-> decltype(ystdex::invoke(yforward(f), yforward(args)...))
 {
-	ValueObject parent(ctx.WeakenRecord());
+	auto r_env(ctx.WeakenRecord());
+	const auto a(ToBindingsAllocator(ctx));
 	auto gd(GuardFreshEnvironment(ctx));
 
-	AssignParent(ctx, std::move(parent));
+	// XXX: Using allocator without %in_place_type is inefficient.
+	NPL::AssignParent(ctx, a, in_place_type<EnvironmentReference>,
+		std::move(r_env));
 	return ystdex::invoke(yforward(f), yforward(args)...);
 }
 
@@ -1717,10 +1720,13 @@ template<typename _fCallable, typename... _tParams>
 shared_ptr<Environment>
 GetModuleFor(ContextNode& ctx, _fCallable&& f, _tParams&&... args)
 {
-	ValueObject parent(ctx.WeakenRecord());
+	auto r_env(ctx.WeakenRecord());
+	const auto a(ToBindingsAllocator(ctx));
 	auto gd(GuardFreshEnvironment(ctx));
 
-	AssignParent(ctx, std::move(parent));
+	// XXX: As in %InvokeIn.
+	NPL::AssignParent(ctx, a, in_place_type<EnvironmentReference>,
+		std::move(r_env));
 	ystdex::invoke(yforward(f), yforward(args)...);
 	ctx.GetRecordRef().Freeze();
 	return gd.func.Switch();
