@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4389
+\version r4495
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2023-01-02 08:39 +0800
+	2023-01-11 21:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,13 +32,13 @@
 //	AccessPtr, ystdex::value_or, ystdex::write, std::bind, TraverseSubnodes,
 //	bad_any_cast, std::allocator_arg, YSLib::NodeSequence, ystdex::begins_with,
 //	shared_ptr, ystdex::sfmt, ystdex::unchecked_function, observer_ptr,
-//	ystdex::make_obj_using_allocator, make_observer, TermTags,
+//	ystdex::make_obj_using_allocator, trivial_swap, make_observer, TermTags,
 //	TryAccessLeafAtom, NPL::Deref, YSLib::sfmt, CountPrefix, IsSticky,
 //	AssertReferentTags, ystdex::call_value_or, ystdex::compose, GetLValueTagsOf,
 //	std::mem_fn, IsTyped, ystdex::invoke_value_or, ystdex::ref, PropagateTo,
 //	std::distance, ystdex::as_const, FindSticky, TryAccessLeaf,
 //	AccessFirstSubterm, ystdex::addrof, ystdex::second_of,
-//	YSLib::FilterExceptions, YSLib::allocate_shared, type_info,
+//	YSLib::FilterExceptions, NPL::allocate_shared, type_info,
 //	std::current_exception, std::rethrow_exception, std::throw_with_nested,
 //	lref, ystdex::retry_on_cond, ystdex::id, pair, IsAtom, NPL::IsMovable,
 //	YSLib::ExtractException;
@@ -186,25 +186,24 @@ RedirectToShared(const shared_ptr<Environment>& p_env)
 
 //! \since build 869
 // XXX: Use other type without overhead of check on call of %operator()?
-using Redirector
-	= ystdex::unchecked_function<observer_ptr<const ValueObject>()>;
+using Redirector = Environment::Redirector;
 
-//! \since build 931
-observer_ptr<const ValueObject>
+//! \since build 964
+void
 RedirectEnvironmentList(Environment::allocator_type a, Redirector& cont,
 	EnvironmentList::const_iterator first, EnvironmentList::const_iterator last)
 {
-	if(first != last)
-	{
-		cont = ystdex::make_obj_using_allocator<Redirector>(a, trivial_swap,
-			std::bind(
-			[=, &cont](EnvironmentList::const_iterator i, Redirector& c){
-			cont = std::move(c);
-			return RedirectEnvironmentList(a, cont, i, last);
-		}, std::next(first), std::move(cont)));
-		return make_observer(&*first);
-	}
-	return {};
+	cont = ystdex::make_obj_using_allocator<Redirector>(a, trivial_swap,
+		std::bind([=, &cont](Redirector& c) -> observer_ptr<const IParent>{
+		cont = std::move(c);
+		if(first != last)
+		{
+			RedirectEnvironmentList(a, cont, std::next(first), last);
+			first->AssertValid();
+			return make_observer(&first->GetObject());
+		}
+		return {};
+	}, std::move(cont)));
 }
 
 //! \since build 857
@@ -795,6 +794,35 @@ ReduceToReferenceAt(TermNode& term, TermNode& tm,
 }
 
 
+ImplDeDtor(IParent)
+
+
+ImplDeDtor(EmptyParent)
+
+
+shared_ptr<Environment>
+SingleWeakParent::TryRedirect(IParent::Redirector&) const
+{
+	return RedirectToShared(env_ref.Lock());
+}
+
+
+shared_ptr<Environment>
+SingleStrongParent::TryRedirect(IParent::Redirector&) const
+{
+	return RedirectToShared(env_ptr);
+}
+
+
+shared_ptr<Environment>
+ParentList::TryRedirect(IParent::Redirector& cont) const
+{
+	RedirectEnvironmentList(envs.get_allocator(), cont, envs.cbegin(),
+		envs.cend());
+	return {};
+}
+
+
 #if NPL_NPLA_CheckEnvironmentReferenceCount
 Environment::~Environment()
 {
@@ -848,34 +876,6 @@ Environment::GetMapCheckedRef()
 	throw TypeError("Frozen environment found.");
 }
 
-void
-Environment::CheckParent(const ValueObject& vo)
-{
-	const auto& ti(vo.type());
-
-	if(IsTyped<EnvironmentList>(ti))
-	{
-		for(const auto& env : vo.GetObject<EnvironmentList>())
-			CheckParent(env);
-	}
-	else if(YB_UNLIKELY(!IsTyped<observer_ptr<const Environment>>(ti)
-		&& !IsTyped<EnvironmentReference>(ti)
-		&& !IsTyped<shared_ptr<Environment>>(ti)))
-		ThrowForInvalidType(ti);
-#if NPL_NPLA_CheckParentEnvironment
-	if(IsTyped<observer_ptr<const Environment>>(ti))
-	{
-		if(YB_UNLIKELY(!vo.GetObject<observer_ptr<const Environment>>()))
-			// NOTE: See %EnsureValid.
-			ThrowForInvalidValue();
-	}
-	else if(IsTyped<EnvironmentReference>(ti))
-		EnsureValid(vo.GetObject<EnvironmentReference>().Lock());
-	else if(IsTyped<shared_ptr<Environment>>(ti))
-		EnsureValid(vo.GetObject<shared_ptr<Environment>>());
-#endif
-}
-
 bool
 Environment::Deduplicate(BindingMap& dst, const BindingMap& src)
 {
@@ -920,7 +920,7 @@ Environment::EnsureValid(const shared_ptr<Environment>& p_env)
 AnchorPtr
 Environment::InitAnchor(allocator_type a)
 {
-	return YSLib::allocate_shared<AnchorData>(a);
+	return NPL::allocate_shared<AnchorData>(a);
 }
 
 void
@@ -1062,57 +1062,27 @@ ContextNode::DefaultResolve(shared_ptr<Environment> p_env, string_view id)
 	{
 		if(!p)
 		{
-			lref<const ValueObject> cur(p_env->Parent);
-			shared_ptr<Environment> p_redirected{};
+			p_env->Parent.AssertValid();
 
-			ystdex::retry_on_cond(ystdex::id<>(),
-				// XXX: This is still more efficient with G++ 12.1.
-				[&] YB_LAMBDA_ANNOTATE((), , flatten)
-			// XXX: Ditto.
-#if !(YB_IMPL_GNUCPP >= 90000)
-				-> bool
-#endif
+			observer_ptr<const IParent> p_next(&p_env->Parent.GetObject());
+
+			do
 			{
-				const ValueObject& parent(cur);
-				const auto& ti(parent.type());
+				auto& parent(*p_next);
 
-				if(IsTyped<EnvironmentReference>(ti))
+				p_next = {};
+				if(auto p_redirected = parent.TryRedirect(cont))
 				{
-					p_redirected = RedirectToShared(
-						parent.GetObject<EnvironmentReference>().Lock());
 					p_env.swap(p_redirected);
+					return true;
 				}
-				else if(IsTyped<shared_ptr<Environment>>(ti))
-				{
-					p_redirected = RedirectToShared(
-						parent.GetObject<shared_ptr<Environment>>());
-					p_env.swap(p_redirected);
-				}
-				else
-				{
-					observer_ptr<const ValueObject> p_next{};
-
-					if(IsTyped<EnvironmentList>(ti))
-					{
-						const auto& envs(parent.GetObject<EnvironmentList>());
-
-						p_next = RedirectEnvironmentList(
-							NPL::ToBindingsAllocator(*p_env), cont,
-							envs.cbegin(), envs.cend());
-					}
-					while(!p_next && bool(cont))
-						p_next = ystdex::exchange(cont, Redirector())();
-					if(p_next)
-					{
-						YAssert(!ystdex::ref_eq<>()(cur.get(), *p_next),
-							"Cyclic parent found.");
-						cur = *p_next;
-						return true;
-					}
-				}
-				return false;
-			});
-			return bool(p_redirected);
+				if(!cont)
+					return false;
+				while(cont
+					&& !(p_next = ystdex::exchange(cont, Redirector())()))
+					;
+				YAssert(p_next.get() != &parent, "Cyclic parent found.");
+			}while(p_next);
 		}
 		return false;
 	}, [&, id]{
@@ -1224,7 +1194,6 @@ ResolveEnvironmentValue(const ValueObject& vo)
 		return {p->Lock(), {}};
 	if(const auto p = vo.AccessPtr<shared_ptr<Environment>>())
 		return {*p, true};
-	// TODO: Merge with %Environment::CheckParent?
 	Environment::ThrowForInvalidType(vo.type());
 }
 pair<shared_ptr<Environment>, bool>

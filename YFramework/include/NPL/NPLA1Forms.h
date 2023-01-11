@@ -1,5 +1,5 @@
 ﻿/*
-	© 2016-2022 FrankHB.
+	© 2016-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.h
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r8898
+\version r8900
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 11:19:21 +0800
 \par 修改时间:
-	2022-11-26 09:37 +0800
+	2023-01-11 04:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1161,7 +1161,6 @@ RemoteEvalRef(TermNode&, ContextNode&);
 \brief 创建空环境。
 \exception ListReductionFailure 合并子的参数不是列表。
 \exception NPLException 异常中立：由 Environment 的构造函数抛出。
-\sa Environment::CheckParent
 \sa EnvironmentList
 \since build 798
 \todo 使用专用的异常类型替代 NPLException 。

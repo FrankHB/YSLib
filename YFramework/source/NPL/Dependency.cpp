@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r7771
+\version r7840
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2023-01-01 08:40 +0800
+	2023-01-11 12:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,33 +27,34 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_Dependency // for set, string, UnescapeContext, string_view,
-//	ystdex::isspace, ystdex::exists, std::istream, YSLib::unique_ptr,
+//	ystdex::isspace, ystdex::exists, std::istream, unique_ptr,
 //	std::throw_with_nested, std::invalid_argument, ystdex::sfmt,
 //	YSLib::share_move, RelaySwitched, trivial_swap, std::bind, SourceName,
 //	RetainN, NPL::ResolveRegular, NPL::Deref, A1::NameTypedReducerHandler,
 //	std::ref, Forms::CallResolvedUnary, EnsureValueTags,
 //	ResolvedTermReferencePtr, TryAccessLeafAtom, TermReference, LiftTerm,
-//	Environment, NPL::ToBindingsAllocator, NPL::AllocateEnvironment, function,
-//	ValueObject, AccessPtr, EnvironmentReference, shared_ptr,
-//	std::piecewise_construct, NPL::forward_as_tuple, LiftOther,
+//	Environment, NPL::ToBindingsAllocator, NPL::AllocateEnvironment,
+//	NPL::AssignParentH, SingleStrongParent, function, SingleWeakParent,
+//	EnvironmentParent, shared_ptr, std::piecewise_construct,
+//	NPL::forward_as_tuple, ValueObject, LiftOther,
 //	ThrowNonmodifiableErrorForAssignee, ThrowValueCategoryError, ValueToken,
 //	ResolveTerm, TokenValue, CheckVariadicArity, A1::AsForm, ystdex::bind1,
-//	std::placeholders, NPL::CollectTokens, Strict, LiftOtherOrCopy, IsEmpty,
-//	ComposeReferencedTermOp, IsBranch, IsTypedRegular, ReferenceTerm,
-//	IsReferenceTerm, IsBoundLValueTerm, IsUniqueTerm, IsModifiableTerm,
-//	IsTemporaryTerm, IsUncollapsedTerm, LiftTermRef, NPL::SetContentWith,
-//	LiftTermValueOrCopy, ResolveName, ResolveIdentifier, MoveResolved,
-//	Environment::EnsureValid, NPLException, ReduceToReferenceList,
-//	MoveCollapsed, NPL::IsMovable, LiftTermOrCopy, IsBranchedList,
-//	AccessFirstSubterm, ThrowInsufficientTermsError, Retain, NPL::AsTermNode,
-//	ystdex::fast_any_of, A1::Perform, Ensigil, YSLib::ufexists,
+//	std::placeholders, NPL::CollectTokens, Strict, LiftOtherOrCopy,
+//	EnvironmentReference, NPL::ToParent, IsEmpty, ComposeReferencedTermOp,
+//	IsBranch, IsTypedRegular, ReferenceTerm, IsReferenceTerm, IsBoundLValueTerm,
+//	IsUniqueTerm, IsModifiableTerm, IsTemporaryTerm, IsUncollapsedTerm,
+//	LiftTermRef, NPL::SetContentWith, LiftTermValueOrCopy, ResolveName,
+//	ResolveIdentifier, MoveResolved, Environment::EnsureValid, NPLException,
+//	ReduceToReferenceList, MoveCollapsed, NPL::IsMovable, LiftTermOrCopy,
+//	IsBranchedList, AccessFirstSubterm, ThrowInsufficientTermsError, Retain,
+//	NPL::AsTermNode, ystdex::fast_any_of, A1::Perform, Ensigil, YSLib::ufexists,
 //	YSLib::to_std_string, AssertValueTags, ClearCombiningTags,
 //	EmplaceCallResultOrReturn, RemoveHead, TryAccessTerm, ystdex::plus,
 //	ystdex::tolower, ReduceReturnUnspecified, YSLib::IO::StreamPut,
 //	YSLib::OwnershipTag, YSLib::FetchEnvironmentVariable,
-//	YSLib::SetEnvironmentVariable, YSLib::uremove, YSLib::allocate_shared,
+//	YSLib::SetEnvironmentVariable, YSLib::uremove, NPL::allocate_shared,
 //	ystdex::search_map, ystdex::emplace_hint_in_place, tuple,
-//	YSLib::IO::UniqueFile, ystdex::begins_with, ystdex::throw_error;
+//	YSLib::IO::UniqueFile, AccessPtr, ystdex::begins_with, ystdex::throw_error;
 #include YFM_NPL_NPLA1Forms // for EncapsulateValue, Encapsulate, Encapsulated,
 //	Decapsulate, NPL::Forms functions, StringToSymbol, SymbolToString;
 #include YFM_NPL_NPLAMath // for NumerLeaf, NumberNode, NPL math functions;
@@ -196,7 +197,7 @@ FilterMakefileDependencies(vector<string>& lst)
 namespace A1
 {
 
-YSLib::unique_ptr<std::istream>
+unique_ptr<std::istream>
 OpenFile(const char* filename)
 {
 	TryRet(YSLib::Text::OpenSkippedBOMtream<
@@ -206,7 +207,7 @@ OpenFile(const char* filename)
 		ystdex::sfmt("Failed opening file '%s'.", filename))))
 }
 
-YSLib::unique_ptr<std::istream>
+unique_ptr<std::istream>
 OpenUnique(ContextState& cs, string filename)
 {
 	auto p_is(A1::OpenFile(filename.c_str()));
@@ -330,24 +331,45 @@ CopyEnvironmentDFS(Environment& d, const Environment& e)
 		auto p_env(NPL::AllocateEnvironment(a));
 
 		CopyEnvironmentDFS(*p_env, parent);
-		NPL::AssignParent(dst.Parent, a, std::move(p_env));
+		NPL::AssignParentH<SingleStrongParent>(dst.Parent, a, std::move(p_env));
+	});
+	const auto copy_parent_ptr_common(
+		[&](function<Environment&()>& mdst, const IParent& poly) -> bool{
+		if(const auto p_single_weak
+			= dynamic_cast<const SingleWeakParent*>(&poly))
+		{
+			if(const auto& p = p_single_weak->Get().Lock())
+			{
+				copy_parent(mdst(), *p);
+				return true;
+			}
+			// XXX: Failure of locking is ignored.
+		}
+		else if(const auto p_single_strong
+			= dynamic_cast<const SingleStrongParent*>(&poly))
+		{
+			if(const auto& p = p_single_strong->Get())
+			{
+				copy_parent(mdst(), *p);
+				return true;
+			}
+			// XXX: Empty pointer is ignored.
+		}
+		else if(const auto p_empty = dynamic_cast<const EmptyParent*>(&poly))
+		{
+			NPL::AssignParentH<EmptyParent>(mdst().Parent, a);
+			return true;
+		}
+		return {};
 	});
 	const auto copy_parent_ptr(
+		[&](function<Environment&()> mdst, const EnvironmentParent& ep) -> bool{
+		return copy_parent_ptr_common(mdst, ep.GetObject());
+	});
+	const auto copy_parent_ptr_for_obj(
 		[&](function<Environment&()> mdst, const ValueObject& vo) -> bool{
-		if(const auto p = AccessPtr<EnvironmentReference>(vo))
-		{
-			if(const auto p_parent = p->Lock())
-				copy_parent(mdst(), *p_parent);
-			// XXX: Failure of locking is ignored.
-			return true;
-		}
-		else if(const auto p_e = AccessPtr<shared_ptr<Environment>>(vo))
-		{
-			if(const auto p_parent = *p_e)
-				copy_parent(mdst(), *p_parent);
-			// XXX: Empty parent is ignored.
-			return true;
-		}
+		if(const auto p_poly = vo.AccessPtr<IParent>().get())
+			return copy_parent_ptr_common(mdst, *p_poly);
 		return {};
 	});
 
@@ -360,7 +382,7 @@ CopyEnvironmentDFS(Environment& d, const Environment& e)
 			[&](const ValueObject& vo) -> ValueObject{
 			shared_ptr<Environment> p_env;
 
-			if(copy_parent_ptr([&]() -> Environment&{
+			if(copy_parent_ptr_for_obj([&]() -> Environment&{
 				p_env = NPL::AllocateEnvironment(a);
 				return *p_env;
 			}, vo))
@@ -538,11 +560,10 @@ YB_ATTR_nodiscard YB_FLATTEN shared_ptr<Environment>
 CreateEnvironmentWithParent(const Environment::allocator_type& a,
 	const EnvironmentReference& r_env)
 {
-	// XXX: Simlar to %MakeEnvironment.
-	ValueObject parent;
-
-	parent.emplace<EnvironmentReference>(r_env);
-	return NPL::AllocateEnvironment(a, std::move(parent));
+	// XXX: Simlar to %MakeEnvironment, specialized for 1 %EnvironmentReference
+	//	value.
+	Environment::EnsureValid(r_env.Lock());
+	return NPL::AllocateEnvironment(a, NPL::ToParent<SingleWeakParent>(r_env));
 }
 #endif
 
@@ -2228,11 +2249,11 @@ LoadModule_std_modules(ContextState& cs)
 	using YSLib::to_std_string;
 	auto& m(cs.GetRecordRef().GetMapRef());
 	const auto a(NPL::ToBindingsAllocator(m));
-	const auto p_registry(YSLib::allocate_shared<YSLib::map<string,
+	const auto p_registry(NPL::allocate_shared<YSLib::map<string,
 		pair<TermNode, shared_ptr<Environment>>>>(a));
 	auto& registry(*p_registry);
 	const auto p_specs([&]{
-		auto p_vec(YSLib::allocate_shared<vector<string>>(a));
+		auto p_vec(NPL::allocate_shared<vector<string>>(a));
 		string x(a);
 
 		YSLib::FetchEnvironmentVariable(x, "NPLA1_PATH");

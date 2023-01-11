@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r13461
+\version r13729
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2023-01-02 08:52 +0800
+	2023-01-12 04:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,275 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				(
+				+ "interface %IParent" ^ ("%DeclDerivedI" @ %YBaseMacro);
+				+ "classes %(EmptyParent, SingleStrongParent, \
+					SingleWeakParent, ListParent)";
+				+ "3 function templates %ToParent"
+				),
+				(
+				+ "header inclusion %YBase.YStandard.Memory",
+				+ 'using YSLib::in_place_type_t',
+				+ 'using YSLib::make_unique',
+				+ 'using YSLib::unique_ptr';
+				+ "class %EnvironmentParent" $dep_from ^ "%IParent"
+				),
+				+ 'using YSLib::allocate_shared;',
+				/ @ "class %Environment" $=
+				(
+					+ "type %Redirector" ^ $dep_from "%IParent",
+					+ "static function %DefaultTryRedirect" ^ $dep_from
+						"%(EmptyParent, SingleStrongParent, SingleWeakParent, \
+						ListParent)" $dep_to "IParent call sites support",
+					/ "supported %(IParent, ParentList)" @ "static function \
+						%CheckParent" ^ $dep_from "%ParentList"
+						$dep_to "IParent call sites support",
+					/ "initialized %Parent with brace-init-list"
+						^ $dep_from "%EmptyParent" $dep_to "default parent",
+					- "call to %CheckParent" @ "all 2 constructors with \
+						parameter of %ValueObject references",
+					- $revert(b798) "function %CheckParent"
+						$dep_from ("%Forms::CheckParent" @ %NPLA1Forms),
+					/ "type of %Parent" -> $dep_from "%EnvironmentParent"
+						~ "%ValueObject"
+				),
+				+ $re_add(b963) $lib "class template specializations \
+					%is_bitwise_swappable" @ "namespace %ystdex"
+					$= (/ $dep_from "for %NPL::(EmptyParent, SingleWeakParent, \
+						SingleStrongParent, ParentList)"),
+				/ "supported resolving %(EmptyParent, SingleStrongParent, \
+					SingleWeakParent, ListParent)" @ "static member function \
+					%ContextNode::DefaultResolve" ^ $dep_from "%(EmptyParent, \
+					SingleStrongParent, SingleWeakParent, ListParent)"
+					$dep_to "IParent call sites support"
+				),
+				/ DLDI "function %ResolveName"
+					$dep_from $forced "%ContextNode::Resolve",
+				+ "5 function templates %AssignParentH"
+					$dep_from "%EnvironmentParent",
+				/ "target set for weak parent" @ "function %AddWeakParent#1"
+					-> "%IParent derivations"
+					$dep_all_from "IParent call sites support" ^ $dep_from
+					("%(NPL::AssignParentH, SingleWeakParent)" @ %NPLA),
+				+ "function %MoveParentValue",
+				- $revert(b963) "function template %MakeParent"
+					$dep_from "removal of NPL::MakeParent"
+			),
+			/ $re_ex(b953) "set parent" @ "function templates %(InvokeIn, \
+				GetModuleFor)" @ %NPLA1 $dep_all_from
+				"IParent call sites support" ^ (($dep_from
+				"%NPL::AssignParentH", "%SingleWeakParent") @ %NPLA),
+			/ "supported 3 %IParent derivations" @ "static function \
+				template %Traverse" @ "class %RecordCompressor"
+				@ %NPLA1Internals $dep_to "IParent call sites support",
+			/ @ "namespace %Forms" @ %NPLA1Forms $=
+			(
+				/ DLDI "functions %(ProvideLet, Provide, Import, ImportRef)"
+					$dep_from $forced ("%ContextNode::Resolve" @ %NPLA),
+				/ "all plain parent environment target types" -> "%IParent \
+					derivations" $dep_all_from "IParent call sites support"
+					$dep_to "avoiding plain parent environment targets" $=
+				(
+					/ ^ $dep_from
+						("%(NPL::AssignParentH, SingleWeakParent)" @ %NPLA),
+						// This is for the call to 'Let*' bindings in cases \
+							without environment argument.
+					/ "explicit parents parsing" ^ ($dep_from
+						"%(NPL::ToParent, ParentList, SingleWeakParent, \
+						SingleStrongParent)" @ %NPLA)
+						$comp $dep_from "default parent",
+						// This is for the call to internal \
+							%MakeEnvironmentParent, including conversion of \
+							the parent environment list element.
+					/ $comp "empty environment construction"
+						$dep_from "default parent",
+						// The internal call to %CreateEnvironment depends on \
+							both %MakeEnvironmentParent and this path.
+					/ ^ ($dep_from "%(NPL::ToParent, SingleWeakParent, \
+						SingleStrongParent)" @ %NPLA),
+						// This is for the call to internal %MakeParentSingle.
+					/ $comp $dep_from "%AssignWeakParent#1",
+						// This is for another path of 'Let*' implemenations \
+							in internal %LetCombinePrepare.
+					/ "non-owning parent construction" ^ ($dep_from
+						"%(NPL::ToParent, SingleWeakParent)" @ %NPLA)
+						// This is for the internal call to \
+							%MakeParentSingleNonOwning.
+				),
+				/ $comp DLDI "vau handler equality" $forced $dep_from
+					"IParent call sites support" $dep_from ("avoiding plain \
+					parent environment targets", "%NPL::ToParent" @ %NPLA),
+					// The equality needs no change except it does not \
+						support mixture of %IParent targets and plain \
+						targets in comparing the parents, thus expressions \
+						like 'eqv? (idv idv) idv' with the derivation \
+						would fail even with the fix in %PolymorphicValueHolder.
+				/ DLI "simplified list element parent check without call site \
+					check",
+				/ "creation of parent objects"
+					@ "functions %('Lambda*', 'WVau*', 'Vau*')"
+				(
+					// This is in the internal call to %MakeResolvedParent.
+					/ "specialized for empty list"
+						^ $dep_from ("%(NPL::ToParent, EmptyParent)" @ %NPLA),
+					/ "specialized for list with 1 element as the leaf case",
+					- DLI "redundant %Environment::CheckParent call on the \
+						value from current environment",
+					* "inaccruate check and exception message for environment \
+						type for resolved environment value of incorrect type"
+						$orig (@ "functions %(VauWithEnvironment, \
+						VauWithEnvironmentRef)" $since b909)
+						// The overload for %ValueObject was used (in internal \
+							%MakeResolvedParent since b945, %LetCombinePrepare \
+							since b917, %LetCore since b915, and \
+							%VauWithEnvironmentImpl since b909), which was at \
+							least lacking of regular term check (by %IsAtom at \
+							current).
+						$= (/ $impl ^ ("%ResolveEnvironmentTerm"
+							~ "%ResolveEnvironmentValue" @ %NPLA)),
+					(
+					/ $impl $dep_from ("%Environment::Parent" @ %NPLA)
+						^ ("%EnviornmentParent" @ %NPLA) ~ "%ValueObject";
+					+ $dev $lib
+						"assertion to check valid %EnvironmentParent value"
+					)
+				),
+				(
+				/ DLI "specialized for list with 1 element as the leaf case"
+					@ "functions %(MakeEnvironment, \
+					BindingsWithParentToEnvironment)" $=
+				(
+					/ $impl ^ ($dep_from "%(SingleStrongParent, \
+						SingleWeakParent, NPL::ToParent)",
+						"%Environment::(EnsureValid, ThrowForInvalidType)")
+						@ %NPLA $dep_from "constructors"
+						@ "class %Environment" @ %NPLA,
+						// This relies on the removal of the check calls to \
+							avoid duplicated redundant checks. Then it can \
+							also reuse the implementation for creation of the \
+							list parent object for vau handlers because they \
+							have same specialized cases (empty, 1 element and \
+							other). The check is also now simplified, implied \
+							in %(NPL::ToParent, Environment::EnsureValid) and \
+							additonal one by lifting the check into the list \
+							environment conversion, using \
+							%Environment::ThrowForInvalidType for failure.
+					/ $impl $dep_from ("%Environment::Parent" @ %NPLA)
+						^ ("%EnviornmentParent" @ %NPLA) ~ "%ValueObject"
+						// The simplification above does not rely on the \
+							change on the type of %Environment::Parent which \
+							rules out unsupported environment parent target \
+							types (not deriving from %IParent), but the change \
+							makes it less error-prone and more efficient by \
+							the removal of unnecessary %ValueObject \
+							conversions and checks it earlier in the the list \
+							environment conversion.
+				);
+				/ DLI "simplified function %CheckParent"
+					!^ "%Environment::CheckParent"
+					// This relies on the change above.
+				),
+				/ DLDI "simplified value object assignment for parent"
+					^ "%MoveParentValue"
+					$effective @ "functions %('Let*', Provide)",
+			),
+			/ @ "namespace %Forms" @ %Dependency $=
+			(
+				/ @ "function %LoadGroundContext" $=
+				(
+					/ "DFS traverse" @ "native implementation"
+						@ "applicative 'copy-environment'" $=
+					(
+						/ $re_ex(b963) DLI "setting destination parent"
+							^ ("%NPL::AssignParentH" $dep_from %NPLA)
+							$= (/ "target type" -> "%IParent derivation"
+								^ ($dep_from "%SingleStrongParent" @ %NPLA)
+								~ "%shared_ptr<Environment>"),
+						/ "supported 3 %IParent derivations"
+							~ "plain environment parent target types"
+							^ $dep_from ("%(SingleWeakParent, \
+							SingleStrongParent, EmptyParent)" @ %NPLA)
+							$dep_to "IParent call sites support",
+						/ $comp "empty environment construction"
+							$dep_from "default parent"
+							$dep_to "avoiding plain parent environment targets"
+					),
+					/ DLDI "native implementation" @ "operative '$binds1?'"
+						$dep_from $forced ("%ContextNode::Resolve" @ %NPLA)
+				),
+				/ "plain parent environment target types for standard \
+					environment" -> "%IParent derivations" $dep_all_from
+					"IParent call sites support" $effective @ "native \
+					implementation" @ ("applicative 'make-standard-environment'"
+					@ "function %LoadGroundContext", "applicatives \
+					('get-module', 'register-requirement!', %require)"
+					@ "function %LoadModule_std_modules")
+					$dep_to ("avoiding plain parent environment targets",
+					"removal of NPL::MakeParent")
+					$= (/ $impl ^ ($dep_from "%(SingleWeakParent, \
+						NPL::ToParent)", "%Environment::(EnsureValid, \
+						ThrowForInvalidType)") @ %NPLA)
+						$dep_from ("%Environment::Parent" @ %NPLA)
+						// As in %Forms::MakeEnvironment, but more specialized.
+			),
+			(
+			/ ("removed support of plain parent target types" $dep_from
+				"avoiding plain parent environment targets", "parent object"
+				^ ("%EnvironmentParent" @ %NPLA) ~ "%ValueObject"
+				$dep_from $forced "%Environment::Parent") $effective
+				@ (("static member function %ContextNode::DefaultResolve")
+				@ %NPLA, "static function template %Traverse"
+				@ "class %RecordCompressor" @ %NPLA1Internals, "DFS traverse"
+				@ "native implementation" @ "applicative 'copy-environment'"
+				@ "function %Forms::LoadGroundContext" @ %Dependency)
+				$dep_from ("%Environment::CheckParent" @ %NPLA);
+				// %Environment::CheckParent should also be changed if not \
+					removed.
+			/ "simplified the parent redirection result type" @ %NPLA $=
+			(
+				// This is changed after excluding the coexistence of %IParent \
+					derivations and the old plain parent target types, \
+					otherwise it would make the implementation of \
+					%ContextNode::DefaultResolve significantly more complicated.
+				/ "return type" @ "%(IParent, EmptyParent, SingleWeakParentt, \
+					SingleStrongParent, ParentList)::TryRedirect"
+					-> "redirected environment pointer" ~ "parent pointer",
+					// The resolution of the parent pointer should be totally \
+						implemented in %ContextNode::Resolve, instead of \
+						partial implementation e.g. in %ParentList::TryRedirect.
+				(
+				+ DD "assumed the target type always derivation of %IParent as \
+					'\invariant command'" @ "data member %Environment::Parent"
+					@ "Doxygen comment";
+				/ "Redirector" ^ "%IParent" ~ "%ValueObject"
+				);
+				/ $forced DLI "simplified"
+					@ "static member function %ContextNode::DefaultResolve"
+			),
+			/ DLI "parent object" ^ ("%EnvironmentParent" @ %NPLA)
+				~ "%ValueObject" $dep_from $forced "%Environment::Parent"
+				$effective @ (("static function template %Traverse" @ "class \
+				%RecordCompressor" @ %NPLA1Internals, "DFS traverse"
+				@ "native implementation" @ "applicative 'copy-environment'"
+				@ "function %Forms::LoadGroundContext" @ %Dependency)
+			),
+			/ DLDI 'YSLib::allocate_shared' -> ^ $dep_from
+				("%NPL::allocate_shared" @ %NPLA) $effective @ %(NPLA, NPLA1,
+				NPLA1Internals, NPLA1Forms, Dependency)
+			/ DLDI 'YSLib::unique_ptr' -> ^ $dep_from
+				("%NPL::unique_ptr" @ %NPLA) $effective @ %Dependency
+		)
+	)
+),
+
+b963
 (
 	/ @ '__cplusplus >= 201703L' $dev %Test.YBase $=
 	(

@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规范和实现规格说明。
-\version r30105
+\version r30132
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2023-01-02 08:35 +0800
+	2023-01-10 06:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -3926,14 +3926,22 @@ Environment 支持定制名称解析和名称解析的重定向(@4.3.3) ，其�
 
 @6.11.1.1 环境和变量绑定相关 API ：
 类 NPL::EnvironmentBase 是 Environment 和 NPL::EnvironmentReference 的基类。
+类类型 NPL::EnvironmentParent
 NPL::EnvironmentList 是 NPL::vector<ValueObject> 的别名，表示一个环境列表，作为父环境(@5.7) 时可用于递归重定向(@4.3.3) 。
 NPL::BindingMap
 NPL::NameResolution
 函数 LookupName 在绑定集合中查找（一般作为局部变量的）标识符指定的名称，实现名称查找(@4.3.3) 。输入字符串指定（假定名称验证已通过的）名称。
+接口 NPL::IParent
+以下类实现 NPL::IParent ，支持父环境的实现：
+NPL::EmptyParent 空父环境；
+NPL::SingleStrongParent 包含一个 shared_ptr<Environment> 值(@6.8.2) ；
+NPL::SingleWeakParent 包含一个 EnvironmentReference 值(@6.8.2) ；
+NPL::ParentList 包含一个 NPL::EnvironmentList 值。
+类 NPL::EnvironmentParent 表示父环境。
 
 @6.11.1.2 环境类：
 类 Environment 中，指定变量绑定的名称绑定映射(@6.11.1) 类型为 NPL::BindingMap 。
-类 Environment 提供父环境(@5.7) 以及基本的名称解析(@4.3.3) 等操作的接口。其中的操作可被针对特定的环境对象重新设置。
+类 Environment 提供父环境以及基本的名称解析(@4.3.3) 等操作的接口。其中的操作可被针对特定的环境对象重新设置。
 类 Environment 包含以下相关的数据成员：
 Parent ：父环境，作为可在运行时确定类型的父环境引用，用于重定向(@4.3.3) 算法的实现。
 类 Environment 还包含其它一些维护内部状态和绑定(@4.1) 的 API 。
@@ -3951,7 +3959,7 @@ Parent ：父环境，作为可在运行时确定类型的父环境引用，用�
 成员函数 Unfreeze
 
 @6.11.1.3 环境引用相关类型和检查：
-类型 shared_ptr<Environment> 和类 NPL::EnvironmentReference（作为中间值另见 @6.8.2 ）是环境强引用和环境强引用(@5.7.2) 的宿主类型(@5.3.1) 。
+类型 shared_ptr<Environment> 和类 NPL::EnvironmentReference 是环境强引用和环境强引用(@5.7.2) 作为宿主值(@6.3.5) 的宿主类型(@5.3.1) 。
 访问环境的 API 可使用非空的环境引用值引用对象，或空的引用值指定不存在环境对象。
 使用可能具有这些值的代码需要对空值进行检查。因为这些空值不出现在对象语言，一般通过 Environment::ThrowForInvalidValue(@6.11.1.2) 抛出 std::invalid_argument 而非 NPL 异常(@6.5) 。
 使用环境弱引用可避免非预期的所有权(@4.2.2.3) 关系构成循环引用(@5.2) 。
@@ -3959,13 +3967,12 @@ Parent ：父环境，作为可在运行时确定类型的父环境引用，用�
 ContextNode::DefaultResolve(@6.11.3.1) 重定向父环境(@5.7) ；
 以引用的环境作为动态环境(@4.6.1.2) 创建 vau 抽象(@8.4.5) 且创建的对象不对环境有所有权。
 因为循环引用是对象语言的未定义行为，检查循环引用失败抛出 std::bad_weak_ptr 而非 NPL 异常(@6.5) 。
-对象语言中不直接可见但支持作为父环境的宿主值类型是 ContextNode::DefaultResolve 中的重定向(@4.3.3) 目标的宿主值(@6.3.5) 的类型中公开的类型(@6.11.1.1) ，即：
-NPL::EnvironmentList ；
-shared_ptr<Environment> ；
-NPL::EnvironmentReference 。
+对象语言中不直接可见(@6.3.5) 但支持作为父环境的宿主类型是 ContextNode::DefaultResolve 中的重定向(@4.3.3) 目标的宿主值(@6.3.5) 的类型中公开的类型(@6.11.1.1) ，即 NPL::IParent 的实现。
 重定向依次检查这些类型。
+派生实现的其它重定向可定义提供明确支持的其它类型，包括公开的宿主值(@6.3.5) 的类型和作为非宿主值的其它宿主类型。
+**注释**
+环境引用可作为中间值(@6.8.2) 。 
 实现可提供其它宿主类型，如 observer_ptr<Environment> ，用于内部实现而不要求所有使用环境的操作支持。
-派生实现的其它重定向可定义提供明确支持的其它类型，包括公开的宿主值的类型。
 除 shared_ptr<Environment> 的 use_count 的结果外，环境的引用计数具体值是实现细节，不保证具有明确含义的稳定的结果。
 
 @6.11.2 上下文相关的规约函数类型别名：
@@ -4055,7 +4062,9 @@ NPL::ToParent
 NPL::MakeParent
 以下函数或函数模板重载设置父环境：
 NPL::AssignParent
+NPL::AssignParentH
 NPL::AssignParentWeak
+NPL::MoveParent
 
 @6.11.4.4 上下文切换：
 仿函数 NPL::EnvironmentSwitcher 和 NPL::EnvironmentExchanger 用于切换上下文(@6.11.3.1) 中的当前环境(@6.11.3) 。
@@ -8281,9 +8290,13 @@ $move-resolved! <symbol> ：转移解析标识符的对象。
 若环境被冻结(@9.9.3.9) ，则复制被绑定对象；否则，直接转移对象的项(@6.3.6) 。
 一般应仅用于被绑定的对象不需要再被使用时。
 () copy-environment ：递归复制当前环境。当前忽略父环境(@9.9.3) 中的环境列表(@6.11.1) 。
-结果是新创建的环境，具有宿主值类型 shared_ptr<Environment> 。
-使用类似 @6.11.1 的 DFS 搜索操作数的父环境和绑定的对象，若非环境则直接复制值，否则创建环境并递归使用 DFS 复制值。
-当前只支持复制具有 shared_ptr<Environment> 和 EnvironmentReference 的宿主值的环境，其它对象直接视为非环境对象。
+结果是新创建的环境，具有宿主值类型 shared_ptr<Environment>(@6.11.1.3) 。
+使用类似环境数据结构遍历的 DFS 搜索(@6.11.1) 操作数的父环境和绑定的对象，若非环境则直接复制值，否则创建环境并递归使用 DFS 复制值。
+当前只支持复制具有以下目标类型的父环境及被引用对象中的环境，其它对象直接视为非环境对象：
+包含 EnvironmentReference(@6.11.1.3) 值的对应 NPL::IParent(@6.11.1.1) 的宿主值的环境，即 SingleWeakParent(@6.11.1.1) ；
+包含 shared_ptr<Environment> 值的对应 NPL::IParent 的宿主值的环境，即 SingleStrongParent(@6.11.1.1) 。
+空环境对应 NPL::IParent 的宿主值的环境，即 EmptyParent(@6.11.1.1) 。
+除空环境，其它支持的环境对象都深复制为环境强引用，作为父环境设置为 SingleStrongParent 。
 警告：这个函数仅用于测试时示例构造环境，通常不应被用户程序使用，且可能在未来移除。未确定环境宿主值时可引起未定义行为。
 freeze-environment! <environment> ：冻结环境。
 这个操作处理操作数指定的一等环境。对隐藏环境(@9.9.3.1) 初始化时的相同操作参见冻结操作(@9.9.3.9) 。

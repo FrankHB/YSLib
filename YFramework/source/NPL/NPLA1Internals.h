@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r22824
+\version r22854
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2023-01-01 01:41 +0800
+	2023-01-11 04:27 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -29,14 +29,16 @@
 #define NPL_INC_NPLA1Internals_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_NPLA1 // for shared_ptr, ContextNode, YSLib::allocate_shared,
+#include YFM_NPL_NPLA1 // for shared_ptr, ContextNode, NPL::allocate_shared,
 //	NPL::Deref, NPLException, TermNode, ReductionStatus, Reducer, YSLib::map,
-//	size_t, lref, Environment, set, NPL::ToBindingsAllocator, ValueObject,
-//	IsTyped, EnvironmentList, EnvironmentReference, pair, YSLib::forward_list,
-//	tuple, ystdex::optional, std::declval, EnvironmentGuard, NPL::get,
-//	A1::NameTypedContextHandler, MoveKeptGuard, TermReference, TermTags,
-//	TryAccessLeafAtom, ThrowTypeErrorForInvalidType, type_id, TermToNamePtr,
-//	IsIgnore, ParameterMismatch, IsPair, IsEmpty, IsList, NPL::AsTermNode,
+//	size_t, lref, Environment, set, NPL::ToBindingsAllocator, EnvironmentParent,
+//	IParent, SingleWeakParent, SingleStrongParent, ParentList, EnvironmentList,
+//	pair, ValueObject, YSLib::forward_list, tuple, ystdex::optional,
+//	std::declval, EnvironmentGuard, NPL::get, A1::NameTypedContextHandler,
+//	MoveKeptGuard, TermReference, TermTags, TryAccessLeafAtom,
+//	std::allocator_arg, in_place_type, EnvironmentReference,
+//	ThrowTypeErrorForInvalidType, type_id, TermToNamePtr, IsIgnore,
+//	ParameterMismatch, IsPair, IsEmpty, IsList, NPL::AsTermNode,
 //	NPL::AsTermNodeTagged, ystdex::is_bitwise_swappable;
 #include <ystdex/compose.hpp> // for ystdex::get_less;
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard,
@@ -142,7 +144,7 @@ private:
 
 public:
 	OneShotChecker(ContextNode& ctx)
-		: p_shot(YSLib::allocate_shared<bool>(ctx.get_allocator()))
+		: p_shot(NPL::allocate_shared<bool>(ctx.get_allocator()))
 	{}
 	//! \since build 947
 	DefDeCopyMoveCtorAssignment(OneShotChecker)
@@ -256,39 +258,41 @@ struct RecordCompressor final
 		return size_t(scnt);
 	}
 
-	//! \since build 882
+	//! \since build 964
 	template<typename _fTracer>
 	static void
-	Traverse(Environment& e, ValueObject& parent, const _fTracer& trace)
+	Traverse(Environment& e, EnvironmentParent& parent, const _fTracer& trace)
 	{
-		const auto& ti(parent.type());
+		const auto p_poly(&parent.GetObjectRef());
 
-		if(IsTyped<EnvironmentList>(ti))
+		if(const auto p_single_weak
+			= dynamic_cast<const SingleWeakParent*>(p_poly))
 		{
-			for(auto& vo : parent.GetObject<EnvironmentList>())
+			if(auto p = p_single_weak->Get().Lock())
+				TraverseForSharedPtr(e, parent, trace, p);
+		}
+		else if(const auto p_single_strong
+			= dynamic_cast<const SingleStrongParent*>(p_poly))
+		{
+			if(auto p = p_single_strong->Get())
+				TraverseForSharedPtr(e, parent, trace, p);
+		}
+		else if(const auto p_parent_list = dynamic_cast<ParentList*>(p_poly))
+		{
+			for(auto& vo : p_parent_list->GetRef())
 				Traverse(e, vo, trace);
-		}
-		else if(IsTyped<EnvironmentReference>(ti))
-		{
-			if(auto p = parent.GetObject<const EnvironmentReference>().Lock())
-				TraverseForSharedPtr(e, parent, trace, p);
-		}
-		else if(IsTyped<shared_ptr<Environment>>(ti))
-		{
-			if(auto p = parent.GetObject<const shared_ptr<Environment>>())
-				TraverseForSharedPtr(e, parent, trace, p);
 		}
 	}
 
 private:
-	//! \since build 894
+	//! \since build 964
 	template<typename _fTracer>
 	static void
-	TraverseForSharedPtr(Environment& e, ValueObject& parent,
+	TraverseForSharedPtr(Environment& e, EnvironmentParent& parent,
 		const _fTracer& trace, shared_ptr<Environment>& p)
 	{
 		if(ystdex::expand_proxy<void(const shared_ptr<Environment>&,
-			Environment&, ValueObject&)>::call(trace, p, e, parent))
+			Environment&, EnvironmentParent&)>::call(trace, p, e, parent))
 		{
 			auto& dst(*p);
 
@@ -1619,7 +1623,7 @@ template<class _tAlloc, typename... _tParams>
 YB_ATTR_nodiscard YB_ATTR_always_inline inline shared_ptr<TermNode>
 AllocateSharedTerm(const _tAlloc& a, _tParams&&... args)
 {
-	return YSLib::allocate_shared<TermNode>(a, yforward(args)...);
+	return NPL::allocate_shared<TermNode>(a, yforward(args)...);
 }
 
 template<class _tAlloc, typename... _tParams>

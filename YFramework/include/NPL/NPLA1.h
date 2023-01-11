@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r10471
+\version r10487
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2023-01-02 07:42 +0800
+	2023-01-11 04:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,15 +32,16 @@
 #include YFM_NPL_NPLA // for NPLATag, TermNode, ContextNode,
 //	ystdex::equality_comparable, std::declval, ystdex::exclude_self_t,
 //	trivial_swap_t, trivial_swap, ystdex::ref_eq, string_view,
-//	CombineReductionResult, SourceName, make_observer, YSLib::allocate_shared,
+//	CombineReductionResult, SourceName, make_observer, NPL::allocate_shared,
 //	TNIter, LiftOtherValue, NPL::Deref, NPL::AsTermNode,
 //	std::make_move_iterator, std::next, ystdex::retry_on_cond, std::find_if,
 //	ystdex::exclude_self_params_t, YSLib::AreEqualHeld, ystdex::or_,
 //	std::is_constructible, ystdex::decay_t, ystdex::expanded_caller,
-//	ystdex::false_, ystdex::make_function_type_t, ystdex::make_parameter_list_t,
-//	ystdex::true_, std::allocator_arg, ystdex::nor_, ystdex::is_instance_of, tuple,
-//	ystdex::enable_if_t, std::is_same, ystdex::is_same_param, ystdex::size_t_,
-//	AssertCombiningTerm, NPL::EmplaceLeaf, ToBindingsAllocator, IsList,
+//	ystdex::false_, ystdex::make_parameter_list_t, std::allocator_arg,
+//	ystdex::make_function_type_t, ystdex::true_, ystdex::nor_,
+//	ystdex::is_instance_of, tuple, ystdex::enable_if_t, std::is_same,
+//	std::allocator_arg_t, ystdex::is_same_param, ystdex::size_t_,
+//	AssertCombiningTerm, ToBindingsAllocator, IsList,
 //	ThrowListTypeErrorForNonList, ThrowInsufficientTermsError, CountPrefix,
 //	ArityMismatch, TermReference, TermTags, RegularizeTerm, ystdex::guard,
 //	ystdex::invoke, NPL::AssignParent, shared_ptr, Environment, TokenValue,
@@ -510,8 +511,8 @@ public:
 	void
 	ShareCurrentSource(_tParams&&... args)
 	{
-		CurrentSource = YSLib::allocate_shared<string>(get_allocator(),
-			yforward(args)...);
+		CurrentSource
+			= NPL::allocate_shared<string>(get_allocator(), yforward(args)...);
 	}
 
 	//! \since build 948
@@ -1678,8 +1679,8 @@ using EnvironmentGuard = ystdex::guard<EnvironmentSwitcher>;
 
 以第一参数作为上下文，切换到参数指定的新创建的环境，并创建被切换的环境的守卫。
 其余参数被作为初始化新创建环境的参数。
-其余参数指定的父环境被 Environment 的构造函数检查。若不需检查（如已在之前调用
-	Environment::CheckParent 或 Environment::EnsureValid ），可不使用其余参数，
+其余参数指定的父环境被 Environment 的构造函数检查。若不需检查
+	（如已在之前调用 Environment::EnsureValid ），可不使用其余参数，
 	而在创建环境后设置当前环境的父环境对象。
 */
 template<typename... _tParams>
@@ -1703,9 +1704,7 @@ InvokeIn(ContextNode& ctx, _fCallable&& f, _tParams&&... args)
 	const auto a(ToBindingsAllocator(ctx));
 	auto gd(GuardFreshEnvironment(ctx));
 
-	// XXX: Using allocator without %in_place_type is inefficient.
-	NPL::AssignParent(ctx, a, in_place_type<EnvironmentReference>,
-		std::move(r_env));
+	NPL::AssignParentH<SingleWeakParent>(ctx, a, std::move(r_env));
 	return ystdex::invoke(yforward(f), yforward(args)...);
 }
 
@@ -1724,9 +1723,7 @@ GetModuleFor(ContextNode& ctx, _fCallable&& f, _tParams&&... args)
 	const auto a(ToBindingsAllocator(ctx));
 	auto gd(GuardFreshEnvironment(ctx));
 
-	// XXX: As in %InvokeIn.
-	NPL::AssignParent(ctx, a, in_place_type<EnvironmentReference>,
-		std::move(r_env));
+	NPL::AssignParentH<SingleWeakParent>(ctx, a, std::move(r_env));
 	ystdex::invoke(yforward(f), yforward(args)...);
 	ctx.GetRecordRef().Freeze();
 	return gd.func.Switch();

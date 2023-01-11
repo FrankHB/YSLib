@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2022 FrankHB.
+	© 2015-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r647
+\version r651
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2022-11-28 05:09 +0800
+	2023-01-11 12:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define NPL_INC_Dependency_h_
 
 #include "YModules.h"
-#include YFM_NPL_NPLA1 // for string, vector, std::istream, YSLib::unique_ptr;
+#include YFM_NPL_NPLA1 // for string, vector, std::istream, unique_ptr;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard;
 
 namespace NPL
@@ -75,13 +75,13 @@ namespace A1
 \note 编码假定为 UTF-8 。允许可选的 BOM 。以共享只读方式打开。
 \since build 839
 */
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) YSLib::unique_ptr<std::istream>
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) unique_ptr<std::istream>
 OpenFile(const char*);
 
 //! \since build 955
 //@{
 //! \brief 打开指定路径的文件作为 NPL 输入流并在上下文设置源代码名称。
-YB_ATTR_nodiscard YF_API YSLib::unique_ptr<std::istream>
+YB_ATTR_nodiscard YF_API unique_ptr<std::istream>
 OpenUnique(ContextState&, string);
 
 

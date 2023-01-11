@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r29160
+\version r29346
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2023-01-01 18:37 +0800
+	2023-01-12 04:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,27 +37,29 @@
 //	RelaySwitched, trivial_swap, shared_ptr, ContextHandler, string_view,
 //	YSLib::unordered_map, Environment, std::throw_with_nested, string, TokenValue,
 //	any_ops::use_holder, in_place_type, YSLib::HolderFromPointer,
-//	YSLib::allocate_shared, InvalidReference, TypeError, BindParameter, Retain,
+//	NPL::allocate_shared, InvalidReference, TypeError, BindParameter, Retain,
 //	MoveFirstSubterm, ResolveEnvironment, BindParameterWellFormed,
 //	EnvironmentReference, ystdex::sfmt, TermToStringWithReferenceMark,
 //	ResolveTerm, LiftOtherOrCopy, ClearCombiningTags, SContext::Analyze,
-//	std::allocator_arg, NPL::ResolveRegular, IsTyped, NPL::MakeParent,
-//	TNIter, ystdex::make_transform, TryAccessLeafAtom, TermReference,
-//	NPL::AllocateEnvironment, IsTypedRegular, TryAccessLeaf, BindSymbol,
-//	ystdex::equality_comparable, IsList, ystdex::fast_all_of, IsEmpty,
-//	CheckParameterTree, AssertValueTags, NPL::AsTermNode, ystdex::exchange,
-//	TermTags, YSLib::Debug, NPLException, YSLib::sfmt, NPL::AssignParent,
-//	ThrowListTypeErrorForNonList, GuardFreshEnvironment, A1::MakeForm,
-//	ystdex::expand_proxy, AccessRegular, GetLValueTagsOf, RegularizeTerm,
-//	IsPair, LiftPropagatedReference, LiftOther, IsLeaf, LiftMovedOther,
-//	LiftTerm, ThrowValueCategoryError, ThrowListTypeErrorForAtom,
-//	ThrowInvalidSyntaxError, ShareMoveTerm, ExtractEnvironmentFormal,
-//	LiftTermOrCopy, EnsureValueTags, type_id, ystdex::update_thunk,
-//	AssertCombiningTerm, LiftToReturn, ystdex::prefix_eraser, IsBranchedList,
-//	EnvironmentGuard, NPL::AssignWeakParent, lref, A1::AsForm, ystdex::bind1,
-//	IsNPLASymbol, ystdex::isdigit, std::strchr, ystdex::call_value_or,
-//	ystdex::equal_to, LiftCollapsed, std::distance, ReduceCombinedBranch,
-//	YSLib::usystem, std::mem_fn;
+//	std::allocator_arg, NPL::ResolveRegular, EnvironmentParent, NPL::ToParent,
+//	SingleWeakParent, SingleStrongParent, Environment::ThrowForInvalidType,
+//	ParentList, TNIter, ystdex::make_transform, TryAccessLeafAtom,
+//	TermReference, NPL::AllocateEnvironment, IsTypedRegular, TryAccessLeaf,
+//	IsList, ystdex::fast_all_of, IsEmpty, BindSymbol,
+//	ystdex::equality_comparable, AssertValueTags, ThrowListTypeErrorForNonList,
+//	TermTags, NPL::AssignParent, YSLib::Debug, YSLib::sfmt, NPLException,
+//	CheckParameterTree, GuardFreshEnvironment, A1::MakeForm,
+//	ystdex::expand_proxy, AccessRegular, GetLValueTagsOf, NPL::AsTermNode,
+//	RegularizeTerm, IsPair, LiftPropagatedReference, LiftOther, LiftMovedOther,
+//	IsLeaf, LiftTerm, ThrowValueCategoryError, ThrowListTypeErrorForAtom,
+//	ThrowInvalidSyntaxError, ShareMoveTerm, ystdex::exchange,
+//	ExtractEnvironmentFormal, LiftTermOrCopy, EnsureValueTags, type_id,
+//	ystdex::update_thunk, AssertCombiningTerm, LiftToReturn,
+//	ystdex::prefix_eraser, IsTyped, IsBranchedList, EnvironmentGuard,
+//	NPL::MoveParentValue, NPL::AssignWeakParent, NPL::AssignParentH, lref,
+//	A1::AsForm, ystdex::bind1, IsNPLASymbol, ystdex::isdigit, std::strchr,
+//	ystdex::call_value_or, ystdex::equal_to, LiftCollapsed, std::distance,
+//	ReduceCombinedBranch, YSLib::usystem, std::mem_fn;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_SContext // for Session;
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard,
@@ -420,7 +422,7 @@ public:
 				Environment::Bind(m, k, TermNode(TermNode::Container(a),
 					ValueObject(any_ops::use_holder, in_place_type<
 					YSLib::HolderFromPointer<shared_ptr_t>>,
-					store[k] = YSLib::allocate_shared<ContextHandler>(a,
+					store[k] = NPL::allocate_shared<ContextHandler>(a,
 					ThrowInvalidCyclicReference))));
 		})(t);
 	}
@@ -725,8 +727,40 @@ RemoteEvalImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 //@}
 
 
-//! \since build 963
-YB_ATTR_nodiscard ValueObject
+//! \since build 964
+//@{
+YB_ATTR_nodiscard YB_PURE inline EnvironmentParent
+ToParentListElement(TermNode::allocator_type a, const ValueObject& vo)
+{
+	// XXX: See %MakeEnvironmentParentList.
+	if(const auto p = vo.AccessPtr<EnvironmentReference>())
+		return NPL::ToParent<SingleWeakParent>(a, *p);
+	if(const auto p = vo.AccessPtr<shared_ptr<Environment>>())
+		return NPL::ToParent<SingleStrongParent>(a, *p);
+	// NOTE: This does not accept parent environment values other than
+	//	first-class objects.
+	Environment::ThrowForInvalidType(vo.type());
+}
+YB_ATTR_nodiscard inline EnvironmentParent
+ToParentListElement(TermNode::allocator_type a, ValueObject&& vo)
+{
+	// XXX: See %MakeEnvironmentParentList.
+	if(const auto p = vo.AccessPtr<EnvironmentReference>())
+		return NPL::ToParent<SingleWeakParent>(a, std::move(*p));
+	if(const auto p = vo.AccessPtr<shared_ptr<Environment>>())
+		return NPL::ToParent<SingleStrongParent>(a, std::move(*p));
+	// NOTE: Ditto.
+	Environment::ThrowForInvalidType(vo.type());
+}
+
+template<typename _tParam>
+YB_ATTR_nodiscard EnvironmentParent inline
+MakeParentListElement(TermNode::allocator_type a, _tParam&& arg)
+{
+	return ToParentListElement(a, yforward(arg));
+}
+
+YB_ATTR_nodiscard EnvironmentParent
 MakeEnvironmentParentList(TNIter first, TNIter last, TermNode::allocator_type a,
 	bool move)
 {
@@ -734,42 +768,81 @@ MakeEnvironmentParentList(TNIter first, TNIter last, TermNode::allocator_type a,
 	//	the conversion below implied by %MakeParentListElement, so the
 	//	caller does need to do the check.
 	const auto tr([&](TNIter iter){
-		return ystdex::make_transform(iter, [&](TNIter i) -> ValueObject{
-			// XXX: Like %LiftToReturn, but for %Value only.
+		return ystdex::make_transform(iter, [&](TNIter i) -> EnvironmentParent{
+			// XXX: Like %LiftToReturn, but for %Value only, and finally
+			//	filtered by %MakeParentListElement.
+			const auto al(i->get_allocator());
+
 			if(const auto p
 				= TryAccessLeafAtom<const TermReference>(NPL::Deref(i)))
 			{
 				if(move && p->IsMovable())
-					return std::move(p->get().Value);
-				return p->get().Value;
+					return MakeParentListElement(al, std::move(p->get().Value));
+				return MakeParentListElement(al, p->get().Value);
 			}
 			if(move)
-				return std::move(i->Value);
-			return i->Value;
+				return MakeParentListElement(al, std::move(i->Value));
+			return MakeParentListElement(al, i->Value);
 		});
 	});
 
-#if true
-	// XXX: This is slightly more efficient.
-	return ValueObject(EnvironmentList(tr(first), tr(last), a));
-#elif true
-	return ValueObject(in_place_type<EnvironmentList>, tr(first), tr(last), a);
+#if false
+	// XXX: This is slightly more efficient only when %EnvironmentParent is
+	//	backed by %ValueObject.
+	return NPL::ToParent<ParentList>(tr(first), tr(last), a);
 #else
-	return ValueObject(std::allocator_arg, a,
-		in_place_type<EnvironmentList>, tr(first), tr(last), a);
+	return NPL::ToParent<ParentList>(a, tr(first), tr(last), a);
 #endif
 }
+
+YB_ATTR_nodiscard EnvironmentParent
+MakeParentLeafResolved(TermNode::allocator_type a,
+	pair<shared_ptr<Environment>, bool>& pr)
+{
+	// XXX: The check on %p_env for the parent should be checked before
+	//	(by %ResolveEnvironment, etc.).
+	auto& p_env(pr.first);
+
+	Environment::EnsureValid(p_env);
+	if(pr.second)
+		return NPL::ToParent<SingleStrongParent>(a, std::move(p_env));
+	return NPL::ToParent<SingleWeakParent>(a, std::move(p_env));
+}
+
+YB_ATTR_nodiscard EnvironmentParent
+MakeParentLeaf(TermNode& term, bool move)
+{
+	auto pr(move ? ResolveEnvironment(term)
+		: ResolveEnvironment(ystdex::as_const(term)));
+
+	return MakeParentLeafResolved(term.get_allocator(), pr);
+}
+
+YB_ATTR_nodiscard EnvironmentParent
+MakeResolvedParentLeaf(TermNode& nd, ResolvedTermReferencePtr p_ref)
+{
+	const auto a(nd.get_allocator());
+	auto pr(ResolveEnvironmentReferent(nd, p_ref));
+
+	return MakeParentLeafResolved(nd.get_allocator(), pr);
+}
+
+YB_ATTR_nodiscard EnvironmentParent
+MakeResolvedParentList(TermNode& nd, bool move)
+{
+	return !nd.empty() ? (nd.size() != 1 ? MakeEnvironmentParentList(nd.begin(),
+		nd.end(), nd.get_allocator(), move) : MakeParentLeaf(*nd.begin(), move))
+		// XXX: See the initialization of %Environment::Parent.
+		: NPL::ToParent<EmptyParent>();
+}
+//@}
 
 //! \since build 918
 YB_ATTR_nodiscard shared_ptr<Environment>
 CreateEnvironment(TermNode& term)
 {
-	const auto a(term.get_allocator());
-
-	// NOTE: The parent check is implied in the constructor of %Environment.
-	return !term.empty() ? NPL::AllocateEnvironment(a,
-		MakeEnvironmentParentList(term.begin(), term.end(), a, true))
-		: NPL::AllocateEnvironment(a);
+	return NPL::AllocateEnvironment(term.get_allocator(),
+		MakeResolvedParentList(term, true));
 }
 
 
@@ -800,38 +873,6 @@ IsOptimizableFormalList(const TermNode& formals) ynothrowv
 		&& (formals.empty() || IsNonTrailingSymbol(*formals.rbegin()));
 }
 #endif
-
-//! \since build 918
-//@{
-// XXX: The check on %p_env for the parent should be checked before
-//	(by %ResolveEnvironment, etc.).
-YB_ATTR_nodiscard YB_PURE static ValueObject
-MakeParentSingle(TermNode::allocator_type a,
-	pair<shared_ptr<Environment>, bool> pr)
-{
-	auto& p_env(pr.first);
-
-	// NOTE: The host value check is similar to %Environment::CheckParent since
-	//	the parent is a single environment, except that it does not respect to
-	//	'NPL_NPLA_CheckParentEnvironment'.
-	Environment::EnsureValid(p_env);
-	if(pr.second)
-		return ValueObject(std::allocator_arg, a,
-			in_place_type<shared_ptr<Environment>>, std::move(p_env));
-	return ValueObject(std::allocator_arg, a,
-		in_place_type<EnvironmentReference>, std::move(p_env));
-}
-
-YB_ATTR_nodiscard YB_PURE static ValueObject
-MakeParentSingleNonOwning(TermNode::allocator_type a,
-	const shared_ptr<Environment>& p_env)
-{
-	// NOTE: Ditto.
-	Environment::EnsureValid(p_env);
-	return ValueObject(std::allocator_arg, a,
-		in_place_type<EnvironmentReference>, p_env);
-}
-//@}
 
 void
 VauBind(ContextNode& ctx, const TermNode& formals, TermNode& term)
@@ -922,8 +963,9 @@ VauBindOne(ContextNode& ctx, const TermNode& formals, TermNode& term)
 }
 #endif
 
+//! \since build 964
 void
-VauPrepareCall(ContextNode& ctx, TermNode& term, ValueObject& parent,
+VauPrepareCall(ContextNode& ctx, TermNode& term, EnvironmentParent& parent,
 	TermNode& eval_struct, bool move)
 {
 	AssertNextTerm(ctx, term);
@@ -1010,9 +1052,9 @@ private:
 	\brief 父环境。
 	\note 包含引入抽象时的静态环境。
 	\note 共享所有权用于检查循环引用。
-	\since build 909
+	\since build 964
 	*/
-	mutable ValueObject parent;
+	mutable EnvironmentParent parent;
 	/*!
 	\brief 求值结构。
 	\since build 861
@@ -1026,32 +1068,32 @@ public:
 	/*!
 	\pre 间接断言：形式参数对象指针非空。
 	\pre 假定第二参数可表示父环境。
-	\pre 第二参数满足 Environment::CheckParent 检查不抛出异常。
+	\pre 断言：\c ep 。
 	\pre 间接断言：第三参数的标签可表示一等对象的值。
 	\pre 间接断言：第三参数指向非共享值且指定的项具有可表示一等对象的值。
-	\sa MakeParent
-	\sa MakeParentSingle
-	\sa MakeParentSingleNonOwning
-	\since build 959
+	\sa LambdaVau
+	\sa MakeResolvedParent
+	\since build 964
 	*/
 	//@{
 protected:
 	// XXX: Keep parameters of reference types, as it is more efficient, at
 	//	least in code generation by x86_64-pc-linux G++ 11.1.
-	VauHandler(shared_ptr<TermNode>&& p_fm, ValueObject&& vo,
+	VauHandler(shared_ptr<TermNode>&& p_fm, EnvironmentParent&& ep,
 		shared_ptr<TermNode>&& p_es, bool nl, GuardCall& gd_call)
 		: p_formals(std::move(p_fm)), guard_call(gd_call),
-		parent(std::move(vo)), p_eval_struct(std::move(p_es)), NoLifting(nl)
+		parent(std::move(ep)), p_eval_struct(std::move(p_es)), NoLifting(nl)
 	{
+		parent.AssertValid();
 		YAssert(p_eval_struct.use_count() == 1,
 			"Unexpected shared evaluation structure found.");
 		AssertValueTags(NPL::Deref(p_eval_struct)); 
 	}
 
 public:
-	VauHandler(shared_ptr<TermNode>&& p_fm, ValueObject&& vo,
+	VauHandler(shared_ptr<TermNode>&& p_fm, EnvironmentParent&& ep,
 		shared_ptr<TermNode>&& p_es, bool nl)
-		: VauHandler(std::move(p_fm), std::move(vo), std::move(p_es), nl,
+		: VauHandler(std::move(p_fm), std::move(ep), std::move(p_es), nl,
 		InitCall<GuardStatic>(p_fm))
 	{}
 	//@}
@@ -1205,13 +1247,13 @@ private:
 public:
 	/*!
 	\pre 同 VauHandler 构造函数。
-	\sa MakeParent
-	\sa MakeParentSingle
-	\sa MakeParentSingleNonOwning
+	\sa LambdaVau
+	\sa MakeResolvedParent
+	\since build 964
 	*/
-	DynamicVauHandler(shared_ptr<TermNode>&& p_fm,
-		ValueObject&& vo, shared_ptr<TermNode>&& p_es, bool nl, string&& ename)
-		: VauHandler(std::move(p_fm), std::move(vo), std::move(p_es), nl,
+	DynamicVauHandler(shared_ptr<TermNode>&& p_fm, EnvironmentParent&& ep,
+		shared_ptr<TermNode>&& p_es, bool nl, string&& ename)
+		: VauHandler(std::move(p_fm), std::move(ep), std::move(p_es), nl,
 		InitCall<GuardDynamic>(p_fm)), eformal(std::move(ename))
 	{}
 
@@ -1838,8 +1880,8 @@ SetFirstRest(_func f, TermNode& term)
 
 	auto i(term.begin());
 
-	ResolveTerm([&](TermNode& nd_x, bool has_ref){
-		CheckResolvedPairReference(nd_x, has_ref);
+	ResolveTerm([&](TermNode& nd_x, bool has_ref_x){
+		CheckResolvedPairReference(nd_x, has_ref_x);
 		return f(nd_x, *++i);
 	}, *++i);
 	term.Value = ValueToken::Unspecified;
@@ -1862,23 +1904,24 @@ DoSetFirst(TermNode& term, _func f)
 }
 
 
-//! \since build 945
-YB_ATTR_nodiscard ValueObject
+//! \since build 964
+YB_ATTR_nodiscard EnvironmentParent
 MakeResolvedParent(TermNode& nd, ResolvedTermReferencePtr p_ref)
 {
+	const bool move(NPL::IsMovable(p_ref));
+
+	// NOTE: Currently all supported environment representations of a single
+	//	object are in the leaf, or in the list with 1 elements which optimize as
+	//	the case of leaf.
 	if(IsList(nd))
-		return NPL::MakeParent(MakeEnvironmentParentList(
-			nd.begin(), nd.end(), nd.get_allocator(), NPL::IsMovable(p_ref)));
-	// XXX: Currently all supported environment representations of a single
-	//	object are in the leaf.
+		return MakeResolvedParentList(nd, move);
 	if(IsLeaf(nd))
-		return MakeParentSingle(nd.get_allocator(),
-			ResolveEnvironmentValue(nd.Value, NPL::IsMovable(p_ref)));
+		return MakeResolvedParentLeaf(nd, p_ref);
 	ThrowInvalidEnvironmentType(nd, p_ref);
 }
 
-//! \since build 945
-YB_ATTR_nodiscard YB_FLATTEN ValueObject
+//! \since build 964
+YB_ATTR_nodiscard YB_FLATTEN EnvironmentParent
 ResolveParentFrom(TermNode& term)
 {
 	return ResolveTerm(MakeResolvedParent, term);
@@ -1936,9 +1979,10 @@ MakeCombinerEvalStruct(TermNode& term, TNIter i)
 template<bool>
 struct GReduceVau final
 {
+	//! \since build 964
 	template<typename... _tParams>
 	YB_ATTR_nodiscard ReductionStatus
-	operator()(TermNode& term, bool no_lift, TNIter i, ValueObject&& vo,
+	operator()(TermNode& term, bool no_lift, TNIter i, EnvironmentParent&& ep,
 		_tParams&&... args) const
 	{
 		return ReduceCreateFunction(term, [&]() -> ContextHandler{
@@ -1948,10 +1992,10 @@ struct GReduceVau final
 
 			if(eformal)
 				return A1::MakeForm(term, DynamicVauHandler(std::move(formals),
-					std::move(vo), std::move(p_es), no_lift,
+					std::move(ep), std::move(p_es), no_lift,
 					std::move(*eformal)), yforward(args)...);
 			return A1::MakeForm(term, VauHandler(std::move(formals),
-				std::move(vo), std::move(p_es), no_lift), yforward(args)...);
+				std::move(ep), std::move(p_es), no_lift), yforward(args)...);
 		});
 	}
 };
@@ -1959,16 +2003,17 @@ struct GReduceVau final
 template<>
 struct GReduceVau<true> final
 {
+	//! \since build 964
 	template<typename... _tParams>
 	YB_ATTR_nodiscard ReductionStatus
-	operator()(TermNode& term, bool no_lift, TNIter i, ValueObject&& vo,
+	operator()(TermNode& term, bool no_lift, TNIter i, EnvironmentParent&& ep,
 		_tParams&&... args) const
 	{
 		return ReduceCreateFunction(term, [&]{
 			auto formals(ShareMoveTerm(NPL::Deref(++i)));
 
 			return A1::MakeForm(term, VauHandler(std::move(formals),
-				std::move(vo), MakeCombinerEvalStruct(term, ++i), no_lift),
+				std::move(ep), MakeCombinerEvalStruct(term, ++i), no_lift),
 				yforward(args)...);
 		});
 	}
@@ -1983,8 +2028,8 @@ LambdaVau(TermNode& term, ContextNode& ctx, bool no_lift)
 
 	CheckVariadicArity(term, _vN);
 	return GReduceVau<_vN == 0>()(term, no_lift, term.begin(),
-		MakeParentSingleNonOwning(term.get_allocator(), ctx.GetRecordPtr()),
-		ystdex::size_t_<_vWrapping>());
+		NPL::ToParent<SingleWeakParent>(term.get_allocator(),
+		ctx.GetRecordPtr()), ystdex::size_t_<_vWrapping>());
 }
 
 template<size_t _vN, size_t _vWrapping>
@@ -2108,8 +2153,8 @@ WrapUnwrap(TermNode& term, _func f, _func2 f2)
 //@}
 
 //! \since build 918
-template<ReductionStatus(&_rWrap)(TermNode&,
-	ResolvedTermReferencePtr, FormContextHandler&, size_t), typename _func>
+template<ReductionStatus(&_rWrap)(TermNode&, ResolvedTermReferencePtr,
+	FormContextHandler&, size_t), typename _func>
 ReductionStatus
 WrapOrRef(TermNode& term, _func f)
 {
@@ -2121,8 +2166,8 @@ WrapOrRef(TermNode& term, _func f)
 }
 
 //! \since build 918
-template<ReductionStatus(&_rWrap)(TermNode&,
-	ResolvedTermReferencePtr, FormContextHandler&, size_t)>
+template<ReductionStatus(&_rWrap)(TermNode&, ResolvedTermReferencePtr,
+	FormContextHandler&, size_t)>
 ReductionStatus
 WrapOnceOrOnceRef(TermNode& term)
 {
@@ -2930,7 +2975,7 @@ LetCombineBody(_func f, TermNode& term, ContextNode& ctx)
 
 	// NOTE: Set the parent of the dynamic environment to the static environment
 	//	as in %VauBind.
-	NPL::AssignParent(ctx, std::move(operand.Value));
+	NPL::MoveParentValue(ctx, operand.Value);
 	// XXX: The %Value in the 1st term shall be removed in the subsequent call
 	//	to %f if it is used as the operand term.
 	// XXX: The %Value is only used in lvalue 'bindings' in the 3rd term.
@@ -2975,7 +3020,7 @@ LetCombineEmpty(TermNode& term, ContextNode& ctx, bool no_lift)
 	auto i(term.begin());
 
 	// NOTE: As %LetCombineBody.
-	NPL::AssignParent(ctx, std::move(i->Value));
+	NPL::MoveParentValue(ctx, i->Value);
 	// XXX: The unused 'bindings' may be an empty term or a term representing
 	//	the reference to an empty list if not cleanup before the call.
 	//	Nevertheless, it would be removed later.
@@ -3117,7 +3162,7 @@ LetEmptyGuardTail(_func f, TermNode& term, ContextNode& ctx)
 	auto r_env(ctx.WeakenRecord());
 	auto gd(GuardFreshEnvironment(ctx));
 
-	NPL::AssignParent(ctx, term, std::move(r_env));
+	NPL::AssignParentH<SingleWeakParent>(ctx, term, std::move(r_env));
 	return f(gd);
 }
 
@@ -3161,7 +3206,7 @@ LetEmpty(TermNode& term, ContextNode& ctx, bool no_lift, bool with_env)
 		auto gd(GuardFreshEnvironment(ctx));
 
 		YAssert(term.size() >= 2, "Invalid nested call found.");
-		NPL::AssignParent(ctx, std::move(term.begin()->Value));
+		NPL::MoveParentValue(ctx, term.begin()->Value);
 		return LetCallTail(term, ctx, gd, no_lift);
 	}, term, ctx, ++i, parent);
 #else
@@ -3327,7 +3372,7 @@ LetAsteriskImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 			A1::NameTypedReducerHandler([&, no_lift]{
 			auto gd(GuardFreshEnvironment(ctx));
 
-			NPL::AssignParent(ctx, std::move(operand.Value));
+			NPL::MoveParentValue(ctx, operand.Value);
 			operand.Value.Clear();
 			BindParameter(ctx.GetRecordPtr(), AccessFirstSubterm(formals), opr);
 			LetCallRemovePrefix(term, term.erase(term.begin()));
@@ -4677,8 +4722,8 @@ CheckParent(TermNode& term)
 				Environment::EnsureValid(
 					ResolveEnvironment(ystdex::as_const(nd)).first);
 			else if(IsList(nd))
-				Environment::CheckParent(MakeEnvironmentParentList(nd.begin(),
-					nd.end(), nd.get_allocator(), true));
+				yunused(MakeEnvironmentParentList(nd.begin(), nd.end(),
+					nd.get_allocator(), true));
 			else
 				ThrowInvalidEnvironmentType(nd, p_ref);
 		}, tm);
@@ -4713,7 +4758,7 @@ MakeEncapsulationType(TermNode& term)
 		TermNode::Container tcon(a);
 		// XXX: Allocator is not used here for better performance.
 		shared_ptr<void> p_type(new yimpl(byte));
-	//	shared_ptr<void> p_type(YSLib::allocate_shared<yimpl(byte)>(a));
+	//	shared_ptr<void> p_type(NPL::allocate_shared<yimpl(byte)>(a));
 
 		tcon.push_back(A1::AsForm(a, Encapsulate(p_type), Strict));
 		tcon.push_back(A1::AsForm(a, Encapsulated(p_type), Strict));

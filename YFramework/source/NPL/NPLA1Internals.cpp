@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20708
+\version r20713
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2023-01-01 01:41 +0800
+	2023-01-06 06:41 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -28,9 +28,10 @@
 #include "NPL/YModules.h"
 #include "NPLA1Internals.h" // for NPL::Nonnull, NPL::ToBindingsAllocator,
 //	NPL::Deref, shared_ptr, Environment, std::make_move_iterator,
-//	ystdex::retry_on_cond, NPL::AssignParent, ystdex::dismiss, ystdex::id,
-//	NPL::get, ActiveEnvironmentPtr, std::throw_with_nested, ParameterMismatch,
-//	ResolveTerm, TermToStringWithReferenceMark, std::allocator_arg,
+//	ystdex::retry_on_cond, EnvironmentParent, NPL::AssignParent,
+//	ystdex::dismiss, ystdex::id, NPL::get, ActiveEnvironmentPtr,
+//	std::throw_with_nested, ParameterMismatch, ResolveTerm,
+//	TermToStringWithReferenceMark, std::allocator_arg,
 
 namespace NPL
 {
@@ -101,7 +102,7 @@ RecordCompressor::Compress()
 		bool collected = {};
 
 		Traverse(*p_root, p_root->Parent, [&](const shared_ptr<Environment>&
-			p_dst, Environment& src, ValueObject& parent) -> bool{
+			p_dst, Environment& src, EnvironmentParent& parent) -> bool{
 			auto& dst(NPL::Deref(p_dst));
 
 			if(accessed.insert(src).second)
