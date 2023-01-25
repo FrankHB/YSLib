@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2022 FrankHB.
+	© 2011-2016, 2018-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file meta.hpp
 \ingroup YStandardEx
 \brief 通用元编程设施。
-\version r2002
+\version r2019
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:28 +0800
 \par 修改时间:
-	2022-03-18 03:20 +0800
+	2023-01-16 01:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1102,9 +1102,29 @@ using sizeof_t = size_t_<sizeof(_type)>;
 \since build 575
 */
 //@{
+//! \since build 965
+template<typename _type, typename... _tParams>
+using enable_if_constructible_t
+	= enable_if_t<is_constructible<_type, _tParams...>::value>;
+
+//! \since build 965
+template<typename _tRes, typename _type, typename... _tParams>
+using enable_if_constructible_r_t
+	= enable_if_t<is_constructible<_type, _tParams...>::value, _tRes>;
+
 template<typename _tFrom, typename _tTo, typename _type = void>
 using enable_if_convertible_t
 	= enable_if_t<is_convertible<_tFrom, _tTo>::value, _type>;
+
+//! \since build 965
+template<typename _type, typename... _tParams>
+using enable_if_inconstructible_t
+	= enable_if_t<!is_constructible<_type, _tParams...>::value>;
+
+//! \since build 965
+template<typename _tRes, typename _type, typename... _tParams>
+using enable_if_inconstructible_r_t
+	= enable_if_t<!is_constructible<_type, _tParams...>::value, _tRes>;
 
 //! \since build 679
 template<typename _tFrom, typename _tTo, typename _type = void>

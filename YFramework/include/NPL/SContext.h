@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r4613
+\version r4638
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2023-01-01 02:34 +0800
+	2023-01-25 20:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,12 @@
 #define NPL_INC_SContext_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_Lexical // for ystdex::copy_and_swap, ystdex::ref_eq,
-//	std::swap, ystdex::addrof, ystdex::compose, ByteParser,
-//	ystdex::expand_proxy, ystdex::unref, ystdex::as_const, LexemeList, pair;
+#include YFM_NPL_Lexical // for ystdex::enable_if_constructible_t,
+//	ystdex::copy_and_swap, ystdex::enable_if_t, ystdex::enable_if_same_param_t,
+//	ystdex::is_same_param, ystdex::exclude_self_t,
+//	ystdex::enable_if_inconvertible_t, ystdex::invoke, ystdex::ref_eq,
+//	std::swap, ystdex::addrof, ystdex::compose, LexemeList, ByteParser,
+//	ystdex::expand_proxy, ystdex::unref, pair, std::is_lvalue_reference;
 #include YFM_YSLib_Core_ValueNode // for YSLib::AddValueTo, YSLib::Deref,
 //	YSLib::MakeIndex, YSLib::NoContainer, YSLib::NoContainerTag,
 //	YSLib::ValueNode, YSLib::ValueObject, YSLib::forward_as_tuple, YSLib::get,
@@ -39,11 +42,8 @@
 //	YSLib::make_weak, YSLib::observer_ptr, YSLib::share_move, YSLib::tuple,
 //	YSLib::weak_ptr, list, std::allocator_arg_t, YSLib::ListContainerTag,
 //	std::initializer_list, YSLib::AccessPtr, YSLib::Alert, YSLib::stack;
-#include <ystdex/type_op.hpp> // for ystdex::enable_if_t, std::is_constructible,
-//	ystdex::enable_if_same_param_t, ystdex::is_same_param,
-//	ystdex::exclude_self_t, ystdex::enable_if_inconvertible_t,
-//	ystdex::head_of_t, std::is_lvalue_reference;
-#include <ystdex/utility.hpp> // for ystdex::forward_like;
+#include <ystdex/type_op.hpp> // for ystdex::head_of_t;
+#include <ystdex/utility.hpp> // for ystdex::forward_like, ystdex::as_const;
 #include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
 #include <ystdex/deref_op.hpp> // for ystdex::call_value_or;
@@ -271,8 +271,8 @@ class YF_API TermNode : private ystdex::equality_comparable<TermNode>
 {
 private:
 	template<typename... _tParams>
-	using enable_value_constructible_t = ystdex::enable_if_t<
-		std::is_constructible<ValueObject, _tParams...>::value>;
+	using enable_value_constructible_t
+		= ystdex::enable_if_constructible_t<ValueObject, _tParams...>;
 
 public:
 	using Container = list<TermNode>;
@@ -591,8 +591,8 @@ public:
 		yimpl(ystdex::enable_if_t<sizeof...(_tParams) != 0
 		|| !ystdex::is_same_param<ValueObject, _tParam>::value, int> = 0,
 		ystdex::exclude_self_t<std::allocator_arg_t, _tParam, int> = 0)>
-	inline yimpl(ystdex::enable_if_inconvertible_t)<_tParam,
-		TermNode::allocator_type, void>
+	inline yimpl(
+		ystdex::enable_if_inconvertible_t)<_tParam, TermNode::allocator_type>
 	SetValue(_tParam&& arg, _tParams&&... args) ynoexcept_spec(Value.assign(
 		std::allocator_arg, std::declval<TermNode::allocator_type&>(),
 		yforward(arg), yforward(args)...))
@@ -1045,14 +1045,13 @@ YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators,
 //! \since build 949
 YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators,
 	const TermNode::Container& x, const TermNode::Container& y,
-	const char* msg = "Allocators for term containers mismatch.")
-	ynothrowv
+	const char* msg = "Allocators for term containers mismatch.") ynothrowv
 	ImplExpr(yunused(x), yunused(y), yunused(msg),
 		NPL::AssertMatchedAllocators(x.get_allocator(), y))
 YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators,
-	const TermNode::allocator_type& a, const TermNode& nd, const char* msg
-	= "Allocators mismatch to the term node.") ynothrowv
-	ImplExpr(AssertMatchedAllocators(a, nd.GetContainer(), msg))
+	const TermNode::allocator_type& a, const TermNode& nd,
+	const char* msg = "Allocators mismatch to the term node.") ynothrowv
+	ImplExpr(NPL::AssertMatchedAllocators(a, nd.GetContainer(), msg))
 //! \since build 949
 YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators, const TermNode& x,
 	const TermNode& y, const char* msg = "Allocators for terms mismatch.")
@@ -1102,7 +1101,7 @@ YB_NONNULL(2) inline
 //@{
 //! \since build 942
 template<typename... _tParam, typename... _tParams>
-YB_ATTR_nodiscard YB_PURE inline
+YB_ATTR_nodiscard inline
 yimpl(ystdex::enable_if_inconvertible_t)<ystdex::head_of_t<_tParams...>,
 	TermNode::allocator_type, TermNode>
 AsTermNode(_tParams&&... args)
@@ -1111,7 +1110,7 @@ AsTermNode(_tParams&&... args)
 }
 //! \since build 891
 template<typename... _tParams>
-YB_ATTR_nodiscard YB_PURE inline TermNode
+YB_ATTR_nodiscard inline TermNode
 AsTermNode(TermNode::allocator_type a, _tParams&&... args)
 {
 	return TermNode(std::allocator_arg, a, NoContainer, yforward(args)...);
@@ -1119,7 +1118,7 @@ AsTermNode(TermNode::allocator_type a, _tParams&&... args)
 
 //! \since build 947
 template<typename... _tParam, typename... _tParams>
-YB_ATTR_nodiscard YB_PURE inline
+YB_ATTR_nodiscard inline
 yimpl(ystdex::enable_if_inconvertible_t)<ystdex::head_of_t<_tParams...>,
 	TermNode::allocator_type, TermNode>
 AsTermNodeTagged(TermTags tags, _tParams&&... args)
@@ -1128,7 +1127,7 @@ AsTermNodeTagged(TermTags tags, _tParams&&... args)
 }
 //! \since build 947
 template<typename... _tParams>
-YB_ATTR_nodiscard YB_PURE inline TermNode
+YB_ATTR_nodiscard inline TermNode
 AsTermNodeTagged(TermNode::allocator_type a, TermTags tags, _tParams&&... args)
 {
 	return
@@ -1260,7 +1259,7 @@ struct LexemeTokenizer
 
 	//! \note 使用 ADL ToLexeme 转换访问的迭代器值为词素值。
 	template<class _type>
-	YB_ATTR_nodiscard YB_PURE TermNode
+	YB_ATTR_nodiscard TermNode
 	operator()(const _type& val) const
 	{
 		return NPL::AsTermNode(Allocator, std::allocator_arg, Allocator,

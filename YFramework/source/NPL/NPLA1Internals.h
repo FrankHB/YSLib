@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r22854
+\version r22859
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2023-01-11 04:27 +0800
+	2023-01-13 02:48 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -263,7 +263,7 @@ struct RecordCompressor final
 	static void
 	Traverse(Environment& e, EnvironmentParent& parent, const _fTracer& trace)
 	{
-		const auto p_poly(&parent.GetObjectRef());
+		const auto p_poly(&parent.GetObject());
 
 		if(const auto p_single_weak
 			= dynamic_cast<const SingleWeakParent*>(p_poly))
@@ -277,10 +277,11 @@ struct RecordCompressor final
 			if(auto p = p_single_strong->Get())
 				TraverseForSharedPtr(e, parent, trace, p);
 		}
-		else if(const auto p_parent_list = dynamic_cast<ParentList*>(p_poly))
+		else if(const auto p_parent_list
+			= dynamic_cast<const ParentList*>(p_poly))
 		{
-			for(auto& vo : p_parent_list->GetRef())
-				Traverse(e, vo, trace);
+			for(auto& ep : p_parent_list->GetRef())
+				Traverse(e, ep, trace);
 		}
 	}
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2022 FrankHB.
+	© 2011-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r4943
+\version r4976
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2022-11-28 19:54 +0800
+	2023-01-23 14:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,6 +54,37 @@
 
 namespace ystdex
 {
+
+/*!	\defgroup deleters Deleters
+\brief 删除器。
+\note 可能是类类型或类模板。
+\since build 965
+
+用于 std::unique_ptr 兼容的删除器类型。
+*/
+
+/*!
+\ingroup deleters
+\brief 成员 destroy 删除器。
+\note 可不依赖 ISO C++ 20 \c std::destroying_delete_t 实现类似的释放资源。
+\warning 非虚析构。
+\see WG21 P0722R3 。
+\since build 965
+*/
+template<typename _tPointer>
+struct destroy_delete
+{
+	using pointer = _tPointer;
+
+	//! \pre 若参数非空，则应指向和 destroy 兼容的方式分配得到的对象。
+	void
+	operator()(pointer p) const ynothrowv
+	{
+		if(p)
+			p->destroy();
+	}
+};
+
 
 //! \since build 847
 namespace details
@@ -394,12 +425,12 @@ public:
 */
 //@{
 //! \brief 取删除器的 \c pointer 成员类型。
-template<class _tDeleter>
+template<typename _tDeleter>
 using deleter_member_pointer_t
 	= typename remove_reference_t<_tDeleter>::pointer;
 
 //! \brief 取 unique_ptr 包装的指针类型。
-template<typename _type, class _tDeleter>
+template<typename _type, typename _tDeleter>
 using unique_ptr_pointer
 	= detected_or_t<_type*, deleter_member_pointer_t, _tDeleter>;
 
@@ -550,7 +581,7 @@ owns_unique(const _type&) ynothrow
 {
 	return !is_reference_wrapper<_type>();
 }
-template<typename _type, class _tDeleter>
+template<typename _type, typename _tDeleter>
 YB_ATTR_nodiscard inline bool
 owns_unique(const std::unique_ptr<_type, _tDeleter>& p) ynothrow
 {
@@ -579,7 +610,7 @@ owns_unique_nonnull(const _type&) ynothrow
 }
 //! \pre 参数非空。
 //@{
-template<typename _type, class _tDeleter>
+template<typename _type, typename _tDeleter>
 YB_ATTR_nodiscard YB_PURE inline bool
 owns_unique_nonnull(const std::unique_ptr<_type, _tDeleter>& p) ynothrow
 {
@@ -611,7 +642,7 @@ owns_unique_nonnull(const std::weak_ptr<_type>& p) ynothrow
 */
 //@{
 //! \since build 759
-template<typename _type, class _tDeleter>
+template<typename _type, typename _tDeleter>
 inline bool
 reset(std::unique_ptr<_type, _tDeleter>& p) ynothrow
 {
@@ -1218,7 +1249,7 @@ struct pack_obj_impl
 	}
 };
 
-template<typename _type, class _tDeleter>
+template<typename _type, typename _tDeleter>
 struct pack_obj_impl<std::unique_ptr<_type, _tDeleter>>
 {
 	template<typename... _tParams>

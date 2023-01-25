@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2022 FrankHB.
+	© 2014-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file allocator.hpp
 \ingroup YStandardEx
 \brief 分配器接口。
-\version r5941
+\version r6109
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-10 21:34:28 +0800
 \par 修改时间:
-	2022-03-16 20:33 +0800
+	2023-01-16 01:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,8 @@
 //	is_same, std::pointer_traits, std::declval, is_detected, detected_t,
 //	is_detected_exact, cond, remove_cvref_t, bool_, is_lvalue_reference, cond_t,
 //	remove_reference_t, compressed_pair, compressed_pair_element,
-//	exclude_self_t, is_bitwise_swappable, ystdex::copy_assign,
+//	enable_if_convertible_t, enable_if_constructible_t, is_assignable,
+//	remove_cv_t, exclude_self_t, ystdex::copy_assign, is_bitwise_swappable,
 //	is_nothrow_copy_constructible, is_nothrow_default_constructible;
 #include "apply.hpp" // for std::tuple, std::forward_as_tuple,
 //	std::piecewise_construct_t, std::piecewise_construct, std::make_tuple,
@@ -129,57 +130,57 @@ struct uaa_func
 	const _tAlloc& a;
 
 	template<typename... _tParams>
-	YB_ATTR_nodiscard inline auto
+	YB_ATTR_nodiscard yconstfn auto
 	operator()(_tParams&&...) const -> uaca_res_t<_type, _tAlloc, _tParams...>;
 };
 
 
 template<typename, class _bPair, class _bPfx, class _tAlloc,
 	typename... _tParams>
-YB_ATTR_nodiscard inline std::tuple<_tParams&&...>
+YB_ATTR_nodiscard yconstfn std::tuple<_tParams&&...>
 uses_allocator_args(_bPair, false_, _bPfx, const _tAlloc&, _tParams&&... args)
 {
 	return std::forward_as_tuple(yforward(args)...);
 }
 template<typename, class _tAlloc, typename... _tParams>
-YB_ATTR_nodiscard inline
+YB_ATTR_nodiscard yconstfn
 	std::tuple<const std::allocator_arg_t&, const _tAlloc&, _tParams&&...>
 uses_allocator_args(false_, true_, true_, const _tAlloc& a, _tParams&&... args)
 {
 	return std::forward_as_tuple(std::allocator_arg, a, yforward(args)...);
 }
 template<typename, class _tAlloc, typename... _tParams>
-YB_ATTR_nodiscard inline
+YB_ATTR_nodiscard yconstfn
 	std::tuple<_tParams&&..., const _tAlloc&>
 uses_allocator_args(false_, true_, false_, const _tAlloc& a, _tParams&&... args)
 {
 	return std::forward_as_tuple(yforward(args)..., a);
 }
 template<class _type, class _tAlloc>
-YB_ATTR_nodiscard inline auto
+YB_ATTR_nodiscard yconstfn auto
 uses_allocator_args(true_, true_, false_, const _tAlloc&)
 	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
 	std::tuple<>, std::tuple<>>;
 template<typename _type, class _tAlloc, typename _type1, typename _type2>
-YB_ATTR_nodiscard inline auto
+YB_ATTR_nodiscard yconstfn auto
 uses_allocator_args(true_, true_, false_, const _tAlloc&,
 	const std::pair<_type1, _type2>&)
 	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
 	std::tuple<const _type1&>, std::tuple<const _type2&>>;
 template<typename _type, class _tAlloc, typename _type1, typename _type2>
-YB_ATTR_nodiscard inline auto
+YB_ATTR_nodiscard yconstfn auto
 uses_allocator_args(true_, true_, false_, const _tAlloc& a,
 	std::pair<_type1, _type2>&&)
 	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
 	std::tuple<_type1&&>, std::tuple<_type2&&>>;
 template<typename _type, class _tAlloc, typename _type1, typename _type2>
-YB_ATTR_nodiscard inline auto
+YB_ATTR_nodiscard yconstfn auto
 uses_allocator_args(true_, true_, false_, const _tAlloc& a, _type1&&, _type2&&)
 	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
 	std::tuple<_type1&&>, std::tuple<_type2&&>>;
 //! \since build 861
 template<typename _type, class _tAlloc, class _tTuple1, class _tTuple2>
-YB_ATTR_nodiscard inline auto
+YB_ATTR_nodiscard yconstfn auto
 uses_allocator_args(true_, true_, false_, const _tAlloc& a,
 	std::piecewise_construct_t, _tTuple1&& x, _tTuple2&& y) -> decltype(
 	std::make_tuple(std::piecewise_construct, ystdex::apply(
@@ -193,12 +194,12 @@ uses_allocator_args(true_, true_, false_, const _tAlloc& a,
 		_tAlloc>{a}, yforward(y)));
 }
 
-} // unnamed namespace details;
+} // namespace details;
 
 // XXX: Blocked. 'yforward' in the trailing-return-type cause G++ 5.3 20151204
 //	crash: internal compiler error: Segmentation fault.
 template<typename _type, class _tAlloc, typename... _tParams>
-YB_ATTR_nodiscard inline auto
+YB_ATTR_nodiscard yconstfn auto
 uses_allocator_construction_args(const _tAlloc& a, _tParams&&... args) -> yimpl(
 	decltype(details::uses_allocator_args<_type>(details::is_pair<_type>(),
 	details::pair_has_allocator<_type, _tAlloc>(), is_constructible<_type,
@@ -222,7 +223,7 @@ struct uaca_res
 
 template<typename _type, class _tAlloc>
 	template<typename... _tParams>
-YB_ATTR_nodiscard inline auto
+YB_ATTR_nodiscard yconstfn auto
 uaa_func<_type, _tAlloc>::operator()(_tParams&&... args) const
 	-> uaca_res_t<_type, _tAlloc, _tParams...>
 {
@@ -231,7 +232,7 @@ uaa_func<_type, _tAlloc>::operator()(_tParams&&... args) const
 }
 
 template<class _type, class _tAlloc>
-YB_ATTR_nodiscard inline auto
+YB_ATTR_nodiscard yconstfn auto
 uses_allocator_args(true_, true_, false_, const _tAlloc& a) -> uaca_res_t<_type,
 	_tAlloc, const std::piecewise_construct_t&, std::tuple<>, std::tuple<>>
 {
@@ -239,7 +240,7 @@ uses_allocator_args(true_, true_, false_, const _tAlloc& a) -> uaca_res_t<_type,
 		std::piecewise_construct, std::tuple<>(), std::tuple<>());
 }
 template<typename _type, class _tAlloc, typename _type1, typename _type2>
-YB_ATTR_nodiscard inline auto
+YB_ATTR_nodiscard yconstfn auto
 uses_allocator_args(true_, true_, false_, const _tAlloc& a,
 	const std::pair<_type1, _type2>& arg)
 	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
@@ -250,7 +251,7 @@ uses_allocator_args(true_, true_, false_, const _tAlloc& a,
 		std::forward_as_tuple(arg.second));
 }
 template<typename _type, class _tAlloc, typename _type1, typename _type2>
-YB_ATTR_nodiscard inline auto
+YB_ATTR_nodiscard yconstfn auto
 uses_allocator_args(true_, true_, false_, const _tAlloc& a,
 	std::pair<_type1, _type2>&& arg)
 	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
@@ -261,7 +262,7 @@ uses_allocator_args(true_, true_, false_, const _tAlloc& a,
 		std::forward_as_tuple(yforward(arg.second)));
 }
 template<typename _type, class _tAlloc, typename _type1, typename _type2>
-YB_ATTR_nodiscard inline auto
+YB_ATTR_nodiscard yconstfn auto
 uses_allocator_args(true_, true_, false_, const _tAlloc& a, _type1&& arg1,
 	_type2&& arg2)
 	-> uaca_res_t<_type, _tAlloc, const std::piecewise_construct_t&,
@@ -278,7 +279,7 @@ struct ucua_func
 	void* pv;
 
 	template<typename... _tParams>
-	_type*
+	yconstfn _type*
 	operator()(_tParams&&... args) const
 		ynoexcept(is_nothrow_constructible<_type, _tParams...>())
 	{
@@ -286,7 +287,6 @@ struct ucua_func
 	}
 };
 
-// TODO: Detect more implemenations?
 // XXX: This is a workaround to implementation without support of WG21 N4387.
 #	if (defined(__GLIBCXX__) && (__GLIBCXX__ <= 20150630 \
 	|| YB_IMPL_GNUCPP < 60000)) && !(_LIBCPP_VERSION > 4000 \
@@ -299,14 +299,14 @@ struct ucua_func<std::pair<_type1, _type2>, _tAlloc>
 	void* pv;
 
 	template<typename... _tParams>
-	auto
+	yconstfn auto
 	operator()(_tParams&&... args) const
 		-> decltype(::new(pv) std::pair<_type1, _type2>(yforward(args)...))
 	{
 		return ::new(pv) std::pair<_type1, _type2>(yforward(args)...);
 	}
 	template<typename _tParam1, typename _tParam2>
-	enable_if_t<and_<not_<is_constructible<_tParam1, _tParam2>>,
+	yconstfn enable_if_t<and_<not_<is_constructible<_tParam1, _tParam2>>,
 		is_explicitly_constructible<_type1, _tParam1>,
 		is_implicitly_constructible<_type2, _tParam2>>::value,
 		std::pair<_type1, _type2>*>
@@ -316,7 +316,7 @@ struct ucua_func<std::pair<_type1, _type2>, _tAlloc>
 			std::pair<_type1, _type2>(_type1(arg1), yforward(arg2));
 	}
 	template<typename _tParam1, typename _tParam2>
-	enable_if_t<and_<not_<is_constructible<_tParam1, _tParam2>>,
+	yconstfn enable_if_t<and_<not_<is_constructible<_tParam1, _tParam2>>,
 		is_implicitly_constructible<_type1, _tParam1>,
 		is_explicitly_constructible<_type2, _tParam2>>::value,
 		std::pair<_type1, _type2>*>
@@ -326,7 +326,7 @@ struct ucua_func<std::pair<_type1, _type2>, _tAlloc>
 			std::pair<_type1, _type2>(yforward(arg1), _type2(arg2));
 	}
 	template<typename _tParam1, typename _tParam2>
-	enable_if_t<and_<not_<is_constructible<_tParam1, _tParam2>>,
+	yconstfn enable_if_t<and_<not_<is_constructible<_tParam1, _tParam2>>,
 		is_explicitly_constructible<_type1, _tParam1>,
 		is_explicitly_constructible<_type2, _tParam2>>::value,
 		std::pair<_type1, _type2>*>
@@ -341,7 +341,7 @@ struct ucua_func<std::pair<_type1, _type2>, _tAlloc>
 } // namespace details;
 
 template<typename _type, class _tAlloc, typename... _tParams>
-YB_ATTR_nodiscard _type
+YB_ATTR_nodiscard yconstfn _type
 make_obj_using_allocator(const _tAlloc& a, _tParams&&... args)
 {
 	return ystdex::make_from_tuple<_type>(
@@ -349,7 +349,7 @@ make_obj_using_allocator(const _tAlloc& a, _tParams&&... args)
 }
 
 template<typename _type, class _tAlloc, typename... _tParams>
-_type*
+yconstfn _type*
 uninitialized_construct_using_allocator(_type* p, const _tAlloc& a,
 	_tParams&&... args)
 {
@@ -677,8 +677,7 @@ namespace details
 
 //! \since build 940
 template<typename _tAlloc>
-struct allocator_deleter_traits
-	: allocator_traits<remove_cvref_t<_tAlloc>>
+struct allocator_deleter_traits : allocator_traits<remove_cvref_t<_tAlloc>>
 {
 	// XXX: Rvalue references are not supported.
 	using stored_type = cond_t<is_lvalue_reference<_tAlloc>,
@@ -750,17 +749,37 @@ class allocator_guard_delete
 	: private details::allocator_deleter_traits<_tAlloc>::guard_delete_base
 {
 private:
+	//! \since build 965
+	template<class>
+	friend class allocator_guard_delete;
 	//! \since build 940
 	using traits_type = typename details::allocator_deleter_traits<_tAlloc>;
 	//! \since build 846
 	using base = typename traits_type::guard_delete_base;
+	//! \since build 965
+	template<class _tOtherAlloc>
+	using enable_ptr_conv_t = enable_if_convertible_t<typename
+		allocator_traits<_tOtherAlloc>::value_type*,
+		typename traits_type::value_type*>;
+	//! \since build 965
+	template<typename _tParam>
+	using enable_alloc_init_t = enable_if_constructible_t<_tAlloc, _tParam>;
+	//! \since build 965
+	template<typename _tParam>
+	using enable_alloc_assign_t
+		= enable_if_t<is_assignable<_tAlloc, _tParam>::value>;
 
 public:
+	//! \since build 965
+	using allocator_type = remove_cv_t<_tAlloc>;
 	//! \since build 595
 	using pointer = typename traits_type::pointer;
 	//! \since build 595
 	using size_type = typename traits_type::size_type;
 
+	//! \since build 965
+	//@{
+	allocator_guard_delete() = default;
 	//! \since build 937
 	template<class _tParam,
 		yimpl(typename = exclude_self_t<allocator_guard_delete, _tParam>)>
@@ -768,6 +787,54 @@ public:
 	allocator_guard_delete(_tParam&& a, size_type n = 1) ynothrow
 		: base(yforward(a), n)
 	{}
+	allocator_guard_delete(const allocator_guard_delete&) = default;
+	allocator_guard_delete(allocator_guard_delete&&) ynothrow = default;
+	template<class _tOtherAlloc,
+		yimpl(typename = enable_ptr_conv_t<_tOtherAlloc>, typename
+		= enable_alloc_init_t<const remove_reference_t<_tOtherAlloc>&>)>
+	inline
+	allocator_guard_delete(const allocator_guard_delete<_tOtherAlloc>& other)
+		ynothrow
+		: base(other.first(), other.second())
+	{}
+	template<class _tOtherAlloc,
+		yimpl(typename = enable_ptr_conv_t<_tOtherAlloc>,
+		typename = enable_alloc_init_t<remove_reference_t<_tOtherAlloc>&&>)>
+	inline
+	allocator_guard_delete(allocator_guard_delete<_tOtherAlloc>&& other)
+		ynothrow
+		: base(std::move(other.first()), other.second())
+	{}
+
+	// NOTE: The allocator may have a deleted copy %operator=.
+	YB_ATTR_always_inline allocator_guard_delete&
+	operator=(const allocator_guard_delete& d)
+	{
+		ystdex::copy_assign(get_allocator(), d.first());
+		return *this;			
+	}
+	allocator_guard_delete&
+	operator=(allocator_guard_delete&&) ynothrow = default;
+	// NOTE: Ditto.
+	template<class _tOtherAlloc,
+		yimpl(typename = enable_ptr_conv_t<_tOtherAlloc>, typename
+		= enable_alloc_assign_t<const remove_reference_t<_tOtherAlloc>&>)>
+	YB_ATTR_always_inline inline allocator_guard_delete&
+	operator=(const allocator_guard_delete<_tOtherAlloc>& other)
+	{
+		ystdex::copy_assign(get_allocator(), other.first());
+		base::second_base().get_mutable() = other.second();
+		return *this;
+	}
+	template<class _tOtherAlloc,
+		yimpl(typename = enable_ptr_conv_t<_tOtherAlloc>, typename
+		= enable_alloc_assign_t<remove_reference_t<_tOtherAlloc>&&>)>
+	inline allocator_guard_delete&
+	operator=(allocator_guard_delete<_tOtherAlloc>&& other) ynothrow
+	{
+		return *this = base(std::move(other.first()), other.second());
+	}
+	//@}
 
 	//! \since build 595
 	void
@@ -789,6 +856,10 @@ public:
 	{
 		return base::second();
 	}
+
+	// NOTE: %swap is deliberatedly omitted to allow preference on %std::swap
+	//	which can support the case where the allocator may have a deleted copy
+	//	%operator=.
 };
 
 /*!
@@ -804,6 +875,7 @@ struct is_bitwise_swappable<allocator_guard_delete<_tAlloc>>
 
 /*!
 \brief 释放分配器分配的对象的删除器。
+\note 类似 WG21 P0316R0 ，但不提供值模板类型参数和显式特化，且支持默认构造。
 \since build 595
 */
 template<typename _tAlloc>
@@ -811,15 +883,35 @@ class allocator_delete
 	: private details::allocator_deleter_traits<_tAlloc>::delete_base
 {
 private:
+	//! \since build 965
+	template<class>
+	friend class allocator_delete;
 	//! \since build 940
 	using traits_type = typename details::allocator_deleter_traits<_tAlloc>;
 	//! \since build 846
 	using base = typename traits_type::delete_base;
+	//! \since build 965
+	template<class _tOtherAlloc>
+	using enable_ptr_conv_t = enable_if_convertible_t<typename
+		allocator_traits<_tOtherAlloc>::value_type*,
+		typename traits_type::value_type*>;
+	//! \since build 965
+	template<typename _tParam>
+	using enable_alloc_init_t = enable_if_constructible_t<_tAlloc, _tParam>;
+	//! \since build 965
+	template<typename _tParam>
+	using enable_alloc_assign_t
+		= enable_if_t<is_assignable<_tAlloc, _tParam>::value>;
 
 public:
+	//! \since build 965
+	using allocator_type = remove_cv_t<_tAlloc>;
 	//! \since build 595
 	using pointer = typename traits_type::pointer;
 
+	//! \since build 965
+	//@{
+	allocator_delete() = default;
 	//! \since build 847
 	template<class _tParam,
 		yimpl(typename = exclude_self_t<allocator_delete, _tParam>)>
@@ -827,6 +919,51 @@ public:
 	allocator_delete(_tParam&& a) ynothrow
 		: base(yforward(a))
 	{}
+	allocator_delete(const allocator_delete&) = default;
+	allocator_delete(allocator_delete&&) ynothrow = default;
+	template<class _tOtherAlloc,
+		yimpl(typename = enable_ptr_conv_t<_tOtherAlloc>, typename
+		= enable_alloc_init_t<const remove_reference_t<_tOtherAlloc>&>)>
+	inline
+	allocator_delete(const allocator_delete<_tOtherAlloc>& other) ynothrow
+		: base(other.get())
+	{}
+	template<class _tOtherAlloc,
+		yimpl(typename = enable_ptr_conv_t<_tOtherAlloc>,
+		typename = enable_alloc_init_t<remove_reference_t<_tOtherAlloc>&&>)>
+	inline
+	allocator_delete(allocator_delete<_tOtherAlloc>&& other) ynothrow
+		: base(std::move(other.get_mutable()))
+	{}
+
+	// NOTE: The allocator may have a deleted copy %operator=.
+	YB_ATTR_always_inline allocator_delete&
+	operator=(const allocator_delete& d)
+	{
+		ystdex::copy_assign(get_allocator(), d.get());
+		return *this;			
+	}
+	allocator_delete&
+	operator=(allocator_delete&&) ynothrow = default;
+	// NOTE: Ditto.
+	template<class _tOtherAlloc,
+		yimpl(typename = enable_ptr_conv_t<_tOtherAlloc>, typename
+		= enable_alloc_assign_t<const remove_reference_t<_tOtherAlloc>&>)>
+	YB_ATTR_always_inline inline allocator_delete&
+	operator=(const allocator_delete<_tOtherAlloc>& other)
+	{
+		ystdex::copy_assign(get_allocator(), other.get());
+		return *this;
+	}
+	template<class _tOtherAlloc,
+		yimpl(typename = enable_ptr_conv_t<_tOtherAlloc>, typename
+		= enable_alloc_assign_t<remove_reference_t<_tOtherAlloc>&&>)>
+	inline allocator_delete&
+	operator=(allocator_delete<_tOtherAlloc>&& other) ynothrow
+	{
+		return *this = base(std::move(other.get_mutable()));
+	}
+	//@}
 
 	void
 	operator()(pointer p) const ynothrowv
@@ -841,6 +978,9 @@ public:
 	{
 		return base::get_mutable();
 	}
+
+	// NOTE: As %allocator_guard_delete, %swap is omitted. This is not the same
+	//	to WG21 P0316R0.
 };
 //@}
 
@@ -851,7 +991,7 @@ public:
 template<typename _tAlloc>
 struct is_bitwise_swappable<allocator_delete<_tAlloc>>
 	: is_bitwise_swappable<
-		typename details::allocator_deleter_traits<_tAlloc>::delete_base>
+	typename details::allocator_deleter_traits<_tAlloc>::delete_base>
 {};
 
 
@@ -987,7 +1127,6 @@ struct class_allocator : std::allocator<_type>
 	void
 	deallocate(_type* p, size_t) ynothrow
 	{
-		// TODO: What if the size hint is supported by %_type?
 		return _type::operator delete(p);
 	}
 };

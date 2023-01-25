@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4495
+\version r4538
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2023-01-11 21:29 +0800
+	2023-01-23 21:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -199,7 +199,6 @@ RedirectEnvironmentList(Environment::allocator_type a, Redirector& cont,
 		if(first != last)
 		{
 			RedirectEnvironmentList(a, cont, std::next(first), last);
-			first->AssertValid();
 			return make_observer(&first->GetObject());
 		}
 		return {};
@@ -279,8 +278,8 @@ YB_ATTR_nodiscard YB_PURE std::string
 MismatchedTypesToString(const bad_any_cast& e)
 {
 	// TODO: Use demangled type names?
-	return ystdex::sfmt("Mismatched types ('%s', '%s') found.", e.from(),
-		e.to());
+	return
+		ystdex::sfmt("Mismatched types ('%s', '%s') found.", e.from(), e.to());
 }
 
 //! \since build 926
@@ -651,22 +650,21 @@ LiftSuffixToReturn(TermNode& term, TNCIter i)
 		auto& nd(p->get());
 		const bool move(p->IsMovable());
 		// XXX: As %LiftOtherOrCopy without touching %term.Tags.
-		const auto lift_content([&]{
-			const auto set_content([&](TermNode::Container con, ValueObject vo){
-				term.SetContent(std::move(con), std::move(vo));
-			});
-
-			if(move)
-				set_content(std::move(nd.GetContainerRef()),
-					ValueObject(std::move(nd.Value)));
-			else
-				set_content(TermNode::Container(nd.GetContainer(),
-					nd.get_allocator()), nd.Value);
+		const auto lift_content(move ? [](TermNode& t, TermNode& tm){
+			// XXX: Explicit copy is more efficient, probably due to less needs
+			//	on instantiation of %TermNode::SetContent overloads, as well as
+			//	easier deduplication and inlining of the resulted code.
+			t.SetContent(TermNode::Container(std::move(tm.GetContainerRef())),
+				ValueObject(std::move(tm.Value)));
+		} : [](TermNode& t, TermNode& tm){
+			// XXX: Ditto.
+			t.SetContent(TermNode::Container(tm.GetContainer(),
+				tm.get_allocator()), ValueObject(tm.Value));
 		});
 		auto& con(term.GetContainerRef());
 
 		if(i == con.begin())
-			lift_content();
+			lift_content(term, nd);
 		else
 		{
 #if false
@@ -688,7 +686,7 @@ LiftSuffixToReturn(TermNode& term, TNCIter i)
 			TermNode::Container tcon(con.get_allocator());
 
 			tcon.splice(tcon.end(), con);
-			lift_content();
+			lift_content(term, nd);
 			con.splice(con.begin(), tcon);
 #endif
 		}
@@ -812,6 +810,9 @@ SingleStrongParent::TryRedirect(IParent::Redirector&) const
 {
 	return RedirectToShared(env_ptr);
 }
+
+
+const EmptyParent EnvironmentParent::DefaultEmptyParent;
 
 
 shared_ptr<Environment>
@@ -1062,8 +1063,6 @@ ContextNode::DefaultResolve(shared_ptr<Environment> p_env, string_view id)
 	{
 		if(!p)
 		{
-			p_env->Parent.AssertValid();
-
 			observer_ptr<const IParent> p_next(&p_env->Parent.GetObject());
 
 			do
@@ -1076,11 +1075,18 @@ ContextNode::DefaultResolve(shared_ptr<Environment> p_env, string_view id)
 					p_env.swap(p_redirected);
 					return true;
 				}
+#if true
+				// XXX: This is not necessarily more efficient but probably
+				//	good enough.
 				if(!cont)
 					return false;
 				while(cont
 					&& !(p_next = ystdex::exchange(cont, Redirector())()))
 					;
+#else
+				while(!p_next && bool(cont))
+					p_next = ystdex::exchange(cont, Redirector())();
+#endif
 				YAssert(p_next.get() != &parent, "Cyclic parent found.");
 			}while(p_next);
 		}
@@ -1097,9 +1103,17 @@ ContextNode::RewriteLoop()
 {
 	YAssert(IsAlive(), "No action to reduce.");
 	// NOTE: Rewrite until no actions remain.
-	return ystdex::retry_on_cond(std::bind(&ContextNode::IsAlive, this), [&]{
+#if true
+	// XXX: This is more efficient, at least with x86_64-pc-linux G++ 12.1.
+	return ystdex::retry_on_cond(std::bind(&ContextNode::IsAlive, this),
+		std::bind(&ContextNode::ApplyTail, this));
+#else
+	return ystdex::retry_on_cond([this] YB_LAMBDA_ANNOTATE((), ynothrow, pure){
+		return IsAlive();
+	}, [this]{
 		return ApplyTail();
 	});
+#endif
 }
 
 ReductionStatus
@@ -1107,10 +1121,18 @@ ContextNode::RewriteLoopUntil(ReducerSequence::const_iterator i)
 {
 	YAssert(IsAliveBefore(i), "No action to reduce.");
 	// NOTE: Rewrite until no actions before %i pointed to remain.
-	return ystdex::retry_on_cond(
-		std::bind(&ContextNode::IsAliveBefore, this, i), [&]{
+#if false
+	// XXX: This is not same to above.
+	return ystdex::retry_on_cond(std::bind(&ContextNode::IsAliveBefore, this,
+		i), std::bind(&ContextNode::ApplyTail, this));
+#else
+	return
+		ystdex::retry_on_cond([this, i] YB_LAMBDA_ANNOTATE((), ynothrow, pure){
+		return IsAliveBefore(i);
+	}, [this]{
 		return ApplyTail();
 	});
+#endif
 }
 
 shared_ptr<Environment>

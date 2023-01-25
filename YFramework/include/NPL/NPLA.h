@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r10722
+\version r11048
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2023-01-12 04:18 +0800
+	2023-01-23 02:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,15 +31,15 @@
 #include "YModules.h"
 #include YFM_NPL_Exception // for YSLib::any_ops, YSLib::trivial_swap,
 //	YSLib::trivial_swap_t, YSLib::NodeLiteral, YSLib::allocate_shared,
-//	YSLib::any, YSLib::array, YSLib::bad_any_cast, YSLib::in_place_type,
-//	YSLib::in_place_type_t, YSLib::make_any, YSLib::to_string,
-//	YSLib::unique_ptr, NPLTag, string, ValueNode, function, std::ostream,
-//	ystdex::invoke, TermNode, ystdex::isdigit, std::initializer_list,
-//	NoContainer, shared_ptr, ystdex::is_nothrow_copy_constructible,
-//	ystdex::is_nothrow_copy_assignable, ystdex::is_nothrow_move_constructible,
-//	ystdex::is_nothrow_move_assignable, EnsureValueTags, AssertValueTags,
-//	IsPair, IsList, HasStickySubterm, IsBranch,
-//	ThrowListTypeErrorForInvalidType, type_id, Access, TryAccessValue,
+//	YSLib::allocate_unique, YSLib::any, YSLib::array, YSLib::bad_any_cast,
+//	YSLib::in_place_type, YSLib::in_place_type_t, YSLib::make_any,
+//	YSLib::to_string, YSLib::unique_ptr, NPLTag, string, ValueNode, function,
+//	std::ostream, ystdex::invoke, TermNode, ystdex::isdigit,
+//	std::initializer_list, NoContainer, shared_ptr,
+//	ystdex::is_nothrow_copy_constructible, ystdex::is_nothrow_copy_assignable,
+//	ystdex::is_nothrow_move_constructible, ystdex::is_nothrow_move_assignable,
+//	EnsureValueTags, AssertValueTags, IsPair, IsList, HasStickySubterm,
+//	IsBranch, ThrowListTypeErrorForInvalidType, type_id, Access, TryAccessValue,
 //	observer_ptr, IsAtom, IsLeaf, ystdex::equality_comparable, weak_ptr,
 //	ystdex::copy_and_swap, lref, AssertReferentTags, ystdex::get_equal_to,
 //	NPL::IsMovable, pair, std::declval, ystdex::invoke_value_or,
@@ -48,16 +48,18 @@
 //	AssertBranch, NPL::Deref, ystdex::retry_on_cond, YSLib::EmplaceCallResult,
 //	ystdex::exclude_self_t, vector, ystdex::less, YSLib::map, make_observer,
 //	ystdex::call_value_or, ystdex::compose, ystdex::unchecked_function,
-//	default_allocator, byte, std::allocator_arg_t, pmr, type_info, std::swap,
-//	ystdex::expanded_function, ystdex::enable_if_same_param_t,
-//	std::allocator_arg, ystdex::make_obj_using_allocator, YSLib::forward_list,
-//	ystdex::swap_dependent, YSLib::Logger, trivial_swap,
-//	ystdex::exchange, NPL::AssertMatchedAllocators, NPL::AsTermNode,
-//	ystdex::enable_t, ystdex::is_same_param, ystdex::is_bitwise_swappable;
-#include <ystdex/base.h> // for ystdex::derived_entity, ystdex::cloneable;
-#include <ystdex/type_op.hpp> // for ystdex::exclude_self_params_t,
-//	ystdex::enable_if_t, std::is_constructible;
-#include <ystdex/memory.hpp> // for ystdex::clone_polymorphic_ptr;
+//	default_allocator, ystdex::enable_if_constructible_t, std::allocator_arg_t,
+//	pmr, type_info, std::swap, ystdex::expanded_function,
+//	ystdex::enable_if_same_param_t, std::allocator_arg,
+//	ystdex::make_obj_using_allocator, YSLib::forward_list,
+//	ystdex::swap_dependent, YSLib::Logger, trivial_swap, ystdex::exchange, byte,
+//	NPL::AssertMatchedAllocators, NPL::AsTermNode, ystdex::enable_if_t,
+//	ystdex::is_same_param, ystdex::enable_if_inconvertible_t,
+//	ystdex::is_bitwise_swappable;
+#include <ystdex/base.h> // for ystdex::derived_entity;
+#include <ystdex/type_op.hpp> // for ystdex::exclude_self_params_t;
+#include <ystdex/memory.hpp> // for ystdex::destroy_delete,
+//	ystdex::make_unique_with, ystdex::clone_polymorphic_ptr;
 #include <ystdex/container.hpp> // for ystdex::insert_or_assign,
 //	ystdex::erase_first;
 #include <libdefect/exception.h> // for std::exception_ptr;
@@ -83,6 +85,8 @@ using YSLib::trivial_swap_t;
 using YSLib::NodeLiteral;
 //! \since build 964
 using YSLib::allocate_shared;
+//! \since build 965
+using YSLib::allocate_unique;
 //! \since build 851
 using YSLib::any;
 //! \since build 936
@@ -788,8 +792,12 @@ public:
 	\brief 构造：使用指定的环境指针和锚对象指针。
 	\pre 第二参数应当表示和环境指针指向的环境关联的锚对象指针。
 	\note 单独提供锚对象指针参数，而不需要判断参数是否为空值。
+	\since build 965
 	*/
-	template<typename _tParam1, typename _tParam2>
+	template<typename _tParam1, typename _tParam2, yimpl(typename
+		= ystdex::enable_if_constructible_t<EnvironmentBase, _tParam2>,
+		typename = ystdex::enable_if_constructible_t<weak_ptr<Environment>,
+		_tParam1>)>
 	EnvironmentReference(_tParam1&& arg1, _tParam2&& arg2) ynothrow
 		: EnvironmentBase(yforward(arg2)),
 		p_weak(yforward(arg1))
@@ -2203,11 +2211,21 @@ YB_ATTR_nodiscard YB_PURE inline
 		ystdex::second_of<>()), m.find(id), {}, m.cend())))
 
 
+//! \since build 965
+//@{
+FwdDeclI(IParent)
+
+using ParentAllocator = default_allocator<IParent>;
+// XXX: This matches the deleter in the results of %NPL::allocate_unique.
+template<class _tParent>
+using GParentDeleter = ystdex::allocator_delete<ystdex::rebind_alloc_t<
+	ParentAllocator, _tParent>>;
+//@}
+
 //! \since build 964
 //@{
 //! \brief 父环境接口。
-DeclDerivedI(YF_API, IParent, ystdex::cloneable,
-	private ystdex::equality_comparable<IParent>)
+DeclBasedI(YF_API, IParent, private ystdex::equality_comparable<IParent>)
 	//! \brief 重定向续延。
 	using Redirector
 		= ystdex::unchecked_function<observer_ptr<const IParent>()>;
@@ -2217,12 +2235,21 @@ DeclDerivedI(YF_API, IParent, ystdex::cloneable,
 		ImplRet(x.Equals(y))
 
 	/*!
+	\brief 动态复制。
+	\pre 使用和 destroy 兼容的方式创建对象，或不创建对象。
+	\return 创建的对象的指针，或 \c this 通过转换得到的对象指针值。
+	\sa destroy
+	\since build 965
+	*/
+	YB_ATTR_nodiscard DeclIEntry(IParent* Clone() const)
+
+	/*!
 	\brief 判断相等。
 
 	判断相同类型且在对象语言可见的意义上完全等价。
+	同 YSLib::IValueHolder::Equals ，但参数总是 IParent 的及其派生类对象。
 	*/
-	YB_ATTR_nodiscard YB_PURE
-	DeclIEntry(bool Equals(const IParent&) const)
+	YB_ATTR_nodiscard YB_PURE DeclIEntry(bool Equals(const IParent&) const)
 
 	/*!
 	\brief 尝试重定向。
@@ -2235,15 +2262,41 @@ DeclDerivedI(YF_API, IParent, ystdex::cloneable,
 		否则改变参数使之为返回下一个重定向父环境指针的续延，结果为空值。
 	*/
 	YB_ATTR_nodiscard
-	DeclIEntry(shared_ptr<Environment> TryRedirect(Redirector&) const)
+		DeclIEntry(shared_ptr<Environment> TryRedirect(Redirector&) const)
 
-	YB_ATTR_nodiscard
-	DeclIEntry(IParent* clone() const ImplI(ystdex::cloneable))
+	/*!
+	\brief 销毁对象。
+	\sa ystdex::destroy_delete
+	\since build 965
+
+	销毁 \c this 指向的对象，按需释放资源。
+	在调用本函数后，对象可被立即析构，并可能释放对应的存储。
+	因此，调用本函数后，对象在用户代码中应被视为生存期结束。
+	资源和存储可能不被释放以被共享或缓存。
+	若需释放创建的对象，对象应通过和实现兼容的方式取得。
+	否则，不释放资源。
+	除非另行指定，创建对象时使用 NPL::allocator_unique 。
+	其中，分配器被转换为对应动态类型的分配器分配对象。
+	分配和去配时的对应类型应是对象的动态类型。
+	*/
+	DeclIEntry(void destroy() const ynothrowv)
+
+	/*!
+	\brief 取对象类型。
+	\sa type_id
+	\sa ystdex::any_ops::holder
+	\since build 965
+
+	取当前对象的类型。
+	命名同 ystdex::any_ops::holder 。
+	使用 type_id 代替动态的 typeid 实现。
+	*/
+	YB_ATTR_nodiscard YB_PURE DeclIEntry(const type_info& type() const ynothrow)
 EndDecl
 
 
 //! \brief 空父环境。
-class YF_API EmptyParent : implements IParent,
+class YF_API EmptyParent final : implements IParent,
 	private ystdex::equality_comparable<EmptyParent>
 {
 public:
@@ -2254,33 +2307,78 @@ public:
 		PDefHOp(bool, ==, const EmptyParent&, const EmptyParent&) ynothrow
 		ImplRet(true)
 
-	YB_ATTR_nodiscard YB_PURE
-		PDefH(bool, Equals, const IParent& x) const ImplI(IParent)
-		ImplRet(typeid(x) == typeid(EmptyParent))
+	//! \since build 965
+	YB_ATTR_nodiscard YB_STATELESS PDefH(EmptyParent*, Clone, ) const ynothrow
+		ImplI(IParent)
+		ImplRet(const_cast<EmptyParent*>(this))
+
+	YB_ATTR_nodiscard YB_PURE PDefH(bool, Equals, const IParent& x) const
+		ImplI(IParent)
+		ImplRet(x.type() == type_id<EmptyParent>())
 
 	YB_ATTR_nodiscard YB_STATELESS PDefH(shared_ptr<Environment>, TryRedirect,
 		Redirector&) const ImplI(IParent)
 		ImplRet({})
 
-	DefClone(const ImplI(ystdex::cloneable), EmptyParent)
+	//! \since build 965
+	PDefH(void, destroy, ) const ynothrow ImplI(IParent)
+		ImplRet()
+
+	//! \since build 965
+	YB_ATTR_nodiscard YB_PURE PDefH(const type_info&, type, ) const ynothrow
+		ImplI(IParent)
+		ImplRet(type_id<EmptyParent>())
 };
 
 
 //! \brief 单一弱引用父环境。
-class YF_API SingleWeakParent : implements IParent,
+class YF_API SingleWeakParent final : implements IParent,
 	private ystdex::equality_comparable<SingleWeakParent>
 {
+public:
+	//! \since build 965
+	using allocator_type = ParentAllocator;
+
 private:
+	//! \since build 965
+	allocator_type alloc{};
 	EnvironmentReference env_ref;
 
 public:
 	template<typename... _tParams, yimpl(typename
-		= ystdex::exclude_self_params_t<SingleWeakParent, _tParams...>)>
+		= ystdex::exclude_self_params_t<SingleWeakParent, _tParams...>,
+		typename = ystdex::enable_if_constructible_t<
+		EnvironmentReference, _tParams...>)>
 	inline
 	SingleWeakParent(_tParams&&... args)
 		: env_ref(yforward(args)...)
 	{}
-	DefDeCopyMoveCtorAssignment(SingleWeakParent)
+	//! \since build 965
+	//@{
+	template<typename... _tParams, yimpl(typename
+		= ystdex::enable_if_constructible_t<EnvironmentReference, _tParams...>)>
+	inline
+	SingleWeakParent(std::allocator_arg_t, allocator_type a,
+		_tParams&&... args)
+		: alloc(a), env_ref(yforward(args)...)
+	{}
+	SingleWeakParent(const SingleWeakParent& parent, allocator_type a)
+		: alloc(a), env_ref(parent.env_ref)
+	{}
+	SingleWeakParent(SingleWeakParent&& parent, allocator_type a)
+		: alloc(a), env_ref(std::move(parent.env_ref))
+	{}
+	//@}
+	DefDeCopyMoveCtor(SingleWeakParent)
+
+	//! \since build 965
+	PDefH(SingleWeakParent&, operator=, const SingleWeakParent& parent)
+		ImplRet(ystdex::copy_assign(alloc, parent.alloc),
+			env_ref = parent.env_ref, *this)
+	//! \since build 965
+	PDefH(SingleWeakParent&, operator=, SingleWeakParent&& parent)
+		ImplRet(ystdex::copy_assign(alloc, parent.alloc),
+			env_ref = std::move(parent.env_ref), *this)
 
 	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
 		const SingleWeakParent& x, const SingleWeakParent& y) ynothrow
@@ -2289,33 +2387,84 @@ public:
 	DefGetter(const ynothrow, const EnvironmentReference&, , env_ref)
 	DefGetter(ynothrow, EnvironmentReference&, Ref, env_ref)
 
-	YB_ATTR_nodiscard YB_PURE
-		PDefH(bool, Equals, const IParent& x) const ImplI(IParent)
-		ImplRet(typeid(x) == typeid(SingleWeakParent)
+	//! \since build 965
+	YB_ATTR_nodiscard PDefH(SingleWeakParent*, Clone, ) const
+		ImplI(IParent)
+		ImplRet(NPL::allocate_unique<SingleWeakParent>(alloc, *this).release())
+
+	YB_ATTR_nodiscard YB_PURE PDefH(bool, Equals, const IParent& x) const
+		ImplI(IParent)
+		ImplRet(x.type() == type_id<SingleWeakParent>()
 			&& static_cast<const SingleWeakParent&>(x) == *this)
 
 	YB_ATTR_nodiscard shared_ptr<Environment>
 	TryRedirect(Redirector&) const ImplI(IParent);
 
-	DefClone(const ImplI(ystdex::cloneable), SingleWeakParent)
+	//! \since build 965
+	PDefH(void, destroy, ) const ynothrowv ImplI(IParent)
+		ImplExpr(GParentDeleter<SingleWeakParent>(alloc)(
+			const_cast<SingleWeakParent*>(this)))
+
+	YB_ATTR_nodiscard YB_PURE PDefH(allocator_type, get_allocator, ) const
+		ynothrow
+		ImplRet(alloc)
+
+	//! \since build 965
+	YB_ATTR_nodiscard YB_PURE PDefH(const type_info&, type, ) const ynothrow
+		ImplI(IParent)
+		ImplRet(type_id<SingleWeakParent>())
 };
 
 
 //! \brief 单一强引用父环境。
-class YF_API SingleStrongParent : implements IParent,
+class YF_API SingleStrongParent final : implements IParent,
 	private ystdex::equality_comparable<SingleStrongParent>
 {
+public:
+	//! \since build 965
+	using allocator_type = ParentAllocator;
+
 private:
+	//! \since build 965
+	allocator_type alloc{};
 	shared_ptr<Environment> env_ptr;
 
 public:
-	template<typename... _tParams, yimpl(typename
-		= ystdex::exclude_self_params_t<SingleStrongParent, _tParams...>)>
+	template<typename... _tParams,
+		yimpl(typename = ystdex::exclude_self_params_t<SingleStrongParent,
+		_tParams...>, typename = ystdex::enable_if_constructible_t<
+		shared_ptr<Environment>, _tParams...>)>
 	inline
 	SingleStrongParent(_tParams&&... args)
 		: env_ptr(yforward(args)...)
 	{}
-	DefDeCopyMoveCtorAssignment(SingleStrongParent)
+	//! \since build 965
+	//@{
+	template<typename... _tParams,
+		yimpl(typename = ystdex::enable_if_constructible_t<
+		shared_ptr<Environment>, _tParams...>)>
+	inline
+	SingleStrongParent(std::allocator_arg_t, allocator_type a,
+		_tParams&&... args)
+		: alloc(a), env_ptr(yforward(args)...)
+	{}
+	SingleStrongParent(const SingleStrongParent& parent, allocator_type a)
+		: alloc(a), env_ptr(parent.env_ptr)
+	{}
+	SingleStrongParent(SingleStrongParent&& parent, allocator_type a)
+		: alloc(a), env_ptr(std::move(parent.env_ptr))
+	{}
+	//@}
+	DefDeCopyMoveCtor(SingleStrongParent)
+
+	//! \since build 965
+	PDefH(SingleStrongParent&, operator=, const SingleStrongParent& parent)
+		ImplRet(ystdex::copy_assign(alloc, parent.alloc),
+			env_ptr = parent.env_ptr, *this)
+	//! \since build 965
+	PDefH(SingleStrongParent&, operator=, SingleStrongParent&& parent)
+		ImplRet(ystdex::copy_assign(alloc, parent.alloc),
+			env_ptr = std::move(parent.env_ptr), *this)
 
 	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
 		const SingleStrongParent& x, const SingleStrongParent& y) ynothrow
@@ -2324,15 +2473,33 @@ public:
 	DefGetter(const ynothrow, const shared_ptr<Environment>&, , env_ptr)
 	DefGetter(ynothrow, shared_ptr<Environment>&, Ref, env_ptr)
 
-	YB_ATTR_nodiscard YB_PURE
-		PDefH(bool, Equals, const IParent& x) const ImplI(IParent)
-		ImplRet(typeid(x) == typeid(SingleStrongParent)
+	//! \since build 965
+	YB_ATTR_nodiscard PDefH(SingleStrongParent*, Clone, ) const
+		ImplI(IParent)
+		ImplRet(
+			NPL::allocate_unique<SingleStrongParent>(alloc, *this).release())
+
+	YB_ATTR_nodiscard YB_PURE PDefH(bool, Equals, const IParent& x) const
+		ImplI(IParent)
+		ImplRet(x.type() == type_id<SingleStrongParent>()
 			&& static_cast<const SingleStrongParent&>(x) == *this)
 
 	YB_ATTR_nodiscard shared_ptr<Environment>
 	TryRedirect(Redirector&) const ImplI(IParent);
 
-	DefClone(const ImplI(ystdex::cloneable), SingleStrongParent)
+	//! \since build 965
+	PDefH(void, destroy, ) const ynothrowv ImplI(IParent)
+		ImplExpr(GParentDeleter<SingleStrongParent>(alloc)(
+			const_cast<SingleStrongParent*>(this)))
+
+	YB_ATTR_nodiscard YB_PURE PDefH(allocator_type, get_allocator, ) const
+		ynothrow
+		ImplRet(alloc)
+
+	//! \since build 965
+	YB_ATTR_nodiscard YB_PURE PDefH(const type_info&, type, ) const ynothrow
+		ImplI(IParent)
+		ImplRet(type_id<SingleStrongParent>())
 };
 
 
@@ -2344,89 +2511,153 @@ class YF_API EnvironmentParent
 	: private ystdex::equality_comparable<EnvironmentParent>
 {
 private:
-	// XXX: Do not use %YSLib::allocate_unique at current, as the polymorphic
-	//	base class would not be supported by %default_allocate<IParnet> wihout
-	//	further change of the allocator type. In ISO C++20,
-	//	%std::destroying_delete_t may help, but not available here.
-	//! \note 空值仅出现在被转移的对象中。
-	unique_ptr<IParent> parent_ptr{};
+	//! \since build 965
+	//@{
+	using ParentDeleter = ystdex::destroy_delete<const IParent*>;
+	using OwnerPtr = unique_ptr<const IParent, ParentDeleter>;
+	static const EmptyParent DefaultEmptyParent;
+	// XXX: Do not use %NPL::allocate_unique directly at current, as the
+	//	polymorphic base class would not be supported by
+	//	%default_allocate<IParnet> wihout further change of the allocator type.
+	//	In ISO C++20, %std::destroying_delete_t may help, but not available
+	//	here.
+	OwnerPtr parent_ptr;
 
 public:
+	//! \brief 无参数构造：创建空父环境。
+	EnvironmentParent() ynothrow
+		: parent_ptr(InitEmpty())
+	{}
+	//@}
 	template<class _tParent, typename... _tParams, yimpl(typename
 		= ystdex::exclude_self_params_t<EnvironmentParent, _tParams...>,
-		typename = ystdex::enable_if_t<
-		std::is_constructible<_tParent, _tParams...>::value>)>
+		typename = ystdex::enable_if_constructible_t<_tParent, _tParams...>)>
 	inline
 	EnvironmentParent(in_place_type_t<_tParent>, _tParams&&... args)
-		: parent_ptr(NPL::make_unique<_tParent>(yforward(args)...))
+		: parent_ptr(InitPtr<_tParent>(ParentAllocator(), yforward(args)...))
 	{}
 	template<class _tParent, typename... _tParams, yimpl(typename
 		= ystdex::exclude_self_params_t<EnvironmentParent, _tParams...>,
-		typename = ystdex::enable_if_t<
-		std::is_constructible<_tParent, _tParams...>::value>)>
+		typename = ystdex::enable_if_constructible_t<_tParent, _tParams...>)>
 	inline
-	EnvironmentParent(std::allocator_arg_t, TermNode::allocator_type,
+	EnvironmentParent(std::allocator_arg_t, TermNode::allocator_type a,
 		in_place_type_t<_tParent>, _tParams&&... args)
-		: parent_ptr(NPL::make_unique<_tParent>(yforward(args)...))
+		: parent_ptr(InitPtr<_tParent>(a, yforward(args)...))
 	{}
 	EnvironmentParent(const EnvironmentParent& ep)
-		: parent_ptr(ystdex::clone_polymorphic_ptr(ep.parent_ptr))
+		: parent_ptr(ep ? OwnerPtr(NPL::Deref(ep.parent_ptr).Clone(),
+		ep.parent_ptr.get_deleter()) : InitEmpty())
 	{}
-	DefDeMoveCtor(EnvironmentParent)
+	EnvironmentParent(EnvironmentParent&& ep) ynothrow
+		: EnvironmentParent()
+	{
+		parent_ptr.swap(ep.parent_ptr);
+	}
 
 	PDefHOp(EnvironmentParent&, =, const EnvironmentParent& ep)
 		ImplRet(ystdex::copy_and_swap(*this, ep))
-	DefDeMoveAssignment(EnvironmentParent)
+	PDefHOp(const EnvironmentParent&, =, EnvironmentParent&& ep) ynothrow
+		ImplRet(parent_ptr.swap(ep.parent_ptr), *this)
 
-	DefBoolNeg(explicit, bool(parent_ptr))
+	DefBoolNeg(explicit, parent_ptr.get() != &DefaultEmptyParent)
 
 	YB_ATTR_nodiscard YB_PURE friend PDefHOp(bool, ==,
 		const EnvironmentParent& x, const EnvironmentParent& y) ynothrow
-		ImplRet(x.parent_ptr == y.parent_ptr)
+		ImplRet(NPL::Deref(x.parent_ptr) == NPL::Deref(y.parent_ptr))
 
 	DefGetter(const ynothrowv, const IParent&, Object, NPL::Deref(parent_ptr))
-	DefGetter(ynothrowv, IParent&, ObjectRef, NPL::Deref(parent_ptr))
 
-	PDefH(void, AssertValid, ) const
-		ImplExpr(YAssert(parent_ptr, "Invalid parent environment found."))
+private:
+	//! \since build 965
+	YB_ATTR_nodiscard YB_PURE static PDefH(OwnerPtr, InitEmpty, ) ynothrow
+		ImplRet(OwnerPtr(&DefaultEmptyParent, ParentDeleter()))
+	//! \since build 965
+	template<class _tParent, typename... _tParams>
+	YB_ATTR_nodiscard static inline OwnerPtr
+	InitPtr(_tParams&&... args)
+	{
+		return OwnerPtr(
+			NPL::allocate_unique<_tParent>(yforward(args)...).release());
+	}
 
+public:
 	friend
 		DefSwap(ynothrow, EnvironmentParent, _x.parent_ptr.swap(_y.parent_ptr))
 };
 
 
 //! \brief 父环境列表。
-class YF_API ParentList : implements IParent,
+class YF_API ParentList final : implements IParent,
 	private ystdex::equality_comparable<ParentList>
 {
+public:
+	//! \since build 965
+	using allocator_type = EnvironmentList::allocator_type;
+
 private:
-	EnvironmentList envs;
+	//! \since build 965
+	mutable EnvironmentList envs;
 
 public:
 	template<typename... _tParams, yimpl(typename
-		= ystdex::exclude_self_params_t<ParentList, _tParams...>)>
+		= ystdex::exclude_self_params_t<ParentList, _tParams...>, typename
+		= ystdex::enable_if_constructible_t<EnvironmentList, _tParams...>)>
 	inline
 	ParentList(_tParams&&... args)
 		: envs(yforward(args)...)
 	{}
-	DefDeCopyMoveCtorAssignment(ParentList)
+	//! \since build 965
+	ParentList(const ParentList& parent, allocator_type a)
+		: envs(parent.envs, a)
+	{}
+	//! \since build 965
+	ParentList(ParentList&& parent, allocator_type a)
+		: envs(std::move(parent.envs), a)
+	{}
+	DefDeCopyMoveCtor(ParentList)
+
+	//! \since build 965
+	PDefH(ParentList&, operator=, const ParentList& parent)
+		// NOTE: This requires complete %EnvironmentParent.
+		ImplRet(envs
+			= EnvironmentList(parent.envs, parent.envs.get_allocator()), *this)
+	DefDeMoveAssignment(ParentList)
 
 	YB_ATTR_nodiscard YB_PURE friend
 		PDefHOp(bool, ==, const ParentList& x, const ParentList& y) ynothrow
 		ImplRet(x.envs == y.envs)
 
 	DefGetter(const ynothrow, const EnvironmentList&, , envs)
-	DefGetter(ynothrow, EnvironmentList&, Ref, envs)
+	//! \since build 965
+	DefGetter(const ynothrow, EnvironmentList&, Ref, envs)
 
-	YB_ATTR_nodiscard YB_PURE
-		PDefH(bool, Equals, const IParent& x) const ImplI(IParent)
-		ImplRet(typeid(x) == typeid(ParentList)
+	//! \since build 965
+	YB_ATTR_nodiscard PDefH(ParentList*, Clone, ) const
+		ImplI(IParent)
+		ImplRet(NPL::allocate_unique<ParentList>(get_allocator(),
+			envs).release())
+
+	YB_ATTR_nodiscard YB_PURE PDefH(bool, Equals, const IParent& x) const
+		ImplI(IParent)
+		ImplRet(x.type() == type_id<ParentList>()
 			&& static_cast<const ParentList&>(x) == *this)
 
 	YB_ATTR_nodiscard shared_ptr<Environment>
 	TryRedirect(Redirector&) const ImplI(IParent);
 
-	DefClone(const ImplI(ystdex::cloneable), ParentList)
+	//! \since build 965
+	PDefH(void, destroy, ) const ynothrowv ImplI(IParent)
+		ImplExpr(GParentDeleter<ParentList>(get_allocator())(
+			const_cast<ParentList*>(this)))
+
+	YB_ATTR_nodiscard YB_PURE PDefH(allocator_type, get_allocator, ) const
+		ynothrow
+		ImplRet(envs.get_allocator())
+
+	//! \since build 965
+	YB_ATTR_nodiscard YB_PURE PDefH(const type_info&, type, ) const ynothrow
+		ImplI(IParent)
+		ImplRet(type_id<ParentList>())
 };
 //@}
 
@@ -2469,10 +2700,7 @@ public:
 	\sa ContextNode::DefaultResolve
 	\since build 964
 	*/
-	// XXX: Ignoring the allocator for %EmptyParent is slightly more efficient
-	//	only when %Parent is backed by %ValueObject, but no differences for
-	//	%Parent backed by %unique_ptr.
-	EnvironmentParent Parent{in_place_type<EmptyParent>};
+	EnvironmentParent Parent{};
 
 private:
 	/*!
@@ -2566,7 +2794,7 @@ public:
 	YB_ATTR_nodiscard YB_PURE friend
 		PDefHOp(bool, ==, const Environment& x, const Environment& y) ynothrow
 		// XXX: This is usd rarely (more often, equality on
-		//	%shared_ptr<Environment> is instead), but just keep it simple here
+		//	%shared_ptr<Environment> is in stead), but just keep it simple here
 		//	to avoid wrong ("always true") complement like it in %ValueObject.
 		ImplRet(ystdex::ref_eq<>()(x, y))
 
@@ -3114,8 +3342,8 @@ public:
 	//! \brief 判断当前动作序列非空。
 	DefPred(const ynothrow, Alive, !current.empty())
 	//! \brief 判断当前动作序列中的起始迭代器不等于参数。
-	PDefH(bool, IsAliveBefore, ReducerSequence::const_iterator i) const
-		ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(bool, IsAliveBefore,
+		ReducerSequence::const_iterator i) const ynothrow
 		ImplRet(current.cbegin() != i)
 
 	DefGetter(const ynothrow, const ReducerSequence&, Current, current)
@@ -3235,31 +3463,15 @@ public:
 	//@{
 	/*!
 	\brief 重写项。
-	\sa SetupCurrent
-	*/
-	//@{
-	/*!
 	\pre 间接断言：\c !IsAlive() 。
 	\sa RewriteLoop
+	\sa SetupCurrent
 	\since build 810
 
 	设置当前动作，然后返回调用 RewriteLoop 的结果。
 	*/
 	YB_FLATTEN PDefH(ReductionStatus, Rewrite, Reducer reduce)
 		ImplRet(SetupCurrent(std::move(reduce)), RewriteLoop())
-
-	/*!
-	\pre 断言：\c !IsAliveBefore(i) 。
-	\sa RewriteLoopUntil
-	\since build 959
-
-	设置当前动作，然后返回调用 RewriteLoopUntil 的结果。
-	*/
-	YB_FLATTEN PDefH(ReductionStatus, RewriteUntil, Reducer reduce,
-		ReducerSequence::const_iterator i)
-		ImplRet(YAssert(!IsAliveBefore(i), "Unexpected continuation barrier"
-			" found."), SetupFront(std::move(reduce)), RewriteLoopUntil(i))
-	//@}
 
 	/*!
 	\return 最后一次当前动作调用结果。
@@ -3291,6 +3503,20 @@ public:
 	ReductionStatus
 	RewriteLoopUntil(ReducerSequence::const_iterator);
 	//@}
+
+	/*!
+	\brief 重写项，直到指定的迭代器。
+	\pre 断言：\c !IsAliveBefore(i) 。
+	\sa RewriteLoopUntil
+	\sa SetupCurrent
+	\since build 959
+
+	设置当前动作，然后返回调用 RewriteLoopUntil 的结果。
+	*/
+	YB_FLATTEN PDefH(ReductionStatus, RewriteUntil, Reducer reduce,
+		ReducerSequence::const_iterator i)
+		ImplRet(YAssert(!IsAliveBefore(i), "Unexpected continuation barrier"
+			" found."), SetupFront(std::move(reduce)), RewriteLoopUntil(i))
 	//@}
 
 	/*!
@@ -3395,8 +3621,8 @@ public:
 	//@}
 
 	//! \since build 894
-	YB_ATTR_nodiscard YB_PURE
-		PDefH(shared_ptr<Environment>, ShareRecord, ) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(shared_ptr<Environment>, ShareRecord, )
+		const ynothrow
 		ImplRet(p_record)
 
 	/*!
@@ -3415,8 +3641,8 @@ public:
 		ImplExpr(current.UnwindUntil(i))
 
 	//! \since build 894
-	YB_ATTR_nodiscard YB_PURE
-		PDefH(EnvironmentReference, WeakenRecord, ) const ynothrow
+	YB_ATTR_nodiscard YB_PURE PDefH(EnvironmentReference, WeakenRecord, ) const
+		ynothrow
 		ImplRet(ShareRecord())
 
 	/*!
@@ -3429,10 +3655,11 @@ public:
 
 	/*!
 	\brief 缩小存储资源占用：清空暂存的对象。
+	\note 和标准库容器不同，保证释放资源且无异常抛出。
 	\sa stashed
-	\since build 892
+	\since build 965
 	*/
-	PDefH(void, shrink_to_fit, )
+	PDefH(void, shrink_to_fit, ) ynothrow
 		ImplExpr(stashed.clear())
 
 	/*!
@@ -3705,6 +3932,8 @@ template<class _tParent>
 YB_ATTR_nodiscard YB_PURE inline EnvironmentParent
 ToParent()
 {
+	// XXX: %EmptyParent is not excluded, though it should be replaced by
+	//	%EnvironmentParent instead.
 	return EnvironmentParent(in_place_type<_tParent>);
 }
 // XXX: The condition is similar to %TermNode::SetValue, but there is no
@@ -3715,7 +3944,9 @@ template<class _tParent, typename _tParam, typename... _tParams,
 	|| !(ystdex::is_same_param<EnvironmentParent, _tParam>::value
 	|| ystdex::is_same_param<ValueObject, _tParam>::value), int> = 0,
 	ystdex::exclude_self_t<std::allocator_arg_t, _tParam, int> = 0)>
-YB_ATTR_nodiscard YB_PURE YB_FLATTEN inline EnvironmentParent
+YB_ATTR_nodiscard YB_PURE YB_FLATTEN inline
+	yimpl(ystdex::enable_if_inconvertible_t)<_tParam, TermNode::allocator_type,
+	EnvironmentParent>
 ToParent(_tParam&& arg, _tParams&&... args)
 {
 	return EnvironmentParent(in_place_type<_tParent>, yforward(arg),
@@ -3735,8 +3966,9 @@ ToParent(TermNode::allocator_type a, _tParams&&... args)
 inline PDefH(void, AssignParent, EnvironmentParent& parent,
 	const EnvironmentParent& ep)
 	ImplExpr(parent = ep)
+//! \since build 965
 inline PDefH(void, AssignParent, EnvironmentParent& parent,
-	EnvironmentParent&& ep)
+	EnvironmentParent&& ep) ynothrow
 	ImplExpr(parent = std::move(ep))
 inline PDefH(void, AssignParent, ValueObject& parent, EnvironmentParent&& ep)
 	ImplExpr(parent = std::move(ep))
@@ -3775,7 +4007,7 @@ AssignParentH(ValueObject& parent, TermNode::allocator_type a,
 	_tParams&&... args)
 {
 	parent.assign(std::allocator_arg, a, in_place_type<EnvironmentParent>,
-		in_place_type<_tParent>, yforward(args)...);
+		std::allocator_arg, a, in_place_type<_tParent>, yforward(args)...);
 }
 template<class _tParent, typename... _tParams>
 inline void

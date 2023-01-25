@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r7840
+\version r7847
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2023-01-11 12:21 +0800
+	2023-01-16 18:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -355,11 +355,6 @@ CopyEnvironmentDFS(Environment& d, const Environment& e)
 			}
 			// XXX: Empty pointer is ignored.
 		}
-		else if(const auto p_empty = dynamic_cast<const EmptyParent*>(&poly))
-		{
-			NPL::AssignParentH<EmptyParent>(mdst().Parent, a);
-			return true;
-		}
 		return {};
 	});
 	const auto copy_parent_ptr(
@@ -563,7 +558,8 @@ CreateEnvironmentWithParent(const Environment::allocator_type& a,
 	// XXX: Simlar to %MakeEnvironment, specialized for 1 %EnvironmentReference
 	//	value.
 	Environment::EnsureValid(r_env.Lock());
-	return NPL::AllocateEnvironment(a, NPL::ToParent<SingleWeakParent>(r_env));
+	return NPL::AllocateEnvironment(a,
+		NPL::ToParent<SingleWeakParent>(a, r_env));
 }
 #endif
 

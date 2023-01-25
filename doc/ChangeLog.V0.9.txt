@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r13729
+\version r13985
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2023-01-12 04:32 +0800
+	2023-01-26 01:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,263 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		+ "metafunctions %(enable_if_constructible_t, \
+			enable_if_constructible_r_t, enable_is_inconstructible_t, \
+			enable_is_inconstructible_r_t)" @ %Meta,
+		/ %Memory $=
+		(
+			/ DLDI "type-parameter-key for deleter" -> 'typename' ~ 'class'
+				$effective @ ("alias templates %(deleter_member_pointer_t, \
+				unique_ptr_pointer)", "function templates %(owns_unique, \
+				owns_unique_nonnull)#2", "function template %reset#1",
+				"class template specialization %pack_obj_impl#1"),
+			+ DD "Doxygen group %deleters",
+			+ "class temlate %destroy_delete" @ "Doxygen group %deleters"
+		),
+		/ %Allocator $=
+		(
+			+ 'yconstfn' @ "function templates \
+				%(uses_allocator_construction_args, make_obj_using_allocator, \
+				uninitialized_construct_using_allocator)",
+				// This is more consistent to ISO C++20. Note as the current \
+					policy, the mismatch of 'constexpr' is not a bug.
+			/ @ "class templates %(allocator_delete, allocator_guard_delete)"
+				@ %YBase.YStandardEx.Allocator $=
+			(
+				+ "defaulted default constructor",
+					// This is not in the WG21 P0316R0, but a useful extension.
+				+ "type %allocator_type",
+					// For %allcator_delete, this makes it compatible to WG21 \
+						P0316R0.
+				+ "2 constructor templates for other allocators"
+					^ $dep_from ("%enable_if_constructible_t" @ %Meta),
+					// Ditto.
+				+ "copy %operator=" ^ "%ystdex::copy_assign",
+					// This does support deleted %operator= in the allocator now.
+				(
+				+ "defaulted (copy, move) constructors";
+					// This is required to prevented deleted constructors by \
+						the following changes.
+				+ "defaulted move %operator=",
+				+ "2 function templates %operator= for other allocators"
+					// This does support deleted %operator= in the allocator, \
+						as well as WG21 P0316R0.
+				// To support the deleted %operator= in the allocator, there \
+					is no %swap added as in WG21 P0316R0.
+				)
+			)
+		)
+	),
+	/ %YFramework.NPL $=
+	(
+		/ @ "static function template %Traverse" @ "class %RecordCompressor"
+			@ %NPLA1Internals $=
+		(
+			+ DLDI 'const' @ "list enivornment cast target type"
+				$dep_from ("%ParentList::GetRef" @ %NPLA);
+			/ ^ "%Environment::Parent::GetObject"
+				~ "%EnvironmentParent::GetObjectRef"
+		),
+		/ %SContext $=
+		(
+			* "missing qualified 'NPL::' before 'AssertMatchedAllocators'"
+				@ "function %AssertMatchedAllocators#3" $since b949 $orig
+				(@ "function %AssertMatchedAllocators#2" @ %NPLA $since b941),
+			/ DLDI @ "class %TermNode" $=
+			(
+				/ "simplified" ^ $dep_from ("%ystdex::enable_if_constructible_t"
+					@ %YBase.YStandardEx.Meta) ~ "%(ystdex::enable_if_t, \
+					std::is_constructible)",
+				/ "simplified return type" @ "function template %SetValue#2"
+			),
+			* "invalid 'YB_PURE'" @ (("function template %operator()"
+				@ "functor %LexemeTokenizer" $since b891;
+				"function templates %AsTermNode" $since b852),
+				"function templates %AsTermNodeTagged" $since b947)
+				$= (- $impl 'YB_PURE')
+				// These cannot be 'YB_PURE' if the constructor call of the \
+					target for %TermNode::Value is not pure. Wrong code can be \
+					actually generated for %AsTermNode by x86_64-pc-linux G++ \
+					8.3 in stage 2 SHBuild.
+		),
+		- "all calls to %EnvironmentParent::AssertValid" $effective @ (%NPLA,
+			@ "vau handler constructors" @ %NPLA1Forms)
+			$dep_to "removal of environment parent validity check",
+			// These are redundant after the %Envrionment changes which \
+				guaratee all values are valid.
+		/ %NPLA $=
+		(
+			/ @ "class %ParentList" $=
+			(
+				+ DLDI 'mutable' @ "environment list";
+				- 'const' @ "function %GetRef"
+			),
+			/ @ "class %ContextNode" $=
+			(
+				+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+					@ "function %IsAliveBefore",
+				/ DLDI "reordered declaration %RewriteUntil",
+				/ DLI "functions %RewriteLoop" ^ "%std::bind"
+					~ "lambda-expression",
+					// This also improves performance.
+				/ DLI "function %RewriteLoopUntil"
+					^ ("%YB_LAMBDA_ANNOTATE", 'pure'),
+					// This is different to above.
+				+ 'ynothrow' @ "function %shrink_to_fit"
+			),
+			(
+			+ 'using YSLib::allocate_unique;',
+			(
+			+ "alias %ParentAllocator";
+			+ "alias template %GParentDeleter",
+			/ ("base %ystdex::cloneable", "entry %clone") @ "interface %IParent"
+				-> "entries %(Clone, Release)"
+			),
+			/ $dev "excluded non-constructible arguments"
+				@ "construct template %EnvironmentReference" ^ $dep_from
+				("%ystdex::enable_if_constructible_t" @ %YBase.YStandardEx.Meta)
+				$dep_to "environment reference SFINAE-friendly construction",
+			+ "entry %type" @ "interface %IParent",
+			/ @ "classes %(EmptyParent, SingleWeakParent, SingleStrongParent, \
+				ParentList)" $=
+			(
+				(
+				/ "overrider %clone" -> "overriders %(Clone, Release)"
+					$dep_from $forced "%IParent::(Clone, Release)"
+					^ $dep_from "%GParentDeleter";
+				/ $dev $lib 'YB_PURE' @ "member function %EmptyParent::Clone"
+					-> 'YB_STATELESS'
+				),
+				(
+				/ "copy %operator="
+					@ "classes %(SingleWeakParent, SingleStrongParent)"
+					$= (/ $impl ^ "%DefDeCopyMoveCtor"
+						~ "%DefDeCopyMoveCtorAssignment"),
+					// This is required to prevent deleted default functions \
+						after adding the allocator data member.
+				/ "class %ParentList"
+					$= (/ $impl ^ "%(DefDeCopyMoveCtor, DefDeMoveAssignment)"
+						~ "%DefDeCopyMoveCtorAssignment");
+					// To propagate the allocator properly.
+				/ "enabled compatibility to uses-allocator allocation"
+					@ "classes except %EmptyParent" $=
+				(
+					/ "constructor templates ensured SFINAE-friendly"
+						@ ("class %SingleWeakParent" $dep_from "environment \
+						reference SFINAE-friendly construction",
+						"class %SingleStrongParent", "class %ParentList"
+						$dep_from "removal of trailing list allocator")
+						^ $dep_from ("%ystdex::enable_if_constructible_t"
+						@ %YBase.YStandardEx.Meta),
+					+ ("type %allocator_type"; "(copy, move) with allocator \
+						constructors", "function %get_allocator")
+						// It is convenient to provide %get_allocator, \
+							although not strictly necessary.
+				)
+				),
+				+ $dev 'final',
+					// This is a bit more efficient.
+				(
+				+ "overrider %type" $dep_from $forced "%IParent::type";
+				/ DLI "simplified %Equals" ^ "%type" ~ 'typeid'
+					// This is hopefully a bit more efficient in time, and \
+						likely more efficient in size.
+				)
+			),
+			/ "class %EnvironmentParent" $=
+			(
+				- "function %GetObjectRef" $dep_from %NPLA1Internals,
+				/ @ "internal owner pointer type" $=
+				(
+					(
+					+ 'const' @ "value type" $dep_from "%GetObjectRef";
+					+ DLI "deleter for owner poniter type" ^ $dep_from
+						("%ystdex::destroy_delete" @ %YBase.YStandardEx.Memory);
+					+ DLI "static object"
+					),
+					/ "deleter" ^ "allocator" ^ $dep_from "%IParent"
+						$dep_to "parent environment deleter"
+				),
+				(
+				/ "checked empty" @ "%operator %(bool, !)" ~ "validity"
+					$dep_from %NPLA1Forms;
+					// This is now similar before the change of b954, where \
+						%Environment::Parent is %ValueObject.
+				/ DLI "constructors and move %operator="
+					^ "static object" ~ "empty value";
+					// Now all values are valid.
+				+ "default constructor"
+				),
+				- $revert(b964) "function %AssertValid"
+					$dep_from "removal of environment parent validity check",
+				/ "constructors" ^ "allocators"
+					$dep_from $forced "parent environment deleter"
+					// This improves the performance a bit.
+			),
+			/ $revert_ex(b964) DLI "simplified initialization"
+				@ "data member %Parent" @ "class %Environment" ^ '{}'
+				$dep_from "default constructor %ParentEnvironment",
+				// This improves the performance significantly, getting rid of \
+					the slow down from b963 to b964.
+			+ 'ynothrow' @ "function template %AssignParent#2",
+			* "missing excluding allocator for 1st argument" @ "%ToParent#4"
+				$since b964
+				$= (/ $impl ^ "%ystdex::enable_if_inconvertible_t"),
+				// This would make wrong overload selected when the allocator \
+					is proveded as the 1st argument and that allocator would \
+					not be used.
+			/ $revert_ex(b964) DLI @ "simplified"
+				@ "static member function %ContextNode::DefaultResolve",
+			/ DLI "lifting of the referent content"
+				@ "function %LiftSuffixToReturn"
+		),
+		/ $revert_ex(b964) "removed stray %EmptyParent support" $forced
+			$dep_from "%Environment::Parent" $effective @ ("applicative \
+			'copy-environment'" @ "function %LoadGroundContext" @ %Dependency,
+			"functions %Forms::(MakeEnvironment, '*WithEnviornment', \
+			BindingsWithParentToEnvironment)" @ %NPLA1Forms),
+		/ "removed trailing allocator argument" @ "functions \
+			%Forms::(MakeEnvironment, '*WithEnviornment', \
+			BindingsWithParentToEnvironment)" @ %NPLA1Forms
+			$dep_to "removal of trailing list allocator",
+			// This is now to be implicitly appended by the uses-allocator \
+				allocation.
+		/ DLI "parent environment creation" @ "native implementation"
+			@ "applicative 'make-standard-environment'"
+			@ "function %LoadGroundContext" @ %Dependency ^ "allocator",
+			// To be consisten to %Forms::MakeEnviornment.
+		/ %Exception $=
+		(
+			* $re_add(b928) "PMR allocator invalidated when threw class \
+				%BadIdentifier out of the default memory resource"
+				$orig (@ %NPLA $since b861) $=
+				// The change was made in %YCLib.Container and it was \
+					inherited by %YSLib::string and %NPL::string in turn.
+			(
+				/ DLI "stored string value type" ^ "%std::string" ~ "%string";
+					// This should be also more efficient if thrown. Anyway, \
+						no allocator is actually used explicitly. However, it \
+						could be actually a bit inefficient due to more symbol \
+						resolution during shared library loading.
+				/ $forced "return type %string" @ "function %GetIdentifier"
+					-> "%std::string"
+				// Since %Source still has a stateful allocator, it should be \
+					also replaced by the call sites, either by explicit access \
+					to %Source, or by %ReplaceAllocator below.
+			),
+			(
+			+ "virtual function %ReplaceAllocator" @ "class %NPLException";
+			+ "overrider %ReplaceAllocator" @ "class %BadIdentifier",
+			+ "function template %GuardExceptionsForAllocator"
+			)
+		)
+	)
+),
+
+b964
 (
 	/ %YFramework $=
 	(

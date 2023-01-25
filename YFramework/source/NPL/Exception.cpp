@@ -1,5 +1,5 @@
 ﻿/*
-	© 2016-2018, 2020-2022 FrankHB.
+	© 2016-2018, 2020-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Exception.cpp
 \ingroup NPL
 \brief NPL 异常。
-\version r4842
+\version r4856
 \author FrankHB <frankhb1989@gmail.com>
 \since build 936
 \par 创建时间:
 	2022-01-21 01:59:50 +0800
 \par 修改时间:
-	2022-07-17 08:35 +0800
+	2023-01-25 20:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,8 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_Exception // for YSLib::RecordLevel, string, string_view,
-//	size_t, EscapeLiteral, Literalize, ystdex::sfmt, make_shared;
+//	size_t, EscapeLiteral, Literalize, ystdex::sfmt, make_shared, std::string,
+//	YSLib::share_move;
 #include YFM_NPL_NPLA // for TermToStringWithReferenceMark;
 
 //! \since build 903
@@ -82,13 +83,24 @@ ImplDeDtor(ArityMismatch)
 
 BadIdentifier::BadIdentifier(const char* id, size_t n, RecordLevel lv)
 	: InvalidSyntax(InitBadIdentifierExceptionString(id, n), lv),
-	p_identifier(make_shared<string>(id))
+	p_identifier(make_shared<std::string>(id))
 {}
 BadIdentifier::BadIdentifier(string_view id, size_t n, RecordLevel lv)
 	: InvalidSyntax(InitBadIdentifierExceptionString(id, n), lv),
-	p_identifier(make_shared<string>(id))
+	// XXX: Not as %string, %std::string may not support the direct
+	//	initialization from %string_view without WG21 P0254R2 support.
+	p_identifier(make_shared<std::string>(id.data(), id.size()))
 {}
 ImplDeDtor(BadIdentifier)
+
+void
+BadIdentifier::ReplaceAllocator(default_allocator<yimpl(byte)> a)
+{
+	auto& p_src(Source.first);
+
+	if(p_src)
+		p_src = YSLib::share_move(a, *p_src);
+}
 
 
 ImplDeDtor(InvalidReference)

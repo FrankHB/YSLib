@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r29346
+\version r29352
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2023-01-12 04:17 +0800
+	2023-01-15 23:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -789,9 +789,10 @@ MakeEnvironmentParentList(TNIter first, TNIter last, TermNode::allocator_type a,
 #if false
 	// XXX: This is slightly more efficient only when %EnvironmentParent is
 	//	backed by %ValueObject.
-	return NPL::ToParent<ParentList>(tr(first), tr(last), a);
+	yunused(a);
+	return NPL::ToParent<ParentList>(tr(first), tr(last));
 #else
-	return NPL::ToParent<ParentList>(a, tr(first), tr(last), a);
+	return NPL::ToParent<ParentList>(a, tr(first), tr(last));
 #endif
 }
 
@@ -832,8 +833,7 @@ MakeResolvedParentList(TermNode& nd, bool move)
 {
 	return !nd.empty() ? (nd.size() != 1 ? MakeEnvironmentParentList(nd.begin(),
 		nd.end(), nd.get_allocator(), move) : MakeParentLeaf(*nd.begin(), move))
-		// XXX: See the initialization of %Environment::Parent.
-		: NPL::ToParent<EmptyParent>();
+		: EnvironmentParent();
 }
 //@}
 
@@ -1084,7 +1084,6 @@ protected:
 		: p_formals(std::move(p_fm)), guard_call(gd_call),
 		parent(std::move(ep)), p_eval_struct(std::move(p_es)), NoLifting(nl)
 	{
-		parent.AssertValid();
 		YAssert(p_eval_struct.use_count() == 1,
 			"Unexpected shared evaluation structure found.");
 		AssertValueTags(NPL::Deref(p_eval_struct)); 

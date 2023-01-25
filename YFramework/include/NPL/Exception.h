@@ -1,5 +1,5 @@
 ﻿/*
-	© 2016-2022 FrankHB.
+	© 2016-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Exception.h
 \ingroup NPL
 \brief NPL 异常。
-\version r11508
+\version r11550
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2022-01-21 01:59:22 +0800
 \par 修改时间:
-	2022-07-05 03:54 +0800
+	2023-01-25 21:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_NPL_SContext // for LoggedEvent, YSLib::RecordLevel, std::string,
-//	shared_ptr, NPL::Deref, TermNode, type_info;
+//	shared_ptr, NPL::Deref, ystdex::invoke, TermNode, type_info;
 
 namespace NPL
 {
@@ -62,6 +62,17 @@ public:
 
 	//! \since build 844
 	DefDeCopyAssignment(NPLException)
+
+	/*!
+	\brief 替换异常对象中的分配器。
+	\post 所有分配器替换为参数。
+	\since build 965
+
+	替换异常对象所有的有状态分配器，以避免传播异常后失效。
+	默认为空实现。
+	*/
+	virtual PDefH(void, ReplaceAllocator, default_allocator<yimpl(byte)>)
+		ImplRet()
 };
 
 
@@ -232,7 +243,8 @@ public:
 class YF_API BadIdentifier : public InvalidSyntax
 {
 private:
-	shared_ptr<string> p_identifier;
+	//! \since build 965
+	shared_ptr<std::string> p_identifier;
 
 public:
 	/*!
@@ -262,8 +274,19 @@ public:
 	//! \since build 845
 	DefDeCopyAssignment(BadIdentifier)
 
-	DefGetter(const ynothrow, const string&, Identifier,
+	//! \since build 965
+	DefGetter(const ynothrow, const std::string&, Identifier,
 		NPL::Deref(p_identifier))
+
+	/*!
+	\brief 替换异常对象中的分配器。
+	\post 所有分配器替换为参数。
+	\since build 965
+
+	若 Source 的源名称非空，使用参数重新构造相同名称的值并替换。
+	*/
+	void
+	ReplaceAllocator(default_allocator<yimpl(byte)>) override;
 };
 
 
@@ -286,6 +309,27 @@ public:
 	DefDeCopyAssignment(InvalidReference)
 };
 //@}
+
+
+/*!
+\brief 调用函数并守卫可能抛出的异常对象的分配器资源。
+\param a 需要在抛出异常后被替换的分配器。
+\sa NPLException::ReplaceAllocator
+\since build 965
+*/
+template<typename _fCallable, typename... _tParams>
+auto
+GuardExceptionsForAllocator(default_allocator<yimpl(byte)> a, _fCallable&& f,
+	_tParams&&... args)
+	-> decltype(ystdex::invoke(yforward(f), yforward(args)...))
+{
+	TryExpr(ystdex::invoke(yforward(f), yforward(args)...))
+	catch(NPLException& e)
+	{
+		e.ReplaceAllocator(a);
+		throw;
+	}
+}
 
 
 /*!
