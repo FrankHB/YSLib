@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r702
+\version r776
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2022-02-28 05:47 +0800
+	2023-02-01 18:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,11 +32,12 @@
 #define YB_INC_ystdex_pointer_hpp_ 1
 
 #include "iterator_op.hpp" // for "iterator_op.hpp", <iterator>, <memory>,
-//	pointer_traits, nullptr_t, bool_, not_, is_function, true_, detected_or_t,
-//	totally_ordered, equality_comparable, add_pointer_t, add_lvalue_reference_t,
-//	yconstraint, iterator_operators_t, std::iterator_traits;
-#include "functor.hpp" // for indirect_t, std::equal_to, std::less, std::hash,
-//	add_ptr_t, add_ref_t, ystdex::swap_dependent;
+//	pointer_traits, nullptr_t, bool_, not_, true_, detected_or_t, is_function,
+//	totally_ordered, is_nothrow_copyable, is_destructible, equality_comparable,
+//	add_pointer_t, add_lvalue_reference_t, yconstraint, iterator_operators_t,
+//	std::iterator_traits;
+#include "functor.hpp" // for indirect_t, std::equal_to, std::less,
+//	ystdex::swap_dependent, std::hash,
 #include "placement.hpp" // for is_bitwise_swappable;
 
 namespace ystdex
@@ -48,7 +49,7 @@ namespace details
 
 #if !(__cpp_lib_to_address >= 201711L)
 //! \since build 846
-//@{
+//!@{
 template<class _tPointer>
 YB_ATTR_nodiscard inline auto
 to_address(nullptr_t, const _tPointer& p)
@@ -63,7 +64,7 @@ to_address(void*, const _tPointer& p)
 {
 	return details::to_address(nullptr, p.operator->());
 }
-//@}
+//!@}
 #endif
 
 template<typename _type>
@@ -101,7 +102,7 @@ using std::to_address;
 \since build 846
 \see WG21 P0653R2 。
 */
-//@{
+//!@{
 template<class _tPointer>
 YB_ATTR_nodiscard inline auto
 to_address(const _tPointer& p) ynothrow
@@ -117,14 +118,54 @@ to_address(_type* p) ynothrow
 
 	return p;
 }
-//@}
+//!@}
 #endif
 
 } // inline namespace cpp2020;
 
+/*!
+\brief 转换假定为分配的指针。
+\pre 参数非空。
+\note 同 std::to_address ，但同时假定参数能映射到满足 YB_ALLOCATOR 语义的非空指针。
+\sa YB_ALLOCATOR
+\sa ystdex::to_address
+\since build 966
+*/
+//!@{
+template<class _tPointer>
+// NOTE: Both '__declspec(restrict)' and '__attribute__((__malloc__))' do not
+//	work when the return type not definitely a pointer. The following
+//	workaround should follow the definition of %YB_ALLOCATOR and just rule such
+//	offending attributes precisely.
+YB_ATTR_nodiscard
+#if YB_IMPL_MSCPP >= 1900 && !defined(__EDG__) && !defined _CORECRT_BUILD
+	__declspec(allocator)
+#endif
+// XXX: To work around Clang++ warning: [-Wignored-attributes].
+#if !YB_IMPL_CLANGPP
+	YB_ATTR_returns_nonnull
+#endif
+	inline auto
+to_allocated(const _tPointer& p) ynothrow -> decltype(ystdex::to_address(p))
+{
+	YAssertNonnull(p);
+	return ystdex::to_address;
+}
+// NOTE: 'YB_STATELESS' (as well 'YB_PURE') is comprimise because it is
+//	semantically confilict to the allocator result, at least with
+//	'__attribute__((__malloc__))' (with G++ warning: [-Wattributes]).
+template<typename _type>
+YB_ATTR_nodiscard YB_ALLOCATOR YB_ATTR_returns_nonnull YB_NONNULL(1) yconstfn
+	_type*
+to_allocated(_type* p) ynothrow
+{
+	return ystdex::to_address(p);
+}
+//!@}
+
 
 //! \since build 560
-//@{
+//!@{
 /*!
 \brief 可空指针包装：满足 \c NullablePointer 要求同时满足转移后为空。
 \tparam _type 被包装的指针。
@@ -136,6 +177,10 @@ class nptr : private totally_ordered<nptr<_type>>
 {
 	//! \since build 630
 	static_assert(is_nothrow_copyable<_type>(), "Invalid type found.");
+	// XXX: Use %is_destructible to conform the ISO C++20 Cpp17Destructible
+	//	requirments ([tab:cpp17.destructible]]), instead of
+	//	%is_nothrow_destructible to conform the ISO C++20 concept
+	//	%std::destructible ([concept.destructible]).
 	static_assert(is_destructible<_type>(), "Invalid type found.");
 
 public:
@@ -147,7 +192,7 @@ private:
 public:
 	nptr() = default;
 	//! \since build 628
-	//@{
+	//!@{
 	yconstfn
 	nptr(std::nullptr_t) ynothrow
 		: nptr()
@@ -155,7 +200,7 @@ public:
 	nptr(pointer p) ynothrow
 		: ptr(p)
 	{}
-	//@}
+	//!@}
 	nptr(const nptr&) = default;
 	nptr(nptr&& np) ynothrow
 	{
@@ -181,9 +226,9 @@ public:
 	\note 不直接限定返回类型以支持定义时 pointer 指向的元素是不完整类型。
 	\since build 863
 	*/
-	//@{
+	//!@{
 	//! \pre 表达式 \c *ptr 合式。
-	//@{
+	//!@{
 	template<yimpl(typename _tPtr = pointer)>
 	YB_ATTR_nodiscard YB_PURE yconstfn_relaxed auto
 	operator*() ynothrow
@@ -198,7 +243,7 @@ public:
 	{
 		return *ptr;
 	}
-	//@}
+	//!@}
 
 	YB_ATTR_nodiscard YB_PURE yconstfn_relaxed pointer&
 	operator->() ynothrow
@@ -210,7 +255,7 @@ public:
 	{
 		return ptr;
 	}
-	//@}
+	//!@}
 
 	//! \since build 600
 	YB_ATTR_nodiscard YB_PURE friend yconstfn bool
@@ -267,11 +312,11 @@ swap(nptr<_type>& x, nptr<_type>& y) ynothrow
 {
 	x.swap(y);
 }
-//@}
+//!@}
 
 
 //! \since build 669
-//@{
+//!@{
 /*!
 \ingroup YBase_replacement_features
 \brief 观察者指针：无所有权的智能指针。
@@ -291,14 +336,14 @@ private:
 
 public:
 	//! \post <tt>get() == nullptr</tt> 。
-	//@{
+	//!@{
 	yconstfn
 	observer_ptr() ynothrow yimpl(= default);
 	yconstfn
 	observer_ptr(nullptr_t) ynothrow
 		: ptr()
 	{}
-	//@}
+	//!@}
 	explicit yconstfn
 	observer_ptr(pointer p) ynothrow
 		: ptr(p)
@@ -311,7 +356,7 @@ public:
 		: ptr(other.get())
 	{}
 
-	//! \pre 断言： <tt>get() != nullptr</tt> 。
+	//! \pre 断言：<tt>get() != nullptr</tt> 。
 	YB_ATTR_nodiscard YB_PURE yconstfn_relaxed reference
 	operator*() const ynothrowv
 	{
@@ -383,9 +428,9 @@ public:
 };
 
 //! \relates observer_ptr
-//@{
+//!@{
 //! \since build 675
-//@{
+//!@{
 template<typename _type1, typename _type2>
 YB_ATTR_nodiscard YB_PURE yconstfn bool
 operator==(observer_ptr<_type1> p1, observer_ptr<_type2> p2) ynothrowv
@@ -406,7 +451,7 @@ operator<(observer_ptr<_type1> p1, observer_ptr<_type2> p2) ynothrowv
 {
 	return std::less<common_type_t<_type1*, _type2*>>()(p1.get(), p2.get());
 }
-//@}
+//!@}
 
 template<typename _type>
 inline void
@@ -414,14 +459,15 @@ swap(observer_ptr<_type>& p1, observer_ptr<_type>& p2) ynothrow
 {
 	p1.swap(p2);
 }
+
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
 make_observer(_type* p) ynothrow
 {
 	return observer_ptr<_type>(p);
 }
-//@}
-//@}
+//!@}
+//!@}
 
 
 //! \since build 755
@@ -472,7 +518,7 @@ public:
 	pointer_iterator(const pointer_iterator&) = default;
 
 	//! \since build 585
-	//@{
+	//!@{
 	yconstfn_relaxed pointer_iterator&
 	operator+=(difference_type n) ynothrowv
 	{
@@ -530,7 +576,7 @@ public:
 	{
 		return raw;
 	}
-	//@}
+	//!@}
 };
 
 /*!
@@ -550,7 +596,7 @@ struct is_bitwise_swappable<pointer_iterator<_type>>
 
 若参数是指针类型则包装为 pointer_iterator 。
 */
-//@{
+//!@{
 template<typename _type>
 struct pointer_classify
 {
@@ -562,7 +608,7 @@ struct pointer_classify<_type*>
 {
 	using type = pointer_iterator<_type>;
 };
-//@}
+//!@}
 
 } // namespace ystdex;
 

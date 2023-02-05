@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018, 2020-2022 FrankHB.
+	© 2018, 2020-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file tree.cpp
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r416
+\version r451
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2022-11-28 19:36 +0800
+	2023-02-01 23:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,7 @@
 */
 
 
-#include "ystdex/tree.h"
+#include "ystdex/tree.h" // for YAssertNonnull;
 
 namespace ystdex
 {
@@ -40,9 +40,13 @@ inline namespace rb_tree
 namespace
 {
 
-YB_PURE tree_node_base*
-local_tree_increment(tree_node_base* x) ynothrow
+//! \since build 966
+//!@{
+YB_NONNULL(1) YB_PURE tree_node_base*
+local_tree_increment(tree_node_base* x) ynothrowv
 {
+	YAssertNonnull(x);
+
 	if(x->right)
 	{
 		x = x->right;
@@ -64,9 +68,11 @@ local_tree_increment(tree_node_base* x) ynothrow
 	return x;
 }
 
-YB_PURE tree_node_base*
-local_tree_decrement(tree_node_base* x) ynothrow
+YB_NONNULL(1) YB_PURE tree_node_base*
+local_tree_decrement(tree_node_base* x) ynothrowv
 {
+	YAssertNonnull(x);
+
 	if(x->color == tree_color::red && x->parent->parent == x)
 		x = x->right;
 	else if(x->left)
@@ -91,9 +97,11 @@ local_tree_decrement(tree_node_base* x) ynothrow
 	return x;
 }
 
-void
-local_tree_rotate_left(tree_node_base* x, tree_node_base*& root)
+YB_NONNULL(1) void
+local_tree_rotate_left(tree_node_base* x, tree_node_base*& root) ynothrowv
 {
+	YAssertNonnull(x);
+
 	const auto y = x->right;
 
 	x->right = y->left;
@@ -110,9 +118,11 @@ local_tree_rotate_left(tree_node_base* x, tree_node_base*& root)
 	x->parent = y;
 }
 
-void
-local_tree_rotate_right(tree_node_base* x, tree_node_base*& root)
+YB_NONNULL(1) void
+local_tree_rotate_right(tree_node_base* x, tree_node_base*& root) ynothrowv
 {
+	YAssertNonnull(x);
+
 	const auto y = x->left;
 
 	x->left = y->right;
@@ -128,44 +138,45 @@ local_tree_rotate_right(tree_node_base* x, tree_node_base*& root)
 	y->right = x;
 	x->parent = y;
 }
+//!@}
 
 } // unnamed namespace;
 
 
 tree_node_base*
-tree_increment(tree_node_base* x) ynothrow
+tree_increment(tree_node_base* x) ynothrowv
 {
 	return local_tree_increment(x);
 }
 const tree_node_base*
-tree_increment(const tree_node_base* x) ynothrow
+tree_increment(const tree_node_base* x) ynothrowv
 {
 	return local_tree_increment(const_cast<tree_node_base*>(x));
 }
 
 tree_node_base*
-tree_decrement(tree_node_base* x) ynothrow
+tree_decrement(tree_node_base* x) ynothrowv
 {
 	return local_tree_decrement(x);
 }
 const tree_node_base*
-tree_decrement(const tree_node_base* x) ynothrow
+tree_decrement(const tree_node_base* x) ynothrowv
 {
 	return local_tree_decrement(const_cast<tree_node_base*>(x));
 }
 
 void
 tree_insert_and_rebalance(bool insert_left, tree_node_base* x,
-	tree_node_base* p, tree_node_base& header) ynothrow
+	tree_node_base* p, tree_node_base& header) ynothrowv
 {
+	YAssertNonnull(x),
+	YAssertNonnull(p);
+
 	auto& root(header.parent);
 
 	// XXX: Initialized here for new node.
-	x->parent = p;
-	x->left = {};
-	x->right = {};
-	x->color = tree_color::red;
-
+	yunseq(x->parent = p, x->left = {}, x->right = {},
+		x->color = tree_color::red);
 	// NOTE: Make new node child of parent and maintain root, leftmost and
 	// rightmost nodes. First node is always inserted left.
 	if(insert_left)
@@ -242,14 +253,16 @@ tree_insert_and_rebalance(bool insert_left, tree_node_base* x,
 }
 
 tree_node_base*
-tree_rebalance_for_erase(tree_node_base* z, tree_node_base& header) ynothrow
+tree_rebalance_for_erase(tree_node_base* z, tree_node_base& header) ynothrowv
 {
+	YAssertNonnull(z);
+
 	auto& root(header.parent);
 	auto& leftmost(header.left);
 	auto& rightmost(header.right);
 	auto y(z);
-	tree_node_base* x{};
-	tree_node_base* x_parent{};
+	tree_node_base* x = {};
+	tree_node_base* x_parent = {};
 
 	if(!y->left)
 		x = y->right;
@@ -389,15 +402,15 @@ tree_black_count(const tree_node_base* node, const tree_node_base* root)
 {
 	if(node)
 	{
-		size_t sum(0);
+		size_t n(0);
 
 		while([&]{
 			if(node->color == tree_color::black)
-				++sum;
+				++n;
 			return node != root;
 		}())
 			node = node->parent;
-		return sum;
+		return n;
 	}
 	return 0;
 }

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2022 FrankHB.
+	© 2010-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r1050
+\version r1162
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2022-02-20 17:39 +0800
+	2023-01-28 20:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,8 +33,9 @@
 #include "ref.hpp" // for <functional>, __cpp_lib_transparent_operators,
 //	is_detected, enable_if_t, ystdex::addressof, nor_, not_,
 //	is_reference_wrapper, and_;
-#include "type_traits.hpp" // for ystdex::addrof_t, ystdex::indirect_t,
-//	ystdex::first_t, ystdex::second_t;
+#include "type_traits.hpp" // for add_ptr_t, addrof_t, indirect_t, first_t,
+//	second_t;
+#include "type_op.hpp" // for exclude_self_params_t;
 #include <numeric> // for std::accumulate;
 
 /*!
@@ -44,19 +45,19 @@
 \see https://blogs.msdn.microsoft.com/vcblog/2015/06/19/c111417-features-in-vs-2015-rtm/ 。
 \since build 679
 */
-//@{
+//!@{
 #ifndef __cpp_lib_transparent_operators
 #	if YB_IMPL_MSCPP >= 1800 || __cplusplus >= 201210L
 #		define __cpp_lib_transparent_operators 201210L
 #	endif
 #endif
-//@}
+//!@}
 
 namespace ystdex
 {
 
 //! \since build 679
-//@{
+//!@{
 namespace details
 {
 
@@ -67,7 +68,7 @@ using mem_is_transparent_t = typename _type::is_transparent;
 } // namespace details;
 
 //! \note 第二参数用于传递 SFINAE 模板参数，可为键类型。
-//@{
+//!@{
 /*!
 \ingroup unary_type_traits
 \brief 判断 _type 是否包含 is_transparent 成员类型。
@@ -80,17 +81,17 @@ struct has_mem_is_transparent
 
 /*!
 \ingroup metafunctions
-\brief 移除不满足包含 is_transparent 成员类型比较器的重载。
+\brief 保留满足包含 is_transparent 成员类型比较器的重载。
 \sa enable_if_t
 \sa has_mem_is_transparent
 \see WG21 N3657 。
 \since build 679
 */
-template<typename _fComp, typename _tDummy, typename _type = void>
+template<typename _func, typename _tDummy, typename _type = void>
 using enable_if_transparent_t
-	= enable_if_t<has_mem_is_transparent<_fComp, _tDummy>::value, _type>;
-//@}
-//@}
+	= enable_if_t<has_mem_is_transparent<_func, _tDummy>{}, _type>;
+//!@}
+//!@}
 
 /*!	\defgroup functors General Functors
 \brief 仿函数。
@@ -98,7 +99,7 @@ using enable_if_transparent_t
 \warning 其中的类类型一般可被继承但非虚析构。
 \since build 243
 */
-//@{
+//!@{
 /*!
 \brief 恒等仿函数。
 \since build 689
@@ -106,18 +107,18 @@ using enable_if_transparent_t
 类似 ISO C++20 的 std::identity ，但支持模板参数。
 这个仿函数的命名被保持和范畴论的恒等函子(identity functor) 的一般表达一致。
 */
-//@{
+//!@{
 template<typename _type = void>
 struct id
 {
-	YB_PURE yconstfn _type
+	YB_ATTR_nodiscard YB_PURE yconstfn _type
 	operator()(const _type& x) const ynothrow
 	{
 		return x;
 	}
 
 	//! \since build 756
-	YB_STATELESS yconstfn
+	YB_ATTR_nodiscard YB_STATELESS yconstfn
 	operator add_ptr_t<_type(_type)>() const ynothrow
 	{
 		return [](_type x) ynothrow -> _type{
@@ -131,7 +132,7 @@ struct id<void>
 {
 	//! \since build 939
 	template<typename _type>
-	YB_PURE yconstfn _type&&
+	YB_ATTR_nodiscard YB_PURE yconstfn _type&&
 	operator()(_type&& x) const ynothrow
 	{
 		return yforward(x);
@@ -139,7 +140,7 @@ struct id<void>
 
 	//! \since build 756
 	template<typename _type>
-	YB_STATELESS yconstfn
+	YB_ATTR_nodiscard YB_STATELESS yconstfn
 	operator add_ptr_t<_type(_type)>() const ynothrow
 	{
 		return [](_type x) ynothrow -> _type{
@@ -147,18 +148,82 @@ struct id<void>
 		};
 	}
 };
-//@}
+//!@}
+
+
+/*!
+\brief 包装无异常抛出保证的转发调用仿函数。
+\since build 966
+*/
+//!@{
+template<typename _func, typename... _tCallParams>
+struct wrap_call_nothrow
+{
+	_func func;
+
+	wrap_call_nothrow() = default;
+	template<typename... _tParams,
+		yimpl(typename = exclude_self_params_t<wrap_call_nothrow, _tParams...>)>
+	inline
+	wrap_call_nothrow(_tParams&&... args)
+		: func(yforward(args)...)
+	{}
+	wrap_call_nothrow(const wrap_call_nothrow&) = default;
+	wrap_call_nothrow(wrap_call_nothrow&&) = default;
+
+	wrap_call_nothrow&
+	operator=(const wrap_call_nothrow&) = default;
+	wrap_call_nothrow&
+	operator=(wrap_call_nothrow&&) = default;
+
+	YB_ATTR_always_inline auto
+	operator()(_tCallParams... args) const ynothrow
+		-> decltype(func(yforward(args)...))
+	{
+		return func(yforward(args)...);
+	}
+};
+
+template<typename _func>
+struct wrap_call_nothrow<_func, void>
+{
+	_func func;
+
+	wrap_call_nothrow() = default;
+	template<typename... _tParams,
+		yimpl(typename = exclude_self_params_t<wrap_call_nothrow, _tParams...>)>
+	inline
+	wrap_call_nothrow(_tParams&&... args)
+		: func(yforward(args)...)
+	{}
+	wrap_call_nothrow(const wrap_call_nothrow&) = default;
+	wrap_call_nothrow(wrap_call_nothrow&&) = default;
+
+	wrap_call_nothrow&
+	operator=(const wrap_call_nothrow&) = default;
+	wrap_call_nothrow&
+	operator=(wrap_call_nothrow&&) = default;
+
+	template<typename... _tParams>
+	YB_ATTR_always_inline inline auto
+	operator()(_tParams&&... args) const ynothrow
+		-> decltype(func(yforrward(args)...))
+	{
+		return func(yforward(args)...);
+	}
+};
+//!@}
 
 
 /*!
 \brief ystdex::addressof 仿函数。
 \since build 660
 */
-//@{
+//!@{
 template<typename _type = void>
 struct addressof_op
 {
-	yconstfn _type*
+	YB_ATTR_nodiscard yconstfn _type*
 	operator()(_type& x) const ynothrow
 	{
 		return ystdex::addressof(x);
@@ -169,24 +234,24 @@ template<>
 struct addressof_op<void>
 {
 	template<typename _type>
-	yconstfn _type*
+	YB_ATTR_nodiscard yconstfn _type*
 	operator()(_type& x) const ynothrow
 	{
 		return ystdex::addressof(x);
 	}
 };
-//@}
+//!@}
 
 
 /*!
 \brief 成员 get 操作。
 \since build 537
 */
-//@{
+//!@{
 template<typename _type = void>
 struct mem_get
 {
-	auto
+	YB_ATTR_nodiscard auto
 	operator()(const _type& x) const -> decltype(x.get())
 	{
 		return yforward(x.get());
@@ -197,14 +262,14 @@ template<>
 struct mem_get<void>
 {
 	template<typename _type>
-	auto
+	YB_ATTR_nodiscard auto
 	operator()(_type&& x) const ynoexcept_spec(std::declval<_type>().get())
 		-> decltype(x.get())
 	{
 		return yforward(x.get());
 	}
 };
-//@}
+//!@}
 
 /*!
 \brief 相等关系仿函数。
@@ -215,40 +280,40 @@ struct is_equal
 {
 	//! \since build 594
 	template<typename _type1, typename _type2>
-	yconstfn yimpl(enable_if_t)<nor_<is_reference_wrapper<_type1>,
-		is_reference_wrapper<_type2>>::value, bool>
+	YB_ATTR_nodiscard yconstfn yimpl(enable_if_t)<nor_<is_reference_wrapper<
+		_type1>, is_reference_wrapper<_type2>>{}, bool>
 	operator()(const _type1& x, const _type2& y) const ynoexcept_spec(x == y)
 	{
 		return x == y;
 	}
 	//! \since build 554
-	//@{
+	//!@{
 	template<typename _type1, typename _type2>
-	yconstfn yimpl(enable_if_t)<and_<is_reference_wrapper<_type1>,
-		not_<is_reference_wrapper<_type2>>>::value, bool>
+	YB_ATTR_nodiscard yconstfn yimpl(enable_if_t)<and_<is_reference_wrapper<
+		_type1>, not_<is_reference_wrapper<_type2>>>{}, bool>
 	operator()(const _type1& x, const _type2& y) const ynothrow
 	{
 		return ystdex::addressof(x.get()) == ystdex::addressof(y);
 	}
 	template<typename _type1, typename _type2>
-	yconstfn yimpl(enable_if_t)<and_<not_<is_reference_wrapper<_type1>>,
-		is_reference_wrapper<_type2>>::value, bool>
+	YB_ATTR_nodiscard yconstfn yimpl(enable_if_t)<and_<not_<
+		is_reference_wrapper<_type1>>, is_reference_wrapper<_type2>>{}, bool>
 	operator()(const _type1& x, const _type2& y) const ynothrow
 	{
 		return ystdex::addressof(x) == ystdex::addressof(y.get());
 	}
 	template<typename _type1, typename _type2>
-	yconstfn yimpl(enable_if_t)<and_<is_reference_wrapper<_type1>,
-		is_reference_wrapper<_type2>>::value, bool>
+	YB_ATTR_nodiscard yconstfn yimpl(enable_if_t)<and_<is_reference_wrapper<
+		_type1>, is_reference_wrapper<_type2>>{}, bool>
 	operator()(const _type1& x, const _type2& y) const ynothrow
 	{
 		return ystdex::addressof(x.get()) == ystdex::addressof(y.get());
 	}
-	//@}
+	//!@}
 };
 
 //! \since build 880
-//@{
+//!@{
 // XXX: See $2019-01 @ %Documentation::Workflow.
 #if YB_IMPL_GNUCPP >= 60000
 #	define YB_Impl_Functor_pushf YB_Diag_Push \
@@ -259,7 +324,7 @@ struct is_equal
 #	define YB_Impl_Functor_pushf
 #	define YB_Impl_Functor_popf
 #endif
-//@}
+//!@}
 
 // NOTE: There is no 'constexpr' in WG21 N3936; but it is in ISO/IEC 14882:2014
 //	and drafts later.
@@ -371,7 +436,7 @@ using std::bit_not;
 \note 同 ISO WG21 N4296 对应标准库仿函数。
 \since build 578
 */
-//@{
+//!@{
 //! \brief 加法仿函数。
 YB_Impl_Functor_Binary(plus, +)
 
@@ -430,7 +495,7 @@ YB_Impl_Functor_bool_Ordered(greater_equal, >=)
 YB_Impl_Functor_bool_Ordered(less_equal, <=)
 
 //! \since build 656
-//@{
+//!@{
 //! \brief 逻辑与仿函数。
 YB_Impl_Functor_bool(logical_and, &&)
 
@@ -452,8 +517,8 @@ YB_Impl_Functor_Binary(bit_xor, ^)
 //! \brief 位取反仿函数。
 // NOTE: Available in %std since ISO C++14.
 YB_Impl_Functor_Unary(bit_not, ~)
-//@}
-//@}
+//!@}
+//!@}
 #endif
 
 } // inline namespace cpp2014;
@@ -462,7 +527,7 @@ YB_Impl_Functor_Unary(bit_not, ~)
 \ingroup YBase_replacement_extensions
 \since build 668
 */
-//@{
+//!@{
 //! \brief 一元 & 操作。
 YB_Impl_Functor_Ops1(addrof, &, addrof_t<const _type&>)
 
@@ -470,7 +535,7 @@ YB_Impl_Functor_Ops1(addrof, &, addrof_t<const _type&>)
 YB_Impl_Functor_Ops1(indirect, *, indirect_t<const _type&>)
 
 //! \brief 引用等价关系仿函数。
-//@{
+//!@{
 YB_Impl_Functor_Ops_Primary(ynothrow, ref_eq, bool,
 	YB_Impl_Functor_Ops_using(_type), ystdex::addressof(x)
 	== ystdex::addressof(y), const _type& x, const _type& y)
@@ -479,10 +544,10 @@ YB_Impl_Functor_Ops_Primary(ynothrow, ref_eq, bool,
 YB_Impl_Functor_Ops_Spec(ynothrow, ref_eq,
 	typename _type1 YPP_Comma typename _type2, _type1&& x YPP_Comma _type2&& y,
 	ystdex::addressof(yforward(x)) == ystdex::addressof(yforward(y)))
-//@}
+//!@}
 
 //! \since build 830
-//@{
+//!@{
 YB_Impl_Functor_Ops_Primary(ynothrow, first_of, first_t<_type&>, , x.first,
 	_type& x)
 
@@ -496,8 +561,8 @@ YB_Impl_Functor_Ops_Primary(ynothrow, second_of, second_t<_type&>, , x.second,
 // NOTE: More parentheses are needed to keep the correct value category.
 YB_Impl_Functor_Ops_Spec(ynothrow, second_of, typename _type, _type&& x,
 	yforward((x.second)))
-//@}
-//@}
+//!@}
+//!@}
 
 #undef YB_Impl_Functor_bool_Ordered
 #undef YB_Impl_Functor_bool
@@ -517,7 +582,7 @@ YB_Impl_Functor_Ops_Spec(ynothrow, second_of, typename _type, _type&& x,
 \note 语义同 Boost.Signal2 的 \c boost::last_value 但对非 \c void 类型使用默认值。
 \since build 675
 */
-//@{
+//!@{
 template<typename _type>
 struct default_last_value
 {
@@ -543,11 +608,11 @@ struct default_last_value<void>
 			*first;
 	}
 };
-//@}
+//!@}
 
 
 //! \brief 选择自增/自减运算仿函数。
-//@{
+//!@{
 template<bool, typename _tScalar>
 struct xcrease_t
 {
@@ -568,14 +633,14 @@ struct xcrease_t<false, _tScalar>
 		return --_x;
 	}
 };
-//@}
+//!@}
 
 
 /*!
 \brief 选择加法/减法复合赋值运算仿函数。
 \since build 284
 */
-//@{
+//!@{
 template<bool, typename _tScalar1, typename _tScalar2>
 struct delta_assignment
 {
@@ -594,7 +659,7 @@ struct delta_assignment<false, _tScalar1, _tScalar2>
 		return x -= y;
 	}
 };
-//@}
+//!@}
 
 
 //! \brief 选择自增/自减运算。
@@ -615,7 +680,7 @@ delta_assign(_tScalar1& _x, _tScalar2& _y)
 {
 	return delta_assignment<_bIsPositive, _tScalar1, _tScalar2>()(_x, _y);
 }
-//@}
+//!@}
 
 } // namespace ystdex;
 

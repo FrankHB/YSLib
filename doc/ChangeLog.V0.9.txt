@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r13985
+\version r14475
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2023-01-26 01:33 +0800
+	2023-02-06 03:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,483 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ DLDI "simplified" ^ "%enable_if_inconvertible_t"
+			~ "%(enable_if_t, is_convertible)" $effective @ %String,
+		/ %String $=
+		(
+			/ DLDI "all argument 'str' with pointer type" -> 's' $effective
+				@ "function templates %(string_begin, string_end, \
+				string_empty, string_length)",
+				// This is more consistent to %CString and other APIs.
+			+ "functor %string_hash",
+			+ $dev $lib 'YB_ATTR_nodiscard' @ "friend function %operator+#10"
+				@ "class template %basic_string"
+		),
+		/ %Functor $=
+		(
+			+ "functor template %wrap_call_nothrow" @ %Functor,
+			/ DLDI "type parameter name '_fComp'"
+				@ "metafunction %enable_if_transparent_t" -> '_func'
+				// This is not only for compartors, but also other functors \
+					like hashers.
+		),
+		/ %TypePun $=
+		(
+			+ $dev $lib 'YB_ATTR_returns_nonnull' @ "all 2 functions %access"
+				@ "class template %standard_layout_storage",
+			+ "class template %typed_storage"
+		),
+		/ %Pointer $=
+		(
+			/ DLDI "adjusted minor whitespaces",
+			+ "2 function templates %to_allocated"
+		),
+		/ %Tree $=
+		(
+			* DLDI "inconsistent header guard name" $since b830
+				$= (/ "%YB_INC_ystdex_tree_hpp_" => "%YB_INC_ystdex_tree_h_"),
+			* DLDI "wrong comment for namespace" @ %Tree $since b851
+				$dep_to "node_handle move preparing",
+			/ DLDI "reordered all overloads with %true_ after to %false_ \
+				parameter if other parameter types are the same",
+				// This makes their signatures in alphabatical order and it is \
+					more consistent to other implemenations.
+			/ DLDI "reordered %difference_type"
+				@ "class templates %(tree_iterator, tree_const_iterator)",
+			+ DLDI 'YB_ATTR_nodiscard' @ "functions %access_ptr"
+				@ "class template %tree_node",
+			/ DLDI "simplified functions %(reinsert_node_hint_unique, \
+				reinsert_node_hint_equal)" @ "class template %tree",
+			/ @ "functions %(tree_increment, tree_decrement, \
+				tree_insert_and_rebalance, tree_rebalance_for_erase)" $=
+			(
+				* "wrong exception specification" $since b830
+					$= (/ 'ynothrow' -> 'ynothrowv');
+				+ $dev $lib "assertion to ensure precondition"
+					^ "%YAssertNonnull",
+				// See also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=108554.
+				+ 'YB_NONNULL(1)'
+					@ "functions except %tree_insert_and_rebalance"
+				+ 'YB_NONNULL(2, 3)' @ "function %tree_insert_and_rebalance",
+				+ 'YB_ATTR_returns_nonnull'
+					@ "function %(tree_rebalance_for_erase, tree_black_count)"
+			),
+			(
+			/ @ "class template %tree_node" $=
+			(
+				/ "simplified" ^ $dep_from ("%typed_storage" @ %TypePun);
+				+ $comp "2 functions %access"
+			);
+			/ DLDI "simplified all access with derferencing the result"
+				^ "%access" ~ "%access_ptr" $effective @ ("%operator*"
+				@ "class templates %(tree_iterator, tree_const_iterator)",
+				("private node copy", "protected functions %select_value")
+				@ "class template %tree")
+			),
+			* "wrong exception specification functions %operator(*, ++, --)"
+				@ "class templates %(tree_iterator, tree_const_iterator)"
+				$since b830,
+				// There is no invariant to prevent operating on the \
+					undefereceable iterator value.
+				$= (/ 'ynothrow' -> 'ynothrowv'),
+			/ @ "class template %tree" $=
+			(
+				/ DLDI "all variable %j" => "%i" $effective
+					@ "function or function templates %(find, find_tr)",
+				/ $re_add(b679) DLDI "simplified function all 9 templates with \
+					transparent key parameter" ^ ("%enable_if_transparent_t"
+					~ "%(enable_if_t, has_mem_is_transparent)", "macro")
+				- $revert(b865) 'YB_ATTR_nodiscard' @ "all 2 functions %extract"
+					$since b865,
+				* "ill formed call for node extraction functions due to wrong \
+					member name 'm_ptr'" @ "accessing %node_handle objects"
+					@ "class template %tree" $since b830
+					$dep_to "node_handle move preparing"
+					$= (/ $impl 'm_ptr' -> 'ptr'),
+				/ "components construction" $=
+				(
+					/ DLDI "simplified" !^ "%tree_key_compare"
+						$dep_to "simlified comparison object",
+					* "wrong exception specification" @ "default constructor"
+						$since b958,
+						// This was always non-throwing.
+						$= (/ $impl ^ 'ynothrow' ~ 'ynothrow_spec'),
+				),
+				+ $dev "static assertion for %value_type"
+					^ "%is_unqualified_object" $dep_to "tree value type check",
+					// As %list.
+				/ DLDI "reordered member declarations",
+					// To be more consistent with %map sysnopsis in ISO C++, \
+						except that friends %operator(==, <) are placed after \
+						%operator= to follow existing YSLib convention.
+				/ DLDI "simplified internal throwing move condition"
+					^ "%is_throwing_move_copyable"
+					~ "%(is_nothrow_move_constructible, is_copy_constructible)",
+				+ DLDI 'YB_ATTR_nodiscard YB_ATTR_returns_nonnull' @ "internal \
+					construction functions with %link_type return type",
+				/ DLI "improved fancy pointer support"
+					@ "intenal node allocator interaface" $=
+				(
+					- "%YB_ALLOCATOR";
+						// This is implied in the underlying pointer value, \
+							but not working with the fancy pointer as the \
+							return type.
+					(
+					/ "allocated type" ^ ("allocator pointer" ~ "%link_type");
+					/ $forced ^ ($dep_from "%ystdex::to_allocated" @ %Pointer,
+						"%std::pointer_traits")
+						// This changes nothing actual because metadata in \
+							the fancy pointer values (if any) would still be \
+							dropped. Nevertheless, it is now more \
+							self-documented.
+					)
+				),
+				* $revert_ex(b865) "potentional undefined behavior by \
+					accessing allocated node objects before the lifetime start"
+					@ '__cplusplus < 202002L' $since b865,
+					// This relies on WG21 P0593R6. Without it there is a bit \
+						overhead of generated code (at least with \
+						x86_64-pc-linux G++ 12.1), though there is likely no \
+						unexpected behavior on major implementations to assume \
+						it before ISO C++20. Nevertheless, keep the different \
+						paths to make it more self-documented and friendly to \
+						unspecified implementations.
+				/ DLDI "simplified reusing node allocator" !^ "%noncopyable",
+				+ $dev $lib 'YB_ATTR_returns_nonnull'
+					@ "all 2 function %node_end"
+				+ DD "'\pre' command" @ "Doxygen comment"
+					@ "several functions expecting nonnull parameters",
+				/ DLDI "simplified functions %(get_insert_hint_unique_pos, \
+					get_insert_hint_equal_pos)",
+				* "wrong type for instantiation" @ "function %equal_range#2"
+					$since b830,
+				- DLDI "unused private functions to access bounded links",
+					// These function were replaced by static functions.
+				+ $dev $lib "assertion to ensure nonnull parameter"
+					@ "all 2 functions %select_value",
+				+ $dev $lib 'YB_NONNULL(1)' @ "function %select_value#1",
+				/ $revert_ex(b864) DLI "simplified functions \
+					%(emplace_unique, emplace_equal, emplace_hint_unique, \
+					emplace_hint_equal)",
+				/ DLDI "cast to %size_type for result"
+					@ "function template %count_tr"
+					// As %count.
+				(
+				/ DLDI "function template %find_tr" ^ ('==', '||')
+					~ ('!=', '&&');
+					// To be more consistent to %find and %ystdex::search_map.
+				/ DLI "simplified function templates %(lower_bound_tr, \
+					upper_bound_tr, equal_range_tr)" ^ "internal shared key \
+					acceess function templates"
+					~ "%(ystdex::as_const, iterator::cast_mutable)"
+					$dep_to "removal of ystdex::as_const for trees"
+					// Now operations for transparent keys also share \
+						implementation to ordinary ones. Besides, the most \
+						significant change is in %equal_range_tr, which no \
+						longer increments the lower bound to get the upper \
+						bound, but tries to get them at same time. This should \
+						be hopefully more efficient.
+				),
+				/ DLDI "function %get_insert_unique_pos",
+				/ DLDI "all 'ptr' from %tree_rebalance_for_erase call" => 'p',
+				/ DLDI "distinguished all internal variable 'res' by type"
+					=> ('pr', 'i', 'nd'),
+				* "ill-formed return" @ "function %get_insert_hint_equal_pos"
+					$since b830,
+				(
+				+ "function template %(insert_range_unique, \
+					insert_range_equal)#3";
+				/ DLDI "simplified function templates %(insert_range_unique, \
+					insert_range_equal)#1",
+				/ DLDI "simplified function templates %(assign_unique, \
+					assign_equal)"
+				),
+				/ @ "functions %(merge_unique, merge_equal)" $=
+				(
+					* "wrong 'ynothrow' exception specification" $since b831,
+						// See also \
+							https://gcc.gnu.org/bugzilla/show_bug.cgi?id=108771.
+					* "ill-formed node count accesses" $since b865,
+					+ "assertion" ^ "%YAssert",
+					/ DLDI "simplified common implementations",
+					/ DLDI "reordered declarations"
+						// To be more consistent with %map sysnopsis in ISO C++.
+				)
+			),
+			/ DLDI "simplified exception specification with single noexcept \
+				expression" ^ "%ynoexcept_spec" ~ "%(ynoexcept, noexcept)"
+				$effective @ "move constructor with allocator parameter"
+				@ "class template %tree",
+			/ DLDI "allocator traits access" @ "contexts converting to %bool"
+				^ '::value' ~ ('typename', '()') $effective
+				@ ("copy operator%=", "private alias") @ "class template %tree",
+				// It is shorter only in limited cases, as well as needing \
+					less instantiations. Notice using '{}' still needs \
+					'typename'.
+			- "class template %tree_key_compare"
+				$dep_from "simlified comparison object",
+				// Since it is value-initialized as a comressed pair element, \
+					there is no need to wrap it as in libstdc++.
+			/ "header inclusion %Utilities" -> "%Base"
+				$dep_from "removal of ystdex::as_const for trees"
+		),
+		/ %Map $=
+		(
+			- DLDI "redudant 'ystdex::'" @ "parameter type" @ "functions"
+				@ "class template spaecialization %tree_merge_helper",
+			/ @ "class template %map" $=
+			(
+				/ DLDI "simplified" @ "function templates %insert"
+					^ "%enable_if_constructible_r_t"
+					~ "%(enable_if_t, is_constructible)",
+				/ DLDI "all argument 'pos'" -> 'position'
+					$effective @ "function %extract#1"
+					// To be more consistent with ISO C++ synopsis and other \
+						members.
+				/ DLDI "all argument 'src'" -> 'source'
+					@ "function templates %merge",
+					// Ditto.
+				/ DLDI "all argument 'k'" @ "functions %(operator[], at)"
+					-> 'x',
+					// Ditto.
+				/ DLDI "reordered declarations" @ ("friend functions \
+					%(operator(==, <)", "%(insert, merge, try_emplace, clear)",
+					"all 2 %insert overloads for nodes"),
+					// Comparison functions follow existing YSLib convention. \
+						Insertion and extract functions follow the same \
+						convention in a separated group. Other members are \
+						reordered to be more consistent with %map sysnopsis in \
+						WG21 N4279 and ISO C++, as well as other %YStandardEx \
+						containers (i.e. %unordered_map in %UnorderedMap, \
+						%mapped_set in %Set and %list in %List).
+				(
+				+ DLDI 'inline' @ "function template %equal_range";
+					// This was occasionally missing.
+				/ $re_add(b966) DLDI "simplified function all 10 templates \
+					with transparent key parameter" ^ "macro"
+				),
+				* "wrong 'YB_ATTR_nodiscard YB_PURE'"
+					@ "all 2 functions %extract" $since b846
+					$= (- $revert(b846) 'YB_ATTR_nodiscard YB_PURE'),
+				/ $dev "static cassertion for %value_type"
+					>> ("%details::tree" @ %Tree) $dep_to "lifting map check",
+				+ $comp $dev "static assertion for value type"
+					$dep_from "tree value type check",
+				/ DLDI "simplified functions %operator[]" ^ "%try_emplace",
+					// This is now exactly same to the description in ISO C++. \
+						And the imlementation of member %try_emplace (in turn \
+						using %ystdex::try_emplace) is exactly the same to the \
+						old implementation after inline expansion.
+				* $comp "ill-formed %extract due to incomplete types of \
+					%multimap" $since b830,
+				/ @ "function templates %merge" $=
+				(
+					* $comp ("unexptected termination on exception thrown in \
+						comparison" $since b831, "ill-formed calls" $since b865)
+						$dep_from ("%tree::merge_unique" @ %Tree);
+					+ DD "'\pre' command" @ "Doxygen comment"
+				)
+			)
+		),
+		+ $comp $dep "static assertions for value type and allocator type"
+			@ "class template %mapped_set" @ %Set
+			$dep_from ("tree value type check", "lifting map check"),
+		(
+		+ %NodeHandle,
+		+ DLDI "header inclusions %Functor" @ %Tree;
+			// To allow moving away of %Optional.
+		/ ("declaration %rb_tree::tree", "class templates %(node_handle_base, \
+			node_handle, node_insert_return)",
+			$lib $impl "header inclusion %Optional") @ %Tree >> %NodeHandle
+			$dep_all_from "node_handle move preparing";
+		+ $forced "header inclusion %NodeHandle" @ %Tree,
+		/ @ "namespace %ystdex" @ %NodeHandle $=
+		(
+			+ "friend class %hash_table declaration"
+				@ "class templates %details::(node_handle_base, node_handle)",
+			/ @ "class template %details::node_handle_base" $=
+			(
+				/ DLDI "in-class member initialization" ^ "'= {}' ~ '{}'
+					// To be more consistent to the derived classes.
+				/ DLDI "adjusted internal pointer conversion",
+				+ 'YB_PURE' @ "function %empty",
+				+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+					@ "function %operator bool",
+				* "wrong exception specification"
+					@ ("function %get_allocator", "move %operator=") $since b830
+					$= (/ 'ynothrow' -> 'ynothrowv'),
+				/ "hid functions %move_assign from public interface",
+				(
+				+ "protected alias %equal_alloc_or_pocs";
+				* "wrong exception specification" @ "function %swap_base"
+					$since b830
+				),
+				/ $dev @ "constructor with pointer and allocator parameter"
+				(
+					/ $lib $design $impl "reordered the mem-initializers",
+						// To eliminate G++ warning: [-Wreorder].
+					+ "assertion to ensure the pointer nonnull"
+						^ "%YAssertNonnull" $dep_to "node handle base assertion"
+				),
+				/ DLDI "simplified in-class definition without template \
+					argument list on parameters" @ "friend function %swap",
+				/ DLDI "simplified function %count" ^ "%contains"
+					~ "%tree::(find, end)"
+			),
+			/ @ "class template specializations %details::node_handle" $=
+			(
+				+ $dev $lib 'YB_ATTR_nodiscard YB_PURE' @ "functions %(ckey, \
+					key, mapped, value)",
+				+ DD "'\note' command to declare as YStandardEx extension"
+					@ "Doxygen comment" @ "function %ckey",
+					// This is already used in %Tree, not like %move_assign in \
+						the base.
+				* ("wrong exception specification" @ "member function %swap"
+					@ "specializations for map containers", "missing member \
+					function %swap" @ "specialization for set containers"
+					^ ("%equal_alloc_or_pocs" $dep_from "%swap_base"
+					@ "class template %node_handle_base")) $since b830
+					// This is still not conforming in current libstdc++.
+				* "wrong exception specification" @ "move %operator="
+					$since b830
+					$= (/ 'ynothrow' -> 'ynothrowv')
+			),
+			+ $re_add(b965) $lib "class template specializations \
+				%is_bitwise_swappable for \
+				%details::(node_handle_base, node_handle)",
+			/ DLDI "reordered the declarations of destructor"
+				@ ("class template %details::node_handle_base",
+				"class template specialization %details::node_handle#2"),
+			+ DD "'\pre' command" @ "Doxygen comment" @ "constructor with \
+				pointer and allocator parameter" @ ("class template \
+				%details::node_handle_base", "all 2 class template \
+				specializations %details::node_handle")
+				$dep_from "node handle base assertion"
+		)
+		),
+		+ DLDI "ensured 'YB_ATTR_nodiscard YB_PURE ynothrow'" @ "all function"
+			@ "class template specialization %details::tree_merge_helper"
+			$effective @ %(Map, Tree),
+		/ DLDI "'::value' not forming an operand to an operator and not after \
+			a qualified type-id" @ "non-type argument of some metafunctions"
+			-> '{}' @ (%Tree $effective @ "all 2 function templates \
+			%(insert_range_unique, insert_range_equal)"
+			@ "class template %tree", %TypePun $effective @ ("metafunction \
+			%enable_if_replaceable_t", "all 2 function templates \
+			%(aligned_cast, aligned_store_cast, aligned_replace_cast, \
+			replace_cast)"), %String $effective @ ($impl
+			"internal string view enabler" @ "class template %basic_string",
+			"class template specialization %is_string_like",
+			"metafunction %enable_for_string_class_t",
+			"all 4 function templates %(erase_left, erase_right)",
+			"all 6 function templates %(to_string, to_wstring)",
+			$impl "function template %ston")),
+			// This cannot be '()' because it would be parsed as a function \
+				list. To avoid requirement of complete type due to ADL, all \
+				instances with '!' on '::value' are not changed.
+		(
+		+ %HashTable
+			$= (+ $impl "hash table for unordered containers"
+				^ $dep_from ($dep_from ("%typed_storage" @ %TypePun),
+				"%wrap_call_nothrow" @ %Functor,
+				"%(node_handle, node_insert_return)" @ %NodeHandle));
+		+ %UnorderedMap $=
+		(
+			+ "class template declaration %unordered_multimap";
+			+ "class template %unordered_map"
+				@ "Doxygen group %YBase_replacement_features"
+		)
+		),
+		/ DLDI "simplified exception specification with single noexcept \
+			expression" ^ "%ynoexcept_spec" ~ "%(ynoexcept, noexcept)"
+			$effective @ "move constructor with allocator parameter"
+			@ "class template %tree" @ %Tree,
+		/ DLDI "all 'YB_PURE YB_NONNULL(*)'" -> 'YB_NONNULL(*) YB_PURE'
+			$effective @ %(String, Tree)
+			// To conform to %Documentation::LanguageConvention @5.5.6.7.
+	),
+	/ DLDI "all '::value' not forming an operand to an operator and not after \
+		a qualified type-id in class scope" @ "other value contexts" -> '()'
+		@ %(YBase.YStandardEx.TypePun, NPL.NPLA),
+		// This includes the csaes of subexpressions and expressions in \
+			static_assert-declarations, but not with operator like prefix \
+			'!' or names nested in some class scope, as well as operand of \
+			'decltype'.
+	/ %YFramework $=
+	(
+		/ %YCLib.Container $=
+		(
+			/ DLDI "all template parameter %_fEqual" => "%_fPred"
+				$effective @ "alias templates %containers::(unordered_map, \
+				unordered_multimap, unordered_multiset, unordered_set)",
+				// To be more consistent with algorithms and ISO C++ synopsis.
+			/ DLDI "reordered alias templates as ISO C++ clause order",
+			(
+			/ "header inclusion <unordered_map>"
+				-> $dep_from %YBase.YStandardEx.UnorderedMap;
+			/ "alias template %unordered_map" @ "inline namespace %containers"
+				^ "%ystdex::unordered_map" ~ "%std::unordered_map"
+			)
+		),
+		/ $dev %NPL.NPLA $=
+		(
+			/ "%BindingsMap" @  ^ ("%ystdex::string_hash"
+				@ %YBase.YStandardEx.String, "%unordered_map" ~ "%map"
+				$dep_from ("%unordered_map" @ %YCLib.Container))
+				// Now it is more efficient. Since features specific to %map \
+					not shared by %unordered_map (like reversible iterator and \
+					ordered keys) are not relied on, this is mostly compatible \
+					in API and requires no further changes to amend such use \
+					in %NPL. This also requires transparent key support to \
+					avoid additional changes, which is not available before \
+					the change in %YCLib.Container. If copying the key from \
+					%string_view to %string, it is less efficient than before, \
+					so %std::unordered_map is not sufficient.
+			/ "all user-defined constructors %TermReference" @ %NPLA
+				-> 'ynothrowv' ~ 'ynothrow',
+			+ $lib 'YB_ATTR_nodiscard' @ "all definitions with one of \
+				%(DefGetter, DefGetterMem, DefPred, DefBoolNeg)" $effective
+				@ "member functions %(EnvironmentBase::(IsOrphan, \
+				GetAnchorPtr, GetAnchorCount), EnvironmentReference::GetPtr, \
+				TermReference::(IsModifiable, IsMovable, \
+				IsReferencedLValue, IsTemporary, IsUnique, GetAnchorPtr, \
+				GetEnvironmentReference, GetTags), (SingleWeakParent, \
+				SingleStrongParent, ParentList)::(Get, GetRef), \
+				EnvironmentParent::(operator (!, bool), GetObject), \
+				Environment::(GetMap, GetMapRef, GetMapUncheckedRef), \
+				ContextNode::(IsAlive, GetCurrent, GetCurrentRef, \
+				GetMemoryResourceRef, GetRecordRef, GetRecordPtr))"
+		)
+	),
+	/ $re_add(b936) $build "updated %LIBS for %YBase.YStandardEx.HashTable"
+		@ "%SHBuild-bootstrap.sh"
+		$dep_from $forced ("%BidingsMap" @ %YFramework.NPL.NPLA),
+	/ %Test $=
+	(
+		/ %YBase $=
+		(
+			+ "1 test case covering %ystdex::map",
+			+ "1 test case covering %ystdex::unordered_map"
+				$dep_from %YBase.YStandardEx.UnorderedMap
+		);
+		/ $re_add(b642) $forced "updated %LIBS for %YBase.YStandardEx.(Tree, \
+			HashTable)" @ "%test.sh"
+	),
+	+ $dev $lib 'YB_ATTR_nodiscard' @ "all definitions with %DefCvtMem"
+		$effective @ ("function %operator TermNode&" @ "class %TermReference"
+		@ %YFramework.NPL.NPLA),
+	/ DD %Documentation.Meta $=
+	(
+		/ $re_add(b938) "updated outdated URL" @ b298 @ '$ref',
+		/ "shortened URLs of stackoverflow.com",
+		/ "all accessible URLs" ^ 'https://' ~ 'http://'
+	)
+),
+
+b965
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -596,7 +1073,7 @@ b963
 				of allocator" $effective @ %(NPLA, NPLA1Forms, Dependency),
 				// The allocator is implied by the %TermNode::SetValue overload.
 			/ $re_ex(b960) $dev $lib
-				"header inclusion %YBase.YStandardEx.TypeOperations" @ %NPLA
+				"header inclusion %YBase.YStandardEx.TypeOperation" @ %NPLA
 				>> %SContext,
 			+ $dev $lib "header inclusion %YBase.YStandardEx.Utilities"
 				@ %SContext,
@@ -868,7 +1345,7 @@ b961
 		$dep_from $forced "%make_unique_guard" @ %ScopeGuard,
 	/ %YFramework $=
 	(
-		* DLDI "missing header inclusinon %YBase.YStandardEx.Allocator"
+		* DLDI "missing inclusinon %YBase.YStandardEx.Allocator"
 			@ %CHRLib.CharacterProcessing $since b861,
 			// This is the internal dependency which should not be used out of \
 				%YBase.
@@ -1078,7 +1555,7 @@ b960
 			(
 				(
 				/ DLDI "reordered declarations";
-				+ "type traits operation %(has_mem_count, has_mem_find, \
+				+ "type traits operations %(has_mem_count, has_mem_find, \
 					has_mem_remove, has_mem_remove_if, has_mem_key_type)"
 				),
 				/ @ "type traits operation %has_mem_lower_bound" $=
@@ -1250,7 +1727,7 @@ b960
 		),
 		/ %NPL $=
 		(
-			/ $dev $lib "header inclusion %YBase.YStandardEx.TypeOperations"
+			/ $dev $lib "header inclusion %YBase.YStandardEx.TypeOperation"
 				@ %NPLA1 >> %NPLA $dep_to "NPLA1 header lifting",
 			(
 			+ ("class template %GLContinuation"; "function template \
@@ -3393,7 +3870,7 @@ b951
 	),
 	/ %NPL.Documentation $=
 	(
-		* $comp "missing non-empty list condition" @ "description of \
+		* $comp "missing nonempty list condition" @ "description of \
 			applicative 'check-list-reference'" @ %Documentation.NPL $since b858
 			$dep_from
 			("function %CheckListReference" @ %YFramework.NPL.NPLA1Forms),
@@ -4272,7 +4749,7 @@ b945
 				/ "simplified %TermRange handling",
 				+ "macro %NPL_Impl_NPLA1Forms_LetAsterisk_ExpandLevel to \
 					control the conditional inclusion branch used",
-				+ "more specific optimized expansion of non-empty calls"
+				+ "more specific optimized expansion of nonempty calls"
 			),
 			- DLI "redundant call to setting next term"
 				@ 'NPL_Impl_NPLA1_Enable_Thunked'
@@ -5347,17 +5824,17 @@ b940
 					// Ditto. However, this rely on the fix above, otherwise \
 						it might moved the binding list elements unexpectedly.
 				),
-				* $re_add(b927) "body not evaluated properly for non-empty \
+				* $re_add(b927) "body not evaluated properly for nonempty \
 					lvalue binding lists due to missing cleanup of %Value \
 					before the call" @ "functions %(Let, LetRef, LetRec, \
 					LetRecRef, LetAsterisk, LetAsteriskRef, ProvideLet)"
 					$since b919,
 					// This is in %LetCombineBody. Empty lists are optimized \
 						in other paths in %LetEmpty which has the precondition \
-						check to prevent non-empty %Value objects which have \
+						check to prevent nonempty %Value objects which have \
 						been fixed since b92u7. Note %(LetAsterisk, \
 						LetAsteriskRef) are not affected because they have \
-						only prvalues non-empty binding lists.
+						only prvalues nonempty binding lists.
 				* $re_add(b925) "wrong temporary tag preserved"
 					$dep_to "native forms temporary tag fixes" $=
 				(
@@ -6399,6 +6876,7 @@ b936
 			/ DLDI ('$and?', '$or?') -> ('$and', '$or')
 				$dep_from $forced %YFramework.NPL.Dependency,
 			/ $re_add(b930) $build "updated %LIBS for %YFramework.NPL.Exception"
+				@ "%SHBuild-bootstrap.sh"
 				$dep_from $forced %YFramework.NPL.Exception
 		),
 		/ DLDI "header inclusion" @ %(SXML2XML, ProjectGenerator).Main
@@ -7515,6 +7993,7 @@ b930
 		)
 	),
 	/ $re_add(b882) $build "updated %LIBS for %YFramework.NPL.NPLAMath"
+		@ "%SHBuild-bootstrap.sh" @ %Tools.Scripts
 		$dep_from $forced %YFramework.NPL.NPLAMath $dep_from (("function \
 		%DefaultEvaluateLeaf" @ %NPLA1, %Dependency) @ %YFramework.NPL)
 ),
@@ -8048,7 +8527,7 @@ b927
 	),
 	/ %YFramework $=
 	(
-		/ @ "class %Terminal" %YCLib.Host $=
+		/ @ "class %Terminal" @ %YCLib.Host $=
 		(
 			* "'tput setaf' command construction" $since b921,
 				// Also to eliminate Clang++ 12 warning: \
@@ -9299,6 +9778,7 @@ b921
 		),
 		/ @ "class %Terminal" @ %YCLib.Host $=
 		(
+			+ $impl "class name declaration %ITerminalData",
 			+ "Cygwin/MSYS PTY detection" @ "platform %Win32",
 				// See $2021-06 @ %Documentation::Workflow.
 			/ DLI "optimized argument to 'tput setaf'" !^ 'to_string',
@@ -11814,7 +12294,7 @@ b905
 	* $doc "fixed annotations method of engineering defects"
 		@ %Documentation.ProjectRules $since b874;
 		// The old way cannot annotate defects from different original \
-			revisions in a same reversion. Thus, the update of the bookmark on \
+			revisions in a same revision. Thus, the update of the bookmark on \
 			the new defects found would not overwrite the old defects having \
 			different origins now.
 	/ $repo "engineering fault bookmarks" $=

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2022 FrankHB.
+	© 2012-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r1984
+\version r2029
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2022-11-21 05:55 +0800
+	2023-02-05 15:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -314,6 +314,8 @@ YBase 要求以下显式的依赖：
 直接公开依赖和它们的传递闭包是公开依赖。其它依赖是非公开依赖。
 头文件之间的非公开依赖是内部依赖。
 每个被依赖的头文件在翻译单元中最终被包含至少一次。
+根据确定的头文件依赖性，YBase 的实现可使用尽量少的显式 #include 指令。
+除指定的内部依赖外，对头文件或标准库头的依赖是公开的，可被用户程序使用。
 
 @2.5.1.1 标准库扩展和替代：
 部分头文件以一对一或多对一的形式在相似接口意义上扩展或替代 ISO C++ 标准库，参见 @2.5.7 和 @2.5.8 。
@@ -339,6 +341,7 @@ YBase 要求以下显式的依赖：
 "meta.hpp" 依赖 "type_inspection.hpp" ；
 "variadic.hpp" 和 "invoke.hpp" 依赖 "meta.hpp" ；
 "integer_sequence.hpp" 和 "type_op.hpp" 依赖 "variadic.hpp" ；
+"iterator_op.hpp" 依赖 "operators.hpp" ；
 "placement.hpp" 、"range.hpp" 和 "operators.hpp" 依赖 "addressof.hpp" ；
 "pointer.hpp" 和 "memory.hpp" 依赖 "iterator_op.hpp" ；
 "apply.hpp" 依赖 "invoke.hpp" ；
@@ -347,10 +350,13 @@ YBase 要求以下显式的依赖：
 "functor.hpp" 依赖 "ref.hpp" 和 "type_traits.hpp" ；
 "function_adaptor.hpp" 依赖 "bind.hpp" 和 "compose.hpp" ；
 "functional.hpp" 依赖 "function_adaptor.hpp" 和 "expanded_function.hpp" ；
-"tree.hpp" 和 "container.hpp" 依赖 "range.hpp" ；
+"tree.h" 、"hash_table.h" 和 "container.hpp" 依赖 "range.hpp" ；
+"tree.h" 和 "hash_table.h" 依赖 "node_handle.hpp" ； 
+"hash_table.h" 依赖 "hash.hpp" ；
 "string.hpp" 依赖 "container.hpp" ；
 "list.hpp" 依赖 "node_base.h" 。
-"map.hpp" 和 "set.hpp" 依赖 "tree.hpp" ；
+"map.hpp" 和 "set.hpp" 依赖 "tree.h" ；
+"unordered_map.hpp" 依赖 "hash_table.h" ；
 "any_iterator.hpp" 依赖 "any.h" 。
 另见 @2.5.4 和以下各节。
 **注释**
@@ -365,12 +371,11 @@ YBase 要求以下显式的依赖：
 "deref_op.hpp" 和 "addressof.hpp" 内部依赖 "meta.hpp" ；
 "deref_op.hpp" 内部依赖 "cassert.h" ；
 "ref.hpp" 依赖 "addressof.hpp" 和 "invoke.hpp" ；
-"placement.hpp" 依赖 "addressof.hpp" ；
+"placement.hpp" 、"range.hpp" 和 "operators.hpp" 依赖 "addressof.hpp" ；
 "type_pun.hpp" 内部依赖 "placement.hpp" ；
 "swap.hpp" 内部依赖 "type_pun.hpp" ；
-"operators.hpp" 和 "range.hpp" 依赖 "addressof.hpp" ；
 "range.hpp" 内部依赖 "addressof.hpp" 和 <algorithm> ；
-"iterator_op.hpp" 依赖 "range.hpp" 和 "deref_op.hpp" ；
+"iterator_op.hpp" 依赖 "range.hpp" 、"deref_op.hpp" 和 "operators.hpp" ；
 "iterator_op.hpp" 内部依赖 "ref.hpp" ；
 "typeindex.h" 依赖 "typeinfo.h" ；
 "type_traits.hpp" 依赖 "invoke.hpp" 和 "swap.hpp" ；
@@ -378,8 +383,9 @@ YBase 要求以下显式的依赖：
 "utility.hpp" 依赖 "swap.hpp" 、"enum.hpp" 和 "integer_sequence.hpp" ；
 "apply.hpp" 依赖 "invoke.hpp" ；
 "tuple.hpp" 依赖 "apply.hpp" ；
+"pointer.hpp" 依赖 "iterator_op.hpp" ；
 "allocator.hpp" 内部依赖 "type_op.hpp" 和 "pointer.hpp" ；
-"memory.hpp" 依赖 "pointer.hpp"（蕴含内部依赖 "iterator_op.hpp" ）和 "allocator.hpp" ；
+"memory.hpp" 依赖 "pointer.hpp" 和 "allocator.hpp" ；
 "memory.hpp" 内部依赖 "placement.hpp" 和 "ref.hpp" ；
 "memory_resource.h" 内部依赖 "memory.hpp" ；
 "hash.hpp" 和 "mixin.hpp" 依赖 "tuple.hpp" ；
@@ -393,14 +399,18 @@ YBase 要求以下显式的依赖：
 "any.h" 内部依赖 "typeinfo.h" 和 "utility.hpp" ；
 "iterator.hpp" 依赖 "iterator_op.hpp" ；
 "iterator.hpp" 内部依赖 "ref.hpp" ；
-"tree.hpp" 和 "string_view.hpp" 依赖 "range.hpp" ；
+"string_view.hpp" 依赖 "range.hpp" ；
+"node_handle.hpp" 内部依赖 "allocator.hpp" ；
+"tree.h" 和 "hash_table.h" 依赖 "node_handle.hpp"（蕴含公开依赖 "range.hpp" ）；
+"tree.h" 和 "hash_table.h" 内部依赖 "operators.hpp" ；
 "container.hpp" 依赖 "range.hpp" ；
 "container.hpp" 内部依赖 "integer_sequence.hpp" ；
 "any_iterator.hpp" 依赖 "any.h" ；
 "string.hpp" 依赖 "container.hpp" ；
 "string.hpp" 内部依赖 "allocator.hpp" 和 "string_view.hpp"（蕴含公开依赖 "range.hpp" ）；
 "list.hpp" 依赖 "range.hpp" ；
-"map.hpp" 和 "set.hpp" 依赖 "tree.hpp"（蕴含公开依赖 "range.hpp" ）；
+"map.hpp" 和 "set.hpp" 依赖 "tree.h"（蕴含公开依赖 "range.hpp" ）；
+"unordered_map.hpp" 依赖 "hash_table.h"（蕴含公开依赖 "range.hpp" ）；
 "scope_guard.hpp" 内部依赖 "function.hpp" 。
 除此之外，内部依赖对标准库头的依赖也视为内部依赖。
 
@@ -615,7 +625,7 @@ ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证�
 @2.5.9.12 通用仿函数 Functor ：
 部分扩展标准库头 <functional> ，提供通用的函数对象。
 
-@2.5.9.13 函数适配器 FunctorAdaptor ：
+@2.5.9.13 函数适配器 FunctionAdaptor ：
 部分扩展标准库头 <functional> ，提供通用的函数适配器扩展。
 
 @2.5.9.14 函数部分应用 Bind ：
@@ -643,7 +653,7 @@ ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证�
 使用非零宏 YB_Use_LightweightTypeID 指定不依赖 RTTI 的 type_info 。
 
 @2.5.10 ISO C++ 标准库字符串和模板库组件扩展和替代：
-同 @2.5.10 ，直接或间接扩展字符串、<iterator> 、<algorithm> 、容器、流或并发 API 的头文件，或提供这些头文件的内部实现基础。
+同 @2.5.9 ，直接或间接扩展字符串、<iterator> 、<algorithm> 、容器、流或并发 API 的头文件，或提供这些头文件的内部实现基础。
 
 @2.5.10.1 通用迭代器 Iterator ：
 间接扩展标准库头 <iterator> ，提供若干迭代器适配器和相关操作。
@@ -658,41 +668,56 @@ ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证�
 @2.5.10.4 ISO C++ 标准字符串扩展 String ：
 间接扩展标准库头 <string> ，提供 std::char_traits 的扩展功能和对 std::basic_string 及类似类型的操作。
 
-@2.5.10.5 数组操作 Array ：
+@2.5.10.5 指定结束字符的只读字符串视图 TStringView ：
+基于 StringView(@2.5.9.10) 提供近似标准库头 <string_view> 中的 string_view 的扩展类型。
+
+@2.5.10.6 数组操作 Array ：
 扩展标准库头 <array> ，提供内建数组和 std::array 相关类型的操作。
 
-@2.5.10.6 作为节点序列容器实现的节点基础 NodeBase ：
+@2.5.10.7 作为节点序列容器实现的节点基础 NodeBase ：
 提供一些例程用于作为基于节点的序列容器实现的基础。
 当前暂时不公开 API ，但其中的 API 已被 List(@2.5.10.8) 中的容器二进制依赖。未来可能会提供基于节点实现关联容器公共 API 。
 
-@2.5.10.7 列表容器 List ：
+@2.5.10.8 列表容器 List ：
 扩展标准库头 <list> ，提供类模板作为和 ISO C++17 std::list 类似且提供标准草案的一些其它接口。未来可能提供其它关联的 API 。
 附加 ISO C++11 不保证的附加特性不依赖 ISO C++17 及其具体实现。
 
-@2.5.10.8 作为关联容器实现的树 Tree ：
-提供一些例程用于作为关联容器实现的基础。
-当前暂时不公开 API ，但其中的 API 已被 Map(@2.5.10.9) 和 Set(@2.5.10.10) 中的容器二进制依赖。未来可能会提供基于树实现关联容器公共 API 。
+@2.5.10.9 作为关联容器和无序容器实现的节点句柄 NodeHandle ：
+提供关联容器和无序容器实现的相关类型。
+当前暂时不公开 API ，但其中的 API 已被 Tree(@2.5.10.10) 和 HashTable(@2.5.10.13) 中的容器二进制依赖。
 
-@2.5.10.9 映射容器 Map ：
+@2.5.10.10 作为关联容器实现的树 Tree ：
+提供一些例程用于作为关联容器实现的基础。
+当前暂时不公开 API ，但其中的 API 已被 Map(@2.5.10.10) 和 Set(@2.5.10.11) 中的容器二进制依赖。未来可能会提供基于树实现关联容器公共 API 。
+
+@2.5.10.11 映射容器 Map ：
 扩展标准库头 <map> ，提供类模板作为和 ISO C++17 std::map 类似且支持不完整的键类型的实现。
 附加 ISO C++11 不保证的附加特性不依赖 ISO C++17 及其具体实现。
 
-@2.5.10.10 集合容器 Set ：
+@2.5.10.12 集合容器 Set ：
 扩展标准库头 <map> ，但提供和 std::set 类似的容器。
 
-@2.5.10.11 ISO C++ 标准流缓冲扩展 StreamBuffer ：
+@2.5.10.13 作为无序容器实现的散列表 HashTable ：
+提供一些例程用于作为无序容器实现的基础。
+当前暂时不公开 API ，但其中的 API 已被 UnorderedMap(@2.5.10.14) 中的容器二进制依赖。
+
+@2.5.10.14 无序映射容器 UnorderedMap ：
+扩展标准库头 <unordered_map> ，提供类模板作为和 ISO C++20 std::unordered_map 类似且支持不完整的键类型的实现。
+附加 ISO C++11 不保证的附加特性不依赖 ISO C++20 及其具体实现。
+
+@2.5.10.15 ISO C++ 标准流缓冲扩展 StreamBuffer ：
 扩展标准库头 <streambuf> 。
 
-@2.5.10.12 ISO C++ 标准输入流扩展 InputStream ：
+@2.5.10.16 ISO C++ 标准输入流扩展 InputStream ：
 扩展标准库头 <istream> 。
 
-@2.5.10.13 ISO C 标准输入/输出扩展 CStandardIO ：
+@2.5.10.17 ISO C 标准输入/输出扩展 CStandardIO ：
 头文件扩展标准库头 <cstdio> ，提供 C/C++ 流操作模式参数的转换和 C 标准库输入的迭代器包装。
 
-@2.5.10.14 ISO C++ <future> 扩展 Future ：
+@2.5.10.18 ISO C++ <future> 扩展 Future ：
 扩展标准库头 <future> ，提供一些别名模板和便利接口。
 
-@2.5.10.15 伪互斥量 PseudoMutex ：
+@2.5.10.19 伪互斥量 PseudoMutex ：
 提供单线程环境下互斥量和锁接口，作为标准库 <mutex> 的替代。
 
 @2.5.11 其它扩展接口：

@@ -11,13 +11,13 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r796
+\version r881
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-10 05:09:57 +0800
 \par 修改时间:
-	2023-01-01 03:11 +0800
+	2023-02-06 00:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,8 @@
 #include <ystdex/algorithm.hpp>
 #include <ystdex/string.hpp>
 #include <ystdex/tstring_view.hpp>
+#include <ystdex/map.hpp>
+#include <ystdex/unordered_map.hpp>
 #include <ystdex/mixin.hpp>
 #include <ystdex/bitseg.hpp>
 
@@ -351,6 +353,94 @@ static_assert(ystdex::is_invocable_r<immovable, const immovable(*)()>::value,
 
 } // namespace function_test;
 
+//! \since build 996
+namespace map_test
+{
+
+struct K
+{
+	const size_t* value;
+
+	explicit K(const size_t& v) ynothrow
+		: value(&v)
+	{}
+	~K()
+	{
+		value = {};
+	}
+
+	bool
+	operator==(const K& k) const ynothrow
+	{
+		return *value == *k.value;
+	}
+	bool
+	operator<(const K& k) const ynothrow
+	{
+		return *value < *k.value;
+	}
+};
+
+
+struct H
+{
+	std::size_t
+	operator()(const K& k) const ynothrow
+	{
+		return *k.value;
+	}
+};
+
+
+struct S
+{
+	static size_t count;
+	size_t value;
+
+	operator std::pair<const K, size_t>() const ynothrow
+	{
+		++count;
+		return {K(value), value};
+	}
+};
+
+size_t S::count = 0;
+
+
+template<class M, typename _func>
+int
+test_common(_func f)
+{
+	S::count = 0;
+
+	S s[1] = {{2}};
+	f(s);
+	return int(S::count);
+}
+
+
+template<class M>
+int
+cons()
+{
+	return test_common<M>([](S* s){
+		M m(s, s + 1);
+	});
+}
+
+template<class M>
+int
+ins()
+{
+	return test_common<M>([](S* s){
+		M m;
+
+		m.insert(s, s + 1);
+	});
+}
+
+} // namespace map_test
+
 //! \since build 549
 namespace bitseg_test
 {
@@ -661,6 +751,20 @@ main()
 				&& sv.find_first_not_of("Hel!") == 4;
 		})
 	);
+	{
+		using namespace map_test;
+		using map_t = map<K, size_t>;
+		using umap_t = unordered_map<K, size_t, H>;
+
+		seq_apply(make_guard("YStandard.Map").get(pass, fail),
+			// 2 cases covering: ystdex::map.
+			expect(1, cons<map_t>), expect(1, ins<map_t>)
+		);
+		seq_apply(make_guard("YStandard.UnorderedMap").get(pass, fail),
+			// 2 cases covering: ystdex::unordered_map.
+			expect(1, cons<umap_t>), expect(1, ins<umap_t>)
+		);
+	}
 	// 1 case covering: mixin interface.
 	seq_apply(make_guard("YStandard.Mixin").get(pass, fail),
 		expect(make_pair(string("e"), boxed_value<int>(3)), []{

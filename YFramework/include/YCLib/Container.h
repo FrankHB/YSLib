@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018-2022 FrankHB.
+	© 2010-2016, 2018-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Container.h
 \ingroup YCLib
 \brief 容器、拟容器和适配器。
-\version r1211
+\version r1241
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2022-03-11 23:13 +0800
+	2023-01-26 22:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,7 @@
 #include <ystdex/map.hpp> // for ystdex::map;
 #include <set>
 #include <unordered_set>
-#include <unordered_map>
+#include <ystdex/unordered_map.hpp> // for ystdex::unordered_map;
 #include <queue>
 #include <stack>
 #if !defined(NDEBUG) && __GLIBCXX__
@@ -123,7 +123,7 @@ using default_allocator = pmr::polymorphic_allocator<_type>;
 //	See https://gcc.gnu.org/git/?p=gcc.git;h=6db082477ad839438c4b54fc61083276c68d47ec.
 using std::array;
 //! \since build 843
-//@{
+//!@{
 template<typename _type, class _tAlloc = default_allocator<_type>>
 using deque = stdd::deque<_type, _tAlloc>;
 
@@ -154,38 +154,35 @@ using multimap = stdd::multimap<_tKey, _tMapped, _fComp, _tAlloc>;
 
 template<typename _tKey, typename _fComp = ystdex::less<_tKey>,
 	class _tAlloc = default_allocator<_tKey>>
-using multiset = stdd::multiset<_tKey, _fComp, _tAlloc>;
+using set = stdd::set<_tKey, _fComp, _tAlloc>;
 
 template<typename _tKey, typename _fComp = ystdex::less<_tKey>,
 	class _tAlloc = default_allocator<_tKey>>
-using set = stdd::set<_tKey, _fComp, _tAlloc>;
+using multiset = stdd::multiset<_tKey, _fComp, _tAlloc>;
 
 
 template<typename _tKey, typename _tMapped, typename _fHash = std::hash<_tKey>,
-	typename _fEqual = ystdex::equal_to<_tKey>, class _tAlloc
+	typename _fPred = ystdex::equal_to<_tKey>, class _tAlloc
 	= default_allocator<std::pair<const _tKey, _tMapped>>>
 using unordered_map
-	= stdd::unordered_map<_tKey, _tMapped, _fHash, _fEqual, _tAlloc>;
+	= ystdex::unordered_map<_tKey, _tMapped, _fHash, _fPred, _tAlloc>;
 
 template<typename _tKey, typename _tMapped, typename _fHash = std::hash<_tKey>,
-	typename _fEqual = ystdex::equal_to<_tKey>, class _tAlloc
+	typename _fPred = ystdex::equal_to<_tKey>, class _tAlloc
 	= default_allocator<std::pair<const _tKey, _tMapped>>>
 using unordered_multimap
-	= stdd::unordered_multimap<_tKey, _tMapped, _fHash, _fEqual, _tAlloc>;
+	= stdd::unordered_multimap<_tKey, _tMapped, _fHash, _fPred, _tAlloc>;
 
 template<typename _tKey, typename _fHash = std::hash<_tKey>,
-	typename _fEqual = ystdex::equal_to<_tKey>,
+	typename _fPred = ystdex::equal_to<_tKey>,
 	class _tAlloc = default_allocator<_tKey>>
+using unordered_set = stdd::unordered_set<_tKey, _fHash, _fPred, _tAlloc>;
+
+template<typename _tKey, typename _fHash = std::hash<_tKey>, typename _fPred
+	= ystdex::equal_to<_tKey>, class _tAlloc = default_allocator<_tKey>>
 using unordered_multiset
-	= stdd::unordered_multiset<_tKey, _fHash, _fEqual, _tAlloc>;
+	= stdd::unordered_multiset<_tKey, _fHash, _fPred, _tAlloc>;
 
-template<typename _tKey, typename _fHash = std::hash<_tKey>,
-	typename _fEqual = ystdex::equal_to<_tKey>,
-	class _tAlloc = default_allocator<_tKey>>
-using unordered_set = stdd::unordered_set<_tKey, _fHash, _fEqual, _tAlloc>;
-
-template<typename _type, class _tSeqCon = deque<_type>>
-using stack = std::stack<_type, _tSeqCon>;
 
 template<typename _tKey, class _tSeqCon = vector<_tKey>,
 	class _fComp = ystdex::less<_tKey>>
@@ -193,7 +190,10 @@ using priority_queue = std::priority_queue<_tKey, _tSeqCon, _fComp>;
 
 template<typename _type, class _tSeqCon = deque<_type>>
 using queue = std::queue<_type, _tSeqCon>;
-//@}
+
+template<typename _type, class _tSeqCon = deque<_type>>
+using stack = std::stack<_type, _tSeqCon>;
+//!@}
 
 } // inline namespace containers;
 
@@ -219,21 +219,21 @@ using u32string = basic_string<char32_t>;
 using wstring = basic_string<wchar_t>;
 
 //! \since build 640
-//@{
+//!@{
 using ystdex::basic_string_view;
 using ystdex::string_view;
 using ystdex::u16string_view;
 using ystdex::wstring_view;
-//@}
+//!@}
 //! \since build 836
 using ystdex::string_view_t;
 //! \since build 641
-//@{
+//!@{
 using ystdex::basic_tstring_view;
 using ystdex::tstring_view;
 using ystdex::u16tstring_view;
 using ystdex::wtstring_view;
-//@}
+//!@}
 
 //! \since build 861
 using ystdex::make_string_view;
@@ -255,7 +255,7 @@ using ystdex::vsfmt;
 // XXX: This set of overloads is sometimes useful in conversions between values
 //	of %basic_string and %std::basic_string instances.
 //! \since build 896
-//@{
+//!@{
 template<typename _tChar, class _tString = basic_string<_tChar>>
 inline _tString
 to_pmr_string(basic_string_view<_tChar> sv)
@@ -311,13 +311,13 @@ to_pmr_string(_tParam&& str, const _tAlloc& a)
 {
 	return ystdex::make_obj_using_allocator<_tString>(a, yforward(str));
 }
-//@}
+//!@}
 
 // XXX: The overloads %to_std_string is provided to get %std::string values, in
 //	particular for arguments to %std::exception. No %std::wstring and other
 //	types are required like this.
 //! \since build 896
-//@{
+//!@{
 //! \since build 861
 template<typename _tChar, class _tString = std::basic_string<_tChar>>
 inline _tString
@@ -374,7 +374,7 @@ to_std_string(_tParam&& str, const _tAlloc& a)
 {
 	return ystdex::make_obj_using_allocator<_tString>(a, yforward(str));
 }
-//@}
+//!@}
 
 //! \since build 308
 using ystdex::to_string;
@@ -384,7 +384,7 @@ using ystdex::to_wstring;
 } // inline namespace strings;
 
 //! \since build 861
-//@{
+//!@{
 inline namespace ios
 {
 
@@ -429,7 +429,7 @@ using stringstream = stringstream_for<string>;
 using wstringstream = stringstream_for<wstring>;
 
 } // inline namespace ios;
-//@}
+//!@}
 
 } // namespace platform;
 
@@ -453,7 +453,6 @@ namespace std
 
 /*!
 \brief 使用多态分配器的 ystdex::basic_string 散列支持。
-\since build 861
 \see LWG 2978 。
 \since build 941
 \todo 在合适的 YBase.YStandardEx 头文件中扩展并使用 WG21 P1406R1 的解决方案。

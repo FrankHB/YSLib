@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2022 FrankHB.
+	© 2013-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元信息。
-\version r1693
+\version r1719
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2022-10-18 06:14 +0800
+	2023-01-27 21:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -213,6 +213,17 @@ $resolve(#39) @ b930;
 	means the migration is not end yet.
 $long_term_code_evolution $=
 (
+	"using strict Doxygen group markers" $interval([$b966, $now]),
+		// This changes '//@{' and '//@}' to '//!@{' and '//!@}' \
+			respectively, to prevent misuse of group markers which is no \
+			longer supported since Doxygen 1.8.16. See https://www.doxygen.nl/manual/changelog.html#log_1_8_16,
+			and https://github.com/doxygen/doxygen/commit/ef5af7618fbec3ac240e7a1099607d9ff2b3cc4f.
+		// A space is added to make it more consistent to other commands. \
+			However '@' is preserved and not replaced to the backslash to keep \
+			the search and code escaping easy. The comination '//!@{' and \
+			'//!@}' do exist in the Doxygen manual so they should be \
+			definitely supported.
+		// Some other projects were affected similarly and fixed, e.g. https://gcc.gnu.org/git/?p=gcc.git;a=commit;h=f0b883464c58cb2f3f521776e65008b1fa75f79e.
 	"using copyright symbol '©' in the head of copyright notice to conform \
 		Universal Copyright Convention (UCC) for contries where Berne \
 		Convention unavailable" $interval([$b448, b934]),
@@ -254,41 +265,41 @@ $ref $=
 b449
 (
 $note "libstdc++ std::basic_string confomance"
-$URL http://stackoverflow.com/questions/12520192/is-stdstring-refcounted-in-gcc-c11
-$URL http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52938#c8
-$URL http://gcc.gnu.org/ml/gcc/2011-10/msg00115.html
+$URL https://stackoverflow.com/questions/12520192
+$URL https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52938#c8
+$URL https://gcc.gnu.org/ml/gcc/2011-10/msg00115.html
 $note "libstdc++ vstring"
-$URL http://stackoverflow.com/questions/10463851/what-is-gccs-vstring
+$URL https://stackoverflow.com/questions/10463851
 ),
 b448
 (
 $note "CWG 226"
-$URL http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_defects.html#226
-$URL http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2003/n1459.html
+$URL https://www.open-std.org/jtc1/sc22/wg21/docs/cwg_defects.html#226
+$URL https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2003/n1459.html
 ),
 b428
 (
 $note "G++ PR53402"
-$URL http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53402
+$URL https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53402
 ),
 b412
 (
 $note "N3652"
-$URL http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3652.html
+$URL https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3652.html
 $URL https://github.com/cplusplus/draft/blob/master/papers/n3692.html
 $note "Clang++ bug 8448"
-$URL http://llvm.org/bugs/show_bug.cgi?id=8448
-$URL http://stackoverflow.com/questions/8984013/can-sfinae-detect-private-access-violations
+$URL https://llvm.org/bugs/show_bug.cgi?id=8448
+$URL https://stackoverflow.com/questions/8984013
 ),
 b398 $=
 (
 $note "N3508"
-$URL http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2013/n3508.html#synopsis
+$URL https://www.open-std.org/JTC1/SC22/WG21/docs/papers/2013/n3508.html#synopsis
 ),
 b351 $=
 (
 $note "cv-qualifier for function types"
-$URL http://stackoverflow.com/questions/1117873/pointer-to-const-vs-usual-pointer-for-functions
+$URL https://stackoverflow.com/questions/1117873
 // Also CWG 295.
 ),
 b349 $=
@@ -300,8 +311,8 @@ $URL http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2010/n3047.html
 b298 $=
 (
 $note "access violation examples"
-$URL http://stackoverflow.com/questions/5955682/boostmake-shared-causes-access-violation
-$URL http://lists.cs.uiuc.edu/pipermail/cfe-dev/2011-October/017831.html
+$URL https://stackoverflow.com/questions/5955682
+$URL https://lists.llvm.org/pipermail/cfe-dev/2011-October/017831.html
 )
 );
 

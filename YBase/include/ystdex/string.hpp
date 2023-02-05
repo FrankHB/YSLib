@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2022 FrankHB.
+	© 2012-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r3295
+\version r3474
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2022-01-02 14:32 +0800
+	2023-01-26 05:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,16 +28,17 @@
 #ifndef YB_INC_ystdex_string_hpp_
 #define YB_INC_ystdex_string_hpp_ 1
 
-#include "allocator.hpp" // for allocator_traits, enable_if_t, remove_cvref_t,
-//	false_, is_object, decay_t, std::declval, true_, nested_allocator, or_,
-//	is_same, is_enum, yconstraint, is_class, is_equal, yassume, YAssert;
+#include "allocator.hpp" // for internal "allocator.hpp", allocator_traits,
+//	enable_if_t, remove_cvref_t, false_, is_object, decay_t, std::declval,
+//	true_, nested_allocator, or_, is_same, is_enum, yconstraint, is_class,
+//	is_equal, enable_if_inconvertible_t, yassume, YAssert;
 #include "string_view.hpp" // for internal "string_view.hpp" (implying
-//	"range.hpp" and "<libdefect/string.h>"), basic_string_view,
-//	std::char_traits, std::initializer_list, std::to_string, string,
-//	basic_string;
+//	"range.hpp" and "<libdefect/string.h>"), std::basic_string,
+//	basic_string_view, std::char_traits, std::initializer_list, string_view_t,
+//	std::to_string;
 #include "container.hpp" // for "container.hpp", enable_for_input_iterator_t,
-//	make_index_sequence, index_sequence, begin, end, empty, size, sort_unique,
-//	underlying, std::hash;
+//	std::hash, make_index_sequence, index_sequence, begin, end, empty, size,
+//	ystdex::sort_unique, ystdex::underlying;
 #include "cstring.h" // for ystdex::ntctslen;
 #include "cstdio.h" // for vfmtlen, ystdex::is_null;
 #include "array.hpp" // for std::bidirectional_iterator_tag, to_array;
@@ -51,7 +52,7 @@ namespace ystdex
 {
 
 //! \since build 833
-//@{
+//!@{
 inline namespace cpp2017
 {
 
@@ -90,7 +91,7 @@ private:
 	//	ISO C++17.
 	using enable_if_sv_t = enable_if_t<and_<is_convertible<const _type&,
 		sv_type>, not_<is_convertible<const _type*, const base*>>,
-		not_<is_convertible<const _type&, const _tChar*>>>::value, _tRes>;
+		not_<is_convertible<const _type&, const _tChar*>>>{}, _tRes>;
 
 public:
 	using size_type = typename base::size_type;
@@ -103,10 +104,10 @@ public:
 	//	here explicitly. Note the parameter has %base type which reflects the
 	//	original %basic_string type, and the return type %basic_string is this
 	//	class.
-
 	/*!
 	\see LWG 2193 。
 	\see LWG 2455 。
+	\see WG21 N4258 。
 	*/
 	basic_string() ynoexcept_spec(_tAlloc())
 		: base()
@@ -141,7 +142,7 @@ public:
 	using base::base;
 #else
 	//! \since build 838
-	//@{
+	//!@{
 	YB_NONNULL(2)
 	basic_string(const _tChar* s, size_type n, const _tAlloc& a = _tAlloc())
 		: base(s, n, a)
@@ -171,7 +172,7 @@ public:
 	basic_string(base&& str, const _tAlloc& a)
 		: base(std::move(str), a)
 	{}
-	//@}
+	//!@}
 #endif
 	basic_string(const base& str)
 		: base(str)
@@ -210,6 +211,7 @@ public:
 		static_cast<base&>(*this) = str;
 		return *this;
 	}
+	//! \see WG21 N4258 。
 	basic_string&
 	operator=(base&& str) ynoexcept(equal_alloc_or_pocma())
 	{
@@ -278,7 +280,7 @@ public:
 		return *this;
 	}
 	//! \see WG21 P0254R2 。
-	//@{
+	//!@{
 	basic_string&
 	append(sv_type sv)
 	{
@@ -299,7 +301,7 @@ public:
 		}
 		throw std::out_of_range("basic_string::append");
 	}
-	//@}
+	//!@}
 	YB_NONNULL(2) basic_string&
 	append(const _tChar* s)
 	{
@@ -357,7 +359,7 @@ public:
 		return *this;
 	}
 	//! \see WG21 P0254R2 。
-	//@{
+	//!@{
 	basic_string&
 	assign(sv_type sv)
 	{
@@ -378,7 +380,7 @@ public:
 		}
 		throw std::out_of_range("basic_string::assign");
 	}
-	//@}
+	//!@}
 	YB_NONNULL(2) basic_string&
 	assign(const _tChar* s)
 	{
@@ -431,7 +433,7 @@ public:
 		return *this;
 	}
 	//! \see WG21 P0254R2 。
-	//@{
+	//!@{
 	basic_string&
 	insert(size_type pos, sv_type sv)
 	{
@@ -452,7 +454,7 @@ public:
 		}
 		throw std::out_of_range("basic_string::insert");
 	}
-	//@}
+	//!@}
 	YB_NONNULL(3) basic_string&
 	insert(size_type pos, const _tChar* s)
 	{
@@ -515,7 +517,7 @@ public:
 		return *this;
 	}
 	//! \see WG21 P0254R2 。
-	//@{
+	//!@{
 	basic_string&
 	replace(size_type pos1, size_type n1, sv_type sv)
 	{
@@ -537,7 +539,7 @@ public:
 		}
 		throw std::out_of_range("basic_string::replace");
 	}
-	//@}
+	//!@}
 	YB_NONNULL(4) basic_string&
 	replace(size_type pos, size_type n, const _tChar* s)
 	{
@@ -609,6 +611,7 @@ public:
 		return basic_string(base::substr(pos, n));
 	}
 
+	//! \see WG21 N4258 。
 	void
 	swap(basic_string& str) ynoexcept(equal_alloc_or<typename
 		ator_traits::propagate_on_container_swap>())
@@ -678,14 +681,14 @@ public:
 	using base::find_last_not_of;
 
 	//! \see WG21 P0254R2 。
-	//@{
+	//!@{
 	YB_ATTR_nodiscard YB_PURE int
 	compare(sv_type sv) const ynothrow
 	{
 		return sv_type(this->data(), this->size()).compare(sv);
 	}
 	//! \see LWG 2771 。
-	//@{
+	//!@{
 	YB_ATTR_nodiscard YB_PURE int
 	compare(size_type pos1, size_type n1, sv_type sv) const
 	{
@@ -702,8 +705,8 @@ public:
 		return sv_type(this->data(), this->size()).substr(pos1, n1)
 			.compare(sv.substr(pos2, n2));
 	}
-	//@}
-	//@}
+	//!@}
+	//!@}
 	//! \see LWG 2268 。
 	using base::compare;
 
@@ -747,12 +750,12 @@ public:
 	{
 		return std::move(rhs.insert(0, 1, lhs));
 	}
-	YB_ATTR_nodiscard YB_PURE YB_NONNULL(2) friend basic_string
+	YB_ATTR_nodiscard YB_NONNULL(2) YB_PURE friend basic_string
 	operator+(const basic_string& lhs, const _tChar* rhs)
 	{
 		return lhs + basic_string(rhs);
 	}
-	YB_NONNULL(2) friend basic_string
+	YB_ATTR_nodiscard YB_NONNULL(2) friend basic_string
 	operator+(basic_string&& lhs, const _tChar* rhs)
 	{
 		return std::move(lhs.append(rhs));
@@ -769,7 +772,7 @@ public:
 	}
 };
 #endif
-//@}
+//!@}
 
 using string = basic_string<char>;
 using wstring = basic_string<wchar_t>;
@@ -792,14 +795,14 @@ struct string_traits
 	using value_type = remove_cvref_t<decltype(std::declval<string_type>()[0])>;
 	using traits_type = typename std::char_traits<value_type>;
 	//! \since build 592
-	//@{
+	//!@{
 	using allocator_type = _t<nested_allocator<string_type>>;
 	using size_type = typename allocator_traits<allocator_type>::size_type;
 	using difference_type
 		= typename allocator_traits<allocator_type>::difference_type;
 	using reference = value_type&;
 	using const_reference = const value_type&;
-	//@}
+	//!@}
 	using pointer = value_type*;
 	using const_pointer = const value_type*;
 	using initializer = std::initializer_list<value_type>;
@@ -819,21 +822,56 @@ make_string_view(const _tString& str) ynothrowv
 }
 
 
+/*!
+\brief 兼容字符数组指针和视图的透明字符串散列器。
+\ingroup functors
+\since build 965
+*/
+template<typename _tChar = char>
+struct string_hash
+{
+	using is_transparent = yimpl(void);
+
+	//! \pre 断言：参数非空。
+	YB_ATTR_nodiscard YB_NONNULL(2) YB_PURE size_t
+	operator()(const _tChar* s) const ynothrow
+	{
+		yconstraint(s);
+		return std::hash<basic_string_view<_tChar>>()(s);
+	}
+	/*!
+	\pre 断言：参数的数据指针非空。
+	\note 参数指定的字符串视为 NTCTS 。
+	*/
+	YB_ATTR_nodiscard YB_PURE size_t
+	operator()(basic_string_view<_tChar> sv) const ynothrow
+	{
+		yconstraint(sv.data());
+		return std::hash<basic_string_view<_tChar>>()(sv);
+	}
+	YB_ATTR_nodiscard YB_PURE size_t
+	operator()(const std::basic_string<_tChar>& str) const ynothrow
+	{
+		return std::hash<basic_string_view<_tChar>>()(str);
+	}
+};
+
+
 //! \since build 450
 namespace details
 {
 
 //! \since build 640
-//@{
+//!@{
 template<typename _type, typename = void>
 struct is_string_like : false_
 {};
 
 template<typename _type>
 struct is_string_like<_type, enable_if_t<
-	is_object<decay_t<decltype(std::declval<_type>()[0])>>::value>> : true_
+	is_object<decay_t<decltype(std::declval<_type>()[0])>>{}>> : true_
 {};
-//@}
+//!@}
 
 
 //! \todo 支持 std::forward_iterator_tag 重载。
@@ -853,7 +891,7 @@ ends_with_iter_dispatch(_tFwd1 b, _tFwd1 e, _tFwd2 bt, _tFwd2 et,
 
 
 //! \since build 640
-//@{
+//!@{
 template<size_t>
 struct str_algos;
 
@@ -978,20 +1016,20 @@ struct str_algo<index_sequence<_vIdx, _vSeq...>>
 	using str_algos<_vIdx>::erase_right;
 	using str_algo<index_sequence<_vSeq...>>::erase_right;
 	//! \since build 781
-	//@{
+	//!@{
 	using str_algos<_vIdx>::trim_left_pos;
 	using str_algo<index_sequence<_vSeq...>>::trim_left_pos;
 	using str_algos<_vIdx>::trim_right_pos;
 	using str_algo<index_sequence<_vSeq...>>::trim_right_pos;
-	//@}
+	//!@}
 };
-//@}
+//!@}
 
 } // unnamed namespace;
 
 
 //! \ingroup unary_type_traits
-//@{
+//!@{
 /*!
 \brief 判断指定类型是否为类字符串类型。
 \since build 695
@@ -1007,7 +1045,7 @@ struct is_string_like : details::is_string_like<_type>
 template<typename _type>
 struct is_string_class : and_<is_class<_type>, is_string_like<_type>>
 {};
-//@}
+//!@}
 
 
 /*!
@@ -1018,7 +1056,7 @@ struct is_string_class : and_<is_class<_type>, is_string_like<_type>>
 */
 template<typename _tParam, typename _type = void>
 using enable_for_string_class_t
-	= enable_if_t<is_string_class<decay_t<_tParam>>::value, _type>;
+	= enable_if_t<is_string_class<decay_t<_tParam>>{}, _type>;
 
 
 /*!
@@ -1029,7 +1067,7 @@ using enable_for_string_class_t
 \see WG21 N3936 20.4.7[iterator.range] 。
 \since build 936
 */
-//@{
+//!@{
 template<class _tRange,
 	yimpl(typename = enable_if_t<!is_array<_tRange>::value>)>
 YB_ATTR_nodiscard yconstfn auto
@@ -1047,9 +1085,9 @@ string_begin(const _tRange& c) -> decltype(begin(c))
 //! \since build 664
 template<typename _tChar>
 YB_ATTR_nodiscard YB_NONNULL(1) yconstfn _tChar*
-string_begin(_tChar* str) ynothrow
+string_begin(_tChar* s) ynothrow
 {
-	return yconstraint(str), str;
+	return yconstraint(s), s;
 }
 template<typename _tElem>
 YB_ATTR_nodiscard yconstfn const _tElem*
@@ -1074,9 +1112,9 @@ string_end(const _tRange& c) -> decltype(end(c))
 }
 template<typename _tChar>
 YB_ATTR_nodiscard YB_NONNULL(1) yconstfn _tChar*
-string_end(_tChar* str) ynothrowv
+string_end(_tChar* s) ynothrowv
 {
-	return str + ystdex::ntctslen(str);
+	return s + ystdex::ntctslen(s);
 }
 template<typename _tElem>
 YB_ATTR_nodiscard yconstfn const _tElem*
@@ -1084,7 +1122,7 @@ string_end(std::initializer_list<_tElem> il) ynothrow
 {
 	return il.end();
 }
-//@}
+//!@}
 
 
 /*!	\defgroup string_algorithms String Algorithms
@@ -1093,18 +1131,18 @@ string_end(std::initializer_list<_tElem> il) ynothrow
 \note 模板形参关键字 \c class 表示仅支持类类型对象字符串。
 \since build 304
 */
-//@{
+//!@{
 /*!
 \brief 判断字符串是否为空。
 \since build 835
 */
-//@{
-//! \pre 指针指定的字符串为 NTCTS 。
+//!@{
+//! \pre 参数指定的字符串为 NTCTS 。
 template<typename _tChar>
-YB_ATTR_nodiscard YB_PURE yconstfn bool
-string_empty(const _tChar* str) ynothrowv
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE yconstfn bool
+string_empty(const _tChar* s) ynothrowv
 {
-	return ystdex::is_null(*str);
+	return ystdex::is_null(*s);
 }
 //! \since build 936
 template<class _type,
@@ -1121,22 +1159,22 @@ string_empty(std::initializer_list<_tElem> il) ynothrow
 {
 	return il.size() == 0;
 }
-//@}
+//!@}
 
 /*!
 \brief 计算字符串长度。
 \since build 664
 */
-//@{
+//!@{
 /*!
-\pre 指针指定的字符串为 NTCTS 。
+\pre 参数指定的字符串为 NTCTS 。
 \since build 835
 */
 template<typename _tChar>
 YB_ATTR_nodiscard YB_PURE inline size_t
-string_length(const _tChar* str) ynothrowv
+string_length(const _tChar* s) ynothrowv
 {
-	return ystdex::ntctslen(str);
+	return ystdex::ntctslen(s);
 }
 template<class _type,
 	yimpl(typename = enable_if_t<!is_array<_type>::value>)>
@@ -1152,7 +1190,7 @@ string_length(std::initializer_list<_tElem> il) ynothrow
 {
 	return il.size();
 }
-//@}
+//!@}
 
 
 /*!
@@ -1162,9 +1200,9 @@ string_length(std::initializer_list<_tElem> il) ynothrow
 \sa ystdex::string_end
 \since build 450
 */
-//@{
+//!@{
 //! \brief 判断第一参数指定的串是否以第二参数起始。
-//@{
+//!@{
 //! \since build 519
 template<typename _tRange1, typename _tRange2, typename _fPred>
 YB_ATTR_nodiscard YB_PURE bool
@@ -1181,10 +1219,10 @@ begins_with(const _tRange1& input, const _tRange2& test)
 {
 	return ystdex::begins_with(input, test, is_equal());
 }
-//@}
+//!@}
 
 //! \brief 判断第一参数指定的串是否以第二参数结束。
-//@{
+//!@{
 template<typename _tRange1, typename _tRange2, typename _fPred>
 YB_ATTR_nodiscard YB_PURE inline bool
 ends_with(const _tRange1& input, const _tRange2& test, _fPred comp)
@@ -1201,8 +1239,8 @@ ends_with(const _tRange1& input, const _tRange2& test)
 {
 	return ystdex::ends_with(input, test, is_equal());
 }
-//@}
-//@}
+//!@}
+//!@}
 
 
 /*!
@@ -1210,7 +1248,7 @@ ends_with(const _tRange1& input, const _tRange2& test)
 \since build 546
 \todo 添加序列容器子串重载版本；优化：避免构造子串对象。
 */
-//@{
+//!@{
 template<class _tString, typename _type>
 YB_ATTR_nodiscard YB_PURE inline bool
 exists_substr(const _tString& str, const _type& sub)
@@ -1225,11 +1263,11 @@ exists_substr(const _tString& str, const typename _tString::value_type* p_sub)
 
 	return str.find(p_sub) != _tString::npos;
 }
-//@}
+//!@}
 
 
 //! \ingroup NTCTSUtil
-//@{
+//!@{
 /*!
 \brief NTCTS 正规化：保留空字符之前的字符。
 \post <tt>str.length() == ystdex::ntctslen(str.c_str())</tt> 。
@@ -1248,7 +1286,7 @@ normalize(_tString& str) -> decltype(str.resize(ystdex::ntctslen(str.c_str())))
 \warning 源字符串在指定长度内没有空字符则目标字符串不保证以空字符结尾。
 \since build 604
 */
-//@{
+//!@{
 //! \pre 断言：指针参数非空。
 template<class _tString,
 	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
@@ -1270,8 +1308,8 @@ ntctsncpy(_tString&& str, _tString&& str2,
 	sub.resize(n);
 	return static_cast<_tString&&>(str = std::move(sub));
 }
-//@}
-//@}
+//!@}
+//!@}
 
 
 /*!
@@ -1307,7 +1345,7 @@ alph(_tString& str)
 \brief 重复串接。
 \param str 被串接的字符串的引用。
 \param n 串接结果包含原字符串的重复次数。
-\pre 断言： <tt>1 < n</tt> 。
+\pre 断言：<tt>1 < n</tt> 。
 \since build 414
 \todo 检查 reserve 。
 */
@@ -1328,27 +1366,27 @@ concat(_tString& str, size_t n)
 }
 
 //! \pre 字符串类型满足 basic_string 或 basic_string_view 的操作及异常规范。
-//@{
+//!@{
 //! \since build 592
-//@{
+//!@{
 //! \brief 删除字符串中指定位置或指定字符最先出现的位置的左侧的字符串。
-//@{
+//!@{
 template<class _tString>
-inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
+inline yimpl(enable_if_t)<is_class<decay_t<_tString>>{}, _tString&&>
 erase_left(typename string_traits<_tString>::size_type pos, _tString&& str)
 {
 	return static_cast<_tString&&>(pos != decay_t<_tString>::npos
 		? details::str_algo<>::erase_left(str, pos) : str);
 }
 template<class _tString>
-inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
+inline yimpl(enable_if_t)<is_class<decay_t<_tString>>{}, _tString&&>
 erase_left(_tString&& str, typename string_traits<_tString>::value_type c)
 {
 	return
 		static_cast<_tString&&>(ystdex::erase_left(str.find_first_of(c), str));
 }
 template<class _tString>
-inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
+inline yimpl(enable_if_t)<is_class<decay_t<_tString>>{}, _tString&&>
 erase_left(_tString&& str, const remove_reference_t<_tString>& t)
 {
 	return
@@ -1359,7 +1397,7 @@ erase_left(_tString&& str, const remove_reference_t<_tString>& t)
 \since build 600
 */
 template<class _tString>
-inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
+inline yimpl(enable_if_t)<is_class<decay_t<_tString>>{}, _tString&&>
 erase_left(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>(" \f\n\r\t\v")[0])
 {
@@ -1367,19 +1405,19 @@ erase_left(_tString&& str, typename string_traits<_tString>::const_pointer t
 	return
 		static_cast<_tString&&>(ystdex::erase_left(str.find_first_of(t), str));
 }
-//@}
+//!@}
 
 //! \brief 删除字符串中指定位置或指定字符最后出现的位置的右侧的字符串。
-//@{
+//!@{
 template<class _tString>
-inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
+inline yimpl(enable_if_t)<is_class<decay_t<_tString>>{}, _tString&&>
 erase_right(typename string_traits<_tString>::size_type pos, _tString&& str)
 {
 	return static_cast<_tString&&>(pos != decay_t<_tString>::npos
 		? details::str_algo<>::erase_right(str, pos) : str);
 }
 template<class _tString>
-inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
+inline yimpl(enable_if_t)<is_class<decay_t<_tString>>{}, _tString&&>
 erase_right(_tString&& str, typename string_traits<_tString>::value_type c)
 {
 	return static_cast<_tString&&>(ystdex::erase_right(str.find_last_of(c),
@@ -1387,7 +1425,7 @@ erase_right(_tString&& str, typename string_traits<_tString>::value_type c)
 }
 //! \since build 659
 template<class _tString>
-inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
+inline yimpl(enable_if_t)<is_class<decay_t<_tString>>{}, _tString&&>
 erase_right(_tString&& str, const remove_reference_t<_tString>& t)
 {
 	return static_cast<_tString&&>(ystdex::erase_right(str.find_last_of(t),
@@ -1398,7 +1436,7 @@ erase_right(_tString&& str, const remove_reference_t<_tString>& t)
 \since build 600
 */
 template<class _tString>
-inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
+inline yimpl(enable_if_t)<is_class<decay_t<_tString>>{}, _tString&&>
 erase_right(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>(" \f\n\r\t\v")[0])
 {
@@ -1406,13 +1444,13 @@ erase_right(_tString&& str, typename string_traits<_tString>::const_pointer t
 	return static_cast<_tString&&>(ystdex::erase_right(str.find_last_of(t),
 		str));
 }
-//@}
-//@}
+//!@}
+//!@}
 
 //! \since build 552
-//@{
+//!@{
 //! \brief 删除字符串中指定的连续前缀字符。
-//@{
+//!@{
 template<class _tString>
 yconstfn _tString&&
 ltrim(_tString&& str, typename string_traits<_tString>::value_type c)
@@ -1440,10 +1478,10 @@ ltrim(_tString&& str, typename string_traits<_tString>::const_pointer t
 	return yconstraint(t), static_cast<_tString&&>(
 		details::str_algo<>::trim_left_pos(str, str.find_first_not_of(t)));
 }
-//@}
+//!@}
 
 //! \brief 删除字符串中指定的连续后缀字符。
-//@{
+//!@{
 template<class _tString>
 yconstfn _tString&&
 rtrim(_tString&& str, typename string_traits<_tString>::value_type c)
@@ -1471,10 +1509,10 @@ rtrim(_tString&& str, typename string_traits<_tString>::const_pointer t
 	return yconstraint(t), static_cast<_tString&&>(
 		details::str_algo<>::trim_right_pos(str, str.find_last_not_of(t)));
 }
-//@}
+//!@}
 
 //! \brief 删除字符串中指定的连续前缀与后缀字符。
-//@{
+//!@{
 template<class _tString>
 yconstfn _tString&&
 trim(_tString&& str, typename string_traits<_tString>::value_type c)
@@ -1502,15 +1540,15 @@ trim(_tString&& str, typename string_traits<_tString>::const_pointer t
 	return yconstraint(t),
 		yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), t)), t));
 }
-//@}
-//@}
-//@}
+//!@}
+//!@}
+//!@}
 
 
 //! \since build 599
-//@{
+//!@{
 //! \brief 取前缀子字符串。
-//@{
+//!@{
 template<typename _tString, typename... _tParams>
 YB_ATTR_nodiscard inline _tString
 find_prefix(const _tString& str, _tParams&&... args)
@@ -1524,10 +1562,10 @@ find_prefix(const _tString& str, _tParams&&... args)
 	}
 	return {};
 }
-//@}
+//!@}
 
 //! \brief 取后缀子字符串。
-//@{
+//!@{
 template<typename _tString, typename... _tParams>
 YB_ATTR_nodiscard inline _tString
 find_suffix(const _tString& str, _tParams&&... args)
@@ -1541,8 +1579,8 @@ find_suffix(const _tString& str, _tParams&&... args)
 	}
 	return {};
 }
-//@}
-//@}
+//!@}
+//!@}
 
 /*!
 \brief 取相同的前缀和后缀元素。
@@ -1553,7 +1591,7 @@ find_suffix(const _tString& str, _tParams&&... args)
 \todo 支持前缀和后缀字符串。
 \todo 扩展到一般容器。
 */
-//@{
+//!@{
 template<typename _tString>
 YB_ATTR_nodiscard YB_PURE yconstfn typename string_traits<_tString>::value_type
 get_quote_mark_nonstrict(const _tString& str)
@@ -1561,14 +1599,14 @@ get_quote_mark_nonstrict(const _tString& str)
 	return str.front() == str.back() ? str.front()
 		: typename string_traits<_tString>::value_type();
 }
-//@}
+//!@}
 
 /*!
 \brief 取添加前缀和后缀的字符串。
 \pre 断言：删除的字符串不大于串长。
 \since build 801
 */
-//@{
+//!@{
 template<typename _tString>
 YB_ATTR_nodiscard inline decay_t<_tString>
 quote(_tString&& str, typename string_traits<decay_t<_tString>>::value_type c
@@ -1577,8 +1615,8 @@ quote(_tString&& str, typename string_traits<decay_t<_tString>>::value_type c
 	return c + yforward(str) + c;
 }
 template<typename _tString, typename _tString2>
-YB_ATTR_nodiscard inline yimpl(enable_if_t)<!is_convertible<_tString2, typename
-	string_traits<decay_t<_tString>>::value_type>::value, decay_t<_tString>>
+YB_ATTR_nodiscard inline yimpl(enable_if_inconvertible_t)<_tString2,
+	typename string_traits<decay_t<_tString>>::value_type, decay_t<_tString>>
 quote(_tString&& str, const _tString2& s)
 {
 	return s + yforward(str) + s;
@@ -1590,14 +1628,14 @@ quote(_tString&& str, _tPrefix&& pfx, _tSuffix&& sfx)
 {
 	return yforward(pfx) + yforward(str) + yforward(sfx);
 }
-//@}
+//!@}
 
 /*!
 \brief 取删除前缀和后缀的子字符串。
 \pre 断言：删除的字符串不大于串长。
 \since build 304
 */
-//@{
+//!@{
 template<typename _tString>
 YB_ATTR_nodiscard inline _tString
 get_mid(const _tString& str, typename _tString::size_type l = 1)
@@ -1613,8 +1651,8 @@ get_mid(const _tString& str, typename _tString::size_type l,
 	yassume(!(str.size() < l + r));
 	return str.substr(l, str.size() - l - r);
 }
-//@}
-//@}
+//!@}
+//!@}
 
 
 
@@ -1622,7 +1660,7 @@ get_mid(const _tString& str, typename _tString::size_type l,
 \brief 从输入流中取字符串。
 \since build 565
 */
-//@{
+//!@{
 //! \note 同 std::getline ，除判断分隔符及附带的副作用由参数中的函数对象决定。
 template<typename _tChar, class _tTraits, class _tAlloc, typename _func>
 std::basic_istream<_tChar, _tTraits>&
@@ -1681,7 +1719,7 @@ extract(std::basic_istream<_tChar, _tTraits>& is,
 }
 
 //! \note 同 std::getline ，除字符串结尾包含分隔符。
-//@{
+//!@{
 template<typename _tChar, class _tTraits, class _tAlloc>
 std::basic_istream<_tChar, _tTraits>&
 extract_line(std::basic_istream<_tChar, _tTraits>& is,
@@ -1743,14 +1781,14 @@ extract_line_cr(std::basic_istream<_tChar, _tTraits>& is,
 		return true;
 	});
 }
-//@}
-//@}
+//!@}
+//!@}
 
 
 //! \brief 无格式字符串输出。
-//@{
+//!@{
 //! \since build 901
-//@{
+//!@{
 template<typename _tChar, typename _tString>
 std::basic_ostream<_tChar, typename _tString::traits_type>&
 write(std::basic_ostream<_tChar, typename _tString::traits_type>& os,
@@ -1786,7 +1824,7 @@ write(std::basic_ostream<_tChar, typename _tString::traits_type>& os,
 		os.write(&str[pos], std::streamsize(std::min(n, len - pos)));
 	return os;
 }
-//@}
+//!@}
 
 /*!
 \note 参数数组作为字符串字面量。
@@ -1813,7 +1851,7 @@ write_ntcts(std::basic_ostream<_tChar, _tTraits>& os, const _tChar* s)
 {
 	return os.write(s, std::streamsize(ystdex::ntctslen(s)));
 }
-//@}
+//!@}
 
 //! \since build 833
 template<class _tStream>
@@ -1869,23 +1907,21 @@ arithmetic_to_wstring(unsigned val, true_)
 \note 可与标准库的同名函数共用以避免某些类型转换警告，如 G++ 的 [-Wsign-promo] 。
 \since build 928
 */
-//@{
+//!@{
 template<class _tString = string, typename _type>
-YB_ATTR_nodiscard inline
-	yimpl(enable_if_t)<is_arithmetic<_type>::value, _tString>
+YB_ATTR_nodiscard inline yimpl(enable_if_t)<is_arithmetic<_type>{}, _tString>
 to_string(_type val)
 {
 	return details::arithmetic_to_string(val, details::excluded_tostr<_type>());
 }
 template<class _tString = string, typename _type>
-YB_ATTR_nodiscard inline
-	yimpl(enable_if_t)<is_arithmetic<_type>::value, _tString>
+YB_ATTR_nodiscard inline yimpl(enable_if_t)<is_arithmetic<_type>{}, _tString>
 to_string(_type val, typename _tString::allocator_type a)
 {
 	return _tString(ystdex::to_string(val), a);
 }
 template<class _tString = string, typename _type>
-YB_ATTR_nodiscard inline yimpl(enable_if_t)<is_enum<_type>::value, _tString>
+YB_ATTR_nodiscard inline yimpl(enable_if_t)<is_enum<_type>{}, _tString>
 to_string(_type val)
 {
 	using ystdex::to_string;
@@ -1893,7 +1929,7 @@ to_string(_type val)
 	return to_string(ystdex::underlying(val));
 }
 template<class _tString = string, typename _type>
-YB_ATTR_nodiscard inline yimpl(enable_if_t)<is_enum<_type>::value, _tString>
+YB_ATTR_nodiscard inline yimpl(enable_if_t)<is_enum<_type>{}, _tString>
 to_string(_type val, typename _tString::allocator_type a)
 {
 	using ystdex::to_string;
@@ -1903,7 +1939,7 @@ to_string(_type val, typename _tString::allocator_type a)
 template<class _tString = string, class _tStream = std::basic_ostringstream<
 	typename _tString::value_type, typename _tString::traits_type,
 	typename _tString::allocator_type>, typename _type>
-YB_ATTR_nodiscard yimpl(enable_if_t)<is_class<_type>::value,
+YB_ATTR_nodiscard yimpl(enable_if_t)<is_class<_type>{},
 	_t<details::stream_str_det<_tStream, _tString>>>
 to_string(const _type& x)
 {
@@ -1915,7 +1951,7 @@ to_string(const _type& x)
 template<class _tString = string, class _tStream = std::basic_ostringstream<
 	typename _tString::value_type, typename _tString::traits_type,
 	typename _tString::allocator_type>, typename _type>
-YB_ATTR_nodiscard yimpl(enable_if_t)<is_class<_type>::value,
+YB_ATTR_nodiscard yimpl(enable_if_t)<is_class<_type>{},
 	_t<details::stream_str_det<_tStream, _tString>>>
 to_string(const _type& x, typename _tString::allocator_type a)
 {
@@ -1929,21 +1965,19 @@ to_string(const _type& x, typename _tString::allocator_type a)
 }
 
 template<class _tString = wstring, typename _type>
-YB_ATTR_nodiscard inline
-	yimpl(enable_if_t)<is_arithmetic<_type>::value, _tString>
+YB_ATTR_nodiscard inline yimpl(enable_if_t)<is_arithmetic<_type>{}, _tString>
 to_wstring(_type val)
 {
 	return details::arithmetic_to_wstring(val, details::excluded_tostr<_type>());
 }
 template<class _tString = wstring, typename _type>
-YB_ATTR_nodiscard inline
-	yimpl(enable_if_t)<is_arithmetic<_type>::value, _tString>
+YB_ATTR_nodiscard inline yimpl(enable_if_t)<is_arithmetic<_type>{}, _tString>
 to_wstring(_type val, typename _tString::allocator_type a)
 {
 	return _tString(ystdex::to_wstring(val), a);
 }
 template<class _tString = wstring, typename _type>
-YB_ATTR_nodiscard inline yimpl(enable_if_t)<is_enum<_type>::value, _tString>
+YB_ATTR_nodiscard inline yimpl(enable_if_t)<is_enum<_type>{}, _tString>
 to_wstring(_type val)
 {
 	using ystdex::to_wstring;
@@ -1951,7 +1985,7 @@ to_wstring(_type val)
 	return to_wstring(ystdex::underlying(val));
 }
 template<class _tString = wstring, typename _type>
-YB_ATTR_nodiscard inline yimpl(enable_if_t)<is_enum<_type>::value, _tString>
+YB_ATTR_nodiscard inline yimpl(enable_if_t)<is_enum<_type>{}, _tString>
 to_wstring(_type val, typename _tString::allocator_type a)
 {
 	using ystdex::to_wstring;
@@ -1961,7 +1995,7 @@ to_wstring(_type val, typename _tString::allocator_type a)
 template<class _tString = wstring, class _tStream = std::basic_ostringstream<
 	typename _tString::value_type, typename _tString::traits_type,
 	typename _tString::allocator_type>, typename _type>
-YB_ATTR_nodiscard yimpl(enable_if_t)<is_class<_type>::value,
+YB_ATTR_nodiscard yimpl(enable_if_t)<is_class<_type>{},
 	_t<details::stream_str_det<_tStream, _tString>>>
 to_wstring(const _type& x)
 {
@@ -1970,13 +2004,13 @@ to_wstring(const _type& x)
 template<class _tString = wstring, class _tStream = std::basic_ostringstream<
 	typename _tString::value_type, typename _tString::traits_type,
 	typename _tString::allocator_type>, typename _type>
-YB_ATTR_nodiscard yimpl(enable_if_t)<is_class<_type>::value,
+YB_ATTR_nodiscard yimpl(enable_if_t)<is_class<_type>{},
 	_t<details::stream_str_det<_tStream, _tString>>>
 to_wstring(const _type& x, typename _tString::allocator_type a)
 {
 	return ystdex::to_string<wstring>(x, a);
 }
-//@}
+//!@}
 
 
 //! \since build 542
@@ -1984,14 +2018,14 @@ namespace details
 {
 
 //! \since build 833
-//@{
+//!@{
 template<typename _tString, typename _type, typename = void>
 struct ston_dispatcher;
 
 template<typename _tChar, typename _type, class _tTraits, class _tAlloc>
 struct ston_dispatcher<basic_string<_tChar, _tTraits, _tAlloc>, _type,
 	enable_if_t<not_<is_same<basic_string<_tChar, _tTraits, _tAlloc>,
-	std::basic_string<_tChar, _tTraits, _tAlloc>>>::value>>
+	std::basic_string<_tChar, _tTraits, _tAlloc>>>{}>>
 	: ston_dispatcher<std::basic_string<_tChar, _tTraits, _tAlloc>, _type>
 {};
 
@@ -2007,7 +2041,7 @@ struct ston_dispatcher<basic_string<_tChar, _tTraits, _tAlloc>, _type,
 			); \
 		} \
 	};
-//@}
+//!@}
 
 #define YB_Impl_String_ston_i(_tString, _type, _n) \
 	YB_Impl_String_ston_begin(_tString, _type, _n, size_t* idx = {}, \
@@ -2057,13 +2091,13 @@ ston(const _tString& str, _tParams&&... args)
 
 
 //! \since build 861
-//@{
+//!@{
 /*!
 \pre 间接断言：第一参数非空。
 \note 使用 value_type* 而不是 const_pointer 以避免 Clang++ 对 __nonnull__ 警告。
 \bug \c char 以外的模板参数非正确实现。
 */
-//@{
+//!@{
 /*!
 \brief 以 C 标准输出格式的输出字符串类型的对象。
 \throw std::runtime_error 格式化字符串输出失败。
@@ -2119,7 +2153,7 @@ sfmt(const typename string_traits<_tString>::value_type* fmt, ...)
 		throw;
 	}
 }
-//@}
+//!@}
 
 /*!
 \brief 显式实例化：以 C 标准输出格式的输出 string 对象。
@@ -2127,7 +2161,7 @@ sfmt(const typename string_traits<_tString>::value_type* fmt, ...)
 */
 template YB_ATTR_gnu_printf(1, 2) YB_NONNULL(1) string
 sfmt<string>(const char*, ...);
-//@}
+//!@}
 
 
 /*!

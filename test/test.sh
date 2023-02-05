@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2017, 2020-2021 FrankHB.
+# (C) 2014-2017, 2020-2021, 2023 FrankHB.
 # Script for testing.
 # Requires: G++/Clang++, Tools/Scripts, YBase source.
 
@@ -19,8 +19,11 @@ SHBuild_Debug=debug
 #	SHBuild_Pushd, SHBuild_S1_InitializePCH, CXXFLAGS, LDFLAGS, INCLUDES,
 #	SHBuild_Popd;
 
+# NOTE: Coordinated at build 966.
 LIBS="$YSLib_BaseDir/YBase/source/ystdex/cassert.cpp \
 $YSLib_BaseDir/YBase/source/ystdex/cstdio.cpp \
+$YSLib_BaseDir/YBase/source/ystdex/tree.cpp \
+$YSLib_BaseDir/YBase/source/ystdex/hash_table.cpp \
 $YSLib_BaseDir/YBase/source/ytest/test.cpp \
 "
 
