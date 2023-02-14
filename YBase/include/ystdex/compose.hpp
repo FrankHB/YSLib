@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012, 2014-2016, 2018, 2021-2022 FrankHB.
+	© 2012, 2014-2016, 2018, 2021-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file compose.hpp
 \ingroup YStandardEx
 \brief 函数复合。
-\version r5167
+\version r5198
 \author FrankHB <frankhb1989@gmail.com>
 \since build 939
 \par 创建时间:
 	2022-02-13 09:10:55 +0800
 \par 修改时间:
-	2022-02-14 22:41 +0800
+	2023-02-14 20:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,10 @@
 
 #include "functor.hpp" // for internal "functor.hpp", and_, addressof_op, less,
 //	mem_get;
+#include "hash.hpp" // for internal "hash.hpp", index_sequence,
+//	index_sequence_for, hash;
 #include "placement.hpp" // for is_bitwise_swappable;
 #include <tuple> // for std::tuple;
-#include "integer_sequence.hpp" // for index_sequence, index_sequence_for;
 
 namespace ystdex
 {
@@ -62,14 +63,14 @@ struct composed
 };
 
 //! \relates composed
-//@{
+//!@{
 /*!
 \brief 函数复合。
 \note 最后一个参数最先被调用，可以为多元函数；其它被复合的函数需要保证有一个参数。
 \return 复合的可调用对象。
 \since build 537
 */
-//@{
+//!@{
 template<typename _func, typename _func2>
 YB_ATTR_nodiscard YB_PURE yconstfn composed<_func, _func2>
 compose(_func f, _func2 g)
@@ -84,14 +85,14 @@ compose(_func f, _func2 g, _func3 h, _funcs... args)
 {
 	return ystdex::compose(ystdex::compose(f, g), h, args...);
 }
-//@}
+//!@}
 
 //! \since build 927
 template<typename _func, typename _func2>
 struct is_bitwise_swappable<composed<_func, _func2>>
 	: and_<is_bitwise_swappable<_func>, is_bitwise_swappable<_func2>>
 {};
-//@}
+//!@}
 
 
 /*!
@@ -116,14 +117,14 @@ struct composed_n
 };
 
 //! \relates composed_n
-//@{
+//!@{
 /*!
 \brief 单一分派的多元函数复合。
 \note 第一参数最后被调用，可以为多元函数；其它被复合的函数需要保证有一个参数。
 \return 单一分派的多元复合的可调用对象。
 \since build 735
 */
-//@{
+//!@{
 //! \since build 740
 template<typename _func, typename _func2>
 yconstfn composed_n<_func, _func2>
@@ -138,14 +139,14 @@ compose_n(_func f, _func2 g, _func3 h, _funcs... args)
 {
 	return ystdex::compose_n(ystdex::compose_n(f, g), h, args...);
 }
-//@}
+//!@}
 
 //! \since build 927
 template<typename _func, typename _func2>
 struct is_bitwise_swappable<composed_n<_func, _func2>>
 	: and_<is_bitwise_swappable<_func>, is_bitwise_swappable<_func2>>
 {};
-//@}
+//!@}
 
 
 /*!
@@ -180,7 +181,7 @@ private:
 };
 
 //! \relates generalized_composed
-//@{
+//!@{
 /*!
 \brief 多元函数复合。
 \return 以多元函数复合的可调用对象。
@@ -200,16 +201,16 @@ template<typename _func, typename... _funcs>
 struct is_bitwise_swappable<generalized_composed<_func, _funcs...>>
 	: and_<is_bitwise_swappable<_func>, is_bitwise_swappable<_funcs>...>
 {};
-//@}
+//!@}
 
 
 /*!
 \ingroup functors
 \since build 824
 */
-//@{
+//!@{
 //! \brief get 成员等于仿函数。
-//@{
+//!@{
 template<typename _type = void>
 struct get_equal_to
 	: composed_n<equal_to<_type*>, composed<addressof_op<_type>, mem_get<>>>
@@ -219,10 +220,10 @@ template<>
 struct get_equal_to<void>
 	: composed_n<equal_to<>, composed<addressof_op<>, mem_get<>>>
 {};
-//@}
+//!@}
 
 //! \brief get 成员小于仿函数。
-//@{
+//!@{
 template<typename _type = void>
 struct get_less
 	: composed_n<less<_type*>, composed<addressof_op<_type>, mem_get<>>>
@@ -232,8 +233,21 @@ template<>
 struct get_less<void>
 	: composed_n<less<>, composed<addressof_op<>, mem_get<>>>
 {};
-//@}
-//@}
+//!@}
+
+
+/*!
+\ingroup hashers
+\brief get 成员散列函数对象。
+\since build 967
+*/
+//!@{
+template<typename _type = void>
+struct get_hash
+	: composed_n<hash<_type*>, composed<addressof_op<_type>, mem_get<>>>
+{};
+//!@}
+//!@}
 
 } // namespace ystdex;
 

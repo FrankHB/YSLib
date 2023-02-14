@@ -11,13 +11,13 @@
 /*!	\file hash_table.h
 \ingroup YStandardEx
 \brief 作为无序容器实现的散列表。
-\version r3164
+\version r3779
 \author FrankHB <frankhb1989@gmail.com>
 \since build 966
 \par 创建时间:
 	2023-01-26 19:03:06 +0800
 \par 修改时间:
-	2023-02-06 02:45 +0800
+	2023-02-13 20:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,19 +43,19 @@
 #include "node_handle.hpp" // for "node_handle.hpp" (implying "range.hpp"),
 //	std::iterator_traits, std::input_iterator_tag, std::forward_iterator_tag,
 //	std::distance, std::pair, std::move, bool_, size_t, typed_storage,
-//	ptrdiff_t, forward_iteratable, true_, std::min, CHAR_BIT, std::max, cond_t,
-//	is_const, false_, detected_or_t, is_invocable, std::declval, is_empty,
-//	replace_storage_t, is_nothrow_copy_constructible, not_, and_,
+//	ptrdiff_t, forward_iteratable, true_, std::min, CHAR_BIT, std::max,
+//	false_, detected_or_t, is_invocable, is_empty, replace_storage_t,
+//	std::declval, is_nothrow_copy_constructible, not_, and_,
 //	is_nothrow_invocable, rebind_alloc_t, is_unqualified_object,
 //	is_allocator_for, is_nothrow_default_constructible, allocator_traits,
-//	node_handle, node_insert_return, conditional_t, std::pointer_traits,
-//	is_throwing_move_copyable, ystdex::alloc_on_copy,
-//	is_nothrow_move_assignable, is_lvalue_reference, std::addressof,
+//	node_handle, node_insert_return, cond_t, is_same, conditional_t,
+//	std::pointer_traits, is_throwing_move_copyable, ystdex::alloc_on_copy,
+//	is_nothrow_move_assignable, is_lvalue_reference, YAssert, std::addressof,
 //	ystdex::alloc_on_move, std::is_permutation, ystdex::to_address, enable_if_t,
-//	is_nothrow_swappable, ystdex::alloc_on_swap, is_same,
-//	is_nothrow_copy_assignable, YAssert, is_bitwise_swappable;
-#include "hash.hpp" // for "hash.hpp", std::hash, std::__is_fast_hash
-//	conditionally;
+//	is_nothrow_swappable, ystdex::alloc_on_swap,
+//	ystdex::expects_equal_allocators, is_nothrow_copy_assignable,
+//	is_bitwise_swappable;
+#include "hash.hpp" // for "hash.hpp", is_fast_hash, is_applicable_hash;
 #include "base.h" // for noncopyable;
 #include "functor.hpp" // for id, wrap_call_nothrow, modulus,
 //	enable_if_transparent_t;
@@ -73,18 +73,6 @@ namespace ystdex
 //!@{
 namespace details
 {
-
-// NOTE: Use the documented extension of libstdc++ if possible.
-// XXX: See https://gcc.gnu.org/git/?p=gcc.git;a=commit;h=4df047dd3494ad17122ea46134a951a319a81b27.
-#if defined(__GLIBCXX__) && __GLIBCXX__ > 20130205
-template<typename _fHash>
-using is_fast_hash = std::__is_fast_hash<_fHash>;
-#else
-// XXX: This is same to libstdc++ by default.
-template<typename _fHash>
-using is_fast_hash = not_<is_same<_fHash, std::hash<long double>>>;
-#endif
-
 
 template<typename _tIn>
 inline typename std::iterator_traits<_tIn>::difference_type
@@ -113,12 +101,6 @@ inline namespace hash_table
 
 template<typename, typename, class, typename, typename, typename, class, class>
 class table;
-
-template<typename, typename, typename, typename, typename, typename, class>
-class table_base;
-
-template<class>
-class table_alloc;
 
 
 //! \ingroup traits
@@ -153,24 +135,72 @@ struct hash_node_base
 };
 
 
-template<typename _type>
-using hash_node_value_base = typed_storage<_type>;
-
-
 template<bool>
 struct hash_node_code_cache
-{};
+{
+	//! \since build 967
+	//!@{
+	YB_ATTR_nodiscard YB_STATELESS friend bool
+	operator==(const hash_node_code_cache&, const hash_node_code_cache&)
+		ynothrow
+	{
+		return true;
+	}
+	YB_ATTR_nodiscard YB_STATELESS friend bool
+	operator==(const hash_node_code_cache&, size_t) ynothrow
+	{
+		return true;
+	}
+
+	void
+	assign(size_t) ynothrow
+	{}
+	//!@}
+};
 
 template<>
 struct hash_node_code_cache<true>
 {
 	size_t cached_hash_code;
+
+	//! \since build 967
+	//!@{
+	YB_ATTR_nodiscard YB_PURE friend bool
+	operator==(const hash_node_code_cache& x, const hash_node_code_cache& y)
+		ynothrow
+	{
+		return x.cached_hash_code == y.cached_hash_code;
+	}
+	YB_ATTR_nodiscard YB_PURE friend bool
+	operator==(const hash_node_code_cache& x, size_t c) ynothrow
+	{
+		return x.cached_hash_code == c;
+	}
+
+	void
+	assign(size_t c) ynothrow
+	{
+		cached_hash_code = c;
+	}
+	//!@}
 };
 
 template<typename _type, bool _bCached>
-struct hash_node_value
-	: hash_node_value_base<_type>, hash_node_code_cache<_bCached>
-{};
+struct hash_node_value : typed_storage<_type>, hash_node_code_cache<_bCached>
+{
+	//! \since build 967
+	YB_ATTR_nodiscard YB_PURE hash_node_code_cache<_bCached>&
+	get_cache() ynothrow
+	{
+		return *this;
+	}
+	//! \since build 967
+	YB_ATTR_nodiscard YB_PURE const hash_node_code_cache<_bCached>&
+	get_cache() const ynothrow
+	{
+		return *this;
+	}
+};
 
 
 template<typename _type, bool _bCached>
@@ -570,42 +600,84 @@ public:
 };
 
 
+template<typename _type, bool = is_empty<_type>{}>
+struct hash_code_storage
+{
+	replace_storage_t<_type> storage;
+
+	//! \since build 967
+	YB_ATTR_nodiscard YB_PURE yconstfn_relaxed _type*
+	get_ptr() ynothrow
+	{
+		return static_cast<_type*>(storage.access());
+	}
+	//! \since build 967
+	YB_ATTR_nodiscard YB_PURE yconstfn const _type*
+	get_ptr() const ynothrow
+	{
+		return static_cast<const _type*>(storage.access());
+	}
+};
+
+template<typename _type>
+struct hash_code_storage<_type, true>
+{
+	static_assert(is_empty<_type>(), "Type shall be empty.");
+
+	// NOTE: The result pointer values shall not be used to access lvalues they
+	//	refer to, so the strict aliasing rules are not violated.
+	//! \since build 967
+	YB_ATTR_nodiscard YB_PURE yconstfn_relaxed _type*
+	get_ptr() ynothrow
+	{
+		return reinterpret_cast<_type*>(this);
+	}
+	//! \since build 967
+	YB_ATTR_nodiscard YB_PURE yconstfn const _type*
+	get_ptr() const ynothrow
+	{
+		return reinterpret_cast<const _type*>(this);
+	}
+};
+
+
+//! \since build 967
+//!@{
 //! \brief 散列表局部迭代器基类。
-template<typename, typename, typename, typename, typename, bool>
+template<typename, typename, typename, typename, bool>
 struct table_local_iterator_base;
 
 
 //! \brief 散列计算结果的混入基类。
-template<typename _tKey, typename _type, typename _fKeyOfValue, typename _fHash,
-	typename _fRangeHash, bool _bCached>
+template<typename _type, typename _fKeyOfValue, typename _fHash,
+	typename _fRangeHash>
 class hash_code_base : private compressed_pair_element<_fHash, 1>
 {
-	friend struct table_local_iterator_base<_tKey, _type, _fKeyOfValue, _fHash,
+	friend struct table_local_iterator_base<_type, _fKeyOfValue, _fHash,
 		_fRangeHash, false>;
 
 public:
+	//! \since build 966
 	using hasher = _fHash;
 
 private:
-	using base = compressed_pair_element<_fHash, 1>;
+	using hasher_base = compressed_pair_element<_fHash, 1>;
 
 protected:
+	//! \since build 966
+	//!@{
 	using hash_code = size_t;
 
 	hash_code_base() = default;
 	hash_code_base(const _fHash& hf)
-		: base(hf)
+		: hasher_base(hf)
 	{}
-	// NOTE: By deliberately adding the explicitly defalted copy constructor,
-	//	the implicitly declared move constructor is suppressed. Like the
-	//	components implementation %rb_tree::tree in %Tree, this is consistent to
-	//	the current practice. See LWG 2227 for more details.
-	// XXX: The comparion object is always copied even during moving.
-	hash_code_base(const hash_code_base&) = default;
 
+	//! \since build 967
 	template<typename _tKeyOrTransKey>
 	YB_ATTR_nodiscard YB_PURE inline hash_code
-	get_hash_code(const _tKeyOrTransKey& k) const
+	get_hash_code(const _tKeyOrTransKey& k) const ynoexcept_spec(
+		std::declval<const _fHash&>()(std::declval<const _tKeyOrTransKey&>()))
 	{
 		static_assert(is_invocable<const _fHash&, const _tKeyOrTransKey&>(),
 			"Hash function shall be invocable with an argument of key type.");
@@ -618,15 +690,22 @@ protected:
 	{
 		return nd.cached_hash_code;
 	}
-	template<typename _fHash2>
+	//! \since build 967
+	template<typename _fHash2, bool _bCached>
 	YB_ATTR_nodiscard YB_PURE inline hash_code
 	get_hash_code(const _fHash2&, const hash_node_value<_type, _bCached>& nd)
-		const
+		// XXX: To avoid relying on CWG 1207, do not use 'this'.
+		const ynoexcept_spec(std::declval<hash_code_base&>().get_hash_code(
+		_fKeyOfValue()(nd.access())))
 	{
 		return get_hash_code(_fKeyOfValue()(nd.access()));
 	}
+	//! \since build 967
 	YB_ATTR_nodiscard YB_PURE hash_code
 	get_hash_code(const hash_node_value<_type, false>& nd) const
+		// XXX: Ditto.
+		ynoexcept_spec(std::declval<hash_code_base&>().get_hash_code(
+		_fKeyOfValue()(nd.access())))
 	{
 		return get_hash_code(_fKeyOfValue()(nd.access()));
 	}
@@ -639,48 +718,25 @@ protected:
 	YB_ATTR_nodiscard YB_PURE size_t
 	get_bucket_index(hash_code c, size_t n) const ynothrow
 	{
+		ynoexcept_assert("Invalid range hash function found.",
+			_fRangeHash()(c, n));
+
 		return _fRangeHash()(c, n);
 	}
-	YB_ATTR_nodiscard YB_PURE size_t
-	get_bucket_index(const hash_node_value<_type, false>& nd, size_t n) const
-		ynoexcept(noexcept(std::declval<const _fHash&>()
-		(std::declval<const _tKey&>()))
-		&& noexcept(std::declval<const _fRangeHash&>()(hash_code(), size_t())))
+	//! \since build 967
+	template<bool _bCached>
+	YB_ATTR_nodiscard YB_PURE inline size_t
+	get_bucket_index(const hash_node_value<_type, _bCached>& nd, size_t n) const
+		// XXX: Ditto.
+		ynoexcept_spec(std::declval<hash_code_base&>().get_hash_code(nd))
 	{
-		return _fRangeHash()(get_hash_code(_fKeyOfValue()(nd.access())), n);
-	}
-	YB_ATTR_nodiscard YB_PURE size_t
-	get_bucket_index(const hash_node_value<_type, true>& nd, size_t n) const
-		ynoexcept(
-		noexcept(std::declval<const _fRangeHash&>()(hash_code(), size_t())))
-	{
-		return _fRangeHash()(nd.cached_hash_code, n);
-	}
-
-	void
-	copy_code(hash_node_code_cache<false>&,
-		const hash_node_code_cache<false>&) const ynothrow
-	{}
-	void
-	copy_code(hash_node_code_cache<true>& to,
-		const hash_node_code_cache<true>& from) const ynothrow
-	{
-		to.cached_hash_code = from.cached_hash_code;
-	}
-
-	void
-	store_code(hash_node_code_cache<false>&, hash_code) const ynothrow
-	{}
-	void
-	store_code(hash_node_code_cache<true>& nd, hash_code c) const ynothrow
-	{
-		nd.cached_hash_code = c;
+		return get_bucket_index(get_hash_code(nd), n);
 	}
 
 	YB_ATTR_nodiscard YB_PURE const _fHash&
 	get_hash_function() const ynothrow
 	{
-		return base::get();
+		return hasher_base::get();
 	}
 
 public:
@@ -693,28 +749,121 @@ public:
 	friend void
 	swap(hash_code_base& x, hash_code_base& y) ynothrow
 	{
-		std::swap(x.base::get(), y.base::get());
+		std::swap(x.hasher_base::get(), y.hasher_base::get());
 	}
+	//!@}
+};
+
+
+//! \brief 不缓存散列结果的特化散列表局部迭代器基类。
+template<typename _type, typename _fKeyOfValue, typename _fHash,
+	typename _fRangeHash>
+class table_local_iterator_base<_type, _fKeyOfValue, _fHash, _fRangeHash,
+	false> : public hash_code_storage<hash_code_base<_type, _fKeyOfValue,
+	_fHash, _fRangeHash>>, public table_iterator_base<_type, false>
+{
+protected:
+	//! \since build 966
+	//!@{
+	using hash_code_mixin
+		= hash_code_base<_type, _fKeyOfValue, _fHash, _fRangeHash>;
+	using node_iter_base = table_iterator_base<_type, false>;
+
+	size_t bucket_id;
+	size_t n_buckets = size_t(-1);
+
+	table_local_iterator_base() ynothrow = default;
+	table_local_iterator_base(const hash_code_mixin& base, hash_node<_type,
+		false>* p, size_t bkt, size_t n) ynoexcept_spec(init(base))
+		: node_iter_base(p),
+		bucket_id(bkt), n_buckets(n)
+	{
+		init(base);
+	}
+	table_local_iterator_base(const table_local_iterator_base& i)
+		 ynoexcept_spec(*i.get_ptr())
+		: node_iter_base(i.p_node), bucket_id(i.bucket_id),
+		n_buckets(i.n_buckets)
+	{
+		if(n_buckets != size_t(-1))
+			init(*i.get_ptr());
+	}
+	~table_local_iterator_base()
+	{
+		if(n_buckets != size_t(-1))
+			destroy();
+	}
+
+	table_local_iterator_base&
+	operator=(const table_local_iterator_base& i)
+	{
+		if(n_buckets != -1)
+			destroy();
+		yunseq(this->p_node = i.p_node, bucket_id = i.bucket_id,
+			n_buckets = i.n_buckets);
+		if(n_buckets != -1)
+			init(*i.get_ptr());
+		return *this;
+	}
+
+	/*!
+	\brief 自增：自增基类迭代器，并判断是否到达局部范围的结束位置。
+	\note 调用散列表中的散列函数重新计算散列值判断位置。
+	*/
+	void
+	increment()
+	{
+		node_iter_base::increment();
+		if(this->p_node)
+		{
+			if(this->get_ptr()->get_bucket_index(*this->p_node, n_buckets)
+				!= bucket_id)
+				this->p_node = {};
+		}
+	}
+
+	void
+	init(const hash_code_mixin& base)
+		ynoexcept(is_nothrow_copy_constructible<hash_code_mixin>())
+	{
+		::new(this->get_ptr()) hash_code_mixin(base);
+	}
+
+	void
+	destroy() ynothrow
+	{
+		this->get_ptr()->~hash_code_mixin();
+	}
+
+public:
+	YB_ATTR_nodiscard YB_PURE size_t
+	get_bucket() const ynothrow
+	{
+		return bucket_id;
+	}
+	//!@}
 };
 
 
 //! \brief 缓存散列结果的特化散列表局部迭代器基类。
-template<typename _tKey, typename _type, typename _fKeyOfValue, typename _fHash,
+template<typename _type, typename _fKeyOfValue, typename _fHash,
 	typename _fRangeHash>
-class table_local_iterator_base<_tKey, _type, _fKeyOfValue, _fHash, _fRangeHash,
-	true> : public table_iterator_base<_type, true>
+class table_local_iterator_base<_type, _fKeyOfValue, _fHash, _fRangeHash, true>
+	: public table_iterator_base<_type, true>
 {
 protected:
+	//! \since build 966
+	//!@{
 	using base_node_iter = table_iterator_base<_type, true>;
-	using hash_code_mixin = hash_code_base<_tKey, _type, _fKeyOfValue,
-		_fHash, _fRangeHash, true>;
+	using hash_code_mixin
+		= hash_code_base<_type, _fKeyOfValue, _fHash, _fRangeHash>;
 
 	size_t bucket_id;
 	size_t n_buckets;
 
 	table_local_iterator_base() ynothrow = default;
-	table_local_iterator_base(const hash_code_mixin&, hash_node<_type, true>*
-		p, size_t bkt, size_t n) ynothrow
+	table_local_iterator_base(const hash_code_mixin&, hash_node<_type, true>* p,
+		size_t bkt, size_t n) ynothrow
 		: base_node_iter(p),
 		bucket_id(bkt), n_buckets(n)
 	{}
@@ -722,6 +871,7 @@ protected:
 	/*!
 	\brief 自增：自增基类迭代器，并判断是否到达局部范围的结束位置。
 	\note 以缓存的散列值为参数调用 _fRangeHash 默认初始化对象判断位置。
+	\sa hash_node_code_cache
 	*/
 	void
 	increment()
@@ -741,146 +891,21 @@ public:
 	{
 		return bucket_id;
 	}
+	//!@}
 };
 
 
-template<typename _type, bool = is_empty<_type>{}>
-struct hash_code_storage
-{
-	replace_storage_t<_type> storage;
-
-	YB_ATTR_nodiscard YB_PURE yconstfn_relaxed _type*
-	get_table_ptr() ynothrow
-	{
-		return static_cast<_type*>(storage.access());
-	}
-	YB_ATTR_nodiscard YB_PURE yconstfn const _type*
-	get_table_ptr() const ynothrow
-	{
-		return static_cast<const _type*>(storage.access());
-	}
-};
-
-template<typename _type>
-struct hash_code_storage<_type, true>
-{
-	static_assert(is_empty<_type>(), "Type shall be empty.");
-
-	YB_ATTR_nodiscard YB_PURE yconstfn_relaxed _type*
-	get_table_ptr() ynothrow
-	{
-		return reinterpret_cast<_type*>(this);
-	}
-	YB_ATTR_nodiscard YB_PURE yconstfn const _type*
-	get_table_ptr() const ynothrow
-	{
-		return reinterpret_cast<const _type*>(this);
-	}
-};
-
-
-template<typename _tKey, typename _type, typename _fKeyOfValue,
-	typename _fHash, typename _fRangeHash>
-using hash_code_for_local_iter = hash_code_storage<hash_code_base<_tKey,
-	_type, _fKeyOfValue, _fHash, _fRangeHash, false>>;
-
-
-//! \brief 不缓存散列结果的特化散列表局部迭代器基类。
-template<typename _tKey, typename _type, typename _fKeyOfValue,
-	typename _fHash, typename _fRangeHash>
-class table_local_iterator_base<_tKey, _type, _fKeyOfValue, _fHash, _fRangeHash,
-	false> : public hash_code_for_local_iter<_tKey, _type, _fKeyOfValue, _fHash,
-	_fRangeHash>, public table_iterator_base<_type, false>
-{
-protected:
-	using hash_code_mixin = hash_code_base<_tKey, _type, _fKeyOfValue, _fHash,
-		_fRangeHash, false>;
-	using node_iter_base = table_iterator_base<_type, false>;
-
-	size_t bucket_id;
-	size_t n_buckets = size_t(-1);
-
-	table_local_iterator_base() ynothrow = default;
-	table_local_iterator_base(const hash_code_mixin& base, hash_node<_type,
-		false>* p, size_t bkt, size_t n) ynoexcept_spec(init(base))
-		: node_iter_base(p),
-		bucket_id(bkt), n_buckets(n)
-	{
-		init(base);
-	}
-	table_local_iterator_base(const table_local_iterator_base& i)
-		 ynoexcept_spec(*i.get_table_ptr())
-		: node_iter_base(i.p_node), bucket_id(i.bucket_id),
-		n_buckets(i.n_buckets)
-	{
-		if(n_buckets != size_t(-1))
-			init(*i.get_table_ptr());
-	}
-	~table_local_iterator_base()
-	{
-		if(n_buckets != size_t(-1))
-			destroy();
-	}
-
-	table_local_iterator_base&
-	operator=(const table_local_iterator_base& i)
-	{
-		if(n_buckets != -1)
-			destroy();
-		yunseq(this->p_node = i.p_node, bucket_id = i.bucket_id,
-			n_buckets = i.n_buckets);
-		if(n_buckets != -1)
-			init(*i.get_table_ptr());
-		return *this;
-	}
-
-	/*!
-	\brief 自增：自增基类迭代器，并判断是否到达局部范围的结束位置。
-	\note 调用散列表中的散列函数重新计算散列值判断位置。
-	*/
-	void
-	increment()
-	{
-		node_iter_base::increment();
-		if(this->p_node)
-		{
-			if(this->get_table_ptr()->get_bucket_index(*this->p_node, n_buckets)
-				!= bucket_id)
-				this->p_node = {};
-		}
-	}
-
-	void
-	init(const hash_code_mixin& base)
-		ynoexcept(is_nothrow_copy_constructible<hash_code_mixin>())
-	{
-		::new(this->get_table_ptr()) hash_code_mixin(base);
-	}
-
-	void
-	destroy() ynothrow
-	{
-		this->get_table_ptr()->~hash_code_mixin();
-	}
-
-public:
-	YB_ATTR_nodiscard YB_PURE size_t
-	get_bucket() const ynothrow
-	{
-		return bucket_id;
-	}
-};
-
-
-template<typename _tKey, typename _type, typename _fKeyOfValue,
+template<typename _type, typename _fKeyOfValue,
 	typename _fHash, typename _fRangeHash, bool _bCached>
-class table_local_iterator : public table_local_iterator_base<_tKey, _type,
+class table_local_iterator : public table_local_iterator_base<_type,
 	_fKeyOfValue, _fHash, _fRangeHash, _bCached>,
-	public forward_iteratable<table_local_iterator<_tKey, _type, _fKeyOfValue,
-	_fHash, _fRangeHash, _bCached>, _type&>
+	public forward_iteratable<table_local_iterator<_type, _fKeyOfValue, _fHash,
+	_fRangeHash, _bCached>, _type&>
 {
 private:
-	using base_type = table_local_iterator_base<_tKey, _type, _fKeyOfValue,
+	//! \since build 966
+	//!@{
+	using base_type = table_local_iterator_base<_type, _fKeyOfValue,
 		_fHash, _fRangeHash, _bCached>;
 	using hash_code_base = typename base_type::hash_code_base;
 
@@ -900,8 +925,9 @@ public:
 		return this->p_node->access();
 	}
 
+	//! \since build 967
 	table_local_iterator&
-	operator++() ynothrow
+	operator++() ynothrowv
 	{
 		this->increment();
 		return *this;
@@ -914,18 +940,21 @@ public:
 	{
 		return x.p_node == y.p_node;
 	}
+	//!@}
 };
 
 
-template<typename _tKey, typename _type, typename _fKeyOfValue, typename _fHash,
+template<typename _type, typename _fKeyOfValue, typename _fHash,
 	typename _fRangeHash, bool _bCached>
-class table_local_const_iterator : public table_local_iterator_base<_tKey,
-	_type, _fKeyOfValue, _fHash, _fRangeHash, _bCached>,
-	public forward_iteratable<table_local_const_iterator<_tKey, _type,
+class table_local_const_iterator : public table_local_iterator_base<_type,
+	_fKeyOfValue, _fHash, _fRangeHash, _bCached>,
+	public forward_iteratable<table_local_const_iterator<_type,
 	_fKeyOfValue, _fHash, _fRangeHash, _bCached>, const _type&>
 {
 private:
-	using base_type = table_local_iterator_base<_tKey, _type, _fKeyOfValue,
+	//! \since build 966
+	//!@{
+	using base_type = table_local_iterator_base<_type, _fKeyOfValue,
 		_fHash, _fRangeHash, _bCached>;
 	using hash_code_base = typename base_type::hash_code_base;
 
@@ -939,8 +968,8 @@ public:
 		hash_node<_type, _bCached>* p_nd, size_t bkt, size_t n) ynothrow
 		: base_type(base, p_nd, bkt, n)
 	{}
-	table_local_const_iterator(const table_local_iterator<_tKey,
-		_type, _fKeyOfValue, _fHash, _fRangeHash, _bCached>& x) ynothrow
+	table_local_const_iterator(const table_local_iterator<_type, _fKeyOfValue,
+		_fHash, _fRangeHash, _bCached>& x) ynothrow
 		: base_type(x)
 	{}
 
@@ -950,8 +979,9 @@ public:
 		return this->p_node->access();
 	}
 
+	//! \since build 967
 	table_local_const_iterator&
-	operator++() ynothrow
+	operator++() ynothrowv
 	{
 		this->increment();
 		return *this;
@@ -964,138 +994,9 @@ public:
 	{
 		return x.p_node == y.p_node;
 	}
+	//!@}
 };
-
-
-template<typename _tKey, typename _type, typename _fKeyOfValue,
-	typename _fPred, typename _fHash, typename _fRangeHash, class _tTraits>
-class table_base
-	: public hash_code_base<_tKey, _type, _fKeyOfValue, _fHash, _fRangeHash,
-	_tTraits::hash_cached::value>, private compressed_pair_element<_fPred, 0>
-{
-public:
-	using key_equal = _fPred;
-
-private:
-	using equal_base = compressed_pair_element<_fPred, 0>;
-	using hash_cached = typename _tTraits::hash_cached;
-
-protected:
-	using hash_code_mixin = hash_code_base<_tKey, _type, _fKeyOfValue,
-		_fHash, _fRangeHash, hash_cached{}>;
-	using hash_code = typename hash_code_mixin::hash_code;
-
-	table_base() = default;
-	table_base(const _fHash& hf, const _fPred& eql)
-		: hash_code_mixin(hf), equal_base(eql)
-	{}
-
-private:
-	YB_ATTR_nodiscard YB_STATELESS static bool
-	code_equals(hash_code, const hash_node_code_cache<false>&) ynothrow
-	{
-		return true;
-	}
-	YB_ATTR_nodiscard YB_PURE static bool
-	code_equals(hash_code c, const hash_node_code_cache<true>& nd) ynothrow
-	{
-		return c == nd.cached_hash_code;
-	}
-
-protected:
-	template<typename _tKeyOrTransKey>
-	YB_ATTR_nodiscard bool
-	code_key_equals(const _tKeyOrTransKey& k, hash_code c,
-		const hash_node_value<_type, hash_cached{}>& nd) const
-	{
-		return code_equals(c, nd) && key_equals(k, nd);
-	}
-
-	template<typename _tKeyOrTransKey>
-	YB_ATTR_nodiscard bool
-	key_equals(const _tKeyOrTransKey& k, const _type& v) const
-	{
-		static_assert(is_invocable<const _fPred&, const _tKeyOrTransKey&,
-			const _tKey&>(), "Key equality predicate shall be invocable with 2"
-			" arguments of key type.");
-
-		return equal_base::get()(k, _fKeyOfValue()(v));
-	}
-	template<typename _tKeyOrTransKey>
-	YB_ATTR_nodiscard bool
-	key_equals(const _tKeyOrTransKey& k,
-		const hash_node_value<_type, hash_cached{}>& nd) const
-	{
-		return key_equals(k, nd.access());
-	}
-
-protected:
-	YB_ATTR_nodiscard bool
-	node_equals(const hash_node_value<_type, hash_cached{}>& x,
-		const hash_node_value<_type, hash_cached{}>& y) const
-	{
-		return node_cache_equals(x, y)
-			&& key_equals(_fKeyOfValue()(x.access()), y);
-	}
-
-private:
-	YB_ATTR_nodiscard YB_STATELESS static bool
-	node_cache_equals(const hash_node_code_cache<false>&,
-		const hash_node_code_cache<false>&) ynothrow
-	{
-		return true;
-	}
-	YB_ATTR_nodiscard YB_PURE static bool
-	node_cache_equals(const hash_node_code_cache<true>& x,
-		const hash_node_code_cache<true>& y) ynothrow
-	{
-		return x.cached_hash_code == y.cached_hash_code;
-	}
-
-public:
-	YB_ATTR_nodiscard YB_PURE key_equal
-	key_eq() const
-	{
-		return equal_base::get();
-	}
-
-	friend void
-	swap(table_base& x, table_base& y) ynothrow
-	{
-		swap(static_cast<hash_code_mixin&>(x),
-			static_cast<hash_code_mixin&>(y));
-		std::swap(x.equal_base::get(), y.equal_base::get());
-	}
-};
-
-
-template<class _tNodeAlloc>
-class table_alloc : private compressed_pair_element<_tNodeAlloc, 0>
-{
-private:
-	using node_alloc_base = compressed_pair_element<_tNodeAlloc, 0>;
-
-protected:
-	table_alloc() = default;
-	table_alloc(const table_alloc&) = default;
-	table_alloc(table_alloc&&) = default;
-	template<class _tAlloc>
-	table_alloc(_tAlloc&& a)
-		: node_alloc_base(yforward(a))
-	{}
-
-public:
-	YB_ATTR_nodiscard YB_PURE _tNodeAlloc&
-	get_node_allocator() ynothrow
-	{
-		return node_alloc_base::get();
-	}
-	YB_ATTR_nodiscard YB_PURE const _tNodeAlloc&
-	get_node_allocator() const ynothrow
-	{
-		return node_alloc_base::get();
-	}
-};
+//!@}
 
 
 template<typename _tKey, typename _fHash>
@@ -1108,11 +1009,15 @@ using cache_default = not_<and_<is_fast_hash<_fHash>,
 //	there is the exception when the size can help efficient implementation.
 template<typename _tKey, typename _type, class _tAlloc, typename _fKeyOfValue,
 	typename _fPred, typename _fHash, class _tHashingTraits, class _tTraits>
-class table : public table_base<_tKey, _type, _fKeyOfValue, _fPred, _fHash,
-	typename _tHashingTraits::range_hash, _tTraits>, public rehash_base<_tKey,
-	_type, _tAlloc, _fKeyOfValue, _fPred, _fHash, _tHashingTraits, _tTraits>,
-	private table_alloc<rebind_alloc_t<_tAlloc,
-	hash_node<_type, _tTraits::hash_cached::value>>>
+class table : public hash_code_base<_type, _fKeyOfValue, _fHash,
+	typename _tHashingTraits::range_hash>,
+	// XXX: The comparison object type, the hash function type and the allocator
+	//	type can be the same, so the indices of %compressed_pair_element are all
+	//	different as the bases of the same class.
+	private compressed_pair_element<_fPred, 0>, public rehash_base<_tKey, _type,
+	_tAlloc, _fKeyOfValue, _fPred, _fHash, _tHashingTraits, _tTraits>,
+	private compressed_pair_element<rebind_alloc_t<_tAlloc,
+	hash_node<_type, _tTraits::hash_cached::value>>, 2>
 {
 public:
 	using key_type = _tKey;
@@ -1130,9 +1035,8 @@ public:
 	*/
 	static_assert(is_allocator_for<_tAlloc, value_type>(),
 		"Value type mismatched to the allocator found.");
-	// NOTE: The member %hasher comes from %hash_code_mixin implied by
-	//	%table_mixin.
-	// NOTE: The member %key_equal comes from %table_mixin.
+	// NOTE: The member %hasher comes from %hash_code_mixin.
+	using key_equal = _fPred;
 	using allocator_type = _tAlloc;
 
 private:
@@ -1146,16 +1050,20 @@ private:
 		" constructible");
 	ynoexcept_assert("Functor used to map hash code to bucket index shall be"
 		" noexcept.", std::declval<const range_hash&>()(size_t(), size_t()));
-	using table_mixin = table_base<_tKey, _type, _fKeyOfValue, _fPred, _fHash,
-		range_hash, _tTraits>;
-	using hash_code_mixin = typename table_mixin::hash_code_mixin;
+	//! \since build 967
+	static_assert(is_applicable_hash<_fHash, _tKey>(),
+		"Invalid hash function or key type found.");
 	using rehash_mixin = rehash_base<_tKey, _type, _tAlloc, _fKeyOfValue,
 		_fPred, _fHash, _tHashingTraits, _tTraits>;
 	using traits_type = _tTraits;
 	using hash_cached = typename traits_type::hash_cached;
+	using hash_code_mixin = hash_code_base<_type, _fKeyOfValue, _fHash,
+		typename _tHashingTraits::range_hash>;
+	//! \since build 967
+	using equal_base = compressed_pair_element<_fPred, 0>;
 	using value_node = hash_node<_type, hash_cached{}>;
 	using node_allocator = rebind_alloc_t<_tAlloc, value_node>;
-	using table_alloc_mixin = table_alloc<node_allocator>;
+	using node_alloc_base = compressed_pair_element<node_allocator, 2>;
 	using ator_traits = allocator_traits<allocator_type>;
 
 public:
@@ -1177,9 +1085,9 @@ public:
 	\note 对集合容器实现可调整 local_iterator 成员为 const_local_iterator 避免。
 	\see LWG 103 。
 	*/
-	using local_iterator = table_local_iterator<_tKey, _type, _fKeyOfValue,
+	using local_iterator = table_local_iterator<_type, _fKeyOfValue,
 		_fHash, range_hash, hash_cached{}>;
-	using const_local_iterator = table_local_const_iterator<_tKey, _type,
+	using const_local_iterator = table_local_const_iterator<_type,
 		_fKeyOfValue, _fHash, range_hash, hash_cached{}>;
 	using node_type = node_handle<_tKey, _type, node_allocator>;
 	//! \note 集合容器使用常量迭代器以避免修改键破坏类不变量。
@@ -1207,11 +1115,8 @@ private:
 	using bucket_ator_tratis = std::allocator_traits<buckets_allocator>;
 	using buckets_ptr = base_ptr*;
 	using rehash_type = typename _tHashingTraits::rehash_policy;
-	using rehash_state = typename rehash_type::state_t;
 	using unique_keys = typename traits_type::unique_keys;
-	using hash_code = typename table_mixin::hash_code;
-	using ireturn_type
-		= cond_t<unique_keys, std::pair<iterator, bool>, iterator>;
+	using hash_code = typename hash_code_mixin::hash_code;
 	struct alloc_node
 	{
 		table& table_ref;
@@ -1314,12 +1219,13 @@ public:
 	table() = default;
 	explicit
 	table(const allocator_type& a)
-		: table_alloc_mixin(node_allocator(a))
+		: hash_code_mixin(), equal_base(), node_alloc_base(node_allocator(a))
 	{}
 
 private:
 	table(const _fHash& hf, const _fPred& eql, const allocator_type& a)
-		: table_mixin(hf, eql), table_alloc_mixin(node_allocator(a))
+		: hash_code_mixin(hf), equal_base(eql),
+		node_alloc_base(node_allocator(a))
 	{}
 
 public:
@@ -1327,9 +1233,11 @@ public:
 	//	parameter). Constructor is not provided here for uniques because it can
 	//	be constructed like 'table(n, hf, eql, a)' followed by a call to
 	//	%insert_range_unique.
+	//! \since build 967
 	template<typename _tIn>
-	table(_tIn first, _tIn last, size_type n, const _fHash& hf,
-		const _fPred& eql, const allocator_type& a, false_)
+	table(false_, _tIn first, _tIn last, size_type n = 0,
+		const _fHash& hf = _fHash(), const _fPred& eql = _fPred(),
+		const _tAlloc& a = _tAlloc())
 		: table(hf, eql, a)
 	{
 		const auto count(details::distance_fw(first, last));
@@ -1339,37 +1247,34 @@ public:
 		if(n_bkt > n_buckets)
 			yunseq(p_buckets = allocate_buckets(n_bkt), n_buckets = n_bkt);
 
-		alloc_node node_gen(*this);
+		// XXX: Not using %insert_range_equal, since it is known no rehashing is
+		//	needed.
+		alloc_node an(*this);
 
 		for(; first != last; ++first)
-			insert_equal(*first, node_gen);
+			insert_equal(*first, an);
 	}
-
-public:
-	table(std::initializer_list<value_type> il, size_type n = 0,
-		const _fHash& hf = _fHash(), const _fPred& eql = _fPred(),
-		const _tAlloc& a = _tAlloc())
-		: table(il.begin(), il.end(), n, hf, eql, a, unique_keys())
-	{}
 	table(const table& x)
-		: table_mixin(x), rehash_mixin(x), table_alloc_mixin(
-		node_ator_traits::select_on_container_copy_construction(
+		: hash_code_mixin(x), equal_base(static_cast<const equal_base&>(x)),
+		rehash_mixin(x),
+		node_alloc_base(node_ator_traits::select_on_container_copy_construction(
 		x.get_node_allocator())),
 		p_buckets(), n_buckets(x.n_buckets), n_elements(x.n_elements),
 		current_rehash(x.current_rehash)
 	{
-		alloc_node alloc_node_gen(*this);
+		alloc_node an(*this);
 
-		assign(x, alloc_node_gen);
+		assign(x, an);
 	}
 	table(const table& x, const allocator_type& a)
-		: table_mixin(x), rehash_mixin(x), table_alloc_mixin(node_allocator(a)),
+		: hash_code_mixin(x), equal_base(static_cast<const equal_base&>(x)),
+		rehash_mixin(x), node_alloc_base(node_allocator(a)),
 		p_buckets(), n_buckets(x.n_buckets), n_elements(x.n_elements),
 		current_rehash(x.current_rehash)
 	{
-		alloc_node alloc_node_gen(*this);
+		alloc_node an(*this);
 
-		assign(x, alloc_node_gen);
+		assign(x, an);
 	}
 	explicit
 	table(size_type n, const _fHash& hf = _fHash(),
@@ -1379,10 +1284,7 @@ public:
 		const auto n_bkt(current_rehash.get_next_bucket(n));
 
 		if(n_bkt > n_buckets)
-		{
-			p_buckets = allocate_buckets(n_bkt);
-			n_buckets = n_bkt;
-		}
+			yunseq(p_buckets = allocate_buckets(n_bkt), n_buckets = n_bkt);
 	}
 	table(table&& x) ynoexcept(comp_nothrow_move<>())
 		: table(std::move(x), std::move(x.get_node_allocator()),
@@ -1395,8 +1297,12 @@ public:
 	{}
 
 private:
+	// NOTE: Like the components implementation %rb_tree::tree in %Tree, this is
+	//	consistent to the current practice. See LWG 2227 for more details.
+	// XXX: The comparion object is always copied even during moving.
 	table(table&& x, node_allocator&& a, false_)
-		: table_mixin(x), rehash_mixin(x), table_alloc_mixin(std::move(a)),
+		: hash_code_mixin(x), equal_base(static_cast<const equal_base&>(x)),
+		rehash_mixin(x), node_alloc_base(std::move(a)),
 		p_buckets(), n_buckets(x.n_buckets), n_elements(x.n_elements),
 		current_rehash(x.current_rehash)
 	{
@@ -1414,15 +1320,16 @@ private:
 		}
 		else
 		{
-			alloc_node alloc_gen(*this);
+			alloc_node an(*this);
 
-			assign(cond_t<is_throwing_move_copyable<value_type>,
-				const table&, table&&>(x), alloc_gen);
+			assign(cond_t<is_throwing_move_copyable<value_type>, const table&,
+				table&&>(x), an);
 			x.clear();
 		}
 	}
 	table(table&& x, node_allocator&& a, true_) ynoexcept(comp_nothrow_move<>())
-		: table_mixin(x), rehash_mixin(x), table_alloc_mixin(std::move(a)),
+		: hash_code_mixin(x), equal_base(static_cast<const equal_base&>(x)),
+		rehash_mixin(x), node_alloc_base(std::move(a)),
 		p_buckets(x.p_buckets), n_buckets(x.n_buckets), before_begin_node(
 		x.before_begin_node.p_next), n_elements(x.n_elements),
 		current_rehash(x.current_rehash)
@@ -1466,16 +1373,16 @@ public:
 					deallocate_buckets();
 					p_buckets = {};
 					ystdex::alloc_on_copy(this_alloc, that_alloc);
-					table_mixin::operator=(x);
-					yunseq(n_buckets = x.n_buckets,
-						n_elements = x.n_elements);
+					hash_code_mixin::operator=(x);
+					equal_base::operator=(x);
+					yunseq(n_buckets = x.n_buckets, n_elements = x.n_elements);
 					current_rehash = x.current_rehash;
 
-					alloc_node alloc_node_gen(*this);
+					alloc_node an(*this);
 
 					try
 					{
-						assign(x, alloc_node_gen);
+						assign(x, an);
 					}
 					catch(...)
 					{
@@ -1500,6 +1407,8 @@ public:
 		//	%rb_tree::tree for rationale. However, the concrete implementation
 		//	may differ in the state after move. See %move_assign_elements for
 		//	details.
+		// XXX: Different to %rb_tree::tree, the following call may imply the
+		//	moving of the comparison object and the hash function object.
 		move_assign_elements(x, equal_alloc_or_pocma());
 		return *this;
 	}
@@ -1527,7 +1436,7 @@ public:
 				auto p_nd(x.node_begin());
 				link_type p_this_nd(node_gen(fwd_val_t(p_nd->access())));
 
-				this->copy_code(*p_this_nd, *p_nd);
+				p_this_nd->get_cache() = p_nd->get_cache();
 				update_bbegin(p_this_nd);
 
 				auto p_prev(p_this_nd);
@@ -1536,7 +1445,7 @@ public:
 				{
 					p_this_nd = node_gen(fwd_val_t(p_nd->access()));
 					p_prev->p_next = p_this_nd;
-					this->copy_code(*p_this_nd, *p_nd);
+					p_this_nd->get_cache() = p_nd->get_cache();
 
 					const auto bkt(get_bucket_index(*p_this_nd));
 
@@ -1572,9 +1481,10 @@ public:
 			clear_bucket_vec();
 		try
 		{
-			table_mixin::operator=(yforward(x));
-			n_elements = x.n_elements;
-			current_rehash = x.current_rehash;
+			hash_code_mixin::operator=(x);
+			equal_base::operator=(x);
+			yunseq(n_elements = x.n_elements,
+				current_rehash = x.current_rehash);
 
 			reuse_or_alloc_node roan(*this);
 
@@ -1668,7 +1578,8 @@ private:
 		{
 			erase_node(node_begin());
 			deallocate_buckets();
-			table_mixin::operator=(std::move(x));
+			hash_code_mixin::operator=(std::move(x));
+			equal_base::operator=(std::move(x));
 			current_rehash = x.current_rehash;
 			if(!x.uses_single_bucket())
 				p_buckets = x.p_buckets;
@@ -1712,7 +1623,7 @@ private:
 			while(!this->key_eq()(_fKeyOfValue()(p_nd_y->access()),
 				_fKeyOfValue()(*i_x)))
 			{
-				auto y_ref_n = p_nd_y;
+				auto y_ref_n(p_nd_y);
 
 				for(p_nd_y = p_nd_y->next(); p_nd_y; p_nd_y = p_nd_y->next())
 					if(!y.node_equals(*y_ref_n, *p_nd_y))
@@ -1763,7 +1674,16 @@ public:
 		return allocator_type(get_node_allocator());
 	}
 
-	using table_alloc_mixin::get_node_allocator;
+	YB_ATTR_nodiscard YB_PURE node_allocator&
+	get_node_allocator() ynothrow
+	{
+		return node_alloc_base::get();
+	}
+	YB_ATTR_nodiscard YB_PURE const node_allocator&
+	get_node_allocator() const ynothrow
+	{
+		return node_alloc_base::get();
+	}
 
 protected:
 	// XXX: This implies %YB_ALLOCATOR and %YB_returns_nonnull for non-fancy
@@ -1981,14 +1901,15 @@ private:
 	}
 
 public:
+	//! \pre 间接断言：若参数非空，分配器和参数指定的容器分配器相等。
+	//!@{
 	insert_return_type
 	reinsert_node_unique(node_type&& nh)
 	{
 		if(nh.empty())
 			return end();
 
-		YAssert(get_allocator() == nh.get_allocator(),
-			"Mismatched allocators found.");
+		ystdex::expects_equal_allocators(*this, nh);
 
 		const auto& k(nh.p_key());
 		const auto c(this->get_hash_code(k));
@@ -2011,8 +1932,7 @@ public:
 		if(nh.empty())
 			return end();
 
-		YAssert(get_allocator() == nh.get_allocator(),
-			"Mismatched allocators found.");
+		ystdex::expects_equal_allocators(*this, nh);
 
 		auto ret(insert_equal_node(hint.p_node, this->get_hash_code(nh.p_key()),
 			nh.ptr));
@@ -2020,8 +1940,46 @@ public:
 		nh.ptr = {};
 		return ret;
 	}
+	//!@}
 
 private:
+	//! \since build 967
+	//!@{
+	template<typename _tKeyOrTransKey>
+	YB_ATTR_nodiscard bool
+	key_equals(const _tKeyOrTransKey& k, const _type& v) const
+	{
+		static_assert(is_invocable<const _fPred&, const _tKeyOrTransKey&,
+			const _tKey&>(), "Key equality predicate shall be invocable with 2"
+			" arguments of key type.");
+
+		return equal_base::get()(k, _fKeyOfValue()(v));
+	}
+	template<typename _tKeyOrTransKey>
+	YB_ATTR_nodiscard bool
+	key_equals(const _tKeyOrTransKey& k,
+		const hash_node_value<_type, hash_cached{}>& nd) const
+	{
+		return key_equals(k, nd.access());
+	}
+
+	template<typename _tKeyOrTransKey>
+	YB_ATTR_nodiscard bool
+	key_cache_equals(const _tKeyOrTransKey& k, hash_code c,
+		const hash_node_value<_type, hash_cached{}>& nd) const
+	{
+		return nd == c && key_equals(k, nd);
+	}
+
+	YB_ATTR_nodiscard bool
+	node_equals(const hash_node_value<_type, hash_cached{}>& x,
+		const hash_node_value<_type, hash_cached{}>& y) const
+	{
+		return x.get_cache() == y.get_cache()
+			&& key_equals(_fKeyOfValue()(x.access()), y);
+	}
+	//!@}
+
 	YB_ATTR_nodiscard YB_PURE base_ptr
 	find_before_node(const key_type& k)
 	{
@@ -2030,7 +1988,7 @@ private:
 		if(p_prev->p_next)
 			for(auto p = link_type(p_prev->p_next); p; p = p->next())
 			{
-				if(this->key_equals(k, *p))
+				if(key_equals(k, *p))
 					return p_prev;
 				p_prev = p;
 			}
@@ -2043,7 +2001,7 @@ private:
 		if(auto p_prev = p_buckets[bkt])
 			for(auto p = link_type(p_prev->p_next); ; p = p->next())
 			{
-				if(this->code_key_equals(k, c, *p))
+				if(key_cache_equals(k, c, *p))
 					return p_prev;
 				if(!p->p_next || get_bucket_index(*p->next()) != bkt)
 					break;
@@ -2114,11 +2072,11 @@ private:
 			if(hint != cend())
 			{
 				for(auto i = hint; i != cend(); ++i)
-					if(this->key_equals(k, *i.p_node))
+					if(key_equals(k, *i.p_node))
 						return {i, this->get_hash_code(*i.p_node)};
 			}
 			for(auto i = cbegin(); i != hint; ++i)
-				if(this->key_equals(k, *i.p_node))
+				if(key_equals(k, *i.p_node))
 					return {i, this->get_hash_code(*i.p_node)};
 		}
 		return {hint, this->get_hash_code(k)};
@@ -2136,7 +2094,7 @@ private:
 			rehash_with_state(pr.second, saved_state);
 			bkt = get_bucket_index(c);
 		}
-		this->store_code(*nd, c);
+		nd->get_cache().assign(c);
 		insert_bucket_begin(bkt, nd);
 		++n_elements;
 		return iterator(nd);
@@ -2150,17 +2108,17 @@ private:
 
 		if(pr.first)
 			rehash_with_state(pr.second, saved_state);
-		this->store_code(*nd, c);
+		nd->get_cache().assign(c);
 
 		const auto& k(_fKeyOfValue()(nd->access()));
 		const auto bkt(get_bucket_index(c));
 
-		if(const auto p_prev = YB_UNLIKELY(hint) && this->code_key_equals(k, c,
+		if(const auto p_prev = YB_UNLIKELY(hint) && key_cache_equals(k, c,
 			*hint) ? hint : find_before_node(bkt, k, c))
 		{
 			insert_bucket_hook(*p_prev, *nd);
 			if(YB_UNLIKELY(p_prev == hint))
-				if(nd->p_next && !this->code_key_equals(k, c, *nd->next()))
+				if(nd->p_next && !key_cache_equals(k, c, *nd->next()))
 				{
 					const auto next_bkt(get_bucket_index(*nd->next()));
 
@@ -2191,7 +2149,7 @@ public:
 
 		if(in_small_size_threshold())
 			for(auto i = begin(); i != end(); ++i)
-				if(this->key_equals(k, *i.p_node))
+				if(key_equals(k, *i.p_node))
 					return {i, {}};
 
 		const auto c(this->get_hash_code(k));
@@ -2302,7 +2260,6 @@ public:
 		for(; first != last; ++first)
 			emplace_hint_equal(end(), *first);
 	}
-	// XXX: Ditto.
 	template<typename _tIn, class _tNodeGen>
 	void
 	insert_range_equal(_tIn first, _tIn last, const _tNodeGen& node_gen)
@@ -2311,13 +2268,13 @@ public:
 
 		if(n != 0)
 		{
-			const rehash_state& saved_state(current_rehash.get_state());
-			const auto pr(current_rehash.need_rehash(n_buckets,
-				n_elements, n));
+			const auto& saved_state(current_rehash.get_state());
+			const auto pr(current_rehash.need_rehash(n_buckets, n_elements, n));
 
 			if(pr.first)
 				rehash_with_state(pr.second, saved_state);
 			for(; first != last; ++first)
+				// XXX: This implies 'cend()' as the hint.
 				insert_equal(*first, node_gen);
 		}
 	}
@@ -2332,7 +2289,7 @@ public:
 		if(in_small_size_threshold())
 		{
 			for(auto i = begin(); i != end(); ++i)
-				if(this->key_equals(k, *i.p_node))
+				if(key_equals(k, *i.p_node))
 					return {i, {}};
 		}
 
@@ -2487,7 +2444,7 @@ private:
 		// XXX: LWG 526.
 		auto p_last_nd(p_nd->next());
 
-		while(p_last_nd && this->node_equals(*p_nd, *p_last_nd))
+		while(p_last_nd && node_equals(*p_nd, *p_last_nd))
 			p_last_nd = p_last_nd->next();
 
 		const auto i_last_bkt(p_last_nd ? get_bucket_index(*p_last_nd) : bkt);
@@ -2576,7 +2533,9 @@ public:
 	swap(table& x, table& y) ynoexcept(
 		and_<is_nothrow_swappable<_fHash>, is_nothrow_swappable<_fPred>>())
 	{
-		swap(static_cast<table_mixin&>(x), static_cast<table_mixin&>(y));
+		swap(static_cast<hash_code_mixin&>(x),
+			static_cast<hash_code_mixin&>(y));
+		std::swap(x.equal_base::get(), y.equal_base::get());
 		ystdex::alloc_on_swap(x.get_node_allocator(), y.get_node_allocator());
 		std::swap(x.current_rehash, y.current_rehash);
 		if(x.uses_single_bucket())
@@ -2609,6 +2568,8 @@ public:
 		yunseq(n_elements = 0, before_begin_node.p_next = {});
 	}
 
+	//! \pre 间接断言：分配器和参数指定的容器分配器相等。
+	//!@{
 	//! \brief 从兼容容器合并唯一的键。
 	template<typename _tHashTableCompat>
 	void
@@ -2617,8 +2578,7 @@ public:
 		static_assert(is_same<typename _tHashTableCompat::value_node,
 			value_node>(), "Node types are compatible");
 
-		YAssert(get_allocator() == src.get_allocator(),
-			"Mismatched allocators found.");
+		ystdex::expects_equal_allocators(*this, src);
 
 		auto n(src.size());
 
@@ -2650,8 +2610,7 @@ public:
 		static_assert(is_same<typename _tHashTableCompat::node_type,
 			node_type>(), "Node types are compatible.");
 
-		YAssert(get_allocator() == src.get_allocator(),
-			"Mismatched allocators found.");
+		ystdex::expects_equal_allocators(*this, src);
 
 		link_type hint = {};
 
@@ -2666,11 +2625,15 @@ public:
 			nh.ptr = {};
 		}
 	}
+	//!@}
 
-	// NOTE: The member %hash_function comes from %hash_code_mixin implied by
-	//	%table_mixin.
+	// NOTE: The member %hash_function comes from %hash_code_mixin.
 
-	// NOTE: The member %key_eq comes from %table_mixin.
+	YB_ATTR_nodiscard YB_PURE key_equal
+	key_eq() const
+	{
+		return equal_base::get();
+	}
 
 	YB_ATTR_nodiscard YB_PURE iterator
 	find(const key_type& k)
@@ -2678,7 +2641,7 @@ public:
 		if(in_small_size_threshold())
 		{
 			for(auto i = begin(); i != end(); ++i)
-				if(this->key_equals(k, *i.p_node))
+				if(key_equals(k, *i.p_node))
 					return i;
 			return end();
 		}
@@ -2693,7 +2656,7 @@ public:
 		if(in_small_size_threshold())
 		{
 			for(auto i = begin(); i != end(); ++i)
-				if(this->key_equals(k, *i.p_node))
+				if(key_equals(k, *i.p_node))
 					return i;
 			return end();
 		}
@@ -2716,7 +2679,7 @@ public:
 		size_type n(1);
 
 		for(auto ref = i++;
-			i.p_node && this->node_equals(*ref.p_node, *i.p_node); ++i)
+			i.p_node && node_equals(*ref.p_node, *i.p_node); ++i)
 			++n;
 		return n;
 	}
@@ -2781,7 +2744,7 @@ public:
 			iterator i(p_nd);
 			size_type n(1);
 
-			for(++i; i.p_node && this->code_key_equals(k, c, *i.p_node); ++i)
+			for(++i; i.p_node && key_cache_equals(k, c, *i.p_node); ++i)
 				++n;
 			return n;
 		}
@@ -2798,7 +2761,7 @@ public:
 			iterator i(p_nd);
 			const auto b(i++);
 
-			while(i.p_node && this->code_key_equals(k, c, *i.p_node))
+			while(i.p_node && key_cache_equals(k, c, *i.p_node))
 				++i;
 			return {b, i};
 		}
@@ -2814,7 +2777,7 @@ public:
 			const_iterator i(p_nd);
 			const auto b(i++);
 
-			while(i.p_node && this->code_key_equals(k, c, *i.p_node))
+			while(i.p_node && key_cache_equals(k, c, *i.p_node))
 				++i;
 			return {b, i};
 		}
@@ -3091,7 +3054,7 @@ private:
 	}
 
 	void
-	rehash_with_state(size_t n, const rehash_state& state)
+	rehash_with_state(size_t n, const typename rehash_type::state_t& state)
 	{
 		try
 		{
@@ -3138,26 +3101,29 @@ struct is_bitwise_swappable<details::table_const_iterator<_type, _bCached>>
 	: true_
 {};
 
+//! \since build 967
+//!@{
 //! \relates details::table_local_iterator_base
-template<typename _tKey, typename _type, typename _fKeyOfValue,
-	typename _fHash, typename _fRangeHash, bool _bCached>
-struct is_bitwise_swappable<details::table_local_iterator_base<_tKey, _type,
+template<typename _type, typename _fKeyOfValue, typename _fHash,
+	typename _fRangeHash, bool _bCached>
+struct is_bitwise_swappable<details::table_local_iterator_base<_type,
 	_fKeyOfValue, _fHash, _fRangeHash, _bCached>> : true_
 {};
 
 //! \relates details::table_local_iterator
-template<typename _tKey, typename _type, typename _fKeyOfValue, typename _fHash,
+template<typename _type, typename _fKeyOfValue, typename _fHash,
 	typename _fRangeHash, bool _bCached>
-struct is_bitwise_swappable<details::table_local_iterator<_tKey, _type,
+struct is_bitwise_swappable<details::table_local_iterator<_type,
 	_fKeyOfValue, _fHash, _fRangeHash, _bCached>> : true_
 {};
 
 //! \relates details::table_local_const_iterator
-template<typename _tKey, typename _type, typename _fKeyOfValue,
+template<typename _type, typename _fKeyOfValue,
 	typename _fHash, typename _fRangeHash, bool _bCached>
-struct is_bitwise_swappable<details::table_local_const_iterator<_tKey, _type,
+struct is_bitwise_swappable<details::table_local_const_iterator<_type,
 	_fKeyOfValue, _fHash, _fRangeHash, _bCached>> : true_
 {};
+//!@}
 
 } // namespace ystdex;
 

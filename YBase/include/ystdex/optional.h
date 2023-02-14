@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2022 FrankHB.
+	© 2015-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r1341
+\version r1424
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2022-02-15 06:41 +0800
+	2023-02-07 22:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 提供 ISO C++17 标准库头 <optional> 兼容的替代接口和实现。
 除了部分关系操作使用 operators 实现而不保留命名空间内的声明外，
 其它接口除命名空间成员扩展外，同 std::optional 。
+原始设计主要来自 Library fundamental TS ，参见 WG21 P0220R1 。
 注意因为一些兼容问题， std::experimental::optional 不被可选地使用，
 	即使在 placement.hpp 中仍然会被检查而使用其中的标签类型。
 和 std::experimental::optional 有以下不同：
@@ -47,18 +48,20 @@ WG21 N3765 ：支持不同的比较操作。
 #ifndef YB_INC_ystdex_optional_h_
 #define YB_INC_ystdex_optional_h_ 1
 
-#include "swap.hpp" // for conditional <optional>,
-//	__cpp_inheriting_constructors, tagged_value, ystdex::swap_dependent;
+#include "functor.hpp" // for conditional <optional>,
+//	__cpp_inheriting_constructors, enable_if_convertible_t, tagged_value,
+//	enable_if_constructible_t, enable_if_constructible_r_t,
+//	ystdex::swap_dependent, std::accumulate, default_last_value, std::hash;
 #if YB_Has_optional != 1
-#	include "operators.hpp" // for or_, is_trivially_destructible, is_cv,
-//	std::move, empty_base, is_nothrow_moveable, and_, nullptr_t, remove_cv_t,
-//	totally_ordered, not_, nand_, is_reference, is_same,
-//	is_nothrow_destructible, is_object, enable_if_t, is_constructible, decay_t,
-//	is_nothrow_swappable, ystdex::addressof, is_copyable;
+#	include "operators.hpp" // for or_, is_constructible,
+//	is_trivially_destructible, is_cv, std::move, empty_base,
+//	is_nothrow_moveable, and_, nullptr_t, remove_cv_t, totally_ordered, nand_,
+//	is_reference, is_same, is_nothrow_destructible, is_object, enable_if_t,
+//	not_, decay_t, is_nothrow_swappable, ystdex::addressof, is_copyable;
 #	include <initializer_list> // for std::initializer_list;
 #	include <stdexcept> // for std::logic_error;
 #endif
-#include "functor.hpp" // for std::accumulate, default_last_value, std::hash;
+#include "hash.hpp" // for is_fast_hash;
 
 namespace ystdex
 {
@@ -70,7 +73,7 @@ namespace ystdex
 \since build 831
 */
 template<typename _type>
-using optional_relop_t = enable_if_t<is_convertible<_type, bool>::value, bool>;
+using optional_relop_t = enable_if_convertible_t<_type, bool, bool>;
 
 #if YB_Has_optional != 1
 //! \since build 831
@@ -83,12 +86,12 @@ class optional;
 } // inline namespace 2017;
 
 //! \since build 591
-//@{
+//!@{
 namespace details
 {
 
 //! \since build 831
-//@{
+//!@{
 template<typename _type, typename _tOther>
 using converts_from_optional = or_<is_constructible<_type,
 	const optional<_tOther>&>, is_constructible<_type, optional<_tOther>&>,
@@ -102,9 +105,9 @@ using assigns_from_optional = or_<is_assignable<_type&, const
 	optional<_tOther>&>, is_assignable<_type&, optional<_tOther>&>,
 	is_assignable<_type&, const optional<_tOther>&&>,
 	is_assignable<_type&, optional<_tOther>&&>>;
-//@}
+//!@}
 
-template<typename _type, bool = is_trivially_destructible<_type>::value>
+template<typename _type, bool = is_trivially_destructible<_type>{}>
 class optional_base : public optional_base<_type, true>
 {
 public:
@@ -261,32 +264,32 @@ inline namespace cpp2017
 
 #if YB_Has_optional == 1
 //! \since build 831
-//@{
+//!@{
 using std::optional;
 using std::bad_optional_access;
 using std::nullopt_t;
 using std::nullopt;
 using std::make_optional;
-//@}
+//!@}
 #elif YB_Has_optional == 2
 //! \since build 831
-//@{
+//!@{
 using std::experimental::optional;
 using std::experimental::bad_optional_access;
 using std::experimental::nullopt_t;
 using std::experimental::nullopt;
 using std::experimental::make_optional;
-//@}
+//!@}
 #else
 //! \since build 590
-//@{
+//!@{
 //! \see WG21 N4606 20.6.4[optional.nullopt] 。
-//@{
+//!@{
 /*!
 \ingroup tags
 \brief 无值状态指示。
 */
-//@{
+//!@{
 #if YB_IMPL_MSCPP
 struct nullopt_t
 #else
@@ -307,7 +310,7 @@ yconstexpr_inline const nullopt_t nullopt{yimpl(nullptr)};
 #else
 } nullopt{yimpl(nullptr)};
 #endif
-//@}
+//!@}
 
 
 /*!
@@ -334,7 +337,7 @@ public:
 	YB_ATTR_returns_nonnull yimpl(YB_STATELESS) virtual const char*
 	what() const ynothrow override;
 };
-//@}
+//!@}
 
 
 /*!
@@ -376,11 +379,11 @@ public:
 	\since build 831
 	\see LWG 2756 。
 	*/
-	//@{
+	//!@{
 	template<typename _tOther = _type, yimpl(enable_if_t<and_<not_<is_same<
 		optional<_type>, decay_t<_tOther>>>, not_<is_same<in_place_t,
 		decay_t<_tOther>>>, is_constructible<_type, _tOther>,
-		is_convertible<_tOther&&, _type>>::value, bool> = true)>
+		is_convertible<_tOther&&, _type>>{}, bool> = true)>
 	yconstfn
 	optional(_tOther&& v)
 		: base(in_place, yforward(v))
@@ -388,7 +391,7 @@ public:
 	template<typename _tOther = _type, yimpl(enable_if_t<and_<not_<is_same<
 		optional<_type>, decay_t<_tOther>>>, not_<is_same<in_place_t,
 		decay_t<_tOther>>>, is_constructible<_type, _tOther>, not_<
-		is_convertible<_tOther&&, _type>>>::value, bool> = false)>
+		is_convertible<_tOther&&, _type>>>{}, bool> = false)>
 	explicit yconstfn
 	optional(_tOther&& v)
 		: base(in_place, yforward(v))
@@ -396,7 +399,7 @@ public:
 	template<typename _tOther, yimpl(enable_if_t<and_<not_<is_same<_type,
 		_tOther>>, is_constructible<_type, const _tOther&>, is_convertible<const
 		_tOther&, _type>, not_<
-		details::converts_from_optional<_type, _tOther>>>::value, bool> = true)>
+		details::converts_from_optional<_type, _tOther>>>{}, bool> = true)>
 	yconstfn_relaxed
 	optional(const optional<_tOther>& t)
 	{
@@ -408,7 +411,7 @@ public:
 	template<typename _tOther, yimpl(enable_if_t<and_<not_<is_same<_type,
 		_tOther>>, is_constructible<_type, const _tOther&>, not_<is_convertible<
 		const _tOther&, _type>>, not_<details::converts_from_optional<_type,
-		_tOther>>>::value, bool> = false)>
+		_tOther>>>{}, bool> = false)>
 	explicit yconstfn_relaxed
 	optional(const optional<_tOther>& t)
 	{
@@ -418,7 +421,7 @@ public:
 	}
 	template<typename _tOther, yimpl(enable_if_t<and_<not_<is_same<_type,
 		_tOther>>, is_constructible<_type, _tOther>, is_convertible<_tOther&&,
-		_type>, not_<details::converts_from_optional<_type, _tOther>>>::value,
+		_type>, not_<details::converts_from_optional<_type, _tOther>>>{},
 		bool> = true)>
 	yconstfn_relaxed
 	optional(optional<_tOther>&& t)
@@ -430,7 +433,7 @@ public:
 	template<typename _tOther, yimpl(enable_if_t<and_<not_<is_same<_type,
 		_tOther>>, is_constructible<_type, _tOther>, not_<is_convertible<
 		_tOther&&, _type>>, not_<details::converts_from_optional<_type,
-		_tOther>>>::value, bool> = false)>
+		_tOther>>>{}, bool> = false)>
 	explicit yconstfn_relaxed
 	optional(optional<_tOther>&& t)
 	{
@@ -438,16 +441,16 @@ public:
 		if(t)
 			emplace(std::move(*t));
 	}
-	//@}
-	template<typename... _tParams, yimpl(
-		typename = enable_if_t<is_constructible<_type, _tParams...>::value>)>
+	//!@}
+	template<typename... _tParams,
+		yimpl(typename = enable_if_constructible_t<_type, _tParams...>)>
 	explicit yconstfn
 	optional(in_place_t, _tParams&&... args)
 		: base(in_place, yforward(args)...)
 	{}
 	template<typename _tOther, typename... _tParams,
-		yimpl(typename = enable_if_t<is_constructible<_type,
-		std::initializer_list<_tOther>&, _tParams&&...>::value>)>
+		yimpl(typename = enable_if_constructible_t<_type,
+		std::initializer_list<_tOther>&, _tParams&&...>)>
 	explicit yconstfn
 	optional(in_place_t, std::initializer_list<_tOther> il, _tParams&&... args)
 		: base(in_place, il, yforward(args)...)
@@ -483,12 +486,11 @@ public:
 	\see LWG 2756 。
 	\since build 831
 	*/
-	//@{
+	//!@{
 	template<typename _tOther = _type>
-	enable_if_t<and_<not_<is_same<optional<_type>, decay_t<_tOther>>>,
-		is_constructible<_type, _tOther>, nand_<is_scalar<_type>,
-		is_same<_type, decay_t<_tOther>>>,
-		is_assignable<_type&, _tOther>>::value, optional&>
+	yimpl(enable_if_t)<and_<not_<is_same<optional<_type>, decay_t<_tOther>>>,
+		is_constructible<_type, _tOther>, nand_<is_scalar<_type>, is_same<_type,
+		decay_t<_tOther>>>, is_assignable<_type&, _tOther>>{}, optional&>
 	operator=(_tOther&& v)
 	{
 		if(has_value())
@@ -501,7 +503,7 @@ public:
 	yimpl(enable_if_t)<and_<not_<is_same<_type, _tOther>>,
 		is_constructible<_type, const _tOther&>, is_assignable<_type&, _tOther>,
 		not_<details::converts_from_optional<_type, _tOther>>,
-		not_<details::assigns_from_optional<_type, _tOther>>>::value, optional&>
+		not_<details::assigns_from_optional<_type, _tOther>>>{}, optional&>
 	operator=(const optional<_tOther>& u)
 	{
 		if(u)
@@ -516,10 +518,10 @@ public:
 		return *this;
 	}
 	template<typename _tOther>
-	enable_if_t<and_<not_<is_same<_type, _tOther>>,
+	yimpl(enable_if_t)<and_<not_<is_same<_type, _tOther>>,
 		is_constructible<_type, _tOther>, is_assignable<_type&, _tOther>,
 		not_<details::converts_from_optional< _type, _tOther>>,
-		not_<details::assigns_from_optional<_type, _tOther>>>::value, optional&>
+		not_<details::assigns_from_optional<_type, _tOther>>>{}, optional&>
 	operator=(optional<_tOther>&& u)
 	{
 		if(u)
@@ -533,7 +535,7 @@ public:
 			this->reset();
 		return *this;
 	}
-	//@}
+	//!@}
 
 	/*!
 	\since build 831
@@ -556,7 +558,7 @@ public:
 		this->construct(il, yforward(args)...);
 		return this->get();
 	}
-	//@}
+	//!@}
 
 private:
 	base&
@@ -593,7 +595,7 @@ public:
 	\warning ISO C++17 前不保证常量表达式要求。
 	\see LWG 2740 。
 	*/
-	//@{
+	//!@{
 	yconstfn_relaxed _type*
 	operator->()
 	{
@@ -604,7 +606,7 @@ public:
 	{
 		return ystdex::addressof(this->get());
 	}
-	//@}
+	//!@}
 
 	yconstfn_relaxed _type&
 	operator*() &
@@ -691,11 +693,11 @@ public:
 \relates optional
 \since build 831
 */
-//@{
+//!@{
 //! \brief 关系和比较操作。
-//@{
+//!@{
 //! \see ISO C++17 [optional.relops] 。
-//@{
+//!@{
 template<typename _type, typename _tOther>
 yconstfn auto
 operator==(const optional<_type>& x, const optional<_tOther>& y)
@@ -749,13 +751,13 @@ operator>=(const optional<_type>& x, const optional<_tOther>& y)
 {
 	return !y || (bool(x) && *x >= *y);
 }
-//@}
+//!@}
 
 /*!
 \note 未显式声明的部分由 \c operators 提供实现。
 \see ISO C++17 [optional.nullops] 。
 */
-//@{
+//!@{
 template<typename _type>
 yconstfn bool
 operator==(const optional<_type>& x, nullopt_t) ynothrow
@@ -775,10 +777,10 @@ operator<(nullopt_t, const optional<_type>& y) ynothrow
 {
 	return bool(y);
 }
-//@}
+//!@}
 
 //! \see ISO C++17 [optional.comp_with_t] 。
-//@{
+//!@{
 template<typename _type, typename _tOther>
 yconstfn auto
 operator==(const optional<_type>& x, const _tOther& y)
@@ -880,10 +882,10 @@ operator>=(const _tOther& x, const optional<_type>& y)
 {
 	return !y || x >= *y;
 }
-//@}
+//!@}
 
 //! \see WG21 N4606 20.6.9[optional.specalg] 。
-//@{
+//!@{
 template<typename _type> void
 swap(optional<_type>& x, optional<_type>& y) ynoexcept_spec(x.swap(y))
 {
@@ -896,7 +898,7 @@ swap(optional<_type>& x, optional<_type>& y) ynoexcept_spec(x.swap(y))
 \see WG21 P0032R3 。
 \since build 717
 */
-//@{
+//!@{
 template<typename _type, typename... _tParams>
 optional<_type>
 make_optional(_tParams&&... args)
@@ -909,15 +911,15 @@ make_optional(std::initializer_list<_tOther> il, _tParams&&... args)
 {
 	return optional<_type>(in_place, il, yforward(args)...);
 }
-//@}
-//@}
+//!@}
+//!@}
 #endif
 
 /*!
 \note YBase optional 扩展。
 \since build 655
 */
-//@{
+//!@{
 //! \brief 使用指定参数构造指定 optional 实例的值。
 template<typename _type, typename... _tParams>
 yconstfn optional<_type>
@@ -943,7 +945,7 @@ ref_opt() ynothrowv
 {
 	return ref_opt(make_optional_inplace<_type>());
 }
-//@}
+//!@}
 
 
 /*!
@@ -952,7 +954,7 @@ ref_opt() ynothrowv
 \note 语义同 Boost.Signal2 的 \c boost::optional_last_value 。
 \since build 675
 */
-//@{
+//!@{
 template<typename _type>
 struct optional_last_value
 {
@@ -970,10 +972,18 @@ struct optional_last_value
 template<>
 struct optional_last_value<void> : default_last_value<void>
 {};
-//@}
-//@}
+//!@}
+//!@}
 
 } // inline namespace cpp2017;
+
+/*!
+\relates optional
+\since build 967
+*/
+template<typename _type>
+struct is_fast_hash<std::hash<optional<_type>>> : is_fast_hash<std::hash<_type>>
+{};
 
 } // namespace ystdex;
 
@@ -982,19 +992,26 @@ namespace std
 {
 
 /*!
+\ingroup hashers
 \brief ystdex::optional 散列支持。
 \see WG21 N4606 20.6.10[optional.hash] 。
+\see WG21 P0488R0 FI 15 。
+\see WG21 P0513R0 。
 \since build 591
 */
 template<typename _type>
 struct hash<ystdex::optional<_type>>
 {
+	// XXX: WG21 P0513R0 is not directly applied here, so P0488R0 FI 15 is
+	//	addressed only when the underlying %ystdex::hash has finally supported
+	//	the conforming implementation and it largely depends on the conformance
+	//	of the primary template of %std::hash.
 	size_t
 	operator()(const ystdex::optional<_type>& k) const
-		yimpl(ynoexcept_spec(hash<_type>{}(*k)))
+		yimpl(ynoexcept_spec(ystdex::hash<_type>{}(*k)))
 	{
 		// NOTE: The unspecified value is randomly picked.
-		return k ? hash<_type>{}(*k) : yimpl(-4242);
+		return k ? ystdex::hash<_type>{}(*k) : yimpl(-4242);
 	}
 };
 

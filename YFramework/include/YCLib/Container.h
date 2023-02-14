@@ -11,13 +11,13 @@
 /*!	\file Container.h
 \ingroup YCLib
 \brief 容器、拟容器和适配器。
-\version r1241
+\version r1282
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2023-01-26 22:34 +0800
+	2023-02-13 03:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,10 +42,12 @@
 #include <forward_list>
 #include <ystdex/list.hpp> // for ystdex::list;
 #include <vector>
-#include <ystdex/map.hpp> // for ystdex::map;
-#include <set>
-#include <unordered_set>
-#include <ystdex/unordered_map.hpp> // for ystdex::unordered_map;
+#include <ystdex/map.hpp> // for ystdex::map, std::multimap;
+#include <ystdex/set.hpp> // for ystdex::set, std::multiset;
+#include <ystdex/unordered_map.hpp> // for ystdex::unordered_map,
+//	std::unordered_multimap;
+#include <ystdex/unordered_set.hpp> // for ystdex::unordered_set,
+//	std::unordered_multiset;
 #include <queue>
 #include <stack>
 #if !defined(NDEBUG) && __GLIBCXX__
@@ -61,7 +63,7 @@
 //	ystdex::make_obj_using_allocator;
 #include <iosfwd> // for std::basic_istringstream, std::basic_ostringstream,
 //	std::basic_stringstream;
-#include <ystdex/hash.hpp> // for std::hash, ystdex::hash_range;
+#include <ystdex/hash.hpp> // for ystdex::hash, ystdex::hash_range;
 
 namespace platform
 {
@@ -154,31 +156,31 @@ using multimap = stdd::multimap<_tKey, _tMapped, _fComp, _tAlloc>;
 
 template<typename _tKey, typename _fComp = ystdex::less<_tKey>,
 	class _tAlloc = default_allocator<_tKey>>
-using set = stdd::set<_tKey, _fComp, _tAlloc>;
+using set = ystdex::set<_tKey, _fComp, _tAlloc>;
 
 template<typename _tKey, typename _fComp = ystdex::less<_tKey>,
 	class _tAlloc = default_allocator<_tKey>>
 using multiset = stdd::multiset<_tKey, _fComp, _tAlloc>;
 
 
-template<typename _tKey, typename _tMapped, typename _fHash = std::hash<_tKey>,
-	typename _fPred = ystdex::equal_to<_tKey>, class _tAlloc
-	= default_allocator<std::pair<const _tKey, _tMapped>>>
+template<typename _tKey, typename _tMapped,
+	typename _fHash = ystdex::hash<_tKey>, typename _fPred = ystdex::equal_to<
+	_tKey>, class _tAlloc = default_allocator<std::pair<const _tKey, _tMapped>>>
 using unordered_map
 	= ystdex::unordered_map<_tKey, _tMapped, _fHash, _fPred, _tAlloc>;
 
-template<typename _tKey, typename _tMapped, typename _fHash = std::hash<_tKey>,
-	typename _fPred = ystdex::equal_to<_tKey>, class _tAlloc
-	= default_allocator<std::pair<const _tKey, _tMapped>>>
+template<typename _tKey, typename _tMapped,
+	typename _fHash = ystdex::hash<_tKey>, typename _fPred = ystdex::equal_to<
+	_tKey>, class _tAlloc = default_allocator<std::pair<const _tKey, _tMapped>>>
 using unordered_multimap
 	= stdd::unordered_multimap<_tKey, _tMapped, _fHash, _fPred, _tAlloc>;
 
-template<typename _tKey, typename _fHash = std::hash<_tKey>,
+template<typename _tKey, typename _fHash = ystdex::hash<_tKey>,
 	typename _fPred = ystdex::equal_to<_tKey>,
 	class _tAlloc = default_allocator<_tKey>>
-using unordered_set = stdd::unordered_set<_tKey, _fHash, _fPred, _tAlloc>;
+using unordered_set = ystdex::unordered_set<_tKey, _fHash, _fPred, _tAlloc>;
 
-template<typename _tKey, typename _fHash = std::hash<_tKey>, typename _fPred
+template<typename _tKey, typename _fHash = ystdex::hash<_tKey>, typename _fPred
 	= ystdex::equal_to<_tKey>, class _tAlloc = default_allocator<_tKey>>
 using unordered_multiset
 	= stdd::unordered_multiset<_tKey, _fHash, _fPred, _tAlloc>;
@@ -444,33 +446,6 @@ using namespace platform::containers;
 using namespace platform::strings;
 
 } // namespace platform_ex;
-
-// XXX: Currently %ystdex::polymorphic_allocator is always separatedly defined.
-#if !YB_Impl_String_has_P0254R2
-//! \since build 833
-namespace std
-{
-
-/*!
-\brief 使用多态分配器的 ystdex::basic_string 散列支持。
-\see LWG 2978 。
-\since build 941
-\todo 在合适的 YBase.YStandardEx 头文件中扩展并使用 WG21 P1406R1 的解决方案。
-*/
-template<typename _tChar, class _tTraits>
-struct hash<platform::strings::basic_string<_tChar, _tTraits>>
-{
-	size_t
-	operator()(const platform::strings::basic_string<_tChar, _tTraits>& k) const
-		ynothrow
-	{
-		// NOTE: This is similar to %ystdex::basic_string_view.
-		return ystdex::hash_range(k.data(), k.data() + k.size());
-	}
-};
-
-} // namespace std;
-#endif
 
 #endif
 

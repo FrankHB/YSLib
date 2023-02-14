@@ -1,5 +1,5 @@
 ﻿/*
-	© 2019-2022 FrankHB.
+	© 2019-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file list.hpp
 \ingroup YStandardEx
 \brief 列表容器。
-\version r1779
+\version r1881
 \author FrankHB <frankhb1989@gmail.com>
 \since build 864
 \par 创建时间:
 	2019-08-14 14:48:52 +0800
 \par 修改时间:
-	2022-10-08 20:00 +0800
+	2023-02-13 05:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,10 +41,11 @@ LWG 2839 ：允许自转移赋值。
 //	conditional_t, is_nothrow_default_constructible, yverify, false_, true_,
 //	ystdex::make_move_if_noexcept_iterator, std::advance,
 //	std::make_move_iterator, ystdex::alloc_on_move, allocator_guard,
-//	ystdex::alloc_on_swap, ystdex::swap_dependent, std::allocator, is_object,
-//	is_unqualified, and_, is_allocator_for, ystdex::reverse_iterator,
-//	is_nothrow_constructible, less, ref_eq, equal_to, is_bitwise_swappable,
-//	std::equal, std::lexicographical_compare;
+//	ystdex::alloc_on_swap, ystdex::expects_equal_allocator, ref_eq,
+//	is_bitwise_swappable, std::allocator, is_unqualified_object,
+//	is_allocator_for, ystdex::reverse_iterator, is_nothrow_constructible,
+//	std::equal, std::lexicographical_compare, ystdex::swap_dependent, equal_to,
+//	less;
 #include "compressed_pair.hpp" // for compressed_base;
 #include "base.h" // for noncopyable, nonmovable;
 #include <limits> // for std::numeric_limits;
@@ -271,7 +272,7 @@ private:
 
 protected:
 	// XXX: Using %compressed_base is efficient than %compressed_pair_element
-	//	directly, at list with x86_64-pc-linux G++ 11.1.
+	//	directly, at least with x86_64-pc-linux G++ 11.1.
 	struct components : compressed_base<node_allocator>
 	{
 		//! \since build 940
@@ -409,6 +410,10 @@ public:
 	list_rep&
 	operator=(list_rep&& x) ynoexcept(yimpl(equal_alloc_or_pocma()))
 	{
+		// NOTE: Self-move is respected, see the comment in move %operator= in
+		//	%rb_tree::tree for rationale. However, the concrete implementation
+		//	may differ in the state after move. See %move_assign_elements for
+		//	details.
 		move_assign_elements(x, equal_alloc_or_pocma());
 		return *this;
 	}
@@ -569,11 +574,14 @@ protected:
 
 	/*!
 	\brief 转移赋值可能不相等的不在转移赋值时传播的分配器的容器元素。
-	\note 从不相等分配器转移元素结果是可能是复制而不是转移对象。
+	\note 从不相等分配器转移元素可能复制而不是转移对象。
 	*/
 	void
 	move_assign_elements(list_rep& x, false_)
 	{
+		// NOTE: As libstdc++. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85828.
+		//	This just clears the elements for self-move. See also the comment in
+		//	move %operator=.
 		if(get_node_allocator() == x.get_node_allocator())
 			move_assign_elements(x, true_());
 		else
@@ -584,8 +592,7 @@ protected:
 	void
 	move_assign_elements(list_rep& x, true_) ynothrow
 	{
-		// XXX: The resolution of LWG 2839 requires self-move to be
-		//	well-defined.
+		// NOTE: Ditto.
 		clear();
 		move_nodes(std::move(x));
 		ystdex::alloc_on_move(get_node_allocator(), x.get_node_allocator());
@@ -802,26 +809,6 @@ public:
 
 private:
 	void
-	expects_same_allocators(list_rep& x) ynothrowv
-	{
-		// NOTE: [list.ops] specifies the behavior is undefined in %splice if
-		//	the allocators are not equal.
-		expects_same_allocators(x,
-			typename node_ator_traits::is_always_equal());
-	}
-	void
-	expects_same_allocators(list_rep& x, false_) ynothrowv
-	{
-		yunused(x);
-		// NOTE: [list.ops] specifies the behavior is undefined in %splice if
-		//	the allocators are not equal.
-		yverify(x.get_node_allocator() == get_node_allocator());
-	}
-	void
-	expects_same_allocators(list_rep&, true_) ynothrow
-	{}
-
-	void
 	transfer_range(iterator position, iterator first, iterator last)
 	{
 		position.p_node->transfer(first.p_node, last.p_node);
@@ -833,10 +820,17 @@ private:
 	}
 
 public:
+	/*!
+	\pre 间接断言：分配器和参数指定的容器分配器相等。
+	\see LWG 250 。
+	*/
+	//!@{
 	void
 	splice(iterator position, list_rep& x) ynothrowv
 	{
-		expects_same_allocators(x);
+		// NOTE: [list.ops] specifies the behavior is undefined in %splice if
+		//	the allocators are not equal.
+		ystdex::expects_equal_allocators(*this, x);
 		yverify(std::addressof(x) != this);
 		if(!x.empty())
 		{
@@ -848,7 +842,8 @@ public:
 	void
 	splice(iterator position, list_rep& x, const_iterator i) ynothrowv
 	{
-		expects_same_allocators(x);
+		// NOTE: Ditto.
+		ystdex::expects_equal_allocators(*this, x);
 		// XXX: Use %YB_VerifyIterator?
 		yverify(i != x.end());
 
@@ -868,7 +863,8 @@ public:
 	splice(iterator position, list_rep& x, const_iterator first,
 		const_iterator last) ynothrowv
 	{
-		expects_same_allocators(x);
+		// NOTE: Ditto.
+		ystdex::expects_equal_allocators(*this, x);
 		if(first != last)
 		{
 			// XXX: Use %YB_VerifyIterator?
@@ -884,6 +880,7 @@ public:
 				x.objects.header.node_count -= n;
 		}
 	}
+	//!@}
 
 private:
 	template<typename _func>
@@ -964,12 +961,16 @@ public:
 		return 0;
 	}
 
-	//! \see LWG 300 。
+	/*!
+	\pre 间接断言：分配器和参数指定的容器分配器相等。
+	\see LWG 300 。
+	*/
 	template<typename _fComp>
 	void
 	merge(list_rep& x, _fComp& comp)
 	{
-		expects_same_allocators(x);
+		// NOTE: Check the precondition of %merge specified by [list.ops].
+		ystdex::expects_equal_allocators(*this, x);
 		if(std::addressof(x) != this)
 		{
 			auto first1(begin()), first2(x.begin()), last1(end()),
@@ -1073,7 +1074,7 @@ public:
 } // namespace details;
 
 //! \since build 927
-//@{
+//!@{
 //! \relates details::list_iterator
 template<typename _type>
 struct is_bitwise_swappable<details::list_iterator<_type>> : true_
@@ -1083,7 +1084,7 @@ struct is_bitwise_swappable<details::list_iterator<_type>> : true_
 template<typename _type>
 struct is_bitwise_swappable<details::list_const_iterator<_type>> : true_
 {};
-//@}
+//!@}
 
 
 /*!
@@ -1107,12 +1108,15 @@ public:
 	using value_type = _type;
 	/*!
 	\see ISO C++17 [allocator.requirements] 。
-	\see ISO C++17 [container.requirements.general]/15 。
 	\see LWG 274 。
 	\see LWG 2447 。
 	*/
-	static_assert(and_<is_object<_type>, is_unqualified<_type>>(),
+	static_assert(is_unqualified_object<value_type>(),
 		"The value type for allocator shall be an unqualified object type.");
+	/*!
+	\see ISO C++17 [container.requirements.general]/15 。
+	\see WG21 P1463R1 。
+	*/
 	static_assert(is_allocator_for<_tAlloc, value_type>(),
 		"Value type mismatched to the allocator found.");
 	using allocator_type = _tAlloc;
@@ -1131,10 +1135,10 @@ public:
 	//! \note 实现定义：等价 std::ptrdiff_t 的类型。
 	using difference_type = typename rep_type::difference_type;
 	//! \note 实现定义：符合要求的未指定类型。
-	//@{
+	//!@{
 	using iterator = yimpl(typename rep_type::iterator);
 	using const_iterator = yimpl(typename rep_type::const_iterator);
-	//@}
+	//!@}
 	using reverse_iterator = ystdex::reverse_iterator<iterator>;
 	using const_reverse_iterator = ystdex::reverse_iterator<const_iterator>;
 
@@ -1142,6 +1146,7 @@ private:
 	rep_type rep;
 
 public:
+	//! \see LWG 2193 。
 	list() yimpl(= default);
 	explicit
 	list(const allocator_type& a) ynothrow
@@ -1188,6 +1193,7 @@ public:
 	}
 	// XXX: The exception specification is strengthened to 'noexcept'.
 	//	In ISO C++17 there is no explicit exception specification.
+	//! \see LWG 2839 。
 	list(list&&) yimpl(= default);
 	// XXX: The exception specification is strengthened to noexcept
 	//	specification having the operand equivalent to the conjunction of
@@ -1204,13 +1210,14 @@ public:
 
 	list&
 	operator=(const list&) yimpl(= default);
-	// XXX: The exception specification is changed. ISO C++17 only requires
-	//	conditional non-throwing exception specification when the allocator
-	//	meets %std::allocator_traits<allocator_type>::is_always_equal, with
-	//	regardless to %propagate_on_container_move_assignment of the node
-	//	allocator. Here the %allocator_traits of the internal node is also used
-	//	instead. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91541 and LWG
-	//	3267.
+	// XXX: The exception specification is changed. Since ISO C++17 (by adoption
+	//	of WG21 N4258) the standard only requires conditional non-throwing
+	//	exception specification when the allocator meets
+	//	%std::allocator_traits<allocator_type>::is_always_equal, with regardless
+	//	to %propagate_on_container_move_assignment of the node allocator. Here
+	//	the %allocator_traits of the internal node is also used instead. See
+	//	https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91541 and LWG 3267.
+	//! \see WG21 N4258 。
 	list&
 	operator=(list&&) yimpl(= default);
 	list&
@@ -1218,6 +1225,20 @@ public:
 	{
 		assign(il);
 		return *this;
+	}
+
+	YB_ATTR_nodiscard YB_PURE friend bool
+	operator==(const list& x, const list& y)
+	{
+		return x.size() == y.size()
+			&& std::equal(x.cbegin(), x.cend(), y.cbegin());
+	}
+
+	YB_ATTR_nodiscard YB_PURE friend bool
+	operator<(const list& x, const list& y)
+	{
+		return std::lexicographical_compare(x.cbegin(), x.cend(), y.cbegin(),
+			y.cend());
 	}
 
 private:
@@ -1531,17 +1552,18 @@ public:
 		return res;
 	}
 
-	// XXX: The exception specification is strengthened. ISO C++17 only requires
-	//	conditional non-throwing exception specification when the allocator
-	//	meets %std::allocator_traits<allocator_type>::is_always_equal.
+	// XXX: The exception specification is strengthened. Since ISO C++17 (by
+	//	adoption of WG21 N4258) the standard only requires conditional
+	//	non-throwing exception specification when the allocator meets
+	//	%std::allocator_traits<allocator_type>::is_always_equal.
+	//! \see WG21 N4258 。
 	void
 	swap(list& x) ynothrow
 	{
 		ystdex::swap_dependent(rep, x.rep);
 	}
 	friend void
-	swap(list<_type, _tAlloc>& x, list<_type, _tAlloc>& y)
-		ynoexcept_spec(x.swap(y))
+	swap(list& x, list& y) ynoexcept_spec(x.swap(y))
 	{
 		x.swap(y);
 	}
@@ -1552,6 +1574,8 @@ public:
 		rep.clear();
 	}
 
+	//! \pre 间接断言：分配器和参数指定的容器分配器相等。
+	//!@{
 	void
 	splice(const_iterator position, list& x) yimpl(ynothrowv)
 	{
@@ -1584,9 +1608,10 @@ public:
 	{
 		splice(position, x, first, last);
 	}
+	//!@}
 
 	//! \see LWG 526 。
-	//@{
+	//!@{
 	size_type
 	remove(const _type& value)
 	{
@@ -1611,8 +1636,10 @@ public:
 	{
 		return rep.unique(binary_pred);
 	}
-	//@}
+	//!@}
 
+	//! \pre 间接断言：分配器和参数指定的容器分配器相等。
+	//!@{
 	void
 	merge(list& x)
 	{
@@ -1636,6 +1663,7 @@ public:
 	{
 		merge(x, comp);
 	}
+	//!@}
 
 	void
 	sort()
@@ -1653,20 +1681,6 @@ public:
 	reverse() ynothrow
 	{
 		rep.reverse();
-	}
-
-	YB_ATTR_nodiscard YB_PURE friend bool
-	operator==(const list& x, const list& y)
-	{
-		return x.size() == y.size()
-			&& std::equal(x.cbegin(), x.cend(), y.cbegin());
-	}
-
-	YB_ATTR_nodiscard YB_PURE friend bool
-	operator<(const list& x, const list& y)
-	{
-		return std::lexicographical_compare(x.cbegin(), x.cend(), y.cbegin(),
-			y.cend());
 	}
 };
 

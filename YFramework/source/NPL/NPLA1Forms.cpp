@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r29352
+\version r29423
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2023-01-15 23:47 +0800
+	2023-02-07 21:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,7 +69,7 @@ namespace NPL
 {
 
 //! \since build 959
-//@{
+//!@{
 // NOTE: Optimization value for call optimization in %Forms::VauHandler, in
 //	range [0, 3].
 #ifndef NPL_Impl_NPLA1Forms_VauHandler_OptimizeLevel
@@ -79,9 +79,9 @@ namespace NPL
 #		define NPL_Impl_NPLA1Forms_VauHandler_OptimizeLevel 3
 #	endif
 #endif
-//@}
+//!@}
 //! \since build 945
-//@{
+//!@{
 #ifndef NDEBUG
 #	define NPL_Impl_NPLA1Forms_TraceVauCall true
 #else
@@ -104,7 +104,7 @@ namespace NPL
 #	define NPL_Impl_NPLA1Forms_LetParent_ExpandLevel \
 	NPL_Impl_NPLA1Forms_LetAsterisk_ExpandLevel
 #endif
-//@}
+//!@}
 
 namespace A1
 {
@@ -141,7 +141,7 @@ ExtractBool(const TermNode& term)
 }
 
 //! \since build 860
-//@{
+//!@{
 YB_ATTR_nodiscard TNIter
 CondClauseCheck(TermNode& clause)
 {
@@ -228,7 +228,7 @@ Or2(TermNode& term, ContextNode& ctx, TNIter i)
 	LiftOtherValue(term, tm);
 	return ReductionStatus::Retained;
 }
-//@}
+//!@}
 
 //! \since build 918
 template<ReductionStatus(&_rAndOr)(TermNode&, ContextNode&, TNIter)>
@@ -249,7 +249,7 @@ AndOr(TermNode& term, ContextNode& ctx)
 }
 
 //! \since build 904
-//@{
+//!@{
 template<typename _fComp, typename _func>
 auto
 EqTerm(TermNode& term, _fComp f, _func g) -> decltype(f(
@@ -362,7 +362,7 @@ EqualSubterm(TNCIter first1, TNCIter first2, TNCIter last1)
 	return true;
 }
 #endif
-//@}
+//!@}
 
 //! \since build 961
 YB_ATTR_nodiscard YB_PURE BindingMap&
@@ -418,7 +418,7 @@ public:
 			if(store.find(k) == store.cend())
 				// NOTE: This binds value to a local thunk value. The
 				//	bound symbol can then be rebound to an ordinary
-				//	(non-sharing object.
+				//	(non-sharing) object.
 				Environment::Bind(m, k, TermNode(TermNode::Container(a),
 					ValueObject(any_ops::use_holder, in_place_type<
 					YSLib::HolderFromPointer<shared_ptr_t>>,
@@ -480,7 +480,7 @@ CheckBindParameter(const shared_ptr<Environment>& p_env, const TermNode& t,
 }
 
 //! \since build 868
-//@{
+//!@{
 template<typename _func>
 auto
 DoDefineSet(TermNode& term, size_t n, _func f) -> decltype(f())
@@ -645,7 +645,7 @@ struct DefineOrSetDispatcher final
 			yforward(args)...);
 	}
 };
-//@}
+//!@}
 
 
 //! \since build 909
@@ -661,7 +661,7 @@ ThrowInvalidEnvironmentType(const TermNode& term, bool has_ref)
 \param no_lift 指定是否避免保证规约后提升结果。
 \since build 835
 */
-//@{
+//!@{
 ReductionStatus
 EvalImplUnchecked(TermNode& term, ContextNode& ctx, bool no_lift)
 {
@@ -724,11 +724,11 @@ RemoteEvalImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 		return EvalImplUnchecked(term, ctx, no_lift);
 	}, "eval-remote-eval-env"));
 }
-//@}
+//!@}
 
 
 //! \since build 964
-//@{
+//!@{
 YB_ATTR_nodiscard YB_PURE inline EnvironmentParent
 ToParentListElement(TermNode::allocator_type a, const ValueObject& vo)
 {
@@ -796,9 +796,10 @@ MakeEnvironmentParentList(TNIter first, TNIter last, TermNode::allocator_type a,
 #endif
 }
 
-YB_ATTR_nodiscard EnvironmentParent
+//! \since build 967
+YB_ATTR_nodiscard YB_PURE EnvironmentParent
 MakeParentLeafResolved(TermNode::allocator_type a,
-	pair<shared_ptr<Environment>, bool>& pr)
+	pair<shared_ptr<Environment>, bool>&& pr)
 {
 	// XXX: The check on %p_env for the parent should be checked before
 	//	(by %ResolveEnvironment, etc.).
@@ -810,32 +811,29 @@ MakeParentLeafResolved(TermNode::allocator_type a,
 	return NPL::ToParent<SingleWeakParent>(a, std::move(p_env));
 }
 
-YB_ATTR_nodiscard EnvironmentParent
+YB_ATTR_nodiscard YB_PURE inline EnvironmentParent
 MakeParentLeaf(TermNode& term, bool move)
 {
-	auto pr(move ? ResolveEnvironment(term)
+	return MakeParentLeafResolved(term.get_allocator(),
+		move ? ResolveEnvironment(term)
 		: ResolveEnvironment(ystdex::as_const(term)));
-
-	return MakeParentLeafResolved(term.get_allocator(), pr);
 }
 
-YB_ATTR_nodiscard EnvironmentParent
+YB_ATTR_nodiscard YB_PURE inline EnvironmentParent
 MakeResolvedParentLeaf(TermNode& nd, ResolvedTermReferencePtr p_ref)
 {
-	const auto a(nd.get_allocator());
-	auto pr(ResolveEnvironmentReferent(nd, p_ref));
-
-	return MakeParentLeafResolved(nd.get_allocator(), pr);
+	return MakeParentLeafResolved(nd.get_allocator(),
+		ResolveEnvironmentReferent(nd, p_ref));
 }
 
-YB_ATTR_nodiscard EnvironmentParent
+YB_ATTR_nodiscard YB_PURE EnvironmentParent
 MakeResolvedParentList(TermNode& nd, bool move)
 {
 	return !nd.empty() ? (nd.size() != 1 ? MakeEnvironmentParentList(nd.begin(),
 		nd.end(), nd.get_allocator(), move) : MakeParentLeaf(*nd.begin(), move))
 		: EnvironmentParent();
 }
-//@}
+//!@}
 
 //! \since build 918
 YB_ATTR_nodiscard shared_ptr<Environment>
@@ -847,7 +845,7 @@ CreateEnvironment(TermNode& term)
 
 
 //! \since build 959
-//@{
+//!@{
 #if NPL_Impl_NPLA1Forms_VauHandler_OptimizeLevel >= 2
 YB_ATTR_nodiscard YB_PURE bool
 IsSymbolFormal(const TermNode& term) ynothrow
@@ -1003,7 +1001,7 @@ VauPrepareCall(ContextNode& ctx, TermNode& term, EnvironmentParent& parent,
 		term.SetContent(eval_struct);
 	}
 }
-//@}
+//!@}
 
 
 // NOTE: %VauHandler is the base class of the vau handlers, as well as a
@@ -1020,7 +1018,7 @@ class VauHandler : private ystdex::equality_comparable<VauHandler>
 {
 protected:
 	//! \since build 959
-	//@{
+	//!@{
 	using GuardCall
 		= void(const VauHandler&, EnvironmentGuard&, TermNode&, ContextNode&);
 	using GuardDispatch = void(ContextNode&, const TermNode&, TermNode&);
@@ -1038,7 +1036,7 @@ private:
 			_rDispatch(ctx, vau.GetFormalsRef(), term);
 		}
 	};
-	//@}
+	//!@}
 
 	/*!
 	\brief 形式参数对象。
@@ -1075,7 +1073,7 @@ public:
 	\sa MakeResolvedParent
 	\since build 964
 	*/
-	//@{
+	//!@{
 protected:
 	// XXX: Keep parameters of reference types, as it is more efficient, at
 	//	least in code generation by x86_64-pc-linux G++ 11.1.
@@ -1095,14 +1093,15 @@ public:
 		: VauHandler(std::move(p_fm), std::move(ep), std::move(p_es), nl,
 		InitCall<GuardStatic>(p_fm))
 	{}
-	//@}
+	//!@}
 	// NOTE: Only the implicitly defined copy constructor is used. The move
 	//	constructor can be defined, but not necessary for as target object of
 	//	%ContextHandler. The assignment operators are not used, and it would be
 	//	deleted if defined as defaulted (due to the type of %call).
 
 	//! \since build 959
-	DefGetter(const ynothrow, TermNode&, FormalsRef, NPL::Deref(p_formals))
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, TermNode&, FormalsRef, NPL::Deref(p_formals))
 
 	//! \since build 824
 	YB_ATTR_nodiscard friend bool
@@ -1268,7 +1267,7 @@ public:
 
 
 //! \since build 953
-//@{
+//!@{
 void
 ConsSplice(TermNode& t, TermNode& nd)
 {
@@ -1303,11 +1302,11 @@ ConsRest(TermNode& t, TermNode& nd)
 	//	%TermTags::Temporary at the beginning at the call. This is used in
 	//	%(SetRest, SetRestRef).
 }
-//@}
+//!@}
 
 
 //! \since build 859
-//@{
+//!@{
 YB_NORETURN ReductionStatus
 ThrowForUnwrappingFailure(const ContextHandler& h)
 {
@@ -1391,7 +1390,7 @@ WrapUnwrapResolve(TermNode& term, _func f, _func2 f2)
 			AccessRegular<ContextHandler>(nd, p_ref), p_ref, f, f2);
 	}, term);
 }
-//@}
+//!@}
 
 
 //! \since build 876
@@ -1405,7 +1404,7 @@ AddTrailingTemporary(TermNode& term, _tParams&&... args)
 #endif
 
 //! \since build 897
-//@{
+//!@{
 // NOTE: The bound term can be reused later because no referent can be
 //	invalidated unless %mv writes %o.
 template<typename _fMove>
@@ -1465,7 +1464,7 @@ EvaluateToLValueReference(TermNode& term, const shared_ptr<Environment>& p_env)
 		TermReference(term.Tags, term, NPL::Nonnull(p_env),
 		NPL::Deref(p_env).GetAnchorPtr())));
 }
-//@}
+//!@}
 
 #if false
 // NOTE: The bound term cannot be reused later because %term can be the
@@ -1746,7 +1745,7 @@ BranchFirstReferenced(TermNode& term, TermNode& nd,
 }
 
 //! \since build 951
-//@{
+//!@{
 ReductionStatus
 CheckReference(TermNode& term, void(&f)(TermNode&, bool))
 {
@@ -1786,7 +1785,7 @@ CheckResolvedPairReference(TermNode& nd, bool has_ref)
 	else
 		ThrowValueCategoryError(nd);
 }
-//@}
+//!@}
 
 //! \since build 874
 template<typename _func>
@@ -1802,7 +1801,7 @@ FirstAtRef(TermNode& term, _func f)
 }
 
 //! \since build 951
-//@{
+//!@{
 void
 CopyRestContainer(TermNode::Container& tcon, TNIter first, TNIter last)
 {
@@ -1868,7 +1867,7 @@ RestOrVal(TermNode& term, _func f)
 		return ReductionStatus::Retained;
 	}, term);
 }
-//@}
+//!@}
 
 //! \since build 834
 template<typename _func>
@@ -1957,7 +1956,7 @@ CheckFunctionCreation(_func f) -> decltype(f())
 }
 
 //! \since build 959
-//@{
+//!@{
 template<typename _func>
 inline ReductionStatus
 ReduceCreateFunction(TermNode& term, _func f)
@@ -2053,10 +2052,10 @@ LambdaVauWithEnvironment(TermNode& term, ContextNode& ctx, bool no_lift)
 			ystdex::size_t_<_vWrapping>());
 	}, "eval-vau-parent"));
 }
-//@}
+//!@}
 
 //! \since build 840
-//@{
+//!@{
 ReductionStatus
 LambdaImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 {
@@ -2081,7 +2080,7 @@ VauWithEnvironmentImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 {
 	return LambdaVauWithEnvironment<2, Form>(term, ctx, no_lift);
 }
-//@}
+//!@}
 
 //! \since build 921
 ReductionStatus
@@ -2109,7 +2108,7 @@ AddWrappingCount(size_t n)
 }
 
 //! \since build 859
-//@{
+//!@{
 YB_NORETURN ReductionStatus
 ThrowForWrappingFailure(const type_info& ti)
 {
@@ -2149,7 +2148,7 @@ WrapUnwrap(TermNode& term, _func f, _func2 f2)
 		return DispatchContextHandler(h, p_ref, f, f2);
 	}, term);
 }
-//@}
+//!@}
 
 //! \since build 918
 template<ReductionStatus(&_rWrap)(TermNode&, ResolvedTermReferencePtr,
@@ -2216,7 +2215,7 @@ EqualSubterm(bool& r, Action& act, TermNode::allocator_type a, TNCIter first1,
 
 
 //! \since build 953
-//@{
+//!@{
 TNIter
 ApplyHead(TermNode& term)
 {
@@ -2285,10 +2284,10 @@ ListAsteriskTail(TermNode& term)
 	term.Remove(last);
 	return ReductionStatus::Retained;
 }
-//@}
+//!@}
 
 //! \since build 942
-//@{
+//!@{
 using TermPrefixGuard
 	= ystdex::unique_guard<ystdex::prefix_eraser<TermNode::Container>>;
 
@@ -2327,7 +2326,7 @@ AccSetTerm(TermNode& term, _tTerm&& lv_l, TermNode& tail,
 	// XXX: No %ClearCombiningTags is called, as it would be determined later
 	//	in the subsequent combiner call.
 }
-//@}
+//!@}
 
 /*!
 \pre 第一参数的类型可平凡交换。
@@ -2378,7 +2377,7 @@ Acc(_func f, TermNode& term, ContextNode& ctx)
 }
 
 //! \since build 917
-//@{
+//!@{
 YB_FLATTEN ReductionStatus
 ReduceAccL(TermNode& term, ContextNode& ctx)
 {
@@ -2812,7 +2811,7 @@ PrepareListExtract(TermNode& term)
 	//	local reference to list temporary object.
 	PrepareFoldRList(term);
 }
-//@}
+//!@}
 
 /*!
 \pre 最后一个参数的类型退化后可平凡交换。
@@ -2843,7 +2842,7 @@ RelayApplicativeNext(ContextNode& ctx, TermNode& term, _fNext&& next)
 }
 
 //! \since build 919
-//@{
+//!@{
 void
 ExtractBindings(TermNode& formals, TermNode& operand)
 {
@@ -2873,7 +2872,7 @@ LetBindingsExtract(TermNode& term, bool with_env)
 	ExtractBindings(LetAddFormalsTerm(term, with_env),
 		NPL::Deref(term.begin()));
 }
-//@}
+//!@}
 
 //! \since build 945
 ReductionStatus
@@ -2891,7 +2890,7 @@ LetCall(TermNode& term, ContextNode& ctx, EnvironmentGuard& gd, bool no_lift)
 }
 
 //! \since build 945
-//@{
+//!@{
 // XXX: Having 'YB_ATTR_always_inline' here makes performace significantly
 //	better, at least with x86_64-pc-linux G++ 12.1. However, it will also warns
 //	about failing to inline with [-Wattributes]. To work it around, just ignore
@@ -2945,7 +2944,7 @@ LetCheckBindings(TermNode& term, bool with_env) ynothrowv
 	YAssert(term.size() >= (with_env ? 3U : 2U), "Invalid nested call found.");
 	yunused(term), yunused(with_env);
 }
-//@}
+//!@}
 
 // NOTE: The preparation transforms the environment from the known layout of
 //	subterms, to make ready to perform the evaluation on the derived expressions
@@ -3044,7 +3043,7 @@ LetCombineNextParent(_func f, TermNode& term, ContextNode& ctx, TNIter i,
 // NOTE: The preparation transforms the environment from the known layout of
 //	subterms.
 //! \pre 第一参数的类型可平凡交换。
-//@{
+//!@{
 //! \since build 917
 template<typename _func>
 ReductionStatus
@@ -3098,7 +3097,7 @@ LetCombinePrepareNoEnv(_func f, TermNode& term, ContextNode& ctx)
 	return f();
 }
 #endif
-//@}
+//!@}
 
 //! \since build 945
 ReductionStatus
@@ -3168,7 +3167,7 @@ LetEmptyGuardTail(_func f, TermNode& term, ContextNode& ctx)
 // NOTE: Specialized combination of %(LetCheckBindings, LetBindingsExtract,
 //	LetCommon) implementation for empty binding lists.
 //! \pre 绑定列表项是空项。
-//@{
+//!@{
 #if NPL_Impl_NPLA1Forms_LetParent_ExpandLevel >= 1
 // NOTE: Specialized for %LetEmpty with 'false' %with_env.
 //! \since build 945
@@ -3234,7 +3233,7 @@ LetEmptyNoEnv(TermNode& term, ContextNode& ctx, bool no_lift)
 	return LetEmpty(term, ctx, no_lift, {});
 }
 #endif
-//@}
+//!@}
 
 //! \since build 917
 void
@@ -3559,7 +3558,7 @@ LetOrRecImpl(TermNode& term, ContextNode& ctx, ReductionStatus(&let_core)(
 }
 
 //! \since build 918
-//@{
+//!@{
 ReductionStatus
 ReduceMoveEnv1(TermNode& term, shared_ptr<Environment>& p_env)
 {
@@ -3600,14 +3599,14 @@ DoBindingsToEnvironment(TermNode& term, ContextNode& ctx, shared_ptr<
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(bool, HasImportsSigil, const TokenValue& s) ynothrow
 	ImplRet(!s.empty() && (s.front() == '&' || s.front() == '%'))
-//@}
+//!@}
 
 //! \since build 919
-//@{
+//!@{
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TokenValue, CopyImportName, const TokenValue& s)
 	ImplRet(HasImportsSigil(s) ? TokenValue(s.substr(1)) : s)
-//@}
+//!@}
 
 #if false
 // NOTE: Lock a weak environment reference to a strong environment reference

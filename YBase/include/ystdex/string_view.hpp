@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2022 FrankHB.
+	© 2015-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file string_view.hpp
 \ingroup YStandardEx
 \brief 只读字符串视图。
-\version r645
+\version r663
 \author FrankHB <frankhb1989@gmail.com>
 \since build 640
 \par 创建时间:
 	2015-09-28 12:04:58 +0800
 \par 修改时间:
-	2022-01-21 20:46 +0800
+	2023-02-07 00:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,6 +28,7 @@
 提供 ISO C++17 标准库头 <string_view> 兼容的替代接口和实现。
 除了部分关系操作使用 operators 实现而不保留命名空间内的声明及散列支持提供偏特化外，
 其它接口同 std::string_view 。
+原始设计主要来自 Library fundamental TS ，参见 WG21 P0220R1 。
 注意因为一些兼容问题， std::experimental::string_view 不被可选地使用，
 	以便支持和 std::string 的交互性。
 */
@@ -36,8 +37,9 @@
 #ifndef YB_INC_ystdex_string_view_hpp_
 #define YB_INC_ystdex_string_view_hpp_ 1
 
-#include "range.hpp" // "range.hpp", ystdex::reverse_iterator;
+#include "range.hpp" // for "range.hpp", ystdex::reverse_iterator;
 // NOTE: See "placement.hpp" for comments on inclusion conditions.
+#include "hash.hpp" // for internal "hash.hpp", is_fast_hash;
 #if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603L) \
 	|| (__cplusplus >= 201703L && __has_include(<string_view>))
 #	include <string_view>
@@ -69,14 +71,14 @@
 \see https://docs.microsoft.com/cpp/preprocessor/predefined-macros 。
 \since build 837
 */
-//@{
+//!@{
 #ifndef __cpp_lib_string_view
 #	if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201606L) \
 	|| __cplusplus >= 201606L
 #		define __cpp_lib_string_view 201606L
 #	endif
 #endif
-//@}
+//!@}
 
 namespace ystdex
 {
@@ -90,7 +92,7 @@ inline namespace cpp2017
 using std::basic_string_view;
 #else
 //! \since build 640
-//@{
+//!@{
 //! \ingroup YBase_replacement_features
 template<typename _tChar, class _tTraits = std::char_traits<_tChar>>
 class basic_string_view
@@ -377,7 +379,7 @@ public:
 };
 
 //! \relates basic_string_view
-//@{
+//!@{
 template<typename _tChar, class _tTraits>
 YB_ATTR_nodiscard YB_PURE yconstfn bool
 operator==(basic_string_view<_tChar, _tTraits> x,
@@ -433,8 +435,8 @@ operator<<(std::basic_ostream<_tChar, _tTraits>& os,
 	// XXX: Better implementation?
 	return os << std::basic_string<_tChar, _tTraits>(str.data(), str.size());
 }
-//@}
-//@}
+//!@}
+//!@}
 #endif
 
 using string_view = basic_string_view<char>;
@@ -443,6 +445,15 @@ using u32string_view = basic_string_view<char32_t>;
 using wstring_view = basic_string_view<wchar_t>;
 
 } // inline namespace cpp2017;
+
+/*!
+\relates basic_string_view
+\since build 967
+*/
+template<typename _tChar, class _tTraits>
+struct is_fast_hash<std::hash<basic_string_view<_tChar, _tTraits>>> : false_
+{};
+
 
 /*!
 \ingroup YBase_replacement_extensions
@@ -459,6 +470,7 @@ namespace std
 {
 
 /*!
+\ingroup hashers
 \brief ystdex::basic_string_view 散列支持。
 \see WG21 N4480 5.11[basic_string_view.hash] 。
 \since build 640

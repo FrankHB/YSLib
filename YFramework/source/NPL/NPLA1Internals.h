@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r22859
+\version r22930
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2023-01-13 02:48 +0800
+	2023-02-08 12:05 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -30,17 +30,18 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA1 // for shared_ptr, ContextNode, NPL::allocate_shared,
-//	NPL::Deref, NPLException, TermNode, ReductionStatus, Reducer, YSLib::map,
-//	size_t, lref, Environment, set, NPL::ToBindingsAllocator, EnvironmentParent,
-//	IParent, SingleWeakParent, SingleStrongParent, ParentList, EnvironmentList,
-//	pair, ValueObject, YSLib::forward_list, tuple, ystdex::optional,
-//	std::declval, EnvironmentGuard, NPL::get, A1::NameTypedContextHandler,
-//	MoveKeptGuard, TermReference, TermTags, TryAccessLeafAtom,
-//	std::allocator_arg, in_place_type, EnvironmentReference,
-//	ThrowTypeErrorForInvalidType, type_id, TermToNamePtr, IsIgnore,
-//	ParameterMismatch, IsPair, IsEmpty, IsList, NPL::AsTermNode,
-//	NPL::AsTermNodeTagged, ystdex::is_bitwise_swappable;
-#include <ystdex/compose.hpp> // for ystdex::get_less;
+//	NPL::Deref, NPLException, TermNode, ReductionStatus, Reducer,
+//	YSLib::unordered_map, lref, Environment, size_t, YSLib::unordered_set,
+//	NPL::ToBindingsAllocator, EnvironmentParent, IParent, SingleWeakParent,
+//	SingleStrongParent, ParentList, EnvironmentList, pair, ValueObject,
+//	YSLib::forward_list, tuple, ystdex::optional, std::declval,
+//	EnvironmentGuard, NPL::get, A1::NameTypedContextHandler, MoveKeptGuard,
+//	TermReference, TermTags, TryAccessLeafAtom, std::allocator_arg,
+//	in_place_type, EnvironmentReference, ThrowTypeErrorForInvalidType, type_id,
+//	TermToNamePtr, IsIgnore, ParameterMismatch, IsPair, IsEmpty, IsList,
+//	NPL::AsTermNode, NPL::AsTermNodeTagged, ystdex::is_bitwise_swappable;
+#include <ystdex/compose.hpp> // for ystdex::get_hash, ystdex::get_equal_to,
+//	ystdex::get_less;
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard,
 //	ystdex::make_unique_guard;
 #include <ystdex/utility.hpp> // for ystdex::exchange;
@@ -197,9 +198,10 @@ SetupTailAction(ContextNode& ctx, _func&& act)
 //! \since build 827
 struct RecordCompressor final
 {
-	using RecordInfo
-		= YSLib::map<lref<Environment>, size_t, ystdex::get_less<>>;
-	using ReferenceSet = set<lref<Environment>, ystdex::get_less<>>;
+	using RecordInfo = YSLib::unordered_map<lref<Environment>, size_t,
+		ystdex::get_hash<>, ystdex::get_equal_to<>>;
+	using ReferenceSet = YSLib::unordered_set<lref<Environment>,
+		ystdex::get_hash<>, ystdex::get_equal_to<>>;
 
 	//! \since build 894
 	weak_ptr<Environment> RootPtr;
@@ -216,9 +218,9 @@ struct RecordCompressor final
 	//! \since build 894
 	RecordCompressor(const shared_ptr<Environment>& p_root,
 		Environment::allocator_type a)
-		: RootPtr(p_root), Reachable({NPL::Deref(p_root)}, a),
-		NewlyReachable(a), Universe(a)
+		: RootPtr(p_root), Reachable(a), NewlyReachable(a), Universe(a)
 	{
+		Reachable.insert(NPL::Deref(p_root)); 
 		AddParents(NPL::Deref(p_root));
 	}
 
@@ -410,7 +412,7 @@ private:
 			ImplExpr(TermRef.get().Clear())
 	};
 	//! \since build 947
-	//@{
+	//!@{
 	/*!
 	\brief 附加信息索引。
 	\note 顺序保持和 ExtraInfo 的元素对应一致。
@@ -429,7 +431,7 @@ private:
 	*/
 	using ExtraInfo = tuple<ystdex::guard<SourceNameRecoverer>,
 		ystdex::optional<ystdex::guard<OneShotChecker>>>;
-	//@}
+	//!@}
 
 	//! \since build 910
 	mutable size_t req_lift_result = 0;
@@ -494,12 +496,15 @@ private:
 
 public:
 	//! \since build 958
-	DefGetter(const ynothrow, ContextNode&, ContextRef, env_guard.func.Context)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, ContextNode&, ContextRef,
+		env_guard.func.Context)
 	//! \since build 913
-	DefGetter(const ynothrow, TermNode&, TermRef, term_guard.func.func.TermRef)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, TermNode&, TermRef,
+		term_guard.func.func.TermRef)
 	//! \since build 957
-	//@{
-	DefGetter(const ynothrow, FrameRecordList&, FrameRecordList, record_list)
+	//!@{
+	YB_ATTR_nodiscard DefGetter(const ynothrow, FrameRecordList&,
+		FrameRecordList, record_list)
 
 	// NOTE: The allocation of the active combiner should normally be done
 	//	before the assignment of the environment pointer, because the object
@@ -539,10 +544,10 @@ public:
 		//	call to %emplace_front implied in %AddOperator.
 		return NPL::get<ActiveCombiner>(record_list.front());
 	}
-	//@}
+	//!@}
 
 	//! \since build 910
-	//@{
+	//!@{
 	void
 	CompressFrameList();
 
@@ -615,7 +620,7 @@ public:
 		//	should be a new active combiner, or the current active combiner is
 		//	reused for the new environment.
 	}
-	//@}
+	//!@}
 
 	//! \since build 943
 	YB_ATTR_nodiscard YB_ATTR(cold) OneShotChecker
@@ -670,7 +675,7 @@ public:
 	}
 
 	//! \since build 911
-	//@{
+	//!@{
 	//! \brief 设置提升请求。
 	void
 	SetupLift() const
@@ -692,7 +697,7 @@ public:
 		if(lift)
 			SetupLift();
 	}
-	//@}
+	//!@}
 };
 
 //! \since build 886
@@ -777,13 +782,13 @@ AssertNextTerm(ContextNode& ctx, TermNode& term)
 #if NPL_Impl_NPLA1_Enable_Thunked
 // NOTE: As %Continuation, but without type erasure on the handler.
 //! \since build 959
-//@{
+//!@{
 template<typename _func = lref<const ContextHandler>>
 struct GLContinuation final
 {
 	_func Handler;
 
-	GLContinuation(_func h) ynoexcept(noexcept(std::declval<_func>()))
+	GLContinuation(_func h) ynoexcept_spec(std::declval<_func>())
 		: Handler(std::move(h))
 	{}
 
@@ -797,11 +802,11 @@ struct GLContinuation final
 //! \relates GLContinuation
 template<typename _func>
 YB_ATTR_nodiscard YB_PURE inline GLContinuation<_func>
-MakeGLContinuation(_func f) ynoexcept(noexcept(std::declval<_func>()))
+MakeGLContinuation(_func f) ynoexcept_spec(std::declval<_func>())
 {
 	return GLContinuation<_func>(f);
 }
-//@}
+//!@}
 
 
 // NOTE: Normally these overloads do not need %trivial_swap_t because
@@ -811,7 +816,7 @@ MakeGLContinuation(_func f) ynoexcept(noexcept(std::declval<_func>()))
 //	%TailCall::RelayNextGuardedLifted below), overloads with %trivial_swap_t are
 //	provided anyway.
 //! \since build 879
-//@{
+//!@{
 YB_ATTR_always_inline inline ReductionStatus
 RelayCurrent(ContextNode& ctx, Continuation&& cur)
 {
@@ -823,6 +828,22 @@ RelayCurrent(ContextNode& ctx, trivial_swap_t, Continuation&& cur)
 {
 	return RelaySwitched(ctx, std::move(cur));
 }
+#	if !NPL_Impl_NPLA1_Enable_InlineDirect
+//! \since build 967
+template<typename _func>
+YB_ATTR_always_inline inline ReductionStatus
+RelayCurrent(ContextNode& ctx, const GLContinuation<_func>& cur)
+{
+	return RelaySwitched(ctx, cur);
+}
+//! \since build 967
+template<typename _func>
+YB_ATTR_always_inline inline ReductionStatus
+RelayCurrent(ContextNode& ctx, trivial_swap_t, const GLContinuation<_func>& cur)
+{
+	return RelaySwitched(ctx, cur);
+}
+#	endif
 YB_ATTR_always_inline inline ReductionStatus
 RelayCurrent(ContextNode& ctx, std::reference_wrapper<Continuation> cur)
 {
@@ -842,7 +863,7 @@ RelayCurrent(ContextNode& ctx, _fCurrent&& cur)
 {
 	return A1::RelayCurrent(ctx, Continuation(yforward(cur), ctx));
 }
-//@}
+//!@}
 //! \since build 926
 template<typename _fCurrent>
 YB_ATTR_always_inline inline auto
@@ -855,7 +876,7 @@ RelayCurrent(ContextNode& ctx, trivial_swap_t, _fCurrent&& cur)
 #endif
 
 //! \since build 878
-//@{
+//!@{
 #if !NPL_Impl_NPLA1_Enable_Thunked || NPL_Impl_NPLA1_Enable_InlineDirect
 template<typename _fCurrent>
 YB_ATTR_always_inline inline ReductionStatus
@@ -916,7 +937,7 @@ RelayCurrentOrDirect(ContextNode& ctx, trivial_swap_t, _fCurrent&& cur,
 	return A1::RelayCurrent(ctx, trivial_swap, yforward(cur));
 #	endif
 }
-//@}
+//!@}
 
 //! \since build 910
 template<typename _fCurrent, typename _fNext>
@@ -1062,9 +1083,9 @@ ReduceCurrentNextThunked(TermNode& term, ContextNode& ctx, _tParams&&... args)
 
 
 //! \since build 821
-//@{
+//!@{
 //! \pre 最后一个参数的类型退化后可平凡交换。
-//@{
+//!@{
 template<typename _fNext>
 inline ReductionStatus
 RelaySubsequent(ContextNode& ctx, TermNode& term, _fNext&& next)
@@ -1084,7 +1105,7 @@ ReduceSubsequent(TermNode& term, ContextNode& ctx, _fNext&& next)
 	SetupNextTerm(ctx, term);
 	return A1::RelaySubsequent(ctx, term, yforward(next));
 }
-//@}
+//!@}
 
 //! \note 同 ReduceSubsequent ，但不要求最后一个参数的类型退化后满足可平凡交换。
 template<typename _fNext>
@@ -1094,11 +1115,11 @@ ReduceSubsequentPinned(TermNode& term, ContextNode& ctx, _fNext&& next)
 	return A1::ReduceCurrentNext(term, ctx,
 		std::ref(ContextState::Access(ctx).ReduceOnce), yforward(next));
 }
-//@}
+//!@}
 
 
 //! \since build 911
-//@{
+//!@{
 struct NonTailCall final
 {
 #if NPL_Impl_NPLA1_Enable_Thunked
@@ -1129,7 +1150,7 @@ struct NonTailCall final
 	\pre 最后一个参数的类型退化后可平凡交换。
 	\pre 断言：第三参数中的环境非空。
 	*/
-	//@{
+	//!@{
 	template<typename _fCurrent>
 	YB_FLATTEN static inline ReductionStatus
 	RelayNextGuarded(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
@@ -1206,7 +1227,7 @@ struct NonTailCall final
 		return lift ? ReduceForLiftedResult(term) : res;
 #endif
 	}
-	//@}
+	//!@}
 
 	//! \pre TCO 实现：当前动作非 TCO 动作。
 	static void
@@ -1237,7 +1258,7 @@ struct TailCall final
 	\pre 断言：第三参数中的环境非空。
 	\pre TCO 实现：同 PrepareTCOEvaluation 。
 	*/
-	//@{
+	//!@{
 	template<typename _fCurrent>
 	YB_FLATTEN static inline ReductionStatus
 	RelayNextGuarded(ContextNode& ctx, TermNode& term, EnvironmentGuard&& gd,
@@ -1285,7 +1306,7 @@ struct TailCall final
 			lift, yforward(cur));
 #endif
 	}
-	//@}
+	//!@}
 
 	static void
 	SetupForNonTail(ContextNode&, TermNode&) ynothrow
@@ -1304,7 +1325,7 @@ struct Combine final
 	//	%TCOAction, and this (with %_tTraits as %TailCall) can be an
 	//	optimization.
 	//! \pre TCO 实现：当前动作是 TCO 动作，且其中的当前项和被规约的项相同。
-	//@{
+	//!@{
 	// XXX: Do not use %YB_FLATTEN here for LTO compiling performance.
 	//! \pre 断言：第三参数中的环境非空。
 	static ReductionStatus
@@ -1364,9 +1385,9 @@ struct Combine final
 			return ReduceEnvSwitch(t, c, std::move(g_e));
 		}, std::placeholders::_2, std::move(gd_or_env)), yforward(next));
 	}
-	//@}
+	//!@}
 };
-//@}
+//!@}
 
 
 //! \since build 881
@@ -1619,7 +1640,7 @@ public:
 
 
 //! \since build 950
-//@{
+//!@{
 template<class _tAlloc, typename... _tParams>
 YB_ATTR_nodiscard YB_ATTR_always_inline inline shared_ptr<TermNode>
 AllocateSharedTerm(const _tAlloc& a, _tParams&&... args)
@@ -1637,7 +1658,7 @@ AllocateSharedTermValue(const _tAlloc& a, _tParams&&... args)
 YB_ATTR_nodiscard inline PDefH(TermNode, MakeSubobjectReferent,
 	TermNode::allocator_type a, shared_ptr<TermNode> p_sub)
 	ImplRet(NPL::AsTermNodeTagged(a, TermTags::Sticky, std::move(p_sub)))
-//@}
+//!@}
 
 
 //! \since build 953

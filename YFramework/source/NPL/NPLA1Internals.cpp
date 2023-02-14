@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.cpp
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r20713
+\version r20731
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2023-01-06 06:41 +0800
+	2023-02-14 20:11 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -27,11 +27,11 @@
 
 #include "NPL/YModules.h"
 #include "NPLA1Internals.h" // for NPL::Nonnull, NPL::ToBindingsAllocator,
-//	NPL::Deref, shared_ptr, Environment, std::make_move_iterator,
+//	NPL::Deref, shared_ptr, Environment, ystdex::erase_all_if,
 //	ystdex::retry_on_cond, EnvironmentParent, NPL::AssignParent,
 //	ystdex::dismiss, ystdex::id, NPL::get, ActiveEnvironmentPtr,
 //	std::throw_with_nested, ParameterMismatch, ResolveTerm,
-//	TermToStringWithReferenceMark, std::allocator_arg,
+//	TermToStringWithReferenceMark, std::allocator_arg;
 
 namespace NPL
 {
@@ -67,15 +67,17 @@ RecordCompressor::Compress()
 	for(auto i(Universe.cbegin()); i != Universe.cend(); )
 		if(i->second > 0)
 		{
-			// TODO: Blocked. Use ISO C++17 container node API for efficient
-			//	implementation.
+			// XXX: ISO C++17 container node API does not help for containers of
+			//	different value types.
 			NewlyReachable.insert(i->first);
 			i = Universe.erase(i);
 		}
 		else
 			++i;
-	for(ReferenceSet rs(a); !NewlyReachable.empty();
-		NewlyReachable = std::move(rs))
+
+	ReferenceSet rs(a);
+
+	while(!NewlyReachable.empty())
 	{
 		for(const auto& e : NewlyReachable)
 			Traverse(e, e.get().Parent,
@@ -86,27 +88,24 @@ RecordCompressor::Compress()
 				Universe.erase(dst);
 				return false;
 			});
-		Reachable.insert(std::make_move_iterator(NewlyReachable.begin()),
-			std::make_move_iterator(NewlyReachable.end()));
-		for(auto i(rs.cbegin()); i != rs.cend(); )
-			if(ystdex::exists(Reachable, *i))
-				i = rs.erase(i);
-			else
-				++i;
+		Reachable.merge(std::move(NewlyReachable));
+		ystdex::erase_all_if(rs, [&](decltype(*rs.cbegin())& r){
+			return ystdex::exists(Reachable, r);
+		});
+		NewlyReachable = std::move(rs);
+		rs.clear();
 	}
-
 	// XXX: Need full support of PTC by direct DFS traverse?
-	ReferenceSet accessed(a);
-
+	// XXX: The reference set %rs is reused to mark accessed references below.
 	ystdex::retry_on_cond(ystdex::id<>(), [&]() -> bool{
 		bool collected = {};
 
 		Traverse(*p_root, p_root->Parent, [&](const shared_ptr<Environment>&
 			p_dst, Environment& src, EnvironmentParent& parent) -> bool{
-			auto& dst(NPL::Deref(p_dst));
-
-			if(accessed.insert(src).second)
+			if(rs.insert(src).second)
 			{
+				auto& dst(NPL::Deref(p_dst));
+
 				if(!ystdex::exists(Universe, ystdex::ref(dst)))
 					return true;
 				// NOTE: Variable %parent can be a single parent in a list

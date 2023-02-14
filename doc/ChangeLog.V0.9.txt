@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r14475
+\version r14813
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2023-02-06 03:24 +0800
+	2023-02-14 21:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,345 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ DLDI "simplified exception specification with single noexcept expression"
+		^ "%ynoexcept_spec" ~ "%(ynoexcept, noexcept)"
+		$effective @ ("constructor %GLContinuation", "function \
+		template %MakeGLContinuation") @ %YFramework.NPL.NPLA1Internals,
+	/ %YBase.YStandardEx $=
+	(
+		/ $re_add(b962) DD "adjusted minor texts" @ "Doxygen comments"
+			@ %(Optional, StringView),
+		/ $dev %Optional $=
+		(
+			- $lib $impl $design "header inclusion %Swap",
+				// This is already implied by %Functor.
+			/ $re_add(b965) $lib $impl $design "simplified constructors \
+				%optional" ^ "%enable_if_constructible_t"
+				~ "%(enable_if_t, is_constructible)"
+		),
+		/ %Hash $=
+		(
+			(
+			+ DD "Doxygen group %hashers";
+			+ DD '\ingroup hashers' @ "Doxygen comment"
+				@ "class template %combined_hash and its implementation types",
+			(
+			+ "unary type trait %is_hash_object";
+			+ "binary type trait %is_applicable_hash"
+			)
+			),
+			(
+			+ "class template %hash";
+			+ "unary type trait %is_fast_hash"
+			),
+			+ DD "'\ingroup customization_points' command" @ "Doxygen commnent"
+				@ "class template %combined_hash"
+		),
+		+ DLDI "header inclusion %Hash" @ %StringView
+			$dep_to "string view hash inclusion",
+		/ ^ $dep_from ("Doxygen group %hashers" @ %Hash) $=
+		(
+			+ "class template specialization %std::hash for %basic_tstring_view"
+				@ %TStringView,
+			+ DD "'\ingroup hashers'" @ "Doxygen comment" @ ("class template \
+				specializations %std::hash for %basic_string instances"
+				@ %String, "class template specialization %std::hash for \
+				%basic_string_view instances" @ %StringView, "class template \
+				%get_hash" @ %Compose, "class template specialization \
+				%std::hash for %optional instances" @ %Optional)
+		),
+		+ $src "class template specializations %is_fast_hash"
+			$dep_from ("%is_fast_hash" @ %Hash) $=
+			// This is ABI breaking at runtime.
+		(
+			"for %basic_string" @ %String
+				$dep_from "string view hash inclusion",
+			"for %basic_string_view" @ %StringView,
+			"for %basic_tstring_view" @ %TStringView,
+			"for %optional" @ %Optional
+		),
+		/ $src "all use of %std::hash except for template argument of \
+			%std::hash specializations or hash to known types not \
+			program-defined" -> ($dep_from "%hash" @ %Hash)
+			$effective @ %(Cache, Optional),
+		/ $dev $lib @ "class template %used_list_cache" @ %Cache $=
+		(
+			+ 'YB_ATTR_nodiscard YB_PURE' @ "function %get_max_use",
+			/ $design $impl "internal name for call to %ystdex::search_map_by"
+		),
+		+ "class template specializations %hash for %basic_string instances"
+			^ $dep_from ("%hash" @ %Hash) $dep_from "string view hash inclusion"
+			@ %String $dep_to "string hash fix",
+			// This fixes %std::hash specializations for different ISO C++ \
+				versions.
+		/ %HashTable $=
+		(
+			/ $impl "alias template %cache_default" ^ ("%is_fast_hash" @ %Hash)
+				~ "%std::__is_fast_hash",
+			+ $dev $lib "static assertion on the hash function type" @ "class \
+				template %table" ^ $dep_from ("%is_applicable_hash" @ %Hash),
+			(
+			/ $dev "(base class; type alias) %table_mixin"
+				@ "class template %table" -> "members";
+			- "class template %table_base"
+			),
+			(
+			/ $dev "(base class; type alias) %table_alloc_mixin"
+				@ "class template %table" -> "members";
+			- "class template %table_alloc"
+			),
+			/ DLDI "reordered class template specializations \
+				%table_local_iterator_base",
+			(
+			/ DLDI "simplified %table_local_iterator_base"
+				!^ "%hash_code_for_local_iter";
+			- "alias template %hash_code_for_local_iter"
+			),
+			(
+			- $revert(b966) "explicitly defaulted copy constructor"
+				@ "class template %hash_code_base";
+			* $comp "comparison object and hash function object unexpectedly \
+				copied instead of moved" @ ("function %move_assignment#2";
+				"move %operator=") @ "class template %table" $since b966
+				// This also clashed with the exception specification.
+			),
+			(
+			+ "2 functions %get_cache" @ "class template %hash_node_value";
+			/ DLDI "simplified function template %assign"
+				@ "class template %table" !^ "%hash_code_base::copy_code";
+			- "all 2 member functions %copy_code"
+				@ "class template %hash_code_base"
+			),
+			/ @ "all 2 class template specializations %hash_node_code_cache" $=
+			(
+				+ "function %assign",
+				+ "2 friend functions %operator=="
+			),
+			(
+			/ DLDI "simplified node insertion" ^ $dep_from
+				"%(hash_node_value::get_cache, hash_node_code_cache::assign)"
+				~ "%hash_code_base::store_code"
+			- "all 2 member functions %store_code"
+				@ "class template %hash_code_base"
+			),
+			/ "class template %hash_code_base" $=
+			(
+				+ "explicit exception specification if not existing"
+					@ "all %(get_hash_code, get_bucket_index)",
+				+ "static assertion" @ "%get_bucket_index#1"
+					^ "%ynoexcept_assert",
+				/ "merged %get_bucket_index#(1, 2) as a function template";
+				/ "last template parameter" -> ("parameter" @ "function \
+					templates %(get_hash_code#3, get_bucket_index#2)")
+			),
+			- "1st parameter" @ "class templates %(hash_code_base, \
+				table_local_iterator_base, table_local_iterator, \
+				table_local_const_iterator)",
+			/ "all %get_table_ptr" @ "class template %hash_code_storage"
+				=> "%get_ptr",
+				// The renaming reflects the fact that the result may be only \
+					pointing the mixin object holding the hash function object \
+					in the local iterators rathar than in tables.
+			(
+			/ DLDI "class %hash_node_value" ^ "%typed_storage"
+				^ "%hash_node_value_base";
+			- $revert(b967) "alias template %hash_node_value"
+			),
+			* $re_add(b966) "incorrect exception specification" @ "%operator++"
+				@ "class templates %(table_local_iterator, \
+				table_local_const_iterator)" $since b967
+				$= (/ 'ynothrow' -> 'ynothrowv'),
+			/ DLDI "simplified explicit constructor with 4 parameters"
+				^ 'yunseq',
+			/ DLDI "simplified all variable names of node generators",
+			/ "2 constructor templates with iterator range or \
+				%std::initializer parameters for equal keys"
+				-> "constructor template with iterator range and 4 defualt \
+				arguments for equal keys" !^ "%unique_keys"
+		),
+		/ $src "all use of %std::hash except for template argument of \
+			%std::hash specializations or hash to known types not \
+			program-defined"
+			-> $dep_from ("%hash" @ %Hash) @ %(Hash, UnorderedMap),
+			// This is assumed compatible in the source.
+		/ %Compose $=
+		(
+			/ DLDI "header inclusion %IntegerSequence" -> "%Hash";
+			+ "functor %get_hash" ^ $dep_from ("%hash" @ %Hash)
+		),
+		/ $re_add(b966) DLDI "all '::value' not forming an operand to an \
+			operator and not after a qualified type-id" @ "non-type argument \
+			of some metafunctions" -> '{}' @ (%Optional $effective
+			@ ("constructor #(3, 4, 5, 6, 7, 8)", "all 3 %operator=")
+			@ "class %optional", %Cache $effective @ "return type" @ "function \
+			template %emplace#3" @ "class template %used_list_cache", %Allocator
+			$effective ("internal workaround for %tuple" @ $impl "function \
+			template %uninitialized_construct_using_allocator", "default \
+			template arugment" @ "metafunction %nested_allocator_base",
+			"internal metafunction" @ $impl "metafunction has_get_allocator",
+			"internal SFINAE enabler" @ $impl "class templates \
+			%(allocator_guard_delete, allocator_delete)"), %Set $effective
+			@ $impl "%details::tcompare"),
+		(
+		/ %Allocator $=
+		(
+			* DD "unbalanced Doxygen group markers" $since b941,
+			+ "function template %expects_equal_allocators"
+		);
+		/ $dev "simplified assertion" @ ("function %rb_verify", \
+			functions %(merge_unique, merge_equal)) @ "class template %tree"
+			@ %Tree ^ ("%ystdex::expects_equal_allocators" @ %Allocator)
+			~ "%YAssert"
+		),
+		/ @ ("%(merge_unique, merge_equal, reinsert_node_unique, \
+			reinsert_node_equal)" @ ("class template %tree"
+			@ %Tree, "class template %table" @ %HashTable), ("functions \
+			%(reinsert_node_hint_unique, reinsert_node_hint_equal)"
+			@ "class template %tree" @ %Tree)) $=
+		(
+			+ $dev $lib "assertion to ensure allocators equality"
+				^ ($dep_from "%ystdex::expects_equal_allocators" @ %Allocator);
+			+ DD "'\pre' command" @ "Doxygen comment"
+		),
+		/ %Set $=
+		(
+			/ @ "class template %mapped_set" $=
+			(
+				+ $dev "2 static assertions for %value_type and \
+					%allocator_type",
+				/ DLI "fixed %YB_Impl_Set_UseGenericLookup implmenetation and \
+					removed the macro definition for exposition with renamed \
+					macro %YB_Impl_MappedSet_UseGenericLookup",
+				+ "(function, function template) %contains",
+				+ DLDI 'inline' @ "all function template with transparent key \
+					parameter",
+				/ $lib "stengthened exception specification" @ "function %swap"
+			),
+			/ DLDI "all '::value' not forming an operand to an operator and \
+				not after a qualified type-id" @ "operand of %noexcept operator"
+				-> '()' $effective "function %swap"
+				@ "class template %mapped_set",
+				// This excludes the case like the operator of '!' to prevent \
+					introducing of ADL which requires the type argument \
+					complete, as well as the contexts needing 'typename' which \
+					is even more lengthy.
+			+ "header inclusion <set>",
+			+ "class template name definition %multiset",
+			+ "class template %set"
+		),
+		/ $dev @ "class template %list" @ %List $=
+		(
+			+ $doc "'\see' command" @ "Doxygen comment" @ "functions %splice"
+				@ "internal class template",
+			/ $lib $design $impl "simplified static assertion for %value_type"
+				^ "%is_unqualified_object"
+				~ "%(and_, is_object, is_unqualified)",
+			/ $re_add(b966) $lib $design $impl "reordered declarations of \
+				friend functions %(operator(==, <)) with other members",
+			/ @ "%(splice, merge)" $=
+			(
+				/ $lib $design $impl "simplified assertions"
+					^ "%ystdex::expects_equal_allocators",
+				+ $doc "'\pre' command" @ "Doxygen comment"
+			)
+		),
+		/ "assignment operators" @ "class templates %(allocator_delete, \
+			allocator_guard_delete)" @ %YBase.YStandardEx.Allocator $=
+		(
+			/ "kept all non-defaulted overloads 'ynothrow'",
+			- 'ynothrow' @ "defaulted move %operator="
+		)
+	),
+	/ $re_add(b966) DLDI "simplified in-class definition without template \
+		argument list on parameters" @ "friend function %swap" $effective
+		@ ("class template %list" @ %List, "class template %Set" @ %Set)
+		@ %YBase.YStandardEx,
+	/ %YFramework $=
+	(
+		/ %YCLib.Container $=
+		(
+			/ $src "all container templates" @ "inline namespace %containers"
+				^ ("%ystdex::hash" @ %YBase.YStandardEx) ~ "%std::hash"
+				$effective @ "%(unordered_map, unordered_set, \
+				unordered_multimap, unordered_multiset)";
+				// This is also necessary to remain the source compatibility \
+					for the change below.
+			- $revert_ex(b941) "class template specialization %std::hash for \
+				%platform::strings::basic_string" $dep_from "string hash fix";
+			* $comp "potential clash with %std::hash specialization for \
+				%std::basic_string" $since b941,
+				// This was wrong because %YB_Impl_String_has_P0254R2 had been \
+					undefined in %YBase.YStandardEx.String, so it would be \
+					unconditionally defined, clash with any %std::hash \
+					specializations for WG21 P1406R1, LWG 2978 or LWG 3705.
+			* DD "duplicated '\since' command" @ "Doxygen comment" $since b941,
+			(
+			/ "header inclusion <unordered_set>"
+				-> $dep_from %YBase.YStandardEx.UnorderedSet;
+			/ "alias template %unordered_map" ^ "%ystdex::unordered_set"
+				~ "%std::unordered_set"
+			),
+			(
+			/ "header inclusion <set>" -> $dep_from %YBase.YStandardEx.Set;
+			/ "alias template %unordered_set" ^ "%ystdex::set" ~ "%std::set"
+			)
+		),
+		/ %NPL $=
+		(
+			/ %NPLA1Internals $=
+			(
+				/ $dev @ "class %RecordCompressor" $=
+				(
+					// See $2023-02 @ %Documentation::Workflow.
+					/ "container types" ^ ($dep_from ("%ystdex::get_hash"
+						@ %YBase.YStandardEx.Compose), "%ystdex::get_equal_to")
+						~ "%ystdex::get_less" $=
+					(
+						/ "type %RecordInfo" ^ "%YSLib::unordered_map"
+							~ "%YSLib::map",
+						/ "type %RecordSet" ^ "%YSLib::unordered_set" ~ "%set"
+					),
+					/ $lib $impl "initialization of %ReferenceSet objects"
+						@ "constructor" ^ "%set::insert" ~ "initializer-list",
+					/ $lib $impl @ "function %Compress" $=
+					(
+						/ $design "simplified" ^ "%ystdex::erase_all_if",
+						/ $lib $impl "merging reachable set" ^ "%set::merge"
+							~ "%(set::insert, std::make_move_iterator)"
+							$dep_from ("%unordered_set" @ %YCLib.Container)
+							// This requires ISO C++17 if using %std::set.
+					)
+				),
+				* "missing overloads for %GLContinuation instances"
+					@ "function template %RelayCurrent"
+					@ 'NPL_Impl_NPLA1_Enable_Thunked \
+					&& !NPL_Impl_NPLA1_Enable_InlineDirect' $since b960,
+			),
+			/ @ "namespace %Forms" @ %NPLA1Forms $=
+			(
+				/ DLI @ "functions %('Lambda*', 'WVau*', 'Vau*', 'Let*',
+					MakeEnvironment, AsEnvironment, ProvideLet)" $=
+				(
+					+ 'YB_PURE' @ "internal environment resolving functions",
+					/ "simplified creation of parent leaf objects",
+						// Also to eliminate Clang++ warning: \
+							[-Wunused-variable].
+				),
+				* $comp "ill-formed call" @ ('NPL_Impl_NPLA1_Enable_Thunked \
+					&& !NPL_Impl_NPLA1_Enable_InlineDirect'
+					@ "functions %(LetAsterisk, LetAsteriskRef) $since b960
+					$dep_from ("%RelayCurrent" @ %NPLA1Internals)
+			),
+			+ $re_add(b966) DLI 'YB_ATTR_nodiscard' @ "all definitions \
+				with %DefGetter" @ ($effective "vau handler" @ $impl %NPLA1Forms
+				$effective "member functions \
+				%TCOAction::(ContextRef, GetTermRef, GetFrameRecordList)")
+		)
+	)
+),
+
+b966
 (
 	/ %YBase.YStandardEx $=
 	(

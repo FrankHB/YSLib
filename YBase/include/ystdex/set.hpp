@@ -1,5 +1,5 @@
 ﻿/*
-	© 2016-2019, 2021 FrankHB.
+	© 2016-2019, 2021, 2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,47 +11,624 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r1439
+\version r2073
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2021-09-26 04:23 +0800
+	2023-02-13 20:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Set
+
+提供 ISO C++17 标准库头 \c \<set> 兼容的替代接口和实现。
+包括以下已有其它实现支持的 ISO C++20 后的修改：
+LWG 2839 ：允许自转移赋值。
+包括以下扩展：
+允许不完整类型作为 map 的模板参数。
+同时提供基于 map 的 set 扩展。
 */
 
 
 #ifndef YB_INC_ystdex_set_hpp_
 #define YB_INC_ystdex_set_hpp_ 1
 
-#include "functor.hpp" // for lref, std::move, less, std::allocator,
-//	std::piecewise_construct, enable_if_transparent,
-//	std::count, std::lower_bound, std::upper_bound, std::equal_range;
+#include "map.hpp" // for "tree.h" (implying "range.hpp"),
+//	__cpp_lib_allocator_traits_is_always_equal, less, std::allocator,
+//	allocator_traits, id, std::move, lref, map, rebind_alloc_t,
+//	ystdex::emplace_hint_in_place, ystdex::as_const, ystdex::search_map_by,
+//	enable_if_transparent_t;
+#include <set> // for <set>, __cpp_lib_generic_associative_lookup,
+//	__cpp_lib_node_extract, std::initializer_list;
 #include "iterator.hpp" // for transformed_iterator,
 //	iterator_transformation::second, ystdex::reverse_iterator,
 //	ystdex::make_transform, index_sequence, std::tuple, std::forward_as_tuple,
 //	std::get;
-#include "map.hpp" // for "tree.h" (implying "range.hpp"), map,
-//	rebind_alloc_t, std::initializer_list, ystdex::search_map_by,
-//	ystdex::emplace_hint_in_place, ystdex::as_const;
 
 namespace ystdex
 {
 
-// NOTE: This is always true now since %ystdex::map is used.
+//! \since build 967
+//!@{
+#if false
+// NOTE: For exposition only. Since %ystdex::set has incomplete type support
+//	which is not guaranteed by ISO C++17 (even if guaranteed by libstdc++), it
+//	should not be in %cpp2017 inline namespace.
+#if (__cpp_lib_generic_associative_lookup >= 201304L \
+	|| __cplusplus >= 201402L) && ((__cpp_lib_allocator_traits_is_always_equal
+	>= 201411L \
+	&& __cpp_lib_node_extract >= 201606L) || __cplusplus >= 201606L)
+#	define YB_Has_Cpp17_set true
+#else
+#	define YB_Has_Cpp17_set false
+#endif
+#undef YB_Has_Cpp17_set
+#endif
+
+//! \todo 在其它头文件中提供实现。
+template<typename, typename, class>
+class multiset;
+
+/*!
+\ingroup YBase_replacement_features
+\brief 集合容器。
+\warning 非虚析构。
+\see Documentation::YBase @2.1.4.1 。
+\see Documentation::YBase @2.1.4.2 。
+
+类似 ISO C++17 的 std::set 的容器，但支持不完整类型作为键的类型。
+支持 WG21 P0458R2 。
+不完整类型的支持条件同 WG21 N4510 ，除对类型完整地要求扩展到键的类型。
+部分成员提供较 ISO C++17 更强的 noexcept 异常规范，除转移赋值略有不同。
+*/
+template<typename _tKey, typename _fComp = less<_tKey>,
+	class _tAlloc = std::allocator<_tKey>>
+class set : private totally_ordered<set<_tKey, _fComp, _tAlloc>>
+{
+	template<typename, typename>
+	friend struct details::rb_tree::tree_merge_helper;
+
+public:
+	using key_type = _tKey;
+	using key_compare = _fComp;
+	using value_type = _tKey;
+	using value_compare = _fComp;
+	// NOTE: Checks for %value_type and %_tAlloc is in instantiation of
+	//	%rep_type below.
+	using allocator_type = _tAlloc;
+
+private:
+	//! \since build 864
+	using ator_traits = allocator_traits<allocator_type>;
+	using rep_type = details::rb_tree::tree<key_type, value_type, id<>,
+		key_compare, allocator_type>;
+
+public:
+	using pointer = typename ator_traits::pointer;
+	using const_pointer = typename ator_traits::const_pointer;
+	using reference = value_type&;
+	using const_reference = const value_type&;
+	//! \note 实现定义：等价于 std::size_t 的类型。
+	using size_type = typename rep_type::size_type;
+	//! \note 实现定义：等价 std::ptrdiff_t 的类型。
+	using difference_type = typename rep_type::difference_type;
+	//! \note 实现定义：符合要求的未指定类型。
+	//!@{
+	using iterator = typename rep_type::iterator;
+	using const_iterator = typename rep_type::const_iterator;
+	//!@}
+	using reverse_iterator = typename rep_type::reverse_iterator;
+	using const_reverse_iterator = typename rep_type::const_reverse_iterator;
+	using node_type = typename rep_type::node_type;
+	using insert_return_type = typename rep_type::insert_return_type;
+
+private:
+	rep_type tree;
+
+public:
+	//! \see LWG 2193 。
+	set() yimpl(= default);
+	explicit
+	set(const allocator_type& a)
+		: tree(a)
+	{}
+	explicit
+	set(const _fComp& comp, const allocator_type& a = allocator_type())
+		: tree(comp, a)
+	{}
+	template<typename _tIn>
+	inline
+	set(_tIn first, _tIn last)
+		: tree()
+	{
+		tree.insert_range_unique(first, last);
+	}
+	template<typename _tIn>
+	inline
+	set(_tIn first, _tIn last, const allocator_type& a)
+		: tree(_fComp(), a)
+	{
+		tree.insert_range_unique(first, last);
+	}
+	template<typename _tIn>
+	inline
+	set(_tIn first, _tIn last, const _fComp& comp,
+		const allocator_type& a = allocator_type())
+		: tree(comp, a)
+	{
+		tree.insert_range_unique(first, last);
+	}
+	set(std::initializer_list<value_type> il, const _fComp& comp = _fComp(),
+		const allocator_type& a = allocator_type())
+		: tree(comp, allocator_type(a))
+	{
+		tree.insert_range_unique(il.begin(), il.end());
+	}
+	set(std::initializer_list<value_type> il, const allocator_type& a)
+		: tree(_fComp(), a)
+	{
+		tree.insert_range_unique(il.begin(), il.end());
+	}
+	set(const set&) yimpl(= default);
+	set(const set& s, const allocator_type& a)
+		: tree(s.tree, a)
+	{}
+	// XXX: The exception specification is strengthened. See the comment for the
+	//	move constructor of %ystdex::map.
+	set(set&&) yimpl(= default);
+	set(set&& s, const allocator_type& a)
+		yimpl(ynoexcept(is_nothrow_constructible<
+		rep_type, rep_type&&, const allocator_type&>()))
+		: tree(std::move(s.tree), a)
+	{}
+	~set() yimpl(= default);
+
+	set&
+	operator=(const set&) yimpl(= default);
+	// XXX: The exception specification is changed. See the comment for the move
+	//	assignment operator of %ystdex::map.
+	//! \see WG21 N4258 。
+	set&
+	operator=(set&&) yimpl(= default);
+	set&
+	operator=(std::initializer_list<value_type> il)
+	{
+		tree.assign_unique(il.begin(), il.end());
+		return *this;
+	}
+
+	YB_ATTR_nodiscard YB_PURE friend bool
+	operator==(const set& x, const set& y)
+	{
+		return x.tree == y.tree;
+	}
+
+	YB_ATTR_nodiscard YB_PURE friend bool
+	operator<(const set& x, const set& y)
+	{
+		return x.tree < y.tree;
+	}
+
+	YB_ATTR_nodiscard YB_PURE allocator_type
+	get_allocator() const ynothrow
+	{
+		return tree.get_allocator();
+	}
+
+	YB_ATTR_nodiscard YB_PURE iterator
+	begin() ynothrow
+	{
+		return tree.begin();
+	}
+	YB_ATTR_nodiscard YB_PURE const_iterator
+	begin() const ynothrow
+	{
+		return tree.begin();
+	}
+
+	YB_ATTR_nodiscard YB_PURE iterator
+	end() ynothrow
+	{
+		return tree.end();
+	}
+	YB_ATTR_nodiscard YB_PURE const_iterator
+	end() const ynothrow
+	{
+		return tree.end();
+	}
+
+	YB_ATTR_nodiscard YB_PURE reverse_iterator
+	rbegin() ynothrow
+	{
+		return tree.rbegin();
+	}
+	YB_ATTR_nodiscard YB_PURE const_reverse_iterator
+	rbegin() const ynothrow
+	{
+		return tree.rbegin();
+	}
+
+	YB_ATTR_nodiscard YB_PURE reverse_iterator
+	rend() ynothrow
+	{
+		return tree.rend();
+	}
+	YB_ATTR_nodiscard YB_PURE const_reverse_iterator
+	rend() const ynothrow
+	{
+		return tree.rend();
+	}
+
+	YB_ATTR_nodiscard YB_PURE const_iterator
+	cbegin() const ynothrow
+	{
+		return tree.begin();
+	}
+
+	YB_ATTR_nodiscard YB_PURE const_iterator
+	cend() const ynothrow
+	{
+		return tree.end();
+	}
+
+	YB_ATTR_nodiscard YB_PURE const_reverse_iterator
+	crbegin() const ynothrow
+	{
+		return tree.rbegin();
+	}
+
+	YB_ATTR_nodiscard YB_PURE const_reverse_iterator
+	crend() const ynothrow
+	{
+		return tree.rend();
+	}
+
+	YB_ATTR_nodiscard YB_PURE bool
+	empty() const ynothrow
+	{
+		return tree.empty();
+	}
+
+	YB_ATTR_nodiscard YB_PURE size_type
+	size() const ynothrow
+	{
+		return tree.size();
+	}
+
+	YB_ATTR_nodiscard YB_PURE size_type
+	max_size() const ynothrow
+	{
+		return tree.max_size();
+	}
+
+	template<typename... _tParams>
+	inline std::pair<iterator, bool>
+	emplace(_tParams&&... args)
+	{
+		return tree.emplace_unique(yforward(args)...);
+	}
+
+	template<typename... _tParams>
+	inline iterator
+	emplace_hint(const_iterator position, _tParams&&... args)
+	{
+		return tree.emplace_hint_unique(position, yforward(args)...);
+	}
+
+	std::pair<iterator, bool>
+	insert(const value_type& x)
+	{
+		return tree.insert_unique(x);
+	}
+	//! \see LWG 2354 。
+	std::pair<iterator, bool>
+	insert(value_type&& x)
+	{
+		return tree.insert_unique(std::move(x));
+	}
+	iterator
+	insert(const_iterator position, const value_type& x)
+	{
+		return tree.insert_hint_unique(position, x);
+	}
+	//! \see LWG 2354 。
+	iterator
+	insert(const_iterator position, value_type&& x)
+	{
+		return tree.insert_hint_unique(position, std::move(x));
+	}
+	//! \see LWG 2571 。
+	template<typename _tIn>
+	void
+	insert(_tIn first, _tIn last)
+	{
+		tree.insert_range_unique(first, last);
+	}
+	void
+	insert(std::initializer_list<value_type> il)
+	{
+		insert(il.begin(), il.end());
+	}
+
+	node_type
+	extract(const_iterator position)
+	{
+		YAssert(position != end(), "Invalid iterator value found.");
+		return tree.extract(position);
+	}
+	node_type
+	extract(const key_type& x)
+	{
+		return tree.extract(x);
+	}
+
+	//! \pre 间接断言：若最后一个参数非空，分配器和参数指定的容器分配器相等。
+	//!@{
+	insert_return_type
+	insert(node_type&& nh)
+	{
+		return tree.reinsert_node_unique(std::move(nh));
+	}
+	iterator
+	insert(const_iterator hint, node_type&& nh)
+	{
+		return tree.reinsert_node_hint_unique(hint, std::move(nh));
+	}
+	//!@}
+
+	//! \see LWG 2059 。
+	iterator
+	erase(iterator position)
+	{
+		return tree.erase(position);
+	}
+	iterator
+	erase(const_iterator position)
+	{
+		return tree.erase(position);
+	}
+	size_type
+	erase(const key_type& x)
+	{
+		return tree.erase(x);
+	}
+	iterator
+	erase(const_iterator first, const_iterator last)
+	{
+		return tree.erase(first, last);
+	}
+
+	// XXX: The exception specification is strengthened. See the comment for the
+	//	member function %swap of %ystdex::map.
+	//! \see WG21 N4258 。
+	void
+	swap(set& x) ynoexcept(yimpl(is_nothrow_swappable<_fComp>()))
+	{
+		ystdex::swap_dependent(tree, x.tree);
+	}
+	friend void
+	swap(set& x, set& y) ynoexcept_spec(x.swap(y))
+	{
+		x.swap(y);
+	}
+
+	void
+	clear() ynothrow
+	{
+		tree.clear();
+	}
+
+	//! \pre 间接断言：分配器和参数指定的容器分配器相等。
+	//!@{
+	template<typename _tCon2>
+	inline void
+	merge(set<_tKey, _tCon2, _tAlloc>& source)
+	{
+		tree.merge_unique(
+			details::rb_tree::tree_merge_helper<set, _tCon2>::get_tree(source));
+	}
+	template<typename _tCon2>
+	inline void
+	merge(set<_tKey, _tCon2, _tAlloc>&& source)
+	{
+		merge(source);
+	}
+	template<typename _tCon2>
+	inline void
+	merge(multiset<_tKey, _tCon2, _tAlloc>& source)
+	{
+		tree.merge_unique(
+			details::rb_tree::tree_merge_helper<set, _tCon2>::get_tree(source));
+	}
+	template<typename _tCon2>
+	inline void
+	merge(multiset<_tKey, _tCon2, _tAlloc>&& source)
+	{
+		merge(source);
+	}
+	//!@}
+
+	YB_ATTR_nodiscard YB_PURE key_compare
+	key_comp() const
+	{
+		return tree.key_comp();
+	}
+
+	YB_ATTR_nodiscard YB_PURE value_compare
+	value_comp() const
+	{
+		return value_compare(tree.key_comp());
+	}
+
+#define YB_Impl_Set_GenericLookupHead(_n) \
+	template<typename _tTransKey> \
+	YB_ATTR_nodiscard YB_PURE inline auto \
+	_n(const _tTransKey& x)
+
+	YB_ATTR_nodiscard YB_PURE iterator
+	find(const key_type& x)
+	{
+		return tree.find(x);
+	}
+	YB_Impl_Set_GenericLookupHead(find) -> decltype(tree.find_tr(x))
+	{
+		return tree.find_tr(x);
+	}
+	YB_ATTR_nodiscard YB_PURE const_iterator
+	find(const key_type& x) const
+	{
+		return tree.find(x);
+	}
+	YB_Impl_Set_GenericLookupHead(find) const -> decltype(tree.find_tr(x))
+	{
+		return tree.find_tr(x);
+	}
+
+	YB_ATTR_nodiscard YB_PURE size_type
+	count(const key_type& x) const
+	{
+		return contains(x) ? 1 : 0;
+	}
+	YB_Impl_Set_GenericLookupHead(count) const -> decltype(tree.count_tr(x))
+	{
+		// XXX: This cannot just use %find instead. See https://github.com/cplusplus/papers/issues/1037#issuecomment-960066305.
+		return tree.count_tr(x);
+	}
+
+	//! \see WG21 P0458R2 。
+	//!@{
+	YB_ATTR_nodiscard YB_PURE bool
+	contains(const key_type& x) const
+	{
+		return tree.find(x) != tree.end();
+	}
+	YB_Impl_Set_GenericLookupHead(contains) const
+		-> decltype(void(tree.find_tr(x)), true)
+	{
+		return tree.find_tr(x) != tree.end();
+	}
+	//!@}
+
+	YB_ATTR_nodiscard YB_PURE iterator
+	lower_bound(const key_type& x)
+	{
+		return tree.lower_bound(x);
+	}
+	YB_Impl_Set_GenericLookupHead(lower_bound)
+		-> decltype(iterator(tree.lower_bound_tr(x)))
+	{
+		return iterator(tree.lower_bound_tr(x));
+	}
+	YB_ATTR_nodiscard YB_PURE const_iterator
+	lower_bound(const key_type& x) const
+	{
+		return tree.lower_bound(x);
+	}
+	YB_Impl_Set_GenericLookupHead(lower_bound) const
+		-> decltype(const_iterator(tree.lower_bound_tr(x)))
+	{
+		return const_iterator(tree.lower_bound_tr(x));
+	}
+
+	YB_ATTR_nodiscard YB_PURE iterator
+	upper_bound(const key_type& x)
+	{
+		return tree.upper_bound(x);
+	}
+	YB_Impl_Set_GenericLookupHead(upper_bound)
+		-> decltype(iterator(tree.upper_bound_tr(x)))
+	{
+		return iterator(tree.upper_bound_tr(x));
+	}
+	YB_ATTR_nodiscard YB_PURE const_iterator
+	upper_bound(const key_type& x) const
+	{
+		return tree.upper_bound(x);
+	}
+	YB_Impl_Set_GenericLookupHead(upper_bound) const
+		-> decltype(const_iterator(tree.upper_bound_tr(x)))
+	{
+		return const_iterator(tree.upper_bound_tr(x));
+	}
+
+	YB_ATTR_nodiscard YB_PURE std::pair<iterator, iterator>
+	equal_range(const key_type& x)
+	{
+		return tree.equal_range(x);
+	}
+	YB_Impl_Set_GenericLookupHead(equal_range)
+		-> decltype(std::pair<iterator, iterator>(tree.equal_range_tr(x)))
+	{
+		return std::pair<iterator, iterator>(tree.equal_range_tr(x));
+	}
+	YB_ATTR_nodiscard YB_PURE std::pair<const_iterator, const_iterator>
+	equal_range(const key_type& x) const
+	{
+		return tree.equal_range(x);
+	}
+	YB_Impl_Set_GenericLookupHead(equal_range) const -> decltype(
+		std::pair<const_iterator, const_iterator>(tree.equal_range_tr(x)))
+	{
+		return
+			std::pair<const_iterator, const_iterator>(tree.equal_range_tr(x));
+	}
+
+#undef YB_Impl_Set_GenericLookupHead
+};
+
+namespace details
+{
+
+inline namespace rb_tree
+{
+
+//! \relates set
+template<typename _tKey, typename _fComp1, typename _tAlloc, typename _fComp2>
+struct
+	tree_merge_helper<ystdex::set<_tKey, _fComp1, _tAlloc>, _fComp2>
+{
+private:
+	friend class ystdex::set<_tKey, _fComp1, _tAlloc>;
+
+	YB_ATTR_nodiscard YB_PURE static auto
+	get_tree(set<_tKey, _fComp2, _tAlloc>& s) ynothrow -> decltype((s.tree))
+	{
+		return s.tree;
+	}
+	// XXX: Disabled to prevent ill-formed instantiation of incomplete types in
+	//	the trailing return type.
+	// TODO: Use complete %multiset implementation.
+#if false
+	YB_ATTR_nodiscard YB_PURE static auto
+	get_tree(multiset<_tKey, _fComp2, _tAlloc>& s) ynothrow
+		-> decltype((s.tree))
+	{
+		return s.tree;
+	}
+#endif
+};
+
+} // inline namespace rb_tree;
+
+} // namespace details;
+//!@}
+
+
+#if false
+// NOTE: For exposition effectively. This is always true now since %ystdex::map
+//	is used. See the old revision for fallback implementations which is cleanup
+//	away now (with %YB_Impl_Set_UseGenericLookup).
 // XXX: G++ 5.2.0 rejects generic associative lookup in debug mode of %std::map.
 // TODO: Find precise version supporting debug mode.
-#if true \
-	|| ((__cpp_lib_generic_associative_lookup >= 201304L \
+#if ((__cpp_lib_generic_associative_lookup >= 201304L \
 	|| __cplusplus >= 201402L) && !(defined(__GLIBCXX__) \
 	&& defined(_GLIBCXX_DEBUG)))
-#	define YB_Impl_Set_UseGenericLookup true
+#	define YB_Impl_MappedSet_UseGenericLookup true
 #else
-#	define YB_Impl_Set_UseGenericLookup false
+#	define YB_Impl_MappedSet_UseGenericLookup false
+#endif
 #endif
 
 //! \since build 679
@@ -60,7 +637,7 @@ namespace details
 
 //! \since build 680
 template<typename _tWrappedKey, typename _fComp,
-	bool = has_mem_is_transparent<_fComp>::value>
+	bool = has_mem_is_transparent<_fComp>{}>
 struct tcompare
 {
 	_fComp comp{};
@@ -153,20 +730,20 @@ public:
 集合类型底层使用 map 容器，并在修改容器时同时修改键但始终保持键的等价关系。
 为有效使用这些操作而不受 const 键的限制，使用特征扩展部分操作。
 用于 emplace 和 emplace_hint 的合式要求和作用包括：
-	<tt>get_value_key<key_type>(yforward(args)...)</tt> 合式，
+	\c get_value_key<key_type>(yforward(args)...) 合式，
 		其结果作为用于插入的键，是新创建的值或已有值的引用 \c k 。
-	若需以键 \c k 插入值， <tt>extend_key(yforward(k), *this)</tt> 合式。
-	对 key_type 类型的 get_value_key 实现应支持任意能被 emplace
-		和 emplace_hint 的参数组合，并返回适当的蕴含 key_type 比较的类型。
+	若需以键 \c k 插入值，<tt>extend_key(yforward(k), *this)</tt> 合式。
+	对 key_type 类型的 \c get_value_key 实现应支持任意能被 \c emplace
+		和 \c emplace_hint 的参数组合，并返回适当的蕴含 key_type 比较的类型。
 用于 \c insert 的 ADL 的合式要求和作用包括：
-	对被插入的元素 \c v ， <tt>set_value_move(v)</tt> 合式，
+	对被插入的元素 \c v ，\c set_value_move(v) 合式，
 		以保持键等价关系的方式转移资源。
 */
 template<typename _type>
 struct mapped_set_traits
 {
 	//! \note 覆盖实现可直接返回右值。
-	//@{
+	//!@{
 	/*!
 	\brief 从参数指定的透明比较的键转换为用于插入容器值的键的值。
 	\return 键的引用。
@@ -179,7 +756,7 @@ struct mapped_set_traits
 	}
 
 	//! \brief 从可选的参数中取键的值。
-	//@{
+	//!@{
 	static yconstfn auto
 	get_value_key() ynothrow -> decltype(_type())
 	{
@@ -191,8 +768,8 @@ struct mapped_set_traits
 	{
 		return x;
 	}
-	//@}
-	//@}
+	//!@}
+	//!@}
 
 	/*!
 	\brief 恢复元素的键。
@@ -241,9 +818,11 @@ class mapped_set
 public:
 	using traits_type = _tTraits;
 	//! \since build 665
-	//@{
+	//!@{
 	using key_type = _type;
 	using value_type = _type;
+	// NOTE: Checks for %value_type and %_tAlloc is in instantiation of
+	//	%umap_type below.
 	using key_compare = _fComp;
 	using value_compare = _fComp;
 	using allocator_type = _tAlloc;
@@ -460,7 +1039,7 @@ public:
 
 	使用指定参数构造元素插入容器。
 	*/
-	//@{
+	//!@{
 	template<typename... _tParams>
 	inline std::pair<iterator, bool>
 	emplace(_tParams&&... args)
@@ -499,7 +1078,7 @@ private:
 			return j;
 		}, ystdex::as_const(k), seq, pos));
 	}
-	//@}
+	//!@}
 
 	//! \since build 849
 	template<typename _func, typename _tKey, size_t... _vSeq, typename... _tSeq>
@@ -560,7 +1139,7 @@ public:
 
 private:
 	//! \since build 845
-	//@{
+	//!@{
 	static value_type
 	insert_forward(value_type& x)
 	{
@@ -600,7 +1179,7 @@ private:
 				insert_forward(x));
 		}, x, seq, pos);
 	}
-	//@}
+	//!@}
 
 public:
 	iterator
@@ -624,11 +1203,11 @@ public:
 		return iterator(m_map.erase(first.get(), last.get()));
 	}
 
-	//! \since build 830
+	// XXX: The exception specification is changed. See the comment for the
+	//	function %swap of %ystdex::map.
+	//! \since build 967
 	void
-	swap(mapped_set& s)
-		ynoexcept_spec(and_<typename allocator_traits<_tAlloc>::is_always_equal,
-		is_nothrow_move_assignable<_fComp>>::value)
+	swap(mapped_set& s) ynoexcept_spec(is_nothrow_move_assignable<_fComp>())
 	{
 		m_map.swap(s.m_map);
 	}
@@ -651,10 +1230,10 @@ public:
 		return m_map.key_comp().comp;
 	}
 
-#define YB_Impl_Set_GenericLookupHead(_n, _r) \
+#define YB_Impl_MappedSet_GenericLookupHead(_n, _r) \
 	template<typename _tTransKey, \
 		yimpl(typename = enable_if_transparent_t<_fComp, _tTransKey>)> \
-	YB_ATTR_nodiscard YB_PURE _r \
+	YB_ATTR_nodiscard YB_PURE inline _r \
 	_n(const _tTransKey& x)
 
 	YB_ATTR_nodiscard YB_PURE iterator
@@ -668,26 +1247,14 @@ public:
 		return const_iterator(m_map.find(mapped_key_type(x)));
 	}
 	//! \since build 678
-	YB_Impl_Set_GenericLookupHead(find, iterator)
+	YB_Impl_MappedSet_GenericLookupHead(find, iterator)
 	{
-#if YB_Impl_Set_UseGenericLookup
 		return iterator(m_map.find(x));
-#else
-		const auto i(lower_bound(x));
-
-		return i != end() && !gcomp()(x, *i) ? i : end();
-#endif
 	}
 	//! \since build 678
-	YB_Impl_Set_GenericLookupHead(find, const_iterator) const
+	YB_Impl_MappedSet_GenericLookupHead(find, const_iterator) const
 	{
-#if YB_Impl_Set_UseGenericLookup
 		return const_iterator(m_map.find(x));
-#else
-		const auto i(lower_bound(x));
-
-		return i != cend() && !gcomp()(x, *i) ? i : cend();
-#endif
 	}
 
 	YB_ATTR_nodiscard YB_PURE size_type
@@ -695,16 +1262,26 @@ public:
 	{
 		return m_map.count(mapped_key_type(x));
 	}
-	YB_Impl_Set_GenericLookupHead(count, size_type) const
+	YB_Impl_MappedSet_GenericLookupHead(count, size_type) const
 	{
-#if YB_Impl_Set_UseGenericLookup
 		return m_map.count(x);
-#else
-		const auto pr(equal_range(x));
-
-		return std::count(pr.first, pr.second, gcomp());
-#endif
 	}
+
+	/*!
+	\see WG21 P0458R2 。
+	\since build 967
+	*/
+	//!@{
+	YB_ATTR_nodiscard YB_PURE bool
+	contains(const key_type& x) const
+	{
+		return find(x) != end();
+	}
+	YB_Impl_MappedSet_GenericLookupHead(contains, bool) const
+	{
+		return find(x) != end();
+	}
+	//!@}
 
 	YB_ATTR_nodiscard YB_PURE iterator
 	lower_bound(const key_type& x)
@@ -717,22 +1294,14 @@ public:
 		return const_iterator(m_map.lower_bound(mapped_key_type(x)));
 	}
 	//! \since build 678
-	YB_Impl_Set_GenericLookupHead(lower_bound, iterator)
+	YB_Impl_MappedSet_GenericLookupHead(lower_bound, iterator)
 	{
-#if YB_Impl_Set_UseGenericLookup
 		return iterator(m_map.lower_bound(x));
-#else
-		return std::lower_bound(begin(), end(), x, gcomp());
-#endif
 	}
 	//! \since build 678
-	YB_Impl_Set_GenericLookupHead(lower_bound, const_iterator) const
+	YB_Impl_MappedSet_GenericLookupHead(lower_bound, const_iterator) const
 	{
-#if YB_Impl_Set_UseGenericLookup
 		return const_iterator(m_map.lower_bound(x));
-#else
-		return std::lower_bound(cbegin(), cend(), x, gcomp());
-#endif
 	}
 
 	YB_ATTR_nodiscard YB_PURE iterator
@@ -746,22 +1315,14 @@ public:
 		return const_iterator(m_map.upper_bound(mapped_key_type(x)));
 	}
 	//! \since build 678
-	YB_Impl_Set_GenericLookupHead(upper_bound, iterator)
+	YB_Impl_MappedSet_GenericLookupHead(upper_bound, iterator)
 	{
-#if YB_Impl_Set_UseGenericLookup
 		return iterator(m_map.upper_bound(x));
-#else
-		return std::upper_bound(begin(), end(), x, gcomp());
-#endif
 	}
 	//! \since build 678
-	YB_Impl_Set_GenericLookupHead(upper_bound, const_iterator) const
+	YB_Impl_MappedSet_GenericLookupHead(upper_bound, const_iterator) const
 	{
-#if YB_Impl_Set_UseGenericLookup
 		return const_iterator(m_map.upper_bound(x));
-#else
-		return std::upper_bound(cbegin(), cend(), x, gcomp());
-#endif
 	}
 
 	YB_ATTR_nodiscard YB_PURE std::pair<iterator, iterator>
@@ -779,30 +1340,23 @@ public:
 		return {const_iterator(pr.first), const_iterator(pr.second)};
 	}
 	//! \since build 678
-	YB_Impl_Set_GenericLookupHead(equal_range,
+	YB_Impl_MappedSet_GenericLookupHead(equal_range,
 		std::pair<iterator YPP_Comma iterator>)
 	{
-#if YB_Impl_Set_UseGenericLookup
 		const auto pr(m_map.equal_range(x));
 
 		return {iterator(pr.first), iterator(pr.second)};
-#else
-		return std::equal_range(begin(), end(), x, gcomp());
-#endif
 	}
 	//! \since build 678
-	YB_Impl_Set_GenericLookupHead(equal_range,
+	YB_Impl_MappedSet_GenericLookupHead(equal_range,
 		std::pair<const_iterator YPP_Comma const_iterator>) const
 	{
-#if YB_Impl_Set_UseGenericLookup
 		const auto pr(m_map.equal_range(x));
 
 		return {const_iterator(pr.first), const_iterator(pr.second)};
-#else
-		return std::equal_range(cbegin(), cend(), x, gcomp());
-#endif
 	}
-#undef YB_Impl_Set_GenericLookupHead
+
+#undef YB_Impl_MappedSet_GenericLookupHead
 
 private:
 	//! \since build 742
@@ -819,22 +1373,13 @@ private:
 		pr.first.amend(pr.second);
 	}
 
-#if !YB_Impl_Set_UseGenericLookup
-	//! \since build 680
-	mapped_key_compare
-	gcomp() const
-	{
-		return m_map.key_comp();
-	}
-#endif
-
 	template<typename _tIter>
 	static umap_pair
 	iter_trans(const _tIter& i)
 	{
 		return {mapped_key_type(*i), *i};
 	}
-	//@}
+	//!@}
 
 	//! \since build 844
 	friend void
@@ -843,8 +1388,6 @@ private:
 		x.swap(y);
 	}
 };
-
-#undef YB_Impl_Set_UseGenericLookup
 
 } // namespace ystdex;
 

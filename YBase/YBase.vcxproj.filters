@@ -311,6 +311,9 @@
     <ClInclude Include="include\ystdex\node_handle.hpp">
       <Filter>include\ystdex</Filter>
     </ClInclude>
+    <ClInclude Include="include\ystdex\unordered_set.hpp">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ystdex\cstdio.cpp">

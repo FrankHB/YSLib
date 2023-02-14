@@ -11,13 +11,13 @@
 /*!	\file allocator.hpp
 \ingroup YStandardEx
 \brief 分配器接口。
-\version r6109
+\version r6218
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-10 21:34:28 +0800
 \par 修改时间:
-	2023-01-16 01:32 +0800
+	2023-02-13 20:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,10 +31,11 @@
 #define YB_INC_ystdex_allocator_hpp_ 1
 
 #include "compressed_pair.hpp" // for internal "placement.hpp", <memory>,
-//	std::pair, false_, true_, std::allocator_arg, is_constructible, not_, and_,
-//	is_explicitly_constructible, is_implicitly_constructible, enable_if_t,
-//	detected_or_t, is_unqualified_object, is_copy_constructible, is_class_type,
-//	is_same, std::pointer_traits, std::declval, is_detected, detected_t,
+//	false_, std::pair, true_, std::uses_allocator, std::allocator_arg,
+//	is_constructible, not_, and_, is_explicitly_constructible,
+//	is_implicitly_constructible, enable_if_t, detected_or_t,
+//	is_unqualified_object, is_copy_constructible, is_class_type, is_same,
+//	std::pointer_traits, std::declval, is_detected, detected_t,
 //	is_detected_exact, cond, remove_cvref_t, bool_, is_lvalue_reference, cond_t,
 //	remove_reference_t, compressed_pair, compressed_pair_element,
 //	enable_if_convertible_t, enable_if_constructible_t, is_assignable,
@@ -57,13 +58,13 @@
 \see https://blogs.msdn.microsoft.com/vcblog/2016/01/22/vs-2015-update-2s-stl-is-c17-so-far-feature-complete/ 。
 \since build 834
 */
-//@{
+//!@{
 #ifndef __cpp_lib_allocator_traits_is_always_equal
 #	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201411L
 #		define __cpp_lib_allocator_traits_is_always_equal 201411L
 #	endif
 #endif
-//@}
+//!@}
 
 namespace ystdex
 {
@@ -85,17 +86,17 @@ namespace ystdex
 //	detect the existence of the features. This is not in ISO C++ or proposals
 //	and not used here.
 //! \since build 863
-//@{
+//!@{
 using std::uses_allocator_construction_args;
 using std::make_obj_using_allocator;
 using std::uninitialized_construct_using_allocator;
-//@}
+//!@}
 #else
 /*!
 \see WG21 P0591R4 。
 \since build 850
 */
-//@{
+//!@{
 namespace details
 {
 
@@ -308,7 +309,7 @@ struct ucua_func<std::pair<_type1, _type2>, _tAlloc>
 	template<typename _tParam1, typename _tParam2>
 	yconstfn enable_if_t<and_<not_<is_constructible<_tParam1, _tParam2>>,
 		is_explicitly_constructible<_type1, _tParam1>,
-		is_implicitly_constructible<_type2, _tParam2>>::value,
+		is_implicitly_constructible<_type2, _tParam2>>{},
 		std::pair<_type1, _type2>*>
 	operator()(_tParam1&& arg1, _tParam2&& arg2) const
 	{
@@ -318,7 +319,7 @@ struct ucua_func<std::pair<_type1, _type2>, _tAlloc>
 	template<typename _tParam1, typename _tParam2>
 	yconstfn enable_if_t<and_<not_<is_constructible<_tParam1, _tParam2>>,
 		is_implicitly_constructible<_type1, _tParam1>,
-		is_explicitly_constructible<_type2, _tParam2>>::value,
+		is_explicitly_constructible<_type2, _tParam2>>{},
 		std::pair<_type1, _type2>*>
 	operator()(_tParam1&& arg1, _tParam2&& arg2) const
 	{
@@ -328,7 +329,7 @@ struct ucua_func<std::pair<_type1, _type2>, _tAlloc>
 	template<typename _tParam1, typename _tParam2>
 	yconstfn enable_if_t<and_<not_<is_constructible<_tParam1, _tParam2>>,
 		is_explicitly_constructible<_type1, _tParam1>,
-		is_explicitly_constructible<_type2, _tParam2>>::value,
+		is_explicitly_constructible<_type2, _tParam2>>{},
 		std::pair<_type1, _type2>*>
 	operator()(_tParam1&& arg1, _tParam2&& arg2) const
 	{
@@ -356,7 +357,7 @@ uninitialized_construct_using_allocator(_type* p, const _tAlloc& a,
 	return ystdex::apply(details::ucua_func<_type, _tAlloc>{p},
 		ystdex::uses_allocator_construction_args<_type>(a, yforward(args)...));
 }
-//@}
+//!@}
 #endif
 
 
@@ -365,12 +366,12 @@ namespace details
 {
 
 //! \since build 830
-//@{
+//!@{
 #if !YB_Impl_has_allocator_traits_is_always_equal
 template<typename _type, typename... _tParams>
 using mem_is_always_equal_t = typename _type::is_always_equal;
 #endif
-//@}
+//!@}
 
 } // namespace details;
 
@@ -384,6 +385,7 @@ using std::allocator_traits;
 template<class _tAlloc>
 struct allocator_traits : std::allocator_traits<_tAlloc>
 {
+	//! \see WG21 N4258 。
 	using is_always_equal = detected_or_t<is_empty<_tAlloc>,
 		details::mem_is_always_equal_t, _tAlloc>;
 };
@@ -400,7 +402,7 @@ template<class _tAlloc>
 using alloc_value_t = typename allocator_traits<_tAlloc>::value_type;
 
 //! \since build 867
-//@{
+//!@{
 template<class _tAlloc>
 using alloc_pointer_t = typename allocator_traits<_tAlloc>::pointer;
 
@@ -413,13 +415,13 @@ using alloc_size_type_t = typename allocator_traits<_tAlloc>::size_type;
 template<class _tAlloc>
 using alloc_difference_type_t
 	= typename allocator_traits<_tAlloc>::difference_type;
-//@}
+//!@}
 
 /*!
 \ingroup binary_type_traits
 \since build 848
 */
-//@{
+//!@{
 template<class _tAlloc, typename _type>
 using rebind_alloc_t
 	= typename allocator_traits<_tAlloc>::template rebind_alloc<_type>;
@@ -427,7 +429,7 @@ using rebind_alloc_t
 template<class _tAlloc, typename _type>
 using rebind_traits_t
 	= typename allocator_traits<_tAlloc>::template rebind_traits<_type>;
-//@}
+//!@}
 
 
 /*!
@@ -447,7 +449,7 @@ namespace details
 {
 
 //! \since build 746
-//@{
+//!@{
 template<typename _type, typename... _tParams>
 using mem_new_t
 	= decltype(_type::operator new(std::declval<_tParams>()...));
@@ -455,14 +457,14 @@ using mem_new_t
 template<typename _type, typename... _tParams>
 using mem_delete_t
 	= decltype(_type::operator delete(std::declval<_tParams>()...));
-//@}
+//!@}
 
 template<typename _type>
 using is_copy_constructible_class
 	= and_<is_copy_constructible<_type>, is_class_type<_type>>;
 
 //! \since build 867
-//@{
+//!@{
 template<class _tAlloc>
 using mem_pointer_t = typename _tAlloc::pointer;
 
@@ -540,24 +542,24 @@ struct is_allocator
 
 template<typename _type, typename _tValue>
 using same_alloc_value_t = is_same<alloc_value_t<_type>, _tValue>;
-//@}
+//!@}
 
 //! \since build 650
 template<typename _type>
 using nested_allocator_t = typename _type::allocator_type;
 
 //! \since build 887
-//@{
+//!@{
 template<typename _type>
 using mem_get_allocator_t
 	= decltype(std::declval<const _type&>().get_allocator());
 
 template<typename _type,
 	typename _tAlloc = remove_cvref_t<mem_get_allocator_t<_type>>>
-struct check_get_allocator : bool_<is_allocator<_tAlloc>::value
+struct check_get_allocator : bool_<is_allocator<_tAlloc>{}
 	&& noexcept(std::declval<const _type&>().get_allocator())>
 {};
-//@}
+//!@}
 
 } // namespace details;
 
@@ -565,7 +567,7 @@ struct check_get_allocator : bool_<is_allocator<_tAlloc>::value
 \ingroup type_traits_operations
 \since build 746
 */
-//@{
+//!@{
 template<typename _type, typename... _tParams>
 struct has_mem_new : is_detected<details::mem_new_t, _type, _tParams...>
 {};
@@ -573,7 +575,7 @@ struct has_mem_new : is_detected<details::mem_new_t, _type, _tParams...>
 template<typename _type, typename... _tParams>
 struct has_mem_delete : is_detected<details::mem_delete_t, _type, _tParams...>
 {};
-//@}
+//!@}
 
 
 /*!
@@ -582,7 +584,7 @@ struct has_mem_delete : is_detected<details::mem_delete_t, _type, _tParams...>
 \see ISO C++17 [allocator.requirements] 。
 \since build 867
 */
-//@{
+//!@{
 /*!
 \ingroup unary_type_traits
 \brief 判断类型是分配器。
@@ -616,11 +618,11 @@ struct is_allocator_for : cond_or_t<is_allocator<_type>, false_,
 template<typename _type>
 struct is_byte_allocator : is_allocator_for<_type, byte>
 {};
-//@}
+//!@}
 
 
 //! \since build 650
-//@{
+//!@{
 /*!
 \ingroup unary_type_traits
 \brief 判断类型具有嵌套的成员 allocator_type 指称一个构造器类型。
@@ -640,7 +642,7 @@ template<typename _type, class _tDefault = std::allocator<_type>>
 struct nested_allocator : cond<has_nested_allocator<_type>,
 	detected_t<details::nested_allocator_t, _type>, _tDefault>
 {};
-//@}
+//!@}
 
 
 /*!
@@ -648,8 +650,8 @@ struct nested_allocator : cond<has_nested_allocator<_type>,
 \warning 非虚析构。
 \since build 844
 */
-//@{
-template<class _tCon, bool = has_nested_allocator<_tCon>::value>
+//!@{
+template<class _tCon, bool = has_nested_allocator<_tCon>{}>
 struct nested_allocator_base
 {
 	using allocator_type = typename _tCon::allocator_type;
@@ -658,7 +660,7 @@ struct nested_allocator_base
 template<class _tCon>
 struct nested_allocator_base<_tCon, false>
 {};
-//@}
+//!@}
 
 
 /*!
@@ -689,8 +691,23 @@ struct allocator_deleter_traits : allocator_traits<remove_cvref_t<_tAlloc>>
 };
 
 
+//! \since build 967
+template<class _type, class _type2>
+void
+expects_equal_allocators(const _type& x, const _type2& y, false_) ynothrowv
+{
+	yunused(x), yunused(y);
+	yverify(x.get_allocator() == y.get_allocator());
+}
+//! \since build 967
+template<class _type, class _type2>
+void
+expects_equal_allocators(const _type&, const _type2&, true_) ynothrow
+{}
+
+
 //! \since build 843
-//@{
+//!@{
 template<class _tAlloc>
 yconstfn_relaxed void
 do_alloc_on_copy(_tAlloc&, const _tAlloc&, false_) ynothrow
@@ -730,7 +747,7 @@ do_alloc_on_swap(_tAlloc& x, _tAlloc& y, true_)
 {
 	ystdex::swap_dependent(x, y);
 }
-//@}
+//!@}
 
 } // namespace details;
 
@@ -739,7 +756,7 @@ do_alloc_on_swap(_tAlloc& x, _tAlloc& y, true_)
 \note 模板参数可能是引用。
 \see $2018-12 @ %Documentation::Workflow.
 */
-//@{
+//!@{
 /*!
 \brief 释放分配器分配的存储资源的删除器。
 \since build 846
@@ -767,7 +784,7 @@ private:
 	//! \since build 965
 	template<typename _tParam>
 	using enable_alloc_assign_t
-		= enable_if_t<is_assignable<_tAlloc, _tParam>::value>;
+		= enable_if_t<is_assignable<_tAlloc, _tParam>{}>;
 
 public:
 	//! \since build 965
@@ -778,7 +795,7 @@ public:
 	using size_type = typename traits_type::size_type;
 
 	//! \since build 965
-	//@{
+	//!@{
 	allocator_guard_delete() = default;
 	//! \since build 937
 	template<class _tParam,
@@ -806,26 +823,39 @@ public:
 		: base(std::move(other.first()), other.second())
 	{}
 
+	// NOTE: All assignment operators shall not throw, as required by ISO C++
+	//	[unique.ptr.single.asgn]. So all assignment are specified 'ynothrow'
+	//	regardless of the underlying allocator assignment, except for the
+	//	explicitly defaulted move assignment operator. The defaulted one should
+	//	not be declared with explicit noexcept specification, to allow it
+	//	always well-formed without relying on the resolution of CWG 1778, as
+	//	well as the case where it has a throwing exception but actually
+	//	non-throwing.
+	//! \since build 967
+	//!@{
 	// NOTE: The allocator may have a deleted copy %operator=.
 	YB_ATTR_always_inline allocator_guard_delete&
-	operator=(const allocator_guard_delete& d)
+	operator=(const allocator_guard_delete& d) ynothrow
 	{
 		ystdex::copy_assign(get_allocator(), d.first());
 		return *this;			
 	}
+	// XXX: No 'ynothrow' is specified because the underlying assignment
+	//	operator might be deleted.
 	allocator_guard_delete&
-	operator=(allocator_guard_delete&&) ynothrow = default;
+	operator=(allocator_guard_delete&&) = default;
 	// NOTE: Ditto.
 	template<class _tOtherAlloc,
 		yimpl(typename = enable_ptr_conv_t<_tOtherAlloc>, typename
 		= enable_alloc_assign_t<const remove_reference_t<_tOtherAlloc>&>)>
 	YB_ATTR_always_inline inline allocator_guard_delete&
-	operator=(const allocator_guard_delete<_tOtherAlloc>& other)
+	operator=(const allocator_guard_delete<_tOtherAlloc>& other) ynothrow
 	{
 		ystdex::copy_assign(get_allocator(), other.first());
 		base::second_base().get_mutable() = other.second();
 		return *this;
 	}
+	//!@}
 	template<class _tOtherAlloc,
 		yimpl(typename = enable_ptr_conv_t<_tOtherAlloc>, typename
 		= enable_alloc_assign_t<remove_reference_t<_tOtherAlloc>&&>)>
@@ -834,7 +864,7 @@ public:
 	{
 		return *this = base(std::move(other.first()), other.second());
 	}
-	//@}
+	//!@}
 
 	//! \since build 595
 	void
@@ -901,7 +931,7 @@ private:
 	//! \since build 965
 	template<typename _tParam>
 	using enable_alloc_assign_t
-		= enable_if_t<is_assignable<_tAlloc, _tParam>::value>;
+		= enable_if_t<is_assignable<_tAlloc, _tParam>{}>;
 
 public:
 	//! \since build 965
@@ -910,7 +940,7 @@ public:
 	using pointer = typename traits_type::pointer;
 
 	//! \since build 965
-	//@{
+	//!@{
 	allocator_delete() = default;
 	//! \since build 847
 	template<class _tParam,
@@ -936,25 +966,29 @@ public:
 		: base(std::move(other.get_mutable()))
 	{}
 
+	// NOTE: As %allocator_guard_delete.
+	//! \since build 967
+	//!@{
 	// NOTE: The allocator may have a deleted copy %operator=.
 	YB_ATTR_always_inline allocator_delete&
-	operator=(const allocator_delete& d)
+	operator=(const allocator_delete& d) ynothrow
 	{
 		ystdex::copy_assign(get_allocator(), d.get());
 		return *this;			
 	}
 	allocator_delete&
-	operator=(allocator_delete&&) ynothrow = default;
+	operator=(allocator_delete&&) = default;
 	// NOTE: Ditto.
 	template<class _tOtherAlloc,
 		yimpl(typename = enable_ptr_conv_t<_tOtherAlloc>, typename
 		= enable_alloc_assign_t<const remove_reference_t<_tOtherAlloc>&>)>
 	YB_ATTR_always_inline inline allocator_delete&
-	operator=(const allocator_delete<_tOtherAlloc>& other)
+	operator=(const allocator_delete<_tOtherAlloc>& other) ynothrow
 	{
 		ystdex::copy_assign(get_allocator(), other.get());
 		return *this;
 	}
+	//!@}
 	template<class _tOtherAlloc,
 		yimpl(typename = enable_ptr_conv_t<_tOtherAlloc>, typename
 		= enable_alloc_assign_t<remove_reference_t<_tOtherAlloc>&&>)>
@@ -963,7 +997,7 @@ public:
 	{
 		return *this = base(std::move(other.get_mutable()));
 	}
-	//@}
+	//!@}
 
 	void
 	operator()(pointer p) const ynothrowv
@@ -982,15 +1016,14 @@ public:
 	// NOTE: As %allocator_guard_delete, %swap is omitted. This is not the same
 	//	to WG21 P0316R0.
 };
-//@}
+//!@}
 
 /*!
 \relates allocator_guard_delete
 \since build 926
 */
 template<typename _tAlloc>
-struct is_bitwise_swappable<allocator_delete<_tAlloc>>
-	: is_bitwise_swappable<
+struct is_bitwise_swappable<allocator_delete<_tAlloc>> : is_bitwise_swappable<
 	typename details::allocator_deleter_traits<_tAlloc>::delete_base>
 {};
 
@@ -1067,7 +1100,7 @@ allocate_unique(const _tAlloc& alloc, std::initializer_list<_tValue> il)
 }
 
 /*!
-\brief 使用分配器创建 std::shared_ptr 。
+\brief 使用分配器创建 \c std::shared_ptr 实例对象。
 \note 仅实现 WG21 P0674R1 和 ISO C++17 的交集，类似 libstdc++ 。
 \see LWG 2070 。
 \see https://developercommunity.visualstudio.com/content/problem/417142/lwg-2070p0674r1-stdallocate-shared-is-not-conformi.html
@@ -1088,7 +1121,7 @@ allocate_shared(const _tAlloc& alloc, _tParams&&... args)
 }
 #endif
 /*!
-\brief 使用分配器和初始化列表参数创建 std::shared_ptr 。
+\brief 使用分配器和初始化列表参数创建 \c std::shared_ptr 实例对象。
 \since build 851
 */
 template<typename _type, class _tAlloc, typename _tValue>
@@ -1103,7 +1136,7 @@ allocate_shared(const _tAlloc& alloc, std::initializer_list<_tValue> il)
 \ingroup allocators
 \since build 746
 */
-//@{
+//!@{
 /*!
 \brief 类分配器。
 \warning 非虚析构。
@@ -1140,11 +1173,28 @@ struct class_allocator : std::allocator<_type>
 template<typename _type>
 using local_allocator = cond_t<and_<has_mem_new<_type, size_t>,
 	has_mem_delete<_type*>>, class_allocator<_type>, std::allocator<_type>>;
-//@}
+//!@}
+
+
+/*!
+\brief 断言检查参数的分配器相等。
+\sa yverify
+\since build 967
+*/
+template<class _type, class _type2>
+void
+expects_equal_allocators(const _type& x, const _type2& y) ynothrowv
+{
+	using ator_t = remove_reference_t<decltype(x.get_allocator())>;
+
+	details::expects_equal_allocators(x, y, and_<is_same<ator_t,
+		remove_reference_t<decltype(y.get_allocator())>>,
+		typename allocator_traits<ator_t>::is_always_equal>());
+}
 
 
 //! \since build 830
-//@{
+//!@{
 //! \brief 按分配器特征在传播容器时复制赋值分配器。
 template<class _tAlloc>
 yconstfn_relaxed void
@@ -1188,13 +1238,13 @@ alloc_on_swap(_tAlloc& x, _tAlloc& y) ynothrow
 	details::do_alloc_on_swap(x, y,
 		typename allocator_traits<_tAlloc>::propagate_on_container_swap());
 }
-//@}
+//!@}
 
 #undef YB_Impl_has_allocator_traits_is_always_equal
 
 
 //! \since build 941
-//@{
+//!@{
 /*!
 \ingroup customization_points
 \ingroup traits
@@ -1312,7 +1362,7 @@ public:
 };
 
 //! \relates propagating_allocator_adaptor
-//@{
+//!@{
 template<class _tAlloc1, class _tTraits1, class _tAlloc2, class _tTraits2>
 YB_ATTR_nodiscard YB_ATTR_always_inline inline bool
 operator==(const propagating_allocator_adaptor<_tAlloc1, _tTraits1>& x,
@@ -1333,7 +1383,8 @@ template<class _tAlloc, class _tTraits>
 struct is_bitwise_swappable<propagating_allocator_adaptor<_tAlloc, _tTraits>>
 	: is_bitwise_swappable<_tAlloc>
 {};
-//@}
+//!@}
+//!@}
 
 } // namespace ystdex;
 

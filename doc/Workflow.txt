@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2022 FrankHB.
+	© 2013-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r5095
+\version r5123
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2022-10-15 21:37 +0800
+	2023-02-14 18:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -222,7 +222,7 @@ libmagic(https://github.com/glensc/file): rejected.
 $2013-11:
 
 report.impl:
-Marco '_GLIBCXX_DEBUG' should be removed as default, even in debug configurations.
+Macro '_GLIBCXX_DEBUG' should be removed as default, even in debug configurations.
 	The standard libray debugging interface introduced by macro '_GLIBCXX_DEBUG' of libstdc++ may be incompatible with libraries not built with this macro.
 	Though YSLib libraries are built with debug-aware configuration, currently the dependent libraries are not.
 	This particularly has effect on libFreeImage.a, which uses containers of C++ standard library internally. The instantialized template class across libraries are not the same, and not guaranteed to be binary compatible.
@@ -729,7 +729,7 @@ Distinguishing platforms should be care.
 				The target triplet is also different, like "i686-pc-msys".
 				To build and deploy programs in Windows, MinGW comes first rather than MSYS. Only when the compatiblity concerns, use MSYS might be proper.
 			For MinGW targets, there are also predefined macros.
-				The marco "_WIN32" and "_WIN64" are supported on both x86 and x64 editions of Windows and x64 Windows only, respectively.
+				The macro "_WIN32" and "_WIN64" are supported on both x86 and x64 editions of Windows and x64 Windows only, respectively.
 				Similarly, there are macros "__MINGW64__" and "__MINGW32__".
 					The macro "__MINGW32__" is supported by variety versions of MinGW like "mingw32" system name does.
 					The macro "__MINGW64__" is only supported on x64 Windows with MinGW-W64.
@@ -2488,7 +2488,7 @@ TCO (tail call optimization) algorithm in NPLA1 to support PTC (proper tail call
 						The static environment is still accessible after destroying the function object if referenced when the object kept alive (by one ore more strong reference).
 						Otherwise, it is a program error of ill-use of weak reference.
 			Then the "compress" method is called.
-			A new element is then inserted into the frame record list. The newly inserted frame element is the active frame components except the envrionment, and the environment stored in the guard object.
+			A new element is then inserted into the frame record list. The newly inserted frame element is the active frame components except the environment, and the environment stored in the guard object.
 			Finally, during the destruction of compressor, remained objects are collected.
 	The process of TCO tracing, check and collection is somewhat like tracing GC, but not the same.
 		The design here is conservative but accurate in collection.
@@ -2551,7 +2551,7 @@ $report.impl:
 Type of feature testing macro values are adjusted as WG21 P0941R2.
 	This is more consistent with '__cplusplus'.
 		Now it also supports implementations where the range of 'int' is not large enough to represent the values with a steady type ('long') instead of unspecified one of 'int' and 'long'.
-		Alhough currently no configuration of such implementation is known to  work with this project yet
+		Alhough currently no configuration of such implementation is known to work with this project yet
 	This is processed in definition sites using regular expression pattern 'define __cpp_([a-z_]+) (\d+)' replaced by 'define __cpp_$1 $2L' in the editor in VS 2017.
 		There are 27 matched cases.
 	This is then done in use sites using regular expression pattern '__cpp_([a-z_]+) ((<|>)\=?) (\d{6})(?!L)' replaced by '__cpp_$1 $2 $4L' in the editor in VS 2017.
@@ -4021,8 +4021,8 @@ The YSLib build scripts are revised and enhanced.
 			ASan has false positive of ODR uses.
 			LSan is known not working at current for stage 2 SHBuild.
 	The library building process in the build script 'SHBuild-YSLib-build.txt' has improved the compiler options configuration.
-		There is now a warning to indicate some fixes of flags is used.
-		As a workaround for performance, libYFramework dynamic builds with sanitizers adds more flags as the workaround.
+		There is now a warning to indicate some fixes of flags being used.
+		As a workaround for performance, libYFramework dynamic builds with sanitizers add more flags.
 			The configuration without such flags fix would cause extremely slow compilation for the dynamic release library.
 			It also requires a lot of memory. For example, compilation with '-fsanitize=address,undefined' by 'cc1plus' could stops on G++ 10.2.0 tree-ree (Redundant Extension Elimination) pass with a memory allocation failure.
 			The real issue is not in the '-O3' path, it also hangs on '-O1' (but not '-O0'), when the address sanitize is used.
@@ -4170,7 +4170,7 @@ NPLA1 implementation is continuously imporved.
 			When the combining request is missing, the term regularization is just ignored, which is wrong.
 				This would make impossible to preserve references in the middle of the tail call sequence if it is finally lifted.
 				Previously, the bug of those native implementation is hidden by the missing of the request.
-				As an optimization after the above fix  and the fix in 'Forms::AccR', 'Forms::FoldR1' and 'Forms::Map1', the combining request is now further removed totally.
+				As an optimization after the above fix and the fix in 'Forms::AccR', 'Forms::FoldR1' and 'Forms::Map1', the combining request is now further removed totally.
 			When the lifting request is handled, it is not consumed.
 				This would hide the bug of wrong reference handling when the enclosing call has required the lifting of the call result.
 				For example, the applcative 'list-concat' (defined by '$defl!') implementation was buggy but the bug was not shown, for subtle implementation-specific reasons.
@@ -4213,7 +4213,7 @@ $2021-03:
 
 report.impl:
 Module NPL is continuously improved.
-	Envrionment reference argument in construction of 'TermReference' in NPLA1 implementation is simplified.
+	Environment reference argument in construction of 'TermReference' in NPLA1 implementation is simplified.
 		The operation to perserve the tail anchor (originally introduced in module NPL::NPLA1 in build 869) is removed.
 			It is not safer once an unsafe term reference (without the associated environment reference) has been involved.
 			Due to lacking of presice information of the associated environment in the term reference, it is exactly unhelpful for more precise weak reference count used by TCO, which is the original purpose.
@@ -4274,8 +4274,8 @@ $2021-05:
 
 report.impl:
 The predefined macro '_GLIBCXX_DEBUG' is now removed from the compiler options.
-	This makes the binary images has more ABI stability by default.
-	It makes the library easier to be reuxed with other libraries having no such flags which exports %std containers in the public API, e.g. LLVM libraries in the %Release mode.
+	This makes the binary images more ABI stable by default.
+	It makes the built binary libraries easier to be reused with other libraries having no such flags which exports %std containers in the public API, e.g. LLVM libraries in the %Release mode.
 	This was actually once done before. See $2013-11 report.impl.
 		This is more or less for the same reason, except that libFreeImage.a is irrelavent as the C++ interface is never used.
 		The macro is re-enabled since build 564.
@@ -4357,7 +4357,7 @@ Captures of shared reference of environments in the NPLA1 implemtation has been 
 $2021-06:
 
 report.impl:
-The terminal support is improved.
+The terminal support in YFramework module YCLib::Host is improved.
 	In platform 'Win32', now terminal initialization detects mintty for better ANSI escape sequence handling.
 	ANSI escape sequence works on traditional MS-DOS consoles, Microsoft Windows on x86 platforms and Microsoft Windows >= 1809 Server 2019.
 		The last case is enabled by the new console with the ConPTY virtual terminal sequence translation support in 'conhost.exe'.
@@ -4527,7 +4527,7 @@ Several incorrect term behaviors different on NPLA1 native implementations and a
 		The bug would not show in the fixes of the applicative 'first' and other derivations implemented with the binding with '@' sigil and the (whether the old buggy one or the now corrected) 'collapse'.
 			Since the '@' bindings always strip tags other than 'TermTags::Nonmodifying' (as expected), there is no 'TermTags::Temporary' would be preserved in the result.
 			The only difference for '@' bindings is on the 'TermTags::Nonmodifying' which has not been found unexpected preserved somewhere.
-	All these bugs in the list accessors and the assignments may have effect on the applicative 'force' in the NPLA1 module  'std.promises'.
+	All these bugs in the list accessors and the assignments may have effect on the applicative 'force' in the NPLA1 module 'std.promises'.
 
 $2021-09:
 
@@ -5032,6 +5032,23 @@ Implementations related to 'ystdex::apply' are revised and some bugs are fixed.
 			For the function template 'call', 'YB_ATTR_always_inline' is added only when 'defined(__linux__) && !__OPTIMIZE__'.
 		The implementation of trailing parameter with the default argument (in the specialization of function types) is now removed because it is redundant when the trailing return type exists.
 			This should be better for inheriting with using-declarations when the argument before it is deduced, such as in 'ystdex::expand_proxy'.
+
+$2023-02:
+
+report.impl:
+New containers from 'ystdex' are used in YFramework module YCLib::Container and they contribute to the NPL implementation.
+	NPLA name lookup now uses 'YSLib::unordered_map' (alias of 'ystdex::unordered_map') and transparent key hashing from YBase.YStandardEx.String to get some performance improve.
+		Since 'std::unordered_map' in ISO C++11 does not support transparent key hashing, it is inefficient for NPLA.
+	Record compression in NPLA1 also uses new unordered containers.
+		Using 'YSLib::unordered_map' for 'RecordInfo' is a bit more efficient.
+		Keeping 'set' for 'ReferenceSet' instead of 'YSLib::unordered_set' is likely more efficient only when 'ReferenceSet::merge' is not used in 'RecordCompressor::Compress'.
+			'YSLib::unordered_set' supports 'ReferenceSet::merge' and it makes the implementation clearer.
+		The change in 'YSLib::set' (from 'std::set' to 'ystdex::set' by module YCLib::Container makes it a bit more efficient in every cases when 'set' is used.
+			Although still not better than the original implementation, the allowance to use 'ReferenceSet::Extract' makes the implementation clearer.
+		Initialization of 'ReferenceSet' objects now uses additional 'insert' call instead of the brace-init-list syntax.
+			Since it is known that a sole element is needed, explicit 'insert' is more efficient than iteration on the initialization list, whatever 'ReferenceSet' is changed (or not) above.
+			The initialization list always copy the value, but for a value of reference wrapper, this makes no big difference.
+			The mem-initializer of the reference set member object needs to change anyway after 'ReferenceSet' is changed to an unordered container because a sole initializer-list and allocator argument do not match a constructor.
 
 ////
 

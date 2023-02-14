@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2022 FrankHB.
+	© 2013-2016, 2018-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cache.hpp
 \ingroup YStandardEx
 \brief 高速缓冲容器模板。
-\version r751
+\version r773
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-12-22 20:19:14 +0800
 \par 修改时间:
-	2022-11-21 07:14 +0800
+	2023-02-06 22:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 //	nor_, is_convertible, enable_if_convertible_t, std::piecewise_construct_t,
 //	std::get, std::piecewise_construct, enable_if_t, head_of_t;
 #include <list> // for std::list;
-#include "scope_guard.hpp" // for std::hash, optional_function, std::ref,
+#include "scope_guard.hpp" // for hash, optional_function, std::ref,
 //	ystdex::make_unique_guard, ystdex::dismiss;
 #include <unordered_map> // for std::unordered_map;
 #include <map> // for std::map;
@@ -43,7 +43,7 @@ namespace ystdex
 {
 
 //! \since build 611
-//@{
+//!@{
 /*!
 \brief 使用双向链表实现的最近使用列表。
 \note 保证移除项时的顺序为最远端先移除。
@@ -152,8 +152,8 @@ public:
 \brief 最近刷新策略的缓存特征。
 \ingroup traits
 */
-//@{
-template<typename _tKey, typename _tMapped, typename _fHash = std::hash<_tKey>,
+//!@{
+template<typename _tKey, typename _tMapped, typename _fHash = hash<_tKey>,
 	class _tAlloc = std::allocator<std::pair<const _tKey, _tMapped>>,
 	class _tList = recent_used_list<_tKey, _tMapped, _tAlloc>>
 struct used_list_cache_traits
@@ -175,7 +175,7 @@ struct used_list_cache_traits<_tKey, _tMapped, void, _tAlloc, _tList>
 		typename map_type::key_compare, rebind_alloc_t<_tAlloc,
 		std::pair<const _tKey, typename _tList::iterator>>>;
 };
-//@}
+//!@}
 
 
 /*!
@@ -215,10 +215,10 @@ private:
 	\invariant <tt>std::count(used_list.begin(), used_list.end())
 		== used_cache.size()</tt> 。
 	*/
-	//@{
+	//!@{
 	mutable used_list_type used_list;
 	used_cache_type used_cache;
-	//@}
+	//!@}
 	//! \brief 保持可以再增加一个缓存项的最大容量。
 	size_type max_use;
 
@@ -236,13 +236,13 @@ public:
 		: used_list(), used_cache(), max_use(s)
 	{}
 	//! \note 强异常安全保证依赖模板参数指定的容器转移时都不抛出异常。
-	//@{
+	//!@{
 	used_list_cache(used_list_cache&&) = default;
 
 	//! \since build 878
 	used_list_cache&
 	operator=(used_list_cache&&) = default;
-	//@}
+	//!@}
 
 private:
 	//! \since build 595
@@ -253,7 +253,7 @@ private:
 	}
 
 public:
-	size_type
+	YB_ATTR_nodiscard YB_PURE size_type
 	get_max_use() const ynothrow
 	{
 		return max_use;
@@ -268,7 +268,7 @@ public:
 	}
 
 	//! \since build 611
-	//@{
+	//!@{
 	YB_ATTR_nodiscard YB_PURE iterator
 	begin() ynothrow
 	{
@@ -279,7 +279,7 @@ public:
 	{
 		return ystdex::begin(used_list);
 	}
-	//@}
+	//!@}
 
 	//! \since build 942
 	YB_ATTR_nodiscard YB_PURE friend inline iterator
@@ -313,7 +313,7 @@ public:
 	}
 	//! \since build 942
 	template<typename... _tParams>
-	yimpl(enable_if_t)<not_key_t<head_of_t<_tParams...>>::value,
+	yimpl(enable_if_t)<not_key_t<head_of_t<_tParams...>>{},
 		std::pair<iterator, bool>>
 	emplace(_tParams&&... args)
 	{
@@ -342,12 +342,12 @@ private:
 		check_max_used();
 
 		const auto pr(ystdex::search_map_by(
-			[&](typename used_cache_type::const_iterator j){
-			const auto i(used_list.emplace(yforward(args)...));
+			[&](typename used_cache_type::const_iterator i){
+			const auto j(used_list.emplace(yforward(args)...));
 			auto gd(ystdex::make_unique_guard([&]() ynothrowv{
 				used_list.undo_emplace();
 			}));
-			const auto r(used_cache.emplace_hint(j, k, i));
+			const auto r(used_cache.emplace_hint(i, k, j));
 
 			ystdex::dismiss(gd);
 			return r;
@@ -358,7 +358,7 @@ private:
 	
 public:
 	//! \since build 611
-	//@{
+	//!@{
 	YB_ATTR_nodiscard YB_PURE iterator
 	end() ynothrow
 	{
@@ -369,7 +369,7 @@ public:
 	{
 		return ystdex::end(used_list);
 	}
-	//@}
+	//!@}
 
 	YB_ATTR_nodiscard iterator
 	find(const key_type& k)
@@ -387,7 +387,7 @@ public:
 	}
 
 	//! \since build 646
-	//@{
+	//!@{
 	YB_ATTR_nodiscard YB_PURE const used_cache_type&
 	get() const ynothrow
 	{
@@ -399,7 +399,7 @@ public:
 	{
 		return used_list;
 	}
-	//@}
+	//!@}
 
 	//! \since build 611
 	YB_ATTR_nodiscard YB_PURE size_type
@@ -408,7 +408,7 @@ public:
 		return used_cache.size();
 	}
 };
-//@}
+//!@}
 
 
 /*!

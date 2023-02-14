@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r3474
+\version r3606
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2023-01-26 05:09 +0800
+	2023-02-07 22:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,25 +28,25 @@
 #ifndef YB_INC_ystdex_string_hpp_
 #define YB_INC_ystdex_string_hpp_ 1
 
+#include "string_view.hpp" // for internal "string_view.hpp" (implying
+//	"range.hpp" and "<libdefect/string.h>"), std::basic_string, hash, std::hash,
+//	basic_string_view, std::char_traits, std::initializer_list, is_fast_hash,
+//	std::bidirectional_iterator_tag, std::to_string;
 #include "allocator.hpp" // for internal "allocator.hpp", allocator_traits,
 //	enable_if_t, remove_cvref_t, false_, is_object, decay_t, std::declval,
 //	true_, nested_allocator, or_, is_same, is_enum, yconstraint, is_class,
 //	is_equal, enable_if_inconvertible_t, yassume, YAssert;
-#include "string_view.hpp" // for internal "string_view.hpp" (implying
-//	"range.hpp" and "<libdefect/string.h>"), std::basic_string,
-//	basic_string_view, std::char_traits, std::initializer_list, string_view_t,
-//	std::to_string;
 #include "container.hpp" // for "container.hpp", enable_for_input_iterator_t,
-//	std::hash, make_index_sequence, index_sequence, begin, end, empty, size,
+//	make_index_sequence, index_sequence, begin, end, empty, size,
 //	ystdex::sort_unique, ystdex::underlying;
-#include "cstring.h" // for ystdex::ntctslen;
-#include "cstdio.h" // for vfmtlen, ystdex::is_null;
-#include "array.hpp" // for std::bidirectional_iterator_tag, to_array;
+#include "cstring.h" // for ystdex::ntctslen, ystdex::is_null;
+#include "array.hpp" // for to_array;
 #include <istream> // for std::basic_istream;
 #include "ios.hpp" // for rethrow_badstate;
 #include <ostream> // for std::basic_ostream;
-#include <sstream> // for std::ostringstream, std::wostring_stream;
+#include <sstream> // for std::basic_ostringstream;
 #include <cstdarg> // for std::va_list;
+#include "cstdio.h" // for ystdex::vfmtlen;
 
 namespace ystdex
 {
@@ -75,6 +75,11 @@ using std::basic_string;
 */
 template<typename _tChar, class _tTraits = std::char_traits<_tChar>,
 	class _tAlloc = std::allocator<_tChar>>
+// NOTE: Since %basic_string and %std::basic_string are supposed to be one
+//	(higher-order) type ideally, they are bivariant, so %basic_string inherits
+//	%std::basic_string publicly and there is no 'explicit' on the constructor
+//	with parameter of the base type (i.e. the inherited %std::basic_string
+//	instance).
 class basic_string : yimpl(public) std::basic_string<_tChar, _tTraits, _tAlloc>
 {
 private:
@@ -781,6 +786,77 @@ using u32string = basic_string<char32_t>;
 
 } // inline namesapce cpp2017;
 
+#if YB_Impl_String_has_P0254R2
+// XXX: Instead of specializations on %std::hash, specialize %hash here.
+/*!
+\ingroup hashers
+\relates basic_string
+\see WG21 P1406R1 。
+\see LWG 2978 。
+\see LWG 3705 。
+\since build 967
+*/
+//!@{
+#	if false
+// XXX: This is only correct when all specializations of %std::hash for
+//	%std::basic_string are correct, i.e. both the resoultions of LWG 2791 and
+//	LWG 3705 are implemented. At current this is not reliably detectable.
+template<typename _tChar, class _tTraits, class _tAlloc>
+struct hash<basic_string<_tChar, _tTraits, _tAlloc>>
+	: std::hash<basic_string<_tChar, _tTraits, _tAlloc>>
+{};
+#	else
+template<typename _tChar, class _tTraits, class _tAlloc>
+struct hash<basic_string<_tChar, _tTraits, _tAlloc>>
+{
+	/*!
+	\see WG21 P0513R0 。
+	\see LWG 2791 。
+	*/
+	size_t
+	operator()(const basic_string<_tChar, _tTraits, _tAlloc>& k) const
+		ynothrow
+	{
+		// NOTE: This shall be exact the same to the hash functions for the
+		//	corresponding %ystdex::basic_string_view instance.
+		return hash<basic_string_view<_tChar, _tTraits>>()(k);
+	}
+};
+
+// NOTE: For exposition only. To implement the resolution of LWG 2791, they are
+//	not used.
+#		if false
+template<>
+struct hash<string> : std::hash<string>
+{};
+
+template<>
+struct hash<wstring> : std::hash<string>
+{};
+
+template<>
+struct hash<u16string> : std::hash<string>
+{};
+
+template<>
+struct hash<u32string> : std::hash<string>
+{};
+// XXX: For simplicity, %hash is not specialized for %std::pmr types here.
+#		endif
+#	endif
+//!@}
+#endif
+
+/*!
+\relates basic_string
+\see LWG 3705 。
+\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105907 。
+\since build 967
+*/
+template<typename _tChar, class _tTraits, class _tAlloc>
+struct is_fast_hash<std::hash<basic_string<_tChar, _tTraits, _tAlloc>>> : false_
+{};
+
 
 /*!
 \ingroup traits
@@ -856,6 +932,13 @@ struct string_hash
 	}
 };
 
+/*!
+\relates string_hash
+\since build 967
+*/
+template<typename _tChar>
+struct is_fast_hash<std::hash<string_hash<_tChar>>> : false_
+{};
 
 //! \since build 450
 namespace details
@@ -1365,6 +1448,9 @@ concat(_tString& str, size_t n)
 	}
 }
 
+// NOTE: To be efficient, the string default argument in following overloads is
+//	constructed directly by %to_array instead of some shared static objects.
+
 //! \pre 字符串类型满足 basic_string 或 basic_string_view 的操作及异常规范。
 //!@{
 //! \since build 592
@@ -1751,7 +1837,7 @@ extract_line(std::basic_istream<_tChar, _tTraits>& is,
 
 /*!
 \brief 同 \c ystdex::extract_line ，但允许分隔符包含附加的前缀字符。
-\note 默认 \c LF 作为基准分隔符，前缀为 \c CR ，即接受 \c LF 和 <tt>CR+LF</tt> 。
+\note 默认 \c LF 作为基准分隔符，前缀为 \c CR ，即接受 \c LF 和 \c CR+LF 。
 \note 一般配合二进制方式打开的流使用，以避免不必要的分隔符转换。
 */
 template<typename _tChar, class _tTraits, class _tAlloc>
@@ -2209,12 +2295,55 @@ namespace std
 
 /*!
 \brief ystdex::basic_string 散列支持。
+\see WG21 P1406R1 。
+\see LWG 2978 。
+\see LWG 3705 。
 \since build 833
 */
+#if false
+// XXX: This is only correct when all specializations of %std::hash for
+//	%std::basic_string are correct, i.e. both the resoultions of LWG 2791 and
+//	LWG 3705 are implemented. At current this is not reliably detectable.
 template<typename _tChar, class _tTraits, class _tAlloc>
 struct hash<ystdex::basic_string<_tChar, _tTraits, _tAlloc>>
 	: hash<basic_string<_tChar, _tTraits, _tAlloc>>
 {};
+#else
+template<typename _tChar, class _tTraits, class _tAlloc>
+struct hash<ystdex::basic_string<_tChar, _tTraits, _tAlloc>>
+{
+	size_t
+	operator()(const ystdex::basic_string<_tChar, _tTraits, _tAlloc>& k) const
+		ynothrow
+	{
+		// NOTE: This shall be exact the same to the hash functions for the
+		//	corresponding %ystdex::basic_string_view instance.
+		return hash<ystdex::basic_string_view<_tChar, _tTraits>>()(k);
+	}
+};
+
+// NOTE: For exposition only. To implement the resolution of LWG 2791, they are
+//	not used.
+#	if false
+template<>
+struct hash<ystdex::string> : hash<string>
+{};
+
+template<>
+struct hash<ystdex::wstring> : hash<string>
+{};
+
+template<>
+struct hash<ystdex::u16string> : hash<string>
+{};
+
+template<>
+struct hash<ystdex::u32string> : hash<string>
+{};
+// XXX: Specializations of %hash for %pmr are not available here, so just ignore
+//	them. See also LWG 2978.
+#	endif
+#endif
 
 } // namespace std;
 #endif

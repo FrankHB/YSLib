@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016, 2018, 2021 FrankHB.
+	© 2015-2016, 2018, 2021, 2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file tstring_view.hpp
 \ingroup YStandardEx
 \brief 指定结束字符的只读字符串视图。
-\version r329
+\version r357
 \author FrankHB <frankhb1989@gmail.com>
 \since build 640
 \par 创建时间:
 	2015-10-01 22:56:52 +0800
 \par 修改时间:
-	2021-12-21 20:50 +0800
+	2023-02-06 06:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YB_INC_ystdex_tstring_view_hpp_ 1
 
 #include "string_view.hpp" // for std::char_traits, basic_string_view,
-//	std::basic_string;
+//	std::basic_string, is_fast_hash;
 #include "operators.hpp" // for totally_ordered;
 #include <memory>// for std::allocator;
 #include <stdexcept> // for std::out_of_range;
@@ -44,7 +44,7 @@ namespace ystdex
 \sa basic_string_view
 \todo 实现一般非空字符作为结束字符的情形。
 */
-//@{
+//!@{
 template<typename _tChar, class _tTraits = std::char_traits<_tChar>,
 	char32_t _vTerm = 0>
 class basic_tstring_view;
@@ -212,7 +212,7 @@ public:
 	using base::find_last_not_of;
 
 	//! \since build 641
-	//@{
+	//!@{
 	static YB_NONNULL(1) bool
 	verify(const _tChar* str, size_type len) ynothrowv
 	{
@@ -226,14 +226,14 @@ public:
 		yconstraint(str);
 		return str[len] == term;
 	}
-	//@}
+	//!@}
 };
 
 /*!
 \relates basic_tstring_view
 \since build 642
 */
-//@{
+//!@{
 template<typename _tChar, class _tTraits>
 yconstfn bool
 operator==(basic_tstring_view<_tChar, _tTraits> x,
@@ -286,16 +286,40 @@ operator<<(std::basic_ostream<_tChar, _tTraits>& os,
 	// XXX: Better implementation?
 	return os << str.to_string();
 }
-//@}
+//!@}
+
+/*!
+\relates basic_tstring_view
+\since build 967
+*/
+template<typename _tChar, class _tTraits>
+struct is_fast_hash<std::hash<basic_tstring_view<_tChar, _tTraits>>>
+	: is_fast_hash<std::hash<basic_string_view<_tChar, _tTraits>>>
+{};
 
 
 using tstring_view = basic_tstring_view<char>;
 using wtstring_view = basic_tstring_view<wchar_t>;
 using u16tstring_view = basic_tstring_view<char16_t>;
 using u32tstring_view = basic_tstring_view<char32_t>;
-//@}
+//!@}
 
 } // namespace ystdex;
+
+namespace std
+{
+
+/*!
+\ingroup hashers
+\brief ystdex::tbasic_string_view 散列支持。
+\since build 967
+*/
+template<typename _tChar, class _tTraits>
+struct hash<ystdex::basic_tstring_view<_tChar, _tTraits>>
+	: hash<ystdex::basic_string_view<_tChar, _tTraits>>
+{};
+
+} // namespace std;
 
 #endif
 

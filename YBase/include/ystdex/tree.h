@@ -11,13 +11,13 @@
 /*!	\file tree.h
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r4916
+\version r4926
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2023-02-06 00:30 +0800
+	2023-02-13 20:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1823,8 +1823,7 @@ private:
 	void
 	merge_impl(compatible_tree_type<_fComp2>& src, _fCallable f)
 	{
-		YAssert(get_allocator() == src.get_allocator(),
-			"Mismatched allocators found.");
+		ystdex::expects_equal_allocators(*this, src);
 
 		auto i(src.begin());
 		const auto last(src.end());
@@ -2107,8 +2106,7 @@ public:
 			ret.position = end();
 		else
 		{
-			YAssert(get_node_allocator() == *nh.alloc,
-				"Mismatched allocators found.");
+			ystdex::expects_equal_allocators(*this, nh);
 
 			const auto pr(get_insert_unique_pos(nh.ckey()));
 
@@ -2137,8 +2135,7 @@ public:
 			ret = end();
 		else
 		{
-			YAssert(get_node_allocator() == *nh.alloc,
-				"Mismatched allocators found.");
+			ystdex::expects_equal_allocators(*this, nh);
 
 			const auto pr(get_insert_equal_pos(nh.ckey()));
 
@@ -2155,8 +2152,7 @@ public:
 		if(nh.empty())
 			return end();
 
-		YAssert(get_node_allocator() == *nh.alloc,
-			"Mismatched allocators found.");
+		ystdex::expects_equal_allocators(*this, nh);
 
 		const auto pr(get_insert_hint_unique_pos(hint, nh.ckey()));
 
@@ -2176,8 +2172,7 @@ public:
 		if(nh.empty())
 			return end();
 
-		YAssert(get_node_allocator() == *nh.alloc,
-			"Mismatched allocators found.");
+		ystdex::expects_equal_allocators(*this, nh);
 
 		const auto pr(get_insert_hint_equal_pos(hint, nh.ckey()));
 		auto ret(pr.second ? insert_node(pr.first, pr.second, nh.ptr)
